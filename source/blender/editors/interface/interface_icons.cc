@@ -2028,7 +2028,7 @@ int UI_icon_from_idcode(const int idcode)
     case ID_GD_LEGACY:
       return ICON_OUTLINER_DATA_GREASEPENCIL;
     case ID_GR:
-      return ICON_OUTLINER_COLLECTION;
+      return ICON_GROUP;
     case ID_IM:
       return ICON_IMAGE_DATA;
     case ID_LA:

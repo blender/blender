@@ -409,9 +409,7 @@ static bool snap_object_is_snappable(const SnapObjectContext *sctx,
     return false;
   }
 
-  if ((snap_target_select == SCE_SNAP_TARGET_ALL) ||
-      (base->flag_legacy & BA_TRANSFORM_LOCKED_IN_PLACE))
-  {
+  if (snap_target_select == SCE_SNAP_TARGET_ALL) {
     return true;
   }
 

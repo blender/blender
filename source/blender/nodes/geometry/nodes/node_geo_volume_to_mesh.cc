@@ -27,13 +27,13 @@ static EnumPropertyItem resolution_mode_items[] = {
     {VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT,
      "VOXEL_AMOUNT",
      0,
-     "Amount",
-     "Desired number of voxels along one axis"},
+     N_("Amount"),
+     N_("Desired number of voxels along one axis")},
     {VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE,
      "VOXEL_SIZE",
      0,
-     "Size",
-     "Desired voxel side length"},
+     N_("Size"),
+     N_("Desired voxel side length")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

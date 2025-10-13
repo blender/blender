@@ -21,20 +21,20 @@ static const EnumPropertyItem type_items[] = {
     {CMP_NODE_ALPHA_OVER_OPERATION_TYPE_OVER,
      "OVER",
      ICON_NONE,
-     "Over",
-     "The foreground goes over the background according to the alpha of the foreground"},
+     N_("Over"),
+     N_("The foreground goes over the background according to the alpha of the foreground")},
     {CMP_NODE_ALPHA_OVER_OPERATION_TYPE_DISJOINT_OVER,
      "DISJOINT_OVER",
      ICON_NONE,
-     "Disjoint Over",
-     "The foreground goes over the background according to the alpha of the foreground while "
-     "assuming the background is being held out by the foreground"},
+     N_("Disjoint Over"),
+     N_("The foreground goes over the background according to the alpha of the foreground while "
+        "assuming the background is being held out by the foreground")},
     {CMP_NODE_ALPHA_OVER_OPERATION_TYPE_CONJOINT_OVER,
      "CONJOINT_OVER",
      ICON_NONE,
-     "Conjoint Over",
-     "The foreground goes over the background according to the alpha of the foreground but the "
-     "foreground completely covers the background if it is more opaque"},
+     N_("Conjoint Over"),
+     N_("The foreground goes over the background according to the alpha of the foreground but the "
+        "foreground completely covers the background if it is more opaque")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

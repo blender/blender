@@ -1353,10 +1353,10 @@ def fk_to_ik(rig: ArmatureObject, window='ALL'):
                     # fk_ctrl = names['fk_ctrl']
                     parent = names['parent']
                     pole = names['pole']
-                    rig.pose.bones[controls[0]].bone.select = True
-                    rig.pose.bones[controls[4]].bone.select = True
-                    rig.pose.bones[pole].bone.select = True
-                    rig.pose.bones[parent].bone.select = True
+                    rig.pose.bones[controls[0]].select = True
+                    rig.pose.bones[controls[4]].select = True
+                    rig.pose.bones[pole].select = True
+                    rig.pose.bones[parent].select = True
                     kwargs = {'uarm_fk': controls[1], 'farm_fk': controls[2], 'hand_fk': controls[3],
                               'uarm_ik': controls[0], 'farm_ik': ik_ctrl[1], 'hand_ik': controls[4],
                               'pole': pole, 'main_parent': parent}
@@ -1369,11 +1369,11 @@ def fk_to_ik(rig: ArmatureObject, window='ALL'):
                     # fk_ctrl = names['fk_ctrl']
                     parent = names['parent']
                     pole = names['pole']
-                    rig.pose.bones[controls[0]].bone.select = True
-                    rig.pose.bones[controls[6]].bone.select = True
-                    rig.pose.bones[controls[5]].bone.select = True
-                    rig.pose.bones[pole].bone.select = True
-                    rig.pose.bones[parent].bone.select = True
+                    rig.pose.bones[controls[0]].select = True
+                    rig.pose.bones[controls[6]].select = True
+                    rig.pose.bones[controls[5]].select = True
+                    rig.pose.bones[pole].select = True
+                    rig.pose.bones[parent].select = True
                     # noinspection SpellCheckingInspection
                     kwargs = {'thigh_fk': controls[1], 'shin_fk': controls[2], 'foot_fk': controls[3],
                               'mfoot_fk': controls[7], 'thigh_ik': controls[0], 'shin_ik': ik_ctrl[1],
@@ -1432,9 +1432,9 @@ def ik_to_fk(rig: ArmatureObject, window='ALL'):
                     # fk_ctrl = names['fk_ctrl']
                     parent = names['parent']
                     pole = names['pole']
-                    rig.pose.bones[controls[1]].bone.select = True
-                    rig.pose.bones[controls[2]].bone.select = True
-                    rig.pose.bones[controls[3]].bone.select = True
+                    rig.pose.bones[controls[1]].select = True
+                    rig.pose.bones[controls[2]].select = True
+                    rig.pose.bones[controls[3]].select = True
                     kwargs = {'uarm_fk': controls[1], 'farm_fk': controls[2], 'hand_fk': controls[3],
                               'uarm_ik': controls[0], 'farm_ik': ik_ctrl[1],
                               'hand_ik': controls[4]}
@@ -1447,9 +1447,9 @@ def ik_to_fk(rig: ArmatureObject, window='ALL'):
                     # fk_ctrl = names['fk_ctrl']
                     parent = names['parent']
                     pole = names['pole']
-                    rig.pose.bones[controls[1]].bone.select = True
-                    rig.pose.bones[controls[2]].bone.select = True
-                    rig.pose.bones[controls[3]].bone.select = True
+                    rig.pose.bones[controls[1]].select = True
+                    rig.pose.bones[controls[2]].select = True
+                    rig.pose.bones[controls[3]].select = True
                     # noinspection SpellCheckingInspection
                     kwargs = {'thigh_fk': controls[1], 'shin_fk': controls[2], 'foot_fk': controls[3],
                               'mfoot_fk': controls[7], 'thigh_ik': controls[0], 'shin_ik': ik_ctrl[1],
@@ -1550,10 +1550,10 @@ def rot_pole_toggle(rig: ArmatureObject, window='ALL', value=False, toggle=False
                     # fk_ctrl = names['fk_ctrl']
                     parent = names['parent']
                     pole = names['pole']
-                    rig.pose.bones[controls[0]].bone.select = not new_pole_vector_value
-                    rig.pose.bones[controls[4]].bone.select = not new_pole_vector_value
-                    rig.pose.bones[parent].bone.select = not new_pole_vector_value
-                    rig.pose.bones[pole].bone.select = new_pole_vector_value
+                    rig.pose.bones[controls[0]].select = not new_pole_vector_value
+                    rig.pose.bones[controls[4]].select = not new_pole_vector_value
+                    rig.pose.bones[parent].select = not new_pole_vector_value
+                    rig.pose.bones[pole].select = new_pole_vector_value
 
                     kwargs1 = {'uarm_fk': controls[1], 'farm_fk': controls[2], 'hand_fk': controls[3],
                                'uarm_ik': controls[0], 'farm_ik': ik_ctrl[1],
@@ -1570,11 +1570,11 @@ def rot_pole_toggle(rig: ArmatureObject, window='ALL', value=False, toggle=False
                     # fk_ctrl = names['fk_ctrl']
                     parent = names['parent']
                     pole = names['pole']
-                    rig.pose.bones[controls[0]].bone.select = not new_pole_vector_value
-                    rig.pose.bones[controls[6]].bone.select = not new_pole_vector_value
-                    rig.pose.bones[controls[5]].bone.select = not new_pole_vector_value
-                    rig.pose.bones[parent].bone.select = not new_pole_vector_value
-                    rig.pose.bones[pole].bone.select = new_pole_vector_value
+                    rig.pose.bones[controls[0]].select = not new_pole_vector_value
+                    rig.pose.bones[controls[6]].select = not new_pole_vector_value
+                    rig.pose.bones[controls[5]].select = not new_pole_vector_value
+                    rig.pose.bones[parent].select = not new_pole_vector_value
+                    rig.pose.bones[pole].select = new_pole_vector_value
 
                     # noinspection SpellCheckingInspection
                     kwargs1 = {'thigh_fk': controls[1], 'shin_fk': controls[2], 'foot_fk': controls[3],
@@ -1711,7 +1711,7 @@ class OBJECT_OT_Rot2Pole(bpy.types.Operator):
 
         if self.bone_name:
             bpy.ops.pose.select_all(action='DESELECT')
-            rig.pose.bones[self.bone_name].bone.select = True
+            rig.pose.bones[self.bone_name].select = True
 
         rot_pole_toggle(rig, window=self.window, toggle=self.toggle, value=self.value, bake=self.bake)
         return {'FINISHED'}

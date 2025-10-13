@@ -110,7 +110,8 @@ class MultiFunctionProcedureOperation : public PixelOperation {
 
   /* Convert the given variable to the given expected type. This is done by adding an implicit
    * conversion function whose output variable will be returned. If no conversion is needed, the
-   * given variable is returned as is. */
+   * given variable is returned as is. If conversion is not possible, a fallback default variable
+   * will b returned. */
   mf::Variable *convert_variable(mf::Variable *variable, const mf::DataType expected_type);
 
   /* Returns true if the operation operates on single values, that is, all of its inputs are single

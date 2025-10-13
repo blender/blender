@@ -437,12 +437,12 @@ static bool ntree_shader_implicit_closure_cast(bNodeTree *ntree)
     }
     else if ((link->fromsock->type == SOCK_SHADER) && (link->tosock->type != SOCK_SHADER)) {
       blender::bke::node_remove_link(ntree, *link);
-      BKE_ntree_update_after_single_tree_change(*G.main, *ntree);
+      BKE_ntree_update_without_main(*ntree);
       modified = true;
     }
   }
   if (modified) {
-    BKE_ntree_update_after_single_tree_change(*G.main, *ntree);
+    BKE_ntree_update_without_main(*ntree);
   }
   return true;
 }
@@ -736,7 +736,7 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
                                 *output_node,
                                 *thickness_output);
   }
-  BKE_ntree_update_after_single_tree_change(*G.main, *ntree);
+  BKE_ntree_update_without_main(*ntree);
 }
 
 static bool closure_node_filter(const bNode *node)
@@ -788,7 +788,7 @@ static void ntree_shader_shader_to_rgba_branches(bNodeTree *ntree)
       continue;
     }
     ntree_shader_copy_branch(ntree, shader_to_rgba, closure_node_filter);
-    BKE_ntree_update_after_single_tree_change(*G.main, *ntree);
+    BKE_ntree_update_without_main(*ntree);
 
     ntree_shader_weight_tree_invert(ntree, shader_to_rgba);
   }
@@ -981,7 +981,7 @@ static void ntree_shader_pruned_unused(bNodeTree *ntree, bNode *output_node)
   }
 
   if (changed) {
-    BKE_ntree_update_after_single_tree_change(*G.main, *ntree);
+    BKE_ntree_update_without_main(*ntree);
   }
 }
 

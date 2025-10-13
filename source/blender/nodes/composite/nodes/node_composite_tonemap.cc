@@ -28,13 +28,13 @@ static const EnumPropertyItem type_items[] = {
     {CMP_NODE_TONE_MAP_PHOTORECEPTOR,
      "RD_PHOTORECEPTOR",
      0,
-     "R/D Photoreceptor",
-     "More advanced algorithm based on eye physiology, by Reinhard and Devlin"},
+     N_("R/D Photoreceptor"),
+     N_("More advanced algorithm based on eye physiology, by Reinhard and Devlin")},
     {CMP_NODE_TONE_MAP_SIMPLE,
      "RH_SIMPLE",
      0,
-     "Rh Simple",
-     "Simpler photographic algorithm by Reinhard"},
+     N_("Rh Simple"),
+     N_("Simpler photographic algorithm by Reinhard")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

@@ -69,12 +69,7 @@ struct CurvesApplyOp {
   }
 };
 
-static void curves_apply(const RenderData * /*render_data*/,
-                         const Strip * /*strip*/,
-                         const float transform[3][3],
-                         StripModifierData *smd,
-                         ImBuf *ibuf,
-                         ImBuf *mask)
+static void curves_apply(ModifierApplyContext &context, StripModifierData *smd, ImBuf *mask)
 {
   CurvesModifierData *cmd = (CurvesModifierData *)smd;
 
@@ -88,7 +83,7 @@ static void curves_apply(const RenderData * /*render_data*/,
 
   CurvesApplyOp op;
   op.curve_mapping = &cmd->curve_mapping;
-  apply_modifier_op(op, ibuf, mask, float3x3(transform));
+  apply_modifier_op(op, context.image, mask, context.transform);
 
   BKE_curvemapping_premultiply(&cmd->curve_mapping, true);
 }

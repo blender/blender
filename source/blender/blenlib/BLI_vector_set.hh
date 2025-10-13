@@ -183,6 +183,12 @@ class VectorSet {
     keys_ = inline_buffer_;
   }
 
+  VectorSet(Hash hash, IsEqual is_equal) : VectorSet()
+  {
+    hash_ = std::move(hash);
+    is_equal_ = std::move(is_equal);
+  }
+
   VectorSet(NoExceptConstructor, Allocator allocator = {}) : VectorSet(allocator) {}
 
   VectorSet(Span<Key> keys, Allocator allocator = {}) : VectorSet(NoExceptConstructor(), allocator)

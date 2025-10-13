@@ -124,6 +124,8 @@ struct uiWidgetStateInfo {
   int but_flag;
   /** Copy of #uiBut.drawflag (possibly with overrides for drawing). */
   int but_drawflag;
+  /** Copy of #uiBut.emboss. */
+  blender::ui::EmbossType emboss;
 
   /** Show that holding the button opens a menu. */
   bool has_hold_action : 1;
@@ -3709,7 +3711,7 @@ static void widget_numbut(uiBut *but,
 
 static void widget_menubut(uiWidgetColors *wcol,
                            rcti *rect,
-                           const uiWidgetStateInfo * /*state*/,
+                           const uiWidgetStateInfo *state,
                            int roundboxalign,
                            const float zoom)
 {
@@ -3723,6 +3725,12 @@ static void widget_menubut(uiWidgetColors *wcol,
   shape_preset_trias_from_rect_menu(&wtb.tria1, rect);
   /* copy size and center to 2nd tria */
   wtb.tria2 = wtb.tria1;
+
+  if (ELEM(state->emboss, blender::ui::EmbossType::NoneOrStatus, blender::ui::EmbossType::None)) {
+    wtb.draw_inner = false;
+    wtb.draw_outline = false;
+    wtb.draw_emboss = false;
+  }
 
   widgetbase_draw(&wtb, wcol);
 
@@ -5019,6 +5027,22 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
   return roundbox;
 }
 
+static uiWidgetType *popover_widget_type(uiBut *but, rcti *rect)
+{
+  /* We could use a flag for this, but for now just check size,
+   * add up/down arrows if there is room. */
+  if ((but->str.empty() && but->icon && (BLI_rcti_size_x(rect) < BLI_rcti_size_y(rect) + 2)) ||
+      /* disable for brushes also */
+      (but->flag & UI_BUT_ICON_PREVIEW))
+  {
+    /* No arrows. */
+    return widget_type(UI_WTYPE_MENU_ICON_RADIO);
+  }
+
+  /* With menu arrows. */
+  return widget_type(UI_WTYPE_MENU_RADIO);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -5067,6 +5091,9 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
         break;
       case ButType::PreviewTile:
         wt = widget_type(UI_WTYPE_PREVIEW_TILE);
+        break;
+      case ButType::Popover:
+        wt = popover_widget_type(but, rect);
         break;
       case ButType::NodeSocket:
         wt = widget_type(UI_WTYPE_NODESOCKET);
@@ -5184,21 +5211,8 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
           wt = widget_type(UI_WTYPE_MENU_NODE_LINK);
         }
         else {
-          /* with menu arrows */
-
-          /* We could use a flag for this, but for now just check size,
-           * add up/down arrows if there is room. */
-          if ((but->str.empty() && but->icon &&
-               (BLI_rcti_size_x(rect) < BLI_rcti_size_y(rect) + 2)) ||
-              /* disable for brushes also */
-              (but->flag & UI_BUT_ICON_PREVIEW))
-          {
-            /* no arrows */
-            wt = widget_type(UI_WTYPE_MENU_ICON_RADIO);
-          }
-          else {
-            wt = widget_type(UI_WTYPE_MENU_RADIO);
-          }
+          /* Popover button. */
+          wt = popover_widget_type(but, rect);
         }
         break;
 
@@ -5322,6 +5336,7 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
   uiWidgetStateInfo state = {0};
   state.but_flag = but->flag;
   state.but_drawflag = but->drawflag;
+  state.emboss = but->emboss;
 
   /* Override selected flag for drawing. */
   if (but->flag & UI_SELECT_DRAW) {

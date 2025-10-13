@@ -63,7 +63,6 @@ OptiXDevice::OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
 
   /* Create OptiX context for this device. */
   OptixDeviceContextOptions options = {};
-#  ifdef WITH_CYCLES_LOGGING
   options.logCallbackLevel = 4; /* Fatal = 1, Error = 2, Warning = 3, Print = 4. */
   options.logCallbackFunction = [](unsigned int level, const char *, const char *message, void *) {
     switch (level) {
@@ -77,22 +76,19 @@ OptiXDevice::OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
         LOG_WARNING << message;
         break;
       case 4:
-        LOG_INFO << message;
+        LOG_DEBUG << message;
         break;
       default:
         break;
     }
   };
-#  endif
   if (DebugFlags().optix.use_debug) {
     LOG_INFO << "Using OptiX debug mode.";
     options.validationMode = OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_ALL;
   }
   optix_assert(optixDeviceContextCreate(cuContext, &options, &context));
-#  ifdef WITH_CYCLES_LOGGING
   optix_assert(optixDeviceContextSetLogCallback(
       context, options.logCallbackFunction, options.logCallbackData, options.logCallbackLevel));
-#  endif
 
   /* Fix weird compiler bug that assigns wrong size. */
   launch_params.data_elements = sizeof(KernelParamsOptiX);

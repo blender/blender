@@ -101,9 +101,9 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *node_ptr)
   layout->use_property_split_set(true);
   layout->use_property_decorate_set(false);
 
-  layout->op("node.sockets_sync", "Sync", ICON_FILE_REFRESH);
+  layout->op("node.sockets_sync", IFACE_("Sync"), ICON_FILE_REFRESH);
   layout->prop(node_ptr, "define_signature", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  if (uiLayout *panel = layout->panel(C, "bundle_items", false, TIP_("Bundle Items"))) {
+  if (uiLayout *panel = layout->panel(C, "bundle_items", false, IFACE_("Bundle Items"))) {
     socket_items::ui::draw_items_list_with_operators<SeparateBundleItemsAccessor>(
         C, panel, ntree, node);
     socket_items::ui::draw_active_item_props<SeparateBundleItemsAccessor>(
@@ -111,9 +111,9 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *node_ptr)
           const auto &item = *item_ptr->data_as<NodeSeparateBundleItem>();
           panel->use_property_split_set(true);
           panel->use_property_decorate_set(false);
-          panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, "Type", ICON_NONE);
+          panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, IFACE_("Type"), ICON_NONE);
           if (!socket_type_always_single(eNodeSocketDatatype(item.socket_type))) {
-            panel->prop(item_ptr, "structure_type", UI_ITEM_NONE, "Shape", ICON_NONE);
+            panel->prop(item_ptr, "structure_type", UI_ITEM_NONE, IFACE_("Shape"), ICON_NONE);
           }
         });
   }

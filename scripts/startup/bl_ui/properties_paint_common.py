@@ -309,8 +309,8 @@ class UnifiedPaintPanel:
             curve_visibility_name,
             text="",
             icon='DOWNARROW_HLT' if is_active else 'RIGHTARROW',
-            emboss=False)
-
+            emboss=False,
+        )
         if is_active:
             subcol = layout.column()
             subcol.active = getattr(brush, pressure_name)
@@ -582,7 +582,8 @@ class StrokePanel(BrushPanel):
                     "show_jitter_curve",
                     icon='DOWNARROW_HLT' if settings.show_jitter_curve else 'RIGHTARROW',
                     text="",
-                    emboss=False)
+                    emboss=False,
+                )
             # Pen pressure mapping curve for Jitter.
             if settings.show_jitter_curve and self.is_popover is False:
                 subcol = col.column()
@@ -670,9 +671,12 @@ class FalloffPanel(BrushPanel):
             col.prop(brush, "curve_distance_falloff_preset", text="")
 
         if brush.curve_distance_falloff_preset == 'CUSTOM':
-            layout.template_curve_mapping(brush, "curve_distance_falloff", brush=True,
-                                          use_negative_slope=True, show_presets=True)
-
+            layout.template_curve_mapping(
+                brush, "curve_distance_falloff",
+                brush=True,
+                use_negative_slope=True,
+                show_presets=True,
+            )
             col = layout.column(align=True)
             row = col.row(align=True)
 
@@ -1730,8 +1734,8 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
                 "show_size_curve",
                 text="",
                 icon='DOWNARROW_HLT' if paint.show_size_curve else 'RIGHTARROW',
-                emboss=False)
-
+                emboss=False,
+            )
             if paint.show_size_curve:
                 col = layout.column()
                 col.active = brush.use_pressure_size
@@ -1746,8 +1750,8 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
                 "show_strength_curve",
                 text="",
                 icon='DOWNARROW_HLT' if paint.show_strength_curve else 'RIGHTARROW',
-                emboss=False)
-
+                emboss=False,
+            )
             if paint.show_strength_curve:
                 col = layout.column()
                 col.active = brush.use_pressure_strength

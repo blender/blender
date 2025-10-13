@@ -261,7 +261,10 @@ void LibOCIOGPUShaderBinder::construct_scene_linear_shader(
   }
 
   construct_shader_for_processors(
-      display_shader, processor_to_scene_linear, nullptr, {{"USE_TO_SCENE_LINEAR_ONLY", ""}});
+      display_shader,
+      processor_to_scene_linear,
+      nullptr,
+      {{"USE_TO_SCENE_LINEAR_ONLY", ""}, {"OUTPUT_PREMULTIPLIED", ""}});
 }
 
 }  // namespace blender::ocio

@@ -22,13 +22,13 @@ static const EnumPropertyItem type_items[] = {
     {CMP_NODE_ALPHA_CONVERT_PREMULTIPLY,
      "STRAIGHT_TO_PREMULTIPLIED",
      0,
-     "To Premultiplied",
-     "Convert straight to premultiplied"},
+     N_("To Premultiplied"),
+     N_("Convert straight to premultiplied")},
     {CMP_NODE_ALPHA_CONVERT_UNPREMULTIPLY,
      "PREMULTIPLIED_TO_STRAIGHT",
      0,
-     "To Straight",
-     "Convert premultiplied to straight"},
+     N_("To Straight"),
+     N_("Convert premultiplied to straight")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

@@ -45,6 +45,10 @@ static void node_geo_exec(GeoNodeExecParams params)
       mesh->corner_tris(),
       params.extract_input<float>("Voxel Size"),
       std::max(1, params.extract_input<int>("Band Width")));
+  if (!grid) {
+    params.set_default_remaining_outputs();
+    return;
+  }
   params.set_output("SDF Grid", std::move(grid));
 #else
   node_geo_exec_with_missing_openvdb(params);

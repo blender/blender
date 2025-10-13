@@ -108,7 +108,7 @@ class QuickFur(ObjectModeOperator, Operator):
         asset_library_filepath = os.path.join(
             bpy.utils.system_resource('DATAFILES'),
             "assets",
-            "geometry_nodes",
+            "nodes",
             "procedural_hair_node_assets.blend",
         )
 

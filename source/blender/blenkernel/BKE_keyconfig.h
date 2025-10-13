@@ -54,6 +54,8 @@ struct wmKeyConfigFilterItemParams {
   uint check_diff_item_add : 1;
   uint check_diff_item_remove : 1;
 };
+/** Use when all items should be manipulated. */
+#define WM_KEY_CONFIG_FILTER_ITEM_ALL {true, true, true}
 
 void BKE_keyconfig_keymap_filter_item(struct wmKeyMap *keymap,
                                       const struct wmKeyConfigFilterItemParams *params,

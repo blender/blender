@@ -220,7 +220,7 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
 
   id->lib = nullptr;
   id->tag &= ~(ID_TAG_INDIRECT | ID_TAG_EXTERN);
-  id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
+  id->flag &= ~(ID_FLAG_INDIRECT_WEAK_LINK | ID_FLAG_LINKED_AND_PACKED);
   if (id_in_mainlist) {
     IDNewNameResult result = BKE_id_new_name_validate(*bmain,
                                                       *which_libbase(bmain, GS(id->name)),

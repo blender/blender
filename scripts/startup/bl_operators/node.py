@@ -26,6 +26,7 @@ from bpy.app.translations import (
     pgettext_tip as tip_,
     pgettext_data as data_,
     pgettext_rpt as rpt_,
+    pgettext_n as n_,
 )
 
 
@@ -210,8 +211,10 @@ class NodeAddOperator(NodeOperator):
     def poll(cls, context):
         space = context.space_data
         # Needs active node editor and a tree to add nodes to.
-        return (space and (space.type == 'NODE_EDITOR') and
-                space.edit_tree and space.edit_tree.is_editable)
+        return (
+            space and (space.type == 'NODE_EDITOR') and
+            space.edit_tree and space.edit_tree.is_editable
+        )
 
     # Default invoke stores the mouse position to place the node correctly
     # and optionally invokes the transform operator.
@@ -602,16 +605,16 @@ class ZoneOperator:
 
     _zone_tooltips = {
         "GeometryNodeSimulationInput": (
-            "Simulate the execution of nodes across a time span"
+            n_("Simulate the execution of nodes across a time span")
         ),
         "GeometryNodeRepeatInput": (
-            "Execute nodes with a dynamic number of repetitions"
+            n_("Execute nodes with a dynamic number of repetitions")
         ),
         "GeometryNodeForeachGeometryElementInput": (
-            "Perform operations separately for each geometry element (e.g. vertices, edges, etc.)"
+            n_("Perform operations separately for each geometry element (e.g. vertices, edges, etc.)")
         ),
         "NodeClosureInput": (
-            "Wrap nodes inside a closure that can be executed at a different part of the node-tree"
+            n_("Wrap nodes inside a closure that can be executed at a different part of the node-tree")
         ),
     }
 

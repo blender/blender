@@ -279,7 +279,7 @@ class Result {
   void steal_data(Result &source);
 
   /* Similar to the Result variant of steal_data, but steals from a raw data buffer. The buffer is
-   * assumed to be allocated using Blender's guarded allocator.  */
+   * assumed to be allocated using Blender's guarded allocator. */
   void steal_data(void *data, int2 size);
 
   /* Set up the result to wrap an external GPU texture that is not allocated nor managed by the

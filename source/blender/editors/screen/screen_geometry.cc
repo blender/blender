@@ -219,7 +219,8 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
         min = ED_area_headersize() + border_width + 1;
       }
 
-      if (area->winy && (area->winy < min)) {
+      const int height = screen_geom_area_height(area);
+      if (height < min) {
         /* lower edge */
         ScrEdge *se = BKE_screen_find_edge(screen, area->v4, area->v1);
         if (se && area->v1 != area->v2) {

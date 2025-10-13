@@ -33,17 +33,17 @@
 namespace blender::nodes::node_composite_colorbalance_cc {
 
 static const EnumPropertyItem type_items[] = {
-    {CMP_NODE_COLOR_BALANCE_LGG, "LIFT_GAMMA_GAIN", 0, "Lift/Gamma/Gain", ""},
+    {CMP_NODE_COLOR_BALANCE_LGG, "LIFT_GAMMA_GAIN", 0, N_("Lift/Gamma/Gain"), ""},
     {CMP_NODE_COLOR_BALANCE_ASC_CDL,
      "OFFSET_POWER_SLOPE",
      0,
-     "Offset/Power/Slope (ASC-CDL)",
-     "ASC-CDL standard color correction"},
+     N_("Offset/Power/Slope (ASC-CDL)"),
+     N_("ASC-CDL standard color correction")},
     {CMP_NODE_COLOR_BALANCE_WHITEPOINT,
      "WHITEPOINT",
      0,
-     "White Point",
-     "Chromatic adaption from a different white point"},
+     N_("White Point"),
+     N_("Chromatic adaption from a different white point")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

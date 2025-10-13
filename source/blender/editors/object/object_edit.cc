@@ -1663,9 +1663,9 @@ static bool is_smooth_by_angle_modifier(const ModifierData &md)
   if (!library) {
     return false;
   }
-  if (!BLI_path_contains(library->filepath,
-                         "datafiles/assets/nodes/geometry_nodes_essentials.blend"))
-  {
+  char auto_smooth_asset_path[FILE_MAX] = "datafiles/assets/nodes/geometry_nodes_essentials.blend";
+  BLI_path_normalize(auto_smooth_asset_path);
+  if (!StringRef(library->filepath).endswith(auto_smooth_asset_path)) {
     return false;
   }
   if (!STREQ(BKE_id_name(nmd.node_group->id), "Smooth by Angle")) {
@@ -2444,7 +2444,9 @@ static void move_to_collection_menu_draw(const bContext *C, Menu *menu)
   Scene *scene = CTX_data_scene(C);
   if (layout.operator_context() == wm::OpCallContext::ExecRegionWin) {
     layout.operator_context_set(wm::OpCallContext::InvokeRegionWin);
-    PointerRNA op_ptr = layout.op("WM_OT_search_single_menu", "Search...", ICON_VIEWZOOM);
+    PointerRNA op_ptr = layout.op("WM_OT_search_single_menu",
+                                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Search..."),
+                                  ICON_VIEWZOOM);
     RNA_string_set(&op_ptr, "menu_idname", menu->type->idname);
     layout.separator();
   }

@@ -76,7 +76,7 @@ def select_bones(arm_object: Object, action: Action, *, select: bool, flipped: b
         except KeyError:
             continue
 
-        pose_bone.bone.select = select
+        pose_bone.select = select
 
 
 if __name__ == '__main__':

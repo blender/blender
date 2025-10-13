@@ -1291,6 +1291,8 @@ class VIEW3D_MT_transform(VIEW3D_MT_transform_base, Menu):
             layout.operator("transform.skin_resize")
         elif context.mode in {'EDIT_CURVE', 'EDIT_GREASE_PENCIL', 'EDIT_CURVES', 'EDIT_POINTCLOUD'}:
             layout.operator("transform.transform", text="Radius").mode = 'CURVE_SHRINKFATTEN'
+        if context.mode == 'EDIT_GREASE_PENCIL':
+            layout.operator("transform.transform", text="Opacity").mode = 'GPENCIL_OPACITY'
 
         if context.mode != 'EDIT_CURVES' and context.mode != 'EDIT_GREASE_PENCIL':
             layout.separator()
@@ -2239,6 +2241,8 @@ class VIEW3D_MT_paint_vertex_grease_pencil(Menu):
         layout.operator("grease_pencil.vertex_color_levels", text="Levels")
         layout.operator("grease_pencil.vertex_color_hsv", text="Hue/Saturation/Value")
         layout.operator("grease_pencil.vertex_color_brightness_contrast", text="Brightness/Contrast")
+        layout.separator()
+        layout.operator("paint.sample_color").merged = False
 
 
 class VIEW3D_MT_select_paint_mask(Menu):
@@ -3066,21 +3070,24 @@ class VIEW3D_MT_object_context_menu(Menu):
                 if selected_objects_len > 1:
                     layout.operator("object.join")
 
-            if obj.type in {'MESH', 'CURVE', 'CURVES', 'SURFACE', 'POINTCLOUD',
-                            'META', 'FONT', 'GREASEPENCIL'}:
+            if obj.type in {
+                    'MESH', 'CURVE', 'CURVES', 'SURFACE', 'POINTCLOUD',
+                    'META', 'FONT', 'GREASEPENCIL'
+            }:
                 layout.operator_menu_enum("object.convert", "target")
 
-            if (obj.type in {'MESH',
-                             'CURVE',
-                             'CURVES',
-                             'SURFACE',
-                             'GREASEPENCIL',
-                             'LATTICE',
-                             'ARMATURE',
-                             'META',
-                             'FONT',
-                             'POINTCLOUD',
-                             } or (obj.type == 'EMPTY' and obj.instance_collection is not None)):
+            if (obj.type in {
+                'MESH',
+                'CURVE',
+                'CURVES',
+                'SURFACE',
+                'GREASEPENCIL',
+                'LATTICE',
+                'ARMATURE',
+                'META',
+                'FONT',
+                'POINTCLOUD',
+            } or (obj.type == 'EMPTY' and obj.instance_collection is not None)):
                 layout.operator_context = 'INVOKE_REGION_WIN'
                 layout.operator_menu_enum("object.origin_set", text="Set Origin", property="type")
                 layout.operator_context = 'INVOKE_DEFAULT'
@@ -9015,7 +9022,8 @@ class VIEW3D_PT_curves_sculpt_parameter_falloff(Panel):
             brush.curves_sculpt_settings,
             "curve_parameter_falloff",
             brush=True,
-            show_presets=True)
+            show_presets=True,
+        )
 
 
 class VIEW3D_PT_curves_sculpt_grow_shrink_scaling(Panel):

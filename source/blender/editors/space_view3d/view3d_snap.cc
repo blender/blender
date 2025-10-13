@@ -570,8 +570,12 @@ static bool snap_selected_to_location_rotation(bContext *C,
     }
 
     for (Object *ob : objects) {
-      if (ob->parent && BKE_object_flag_test_recursive(ob->parent, OB_DONE)) {
-        continue;
+      /* With offset enabled, skip child objects whose parents are also transformed
+       * to avoid double transform. */
+      if (use_offset) {
+        if (ob->parent && BKE_object_flag_test_recursive(ob->parent, OB_DONE)) {
+          continue;
+        }
       }
 
       blender::float3 target_loc_local; /* parent-relative */
@@ -929,7 +933,8 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
       }
 
       if (ED_transverts_check_obedit(obedit)) {
-        ED_transverts_create_from_obedit(&tvs, obedit, TM_ALL_JOINTS | TM_SKIP_HANDLES);
+        const Object *obedit_eval = DEG_get_evaluated(depsgraph, obedit);
+        ED_transverts_create_from_obedit(&tvs, obedit_eval, TM_ALL_JOINTS | TM_SKIP_HANDLES);
       }
 
       count += tvs.transverts_tot;

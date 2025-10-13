@@ -29,4 +29,14 @@ void main()
   interp.N = float3(1);
 
   gl_Position = reverse_z::transform(gl_Position);
+
+#ifdef MAT_SHADOW
+  /* This shader currently does not support shadow. But the shader validation pipeline still
+   * compiles the shadow variant of this shader. Avoid linking error on Intel Windows drivers. */
+#  ifdef SHADOW_UPDATE_ATOMIC_RASTER
+  shadow_iface.shadow_view_id = 0;
+#  endif
+  shadow_clip.position = float3(0);
+  shadow_clip.vector = float3(0);
+#endif
 }

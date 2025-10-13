@@ -427,6 +427,7 @@ void POSELIB_OT_create_pose_asset(wmOperatorType *ot)
   ot->name = "Create Pose Asset...";
   ot->description = "Create a new asset from the selected bones in the scene";
   ot->idname = "POSELIB_OT_create_pose_asset";
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   ot->exec = pose_asset_create_exec;
   ot->invoke = pose_asset_create_invoke;

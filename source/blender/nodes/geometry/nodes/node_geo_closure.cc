@@ -44,10 +44,10 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
 
   PointerRNA output_node_ptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &output_node);
 
-  layout->op("node.sockets_sync", "Sync", ICON_FILE_REFRESH);
+  layout->op("node.sockets_sync", IFACE_("Sync"), ICON_FILE_REFRESH);
   layout->prop(&output_node_ptr, "define_signature", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (current_node->type_legacy == NODE_CLOSURE_INPUT) {
-    if (uiLayout *panel = layout->panel(C, "input_items", false, TIP_("Input Items"))) {
+    if (uiLayout *panel = layout->panel(C, "input_items", false, IFACE_("Input Items"))) {
       socket_items::ui::draw_items_list_with_operators<ClosureInputItemsAccessor>(
           C, panel, ntree, output_node);
       socket_items::ui::draw_active_item_props<ClosureInputItemsAccessor>(
@@ -57,13 +57,13 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
             panel->use_property_decorate_set(false);
             panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
             if (!socket_type_always_single(eNodeSocketDatatype(item.socket_type))) {
-              panel->prop(item_ptr, "structure_type", UI_ITEM_NONE, "Shape", ICON_NONE);
+              panel->prop(item_ptr, "structure_type", UI_ITEM_NONE, IFACE_("Shape"), ICON_NONE);
             }
           });
     }
   }
   else {
-    if (uiLayout *panel = layout->panel(C, "output_items", false, TIP_("Output Items"))) {
+    if (uiLayout *panel = layout->panel(C, "output_items", false, IFACE_("Output Items"))) {
       socket_items::ui::draw_items_list_with_operators<ClosureOutputItemsAccessor>(
           C, panel, ntree, output_node);
       socket_items::ui::draw_active_item_props<ClosureOutputItemsAccessor>(
@@ -73,7 +73,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
             panel->use_property_decorate_set(false);
             panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
             if (!socket_type_always_single(eNodeSocketDatatype(item.socket_type))) {
-              panel->prop(item_ptr, "structure_type", UI_ITEM_NONE, "Shape", ICON_NONE);
+              panel->prop(item_ptr, "structure_type", UI_ITEM_NONE, IFACE_("Shape"), ICON_NONE);
             }
           });
     }

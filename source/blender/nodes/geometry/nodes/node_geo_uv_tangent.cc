@@ -20,16 +20,16 @@ static EnumPropertyItem method_items[] = {
     {int(Method::Exact),
      "EXACT",
      0,
-     "Exact",
-     "Calculation using the MikkTSpace library, consistent with tangents used elsewhere in "
-     "Blender"},
+     N_("Exact"),
+     N_("Calculation using the MikkTSpace library, consistent with tangents used elsewhere in "
+        "Blender")},
     {int(Method::Fast),
      "FAST",
      0,
-     "Fast",
-     "Significantly faster method that approximates tangents interpolated across face corners "
-     "with matching UVs. For a value actually tangential to the surface, use the cross product "
-     "with the normal."},
+     N_("Fast"),
+     N_("Significantly faster method that approximates tangents interpolated across face corners "
+        "with matching UVs. For a value actually tangential to the surface, use the cross product "
+        "with the normal.")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

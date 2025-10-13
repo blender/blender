@@ -2083,7 +2083,7 @@ static void move_weld_profile_planes(BevVert *bv, BoundVert *bndv1, BoundVert *b
   float l2 = normalize_v3(no2);
   cross_v3_v3v3(no3, d2, bndv2->profile.proj_dir);
   float l3 = normalize_v3(no3);
-  if (l1 > BEVEL_EPSILON && (l2 > BEVEL_EPSILON || l3 > BEVEL_EPSILON)) {
+  if (l1 != 0.0f && (l2 != 0.0f || l3 != 0.0f)) {
     float dot1 = fabsf(dot_v3v3(no, no2));
     float dot2 = fabsf(dot_v3v3(no, no3));
     if (fabsf(dot1 - 1.0f) > BEVEL_EPSILON) {

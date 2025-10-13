@@ -15,13 +15,17 @@ enum class PatternMode {
 };
 
 static const EnumPropertyItem pattern_mode_items[] = {
-    {int(PatternMode::Exact), "EXACT", 0, "Exact", "Remove the one attribute with the given name"},
+    {int(PatternMode::Exact),
+     "EXACT",
+     0,
+     N_("Exact"),
+     N_("Remove the one attribute with the given name")},
     {int(PatternMode::Wildcard),
      "WILDCARD",
      0,
-     "Wildcard",
-     "Remove all attributes that match the pattern which is allowed to contain a single "
-     "wildcard (*)"},
+     N_("Wildcard"),
+     N_("Remove all attributes that match the pattern which is allowed to contain a single "
+        "wildcard (*)")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

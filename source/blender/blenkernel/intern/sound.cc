@@ -427,6 +427,11 @@ static void sound_device_use_begin()
 
 static void sound_device_use_end_after(const std::chrono::milliseconds after_ms)
 {
+  BLI_assert(g_state.num_device_users > 0);
+  if (g_state.num_device_users == 0) {
+    return;
+  }
+
   --g_state.num_device_users;
   if (g_state.num_device_users == 0) {
     g_state.last_user_disconnect_time_point = std::chrono::steady_clock::now() + after_ms;

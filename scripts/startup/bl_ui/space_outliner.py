@@ -472,7 +472,7 @@ class OUTLINER_PT_filter(Panel):
         row.prop(space, "use_filter_view_layers", text="All View Layers")
 
         row = col.row()
-        row.label(icon='OUTLINER_COLLECTION')
+        row.label(icon='GROUP')
         row.prop(space, "use_filter_collection", text="Collections")
 
         row = col.row()

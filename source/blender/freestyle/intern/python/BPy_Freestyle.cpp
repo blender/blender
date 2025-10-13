@@ -156,7 +156,7 @@ static PyObject *Freestyle_blendRamp(PyObject * /*self*/, PyObject *args)
   PyObject *obj1, *obj2;
   char *s;
   int type;
-  float a[3], fac, b[3];
+  float a[4], fac, b[4];
 
   if (!PyArg_ParseTuple(args, "sOfO", &s, &obj1, &fac, &obj2)) {
     return nullptr;

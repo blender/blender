@@ -213,27 +213,27 @@ bool attribute_set_poll(bContext &C, const ID &object_data)
     return false;
   }
 
-  if (owner.type() != AttributeOwnerType::Mesh) {
-    bke::AttributeAccessor attributes = *owner.get_accessor();
-    std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(*name);
-    if (!meta_data) {
-      CTX_wm_operator_poll_msg_set(&C, "No active attribute");
-      return false;
-    }
-    if (ELEM(meta_data->data_type,
-             bke::AttrType::String,
-             bke::AttrType::Float4x4,
-             bke::AttrType::Quaternion))
-    {
+  if (owner.type() == AttributeOwnerType::Mesh) {
+    const CustomDataLayer *layer = BKE_attribute_search(
+        owner, *name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
+    if (ELEM(layer->type, CD_PROP_STRING, CD_PROP_FLOAT4X4, CD_PROP_QUATERNION)) {
       CTX_wm_operator_poll_msg_set(&C, "The active attribute has an unsupported type");
       return false;
     }
     return true;
   }
 
-  const CustomDataLayer *layer = BKE_attribute_search(
-      owner, *name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
-  if (ELEM(layer->type, CD_PROP_STRING, CD_PROP_FLOAT4X4, CD_PROP_QUATERNION)) {
+  bke::AttributeAccessor attributes = *owner.get_accessor();
+  std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(*name);
+  if (!meta_data) {
+    CTX_wm_operator_poll_msg_set(&C, "No active attribute");
+    return false;
+  }
+  if (ELEM(meta_data->data_type,
+           bke::AttrType::String,
+           bke::AttrType::Float4x4,
+           bke::AttrType::Quaternion))
+  {
     CTX_wm_operator_poll_msg_set(&C, "The active attribute has an unsupported type");
     return false;
   }
@@ -298,27 +298,18 @@ static wmOperatorStatus geometry_attribute_add_exec(bContext *C, wmOperator *op)
 
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
-  eCustomDataType type = eCustomDataType(RNA_enum_get(op->ptr, "data_type"));
-  bke::AttrDomain domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
+  const eCustomDataType type = eCustomDataType(RNA_enum_get(op->ptr, "data_type"));
+  const bke::AttrDomain domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
   AttributeOwner owner = AttributeOwner::from_id(id);
 
-  if (owner.type() != AttributeOwnerType::Mesh) {
-    bke::MutableAttributeAccessor accessor = *owner.get_accessor();
-    if (!accessor.domain_supported(bke::AttrDomain(domain))) {
-      BKE_report(op->reports, RPT_ERROR, "Attribute domain not supported by this geometry type");
+  if (owner.type() == AttributeOwnerType::Mesh) {
+    CustomDataLayer *layer = BKE_attribute_new(owner, name, type, domain, op->reports);
+
+    if (layer == nullptr) {
       return OPERATOR_CANCELLED;
     }
-    bke::AttributeStorage &attributes = *owner.get_storage();
-    const int domain_size = accessor.domain_size(bke::AttrDomain(domain));
 
-    const CPPType &cpp_type = *bke::custom_data_type_to_cpp_type(type);
-    bke::Attribute &attr = attributes.add(
-        attributes.unique_name_calc(name),
-        bke::AttrDomain(domain),
-        *bke::custom_data_type_to_attr_type(type),
-        bke::Attribute::ArrayData::from_default_value(cpp_type, domain_size));
-
-    BKE_attributes_active_set(owner, attr.name());
+    BKE_attributes_active_set(owner, layer->name);
 
     DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, id);
@@ -326,13 +317,22 @@ static wmOperatorStatus geometry_attribute_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  CustomDataLayer *layer = BKE_attribute_new(owner, name, type, domain, op->reports);
-
-  if (layer == nullptr) {
+  bke::MutableAttributeAccessor accessor = *owner.get_accessor();
+  if (!accessor.domain_supported(bke::AttrDomain(domain))) {
+    BKE_report(op->reports, RPT_ERROR, "Attribute domain not supported by this geometry type");
     return OPERATOR_CANCELLED;
   }
+  bke::AttributeStorage &attributes = *owner.get_storage();
+  const int domain_size = accessor.domain_size(bke::AttrDomain(domain));
 
-  BKE_attributes_active_set(owner, layer->name);
+  const CPPType &cpp_type = *bke::custom_data_type_to_cpp_type(type);
+  bke::Attribute &attr = attributes.add(
+      attributes.unique_name_calc(name),
+      bke::AttrDomain(domain),
+      *bke::custom_data_type_to_attr_type(type),
+      bke::Attribute::ArrayData::from_default_value(cpp_type, domain_size));
+
+  BKE_attributes_active_set(owner, attr.name());
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);

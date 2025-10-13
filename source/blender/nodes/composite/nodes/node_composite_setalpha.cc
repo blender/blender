@@ -22,13 +22,13 @@ static const EnumPropertyItem type_items[] = {
     {CMP_NODE_SETALPHA_MODE_APPLY,
      "APPLY",
      0,
-     "Apply Mask",
-     "Multiply the input image's RGBA channels by the alpha input value"},
+     N_("Apply Mask"),
+     N_("Multiply the input image's RGBA channels by the alpha input value")},
     {CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA,
      "REPLACE_ALPHA",
      0,
-     "Replace Alpha",
-     "Replace the input image's alpha channel by the alpha input value"},
+     N_("Replace Alpha"),
+     N_("Replace the input image's alpha channel by the alpha input value")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

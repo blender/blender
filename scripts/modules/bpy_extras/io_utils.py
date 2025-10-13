@@ -121,7 +121,11 @@ class ImportHelper:
                 confirm_text = iface_(self.bl_label, i18n_contexts.operator_default)
 
             return context.window_manager.invoke_props_dialog(
-                self, confirm_text=confirm_text, title=title, translate=False)
+                self,
+                confirm_text=confirm_text,
+                title=title,
+                translate=False,
+            )
 
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
@@ -309,8 +313,7 @@ def axis_conversion(from_forward='Y', from_up='Z', to_forward='Y', to_up='Z'):
         return Matrix().to_3x3()
 
     if from_forward[-1] == from_up[-1] or to_forward[-1] == to_up[-1]:
-        raise Exception("Invalid axis arguments passed, "
-                        "cannot use up/forward on the same axis")
+        raise Exception("Invalid axis arguments passed, cannot use up/forward on the same axis")
 
     value = reduce(
         int.__or__,
@@ -498,9 +501,10 @@ def path_reference(
     elif mode == 'MATCH':
         mode = 'RELATIVE' if is_relative else 'ABSOLUTE'
     elif mode == 'AUTO':
-        mode = ('RELATIVE'
-                if bpy.path.is_subdir(filepath_abs, base_dst)
-                else 'ABSOLUTE')
+        mode = (
+            'RELATIVE' if bpy.path.is_subdir(filepath_abs, base_dst) else
+            'ABSOLUTE'
+        )
     elif mode == 'COPY':
         subdir_abs = os.path.normpath(base_dst)
         if copy_subdir:

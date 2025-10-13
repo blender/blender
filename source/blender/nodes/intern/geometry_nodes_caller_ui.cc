@@ -252,7 +252,7 @@ static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
                                  rna_path,
                                  0,
                                  StringRef(socket.description));
-  UI_but_placeholder_set(but, "Layer");
+  UI_but_placeholder_set(but, IFACE_("Layer"));
   layout->label("", ICON_BLANK1);
 
   const Object *object = ed::object::context_object(&ctx.C);
@@ -806,7 +806,7 @@ static void draw_warnings(const bContext *C,
   uiLayout *col = &panel.body->column(false);
   for (const NodeWarning *warning : warnings) {
     const int icon = node_warning_type_icon(warning->type);
-    col->label(warning->message, icon);
+    col->label(RPT_(warning->message), icon);
   }
 }
 

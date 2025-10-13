@@ -16,9 +16,9 @@ static EnumPropertyItem mode_items[] = {
     {GEO_NODE_TRANSFORM_MODE_COMPONENTS,
      "COMPONENTS",
      0,
-     "Components",
-     "Provide separate location, rotation and scale"},
-    {GEO_NODE_TRANSFORM_MODE_MATRIX, "MATRIX", 0, "Matrix", "Use a transformation matrix"},
+     N_("Components"),
+     N_("Provide separate location, rotation and scale")},
+    {GEO_NODE_TRANSFORM_MODE_MATRIX, "MATRIX", 0, N_("Matrix"), N_("Use a transformation matrix")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

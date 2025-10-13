@@ -215,8 +215,10 @@ class prettyface:
                 yspan = y2 - y1
                 for uvco in uv:
                     x, y = uvco
-                    uvco[:] = ((x1 + (x * xspan)),
-                               (y1 + (y * yspan)))
+                    uvco[:] = (
+                        (x1 + (x * xspan)),
+                        (y1 + (y * yspan))
+                    )
 
     def __hash__(self):
         # None unique hash

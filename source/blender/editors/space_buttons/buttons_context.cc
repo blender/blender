@@ -615,6 +615,9 @@ static bool buttons_context_path(
   /* No pinned root, use scene as initial root. */
   else if (mainb != BCONTEXT_TOOL) {
     if (ELEM(mainb, BCONTEXT_STRIP, BCONTEXT_STRIP_MODIFIER)) {
+      if (!sequencer_scene) {
+        return false;
+      }
       path->ptr[0] = RNA_id_pointer_create(&sequencer_scene->id);
     }
     else {

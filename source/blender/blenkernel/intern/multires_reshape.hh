@@ -221,7 +221,7 @@ GridCoord multires_reshape_ptex_coord_to_grid(const MultiresReshapeContext *resh
                                               const PTexCoord *ptex_coord);
 
 /**
- * Calculate tangent matrix which converts displacement to a object vector.
+ * Calculate tangent matrix which converts displacement to an object vector.
  * Is calculated for the given surface derivatives at a given base face corner.
  */
 void multires_reshape_tangent_matrix_for_corner(const MultiresReshapeContext *reshape_context,
@@ -270,13 +270,13 @@ void multires_reshape_evaluate_base_mesh_limit_at_grid(
 void multires_reshape_ensure_grids(Mesh *mesh, int level);
 
 /* --------------------------------------------------------------------
- * Functions specific to reshaping from a set of vertices in a object position.
+ * Functions specific to reshaping from a set of vertices in an object position.
  */
 
 /**
- * Set displacement grids values at a reshape level to a object coordinates of the given source.
+ * Set displacement grids values at a reshape level to an object coordinates of the given source.
  *
- * \returns truth if all coordinates were assigned.
+ * \returns true if all coordinates were assigned.
  *
  * False will be returned if the number of vertex coordinates did not match required number of
  * vertices at a reshape level.
@@ -295,7 +295,7 @@ bool multires_reshape_assign_final_coords_from_vertcos(
  *
  * \note Displacement grids to be at least at a reshape level.
  *
- * \return truth if all coordinates have been updated.
+ * \return true if all coordinates have been updated.
  */
 bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext *reshape_context,
                                                    SubdivCCG *subdiv_ccg);
@@ -311,7 +311,7 @@ void multires_reshape_assign_final_coords_from_mdisps(
     const MultiresReshapeContext *reshape_context);
 
 /**
- * Reads from original #CD_MIDTSPS, writes to the current mesh #CD_MDISPS.
+ * Reads from original #CD_MIDSPS, writes to the current mesh #CD_MDISPS.
  */
 void multires_reshape_assign_final_elements_from_orig_mdisps(
     const MultiresReshapeContext *reshape_context);
@@ -337,7 +337,7 @@ void multires_reshape_smooth_object_grids_with_details(
  * Makes it so surface on top level looks smooth. Details are not preserved
  */
 void multires_reshape_smooth_object_grids(const MultiresReshapeContext *reshape_context,
-                                          enum MultiresSubdivideModeType mode);
+                                          MultiresSubdivideModeType mode);
 
 /* --------------------------------------------------------------------
  * Displacement, space conversion.
