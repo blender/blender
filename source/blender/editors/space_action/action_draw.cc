@@ -216,7 +216,12 @@ static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, u
     if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY)) {
       switch (ale->type) {
         case ANIMTYPE_SUMMARY: {
-          /* reddish color from NLA */
+          if (!ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_EXPAND)) {
+            /* Only draw the summary line backdrop when it is expanded. If the entire dope sheet is
+             * just one line, there is no need for any distinction between lines, and the red-ish
+             * color is only going to be a distraction. */
+            continue;
+          }
           immUniformThemeColor(TH_ANIM_ACTIVE);
           break;
         }
