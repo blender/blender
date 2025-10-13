@@ -170,7 +170,13 @@ struct Global {
    * Triggers a GPU capture if the name matches a DebugScope.
    * Set using `--debug-gpu-scope-capture "debug_scope"`.
    */
-  char gpu_debug_scope_name[200];
+  char gpu_debug_scope_name[100];
+
+  /**
+   * Save final shader string to disk.
+   * Set using `--debug-gpu-shader-source "shader_name"`.
+   */
+  char gpu_debug_shader_source_name[100];
 
   bool profile_gpu;
 };
