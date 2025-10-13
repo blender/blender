@@ -4145,7 +4145,7 @@ static void reroute_node_draw_label(TreeDrawContext &tree_draw_ctx,
 
   const short width = 512;
   const int x = BLI_rctf_cent_x(&node.runtime->draw_bounds) - (width / 2);
-  const int y = node.runtime->draw_bounds.ymax;
+  const int y = node.runtime->draw_bounds.ymax - 4 * UI_SCALE_FAC;
 
   uiBut *label_but = uiDefBut(
       &block, ButType::Label, 0, text, x, y, width, NODE_DY, nullptr, 0, 0, std::nullopt);
