@@ -3985,11 +3985,11 @@ static bool text_jump_to_file_at_point_external(bContext *C,
   err_info.reports = reports;
   err_info.report_prefix = "External editor";
 
-  const char *expr_imports[] = {"bl_text_utils", "bl_text_utils.external_editor", "os", nullptr};
+  const char *expr_imports[] = {"_bl_text_utils", "_bl_text_utils.external_editor", "os", nullptr};
   std::string expr;
   {
     std::stringstream expr_stream;
-    expr_stream << "bl_text_utils.external_editor.open_external_editor(os.fsdecode(b'";
+    expr_stream << "_bl_text_utils.external_editor.open_external_editor(os.fsdecode(b'";
     for (const char *ch = filepath; *ch; ch++) {
       expr_stream << "\\x" << std::hex << int(*ch);
     }

@@ -15,8 +15,8 @@ else:
         EnumProperty,
     )
     from . import settings
-    from bl_i18n_utils import utils as utils_i18n
-    from bl_i18n_utils import utils_languages_menu
+    from _bl_i18n_utils import utils as utils_i18n
+    from _bl_i18n_utils import utils_languages_menu
 
 import concurrent.futures
 import io
@@ -85,7 +85,7 @@ class UI_OT_i18n_updatetranslation_work_repo(Operator):
         #       This is a problem because spawned processes do not inherit the whole environment
         #       of the current (Blender-customized) python. In practice, the `bpy` module won't load e.g.
         #       So care must be taken that the callback passed to the executor does not rely on any
-        #       Blender-specific modules etc. This is why it is using a class method from `bl_i18n_utils`
+        #       Blender-specific modules etc. This is why it is using a class method from `_bl_i18n_utils`
         #       module, rather than a local function of this current Blender-only module.
         # FIXME: This can easily deadlock on powerful machine with lots of RAM (128GB) and cores (32)...
         # ~ with concurrent.futures.ProcessPoolExecutor() as exctr:

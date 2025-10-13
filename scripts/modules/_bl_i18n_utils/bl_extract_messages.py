@@ -18,7 +18,7 @@ import glob
 from pathlib import PurePath
 
 # XXX Relative import does not work here when used from Blender...
-from bl_i18n_utils import settings as settings_i18n, utils
+from _bl_i18n_utils import settings as settings_i18n, utils
 
 import bpy
 
@@ -31,7 +31,7 @@ filter_message = ignore_reg.match
 
 def init_spell_check(settings, lang="en_US"):
     try:
-        from bl_i18n_utils import utils_spell_check
+        from _bl_i18n_utils import utils_spell_check
         return utils_spell_check.SpellChecker(settings, lang)
     except Exception as ex:
         print("Failed to import utils_spell_check ({})".format(str(ex)))
@@ -1231,7 +1231,7 @@ def dump_messages(do_messages, do_checks, settings):
     # Get strings specific to translations' menu.
     for lng in settings.LANGUAGES:
         process_msg(
-            msgs, settings.DEFAULT_CONTEXT, lng[1], "Languages’ labels from bl_i18n_utils/settings.py",
+            msgs, settings.DEFAULT_CONTEXT, lng[1], "Languages’ labels from _bl_i18n_utils/settings.py",
             reports, None, settings,
         )
 

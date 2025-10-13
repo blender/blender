@@ -17,7 +17,7 @@ else:
         BoolProperty,
         StringProperty,
     )
-    from bl_i18n_utils import settings as settings_i18n
+    from _bl_i18n_utils import settings as settings_i18n
 
 
 settings = settings_i18n.I18nSettings()
