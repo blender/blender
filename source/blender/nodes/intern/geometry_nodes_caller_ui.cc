@@ -1008,11 +1008,9 @@ void draw_geometry_nodes_modifier_ui(const bContext &C, PointerRNA *modifier_ptr
   }
 
   if (nmd.node_group != nullptr && nmd.settings.properties != nullptr) {
-    nmd.node_group->ensure_interface_cache();
-    ctx.input_usages.reinitialize(nmd.node_group->interface_inputs().size());
-    ctx.output_usages.reinitialize(nmd.node_group->interface_outputs().size());
-    nodes::socket_usage_inference::infer_group_interface_usage(
-        *nmd.node_group, ctx.properties, ctx.input_usages, ctx.output_usages);
+    nmd.runtime->usage_cache.ensure(nmd);
+    ctx.input_usages = nmd.runtime->usage_cache.inputs;
+    ctx.output_usages = nmd.runtime->usage_cache.outputs;
     draw_interface_panel_content(ctx, &layout, nmd.node_group->tree_interface.root_panel);
   }
 
