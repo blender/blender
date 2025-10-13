@@ -12,6 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_customdata_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -32,6 +33,7 @@
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
+#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_global.hh"

@@ -14,6 +14,7 @@
 #include "usd_skel_convert.hh"
 #include "usd_utils.hh"
 
+#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"

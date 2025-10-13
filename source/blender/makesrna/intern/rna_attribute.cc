@@ -15,6 +15,7 @@
 
 #include "DNA_customdata_types.h"
 
+#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 
 #include "BLT_translation.hh"

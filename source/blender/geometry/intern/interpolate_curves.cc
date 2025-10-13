@@ -15,8 +15,6 @@
 #include "BLI_offset_indices.hh"
 #include "BLI_task.hh"
 
-#include "DNA_customdata_types.h"
-
 #include "GEO_interpolate_curves.hh"
 #include "GEO_resample_curves.hh"
 
@@ -1217,10 +1215,10 @@ void interpolate_curves_with_samples(const CurvesGeometry &from_curves,
 
     /* Only mix "safe" attribute types for now. Other types (int, bool, etc.) are just copied from
      * the first curve of each pair. */
-    const bool can_mix_attribute = ELEM(bke::cpp_type_to_custom_data_type(dst.type()),
-                                        CD_PROP_FLOAT,
-                                        CD_PROP_FLOAT2,
-                                        CD_PROP_FLOAT3);
+    const bool can_mix_attribute = ELEM(bke::cpp_type_to_attribute_type(dst.type()),
+                                        bke::AttrType::Float,
+                                        bke::AttrType::Float2,
+                                        bke::AttrType::Float3);
     if (can_mix_attribute && !src_from.is_empty() && !src_to.is_empty()) {
       array_utils::copy(GVArray::from_span(src_from), from_curve_mask, dst);
       array_utils::copy(GVArray::from_span(src_to), to_curve_mask, dst);

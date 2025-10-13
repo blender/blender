@@ -6,6 +6,7 @@
  * \ingroup ply
  */
 
+#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"

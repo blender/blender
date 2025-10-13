@@ -14,14 +14,15 @@
 #include "BLI_function_ref.hh"
 #include "BLI_generic_pointer.hh"
 #include "BLI_generic_virtual_array.hh"
+#include "BLI_implicit_sharing.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_set.hh"
 #include "BLI_struct_equality_utils.hh"
 
-#include "BKE_attribute.h"
 #include "BKE_attribute_filters.hh"
 
+struct ID;
 struct Mesh;
 struct PointCloud;
 namespace blender::fn {
@@ -32,6 +33,9 @@ class GField;
 }  // namespace blender::fn
 
 namespace blender::bke {
+
+class AttributeAccessor;
+class MutableAttributeAccessor;
 
 /** Some storage types are only relevant for certain attribute types. */
 enum class AttrStorageType : int8_t {
@@ -79,9 +83,6 @@ enum class AttrDomain : int8_t {
   Layer = 6,
 };
 #define ATTR_DOMAIN_NUM 7
-
-const CPPType *custom_data_type_to_cpp_type(eCustomDataType type);
-eCustomDataType cpp_type_to_custom_data_type(const CPPType &type);
 
 /**
  * Contains information about an attribute in a geometry component.
@@ -916,7 +917,7 @@ struct AttributeTransferData {
 Vector<AttributeTransferData> retrieve_attributes_for_transfer(
     const AttributeAccessor src_attributes,
     MutableAttributeAccessor dst_attributes,
-    AttrDomainMask domain_mask,
+    Span<AttrDomain> domains,
     const AttributeFilter &attribute_filter = {});
 
 bool allow_procedural_attribute_access(StringRef attribute_name);

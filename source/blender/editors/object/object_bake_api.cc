@@ -28,6 +28,7 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_callbacks.hh"
 #include "BKE_context.hh"

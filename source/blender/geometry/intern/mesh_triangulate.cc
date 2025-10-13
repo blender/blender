@@ -647,7 +647,7 @@ std::optional<Mesh *> mesh_triangulate(const Mesh &src_mesh,
                                                               corner_tris.as_span();
 
   for (auto &attribute : bke::retrieve_attributes_for_transfer(
-           src_attributes, attributes, ATTR_DOMAIN_MASK_FACE, attribute_filter))
+           src_attributes, attributes, {bke::AttrDomain::Face}, attribute_filter))
   {
     bke::attribute_math::gather(
         attribute.src, dst_tri_to_src_face.as_span(), attribute.dst.span.slice(unique_tri_range));
@@ -682,7 +682,7 @@ std::optional<Mesh *> mesh_triangulate(const Mesh &src_mesh,
   for (auto &attribute : bke::retrieve_attributes_for_transfer(
            src_attributes,
            attributes,
-           ATTR_DOMAIN_MASK_CORNER,
+           {bke::AttrDomain::Corner},
            bke::attribute_filter_with_skip_ref(attribute_filter,
                                                {".corner_vert", ".corner_edge"})))
   {

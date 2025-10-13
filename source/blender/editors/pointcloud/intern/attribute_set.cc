@@ -8,6 +8,7 @@
 
 #include "BLI_generic_pointer.hh"
 
+#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_context.hh"

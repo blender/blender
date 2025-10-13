@@ -18,6 +18,7 @@
 #include "BLI_vector.hh"
 
 #include "BKE_attribute.hh"
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_brush.hh"
 #include "BKE_colorband.hh"
 #include "BKE_colortools.hh"

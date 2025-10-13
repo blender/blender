@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_attribute_legacy_convert.hh"
+
 #include "NOD_rna_define.hh"
 
 #include "UI_interface_layout.hh"

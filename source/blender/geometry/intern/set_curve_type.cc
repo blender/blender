@@ -303,7 +303,7 @@ static bke::CurvesGeometry convert_curves_to_bezier(const bke::CurvesGeometry &s
   MutableSpan<int8_t> dst_types_l = dst_curves.handle_types_left_for_write();
   MutableSpan<int8_t> dst_types_r = dst_curves.handle_types_right_for_write();
   Vector<bke::AttributeTransferData> generic_attributes = bke::retrieve_attributes_for_transfer(
-      src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, attribute_filter);
+      src_attributes, dst_attributes, {bke::AttrDomain::Point}, attribute_filter);
   Set<StringRef> attributes_to_skip = {
       "position", "handle_type_left", "handle_type_right", "handle_right", "handle_left"};
   if (!dst_curves.has_curve_with_type(CURVE_TYPE_NURBS)) {
@@ -483,7 +483,7 @@ static bke::CurvesGeometry convert_curves_to_nurbs(const bke::CurvesGeometry &sr
   MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
   Vector<bke::AttributeTransferData> generic_attributes = bke::retrieve_attributes_for_transfer(
-      src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, attribute_filter);
+      src_attributes, dst_attributes, {bke::AttrDomain::Point}, attribute_filter);
   const Set<StringRef> attributes_to_skip = {"position",
                                              "handle_type_left",
                                              "handle_type_right",
@@ -684,7 +684,7 @@ static bke::CurvesGeometry convert_curves_to_catmull_rom_or_poly(
   MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
   Vector<bke::AttributeTransferData> generic_attributes = bke::retrieve_attributes_for_transfer(
-      src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, attribute_filter);
+      src_attributes, dst_attributes, {bke::AttrDomain::Point}, attribute_filter);
   const Set<StringRef> attributes_to_skip = {"position",
                                              "handle_type_left",
                                              "handle_type_right",

@@ -45,6 +45,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_anim_data.hh"
+#include "BKE_attribute.h"
 #include "BKE_brush.hh"
 #include "BKE_curve.hh"
 #include "BKE_curves.hh"
