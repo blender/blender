@@ -51,7 +51,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       filter.median(width);
     }
   }
-  catch (const openvdb::RuntimeError &e) {
+  catch (const openvdb::RuntimeError & /*e*/) {
     node_geo_sdf_grid_error_not_levelset(params);
     return;
   }
