@@ -91,6 +91,8 @@ class PenToolOperation {
 
   bool point_added;
   bool point_removed;
+  /* Used to go back to `aligned` after `move_handle` becomes `false` */
+  bool handle_moved;
 
   float4x4 projection;
   float2 mouse_co;
