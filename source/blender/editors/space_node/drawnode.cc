@@ -201,7 +201,9 @@ NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
                                               const int x,
                                               const int y)
 {
-  const float size = NODE_RESIZE_MARGIN * math::max(snode.runtime->aspect, 1.0f);
+  const bool node_is_collapsed = node->flag & NODE_COLLAPSED;
+  const float size = NODE_RESIZE_MARGIN * math::max(snode.runtime->aspect, 1.0f) *
+                     (node_is_collapsed ? 3.0f : 1.0f);
 
   if (node->is_frame()) {
     NodeFrame *data = (NodeFrame *)node->storage;
@@ -231,17 +233,6 @@ NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
     return dir;
   }
 
-  if (node->flag & NODE_COLLAPSED) {
-    /* right part of node */
-    rctf bounds = node->runtime->draw_bounds;
-    bounds.xmin = node->runtime->draw_bounds.xmax - 1.0f * U.widget_unit;
-    if (BLI_rctf_isect_pt(&bounds, x, y)) {
-      return NODE_RESIZE_RIGHT;
-    }
-
-    return NODE_RESIZE_NONE;
-  }
-
   const rctf &bounds = node->runtime->draw_bounds;
   NodeResizeDirection dir = NODE_RESIZE_NONE;
 
@@ -250,6 +241,15 @@ NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
   }
   if (x >= bounds.xmin && x < bounds.xmin + size && y >= bounds.ymin && y < bounds.ymax) {
     dir |= NODE_RESIZE_LEFT;
+
+    if (node_is_collapsed) {
+      /* Prevent conflict with the collapse/expand icon. */
+      if ((abs(y - BLI_rctf_cent_y(&bounds)) < 0.4f * U.widget_unit) &&
+          (x > (bounds.xmin + 0.4f * U.widget_unit)))
+      {
+        dir = NODE_RESIZE_NONE;
+      }
+    }
   }
   return dir;
 }

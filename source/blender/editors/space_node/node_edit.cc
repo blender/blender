@@ -1286,6 +1286,15 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
           }
         }
         if (distance < max_distance) {
+          if (node_collapsed) {
+            if ((cursor.x - location.x > NODE_SOCKSIZE) ||
+                ((location.x < cursor.x) && (cursor.x - location.x <= padded_socket_size) &&
+                 (abs(location.y - cursor.y) > NODE_SOCKSIZE)))
+            {
+              /* Needed to be able to resize collapsed nodes. */
+              continue;
+            }
+          }
           update_best_socket(sock, distance);
         }
       }
@@ -1299,7 +1308,10 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
         const float distance = math::distance(location, cursor);
         if (distance < max_distance) {
           if (node_collapsed) {
-            if (location.x - cursor.x > padded_socket_size) {
+            if ((location.x - cursor.x > NODE_SOCKSIZE) ||
+                ((location.x > cursor.x) && (location.x - cursor.x <= padded_socket_size) &&
+                 (abs(location.y - cursor.y) > NODE_SOCKSIZE)))
+            {
               /* Needed to be able to resize collapsed nodes. */
               continue;
             }
