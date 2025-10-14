@@ -1187,6 +1187,10 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
           setCursorGrabAccum(0, 0);
 
           if (mode == GHOST_kGrabHide) {
+            /* Dissociate cursor movements from the mouse while hidden to prevent the cursor from
+             * being accidentally revealed whe hovering over desktop elements like the Dock. */
+            CGAssociateMouseAndMouseCursorPosition(false);
+
             setWindowCursorVisibility(false);
           }
 
@@ -1198,6 +1202,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
     else {
       if (cursor_grab_ == GHOST_kGrabHide) {
         system_cocoa_->setCursorPosition(cursor_grab_init_pos_[0], cursor_grab_init_pos_[1]);
+        CGAssociateMouseAndMouseCursorPosition(true);
         setWindowCursorVisibility(true);
       }
 
