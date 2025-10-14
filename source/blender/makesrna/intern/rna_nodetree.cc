@@ -286,36 +286,6 @@ const EnumPropertyItem rna_enum_node_boolean_math_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-const EnumPropertyItem rna_enum_node_float_compare_items[] = {
-    {NODE_COMPARE_LESS_THAN,
-     "LESS_THAN",
-     0,
-     "Less Than",
-     "True when the first input is smaller than second input"},
-    {NODE_COMPARE_LESS_EQUAL,
-     "LESS_EQUAL",
-     0,
-     "Less Than or Equal",
-     "True when the first input is smaller than the second input or equal"},
-    {NODE_COMPARE_GREATER_THAN,
-     "GREATER_THAN",
-     0,
-     "Greater Than",
-     "True when the first input is greater than the second input"},
-    {NODE_COMPARE_GREATER_EQUAL,
-     "GREATER_EQUAL",
-     0,
-     "Greater Than or Equal",
-     "True when the first input is greater than the second input or equal"},
-    {NODE_COMPARE_EQUAL, "EQUAL", 0, "Equal", "True when both inputs are approximately equal"},
-    {NODE_COMPARE_NOT_EQUAL,
-     "NOT_EQUAL",
-     0,
-     "Not Equal",
-     "True when both inputs are not approximately equal"},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
 const EnumPropertyItem rna_enum_node_integer_math_items[] = {
     RNA_ENUM_ITEM_HEADING(CTX_N_(BLT_I18NCONTEXT_ID_NODETREE, "Functions"), nullptr),
     {NODE_INTEGER_MATH_ADD, "ADD", 0, "Add", "A + B"},
@@ -6149,31 +6119,12 @@ static void def_sh_output_aov(BlenderRNA * /*brna*/, StructRNA *srna)
 
 static void def_sh_combsep_color(BlenderRNA * /*brna*/, StructRNA *srna)
 {
-  static const EnumPropertyItem type_items[] = {
-      {NODE_COMBSEP_COLOR_RGB,
-       "RGB",
-       ICON_NONE,
-       "RGB",
-       "Use RGB (Red, Green, Blue) color processing"},
-      {NODE_COMBSEP_COLOR_HSV,
-       "HSV",
-       ICON_NONE,
-       "HSV",
-       "Use HSV (Hue, Saturation, Value) color processing"},
-      {NODE_COMBSEP_COLOR_HSL,
-       "HSL",
-       ICON_NONE,
-       "HSL",
-       "Use HSL (Hue, Saturation, Lightness) color processing"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   PropertyRNA *prop;
 
   RNA_def_struct_sdna_from(srna, "NodeCombSepColor", "storage");
 
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, type_items);
+  RNA_def_property_enum_items(prop, rna_enum_node_combsep_color_items);
   RNA_def_property_ui_text(prop, "Mode", "Mode of color processing");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
