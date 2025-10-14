@@ -301,6 +301,11 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
     XSetWMHints(display, window_, xwmhints);
     XFree(xwmhints);
   }
+  /* Controlled via the `--no-window-frame` CLI argument and wont change at run-time.
+   * Set this once and never change. */
+  if (GHOST_ISystem::getUseWindowFrame() == false) {
+    motifShowWindowFrame(false);
+  }
 
   /* set the icon */
   {
@@ -813,15 +818,17 @@ bool GHOST_WindowX11::netwmIsFullScreen() const
   return st;
 }
 
-void GHOST_WindowX11::motifFullScreen(bool set)
+void GHOST_WindowX11::motifShowWindowFrame(bool set)
 {
   MotifWmHints hints;
 
   hints.flags = MWM_HINTS_DECORATIONS;
-  if (set == True) {
+  if (set == false) {
     hints.decorations = 0;
   }
   else {
+    GHOST_ASSERT(GHOST_ISystem::getUseWindowFrame(),
+                 "Only allowed when the window frame is shown.");
     hints.decorations = 1;
   }
 
@@ -835,7 +842,7 @@ void GHOST_WindowX11::motifFullScreen(bool set)
                   4);
 }
 
-bool GHOST_WindowX11::motifIsFullScreen() const
+bool GHOST_WindowX11::motifIsShowWindowFrame() const
 {
   MotifWmHints *prop_ret;
   ulong bytes_after, num_ret;
@@ -869,6 +876,25 @@ bool GHOST_WindowX11::motifIsFullScreen() const
     XFree(prop_ret);
   }
   return state;
+}
+
+void GHOST_WindowX11::motifFullScreen(bool set)
+{
+  if (set == true || (GHOST_ISystem::getUseWindowFrame() == false)) {
+    motifShowWindowFrame(false);
+  }
+  else {
+    motifShowWindowFrame(true);
+  }
+}
+
+bool GHOST_WindowX11::motifIsFullScreen() const
+{
+  /* When false, the decorations can't be used to detect full-screen. */
+  if (GHOST_ISystem::getUseWindowFrame() == false) {
+    return false;
+  }
+  return motifIsShowWindowFrame();
 }
 
 GHOST_TWindowState GHOST_WindowX11::getState() const

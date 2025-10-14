@@ -1907,7 +1907,7 @@ static int arg_handle_window_maximized(int /*argc*/, const char ** /*argv*/, voi
 
 static const char arg_handle_no_window_frame_doc[] =
     "\n\t"
-    "Disable all window decorations (Wayland only).";
+    "Disable all window decorations (Linux only).";
 static int arg_handle_no_window_frame(int /*argc*/, const char ** /*argv*/, void * /*data*/)
 {
   WM_init_window_frame_set(false);
