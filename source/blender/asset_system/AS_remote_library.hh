@@ -37,6 +37,8 @@ void remote_library_request_preview_download(bContext &C,
                                              const AssetRepresentation &asset,
                                              ReportList *reports);
 
+std::string remote_library_asset_preview_path(const AssetRepresentation &asset);
+
 /**
  * Status information about an externally loaded asset library listing, stored globally.
  *
@@ -77,7 +79,9 @@ class RemoteLibraryLoadingStatus {
   /** Let the state know that the loading is still ongoing, resetting the timeout. */
   static void ping_still_loading(StringRef url);
   static void ping_new_pages(StringRef url);
-  static void ping_new_preview(const bContext &C, StringRef library_url, StringRef preview_url);
+  static void ping_new_preview(const bContext &C,
+                               StringRef library_url,
+                               StringRef preview_full_filepath);
   static void ping_new_assets(const bContext &C, StringRef url);
   static void ping_metafiles_in_place(StringRef url);
   static void set_finished(StringRef url);

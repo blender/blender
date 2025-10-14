@@ -587,11 +587,11 @@ static void file_main_region_message_subscribe(const wmRegionMessageSubscribePar
             SpaceFile *sfile = static_cast<SpaceFile *>(msg_val->user_data);
             const asset_system::AssetLibrary *asset_library = filelist_asset_library(sfile->files);
             const std::optional<StringRefNull> remote_url = asset_library->remote_url();
-            const char *msg_subresource_url = msg_key_remoteio->msg.params.subresource_url;
+            const char *msg_subresource = msg_key_remoteio->msg.params.subresource_identifier;
             filelist_remote_asset_library_preview_loaded(
                 sfile->files,
                 *remote_url,
-                msg_subresource_url ? std::optional{msg_subresource_url} : std::nullopt);
+                msg_subresource ? std::optional{msg_subresource} : std::nullopt);
             /* Redrawing will requery the visible previews from disk. */
             ED_region_tag_redraw(static_cast<ARegion *>(msg_val->owner));
           };

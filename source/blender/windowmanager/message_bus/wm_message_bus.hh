@@ -180,7 +180,7 @@ struct wmMsgParams_RemoteIO {
   const char *remote_url;
   /* Optional identifier of some sub-resource accessed via the remote. Owned, needs freeing with
    * `MEM_freeN()`. */
-  const char *subresource_url;
+  const char *subresource_identifier;
 };
 
 struct wmMsg_RemoteIO {
@@ -212,7 +212,7 @@ void WM_msg_subscribe_remote_io(wmMsgBus *mbus,
                                 const char *id_repr);
 void WM_msg_subscribe_remote_io(wmMsgBus *mbus,
                                 const blender::StringRef remote_url,
-                                const blender::StringRef subresource_url,
+                                const blender::StringRef subresource_identifier,
                                 const wmMsgSubscribeValue *msg_val_params,
                                 const char *id_repr);
 

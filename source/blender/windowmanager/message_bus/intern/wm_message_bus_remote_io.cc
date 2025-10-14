@@ -26,8 +26,8 @@ static uint wm_msg_remote_io_gset_hash(const void *key_p)
   const wmMsgSubscribeKey_RemoteIO *key = static_cast<const wmMsgSubscribeKey_RemoteIO *>(key_p);
   const wmMsgParams_RemoteIO *params = &key->msg.params;
   uint k = BLI_hash_string(params->remote_url);
-  if (params->subresource_url) {
-    k ^= BLI_hash_string(params->subresource_url);
+  if (params->subresource_identifier) {
+    k ^= BLI_hash_string(params->subresource_identifier);
   }
   return k;
 }
@@ -40,11 +40,11 @@ static bool wm_msg_remote_io_gset_cmp(const void *key_a_p, const void *key_b_p)
   if (!STREQ(params_a->remote_url, params_b->remote_url)) {
     return true;
   }
-  if (params_a->subresource_url || params_b->subresource_url) {
-    if (!(params_a->subresource_url && params_b->subresource_url)) {
+  if (params_a->subresource_identifier || params_b->subresource_identifier) {
+    if (!(params_a->subresource_identifier && params_b->subresource_identifier)) {
       return true;
     }
-    if (!STREQ(params_a->subresource_url, params_b->subresource_url)) {
+    if (!STREQ(params_a->subresource_identifier, params_b->subresource_identifier)) {
       return true;
     }
   }
@@ -57,14 +57,15 @@ static void *wm_msg_remote_io_gset_key_duplicate(const void *key_p)
       key_p);
   wmMsgSubscribeKey_RemoteIO *key = MEM_dupallocN<wmMsgSubscribeKey_RemoteIO>(__func__, *key_src);
   key->msg.params.remote_url = BLI_strdup(key_src->msg.params.remote_url);
-  key->msg.params.subresource_url = BLI_strdup_null(key_src->msg.params.subresource_url);
+  key->msg.params.subresource_identifier = BLI_strdup_null(
+      key_src->msg.params.subresource_identifier);
   return key;
 }
 static void wm_msg_remote_io_gset_key_free(void *key_p)
 {
   wmMsgSubscribeKey_RemoteIO *key = static_cast<wmMsgSubscribeKey_RemoteIO *>(key_p);
   MEM_freeN(key->msg.params.remote_url);
-  MEM_SAFE_FREE(key->msg.params.subresource_url);
+  MEM_SAFE_FREE(key->msg.params.subresource_identifier);
   wmMsgSubscribeValueLink *msg_lnk_next;
   for (wmMsgSubscribeValueLink *msg_lnk =
            static_cast<wmMsgSubscribeValueLink *>(key->head.values.first);
@@ -115,7 +116,8 @@ void WM_msg_publish_remote_io_params(wmMsgBus *mbus, const wmMsgParams_RemoteIO 
   CLOG_DEBUG(WM_LOG_MSGBUS_PUB,
              "remote_io(remote_url=%s, subresource_url=%s)",
              msg_key_params->remote_url,
-             msg_key_params->subresource_url ? msg_key_params->subresource_url : "[none]");
+             msg_key_params->subresource_identifier ? msg_key_params->subresource_identifier :
+                                                      "[none]");
 
   wmMsgSubscribeKey_RemoteIO *key = WM_msg_lookup_remote_io(mbus, msg_key_params);
   if (key) {
@@ -129,15 +131,15 @@ void WM_msg_publish_remote_io(wmMsgBus *mbus,
 {
   wmMsgParams_RemoteIO params{};
   params.remote_url = BLI_strdupn(remote_url.data(), remote_url.size());
-  params.subresource_url = subresource_url ?
-                               BLI_strdupn(subresource_url->data(), subresource_url->size()) :
-                               nullptr;
+  params.subresource_identifier = subresource_url ? BLI_strdupn(subresource_url->data(),
+                                                                subresource_url->size()) :
+                                                    nullptr;
   WM_msg_publish_remote_io_params(mbus, &params);
 
   /* Values were copied into the publish key. */
   MEM_freeN(params.remote_url);
-  if (params.subresource_url) {
-    MEM_freeN(params.subresource_url);
+  if (params.subresource_identifier) {
+    MEM_freeN(params.subresource_identifier);
   }
 }
 
@@ -159,21 +161,22 @@ void WM_msg_subscribe_remote_io_params(wmMsgBus *mbus,
 
 static void subscribe_remote_io(wmMsgBus *mbus,
                                 const blender::StringRef remote_url,
-                                const std::optional<blender::StringRef> subresource_url,
+                                const std::optional<blender::StringRef> subresource_identifier,
                                 const wmMsgSubscribeValue *msg_val_params,
                                 const char *id_repr)
 {
   wmMsgParams_RemoteIO params{};
   params.remote_url = BLI_strdupn(remote_url.data(), remote_url.size());
-  params.subresource_url = subresource_url ?
-                               BLI_strdupn(subresource_url->data(), subresource_url->size()) :
-                               nullptr;
+  params.subresource_identifier = subresource_identifier ?
+                                      BLI_strdupn(subresource_identifier->data(),
+                                                  subresource_identifier->size()) :
+                                      nullptr;
   WM_msg_subscribe_remote_io_params(mbus, &params, msg_val_params, id_repr);
 
   /* Values were copied into the subscribe key. */
   MEM_freeN(params.remote_url);
-  if (params.subresource_url) {
-    MEM_freeN(params.subresource_url);
+  if (params.subresource_identifier) {
+    MEM_freeN(params.subresource_identifier);
   }
 }
 
@@ -187,9 +190,9 @@ void WM_msg_subscribe_remote_io(wmMsgBus *mbus,
 
 void WM_msg_subscribe_remote_io(wmMsgBus *mbus,
                                 const blender::StringRef remote_url,
-                                const blender::StringRef subresource_url,
+                                const blender::StringRef subresource_identifier,
                                 const wmMsgSubscribeValue *msg_val_params,
                                 const char *id_repr)
 {
-  subscribe_remote_io(mbus, remote_url, subresource_url, msg_val_params, id_repr);
+  subscribe_remote_io(mbus, remote_url, subresource_identifier, msg_val_params, id_repr);
 }

@@ -16,9 +16,12 @@
 
 struct BlendDataReader;
 struct BlendWriter;
-namespace blender::gpu {
+namespace blender {
+class StringRefNull;
+namespace gpu {
 class Texture;
 }
+}  // namespace blender
 struct ID;
 struct ImBuf;
 struct PreviewImage;
@@ -113,7 +116,9 @@ PreviewImage *BKE_previewimg_id_ensure(ID *id);
  */
 void BKE_previewimg_ensure(PreviewImage *prv, int size);
 
-const char *BKE_previewimg_deferred_filepath_get(const PreviewImage *prv);
+bool BKE_previewimg_is_online(const PreviewImage *prv);
+std::optional<blender::StringRefNull> BKE_previewimg_deferred_filepath_get(
+    const PreviewImage *prv);
 std::optional<int> BKE_previewimg_deferred_thumb_source_get(const PreviewImage *prv);
 
 /**
@@ -146,6 +151,9 @@ PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
                                                    const char *filepath,
                                                    int source,
                                                    bool force_update);
+PreviewImage *BKE_previewimg_online_thumbnail_read(const char *name,
+                                                   const char *dst_filepath,
+                                                   const bool force_update);
 
 void BKE_previewimg_cached_release(const char *name);
 

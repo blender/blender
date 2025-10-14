@@ -21,6 +21,7 @@
 
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
+#include "AS_remote_library.hh"
 
 namespace blender::asset_system {
 
@@ -79,7 +80,7 @@ AssetWeakReference AssetRepresentation::make_weak_reference() const
   return AssetWeakReference::make_reference(owner_asset_library_, relative_identifier_);
 }
 
-void AssetRepresentation::ensure_previewable()
+void AssetRepresentation::ensure_previewable(bContext &C, ReportList *reports)
 {
   if (ID *id = this->local_id()) {
     PreviewImage *preview = BKE_previewimg_id_ensure(id);
@@ -89,13 +90,25 @@ void AssetRepresentation::ensure_previewable()
 
   ExternalAsset &extern_asset = std::get<ExternalAsset>(asset_);
 
+  if (extern_asset.preview_ && extern_asset.preview_->runtime->icon_id) {
+    return;
+  }
+
   /* Use the full path as preview name, it's the only unique identifier we have. */
   const std::string full_path = this->full_path();
-  const ThumbSource source = extern_asset.online_info_ ? THB_SOURCE_ONLINE_ASSET :
-                                                         THB_SOURCE_BLEND;
-  /* Doesn't do the actual reading, just allocates and attaches the derived load info. */
-  extern_asset.preview_ = BKE_previewimg_cached_thumbnail_read(
-      full_path.c_str(), full_path.c_str(), source, false);
+
+  if (extern_asset.online_info_ && extern_asset.online_info_->preview_url_) {
+    const std::string preview_path = remote_library_asset_preview_path(*this);
+    /* Doesn't do the actual reading, just allocates and attaches the derived load info. */
+    extern_asset.preview_ = BKE_previewimg_online_thumbnail_read(
+        full_path.c_str(), preview_path.c_str(), false);
+    remote_library_request_preview_download(C, *this, reports);
+  }
+  else {
+    /* Doesn't do the actual reading, just allocates and attaches the derived load info. */
+    extern_asset.preview_ = BKE_previewimg_cached_thumbnail_read(
+        full_path.c_str(), full_path.c_str(), THB_SOURCE_BLEND, false);
+  }
 
   BKE_icon_preview_ensure(nullptr, extern_asset.preview_);
 }

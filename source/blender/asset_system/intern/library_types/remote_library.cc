@@ -9,7 +9,10 @@
 #include <fmt/format.h>
 
 #include "BLI_fileops.h"
+#include "BLI_hash_md5.hh"
 #include "BLI_listbase.h"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
 
 #include "BLT_translation.hh"
 
@@ -21,7 +24,10 @@
 #  include "BPY_extern_run.hh"
 #endif
 
+#include "DNA_space_enums.h"
 #include "DNA_userdef_types.h"
+
+#include "ED_render.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
@@ -138,9 +144,11 @@ void RemoteLibraryLoadingStatus::ping_new_pages(const StringRef url)
 
 void RemoteLibraryLoadingStatus::ping_new_preview(const bContext &C,
                                                   const StringRef library_url,
-                                                  const StringRef /*preview_url*/)
+                                                  const StringRef preview_full_filepath)
 {
+  /* TODO send #preview_full_filepath along. */
   WM_msg_publish_remote_io(CTX_wm_message_bus(&C), library_url);
+  ED_preview_online_download_finished(CTX_wm_manager(&C), preview_full_filepath);
 }
 
 void RemoteLibraryLoadingStatus::ping_new_assets(const bContext &C, const StringRef url)
@@ -280,6 +288,10 @@ bool RemoteLibraryLoadingStatus::handle_timeout(const StringRef url)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Download Requests
+ * \{ */
+
 void remote_library_request_download(Main &bmain, bUserAssetLibrary &library_definition)
 {
   BLI_assert(library_definition.flag & ASSET_LIBRARY_USE_REMOTE_URL);
@@ -381,6 +393,8 @@ void remote_library_request_preview_download(bContext &C,
     return;
   }
 
+  const std::string dst_filepath = remote_library_asset_preview_path(asset);
+
   {
     std::string script =
         "import _bpy_internal.assets.remote_library_listing.asset_downloader as asset_dl\n"
@@ -388,14 +402,14 @@ void remote_library_request_preview_download(bContext &C,
         "\n"
         "asset_dl.download_preview(\n"
         "    library_url, Path(library_path),\n"
-        "    preview_url, Path(asset_full_path),\n"
+        "    preview_url, Path(dst_filepath),\n"
         ")\n";
 
     std::unique_ptr locals = bke::idprop::create_group("locals");
     IDP_AddToGroup(locals.get(), IDP_NewString(*library_url, "library_url"));
     IDP_AddToGroup(locals.get(), IDP_NewString(library.root_path(), "library_path"));
     IDP_AddToGroup(locals.get(), IDP_NewString(*preview_url, "preview_url"));
-    IDP_AddToGroup(locals.get(), IDP_NewString(asset.full_path(), "asset_full_path"));
+    IDP_AddToGroup(locals.get(), IDP_NewString(dst_filepath, "dst_filepath"));
 
     /* TODO: report errors in the UI somehow. */
     BPY_run_string_with_locals(&C, script, *locals);
@@ -408,5 +422,55 @@ void remote_library_request_preview_download(bContext &C,
              "Downloading asset previews requires Python, and this Blender is built without");
 #endif
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Preview Images
+ * \{ */
+
+std::string remote_library_asset_preview_path(const AssetRepresentation &asset)
+{
+  const StringRefNull library_cache_dir = asset.owner_asset_library().root_path();
+
+  char thumbs_dir_path[FILE_MAXDIR];
+  BLI_path_join(
+      thumbs_dir_path, sizeof(thumbs_dir_path), library_cache_dir.c_str(), "_thumbs", "large");
+
+  const std::optional<StringRefNull> preview_url = asset.online_asset_preview_url();
+  if (!preview_url) {
+    BLI_assert_unreachable();
+    return "";
+  }
+
+  const std::string asset_path = asset.full_path();
+
+  char thumb_name[40];
+  {
+    char hexdigest[33];
+    uchar digest[16];
+    BLI_hash_md5_buffer(asset_path.data(), asset_path.size(), digest);
+    BLI_hash_md5_to_hexdigest(digest, hexdigest);
+
+    /* If the download URL has an extension, preserve that for the downloaded file (will be either
+     * the period before the last extension, or the null character at the end of the file name). */
+    const char *ext = BLI_path_extension_or_end(preview_url->c_str());
+    BLI_snprintf(thumb_name, sizeof(thumb_name), "%s%s", hexdigest, ext);
+  }
+
+  /* First two letters of the thumbnail name (MD5 hash of the URI) as sub-directory name. */
+  char thumb_prefix[3];
+  thumb_prefix[0] = thumb_name[0];
+  thumb_prefix[1] = thumb_name[1];
+  thumb_prefix[2] = '\0';
+
+  /* Finally, the path of the thumbnail itself. */
+  char thumb_path[FILE_MAX];
+  BLI_path_join(thumb_path, sizeof(thumb_path), thumbs_dir_path, thumb_prefix, thumb_name + 2);
+
+  return thumb_path;
+}
+
+/** \} */
 
 }  // namespace blender::asset_system

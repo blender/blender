@@ -17,7 +17,7 @@ struct ImBuf;
  * supported by Gimp, Gnome (Nautilus), KDE etc.
  * Reference: http://jens.triq.net/thumbnail-spec/index.html
  *
- * This standard is not used for #THB_SOURCE_ONLINE_ASSET, see its documentation.
+ * This standard is not used for #THB_SOURCE_DIRECT, see its documentation.
  */
 
 enum ThumbSize {
@@ -33,13 +33,12 @@ enum ThumbSource : int8_t {
   THB_SOURCE_FONT,
   THB_SOURCE_OBJECT_IO,
   /**
-   * Pre-downloaded preview of an online asset.
+   * The thumbnail is not created from some other file, but the given file path refers to the
+   * thumbnail itself directly.
    *
-   * Does not use the thumbnail standard. Blender assets can't get shown by OS file browsers or
-   * other general applications, so they can use a more optimized caching strategy. For simplicity
-   * they are still managed through this API. They also loosely use some of the ideas of the
-   * standard. */
-  THB_SOURCE_ONLINE_ASSET,
+   * Does not use the thumbnail standard.
+   */
+  THB_SOURCE_DIRECT,
 };
 
 /**
@@ -60,7 +59,7 @@ enum ThumbSource : int8_t {
 /**
  * Create thumbnail for file and returns new ImBuf for thumbnail.
  *
- * Does not support #THB_SOURCE_ONLINE_ASSET as \a source.
+ * Does not support #THB_SOURCE_DIRECT as \a source.
  *
  * \param filepath: File path (but not a library path!) to the thumbnail to be created.
  */
@@ -88,11 +87,7 @@ void IMB_thumb_delete(const char *file_or_lib_path, ThumbSize size);
  * \param file_or_lib_path: File path or library-ID path (e.g. `/a/b.blend/Material/MyMaterial`) to
  *                          the thumbnail to be created/managed.
  * \param r_is_invalid: If non-null, this will be set to true whenever it's known that the
- * requested preview can't be loaded, and shouldn't be requeried for now. Usually this is indicated
- * by a null return value, but for #THB_SOURCE_ONLINE_ASSET this is ambiguous: A null return value
- * can mean the preview is either not ready yet (might still be pending download), or is known to
- * be invalid, e.g. it is empty or uses an unsupported format. In the latter case #r_is_invalid
- * will be true if non-null.
+ *                      requested preview can't be loaded, and shouldn't be requeried for now.
  */
 ImBuf *IMB_thumb_manage(const char *file_or_lib_path,
                         ThumbSize size,

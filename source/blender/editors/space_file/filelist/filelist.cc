@@ -175,7 +175,7 @@ void filelist_remote_asset_library_refresh_online_assets_status(
 void filelist_remote_asset_library_preview_loaded(
     FileList *filelist,
     const blender::StringRef remote_url,
-    const std::optional<blender::StringRef> preview_url)
+    const std::optional<blender::StringRef> preview_filepath)
 {
   if (!filelist->asset_library || !filelist->asset_library_ref) {
     return;
@@ -206,7 +206,8 @@ void filelist_remote_asset_library_preview_loaded(
 
     /* The preview might be downloaded by now. Unset the loading flag so it gets re-requested for
      * reading from disk. */
-    if (!preview_url || entry->asset->online_asset_preview_url() == preview_url) {
+    if (!preview_filepath || remote_library_asset_preview_path(*entry->asset) == preview_filepath)
+    {
       entry->flags &= ~FILE_ENTRY_PREVIEW_LOADING;
     }
   }
@@ -716,7 +717,7 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
     source = THB_SOURCE_IMAGE;
   }
   else if (preview->flags & FILE_TYPE_ASSET_ONLINE) {
-    source = THB_SOURCE_ONLINE_ASSET;
+    source = THB_SOURCE_DIRECT;
   }
   else if (preview->flags & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB))
   {
@@ -921,7 +922,11 @@ static bool filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
     BLI_thread_queue_push(cache->previews_done, preview, BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
   }
   else {
-    if (entry->redirection_path) {
+    if (entry->asset && entry->typeflag & FILE_TYPE_ASSET_ONLINE) {
+      std::string preview_path = asset_system::remote_library_asset_preview_path(*entry->asset);
+      BLI_strncpy(preview->filepath, preview_path.c_str(), FILE_MAXDIR);
+    }
+    else if (entry->redirection_path) {
       BLI_strncpy(preview->filepath, entry->redirection_path, FILE_MAXDIR);
     }
     else {

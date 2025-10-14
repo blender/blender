@@ -808,9 +808,9 @@ static void rna_asset_library_status_ping_loaded_new_pages(const char *library_u
 
 static void rna_asset_library_status_ping_loaded_new_preview(bContext *C,
                                                              const char *library_url,
-                                                             const char *preview_url)
+                                                             const char *preview_full_path)
 {
-  RemoteLibraryLoadingStatus::ping_new_preview(*C, library_url, preview_url);
+  RemoteLibraryLoadingStatus::ping_new_preview(*C, library_url, preview_full_path);
 }
 
 static void rna_asset_library_status_ping_loaded_new_assets(bContext *C, const char *library_url)
@@ -1628,12 +1628,13 @@ void RNA_api_asset_library_loading_status(StructRNA *srna)
                         "URL",
                         "The URL identifying the asset library being loaded");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_string(func,
-                        "preview_url",
-                        nullptr,
-                        0,
-                        "URL",
-                        "The URL identifying the asset preview that should be available now");
+  parm = RNA_def_string(
+      func,
+      "preview_full_path",
+      nullptr,
+      0,
+      "URL",
+      "The full path (not URL!) pointing to the the asset preview that should be available now");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna,

@@ -25,8 +25,10 @@
 #include "DNA_asset_types.h"
 
 struct AssetMetaData;
+struct bContext;
 struct ID;
 struct PreviewImage;
+struct ReportList;
 
 namespace blender::asset_system {
 
@@ -79,8 +81,6 @@ class AssetRepresentation : NonCopyable, NonMovable {
   /**
    * Constructs an asset representation for an external ID stored online (requiring download).
    *
-   * Previews will use specialized handling see #THB_SOURCE_ONLINE_ASSET.
-   *
    * \param download_dst_filepath: See #download_dst_filepath() getter.
    */
   AssetRepresentation(StringRef relative_asset_path,
@@ -111,8 +111,10 @@ class AssetRepresentation : NonCopyable, NonMovable {
    * to the preview but doesn't actually load it. To load it, attach its
    * #PreviewImageRuntime::icon_id to a UI button (UI loads it asynchronously then) or call
    * #BKE_previewimg_ensure() (not asynchronous).
+   *
+   * For online assets this triggers downloading.
    */
-  void ensure_previewable();
+  void ensure_previewable(bContext &C, ReportList *reports = nullptr);
   /**
    * Get the preview of this asset.
    *

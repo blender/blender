@@ -533,7 +533,8 @@ static ImBuf *thumb_create_or_fail(const char *file_path,
 
 ImBuf *IMB_thumb_create(const char *filepath, ThumbSize size, ThumbSource source, ImBuf *img)
 {
-  if (source == THB_SOURCE_ONLINE_ASSET) {
+  if (source == THB_SOURCE_DIRECT) {
+    /* Not yet implemented. */
     BLI_assert_unreachable();
     return nullptr;
   }
@@ -584,129 +585,6 @@ void IMB_thumb_delete(const char *file_or_lib_path, ThumbSize size)
   }
 }
 
-static std::optional<std::string> thumb_online_asset_library_cache_dir_get(const char *lib_path)
-{
-
-  static char library_cache_dir[FILE_MAXDIR] = "";
-
-  /* Optimization: Remember result from last lookup, and check if it still points to the needed
-   * cache. In practice this avoids a lot of lookups, since we typically get a bunch of for asset
-   * previews in the same library after each other. */
-  if (library_cache_dir[0] && BLI_path_contains(library_cache_dir, lib_path)) {
-    return library_cache_dir;
-  }
-  library_cache_dir[0] = '\0';
-
-  /* A bit ugly, but we don't have access to the asset or asset library here, so need to find the
-   * library cache somehow. This iterates the current library caches on disk, and checks which one
-   * contains #file_or_lib_path. */
-
-  char cache_path[FILE_MAXDIR];
-  if (!BKE_appdir_folder_caches(cache_path, sizeof(cache_path))) {
-    return std::nullopt;
-  }
-
-  char libraries_cache[FILE_MAX];
-  BLI_path_join(libraries_cache, sizeof(libraries_cache), cache_path, "remote-assets");
-
-  direntry *dir_entries = nullptr;
-  const int dir_entries_num = BLI_filelist_dir_contents(libraries_cache, &dir_entries);
-  BLI_SCOPED_DEFER([&]() { BLI_filelist_free(dir_entries, dir_entries_num); });
-
-  for (int i = 0; i < dir_entries_num; i++) {
-    direntry *entry = &dir_entries[i];
-    if (!BLI_is_dir(entry->path)) {
-      continue;
-    }
-    if (entry->relname[0] == '.') {
-      continue;
-    }
-
-    if (BLI_path_contains(entry->path, lib_path)) {
-      STRNCPY(library_cache_dir, entry->path);
-      break;
-    }
-  }
-
-  return library_cache_dir;
-}
-
-static ImBuf *thumb_online_asset_get(const char *lib_path,
-                                     const StringRefNull library_cache_dir,
-                                     const ThumbSize size,
-                                     bool *r_is_invalid)
-{
-  /* Only consider a preview invalid if we see it existing on disk, but can't load it. */
-  *r_is_invalid = false;
-
-  char thumbs_dir_path[FILE_MAXDIR];
-  BLI_path_join(thumbs_dir_path,
-                sizeof(thumbs_dir_path),
-                library_cache_dir.c_str(),
-                "_thumbs",
-                /* Practically always "large" for asset previews. */
-                get_thumb_size_dir_name(size));
-
-  const StringRefNull extensions[] = {
-      /* Intentionally not guarded by `#ifdef WITH_IMAGE_WEBP` - If the preview file exists but we
-       * can't load it, we want to report this back with `r_is_invalid`. Otherwise the caller would
-       * have to assume the file just isn't done downloading yet, and keep trying to load it. */
-      "webp",
-      "png",
-  };
-  bool any_exists = false;
-
-  /* Try for each supported extension. */
-  for (int i = 0; i < ARRAY_SIZE(extensions); i++) {
-    char thumb_name[40];
-    string_to_md5_hash_file_name(lib_path, extensions[i].c_str(), thumb_name, sizeof(thumb_name));
-
-    /* First two letters of the thumbnail name (MD5 hash of the URI) as sub-directory name. */
-    char thumb_prefix[3];
-    thumb_prefix[0] = thumb_name[0];
-    thumb_prefix[1] = thumb_name[1];
-    thumb_prefix[2] = '\0';
-
-    /* Finally, the path of the thumbnail itself. */
-    char thumb_path[FILE_MAX];
-    BLI_path_join(thumb_path, sizeof(thumb_path), thumbs_dir_path, thumb_prefix, thumb_name + 2);
-
-    if (!BLI_is_file(thumb_path)) {
-      continue;
-    }
-    any_exists = true;
-
-    if (ImBuf *imbuf = IMB_load_image_from_filepath(thumb_path, IB_byte_data | IB_metadata)) {
-      return imbuf;
-    }
-  }
-
-  /* The file is there but we can't load it. Let the caller know it doesn't have to requery it. */
-  if (any_exists && r_is_invalid) {
-    *r_is_invalid = true;
-  }
-
-  return nullptr;
-}
-
-static ImBuf *thumb_online_asset_manage(const char *lib_path, ThumbSize size, bool *r_is_invalid)
-{
-  std::optional<std::string> library_cache_dir = thumb_online_asset_library_cache_dir_get(
-      lib_path);
-  if (!library_cache_dir) {
-    *r_is_invalid = true;
-    return nullptr;
-  }
-
-  if (ImBuf *thumb = thumb_online_asset_get(lib_path, *library_cache_dir, size, r_is_invalid)) {
-    IMB_byte_from_float(thumb);
-    IMB_free_float_pixels(thumb);
-    return thumb;
-  }
-
-  return nullptr;
-}
-
 ImBuf *IMB_thumb_manage(const char *file_or_lib_path,
                         ThumbSize size,
                         ThumbSource source,
@@ -718,8 +596,16 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path,
     r_is_invalid = &own_is_invalid;
   }
 
-  if (source == THB_SOURCE_ONLINE_ASSET) {
-    return thumb_online_asset_manage(file_or_lib_path, size, r_is_invalid);
+  if (source == THB_SOURCE_DIRECT) {
+    if (ImBuf *thumb = IMB_load_image_from_filepath(file_or_lib_path, IB_byte_data | IB_metadata))
+    {
+      IMB_byte_from_float(thumb);
+      IMB_free_float_pixels(thumb);
+      return thumb;
+    }
+
+    *r_is_invalid = true;
+    return nullptr;
   }
 
   /* Set in case of early exit. */
