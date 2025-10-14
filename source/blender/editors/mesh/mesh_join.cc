@@ -620,17 +620,19 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
     }
   }
 
-  MutableSpan<int> dst_face_offsets = dst_mesh->face_offsets_for_write();
-  for (const int i : objects_to_join.index_range()) {
-    const Object &src_object = *objects_to_join[i];
-    const IndexRange dst_range = face_ranges[i];
-    const Mesh &src_mesh = *static_cast<const Mesh *>(src_object.data);
-    const Span<int> src_face_offsets = src_mesh.face_offsets();
-    for (const int face : dst_range.index_range()) {
-      dst_face_offsets[dst_range[face]] = src_face_offsets[face] + corner_ranges[i].start();
+  if (dst_mesh->faces_num > 0) {
+    MutableSpan<int> dst_face_offsets = dst_mesh->face_offsets_for_write();
+    for (const int i : objects_to_join.index_range()) {
+      const Object &src_object = *objects_to_join[i];
+      const IndexRange dst_range = face_ranges[i];
+      const Mesh &src_mesh = *static_cast<const Mesh *>(src_object.data);
+      const Span<int> src_face_offsets = src_mesh.face_offsets();
+      for (const int face : dst_range.index_range()) {
+        dst_face_offsets[dst_range[face]] = src_face_offsets[face] + corner_ranges[i].start();
+      }
     }
+    dst_face_offsets.last() = dst_mesh->corners_num;
   }
-  dst_face_offsets.last() = dst_mesh->corners_num;
 
   join_face_sets(objects_to_join, face_ranges, *dst_mesh);
 
