@@ -415,6 +415,11 @@ if(TEST_SRC_DIR_EXISTS)
   )
 
   add_blender_test(
+    object_edit
+    --python ${TEST_PYTHON_DIR}/object_edit.py
+  )
+
+  add_blender_test(
     object_conversion
     ${TEST_SRC_DIR}/modeling/object_conversion.blend
     --python ${TEST_PYTHON_DIR}/object_conversion.py
