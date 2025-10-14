@@ -51,7 +51,7 @@ class TestHelper(unittest.TestCase):
 
 class TestBlendLibLinkHelper(TestHelper):
     """
-    Generate relatively complex data layout accross several blendfiles.
+    Generate relatively complex data layout across several blendfiles.
 
     Useful for testing link/append/etc., but also data relationships e.g.
     """

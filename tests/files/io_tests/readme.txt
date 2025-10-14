@@ -34,7 +34,7 @@ SIMPLE TESTS
 		Rotation
 		Scale
 
-	HIERARCY
+	HIERARCHY
 		Parent_Child
 		Parent_Multiple Child
 	

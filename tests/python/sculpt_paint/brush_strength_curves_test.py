@@ -110,7 +110,7 @@ class BrushCurvesTest(unittest.TestCase):
         # Note, depending on if the tests are run with asserts enabled or not, the test may fail before this point
         # inside blender itself.
         all_valid = all([not math.isinf(pos) and not math.isnan(pos) for pos in position_data])
-        self.assertTrue(all_valid, "All position componentes should be rational values")
+        self.assertTrue(all_valid, "All position components should be rational values")
 
     def test_smooth_preset_curve_creates_valid_stroke(self):
         bpy.context.tool_settings.sculpt.brush.curve_distance_falloff_preset = 'SMOOTH'

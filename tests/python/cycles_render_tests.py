@@ -282,7 +282,7 @@ def main():
         report.set_fail_threshold(0.032)
 
     # Layer mixing is different between SVM and OSL, so a few tests have
-    # noticably different noise causing OSL Principled BSDF tests to fail.
+    # noticeably different noise causing OSL Principled BSDF tests to fail.
     if ((args.osl == 'all') and (test_dir_name == 'principled_bsdf')):
         report.set_fail_threshold(0.06)
 

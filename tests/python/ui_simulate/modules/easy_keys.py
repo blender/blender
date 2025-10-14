@@ -263,7 +263,7 @@ class EventGenerate:
 
     def text_unicode(self, text):
         # Since the only purpose of this key-press is to enter text
-        # the key can be almost anything, use a key which isn't likely to be assigned ot any other action.
+        # the key can be almost anything, use a key which isn't likely to be assigned to any other action.
         #
         # If it were possible `EVT_UNKNOWNKEY` would be most correct
         # as dead keys map to this and still enter text.

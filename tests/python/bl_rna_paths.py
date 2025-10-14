@@ -108,7 +108,7 @@ class TestRnaAncestors(unittest.TestCase):
                 # Do not error for now. Only ensure that if there is a rna_ancestors array, it is valid.
                 return
             if repr(rna_ancestors[0]) != ancestors_sub[0]:
-                # Do not error for now. There are valid cases wher the data is 'rebased' on a new 'root' ID.
+                # Do not error for now. There are valid cases where the data is 'rebased' on a new 'root' ID.
                 return
             if repr(p_data) in ancestors_sub:
                 # Loop back onto itself, skip.

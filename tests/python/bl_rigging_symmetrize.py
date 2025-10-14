@@ -14,7 +14,7 @@ import bpy
 
 
 def check_loc_rot_scale(self, bone, exp_bone):
-    # Check if posistions are the same
+    # Check if positions are the same
     self.assertEqualVector(
         bone.head, exp_bone.head, "Head position", bone.name)
     self.assertEqualVector(

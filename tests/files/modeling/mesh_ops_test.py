@@ -44,7 +44,7 @@ class TestSpec:
             op: string - name of a function in bpy.ops.mesh
             test_obj: string - name of the object to apply the test to
             expected_obj: string - name of the object that has the expected result
-            select: string - should be V, E, or F followed by space seperated indices of desired selection
+            select: string - should be V, E, or F followed by space separated indices of desired selection
             params: string - space-separated name=val pairs giving operator arguments
         """
 
