@@ -12,6 +12,7 @@
 #include <cstring>
 #include <ctime>
 
+#include "AS_asset_library.hh"
 #include "BLI_path_utils.hh"
 #include "MEM_guardedalloc.h"
 
@@ -1664,7 +1665,7 @@ static bool is_smooth_by_angle_modifier(const ModifierData &md)
     return false;
   }
   char auto_smooth_asset_path[FILE_MAX] = "datafiles/assets/nodes/geometry_nodes_essentials.blend";
-  BLI_path_normalize(auto_smooth_asset_path);
+  BLI_path_slash_native(auto_smooth_asset_path);
   if (!StringRef(library->filepath).endswith(auto_smooth_asset_path)) {
     return false;
   }
@@ -1884,6 +1885,12 @@ static wmOperatorStatus shade_auto_smooth_exec(bContext *C, wmOperator *op)
     asset_weak_ref.asset_library_type = ASSET_LIBRARY_ESSENTIALS;
     asset_weak_ref.relative_asset_identifier = BLI_strdup(
         "nodes/geometry_nodes_essentials.blend/NodeTree/Smooth by Angle");
+
+    if (G.background) {
+      /* For testing purposes, make sure assets are loaded (this make take too long to do
+       * automatically during user interaction). */
+      asset::list::storage_fetch_blocking(asset_system::all_library_reference(), *C);
+    }
 
     const asset_system::AssetRepresentation *asset_representation =
         asset::find_asset_from_weak_ref(*C, asset_weak_ref, op->reports);
