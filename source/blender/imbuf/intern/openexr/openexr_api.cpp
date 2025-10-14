@@ -182,22 +182,17 @@ class IMMapStream : public Imf::IStream {
       throw IEX_NAMESPACE::InputExc("file not found");
     }
     _exrpos = 0;
-    imb_mmap_lock();
     _mmap_file = BLI_mmap_open(file);
-    imb_mmap_unlock();
     close(file);
     if (_mmap_file == nullptr) {
       throw IEX_NAMESPACE::InputExc("BLI_mmap_open failed");
     }
-    _exrbuf = (uchar *)BLI_mmap_get_pointer(_mmap_file);
     _exrsize = BLI_mmap_get_length(_mmap_file);
   }
 
   ~IMMapStream() override
   {
-    imb_mmap_lock();
     BLI_mmap_free(_mmap_file);
-    imb_mmap_unlock();
   }
 
   /**
@@ -209,7 +204,11 @@ class IMMapStream : public Imf::IStream {
     if (_exrpos + n > _exrsize) {
       throw Iex::InputExc("Unexpected end of file.");
     }
-    memcpy(c, _exrbuf + _exrpos, n);
+
+    if (!BLI_mmap_read(_mmap_file, c, _exrpos, n)) {
+      throw Iex::InputExc("Error reading file.");
+    }
+
     _exrpos += n;
 
     return _exrpos < _exrsize;
@@ -229,7 +228,6 @@ class IMMapStream : public Imf::IStream {
   BLI_mmap_file *_mmap_file;
   exr_file_offset_t _exrpos;
   exr_file_offset_t _exrsize;
-  uchar *_exrbuf;
 };
 
 /* File Input Stream */
