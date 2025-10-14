@@ -36,18 +36,18 @@ float2 calc_barycentric_co(int vertid)
 /* Assumes GPU_VEC4 is color data, special case that needs luminance coefficients from OCIO. */
 #define float_from_vec4(v, luminance_coefficients) dot(v.rgb, luminance_coefficients)
 #define float_from_vec3(v) ((v.r + v.g + v.b) * (1.0f / 3.0f))
-#define float_from_vec2(v) v.r
+#define float_from_vec2(v) ((v.x + v.y) * (1.0f / 2.0f))
 
-#define vec2_from_vec4(v) float2(((v.r + v.g + v.b) * (1.0f / 3.0f)), v.a)
-#define vec2_from_vec3(v) float2(((v.r + v.g + v.b) * (1.0f / 3.0f)), 1.0f)
+#define vec2_from_vec4(v) v.xy
+#define vec2_from_vec3(v) v.xy
 #define vec2_from_float(v) float2(v)
 
 #define vec3_from_vec4(v) v.rgb
-#define vec3_from_vec2(v) v.rrr
+#define vec3_from_vec2(v) float3(v.xy, 0.0f)
 #define vec3_from_float(v) float3(v)
 
 #define vec4_from_vec3(v) float4(v, 1.0f)
-#define vec4_from_vec2(v) v.rrrg
+#define vec4_from_vec2(v) float4(v.xy, 0.0f, 1.0f)
 #define vec4_from_float(v) float4(float3(v), 1.0f)
 
 /* TODO: Move to shader_shared. */
