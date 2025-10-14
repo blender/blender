@@ -15,7 +15,7 @@
 /* Undefine macro flags used for code adaption. */
 /* No macro flags necessary, as code is adapted to GLSL by default. */
 
-void node_radial_tiling(float3 coord,
+void node_radial_tiling(float2 coord,
                         float r_gon_sides,
                         float r_gon_roundness,
                         float normalize_r_gon_parameter,
