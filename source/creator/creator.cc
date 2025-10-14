@@ -553,9 +553,11 @@ int main(int argc,
   WM_init(C, argc, argv);
 
 #ifndef WITH_PYTHON
-  printf(
-      "\n* WARNING * - Blender compiled without Python!\n"
-      "this is not intended for typical usage\n\n");
+  fprintf(stderr,
+          "\n"
+          "WARNING: Blender compiled without Python!\n"
+          "This is not intended for typical usage.\n"
+          "\n");
 #endif
 
 #ifdef WITH_FREESTYLE
