@@ -57,7 +57,7 @@ class SelectPattern(Operator):
         is_pbone = False
         obj = context.object
         if obj and obj.mode == 'POSE':
-            items = obj.data.bones
+            items = obj.pose.bones
             if not self.extend:
                 bpy.ops.pose.select_all(action='DESELECT')
             is_pbone = True
