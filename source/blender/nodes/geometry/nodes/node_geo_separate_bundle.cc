@@ -238,7 +238,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  common_node_type_base(&ntype, "NodeSeparateBundle", NODE_SEPARATE_BUNDLE);
+  sh_geo_node_type_base(&ntype, "NodeSeparateBundle", NODE_SEPARATE_BUNDLE);
   ntype.ui_name = "Separate Bundle";
   ntype.ui_description = "Split a bundle into multiple sockets.";
   ntype.nclass = NODE_CLASS_CONVERTER;

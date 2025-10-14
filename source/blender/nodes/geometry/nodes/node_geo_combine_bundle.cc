@@ -192,7 +192,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  common_node_type_base(&ntype, "NodeCombineBundle", NODE_COMBINE_BUNDLE);
+  sh_geo_node_type_base(&ntype, "NodeCombineBundle", NODE_COMBINE_BUNDLE);
   ntype.ui_name = "Combine Bundle";
   ntype.ui_description = "Combine multiple socket values into one.";
   ntype.nclass = NODE_CLASS_CONVERTER;

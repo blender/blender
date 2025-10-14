@@ -422,7 +422,7 @@ void mesh_calc_edges(Mesh &mesh,
           array_utils::scatter<int2>(
               edge_map.as_span().cast<int2>(),
               edge_map_to_result_index.as_span().slice(edge_offsets[task_index]),
-              edge_verts.slice(edge_offsets[task_index]));
+              edge_verts);
         });
 
         calc_edges::update_edge_indices_in_face_loops(

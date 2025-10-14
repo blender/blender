@@ -220,7 +220,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  common_node_type_base(&ntype, "NodeEvaluateClosure", NODE_EVALUATE_CLOSURE);
+  sh_geo_node_type_base(&ntype, "NodeEvaluateClosure", NODE_EVALUATE_CLOSURE);
   ntype.ui_name = "Evaluate Closure";
   ntype.ui_description = "Execute a given closure";
   ntype.nclass = NODE_CLASS_CONVERTER;
