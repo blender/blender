@@ -529,7 +529,7 @@ class SEQUENCER_MT_select(Menu):
         st = context.space_data
         has_sequencer, has_preview = _space_view_types(st)
         is_retiming = (
-            context.sequencer_scene and
+            context.sequencer_scene is not None and
             context.sequencer_scene.sequence_editor is not None and
             context.sequencer_scene.sequence_editor.selected_retiming_keys
         )
@@ -1044,7 +1044,7 @@ class SEQUENCER_MT_strip_retiming(Menu):
         is_retiming = (
             context.sequencer_scene is not None and
             context.sequencer_scene.sequence_editor is not None and
-            context.sequencer_scene.sequence_editor.selected_retiming_keys is not None
+            context.sequencer_scene.sequence_editor.selected_retiming_keys
         )
         strip = context.active_strip
 
