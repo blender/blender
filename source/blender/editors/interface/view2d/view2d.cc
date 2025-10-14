@@ -191,8 +191,8 @@ static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
 
     /* Adjust horizontal scroller to avoid interfering with splitter areas. */
     if (scroll & V2D_SCROLL_HORIZONTAL) {
-      v2d->hor.xmin += UI_AZONESPOTW;
-      v2d->hor.xmax -= UI_AZONESPOTW;
+      v2d->hor.xmin += UI_AZONESPOTW_LEFT;
+      v2d->hor.xmax -= UI_AZONESPOTW_RIGHT;
     }
 
     /* Adjust vertical scroller to avoid horizontal scrollers and splitter areas. */

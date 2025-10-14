@@ -1061,20 +1061,20 @@ static void area_azone_init(const wmWindow *win, const bScreen *screen, ScrArea 
       /* Bottom-left. */
       {area->totrct.xmin - U.pixelsize,
        area->totrct.ymin - U.pixelsize,
-       area->totrct.xmin + UI_HEADER_OFFSET,
+       area->totrct.xmin + UI_AZONESPOTW_LEFT,
        float(area->totrct.ymin + ED_area_headersize())},
       /* Bottom-right. */
-      {area->totrct.xmax - UI_AZONESPOTW,
+      {area->totrct.xmax - UI_AZONESPOTW_RIGHT,
        area->totrct.ymin - U.pixelsize,
        area->totrct.xmax + U.pixelsize,
        area->totrct.ymin + UI_AZONESPOTH},
       /* Top-left. */
       {area->totrct.xmin - U.pixelsize,
        float(area->totrct.ymax - ED_area_headersize()),
-       area->totrct.xmin + UI_HEADER_OFFSET,
+       area->totrct.xmin + UI_AZONESPOTW_LEFT,
        area->totrct.ymax + U.pixelsize},
       /* Top-right. */
-      {area->totrct.xmax - UI_AZONESPOTW,
+      {area->totrct.xmax - UI_AZONESPOTW_RIGHT,
        area->totrct.ymax - UI_AZONESPOTH,
        area->totrct.xmax + U.pixelsize,
        area->totrct.ymax + U.pixelsize},
