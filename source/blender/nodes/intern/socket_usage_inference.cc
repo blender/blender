@@ -767,6 +767,10 @@ Array<SocketUsage> infer_all_sockets_usage(const bNodeTree &tree)
   const Span<const bNodeSocket *> all_output_sockets = tree.all_output_sockets();
   Array<SocketUsage> all_usages(tree.all_sockets().size());
 
+  if (tree.has_available_link_cycle()) {
+    return all_usages;
+  }
+
   ResourceScope scope;
   bke::ComputeContextCache compute_context_cache;
 
