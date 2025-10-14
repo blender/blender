@@ -213,6 +213,24 @@ class TestMeshJoin(unittest.TestCase):
         self.assertEqual(len(cube_2.data.vertices), 16)
         self.assertEqual(len(cube_2.data.shape_keys.key_blocks), 4)
 
+    def test_no_faces(self):
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete()
+
+        bpy.ops.mesh.primitive_cube_add()
+        bpy.ops.mesh.primitive_cube_add()
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.mesh.delete(type='ONLY_FACE')
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+
+        bpy.ops.object.join()
+
+        joined = bpy.context.object
+        self.assertEqual(len(joined.data.vertices), 16)
+        self.assertEqual(len(joined.data.polygons), 0)
+
 
 if __name__ == '__main__':
     import sys
