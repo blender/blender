@@ -93,4 +93,42 @@ TEST(idproperties, SyncGroupValues)
   IDP_FreeProperty(group2);
 }
 
+TEST(idproperties, ReprGroup)
+{
+  auto repr_fn = [](IDProperty *prop) -> std::string {
+    uint result_len;
+    char *c_str = IDP_reprN(prop, &result_len);
+    std::string result = std::string(c_str, result_len);
+    MEM_freeN(c_str);
+    return result;
+  };
+
+  IDProperty *group = idprop::create_group("test").release();
+
+  EXPECT_EQ(repr_fn(group), "{}");
+
+  IDP_AddToGroup(group, idprop::create("a", 1).release());
+  IDP_AddToGroup(group, idprop::create("b", 0.5f).release());
+  IDP_AddToGroup(group, idprop::create_bool("c", true).release());
+  IDP_AddToGroup(group, idprop::create_bool("d", false).release());
+  IDP_AddToGroup(group, idprop::create("e", "ABC (escape \" \\)").release());
+  IDP_AddToGroup(group, idprop::create("f", Span<int32_t>({-1, 0, 1})).release());
+  IDP_AddToGroup(group, idprop::create("g", Span<float>({-0.5f, 0.0f, 0.5f})).release());
+  IDP_AddToGroup(group, idprop::create_group("h").release());
+
+  EXPECT_EQ(repr_fn(group),
+            "{"
+            "\"a\": 1, "
+            "\"b\": 0.5, "
+            "\"c\": True, "
+            "\"d\": False, "
+            "\"e\": \"ABC (escape \\\" \\\\)\", "
+            "\"f\": [-1, 0, 1], "
+            "\"g\": [-0.5, 0, 0.5], "
+            "\"h\": {}"
+            "}");
+
+  IDP_FreeProperty(group);
+}
+
 }  // namespace blender::bke::tests
