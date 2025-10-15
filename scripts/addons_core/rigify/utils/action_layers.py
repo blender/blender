@@ -3,8 +3,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from typing import Optional, List, Dict, Tuple, TYPE_CHECKING
-from bpy.types import Action, Mesh, Armature
+from bpy.types import Action, Mesh, Armature, ActionSlot, ActionChannelbag
 from bl_math import clamp
+from bpy_extras import anim_utils
 
 from .errors import MetarigError
 from .misc import MeshObject, IdPropSequence, verify_mesh_obj
@@ -46,9 +47,13 @@ class ActionSlotBase:
     @property
     def keyed_bone_names(self) -> List[str]:
         """Return a list of bone names that have keyframes in the Action of this Slot."""
-        keyed_bones = []
 
-        for fc in self.action.fcurves:
+        channelbag = anim_utils.action_get_channelbag_for_slot(self.action, self.action_slot)
+        if not channelbag:
+            return []
+
+        keyed_bones = []
+        for fc in channelbag.fcurves:
             # Extracting bone name from fcurve data path
             if fc.data_path.startswith('pose.bones["'):
                 bone_name = fc.data_path[12:].split('"]')[0]
@@ -57,6 +62,15 @@ class ActionSlotBase:
                     keyed_bones.append(bone_name)
 
         return keyed_bones
+
+    @property
+    def action_slot(self) -> ActionSlot | None:
+        """Return first suitable action slot (if any), which will be assigned to the Action constraints.
+        In Blender 5.0, users will be able to select this in Rigify's UI."""
+        if not self.action:
+            return None
+        slots = self.action.slots
+        return next((s for s in slots if s.target_id_type in ('UNSPECIFIED', 'OBJECT')), None)
 
     @property
     def do_symmetry(self) -> bool:
@@ -257,6 +271,7 @@ class ActionLayer(RigComponent):
             insert_index=0,
             use_eval_time=True,
             action=self.slot.action,
+            action_slot=self.slot.action_slot,
             frame_start=self.slot.frame_start,
             frame_end=self.slot.frame_end,
             mix_mode='BEFORE_SPLIT',
