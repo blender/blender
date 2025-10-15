@@ -934,7 +934,7 @@ void ED_spacetype_action()
   art = MEM_callocN<ARegionType>("spacetype action region");
   art->regionid = RGN_TYPE_FOOTER;
   art->prefsizey = HEADERY;
-  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
+  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER | ED_KEYMAP_FRAMES;
   art->init = action_header_region_init;
   art->draw = action_header_region_draw;
   art->listener = action_footer_region_listener;
