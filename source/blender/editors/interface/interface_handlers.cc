@@ -5888,7 +5888,6 @@ static bool ui_numedit_but_SLI(uiBut *but,
                                const bool snap,
                                const bool shift)
 {
-  uiButNumberSlider *slider_but = reinterpret_cast<uiButNumberSlider *>(but);
   float cursor_x_range, f, tempf, softmin, softmax, softrange;
   int temp, lvalue;
   bool changed = false;
@@ -5917,10 +5916,11 @@ static bool ui_numedit_but_SLI(uiBut *but,
     cursor_x_range = BLI_rctf_size_x(&but->rect);
   }
   else if (but->type == ButType::Scroll) {
+    uiButScrollBar *scroll_but = reinterpret_cast<uiButScrollBar *>(but);
     const float size = (is_horizontal) ? BLI_rctf_size_x(&but->rect) :
                                          -BLI_rctf_size_y(&but->rect);
     cursor_x_range = size * (but->softmax - but->softmin) /
-                     (but->softmax - but->softmin + slider_but->step_size);
+                     (but->softmax - but->softmin + scroll_but->visual_height);
   }
   else {
     const float ofs = (BLI_rctf_size_y(&but->rect) / 2.0f);
