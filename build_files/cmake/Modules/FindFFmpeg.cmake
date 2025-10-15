@@ -47,6 +47,8 @@ find_path(_ffmpeg_INCLUDE_DIR
     ${_ffmpeg_SEARCH_DIRS}
   PATH_SUFFIXES
     include
+    # Used by `ffmpeg-devel` on Fedora (see #147952).
+    include/ffmpeg
 )
 
 set(_ffmpeg_LIBRARIES)
