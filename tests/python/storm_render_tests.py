@@ -60,6 +60,7 @@ BLOCKLIST_METAL = [
 ]
 
 
+
 def setup():
     import bpy
     import addon_utils
