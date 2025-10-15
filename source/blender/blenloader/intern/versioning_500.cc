@@ -130,8 +130,16 @@ void version_system_idprops_generate(Main *bmain)
     for (BoneCollection *bcoll : armature->collections_span()) {
       idprops_process(bcoll->prop, &bcoll->system_properties);
     }
-    LISTBASE_FOREACH (Bone *, bone, &armature->bonebase) {
+    /* There is no way to iterate directly over all bones of an armature currently, use a recursive
+     * approach instead. */
+    auto process_bone_recursive = [](const auto &process_bone_recursive, Bone *bone) -> void {
       idprops_process(bone->prop, &bone->system_properties);
+      LISTBASE_FOREACH (Bone *, bone_it, &bone->childbase) {
+        process_bone_recursive(process_bone_recursive, bone_it);
+      }
+    };
+    LISTBASE_FOREACH (Bone *, bone_it, &armature->bonebase) {
+      process_bone_recursive(process_bone_recursive, bone_it);
     }
   }
 }
@@ -144,6 +152,29 @@ void version_system_idprops_nodes_generate(Main *bmain)
     }
   }
   FOREACH_NODETREE_END;
+}
+/* Separate callback for non-root bones, because they were missed in the initial implementation. */
+void version_system_idprops_children_bones_generate(Main *bmain)
+{
+  LISTBASE_FOREACH (bArmature *, armature, &bmain->armatures) {
+    /* There is no way to iterate directly over all bones of an armature currently, use a recursive
+     * approach instead. */
+    auto process_bone_recursive = [](const auto &process_bone_recursive, Bone *bone) -> void {
+      /* Do not overwrite children bones' system properties if they were already defined by some
+       * scripts or add-on e.g. */
+      if (bone->system_properties == nullptr) {
+        idprops_process(bone->prop, &bone->system_properties);
+      }
+      LISTBASE_FOREACH (Bone *, bone_it, &bone->childbase) {
+        process_bone_recursive(process_bone_recursive, bone_it);
+      }
+    };
+    LISTBASE_FOREACH (Bone *, bone_it, &armature->bonebase) {
+      LISTBASE_FOREACH (Bone *, bone_child_it, &bone_it->childbase) {
+        process_bone_recursive(process_bone_recursive, bone_child_it);
+      }
+    }
+  }
 }
 
 static CustomDataLayer *find_old_seam_layer(CustomData &custom_data, const blender::StringRef name)
