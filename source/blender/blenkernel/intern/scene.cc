@@ -2306,14 +2306,19 @@ const char *BKE_scene_find_last_marker_name(const Scene *scene, int frame)
   return best_marker ? best_marker->name : nullptr;
 }
 
-int BKE_scene_frame_snap_by_seconds(Scene *scene, double interval_in_seconds, int frame)
+float BKE_scene_frame_snap_by_seconds(const Scene *scene,
+                                      const double interval_in_seconds,
+                                      const float frame)
 {
-  const int fps = round_db_to_int(scene->frames_per_second() * interval_in_seconds);
-  const int second_prev = frame - mod_i(frame, fps);
-  const int second_next = second_prev + fps;
-  const int delta_prev = frame - second_prev;
-  const int delta_next = second_next - frame;
-  return (delta_prev < delta_next) ? second_prev : second_next;
+  BLI_assert(interval_in_seconds > 0);
+  BLI_assert(scene->frames_per_second() > 0);
+
+  const double interval_in_frames = scene->frames_per_second() * interval_in_seconds;
+  const double second_prev = interval_in_frames * floor(frame / interval_in_frames);
+  const double second_next = second_prev + ceil(interval_in_frames);
+  const double delta_prev = frame - second_prev;
+  const double delta_next = second_next - frame;
+  return float((delta_prev < delta_next) ? second_prev : second_next);
 }
 
 void BKE_scene_remove_rigidbody_object(Main *bmain, Scene *scene, Object *ob, const bool free_us)

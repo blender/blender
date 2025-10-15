@@ -3501,6 +3501,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
      * later during 5.0 development process. */
     version_system_idprops_nodes_generate(main);
   }
+  if (!MAIN_VERSION_FILE_ATLEAST(main, 500, 110)) {
+    /* Same as above, but children bones were missed by initial versioning code, attempt to
+     * transfer idprops data still in case they have no system properties defined yet. */
+    version_system_idprops_children_bones_generate(main);
+  }
 
   if (G.debug & G_DEBUG) {
     char build_commit_datetime[32];
