@@ -603,8 +603,8 @@ static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item
 
       /* Improve forward compatibility for unknown default input types. */
       const bNodeSocketType *stype = socket.socket_typeinfo();
-      if (!nodes::socket_type_supports_default_input_type(
-              *stype, NodeDefaultInputType(socket.default_input)))
+      if (!stype || !nodes::socket_type_supports_default_input_type(
+                        *stype, NodeDefaultInputType(socket.default_input)))
       {
         socket.default_input = NODE_DEFAULT_INPUT_VALUE;
       }
