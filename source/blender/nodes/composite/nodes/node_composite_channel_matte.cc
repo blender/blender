@@ -181,7 +181,7 @@ static void cmp_node_channel_matte_declare(NodeDeclarationBuilder &b)
             CMP_NODE_CHANNEL_MATTE_CS_RGB;
       })
       .usage_inference(
-          [](const socket_usage_inference::InputSocketUsageParams &params) -> std::optional<bool> {
+          [](const socket_usage_inference::SocketUsageParams &params) -> std::optional<bool> {
             return params.menu_input_may_be("Limit Method",
                                             CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_SINGLE) &&
                    params.menu_input_may_be("Color Space", CMP_NODE_CHANNEL_MATTE_CS_RGB);
@@ -203,7 +203,7 @@ static void cmp_node_channel_matte_declare(NodeDeclarationBuilder &b)
             CMP_NODE_CHANNEL_MATTE_CS_HSV;
       })
       .usage_inference(
-          [](const socket_usage_inference::InputSocketUsageParams &params) -> std::optional<bool> {
+          [](const socket_usage_inference::SocketUsageParams &params) -> std::optional<bool> {
             return params.menu_input_may_be("Limit Method",
                                             CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_SINGLE) &&
                    params.menu_input_may_be("Color Space", CMP_NODE_CHANNEL_MATTE_CS_HSV);
@@ -225,7 +225,7 @@ static void cmp_node_channel_matte_declare(NodeDeclarationBuilder &b)
             CMP_NODE_CHANNEL_MATTE_CS_YUV;
       })
       .usage_inference(
-          [](const socket_usage_inference::InputSocketUsageParams &params) -> std::optional<bool> {
+          [](const socket_usage_inference::SocketUsageParams &params) -> std::optional<bool> {
             return params.menu_input_may_be("Limit Method",
                                             CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_SINGLE) &&
                    params.menu_input_may_be("Color Space", CMP_NODE_CHANNEL_MATTE_CS_YUV);
@@ -247,7 +247,7 @@ static void cmp_node_channel_matte_declare(NodeDeclarationBuilder &b)
             CMP_NODE_CHANNEL_MATTE_CS_YCC;
       })
       .usage_inference(
-          [](const socket_usage_inference::InputSocketUsageParams &params) -> std::optional<bool> {
+          [](const socket_usage_inference::SocketUsageParams &params) -> std::optional<bool> {
             return params.menu_input_may_be("Limit Method",
                                             CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_SINGLE) &&
                    params.menu_input_may_be("Color Space", CMP_NODE_CHANNEL_MATTE_CS_YCC);
