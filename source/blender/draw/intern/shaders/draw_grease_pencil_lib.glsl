@@ -19,8 +19,22 @@ SHADER_LIBRARY_CREATE_INFO(draw_gpencil)
 #endif
 
 #ifdef GPU_FRAGMENT_SHADER
-float gpencil_stroke_round_cap_mask(
-    float2 p1, float2 p2, float2 aspect, float thickness, float hardfac)
+
+float gpencil_stroke_hardess_mask(float dist, float hardfac)
+{
+  dist = clamp(1.0f - dist, 0.0f, 1.0f);
+  if (hardfac > 0.999f) {
+    return step(1e-8f, dist);
+  }
+  else {
+    /* Modulate the falloff profile */
+    float hardness = 1.0f - hardfac;
+    dist = pow(dist, mix(0.0f, 10.0f, hardness));
+    return smoothstep(0.0f, 1.0f, dist);
+  }
+}
+
+float gpencil_stroke_segment_mask(float2 p1, float2 p2, float thickness, float hardfac)
 {
   /* We create our own uv space to avoid issues with triangulation and linear
    * interpolation artifacts. */
@@ -36,17 +50,28 @@ float gpencil_stroke_round_cap_mask(
   uv_end.y = dot(float2(-line.y, line.x), pos);
   /* Divide by stroke radius. */
   uv_end /= thickness;
-  uv_end *= aspect;
 
-  float dist = clamp(1.0f - length(uv_end) * 2.0f, 0.0f, 1.0f);
-  if (hardfac > 0.999f) {
-    return step(1e-8f, dist);
+  float dist = length(uv_end) * 2.0f;
+  return gpencil_stroke_hardess_mask(dist, hardfac);
+}
+
+float gpencil_stroke_mask(
+    float2 p1, float2 p2, float2 uv, uint mat_flag, float thickness, float hardfac)
+{
+  if (flag_test(mat_flag, GP_STROKE_ALIGNMENT)) {
+    /* Dot or Squares. */
+    uv = uv * 2.0 - 1.0;
+    if (flag_test(mat_flag, GP_STROKE_DOTS)) {
+      return gpencil_stroke_hardess_mask(length(uv), hardfac);
+    }
+    else {
+      uv = abs(uv);
+      return gpencil_stroke_hardess_mask(max(uv.x, uv.y), hardfac);
+    }
   }
   else {
-    /* Modulate the falloff profile */
-    float hardness = 1.0f - hardfac;
-    dist = pow(dist, mix(0.01f, 10.0f, hardness));
-    return smoothstep(0.0f, 1.0f, dist);
+    /* Line mask */
+    return gpencil_stroke_segment_mask(p1, p2, thickness, hardfac);
   }
 }
 #endif

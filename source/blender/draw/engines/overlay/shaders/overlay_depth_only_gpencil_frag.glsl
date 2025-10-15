@@ -20,11 +20,10 @@ float3 ray_plane_intersection(float3 ray_ori, float3 ray_dir, float4 plane)
 
 void main()
 {
-  if (gpencil_stroke_round_cap_mask(gp_interp_flat.sspos.xy,
-                                    gp_interp_flat.sspos.zw,
-                                    gp_interp_flat.aspect,
-                                    gp_interp_noperspective.thickness.x,
-                                    gp_interp_noperspective.hardness) < 0.001f)
+  if (gpencil_stroke_segment_mask(gp_interp_flat.sspos.xy,
+                                  gp_interp_flat.sspos.zw,
+                                  gp_interp_noperspective.thickness.x,
+                                  gp_interp_noperspective.hardness) < 0.001f)
   {
 #ifndef SELECT_ENABLE
     /* We cannot discard the fragment in selection mode. Otherwise we would break pipeline
