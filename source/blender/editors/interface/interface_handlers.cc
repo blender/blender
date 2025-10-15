@@ -11223,6 +11223,10 @@ static int ui_handle_menu_event(bContext *C,
       if ((inside == false) && (menu->menuretval == 0)) {
         uiSafetyRct *saferct = static_cast<uiSafetyRct *>(block->saferct.first);
 
+        if (event->type == MOUSEMOVE) {
+          WM_tooltip_clear(C, win);
+        }
+
         if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE)) {
           if (ELEM(event->val, KM_PRESS, KM_DBL_CLICK)) {
             if ((is_parent_menu == false) && (U.uiflag & USER_MENUOPENAUTO) == 0) {
