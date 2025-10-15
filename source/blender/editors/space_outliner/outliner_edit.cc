@@ -498,9 +498,19 @@ static void id_delete_tag(bContext *C, ReportList *reports, TreeElement *te, Tre
     }
   }
 
-  if (te->idcode == ID_LI && ((Library *)id)->runtime->parent != nullptr) {
-    BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked library '%s'", id->name);
-    return;
+  if (te->idcode == ID_LI) {
+    Library *lib = blender::id_cast<Library *>(id);
+    if (lib->runtime->parent != nullptr) {
+      BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked library '%s'", id->name);
+      return;
+    }
+    if (CTX_data_scene(C)->id.lib == lib) {
+      BKE_reportf(reports,
+                  RPT_WARNING,
+                  "Cannot delete library '%s', as it contains the currently active Scene",
+                  id->name);
+      return;
+    }
   }
   if (id->tag & ID_TAG_INDIRECT) {
     BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked id '%s'", id->name);
