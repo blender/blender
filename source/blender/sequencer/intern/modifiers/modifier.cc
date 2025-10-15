@@ -159,18 +159,10 @@ void draw_mask_input_type_settings(const bContext *C, uiLayout *layout, PointerR
   row->prop(ptr, "input_mask_type", UI_ITEM_R_EXPAND, IFACE_("Type"), ICON_NONE);
 
   if (input_mask_type == STRIP_MASK_INPUT_STRIP) {
-    MetaStack *ms = meta_stack_active_get(ed);
-    PointerRNA sequences_object;
-    if (ms) {
-      sequences_object = RNA_pointer_create_discrete(
-          &sequencer_scene->id, &RNA_MetaStrip, ms->parent_strip);
-    }
-    else {
-      sequences_object = RNA_pointer_create_discrete(
-          &sequencer_scene->id, &RNA_SequenceEditor, ed);
-    }
+    PointerRNA sequences_object = RNA_pointer_create_discrete(
+        &sequencer_scene->id, &RNA_SequenceEditor, ed);
     col->prop_search(
-        ptr, "input_mask_strip", &sequences_object, "strips", IFACE_("Mask"), ICON_NONE);
+        ptr, "input_mask_strip", &sequences_object, "strips_all", IFACE_("Mask"), ICON_NONE);
   }
   else {
     col->prop(ptr, "input_mask_id", UI_ITEM_NONE, std::nullopt, ICON_NONE);
