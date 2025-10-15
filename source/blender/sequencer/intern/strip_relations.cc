@@ -53,6 +53,16 @@ void cache_cleanup(Scene *scene)
   intra_frame_cache_invalidate(scene);
 }
 
+void cache_cleanup_intra(Scene *scene)
+{
+  intra_frame_cache_invalidate(scene);
+}
+
+void cache_cleanup_final(Scene *scene)
+{
+  final_image_cache_clear(scene);
+}
+
 bool is_cache_full(const Scene *scene)
 {
   size_t cache_limit = size_t(U.memcachelimit) * 1024 * 1024;
