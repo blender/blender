@@ -8767,6 +8767,7 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, time_jump_unit_items);
   RNA_def_property_ui_text(
       prop, "Time Jump Unit", "Which unit to use for time jumps in the timeline");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UNIT);
   RNA_def_property_update(prop, NC_SCENE | ND_FRAME_RANGE, nullptr);
 
   prop = RNA_def_property(srna, "time_jump_delta", PROP_FLOAT, PROP_TIME);

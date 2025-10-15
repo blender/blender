@@ -59,7 +59,8 @@ static void cmp_node_dilate_declare(NodeDeclarationBuilder &b)
       .default_value(PROP_SMOOTH)
       .static_items(rna_enum_proportional_falloff_curve_only_items)
       .optional_label()
-      .usage_by_menu("Type", CMP_NODE_DILATE_ERODE_DISTANCE_FEATHER);
+      .usage_by_menu("Type", CMP_NODE_DILATE_ERODE_DISTANCE_FEATHER)
+      .translation_context(BLT_I18NCONTEXT_ID_CURVE_LEGACY);
 
   b.add_output<decl::Float>("Mask").structure_type(StructureType::Dynamic);
 }

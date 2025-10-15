@@ -2442,6 +2442,7 @@ static void rna_def_strip(BlenderRNA *brna)
   RNA_def_property_enum_default(prop, STRIP_TYPE_ALPHAOVER);
   RNA_def_property_ui_text(
       prop, "Blending Mode", "Method for controlling how the strip combines with other strips");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR);
   RNA_def_property_update(
       prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_invalidate_preprocessed_update");
 
