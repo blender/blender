@@ -122,7 +122,7 @@ def gather_udim_texture_info(
     if tex in ["normalTexture", "clearcoatNormalTexture"]:
         fields['scale'] = __gather_normal_scale(primary_socket, export_settings)
         texture_info = gltf2_io.MaterialNormalTextureInfoClass(**fields)
-    elif tex in "occlusionTexture":
+    elif tex == "occlusionTexture":
         fields['strength'] = __gather_occlusion_strength(primary_socket, export_settings)
         texture_info = gltf2_io.MaterialOcclusionTextureInfoClass(**fields)
     else:
