@@ -23,7 +23,6 @@ from make_utils import call
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--ctest-command", default="ctest")
-    parser.add_argument("--cmake-command", default="cmake")
     parser.add_argument("--git-command", default="git")
     parser.add_argument("--config", default="")
     parser.add_argument("build_directory")
@@ -34,7 +33,6 @@ def main() -> int:
     args = parse_arguments()
     git_command = args.git_command
     ctest_command = args.ctest_command
-    cmake_command = args.cmake_command
     config = args.config
     build_dir = args.build_directory
 
