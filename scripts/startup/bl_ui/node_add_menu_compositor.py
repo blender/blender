@@ -306,6 +306,7 @@ class NODE_MT_compositor_node_vector_base(node_add_menu.NodeMenu):
         ops.value = "'VECTOR'"
         self.node_operator(layout, "ShaderNodeSeparateXYZ")
         layout.separator()
+        self.node_operator(layout, "ShaderNodeRadialTiling")
         self.node_operator(layout, "ShaderNodeVectorCurve")
         self.node_operator_with_searchable_enum(context, layout, "ShaderNodeVectorMath", "operation")
         self.node_operator(layout, "ShaderNodeVectorRotate")
