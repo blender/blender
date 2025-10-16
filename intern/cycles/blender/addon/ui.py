@@ -1210,7 +1210,7 @@ class CYCLES_CAMERA_PT_lens_custom_parameters(CyclesButtonsPanel, Panel):
 
         col = layout.column()
         for key in ccam.keys():
-            col.prop(ccam, f'["{key}"]')
+            col.prop(ccam, f'["{key}"]', text=bpy.path.display_name(key))
 
 
 class CYCLES_PT_context_material(CyclesButtonsPanel, Panel):
