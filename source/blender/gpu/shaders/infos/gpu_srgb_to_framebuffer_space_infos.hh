@@ -19,3 +19,8 @@ GPU_SHADER_CREATE_INFO(gpu_srgb_to_framebuffer_space)
 PUSH_CONSTANT(bool, srgbTarget)
 DEFINE("blender_srgb_to_framebuffer_space(a) a")
 GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(gpu_scene_linear_to_rec709_space)
+PUSH_CONSTANT(float3x3, gpu_scene_linear_to_rec709)
+DEFINE("BLENDER_SCENE_LINEAR_TO_REC709")
+GPU_SHADER_CREATE_END()
