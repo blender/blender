@@ -4507,12 +4507,9 @@ static wmOperatorStatus uv_box_select_exec(bContext *C, wmOperator *op)
   const ToolSettings *ts = scene->toolsettings;
 
   const bool pinned = RNA_boolean_get(op->ptr, "pinned");
-  const bool use_face_center = ((ts->uv_flag & UV_FLAG_SELECT_SYNC) ?
-                                    (ts->selectmode == SCE_SELECT_FACE) :
-                                    (ts->uv_selectmode == UV_SELECT_FACE));
-  const bool use_edge = ((ts->uv_flag & UV_FLAG_SELECT_SYNC) ?
-                             (ts->selectmode == SCE_SELECT_EDGE) :
-                             (ts->uv_selectmode == UV_SELECT_EDGE));
+
+  /* Note that face selection uses the face-center. */
+  const char uv_select_mode = ED_uvedit_select_mode_get(scene);
   const bool use_select_linked = pinned ? false : ED_uvedit_select_island_check(ts);
 
   if (pinned) {
@@ -4567,9 +4564,8 @@ static wmOperatorStatus uv_box_select_exec(bContext *C, wmOperator *op)
       /* Special case, nothing is pinned so it's known in advance that nothing will be selected.
        * Still run the code after this block finishes as the UV's may have been de-selected. */
     }
-    else if (use_face_center) {
-      /* handle face selection mode */
-
+    else if (uv_select_mode == UV_SELECT_FACE) {
+      /* Handle face selection (face center). */
       if (use_select_linked) {
         BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
       }
@@ -4604,7 +4600,7 @@ static wmOperatorStatus uv_box_select_exec(bContext *C, wmOperator *op)
         uv_select_flush_from_tag_face(scene, obedit, select);
       }
     }
-    else if (use_edge) {
+    else if (uv_select_mode == UV_SELECT_EDGE) {
       bool do_second_pass = true;
       BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
         if (!uvedit_face_visible_test(scene, efa)) {
@@ -4661,7 +4657,9 @@ static wmOperatorStatus uv_box_select_exec(bContext *C, wmOperator *op)
       }
     }
     else {
-      /* other selection modes */
+      /* Handle vert selection. */
+      BLI_assert(uv_select_mode == UV_SELECT_VERT);
+
       changed = true;
       BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
 
@@ -4784,12 +4782,8 @@ static wmOperatorStatus uv_circle_select_exec(bContext *C, wmOperator *op)
   float zoomx, zoomy;
   float offset[2], ellipse[2];
 
-  const bool use_face_center = ((ts->uv_flag & UV_FLAG_SELECT_SYNC) ?
-                                    (ts->selectmode == SCE_SELECT_FACE) :
-                                    (ts->uv_selectmode == UV_SELECT_FACE));
-  const bool use_edge = ((ts->uv_flag & UV_FLAG_SELECT_SYNC) ?
-                             (ts->selectmode == SCE_SELECT_EDGE) :
-                             (ts->uv_selectmode == UV_SELECT_EDGE));
+  /* Note that face selection uses the face-center. */
+  const char uv_select_mode = ED_uvedit_select_mode_get(scene);
   const bool use_select_linked = ED_uvedit_select_island_check(ts);
 
   /* get operator properties */
@@ -4836,7 +4830,8 @@ static wmOperatorStatus uv_circle_select_exec(bContext *C, wmOperator *op)
     const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
     /* do selection */
-    if (use_face_center) {
+    if (uv_select_mode == UV_SELECT_FACE) {
+      /* Handle face selection (face center). */
       if (use_select_linked) {
         BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
       }
@@ -4873,7 +4868,8 @@ static wmOperatorStatus uv_circle_select_exec(bContext *C, wmOperator *op)
         uv_select_flush_from_tag_face(scene, obedit, select);
       }
     }
-    else if (use_edge) {
+    else if (uv_select_mode == UV_SELECT_EDGE) {
+      /* Handle edge selection. */
       BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
         if (!uvedit_face_visible_test(scene, efa)) {
           continue;
@@ -4900,6 +4896,9 @@ static wmOperatorStatus uv_circle_select_exec(bContext *C, wmOperator *op)
       }
     }
     else {
+      /* Handle vert selection. */
+      BLI_assert(uv_select_mode == UV_SELECT_VERT);
+
       BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
 
       BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
@@ -5014,12 +5013,9 @@ static bool do_lasso_select_mesh_uv(bContext *C, const Span<int2> mcoords, const
   Scene *scene = CTX_data_scene(C);
   const ToolSettings *ts = scene->toolsettings;
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  const bool use_face_center = ((ts->uv_flag & UV_FLAG_SELECT_SYNC) ?
-                                    (ts->selectmode == SCE_SELECT_FACE) :
-                                    (ts->uv_selectmode == UV_SELECT_FACE));
-  const bool use_edge = ((ts->uv_flag & UV_FLAG_SELECT_SYNC) ?
-                             (ts->selectmode == SCE_SELECT_EDGE) :
-                             (ts->uv_selectmode == UV_SELECT_EDGE));
+
+  /* Note that face selection uses the face-center. */
+  const char uv_select_mode = ED_uvedit_select_mode_get(scene);
   const bool use_select_linked = ED_uvedit_select_island_check(ts);
 
   const bool select = (sel_op != SEL_OP_SUB);
@@ -5055,7 +5051,8 @@ static bool do_lasso_select_mesh_uv(bContext *C, const Span<int2> mcoords, const
     }
     const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
-    if (use_face_center) { /* Face Center Select. */
+    if (uv_select_mode == UV_SELECT_FACE) {
+      /* Handle face selection (face center). */
       if (use_select_linked) {
         BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
       }
@@ -5092,7 +5089,8 @@ static bool do_lasso_select_mesh_uv(bContext *C, const Span<int2> mcoords, const
         uv_select_flush_from_tag_face(scene, obedit, select);
       }
     }
-    else if (use_edge) {
+    else if (uv_select_mode == UV_SELECT_EDGE) {
+      /* Handle edge selection. */
       bool do_second_pass = true;
       BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
         if (!uvedit_face_visible_test(scene, efa)) {
@@ -5149,7 +5147,10 @@ static bool do_lasso_select_mesh_uv(bContext *C, const Span<int2> mcoords, const
         }
       }
     }
-    else { /* Vert Selection. */
+    else {
+      /* Handle vert selection. */
+      BLI_assert(uv_select_mode == UV_SELECT_VERT);
+
       BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
 
       BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
