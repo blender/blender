@@ -395,6 +395,8 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   const blender::bke::MeshRuntime *mesh_runtime = mesh->runtime;
   mesh->runtime = nullptr;
 
+  BLO_write_shared_tag(writer, mesh->face_offset_indices);
+
   BLO_write_id_struct(writer, Mesh, id_address, &mesh->id);
   BKE_id_blend_write(writer, &mesh->id);
 
