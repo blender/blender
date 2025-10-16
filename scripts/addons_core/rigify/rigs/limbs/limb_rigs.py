@@ -708,7 +708,7 @@ class BaseLimbRig(BaseRig):
 
     def rig_hide_pole_control(self, name: str):
         self.make_driver(
-            self.get_bone(name).bone, "hide",
+            self.get_bone(name), "hide",
             variables=[(self.prop_bone, 'pole_vector')], polynomial=[1.0, -1.0],
         )
 
