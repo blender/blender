@@ -27,22 +27,29 @@ ccl_device_inline float interpolate_ies_vertical(KernelGlobals kg,
    * we can just take the corresponding value at the current horizontal coordinate. */
 
 #define IES_LOOKUP(v) kernel_data_fetch(ies, ofs + h * v_num + (v))
-  float a = 0.0f;
+
+  /* Look up the inner two points directly. */
+  const float c = IES_LOOKUP(v + 1);
+  const float b = IES_LOOKUP(v);
+
+  /* Look up first point, or fall back to second point if not available. */
+  float a = b;
   if (v > 0) {
     a = IES_LOOKUP(v - 1);
   }
   else if (wrap_vlow) {
     a = IES_LOOKUP(1);
   }
-  const float b = IES_LOOKUP(v);
-  const float c = IES_LOOKUP(v + 1);
-  float d = 0.0f;
+
+  /* Look up last point, or fall back to third point if not available. */
+  float d = c;
   if (v + 2 < v_num) {
     d = IES_LOOKUP(v + 2);
   }
   else if (wrap_vhigh) {
     d = IES_LOOKUP(v_num - 2);
   }
+
 #undef IES_LOOKUP
 
   return cubic_interp(a, b, c, d, v_frac);
@@ -105,7 +112,14 @@ ccl_device_inline float kernel_ies_interp(KernelGlobals kg,
   /* Skip forward to the actual intensity data. */
   ofs += h_num + v_num;
 
-  float a = 0.0f;
+  /* Interpolate the inner two points directly. */
+  const float b = interpolate_ies_vertical(
+      kg, ofs, wrap_vlow, wrap_vhigh, v_i, v_num, v_frac, h_i);
+  const float c = interpolate_ies_vertical(
+      kg, ofs, wrap_vlow, wrap_vhigh, v_i, v_num, v_frac, h_i + 1);
+
+  /* Interpolate first point, or fall back to second point if not available. */
+  float a = b;
   if (h_i > 0) {
     a = interpolate_ies_vertical(kg, ofs, wrap_vlow, wrap_vhigh, v_i, v_num, v_frac, h_i - 1);
   }
@@ -113,11 +127,9 @@ ccl_device_inline float kernel_ies_interp(KernelGlobals kg,
     /* The last entry (360°) equals the first one, so we need to wrap around to the one before. */
     a = interpolate_ies_vertical(kg, ofs, wrap_vlow, wrap_vhigh, v_i, v_num, v_frac, h_num - 2);
   }
-  const float b = interpolate_ies_vertical(
-      kg, ofs, wrap_vlow, wrap_vhigh, v_i, v_num, v_frac, h_i);
-  const float c = interpolate_ies_vertical(
-      kg, ofs, wrap_vlow, wrap_vhigh, v_i, v_num, v_frac, h_i + 1);
-  float d = 0.0f;
+
+  /* Interpolate last point, or fall back to second point if not available. */
+  float d = b;
   if (h_i + 2 < h_num) {
     d = interpolate_ies_vertical(kg, ofs, wrap_vlow, wrap_vhigh, v_i, v_num, v_frac, h_i + 2);
   }

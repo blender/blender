@@ -185,6 +185,11 @@ bool AssetCatalogDefinitionFile::write_to_disk(const CatalogFilePath &dest_file_
   return true;
 }
 
+bool AssetCatalogDefinitionFile::exists_on_disk() const
+{
+  return BLI_exists(this->file_path.c_str());
+}
+
 bool AssetCatalogDefinitionFile::write_to_disk_unsafe(const CatalogFilePath &dest_file_path) const
 {
   char directory[PATH_MAX];
