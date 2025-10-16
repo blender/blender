@@ -33,21 +33,6 @@ static const EnumPropertyItem prop_direction_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-#ifdef RNA_RUNTIME
-
-#  include "DNA_material_types.h"
-
-static const EnumPropertyItem prop_smooth_direction_items[] = {
-    {0, "SMOOTH", ICON_ADD, "Smooth", "Smooth the surface"},
-    {BRUSH_DIR_IN,
-     "ENHANCE_DETAILS",
-     ICON_REMOVE,
-     "Enhance Details",
-     "Enhance the surface detail"},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-#endif
-
 static const EnumPropertyItem sculpt_stroke_method_items[] = {
     {0, "DOTS", 0, "Dots", "Apply paint on each mouse move step"},
     {BRUSH_DRAG_DOT, "DRAG_DOT", 0, "Drag Dot", "Allows a single dot to be carefully positioned"},
@@ -378,6 +363,8 @@ static EnumPropertyItem rna_enum_gpencil_brush_modes_items[] = {
 #endif
 
 #ifdef RNA_RUNTIME
+
+#  include "DNA_material_types.h"
 
 #  include "RNA_access.hh"
 
@@ -784,34 +771,84 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
   PaintMode mode = BKE_paintmode_get_active_from_context(C);
 
   /* sculpt mode */
+  static const EnumPropertyItem prop_smooth_direction_items[] = {
+      {0,
+       "SMOOTH",
+       ICON_ADD,
+       CTX_N_(BLT_I18NCONTEXT_ID_BRUSH, "Smooth"),
+       N_("Smooth the surface")},
+      {BRUSH_DIR_IN,
+       "ENHANCE_DETAILS",
+       ICON_REMOVE,
+       CTX_N_(BLT_I18NCONTEXT_ID_BRUSH, "Enhance Details"),
+       N_("Enhance the surface detail")},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   static const EnumPropertyItem prop_pinch_magnify_items[] = {
-      {BRUSH_DIR_IN, "MAGNIFY", ICON_ADD, "Magnify", "Subtract effect of brush"},
-      {0, "PINCH", ICON_REMOVE, "Pinch", "Add effect of brush"},
+      {BRUSH_DIR_IN,
+       "MAGNIFY",
+       ICON_ADD,
+       CTX_N_(BLT_I18NCONTEXT_ID_BRUSH, "Magnify"),
+       N_("Subtract effect of brush")},
+      {0,
+       "PINCH",
+       ICON_REMOVE,
+       CTX_N_(BLT_I18NCONTEXT_ID_BRUSH, "Pinch"),
+       N_("Add effect of brush")},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const EnumPropertyItem prop_inflate_deflate_items[] = {
-      {0, "INFLATE", ICON_ADD, "Inflate", "Add effect of brush"},
-      {BRUSH_DIR_IN, "DEFLATE", ICON_REMOVE, "Deflate", "Subtract effect of brush"},
+      {0,
+       "INFLATE",
+       ICON_ADD,
+       CTX_N_(BLT_I18NCONTEXT_ID_BRUSH, "Inflate"),
+       N_("Add effect of brush")},
+      {BRUSH_DIR_IN,
+       "DEFLATE",
+       ICON_REMOVE,
+       CTX_N_(BLT_I18NCONTEXT_ID_BRUSH, "Deflate"),
+       N_("Subtract effect of brush")},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* texture paint mode */
   static const EnumPropertyItem prop_soften_sharpen_items[] = {
-      {BRUSH_DIR_IN, "SHARPEN", ICON_ADD, "Sharpen", "Sharpen effect of brush"},
-      {0, "SOFTEN", ICON_REMOVE, "Soften", "Blur effect of brush"},
+      {BRUSH_DIR_IN,
+       "SHARPEN",
+       ICON_ADD,
+       CTX_N_(BLT_I18NCONTEXT_ID_BRUSH, "Sharpen"),
+       N_("Sharpen effect of brush")},
+      {0,
+       "SOFTEN",
+       ICON_REMOVE,
+       CTX_N_(BLT_I18NCONTEXT_ID_BRUSH, "Soften"),
+       N_("Blur effect of brush")},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* gpencil sculpt */
   static const EnumPropertyItem prop_pinch_items[] = {
-      {0, "ADD", ICON_ADD, "Pinch", "Add effect of brush"},
-      {BRUSH_DIR_IN, "SUBTRACT", ICON_REMOVE, "Inflate", "Subtract effect of brush"},
+      {0, "ADD", ICON_ADD, CTX_N_(BLT_I18NCONTEXT_ID_BRUSH, "Pinch"), N_("Add effect of brush")},
+      {BRUSH_DIR_IN,
+       "SUBTRACT",
+       ICON_REMOVE,
+       CTX_N_(BLT_I18NCONTEXT_ID_BRUSH, "Inflate"),
+       N_("Subtract effect of brush")},
       {0, nullptr, 0, nullptr, nullptr},
   };
   static const EnumPropertyItem prop_twist_items[] = {
-      {0, "ADD", ICON_ADD, "Counter-Clockwise", "Add effect of brush"},
-      {BRUSH_DIR_IN, "SUBTRACT", ICON_REMOVE, "Clockwise", "Subtract effect of brush"},
+      {0,
+       "ADD",
+       ICON_ADD,
+       CTX_N_(BLT_I18NCONTEXT_ID_BRUSH, "Counter-Clockwise"),
+       N_("Add effect of brush")},
+      {BRUSH_DIR_IN,
+       "SUBTRACT",
+       ICON_REMOVE,
+       CTX_N_(BLT_I18NCONTEXT_ID_BRUSH, "Clockwise"),
+       N_("Subtract effect of brush")},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -2563,6 +2600,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, prop_direction_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_Brush_direction_itemf");
   RNA_def_property_ui_text(prop, "Direction", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_BRUSH);
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "stroke_method", PROP_ENUM, PROP_NONE);
