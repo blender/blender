@@ -58,7 +58,7 @@ def draw_circle_2d(position, color, radius, *, segments=None):
         batch.draw(shader)
 
 
-def draw_texture_2d(texture, position, width, height):
+def draw_texture_2d(texture, position, width, height, is_scene_linear_with_rec709_srgb_target=False):
     """
     Draw a 2d texture.
 
@@ -71,6 +71,13 @@ def draw_texture_2d(texture, position, width, height):
     :type width: float
     :arg height: Height of the image when drawn.
     :type height: float
+    :arg is_scene_linear_with_rec709_srgb_target:
+        True if the `texture` is stored in scene linear color space and
+        the destination framebuffer uses the Rec.709 sRGB color space
+        (which is true when drawing textures acquired from :class:`bpy.types.Image` inside a
+        'PRE_VIEW', 'POST_VIEW' or 'POST_PIXEL' draw handler).
+        Otherwise the color space is assumed to match the one of the framebuffer. (default=False)
+    :type is_scene_linear_with_rec709_srgb_target: bool
     """
     import gpu
     from . batch import batch_for_shader
@@ -78,7 +85,8 @@ def draw_texture_2d(texture, position, width, height):
     coords = ((0, 0), (1, 0), (1, 1), (0, 1))
     indices = ((0, 1, 2), (2, 3, 0))
 
-    shader = gpu.shader.from_builtin('IMAGE')
+    shader = gpu.shader.from_builtin(
+        'IMAGE_SCENE_LINEAR_TO_REC709_SRGB' if is_scene_linear_with_rec709_srgb_target else 'IMAGE')
     batch = batch_for_shader(
         shader, 'TRIS',
         {"pos": coords, "texCoord": coords},
@@ -89,7 +97,6 @@ def draw_texture_2d(texture, position, width, height):
         gpu.matrix.translate(position)
         gpu.matrix.scale((width, height))
 
-        shader = gpu.shader.from_builtin('IMAGE')
         shader.uniform_sampler("image", texture)
 
         batch.draw(shader)

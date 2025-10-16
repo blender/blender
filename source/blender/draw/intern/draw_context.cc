@@ -2043,9 +2043,6 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
       if (use_only_selected && !(ob.base_flag & BASE_SELECTED)) {
         return false;
       }
-      if ((ob.base_flag & BASE_SELECTABLE) == 0) {
-        return false;
-      }
       return true;
     };
 

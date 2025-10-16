@@ -574,7 +574,7 @@ static void pack_linked_id(Main &bmain,
                                    std::nullopt,
                                    nullptr,
                                    LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ID_NEW_SET |
-                                       LIB_ID_COPY_NO_ANIMDATA);
+                                       LIB_ID_COPY_NO_ANIMDATA | LIB_ID_COPY_ASSET_METADATA);
     id_us_min(packed_id);
     copied_id_process(linked_id, packed_id);
 

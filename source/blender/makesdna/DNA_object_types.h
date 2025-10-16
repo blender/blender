@@ -690,6 +690,7 @@ enum {
   OB_HIDE_PROBE_VOLUME = 1 << 11,
   OB_HIDE_PROBE_CUBEMAP = 1 << 12,
   OB_HIDE_PROBE_PLANAR = 1 << 13,
+  OB_HIDE_SURFACE_PICK = 1 << 14,
 };
 
 /** #Object.shapeflag */

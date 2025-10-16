@@ -115,6 +115,7 @@ class Shader {
     return parent_shader_;
   }
 
+  static void set_scene_linear_to_xyz_uniform(gpu::Shader *shader);
   static void set_srgb_uniform(Context *ctx, gpu::Shader *shader);
   static void set_framebuffer_srgb_target(int use_srgb_to_linear);
 
