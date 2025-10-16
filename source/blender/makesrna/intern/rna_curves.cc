@@ -17,6 +17,8 @@
 
 #include "BKE_attribute.h"
 
+#include "BLT_translation.hh"
+
 #include "WM_types.hh"
 
 const EnumPropertyItem rna_enum_curves_type_items[] = {
@@ -55,19 +57,20 @@ const EnumPropertyItem rna_enum_curve_normal_mode_items[] = {
     {NORMAL_MODE_MINIMUM_TWIST,
      "MINIMUM_TWIST",
      ICON_NONE,
-     "Minimum Twist",
-     "Calculate normals with the smallest twist around the curve tangent across the whole curve"},
+     N_("Minimum Twist"),
+     N_("Calculate normals with the smallest twist around the curve tangent across the whole "
+        "curve")},
     {NORMAL_MODE_Z_UP,
      "Z_UP",
      ICON_NONE,
-     "Z Up",
-     "Calculate normals perpendicular to the Z axis and the curve tangent. If a series of points "
-     "is vertical, the X axis is used."},
+     N_("Z Up"),
+     N_("Calculate normals perpendicular to the Z axis and the curve tangent. If a series of "
+        "points is vertical, the X axis is used.")},
     {NORMAL_MODE_FREE,
      "FREE",
      ICON_NONE,
-     "Free",
-     "Use the stored custom normal attribute as the final normals"},
+     N_("Free"),
+     N_("Use the stored custom normal attribute as the final normals")},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

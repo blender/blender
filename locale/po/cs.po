@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 08:44+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Jan Vavřínek <janvavrinek1@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -3093,14 +3093,6 @@ msgid "Parent bone (in same Armature)"
 msgstr "Vyrenderovat aktuální frame"
 
 
-msgid "Select Head"
-msgstr "Vybrat"
-
-
-msgid "Select Tail"
-msgstr "Vybrat propojení"
-
-
 msgid "Tail"
 msgstr "Ocas"
 
@@ -5271,6 +5263,14 @@ msgstr "Použití 3D polohy stopy k nadřazenému"
 
 msgid "Undistort"
 msgstr "Historie vracení"
+
+
+msgid "Attribute Name"
+msgstr "Název atributu"
+
+
+msgid "Domain Type"
+msgstr "Typ Domény"
 
 
 msgid "Kinematic Constraint"
@@ -7793,10 +7793,6 @@ msgstr "res"
 
 msgid "Smoke Grid Resolution"
 msgstr "Jemnost dělení"
-
-
-msgid "Domain Type"
-msgstr "Typ Domény"
 
 
 msgid "Change domain type of the simulation"
@@ -11345,10 +11341,6 @@ msgid "Active Movie Clip"
 msgstr "Akce"
 
 
-msgid "Mirror Object"
-msgstr "Zrcadlit objekt"
-
-
 msgid "No distance attenuation"
 msgstr "Žádný útlum vzdálenosti"
 
@@ -13842,6 +13834,14 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
+msgid "Light"
+msgstr "Světlo"
+
+
 msgid "Relations"
 msgstr "Vztahy"
 
@@ -13850,24 +13850,12 @@ msgid "Rigid Body"
 msgstr "Tuhé Těleso"
 
 
-msgid "Import"
-msgstr "Importovat"
-
-
 msgid "Apply"
 msgstr "Použít"
 
 
-msgid "Text"
-msgstr "Text"
-
-
 msgid "Track"
 msgstr "Sledování"
-
-
-msgid "Utilities"
-msgstr "Nástroje"
 
 
 msgid "Quick Effects"
@@ -13886,12 +13874,12 @@ msgid "Make Single User"
 msgstr "Přivlastnit"
 
 
-msgid "Math"
-msgstr "Matematika"
-
-
 msgid "Hooks"
 msgstr "Háky"
+
+
+msgid "Layout"
+msgstr "Rozložení"
 
 
 msgid "Clear Transform"
@@ -13906,12 +13894,28 @@ msgid "Names"
 msgstr "Názvy"
 
 
+msgid "Keying"
+msgstr "Klíčovací sestava"
+
+
 msgid "Mesh Select Mode"
 msgstr "Síťový mód výběru"
 
 
+msgid "Tracking"
+msgstr "Sledování"
+
+
+msgid "Utilities"
+msgstr "Nástroje"
+
+
 msgid "Face Data"
 msgstr "Data Ploch"
+
+
+msgid "Math"
+msgstr "Matematika"
 
 
 msgid "Merge"
@@ -13922,16 +13926,12 @@ msgid "Special Characters"
 msgstr "Speciální Znaky"
 
 
-msgid "Metaball"
-msgstr "Meta objekt"
+msgid "Text"
+msgstr "Text"
 
 
 msgid "Bone Roll"
 msgstr "Kost"
-
-
-msgid "Layout"
-msgstr "Rozložení"
 
 
 msgid "Pivot Point"
@@ -13946,16 +13946,16 @@ msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
 
 
-msgid "Keying"
-msgstr "Klíčovací sestava"
-
-
-msgid "Tracking"
-msgstr "Sledování"
+msgid "Instances"
+msgstr "Instance"
 
 
 msgid "Mirror"
 msgstr "Zrcadlit"
+
+
+msgid "Import"
+msgstr "Importovat"
 
 
 msgid "UV Mapping"
@@ -13978,20 +13978,12 @@ msgid "Select Linked"
 msgstr "Vybrat Propojené"
 
 
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
-
-
-msgid "Light"
-msgstr "Světlo"
-
-
-msgid "Instances"
-msgstr "Instance"
-
-
 msgid "Basic"
 msgstr "Základní"
+
+
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
 
 
 msgctxt "MovieClip"
@@ -14329,10 +14321,6 @@ msgstr "Protínají"
 
 msgid "Distortion"
 msgstr "Historie vracení"
-
-
-msgid "UV Select"
-msgstr "Vybrat"
 
 
 msgid "Set the map as active for display and editing"
@@ -15328,6 +15316,10 @@ msgstr "Kopírovat modifikátor"
 
 msgid "Mirroring modifier"
 msgstr "Vrátit editaci"
+
+
+msgid "Mirror Object"
+msgstr "Zrcadlit objekt"
 
 
 msgid "Object to use as mirror"
@@ -17234,10 +17226,6 @@ msgstr "Při výpočtu AO zvážit pouze samotný objekt"
 
 msgid "Number of rays to trace per shader evaluation"
 msgstr "Počet sledovaných paprsků na vyhodnocení shaderu"
-
-
-msgid "Attribute Name"
-msgstr "Název atributu"
 
 
 msgid "General type of the attribute"
@@ -27121,10 +27109,6 @@ msgid "Render"
 msgstr "Render"
 
 
-msgid "Render active scene"
-msgstr "Vykreslí aktivné scénu"
-
-
 msgid "Render Layer"
 msgstr "Vrstva renderu"
 
@@ -30510,6 +30494,10 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
+msgid "Auto-Masking"
+msgstr "Auto-Maska"
+
+
 msgid "Active Tool"
 msgstr "Aktivní nástroj"
 
@@ -30564,10 +30552,6 @@ msgstr "Orientace transformací"
 
 msgid "Stereoscopy"
 msgstr "Stereoskopie"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Maska"
 
 
 msgid "Chain Scaling"
@@ -39331,11 +39315,6 @@ msgid "Release Notes"
 msgstr "Poznámky k vydání"
 
 
-msgctxt "Operator"
-msgid "Tutorials"
-msgstr "Tutoriály"
-
-
 msgid "No active item"
 msgstr "Žádná aktivní položka"
 
@@ -42016,6 +41995,10 @@ msgstr "Kámen (drcený)"
 
 msgid "Timber"
 msgstr "Dřevo"
+
+
+msgid "Render active scene"
+msgstr "Vykreslí aktivné scénu"
 
 
 msgid "Scene has no camera"

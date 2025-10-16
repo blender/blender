@@ -1129,25 +1129,6 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       -D_CRT_SECURE_NO_DEPRECATE
       -DONEAPI_EXPORT
     )
-
-    string(REPLACE /Redist/ /Tools/ MSVC_TOOLS_DIR ${MSVC_REDIST_DIR})
-    # Version Folder between Redist and Tools can mismatch sometimes
-    if(NOT EXISTS ${MSVC_TOOLS_DIR})
-      get_filename_component(cmake_ar_dir ${CMAKE_AR} DIRECTORY)
-      get_filename_component(MSVC_TOOLS_DIR "${cmake_ar_dir}/../../../" ABSOLUTE)
-    endif()
-    if(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
-      set(WINDOWS_KIT_DIR ${WINDOWS_KITS_DIR}/Lib/${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION})
-    else() # case for Ninja on Windows
-      get_filename_component(cmake_mt_dir ${CMAKE_MT} DIRECTORY)
-      string(REPLACE /bin/ /Lib/ WINDOWS_KIT_DIR ${cmake_mt_dir})
-      get_filename_component(WINDOWS_KIT_DIR "${WINDOWS_KIT_DIR}/../" ABSOLUTE)
-    endif()
-    list(APPEND sycl_compiler_flags
-      -L"${MSVC_TOOLS_DIR}/lib/x64"
-      -L"${WINDOWS_KIT_DIR}/um/x64"
-      -L"${WINDOWS_KIT_DIR}/ucrt/x64"
-    )
   else() # Add Linux specific compiler flags.
     list(APPEND sycl_compiler_flags -fPIC)
     list(APPEND sycl_compiler_flags -fvisibility=hidden)
@@ -1179,11 +1160,15 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       -nostdlib
       -Xclang --dependent-lib=msvcrtd
     )
+
+    list(APPEND sycl_compiler_flags
+      -L"${sycl_compiler_root}/../lib" # To find sycl.lib
+      -L"${sycl_compiler_root}/../compiler/lib/intel64_win" # To find libircmt.lib (when using `icpx`)
+    )
+
     add_custom_command(
       OUTPUT ${cycles_kernel_oneapi_lib} ${cycles_kernel_oneapi_linker_lib}
       COMMAND ${CMAKE_COMMAND} -E env
-        # Set `LIB` for the compiler to find `sycl.lib` and in case of `icpx`, `libircmt.lib`.
-        "LIB=${sycl_compiler_root}/../lib\;${sycl_compiler_root}/../compiler/lib/intel64_win"
         "PATH=${OCLOC_INSTALL_DIR}\;${sycl_compiler_root}"
         ${SYCL_COMPILER}
         "$<$<CONFIG:Release>:${sycl_compiler_flags_Release}>"

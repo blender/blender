@@ -69,7 +69,6 @@ struct PrefetchJob {
   /* context */
   RenderData context = {};
   RenderData context_cpy = {};
-  ListBase *seqbasep = nullptr;
 
   /* prefetch area */
   int cfra = 0;
@@ -201,6 +200,7 @@ static int seq_prefetch_cfra(PrefetchJob *pfjob)
   }
   return new_frame;
 }
+
 static AnimationEvalContext seq_prefetch_anim_eval_context(PrefetchJob *pfjob)
 {
   return BKE_animsys_eval_context_construct(pfjob->depsgraph, seq_prefetch_cfra(pfjob));
@@ -424,7 +424,8 @@ static bool seq_prefetch_scene_strip_is_rendered(const Scene *scene,
                                                  ListBase *channels,
                                                  ListBase *seqbase,
                                                  blender::Span<Strip *> scene_strips,
-                                                 int timeline_frame)
+                                                 int timeline_frame,
+                                                 SeqRenderState state)
 {
   blender::Vector<Strip *> rendered_strips = seq_shown_strips_get(
       scene, channels, seqbase, timeline_frame, 0);
@@ -433,14 +434,21 @@ static bool seq_prefetch_scene_strip_is_rendered(const Scene *scene,
   for (Strip *strip : rendered_strips) {
     if (strip->type == STRIP_TYPE_META &&
         seq_prefetch_scene_strip_is_rendered(
-            scene, &strip->channels, &strip->seqbase, scene_strips, timeline_frame))
+            scene, &strip->channels, &strip->seqbase, scene_strips, timeline_frame, state))
     {
       return true;
     }
 
+    /* Recursive "sequencer-type" scene strip detected, no point in attempting to render it. */
+    if (state.strips_rendering_seqbase.contains(strip)) {
+      return true;
+    }
+
     if (strip->type == STRIP_TYPE_SCENE && (strip->flag & SEQ_SCENE_STRIPS) != 0 &&
-        strip->scene != nullptr)
+        strip->scene != nullptr && editing_get(strip->scene))
     {
+      state.strips_rendering_seqbase.add(strip);
+
       const Scene *target_scene = strip->scene;
       const Editing *target_ed = editing_get(target_scene);
       ListBase *target_seqbase = target_ed->current_strips();
@@ -452,7 +460,8 @@ static bool seq_prefetch_scene_strip_is_rendered(const Scene *scene,
                                                   target_ed->current_channels(),
                                                   target_ed->current_strips(),
                                                   target_scene_strips,
-                                                  target_timeline_frame);
+                                                  target_timeline_frame,
+                                                  state);
     }
 
     /* Check if strip is effect of scene strip or uses it as modifier.
@@ -470,9 +479,12 @@ static bool seq_prefetch_scene_strip_is_rendered(const Scene *scene,
  * make it unresponsive for long time periods. */
 static bool seq_prefetch_must_skip_frame(PrefetchJob *pfjob, ListBase *channels, ListBase *seqbase)
 {
+  /* Pass in state to check for infinite recursion of "sequencer-type" scene strips. */
+  SeqRenderState state = {};
+
   blender::VectorSet<Strip *> scene_strips = query_scene_strips(seqbase);
   if (seq_prefetch_scene_strip_is_rendered(
-          pfjob->scene_eval, channels, seqbase, scene_strips, seq_prefetch_cfra(pfjob)))
+          pfjob->scene_eval, channels, seqbase, scene_strips, seq_prefetch_cfra(pfjob), state))
   {
     return true;
   }

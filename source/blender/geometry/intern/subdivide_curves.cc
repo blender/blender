@@ -327,7 +327,7 @@ bke::CurvesGeometry subdivide_curves(const bke::CurvesGeometry &src_curves,
 
   Vector<bke::AttributeTransferData> attributes_to_transfer =
       bke::retrieve_attributes_for_transfer(
-          src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, attribute_filter);
+          src_attributes, dst_attributes, {bke::AttrDomain::Point}, attribute_filter);
 
   auto subdivide_catmull_rom = [&](const IndexMask &selection) {
     for (auto &attribute : attributes_to_transfer) {

@@ -14,6 +14,7 @@
 #include "BKE_global.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
+#include "BKE_node_tree_zones.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -142,6 +143,43 @@ static bNodeStack *setup_stack(bNodeStack *stack, bNodeTree *ntree, bNode *node,
   return ns;
 }
 
+static blender::Vector<bNode *> get_node_code_gen_order(bNodeTree &ntree)
+{
+  using namespace blender;
+  ntree.ensure_topology_cache();
+  Vector<bNode *> nodes = ntree.toposort_left_to_right();
+  const bke::bNodeTreeZones *zones = ntree.zones();
+  if (!zones) {
+    return nodes;
+  }
+  /* Insertion sort to make sure that all nodes in a zone are packed together right before the zone
+   * output. */
+  for (int old_i = nodes.size() - 1; old_i >= 0; old_i--) {
+    bNode *node = nodes[old_i];
+    const bke::bNodeTreeZone *zone = zones->get_zone_by_node(node->identifier);
+    if (!zone) {
+      /* Nones outside of any zone can stay where they are. */
+      continue;
+    }
+    if (zone->output_node_id == node->identifier) {
+      /* The output of a zone should not be moved. */
+      continue;
+    }
+    for (int new_i = old_i + 1; new_i < nodes.size(); new_i++) {
+      bNode *next_node = nodes[new_i];
+      const bke::bNodeTreeZone *zone_to_check = zones->get_zone_by_node(next_node->identifier);
+      if (zone_to_check &&
+          (zone == zone_to_check || zone->contains_zone_recursively(*zone_to_check)))
+      {
+        /* Don't move the node further than the next node in the zone. */
+        break;
+      }
+      std::swap(nodes[new_i - 1], nodes[new_i]);
+    }
+  }
+  return nodes;
+}
+
 bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
                                 bNodeTree *ntree,
                                 bNodeInstanceKey parent_key)
@@ -162,7 +200,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
   BKE_ntree_update_after_single_tree_change(*G.main, *ntree);
 
   ntree->ensure_topology_cache();
-  const Span<bNode *> nodelist = ntree->toposort_left_to_right();
+  Vector<bNode *> nodelist = get_node_code_gen_order(*ntree);
 
   /* XXX could let callbacks do this for specialized data */
   exec = MEM_callocN<bNodeTreeExec>("node tree execution data");

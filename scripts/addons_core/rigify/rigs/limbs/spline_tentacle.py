@@ -533,7 +533,7 @@ class Rig(SimpleChainRig):
             self.make_constraint(ctrl, 'MAINTAIN_VOLUME', mode='UNIFORM', owner_space='LOCAL')
 
         self.rig_enable_control_driver(
-            self.get_bone(ctrl).bone, 'hide', subtype, index, disable=True)
+            self.get_bone(ctrl), 'hide', subtype, index, disable=True)
 
     @stage.generate_widgets
     def make_main_control_widgets(self):
@@ -1009,7 +1009,7 @@ class RigifySplineTentacleIk2FkBase:
         # Find currently enabled controls
         visible_ctrls = [
             bone for bone in ctrl_bones[1:-1]
-            if not (bone.bone.hide and obj.data.animation_data.drivers.find(bone.bone.path_from_id("hide")))
+            if not (bone.hide and obj.animation_data.drivers.find(bone.path_from_id("hide")))
         ]
         ctrl_count = len(visible_ctrls) + (0 if self.use_tip else 1)
         max_pos = 1 - 0.25 / ctrl_count

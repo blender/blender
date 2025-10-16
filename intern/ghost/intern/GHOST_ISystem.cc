@@ -39,6 +39,8 @@ const char *GHOST_ISystem::system_backend_id_ = nullptr;
 
 GHOST_TBacktraceFn GHOST_ISystem::backtrace_fn_ = nullptr;
 
+bool GHOST_ISystem::use_window_frame_ = true;
+
 GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose, [[maybe_unused]] bool background)
 {
 
@@ -53,12 +55,14 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose, [[maybe_unused]] bool b
 
   GHOST_TSuccess success;
   if (!system_) {
-
 #if defined(WITH_HEADLESS)
     /* Pass. */
 #elif defined(WITH_GHOST_WAYLAND)
 #  if defined(WITH_GHOST_WAYLAND_DYNLOAD)
-    const bool has_wayland_libraries = ghost_wl_dynload_libraries_init();
+    /* Even if other systems support `--no-window-frame`, it's likely only WAYLAND
+     * needs to configure this when creating the system (based on LIBDECOR usage). */
+    const bool has_wayland_libraries = ghost_wl_dynload_libraries_init(
+        GHOST_ISystem::getUseWindowFrame());
 #  else
     const bool has_wayland_libraries = true;
 #  endif
@@ -260,4 +264,14 @@ GHOST_TBacktraceFn GHOST_ISystem::getBacktraceFn()
 void GHOST_ISystem::setBacktraceFn(GHOST_TBacktraceFn backtrace_fn)
 {
   GHOST_ISystem::backtrace_fn_ = backtrace_fn;
+}
+
+bool GHOST_ISystem::getUseWindowFrame()
+{
+  return GHOST_ISystem::use_window_frame_;
+}
+
+void GHOST_ISystem::setUseWindowFrame(bool use_window_frame)
+{
+  GHOST_ISystem::use_window_frame_ = use_window_frame;
 }

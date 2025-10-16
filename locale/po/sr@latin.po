@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 08:44+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -1371,14 +1371,6 @@ msgid "Parent bone (in same Armature)"
 msgstr "Roditeljska kost (u istom kosturu)"
 
 
-msgid "Select Head"
-msgstr "Izaberi glavu"
-
-
-msgid "Select Tail"
-msgstr "Izaberi rep"
-
-
 msgid "Tail"
 msgstr "Rep"
 
@@ -2589,6 +2581,10 @@ msgstr "3D pozicija"
 
 msgid "Undistort"
 msgstr "Neizobličeno"
+
+
+msgid "Attribute Name"
+msgstr "Ime atributa"
 
 
 msgid "Kinematic Constraint"
@@ -7030,10 +7026,6 @@ msgid "Active Movie Clip"
 msgstr "Aktivni filmski isečak"
 
 
-msgid "Mirror Object"
-msgstr "Objekat kao ogledalo"
-
-
 msgid "Inverse"
 msgstr "Obrnuto"
 
@@ -8505,16 +8497,20 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
+msgid "Metaball"
+msgstr "Meta lopta"
+
+
+msgid "Light"
+msgstr "Svetlost"
+
+
 msgid "Relations"
 msgstr "Odnosi"
 
 
 msgid "Rigid Body"
 msgstr "Kruto telo"
-
-
-msgid "Import"
-msgstr "Uvoz"
 
 
 msgid "Apply"
@@ -8531,14 +8527,6 @@ msgstr "Brzi efekti"
 
 msgid "Show/Hide"
 msgstr "Prikaži/sakrij"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Hooks"
@@ -8573,8 +8561,20 @@ msgid "Disable Bone Options"
 msgstr "Onemogući opcije kostiju"
 
 
+msgid "Keying"
+msgstr "Zbirka tastera"
+
+
 msgid "Mesh Select Mode"
 msgstr "Mod izbora mreže"
+
+
+msgid "Tracking"
+msgstr "Praćenje"
+
+
+msgid "Math"
+msgstr "Matematika"
 
 
 msgid "Merge"
@@ -8585,10 +8585,6 @@ msgid "Special Characters"
 msgstr "Specijalni znaci"
 
 
-msgid "Metaball"
-msgstr "Meta lopta"
-
-
 msgid "Bone Roll"
 msgstr "Rolna kostiju"
 
@@ -8597,16 +8593,12 @@ msgid "Snap"
 msgstr "Lepljenje"
 
 
-msgid "Keying"
-msgstr "Zbirka tastera"
-
-
-msgid "Tracking"
-msgstr "Praćenje"
-
-
 msgid "Mirror"
 msgstr "Ogledalo"
+
+
+msgid "Import"
+msgstr "Uvoz"
 
 
 msgid "UV Mapping"
@@ -8625,12 +8617,12 @@ msgid "Align View"
 msgstr "Poravnaj pogled"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Select Linked"
 msgstr "Izaberi povezano"
-
-
-msgid "Light"
-msgstr "Svetlost"
 
 
 msgid "Basic"
@@ -8940,10 +8932,6 @@ msgstr "Izobličenje"
 
 msgid "UV Pinned"
 msgstr "Zakačen UV"
-
-
-msgid "UV Select"
-msgstr "Izabran UV"
 
 
 msgid "Set the map as active for display and editing"
@@ -9667,6 +9655,10 @@ msgstr "Koristi vreme iz scene"
 
 msgid "Time Mode"
 msgstr "Mod vremena"
+
+
+msgid "Mirror Object"
+msgstr "Objekat kao ogledalo"
 
 
 msgid "Object to use as mirror"
@@ -10843,10 +10835,6 @@ msgstr "Dodaj senčenje"
 
 msgid "Ambient Occlusion"
 msgstr "Ambijentalno senčenje"
-
-
-msgid "Attribute Name"
-msgstr "Ime atributa"
 
 
 msgid "Background"
@@ -17042,10 +17030,6 @@ msgstr "Kontekst pogleda"
 msgctxt "Operator"
 msgid "Render"
 msgstr "Rendering"
-
-
-msgid "Render active scene"
-msgstr "Renderuje aktivnu scenu"
 
 
 msgid "Render Layer"
@@ -24790,6 +24774,10 @@ msgstr "Kamen (polomljen)"
 
 msgid "Timber"
 msgstr "Drvo"
+
+
+msgid "Render active scene"
+msgstr "Renderuje aktivnu scenu"
 
 
 msgid "Scene has no camera"

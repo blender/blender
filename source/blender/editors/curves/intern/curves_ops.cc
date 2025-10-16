@@ -23,6 +23,7 @@
 
 #include "WM_api.hh"
 
+#include "BKE_attribute.h"
 #include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"

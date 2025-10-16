@@ -34,9 +34,19 @@ class CompositorRuntime {
   ~CompositorRuntime();
 };
 
+/* Runtime data specific to the sequencer, e.g. when using scene strips. */
+class SequencerRuntime {
+ public:
+  Depsgraph *depsgraph = nullptr;
+
+  ~SequencerRuntime();
+};
+
 class SceneRuntime : NonCopyable, NonMovable {
  public:
   CompositorRuntime compositor;
+
+  SequencerRuntime sequencer;
 };
 
 }  // namespace blender::bke

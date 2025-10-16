@@ -315,7 +315,7 @@ static bke::CurvesGeometry extrude_curves(const bke::CurvesGeometry &curves,
   for (auto &attribute : bke::retrieve_attributes_for_transfer(
            src_attributes,
            dst_attributes,
-           ATTR_DOMAIN_MASK_POINT,
+           {bke::AttrDomain::Point},
            bke::attribute_filter_from_skip_ref(selection_attr_names)))
   {
     const CPPType &type = attribute.src.type();

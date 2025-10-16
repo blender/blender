@@ -1606,7 +1606,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
 #undef USE_ALIGN_Y_CENTER
 
   /* add padding */
-  BLI_rcti_resize(&rect_i, BLI_rcti_size_x(&rect_i) + pad_x, BLI_rcti_size_y(&rect_i) + pad_y);
+  BLI_rcti_pad(&rect_i, int(round(pad_x * 0.5f)), int(round(pad_y * 0.5f)));
 
   /* widget rect, in region coords */
   {

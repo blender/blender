@@ -137,7 +137,8 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
   postprocess_panel.add_input<decl::Menu>("Feather Falloff")
       .default_value(PROP_SMOOTH)
       .static_items(rna_enum_proportional_falloff_curve_only_items)
-      .optional_label();
+      .optional_label()
+      .translation_context(BLT_I18NCONTEXT_ID_CURVE_LEGACY);
 
   PanelDeclarationBuilder &despill_panel = b.add_panel("Despill").default_closed(true);
   despill_panel.add_input<decl::Float>("Strength", "Despill Strength")

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 08:44+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 14:52+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2391,10 +2391,6 @@ msgid "Rotations"
 msgstr "Rotaties"
 
 
-msgid "Mirror Object"
-msgstr "Spiegel Object"
-
-
 msgid "Speed of Sound"
 msgstr "Snelheid van Geluid"
 
@@ -2413,6 +2409,10 @@ msgstr "Star Lichaam Wereld"
 
 msgid "Play Every Frame"
 msgstr "Speel Elk Frame"
+
+
+msgid "Second"
+msgstr "Seconde"
 
 
 msgid "Screen data-block, defining the layout of areas in a window"
@@ -2686,6 +2686,10 @@ msgid "Mask"
 msgstr "Mask"
 
 
+msgid "Light"
+msgstr "Licht"
+
+
 msgid "Add Image"
 msgstr "Voeg Afbeelding Toe"
 
@@ -2696,14 +2700,6 @@ msgstr "Relaties"
 
 msgid "Rigid Body"
 msgstr "Star Lichaam"
-
-
-msgid "Import"
-msgstr "Importeren"
-
-
-msgid "Text"
-msgstr "Tekst"
 
 
 msgid "Quick Effects"
@@ -2722,6 +2718,10 @@ msgid "Hooks"
 msgstr "Haken"
 
 
+msgid "Layout"
+msgstr "Indeling"
+
+
 msgid "Clear Transform"
 msgstr "Maak Transformatie Leeg"
 
@@ -2730,12 +2730,16 @@ msgid "Names"
 msgstr "Namen"
 
 
-msgid "Layout"
-msgstr "Indeling"
+msgid "Text"
+msgstr "Tekst"
 
 
 msgid "Mirror"
 msgstr "Spiegel"
+
+
+msgid "Import"
+msgstr "Importeren"
 
 
 msgid "Local View"
@@ -2752,10 +2756,6 @@ msgstr "Selecteer Vergelijkbaar"
 
 msgid "Select Linked"
 msgstr "Selecteer Aaneengesloten"
-
-
-msgid "Light"
-msgstr "Licht"
 
 
 msgctxt "MovieClip"
@@ -3007,6 +3007,10 @@ msgstr "Tijdsmodus"
 
 msgid "Mirror Modifier"
 msgstr "Spiegel Aanpasser"
+
+
+msgid "Mirror Object"
+msgstr "Spiegel Object"
 
 
 msgid "Mirror Axis"
@@ -5311,10 +5315,6 @@ msgid "Render"
 msgstr "Render"
 
 
-msgid "Render active scene"
-msgstr "Render actieve scene"
-
-
 msgid "Render Layer"
 msgstr "Renderlaag"
 
@@ -7407,10 +7407,6 @@ msgid "Resume"
 msgstr "Hervat"
 
 
-msgid "Second"
-msgstr "Seconde"
-
-
 msgid "Auto-Step"
 msgstr "Auto-Stap"
 
@@ -8810,6 +8806,10 @@ msgstr "Glas (Heel)"
 
 msgid "Gold"
 msgstr "Goud"
+
+
+msgid "Render active scene"
+msgstr "Render actieve scene"
 
 
 msgid "Blender Render"

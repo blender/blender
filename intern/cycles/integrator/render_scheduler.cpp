@@ -873,8 +873,10 @@ int RenderScheduler::get_num_samples_to_path_trace() const
     /* Keep occupancy at about 0.5 (this is more of an empirical figure which seems to match scenes
      * with good performance without forcing occupancy to be higher). */
     int num_samples_to_occupy = state_.occupancy_num_samples;
+    float ratio_to_increase_occupancy = 1.0f;
     if (state_.occupancy > 0 && state_.occupancy < 0.5f) {
-      num_samples_to_occupy = lround(state_.occupancy_num_samples * 0.7f / state_.occupancy);
+      ratio_to_increase_occupancy = 0.7f / state_.occupancy;
+      num_samples_to_occupy = lround(state_.occupancy_num_samples * ratio_to_increase_occupancy);
     }
 
     /* Time limit for path tracing, which constraints the scheduler from "over-scheduling" work
@@ -917,10 +919,12 @@ int RenderScheduler::get_num_samples_to_path_trace() const
       }
     }
     if (path_tracing_time_limit != 0) {
-      /* Use the per-sample time from the previously rendered batch of samples so that the
-       * correction is applied much quicker. */
+      /* Use the per-sample time from the previously rendered batch of samples, so that the
+       * correction is applied much quicker. Also use the predicted increase in performance from
+       * increased occupany. */
       const double predicted_render_time = num_samples_to_occupy *
-                                           path_trace_time_.get_last_sample_time();
+                                           path_trace_time_.get_last_sample_time() /
+                                           ratio_to_increase_occupancy;
       if (predicted_render_time > path_tracing_time_limit) {
         num_samples_to_occupy = lround(num_samples_to_occupy *
                                        (path_tracing_time_limit / predicted_render_time));

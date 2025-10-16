@@ -304,28 +304,29 @@ ccl_device_noinline Extrema<float> volume_estimate_extrema(KernelGlobals kg,
                                                            const IntegratorGenericState state,
                                                            const ccl_private RNGState *rng_state,
                                                            const uint32_t path_flag,
-                                                           const ccl_private OctreeTracing &octree)
+                                                           const Interval<float> t,
+                                                           const VolumeStack entry)
 {
-  const bool homogeneous = volume_is_homogeneous(kg, octree.entry);
+  const bool homogeneous = volume_is_homogeneous(kg, entry);
   const int samples = homogeneous ? 1 : 4;
   const float shade_offset = homogeneous ?
                                  0.5f :
                                  path_state_rng_2D(kg, rng_state, PRNG_VOLUME_SHADE_OFFSET).y;
-  const float step_size = octree.t.length() / float(samples);
+  const float step_size = t.length() / float(samples);
 
   /* Do not allocate closures. */
   sd->num_closure_left = 0;
 
   Extrema<float> extrema = {FLT_MAX, -FLT_MAX};
   for (int i = 0; i < samples; i++) {
-    const float shade_t = octree.t.min + (shade_offset + i) * step_size;
+    const float shade_t = t.min + (shade_offset + i) * step_size;
     sd->P = ray->P + ray->D * shade_t;
 
     sd->closure_transparent_extinction = zero_float3();
     sd->closure_emission_background = zero_float3();
 
     volume_shader_eval_entry<shadow, KERNEL_FEATURE_NODE_MASK_VOLUME>(
-        kg, state, sd, octree.entry, path_flag);
+        kg, state, sd, entry, path_flag);
 
     const float sigma = reduce_max(sd->closure_transparent_extinction);
     const float emission = reduce_max(sd->closure_emission_background);
@@ -359,7 +360,8 @@ ccl_device_inline Extrema<float> volume_object_get_extrema(KernelGlobals kg,
     return octree.node->sigma * object_volume_density(kg, octree.entry.object);
   }
 
-  return volume_estimate_extrema<shadow>(kg, ray, sd, state, rng_state, path_flag, octree);
+  return volume_estimate_extrema<shadow>(
+      kg, ray, sd, state, rng_state, path_flag, octree.t, octree.entry);
 }
 
 /* Find the octree root node in the kernel array that corresponds to the volume stack entry. */

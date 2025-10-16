@@ -173,16 +173,26 @@ typedef enum eGP_BrushMode {
   GP_BRUSH_MODE_VERTEXCOLOR = 2,
 } eGP_BrushMode;
 
+/* Brush.curve_preset */
 typedef enum eBrushCurvePreset {
   BRUSH_CURVE_CUSTOM = 0,
+  /** Corresponds to CURVE_PRESET_SMOOTH */
   BRUSH_CURVE_SMOOTH = 1,
+  /** Corresponds to CURVE_PRESET_ROUND */
   BRUSH_CURVE_SPHERE = 2,
+  /** Corresponds to CURVE_PRESET_ROOT */
   BRUSH_CURVE_ROOT = 3,
+  /** Corresponds to CURVE_PRESET_SHARP */
   BRUSH_CURVE_SHARP = 4,
+  /** Corresponds to CURVE_PRESET_LINE */
   BRUSH_CURVE_LIN = 5,
+  /** No corresponding CurveMapping.preset */
   BRUSH_CURVE_POW4 = 6,
+  /** No corresponding CurveMapping.preset */
   BRUSH_CURVE_INVSQUARE = 7,
+  /** Corresponds to CURVE_PRESET_MAX */
   BRUSH_CURVE_CONSTANT = 8,
+  /** No corresponding CurveMapping.preset */
   BRUSH_CURVE_SMOOTHER = 9,
 } eBrushCurvePreset;
 

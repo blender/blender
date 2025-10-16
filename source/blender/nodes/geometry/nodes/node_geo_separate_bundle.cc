@@ -202,7 +202,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     {
       return;
     }
-    params.add_item("Item", [](LinkSearchOpParams &params) {
+    params.add_item(IFACE_("Item"), [](LinkSearchOpParams &params) {
       bNode &node = params.add_node("NodeSeparateBundle");
       const auto *item =
           socket_items::add_item_with_socket_type_and_name<SeparateBundleItemsAccessor>(
@@ -214,7 +214,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     if (other_socket.type != SOCK_BUNDLE) {
       return;
     }
-    params.add_item("Bundle", [](LinkSearchOpParams &params) {
+    params.add_item(IFACE_("Bundle"), [](LinkSearchOpParams &params) {
       bNode &node = params.add_node("NodeSeparateBundle");
       params.connect_available_socket(node, "Bundle");
 
@@ -238,7 +238,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  common_node_type_base(&ntype, "NodeSeparateBundle", NODE_SEPARATE_BUNDLE);
+  sh_geo_node_type_base(&ntype, "NodeSeparateBundle", NODE_SEPARATE_BUNDLE);
   ntype.ui_name = "Separate Bundle";
   ntype.ui_description = "Split a bundle into multiple sockets.";
   ntype.nclass = NODE_CLASS_CONVERTER;

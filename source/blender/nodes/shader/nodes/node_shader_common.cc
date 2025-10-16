@@ -56,7 +56,7 @@ static void group_gpu_move_outputs(bNode *gnode, GPUNodeStack *out, bNodeStack *
     bNodeStack *ns = node_get_socket_stack(gstack, sock);
     if (ns) {
       /* convert the node stack data result back to gpu stack */
-      node_gpu_stack_from_data(&out[a], sock->type, ns);
+      node_gpu_stack_from_data(&out[a], sock, ns);
     }
   }
 }

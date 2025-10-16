@@ -1,0 +1,26 @@
+diff --git a/src/cmake/cuda_macros.cmake b/src/cmake/cuda_macros.cmake
+index cf38234e..78c7580f 100644
+--- a/src/cmake/cuda_macros.cmake
++++ b/src/cmake/cuda_macros.cmake
+@@ -225,7 +225,7 @@ function ( CUDA_SHADEOPS_COMPILE prefix output_bc output_ptx input_srcs headers
+     add_custom_command ( OUTPUT ${linked_bc} ${linked_ptx}
+         COMMAND ${LLVM_LINK_TOOL} ${shadeops_bc_list} -o ${linked_bc}
+         COMMAND ${LLVM_OPT_TOOL} ${opt_tool_flags} ${linked_bc} -o ${linked_bc}
+-        COMMAND ${LLVM_LLC_TOOL} --march=nvptx64 -mcpu=${CUDA_TARGET_ARCH} ${linked_bc} -o ${linked_ptx}
++        COMMAND ${LLVM_LLC_TOOL} -march=nvptx64 -mcpu=${CUDA_TARGET_ARCH} -mattr=+ptx60 ${linked_bc} -o ${linked_ptx}
+         # This script converts all of the .weak functions defined in the PTX into .visible functions.
+         COMMAND ${Python3_EXECUTABLE} "${CMAKE_SOURCE_DIR}/src/build-scripts/process-ptx.py"
+             ${linked_ptx} ${linked_ptx}
+diff --git a/src/liboslexec/llvm_util.cpp b/src/liboslexec/llvm_util.cpp
+index ad85cec1..8da4149c 100644
+--- a/src/liboslexec/llvm_util.cpp
++++ b/src/liboslexec/llvm_util.cpp
+@@ -1831,7 +1831,7 @@ LLVM_Util::nvptx_target_machine()
+                    && "PTX compile error: LLVM Target is not initialized");
+ 
+         m_nvptx_target_machine = llvm_target->createTargetMachine(
+-            ModuleTriple.str(), CUDA_TARGET_ARCH, "+ptx50", options,
++            ModuleTriple.str(), CUDA_TARGET_ARCH, "+ptx60", options,
+             llvm::Reloc::Static, llvm::CodeModel::Small,
+ #if OSL_LLVM_VERSION >= 180
+             llvm::CodeGenOptLevel::Default

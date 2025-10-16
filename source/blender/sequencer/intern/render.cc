@@ -38,8 +38,11 @@
 #include "BKE_mask.h"
 #include "BKE_movieclip.h"
 #include "BKE_scene.hh"
+#include "BKE_scene_runtime.hh"
 
 #include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_debug.hh"
 #include "DEG_depsgraph_query.hh"
 
 #include "IMB_colormanagement.hh"
@@ -1384,6 +1387,26 @@ static ImBuf *seq_render_mask_strip(const RenderData *context, Strip *strip, flo
       context->depsgraph, context->rectx, context->recty, strip->mask, frame_index, make_float);
 }
 
+static Depsgraph *get_depsgraph_for_scene_strip(Main *bmain, Scene *scene, ViewLayer *view_layer)
+{
+  Depsgraph *depsgraph = scene->runtime->sequencer.depsgraph;
+  if (!depsgraph) {
+    /* Create a new depsgraph for the sequencer preview. Use viewport evaluation, because this
+     * depsgraph is not used during final render. */
+    scene->runtime->sequencer.depsgraph = DEG_graph_new(
+        bmain, scene, view_layer, DAG_EVAL_VIEWPORT);
+    depsgraph = scene->runtime->sequencer.depsgraph;
+    DEG_debug_name_set(depsgraph, "SEQ_SCENE_STRIP");
+  }
+
+  if (DEG_get_input_view_layer(depsgraph) != view_layer) {
+    DEG_graph_replace_owners(depsgraph, bmain, scene, view_layer);
+    DEG_graph_tag_relations_update(depsgraph);
+  }
+
+  return depsgraph;
+}
+
 static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
                                         Strip *strip,
                                         float frame_index,
@@ -1441,10 +1464,8 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
 #endif
   const bool have_comp = (scene->r.scemode & R_DOCOMP) && scene->compositing_node_group;
 
-  /* Get view layer for the strip. */
   ViewLayer *view_layer = BKE_view_layer_default_render(scene);
-  /* Depsgraph will be nullptr when doing rendering. */
-  Depsgraph *depsgraph = nullptr;
+  Depsgraph *depsgraph = get_depsgraph_for_scene_strip(context->bmain, scene, view_layer);
 
   BKE_scene_frame_set(scene, frame);
 
@@ -1485,7 +1506,6 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
     }
 
     /* opengl offscreen render */
-    depsgraph = BKE_scene_ensure_depsgraph(context->bmain, scene, view_layer);
     BKE_scene_graph_update_for_newframe(depsgraph);
     Object *camera_eval = DEG_get_evaluated(depsgraph, camera);
     Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);

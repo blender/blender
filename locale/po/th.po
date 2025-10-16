@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 08:44+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 15:06+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -1853,56 +1853,56 @@ msgid "Mask"
 msgstr "หน้ากาก"
 
 
+msgid "Metaball"
+msgstr "เมตาบอล"
+
+
+msgid "Light"
+msgstr "แสง"
+
+
 msgid "Add Image"
 msgstr "เพิ่มภาพ"
-
-
-msgid "Import"
-msgstr "นำเข้า"
 
 
 msgid "Apply"
 msgstr "นำไปใช้"
 
 
-msgid "Text"
-msgstr "ช้อความ"
-
-
 msgid "Track"
 msgstr "แทร็ค"
-
-
-msgid "Math"
-msgstr "คณิตศาสตร์"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Hooks"
 msgstr "ตะขอ"
 
 
+msgid "Layout"
+msgstr "เค้าโครง"
+
+
 msgid "Names"
 msgstr "ชื่อ"
+
+
+msgid "Keying"
+msgstr "คีย์"
 
 
 msgid "Face Data"
 msgstr "ข้อมูลด้าน"
 
 
+msgid "Math"
+msgstr "คณิตศาสตร์"
+
+
 msgid "Merge"
 msgstr "ผสาน"
 
 
-msgid "Metaball"
-msgstr "เมตาบอล"
-
-
-msgid "Layout"
-msgstr "เค้าโครง"
+msgid "Text"
+msgstr "ช้อความ"
 
 
 msgid "Pivot Point"
@@ -1921,12 +1921,12 @@ msgid "Mask Edit"
 msgstr "การแก้ไขหน้ากาก"
 
 
-msgid "Keying"
-msgstr "คีย์"
-
-
 msgid "Mirror"
 msgstr "กระจกสะท้อน"
+
+
+msgid "Import"
+msgstr "นำเข้า"
 
 
 msgid "Local View"
@@ -1953,8 +1953,8 @@ msgid "View Regions"
 msgstr "ขอบเขตมุมมอง"
 
 
-msgid "Light"
-msgstr "แสง"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Zoom"
@@ -2077,10 +2077,6 @@ msgstr "ตัวอย่าง"
 
 msgid "Intersect"
 msgstr "ตัดกัน"
-
-
-msgid "UV Select"
-msgstr "เลือก UV"
 
 
 msgid "Active Element"
@@ -4357,11 +4353,6 @@ msgstr "เรนเดอร์ภาพ"
 msgctxt "Operator"
 msgid "Operator Search..."
 msgstr "ค้นหาตัวดำเนินการ..."
-
-
-msgctxt "Operator"
-msgid "Tutorials"
-msgstr "สอนวิธีใช้งาน"
 
 
 msgctxt "Operator"

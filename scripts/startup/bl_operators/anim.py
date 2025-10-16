@@ -114,7 +114,7 @@ class ANIM_OT_keying_set_export(Operator):
 
                 if not found:
                     self.report(
-                        {'WARN'},
+                        {'WARNING'},
                         rpt_("Could not find material or light using Shader Node Tree - {:s}").format(str(ksp.id)),
                     )
             elif ksp.id.bl_rna.identifier.startswith("CompositorNodeTree"):
@@ -126,7 +126,7 @@ class ANIM_OT_keying_set_export(Operator):
                         break
                 else:
                     self.report(
-                        {'WARN'},
+                        {'WARNING'},
                         rpt_("Could not find scene using Compositor Node Tree - {:s}").format(str(ksp.id)),
                     )
             elif ksp.id.bl_rna.name == "Key":
@@ -400,7 +400,7 @@ class UpdateAnimatedTransformConstraint(Operator):
     )
 
     def execute(self, context):
-        import animsys_refactor
+        import _animsys_refactor as animsys_refactor
         from math import radians
         import io
 

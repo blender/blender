@@ -344,6 +344,7 @@ set(GLSL_SRC
   shaders/library/gpu_shader_compositor_bright_contrast.glsl
   shaders/library/gpu_shader_compositor_channel_matte.glsl
   shaders/library/gpu_shader_compositor_chroma_matte.glsl
+  shaders/library/gpu_shader_compositor_code_generation.glsl
   shaders/library/gpu_shader_compositor_color_balance.glsl
   shaders/library/gpu_shader_compositor_color_correction.glsl
   shaders/library/gpu_shader_compositor_color_matte.glsl
@@ -367,6 +368,7 @@ set(GLSL_SRC
   shaders/library/gpu_shader_compositor_posterize.glsl
   shaders/library/gpu_shader_compositor_separate_combine.glsl
   shaders/library/gpu_shader_compositor_set_alpha.glsl
+  shaders/library/gpu_shader_compositor_set_value.glsl
   shaders/library/gpu_shader_compositor_store.glsl
   shaders/library/gpu_shader_compositor_store_output.glsl
   shaders/library/gpu_shader_compositor_summed_area_table_lib.glsl

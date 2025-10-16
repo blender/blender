@@ -4016,6 +4016,7 @@ PyDoc_STRVAR(
     "         The incomplete path will be printed in the error message.\n");
 static PyObject *pyrna_struct_path_from_module(BPy_StructRNA *self, PyObject *args)
 {
+  const char *error_prefix = "path_from_module(...)";
   const char *name = nullptr;
   PropertyRNA *prop;
   int index = -1;
@@ -4023,6 +4024,10 @@ static PyObject *pyrna_struct_path_from_module(BPy_StructRNA *self, PyObject *ar
   PYRNA_STRUCT_CHECK_OBJ(self);
 
   if (!PyArg_ParseTuple(args, "|si:path_from_module", &name, &index)) {
+    return nullptr;
+  }
+  if (index < -1) {
+    PyErr_Format(PyExc_ValueError, "%s: indices below -1 are not supported", error_prefix);
     return nullptr;
   }
 

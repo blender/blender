@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 08:44+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -3367,14 +3367,6 @@ msgstr "Rodzic"
 
 msgid "Parent bone (in same Armature)"
 msgstr "Kość nadrzędna (w tym samym szkielecie)"
-
-
-msgid "Select Head"
-msgstr "Zaznacz początek"
-
-
-msgid "Select Tail"
-msgstr "Zaznacz koniec"
 
 
 msgid "Bone is always displayed in wireframe regardless of viewport shading mode (useful for non-obstructive custom bone shapes)"
@@ -11539,40 +11531,28 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Read"
-msgstr "Odczyt"
+msgid "Metaball"
+msgstr "Metakula"
 
 
-msgid "Write"
-msgstr "Zapis"
+msgid "Light"
+msgstr "Światło"
+
+
+msgid "Light Probe"
+msgstr "Sonda świetlna"
 
 
 msgid "Rigid Body"
 msgstr "Bryła sztywna"
 
 
-msgid "Import"
-msgstr "Importuj"
-
-
 msgid "Apply"
 msgstr "Zastosuj"
 
 
-msgid "Text"
-msgstr "Tekst"
-
-
 msgid "Track"
 msgstr "Ścieżka"
-
-
-msgid "Utilities"
-msgstr "Narzędzia"
-
-
-msgid "Deprecated"
-msgstr "Przestarzałe"
 
 
 msgid "Quick Effects"
@@ -11595,28 +11575,36 @@ msgid "Convert"
 msgstr "Konwertuj"
 
 
-msgid "Math"
-msgstr "Matematyka"
+msgid "Layout"
+msgstr "Układ"
 
 
 msgid "Bone Collections"
 msgstr "Kolekcja kości"
 
 
+msgid "Keying"
+msgstr "Kluczowanie"
+
+
+msgid "Utilities"
+msgstr "Narzędzia"
+
+
 msgid "Face Data"
 msgstr "Dane ściany"
+
+
+msgid "Math"
+msgstr "Matematyka"
 
 
 msgid "Merge"
 msgstr "Scal"
 
 
-msgid "Metaball"
-msgstr "Metakula"
-
-
-msgid "Layout"
-msgstr "Układ"
+msgid "Text"
+msgstr "Tekst"
 
 
 msgid "Snap"
@@ -11627,12 +11615,24 @@ msgid "Proportional Editing Falloff"
 msgstr "Proporcjonalne edytowanie spadku"
 
 
-msgid "Keying"
-msgstr "Kluczowanie"
+msgid "Read"
+msgstr "Odczyt"
+
+
+msgid "Write"
+msgstr "Zapis"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
 
 
 msgid "Mirror"
 msgstr "Odbicie lustrzane"
+
+
+msgid "Import"
+msgstr "Importuj"
 
 
 msgid "Local View"
@@ -11647,24 +11647,16 @@ msgid "Navigation"
 msgstr "Nawigacja"
 
 
+msgid "Deprecated"
+msgstr "Przestarzałe"
+
+
 msgid "Select Linked"
 msgstr "Zaznacz powiązane"
 
 
 msgid "Assign Material"
 msgstr "Przypisanie materiału"
-
-
-msgid "Light"
-msgstr "Światło"
-
-
-msgid "Light Probe"
-msgstr "Sonda świetlna"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
 
 
 msgid "Catalog"
@@ -11861,10 +11853,6 @@ msgstr "Próbki"
 
 msgid "Intersect"
 msgstr "Część wspólna"
-
-
-msgid "UV Vertex Selection"
-msgstr "Wybór wierzchołka UV"
 
 
 msgid "Mesh Vertices"
@@ -16023,10 +16011,6 @@ msgid "Render"
 msgstr "Renderuj"
 
 
-msgid "Render active scene"
-msgstr "Renderuje aktywną scenę"
-
-
 msgctxt "Curve"
 msgid "Line"
 msgstr "Linia"
@@ -20169,11 +20153,6 @@ msgid "Installed"
 msgstr "Zainstalowane"
 
 
-msgctxt "Operator"
-msgid "Mirrored"
-msgstr "Lustrzane"
-
-
 msgid "Noise Threshold"
 msgstr "Próg szumu"
 
@@ -22023,11 +22002,6 @@ msgid "Release Notes"
 msgstr "Informacje o wydaniu"
 
 
-msgctxt "Operator"
-msgid "Tutorials"
-msgstr "Samouczki"
-
-
 msgid "No active item"
 msgstr "Brak aktywnego elementu"
 
@@ -22841,6 +22815,11 @@ msgstr "Usuń z aktywnej grupy"
 msgctxt "Operator"
 msgid "Scale Radius"
 msgstr "Skaluj promień"
+
+
+msgctxt "Operator"
+msgid "Mirrored"
+msgstr "Lustrzane"
 
 
 msgctxt "Operator"
@@ -25375,6 +25354,10 @@ msgid "Rigid Body World has no associated physics data to export"
 msgstr "Świat Brył Sztywnych nie posiada powiązanych danych fizyki do eksportu"
 
 
+msgid "Render active scene"
+msgstr "Renderuje aktywną scenę"
+
+
 msgid "3D Local View "
 msgstr "Lokalny widok 3D "
 
@@ -27026,10 +27009,6 @@ msgstr "Wierzchołek UV"
 
 msgid "Rip failed"
 msgstr "Rozpruwanie nie powiodło się"
-
-
-msgid "Cannot split selection when sync selection is enabled"
-msgstr "Nie można podzielić selekcji gdy uruchomiona synchronizacja selekcji"
 
 
 msgid "Object has non-uniform scale, unwrap will operate on a non-scaled version of the mesh"

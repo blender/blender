@@ -1548,6 +1548,11 @@ struct GWL_Display {
    */
   bool background = false;
 
+  /**
+   * Show window decorations, otherwise all windows are frame-less.
+   */
+  bool use_window_frame = false;
+
   /* Threaded event handling. */
 #ifdef USE_EVENT_BACKGROUND_THREAD
   /**
@@ -7609,8 +7614,12 @@ GHOST_SystemWayland::GHOST_SystemWayland(const bool background)
   wl_log_set_handler_client(background ? ghost_wayland_log_handler_background :
                                          ghost_wayland_log_handler);
 
+  const bool use_window_frame = GHOST_ISystem::getUseWindowFrame();
+
   display_->system = this;
   display_->background = background;
+  display_->use_window_frame = use_window_frame;
+
   /* Connect to the Wayland server. */
 
   display_->wl.display = wl_display_connect(nullptr);
@@ -7641,7 +7650,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(const bool background)
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   bool libdecor_required = false;
-  {
+  if (use_window_frame) {
     const char *xdg_current_desktop = [] {
       /* Account for VSCode overriding this value (TSK!), see: #133921. */
       const char *key = "ORIGINAL_XDG_CURRENT_DESKTOP";
@@ -9359,6 +9368,11 @@ GHOST_TimerManager *GHOST_SystemWayland::ghost_timer_manager()
 }
 #endif
 
+bool GHOST_SystemWayland::use_window_frame_get()
+{
+  return display_->use_window_frame;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -9870,7 +9884,7 @@ bool GHOST_SystemWayland::use_libdecor_runtime()
 #endif
 
 #ifdef WITH_GHOST_WAYLAND_DYNLOAD
-bool ghost_wl_dynload_libraries_init()
+bool ghost_wl_dynload_libraries_init(const bool use_window_frame)
 {
 #  ifdef WITH_GHOST_X11
   /* When running in WAYLAND, let the user know when a missing library is the only reason
@@ -9891,7 +9905,11 @@ bool ghost_wl_dynload_libraries_init()
   )
   {
 #  ifdef WITH_GHOST_WAYLAND_LIBDECOR
-    has_libdecor = wayland_dynload_libdecor_init(verbose); /* `libdecor-0`. */
+    if (use_window_frame) {
+      has_libdecor = wayland_dynload_libdecor_init(verbose); /* `libdecor-0`. */
+    }
+#  else
+    (void)use_window_frame;
 #  endif
     return true;
   }

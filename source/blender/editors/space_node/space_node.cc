@@ -1560,6 +1560,7 @@ static void node_id_remap(ID *old_id, ID *new_id, SpaceNode *snode)
     if (snode->treepath.last) {
       path = (bNodeTreePath *)snode->treepath.last;
       snode->edittree = path->nodetree;
+      ED_node_set_active_viewer_key(snode);
     }
     else {
       snode->edittree = nullptr;

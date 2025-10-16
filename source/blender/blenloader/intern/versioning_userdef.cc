@@ -390,6 +390,12 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(common.anim.scene_strip_range);
   }
 
+  if (!USER_VERSION_ATLEAST(501, 3)) {
+    FROM_DEFAULT_V4_UCHAR(space_action.anim_interpolation_other);
+    FROM_DEFAULT_V4_UCHAR(space_action.anim_interpolation_constant);
+    FROM_DEFAULT_V4_UCHAR(space_action.anim_interpolation_linear);
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 08:44+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -1140,20 +1140,16 @@ msgid "Mask"
 msgstr "Маскиране"
 
 
+msgid "Light"
+msgstr "Светлина"
+
+
 msgid "Rigid Body"
 msgstr "Твърдо тяло"
 
 
-msgid "Import"
-msgstr "Внеси"
-
-
 msgid "Apply"
 msgstr "Прилагане"
-
-
-msgid "Text"
-msgstr "Текст"
 
 
 msgid "Make Single User"
@@ -1172,12 +1168,16 @@ msgid "Merge"
 msgstr "Слей"
 
 
+msgid "Text"
+msgstr "Текст"
+
+
+msgid "Import"
+msgstr "Внеси"
+
+
 msgid "UV Mapping"
 msgstr "UV Картиране"
-
-
-msgid "Light"
-msgstr "Светлина"
 
 
 msgid "Languages..."

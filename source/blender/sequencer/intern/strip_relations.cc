@@ -55,6 +55,16 @@ void cache_cleanup(Scene *scene)
   preview_cache_invalidate(scene);
 }
 
+void cache_cleanup_intra(Scene *scene)
+{
+  intra_frame_cache_invalidate(scene);
+}
+
+void cache_cleanup_final(Scene *scene)
+{
+  final_image_cache_clear(scene);
+}
+
 void cache_settings_changed(Scene *scene)
 {
   if (!(scene->ed->cache_flag & SEQ_CACHE_STORE_RAW)) {

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 08:44+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -621,14 +621,6 @@ msgstr "चयनयोग्य"
 
 msgid "Parent"
 msgstr "कारण"
-
-
-msgid "Select Head"
-msgstr "सिर का चयन करें"
-
-
-msgid "Select Tail"
-msgstr "पूंछ का चयन करें"
 
 
 msgid "Tail"
@@ -2580,20 +2572,16 @@ msgid "Mask"
 msgstr "आवरण"
 
 
+msgid "Light"
+msgstr "प्रकाश"
+
+
 msgid "Rigid Body"
 msgstr "कठोर-पदार्थ"
 
 
-msgid "Import"
-msgstr "आयात करें"
-
-
 msgid "Apply"
 msgstr "लागू करें"
-
-
-msgid "Text"
-msgstr "पाठ"
 
 
 msgid "Track"
@@ -2612,14 +2600,6 @@ msgid "Make Single User"
 msgstr "एकल प्रयोक्ता बनाएँ"
 
 
-msgid "Math"
-msgstr "गणित"
-
-
-msgid "UV"
-msgstr "यूवी"
-
-
 msgid "Hooks"
 msgstr "खूँटी"
 
@@ -2636,8 +2616,20 @@ msgid "Enable Bone Options"
 msgstr "हड्डी विकल्प को सक्षम करें"
 
 
+msgid "Keying"
+msgstr "कुंजीयन"
+
+
+msgid "Math"
+msgstr "गणित"
+
+
 msgid "Merge"
 msgstr "विलय करें"
+
+
+msgid "Text"
+msgstr "पाठ"
 
 
 msgid "Bone Roll"
@@ -2648,16 +2640,16 @@ msgid "Snap"
 msgstr "स्नैप"
 
 
-msgid "Keying"
-msgstr "कुंजीयन"
-
-
 msgid "Mirror"
 msgstr "दर्पण"
 
 
-msgid "Light"
-msgstr "प्रकाश"
+msgid "Import"
+msgstr "आयात करें"
+
+
+msgid "UV"
+msgstr "यूवी"
 
 
 msgid "Basic"

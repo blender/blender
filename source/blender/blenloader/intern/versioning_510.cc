@@ -11,6 +11,7 @@
 #include "DNA_ID.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
+#include "DNA_screen_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
@@ -219,8 +220,29 @@ static void do_version_mix_node_mix_mode_geometry(bNodeTree &node_tree, bNode &n
   }
 }
 
-void do_versions_after_linking_510(FileData * /*fd*/, Main * /*bmain*/)
+void do_versions_after_linking_510(FileData * /*fd*/, Main *bmain)
 {
+  /* Some blend files were saved with an invalid active viewer key, possibly due to a bug that was
+   * fixed already in c8cb24121f, but blend files were never updated. So starting in 5.1, we fix
+   * those files by essentially doing what ED_node_set_active_viewer_key is supposed to do at load
+   * time during versioning. Note that the invalid active viewer will just cause a harmless assert,
+   * so this does not need to exist in previous releases. */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 0)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+          if (space->spacetype == SPACE_NODE) {
+            SpaceNode *space_node = reinterpret_cast<SpaceNode *>(space);
+            bNodeTreePath *path = static_cast<bNodeTreePath *>(space_node->treepath.last);
+            if (space_node->nodetree && path) {
+              space_node->nodetree->active_viewer_key = path->parent_key;
+            }
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

@@ -338,7 +338,7 @@ static void ui_update_flexible_spacing(const ARegion *region, uiBlock *block)
   for (const std::unique_ptr<uiBut> &but : block->buttons) {
     if (but->type == ButType::SeprSpacer) {
       ui_but_to_pixelrect(&rect, region, block, but.get());
-      spacers_pos.append(rect.xmax + UI_HEADER_OFFSET);
+      spacers_pos.append(rect.xmax + int(8.0f * UI_SCALE_FAC));
     }
   }
 

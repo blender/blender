@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 08:44+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 15:08+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -3336,14 +3336,6 @@ msgid "Parent bone (in same Armature)"
 msgstr "Кістка-предок (в тій же арматурі)"
 
 
-msgid "Select Head"
-msgstr "Вибрати початок"
-
-
-msgid "Select Tail"
-msgstr "Вибрати кінець"
-
-
 msgid "Display Wire"
 msgstr "Показати каркас"
 
@@ -6598,6 +6590,14 @@ msgstr "Вилучити викривлення"
 
 msgid "Parent to undistorted position of 2D track"
 msgstr "Зробити предком неспотворену позицію 2D-стежки"
+
+
+msgid "Attribute Name"
+msgstr "Назва атрибуту"
+
+
+msgid "Domain Type"
+msgstr "Тип домену"
 
 
 msgid "Kinematic Constraint"
@@ -11848,10 +11848,6 @@ msgstr "розд"
 
 msgid "Smoke Grid Resolution"
 msgstr "Роздільність сітки диму"
-
-
-msgid "Domain Type"
-msgstr "Тип домену"
 
 
 msgid "Change domain type of the simulation"
@@ -20976,10 +20972,6 @@ msgid "Active Movie Clip"
 msgstr "Активний відеокліп"
 
 
-msgid "Mirror Object"
-msgstr "Об'єкт дзеркалення"
-
-
 msgid "Distance Model"
 msgstr "Модель Відстані"
 
@@ -21214,6 +21206,10 @@ msgstr "Синхронізувати з Аудіо"
 
 msgid "Sync to audio playback, dropping frames"
 msgstr "Синхронізація з відтворенням звуку пропуском кадрів"
+
+
+msgid "Second"
+msgstr "Секунда"
 
 
 msgid "Timeline Markers"
@@ -26386,6 +26382,18 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
+msgid "Metaball"
+msgstr "Метакуля"
+
+
+msgid "Light"
+msgstr "Слабко"
+
+
+msgid "Light Probe"
+msgstr "Проба Освітлення"
+
+
 msgid "Add Image"
 msgstr "Додати Зображення"
 
@@ -26394,36 +26402,16 @@ msgid "Relations"
 msgstr "Зв'язки"
 
 
-msgid "Sample"
-msgstr "Вибірка"
-
-
-msgid "Primitives"
-msgstr "Примітиви"
-
-
 msgid "Rigid Body"
 msgstr "Тверде тіло"
-
-
-msgid "Import"
-msgstr "Імпортувати"
 
 
 msgid "Apply"
 msgstr "Застосувати"
 
 
-msgid "Text"
-msgstr "Текст"
-
-
 msgid "Track"
 msgstr "Стеження"
-
-
-msgid "Utilities"
-msgstr "Утиліти"
 
 
 msgid "Quick Effects"
@@ -26450,16 +26438,8 @@ msgid "Convert"
 msgstr "Конвертування"
 
 
-msgid "Math"
-msgstr "Математика"
-
-
 msgid "Link/Transfer Data"
 msgstr "Пов'язати/Перенести Дані"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Hooks"
@@ -26476,6 +26456,10 @@ msgstr "Ліплення Задати Опертя"
 
 msgid "Face Sets Init"
 msgstr "Ініціація Наборів Граней"
+
+
+msgid "Layout"
+msgstr "Розстановка"
 
 
 msgid "Clear Transform"
@@ -26506,12 +26490,28 @@ msgid "Disable Bone Options"
 msgstr "Відключити параметри кісток"
 
 
+msgid "Keying"
+msgstr "Ключування"
+
+
 msgid "Mesh Select Mode"
 msgstr "Режим Вибору Сіті"
 
 
+msgid "Tracking"
+msgstr "Стеження"
+
+
+msgid "Utilities"
+msgstr "Утиліти"
+
+
 msgid "Face Data"
 msgstr "Дані граней"
+
+
+msgid "Math"
+msgstr "Математика"
 
 
 msgid "Select by Face Strength"
@@ -26534,16 +26534,12 @@ msgid "Kerning"
 msgstr "Кернінг"
 
 
-msgid "Metaball"
-msgstr "Метакуля"
+msgid "Text"
+msgstr "Текст"
 
 
 msgid "Bone Roll"
 msgstr "Прокручення Кістки"
-
-
-msgid "Layout"
-msgstr "Розстановка"
 
 
 msgid "Pivot Point"
@@ -26570,16 +26566,20 @@ msgid "Face Sets Edit"
 msgstr "Редагування Наборів Граней"
 
 
-msgid "Keying"
-msgstr "Ключування"
+msgid "Sample"
+msgstr "Вибірка"
 
 
-msgid "Tracking"
-msgstr "Стеження"
+msgid "Primitives"
+msgstr "Примітиви"
 
 
 msgid "Mirror"
 msgstr "Дзеркалення"
+
+
+msgid "Import"
+msgstr "Імпортувати"
 
 
 msgid "UV Mapping"
@@ -26622,6 +26622,10 @@ msgid "Select All by Trait"
 msgstr "Вибрати все за рисою"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Select Linked"
 msgstr "Виділити пов'язане"
 
@@ -26630,20 +26634,12 @@ msgid "Select Loops"
 msgstr "Виділити петлі"
 
 
-msgid "Assign Material"
-msgstr "Призначити Матеріал"
-
-
-msgid "Light"
-msgstr "Слабко"
-
-
-msgid "Light Probe"
-msgstr "Проба Освітлення"
-
-
 msgid "Basic"
 msgstr "Основний"
+
+
+msgid "Assign Material"
+msgstr "Призначити Матеріал"
 
 
 msgid "Assets"
@@ -27273,10 +27269,6 @@ msgstr "Викривлення"
 
 msgid "UV Pinned"
 msgstr "UV пришпилено"
-
-
-msgid "UV Select"
-msgstr "Вибрати UV"
 
 
 msgid "Set the map as active for display and editing"
@@ -30356,6 +30348,10 @@ msgstr "Модифікатор віддзеркалення"
 
 msgid "Distance within which mirrored vertices are merged"
 msgstr "Відстань, у межах якої віддзеркалені вершини будуть об'єднані"
+
+
+msgid "Mirror Object"
+msgstr "Об'єкт дзеркалення"
 
 
 msgid "Object to use as mirror"
@@ -34671,10 +34667,6 @@ msgstr "Розглядати лише сам об'єкт при обчислен
 
 msgid "Number of rays to trace per shader evaluation"
 msgstr "Кількість променів для простеження на кожну оцінку відтінювача"
-
-
-msgid "Attribute Name"
-msgstr "Назва атрибуту"
 
 
 msgid "Attribute Type"
@@ -53868,14 +53860,6 @@ msgid "Render files from the animation range of this scene"
 msgstr "Рендерити файли з діапазону анімації цієї сцени"
 
 
-msgid "Render Keyframes Only"
-msgstr "Рендерити лише ключкадри"
-
-
-msgid "Render only those frames where selected objects have a key in their animation data. Only used when rendering animation"
-msgstr "Рендерити лише ті кадри, де вибрані об'єкти мають ключові кадри в даних анімації. Використовується тільки під час рендерингу анімації"
-
-
 msgid "Render using the sequencer's OpenGL display"
 msgstr "Рендер з використанням OpenGL-показу секвенсера"
 
@@ -53895,10 +53879,6 @@ msgstr "Запис зображення"
 msgctxt "Operator"
 msgid "Render"
 msgstr "Рендер"
-
-
-msgid "Render active scene"
-msgstr "Рендерити активну сцену"
 
 
 msgid "Render Layer"
@@ -61112,6 +61092,10 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
+msgid "Auto-Masking"
+msgstr "Авто-Маскування"
+
+
 msgid "VR"
 msgstr "ВР"
 
@@ -61194,10 +61178,6 @@ msgstr "Стереоскопія"
 
 msgid "Multi Frame"
 msgstr "Багато Кадр"
-
-
-msgid "Auto-Masking"
-msgstr "Авто-Маскування"
 
 
 msgid "Chain Scaling"
@@ -78598,10 +78578,6 @@ msgid "This object is part of a compound shape"
 msgstr "Цей об'єкт є частиною складеної форми"
 
 
-msgid "Second"
-msgstr "Секунда"
-
-
 msgid "X Stiffness"
 msgstr "Тугість X"
 
@@ -80474,11 +80450,6 @@ msgstr "Пошук Оператора..."
 msgctxt "Operator"
 msgid "Release Notes"
 msgstr "Примітки щодо Випуску"
-
-
-msgctxt "Operator"
-msgid "Tutorials"
-msgstr "Навчальники"
 
 
 msgid "Sequence Strip Name"
@@ -85453,6 +85424,10 @@ msgid "Rigid Body World has no associated physics data to export"
 msgstr "Світ твердого тіла немає пов'язаних даних фізики для експорту"
 
 
+msgid "Render active scene"
+msgstr "Рендерити активну сцену"
+
+
 msgid "Cannot write a single file with an animation format selected"
 msgstr "Неможливо записати один файл у вибраному форматі анімації"
 
@@ -87572,10 +87547,6 @@ msgid "Rip failed"
 msgstr "Збій розривання"
 
 
-msgid "Cannot split selection when sync selection is enabled"
-msgstr "Неможливо розділити вибране, коли увімкнена синхронізація вибору"
-
-
 msgid "Minimize Stretch. Blend %.2f"
 msgstr "Мінімізація Розтягу. Blend %.2f"
 
@@ -88615,6 +88586,10 @@ msgid "Fac"
 msgstr "Коеф."
 
 
+msgid "Anisotropic"
+msgstr "Анізотропія"
+
+
 msgid "Eccentricity"
 msgstr "Ексцентриситет"
 
@@ -88725,10 +88700,6 @@ msgstr "Випадкова Шорсткість"
 
 msgid "Subsurface Radius"
 msgstr "Радіус Підповерхні"
-
-
-msgid "Anisotropic"
-msgstr "Анізотропія"
 
 
 msgid "Anisotropic Rotation"

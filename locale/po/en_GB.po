@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 08:44+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 14:59+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -4680,14 +4680,6 @@ msgid "Parent bone (in same Armature)"
 msgstr "Parent bone (in same Armature)"
 
 
-msgid "Select Head"
-msgstr "Select Head"
-
-
-msgid "Select Tail"
-msgstr "Select Tail"
-
-
 msgid "Display Wire"
 msgstr "Display Wire"
 
@@ -8906,6 +8898,18 @@ msgstr "Undistort"
 
 msgid "Parent to undistorted position of 2D track"
 msgstr "Parent to undistorted position of 2D track"
+
+
+msgid "Attribute Name"
+msgstr "Attribute Name"
+
+
+msgid "Domain Type"
+msgstr "Domain Type"
+
+
+msgid "Sample Index"
+msgstr "Sample Index"
 
 
 msgid "Kinematic Constraint"
@@ -14928,10 +14932,6 @@ msgstr "res"
 
 msgid "Smoke Grid Resolution"
 msgstr "Smoke Grid Resolution"
-
-
-msgid "Domain Type"
-msgstr "Domain Type"
 
 
 msgid "Change domain type of the simulation"
@@ -27140,54 +27140,6 @@ msgid "Active Movie Clip that can be used by motion tracking constraints or as a
 msgstr "Active Movie Clip that can be used by motion tracking constraints or as a camera's background image"
 
 
-msgid "Fix Camera: Use Location"
-msgstr "Fix Camera: Use Location"
-
-
-msgid "Create Location keys when fixing to the scene camera"
-msgstr "Create Location keys when fixing to the scene camera"
-
-
-msgid "Fix Camera: Use Rotation"
-msgstr "Fix Camera: Use Rotation"
-
-
-msgid "Create Rotation keys when fixing to the scene camera"
-msgstr "Create Rotation keys when fixing to the scene camera"
-
-
-msgid "Fix Camera: Use Scale"
-msgstr "Fix Camera: Use Scale"
-
-
-msgid "Create Scale keys when fixing to the scene camera"
-msgstr "Create Scale keys when fixing to the scene camera"
-
-
-msgid "Mirror Bone"
-msgstr "Mirror Bone"
-
-
-msgid "Bone to use for the mirroring"
-msgstr "Bone to use for the mirroring"
-
-
-msgid "Mirror Object"
-msgstr "Mirror Object"
-
-
-msgid "Object to mirror over. Leave empty and name a bone to always mirror over that bone of the active armature"
-msgstr "Object to mirror over. Leave empty and name a bone to always mirror over that bone of the active armature"
-
-
-msgid "Relative Object"
-msgstr "Relative Object"
-
-
-msgid "Object to which matrices are made relative"
-msgstr "Object to which matrices are made relative"
-
-
 msgid "Distance Model"
 msgstr "Distance Model"
 
@@ -27498,6 +27450,10 @@ msgstr "Sync to Audio"
 
 msgid "Sync to audio playback, dropping frames"
 msgstr "Sync to audio playback, dropping frames"
+
+
+msgid "Second"
+msgstr "Second"
 
 
 msgid "Timeline Markers"
@@ -34043,56 +33999,36 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Light"
+msgstr "Light"
+
+
+msgid "Light Probe"
+msgstr "Light Probe"
+
+
 msgid "Add Image"
 msgstr "Add Image"
-
-
-msgid "Read"
-msgstr "Read"
 
 
 msgid "Relations"
 msgstr "Relations"
 
 
-msgid "Sample"
-msgstr "Sample"
-
-
-msgid "Write"
-msgstr "Write"
-
-
-msgid "Primitives"
-msgstr "Primitives"
-
-
 msgid "Rigid Body"
 msgstr "Rigid Body"
-
-
-msgid "Import"
-msgstr "Import"
 
 
 msgid "Apply"
 msgstr "Apply"
 
 
-msgid "Text"
-msgstr "Text"
-
-
 msgid "Track"
 msgstr "Track"
-
-
-msgid "Utilities"
-msgstr "Utilities"
-
-
-msgid "Deprecated"
-msgstr "Deprecated"
 
 
 msgid "Quick Effects"
@@ -34119,16 +34055,8 @@ msgid "Convert"
 msgstr "Convert"
 
 
-msgid "Math"
-msgstr "Maths"
-
-
 msgid "Link/Transfer Data"
 msgstr "Link/Transfer Data"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Hooks"
@@ -34155,6 +34083,10 @@ msgid "Random Mask"
 msgstr "Random Mask"
 
 
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Clear Transform"
 msgstr "Clear Transform"
 
@@ -34175,6 +34107,10 @@ msgid "Names"
 msgstr "Names"
 
 
+msgid "Adjust"
+msgstr "Adjust"
+
+
 msgid "Toggle Bone Options"
 msgstr "Toggle Bone Options"
 
@@ -34187,12 +34123,28 @@ msgid "Disable Bone Options"
 msgstr "Disable Bone Options"
 
 
+msgid "Keying"
+msgstr "Keying"
+
+
 msgid "Mesh Select Mode"
 msgstr "Mesh Select Mode"
 
 
+msgid "Tracking"
+msgstr "Tracking"
+
+
+msgid "Utilities"
+msgstr "Utilities"
+
+
 msgid "Face Data"
 msgstr "Face Data"
+
+
+msgid "Math"
+msgstr "Maths"
 
 
 msgid "Select by Face Strength"
@@ -34215,16 +34167,12 @@ msgid "Kerning"
 msgstr "Kerning"
 
 
-msgid "Metaball"
-msgstr "Metaball"
+msgid "Text"
+msgstr "Text"
 
 
 msgid "Bone Roll"
 msgstr "Bone Roll"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Pivot Point"
@@ -34247,24 +34195,40 @@ msgid "Automasking"
 msgstr "Automasking"
 
 
-msgid "Adjust"
-msgstr "Adjust"
+msgid "Read"
+msgstr "Read"
 
 
 msgid "Face Sets Edit"
 msgstr "Face Sets Edit"
 
 
-msgid "Keying"
-msgstr "Keying"
+msgid "Sample"
+msgstr "Sample"
 
 
-msgid "Tracking"
-msgstr "Tracking"
+msgid "Write"
+msgstr "Write"
+
+
+msgid "Primitives"
+msgstr "Primitives"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Instances"
 
 
 msgid "Mirror"
 msgstr "Mirror"
+
+
+msgid "Import"
+msgstr "Import"
 
 
 msgid "UV Mapping"
@@ -34291,6 +34255,10 @@ msgid "Align View to Active"
 msgstr "Align View to Active"
 
 
+msgid "Deprecated"
+msgstr "Deprecated"
+
+
 msgid "View Regions"
 msgstr "View Regions"
 
@@ -34307,6 +34275,10 @@ msgid "Select All by Trait"
 msgstr "Select All by Trait"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Select Linked"
 msgstr "Select Linked"
 
@@ -34315,36 +34287,20 @@ msgid "Select Loops"
 msgstr "Select Loops"
 
 
-msgid "Assign Material"
-msgstr "Assign Material"
-
-
-msgid "Light"
-msgstr "Light"
-
-
-msgid "Light Probe"
-msgstr "Light Probe"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
-msgid "Keyframe Insert Pie"
-msgstr "Keyframe Insert Pie"
-
-
 msgid "Animals"
 msgstr "Animals"
 
 
 msgid "Basic"
 msgstr "Basic"
+
+
+msgid "Assign Material"
+msgstr "Assign Material"
+
+
+msgid "Keyframe Insert Pie"
+msgstr "Keyframe Insert Pie"
 
 
 msgid "Bone Collection Specials"
@@ -35341,14 +35297,6 @@ msgid "UV Pinned"
 msgstr "UV Pinned"
 
 
-msgid "UV Select"
-msgstr "UV Select"
-
-
-msgid "UV Edge Select"
-msgstr "UV Edge Select"
-
-
 msgid "Set the map as active for display and editing"
 msgstr "Set the map as active for display and editing"
 
@@ -35373,14 +35321,6 @@ msgid "Deprecated, use 'uv', 'vertex_select', 'edge_select' or 'pin' properties 
 msgstr "Deprecated, use 'uv', 'vertex_select', 'edge_select' or 'pin' properties instead"
 
 
-msgid "UV Edge Selection"
-msgstr "UV Edge Selection"
-
-
-msgid "Selection state of the edge in the UV editor"
-msgstr "Selection state of the edge in the UV editor"
-
-
 msgid "Name of UV map"
 msgstr "Name of UV map"
 
@@ -35395,14 +35335,6 @@ msgstr "UV pinned state in the UV editor"
 
 msgid "UV coordinates on face corners"
 msgstr "UV coordinates on face corners"
-
-
-msgid "UV Vertex Selection"
-msgstr "UV Vertex Selection"
-
-
-msgid "Selection state of the face corner the UV editor"
-msgstr "Selection state of the face corner the UV editor"
 
 
 msgid "Mesh Vertex"
@@ -39951,6 +39883,10 @@ msgstr "Distance from the bisect plane within which vertices are removed"
 
 msgid "Distance within which mirrored vertices are merged"
 msgstr "Distance within which mirrored vertices are merged"
+
+
+msgid "Mirror Object"
+msgstr "Mirror Object"
 
 
 msgid "Object to use as mirror"
@@ -47006,10 +46942,6 @@ msgid "Retrieve volume grid values at specific voxels"
 msgstr "Retrieve volume grid values at specific voxels"
 
 
-msgid "Sample Index"
-msgstr "Sample Index"
-
-
 msgid "Retrieve values from specific geometry elements"
 msgstr "Retrieve values from specific geometry elements"
 
@@ -47805,10 +47737,6 @@ msgstr "Number of rays to trace per shader evaluation"
 
 msgid "Retrieve attributes attached to objects or geometry"
 msgstr "Retrieve attributes attached to objects or geometry"
-
-
-msgid "Attribute Name"
-msgstr "Attribute Name"
 
 
 msgid "Attribute Type"
@@ -71486,6 +71414,18 @@ msgid "Generate new keys to fix the selected object/bone to the camera on unkeye
 msgstr "Generate new keys to fix the selected object/bone to the camera on unkeyed frames"
 
 
+msgid "Create Location keys when fixing to the scene camera"
+msgstr "Create Location keys when fixing to the scene camera"
+
+
+msgid "Create Rotation keys when fixing to the scene camera"
+msgstr "Create Rotation keys when fixing to the scene camera"
+
+
+msgid "Create Scale keys when fixing to the scene camera"
+msgstr "Create Scale keys when fixing to the scene camera"
+
+
 msgctxt "Operator"
 msgid "Toggle Force Field"
 msgstr "Toggle Force Field"
@@ -77341,14 +77281,6 @@ msgid "Render files from the animation range of this scene"
 msgstr "Render files from the animation range of this scene"
 
 
-msgid "Render Keyframes Only"
-msgstr "Render Keyframes Only"
-
-
-msgid "Render only those frames where selected objects have a key in their animation data. Only used when rendering animation"
-msgstr "Render only those frames where selected objects have a key in their animation data. Only used when rendering animation"
-
-
 msgid "Render using the sequencer's OpenGL display"
 msgstr "Render using the sequencer's OpenGL display"
 
@@ -77372,10 +77304,6 @@ msgstr "Save the rendered image to the output path (used only when animation is 
 msgctxt "Operator"
 msgid "Render"
 msgstr "Render"
-
-
-msgid "Render active scene"
-msgstr "Render active scene"
 
 
 msgid "Render Layer"
@@ -88093,12 +88021,24 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
-msgid "glTF"
-msgstr "glTF"
+msgid "Auto-Masking"
+msgstr "Auto-Masking"
 
 
-msgid "glTF Animations"
-msgstr "glTF Animations"
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Curves Sculpt Add Curve Options"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Curves Sculpt Parameter Falloff"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Curves Grow/Shrink Scaling"
+
+
+msgid "Viewport Debug"
+msgstr "Viewport Debug"
 
 
 msgid "VR"
@@ -88109,16 +88049,20 @@ msgid "VR Info"
 msgstr "VR Info"
 
 
-msgid "Global Transform"
-msgstr "Global Transform"
+msgid "glTF Variants"
+msgstr "glTF Variants"
 
 
-msgid "Fix to Camera"
-msgstr "Fix to Camera"
+msgid "glTF Material Variants"
+msgstr "glTF Material Variants"
 
 
-msgid "Mirror Options"
-msgstr "Mirror Options"
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF Animations"
 
 
 msgid "Active Tool"
@@ -88219,34 +88163,6 @@ msgstr "Stereoscopy"
 
 msgid "Multi Frame"
 msgstr "Multi Frame"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Masking"
-
-
-msgid "glTF Variants"
-msgstr "glTF Variants"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Material Variants"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Curves Sculpt Add Curve Options"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Curves Sculpt Parameter Falloff"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Curves Grow/Shrink Scaling"
-
-
-msgid "Viewport Debug"
-msgstr "Viewport Debug"
 
 
 msgid "Import Settings"
@@ -89485,6 +89401,14 @@ msgstr "User Interface"
 
 msgid "Gradient Colors"
 msgstr "Gradient Colors"
+
+
+msgid "Global Transform"
+msgstr "Global Transform"
+
+
+msgid "Fix to Camera"
+msgstr "Fix to Camera"
 
 
 msgid "Brush Presets"
@@ -93150,10 +93074,6 @@ msgid "Language used for translation"
 msgstr "Language used for translation"
 
 
-msgid "Automatic (Automatic)"
-msgstr "Automatic (Automatic)"
-
-
 msgid "Mini Axes Brightness"
 msgstr "Mini Axes Brightness"
 
@@ -94153,10 +94073,6 @@ msgstr "Transform channel"
 
 msgid "Trigger A"
 msgstr "Trigger A"
-
-
-msgid "Action whose activation will trigger the corrective action"
-msgstr "Action whose activation will trigger the corrective action"
 
 
 msgid "Trigger B"
@@ -100980,6 +100896,10 @@ msgid "Edit timings for Cache File data-blocks"
 msgstr "Edit timings for Cache File data-blocks"
 
 
+msgid "Settings for display of overlays"
+msgstr "Settings for display of overlays"
+
+
 msgid "Show the status of cached frames in the timeline"
 msgstr "Show the status of cached frames in the timeline"
 
@@ -102069,10 +101989,6 @@ msgstr "Space Sequence Editor"
 
 msgid "Sequence editor space data"
 msgstr "Sequence editor space data"
-
-
-msgid "Settings for display of overlays"
-msgstr "Settings for display of overlays"
 
 
 msgid "Display Channel"
@@ -106749,6 +106665,26 @@ msgstr "Time since the timer started seconds"
 
 msgid "Time Step"
 msgstr "Time Step"
+
+
+msgid "Mirror Bone"
+msgstr "Mirror Bone"
+
+
+msgid "Bone to use for the mirroring"
+msgstr "Bone to use for the mirroring"
+
+
+msgid "Object to mirror over. Leave empty and name a bone to always mirror over that bone of the active armature"
+msgstr "Object to mirror over. Leave empty and name a bone to always mirror over that bone of the active armature"
+
+
+msgid "Relative Object"
+msgstr "Relative Object"
+
+
+msgid "Object to which matrices are made relative"
+msgstr "Object to which matrices are made relative"
 
 
 msgid "Stroke Placement (2D View)"
@@ -113723,90 +113659,6 @@ msgid "Downloading \"{:s}\""
 msgstr "Downloading \"{:s}\""
 
 
-msgid "No selected keys, pasting over scene range"
-msgstr "No selected keys, pasting over scene range"
-
-
-msgctxt "Operator"
-msgid "Mirrored"
-msgstr "Mirrored"
-
-
-msgctxt "Camera"
-msgid "Fix"
-msgstr "Fix"
-
-
-msgid "Work Relative to some Object"
-msgstr "Work Relative to some Object"
-
-
-msgid "No 'Relative To' object found, set one explicitly or make sure there is an active object"
-msgstr "No 'Relative To' object found, set one explicitly or make sure there is an active object"
-
-
-msgid "Select an object or pose bone"
-msgstr "Select an object or pose bone"
-
-
-msgid "Clipboard does not contain a valid matrix"
-msgstr "Clipboard does not contain a valid matrix"
-
-
-msgid "This mode requires auto-keying to work properly"
-msgstr "This mode requires auto-keying to work properly"
-
-
-msgid "No selected frames found"
-msgstr "No selected frames found"
-
-
-msgid "No selected keys, pasting over preview range"
-msgstr "No selected keys, pasting over preview range"
-
-
-msgid "Switch to Pose or Object mode"
-msgstr "Switch to Pose or Object mode"
-
-
-msgid "The Scene needs a camera"
-msgstr "The Scene needs a camera"
-
-
-msgid "These require auto-key:"
-msgstr "These require auto-key:"
-
-
-msgctxt "Operator"
-msgid "Paste to Selected Keys"
-msgstr "Paste to Selected Keys"
-
-
-msgctxt "Operator"
-msgid "Paste and Bake"
-msgstr "Paste and Bake"
-
-
-msgid "Keying set is active, which may"
-msgstr "Keying set is active, which may"
-
-
-msgid "reduce the effect of the above options"
-msgstr "reduce the effect of the above options"
-
-
-msgid "Using Active Scene Camera"
-msgstr "Using Active Scene Camera"
-
-
-msgid "Unable to mirror, no mirror object/bone configured"
-msgstr "Unable to mirror, no mirror object/bone configured"
-
-
-msgid "Unsupported mode: %r"
-msgstr "Unsupported mode: %r"
-
-
 msgid "OSL support disabled in this build"
 msgstr "OSL support disabled in this build"
 
@@ -115704,6 +115556,46 @@ msgid "(Viewer)"
 msgstr "(Viewer)"
 
 
+msgid "No selected keys, pasting over scene range"
+msgstr "No selected keys, pasting over scene range"
+
+
+msgid "No 'Relative To' object found, set one explicitly or make sure there is an active object"
+msgstr "No 'Relative To' object found, set one explicitly or make sure there is an active object"
+
+
+msgid "Select an object or pose bone"
+msgstr "Select an object or pose bone"
+
+
+msgid "This mode requires auto-keying to work properly"
+msgstr "This mode requires auto-keying to work properly"
+
+
+msgid "No selected frames found"
+msgstr "No selected frames found"
+
+
+msgid "No selected keys, pasting over preview range"
+msgstr "No selected keys, pasting over preview range"
+
+
+msgid "Switch to Pose or Object mode"
+msgstr "Switch to Pose or Object mode"
+
+
+msgid "The Scene needs a camera"
+msgstr "The Scene needs a camera"
+
+
+msgid "Unable to mirror, no mirror object/bone configured"
+msgstr "Unable to mirror, no mirror object/bone configured"
+
+
+msgid "Unsupported mode: %r"
+msgstr "Unsupported mode: %r"
+
+
 msgid "Some strings were fixed, don't forget to save the .blend file to keep those changes"
 msgstr "Some strings were fixed, don't forget to save the .blend file to keep those changes"
 
@@ -116217,10 +116109,6 @@ msgid "File '{:s}' not found"
 msgstr "File '{:s}' not found"
 
 
-msgid "No reference available {!r}, Update info in 'rna_manual_reference.py' or callback to bpy.utils.manual_map()"
-msgstr "No reference available {!r}, Update info in 'rna_manual_reference.py' or callback to bpy.utils.manual_map()"
-
-
 msgid "Direct execution not supported"
 msgstr "Direct execution not supported"
 
@@ -116572,6 +116460,14 @@ msgstr "Available"
 msgctxt "Operator"
 msgid "Rotation"
 msgstr "Rotation"
+
+
+msgid "For Each Element"
+msgstr "For Each Element"
+
+
+msgid "Determinant"
+msgstr "Determinant"
 
 
 msgid "Calculation Range"
@@ -118311,10 +118207,6 @@ msgstr "Velocity Linear"
 
 msgid "This object is part of a compound shape"
 msgstr "This object is part of a compound shape"
-
-
-msgid "Second"
-msgstr "Second"
 
 
 msgid "X Stiffness"
@@ -120926,11 +120818,6 @@ msgstr "Operator Search..."
 msgctxt "Operator"
 msgid "Release Notes"
 msgstr "Release Notes"
-
-
-msgctxt "Operator"
-msgid "Tutorials"
-msgstr "Tutorials"
 
 
 msgid "Sequence Strip Name"
@@ -123546,6 +123433,42 @@ msgstr "Light Angle: %.3f"
 
 msgid "Distance Min"
 msgstr "Distance Min"
+
+
+msgctxt "Operator"
+msgid "Mirrored"
+msgstr "Mirrored"
+
+
+msgctxt "Camera"
+msgid "Fix"
+msgstr "Fix"
+
+
+msgid "These require auto-key:"
+msgstr "These require auto-key:"
+
+
+msgctxt "Operator"
+msgid "Paste to Selected Keys"
+msgstr "Paste to Selected Keys"
+
+
+msgctxt "Operator"
+msgid "Paste and Bake"
+msgstr "Paste and Bake"
+
+
+msgid "Keying set is active, which may"
+msgstr "Keying set is active, which may"
+
+
+msgid "reduce the effect of the above options"
+msgstr "reduce the effect of the above options"
+
+
+msgid "Using Active Scene Camera"
+msgstr "Using Active Scene Camera"
 
 
 msgctxt "Operator"
@@ -129929,6 +129852,10 @@ msgid "No point cloud data to join"
 msgstr "No point cloud data to join"
 
 
+msgid "Render active scene"
+msgstr "Render active scene"
+
+
 msgid "3D Local View "
 msgstr "3D Local View "
 
@@ -129947,10 +129874,6 @@ msgstr "Time:"
 
 msgid "Cannot write a single file with an animation format selected"
 msgstr "Cannot write a single file with an animation format selected"
-
-
-msgid "Render the viewport for the animation range of this scene, but only render keyframes of selected objects"
-msgstr "Render the viewport for the animation range of this scene, but only render keyframes of selected objects"
 
 
 msgid "Render the viewport for the animation range of this scene"
@@ -132007,6 +131930,10 @@ msgid " Named Attributes"
 msgstr " Named Attributes"
 
 
+msgid "Render size too large for GPU, use CPU compositor instead"
+msgstr "Render size too large for GPU, use CPU compositor instead"
+
+
 msgid "Not inside node group"
 msgstr "Not inside node group"
 
@@ -132821,10 +132748,6 @@ msgstr "Class"
 
 msgid "(Geometry)"
 msgstr "(Geometry)"
-
-
-msgid "For Each Element"
-msgstr "For Each Element"
 
 
 msgid ""
@@ -133975,16 +133898,8 @@ msgid "Skipped %d of %d island(s), geometry was too complicated to detect a matc
 msgstr "Skipped %d of %d island(s), geometry was too complicated to detect a match"
 
 
-msgid "Rip is not compatible with sync selection"
-msgstr "Rip is not compatible with sync selection"
-
-
 msgid "Rip failed"
 msgstr "Rip failed"
-
-
-msgid "Cannot split selection when sync selection is enabled"
-msgstr "Cannot split selection when sync selection is enabled"
 
 
 msgid "Pinned vertices can be selected in Vertex Mode only"
@@ -137175,6 +137090,10 @@ msgid "Lower Right"
 msgstr "Lower Right"
 
 
+msgid "Render passes in the Viewport compositor are only supported in EEVEE"
+msgstr "Render passes in the Viewport compositor are only supported in EEVEE"
+
+
 msgid "Pick"
 msgstr "Pick"
 
@@ -137347,16 +137266,16 @@ msgid "ID value"
 msgstr "ID value"
 
 
-msgid "Render passes in the Viewport compositor are only supported in EEVEE"
-msgstr "Render passes in the Viewport compositor are only supported in EEVEE"
-
-
 msgid "Garbage Matte"
 msgstr "Garbage Matte"
 
 
 msgid "Core Matte"
 msgstr "Core Matte"
+
+
+msgid "Anisotropic"
+msgstr "Anisotropic"
 
 
 msgid "Uniformity"
@@ -137569,10 +137488,6 @@ msgstr "True if the input matrix is invertible"
 
 msgid "The string to find in the input string"
 msgstr "The string to find in the input string"
-
-
-msgid "Determinant"
-msgstr "Determinant"
 
 
 msgid "The string to replace each match with"
@@ -140037,10 +139952,6 @@ msgid "Subsurface Anisotropy"
 msgstr "Subsurface Anisotropy"
 
 
-msgid "Anisotropic"
-msgstr "Anisotropic"
-
-
 msgid "Anisotropic Rotation"
 msgstr "Anisotropic Rotation"
 
@@ -140870,10 +140781,6 @@ msgstr "Image too small"
 
 msgid "Cannot render, no camera"
 msgstr "Cannot render, no camera"
-
-
-msgid "Render size too large for GPU, use CPU compositor instead"
-msgstr "Render size too large for GPU, use CPU compositor instead"
 
 
 msgid "No border area selected"
@@ -142114,14 +142021,6 @@ msgid "Extension repository support for remote repositories"
 msgstr "Extension repository support for remote repositories"
 
 
-msgid "Copy Global Transform"
-msgstr "Copy Global Transform"
-
-
-msgid "Copy and paste object and bone transforms with ease"
-msgstr "Copy and paste object and bone transforms with ease"
-
-
 msgid "Cycles Render Engine"
 msgstr "Cycles Render Engine"
 
@@ -142485,40 +142384,20 @@ msgid "Attaches hair curves to a surface mesh"
 msgstr "Attaches hair curves to a surface mesh"
 
 
-msgid "Surface UV Coordinate"
-msgstr "Surface UV Coordinate"
+msgid "Align to Surface Normal"
+msgstr "Align to Surface Normal"
 
 
-msgid "Surface UV coordinates at the attachment point"
-msgstr "Surface UV coordinates at the attachment point"
+msgid "Align the curve to the surface normal (needs a guide as reference)"
+msgstr "Align the curve to the surface normal (needs a guide as reference)"
 
 
-msgid "Surface Normal"
-msgstr "Surface Normal"
+msgid "Blend along Curve"
+msgstr "Blend along Curve"
 
 
-msgid "Surface normal at the attachment point"
-msgstr "Surface normal at the attachment point"
-
-
-msgid "Surface geometry to attach hair curves to"
-msgstr "Surface geometry to attach hair curves to"
-
-
-msgid "Surface Object to attach to (needs to have matching transforms)"
-msgstr "Surface Object to attach to (needs to have matching transforms)"
-
-
-msgid "Surface UV map used for attachment"
-msgstr "Surface UV map used for attachment"
-
-
-msgid "Surface Rest Position"
-msgstr "Surface Rest Position"
-
-
-msgid "Set the surface mesh into its rest position before attachment"
-msgstr "Set the surface mesh into its rest position before attachment"
+msgid "Blend deformation along each curve from the root"
+msgstr "Blend deformation along each curve from the root"
 
 
 msgid "Sample Attachment UV"
@@ -142537,20 +142416,40 @@ msgid "Snap the root of each curve to the closest surface point"
 msgstr "Snap the root of each curve to the closest surface point"
 
 
-msgid "Align to Surface Normal"
-msgstr "Align to Surface Normal"
+msgid "Surface Object to attach to (needs to have matching transforms)"
+msgstr "Surface Object to attach to (needs to have matching transforms)"
 
 
-msgid "Align the curve to the surface normal (needs a guide as reference)"
-msgstr "Align the curve to the surface normal (needs a guide as reference)"
+msgid "Surface geometry to attach hair curves to"
+msgstr "Surface geometry to attach hair curves to"
 
 
-msgid "Blend along Curve"
-msgstr "Blend along Curve"
+msgid "Surface Normal"
+msgstr "Surface Normal"
 
 
-msgid "Blend deformation along each curve from the root"
-msgstr "Blend deformation along each curve from the root"
+msgid "Surface normal at the attachment point"
+msgstr "Surface normal at the attachment point"
+
+
+msgid "Surface Rest Position"
+msgstr "Surface Rest Position"
+
+
+msgid "Set the surface mesh into its rest position before attachment"
+msgstr "Set the surface mesh into its rest position before attachment"
+
+
+msgid "Surface UV Coordinate"
+msgstr "Surface UV Coordinate"
+
+
+msgid "Surface UV coordinates at the attachment point"
+msgstr "Surface UV coordinates at the attachment point"
+
+
+msgid "Surface UV map used for attachment"
+msgstr "Surface UV map used for attachment"
 
 
 msgid "Blend Hair Curves"
@@ -142561,8 +142460,12 @@ msgid "Blends shape between multiple hair curves in a certain radius"
 msgstr "Blends shape between multiple hair curves in a certain radius"
 
 
-msgid "Factor to blend overall effect"
-msgstr "Factor to blend overall effect"
+msgid "Blend Neighbors"
+msgstr "Blend Neighbors"
+
+
+msgid "Amount of neighbors used for blending"
+msgstr "Amount of neighbors used for blending"
 
 
 msgid "Blend Radius"
@@ -142573,12 +142476,8 @@ msgid "Radius to select neighbors for blending"
 msgstr "Radius to select neighbors for blending"
 
 
-msgid "Blend Neighbors"
-msgstr "Blend Neighbors"
-
-
-msgid "Amount of neighbors used for blending"
-msgstr "Amount of neighbors used for blending"
+msgid "Factor to blend overall effect"
+msgstr "Factor to blend overall effect"
 
 
 msgid "Preserve Length"
@@ -142597,48 +142496,12 @@ msgid "Deforms existing hair curves into braids using guide curves"
 msgstr "Deforms existing hair curves into braids using guide curves"
 
 
-msgid "Guide Index"
-msgstr "Guide Index"
+msgid "Braid Start"
+msgstr "Braid Start"
 
 
-msgid "Guide index map that was used for the operation"
-msgstr "Guide index map that was used for the operation"
-
-
-msgid "Flare Parameter"
-msgstr "Flare Parameter"
-
-
-msgid "Parameter from 0 to 1 along the flare"
-msgstr "Parameter from 0 to 1 along the flare"
-
-
-msgid "Strand Index"
-msgstr "Strand Index"
-
-
-msgid "Index of the strand within a braid that each curve belongs to"
-msgstr "Index of the strand within a braid that each curve belongs to"
-
-
-msgid "Guide index map to be used. This input has priority"
-msgstr "Guide index map to be used. This input has priority"
-
-
-msgid "Guide Distance"
-msgstr "Guide Distance"
-
-
-msgid "Minimum distance between two guides for new guide map"
-msgstr "Minimum distance between two guides for new guide map"
-
-
-msgid "Guide Mask"
-msgstr "Guide Mask"
-
-
-msgid "Mask for which curves are eligible to be selected as guides"
-msgstr "Mask for which curves are eligible to be selected as guides"
+msgid "Percentage along each curve to blend deformation from the root"
+msgstr "Percentage along each curve to blend deformation from the root"
 
 
 msgid "Existing Guide Map"
@@ -142649,34 +142512,6 @@ msgid "Use the existing guide map attribute if available"
 msgstr "Use the existing guide map attribute if available"
 
 
-msgid "Subdivision level applied before deformation"
-msgstr "Subdivision level applied before deformation"
-
-
-msgid "Braid Start"
-msgstr "Braid Start"
-
-
-msgid "Percentage along each curve to blend deformation from the root"
-msgstr "Percentage along each curve to blend deformation from the root"
-
-
-msgid "Overall radius of the braids"
-msgstr "Overall radius of the braids"
-
-
-msgid "Shape of the braid radius along each curve"
-msgstr "Shape of the braid radius along each curve"
-
-
-msgid "Factor Min"
-msgstr "Factor Min"
-
-
-msgid "Factor of the minimum radius of the braids"
-msgstr "Factor of the minimum radius of the braids"
-
-
 msgid "Factor Max"
 msgstr "Factor Max"
 
@@ -142685,28 +142520,12 @@ msgid "Factor of the maximum radius of the braids"
 msgstr "Factor of the maximum radius of the braids"
 
 
-msgid "Frequency factor of the braids"
-msgstr "Frequency factor of the braids"
+msgid "Factor Min"
+msgstr "Factor Min"
 
 
-msgid "Thickness of each strand of hair"
-msgstr "Thickness of each strand of hair"
-
-
-msgid "Thickness Shape"
-msgstr "Thickness Shape"
-
-
-msgid "Shape adjustment of the strand thickness for the braids"
-msgstr "Shape adjustment of the strand thickness for the braids"
-
-
-msgid "Shape Asymmetry"
-msgstr "Shape Asymmetry"
-
-
-msgid "Asymmetry of the shape adjustment of the strand thickness"
-msgstr "Asymmetry of the shape adjustment of the strand thickness"
+msgid "Factor of the minimum radius of the braids"
+msgstr "Factor of the minimum radius of the braids"
 
 
 msgid "Flare Length"
@@ -142723,6 +142542,46 @@ msgstr "Flare Opening"
 
 msgid "Opening radius of the flare at the tip of the braid"
 msgstr "Opening radius of the flare at the tip of the braid"
+
+
+msgid "Flare Parameter"
+msgstr "Flare Parameter"
+
+
+msgid "Parameter from 0 to 1 along the flare"
+msgstr "Parameter from 0 to 1 along the flare"
+
+
+msgid "Frequency factor of the braids"
+msgstr "Frequency factor of the braids"
+
+
+msgid "Guide Distance"
+msgstr "Guide Distance"
+
+
+msgid "Minimum distance between two guides for new guide map"
+msgstr "Minimum distance between two guides for new guide map"
+
+
+msgid "Guide Index"
+msgstr "Guide Index"
+
+
+msgid "Guide index map that was used for the operation"
+msgstr "Guide index map that was used for the operation"
+
+
+msgid "Guide index map to be used. This input has priority"
+msgstr "Guide index map to be used. This input has priority"
+
+
+msgid "Guide Mask"
+msgstr "Guide Mask"
+
+
+msgid "Mask for which curves are eligible to be selected as guides"
+msgstr "Mask for which curves are eligible to be selected as guides"
 
 
 msgid "Hair Tie"
@@ -142745,24 +142604,52 @@ msgid "Scale of the hair tie instance"
 msgstr "Scale of the hair tie instance"
 
 
+msgid "Overall radius of the braids"
+msgstr "Overall radius of the braids"
+
+
+msgid "Shape of the braid radius along each curve"
+msgstr "Shape of the braid radius along each curve"
+
+
+msgid "Shape Asymmetry"
+msgstr "Shape Asymmetry"
+
+
+msgid "Asymmetry of the shape adjustment of the strand thickness"
+msgstr "Asymmetry of the shape adjustment of the strand thickness"
+
+
+msgid "Strand Index"
+msgstr "Strand Index"
+
+
+msgid "Index of the strand within a braid that each curve belongs to"
+msgstr "Index of the strand within a braid that each curve belongs to"
+
+
+msgid "Subdivision level applied before deformation"
+msgstr "Subdivision level applied before deformation"
+
+
+msgid "Thickness of each strand of hair"
+msgstr "Thickness of each strand of hair"
+
+
+msgid "Thickness Shape"
+msgstr "Thickness Shape"
+
+
+msgid "Shape adjustment of the strand thickness for the braids"
+msgstr "Shape adjustment of the strand thickness for the braids"
+
+
 msgid "Clump Hair Curves"
 msgstr "Clump Hair Curves"
 
 
 msgid "Clumps together existing hair curves using guide curves"
 msgstr "Clumps together existing hair curves using guide curves"
-
-
-msgid "Shape of the influence along curves (0=constant, 0.5=linear)"
-msgstr "Shape of the influence along curves (0=constant, 0.5=linear)"
-
-
-msgid "Tip Spread"
-msgstr "Tip Spread"
-
-
-msgid "Distance of random spread at the curve tips"
-msgstr "Distance of random spread at the curve tips"
 
 
 msgid "Clump Offset"
@@ -142793,6 +142680,18 @@ msgid "Random seed for the operation"
 msgstr "Random seed for the operation"
 
 
+msgid "Shape of the influence along curves (0=constant, 0.5=linear)"
+msgstr "Shape of the influence along curves (0=constant, 0.5=linear)"
+
+
+msgid "Tip Spread"
+msgstr "Tip Spread"
+
+
+msgid "Distance of random spread at the curve tips"
+msgstr "Distance of random spread at the curve tips"
+
+
 msgid "Create Guide Index Map"
 msgstr "Create Guide Index Map"
 
@@ -142801,20 +142700,20 @@ msgid "Creates an attribute that maps each curve to its nearest guide via index"
 msgstr "Creates an attribute that maps each curve to its nearest guide via index"
 
 
-msgid "Guide Selection"
-msgstr "Guide Selection"
-
-
-msgid "Guide curves or points used for the selection of guide curves"
-msgstr "Guide curves or points used for the selection of guide curves"
+msgid "ID to group curves together for guide map creation"
+msgstr "ID to group curves together for guide map creation"
 
 
 msgid "Minimum distance between two guides"
 msgstr "Minimum distance between two guides"
 
 
-msgid "ID to group curves together for guide map creation"
-msgstr "ID to group curves together for guide map creation"
+msgid "Guide Selection"
+msgstr "Guide Selection"
+
+
+msgid "Guide curves or points used for the selection of guide curves"
+msgstr "Guide curves or points used for the selection of guide curves"
 
 
 msgid "Curl Hair Curves"
@@ -142829,14 +142728,6 @@ msgid "Curl Start"
 msgstr "Curl Start"
 
 
-msgid "Overall radius of the curls"
-msgstr "Overall radius of the curls"
-
-
-msgid "Factor for the radius at the curl start"
-msgstr "Factor for the radius at the curl start"
-
-
 msgid "Factor End"
 msgstr "Factor End"
 
@@ -142845,8 +142736,16 @@ msgid "Factor for the radius at the curl end"
 msgstr "Factor for the radius at the curl end"
 
 
+msgid "Factor for the radius at the curl start"
+msgstr "Factor for the radius at the curl start"
+
+
 msgid "Frequency factor of the curls"
 msgstr "Frequency factor of the curls"
+
+
+msgid "Overall radius of the curls"
+msgstr "Overall radius of the curls"
 
 
 msgid "Amount of random offset per curve"
@@ -142865,10 +142764,6 @@ msgid "Reads information about each curve"
 msgstr "Reads information about each curve"
 
 
-msgid "Index of each Curve"
-msgstr "Index of each Curve"
-
-
 msgid "Curve ID"
 msgstr "Curve ID"
 
@@ -142877,12 +142772,16 @@ msgid "ID of each curve"
 msgstr "ID of each curve"
 
 
-msgid "Length of each curve"
-msgstr "Length of each curve"
+msgid "Index of each Curve"
+msgstr "Index of each Curve"
 
 
 msgid "Direction from root to tip of each curve"
 msgstr "Direction from root to tip of each curve"
+
+
+msgid "Length of each curve"
+msgstr "Length of each curve"
 
 
 msgid "Random vector for each curve"
@@ -142905,22 +142804,6 @@ msgid "Reads information about each curve's root point"
 msgstr "Reads information about each curve's root point"
 
 
-msgid "Root Selection"
-msgstr "Root Selection"
-
-
-msgid "Boolean selection of curve root points"
-msgstr "Boolean selection of curve root points"
-
-
-msgid "Root Position"
-msgstr "Root Position"
-
-
-msgid "Position of the root point of a curve"
-msgstr "Position of the root point of a curve"
-
-
 msgid "Root Direction"
 msgstr "Root Direction"
 
@@ -142937,28 +142820,28 @@ msgid "Index of the root point of a curve"
 msgstr "Index of the root point of a curve"
 
 
+msgid "Root Position"
+msgstr "Root Position"
+
+
+msgid "Position of the root point of a curve"
+msgstr "Position of the root point of a curve"
+
+
+msgid "Root Selection"
+msgstr "Root Selection"
+
+
+msgid "Boolean selection of curve root points"
+msgstr "Boolean selection of curve root points"
+
+
 msgid "Curve Segment"
 msgstr "Curve Segment"
 
 
 msgid "Reads information each point's previous curve segment"
 msgstr "Reads information each point's previous curve segment"
-
-
-msgid "Segment Length"
-msgstr "Segment Length"
-
-
-msgid "Distance to previous point on curve"
-msgstr "Distance to previous point on curve"
-
-
-msgid "Segment Direction"
-msgstr "Segment Direction"
-
-
-msgid "Direction from previous neighboring point on segment"
-msgstr "Direction from previous neighboring point on segment"
 
 
 msgid "Neighbor Index"
@@ -142969,28 +142852,28 @@ msgid "Index of previous neighboring point on segment"
 msgstr "Index of previous neighboring point on segment"
 
 
+msgid "Segment Direction"
+msgstr "Segment Direction"
+
+
+msgid "Direction from previous neighboring point on segment"
+msgstr "Direction from previous neighboring point on segment"
+
+
+msgid "Segment Length"
+msgstr "Segment Length"
+
+
+msgid "Distance to previous point on curve"
+msgstr "Distance to previous point on curve"
+
+
 msgid "Curve Tip"
 msgstr "Curve Tip"
 
 
 msgid "Reads information about each curve's tip point"
 msgstr "Reads information about each curve's tip point"
-
-
-msgid "Tip Selection"
-msgstr "Tip Selection"
-
-
-msgid "Boolean selection of curve tip points"
-msgstr "Boolean selection of curve tip points"
-
-
-msgid "Tip Position"
-msgstr "Tip Position"
-
-
-msgid "Position of the tip point of a curve"
-msgstr "Position of the tip point of a curve"
 
 
 msgid "Tip Direction"
@@ -143009,20 +142892,28 @@ msgid "Index of the tip point of a curve"
 msgstr "Index of the tip point of a curve"
 
 
+msgid "Tip Position"
+msgstr "Tip Position"
+
+
+msgid "Position of the tip point of a curve"
+msgstr "Position of the tip point of a curve"
+
+
+msgid "Tip Selection"
+msgstr "Tip Selection"
+
+
+msgid "Boolean selection of curve tip points"
+msgstr "Boolean selection of curve tip points"
+
+
 msgid "Displace Hair Curves"
 msgstr "Displace Hair Curves"
 
 
 msgid "Displaces hair curves by a vector based on various options"
 msgstr "Displaces hair curves by a vector based on various options"
-
-
-msgid "Factor to scale overall displacement"
-msgstr "Factor to scale overall displacement"
-
-
-msgid "Object used to define the displacement space"
-msgstr "Object used to define the displacement space"
 
 
 msgid "Displace Vector"
@@ -143033,6 +142924,14 @@ msgid "Vector for displacement"
 msgstr "Vector for displacement"
 
 
+msgid "Factor to scale overall displacement"
+msgstr "Factor to scale overall displacement"
+
+
+msgid "Object used to define the displacement space"
+msgstr "Object used to define the displacement space"
+
+
 msgid "Surface geometry used to sample the normal for displacement"
 msgstr "Surface geometry used to sample the normal for displacement"
 
@@ -143041,16 +142940,12 @@ msgid "Surface object used to sample the normal for displacement"
 msgstr "Surface object used to sample the normal for displacement"
 
 
-msgid "Surface UV map used to sample the normal for displacement"
-msgstr "Surface UV map used to sample the normal for displacement"
-
-
-msgid "Surface Normal Displacement"
-msgstr "Surface Normal Displacement"
-
-
 msgid "Amount of displacemement along the surface normal"
 msgstr "Amount of displacemement along the surface normal"
+
+
+msgid "Surface UV map used to sample the normal for displacement"
+msgstr "Surface UV map used to sample the normal for displacement"
 
 
 msgid "Duplicate Hair Curves"
@@ -143065,18 +142960,6 @@ msgid "Amount of duplicates per curve"
 msgstr "Amount of duplicates per curve"
 
 
-msgid "Viewport Amount"
-msgstr "Viewport Amount"
-
-
-msgid "Percentage of amount used for the viewport"
-msgstr "Percentage of amount used for the viewport"
-
-
-msgid "Radius in which the duplicate curves are offset from the guides"
-msgstr "Radius in which the duplicate curves are offset from the guides"
-
-
 msgid "Distribution Shape"
 msgstr "Distribution Shape"
 
@@ -143085,20 +142968,28 @@ msgid "Shape of distribution from center to the edge around the guide"
 msgstr "Shape of distribution from center to the edge around the guide"
 
 
-msgid "Offset of the curves to round the tip"
-msgstr "Offset of the curves to round the tip"
-
-
 msgid "Keep an even thickness of the distribution of duplicates"
 msgstr "Keep an even thickness of the distribution of duplicates"
 
 
+msgid "Radius in which the duplicate curves are offset from the guides"
+msgstr "Radius in which the duplicate curves are offset from the guides"
+
+
+msgid "Offset of the curves to round the tip"
+msgstr "Offset of the curves to round the tip"
+
+
+msgid "Viewport Amount"
+msgstr "Viewport Amount"
+
+
+msgid "Percentage of amount used for the viewport"
+msgstr "Percentage of amount used for the viewport"
+
+
 msgid "Deforms hair curves using a random vector per point to frizz them"
 msgstr "Deforms hair curves using a random vector per point to frizz them"
-
-
-msgid "Vector by which each point was offset during deformation"
-msgstr "Vector by which each point was offset during deformation"
 
 
 msgid "Cumulative Offset"
@@ -143113,6 +143004,10 @@ msgid "Overall distance factor for the deformation"
 msgstr "Overall distance factor for the deformation"
 
 
+msgid "Vector by which each point was offset during deformation"
+msgstr "Vector by which each point was offset during deformation"
+
+
 msgid "Generate Hair Curves"
 msgstr "Generate Hair Curves"
 
@@ -143121,40 +143016,8 @@ msgid "Generates new hair curves on a surface mesh"
 msgstr "Generates new hair curves on a surface mesh"
 
 
-msgid "Normal direction of the surface mesh at the attachment point"
-msgstr "Normal direction of the surface mesh at the attachment point"
-
-
-msgid "Surface geometry for generation"
-msgstr "Surface geometry for generation"
-
-
-msgid "Surface object for generation (needs matching transforms)"
-msgstr "Surface object for generation (needs matching transforms)"
-
-
-msgid "Length of the generated hair curves"
-msgstr "Length of the generated hair curves"
-
-
-msgid "Hair Material"
-msgstr "Hair Material"
-
-
-msgid "Material of the generated hair curves"
-msgstr "Material of the generated hair curves"
-
-
 msgid "Amount of control points of the generated hair curves"
 msgstr "Amount of control points of the generated hair curves"
-
-
-msgid "Poisson Disk Distribution"
-msgstr "Poisson Disk Distribution"
-
-
-msgid "Use Poisson disk distribution method to keep a minimum distance"
-msgstr "Use Poisson disk distribution method to keep a minimum distance"
 
 
 msgid "Surface density of generated hair curves"
@@ -143169,8 +143032,36 @@ msgid "Factor applied on the density for curve distribution"
 msgstr "Factor applied on the density for curve distribution"
 
 
+msgid "Use Poisson disk distribution method to keep a minimum distance"
+msgstr "Use Poisson disk distribution method to keep a minimum distance"
+
+
+msgid "Length of the generated hair curves"
+msgstr "Length of the generated hair curves"
+
+
+msgid "Hair Material"
+msgstr "Hair Material"
+
+
+msgid "Material of the generated hair curves"
+msgstr "Material of the generated hair curves"
+
+
 msgid "Discard points based on a mask texture after distribution"
 msgstr "Discard points based on a mask texture after distribution"
+
+
+msgid "Surface geometry for generation"
+msgstr "Surface geometry for generation"
+
+
+msgid "Surface object for generation (needs matching transforms)"
+msgstr "Surface object for generation (needs matching transforms)"
+
+
+msgid "Normal direction of the surface mesh at the attachment point"
+msgstr "Normal direction of the surface mesh at the attachment point"
 
 
 msgid "Factor applied on the density for the viewport"
@@ -143217,8 +143108,16 @@ msgid "Overall factor for the deformation"
 msgstr "Overall factor for the deformation"
 
 
-msgid "Shape of amount along each curve (0=constant, 0.5=linear)"
-msgstr "Shape of amount along each curve (0=constant, 0.5=linear)"
+msgid "Offset per Curve"
+msgstr "Offset per Curve"
+
+
+msgid "Random offset of noise texture for each curve"
+msgstr "Random offset of noise texture for each curve"
+
+
+msgid "Preserve the length of the curves on a segment basis"
+msgstr "Preserve the length of the curves on a segment basis"
 
 
 msgid "Scale of the noise texture by root position"
@@ -143233,28 +143132,24 @@ msgid "Scale of noise texture along each curve"
 msgstr "Scale of noise texture along each curve"
 
 
-msgid "Offset per Curve"
-msgstr "Offset per Curve"
-
-
-msgid "Random offset of noise texture for each curve"
-msgstr "Random offset of noise texture for each curve"
-
-
 msgid "Seed value for randomization"
 msgstr "Seed value for randomization"
 
 
-msgid "Preserve the length of the curves on a segment basis"
-msgstr "Preserve the length of the curves on a segment basis"
+msgid "Shape of amount along each curve (0=constant, 0.5=linear)"
+msgstr "Shape of amount along each curve (0=constant, 0.5=linear)"
 
 
 msgid "Interpolates existing guide curves on a surface mesh"
 msgstr "Interpolates existing guide curves on a surface mesh"
 
 
-msgid "Index of the main guide curve per curve"
-msgstr "Index of the main guide curve per curve"
+msgid "Distance to Guides"
+msgstr "Distance to Guides"
+
+
+msgid "Distance around each guide to spawn interpolated curves"
+msgstr "Distance around each guide to spawn interpolated curves"
 
 
 msgid "Follow Surface Normal"
@@ -143265,12 +143160,8 @@ msgid "Align the interpolated curves to the surface normal"
 msgstr "Align the interpolated curves to the surface normal"
 
 
-msgid "Part by Mesh Islands"
-msgstr "Part by Mesh Islands"
-
-
-msgid "Use mesh islands of the surface geometry for parting"
-msgstr "Use mesh islands of the surface geometry for parting"
+msgid "Index of the main guide curve per curve"
+msgstr "Index of the main guide curve per curve"
 
 
 msgid "Interpolation Guides"
@@ -143281,12 +143172,12 @@ msgid "Amount of guides to be used for interpolation per curve"
 msgstr "Amount of guides to be used for interpolation per curve"
 
 
-msgid "Distance to Guides"
-msgstr "Distance to Guides"
+msgid "Part by Mesh Islands"
+msgstr "Part by Mesh Islands"
 
 
-msgid "Distance around each guide to spawn interpolated curves"
-msgstr "Distance around each guide to spawn interpolated curves"
+msgid "Use mesh islands of the surface geometry for parting"
+msgstr "Use mesh islands of the surface geometry for parting"
 
 
 msgid "Redistribute Curve Points"
@@ -143313,8 +143204,12 @@ msgid "Restores the length of each curve segment using a previous state after de
 msgstr "Restores the length of each curve segment using a previous state after deformation"
 
 
-msgid "Only affect selected elements"
-msgstr "Only affect selected elements"
+msgid "Pin at Parameter"
+msgstr "Pin at Parameter"
+
+
+msgid "Pin each curve at a certain point for the operation"
+msgstr "Pin each curve at a certain point for the operation"
 
 
 msgid "Reference Position"
@@ -143325,12 +143220,8 @@ msgid "Reference position before deformation"
 msgstr "Reference position before deformation"
 
 
-msgid "Pin at Parameter"
-msgstr "Pin at Parameter"
-
-
-msgid "Pin each curve at a certain point for the operation"
-msgstr "Pin each curve at a certain point for the operation"
+msgid "Only affect selected elements"
+msgstr "Only affect selected elements"
 
 
 msgid "Roll Hair Curves"
@@ -143341,12 +143232,32 @@ msgid "Rolls up hair curves starting from their tips"
 msgstr "Rolls up hair curves starting from their tips"
 
 
-msgid "Variation Level"
-msgstr "Variation Level"
+msgid "Amount of randomization of the direction of the roll"
+msgstr "Amount of randomization of the direction of the roll"
 
 
-msgid "Level of smoothing on the roll path to include shape variation"
-msgstr "Level of smoothing on the roll path to include shape variation"
+msgid "Retain Overall Shape"
+msgstr "Retain Overall Shape"
+
+
+msgid "Offset the roll along the original curve to retain shape"
+msgstr "Offset the roll along the original curve to retain shape"
+
+
+msgid "Roll Depth"
+msgstr "Roll Depth"
+
+
+msgid "Depth offset of the roll"
+msgstr "Depth offset of the roll"
+
+
+msgid "Roll Direction"
+msgstr "Roll Direction"
+
+
+msgid "Axis around which each curve is rolled"
+msgstr "Axis around which each curve is rolled"
 
 
 msgid "Roll Length"
@@ -143365,14 +143276,6 @@ msgid "Radius of the rolls"
 msgstr "Radius of the rolls"
 
 
-msgid "Roll Depth"
-msgstr "Roll Depth"
-
-
-msgid "Depth offset of the roll"
-msgstr "Depth offset of the roll"
-
-
 msgid "Roll Taper"
 msgstr "Roll Taper"
 
@@ -143381,24 +143284,12 @@ msgid "Taper of the roll"
 msgstr "Taper of the roll"
 
 
-msgid "Retain Overall Shape"
-msgstr "Retain Overall Shape"
+msgid "Variation Level"
+msgstr "Variation Level"
 
 
-msgid "Offset the roll along the original curve to retain shape"
-msgstr "Offset the roll along the original curve to retain shape"
-
-
-msgid "Roll Direction"
-msgstr "Roll Direction"
-
-
-msgid "Axis around which each curve is rolled"
-msgstr "Axis around which each curve is rolled"
-
-
-msgid "Amount of randomization of the direction of the roll"
-msgstr "Amount of randomization of the direction of the roll"
+msgid "Level of smoothing on the roll path to include shape variation"
+msgstr "Level of smoothing on the roll path to include shape variation"
 
 
 msgid "Rotate Hair Curves"
@@ -143409,16 +143300,12 @@ msgid "Rotates each hair curve around an axis"
 msgstr "Rotates each hair curve around an axis"
 
 
-msgid "Factor to influence the rotation angle"
-msgstr "Factor to influence the rotation angle"
-
-
 msgid "Rotation axis (default: tangent at root)"
 msgstr "Rotation axis (default: tangent at root)"
 
 
-msgid "Random offset to the rotation angle per curve"
-msgstr "Random offset to the rotation angle per curve"
+msgid "Factor to influence the rotation angle"
+msgstr "Factor to influence the rotation angle"
 
 
 msgid "Lock Ends"
@@ -143429,8 +143316,24 @@ msgid "Lock rotation to the axis between the curve ends"
 msgstr "Lock rotation to the axis between the curve ends"
 
 
+msgid "Random offset to the rotation angle per curve"
+msgstr "Random offset to the rotation angle per curve"
+
+
 msgid "Sets the radius attribute of hair curves according to a profile shape"
 msgstr "Sets the radius attribute of hair curves according to a profile shape"
+
+
+msgid "Factor of the radius at the maximum"
+msgstr "Factor of the radius at the maximum"
+
+
+msgid "Factor of the radius at the minimum"
+msgstr "Factor of the radius at the minimum"
+
+
+msgid "Base radius to be set if 'Replace Radius' is enabled"
+msgstr "Base radius to be set if 'Replace Radius' is enabled"
 
 
 msgid "Replace Radius"
@@ -143441,20 +143344,8 @@ msgid "Replace the original radius"
 msgstr "Replace the original radius"
 
 
-msgid "Base radius to be set if 'Replace Radius' is enabled"
-msgstr "Base radius to be set if 'Replace Radius' is enabled"
-
-
 msgid "Shape of the radius along the curve"
 msgstr "Shape of the radius along the curve"
-
-
-msgid "Factor of the radius at the minimum"
-msgstr "Factor of the radius at the minimum"
-
-
-msgid "Factor of the radius at the maximum"
-msgstr "Factor of the radius at the maximum"
 
 
 msgid "Shrinkwrap Hair Curves"
@@ -143465,20 +143356,20 @@ msgid "Shrinkwraps hair curves to a mesh surface from below and optionally from 
 msgstr "Shrinkwraps hair curves to a mesh surface from below and optionally from above"
 
 
-msgid "Surface geometry used for shrinkwrap"
-msgstr "Surface geometry used for shrinkwrap"
+msgid "Blend shrinkwrap for points above the surface"
+msgstr "Blend shrinkwrap for points above the surface"
 
 
-msgid "Surface object used for shrinkwrap"
-msgstr "Surface object used for shrinkwrap"
+msgid "Lock Roots"
+msgstr "Lock Roots"
+
+
+msgid "Lock the position of root points"
+msgstr "Lock the position of root points"
 
 
 msgid "Distance from the surface used for shrinkwrap"
 msgstr "Distance from the surface used for shrinkwrap"
-
-
-msgid "Blend shrinkwrap for points above the surface"
-msgstr "Blend shrinkwrap for points above the surface"
 
 
 msgid "Smoothing Steps"
@@ -143489,12 +143380,12 @@ msgid "Amount of steps of smoothing applied after shrinkwrap"
 msgstr "Amount of steps of smoothing applied after shrinkwrap"
 
 
-msgid "Lock Roots"
-msgstr "Lock Roots"
+msgid "Surface geometry used for shrinkwrap"
+msgstr "Surface geometry used for shrinkwrap"
 
 
-msgid "Lock the position of root points"
-msgstr "Lock the position of root points"
+msgid "Surface object used for shrinkwrap"
+msgstr "Surface object used for shrinkwrap"
 
 
 msgid "Smooth Hair Curves"
@@ -143513,16 +143404,16 @@ msgid "Amount of smoothing steps"
 msgstr "Amount of smoothing steps"
 
 
-msgid "Weight used for smoothing"
-msgstr "Weight used for smoothing"
-
-
 msgid "Lock Tips"
 msgstr "Lock Tips"
 
 
 msgid "Lock tip position when smoothing"
 msgstr "Lock tip position when smoothing"
+
+
+msgid "Weight used for smoothing"
+msgstr "Weight used for smoothing"
 
 
 msgid "Straighten Hair Curves"
@@ -143545,12 +143436,20 @@ msgid "Trims or scales hair curves to a certain length"
 msgstr "Trims or scales hair curves to a certain length"
 
 
-msgid "Scale each curve uniformly to reach the target length"
-msgstr "Scale each curve uniformly to reach the target length"
+msgid "Target length for the operation"
+msgstr "Target length for the operation"
 
 
 msgid "Multiply the original length by a factor"
 msgstr "Multiply the original length by a factor"
+
+
+msgid "Mask to blend overall effect"
+msgstr "Mask to blend overall effect"
+
+
+msgid "Trim hair curves randomly up to a certain amount"
+msgstr "Trim hair curves randomly up to a certain amount"
 
 
 msgid "Replace Length"
@@ -143561,14 +143460,6 @@ msgid "Use the length input to fully replace the original length"
 msgstr "Use the length input to fully replace the original length"
 
 
-msgid "Target length for the operation"
-msgstr "Target length for the operation"
-
-
-msgid "Mask to blend overall effect"
-msgstr "Mask to blend overall effect"
-
-
-msgid "Trim hair curves randomly up to a certain amount"
-msgstr "Trim hair curves randomly up to a certain amount"
+msgid "Scale each curve uniformly to reach the target length"
+msgstr "Scale each curve uniformly to reach the target length"
 

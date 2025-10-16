@@ -479,7 +479,9 @@ static bool move_handles_in_curve(const PenToolOperation &ptd,
       offset = snap_8_angles(offset);
     }
 
-    if (ptd.point_added) {
+    /* Set both handles to be `Aligned` if this point is newly added or is
+     * no longer control freely. */
+    if (ptd.point_added || ptd.handle_moved) {
       handle_types_left[point_i] = BEZIER_HANDLE_ALIGN;
       handle_types_right[point_i] = BEZIER_HANDLE_ALIGN;
     }
@@ -813,6 +815,8 @@ static void add_single_point_and_curve(const PenToolOperation &ptd,
   curves.handle_types_left_for_write().last() = ptd.extrude_handle;
   curves.handle_types_right_for_write().last() = ptd.extrude_handle;
   curves.update_curve_types();
+  curves.resolution_for_write().last() = 12;
+  curve_attributes_to_skip.add("resolution");
 
   const int material_index = ptd.vc.obact->actcol - 1;
   if (material_index != -1) {
@@ -1179,6 +1183,8 @@ wmOperatorStatus PenToolOperation::invoke(bContext *C, wmOperator *op, const wmE
   this->move_entire = false;
   this->snap_angle = false;
 
+  this->handle_moved = false;
+
   if (!(ELEM(event->type, LEFTMOUSE) && ELEM(event->val, KM_PRESS, KM_DBL_CLICK))) {
     return OPERATOR_RUNNING_MODAL;
   }
@@ -1221,6 +1227,11 @@ wmOperatorStatus PenToolOperation::modal(bContext *C, wmOperator *op, const wmEv
     }
     else if (event->val == int(PenModal::MoveHandle)) {
       this->move_handle = !this->move_handle;
+
+      /* Record if handle has every been moved. */
+      if (this->move_handle) {
+        this->handle_moved = true;
+      }
     }
   }
 

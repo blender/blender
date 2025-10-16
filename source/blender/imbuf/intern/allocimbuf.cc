@@ -34,30 +34,6 @@
 
 static CLG_LogRef LOG = {"image.buffer"};
 
-#ifndef WIN32
-static SpinLock mmap_spin;
-
-void imb_mmap_lock_init()
-{
-  BLI_spin_init(&mmap_spin);
-}
-
-void imb_mmap_lock_exit()
-{
-  BLI_spin_end(&mmap_spin);
-}
-
-void imb_mmap_lock()
-{
-  BLI_spin_lock(&mmap_spin);
-}
-
-void imb_mmap_unlock()
-{
-  BLI_spin_unlock(&mmap_spin);
-}
-#endif
-
 /* Free the specified buffer storage, freeing memory when needed and restoring the state of the
  * buffer to its defaults. */
 template<class BufferType> static void imb_free_buffer(BufferType &buffer)

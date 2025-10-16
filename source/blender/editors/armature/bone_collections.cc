@@ -752,6 +752,17 @@ static bool armature_bone_select_poll(bContext *C)
     return false;
   }
 
+  const bool is_editmode = armature->edbo != nullptr;
+  if (!is_editmode) {
+    Object *active_object = blender::ed::object::context_active_object(C);
+    if (!active_object || active_object->type != OB_ARMATURE || active_object->data != armature) {
+      /* There has to be an active object in order to hide a pose bone that points to the correct
+       * armature. With pinning, the active object may not be an armature. */
+      CTX_wm_operator_poll_msg_set(C, "The active object does not match the armature");
+      return false;
+    }
+  }
+
   if (armature->runtime.active_collection == nullptr) {
     CTX_wm_operator_poll_msg_set(C, "No active bone collection");
     return false;
@@ -778,9 +789,17 @@ static void bone_collection_select(bContext *C,
     }
   }
   else {
+    Object *active_object = blender::ed::object::context_active_object(C);
+    if (!active_object || active_object->type != OB_ARMATURE || active_object->data != armature) {
+      /* This is covered by the poll function. */
+      BLI_assert_unreachable();
+      return;
+    }
     LISTBASE_FOREACH (BoneCollectionMember *, member, &bcoll->bones) {
       Bone *bone = member->bone;
-      if (!blender::animrig::bone_is_visible(armature, bone)) {
+      bPoseChannel *pose_bone = BKE_pose_channel_find_name(active_object->pose, bone->name);
+      BLI_assert_msg(pose_bone != nullptr, "The pose bones and armature bones are out of sync");
+      if (!blender::animrig::bone_is_visible(armature, pose_bone)) {
         continue;
       }
       if (bone->flag & BONE_UNSELECTABLE) {
@@ -788,12 +807,13 @@ static void bone_collection_select(bContext *C,
       }
 
       if (select) {
-        bone->flag |= BONE_SELECTED;
+        pose_bone->flag |= POSE_SELECTED;
       }
       else {
-        bone->flag &= ~BONE_SELECTED;
+        pose_bone->flag &= ~POSE_SELECTED;
       }
     }
+    DEG_id_tag_update(&active_object->id, ID_RECALC_SELECT);
   }
 
   DEG_id_tag_update(&armature->id, ID_RECALC_SELECT);

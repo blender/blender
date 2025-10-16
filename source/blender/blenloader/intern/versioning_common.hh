@@ -218,6 +218,7 @@ bNode *version_eevee_output_node_get(bNodeTree *ntree, int16_t node_type);
  */
 void version_system_idprops_generate(Main *bmain);
 void version_system_idprops_nodes_generate(Main *bmain);
+void version_system_idprops_children_bones_generate(Main *bmain);
 
 bool all_scenes_use(Main *bmain, const blender::Span<const char *> engines);
 

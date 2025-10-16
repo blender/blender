@@ -217,6 +217,9 @@ class ShapeKeyItem : public ui::AbstractTreeViewItem {
 
     sub->prop(&shapekey_ptr, "mute", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
     sub->prop(&shapekey_ptr, "lock_shape", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
+    if (shape_key_.kb->flag & KEYBLOCK_MUTE) {
+      row.active_set(false);
+    }
   }
 
   std::optional<bool> should_be_active() const override

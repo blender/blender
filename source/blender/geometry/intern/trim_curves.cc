@@ -975,7 +975,7 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
   Vector<bke::AttributeTransferData> transfer_attributes = bke::retrieve_attributes_for_transfer(
       src_attributes,
       dst_attributes,
-      ATTR_DOMAIN_MASK_POINT,
+      {bke::AttrDomain::Point},
       bke::attribute_filter_with_skip_ref(attribute_filter,
                                           {"position",
                                            "handle_left",

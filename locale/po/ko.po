@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 08:44+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 15:30+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -3106,14 +3106,6 @@ msgid "Parent bone (in same Armature)"
 msgstr "부모 본 (동일 아마튜어에서)"
 
 
-msgid "Select Head"
-msgstr "해드를 선택"
-
-
-msgid "Select Tail"
-msgstr "테일을 선택"
-
-
 msgid "Display Wire"
 msgstr "와이어를 표시"
 
@@ -6084,6 +6076,14 @@ msgstr "왜곡취소"
 
 msgid "Parent to undistorted position of 2D track"
 msgstr "2D 트렉의 왜곡되지 않은 위치에 부모"
+
+
+msgid "Attribute Name"
+msgstr "속성 이름"
+
+
+msgid "Domain Type"
+msgstr "도메인 유형"
 
 
 msgid "Kinematic Constraint"
@@ -10826,10 +10826,6 @@ msgstr "res"
 
 msgid "Smoke Grid Resolution"
 msgstr "스모크 격자 해상도"
-
-
-msgid "Domain Type"
-msgstr "도메인 유형"
 
 
 msgid "Change domain type of the simulation"
@@ -18530,10 +18526,6 @@ msgid "Active Movie Clip"
 msgstr "활성 무비 클립"
 
 
-msgid "Mirror Object"
-msgstr "미러 오브젝트"
-
-
 msgid "Distance Model"
 msgstr "거리 모델"
 
@@ -18744,6 +18736,10 @@ msgstr "재생이 너무 느린 경우 프레임을 드롭"
 
 msgid "Sync to audio playback, dropping frames"
 msgstr "오디오 동기화 재생, 드롭핑 프레임"
+
+
+msgid "Second"
+msgstr "초"
 
 
 msgid "Timeline Markers"
@@ -23648,6 +23644,18 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
+msgid "Metaball"
+msgstr "메타볼"
+
+
+msgid "Light"
+msgstr "라이트"
+
+
+msgid "Light Probe"
+msgstr "라이트 프로브"
+
+
 msgid "Add Image"
 msgstr "이미지를 추가"
 
@@ -23656,28 +23664,12 @@ msgid "Relations"
 msgstr "관계"
 
 
-msgid "Sample"
-msgstr "샘플"
-
-
-msgid "Primitives"
-msgstr "프리미티브"
-
-
 msgid "Rigid Body"
 msgstr "리지드 바디"
 
 
-msgid "Import"
-msgstr "가져오기"
-
-
 msgid "Apply"
 msgstr "적용"
-
-
-msgid "Text"
-msgstr "텍스트"
 
 
 msgid "Track"
@@ -23704,20 +23696,16 @@ msgid "Make Single User"
 msgstr "싱글 유저를 만들기"
 
 
-msgid "Math"
-msgstr "수학"
-
-
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Hooks"
 msgstr "후크"
 
 
 msgid "Sculpt Set Pivot"
 msgstr "스컬프트 설정 피벗"
+
+
+msgid "Layout"
+msgstr "레이아웃"
 
 
 msgid "Clear Transform"
@@ -23748,12 +23736,24 @@ msgid "Disable Bone Options"
 msgstr "본 옵션을 사용 중지"
 
 
+msgid "Keying"
+msgstr "키잉"
+
+
 msgid "Mesh Select Mode"
 msgstr "메쉬 선택 모드"
 
 
+msgid "Tracking"
+msgstr "트래킹"
+
+
 msgid "Face Data"
 msgstr "페이스 데이터"
+
+
+msgid "Math"
+msgstr "수학"
 
 
 msgid "Select by Face Strength"
@@ -23776,16 +23776,12 @@ msgid "Kerning"
 msgstr "자간"
 
 
-msgid "Metaball"
-msgstr "메타볼"
+msgid "Text"
+msgstr "텍스트"
 
 
 msgid "Bone Roll"
 msgstr "본 롤"
-
-
-msgid "Layout"
-msgstr "레이아웃"
 
 
 msgid "Pivot Point"
@@ -23804,16 +23800,20 @@ msgid "Mask Edit"
 msgstr "마스크 편집"
 
 
-msgid "Keying"
-msgstr "키잉"
+msgid "Sample"
+msgstr "샘플"
 
 
-msgid "Tracking"
-msgstr "트래킹"
+msgid "Primitives"
+msgstr "프리미티브"
 
 
 msgid "Mirror"
 msgstr "미러"
+
+
+msgid "Import"
+msgstr "가져오기"
 
 
 msgid "UV Mapping"
@@ -23856,6 +23856,10 @@ msgid "Select All by Trait"
 msgstr "형질로 모두 선택"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Select Linked"
 msgstr "연결된 선택"
 
@@ -23864,20 +23868,12 @@ msgid "Select Loops"
 msgstr "루프를 선택"
 
 
-msgid "Assign Material"
-msgstr "매테리얼을 할당"
-
-
-msgid "Light"
-msgstr "라이트"
-
-
-msgid "Light Probe"
-msgstr "라이트 프로브"
-
-
 msgid "Basic"
 msgstr "기본"
+
+
+msgid "Assign Material"
+msgstr "매테리얼을 할당"
 
 
 msgctxt "MovieClip"
@@ -24471,10 +24467,6 @@ msgstr "왜곡"
 
 msgid "UV Pinned"
 msgstr "UV 고정"
-
-
-msgid "UV Select"
-msgstr "UV 선택"
 
 
 msgid "Set the map as active for display and editing"
@@ -27090,6 +27082,10 @@ msgstr "미러링 모디파이어"
 
 msgid "Distance within which mirrored vertices are merged"
 msgstr "미러된 버텍스가 병합되는 거리"
+
+
+msgid "Mirror Object"
+msgstr "미러 오브젝트"
 
 
 msgid "Object to use as mirror"
@@ -30689,10 +30685,6 @@ msgstr "AO를 계산할 때 오브젝트 자체 만 고려"
 
 msgid "Number of rays to trace per shader evaluation"
 msgstr "셰이더 평가 당 트렉하는 광선의 수"
-
-
-msgid "Attribute Name"
-msgstr "속성 이름"
 
 
 msgid "Background"
@@ -47366,14 +47358,6 @@ msgid "Render files from the animation range of this scene"
 msgstr "이 씬의 애니메이션 범위에서 파일을 렌더링"
 
 
-msgid "Render Keyframes Only"
-msgstr "키 프레임 만 렌더"
-
-
-msgid "Render only those frames where selected objects have a key in their animation data. Only used when rendering animation"
-msgstr "선택한 오브젝트의 애니메이션 데이터에 키가 있는 프레임 만 렌더링합니다. 애니메이션 렌더링시에만 사용"
-
-
 msgid "Render using the sequencer's OpenGL display"
 msgstr "시퀀서 OpenGL 표시를 사용하여 렌더"
 
@@ -47393,10 +47377,6 @@ msgstr "이미지를 작성"
 msgctxt "Operator"
 msgid "Render"
 msgstr "렌더"
-
-
-msgid "Render active scene"
-msgstr "활성 씬을 렌더"
 
 
 msgid "Render Layer"
@@ -56801,10 +56781,6 @@ msgstr "언어"
 
 msgid "Language used for translation"
 msgstr "번역에 사용된 언어"
-
-
-msgid "Automatic (Automatic)"
-msgstr "자동 (Automatic)"
 
 
 msgid "Mini Axes Brightness"
@@ -68447,10 +68423,6 @@ msgid "Velocity Linear"
 msgstr "속도 선형"
 
 
-msgid "Second"
-msgstr "초"
-
-
 msgid "X Stiffness"
 msgstr "X 강성"
 
@@ -69996,11 +69968,6 @@ msgstr "이미지를 렌더"
 msgctxt "Operator"
 msgid "Operator Search..."
 msgstr "작업자 검색..."
-
-
-msgctxt "Operator"
-msgid "Tutorials"
-msgstr "튜토리얼"
 
 
 msgid "Sequence Strip Name"
@@ -74149,6 +74116,10 @@ msgid "Rigid Body World has no associated physics data to export"
 msgstr "리지드 바디 월드에 내보낼 피직스 데이터가 없음"
 
 
+msgid "Render active scene"
+msgstr "활성 씬을 렌더"
+
+
 msgid "Cannot write a single file with an animation format selected"
 msgstr "선택한 애니메이션 형식으로 단일 파일을 작성 할 수 없습니다"
 
@@ -76020,10 +75991,6 @@ msgid "Rip failed"
 msgstr "떼어내기 실패"
 
 
-msgid "Cannot split selection when sync selection is enabled"
-msgstr "동기화 선택이 활성화된 경우 선택 영역을 분할할 수 없습니다"
-
-
 msgid "Minimize Stretch. Blend %.2f"
 msgstr "늘이기를 최소화. 혼합 %.2f"
 
@@ -76789,6 +76756,10 @@ msgid "Fac"
 msgstr "팩터"
 
 
+msgid "Anisotropic"
+msgstr "비등방성"
+
+
 msgid "Eccentricity"
 msgstr "이심율"
 
@@ -76887,10 +76858,6 @@ msgstr "렌덤 거칠기"
 
 msgid "Subsurface Radius"
 msgstr "서브 표면 샘플 반경"
-
-
-msgid "Anisotropic"
-msgstr "비등방성"
 
 
 msgid "Anisotropic Rotation"

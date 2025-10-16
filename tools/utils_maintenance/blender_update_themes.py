@@ -15,7 +15,7 @@ import os
 
 
 def update(filepath):
-    import rna_xml
+    import _rna_xml as rna_xml
     context = bpy.context
 
     print("Updating theme: {!r}".format(filepath))

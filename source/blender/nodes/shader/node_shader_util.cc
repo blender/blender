@@ -169,7 +169,7 @@ static void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
   }
 }
 
-void node_gpu_stack_from_data(GPUNodeStack *gs, int type, bNodeStack *ns)
+void node_gpu_stack_from_data(GPUNodeStack *gs, bNodeSocket *socket, bNodeStack *ns)
 {
   memset(gs, 0, sizeof(*gs));
 
@@ -181,28 +181,39 @@ void node_gpu_stack_from_data(GPUNodeStack *gs, int type, bNodeStack *ns)
     gs->type = GPU_NONE;
     gs->hasinput = false;
     gs->hasoutput = false;
-    gs->sockettype = type;
+    gs->sockettype = socket->type;
   }
   else {
-    nodestack_get_vec(gs->vec, type, ns);
+    nodestack_get_vec(gs->vec, socket->type, ns);
     gs->link = (GPUNodeLink *)ns->data;
 
-    if (type == SOCK_FLOAT) {
+    if (socket->type == SOCK_FLOAT) {
       gs->type = GPU_FLOAT;
     }
-    else if (type == SOCK_INT) {
+    else if (socket->type == SOCK_INT) {
       gs->type = GPU_FLOAT; /* HACK: Support as float. */
     }
-    else if (type == SOCK_BOOLEAN) {
+    else if (socket->type == SOCK_BOOLEAN) {
       gs->type = GPU_FLOAT; /* HACK: Support as float. */
     }
-    else if (type == SOCK_VECTOR) {
-      gs->type = GPU_VEC3;
+    else if (socket->type == SOCK_VECTOR) {
+      switch (socket->default_value_typed<bNodeSocketValueVector>()->dimensions) {
+        case 2:
+          gs->type = GPU_VEC2;
+          break;
+        case 3:
+        default:
+          gs->type = GPU_VEC3;
+          break;
+        case 4:
+          gs->type = GPU_VEC4;
+          break;
+      }
     }
-    else if (type == SOCK_RGBA) {
+    else if (socket->type == SOCK_RGBA) {
       gs->type = GPU_VEC4;
     }
-    else if (type == SOCK_SHADER) {
+    else if (socket->type == SOCK_SHADER) {
       gs->type = GPU_CLOSURE;
     }
     else {
@@ -230,7 +241,7 @@ static void gpu_stack_from_data_list(GPUNodeStack *gs, ListBase *sockets, bNodeS
 {
   int i;
   LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, sockets, i) {
-    node_gpu_stack_from_data(&gs[i], socket->type, ns[i]);
+    node_gpu_stack_from_data(&gs[i], socket, ns[i]);
   }
 
   gs[i].end = true;

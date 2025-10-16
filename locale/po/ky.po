@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 08:44+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 15:20+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Kyrgyz <https://translate.blender.org/projects/blender-ui/ui/ky/>\n"
@@ -1286,28 +1286,28 @@ msgid "Mask"
 msgstr "Маска"
 
 
-msgid "Import"
-msgstr "Импорттоо"
-
-
 msgid "Apply"
 msgstr "Колдонуу"
-
-
-msgid "Text"
-msgstr "Текст"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Tracking"
 msgstr "Трекинг"
 
 
+msgid "Text"
+msgstr "Текст"
+
+
 msgid "Mirror"
 msgstr "Чагылтуу"
+
+
+msgid "Import"
+msgstr "Импорттоо"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgctxt "MovieClip"
@@ -2189,10 +2189,6 @@ msgstr "Түшүрүү"
 msgctxt "Operator"
 msgid "Render"
 msgstr "Визуалдаштыруу"
-
-
-msgid "Render active scene"
-msgstr "Активдүү сахнаны визуалдаштыруу"
 
 
 msgctxt "Curve"
@@ -3567,6 +3563,10 @@ msgstr "Болот"
 
 msgid "Stone"
 msgstr "Таш"
+
+
+msgid "Render active scene"
+msgstr "Активдүү сахнаны визуалдаштыруу"
 
 
 msgid "X:"

@@ -657,7 +657,6 @@ static void armature_finalize_restpose(ListBase *bonelist, ListBase *editbonelis
 
 void ED_armature_from_edit(Main *bmain, bArmature *arm)
 {
-  EditBone *eBone, *neBone;
   Bone *newBone;
   Object *obt;
 
@@ -666,22 +665,62 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
   BKE_armature_bonelist_free(&arm->bonebase, true);
   arm->act_bone = nullptr;
 
-  /* Remove zero sized bones, this gives unstable rest-poses. */
-  constexpr float bone_length_threshold = 0.000001f * 0.000001f;
-  for (eBone = static_cast<EditBone *>(arm->edbo->first); eBone; eBone = neBone) {
-    float len_sq = len_squared_v3v3(eBone->head, eBone->tail);
-    neBone = eBone->next;
-    if (len_sq <= bone_length_threshold) { /* FLT_EPSILON is too large? */
-      /* Find any bones that refer to this bone */
-      LISTBASE_FOREACH (EditBone *, fBone, arm->edbo) {
-        if (fBone->parent == eBone) {
-          fBone->parent = eBone->parent;
+  /* Avoid (almost) zero sized bones, this gives unstable rest-poses. */
+  {
+    /* If this threshold is adjusted, also update the `bl_animation_armature.py` test. */
+    constexpr float bone_length_threshold = 0.000001f;
+    constexpr float bone_length_threshold_sq = bone_length_threshold * bone_length_threshold;
+    constexpr float adjusted_bone_length = 2 * bone_length_threshold;
+
+    /* Build a map from parent to its children, to speed up the loop below. */
+    blender::Map<EditBone *, blender::VectorSet<EditBone *>> parent_to_children;
+    LISTBASE_FOREACH (EditBone *, eBone, arm->edbo) {
+      parent_to_children.lookup_or_add_default(eBone->parent).add_new(eBone);
+    }
+
+    LISTBASE_FOREACH (EditBone *, eBone, arm->edbo) {
+      const float len_sq = len_squared_v3v3(eBone->head, eBone->tail);
+      if (len_sq > bone_length_threshold_sq) {
+        continue;
+      }
+
+      /* Move the tail away from the head, to ensure the bone has at least some length.
+       * Historical note: until 5.0, Blender used to delete these bones. However, this was an issue
+       * with importers that assume that the bones they import actually will exist on the Armature.
+       * So instead, the bones are elongated a bit for numerical stability. These are very small
+       * adjustments, and so are unlikely to cause issues in practice. */
+
+      float offset[3];
+      if (len_sq == 0.0f) {
+        /* The bone is actually zero-length, which means it has no direction. Just pick one. */
+        offset[0] = 0.0f;
+        offset[1] = 0.0f;
+        offset[2] = adjusted_bone_length;
+      }
+      else {
+        sub_v3_v3v3(offset, eBone->tail, eBone->head);
+        normalize_v3_length(offset, adjusted_bone_length);
+      }
+
+      /* Apply this offset to the bone's tail to make it long enough for numerical stability. And
+       * disconnect it so that the children don't have to be updated, and can remain at their
+       * current location.
+       *
+       * Disconnecting the children is a lot simpler than the alternative: offsetting the children
+       * themselves. That would create subtle issues, for example if there are two bone chains that
+       * would initially exactly align, but one of them has a tiny bone; if all children were
+       * shifted, they would no longer align. */
+      add_v3_v3v3(eBone->tail, eBone->head, offset);
+      if (G.debug & G_DEBUG) {
+        printf("Warning: elongated (almost) zero sized bone: %s\n", eBone->name);
+      }
+
+      blender::VectorSet<EditBone *> *children = parent_to_children.lookup_ptr(eBone);
+      if (children) {
+        for (EditBone *child : *children) {
+          child->flag &= ~BONE_CONNECTED;
         }
       }
-      if (G.debug & G_DEBUG) {
-        printf("Warning: removed zero sized bone: %s\n", eBone->name);
-      }
-      bone_free(arm, eBone);
     }
   }
 

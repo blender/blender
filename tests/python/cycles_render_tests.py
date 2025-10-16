@@ -95,6 +95,13 @@ BLOCKLIST_OPTIX_OSL_ALL = BLOCKLIST_OPTIX_OSL_LIMITED + [
 
 BLOCKLIST_METAL = []
 
+BLOCKLIST_METAL_RT = [
+    # Metal RT uses different parameterization for linear curves.
+    # See discussion in #146072
+    # https://projects.blender.org/blender/blender/issues/146072#issuecomment-1699788
+    'hair_linear_close_up.blend',
+]
+
 if platform.system() == "Darwin":
     version, _, _ = platform.mac_ver()
     major_version = version.split(".")[0]
@@ -260,8 +267,12 @@ def main():
             blocklist += BLOCKLIST_OPTIX_OSL_LIMITED
         elif args.osl == 'all':
             blocklist += BLOCKLIST_OPTIX_OSL_ALL
+
     if device == 'METAL':
         blocklist += BLOCKLIST_METAL
+    if device == 'METAL-RT':
+        blocklist += BLOCKLIST_METAL
+        blocklist += BLOCKLIST_METAL_RT
 
     report = CyclesReport('Cycles', args.outdir, args.oiiotool, device, blocklist, args.osl == 'all')
 
@@ -282,7 +293,7 @@ def main():
         report.set_fail_threshold(0.032)
 
     # Layer mixing is different between SVM and OSL, so a few tests have
-    # noticably different noise causing OSL Principled BSDF tests to fail.
+    # noticeably different noise causing OSL Principled BSDF tests to fail.
     if ((args.osl == 'all') and (test_dir_name == 'principled_bsdf')):
         report.set_fail_threshold(0.06)
 

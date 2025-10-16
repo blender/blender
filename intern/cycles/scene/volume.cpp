@@ -1104,7 +1104,9 @@ void VolumeManager::update_step_size(const Scene *scene, DeviceScene *dscene) co
 {
   assert(scene->integrator->get_volume_ray_marching());
 
-  if (!dscene->volume_step_size.is_modified() && last_algorithm == RAY_MARCHING) {
+  if (!dscene->volume_step_size.is_modified() &&
+      !scene->integrator->volume_step_rate_is_modified() && last_algorithm == RAY_MARCHING)
+  {
     return;
   }
 

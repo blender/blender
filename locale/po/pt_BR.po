@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-10-06 08:44+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-23 15:03+0000\n"
 "Last-Translator: Amy Lily <lillya.assist@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -3722,14 +3722,6 @@ msgid "Parent bone (in same Armature)"
 msgstr "Osso parente (dentro da mesma armação)."
 
 
-msgid "Select Head"
-msgstr "Selecionar cabeça"
-
-
-msgid "Select Tail"
-msgstr "Selecionar base"
-
-
 msgid "Tail"
 msgstr "Base"
 
@@ -6168,6 +6160,10 @@ msgstr "Sem distorções"
 
 msgid "Parent to undistorted position of 2D track"
 msgstr "Torna parente da posição não distorcida do rastreamento 2D."
+
+
+msgid "Attribute Name"
+msgstr "Nome do atributos"
 
 
 msgid "Kinematic Constraint"
@@ -16272,10 +16268,6 @@ msgid "Active Movie Clip"
 msgstr "Clipe de filme ativo"
 
 
-msgid "Mirror Object"
-msgstr "Objeto para espelhamento"
-
-
 msgid "Distance Model"
 msgstr "Modelo de distância"
 
@@ -21251,6 +21243,18 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
 msgid "Add Image"
 msgstr "Adicionar Imagem"
 
@@ -21263,16 +21267,8 @@ msgid "Rigid Body"
 msgstr "Corpo rígido"
 
 
-msgid "Import"
-msgstr "Importar"
-
-
 msgid "Apply"
 msgstr "Aplicar"
-
-
-msgid "Text"
-msgstr "Texto"
 
 
 msgid "Track"
@@ -21299,20 +21295,16 @@ msgid "Convert"
 msgstr "Converter"
 
 
-msgid "Math"
-msgstr "Matemática"
-
-
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Hooks"
 msgstr "Ganchos"
 
 
 msgid "Random Mask"
 msgstr "Máscara Aleatória"
+
+
+msgid "Layout"
+msgstr "Organizar"
 
 
 msgid "Clear Transform"
@@ -21343,12 +21335,24 @@ msgid "Disable Bone Options"
 msgstr "Desabilitar as opções de ossos"
 
 
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
 msgid "Mesh Select Mode"
 msgstr "Modo de seleção de malhas"
 
 
+msgid "Tracking"
+msgstr "Rastreamento"
+
+
 msgid "Face Data"
 msgstr "Dados das faces"
+
+
+msgid "Math"
+msgstr "Matemática"
 
 
 msgid "Merge"
@@ -21359,16 +21363,12 @@ msgid "Special Characters"
 msgstr "Caracteres especiais"
 
 
-msgid "Metaball"
-msgstr "Meta-esfera"
+msgid "Text"
+msgstr "Texto"
 
 
 msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
-
-
-msgid "Layout"
-msgstr "Organizar"
 
 
 msgid "Pivot Point"
@@ -21383,16 +21383,16 @@ msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
 
 
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
+msgid "Instances"
+msgstr "Instâncias"
 
 
 msgid "Mirror"
 msgstr "Espelhar"
+
+
+msgid "Import"
+msgstr "Importar"
 
 
 msgid "UV Mapping"
@@ -21435,24 +21435,16 @@ msgid "Select All by Trait"
 msgstr "Selecionar todos por características..."
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Select Linked"
 msgstr "Selecionar vinculados(as)"
 
 
 msgid "Select Loops"
 msgstr "Selecionar anéis"
-
-
-msgid "Light"
-msgstr "Luz"
-
-
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
-msgid "Instances"
-msgstr "Instâncias"
 
 
 msgid "Basic"
@@ -21966,10 +21958,6 @@ msgstr "Distorção"
 
 msgid "UV Pinned"
 msgstr "UV afixada"
-
-
-msgid "UV Select"
-msgstr "Seleção de UVs"
 
 
 msgid "Set the map as active for display and editing"
@@ -24001,6 +23989,10 @@ msgstr "Modificador para espelhamento."
 
 msgid "Distance within which mirrored vertices are merged"
 msgstr "Distância dentro da qual os vértices espelhados são fundidos."
+
+
+msgid "Mirror Object"
+msgstr "Objeto para espelhamento"
 
 
 msgid "Object to use as mirror"
@@ -27456,10 +27448,6 @@ msgstr "Oclusão Ambiente"
 
 msgid "Number of rays to trace per shader evaluation"
 msgstr "Número de raios a ser traçados por avaliação de sombreador"
-
-
-msgid "Attribute Name"
-msgstr "Nome do atributos"
 
 
 msgid "Background"
@@ -43015,10 +43003,6 @@ msgstr "Gravar imagem"
 msgctxt "Operator"
 msgid "Render"
 msgstr "Renderizar"
-
-
-msgid "Render active scene"
-msgstr "Renderiza a cena ativa."
 
 
 msgid "Render Layer"
@@ -61514,11 +61498,6 @@ msgstr "Notas de lançamento"
 
 
 msgctxt "Operator"
-msgid "Tutorials"
-msgstr "Tutoriais"
-
-
-msgctxt "Operator"
 msgid "Grease Pencil as SVG"
 msgstr "Lápis de cera como SVG"
 
@@ -65187,6 +65166,10 @@ msgid "Rigid Body World has no associated physics data to export"
 msgstr "Ambiente (mundo) de corpo rígido não possui dados de física associados para exportar."
 
 
+msgid "Render active scene"
+msgstr "Renderiza a cena ativa."
+
+
 msgid "Cannot write a single file with an animation format selected"
 msgstr "Não é possível escrever um arquivo único com um formato de animação selecionado."
 
@@ -66834,10 +66817,6 @@ msgid "UV Vertex"
 msgstr "Vértices UV"
 
 
-msgid "Cannot split selection when sync selection is enabled"
-msgstr "Não é possível dividir seleção quando a sincronização de seleção está ativa."
-
-
 msgid "Object has non-uniform scale, unwrap will operate on a non-scaled version of the mesh"
 msgstr "Objeto possui uma escala não uniforme, o desdobramento irá operar em uma versão não escalonada da malha."
 
@@ -67516,6 +67495,10 @@ msgid "Fac"
 msgstr "Fator"
 
 
+msgid "Anisotropic"
+msgstr "Anisotrópico"
+
+
 msgid "Eccentricity"
 msgstr "Excentricidade"
 
@@ -67658,10 +67641,6 @@ msgstr "Raio para subdivisão de superfície"
 
 msgid "Subsurface IOR"
 msgstr "Índice de Refração da Sub-superfície"
-
-
-msgid "Anisotropic"
-msgstr "Anisotrópico"
 
 
 msgid "Anisotropic Rotation"

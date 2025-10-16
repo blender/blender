@@ -162,7 +162,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const bNodeSocket &other_socket = params.other_socket();
   if (other_socket.in_out == SOCK_IN) {
-    params.add_item("Item", [](LinkSearchOpParams &params) {
+    params.add_item(IFACE_("Item"), [](LinkSearchOpParams &params) {
       bNode &node = params.add_node("NodeEvaluateClosure");
       const auto *item =
           socket_items::add_item_with_socket_type_and_name<EvaluateClosureOutputItemsAccessor>(
@@ -172,7 +172,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     return;
   }
   if (other_socket.type == SOCK_CLOSURE) {
-    params.add_item("Closure", [](LinkSearchOpParams &params) {
+    params.add_item(IFACE_("Closure"), [](LinkSearchOpParams &params) {
       bNode &node = params.add_node("NodeEvaluateClosure");
       params.connect_available_socket(node, "Closure");
 
@@ -184,7 +184,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
                                                               params.node_tree().type))
   {
     params.add_item(
-        "Item",
+        IFACE_("Item"),
         [](LinkSearchOpParams &params) {
           bNode &node = params.add_node("NodeEvaluateClosure");
           const auto *item =
@@ -220,7 +220,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  common_node_type_base(&ntype, "NodeEvaluateClosure", NODE_EVALUATE_CLOSURE);
+  sh_geo_node_type_base(&ntype, "NodeEvaluateClosure", NODE_EVALUATE_CLOSURE);
   ntype.ui_name = "Evaluate Closure";
   ntype.ui_description = "Execute a given closure";
   ntype.nclass = NODE_CLASS_CONVERTER;

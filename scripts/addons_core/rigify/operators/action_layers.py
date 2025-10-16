@@ -347,7 +347,7 @@ class RIGIFY_OT_jump_to_action_slot(Operator):
             self.report({'ERROR'}, "Failed to find Action Slot.")
             return {'CANCELLED'}
 
-        self.report({'INFO'}, f'Set active action set-up index to {i}.')
+        self.report({'INFO'}, rpt_("Set active action set-up index to {}.").format(i))
         return {'FINISHED'}
 
 

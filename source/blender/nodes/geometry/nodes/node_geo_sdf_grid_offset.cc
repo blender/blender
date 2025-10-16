@@ -42,7 +42,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     openvdb::tools::LevelSetFilter<openvdb::FloatGrid> filter(vdb_grid);
     filter.offset(-distance);
   }
-  catch (const openvdb::RuntimeError &e) {
+  catch (const openvdb::RuntimeError & /*e*/) {
     node_geo_sdf_grid_error_not_levelset(params);
     return;
   }

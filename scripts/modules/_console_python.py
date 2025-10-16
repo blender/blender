@@ -237,7 +237,7 @@ execute.hooks = []
 
 
 def autocomplete(context):
-    from bl_console_utils.autocomplete import intellisense
+    from _bl_console_utils.autocomplete import intellisense
 
     sc = context.space_data
 

@@ -114,6 +114,7 @@ class BrushAssetShelf:
 
     @classmethod
     def draw_context_menu(self, context, asset, layout):
+        del context, asset
         # Currently this menu adds operators that deal with the affected brush and don't take the
         # asset into account. Luckily that is okay for now, since right clicking in the grid view
         # also activates the item.
@@ -1087,7 +1088,7 @@ def brush_settings(layout, context, brush, popover=False):
 def brush_shared_settings(layout, context, brush, popover=False):
     """ Draw simple brush settings that are shared between different paint modes. """
 
-    paint = UnifiedPaintPanel.paint_settings(context)
+    # paint    paint = UnifiedPaintPanel.paint_settings(context)  # UNUSED.
     mode = UnifiedPaintPanel.get_brush_mode(context)
 
     ### Determine which settings to draw. ###

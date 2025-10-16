@@ -6,6 +6,7 @@
  * \ingroup fbx
  */
 
+#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_deform.hh"
 #include "BKE_key.hh"

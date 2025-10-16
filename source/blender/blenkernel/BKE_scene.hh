@@ -138,7 +138,7 @@ const char *BKE_scene_find_marker_name(const Scene *scene, int frame);
  */
 const char *BKE_scene_find_last_marker_name(const Scene *scene, int frame);
 
-int BKE_scene_frame_snap_by_seconds(Scene *scene, double interval_in_seconds, int frame);
+float BKE_scene_frame_snap_by_seconds(const Scene *scene, double interval_in_seconds, float frame);
 
 /**
  * Checks for cycle, returns true if it's all OK.

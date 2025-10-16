@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'ceca413bcbf8')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 08:44+0000\n"
+"POT-Creation-Date: 2025-10-13 16:12+0000\n"
 "PO-Revision-Date: 2025-07-27 17:01+0000\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -3846,14 +3846,6 @@ msgid "Parent bone (in same Armature)"
 msgstr "親代骨骼 (在同個骨架上)"
 
 
-msgid "Select Head"
-msgstr "選取頭部"
-
-
-msgid "Select Tail"
-msgstr "選取尾部"
-
-
 msgid "Display Wire"
 msgstr "顯示連線"
 
@@ -6896,6 +6888,14 @@ msgstr "未扭曲"
 
 msgid "Parent to undistorted position of 2D track"
 msgstr "將 2D 軌道的未扭曲位置設為親代"
+
+
+msgid "Attribute Name"
+msgstr "特性名稱"
+
+
+msgid "Domain Type"
+msgstr "屬域類型"
 
 
 msgid "Kinematic Constraint"
@@ -11362,10 +11362,6 @@ msgstr "解析度"
 
 msgid "Smoke Grid Resolution"
 msgstr "煙霧格線解析度"
-
-
-msgid "Domain Type"
-msgstr "屬域類型"
 
 
 msgid "Gas"
@@ -17902,14 +17898,6 @@ msgid "Active Movie Clip"
 msgstr "作用中影片剪輯"
 
 
-msgid "Mirror Bone"
-msgstr "鏡像骨骼"
-
-
-msgid "Mirror Object"
-msgstr "鏡像物體"
-
-
 msgid "Distance Model"
 msgstr "距離模型"
 
@@ -18148,6 +18136,10 @@ msgstr "與音訊同步"
 
 msgid "Sync to audio playback, dropping frames"
 msgstr "同步音訊播放，丟落影格"
+
+
+msgid "Second"
+msgstr "第二"
 
 
 msgid "Timeline Markers"
@@ -22426,48 +22418,32 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Read"
-msgstr "讀取"
+msgid "Metaball"
+msgstr "變幻球"
+
+
+msgid "Light"
+msgstr "燈光"
+
+
+msgid "Light Probe"
+msgstr "燈光採樣器"
 
 
 msgid "Relations"
 msgstr "關係"
 
 
-msgid "Sample"
-msgstr "取樣"
-
-
-msgid "Write"
-msgstr "寫入"
-
-
-msgid "Primitives"
-msgstr "原形"
-
-
 msgid "Rigid Body"
 msgstr "剛體"
-
-
-msgid "Import"
-msgstr "匯入"
 
 
 msgid "Apply"
 msgstr "套用"
 
 
-msgid "Text"
-msgstr "文字"
-
-
 msgid "Track"
 msgstr "追蹤"
-
-
-msgid "Utilities"
-msgstr "效用"
 
 
 msgid "Quick Effects"
@@ -22494,16 +22470,8 @@ msgid "Convert"
 msgstr "轉換"
 
 
-msgid "Math"
-msgstr "數學公式"
-
-
 msgid "Link/Transfer Data"
 msgstr "連結/傳輸資料"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Hooks"
@@ -22516,6 +22484,10 @@ msgstr "設定樞紐點"
 
 msgid "Random Mask"
 msgstr "隨機遮罩"
+
+
+msgid "Layout"
+msgstr "配置"
 
 
 msgid "Clear Transform"
@@ -22538,6 +22510,10 @@ msgid "Names"
 msgstr "名稱"
 
 
+msgid "Adjust"
+msgstr "調整"
+
+
 msgid "Toggle Bone Options"
 msgstr "開關骨骼選項"
 
@@ -22550,12 +22526,28 @@ msgid "Disable Bone Options"
 msgstr "停用骨骼設定"
 
 
+msgid "Keying"
+msgstr "鍵處理"
+
+
 msgid "Mesh Select Mode"
 msgstr "網格選取模式"
 
 
+msgid "Tracking"
+msgstr "跟蹤"
+
+
+msgid "Utilities"
+msgstr "效用"
+
+
 msgid "Face Data"
 msgstr "面資料"
+
+
+msgid "Math"
+msgstr "數學公式"
 
 
 msgid "Merge"
@@ -22570,16 +22562,12 @@ msgid "Kerning"
 msgstr "字間微調"
 
 
-msgid "Metaball"
-msgstr "變幻球"
+msgid "Text"
+msgstr "文字"
 
 
 msgid "Bone Roll"
 msgstr "骨骼滾動"
-
-
-msgid "Layout"
-msgstr "配置"
 
 
 msgid "Pivot Point"
@@ -22598,24 +22586,36 @@ msgid "Automasking"
 msgstr "自動遮罩"
 
 
-msgid "Adjust"
-msgstr "調整"
+msgid "Read"
+msgstr "讀取"
 
 
 msgid "Face Sets Edit"
 msgstr "面集編輯"
 
 
-msgid "Keying"
-msgstr "鍵處理"
+msgid "Sample"
+msgstr "取樣"
 
 
-msgid "Tracking"
-msgstr "跟蹤"
+msgid "Write"
+msgstr "寫入"
+
+
+msgid "Primitives"
+msgstr "原形"
+
+
+msgid "Instances"
+msgstr "實例化"
 
 
 msgid "Mirror"
 msgstr "鏡像"
+
+
+msgid "Import"
+msgstr "匯入"
 
 
 msgid "UV Mapping"
@@ -22654,20 +22654,12 @@ msgid "Select Similar"
 msgstr "選取相似者"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Select Linked"
 msgstr "選取連結項"
-
-
-msgid "Light"
-msgstr "燈光"
-
-
-msgid "Light Probe"
-msgstr "燈光採樣器"
-
-
-msgid "Instances"
-msgstr "實例化"
 
 
 msgid "Basic"
@@ -23273,10 +23265,6 @@ msgstr "扭曲"
 
 msgid "UV Pinned"
 msgstr "UV 已釘註"
-
-
-msgid "UV Select"
-msgstr "UV 選取"
 
 
 msgid "Set the map as active for display and editing"
@@ -25341,6 +25329,10 @@ msgstr "鏡像修改器"
 
 msgid "Mirroring modifier"
 msgstr "鏡像處理修改器"
+
+
+msgid "Mirror Object"
+msgstr "鏡像物體"
 
 
 msgid "Object to use as mirror"
@@ -28788,10 +28780,6 @@ msgstr "周遭遮擋"
 
 msgid "Only Local"
 msgstr "僅局域"
-
-
-msgid "Attribute Name"
-msgstr "特性名稱"
 
 
 msgid "Instancer"
@@ -43173,10 +43161,6 @@ msgid "Render files from the animation range of this scene"
 msgstr "算繪來自此場景動畫範圍的檔案"
 
 
-msgid "Render Keyframes Only"
-msgstr "僅算繪關鍵影格"
-
-
 msgid "Render using the sequencer's OpenGL display"
 msgstr "使用序段編輯器的 OpenGL 顯示來算繪"
 
@@ -43196,10 +43180,6 @@ msgstr "寫入影像"
 msgctxt "Operator"
 msgid "Render"
 msgstr "算繪"
-
-
-msgid "Render active scene"
-msgstr "算繪作用中的場景"
 
 
 msgid "Render Layer"
@@ -48386,12 +48366,12 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
+msgid "Auto-Masking"
+msgstr "自動遮罩"
+
+
 msgid "VR"
 msgstr "VR"
-
-
-msgid "Mirror Options"
-msgstr "鏡像選項"
 
 
 msgid "Active Tool"
@@ -48452,10 +48432,6 @@ msgstr "立體視覺"
 
 msgid "Multi Frame"
 msgstr "多重畫框"
-
-
-msgid "Auto-Masking"
-msgstr "自動遮罩"
 
 
 msgid "Chain Scaling"
@@ -51665,10 +51641,6 @@ msgstr "語言"
 
 msgid "Language used for translation"
 msgstr "翻譯所使用的語言"
-
-
-msgid "Automatic (Automatic)"
-msgstr "自動（自動）"
 
 
 msgid "Mini Axes Brightness"
@@ -58447,6 +58419,10 @@ msgid "Time Step"
 msgstr "時間步"
 
 
+msgid "Mirror Bone"
+msgstr "鏡像骨骼"
+
+
 msgid "Stick stroke to the image"
 msgstr "筆觸固定於影像上"
 
@@ -60672,11 +60648,6 @@ msgid "Update"
 msgstr "更新"
 
 
-msgctxt "Operator"
-msgid "Mirrored"
-msgstr "鏡像"
-
-
 msgid "OSL shader compilation succeeded"
 msgstr "OSL 著色器編纂成功"
 
@@ -62028,10 +61999,6 @@ msgstr "燃料"
 msgctxt "Simulation"
 msgid "Cache"
 msgstr "快取"
-
-
-msgid "Second"
-msgstr "第二"
 
 
 msgid "Upper"
@@ -63435,11 +63402,6 @@ msgstr "算繪影像"
 msgctxt "Operator"
 msgid "Release Notes"
 msgstr "發行備註"
-
-
-msgctxt "Operator"
-msgid "Tutorials"
-msgstr "教學"
 
 
 msgctxt "Operator"
@@ -64899,6 +64861,11 @@ msgstr "對焦焦距: %.3f"
 msgctxt "Operator"
 msgid "Adjust Empty Display Size"
 msgstr "調整空體顯示大小"
+
+
+msgctxt "Operator"
+msgid "Mirrored"
+msgstr "鏡像"
 
 
 msgctxt "Operator"
@@ -67720,6 +67687,10 @@ msgid "Rigid Body World has no associated physics data to export"
 msgstr "剛體世界沒有相關聯的物理資料可匯出"
 
 
+msgid "Render active scene"
+msgstr "算繪作用中的場景"
+
+
 msgid "3D Local View "
 msgstr "3D 局域檢視 "
 
@@ -69407,10 +69378,6 @@ msgid "Rip failed"
 msgstr "拆分失敗"
 
 
-msgid "Cannot split selection when sync selection is enabled"
-msgstr "當啟用同步選取時無法分割選取內容"
-
-
 msgid "Smart UV Project"
 msgstr "智慧 UV 投影"
 
@@ -70420,6 +70387,10 @@ msgid "ID value"
 msgstr "ID 值"
 
 
+msgid "Anisotropic"
+msgstr "各向異性"
+
+
 msgid "Uniformity"
 msgstr "一致"
 
@@ -70724,10 +70695,6 @@ msgstr "次表面 IOR"
 
 msgid "Subsurface Anisotropy"
 msgstr "次表面各向異性"
-
-
-msgid "Anisotropic"
-msgstr "各向異性"
 
 
 msgid "Coat IOR"
@@ -71706,12 +71673,12 @@ msgid "Preserve Length"
 msgstr "預留長度"
 
 
-msgid "Shape Asymmetry"
-msgstr "形狀不對稱"
-
-
 msgid "Hair Tie"
 msgstr "髮帶"
+
+
+msgid "Shape Asymmetry"
+msgstr "形狀不對稱"
 
 
 msgid "Distance Falloff"
@@ -71734,28 +71701,8 @@ msgid "Percentage of amount used for the viewport"
 msgstr "視圖區使用的百分比"
 
 
-msgid "Length of the generated hair curves"
-msgstr "生成毛髮曲線的長度"
-
-
-msgid "Hair Material"
-msgstr "毛髮材質"
-
-
-msgid "Material of the generated hair curves"
-msgstr "生成毛髮曲線的材質"
-
-
 msgid "Amount of control points of the generated hair curves"
 msgstr "生成毛髮曲線的控制點數量"
-
-
-msgid "Poisson Disk Distribution"
-msgstr "Poisson Disk 分布"
-
-
-msgid "Use Poisson disk distribution method to keep a minimum distance"
-msgstr "用 Poisson Disk 分布法來維持最小距離"
 
 
 msgid "Surface density of generated hair curves"
@@ -71770,6 +71717,22 @@ msgid "Factor applied on the density for curve distribution"
 msgstr "套用在曲線分布密度的係數"
 
 
+msgid "Use Poisson disk distribution method to keep a minimum distance"
+msgstr "用 Poisson Disk 分布法來維持最小距離"
+
+
+msgid "Length of the generated hair curves"
+msgstr "生成毛髮曲線的長度"
+
+
+msgid "Hair Material"
+msgstr "毛髮材質"
+
+
+msgid "Material of the generated hair curves"
+msgstr "生成毛髮曲線的材質"
+
+
 msgid "Discard points based on a mask texture after distribution"
 msgstr "在配置點之後依照一個遮罩紋理來捨棄點"
 
@@ -71778,10 +71741,10 @@ msgid "Surface Geometry"
 msgstr "表面幾何"
 
 
-msgid "Seed value for randomization"
-msgstr "隨機化的種子值"
-
-
 msgid "Preserve the length of the curves on a segment basis"
 msgstr "依分段保留曲線長度"
+
+
+msgid "Seed value for randomization"
+msgstr "隨機化的種子值"
 

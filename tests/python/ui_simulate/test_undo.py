@@ -17,9 +17,9 @@ _MENU_CONFIRM_HACK = True
 # the corresponding tests to run as expected. See: #136012.
 _MENU_CONFIRM_HACK_MULTI_WINDOW_PAUSE_SECONDS = 1 / 60
 
-# WARNING: macOS requires extra delay (it's unclear why), see: #146143.
+# WARNING: macOS and windows require an extra delay (it's unclear why), see: #146143.
 import sys
-if sys.platform == "darwin":
+if sys.platform in {"darwin", "win32"}:
     _MENU_CONFIRM_HACK_MULTI_WINDOW_PAUSE_SECONDS = 1 / 6
 del sys
 

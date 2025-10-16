@@ -38,6 +38,7 @@
 
 #include <fmt/format.h>
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -1218,6 +1219,21 @@ StringRefNull GLShader::glsl_patch_get(GLenum gl_stage)
   return "";
 }
 
+static StringRefNull stage_name_get(GLenum gl_stage)
+{
+  switch (gl_stage) {
+    case GL_VERTEX_SHADER:
+      return "vertex";
+    case GL_GEOMETRY_SHADER:
+      return "geometry";
+    case GL_FRAGMENT_SHADER:
+      return "fragment";
+    case GL_COMPUTE_SHADER:
+      return "compute";
+  }
+  return "";
+}
+
 GLuint GLShader::create_shader_stage(GLenum gl_stage,
                                      MutableSpan<StringRefNull> sources,
                                      GLSources &gl_sources,
@@ -1246,21 +1262,7 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage,
 
   if (DEBUG_LOG_SHADER_SRC_ON_ERROR) {
     /* Store the generated source for printing in case the link fails. */
-    StringRefNull source_type;
-    switch (gl_stage) {
-      case GL_VERTEX_SHADER:
-        source_type = "VertShader";
-        break;
-      case GL_GEOMETRY_SHADER:
-        source_type = "GeomShader";
-        break;
-      case GL_FRAGMENT_SHADER:
-        source_type = "FragShader";
-        break;
-      case GL_COMPUTE_SHADER:
-        source_type = "ComputeShader";
-        break;
-    }
+    StringRefNull source_type = stage_name_get(gl_stage);
 
     debug_source += "\n\n----------" + source_type + "----------\n\n";
     for (StringRefNull source : sources) {
@@ -1280,6 +1282,24 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage,
   }
 
   std::string concat_source = fmt::to_string(fmt::join(sources, ""));
+
+  std::string full_name = this->name_get() + "_" + stage_name_get(gl_stage);
+
+  if (this->name_get() == G.gpu_debug_shader_source_name) {
+    namespace fs = std::filesystem;
+    fs::path shader_dir = fs::current_path() / "Shaders";
+    fs::create_directories(shader_dir);
+    fs::path file_path = shader_dir / (full_name + ".glsl");
+
+    std::ofstream output_source_file(file_path);
+    if (output_source_file) {
+      output_source_file << concat_source;
+      output_source_file.close();
+    }
+    else {
+      std::cerr << "Shader Source Debug: Failed to open file: " << file_path << "\n";
+    }
+  }
 
   /* Patch line directives so that we can make error reporting consistent. */
   size_t start_pos = 0;

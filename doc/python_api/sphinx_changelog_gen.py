@@ -101,7 +101,7 @@ class JSONEncoderAPIDump(json.JSONEncoder):
 
 
 def api_dump(args):
-    import rna_info
+    import _rna_info as rna_info
     import inspect
 
     version, version_key = api_version()

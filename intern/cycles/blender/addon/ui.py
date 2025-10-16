@@ -1034,7 +1034,13 @@ class CYCLES_RENDER_PT_passes_data(CyclesButtonsPanel, Panel):
 
         col = layout.column(heading="Debug", align=True)
         col.prop(cycles_view_layer, "pass_debug_sample_count", text="Sample Count")
-        col.prop(cycles_view_layer, "pass_render_time", text="Render Time")
+
+        # Render Time pass - disabled for GPU devices
+        scene = context.scene
+        cscene = scene.cycles
+        row = col.row()
+        row.enabled = (cscene.device == 'CPU')
+        row.prop(cycles_view_layer, "pass_render_time", text="Render Time")
 
         layout.prop(view_layer, "pass_alpha_threshold")
 

@@ -6,6 +6,7 @@
 
 #include "DNA_attribute_types.h"
 
+#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_attribute_storage.hh"
 
@@ -18,6 +19,9 @@ struct GreasePencil;
 struct Mesh;
 
 namespace blender::bke {
+
+const CPPType *custom_data_type_to_cpp_type(eCustomDataType type);
+eCustomDataType cpp_type_to_custom_data_type(const CPPType &type);
 
 /**
  * Convert a custom data type to an attribute type. May return `std::nullopt` if the custom data

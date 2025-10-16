@@ -325,7 +325,8 @@ static void update_sequencer(const DEGEditorUpdateContext *update_ctx, Main *bma
         &changed_scene->adt->action->id == id)
     {
       blender::seq::prefetch_stop(changed_scene);
-      blender::seq::cache_cleanup(changed_scene);
+      blender::seq::cache_cleanup_intra(changed_scene);
+      blender::seq::cache_cleanup_final(changed_scene);
     }
   }
 

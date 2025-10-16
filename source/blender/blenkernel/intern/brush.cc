@@ -64,6 +64,16 @@ static void brush_init_data(ID *id)
 
   /* the default alpha falloff curve */
   BKE_brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
+
+  brush->automasking_cavity_curve = BKE_paint_default_curve();
+
+  brush->curve_rand_hue = BKE_paint_default_curve();
+  brush->curve_rand_saturation = BKE_paint_default_curve();
+  brush->curve_rand_value = BKE_paint_default_curve();
+
+  brush->curve_size = BKE_paint_default_curve();
+  brush->curve_strength = BKE_paint_default_curve();
+  brush->curve_jitter = BKE_paint_default_curve();
 }
 
 static void brush_copy_data(Main * /*bmain*/,
