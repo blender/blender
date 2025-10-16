@@ -37,6 +37,24 @@ void remote_library_request_preview_download(bContext &C,
                                              const AssetRepresentation &asset,
                                              ReportList *reports);
 
+/**
+ * Get the absolute file path the preview for \a asset is expected at once downloaded.
+ *
+ * The path is built like this:
+ * - Online library cache directory (e.g.
+ *   `$HOME/.cache/blender/remote-assets/1a2b3c-my.assets.com/`)
+ * - `_thumbs/large/`
+ * - The first two characters of the MD5 hash of the full asset path
+ *   (#AssetRepresentation.full_path()).
+ * - The next 30 characters of the MD5 hash.
+ * - If the download URL of the preview has an extension (some string after a period), up to 6
+ *   characters of that extension. (Previews load fine regardless of the extension. But the
+ *   extension is still a useful indicator, and some file browsers can display previews that way.)
+ *
+ * The reason hashes are used within `_thumbs/large/` instead of the relative path of the asset (or
+ * another relative path derived from the preview URL) is to keep paths short enough to not violate
+ * path length limitations.
+ */
 std::string remote_library_asset_preview_path(const AssetRepresentation &asset);
 
 /**
