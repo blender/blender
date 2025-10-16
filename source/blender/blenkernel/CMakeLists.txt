@@ -419,7 +419,7 @@ set(SRC
   BKE_grease_pencil.hh
   BKE_grease_pencil_legacy_convert.hh
   BKE_grease_pencil_vertex_groups.hh
-  BKE_icons.h
+  BKE_icons.hh
   BKE_id_hash.hh
   BKE_idprop.hh
   BKE_idtype.hh

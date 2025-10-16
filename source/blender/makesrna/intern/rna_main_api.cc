@@ -29,7 +29,7 @@
 #  include "BKE_displist.h"
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_grease_pencil.hh"
-#  include "BKE_icons.h"
+#  include "BKE_icons.hh"
 #  include "BKE_idtype.hh"
 #  include "BKE_image.hh"
 #  include "BKE_lattice.hh"

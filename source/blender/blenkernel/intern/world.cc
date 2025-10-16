@@ -23,7 +23,7 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_icons.h"
+#include "BKE_icons.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"

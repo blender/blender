@@ -78,41 +78,41 @@ void BKE_icons_init(int first_dyn_id);
 /**
  * Return icon id for library object or create new icon if not found.
  */
-int BKE_icon_id_ensure(struct ID *id);
+int BKE_icon_id_ensure(ID *id);
 
 /**
  * Return icon id for Grease Pencil layer (color preview) or create new icon if not found.
  */
-int BKE_icon_gplayer_color_ensure(struct bGPDlayer *gpl);
+int BKE_icon_gplayer_color_ensure(bGPDlayer *gpl);
 
 /**
  * Return icon id of given preview, or create new icon if not found.
  */
-int BKE_icon_preview_ensure(struct ID *id, struct PreviewImage *preview);
+int BKE_icon_preview_ensure(ID *id, PreviewImage *preview);
 
 /**
  * Create an icon as owner or \a ibuf. The icon-ID is not stored in \a ibuf,
  * it needs to be stored separately.
  * \note Transforms ownership of \a ibuf to the newly created icon.
  */
-int BKE_icon_imbuf_create(struct ImBuf *ibuf) ATTR_WARN_UNUSED_RESULT;
-struct ImBuf *BKE_icon_imbuf_get_buffer(int icon_id) ATTR_WARN_UNUSED_RESULT;
+int BKE_icon_imbuf_create(ImBuf *ibuf) ATTR_WARN_UNUSED_RESULT;
+ImBuf *BKE_icon_imbuf_get_buffer(int icon_id) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Retrieve icon for id.
  */
-struct Icon *BKE_icon_get(int icon_id);
+Icon *BKE_icon_get(int icon_id);
 
 /**
  * Set icon for id if not already defined.
  * Used for inserting the internal icons.
  */
-void BKE_icon_set(int icon_id, struct Icon *icon);
+void BKE_icon_set(int icon_id, Icon *icon);
 
 /**
  * Remove icon and free data if library object becomes invalid.
  */
-void BKE_icon_id_delete(struct ID *id);
+void BKE_icon_id_delete(ID *id);
 
 /**
  * Remove icon and free data.
@@ -128,22 +128,20 @@ void BKE_icon_changed(int icon_id);
 /**
  * Free all icons.
  */
-void BKE_icons_free(void);
+void BKE_icons_free();
 
 /**
  * Free all icons marked for deferred deletion.
  */
-void BKE_icons_deferred_free(void);
+void BKE_icons_deferred_free();
 
-int BKE_icon_geom_ensure(struct Icon_Geom *geom);
-struct Icon_Geom *BKE_icon_geom_from_memory(uchar *data, size_t data_len);
-struct Icon_Geom *BKE_icon_geom_from_file(const char *filename);
+int BKE_icon_geom_ensure(Icon_Geom *geom);
+Icon_Geom *BKE_icon_geom_from_memory(uchar *data, size_t data_len);
+Icon_Geom *BKE_icon_geom_from_file(const char *filename);
 
-struct ImBuf *BKE_icon_geom_rasterize(const struct Icon_Geom *geom,
-                                      unsigned int size_x,
-                                      unsigned int size_y);
-void BKE_icon_geom_invert_lightness(struct Icon_Geom *geom);
+ImBuf *BKE_icon_geom_rasterize(const Icon_Geom *geom, unsigned int size_x, unsigned int size_y);
+void BKE_icon_geom_invert_lightness(Icon_Geom *geom);
 
-int BKE_icon_ensure_studio_light(struct StudioLight *sl, int id_type);
+int BKE_icon_ensure_studio_light(StudioLight *sl, int id_type);
 
 #define ICON_RENDER_DEFAULT_HEIGHT 32

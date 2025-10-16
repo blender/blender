@@ -372,7 +372,7 @@ static EnumPropertyItem rna_enum_gpencil_brush_modes_items[] = {
 #  include "BKE_colorband.hh"
 #  include "BKE_context.hh"
 #  include "BKE_gpencil_legacy.h"
-#  include "BKE_icons.h"
+#  include "BKE_icons.hh"
 #  include "BKE_layer.hh"
 #  include "BKE_material.hh"
 #  include "BKE_paint.hh"

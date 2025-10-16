@@ -13,7 +13,7 @@
 #include <stdexcept>
 
 #include "BKE_context.hh"
-#include "BKE_icons.h"
+#include "BKE_icons.hh"
 
 #include "BLI_index_range.hh"
 

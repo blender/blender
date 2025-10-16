@@ -45,7 +45,7 @@
 #include "BKE_blender_version.h"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
-#include "BKE_icons.h"
+#include "BKE_icons.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
