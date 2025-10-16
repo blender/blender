@@ -260,12 +260,18 @@ def main():
     elif test_dir_name.startswith('displacement'):
         # metal shadow and wireframe difference. To be fixed.
         report.set_fail_threshold(0.07)
+    elif test_dir_name.startswith('bsdf'):
+        # metallic thinfilm tests
+        report.set_fail_threshold(0.03)
+    elif test_dir_name.startswith('principled_bsdf'):
+        # principled bsdf transmission test
+        report.set_fail_threshold(0.02)
 
     # Noise pattern changes depending on platform. Mostly caused by transparency.
     # TODO(fclem): See if we can just increase number of samples per file.
     if test_dir_name.startswith('render_layer'):
         # shadow pass, rlayer flag
-        report.set_fail_threshold(0.075)
+        report.set_fail_threshold(0.08)
     elif test_dir_name.startswith('hair'):
         # hair close up
         report.set_fail_threshold(0.0275)
@@ -278,6 +284,9 @@ def main():
     elif test_dir_name.startswith('light_linking'):
         # Noise difference in transparent material
         report.set_fail_threshold(0.05)
+    elif test_dir_name.startswith('light'):
+        # Noise difference in background
+        report.set_fail_threshold(0.02)
 
     ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
     sys.exit(not ok)

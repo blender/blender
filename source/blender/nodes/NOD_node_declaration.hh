@@ -256,7 +256,7 @@ class SocketDeclaration : public ItemDeclaration {
 
  public:
   /** Some input sockets can have non-trivial values in the case when they are unlinked. */
-  NodeDefaultInputType default_input_type;
+  NodeDefaultInputType default_input_type = NodeDefaultInputType::NODE_DEFAULT_INPUT_VALUE;
   /**
    * Property that stores the name of the socket so that it can be modified directly from the
    * node without going to the side-bar.

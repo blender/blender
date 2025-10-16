@@ -886,24 +886,23 @@ class TransformsToDeltasAnim(Operator):
                     # no conflict yet
                     existingFCurves[dpath] = [fcu.array_index]
 
-            # if F-Curve uses standard transform path
-            # just append "delta_" to this path
+            # Move the 'standard' to the 'delta' data paths.
             for fcu in channelbag.fcurves:
-                if fcu.data_path == "location":
-                    fcu.data_path = "delta_location"
-                    obj.location.zero()
-                elif fcu.data_path == "rotation_euler":
-                    fcu.data_path = "delta_rotation_euler"
-                    obj.rotation_euler.zero()
-                elif fcu.data_path == "rotation_quaternion":
-                    fcu.data_path = "delta_rotation_quaternion"
-                    obj.rotation_quaternion.identity()
-                # XXX: currently not implemented
-                # ~ elif fcu.data_path == "rotation_axis_angle":
-                # ~    fcu.data_path = "delta_rotation_axis_angle"
-                elif fcu.data_path == "scale":
-                    fcu.data_path = "delta_scale"
-                    obj.scale = 1.0, 1.0, 1.0
+                standard_path = fcu.data_path
+                array_index = fcu.array_index
+                try:
+                    delta_path = STANDARD_TO_DELTA_PATHS[standard_path]
+                except KeyError:
+                    # Not a standard transform path.
+                    continue
+
+                # Just change the F-Curve's data path. The array index should remain the same.
+                fcu.data_path = delta_path
+
+                # Reset the now-no-longer-animated property to its default value.
+                default_array = obj.bl_rna.properties[standard_path].default_array
+                property_array = getattr(obj, standard_path)
+                property_array[array_index] = default_array[array_index]
 
         # hack: force animsys flush by changing frame, so that deltas get run
         context.scene.frame_set(context.scene.frame_current)

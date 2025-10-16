@@ -202,7 +202,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     {
       return;
     }
-    params.add_item("Item", [](LinkSearchOpParams &params) {
+    params.add_item(IFACE_("Item"), [](LinkSearchOpParams &params) {
       bNode &node = params.add_node("NodeSeparateBundle");
       const auto *item =
           socket_items::add_item_with_socket_type_and_name<SeparateBundleItemsAccessor>(
@@ -214,7 +214,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     if (other_socket.type != SOCK_BUNDLE) {
       return;
     }
-    params.add_item("Bundle", [](LinkSearchOpParams &params) {
+    params.add_item(IFACE_("Bundle"), [](LinkSearchOpParams &params) {
       bNode &node = params.add_node("NodeSeparateBundle");
       params.connect_available_socket(node, "Bundle");
 
