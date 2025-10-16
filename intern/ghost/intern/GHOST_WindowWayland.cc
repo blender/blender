@@ -1034,7 +1034,31 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
       if (decor.initial_configure_seen == false) {
         decor.initial_configure_seen = true;
         if (decor.initial_configure_state) {
-          gwl_libdecor_window_initial_configure_state_set(&decor, gwl_window_state_get(win));
+          const GHOST_TWindowState state_current = gwl_window_state_get(win);
+          const GHOST_TWindowState state = decor.initial_configure_state.value();
+
+          gwl_libdecor_window_initial_configure_state_set(&decor, state_current);
+
+          /* An unfortunate hack for GNOME-48 and older.
+           * It's necessary to force the window to refresh,
+           * otherwise the window cannot be interacted with, see: #148142.
+           *
+           * Since there doesn't seem to a be a way to request an
+           * update directly: reset the title to force an update.
+           *
+           * Note that temporarily maximizing the window also works
+           * but this is more likely to flicker on startup.
+           *
+           * Interestingly the other call to #gwl_libdecor_window_initial_configure_state_set
+           * would also suffer from this problem with GNOME-49 but in that case
+           * committing the surface resolves the problem. */
+          if (((state == state_current) && (state == GHOST_kWindowStateNormal))) {
+            /* Ensure the title changes. */
+            const std::string &title = win->title;
+            const char *title_swap = " ";
+            libdecor_frame_set_title(decor.frame, title_swap + (title.empty() ? 0 : 1));
+            libdecor_frame_set_title(decor.frame, title.c_str());
+          }
         }
       }
 
