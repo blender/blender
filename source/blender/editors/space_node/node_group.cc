@@ -231,6 +231,11 @@ static wmOperatorStatus node_group_enter_exit_invoke(bContext *C,
   SpaceNode &snode = *CTX_wm_space_node(C);
   ARegion &region = *CTX_wm_region(C);
 
+  /* Don't interfer when the mouse is interacting with some button. See #147282. */
+  if (ISMOUSE_BUTTON(event->type) && UI_but_find_mouse_over(&region, event)) {
+    return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;
+  }
+
   float2 cursor;
   UI_view2d_region_to_view(&region.v2d, event->mval[0], event->mval[1], &cursor.x, &cursor.y);
   bNode *node = node_under_mouse_get(snode, cursor);
