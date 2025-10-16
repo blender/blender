@@ -5394,15 +5394,26 @@ static bool overlap_tri_tri_uv_test(const float t1[3][2],
 static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_scene(C);
+  const ToolSettings *ts = scene->toolsettings;
+  const bool uv_select_sync = (ts->uv_flag & UV_FLAG_SELECT_SYNC);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       scene, view_layer, nullptr);
 
+  struct ChangedInfo {
+    uint has_changed : 1;
+    uint has_overlap : 1;
+  };
+
+  Array<ChangedInfo> objects_tag(objects.size(), {false, false});
+
   /* Calculate maximum number of tree nodes and prepare initial selection. */
   uint uv_tri_len = 0;
-  for (Object *obedit : objects) {
+  for (const int i : blender::IndexRange(objects.size())) {
+    Object *obedit = objects[i];
+
     BMesh *bm = BKE_editmesh_from_object(obedit)->bm;
 
     BM_mesh_elem_table_ensure(bm, BM_FACE);
@@ -5410,6 +5421,7 @@ static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend)
     BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
     if (!extend) {
       ED_uvedit_deselect_all(scene, obedit, SEL_DESELECT);
+      objects_tag[i].has_changed = true;
     }
 
     BMIter iter;
@@ -5540,9 +5552,6 @@ static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend)
       BMFace *face_a = bm_a->ftable[o_a->face_index];
       BMFace *face_b = bm_b->ftable[o_b->face_index];
 
-      if (scene->toolsettings->uv_flag & UV_FLAG_SELECT_SYNC) {
-        /* Pass. */
-      }
       /* Skip if both faces are already selected. */
       if (uvedit_face_select_test(scene, bm_a, face_a) &&
           uvedit_face_select_test(scene, bm_b, face_b))
@@ -5553,8 +5562,10 @@ static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend)
       /* Main tri-tri overlap test. */
       const float endpoint_bias = -1e-4f;
       if (overlap_tri_tri_uv_test(o_a->tri, o_b->tri, endpoint_bias)) {
-        uvedit_face_select_enable(scene, bm_a, face_a);
-        uvedit_face_select_enable(scene, bm_b, face_b);
+        objects_tag[o_a->ob_index].has_overlap = true;
+        objects_tag[o_b->ob_index].has_overlap = true;
+        BM_elem_flag_enable(face_a, BM_ELEM_TAG);
+        BM_elem_flag_enable(face_b, BM_ELEM_TAG);
       }
     }
 
@@ -5562,8 +5573,33 @@ static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend)
     MEM_freeN(overlap);
   }
 
-  for (Object *object : objects) {
-    uv_select_tag_update_for_object(depsgraph, scene->toolsettings, object);
+  for (const int i : blender::IndexRange(objects.size())) {
+    Object *obedit = objects[i];
+    const ChangedInfo &tag_info = objects_tag[i];
+    const bool select = true;
+
+    if (tag_info.has_overlap) {
+      BMesh *bm = BKE_editmesh_from_object(obedit)->bm;
+
+      if (uv_select_sync) {
+        uvedit_select_prepare_sync_select(scene, bm);
+      }
+      else {
+        uvedit_select_prepare_custom_data(scene, bm);
+      }
+      uv_select_flush_from_tag_face(scene, obedit, select);
+
+      if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
+        ED_uvedit_select_sync_flush(ts, bm, select);
+      }
+      else {
+        ED_uvedit_selectmode_flush(scene, bm);
+      }
+    }
+
+    if (tag_info.has_changed || tag_info.has_overlap) {
+      uv_select_tag_update_for_object(depsgraph, scene->toolsettings, obedit);
+    }
   }
 
   BLI_bvhtree_free(uv_tree);
