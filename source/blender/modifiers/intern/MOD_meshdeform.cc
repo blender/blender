@@ -563,8 +563,6 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
 
   const int size = mmd.dyngridsize;
 
-  BLO_write_struct_at_address(writer, MeshDeformModifierData, md, &mmd);
-
   BLO_write_shared(writer,
                    mmd.bindinfluences,
                    sizeof(MDefInfluence) * mmd.influences_num,
@@ -609,6 +607,8 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
                    sizeof(MDefInfluence) * mmd.verts_num,
                    mmd.dynverts_sharing_info,
                    [&]() { BLO_write_int32_array(writer, mmd.verts_num, mmd.dynverts); });
+
+  BLO_write_struct_at_address(writer, MeshDeformModifierData, md, &mmd);
 }
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)
