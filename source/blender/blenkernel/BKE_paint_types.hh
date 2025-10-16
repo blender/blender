@@ -95,7 +95,7 @@ struct PaintRuntime : NonCopyable, NonMovable {
   float initial_pixel_radius = 0.0f;
   float start_pixel_radius = 0.0f;
 
-  /** Drawing pressure. */
+  /** Evaluated size pressure value */
   float size_pressure_value = 0.0f;
 
   /** Position of mouse, used to sample the texture. */
