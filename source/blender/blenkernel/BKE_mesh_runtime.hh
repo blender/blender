@@ -83,7 +83,3 @@ Mesh *mesh_create_eval_no_deform_render(Depsgraph *depsgraph,
                                         const CustomData_MeshMasks *dataMask);
 
 }  // namespace blender::bke
-
-#ifndef NDEBUG
-bool BKE_mesh_runtime_is_valid(Mesh *mesh_eval);
-#endif /* !NDEBUG */
