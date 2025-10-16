@@ -2840,6 +2840,15 @@ static void rna_def_object_visibility(StructRNA *srna)
       prop, "Disable in Planar Light Probes", "Globally disable in planar light probes");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
 
+  prop = RNA_def_property(srna, "hide_surface_pick", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "visibility_flag", OB_HIDE_SURFACE_PICK);
+  RNA_def_property_ui_text(
+      prop,
+      "Disable in Surface Picking",
+      "Disable surface influence during selection, snapping and depth-picking operators. "
+      "Usually used to avoid semi-transparent objects to affect scene navigation");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
+
   /* Instancer options. */
   prop = RNA_def_property(srna, "show_instancer_for_render", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "duplicator_visibility_flag", OB_DUPLI_FLAG_RENDER);

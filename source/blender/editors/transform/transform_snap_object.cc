@@ -580,6 +580,11 @@ static eSnapMode raycast_obj_fn(SnapObjectContext *sctx,
 {
   bool retval = false;
 
+  if (ob_eval->visibility_flag & OB_HIDE_SURFACE_PICK) {
+    /* Do not snap it surface picking is disabled. */
+    return SCE_SNAP_TO_NONE;
+  }
+
   if (ob_data == nullptr) {
     if ((sctx->runtime.occlusion_test_edit == SNAP_OCCLUSION_AS_SEEM) &&
         ELEM(ob_eval->dt, OB_BOUNDBOX, OB_WIRE))
