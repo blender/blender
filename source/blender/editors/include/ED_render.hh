@@ -28,6 +28,9 @@ struct ViewLayer;
 struct World;
 struct wmWindow;
 struct wmWindowManager;
+namespace blender {
+class StringRef;
+}
 
 /* `render_ops.cc` */
 
@@ -116,6 +119,8 @@ void ED_preview_restart_queue_work(const bContext *C);
 
 void ED_preview_kill_jobs(wmWindowManager *wm, Main *bmain);
 void ED_preview_kill_jobs_for_id(wmWindowManager *wm, const ID *id);
+
+void ED_preview_online_download_finished(wmWindowManager *wm, blender::StringRef preview_full_filepath);
 
 void ED_preview_draw(
     const bContext *C, void *idp, void *parentp, void *slotp, uiPreview *ui_preview, rcti *rect);

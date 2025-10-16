@@ -398,7 +398,6 @@ int rna_userdef_asset_library_path_editable(const PointerRNA *ptr, const char **
     *r_info = N_("The download cache directory of remote asset libraries cannot be changed");
     return PropertyFlag(0);
   }
-
   return PROP_EDITABLE;
 }
 

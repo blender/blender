@@ -25,8 +25,10 @@
 #include "DNA_asset_types.h"
 
 struct AssetMetaData;
+struct bContext;
 struct ID;
 struct PreviewImage;
+struct ReportList;
 
 namespace blender::asset_system {
 
@@ -42,10 +44,13 @@ class AssetRepresentation : NonCopyable, NonMovable {
   std::string relative_identifier_;
 
   /** Information specific to online assets. */
+  /* TODO move to #AS_remote_library.hh, use instead of passing individual members through API
+   * functions? */
   struct OnlineAssetInfo {
     /** The path this file should be downloaded to. Usually relative, but isn't required to. The
      * downloader accepts both cases, see #download_asset() in Python. */
     std::string download_dst_filepath_;
+    std::optional<std::string> preview_url_;
   };
 
   struct ExternalAsset {
@@ -76,8 +81,6 @@ class AssetRepresentation : NonCopyable, NonMovable {
   /**
    * Constructs an asset representation for an external ID stored online (requiring download).
    *
-   * Previews will use specialized handling see #THB_SOURCE_ONLINE_ASSET.
-   *
    * \param download_dst_filepath: See #download_dst_filepath() getter.
    */
   AssetRepresentation(StringRef relative_asset_path,
@@ -85,7 +88,8 @@ class AssetRepresentation : NonCopyable, NonMovable {
                       int id_type,
                       std::unique_ptr<AssetMetaData> metadata,
                       AssetLibrary &owner_asset_library,
-                      StringRef download_dst_filepath);
+                      StringRef download_dst_filepath,
+                      std::optional<StringRef> preview_url);
   /**
    * Constructs an asset representation for an ID stored in the current file. This makes the asset
    * local and fully editable.
@@ -107,8 +111,10 @@ class AssetRepresentation : NonCopyable, NonMovable {
    * to the preview but doesn't actually load it. To load it, attach its
    * #PreviewImageRuntime::icon_id to a UI button (UI loads it asynchronously then) or call
    * #BKE_previewimg_ensure() (not asynchronous).
+   *
+   * For online assets this triggers downloading.
    */
-  void ensure_previewable();
+  void ensure_previewable(bContext &C, ReportList *reports = nullptr);
   /**
    * Get the preview of this asset.
    *
@@ -132,7 +138,13 @@ class AssetRepresentation : NonCopyable, NonMovable {
    *
    * Will return an empty value if this is not an online asset.
    */
-  std::optional<StringRef> download_dst_filepath() const;
+  std::optional<StringRefNull> download_dst_filepath() const;
+  /**
+   * For online assets (see #is_online()), the URL the asset's preview should be requested from.
+   *
+   * Will return an empty value if this is not an online asset.
+   */
+  std::optional<StringRefNull> online_asset_preview_url() const;
   /**
    * If the asset is marked as online, removes the online data and marking, turning it into a
    * regular on-disk asset.

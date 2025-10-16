@@ -8,9 +8,7 @@
 
 #pragma once
 
-#include <chrono>
 #include <cstdint>
-#include <map>
 #include <memory>
 
 #include "BLI_fileops.h"
@@ -37,15 +35,11 @@ namespace blender {
 namespace asset_system {
 class AssetLibrary;
 class AssetRepresentation;
-class RemoteLibraryLoadingStatus;
 }  // namespace asset_system
 namespace ed::asset_browser {
 class AssetCatalogFilterSettings;
 }
 }  // namespace blender
-
-using RemoteLibraryLoadingStatus = blender::asset_system::RemoteLibraryLoadingStatus;
-using TimePoint = std::chrono::steady_clock::time_point;
 
 /* ------------------FILELIST------------------------ */
 
@@ -154,10 +148,6 @@ struct FileListEntryCache {
    * previews either in `previews_pool` or `previews_done`. #filelist_cache_previews_update() makes
    * previews in `preview_done` ready for display, so the counter is decremented there. */
   int previews_todo_count = 0;
-
-  struct RemoteAssetLibraryPreviewLoading {
-    std::map<std::string, TimePoint> last_new_previews_time_by_url;
-  } remote_preview_loading;
 
   FileListEntryCache();
   ~FileListEntryCache();
