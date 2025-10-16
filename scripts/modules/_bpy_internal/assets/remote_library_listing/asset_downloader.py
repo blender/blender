@@ -26,13 +26,6 @@ logger = logging.getLogger(__name__)
 
 _asset_downloaders: dict[str, AssetDownloader] = {}
 
-_asset_downloaders_last_status: dict[str, DownloadStatus] = {}
-"""Last-known downloader status, for those downloaders that have stopped already.
-
-_asset_downloaders contains only the running downloaders, so when they're
-finished, their status can be obtained here.
-"""
-
 
 def download_asset(asset_library_url: str, asset_library_local_path: Path, asset_url: str, save_to: Path) -> None:
     """Download an asset to a file on disk.
@@ -53,14 +46,14 @@ def download_asset(asset_library_url: str, asset_library_local_path: Path, asset
     """
     try:
         downloader = _asset_downloaders[asset_library_url]
+        assert downloader.local_path == asset_library_local_path, "This code assumes that remote asset libraries do not move on the local disk"
     except KeyError:
         downloader = AssetDownloader(asset_library_url, asset_library_local_path,
                                      lambda x: None,
                                      _download_done,
-                                     _destroy_asset_downloader)
+                                     lambda x: None)
         downloader.start()
         _asset_downloaders[asset_library_url] = downloader
-        _asset_downloaders_last_status.pop(asset_library_url, None)
 
     downloader.download_asset(asset_url, save_to)
 
@@ -74,10 +67,6 @@ def _download_done(downloader: AssetDownloader) -> None:
     wm.asset_library_status_ping_loaded_new_assets(downloader.remote_url)
 
 
-def _destroy_asset_downloader(downloader: AssetDownloader) -> None:
-    """Delete the reference to this downloader, as it has been shut down."""
-    _asset_downloaders_last_status[downloader.remote_url] = downloader.status
-    del _asset_downloaders[downloader.remote_url]
 
 
 def downloader_status(asset_library_url: str) -> DownloadStatus:
@@ -88,9 +77,7 @@ def downloader_status(asset_library_url: str) -> DownloadStatus:
 
     Raises a KeyError if there never was a downloader for this URL.
     """
-    if asset_library_url in _asset_downloaders:
-        return _asset_downloaders[asset_library_url].status
-    return _asset_downloaders_last_status[asset_library_url]
+    return _asset_downloaders[asset_library_url].status
 
 
 class DownloadStatus(enum.Enum):
@@ -118,7 +105,7 @@ class AssetDownloader:
     OnAssetDoneCallback: TypeAlias = Callable[['AssetDownloader'], None]
     _on_asset_done_callback: OnAssetDoneCallback | None
 
-    _bgdownloader: http_dl.BackgroundDownloader
+    _bgdownloader: http_dl.BackgroundDownloader | None
     _num_assets_pending: int
 
     _status: DownloadStatus
@@ -185,9 +172,9 @@ class AssetDownloader:
             cache_location=self._locator.http_metadata_cache_location,
         )
 
-        # Create the background downloader object now, so that it
-        # (hypothetically in some future) can be adjusted before the actual
-        # downloading begins.
+        self._bg_downloader = None
+
+    def _create_bg_downloader(self) -> None:
         self._bg_downloader = http_dl.BackgroundDownloader(
             options=http_dl.DownloaderOptions(
                 metadata_provider=self._http_metadata_provider,
@@ -206,6 +193,9 @@ class AssetDownloader:
 
     def start(self) -> None:
         """Start the background process."""
+        if not self._bg_downloader:
+            self._create_bg_downloader()
+            assert self._bg_downloader
         self._bg_downloader.start()
 
         # Register the timer for periodic message passing between the main and
@@ -221,11 +211,16 @@ class AssetDownloader:
 
     def download_asset(self, asset_url: str, save_to: Path) -> None:
         """Download an asset to a local file."""
+
+        # If the downloader was shut down, start it up again.
+        if not self._bg_downloader:
+            self.start()
+
         self._status = DownloadStatus.DOWNLOADING
         self._queue_download(asset_url, save_to)
 
     def _shutdown_if_done(self) -> None:
-        if self._num_assets_pending == 0 and self._bg_downloader.all_downloads_done:
+        if self._num_assets_pending == 0 and (self._bg_downloader is None or self._bg_downloader.all_downloads_done):
             # Done downloading everything, let's shut down.
 
             # TODO: delay this for a few minutes, so that we don't need a new
@@ -250,6 +245,7 @@ class AssetDownloader:
 
         logger.info("downloading %s to %s", remote_url, download_to_path)
 
+        assert self._bg_downloader, "downloads can only be queued when the bgdownloader is available"
         self._bg_downloader.queue_download(
             remote_url,
             download_to_path,
@@ -280,24 +276,28 @@ class AssetDownloader:
             bpy.app.timers.unregister(self.on_timer_event)
 
         try:
-            # Only report if this is actually triggering a shutdown. If that was
-            # already triggered somehow, don't bother.
-            if not self._bg_downloader.is_shutdown_requested:
-                # It may be tempting to call self.report(...) here, and report on the
-                # cancellation. However, this should be done by the caller, when they know
-                # of the reason of the cancellation and thus can provide more info.
-                num_pending = self._bg_downloader.num_pending_downloads
-                if num_pending:
-                    logger.warning("Shutting down background downloader, %d downloads pending", num_pending)
+            if self._bg_downloader:
+                # Only report if this is actually triggering a shutdown. If that was
+                # already triggered somehow, don't bother.
+                if not self._bg_downloader.is_shutdown_requested:
+                    # It may be tempting to call self.report(...) here, and report on the
+                    # cancellation. However, this should be done by the caller, when they know
+                    # of the reason of the cancellation and thus can provide more info.
+                    num_pending = self._bg_downloader.num_pending_downloads
+                    if num_pending:
+                        logger.warning("Shutting down background downloader, %d downloads pending", num_pending)
 
-            self._bg_downloader.shutdown()
+                self._bg_downloader.shutdown()
         finally:
             # Regardless of whether the shutdown had some issues, the timer has
             # been unregistered, so there will be no more message handling, and
             # so for all intents and purposes, the downloader is done.
+            self._bg_downloader = None
             self._on_done_callback(self)
 
     def on_timer_event(self) -> float:
+        assert self._bg_downloader, "timer events should only come in while the bgdownloader is available"
+
         try:
             self._bg_downloader.update()
         except http_dl.BackgroundProcessNotRunningError:
