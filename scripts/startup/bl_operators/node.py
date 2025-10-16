@@ -918,32 +918,15 @@ class NODE_OT_interface_item_new(NodeInterfaceOperator, Operator):
     bl_label = "New Item"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def get_items(_self, context):
-        items = [
-            ('INPUT', "Input", ""),
-            ('OUTPUT', "Output", ""),
-            ('PANEL', "Panel", ""),
-        ]
-
-        if context is None:
-            return items
-
-        snode = context.space_data
-        tree = snode.edit_tree
-        interface = tree.interface
-
-        active_item = interface.active
-        # Panels have the extra option to add a toggle.
-        if active_item and active_item.item_type == 'PANEL':
-            items.append(('PANEL_TOGGLE', "Panel Toggle", ""))
-
-        return items
-
     item_type: EnumProperty(
         name="Item Type",
         description="Type of the item to create",
-        items=get_items,
-        default=0,
+        items=(
+            ('INPUT', "Input", ""),
+            ('OUTPUT', "Output", ""),
+            ('PANEL', "Panel", ""),
+        ),
+        default='INPUT',
     )
 
     # Returns a valid socket type for the given tree or None.
@@ -979,18 +962,6 @@ class NODE_OT_interface_item_new(NodeInterfaceOperator, Operator):
             item = interface.new_socket("Socket", socket_type=self.find_valid_socket_type(tree), in_out='OUTPUT')
         elif self.item_type == 'PANEL':
             item = interface.new_panel("Panel")
-        elif self.item_type == 'PANEL_TOGGLE':
-            active_panel = active_item
-            if len(active_panel.interface_items) > 0:
-                first_item = active_panel.interface_items[0]
-                if type(first_item) is bpy.types.NodeTreeInterfaceSocketBool and first_item.is_panel_toggle:
-                    self.report({'INFO'}, "Panel already has a toggle")
-                    return {'CANCELLED'}
-            item = interface.new_socket(active_panel.name, socket_type='NodeSocketBool', in_out='INPUT')
-            item.is_panel_toggle = True
-            interface.move_to_parent(item, active_panel, 0)
-            # Return in this case because we don't want to move the item.
-            return {'FINISHED'}
         else:
             return {'CANCELLED'}
 
@@ -1002,6 +973,55 @@ class NODE_OT_interface_item_new(NodeInterfaceOperator, Operator):
                 interface.move_to_parent(item, active_item.parent, active_pos + 1)
         interface.active = item
 
+        return {'FINISHED'}
+
+
+class NODE_OT_interface_item_new_panel_toggle(Operator):
+    '''Add a checkbox to the currently selected panel'''
+    bl_idname = "node.interface_item_new_panel_toggle"
+    bl_label = "New Panel Toggle"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @staticmethod
+    def get_panel_toggle(panel):
+        if len(panel.interface_items) > 0:
+            first_item = panel.interface_items[0]
+            if type(first_item) is bpy.types.NodeTreeInterfaceSocketBool and first_item.is_panel_toggle:
+                return first_item
+
+        return None
+
+    @classmethod
+    def poll(cls, context):
+        try:
+            snode = context.space_data
+            tree = snode.edit_tree
+            interface = tree.interface
+
+            active_item = interface.active
+
+            if active_item.item_type != 'PANEL':
+                cls.poll_message_set("Active item is not a panel")
+                return False
+
+            if cls.get_panel_toggle(active_item) is not None:
+                cls.poll_message_set("Panel already has a toggle")
+                return False
+
+            return True
+        except AttributeError:
+            return False
+
+    def execute(self, context):
+        snode = context.space_data
+        tree = snode.edit_tree
+
+        interface = tree.interface
+        active_panel = interface.active
+
+        item = interface.new_socket(active_panel.name, socket_type='NodeSocketBool', in_out='INPUT')
+        item.is_panel_toggle = True
+        interface.move_to_parent(item, active_panel, 0)
         return {'FINISHED'}
 
 
@@ -1311,6 +1331,7 @@ classes = (
     NODE_OT_add_closure_zone,
     NODE_OT_collapse_hide_unused_toggle,
     NODE_OT_interface_item_new,
+    NODE_OT_interface_item_new_panel_toggle,
     NODE_OT_interface_item_duplicate,
     NODE_OT_interface_item_remove,
     NODE_OT_interface_item_make_panel_toggle,
