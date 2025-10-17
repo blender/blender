@@ -148,7 +148,8 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
                 if hotkey[7]:
                     hotkey_name = hotkey[7]
 
-                    if self.hotkey_list_filter.lower() in hotkey_name.lower():
+                    if (self.hotkey_list_filter.lower() in hotkey_name.lower()
+                            or self.hotkey_list_filter.lower() in iface_(hotkey_name).lower()):
                         row = col.row(align=True)
                         row.label(text=hotkey_name)
                         keystr = iface_(nice_hotkey_name(hotkey[1]), i18n_contexts.ui_events_keymaps)
