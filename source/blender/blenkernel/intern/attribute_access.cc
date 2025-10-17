@@ -1135,10 +1135,29 @@ void copy_attributes_group_to_group(const AttributeAccessor src_attributes,
       return;
     }
     const GVArraySpan src = *iter.get(src_domain);
+    const bool dst_already_exists = dst_attributes.contains(iter.name);
     GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         iter.name, dst_domain, iter.data_type);
     if (!dst) {
       return;
+    }
+    if (!dst_already_exists) {
+      /* Skip filling with the default value if all of the data is going to be filled. */
+      if (!(dst_offsets.total_size() == dst.span.size() && selection.size() == dst_offsets.size()))
+      {
+        const CPPType &type = dst.span.type();
+        if (dst_attributes.is_builtin(iter.name)) {
+          if (const GPointer value = dst_attributes.get_builtin_default(iter.name)) {
+            type.fill_construct_n(value.get(), dst.span.data(), dst.span.size());
+          }
+          else {
+            type.fill_construct_n(type.default_value(), dst.span.data(), dst.span.size());
+          }
+        }
+        else {
+          type.fill_construct_n(type.default_value(), dst.span.data(), dst.span.size());
+        }
+      }
     }
     array_utils::copy_group_to_group(src_offsets, dst_offsets, selection, src, dst.span);
     dst.finish();
