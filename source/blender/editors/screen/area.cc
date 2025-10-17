@@ -1921,7 +1921,7 @@ static void area_calc_totrct(const bScreen *screen, ScrArea *area, const rcti *w
 /**
  * Update the `ARegion::visible` flag.
  */
-static void region_evaulate_visibility(ARegion *region)
+static void region_evaluate_visibility(ARegion *region)
 {
   bool hidden = (region->flag & (RGN_FLAG_POLL_FAILED | RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) !=
                 0;
@@ -2067,7 +2067,7 @@ void ED_area_update_region_sizes(wmWindowManager *wm, wmWindow *win, ScrArea *ar
     if (region->flag & RGN_FLAG_POLL_FAILED) {
       continue;
     }
-    region_evaulate_visibility(region);
+    region_evaluate_visibility(region);
 
     /* region size may have changed, init does necessary adjustments */
     if (region->runtime->type->init) {
@@ -2178,7 +2178,7 @@ void ED_area_init(bContext *C, const wmWindow *win, ScrArea *area)
 
   /* region windows, default and own handlers */
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    region_evaulate_visibility(region);
+    region_evaluate_visibility(region);
 
     if (region->runtime->visible) {
       /* default region handlers */
@@ -2303,7 +2303,7 @@ void ED_region_floating_init(ARegion *region)
   BLI_assert(region->alignment == RGN_ALIGN_FLOAT);
 
   /* refresh can be called before window opened */
-  region_evaulate_visibility(region);
+  region_evaluate_visibility(region);
 
   region_update_rect(region);
 }
