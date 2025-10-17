@@ -509,6 +509,10 @@ static void gwl_window_resize_for_backend(GWL_Window *win, const int32_t size[2]
 #endif
 #ifdef WITH_VULKAN_BACKEND
   if (win->ghost_context_type == GHOST_kDrawingContextTypeVulkan) {
+    /* FIXME: unlike EGL, the underlying surface is not resized
+     * which is needed in situations where the buffer scale changes
+     * (moving the window to an output with a different scale for e.g.).
+     * Failing to do so can exit with a protocol error, see: #148243. */
     win->backend.vulkan_window_info->size[0] = size[0];
     win->backend.vulkan_window_info->size[1] = size[1];
   }
