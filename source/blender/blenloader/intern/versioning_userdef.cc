@@ -390,6 +390,26 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(common.anim.scene_strip_range);
   }
 
+  /* Reset the theme due to compatibility breaking changes in 5.0. */
+  if (!USER_VERSION_ATLEAST(500, 111)) {
+    MEMCPY_STRUCT_AFTER(btheme, &U_theme_default, name);
+    /* Update text styles to match. */
+    LISTBASE_FOREACH (uiStyle *, style, &userdef->uistyles) {
+      style->paneltitle.points = 11.0f;
+      style->paneltitle.shadow = 3;
+      style->paneltitle.shadowalpha = 0.5f;
+      style->paneltitle.shadowcolor = 0.0f;
+      style->widget.points = 11.0f;
+      style->widget.shadow = 1;
+      style->widget.shadowalpha = 0.5f;
+      style->widget.shadowcolor = 0.0f;
+      style->tooltip.shadow = 1;
+      style->tooltip.points = 11.0f;
+      style->tooltip.shadowalpha = 0.5f;
+      style->tooltip.shadowcolor = 0.0f;
+    }
+  }
+
   if (!USER_VERSION_ATLEAST(501, 3)) {
     FROM_DEFAULT_V4_UCHAR(space_action.anim_interpolation_other);
     FROM_DEFAULT_V4_UCHAR(space_action.anim_interpolation_constant);
