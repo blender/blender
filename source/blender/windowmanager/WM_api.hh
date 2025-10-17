@@ -22,6 +22,7 @@
 #include "BLI_array.hh"
 #include "BLI_bounds_types.hh"
 #include "BLI_compiler_attrs.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.h"
@@ -212,7 +213,7 @@ enum eWM_CapabilitiesFlag {
   /** The initial value, indicates the value needs to be set by inspecting GHOST. */
   WM_CAPABILITY_INITIALIZED = (1u << 31),
 };
-ENUM_OPERATORS(eWM_CapabilitiesFlag, WM_CAPABILITY_WINDOW_DECORATION_STYLES)
+ENUM_OPERATORS(eWM_CapabilitiesFlag)
 
 /**
  * Return the capabilities of the windowing system.
@@ -431,7 +432,7 @@ enum eWM_WindowDecorationStyleFlag {
   /** Colored TitleBar. */
   WM_WINDOW_DECORATION_STYLE_COLORED_TITLEBAR = (1 << 0),
 };
-ENUM_OPERATORS(eWM_WindowDecorationStyleFlag, WM_WINDOW_DECORATION_STYLE_COLORED_TITLEBAR)
+ENUM_OPERATORS(eWM_WindowDecorationStyleFlag)
 
 /**
  * Get the window decoration style flags.
@@ -584,7 +585,7 @@ enum eWM_EventHandlerFlag {
   /** Handler tagged to be freed in #wm_handlers_do(). */
   WM_HANDLER_DO_FREE = (1 << 7),
 };
-ENUM_OPERATORS(eWM_EventHandlerFlag, WM_HANDLER_DO_FREE)
+ENUM_OPERATORS(eWM_EventHandlerFlag)
 
 using EventHandlerPoll = bool (*)(const wmWindow *win,
                                   const ScrArea *area,
@@ -1111,7 +1112,7 @@ enum eFileSel_Flag {
   /** Show the properties sidebar by default. */
   WM_FILESEL_SHOW_PROPS = 1 << 5,
 };
-ENUM_OPERATORS(eFileSel_Flag, WM_FILESEL_SHOW_PROPS)
+ENUM_OPERATORS(eFileSel_Flag)
 
 /** Action for #WM_operator_properties_filesel. */
 enum eFileSel_Action {
@@ -1749,7 +1750,7 @@ enum eWM_JobFlag {
   WM_JOB_EXCL_RENDER = (1 << 1),
   WM_JOB_PROGRESS = (1 << 2),
 };
-ENUM_OPERATORS(eWM_JobFlag, WM_JOB_PROGRESS);
+ENUM_OPERATORS(eWM_JobFlag);
 
 /**
  * Identifying jobs by owner alone is unreliable, this isn't saved, order can change.

@@ -4348,7 +4348,7 @@ static uiBut *ui_def_but(uiBlock *block,
   uiBut *but = block->buttons.last().get();
 
   but->pointype = but_and_ptr_type.pointer_type & UI_BUT_POIN_TYPES;
-  but->bit = bool(but_and_ptr_type.pointer_type & ButPointerType::Bit);
+  but->bit = flag_is_set(but_and_ptr_type.pointer_type, ButPointerType::Bit);
   but->bitnr = but_and_ptr_type.bit_index;
 
   but->retval = retval;

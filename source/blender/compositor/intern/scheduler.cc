@@ -87,11 +87,11 @@ static void add_output_nodes(const Context &context,
 {
   const DTreeContext &root_context = tree.root_context();
 
-  if (bool(context.needed_outputs() & OutputTypes::FileOutput)) {
+  if (flag_is_set(context.needed_outputs(), OutputTypes::FileOutput)) {
     add_file_output_nodes(root_context, node_stack);
   }
 
-  if (bool(context.needed_outputs() & OutputTypes::Composite)) {
+  if (flag_is_set(context.needed_outputs(), OutputTypes::Composite)) {
     for (const bNode *node : root_context.btree().nodes_by_type("NodeGroupOutput")) {
       if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
         node_stack.push(DNode(&root_context, node));
@@ -100,7 +100,7 @@ static void add_output_nodes(const Context &context,
     }
   }
 
-  if (bool(context.needed_outputs() & OutputTypes::Viewer)) {
+  if (flag_is_set(context.needed_outputs(), OutputTypes::Viewer)) {
     /* Check if the active context has a viewer node, if not, check the root context. */
     DNode viewer_node = find_viewer_node_in_context(tree.active_context());
     if (!viewer_node) {

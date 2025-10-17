@@ -15,7 +15,7 @@
 #include <string>
 
 #include "BLI_assert.h"
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
 
 #include "GPU_format.hh"
 
@@ -308,7 +308,7 @@ enum GPUSamplerFiltering {
   GPU_SAMPLER_FILTERING_ANISOTROPIC = (1 << 2),
 };
 
-ENUM_OPERATORS(GPUSamplerFiltering, GPU_SAMPLER_FILTERING_ANISOTROPIC)
+ENUM_OPERATORS(GPUSamplerFiltering)
 
 /** The number of every possible filtering configuration. */
 static const int GPU_SAMPLER_FILTERING_TYPES_COUNT = (GPU_SAMPLER_FILTERING_LINEAR |
@@ -705,7 +705,7 @@ enum eGPUTextureUsage {
                                          GPU_TEXTURE_USAGE_MEMORY_EXPORT))),
 };
 
-ENUM_OPERATORS(eGPUTextureUsage, GPU_TEXTURE_USAGE_GENERAL);
+ENUM_OPERATORS(eGPUTextureUsage);
 
 /** \} */
 

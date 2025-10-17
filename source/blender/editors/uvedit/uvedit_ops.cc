@@ -21,12 +21,12 @@
 #include "DNA_space_types.h"
 
 #include "BLI_bounds.hh"
+#include "BLI_enum_flags.hh"
 #include "BLI_kdtree.h"
 #include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
@@ -491,7 +491,7 @@ enum eUVEndPointPrecedence {
   UVEP_SELECTED = (1 << 0),
   UVEP_PINNED = (1 << 1), /* i.e. Pinned verts are preferred to selected. */
 };
-ENUM_OPERATORS(eUVEndPointPrecedence, UVEP_PINNED);
+ENUM_OPERATORS(eUVEndPointPrecedence);
 
 static eUVEndPointPrecedence uvedit_line_update_get_precedence(const bool pinned)
 {

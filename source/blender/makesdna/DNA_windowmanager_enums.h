@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
 
 /**
  * Operator type return flags: exec(), invoke() modal(), return values.
@@ -39,7 +39,7 @@ enum wmOperatorStatus {
   } \
   ((void)0)
 
-ENUM_OPERATORS(wmOperatorStatus, OPERATOR_INTERFACE);
+ENUM_OPERATORS(wmOperatorStatus);
 
 /** #wmOperator.flag */
 enum {

@@ -28,13 +28,13 @@
 
 #include "GHOST_C-api.h"
 
+#include "BLI_enum_flags.hh"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_timer.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
@@ -120,7 +120,7 @@ enum eHandlerActionFlag {
   /** `WM_HANDLER_MODAL | WM_HANDLER_BREAK` means unhandled. */
   WM_HANDLER_MODAL = 1 << 2,
 };
-ENUM_OPERATORS(eHandlerActionFlag, WM_HANDLER_MODAL);
+ENUM_OPERATORS(eHandlerActionFlag);
 /** Comparison, for readability. */
 #define WM_HANDLER_CONTINUE ((eHandlerActionFlag)0)
 

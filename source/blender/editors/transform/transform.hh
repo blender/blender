@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -118,7 +119,7 @@ enum eTContext {
   /** Enable edge scrolling in 2D views. */
   CTX_VIEW2D_EDGE_PAN = (1 << 15),
 };
-ENUM_OPERATORS(eTContext, CTX_VIEW2D_EDGE_PAN)
+ENUM_OPERATORS(eTContext)
 
 /** #TransInfo.flag */
 enum eTFlag {
@@ -189,7 +190,7 @@ enum eTFlag {
   /** Transform origin. */
   T_ORIGIN = 1 << 27,
 };
-ENUM_OPERATORS(eTFlag, T_ORIGIN);
+ENUM_OPERATORS(eTFlag);
 
 /** #TransInfo.modifiers */
 enum eTModifier {
@@ -204,7 +205,7 @@ enum eTModifier {
   MOD_NODE_FRAME = 1 << 8,
   MOD_STRIP_CLAMP_HOLDS = 1 << 9,
 };
-ENUM_OPERATORS(eTModifier, MOD_EDIT_SNAP_SOURCE)
+ENUM_OPERATORS(eTModifier)
 
 /** #TransSnap.status */
 enum eTSnap {
@@ -214,7 +215,7 @@ enum eTSnap {
   SNAP_TARGET_FOUND = 1 << 1,
   SNAP_MULTI_POINTS = 1 << 2,
 };
-ENUM_OPERATORS(eTSnap, SNAP_MULTI_POINTS)
+ENUM_OPERATORS(eTSnap)
 
 /** #TransSnap.direction */
 enum eSnapDir {
@@ -222,7 +223,7 @@ enum eSnapDir {
   DIR_GLOBAL_Y = (1 << 1),
   DIR_GLOBAL_Z = (1 << 2),
 };
-ENUM_OPERATORS(eSnapDir, DIR_GLOBAL_Z)
+ENUM_OPERATORS(eSnapDir)
 
 /** #TransCon.mode, #TransInfo.con.mode */
 enum eTConstraint {
@@ -235,7 +236,7 @@ enum eTConstraint {
   CON_SELECT = 1 << 4,
   CON_USER = 1 << 5,
 };
-ENUM_OPERATORS(eTConstraint, CON_USER)
+ENUM_OPERATORS(eTConstraint)
 
 /** #TransInfo.state */
 enum eTState {
@@ -251,7 +252,7 @@ enum eRedrawFlag {
   TREDRAW_SOFT = (1 << 0),
   TREDRAW_HARD = (1 << 1) | TREDRAW_SOFT,
 };
-ENUM_OPERATORS(eRedrawFlag, TREDRAW_HARD)
+ENUM_OPERATORS(eRedrawFlag)
 
 /** #TransInfo.helpline */
 enum eTHelpline {

@@ -156,7 +156,7 @@ enum eObjectInfoFlag : uint32_t {
 };
 
 #ifndef GPU_SHADER
-ENUM_OPERATORS(eObjectInfoFlag, OBJECT_ACTIVE_EDIT_MODE);
+ENUM_OPERATORS(eObjectInfoFlag);
 #endif
 
 struct ObjectInfos {

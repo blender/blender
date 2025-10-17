@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_array.hh"
+#include "BLI_enum_flags.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "ED_anim_api.hh" /* for enum eAnimFilter_Flags */
@@ -162,7 +163,7 @@ enum eKeyframeIterFlags {
   /* Represents "Show Handles" option (SIPO_NOHANDLES). */
   KEYFRAME_ITER_HANDLES_INVISIBLE = (1 << 4),
 };
-ENUM_OPERATORS(eKeyframeIterFlags, KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE)
+ENUM_OPERATORS(eKeyframeIterFlags)
 
 /** \} */
 

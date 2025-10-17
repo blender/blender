@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
 #include "BLI_linklist.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.h"
@@ -92,7 +93,7 @@ enum eLineArtElementNodeFlag {
   LRT_ELEMENT_NO_INTERSECTION = (1 << 2),
   LRT_ELEMENT_INTERSECTION_DATA = (1 << 3),
 };
-ENUM_OPERATORS(eLineArtElementNodeFlag, LRT_ELEMENT_INTERSECTION_DATA);
+ENUM_OPERATORS(eLineArtElementNodeFlag);
 
 struct LineartElementLinkNode {
   LineartElementLinkNode *next, *prev;

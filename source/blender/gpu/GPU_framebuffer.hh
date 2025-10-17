@@ -27,6 +27,8 @@
 #include "GPU_common_types.hh"
 #include "GPU_texture.hh"
 
+#include "BLI_enum_flags.hh"
+
 namespace blender::gpu {
 class Texture;
 class FrameBuffer;
@@ -38,7 +40,7 @@ enum GPUFrameBufferBits {
   GPU_STENCIL_BIT = (1 << 2),
 };
 
-ENUM_OPERATORS(GPUFrameBufferBits, GPU_STENCIL_BIT)
+ENUM_OPERATORS(GPUFrameBufferBits)
 
 /* Guaranteed by the spec and is never greater than 16 on any hardware or implementation. */
 constexpr static int GPU_MAX_VIEWPORTS = 16;

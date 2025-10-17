@@ -11,6 +11,7 @@
 #include <functional>
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
@@ -564,7 +565,7 @@ enum uiButtonGroupFlag {
   /** The buttons in this group are inside a panel header. */
   UI_BUTTON_GROUP_PANEL_HEADER = (1 << 1),
 };
-ENUM_OPERATORS(uiButtonGroupFlag, UI_BUTTON_GROUP_PANEL_HEADER);
+ENUM_OPERATORS(uiButtonGroupFlag);
 
 /**
  * A group of button references, used by property search to keep track of sets of buttons that

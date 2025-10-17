@@ -29,6 +29,7 @@
 
 #include "GHOST_C-api.h"
 
+#include "BLI_enum_flags.hh"
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
@@ -38,7 +39,6 @@
 #include "BLI_string_utf8.h"
 #include "BLI_system.h"
 #include "BLI_time.h"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
@@ -107,7 +107,7 @@ enum eWinOverrideFlag {
   WIN_OVERRIDE_GEOM = (1 << 0),
   WIN_OVERRIDE_WINSTATE = (1 << 1),
 };
-ENUM_OPERATORS(eWinOverrideFlag, WIN_OVERRIDE_WINSTATE)
+ENUM_OPERATORS(eWinOverrideFlag)
 
 #define GHOST_WINDOW_STATE_DEFAULT GHOST_kWindowStateMaximized
 

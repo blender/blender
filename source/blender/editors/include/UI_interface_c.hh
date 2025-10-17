@@ -13,10 +13,10 @@
 #include <string>
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_string_utf8_symbols.h"
 #include "BLI_sys_types.h" /* size_t */
-#include "BLI_utildefines.h"
 
 #include "DNA_userdef_types.h"
 
@@ -395,7 +395,7 @@ enum class ButPointerType : uint8_t {
   // ButPointerType::Function = 192, /* UNUSED */
   Bit = 1 << 7, /* OR'd with a bit index. */
 };
-ENUM_OPERATORS(ButPointerType, ButPointerType::Bit);
+ENUM_OPERATORS(ButPointerType);
 /** \note requires `uiBut::poin != nullptr`. */
 #define UI_BUT_POIN_TYPES (ButPointerType::Float | ButPointerType::Short | ButPointerType::Char)
 
@@ -1706,7 +1706,7 @@ enum eAutoPropButsReturn {
   UI_PROP_BUTS_ANY_FAILED_CHECK = 1 << 1,
 };
 
-ENUM_OPERATORS(eAutoPropButsReturn, UI_PROP_BUTS_ANY_FAILED_CHECK);
+ENUM_OPERATORS(eAutoPropButsReturn);
 
 uiBut *uiDefAutoButR(uiBlock *block,
                      PointerRNA *ptr,
@@ -2586,10 +2586,8 @@ enum uiTemplateListFlags {
   UI_TEMPLATE_LIST_NO_FILTER_OPTIONS = (1 << 3),
   /** For #UILST_LAYOUT_BIG_PREVIEW_GRID, don't reserve space for the name label. */
   UI_TEMPLATE_LIST_NO_NAMES = (1 << 4),
-
-  UI_TEMPLATE_LIST_FLAGS_LAST
 };
-ENUM_OPERATORS(uiTemplateListFlags, UI_TEMPLATE_LIST_FLAGS_LAST);
+ENUM_OPERATORS(uiTemplateListFlags);
 
 void uiTemplateList(uiLayout *layout,
                     const bContext *C,

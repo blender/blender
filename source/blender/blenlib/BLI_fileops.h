@@ -19,8 +19,8 @@
 #include <limits.h> /* for PATH_MAX */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_fileops_types.h"
-#include "BLI_utildefines.h"
 
 #ifndef PATH_MAX
 #  define PATH_MAX 4096
@@ -155,7 +155,7 @@ typedef enum eFileAttributes {
   FILE_ATTR_MOUNT_POINT = 1 << 14,    /* Volume mounted as a folder. */
   FILE_ATTR_HARDLINK = 1 << 15,       /* Duplicated directory entry. */
 } eFileAttributes;
-ENUM_OPERATORS(eFileAttributes, FILE_ATTR_HARDLINK);
+ENUM_OPERATORS(eFileAttributes);
 
 #define FILE_ATTR_ANY_LINK \
   (FILE_ATTR_ALIAS | FILE_ATTR_REPARSE_POINT | FILE_ATTR_SYMLINK | FILE_ATTR_JUNCTION_POINT | \

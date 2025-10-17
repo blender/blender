@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_listBase.h"
@@ -45,7 +45,7 @@ enum eWM_GizmoFlagState {
   WM_GIZMO_STATE_MODAL = (1 << 1),
   WM_GIZMO_STATE_SELECT = (1 << 2),
 };
-ENUM_OPERATORS(eWM_GizmoFlagState, WM_GIZMO_STATE_SELECT)
+ENUM_OPERATORS(eWM_GizmoFlagState)
 
 /**
  * #wmGizmo.flag
@@ -90,7 +90,7 @@ enum eWM_GizmoFlag {
   /** Push an undo step after each use of the gizmo. */
   WM_GIZMO_NEEDS_UNDO = (1 << 13),
 };
-ENUM_OPERATORS(eWM_GizmoFlag, WM_GIZMO_NEEDS_UNDO);
+ENUM_OPERATORS(eWM_GizmoFlag);
 
 /**
  * #wmGizmoGroupType.flag
@@ -156,7 +156,7 @@ enum eWM_GizmoFlagGroupTypeFlag {
   WM_GIZMOGROUPTYPE_VR_REDRAWS = (1 << 10),
 };
 
-ENUM_OPERATORS(eWM_GizmoFlagGroupTypeFlag, WM_GIZMOGROUPTYPE_VR_REDRAWS);
+ENUM_OPERATORS(eWM_GizmoFlagGroupTypeFlag);
 
 /**
  * #wmGizmoGroup.init_flag
@@ -166,7 +166,7 @@ enum eWM_GizmoFlagGroupInitFlag {
   WM_GIZMOGROUP_INIT_SETUP = (1 << 0),
   WM_GIZMOGROUP_INIT_REFRESH = (1 << 1),
 };
-ENUM_OPERATORS(eWM_GizmoFlagGroupInitFlag, WM_GIZMOGROUP_INIT_REFRESH)
+ENUM_OPERATORS(eWM_GizmoFlagGroupInitFlag)
 
 /**
  * #wmGizmoMapType.type_update_flag
@@ -181,7 +181,7 @@ enum eWM_GizmoFlagMapTypeUpdateFlag {
    * So we need to keep track of keymap initialization separately. */
   WM_GIZMOMAPTYPE_KEYMAP_INIT = (1 << 2),
 };
-ENUM_OPERATORS(eWM_GizmoFlagMapTypeUpdateFlag, WM_GIZMOMAPTYPE_KEYMAP_INIT)
+ENUM_OPERATORS(eWM_GizmoFlagMapTypeUpdateFlag)
 
 /* -------------------------------------------------------------------- */
 /* #wmGizmo. */

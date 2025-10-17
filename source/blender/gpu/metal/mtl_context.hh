@@ -438,8 +438,7 @@ enum MTLPipelineStateDirtyFlag {
        MTL_PIPELINE_STATE_FRONT_FACING_FLAG | MTL_PIPELINE_STATE_CULLMODE_FLAG)
 };
 
-/* Ignore full flag bit-mask `MTL_PIPELINE_STATE_ALL_FLAG`. */
-ENUM_OPERATORS(MTLPipelineStateDirtyFlag, MTL_PIPELINE_STATE_CULLMODE_FLAG);
+ENUM_OPERATORS(MTLPipelineStateDirtyFlag);
 
 struct MTLUniformBufferBinding {
   bool bound;

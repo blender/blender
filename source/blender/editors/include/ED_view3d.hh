@@ -9,9 +9,9 @@
 #pragma once
 
 #include "BLI_bounds_types.hh"
+#include "BLI_enum_flags.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"
 
@@ -272,7 +272,6 @@ enum eV3DProjStatus {
   /** Outside range (mainly for short), (can't avoid) */
   V3D_PROJ_RET_OVERFLOW = 6,
 };
-ENUM_OPERATORS(eV3DProjStatus, V3D_PROJ_RET_OVERFLOW);
 
 /* some clipping tests are optional */
 enum eV3DProjTest {
@@ -304,7 +303,7 @@ enum eV3DProjTest {
    */
   V3D_PROJ_TEST_CLIP_CONTENT = (1 << 5),
 };
-ENUM_OPERATORS(eV3DProjTest, V3D_PROJ_TEST_CLIP_CONTENT);
+ENUM_OPERATORS(eV3DProjTest);
 
 #define V3D_PROJ_TEST_CLIP_DEFAULT \
   (V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR)
@@ -333,7 +332,7 @@ enum eV3DSnapCursor {
   V3D_SNAPCURSOR_SNAP_EDIT_GEOM_FINAL = 1 << 3,
   V3D_SNAPCURSOR_SNAP_EDIT_GEOM_CAGE = 1 << 4,
 };
-ENUM_OPERATORS(eV3DSnapCursor, V3D_SNAPCURSOR_SNAP_EDIT_GEOM_CAGE)
+ENUM_OPERATORS(eV3DSnapCursor)
 
 struct V3DSnapCursorData {
   eSnapMode type_source;

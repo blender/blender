@@ -35,7 +35,7 @@ enum PassCategory : uint32_t {
   PASS_CATEGORY_AOV = 1u << 4,
   PASS_CATEGORY_CRYPTOMATTE = 1u << 5,
 };
-ENUM_OPERATORS(PassCategory, PASS_CATEGORY_CRYPTOMATTE)
+ENUM_OPERATORS(PassCategory)
 
 struct FilmSample {
   int2 texel;
