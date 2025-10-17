@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
 
 /** #ToolSettings.vgroupsubset */
 typedef enum eVGroupSelect {
@@ -40,7 +40,7 @@ typedef enum ePaintSymmetryFlags {
   PAINT_TILE_Y = (1 << 5),
   PAINT_TILE_Z = (1 << 6),
 } ePaintSymmetryFlags;
-ENUM_OPERATORS(ePaintSymmetryFlags, PAINT_TILE_Z);
+ENUM_OPERATORS(ePaintSymmetryFlags);
 #define PAINT_SYMM_AXIS_ALL (PAINT_SYMM_X | PAINT_SYMM_Y | PAINT_SYMM_Z)
 
 #ifdef __cplusplus

@@ -319,7 +319,7 @@ void SKY_multiple_scattering_precompute_texture(float *pixels,
   const float3 sun_dir = sun_direction(sun_zenith_cos_angle);
   const int rows_per_task = std::max(1024 / width, 1);
 
-  SKY_parallel_for(0, height, rows_per_task, [=](const size_t begin, const size_t end) {
+  SKY_parallel_for(0, height, rows_per_task, [&](const size_t begin, const size_t end) {
     for (int y = begin; y < end; y++) {
       float *pixel_row = pixels + (y * width * stride);
       for (int x = 0; x < half_width; x++) {

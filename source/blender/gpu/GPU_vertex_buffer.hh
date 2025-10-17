@@ -10,9 +10,9 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
 #include "BLI_math_base.h"
 #include "BLI_span.hh"
-#include "BLI_utildefines.h"
 #include "BLI_virtual_array.hh"
 
 #include "GPU_common.hh"
@@ -29,7 +29,7 @@ enum GPUVertBufStatus {
   GPU_VERTBUF_DATA_UPLOADED = (1 << 2),
 };
 
-ENUM_OPERATORS(GPUVertBufStatus, GPU_VERTBUF_DATA_UPLOADED)
+ENUM_OPERATORS(GPUVertBufStatus)
 
 /**
  * How to create a #VertBuf:
@@ -53,7 +53,7 @@ enum GPUUsageType {
   GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY = 1 << 3,
 };
 
-ENUM_OPERATORS(GPUUsageType, GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
+ENUM_OPERATORS(GPUUsageType);
 
 namespace blender::gpu {
 class VertBuf;

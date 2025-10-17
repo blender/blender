@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
 
 /* BrushGpencilSettings->preset_type.
  * Use a range for each group and not continuous values. */
@@ -303,7 +303,7 @@ typedef enum eGP_Sculpt_Flag {
   /* temporary invert action */
   GP_SCULPT_FLAG_TMP_INVERT = (1 << 3),
 } eGP_Sculpt_Flag;
-ENUM_OPERATORS(eGP_Sculpt_Flag, GP_SCULPT_FLAG_TMP_INVERT)
+ENUM_OPERATORS(eGP_Sculpt_Flag)
 
 /* sculpt_mode_flag */
 typedef enum eGP_Sculpt_Mode_Flag {
@@ -316,7 +316,7 @@ typedef enum eGP_Sculpt_Mode_Flag {
   /* apply brush to uv data */
   GP_SCULPT_FLAGMODE_APPLY_UV = (1 << 3),
 } eGP_Sculpt_Mode_Flag;
-ENUM_OPERATORS(eGP_Sculpt_Mode_Flag, GP_SCULPT_FLAGMODE_APPLY_UV)
+ENUM_OPERATORS(eGP_Sculpt_Mode_Flag)
 
 typedef enum eAutomasking_flag {
   BRUSH_AUTOMASKING_TOPOLOGY = (1 << 0),

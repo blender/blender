@@ -728,6 +728,14 @@ void DepthOfField::render(View &view,
 
     scatter_fb.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(color_tx.current()));
 
+    if (GPU_type_matches_ex(
+            GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE, GPU_BACKEND_OPENGL))
+    {
+      /* WORKAROUND(fclem): Mesa has some synchronization issues between the previous compute
+       * shader and the following graphic pass (see #141198). */
+      GPU_flush();
+    }
+
     GPU_framebuffer_bind(scatter_fb);
     drw.submit(scatter_ps, view);
 

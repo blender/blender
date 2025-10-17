@@ -38,7 +38,7 @@ void main()
   }
   out_color /= taa_accumulated_weight;
   /* Exit log2 space used for Anti-aliasing. */
-  out_color = exp2(out_color) - 1.0f;
+  out_color.rgb = exp2(out_color.rgb) - 1.0f;
 
   /* Avoid float precision issue. */
   if (out_color.a > 0.999f) {

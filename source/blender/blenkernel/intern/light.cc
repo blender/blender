@@ -24,7 +24,7 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_utildefines.h"
 
-#include "BKE_icons.h"
+#include "BKE_icons.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"

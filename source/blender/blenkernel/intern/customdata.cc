@@ -5163,15 +5163,15 @@ void CustomData_blend_write(BlendWriter *writer,
     CustomData_external_write(data, id, cddata_mask, count, 0);
   }
 
-  BLO_write_struct_array_at_address(
-      writer, CustomDataLayer, data->totlayer, data->layers, layers_to_write.data());
-
   for (const CustomDataLayer &layer : layers_to_write) {
     const size_t size_in_bytes = CustomData_sizeof(eCustomDataType(layer.type)) * count;
     BLO_write_shared(writer, layer.data, size_in_bytes, layer.sharing_info, [&]() {
       blend_write_layer_data(writer, layer, count);
     });
   }
+
+  BLO_write_struct_array_at_address(
+      writer, CustomDataLayer, data->totlayer, data->layers, layers_to_write.data());
 
   if (data->external) {
     BLO_write_struct(writer, CustomDataExternal, data->external);

@@ -800,7 +800,7 @@ const VKImageView &VKTexture::image_view_get(VKImageViewArrayed arrayed, VKImage
         0, ELEM(type_, GPU_TEXTURE_CUBE, GPU_TEXTURE_CUBE_ARRAY) ? 6 : 1);
   }
 
-  if (bool(flags & VKImageViewFlags::NO_SWIZZLING)) {
+  if (flag_is_set(flags, VKImageViewFlags::NO_SWIZZLING)) {
     image_view_info_.swizzle[0] = 'r';
     image_view_info_.swizzle[1] = 'g';
     image_view_info_.swizzle[2] = 'b';

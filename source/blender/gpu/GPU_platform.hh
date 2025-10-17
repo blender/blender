@@ -12,8 +12,8 @@
 #include <optional>
 #include <string>
 
+#include "BLI_enum_flags.hh"
 #include "BLI_span.hh"
-#include "BLI_utildefines.h"
 
 #include "GPU_platform_backend_enum.h"  // IWYU pragma: export
 
@@ -32,7 +32,7 @@ enum GPUDeviceType {
   GPU_DEVICE_ANY = (0xff),
 };
 
-ENUM_OPERATORS(GPUDeviceType, GPU_DEVICE_ANY)
+ENUM_OPERATORS(GPUDeviceType)
 
 enum GPUOSType {
   GPU_OS_WIN = (1 << 8),

@@ -174,6 +174,25 @@ def diff_output(test, oiiotool, fail_threshold, fail_percent, verbose, update):
     return test
 
 
+def get_gpu_device_vendor(blender):
+    command = [
+        blender,
+        "--background",
+        "--factory-startup",
+        "--python",
+        str(pathlib.Path(__file__).parent / "gpu_info.py")
+    ]
+    try:
+        completed_process = subprocess.run(command, stdout=subprocess.PIPE, universal_newlines=True)
+        for line in completed_process.stdout.splitlines():
+            if line.startswith("GPU_DEVICE_TYPE:"):
+                vendor = line.split(':')[1].upper()
+                return vendor
+    except Exception:
+        return None
+    return None
+
+
 class Report:
     __slots__ = (
         'title',

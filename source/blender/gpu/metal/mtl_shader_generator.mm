@@ -506,10 +506,10 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
    * optimized out by the Metal shader compiler. */
 
   /** Identify usage of vertex-shader builtins. */
-  msl_iface.uses_gl_VertexID = bool(info->builtins_ & BuiltinBits::VERTEX_ID) ||
+  msl_iface.uses_gl_VertexID = flag_is_set(info->builtins_, BuiltinBits::VERTEX_ID) ||
                                shd_builder_->glsl_vertex_source_.find("gl_VertexID") !=
                                    std::string::npos;
-  msl_iface.uses_gl_InstanceID = bool(info->builtins_ & BuiltinBits::INSTANCE_ID) ||
+  msl_iface.uses_gl_InstanceID = flag_is_set(info->builtins_, BuiltinBits::INSTANCE_ID) ||
                                  shd_builder_->glsl_vertex_source_.find("gl_InstanceID") !=
                                      std::string::npos ||
                                  shd_builder_->glsl_vertex_source_.find("gpu_InstanceIndex") !=
@@ -528,20 +528,20 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
                                std::string::npos;
   msl_iface.uses_gl_PointSize = shd_builder_->glsl_vertex_source_.find("gl_PointSize") !=
                                 std::string::npos;
-  msl_iface.uses_gpu_layer = bool(info->builtins_ & BuiltinBits::LAYER);
-  msl_iface.uses_gpu_viewport_index = bool(info->builtins_ & BuiltinBits::VIEWPORT_INDEX);
+  msl_iface.uses_gpu_layer = flag_is_set(info->builtins_, BuiltinBits::LAYER);
+  msl_iface.uses_gpu_viewport_index = flag_is_set(info->builtins_, BuiltinBits::VIEWPORT_INDEX);
 
   /** Identify usage of fragment-shader builtins. */
   {
     std::smatch gl_special_cases;
-    msl_iface.uses_gl_PointCoord = bool(info->builtins_ & BuiltinBits::POINT_COORD) ||
+    msl_iface.uses_gl_PointCoord = flag_is_set(info->builtins_, BuiltinBits::POINT_COORD) ||
                                    shd_builder_->glsl_fragment_source_.find("gl_PointCoord") !=
                                        std::string::npos;
-    msl_iface.uses_barycentrics = bool(info->builtins_ & BuiltinBits::BARYCENTRIC_COORD);
-    msl_iface.uses_gl_FrontFacing = bool(info->builtins_ & BuiltinBits::FRONT_FACING) ||
+    msl_iface.uses_barycentrics = flag_is_set(info->builtins_, BuiltinBits::BARYCENTRIC_COORD);
+    msl_iface.uses_gl_FrontFacing = flag_is_set(info->builtins_, BuiltinBits::FRONT_FACING) ||
                                     shd_builder_->glsl_fragment_source_.find("gl_FrontFacing") !=
                                         std::string::npos;
-    msl_iface.uses_gl_PrimitiveID = bool(info->builtins_ & BuiltinBits::PRIMITIVE_ID) ||
+    msl_iface.uses_gl_PrimitiveID = flag_is_set(info->builtins_, BuiltinBits::PRIMITIVE_ID) ||
                                     shd_builder_->glsl_fragment_source_.find("gl_PrimitiveID") !=
                                         std::string::npos;
 
@@ -556,7 +556,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
                                   shd_builder_->glsl_fragment_source_.find("gl_FragDepth") !=
                                       std::string::npos;
 
-    msl_iface.uses_gl_FragStencilRefARB = bool(info->builtins_ & BuiltinBits::STENCIL_REF);
+    msl_iface.uses_gl_FragStencilRefARB = flag_is_set(info->builtins_, BuiltinBits::STENCIL_REF);
 
     msl_iface.depth_write = info->depth_write_;
 
@@ -919,27 +919,30 @@ bool MTLShader::generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *i
    * optimized out by the Metal shader compiler. */
 
   /* gl_GlobalInvocationID. */
-  msl_iface.uses_gl_GlobalInvocationID =
-      bool(info->builtins_ & BuiltinBits::GLOBAL_INVOCATION_ID) ||
-      shd_builder_->glsl_compute_source_.find("gl_GlobalInvocationID") != std::string::npos;
+  msl_iface.uses_gl_GlobalInvocationID = flag_is_set(info->builtins_,
+                                                     BuiltinBits::GLOBAL_INVOCATION_ID) ||
+                                         shd_builder_->glsl_compute_source_.find(
+                                             "gl_GlobalInvocationID") != std::string::npos;
   /* gl_WorkGroupSize. */
-  msl_iface.uses_gl_WorkGroupSize = bool(info->builtins_ & BuiltinBits::WORK_GROUP_SIZE) ||
+  msl_iface.uses_gl_WorkGroupSize = flag_is_set(info->builtins_, BuiltinBits::WORK_GROUP_SIZE) ||
                                     shd_builder_->glsl_compute_source_.find("gl_WorkGroupSize") !=
                                         std::string::npos;
   /* gl_WorkGroupID. */
-  msl_iface.uses_gl_WorkGroupID = bool(info->builtins_ & BuiltinBits::WORK_GROUP_ID) ||
+  msl_iface.uses_gl_WorkGroupID = flag_is_set(info->builtins_, BuiltinBits::WORK_GROUP_ID) ||
                                   shd_builder_->glsl_compute_source_.find("gl_WorkGroupID") !=
                                       std::string::npos;
   /* gl_NumWorkGroups. */
-  msl_iface.uses_gl_NumWorkGroups = bool(info->builtins_ & BuiltinBits::NUM_WORK_GROUP) ||
+  msl_iface.uses_gl_NumWorkGroups = flag_is_set(info->builtins_, BuiltinBits::NUM_WORK_GROUP) ||
                                     shd_builder_->glsl_compute_source_.find("gl_NumWorkGroups") !=
                                         std::string::npos;
   /* gl_LocalInvocationIndex. */
-  msl_iface.uses_gl_LocalInvocationIndex =
-      bool(info->builtins_ & BuiltinBits::LOCAL_INVOCATION_INDEX) ||
-      shd_builder_->glsl_compute_source_.find("gl_LocalInvocationIndex") != std::string::npos;
+  msl_iface.uses_gl_LocalInvocationIndex = flag_is_set(info->builtins_,
+                                                       BuiltinBits::LOCAL_INVOCATION_INDEX) ||
+                                           shd_builder_->glsl_compute_source_.find(
+                                               "gl_LocalInvocationIndex") != std::string::npos;
   /* gl_LocalInvocationID. */
-  msl_iface.uses_gl_LocalInvocationID = bool(info->builtins_ & BuiltinBits::LOCAL_INVOCATION_ID) ||
+  msl_iface.uses_gl_LocalInvocationID = flag_is_set(info->builtins_,
+                                                    BuiltinBits::LOCAL_INVOCATION_ID) ||
                                         shd_builder_->glsl_compute_source_.find(
                                             "gl_LocalInvocationID") != std::string::npos;
 
@@ -2206,7 +2209,7 @@ std::string MSLGeneratorInterface::generate_msl_fragment_tile_input_population()
       char swizzle[] = "xyzw";
       swizzle[to_component_count(tile_input.type)] = '\0';
 
-      bool is_layered_fb = bool(create_info_->builtins_ & BuiltinBits::LAYER);
+      bool is_layered_fb = flag_is_set(create_info_->builtins_, BuiltinBits::LAYER);
       std::string texel_co =
           (tile_input.is_layered_input) ?
               ((is_layered_fb)  ? "ivec3(ivec2(v_in._default_position_.xy), int(v_in.gpu_Layer))" :

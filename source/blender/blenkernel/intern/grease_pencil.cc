@@ -4416,6 +4416,9 @@ static void write_drawing_array(GreasePencil &grease_pencil,
         curves.blend_write_prepare(write_data);
         drawing_copy.runtime = nullptr;
 
+        BLO_write_shared_tag(writer, curves.curve_offsets);
+        BLO_write_shared_tag(writer, curves.custom_knots);
+
         BLO_write_struct_at_address(writer, GreasePencilDrawing, drawing_base, &drawing_copy);
         curves.blend_write(*writer, grease_pencil.id, write_data);
         break;

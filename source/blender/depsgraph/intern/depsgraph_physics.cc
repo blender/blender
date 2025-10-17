@@ -10,6 +10,7 @@
 
 #include "intern/depsgraph_physics.hh"
 
+#include "BLI_enum_flags.hh"
 #include "BLI_listbase.h"
 
 #include "BKE_collision.h"
@@ -104,7 +105,7 @@ enum class CollisionComponentFlag : uint8_t {
   /** #DEG_OB_COMP_EVAL_POSE is set. */
   EvalPose = 1 << 2,
 };
-ENUM_OPERATORS(CollisionComponentFlag, CollisionComponentFlag::EvalPose);
+ENUM_OPERATORS(CollisionComponentFlag);
 
 void DEG_add_collision_relations(DepsNodeHandle *handle,
                                  Object *object,
@@ -163,21 +164,21 @@ void DEG_add_collision_relations(DepsNodeHandle *handle,
             CollisionComponentFlag &update_flag = object_component_map->lookup_or_add_default(ob);
             {
               constexpr CollisionComponentFlag test_flag = CollisionComponentFlag::Transform;
-              if ((update_flag & test_flag) == CollisionComponentFlag::None) {
+              if (!flag_is_set(update_flag, test_flag)) {
                 update_flag |= test_flag;
                 DEG_add_object_pointcache_relation(handle, ob, DEG_OB_COMP_TRANSFORM, name);
               }
             }
             if (update_mesh) {
               constexpr CollisionComponentFlag test_flag = CollisionComponentFlag::Geometry;
-              if ((update_flag & test_flag) == CollisionComponentFlag::None) {
+              if (!flag_is_set(update_flag, test_flag)) {
                 update_flag |= test_flag;
                 DEG_add_object_pointcache_relation(handle, ob, DEG_OB_COMP_GEOMETRY, name);
               }
             }
             if (ob->type == OB_ARMATURE) {
               constexpr CollisionComponentFlag test_flag = CollisionComponentFlag::EvalPose;
-              if ((update_flag & test_flag) == CollisionComponentFlag::None) {
+              if (!flag_is_set(update_flag, test_flag)) {
                 update_flag |= test_flag;
                 DEG_add_object_pointcache_relation(handle, ob, DEG_OB_COMP_EVAL_POSE, name);
               }

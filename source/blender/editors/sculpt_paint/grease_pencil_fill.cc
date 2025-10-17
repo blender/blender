@@ -4,6 +4,7 @@
 
 #include "BLI_bounds.hh"
 #include "BLI_color.hh"
+#include "BLI_enum_flags.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_matrix.hh"
@@ -62,7 +63,7 @@ enum ColorFlag {
   Seed = (1 << 3),
   Debug = (1 << 7),
 };
-ENUM_OPERATORS(ColorFlag, ColorFlag::Seed)
+ENUM_OPERATORS(ColorFlag)
 
 /** \} */
 

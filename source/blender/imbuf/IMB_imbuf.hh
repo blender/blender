@@ -11,8 +11,8 @@
 
 #include "../gpu/GPU_texture.hh"
 
+#include "BLI_enum_flags.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_utildefines.h"
 
 #include "IMB_imbuf_types.hh"
 
@@ -71,7 +71,7 @@ enum class IMBThumbLoadFlags {
    */
   LoadLargeFiles = (1 << 0),
 };
-ENUM_OPERATORS(IMBThumbLoadFlags, IMBThumbLoadFlags::LoadLargeFiles);
+ENUM_OPERATORS(IMBThumbLoadFlags);
 
 ImBuf *IMB_thumb_load_image(const char *filepath,
                             const size_t max_thumb_size,

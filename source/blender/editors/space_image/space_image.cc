@@ -814,7 +814,10 @@ static void image_main_region_listener(const wmRegionListenerParams *params)
       WM_gizmomap_tag_refresh(region->runtime->gizmo_map);
       break;
     case NC_MASK:
-      if (ELEM(wmn->data, ND_DATA, ND_SELECT)) {
+      if (wmn->action == NA_EDITED) {
+        WM_gizmomap_tag_refresh(region->runtime->gizmo_map);
+      }
+      else if (ELEM(wmn->data, ND_DATA, ND_SELECT)) {
         WM_gizmomap_tag_refresh(region->runtime->gizmo_map);
       }
       break;

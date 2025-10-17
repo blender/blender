@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
 
 #ifdef __cplusplus
 #  include "BLI_color_types.hh"
@@ -76,7 +76,7 @@ typedef enum NodeTreeInterfaceSocketFlag {
    */
   NODE_INTERFACE_SOCKET_OPTIONAL_LABEL = 1 << 10,
 } NodeTreeInterfaceSocketFlag;
-ENUM_OPERATORS(NodeTreeInterfaceSocketFlag, NODE_INTERFACE_SOCKET_OPTIONAL_LABEL);
+ENUM_OPERATORS(NodeTreeInterfaceSocketFlag);
 
 typedef enum NodeSocketInterfaceStructureType {
   NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO = 0,
@@ -157,7 +157,7 @@ typedef enum NodeTreeInterfacePanelFlag {
   /* Whether the panel is collapsed in the node group interface tree view. */
   NODE_INTERFACE_PANEL_IS_COLLAPSED = 1 << 3,
 } NodeTreeInterfacePanelFlag;
-ENUM_OPERATORS(NodeTreeInterfacePanelFlag, NODE_INTERFACE_PANEL_IS_COLLAPSED);
+ENUM_OPERATORS(NodeTreeInterfacePanelFlag);
 
 typedef enum NodeDefaultInputType {
   NODE_DEFAULT_INPUT_VALUE = 0,

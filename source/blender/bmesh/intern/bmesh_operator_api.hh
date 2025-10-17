@@ -8,8 +8,8 @@
  * \ingroup bmesh
  */
 
+#include "BLI_enum_flags.hh"
 #include "BLI_ghash.h"
-#include "BLI_utildefines.h"
 
 #include <cstdarg>
 
@@ -210,7 +210,7 @@ enum eBMOpSlotSubType_Elem {
   BMO_OP_SLOT_SUBTYPE_ELEM_FACE = BM_FACE,
   BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE = (BM_FACE << 1),
 };
-ENUM_OPERATORS(eBMOpSlotSubType_Elem, BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE)
+ENUM_OPERATORS(eBMOpSlotSubType_Elem)
 
 enum eBMOpSlotSubType_Map {
   BMO_OP_SLOT_SUBTYPE_MAP_EMPTY = 64, /* use as a set(), unused value */
@@ -296,7 +296,7 @@ enum BMOpTypeFlag {
   BMO_OPTYPE_FLAG_SELECT_VALIDATE = (1 << 3),
   BMO_OPTYPE_FLAG_INVALIDATE_CLNOR_ALL = (1 << 4),
 };
-ENUM_OPERATORS(BMOpTypeFlag, BMO_OPTYPE_FLAG_INVALIDATE_CLNOR_ALL)
+ENUM_OPERATORS(BMOpTypeFlag)
 
 struct BMOperator {
   struct BMOpSlot slots_in[BMO_OP_MAX_SLOTS];
@@ -543,7 +543,7 @@ enum BMO_Delimit {
   BMO_DELIM_SHARP = 1 << 3,
   BMO_DELIM_UV = 1 << 4,
 };
-ENUM_OPERATORS(BMO_Delimit, BMO_DELIM_UV)
+ENUM_OPERATORS(BMO_Delimit)
 
 void BMO_op_flag_enable(BMesh *bm, BMOperator *op, int op_flag);
 void BMO_op_flag_disable(BMesh *bm, BMOperator *op, int op_flag);

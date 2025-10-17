@@ -11,7 +11,7 @@
 #include "BLI_path_utils.hh"
 
 #include "BKE_blendfile.hh"
-#include "BKE_icons.h"
+#include "BKE_icons.hh"
 #include "BKE_preview_image.hh"
 
 #include "DNA_ID.h"

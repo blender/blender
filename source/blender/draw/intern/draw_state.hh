@@ -6,7 +6,7 @@
 
 #include "GPU_state.hh"
 
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
 
 /** \file
  * \ingroup draw
@@ -74,7 +74,7 @@ typedef enum : uint32_t {
   DRW_STATE_PROGRAM_POINT_SIZE = (1u << 31),
 } DRWState;
 
-ENUM_OPERATORS(DRWState, DRW_STATE_PROGRAM_POINT_SIZE);
+ENUM_OPERATORS(DRWState);
 
 #define DRW_STATE_DEFAULT \
   (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL)

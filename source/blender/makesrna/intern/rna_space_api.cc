@@ -81,7 +81,7 @@ static void rna_FileBrowser_deselect_all(SpaceFile *sfile, ReportList *reports)
   if (sfile->files == nullptr) {
     /* Likely to happen in background mode.
      * We could look into initializing this on demand, see: #141547. */
-    BKE_report(reports, RPT_ERROR, "uninitialized file-list");
+    BKE_report(reports, RPT_ERROR, "Uninitialized file-list");
     return;
   }
   ED_fileselect_deselect_all(sfile);

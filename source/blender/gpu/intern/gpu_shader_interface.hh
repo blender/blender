@@ -220,6 +220,8 @@ inline const char *ShaderInterface::builtin_uniform_name(GPUUniformBuiltin u)
       return "drw_ResourceID";
     case GPU_UNIFORM_SRGB_TRANSFORM:
       return "srgbTarget";
+    case GPU_UNIFORM_SCENE_LINEAR_XFORM:
+      return "gpu_scene_linear_to_rec709";
 
     default:
       return nullptr;

@@ -341,6 +341,7 @@ TEST_F(AssetCatalogTest, on_blendfile_save__with_existing_cdf)
   TestableAssetCatalogService service(cdf_filename);
   service.load_from_disk();
   const AssetCatalog *cat = service.create_catalog("some/catalog/path");
+  service.tag_has_unsaved_changes();
 
   const CatalogFilePath blendfilename = top_level_dir + "subdir" + SEP_STR + "some_file.blend";
   ASSERT_TRUE(service.write_to_disk(blendfilename));
@@ -458,6 +459,10 @@ TEST_F(AssetCatalogTest, create_first_catalog_from_scratch)
   /* Creating a new catalog should not save anything to disk yet. */
   EXPECT_FALSE(BLI_exists(temp_lib_root.c_str()));
 
+  /* Creating a new catalog should not mark the asset service as 'dirty'; that's
+   * the caller's responsibility. */
+  EXPECT_FALSE(service.has_unsaved_changes());
+
   /* Writing to disk should create the directory + the default file. */
   service.write_to_disk(temp_lib_root + "phony.blend");
   EXPECT_TRUE(BLI_is_dir(temp_lib_root.c_str()));
@@ -498,6 +503,7 @@ TEST_F(AssetCatalogTest, create_catalog_after_loading_file)
   /* This should create a new catalog but not write to disk. */
   const AssetCatalog *new_catalog = service.create_catalog("new/catalog");
   const bUUID new_catalog_id = new_catalog->catalog_id;
+  service.tag_has_unsaved_changes();
 
   /* Reload the on-disk catalog file. */
   TestableAssetCatalogService loaded_service(temp_lib_root);
@@ -887,6 +893,7 @@ TEST_F(AssetCatalogTest, backups)
   TestableAssetCatalogService service(cdf_dir);
   service.load_from_disk();
   service.delete_catalog_by_id_soft(UUID_POSES_ELLIE);
+  service.tag_has_unsaved_changes();
   service.write_to_disk(cdf_dir + "phony.blend");
 
   const CatalogFilePath backup_path = writable_cdf_file + "~";

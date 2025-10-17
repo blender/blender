@@ -2466,13 +2466,13 @@ static std::string named_attribute_tooltip(bContext * /*C*/, void *argN, const S
     const geo_log::NamedAttributeUsage usage = attribute.usage;
     fmt::format_to(fmt::appender(buf), fmt::runtime(TIP_("  \u2022 \"{}\": ")), name);
     Vector<std::string> usages;
-    if ((usage & geo_log::NamedAttributeUsage::Read) != geo_log::NamedAttributeUsage::None) {
+    if (flag_is_set(usage, geo_log::NamedAttributeUsage::Read)) {
       usages.append(TIP_("read"));
     }
-    if ((usage & geo_log::NamedAttributeUsage::Write) != geo_log::NamedAttributeUsage::None) {
+    if (flag_is_set(usage, geo_log::NamedAttributeUsage::Write)) {
       usages.append(TIP_("write"));
     }
-    if ((usage & geo_log::NamedAttributeUsage::Remove) != geo_log::NamedAttributeUsage::None) {
+    if (flag_is_set(usage, geo_log::NamedAttributeUsage::Remove)) {
       usages.append(TIP_("remove"));
     }
     for (const int i : usages.index_range()) {

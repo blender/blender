@@ -1624,9 +1624,8 @@ class CyclesPreferences(bpy.types.AddonPreferences):
     )
 
     use_hiprt: BoolProperty(
-        name="HIP RT (Unstable)",
-        description="HIP RT enables AMD hardware ray tracing on RDNA2 and above. This currently has known stability "
-        "issues, that are expected to be solved before the next release.",
+        name="HIP RT",
+        description="HIP RT enables AMD hardware ray tracing on RDNA2 and above",
         default=False,
     )
 

@@ -1089,6 +1089,10 @@ bool Instance::object_needs_prepass(const ObjectRef &ob_ref, bool in_paint_mode)
   }
 
   if (resources.is_selection() || state.is_depth_only_drawing) {
+    if (ob_ref.object->visibility_flag & OB_HIDE_SURFACE_PICK) {
+      /* Special flag to avoid surfaces to contribute to depth picking and selection. */
+      return false;
+    }
     /* Selection and depth picking always need a prepass.
      * Note that depth writing and depth test might be disable for certain selection mode. */
     return true;

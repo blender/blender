@@ -170,26 +170,6 @@ if inside_blender:
         sys.exit(1)
 
 
-def get_gpu_device_type(blender):
-    # TODO: This always fails.
-    command = [
-        blender,
-        "--background",
-        "--factory-startup",
-        "--python",
-        str(pathlib.Path(__file__).parent / "gpu_info.py")
-    ]
-    try:
-        completed_process = subprocess.run(command, stdout=subprocess.PIPE)
-        for line in completed_process.stdout.read_text():
-            if line.startswith("GPU_DEVICE_TYPE:"):
-                vendor = line.split(':')[1]
-                return vendor
-    except Exception:
-        return None
-    return None
-
-
 def get_arguments(filepath, output_filepath, gpu_backend):
     arguments = [
         "--background",
@@ -230,11 +210,6 @@ def main():
     parser = create_argparse()
     args = parser.parse_args()
 
-    gpu_device_type = get_gpu_device_type(args.blender)
-    reference_override_dir = None
-    if gpu_device_type == "AMD":
-        reference_override_dir = "eevee_renders/amd"
-
     blocklist = BLOCKLIST
     if args.gpu_backend == "metal":
         blocklist += BLOCKLIST_METAL
@@ -249,7 +224,6 @@ def main():
 
     report.set_pixelated(True)
     report.set_reference_dir("eevee_renders")
-    report.set_reference_override_dir(reference_override_dir)
 
     test_dir_name = Path(args.testdir).name
     if test_dir_name.startswith('image_mapping'):

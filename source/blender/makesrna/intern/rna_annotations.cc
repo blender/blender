@@ -29,7 +29,7 @@
 
 #  include "BKE_animsys.h"
 #  include "BKE_gpencil_legacy.h"
-#  include "BKE_icons.h"
+#  include "BKE_icons.hh"
 #  include "BKE_report.hh"
 
 #  include "DEG_depsgraph.hh"

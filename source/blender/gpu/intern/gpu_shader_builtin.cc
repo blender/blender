@@ -35,8 +35,12 @@ static const char *builtin_shader_create_info_name(GPUBuiltinShader shader)
       return "gpu_shader_simple_lighting";
     case GPU_SHADER_3D_IMAGE:
       return "gpu_shader_3D_image";
+    case GPU_SHADER_3D_IMAGE_SCENE_LINEAR_TO_REC709_SRGB:
+      return "gpu_shader_3D_image_scene_linear";
     case GPU_SHADER_3D_IMAGE_COLOR:
       return "gpu_shader_3D_image_color";
+    case GPU_SHADER_3D_IMAGE_COLOR_SCENE_LINEAR_TO_REC709_SRGB:
+      return "gpu_shader_3D_image_color_scene_linear";
     case GPU_SHADER_2D_CHECKER:
       return "gpu_shader_2D_checker";
     case GPU_SHADER_2D_DIAG_STRIPES:

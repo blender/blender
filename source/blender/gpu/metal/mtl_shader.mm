@@ -336,7 +336,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
 #if defined(MAC_OS_VERSION_14_0)
     if (@available(macOS 14.00, *)) {
       /* Texture atomics require Metal 3.1. */
-      if (bool(info->builtins_ & BuiltinBits::TEXTURE_ATOMIC)) {
+      if (flag_is_set(info->builtins_, BuiltinBits::TEXTURE_ATOMIC)) {
         options.languageVersion = MTLLanguageVersion3_1;
       }
     }
@@ -379,7 +379,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
       }
       ss << "#define MTL_ARGUMENT_BUFFER_NUM_SAMPLERS " << arg_buf_samplers_size << "\n";
 
-      if (bool(info->builtins_ & BuiltinBits::TEXTURE_ATOMIC) &&
+      if (flag_is_set(info->builtins_, BuiltinBits::TEXTURE_ATOMIC) &&
           MTLBackend::get_capabilities().supports_texture_atomics)
       {
         ss << "#define MTL_SUPPORTS_TEXTURE_ATOMICS 1\n";

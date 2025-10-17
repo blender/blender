@@ -5,8 +5,8 @@
 #include "BLI_array_utils.hh"
 #include "BLI_bit_span_ops.hh"
 #include "BLI_bit_vector.hh"
+#include "BLI_enum_flags.hh"
 #include "BLI_stack.hh"
-#include "BLI_utildefines.h"
 
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
@@ -340,7 +340,7 @@ enum class ZoneInOutChange {
   In = (1 << 1),
   Out = (1 << 2),
 };
-ENUM_OPERATORS(ZoneInOutChange, ZoneInOutChange::Out);
+ENUM_OPERATORS(ZoneInOutChange);
 
 static ZoneInOutChange simulation_zone_requirements_propagate(
     const bNode &input_node,
@@ -404,7 +404,7 @@ static bool propagate_zone_data_requirements(const bNodeTree &tree,
       if (const bNode *output_node = tree.node_by_id(data.output_node_id)) {
         const ZoneInOutChange change = simulation_zone_requirements_propagate(
             node, *output_node, input_requirements);
-        if ((change & ZoneInOutChange::Out) != ZoneInOutChange::None) {
+        if (flag_is_set(change, ZoneInOutChange::Out)) {
           return true;
         }
       }
@@ -416,7 +416,7 @@ static bool propagate_zone_data_requirements(const bNodeTree &tree,
         if (node.identifier == data.output_node_id) {
           const ZoneInOutChange change = simulation_zone_requirements_propagate(
               *input_node, node, input_requirements);
-          if ((change & ZoneInOutChange::In) != ZoneInOutChange::None) {
+          if (flag_is_set(change, ZoneInOutChange::In)) {
             return true;
           }
         }
@@ -428,7 +428,7 @@ static bool propagate_zone_data_requirements(const bNodeTree &tree,
       if (const bNode *output_node = tree.node_by_id(data.output_node_id)) {
         const ZoneInOutChange change = repeat_zone_requirements_propagate(
             node, *output_node, input_requirements);
-        if ((change & ZoneInOutChange::Out) != ZoneInOutChange::None) {
+        if (flag_is_set(change, ZoneInOutChange::Out)) {
           return true;
         }
       }
@@ -440,7 +440,7 @@ static bool propagate_zone_data_requirements(const bNodeTree &tree,
         if (node.identifier == data.output_node_id) {
           const ZoneInOutChange change = repeat_zone_requirements_propagate(
               *input_node, node, input_requirements);
-          if ((change & ZoneInOutChange::In) != ZoneInOutChange::None) {
+          if (flag_is_set(change, ZoneInOutChange::In)) {
             return true;
           }
         }
@@ -627,7 +627,7 @@ static bool propagate_zone_status(const bNodeTree &tree,
       if (const bNode *output_node = tree.node_by_id(data.output_node_id)) {
         const ZoneInOutChange change = simulation_zone_status_propagate(
             node, *output_node, structure_types);
-        if ((change & ZoneInOutChange::Out) != ZoneInOutChange::None) {
+        if (flag_is_set(change, ZoneInOutChange::Out)) {
           return true;
         }
       }
@@ -639,7 +639,7 @@ static bool propagate_zone_status(const bNodeTree &tree,
         if (node.identifier == data.output_node_id) {
           const ZoneInOutChange change = simulation_zone_status_propagate(
               *input_node, node, structure_types);
-          if ((change & ZoneInOutChange::In) != ZoneInOutChange::None) {
+          if (flag_is_set(change, ZoneInOutChange::In)) {
             return true;
           }
         }
@@ -651,7 +651,7 @@ static bool propagate_zone_status(const bNodeTree &tree,
       if (const bNode *output_node = tree.node_by_id(data.output_node_id)) {
         const ZoneInOutChange change = repeat_zone_status_propagate(
             node, *output_node, structure_types);
-        if ((change & ZoneInOutChange::Out) != ZoneInOutChange::None) {
+        if (flag_is_set(change, ZoneInOutChange::Out)) {
           return true;
         }
       }
@@ -663,7 +663,7 @@ static bool propagate_zone_status(const bNodeTree &tree,
         if (node.identifier == data.output_node_id) {
           const ZoneInOutChange change = repeat_zone_status_propagate(
               *input_node, node, structure_types);
-          if ((change & ZoneInOutChange::In) != ZoneInOutChange::None) {
+          if (flag_is_set(change, ZoneInOutChange::In)) {
             return true;
           }
         }

@@ -222,6 +222,10 @@ void BLO_write_string(BlendWriter *writer, const char *data_ptr);
  * user count of the sharing-info is increased making the data immutable. The provided callback
  * should serialize the potentially shared data. It is only called when necessary.
  *
+ * This should be called before the data is referenced in other written data (there is an assert
+ * that checks for this). If that's not possible, at least #BLO_write_shared_tag needs to be called
+ * before the pointer is first written.
+ *
  * \param approximate_size_in_bytes: Used to be able to approximate how large the undo step is in
  * total.
  * \param write_fn: Use the #BlendWrite to serialize the potentially shared data.
@@ -231,6 +235,11 @@ void BLO_write_shared(BlendWriter *writer,
                       size_t approximate_size_in_bytes,
                       const blender::ImplicitSharingInfo *sharing_info,
                       blender::FunctionRef<void()> write_fn);
+
+/**
+ * Needs to be called if the pointer is somewhere written before the call to #BLO_write_shared.
+ */
+void BLO_write_shared_tag(BlendWriter *writer, const void *data);
 
 /**
  * Sometimes different data is written depending on whether the file is saved to disk or used for

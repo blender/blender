@@ -7,6 +7,7 @@
 #include <cstdint>
 
 #include "BLI_bounds_types.hh"
+#include "BLI_enum_flags.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 
@@ -31,7 +32,7 @@ enum class OutputTypes : uint8_t {
   FileOutput = 1 << 2,
   Previews = 1 << 3,
 };
-ENUM_OPERATORS(OutputTypes, OutputTypes::Previews)
+ENUM_OPERATORS(OutputTypes)
 
 /* ------------------------------------------------------------------------------------------------
  * Context

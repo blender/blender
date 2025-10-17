@@ -66,6 +66,7 @@
 #include "BKE_multires.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
+#include "BKE_report.hh"
 
 #include "IMB_imbuf_enums.h"
 #include "MEM_guardedalloc.h"
@@ -74,9 +75,14 @@
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
 
+#include "BLO_read_write.hh"
 #include "BLO_readfile.hh"
 #include "readfile.hh"
 #include "versioning_common.hh"
+
+#include "BLT_translation.hh"
+
+#include <fmt/format.h>
 
 /* Make preferences read-only, use `versioning_userdef.cc`. */
 #define U (*((const UserDef *)&U))
@@ -818,27 +824,12 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
           CustomData_get_layer(&me->face_data, CD_MPOLY));
       for (const int i : blender::IndexRange(me->faces_num)) {
         if (polys[i].totloop == 2) {
-          bool changed;
-          BKE_mesh_legacy_convert_loops_to_corners(me);
-          BKE_mesh_legacy_convert_polys_to_offsets(me);
-          BKE_mesh_validate_arrays(
-              me,
-              reinterpret_cast<float (*)[3]>(me->vert_positions_for_write().data()),
-              me->verts_num,
-              me->edges_for_write().data(),
-              me->edges_num,
-              (MFace *)CustomData_get_layer_for_write(
-                  &me->fdata_legacy, CD_MFACE, me->totface_legacy),
-              me->totface_legacy,
-              me->corner_verts().data(),
-              me->corner_edges_for_write().data(),
-              me->corners_num,
-              me->face_offsets().data(),
-              me->faces_num,
-              me->deform_verts_for_write().data(),
-              false,
-              true,
-              &changed);
+          std::string message = fmt::format(
+              fmt::runtime(RPT_("Mesh %s has invalid faces, likely caused by the manifold extrude "
+                                "tool in version 2.90.0. Opening and saving the file in a version "
+                                "prior to 5.1 should resolve the issue\n")),
+              me->id.name + 2);
+          BLO_read_invalidate_message((BlendHandle *)fd, bmain, message.c_str());
           break;
         }
       }

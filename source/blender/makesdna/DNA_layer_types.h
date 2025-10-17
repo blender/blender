@@ -11,7 +11,7 @@
 #include "DNA_freestyle_types.h"
 #include "DNA_listBase.h"
 
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
 
 /**
  * Render-passes for EEVEE.
@@ -48,7 +48,7 @@ typedef enum eViewLayerEEVEEPassType {
   EEVEE_RENDER_PASS_POSITION = (1 << 21),
 } eViewLayerEEVEEPassType;
 #define EEVEE_RENDER_PASS_MAX_BIT 21
-ENUM_OPERATORS(eViewLayerEEVEEPassType, 1 << EEVEE_RENDER_PASS_MAX_BIT)
+ENUM_OPERATORS(eViewLayerEEVEEPassType)
 
 /* #ViewLayer::grease_pencil_flags */
 typedef enum eViewLayerGreasePencilFlags {
@@ -73,7 +73,7 @@ typedef enum eViewLayerCryptomatteFlags {
   VIEW_LAYER_CRYPTOMATTE_ASSET = (1 << 2),
   VIEW_LAYER_CRYPTOMATTE_ACCURATE = (1 << 3),
 } eViewLayerCryptomatteFlags;
-ENUM_OPERATORS(eViewLayerCryptomatteFlags, VIEW_LAYER_CRYPTOMATTE_ACCURATE)
+ENUM_OPERATORS(eViewLayerCryptomatteFlags)
 #define VIEW_LAYER_CRYPTOMATTE_ALL \
   (VIEW_LAYER_CRYPTOMATTE_OBJECT | VIEW_LAYER_CRYPTOMATTE_MATERIAL | VIEW_LAYER_CRYPTOMATTE_ASSET)
 

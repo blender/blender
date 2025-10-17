@@ -14,7 +14,7 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "BKE_icons.h"
+#include "BKE_icons.hh"
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 

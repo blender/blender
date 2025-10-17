@@ -33,6 +33,7 @@
 #  endif
 #endif
 
+#include <map>
 #include <optional>
 #include <vector>
 
@@ -247,8 +248,15 @@ class GHOST_ContextVK : public GHOST_Context {
   std::function<void(GHOST_VulkanOpenXRData *)> openxr_acquire_framebuffer_image_callback_;
   std::function<void(GHOST_VulkanOpenXRData *)> openxr_release_framebuffer_image_callback_;
 
+  std::vector<VkFence> fence_pile_;
+  std::map<VkSwapchainKHR, std::vector<VkFence>> present_fences_;
+
   const char *getPlatformSpecificSurfaceExtension() const;
   GHOST_TSuccess recreateSwapchain(bool use_hdr_swapchain);
   GHOST_TSuccess initializeFrameData();
   GHOST_TSuccess destroySwapchain();
+
+  VkFence getFence();
+  void setPresentFence(VkSwapchainKHR swapchain, VkFence fence);
+  void destroySwapchainPresentFences(VkSwapchainKHR swapchain);
 };

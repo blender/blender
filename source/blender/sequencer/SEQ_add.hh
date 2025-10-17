@@ -8,7 +8,7 @@
  * \ingroup sequencer
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
 
 #include "DNA_scene_enums.h"
 
@@ -29,7 +29,7 @@ enum eLoadFlags {
   SEQ_LOAD_MOVIE_SYNC_FPS = (1 << 3),
   SEQ_LOAD_SET_VIEW_TRANSFORM = (1 << 4),
 };
-ENUM_OPERATORS(eLoadFlags, SEQ_LOAD_SET_VIEW_TRANSFORM)
+ENUM_OPERATORS(eLoadFlags)
 
 /** API for adding new strips. If multiple strips are added, data is updated for each one. */
 struct LoadData {
