@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
 
 #include "DNA_object_enums.h"
 
@@ -126,7 +126,7 @@ enum eObjectLineArt_Usage {
   OBJECT_LRT_NO_INTERSECTION = (1 << 4),
   OBJECT_LRT_FORCE_INTERSECTION = (1 << 5),
 };
-ENUM_OPERATORS(eObjectLineArt_Usage, OBJECT_LRT_FORCE_INTERSECTION);
+ENUM_OPERATORS(eObjectLineArt_Usage);
 
 enum eObjectLineArt_Flags {
   OBJECT_LRT_OWN_CREASE = (1 << 0),
@@ -690,6 +690,7 @@ enum {
   OB_HIDE_PROBE_VOLUME = 1 << 11,
   OB_HIDE_PROBE_CUBEMAP = 1 << 12,
   OB_HIDE_PROBE_PLANAR = 1 << 13,
+  OB_HIDE_SURFACE_PICK = 1 << 14,
 };
 
 /** #Object.shapeflag */

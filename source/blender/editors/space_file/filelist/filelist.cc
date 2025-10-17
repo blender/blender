@@ -35,6 +35,7 @@
 
 #include "BLF_api.hh"
 
+#include "BLI_enum_flags.hh"
 #include "BLI_fileops.h"
 #include "BLI_fileops_types.h"
 #include "BLI_ghash.h"
@@ -47,7 +48,6 @@
 #include "BLI_string_utils.hh"
 #include "BLI_task.h"
 #include "BLI_threads.h"
-#include "BLI_utildefines.h"
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
@@ -57,7 +57,7 @@
 #include "BKE_blendfile.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
-#include "BKE_icons.h"
+#include "BKE_icons.hh"
 #include "BKE_idtype.hh"
 #include "BKE_main.hh"
 #include "BKE_preferences.h"
@@ -2464,7 +2464,7 @@ enum ListLibOptions {
   /* Add given root as result. */
   LIST_LIB_ADD_PARENT = (1 << 2),
 };
-ENUM_OPERATORS(ListLibOptions, LIST_LIB_ADD_PARENT);
+ENUM_OPERATORS(ListLibOptions);
 
 static FileListInternEntry *filelist_readjob_list_lib_group_create(
     const FileListReadJob *job_params, const int idcode, const char *group_name)

@@ -12,7 +12,7 @@ IMAGE_NAME = "Untitled"
 image = bpy.data.images[IMAGE_NAME]
 texture = gpu.texture.from_image(image)
 
-shader = gpu.shader.from_builtin('IMAGE')
+shader = gpu.shader.from_builtin('IMAGE_SCENE_LINEAR_TO_REC709_SRGB')
 batch = batch_for_shader(
     shader, 'TRI_FAN',
     {
@@ -45,7 +45,7 @@ IMAGE_NAME = "Untitled"
 image = bpy.data.images[IMAGE_NAME]
 texture = gpu.texture.from_image(image)
 
-shader = gpu.shader.from_builtin('IMAGE')
+shader = gpu.shader.from_builtin('IMAGE_SCENE_LINEAR_TO_REC709_SRGB')
 batch = batch_for_shader(
     shader, 'TRIS',
     {

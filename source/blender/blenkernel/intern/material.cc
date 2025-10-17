@@ -36,11 +36,11 @@
 #include "DNA_volume_types.h"
 
 #include "BLI_array_utils.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
@@ -52,7 +52,7 @@
 #include "BKE_displist.h"
 #include "BKE_editmesh.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_icons.h"
+#include "BKE_icons.hh"
 #include "BKE_idtype.hh"
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
@@ -1526,7 +1526,7 @@ enum ePaintSlotFilter {
   PAINT_SLOT_IMAGE = 1 << 0,
   PAINT_SLOT_COLOR_ATTRIBUTE = 1 << 1,
 };
-ENUM_OPERATORS(ePaintSlotFilter, PAINT_SLOT_COLOR_ATTRIBUTE)
+ENUM_OPERATORS(ePaintSlotFilter)
 
 using ForEachTexNodeCallback = bool (*)(bNode *node, void *userdata);
 static bool ntree_foreach_texnode_recursive(bNodeTree *nodetree,

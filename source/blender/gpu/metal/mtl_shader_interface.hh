@@ -73,7 +73,7 @@ enum class ShaderStage : uint8_t {
   COMPUTE = 2 << 1,
   ANY = (ShaderStage::VERTEX | ShaderStage::FRAGMENT | ShaderStage::COMPUTE),
 };
-ENUM_OPERATORS(ShaderStage, ShaderStage::ANY);
+ENUM_OPERATORS(ShaderStage);
 
 inline uint get_shader_stage_index(ShaderStage stage)
 {

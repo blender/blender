@@ -974,10 +974,10 @@ void BKE_packedfile_blend_write(BlendWriter *writer, const PackedFile *pf)
   if (pf == nullptr) {
     return;
   }
-  BLO_write_struct(writer, PackedFile, pf);
   BLO_write_shared(writer, pf->data, pf->size, pf->sharing_info, [&]() {
     BLO_write_raw(writer, pf->size, pf->data);
   });
+  BLO_write_struct(writer, PackedFile, pf);
 }
 
 void BKE_packedfile_blend_read(BlendDataReader *reader, PackedFile **pf_p, StringRefNull filepath)

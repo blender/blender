@@ -165,6 +165,7 @@ RESHAPE(float3x3, mat3x3, mat3x4)
 
 /* Resource accessor. */
 #define specialization_constant_get(create_info, _res) _res
+#define shared_variable_get(create_info, _res) _res
 #define push_constant_get(create_info, _res) _res
 #define interface_get(create_info, _res) _res
 #define attribute_get(create_info, _res) _res

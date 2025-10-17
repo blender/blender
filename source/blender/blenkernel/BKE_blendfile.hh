@@ -9,6 +9,7 @@
 
 #include "BKE_main.hh"
 
+#include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
 #include "BLI_utility_mixins.hh"
@@ -429,7 +430,6 @@ class PartialWriteContext : NonCopyable, NonMovable {
   Library *ensure_library(StringRefNull library_absolute_path);
 };
 
-ENUM_OPERATORS(PartialWriteContext::IDAddOperations,
-               PartialWriteContext::IDAddOperations::MASK_INHERITED);
+ENUM_OPERATORS(PartialWriteContext::IDAddOperations);
 
 }  // namespace blender::bke::blendfile

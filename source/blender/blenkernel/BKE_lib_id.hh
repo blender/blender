@@ -33,9 +33,9 @@
 #include <optional>
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
 #include "DNA_ID.h"
@@ -470,7 +470,7 @@ enum eLibIDDuplicateFlags {
   LIB_ID_DUPLICATE_IS_ROOT_ID = 1 << 1,
 };
 
-ENUM_OPERATORS(eLibIDDuplicateFlags, LIB_ID_DUPLICATE_IS_ROOT_ID)
+ENUM_OPERATORS(eLibIDDuplicateFlags)
 
 /* `lib_remap.cc` (keep here since they're general functions) */
 /**

@@ -7,8 +7,8 @@
  * \ingroup bke
  */
 
+#include "BLI_enum_flags.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_utildefines.h"
 
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
@@ -102,7 +102,7 @@ enum eUndoPushReturn {
   UNDO_PUSH_RET_SUCCESS = (1 << 0),
   UNDO_PUSH_RET_OVERRIDE_CHANGED = (1 << 1),
 };
-ENUM_OPERATORS(eUndoPushReturn, UNDO_PUSH_RET_OVERRIDE_CHANGED)
+ENUM_OPERATORS(eUndoPushReturn)
 
 using UndoTypeForEachIDRefFn = void (*)(void *user_data, UndoRefID *id_ref);
 

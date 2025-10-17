@@ -7,6 +7,7 @@
  * \ingroup bke
  */
 #include "BLI_compiler_attrs.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_span.hh"
@@ -129,7 +130,7 @@ enum ModifierTypeFlag {
   /** Accepts #GreasePencil data input. */
   eModifierTypeFlag_AcceptsGreasePencil = (1 << 12),
 };
-ENUM_OPERATORS(ModifierTypeFlag, eModifierTypeFlag_AcceptsGreasePencil)
+ENUM_OPERATORS(ModifierTypeFlag)
 
 using IDWalkFunc = void (*)(void *user_data,
                             Object *ob,
@@ -164,7 +165,7 @@ enum ModifierApplyFlag {
    */
   MOD_APPLY_TO_ORIGINAL = 1 << 4,
 };
-ENUM_OPERATORS(ModifierApplyFlag, MOD_APPLY_TO_ORIGINAL);
+ENUM_OPERATORS(ModifierApplyFlag);
 
 struct ModifierUpdateDepsgraphContext {
   Scene *scene;

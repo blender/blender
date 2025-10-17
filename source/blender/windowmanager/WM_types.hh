@@ -110,7 +110,7 @@ struct wmWindowManager;
 #include <string>
 
 #include "BLI_compiler_attrs.h"
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_listBase.h"
@@ -291,7 +291,7 @@ enum wmEventModifierFlag : uint8_t {
    */
   KM_HYPER = (1 << 4),
 };
-ENUM_OPERATORS(wmEventModifierFlag, KM_HYPER);
+ENUM_OPERATORS(wmEventModifierFlag);
 
 /** The number of modifiers #wmKeyMapItem & #wmEvent can use. */
 #define KM_MOD_NUM 5
@@ -696,7 +696,7 @@ enum eWM_EventFlag {
    */
   WM_EVENT_FORCE_DRAG_THRESHOLD = (1 << 3),
 };
-ENUM_OPERATORS(eWM_EventFlag, WM_EVENT_FORCE_DRAG_THRESHOLD);
+ENUM_OPERATORS(eWM_EventFlag);
 
 struct wmTabletData {
   /** 0=EVT_TABLET_NONE, 1=EVT_TABLET_STYLUS, 2=EVT_TABLET_ERASER. */
@@ -947,7 +947,7 @@ enum wmTimerFlags {
    * deleted in a safe context. */
   WM_TIMER_TAGGED_FOR_REMOVAL = 1 << 16,
 };
-ENUM_OPERATORS(wmTimerFlags, WM_TIMER_TAGGED_FOR_REMOVAL)
+ENUM_OPERATORS(wmTimerFlags)
 
 struct wmTimer {
   wmTimer *next, *prev;
@@ -1229,7 +1229,7 @@ enum eWM_DragFlags {
   WM_DRAG_NOP = 0,
   WM_DRAG_FREE_DATA = 1,
 };
-ENUM_OPERATORS(eWM_DragFlags, WM_DRAG_FREE_DATA)
+ENUM_OPERATORS(eWM_DragFlags)
 
 /* NOTE: structs need not exported? */
 

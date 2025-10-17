@@ -11,8 +11,8 @@
 #include <cstdio>
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_mutex.hh"
-#include "BLI_utildefines.h"
 
 #include "DNA_listBase.h"
 
@@ -41,7 +41,7 @@ enum eReportType : uint16_t {
   RPT_ERROR_INVALID_CONTEXT = (1 << 7),
   RPT_ERROR_OUT_OF_MEMORY = (1 << 8),
 };
-ENUM_OPERATORS(eReportType, RPT_ERROR_OUT_OF_MEMORY)
+ENUM_OPERATORS(eReportType)
 
 #define RPT_DEBUG_ALL (RPT_DEBUG)
 #define RPT_INFO_ALL (RPT_INFO)

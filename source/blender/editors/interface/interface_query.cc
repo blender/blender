@@ -368,7 +368,7 @@ uiBut *ui_but_find_mouse_over_ex(const ARegion *region,
   return butover;
 }
 
-uiBut *ui_but_find_mouse_over(const ARegion *region, const wmEvent *event)
+uiBut *UI_but_find_mouse_over(const ARegion *region, const wmEvent *event)
 {
   return ui_but_find_mouse_over_ex(
       region, event->xy, event->modifier & KM_CTRL, false, nullptr, nullptr);

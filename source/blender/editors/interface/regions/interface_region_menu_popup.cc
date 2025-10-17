@@ -627,7 +627,7 @@ static void ui_popup_menu_create_from_menutype(bContext *C,
   STRNCPY_UTF8(handle->menu_idname, mt->idname);
 
   WorkspaceStatus status(C);
-  if (bool(mt->flag & MenuTypeFlag::SearchOnKeyPress)) {
+  if (flag_is_set(mt->flag, MenuTypeFlag::SearchOnKeyPress)) {
     status.range(IFACE_("Search"), ICON_EVENT_A, ICON_EVENT_Z);
   }
   else if (mt->idname[0]) {

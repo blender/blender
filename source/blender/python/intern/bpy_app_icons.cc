@@ -12,7 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_icons.h"
+#include "BKE_icons.hh"
 
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_compat.hh" /* IWYU pragma: keep. */

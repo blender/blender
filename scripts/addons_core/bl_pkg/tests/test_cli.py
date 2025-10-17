@@ -77,6 +77,9 @@ VERBOSE = os.environ.get("VERBOSE", "0") != "0"
 sys.path.append(os.path.join(BASE_DIR, "modules"))
 from http_server_context import HTTPServerContext  # noqa: E402
 
+import python_wheel_generate  # noqa: E402
+
+
 STATUS_NON_ERROR = {'STATUS', 'PROGRESS'}
 
 
@@ -131,6 +134,12 @@ def manifest_dict_from_archive(filepath: str) -> dict[str, Any]:
 # Generate Repository
 #
 
+class WheelModuleParams(NamedTuple):
+    module_name: str
+    module_version: str
+
+    filename: str | None = None
+
 
 def files_create_in_dir(basedir: str, files: FileTree) -> None:
     if not os.path.isdir(basedir):
@@ -153,6 +162,7 @@ def my_create_package(
         metadata: dict[str, Any],
         files: FileTree,
         build_args_extra: tuple[str, ...],
+        wheel_params: Sequence[WheelModuleParams] = (),
         expected_returncode: int = 0,
 ) -> Sequence[JSON_OutputElem]:
     """
@@ -165,6 +175,30 @@ def my_create_package(
     metadata_copy = metadata.copy()
 
     with tempfile.TemporaryDirectory() as temp_dir_pkg:
+
+        wheel_filenames = []
+        if wheel_params:
+            for w in wheel_params:
+                wheel_filename, wheel_filedata = python_wheel_generate.generate_from_source(
+                    module_name=w.module_name,
+                    version=w.module_version,
+                    source=(
+                        "__version__ = {!r}\n"
+                        "print(\"The wheel has been found\")\n"
+                    ).format(w.module_version),
+                )
+                if w.filename is not None:
+                    wheel_filename = w.filename
+
+                wheel_dir = os.path.join(temp_dir_pkg, "wheels")
+                os.makedirs(wheel_dir, exist_ok=True)
+
+                wheel_path = os.path.join(wheel_dir, wheel_filename)
+                with open(wheel_path, "wb") as fh:
+                    fh.write(wheel_filedata)
+
+                wheel_filenames.append(wheel_filename)
+
         temp_dir_pkg_manifest_toml = os.path.join(temp_dir_pkg, PKG_MANIFEST_FILENAME_TOML)
         with open(temp_dir_pkg_manifest_toml, "wb") as fh:
             # NOTE: escaping is not supported, this is primitive TOML writing for tests.
@@ -185,8 +219,18 @@ def my_create_package(
             if (value := metadata_copy.pop("platforms", None)) is not None:
                 data_list.append("""platforms = [{:s}]\n""".format(", ".join("\"{:s}\"".format(v) for v in value)))
 
+            has_wheels = False
+            wheels_all = []
             if (value := metadata_copy.pop("wheels", None)) is not None:
-                data_list.append("""wheels = [{:s}]\n""".format(", ".join("\"{:s}\"".format(v) for v in value)))
+                wheels_all.extend(value)
+                has_wheels = True
+            if wheel_filenames:
+                wheels_all.extend(["./wheels/" + wheel_filename for wheel_filename in wheel_filenames])
+                has_wheels = True
+
+            if has_wheels:
+                data_list.append("""wheels = [{:s}]\n""".format(", ".join("\"{:s}\"".format(v) for v in wheels_all)))
+            del has_wheels, wheels_all
 
             if (value := metadata_copy.pop("build", None)) is not None:
                 value_copy = value.copy()
@@ -471,6 +515,7 @@ class TestCLI_Build(unittest.TestCase):
             self,
             build_paths: list[str],
             *,
+            wheel_params: Sequence[WheelModuleParams] = (),
             expected_returncode: int = 0,
     ) -> tuple[str, Sequence[JSON_OutputElem]]:
         pkg_idname = "my_test_paths"
@@ -500,6 +545,7 @@ class TestCLI_Build(unittest.TestCase):
                 # Include `add: {...}` so the file list can be scanned.
                 "--verbose",
             ),
+            wheel_params=wheel_params,
             expected_returncode=expected_returncode,
         )
 
@@ -519,6 +565,28 @@ class TestCLI_Build(unittest.TestCase):
                 ("STATUS", "building: my_test_paths.zip"),
                 ("STATUS", "add: blender_manifest.toml"),
                 ("STATUS", "add: __init__.py"),
+                ("STATUS", "complete"),
+                ("STATUS", "created: \"{:s}\", {:d}".format(output_path, output_size)),
+            ]
+        )
+
+    def test_build_path_literal_with_wheel_success(self) -> None:
+        output_path, output_json = self._test_build_path_literal_impl(
+            build_paths=["__init__.py"],
+            wheel_params=[
+                WheelModuleParams(module_name="my_wheel", module_version="2.3"),
+            ],
+            expected_returncode=0,
+
+        )
+
+        output_size = os.path.getsize(output_path)
+        self.assertEqual(
+            output_json, [
+                ("STATUS", "building: my_test_paths.zip"),
+                ("STATUS", "add: blender_manifest.toml"),
+                ("STATUS", "add: __init__.py"),
+                ('STATUS', 'add: wheels/my_wheel-2.3-py3-none-any.whl'),
                 ("STATUS", "complete"),
                 ("STATUS", "created: \"{:s}\", {:d}".format(output_path, output_size)),
             ]

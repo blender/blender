@@ -13,11 +13,11 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_enum_flags.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_time.h"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
@@ -86,7 +86,7 @@ enum eGPencil_PaintFlags {
   GP_PAINTFLAG_USE_STABILIZER = (1 << 7),
   GP_PAINTFLAG_USE_STABILIZER_TEMP = (1 << 8),
 };
-ENUM_OPERATORS(eGPencil_PaintFlags, GP_PAINTFLAG_USE_STABILIZER_TEMP)
+ENUM_OPERATORS(eGPencil_PaintFlags)
 
 /* Temporary 'Stroke' Operation data
  *   "p" = op->customdata

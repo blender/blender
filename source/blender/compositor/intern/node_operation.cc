@@ -66,7 +66,9 @@ void NodeOperation::evaluate()
 
 void NodeOperation::compute_preview()
 {
-  if (bool(context().needed_outputs() & OutputTypes::Previews) && is_node_preview_needed(node())) {
+  if (flag_is_set(context().needed_outputs(), OutputTypes::Previews) &&
+      is_node_preview_needed(node()))
+  {
     const Result *result = get_preview_result();
     if (result) {
       compositor::compute_preview(context(), node(), *result);

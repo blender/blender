@@ -21,11 +21,11 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
-#include "BLI_utildefines.h"
 
 struct ID;
 struct Main;
@@ -260,7 +260,7 @@ enum IDRemapperApplyOptions {
 
   ID_REMAP_APPLY_DEFAULT = 0,
 };
-ENUM_OPERATORS(IDRemapperApplyOptions, ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF)
+ENUM_OPERATORS(IDRemapperApplyOptions)
 
 using IDRemapperIterFunction = void (*)(ID *old_id, ID *new_id, void *user_data);
 using IDTypeFilter = uint64_t;

@@ -18,13 +18,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_enum_flags.hh"
 #include "BLI_kdopbvh.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
 #include "BLI_time.h" /* Smooth-view. */
-#include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
@@ -110,7 +110,7 @@ enum eWalkDirectionFlag {
   WALK_BIT_GLOBAL_UP = 1 << 6,
   WALK_BIT_GLOBAL_DOWN = 1 << 7,
 };
-ENUM_OPERATORS(eWalkDirectionFlag, WALK_BIT_GLOBAL_DOWN)
+ENUM_OPERATORS(eWalkDirectionFlag)
 
 enum eWalkTeleportState {
   WALK_TELEPORT_STATE_OFF = 0,

@@ -9,9 +9,9 @@
 #pragma once
 
 #include "BLI_array.hh"
+#include "BLI_enum_flags.hh"
 #include "BLI_map.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_utildefines.h"
 
 #include "DNA_view3d_enums.h"
 
@@ -231,7 +231,7 @@ enum DRWBatchFlag : uint64_t {
   MBC_PAINT_OVERLAY_SURFACE = (uint64_t(1u) << MBC_BATCH_INDEX(paint_overlay_surface)),
   MBC_SURFACE_PER_MAT = (uint64_t(1u) << MBC_BATCH_LEN),
 };
-ENUM_OPERATORS(DRWBatchFlag, MBC_SURFACE_PER_MAT);
+ENUM_OPERATORS(DRWBatchFlag);
 
 BLI_STATIC_ASSERT(MBC_BATCH_LEN < 64, "Number of batches exceeded the limit of bit fields");
 

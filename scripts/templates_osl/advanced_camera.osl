@@ -37,7 +37,7 @@ shader camera(float focal_length = 50.0 [[ float min = 0.0,
               float distortion_k3 = 0.0,
               float swirl_scale = 100.0,
               float swirl_amplitude = 0.01,
-              float swirl_W = 0.0 [[ float sensitivity = 1]],
+              float swirl_w = 0.0 [[ float sensitivity = 1]],
               output point position = 0.0,
               output vector direction = 0.0,
               output color throughput = 1.0)
@@ -61,7 +61,7 @@ shader camera(float focal_length = 50.0 [[ float min = 0.0,
   Pcam = Pcam * sensor_size / focal_length;
 
   if (do_swirl) {
-    Pcam += swirl_amplitude * noise("perlin", Pcam * swirl_scale, swirl_W);
+    Pcam += swirl_amplitude * noise("perlin", Pcam * swirl_scale, swirl_w);
   }
 
   direction = normalize(vector(Pcam.x, Pcam.y, 1.0));

@@ -10,6 +10,8 @@
 
 #include "DNA_defs.h"
 
+#include "BLI_enum_flags.hh"
+
 /**
  * Check for cyclic set-scene.
  * Libraries can cause this case which is normally prevented, see (#42009).
@@ -2505,7 +2507,7 @@ typedef enum eSnapFlag {
   SCE_SNAP_TO_ONLY_SELECTABLE = (1 << 10),
 } eSnapFlag;
 
-ENUM_OPERATORS(eSnapFlag, SCE_SNAP_TO_ONLY_SELECTABLE)
+ENUM_OPERATORS(eSnapFlag)
 
 /** See #ToolSettings::snap_target (to be renamed `snap_source`) and #TransSnap.source_operation */
 typedef enum eSnapSourceOP {
@@ -2515,7 +2517,7 @@ typedef enum eSnapSourceOP {
   SCE_SNAP_SOURCE_ACTIVE = 3,
 } eSnapSourceOP;
 
-ENUM_OPERATORS(eSnapSourceOP, SCE_SNAP_SOURCE_ACTIVE)
+ENUM_OPERATORS(eSnapSourceOP)
 
 /**
  * #TransSnap::target_operation and #ToolSettings::snap_flag
@@ -2530,7 +2532,7 @@ typedef enum eSnapTargetOP {
   SCE_SNAP_TARGET_ONLY_SELECTABLE = (1 << 3),
   SCE_SNAP_TARGET_NOT_NONEDITED = (1 << 4),
 } eSnapTargetOP;
-ENUM_OPERATORS(eSnapTargetOP, SCE_SNAP_TARGET_NOT_NONEDITED)
+ENUM_OPERATORS(eSnapTargetOP)
 
 /** #ToolSettings::snap_mode */
 typedef enum eSnapMode {
@@ -2558,12 +2560,7 @@ typedef enum eSnapMode {
   SCE_SNAP_INDIVIDUAL_NEAREST = (1 << 9),
   SCE_SNAP_INDIVIDUAL_PROJECT = (1 << 10),
 } eSnapMode;
-
-/* Due to dependency conflicts with Cycles, header cannot directly include `BLI_utildefines.h`. */
-/* TODO: move this macro to a more general place. */
-#ifdef ENUM_OPERATORS
-ENUM_OPERATORS(eSnapMode, SCE_SNAP_INDIVIDUAL_PROJECT)
-#endif
+ENUM_OPERATORS(eSnapMode)
 
 #define SCE_SNAP_TO_VERTEX (SCE_SNAP_TO_POINT | SCE_SNAP_TO_EDGE_ENDPOINT)
 

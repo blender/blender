@@ -50,7 +50,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
-#include "BKE_icons.h"
+#include "BKE_icons.hh"
 #include "BKE_idprop.hh"
 #include "BKE_image.hh"
 #include "BKE_layer.hh"

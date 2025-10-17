@@ -350,20 +350,22 @@ bool paint_brush_update(bContext *C,
   if (paint_supports_dynamic_size(brush, mode)) {
     copy_v2_v2(paint_runtime.tex_mouse, mouse);
     copy_v2_v2(paint_runtime.mask_tex_mouse, mouse);
-    stroke->cached_size_pressure = BKE_curvemapping_evaluateF(brush.curve_size, 0, pressure);
   }
 
   /* Truly temporary data that isn't stored in properties */
 
   paint_runtime.stroke_active = true;
-  paint_runtime.size_pressure_value = stroke->cached_size_pressure;
+  const float pressure_to_evaluate = paint_supports_dynamic_size(brush, mode) ?
+                                         pressure :
+                                         stroke->cached_size_pressure;
+  paint_runtime.size_pressure_value = BKE_brush_use_size_pressure(&brush) ?
+                                          BKE_curvemapping_evaluateF(
+                                              brush.curve_size, 0, pressure_to_evaluate) :
+                                          1.0f;
 
-  paint_runtime.pixel_radius = BKE_brush_radius_get(paint, &brush);
+  paint_runtime.pixel_radius = BKE_brush_radius_get(paint, &brush) *
+                               paint_runtime.size_pressure_value;
   paint_runtime.initial_pixel_radius = BKE_brush_radius_get(paint, &brush);
-
-  if (BKE_brush_use_size_pressure(&brush) && paint_supports_dynamic_size(brush, mode)) {
-    paint_runtime.pixel_radius *= stroke->cached_size_pressure;
-  }
 
   if (paint_supports_dynamic_tex_coords(brush, mode)) {
 

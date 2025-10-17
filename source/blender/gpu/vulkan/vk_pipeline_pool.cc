@@ -278,9 +278,6 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
       graphics_info.vertex_in.bindings.size();
 
   /* Rasterization state */
-  vk_pipeline_rasterization_state_create_info_.frontFace = graphics_info.state.invert_facing ?
-                                                               VK_FRONT_FACE_COUNTER_CLOCKWISE :
-                                                               VK_FRONT_FACE_CLOCKWISE;
   vk_pipeline_rasterization_state_create_info_.cullMode = to_vk_cull_mode_flags(
       static_cast<GPUFaceCullTest>(graphics_info.state.culling_test));
   if (graphics_info.state.shadow_bias) {

@@ -1652,8 +1652,6 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
     }
   }
 
-  BLO_write_struct_at_address(writer, SurfaceDeformModifierData, md, &smd);
-
   if (smd.verts != nullptr) {
     BLO_write_shared(
         writer, smd.verts, sizeof(SDefVert) * smd.bind_verts_num, smd.verts_sharing_info, [&]() {
@@ -1684,6 +1682,8 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
           }
         });
   }
+
+  BLO_write_struct_at_address(writer, SurfaceDeformModifierData, md, &smd);
 }
 
 static void blend_read(BlendDataReader *reader, ModifierData *md)

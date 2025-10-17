@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
 
 /* ************************************************ */
 /* F-Curve DataTypes */
@@ -322,7 +322,7 @@ typedef enum eFCurve_Flags {
   /** temporary tag for editing */
   FCURVE_TAGGED = (1 << 15),
 } eFCurve_Flags;
-ENUM_OPERATORS(eFCurve_Flags, FCURVE_TAGGED);
+ENUM_OPERATORS(eFCurve_Flags);
 
 /* extrapolation modes (only simple value 'extending') */
 typedef enum eFCurve_Extend {
@@ -485,7 +485,7 @@ typedef enum eKS_Settings {
   /** Keyingset does not depend on context info (i.e. paths are absolute). */
   KEYINGSET_ABSOLUTE = (1 << 1),
 } eKS_Settings;
-ENUM_OPERATORS(eKS_Settings, KEYINGSET_ABSOLUTE)
+ENUM_OPERATORS(eKS_Settings)
 
 /* Flags for use by keyframe creation/deletion calls */
 typedef enum eInsertKeyFlags {
@@ -513,7 +513,7 @@ typedef enum eInsertKeyFlags {
   /** Don't create new F-Curves (implied by #INSERTKEY_REPLACE). */
   INSERTKEY_AVAILABLE = (1 << 10),
 } eInsertKeyFlags;
-ENUM_OPERATORS(eInsertKeyFlags, INSERTKEY_AVAILABLE);
+ENUM_OPERATORS(eInsertKeyFlags);
 
 /* KS_Path->flag */
 typedef enum eKSP_Settings {

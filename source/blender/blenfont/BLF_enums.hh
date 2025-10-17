@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
 
 enum class FontShadowType {
   None = 0,
@@ -64,4 +64,4 @@ enum FontFlags {
   /** Do not look in other fonts when a glyph is not found in this font. */
   BLF_NO_FALLBACK = 1 << 19,
 };
-ENUM_OPERATORS(FontFlags, BLF_NO_FALLBACK);
+ENUM_OPERATORS(FontFlags);

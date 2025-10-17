@@ -71,7 +71,7 @@ class AssetCatalogService {
    *
    * This "dirty" state is tracked per catalog, so that it's possible to gracefully load changes
    * from disk. Any catalog with unsaved changes will not be overwritten by on-disk changes. */
-  void tag_has_unsaved_changes(AssetCatalog *edited_catalog);
+  void tag_has_unsaved_changes(AssetCatalog *edited_catalog = nullptr);
   bool has_unsaved_changes() const;
 
   /**
@@ -159,8 +159,15 @@ class AssetCatalogService {
    */
   AssetCatalogFilter create_catalog_filter(CatalogID active_catalog_id) const;
 
-  /** Create a catalog with some sensible auto-generated catalog ID.
-   * The catalog will be saved to the default catalog file. */
+  /**
+   * Create a catalog with some sensible auto-generated catalog ID.
+   * The catalog will be saved to the default catalog file.
+   *
+   * NOTE: this does NOT mark the catalog service itself as 'has changes'. The caller is
+   * responsible for that.
+   *
+   * \see #tag_has_unsaved_changes()
+   */
   AssetCatalog *create_catalog(const AssetCatalogPath &catalog_path);
 
   /**
@@ -228,6 +235,11 @@ class AssetCatalogService {
    * will be removed from a CDF when saved to disk.
    *
    * This is a lower-level function than #prune_catalogs_by_path.
+   *
+   * NOTE: this does NOT mark the catalog service itself as 'has changes'. The caller is
+   * responsible for that.
+   *
+   * \see #tag_has_unsaved_changes()
    */
   void delete_catalog_by_id_soft(CatalogID catalog_id);
 

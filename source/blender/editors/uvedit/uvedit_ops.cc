@@ -21,12 +21,12 @@
 #include "DNA_space_types.h"
 
 #include "BLI_bounds.hh"
+#include "BLI_enum_flags.hh"
 #include "BLI_kdtree.h"
 #include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
@@ -370,7 +370,7 @@ static wmOperatorStatus uv_move_on_axis_exec(bContext *C, wmOperator *op)
   ED_space_image_get_size(sima, &size[0], &size[1]);
   float distance_final;
   if (type == UVMoveType::Dynamic) {
-    distance_final = float(distance) / sima->tile_grid_shape[int(axis)];
+    distance_final = float(distance) / sima->custom_grid_subdiv[int(axis)];
   }
   else if (type == UVMoveType::Pixel) {
     distance_final = float(distance) / size[int(axis)];
@@ -491,7 +491,7 @@ enum eUVEndPointPrecedence {
   UVEP_SELECTED = (1 << 0),
   UVEP_PINNED = (1 << 1), /* i.e. Pinned verts are preferred to selected. */
 };
-ENUM_OPERATORS(eUVEndPointPrecedence, UVEP_PINNED);
+ENUM_OPERATORS(eUVEndPointPrecedence);
 
 static eUVEndPointPrecedence uvedit_line_update_get_precedence(const bool pinned)
 {

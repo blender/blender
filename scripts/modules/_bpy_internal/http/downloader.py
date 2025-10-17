@@ -911,9 +911,12 @@ class DownloadReporter(Protocol):
     ) -> None:
         """There was an error downloading the URL.
 
-        This can be due to the actual download (network issues), but also local
-        processing of the downloaded data (such as renaming the file from its
-        temporary name to its final name).
+        This can be due to the actual download (HTTP status code 4xx or 5xx,
+        network issues), but also local processing of the downloaded data (such
+        as renaming the file from its temporary name to its final name).
+
+        For HTTP errors, the 'error' parameter will be a requests.HTTPError
+        instance.
         """
 
     def download_progress(

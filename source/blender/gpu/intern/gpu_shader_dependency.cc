@@ -316,10 +316,10 @@ struct GPUSource {
 
     using namespace shader;
     /* Auto dependency injection for debug capabilities. */
-    if ((builtins & BuiltinBits::USE_PRINTF) == BuiltinBits::USE_PRINTF) {
+    if (flag_is_set(builtins, BuiltinBits::USE_PRINTF)) {
       dependencies.append_non_duplicates(dict.lookup("gpu_shader_print_lib.glsl"));
     }
-    if ((builtins & BuiltinBits::USE_DEBUG_DRAW) == BuiltinBits::USE_DEBUG_DRAW) {
+    if (flag_is_set(builtins, BuiltinBits::USE_DEBUG_DRAW)) {
       dependencies.append_non_duplicates(dict.lookup("draw_debug_draw_lib.glsl"));
     }
 
@@ -376,7 +376,7 @@ struct GPUSource {
       }
     }
 
-    if (!bool(this->builtins & shader::BuiltinBits::RUNTIME_GENERATED)) {
+    if (!flag_is_set(this->builtins, shader::BuiltinBits::RUNTIME_GENERATED)) {
       for (const auto &dependency : this->dependencies) {
         /* WATCH: Recursive. */
         dependency->source_get(result, generated_sources, dict, *this);
@@ -515,7 +515,7 @@ void gpu_shader_dependency_init()
     /* Detect if there is any printf in node lib files.
      * See gpu_shader_dependency_force_gpu_print_injection(). */
     for (auto *value : g_sources->values()) {
-      if (bool(value->builtins & shader::BuiltinBits::USE_PRINTF)) {
+      if (flag_is_set(value->builtins, shader::BuiltinBits::USE_PRINTF)) {
         if (value->filename.startswith("gpu_shader_material_")) {
           force_printf_injection = true;
           break;

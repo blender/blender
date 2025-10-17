@@ -136,7 +136,9 @@ enum GPUBuiltinShader {
   GPU_SHADER_3D_POINT_UNIFORM_COLOR,
 
   /**
-   * Draw a texture in 3D. Take a 3D position and a 2D texture coordinate for each vertex.
+   * Draw a sRGB color space texture in 3D.
+   * Texture color space is assumed to match the framebuffer.
+   * Take a 3D position and a 2D texture coordinate for each vertex.
    *
    * \param image: uniform sampler2D
    * \param texCoord: in vec2
@@ -144,6 +146,17 @@ enum GPUBuiltinShader {
    */
   GPU_SHADER_3D_IMAGE,
   /**
+   * Draw a scene linear color space texture in 3D.
+   * Texture value is transformed to the Rec.709 sRGB color space.
+   * Take a 3D position and a 2D texture coordinate for each vertex.
+   *
+   * \param image: uniform sampler2D
+   * \param texCoord: in vec2
+   * \param pos: in vec3
+   */
+  GPU_SHADER_3D_IMAGE_SCENE_LINEAR_TO_REC709_SRGB,
+  /**
+   * Draw a sRGB color space (with Rec.709 primaries) texture in 3D.
    * Take a 3D position and color for each vertex with linear interpolation in window space.
    *
    * \param color: uniform vec4
@@ -152,8 +165,19 @@ enum GPUBuiltinShader {
    * \param pos: in vec3
    */
   GPU_SHADER_3D_IMAGE_COLOR,
+  /**
+   * Draw a scene linear color space texture in 3D.
+   * Texture value is transformed to the Rec.709 sRGB color space.
+   * Take a 3D position and color for each vertex with linear interpolation in window space.
+   *
+   * \param color: uniform vec4
+   * \param image: uniform sampler2D
+   * \param texCoord: in vec2
+   * \param pos: in vec3
+   */
+  GPU_SHADER_3D_IMAGE_COLOR_SCENE_LINEAR_TO_REC709_SRGB,
 };
-#define GPU_SHADER_BUILTIN_LEN (GPU_SHADER_3D_IMAGE_COLOR + 1)
+#define GPU_SHADER_BUILTIN_LEN (GPU_SHADER_3D_IMAGE_COLOR_SCENE_LINEAR_TO_REC709_SRGB + 1)
 
 /** Support multiple configurations. */
 enum GPUShaderConfig {

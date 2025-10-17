@@ -20,7 +20,7 @@
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
-#include "BKE_icons.h"
+#include "BKE_icons.hh"
 
 #include "BLI_ghash.h"
 #include "BLI_string.h"

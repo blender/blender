@@ -237,7 +237,7 @@ inline void ParamsBuilder::add_ignored_single_output(StringRef expected_name)
   const DataType data_type = param_type.data_type();
   const CPPType &type = data_type.single_type();
 
-  if (bool(signature_->params[param_index].flag & ParamFlag::SupportsUnusedOutput)) {
+  if (flag_is_set(signature_->params[param_index].flag, ParamFlag::SupportsUnusedOutput)) {
     /* An empty span indicates that this is ignored. */
     const GMutableSpan dummy_span{type};
     actual_params_.append_unchecked_as(std::in_place_type<GMutableSpan>, dummy_span);
@@ -365,8 +365,8 @@ inline MutableSpan<T> Params::uninitialized_single_output(int param_index, Strin
 inline GMutableSpan Params::uninitialized_single_output(int param_index, StringRef name)
 {
   this->assert_correct_param(param_index, name, ParamCategory::SingleOutput);
-  BLI_assert(
-      !bool(builder_->signature_->params[param_index].flag & ParamFlag::SupportsUnusedOutput));
+  BLI_assert(!flag_is_set(builder_->signature_->params[param_index].flag,
+                          ParamFlag::SupportsUnusedOutput));
   GMutableSpan span = std::get<GMutableSpan>(builder_->actual_params_[param_index]);
   BLI_assert(span.size() >= builder_->min_array_size_);
   return span;
@@ -383,8 +383,8 @@ inline GMutableSpan Params::uninitialized_single_output_if_required(int param_in
                                                                     StringRef name)
 {
   this->assert_correct_param(param_index, name, ParamCategory::SingleOutput);
-  BLI_assert(
-      bool(builder_->signature_->params[param_index].flag & ParamFlag::SupportsUnusedOutput));
+  BLI_assert(flag_is_set(builder_->signature_->params[param_index].flag,
+                         ParamFlag::SupportsUnusedOutput));
   return std::get<GMutableSpan>(builder_->actual_params_[param_index]);
 }
 

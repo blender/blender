@@ -551,7 +551,7 @@ static Strip *strip_duplicate(Main *bmain,
     channels_duplicate(&strip_new->channels, &strip->channels);
   }
   else if (strip->type == STRIP_TYPE_SCENE) {
-    if (int(dupe_flag & StripDuplicate::Data) != 0 && strip_new->scene != nullptr) {
+    if (flag_is_set(dupe_flag, StripDuplicate::Data) && strip_new->scene != nullptr) {
       Scene *scene_old = strip_new->scene;
       strip_new->scene = BKE_scene_duplicate(bmain, scene_old, SCE_COPY_FULL);
     }
@@ -561,7 +561,7 @@ static Strip *strip_duplicate(Main *bmain,
     }
   }
   else if (strip->type == STRIP_TYPE_MOVIECLIP) {
-    if (int(dupe_flag & StripDuplicate::Data) != 0 && strip_new->clip != nullptr) {
+    if (flag_is_set(dupe_flag, StripDuplicate::Data) && strip_new->clip != nullptr) {
       MovieClip *clip_old = strip_new->clip;
       strip_new->clip = reinterpret_cast<MovieClip *>(
           BKE_id_copy(bmain, reinterpret_cast<ID *>(clip_old)));
@@ -571,7 +571,7 @@ static Strip *strip_duplicate(Main *bmain,
     }
   }
   else if (strip->type == STRIP_TYPE_MASK) {
-    if (int(dupe_flag & StripDuplicate::Data) != 0 && strip_new->mask != nullptr) {
+    if (flag_is_set(dupe_flag, StripDuplicate::Data) && strip_new->mask != nullptr) {
       Mask *mask_old = strip_new->mask;
       strip_new->mask = reinterpret_cast<Mask *>(
           BKE_id_copy(bmain, reinterpret_cast<ID *>(mask_old)));
@@ -619,7 +619,7 @@ static Strip *strip_duplicate(Main *bmain,
   }
 
   if (scene_src == scene_dst) {
-    if (int(dupe_flag & StripDuplicate::UniqueName) != 0) {
+    if (flag_is_set(dupe_flag, StripDuplicate::UniqueName)) {
       strip_unique_name_set(scene_dst, &scene_dst->ed->seqbase, strip_new);
     }
   }
@@ -681,7 +681,7 @@ static void seqbase_dupli_recursive(Main *bmain,
                                     blender::Map<Strip *, Strip *> &strip_map)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if ((strip->flag & SELECT) == 0 && int(dupe_flag & StripDuplicate::All) == 0) {
+    if ((strip->flag & SELECT) == 0 && !flag_is_set(dupe_flag, StripDuplicate::All)) {
       continue;
     }
 

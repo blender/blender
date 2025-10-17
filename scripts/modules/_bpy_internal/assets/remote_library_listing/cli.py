@@ -66,7 +66,7 @@ def main(cli_args: list[str]) -> None:
     log.info("Command took %s to complete", duration)
 
 
-def config_logging(args):
+def config_logging(args) -> None:  # type: ignore
     """Configures the logging system based on CLI arguments."""
 
     logging.basicConfig(

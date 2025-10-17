@@ -415,7 +415,10 @@ class OBJECT_PT_visibility(ObjectButtonsPanel, Panel):
         layout = self.layout
         ob = context.object
 
-        layout.prop(ob, "hide_select", text="Selectable", toggle=False, invert_checkbox=True)
+        col = layout.column()
+        col.prop(ob, "hide_select", text="Selectable", toggle=False, invert_checkbox=True)
+        col.prop(ob, "hide_surface_pick", text="Surface Picking", toggle=False, invert_checkbox=True)
+        layout.separator()
 
         col = layout.column(heading="Show In")
         col.prop(ob, "hide_viewport", text="Viewports", toggle=False, invert_checkbox=True)

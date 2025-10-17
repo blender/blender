@@ -9,6 +9,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
@@ -543,7 +544,7 @@ struct WPGradient_vertStore {
   float weight_orig;
   Flag flag;
 };
-ENUM_OPERATORS(WPGradient_vertStore::Flag, WPGradient_vertStore::VGRAD_STORE_IS_MODIFIED);
+ENUM_OPERATORS(WPGradient_vertStore::Flag);
 
 struct WPGradient_vertStoreBase {
   WPaintPrev wpp;
