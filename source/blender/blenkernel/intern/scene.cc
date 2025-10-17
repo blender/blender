@@ -1855,31 +1855,38 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
   id_us_min(&sce_copy->id);
   id_us_ensure_real(&sce_copy->id);
 
-  BKE_animdata_duplicate_id_action(bmain, &sce_copy->id, duplicate_flags);
+  /* Scene duplication is always root of duplication currently, and never a subprocess.
+   *
+   * Keep these around though, as this allow the rest of the duplication code to stay in sync with
+   * the layout and behavior as the other duplicate functions (see e.g. #BKE_collection_duplicate
+   * or #BKE_object_duplicate).
+   *
+   * TOOD: At some point it would be nice to deduplicate this logic and move common behavior into
+   * generic ID management code, with IDType callbacks for specific duplication behavior only. */
+  const bool is_subprocess = false;
+  const bool is_root_id = true;
+  const int copy_flags = LIB_ID_COPY_DEFAULT;
+
+  if (!is_subprocess) {
+    BKE_main_id_newptr_and_tag_clear(bmain);
+  }
+
+  if (is_root_id) {
+    /* In case root duplicated ID is linked, assume we want to get a local copy of it and
+     * duplicate all expected linked data. */
+    if (ID_IS_LINKED(sce)) {
+      duplicate_flags = (duplicate_flags | USER_DUP_LINKED_ID);
+    }
+  }
+
+  /* Usages of the duplicated scene also need to be remapped in new duplicated IDs. */
+  ID_NEW_SET(sce, sce_copy);
 
   /* Extra actions, most notably SCE_FULL_COPY also duplicates several 'children' datablocks. */
 
+  BKE_animdata_duplicate_id_action(bmain, &sce_copy->id, duplicate_flags);
+
   if (type == SCE_COPY_FULL) {
-    /* Scene duplication is always root of duplication currently. */
-    const bool is_subprocess = false;
-    const bool is_root_id = true;
-    const int copy_flags = LIB_ID_COPY_DEFAULT;
-
-    if (!is_subprocess) {
-      BKE_main_id_newptr_and_tag_clear(bmain);
-    }
-
-    /* Usages of the duplicated scene also need to be remapped in new duplicated IDs. */
-    ID_NEW_SET(sce, sce_copy);
-
-    if (is_root_id) {
-      /* In case root duplicated ID is linked, assume we want to get a local copy of it and
-       * duplicate all expected linked data. */
-      if (ID_IS_LINKED(sce)) {
-        duplicate_flags = (duplicate_flags | USER_DUP_LINKED_ID);
-      }
-    }
-
     /* Copy Freestyle LineStyle datablocks. */
     LISTBASE_FOREACH (ViewLayer *, view_layer_dst, &sce_copy->view_layers) {
       LISTBASE_FOREACH (FreestyleLineSet *, lineset, &view_layer_dst->freestyle_config.linesets) {
@@ -1926,39 +1933,41 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
                                  LIB_ID_DUPLICATE_IS_SUBPROCESS);
       }
     }
-
-    if (!is_subprocess) {
-      /* This code will follow into all ID links using an ID tagged with ID_TAG_NEW. */
-      /* Unfortunate, but with some types (e.g. meshes), an object is considered in Edit mode if
-       * its obdata contains edit mode runtime data. This can be the case of all newly duplicated
-       * objects, as even though duplicate code move the object back in Object mode, they are still
-       * using the original obdata ID, leading to them being falsely detected as being in Edit
-       * mode, and therefore not remapping their obdata to the newly duplicated one. See #139715.
-       */
-      BKE_libblock_relink_to_newid(
-          bmain, &sce_copy->id, ID_REMAP_FORCE_OBDATA_IN_EDITMODE | ID_REMAP_SKIP_USER_CLEAR);
-
-#ifndef NDEBUG
-      /* Call to `BKE_libblock_relink_to_newid` above is supposed to have cleared all those
-       * flags. */
-      ID *id_iter;
-      FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
-        BLI_assert((id_iter->tag & ID_TAG_NEW) == 0);
-      }
-      FOREACH_MAIN_ID_END;
-#endif
-
-      /* Cleanup. */
-      BKE_main_id_newptr_and_tag_clear(bmain);
-
-      BKE_main_collection_sync(bmain);
-    }
   }
   else {
     /* Remove sequencer if not full copy */
     /* XXX Why in Hell? :/ */
     remove_sequencer_fcurves(sce_copy);
     blender::seq::editing_free(sce_copy, true);
+  }
+
+  /* The final step is to ensure that all of the newly duplicated IDs are used by other newly
+   * duplicated IDs, and some standard cleanup & updates. */
+  if (!is_subprocess) {
+    /* This code will follow into all ID links using an ID tagged with ID_TAG_NEW. */
+    /* Unfortunate, but with some types (e.g. meshes), an object is considered in Edit mode if
+     * its obdata contains edit mode runtime data. This can be the case of all newly duplicated
+     * objects, as even though duplicate code move the object back in Object mode, they are still
+     * using the original obdata ID, leading to them being falsely detected as being in Edit
+     * mode, and therefore not remapping their obdata to the newly duplicated one. See #139715.
+     */
+    BKE_libblock_relink_to_newid(
+        bmain, &sce_copy->id, ID_REMAP_FORCE_OBDATA_IN_EDITMODE | ID_REMAP_SKIP_USER_CLEAR);
+
+#ifndef NDEBUG
+    /* Call to `BKE_libblock_relink_to_newid` above is supposed to have cleared all those
+     * flags. */
+    ID *id_iter;
+    FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+      BLI_assert((id_iter->tag & ID_TAG_NEW) == 0);
+    }
+    FOREACH_MAIN_ID_END;
+#endif
+
+    /* Cleanup. */
+    BKE_main_id_newptr_and_tag_clear(bmain);
+
+    BKE_main_collection_sync(bmain);
   }
 
   return sce_copy;
