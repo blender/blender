@@ -85,7 +85,7 @@ static VectorSet<std::string> join_vertex_groups(const Span<const Object *> obje
       continue;
     }
     Vector<int, 32> index_map;
-    LISTBASE_FOREACH (const bDeformGroup *, dg, &dst_mesh.vertex_group_names) {
+    LISTBASE_FOREACH (const bDeformGroup *, dg, &src_mesh.vertex_group_names) {
       index_map.append(vertex_group_names.index_of_as(dg->name));
     }
     for (const int vert : src_dverts.index_range()) {
