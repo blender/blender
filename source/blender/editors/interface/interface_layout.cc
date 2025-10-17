@@ -736,12 +736,15 @@ static void ui_item_array(uiLayout *layout,
       return;
     }
 
-    w /= dim_size[0];
-    // h /= dim_size[1]; /* UNUSED */
+    w /= dim_size[1];
+    // h /= dim_size[0]; /* UNUSED */
 
     for (int a = 0; a < len; a++) {
-      col = a % dim_size[0];
-      row = a / dim_size[0];
+      /* We are going over flat array indices (the way matrices are stored internally [also check
+       * logic in #pyrna_py_from_array_index()]) -- and they are not ordered "row first" -- , so
+       * map these to rows/colums. */
+      col = a % dim_size[1];
+      row = a / dim_size[1];
 
       uiBut *but = uiDefAutoButR(block,
                                  ptr,
@@ -750,7 +753,7 @@ static void ui_item_array(uiLayout *layout,
                                  "",
                                  ICON_NONE,
                                  x + w * col,
-                                 y + (dim_size[1] * UI_UNIT_Y) - (row * UI_UNIT_Y),
+                                 y + (dim_size[0] * UI_UNIT_Y) - (row * UI_UNIT_Y),
                                  w,
                                  UI_UNIT_Y);
       if (slider && but->type == ButType::Num) {
@@ -1823,7 +1826,9 @@ static void ui_item_rna_size(uiLayout *layout,
       h += 2 * UI_UNIT_Y;
     }
     else if (subtype == PROP_MATRIX) {
-      h += ceilf(sqrtf(len)) * UI_UNIT_Y;
+      int dim_size[/*RNA_MAX_ARRAY_DIMENSION*/ 3];
+      RNA_property_array_dimension(ptr, prop, dim_size);
+      h += dim_size[0] * UI_UNIT_Y;
     }
     else {
       h += len * UI_UNIT_Y;
