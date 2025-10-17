@@ -1517,6 +1517,9 @@ static void svg_replace_color_attributes(std::string &svg,
       {"blender_crease", nullptr, TH_CREASE},
       {"blender_seam", nullptr, TH_SEAM},
       {"blender_sharp", nullptr, TH_SHARP},
+      {"blender_ipo_linear", btheme->space_action.anim_interpolation_linear},
+      {"blender_ipo_constant", btheme->space_action.anim_interpolation_constant},
+      {"blender_ipo_other", btheme->space_action.anim_interpolation_other},
   };
 
   for (const ColorItem &item : items) {
