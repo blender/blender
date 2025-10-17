@@ -807,9 +807,9 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     standard_defines(sources);
     sources.append("#define GPU_COMPUTE_SHADER\n");
     sources.append(defines);
+    sources.append(layout);
     sources.extend(typedefs);
     sources.append(resources);
-    sources.append(layout);
     sources.extend(code);
     sources.append(info.compute_source_generated);
 
