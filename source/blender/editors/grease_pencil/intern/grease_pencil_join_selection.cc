@@ -437,6 +437,7 @@ void remove_selected_points(Span<PointsRange> ranges_selected)
     IndexMaskMemory memory;
     const IndexMask combined_mask = IndexMask::from_union(item.value, memory);
     dst_curves.remove_points(combined_mask, {});
+    item.key->tag_topology_changed();
   }
 }
 
