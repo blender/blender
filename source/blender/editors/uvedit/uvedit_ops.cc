@@ -370,7 +370,7 @@ static wmOperatorStatus uv_move_on_axis_exec(bContext *C, wmOperator *op)
   ED_space_image_get_size(sima, &size[0], &size[1]);
   float distance_final;
   if (type == UVMoveType::Dynamic) {
-    distance_final = float(distance) / sima->tile_grid_shape[int(axis)];
+    distance_final = float(distance) / sima->custom_grid_subdiv[int(axis)];
   }
   else if (type == UVMoveType::Pixel) {
     distance_final = float(distance) / size[int(axis)];
