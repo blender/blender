@@ -626,9 +626,6 @@ bool VKShader::finalize_post()
    * compiled to a shader program that can be executed by the device. Depending on the driver this
    * can take some time as well. If this is done inside the main thread it will stall user
    * interactivity.
-   *
-   * TODO: We should check if VK_EXT_graphics_pipeline_library can improve the pipeline creation
-   * step for graphical shaders.
    */
   if (result && is_compute_shader_) {
     /* This is only done for the first shader compilation (not specialization).
