@@ -4416,8 +4416,8 @@ static void write_drawing_array(GreasePencil &grease_pencil,
         curves.blend_write_prepare(write_data);
         drawing_copy.runtime = nullptr;
 
-        BLO_write_struct_at_address(writer, GreasePencilDrawing, drawing_base, &drawing_copy);
         curves.blend_write(*writer, grease_pencil.id, write_data);
+        BLO_write_struct_at_address(writer, GreasePencilDrawing, drawing_base, &drawing_copy);
         break;
       }
       case GP_DRAWING_REFERENCE: {
