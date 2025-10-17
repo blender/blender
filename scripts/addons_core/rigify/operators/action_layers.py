@@ -107,7 +107,7 @@ class ActionSlot(PropertyGroup, ActionSlotBase):
         return str(action_slot.handle)
 
     action_slot_ui: StringProperty(
-        name="Acion Slot",
+        name="Action Slot",
         description="Slot of the Action to use for the Action Constraints",
         # These callbacks let us store the action slot's `handle` property
         # under the hood (which is unique and never changes), while acting

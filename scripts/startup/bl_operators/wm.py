@@ -1342,7 +1342,7 @@ class WM_OT_doc_view_manual(Operator):
             self.report(
                 {'WARNING'},
                 rpt_("No reference available {!r}, "
-                     "Update info in '_rna_manual_reference.py' "
+                     "update info in '_rna_manual_reference.py' "
                      "or callback to bpy.utils.manual_map()").format(self.doc_id)
             )
             return {'CANCELLED'}
