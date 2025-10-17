@@ -4686,7 +4686,7 @@ class subcmd_author:
         if build_paths_extra:
             build_paths.extend(build_paths_expand_iter(
                 pkg_source_dir,
-                # When "paths" is set, paths before `build_paths_extra_skip_index` have been added,
+                # When "paths" is set, paths after `build_paths_extra_skip_index` have been added,
                 # see: `PkgManifest_Build.from_dict_all_errors`.
                 build_paths_extra if manifest_build.paths is None else
                 build_paths_extra[:build_paths_extra_skip_index],
