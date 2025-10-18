@@ -1,0 +1,6 @@
+- name: Build from source
+  run: |
+    pwd
+    ls -la
+    ./configure
+    make
