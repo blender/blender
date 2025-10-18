@@ -16,6 +16,7 @@
 struct Collection;
 struct ID;
 struct ImBuf;
+struct Object;
 struct PointerRNA;
 struct PreviewImage;
 struct Scene;
@@ -110,6 +111,7 @@ int UI_icon_from_rnaptr(const bContext *C, PointerRNA *ptr, int rnaicon, bool bi
 int UI_icon_from_idcode(int idcode);
 int UI_icon_from_library(const ID *id);
 int UI_icon_from_object_mode(int mode);
+int UI_icon_from_object_type(const Object *object);
 int UI_icon_color_from_collection(const Collection *collection);
 
 void UI_icon_text_overlay_init_from_count(IconTextOverlay *text_overlay,
