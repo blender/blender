@@ -1,0 +1,6 @@
+- name: Build from source
+  run: |
+    ./autogen.sh  # Or ./bootstrap, etc.
+    ./configure
+    make
+    make install
