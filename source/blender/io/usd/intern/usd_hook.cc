@@ -7,6 +7,7 @@
 #include "usd.hh"
 #include "usd_asset_utils.hh"
 #include "usd_hash_types.hh"
+#include "usd_hierarchy_iterator.hh"
 #include "usd_reader_prim.hh"
 #include "usd_reader_stage.hh"
 #include "usd_writer_material.hh"
@@ -15,6 +16,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
+#include "BKE_lib_id.hh"
 #include "BKE_report.hh"
 
 #include "DNA_material_types.h"
@@ -116,11 +118,13 @@ class USDSceneExportContext {
  private:
   pxr::UsdStageRefPtr stage_;
   PointerRNA depsgraph_ptr_;
+  const USDHierarchyIterator *hierarchy_iterator_;
 
  public:
-  USDSceneExportContext() = default;
+  USDSceneExportContext() : hierarchy_iterator_(nullptr) {}
 
-  USDSceneExportContext(pxr::UsdStageRefPtr stage, Depsgraph *depsgraph) : stage_(stage)
+  USDSceneExportContext(const USDHierarchyIterator *iter, Depsgraph *depsgraph)
+      : stage_(iter->get_stage()), hierarchy_iterator_(iter)
   {
     depsgraph_ptr_ = RNA_pointer_create_discrete(nullptr, &RNA_Depsgraph, depsgraph);
   }
@@ -133,6 +137,24 @@ class USDSceneExportContext {
   const PointerRNA &get_depsgraph() const
   {
     return depsgraph_ptr_;
+  }
+
+  PYTHON_NS::dict get_prim_map()
+  {
+    PYTHON_NS::dict result;
+
+    const auto &exported_prim_map = hierarchy_iterator_->get_exported_prim_map();
+    exported_prim_map.foreach_item([&](const pxr::SdfPath &path, const Vector<ID *> &ids) {
+      PYTHON_NS::list id_list;
+      for (ID *id : ids) {
+        if (id) {
+          PointerRNA ptr_rna = RNA_id_pointer_create(id);
+          id_list.append(ptr_rna);
+        }
+      }
+      result[path] = id_list;
+    });
+    return result;
   }
 };
 
@@ -324,7 +346,8 @@ void register_hook_converters()
       .def("get_stage", &USDSceneExportContext::get_stage)
       .def("get_depsgraph",
            &USDSceneExportContext::get_depsgraph,
-           python::return_value_policy<python::return_by_value>());
+           python::return_value_policy<python::return_by_value>())
+      .def("get_prim_map", &USDSceneExportContext::get_prim_map);
 
   python::class_<USDMaterialExportContext>("USDMaterialExportContext")
       .def("get_stage", &USDMaterialExportContext::get_stage)
@@ -435,8 +458,8 @@ class OnExportInvoker final : public USDHookInvoker {
   USDSceneExportContext hook_context_;
 
  public:
-  OnExportInvoker(pxr::UsdStageRefPtr stage, Depsgraph *depsgraph, ReportList *reports)
-      : USDHookInvoker(reports), hook_context_(stage, depsgraph)
+  OnExportInvoker(const USDHierarchyIterator *iter, Depsgraph *depsgraph, ReportList *reports)
+      : USDHookInvoker(reports), hook_context_(iter, depsgraph)
   {
   }
 
@@ -588,13 +611,13 @@ class OnMaterialImportInvoker final : public USDHookInvoker {
   }
 };
 
-void call_export_hooks(pxr::UsdStageRefPtr stage, Depsgraph *depsgraph, ReportList *reports)
+void call_export_hooks(Depsgraph *depsgraph, const USDHierarchyIterator *iter, ReportList *reports)
 {
   if (hook_list().empty()) {
     return;
   }
 
-  OnExportInvoker on_export(stage, depsgraph, reports);
+  OnExportInvoker on_export(iter, depsgraph, reports);
   on_export.call();
 }
 

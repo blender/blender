@@ -137,8 +137,16 @@ USDExporterContext USDHierarchyIterator::create_usd_export_context(const Hierarc
   const std::string export_file_path = root_layer->GetRealPath();
   auto get_time_code = [this]() { return this->export_time_; };
 
-  USDExporterContext exporter_context = USDExporterContext{
-      bmain_, depsgraph_, stage_, path, get_time_code, params_, export_file_path, nullptr};
+  USDExporterContext exporter_context = USDExporterContext{bmain_,
+                                                           depsgraph_,
+                                                           stage_,
+                                                           path,
+                                                           get_time_code,
+                                                           params_,
+                                                           export_file_path,
+                                                           nullptr,
+                                                           nullptr,
+                                                           this};
 
   /* Provides optional skel mapping hook. Now it's been used in USDPointInstancerWriter for write
    * base layer. */
@@ -443,6 +451,31 @@ void USDHierarchyIterator::add_usd_skel_export_mapping(const Object *obj, const 
   }
 }
 
+const blender::Map<pxr::SdfPath, blender::Vector<ID *>> &USDHierarchyIterator::
+    get_exported_prim_map() const
+{
+  return exported_prim_map_;
+}
+
+pxr::UsdStageRefPtr USDHierarchyIterator::get_stage() const
+{
+  return stage_;
+}
+
+void USDHierarchyIterator::add_to_prim_map(const pxr::SdfPath &usd_path, const ID *id) const
+{
+  if (!id) {
+    return;
+  }
+  ID *local_id = BKE_libblock_find_name(bmain_, GS(id->name), id->name + 2);
+  if (local_id) {
+    Vector<ID *> &id_list = exported_prim_map_.lookup_or_add_default(usd_path);
+    if (!id_list.contains(local_id)) {
+      id_list.append(local_id);
+    }
+  }
+}
+
 USDExporterContext USDHierarchyIterator::create_point_instancer_context(
     const HierarchyContext *context, const USDExporterContext &export_context) const
 {
@@ -461,7 +494,8 @@ USDExporterContext USDHierarchyIterator::create_point_instancer_context(
           export_context.export_params,
           export_context.export_file_path,
           export_context.export_image_fn,
-          export_context.add_skel_mapping_fn};
+          export_context.add_skel_mapping_fn,
+          export_context.hierarchy_iterator};
 }
 
 }  // namespace blender::io::usd

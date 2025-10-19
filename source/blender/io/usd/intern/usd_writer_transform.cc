@@ -123,6 +123,7 @@ void USDTransformWriter::do_write(HierarchyContext &context)
 
   if (context.object) {
     auto prim = xform.GetPrim();
+    add_to_prim_map(prim.GetPath(), &context.object->id);
     write_id_properties(prim, context.object->id, get_export_time_code());
   }
 }
