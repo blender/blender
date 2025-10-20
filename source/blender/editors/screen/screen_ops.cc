@@ -5646,8 +5646,11 @@ static bool match_region_with_redraws(const ScrArea *area,
     }
   }
   else if (regiontype == RGN_TYPE_HEADER) {
-    /* Since the timeline does not exist anymore, this doesn't need updating. */
-    return false;
+    /* The Timeline mode of the Dope Sheet shows playback controls in the header. */
+    if (spacetype == SPACE_ACTION) {
+      SpaceAction *saction = (SpaceAction *)area->spacedata.first;
+      return saction->mode == SACTCONT_TIMELINE;
+    }
   }
   else if (regiontype == RGN_TYPE_FOOTER) {
     /* The footer region in animation editors shows the current frame. */

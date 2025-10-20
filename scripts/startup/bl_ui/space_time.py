@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
-from bpy.types import Panel
+from bpy.types import Menu, Panel
 from bpy.app.translations import (
     pgettext_n as n_,
     contexts as i18n_contexts,
@@ -40,6 +40,7 @@ class TIME_PT_playhead_snapping(Panel):
 def playback_controls(layout, context):
     st = context.space_data
     is_sequencer = st.type == 'SEQUENCE_EDITOR' and st.view_type == 'SEQUENCER'
+    is_timeline = st.type == 'DOPESHEET_EDITOR' and st.mode == 'TIMELINE'
 
     scene = context.scene if not is_sequencer else context.sequencer_scene
     tool_settings = scene.tool_settings if scene else None
@@ -51,7 +52,8 @@ def playback_controls(layout, context):
             text="Playback",
         )
 
-    if tool_settings:
+    if tool_settings and not is_timeline:
+        # The Keyframe settings are not exposed in the Timeline view.
         icon_keytype = 'KEYTYPE_{:s}_VEC'.format(tool_settings.keyframe_type)
         layout.popover(
             panel="TIME_PT_keyframing_settings",
@@ -109,9 +111,9 @@ def playback_controls(layout, context):
         sub = row.row(align=True)
         sub.popover(panel="TIME_PT_playhead_snapping", text="")
 
-    layout.separator_spacer()
-
     if scene:
+        layout.separator_spacer()
+
         row = layout.row()
         if scene.show_subframe:
             row.scale_x = 1.15
@@ -130,6 +132,35 @@ def playback_controls(layout, context):
         else:
             sub.prop(scene, "frame_preview_start", text="Start")
             sub.prop(scene, "frame_preview_end", text="End")
+
+
+class TIME_MT_view(Menu):
+    bl_label = "View"
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        st = context.space_data
+        layout.prop(st, "show_region_hud")
+        layout.prop(st, "show_region_channels")
+        layout.separator()
+        layout.operator("action.view_all")
+        if context.scene.use_preview_range:
+            layout.operator("anim.scene_range_frame", text="Frame Preview Range")
+        else:
+            layout.operator("anim.scene_range_frame", text="Frame Scene Range")
+        layout.operator("action.view_frame")
+        layout.separator()
+        layout.prop(st, "show_markers")
+        layout.prop(st, "show_seconds")
+        layout.prop(st, "show_locked_time")
+        layout.separator()
+        layout.prop(scene, "show_keys_from_selected_only")
+        layout.prop(st.dopesheet, "show_only_errors")
+        layout.separator()
+        layout.menu("DOPESHEET_MT_cache")
+        layout.separator()
+        layout.menu("INFO_MT_area")
 
 
 def marker_menu_generic(layout, context):
@@ -315,6 +346,7 @@ class TIME_PT_jump(TimelinePanelButtons, Panel):
 ###################################
 
 classes = (
+    TIME_MT_view,
     TIME_PT_playback,
     TIME_PT_keyframing_settings,
     TIME_PT_auto_keyframing,
