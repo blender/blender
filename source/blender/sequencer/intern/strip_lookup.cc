@@ -15,9 +15,7 @@
 #include "DNA_sequence_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_map.hh"
 #include "BLI_mutex.hh"
-#include "BLI_vector_set.hh"
 
 #include <cstring>
 
@@ -170,6 +168,15 @@ Span<Strip *> lookup_strips_by_scene(Editing *ed, const Scene *key)
   StripLookup *lookup = ed->runtime.strip_lookup;
   VectorSet<Strip *> &strips = lookup->strips_by_scene.lookup_or_add_default(key);
   return strips.as_span();
+}
+
+blender::Map<const Scene *, VectorSet<Strip *>> &lookup_strips_by_scene_map_get(Editing *ed)
+{
+  BLI_assert(ed != nullptr);
+  std::lock_guard lock(lookup_lock);
+  strip_lookup_update_if_needed(ed, &ed->runtime.strip_lookup);
+  StripLookup *lookup = ed->runtime.strip_lookup;
+  return lookup->strips_by_scene;
 }
 
 Span<Strip *> lookup_strips_by_compositor_node_group(Editing *ed, const bNodeTree *key)

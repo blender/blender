@@ -780,10 +780,16 @@ class TOPBAR_PT_name_marker(Panel):
             sd.show_pose_markers and context.active_action
         )
 
+    def is_using_sequencer(context):
+        sd = context.space_data
+        return sd.type == 'SEQUENCE_EDITOR'
+
     @staticmethod
     def get_selected_marker(context):
         if TOPBAR_PT_name_marker.is_using_pose_markers(context):
             markers = context.active_action.pose_markers
+        elif TOPBAR_PT_name_marker.is_using_sequencer(context):
+            markers = context.sequencer_scene.timeline_markers
         else:
             markers = context.scene.timeline_markers
 
