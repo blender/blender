@@ -4061,6 +4061,23 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 112)) {
+    /* The ownership of these pointers was moved to #CustomData in #customdata_version_242 and they
+     * became deprecated in 05952aa94d33ee when we started using implicit-sharing. However, they
+     * were never cleared and became dangling pointers. */
+    LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+      mesh->mpoly = nullptr;
+      mesh->mloop = nullptr;
+      mesh->mvert = nullptr;
+      mesh->medge = nullptr;
+      mesh->dvert = nullptr;
+      mesh->mtface = nullptr;
+      mesh->tface = nullptr;
+      mesh->mcol = nullptr;
+      mesh->mface = nullptr;
+    }
+  }
+
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 2)) {
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
