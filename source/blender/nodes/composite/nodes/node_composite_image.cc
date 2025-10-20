@@ -29,127 +29,16 @@
 
 namespace blender::nodes::node_composite_image_cc {
 
-static blender::bke::bNodeSocketTemplate cmp_node_rlayers_out[] = {
-    {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_("Alpha"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_(RE_PASSNAME_DEPTH), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_(RE_PASSNAME_NORMAL), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_(RE_PASSNAME_UV), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_(RE_PASSNAME_VECTOR), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_(RE_PASSNAME_POSITION), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_DEPRECATED), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_DEPRECATED), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_SHADOW), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_AO), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_DEPRECATED), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_DEPRECATED), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_DEPRECATED), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_(RE_PASSNAME_INDEXOB), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_(RE_PASSNAME_INDEXMA), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_FLOAT, N_(RE_PASSNAME_MIST), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_EMIT), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_ENVIRONMENT), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_DIFFUSE_DIRECT), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_DIFFUSE_INDIRECT), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_DIFFUSE_COLOR), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_GLOSSY_DIRECT), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_GLOSSY_INDIRECT), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_GLOSSY_COLOR), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_TRANSM_DIRECT), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_TRANSM_INDIRECT), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_TRANSM_COLOR), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_SUBSURFACE_DIRECT), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_SUBSURFACE_INDIRECT), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_RGBA, N_(RE_PASSNAME_SUBSURFACE_COLOR), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, ""},
-};
-#define NUM_LEGACY_SOCKETS (ARRAY_SIZE(cmp_node_rlayers_out) - 1)
-
-static const char *cmp_node_legacy_pass_name(const char *name)
-{
-  if (STREQ(name, "Diffuse Direct")) {
-    return "DiffDir";
-  }
-  if (STREQ(name, "Diffuse Indirect")) {
-    return "DiffInd";
-  }
-  if (STREQ(name, "Diffuse Color")) {
-    return "DiffCol";
-  }
-  if (STREQ(name, "Glossy Direct")) {
-    return "GlossDir";
-  }
-  if (STREQ(name, "Glossy Indirect")) {
-    return "GlossInd";
-  }
-  if (STREQ(name, "Glossy Color")) {
-    return "GlossCol";
-  }
-  if (STREQ(name, "Transmission Direct")) {
-    return "TransDir";
-  }
-  if (STREQ(name, "Transmission Indirect")) {
-    return "TransInd";
-  }
-  if (STREQ(name, "Transmission Color")) {
-    return "TransCol";
-  }
-  if (STREQ(name, "Volume Direct")) {
-    return "VolumeDir";
-  }
-  if (STREQ(name, "Volume Indirect")) {
-    return "VolumeInd";
-  }
-  if (STREQ(name, "Volume Color")) {
-    return "VolumeCol";
-  }
-  if (STREQ(name, "Ambient Occlusion")) {
-    return "AO";
-  }
-  if (STREQ(name, "Environment")) {
-    return "Env";
-  }
-  if (STREQ(name, "Material Index")) {
-    return "IndexMA";
-  }
-  if (STREQ(name, "Object Index")) {
-    return "IndexOB";
-  }
-  if (STREQ(name, "Grease Pencil")) {
-    return "GreasePencil";
-  }
-  if (STREQ(name, "Emission")) {
-    return "Emit";
-  }
-
-  return nullptr;
-}
-
 static void cmp_node_image_add_pass_output(bNodeTree *ntree,
                                            bNode *node,
                                            const char *name,
                                            const char *passname,
-                                           int rres_index,
                                            eNodeSocketDatatype type,
-                                           int /*is_rlayers*/,
                                            LinkNodePair *available_sockets,
                                            int *prev_index)
 {
   bNodeSocket *sock = (bNodeSocket *)BLI_findstring(
       &node->outputs, name, offsetof(bNodeSocket, name));
-
-  /* Rename legacy socket names to new ones. */
-  if (sock == nullptr) {
-    const char *legacy_name = cmp_node_legacy_pass_name(name);
-    if (legacy_name) {
-      sock = (bNodeSocket *)BLI_findstring(
-          &node->outputs, legacy_name, offsetof(bNodeSocket, name));
-      if (sock) {
-        STRNCPY(sock->name, name);
-        STRNCPY(sock->identifier, name);
-      }
-    }
-  }
 
   /* Replace if types don't match. */
   if (sock && sock->type != type) {
@@ -159,14 +48,8 @@ static void cmp_node_image_add_pass_output(bNodeTree *ntree,
 
   /* Create socket if it doesn't exist yet. */
   if (sock == nullptr) {
-    if (rres_index >= 0) {
-      sock = node_add_socket_from_template(
-          ntree, node, &cmp_node_rlayers_out[rres_index], SOCK_OUT);
-    }
-    else {
-      sock = blender::bke::node_add_static_socket(
-          *ntree, *node, SOCK_OUT, type, PROP_NONE, name, name);
-    }
+    sock = blender::bke::node_add_static_socket(
+        *ntree, *node, SOCK_OUT, type, PROP_NONE, name, name);
     /* extra socket info */
     NodeImageLayer *sockdata = MEM_callocN<NodeImageLayer>(__func__);
     sock->storage = sockdata;
@@ -244,26 +127,12 @@ static void cmp_node_image_create_outputs(bNodeTree *ntree,
       if (rl) {
         LISTBASE_FOREACH (RenderPass *, rpass, &rl->passes) {
           const eNodeSocketDatatype type = socket_type_from_pass(rpass);
-          cmp_node_image_add_pass_output(ntree,
-                                         node,
-                                         rpass->name,
-                                         rpass->name,
-                                         -1,
-                                         type,
-                                         false,
-                                         available_sockets,
-                                         &prev_index);
+          cmp_node_image_add_pass_output(
+              ntree, node, rpass->name, rpass->name, type, available_sockets, &prev_index);
           /* Special handling for the Combined pass to ensure compatibility. */
           if (STREQ(rpass->name, RE_PASSNAME_COMBINED)) {
-            cmp_node_image_add_pass_output(ntree,
-                                           node,
-                                           "Alpha",
-                                           rpass->name,
-                                           -1,
-                                           SOCK_FLOAT,
-                                           false,
-                                           available_sockets,
-                                           &prev_index);
+            cmp_node_image_add_pass_output(
+                ntree, node, "Alpha", rpass->name, SOCK_FLOAT, available_sockets, &prev_index);
           }
         }
         BKE_image_release_ibuf(ima, ibuf, nullptr);
@@ -272,24 +141,10 @@ static void cmp_node_image_create_outputs(bNodeTree *ntree,
     }
   }
 
-  cmp_node_image_add_pass_output(ntree,
-                                 node,
-                                 "Image",
-                                 RE_PASSNAME_COMBINED,
-                                 -1,
-                                 SOCK_RGBA,
-                                 false,
-                                 available_sockets,
-                                 &prev_index);
-  cmp_node_image_add_pass_output(ntree,
-                                 node,
-                                 "Alpha",
-                                 RE_PASSNAME_COMBINED,
-                                 -1,
-                                 SOCK_FLOAT,
-                                 false,
-                                 available_sockets,
-                                 &prev_index);
+  cmp_node_image_add_pass_output(
+      ntree, node, "Image", RE_PASSNAME_COMBINED, SOCK_RGBA, available_sockets, &prev_index);
+  cmp_node_image_add_pass_output(
+      ntree, node, "Alpha", RE_PASSNAME_COMBINED, SOCK_FLOAT, available_sockets, &prev_index);
 
   if (ima) {
     BKE_image_release_ibuf(ima, ibuf, nullptr);
