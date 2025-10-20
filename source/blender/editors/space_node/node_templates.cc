@@ -968,6 +968,7 @@ static void ui_node_draw_input(uiLayout &layout,
         case SOCK_ROTATION:
         case SOCK_BOOLEAN:
         case SOCK_RGBA:
+        case SOCK_MENU:
           sub->prop(&inputptr, "default_value", UI_ITEM_NONE, "", ICON_NONE);
           if (split_wrapper.decorate_column) {
             split_wrapper.decorate_column->decorator(&inputptr, "default_value", RNA_NO_INDEX);
@@ -989,9 +990,6 @@ static void ui_node_draw_input(uiLayout &layout,
           }
           break;
         }
-        case SOCK_MENU:
-          sub->label(RPT_("Unsupported Menu Socket"), ICON_NONE);
-          break;
         case SOCK_CUSTOM:
           input.typeinfo->draw(&C, sub, &inputptr, &nodeptr, input.name);
           break;
