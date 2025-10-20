@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 16:12+0000\n"
+"POT-Creation-Date: 2025-10-20 08:46+0000\n"
 "PO-Revision-Date: 2025-07-23 15:02+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -11745,10 +11745,6 @@ msgid "Brush deforms the mesh by deforming the constraints of a cloth simulation
 msgstr "Pinsel deformiert die Schleife indem eine Deformation, der Bedingung, einer Gewebesimulation durchgeführt wird"
 
 
-msgid "Direction"
-msgstr "Richtung"
-
-
 msgid "Add effect of brush"
 msgstr "Hinzufügen-Effekt des Pinsels"
 
@@ -15382,10 +15378,6 @@ msgid "Sync to audio playback, dropping frames"
 msgstr "Synchronisation der Ton-Wiedergabe, Einzelbilder werden übersprungen"
 
 
-msgid "Second"
-msgstr "Sekunde"
-
-
 msgid "Timeline Markers"
 msgstr "Zeitleisten-Marker"
 
@@ -16626,6 +16618,10 @@ msgstr "Strg"
 
 msgid "Control key pressed"
 msgstr "Gedrückte Strg-Taste"
+
+
+msgid "Direction"
+msgstr "Richtung"
 
 
 msgid "North"
@@ -18710,6 +18706,14 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
+msgid "Assign Material"
+msgstr "Material zuweisen"
+
+
+msgid "Select More/Less"
+msgstr "Mehr/weniger anzeigen"
+
+
 msgid "Metaball"
 msgstr "Metaball"
 
@@ -18774,12 +18778,12 @@ msgid "Vertex Group Locks"
 msgstr "Punktgruppen sperren"
 
 
-msgid "Random Mask"
-msgstr "Zufällige Maske"
-
-
 msgid "Layout"
 msgstr "Layout"
+
+
+msgid "Random Mask"
+msgstr "Zufällige Maske"
 
 
 msgid "Clear Transform"
@@ -18790,12 +18794,24 @@ msgid "In-Betweens"
 msgstr "Dazwischen"
 
 
+msgid "Keying"
+msgstr "Schlüsselbilder"
+
+
 msgid "Names"
 msgstr "Namen"
 
 
+msgid "Tracking"
+msgstr "Verfolgen"
+
+
 msgid "Toggle Bone Options"
 msgstr "Knochen-Optionen umschalten"
+
+
+msgid "Math"
+msgstr "Mathematisch"
 
 
 msgid "Enable Bone Options"
@@ -18806,24 +18822,12 @@ msgid "Disable Bone Options"
 msgstr "Knochen-Optionen ausschalten"
 
 
-msgid "Keying"
-msgstr "Schlüsselbilder"
-
-
 msgid "Mesh Select Mode"
 msgstr "Maschenauswahlmodus"
 
 
-msgid "Tracking"
-msgstr "Verfolgen"
-
-
 msgid "Face Data"
 msgstr "Flächendaten"
-
-
-msgid "Math"
-msgstr "Mathematisch"
 
 
 msgid "Merge"
@@ -18842,8 +18846,24 @@ msgid "Text"
 msgstr "Text"
 
 
+msgid "Read"
+msgstr "Lesen"
+
+
+msgid "Sample"
+msgstr "Beispiel"
+
+
+msgid "Write"
+msgstr "Schreiben"
+
+
 msgid "Pivot Point"
 msgstr "Drehpunkt"
+
+
+msgid "Primitives"
+msgstr "Grundkörper"
 
 
 msgid "Snap"
@@ -18858,32 +18878,16 @@ msgid "Mask Edit"
 msgstr "Maskenbearbeitung"
 
 
-msgid "Read"
-msgstr "Lesen"
-
-
-msgid "Sample"
-msgstr "Beispiel"
-
-
-msgid "Write"
-msgstr "Schreiben"
-
-
-msgid "Primitives"
-msgstr "Grundkörper"
-
-
 msgid "Instances"
 msgstr "Instanzen"
 
 
-msgid "Mirror"
-msgstr "Spiegeln"
-
-
 msgid "Import"
 msgstr "Importieren"
+
+
+msgid "Mirror"
+msgstr "Spiegeln"
 
 
 msgid "Local View"
@@ -18898,6 +18902,10 @@ msgid "Navigation"
 msgstr "Navigation"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Align View"
 msgstr "Ansicht ausrichten"
 
@@ -18910,10 +18918,6 @@ msgid "View Regions"
 msgstr "Vierfenster Ansicht"
 
 
-msgid "Select More/Less"
-msgstr "Mehr/weniger anzeigen"
-
-
 msgid "Select Similar"
 msgstr "Ähnliche auswählen"
 
@@ -18922,20 +18926,12 @@ msgid "Select All by Trait"
 msgstr "Alles nach Merkmal auswählen"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Select Linked"
 msgstr "Verknüpfte auswählen"
 
 
 msgid "Select Loops"
 msgstr "Schleifen auswählen"
-
-
-msgid "Assign Material"
-msgstr "Material zuweisen"
 
 
 msgid "Assets"
@@ -45591,10 +45587,6 @@ msgid "Stereo Mode"
 msgstr "Stereomodus"
 
 
-msgid "Cross"
-msgstr "Kreuz"
-
-
 msgid "Y position of the sequence strip"
 msgstr "Y-Position des Sequenzstreifens"
 
@@ -50278,6 +50270,10 @@ msgstr "Pausenregel - ESC für Pause"
 
 msgid "Velocity Linear"
 msgstr "Lineare Geschwindigkeit"
+
+
+msgid "Second"
+msgstr "Sekunde"
 
 
 msgid "X Stiffness"
@@ -57021,6 +57017,10 @@ msgid "Unable to create socket"
 msgstr "Buchse kann nicht erstellt werden"
 
 
+msgid "Anisotropic"
+msgstr "Anisotropisch"
+
+
 msgid "Same input/output direction of sockets"
 msgstr "Gleiche Eingangs-/Ausgangsrichtung von Sockeln"
 
@@ -57405,10 +57405,6 @@ msgstr "Farbmodulation"
 
 msgid "Fac"
 msgstr "Faktor"
-
-
-msgid "Anisotropic"
-msgstr "Anisotropisch"
 
 
 msgid "Size Source"

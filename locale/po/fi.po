@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 16:12+0000\n"
+"POT-Creation-Date: 2025-10-20 08:46+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -6058,10 +6058,6 @@ msgid "Slide"
 msgstr "Sivu"
 
 
-msgid "Direction"
-msgstr "Suunta"
-
-
 msgctxt "Brush"
 msgid "Draw"
 msgstr "Piirrä"
@@ -6978,10 +6974,6 @@ msgid "Cycles render settings"
 msgstr "Cycles-renderöintiasetukset"
 
 
-msgid "Second"
-msgstr "Sekuntti"
-
-
 msgid "Play Audio"
 msgstr "Soita audio"
 
@@ -7236,12 +7228,20 @@ msgid "Workspace"
 msgstr "Työtila"
 
 
+msgid "Direction"
+msgstr "Suunta"
+
+
 msgid "ID Type"
 msgstr "ID-tyyppi"
 
 
 msgid "Mask"
 msgstr "Maski"
+
+
+msgid "Select More/Less"
+msgstr "Valitse enemmän/vähemmän"
 
 
 msgid "Metaball"
@@ -7280,16 +7280,16 @@ msgid "Names"
 msgstr "Nimet"
 
 
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
-
-
 msgid "Utilities"
 msgstr "Työkalut"
 
 
 msgid "Math"
 msgstr "Matematiikka"
+
+
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
 
 
 msgid "Text"
@@ -7316,8 +7316,8 @@ msgid "UV Mapping"
 msgstr "UV-kartoittaminen"
 
 
-msgid "Select More/Less"
-msgstr "Valitse enemmän/vähemmän"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Select Similar"
@@ -7328,16 +7328,12 @@ msgid "Select All by Trait"
 msgstr "Valitse kaikki piirteen mukaan"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Basic"
+msgstr "Tavallinen"
 
 
 msgid "Select Loops"
 msgstr "Valitse silmukat"
-
-
-msgid "Basic"
-msgstr "Tavallinen"
 
 
 msgid "Console"
@@ -12833,6 +12829,10 @@ msgstr "Tyhjä tila"
 
 msgid "Bake Selected"
 msgstr "Paista Valittu"
+
+
+msgid "Second"
+msgstr "Sekuntti"
 
 
 msgid "Paths:"

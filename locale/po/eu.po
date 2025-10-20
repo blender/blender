@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 16:12+0000\n"
+"POT-Creation-Date: 2025-10-20 08:46+0000\n"
 "PO-Revision-Date: 2025-07-23 15:13+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -436,10 +436,6 @@ msgid "Sphere"
 msgstr "Esfera"
 
 
-msgid "Direction"
-msgstr "Norabidea"
-
-
 msgid "Sequence"
 msgstr "Sekuentzia"
 
@@ -526,6 +522,10 @@ msgstr "Animazioa"
 
 msgid "Owner"
 msgstr "Jabea"
+
+
+msgid "Direction"
+msgstr "Norabidea"
 
 
 msgctxt "UI_Events_KeyMaps"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 16:12+0000\n"
+"POT-Creation-Date: 2025-10-20 08:46+0000\n"
 "PO-Revision-Date: 2025-07-23 14:52+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2411,10 +2411,6 @@ msgid "Play Every Frame"
 msgstr "Speel Elk Frame"
 
 
-msgid "Second"
-msgstr "Seconde"
-
-
 msgid "Screen data-block, defining the layout of areas in a window"
 msgstr "Scherm gegevens-blok, definieert de indeling van de gebieden in een scherm"
 
@@ -2734,12 +2730,12 @@ msgid "Text"
 msgstr "Tekst"
 
 
-msgid "Mirror"
-msgstr "Spiegel"
-
-
 msgid "Import"
 msgstr "Importeren"
+
+
+msgid "Mirror"
+msgstr "Spiegel"
 
 
 msgid "Local View"
@@ -6773,14 +6769,6 @@ msgid "Color Value"
 msgstr "Kleurwaarde"
 
 
-msgid "Cross"
-msgstr "Kruisovergang"
-
-
-msgid "Alpha Under"
-msgstr "Alpha Onder"
-
-
 msgctxt "Sequence"
 msgid "Image"
 msgstr "Afbeelding"
@@ -7405,6 +7393,10 @@ msgstr "Lege Ruimte"
 msgctxt "Operator"
 msgid "Resume"
 msgstr "Hervat"
+
+
+msgid "Second"
+msgstr "Seconde"
 
 
 msgid "Auto-Step"

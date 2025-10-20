@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 16:12+0000\n"
+"POT-Creation-Date: 2025-10-20 08:46+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -15823,10 +15823,6 @@ msgid "Cloth Simulation"
 msgstr "Kumaş Simülasyonu"
 
 
-msgid "Direction"
-msgstr "Yön"
-
-
 msgid "Add effect of brush"
 msgstr "Fırçanın ekleme efekti"
 
@@ -23122,10 +23118,6 @@ msgid "Sync to audio playback, dropping frames"
 msgstr "Ses oynatmaya senkronize et, kareleri düşür"
 
 
-msgid "Second"
-msgstr "Saniye"
-
-
 msgid "Timeline Markers"
 msgstr "Zaman Çizelgesi İşaretleyicileri"
 
@@ -25619,6 +25611,10 @@ msgstr "Kontrol tuşuna basıldığında, herhangi bir durum için -1"
 
 msgid "Control key pressed"
 msgstr "Kontrol tuşuna basıldı"
+
+
+msgid "Direction"
+msgstr "Yön"
 
 
 msgid "The direction (only applies to drag events)"
@@ -28981,6 +28977,14 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
+msgid "Assign Material"
+msgstr "Malzeme Atamak"
+
+
+msgid "Select More/Less"
+msgstr "Daha Fazla/Daha Az Seç"
+
+
 msgid "Metaball"
 msgstr "Metabol"
 
@@ -29049,6 +29053,10 @@ msgid "Vertex Group Locks"
 msgstr "Vertex Grup Kilitleri"
 
 
+msgid "Layout"
+msgstr "Yerleşim"
+
+
 msgid "Trim/Add"
 msgstr "Kırp/Ekle"
 
@@ -29065,16 +29073,16 @@ msgid "Random Mask"
 msgstr "Rastgele Maske"
 
 
-msgid "Layout"
-msgstr "Yerleşim"
-
-
 msgid "Clear Transform"
 msgstr "Temizle Dönüşüm"
 
 
 msgid "In-Betweens"
 msgstr "Arada Kalanlar"
+
+
+msgid "Adjust"
+msgstr "Ayarlamak"
 
 
 msgid "Propagate"
@@ -29085,32 +29093,12 @@ msgid "Bone Collections"
 msgstr "Kemik Koleksiyonları"
 
 
-msgid "Names"
-msgstr "Adlar"
-
-
-msgid "Adjust"
-msgstr "Ayarlamak"
-
-
-msgid "Toggle Bone Options"
-msgstr "Kemik Seçeneklerini Değiştir"
-
-
-msgid "Enable Bone Options"
-msgstr "Kemik Seçeneklerini Etkinleştir"
-
-
-msgid "Disable Bone Options"
-msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
-
-
 msgid "Keying"
 msgstr "Anahtarlama"
 
 
-msgid "Mesh Select Mode"
-msgstr "Örgü Seçim Kipi"
+msgid "Names"
+msgstr "Adlar"
 
 
 msgid "Tracking"
@@ -29121,12 +29109,28 @@ msgid "Utilities"
 msgstr "Kamu hizmetleri"
 
 
-msgid "Face Data"
-msgstr "Yüz Verileri"
+msgid "Toggle Bone Options"
+msgstr "Kemik Seçeneklerini Değiştir"
 
 
 msgid "Math"
 msgstr "Matematik"
+
+
+msgid "Enable Bone Options"
+msgstr "Kemik Seçeneklerini Etkinleştir"
+
+
+msgid "Disable Bone Options"
+msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
+
+
+msgid "Mesh Select Mode"
+msgstr "Örgü Seçim Kipi"
+
+
+msgid "Face Data"
+msgstr "Yüz Verileri"
 
 
 msgid "Select by Face Strength"
@@ -29157,8 +29161,24 @@ msgid "Bone Roll"
 msgstr "Kemik Rulosu"
 
 
+msgid "Read"
+msgstr "Okumak"
+
+
+msgid "Sample"
+msgstr "Örnek"
+
+
+msgid "Write"
+msgstr "Yazmak"
+
+
 msgid "Pivot Point"
 msgstr "Pivot Noktası"
+
+
+msgid "Primitives"
+msgstr "İlkel"
 
 
 msgid "Snap"
@@ -29177,36 +29197,24 @@ msgid "Automasking"
 msgstr "Otomatik maskeleme"
 
 
-msgid "Read"
-msgstr "Okumak"
-
-
 msgid "Face Sets Edit"
 msgstr "Yüz Setleri Düzenle"
-
-
-msgid "Sample"
-msgstr "Örnek"
-
-
-msgid "Write"
-msgstr "Yazmak"
-
-
-msgid "Primitives"
-msgstr "İlkel"
 
 
 msgid "Instances"
 msgstr "Örnekler"
 
 
-msgid "Mirror"
-msgstr "Yansıtma"
-
-
 msgid "Import"
 msgstr "İçe Aktar"
+
+
+msgid "Deprecated"
+msgstr "Kullanım dışı bırakıldı"
+
+
+msgid "Mirror"
+msgstr "Yansıtma"
 
 
 msgid "UV Mapping"
@@ -29225,6 +29233,10 @@ msgid "Navigation"
 msgstr "Navigasyon"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Align View"
 msgstr "Görünümü hizala"
 
@@ -29233,16 +29245,8 @@ msgid "Align View to Active"
 msgstr "Görünümü Etkin Olarak Hizala"
 
 
-msgid "Deprecated"
-msgstr "Kullanım dışı bırakıldı"
-
-
 msgid "View Regions"
 msgstr "Bölgeleri Görüntüle"
-
-
-msgid "Select More/Less"
-msgstr "Daha Fazla/Daha Az Seç"
 
 
 msgid "Select Similar"
@@ -29253,24 +29257,16 @@ msgid "Select All by Trait"
 msgstr "Özelliğe Göre Tümünü Seç"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Select Linked"
 msgstr "Bağlantılıyı Seç"
-
-
-msgid "Select Loops"
-msgstr "Döngüleri Seç"
 
 
 msgid "Basic"
 msgstr "Temel"
 
 
-msgid "Assign Material"
-msgstr "Malzeme Atamak"
+msgid "Select Loops"
+msgstr "Döngüleri Seç"
 
 
 msgid "Keyframe Insert Pie"
@@ -89801,16 +89797,9 @@ msgid "Method for controlling how the strip combines with other strips"
 msgstr "Şeridin diğer şeritlerle nasıl birleşeceğini kontrol etme yöntemi"
 
 
-msgid "Cross"
-msgstr "Geçmek"
-
-
-msgid "Alpha Under"
-msgstr "Alfa Altında"
-
-
-msgid "Gamma Cross"
-msgstr "Gama Çaprazı"
+msgctxt "Color"
+msgid "Value"
+msgstr "Değer"
 
 
 msgid "Y position of the sequence strip"
@@ -90022,11 +90011,6 @@ msgstr "Canlandırma Başlangıç Ofseti"
 
 msgid "Animation start offset (trim start)"
 msgstr "Animasyon başlangıç ofseti (kırpma başlangıcı)"
-
-
-msgctxt "Color"
-msgid "Value"
-msgstr "Değer"
 
 
 msgid "Color Strip"
@@ -103057,6 +103041,10 @@ msgstr "Hız Doğrusal"
 
 msgid "This object is part of a compound shape"
 msgstr "Bu nesne bir bileşik şeklin parçasıdır"
+
+
+msgid "Second"
+msgstr "Saniye"
 
 
 msgid "X Stiffness"
@@ -117538,6 +117526,10 @@ msgid "Unable to copy item"
 msgstr "Öğe kopyalanamıyor"
 
 
+msgid "Anisotropic"
+msgstr "Anizotropik"
+
+
 msgctxt "NodeTree"
 msgid "Functions"
 msgstr "İşlevler"
@@ -119147,10 +119139,6 @@ msgstr "Çöp Mat"
 
 msgid "Core Matte"
 msgstr "Çekirdek Mat"
-
-
-msgid "Anisotropic"
-msgstr "Anizotropik"
 
 
 msgid "Uniformity"
