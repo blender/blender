@@ -438,10 +438,17 @@ static wmOperatorStatus outliner_item_rename_invoke(bContext *C,
 
   /* Force element into view. */
   outliner_show_active(space_outliner, region, te, TREESTORE(te)->id);
-  int size_y = BLI_rcti_size_y(&v2d->mask) + 1;
-  int ytop = (te->ys + (size_y / 2));
-  int delta_y = ytop - v2d->cur.ymax;
-  outliner_scroll_view(space_outliner, region, delta_y);
+
+  if (te->ys < int(v2d->cur.ymin + UI_UNIT_Y)) {
+    /* Try to show one full row below. */
+    const int delta_y = te->ys - int(v2d->cur.ymin + UI_UNIT_Y);
+    outliner_scroll_view(space_outliner, region, delta_y);
+  }
+  else if (te->ys > int(v2d->cur.ymax - (UI_UNIT_Y * 2.0f))) {
+    /* Try to show one full row above. */
+    const int delta_y = te->ys - int(v2d->cur.ymax - (UI_UNIT_Y * 2.0f));
+    outliner_scroll_view(space_outliner, region, delta_y);
+  }
 
   do_item_rename(region, te, TREESTORE(te), op->reports);
 
