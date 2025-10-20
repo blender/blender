@@ -42,10 +42,12 @@
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_sys_types.h"
 
+#include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_attribute_legacy_convert.hh"
@@ -2608,6 +2610,48 @@ static void do_version_lift_gamma_gain_srgb_to_linear(bNodeTree &node_tree, bNod
   version_node_add_link(node_tree, node, *image_output, *gamma_node, *gamma_color_input);
 }
 
+static void version_bone_hide_property_driver(AnimData *arm_adt, blender::Vector<Object *> &users)
+{
+  using namespace blender::animrig;
+  constexpr char const *hide_prop_prefix = "bones[";
+  constexpr char const *hide_prop_suffix = "\"].hide";
+  constexpr int prefix_len = 6;
+  constexpr int suffix_len = 6;
+
+  blender::Vector<FCurve *> drivers_to_fix;
+  LISTBASE_FOREACH (FCurve *, fcurve, &arm_adt->drivers) {
+    const blender::StringRef rna_path(fcurve->rna_path);
+    int quoted_bone_name_start = 0;
+    int quoted_bone_name_end = 0;
+    const bool is_prefix_found = BLI_str_quoted_substr_range(
+        fcurve->rna_path, hide_prop_prefix, &quoted_bone_name_start, &quoted_bone_name_end);
+    if (is_prefix_found && STREQ(fcurve->rna_path + quoted_bone_name_end, hide_prop_suffix)) {
+      drivers_to_fix.append(fcurve);
+    }
+  }
+
+  if (drivers_to_fix.is_empty()) {
+    return;
+  }
+
+  for (Object *ob : users) {
+    AnimData *ob_adt = BKE_animdata_ensure_id(&ob->id);
+    for (FCurve *original : drivers_to_fix) {
+      /* Has to be a copy in case there is more than 1 object using the armature. */
+      FCurve *copy = BKE_fcurve_copy(original);
+      char *fixed_path = BLI_string_joinN("pose.", copy->rna_path);
+      MEM_SAFE_FREE(copy->rna_path);
+      copy->rna_path = fixed_path;
+      BLI_addtail(&ob_adt->drivers, copy);
+    }
+  }
+
+  for (FCurve *original : drivers_to_fix) {
+    BLI_remlink(&arm_adt->drivers, original);
+    BKE_fcurve_free(original);
+  }
+}
+
 void do_versions_after_linking_500(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 9)) {
@@ -2758,6 +2802,39 @@ void do_versions_after_linking_500(FileData *fd, Main *bmain)
         continue;
       }
       scene->toolsettings->fix_to_cam_flag = default_flags;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 110)) {
+    /* Build map of armature->object to quickly find out afterwards which armature is used by which
+     * objects. */
+    blender::Map<bArmature *, blender::Vector<Object *>> armature_usage_map;
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      if (ob->type != OB_ARMATURE || !ob->data) {
+        continue;
+      }
+      bArmature *arm = reinterpret_cast<bArmature *>(ob->data);
+      blender::Vector<Object *> &users = armature_usage_map.lookup_or_add_default(arm);
+      users.append(ob);
+    }
+
+    LISTBASE_FOREACH (bArmature *, armature, &bmain->armatures) {
+      AnimData *arm_adt = BKE_animdata_from_id(&armature->id);
+
+      if (!arm_adt || BLI_listbase_is_empty(&arm_adt->drivers)) {
+        continue;
+      }
+
+      blender::Vector<Object *> *users = armature_usage_map.lookup_ptr(armature);
+      if (!users) {
+        /* If `users` is a nullptr that means there is no user of that armature. That means the
+         * property won't be fixed for armatures that are not used by an object during versioning.
+         * However since the driver has to be moved to an object there is no way to fix it in this
+         * case. */
+        continue;
+      }
+
+      version_bone_hide_property_driver(arm_adt, *users);
     }
   }
 
