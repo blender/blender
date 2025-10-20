@@ -347,7 +347,8 @@ inline ResourceHandleRange Manager::resource_handle(const ObjectRef &ref, float 
 
       resource_len_++;
     }
-    return ResourceHandleRange(start, resource_len_ - start);
+    return ResourceHandleRange(ResourceHandle(start, (ref.object->transflag & OB_NEG_SCALE) != 0),
+                               resource_len_ - start);
   }
   else {
     matrix_buf.current().get_or_resize(resource_len_).sync(*ref.object);
