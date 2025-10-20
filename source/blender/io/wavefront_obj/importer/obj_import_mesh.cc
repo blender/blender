@@ -458,11 +458,13 @@ void MeshFromGeometry::create_colors(Mesh *mesh)
   }
 
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
-  CustomDataLayer *color_layer = BKE_attribute_new(
-      owner, "Color", CD_PROP_COLOR, bke::AttrDomain::Point, nullptr);
-  BKE_id_attributes_active_color_set(&mesh->id, color_layer->name);
-  BKE_id_attributes_default_color_set(&mesh->id, color_layer->name);
-  float4 *colors = (float4 *)color_layer->data;
+  const std::string name = BKE_attribute_calc_unique_name(owner, "Color");
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter attr = attributes.lookup_or_add_for_write_span<ColorGeometry4f>(
+      name, bke::AttrDomain::Point);
+  BKE_id_attributes_active_color_set(&mesh->id, name);
+  BKE_id_attributes_default_color_set(&mesh->id, name);
+  MutableSpan<float4> colors = attr.span.cast<float4>();
 
   /* Second pass to fill out the data. */
   for (auto item : mesh_geometry_.global_to_local_vertices_.items()) {
@@ -473,6 +475,8 @@ void MeshFromGeometry::create_colors(Mesh *mesh)
     const float3 &c = global_vertices_.vertex_colors[vi];
     colors[local_vi] = float4(c.x, c.y, c.z, 1.0);
   }
+
+  attr.finish();
 }
 
 }  // namespace blender::io::obj

@@ -608,31 +608,6 @@ bool BKE_attribute_remove(AttributeOwner &owner, const StringRef name, ReportLis
   return attributes->remove(name);
 }
 
-CustomDataLayer *BKE_attribute_find(const AttributeOwner &owner,
-                                    const StringRef name,
-                                    const eCustomDataType type,
-                                    const AttrDomain domain)
-{
-  if (name.is_empty()) {
-    return nullptr;
-  }
-  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(owner);
-
-  CustomData *customdata = info[int(domain)].customdata;
-  if (customdata == nullptr) {
-    return nullptr;
-  }
-
-  for (int i = 0; i < customdata->totlayer; i++) {
-    CustomDataLayer *layer = &customdata->layers[i];
-    if (layer->type == type && layer->name == name) {
-      return layer;
-    }
-  }
-
-  return nullptr;
-}
-
 const CustomDataLayer *BKE_attribute_search(const AttributeOwner &owner,
                                             const StringRef name,
                                             const eCustomDataMask type_mask,

@@ -141,10 +141,9 @@ static wmOperatorStatus mesh_set_attribute_exec(bContext *C, wmOperator *op)
   Mesh *active_mesh = ED_mesh_context(C);
   AttributeOwner active_owner = AttributeOwner::from_id(&active_mesh->id);
   const StringRef name = *BKE_attributes_active_name_get(active_owner);
-  CustomDataLayer *active_layer = BKE_attribute_search_for_write(
-      active_owner, name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
-  const bke::AttrType active_type = *bke::custom_data_type_to_attr_type(
-      eCustomDataType(active_layer->type));
+  const BMDataLayerLookup active_attr = BM_data_layer_lookup(*active_mesh->runtime->edit_mesh->bm,
+                                                             name);
+  const bke::AttrType active_type = active_attr.type;
   const CPPType &type = bke::attribute_type_to_cpp_type(active_type);
 
   BUFFER_FOR_CPP_TYPE_VALUE(type, buffer);
@@ -159,16 +158,13 @@ static wmOperatorStatus mesh_set_attribute_exec(bContext *C, wmOperator *op)
     Mesh *mesh = static_cast<Mesh *>(object->data);
     BMEditMesh *em = BKE_editmesh_from_object(object);
     BMesh *bm = em->bm;
-    AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
-    CustomDataLayer *layer = BKE_attribute_search_for_write(
-        owner, name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
-    if (!layer) {
+    BMDataLayerLookup attr = BM_data_layer_lookup(*bm, name);
+    if (!attr) {
       continue;
     }
     /* Use implicit conversions to try to handle the case where the active attribute has a
      * different type on multiple objects. */
-    const eCustomDataType dst_data_type = eCustomDataType(layer->type);
-    const CPPType &dst_type = *bke::custom_data_type_to_cpp_type(dst_data_type);
+    const CPPType &dst_type = bke::attribute_type_to_cpp_type(attr.type);
     if (&type != &dst_type && !conversions.is_convertible(type, dst_type)) {
       continue;
     }
@@ -176,21 +172,21 @@ static wmOperatorStatus mesh_set_attribute_exec(bContext *C, wmOperator *op)
     BLI_SCOPED_DEFER([&]() { dst_type.destruct(dst_buffer); });
     conversions.convert_to_uninitialized(type, dst_type, value.get(), dst_buffer);
     const GPointer dst_value(dst_type, dst_buffer);
-    switch (BKE_attribute_domain(owner, layer)) {
+    switch (attr.domain) {
       case bke::AttrDomain::Point:
         bmesh_vert_edge_face_layer_selected_values_set(
-            *bm, BM_VERTS_OF_MESH, dst_value, layer->offset);
+            *bm, BM_VERTS_OF_MESH, dst_value, attr.offset);
         break;
       case bke::AttrDomain::Edge:
         bmesh_vert_edge_face_layer_selected_values_set(
-            *bm, BM_EDGES_OF_MESH, dst_value, layer->offset);
+            *bm, BM_EDGES_OF_MESH, dst_value, attr.offset);
         break;
       case bke::AttrDomain::Face:
         bmesh_vert_edge_face_layer_selected_values_set(
-            *bm, BM_FACES_OF_MESH, dst_value, layer->offset);
+            *bm, BM_FACES_OF_MESH, dst_value, attr.offset);
         break;
       case bke::AttrDomain::Corner:
-        bmesh_loop_layer_selected_values_set(*em, dst_value, layer->offset);
+        bmesh_loop_layer_selected_values_set(*em, dst_value, attr.offset);
         break;
       default:
         BLI_assert_unreachable();
@@ -217,11 +213,9 @@ static wmOperatorStatus mesh_set_attribute_invoke(bContext *C,
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
 
   const StringRef name = *BKE_attributes_active_name_get(owner);
-  CustomDataLayer *layer = BKE_attribute_search_for_write(
-      owner, name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
-  const bke::AttrType data_type = *bke::custom_data_type_to_attr_type(
-      eCustomDataType(layer->type));
-  const bke::AttrDomain domain = BKE_attribute_domain(owner, layer);
+  const BMDataLayerLookup attr = BM_data_layer_lookup(*mesh->runtime->edit_mesh->bm, name);
+  const bke::AttrType data_type = attr.type;
+  const bke::AttrDomain domain = attr.domain;
   const BMElem *active_elem = BM_mesh_active_elem_get(bm);
   if (!active_elem) {
     return WM_operator_props_popup(C, op, event);
@@ -234,7 +228,7 @@ static wmOperatorStatus mesh_set_attribute_invoke(bContext *C,
   }
 
   const CPPType &type = bke::attribute_type_to_cpp_type(data_type);
-  const GPointer active_value(type, POINTER_OFFSET(active_elem->head.data, layer->offset));
+  const GPointer active_value(type, POINTER_OFFSET(active_elem->head.data, attr.offset));
 
   PropertyRNA *prop = geometry::rna_property_for_type(*op->ptr, data_type);
   if (!RNA_property_is_set(op->ptr, prop)) {
@@ -253,11 +247,8 @@ static void mesh_set_attribute_ui(bContext *C, wmOperator *op)
   Mesh *mesh = ED_mesh_context(C);
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
   const StringRef name = *BKE_attributes_active_name_get(owner);
-  CustomDataLayer *layer = BKE_attribute_search_for_write(
-      owner, name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
-  const bke::AttrType active_type = *bke::custom_data_type_to_attr_type(
-      eCustomDataType(layer->type));
-  const StringRefNull prop_name = geometry::rna_property_name_for_type(active_type);
+  const BMDataLayerLookup attr = BM_data_layer_lookup(*mesh->runtime->edit_mesh->bm, name);
+  const StringRefNull prop_name = geometry::rna_property_name_for_type(attr.type);
   layout->prop(op->ptr, prop_name, UI_ITEM_NONE, name, ICON_NONE);
 }
 
