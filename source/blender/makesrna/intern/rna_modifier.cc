@@ -7935,6 +7935,7 @@ static void rna_def_modifier_nodes_bake(BlenderRNA *brna)
   prop = RNA_def_property(srna, "bake_target", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, bake_target_in_node_items);
   RNA_def_property_ui_text(prop, "Bake Target", "Where to store the baked data");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CACHEFILE);
   RNA_def_property_update(prop, 0, "rna_NodesModifier_bake_update");
 
   prop = RNA_def_property(srna, "bake_mode", PROP_ENUM, PROP_NONE);
@@ -8069,6 +8070,7 @@ static void rna_def_modifier_nodes(BlenderRNA *brna)
   prop = RNA_def_property(srna, "bake_target", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, bake_target_in_modifier_items);
   RNA_def_property_ui_text(prop, "Bake Target", "Where to store the baked data");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CACHEFILE);
   RNA_def_property_update(prop, 0, "rna_NodesModifier_bake_update");
 
   prop = RNA_def_property(srna, "bakes", PROP_COLLECTION, PROP_NONE);
