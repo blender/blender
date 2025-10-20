@@ -90,7 +90,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
   }
   const bool use_cubic = ELEM(tex->interpolation, SHD_INTERP_CUBIC, SHD_INTERP_SMART);
 
-  /* Only use UDIM tiles if projection is not flat.
+  /* Only use UDIM tiles if projection is flat.
    * Otherwise treat the first tile as a single image. (See #141776). */
   const bool use_udim = ima->source == IMA_SRC_TILED && tex->projection == SHD_PROJ_FLAT;
   if (use_udim) {
