@@ -663,12 +663,11 @@ void RE_FreeUnusedGPUResources()
   for (Render *re : RenderGlobal.render_list) {
     bool do_free = true;
 
-    const Scene *scene = RE_GetScene(re);
     /* Don't free scenes being rendered or composited. Note there is no
      * race condition here because we are on the main thread and new jobs can only
      * be started from the main thread. */
-    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_RENDER) ||
-        WM_jobs_test(wm, scene, WM_JOB_TYPE_COMPOSITE))
+    if (WM_jobs_test(wm, re->owner, WM_JOB_TYPE_RENDER) ||
+        WM_jobs_test(wm, re->owner, WM_JOB_TYPE_COMPOSITE))
     {
       do_free = false;
     }
@@ -679,7 +678,8 @@ void RE_FreeUnusedGPUResources()
         break;
       }
 
-      if (WM_window_get_active_scene(win) != scene) {
+      const Scene *scene = WM_window_get_active_scene(win);
+      if (scene != re->owner) {
         continue;
       }
 
