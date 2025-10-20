@@ -585,9 +585,7 @@ void mesh_ensure_default_color_attribute_on_add(Mesh &mesh,
   if (bke::attribute_name_is_anonymous(id)) {
     return;
   }
-  if (!(CD_TYPE_AS_MASK(*attr_type_to_custom_data_type(data_type)) & CD_MASK_COLOR_ALL) ||
-      !(ATTR_DOMAIN_AS_MASK(domain) & ATTR_DOMAIN_MASK_COLOR))
-  {
+  if (!mesh::is_color_attribute({domain, data_type})) {
     return;
   }
   if (mesh.default_color_attribute) {
@@ -608,35 +606,13 @@ void mesh_ensure_required_data_layers(Mesh &mesh)
   attributes.add(".corner_edge", AttrDomain::Corner, bke::AttrType::Int32, attribute_init);
 }
 
-static bool meta_data_matches(const std::optional<bke::AttributeMetaData> meta_data,
-                              const AttrDomainMask domains,
-                              const eCustomDataMask types)
-{
-  if (!meta_data) {
-    return false;
-  }
-  if (!(ATTR_DOMAIN_AS_MASK(meta_data->domain) & domains)) {
-    return false;
-  }
-  if (!(CD_TYPE_AS_MASK(*attr_type_to_custom_data_type(meta_data->data_type)) & types)) {
-    return false;
-  }
-  return true;
-}
-
 void mesh_remove_invalid_attribute_strings(Mesh &mesh)
 {
   bke::AttributeAccessor attributes = mesh.attributes();
-  if (!meta_data_matches(attributes.lookup_meta_data(mesh.active_color_attribute),
-                         ATTR_DOMAIN_MASK_COLOR,
-                         CD_MASK_COLOR_ALL))
-  {
+  if (!mesh::is_color_attribute(attributes.lookup_meta_data(mesh.active_color_attribute))) {
     MEM_SAFE_FREE(mesh.active_color_attribute);
   }
-  if (!meta_data_matches(attributes.lookup_meta_data(mesh.default_color_attribute),
-                         ATTR_DOMAIN_MASK_COLOR,
-                         CD_MASK_COLOR_ALL))
-  {
+  if (!mesh::is_color_attribute(attributes.lookup_meta_data(mesh.default_color_attribute))) {
     MEM_SAFE_FREE(mesh.default_color_attribute);
   }
 }
@@ -1236,6 +1212,35 @@ Mesh *BKE_mesh_new_nomain(const int verts_num,
 }
 
 namespace blender::bke {
+
+namespace mesh {
+
+bool is_uv_map(const AttributeMetaData &meta_data)
+{
+  return meta_data.domain == AttrDomain::Corner && meta_data.data_type == AttrType::Float2;
+}
+
+bool is_uv_map(const std::optional<AttributeMetaData> &meta_data)
+{
+  return meta_data && is_uv_map(*meta_data);
+}
+
+bool is_color_attribute(const blender::bke::AttributeMetaData &meta_data)
+{
+  return ELEM(meta_data.domain,
+              blender::bke::AttrDomain::Point,
+              blender::bke::AttrDomain::Corner) &&
+         ELEM(meta_data.data_type,
+              blender::bke::AttrType::ColorByte,
+              blender::bke::AttrType::ColorFloat);
+}
+
+bool is_color_attribute(const std::optional<blender::bke::AttributeMetaData> &meta_data)
+{
+  return meta_data && is_color_attribute(*meta_data);
+}
+
+}  // namespace mesh
 
 Mesh *mesh_new_no_attributes(const int verts_num,
                              const int edges_num,

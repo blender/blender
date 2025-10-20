@@ -1457,9 +1457,7 @@ static wmOperatorStatus bake(const BakeAPIRender *bkr,
   if (!bkr->uv_layer.empty()) {
     Mesh *mesh = (Mesh *)ob_low->data;
     const bke::AttributeAccessor attributes = mesh->attributes();
-    const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(
-        bkr->uv_layer);
-    if (meta_data != bke::AttributeMetaData{bke::AttrDomain::Corner, bke::AttrType::Float2}) {
+    if (!bke::mesh::is_uv_map(attributes.lookup_meta_data(bkr->uv_layer))) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "No UV layer named \"%s\" found in the object \"%s\"",

@@ -963,14 +963,7 @@ static bool geometry_color_attribute_convert_poll(bContext *C)
   const Mesh *mesh = static_cast<const Mesh *>(ob->data);
   const char *name = mesh->active_color_attribute;
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(name);
-  if (!meta_data) {
-    return false;
-  }
-  if (!(ATTR_DOMAIN_AS_MASK(meta_data->domain) & ATTR_DOMAIN_MASK_COLOR) ||
-      !(CD_TYPE_AS_MASK(*bke::attr_type_to_custom_data_type(meta_data->data_type)) &
-        CD_MASK_COLOR_ALL))
-  {
+  if (!bke::mesh::is_color_attribute(attributes.lookup_meta_data(name))) {
     return false;
   }
 
