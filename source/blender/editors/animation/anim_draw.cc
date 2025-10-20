@@ -46,6 +46,8 @@
 
 #include "SEQ_time.hh"
 
+#include <utility>
+
 /* *************************************************** */
 /* CURRENT FRAME DRAWING */
 
@@ -145,12 +147,16 @@ void ANIM_draw_scene_strip_range(const bContext *C, View2D *v2d)
    * (right_handle-1), hence the -1 when computing the end_frame. */
   const float left_handle = seq::time_left_handle_frame_get(sequencer_scene, scene_strip);
   const float right_handle = seq::time_right_handle_frame_get(sequencer_scene, scene_strip);
-  const float start_frame = seq::give_frame_index(sequencer_scene, scene_strip, left_handle) +
-                            scene_strip->scene->r.sfra;
-  const float end_frame = seq::give_frame_index(sequencer_scene, scene_strip, right_handle - 1) +
-                          scene_strip->scene->r.sfra;
+  float start_frame = seq::give_frame_index(sequencer_scene, scene_strip, left_handle) +
+                      scene_strip->scene->r.sfra;
+  float end_frame = seq::give_frame_index(sequencer_scene, scene_strip, right_handle - 1) +
+                    scene_strip->scene->r.sfra;
 
-  BLI_assert(start_frame < end_frame);
+  /* This can happen when the strip time is reversed. */
+  if (start_frame > end_frame) {
+    std::swap(start_frame, end_frame);
+  }
+
   immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, start_frame, v2d->cur.ymax);
   immRectf(pos, end_frame, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
 
