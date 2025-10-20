@@ -1742,11 +1742,19 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
       /* Standard scroll-wheel case, if no swiping happened,
        * and no momentum (kinetic scroll) works. */
       if (!multi_touch_scroll_ && momentumPhase == NSEventPhaseNone) {
+        /* Horizontal scrolling. */
         if (event.deltaX != 0.0) {
           const int32_t delta = event.deltaX > 0.0 ? 1 : -1;
-          pushEvent(new GHOST_EventWheel(
-              event.timestamp * 1000, window, GHOST_kEventWheelAxisHorizontal, delta));
+          /* On macOS, shift + vertical scroll events will be transformed into shift + horizontal
+           * events by the OS input layer. Counteract this behavior by transforming them back into
+           * shift + vertical scroll event. See PR #148122 for more details. */
+          const GHOST_TEventWheelAxis direction = modifier_mask_ & NSEventModifierFlagShift ?
+                                                      GHOST_kEventWheelAxisVertical :
+                                                      GHOST_kEventWheelAxisHorizontal;
+
+          pushEvent(new GHOST_EventWheel(event.timestamp * 1000, window, direction, delta));
         }
+        /* Vertical scrolling. */
         if (event.deltaY != 0.0) {
           const int32_t delta = event.deltaY > 0.0 ? 1 : -1;
           pushEvent(new GHOST_EventWheel(
