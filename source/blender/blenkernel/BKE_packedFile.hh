@@ -41,6 +41,8 @@ enum ePF_FileStatus {
   PF_ASK = 10,
 };
 
+constexpr int64_t PACKED_FILE_MAX_SIZE = INT32_MAX;
+
 /* Pack. */
 
 PackedFile *BKE_packedfile_duplicate(const PackedFile *pf_src);

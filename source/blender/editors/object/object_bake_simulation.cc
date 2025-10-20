@@ -229,7 +229,13 @@ struct BakeGeometryNodesJob {
   Depsgraph *depsgraph;
   Scene *scene;
   Vector<NodeBakeRequest> bake_requests;
+  wmOperator *op;
+  std::string error_message;
 };
+
+static void try_delete_bake(
+    Main *bmain, Object &object, NodesModifierData &nmd, const int bake_id, ReportList *reports);
+static void reset_old_bake_cache(NodeBakeRequest &request);
 
 static void request_bakes_in_modifier_cache(BakeGeometryNodesJob &job)
 {
@@ -350,6 +356,10 @@ static void bake_geometry_nodes_startjob(void *customdata, wmJobWorkerStatus *wo
           if (data.empty()) {
             continue;
           }
+          if (data.size() > PACKED_FILE_MAX_SIZE) {
+            job.error_message = TIP_("A file is too large to be packed (>2GB).");
+            return;
+          }
           packed_data.blob_files.append({item.key, std::move(data)});
         }
         written_size += blob_writer.written_size();
@@ -445,6 +455,14 @@ static void bake_geometry_nodes_endjob(void *customdata)
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, nullptr);
   WM_main_add_notifier(NC_NODE | ND_DISPLAY, nullptr);
   WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, nullptr);
+
+  if (!job.error_message.empty()) {
+    for (NodeBakeRequest &request : job.bake_requests) {
+      reset_old_bake_cache(request);
+      try_delete_bake(job.bmain, *request.object, *request.nmd, request.bake_id, job.op->reports);
+    }
+    BKE_report(job.op->reports, RPT_ERROR, job.error_message.c_str());
+  }
 }
 
 static void clear_data_block_references(NodesModifierBake &bake)
@@ -480,9 +498,8 @@ static void reset_old_bake_cache(NodeBakeRequest &request)
 }
 
 static void try_delete_bake(
-    bContext *C, Object &object, NodesModifierData &nmd, const int bake_id, ReportList *reports)
+    Main *bmain, Object &object, NodesModifierData &nmd, const int bake_id, ReportList *reports)
 {
-  Main *bmain = CTX_data_main(C);
   if (!nmd.runtime->cache) {
     return;
   }
@@ -551,12 +568,13 @@ static wmOperatorStatus start_bake_job(bContext *C,
                                        wmOperator *op,
                                        const BakeRequestsMode mode)
 {
+  Main *bmain = CTX_data_main(C);
   for (NodeBakeRequest &request : requests) {
     reset_old_bake_cache(request);
     if (NodesModifierBake *bake = request.nmd->find_bake(request.bake_id)) {
       clear_data_block_references(*bake);
     }
-    try_delete_bake(C, *request.object, *request.nmd, request.bake_id, op->reports);
+    try_delete_bake(bmain, *request.object, *request.nmd, request.bake_id, op->reports);
   }
 
   BakeGeometryNodesJob *job = MEM_new<BakeGeometryNodesJob>(__func__);
@@ -565,6 +583,7 @@ static wmOperatorStatus start_bake_job(bContext *C,
   job->depsgraph = CTX_data_depsgraph_pointer(C);
   job->scene = CTX_data_scene(C);
   job->bake_requests = std::move(requests);
+  job->op = op;
   WM_locked_interface_set(job->wm, true);
 
   if (mode == BakeRequestsMode::Sync) {
@@ -876,6 +895,8 @@ static wmOperatorStatus bake_simulation_modal(bContext *C,
 
 static wmOperatorStatus delete_baked_simulation_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
+
   Vector<Object *> objects;
   if (RNA_boolean_get(op->ptr, "selected")) {
     CTX_DATA_BEGIN (C, Object *, object, selected_objects) {
@@ -898,7 +919,7 @@ static wmOperatorStatus delete_baked_simulation_exec(bContext *C, wmOperator *op
       if (md->type == eModifierType_Nodes) {
         NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
         for (const NodesModifierBake &bake : Span(nmd->bakes, nmd->bakes_num)) {
-          try_delete_bake(C, *object, *nmd, bake.id, op->reports);
+          try_delete_bake(bmain, *object, *nmd, bake.id, op->reports);
         }
       }
     }
@@ -971,7 +992,7 @@ static Vector<NodeBakeRequest> bake_single_node_gather_bake_request(bContext *C,
     request.frame_end = current_frame;
     /* Delete old bake because otherwise this wouldn't be a still frame bake. This is not done for
      * other bakes to avoid loosing data when starting a bake. */
-    try_delete_bake(C, *object, nmd, bake_id, op->reports);
+    try_delete_bake(bmain, *object, nmd, bake_id, op->reports);
   }
   else {
     const std::optional<IndexRange> frame_range = bake::get_node_bake_frame_range(
@@ -1037,7 +1058,7 @@ static wmOperatorStatus delete_single_bake_exec(bContext *C, wmOperator *op)
   NodesModifierData &nmd = *reinterpret_cast<NodesModifierData *>(md);
   const int bake_id = RNA_int_get(op->ptr, "bake_id");
 
-  try_delete_bake(C, *object, nmd, bake_id, op->reports);
+  try_delete_bake(bmain, *object, nmd, bake_id, op->reports);
 
   DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, nullptr);
