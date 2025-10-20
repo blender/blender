@@ -113,10 +113,15 @@ bool transform_seqbase_shuffle_ex(ListBase *seqbasep,
   const ListBase *channels = channels_displayed_get(editing_get(evil_scene));
   SeqTimelineChannel *channel = channel_get_by_index(channels, test->channel);
 
+  bool use_fallback_translation = false;
+
   while (transform_test_overlap(evil_scene, seqbasep, test) || channel_is_muted(channel) ||
          channel_is_locked(channel))
   {
-    if ((channel_delta > 0) ? (test->channel >= MAX_CHANNELS) : (test->channel < 1)) {
+    if ((channel_delta > 0) ? (test->channel + channel_delta >= MAX_CHANNELS) :
+                              (test->channel + channel_delta < 1))
+    {
+      use_fallback_translation = true;
       break;
     }
 
@@ -124,10 +129,8 @@ bool transform_seqbase_shuffle_ex(ListBase *seqbasep,
     channel = channel_get_by_index(channels, test->channel);
   }
 
-  if (!is_valid_strip_channel(test)) {
-    /* Blender 2.4x would remove the strip.
-     * nicer to move it to the end */
-
+  /* Strip can not be moved to next free channel, translate it instead. */
+  if (use_fallback_translation) {
     int new_frame = time_right_handle_frame_get(evil_scene, test);
 
     LISTBASE_FOREACH (Strip *, strip, seqbasep) {
