@@ -298,6 +298,7 @@ class GHOST_DeviceVK {
   void wait_idle()
   {
     if (vk_device) {
+      std::scoped_lock lock(queue_mutex);
       vkDeviceWaitIdle(vk_device);
     }
   }

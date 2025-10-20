@@ -14,7 +14,7 @@ namespace blender::gpu {
 
 void VKDiscardPool::deinit(VKDevice &device)
 {
-  destroy_discarded_resources(device, true);
+  destroy_discarded_resources(device, UINT64_MAX);
 }
 
 void VKDiscardPool::move_data(VKDiscardPool &src_pool, TimelineValue timeline)
@@ -84,10 +84,9 @@ void VKDiscardPool::discard_descriptor_pool_for_reuse(VkDescriptorPool vk_descri
   descriptor_pools_.append_timeline(timeline_, std::pair(vk_descriptor_pool, descriptor_pools));
 }
 
-void VKDiscardPool::destroy_discarded_resources(VKDevice &device, bool force)
+void VKDiscardPool::destroy_discarded_resources(VKDevice &device, TimelineValue current_timeline)
 {
   std::scoped_lock mutex(mutex_);
-  TimelineValue current_timeline = force ? UINT64_MAX : device.submission_finished_timeline_get();
 
   image_views_.remove_old(current_timeline, [&](VkImageView vk_image_view) {
     vkDestroyImageView(device.vk_handle(), vk_image_view, nullptr);
