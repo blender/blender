@@ -253,7 +253,7 @@ PackedFile *BKE_packedfile_new(ReportList *reports, const char *filepath_rel, co
   if (file_size == size_t(-1)) {
     BKE_reportf(reports, RPT_ERROR, "Unable to access the size of, source path '%s'", filepath);
   }
-  else if (file_size > INT_MAX) {
+  else if (file_size > PACKED_FILE_MAX_SIZE) {
     BKE_reportf(reports, RPT_ERROR, "Unable to pack files over 2gb, source path '%s'", filepath);
   }
   else {
