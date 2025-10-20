@@ -3414,7 +3414,9 @@ void ED_region_panels_layout_ex(const bContext *C,
   }
 }
 
-void ED_region_draw_overflow_indication(const ScrArea *area, ARegion *region, rcti *mask)
+void ED_region_draw_overflow_indication(const ScrArea *area,
+                                        const ARegion *region,
+                                        const rcti *mask)
 {
   if (!(region->flag & RGN_FLAG_INDICATE_OVERFLOW)) {
     return;
