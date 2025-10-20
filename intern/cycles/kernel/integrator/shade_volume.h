@@ -298,22 +298,25 @@ ccl_device void volume_voxel_get(KernelGlobals kg, ccl_private OctreeTracing &oc
 /* If there exists a Light Path Node, it could affect the density evaluation at runtime.
  * Randomly sample a few points on the ray to estimate the extrema. */
 template<const bool shadow, typename IntegratorGenericState>
+ccl_device_noinline Extrema<float> volume_estimate_extrema(KernelGlobals kg,
+                                                           const ccl_private Ray *ccl_restrict ray,
+                                                           ccl_private ShaderData *ccl_restrict sd,
+                                                           const IntegratorGenericState state,
+                                                           const ccl_private RNGState *rng_state,
+                                                           const uint32_t path_flag,
 /* Work around apparent HIP compiler bug. */
 #  ifdef __KERNEL_HIP__
-ccl_device
+                                                           const ccl_private OctreeTracing &octree
 #  else
-ccl_device_noinline
+                                                           const Interval<float> t,
+                                                           const VolumeStack entry
 #  endif
-    Extrema<float>
-    volume_estimate_extrema(KernelGlobals kg,
-                            const ccl_private Ray *ccl_restrict ray,
-                            ccl_private ShaderData *ccl_restrict sd,
-                            const IntegratorGenericState state,
-                            const ccl_private RNGState *rng_state,
-                            const uint32_t path_flag,
-                            const Interval<float> t,
-                            const VolumeStack entry)
+)
 {
+#  ifdef __KERNEL_HIP__
+  const ccl_private Interval<float> &t = octree.t;
+  const ccl_private VolumeStack &entry = octree.entry;
+#  endif
   const bool homogeneous = volume_is_homogeneous(kg, entry);
   const int samples = homogeneous ? 1 : 4;
   const float shade_offset = homogeneous ?
@@ -367,8 +370,12 @@ ccl_device_inline Extrema<float> volume_object_get_extrema(KernelGlobals kg,
     return octree.node->sigma * object_volume_density(kg, octree.entry.object);
   }
 
+#  ifdef __KERNEL_HIP__
+  return volume_estimate_extrema<shadow>(kg, ray, sd, state, rng_state, path_flag, octree);
+#  else
   return volume_estimate_extrema<shadow>(
       kg, ray, sd, state, rng_state, path_flag, octree.t, octree.entry);
+#  endif
 }
 
 /* Find the octree root node in the kernel array that corresponds to the volume stack entry. */
