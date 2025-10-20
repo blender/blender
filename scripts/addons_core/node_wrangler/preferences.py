@@ -139,7 +139,7 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
 
         box = layout.box()
         col = box.column(align=True)
-        hotkey_button_name = iface_("Show Hotkey List") if self.show_hotkey_list else iface_("Hide Hotkey List")
+        hotkey_button_name = iface_("Hide Hotkey List") if self.show_hotkey_list else iface_("Show Hotkey List")
         col.prop(self, "show_hotkey_list", text=hotkey_button_name, translate=False, toggle=True)
         if self.show_hotkey_list:
             col.prop(self, "hotkey_list_filter", icon="VIEWZOOM")
