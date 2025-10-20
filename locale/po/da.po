@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 16:12+0000\n"
+"POT-Creation-Date: 2025-10-20 08:46+0000\n"
 "PO-Revision-Date: 2025-07-31 16:24+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -3509,10 +3509,6 @@ msgid "Local"
 msgstr "Lokal"
 
 
-msgid "Direction"
-msgstr "Retning"
-
-
 msgid "Blur"
 msgstr "Sløring"
 
@@ -3612,6 +3608,10 @@ msgstr "B44A (ej tabsfri)"
 
 msgid "File format to save the rendered images as"
 msgstr "Filformat det fremkaldte billede skal gemmes i"
+
+
+msgid "Direction"
+msgstr "Retning"
 
 
 msgid "Keyboard"

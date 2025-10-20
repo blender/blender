@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 16:12+0000\n"
+"POT-Creation-Date: 2025-10-20 08:46+0000\n"
 "PO-Revision-Date: 2025-07-23 14:59+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -19040,10 +19040,6 @@ msgid "Amount of random elements that are going to be affected by the brush"
 msgstr "Amount of random elements that are going to be affected by the brush"
 
 
-msgid "Direction"
-msgstr "Direction"
-
-
 msgid "Add effect of brush"
 msgstr "Add effect of brush"
 
@@ -27452,10 +27448,6 @@ msgid "Sync to audio playback, dropping frames"
 msgstr "Sync to audio playback, dropping frames"
 
 
-msgid "Second"
-msgstr "Second"
-
-
 msgid "Timeline Markers"
 msgstr "Timeline Markers"
 
@@ -30316,6 +30308,10 @@ msgstr "Control key pressed, -1 for any state"
 
 msgid "Control key pressed"
 msgstr "Control key pressed"
+
+
+msgid "Direction"
+msgstr "Direction"
 
 
 msgid "The direction (only applies to drag events)"
@@ -33999,6 +33995,14 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
+msgid "Assign Material"
+msgstr "Assign Material"
+
+
+msgid "Select More/Less"
+msgstr "Select More/Less"
+
+
 msgid "Metaball"
 msgstr "Metaball"
 
@@ -34067,6 +34071,10 @@ msgid "Vertex Group Locks"
 msgstr "Vertex Group Locks"
 
 
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Trim/Add"
 msgstr "Trim/Add"
 
@@ -34083,16 +34091,16 @@ msgid "Random Mask"
 msgstr "Random Mask"
 
 
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Clear Transform"
 msgstr "Clear Transform"
 
 
 msgid "In-Betweens"
 msgstr "In-Betweens"
+
+
+msgid "Adjust"
+msgstr "Adjust"
 
 
 msgid "Propagate"
@@ -34103,32 +34111,12 @@ msgid "Bone Collections"
 msgstr "Bone Collections"
 
 
-msgid "Names"
-msgstr "Names"
-
-
-msgid "Adjust"
-msgstr "Adjust"
-
-
-msgid "Toggle Bone Options"
-msgstr "Toggle Bone Options"
-
-
-msgid "Enable Bone Options"
-msgstr "Enable Bone Options"
-
-
-msgid "Disable Bone Options"
-msgstr "Disable Bone Options"
-
-
 msgid "Keying"
 msgstr "Keying"
 
 
-msgid "Mesh Select Mode"
-msgstr "Mesh Select Mode"
+msgid "Names"
+msgstr "Names"
 
 
 msgid "Tracking"
@@ -34139,12 +34127,28 @@ msgid "Utilities"
 msgstr "Utilities"
 
 
-msgid "Face Data"
-msgstr "Face Data"
+msgid "Toggle Bone Options"
+msgstr "Toggle Bone Options"
 
 
 msgid "Math"
 msgstr "Maths"
+
+
+msgid "Enable Bone Options"
+msgstr "Enable Bone Options"
+
+
+msgid "Disable Bone Options"
+msgstr "Disable Bone Options"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mesh Select Mode"
+
+
+msgid "Face Data"
+msgstr "Face Data"
 
 
 msgid "Select by Face Strength"
@@ -34175,8 +34179,24 @@ msgid "Bone Roll"
 msgstr "Bone Roll"
 
 
+msgid "Read"
+msgstr "Read"
+
+
+msgid "Sample"
+msgstr "Sample"
+
+
+msgid "Write"
+msgstr "Write"
+
+
 msgid "Pivot Point"
 msgstr "Pivot Point"
+
+
+msgid "Primitives"
+msgstr "Primitives"
 
 
 msgid "Snap"
@@ -34195,24 +34215,8 @@ msgid "Automasking"
 msgstr "Automasking"
 
 
-msgid "Read"
-msgstr "Read"
-
-
 msgid "Face Sets Edit"
 msgstr "Face Sets Edit"
-
-
-msgid "Sample"
-msgstr "Sample"
-
-
-msgid "Write"
-msgstr "Write"
-
-
-msgid "Primitives"
-msgstr "Primitives"
 
 
 msgid "Gizmo"
@@ -34223,12 +34227,16 @@ msgid "Instances"
 msgstr "Instances"
 
 
-msgid "Mirror"
-msgstr "Mirror"
-
-
 msgid "Import"
 msgstr "Import"
+
+
+msgid "Deprecated"
+msgstr "Deprecated"
+
+
+msgid "Mirror"
+msgstr "Mirror"
 
 
 msgid "UV Mapping"
@@ -34247,6 +34255,10 @@ msgid "Navigation"
 msgstr "Navigation"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Align View"
 msgstr "Align View"
 
@@ -34255,16 +34267,8 @@ msgid "Align View to Active"
 msgstr "Align View to Active"
 
 
-msgid "Deprecated"
-msgstr "Deprecated"
-
-
 msgid "View Regions"
 msgstr "View Regions"
-
-
-msgid "Select More/Less"
-msgstr "Select More/Less"
 
 
 msgid "Select Similar"
@@ -34275,28 +34279,20 @@ msgid "Select All by Trait"
 msgstr "Select All by Trait"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Animals"
+msgstr "Animals"
 
 
 msgid "Select Linked"
 msgstr "Select Linked"
 
 
-msgid "Select Loops"
-msgstr "Select Loops"
-
-
-msgid "Animals"
-msgstr "Animals"
-
-
 msgid "Basic"
 msgstr "Basic"
 
 
-msgid "Assign Material"
-msgstr "Assign Material"
+msgid "Select Loops"
+msgstr "Select Loops"
 
 
 msgid "Keyframe Insert Pie"
@@ -103313,16 +103309,9 @@ msgid "Method for controlling how the strip combines with other strips"
 msgstr "Method for controlling how the strip combines with other strips"
 
 
-msgid "Cross"
-msgstr "Cross"
-
-
-msgid "Alpha Under"
-msgstr "Alpha Under"
-
-
-msgid "Gamma Cross"
-msgstr "Gamma Cross"
+msgctxt "Color"
+msgid "Value"
+msgstr "Value"
 
 
 msgid "Y position of the sequence strip"
@@ -103574,11 +103563,6 @@ msgstr "Alpha Under Strip"
 
 msgid "Color Mix Strip"
 msgstr "Color Mix Strip"
-
-
-msgctxt "Color"
-msgid "Value"
-msgstr "Value"
 
 
 msgid "Color Strip"
@@ -118207,6 +118191,10 @@ msgstr "Velocity Linear"
 
 msgid "This object is part of a compound shape"
 msgstr "This object is part of a compound shape"
+
+
+msgid "Second"
+msgstr "Second"
 
 
 msgid "X Stiffness"
@@ -135281,6 +135269,10 @@ msgid "Unable to copy item"
 msgstr "Unable to copy item"
 
 
+msgid "Anisotropic"
+msgstr "Anisotropic"
+
+
 msgctxt "NodeTree"
 msgid "Functions"
 msgstr "Functions"
@@ -137272,10 +137264,6 @@ msgstr "Garbage Matte"
 
 msgid "Core Matte"
 msgstr "Core Matte"
-
-
-msgid "Anisotropic"
-msgstr "Anisotropic"
 
 
 msgid "Uniformity"
