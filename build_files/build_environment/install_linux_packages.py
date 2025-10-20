@@ -1479,7 +1479,7 @@ class PackageInstallerFedora(PackageInstaller):
         return self.package_version_get(["sudo", "dnf", "info", "--installed", package_distro_name])
 
     def package_query_version_get_impl(self, package_distro_name):
-        return self.package_version_get(["sudo", "dnf", "info", "--all", package_distro_name])
+        return self.package_version_get(["sudo", "dnf", "info", package_distro_name])
 
     def package_name_version_gen(
             self,
