@@ -207,7 +207,7 @@ class POSE_OT_rigify_mirror_parameters(bpy.types.Operator):
             if not flip_bone:
                 # Bones without an opposite will just be ignored.
                 continue
-            if flip_bone != pb and flip_bone.bone.select:
+            if flip_bone != pb and flip_bone.select:
                 message = rpt_("Bone {:s} selected on both sides, mirroring would be ambiguous, "
                                "aborting. Only select the left or right side, not both").format(pb.name)
                 self.report({'ERROR'}, message)
