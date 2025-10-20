@@ -89,6 +89,7 @@ set(SRC
   nodes/node_composite_posterize.cc
   nodes/node_composite_premulkey.cc
   nodes/node_composite_relative_to_pixel.cc
+  nodes/node_composite_render_layers.cc
   nodes/node_composite_rgb.cc
   nodes/node_composite_rotate.cc
   nodes/node_composite_scale.cc
