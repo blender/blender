@@ -499,7 +499,7 @@ static void select_pchan_for_action_group(bAnimContext *ac,
   /* Armatures-Specific Feature:
    * See mouse_anim_channels() -> ANIMTYPE_GROUP case for more details (#38737)
    */
-  if ((ac->ads->filterflag & ADS_FILTER_ONLYSEL) == 0) {
+  if ((ac->filters.flag & ADS_FILTER_ONLYSEL) == 0) {
     if ((ale->id) && (GS(ale->id->name) == ID_OB)) {
       Object *ob = reinterpret_cast<Object *>(ale->id);
       if (ob->type == OB_ARMATURE) {
@@ -4352,7 +4352,7 @@ static int click_select_channel_group(bAnimContext *ac,
    * Only do this if "Only Selected" dope-sheet filter is not active, or else it
    * becomes too unpredictable/tricky to manage
    */
-  if ((ac->ads->filterflag & ADS_FILTER_ONLYSEL) == 0) {
+  if ((ac->filters.flag & ADS_FILTER_ONLYSEL) == 0) {
     if ((ale->id) && (GS(ale->id->name) == ID_OB)) {
       ob = reinterpret_cast<Object *>(ale->id);
 

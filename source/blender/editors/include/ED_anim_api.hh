@@ -108,6 +108,16 @@ struct bAnimContext {
   eAnimEdit_Context dopesheet_mode;
   eGraphEdit_Mode grapheditor_mode;
 
+  /**
+   * Filters from the dopesheet/graph editor settings. These may reflect the corresponding bits in
+   * ads->filterflag and ads->filterflag2, but can also be overriden by the dopesheet mode to force
+   * certain filters (without having to write to ads->filterflag/flag2).
+   */
+  struct {
+    eDopeSheet_FilterFlag flag;
+    eDopeSheet_FilterFlag2 flag2;
+  } filters;
+
   /** area->spacetype */
   eSpace_Type spacetype;
   /** active region -> type (channels or main) */
