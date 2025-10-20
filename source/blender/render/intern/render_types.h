@@ -168,7 +168,8 @@ struct Render : public BaseRender {
 
   bool prepare_viewlayer(struct ViewLayer *view_layer, struct Depsgraph *depsgraph) override;
 
-  char name[RE_MAXNAME] = "";
+  /* Owner pointer that uniquely identifiers the owner of this scene. */
+  const void *owner = nullptr;
 
   /* state settings */
   short flag = 0;
