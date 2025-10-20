@@ -62,8 +62,8 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
   saction = MEM_callocN<SpaceAction>("initaction");
   saction->spacetype = SPACE_ACTION;
 
-  const eAnimEdit_Context desired_mode = eAnimEdit_Context(area ? area->butspacetype_subtype :
-                                                                  SACTCONT_DOPESHEET);
+  const eAnimEdit_Context desired_mode = area ? eAnimEdit_Context(area->butspacetype_subtype) :
+                                                SACTCONT_DOPESHEET;
   const bool is_timeline = (desired_mode == SACTCONT_TIMELINE);
 
   /* This should always set to SACTCONT_DOPESHEET, regardless of what the desired_mode is set to.
@@ -914,7 +914,8 @@ static void action_space_subtype_set(ScrArea *area, int value)
     /* Switching to the 'Dope Sheet' editor, so switch to the last-used mode. Unless that was
      * Timeline, don't use the 'subtype' switch to go back to that; if the user wanted that, we'd
      * be in the `if` case above.  */
-    sact->mode = (sact->mode_prev == SACTCONT_TIMELINE) ? SACTCONT_DOPESHEET : sact->mode_prev;
+    sact->mode = (sact->mode_prev == SACTCONT_TIMELINE) ? SACTCONT_DOPESHEET :
+                                                          eAnimEdit_Context(sact->mode_prev);
   }
 }
 
