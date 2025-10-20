@@ -32,7 +32,7 @@ static void sum_causal_and_non_causal_results_gpu(Context &context,
   non_causal_input.bind_as_texture(shader, "non_causal_input_tx");
 
   const Domain domain = causal_input.domain();
-  const int2 transposed_domain = int2(domain.size.y, domain.size.x);
+  const Domain transposed_domain = domain.transposed();
   output.allocate_texture(transposed_domain);
   output.bind_as_image(shader, "output_img");
 
@@ -50,7 +50,7 @@ static void sum_causal_and_non_causal_results_cpu(const Result &causal_input,
                                                   Result &output)
 {
   const Domain domain = causal_input.domain();
-  const int2 transposed_domain = int2(domain.size.y, domain.size.x);
+  const Domain transposed_domain = domain.transposed();
   output.allocate_texture(transposed_domain);
 
   parallel_for(domain.size, [&](const int2 texel) {
