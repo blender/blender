@@ -386,9 +386,8 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
 {
   /* NOTE: #calculateZfac uses this logic, keep in sync. */
-  float totwidth, totheight, curwidth, curheight, width, height;
+  float curwidth, curheight, width, height;
   float winx, winy;
-  rctf *cur, *tot;
 
   /* use mask as size of region that View2D resides in, as it takes into account
    * scroll-bars already - keep in sync with `zoomx/zoomy` in #view_zoomstep_apply_ex! */
@@ -396,8 +395,8 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
   winy = float(BLI_rcti_size_y(&v2d->mask) + 1);
 
   /* get pointers to rcts for less typing */
-  cur = &v2d->cur;
-  tot = &v2d->tot;
+  rctf *cur = &v2d->cur;
+  rctf *tot = &v2d->tot;
 
   /* we must satisfy the following constraints (in decreasing order of importance):
    * - alignment restrictions are respected
@@ -411,8 +410,6 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
    * - firstly, we calculate the sizes of the rects
    * - curwidth and curheight are saved as reference... modify width and height values here
    */
-  totwidth = BLI_rctf_size_x(tot);
-  totheight = BLI_rctf_size_y(tot);
   /* Keep in sync with `zoomx/zoomy` in #view_zoomstep_apply_ex! */
   curwidth = width = BLI_rctf_size_x(cur);
   curheight = height = BLI_rctf_size_y(cur);
@@ -641,6 +638,9 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
       }
     }
   }
+
+  const float totwidth = BLI_rctf_size_x(tot);
+  const float totheight = BLI_rctf_size_y(tot);
 
   /* Step 3: adjust so that it doesn't fall outside of bounds of 'tot' */
   if (v2d->keeptot) {
