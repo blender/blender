@@ -34,7 +34,7 @@ static void sum_causal_and_non_causal_results_gpu(Context &context,
   second_non_causal_input.bind_as_texture(shader, "second_non_causal_input_tx");
 
   const Domain domain = first_causal_input.domain();
-  const int2 transposed_domain = int2(domain.size.y, domain.size.x);
+  const Domain transposed_domain = domain.transposed();
   output.allocate_texture(transposed_domain);
   output.bind_as_image(shader, "output_img");
 
@@ -56,7 +56,7 @@ static void sum_causal_and_non_causal_results_cpu(const Result &first_causal_inp
                                                   Result &output)
 {
   const Domain domain = first_causal_input.domain();
-  const int2 transposed_domain = int2(domain.size.y, domain.size.x);
+  const Domain transposed_domain = domain.transposed();
   output.allocate_texture(transposed_domain);
   parallel_for(domain.size, [&](const int2 texel) {
     /* The Van Vliet filter is a parallel interconnection filter, meaning its output is the sum of
