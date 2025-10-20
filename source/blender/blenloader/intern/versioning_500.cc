@@ -2615,8 +2615,6 @@ static void version_bone_hide_property_driver(AnimData *arm_adt, blender::Vector
   using namespace blender::animrig;
   constexpr char const *hide_prop_prefix = "bones[";
   constexpr char const *hide_prop_suffix = "\"].hide";
-  constexpr int prefix_len = 6;
-  constexpr int suffix_len = 6;
 
   blender::Vector<FCurve *> drivers_to_fix;
   LISTBASE_FOREACH (FCurve *, fcurve, &arm_adt->drivers) {
