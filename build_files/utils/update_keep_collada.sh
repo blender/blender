@@ -2,18 +2,18 @@
 
 set -euo pipefail
 
-# Update `keep-collada` with latest upstream Blender main and push to origin.
+# Update `keep-collada` with latest lfs-fallback Blender main and push to origin.
 
 branch="keep-collada"
 
 echo "==> Ensuring branch: ${branch}"
 git checkout "${branch}"
 
-echo "==> Fetching upstream/main"
-git fetch upstream main --prune
+echo "==> Fetching lfs-fallback/main"
+git fetch lfs-fallback main --prune
 
-echo "==> Rebasing onto upstream/main (skipping LFS smudge)"
-GIT_LFS_SKIP_SMUDGE=1 git rebase upstream/main
+echo "==> Rebasing onto lfs-fallback/main (skipping LFS smudge)"
+GIT_LFS_SKIP_SMUDGE=1 git rebase lfs-fallback/main
 
 echo "==> Initializing/updating COLLADA submodules (all platforms if present)"
 for sm in lib/linux_x64_collada lib/windows_x64_collada lib/windows_arm64_collada lib/macos_arm64_collada; do
