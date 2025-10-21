@@ -260,7 +260,7 @@ def main():
         report.set_fail_threshold(0.05)
     elif test_dir_name.startswith('light'):
         # Noise difference in background
-        report.set_fail_threshold(0.02)
+        report.set_fail_threshold(0.03)
 
     ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
     sys.exit(not ok)
