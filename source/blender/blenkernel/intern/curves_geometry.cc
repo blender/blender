@@ -786,7 +786,9 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
         const bool is_cyclic = cyclic[curve_index];
         const KnotsMode mode = KnotsMode(knots_modes[curve_index]);
 
-        if (!curves::nurbs::check_valid_num_and_order(points.size(), order, is_cyclic, mode)) {
+        if (!curves::nurbs::check_valid_eval_params(
+                points.size(), order, is_cyclic, mode, resolution))
+        {
           r_data[curve_index].invalid = true;
           continue;
         }
@@ -805,6 +807,7 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
                                              order,
                                              resolution,
                                              is_cyclic,
+                                             mode,
                                              knots,
                                              r_data[curve_index]);
       }
