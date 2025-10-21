@@ -45,16 +45,19 @@ void calculate_evaluated_offsets(const Span<int8_t> handle_types_left,
     return;
   }
 
+  const int points_per_segment = std::max(1, resolution);
+
   int offset = 0;
   for (const int i : IndexRange(size - 1)) {
     evaluated_offsets[i] = offset;
-    offset += segment_is_vector(handle_types_left, handle_types_right, i) ? 1 : resolution;
+    offset += segment_is_vector(handle_types_left, handle_types_right, i) ? 1 : points_per_segment;
   }
 
   evaluated_offsets.last(1) = offset;
   if (cyclic) {
-    offset += last_cyclic_segment_is_vector(handle_types_left, handle_types_right) ? 1 :
-                                                                                     resolution;
+    offset += last_cyclic_segment_is_vector(handle_types_left, handle_types_right) ?
+                  1 :
+                  points_per_segment;
   }
   else {
     offset++;
