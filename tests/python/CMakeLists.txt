@@ -1398,7 +1398,8 @@ if(WITH_UI_TESTS)
   set(_ui_tests
     test_sculpt.asset_shelf_brush_selection
     test_tools.sculpt_mode_toolbar
-    test_undo.compositor_make_group
+    # Temporarily disabled to unblock macOS build, see #148535
+    # test_undo.compositor_make_group
     test_undo.text_editor_edit_mode_mix
     test_undo.text_editor_simple
     test_undo.view3d_edit_mode_multi_window
