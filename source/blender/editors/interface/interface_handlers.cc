@@ -3687,7 +3687,7 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 #ifdef WITH_INPUT_IME
   /* See #wm_window_IME_end code-comments for details. */
-#  if defined(WIN32) || defined(__APPLE__)
+#  ifdef __APPLE__
   if (win->runtime->ime_data)
 #  endif
   {

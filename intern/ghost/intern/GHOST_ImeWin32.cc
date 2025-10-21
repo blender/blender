@@ -416,14 +416,23 @@ void GHOST_ImeWin32::EndIME(HWND window_handle)
    * A renderer process have moved its input focus to a password input
    * when there is an ongoing composition, e.g. a user has clicked a
    * mouse button and selected a password input while composing a text.
-   * For this case, we have to complete the ongoing composition and
+   * For this case, we have to cancel the ongoing composition and
    * clean up the resources attached to this object BEFORE DISABLING THE IME.
    */
   if (!is_enable) {
     return;
   }
   is_enable = false;
-  CleanupComposition(window_handle);
+  if (is_composing_) {
+    HIMC imm_context = ::ImmGetContext(window_handle);
+    if (imm_context) {
+      /* Cancel composition  */
+      ::ImmNotifyIME(imm_context, NI_COMPOSITIONSTR, CPS_CANCEL, 0);
+      ::ImmNotifyIME(imm_context, NI_CLOSECANDIDATE, 0, 0);
+      ::ImmReleaseContext(window_handle, imm_context);
+    }
+    ResetComposition(window_handle);
+  }
   ::ImmAssociateContextEx(window_handle, nullptr, 0);
   eventImeData.composite.clear();
 }
