@@ -43,6 +43,7 @@ class VIEW3D_AST_pose_library(bpy.types.AssetShelf):
     bl_space_type = "VIEW_3D"
     bl_activate_operator = "POSELIB_OT_apply_pose_asset"
     bl_drag_operator = "POSELIB_OT_blend_pose_asset"
+    bl_default_preview_size = 64
 
     @classmethod
     def poll(cls, context: Context) -> bool:

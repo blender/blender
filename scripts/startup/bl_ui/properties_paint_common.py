@@ -21,7 +21,6 @@ class BrushAssetShelf:
         'ACTIVATE_FOR_CONTEXT_MENU',
     }
     bl_activate_operator = "BRUSH_OT_asset_activate"
-    bl_default_preview_size = 48
     brush_type_prop = None
     mode_prop = None
 
