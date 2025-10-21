@@ -1493,6 +1493,13 @@ class VIEW3D_MT_view(Menu):
             text="Render Playblast",
             icon='RENDER_ANIMATION',
         ).animation = True
+        props = layout.operator(
+            "render.opengl",
+            text="Render Playblast on Keyframes",
+            icon='RENDER_ANIMATION',
+        )
+        props.animation = True
+        props.render_keyed_only = True
 
         layout.separator()
 
