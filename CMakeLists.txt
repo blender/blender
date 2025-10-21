@@ -110,7 +110,7 @@ include(build_files/cmake/macros.cmake)
 
 blender_project_hack_pre()
 
-project(Blender)
+project(仿真建模)
 
 blender_project_hack_post()
 

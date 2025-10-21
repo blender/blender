@@ -556,7 +556,7 @@ void WM_window_title(wmWindowManager *wm, wmWindow *win, const char *title)
     bScreen *screen = WM_window_get_active_screen(win);
     const bool is_single = screen && BLI_listbase_is_single(&screen->areabase);
     ScrArea *area = (screen) ? static_cast<ScrArea *>(screen->areabase.first) : nullptr;
-    const char *name = "Blender";
+    const char *name = "仿真建模";
     if (is_single && area && area->spacetype != SPACE_EMPTY) {
       name = IFACE_(ED_area_name(area).c_str());
     }
@@ -641,7 +641,7 @@ void WM_window_title(wmWindowManager *wm, wmWindow *win, const char *title)
     }
   }
 
-  win_title.append(fmt::format(" - Blender {}", BKE_blender_version_string()));
+  win_title.append(fmt::format(" - 仿真建模 {}", BKE_blender_version_string()));
 
   GHOST_SetTitle(handle, win_title.c_str());
 
