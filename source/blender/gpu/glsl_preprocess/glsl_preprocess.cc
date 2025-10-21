@@ -107,14 +107,8 @@ int main(int argc, char **argv)
   }
 
   blender::gpu::shader::metadata::Source metadata;
-  if (is_info) {
-    /* Until they are parsed properly. Nullify them. */
-    output_file << "";
-  }
-  else {
-    output_file << processor.process(
-        language, buffer.str(), input_file_name, is_library, is_shared, report_error, metadata);
-  }
+  output_file << processor.process(
+      language, buffer.str(), input_file_name, is_library, is_shared, report_error, metadata);
 
   /* TODO(fclem): Don't use regex for that. */
   std::string metadata_function_name = "metadata_" +
@@ -124,10 +118,7 @@ int main(int argc, char **argv)
 
   metadata_file << metadata.serialize(metadata_function_name);
   if (is_info) {
-    /* Simple copy for now. But we need to rename all includes. */
-    std::string str = std::regex_replace(
-        buffer.str(), std::regex(R"(_infos.hh")"), "_infos.hh.info\"");
-    infos_file << str;
+    infos_file << metadata.serialize_infos();
   }
 
   input_file.close();

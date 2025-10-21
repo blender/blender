@@ -53,7 +53,9 @@ ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(overlay_volume_velocity)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_SELECT_VARIATION(overlay_volume_velocity_streamline)
+CREATE_INFO_VARIANT(overlay_volume_velocity_streamline_selectable,
+                    overlay_volume_velocity_streamline,
+                    overlay_select)
 
 GPU_SHADER_CREATE_INFO(overlay_volume_velocity_mac)
 DO_STATIC_COMPILATION()
@@ -66,7 +68,9 @@ ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(overlay_volume_velocity)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_SELECT_VARIATION(overlay_volume_velocity_mac)
+CREATE_INFO_VARIANT(overlay_volume_velocity_mac_selectable,
+                    overlay_volume_velocity_mac,
+                    overlay_select)
 
 GPU_SHADER_CREATE_INFO(overlay_volume_velocity_needle)
 DO_STATIC_COMPILATION()
@@ -76,7 +80,9 @@ ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(overlay_volume_velocity)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_SELECT_VARIATION(overlay_volume_velocity_needle)
+CREATE_INFO_VARIANT(overlay_volume_velocity_needle_selectable,
+                    overlay_volume_velocity_needle,
+                    overlay_select)
 
 /** \} */
 
@@ -113,7 +119,9 @@ ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(overlay_volume_gridlines)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_SELECT_VARIATION(overlay_volume_gridlines_flat)
+CREATE_INFO_VARIANT(overlay_volume_gridlines_flat_selectable,
+                    overlay_volume_gridlines_flat,
+                    overlay_select)
 
 GPU_SHADER_CREATE_INFO(overlay_volume_gridlines_flags)
 DO_STATIC_COMPILATION()
@@ -124,7 +132,9 @@ ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(overlay_volume_gridlines)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_SELECT_VARIATION(overlay_volume_gridlines_flags)
+CREATE_INFO_VARIANT(overlay_volume_gridlines_flags_selectable,
+                    overlay_volume_gridlines_flags,
+                    overlay_select)
 
 GPU_SHADER_CREATE_INFO(overlay_volume_gridlines_range)
 DO_STATIC_COMPILATION()
@@ -140,6 +150,8 @@ ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(overlay_volume_gridlines)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_SELECT_VARIATION(overlay_volume_gridlines_range)
+CREATE_INFO_VARIANT(overlay_volume_gridlines_range_selectable,
+                    overlay_volume_gridlines_range,
+                    overlay_select)
 
 /** \} */

@@ -42,7 +42,9 @@ ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_viewer_attribute_mesh)
+CREATE_INFO_VARIANT(overlay_viewer_attribute_mesh_clipped,
+                    overlay_viewer_attribute_mesh,
+                    drw_clipped)
 
 GPU_SHADER_CREATE_INFO(overlay_viewer_attribute_pointcloud)
 DO_STATIC_COMPILATION()
@@ -59,7 +61,9 @@ ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_modelmat)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_viewer_attribute_pointcloud)
+CREATE_INFO_VARIANT(overlay_viewer_attribute_pointcloud_clipped,
+                    overlay_viewer_attribute_pointcloud,
+                    drw_clipped)
 
 GPU_SHADER_CREATE_INFO(overlay_viewer_attribute_curve)
 DO_STATIC_COMPILATION()
@@ -76,7 +80,9 @@ ADDITIONAL_INFO(draw_globals)
 ADDITIONAL_INFO(draw_modelmat)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_viewer_attribute_curve)
+CREATE_INFO_VARIANT(overlay_viewer_attribute_curve_clipped,
+                    overlay_viewer_attribute_curve,
+                    drw_clipped)
 
 GPU_SHADER_CREATE_INFO(overlay_viewer_attribute_curves)
 DO_STATIC_COMPILATION()
@@ -95,4 +101,6 @@ ADDITIONAL_INFO(draw_globals)
 ADDITIONAL_INFO(draw_modelmat)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_viewer_attribute_curves)
+CREATE_INFO_VARIANT(overlay_viewer_attribute_curves_clipped,
+                    overlay_viewer_attribute_curves,
+                    drw_clipped)

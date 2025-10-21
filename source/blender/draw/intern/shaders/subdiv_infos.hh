@@ -4,6 +4,8 @@
 
 #ifdef GPU_SHADER
 #  pragma once
+#  include "BLI_utildefines_variadic.h"
+
 #  include "gpu_shader_compat.hh"
 
 #  include "draw_subdiv_shader_shared.hh"
@@ -29,72 +31,62 @@ GPU_SHADER_CREATE_END()
 /** \name Patch evaluation
  * \{ */
 
+GPU_SHADER_CREATE_INFO(subdiv_patch_evaluation_basis)
 #ifdef __APPLE__
 /* Match definition from OPenSubdiv which defines OSD_PATCH_BASIS_METAL as 1. Matching it here
  * avoids possible re-definition warning at runtime. */
-#  define SUBDIV_PATCH_EVALUATION_BASIS_DEFINES() DEFINE_VALUE("OSD_PATCH_BASIS_METAL", "1")
+DEFINE_VALUE("OSD_PATCH_BASIS_METAL", "1")
 #else
-#  define SUBDIV_PATCH_EVALUATION_BASIS_DEFINES() DEFINE("OSD_PATCH_BASIS_GLSL")
+DEFINE("OSD_PATCH_BASIS_GLSL")
 #endif
-
-#define SUBDIV_PATCH_EVALUATION_BASIS() \
-  SUBDIV_PATCH_EVALUATION_BASIS_DEFINES() \
-  DEFINE("OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES") \
-  TYPEDEF_SOURCE("osd_patch_basis.glsl") \
-  COMPUTE_SOURCE("subdiv_patch_evaluation_comp.glsl") \
-  STORAGE_BUF(PATCH_EVALUATION_SOURCE_VERTEX_BUFFER_BUF_SLOT, read, float, srcVertexBuffer[]) \
-  STORAGE_BUF( \
-      PATCH_EVALUATION_INPUT_PATCH_HANDLES_BUF_SLOT, read, PatchHandle, input_patch_handles[]) \
-  STORAGE_BUF(PATCH_EVALUATION_QUAD_NODES_BUF_SLOT, read, QuadNode, quad_nodes[]) \
-  STORAGE_BUF(PATCH_EVALUATION_PATCH_COORDS_BUF_SLOT, read, BlenderPatchCoord, patch_coords[]) \
-  STORAGE_BUF( \
-      PATCH_EVALUATION_PATCH_ARRAY_BUFFER_BUF_SLOT, read, OsdPatchArray, patchArrayBuffer[]) \
-  STORAGE_BUF(PATCH_EVALUATION_PATCH_INDEX_BUFFER_BUF_SLOT, read, int, patchIndexBuffer[]) \
-  STORAGE_BUF( \
-      PATCH_EVALUATION_PATCH_PARAM_BUFFER_BUF_SLOT, read, OsdPatchParam, patchParamBuffer[]) \
-  ADDITIONAL_INFO(subdiv_base)
-
-#define SUBDIV_PATCH_EVALUATION_FDOTS() \
-  SUBDIV_PATCH_EVALUATION_BASIS() \
-  DEFINE("FDOTS_EVALUATION") \
-  STORAGE_BUF( \
-      PATCH_EVALUATION_OUTPUT_FDOTS_VERTEX_BUFFER_BUF_SLOT, write, FDotVert, output_verts[]) \
-  STORAGE_BUF(PATCH_EVALUATION_OUTPUT_INDICES_BUF_SLOT, write, uint, output_indices[]) \
-  STORAGE_BUF( \
-      PATCH_EVALUATION_EXTRA_COARSE_FACE_DATA_BUF_SLOT, read, uint, extra_coarse_face_data[])
-
-#define SUBDIV_PATCH_EVALUATION_VERTS() \
-  SUBDIV_PATCH_EVALUATION_BASIS() \
-  DEFINE("VERTS_EVALUATION") \
-  STORAGE_BUF(PATCH_EVALUATION_OUTPUT_POS_BUF_SLOT, write, Position, positions[])
-
-GPU_SHADER_CREATE_INFO(subdiv_patch_evaluation_fvar)
-DO_STATIC_COMPILATION()
-SUBDIV_PATCH_EVALUATION_BASIS()
-DEFINE("FVAR_EVALUATION")
-STORAGE_BUF(PATCH_EVALUATION_OUTPUT_FVAR_BUF_SLOT, write, packed_float2, output_fvar[])
+DEFINE("OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES")
+TYPEDEF_SOURCE("osd_patch_basis.glsl")
+COMPUTE_SOURCE("subdiv_patch_evaluation_comp.glsl")
+STORAGE_BUF(PATCH_EVALUATION_SOURCE_VERTEX_BUFFER_BUF_SLOT, read, float, srcVertexBuffer[])
+STORAGE_BUF(PATCH_EVALUATION_INPUT_PATCH_HANDLES_BUF_SLOT,
+            read,
+            PatchHandle,
+            input_patch_handles[])
+STORAGE_BUF(PATCH_EVALUATION_QUAD_NODES_BUF_SLOT, read, QuadNode, quad_nodes[])
+STORAGE_BUF(PATCH_EVALUATION_PATCH_COORDS_BUF_SLOT, read, BlenderPatchCoord, patch_coords[])
+STORAGE_BUF(PATCH_EVALUATION_PATCH_ARRAY_BUFFER_BUF_SLOT, read, OsdPatchArray, patchArrayBuffer[])
+STORAGE_BUF(PATCH_EVALUATION_PATCH_INDEX_BUFFER_BUF_SLOT, read, int, patchIndexBuffer[])
+STORAGE_BUF(PATCH_EVALUATION_PATCH_PARAM_BUFFER_BUF_SLOT, read, OsdPatchParam, patchParamBuffer[])
+ADDITIONAL_INFO(subdiv_base)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(subdiv_patch_evaluation_fdots)
-DO_STATIC_COMPILATION()
-SUBDIV_PATCH_EVALUATION_FDOTS()
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(subdiv_patch_evaluation_fdots_normals)
-DO_STATIC_COMPILATION()
-SUBDIV_PATCH_EVALUATION_FDOTS()
-DEFINE("FDOTS_NORMALS")
-STORAGE_BUF(PATCH_EVALUATION_OUTPUT_NORMALS_BUF_SLOT, write, FDotNor, output_nors[])
+DEFINE("FDOTS_EVALUATION")
+STORAGE_BUF(PATCH_EVALUATION_OUTPUT_FDOTS_VERTEX_BUFFER_BUF_SLOT, write, FDotVert, output_verts[])
+STORAGE_BUF(PATCH_EVALUATION_OUTPUT_INDICES_BUF_SLOT, write, uint, output_indices[])
+STORAGE_BUF(PATCH_EVALUATION_EXTRA_COARSE_FACE_DATA_BUF_SLOT, read, uint, extra_coarse_face_data[])
+ADDITIONAL_INFO(subdiv_patch_evaluation_basis)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(subdiv_patch_evaluation_verts)
 DO_STATIC_COMPILATION()
-SUBDIV_PATCH_EVALUATION_VERTS()
+DEFINE("VERTS_EVALUATION")
+STORAGE_BUF(PATCH_EVALUATION_OUTPUT_POS_BUF_SLOT, write, Position, positions[])
+ADDITIONAL_INFO(subdiv_patch_evaluation_basis)
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(subdiv_patch_evaluation_fvar)
+DO_STATIC_COMPILATION()
+ADDITIONAL_INFO(subdiv_patch_evaluation_basis)
+DEFINE("FVAR_EVALUATION")
+STORAGE_BUF(PATCH_EVALUATION_OUTPUT_FVAR_BUF_SLOT, write, packed_float2, output_fvar[])
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(subdiv_patch_evaluation_fdots_normals)
+DO_STATIC_COMPILATION()
+DEFINE("FDOTS_NORMALS")
+STORAGE_BUF(PATCH_EVALUATION_OUTPUT_NORMALS_BUF_SLOT, write, FDotNor, output_nors[])
+ADDITIONAL_INFO(subdiv_patch_evaluation_fdots)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(subdiv_patch_evaluation_verts_orcos)
 DO_STATIC_COMPILATION()
-SUBDIV_PATCH_EVALUATION_VERTS()
+ADDITIONAL_INFO(subdiv_patch_evaluation_verts)
 DEFINE("ORCO_EVALUATION")
 STORAGE_BUF(PATCH_EVALUATION_SOURCE_EXTRA_VERTEX_BUFFER_BUF_SLOT,
             read,
@@ -190,43 +182,69 @@ GPU_SHADER_CREATE_END()
 /** \name Custom data
  * \{ */
 
-#define SUBDIV_CUSTOM_DATA_VARIANT(suffix, gpu_comp_type, data_type, dimension) \
-  GPU_SHADER_CREATE_INFO(subdiv_custom_data_interp_##suffix) \
-  DO_STATIC_COMPILATION() \
-  DEFINE(gpu_comp_type) \
-  DEFINE(dimension) \
-  COMPUTE_SOURCE("subdiv_custom_data_interp_comp.glsl") \
-  STORAGE_BUF(CUSTOM_DATA_FACE_PTEX_OFFSET_BUF_SLOT, read, uint, face_ptex_offset[]) \
-  STORAGE_BUF(CUSTOM_DATA_PATCH_COORDS_BUF_SLOT, read, BlenderPatchCoord, patch_coords[]) \
-  STORAGE_BUF(CUSTOM_DATA_EXTRA_COARSE_FACE_DATA_BUF_SLOT, read, uint, extra_coarse_face_data[]) \
-  STORAGE_BUF(CUSTOM_DATA_SOURCE_DATA_BUF_SLOT, read, data_type, src_data[]) \
-  STORAGE_BUF(CUSTOM_DATA_DESTINATION_DATA_BUF_SLOT, write, data_type, dst_data[]) \
-  ADDITIONAL_INFO(subdiv_polygon_offset_base)
-
-SUBDIV_CUSTOM_DATA_VARIANT(4d_u16, "GPU_COMP_U16", uint, "DIMENSIONS_4")
-GPU_SHADER_CREATE_END()
-SUBDIV_CUSTOM_DATA_VARIANT(1d_i32, "GPU_COMP_I32", int, "DIMENSIONS_1")
-GPU_SHADER_CREATE_END()
-SUBDIV_CUSTOM_DATA_VARIANT(2d_i32, "GPU_COMP_I32", int, "DIMENSIONS_2")
-GPU_SHADER_CREATE_END()
-SUBDIV_CUSTOM_DATA_VARIANT(3d_i32, "GPU_COMP_I32", int, "DIMENSIONS_3")
-GPU_SHADER_CREATE_END()
-SUBDIV_CUSTOM_DATA_VARIANT(4d_i32, "GPU_COMP_I32", int, "DIMENSIONS_4")
-GPU_SHADER_CREATE_END()
-SUBDIV_CUSTOM_DATA_VARIANT(1d_f32, "GPU_COMP_F32", float, "DIMENSIONS_1")
-GPU_SHADER_CREATE_END()
-SUBDIV_CUSTOM_DATA_VARIANT(2d_f32, "GPU_COMP_F32", float, "DIMENSIONS_2")
-GPU_SHADER_CREATE_END()
-SUBDIV_CUSTOM_DATA_VARIANT(3d_f32, "GPU_COMP_F32", float, "DIMENSIONS_3")
-GPU_SHADER_CREATE_END()
-SUBDIV_CUSTOM_DATA_VARIANT(4d_f32, "GPU_COMP_F32", float, "DIMENSIONS_4")
+GPU_SHADER_CREATE_INFO(subdiv_custom_data_interp_base)
+COMPUTE_SOURCE("subdiv_custom_data_interp_comp.glsl")
+STORAGE_BUF(CUSTOM_DATA_FACE_PTEX_OFFSET_BUF_SLOT, read, uint, face_ptex_offset[])
+STORAGE_BUF(CUSTOM_DATA_PATCH_COORDS_BUF_SLOT, read, BlenderPatchCoord, patch_coords[])
+STORAGE_BUF(CUSTOM_DATA_EXTRA_COARSE_FACE_DATA_BUF_SLOT, read, uint, extra_coarse_face_data[])
+ADDITIONAL_INFO(subdiv_polygon_offset_base)
 GPU_SHADER_CREATE_END()
 
-SUBDIV_CUSTOM_DATA_VARIANT(3d_f32_normalize, "GPU_COMP_F32", float, "DIMENSIONS_3")
+GPU_SHADER_CREATE_INFO(subdiv_data_uint)
+DEFINE("GPU_COMP_U16")
+STORAGE_BUF(CUSTOM_DATA_SOURCE_DATA_BUF_SLOT, read, uint, src_data[])
+STORAGE_BUF(CUSTOM_DATA_DESTINATION_DATA_BUF_SLOT, write, uint, dst_data[])
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(subdiv_data_int)
+DEFINE("GPU_COMP_I32")
+STORAGE_BUF(CUSTOM_DATA_SOURCE_DATA_BUF_SLOT, read, int, src_data[])
+STORAGE_BUF(CUSTOM_DATA_DESTINATION_DATA_BUF_SLOT, write, int, dst_data[])
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(subdiv_data_float)
+DEFINE("GPU_COMP_F32")
+STORAGE_BUF(CUSTOM_DATA_SOURCE_DATA_BUF_SLOT, read, float, src_data[])
+STORAGE_BUF(CUSTOM_DATA_DESTINATION_DATA_BUF_SLOT, write, float, dst_data[])
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(subdiv_dimension_1)
+DEFINE("DIMENSIONS_1")
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(subdiv_dimension_2)
+DEFINE("DIMENSIONS_2")
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(subdiv_dimension_3)
+DEFINE("DIMENSIONS_3")
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(subdiv_dimension_4)
+DEFINE("DIMENSIONS_4")
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(subdiv_normalize)
 DEFINE("NORMALIZE")
 GPU_SHADER_CREATE_END()
 
-#undef SUBDIV_CUSTOM_DATA_VARIANT
+/* clang-format off */
+CREATE_INFO_VARIANT(subdiv_custom_data_interp_4d_u16, subdiv_custom_data_interp_base, subdiv_data_uint, subdiv_dimension_4)
+CREATE_INFO_VARIANT(subdiv_custom_data_interp_1d_i32, subdiv_custom_data_interp_base, subdiv_data_int, subdiv_dimension_1)
+CREATE_INFO_VARIANT(subdiv_custom_data_interp_2d_i32, subdiv_custom_data_interp_base, subdiv_data_int, subdiv_dimension_2)
+CREATE_INFO_VARIANT(subdiv_custom_data_interp_3d_i32, subdiv_custom_data_interp_base, subdiv_data_int, subdiv_dimension_3)
+CREATE_INFO_VARIANT(subdiv_custom_data_interp_4d_i32, subdiv_custom_data_interp_base, subdiv_data_int, subdiv_dimension_4)
+CREATE_INFO_VARIANT(subdiv_custom_data_interp_1d_f32, subdiv_custom_data_interp_base, subdiv_data_float, subdiv_dimension_1)
+CREATE_INFO_VARIANT(subdiv_custom_data_interp_2d_f32, subdiv_custom_data_interp_base, subdiv_data_float, subdiv_dimension_2)
+CREATE_INFO_VARIANT(subdiv_custom_data_interp_3d_f32, subdiv_custom_data_interp_base, subdiv_data_float, subdiv_dimension_3)
+CREATE_INFO_VARIANT(subdiv_custom_data_interp_4d_f32, subdiv_custom_data_interp_base, subdiv_data_float, subdiv_dimension_4)
+/* clang-format on */
+
+CREATE_INFO_VARIANT(subdiv_custom_data_interp_3d_f32_normalize,
+                    subdiv_custom_data_interp_base,
+                    subdiv_data_float,
+                    subdiv_dimension_3,
+                    subdiv_normalize)
 
 /** \} */
 

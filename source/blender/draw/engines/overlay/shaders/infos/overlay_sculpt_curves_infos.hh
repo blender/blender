@@ -35,7 +35,9 @@ ADDITIONAL_INFO(draw_curves)
 ADDITIONAL_INFO(draw_curves_infos)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_sculpt_curves_selection)
+CREATE_INFO_VARIANT(overlay_sculpt_curves_selection_clipped,
+                    overlay_sculpt_curves_selection,
+                    drw_clipped)
 
 GPU_SHADER_INTERFACE_INFO(overlay_sculpt_curves_cage_iface)
 NO_PERSPECTIVE(float2, edge_pos)
@@ -58,4 +60,4 @@ ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_sculpt_curves_cage)
+CREATE_INFO_VARIANT(overlay_sculpt_curves_cage_clipped, overlay_sculpt_curves_cage, drw_clipped)
