@@ -651,7 +651,7 @@ enum AssetShelfTypeFlag {
 };
 ENUM_OPERATORS(AssetShelfTypeFlag);
 
-#define ASSET_SHELF_PREVIEW_SIZE_DEFAULT 64
+#define ASSET_SHELF_PREVIEW_SIZE_DEFAULT 48
 
 struct AssetShelfType {
   /** Unique name. */
