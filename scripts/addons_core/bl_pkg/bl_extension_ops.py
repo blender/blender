@@ -3215,12 +3215,18 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
 
         _repo_index, repo_name, _pkg_id, item_remote = self._drop_variables
 
-        layout.label(text=iface_("Do you want to install the following {:s}?").format(item_remote.type), translate=False)
+        layout.label(
+            text=iface_("Do you want to install the following {:s}?").format(item_remote.type),
+            translate=False,
+        )
 
         col = layout.column(align=True)
         col.label(text=iface_("Name: {:s}").format(item_remote.name), translate=False)
         col.label(text=iface_("Repository: {:s}").format(repo_name), translate=False)
-        col.label(text=iface_("Size: {:s}").format(size_as_fmt_string(item_remote.archive_size, precision=0)), translate=False)
+        col.label(
+            text=iface_("Size: {:s}").format(size_as_fmt_string(item_remote.archive_size, precision=0)),
+            translate=False,
+        )
         del col
 
         layout.separator()
