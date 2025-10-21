@@ -115,24 +115,7 @@ static void modify_curves(ModifierData &md,
                           Drawing &drawing,
                           bke::GreasePencilDrawingEditHints *edit_hints)
 {
-  auto &amd = reinterpret_cast<GreasePencilArmatureModifierData &>(md);
-
-  const bool has_bezier_curves = drawing.strokes().has_curve_with_type(
-      CurveType::CURVE_TYPE_BEZIER);
-
-  Array<int> orig_offsets;
-  Array<MDeformVert> orig_dverts;
-  OffsetIndices<int> orig_points_by_curve;
-  if (has_bezier_curves) {
-    if (edit_hints) {
-      orig_dverts = drawing.strokes().deform_verts();
-      orig_offsets = drawing.strokes().offsets();
-      orig_points_by_curve = OffsetIndices<int>(orig_offsets.as_span());
-    }
-    modifier::greasepencil::ensure_no_bezier_curves(drawing);
-  }
-  bke::CurvesGeometry &curves = drawing.strokes_for_write();
-
+  const auto &amd = reinterpret_cast<GreasePencilArmatureModifierData &>(md);
   /* The influence flag is where the "invert" flag is stored,
    * but armature functions expect `deformflag` to have the flag set as well.
    * Copy to `deformflag` here to keep old functions happy. */
@@ -141,82 +124,101 @@ static void modify_curves(ModifierData &md,
                               ARM_DEF_INVERT_VGROUP :
                               0);
 
-  IndexMaskMemory mask_memory;
-  const IndexMask curves_mask = modifier::greasepencil::get_filtered_stroke_mask(
-      ctx.object, curves, amd.influence, mask_memory);
-
-  const OffsetIndices<int> points_by_curve = curves.points_by_curve();
-  const MutableSpan<float3> positions = curves.positions_for_write();
-  const Span<MDeformVert> dverts = curves.deform_verts();
-
-  if (dverts.is_empty()) {
+  if (drawing.strokes().deform_verts().is_empty()) {
     return;
   }
 
-  ImplicitSharingPtrAndData old_positions_data = save_shared_attribute(
-      curves.attributes().lookup("position", bke::AttrType::Float3));
-  Span<float3> old_positions = {static_cast<const float3 *>(old_positions_data.data),
-                                curves.points_num()};
+  IndexMaskMemory mask_memory;
+  const IndexMask curves_mask = modifier::greasepencil::get_filtered_stroke_mask(
+      ctx.object, drawing.strokes(), amd.influence, mask_memory);
 
-  std::optional<MutableSpan<float3>> deform_positions;
-  std::optional<MutableSpan<float3x3>> deform_mats;
-  if (edit_hints) {
-    if (!edit_hints->deform_mats.has_value()) {
-      edit_hints->deform_mats.emplace(drawing.strokes().points_num(), float3x3::identity());
-    }
-    deform_mats = edit_hints->deform_mats->as_mutable_span();
-    if (edit_hints->positions()) {
-      deform_positions = edit_hints->positions_for_write();
-    }
-  }
-
-  curves_mask.foreach_index(blender::GrainSize(128), [&](const int curve_i) {
-    const IndexRange points = points_by_curve[curve_i];
-
-    std::optional<Span<float3>> old_positions_for_curve;
-    std::optional<MutableSpan<float3x3>> deform_mats_for_curve;
-    if (deform_mats) {
-      old_positions_for_curve = old_positions.slice(points);
-      deform_mats_for_curve = deform_mats->slice(points);
-    }
-
-    if (deform_positions) {
-      if (has_bezier_curves) {
-        const IndexRange orig_points = orig_points_by_curve[curve_i];
-        BKE_armature_deform_coords_with_curves(*amd.object,
-                                               *ctx.object,
-                                               &curves.vertex_group_names,
-                                               deform_positions->slice(orig_points),
-                                               {},
-                                               {},
-                                               orig_dverts.as_span().slice(orig_points),
-                                               deformflag,
-                                               amd.influence.vertex_group_name);
+  auto deform_curves = [&](MutableSpan<float3> positions,
+                           std::optional<Span<float3>> old_positions,
+                           std::optional<MutableSpan<float3x3>> deform_mats,
+                           Span<MDeformVert> dverts,
+                           const OffsetIndices<int> points_by_curve) {
+    curves_mask.foreach_index(blender::GrainSize(128), [&](const int curve_i) {
+      const IndexRange points = points_by_curve[curve_i];
+      std::optional<Span<float3>> old_positions_for_curve;
+      if (old_positions) {
+        old_positions_for_curve = old_positions->slice(points);
       }
-      else {
-        BKE_armature_deform_coords_with_curves(*amd.object,
-                                               *ctx.object,
-                                               &curves.vertex_group_names,
-                                               deform_positions->slice(points),
-                                               old_positions_for_curve,
-                                               deform_mats_for_curve,
-                                               dverts.slice(points),
-                                               deformflag,
-                                               amd.influence.vertex_group_name);
+      std::optional<MutableSpan<float3x3>> deform_mats_for_curve;
+      if (deform_mats) {
+        deform_mats_for_curve = deform_mats->slice(points);
       }
-    }
-    else {
       BKE_armature_deform_coords_with_curves(*amd.object,
                                              *ctx.object,
-                                             &curves.vertex_group_names,
+                                             &drawing.strokes().vertex_group_names,
                                              positions.slice(points),
                                              old_positions_for_curve,
                                              deform_mats_for_curve,
                                              dverts.slice(points),
                                              deformflag,
                                              amd.influence.vertex_group_name);
+    });
+  };
+
+  /* Cached position data for supporting the multi-modifier feature. This data is only valid as
+   * long as topology does not change, don't use this after converting Bezier curves! */
+  const ImplicitSharingPtrAndData old_positions_data = save_shared_attribute(
+      drawing.strokes().attributes().lookup("position", bke::AttrType::Float3));
+  const Span<blender::float3> old_positions = {
+      static_cast<const float3 *>(old_positions_data.data), drawing.strokes().points_num()};
+
+  const bool has_bezier_curves = drawing.strokes().has_curve_with_type(
+      CurveType::CURVE_TYPE_BEZIER);
+  if (has_bezier_curves) {
+    /* Update deformation data in edit hints related to original points.
+     * Do this before converting Bezier curves because that changes the topology.
+     * The multi-modifier feature is not supported in this case (no "old_positions" argument). */
+    if (edit_hints && edit_hints->positions()) {
+      const bke::CurvesGeometry &curves = drawing.strokes();
+      std::optional<MutableSpan<float3x3>> deform_mats =
+          edit_hints->deform_mats ?
+              edit_hints->deform_mats->as_mutable_span() :
+              edit_hints->deform_mats.emplace(curves.points_num(), float3x3::identity());
+      deform_curves(*edit_hints->positions_for_write(),
+                    std::nullopt,
+                    deform_mats,
+                    curves.deform_verts(),
+                    curves.points_by_curve());
     }
-  });
+
+    /* Convert Bezier curves since these are not supported in armature deformation. */
+    modifier::greasepencil::ensure_no_bezier_curves(drawing);
+
+    /* Deform curve data without changes to edit hints. */
+    {
+      bke::CurvesGeometry &curves = drawing.strokes_for_write();
+      deform_curves(curves.positions_for_write(),
+                    std::nullopt,
+                    std::nullopt,
+                    curves.deform_verts(),
+                    curves.points_by_curve());
+    }
+  }
+  else {
+    /* Deform curve data and edit hints at the same time. */
+    bke::CurvesGeometry &curves = drawing.strokes_for_write();
+    std::optional<MutableSpan<float3x3>> deform_mats;
+    if (edit_hints) {
+      deform_mats = edit_hints->deform_mats ?
+                        edit_hints->deform_mats->as_mutable_span() :
+                        edit_hints->deform_mats.emplace(curves.points_num(), float3x3::identity());
+    }
+    deform_curves(curves.positions_for_write(),
+                  old_positions,
+                  deform_mats,
+                  curves.deform_verts(),
+                  curves.points_by_curve());
+    /* Copy deformed positions to edit hints if necessary. */
+    if (edit_hints && edit_hints->positions() &&
+        edit_hints->positions()->data() != curves.positions().data())
+    {
+      edit_hints->positions_for_write()->copy_from(curves.positions());
+    }
+  }
 
   drawing.tag_positions_changed();
 }
