@@ -3421,7 +3421,8 @@ static Base **animdata_filter_ds_sorted_bases(bDopeSheet *ads,
 
   Base **sorted_bases = MEM_cnew_array<Base *>(tot_bases, "Dopesheet Usable Sorted Bases");
   LISTBASE_FOREACH (Base *, base, object_bases) {
-    if (animdata_filter_base_is_ok(ads, base, OB_MODE_OBJECT, filter_mode)) {
+    const eObjectMode object_mode = eObjectMode(base->object->mode);
+    if (animdata_filter_base_is_ok(ads, base, object_mode, filter_mode)) {
       sorted_bases[num_bases++] = base;
     }
   }
