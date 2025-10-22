@@ -7,6 +7,11 @@ import os
 import pickle
 import re
 
+try:
+    import enchant
+except ModuleNotFoundError:
+    print("WARNING: No `enchant` python module found, no spell check will happen.")
+
 
 class SpellChecker:
     """
@@ -915,7 +920,7 @@ class SpellChecker:
 
     def __init__(self, settings, lang="en_US"):
         self.settings = settings
-        self.dict_spelling = enchant.Dict(lang)
+        self.dict_spelling = enchant.Dict(lang) if enchant else None
         self.cache = set(self.uimsgs)
 
         cache = self.settings.SPELL_CACHE
@@ -939,7 +944,7 @@ class SpellChecker:
             w_lower = w.lower()
             if w_lower in self.cache:
                 continue
-            if not self.dict_spelling.check(w):
+            if self.dict_spelling and not self.dict_spelling.check(w):
                 ret.append((w, self.dict_spelling.suggest(w)))
             else:
                 self.cache.add(w_lower)
