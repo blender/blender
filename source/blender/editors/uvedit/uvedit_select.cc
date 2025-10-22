@@ -2516,7 +2516,7 @@ static void uv_select_linked_multi(const Scene *scene,
      *
      * Better solve this by having a delimit option for select-linked operator,
      * keeping island-select working as is. */
-    UvVertMap *vmap = BM_uv_vert_map_create(bm, !uv_select_sync);
+    UvVertMap *vmap = BM_uv_vert_map_create(bm, !uv_select_sync, true);
     if (vmap == nullptr) {
       continue;
     }
