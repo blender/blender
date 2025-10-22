@@ -1608,6 +1608,10 @@ void uvedit_select_prepare_custom_data(const Scene *scene, BMesh *bm)
   const char *active_uv_name = CustomData_get_active_layer_name(&bm->ldata, CD_PROP_FLOAT2);
   BLI_assert(active_uv_name);
   UNUSED_VARS_NDEBUG(active_uv_name);
+
+  /* Needed because this data must *not* be used for select-sync
+   * once this has been manipulated with select-sync disabled. */
+  BM_mesh_uvselect_clear(bm);
 }
 
 void uvedit_select_prepare_sync_select(const Scene *scene, BMesh *bm)
@@ -1775,6 +1779,7 @@ void uvedit_vert_select_set_no_sync(const ToolSettings *ts,
                                     bool select)
 {
   BLI_assert(bm && (ts->uv_flag & UV_FLAG_SELECT_SYNC) == 0);
+  BLI_assert(bm->uv_select_sync_valid == false); /* #uvedit_select_prepare_custom_data ensures. */
   BLI_assert(BM_elem_flag_test(l->f, BM_ELEM_HIDDEN) == 0);
   UNUSED_VARS_NDEBUG(ts, bm);
   BM_elem_flag_set(l, BM_ELEM_SELECT_UV, select);
@@ -1785,6 +1790,7 @@ void uvedit_edge_select_set_no_sync(const ToolSettings *ts,
                                     bool select)
 {
   BLI_assert(bm && (ts->uv_flag & UV_FLAG_SELECT_SYNC) == 0);
+  BLI_assert(bm->uv_select_sync_valid == false); /* #uvedit_select_prepare_custom_data ensures. */
   BLI_assert(BM_elem_flag_test(l->f, BM_ELEM_HIDDEN) == 0);
   UNUSED_VARS_NDEBUG(ts, bm);
   BM_elem_flag_set(l, BM_ELEM_SELECT_UV_EDGE, select);
@@ -1796,6 +1802,7 @@ void uvedit_face_select_set_no_sync(const ToolSettings *ts,
                                     bool select)
 {
   BLI_assert(bm && (ts->uv_flag & UV_FLAG_SELECT_SYNC) == 0);
+  BLI_assert(bm->uv_select_sync_valid == false); /* #uvedit_select_prepare_custom_data ensures. */
   BLI_assert(BM_elem_flag_test(f, BM_ELEM_HIDDEN) == 0);
   UNUSED_VARS_NDEBUG(ts, bm);
   BM_elem_flag_set(f, BM_ELEM_SELECT_UV, select);
@@ -4155,6 +4162,55 @@ void UV_OT_select_split(wmOperatorType *ot)
   ot->poll = ED_operator_uvedit; /* requires space image */
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select/Tag Flushing Utils
+ *
+ * Utility functions to flush the uv-selection from tags.
+ * \{ */
+
+/**
+ * Called when the user disables select sync.
+ *
+ * \note This isn't fool proof:
+ * it's always possible for an object to be linked in from another scene.
+ * Nevertheless, validate the selection in the current context as failing to do so
+ * allows edges to be selected in face-select mode or use stale UV selection data
+ * which hasn't been flushed between verts/edges/faces, see #148249.
+ */
+static void uv_select_sync_update(const Scene *scene, Object *obedit)
+{
+  const ToolSettings *ts = scene->toolsettings;
+  if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
+    return;
+  }
+
+  /* Sync selection has been disabled re-use or re-create the select-sync data. */
+  BMesh *bm = BKE_editmesh_from_object(obedit)->bm;
+  /* May be -1, this is accounted for. */
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_PROP_FLOAT2);
+  if (bm->selectmode == ts->uv_selectmode) {
+    if (bm->uv_select_sync_valid == false) {
+      uvedit_sync_uvselect_flush_from_v3d(ts, bm);
+      /* When the modes match, don't clear. */
+    }
+  }
+  else {
+    if (bm->uv_select_sync_valid) {
+      BM_mesh_uvselect_mode_flush_update(bm, bm->selectmode, ts->uv_selectmode, cd_loop_uv_offset);
+    }
+    else {
+      const short selectmode_orig = bm->selectmode;
+      bm->selectmode = ts->uv_selectmode;
+      uvedit_sync_uvselect_flush_from_v3d(ts, bm);
+      bm->selectmode = selectmode_orig;
+    }
+    /* Always false because the mode doesn't match. */
+    BM_mesh_uvselect_clear(bm);
+  }
+}
+
 static void uv_select_tag_update_for_object(Depsgraph *depsgraph,
                                             const ToolSettings *ts,
                                             Object *obedit)
@@ -4171,14 +4227,6 @@ static void uv_select_tag_update_for_object(Depsgraph *depsgraph,
     WM_main_add_notifier(NC_GEOM | ND_SELECT, obedit->data);
   }
 }
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Select/Tag Flushing Utils
- *
- * Utility functions to flush the uv-selection from tags.
- * \{ */
 
 /**
  * Helper function for #uv_select_flush_from_tag_loop and #uv_select_flush_from_tag_face.
@@ -6708,6 +6756,25 @@ void ED_uvedit_sticky_selectmode_update(bContext *C)
       scene, view_layer, nullptr);
   for (Object *obedit : objects) {
     uv_select_tag_update_for_object(depsgraph, ts, obedit);
+  }
+}
+
+/**
+ * Called when changing the UV select sync option.
+ */
+void ED_uvedit_select_sync_multi(bContext *C)
+{
+  const Scene *scene = CTX_data_scene(C);
+  const ToolSettings *ts = scene->toolsettings;
+  if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
+    return;
+  }
+
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      scene, view_layer, nullptr);
+  for (Object *obedit : objects) {
+    uv_select_sync_update(scene, obedit);
   }
 }
 
