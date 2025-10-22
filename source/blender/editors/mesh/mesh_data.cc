@@ -267,8 +267,8 @@ int ED_mesh_uv_add(
       is_init = true;
     }
     else {
-      CustomData_add_layer_named(
-          &mesh->corner_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->corners_num, unique_name);
+      attributes.add<float2>(
+          unique_name, bke::AttrDomain::Corner, bke::AttributeInitDefaultValue());
     }
 
     if (active_set || layernum_dst == 0) {
