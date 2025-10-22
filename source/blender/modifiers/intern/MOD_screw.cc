@@ -230,9 +230,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   uint *vert_loop_map = nullptr; /* orig vert to orig loop */
 
   /* UV Coords */
-  const uint uv_map_layers_tot = uint(
-      CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2));
-  blender::Array<blender::float2 *> uv_map_layers(uv_map_layers_tot);
+  const VectorSet<StringRefNull> uv_map_names = mesh->uv_map_names();
+  blender::Array<bke::SpanAttributeWriter<float2>> uv_map_layers(uv_map_names.size());
   float uv_u_scale;
   float uv_v_minmax[2] = {FLT_MAX, -FLT_MAX};
   float uv_v_range_inv;
@@ -423,16 +422,14 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, 0, int(totvert));
 
-  if (uv_map_layers_tot) {
+  if (!uv_map_names.is_empty()) {
     const float zero_co[3] = {0};
     plane_from_point_normal_v3(uv_axis_plane, zero_co, axis_vec);
   }
 
-  if (uv_map_layers_tot) {
-    uint uv_lay;
-    for (uv_lay = 0; uv_lay < uv_map_layers_tot; uv_lay++) {
-      uv_map_layers[uv_lay] = static_cast<blender::float2 *>(CustomData_get_layer_n_for_write(
-          &result->corner_data, CD_PROP_FLOAT2, int(uv_lay), result->corners_num));
+  if (!uv_map_names.is_empty()) {
+    for (const int64_t uv_lay : uv_map_names.index_range()) {
+      uv_map_layers[uv_lay] = attributes.lookup_for_write_span<float2>(uv_map_names[uv_lay]);
     }
 
     if (ltmd->flag & MOD_SCREW_UV_STRETCH_V) {
@@ -862,7 +859,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       mat_nr = 0;
     }
 
-    if (has_mloop_orig == false && uv_map_layers_tot) {
+    if (has_mloop_orig == false && !uv_map_names.is_empty()) {
       uv_v_offset_a = dist_signed_to_plane_v3(vert_positions_new[edges_new[i][0]], uv_axis_plane);
       uv_v_offset_b = dist_signed_to_plane_v3(vert_positions_new[edges_new[i][1]], uv_axis_plane);
 
@@ -911,12 +908,11 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
                              new_loop_index + 3,
                              1);
 
-        if (uv_map_layers_tot) {
-          uint uv_lay;
+        if (!uv_map_names.is_empty()) {
           const float uv_u_offset_a = float(step) * uv_u_scale;
           const float uv_u_offset_b = float(step + 1) * uv_u_scale;
-          for (uv_lay = 0; uv_lay < uv_map_layers_tot; uv_lay++) {
-            blender::float2 *mluv = &uv_map_layers[uv_lay][new_loop_index];
+          for (const int64_t uv_lay : uv_map_layers.index_range()) {
+            blender::float2 *mluv = &uv_map_layers[uv_lay].span[new_loop_index];
 
             mluv[quad_ord[0]][0] += uv_u_offset_a;
             mluv[quad_ord[1]][0] += uv_u_offset_a;
@@ -926,12 +922,11 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
         }
       }
       else {
-        if (uv_map_layers_tot) {
-          uint uv_lay;
+        if (!uv_map_names.is_empty()) {
           const float uv_u_offset_a = float(step) * uv_u_scale;
           const float uv_u_offset_b = float(step + 1) * uv_u_scale;
-          for (uv_lay = 0; uv_lay < uv_map_layers_tot; uv_lay++) {
-            blender::float2 *mluv = &uv_map_layers[uv_lay][new_loop_index];
+          for (const int64_t uv_lay : uv_map_layers.index_range()) {
+            blender::float2 *mluv = &uv_map_layers[uv_lay].span[new_loop_index];
 
             copy_v2_fl2(mluv[quad_ord[0]], uv_u_offset_a, uv_v_offset_a);
             copy_v2_fl2(mluv[quad_ord[1]], uv_u_offset_a, uv_v_offset_b);
@@ -1018,6 +1013,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   sharp_faces.finish();
   dst_material_index.finish();
+  for (bke::SpanAttributeWriter<float2> &uv_map : uv_map_layers) {
+    uv_map.finish();
+  }
 
   if (edge_face_map) {
     MEM_freeN(edge_face_map);
