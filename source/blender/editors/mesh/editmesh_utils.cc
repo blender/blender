@@ -468,7 +468,7 @@ bool EDBM_uvselect_clear(BMEditMesh *em)
 /** \name UV Vertex Map API
  * \{ */
 
-UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select)
+UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool respect_hide)
 {
   /* NOTE: delimiting on alternate face-winding was once supported and could be useful
    * in some cases. If this is need see: D17137 to restore support. */
@@ -486,9 +486,13 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select)
 
   /* generate UvMapVert array */
   BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-    if ((use_select == false) || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-      totuv += efa->len;
+    if (use_select && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+      continue;
     }
+    if (respect_hide && BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+      continue;
+    }
+    totuv += efa->len;
   }
 
   if (totuv == 0) {
@@ -508,17 +512,21 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select)
   }
 
   BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, a) {
-    if ((use_select == false) || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-      int i;
-      BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
-        buf->loop_of_face_index = i;
-        buf->face_index = a;
-        buf->separate = false;
+    if (use_select && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+      continue;
+    }
+    if (respect_hide && BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+      continue;
+    }
+    int i;
+    BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
+      buf->loop_of_face_index = i;
+      buf->face_index = a;
+      buf->separate = false;
 
-        buf->next = vmap->vert[BM_elem_index_get(l->v)];
-        vmap->vert[BM_elem_index_get(l->v)] = buf;
-        buf++;
-      }
+      buf->next = vmap->vert[BM_elem_index_get(l->v)];
+      vmap->vert[BM_elem_index_get(l->v)] = buf;
+      buf++;
     }
   }
 
