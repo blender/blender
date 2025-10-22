@@ -42,10 +42,12 @@
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_sys_types.h"
 
+#include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_attribute_legacy_convert.hh"
@@ -2608,6 +2610,46 @@ static void do_version_lift_gamma_gain_srgb_to_linear(bNodeTree &node_tree, bNod
   version_node_add_link(node_tree, node, *image_output, *gamma_node, *gamma_color_input);
 }
 
+static void version_bone_hide_property_driver(AnimData *arm_adt, blender::Vector<Object *> &users)
+{
+  using namespace blender::animrig;
+  constexpr char const *hide_prop_prefix = "bones[";
+  constexpr char const *hide_prop_suffix = "\"].hide";
+
+  blender::Vector<FCurve *> drivers_to_fix;
+  LISTBASE_FOREACH (FCurve *, fcurve, &arm_adt->drivers) {
+    const blender::StringRef rna_path(fcurve->rna_path);
+    int quoted_bone_name_start = 0;
+    int quoted_bone_name_end = 0;
+    const bool is_prefix_found = BLI_str_quoted_substr_range(
+        fcurve->rna_path, hide_prop_prefix, &quoted_bone_name_start, &quoted_bone_name_end);
+    if (is_prefix_found && STREQ(fcurve->rna_path + quoted_bone_name_end, hide_prop_suffix)) {
+      drivers_to_fix.append(fcurve);
+    }
+  }
+
+  if (drivers_to_fix.is_empty()) {
+    return;
+  }
+
+  for (Object *ob : users) {
+    AnimData *ob_adt = BKE_animdata_ensure_id(&ob->id);
+    for (FCurve *original : drivers_to_fix) {
+      /* Has to be a copy in case there is more than 1 object using the armature. */
+      FCurve *copy = BKE_fcurve_copy(original);
+      char *fixed_path = BLI_string_joinN("pose.", copy->rna_path);
+      MEM_SAFE_FREE(copy->rna_path);
+      copy->rna_path = fixed_path;
+      BLI_addtail(&ob_adt->drivers, copy);
+    }
+  }
+
+  for (FCurve *original : drivers_to_fix) {
+    BLI_remlink(&arm_adt->drivers, original);
+    BKE_fcurve_free(original);
+  }
+}
+
 void do_versions_after_linking_500(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 9)) {
@@ -2718,39 +2760,6 @@ void do_versions_after_linking_500(FileData *fd, Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 100)) {
-    /* Note: this HAS to happen in the 'after linking' stage, because
-     * #do_version_area_change_space_to_space_action() basically performs the opposite operation
-     * and is called from #do_versions_after_linking_280(). */
-    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          if (!ELEM(sl->spacetype, SPACE_ACTION)) {
-            continue;
-          }
-          SpaceAction *saction = reinterpret_cast<SpaceAction *>(sl);
-          const eAnimEdit_Context dopesheet_mode = eAnimEdit_Context(saction->mode);
-          if (dopesheet_mode != SACTCONT_TIMELINE) {
-            continue;
-          }
-          /* Switching to dopesheet since that is the closest to the timeline view. */
-          saction->mode = SACTCONT_DOPESHEET;
-          /* The multiplication by 2 assumes that the time control footer has the same size as the
-           * header. The header is only shown if there is enough space for both. */
-          const bool show_header = area->winy > (HEADERY * UI_SCALE_FAC) * 2;
-          LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-            if (!show_header && region->regiontype == RGN_TYPE_HEADER) {
-              region->flag |= RGN_FLAG_HIDDEN;
-            }
-            if (region->regiontype == RGN_TYPE_FOOTER) {
-              region->flag &= ~RGN_FLAG_HIDDEN;
-            }
-          }
-        }
-      }
-    }
-  }
-
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 101)) {
     const uint8_t default_flags = DNA_struct_default_get(ToolSettings)->fix_to_cam_flag;
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
@@ -2758,6 +2767,39 @@ void do_versions_after_linking_500(FileData *fd, Main *bmain)
         continue;
       }
       scene->toolsettings->fix_to_cam_flag = default_flags;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 110)) {
+    /* Build map of armature->object to quickly find out afterwards which armature is used by which
+     * objects. */
+    blender::Map<bArmature *, blender::Vector<Object *>> armature_usage_map;
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      if (ob->type != OB_ARMATURE || !ob->data) {
+        continue;
+      }
+      bArmature *arm = reinterpret_cast<bArmature *>(ob->data);
+      blender::Vector<Object *> &users = armature_usage_map.lookup_or_add_default(arm);
+      users.append(ob);
+    }
+
+    LISTBASE_FOREACH (bArmature *, armature, &bmain->armatures) {
+      AnimData *arm_adt = BKE_animdata_from_id(&armature->id);
+
+      if (!arm_adt || BLI_listbase_is_empty(&arm_adt->drivers)) {
+        continue;
+      }
+
+      blender::Vector<Object *> *users = armature_usage_map.lookup_ptr(armature);
+      if (!users) {
+        /* If `users` is a nullptr that means there is no user of that armature. That means the
+         * property won't be fixed for armatures that are not used by an object during versioning.
+         * However since the driver has to be moved to an object there is no way to fix it in this
+         * case. */
+        continue;
+      }
+
+      version_bone_hide_property_driver(arm_adt, *users);
     }
   }
 
@@ -3986,6 +4028,23 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 112)) {
+    /* The ownership of these pointers was moved to #CustomData in #customdata_version_242 and they
+     * became deprecated in 05952aa94d33ee when we started using implicit-sharing. However, they
+     * were never cleared and became dangling pointers. */
+    LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+      mesh->mpoly = nullptr;
+      mesh->mloop = nullptr;
+      mesh->mvert = nullptr;
+      mesh->medge = nullptr;
+      mesh->dvert = nullptr;
+      mesh->mtface = nullptr;
+      mesh->tface = nullptr;
+      mesh->mcol = nullptr;
+      mesh->mface = nullptr;
+    }
+  }
+
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 2)) {
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
@@ -4013,6 +4072,37 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
           {
             new_shelf_header->alignment = RGN_ALIGN_BOTTOM | RGN_ALIGN_HIDE_WITH_PREV;
           }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 4)) {
+    /* Clear mute flag on node types that set ntype->no_muting = true. */
+    static const Set<std::string> no_muting_nodes = {"CompositorNodeSplit",
+                                                     "CompositorNodeViewer",
+                                                     "NodeClosureInput",
+                                                     "NodeClosureOutput",
+                                                     "GeometryNodeForeachGeometryElementInput",
+                                                     "GeometryNodeForeachGeometryElementOutput",
+                                                     "GeometryNodeRepeatInput",
+                                                     "GeometryNodeRepeatOutput",
+                                                     "GeometryNodeSimulationInput",
+                                                     "GeometryNodeSimulationOutput",
+                                                     "GeometryNodeViewer",
+                                                     "NodeGroupInput",
+                                                     "NodeGroupOutput",
+                                                     "ShaderNodeOutputAOV",
+                                                     "ShaderNodeOutputLight",
+                                                     "ShaderNodeOutputLineStyle",
+                                                     "ShaderNodeOutputMaterial",
+                                                     "ShaderNodeOutputWorld",
+                                                     "TextureNodeOutput",
+                                                     "TextureNodeViewer"};
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (no_muting_nodes.contains(node->idname)) {
+          node->flag &= ~NODE_MUTED;
         }
       }
     }

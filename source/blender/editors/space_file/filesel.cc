@@ -1235,6 +1235,7 @@ int autocomplete_directory(bContext *C, char *str, void * /*arg_v*/)
 
     BLI_path_split_dir_part(str, dirname, sizeof(dirname));
 
+    BLI_assert(!BLI_path_is_rel(dirname));
     dir = opendir(dirname);
 
     if (dir) {

@@ -782,6 +782,7 @@
         wire_inner="#8d8d8d"
         wire_select="#ffffffb3"
         node_backdrop="#666666ff"
+        node_outline="#00000026"
         converter_node="#4482a3"
         color_node="#8e8e3f"
         group_node="#566643"

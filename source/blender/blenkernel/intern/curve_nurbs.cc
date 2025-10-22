@@ -13,12 +13,17 @@
 
 namespace blender::bke::curves::nurbs {
 
-bool check_valid_num_and_order(const int points_num,
-                               const int8_t order,
-                               const bool cyclic,
-                               const KnotsMode knots_mode)
+bool check_valid_eval_params(const int points_num,
+                             const int8_t order,
+                             const bool cyclic,
+                             const KnotsMode knots_mode,
+                             const int resolution)
 {
   if (points_num < order) {
+    return false;
+  }
+
+  if (resolution < 1) {
     return false;
   }
 
@@ -82,7 +87,7 @@ int calculate_evaluated_num(const int points_num,
                             const KnotsMode knots_mode,
                             const Span<float> knots)
 {
-  if (!check_valid_num_and_order(points_num, order, cyclic, knots_mode)) {
+  if (!check_valid_eval_params(points_num, order, cyclic, knots_mode, resolution)) {
     return points_num;
   }
   const int nonzero_span_num = knots_mode == KnotsMode::NURBS_KNOT_MODE_CUSTOM &&
@@ -229,6 +234,7 @@ void calculate_basis_cache(const int points_num,
                            const int8_t order,
                            const int resolution,
                            const bool cyclic,
+                           const KnotsMode knots_mode,
                            const Span<float> knots,
                            BasisCache &basis_cache)
 {
@@ -241,6 +247,10 @@ void calculate_basis_cache(const int points_num,
   basis_cache.start_indices.resize(evaluated_num);
 
   if (evaluated_num == 0) {
+    return;
+  }
+
+  if (!check_valid_eval_params(points_num, order, cyclic, knots_mode, resolution)) {
     return;
   }
 

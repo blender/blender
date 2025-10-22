@@ -125,6 +125,7 @@ void USDCameraWriter::do_write(HierarchyContext &context)
   }
 
   auto prim = usd_camera.GetPrim();
+  add_to_prim_map(prim.GetPath(), &camera->id);
   write_id_properties(prim, camera->id, time);
 }
 

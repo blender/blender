@@ -53,7 +53,9 @@ ADDITIONAL_INFO(draw_object_infos)
 ADDITIONAL_INFO(overlay_outline_prepass)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_outline_prepass_mesh)
+CREATE_INFO_VARIANT(overlay_outline_prepass_mesh_clipped,
+                    overlay_outline_prepass_mesh,
+                    drw_clipped)
 
 GPU_SHADER_NAMED_INTERFACE_INFO(overlay_outline_prepass_wire_iface, vert)
 FLAT(float3, pos)
@@ -71,7 +73,9 @@ ADDITIONAL_INFO(draw_object_infos)
 ADDITIONAL_INFO(overlay_outline_prepass)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_outline_prepass_curves)
+CREATE_INFO_VARIANT(overlay_outline_prepass_curves_clipped,
+                    overlay_outline_prepass_curves,
+                    drw_clipped)
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire)
 DO_STATIC_COMPILATION()
@@ -85,7 +89,9 @@ PUSH_CONSTANT(int2, gpu_attr_0)
 VERTEX_SOURCE("overlay_outline_prepass_wire_vert.glsl")
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_outline_prepass_wire)
+CREATE_INFO_VARIANT(overlay_outline_prepass_wire_clipped,
+                    overlay_outline_prepass_wire,
+                    drw_clipped)
 
 GPU_SHADER_NAMED_INTERFACE_INFO(overlay_outline_prepass_gpencil_flat_iface, gp_interp_flat)
 FLAT(float2, aspect)
@@ -119,7 +125,9 @@ ADDITIONAL_INFO(draw_gpencil)
 ADDITIONAL_INFO(draw_object_infos)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_outline_prepass_gpencil)
+CREATE_INFO_VARIANT(overlay_outline_prepass_gpencil_clipped,
+                    overlay_outline_prepass_gpencil,
+                    drw_clipped)
 
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_pointcloud)
 DO_STATIC_COMPILATION()
@@ -132,7 +140,9 @@ ADDITIONAL_INFO(draw_object_infos)
 ADDITIONAL_INFO(overlay_outline_prepass)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_outline_prepass_pointcloud)
+CREATE_INFO_VARIANT(overlay_outline_prepass_pointcloud_clipped,
+                    overlay_outline_prepass_pointcloud,
+                    drw_clipped)
 
 /** \} */
 

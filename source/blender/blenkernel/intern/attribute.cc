@@ -598,7 +598,7 @@ bool BKE_attribute_remove(AttributeOwner &owner, const StringRef name, ReportLis
           &mesh->id, color_name_from_index(owner, color_clamp_index(owner, default_color_index)));
     }
 
-    if (metadata->data_type == AttrType::Float2 && metadata->domain == AttrDomain::Corner) {
+    if (bke::mesh::is_uv_map(metadata)) {
       char buffer[MAX_CUSTOMDATA_LAYER_NAME];
       attributes->remove(BKE_uv_map_pin_name_get(name_copy, buffer));
     }
@@ -606,31 +606,6 @@ bool BKE_attribute_remove(AttributeOwner &owner, const StringRef name, ReportLis
   }
 
   return attributes->remove(name);
-}
-
-CustomDataLayer *BKE_attribute_find(const AttributeOwner &owner,
-                                    const StringRef name,
-                                    const eCustomDataType type,
-                                    const AttrDomain domain)
-{
-  if (name.is_empty()) {
-    return nullptr;
-  }
-  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(owner);
-
-  CustomData *customdata = info[int(domain)].customdata;
-  if (customdata == nullptr) {
-    return nullptr;
-  }
-
-  for (int i = 0; i < customdata->totlayer; i++) {
-    CustomDataLayer *layer = &customdata->layers[i];
-    if (layer->type == type && layer->name == name) {
-      return layer;
-    }
-  }
-
-  return nullptr;
 }
 
 const CustomDataLayer *BKE_attribute_search(const AttributeOwner &owner,
@@ -1028,18 +1003,7 @@ const CustomDataLayer *BKE_id_attributes_color_find(const ID *id, const StringRe
 
 bool BKE_color_attribute_supported(const Mesh &mesh, const StringRef name)
 {
-  std::optional<blender::bke::AttributeMetaData> meta_data = mesh.attributes().lookup_meta_data(
-      name);
-
-  if (!meta_data) {
-    return false;
-  }
-  if (!(ATTR_DOMAIN_AS_MASK(meta_data->domain) & ATTR_DOMAIN_MASK_COLOR) ||
-      !(CD_TYPE_AS_MASK(*attr_type_to_custom_data_type(meta_data->data_type)) & CD_MASK_COLOR_ALL))
-  {
-    return false;
-  }
-  return true;
+  return blender::bke::mesh::is_color_attribute(mesh.attributes().lookup_meta_data(name));
 }
 
 StringRef BKE_uv_map_pin_name_get(const StringRef uv_map_name, char *buffer)

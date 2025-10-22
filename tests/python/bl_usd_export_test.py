@@ -1251,6 +1251,78 @@ class USDExportTest(AbstractUSDTest):
         shader_id = shader.GetIdAttr().Get()
         self.assertEqual(shader_id, "ND_open_pbr_surface_surfaceshader", "Shader is not an OpenPBR Surface")
 
+    def test_get_prim_map_export_xfrom_not_merged_animated(self):
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_anim_test.blend"))
+        bpy.data.scenes["Scene"].frame_end = 2
+        bpy.utils.register_class(GetPrimMapUsdExportHook)
+        bpy.ops.wm.usd_export(
+            filepath=str(self.tempdir / "test_prim_map_export.usda"), merge_parent_xform=False, export_animation=True
+        )
+        prim_map = GetPrimMapUsdExportHook.prim_map
+        bpy.utils.unregister_class(GetPrimMapUsdExportHook)
+
+        expected_prim_map = {
+            Sdf.Path('/root/cube_anim_xform/cube_anim_child'): [bpy.data.objects['cube_anim_child']],
+            Sdf.Path('/root/Armature/column_anim_armature/column_anim_armature'): [bpy.data.meshes['column_anim_armature']],
+            Sdf.Path('/root/_materials/Material'): [bpy.data.materials['Material']],
+            Sdf.Path('/root/Armature2/side_b'): [bpy.data.objects['side_b']],
+            Sdf.Path('/root/Armature2/side_b/side_b'): [bpy.data.meshes['side_b']],
+            Sdf.Path('/root/cube_anim_keys'): [bpy.data.objects['cube_anim_keys']],
+            Sdf.Path('/root/Armature2/side_a'): [bpy.data.objects['side_a']],
+            Sdf.Path('/root/cube_anim_xform/cube_anim_child/cube_anim_child_mesh'): [bpy.data.meshes['cube_anim_child_mesh']],
+            Sdf.Path('/root/Armature'): [bpy.data.objects['Armature']],
+            Sdf.Path('/root/cube_anim_xform/cube_anim_xform_mesh'): [bpy.data.meshes['cube_anim_xform_mesh']],
+            Sdf.Path('/root/Armature2'): [bpy.data.objects['Armature2']],
+            Sdf.Path('/root/Armature/column_anim_armature'): [bpy.data.objects['column_anim_armature']],
+            Sdf.Path('/root/cube_anim_keys/cube_anim_keys'): [bpy.data.meshes['cube_anim_keys']],
+            Sdf.Path('/root/cube_anim_xform'): [bpy.data.objects['cube_anim_xform']],
+            Sdf.Path('/root/Armature2/side_a/side_a'): [bpy.data.meshes['side_a']],
+        }
+
+        self.assertDictEqual(prim_map, expected_prim_map)
+
+    def test_get_prim_map_export_xfrom_not_merged(self):
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_extent_test.blend"))
+        bpy.utils.register_class(GetPrimMapUsdExportHook)
+        bpy.ops.wm.usd_export(filepath=str(self.tempdir / "test_prim_map_export.usda"), merge_parent_xform=False)
+        prim_map = GetPrimMapUsdExportHook.prim_map
+        bpy.utils.unregister_class(GetPrimMapUsdExportHook)
+
+        expected_prim_map = {
+            Sdf.Path('/root/_materials/Material'): [bpy.data.materials['Material']],
+            Sdf.Path('/root/Camera'): [bpy.data.objects['Camera']],
+            Sdf.Path('/root/Camera/Camera'): [bpy.data.cameras['Camera']],
+            Sdf.Path('/root/Light'): [bpy.data.objects['Light']],
+            Sdf.Path('/root/Light/Light'): [bpy.data.lights['Light']],
+            Sdf.Path('/root/scene'): [bpy.data.objects['scene']],
+            Sdf.Path('/root/scene/BigCube'): [bpy.data.objects['BigCube']],
+            Sdf.Path('/root/scene/BigCube/BigCubeMesh'): [bpy.data.meshes['BigCubeMesh']],
+            Sdf.Path('/root/scene/LittleCube'): [bpy.data.objects['LittleCube']],
+            Sdf.Path('/root/scene/LittleCube/LittleCubeMesh'): [bpy.data.meshes['LittleCubeMesh']],
+            Sdf.Path('/root/scene/Volume'): [bpy.data.objects['Volume']],
+        }
+
+        self.assertDictEqual(prim_map, expected_prim_map)
+
+    def test_get_prim_map_export_xfrom_merged(self):
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_extent_test.blend"))
+        bpy.utils.register_class(GetPrimMapUsdExportHook)
+        bpy.ops.wm.usd_export(filepath=str(self.tempdir / "test_prim_map_export.usda"), merge_parent_xform=True)
+        prim_map = GetPrimMapUsdExportHook.prim_map
+        bpy.utils.unregister_class(GetPrimMapUsdExportHook)
+
+        expected_prim_map = {
+            Sdf.Path('/root/_materials/Material'): [bpy.data.materials['Material']],
+            Sdf.Path('/root/Camera'): [bpy.data.objects['Camera'], bpy.data.cameras['Camera']],
+            Sdf.Path('/root/Light'): [bpy.data.objects['Light'], bpy.data.lights['Light']],
+            Sdf.Path('/root/scene'): [bpy.data.objects['scene']],
+            Sdf.Path('/root/scene/BigCube'): [bpy.data.objects['BigCube'], bpy.data.meshes['BigCubeMesh']],
+            Sdf.Path('/root/scene/LittleCube'): [bpy.data.objects['LittleCube'], bpy.data.meshes['LittleCubeMesh']],
+            Sdf.Path('/root/scene/Volume'): [bpy.data.objects['Volume']],
+        }
+
+        self.assertDictEqual(prim_map, expected_prim_map)
+
     def test_hooks(self):
         """Validate USD Hook integration for both import and export"""
 
@@ -1957,6 +2029,17 @@ class ExportTextureUSDHook(bpy.types.USDHook):
                                                .pathString] = tex_path
 
         return True
+
+
+class GetPrimMapUsdExportHook(bpy.types.USDHook):
+    bl_idname = "get_prim_map_usd_export_hook"
+    bl_label = "Get Prim Map Usd Export Hook"
+
+    prim_map = None
+
+    @staticmethod
+    def on_export(context):
+        GetPrimMapUsdExportHook.prim_map = context.get_prim_map()
 
 
 def main():

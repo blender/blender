@@ -1692,7 +1692,7 @@ void PaintOperation::on_stroke_done(const bContext &C)
   deselect_stroke(C, drawing, active_curve);
 
   if (do_post_processing) {
-    if (settings->draw_smoothfac > 0.0f) {
+    if (settings->draw_smoothfac > 0.0f && settings->draw_smoothlvl > 0) {
       smooth_stroke(drawing, settings->draw_smoothfac, settings->draw_smoothlvl, active_curve);
     }
     if (settings->simplify_px > 0.0f) {

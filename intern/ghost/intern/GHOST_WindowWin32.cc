@@ -1168,6 +1168,11 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(const uint8_t *bitm
   icon_info.hbmMask = empty_mask;
   icon_info.hbmColor = bmp;
 
+  if (custom_cursor_) {
+    DestroyCursor(custom_cursor_);
+    custom_cursor_ = nullptr;
+  }
+
   custom_cursor_ = CreateIconIndirect(&icon_info);
   DeleteObject(bmp);
   DeleteObject(empty_mask);

@@ -48,7 +48,12 @@ ADDITIONAL_INFO(draw_object_infos)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_wireframe, overlay_wireframe_base)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_wireframe, overlay_wireframe_base, draw_modelmat)
+CREATE_INFO_VARIANT(overlay_wireframe_selectable, overlay_wireframe_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_wireframe_clipped, overlay_wireframe, drw_clipped)
+CREATE_INFO_VARIANT(overlay_wireframe_selectable_clipped, overlay_wireframe_selectable, drw_clipped)
+/* clang-format on */
 
 GPU_SHADER_CREATE_INFO(overlay_wireframe_curve_base)
 DEFINE("CURVES")
@@ -68,7 +73,12 @@ ADDITIONAL_INFO(draw_object_infos)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_wireframe_curve, overlay_wireframe_curve_base)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_wireframe_curve, overlay_wireframe_curve_base, draw_modelmat)
+CREATE_INFO_VARIANT(overlay_wireframe_curve_selectable, overlay_wireframe_curve_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_wireframe_curve_clipped, overlay_wireframe_curve, drw_clipped)
+CREATE_INFO_VARIANT(overlay_wireframe_curve_selectable_clipped, overlay_wireframe_curve_selectable, drw_clipped)
+/* clang-format on */
 
 GPU_SHADER_INTERFACE_INFO(overlay_wireframe_points_iface)
 FLAT(float4, final_color)
@@ -92,7 +102,12 @@ ADDITIONAL_INFO(draw_object_infos)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_wireframe_points, overlay_wireframe_points_base)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_wireframe_points, overlay_wireframe_points_base, draw_modelmat)
+CREATE_INFO_VARIANT(overlay_wireframe_points_selectable, overlay_wireframe_points_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_wireframe_points_clipped, overlay_wireframe_points, drw_clipped)
+CREATE_INFO_VARIANT(overlay_wireframe_points_selectable_clipped, overlay_wireframe_points_selectable, drw_clipped)
+/* clang-format on */
 
 GPU_SHADER_INTERFACE_INFO(overlay_edit_uv_iface_wireframe)
 SMOOTH(float, selection_fac)

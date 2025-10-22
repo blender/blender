@@ -679,33 +679,6 @@ void BlenderSync::sync_particle_hair(
   hair->curve_shape = scene->params.hair_shape;
 }
 
-template<typename TypeInCycles, typename GetValueAtIndex>
-static void fill_generic_attribute(const int num_curves,
-                                   const int num_points,
-                                   TypeInCycles *data,
-                                   const AttributeElement element,
-                                   const GetValueAtIndex &get_value_at_index)
-{
-  switch (element) {
-    case ATTR_ELEMENT_CURVE_KEY: {
-      for (int i = 0; i < num_points; i++) {
-        data[i] = get_value_at_index(i);
-      }
-      break;
-    }
-    case ATTR_ELEMENT_CURVE: {
-      for (int i = 0; i < num_curves; i++) {
-        data[i] = get_value_at_index(i);
-      }
-      break;
-    }
-    default: {
-      assert(false);
-      break;
-    }
-  }
-}
-
 static void attr_create_motion_from_velocity(Hair *hair,
                                              const blender::Span<blender::float3> src,
                                              const float motion_scale)

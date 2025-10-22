@@ -15,15 +15,6 @@
 #include "eevee_defines.hh"
 #include "gpu_shader_create_info.hh"
 
-#define image_out(slot, format, name) \
-  image(slot, format, Qualifier::write, ImageType::Float2D, name, Frequency::PASS)
-#define uimage_out(slot, format, name) \
-  image(slot, format, Qualifier::write, ImageType::Uint2D, name, Frequency::PASS)
-#define image_in(slot, format, name) \
-  image(slot, format, Qualifier::read, ImageType::Float2D, name, Frequency::PASS)
-#define image_array_out(slot, qualifier, format, name) \
-  image(slot, format, qualifier, ImageType::Float2DArray, name, Frequency::PASS)
-
 /* -------------------------------------------------------------------- */
 /** \name Thickness Amend
  * \{ */
@@ -190,10 +181,6 @@ ADDITIONAL_INFO(draw_object_infos)
 FRAGMENT_SOURCE("eevee_deferred_planar_frag.glsl")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
-
-#undef image_array_out
-#undef image_out
-#undef image_in
 
 /* -------------------------------------------------------------------- */
 /** \name Debug

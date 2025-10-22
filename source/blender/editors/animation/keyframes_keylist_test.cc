@@ -354,6 +354,7 @@ TEST_F(KeylistSummaryTest, slot_summary_bone_selection)
   saction.ads.filterflag = ADS_FILTER_ONLYSEL; /* Filter by selection. */
   ac.obact = armature;
   ac.active_action_user = &armature->id;
+  ac.filters.flag = eDopeSheet_FilterFlag(saction.ads.filterflag);
   action_slot_summary_to_keylist(
       &ac, &armature->id, *action, slot_armature.handle, keylist, 0, {0.0, 6.0});
   ED_keylist_prepare_for_direct_access(keylist);

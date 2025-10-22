@@ -981,6 +981,7 @@ typedef enum eDopeSheet_FilterFlag {
                          ADS_FILTER_NOSPK | ADS_FILTER_NOMODIFIERS),
 #endif
 } eDopeSheet_FilterFlag;
+ENUM_OPERATORS(eDopeSheet_FilterFlag);
 
 /* DopeSheet filter-flags - Overflow (filterflag2) */
 typedef enum eDopeSheet_FilterFlag2 {
@@ -995,6 +996,7 @@ typedef enum eDopeSheet_FilterFlag2 {
 
   ADS_FILTER_NOLIGHTPROBE = (1 << 7),
 } eDopeSheet_FilterFlag2;
+ENUM_OPERATORS(eDopeSheet_FilterFlag2);
 
 /* DopeSheet general flags */
 typedef enum eDopeSheet_Flag {
@@ -1117,7 +1119,7 @@ typedef enum eAnimEdit_Context {
   SACTCONT_MASK = 4,
   /** Cache file */
   SACTCONT_CACHEFILE = 5,
-  /** Timeline - replacement for the standalone "timeline editor". */
+  /** Timeline. */
   SACTCONT_TIMELINE = 6,
 } eAnimEdit_Context;
 

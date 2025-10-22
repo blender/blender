@@ -94,6 +94,10 @@ enum GPUBlend {
   /** Replace logic op: SRC * (1 - DST)
    * NOTE: Does not modify alpha. */
   GPU_BLEND_INVERT,
+  /** Stores min(SRC, DST) per component. */
+  GPU_BLEND_MIN,
+  /** Stores max(SRC, DST) per component. */
+  GPU_BLEND_MAX,
   /** Order independent transparency.
    * NOTE: Cannot be used as is. Needs special setup (frame-buffer, shader ...). */
   GPU_BLEND_OIT,

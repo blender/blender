@@ -398,13 +398,16 @@ void copy_curve_attributes(Span<PointsRange> ranges_selected,
  * Removes the selection state of all the affected CurvesGeometry, except the one
  * of the active layer. Points in the active layer do not get unselected
  */
-void clear_selection_attribute(Span<PointsRange> ranges_selected)
+void clear_selection_attribute(Span<PointsRange> ranges_selected,
+                               const bke::AttrDomain selection_domain)
 {
   for (const PointsRange &range : ranges_selected) {
     bke::CurvesGeometry &curves = range.from_drawing->strokes_for_write();
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-    if (bke::GSpanAttributeWriter selection = attributes.lookup_for_write_span(".selection")) {
-      ed::curves::fill_selection_false(selection.span);
+    if (bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
+            ".selection", selection_domain))
+    {
+      selection.span.fill(false);
       selection.finish();
     }
     if (bke::GSpanAttributeWriter selection = attributes.lookup_for_write_span(".selection_left"))
@@ -437,6 +440,7 @@ void remove_selected_points(Span<PointsRange> ranges_selected)
     IndexMaskMemory memory;
     const IndexMask combined_mask = IndexMask::from_union(item.value, memory);
     dst_curves.remove_points(combined_mask, {});
+    item.key->tag_topology_changed();
   }
 }
 
@@ -532,10 +536,10 @@ wmOperatorStatus grease_pencil_join_selection_exec(bContext *C, wmOperator *op)
       ranges_selected, tmp_curves, tmp_drawing);
   copy_curve_attributes(ranges_selected, tmp_curves, *dst_drawing);
 
-  clear_selection_attribute(ranges_selected);
+  clear_selection_attribute(ranges_selected, selection_domain);
 
   Array<PointsRange> working_range_collection = {working_range};
-  clear_selection_attribute(working_range_collection);
+  clear_selection_attribute(working_range_collection, selection_domain);
 
   bke::CurvesGeometry &dst_curves = dst_drawing->strokes_for_write();
   if (ELEM(active_layer_behavior,

@@ -2823,6 +2823,8 @@ static wmOperatorStatus unwrap_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const Scene *scene = CTX_data_scene(C);
+  const bool sync_selection = (scene->toolsettings->uv_flag & UV_FLAG_SELECT_SYNC) != 0;
+
   int reported_errors = 0;
 
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
@@ -2841,6 +2843,12 @@ static wmOperatorStatus unwrap_exec(bContext *C, wmOperator *op)
 
   if (CTX_wm_space_image(C)) {
     /* Inside the UV Editor, only unwrap selected UVs. */
+    if (sync_selection) {
+      /* It's important to include unselected faces so they are taken into account
+       * when unwrapping adjacent UV's, so it's possible to select part of an island
+       * without it becoming disconnected from the unselected region, see: #148536. */
+      options.only_selected_faces = false;
+    }
     options.only_selected_uvs = true;
     options.pin_unselected = true;
   }

@@ -64,6 +64,7 @@ void USDHairWriter::do_write(HierarchyContext &context)
 
   if (psys->part) {
     auto prim = curves.GetPrim();
+    add_to_prim_map(prim.GetPath(), &psys->part->id);
     write_id_properties(prim, psys->part->id, time);
   }
 

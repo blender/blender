@@ -362,22 +362,19 @@ bool ABCGenericMeshWriter::get_velocities(Mesh *mesh, std::vector<Imath::V3f> &v
 {
   /* Export velocity attribute output by fluid sim, sequence cache modifier
    * and geometry nodes. */
-  AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
-  const CustomDataLayer *velocity_layer = BKE_attribute_find(
-      owner, "velocity", CD_PROP_FLOAT3, bke::AttrDomain::Point);
-
-  if (velocity_layer == nullptr) {
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArraySpan attr = *attributes.lookup<float3>("velocity", bke::AttrDomain::Point);
+  if (attr.is_empty()) {
     return false;
   }
 
   const int totverts = mesh->verts_num;
-  const float (*mesh_velocities)[3] = reinterpret_cast<float (*)[3]>(velocity_layer->data);
 
   vels.clear();
   vels.resize(totverts);
 
   for (int i = 0; i < totverts; i++) {
-    copy_yup_from_zup(vels[i].getValue(), mesh_velocities[i]);
+    copy_yup_from_zup(vels[i].getValue(), attr[i]);
   }
 
   return true;

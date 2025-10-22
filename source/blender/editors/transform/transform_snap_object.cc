@@ -378,6 +378,14 @@ static const ID *data_for_snap(Object *ob_eval, eSnapEditType edit_mode_type, bo
     }
   }
 
+  /* For curves and surfaces in edit mode, use their original data when snapping.
+   * Only use the evaluated mesh when snapping to the final geometry. */
+  if (ELEM(ob_eval->type, OB_CURVES_LEGACY, OB_SURF) && BKE_object_is_in_editmode(ob_eval) &&
+      edit_mode_type != SNAP_GEOM_FINAL)
+  {
+    return static_cast<const ID *>(ob_eval->data);
+  }
+
   /* Get evaluated mesh including subdivision. This may come from a mesh object,
    * or another object type that has modifiers producing a mesh. */
   if (Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval)) {

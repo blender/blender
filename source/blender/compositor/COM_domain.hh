@@ -162,6 +162,9 @@ class Domain {
    * transformation by the current transformation of the domain. */
   void transform(const float3x3 &input_transformation);
 
+  /* Returns a transposed version of itself, that is, with the x and y sizes swapped. */
+  Domain transposed() const;
+
   /* Returns a domain of size 1x1 and an identity transformation. */
   static Domain identity();
 

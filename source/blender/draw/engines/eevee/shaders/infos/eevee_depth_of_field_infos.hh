@@ -181,14 +181,6 @@ GPU_SHADER_CREATE_INFO(eevee_depth_of_field_foreground)
 DEFINE_VALUE("DOF_FOREGROUND_PASS", "true")
 GPU_SHADER_CREATE_END()
 
-#define EEVEE_DOF_LUT_VARIATIONS(prefix, ...) \
-  CREATE_INFO_VARIANT(prefix##_lut, eevee_depth_of_field_lut, __VA_ARGS__) \
-  CREATE_INFO_VARIANT(prefix##_no_lut, eevee_depth_of_field_no_lut, __VA_ARGS__)
-
-#define EEVEE_DOF_GROUND_VARIATIONS(name, ...) \
-  EEVEE_DOF_LUT_VARIATIONS(name##_background, eevee_depth_of_field_background, __VA_ARGS__) \
-  EEVEE_DOF_LUT_VARIATIONS(name##_foreground, eevee_depth_of_field_foreground, __VA_ARGS__)
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -216,7 +208,22 @@ COMPUTE_SOURCE("eevee_depth_of_field_gather_comp.glsl")
 ADDITIONAL_INFO(eevee_depth_of_field_gather_common)
 GPU_SHADER_CREATE_END()
 
-EEVEE_DOF_GROUND_VARIATIONS(eevee_depth_of_field_gather, eevee_depth_of_field_gather)
+CREATE_INFO_VARIANT(eevee_depth_of_field_gather_background_lut,
+                    eevee_depth_of_field_lut,
+                    eevee_depth_of_field_background,
+                    eevee_depth_of_field_gather)
+CREATE_INFO_VARIANT(eevee_depth_of_field_gather_background_no_lut,
+                    eevee_depth_of_field_no_lut,
+                    eevee_depth_of_field_background,
+                    eevee_depth_of_field_gather)
+CREATE_INFO_VARIANT(eevee_depth_of_field_gather_foreground_lut,
+                    eevee_depth_of_field_lut,
+                    eevee_depth_of_field_foreground,
+                    eevee_depth_of_field_gather)
+CREATE_INFO_VARIANT(eevee_depth_of_field_gather_foreground_no_lut,
+                    eevee_depth_of_field_no_lut,
+                    eevee_depth_of_field_foreground,
+                    eevee_depth_of_field_gather)
 
 GPU_SHADER_CREATE_INFO(eevee_depth_of_field_hole_fill)
 DO_STATIC_COMPILATION()
@@ -307,6 +314,11 @@ IMAGE(2, SFLOAT_16_16_16_16, write, image2D, out_color_img)
 COMPUTE_SOURCE("eevee_depth_of_field_resolve_comp.glsl")
 GPU_SHADER_CREATE_END()
 
-EEVEE_DOF_LUT_VARIATIONS(eevee_depth_of_field_resolve, eevee_depth_of_field_resolve)
+CREATE_INFO_VARIANT(eevee_depth_of_field_resolve_lut,
+                    eevee_depth_of_field_lut,
+                    eevee_depth_of_field_resolve)
+CREATE_INFO_VARIANT(eevee_depth_of_field_resolve_no_lut,
+                    eevee_depth_of_field_no_lut,
+                    eevee_depth_of_field_resolve)
 
 /** \} */

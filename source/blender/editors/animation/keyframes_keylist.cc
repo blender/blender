@@ -1142,6 +1142,8 @@ void scene_to_keylist(bDopeSheet *ads,
   ac.ads = ads;
   ac.data = &dummy_chan;
   ac.datatype = ANIMCONT_CHANNEL;
+  ac.filters.flag = eDopeSheet_FilterFlag(ads->filterflag);
+  ac.filters.flag2 = eDopeSheet_FilterFlag2(ads->filterflag2);
 
   /* Get F-Curves to take keyframes from. */
   const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FCURVESONLY;
@@ -1188,6 +1190,8 @@ void ob_to_keylist(bDopeSheet *ads,
   ac.ads = ads;
   ac.data = &dummy_chan;
   ac.datatype = ANIMCONT_CHANNEL;
+  ac.filters.flag = eDopeSheet_FilterFlag(ads->filterflag);
+  ac.filters.flag2 = eDopeSheet_FilterFlag2(ads->filterflag2);
 
   /* Get F-Curves to take keyframes from. */
   const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FCURVESONLY;
@@ -1226,6 +1230,8 @@ void cachefile_to_keylist(bDopeSheet *ads,
   ac.ads = ads;
   ac.data = &dummy_chan;
   ac.datatype = ANIMCONT_CHANNEL;
+  ac.filters.flag = eDopeSheet_FilterFlag(ads->filterflag);
+  ac.filters.flag2 = eDopeSheet_FilterFlag2(ads->filterflag2);
 
   /* Get F-Curves to take keyframes from. */
   ListBase anim_data = {nullptr, nullptr};

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 16:12+0000\n"
+"POT-Creation-Date: 2025-10-20 08:46+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Jan Vavřínek <janvavrinek1@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -8561,10 +8561,6 @@ msgid "Constant"
 msgstr "Konstantní"
 
 
-msgid "Direction"
-msgstr "Směr"
-
-
 msgid "Add effect of brush"
 msgstr "Přidat efekt štětce"
 
@@ -12575,6 +12571,10 @@ msgid "Control key pressed"
 msgstr "Stisknutá klávesa Ctrl"
 
 
+msgid "Direction"
+msgstr "Směr"
+
+
 msgid "North"
 msgstr "Sever"
 
@@ -13834,6 +13834,10 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
+
+
 msgid "Metaball"
 msgstr "Meta objekt"
 
@@ -13890,16 +13894,12 @@ msgid "Propagate"
 msgstr "Vložit"
 
 
-msgid "Names"
-msgstr "Názvy"
-
-
 msgid "Keying"
 msgstr "Klíčovací sestava"
 
 
-msgid "Mesh Select Mode"
-msgstr "Síťový mód výběru"
+msgid "Names"
+msgstr "Názvy"
 
 
 msgid "Tracking"
@@ -13910,12 +13910,16 @@ msgid "Utilities"
 msgstr "Nástroje"
 
 
-msgid "Face Data"
-msgstr "Data Ploch"
-
-
 msgid "Math"
 msgstr "Matematika"
+
+
+msgid "Mesh Select Mode"
+msgstr "Síťový mód výběru"
+
+
+msgid "Face Data"
+msgstr "Data Ploch"
 
 
 msgid "Merge"
@@ -13950,12 +13954,12 @@ msgid "Instances"
 msgstr "Instance"
 
 
-msgid "Mirror"
-msgstr "Zrcadlit"
-
-
 msgid "Import"
 msgstr "Importovat"
+
+
+msgid "Mirror"
+msgstr "Zrcadlit"
 
 
 msgid "UV Mapping"
@@ -13980,10 +13984,6 @@ msgstr "Vybrat Propojené"
 
 msgid "Basic"
 msgstr "Základní"
-
-
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
 
 
 msgctxt "MovieClip"

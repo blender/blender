@@ -173,6 +173,7 @@ void USDLightWriter::do_write(HierarchyContext &context)
                 usd_value_writer_);
 
   pxr::UsdPrim prim = usd_light_api.GetPrim();
+  add_to_prim_map(prim.GetPath(), &light->id);
   write_id_properties(prim, light->id, time);
 
   /* Only a subset of light types are "boundable". */

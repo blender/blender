@@ -643,7 +643,7 @@ class FixToCameraCommon:
             case 'POSE':
                 transformables = self._transformable_pbones(context)
             case mode:
-                self.report({'ERROR'}, 'Unsupported mode: %r' % mode)
+                self.report({'ERROR'}, "Unsupported mode: {!r}".format(mode))
                 return {'CANCELLED'}
 
         restore_frame = context.scene.frame_current

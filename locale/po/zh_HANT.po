@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 16:12+0000\n"
+"POT-Creation-Date: 2025-10-20 08:46+0000\n"
 "PO-Revision-Date: 2025-07-27 17:01+0000\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -13387,10 +13387,6 @@ msgid "Cloth Simulation"
 msgstr "布料模擬"
 
 
-msgid "Direction"
-msgstr "方向"
-
-
 msgid "Add effect of brush"
 msgstr "新增筆刷的效果"
 
@@ -18138,10 +18134,6 @@ msgid "Sync to audio playback, dropping frames"
 msgstr "同步音訊播放，丟落影格"
 
 
-msgid "Second"
-msgstr "第二"
-
-
 msgid "Timeline Markers"
 msgstr "時間軸標記"
 
@@ -20069,6 +20061,10 @@ msgstr "Ctrl"
 
 msgid "Control key pressed"
 msgstr "按住 Ctrl 鍵"
+
+
+msgid "Direction"
+msgstr "方向"
 
 
 msgid "North"
@@ -22418,6 +22414,10 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
+msgid "Select More/Less"
+msgstr "選取更多/更少"
+
+
 msgid "Metaball"
 msgstr "變幻球"
 
@@ -22478,16 +22478,16 @@ msgid "Hooks"
 msgstr "鉤"
 
 
+msgid "Layout"
+msgstr "配置"
+
+
 msgid "Sculpt Set Pivot"
 msgstr "設定樞紐點"
 
 
 msgid "Random Mask"
 msgstr "隨機遮罩"
-
-
-msgid "Layout"
-msgstr "配置"
 
 
 msgid "Clear Transform"
@@ -22498,6 +22498,10 @@ msgid "In-Betweens"
 msgstr "內部之間"
 
 
+msgid "Adjust"
+msgstr "調整"
+
+
 msgid "Propagate"
 msgstr "增生"
 
@@ -22506,32 +22510,12 @@ msgid "Bone Collections"
 msgstr "骨骼集盒"
 
 
-msgid "Names"
-msgstr "名稱"
-
-
-msgid "Adjust"
-msgstr "調整"
-
-
-msgid "Toggle Bone Options"
-msgstr "開關骨骼選項"
-
-
-msgid "Enable Bone Options"
-msgstr "啟用骨骼設定"
-
-
-msgid "Disable Bone Options"
-msgstr "停用骨骼設定"
-
-
 msgid "Keying"
 msgstr "鍵處理"
 
 
-msgid "Mesh Select Mode"
-msgstr "網格選取模式"
+msgid "Names"
+msgstr "名稱"
 
 
 msgid "Tracking"
@@ -22542,12 +22526,28 @@ msgid "Utilities"
 msgstr "效用"
 
 
-msgid "Face Data"
-msgstr "面資料"
+msgid "Toggle Bone Options"
+msgstr "開關骨骼選項"
 
 
 msgid "Math"
 msgstr "數學公式"
+
+
+msgid "Enable Bone Options"
+msgstr "啟用骨骼設定"
+
+
+msgid "Disable Bone Options"
+msgstr "停用骨骼設定"
+
+
+msgid "Mesh Select Mode"
+msgstr "網格選取模式"
+
+
+msgid "Face Data"
+msgstr "面資料"
 
 
 msgid "Merge"
@@ -22570,8 +22570,24 @@ msgid "Bone Roll"
 msgstr "骨骼滾動"
 
 
+msgid "Read"
+msgstr "讀取"
+
+
+msgid "Sample"
+msgstr "取樣"
+
+
+msgid "Write"
+msgstr "寫入"
+
+
 msgid "Pivot Point"
 msgstr "樞紐點"
+
+
+msgid "Primitives"
+msgstr "原形"
 
 
 msgid "Snap"
@@ -22586,36 +22602,20 @@ msgid "Automasking"
 msgstr "自動遮罩"
 
 
-msgid "Read"
-msgstr "讀取"
-
-
 msgid "Face Sets Edit"
 msgstr "面集編輯"
-
-
-msgid "Sample"
-msgstr "取樣"
-
-
-msgid "Write"
-msgstr "寫入"
-
-
-msgid "Primitives"
-msgstr "原形"
 
 
 msgid "Instances"
 msgstr "實例化"
 
 
-msgid "Mirror"
-msgstr "鏡像"
-
-
 msgid "Import"
 msgstr "匯入"
+
+
+msgid "Mirror"
+msgstr "鏡像"
 
 
 msgid "UV Mapping"
@@ -22634,6 +22634,10 @@ msgid "Navigation"
 msgstr "導覽"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Align View"
 msgstr "對齊檢視"
 
@@ -22646,16 +22650,8 @@ msgid "View Regions"
 msgstr "檢視範圍"
 
 
-msgid "Select More/Less"
-msgstr "選取更多/更少"
-
-
 msgid "Select Similar"
 msgstr "選取相似者"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Select Linked"
@@ -56364,16 +56360,9 @@ msgid "Blend Opacity"
 msgstr "交混不透明度"
 
 
-msgid "Cross"
-msgstr "交叉"
-
-
-msgid "Alpha Under"
-msgstr "Alpha 下鋪"
-
-
-msgid "Gamma Cross"
-msgstr "伽瑪交錯"
+msgctxt "Color"
+msgid "Value"
+msgstr "明度"
 
 
 msgid "Y position of the sequence strip"
@@ -56553,11 +56542,6 @@ msgstr "動畫起始偏移"
 
 msgid "Animation start offset (trim start)"
 msgstr "動畫起始偏移 (修剪起始)"
-
-
-msgctxt "Color"
-msgid "Value"
-msgstr "明度"
 
 
 msgid "Color Strip"
@@ -61999,6 +61983,10 @@ msgstr "燃料"
 msgctxt "Simulation"
 msgid "Cache"
 msgstr "快取"
+
+
+msgid "Second"
+msgstr "第二"
 
 
 msgid "Upper"
@@ -69727,6 +69715,10 @@ msgid "Unable to copy item"
 msgstr "無法複製項目"
 
 
+msgid "Anisotropic"
+msgstr "各向異性"
+
+
 msgctxt "NodeTree"
 msgid "Functions"
 msgstr "函式"
@@ -70385,10 +70377,6 @@ msgstr "係數"
 
 msgid "ID value"
 msgstr "ID 值"
-
-
-msgid "Anisotropic"
-msgstr "各向異性"
 
 
 msgid "Uniformity"

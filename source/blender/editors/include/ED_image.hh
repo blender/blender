@@ -192,7 +192,10 @@ bool ED_image_save_all_modified(const bContext *C, ReportList *reports);
 struct ImageFrameRange {
   ImageFrameRange *next, *prev;
 
-  /** Absolute file path of the first file in the range. */
+  /**
+   * File path of the first file in the range.
+   * May be relative to `G_MAIN->filepath`.
+   */
   char filepath[FILE_MAX];
   /* Sequence parameters. */
   int length; /* Does not include placeholders, stops at gaps in sequence. */
