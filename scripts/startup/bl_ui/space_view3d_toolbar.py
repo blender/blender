@@ -260,7 +260,6 @@ class View3DPaintBrushPanel(View3DPaintPanel):
 class VIEW3D_PT_tools_particlemode(Panel, View3DPaintPanel):
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Particle Tool"
-    bl_options = {'HIDE_HEADER'}
 
     @classmethod
     def poll(cls, context):
