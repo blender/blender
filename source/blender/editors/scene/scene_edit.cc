@@ -375,6 +375,7 @@ static void SCENE_OT_new_sequencer(wmOperatorType *ot)
 static wmOperatorStatus new_sequencer_scene_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
+  wmWindow *win = CTX_wm_window(C);
   WorkSpace *workspace = CTX_wm_workspace(C);
   Scene *scene_old = CTX_data_sequencer_scene(C);
   const int type = RNA_enum_get(op->ptr, "type");
