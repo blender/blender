@@ -4181,7 +4181,7 @@ static void uv_select_tag_update_for_object(Depsgraph *depsgraph,
  * \{ */
 
 /**
- * helper function for #uv_select_flush_from_tag_loop and uv_select_flush_from_tag_face
+ * Helper function for #uv_select_flush_from_tag_loop and #uv_select_flush_from_tag_face.
  */
 static void uvedit_uv_select_flush_from_tag_sticky_loc_internal(
     const Scene *scene, BMesh *bm, BMLoop *l, const bool select, const BMUVOffsets &offsets)
@@ -4210,6 +4210,26 @@ static void uvedit_uv_select_flush_from_tag_sticky_loc_internal(
       }
     } while ((l_iter = l_iter->radial_next) != l_first);
   } while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v)) != e_first);
+}
+
+/**
+ * Helper function for #uv_select_flush_from_tag_face.
+ */
+static void uvedit_edge_select_flush_from_tag_sticky_loc_internal(
+    const Scene *scene, BMesh *bm, BMLoop *l, const bool select, const BMUVOffsets &offsets)
+{
+  uvedit_edge_select_set(scene, bm, l, select);
+  if (l->radial_next != l) {
+    BMLoop *l_iter = l->radial_next;
+    do {
+      if (!uvedit_face_visible_test(scene, l_iter->f)) {
+        continue;
+      }
+      if (BM_loop_uv_share_edge_check(l, l_iter, offsets.uv)) {
+        uvedit_edge_select_set(scene, bm, l_iter, select);
+      }
+    } while ((l_iter = l_iter->radial_next) != l);
+  }
 }
 
 /**
@@ -4268,6 +4288,12 @@ static void uv_select_flush_from_tag_face(const Scene *scene, Object *obedit, co
       else {
         uvedit_face_select_set_no_sync(ts, bm, efa, select);
       }
+    }
+
+    BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+      if (!BM_elem_flag_test(efa, BM_ELEM_TAG)) {
+        continue;
+      }
 
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         uvedit_loop_edge_select_set(ts, bm, l, select);
@@ -4278,6 +4304,9 @@ static void uv_select_flush_from_tag_face(const Scene *scene, Object *obedit, co
         else {
           if (!uvedit_vert_is_face_select_any_other(ts, bm, l, offsets)) {
             uvedit_uv_select_flush_from_tag_sticky_loc_internal(scene, bm, l, select, offsets);
+          }
+          if (!uvedit_edge_is_face_select_any_other(ts, bm, l, offsets)) {
+            uvedit_edge_select_flush_from_tag_sticky_loc_internal(scene, bm, l, select, offsets);
           }
         }
       }
