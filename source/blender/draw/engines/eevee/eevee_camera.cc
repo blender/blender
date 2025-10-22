@@ -158,12 +158,6 @@ void Camera::sync()
        * In this case the produced winmat is degenerate. So just revert to the input matrix. */
       data.winmat = inst_.drw_view->winmat();
     }
-
-    if (isnan(data.winmat.w.x)) {
-      /* Can happen in weird corner case (see #134320).
-       * Simply fall back to something that we can render with. */
-      data.winmat = math::projection::orthographic(0.01f, 0.01f, 0.01f, 0.01f, -1000.0f, +1000.0f);
-    }
   }
   else if (inst_.render) {
     const Render *re = inst_.render->re;
@@ -187,6 +181,14 @@ void Camera::sync()
     data.viewmat = float4x4::identity();
     data.viewinv = float4x4::identity();
     data.winmat = math::projection::perspective(-0.1f, 0.1f, -0.1f, 0.1f, 0.1f, 1.0f);
+  }
+
+  /* Compute a part of the frustrum planes. In some cases (#134320, #148258)
+   * the window matrix becomes degenerate during render or draw_view.
+   * Simply fall back to something we can render with. */
+  float bottom = (-data.winmat[3][1] - 1.f) / data.winmat[1][1];
+  if (std::isnan(bottom) || std::isinf(std::abs(bottom))) {
+    data.winmat = math::projection::orthographic(0.01f, 0.01f, 0.01f, 0.01f, -1000.0f, +1000.0f);
   }
 
   data.wininv = math::invert(data.winmat);
