@@ -35,7 +35,7 @@ class USERPREF_HT_header(Header):
             # Show '*' to let users know the preferences have been modified.
             layout.operator(
                 "wm.save_userpref",
-                text=iface_("Save Preferences") + (" *" if prefs.is_dirty else ""),
+                text=("* " if prefs.is_dirty else "") + iface_("Save Preferences"),
                 translate=False,
             )
 
