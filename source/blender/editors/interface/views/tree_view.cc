@@ -1050,7 +1050,7 @@ void BasicTreeViewItem::build_row(uiLayout &row)
 void BasicTreeViewItem::add_label(uiLayout &layout, StringRefNull label_override)
 {
   const StringRefNull label = label_override.is_empty() ? StringRefNull(label_) : label_override;
-  layout.label(IFACE_(label), icon);
+  layout.label(label, icon);
 }
 
 void BasicTreeViewItem::on_activate(bContext &C)
