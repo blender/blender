@@ -628,6 +628,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_NODE:
           cp = ts->syntaxl;
           break;
+        case TH_NODE_OUTLINE:
+          cp = ts->node_outline;
+          break;
         case TH_NODE_INPUT:
           cp = ts->syntaxn;
           break;

@@ -408,6 +408,8 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
       style->tooltip.shadowalpha = 0.5f;
       style->tooltip.shadowcolor = 0.0f;
     }
+
+    FROM_DEFAULT_V4_UCHAR(space_node.node_outline);
   }
 
   if (!USER_VERSION_ATLEAST(501, 3)) {
