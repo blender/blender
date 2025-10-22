@@ -165,11 +165,11 @@ struct RenderStats {
 /* *********************** API ******************** */
 
 /**
- * The name is used as identifier, so elsewhere in blender the result can retrieved.
- * Calling a new render with same name, frees automatic existing render.
- */
-struct Render *RE_NewRender(const char *name);
-struct Render *RE_GetRender(const char *name);
+ * The owner is a unique identifier for the render, either an original scene
+ * datablock for regular renders, or an area for preview renders.
+ * Calling a new render with an existing owner frees the existing render. */
+struct Render *RE_NewRender(const void *owner);
+struct Render *RE_GetRender(const void *owner);
 
 struct Scene;
 struct Render *RE_NewSceneRender(const struct Scene *scene);

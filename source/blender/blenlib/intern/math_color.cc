@@ -291,22 +291,32 @@ void rgb_to_hsl(float r, float g, float b, float *r_h, float *r_s, float *r_l)
 
 void rgb_to_hsl_compat(float r, float g, float b, float *r_h, float *r_s, float *r_l)
 {
+  /* Convert RGB to HSL, while staying as close as possible to existing HSL values.
+   * Uses a threshold as there can be small errors introduced by color space conversions
+   * or other operations. */
   const float orig_s = *r_s;
   const float orig_h = *r_h;
+  const float threshold = 1e-5f;
 
   rgb_to_hsl(r, g, b, r_h, r_s, r_l);
 
-  if (*r_l <= 0.0f) {
+  /* For (near) zero lightness or saturation, keep the other values unchanged,
+   * as they are either undefined or very sensitive to small lightness changes. */
+  if (*r_l <= threshold) {
     *r_h = orig_h;
     *r_s = orig_s;
   }
-  else if (*r_s <= 0.0f) {
+  else if (*r_s <= threshold) {
     *r_h = orig_h;
     *r_s = orig_s;
   }
 
-  if (*r_h == 0.0f && orig_h >= 1.0f) {
+  /* Hue wraps around, keep it on the same side. */
+  if (fabsf(*r_h) <= threshold && fabsf(orig_h - 1.0f) <= threshold) {
     *r_h = 1.0f;
+  }
+  else if (fabsf(*r_h - 1.0f) <= threshold && fabsf(orig_h) <= threshold) {
+    *r_h = 0.0f;
   }
 }
 
@@ -322,22 +332,31 @@ void rgb_to_hsl_v(const float rgb[3], float r_hsl[3])
 
 void rgb_to_hsv_compat(float r, float g, float b, float *r_h, float *r_s, float *r_v)
 {
+  /* Convert RGB to HSV, while staying as close as possible to existing HSV values.
+   * Uses a threshold as there can be small errors introduced by color space conversions
+   * or other operations. */
   const float orig_h = *r_h;
   const float orig_s = *r_s;
+  const float threshold = 1e-5f;
 
   rgb_to_hsv(r, g, b, r_h, r_s, r_v);
 
-  if (*r_v <= 1e-8) {
-    /* Very low V values will affect the HS values, correct them in post. */
+  /* For (near) zero values or saturation, keep the other values unchanged,
+   * as they are either undefined or very sensitive to small value changes. */
+  if (*r_v <= threshold) {
     *r_h = orig_h;
     *r_s = orig_s;
   }
-  else if (*r_s <= 1e-8) {
+  else if (*r_s <= threshold) {
     *r_h = orig_h;
   }
 
-  if (*r_h == 0.0f && orig_h >= 1.0f) {
+  /* Hue wraps around, keep it on the same side. */
+  if (fabsf(*r_h) <= threshold && fabsf(orig_h - 1.0f) <= threshold) {
     *r_h = 1.0f;
+  }
+  else if (fabsf(*r_h - 1.0f) <= threshold && fabsf(orig_h) <= threshold) {
+    *r_h = 0.0f;
   }
 }
 
