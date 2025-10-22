@@ -535,8 +535,8 @@ class USDExportTest(AbstractUSDTest):
 
         hair_curves = UsdGeom.BasisCurves(hair_prim)
         hair_samples = hair_curves.GetPointsAttr().GetTimeSamples()
-        self.assertEqual(hair_curves.GetTypeAttr().Get(), "cubic")
-        self.assertEqual(hair_curves.GetBasisAttr().Get(), "bspline")
+        self.assertEqual(hair_curves.GetTypeAttr().Get(), "linear")
+        self.assertEqual(hair_curves.GetBasisAttr().Get(), "catmullRom")
         self.assertEqual(len(hair_samples), 10)
 
     def check_primvar(self, prim, pv_name, pv_typeName, pv_interp, elements_len):
