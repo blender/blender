@@ -150,7 +150,8 @@ void main()
     /* Encode 4 cells into one volume sample. */
     int4 cell_validity_bits = int4(0);
     /* Encode validity of each samples in the grid cell. */
-    for (int cell = 0; cell < 4; cell++) {
+    [[gpu::unroll]] for (int cell = 0; cell < 4; cell++)
+    {
       for (int i = 0; i < 8; i++) {
         int3 coord_input = clamp(texel_coord, int3(0), grid_size - 1);
         float validity = texelFetch(validity_tx, coord_input, 0).r;
