@@ -34,10 +34,7 @@ static std::string get_mesh_active_uvlayer_name(const Object *ob)
   }
 
   const Mesh *mesh = static_cast<Mesh *>(ob->data);
-
-  const char *name = CustomData_get_active_layer_name(&mesh->corner_data, CD_PROP_FLOAT2);
-
-  return name ? name : "";
+  return mesh->active_uv_map_name();
 }
 
 template<typename USDT>

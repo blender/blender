@@ -1731,11 +1731,12 @@ static wmOperatorStatus uv_pin_exec(bContext *C, wmOperator *op)
       scene, view_layer, nullptr);
 
   for (Object *obedit : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    Mesh &mesh = *static_cast<Mesh *>(obedit->data);
+    BMEditMesh *em = mesh.runtime->edit_mesh.get();
 
     bool changed = false;
 
-    const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
+    const StringRef active_uv_name = mesh.active_uv_map_name();
     if (em->bm->totvertsel == 0) {
       continue;
     }

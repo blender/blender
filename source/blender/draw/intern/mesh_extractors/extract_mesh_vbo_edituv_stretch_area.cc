@@ -66,7 +66,7 @@ static AreaInfo compute_area_ratio(const MeshRenderData &mr, MutableSpan<float> 
   const Span<int> corner_verts = mr.corner_verts;
   const Mesh &mesh = *mr.mesh;
   const bke::AttributeAccessor attributes = mesh.attributes();
-  const StringRef name = CustomData_get_active_layer_name(&mesh.corner_data, CD_PROP_FLOAT2);
+  const StringRef name = mesh.active_uv_map_name();
   const VArraySpan uv_map = *attributes.lookup<float2>(name, bke::AttrDomain::Corner);
 
   return threading::parallel_reduce(

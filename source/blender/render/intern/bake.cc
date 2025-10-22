@@ -718,8 +718,7 @@ void RE_bake_pixels_populate(Mesh *mesh,
   const bke::AttributeAccessor attributes = mesh->attributes();
   VArraySpan<float2> uv_map;
   if (uv_layer.is_empty()) {
-    const StringRef active_layer_name = CustomData_get_active_layer_name(&mesh->corner_data,
-                                                                         CD_PROP_FLOAT2);
+    const StringRef active_layer_name = mesh->active_uv_map_name();
     uv_map = *attributes.lookup<float2>(active_layer_name, bke::AttrDomain::Corner);
   }
   else {

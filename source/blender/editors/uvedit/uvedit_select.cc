@@ -5332,9 +5332,10 @@ static wmOperatorStatus uv_select_pinned_exec(bContext *C, wmOperator *op)
       scene, view_layer, nullptr);
 
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_from_object(obedit)->bm;
+    Mesh &mesh = *static_cast<Mesh *>(obedit->data);
+    BMesh *bm = mesh.runtime->edit_mesh->bm;
 
-    const char *active_uv_name = CustomData_get_active_layer_name(&bm->ldata, CD_PROP_FLOAT2);
+    const blender::StringRef active_uv_name = mesh.active_uv_map_name();
     if (!BM_uv_map_attr_pin_exists(bm, active_uv_name)) {
       continue;
     }
