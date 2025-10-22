@@ -7,7 +7,6 @@
 
 #include "DNA_grease_pencil_types.h"
 
-#include "attribute_access_intern.hh"
 #include "attribute_storage_access.hh"
 
 namespace blender::bke::greasepencil {

@@ -8,8 +8,6 @@
 
 #include "DNA_grease_pencil_types.h"
 
-#include "attribute_access_intern.hh"
-
 namespace blender::bke {
 
 /* -------------------------------------------------------------------- */

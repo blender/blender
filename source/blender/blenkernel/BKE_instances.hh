@@ -33,6 +33,7 @@
 
 #include "BKE_attribute_filter.hh"
 #include "BKE_attribute_storage.hh"
+#include "BKE_geometry_set.hh"
 
 struct Object;
 struct Collection;

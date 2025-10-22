@@ -9,8 +9,6 @@
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 
-#include "attribute_access_intern.hh"
-
 namespace blender::bke {
 
 /* -------------------------------------------------------------------- */
