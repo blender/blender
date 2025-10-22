@@ -118,23 +118,12 @@ static void buttons_free(SpaceLink *sl)
     MEM_freeN(ct);
   }
 
-  if (sbuts->runtime != nullptr) {
-    MEM_SAFE_FREE(sbuts->runtime->tab_search_results);
-    MEM_freeN(sbuts->runtime);
-  }
+  MEM_SAFE_FREE(sbuts->runtime->tab_search_results);
+  MEM_delete(sbuts->runtime);
 }
 
 /* spacetype; init callback */
-static void buttons_init(wmWindowManager * /*wm*/, ScrArea *area)
-{
-  SpaceProperties *sbuts = (SpaceProperties *)area->spacedata.first;
-
-  if (sbuts->runtime == nullptr) {
-    sbuts->runtime = MEM_mallocN<SpaceProperties_Runtime>(__func__);
-    sbuts->runtime->search_string[0] = '\0';
-    sbuts->runtime->tab_search_results = BLI_BITMAP_NEW(BCONTEXT_TOT * 2, __func__);
-  }
-}
+static void buttons_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static SpaceLink *buttons_duplicate(SpaceLink *sl)
 {
@@ -144,11 +133,9 @@ static SpaceLink *buttons_duplicate(SpaceLink *sl)
   /* clear or remove stuff from old */
   sbutsn->path = nullptr;
   sbutsn->texuser = nullptr;
-  if (sfile_old->runtime != nullptr) {
-    sbutsn->runtime = static_cast<SpaceProperties_Runtime *>(MEM_dupallocN(sfile_old->runtime));
-    sbutsn->runtime->search_string[0] = '\0';
-    sbutsn->runtime->tab_search_results = BLI_BITMAP_NEW(BCONTEXT_TOT, __func__);
-  }
+  sbutsn->runtime = MEM_new<SpaceProperties_Runtime>(__func__, *sfile_old->runtime);
+  sbutsn->runtime->search_string[0] = '\0';
+  sbutsn->runtime->tab_search_results = BLI_BITMAP_NEW(BCONTEXT_TOT, __func__);
 
   return (SpaceLink *)sbutsn;
 }
@@ -345,16 +332,11 @@ int ED_buttons_search_string_length(SpaceProperties *sbuts)
 
 void ED_buttons_search_string_set(SpaceProperties *sbuts, const char *value)
 {
-  if (sbuts->runtime) {
-    STRNCPY_UTF8(sbuts->runtime->search_string, value);
-  }
+  STRNCPY_UTF8(sbuts->runtime->search_string, value);
 }
 
 bool ED_buttons_tab_has_search_result(SpaceProperties *sbuts, const int index)
 {
-  if (!sbuts->runtime) {
-    return false;
-  }
   return BLI_BITMAP_TEST(sbuts->runtime->tab_search_results, index);
 }
 
@@ -429,7 +411,7 @@ static void property_search_all_tabs(const bContext *C,
   SpaceProperties sbuts_copy = blender::dna::shallow_copy(*sbuts);
   sbuts_copy.path = nullptr;
   sbuts_copy.texuser = nullptr;
-  sbuts_copy.runtime = static_cast<SpaceProperties_Runtime *>(MEM_dupallocN(sbuts->runtime));
+  sbuts_copy.runtime = MEM_new<SpaceProperties_Runtime>(__func__, *sbuts->runtime);
   sbuts_copy.runtime->tab_search_results = nullptr;
   BLI_listbase_clear(&area_copy.spacedata);
   BLI_addtail(&area_copy.spacedata, &sbuts_copy);
@@ -1055,12 +1037,14 @@ static void buttons_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data
 static void buttons_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
 {
   SpaceProperties *sbuts = (SpaceProperties *)sl;
+  sbuts->runtime = MEM_new<SpaceProperties_Runtime>(__func__);
+  sbuts->runtime->search_string[0] = '\0';
+  sbuts->runtime->tab_search_results = BLI_BITMAP_NEW(BCONTEXT_TOT * 2, __func__);
 
   sbuts->path = nullptr;
   sbuts->texuser = nullptr;
   sbuts->mainbo = sbuts->mainb;
   sbuts->mainbuser = sbuts->mainb;
-  sbuts->runtime = nullptr;
 }
 
 static void buttons_space_blend_read_after_liblink(BlendLibReader * /*reader*/,

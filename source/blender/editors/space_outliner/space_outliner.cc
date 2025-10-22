@@ -385,6 +385,7 @@ static SpaceLink *outliner_create(const ScrArea * /*area*/, const Scene * /*scen
   SpaceOutliner *space_outliner;
 
   space_outliner = MEM_callocN<SpaceOutliner>("initoutliner");
+  space_outliner->runtime = MEM_new<SpaceOutliner_Runtime>(__func__);
   space_outliner->spacetype = SPACE_OUTLINER;
   space_outliner->filter_id_type = ID_GR;
   space_outliner->show_restrict_flags = SO_RESTRICT_ENABLE | SO_RESTRICT_HIDE | SO_RESTRICT_RENDER;
@@ -423,30 +424,18 @@ static void outliner_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void outliner_init(wmWindowManager * /*wm*/, ScrArea *area)
-{
-  SpaceOutliner *space_outliner = static_cast<SpaceOutliner *>(area->spacedata.first);
-
-  if (space_outliner->runtime == nullptr) {
-    space_outliner->runtime = MEM_new<SpaceOutliner_Runtime>("SpaceOutliner_Runtime");
-  }
-}
+static void outliner_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static SpaceLink *outliner_duplicate(SpaceLink *sl)
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
   SpaceOutliner *space_outliner_new = MEM_dupallocN<SpaceOutliner>(__func__, *space_outliner);
+  space_outliner_new->runtime = MEM_new<SpaceOutliner_Runtime>(__func__, *space_outliner->runtime);
 
   BLI_listbase_clear(&space_outliner_new->tree);
   space_outliner_new->treestore = nullptr;
 
   space_outliner_new->sync_select_dirty = WM_OUTLINER_SYNC_SELECT_FROM_ALL;
-
-  if (space_outliner->runtime) {
-    /* Copy constructor handles details. */
-    space_outliner_new->runtime = MEM_new<SpaceOutliner_Runtime>("SpaceOutliner_runtime dup",
-                                                                 *space_outliner->runtime);
-  }
 
   return (SpaceLink *)space_outliner_new;
 }
@@ -544,6 +533,7 @@ static void outliner_deactivate(ScrArea *area)
 static void outliner_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+  space_outliner->runtime = MEM_new<SpaceOutliner_Runtime>(__func__);
 
   /* use #BLO_read_get_new_data_address_no_us and do not free old memory avoiding double
    * frees and use of freed memory. this could happen because of a
@@ -569,7 +559,6 @@ static void outliner_space_blend_read_data(BlendDataReader *reader, SpaceLink *s
     space_outliner->storeflag |= SO_TREESTORE_CLEANUP; /* at first draw */
   }
   BLI_listbase_clear(&space_outliner->tree);
-  space_outliner->runtime = nullptr;
 }
 
 static void outliner_space_blend_read_after_liblink(BlendLibReader * /*reader*/,

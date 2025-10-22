@@ -686,11 +686,8 @@ void node_can_sync_cache_clear(Main &bmain)
         SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
         if (sl->spacetype == SPACE_NODE) {
           SpaceNode *snode = reinterpret_cast<SpaceNode *>(sl);
-          /* This may be called before runtime data is initialized currently. */
-          if (snode->runtime) {
-            Map<int, bool> &cache = ed::space_node::node_can_sync_cache_get(*snode);
-            cache.clear();
-          }
+          Map<int, bool> &cache = ed::space_node::node_can_sync_cache_get(*snode);
+          cache.clear();
         }
       }
     }
