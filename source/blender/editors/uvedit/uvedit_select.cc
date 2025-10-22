@@ -1605,9 +1605,6 @@ void uvedit_select_prepare_custom_data(const Scene *scene, BMesh *bm)
   const ToolSettings *ts = scene->toolsettings;
   BLI_assert((ts->uv_flag & UV_FLAG_SELECT_SYNC) == 0);
   UNUSED_VARS_NDEBUG(ts);
-  const char *active_uv_name = CustomData_get_active_layer_name(&bm->ldata, CD_PROP_FLOAT2);
-  BLI_assert(active_uv_name);
-  UNUSED_VARS_NDEBUG(active_uv_name);
 
   /* Needed because this data must *not* be used for select-sync
    * once this has been manipulated with select-sync disabled. */
