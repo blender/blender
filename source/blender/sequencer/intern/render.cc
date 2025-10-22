@@ -1737,15 +1737,15 @@ static ImBuf *do_render_strip_uncached(const RenderData *context,
           local_context.skip_cache = true;
 
           ibuf = do_render_strip_seqbase(&local_context, state, strip, frame_index);
-
-          /* step back in the list */
-          state->scene_parents = state->scene_parents->next;
         }
       }
       else {
         /* scene can be nullptr after deletions */
         ibuf = seq_render_scene_strip(context, strip, frame_index, timeline_frame);
       }
+
+      /* Step back in the recursive check list. */
+      state->scene_parents = state->scene_parents->next;
     }
   }
   else if (strip->is_effect()) {
