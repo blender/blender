@@ -108,6 +108,7 @@ struct BuildDirCtx {
  */
 static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
 {
+  BLI_assert(!BLI_path_is_rel(dirname));
   DIR *dir = opendir(dirname);
   if (UNLIKELY(dir == nullptr)) {
     fprintf(stderr,

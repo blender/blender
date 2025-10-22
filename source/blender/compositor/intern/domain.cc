@@ -26,6 +26,13 @@ void Domain::transform(const float3x3 &input_transformation)
   transformation = input_transformation * transformation;
 }
 
+Domain Domain::transposed() const
+{
+  Domain domain = *this;
+  domain.size = int2(this->size.y, this->size.x);
+  return domain;
+}
+
 Domain Domain::identity()
 {
   return Domain(int2(1), float3x3::identity());

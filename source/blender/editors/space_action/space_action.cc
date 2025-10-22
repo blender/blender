@@ -62,11 +62,23 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
   saction = MEM_callocN<SpaceAction>("initaction");
   saction->spacetype = SPACE_ACTION;
 
+  const eAnimEdit_Context desired_mode = area ? eAnimEdit_Context(area->butspacetype_subtype) :
+                                                SACTCONT_DOPESHEET;
+  const bool is_timeline = (desired_mode == SACTCONT_TIMELINE);
+
+  /* This should always set to SACTCONT_DOPESHEET, regardless of what the desired_mode is set to.
+   * Not for fundamental reasons, but to make it safe to call this function with an invalid value
+   * in desired_mode. I (Sybren) have no idea if that's ever going to happen, but in this case I'm
+   * sticking as close as possible to what Blender 4.5 was already doing. Once this function
+   * returns, ED_area_newspace() will call action_space_subtype_set() to set the sub-type. */
   saction->mode = SACTCONT_DOPESHEET;
   saction->mode_prev = SACTCONT_DOPESHEET;
   saction->flag = SACTION_SHOW_INTERPOLATION | SACTION_SHOW_MARKERS;
 
   saction->ads.filterflag |= ADS_FILTER_SUMMARY;
+  if (is_timeline) {
+    saction->ads.filterflag |= ADS_FLAG_SUMMARY_COLLAPSED;
+  }
 
   saction->cache_display = TIME_CACHE_DISPLAY | TIME_CACHE_SOFTBODY | TIME_CACHE_PARTICLES |
                            TIME_CACHE_CLOTH | TIME_CACHE_SMOKE | TIME_CACHE_DYNAMICPAINT |
@@ -93,6 +105,8 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
   BLI_addtail(&saction->regionbase, region);
   region->regiontype = RGN_TYPE_CHANNELS;
   region->alignment = RGN_ALIGN_LEFT;
+  /* Channel list is hidden by default in timeline mode, and visible in other modes. */
+  region->flag |= is_timeline ? RGN_FLAG_HIDDEN : 0;
 
   /* Only need to set scroll settings, as this will use `listview` v2d configuration. */
   region->v2d.scroll = V2D_SCROLL_BOTTOM;
@@ -765,6 +779,13 @@ static void action_footer_region_listener(const wmRegionListenerParams *params)
   }
 }
 
+static bool action_region_poll_hide_in_timeline(const RegionPollParams *params)
+{
+  BLI_assert(params->area->spacetype == SPACE_ACTION);
+  const SpaceAction *saction = static_cast<const SpaceAction *>(params->area->spacedata.first);
+  return saction->mode != SACTCONT_TIMELINE;
+}
+
 /* add handlers, stuff you only do once or on area/region changes */
 static void action_buttons_area_init(wmWindowManager *wm, ARegion *region)
 {
@@ -873,6 +894,54 @@ static void action_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
   }
 }
 
+static int action_space_subtype_get(ScrArea *area)
+{
+  SpaceAction *sact = static_cast<SpaceAction *>(area->spacedata.first);
+  return sact->mode == SACTCONT_TIMELINE ? SACTCONT_TIMELINE : SACTCONT_DOPESHEET;
+}
+
+static void action_space_subtype_set(ScrArea *area, int value)
+{
+  SpaceAction *sact = static_cast<SpaceAction *>(area->spacedata.first);
+  if (value == SACTCONT_TIMELINE) {
+    /* Switching to the timeline. Remember what the current mode of the dope sheet is. */
+    if (sact->mode != SACTCONT_TIMELINE) {
+      sact->mode_prev = sact->mode;
+    }
+    sact->mode = SACTCONT_TIMELINE;
+  }
+  else {
+    /* Switching to the 'Dope Sheet' editor, so switch to the last-used mode. Unless that was
+     * Timeline, don't use the 'subtype' switch to go back to that; if the user wanted that, we'd
+     * be in the `if` case above.  */
+    sact->mode = (sact->mode_prev == SACTCONT_TIMELINE) ? SACTCONT_DOPESHEET :
+                                                          eAnimEdit_Context(sact->mode_prev);
+  }
+}
+
+static void action_space_subtype_item_extend(bContext * /*C*/,
+                                             EnumPropertyItem **item,
+                                             int *totitem)
+{
+  RNA_enum_items_add(item, totitem, rna_enum_space_action_mode_items);
+}
+
+static blender::StringRefNull action_space_name_get(const ScrArea *area)
+{
+  SpaceAction *sact = static_cast<SpaceAction *>(area->spacedata.first);
+  const int index = max_ii(0, RNA_enum_from_value(rna_enum_space_action_mode_items, sact->mode));
+  const EnumPropertyItem item = rna_enum_space_action_mode_items[index];
+  return item.name;
+}
+
+static int action_space_icon_get(const ScrArea *area)
+{
+  SpaceAction *sact = static_cast<SpaceAction *>(area->spacedata.first);
+  const int index = max_ii(0, RNA_enum_from_value(rna_enum_space_action_mode_items, sact->mode));
+  const EnumPropertyItem item = rna_enum_space_action_mode_items[index];
+  return item.icon;
+}
+
 static void action_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
 {
   SpaceAction *saction = (SpaceAction *)sl;
@@ -902,6 +971,11 @@ void ED_spacetype_action()
   st->refresh = action_refresh;
   st->id_remap = action_id_remap;
   st->foreach_id = action_foreach_id;
+  st->space_subtype_item_extend = action_space_subtype_item_extend;
+  st->space_subtype_get = action_space_subtype_get;
+  st->space_subtype_set = action_space_subtype_set;
+  st->space_name_get = action_space_name_get;
+  st->space_icon_get = action_space_icon_get;
   st->blend_read_data = action_space_blend_read_data;
   st->blend_read_after_liblink = nullptr;
   st->blend_write = action_space_blend_write;
@@ -936,6 +1010,7 @@ void ED_spacetype_action()
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER | ED_KEYMAP_FRAMES;
   art->init = action_header_region_init;
+  art->poll = action_region_poll_hide_in_timeline;
   art->draw = action_header_region_draw;
   art->listener = action_footer_region_listener;
 
@@ -962,6 +1037,7 @@ void ED_spacetype_action()
   art->listener = action_region_listener;
   art->init = action_buttons_area_init;
   art->draw = action_buttons_area_draw;
+  art->poll = action_region_poll_hide_in_timeline;
 
   BLI_addhead(&st->regiontypes, art);
 

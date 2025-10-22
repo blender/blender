@@ -138,23 +138,31 @@ GPU_SHADER_CREATE_END()
 /** \name Variations Declaration
  * \{ */
 
-#define WORKBENCH_VOLUME_SLICE_VARIATIONS(prefix, ...) \
-  CREATE_INFO_VARIANT(prefix##_slice, workbench_volume_slice, __VA_ARGS__) \
-  CREATE_INFO_VARIANT(prefix##_no_slice, __VA_ARGS__)
-
-#define WORKBENCH_VOLUME_COBA_VARIATIONS(prefix, ...) \
-  WORKBENCH_VOLUME_SLICE_VARIATIONS(prefix##_coba, workbench_volume_coba, __VA_ARGS__) \
-  WORKBENCH_VOLUME_SLICE_VARIATIONS(prefix##_no_coba, workbench_volume_no_coba, __VA_ARGS__)
-
-#define WORKBENCH_VOLUME_INTERP_VARIATIONS(prefix, ...) \
-  WORKBENCH_VOLUME_COBA_VARIATIONS(prefix##_linear, workbench_volume_linear, __VA_ARGS__) \
-  WORKBENCH_VOLUME_COBA_VARIATIONS(prefix##_cubic, workbench_volume_cubic, __VA_ARGS__) \
-  WORKBENCH_VOLUME_COBA_VARIATIONS(prefix##_closest, workbench_volume_closest, __VA_ARGS__)
-
-#define WORKBENCH_VOLUME_SMOKE_VARIATIONS(prefix, ...) \
-  WORKBENCH_VOLUME_INTERP_VARIATIONS(prefix##_smoke, workbench_volume_smoke, __VA_ARGS__) \
-  WORKBENCH_VOLUME_INTERP_VARIATIONS(prefix##_object, workbench_volume_object, __VA_ARGS__)
-
-WORKBENCH_VOLUME_SMOKE_VARIATIONS(workbench_volume, workbench_volume)
+/* clang-format off */
+CREATE_INFO_VARIANT(workbench_volume_smoke_linear_coba_slice, workbench_volume_slice, workbench_volume_coba, workbench_volume_linear, workbench_volume_smoke, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_smoke_linear_coba_no_slice, workbench_volume_coba, workbench_volume_linear, workbench_volume_smoke, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_smoke_linear_no_coba_slice, workbench_volume_slice, workbench_volume_no_coba, workbench_volume_linear, workbench_volume_smoke, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_smoke_linear_no_coba_no_slice, workbench_volume_no_coba, workbench_volume_linear, workbench_volume_smoke, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_smoke_cubic_coba_slice, workbench_volume_slice, workbench_volume_coba, workbench_volume_cubic, workbench_volume_smoke, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_smoke_cubic_coba_no_slice, workbench_volume_coba, workbench_volume_cubic, workbench_volume_smoke, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_smoke_cubic_no_coba_slice, workbench_volume_slice, workbench_volume_no_coba, workbench_volume_cubic, workbench_volume_smoke, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_smoke_cubic_no_coba_no_slice, workbench_volume_no_coba, workbench_volume_cubic, workbench_volume_smoke, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_smoke_closest_coba_slice, workbench_volume_slice, workbench_volume_coba, workbench_volume_closest, workbench_volume_smoke, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_smoke_closest_coba_no_slice, workbench_volume_coba, workbench_volume_closest, workbench_volume_smoke, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_smoke_closest_no_coba_slice, workbench_volume_slice, workbench_volume_no_coba, workbench_volume_closest, workbench_volume_smoke, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_smoke_closest_no_coba_no_slice, workbench_volume_no_coba, workbench_volume_closest, workbench_volume_smoke, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_object_linear_coba_slice, workbench_volume_slice, workbench_volume_coba, workbench_volume_linear, workbench_volume_object, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_object_linear_coba_no_slice, workbench_volume_coba, workbench_volume_linear, workbench_volume_object, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_object_linear_no_coba_slice, workbench_volume_slice, workbench_volume_no_coba, workbench_volume_linear, workbench_volume_object, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_object_linear_no_coba_no_slice, workbench_volume_no_coba, workbench_volume_linear, workbench_volume_object, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_object_cubic_coba_slice, workbench_volume_slice, workbench_volume_coba, workbench_volume_cubic, workbench_volume_object, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_object_cubic_coba_no_slice, workbench_volume_coba, workbench_volume_cubic, workbench_volume_object, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_object_cubic_no_coba_slice, workbench_volume_slice, workbench_volume_no_coba, workbench_volume_cubic, workbench_volume_object, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_object_cubic_no_coba_no_slice, workbench_volume_no_coba, workbench_volume_cubic, workbench_volume_object, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_object_closest_coba_slice, workbench_volume_slice, workbench_volume_coba, workbench_volume_closest, workbench_volume_object, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_object_closest_coba_no_slice, workbench_volume_coba, workbench_volume_closest, workbench_volume_object, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_object_closest_no_coba_slice, workbench_volume_slice, workbench_volume_no_coba, workbench_volume_closest, workbench_volume_object, workbench_volume)
+CREATE_INFO_VARIANT(workbench_volume_object_closest_no_coba_no_slice, workbench_volume_no_coba, workbench_volume_closest, workbench_volume_object, workbench_volume)
+/* clang-format on */
 
 /** \} */

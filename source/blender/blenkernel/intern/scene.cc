@@ -42,6 +42,7 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
 
+#include "BLI_function_ref.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
@@ -1988,11 +1989,45 @@ bool BKE_scene_can_be_removed(const Main *bmain, const Scene *scene)
   }
   /* Local scenes can only be removed, when there is at least one local scene left. */
   LISTBASE_FOREACH (Scene *, other_scene, &bmain->scenes) {
-    if (other_scene != scene && !ID_IS_LINKED(other_scene)) {
+    if (ID_IS_LINKED(other_scene)) {
+      /* Once the first linked scene is reached, there is no more local ones to check, so at this
+       * point there is no other local scene and the given one cannot be deleted. */
+      break;
+    }
+    if (other_scene != scene) {
       return true;
     }
   }
   return false;
+}
+
+Scene *BKE_scene_find_replacement(const Main &bmain,
+                                  const Scene &scene,
+                                  blender::FunctionRef<bool(const Scene &scene)> scene_validate_cb)
+{
+  BLI_assert(BLI_findindex(&bmain.scenes, &scene) >= 0);
+
+  /* Simply return a closest neighbor scene, unless a validate callback is provided and it rejects
+   * the iterated scene. */
+  for (Scene *scene_iter = static_cast<Scene *>(scene.id.prev); scene_iter != nullptr;
+       scene_iter = static_cast<Scene *>(scene_iter->id.prev))
+  {
+    if (scene_validate_cb && !scene_validate_cb(*scene_iter)) {
+      continue;
+    }
+    return scene_iter;
+  }
+
+  for (Scene *scene_iter = static_cast<Scene *>(scene.id.next); scene_iter != nullptr;
+       scene_iter = static_cast<Scene *>(scene_iter->id.next))
+  {
+    if (scene_validate_cb && !scene_validate_cb(*scene_iter)) {
+      continue;
+    }
+    return scene_iter;
+  }
+
+  return nullptr;
 }
 
 Scene *BKE_scene_add(Main *bmain, const char *name)

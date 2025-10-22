@@ -522,16 +522,16 @@ void read_velocity(const V3fArraySamplePtr &velocities,
     return;
   }
 
-  AttributeOwner owner = AttributeOwner::from_id(&config.mesh->id);
-  CustomDataLayer *velocity_layer = BKE_attribute_new(
-      owner, "velocity", CD_PROP_FLOAT3, bke::AttrDomain::Point, nullptr);
-  float (*velocity)[3] = (float (*)[3])velocity_layer->data;
-
+  bke::MutableAttributeAccessor attributes = config.mesh->attributes_for_write();
+  bke::SpanAttributeWriter attr = attributes.lookup_or_add_for_write_span<float3>(
+      "velocity", bke::AttrDomain::Point);
+  MutableSpan<float3> velocity = attr.span;
   for (int i = 0; i < num_velocity_vectors; i++) {
     const Imath::V3f &vel_in = (*velocities)[i];
     copy_zup_from_yup(velocity[i], vel_in.getValue());
     mul_v3_fl(velocity[i], velocity_scale);
   }
+  attr.finish();
 }
 
 void read_generated_coordinates(const ICompoundProperty &prop,

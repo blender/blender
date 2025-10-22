@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2024 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
+
 set(INC_GLSL
   .
   ..
@@ -11,6 +12,7 @@ set(INC_GLSL
   ../../gpu/shaders/common
   ../../gpu/shaders/infos
 )
+
 set(SRC_GLSL_COMP
 # TODO: Port to C++ compilation
 #   compositor_alpha_crop.glsl
@@ -86,7 +88,7 @@ set(SRC_GLSL_COMP
 #   compositor_movie_distortion.glsl
 #   compositor_normalize.glsl
 #   compositor_pad.glsl
-#   compositor_parallel_reduction.glsl
+  compositor_parallel_reduction.glsl
 #   compositor_pixelate.glsl
 #   compositor_plane_deform_anisotropic.glsl
 #   compositor_plane_deform_mask.glsl
@@ -123,13 +125,16 @@ set(SRC_GLSL_COMP
 #   compositor_z_combine_simple_depth.glsl
 #   compositor_z_combine_simple_image.glsl
 )
+
 set(SRC_GLSL_LIB
   library/gpu_shader_compositor_texture_utilities.glsl
 )
+
 # Compile shaders with shader code.
 if(WITH_GPU_SHADER_CPP_COMPILATION)
   with_shader_cpp_compilation_config()
-  #compile_sources_as_cpp(compositor_cpp_shaders_comp "${SRC_GLSL_COMP}" "GPU_COMPUTE_SHADER")
+
+  compile_sources_as_cpp(compositor_cpp_shaders_comp "${SRC_GLSL_COMP}" "GPU_COMPUTE_SHADER")
   # Only enable to make sure they compile on their own.
   # Otherwise it creates a warning about `pragma once`.
   compile_sources_as_cpp(compositor_cpp_shaders_lib "${SRC_GLSL_LIB}" "GPU_LIBRARY_SHADER")

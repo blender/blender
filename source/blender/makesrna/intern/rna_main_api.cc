@@ -90,6 +90,7 @@
 #  include "DNA_world_types.h"
 
 #  include "ED_node.hh"
+#  include "ED_scene.hh"
 #  include "ED_screen.hh"
 
 #  include "BLT_translation.hh"
@@ -200,61 +201,23 @@ static void rna_Main_scenes_remove(
   Scene *scene = static_cast<Scene *>(scene_ptr->data);
 
   if (BKE_scene_can_be_removed(bmain, scene)) {
-    Scene *scene_new = static_cast<Scene *>(scene->id.prev ? scene->id.prev : scene->id.next);
     if (do_unlink) {
-      /* Don't rely on `CTX_wm_window(C)` as it may have been cleared,
-       * yet windows may still be open that reference this scene. */
-      wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-
-      /* Cancel animation playback. */
-      if (bScreen *screen = ED_screen_animation_playing(wm)) {
-        ScreenAnimData *sad = static_cast<ScreenAnimData *>(screen->animtimer->customdata);
-        if (sad->scene == scene) {
-#  ifdef WITH_PYTHON
-          BPy_BEGIN_ALLOW_THREADS;
-#  endif
-
-          ED_screen_animation_play(C, 0, 0);
-
-#  ifdef WITH_PYTHON
-          BPy_END_ALLOW_THREADS;
-#  endif
-        }
-      }
-
-      LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-        if (WM_window_get_active_scene(win) == scene) {
-#  ifdef WITH_PYTHON
-          BPy_BEGIN_ALLOW_THREADS;
-#  endif
-
-          WM_window_set_active_scene(bmain, C, win, scene_new);
-
-#  ifdef WITH_PYTHON
-          BPy_END_ALLOW_THREADS;
-#  endif
-        }
-      }
-      if (CTX_data_scene(C) == scene) {
-#  ifdef WITH_PYTHON
-        BPy_BEGIN_ALLOW_THREADS;
-#  endif
-
-        CTX_data_scene_set(C, scene_new);
-
-#  ifdef WITH_PYTHON
-        BPy_END_ALLOW_THREADS;
-#  endif
+      Scene *scene_new = BKE_scene_find_replacement(*bmain, *scene);
+      if (scene_new && ED_scene_replace_active_for_deletion(*C, *bmain, *scene, scene_new)) {
+        rna_Main_ID_remove(bmain, reports, scene_ptr, do_unlink, true, true);
+        return;
       }
     }
-    rna_Main_ID_remove(bmain, reports, scene_ptr, do_unlink, true, true);
+    else {
+      rna_Main_ID_remove(bmain, reports, scene_ptr, do_unlink, true, true);
+      return;
+    }
   }
-  else {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Scene '%s' is the last local one, cannot be removed",
-                scene->id.name + 2);
-  }
+
+  BKE_reportf(reports,
+              RPT_ERROR,
+              "Scene '%s' is the last local one, cannot be removed",
+              scene->id.name + 2);
 }
 
 static Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char *name, ID *data)

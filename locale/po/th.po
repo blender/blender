@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 16:12+0000\n"
+"POT-Creation-Date: 2025-10-20 08:46+0000\n"
 "PO-Revision-Date: 2025-07-23 15:06+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -1881,20 +1881,20 @@ msgid "Layout"
 msgstr "เค้าโครง"
 
 
-msgid "Names"
-msgstr "ชื่อ"
-
-
 msgid "Keying"
 msgstr "คีย์"
 
 
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
+msgid "Names"
+msgstr "ชื่อ"
 
 
 msgid "Math"
 msgstr "คณิตศาสตร์"
+
+
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
 
 
 msgid "Merge"
@@ -1921,12 +1921,12 @@ msgid "Mask Edit"
 msgstr "การแก้ไขหน้ากาก"
 
 
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
-
-
 msgid "Import"
 msgstr "นำเข้า"
+
+
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
 
 
 msgid "Local View"
@@ -1941,6 +1941,10 @@ msgid "Navigation"
 msgstr "การนำทาง"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Align View"
 msgstr "จัดมุมมอง"
 
@@ -1951,10 +1955,6 @@ msgstr "จัดมุมมองไปยังที่วัตถุใช
 
 msgid "View Regions"
 msgstr "ขอบเขตมุมมอง"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Zoom"

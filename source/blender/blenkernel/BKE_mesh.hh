@@ -378,6 +378,14 @@ inline int edge_other_vert(const int2 edge, const int vert)
 
 /** \} */
 
+/** Whether the meta-data refers to a float2 type on the face corner domain. */
+bool is_uv_map(const AttributeMetaData &meta_data);
+bool is_uv_map(const std::optional<AttributeMetaData> &meta_data);
+
+/** Whether the meta-data refers to a color type on the point or corner domain. */
+bool is_color_attribute(const AttributeMetaData &meta_data);
+bool is_color_attribute(const std::optional<AttributeMetaData> &meta_data);
+
 }  // namespace mesh
 
 /** Create a mesh with no built-in attributes. */

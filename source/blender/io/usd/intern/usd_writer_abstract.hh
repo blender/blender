@@ -123,6 +123,8 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
   void author_extent(const pxr::UsdGeomBoundable &boundable,
                      const std::optional<Bounds<float3>> &bounds,
                      const pxr::UsdTimeCode time);
+
+  void add_to_prim_map(const pxr::SdfPath &usd_path, const ID *id) const;
 };
 
 }  // namespace blender::io::usd

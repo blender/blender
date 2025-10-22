@@ -2595,6 +2595,14 @@ static void rna_Node_select_set(PointerRNA *ptr, bool value)
   blender::bke::node_set_selected(*node, value);
 }
 
+static void rna_Node_mute_set(PointerRNA *ptr, bool value)
+{
+  bNode *node = ptr->data_as<bNode>();
+  if (!node->typeinfo->no_muting) {
+    SET_FLAG_FROM_TEST(node->flag, value, NODE_MUTED);
+  }
+}
+
 static void rna_Node_name_set(PointerRNA *ptr, const char *value)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
@@ -8988,6 +8996,7 @@ static void rna_def_node(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", NODE_MUTED);
+  RNA_def_property_boolean_funcs(prop, nullptr, "rna_Node_mute_set");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Mute", "");
   RNA_def_property_update(prop, 0, "rna_Node_update");

@@ -339,6 +339,7 @@ static bool freeze_frame_add_new_for_strip(const bContext *C,
     return false;
   }
 
+  seq::retiming_selection_remove(key);
   SeqRetimingKey *freeze = seq::retiming_add_freeze_frame(scene, strip, key, duration);
 
   if (freeze == nullptr) {

@@ -69,10 +69,13 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 #  include "BKE_attribute.hh"
 #  include "BKE_colorband.hh"
 #  include "BKE_context.hh"
+#  include "BKE_editmesh.hh"
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_grease_pencil.hh"
 #  include "BKE_main.hh"
 #  include "BKE_material.hh"
+#  include "BKE_mesh.hh"
+#  include "BKE_mesh_types.hh"
 #  include "BKE_node.hh"
 #  include "BKE_paint.hh"
 #  include "BKE_scene.hh"
@@ -150,6 +153,7 @@ static void rna_Material_texpaint_begin(CollectionPropertyIterator *iter, Pointe
 
 static void rna_Material_active_paint_texture_index_update(bContext *C, PointerRNA *ptr)
 {
+  using namespace blender;
   Main *bmain = CTX_data_main(C);
   Material *ma = (Material *)ptr->owner_id;
 
@@ -169,14 +173,22 @@ static void rna_Material_active_paint_texture_index_update(bContext *C, PointerR
     }
 
     /* For compatibility reasons with vertex paint we activate the color attribute. */
-    if (slot->attribute_name) {
+    if (const char *name = slot->attribute_name) {
       Object *ob = CTX_data_active_object(C);
       if (ob != nullptr && ob->type == OB_MESH) {
         Mesh *mesh = static_cast<Mesh *>(ob->data);
-        const CustomDataLayer *layer = BKE_id_attributes_color_find(&mesh->id,
-                                                                    slot->attribute_name);
-        if (layer != nullptr) {
-          BKE_id_attributes_active_color_set(&mesh->id, layer->name);
+        if (mesh->runtime->edit_mesh) {
+          if (const BMDataLayerLookup attr = BM_data_layer_lookup(*mesh->runtime->edit_mesh->bm,
+                                                                  name))
+          {
+            BKE_id_attributes_active_color_set(&mesh->id, name);
+          }
+        }
+        else {
+          const bke::AttributeAccessor attributes = mesh->attributes();
+          if (bke::mesh::is_color_attribute(attributes.lookup_meta_data(name))) {
+            BKE_id_attributes_active_color_set(&mesh->id, name);
+          }
         }
         DEG_id_tag_update(&ob->id, 0);
         WM_main_add_notifier(NC_GEOM | ND_DATA, &ob->id);

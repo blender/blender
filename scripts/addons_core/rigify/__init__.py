@@ -483,6 +483,8 @@ class RigifyBoneCollectionReference(bpy.types.PropertyGroup):
     uid: IntProperty(name="Unique ID", default=-1)
 
     def find_collection(self, *, update=False, raise_error=False) -> bpy.types.BoneCollection | None:
+        if self.uid < 0:
+            return None
         return utils.layers.resolve_collection_reference(self.id_data, self, update=update, raise_error=raise_error)
 
     def set_collection(self, coll: bpy.types.BoneCollection | None):

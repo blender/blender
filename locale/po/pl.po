@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 16:12+0000\n"
+"POT-Creation-Date: 2025-10-20 08:46+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -9452,10 +9452,6 @@ msgid "Smooth"
 msgstr "Gładki"
 
 
-msgid "Direction"
-msgstr "Kierunek"
-
-
 msgctxt "Brush"
 msgid "Draw"
 msgstr "Rysowanie"
@@ -10753,6 +10749,10 @@ msgid "Image Preview"
 msgstr "Podgląd obrazu"
 
 
+msgid "Direction"
+msgstr "Kierunek"
+
+
 msgctxt "UI_Events_KeyMaps"
 msgid "Key Modifier"
 msgstr "Modyfikator klawisza"
@@ -11531,6 +11531,10 @@ msgid "Mask"
 msgstr "Maska"
 
 
+msgid "Assign Material"
+msgstr "Przypisanie materiału"
+
+
 msgid "Metaball"
 msgstr "Metakula"
 
@@ -11591,12 +11595,12 @@ msgid "Utilities"
 msgstr "Narzędzia"
 
 
-msgid "Face Data"
-msgstr "Dane ściany"
-
-
 msgid "Math"
 msgstr "Matematyka"
+
+
+msgid "Face Data"
+msgstr "Dane ściany"
 
 
 msgid "Merge"
@@ -11607,14 +11611,6 @@ msgid "Text"
 msgstr "Tekst"
 
 
-msgid "Snap"
-msgstr "Przyciągnij"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proporcjonalne edytowanie spadku"
-
-
 msgid "Read"
 msgstr "Odczyt"
 
@@ -11623,16 +11619,28 @@ msgid "Write"
 msgstr "Zapis"
 
 
+msgid "Snap"
+msgstr "Przyciągnij"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proporcjonalne edytowanie spadku"
+
+
 msgid "Gizmo"
 msgstr "Gizmo"
 
 
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
-
-
 msgid "Import"
 msgstr "Importuj"
+
+
+msgid "Deprecated"
+msgstr "Przestarzałe"
+
+
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
 
 
 msgid "Local View"
@@ -11647,16 +11655,8 @@ msgid "Navigation"
 msgstr "Nawigacja"
 
 
-msgid "Deprecated"
-msgstr "Przestarzałe"
-
-
 msgid "Select Linked"
 msgstr "Zaznacz powiązane"
-
-
-msgid "Assign Material"
-msgstr "Przypisanie materiału"
 
 
 msgid "Catalog"
@@ -19351,14 +19351,14 @@ msgid "Columns"
 msgstr "Kolumny"
 
 
-msgctxt "Sequence"
-msgid "Scene"
-msgstr "Scena"
-
-
 msgctxt "Color"
 msgid "Value"
 msgstr "Wartość"
+
+
+msgctxt "Sequence"
+msgid "Scene"
+msgstr "Scena"
 
 
 msgid "Anchor X"

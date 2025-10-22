@@ -21,4 +21,9 @@ ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_facing, overlay_facing_base)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_facing, overlay_facing_base, draw_modelmat)
+CREATE_INFO_VARIANT(overlay_facing_selectable, overlay_facing_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_facing_clipped, overlay_facing, drw_clipped)
+CREATE_INFO_VARIANT(overlay_facing_selectable_clipped, overlay_facing_selectable, drw_clipped)
+/* clang-format on */

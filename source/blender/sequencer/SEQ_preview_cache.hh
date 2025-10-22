@@ -20,11 +20,17 @@ class Texture;
 
 namespace blender::seq {
 
-gpu::Texture *preview_cache_get_gpu_texture(Scene *scene, int timeline_frame);
-void preview_cache_set_gpu_texture(Scene *scene, int timeline_frame, gpu::Texture *texture);
-gpu::Texture *preview_cache_get_gpu_display_texture(Scene *scene, int timeline_frame);
+gpu::Texture *preview_cache_get_gpu_texture(Scene *scene, int timeline_frame, int display_channel);
+void preview_cache_set_gpu_texture(Scene *scene,
+                                   int timeline_frame,
+                                   int display_channel,
+                                   gpu::Texture *texture);
+gpu::Texture *preview_cache_get_gpu_display_texture(Scene *scene,
+                                                    int timeline_frame,
+                                                    int display_channel);
 void preview_cache_set_gpu_display_texture(Scene *scene,
                                            int timeline_frame,
+                                           int display_channel,
                                            gpu::Texture *texture);
 
 void preview_cache_invalidate(Scene *scene);

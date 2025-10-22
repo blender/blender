@@ -691,6 +691,7 @@ class SocketUsageInferencerImpl {
                                                      {socket.context, internal_link.fromsock});
       return;
     }
+    all_socket_disable_states_.add_new(socket, false);
   }
 
   void disabled_output_task__output__group_node(const SocketInContext &socket)

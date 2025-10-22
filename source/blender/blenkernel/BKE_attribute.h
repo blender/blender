@@ -103,11 +103,6 @@ struct CustomDataLayer *BKE_attribute_duplicate(AttributeOwner &owner,
                                                 blender::StringRef name,
                                                 struct ReportList *reports);
 
-struct CustomDataLayer *BKE_attribute_find(const AttributeOwner &owner,
-                                           blender::StringRef name,
-                                           eCustomDataType type,
-                                           blender::bke::AttrDomain domain);
-
 const struct CustomDataLayer *BKE_attribute_search(const AttributeOwner &owner,
                                                    blender::StringRef name,
                                                    eCustomDataMask type,

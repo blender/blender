@@ -266,7 +266,7 @@ static short pose_grab_with_ik(Main *bmain, Object *ob)
    * (but they must be selected, and only one ik-solver per chain should get added). */
   LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     if (BKE_pose_is_bonecoll_visible(arm, pchan)) {
-      if ((pchan->flag & POSE_SELECTED) && (pchan->bone->flag & BONE_TRANSFORM_MIRROR)) {
+      if ((pchan->flag & POSE_SELECTED) || (pchan->bone->flag & BONE_TRANSFORM_MIRROR)) {
         /* Rule: no IK for solitary (unconnected) bones. */
         for (bonec = static_cast<Bone *>(pchan->bone->childbase.first); bonec; bonec = bonec->next)
         {
@@ -283,7 +283,7 @@ static short pose_grab_with_ik(Main *bmain, Object *ob)
           /* Only adds if there's no IK yet (and no parent bone was selected). */
           bPoseChannel *parent;
           for (parent = pchan->parent; parent; parent = parent->parent) {
-            if ((parent->flag & POSE_SELECTED) && (parent->bone->flag & BONE_TRANSFORM_MIRROR)) {
+            if ((parent->flag & POSE_SELECTED) || (parent->bone->flag & BONE_TRANSFORM_MIRROR)) {
               break;
             }
           }

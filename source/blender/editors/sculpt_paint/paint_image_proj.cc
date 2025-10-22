@@ -56,6 +56,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_brush.hh"
 #include "BKE_camera.h"
 #include "BKE_colorband.hh"
@@ -6622,7 +6623,7 @@ static Image *proj_paint_image_create(wmOperator *op, Main *bmain, bool is_data)
 /**
  * \return The name of the new attribute.
  */
-static const char *proj_paint_color_attribute_create(wmOperator *op, Object &ob)
+static std::optional<std::string> proj_paint_color_attribute_create(wmOperator *op, Object &ob)
 {
   using namespace blender;
   char name[MAX_NAME] = "";
@@ -6639,19 +6640,22 @@ static const char *proj_paint_color_attribute_create(wmOperator *op, Object &ob)
 
   Mesh *mesh = static_cast<Mesh *>(ob.data);
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
-  const CustomDataLayer *layer = BKE_attribute_new(owner, name, type, domain, op->reports);
-  if (!layer) {
-    return nullptr;
+  std::string unique_name = BKE_attribute_calc_unique_name(owner, name);
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::GSpanAttributeWriter attr = attributes.lookup_or_add_for_write_span(
+      unique_name, domain, *bke::custom_data_type_to_attr_type(type));
+  if (!attr) {
+    return std::nullopt;
   }
 
-  BKE_id_attributes_active_color_set(&mesh->id, layer->name);
+  BKE_id_attributes_active_color_set(&mesh->id, unique_name);
   if (!mesh->default_color_attribute) {
-    BKE_id_attributes_default_color_set(&mesh->id, layer->name);
+    BKE_id_attributes_default_color_set(&mesh->id, unique_name);
   }
 
   ed::sculpt_paint::object_active_color_fill(ob, color, false);
 
-  return layer->name;
+  return unique_name;
 }
 
 /**
@@ -6767,8 +6771,8 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
       }
       case PAINT_CANVAS_SOURCE_COLOR_ATTRIBUTE: {
         new_node = blender::bke::node_add_static_node(C, *ntree, SH_NODE_ATTRIBUTE);
-        if (const char *name = proj_paint_color_attribute_create(op, *ob)) {
-          STRNCPY_UTF8(((NodeShaderAttribute *)new_node->storage)->name, name);
+        if (const std::optional<std::string> name = proj_paint_color_attribute_create(op, *ob)) {
+          STRNCPY_UTF8(((NodeShaderAttribute *)new_node->storage)->name, name->c_str());
         }
         break;
       }

@@ -498,7 +498,7 @@ static bool bake_object_check(const Scene *scene,
   }
 
   if (target == R_BAKE_TARGET_VERTEX_COLORS) {
-    if (!BKE_id_attributes_color_find(&mesh->id, mesh->active_color_attribute)) {
+    if (!BKE_color_attribute_supported(*mesh, mesh->active_color_attribute)) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "Mesh does not have an active color attribute \"%s\"",
@@ -1017,7 +1017,7 @@ static bool bake_targets_init_vertex_colors(Main *bmain,
   }
 
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  if (!BKE_id_attributes_color_find(&mesh->id, mesh->active_color_attribute)) {
+  if (!BKE_color_attribute_supported(*mesh, mesh->active_color_attribute)) {
     BKE_report(reports, RPT_ERROR, "No active color attribute to bake to");
     return false;
   }
@@ -1178,19 +1178,19 @@ static void bake_result_add_to_rgba(float rgba[4], const float *result, const in
   }
 }
 
-static void convert_float_color_to_byte_color(const MPropCol *float_colors,
+static void convert_float_color_to_byte_color(const ColorGeometry4f *float_colors,
                                               const int num,
                                               const bool is_noncolor,
-                                              MLoopCol *byte_colors)
+                                              ColorGeometry4b *byte_colors)
 {
   if (is_noncolor) {
     for (int i = 0; i < num; i++) {
-      unit_float_to_uchar_clamp_v4(&byte_colors->r, float_colors[i].color);
+      unit_float_to_uchar_clamp_v4(&byte_colors->r, float_colors[i]);
     }
   }
   else {
     for (int i = 0; i < num; i++) {
-      linearrgb_to_srgb_uchar4(&byte_colors[i].r, float_colors[i].color);
+      linearrgb_to_srgb_uchar4(&byte_colors[i].r, float_colors[i]);
     }
   }
 }
@@ -1198,11 +1198,14 @@ static void convert_float_color_to_byte_color(const MPropCol *float_colors,
 static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
 {
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  const CustomDataLayer *active_color_layer = BKE_id_attributes_color_find(
-      &mesh->id, mesh->active_color_attribute);
-  BLI_assert(active_color_layer != nullptr);
-  AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
-  const bke::AttrDomain domain = BKE_attribute_domain(owner, active_color_layer);
+  const StringRef attr_name = mesh->active_color_attribute;
+  const bke::AttrDomain domain = [&]() {
+    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+      return BM_data_layer_lookup(*em->bm, attr_name).domain;
+    }
+    bke::AttributeAccessor attributes = mesh->attributes();
+    return attributes.lookup_meta_data(attr_name)->domain;
+  }();
 
   const int channels_num = targets->channels_num;
   const bool is_noncolor = targets->is_noncolor;
@@ -1212,7 +1215,7 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
     const int totvert = mesh->verts_num;
     const int totloop = mesh->corners_num;
 
-    MPropCol *mcol = MEM_calloc_arrayN<MPropCol>(totvert, __func__);
+    ColorGeometry4f *mcol = MEM_calloc_arrayN<ColorGeometry4f>(totvert, __func__);
 
     /* Accumulate float vertex colors in scene linear color space. */
     int *num_loops_for_vertex = MEM_calloc_arrayN<int>(mesh->verts_num, "num_loops_for_vertex");
@@ -1220,45 +1223,45 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
     const Span<int> corner_verts = mesh->corner_verts();
     for (int i = 0; i < totloop; i++) {
       const int v = corner_verts[i];
-      bake_result_add_to_rgba(mcol[v].color, &result[i * channels_num], channels_num);
+      bake_result_add_to_rgba(mcol[v], &result[i * channels_num], channels_num);
       num_loops_for_vertex[v]++;
     }
 
     /* Normalize for number of loops. */
     for (int i = 0; i < totvert; i++) {
       if (num_loops_for_vertex[i] > 0) {
-        mul_v4_fl(mcol[i].color, 1.0f / num_loops_for_vertex[i]);
+        mul_v4_fl(mcol[i], 1.0f / num_loops_for_vertex[i]);
       }
     }
 
     if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-      /* Copy to bmesh. */
-      const int active_color_offset = CustomData_get_offset_named(
-          &em->bm->vdata, eCustomDataType(active_color_layer->type), active_color_layer->name);
+      const BMDataLayerLookup attr = BM_data_layer_lookup(*em->bm, attr_name);
       BMVert *v;
       BMIter viter;
       int i = 0;
       BM_ITER_MESH (v, &viter, em->bm, BM_VERTS_OF_MESH) {
-        void *data = BM_ELEM_CD_GET_VOID_P(v, active_color_offset);
-        if (active_color_layer->type == CD_PROP_COLOR) {
+        void *data = BM_ELEM_CD_GET_VOID_P(v, attr.offset);
+        if (attr.type == bke::AttrType::ColorFloat) {
           memcpy(data, &mcol[i], sizeof(MPropCol));
         }
-        else {
+        else if (attr.type == bke::AttrType::ColorByte) {
           convert_float_color_to_byte_color(
-              &mcol[i], 1, is_noncolor, static_cast<MLoopCol *>(data));
+              &mcol[i], 1, is_noncolor, static_cast<ColorGeometry4b *>(data));
         }
         i++;
       }
     }
     else {
-      /* Copy to mesh. */
-      if (active_color_layer->type == CD_PROP_COLOR) {
-        memcpy(active_color_layer->data, mcol, sizeof(MPropCol) * mesh->verts_num);
+      bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+      bke::GSpanAttributeWriter attr = attributes.lookup_for_write_span(attr_name);
+      if (attr.span.type().is<ColorGeometry4f>()) {
+        memcpy(attr.span.data(), mcol, sizeof(ColorGeometry4f) * mesh->verts_num);
       }
-      else {
+      else if (attr.span.type().is<ColorGeometry4b>()) {
         convert_float_color_to_byte_color(
-            mcol, totvert, is_noncolor, static_cast<MLoopCol *>(active_color_layer->data));
+            mcol, totvert, is_noncolor, static_cast<ColorGeometry4b *>(attr.span.data()));
       }
+      attr.finish();
     }
 
     MEM_freeN(mcol);
@@ -1267,9 +1270,7 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
   }
   else if (domain == bke::AttrDomain::Corner) {
     if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-      /* Copy to bmesh. */
-      const int active_color_offset = CustomData_get_offset_named(
-          &em->bm->ldata, eCustomDataType(active_color_layer->type), active_color_layer->name);
+      const BMDataLayerLookup attr = BM_data_layer_lookup(*em->bm, attr_name);
       BMFace *f;
       BMIter fiter;
       int i = 0;
@@ -1277,37 +1278,38 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
         BMLoop *l;
         BMIter liter;
         BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-          MPropCol color;
-          zero_v4(color.color);
-          bake_result_add_to_rgba(color.color, &result[i * channels_num], channels_num);
+          ColorGeometry4f color;
+          zero_v4(color);
+          bake_result_add_to_rgba(color, &result[i * channels_num], channels_num);
           i++;
 
-          void *data = BM_ELEM_CD_GET_VOID_P(l, active_color_offset);
-          if (active_color_layer->type == CD_PROP_COLOR) {
+          void *data = BM_ELEM_CD_GET_VOID_P(l, attr.offset);
+          if (attr.type == bke::AttrType::ColorFloat) {
             memcpy(data, &color, sizeof(MPropCol));
           }
-          else {
+          else if (attr.type == bke::AttrType::ColorByte) {
             convert_float_color_to_byte_color(
-                &color, 1, is_noncolor, static_cast<MLoopCol *>(data));
+                &color, 1, is_noncolor, static_cast<ColorGeometry4b *>(data));
           }
         }
       }
     }
     else {
-      /* Copy to mesh. */
-      if (active_color_layer->type == CD_PROP_COLOR) {
-        MPropCol *colors = static_cast<MPropCol *>(active_color_layer->data);
+      bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+      bke::GSpanAttributeWriter attr = attributes.lookup_for_write_span(attr_name);
+      if (attr.span.type().is<ColorGeometry4f>()) {
+        MutableSpan colors = attr.span.typed<ColorGeometry4f>();
         for (int i = 0; i < mesh->corners_num; i++) {
-          zero_v4(colors[i].color);
-          bake_result_add_to_rgba(colors[i].color, &result[i * channels_num], channels_num);
+          zero_v4(colors[i]);
+          bake_result_add_to_rgba(colors[i], &result[i * channels_num], channels_num);
         }
       }
-      else {
-        MLoopCol *colors = static_cast<MLoopCol *>(active_color_layer->data);
+      else if (attr.span.type().is<ColorGeometry4b>()) {
+        MutableSpan colors = attr.span.typed<ColorGeometry4b>();
         for (int i = 0; i < mesh->corners_num; i++) {
-          MPropCol color;
-          zero_v4(color.color);
-          bake_result_add_to_rgba(color.color, &result[i * channels_num], channels_num);
+          ColorGeometry4f color;
+          zero_v4(color);
+          bake_result_add_to_rgba(color, &result[i * channels_num], channels_num);
           convert_float_color_to_byte_color(&color, 1, is_noncolor, &colors[i]);
         }
       }
@@ -1457,9 +1459,7 @@ static wmOperatorStatus bake(const BakeAPIRender *bkr,
   if (!bkr->uv_layer.empty()) {
     Mesh *mesh = (Mesh *)ob_low->data;
     const bke::AttributeAccessor attributes = mesh->attributes();
-    const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(
-        bkr->uv_layer);
-    if (meta_data != bke::AttributeMetaData{bke::AttrDomain::Corner, bke::AttrType::Float2}) {
+    if (!bke::mesh::is_uv_map(attributes.lookup_meta_data(bkr->uv_layer))) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "No UV layer named \"%s\" found in the object \"%s\"",

@@ -409,15 +409,16 @@ void seq_prefetch_free(Scene *scene)
   MEM_delete(pfjob);
 }
 
-static blender::VectorSet<Strip *> query_scene_strips(ListBase *seqbase)
+static blender::VectorSet<Strip *> query_scene_strips(Editing *ed)
 {
-  blender::VectorSet<Strip *> strips;
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (strip->type == STRIP_TYPE_SCENE && (strip->flag & SEQ_SCENE_STRIPS) == 0) {
-      strips.add(strip);
-    }
+  blender::Map<const Scene *, VectorSet<Strip *>> &strips_by_scene =
+      lookup_strips_by_scene_map_get(ed);
+
+  VectorSet<Strip *> scene_strips;
+  for (VectorSet<Strip *> strips : strips_by_scene.values()) {
+    scene_strips.add_multiple(strips);
   }
-  return strips;
+  return scene_strips;
 }
 
 static bool seq_prefetch_scene_strip_is_rendered(const Scene *scene,
@@ -450,9 +451,12 @@ static bool seq_prefetch_scene_strip_is_rendered(const Scene *scene,
       state.strips_rendering_seqbase.add(strip);
 
       const Scene *target_scene = strip->scene;
-      const Editing *target_ed = editing_get(target_scene);
-      ListBase *target_seqbase = target_ed->current_strips();
-      blender::VectorSet<Strip *> target_scene_strips = query_scene_strips(target_seqbase);
+      Editing *target_ed = editing_get(target_scene);
+      if (target_ed == nullptr) {
+        continue;
+      }
+
+      blender::VectorSet<Strip *> target_scene_strips = query_scene_strips(target_ed);
       int target_timeline_frame = give_frame_index(scene, strip, timeline_frame) +
                                   target_scene->r.sfra;
 
@@ -482,13 +486,9 @@ static bool seq_prefetch_must_skip_frame(PrefetchJob *pfjob, ListBase *channels,
   /* Pass in state to check for infinite recursion of "sequencer-type" scene strips. */
   SeqRenderState state = {};
 
-  blender::VectorSet<Strip *> scene_strips = query_scene_strips(seqbase);
-  if (seq_prefetch_scene_strip_is_rendered(
-          pfjob->scene_eval, channels, seqbase, scene_strips, seq_prefetch_cfra(pfjob), state))
-  {
-    return true;
-  }
-  return false;
+  blender::VectorSet<Strip *> scene_strips = query_scene_strips(editing_get(pfjob->scene_eval));
+  return seq_prefetch_scene_strip_is_rendered(
+      pfjob->scene_eval, channels, seqbase, scene_strips, seq_prefetch_cfra(pfjob), state);
 }
 
 static bool seq_prefetch_need_suspend(PrefetchJob *pfjob)

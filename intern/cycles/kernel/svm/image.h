@@ -135,15 +135,12 @@ ccl_device_noinline void svm_node_tex_image_box(KernelGlobals kg,
   /* get object space normal */
   float3 N = sd->N;
 
-  N = sd->N;
   object_inverse_normal_transform(kg, sd, &N);
 
   /* project from direction vector to barycentric coordinates in triangles */
   const float3 signed_N = N;
 
-  N.x = fabsf(N.x);
-  N.y = fabsf(N.y);
-  N.z = fabsf(N.z);
+  N = fabs(N);
 
   N /= (N.x + N.y + N.z);
 

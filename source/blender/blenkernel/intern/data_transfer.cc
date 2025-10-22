@@ -249,47 +249,28 @@ int BKE_object_data_transfer_dttype_to_srcdst_index(const int dtdata_type)
  * If a match can't be found, use the first color layer that can be found (to ensure a valid string
  * is set).
  */
-static void data_transfer_mesh_attributes_transfer_active_color_string(
-    Mesh *mesh_dst, const Mesh *mesh_src, const AttrDomainMask mask_domain, const int data_type)
+static void transfer_active_color_string(Mesh *mesh_dst,
+                                         const Mesh *mesh_src,
+                                         const AttrDomainMask mask_domain)
 {
+  using namespace blender;
   if (mesh_dst->active_color_attribute) {
     return;
   }
 
-  const AttributeOwner owner_src = AttributeOwner::from_id(const_cast<ID *>(&mesh_src->id));
-  AttributeOwner owner_dst = AttributeOwner::from_id(&mesh_dst->id);
+  const StringRef name = mesh_src->active_color_attribute;
+  const bke::AttributeAccessor attributes_src = mesh_src->attributes();
+  const bke::AttributeAccessor attributes_dst = mesh_dst->attributes();
 
-  const StringRef active_color_src =
-      BKE_id_attributes_active_color_name(&mesh_src->id).value_or("");
-
-  if ((data_type == CD_PROP_COLOR) &&
-      !BKE_attribute_search(
-          owner_src, active_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR))
-  {
-    return;
-  }
-  if ((data_type == CD_PROP_BYTE_COLOR) &&
-      !BKE_attribute_search(
-          owner_src, active_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR))
-  {
+  if (!bke::mesh::is_color_attribute(attributes_src.lookup_meta_data(name))) {
     return;
   }
 
-  if ((data_type == CD_PROP_COLOR) &&
-      BKE_attribute_search(
-          owner_dst, active_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR))
-  {
-    mesh_dst->active_color_attribute = BLI_strdupn(active_color_src.data(),
-                                                   active_color_src.size());
-  }
-  else if ((data_type == CD_PROP_BYTE_COLOR) &&
-           BKE_attribute_search(
-               owner_dst, active_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR))
-  {
-    mesh_dst->active_color_attribute = BLI_strdupn(active_color_src.data(),
-                                                   active_color_src.size());
+  if (bke::mesh::is_color_attribute(attributes_dst.lookup_meta_data(name))) {
+    mesh_dst->active_color_attribute = BLI_strdupn(name.data(), name.size());
   }
   else {
+    AttributeOwner owner_dst = AttributeOwner::from_id(&mesh_dst->id);
     CustomDataLayer *first_color_layer = BKE_attribute_from_index(
         owner_dst, 0, mask_domain, CD_MASK_COLOR_ALL);
     if (first_color_layer != nullptr) {
@@ -303,47 +284,28 @@ static void data_transfer_mesh_attributes_transfer_active_color_string(
  * If a match cant be found, use the first color layer that can be found (to ensure a valid string
  * is set).
  */
-static void data_transfer_mesh_attributes_transfer_default_color_string(
-    Mesh *mesh_dst, const Mesh *mesh_src, const AttrDomainMask mask_domain, const int data_type)
+static void transfer_default_color_string(Mesh *mesh_dst,
+                                          const Mesh *mesh_src,
+                                          const AttrDomainMask mask_domain)
 {
+  using namespace blender;
   if (mesh_dst->default_color_attribute) {
     return;
   }
 
-  const AttributeOwner owner_src = AttributeOwner::from_id(const_cast<ID *>(&mesh_src->id));
-  AttributeOwner owner_dst = AttributeOwner::from_id(&mesh_dst->id);
+  const StringRef name = mesh_src->default_color_attribute;
+  const bke::AttributeAccessor attributes_src = mesh_src->attributes();
+  const bke::AttributeAccessor attributes_dst = mesh_dst->attributes();
 
-  const StringRef default_color_src =
-      BKE_id_attributes_default_color_name(&mesh_src->id).value_or("");
-
-  if ((data_type == CD_PROP_COLOR) &&
-      !BKE_attribute_search(
-          owner_src, default_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR))
-  {
-    return;
-  }
-  if ((data_type == CD_PROP_BYTE_COLOR) &&
-      !BKE_attribute_search(
-          owner_src, default_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR))
-  {
+  if (!bke::mesh::is_color_attribute(attributes_src.lookup_meta_data(name))) {
     return;
   }
 
-  if ((data_type == CD_PROP_COLOR) &&
-      BKE_attribute_search(
-          owner_dst, default_color_src, CD_MASK_PROP_COLOR, ATTR_DOMAIN_MASK_COLOR))
-  {
-    mesh_dst->default_color_attribute = BLI_strdupn(default_color_src.data(),
-                                                    default_color_src.size());
-  }
-  else if ((data_type == CD_PROP_BYTE_COLOR) &&
-           BKE_attribute_search(
-               owner_dst, default_color_src, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_COLOR))
-  {
-    mesh_dst->default_color_attribute = BLI_strdupn(default_color_src.data(),
-                                                    default_color_src.size());
+  if (bke::mesh::is_color_attribute(attributes_dst.lookup_meta_data(name))) {
+    mesh_dst->default_color_attribute = BLI_strdupn(name.data(), name.size());
   }
   else {
+    AttributeOwner owner_dst = AttributeOwner::from_id(&mesh_dst->id);
     CustomDataLayer *first_color_layer = BKE_attribute_from_index(
         owner_dst, 0, mask_domain, CD_MASK_COLOR_ALL);
     if (first_color_layer != nullptr) {
@@ -1171,10 +1133,8 @@ void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
       /* Make sure we have active/default color layers if none existed before.
        * Use the active/default from src (if it was transferred), otherwise the first. */
       if (ELEM(cddata_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
-        data_transfer_mesh_attributes_transfer_active_color_string(
-            me_dst, me_src, ATTR_DOMAIN_MASK_POINT, cddata_type);
-        data_transfer_mesh_attributes_transfer_default_color_string(
-            me_dst, me_src, ATTR_DOMAIN_MASK_POINT, cddata_type);
+        transfer_active_color_string(me_dst, me_src, ATTR_DOMAIN_MASK_POINT);
+        transfer_default_color_string(me_dst, me_src, ATTR_DOMAIN_MASK_POINT);
       }
     }
     if (DT_DATATYPE_IS_EDGE(dtdata_type)) {
@@ -1219,10 +1179,8 @@ void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
       /* Make sure we have active/default color layers if none existed before.
        * Use the active/default from src (if it was transferred), otherwise the first. */
       if (ELEM(cddata_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
-        data_transfer_mesh_attributes_transfer_active_color_string(
-            me_dst, me_src, ATTR_DOMAIN_MASK_CORNER, cddata_type);
-        data_transfer_mesh_attributes_transfer_default_color_string(
-            me_dst, me_src, ATTR_DOMAIN_MASK_CORNER, cddata_type);
+        transfer_active_color_string(me_dst, me_src, ATTR_DOMAIN_MASK_CORNER);
+        transfer_default_color_string(me_dst, me_src, ATTR_DOMAIN_MASK_CORNER);
       }
     }
     if (DT_DATATYPE_IS_FACE(dtdata_type)) {

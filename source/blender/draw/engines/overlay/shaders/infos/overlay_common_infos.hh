@@ -6,6 +6,8 @@
 
 #ifdef GPU_SHADER
 #  pragma once
+#  include "BLI_utildefines_variadic.h"
+
 #  include "gpu_shader_compat.hh"
 
 #  include "overlay_shader_shared.hh"
@@ -43,39 +45,3 @@ GPU_SHADER_CREATE_INFO(overlay_select)
 DEFINE("SELECT_ENABLE")
 ADDITIONAL_INFO(select_id_patch)
 GPU_SHADER_CREATE_END()
-
-#define OVERLAY_INFO_CLIP_VARIATION(name) \
-  GPU_SHADER_CREATE_INFO(name##_clipped) \
-  DO_STATIC_COMPILATION() \
-  ADDITIONAL_INFO(name) \
-  ADDITIONAL_INFO(drw_clipped) \
-  GPU_SHADER_CREATE_END()
-
-#define OVERLAY_INFO_SELECT_VARIATION(name) \
-  GPU_SHADER_CREATE_INFO(name##_selectable) \
-  DO_STATIC_COMPILATION() \
-  ADDITIONAL_INFO(name) \
-  ADDITIONAL_INFO(overlay_select) \
-  GPU_SHADER_CREATE_END()
-
-#define OVERLAY_INFO_VARIATIONS(name) \
-  OVERLAY_INFO_SELECT_VARIATION(name) \
-  OVERLAY_INFO_CLIP_VARIATION(name) \
-  OVERLAY_INFO_CLIP_VARIATION(name##_selectable)
-
-#define OVERLAY_INFO_VARIATIONS_MODELMAT(name, base_info) \
-  GPU_SHADER_CREATE_INFO(name) \
-  DO_STATIC_COMPILATION() \
-  ADDITIONAL_INFO(base_info) \
-  ADDITIONAL_INFO(draw_modelmat) \
-  GPU_SHADER_CREATE_END() \
-\
-  GPU_SHADER_CREATE_INFO(name##_selectable) \
-  DO_STATIC_COMPILATION() \
-  ADDITIONAL_INFO(base_info) \
-  ADDITIONAL_INFO(draw_modelmat_with_custom_id) \
-  ADDITIONAL_INFO(overlay_select) \
-  GPU_SHADER_CREATE_END() \
-\
-  OVERLAY_INFO_CLIP_VARIATION(name) \
-  OVERLAY_INFO_CLIP_VARIATION(name##_selectable)

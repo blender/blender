@@ -12,7 +12,6 @@
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
-#include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
@@ -2442,54 +2441,7 @@ static void outliner_draw_warning_column(uiBlock *block,
 static BIFIconID tree_element_get_icon_from_id(const ID *id)
 {
   if (GS(id->name) == ID_OB) {
-    const Object *ob = (Object *)id;
-    switch (ob->type) {
-      case OB_LAMP:
-        return ICON_OUTLINER_OB_LIGHT;
-      case OB_MESH:
-        return ICON_OUTLINER_OB_MESH;
-      case OB_CAMERA:
-        return ICON_OUTLINER_OB_CAMERA;
-      case OB_CURVES_LEGACY:
-        return ICON_OUTLINER_OB_CURVE;
-      case OB_MBALL:
-        return ICON_OUTLINER_OB_META;
-      case OB_LATTICE:
-        return ICON_OUTLINER_OB_LATTICE;
-      case OB_ARMATURE:
-        return ICON_OUTLINER_OB_ARMATURE;
-      case OB_FONT:
-        return ICON_OUTLINER_OB_FONT;
-      case OB_SURF:
-        return ICON_OUTLINER_OB_SURFACE;
-      case OB_SPEAKER:
-        return ICON_OUTLINER_OB_SPEAKER;
-      case OB_LIGHTPROBE:
-        return ICON_OUTLINER_OB_LIGHTPROBE;
-      case OB_CURVES:
-        return ICON_OUTLINER_OB_CURVES;
-      case OB_POINTCLOUD:
-        return ICON_OUTLINER_OB_POINTCLOUD;
-      case OB_VOLUME:
-        return ICON_OUTLINER_OB_VOLUME;
-      case OB_EMPTY:
-        if (ob->instance_collection && (ob->transflag & OB_DUPLICOLLECTION)) {
-          return ICON_OUTLINER_OB_GROUP_INSTANCE;
-        }
-        else if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
-          return ICON_OUTLINER_OB_IMAGE;
-        }
-        else if (ob->pd && ob->pd->forcefield) {
-          return ICON_OUTLINER_OB_FORCE_FIELD;
-        }
-        else {
-          return ICON_OUTLINER_OB_EMPTY;
-        }
-      case OB_GREASE_PENCIL:
-        return ICON_OUTLINER_OB_GREASEPENCIL;
-    }
-
-    return ICON_NONE;
+    return UI_icon_from_object_type((Object *)id);
   }
 
   /* TODO(sergey): Casting to short here just to handle ID_NLA which is

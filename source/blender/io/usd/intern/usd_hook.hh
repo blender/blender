@@ -13,6 +13,7 @@ struct ReportList;
 namespace blender::io::usd {
 
 struct USDExportParams;
+class USDHierarchyIterator;
 struct USDImportParams;
 class USDStageReader;
 
@@ -21,7 +22,9 @@ class USDStageReader;
 void register_hook_converters();
 
 /** Call the 'on_export' chaser function defined in the registered #USDHook classes. */
-void call_export_hooks(pxr::UsdStageRefPtr stage, Depsgraph *depsgraph, ReportList *reports);
+void call_export_hooks(Depsgraph *depsgraph,
+                       const USDHierarchyIterator *iter,
+                       ReportList *reports);
 
 /** Call the 'on_material_export' hook functions defined in the registered #USDHook classes. */
 void call_material_export_hooks(pxr::UsdStageRefPtr stage,

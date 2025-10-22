@@ -15,7 +15,8 @@ namespace blender::bke::curves::catmull_rom {
 
 int calculate_evaluated_num(const int points_num, const bool cyclic, const int resolution)
 {
-  const int eval_num = resolution * segments_num(points_num, cyclic);
+  const int points_per_segment = std::max(1, resolution);
+  const int eval_num = points_per_segment * segments_num(points_num, cyclic);
   if (cyclic) {
     /* Make sure there is a single evaluated point for the single-point curve case. */
     return std::max(eval_num, 1);
@@ -121,7 +122,8 @@ static void interpolate_to_evaluated(const Span<T> src,
       src,
       cyclic,
       [resolution](const int segment_i) -> IndexRange {
-        return {segment_i * resolution, resolution};
+        const int points_per_segment = std::max(1, resolution);
+        return {segment_i * points_per_segment, points_per_segment};
       },
       dst);
 }

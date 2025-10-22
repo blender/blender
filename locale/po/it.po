@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 16:12+0000\n"
+"POT-Creation-Date: 2025-10-20 08:46+0000\n"
 "PO-Revision-Date: 2025-09-09 13:59+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -14577,10 +14577,6 @@ msgid "Amount of random elements that are going to be affected by the brush"
 msgstr "Ammontare di elementi casuali che saranno interessati dal pennello"
 
 
-msgid "Direction"
-msgstr "Direzione"
-
-
 msgid "Add effect of brush"
 msgstr "Aggiunge l'effetto del pennello"
 
@@ -19925,10 +19921,6 @@ msgid "Sync to audio playback, dropping frames"
 msgstr "Sincronizza alla riproduzione audio, scartando fotogrammi"
 
 
-msgid "Second"
-msgstr "Secondi"
-
-
 msgid "Timeline Markers"
 msgstr "Marcatori Timeline"
 
@@ -21925,6 +21917,10 @@ msgstr "Ctrl"
 
 msgid "Control key pressed"
 msgstr "Tasto Ctrl premuto"
+
+
+msgid "Direction"
+msgstr "Direzione"
 
 
 msgid "North"
@@ -24554,6 +24550,14 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
+msgid "Assign Material"
+msgstr "Assegna Materiale"
+
+
+msgid "Select More/Less"
+msgstr "Seleziona Più/Meno"
+
+
 msgid "Metaball"
 msgstr "Metaball"
 
@@ -24622,16 +24626,16 @@ msgid "Vertex Group Locks"
 msgstr "Blocchi del Gruppo di Vertici"
 
 
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Face Sets Init"
 msgstr "Init Sets di Facce"
 
 
 msgid "Random Mask"
 msgstr "Maschera Casuale"
-
-
-msgid "Layout"
-msgstr "Layout"
 
 
 msgid "Clear Transform"
@@ -24642,6 +24646,10 @@ msgid "In-Betweens"
 msgstr "Intermedio"
 
 
+msgid "Adjust"
+msgstr "Regola"
+
+
 msgid "Propagate"
 msgstr "Propaga"
 
@@ -24650,32 +24658,12 @@ msgid "Bone Collections"
 msgstr "Raccolte di Ossa"
 
 
-msgid "Names"
-msgstr "Nomi"
-
-
-msgid "Adjust"
-msgstr "Regola"
-
-
-msgid "Toggle Bone Options"
-msgstr "Attiva/disattiva Opzioni Osso"
-
-
-msgid "Enable Bone Options"
-msgstr "Abilita Opzioni Osso"
-
-
-msgid "Disable Bone Options"
-msgstr "Disabilita Opzioni Osso"
-
-
 msgid "Keying"
 msgstr "Keying"
 
 
-msgid "Mesh Select Mode"
-msgstr "Modalità Selezione Mesh"
+msgid "Names"
+msgstr "Nomi"
 
 
 msgid "Tracking"
@@ -24686,12 +24674,28 @@ msgid "Utilities"
 msgstr "Utilità"
 
 
-msgid "Face Data"
-msgstr "Dati Faccia"
+msgid "Toggle Bone Options"
+msgstr "Attiva/disattiva Opzioni Osso"
 
 
 msgid "Math"
 msgstr "Matematica"
+
+
+msgid "Enable Bone Options"
+msgstr "Abilita Opzioni Osso"
+
+
+msgid "Disable Bone Options"
+msgstr "Disabilita Opzioni Osso"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modalità Selezione Mesh"
+
+
+msgid "Face Data"
+msgstr "Dati Faccia"
 
 
 msgid "Select by Face Strength"
@@ -24722,8 +24726,24 @@ msgid "Bone Roll"
 msgstr "Rollio Osso"
 
 
+msgid "Read"
+msgstr "Lettura"
+
+
+msgid "Sample"
+msgstr "Campione"
+
+
+msgid "Write"
+msgstr "Scrittura"
+
+
 msgid "Pivot Point"
 msgstr "Punto di Perno"
+
+
+msgid "Primitives"
+msgstr "Primitive"
 
 
 msgid "Snap"
@@ -24742,36 +24762,20 @@ msgid "Automasking"
 msgstr "Automascheramento"
 
 
-msgid "Read"
-msgstr "Lettura"
-
-
 msgid "Face Sets Edit"
 msgstr "Modifica Sets di Facce"
-
-
-msgid "Sample"
-msgstr "Campione"
-
-
-msgid "Write"
-msgstr "Scrittura"
-
-
-msgid "Primitives"
-msgstr "Primitive"
 
 
 msgid "Instances"
 msgstr "Istanze"
 
 
-msgid "Mirror"
-msgstr "Specchia"
-
-
 msgid "Import"
 msgstr "Importa"
+
+
+msgid "Mirror"
+msgstr "Specchia"
 
 
 msgid "UV Mapping"
@@ -24790,6 +24794,10 @@ msgid "Navigation"
 msgstr "Navigazione"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Align View"
 msgstr "Allinea Vista"
 
@@ -24802,10 +24810,6 @@ msgid "View Regions"
 msgstr "Regione Vista"
 
 
-msgid "Select More/Less"
-msgstr "Seleziona Più/Meno"
-
-
 msgid "Select Similar"
 msgstr "Seleziona Simili"
 
@@ -24814,24 +24818,16 @@ msgid "Select All by Trait"
 msgstr "Seleziona Tutto per Caratteristica"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Select Linked"
 msgstr "Seleziona Collegati"
-
-
-msgid "Select Loops"
-msgstr "Seleziona Anelli"
 
 
 msgid "Basic"
 msgstr "Di Base"
 
 
-msgid "Assign Material"
-msgstr "Assegna Materiale"
+msgid "Select Loops"
+msgstr "Seleziona Anelli"
 
 
 msgid "Keyframe Insert Pie"
@@ -56841,18 +56837,6 @@ msgid "Stereo Mode"
 msgstr "Modalità Stereo"
 
 
-msgid "Cross"
-msgstr "Croce"
-
-
-msgid "Alpha Under"
-msgstr "Sotto Trasparenza"
-
-
-msgid "Gamma Cross"
-msgstr "Incrocio Gamma"
-
-
 msgid "Y position of the sequence strip"
 msgstr "Posizione Y dello spezzone sequenza"
 
@@ -61270,6 +61254,10 @@ msgstr "Minuscolo"
 
 msgid "Fuel"
 msgstr "Combustibile"
+
+
+msgid "Second"
+msgstr "Secondi"
 
 
 msgid "X Lower"
@@ -67895,6 +67883,10 @@ msgid "Unable to create socket"
 msgstr "Impossibile creare il connettore"
 
 
+msgid "Anisotropic"
+msgstr "Anisotropico"
+
+
 msgid "Unable to locate socket '%s' in node"
 msgstr "Impossibile trovare il connettore '%s' nel nodo"
 
@@ -68185,10 +68177,6 @@ msgstr "Modulazione Colore"
 
 msgid "Fac"
 msgstr "Fatt"
-
-
-msgid "Anisotropic"
-msgstr "Anisotropico"
 
 
 msgid "Uniformity"

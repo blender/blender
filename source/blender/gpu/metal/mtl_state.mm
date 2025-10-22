@@ -474,6 +474,9 @@ void MTLStateManager::set_blend(const GPUBlend value)
       dst_alpha = MTLBlendFactorOne;
       break;
     }
+    /* Factors are not use in min or max mode, but avoid uninitialized values. */;
+    case GPU_BLEND_MIN:
+    case GPU_BLEND_MAX:
     case GPU_BLEND_SUBTRACT:
     case GPU_BLEND_ADDITIVE_PREMULT: {
       /* Let alpha accumulate. */
@@ -538,7 +541,15 @@ void MTLStateManager::set_blend(const GPUBlend value)
   BLI_assert(context_);
   MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
 
-  if (value == GPU_BLEND_SUBTRACT) {
+  if (value == GPU_BLEND_MIN) {
+    pipeline_state.rgb_blend_op = MTLBlendOperationMin;
+    pipeline_state.alpha_blend_op = MTLBlendOperationMin;
+  }
+  else if (value == GPU_BLEND_MAX) {
+    pipeline_state.rgb_blend_op = MTLBlendOperationMax;
+    pipeline_state.alpha_blend_op = MTLBlendOperationMax;
+  }
+  else if (value == GPU_BLEND_SUBTRACT) {
     pipeline_state.rgb_blend_op = MTLBlendOperationReverseSubtract;
     pipeline_state.alpha_blend_op = MTLBlendOperationReverseSubtract;
   }

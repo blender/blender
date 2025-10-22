@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-10-13 16:12+0000\n"
+"POT-Creation-Date: 2025-10-20 08:46+0000\n"
 "PO-Revision-Date: 2025-07-23 15:03+0000\n"
 "Last-Translator: Amy Lily <lillya.assist@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -11778,10 +11778,6 @@ msgid "Constant"
 msgstr "Constante"
 
 
-msgid "Direction"
-msgstr "Direção"
-
-
 msgid "Add effect of brush"
 msgstr "Adiciona o efeito do pincel"
 
@@ -18294,6 +18290,10 @@ msgid "Control key pressed"
 msgstr "Tecla Ctrl pressionada"
 
 
+msgid "Direction"
+msgstr "Direção"
+
+
 msgid "North"
 msgstr "Norte"
 
@@ -21243,6 +21243,10 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
 msgid "Metaball"
 msgstr "Meta-esfera"
 
@@ -21299,12 +21303,12 @@ msgid "Hooks"
 msgstr "Ganchos"
 
 
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
 msgid "Layout"
 msgstr "Organizar"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
 
 
 msgid "Clear Transform"
@@ -21319,12 +21323,24 @@ msgid "Propagate"
 msgstr "Propagar"
 
 
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
 msgid "Names"
 msgstr "Nomes"
 
 
+msgid "Tracking"
+msgstr "Rastreamento"
+
+
 msgid "Toggle Bone Options"
 msgstr "Alternar opções de ossos"
+
+
+msgid "Math"
+msgstr "Matemática"
 
 
 msgid "Enable Bone Options"
@@ -21335,24 +21351,12 @@ msgid "Disable Bone Options"
 msgstr "Desabilitar as opções de ossos"
 
 
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
 msgid "Mesh Select Mode"
 msgstr "Modo de seleção de malhas"
 
 
-msgid "Tracking"
-msgstr "Rastreamento"
-
-
 msgid "Face Data"
 msgstr "Dados das faces"
-
-
-msgid "Math"
-msgstr "Matemática"
 
 
 msgid "Merge"
@@ -21387,12 +21391,12 @@ msgid "Instances"
 msgstr "Instâncias"
 
 
-msgid "Mirror"
-msgstr "Espelhar"
-
-
 msgid "Import"
 msgstr "Importar"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
 
 
 msgid "UV Mapping"
@@ -21411,6 +21415,10 @@ msgid "Navigation"
 msgstr "Navegação"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Align View"
 msgstr "Alinhar visualização"
 
@@ -21423,10 +21431,6 @@ msgid "View Regions"
 msgstr "Visualizar Regiões"
 
 
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
 msgid "Select Similar"
 msgstr "Selecionar por similaridades"
 
@@ -21435,20 +21439,16 @@ msgid "Select All by Trait"
 msgstr "Selecionar todos por características..."
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Select Linked"
 msgstr "Selecionar vinculados(as)"
 
 
-msgid "Select Loops"
-msgstr "Selecionar anéis"
-
-
 msgid "Basic"
 msgstr "Básico"
+
+
+msgid "Select Loops"
+msgstr "Selecionar anéis"
 
 
 msgctxt "MovieClip"
@@ -55988,18 +55988,6 @@ msgid "Method for controlling how the strip combines with other strips"
 msgstr "O método para controlar como as faixas serão combinadas com outras faixas."
 
 
-msgid "Cross"
-msgstr "Cruzar"
-
-
-msgid "Alpha Under"
-msgstr "Alfa por baixo"
-
-
-msgid "Gamma Cross"
-msgstr "Cruzar por gama"
-
-
 msgid "Y position of the sequence strip"
 msgstr "Posição Y da faixa de sequência "
 
@@ -67146,6 +67134,10 @@ msgid "Unable to create socket"
 msgstr "Não é possível de criar conector"
 
 
+msgid "Anisotropic"
+msgstr "Anisotrópico"
+
+
 msgid "Same input/output direction of sockets"
 msgstr "Mesma direção de entrada ou saída de conectores."
 
@@ -67493,10 +67485,6 @@ msgstr "Fator de saída para o esmaecimento das listras."
 
 msgid "Fac"
 msgstr "Fator"
-
-
-msgid "Anisotropic"
-msgstr "Anisotrópico"
 
 
 msgid "Eccentricity"

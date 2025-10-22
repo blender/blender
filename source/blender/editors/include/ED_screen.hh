@@ -83,8 +83,8 @@ void ED_region_tag_redraw_editor_overlays(ARegion *region);
  * a line or gradient on edges if there is content overflowing.
  */
 void ED_region_draw_overflow_indication(const ScrArea *area,
-                                        ARegion *region,
-                                        rcti *mask = nullptr);
+                                        const ARegion *region,
+                                        const rcti *mask = nullptr);
 
 /**
  * Set the temporary update flag for property search.

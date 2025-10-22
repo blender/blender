@@ -1635,13 +1635,6 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
         }
         case GHOST_kGrabWrap: {
           /* Wrap cursor at area/window boundaries. */
-          const NSTimeInterval timestamp = event.timestamp;
-          if (timestamp < last_warp_timestamp_) {
-            /* After warping we can still receive older unwrapped mouse events,
-             * ignore those. */
-            break;
-          }
-
           GHOST_Rect bounds, windowBounds, correctedBounds;
 
           /* fall back to window bounds */
@@ -1661,7 +1654,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
           int32_t x_accum, y_accum;
           window->getCursorGrabAccum(x_accum, y_accum);
 
-          const NSPoint mousePos = event.locationInWindow;
+          /* Get the current software mouse pointer location, theoretically unaffected by pending
+           * events that may still be referring to a location before warping. In practice extra
+           * logic still need to be used to prevent interferences from stale events. */
+          const NSPoint mousePos = event.window.mouseLocationOutsideOfEventStream;
           /* Casting. */
           const int32_t x_mouse = mousePos.x;
           const int32_t y_mouse = mousePos.y;
@@ -1674,6 +1670,16 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 
           /* Set new cursor position. */
           if (x_mouse != warped_x_mouse || y_mouse != warped_y_mouse) {
+            /* After warping, we can still receive unwrapped mouse that occured slightly before or
+             * after the current event at close timestamps, causing the wrapping to be applied a
+             * second time, leading to a visual jump. Ignore these events by returning early.
+             * Using a small empirical future covering threshold, see PR #148158 for details. */
+            const NSTimeInterval timestamp = event.timestamp;
+            const NSTimeInterval stale_event_threshold = 0.003;
+            if (timestamp < (last_warp_timestamp_ + stale_event_threshold)) {
+              break;
+            }
+
             int32_t warped_x, warped_y;
             window->clientToScreenIntern(warped_x_mouse, warped_y_mouse, warped_x, warped_y);
             setMouseCursorPosition(warped_x, warped_y); /* wrap */
@@ -1742,11 +1748,19 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
       /* Standard scroll-wheel case, if no swiping happened,
        * and no momentum (kinetic scroll) works. */
       if (!multi_touch_scroll_ && momentumPhase == NSEventPhaseNone) {
+        /* Horizontal scrolling. */
         if (event.deltaX != 0.0) {
           const int32_t delta = event.deltaX > 0.0 ? 1 : -1;
-          pushEvent(new GHOST_EventWheel(
-              event.timestamp * 1000, window, GHOST_kEventWheelAxisHorizontal, delta));
+          /* On macOS, shift + vertical scroll events will be transformed into shift + horizontal
+           * events by the OS input layer. Counteract this behavior by transforming them back into
+           * shift + vertical scroll event. See PR #148122 for more details. */
+          const GHOST_TEventWheelAxis direction = modifier_mask_ & NSEventModifierFlagShift ?
+                                                      GHOST_kEventWheelAxisVertical :
+                                                      GHOST_kEventWheelAxisHorizontal;
+
+          pushEvent(new GHOST_EventWheel(event.timestamp * 1000, window, direction, delta));
         }
+        /* Vertical scrolling. */
         if (event.deltaY != 0.0) {
           const int32_t delta = event.deltaY > 0.0 ? 1 : -1;
           pushEvent(new GHOST_EventWheel(

@@ -45,6 +45,7 @@
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_workspace.hh"
 
@@ -53,6 +54,7 @@
 
 #include "ED_keyframing.hh"
 #include "ED_outliner.hh"
+#include "ED_scene.hh"
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
 
@@ -436,10 +438,17 @@ static wmOperatorStatus outliner_item_rename_invoke(bContext *C,
 
   /* Force element into view. */
   outliner_show_active(space_outliner, region, te, TREESTORE(te)->id);
-  int size_y = BLI_rcti_size_y(&v2d->mask) + 1;
-  int ytop = (te->ys + (size_y / 2));
-  int delta_y = ytop - v2d->cur.ymax;
-  outliner_scroll_view(space_outliner, region, delta_y);
+
+  if (te->ys < int(v2d->cur.ymin + UI_UNIT_Y)) {
+    /* Try to show one full row below. */
+    const int delta_y = te->ys - int(v2d->cur.ymin + UI_UNIT_Y);
+    outliner_scroll_view(space_outliner, region, delta_y);
+  }
+  else if (te->ys > int(v2d->cur.ymax - (UI_UNIT_Y * 2.0f))) {
+    /* Try to show one full row above. */
+    const int delta_y = te->ys - int(v2d->cur.ymax - (UI_UNIT_Y * 2.0f));
+    outliner_scroll_view(space_outliner, region, delta_y);
+  }
 
   do_item_rename(region, te, TREESTORE(te), op->reports);
 
@@ -476,7 +485,48 @@ void OUTLINER_OT_item_rename(wmOperatorType *ot)
 /** \name ID Delete Operator
  * \{ */
 
-static void id_delete_tag(bContext *C, ReportList *reports, TreeElement *te, TreeStoreElem *tselem)
+/**
+ * Helper struct to handle Scene deletion.
+ *
+ * In case the scene to be deleted is active in the context/WM/etc., some valid replacement scene
+ * must be found, and some additional extra processing must be done before the actual deletion of
+ * the scene.
+ */
+struct SceneReplaceData {
+  Scene *scene_to_delete = nullptr;
+  Scene *scene_to_activate = nullptr;
+
+  /** Return the scene currently expected to become the active scene. */
+  Scene *active_scene_get(bContext *C)
+  {
+    return scene_to_activate ? scene_to_activate : CTX_data_scene(C);
+  }
+
+  /** Return `true` if the current data allows the active scene replacement. */
+  bool can_replace() const
+  {
+    return (scene_to_delete && scene_to_activate);
+  }
+
+  /** Check if the current scene replacement data is fully valid */
+  bool is_valid() const
+  {
+    /* Both pointers should be either null, or non-null (in which case they should also not be the
+     * same, and the replacement scene should not be tagged for deletion).
+     *
+     * Otherwise, the scene to be deleted does not have a valid replacement, and cannot be deleted.
+     */
+    return ((!scene_to_delete && !scene_to_activate) ||
+            (can_replace() && scene_to_delete != scene_to_activate &&
+             (scene_to_activate->id.tag & ID_TAG_DOIT) == 0));
+  }
+};
+
+static bool id_delete_tag(bContext *C,
+                          ReportList *reports,
+                          TreeElement *te,
+                          TreeStoreElem *tselem,
+                          SceneReplaceData &scene_replace_data)
 {
   Main *bmain = CTX_data_main(C);
   ID *id = tselem->id;
@@ -494,34 +544,55 @@ static void id_delete_tag(bContext *C, ReportList *reports, TreeElement *te, Tre
                   RPT_WARNING,
                   "Cannot delete library override id '%s', it is part of an override hierarchy",
                   id->name);
-      return;
+      return false;
     }
   }
 
+  /* Current active scene, and the one to use to replace it, in case the former is to be deleted.
+   */
+  Scene *scene_curr = nullptr;
+  Scene *scene_new = nullptr;
+
   if (te->idcode == ID_LI) {
+    /* Get the scene currently expected to become the active scene. */
+    scene_curr = scene_replace_data.active_scene_get(C);
     Library *lib = blender::id_cast<Library *>(id);
     if (lib->runtime->parent != nullptr) {
       BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked library '%s'", id->name);
-      return;
+      return false;
     }
-    if (CTX_data_scene(C)->id.lib == lib) {
-      BKE_reportf(reports,
-                  RPT_WARNING,
-                  "Cannot delete library '%s', as it contains the currently active Scene",
-                  id->name);
-      return;
+    if (scene_curr->id.lib == lib) {
+      scene_new = BKE_scene_find_replacement(
+          *bmain, *scene_curr, [&lib](const Scene &scene) -> bool {
+            return (
+                /* The candidate scene must belong to a different library. */
+                scene.id.lib != lib &&
+                /* The candidate scene must not be tagged for deletion. */
+                (scene.id.tag & ID_TAG_DOIT) == 0 &&
+                /* The candidate scene must be locale, or its library must not be tagged for
+                 * deletion. */
+                (!scene.id.lib || (scene.id.lib->id.tag & ID_TAG_DOIT) == 0));
+          });
+      if (!scene_new) {
+        BKE_reportf(reports,
+                    RPT_WARNING,
+                    "Cannot find a scene to replace the active one, which belongs to the to be "
+                    "deleted library '%s'",
+                    id->name);
+        return false;
+      }
     }
   }
   if (id->tag & ID_TAG_INDIRECT) {
     BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked id '%s'", id->name);
-    return;
+    return false;
   }
   if (ID_REAL_USERS(id) <= 1 && BKE_library_ID_is_indirectly_used(bmain, id)) {
     BKE_reportf(reports,
                 RPT_WARNING,
                 "Cannot delete id '%s', indirectly used data-blocks need at least one user",
                 id->name);
-    return;
+    return false;
   }
   if (te->idcode == ID_WS) {
     BKE_workspace_id_tag_all_visible(bmain, ID_TAG_PRE_EXISTING);
@@ -529,14 +600,48 @@ static void id_delete_tag(bContext *C, ReportList *reports, TreeElement *te, Tre
       BKE_reportf(
           reports, RPT_WARNING, "Cannot delete currently visible workspace id '%s'", id->name);
       BKE_main_id_tag_idcode(bmain, ID_WS, ID_TAG_PRE_EXISTING, false);
-      return;
+      return false;
     }
     BKE_main_id_tag_idcode(bmain, ID_WS, ID_TAG_PRE_EXISTING, false);
   }
+  else if (te->idcode == ID_SCE) {
+    /* Get the scene currently expected to become the active scene. */
+    scene_curr = scene_replace_data.active_scene_get(C);
+    if (&scene_curr->id == id) {
+      scene_new = BKE_scene_find_replacement(*bmain, *scene_curr, [](const Scene &scene) -> bool {
+        return (
+            /* The candidate scene must not be tagged for deletion. */
+            (scene.id.tag & ID_TAG_DOIT) == 0 &&
+            /* The candidate scene must be locale, or its library must not be tagged for
+             * deletion. */
+            (!scene.id.lib || (scene.id.lib->id.tag & ID_TAG_DOIT) == 0));
+      });
+      if (!scene_new) {
+        BKE_reportf(reports,
+                    RPT_WARNING,
+                    "Cannot find a scene to replace the active deleted one '%s'",
+                    id->name);
+        return false;
+      }
+    }
+  }
 
   id->tag |= ID_TAG_DOIT;
+  if (scene_curr && scene_new) {
+    BLI_assert(scene_curr != scene_new);
+    BLI_assert((scene_new->id.tag & ID_TAG_DOIT) == 0);
+    if (!scene_replace_data.scene_to_delete) {
+      scene_replace_data.scene_to_delete = scene_curr;
+    }
+    else {
+      BLI_assert(scene_replace_data.scene_to_delete == CTX_data_scene(C));
+    }
+    scene_replace_data.scene_to_activate = scene_new;
+  }
 
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
+
+  return true;
 }
 
 void id_delete_tag_fn(bContext *C,
@@ -546,13 +651,23 @@ void id_delete_tag_fn(bContext *C,
                       TreeStoreElem * /*tsep*/,
                       TreeStoreElem *tselem)
 {
-  id_delete_tag(C, reports, te, tselem);
+  SceneReplaceData scene_replace_data;
+  id_delete_tag(C, reports, te, tselem, scene_replace_data);
+
+  BLI_assert(scene_replace_data.is_valid());
+  if (scene_replace_data.can_replace()) {
+    ED_scene_replace_active_for_deletion(*C,
+                                         *CTX_data_main(C),
+                                         *scene_replace_data.scene_to_delete,
+                                         scene_replace_data.scene_to_activate);
+  }
 }
 
 static int outliner_id_delete_tag(bContext *C,
                                   ReportList *reports,
                                   TreeElement *te,
-                                  const float mval[2])
+                                  const float mval[2],
+                                  SceneReplaceData &scene_replace_data)
 {
   int id_tagged_num = 0;
 
@@ -560,21 +675,16 @@ static int outliner_id_delete_tag(bContext *C,
     TreeStoreElem *tselem = TREESTORE(te);
 
     if (te->idcode != 0 && tselem->id) {
-      if (te->idcode == ID_LI && ((Library *)tselem->id)->runtime->parent) {
-        BKE_reportf(reports,
-                    RPT_ERROR_INVALID_INPUT,
-                    "Cannot delete indirectly linked library '%s'",
-                    ((Library *)tselem->id)->runtime->filepath_abs);
-      }
-      else {
-        id_delete_tag(C, reports, te, tselem);
+      if (id_delete_tag(C, reports, te, tselem, scene_replace_data)) {
         id_tagged_num++;
       }
     }
   }
   else {
     LISTBASE_FOREACH (TreeElement *, te_sub, &te->subtree) {
-      if ((id_tagged_num += outliner_id_delete_tag(C, reports, te_sub, mval)) != 0) {
+      if ((id_tagged_num += outliner_id_delete_tag(
+               C, reports, te_sub, mval, scene_replace_data)) != 0)
+      {
         break;
       }
     }
@@ -596,16 +706,26 @@ static wmOperatorStatus outliner_id_delete_invoke(bContext *C,
 
   UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
+  SceneReplaceData scene_replace_data;
+
   int id_tagged_num = 0;
   BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
   LISTBASE_FOREACH (TreeElement *, te, &space_outliner->tree) {
-    if ((id_tagged_num += outliner_id_delete_tag(C, op->reports, te, fmval)) != 0) {
+    if ((id_tagged_num += outliner_id_delete_tag(C, op->reports, te, fmval, scene_replace_data)) !=
+        0)
+    {
       break;
     }
   }
   if (id_tagged_num == 0) {
     BKE_main_id_tag_all(bmain, ID_TAG_DOIT, false);
     return OPERATOR_CANCELLED;
+  }
+
+  BLI_assert(scene_replace_data.is_valid());
+  if (scene_replace_data.can_replace()) {
+    ED_scene_replace_active_for_deletion(
+        *C, *bmain, *scene_replace_data.scene_to_delete, scene_replace_data.scene_to_activate);
   }
 
   BKE_id_multi_tagged_delete(bmain);

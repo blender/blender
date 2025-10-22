@@ -158,7 +158,7 @@ static void fsmenu_xdg_insert_entry(GHash *xdg_map,
     xdg_path = xdg_path_buf;
   }
   fsmenu_insert_entry(
-      fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, xdg_path, N_(default_path), icon, FS_INSERT_LAST);
+      fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, xdg_path, default_path, icon, FS_INSERT_LAST);
 }
 
 /** \} */

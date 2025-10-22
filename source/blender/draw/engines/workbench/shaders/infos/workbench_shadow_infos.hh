@@ -90,57 +90,96 @@ GPU_SHADER_CREATE_END()
 /** \name Variations Declaration
  * \{ */
 
-#define WORKBENCH_SHADOW_VARIATIONS(common, prefix, suffix, ...) \
-  GPU_SHADER_CREATE_INFO(prefix##_pass_manifold_no_caps##suffix) \
-  DEFINE("SHADOW_PASS") \
-  VERTEX_SOURCE("workbench_shadow_vert.glsl") \
-  ADDITIONAL_INFO_EXPAND(common, __VA_ARGS__) \
-  DO_STATIC_COMPILATION() \
-  GPU_SHADER_CREATE_END() \
-\
-  GPU_SHADER_CREATE_INFO(prefix##_pass_no_manifold_no_caps##suffix) \
-  DEFINE("SHADOW_PASS") \
-  DEFINE("DOUBLE_MANIFOLD") \
-  VERTEX_SOURCE("workbench_shadow_vert.glsl") \
-  ADDITIONAL_INFO_EXPAND(common, __VA_ARGS__) \
-  DO_STATIC_COMPILATION() \
-  GPU_SHADER_CREATE_END() \
-\
-  GPU_SHADER_CREATE_INFO(prefix##_fail_manifold_caps##suffix) \
-  DEFINE("SHADOW_FAIL") \
-  VERTEX_SOURCE("workbench_shadow_caps_vert.glsl") \
-  ADDITIONAL_INFO_EXPAND(common, __VA_ARGS__) \
-  DO_STATIC_COMPILATION() \
-  GPU_SHADER_CREATE_END() \
-\
-  GPU_SHADER_CREATE_INFO(prefix##_fail_manifold_no_caps##suffix) \
-  DEFINE("SHADOW_FAIL") \
-  VERTEX_SOURCE("workbench_shadow_vert.glsl") \
-  ADDITIONAL_INFO_EXPAND(common, __VA_ARGS__) \
-  DO_STATIC_COMPILATION() \
-  GPU_SHADER_CREATE_END() \
-\
-  GPU_SHADER_CREATE_INFO(prefix##_fail_no_manifold_caps##suffix) \
-  DEFINE("SHADOW_FAIL") \
-  DEFINE("DOUBLE_MANIFOLD") \
-  VERTEX_SOURCE("workbench_shadow_caps_vert.glsl") \
-  ADDITIONAL_INFO_EXPAND(common, __VA_ARGS__) \
-  DO_STATIC_COMPILATION() \
-  GPU_SHADER_CREATE_END() \
-\
-  GPU_SHADER_CREATE_INFO(prefix##_fail_no_manifold_no_caps##suffix) \
-  DEFINE("SHADOW_FAIL") \
-  DEFINE("DOUBLE_MANIFOLD") \
-  VERTEX_SOURCE("workbench_shadow_vert.glsl") \
-  ADDITIONAL_INFO_EXPAND(common, __VA_ARGS__) \
-  DO_STATIC_COMPILATION() \
-  GPU_SHADER_CREATE_END()
+GPU_SHADER_CREATE_INFO(workbench_shadow_pass_manifold_no_caps)
+DEFINE("SHADOW_PASS")
+VERTEX_SOURCE("workbench_shadow_vert.glsl")
+ADDITIONAL_INFO_EXPAND(workbench_shadow_common, workbench_shadow_no_debug)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
-WORKBENCH_SHADOW_VARIATIONS(workbench_shadow_common, workbench_shadow, , workbench_shadow_no_debug)
+GPU_SHADER_CREATE_INFO(workbench_shadow_pass_no_manifold_no_caps)
+DEFINE("SHADOW_PASS")
+DEFINE("DOUBLE_MANIFOLD")
+VERTEX_SOURCE("workbench_shadow_vert.glsl")
+ADDITIONAL_INFO_EXPAND(workbench_shadow_common, workbench_shadow_no_debug)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
-WORKBENCH_SHADOW_VARIATIONS(workbench_shadow_common,
-                            workbench_shadow,
-                            _debug,
-                            workbench_shadow_debug)
+GPU_SHADER_CREATE_INFO(workbench_shadow_fail_manifold_caps)
+DEFINE("SHADOW_FAIL")
+VERTEX_SOURCE("workbench_shadow_caps_vert.glsl")
+ADDITIONAL_INFO_EXPAND(workbench_shadow_common, workbench_shadow_no_debug)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(workbench_shadow_fail_manifold_no_caps)
+DEFINE("SHADOW_FAIL")
+VERTEX_SOURCE("workbench_shadow_vert.glsl")
+ADDITIONAL_INFO_EXPAND(workbench_shadow_common, workbench_shadow_no_debug)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(workbench_shadow_fail_no_manifold_caps)
+DEFINE("SHADOW_FAIL")
+DEFINE("DOUBLE_MANIFOLD")
+VERTEX_SOURCE("workbench_shadow_caps_vert.glsl")
+ADDITIONAL_INFO_EXPAND(workbench_shadow_common, workbench_shadow_no_debug)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(workbench_shadow_fail_no_manifold_no_caps)
+DEFINE("SHADOW_FAIL")
+DEFINE("DOUBLE_MANIFOLD")
+VERTEX_SOURCE("workbench_shadow_vert.glsl")
+ADDITIONAL_INFO_EXPAND(workbench_shadow_common, workbench_shadow_no_debug)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+/* Debug variations. */
+
+GPU_SHADER_CREATE_INFO(workbench_shadow_pass_manifold_no_caps_debug)
+DEFINE("SHADOW_PASS")
+VERTEX_SOURCE("workbench_shadow_vert.glsl")
+ADDITIONAL_INFO_EXPAND(workbench_shadow_common, workbench_shadow_debug)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(workbench_shadow_pass_no_manifold_no_caps_debug)
+DEFINE("SHADOW_PASS")
+DEFINE("DOUBLE_MANIFOLD")
+VERTEX_SOURCE("workbench_shadow_vert.glsl")
+ADDITIONAL_INFO_EXPAND(workbench_shadow_common, workbench_shadow_debug)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(workbench_shadow_fail_manifold_caps_debug)
+DEFINE("SHADOW_FAIL")
+VERTEX_SOURCE("workbench_shadow_caps_vert.glsl")
+ADDITIONAL_INFO_EXPAND(workbench_shadow_common, workbench_shadow_debug)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(workbench_shadow_fail_manifold_no_caps_debug)
+DEFINE("SHADOW_FAIL")
+VERTEX_SOURCE("workbench_shadow_vert.glsl")
+ADDITIONAL_INFO_EXPAND(workbench_shadow_common, workbench_shadow_debug)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(workbench_shadow_fail_no_manifold_caps_debug)
+DEFINE("SHADOW_FAIL")
+DEFINE("DOUBLE_MANIFOLD")
+VERTEX_SOURCE("workbench_shadow_caps_vert.glsl")
+ADDITIONAL_INFO_EXPAND(workbench_shadow_common, workbench_shadow_debug)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(workbench_shadow_fail_no_manifold_no_caps_debug)
+DEFINE("SHADOW_FAIL")
+DEFINE("DOUBLE_MANIFOLD")
+VERTEX_SOURCE("workbench_shadow_vert.glsl")
+ADDITIONAL_INFO_EXPAND(workbench_shadow_common, workbench_shadow_debug)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
 
 /** \} */

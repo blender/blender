@@ -29,6 +29,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"
+#include "BKE_idtype.hh"
 #include "BKE_layer.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
@@ -80,6 +81,7 @@
 /* Own include. */
 #include "sequencer_intern.hh"
 #include <cstddef>
+#include <fmt/format.h>
 
 namespace blender::ed::vse {
 
@@ -1977,6 +1979,59 @@ void SEQUENCER_OT_split(wmOperatorType *ot)
 /** \name Duplicate Strips Operator
  * \{ */
 
+static void sequencer_report_duplicates(wmOperator *op, ListBase *duplicated_strips)
+{
+  int num_scenes = 0, num_movieclips = 0, num_masks = 0;
+  LISTBASE_FOREACH (Strip *, strip, duplicated_strips) {
+    switch (strip->type) {
+      case STRIP_TYPE_SCENE:
+        num_scenes++;
+        break;
+      case STRIP_TYPE_MOVIECLIP:
+        num_movieclips++;
+        break;
+      case STRIP_TYPE_MASK:
+        num_masks++;
+        break;
+      default:
+        break;
+    }
+  }
+
+  if (num_scenes == 0 && num_movieclips == 0 && num_masks == 0) {
+    return;
+  }
+
+  std::string report;
+  std::string sep;
+  if (num_scenes) {
+    report += fmt::format("{}{} {}",
+                          sep,
+                          num_scenes,
+                          (num_scenes > 1) ? RPT_(BKE_idtype_idcode_to_name_plural(ID_SCE)) :
+                                             RPT_(BKE_idtype_idcode_to_name(ID_SCE)));
+    sep = ", ";
+  }
+  if (num_movieclips) {
+    report += fmt::format("{}{} {}",
+                          sep,
+                          num_movieclips,
+                          (num_movieclips > 1) ? RPT_(BKE_idtype_idcode_to_name_plural(ID_MC)) :
+                                                 RPT_(BKE_idtype_idcode_to_name(ID_MC)));
+    sep = ", ";
+  }
+  if (num_masks) {
+    report += fmt::format("{}{} {}",
+                          sep,
+                          num_masks,
+                          (num_masks > 1) ? RPT_(BKE_idtype_idcode_to_name_plural(ID_MSK)) :
+                                            RPT_(BKE_idtype_idcode_to_name(ID_MSK)));
+    sep = ", ";
+  }
+
+  BKE_reportf(op->reports, RPT_INFO, RPT_("Duplicated %s"), report.c_str());
+}
+
 static wmOperatorStatus sequencer_add_duplicate_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -2014,6 +2069,11 @@ static wmOperatorStatus sequencer_add_duplicate_exec(bContext *C, wmOperator *op
 
   if (duplicated_strips.first == nullptr) {
     return OPERATOR_CANCELLED;
+  }
+
+  /* Report all the newly created datablocks in the status bar. */
+  if (!linked) {
+    sequencer_report_duplicates(op, &duplicated_strips);
   }
 
   /* Duplicate animation.

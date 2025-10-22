@@ -31,7 +31,7 @@ ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_paint_face)
+CREATE_INFO_VARIANT(overlay_paint_face_clipped, overlay_paint_face, drw_clipped)
 
 /** \} */
 
@@ -58,7 +58,7 @@ ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_paint_point)
+CREATE_INFO_VARIANT(overlay_paint_point_clipped, overlay_paint_point, drw_clipped)
 
 /** \} */
 
@@ -90,7 +90,7 @@ ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_paint_texture)
+CREATE_INFO_VARIANT(overlay_paint_texture_clipped, overlay_paint_texture, drw_clipped)
 
 /** \} */
 
@@ -124,7 +124,7 @@ ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_paint_weight)
+CREATE_INFO_VARIANT(overlay_paint_weight_clipped, overlay_paint_weight, drw_clipped)
 
 GPU_SHADER_CREATE_INFO(overlay_paint_weight_fake_shading)
 DO_STATIC_COMPILATION()
@@ -133,7 +133,9 @@ DEFINE("FAKE_SHADING")
 PUSH_CONSTANT(float3, light_dir)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_paint_weight_fake_shading)
+CREATE_INFO_VARIANT(overlay_paint_weight_fake_shading_clipped,
+                    overlay_paint_weight_fake_shading,
+                    drw_clipped)
 
 /** \} */
 
@@ -162,6 +164,6 @@ ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_paint_wire)
+CREATE_INFO_VARIANT(overlay_paint_wire_clipped, overlay_paint_wire, drw_clipped)
 
 /** \} */

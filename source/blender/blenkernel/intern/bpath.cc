@@ -305,6 +305,7 @@ static bool missing_files_find__recursive(const char *search_directory,
   int64_t size;
   bool found = false;
 
+  BLI_assert(!BLI_path_is_rel(search_directory));
   dir = opendir(search_directory);
 
   if (dir == nullptr) {

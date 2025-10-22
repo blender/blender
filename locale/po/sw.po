@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'702691150287')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 16:12+0000\n"
+"POT-Creation-Date: 2025-10-20 08:46+0000\n"
 "PO-Revision-Date: 2025-07-23 15:16+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -16086,10 +16086,6 @@ msgid "Amount of random elements that are going to be affected by the brush"
 msgstr "Kiasi cha vipengele nasibu ambavyo vitaathiriwa na brashi"
 
 
-msgid "Direction"
-msgstr "Mwelekeo"
-
-
 msgid "Add effect of brush"
 msgstr "Ongeza athari ya brashi"
 
@@ -23492,10 +23488,6 @@ msgid "Sync to audio playback, dropping frames"
 msgstr "Sawazisha kwa uchezaji wa sauti, kuangusha viunzi"
 
 
-msgid "Second"
-msgstr "Pili"
-
-
 msgid "Timeline Markers"
 msgstr "Alama za Ratiba"
 
@@ -25824,6 +25816,10 @@ msgstr "Kitufe cha kudhibiti kimebonyezwa, -1 kwa hali yoyote"
 
 msgid "Control key pressed"
 msgstr "Kitufe cha kudhibiti kimebonyezwa"
+
+
+msgid "Direction"
+msgstr "Mwelekeo"
 
 
 msgid "The direction (only applies to drag events)"
@@ -28469,12 +28465,12 @@ msgid "Layout"
 msgstr "Mpangilio"
 
 
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
-
-
 msgid "Adjust"
 msgstr "Rekebisha"
+
+
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Keying"
@@ -28501,14 +28497,6 @@ msgid "Text"
 msgstr "Maandishi"
 
 
-msgid "Pivot Point"
-msgstr "Egemeo"
-
-
-msgid "Snap"
-msgstr "Picha"
-
-
 msgid "Read"
 msgstr "Soma"
 
@@ -28521,28 +28509,36 @@ msgid "Write"
 msgstr "Andika"
 
 
+msgid "Pivot Point"
+msgstr "Egemeo"
+
+
 msgid "Primitives"
 msgstr "Watu wa kwanza"
+
+
+msgid "Snap"
+msgstr "Picha"
 
 
 msgid "Instances"
 msgstr "Matukio"
 
 
-msgid "Mirror"
-msgstr "Kioo"
-
-
 msgid "Import"
 msgstr "Ingiza"
 
 
-msgid "Navigation"
-msgstr "Urambazaji"
-
-
 msgid "Deprecated"
 msgstr "Imeacha kutumika"
+
+
+msgid "Mirror"
+msgstr "Kioo"
+
+
+msgid "Navigation"
+msgstr "Urambazaji"
 
 
 msgid "Select Linked"
@@ -84660,18 +84656,6 @@ msgid "Method for controlling how the strip combines with other strips"
 msgstr "Njia ya kudhibiti jinsi strip inachanganyika na vibanzi vingine"
 
 
-msgid "Cross"
-msgstr "Msalaba"
-
-
-msgid "Alpha Under"
-msgstr "Alpha Chini"
-
-
-msgid "Gamma Cross"
-msgstr "Msalaba wa Gamma"
-
-
 msgid "Y position of the sequence strip"
 msgstr "Y nafasi ya ukanda wa mfuatano"
 
@@ -95605,6 +95589,10 @@ msgstr "Mstari wa Kasi"
 
 msgid "This object is part of a compound shape"
 msgstr "Kitu hiki ni sehemu ya umbo changamani"
+
+
+msgid "Second"
+msgstr "Pili"
 
 
 msgid "X Stiffness"

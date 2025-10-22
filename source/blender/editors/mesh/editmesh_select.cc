@@ -6058,13 +6058,12 @@ static bool edbm_select_by_attribute_poll(bContext *C)
     CTX_wm_operator_poll_msg_set(C, "There must be an active attribute");
     return false;
   }
-  const CustomDataLayer *layer = BKE_attribute_search(
-      owner, *name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
-  if (layer->type != CD_PROP_BOOL) {
+  const BMDataLayerLookup attr = BM_data_layer_lookup(*mesh->runtime->edit_mesh->bm, *name);
+  if (attr.type != bke::AttrType::Bool) {
     CTX_wm_operator_poll_msg_set(C, "The active attribute must have a boolean type");
     return false;
   }
-  if (BKE_attribute_domain(owner, layer) == bke::AttrDomain::Corner) {
+  if (attr.domain == bke::AttrDomain::Corner) {
     CTX_wm_operator_poll_msg_set(
         C, "The active attribute must be on the vertex, edge, or face domain");
     return false;
@@ -6103,19 +6102,17 @@ static wmOperatorStatus edbm_select_by_attribute_exec(bContext *C, wmOperator * 
     if (!name) {
       continue;
     }
-    const CustomDataLayer *layer = BKE_attribute_search(
-        owner, *name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
-    if (!layer) {
+    const BMDataLayerLookup attr = BM_data_layer_lookup(*bm, *name);
+    if (!attr) {
       continue;
     }
-    if (layer->type != CD_PROP_BOOL) {
+    if (attr.type != bke::AttrType::Bool) {
       continue;
     }
-    if (BKE_attribute_domain(owner, layer) == bke::AttrDomain::Corner) {
+    if (attr.domain == bke::AttrDomain::Corner) {
       continue;
     }
-    const std::optional<BMIterType> iter_type = domain_to_iter_type(
-        BKE_attribute_domain(owner, layer));
+    const std::optional<BMIterType> iter_type = domain_to_iter_type(attr.domain);
     if (!iter_type) {
       continue;
     }
@@ -6127,7 +6124,7 @@ static wmOperatorStatus edbm_select_by_attribute_exec(bContext *C, wmOperator * 
       if (BM_elem_flag_test(elem, BM_ELEM_HIDDEN | BM_ELEM_SELECT)) {
         continue;
       }
-      if (BM_ELEM_CD_GET_BOOL(elem, layer->offset)) {
+      if (BM_ELEM_CD_GET_BOOL(elem, attr.offset)) {
         BM_elem_select_set(bm, elem, true);
         changed = true;
       }
