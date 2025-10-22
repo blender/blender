@@ -58,7 +58,7 @@ gpu::VertBufPtr extract_sculpt_data(const MeshRenderData &mr)
         if (face_set_offset != -1) {
           const int face_set_id = BM_ELEM_CD_GET_INT(&face, face_set_offset);
           if (face_set_id != default_face_set) {
-            BKE_paint_face_set_overlay_color_get(face_set_id, face_set_seed, face_set_color);
+            BKE_paint_face_set_overlay_color_get(face_set_id, face_set_seed, face_set_color, mr.mesh);
           }
         }
         vbo_data.slice(face_range).fill(gpuSculptData{face_set_color, 0.0f});
@@ -87,7 +87,7 @@ gpu::VertBufPtr extract_sculpt_data(const MeshRenderData &mr)
         if (!face_set.is_empty()) {
           const int face_set_id = face_set[face_index];
           if (face_set_id != default_face_set) {
-            BKE_paint_face_set_overlay_color_get(face_set_id, face_set_seed, face_set_color);
+            BKE_paint_face_set_overlay_color_get(face_set_id, face_set_seed, face_set_color, mr.mesh);
           }
         }
         vbo_data.slice(face).fill(gpuSculptData{face_set_color, 0.0f});
@@ -162,7 +162,7 @@ gpu::VertBufPtr extract_sculpt_data_subdiv(const MeshRenderData &mr,
         const int face_set_id = face_sets[face_index];
         /* Skip for the default color Face Set to render it white. */
         if (face_set_id != default_face_set) {
-          BKE_paint_face_set_overlay_color_get(face_set_id, face_set_seed, face_set_color);
+          BKE_paint_face_set_overlay_color_get(face_set_id, face_set_seed, face_set_color, &coarse_mesh);
         }
 
         copy_v3_v3_uchar(face_set_vbo_data[i].color, face_set_color);

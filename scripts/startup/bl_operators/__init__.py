@@ -34,6 +34,7 @@ _modules = [
     "presets",
     "rigidbody",
     "screen_play_rendered_anim",
+    "sculpt_face_set_custom_color",
     "sequencer",
     "spreadsheet",
     "userpref",
@@ -64,12 +65,18 @@ def register():
         copy_global_transform,
     )
 
+    print("[DEBUG] Registering bl_operators modules...")
+    print(f"[DEBUG] Modules to register: {len(_modules_loaded)}")
+    
     for mod in _modules_loaded:
+        print(f"[DEBUG] Registering module: {mod.__name__}")
         for cls in mod.classes:
+            print(f"[DEBUG] Registering class: {cls.__name__}")
             register_class(cls)
 
     bone_selection_sets.register()
     copy_global_transform.register()
+    print("[DEBUG] bl_operators registration complete")
 
 
 def unregister():

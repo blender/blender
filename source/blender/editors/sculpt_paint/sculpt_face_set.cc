@@ -1196,6 +1196,290 @@ void SCULPT_OT_face_sets_randomize_colors(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static wmOperatorStatus set_custom_color_exec(bContext *C, wmOperator *op)
+{
+  printf("[DEBUG] set_custom_color_exec called\n");
+  
+  Object &ob = *CTX_data_active_object(C);
+  printf("[DEBUG] Active object: %s\n", ob.id.name + 2);
+
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    printf("[DEBUG] Object not visible, cancelling\n");
+    return OPERATOR_CANCELLED;
+  }
+
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
+
+  /* Dyntopo not supported. */
+  if (pbvh.type() == bke::pbvh::Type::BMesh) {
+    printf("[DEBUG] Dyntopo not supported, cancelling\n");
+    return OPERATOR_CANCELLED;
+  }
+
+  Mesh *mesh = static_cast<Mesh *>(ob.data);
+  printf("[DEBUG] Mesh: %s\n", mesh->id.name + 2);
+  
+  const bke::AttributeAccessor attributes = mesh->attributes();
+
+  if (!attributes.contains(".sculpt_face_set")) {
+    printf("[DEBUG] No sculpt_face_set attribute found, cancelling\n");
+    return OPERATOR_CANCELLED;
+  }
+
+  // Get face_set_id from RNA parameter, or use active face set if 0
+  int face_set_id = RNA_int_get(op->ptr, "face_set_id");
+  printf("[DEBUG] Face Set ID from RNA: %d\n", face_set_id);
+  
+  if (face_set_id == 0) {
+    // Use active face set if no specific ID provided
+    face_set_id = active_face_set_get(ob);
+    printf("[DEBUG] Using active face set: %d\n", face_set_id);
+  }
+  
+  if (face_set_id == SCULPT_FACE_SET_NONE) {
+    printf("[DEBUG] No valid face set ID, cancelling\n");
+    return OPERATOR_CANCELLED;
+  }
+
+  float color[3];
+  RNA_float_get_array(op->ptr, "color", color);
+  printf("[DEBUG] Color from RNA: (%.3f, %.3f, %.3f)\n", color[0], color[1], color[2]);
+
+  /* Set custom color for the specified face set */
+  printf("[DEBUG] Calling BKE_paint_face_set_custom_color_set with face_set_id=%d\n", face_set_id);
+  BKE_paint_face_set_custom_color_set(mesh, face_set_id, color);
+
+  /* Force mesh update and dependency graph refresh */
+  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
+
+  IndexMaskMemory memory;
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
+  pbvh.tag_face_sets_changed(node_mask);
+
+  SCULPT_tag_update_overlays(C);
+  
+  /* Additional viewport update */
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &ob);
+  
+  /* Force dependency graph update */
+  DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
+  
+  /* Force viewport refresh */
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &ob);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
+  
+  printf("[DEBUG] set_custom_color_exec completed successfully\n");
+  return OPERATOR_FINISHED;
+}
+
+static wmOperatorStatus set_custom_color_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Object &ob = *CTX_data_active_object(C);
+
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Update the active vertex and Face Set using the cursor position */
+  CursorGeometryInfo cgi;
+  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
+  vert_random_access_ensure(ob);
+  cursor_geometry_info_update(C, &cgi, mval_fl, false);
+
+  return set_custom_color_exec(C, op);
+}
+
+void SCULPT_OT_face_set_set_custom_color(wmOperatorType *ot)
+{
+  ot->name = "Set Face Set Custom Color";
+  ot->idname = "SCULPT_OT_face_set_set_custom_color";
+  ot->description = "Set a custom color for the specified Face Set";
+
+  ot->exec = set_custom_color_exec;
+  ot->invoke = set_custom_color_invoke;
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
+
+  RNA_def_float_color(ot->srna, "color", 3, nullptr, 0.0f, 1.0f, "Color", "Custom color for the Face Set", 0.0f, 1.0f);
+  RNA_def_int(ot->srna, "face_set_id", 0, 0, INT_MAX, "Face Set ID", "ID of the Face Set to color (0 = active face set)", 0, INT_MAX);
+}
+
+static wmOperatorStatus clear_custom_color_exec(bContext *C, wmOperator *op)
+{
+  printf("[DEBUG] clear_custom_color_exec called\n");
+  
+  Object &ob = *CTX_data_active_object(C);
+  printf("[DEBUG] Active object: %s\n", ob.id.name + 2);
+
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    printf("[DEBUG] Object not visible, cancelling\n");
+    return OPERATOR_CANCELLED;
+  }
+
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
+
+  /* Dyntopo not supported. */
+  if (pbvh.type() == bke::pbvh::Type::BMesh) {
+    printf("[DEBUG] Dyntopo not supported, cancelling\n");
+    return OPERATOR_CANCELLED;
+  }
+
+  Mesh *mesh = static_cast<Mesh *>(ob.data);
+  printf("[DEBUG] Mesh: %s\n", mesh->id.name + 2);
+  
+  const bke::AttributeAccessor attributes = mesh->attributes();
+
+  if (!attributes.contains(".sculpt_face_set")) {
+    printf("[DEBUG] No sculpt_face_set attribute found, cancelling\n");
+    return OPERATOR_CANCELLED;
+  }
+
+  // Get face_set_id from RNA parameter, or use active face set if 0
+  int face_set_id = RNA_int_get(op->ptr, "face_set_id");
+  printf("[DEBUG] Face Set ID from RNA: %d\n", face_set_id);
+  
+  if (face_set_id == 0) {
+    // Use active face set if no specific ID provided
+    face_set_id = active_face_set_get(ob);
+    printf("[DEBUG] Using active face set: %d\n", face_set_id);
+  }
+  
+  if (face_set_id == SCULPT_FACE_SET_NONE) {
+    printf("[DEBUG] No valid face set ID, cancelling\n");
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Remove custom color for the specified face set */
+  printf("[DEBUG] Calling BKE_paint_face_set_custom_color_remove with face_set_id=%d\n", face_set_id);
+  printf("[DEBUG] Before removal: face_set_colors_num=%d\n", mesh->face_set_colors_num);
+  
+  BKE_paint_face_set_custom_color_remove(mesh, face_set_id);
+  
+  printf("[DEBUG] After removal: face_set_colors_num=%d\n", mesh->face_set_colors_num);
+
+  /* Force mesh update and dependency graph refresh */
+  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
+  
+  /* Update PBVH */
+  IndexMaskMemory memory;
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
+  pbvh.tag_face_sets_changed(node_mask);
+
+  /* Force viewport redraw */
+  SCULPT_tag_update_overlays(C);
+  
+  /* Additional viewport update */
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &ob);
+  
+  /* Force dependency graph update */
+  DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
+  
+  /* Force viewport refresh */
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &ob);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
+  
+  printf("[DEBUG] clear_custom_color_exec completed successfully\n");
+  return OPERATOR_FINISHED;
+}
+
+void SCULPT_OT_face_set_clear_custom_color(wmOperatorType *ot)
+{
+  ot->name = "Clear Face Set Custom Color";
+  ot->idname = "SCULPT_OT_face_set_clear_custom_color";
+  ot->description = "Clear the custom color for the specified Face Set";
+
+  ot->exec = clear_custom_color_exec;
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_int(ot->srna, "face_set_id", 0, 0, INT_MAX, "Face Set ID", "ID of the Face Set to clear color (0 = active face set)", 0, INT_MAX);
+}
+
+static wmOperatorStatus clear_all_custom_colors_exec(bContext *C, wmOperator *op)
+{
+  printf("[DEBUG] clear_all_custom_colors_exec called\n");
+  
+  Object &ob = *CTX_data_active_object(C);
+  printf("[DEBUG] Active object: %s\n", ob.id.name + 2);
+
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    printf("[DEBUG] Object not visible, cancelling\n");
+    return OPERATOR_CANCELLED;
+  }
+
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
+
+  /* Dyntopo not supported. */
+  if (pbvh.type() == bke::pbvh::Type::BMesh) {
+    printf("[DEBUG] Dyntopo not supported, cancelling\n");
+    return OPERATOR_CANCELLED;
+  }
+
+  Mesh *mesh = static_cast<Mesh *>(ob.data);
+  printf("[DEBUG] Mesh: %s\n", mesh->id.name + 2);
+  
+  const bke::AttributeAccessor attributes = mesh->attributes();
+
+  if (!attributes.contains(".sculpt_face_set")) {
+    printf("[DEBUG] No sculpt_face_set attribute found, cancelling\n");
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Clear all custom colors */
+  printf("[DEBUG] Calling BKE_paint_face_set_custom_colors_clear\n");
+  printf("[DEBUG] Before clear: face_set_colors_num=%d\n", mesh->face_set_colors_num);
+  
+  BKE_paint_face_set_custom_colors_clear(mesh);
+  
+  printf("[DEBUG] After clear: face_set_colors_num=%d\n", mesh->face_set_colors_num);
+
+  /* Force mesh update and dependency graph refresh */
+  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
+
+  /* Update PBVH */
+  IndexMaskMemory memory;
+  const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);
+  pbvh.tag_face_sets_changed(node_mask);
+
+  /* Force viewport redraw */
+  SCULPT_tag_update_overlays(C);
+  
+  /* Additional viewport update */
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &ob);
+  
+  /* Force dependency graph update */
+  DEG_id_tag_update(&ob.id, ID_RECALC_GEOMETRY);
+  
+  /* Force viewport refresh */
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &ob);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
+  
+  printf("[DEBUG] clear_all_custom_colors_exec completed successfully\n");
+  return OPERATOR_FINISHED;
+}
+
+void SCULPT_OT_face_set_clear_all_custom_colors(wmOperatorType *ot)
+{
+  ot->name = "Clear All Face Set Custom Colors";
+  ot->idname = "SCULPT_OT_face_set_clear_all_custom_colors";
+  ot->description = "Clear all custom colors for Face Sets";
+
+  ot->exec = clear_all_custom_colors_exec;
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 enum class EditMode {
   Grow = 0,
   Shrink = 1,

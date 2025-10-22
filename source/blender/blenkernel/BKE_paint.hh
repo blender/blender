@@ -296,6 +296,18 @@ float paint_grid_paint_mask(const GridPaintMask *gpm, uint level, uint x, uint y
 
 void BKE_paint_face_set_overlay_color_get(int face_set, int seed, uchar r_color[4]);
 
+/**
+ * Returns the Face Set color for rendering, checking custom colors first, then falling back to random color.
+ */
+void BKE_paint_face_set_overlay_color_get(int face_set, int seed, uchar r_color[4], const Mesh *mesh);
+
+/* Face Set Custom Colors */
+void BKE_paint_face_set_custom_color_set(Mesh *mesh, int face_set_id, const float color[3]);
+void BKE_paint_face_set_custom_color_get(const Mesh *mesh, int face_set_id, float r_color[3]);
+bool BKE_paint_face_set_custom_color_exists(const Mesh *mesh, int face_set_id);
+void BKE_paint_face_set_custom_color_remove(Mesh *mesh, int face_set_id);
+void BKE_paint_face_set_custom_colors_clear(Mesh *mesh);
+
 /* Stroke related. */
 
 /* Random values are generated on each new stroke so each stroke

@@ -3978,6 +3978,13 @@ class VIEW3D_MT_face_sets(Menu):
 
         props = layout.operator("sculpt.face_sets_randomize_colors", text="Randomize Colors")
 
+        layout.separator()
+
+        # Custom Face Set Colors
+        props = layout.operator("sculpt.face_set_custom_color_set", text="Set Custom Color")
+        props = layout.operator("sculpt.face_set_custom_color_clear", text="Clear Custom Color")
+        props = layout.operator("sculpt.face_set_custom_color_clear_all", text="Clear All Custom Colors")
+
         layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
 
 

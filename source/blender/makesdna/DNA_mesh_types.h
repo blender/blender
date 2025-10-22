@@ -55,6 +55,16 @@ struct MEdge;
 struct MFace;
 struct Material;
 
+/** Face Set Color data structure for custom face set colors. */
+typedef struct FaceSetColor {
+  /** Face Set ID. */
+  int face_set_id;
+  /** Custom color for this Face Set (RGB). */
+  float color[3];
+  /** Padding for alignment. */
+  char _pad0[8];
+} FaceSetColor;
+
 typedef struct Mesh {
 #ifdef __cplusplus
   DNA_DEFINE_CXX_METHODS(Mesh)
@@ -240,6 +250,13 @@ typedef struct Mesh {
 
   char _pad1;
   int8_t radial_symmetry[3];
+
+  /** Array of custom Face Set colors. */
+  struct FaceSetColor *face_set_colors;
+  /** Number of custom Face Set colors. */
+  int face_set_colors_num;
+  /** Padding for alignment. */
+  char _pad2[4];
 
   /**
    * Data that isn't saved in files, including caches of derived data, temporary data to improve

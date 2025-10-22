@@ -3103,3 +3103,155 @@ void BKE_paint_face_set_overlay_color_get(const int face_set, const int seed, uc
              &rgba[2]);
   rgba_float_to_uchar(r_color, rgba);
 }
+
+/* Returns the Face Set color for rendering, checking custom colors first, then falling back to random color. */
+void BKE_paint_face_set_overlay_color_get(const int face_set, const int seed, uchar r_color[4], const Mesh *mesh)
+{
+  /* First check if there's a custom color for this face set */
+  if (mesh) {
+    float custom_color[3];
+    BKE_paint_face_set_custom_color_get(mesh, face_set, custom_color);
+    if (!is_zero_v3(custom_color)) {
+      /* Convert RGB to RGBA with alpha = 1.0 */
+      r_color[0] = (uchar)(custom_color[0] * 255.0f);
+      r_color[1] = (uchar)(custom_color[1] * 255.0f);
+      r_color[2] = (uchar)(custom_color[2] * 255.0f);
+      r_color[3] = 255; /* Alpha = 1.0 */
+      return;
+    }
+  }
+  
+  /* Fall back to random color generation */
+  float rgba[4];
+  float random_mod_hue = GOLDEN_RATIO_CONJUGATE * (face_set + (seed % 10));
+  random_mod_hue = random_mod_hue - floorf(random_mod_hue);
+  const float random_mod_sat = BLI_hash_int_01(face_set + seed + 1);
+  const float random_mod_val = BLI_hash_int_01(face_set + seed + 2);
+  hsv_to_rgb(random_mod_hue,
+             0.6f + (random_mod_sat * 0.25f),
+             1.0f - (random_mod_val * 0.35f),
+             &rgba[0],
+             &rgba[1],
+             &rgba[2]);
+  rgba_float_to_uchar(r_color, rgba);
+}
+
+/* Face Set Custom Colors */
+void BKE_paint_face_set_custom_color_set(Mesh *mesh, int face_set_id, const float color[3])
+{
+  printf("[DEBUG] BKE_paint_face_set_custom_color_set called\n");
+  printf("[DEBUG] mesh: %p, face_set_id: %d, color: (%.3f, %.3f, %.3f)\n", 
+         mesh, face_set_id, color[0], color[1], color[2]);
+  
+  if (!mesh || face_set_id <= 0) {
+    printf("[DEBUG] Early return: mesh=%p, face_set_id=%d\n", mesh, face_set_id);
+    return;
+  }
+
+  printf("[DEBUG] Current face_set_colors_num: %d\n", mesh->face_set_colors_num);
+
+  /* Find existing color or add new one */
+  for (int i = 0; i < mesh->face_set_colors_num; i++) {
+    if (mesh->face_set_colors[i].face_set_id == face_set_id) {
+      printf("[DEBUG] Found existing color at index %d, updating\n", i);
+      copy_v3_v3(mesh->face_set_colors[i].color, color);
+      printf("[DEBUG] Updated color to: (%.3f, %.3f, %.3f)\n", 
+             mesh->face_set_colors[i].color[0], 
+             mesh->face_set_colors[i].color[1], 
+             mesh->face_set_colors[i].color[2]);
+      return;
+    }
+  }
+
+  printf("[DEBUG] Adding new color entry\n");
+  /* Add new color */
+  mesh->face_set_colors_num++;
+  mesh->face_set_colors = static_cast<FaceSetColor *>(
+      MEM_reallocN(mesh->face_set_colors, sizeof(FaceSetColor) * mesh->face_set_colors_num));
+  
+  FaceSetColor *new_color = &mesh->face_set_colors[mesh->face_set_colors_num - 1];
+  new_color->face_set_id = face_set_id;
+  copy_v3_v3(new_color->color, color);
+  memset(new_color->_pad0, 0, sizeof(new_color->_pad0));
+  
+  printf("[DEBUG] Added new color: face_set_id=%d, color=(%.3f, %.3f, %.3f)\n",
+         new_color->face_set_id, new_color->color[0], new_color->color[1], new_color->color[2]);
+  printf("[DEBUG] Total face_set_colors_num: %d\n", mesh->face_set_colors_num);
+}
+
+void BKE_paint_face_set_custom_color_get(const Mesh *mesh, int face_set_id, float r_color[3])
+{
+  printf("[DEBUG] BKE_paint_face_set_custom_color_get called\n");
+  printf("[DEBUG] mesh: %p, face_set_id: %d\n", mesh, face_set_id);
+  
+  if (!mesh || face_set_id <= 0) {
+    printf("[DEBUG] Early return: mesh=%p, face_set_id=%d\n", mesh, face_set_id);
+    zero_v3(r_color);
+    return;
+  }
+
+  printf("[DEBUG] Searching through %d custom colors\n", mesh->face_set_colors_num);
+  
+  for (int i = 0; i < mesh->face_set_colors_num; i++) {
+    printf("[DEBUG] Checking color %d: face_set_id=%d\n", i, mesh->face_set_colors[i].face_set_id);
+    if (mesh->face_set_colors[i].face_set_id == face_set_id) {
+      copy_v3_v3(r_color, mesh->face_set_colors[i].color);
+      printf("[DEBUG] Found color: (%.3f, %.3f, %.3f)\n", r_color[0], r_color[1], r_color[2]);
+      return;
+    }
+  }
+
+  printf("[DEBUG] No custom color found, returning default\n");
+  /* No custom color found */
+  zero_v3(r_color);
+}
+
+bool BKE_paint_face_set_custom_color_exists(const Mesh *mesh, int face_set_id)
+{
+  if (!mesh || face_set_id <= 0) {
+    return false;
+  }
+
+  for (int i = 0; i < mesh->face_set_colors_num; i++) {
+    if (mesh->face_set_colors[i].face_set_id == face_set_id) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+void BKE_paint_face_set_custom_color_remove(Mesh *mesh, int face_set_id)
+{
+  if (!mesh || face_set_id <= 0 || mesh->face_set_colors_num == 0) {
+    return;
+  }
+
+  for (int i = 0; i < mesh->face_set_colors_num; i++) {
+    if (mesh->face_set_colors[i].face_set_id == face_set_id) {
+      /* Move remaining colors down */
+      for (int j = i; j < mesh->face_set_colors_num - 1; j++) {
+        mesh->face_set_colors[j] = mesh->face_set_colors[j + 1];
+      }
+      
+      mesh->face_set_colors_num--;
+      if (mesh->face_set_colors_num == 0) {
+        MEM_SAFE_FREE(mesh->face_set_colors);
+      } else {
+        mesh->face_set_colors = static_cast<FaceSetColor *>(
+            MEM_reallocN(mesh->face_set_colors, sizeof(FaceSetColor) * mesh->face_set_colors_num));
+      }
+      return;
+    }
+  }
+}
+
+void BKE_paint_face_set_custom_colors_clear(Mesh *mesh)
+{
+  if (!mesh) {
+    return;
+  }
+
+  MEM_SAFE_FREE(mesh->face_set_colors);
+  mesh->face_set_colors_num = 0;
+}

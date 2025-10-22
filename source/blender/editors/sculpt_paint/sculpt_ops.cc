@@ -1559,6 +1559,9 @@ void operatortypes_sculpt()
   WM_operatortype_append(face_set::SCULPT_OT_face_sets_randomize_colors);
   WM_operatortype_append(face_set::SCULPT_OT_face_sets_init);
   WM_operatortype_append(face_set::SCULPT_OT_face_sets_edit);
+  WM_operatortype_append(face_set::SCULPT_OT_face_set_set_custom_color);
+  WM_operatortype_append(face_set::SCULPT_OT_face_set_clear_custom_color);
+  WM_operatortype_append(face_set::SCULPT_OT_face_set_clear_all_custom_colors);
   WM_operatortype_append(cloth::SCULPT_OT_cloth_filter);
   WM_operatortype_append(face_set::SCULPT_OT_face_set_lasso_gesture);
   WM_operatortype_append(face_set::SCULPT_OT_face_set_box_gesture);

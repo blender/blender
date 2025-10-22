@@ -107,6 +107,10 @@ static void mesh_init_data(ID *id)
   mesh->runtime = new blender::bke::MeshRuntime();
 
   mesh->face_sets_color_seed = BLI_hash_int(BLI_time_now_seconds_i() & UINT_MAX);
+  
+  /* Initialize Face Set colors */
+  mesh->face_set_colors = nullptr;
+  mesh->face_set_colors_num = 0;
 }
 
 static void mesh_copy_data(Main *bmain,
@@ -212,6 +216,16 @@ static void mesh_copy_data(Main *bmain,
   mesh_dst->default_uv_map_attribute = static_cast<char *>(
       MEM_dupallocN(mesh_src->default_uv_map_attribute));
 
+  /* Copy Face Set colors */
+  if (mesh_src->face_set_colors && mesh_src->face_set_colors_num > 0) {
+    mesh_dst->face_set_colors = static_cast<FaceSetColor *>(
+        MEM_dupallocN(mesh_src->face_set_colors));
+    mesh_dst->face_set_colors_num = mesh_src->face_set_colors_num;
+  } else {
+    mesh_dst->face_set_colors = nullptr;
+    mesh_dst->face_set_colors_num = 0;
+  }
+
   CustomData_init_from(
       &mesh_src->vert_data, &mesh_dst->vert_data, mask.vmask, mesh_dst->verts_num);
   CustomData_init_from(
@@ -260,6 +274,11 @@ static void mesh_free_data(ID *id)
   MEM_SAFE_FREE(mesh->default_color_attribute);
   MEM_SAFE_FREE(mesh->active_uv_map_attribute);
   MEM_SAFE_FREE(mesh->default_uv_map_attribute);
+  
+  /* Free Face Set colors */
+  MEM_SAFE_FREE(mesh->face_set_colors);
+  mesh->face_set_colors_num = 0;
+  
   mesh->attribute_storage.wrap().~AttributeStorage();
   if (mesh->face_offset_indices) {
     blender::implicit_sharing::free_shared_data(&mesh->face_offset_indices,
