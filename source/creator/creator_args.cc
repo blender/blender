@@ -2130,6 +2130,7 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
       LISTBASE_FOREACH (RenderEngineType *, type, &R_engines) {
         printf("\t%s\n", type->idname);
       }
+      WM_exit_ex(C, false, false);
       exit(0);
     }
     else {
@@ -2146,6 +2147,7 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
         }
         else {
           fprintf(stderr, "\nError: engine not found '%s'\n", engine_name);
+          WM_exit_ex(C, false, false);
           exit(1);
         }
       }
