@@ -451,16 +451,26 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, CurveMapS
   /* mirror curve in x direction to have positive slope
    * rather than default negative slope */
   if (slope == CurveMapSlopeType::Positive) {
-    int i, last = cuma->totpoint - 1;
-    CurveMapPoint *newpoints = static_cast<CurveMapPoint *>(MEM_dupallocN(cuma->curve));
-
-    for (i = 0; i < cuma->totpoint; i++) {
-      newpoints[i].x = 1.0f - cuma->curve[last - i].x;
-      newpoints[i].y = cuma->curve[last - i].y;
+    if (ELEM(preset, CURVE_PRESET_LINE, CURVE_PRESET_CONSTANT_MEDIAN)) {
+      BLI_assert(cuma->totpoint == 2);
+      /* The LINE and CONSTANT_MEDIAN presets are defined by a single pair of points, relative to
+       * the clip region. */
+      std::swap(cuma->curve[0].y, cuma->curve[1].y);
     }
-
-    MEM_freeN(cuma->curve);
-    cuma->curve = newpoints;
+    else {
+      int i, last = cuma->totpoint - 1;
+      /* For all curves other than the LINE and CONSTANT_MEDIAN curves, we assume that the x period
+       * is from [0.0, 1.0] inclusive. Resetting the curve for these presets does not take into
+       * account the current clipping region. */
+      BLI_assert(cuma->curve[0].x == 0.0f && cuma->curve[last].x == 1.0f);
+      CurveMapPoint *newpoints = static_cast<CurveMapPoint *>(MEM_dupallocN(cuma->curve));
+      for (i = 0; i < cuma->totpoint; i++) {
+        newpoints[i].x = 1.0f - cuma->curve[last - i].x;
+        newpoints[i].y = cuma->curve[last - i].y;
+      }
+      MEM_freeN(cuma->curve);
+      cuma->curve = newpoints;
+    }
   }
   else if (slope == CurveMapSlopeType::PositiveNegative) {
     const int num_points = cuma->totpoint * 2 - 1;
