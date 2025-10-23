@@ -683,9 +683,11 @@ typedef struct PreviewImage {
 #define ID_CHECK_UNDO(id) (!ELEM(GS((id)->name), ID_SCR, ID_WM, ID_WS, ID_BR))
 
 #define ID_BLEND_PATH(_bmain, _id) \
-  ((_id)->lib ? (_id)->lib->runtime->filepath_abs : BKE_main_blendfile_path((_bmain)))
+  ((_id)->lib ? BKE_main_blendfile_path_from_library(*(_id)->lib) : \
+                BKE_main_blendfile_path((_bmain)))
 #define ID_BLEND_PATH_FROM_GLOBAL(_id) \
-  ((_id)->lib ? (_id)->lib->runtime->filepath_abs : BKE_main_blendfile_path_from_global())
+  ((_id)->lib ? BKE_main_blendfile_path_from_library(*(_id)->lib) : \
+                BKE_main_blendfile_path_from_global())
 
 #define ID_MISSING(_id) ((((const ID *)(_id))->tag & ID_TAG_MISSING) != 0)
 
