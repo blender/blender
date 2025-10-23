@@ -1601,120 +1601,87 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
       handleTabletEvent(event); /* Update window tablet state to be included in event. */
 
     case NSEventTypeMouseMoved: {
-      GHOST_TGrabCursorMode grab_mode = window->getCursorGrabMode();
-
       /* TODO: CHECK IF THIS IS A TABLET EVENT */
       bool is_tablet = false;
 
-      if (is_tablet && window->getCursorGrabModeIsWarp()) {
-        grab_mode = GHOST_kGrabDisable;
+      if (window->getCursorGrabModeIsWarp() && !is_tablet) {
+        /* Wrap cursor at area/window boundaries. */
+        GHOST_Rect bounds, windowBounds, correctedBounds;
+
+        /* fall back to window bounds */
+        if (window->getCursorGrabBounds(bounds) == GHOST_kFailure) {
+          window->getClientBounds(bounds);
+        }
+
+        /* Switch back to Cocoa coordinates orientation
+         * (y=0 at bottom, the same as blender internal BTW!), and to client coordinates. */
+        window->getClientBounds(windowBounds);
+        window->screenToClient(bounds.l_, bounds.b_, correctedBounds.l_, correctedBounds.t_);
+        window->screenToClient(bounds.r_, bounds.t_, correctedBounds.r_, correctedBounds.b_);
+        correctedBounds.b_ = (windowBounds.b_ - windowBounds.t_) - correctedBounds.b_;
+        correctedBounds.t_ = (windowBounds.b_ - windowBounds.t_) - correctedBounds.t_;
+
+        /* Get accumulation from previous mouse warps. */
+        int32_t x_accum, y_accum;
+        window->getCursorGrabAccum(x_accum, y_accum);
+
+        /* Get the current software mouse pointer location, theoretically unaffected by pending
+         * events that may still be referring to a location before warping. In practice extra
+         * logic still need to be used to prevent interferences from stale events. */
+        const NSPoint mousePos = event.window.mouseLocationOutsideOfEventStream;
+        /* Casting. */
+        const int32_t x_mouse = mousePos.x;
+        const int32_t y_mouse = mousePos.y;
+
+        /* Warp mouse cursor if needed. */
+        int32_t warped_x_mouse = x_mouse;
+        int32_t warped_y_mouse = y_mouse;
+        correctedBounds.wrapPoint(warped_x_mouse, warped_y_mouse, 4, window->getCursorGrabAxis());
+
+        /* Set new cursor position. */
+        if (x_mouse != warped_x_mouse || y_mouse != warped_y_mouse) {
+          /* After warping, we can still receive unwrapped mouse that occured slightly before or
+           * after the current event at close timestamps, causing the wrapping to be applied a
+           * second time, leading to a visual jump. Ignore these events by returning early.
+           * Using a small empirical future covering threshold, see PR #148158 for details. */
+          const NSTimeInterval timestamp = event.timestamp;
+          const NSTimeInterval stale_event_threshold = 0.003;
+          if (timestamp < (last_warp_timestamp_ + stale_event_threshold)) {
+            break;
+          }
+
+          int32_t warped_x, warped_y;
+          window->clientToScreenIntern(warped_x_mouse, warped_y_mouse, warped_x, warped_y);
+          setMouseCursorPosition(warped_x, warped_y); /* wrap */
+          window->setCursorGrabAccum(x_accum + (x_mouse - warped_x_mouse),
+                                     y_accum + (y_mouse - warped_y_mouse));
+
+          /* This is the current time that matches NSEvent timestamp. */
+          last_warp_timestamp_ = [[NSProcessInfo processInfo] systemUptime];
+        }
+
+        /* Generate event. */
+        int32_t x, y;
+        window->clientToScreenIntern(x_mouse + x_accum, y_mouse + y_accum, x, y);
+        pushEvent(new GHOST_EventCursor(event.timestamp * 1000,
+                                        GHOST_kEventCursorMove,
+                                        window,
+                                        x,
+                                        y,
+                                        window->GetCocoaTabletData()));
       }
+      else {
+        /* Normal cursor operation: send mouse position in window. */
+        const NSPoint mousePos = event.locationInWindow;
+        int32_t x, y;
 
-      switch (grab_mode) {
-        case GHOST_kGrabHide: {
-          /* Cursor hidden grab operation : no cursor move */
-          int32_t x_warp, y_warp, x_accum, y_accum, x, y;
-
-          window->getCursorGrabInitPos(x_warp, y_warp);
-          window->screenToClientIntern(x_warp, y_warp, x_warp, y_warp);
-
-          /* Strange Apple implementation (inverted coordinates for the deltaY)... */
-          window->getCursorGrabAccum(x_accum, y_accum);
-          x_accum += event.deltaX;
-          y_accum += -event.deltaY;
-          window->setCursorGrabAccum(x_accum, y_accum);
-
-          window->clientToScreenIntern(x_warp + x_accum, y_warp + y_accum, x, y);
-          pushEvent(new GHOST_EventCursor(event.timestamp * 1000,
-                                          GHOST_kEventCursorMove,
-                                          window,
-                                          x,
-                                          y,
-                                          window->GetCocoaTabletData()));
-          break;
-        }
-        case GHOST_kGrabWrap: {
-          /* Wrap cursor at area/window boundaries. */
-          GHOST_Rect bounds, windowBounds, correctedBounds;
-
-          /* fall back to window bounds */
-          if (window->getCursorGrabBounds(bounds) == GHOST_kFailure) {
-            window->getClientBounds(bounds);
-          }
-
-          /* Switch back to Cocoa coordinates orientation
-           * (y=0 at bottom, the same as blender internal BTW!), and to client coordinates. */
-          window->getClientBounds(windowBounds);
-          window->screenToClient(bounds.l_, bounds.b_, correctedBounds.l_, correctedBounds.t_);
-          window->screenToClient(bounds.r_, bounds.t_, correctedBounds.r_, correctedBounds.b_);
-          correctedBounds.b_ = (windowBounds.b_ - windowBounds.t_) - correctedBounds.b_;
-          correctedBounds.t_ = (windowBounds.b_ - windowBounds.t_) - correctedBounds.t_;
-
-          /* Get accumulation from previous mouse warps. */
-          int32_t x_accum, y_accum;
-          window->getCursorGrabAccum(x_accum, y_accum);
-
-          /* Get the current software mouse pointer location, theoretically unaffected by pending
-           * events that may still be referring to a location before warping. In practice extra
-           * logic still need to be used to prevent interferences from stale events. */
-          const NSPoint mousePos = event.window.mouseLocationOutsideOfEventStream;
-          /* Casting. */
-          const int32_t x_mouse = mousePos.x;
-          const int32_t y_mouse = mousePos.y;
-
-          /* Warp mouse cursor if needed. */
-          int32_t warped_x_mouse = x_mouse;
-          int32_t warped_y_mouse = y_mouse;
-          correctedBounds.wrapPoint(
-              warped_x_mouse, warped_y_mouse, 4, window->getCursorGrabAxis());
-
-          /* Set new cursor position. */
-          if (x_mouse != warped_x_mouse || y_mouse != warped_y_mouse) {
-            /* After warping, we can still receive unwrapped mouse that occured slightly before or
-             * after the current event at close timestamps, causing the wrapping to be applied a
-             * second time, leading to a visual jump. Ignore these events by returning early.
-             * Using a small empirical future covering threshold, see PR #148158 for details. */
-            const NSTimeInterval timestamp = event.timestamp;
-            const NSTimeInterval stale_event_threshold = 0.003;
-            if (timestamp < (last_warp_timestamp_ + stale_event_threshold)) {
-              break;
-            }
-
-            int32_t warped_x, warped_y;
-            window->clientToScreenIntern(warped_x_mouse, warped_y_mouse, warped_x, warped_y);
-            setMouseCursorPosition(warped_x, warped_y); /* wrap */
-            window->setCursorGrabAccum(x_accum + (x_mouse - warped_x_mouse),
-                                       y_accum + (y_mouse - warped_y_mouse));
-
-            /* This is the current time that matches NSEvent timestamp. */
-            last_warp_timestamp_ = [[NSProcessInfo processInfo] systemUptime];
-          }
-
-          /* Generate event. */
-          int32_t x, y;
-          window->clientToScreenIntern(x_mouse + x_accum, y_mouse + y_accum, x, y);
-          pushEvent(new GHOST_EventCursor(event.timestamp * 1000,
-                                          GHOST_kEventCursorMove,
-                                          window,
-                                          x,
-                                          y,
-                                          window->GetCocoaTabletData()));
-          break;
-        }
-        default: {
-          /* Normal cursor operation: send mouse position in window. */
-          const NSPoint mousePos = event.locationInWindow;
-          int32_t x, y;
-
-          window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
-          pushEvent(new GHOST_EventCursor(event.timestamp * 1000,
-                                          GHOST_kEventCursorMove,
-                                          window,
-                                          x,
-                                          y,
-                                          window->GetCocoaTabletData()));
-          break;
-        }
+        window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
+        pushEvent(new GHOST_EventCursor(event.timestamp * 1000,
+                                        GHOST_kEventCursorMove,
+                                        window,
+                                        x,
+                                        y,
+                                        window->GetCocoaTabletData()));
       }
       break;
     }
