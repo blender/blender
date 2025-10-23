@@ -593,13 +593,15 @@ void UI_view2d_draw_scale_x__frames_or_seconds(const ARegion *region,
                                                int colorid,
                                                const int base)
 {
-  const float step = calculate_grid_step_subframes(
-      base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
   if (display_seconds) {
+    const float step = calculate_grid_step(
+        base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
     draw_horizontal_scale_indicators(
         region, v2d, step, rect, view_to_string__time, (void *)scene, colorid);
   }
   else {
+    const float step = calculate_grid_step_subframes(
+        base, BLI_rcti_size_x(&v2d->mask) + 1, BLI_rctf_size_x(&v2d->cur));
     draw_horizontal_scale_indicators(
         region, v2d, step, rect, view_to_string__value, nullptr, colorid);
   }
