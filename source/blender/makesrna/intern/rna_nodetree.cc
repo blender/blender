@@ -3884,7 +3884,8 @@ static void rna_ShaderNodeTexIES_mode_set(PointerRNA *ptr, int value)
 
       if (value == NODE_IES_EXTERNAL && text->filepath) {
         STRNCPY(nss->filepath, text->filepath);
-        BLI_path_rel(nss->filepath, BKE_main_blendfile_path_from_global());
+        BLI_path_abs(nss->filepath, ID_BLEND_PATH_FROM_GLOBAL(&text->id));
+        BLI_path_rel(nss->filepath, ID_BLEND_PATH_FROM_GLOBAL(ptr->owner_id));
       }
 
       id_us_min(node->id);
@@ -3909,7 +3910,8 @@ static void rna_ShaderNodeScript_mode_set(PointerRNA *ptr, int value)
 
       if (value == NODE_SCRIPT_EXTERNAL && text->filepath) {
         STRNCPY(nss->filepath, text->filepath);
-        BLI_path_rel(nss->filepath, BKE_main_blendfile_path_from_global());
+        BLI_path_abs(nss->filepath, ID_BLEND_PATH_FROM_GLOBAL(&text->id));
+        BLI_path_rel(nss->filepath, ID_BLEND_PATH_FROM_GLOBAL(ptr->owner_id));
       }
 
       id_us_min(node->id);

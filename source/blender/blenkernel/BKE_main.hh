@@ -631,6 +631,10 @@ const char *BKE_main_blendfile_path(const Main *bmain) ATTR_NONNULL();
  * you should always try to get a valid Main pointer from context.
  */
 const char *BKE_main_blendfile_path_from_global();
+/**
+ * Return the absolute file-path of a library.
+ */
+const char *BKE_main_blendfile_path_from_library(const Library &library);
 
 /**
  * \return A pointer to the \a ListBase of given \a bmain for requested \a type ID type.

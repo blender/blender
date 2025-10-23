@@ -894,6 +894,11 @@ const char *BKE_main_blendfile_path_from_global()
   return BKE_main_blendfile_path(G_MAIN);
 }
 
+const char *BKE_main_blendfile_path_from_library(const Library &library)
+{
+  return library.runtime->filepath_abs;
+}
+
 ListBase *which_libbase(Main *bmain, short type)
 {
   switch ((ID_Type)type) {

@@ -459,15 +459,30 @@ static wmOperatorStatus text_open_exec(bContext *C, wmOperator *op)
 static wmOperatorStatus text_open_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   Main *bmain = CTX_data_main(C);
-  Text *text = CTX_data_edit_text(C);
-  const char *path = (text && text->filepath) ? text->filepath : BKE_main_blendfile_path(bmain);
-
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     return text_open_exec(C, op);
   }
 
+  Text *text = CTX_data_edit_text(C);
+  const char *filepath = nullptr;
+  char filepath_buf[FILE_MAX];
+  if (text && text->filepath) {
+    if (BLI_path_is_rel(text->filepath)) {
+      STRNCPY(filepath_buf, text->filepath);
+      BLI_path_abs(filepath_buf, ID_BLEND_PATH(bmain, &text->id));
+      filepath = filepath_buf;
+    }
+    else {
+      filepath = text->filepath;
+    }
+  }
+  else {
+    filepath = BKE_main_blendfile_path(bmain);
+  }
+  BLI_assert(filepath != nullptr);
+
   text_open_init(C, op);
-  RNA_string_set(op->ptr, "filepath", path);
+  RNA_string_set(op->ptr, "filepath", filepath);
   WM_event_add_fileselect(C, op);
 
   return OPERATOR_RUNNING_MODAL;
@@ -820,9 +835,17 @@ static wmOperatorStatus text_save_as_invoke(bContext *C, wmOperator *op, const w
     return text_save_as_exec(C, op);
   }
 
-  const char *filepath;
+  const char *filepath = nullptr;
+  char filepath_buf[FILE_MAX];
   if (text->filepath) {
-    filepath = text->filepath;
+    if (BLI_path_is_rel(text->filepath)) {
+      STRNCPY(filepath_buf, text->filepath);
+      BLI_path_abs(filepath_buf, ID_BLEND_PATH(bmain, &text->id));
+      filepath = filepath_buf;
+    }
+    else {
+      filepath = text->filepath;
+    }
   }
   else if (text->flags & TXT_ISMEM) {
     filepath = text->id.name + 2;
@@ -830,6 +853,7 @@ static wmOperatorStatus text_save_as_invoke(bContext *C, wmOperator *op, const w
   else {
     filepath = BKE_main_blendfile_path(bmain);
   }
+  BLI_assert(filepath != nullptr);
 
   RNA_string_set(op->ptr, "filepath", filepath);
   WM_event_add_fileselect(C, op);
@@ -4024,9 +4048,24 @@ static bool text_jump_to_file_at_point_internal(bContext *C,
 {
   Main *bmain = CTX_data_main(C);
   Text *text = nullptr;
+  BLI_assert(!BLI_path_is_rel(filepath));
 
   LISTBASE_FOREACH (Text *, text_iter, &bmain->texts) {
-    if (text_iter->filepath && BLI_path_cmp(text_iter->filepath, filepath) == 0) {
+    if (text_iter->filepath == nullptr) {
+      continue;
+    }
+    const char *filepath_iter;
+    char filepath_iter_buf[FILE_MAX];
+    if (BLI_path_is_rel(text_iter->filepath)) {
+      STRNCPY(filepath_iter_buf, text_iter->filepath);
+      BLI_path_abs(filepath_iter_buf, ID_BLEND_PATH(bmain, &text_iter->id));
+      filepath_iter = filepath_iter_buf;
+    }
+    else {
+      filepath_iter = text_iter->filepath;
+    }
+
+    if (BLI_path_cmp(filepath, filepath_iter) == 0) {
       text = text_iter;
       break;
     }
@@ -4056,6 +4095,7 @@ static bool text_jump_to_file_at_point_internal(bContext *C,
 
 static wmOperatorStatus text_jump_to_file_at_point_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   PropertyRNA *prop_filepath = RNA_struct_find_property(op->ptr, "filepath");
   PropertyRNA *prop_line = RNA_struct_find_property(op->ptr, "line");
   PropertyRNA *prop_column = RNA_struct_find_property(op->ptr, "column");
@@ -4067,7 +4107,10 @@ static wmOperatorStatus text_jump_to_file_at_point_exec(bContext *C, wmOperator 
         const int line_index = BLI_findindex(&text->lines, text->curl);
         const int column_index = BLI_str_utf8_offset_to_index(line->line, line->len, text->curc);
 
-        RNA_property_string_set(op->ptr, prop_filepath, text->filepath);
+        char filepath[FILE_MAX];
+        STRNCPY(filepath, text->filepath);
+        BLI_path_abs(filepath, ID_BLEND_PATH(bmain, &text->id));
+        RNA_property_string_set(op->ptr, prop_filepath, filepath);
         RNA_property_int_set(op->ptr, prop_line, line_index);
         RNA_property_int_set(op->ptr, prop_column, column_index);
       }
@@ -4076,6 +4119,9 @@ static wmOperatorStatus text_jump_to_file_at_point_exec(bContext *C, wmOperator 
 
   char filepath[FILE_MAX];
   RNA_property_string_get(op->ptr, prop_filepath, filepath);
+  if (UNLIKELY(BLI_path_is_rel(filepath))) {
+    BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
+  }
   const int line_index = RNA_property_int_get(op->ptr, prop_line);
   const int column_index = RNA_property_int_get(op->ptr, prop_column);
 
