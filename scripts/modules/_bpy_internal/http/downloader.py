@@ -759,7 +759,13 @@ def _download_queued_items(
             # to prevent the remote end hanging on their send() call.
             # Only once that's done should we check the do_shutdown event.
             while connection.poll():
-                received_msg: PipeMessage = connection.recv()
+                try:
+                    received_msg: PipeMessage = connection.recv()
+                except EOFError:
+                    log.warning("Blender is no longer running, shutting down the downloader process")
+                    do_shutdown.set()
+                    return
+
                 log.info("received message: %s", received_msg)
                 rx_queue.put(received_msg)
 
@@ -778,7 +784,12 @@ def _download_queued_items(
                 payload=queued_call,
             )
             log.info("sending message %s", queued_msg)
-            connection.send(queued_msg)
+            try:
+                connection.send(queued_msg)
+            except BrokenPipeError:
+                log.warning("Blender is no longer running, shutting down the downloader process")
+                do_shutdown.set()
+                return
 
     rx_thread = threading.Thread(target=rx_thread_func)
     tx_thread = threading.Thread(target=tx_thread_func)
