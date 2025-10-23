@@ -589,7 +589,7 @@ extern char *GHOST_GetTitle(GHOST_WindowHandle windowhandle);
  * \param filepath: The file directory.
  * \return Indication if the backend implements file associated with window.
  */
-extern GHOST_TSuccess GHOST_SetPath(GHOST_WindowHandle windowhandle, const char *filepath);
+extern void GHOST_SetPath(GHOST_WindowHandle windowhandle, const char *filepath);
 
 /**
  * Return the current window decoration style flags.

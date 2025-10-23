@@ -80,9 +80,9 @@ class GHOST_Window : public GHOST_IWindow {
   void *getOSWindow() const override;
 
   /** \copydoc #GHOST_IWindow::setPath */
-  GHOST_TSuccess setPath(const char * /*filepath*/) override
+  void setPath(const char * /*filepath*/) override
   {
-    return GHOST_kFailure;
+    /* Pass. */
   }
 
   /** \copydoc #GHOST_IWindow::getWindowDecorationStyleFlags */

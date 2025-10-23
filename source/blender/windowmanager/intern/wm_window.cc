@@ -538,35 +538,27 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
   WM_main_add_notifier(NC_WINDOW | NA_REMOVED, nullptr);
 }
 
-void WM_window_title_set(wmWindow *win, const char *title)
+/**
+ * Construct the title text for `win`.
+ * The window may *not* have been created, any calls depending on `win->ghostwin` are forbidden.
+ *
+ * \param window_filepath_fn: When non `nullopt` the title text does not need to contain
+ * the file-path (typically based on #WM_CAPABILITY_WINDOW_PATH).
+ */
+static std::string wm_window_title_text(
+    wmWindowManager *wm,
+    wmWindow *win,
+    std::optional<blender::FunctionRef<void(const char *)>> window_filepath_fn)
 {
-  if (win->ghostwin == nullptr) {
-    return;
-  }
-
-  GHOST_WindowHandle handle = static_cast<GHOST_WindowHandle>(win->ghostwin);
-  GHOST_SetTitle(handle, title);
-}
-
-void WM_window_title_refresh(wmWindowManager *wm, wmWindow *win)
-{
-  if (win->ghostwin == nullptr) {
-    return;
-  }
-
-  GHOST_WindowHandle handle = static_cast<GHOST_WindowHandle>(win->ghostwin);
-
   if (win->parent || WM_window_is_temp_screen(win)) {
     /* Not a main window. */
     bScreen *screen = WM_window_get_active_screen(win);
     const bool is_single = screen && BLI_listbase_is_single(&screen->areabase);
     ScrArea *area = (screen) ? static_cast<ScrArea *>(screen->areabase.first) : nullptr;
-    const char *name = "Blender";
     if (is_single && area && area->spacetype != SPACE_EMPTY) {
-      name = IFACE_(ED_area_name(area).c_str());
+      return IFACE_(ED_area_name(area).c_str());
     }
-    GHOST_SetTitle(handle, name);
-    return;
+    return "Blender";
   }
 
   /* This path may contain invalid UTF8 byte sequences on UNIX systems,
@@ -588,7 +580,10 @@ void WM_window_title_refresh(wmWindowManager *wm, wmWindow *win)
 
   const char *filename = BLI_path_basename(filepath);
   const bool has_filepath = filepath[0] != '\0';
-  const bool native_filepath_display = GHOST_SetPath(handle, filepath_as_bytes) == GHOST_kSuccess;
+  const bool native_filepath_display = (window_filepath_fn != std::nullopt);
+  if (native_filepath_display) {
+    (*window_filepath_fn)(filepath_as_bytes);
+  }
   const bool include_filepath = has_filepath && (filepath != filename) && !native_filepath_display;
 
   /* File saved state. */
@@ -648,12 +643,44 @@ void WM_window_title_refresh(wmWindowManager *wm, wmWindow *win)
 
   win_title.append(fmt::format(" - Blender {}", BKE_blender_version_string()));
 
-  GHOST_SetTitle(handle, win_title.c_str());
+  return win_title;
+}
+
+static void wm_window_title_state_refresh(wmWindowManager *wm, wmWindow *win)
+{
+  GHOST_WindowHandle handle = static_cast<GHOST_WindowHandle>(win->ghostwin);
 
   /* Informs GHOST of unsaved changes to set the window modified visual indicator (macOS)
    * and to give a hint of unsaved changes for a user warning mechanism in case of OS application
    * terminate request (e.g., OS Shortcut Alt+F4, Command+Q, (...) or session end). */
   GHOST_SetWindowModifiedState(handle, !wm->file_saved);
+}
+
+void WM_window_title_set(wmWindow *win, const char *title)
+{
+  if (win->ghostwin == nullptr) {
+    return;
+  }
+
+  GHOST_WindowHandle handle = static_cast<GHOST_WindowHandle>(win->ghostwin);
+  GHOST_SetTitle(handle, title);
+}
+
+void WM_window_title_refresh(wmWindowManager *wm, wmWindow *win)
+{
+  if (win->ghostwin == nullptr) {
+    return;
+  }
+
+  GHOST_WindowHandle handle = static_cast<GHOST_WindowHandle>(win->ghostwin);
+  auto window_filepath_fn = (WM_capabilities_flag() & WM_CAPABILITY_WINDOW_PATH) ?
+                                std::optional([&handle](const char *filepath) {
+                                  GHOST_SetPath(handle, filepath);
+                                }) :
+                                std::nullopt;
+  std::string win_title = wm_window_title_text(wm, win, window_filepath_fn);
+  GHOST_SetTitle(handle, win_title.c_str());
+  wm_window_title_state_refresh(wm, win);
 }
 
 void WM_window_dpi_set_userdef(const wmWindow *win)
@@ -1019,7 +1046,12 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
 
 static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, bool is_dialog)
 {
+  bool new_window = false;
+  char win_filepath[FILE_MAX];
+  win_filepath[0] = '\0';
+
   if (win->ghostwin == nullptr) {
+    new_window = true;
     if ((win->sizex == 0) || (wm_init_state.override_flag & WIN_OVERRIDE_GEOM)) {
       win->posx = wm_init_state.start[0];
       win->posy = wm_init_state.start[1];
@@ -1045,7 +1077,16 @@ static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, boo
       win->cursor = WM_CURSOR_DEFAULT;
     }
 
-    wm_window_ghostwindow_add(wm, "Blender", win, is_dialog);
+    /* As the window has not yet been created: #GHOST_SetPath cannot be called yet.
+     * Use this callback to store the file-path path which is used later in this function
+     * after the window has been created. */
+    auto window_filepath_fn = (WM_capabilities_flag() & WM_CAPABILITY_WINDOW_PATH) ?
+                                  std::optional([&win_filepath](const char *filepath) {
+                                    STRNCPY_UTF8(win_filepath, filepath);
+                                  }) :
+                                  std::nullopt;
+    std::string win_title = wm_window_title_text(wm, win, window_filepath_fn);
+    wm_window_ghostwindow_add(wm, win_title.c_str(), win, is_dialog);
   }
 
   if (win->ghostwin != nullptr) {
@@ -1081,7 +1122,19 @@ static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, boo
     ListBase *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
     WM_event_add_dropbox_handler(&win->handlers, lb);
   }
-  WM_window_title_refresh(wm, win);
+
+  if (new_window) {
+    if (win->ghostwin != nullptr) {
+      if (win_filepath[0]) {
+        GHOST_WindowHandle handle = static_cast<GHOST_WindowHandle>(win->ghostwin);
+        GHOST_SetPath(handle, win_filepath);
+      }
+      wm_window_title_state_refresh(wm, win);
+    }
+  }
+  else {
+    WM_window_title_refresh(wm, win);
+  }
 
   /* Add top-bar. */
   ED_screen_global_areas_refresh(win);
@@ -1263,16 +1316,6 @@ wmWindow *WM_window_open(bContext *C,
   /* Make window active, and validate/resize. */
   CTX_wm_window_set(C, win);
   const bool new_window = (win->ghostwin == nullptr);
-  if (new_window) {
-    wm_window_ghostwindow_ensure(wm, win, dialog);
-  }
-  WM_check(C);
-
-  /* It's possible `win->ghostwin == nullptr`.
-   * instead of attempting to cleanup here (in a half finished state),
-   * finish setting up the screen, then free it at the end of the function,
-   * to avoid having to take into account a partially-created window.
-   */
 
   if (area_setup_fn) {
     /* When the caller is setting up the area, it should always be empty
@@ -1294,6 +1337,16 @@ wmWindow *WM_window_open(bContext *C,
     ED_area_newspace(C, area, space_type, false);
   }
 
+  if (new_window) {
+    wm_window_ghostwindow_ensure(wm, win, dialog);
+  }
+  WM_check(C);
+
+  /* It's possible `win->ghostwin == nullptr`.
+   * instead of attempting to cleanup here (in a half finished state),
+   * finish setting up the screen, then free it at the end of the function,
+   * to avoid having to take into account a partially-created window.
+   */
   ED_screen_change(C, screen);
 
   if (!new_window) {
@@ -2325,7 +2378,9 @@ eWM_CapabilitiesFlag WM_capabilities_flag()
   if (ghost_flag & GHOST_kCapabilityMultiMonitorPlacement) {
     flag |= WM_CAPABILITY_MULTIMONITOR_PLACEMENT;
   }
-
+  if (ghost_flag & GHOST_kCapabilityWindowPath) {
+    flag |= WM_CAPABILITY_WINDOW_PATH;
+  }
   return flag;
 }
 

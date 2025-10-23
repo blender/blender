@@ -9148,7 +9148,9 @@ GHOST_TCapabilityFlag GHOST_SystemWayland::getCapabilities() const
           /* This WAYLAND back-end doesn't have support for window decoration styles.
            * In all likelihood, this back-end will eventually need to support client-side
            * decorations, see #113795. */
-          GHOST_kCapabilityWindowDecorationStyles));
+          GHOST_kCapabilityWindowDecorationStyles |
+          /* No support for window path meta-data. */
+          GHOST_kCapabilityWindowPath));
 }
 
 bool GHOST_SystemWayland::cursor_grab_use_software_display_get(const GHOST_TGrabCursorMode mode)

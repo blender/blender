@@ -556,7 +556,7 @@ std::string GHOST_WindowCocoa::getTitle() const
   return title;
 }
 
-GHOST_TSuccess GHOST_WindowCocoa::setPath(const char *filepath)
+void GHOST_WindowCocoa::setPath(const char *filepath)
 {
   GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setAssociatedFile(): window invalid");
 
@@ -567,8 +567,6 @@ GHOST_TSuccess GHOST_WindowCocoa::setPath(const char *filepath)
 
     window_.representedFilename = associatedFileName;
   }
-
-  return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_WindowCocoa::applyWindowDecorationStyle()

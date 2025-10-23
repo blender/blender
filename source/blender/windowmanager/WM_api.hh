@@ -210,6 +210,8 @@ enum eWM_CapabilitiesFlag {
   WM_CAPABILITY_CURSOR_GENERATOR = (1 << 11),
   /** Ability to save/restore windows among multiple monitors. */
   WM_CAPABILITY_MULTIMONITOR_PLACEMENT = (1 << 12),
+  /** Support for the window to show a file-path (otherwise include in the title text). */
+  WM_CAPABILITY_WINDOW_PATH = (1 << 13),
   /** The initial value, indicates the value needs to be set by inspecting GHOST. */
   WM_CAPABILITY_INITIALIZED = (1u << 31),
 };

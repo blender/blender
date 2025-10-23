@@ -85,7 +85,7 @@ class GHOST_IWindow {
    * Sets the file name represented by this window.
    * \param filepath: The file directory.
    */
-  virtual GHOST_TSuccess setPath(const char *filepath) = 0;
+  virtual void setPath(const char *filepath) = 0;
 
   /**
    * Return the current window decoration style flags.
