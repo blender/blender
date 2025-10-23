@@ -64,7 +64,6 @@ struct SubdivMeshContext {
   /* Cached custom data arrays for faster access. */
   int *vert_origindex;
   int *edge_origindex;
-  int *loop_origindex;
   int *face_origindex;
   /* UV layers interpolation. */
   int num_uv_layers;
@@ -109,8 +108,6 @@ static void subdiv_mesh_ctx_cache_custom_data_layers(SubdivMeshContext *ctx)
       &subdiv_mesh->vert_data, CD_ORIGINDEX, subdiv_mesh->verts_num));
   ctx->edge_origindex = static_cast<int *>(CustomData_get_layer_for_write(
       &subdiv_mesh->edge_data, CD_ORIGINDEX, subdiv_mesh->edges_num));
-  ctx->loop_origindex = static_cast<int *>(CustomData_get_layer_for_write(
-      &subdiv_mesh->corner_data, CD_ORIGINDEX, subdiv_mesh->corners_num));
   ctx->face_origindex = static_cast<int *>(CustomData_get_layer_for_write(
       &subdiv_mesh->face_data, CD_ORIGINDEX, subdiv_mesh->faces_num));
   /* UV layers interpolation. */
