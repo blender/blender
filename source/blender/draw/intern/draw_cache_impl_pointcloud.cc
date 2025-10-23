@@ -237,6 +237,17 @@ static void pointcloud_extract_indices(const PointCloud &pointcloud, PointCloudB
   uint32_t primitive_len = pointcloud.totpoint * tri_count_per_point;
 
   GPUIndexBufBuilder builder;
+
+  /* Max allowed points to ensure the size of the index buffer will not overflow.
+   * NOTE: pointcloud.totpoint is an int we assume that we can safely use 31 bits. */
+  const uint32_t max_totpoint = INT32_MAX / uint32_t(tri_count_per_point *
+                                                     GPU_indexbuf_primitive_len(GPU_PRIM_TRIS));
+  if (pointcloud.totpoint > max_totpoint) {
+    GPU_indexbuf_init(&builder, GPU_PRIM_TRIS, 0, 0);
+    GPU_indexbuf_build_in_place_ex(&builder, 0, 0, false, cache.eval_cache.geom_indices);
+    return;
+  }
+
   GPU_indexbuf_init(&builder, GPU_PRIM_TRIS, primitive_len, vertid_max);
   MutableSpan<uint3> data = GPU_indexbuf_get_data(&builder).cast<uint3>();
 
