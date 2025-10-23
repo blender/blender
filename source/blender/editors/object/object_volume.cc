@@ -80,11 +80,11 @@ static wmOperatorStatus volume_import_exec(bContext *C, wmOperator *op)
 
   ListBase ranges = ED_image_filesel_detect_sequences(BKE_main_blendfile_path(bmain), op, false);
   LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
-    char filepath[FILE_MAX];
-    BLI_path_split_file_part(range->filepath, filepath, sizeof(filepath));
-    BLI_path_extension_strip(filepath);
+    char filename[FILE_MAX];
+    BLI_path_split_file_part(range->filepath, filename, sizeof(filename));
+    BLI_path_extension_strip(filename);
 
-    Object *object = object_volume_add(C, op, filepath);
+    Object *object = object_volume_add(C, op, filename);
     Volume *volume = (Volume *)object->data;
 
     STRNCPY(volume->filepath, range->filepath);
@@ -96,7 +96,7 @@ static wmOperatorStatus volume_import_exec(bContext *C, wmOperator *op)
       BKE_reportf(op->reports,
                   RPT_WARNING,
                   "Volume \"%s\" failed to load: %s",
-                  filepath,
+                  filename,
                   BKE_volume_grids_error_msg(volume));
       BKE_id_delete(bmain, &object->id);
       BKE_id_delete(bmain, &volume->id);
@@ -106,7 +106,7 @@ static wmOperatorStatus volume_import_exec(bContext *C, wmOperator *op)
       BKE_reportf(op->reports,
                   RPT_WARNING,
                   "Volume \"%s\" contains points, only voxel grids are supported",
-                  filepath);
+                  filename);
       BKE_id_delete(bmain, &object->id);
       BKE_id_delete(bmain, &volume->id);
       continue;
