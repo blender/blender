@@ -232,7 +232,10 @@ class AttributeViewer : Overlay {
                 &curves_id, ".viewer", is_point_domain, is_valid);
             if (is_valid) {
               auto &sub = *curves_sub_;
-              gpu::Batch *batch = curves_sub_pass_setup(sub, state.scene, ob_ref.object);
+              const char *error = nullptr;
+              /* The error string will always have been printed by the engine already.
+               * No need to display it twice. */
+              gpu::Batch *batch = curves_sub_pass_setup(sub, state.scene, ob_ref.object, error);
               sub.push_constant("opacity", opacity);
               sub.push_constant("is_point_domain", is_point_domain);
               sub.bind_texture("color_tx", texture);

@@ -135,7 +135,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     geometry::RealizeInstancesOptions options;
     const NodeAttributeFilter attribute_filter = params.get_attribute_filter("Curves");
     options.attribute_filter = attribute_filter;
-    curves_geometry = geometry::realize_instances(curves_geometry, options);
+    curves_geometry = geometry::realize_instances(curves_geometry, options).geometry;
   }
 
   params.set_output("Curves", std::move(curves_geometry));

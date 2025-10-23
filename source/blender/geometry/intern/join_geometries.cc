@@ -188,8 +188,8 @@ static void join_component_type(const bke::GeometryComponent::Type component_typ
   options.keep_original_ids = true;
   options.realize_instance_attributes = false;
   options.attribute_filter = attribute_filter;
-  GeometrySet joined_components = realize_instances(
-      GeometrySet::from_instances(instances.release()), options);
+  GeometrySet joined_components =
+      realize_instances(GeometrySet::from_instances(instances.release()), options).geometry;
   result.add(joined_components.get_component_for_write(component_type));
 }
 
