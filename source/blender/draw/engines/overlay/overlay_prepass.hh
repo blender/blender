@@ -255,10 +255,14 @@ class Prepass : Overlay {
         geom_single = pointcloud_sub_pass_setup(*pointcloud_ps_, ob_ref.object);
         pass = pointcloud_ps_;
         break;
-      case OB_CURVES:
-        geom_single = curves_sub_pass_setup(*curves_ps_, state.scene, ob_ref.object);
+      case OB_CURVES: {
+        const char *error = nullptr;
+        /* The error string will always have been printed by the engine already.
+         * No need to display it twice. */
+        geom_single = curves_sub_pass_setup(*curves_ps_, state.scene, ob_ref.object, error);
         pass = curves_ps_;
         break;
+      }
       case OB_GREASE_PENCIL:
         if (!res.is_selection() && state.is_render_depth_available) {
           /* Disable during display, only enable for selection.

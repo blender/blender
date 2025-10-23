@@ -34,6 +34,7 @@
 #include "BKE_geometry_set.hh"
 
 #include "GPU_batch.hh"
+#include "GPU_capabilities.hh"
 #include "GPU_context.hh"
 #include "GPU_material.hh"
 #include "GPU_texture.hh"
@@ -827,40 +828,60 @@ gpu::VertBufPtr &CurvesEvalCache::indirection_buf_get(CurvesModule &module,
 gpu::Batch *CurvesEvalCache::batch_get(const int evaluated_point_count,
                                        const int curve_count,
                                        const int face_per_segment,
-                                       const bool use_cyclic)
+                                       const bool use_cyclic,
+                                       bool &r_over_limit)
 {
   gpu::Batch *&batch = this->batch[face_per_segment];
   if (batch) {
     return batch;
   }
 
+  int64_t segment_count = 0;
+  int64_t vert_per_segment = 0;
+  GPUPrimType prim_type = GPU_PRIM_NONE;
+
   if (face_per_segment == 0) {
     /* Add one point per curve to restart the primitive. */
-    int segment_count = evaluated_point_count + curve_count;
+    segment_count = int64_t(evaluated_point_count) + curve_count;
     if (use_cyclic) {
       segment_count += curve_count;
     }
-    batch = GPU_batch_create_procedural(GPU_PRIM_LINE_STRIP, segment_count);
+    vert_per_segment = 1;
+    prim_type = GPU_PRIM_LINE_STRIP;
   }
   else if (face_per_segment == 1) {
     /* Add one point per curve to restart the primitive. */
-    int segment_count = evaluated_point_count + curve_count;
+    segment_count = int64_t(evaluated_point_count) + curve_count;
     if (use_cyclic) {
       segment_count += curve_count;
     }
-    /* Add one point per curve to restart the primitive. */
-    batch = GPU_batch_create_procedural(GPU_PRIM_TRI_STRIP, segment_count * 2);
+    vert_per_segment = 2;
+    prim_type = GPU_PRIM_TRI_STRIP;
   }
   else if (face_per_segment >= 2) {
-    int segment_count = evaluated_point_count - curve_count;
+    segment_count = int64_t(evaluated_point_count) - curve_count;
     if (use_cyclic) {
       segment_count += curve_count;
     }
     /* Add one vertex per segment to restart the primitive. */
-    int vert_per_segment = (face_per_segment + 1) * 2 + 1;
-    batch = GPU_batch_create_procedural(GPU_PRIM_TRI_STRIP, segment_count * vert_per_segment);
+    vert_per_segment = (face_per_segment + 1) * 2 + 1;
+    prim_type = GPU_PRIM_TRI_STRIP;
   }
 
+  /* Since we rely on buffer textures for reading the indirection buffer we have to abide by their
+   * size limit. This size is low enough on NVidia to discard strands after 130,000,000 points.
+   * We detect this case and display an error message in the viewport. */
+  uint32_t texel_buffer_limit = GPU_max_buffer_texture_size();
+  /* We are also limited by the number of vertices in a batch, which is INT_MAX. */
+  int64_t segment_limit = std::min(int64_t(texel_buffer_limit), int64_t(INT_MAX));
+  if (segment_count > segment_limit) {
+    segment_count = segment_limit;
+    r_over_limit = true;
+  }
+  r_over_limit = false;
+
+  uint32_t vertex_count = segment_count * vert_per_segment;
+  batch = GPU_batch_create_procedural(prim_type, vertex_count);
   return batch;
 }
 

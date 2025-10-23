@@ -16,6 +16,7 @@
 
 int GPU_max_texture_size();
 int GPU_max_texture_3d_size();
+uint32_t GPU_max_buffer_texture_size();
 int GPU_max_texture_layers();
 int GPU_max_textures();
 int GPU_max_textures_vert();

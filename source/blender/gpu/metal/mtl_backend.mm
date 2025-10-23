@@ -493,6 +493,7 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
                                16384 :
                                8192;
   GCaps.max_texture_3d_size = 2048;
+  GCaps.max_buffer_texture_size = UINT_MAX;
   GCaps.max_texture_layers = 2048;
   GCaps.max_textures = (MTLBackend::capabilities.supports_family_mac1) ?
                            128 :

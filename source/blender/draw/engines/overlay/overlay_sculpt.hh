@@ -133,7 +133,11 @@ class Sculpts : Overlay {
           &curves, ".selection", is_point_domain, is_valid);
       if (is_valid) {
         /* Evaluate curves and their attributes if necessary. */
-        gpu::Batch *geometry = curves_sub_pass_setup(*curves_ps_, state.scene, ob_ref.object);
+        const char *error = nullptr;
+        /* The error string will always have been printed by the engine already.
+         * No need to display it twice. */
+        gpu::Batch *geometry = curves_sub_pass_setup(
+            *curves_ps_, state.scene, ob_ref.object, error);
         if (select_attr_buf.get()) {
           ResourceHandleRange handle = manager.unique_handle(ob_ref);
 
