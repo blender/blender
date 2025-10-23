@@ -6,6 +6,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include <stdlib.h>
+
 DEFINE_string(test_assets_dir, "", "tests/files directory containing the test assets.");
 DEFINE_string(test_release_dir, "", "bin/{blender version} directory of the current build.");
 
@@ -26,6 +28,12 @@ const std::string &flags_test_release_dir()
         << "Pass the flag --test-release-dir and point to the bin/{blender version} directory.";
   }
   return FLAGS_test_release_dir;
+}
+
+bool should_ignore_blocklist()
+{
+  static bool has_env = getenv("BLENDER_TEST_IGNORE_BLOCKLIST");
+  return has_env;
 }
 
 }  // namespace blender::tests

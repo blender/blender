@@ -164,4 +164,12 @@ class GPUVulkanWorkaroundsTest : public GPUTest {
   GPU_METAL_TEST(test_name) \
   GPU_VULKAN_TEST(test_name)
 
+#define BLOCK_GPU_TEST_ON(device_type, os_type, driver_type, backend_type) \
+  if (!blender::tests::should_ignore_blocklist() && \
+      GPU_type_matches_ex(device_type, os_type, driver_type, backend_type)) \
+  { \
+    GTEST_SKIP(); \
+    return; \
+  }
+
 }  // namespace blender::gpu
