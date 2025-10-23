@@ -16,7 +16,7 @@ body {
 }
 
 /* Increase the width of "On this page" region,
- * but not when it's being "hidden" by being pushed 15em off the right edge… */
+ * but not when it's being "hidden" by being pushed 15em off the right edge. */
 @media (width > 82em) {
 	.toc-drawer {
 		width: auto;
