@@ -340,7 +340,7 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
     to_string(to_string_data, start + steps * distance, 0, text, sizeof(text));
     const float right_text_width = BLF_width(font_id, text, strlen(text));
     const float max_text_width = max_ff(left_text_width, right_text_width);
-    const float max_label_count = (BLI_rcti_size_x(&v2d->mask) + 1) / (max_text_width + 10.0f);
+    const float max_label_count = (BLI_rcti_size_x(&v2d->mask) + 1) / (max_text_width + 6.0f);
     draw_frequency = ceil(float(steps) / max_label_count);
   }
 
@@ -458,13 +458,13 @@ static void view_to_string__time(
 static void view_to_string__value(
     void * /*user_data*/, float v2d_pos, float v2d_step, char *r_str, uint str_maxncpy)
 {
-  if (v2d_step >= 1.0f) {
+  if (v2d_step >= 1.0f * UI_SCALE_FAC) {
     BLI_snprintf_utf8(r_str, str_maxncpy, "%d", int(v2d_pos));
   }
-  else if (v2d_step >= 0.5f) {
+  else if (v2d_step >= 0.5f * UI_SCALE_FAC) {
     BLI_snprintf_utf8(r_str, str_maxncpy, "%.1f", v2d_pos);
   }
-  else if (v2d_step >= 0.01f) {
+  else if (v2d_step >= 0.01f * UI_SCALE_FAC) {
     BLI_snprintf_utf8(r_str, str_maxncpy, "%.2f", v2d_pos);
   }
   else {
