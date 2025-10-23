@@ -777,7 +777,7 @@ void uvedit_edge_select_set_noflush(const Scene *scene,
           BM_loop_edge_uvselect_set_noflush(bm, l_iter, select);
         }
         else {
-          uvedit_edge_select_set_no_sync(ts, bm, l, select);
+          uvedit_edge_select_set_no_sync(ts, bm, l_iter, select);
         }
       }
     }
