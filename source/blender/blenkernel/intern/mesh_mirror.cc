@@ -346,6 +346,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     dst.take_back(src.size()).copy_from(src);
   }
 
+  bke::MutableAttributeAccessor attributes = result->attributes_for_write();
+
   /* handle uvs,
    * let tessface recalc handle updating the MTFace data */
   if (mmd->flag & (MOD_MIR_MIRROR_U | MOD_MIR_MIRROR_V) ||
@@ -356,11 +358,9 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     /* If set, flip around center of each tile. */
     const bool do_mirr_udim = (mmd->flag & MOD_MIR_MIRROR_UDIM) != 0;
 
-    const int totuv = CustomData_number_of_layers(&result->corner_data, CD_PROP_FLOAT2);
-
-    for (a = 0; a < totuv; a++) {
-      float (*uv_map)[2] = static_cast<float (*)[2]>(CustomData_get_layer_n_for_write(
-          &result->corner_data, CD_PROP_FLOAT2, a, result->corners_num));
+    for (const StringRef name : result->uv_map_names()) {
+      bke::SpanAttributeWriter uv_map_attr = attributes.lookup_for_write_span<float2>(name);
+      float (*uv_map)[2] = reinterpret_cast<float (*)[2]>(uv_map_attr.span.data());
       int j = src_loops_num;
       uv_map += j; /* second set of loops only */
       for (; j-- > 0; uv_map++) {
@@ -385,11 +385,11 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
         (*uv_map)[0] += mmd->uv_offset_copy[0];
         (*uv_map)[1] += mmd->uv_offset_copy[1];
       }
+      uv_map_attr.finish();
     }
   }
 
   /* handle custom normals */
-  bke::MutableAttributeAccessor attributes = result->attributes_for_write();
   bke::GAttributeWriter custom_normals = attributes.lookup_for_write("custom_normal");
   if (ob->type == OB_MESH && custom_normals && custom_normals.domain == bke::AttrDomain::Corner &&
       custom_normals.varray.type().is<short2>() && result->faces_num > 0)
