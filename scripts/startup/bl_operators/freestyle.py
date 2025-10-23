@@ -4,6 +4,9 @@
 
 import bpy
 
+from bpy.app.translations import (
+    pgettext_rpt as rpt_,
+)
 from bpy.types import (
     Operator,
 )
@@ -67,7 +70,7 @@ class SCENE_OT_freestyle_fill_range_by_selection(Operator):
             ref = m.target
             target_location = ref.location
         else:
-            self.report({'ERROR'}, "Unexpected modifier type: " + m.type)
+            self.report({'ERROR'}, rpt_("Unexpected modifier type: {:s}").format(m.type))
             return {'CANCELLED'}
         # Find selected vertices in edit-mesh.
         ob = context.active_object

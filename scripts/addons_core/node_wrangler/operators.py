@@ -1094,11 +1094,11 @@ class NWCopySettings(Operator, NWBase):
             # Report nodes that are not valid
             valid_node_names = [n.name for n in valid_nodes]
             invalid_names = set(selected_node_names) - set(valid_node_names)
-            self.report(
-                {'INFO'},
-                rpt_("Ignored {} (not of the same type as {})").format(", ".join(sorted(invalid_names)),
-                                                                       node_active.name),
+            message = rpt_("Ignored {} (not of the same type as {})").format(
+                ", ".join(sorted(invalid_names)),
+                node_active.name,
             )
+            self.report({'INFO'}, message)
 
         # Reference original
         orig = node_active

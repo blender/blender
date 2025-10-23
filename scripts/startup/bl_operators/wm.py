@@ -1891,12 +1891,12 @@ class WM_OT_properties_edit(Operator):
             try:
                 new_value = eval(self.eval_string)
             except Exception as ex:
-                self.report({'WARNING'}, "Python evaluation failed: " + str(ex))
+                self.report({'WARNING'}, rpt_("Python evaluation failed: {:s}").format(str(ex)))
                 return {'CANCELLED'}
             try:
                 item[name] = new_value
             except Exception as ex:
-                self.report({'ERROR'}, "Failed to assign value: " + str(ex))
+                self.report({'ERROR'}, rpt_("Failed to assign value: {:s}").format(str(ex)))
                 return {'CANCELLED'}
             if name_old != name:
                 del item[name_old]
@@ -3290,14 +3290,14 @@ class WM_OT_batch_rename(Operator):
                 try:
                     re.compile(action.replace_src)
                 except Exception as ex:
-                    self.report({'ERROR'}, "Invalid regular expression (find): " + str(ex))
+                    self.report({'ERROR'}, rpt_("Invalid regular expression (find): {:s}").format(str(ex)))
                     return {'CANCELLED'}
 
                 if action.use_replace_regex_dst:
                     try:
                         re.sub(action.replace_src, action.replace_dst, "")
                     except Exception as ex:
-                        self.report({'ERROR'}, "Invalid regular expression (replace): " + str(ex))
+                        self.report({'ERROR'}, rpt_("Invalid regular expression (replace): {:s}").format(str(ex)))
                         return {'CANCELLED'}
 
         total_len = 0

@@ -301,7 +301,7 @@ class ExecutePreset(Operator):
             try:
                 bpy.utils.execfile(filepath)
             except Exception as ex:
-                self.report({'ERROR'}, "Failed to execute the preset: " + repr(ex))
+                self.report({'ERROR'}, rpt_("Failed to execute the preset: {:s}").format(repr(ex)))
 
         elif ext == ".xml":
             import _rna_xml as rna_xml

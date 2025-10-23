@@ -1657,7 +1657,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, Panel):
 
         if path:
             col.prop(part, "display_step", text="Strand Steps")
-        col.prop(part, "display_percentage", slider=True, text="Amount")
+        col.prop(part, "display_percentage", slider=True, text="Amount", text_ctxt=i18n_contexts.countable)
         if part.display_method != 'RENDER' or part.render_type == 'HALO':
             col.prop(part, "display_size", text="Size")
 
