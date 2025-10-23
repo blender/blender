@@ -618,11 +618,6 @@ int CustomData_name_maxncpy_calc(blender::StringRef name);
  */
 void CustomData_set_layer_unique_name(CustomData *data, int index);
 
-void CustomData_validate_layer_name(const CustomData *data,
-                                    eCustomDataType type,
-                                    blender::StringRef name,
-                                    char *outname);
-
 /**
  * For file reading compatibility, returns false if the layer was freed,
  * only after this test passes, `layer->data` should be assigned.

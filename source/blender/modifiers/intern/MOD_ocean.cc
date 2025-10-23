@@ -6,6 +6,7 @@
  * \ingroup modifiers
  */
 
+#include "BLI_color_types.hh"
 #include "BLI_math_base.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
@@ -20,7 +21,8 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_customdata.hh"
+#include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
@@ -142,7 +144,7 @@ struct GenerateOceanGeometryData {
   blender::MutableSpan<blender::float3> vert_positions;
   blender::MutableSpan<int> face_offsets;
   blender::MutableSpan<int> corner_verts;
-  float (*uv_map)[2];
+  blender::MutableSpan<blender::float2> uv_map;
 
   int res_x, res_y;
   int rx, ry;
@@ -196,7 +198,7 @@ static void generate_ocean_geometry_uvs(void *__restrict userdata,
 
   for (x = 0; x < gogd->res_x; x++) {
     const int i = y * gogd->res_x + x;
-    float (*luv)[2] = &gogd->uv_map[i * 4];
+    blender::float2 *luv = &gogd->uv_map[i * 4];
 
     (*luv)[0] = x * gogd->ix;
     (*luv)[1] = y * gogd->iy;
@@ -218,6 +220,7 @@ static void generate_ocean_geometry_uvs(void *__restrict userdata,
 
 static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, const int resolution)
 {
+  using namespace blender;
   Mesh *result;
 
   GenerateOceanGeometryData gogd;
@@ -263,16 +266,22 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
   blender::bke::mesh_calc_edges(*result, false, false);
 
   /* add uvs */
-  if (CustomData_number_of_layers(&result->corner_data, CD_PROP_FLOAT2) < MAX_MTFACE) {
-    gogd.uv_map = static_cast<float (*)[2]>(CustomData_add_layer_named(
-        &result->corner_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, faces_num * 4, "UVMap"));
+  if (result->uv_map_names().size() < MAX_MTFACE) {
+    bke::MutableAttributeAccessor attributes = result->attributes_for_write();
+    std::string name = BKE_attribute_calc_unique_name(AttributeOwner::from_id(&result->id),
+                                                      "UVMap");
+    bke::SpanAttributeWriter<float2> uv_map = attributes.lookup_or_add_for_write_span<float2>(
+        name, bke::AttrDomain::Corner);
 
-    if (gogd.uv_map) { /* unlikely to fail */
+    if (uv_map) { /* unlikely to fail */
+      gogd.uv_map = uv_map.span;
       gogd.ix = 1.0 / gogd.rx;
       gogd.iy = 1.0 / gogd.ry;
 
       BLI_task_parallel_range(0, gogd.res_y, &gogd, generate_ocean_geometry_uvs, &settings);
     }
+
+    uv_map.finish();
   }
 
   return result;
@@ -280,6 +289,7 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
 
 static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
+  using namespace blender;
   OceanModifierData *omd = (OceanModifierData *)md;
   if (omd->ocean && !BKE_ocean_is_valid(omd->ocean)) {
     BKE_modifier_set_error(ctx->object, md, "Failed to allocate memory");
@@ -345,20 +355,16 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
   /* Add vertex-colors before displacement: allows lookup based on position. */
 
   if (omd->flag & MOD_OCEAN_GENERATE_FOAM) {
+    AttributeOwner owner = AttributeOwner::from_id(&result->id);
+    bke::MutableAttributeAccessor attributes = result->attributes_for_write();
     const blender::Span<int> corner_verts = result->corner_verts();
-    MLoopCol *mloopcols = static_cast<MLoopCol *>(CustomData_add_layer_named(&result->corner_data,
-                                                                             CD_PROP_BYTE_COLOR,
-                                                                             CD_SET_DEFAULT,
-                                                                             corner_verts.size(),
-                                                                             omd->foamlayername));
+    bke::SpanAttributeWriter mloopcols = attributes.lookup_or_add_for_write_span<ColorGeometry4b>(
+        BKE_attribute_calc_unique_name(owner, omd->foamlayername), bke::AttrDomain::Corner);
 
-    MLoopCol *mloopcols_spray = nullptr;
+    bke::SpanAttributeWriter<ColorGeometry4b> mloopcols_spray;
     if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
-      mloopcols_spray = static_cast<MLoopCol *>(CustomData_add_layer_named(&result->corner_data,
-                                                                           CD_PROP_BYTE_COLOR,
-                                                                           CD_SET_DEFAULT,
-                                                                           corner_verts.size(),
-                                                                           omd->spraylayername));
+      mloopcols_spray = attributes.lookup_or_add_for_write_span<ColorGeometry4b>(
+          BKE_attribute_calc_unique_name(owner, omd->spraylayername), bke::AttrDomain::Corner);
     }
 
     if (mloopcols) { /* unlikely to fail */
@@ -366,11 +372,11 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
       for (const int i : faces.index_range()) {
         const blender::IndexRange face = faces[i];
         const int *corner_vert = &corner_verts[face.start()];
-        MLoopCol *mlcol = &mloopcols[face.start()];
+        ColorGeometry4b *mlcol = &mloopcols.span[face.start()];
 
-        MLoopCol *mlcolspray = nullptr;
+        ColorGeometry4b *mlcolspray = nullptr;
         if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
-          mlcolspray = &mloopcols_spray[face.start()];
+          mlcolspray = &mloopcols_spray.span[face.start()];
         }
 
         for (j = face.size(); j--; corner_vert++, mlcol++) {
@@ -412,6 +418,9 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
         }
       }
     }
+
+    mloopcols.finish();
+    mloopcols_spray.finish();
   }
 
   /* displace the geometry */

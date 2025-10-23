@@ -1282,9 +1282,8 @@ VkPipeline VKShader::ensure_and_get_compute_pipeline(
   VKDevice &device = VKBackend::get().device;
   /* Store result in local variable to ensure thread safety. */
   VkPipeline vk_pipeline = device.pipelines.get_or_create_compute_pipeline(
-      compute_info, is_static_shader_, vk_pipeline_base_);
+      compute_info, is_static_shader_, vk_pipeline_base_, name_get());
   if (vk_pipeline_base_ == VK_NULL_HANDLE) {
-    debug::object_label(vk_pipeline, name_get());
     vk_pipeline_base_ = vk_pipeline;
   }
   return vk_pipeline;
@@ -1333,9 +1332,8 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(GPUPrimType primitive,
   VKDevice &device = VKBackend::get().device;
   /* Store result in local variable to ensure thread safety. */
   VkPipeline vk_pipeline = device.pipelines.get_or_create_graphics_pipeline(
-      graphics_info, is_static_shader_, vk_pipeline_base_);
+      graphics_info, is_static_shader_, vk_pipeline_base_, name_get());
   if (vk_pipeline_base_ == VK_NULL_HANDLE) {
-    debug::object_label(vk_pipeline, name_get());
     vk_pipeline_base_ = vk_pipeline;
   }
   return vk_pipeline;

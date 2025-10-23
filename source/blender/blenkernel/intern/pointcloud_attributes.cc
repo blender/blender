@@ -7,7 +7,6 @@
 #include "BKE_attribute_storage.hh"
 #include "BKE_pointcloud.hh"
 
-#include "attribute_access_intern.hh"
 #include "attribute_storage_access.hh"
 
 namespace blender::bke {

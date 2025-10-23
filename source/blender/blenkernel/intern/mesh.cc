@@ -1191,6 +1191,45 @@ blender::bke::MutableAttributeAccessor Mesh::attributes_for_write()
                                                 blender::bke::mesh_attribute_accessor_functions());
 }
 
+blender::VectorSet<blender::StringRefNull> Mesh::uv_map_names() const
+{
+  blender::VectorSet<blender::StringRefNull> names;
+  this->attributes().foreach_attribute([&](const blender::bke::AttributeIter &iter) {
+    if (blender::bke::mesh::is_uv_map({iter.domain, iter.data_type})) {
+      names.add_new(iter.name);
+    }
+  });
+  return names;
+}
+
+blender::StringRefNull Mesh::active_uv_map_name() const
+{
+  /* Currently this information is stored in CustomData. Once it switches to using
+   * #Mesh::active_uv_map_attribute, this logic can be removed. This function's only purpose is to
+   * ease that transition. */
+  if (this->runtime->edit_mesh) {
+    const char *name = CustomData_get_active_layer_name(&this->runtime->edit_mesh->bm->ldata,
+                                                        CD_PROP_FLOAT2);
+    return name ? name : "";
+  }
+  const char *name = CustomData_get_active_layer_name(&this->corner_data, CD_PROP_FLOAT2);
+  return name ? name : "";
+}
+
+blender::StringRefNull Mesh::default_uv_map_name() const
+{
+  /* Currently this information is stored in CustomData. Once it switches to using
+   * #Mesh::default_uv_map_attribute, this logic can be removed. This function's only purpose is to
+   * ease that transition. */
+  if (this->runtime->edit_mesh) {
+    const char *name = CustomData_get_render_layer_name(&this->runtime->edit_mesh->bm->ldata,
+                                                        CD_PROP_FLOAT2);
+    return name ? name : "";
+  }
+  const char *name = CustomData_get_render_layer_name(&this->corner_data, CD_PROP_FLOAT2);
+  return name ? name : "";
+}
+
 Mesh *BKE_mesh_new_nomain(const int verts_num,
                           const int edges_num,
                           const int faces_num,

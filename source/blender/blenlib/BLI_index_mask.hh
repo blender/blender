@@ -203,6 +203,7 @@ class IndexMask : private IndexMaskData {
   /** Construct a mask from the true indices. */
   static IndexMask from_bools(Span<bool> bools, IndexMaskMemory &memory);
   static IndexMask from_bools(const VArray<bool> &bools, IndexMaskMemory &memory);
+  static IndexMask from_bools_inverse(Span<bool> bools, IndexMaskMemory &memory);
   static IndexMask from_bools_inverse(const VArray<bool> &bools, IndexMaskMemory &memory);
   /** Construct a mask from the true indices, but limited by the indices in #universe. */
   static IndexMask from_bools(const IndexMask &universe,

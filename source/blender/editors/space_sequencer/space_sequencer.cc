@@ -87,6 +87,7 @@ static SpaceLink *sequencer_create(const ScrArea * /*area*/, const Scene *scene)
   SpaceSeq *sseq;
 
   sseq = MEM_callocN<SpaceSeq>("initsequencer");
+  sseq->runtime = MEM_new<SpaceSeq_Runtime>(__func__);
   sseq->spacetype = SPACE_SEQ;
   sseq->chanshown = 0;
   sseq->view = SEQ_VIEW_SEQUENCE;
@@ -217,13 +218,7 @@ static void sequencer_free(SpaceLink *sl)
 }
 
 /* Space-type init callback. */
-static void sequencer_init(wmWindowManager * /*wm*/, ScrArea *area)
-{
-  SpaceSeq *sseq = (SpaceSeq *)area->spacedata.first;
-  if (sseq->runtime == nullptr) {
-    sseq->runtime = MEM_new<SpaceSeq_Runtime>(__func__);
-  }
-}
+static void sequencer_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static void sequencer_refresh(const bContext *C, ScrArea *area)
 {
@@ -1121,8 +1116,7 @@ static void sequencer_channel_region_draw(const bContext *C, ARegion *region)
 static void sequencer_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
 {
   SpaceSeq *sseq = (SpaceSeq *)sl;
-
-  sseq->runtime = nullptr;
+  sseq->runtime = MEM_new<SpaceSeq_Runtime>(__func__);
 
   /* grease pencil data is not a direct data and can't be linked from direct_link*
    * functions, it should be linked from lib_link* functions instead

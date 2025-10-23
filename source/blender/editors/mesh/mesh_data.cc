@@ -208,10 +208,7 @@ static void reset_uv_map(Mesh *mesh, const StringRef name)
 
 void ED_mesh_uv_loop_reset(bContext *C, Mesh *mesh)
 {
-  /* could be ldata or pdata */
-  CustomData *ldata = mesh_customdata_get_type(mesh, BM_LOOP, nullptr);
-  const char *name = CustomData_get_active_layer_name(ldata, CD_PROP_FLOAT2);
-  reset_uv_map(mesh, name);
+  reset_uv_map(mesh, mesh->active_uv_map_name());
 
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
 }
@@ -219,6 +216,7 @@ void ED_mesh_uv_loop_reset(bContext *C, Mesh *mesh)
 int ED_mesh_uv_add(
     Mesh *mesh, const char *name, const bool active_set, const bool do_init, ReportList *reports)
 {
+  using namespace blender;
   /* NOTE: keep in sync with #ED_mesh_color_add. */
 
   int layernum_dst;
@@ -252,26 +250,25 @@ int ED_mesh_uv_add(
     }
   }
   else {
-    layernum_dst = CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
+    bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+    layernum_dst = mesh->uv_map_names().size();
     if (layernum_dst >= MAX_MTFACE) {
       BKE_reportf(reports, RPT_WARNING, "Cannot add more than %i UV maps", MAX_MTFACE);
       return -1;
     }
 
-    if (CustomData_has_layer(&mesh->corner_data, CD_PROP_FLOAT2) && do_init) {
-      CustomData_add_layer_named_with_data(
-          &mesh->corner_data,
-          CD_PROP_FLOAT2,
-          MEM_dupallocN(CustomData_get_layer(&mesh->corner_data, CD_PROP_FLOAT2)),
-          mesh->corners_num,
-          unique_name,
-          nullptr);
+    const StringRef active_name = mesh->active_uv_map_name();
+    if (!active_name.is_empty() && do_init) {
+      const VArray<float2> active_uv_map = *attributes.lookup_or_default<float2>(
+          active_name, bke::AttrDomain::Corner, float2(0));
+      attributes.add<float2>(
+          unique_name, bke::AttrDomain::Corner, bke::AttributeInitVArray(active_uv_map));
 
       is_init = true;
     }
     else {
-      CustomData_add_layer_named(
-          &mesh->corner_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->corners_num, unique_name);
+      attributes.add<float2>(
+          unique_name, bke::AttrDomain::Corner, bke::AttributeInitDefaultValue());
     }
 
     if (active_set || layernum_dst == 0) {

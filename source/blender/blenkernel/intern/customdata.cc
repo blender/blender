@@ -4308,30 +4308,6 @@ void CustomData_set_layer_unique_name(CustomData *data, const int index)
       name_maxncpy);
 }
 
-void CustomData_validate_layer_name(const CustomData *data,
-                                    const eCustomDataType type,
-                                    const StringRef name,
-                                    char *outname)
-{
-  int index = -1;
-
-  /* if a layer name was given, try to find that layer */
-  if (!name.is_empty()) {
-    index = CustomData_get_named_layer_index(data, type, name);
-  }
-
-  if (index == -1) {
-    /* either no layer was specified, or the layer we want has been
-     * deleted, so assign the active layer to name
-     */
-    index = CustomData_get_active_layer_index(data, type);
-    BLI_strncpy_utf8(outname, data->layers[index].name, MAX_CUSTOMDATA_LAYER_NAME);
-  }
-  else {
-    name.copy_utf8_truncated(outname, MAX_CUSTOMDATA_LAYER_NAME);
-  }
-}
-
 bool CustomData_verify_versions(CustomData *data, const int index)
 {
   const LayerTypeInfo *typeInfo;

@@ -1227,7 +1227,7 @@ void rna_def_mtex_common(BlenderRNA *brna,
 
   prop = RNA_def_property(srna, "active_texture", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "Texture");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   if (activeeditable) {
     RNA_def_property_editable_func(prop, activeeditable);
   }

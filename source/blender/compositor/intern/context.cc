@@ -141,4 +141,9 @@ StaticCacheManager &Context::cache_manager()
   return cache_manager_;
 }
 
+const Strip *Context::get_strip() const
+{
+  return nullptr;
+}
+
 }  // namespace blender::compositor

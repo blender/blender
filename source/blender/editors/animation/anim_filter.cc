@@ -3692,7 +3692,7 @@ static int ds_base_sorting_cmp(const void *base1_ptr, const void *base2_ptr)
   const Base *b1 = *((const Base **)base1_ptr);
   const Base *b2 = *((const Base **)base2_ptr);
 
-  return strcmp(b1->object->id.name + 2, b2->object->id.name + 2);
+  return BLI_strcasecmp_natural(b1->object->id.name + 2, b2->object->id.name + 2);
 }
 
 /* Get a sorted list of all the bases - for inclusion in dopesheet (when drawing channels) */

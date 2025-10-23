@@ -142,9 +142,9 @@ static void mesh_cd_calc_active_uv_layer(const Object &object,
                                          DRW_MeshCDMask &cd_used)
 {
   const Mesh &me_final = editmesh_final_or_this(object, mesh);
-  const CustomData &cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);
-  if (const char *name = CustomData_get_active_layer_name(&cd_ldata, CD_PROP_FLOAT2)) {
-    cd_used.uv.add_as(name);
+  const StringRef active_uv_map = me_final.active_uv_map_name();
+  if (!active_uv_map.is_empty()) {
+    cd_used.uv.add_as(active_uv_map);
   }
 }
 

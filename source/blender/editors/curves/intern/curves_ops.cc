@@ -1193,8 +1193,7 @@ static wmOperatorStatus surface_set_exec(bContext *C, wmOperator *op)
   Object &new_surface_ob = *CTX_data_active_object(C);
 
   Mesh &new_surface_mesh = *static_cast<Mesh *>(new_surface_ob.data);
-  const char *new_uv_map_name = CustomData_get_active_layer_name(&new_surface_mesh.corner_data,
-                                                                 CD_PROP_FLOAT2);
+  const StringRef new_uv_map_name = new_surface_mesh.active_uv_map_name();
 
   CTX_DATA_BEGIN (C, Object *, selected_ob, selected_objects) {
     if (selected_ob->type != OB_CURVES) {
@@ -1204,8 +1203,8 @@ static wmOperatorStatus surface_set_exec(bContext *C, wmOperator *op)
     Curves &curves_id = *static_cast<Curves *>(curves_ob.data);
 
     MEM_SAFE_FREE(curves_id.surface_uv_map);
-    if (new_uv_map_name != nullptr) {
-      curves_id.surface_uv_map = BLI_strdup(new_uv_map_name);
+    if (!new_uv_map_name.is_empty()) {
+      curves_id.surface_uv_map = BLI_strdupn(new_uv_map_name.data(), new_uv_map_name.size());
     }
 
     bool missing_uvs;
