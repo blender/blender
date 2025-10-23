@@ -184,7 +184,8 @@ void VKPipelinePool::specialization_info_reset()
 
 VkPipeline VKPipelinePool::get_or_create_compute_pipeline(VKComputeInfo &compute_info,
                                                           const bool is_static_shader,
-                                                          VkPipeline vk_pipeline_base)
+                                                          VkPipeline vk_pipeline_base,
+                                                          StringRefNull name)
 {
   std::scoped_lock lock(mutex_);
   const VkPipeline *found_pipeline = compute_pipelines_.lookup_ptr(compute_info);
@@ -215,6 +216,7 @@ VkPipeline VKPipelinePool::get_or_create_compute_pipeline(VKComputeInfo &compute
                            &vk_compute_pipeline_create_info_,
                            nullptr,
                            &pipeline);
+  debug::object_label(pipeline, name);
   compute_pipelines_.add(compute_info, pipeline);
 
   /* Reset values to initial value. */
@@ -230,7 +232,8 @@ VkPipeline VKPipelinePool::get_or_create_compute_pipeline(VKComputeInfo &compute
 
 VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graphics_info,
                                                            const bool is_static_shader,
-                                                           VkPipeline vk_pipeline_base)
+                                                           VkPipeline vk_pipeline_base,
+                                                           StringRefNull name)
 {
   std::scoped_lock lock(mutex_);
   graphics_info.fragment_shader.update_hash();
@@ -609,6 +612,7 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
                             &vk_graphics_pipeline_create_info_,
                             nullptr,
                             &pipeline);
+  debug::object_label(pipeline, name);
   graphic_pipelines_.add(graphics_info, pipeline);
 
   /* Reset values to initial value. */
