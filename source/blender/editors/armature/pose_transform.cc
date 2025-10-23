@@ -599,27 +599,6 @@ void POSE_OT_visual_transform_apply(wmOperatorType *ot)
 /** \name Copy/Paste Utilities
  * \{ */
 
-/* This function is used to indicate that a bone is selected
- * and needs to be included in copy buffer (used to be for inserting keys)
- */
-static void set_pose_keys(Object *ob)
-{
-  bArmature *arm = static_cast<bArmature *>(ob->data);
-
-  if (ob->pose) {
-    LISTBASE_FOREACH (bPoseChannel *, chan, &ob->pose->chanbase) {
-      if ((chan->flag & POSE_SELECTED) && chan->bone &&
-          ANIM_bone_in_visible_collection(arm, chan->bone))
-      {
-        chan->flag |= POSE_KEY;
-      }
-      else {
-        chan->flag &= ~POSE_KEY;
-      }
-    }
-  }
-}
-
 /**
  * Perform paste pose, for a single bone.
  *
@@ -662,7 +641,6 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
    */
   copy_v3_v3(pchan->loc, chan->loc);
   copy_v3_v3(pchan->scale, chan->scale);
-  pchan->flag = chan->flag;
 
   /* check if rotation modes are compatible (i.e. do they need any conversions) */
   if (pchan->rotmode == chan->rotmode) {
@@ -804,8 +782,16 @@ static wmOperatorStatus pose_copy_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "Cannot copy/paste packed data");
     return OPERATOR_CANCELLED;
   }
-  /* Sets chan->flag to POSE_KEY if bone selected. */
-  set_pose_keys(ob);
+
+  bArmature *armature = static_cast<bArmature *>(ob->data);
+  BLI_assert_msg(armature, "If an armature object has a pose, it should have armature data");
+  /* Taking off the selection flag in case bones are hidden so they are not
+   * applied when pasting.  */
+  LISTBASE_FOREACH (bPoseChannel *, pose_bone, &ob->pose->chanbase) {
+    if (!blender::animrig::bone_is_visible(armature, pose_bone)) {
+      pose_bone->flag &= ~POSE_SELECTED;
+    }
+  }
 
   PartialWriteContext copybuffer{*bmain};
   copybuffer.id_add(
@@ -910,7 +896,7 @@ static wmOperatorStatus pose_paste_exec(bContext *C, wmOperator *op)
    * existing pose.
    */
   LISTBASE_FOREACH (bPoseChannel *, chan, &pose_from->chanbase) {
-    if (chan->flag & POSE_KEY) {
+    if (chan->flag & POSE_SELECTED) {
       /* Try to perform paste on this bone. */
       bPoseChannel *pchan = pose_bone_do_paste(ob, chan, selOnly, flip);
       if (pchan != nullptr) {
