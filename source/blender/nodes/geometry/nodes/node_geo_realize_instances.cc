@@ -81,10 +81,13 @@ static void node_geo_exec(GeoNodeExecParams params)
   options.realize_instance_attributes = true;
   const NodeAttributeFilter attribute_filter = params.get_attribute_filter("Geometry");
   options.attribute_filter = attribute_filter;
-  GeometrySet new_geometry_set = geometry::realize_instances(
+  geometry::RealizeInstancesResult realize_result = geometry::realize_instances(
       geometry_set, options, varied_depth_option);
-  new_geometry_set.name = geometry_set.name;
-  params.set_output("Geometry", std::move(new_geometry_set));
+  for (const StringRef error : realize_result.errors) {
+    params.error_message_add(NodeWarningType::Error, error);
+  }
+  realize_result.geometry.name = geometry_set.name;
+  params.set_output("Geometry", std::move(realize_result.geometry));
 }
 
 static void node_register()

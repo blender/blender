@@ -77,7 +77,8 @@ TEST_F(RealizeInstancesTest, InstanceAttributeToBuiltinCurvesAttribute)
 
   geometry::RealizeInstancesOptions options;
   options.realize_instance_attributes = true;
-  GeometrySet realized_geometry_set = geometry::realize_instances(instances_geometry, options);
+  GeometrySet realized_geometry_set =
+      geometry::realize_instances(instances_geometry, options).geometry;
 }
 
 }  // namespace blender::geometry::tests

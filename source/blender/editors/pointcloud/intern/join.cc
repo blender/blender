@@ -68,8 +68,10 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
   }
 
   bke::GeometrySet realized_geometry = geometry::realize_instances(
-      bke::GeometrySet::from_instances(&instances, bke::GeometryOwnershipType::ReadOnly),
-      geometry::RealizeInstancesOptions());
+                                           bke::GeometrySet::from_instances(
+                                               &instances, bke::GeometryOwnershipType::ReadOnly),
+                                           geometry::RealizeInstancesOptions())
+                                           .geometry;
 
   if (!realized_geometry.has_pointcloud()) {
     BKE_report(op->reports, RPT_WARNING, "No point cloud data to join");

@@ -2513,7 +2513,8 @@ static bke::GeometrySet join_geometries_with_transforms(Span<bke::GeometrySet> g
   geometry::RealizeInstancesOptions options;
   options.keep_original_ids = true;
   options.realize_instance_attributes = false;
-  return realize_instances(bke::GeometrySet::from_instances(instances.release()), options);
+  return realize_instances(bke::GeometrySet::from_instances(instances.release()), options)
+      .geometry;
 }
 static bke::GeometrySet join_geometries_with_transform(Span<bke::GeometrySet> geometries,
                                                        const float4x4 &transform)
