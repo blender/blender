@@ -428,7 +428,8 @@ static wmOperatorStatus new_sequencer_scene_exec(bContext *C, wmOperator *op)
    * FIXME: This logic is meant to address a temporary papercut and may be removed later in 5.1+
    * when properties for scenes and sequencer scenes can be more properly separated. */
   WM_window_set_active_scene(bmain, C, win, new_scene);
-  BKE_reportf(op->reports, RPT_WARNING, "Active scene changed to %s", new_scene->id.name);
+  BKE_reportf(
+      op->reports, RPT_WARNING, TIP_("Active scene changed to '%s'"), new_scene->id.name + 2);
 
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
   return OPERATOR_FINISHED;
