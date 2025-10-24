@@ -19,6 +19,11 @@ float retrieve_selection(const curves::Point pt)
   return texelFetch(selection_tx, pt.curve_id).r;
 }
 
+#if defined(GPU_NVIDIA) && defined(GPU_OPENGL)
+/* WORKAROUND: Fix legacy driver compiler issue (see #148472). */
+#  define const
+#endif
+
 void main()
 {
   const curves::Point ls_pt = curves::point_get(uint(gl_VertexID));

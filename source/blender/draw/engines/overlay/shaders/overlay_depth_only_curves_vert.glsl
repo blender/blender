@@ -12,6 +12,11 @@ VERTEX_SHADER_CREATE_INFO(overlay_depth_curves)
 #include "draw_view_lib.glsl"
 #include "select_lib.glsl"
 
+#if defined(GPU_NVIDIA) && defined(GPU_OPENGL)
+/* WORKAROUND: Fix legacy driver compiler issue (see #148472). */
+#  define const
+#endif
+
 void main()
 {
   select_id_set(drw_custom_id());
