@@ -594,6 +594,75 @@ class USDImportTest(AbstractUSDTest):
         mat = bpy.data.materials["Material"]
         self.assert_all_nodes_present(mat, ["Principled BSDF", "Image Texture", "UV Map", "Material Output"])
 
+    def check_mat_data(self, mat_name, expected_users, expected_color, ob_names):
+        if expected_users < 0:
+            self.assertEqual(bpy.data.materials.find(mat_name), -1)
+            return
+
+        mat = bpy.data.materials[mat_name]
+        self.assertEqual(mat.users, expected_users)
+        self.assertEqual(mat.diffuse_color[0:3], expected_color)
+        for ob_name in ob_names:
+            mat_slot = bpy.data.objects[ob_name].material_slots[0]
+            self.assertEqual(mat_slot.name, mat_name, f"Object {ob_name} has incorrect material")
+
+    def test_import_material_collisions(self):
+        """Validate that material name collisions are properly handled"""
+
+        # Variation with multiple objects referencing the same common materials
+        testfile = str(self.testdir / "usd_materials_collision.usda")
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        bpy.data.materials.new(name="Material").diffuse_color = (1, 0, 1, 1)
+        res = bpy.ops.wm.usd_import(filepath=testfile, mtl_name_collision_mode='MAKE_UNIQUE')
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
+
+        self.assertEqual(len(bpy.data.materials), 3)
+        self.check_mat_data("Material", 0, (1, 0, 1), [])
+        self.check_mat_data("Material.001", 3, (1, 0, 0), ["o1", "o3", "o5"])
+        self.check_mat_data("Material_001", 3, (0, 0, 1), ["o2", "o4", "o6"])
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        bpy.data.materials.new(name="Material").diffuse_color = (1, 0, 1, 1)
+        res = bpy.ops.wm.usd_import(filepath=testfile, mtl_name_collision_mode='REFERENCE_EXISTING')
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
+
+        self.assertEqual(len(bpy.data.materials), 2)
+        self.check_mat_data("Material", 3, (1, 0, 1), ["o1", "o3", "o5"])
+        self.check_mat_data("Material.001", -1, (), [])
+        self.check_mat_data("Material_001", 3, (0, 0, 1), ["o2", "o4", "o6"])
+
+    def test_import_material_collisions2(self):
+        """Validate that material name collisions are properly handled"""
+
+        # Variation with multiple materials with the same name but under different paths
+        testfile = str(self.testdir / "usd_materials_collision2.usda")
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        res = bpy.ops.wm.usd_import(filepath=testfile, mtl_name_collision_mode='MAKE_UNIQUE')
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
+
+        # Due to out of order reading, we know that there should be 3 materials, but we don't know
+        # which material(name) ended up on each object. The viewport color of the material should
+        # match what we expect though
+        self.assertEqual(len(bpy.data.materials), 3)
+        o1_mat_name = bpy.data.objects["o1"].material_slots[0].name
+        o2_mat_name = bpy.data.objects["o2"].material_slots[0].name
+        o3_mat_name = bpy.data.objects["o3"].material_slots[0].name
+        self.check_mat_data(o1_mat_name, 1, (1, 0, 0), ["o1"])
+        self.check_mat_data(o2_mat_name, 1, (0, 1, 0), ["o2"])
+        self.check_mat_data(o3_mat_name, 1, (0, 0, 1), ["o3"])
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        res = bpy.ops.wm.usd_import(filepath=testfile, mtl_name_collision_mode='REFERENCE_EXISTING')
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
+
+        # Due to out of order reading, we know that there should be 1 material, but we don't know
+        # which color ended up "winning" during the Import process
+        self.assertEqual(len(bpy.data.materials), 1)
+        expected_color = bpy.data.materials["MaterialA"].diffuse_color[0:3]
+        self.check_mat_data("MaterialA", 3, expected_color, ["o1", "o2", "o3"])
+
     def test_import_shader_varname_with_connection(self):
         """Test importing USD shader where uv primvar is a connection"""
 
