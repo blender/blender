@@ -149,7 +149,8 @@ class BrushAssetShelf:
 
         display_name = brush.name if (brush and show_name) else None
         if display_name and brush.has_unsaved_changes:
-            display_name = display_name + "*"
+            # Show "*" to the left for consistency with unsaved files in the title bar.
+            display_name = "* " + display_name
 
         layout.template_asset_shelf_popover(
             shelf_name,
