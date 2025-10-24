@@ -144,8 +144,7 @@ static void assign_materials(Main *bmain,
         continue;
       }
 
-      const std::string mat_name = make_safe_name(assigned_mat->id.name + 2, true);
-      settings.mat_name_to_mat.add_new(mat_name, assigned_mat);
+      settings.mat_name_to_mat.add_new(assigned_mat->id.name + 2, assigned_mat);
 
       if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
         /* Record the Blender material we created for the USD material with the given path. */

@@ -615,8 +615,10 @@ void import_blendshapes(Main *bmain,
   blender::animrig::Channelbag &channelbag = blender::animrig::action_channelbag_ensure(*act,
                                                                                         key->id);
 
+  blender::Set<pxr::TfToken> processed_shapes;
   blender::Vector<FCurve *> curves;
   curves.reserve(usd_blendshapes.size());
+  processed_shapes.reserve(usd_blendshapes.size());
 
   for (auto blendshape_name : usd_blendshapes.AsConst()) {
     if (!shapekey_names.contains(blendshape_name)) {
@@ -626,8 +628,17 @@ void import_blendshapes(Main *bmain,
       continue;
     }
 
+    if (!processed_shapes.add(blendshape_name)) {
+      CLOG_WARN(&LOG,
+                "Duplicate blendshape '%s' encountered for %s",
+                blendshape_name.GetText(),
+                skel_anim.GetPath().GetAsString().c_str());
+      curves.append(nullptr);
+      continue;
+    }
+
     /* Create the curve for this shape key. */
-    std::string rna_path = "key_blocks[\"" + blendshape_name.GetString() + "\"].value";
+    const std::string rna_path = "key_blocks[\"" + blendshape_name.GetString() + "\"].value";
     FCurve *fcu = create_fcurve(channelbag, {rna_path, 0}, times.size());
     curves.append(fcu);
   }
