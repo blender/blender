@@ -2335,8 +2335,15 @@ static int unused_message_popup_width_compute(bContext *C)
   return int(std::max(max_messages_width, 300.0f));
 }
 
-static void outliner_orphans_purge_cleanup(wmOperator *op)
+static void outliner_orphans_purge_cleanup(bContext *C,
+                                           wmOperator *op,
+                                           const bool is_abort = false)
 {
+  if (is_abort) {
+    /* In case of abort, ensure that temp tag is cleared in all IDs, since they were not deleted.
+     */
+    BKE_main_id_tag_all(CTX_data_main(C), ID_TAG_DOIT, false);
+  }
   if (op->customdata) {
     MEM_delete(static_cast<LibQueryUnusedIDsData *>(op->customdata));
     op->customdata = nullptr;
@@ -2394,8 +2401,15 @@ static wmOperatorStatus outliner_orphans_purge_exec(bContext *C, wmOperator *op)
 
   if (data.num_total[INDEX_ID_NULL] == 0) {
     BKE_report(op->reports, RPT_INFO, "No orphaned data-blocks to purge");
-    MEM_delete(static_cast<LibQueryUnusedIDsData *>(op->customdata));
-    op->customdata = nullptr;
+    outliner_orphans_purge_cleanup(C, op, true);
+    return OPERATOR_CANCELLED;
+  }
+
+  if (data.num_total[INDEX_ID_SCE] > 0) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Attempt to delete scenes as part of a purge operation, should never happen");
+    outliner_orphans_purge_cleanup(C, op, true);
     return OPERATOR_CANCELLED;
   }
 
@@ -2417,14 +2431,14 @@ static wmOperatorStatus outliner_orphans_purge_exec(bContext *C, wmOperator *op)
   /* Force full redraw of the UI. */
   WM_main_add_notifier(NC_WINDOW, nullptr);
 
-  outliner_orphans_purge_cleanup(op);
+  outliner_orphans_purge_cleanup(C, op);
 
   return OPERATOR_FINISHED;
 }
 
-static void outliner_orphans_purge_cancel(bContext * /*C*/, wmOperator *op)
+static void outliner_orphans_purge_cancel(bContext *C, wmOperator *op)
 {
-  outliner_orphans_purge_cleanup(op);
+  outliner_orphans_purge_cleanup(C, op, true);
 }
 
 static void outliner_orphans_purge_ui(bContext * /*C*/, wmOperator *op)
