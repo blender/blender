@@ -1786,7 +1786,7 @@ static wmOperatorStatus sequencer_add_image_strip_exec(bContext *C, wmOperator *
      * is set, every frame between `offset` and `max_framenr` . */
     sequencer_add_image_strip_load_files(op, scene, strip, &load_data, range);
 
-    seq::add_image_init_alpha_mode(strip);
+    seq::add_image_init_alpha_mode(bmain, scene, strip);
 
     /* Adjust starting length of strip.
      * Note that this length differs from `strip->len`, which is always 1 for single images. */
