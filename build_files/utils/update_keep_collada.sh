@@ -9,10 +9,10 @@ branch="keep-collada"
 echo "==> Ensuring branch: ${branch}"
 git checkout "${branch}"
 
-echo "==> Fetching lfs-fallback/main"
+echo "==> Fetching lfs-fallback/blender-v5.0-release"
 git fetch lfs-fallback blender-v5.0-release --prune
 
-echo "==> Rebasing onto lfs-fallback/main (skipping LFS smudge)"
+echo "==> Rebasing onto lfs-fallback/blender-v5.0-release (skipping LFS smudge)"
 GIT_LFS_SKIP_SMUDGE=1 git rebase lfs-fallback/blender-v5.0-release
 
 echo "==> Initializing/updating COLLADA submodules (all platforms if present)"
