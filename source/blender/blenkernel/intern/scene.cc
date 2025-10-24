@@ -2008,6 +2008,7 @@ Scene *BKE_scene_find_replacement(const Main &bmain,
                                   const Scene &scene,
                                   blender::FunctionRef<bool(const Scene &scene)> scene_validate_cb)
 {
+  UNUSED_VARS_NDEBUG(bmain);
   BLI_assert(BLI_findindex(&bmain.scenes, &scene) >= 0);
 
   /* Simply return a closest neighbor scene, unless a validate callback is provided and it rejects

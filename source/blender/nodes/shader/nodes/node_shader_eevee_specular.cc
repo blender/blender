@@ -61,6 +61,10 @@ static int node_shader_gpu_eevee_specular(GPUMaterial *mat,
   bool use_coat = socket_not_zero(6);
 
   eGPUMaterialFlag flag = GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_GLOSSY;
+
+  if (in[1].might_be_tinted()) {
+    flag |= GPU_MATFLAG_REFLECTION_MAYBE_COLORED;
+  }
   if (use_coat) {
     flag |= GPU_MATFLAG_COAT;
   }

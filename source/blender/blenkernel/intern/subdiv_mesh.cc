@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include "BKE_attribute.hh"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 
@@ -64,11 +65,9 @@ struct SubdivMeshContext {
   /* Cached custom data arrays for faster access. */
   int *vert_origindex;
   int *edge_origindex;
-  int *loop_origindex;
   int *face_origindex;
   /* UV layers interpolation. */
-  int num_uv_layers;
-  float2 *uv_layers[MAX_MTFACE];
+  Vector<bke::SpanAttributeWriter<float2>> uv_maps;
 
   /* Original coordinates (ORCO) interpolation. */
   float (*orco)[3];
@@ -90,11 +89,9 @@ struct SubdivMeshContext {
 static void subdiv_mesh_ctx_cache_uv_layers(SubdivMeshContext *ctx)
 {
   Mesh *subdiv_mesh = ctx->subdiv_mesh;
-  ctx->num_uv_layers = std::min(
-      CustomData_number_of_layers(&subdiv_mesh->corner_data, CD_PROP_FLOAT2), MAX_MTFACE);
-  for (int layer_index = 0; layer_index < ctx->num_uv_layers; layer_index++) {
-    ctx->uv_layers[layer_index] = static_cast<float2 *>(CustomData_get_layer_n_for_write(
-        &subdiv_mesh->corner_data, CD_PROP_FLOAT2, layer_index, subdiv_mesh->corners_num));
+  bke::MutableAttributeAccessor attributes = subdiv_mesh->attributes_for_write();
+  for (const StringRef name : subdiv_mesh->uv_map_names()) {
+    ctx->uv_maps.append(attributes.lookup_for_write_span<float2>(name));
   }
 }
 
@@ -109,8 +106,6 @@ static void subdiv_mesh_ctx_cache_custom_data_layers(SubdivMeshContext *ctx)
       &subdiv_mesh->vert_data, CD_ORIGINDEX, subdiv_mesh->verts_num));
   ctx->edge_origindex = static_cast<int *>(CustomData_get_layer_for_write(
       &subdiv_mesh->edge_data, CD_ORIGINDEX, subdiv_mesh->edges_num));
-  ctx->loop_origindex = static_cast<int *>(CustomData_get_layer_for_write(
-      &subdiv_mesh->corner_data, CD_ORIGINDEX, subdiv_mesh->corners_num));
   ctx->face_origindex = static_cast<int *>(CustomData_get_layer_for_write(
       &subdiv_mesh->face_data, CD_ORIGINDEX, subdiv_mesh->faces_num));
   /* UV layers interpolation. */
@@ -877,13 +872,9 @@ static void subdiv_eval_uv_layer(SubdivMeshContext *ctx,
                                  const float u,
                                  const float v)
 {
-  if (ctx->num_uv_layers == 0) {
-    return;
-  }
   Subdiv *subdiv = ctx->subdiv;
-  for (int layer_index = 0; layer_index < ctx->num_uv_layers; layer_index++) {
-    eval_face_varying(
-        subdiv, layer_index, ptex_face_index, u, v, ctx->uv_layers[layer_index][corner_index]);
+  for (const int i : ctx->uv_maps.index_range()) {
+    eval_face_varying(subdiv, i, ptex_face_index, u, v, ctx->uv_maps[i].span[corner_index]);
   }
 }
 
@@ -1210,6 +1201,10 @@ Mesh *subdiv_to_mesh(Subdiv *subdiv, const ToMeshSettings *settings, const Mesh 
   if (subdiv->settings.is_simple) {
     /* In simple subdivision, min and max positions are not changed, avoid recomputing bounds. */
     result->runtime->bounds_cache = coarse_mesh->runtime->bounds_cache;
+  }
+
+  for (bke::SpanAttributeWriter<float2> &attr : subdiv_context.uv_maps) {
+    attr.finish();
   }
 
   // BKE_mesh_validate(result, true, true);

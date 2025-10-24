@@ -141,10 +141,14 @@ class Outline : Overlay {
 
     gpu::Batch *geom;
     switch (ob_ref.object->type) {
-      case OB_CURVES:
-        geom = curves_sub_pass_setup(*prepass_curves_ps_, state.scene, ob_ref.object);
+      case OB_CURVES: {
+        const char *error = nullptr;
+        /* The error string will always have been printed by the engine already.
+         * No need to display it twice. */
+        geom = curves_sub_pass_setup(*prepass_curves_ps_, state.scene, ob_ref.object, error);
         prepass_curves_ps_->draw(geom, manager.unique_handle(ob_ref));
         break;
+      }
       case OB_GREASE_PENCIL:
         GreasePencil::draw_grease_pencil(
             res, *prepass_gpencil_ps_, state.scene, ob_ref.object, manager.unique_handle(ob_ref));

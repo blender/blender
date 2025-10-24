@@ -278,8 +278,11 @@ class Instance : public DrawEngine {
   /* Append a new line to the info string. */
   template<typename... Args> void info_append(const char *msg, Args &&...args)
   {
-    info_ += fmt::format(fmt::runtime(msg), args...);
-    info_ += "\n";
+    std::string fmt_msg = fmt::format(fmt::runtime(msg), args...) + "\n";
+    /* Don't print the same error twice. */
+    if (info_ != fmt_msg && !BLI_str_endswith(info_.c_str(), fmt_msg.c_str())) {
+      info_ += fmt_msg;
+    }
   }
 
   /* The same as `info_append`, but `msg` will be translated.

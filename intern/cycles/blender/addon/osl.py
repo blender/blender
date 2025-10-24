@@ -213,7 +213,7 @@ def update_external_script(report, filepath, library):
             try:
                 shutil.copy2(oso_path, dst_path)
             except:
-                report({'ERROR'}, "Failed to write .oso file next to external .osl file at " + dst_path)
+                report({'ERROR'}, rpt_("Failed to write .oso file next to external .osl file at {:s}").format(dst_path))
     elif os.path.dirname(filepath) == "":
         # module in search path
         oso_path = filepath

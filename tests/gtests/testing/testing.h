@@ -25,6 +25,9 @@ namespace blender::tests {
 const std::string &flags_test_asset_dir();   /* tests/files in the Blender repository. */
 const std::string &flags_test_release_dir(); /* bin/{blender version} in the build directory. */
 
+/* Returns true if the `BLENDER_TEST_IGNORE_BLOCKLIST` environment variable is set. */
+bool should_ignore_blocklist();
+
 }  // namespace blender::tests
 
 #define EXPECT_V2_NEAR(a, b, eps) \

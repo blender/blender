@@ -118,7 +118,8 @@ static bke::CurvesGeometry duplicate_strokes(const bke::CurvesGeometry &curves,
   options.keep_original_ids = true;
   options.realize_instance_attributes = true;
   bke::GeometrySet result_geo = geometry::realize_instances(
-      bke::GeometrySet::from_instances(instances.release()), options);
+                                    bke::GeometrySet::from_instances(instances.release()), options)
+                                    .geometry;
   return std::move(result_geo.get_curves_for_write()->geometry.wrap());
 }
 

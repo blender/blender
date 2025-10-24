@@ -118,7 +118,7 @@ class NodeSocketViewItem : public BasicTreeViewItem {
       input_socket_layout->label("", ICON_BLANK1);
     }
 
-    this->add_label(row);
+    this->add_label(row, IFACE_(label_.c_str()));
 
     uiLayout *output_socket_layout = &row.row(true);
     if (socket_.flag & NODE_INTERFACE_SOCKET_OUTPUT) {
@@ -207,7 +207,7 @@ class NodePanelViewItem : public BasicTreeViewItem {
       uiTemplateNodeSocket(toggle_layout, /*C*/ nullptr, toggle_->socket_color());
     }
 
-    this->add_label(row);
+    this->add_label(row, IFACE_(label_.c_str()));
 
     uiLayout *sub = &row.row(true);
     sub->use_property_decorate_set(false);

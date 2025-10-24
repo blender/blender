@@ -22,6 +22,7 @@ namespace blender::gpu {
 struct GPUCapabilities {
   int max_texture_size = 0;
   int max_texture_3d_size = 0;
+  uint32_t max_buffer_texture_size = 0;
   int max_texture_layers = 0;
   int max_textures = 0;
   int max_textures_vert = 0;

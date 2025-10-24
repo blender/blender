@@ -216,10 +216,12 @@ struct CurvesEvalCache {
                                        const bke::CurvesGeometry &curves,
                                        int face_per_segment);
 
+  /* Sets r_over_limit to true if reaching hardware limit for the number of segments. */
   gpu::Batch *batch_get(int evaluated_point_count,
                         int curve_count,
                         int face_per_segment,
-                        bool use_cyclic);
+                        bool use_cyclic,
+                        bool &r_over_limit);
 
   void discard_attributes();
   void clear();

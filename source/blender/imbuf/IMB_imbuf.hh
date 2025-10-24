@@ -569,6 +569,9 @@ blender::gpu::TextureFormat IMB_gpu_get_texture_format(const ImBuf *ibuf,
                                                        bool high_bitdepth,
                                                        bool use_grayscale);
 
+bool IMB_gpu_get_compressed_format(const ImBuf *ibuf,
+                                   blender::gpu::TextureFormat *r_texture_format);
+
 /**
  * Ensures that values stored in the float rect can safely loaded into half float gpu textures.
  *
