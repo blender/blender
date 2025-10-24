@@ -2,9 +2,9 @@
 
 set -euo pipefail
 
-# Update `keep-collada` with latest lfs-fallback Blender blender-v5.0-release and push to origin.
+# Update `keep-collada-5.0` with latest lfs-fallback blender-v5.0-release and push to origin.
 
-branch="keep-collada"
+branch="keep-collada-5.0"
 
 echo "==> Ensuring branch: ${branch}"
 git checkout "${branch}"
