@@ -25,7 +25,7 @@ using ShadowTileDataBuf = draw::StorageArrayBuffer<ShadowTileDataPacked, SHADOW_
 
 static void test_eevee_shadow_shift_clear()
 {
-  BLOCK_GPU_TEST_ON(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_ANY, GPU_BACKEND_ANY)
+  BLOCK_GPU_TEST_ON(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_ANY)
 
   GPU_render_begin();
   ShadowTileMapDataBuf tilemaps_data = {"tilemaps_data"};
@@ -98,7 +98,7 @@ DRAW_TEST(eevee_shadow_shift_clear)
 
 static void test_eevee_shadow_shift()
 {
-  BLOCK_GPU_TEST_ON(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_ANY, GPU_BACKEND_ANY)
+  BLOCK_GPU_TEST_ON(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_ANY)
 
   GPU_render_begin();
   ShadowTileMapDataBuf tilemaps_data = {"tilemaps_data"};
