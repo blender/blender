@@ -1250,8 +1250,14 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
       }
     }
 
-    blender::gpu::TextureFormat texture_format = IMB_gpu_get_texture_format(
-        ibuf, ima->flag & IMA_HIGH_BITDEPTH, ibuf->planes >= 8);
+    blender::gpu::TextureFormat texture_format = blender::gpu::TextureFormat::Invalid;
+
+    /* Try to see if this texture is a compressed format, if not, get the generic format. */
+    if (!IMB_gpu_get_compressed_format(ibuf, &texture_format)) {
+      texture_format = IMB_gpu_get_texture_format(
+          ibuf, ima->flag & IMA_HIGH_BITDEPTH, ibuf->planes >= 8);
+    }
+
     const char *texture_format_description = GPU_texture_format_name(texture_format);
     ofs += BLI_snprintf_utf8_rlen(str + ofs, len - ofs, RPT_(", %s"), texture_format_description);
 
