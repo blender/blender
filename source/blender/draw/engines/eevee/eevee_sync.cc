@@ -432,7 +432,12 @@ void SyncModule::sync_curves(Object *ob,
     }
     else {
       PassMain::Sub &sub_pass = matpass.sub_pass->sub("Curves SubPass");
-      gpu::Batch *geometry = curves_sub_pass_setup(sub_pass, inst_.scene, ob, matpass.gpumat);
+      const char *error = nullptr;
+      gpu::Batch *geometry = curves_sub_pass_setup(
+          sub_pass, inst_.scene, ob, error, matpass.gpumat);
+      if (error) {
+        inst_.info_append(error);
+      }
       sub_pass.draw(geometry, res_handle);
     }
   };

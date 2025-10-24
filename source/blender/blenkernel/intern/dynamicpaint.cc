@@ -1639,15 +1639,14 @@ static void dynamicPaint_setInitialColor(const Scene * /*scene*/, DynamicPaintSu
     const blender::Span<int> corner_verts = mesh->corner_verts();
     const blender::Span<int3> corner_tris = mesh->corner_tris();
 
-    char uvname[MAX_CUSTOMDATA_LAYER_NAME];
-
     if (!tex) {
       return;
     }
 
     /* get uv map */
-    CustomData_validate_layer_name(
-        &mesh->corner_data, CD_PROP_FLOAT2, surface->init_layername, uvname);
+    const StringRef uvname = mesh->uv_map_names().contains(surface->init_layername) ?
+                                 surface->init_layername :
+                                 mesh->active_uv_map_name();
     const VArraySpan uv_map = *attributes.lookup<float2>(uvname, bke::AttrDomain::Corner);
 
     if (uv_map.is_empty()) {
@@ -2833,7 +2832,6 @@ int dynamicPaint_createUVSurface(Scene *scene,
   using namespace blender;
   /* Anti-alias jitter point relative coords. */
   const int aa_samples = (surface->flags & MOD_DPAINT_ANTIALIAS) ? 5 : 1;
-  char uvname[MAX_CUSTOMDATA_LAYER_NAME];
   uint32_t active_points = 0;
   bool error = false;
 
@@ -2862,9 +2860,11 @@ int dynamicPaint_createUVSurface(Scene *scene,
   const blender::Span<int3> corner_tris = mesh->corner_tris();
 
   /* get uv map */
-  if (CustomData_has_layer(&mesh->corner_data, CD_PROP_FLOAT2)) {
-    CustomData_validate_layer_name(
-        &mesh->corner_data, CD_PROP_FLOAT2, surface->uvlayer_name, uvname);
+  const VectorSet<StringRefNull> uv_map_names = mesh->uv_map_names();
+  if (!uv_map_names.is_empty()) {
+    const StringRef uvname = uv_map_names.contains(surface->uvlayer_name) ?
+                                 surface->uvlayer_name :
+                                 mesh->active_uv_map_name();
     const bke::AttributeAccessor attributes = mesh->attributes();
     uv_map = *attributes.lookup<float2>(uvname, bke::AttrDomain::Corner);
   }

@@ -298,7 +298,8 @@ class VKPipelinePool : public NonCopyable {
    */
   VkPipeline get_or_create_compute_pipeline(VKComputeInfo &compute_info,
                                             bool is_static_shader,
-                                            VkPipeline vk_pipeline_base);
+                                            VkPipeline vk_pipeline_base,
+                                            StringRefNull name);
 
   /**
    * Get an existing or create a new compute pipeline based on the provided ComputeInfo.
@@ -308,7 +309,8 @@ class VKPipelinePool : public NonCopyable {
    */
   VkPipeline get_or_create_graphics_pipeline(VKGraphicsInfo &graphics_info,
                                              bool is_static_shader,
-                                             VkPipeline vk_pipeline_base);
+                                             VkPipeline vk_pipeline_base,
+                                             StringRefNull name);
 
   /**
    * Discard all pipelines that uses the given pipeline_layout.

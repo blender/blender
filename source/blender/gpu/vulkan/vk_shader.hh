@@ -41,15 +41,12 @@ class VKShader : public Shader {
 
   bool is_compute_shader_ = false;
   bool is_static_shader_ = false;
-  bool use_batch_compilation_ = false;
 
  public:
   VKShaderModule vertex_module;
   VKShaderModule geometry_module;
   VKShaderModule fragment_module;
   VKShaderModule compute_module;
-  bool compilation_finished = false;
-  bool compilation_failed = false;
 
   VkPipelineLayout vk_pipeline_layout = VK_NULL_HANDLE;
   VKPushConstants push_constants;
@@ -66,14 +63,6 @@ class VKShader : public Shader {
   bool finalize(const shader::ShaderCreateInfo *info = nullptr) override;
   bool finalize_post();
 
-  /**
-   * Check if needed compilation steps have been finished.
-   *
-   * Returns `true` when all modules that needed compilation have finished their compilation steps.
-   *     Compilations with errors are still considered finished.
-   * Returns `false` when compilation is still needed for one of the shader modules.
-   */
-  bool is_ready() const;
   void warm_cache(int limit) override;
 
   void bind(const shader::SpecializationConstants *constants_state) override;

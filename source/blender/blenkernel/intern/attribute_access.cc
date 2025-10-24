@@ -1189,7 +1189,17 @@ void fill_attribute_range_default(MutableAttributeAccessor attributes,
     GSpanAttributeWriter attribute = attributes.lookup_for_write_span(iter.name);
     const CPPType &type = attribute.span.type();
     GMutableSpan data = attribute.span.slice(range);
-    type.fill_assign_n(type.default_value(), data.data(), data.size());
+    if (attributes.is_builtin(iter.name)) {
+      if (const GPointer value = attributes.get_builtin_default(iter.name)) {
+        type.fill_assign_n(value.get(), data.data(), data.size());
+      }
+      else {
+        type.fill_assign_n(type.default_value(), data.data(), data.size());
+      }
+    }
+    else {
+      type.fill_assign_n(type.default_value(), data.data(), data.size());
+    }
     attribute.finish();
   });
 }

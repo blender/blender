@@ -35,6 +35,7 @@
 
 #  include "GEO_realize_instances.hh"
 
+#  include "mesh_boolean_intern.hh"
 #  include "mesh_boolean_manifold.hh"
 
 #  include "manifold/manifold.h"
@@ -205,25 +206,6 @@ static void dump_mesh(const Mesh *mesh, const std::string &name)
   }
 }
 
-/**
- * Holds cumulative offsets for the given elements of a number
- * of concatenated Meshes. The sizes are one greater than the
- * number of meshes, so that the last value of each gives the
- * total number of elements.
- */
-struct MeshOffsets {
-  Array<int> vert_start;
-  Array<int> face_start;
-  Array<int> edge_start;
-  Array<int> corner_start;
-  OffsetIndices<int> vert_offsets;
-  OffsetIndices<int> face_offsets;
-  OffsetIndices<int> edge_offsets;
-  OffsetIndices<int> corner_offsets;
-
-  MeshOffsets(Span<const Mesh *> meshes);
-};
-
 MeshOffsets::MeshOffsets(Span<const Mesh *> meshes)
 {
   const int meshes_num = meshes.size();
@@ -231,16 +213,16 @@ MeshOffsets::MeshOffsets(Span<const Mesh *> meshes)
   this->face_start.reinitialize(meshes_num + 1);
   this->edge_start.reinitialize(meshes_num + 1);
   this->corner_start.reinitialize(meshes_num + 1);
-  for (int i = 0; i <= meshes_num; i++) {
-    this->vert_start[i] = (i == 0) ? 0 : this->vert_start[i - 1] + meshes[i - 1]->verts_num;
-    this->face_start[i] = (i == 0) ? 0 : this->face_start[i - 1] + meshes[i - 1]->faces_num;
-    this->edge_start[i] = (i == 0) ? 0 : this->edge_start[i - 1] + meshes[i - 1]->edges_num;
-    this->corner_start[i] = (i == 0) ? 0 : this->corner_start[i - 1] + meshes[i - 1]->corners_num;
+  for (const int i : meshes.index_range()) {
+    this->vert_start[i] = meshes[i]->verts_num;
+    this->face_start[i] = meshes[i]->faces_num;
+    this->edge_start[i] = meshes[i]->edges_num;
+    this->corner_start[i] = meshes[i]->corners_num;
   }
-  this->vert_offsets = OffsetIndices<int>(this->vert_start);
-  this->face_offsets = OffsetIndices<int>(this->face_start);
-  this->edge_offsets = OffsetIndices<int>(this->edge_start);
-  this->corner_offsets = OffsetIndices<int>(this->corner_start);
+  this->vert_offsets = offset_indices::accumulate_counts_to_offsets(this->vert_start);
+  this->face_offsets = offset_indices::accumulate_counts_to_offsets(this->face_start);
+  this->edge_offsets = offset_indices::accumulate_counts_to_offsets(this->edge_start);
+  this->corner_offsets = offset_indices::accumulate_counts_to_offsets(this->corner_start);
 }
 
 /**
@@ -1473,28 +1455,30 @@ static MeshAssembly assemble_mesh_from_meshgl(MeshGL &mgl, const MeshOffsets &me
   return ma;
 }
 
-static void copy_attribute_using_map(const GSpan src,
-                                     const Span<int> out_to_in_map,
-                                     GMutableSpan dst)
+void copy_attribute_using_map(const GSpan src, const Span<int> out_to_in_map, GMutableSpan dst)
 {
   const CPPType &type = dst.type();
+  const void *default_value = type.default_value();
   const int grain_size = 20000;
   threading::parallel_for(out_to_in_map.index_range(), grain_size, [&](const IndexRange range) {
     for (const int out_elem : range) {
       const int in_elem = out_to_in_map[out_elem];
-      if (in_elem != -1) {
-        type.copy_assign(src[in_elem], dst[out_elem]);
+      if (in_elem == -1) {
+        type.copy_construct(default_value, dst[out_elem]);
+      }
+      else {
+        type.copy_construct(src[in_elem], dst[out_elem]);
       }
     }
   });
 }
 
-static void interpolate_corner_attributes(bke::MutableAttributeAccessor &output_attrs,
-                                          bke::AttributeAccessor &input_attrs,
-                                          Mesh *output_mesh,
-                                          const Mesh *input_mesh,
-                                          const Span<int> out_to_in_corner_map,
-                                          const Span<int> out_to_in_face_map)
+void interpolate_corner_attributes(bke::MutableAttributeAccessor output_attrs,
+                                   const bke::AttributeAccessor input_attrs,
+                                   Mesh *output_mesh,
+                                   const Mesh *input_mesh,
+                                   const Span<int> out_to_in_corner_map,
+                                   const Span<int> out_to_in_face_map)
 {
 #  ifdef DEBUG_TIME
   timeit::ScopedTimer timer("interpolate corner attributes");
@@ -1524,6 +1508,11 @@ static void interpolate_corner_attributes(bke::MutableAttributeAccessor &output_
     dsts.append(writers.last().span);
     is_normal_attribute.append(iter.name == "custom_normal");
   });
+
+  if (writers.is_empty()) {
+    return;
+  }
+
   /* Loop per source face, as there is an expensive weight calculation that needs to be done per
    * face. */
   const OffsetIndices<int> output_faces = output_mesh->faces();
@@ -1537,25 +1526,32 @@ static void interpolate_corner_attributes(bke::MutableAttributeAccessor &output_
       out_to_in_face_map.index_range(), grain_size, [&](const IndexRange range) {
         Vector<float, 20> weights;
         Vector<float2, 20> cos_2d;
-        float3x3 axis_mat;
         for (const int out_face_index : range) {
+          const int in_face_index = out_to_in_face_map[out_face_index];
+          const IndexRange in_face = input_faces[in_face_index];
           /* Are there any corners needing interpolation in this face?
            * The corners needing interpolation are those whose out_to_in_corner_map entry is -1.
            */
           IndexRange out_face = output_faces[out_face_index];
-          if (!std::any_of(out_face.begin(), out_face.end(), [&](int c) {
+          if (std::none_of(out_face.begin(), out_face.end(), [&](int c) {
                 return out_to_in_corner_map[c] == -1;
               }))
           {
-            /* We copied the attributes using the corner map before calling this function. */
+            for (const int attr_index : dsts.index_range()) {
+              const GSpan src = srcs[attr_index];
+              GMutableSpan dst = dsts[attr_index];
+              const CPPType &type = dst.type();
+              for (const int dst_corner : out_face) {
+                type.copy_construct(src[out_to_in_corner_map[dst_corner]], dst[dst_corner]);
+              }
+            }
             continue;
           }
+
           /* At least one output corner did not map to an input corner. */
 
           /* First get coordinates of input face projected onto 2d, and make sure that
            * weights has the right size. */
-          const int in_face_index = out_to_in_face_map[out_face_index];
-          const IndexRange in_face = input_faces[in_face_index];
           const Span<int> in_face_verts = input_corner_verts.slice(in_face);
           const int in_face_size = in_face.size();
           const Span<int> out_face_verts = output_corner_verts.slice(out_face);
@@ -1564,6 +1560,7 @@ static void interpolate_corner_attributes(bke::MutableAttributeAccessor &output_
           float (*cos_2d_p)[2] = reinterpret_cast<float (*)[2]>(cos_2d.data());
           const float3 axis_dominant = bke::mesh::face_normal_calc(input_vert_positions,
                                                                    in_face_verts);
+          float3x3 axis_mat;
           axis_dominant_v3_to_m3(axis_mat.ptr(), axis_dominant);
           /* We also need to know if the output face has a flipped normal compared
            * to the corresponding input face (used if we have custom normals).
@@ -1580,6 +1577,12 @@ static void interpolate_corner_attributes(bke::MutableAttributeAccessor &output_
           for (const int out_c : out_face) {
             const int in_c = out_to_in_corner_map[out_c];
             if (in_c != -1) {
+              for (const int attr_index : dsts.index_range()) {
+                const GSpan src = srcs[attr_index];
+                GMutableSpan dst = dsts[attr_index];
+                const CPPType &type = dst.type();
+                type.copy_construct(src[in_c], dst[out_c]);
+              }
               continue;
             }
             const int out_v = output_corner_verts[out_c];
@@ -1617,23 +1620,18 @@ static void interpolate_corner_attributes(bke::MutableAttributeAccessor &output_
   }
 }
 
-/**
- * The \a dst span should be the material_index property of the result.
- * Rather than using the attribute from the joined mesh, we want to take
- * the original face and map it using \a material_remaps.
- */
-static void set_material_from_map(const Span<int> out_to_in_map,
-                                  const Span<Array<short>> material_remaps,
-                                  const Span<const Mesh *> meshes,
-                                  const MeshOffsets &mesh_offsets,
-                                  const MutableSpan<int> dst)
+void set_material_from_map(const Span<int> out_to_in_map,
+                           const Span<Array<short>> material_remaps,
+                           const Span<const Mesh *> meshes,
+                           const MeshOffsets &mesh_offsets,
+                           const MutableSpan<int> dst)
 {
   BLI_assert(material_remaps.size() > 0);
-  Vector<VArraySpan<int>> material_varrays;
+  Array<VArray<int>> material_varrays(meshes.size());
   for (const int i : meshes.index_range()) {
     bke::AttributeAccessor input_attrs = meshes[i]->attributes();
-    material_varrays.append(
-        *input_attrs.lookup_or_default<int>("material_index", bke::AttrDomain::Face, 0));
+    material_varrays[i] = *input_attrs.lookup_or_default<int>(
+        "material_index", bke::AttrDomain::Face, 0);
   }
   threading::parallel_for(out_to_in_map.index_range(), 8192, [&](const IndexRange range) {
     for (const int out_f : range) {
@@ -1643,7 +1641,6 @@ static void set_material_from_map(const Span<int> out_to_in_map,
       const int orig = material_varrays[mesh_id][in_f_local];
       const Array<short> &map = material_remaps[mesh_id];
       dst[out_f] = (orig >= 0 && orig < map.size()) ? map[orig] : orig;
-      ;
     }
   });
 }
@@ -1864,8 +1861,6 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
      */
     bke::AttributeAccessor join_attrs = joined_mesh->attributes();
 
-    bool need_corner_interpolation = false;
-
     join_attrs.foreach_attribute([&](const bke::AttributeIter &iter) {
       if (ELEM(iter.name, "position", ".edge_verts", ".corner_vert", ".corner_edge")) {
         return;
@@ -1885,7 +1880,7 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
            * This should only happen if the user wants something other than the default
            * "transfer the materials" mode, which has already happened in the joined mesh.
            */
-          do_material_remap = material_remaps.size() > 0 && iter.name == "material_index";
+          do_material_remap = !material_remaps.is_empty() && iter.name == "material_index";
           break;
         }
         case bke::AttrDomain::Edge: {
@@ -1893,8 +1888,7 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
           break;
         }
         case bke::AttrDomain::Corner: {
-          out_to_in_map = out_to_in.ensure_corner_map();
-          need_corner_interpolation = true;
+          /* Handled separately below. */
           break;
         }
         default: {
@@ -1907,7 +1901,7 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
         if (dbg_level > 0) {
           std::cout << "copy_attribute_using_map, name = " << iter.name << "\n";
         }
-        bke::GSpanAttributeWriter dst = output_attrs.lookup_or_add_for_write_span(
+        bke::GSpanAttributeWriter dst = output_attrs.lookup_or_add_for_write_only_span(
             iter.name, iter.domain, iter.data_type);
         if (do_material_remap) {
           set_material_from_map(
@@ -1919,14 +1913,14 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
         dst.finish();
       }
     });
-    if (need_corner_interpolation) {
-      interpolate_corner_attributes(output_attrs,
-                                    join_attrs,
-                                    mesh,
-                                    joined_mesh,
-                                    out_to_in.ensure_corner_map(),
-                                    out_to_in.ensure_face_map());
-    }
+
+    interpolate_corner_attributes(output_attrs,
+                                  join_attrs,
+                                  mesh,
+                                  joined_mesh,
+                                  out_to_in.ensure_corner_map(),
+                                  out_to_in.ensure_face_map());
+
     if (r_intersecting_edges != nullptr) {
       get_intersecting_edges(r_intersecting_edges, mesh, out_to_in, mesh_offsets);
     }
@@ -1940,8 +1934,8 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
   return mesh;
 }
 
-static bke::GeometrySet join_meshes_with_transforms(const Span<const Mesh *> meshes,
-                                                    const Span<float4x4> transforms)
+bke::GeometrySet join_meshes_with_transforms(const Span<const Mesh *> meshes,
+                                             const Span<float4x4> transforms)
 {
 #  ifdef DEBUG_TIME
   timeit::ScopedTimer jtimer(__func__);
@@ -1960,8 +1954,9 @@ static bke::GeometrySet join_meshes_with_transforms(const Span<const Mesh *> mes
     });
   }
   return geometry::realize_instances(
-      bke::GeometrySet::from_instances(&instances, bke::GeometryOwnershipType::Editable),
-      geometry::RealizeInstancesOptions());
+             bke::GeometrySet::from_instances(&instances, bke::GeometryOwnershipType::Editable),
+             geometry::RealizeInstancesOptions())
+      .geometry;
 }
 
 Mesh *mesh_boolean_manifold(Span<const Mesh *> meshes,

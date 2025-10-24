@@ -98,8 +98,8 @@ static const char *imb_gpu_get_swizzle(const ImBuf *ibuf)
 }
 
 /* Return false if no suitable format was found. */
-static bool IMB_gpu_get_compressed_format(const ImBuf *ibuf,
-                                          blender::gpu::TextureFormat *r_texture_format)
+bool IMB_gpu_get_compressed_format(const ImBuf *ibuf,
+                                   blender::gpu::TextureFormat *r_texture_format)
 {
   /* For DDS we only support data, scene linear and sRGB. Converting to
    * different colorspace would break the compression. */

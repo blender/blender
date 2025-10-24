@@ -777,7 +777,7 @@ void uvedit_edge_select_set_noflush(const Scene *scene,
           BM_loop_edge_uvselect_set_noflush(bm, l_iter, select);
         }
         else {
-          uvedit_edge_select_set_no_sync(ts, bm, l, select);
+          uvedit_edge_select_set_no_sync(ts, bm, l_iter, select);
         }
       }
     }
@@ -1605,9 +1605,6 @@ void uvedit_select_prepare_custom_data(const Scene *scene, BMesh *bm)
   const ToolSettings *ts = scene->toolsettings;
   BLI_assert((ts->uv_flag & UV_FLAG_SELECT_SYNC) == 0);
   UNUSED_VARS_NDEBUG(ts);
-  const char *active_uv_name = CustomData_get_active_layer_name(&bm->ldata, CD_PROP_FLOAT2);
-  BLI_assert(active_uv_name);
-  UNUSED_VARS_NDEBUG(active_uv_name);
 
   /* Needed because this data must *not* be used for select-sync
    * once this has been manipulated with select-sync disabled. */
@@ -5332,9 +5329,10 @@ static wmOperatorStatus uv_select_pinned_exec(bContext *C, wmOperator *op)
       scene, view_layer, nullptr);
 
   for (Object *obedit : objects) {
-    BMesh *bm = BKE_editmesh_from_object(obedit)->bm;
+    Mesh &mesh = *static_cast<Mesh *>(obedit->data);
+    BMesh *bm = mesh.runtime->edit_mesh->bm;
 
-    const char *active_uv_name = CustomData_get_active_layer_name(&bm->ldata, CD_PROP_FLOAT2);
+    const blender::StringRef active_uv_name = mesh.active_uv_map_name();
     if (!BM_uv_map_attr_pin_exists(bm, active_uv_name)) {
       continue;
     }

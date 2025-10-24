@@ -75,6 +75,9 @@ struct uiItem {
 
   [[nodiscard]] blender::ui::ItemType type() const;
 
+  [[nodiscard]] blender::int2 size() const;
+  [[nodiscard]] blender::int2 offset() const;
+
  protected:
   blender::ui::ItemInternalFlag flag_ = {};
   blender::ui::ItemType type_ = {};

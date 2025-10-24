@@ -614,9 +614,7 @@ static void preview_render(ShaderNodesPreviewJob &job_data)
   scene->r.size = 100;
 
   if (job_data.tree_previews->previews_render == nullptr) {
-    char name[32];
-    SNPRINTF_UTF8(name, "Preview %p", &job_data.tree_previews);
-    job_data.tree_previews->previews_render = RE_NewRender(name);
+    job_data.tree_previews->previews_render = RE_NewRender(&job_data.tree_previews);
   }
   Render *re = job_data.tree_previews->previews_render;
 

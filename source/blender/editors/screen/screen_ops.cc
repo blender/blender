@@ -2444,7 +2444,7 @@ static bool area_split_apply(bContext *C, wmOperator *op)
   BKE_icon_changed(screen->id.icon_id);
 
   /* We have more than one area now, so reset window title. */
-  WM_window_title(CTX_wm_manager(C), CTX_wm_window(C));
+  WM_window_title_refresh(CTX_wm_manager(C), CTX_wm_window(C));
 
   return true;
 }
@@ -3743,6 +3743,10 @@ static wmOperatorStatus screen_maximize_area_exec(bContext *C, wmOperator *op)
     if (!ELEM(screen->state, SCREENNORMAL, SCREENMAXIMIZED)) {
       return OPERATOR_CANCELLED;
     }
+    if (BLI_listbase_is_single(&screen->areabase) && screen->state == SCREENNORMAL) {
+      /* SCREENMAXIMIZED is not useful when a singleton. #144740. */
+      return OPERATOR_CANCELLED;
+    }
     ED_screen_state_toggle(C, CTX_wm_window(C), area, SCREENMAXIMIZED);
   }
 
@@ -3972,7 +3976,7 @@ static bool area_join_apply(bContext *C, wmOperator *op)
 
   if (BLI_listbase_is_single(&screen->areabase)) {
     /* Areas reduced to just one, so show nicer title. */
-    WM_window_title(CTX_wm_manager(C), CTX_wm_window(C));
+    WM_window_title_refresh(CTX_wm_manager(C), CTX_wm_window(C));
   }
 
   return true;
@@ -4700,10 +4704,10 @@ static wmOperatorStatus area_join_modal(bContext *C, wmOperator *op, const wmEve
 
         /* Areas changed, update window titles. */
         if (jd->win2 && jd->win2 != jd->win1) {
-          WM_window_title(CTX_wm_manager(C), jd->win2);
+          WM_window_title_refresh(CTX_wm_manager(C), jd->win2);
         }
         if (jd->win1 && !jd->close_win) {
-          WM_window_title(CTX_wm_manager(C), jd->win1);
+          WM_window_title_refresh(CTX_wm_manager(C), jd->win1);
         }
 
         const bool do_close_win = jd->close_win;

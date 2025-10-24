@@ -117,7 +117,7 @@ static void icon_copy_rect(const ImBuf *ibuf, uint w, uint h, uint *rect);
 
 struct ShaderPreview {
   /* from wmJob */
-  void *owner;
+  const void *owner;
   bool *stop, *do_update;
 
   Scene *scene;
@@ -674,23 +674,16 @@ static Scene *preview_prepare_scene(
 /* new UI convention: draw is in pixel space already. */
 /* uses ButType::Roundbox button in block to get the rect */
 static bool ed_preview_draw_rect(
-    Scene *scene, ScrArea *area, int split, int first, const rcti *rect, rcti *newrect)
+    Scene *scene, const void *owner, int split, int first, const rcti *rect, rcti *newrect)
 {
   Render *re;
   RenderView *rv;
   RenderResult rres;
-  char name[32];
   int offx = 0;
   int newx = BLI_rcti_size_x(rect);
   int newy = BLI_rcti_size_y(rect);
+  const void *split_owner = (!split || first) ? owner : (char *)owner + 1;
   bool ok = false;
-
-  if (!split || first) {
-    SNPRINTF_UTF8(name, "Preview %p", (void *)area);
-  }
-  else {
-    SNPRINTF_UTF8(name, "SecondPreview %p", (void *)area);
-  }
 
   if (split) {
     if (first) {
@@ -704,7 +697,7 @@ static bool ed_preview_draw_rect(
   }
 
   /* test if something rendered ok */
-  re = RE_GetRender(name);
+  re = RE_GetRender(split_owner);
 
   if (re == nullptr) {
     return false;
@@ -749,13 +742,13 @@ void ED_preview_draw(
   if (idp) {
     Scene *scene = CTX_data_scene(C);
     wmWindowManager *wm = CTX_wm_manager(C);
-    ScrArea *area = CTX_wm_area(C);
     ID *id = (ID *)idp;
     ID *parent = (ID *)parentp;
     MTex *slot = (MTex *)slotp;
     SpaceProperties *sbuts = CTX_wm_space_properties(C);
+    const void *owner = CTX_wm_area(C);
     ShaderPreview *sp = static_cast<ShaderPreview *>(
-        WM_jobs_customdata_from_type(wm, area, WM_JOB_TYPE_RENDER_PREVIEW));
+        WM_jobs_customdata_from_type(wm, owner, WM_JOB_TYPE_RENDER_PREVIEW));
     rcti newrect;
     bool ok;
     int newx = BLI_rcti_size_x(rect);
@@ -767,11 +760,11 @@ void ED_preview_draw(
     newrect.ymax = rect->ymin;
 
     if (parent) {
-      ok = ed_preview_draw_rect(scene, area, 1, 1, rect, &newrect);
-      ok &= ed_preview_draw_rect(scene, area, 1, 0, rect, &newrect);
+      ok = ed_preview_draw_rect(scene, owner, 1, 1, rect, &newrect);
+      ok &= ed_preview_draw_rect(scene, owner, 1, 0, rect, &newrect);
     }
     else {
-      ok = ed_preview_draw_rect(scene, area, 0, 0, rect, &newrect);
+      ok = ed_preview_draw_rect(scene, owner, 0, 0, rect, &newrect);
     }
 
     if (ok) {
@@ -782,13 +775,13 @@ void ED_preview_draw(
      * if no render result was found and no preview render job is running,
      * or if the job is running and the size of preview changed */
     if ((sbuts != nullptr && sbuts->preview) || (ui_preview->tag & UI_PREVIEW_TAG_DIRTY) ||
-        (!ok && !WM_jobs_test(wm, area, WM_JOB_TYPE_RENDER_PREVIEW)) ||
+        (!ok && !WM_jobs_test(wm, owner, WM_JOB_TYPE_RENDER_PREVIEW)) ||
         (sp && (abs(sp->sizex - newx) >= 2 || abs(sp->sizey - newy) > 2)))
     {
       if (sbuts != nullptr) {
         sbuts->preview = 0;
       }
-      ED_preview_shader_job(C, area, id, parent, slot, newx, newy, PR_BUTS_RENDER);
+      ED_preview_shader_job(C, owner, id, parent, slot, newx, newy, PR_BUTS_RENDER);
       ui_preview->tag &= ~UI_PREVIEW_TAG_DIRTY;
     }
   }
@@ -1221,7 +1214,6 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
   Scene *sce;
   float oldlens;
   short idtype = GS(id->name);
-  char name[32];
   int sizex;
   Main *pr_main = sp->pr_main;
 
@@ -1252,17 +1244,12 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
     return;
   }
 
-  if (!split || first) {
-    SNPRINTF_UTF8(name, "Preview %p", sp->owner);
-  }
-  else {
-    SNPRINTF_UTF8(name, "SecondPreview %p", sp->owner);
-  }
-  re = RE_GetRender(name);
+  const void *split_owner = (!split || first) ? sp->owner : (char *)sp->owner + 1;
+  re = RE_GetRender(split_owner);
 
   /* full refreshed render from first tile */
   if (re == nullptr) {
-    re = RE_NewRender(name);
+    re = RE_NewRender(split_owner);
   }
 
   /* sce->r gets copied in RE_InitState! */
@@ -2220,7 +2207,7 @@ void ED_preview_icon_job(
 }
 
 void ED_preview_shader_job(const bContext *C,
-                           void *owner,
+                           const void *owner,
                            ID *id,
                            ID *parent,
                            MTex *slot,

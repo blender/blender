@@ -374,54 +374,6 @@ const CustomData &mesh_cd_ldata_get_from_mesh(const Mesh &mesh)
   return mesh.corner_data;
 }
 
-const CustomData &mesh_cd_pdata_get_from_mesh(const Mesh &mesh)
-{
-  switch (mesh.runtime->wrapper_type) {
-    case ME_WRAPPER_TYPE_SUBD:
-    case ME_WRAPPER_TYPE_MDATA:
-      return mesh.face_data;
-      break;
-    case ME_WRAPPER_TYPE_BMESH:
-      return mesh.runtime->edit_mesh->bm->pdata;
-      break;
-  }
-
-  BLI_assert(0);
-  return mesh.face_data;
-}
-
-const CustomData &mesh_cd_edata_get_from_mesh(const Mesh &mesh)
-{
-  switch (mesh.runtime->wrapper_type) {
-    case ME_WRAPPER_TYPE_SUBD:
-    case ME_WRAPPER_TYPE_MDATA:
-      return mesh.edge_data;
-      break;
-    case ME_WRAPPER_TYPE_BMESH:
-      return mesh.runtime->edit_mesh->bm->edata;
-      break;
-  }
-
-  BLI_assert(0);
-  return mesh.edge_data;
-}
-
-const CustomData &mesh_cd_vdata_get_from_mesh(const Mesh &mesh)
-{
-  switch (mesh.runtime->wrapper_type) {
-    case ME_WRAPPER_TYPE_SUBD:
-    case ME_WRAPPER_TYPE_MDATA:
-      return mesh.vert_data;
-      break;
-    case ME_WRAPPER_TYPE_BMESH:
-      return mesh.runtime->edit_mesh->bm->vdata;
-      break;
-  }
-
-  BLI_assert(0);
-  return mesh.vert_data;
-}
-
 static bool bm_edge_is_sharp(const BMEdge *const &edge)
 {
   return !BM_elem_flag_test(edge, BM_ELEM_SMOOTH);

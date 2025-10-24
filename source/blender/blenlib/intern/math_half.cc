@@ -88,6 +88,23 @@ uint16_t blender::math::float_to_half(float v)
 #endif
 }
 
+uint16_t blender::math::float_to_half_make_finite(float v)
+{
+  uint16_t h = float_to_half(v);
+  /* Infinity or NaN? */
+  if ((h & 0x7c00) == 0x7c00) {
+    if ((h & 0x03ff) == 0) {
+      /* +/- infinity: +/- max value. */
+      h ^= 0x07ff;
+    }
+    else {
+      /* +/- Nan: +/- zero. */
+      h &= 0x8000;
+    }
+  }
+  return h;
+}
+
 float blender::math::half_to_float(uint16_t v)
 {
 #if defined(USE_HARDWARE_FP16_NEON)
@@ -254,6 +271,100 @@ void blender::math::float_to_half_array(const float *src, uint16_t *dst, size_t 
   }
 }
 
+void blender::math::float_to_half_make_finite_array(const float *src, uint16_t *dst, size_t length)
+{
+  size_t i = 0;
+#if defined(USE_HARDWARE_FP16_F16C) /* 8-wide loop using AVX2 F16C */
+  for (; i + 7 < length; i += 8) {
+    __m256 src8 = _mm256_loadu_ps(src);
+    __m128i h8 = _mm256_cvtps_ph(src8, _MM_FROUND_TO_NEAREST_INT);
+    /* Handle inf/nan. */
+    {
+      const __m128i exp_mask = _mm_set1_epi16(0x7c00u);
+      __m128i exp_all_ones = _mm_cmpeq_epi16(_mm_and_si128(h8, exp_mask), exp_mask);
+      const __m128i mant_mask = _mm_set1_epi16(0x03ffu);
+      const __m128i zero = _mm_setzero_si128();
+      __m128i mant_is_zero = _mm_cmpeq_epi16(_mm_and_si128(h8, mant_mask), zero);
+      __m128i is_inf = _mm_and_si128(exp_all_ones, mant_is_zero);
+      const __m128i all_ones = _mm_cmpeq_epi16(zero, zero);
+      __m128i is_nan = _mm_and_si128(exp_all_ones, _mm_andnot_si128(mant_is_zero, all_ones));
+      const __m128i sign_mask = _mm_set1_epi16(0x8000u);
+      __m128i signbits = _mm_and_si128(h8, sign_mask);
+      __m128i inf_res = _mm_or_si128(signbits, _mm_set1_epi16(0x7bffu)); /* +/- 65504 */
+      __m128i nan_res = signbits;                                        /* +/- 0 */
+      /* Select final result. */
+      h8 = _mm_blendv_epi8(h8, inf_res, is_inf);
+      h8 = _mm_blendv_epi8(h8, nan_res, is_nan);
+    }
+    _mm_storeu_si128((__m128i *)dst, h8);
+    src += 8;
+    dst += 8;
+  }
+#elif defined(USE_SSE2_FP16)          /* 4-wide loop using SSE2 */
+  for (; i + 3 < length; i += 4) {
+    __m128 src4 = _mm_loadu_ps(src);
+    __m128i h4 = F32_to_F16_4x(src4);
+    /* Handle inf/nan. */
+    {
+      __m128i hi_part = _mm_and_si128(h4, _mm_set1_epi32(0xffff0000u));
+      const __m128i exp_mask = _mm_set1_epi16(0x7c00u);
+      __m128i exp_all_ones = _mm_cmpeq_epi16(_mm_and_si128(h4, exp_mask), exp_mask);
+      const __m128i mant_mask = _mm_set1_epi16(0x03ffu);
+      const __m128i zero = _mm_setzero_si128();
+      __m128i mant_is_zero = _mm_cmpeq_epi16(_mm_and_si128(h4, mant_mask), zero);
+      __m128i is_inf = _mm_and_si128(exp_all_ones, mant_is_zero);
+      const __m128i all_ones = _mm_cmpeq_epi16(zero, zero);
+      __m128i is_nan = _mm_and_si128(exp_all_ones, _mm_andnot_si128(mant_is_zero, all_ones));
+      const __m128i sign_mask = _mm_set1_epi16(0x8000u);
+      __m128i signbits = _mm_and_si128(h4, sign_mask);
+      __m128i inf_res = _mm_or_si128(signbits, _mm_set1_epi16(0x7bffu)); /* +/- 65504 */
+      __m128i nan_res = signbits;                                        /* +/- 0 */
+      /* Select final result. */
+      h4 = _mm_blendv_epi8(h4, inf_res, is_inf);
+      h4 = _mm_blendv_epi8(h4, nan_res, is_nan);
+      h4 = _mm_and_si128(h4, _mm_set1_epi32(0xffff));
+      h4 = _mm_or_si128(h4, hi_part);
+    }
+    __m128i h4_packed = _mm_packs_epi32(h4, h4);
+    _mm_storeu_si64(dst, h4_packed);
+    src += 4;
+    dst += 4;
+  }
+#elif defined(USE_HARDWARE_FP16_NEON) /* 4-wide loop using NEON */
+  for (; i + 3 < length; i += 4) {
+    float32x4_t src4 = vld1q_f32(src);
+    float16x4_t h4 = vcvt_f16_f32(src4);
+    /* Handle inf/nan. */
+    {
+      uint16x4_t hu4 = vreinterpret_u16_f16(h4);
+      const uint16x4_t exp_mask = vdup_n_u16(0x7c00u);
+      uint16x4_t exp_all_ones = vceq_u16(vand_u16(hu4, exp_mask), exp_mask);
+      const uint16x4_t mant_mask = vdup_n_u16(0x03ffu);
+      const uint16x4_t zero = vdup_n_u16(0);
+      uint16x4_t mant_is_zero = vceq_u16(vand_u16(hu4, mant_mask), zero);
+      uint16x4_t is_inf = vand_u16(exp_all_ones, mant_is_zero);
+      uint16x4_t is_nan = vand_u16(exp_all_ones, vmvn_u16(mant_is_zero));
+      const uint16x4_t sign_mask = vdup_n_u16(0x8000u);
+      uint16x4_t signbits = vand_u16(hu4, sign_mask);
+      uint16x4_t inf_res = vorr_u16(signbits, vdup_n_u16(0x7bffu)); /* +/- 65504 */
+      uint16x4_t nan_res = signbits;                                /* +/- 0 */
+      /* Select final result. */
+      hu4 = vbsl_u16(is_inf, inf_res, hu4);
+      hu4 = vbsl_u16(is_nan, nan_res, hu4);
+      h4 = vreinterpret_f16_u16(hu4);
+    }
+    vst1_f16((float16_t *)dst, h4);
+    src += 4;
+    dst += 4;
+  }
+#endif
+  /* Use scalar path to convert the tail of array (or whole array if none of
+   * wider paths above were used). */
+  for (; i < length; i++) {
+    *dst++ = float_to_half_make_finite(*src++);
+  }
+}
+
 void blender::math::half_to_float_array(const uint16_t *src, float *dst, size_t length)
 {
   size_t i = 0;
@@ -292,4 +403,10 @@ void blender::math::half_to_float_array(const uint16_t *src, float *dst, size_t 
 
 #ifdef USE_HARDWARE_FP16_NEON
 #  undef USE_HARDWARE_FP16_NEON
+#endif
+#ifdef USE_HARDWARE_FP16_F16C
+#  undef USE_HARDWARE_FP16_F16C
+#endif
+#ifdef USE_SSE2_FP16
+#  undef USE_SSE2_FP16
 #endif

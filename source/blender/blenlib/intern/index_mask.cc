@@ -591,6 +591,11 @@ IndexMask IndexMask::from_bools(const VArray<bool> &bools, IndexMaskMemory &memo
   return IndexMask::from_bools(bools.index_range(), bools, memory);
 }
 
+IndexMask IndexMask::from_bools_inverse(const Span<bool> bools, IndexMaskMemory &memory)
+{
+  return IndexMask::from_bools_inverse(bools.index_range(), bools, memory);
+}
+
 IndexMask IndexMask::from_bools_inverse(const VArray<bool> &bools, IndexMaskMemory &memory)
 {
   return IndexMask::from_bools_inverse(bools.index_range(), bools, memory);

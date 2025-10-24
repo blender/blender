@@ -320,7 +320,7 @@ class SubdivisionSet(Operator):
                         mod = obj.modifiers.new("Subdivision", 'SUBSURF')
                         mod.levels = level
                 except Exception:
-                    self.report({'WARNING'}, "Modifiers cannot be added to object: " + obj.name)
+                    self.report({'WARNING'}, rpt_("Modifiers cannot be added to object: {:s}").format(obj.name))
 
         for obj in context.selected_editable_objects:
             set_object_subd(obj)

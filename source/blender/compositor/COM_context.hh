@@ -13,6 +13,7 @@
 
 #include "DNA_scene_types.h"
 
+#include "DNA_sequence_types.h"
 #include "GPU_shader.hh"
 
 #include "COM_domain.hh"
@@ -79,6 +80,9 @@ class Context {
 
   /* True if the compositor should use GPU acceleration. */
   virtual bool use_gpu() const = 0;
+
+  /* Get the strip that the compositing modifier is applied to. */
+  virtual const Strip *get_strip() const;
 
   /* Get the result where the given pass is stored. */
   virtual Result get_pass(const Scene *scene, int view_layer, const char *name);

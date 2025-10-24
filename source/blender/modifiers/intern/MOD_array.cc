@@ -293,6 +293,7 @@ static void mesh_merge_transform(Mesh *result,
   blender::MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
   blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
   blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
+  bke::MutableAttributeAccessor result_attributes = result->attributes_for_write();
 
   CustomData_copy_data(&cap_mesh->vert_data, &result->vert_data, 0, cap_verts_index, cap_nverts);
   CustomData_copy_data(&cap_mesh->edge_data, &result->edge_data, 0, cap_edges_index, cap_nedges);
@@ -339,7 +340,6 @@ static void mesh_merge_transform(Mesh *result,
   if (const VArray cap_material_indices = *cap_attributes.lookup<int>("material_index",
                                                                       bke::AttrDomain::Face))
   {
-    bke::MutableAttributeAccessor result_attributes = result->attributes_for_write();
     bke::SpanAttributeWriter<int> result_material_indices =
         result_attributes.lookup_or_add_for_write_span<int>("material_index",
                                                             bke::AttrDomain::Face);
@@ -564,6 +564,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   blender::MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
   blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
   blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
+  bke::MutableAttributeAccessor result_attributes = result->attributes_for_write();
 
   if (use_merge) {
     /* Will need full_doubles_map for handling merge */
@@ -687,10 +688,11 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
   /* handle UVs */
   if (chunk_nloops > 0 && is_zero_v2(amd->uv_offset) == false) {
-    const int totuv = CustomData_number_of_layers(&result->corner_data, CD_PROP_FLOAT2);
-    for (i = 0; i < totuv; i++) {
-      blender::float2 *uv_map = static_cast<blender::float2 *>(CustomData_get_layer_n_for_write(
-          &result->corner_data, CD_PROP_FLOAT2, i, result->corners_num));
+    const VectorSet<StringRefNull> uv_map_names = result->uv_map_names();
+    for (i = 0; i < uv_map_names.size(); i++) {
+      bke::SpanAttributeWriter uv_map_attr = result_attributes.lookup_for_write_span<float2>(
+          uv_map_names[i]);
+      float2 *uv_map = uv_map_attr.span.data();
       uv_map += chunk_nloops;
       for (c = 1; c < count; c++) {
         const float uv_offset[2] = {
@@ -703,6 +705,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
           (*uv_map)[1] += uv_offset[1];
         }
       }
+      uv_map_attr.finish();
     }
   }
 

@@ -101,6 +101,7 @@ set(SRC
   GEO_uv_parametrizer.hh
   GEO_volume_grid_resample.hh
   intern/mesh_boolean_manifold.hh
+  intern/mesh_boolean_intern.hh
 )
 
 set(LIB

@@ -82,6 +82,7 @@ void GPU_batch_init_ex(Batch *batch,
 
 Batch *GPU_batch_create_procedural(GPUPrimType primitive_type, int32_t vertex_count)
 {
+  BLI_assert(vertex_count >= 0);
   Batch *batch = GPU_batch_calloc();
   for (auto &v : batch->verts) {
     v = nullptr;

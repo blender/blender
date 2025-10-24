@@ -12,7 +12,6 @@ class NODE_MT_compositor_node_input_base(node_add_menu.NodeMenu):
     bl_label = "Input"
 
     def draw(self, context):
-        del context
         layout = self.layout
         self.draw_menu(layout, path="Input/Constant")
         layout.separator()
@@ -23,6 +22,8 @@ class NODE_MT_compositor_node_input_base(node_add_menu.NodeMenu):
         self.node_operator(layout, "CompositorNodeImageCoordinates")
         self.node_operator(layout, "CompositorNodeMask")
         self.node_operator(layout, "CompositorNodeMovieClip")
+        if context.space_data.node_tree_sub_type == 'SEQUENCER':
+            self.node_operator(layout, "CompositorNodeSequencerStripInfo")
 
         layout.separator()
         self.draw_menu(layout, path="Input/Scene")
@@ -279,6 +280,7 @@ class NODE_MT_compositor_node_utilities_base(node_add_menu.NodeMenu):
         layout.separator()
         self.node_operator(layout, "CompositorNodeSplit")
         self.node_operator(layout, "CompositorNodeSwitch")
+        self.node_operator(layout, "GeometryNodeIndexSwitch")
         self.node_operator(layout, "GeometryNodeMenuSwitch")
         self.node_operator(
             layout, "CompositorNodeSwitchView",

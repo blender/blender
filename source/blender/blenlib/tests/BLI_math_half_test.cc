@@ -78,6 +78,51 @@ TEST(math_half, float_to_half_scalar)
 #undef HFUN
 }
 
+TEST(math_half, float_to_half_make_finite_scalar)
+{
+#define HFUN(v) blender::math::float_to_half_make_finite(v)
+  EXPECT_EQ(HFUN(0.0f), 0);
+  EXPECT_EQ(HFUN(std::numeric_limits<float>::min()), 0);
+  EXPECT_EQ(HFUN(5.960464478e-08f), 1);
+  EXPECT_EQ(HFUN(1.907348633e-06f), 32);
+  EXPECT_EQ(HFUN(2.205371857e-06f), 37);
+  EXPECT_EQ(HFUN(3.045797348e-05f), 511);
+  EXPECT_EQ(HFUN(5.954504013e-05f), 999);
+  EXPECT_EQ(HFUN(6.103515625e-05f), 1024);
+  EXPECT_EQ(HFUN(8.088350296e-05f), 1357);
+  EXPECT_EQ(HFUN(0.003183364868f), 6789);
+  EXPECT_EQ(HFUN(0.1f), 11878);
+  EXPECT_EQ(HFUN(1.0f), 15360);
+  EXPECT_EQ(HFUN(1.999023438f), 16383);
+  EXPECT_EQ(HFUN(1.999523438f), 16384);
+  EXPECT_EQ(HFUN(2.0f), 16384);
+  EXPECT_EQ(HFUN(11.0f), 18816);
+  EXPECT_EQ(HFUN(65504.0f), 31743);
+  /* Too large: result is FP16 65504. */
+  EXPECT_EQ(HFUN(65535.0f), 31743);
+  EXPECT_EQ(HFUN(1.0e6f), 31743);
+  EXPECT_EQ(HFUN(std::numeric_limits<float>::infinity()), 31743);
+  EXPECT_EQ(HFUN(std::numeric_limits<float>::max()), 31743);
+  /* NaN: result is zero. */
+  EXPECT_EQ(HFUN(std::numeric_limits<float>::quiet_NaN()), 0);
+  EXPECT_EQ(HFUN(std::numeric_limits<float>::signaling_NaN()), 0);
+  EXPECT_EQ(HFUN(-0.0f), 32768);
+  EXPECT_EQ(HFUN(-5.960464478e-08f), 32769);
+  EXPECT_EQ(HFUN(-0.4172363281f), 46765);
+  EXPECT_EQ(HFUN(-1.0f), 48128);
+  EXPECT_EQ(HFUN(-78.3125f), 54501);
+  EXPECT_EQ(HFUN(-123.5f), 55224);
+  EXPECT_EQ(HFUN(-65504.0f), 64511);
+  /* Too large negative: result is FP16 -65504. */
+  EXPECT_EQ(HFUN(-65536.0f), 64511);
+  EXPECT_EQ(HFUN(-1.0e6f), 64511);
+  EXPECT_EQ(HFUN(-std::numeric_limits<float>::infinity()), 64511);
+  /* -NaN: result is negative zero. */
+  EXPECT_EQ(HFUN(-std::numeric_limits<float>::quiet_NaN()), 32768);
+  EXPECT_EQ(HFUN(-std::numeric_limits<float>::signaling_NaN()), 32768);
+#undef HFUN
+}
+
 TEST(math_half, half_to_float_array)
 {
   const uint16_t src[13] = {
@@ -129,6 +174,52 @@ TEST(math_half, float_to_half_array)
 
   blender::math::float_to_half_array(src, dst, 13);
   EXPECT_EQ_ARRAY(exp, dst, 14);
+}
+
+TEST(math_half, float_to_half_make_finite_array)
+{
+  const float src[17] = {
+      0.0f,
+      5.960464478e-08f,
+      0.003183364868f,
+      1.999023438f,
+      2.0f,
+      65504.0f,
+      std::numeric_limits<float>::infinity(),
+      -0.0f,
+      -5.960464478e-08f,
+      -0.4172363281f,
+      -78.3125f,
+      -65504.0f,
+      -std::numeric_limits<float>::infinity(),
+      100000.0f,
+      -100000.0f,
+      std::numeric_limits<float>::quiet_NaN(),
+      -std::numeric_limits<float>::quiet_NaN(),
+  };
+  /* One extra entry in destination, to check that function leaves it intact. */
+  const uint16_t exp[18] = {0,
+                            1,
+                            6789,
+                            16383,
+                            16384,
+                            31743,
+                            31743,
+                            32768,
+                            32769,
+                            46765,
+                            54501,
+                            64511,
+                            64511,
+                            31743,
+                            64511,
+                            0,
+                            32768,
+                            12345};
+  uint16_t dst[18] = {};
+  dst[17] = 12345;
+  blender::math::float_to_half_make_finite_array(src, dst, 17);
+  EXPECT_EQ_ARRAY(exp, dst, 18);
 }
 
 #ifdef DO_PERF_TESTS
@@ -225,6 +316,26 @@ TEST(math_half_perf, float_to_half_array)
   }
   double t1 = BLI_time_now_seconds();
   printf("- FP32->FP16 array : %.3fs sum %u\n", t1 - t0, sum);
+  delete[] src;
+  delete[] dst;
+}
+
+TEST(math_half_perf, float_to_half_make_finite_array)
+{
+  const int test_size = 100'000'000;
+  float *src = new float[test_size];
+  uint16_t *dst = new uint16_t[test_size];
+  for (int i = 0; i < test_size; i++) {
+    src[i] = ((i & 0xFFFF) - 0x8000) + 0.1f;
+  }
+  double t0 = BLI_time_now_seconds();
+  uint32_t sum = 0;
+  blender::math::float_to_half_make_finite_array(src, dst, test_size);
+  for (int i = 0; i < test_size; i++) {
+    sum += dst[i];
+  }
+  double t1 = BLI_time_now_seconds();
+  printf("- FP32->FP16 finite array : %.3fs sum %u\n", t1 - t0, sum);
   delete[] src;
   delete[] dst;
 }

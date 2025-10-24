@@ -24,6 +24,12 @@
 
 #include "BKE_node_socket_value.hh"
 
+#include "COM_node_operation.hh"
+#include "COM_result.hh"
+#include "COM_utilities.hh"
+
+#include "GPU_material.hh"
+
 namespace blender::nodes::node_geo_index_switch_cc {
 
 NODE_STORAGE_FUNCS(NodeIndexSwitch)
@@ -72,22 +78,34 @@ static void draw_item_socket(CustomSocketDrawParams &params, const int index)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  const bNodeTree *ntree = b.tree_or_null();
   const bNode *node = b.node_or_null();
   if (!node) {
     return;
   }
   const NodeIndexSwitch &storage = node_storage(*node);
   const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
-  const bool supports_fields = socket_type_supports_fields(data_type);
+  const bool supports_fields = socket_type_supports_fields(data_type) &&
+                               ntree->type == NTREE_GEOMETRY;
 
-  const StructureType structure_type = socket_type_always_single(data_type) ?
+  StructureType value_structure_type = socket_type_always_single(data_type) ?
                                            StructureType::Single :
                                            StructureType::Dynamic;
+  StructureType index_structure_type = value_structure_type;
+
+  if (ntree->type == NTREE_COMPOSIT) {
+    const bool is_single_compositor_type = compositor::Result::is_single_value_only_type(
+        compositor::socket_data_type_to_result_type(data_type));
+    if (is_single_compositor_type) {
+      value_structure_type = StructureType::Single;
+    }
+    index_structure_type = StructureType::Single;
+  }
 
   const Span<IndexSwitchItem> items = storage.items_span();
   auto &index = b.add_input<decl::Int>("Index").min(0).max(std::max<int>(0, items.size() - 1));
   if (supports_fields) {
-    index.supports_field().structure_type(structure_type);
+    index.supports_field().structure_type(index_structure_type);
   }
 
   for (const int i : items.index_range()) {
@@ -100,7 +118,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     }
     /* Labels are ugly in combination with data-block pickers and are usually disabled. */
     input.optional_label(ELEM(data_type, SOCK_OBJECT, SOCK_IMAGE, SOCK_COLLECTION, SOCK_MATERIAL));
-    input.structure_type(structure_type);
+    input.structure_type(value_structure_type);
   }
 
   auto &output = b.add_output(data_type, "Output");
@@ -110,7 +128,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   else if (data_type == SOCK_GEOMETRY) {
     output.propagate_all();
   }
-  output.structure_type(structure_type);
+  output.structure_type(value_structure_type);
 
   b.add_input<decl::Extend>("", "__extend__").custom_draw([](CustomSocketDrawParams &params) {
     uiLayout &layout = params.layout;
@@ -158,10 +176,10 @@ static void node_operators()
   WM_operatortype_append(NODE_OT_index_switch_item_remove);
 }
 
-static void node_init(bNodeTree * /*tree*/, bNode *node)
+static void node_init(bNodeTree *tree, bNode *node)
 {
   NodeIndexSwitch *data = MEM_callocN<NodeIndexSwitch>(__func__);
-  data->data_type = SOCK_GEOMETRY;
+  data->data_type = tree->type == NTREE_GEOMETRY ? SOCK_GEOMETRY : SOCK_RGBA;
   data->next_identifier = 0;
 
   BLI_assert(data->items == nullptr);
@@ -372,39 +390,60 @@ class LazyFunctionForIndexSwitchNode : public LazyFunction {
   }
 };
 
+using namespace blender::compositor;
+
+class IndexSwitchOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    Result &output = this->get_result("Output");
+    const int index = this->get_input("Index").get_single_value_default(0);
+    const NodeIndexSwitch &storage = node_storage(bnode());
+
+    if (!IndexRange(storage.items_num).contains(index)) {
+      output.allocate_invalid();
+      return;
+    }
+
+    const std::string identifier = IndexSwitchItemsAccessor::socket_identifier_for_item(
+        storage.items[index]);
+    const Result &input = this->get_input(identifier);
+    output.share_data(input);
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new IndexSwitchOperation(context, node);
+}
+
+static const EnumPropertyItem *data_type_items_callback(bContext * /*C*/,
+                                                        PointerRNA *ptr,
+                                                        PropertyRNA * /*prop*/,
+                                                        bool *r_free)
+{
+  *r_free = true;
+  const bNodeTree &ntree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
+  blender::bke::bNodeTreeType *ntree_type = ntree.typeinfo;
+  return enum_items_filter(
+      rna_enum_node_socket_data_type_items, [&](const EnumPropertyItem &item) -> bool {
+        bke::bNodeSocketType *socket_type = bke::node_socket_type_find_static(item.value);
+        return ntree_type->valid_socket_type(ntree_type, socket_type);
+      });
+}
+
 static void node_rna(StructRNA *srna)
 {
-  RNA_def_node_enum(
-      srna,
-      "data_type",
-      "Data Type",
-      "",
-      rna_enum_node_socket_data_type_items,
-      NOD_storage_enum_accessors(data_type),
-      SOCK_GEOMETRY,
-      [](bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free) {
-        *r_free = true;
-        return enum_items_filter(rna_enum_node_socket_data_type_items,
-                                 [](const EnumPropertyItem &item) -> bool {
-                                   return ELEM(item.value,
-                                               SOCK_FLOAT,
-                                               SOCK_INT,
-                                               SOCK_BOOLEAN,
-                                               SOCK_ROTATION,
-                                               SOCK_MATRIX,
-                                               SOCK_VECTOR,
-                                               SOCK_STRING,
-                                               SOCK_RGBA,
-                                               SOCK_GEOMETRY,
-                                               SOCK_OBJECT,
-                                               SOCK_COLLECTION,
-                                               SOCK_MATERIAL,
-                                               SOCK_IMAGE,
-                                               SOCK_MENU,
-                                               SOCK_BUNDLE,
-                                               SOCK_CLOSURE);
-                                 });
-      });
+  RNA_def_node_enum(srna,
+                    "data_type",
+                    "Data Type",
+                    "",
+                    rna_enum_node_socket_data_type_items,
+                    NOD_storage_enum_accessors(data_type),
+                    SOCK_GEOMETRY,
+                    data_type_items_callback);
 }
 
 static void node_free_storage(bNode *node)
@@ -454,7 +493,7 @@ static void register_node()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "GeometryNodeIndexSwitch", GEO_NODE_INDEX_SWITCH);
+  geo_cmp_node_type_base(&ntype, "GeometryNodeIndexSwitch", GEO_NODE_INDEX_SWITCH);
   ntype.ui_name = "Index Switch";
   ntype.ui_description = "Choose between an arbitrary number of values with an index";
   ntype.enum_name_legacy = "INDEX_SWITCH";
@@ -471,6 +510,7 @@ static void register_node()
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
   ntype.internally_linked_input = node_internally_linked_input;
+  ntype.get_compositor_operation = get_compositor_operation;
   blender::bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);

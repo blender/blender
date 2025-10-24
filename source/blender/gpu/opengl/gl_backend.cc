@@ -600,6 +600,8 @@ void GLBackend::capabilities_init()
 
   /* GL specific capabilities. */
   glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &GCaps.max_texture_3d_size);
+  glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE,
+                reinterpret_cast<int *>(&GCaps.max_buffer_texture_size));
   glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &GLContext::max_cubemap_size);
   glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_BLOCKS, &GLContext::max_ubo_binds);
   GLint max_ssbo_binds;

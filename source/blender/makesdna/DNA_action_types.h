@@ -487,8 +487,7 @@ typedef enum ePchan_Flag {
   /* IK/Pose solving */
   POSE_CHAIN = (1 << 9),
   POSE_DONE = (1 << 10),
-  /* visualization */
-  POSE_KEY = (1 << 11),
+  /* POSE_KEY = (1 << 11) */     /* UNUSED */
   /* POSE_STRIDE = (1 << 12), */ /* UNUSED */
   /* standard IK solving */
   POSE_IKTREE = (1 << 13),

@@ -39,13 +39,14 @@ static void extract_edituv_data_bm(const MeshRenderData &mr, MutableSpan<EditLoo
   threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
     for (const int face_index : range) {
       const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
+      EditLoopData face_value = {};
+      mesh_render_data_face_flag(mr, &face, offsets, face_value);
       const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
       for ([[maybe_unused]] const int i : IndexRange(face.len)) {
         const int index = BM_elem_index_get(loop);
         EditLoopData &value = vbo_data[index];
-        value = {};
+        value = face_value;
         mesh_render_data_loop_flag(mr, loop, offsets, value);
-        mesh_render_data_face_flag(mr, &face, offsets, value);
         mesh_render_data_loop_edge_flag(mr, loop, offsets, value);
         loop = loop->next;
       }
@@ -123,12 +124,14 @@ static void extract_edituv_data_iter_subdiv_bm(const MeshRenderData &mr,
 
   uint start_loop_idx = subdiv_quad_index * 4;
   uint end_loop_idx = (subdiv_quad_index + 1) * 4;
+  EditLoopData edit_loop_data_face = {};
+  mesh_render_data_face_flag(mr, coarse_quad, offsets, edit_loop_data_face);
   for (uint i = start_loop_idx; i < end_loop_idx; i++) {
     const int vert_origindex = subdiv_loop_vert_index[i];
     int edge_origindex = subdiv_loop_edge_index[i];
 
     EditLoopData *edit_loop_data = &vbo_data[i];
-    memset(edit_loop_data, 0, sizeof(EditLoopData));
+    *edit_loop_data = edit_loop_data_face;
 
     if (vert_origindex != -1 && edge_origindex != -1) {
       BMEdge *eed = BM_edge_at_index(mr.bm, edge_origindex);
@@ -151,8 +154,6 @@ static void extract_edituv_data_iter_subdiv_bm(const MeshRenderData &mr,
         mesh_render_data_loop_edge_flag(mr, l, offsets, *edit_loop_data);
       }
     }
-
-    mesh_render_data_face_flag(mr, coarse_quad, offsets, *edit_loop_data);
   }
 }
 

@@ -1334,6 +1334,7 @@ static void make_child_duplis_faces_from_editmesh(const DupliContext *ctx,
 
 static void make_duplis_faces(const DupliContext *ctx)
 {
+  using namespace blender;
   Object *parent = ctx->object;
 
   /* Gather mesh info. */
@@ -1348,29 +1349,28 @@ static void make_duplis_faces(const DupliContext *ctx)
   FaceDupliData_Params fdd_params = {ctx, (parent->transflag & OB_DUPLIFACES_SCALE) != 0};
 
   if (em != nullptr) {
-    const int uv_idx = CustomData_get_render_layer(&em->bm->ldata, CD_PROP_FLOAT2);
+    const int uv_offset = CustomData_get_offset_named(
+        &em->bm->ldata, CD_PROP_FLOAT2, mesh_eval->default_uv_map_name());
     FaceDupliData_EditMesh fdd{};
     fdd.params = fdd_params;
     fdd.em = em;
     fdd.vert_positions_deform = vert_positions_deform;
     fdd.has_orco = !vert_positions_deform.is_empty();
-    fdd.has_uvs = (uv_idx != -1);
-    fdd.cd_loop_uv_offset = (uv_idx != -1) ?
-                                CustomData_get_n_offset(&em->bm->ldata, CD_PROP_FLOAT2, uv_idx) :
-                                -1;
+    fdd.has_uvs = (uv_offset != -1);
+    fdd.cd_loop_uv_offset = uv_offset;
     make_child_duplis(ctx, &fdd, make_child_duplis_faces_from_editmesh);
   }
   else {
-    const int uv_idx = CustomData_get_render_layer(&mesh_eval->corner_data, CD_PROP_FLOAT2);
+    const bke::AttributeAccessor attributes = mesh_eval->attributes();
+    const VArraySpan uv_map = *attributes.lookup<float2>(mesh_eval->default_uv_map_name(),
+                                                         bke::AttrDomain::Corner);
     FaceDupliData_Mesh fdd{};
     fdd.params = fdd_params;
     fdd.totface = mesh_eval->faces_num;
     fdd.faces = mesh_eval->faces();
     fdd.corner_verts = mesh_eval->corner_verts();
     fdd.vert_positions = mesh_eval->vert_positions();
-    fdd.uv_map = (uv_idx != -1) ? (const float2 *)CustomData_get_layer_n(
-                                      &mesh_eval->corner_data, CD_PROP_FLOAT2, uv_idx) :
-                                  nullptr;
+    fdd.uv_map = uv_map.is_empty() ? nullptr : uv_map.data();
     fdd.orco = (const float (*)[3])CustomData_get_layer(&mesh_eval->vert_data, CD_ORCO);
 
     make_child_duplis(ctx, &fdd, make_child_duplis_faces_from_mesh);

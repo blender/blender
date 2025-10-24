@@ -35,6 +35,8 @@ struct ConverterStorage {
   Span<int> corner_verts;
   Span<int> corner_edges;
 
+  VectorSet<StringRefNull> uv_map_names;
+
   /* CustomData layer for vertex sharpnesses. */
   VArraySpan<float> cd_vertex_crease;
   /* CustomData layer for edge sharpness. */
@@ -180,17 +182,15 @@ static float get_vertex_sharpness(const OpenSubdiv_Converter *converter, int man
 static int get_num_uv_layers(const OpenSubdiv_Converter *converter)
 {
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  const Mesh *mesh = storage->mesh;
-  return CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
+  return storage->uv_map_names.size();
 }
 
 static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int layer_index)
 {
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   const Mesh *mesh = storage->mesh;
+  const StringRef name = storage->uv_map_names[layer_index];
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const StringRef name = CustomData_get_layer_name(
-      &mesh->corner_data, CD_PROP_FLOAT2, layer_index);
   const VArraySpan uv_map = *attributes.lookup<float2>(name, bke::AttrDomain::Corner);
   const int num_vert = mesh->verts_num;
   /* Initialize memory required for the operations. */
@@ -372,6 +372,7 @@ static void init_user_data(OpenSubdiv_Converter *converter,
     user_data->cd_vertex_crease = *attributes.lookup<float>("crease_vert", AttrDomain::Point);
     user_data->cd_edge_crease = *attributes.lookup<float>("crease_edge", AttrDomain::Edge);
   }
+  user_data->uv_map_names = mesh->uv_map_names();
   user_data->loop_uv_indices = nullptr;
   initialize_manifold_indices(user_data);
   converter->user_data = user_data;

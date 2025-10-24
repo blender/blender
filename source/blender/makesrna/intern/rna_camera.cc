@@ -118,7 +118,8 @@ static void rna_Camera_custom_mode_set(PointerRNA *ptr, int value)
 
       if (value == CAM_CUSTOM_SHADER_EXTERNAL && text->filepath) {
         STRNCPY(camera->custom_filepath, text->filepath);
-        BLI_path_rel(camera->custom_filepath, BKE_main_blendfile_path_from_global());
+        BLI_path_abs(camera->custom_filepath, ID_BLEND_PATH_FROM_GLOBAL(&text->id));
+        BLI_path_rel(camera->custom_filepath, ID_BLEND_PATH_FROM_GLOBAL(&camera->id));
       }
 
       id_us_min(&camera->custom_shader->id);

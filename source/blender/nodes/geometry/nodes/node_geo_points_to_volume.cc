@@ -128,12 +128,13 @@ static EnumPropertyItem resolution_mode_items[] = {
     {GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT,
      "VOXEL_AMOUNT",
      0,
-     N_("Amount"),
+     CTX_N_(BLT_I18NCONTEXT_COUNTABLE, "Amount"),
      N_("Specify the approximate number of voxels along the diagonal")},
     {GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE,
      "VOXEL_SIZE",
      0,
-     N_("Size"),
+
+     CTX_N_(BLT_I18NCONTEXT_COUNTABLE, "Size"),
      N_("Specify the voxel side length")},
     {0, nullptr, 0, nullptr, nullptr},
 };
@@ -146,7 +147,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Menu>("Resolution Mode")
       .static_items(resolution_mode_items)
       .optional_label()
-      .description("How the voxel size is specified");
+      .description("How the voxel size is specified")
+      .translation_context(BLT_I18NCONTEXT_COUNTABLE);
   b.add_input<decl::Float>("Voxel Size")
       .default_value(0.3f)
       .min(0.01f)

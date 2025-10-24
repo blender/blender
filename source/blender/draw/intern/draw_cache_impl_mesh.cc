@@ -142,9 +142,9 @@ static void mesh_cd_calc_active_uv_layer(const Object &object,
                                          DRW_MeshCDMask &cd_used)
 {
   const Mesh &me_final = editmesh_final_or_this(object, mesh);
-  const CustomData &cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);
-  if (const char *name = CustomData_get_active_layer_name(&cd_ldata, CD_PROP_FLOAT2)) {
-    cd_used.uv.add_as(name);
+  const StringRef active_uv_map = me_final.active_uv_map_name();
+  if (!active_uv_map.is_empty()) {
+    cd_used.uv.add_as(active_uv_map);
   }
 }
 
@@ -180,19 +180,6 @@ static std::optional<bke::AttributeMetaData> lookup_meta_data(const Mesh &mesh,
   return mesh.attributes().lookup_meta_data(name);
 }
 
-static std::optional<StringRef> get_default_uv_name(const Mesh &mesh)
-{
-  if (BMEditMesh *em = mesh.runtime->edit_mesh.get()) {
-    if (const char *name = CustomData_get_render_layer_name(&em->bm->ldata, CD_PROP_FLOAT2)) {
-      return name;
-    }
-  }
-  if (const char *name = CustomData_get_render_layer_name(&mesh.corner_data, CD_PROP_FLOAT2)) {
-    return name;
-  }
-  return std::nullopt;
-}
-
 static void mesh_cd_calc_used_gpu_layers(const Object &object,
                                          const Mesh &mesh,
                                          const Span<const GPUMaterial *> materials,
@@ -226,8 +213,9 @@ static void mesh_cd_calc_used_gpu_layers(const Object &object,
 
       if (gpu_attr->type == CD_TANGENT) {
         if (name.is_empty()) {
-          if (const std::optional<StringRef> default_name = get_default_uv_name(me_final)) {
-            name = *default_name;
+          const StringRef default_name = me_final.default_uv_map_name();
+          if (!default_name.is_empty()) {
+            name = default_name;
           }
         }
         if (lookup_meta_data(mesh, name) == UV_METADATA) {
@@ -242,9 +230,10 @@ static void mesh_cd_calc_used_gpu_layers(const Object &object,
       }
 
       if (name.is_empty()) {
-        if (const std::optional<StringRef> default_name = get_default_uv_name(me_final)) {
-          if (lookup_meta_data(mesh, *default_name) == UV_METADATA) {
-            r_cd_used->uv.add(*default_name);
+        const StringRef default_name = me_final.default_uv_map_name();
+        if (!default_name.is_empty()) {
+          if (lookup_meta_data(mesh, default_name) == UV_METADATA) {
+            r_cd_used->uv.add(default_name);
           }
         }
         continue;

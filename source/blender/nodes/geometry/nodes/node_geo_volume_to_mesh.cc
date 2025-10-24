@@ -23,16 +23,20 @@ namespace blender::nodes::node_geo_volume_to_mesh_cc {
 NODE_STORAGE_FUNCS(NodeGeometryVolumeToMesh)
 
 static EnumPropertyItem resolution_mode_items[] = {
-    {VOLUME_TO_MESH_RESOLUTION_MODE_GRID, "GRID", 0, "Grid", "Use resolution of the volume grid"},
+    {VOLUME_TO_MESH_RESOLUTION_MODE_GRID,
+     "GRID",
+     0,
+     CTX_N_(BLT_I18NCONTEXT_COUNTABLE, "Grid"),
+     N_("Use resolution of the volume grid")},
     {VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT,
      "VOXEL_AMOUNT",
      0,
-     N_("Amount"),
+     CTX_N_(BLT_I18NCONTEXT_COUNTABLE, "Amount"),
      N_("Desired number of voxels along one axis")},
     {VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE,
      "VOXEL_SIZE",
      0,
-     N_("Size"),
+     CTX_N_(BLT_I18NCONTEXT_COUNTABLE, "Size"),
      N_("Desired voxel side length")},
     {0, nullptr, 0, nullptr, nullptr},
 };
@@ -47,7 +51,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Menu>("Resolution Mode")
       .static_items(resolution_mode_items)
       .optional_label()
-      .description("How the voxel size is specified");
+      .description("How the voxel size is specified")
+      .translation_context(BLT_I18NCONTEXT_COUNTABLE);
   b.add_input<decl::Float>("Voxel Size")
       .default_value(0.3f)
       .min(0.01f)
