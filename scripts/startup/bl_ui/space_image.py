@@ -1794,7 +1794,7 @@ class IMAGE_PT_overlay_mask(MASK_PT_display, Panel):
     def poll(cls, context):
         si = context.space_data
 
-        return si.ui_mode == 'MASK'
+        return si.mode == 'MASK'
 
 
 # Grease Pencil properties
