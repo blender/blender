@@ -213,6 +213,10 @@ SeqRetimingKey *retiming_mouseover_key_get(const bContext *C, const int mval[2],
   const Scene *scene = CTX_data_sequencer_scene(C);
   const View2D *v2d = UI_view2d_fromcontext(C);
   for (Strip *strip : sequencer_visible_strips_get(C)) {
+    if (!seq::retiming_data_is_editable(strip)) {
+      continue;
+    }
+
     rctf box = strip_retiming_keys_box_get(scene, v2d, strip);
     if (!BLI_rctf_isect_pt(&box, mval[0], mval[1])) {
       continue;
