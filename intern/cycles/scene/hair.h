@@ -133,6 +133,11 @@ class Hair : public Geometry {
     return curve_keys.size() - curve_first_key.size();
   }
 
+  bool is_traceable() const
+  {
+    return num_segments() > 0;
+  }
+
   /* UDIM */
   void get_uv_tiles(ustring map, unordered_set<int> &tiles) override;
 

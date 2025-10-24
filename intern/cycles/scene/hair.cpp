@@ -584,6 +584,10 @@ static void read_shader_output(float *shadow_transparency,
 
 bool Hair::need_shadow_transparency()
 {
+  if (!is_traceable()) {
+    return false;
+  }
+
   for (const Node *node : used_shaders) {
     const Shader *shader = static_cast<const Shader *>(node);
     if (shader->has_surface_transparent && shader->get_use_transparent_shadow()) {
