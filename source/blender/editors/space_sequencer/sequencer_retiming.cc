@@ -50,7 +50,19 @@ bool sequencer_retiming_mode_is_active(const bContext *C)
   if (!ed) {
     return false;
   }
-  return seq::retiming_selection_get(ed).size() > 0;
+
+  Map retiming_sel = seq::retiming_selection_get(ed);
+
+  if (seq::retiming_selection_get(ed).size() == 0) {
+    return false;
+  }
+
+  bool any_strip_has_editable_retiming = false;
+  for (const Strip *strip : retiming_sel.values()) {
+    any_strip_has_editable_retiming |= seq::retiming_data_is_editable(strip);
+  }
+
+  return any_strip_has_editable_retiming;
 }
 
 /*-------------------------------------------------------------------- */

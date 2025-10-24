@@ -218,6 +218,10 @@ static void recalcData_sequencer_retiming(TransInfo *t)
     const TransDataSeq *tdseq = static_cast<TransDataSeq *>(td->extra);
     Strip *strip = tdseq->strip;
 
+    if (!seq::retiming_data_is_editable(strip)) {
+      continue;
+    }
+
     float offset[2];
     float offset_clamped[2];
     sub_v2_v2v2(offset, td->loc, td->iloc);
