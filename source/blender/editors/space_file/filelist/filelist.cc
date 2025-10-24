@@ -172,10 +172,9 @@ void filelist_remote_asset_library_refresh_online_assets_status(
   }
 }
 
-void filelist_remote_asset_library_preview_loaded(
-    FileList *filelist,
-    const blender::StringRef remote_url,
-    const std::optional<blender::StringRef> preview_filepath)
+void filelist_remote_asset_library_preview_loaded(FileList *filelist,
+                                                  const StringRef remote_url,
+                                                  const StringRef preview_filepath)
 {
   if (!filelist->asset_library || !filelist->asset_library_ref) {
     return;
@@ -206,8 +205,7 @@ void filelist_remote_asset_library_preview_loaded(
 
     /* The preview might be downloaded by now. Unset the loading flag so it gets re-requested for
      * reading from disk. */
-    if (!preview_filepath || remote_library_asset_preview_path(*entry->asset) == preview_filepath)
-    {
+    if (remote_library_asset_preview_path(*entry->asset) == preview_filepath) {
       entry->flags &= ~FILE_ENTRY_PREVIEW_LOADING;
     }
   }

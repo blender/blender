@@ -579,25 +579,6 @@ static void file_main_region_message_subscribe(const wmRegionMessageSubscribePar
 
       WM_msg_subscribe_remote_io(mbus, *remote_url, &msg_sub_value_assets_downloaded, __func__);
     }
-    {
-      msg_sub_value_assets_downloaded.notify =
-          [](bContext * /*C*/, wmMsgSubscribeKey *msg_key, wmMsgSubscribeValue *msg_val) {
-            wmMsgSubscribeKey_RemoteIO *msg_key_remoteio =
-                reinterpret_cast<wmMsgSubscribeKey_RemoteIO *>(msg_key);
-            SpaceFile *sfile = static_cast<SpaceFile *>(msg_val->user_data);
-            const asset_system::AssetLibrary *asset_library = filelist_asset_library(sfile->files);
-            const std::optional<StringRefNull> remote_url = asset_library->remote_url();
-            const char *msg_subresource = msg_key_remoteio->msg.params.subresource_identifier;
-            filelist_remote_asset_library_preview_loaded(
-                sfile->files,
-                *remote_url,
-                msg_subresource ? std::optional{msg_subresource} : std::nullopt);
-            /* Redrawing will requery the visible previews from disk. */
-            ED_region_tag_redraw(static_cast<ARegion *>(msg_val->owner));
-          };
-
-      WM_msg_subscribe_remote_io(mbus, *remote_url, &msg_sub_value_assets_downloaded, __func__);
-    }
   }
 }
 
