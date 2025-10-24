@@ -618,6 +618,11 @@ static wmOperatorStatus poselib_apply_invoke(bContext *C, wmOperator *op, const 
   return poselib_blend_exit(C, op);
 }
 
+static wmOperatorStatus poselib_apply_exec(bContext *C, wmOperator *op)
+{
+  return poselib_apply_invoke(C, op, nullptr);
+}
+
 /* Modal Operator init. */
 static wmOperatorStatus poselib_blend_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -668,6 +673,7 @@ void POSELIB_OT_apply_pose_asset(wmOperatorType *ot)
 
   /* Callbacks: */
   ot->invoke = poselib_apply_invoke;
+  ot->exec = poselib_apply_exec;
   ot->poll = poselib_blend_poll;
 
   /* Flags: */
