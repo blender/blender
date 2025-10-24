@@ -24,6 +24,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_rect.h"
+#include "BLI_set.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
@@ -105,6 +106,7 @@
 #endif
 
 using blender::Map;
+using blender::Set;
 using blender::StringRef;
 using blender::StringRefNull;
 using blender::Vector;
@@ -1775,11 +1777,17 @@ class PreviewLoadJob {
 
   static PreviewLoadJob &ensure_job(wmWindowManager *wm, wmWindow *win);
   static void load_jobless(PreviewImage *preview, eIconSizes icon_size);
+  static void on_download_requested(StringRef preview_full_filepath);
   static void on_download_completed(wmWindowManager *wm, StringRef preview_full_filepath);
 
   void push_load_request(PreviewImage *preview, eIconSizes icon_size);
 
  private:
+  /** The downloader might be done downloading previews and notify the preview system, even before
+   * the preview loading job was started. Such previews are collected here. That way we can
+   * recognize them as available on disk and the "is downloading" status can be skipped. */
+  static Set<std::string> &known_downloaded_previews();
+
   static void run_fn(void *customdata, wmJobWorkerStatus *worker_status);
   static void update_fn(void *customdata);
   static void end_fn(void *customdata);
@@ -1794,6 +1802,12 @@ PreviewLoadJob::PreviewLoadJob() : todo_queue_(BLI_thread_queue_init()) {}
 PreviewLoadJob::~PreviewLoadJob()
 {
   BLI_thread_queue_free(todo_queue_);
+}
+
+Set<std::string> &PreviewLoadJob::known_downloaded_previews()
+{
+  static Set<std::string> known_downloaded_previews;
+  return known_downloaded_previews;
 }
 
 PreviewLoadJob &PreviewLoadJob::ensure_job(wmWindowManager *wm, wmWindow *win)
@@ -1833,6 +1847,7 @@ void PreviewLoadJob::push_load_request(PreviewImage *preview, const eIconSizes i
                  "Preview was already requested and is being loaded");
   std::optional path = BKE_previewimg_deferred_filepath_get(preview);
   if (!path) {
+    BLI_assert_unreachable();
     return;
   }
 
@@ -1840,14 +1855,18 @@ void PreviewLoadJob::push_load_request(PreviewImage *preview, const eIconSizes i
   /* Warn main thread code that this preview is being rendered and cannot be freed. */
   preview->runtime->tag |= PRV_TAG_DEFFERED_RENDERING;
 
+  const bool is_downloading = BKE_previewimg_is_online(preview) &&
+                              !PreviewLoadJob::known_downloaded_previews().remove(*path);
+
   RequestedPreview &request = [&]() -> RequestedPreview & {
+    const std::pair key = std::make_pair(*path, icon_size);
+
     std::lock_guard lock(requested_previews_mutex_);
-    std::pair key = std::make_pair(*path, icon_size);
     BLI_assert(!requested_previews_.contains(key));
 
     std::unique_ptr<RequestedPreview> &request = requested_previews_.lookup_or_add_cb(
         key, [&]() { return std::make_unique<RequestedPreview>(preview, icon_size); });
-    if (BKE_previewimg_is_online(preview)) {
+    if (is_downloading) {
       request->state = PreviewState::Downloading;
     }
     else {
@@ -1865,6 +1884,7 @@ void PreviewLoadJob::on_download_completed(wmWindowManager *wm,
   PreviewLoadJob *load_job = static_cast<PreviewLoadJob *>(
       WM_jobs_customdata_from_type(wm, nullptr, WM_JOB_TYPE_LOAD_PREVIEW));
   if (!load_job) {
+    PreviewLoadJob::known_downloaded_previews().add(preview_full_filepath);
     return;
   }
 
@@ -1884,6 +1904,13 @@ void PreviewLoadJob::on_download_completed(wmWindowManager *wm,
       }
     }
   }
+}
+
+void PreviewLoadJob::on_download_requested(const StringRef preview_full_filepath)
+{
+  /* Preview was requested. Allow the system to detect it as being downloaded by removing it from
+   * the files known as "already downloaded". */
+  PreviewLoadJob::known_downloaded_previews().remove(preview_full_filepath);
 }
 
 void PreviewLoadJob::run_fn(void *customdata, wmJobWorkerStatus *worker_status)
@@ -2299,6 +2326,11 @@ void ED_preview_kill_jobs_for_id(wmWindowManager *wm, const ID *id)
   if (wm && preview) {
     WM_jobs_kill_type(wm, preview, WM_JOB_TYPE_RENDER_PREVIEW);
   }
+}
+
+void ED_preview_online_download_requested(const StringRef preview_full_filepath)
+{
+  PreviewLoadJob::on_download_requested(preview_full_filepath);
 }
 
 void ED_preview_online_download_finished(wmWindowManager *wm,

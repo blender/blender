@@ -427,6 +427,10 @@ void remote_library_request_preview_download(bContext &C,
     /* TODO: report errors in the UI somehow. */
     BPY_run_string_with_locals(&C, script, *locals);
   }
+
+  /* Notify the preview loading UI that a download for this preview is pending. */
+  ED_preview_online_download_requested(dst_filepath);
+
 #else
   UNUSED_VARS(C, asset);
   /* TODO should we use CLOG here? Otherwise every preview will trigger a report. */
