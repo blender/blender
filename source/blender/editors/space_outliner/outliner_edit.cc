@@ -2527,10 +2527,48 @@ static wmOperatorStatus outliner_orphans_purge_exec(bContext *C, wmOperator *op)
 
   if (data.num_total[INDEX_ID_SCE] > 0) {
     BKE_report(op->reports,
-               RPT_ERROR,
+               RPT_WARNING,
                "Attempt to delete scenes as part of a purge operation, should never happen");
-    outliner_orphans_purge_cleanup(C, op, true);
-    return OPERATOR_CANCELLED;
+
+    SceneReplaceData scene_replace_data;
+
+    /* Get the scene currently expected to become the active scene. */
+    Scene *scene_curr = scene_replace_data.active_scene_get(C);
+    if (scene_curr && scene_curr->id.tag & ID_TAG_DOIT) {
+      Scene *scene_new = BKE_scene_find_replacement(
+          *bmain, *scene_curr, [](const Scene &scene) -> bool {
+            return (
+                /* The candidate scene must not be tagged for deletion. */
+                (scene.id.tag & ID_TAG_DOIT) == 0 &&
+                /* The candidate scene must be locale, or its library must not be tagged for
+                 * deletion. */
+                (!scene.id.lib || (scene.id.lib->id.tag & ID_TAG_DOIT) == 0));
+          });
+      if (!scene_new) {
+        BKE_reportf(op->reports,
+                    RPT_ERROR,
+                    "Cannot find a scene to replace the active purged one '%s'",
+                    scene_curr->id.name);
+        outliner_orphans_purge_cleanup(C, op, true);
+        return OPERATOR_CANCELLED;
+      }
+
+      BLI_assert(scene_curr != scene_new);
+      BLI_assert((scene_new->id.tag & ID_TAG_DOIT) == 0);
+      if (!scene_replace_data.scene_to_delete) {
+        scene_replace_data.scene_to_delete = scene_curr;
+      }
+      else {
+        BLI_assert(scene_replace_data.scene_to_delete == CTX_data_scene(C));
+      }
+      scene_replace_data.scene_to_activate = scene_new;
+    }
+
+    BLI_assert(scene_replace_data.is_valid());
+    if (scene_replace_data.can_replace()) {
+      ED_scene_replace_active_for_deletion(
+          *C, *bmain, *scene_replace_data.scene_to_delete, scene_replace_data.scene_to_activate);
+    }
   }
 
   BKE_id_multi_tagged_delete(bmain);
