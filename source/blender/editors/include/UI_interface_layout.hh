@@ -106,7 +106,6 @@ enum class NodeAssetMenuOperatorType : int8_t {
 struct uiLayout : public uiItem, blender::NonCopyable, blender::NonMovable {
   // protected:
 
-  int x_ = 0, y_ = 0, w_ = 0, h_ = 0;
   short space_ = 0;
 
  protected:
@@ -119,6 +118,8 @@ struct uiLayout : public uiItem, blender::NonCopyable, blender::NonMovable {
 
   /** Sub layout to add child items, if not the layout itself. */
   uiLayout *child_items_layout_ = nullptr;
+
+  int x_ = 0, y_ = 0, w_ = 0, h_ = 0;
 
   float scale_[2] = {0.0f, 0.0f};
   bool align_ = false;
@@ -702,6 +703,8 @@ struct uiLayout : public uiItem, blender::NonCopyable, blender::NonMovable {
   [[nodiscard]] bool align() const;
   [[nodiscard]] bool variable_size() const;
   [[nodiscard]] blender::ui::EmbossType emboss_or_undefined() const;
+  [[nodiscard]] blender::int2 size() const;
+  [[nodiscard]] blender::int2 offset() const;
 
  protected:
   void estimate();
