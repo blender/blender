@@ -509,9 +509,9 @@ void TEXT_OT_open(wmOperatorType *ot)
                                  FILE_TYPE_FOLDER | FILE_TYPE_TEXT | FILE_TYPE_PYSCRIPT,
                                  FILE_SPECIAL,
                                  FILE_OPENFILE,
-                                 WM_FILESEL_FILEPATH,
+                                 WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_DEFAULT); /* TODO: relative_path. */
+                                 FILE_SORT_DEFAULT);
   RNA_def_boolean(
       ot->srna, "internal", false, "Make Internal", "Make text file internal after loading");
 }
