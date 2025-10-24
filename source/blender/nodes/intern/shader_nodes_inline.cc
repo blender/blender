@@ -28,6 +28,9 @@ using BundleSocketValuePtr = std::shared_ptr<BundleSocketValue>;
 
 struct FallbackValue {};
 
+/** This indicates that the value should be ignored when it is linked to an input socket. */
+struct DanglingValue {};
+
 struct NodeAndSocket {
   bNode *node = nullptr;
   bNodeSocket *socket = nullptr;
@@ -95,6 +98,7 @@ struct SocketValue {
    * constant-folded.
    */
   std::variant<FallbackValue,
+               DanglingValue,
                LinkedSocketValue,
                InputSocketValue,
                PrimitiveSocketValue,
@@ -263,7 +267,7 @@ class ShaderNodesInliner {
       });
       bNodeSocket *copied_socket = static_cast<bNodeSocket *>(
           BLI_findlink(&copied_node->inputs, socket.socket->index()));
-      this->set_socket_value(
+      this->set_input_socket_value(
           *src_node, *copied_node, *copied_socket, value_by_socket_.lookup(socket));
     }
 
@@ -388,6 +392,11 @@ class ShaderNodesInliner {
     const ComputeContext *from_context = this->get_link_source_context(*used_link, socket);
     const SocketInContext origin_socket = {from_context, used_link->fromsock};
     if (const auto *value = value_by_socket_.lookup_ptr(origin_socket)) {
+      if (std::holds_alternative<DanglingValue>(value->value)) {
+        /* If the input value is dangling, use the value of the socket itself. */
+        this->store_socket_value(socket, {InputSocketValue{socket.socket}});
+        return;
+      }
       /* If the socket linked to the input has a value already, copy that value to the current
        * socket, potentially with an implicit conversion. */
       this->store_socket_value(socket,
@@ -432,7 +441,10 @@ class ShaderNodesInliner {
       return;
     }
     if (node->is_muted()) {
-      this->handle_output_socket__muted(socket);
+      if (!this->handle_output_socket__internal_links(socket)) {
+        /* The output socket does not have a corresponding input, so the value is ignored. */
+        this->store_socket_value_dangling(socket);
+      }
       return;
     }
     if (node->is_group()) {
@@ -489,11 +501,17 @@ class ShaderNodesInliner {
   void handle_output_socket__reroute(const SocketInContext &socket)
   {
     const NodeInContext node = socket.owner_node();
+    if (node->is_dangling_reroute()) {
+      this->store_socket_value_dangling(socket);
+      return;
+    }
+
     const SocketInContext input_socket = {socket.context, &node->input_socket(0)};
     this->forward_value_or_schedule(socket, input_socket);
   }
 
-  void handle_output_socket__muted(const SocketInContext &socket)
+  /* Returns whether the socket was handled. */
+  [[nodiscard]] bool handle_output_socket__internal_links(const SocketInContext &socket)
   {
     const NodeInContext node = socket.owner_node();
     for (const bNodeLink &internal_link : node->internal_links()) {
@@ -506,14 +524,13 @@ class ShaderNodesInliner {
               socket,
               this->handle_implicit_conversion(
                   *value, *internal_link.fromsock->typeinfo, *internal_link.tosock->typeinfo));
-          return;
+          return true;
         }
         this->schedule_socket(src_socket);
-        return;
+        return true;
       }
     }
-    /* The output socket does not have a corresponding input, so use its fallback value. */
-    this->store_socket_value_fallback(socket);
+    return false;
   }
 
   void handle_output_socket__group(const SocketInContext &socket)
@@ -753,7 +770,9 @@ class ShaderNodesInliner {
         &closure_input_value->value);
     if (!closure_zone_value) {
       /* If the closure is null, the node behaves as if it is muted. */
-      this->handle_output_socket__muted(socket);
+      if (!this->handle_output_socket__internal_links(socket)) {
+        this->store_socket_value_fallback(socket);
+      }
       return;
     }
     const auto *evaluate_closure_storage = static_cast<const NodeEvaluateClosure *>(
@@ -1068,7 +1087,7 @@ class ShaderNodesInliner {
       bNodeSocket &dst_input_socket = *socket_map.lookup(src_input_socket);
       const SocketInContext input_socket_ctx = {node.context, src_input_socket};
       const SocketValue &value = value_by_socket_.lookup(input_socket_ctx);
-      this->set_socket_value(*node, copied_node, dst_input_socket, value);
+      this->set_input_socket_value(*node, copied_node, dst_input_socket, value);
     }
     for (const bNodeSocket *src_output_socket : node->output_sockets()) {
       if (!src_output_socket->is_available()) {
@@ -1126,11 +1145,12 @@ class ShaderNodesInliner {
     return SocketValue{FallbackValue{}};
   }
 
-  void set_socket_value(const bNode &original_node,
-                        bNode &dst_node,
-                        bNodeSocket &dst_socket,
-                        const SocketValue &value)
+  void set_input_socket_value(const bNode &original_node,
+                              bNode &dst_node,
+                              bNodeSocket &dst_socket,
+                              const SocketValue &value)
   {
+    BLI_assert(dst_socket.is_input());
     if (dst_socket.flag & SOCK_HIDE_VALUE) {
       if (const auto *input_socket_value = std::get_if<InputSocketValue>(&value.value)) {
         if (input_socket_value->socket->flag & SOCK_HIDE_VALUE) {
@@ -1174,6 +1194,12 @@ class ShaderNodesInliner {
     }
     if (std::get_if<FallbackValue>(&value.value)) {
       /* Cases were the input has a primitive fallback value are handled above. */
+      return;
+    }
+    if (std::get_if<DanglingValue>(&value.value)) {
+      /* Input sockets should never have a dangling value, because they are replaced by the socket
+       * value in #handle_input_socket. */
+      BLI_assert_unreachable();
       return;
     }
     if (std::get_if<BundleSocketValuePtr>(&value.value)) {
@@ -1349,6 +1375,11 @@ class ShaderNodesInliner {
   void store_socket_value_fallback(const SocketInContext &socket)
   {
     value_by_socket_.add_new(socket, {FallbackValue{}});
+  }
+
+  void store_socket_value_dangling(const SocketInContext &socket)
+  {
+    value_by_socket_.add_new(socket, {DanglingValue{}});
   }
 
   void schedule_socket(const SocketInContext &socket)
