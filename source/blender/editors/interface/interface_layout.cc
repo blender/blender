@@ -2242,7 +2242,7 @@ void uiLayout::prop(PointerRNA *ptr,
         results_are_suggestions = true;
       }
     }
-    but = ui_but_add_search(but, ptr, prop, nullptr, nullptr, results_are_suggestions);
+    but = ui_but_add_search(but, ptr, prop, nullptr, nullptr, nullptr, results_are_suggestions);
 
     if (layout->red_alert()) {
       UI_but_flag_enable(but, UI_BUT_REDALERT);
@@ -2617,6 +2617,7 @@ uiBut *ui_but_add_search(uiBut *but,
                          PropertyRNA *prop,
                          PointerRNA *searchptr,
                          PropertyRNA *searchprop,
+                         PropertyRNA *item_searchprop,
                          const bool results_are_suggestions)
 {
   /* for ID's we do automatic lookup */
@@ -2659,11 +2660,13 @@ uiBut *ui_but_add_search(uiBut *but,
     if (searchptr) {
       coll_search->search_ptr = *searchptr;
       coll_search->search_prop = searchprop;
+      coll_search->item_search_prop = item_searchprop;
     }
     else {
       /* Rely on `has_search_fn`. */
       coll_search->search_ptr = PointerRNA_NULL;
       coll_search->search_prop = nullptr;
+      coll_search->item_search_prop = nullptr;
     }
 
     coll_search->search_but = but;
@@ -2705,6 +2708,7 @@ void uiLayout::prop_search(PointerRNA *ptr,
                            PropertyRNA *prop,
                            PointerRNA *searchptr,
                            PropertyRNA *searchprop,
+                           PropertyRNA *item_searchprop,
                            const std::optional<StringRefNull> name_opt,
                            int icon,
                            bool results_are_suggestions)
@@ -2724,6 +2728,12 @@ void uiLayout::prop_search(PointerRNA *ptr,
     RNA_warning("search collection property is not a collection type: %s.%s",
                 RNA_struct_identifier(searchptr->type),
                 RNA_property_identifier(searchprop));
+    return;
+  }
+  if (item_searchprop && RNA_property_type(item_searchprop) != PROP_STRING) {
+    RNA_warning("Search collection items' property is not a string type: %s.%s",
+                RNA_struct_identifier(RNA_property_pointer_type(searchptr, searchprop)),
+                RNA_property_identifier(item_searchprop));
     return;
   }
 
@@ -2753,7 +2763,8 @@ void uiLayout::prop_search(PointerRNA *ptr,
   w += UI_UNIT_X; /* X icon needs more space */
   uiBut *but = ui_item_with_label(this, block, name, icon, ptr, prop, 0, 0, 0, w, h, 0);
 
-  but = ui_but_add_search(but, ptr, prop, searchptr, searchprop, results_are_suggestions);
+  but = ui_but_add_search(
+      but, ptr, prop, searchptr, searchprop, item_searchprop, results_are_suggestions);
 }
 
 void uiLayout::prop_search(PointerRNA *ptr,
@@ -2777,7 +2788,7 @@ void uiLayout::prop_search(PointerRNA *ptr,
     return;
   }
 
-  this->prop_search(ptr, prop, searchptr, searchprop, name, icon, false);
+  this->prop_search(ptr, prop, searchptr, searchprop, nullptr, name, icon, false);
 }
 
 void ui_item_menutype_func(bContext *C, uiLayout *layout, void *arg_mt)

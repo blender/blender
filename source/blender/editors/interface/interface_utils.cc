@@ -318,7 +318,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                    0,
                                    0,
                                    std::nullopt);
-      ui_but_add_search(but, ptr, prop, nullptr, nullptr, false);
+      ui_but_add_search(but, ptr, prop, nullptr, nullptr, nullptr, false);
       break;
     }
     case PROP_COLLECTION: {
@@ -536,7 +536,19 @@ void ui_rna_collection_search_update_fn(
           has_sep_char = ID_IS_LINKED(id);
         }
       }
+      else if (data->item_search_prop) {
+        name = RNA_property_string_get_alloc(
+            &itemptr, data->item_search_prop, name_buf, sizeof(name_buf), nullptr);
+      }
       else if (itemptr.type == &RNA_ActionSlot) {
+        /* FIXME: This special case is fairly annoying.
+         *
+         * `item_search_prop` now allows to specify another string property than the default RNA
+         * struct name one as source, but icons are still an issue. RNA access API for icons likely
+         * needs some love, to allow callbacks, data-based icons retrieval, in addition to the
+         * purely static options currently available (see #RNA_struct_ui_icon and
+         * #RNA_property_ui_icon).
+         */
         PropertyRNA *prop = RNA_struct_find_property(&itemptr, "name_display");
         name = RNA_property_string_get_alloc(&itemptr, prop, name_buf, sizeof(name_buf), nullptr);
         /* Also show an icon for the data-block type that each slot is intended for. */
