@@ -36,24 +36,14 @@ void VKDescriptorSetTracker::update_descriptor_set(VKContext &context,
 
   VKDevice &device = VKBackend::get().device;
   VkDescriptorSetLayout vk_descriptor_set_layout = shader.vk_descriptor_set_layout_get();
-  VKDescriptorSetUpdator *updator = &descriptor_sets;
-  if (device.extensions_get().descriptor_buffer) {
-    updator = &descriptor_buffers;
-  }
-  updator->allocate_new_descriptor_set(
+  descriptor_sets.allocate_new_descriptor_set(
       device, context, shader, vk_descriptor_set_layout, r_pipeline_data);
-  updator->bind_shader_resources(device, state_manager, shader, access_info);
+  descriptor_sets.bind_shader_resources(device, state_manager, shader, access_info);
 }
 
 void VKDescriptorSetTracker::upload_descriptor_sets()
 {
-  VKDevice &device = VKBackend::get().device;
-  if (device.extensions_get().descriptor_buffer) {
-    descriptor_buffers.upload_descriptor_sets();
-  }
-  else {
-    descriptor_sets.upload_descriptor_sets();
-  }
+  descriptor_sets.upload_descriptor_sets();
   vk_descriptor_set_layout_ = VK_NULL_HANDLE;
 }
 
@@ -506,167 +496,6 @@ void VKDescriptorSetPoolUpdator::upload_descriptor_sets()
   vk_descriptor_buffer_infos_.clear();
   vk_buffer_views_.clear();
   vk_write_descriptor_sets_.clear();
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name VKDescriptorBufferUpdator
- * \{ */
-
-void VKDescriptorBufferUpdator::allocate_new_descriptor_set(
-    VKDevice &device,
-    VKContext & /*context*/,
-    VKShader & /*shader*/,
-    VkDescriptorSetLayout vk_descriptor_set_layout,
-    render_graph::VKPipelineData &r_pipeline_data)
-{
-  /* Use descriptor buffer. */
-  descriptor_set_head = descriptor_set_tail;
-  layout = device.descriptor_set_layouts_get().descriptor_buffer_layout_get(
-      vk_descriptor_set_layout);
-
-  /* Ensure if there is still place left in the current buffer. */
-  if (buffers.is_empty() ||
-      layout.size > buffers.last().get()->size_in_bytes() - descriptor_set_head)
-  {
-    const VkDeviceSize default_buffer_size = 8 * 1024 * 1024;
-    buffers.append(std::make_unique<VKBuffer>());
-    VKBuffer *buffer = buffers.last().get();
-    buffer->create(default_buffer_size,
-                   VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT |
-                       VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT,
-                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                   0,
-                   VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-                   0.8f);
-    debug::object_label(buffer->vk_handle(), "DescriptorBuffer");
-    descriptor_buffer_data = static_cast<uint8_t *>(buffer->mapped_memory_get());
-    descriptor_buffer_device_address = buffer->device_address_get();
-    descriptor_buffer_offset = 0;
-    descriptor_set_head = 0;
-    descriptor_set_tail = 0;
-  }
-
-  descriptor_set_tail = descriptor_set_head + layout.size;
-
-  /* Update the current descriptor buffer and its offset to point to the active descriptor set. */
-  descriptor_buffer_offset = descriptor_set_head;
-
-  r_pipeline_data.descriptor_buffer_device_address = descriptor_buffer_device_address;
-  r_pipeline_data.descriptor_buffer_offset = descriptor_buffer_offset;
-}
-
-void VKDescriptorBufferUpdator::bind_buffer(VkDescriptorType vk_descriptor_type,
-                                            VkBuffer /*vk_buffer*/,
-                                            VkDeviceAddress vk_device_address,
-                                            VkDeviceSize buffer_offset,
-                                            VkDeviceSize size_in_bytes,
-                                            VKDescriptorSet::Location location)
-{
-  BLI_assert(vk_device_address != 0);
-  VKDevice &device = VKBackend::get().device;
-  const VkPhysicalDeviceDescriptorBufferPropertiesEXT &vk_descriptor_buffer_properties =
-      device.physical_device_descriptor_buffer_properties_get();
-  VkDescriptorAddressInfoEXT descriptor_address_info = {
-      VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT,
-      nullptr,
-      vk_device_address + buffer_offset,
-      size_in_bytes};
-
-  VkDescriptorGetInfoEXT vk_descriptor_get_info{
-      VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT, nullptr, vk_descriptor_type};
-  VkDeviceSize descriptor_size = 0;
-  switch (vk_descriptor_type) {
-    case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-      vk_descriptor_get_info.data.pUniformBuffer = &descriptor_address_info;
-      descriptor_size = vk_descriptor_buffer_properties.uniformBufferDescriptorSize;
-      break;
-
-    case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-      vk_descriptor_get_info.data.pStorageBuffer = &descriptor_address_info;
-      descriptor_size = vk_descriptor_buffer_properties.storageBufferDescriptorSize;
-      break;
-
-    default:
-      BLI_assert_unreachable();
-  }
-
-  uint8_t *descriptor_ptr = get_descriptor_binding_ptr(location);
-  device.functions.vkGetDescriptor(
-      device.vk_handle(), &vk_descriptor_get_info, descriptor_size, descriptor_ptr);
-}
-
-void VKDescriptorBufferUpdator::bind_texel_buffer(VKVertexBuffer &vertex_buffer,
-                                                  const VKDescriptorSet::Location location)
-{
-  VkDeviceAddress vk_device_address = vertex_buffer.device_address_get();
-  BLI_assert(vk_device_address != 0);
-  VKDevice &device = VKBackend::get().device;
-  const VkPhysicalDeviceDescriptorBufferPropertiesEXT &vk_descriptor_buffer_properties =
-      device.physical_device_descriptor_buffer_properties_get();
-  VkDescriptorAddressInfoEXT descriptor_address_info = {
-      VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT,
-      nullptr,
-      vk_device_address,
-      vertex_buffer.size_used_get(),
-      vertex_buffer.to_vk_format()};
-
-  VkDescriptorGetInfoEXT vk_descriptor_get_info{
-      VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT, nullptr, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER};
-  vk_descriptor_get_info.data.pUniformTexelBuffer = &descriptor_address_info;
-  VkDeviceSize descriptor_size = vk_descriptor_buffer_properties.uniformTexelBufferDescriptorSize;
-
-  uint8_t *descriptor_ptr = get_descriptor_binding_ptr(location);
-  device.functions.vkGetDescriptor(
-      device.vk_handle(), &vk_descriptor_get_info, descriptor_size, descriptor_ptr);
-}
-
-void VKDescriptorBufferUpdator::bind_image(VkDescriptorType vk_descriptor_type,
-                                           VkSampler vk_sampler,
-                                           VkImageView vk_image_view,
-                                           VkImageLayout vk_image_layout,
-                                           VKDescriptorSet::Location location)
-{
-  VKDevice &device = VKBackend::get().device;
-  const VkPhysicalDeviceDescriptorBufferPropertiesEXT &vk_descriptor_buffer_properties =
-      device.physical_device_descriptor_buffer_properties_get();
-  VkDescriptorImageInfo vk_descriptor_image_info = {vk_sampler, vk_image_view, vk_image_layout};
-  VkDescriptorGetInfoEXT vk_descriptor_get_info{
-      VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT, nullptr, vk_descriptor_type};
-  VkDeviceSize descriptor_size = 0;
-  switch (vk_descriptor_type) {
-    case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
-      vk_descriptor_get_info.data.pCombinedImageSampler = &vk_descriptor_image_info;
-      descriptor_size = vk_descriptor_buffer_properties.combinedImageSamplerDescriptorSize;
-      break;
-
-    case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-      vk_descriptor_get_info.data.pStorageImage = &vk_descriptor_image_info;
-      descriptor_size = vk_descriptor_buffer_properties.storageImageDescriptorSize;
-      break;
-
-    case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
-      vk_descriptor_get_info.data.pInputAttachmentImage = &vk_descriptor_image_info;
-      descriptor_size = vk_descriptor_buffer_properties.inputAttachmentDescriptorSize;
-      break;
-
-    default:
-      BLI_assert_unreachable();
-  }
-
-  uint8_t *descriptor_ptr = get_descriptor_binding_ptr(location);
-  device.functions.vkGetDescriptor(
-      device.vk_handle(), &vk_descriptor_get_info, descriptor_size, descriptor_ptr);
-}
-
-void VKDescriptorBufferUpdator::upload_descriptor_sets()
-{
-  /* Buffers have already been updated. only need to discard the buffers. */
-  buffers.clear();
-  descriptor_buffer_data = nullptr;
-  descriptor_buffer_device_address = 0;
-  descriptor_buffer_offset = 0;
 }
 
 /** \} */

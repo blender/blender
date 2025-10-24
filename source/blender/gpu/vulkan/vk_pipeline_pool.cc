@@ -204,10 +204,6 @@ VkPipeline VKPipelinePool::get_or_create_compute_pipeline(VKComputeInfo &compute
   /* Build pipeline. */
   VKBackend &backend = VKBackend::get();
   VKDevice &device = backend.device;
-  if (device.extensions_get().descriptor_buffer) {
-    vk_compute_pipeline_create_info_.flags |= VK_PIPELINE_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;
-  }
-
   VkPipeline pipeline = VK_NULL_HANDLE;
   vkCreateComputePipelines(device.vk_handle(),
                            is_static_shader ? vk_pipeline_cache_static_ :
@@ -600,10 +596,6 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
   /* Build pipeline. */
   VKBackend &backend = VKBackend::get();
   VKDevice &device = backend.device;
-  if (device.extensions_get().descriptor_buffer) {
-    vk_graphics_pipeline_create_info_.flags |= VK_PIPELINE_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;
-  }
-
   VkPipeline pipeline = VK_NULL_HANDLE;
   vkCreateGraphicsPipelines(device.vk_handle(),
                             is_static_shader ? vk_pipeline_cache_static_ :

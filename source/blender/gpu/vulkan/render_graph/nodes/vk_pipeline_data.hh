@@ -24,9 +24,6 @@ struct VKPipelineData {
   VkPipeline vk_pipeline;
   VkPipelineLayout vk_pipeline_layout;
   VkDescriptorSet vk_descriptor_set;
-  /* VK_EXT_descriptor_buffer */
-  VkDeviceAddress descriptor_buffer_device_address;
-  VkDeviceSize descriptor_buffer_offset;
 
   uint32_t push_constants_size;
   const void *push_constants_data;
@@ -75,8 +72,6 @@ struct VKPipelineDataGraphics {
 struct VKBoundPipeline {
   VkPipeline vk_pipeline;
   VkDescriptorSet vk_descriptor_set;
-  VkDeviceAddress descriptor_buffer_device_address;
-  VkDeviceSize descriptor_buffer_offset;
 };
 
 struct VKIndexBufferBinding {
