@@ -507,7 +507,7 @@ static bool bake_object_check(const Scene *scene,
     }
   }
   else if (target == R_BAKE_TARGET_IMAGE_TEXTURES) {
-    if (CustomData_get_active_layer_index(&mesh->corner_data, CD_PROP_FLOAT2) == -1) {
+    if (!mesh->uv_map_names().contains(mesh->active_uv_map_name())) {
       BKE_reportf(
           reports, RPT_ERROR, "No active UV layer found in the object \"%s\"", ob->id.name + 2);
       return false;

@@ -196,7 +196,7 @@ static void paint_sample_color(
       const VArray material_indices = *attributes.lookup_or_default<int>(
           "material_index", bke::AttrDomain::Face, 0);
 
-      if (CustomData_has_layer(&mesh_eval->corner_data, CD_PROP_FLOAT2)) {
+      if (!mesh_eval->uv_map_names().is_empty()) {
         ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
         const int mval[2] = {x, y};

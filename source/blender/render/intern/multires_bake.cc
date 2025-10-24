@@ -234,8 +234,7 @@ struct MeshArrays {
   {
     bke::AttributeAccessor attributes = mesh.attributes();
 
-    const StringRef active_uv_map = CustomData_get_active_layer_name(&mesh.corner_data,
-                                                                     CD_PROP_FLOAT2);
+    const StringRef active_uv_map = mesh.active_uv_map_name();
     vert_positions = mesh.vert_positions();
     vert_normals = mesh.vert_normals();
 
@@ -1575,10 +1574,12 @@ static void bake_ibuf_filter(ImBuf &ibuf,
   if (margin) {
     switch (margin_type) {
       case R_BAKE_ADJACENT_FACES: {
-        const char *active_uv_map = CustomData_get_active_layer_name(&bake_level_mesh.corner_data,
-                                                                     CD_PROP_FLOAT2);
-        RE_generate_texturemargin_adjacentfaces(
-            &ibuf, mask.data(), margin, &bake_level_mesh, active_uv_map, uv_offset);
+        RE_generate_texturemargin_adjacentfaces(&ibuf,
+                                                mask.data(),
+                                                margin,
+                                                &bake_level_mesh,
+                                                bake_level_mesh.active_uv_map_name(),
+                                                uv_offset);
         break;
       }
       default:

@@ -40,7 +40,8 @@ static AreaInfo compute_area_ratio(const MeshRenderData &mr, MutableSpan<float> 
 {
   if (mr.extract_type == MeshExtractType::BMesh) {
     const BMesh &bm = *mr.bm;
-    const int uv_offset = CustomData_get_offset(&bm.ldata, CD_PROP_FLOAT2);
+    const StringRef active_name = mr.mesh->active_uv_map_name();
+    const int uv_offset = CustomData_get_offset_named(&bm.ldata, CD_PROP_FLOAT2, active_name);
     return threading::parallel_reduce(
         IndexRange(bm.totface),
         1024,

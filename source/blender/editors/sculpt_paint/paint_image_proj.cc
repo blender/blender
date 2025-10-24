@@ -4065,7 +4065,7 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
     return false;
   }
 
-  if (!CustomData_has_layer(&ps->mesh_eval->corner_data, CD_PROP_FLOAT2)) {
+  if (ps->mesh_eval->uv_map_names().is_empty()) {
     ps->mesh_eval = nullptr;
     return false;
   }
@@ -6502,7 +6502,7 @@ bool ED_paint_proj_mesh_data_check(Scene &scene,
   }
 
   Mesh *mesh = BKE_mesh_from_object(&ob);
-  int layernum = CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
+  int layernum = mesh->uv_map_names().size();
 
   if (layernum == 0) {
     has_uvs = false;
