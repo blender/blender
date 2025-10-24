@@ -182,8 +182,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   }
 
-  if (solver == geometry::boolean::Solver::Manifold) {
-    /* Manifold remaps materials using realize_instances. */
+  if (ELEM(solver, geometry::boolean::Solver::MeshArr, geometry::boolean::Solver::Manifold)) {
+    /* These solvers remap materials using realize_instances. */
     material_remaps.resize(0);
   }
 
