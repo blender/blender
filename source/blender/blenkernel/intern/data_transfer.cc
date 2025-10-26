@@ -423,7 +423,6 @@ void data_transfer_layersmapping_add_item(ListBase *r_map,
                                           const size_t elem_size,
                                           const size_t data_size,
                                           const size_t data_offset,
-                                          const uint64_t data_flag,
                                           cd_datatransfer_interp interp,
                                           void *interp_data)
 {
@@ -444,7 +443,6 @@ void data_transfer_layersmapping_add_item(ListBase *r_map,
 
   item->data_size = data_size;
   item->data_offset = data_offset;
-  item->data_flag = data_flag;
 
   item->interp = interp;
   item->interp_data = interp_data;
@@ -469,7 +467,6 @@ static void data_transfer_layersmapping_add_item_cd(ListBase *r_map,
                                        mix_weights,
                                        data_src,
                                        data_dst,
-                                       0,
                                        0,
                                        0,
                                        0,

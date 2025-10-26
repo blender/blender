@@ -58,7 +58,6 @@ void data_transfer_layersmapping_add_item(ListBase *r_map,
                                           size_t elem_size,
                                           size_t data_size,
                                           size_t data_offset,
-                                          uint64_t data_flag,
                                           cd_datatransfer_interp interp,
                                           void *interp_data);
 
