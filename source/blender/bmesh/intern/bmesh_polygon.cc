@@ -458,7 +458,8 @@ void BM_face_calc_tangent_from_edge_pair(const BMFace *f, float r_tangent[3])
   }
   else if (f->len == 4) {
     /* Use longest edge pair */
-    BM_face_calc_tangent_from_edge(f, r_tangent);
+    float r_tangent_dummy[3];
+    bm_face_calc_tangent_pair_from_quad_edge_pair(f, r_tangent, r_tangent_dummy);
   }
   else {
     /* For ngons use two longest disconnected edges */
