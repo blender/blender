@@ -120,7 +120,7 @@ struct WaylandDynload_Client {
         (*wayland_dynload_client.wl_display_disconnect)(__VA_ARGS__)
 #      define wl_display_dispatch(...) (*wayland_dynload_client.wl_display_dispatch)(__VA_ARGS__)
 #      define wl_display_dispatch_pending(...) \
-        (*wayland_dynload_client.wl_display_dispatch)(__VA_ARGS__)
+        (*wayland_dynload_client.wl_display_dispatch_pending)(__VA_ARGS__)
 #      define wl_display_get_fd(...) (*wayland_dynload_client.wl_display_get_fd)(__VA_ARGS__)
 #      define wl_display_get_protocol_error(...) \
         (*wayland_dynload_client.wl_display_get_protocol_error)(__VA_ARGS__)
