@@ -430,7 +430,7 @@ void data_transfer_layersmapping_add_item(Vector<CustomDataTransferLayerMap> *r_
 
   BLI_assert(data_dst != nullptr);
 
-  item.data_type = eCustomDataType(cddata_type);
+  item.data_type = cddata_type;
   item.mix_mode = mix_mode;
   item.mix_factor = mix_factor;
   item.mix_weights = mix_weights;
@@ -529,8 +529,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
         if (use_create) {
           /* Create as much data layers as necessary! */
           for (; idx_dst < idx_src; idx_dst++) {
-            CustomData_add_layer(
-                &cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst);
+            CustomData_add_layer(&cd_dst, cddata_type, CD_SET_DEFAULT, num_elem_dst);
           }
         }
         else {
@@ -582,8 +581,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
         idx_dst = CustomData_get_named_layer(&cd_dst, cddata_type, name);
         if (idx_dst == -1) {
           if (use_create) {
-            CustomData_add_layer_named(
-                &cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst, name);
+            CustomData_add_layer_named(&cd_dst, cddata_type, CD_SET_DEFAULT, num_elem_dst, name);
             idx_dst = CustomData_get_named_layer(&cd_dst, cddata_type, name);
           }
           else {
@@ -674,8 +672,7 @@ static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerM
         if (!use_create) {
           return true;
         }
-        data_dst = CustomData_add_layer(
-            &cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst);
+        data_dst = CustomData_add_layer(&cd_dst, cddata_type, CD_SET_DEFAULT, num_elem_dst);
       }
       else {
         data_dst = CustomData_get_layer_n_for_write(&cd_dst, cddata_type, idx_dst, num_elem_dst);
@@ -690,8 +687,7 @@ static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerM
         }
         /* Create as much data layers as necessary! */
         for (; num <= idx_dst; num++) {
-          CustomData_add_layer(
-              &cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst);
+          CustomData_add_layer(&cd_dst, cddata_type, CD_SET_DEFAULT, num_elem_dst);
         }
       }
       data_dst = CustomData_get_layer_n_for_write(&cd_dst, cddata_type, idx_dst, num_elem_dst);
@@ -703,8 +699,7 @@ static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerM
         if (!use_create) {
           return true;
         }
-        CustomData_add_layer_named(
-            &cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst, name);
+        CustomData_add_layer_named(&cd_dst, cddata_type, CD_SET_DEFAULT, num_elem_dst, name);
         idx_dst = CustomData_get_named_layer(&cd_dst, cddata_type, name);
       }
       data_dst = CustomData_get_layer_n_for_write(&cd_dst, cddata_type, idx_dst, num_elem_dst);
@@ -730,7 +725,7 @@ static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerM
     }
   }
   else if (fromlayers == DT_LAYERS_ALL_SRC) {
-    int num_src = CustomData_number_of_layers(&cd_src, eCustomDataType(cddata_type));
+    int num_src = CustomData_number_of_layers(&cd_src, cddata_type);
     bool *use_layers_src = num_src ? MEM_malloc_arrayN<bool>(size_t(num_src), __func__) : nullptr;
     bool ret;
 
