@@ -645,37 +645,7 @@ static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerM
 {
   void *data_dst = nullptr;
 
-  if (CustomData_layertype_is_singleton(cddata_type)) {
-    const void *data_src = CustomData_get_layer(&cd_src, cddata_type);
-    if (!data_src) {
-      if (use_delete) {
-        CustomData_free_layer(&cd_dst, cddata_type, 0);
-      }
-      return true;
-    }
-
-    data_dst = CustomData_get_layer_for_write(&cd_dst, cddata_type, num_elem_dst);
-    if (!data_dst) {
-      if (!use_create) {
-        return true;
-      }
-      data_dst = CustomData_add_layer(
-          &cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst);
-    }
-
-    if (r_map) {
-      data_transfer_layersmapping_add_item_cd(r_map,
-                                              cddata_type,
-                                              mix_mode,
-                                              mix_factor,
-                                              mix_weights,
-                                              data_src,
-                                              data_dst,
-                                              nullptr,
-                                              nullptr);
-    }
-  }
-  else if (fromlayers == DT_LAYERS_ACTIVE_SRC || fromlayers >= 0) {
+  if (fromlayers == DT_LAYERS_ACTIVE_SRC || fromlayers >= 0) {
     /* NOTE: use_delete has not much meaning in this case, ignored. */
 
     int idx_src;
@@ -800,7 +770,7 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
                                                  const Mesh *me_src,
                                                  Mesh *me_dst,
                                                  const int elem_type,
-                                                 int cddata_type,
+                                                 const int cddata_type,
                                                  int mix_mode,
                                                  float mix_factor,
                                                  const float *mix_weights,
@@ -814,9 +784,37 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
   using namespace blender;
 
   if (elem_type == ME_VERT) {
-    if (!(cddata_type & CD_FAKE)) {
+    if (cddata_type == CD_MVERT_SKIN) {
+      const void *data_src = CustomData_get_layer(&me_src->vert_data, CD_MVERT_SKIN);
+      if (data_src) {
+        void *data_dst = CustomData_get_layer_for_write(
+            &me_dst->vert_data, CD_MVERT_SKIN, me_dst->verts_num);
+        if (!data_dst && use_create) {
+          data_dst = CustomData_add_layer(
+              &me_dst->vert_data, CD_MVERT_SKIN, CD_SET_DEFAULT, me_dst->verts_num);
+        }
+
+        if (r_map && data_dst) {
+          data_transfer_layersmapping_add_item_cd(r_map,
+                                                  CD_MVERT_SKIN,
+                                                  mix_mode,
+                                                  mix_factor,
+                                                  mix_weights,
+                                                  data_src,
+                                                  data_dst,
+                                                  nullptr,
+                                                  nullptr);
+        }
+      }
+      else {
+        if (use_delete) {
+          CustomData_free_layer(&me_dst->vert_data, CD_MVERT_SKIN, 0);
+        }
+      }
+    }
+    else if (cddata_type == CD_PROP_BYTE_COLOR) {
       if (!data_transfer_layersmapping_cdlayers(r_map,
-                                                eCustomDataType(cddata_type),
+                                                CD_PROP_BYTE_COLOR,
                                                 mix_mode,
                                                 mix_factor,
                                                 mix_weights,
@@ -828,7 +826,24 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
                                                 fromlayers,
                                                 tolayers))
       {
-        /* We handle specific source selection cases here. */
+        return false;
+      }
+      return true;
+    }
+    else if (cddata_type == CD_PROP_COLOR) {
+      if (!data_transfer_layersmapping_cdlayers(r_map,
+                                                CD_PROP_COLOR,
+                                                mix_mode,
+                                                mix_factor,
+                                                mix_weights,
+                                                num_elem_dst,
+                                                use_create,
+                                                use_delete,
+                                                me_src->vert_data,
+                                                me_dst->vert_data,
+                                                fromlayers,
+                                                tolayers))
+      {
         return false;
       }
       return true;
@@ -969,7 +984,21 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
   }
   else if (elem_type == ME_LOOP) {
     if (cddata_type == CD_FAKE_UV) {
-      cddata_type = CD_PROP_FLOAT2;
+      if (!data_transfer_layersmapping_cdlayers(r_map,
+                                                CD_PROP_FLOAT2,
+                                                mix_mode,
+                                                mix_factor,
+                                                mix_weights,
+                                                num_elem_dst,
+                                                use_create,
+                                                use_delete,
+                                                me_src->corner_data,
+                                                me_dst->corner_data,
+                                                fromlayers,
+                                                tolayers))
+      {
+        return false;
+      }
     }
     else if (cddata_type == CD_FAKE_LNOR) {
       if (r_map) {
@@ -997,10 +1026,9 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
       }
       return true;
     }
-
-    if (!(cddata_type & CD_FAKE)) {
+    else if (cddata_type == CD_PROP_BYTE_COLOR) {
       if (!data_transfer_layersmapping_cdlayers(r_map,
-                                                eCustomDataType(cddata_type),
+                                                CD_PROP_BYTE_COLOR,
                                                 mix_mode,
                                                 mix_factor,
                                                 mix_weights,
@@ -1012,7 +1040,24 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
                                                 fromlayers,
                                                 tolayers))
       {
-        /* We handle specific source selection cases here. */
+        return false;
+      }
+      return true;
+    }
+    else if (cddata_type == CD_PROP_COLOR) {
+      if (!data_transfer_layersmapping_cdlayers(r_map,
+                                                CD_PROP_COLOR,
+                                                mix_mode,
+                                                mix_factor,
+                                                mix_weights,
+                                                num_elem_dst,
+                                                use_create,
+                                                use_delete,
+                                                me_src->corner_data,
+                                                me_dst->corner_data,
+                                                fromlayers,
+                                                tolayers))
+      {
         return false;
       }
       return true;
