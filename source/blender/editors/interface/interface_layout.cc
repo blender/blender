@@ -180,6 +180,7 @@ struct LayoutInternal {
   static uiLayout *ui_item_prop_split_layout_hack(uiLayout *layout_parent, uiLayout *layout_split);
   static void layout_offset_size_set(uiLayout *layout, int x, int y, int w, int h);
   static void layout_move(uiLayout *layout, int delta_xmin, int delta_xmax);
+  static void layout_space_set(uiLayout *layout, int space);
 };
 
 }  // namespace blender::ui
@@ -551,6 +552,11 @@ void LayoutInternal::layout_move(uiLayout *layout, int delta_xmin, int delta_xma
   }
 }
 
+void LayoutInternal::layout_space_set(uiLayout *layout, int space)
+{
+  layout->space_ = space;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -587,7 +593,7 @@ static uiLayout *ui_item_local_sublayout(uiLayout *test, uiLayout *layout, bool 
     sub = &layout->column(align);
   }
 
-  sub->space_ = 0;
+  LayoutInternal::layout_space_set(sub, 0);
   return sub;
 }
 
@@ -1130,7 +1136,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
      * number of labels can end up aligning thousands of buttons when displaying key-map search (a
      * heavy operation), see: #78636. */
     sub = &layout->row(layout->align());
-    sub->space_ = 0;
+    LayoutInternal::layout_space_set(sub, 0);
   }
 
   if (!name.is_empty()) {
@@ -4933,7 +4939,7 @@ static uiLayoutItemBx *ui_layout_box(uiLayout *layout, ButType type)
   uiLayoutItemBx *box = MEM_new<uiLayoutItemBx>(__func__);
   LayoutInternal::init_from_parent(box, layout, false);
 
-  box->space_ = layout->root()->style->columnspace;
+  LayoutInternal::layout_space_set(box, layout->root()->style->columnspace);
 
   blender::ui::block_layout_set_current(layout->block(), box);
 
@@ -5472,13 +5478,13 @@ uiLayout &block_layout(uiBlock *block,
   /* Only used when 'uiItemInternalFlag::PropSep' is set. */
   layout->use_property_decorate_set(true);
 
-  layout->space_ = style->templatespace;
+  LayoutInternal::layout_space_set(layout, style->templatespace);
   layout->active_set(true);
   layout->enabled_set(true);
   layout->emboss_set(EmbossType::Undefined);
   int w = 0, h = 0;
   if (ELEM(type, LayoutType::Menu, LayoutType::PieMenu)) {
-    layout->space_ = 0;
+    LayoutInternal::layout_space_set(layout, 0);
   }
 
   if (dir == LayoutDirection::Horizontal) {

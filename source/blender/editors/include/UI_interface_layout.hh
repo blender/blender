@@ -98,16 +98,7 @@ enum class NodeAssetMenuOperatorType : int8_t {
   Swap,
 };
 
-/**
- * NOTE: `uiLayout` properties should be considered private outside `interface_layout.cc`,
- * incoming refactors would remove public access and add public read/write function methods.
- * Meanwhile keep using `uiLayout*` functions to read/write this properties.
- */
 struct uiLayout : public uiItem, blender::NonCopyable, blender::NonMovable {
-  // protected:
-
-  short space_ = 0;
-
  protected:
   uiLayoutRoot *root_ = nullptr;
   bContextStore *context_ = nullptr;
@@ -120,6 +111,8 @@ struct uiLayout : public uiItem, blender::NonCopyable, blender::NonMovable {
   uiLayout *child_items_layout_ = nullptr;
 
   int x_ = 0, y_ = 0, w_ = 0, h_ = 0;
+
+  short space_ = 0;
 
   float scale_[2] = {0.0f, 0.0f};
   bool align_ = false;
