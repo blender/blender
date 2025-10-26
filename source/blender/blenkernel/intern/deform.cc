@@ -1256,19 +1256,20 @@ static void vgroups_datatransfer_interp(const CustomDataTransferLayerMap *laymap
   }
 }
 
-static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
-                                                                const int mix_mode,
-                                                                const float mix_factor,
-                                                                const float *mix_weights,
-                                                                const bool use_create,
-                                                                const bool use_delete,
-                                                                Object *ob_dst,
-                                                                const Mesh &mesh_src,
-                                                                Mesh &mesh_dst,
-                                                                const bool /*use_dupref_dst*/,
-                                                                const int tolayers,
-                                                                const bool *use_layers_src,
-                                                                const int num_layers_src)
+static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(
+    blender::Vector<CustomDataTransferLayerMap> *r_map,
+    const int mix_mode,
+    const float mix_factor,
+    const float *mix_weights,
+    const bool use_create,
+    const bool use_delete,
+    Object *ob_dst,
+    const Mesh &mesh_src,
+    Mesh &mesh_dst,
+    const bool /*use_dupref_dst*/,
+    const int tolayers,
+    const bool *use_layers_src,
+    const int num_layers_src)
 {
   int idx_src;
   int idx_dst;
@@ -1389,7 +1390,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
   return true;
 }
 
-bool data_transfer_layersmapping_vgroups(ListBase *r_map,
+bool data_transfer_layersmapping_vgroups(blender::Vector<CustomDataTransferLayerMap> *r_map,
                                          const int mix_mode,
                                          const float mix_factor,
                                          const float *mix_weights,

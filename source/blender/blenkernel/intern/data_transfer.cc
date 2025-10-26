@@ -13,7 +13,6 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_matrix.h"
 #include "BLI_string.h"
@@ -38,6 +37,7 @@
 #include "data_transfer_intern.hh"
 
 using blender::StringRef;
+using blender::Vector;
 
 void BKE_object_data_transfer_dttypes_to_cdmask(const int dtdata_types,
                                                 CustomData_MeshMasks *r_data_masks)
@@ -411,7 +411,7 @@ float data_transfer_interp_float_do(const int mix_mode,
 /* Helpers to match sources and destinations data layers
  * (also handles 'conversions' in CD_FAKE cases). */
 
-void data_transfer_layersmapping_add_item(ListBase *r_map,
+void data_transfer_layersmapping_add_item(Vector<CustomDataTransferLayerMap> *r_map,
                                           const int cddata_type,
                                           const int mix_mode,
                                           const float mix_factor,
@@ -426,31 +426,31 @@ void data_transfer_layersmapping_add_item(ListBase *r_map,
                                           cd_datatransfer_interp interp,
                                           void *interp_data)
 {
-  CustomDataTransferLayerMap *item = MEM_callocN<CustomDataTransferLayerMap>(__func__);
+  CustomDataTransferLayerMap item{};
 
   BLI_assert(data_dst != nullptr);
 
-  item->data_type = eCustomDataType(cddata_type);
-  item->mix_mode = mix_mode;
-  item->mix_factor = mix_factor;
-  item->mix_weights = mix_weights;
+  item.data_type = eCustomDataType(cddata_type);
+  item.mix_mode = mix_mode;
+  item.mix_factor = mix_factor;
+  item.mix_weights = mix_weights;
 
-  item->data_src = data_src;
-  item->data_dst = data_dst;
-  item->data_src_n = data_src_n;
-  item->data_dst_n = data_dst_n;
-  item->elem_size = elem_size;
+  item.data_src = data_src;
+  item.data_dst = data_dst;
+  item.data_src_n = data_src_n;
+  item.data_dst_n = data_dst_n;
+  item.elem_size = elem_size;
 
-  item->data_size = data_size;
-  item->data_offset = data_offset;
+  item.data_size = data_size;
+  item.data_offset = data_offset;
 
-  item->interp = interp;
-  item->interp_data = interp_data;
+  item.interp = interp;
+  item.interp_data = interp_data;
 
-  BLI_addtail(r_map, item);
+  r_map->append(item);
 }
 
-static void data_transfer_layersmapping_add_item_cd(ListBase *r_map,
+static void data_transfer_layersmapping_add_item_cd(Vector<CustomDataTransferLayerMap> *r_map,
                                                     const int cddata_type,
                                                     const int mix_mode,
                                                     const float mix_factor,
@@ -483,19 +483,20 @@ static void data_transfer_layersmapping_add_item_cd(ListBase *r_map,
  * Also, r_map may be nullptr, in which case they will 'only' create/delete destination layers
  * according to given parameters.
  */
-static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map,
-                                                                 const eCustomDataType cddata_type,
-                                                                 const int mix_mode,
-                                                                 const float mix_factor,
-                                                                 const float *mix_weights,
-                                                                 const int num_elem_dst,
-                                                                 const bool use_create,
-                                                                 const bool use_delete,
-                                                                 const CustomData &cd_src,
-                                                                 CustomData &cd_dst,
-                                                                 const int tolayers,
-                                                                 const bool *use_layers_src,
-                                                                 const int num_layers_src)
+static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
+    Vector<CustomDataTransferLayerMap> *r_map,
+    const eCustomDataType cddata_type,
+    const int mix_mode,
+    const float mix_factor,
+    const float *mix_weights,
+    const int num_elem_dst,
+    const bool use_create,
+    const bool use_delete,
+    const CustomData &cd_src,
+    CustomData &cd_dst,
+    const int tolayers,
+    const bool *use_layers_src,
+    const int num_layers_src)
 {
   const void *data_src;
   void *data_dst = nullptr;
@@ -629,7 +630,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
   return true;
 }
 
-static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
+static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerMap> *r_map,
                                                  const eCustomDataType cddata_type,
                                                  const int mix_mode,
                                                  const float mix_factor,
@@ -793,7 +794,7 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
   return true;
 }
 
-static bool data_transfer_layersmapping_generate(ListBase *r_map,
+static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerMap> *r_map,
                                                  Object *ob_src,
                                                  Object *ob_dst,
                                                  const Mesh *me_src,
@@ -1242,7 +1243,7 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
 
   MeshPairRemap geom_map[DATAMAX] = {{0}};
   bool geom_map_init[DATAMAX] = {false};
-  ListBase lay_map = {nullptr};
+  Vector<CustomDataTransferLayerMap> lay_map;
   bool changed = false;
   bool is_modifier = false;
 
@@ -1380,13 +1381,13 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                                                tolayers,
                                                space_transform))
       {
-        changed |= (lay_map.first != nullptr);
+        changed |= !lay_map.is_empty();
 
-        LISTBASE_FOREACH (CustomDataTransferLayerMap *, lay_mapit, &lay_map) {
-          CustomData_data_transfer(&geom_map[VDATA], lay_mapit);
+        for (CustomDataTransferLayerMap &lay_mapit : lay_map) {
+          CustomData_data_transfer(&geom_map[VDATA], &lay_mapit);
         }
 
-        BLI_freelistN(&lay_map);
+        lay_map.clear();
       }
     }
     if (DT_DATATYPE_IS_EDGE(dtdata_type)) {
@@ -1455,13 +1456,13 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                                                tolayers,
                                                space_transform))
       {
-        changed |= (lay_map.first != nullptr);
+        changed |= !lay_map.is_empty();
 
-        LISTBASE_FOREACH (CustomDataTransferLayerMap *, lay_mapit, &lay_map) {
-          CustomData_data_transfer(&geom_map[EDATA], lay_mapit);
+        for (CustomDataTransferLayerMap &lay_mapit : lay_map) {
+          CustomData_data_transfer(&geom_map[EDATA], &lay_mapit);
         }
 
-        BLI_freelistN(&lay_map);
+        lay_map.clear();
       }
     }
     if (DT_DATATYPE_IS_LOOP(dtdata_type)) {
@@ -1536,13 +1537,13 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                                                tolayers,
                                                space_transform))
       {
-        changed |= (lay_map.first != nullptr);
+        changed |= !lay_map.is_empty();
 
-        LISTBASE_FOREACH (CustomDataTransferLayerMap *, lay_mapit, &lay_map) {
-          CustomData_data_transfer(&geom_map[LDATA], lay_mapit);
+        for (CustomDataTransferLayerMap &lay_mapit : lay_map) {
+          CustomData_data_transfer(&geom_map[LDATA], &lay_mapit);
         }
 
-        BLI_freelistN(&lay_map);
+        lay_map.clear();
       }
     }
     if (DT_DATATYPE_IS_FACE(dtdata_type)) {
@@ -1617,13 +1618,13 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                                                tolayers,
                                                space_transform))
       {
-        changed |= (lay_map.first != nullptr);
+        changed |= !lay_map.is_empty();
 
-        LISTBASE_FOREACH (CustomDataTransferLayerMap *, lay_mapit, &lay_map) {
-          CustomData_data_transfer(&geom_map[PDATA], lay_mapit);
+        for (CustomDataTransferLayerMap &lay_mapit : lay_map) {
+          CustomData_data_transfer(&geom_map[PDATA], &lay_mapit);
         }
 
-        BLI_freelistN(&lay_map);
+        lay_map.clear();
       }
     }
 
