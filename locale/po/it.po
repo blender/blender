@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-10-27 09:50+0000\n"
 "PO-Revision-Date: 2025-09-09 13:59+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -24550,16 +24550,136 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Assign Material"
-msgstr "Assegna Materiale"
+msgid "Text"
+msgstr "Testo"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
+
+
+msgid "Names"
+msgstr "Nomi"
+
+
+msgid "Bone Roll"
+msgstr "Rollio Osso"
+
+
+msgid "Clean Up"
+msgstr "Ripulisci"
+
+
+msgid "Pivot Point"
+msgstr "Punto di Perno"
+
+
+msgid "Snap"
+msgstr "Aggancia"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Decadimento Modifica Proporzionale"
+
+
+msgid "Mask Edit"
+msgstr "Modifica Maschera"
+
+
+msgid "Automasking"
+msgstr "Automascheramento"
+
+
+msgid "Face Sets Edit"
+msgstr "Modifica Sets di Facce"
+
+
+msgid "Vertex Group Locks"
+msgstr "Blocchi del Gruppo di Vertici"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Mirror"
+msgstr "Specchia"
+
+
+msgid "UV Mapping"
+msgstr "Mappatura UV"
+
+
+msgid "Local View"
+msgstr "Vista Locale"
+
+
+msgid "Viewpoint"
+msgstr "Punto di vista"
+
+
+msgid "Navigation"
+msgstr "Navigazione"
+
+
+msgid "Align View"
+msgstr "Allinea Vista"
+
+
+msgid "Adjust"
+msgstr "Regola"
+
+
+msgid "Align View to Active"
+msgstr "Allinea Vista a Attivo"
+
+
+msgid "View Regions"
+msgstr "Regione Vista"
 
 
 msgid "Select More/Less"
 msgstr "Seleziona Più/Meno"
 
 
-msgid "Metaball"
-msgstr "Metaball"
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Tracking"
+msgstr "Tracciamento"
+
+
+msgid "Select Similar"
+msgstr "Seleziona Simili"
+
+
+msgid "Select All by Trait"
+msgstr "Seleziona Tutto per Caratteristica"
+
+
+msgid "Utilities"
+msgstr "Utilità"
+
+
+msgid "Select Linked"
+msgstr "Seleziona Collegati"
+
+
+msgid "Math"
+msgstr "Matematica"
+
+
+msgid "Select Loops"
+msgstr "Seleziona Anelli"
+
+
+msgid "Assign Material"
+msgstr "Assegna Materiale"
 
 
 msgid "Light"
@@ -24594,14 +24714,6 @@ msgid "Quick Effects"
 msgstr "Effetti Veloci"
 
 
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
-
-
-msgid "Clean Up"
-msgstr "Ripulisci"
-
-
 msgid "Asset"
 msgstr "Risorsa"
 
@@ -24622,12 +24734,20 @@ msgid "Hooks"
 msgstr "Ganci"
 
 
-msgid "Vertex Group Locks"
-msgstr "Blocchi del Gruppo di Vertici"
+msgid "Read"
+msgstr "Lettura"
 
 
-msgid "Layout"
-msgstr "Layout"
+msgid "Sample"
+msgstr "Campione"
+
+
+msgid "Write"
+msgstr "Scrittura"
+
+
+msgid "Primitives"
+msgstr "Primitive"
 
 
 msgid "Face Sets Init"
@@ -24646,40 +24766,24 @@ msgid "In-Betweens"
 msgstr "Intermedio"
 
 
-msgid "Adjust"
-msgstr "Regola"
-
-
 msgid "Propagate"
 msgstr "Propaga"
+
+
+msgid "Instances"
+msgstr "Istanze"
 
 
 msgid "Bone Collections"
 msgstr "Raccolte di Ossa"
 
 
-msgid "Keying"
-msgstr "Keying"
-
-
-msgid "Names"
-msgstr "Nomi"
-
-
-msgid "Tracking"
-msgstr "Tracciamento"
-
-
-msgid "Utilities"
-msgstr "Utilità"
+msgid "Import"
+msgstr "Importa"
 
 
 msgid "Toggle Bone Options"
 msgstr "Attiva/disattiva Opzioni Osso"
-
-
-msgid "Math"
-msgstr "Matematica"
 
 
 msgid "Enable Bone Options"
@@ -24706,6 +24810,10 @@ msgid "Set Face Strength"
 msgstr "Imposta Intensità Faccia"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Merge"
 msgstr "Unisci"
 
@@ -24718,120 +24826,12 @@ msgid "Kerning"
 msgstr "Crenatura"
 
 
-msgid "Text"
-msgstr "Testo"
-
-
-msgid "Bone Roll"
-msgstr "Rollio Osso"
-
-
-msgid "Read"
-msgstr "Lettura"
-
-
-msgid "Sample"
-msgstr "Campione"
-
-
-msgid "Write"
-msgstr "Scrittura"
-
-
-msgid "Pivot Point"
-msgstr "Punto di Perno"
-
-
-msgid "Primitives"
-msgstr "Primitive"
-
-
-msgid "Snap"
-msgstr "Aggancia"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Decadimento Modifica Proporzionale"
-
-
-msgid "Mask Edit"
-msgstr "Modifica Maschera"
-
-
-msgid "Automasking"
-msgstr "Automascheramento"
-
-
-msgid "Face Sets Edit"
-msgstr "Modifica Sets di Facce"
-
-
-msgid "Instances"
-msgstr "Istanze"
-
-
-msgid "Import"
-msgstr "Importa"
-
-
-msgid "Mirror"
-msgstr "Specchia"
-
-
-msgid "UV Mapping"
-msgstr "Mappatura UV"
-
-
-msgid "Local View"
-msgstr "Vista Locale"
-
-
-msgid "Viewpoint"
-msgstr "Punto di vista"
-
-
-msgid "Navigation"
-msgstr "Navigazione"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Align View"
-msgstr "Allinea Vista"
-
-
-msgid "Align View to Active"
-msgstr "Allinea Vista a Attivo"
-
-
-msgid "View Regions"
-msgstr "Regione Vista"
-
-
-msgid "Select Similar"
-msgstr "Seleziona Simili"
-
-
-msgid "Select All by Trait"
-msgstr "Seleziona Tutto per Caratteristica"
-
-
-msgid "Select Linked"
-msgstr "Seleziona Collegati"
+msgid "Keyframe Insert Pie"
+msgstr "Torta Inserisci Keyframe"
 
 
 msgid "Basic"
 msgstr "Di Base"
-
-
-msgid "Select Loops"
-msgstr "Seleziona Anelli"
-
-
-msgid "Keyframe Insert Pie"
-msgstr "Torta Inserisci Keyframe"
 
 
 msgid "Bone Collection Specials"
@@ -28385,14 +28385,6 @@ msgstr "Mantieni Confini"
 
 msgid "Nodes Modifier"
 msgstr "Modificatore Nodi"
-
-
-msgid "Bake Target"
-msgstr "Target Precalcolo"
-
-
-msgid "Packed"
-msgstr "Compresso"
 
 
 msgid "Pack the baked data into the .blend file"
@@ -49776,6 +49768,10 @@ msgid "Textures Directory"
 msgstr "Cartella Texture"
 
 
+msgid "Packed"
+msgstr "Compresso"
+
+
 msgid "All Custom"
 msgstr "Tutto Personalizzato"
 
@@ -50134,10 +50130,6 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
-msgid "Auto-Masking"
-msgstr "Auto-Mascheramento"
-
-
 msgid "Shadow Settings"
 msgstr "Impostazioni Ombra"
 
@@ -50188,6 +50180,10 @@ msgstr "Giacitura Tratto"
 
 msgid "Stereoscopy"
 msgstr "Stereoscopia"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Mascheramento"
 
 
 msgid "Chain Scaling"
@@ -60296,10 +60292,6 @@ msgid "Active camera is not in this scene"
 msgstr "La camera attiva non è in questa scena"
 
 
-msgid "Modifiers cannot be added to object: "
-msgstr "Non possono essere aggiunti modificatori all'oggetto: "
-
-
 msgid "Fur Material"
 msgstr "Materiale Pelo"
 
@@ -60459,10 +60451,6 @@ msgstr "Supporto"
 msgctxt "Operator"
 msgid "User Communities"
 msgstr "Comunità Utenti"
-
-
-msgid "Failed to assign value: "
-msgstr "Impossibile impostare il valore: "
 
 
 msgid "Strip(s)"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-10-27 09:50+0000\n"
 "PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -15667,12 +15667,80 @@ msgid "Material slot name"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺔﺤﺘﻓ ﻢﺳﺇ"
 
 
-msgid "Select More/Less"
-msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
+msgid "Text"
+msgstr "ﺺﻧ"
 
 
 msgid "Metaball"
 msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
+
+
+msgid "Names"
+msgstr "ءﺎﻤﺳﺃ"
+
+
+msgid "Bone Roll"
+msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
+
+
+msgid "Snap"
+msgstr "ﻱﺫﺎﺣ"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
+
+
+msgid "Layout"
+msgstr "ﻖﻴﺴﻨﺗ"
+
+
+msgid "Mirror"
+msgstr "ﻞﺛﺎﻣ"
+
+
+msgid "UV Mapping"
+msgstr "UV ءﺎﺴﻛﺇ"
+
+
+msgid "Navigation"
+msgstr "ﺢﻔّﺼﺗ"
+
+
+msgid "Align View"
+msgstr "ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
+
+
+msgid "Align View to Active"
+msgstr "ﻝﺎﻌّﻔﻠﻟ ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
+
+
+msgid "Select More/Less"
+msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
+
+
+msgid "Keying"
+msgstr "ﺺﺤﻔﻟﺍ"
+
+
+msgid "Tracking"
+msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ"
+
+
+msgid "Select Similar"
+msgstr "ﻞﺛﺎﻤﻤﻟﺍ ﺮﺘﺧﺇ"
+
+
+msgid "Select All by Trait"
+msgstr "ﺔﻤﺴﻟﺍ ﺐﺴﺣ ﻞﻛ ﺭﺎﻴﺘﺧﺍ"
+
+
+msgid "Select Linked"
+msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
+
+
+msgid "Math"
+msgstr "ﺏﺎﺴﺣ"
 
 
 msgid "Light"
@@ -15707,10 +15775,6 @@ msgid "Hooks"
 msgstr "ﺕﺎﻓﺎﻄﺧ"
 
 
-msgid "Layout"
-msgstr "ﻖﻴﺴﻨﺗ"
-
-
 msgid "In-Betweens"
 msgstr "ﻦﻴﺑ ﺎﻣ"
 
@@ -15719,24 +15783,16 @@ msgid "Propagate"
 msgstr "ﻢﻤﻋ"
 
 
-msgid "Keying"
-msgstr "ﺺﺤﻔﻟﺍ"
-
-
-msgid "Names"
-msgstr "ءﺎﻤﺳﺃ"
-
-
-msgid "Tracking"
-msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ"
-
-
-msgid "Math"
-msgstr "ﺏﺎﺴﺣ"
+msgid "Import"
+msgstr "ﺩﺭﻮﺘﺳﺇ"
 
 
 msgid "Face Data"
 msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
+
+
+msgid "UV"
+msgstr "ﺭﻭﺎﺤﻣ"
 
 
 msgid "Merge"
@@ -15745,62 +15801,6 @@ msgstr "ﺞﻣﺩﺇ"
 
 msgid "Special Characters"
 msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
-
-
-msgid "Text"
-msgstr "ﺺﻧ"
-
-
-msgid "Bone Roll"
-msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
-
-
-msgid "Snap"
-msgstr "ﻱﺫﺎﺣ"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
-
-
-msgid "Import"
-msgstr "ﺩﺭﻮﺘﺳﺇ"
-
-
-msgid "Mirror"
-msgstr "ﻞﺛﺎﻣ"
-
-
-msgid "UV Mapping"
-msgstr "UV ءﺎﺴﻛﺇ"
-
-
-msgid "Navigation"
-msgstr "ﺢﻔّﺼﺗ"
-
-
-msgid "UV"
-msgstr "ﺭﻭﺎﺤﻣ"
-
-
-msgid "Align View"
-msgstr "ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
-
-
-msgid "Align View to Active"
-msgstr "ﻝﺎﻌّﻔﻠﻟ ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
-
-
-msgid "Select Similar"
-msgstr "ﻞﺛﺎﻤﻤﻟﺍ ﺮﺘﺧﺇ"
-
-
-msgid "Select All by Trait"
-msgstr "ﺔﻤﺴﻟﺍ ﺐﺴﺣ ﻞﻛ ﺭﺎﻴﺘﺧﺍ"
-
-
-msgid "Select Linked"
-msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
 
 
 msgctxt "MovieClip"

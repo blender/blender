@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-10-27 09:50+0000\n"
 "PO-Revision-Date: 2025-07-23 15:04+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Khmer (Central) <https://translate.blender.org/projects/blender-ui/ui/km/>\n"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-10-27 09:50+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -28977,16 +28977,136 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Assign Material"
-msgstr "Malzeme Atamak"
+msgid "Text"
+msgstr "Metin"
+
+
+msgid "Metaball"
+msgstr "Metabol"
+
+
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
+
+
+msgid "Names"
+msgstr "Adlar"
+
+
+msgid "Bone Roll"
+msgstr "Kemik Rulosu"
+
+
+msgid "Clean Up"
+msgstr "Temizle"
+
+
+msgid "Pivot Point"
+msgstr "Pivot Noktası"
+
+
+msgid "Snap"
+msgstr "Yakala"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Orantılı Düzenleme Düşüşü"
+
+
+msgid "Mask Edit"
+msgstr "Maske Düzenleme"
+
+
+msgid "Automasking"
+msgstr "Otomatik maskeleme"
+
+
+msgid "Face Sets Edit"
+msgstr "Yüz Setleri Düzenle"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Grup Kilitleri"
+
+
+msgid "Layout"
+msgstr "Yerleşim"
+
+
+msgid "Mirror"
+msgstr "Yansıtma"
+
+
+msgid "UV Mapping"
+msgstr "UV Haritalama"
+
+
+msgid "Local View"
+msgstr "Yerel Görünüm"
+
+
+msgid "Viewpoint"
+msgstr "Bakış açısı"
+
+
+msgid "Navigation"
+msgstr "Navigasyon"
+
+
+msgid "Align View"
+msgstr "Görünümü hizala"
+
+
+msgid "Adjust"
+msgstr "Ayarlamak"
+
+
+msgid "Align View to Active"
+msgstr "Görünümü Etkin Olarak Hizala"
+
+
+msgid "View Regions"
+msgstr "Bölgeleri Görüntüle"
 
 
 msgid "Select More/Less"
 msgstr "Daha Fazla/Daha Az Seç"
 
 
-msgid "Metaball"
-msgstr "Metabol"
+msgid "Keying"
+msgstr "Anahtarlama"
+
+
+msgid "Tracking"
+msgstr "Takip"
+
+
+msgid "Select Similar"
+msgstr "Benzerini Seç"
+
+
+msgid "Select All by Trait"
+msgstr "Özelliğe Göre Tümünü Seç"
+
+
+msgid "Utilities"
+msgstr "Kamu hizmetleri"
+
+
+msgid "Select Linked"
+msgstr "Bağlantılıyı Seç"
+
+
+msgid "Math"
+msgstr "Matematik"
+
+
+msgid "Select Loops"
+msgstr "Döngüleri Seç"
+
+
+msgid "Assign Material"
+msgstr "Malzeme Atamak"
 
 
 msgid "Light"
@@ -29021,14 +29141,6 @@ msgid "Quick Effects"
 msgstr "Hızlı Etkiler"
 
 
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
-
-
-msgid "Clean Up"
-msgstr "Temizle"
-
-
 msgid "Asset"
 msgstr "Varlık"
 
@@ -29049,12 +29161,20 @@ msgid "Hooks"
 msgstr "Kancalar"
 
 
-msgid "Vertex Group Locks"
-msgstr "Vertex Grup Kilitleri"
+msgid "Read"
+msgstr "Okumak"
 
 
-msgid "Layout"
-msgstr "Yerleşim"
+msgid "Sample"
+msgstr "Örnek"
+
+
+msgid "Write"
+msgstr "Yazmak"
+
+
+msgid "Primitives"
+msgstr "İlkel"
 
 
 msgid "Trim/Add"
@@ -29081,40 +29201,24 @@ msgid "In-Betweens"
 msgstr "Arada Kalanlar"
 
 
-msgid "Adjust"
-msgstr "Ayarlamak"
-
-
 msgid "Propagate"
 msgstr "Yaymak"
+
+
+msgid "Instances"
+msgstr "Örnekler"
 
 
 msgid "Bone Collections"
 msgstr "Kemik Koleksiyonları"
 
 
-msgid "Keying"
-msgstr "Anahtarlama"
-
-
-msgid "Names"
-msgstr "Adlar"
-
-
-msgid "Tracking"
-msgstr "Takip"
-
-
-msgid "Utilities"
-msgstr "Kamu hizmetleri"
+msgid "Import"
+msgstr "İçe Aktar"
 
 
 msgid "Toggle Bone Options"
 msgstr "Kemik Seçeneklerini Değiştir"
-
-
-msgid "Math"
-msgstr "Matematik"
 
 
 msgid "Enable Bone Options"
@@ -29129,6 +29233,10 @@ msgid "Mesh Select Mode"
 msgstr "Örgü Seçim Kipi"
 
 
+msgid "Deprecated"
+msgstr "Kullanım dışı bırakıldı"
+
+
 msgid "Face Data"
 msgstr "Yüz Verileri"
 
@@ -29139,6 +29247,10 @@ msgstr "Yüz Gücüne Göre Seç"
 
 msgid "Set Face Strength"
 msgstr "Yüz Gücünü Ayarla"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Merge"
@@ -29153,124 +29265,12 @@ msgid "Kerning"
 msgstr "Harf aralığı"
 
 
-msgid "Text"
-msgstr "Metin"
-
-
-msgid "Bone Roll"
-msgstr "Kemik Rulosu"
-
-
-msgid "Read"
-msgstr "Okumak"
-
-
-msgid "Sample"
-msgstr "Örnek"
-
-
-msgid "Write"
-msgstr "Yazmak"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Noktası"
-
-
-msgid "Primitives"
-msgstr "İlkel"
-
-
-msgid "Snap"
-msgstr "Yakala"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Orantılı Düzenleme Düşüşü"
-
-
-msgid "Mask Edit"
-msgstr "Maske Düzenleme"
-
-
-msgid "Automasking"
-msgstr "Otomatik maskeleme"
-
-
-msgid "Face Sets Edit"
-msgstr "Yüz Setleri Düzenle"
-
-
-msgid "Instances"
-msgstr "Örnekler"
-
-
-msgid "Import"
-msgstr "İçe Aktar"
-
-
-msgid "Deprecated"
-msgstr "Kullanım dışı bırakıldı"
-
-
-msgid "Mirror"
-msgstr "Yansıtma"
-
-
-msgid "UV Mapping"
-msgstr "UV Haritalama"
-
-
-msgid "Local View"
-msgstr "Yerel Görünüm"
-
-
-msgid "Viewpoint"
-msgstr "Bakış açısı"
-
-
-msgid "Navigation"
-msgstr "Navigasyon"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Align View"
-msgstr "Görünümü hizala"
-
-
-msgid "Align View to Active"
-msgstr "Görünümü Etkin Olarak Hizala"
-
-
-msgid "View Regions"
-msgstr "Bölgeleri Görüntüle"
-
-
-msgid "Select Similar"
-msgstr "Benzerini Seç"
-
-
-msgid "Select All by Trait"
-msgstr "Özelliğe Göre Tümünü Seç"
-
-
-msgid "Select Linked"
-msgstr "Bağlantılıyı Seç"
+msgid "Keyframe Insert Pie"
+msgstr "Anahtar Kare Ekle Pasta"
 
 
 msgid "Basic"
 msgstr "Temel"
-
-
-msgid "Select Loops"
-msgstr "Döngüleri Seç"
-
-
-msgid "Keyframe Insert Pie"
-msgstr "Anahtar Kare Ekle Pasta"
 
 
 msgid "Bone Collection Specials"
@@ -34442,14 +34442,6 @@ msgstr "Simülasyon Pişirme Rehberi"
 
 msgid "Location on disk where the bake data is stored"
 msgstr "Pişirme verilerinin depolandığı disk konumu"
-
-
-msgid "Bake Target"
-msgstr "Hedefi pişir"
-
-
-msgid "Packed"
-msgstr "Paketlenmiş"
 
 
 msgid "Pack the baked data into the .blend file"
@@ -43352,10 +43344,6 @@ msgstr "Hala"
 
 msgid "Bake a single frame"
 msgstr "Tek bir çerçeve pişirin"
-
-
-msgid "Inherit from Modifier"
-msgstr "Değiştiriciden devral"
 
 
 msgid "Use setting from the modifier"
@@ -75530,6 +75518,10 @@ msgid "Don't import textures"
 msgstr "Dokuları içe aktarma"
 
 
+msgid "Packed"
+msgstr "Paketlenmiş"
+
+
 msgid "Import textures as packed data"
 msgstr "Dokuları paketlenmiş veri olarak içe aktar"
 
@@ -76427,42 +76419,6 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
-msgid "Auto-Masking"
-msgstr "Otomatik Maskeleme"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Eğriler Heykel Eğri Seçenekleri Ekle"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Eğriler Şekil Parametresi Düşüşü"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Eğriler Büyüyor/Küçülüyor Ölçekleme"
-
-
-msgid "Viewport Debug"
-msgstr "Görüş Alanı Hata Ayıklaması"
-
-
-msgid "VR"
-msgstr "Sanal Gerçeklik"
-
-
-msgid "VR Info"
-msgstr "VR Bilgisi"
-
-
-msgid "glTF Variants"
-msgstr "glTF Çeşitleri"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Malzeme Varyantları"
-
-
 msgid "Active Tool"
 msgstr "Etkin Araç"
 
@@ -76553,6 +76509,42 @@ msgstr "Stereoskopi"
 
 msgid "Multi Frame"
 msgstr "Çoklu Çerçeve"
+
+
+msgid "glTF Variants"
+msgstr "glTF Çeşitleri"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Malzeme Varyantları"
+
+
+msgid "Auto-Masking"
+msgstr "Otomatik Maskeleme"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Eğriler Heykel Eğri Seçenekleri Ekle"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Eğriler Şekil Parametresi Düşüşü"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Eğriler Büyüyor/Küçülüyor Ölçekleme"
+
+
+msgid "Viewport Debug"
+msgstr "Görüş Alanı Hata Ayıklaması"
+
+
+msgid "VR"
+msgstr "Sanal Gerçeklik"
+
+
+msgid "VR Info"
+msgstr "VR Bilgisi"
 
 
 msgid "Chain Scaling"
@@ -99034,10 +99026,6 @@ msgid "OSL query failed to open %s"
 msgstr "OSL sorgusu %s açılamadı"
 
 
-msgid "Failed to write .oso file next to external .osl file at "
-msgstr "Harici .osl dosyasının yanına .oso dosyası yazılamadı "
-
-
 msgid "Use Intel OpenImageDenoise AI denoiser"
 msgstr "Intel OpenImageDenoise AI gürültü gidericisini kullanın"
 
@@ -99628,10 +99616,6 @@ msgid "Selected nodes are not of the same type as {}"
 msgstr "Seçilen düğümler {} ile aynı türde değil"
 
 
-msgid "Ignored {} (not of the same type as {}), "
-msgstr "{} ({} ile aynı türden değil) göz ardı edildi, "
-
-
 msgid "No folder selected"
 msgstr "Hiçbir klasör seçilmedi"
 
@@ -99704,16 +99688,16 @@ msgid "This node has no inputs to swap"
 msgstr "Bu düğümün takas edilecek girişi yok"
 
 
+msgid "Ignored {} (not of the same type as {})"
+msgstr "{} (aynı türde değil) göz ardı edildi"
+
+
 msgid "Ignored {}"
 msgstr "Göz ardı edildi {}"
 
 
 msgid "This node has no input connections to swap"
 msgstr "Bu düğümün takas edilecek giriş bağlantısı yok"
-
-
-msgid "Ignored {} (not of the same type as {})"
-msgstr "{} (aynı türde değil) göz ardı edildi"
 
 
 msgid "Edit tags for auto texture detection in Principled BSDF setup"
@@ -100680,16 +100664,8 @@ msgid "Unable to mirror, no mirror object/bone configured"
 msgstr "Yansıtma yapılamıyor, ayna nesnesi/kemiği yapılandırılmadı"
 
 
-msgid "Unsupported mode: %r"
-msgstr "Desteklenmeyen mod: %r"
-
-
 msgid "No active camera in the scene"
 msgstr "Sahnede aktif kamera yok"
-
-
-msgid "Unexpected modifier type: "
-msgstr "Beklenmeyen tanımlayıcı türü: "
 
 
 msgid "Target object not specified"
@@ -100804,10 +100780,6 @@ msgid "No animation data to convert on object: {!r}"
 msgstr "{!r} nesnesinde dönüştürülecek animasyon verisi yok"
 
 
-msgid "Modifiers cannot be added to object: "
-msgstr "Nesneye tanımlayıcılar eklenemez: "
-
-
 msgid "No objects with bound-box selected"
 msgstr "Sınır kutusu seçili nesne yok"
 
@@ -100898,10 +100870,6 @@ msgstr "Ön ayar üzerine yazılamıyor: {:s}"
 
 msgid "Unable to remove preset: {!r}"
 msgstr "Ön ayar kaldırılamıyor: {!r}"
-
-
-msgid "Failed to execute the preset: "
-msgstr "Ön ayar yürütülemedi: "
 
 
 msgid "No other objects selected"
@@ -101277,10 +101245,6 @@ msgid "Python evaluation failed: "
 msgstr "Python değerlendirmesi başarısız oldu: "
 
 
-msgid "Failed to assign value: "
-msgstr "Değer atanamadı: "
-
-
 msgid "Strip(s)"
 msgstr "Şerit(ler)"
 
@@ -101313,10 +101277,6 @@ msgid "Rename {:d} {:s}"
 msgstr "{:d} {:s} adını değiştir"
 
 
-msgid "Invalid regular expression (find): "
-msgstr "Geçersiz düzenli ifade (bul): "
-
-
 msgid "Version: {:s}"
 msgstr "Sürüm: {:s}"
 
@@ -101339,10 +101299,6 @@ msgstr "\"{:s}\" türü bulunamadı"
 
 msgid "Material(s)"
 msgstr "Malzeme(ler)"
-
-
-msgid "Invalid regular expression (replace): "
-msgstr "Geçersiz düzenli ifade (değiştir): "
 
 
 msgctxt "Operator"
@@ -114946,10 +114902,6 @@ msgstr "Girişe bağlı düğümleri ayırın"
 
 msgid "Dependency Loop"
 msgstr "Bağımlılık Döngüsü"
-
-
-msgid "Unsupported Menu Socket"
-msgstr "Desteklenmeyen Menü Soketi"
 
 
 msgid "Closed by Default"

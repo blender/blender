@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-10-27 09:50+0000\n"
 "PO-Revision-Date: 2025-10-17 15:15+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
@@ -25536,16 +25536,136 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Assign Material"
-msgstr "Dodeli material"
+msgid "Text"
+msgstr "Besedilo"
+
+
+msgid "Metaball"
+msgstr "Metažoga"
+
+
+msgid "Show/Hide"
+msgstr "Pokaži / skrij"
+
+
+msgid "Names"
+msgstr "Imena"
+
+
+msgid "Bone Roll"
+msgstr "Zasukaj kost"
+
+
+msgid "Clean Up"
+msgstr "Počisti"
+
+
+msgid "Pivot Point"
+msgstr "Osišče"
+
+
+msgid "Snap"
+msgstr "Pritrdi"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Slabljenje sorazmernega urejanja"
+
+
+msgid "Mask Edit"
+msgstr "Urejanje maske"
+
+
+msgid "Automasking"
+msgstr "Samodejno maskiranje"
+
+
+msgid "Layout"
+msgstr "Ureditev"
+
+
+msgid "Mirror"
+msgstr "Zrcali"
+
+
+msgid "UV Mapping"
+msgstr "Preslikanje UV"
+
+
+msgid "Local View"
+msgstr "Krajevni pogled"
+
+
+msgid "Viewpoint"
+msgstr "Gledišče"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
+
+
+msgid "Align View"
+msgstr "Poravnava pogleda"
+
+
+msgid "Adjust"
+msgstr "Prilagoditev"
+
+
+msgid "Align View to Active"
+msgstr "Poravnaj pogled na aktivno"
+
+
+msgid "View Regions"
+msgstr "Področja pogleda"
 
 
 msgid "Select More/Less"
 msgstr "Izberi več / manj"
 
 
-msgid "Metaball"
-msgstr "Metažoga"
+msgid "Keying"
+msgstr "Ključenje"
+
+
+msgid "Tracking"
+msgstr "Sledenje"
+
+
+msgid "Select Similar"
+msgstr "Izberi sorodne"
+
+
+msgid "Select All by Trait"
+msgstr "Izberi vse po značilnosti"
+
+
+msgid "Utilities"
+msgstr "Pripomočki"
+
+
+msgid "Select Linked"
+msgstr "Izberi povezano"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Select Loops"
+msgstr "Izberi zanke"
+
+
+msgid "Creative"
+msgstr "Ustvarjanje"
+
+
+msgid "Assign Material"
+msgstr "Dodeli material"
+
+
+msgid "Render Preview"
+msgstr "Predogled upodobitve"
 
 
 msgid "Light"
@@ -25580,14 +25700,6 @@ msgid "Quick Effects"
 msgstr "Učinki na hitro"
 
 
-msgid "Show/Hide"
-msgstr "Pokaži / skrij"
-
-
-msgid "Clean Up"
-msgstr "Počisti"
-
-
 msgid "Asset"
 msgstr "Sredstvo"
 
@@ -25608,8 +25720,20 @@ msgid "Hooks"
 msgstr "Kavlji"
 
 
-msgid "Layout"
-msgstr "Ureditev"
+msgid "Read"
+msgstr "Branje"
+
+
+msgid "Sample"
+msgstr "Vzorčenje"
+
+
+msgid "Write"
+msgstr "Zapiši"
+
+
+msgid "Primitives"
+msgstr "Primitivi"
 
 
 msgid "Trim/Add"
@@ -25628,40 +25752,28 @@ msgid "In-Betweens"
 msgstr "Vmesni okvirji"
 
 
-msgid "Adjust"
-msgstr "Prilagoditev"
+msgid "Gizmo"
+msgstr "Manipulator"
 
 
 msgid "Propagate"
 msgstr "Razširjanje"
 
 
+msgid "Instances"
+msgstr "Primerki"
+
+
 msgid "Bone Collections"
 msgstr "Zbirke kosti"
 
 
-msgid "Keying"
-msgstr "Ključenje"
+msgid "Import"
+msgstr "Uvozi"
 
 
-msgid "Names"
-msgstr "Imena"
-
-
-msgid "Tracking"
-msgstr "Sledenje"
-
-
-msgid "Utilities"
-msgstr "Pripomočki"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "Creative"
-msgstr "Ustvarjanje"
+msgid "Deprecated"
+msgstr "Zastarelo"
 
 
 msgid "Face Data"
@@ -25676,8 +25788,12 @@ msgid "Set Face Strength"
 msgstr "Nastavi krepkost lica"
 
 
-msgid "Render Preview"
-msgstr "Predogled upodobitve"
+msgid "List"
+msgstr "Seznam"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Merge"
@@ -25692,128 +25808,12 @@ msgid "Kerning"
 msgstr "Spodsekavanje"
 
 
-msgid "Text"
-msgstr "Besedilo"
-
-
-msgid "Bone Roll"
-msgstr "Zasukaj kost"
-
-
-msgid "Read"
-msgstr "Branje"
-
-
-msgid "Sample"
-msgstr "Vzorčenje"
-
-
-msgid "Write"
-msgstr "Zapiši"
-
-
-msgid "Pivot Point"
-msgstr "Osišče"
-
-
-msgid "Primitives"
-msgstr "Primitivi"
-
-
-msgid "Snap"
-msgstr "Pritrdi"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Slabljenje sorazmernega urejanja"
-
-
-msgid "Mask Edit"
-msgstr "Urejanje maske"
-
-
-msgid "Automasking"
-msgstr "Samodejno maskiranje"
-
-
-msgid "Gizmo"
-msgstr "Manipulator"
-
-
-msgid "Instances"
-msgstr "Primerki"
-
-
-msgid "Import"
-msgstr "Uvozi"
-
-
-msgid "Deprecated"
-msgstr "Zastarelo"
-
-
-msgid "Mirror"
-msgstr "Zrcali"
-
-
-msgid "UV Mapping"
-msgstr "Preslikanje UV"
-
-
-msgid "Local View"
-msgstr "Krajevni pogled"
-
-
-msgid "List"
-msgstr "Seznam"
-
-
-msgid "Viewpoint"
-msgstr "Gledišče"
-
-
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Align View"
-msgstr "Poravnava pogleda"
-
-
-msgid "Align View to Active"
-msgstr "Poravnaj pogled na aktivno"
-
-
-msgid "View Regions"
-msgstr "Področja pogleda"
-
-
-msgid "Select Similar"
-msgstr "Izberi sorodne"
-
-
-msgid "Select All by Trait"
-msgstr "Izberi vse po značilnosti"
-
-
 msgid "Animals"
 msgstr "Živali"
 
 
-msgid "Select Linked"
-msgstr "Izberi povezano"
-
-
 msgid "Basic"
 msgstr "Osnovno"
-
-
-msgid "Select Loops"
-msgstr "Izberi zanke"
 
 
 msgid "Rigify Meta-Rigs"
@@ -28162,16 +28162,8 @@ msgid "Nodes Modifier"
 msgstr "Modifikator Vozlišča"
 
 
-msgid "Bake Target"
-msgstr "Cilj peke"
-
-
 msgid "Where to store the baked data"
 msgstr "Kam shraniti zapečene podatke"
-
-
-msgid "Packed"
-msgstr "V datoteki"
 
 
 msgid "Node Group"
@@ -48622,6 +48614,10 @@ msgid "Import Textures"
 msgstr "Uvozi teksture"
 
 
+msgid "Packed"
+msgstr "V datoteki"
+
+
 msgid "Import USD Preview"
 msgstr "Predogled uvoza USD"
 
@@ -49286,30 +49282,6 @@ msgid "Panel containing UI elements"
 msgstr "Plošča, ki vsebuje elemente uporabniškega vmesnika"
 
 
-msgid "Auto-Masking"
-msgstr "Samodejno maskiranje"
-
-
-msgid "Viewport Debug"
-msgstr "Razhroščevanje 3D pogleda"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "Informacije VR"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animacije glTF"
-
-
 msgid "Active Tool"
 msgstr "Aktivno orodje"
 
@@ -49412,6 +49384,30 @@ msgstr "Stereoskopija"
 
 msgid "Multi Frame"
 msgstr "Multiokvir"
+
+
+msgid "Auto-Masking"
+msgstr "Samodejno maskiranje"
+
+
+msgid "Viewport Debug"
+msgstr "Razhroščevanje 3D pogleda"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animacije glTF"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "Informacije VR"
 
 
 msgid "Import Settings"
@@ -61909,10 +61905,6 @@ msgid "Unable to mirror, no mirror object/bone configured"
 msgstr "Ni bilo mogoče zrcaliti, noben zrcalni objekt/kost ni nastavljen"
 
 
-msgid "Unsupported mode: %r"
-msgstr "Nepodprt način: %r"
-
-
 msgid "Node group must have a geometry output"
 msgstr "Skupina vozlišč mora imeti izhod z geometrijo"
 
@@ -62318,10 +62310,6 @@ msgstr "Ne najdem tipa \"{:s}\""
 
 msgid "Material(s)"
 msgstr "Material/i"
-
-
-msgid "Invalid regular expression (replace): "
-msgstr "Neveljavni regularni izraz (zamenjava): "
 
 
 msgctxt "Operator"
@@ -74643,10 +74631,6 @@ msgid "Dependency Loop"
 msgstr "Zanka"
 
 
-msgid "Unsupported Menu Socket"
-msgstr "Nepodprta menijska vtičnica"
-
-
 msgid "Closed by Default"
 msgstr "Privzeto zaprto"
 
@@ -77351,6 +77335,10 @@ msgid "Element"
 msgstr "Element"
 
 
+msgid "Revert"
+msgstr "Obnovi shranjeno"
+
+
 msgid "Divergence"
 msgstr "Divergenca"
 
@@ -78279,10 +78267,6 @@ msgstr ""
 
 msgid "Warning: There are unsaved external image(s)."
 msgstr "Pozor: V projektu so neshranjene zunanje slike."
-
-
-msgid "Revert"
-msgstr "Obnovi shranjeno"
 
 
 msgid "Clear Recent Files List"

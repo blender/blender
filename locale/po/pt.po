@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
-"PO-Revision-Date: 2025-10-19 09:59+0000\n"
+"POT-Creation-Date: 2025-10-27 09:50+0000\n"
+"PO-Revision-Date: 2025-10-24 22:59+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -725,6 +725,14 @@ msgstr "Distribuir memória pelos dispositivos"
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "Fazer mais espaço para acomodar cenas grandes distribuindo a memória por diversos dispositivos conectados (e.g. via NVLink) em vez de duplicá-la"
+
+
+msgid "HIP RT"
+msgstr "HIP RT"
+
+
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above"
+msgstr "HIP RT permite rastreamento de raios por hardware AMD em RDNA2 e mais recentes"
 
 
 msgid "Embree on GPU"
@@ -19507,8 +19515,18 @@ msgid "Amount of random elements that are going to be affected by the brush"
 msgstr "Quantidade de elementos aleatórios que vão ser afectados pelo pincel"
 
 
+msgctxt "Brush"
+msgid "Add"
+msgstr "Adicionar"
+
+
 msgid "Add effect of brush"
 msgstr "Adiciona o efeito do pincel"
+
+
+msgctxt "Brush"
+msgid "Subtract"
+msgstr "Subtrair"
 
 
 msgid "Subtract effect of brush"
@@ -25984,6 +26002,14 @@ msgid "Globally disable in volume probes"
 msgstr "Desactivar globalmente em sondas volumétricas"
 
 
+msgid "Disable in Surface Picking"
+msgstr "Desactivar Selecção na Superfície"
+
+
+msgid "Disable surface influence during selection, snapping and depth-picking operators. Usually used to avoid semi-transparent objects to affect scene navigation"
+msgstr "Desactivar a influência da superfície durante a selecção, atracção, e escolha de profundidade. Tipicamente usado para evitar que objectos semi-transparentes afectem navegação na cena"
+
+
 msgid "Instance Collection"
 msgstr "Colecção de Duplicação"
 
@@ -28226,6 +28252,11 @@ msgstr "Delta de Salto Temporal"
 
 msgid "Number of frames or seconds to jump forward or backward"
 msgstr "Número de fotogramas ou segundos para saltar para a frente ou para trás"
+
+
+msgctxt "Unit"
+msgid "Time Jump Unit"
+msgstr "Unidade de Salto Temporal"
 
 
 msgid "Which unit to use for time jumps in the timeline"
@@ -34857,16 +34888,144 @@ msgid "Editor menu containing buttons"
 msgstr "Menu de editor contendo botões"
 
 
-msgid "Assign Material"
-msgstr "Aplicar Material"
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Metaball"
+msgstr "Esfera-meta"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Names"
+msgstr "Nomes"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem do osso"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
+
+
+msgid "Snap"
+msgstr "Atrair"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Mask Edit"
+msgstr "Edição de Máscara"
+
+
+msgid "Automasking"
+msgstr "Auto Máscara"
+
+
+msgid "Face Sets Edit"
+msgstr "Edições de Conjuntos de Faces"
+
+
+msgid "Vertex Group Locks"
+msgstr "Bloqueios de Grupos de Vértices"
+
+
+msgid "Layout"
+msgstr "Organizar"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de Vista"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Adjust"
+msgstr "Ajustar"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o activo"
+
+
+msgid "View Regions"
+msgstr "Regiões de Visualização"
 
 
 msgid "Select More/Less"
 msgstr "Seleccionar mais ou menos"
 
 
-msgid "Metaball"
-msgstr "Esfera-meta"
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
+
+
+msgid "Select Similar"
+msgstr "Seleccionar por similaridades"
+
+
+msgid "Select All by Trait"
+msgstr "Seleccionar todos por características..."
+
+
+msgid "Utilities"
+msgstr "Utilidades"
+
+
+msgid "Select Linked"
+msgstr "Seleccionar vinculados(as)"
+
+
+msgid "Math"
+msgstr "Matemática"
+
+
+msgid "Select Loops"
+msgstr "Seleccionar Anéis"
+
+
+msgid "Creative"
+msgstr "Criativo"
+
+
+msgid "Assign Material"
+msgstr "Aplicar Material"
+
+
+msgid "Render Preview"
+msgstr "Pré-Visualização da Render"
 
 
 msgid "Light"
@@ -34901,14 +35060,6 @@ msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
 msgid "Asset"
 msgstr "Recurso"
 
@@ -34929,12 +35080,20 @@ msgid "Hooks"
 msgstr "Ganchos"
 
 
-msgid "Vertex Group Locks"
-msgstr "Bloqueios de Grupos de Vértices"
+msgid "Read"
+msgstr "Ler"
 
 
-msgid "Layout"
-msgstr "Organizar"
+msgid "Sample"
+msgstr "Amostrar"
+
+
+msgid "Write"
+msgstr "Escrever"
+
+
+msgid "Primitives"
+msgstr "Primitivas"
 
 
 msgid "Trim/Add"
@@ -34961,48 +35120,32 @@ msgid "In-Betweens"
 msgstr "Entre as continuidades"
 
 
-msgid "Adjust"
-msgstr "Ajustar"
+msgid "Gizmo"
+msgstr "Apetrecho"
 
 
 msgid "Propagate"
 msgstr "Propagar"
 
 
+msgid "Instances"
+msgstr "Instâncias"
+
+
 msgid "Bone Collections"
 msgstr "Colecções de Ossos"
 
 
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
-msgid "Names"
-msgstr "Nomes"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
-
-
-msgid "Utilities"
-msgstr "Utilidades"
+msgid "Import"
+msgstr "Importar"
 
 
 msgid "Toggle Bone Options"
 msgstr "Alternar opções de ossos"
 
 
-msgid "Math"
-msgstr "Matemática"
-
-
 msgid "Enable Bone Options"
 msgstr "Ativar opções de ossos"
-
-
-msgid "Creative"
-msgstr "Criativo"
 
 
 msgid "Disable Bone Options"
@@ -35011,6 +35154,10 @@ msgstr "Desativar as opções de ossos"
 
 msgid "Mesh Select Mode"
 msgstr "Modo de selecção de malhas"
+
+
+msgid "Deprecated"
+msgstr "Decontinuado"
 
 
 msgid "Face Data"
@@ -35025,8 +35172,12 @@ msgid "Set Face Strength"
 msgstr "Definir Força das Faces"
 
 
-msgid "Render Preview"
-msgstr "Pré-Visualização da Render"
+msgid "List"
+msgstr "Lista"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Merge"
@@ -35041,136 +35192,16 @@ msgid "Kerning"
 msgstr "Kerning"
 
 
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem do osso"
-
-
-msgid "Read"
-msgstr "Ler"
-
-
-msgid "Sample"
-msgstr "Amostrar"
-
-
-msgid "Write"
-msgstr "Escrever"
-
-
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
-
-
-msgid "Primitives"
-msgstr "Primitivas"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Mask Edit"
-msgstr "Edição de Máscara"
-
-
-msgid "Automasking"
-msgstr "Auto Máscara"
-
-
-msgid "Face Sets Edit"
-msgstr "Edições de Conjuntos de Faces"
-
-
-msgid "Gizmo"
-msgstr "Apetrecho"
-
-
-msgid "Instances"
-msgstr "Instâncias"
-
-
-msgid "Import"
-msgstr "Importar"
-
-
-msgid "Deprecated"
-msgstr "Decontinuado"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "List"
-msgstr "Lista"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de Vista"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o activo"
-
-
-msgid "View Regions"
-msgstr "Regiões de Visualização"
-
-
-msgid "Select Similar"
-msgstr "Seleccionar por similaridades"
-
-
-msgid "Select All by Trait"
-msgstr "Seleccionar todos por características..."
+msgid "Keyframe Insert Pie"
+msgstr "Menu de Circular de Inserção de Fotogramas Chave"
 
 
 msgid "Animals"
 msgstr "Animais"
 
 
-msgid "Select Linked"
-msgstr "Seleccionar vinculados(as)"
-
-
 msgid "Basic"
 msgstr "Básico"
-
-
-msgid "Select Loops"
-msgstr "Seleccionar Anéis"
-
-
-msgid "Keyframe Insert Pie"
-msgstr "Menu de Circular de Inserção de Fotogramas Chave"
 
 
 msgid "Bone Collection Specials"
@@ -35411,6 +35442,10 @@ msgstr "Nós especiais de cor"
 
 msgid "Node Tree Interface Specials"
 msgstr "Especiais de Interface de Árvore de Nós"
+
+
+msgid "New Item"
+msgstr "Novo item"
 
 
 msgid "Add Reroutes"
@@ -41047,16 +41082,8 @@ msgid "Location on disk where the bake data is stored"
 msgstr "Local no disco onde os dados pré-calculados são armazenados"
 
 
-msgid "Bake Target"
-msgstr "Pré Calcular Alvo"
-
-
 msgid "Where to store the baked data"
 msgstr "Onde armazenar os dados pré calculados"
-
-
-msgid "Packed"
-msgstr "Embalar"
 
 
 msgid "Pack the baked data into the .blend file"
@@ -52633,10 +52660,6 @@ msgid "Bake a single frame"
 msgstr "Pré-Calcular um único fotograma"
 
 
-msgid "Inherit from Modifier"
-msgstr "Herdar do modificador"
-
-
 msgid "Use setting from the modifier"
 msgstr "Usar definição do modificador"
 
@@ -53851,6 +53874,15 @@ msgstr "Adicionar um novo item ao interface"
 msgctxt "Operator"
 msgid "New Item"
 msgstr "Novo item"
+
+
+msgid "Add a checkbox to the currently selected panel"
+msgstr "Adicionar uma caixa de verificação ao painel seleccionado"
+
+
+msgctxt "Operator"
+msgid "New Panel Toggle"
+msgstr "Novo Selector de Painel"
 
 
 msgid "Remove active item from the interface"
@@ -71812,8 +71844,16 @@ msgid "Input Node"
 msgstr "Nós de entrada"
 
 
+msgid "Specifies the input node used by the created zone"
+msgstr "Especifica o nó de entrada usado pela zona criada"
+
+
 msgid "Output Node"
 msgstr "Nós de saída"
+
+
+msgid "Specifies the output node used by the created zone"
+msgstr "Especifica o nó de saída usado pela zona criada"
 
 
 msgctxt "Operator"
@@ -72170,6 +72210,11 @@ msgid "Type of the item to create"
 msgstr "Tipo de item a criar"
 
 
+msgctxt "Operator"
+msgid "Join Nodes in Frame"
+msgstr "Juntar Nós em Moldura"
+
+
 msgid "Attach selected nodes to a new common frame"
 msgstr "Conecta os nós seleccionados, juntando-os em um novo fotograma comum."
 
@@ -72183,6 +72228,10 @@ msgid "Create a new frame node around the selected nodes and name it immediately
 msgstr "Criar novo nó de moldura em torno dos nós seleccionados e renomeá-lo imediatamente"
 
 
+msgid "Join Nodes in Frame"
+msgstr "Juntar Nós em Moldura"
+
+
 msgid "Call Panel"
 msgstr "Chamar Painel"
 
@@ -72194,6 +72243,10 @@ msgstr "Abrir painel pré-definido"
 msgctxt "Operator"
 msgid "Join Nodes"
 msgstr "Juntar nós"
+
+
+msgid "Merge selected group input nodes into one if possible"
+msgstr "Fundir nós de entrada de grupo num só, se possível"
 
 
 msgctxt "Operator"
@@ -72338,6 +72391,15 @@ msgstr "Alternar silenciar nós seleccionados"
 
 msgid "Create a new compositing node group and initialize it with default nodes"
 msgstr "Criar um novo grupo de nós de composição e inicializar com nós pré definidos"
+
+
+msgctxt "Operator"
+msgid "New Compositor Sequencer Node Group"
+msgstr "Novo Grupo de Nós de Composição de Sequenciador"
+
+
+msgid "Create a new compositor node group for sequencer"
+msgstr "Criar novo grupo de nos de composição para sequenciador"
 
 
 msgctxt "Operator"
@@ -72947,6 +73009,10 @@ msgid "TIFF"
 msgstr "TIFF"
 
 
+msgid "WEBP"
+msgstr "WEBP"
+
+
 msgid "Select Parent Frame"
 msgstr "Seleccionar Moldura Ascendente"
 
@@ -73112,6 +73178,19 @@ msgstr "Actualizar conectores para igualar o que é realmente utilizado"
 
 msgid "Node Name"
 msgstr "Nome do Nó"
+
+
+msgid "Replace active node with an empty group"
+msgstr "Substituir nó activo por um grupo vazio"
+
+
+msgctxt "Operator"
+msgid "Swap Node Group Asset"
+msgstr "Trocar Recurso de Grupo de Nós"
+
+
+msgid "Swap selected nodes with the specified node group asset"
+msgstr "Trocar nós seleccionados por recurso grupo de nós"
 
 
 msgctxt "Operator"
@@ -73920,6 +73999,15 @@ msgstr "Escreve pré-cálculo para a localização original (substituir ficheiro
 
 
 msgctxt "Operator"
+msgid "New Geometry Node Group"
+msgstr "Novo Grupo de Nós de Nós de Geometria"
+
+
+msgid "Duplicate the active geometry node group and assign it to the active modifier"
+msgstr "Duplicar o grupo de nós de geometria activo e atribuí-lo ao modificador activo"
+
+
+msgctxt "Operator"
 msgid "Input Attribute Toggle"
 msgstr "Alternar Atributo de Entrada"
 
@@ -74217,6 +74305,10 @@ msgid "Add the vertex positions of selected objects as shape keys or update exis
 msgstr "Adicionar posições de vértices dos objectos seleccionados como formas chave ou actualizar formas chave com nomes correspondentes"
 
 
+msgid "Mirror the new shape key values"
+msgstr "Espelhar os novos valores de forma chave"
+
+
 msgctxt "Operator"
 msgid "Laplacian Deform Bind"
 msgstr "Acoplamento de Deformação Laplaciana"
@@ -74224,6 +74316,47 @@ msgstr "Acoplamento de Deformação Laplaciana"
 
 msgid "Bind mesh to system in laplacian deform modifier"
 msgstr "Acoplar malha ao sistema no modificador de Deformação Laplaciana"
+
+
+msgctxt "Operator"
+msgid "Add Lattice Deformer"
+msgstr "Adicionar Deformação por Grelha"
+
+
+msgid "Add a lattice and use it to deform selected objects"
+msgstr "Adicionar grelha e usa-la para deformar objects seleccionados"
+
+
+msgid "Add Modifiers"
+msgstr "Adicionar Modificadores"
+
+
+msgid "Automatically add lattice modifiers to selected objects"
+msgstr "Adicionar automaticamente modificadores de grelha aos objectos seleccionados"
+
+
+msgid "Fit to Selected"
+msgstr "Ajustar a Seleccionados"
+
+
+msgid "Resize lattice to fit selected deformable objects"
+msgstr "Redimensionar grelha para caberem os objectos deformáveis"
+
+
+msgid "Add margin to lattice dimensions"
+msgstr "Adicionar margem às dimensões da grelha"
+
+
+msgid "Lattice resolution in U direction"
+msgstr "Resolução da grelha na direcção U"
+
+
+msgid "Lattice resolution in V direction"
+msgstr "Resolução da grelha na direcção V"
+
+
+msgid "Lattice resolution in W direction"
+msgstr "Resolução da grelha na direcção W"
 
 
 msgctxt "Operator"
@@ -79873,6 +80006,14 @@ msgid "Scene to render, current scene if not specified"
 msgstr "Cena para renderizar, cena actual caso não especificado."
 
 
+msgid "Use Sequencer Scene"
+msgstr "Usar Cena de Sequenciador"
+
+
+msgid "Render the sequencer scene instead of the active scene"
+msgstr "Renderizar a cena do sequenciador em vez da cena activa"
+
+
 msgid "Use 3D Viewport"
 msgstr "Usar a janela de visualização 3D"
 
@@ -80962,6 +81103,19 @@ msgstr "Limpar Dados de Espaço"
 
 msgid "Remove unused settings for invisible editors"
 msgstr "Remove as definições não usadas para os editores invisíveis."
+
+
+msgctxt "Operator"
+msgid "Jump Time by Delta"
+msgstr "Saltar Tempo por Delta"
+
+
+msgid "Jump forward/backward by a given number of frames or seconds"
+msgstr "saltar para a frente/trás por um dado número de fotogramas ou segundos"
+
+
+msgid "Jump backwards in time"
+msgstr "Saltar para trás no tempo"
 
 
 msgctxt "Operator"
@@ -83444,6 +83598,10 @@ msgid "Frame where selected strips will be split"
 msgstr "Fotograma no qual as faixas seleccionadas serão cortadas"
 
 
+msgid "Don't propagate split to connected strips"
+msgstr "Não propagar separação a faixas conectadas"
+
+
 msgid "Ignore Selection"
 msgstr "Ignorar Selecção"
 
@@ -85639,8 +85797,16 @@ msgid "Largest to Smallest"
 msgstr "Maior para Menor"
 
 
+msgid "Sort islands from largest to smallest"
+msgstr "Ordenar ilhas da maior para a menor"
+
+
 msgid "Smallest to Largest"
 msgstr "Menor para Maior"
+
+
+msgid "Sort islands from smallest to largest"
+msgstr "Ordenar ilhas da menor para a maior"
 
 
 msgid "Preserve island order"
@@ -85993,6 +86159,47 @@ msgstr "Preencher virtualmente buracos na malha antes do desdobramento, para mel
 
 msgid "Number of iterations to run, 0 is unlimited when run interactively"
 msgstr "Número de interações para a execução, zero significa ilimitado durante o funcionamento interativo."
+
+
+msgctxt "Operator"
+msgid "Move on Axis"
+msgstr "Mover no Eixo"
+
+
+msgid "Move UVs on an axis"
+msgstr "Mover UVs ao longo de um eixo"
+
+
+msgid "Axis to move UVs on"
+msgstr "Eixo no qual mover UVs"
+
+
+msgid "Move vertices on the X axis"
+msgstr "Mover vértices no eixo do X"
+
+
+msgid "Move vertices on the Y axis"
+msgstr "Mover vértices no eixo do Y"
+
+
+msgid "Distance to move UVs"
+msgstr "Distância de movimento de UVs"
+
+
+msgid "Move Type"
+msgstr "Tipo de Movimento"
+
+
+msgid "Move by dynamic grid"
+msgstr "Mover por grelha dinâmica"
+
+
+msgid "Move by pixel"
+msgstr "Mover por pixel"
+
+
+msgid "Move by UDIM"
+msgstr "Mover por UDIM"
 
 
 msgctxt "Operator"
@@ -89751,16 +89958,309 @@ msgid "Scheme = Catmull-Clark, when possible. Reverts to exporting the subdivide
 msgstr "Esquema = Catmull-Clark, quando possível. Exporta a malha subdividida para o tipo de subdivisão Simples"
 
 
+msgid "Export Textures"
+msgstr "Exportar Texturas"
+
+
+msgid "Texture export method"
+msgstr "Método de Exportação de Textura"
+
+
+msgid "Use original location of textures"
+msgstr "Usar localização original das texturas"
+
+
+msgid "Preserve"
+msgstr "Preservar"
+
+
+msgid ""
+"Preserve file paths of textures from already imported USD files.\n"
+"Export remaining textures to a 'textures' folder next to the USD file"
+msgstr ""
+"Preservar caminhos de ficheiros de texturas de ficheiros USD já importados.\n"
+"Exportar restantes texturas para uma pasta 'textures' ao lado do ficheiro USD."
+
+
+msgid "New Path"
+msgstr "Novo Caminho"
+
+
+msgid "Export textures to a 'textures' folder next to the USD file"
+msgstr "Exportar texturas para uma pasta 'textures' ao lado do ficheiro USD"
+
+
 msgid "UV Maps"
 msgstr "Mapas UV"
+
+
+msgid "Include all mesh UV maps in the export"
+msgstr "Incluir todas as UVs das malhas na exportação"
+
+
+msgid "Export all volumes"
+msgstr "Exportar todos os volumes"
+
+
+msgid "MaterialX Network"
+msgstr "Rede MaterialX"
+
+
+msgid "Generate a MaterialX network representation of the materials"
+msgstr "Gerar uma rede de nós MaterialX que represente os materiais"
+
+
+msgid "USD Preview Surface Network"
+msgstr "Rede de Pré-Visualização de Superfície de USD"
+
+
+msgid "Generate an approximate USD Preview Surface shader representation of a Principled BSDF node network"
+msgstr "Gerar um sombreador de pré visualização de superfície aproximado a partir de uma rede de nós Principled BSDF"
+
+
+msgid "Merge parent Xform"
+msgstr "Fundir Xform Ascendente"
+
+
+msgid "Merge USD primitives with their Xform parent if possible. USD does not allow nested UsdGeomGprims, intermediary Xform prims will be defined to keep the USD file valid when encountering object hierarchies."
+msgstr "Fundir primitivas USD com os seu ascendente Xfrom se possível. USD não permite UsdGeomGprims contidos, prims Xform intermediários serão definidos para manter o ficheiro USD válido ao encontrar hierarquias de objectos."
+
+
+msgid "Meters Per Unit"
+msgstr "Metros por Unidade"
+
+
+msgid "Custom value for meters per unit in the USD Stage"
+msgstr "Valor personalizado de metros por unidade no USD Stage"
+
+
+msgid "Only export deform bones and their parents"
+msgstr "Exportar apenas ossos de deformação e seus ascendentes"
+
+
+msgid "Overwrite Textures"
+msgstr "Substituir Texturas"
+
+
+msgid "Overwrite existing files when exporting textures"
+msgstr "Sobrescreve ficheiros existentes durante exportação"
+
+
+msgid "Use relative paths to reference external files (i.e. textures, volumes) in USD, otherwise use absolute paths"
+msgstr "Usar caminhos relativos para referenciar ficheiros externos (por exemplo textures, volumes) no USD, caso contrário usar caminhos absolutos"
+
+
+msgid "Rename UV Maps"
+msgstr "Renomear Mapas UV"
+
+
+msgid "Rename active render UV map to \"st\" to match USD conventions"
+msgstr "Renomear mapa UV de renderização activo para \"st\" para respeitar convenções USD"
+
+
+msgid "Root Prim"
+msgstr "Prim Raiz"
+
+
+msgid "If set, add a transform primitive with the given path to the stage as the parent of all exported data"
+msgstr "Se activo, adicionar uma primitiva de transformação com um dado caminho à ao stage da cena como ascendente de todos os dados exportados"
 
 
 msgid "Selection Only"
 msgstr "Apenas a selecção"
 
 
+msgid "Only export selected objects. Unselected parents of selected objects are exported as empty transform"
+msgstr "Exportar apenas objectos seleccionados. Ascendentes dos objectos seleccionados que não estejam seleccionados serão exportados como transformação vazia"
+
+
+msgid "Triangulate Meshes"
+msgstr "Triangular Malhas"
+
+
+msgid "Triangulate meshes during export"
+msgstr "Triangular malhas durante exportação"
+
+
+msgid "USDZ Custom Downscale Size"
+msgstr "Tamanho de redução USDZ personalizado"
+
+
+msgid "Custom size for downscaling exported textures"
+msgstr "Tamanho personalizado para reduzir texturas exportadas"
+
+
+msgid "USDZ Texture Downsampling"
+msgstr "Redução de Amostragem de Textura USDZ"
+
+
+msgid "Choose a maximum size for all exported textures"
+msgstr "Escolher um tamanho máximo para todas as texturas exportadas"
+
+
+msgid "Keep all current texture sizes"
+msgstr "Manter o tamanho actual de todas as exturas"
+
+
+msgid "Resize to a maximum of 256 pixels"
+msgstr "Redimensionar para um máximo de 256 pixels"
+
+
+msgid "Resize to a maximum of 512 pixels"
+msgstr "Redimensionar para um máximo de 512 pixels"
+
+
+msgid "Resize to a maximum of 1024 pixels"
+msgstr "Redimensionar para um máximo de 1024 pixels"
+
+
+msgid "Resize to a maximum of 2048 pixels"
+msgstr "Redimensionar para um máximo de 2048 pixels"
+
+
+msgid "Resize to a maximum of 4096 pixels"
+msgstr "Redimensionar para um máximo de 4096 pixels"
+
+
+msgid "Specify a custom size"
+msgstr "Especificar tamanho personalizado"
+
+
+msgid "Instancing"
+msgstr "Instanciação"
+
+
+msgid "Export instanced objects as references in USD rather than real objects"
+msgstr "Exportar objectos instanciados como referências n USD em vez de objectos reais"
+
+
+msgid "Xform Ops"
+msgstr "Operações Xform"
+
+
+msgid "The type of transform operators to write"
+msgstr "O tipo de operador de transformação a usar"
+
+
+msgid "Translate, Rotate, Scale"
+msgstr "Translação, Rotação, Escala"
+
+
+msgid "Export with translate, rotate, and scale Xform operators"
+msgstr "Exportar com operadores de Translação, rotação e escala Xform"
+
+
+msgid "Translate, Orient, Scale"
+msgstr "Posicionar, Orientar, Redimensionar"
+
+
+msgid "Export with translate, orient quaternion, and scale Xform operators"
+msgstr "Exportar com operadores Xform posicionamento, orientação de quaternião, e escala"
+
+
+msgid "Export matrix operator"
+msgstr "Operador exportar Matriz"
+
+
+msgctxt "Operator"
+msgid "Import USD"
+msgstr "Importar USD"
+
+
+msgid "Import USD stage into current scene"
+msgstr "Importar cena USD para dentro da cena actual"
+
+
+msgid "Apply Unit Conversion Scale"
+msgstr "Aplicar escala de conversão de unidades"
+
+
+msgid "Scale the scene objects by the USD stage's meters per unit value. This scaling is applied in addition to the value specified in the Scale option"
+msgstr "Redimensionar os objectos da cena pelo valor de metros por unidade da cena USD. Esta escala é aplicada em adição ao valor especificado na opção Escala"
+
+
+msgid "Create Collection"
+msgstr "Criar Colecção"
+
+
+msgid "Add all imported objects to a new collection"
+msgstr "Adicionar todos os objectos importados a nova colecção"
+
+
+msgid "Convert the first discovered USD dome light to a world background shader"
+msgstr "Converter a primeira luz hemisférica encontrada num sombreador de luz ambiente"
+
+
+msgid "Import All Materials"
+msgstr "Importar Todos os Materiais"
+
+
+msgid "Also import materials that are not used by any geometry. Note that when this option is false, materials referenced by geometry will still be imported"
+msgstr "Importar também materiais mesmo que não usados por nenhuma geometria. Atenção que quando esta opção está desactivada, materiais usados por geometrias serão ainda assim importados."
+
+
+msgid "Defined Primitives Only"
+msgstr "Apenas Primitivas Definidas"
+
+
+msgid "Import only defined USD primitives. When disabled this allows importing USD primitives which are not defined, such as those with an override specifier"
+msgstr "importar apenas primitivas definidas. Quando desactivado permite importar primitivas USD que não estão definidas, como as que têm um especificador (specifier) revogatório"
+
+
+msgid "Import guide geometry"
+msgstr "Importar geometria guia"
+
+
+msgid "Import proxy geometry"
+msgstr "Importar geometria representante (proxy)"
+
+
+msgid "Import final render geometry"
+msgstr "Importar geometria de renderização"
+
+
+msgid "USD Shapes"
+msgstr "Formas USD"
+
+
+msgid "Import Subdivision Scheme"
+msgstr "Importar Método de Subdivisão"
+
+
+msgid "Create subdivision surface modifiers based on the USD SubdivisionScheme attribute"
+msgstr "Criar modificadores de subdivisão de superfície com base no atributo USD SubdivisionScheme"
+
+
 msgid "Textures Directory"
 msgstr "Diretório de texturas"
+
+
+msgid "Path to the directory where imported textures will be copied"
+msgstr "Caminho da pasta para a qual as texturas importadas serão copiadas"
+
+
+msgid "Import Textures"
+msgstr "Importar Texturas"
+
+
+msgid "Behavior when importing textures from a USDZ archive"
+msgstr "Comportamento ao importar texturas de um arquivo USDZ"
+
+
+msgid "Don't import textures"
+msgstr "Não importar texturas"
+
+
+msgid "Packed"
+msgstr "Embalar"
+
+
+msgid "Import textures as packed data"
+msgstr "Importar texturas como dados incluídos"
+
+
+msgid "Copy files to textures directory"
+msgstr "Copiar ficheiros para pasta de texturas"
 
 
 msgctxt "Operator"
@@ -100557,10 +101057,6 @@ msgstr "Sem texto ou ficheiro especificado no nó, nada para compilar."
 
 msgid "External shader script must have .osl or .oso extension, or be a module name"
 msgstr "Script de sombreador externo deve possuir extensão .osl ou .oso, ou ser um nome de módulo."
-
-
-msgid "Failed to write .oso file next to external .osl file at "
-msgstr "Falha ao escrever ficheiro .oso próximo ao local externo onde o .osl está."
 
 
 msgid "No output node"
