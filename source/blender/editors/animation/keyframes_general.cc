@@ -1810,7 +1810,10 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
     aci = static_cast<tAnimCopybufItem *>(animcopybuf.first);
 
     offset[1] = paste_get_y_offset(ac, aci, ale, value_offset_mode);
+    ANIM_nla_mapping_apply_fcurve(ale->adt, static_cast<FCurve *>(ale->key_data), false, false);
     paste_animedit_keys_fcurve(fcu, aci, offset, merge_mode, false);
+    ANIM_nla_mapping_apply_fcurve(ale->adt, static_cast<FCurve *>(ale->key_data), true, false);
+
     ale->update |= ANIM_UPDATE_DEFAULT;
   }
   else {
