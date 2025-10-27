@@ -4372,7 +4372,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt &sd, Object &ob, Po
     cache.initial_radius = object_space_radius_get(*cache.vc, paint, brush, cache.location);
 
     if (!BKE_brush_use_locked_size(&paint, &brush)) {
-      BKE_brush_unprojected_size_set(&paint, &brush, cache.initial_radius);
+      BKE_brush_unprojected_size_set(&paint, &brush, cache.initial_radius * 2.0f);
     }
   }
 
