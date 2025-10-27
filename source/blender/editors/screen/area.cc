@@ -1891,8 +1891,14 @@ static void area_calc_totrct(const bScreen *screen, ScrArea *area, const rcti *w
     if (area->totrct.xmax < (window_rect->xmax - 1)) {
       area->totrct.xmax -= px;
     }
-    if (area->totrct.ymin > window_rect->ymin) {
+
+    if (area->totrct.ymin > window_rect->ymin + 1) {
       area->totrct.ymin += px;
+    }
+    else {
+      /* Minimum padding at bottom edge. #144921 */
+      const short px_min = short(U.pixelsize * 2.0f);
+      area->totrct.ymin += px_min;
     }
 
     if (area->totrct.ymax < (window_rect->ymax - 1)) {
