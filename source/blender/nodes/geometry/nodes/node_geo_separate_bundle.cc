@@ -184,7 +184,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                         name,
                         TIP_(socket_value->type->label),
                         TIP_(stype->label)));
-        output_value = *socket_value->type->geometry_nodes_default_value;
+        output_value = *stype->geometry_nodes_default_value;
       }
     }
     lf_params.set_output(i, std::move(output_value));
