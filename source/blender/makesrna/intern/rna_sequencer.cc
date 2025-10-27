@@ -594,6 +594,7 @@ static void rna_Sequence_channel_set(PointerRNA *ptr, int value)
   /* check channel increment or decrement */
   const int channel_delta = (value >= seq->machine) ? 1 : -1;
   seq->machine = value;
+  CLAMP(seq->machine, 1, MAXSEQ);
 
   if (SEQ_transform_test_overlap(scene, seqbase, seq)) {
     SEQ_transform_seqbase_shuffle_ex(seqbase, seq, scene, channel_delta);
