@@ -255,6 +255,8 @@ bool edit_move_strip_to_meta(Scene *scene,
     edit_move_strip_to_seqbase(scene, seqbase, strip, &dst_stripm->seqbase);
   }
 
+  time_update_meta_strip_range(scene, dst_stripm);
+
   return true;
 }
 
