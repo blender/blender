@@ -28,7 +28,7 @@
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #34:Estonian - Eesti keel:et_EE:0%
 6:Finnish - Suomi:fi_FI:11%
 8:French - Français:fr_FR:100%
-48:Georgian - ქართული:ka:98%
+48:Georgian - ქართული:ka:99%
 5:German - Deutsch:de_DE:37%
 23:Greek - Ελληνικά:el_GR:1%
 43:Hausa - Hausa:ha:0%
@@ -36,7 +36,7 @@
 40:Hindi - हिन्दी:hi_IN:4%
 31:Hungarian - Magyar:hu_HU:11%
 27:Indonesian - Bahasa indonesia:id_ID:20%
-4:Italian - Italiano:it_IT:45%
+4:Italian - Italiano:it_IT:44%
 2:Japanese - 日本語:ja_JP:99%
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #44:Kazakh - Қазақша:kk_KZ:0%
 50:Khmer - ខ្មែរ:km:0%

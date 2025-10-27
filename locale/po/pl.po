@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-10-27 09:50+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11531,12 +11531,68 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Assign Material"
-msgstr "Przypisanie materiału"
+msgid "Text"
+msgstr "Tekst"
 
 
 msgid "Metaball"
 msgstr "Metakula"
+
+
+msgid "Show/Hide"
+msgstr "Pokaż/Ukryj"
+
+
+msgid "Clean Up"
+msgstr "Sprzątanie"
+
+
+msgid "Snap"
+msgstr "Przyciągnij"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proporcjonalne edytowanie spadku"
+
+
+msgid "Layout"
+msgstr "Układ"
+
+
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
+
+
+msgid "Local View"
+msgstr "Widok lokalny"
+
+
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
+
+
+msgid "Navigation"
+msgstr "Nawigacja"
+
+
+msgid "Keying"
+msgstr "Kluczowanie"
+
+
+msgid "Utilities"
+msgstr "Narzędzia"
+
+
+msgid "Select Linked"
+msgstr "Zaznacz powiązane"
+
+
+msgid "Math"
+msgstr "Matematyka"
+
+
+msgid "Assign Material"
+msgstr "Przypisanie materiału"
 
 
 msgid "Light"
@@ -11563,52 +11619,12 @@ msgid "Quick Effects"
 msgstr "Szybkie efekty"
 
 
-msgid "Show/Hide"
-msgstr "Pokaż/Ukryj"
-
-
-msgid "Clean Up"
-msgstr "Sprzątanie"
-
-
 msgid "Asset"
 msgstr "Prefabrykat"
 
 
 msgid "Convert"
 msgstr "Konwertuj"
-
-
-msgid "Layout"
-msgstr "Układ"
-
-
-msgid "Bone Collections"
-msgstr "Kolekcja kości"
-
-
-msgid "Keying"
-msgstr "Kluczowanie"
-
-
-msgid "Utilities"
-msgstr "Narzędzia"
-
-
-msgid "Math"
-msgstr "Matematyka"
-
-
-msgid "Face Data"
-msgstr "Dane ściany"
-
-
-msgid "Merge"
-msgstr "Scal"
-
-
-msgid "Text"
-msgstr "Tekst"
 
 
 msgid "Read"
@@ -11619,16 +11635,12 @@ msgid "Write"
 msgstr "Zapis"
 
 
-msgid "Snap"
-msgstr "Przyciągnij"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proporcjonalne edytowanie spadku"
-
-
 msgid "Gizmo"
 msgstr "Gizmo"
+
+
+msgid "Bone Collections"
+msgstr "Kolekcja kości"
 
 
 msgid "Import"
@@ -11639,24 +11651,12 @@ msgid "Deprecated"
 msgstr "Przestarzałe"
 
 
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
+msgid "Face Data"
+msgstr "Dane ściany"
 
 
-msgid "Local View"
-msgstr "Widok lokalny"
-
-
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
-
-
-msgid "Navigation"
-msgstr "Nawigacja"
-
-
-msgid "Select Linked"
-msgstr "Zaznacz powiązane"
+msgid "Merge"
+msgstr "Scal"
 
 
 msgid "Catalog"
@@ -20441,10 +20441,6 @@ msgid "GeometryNodes"
 msgstr "GeometryNodes"
 
 
-msgid "Modifiers cannot be added to object: "
-msgstr "Nie można dodać modyfikatora do obiektu: "
-
-
 msgid "Active object is not a mesh"
 msgstr "Aktywny obiekt nie jest siatką"
 
@@ -20568,10 +20564,6 @@ msgstr "Wsparcie"
 msgctxt "Operator"
 msgid "User Communities"
 msgstr "Społeczność użytkowników"
-
-
-msgid "Failed to assign value: "
-msgstr "Ustawienie wartości nie powiodło się: "
 
 
 msgid "Object(s)"
@@ -26260,10 +26252,6 @@ msgstr " nazwane atrybuty"
 
 msgid "Disconnect"
 msgstr "Rozłącz"
-
-
-msgid "Unsupported Menu Socket"
-msgstr "Nieobsługiwane gniazdo menu"
 
 
 msgid "Library path '%s' does not exist, correct this before saving"

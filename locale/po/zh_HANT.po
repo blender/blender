@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-10-27 09:50+0000\n"
 "PO-Revision-Date: 2025-07-27 17:01+0000\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -22414,12 +22414,116 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Select More/Less"
-msgstr "選取更多/更少"
+msgid "Text"
+msgstr "文字"
 
 
 msgid "Metaball"
 msgstr "變幻球"
+
+
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
+
+
+msgid "Names"
+msgstr "名稱"
+
+
+msgid "Bone Roll"
+msgstr "骨骼滾動"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
+msgid "Pivot Point"
+msgstr "樞紐點"
+
+
+msgid "Snap"
+msgstr "吸附"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "比例化編輯衰落"
+
+
+msgid "Automasking"
+msgstr "自動遮罩"
+
+
+msgid "Face Sets Edit"
+msgstr "面集編輯"
+
+
+msgid "Layout"
+msgstr "配置"
+
+
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Local View"
+msgstr "區域檢視"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Align View"
+msgstr "對齊檢視"
+
+
+msgid "Adjust"
+msgstr "調整"
+
+
+msgid "Align View to Active"
+msgstr "對齊檢視至作用項"
+
+
+msgid "View Regions"
+msgstr "檢視範圍"
+
+
+msgid "Select More/Less"
+msgstr "選取更多/更少"
+
+
+msgid "Keying"
+msgstr "鍵處理"
+
+
+msgid "Tracking"
+msgstr "跟蹤"
+
+
+msgid "Select Similar"
+msgstr "選取相似者"
+
+
+msgid "Utilities"
+msgstr "效用"
+
+
+msgid "Select Linked"
+msgstr "選取連結項"
+
+
+msgid "Math"
+msgstr "數學公式"
 
 
 msgid "Light"
@@ -22450,14 +22554,6 @@ msgid "Quick Effects"
 msgstr "快速效果"
 
 
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
 msgid "Asset"
 msgstr "素材"
 
@@ -22478,8 +22574,20 @@ msgid "Hooks"
 msgstr "鉤"
 
 
-msgid "Layout"
-msgstr "配置"
+msgid "Read"
+msgstr "讀取"
+
+
+msgid "Sample"
+msgstr "取樣"
+
+
+msgid "Write"
+msgstr "寫入"
+
+
+msgid "Primitives"
+msgstr "原形"
 
 
 msgid "Sculpt Set Pivot"
@@ -22498,40 +22606,24 @@ msgid "In-Betweens"
 msgstr "內部之間"
 
 
-msgid "Adjust"
-msgstr "調整"
-
-
 msgid "Propagate"
 msgstr "增生"
+
+
+msgid "Instances"
+msgstr "實例化"
 
 
 msgid "Bone Collections"
 msgstr "骨骼集盒"
 
 
-msgid "Keying"
-msgstr "鍵處理"
-
-
-msgid "Names"
-msgstr "名稱"
-
-
-msgid "Tracking"
-msgstr "跟蹤"
-
-
-msgid "Utilities"
-msgstr "效用"
+msgid "Import"
+msgstr "匯入"
 
 
 msgid "Toggle Bone Options"
 msgstr "開關骨骼選項"
-
-
-msgid "Math"
-msgstr "數學公式"
 
 
 msgid "Enable Bone Options"
@@ -22550,6 +22642,10 @@ msgid "Face Data"
 msgstr "面資料"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Merge"
 msgstr "合併"
 
@@ -22560,102 +22656,6 @@ msgstr "特殊字元"
 
 msgid "Kerning"
 msgstr "字間微調"
-
-
-msgid "Text"
-msgstr "文字"
-
-
-msgid "Bone Roll"
-msgstr "骨骼滾動"
-
-
-msgid "Read"
-msgstr "讀取"
-
-
-msgid "Sample"
-msgstr "取樣"
-
-
-msgid "Write"
-msgstr "寫入"
-
-
-msgid "Pivot Point"
-msgstr "樞紐點"
-
-
-msgid "Primitives"
-msgstr "原形"
-
-
-msgid "Snap"
-msgstr "吸附"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "比例化編輯衰落"
-
-
-msgid "Automasking"
-msgstr "自動遮罩"
-
-
-msgid "Face Sets Edit"
-msgstr "面集編輯"
-
-
-msgid "Instances"
-msgstr "實例化"
-
-
-msgid "Import"
-msgstr "匯入"
-
-
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
-msgid "Local View"
-msgstr "區域檢視"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Navigation"
-msgstr "導覽"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Align View"
-msgstr "對齊檢視"
-
-
-msgid "Align View to Active"
-msgstr "對齊檢視至作用項"
-
-
-msgid "View Regions"
-msgstr "檢視範圍"
-
-
-msgid "Select Similar"
-msgstr "選取相似者"
-
-
-msgid "Select Linked"
-msgstr "選取連結項"
 
 
 msgid "Basic"
@@ -25421,10 +25421,6 @@ msgstr "總等級"
 
 msgid "Number of subdivisions for which displacements are stored"
 msgstr "錯置儲藏的細分數"
-
-
-msgid "Packed"
-msgstr "打包"
 
 
 msgid "Normal Edit Modifier"
@@ -47969,6 +47965,10 @@ msgid "Import Textures"
 msgstr "匯入紋理"
 
 
+msgid "Packed"
+msgstr "打包"
+
+
 msgid "Import USD Preview"
 msgstr "匯入 USD 預覽"
 
@@ -48362,14 +48362,6 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
-msgid "Auto-Masking"
-msgstr "自動遮罩"
-
-
-msgid "VR"
-msgstr "VR"
-
-
 msgid "Active Tool"
 msgstr "作用中工具"
 
@@ -48428,6 +48420,14 @@ msgstr "立體視覺"
 
 msgid "Multi Frame"
 msgstr "多重畫框"
+
+
+msgid "Auto-Masking"
+msgstr "自動遮罩"
+
+
+msgid "VR"
+msgstr "VR"
 
 
 msgid "Chain Scaling"
@@ -60648,10 +60648,6 @@ msgid "External shader script must have .osl or .oso extension, or be a module n
 msgstr "外部著色器命令稿必須有 .osl 或 .oso 副檔名，或者是一個模組名稱"
 
 
-msgid "Failed to write .oso file next to external .osl file at "
-msgstr "無法在有外部 .osl 檔旁寫入 .oso 檔，位置於 "
-
-
 msgid "Multiplier"
 msgstr "乘數"
 
@@ -61040,10 +61036,6 @@ msgid "Nothing to bake"
 msgstr "沒有可以烘焙"
 
 
-msgid "Unexpected modifier type: "
-msgstr "未預期的修改器類型： "
-
-
 msgid "GeometryNodes"
 msgstr "幾何節點"
 
@@ -61056,20 +61048,12 @@ msgid "Active editor is not a node editor."
 msgstr "作用中編輯器不是一個節點編輯器。"
 
 
-msgid "Modifiers cannot be added to object: "
-msgstr "無法為物體新增修改器： "
-
-
 msgid "Active object is not a mesh"
 msgstr "作用中物體非網格"
 
 
 msgid "New Preset"
 msgstr "新增預設集"
-
-
-msgid "Failed to execute the preset: "
-msgstr "執行預設集失敗： "
 
 
 msgid "Select 2 sound strips"
@@ -61256,10 +61240,6 @@ msgstr "使用者社群"
 
 msgid "Python evaluation failed: "
 msgstr "Python 估算失敗： "
-
-
-msgid "Failed to assign value: "
-msgstr "無法指派數值： "
 
 
 msgid "Strip(s)"

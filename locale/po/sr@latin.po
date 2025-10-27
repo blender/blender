@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-10-27 09:50+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -8501,6 +8501,58 @@ msgid "Metaball"
 msgstr "Meta lopta"
 
 
+msgid "Show/Hide"
+msgstr "Prikaži/sakrij"
+
+
+msgid "Names"
+msgstr "Imena"
+
+
+msgid "Bone Roll"
+msgstr "Rolna kostiju"
+
+
+msgid "Snap"
+msgstr "Lepljenje"
+
+
+msgid "Mirror"
+msgstr "Ogledalo"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
+
+
+msgid "Local View"
+msgstr "Lokalni pogled"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
+
+
+msgid "Align View"
+msgstr "Poravnaj pogled"
+
+
+msgid "Keying"
+msgstr "Zbirka tastera"
+
+
+msgid "Tracking"
+msgstr "Praćenje"
+
+
+msgid "Select Linked"
+msgstr "Izaberi povezano"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
 msgid "Light"
 msgstr "Svetlost"
 
@@ -8525,10 +8577,6 @@ msgid "Quick Effects"
 msgstr "Brzi efekti"
 
 
-msgid "Show/Hide"
-msgstr "Prikaži/sakrij"
-
-
 msgid "Hooks"
 msgstr "Udice"
 
@@ -8545,24 +8593,12 @@ msgid "Propagate"
 msgstr "Prenesi"
 
 
-msgid "Keying"
-msgstr "Zbirka tastera"
-
-
-msgid "Names"
-msgstr "Imena"
-
-
-msgid "Tracking"
-msgstr "Praćenje"
+msgid "Import"
+msgstr "Uvoz"
 
 
 msgid "Toggle Bone Options"
 msgstr "Manje/više informacija"
-
-
-msgid "Math"
-msgstr "Matematika"
 
 
 msgid "Enable Bone Options"
@@ -8577,52 +8613,16 @@ msgid "Mesh Select Mode"
 msgstr "Mod izbora mreže"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Merge"
 msgstr "Sjedini"
 
 
 msgid "Special Characters"
 msgstr "Specijalni znaci"
-
-
-msgid "Bone Roll"
-msgstr "Rolna kostiju"
-
-
-msgid "Snap"
-msgstr "Lepljenje"
-
-
-msgid "Import"
-msgstr "Uvoz"
-
-
-msgid "Mirror"
-msgstr "Ogledalo"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
-
-
-msgid "Local View"
-msgstr "Lokalni pogled"
-
-
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Align View"
-msgstr "Poravnaj pogled"
-
-
-msgid "Select Linked"
-msgstr "Izaberi povezano"
 
 
 msgid "Basic"

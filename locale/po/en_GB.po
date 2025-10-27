@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-10-27 09:50+0000\n"
 "PO-Revision-Date: 2025-07-23 14:59+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -33995,16 +33995,136 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
-msgid "Assign Material"
-msgstr "Assign Material"
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Show/Hide"
+msgstr "Show/Hide"
+
+
+msgid "Names"
+msgstr "Names"
+
+
+msgid "Bone Roll"
+msgstr "Bone Roll"
+
+
+msgid "Clean Up"
+msgstr "Clean Up"
+
+
+msgid "Pivot Point"
+msgstr "Pivot Point"
+
+
+msgid "Snap"
+msgstr "Snap"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportional Editing Falloff"
+
+
+msgid "Mask Edit"
+msgstr "Mask Edit"
+
+
+msgid "Automasking"
+msgstr "Automasking"
+
+
+msgid "Face Sets Edit"
+msgstr "Face Sets Edit"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Group Locks"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Mirror"
+msgstr "Mirror"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapping"
+
+
+msgid "Local View"
+msgstr "Local View"
+
+
+msgid "Viewpoint"
+msgstr "Viewpoint"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Align View"
+
+
+msgid "Adjust"
+msgstr "Adjust"
+
+
+msgid "Align View to Active"
+msgstr "Align View to Active"
+
+
+msgid "View Regions"
+msgstr "View Regions"
 
 
 msgid "Select More/Less"
 msgstr "Select More/Less"
 
 
-msgid "Metaball"
-msgstr "Metaball"
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Tracking"
+msgstr "Tracking"
+
+
+msgid "Select Similar"
+msgstr "Select Similar"
+
+
+msgid "Select All by Trait"
+msgstr "Select All by Trait"
+
+
+msgid "Utilities"
+msgstr "Utilities"
+
+
+msgid "Select Linked"
+msgstr "Select Linked"
+
+
+msgid "Math"
+msgstr "Maths"
+
+
+msgid "Select Loops"
+msgstr "Select Loops"
+
+
+msgid "Assign Material"
+msgstr "Assign Material"
 
 
 msgid "Light"
@@ -34039,14 +34159,6 @@ msgid "Quick Effects"
 msgstr "Quick Effects"
 
 
-msgid "Show/Hide"
-msgstr "Show/Hide"
-
-
-msgid "Clean Up"
-msgstr "Clean Up"
-
-
 msgid "Asset"
 msgstr "Asset"
 
@@ -34067,12 +34179,20 @@ msgid "Hooks"
 msgstr "Hooks"
 
 
-msgid "Vertex Group Locks"
-msgstr "Vertex Group Locks"
+msgid "Read"
+msgstr "Read"
 
 
-msgid "Layout"
-msgstr "Layout"
+msgid "Sample"
+msgstr "Sample"
+
+
+msgid "Write"
+msgstr "Write"
+
+
+msgid "Primitives"
+msgstr "Primitives"
 
 
 msgid "Trim/Add"
@@ -34099,40 +34219,28 @@ msgid "In-Betweens"
 msgstr "In-Betweens"
 
 
-msgid "Adjust"
-msgstr "Adjust"
+msgid "Gizmo"
+msgstr "Gizmo"
 
 
 msgid "Propagate"
 msgstr "Propagate"
 
 
+msgid "Instances"
+msgstr "Instances"
+
+
 msgid "Bone Collections"
 msgstr "Bone Collections"
 
 
-msgid "Keying"
-msgstr "Keying"
-
-
-msgid "Names"
-msgstr "Names"
-
-
-msgid "Tracking"
-msgstr "Tracking"
-
-
-msgid "Utilities"
-msgstr "Utilities"
+msgid "Import"
+msgstr "Import"
 
 
 msgid "Toggle Bone Options"
 msgstr "Toggle Bone Options"
-
-
-msgid "Math"
-msgstr "Maths"
 
 
 msgid "Enable Bone Options"
@@ -34147,6 +34255,10 @@ msgid "Mesh Select Mode"
 msgstr "Mesh Select Mode"
 
 
+msgid "Deprecated"
+msgstr "Deprecated"
+
+
 msgid "Face Data"
 msgstr "Face Data"
 
@@ -34157,6 +34269,10 @@ msgstr "Select by Face Strength"
 
 msgid "Set Face Strength"
 msgstr "Set Face Strength"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Merge"
@@ -34171,132 +34287,16 @@ msgid "Kerning"
 msgstr "Kerning"
 
 
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Bone Roll"
-msgstr "Bone Roll"
-
-
-msgid "Read"
-msgstr "Read"
-
-
-msgid "Sample"
-msgstr "Sample"
-
-
-msgid "Write"
-msgstr "Write"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Point"
-
-
-msgid "Primitives"
-msgstr "Primitives"
-
-
-msgid "Snap"
-msgstr "Snap"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportional Editing Falloff"
-
-
-msgid "Mask Edit"
-msgstr "Mask Edit"
-
-
-msgid "Automasking"
-msgstr "Automasking"
-
-
-msgid "Face Sets Edit"
-msgstr "Face Sets Edit"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
-msgid "Import"
-msgstr "Import"
-
-
-msgid "Deprecated"
-msgstr "Deprecated"
-
-
-msgid "Mirror"
-msgstr "Mirror"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapping"
-
-
-msgid "Local View"
-msgstr "Local View"
-
-
-msgid "Viewpoint"
-msgstr "Viewpoint"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Align View"
-msgstr "Align View"
-
-
-msgid "Align View to Active"
-msgstr "Align View to Active"
-
-
-msgid "View Regions"
-msgstr "View Regions"
-
-
-msgid "Select Similar"
-msgstr "Select Similar"
-
-
-msgid "Select All by Trait"
-msgstr "Select All by Trait"
+msgid "Keyframe Insert Pie"
+msgstr "Keyframe Insert Pie"
 
 
 msgid "Animals"
 msgstr "Animals"
 
 
-msgid "Select Linked"
-msgstr "Select Linked"
-
-
 msgid "Basic"
 msgstr "Basic"
-
-
-msgid "Select Loops"
-msgstr "Select Loops"
-
-
-msgid "Keyframe Insert Pie"
-msgstr "Keyframe Insert Pie"
 
 
 msgid "Bone Collection Specials"
@@ -40129,16 +40129,8 @@ msgid "Location on disk where the bake data is stored"
 msgstr "Location on disk where the bake data is stored"
 
 
-msgid "Bake Target"
-msgstr "Bake Target"
-
-
 msgid "Where to store the baked data"
 msgstr "Where to store the baked data"
-
-
-msgid "Packed"
-msgstr "Packed"
 
 
 msgid "Pack the baked data into the .blend file"
@@ -50742,10 +50734,6 @@ msgstr "Still"
 
 msgid "Bake a single frame"
 msgstr "Bake a single frame"
-
-
-msgid "Inherit from Modifier"
-msgstr "Inherit from Modifier"
 
 
 msgid "Use setting from the modifier"
@@ -86950,6 +86938,10 @@ msgid "Don't import textures"
 msgstr "Don't import textures"
 
 
+msgid "Packed"
+msgstr "Packed"
+
+
 msgid "Import textures as packed data"
 msgstr "Import textures as packed data"
 
@@ -88017,50 +88009,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
-msgid "Auto-Masking"
-msgstr "Auto-Masking"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Curves Sculpt Add Curve Options"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Curves Sculpt Parameter Falloff"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Curves Grow/Shrink Scaling"
-
-
-msgid "Viewport Debug"
-msgstr "Viewport Debug"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR Info"
-
-
-msgid "glTF Variants"
-msgstr "glTF Variants"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Material Variants"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF Animations"
-
-
 msgid "Active Tool"
 msgstr "Active Tool"
 
@@ -88159,6 +88107,50 @@ msgstr "Stereoscopy"
 
 msgid "Multi Frame"
 msgstr "Multi Frame"
+
+
+msgid "glTF Variants"
+msgstr "glTF Variants"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Material Variants"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Masking"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Curves Sculpt Add Curve Options"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Curves Sculpt Parameter Falloff"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Curves Grow/Shrink Scaling"
+
+
+msgid "Viewport Debug"
+msgstr "Viewport Debug"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF Animations"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR Info"
 
 
 msgid "Import Settings"
@@ -113675,10 +113667,6 @@ msgid "External shader script must have .osl or .oso extension, or be a module n
 msgstr "External shader script must have .osl or .oso extension, or be a module name"
 
 
-msgid "Failed to write .oso file next to external .osl file at "
-msgstr "Failed to write .oso file next to external .osl file at "
-
-
 msgid "Use Intel OpenImageDenoise AI denoiser"
 msgstr "Use Intel OpenImageDenoise AI denoiser"
 
@@ -114358,10 +114346,6 @@ msgid "Selected nodes are not of the same type as {}"
 msgstr "Selected nodes are not of the same type as {}"
 
 
-msgid "Ignored {} (not of the same type as {}), "
-msgstr "Ignored {} (not of the same type as {}), "
-
-
 msgid "No folder selected"
 msgstr "No folder selected"
 
@@ -114434,16 +114418,16 @@ msgid "This node has no inputs to swap"
 msgstr "This node has no inputs to swap"
 
 
+msgid "Ignored {} (not of the same type as {})"
+msgstr "Ignored {} (not of the same type as {})"
+
+
 msgid "Ignored {}"
 msgstr "Ignored {}"
 
 
 msgid "This node has no input connections to swap"
 msgstr "This node has no input connections to swap"
-
-
-msgid "Ignored {} (not of the same type as {})"
-msgstr "Ignored {} (not of the same type as {})"
 
 
 msgid "Some connections have been lost due to differing numbers of output sockets"
@@ -115576,10 +115560,6 @@ msgid "Unable to mirror, no mirror object/bone configured"
 msgstr "Unable to mirror, no mirror object/bone configured"
 
 
-msgid "Unsupported mode: %r"
-msgstr "Unsupported mode: %r"
-
-
 msgid "Some strings were fixed, don't forget to save the .blend file to keep those changes"
 msgstr "Some strings were fixed, don't forget to save the .blend file to keep those changes"
 
@@ -115594,10 +115574,6 @@ msgstr "Previews clear process failed for file '{:s}'!"
 
 msgid "No active camera in the scene"
 msgstr "No active camera in the scene"
-
-
-msgid "Unexpected modifier type: "
-msgstr "Unexpected modifier type: "
 
 
 msgid "Target object not specified"
@@ -115760,10 +115736,6 @@ msgid "Object: {:s}, Mesh: '{:s}' has {:d} loops (for {:d} faces), expected {:d}
 msgstr "Object: {:s}, Mesh: '{:s}' has {:d} loops (for {:d} faces), expected {:d}"
 
 
-msgid "Modifiers cannot be added to object: "
-msgstr "Modifiers cannot be added to object: "
-
-
 msgid "Object {!r} already has {!r} F-Curve(s). Remove these before trying again"
 msgstr "Object {!r} already has {!r} F-Curve(s). Remove these before trying again"
 
@@ -115886,10 +115858,6 @@ msgstr "Unable to overwrite preset: {:s}"
 
 msgid "Unable to remove preset: {!r}"
 msgstr "Unable to remove preset: {!r}"
-
-
-msgid "Failed to execute the preset: "
-msgstr "Failed to execute the preset: "
 
 
 msgid "No other objects selected"
@@ -116334,10 +116302,6 @@ msgid "Python evaluation failed: "
 msgstr "Python evaluation failed: "
 
 
-msgid "Failed to assign value: "
-msgstr "Failed to assign value: "
-
-
 msgid "Strip(s)"
 msgstr "Strip(s)"
 
@@ -116370,10 +116334,6 @@ msgid "Rename {:d} {:s}"
 msgstr "Rename {:d} {:s}"
 
 
-msgid "Invalid regular expression (find): "
-msgstr "Invalid regular expression (find): "
-
-
 msgid "Version: {:s}"
 msgstr "Version: {:s}"
 
@@ -116396,10 +116356,6 @@ msgstr "Type \"{:s}\" cannot be found"
 
 msgid "Material(s)"
 msgstr "Material(s)"
-
-
-msgid "Invalid regular expression (replace): "
-msgstr "Invalid regular expression (replace): "
 
 
 msgctxt "Operator"
@@ -132010,10 +131966,6 @@ msgid "Dependency Loop"
 msgstr "Dependency Loop"
 
 
-msgid "Unsupported Menu Socket"
-msgstr "Unsupported Menu Socket"
-
-
 msgid "Closed by Default"
 msgstr "Closed by Default"
 
@@ -138372,6 +138324,10 @@ msgid "Create a separate curve instance for every layer"
 msgstr "Create a separate curve instance for every layer"
 
 
+msgid "Revert"
+msgstr "Revert"
+
+
 msgid "Values larger than the threshold are inside the generated mesh"
 msgstr "Values larger than the threshold are inside the generated mesh"
 
@@ -141027,10 +140983,6 @@ msgstr "Warning: There are unsaved external image(s)."
 
 msgid "Revert to the Saved File"
 msgstr "Revert to the Saved File"
-
-
-msgid "Revert"
-msgstr "Revert"
 
 
 msgid "Clear Recent Files List"

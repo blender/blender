@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-10-27 09:50+0000\n"
 "PO-Revision-Date: 2025-10-15 14:42+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -9335,16 +9335,80 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Assign Material"
-msgstr "Tilldela material"
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Metaboll"
+
+
+msgid "Show/Hide"
+msgstr "Visa/dölj"
+
+
+msgid "Names"
+msgstr "Namn"
+
+
+msgid "Clean Up"
+msgstr "Städa upp"
+
+
+msgid "Pivot Point"
+msgstr "Fast punkt"
+
+
+msgid "Snap"
+msgstr "Snäpp"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Mirror"
+msgstr "Spegla"
+
+
+msgid "Local View"
+msgstr "Lokal vy"
+
+
+msgid "Viewpoint"
+msgstr "Visningspunkt"
+
+
+msgid "Navigation"
+msgstr "Navigering"
+
+
+msgid "Align View"
+msgstr "Justera vy"
+
+
+msgid "Adjust"
+msgstr "Justera"
+
+
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
 
 
 msgid "Select More/Less"
 msgstr "Markera mera/mindre"
 
 
-msgid "Metaball"
-msgstr "Metaboll"
+msgid "Utilities"
+msgstr "Verktyg"
+
+
+msgid "Math"
+msgstr "Matematik"
+
+
+msgid "Assign Material"
+msgstr "Tilldela material"
 
 
 msgid "Light"
@@ -9379,14 +9443,6 @@ msgid "Quick Effects"
 msgstr "Snabbeffekter"
 
 
-msgid "Show/Hide"
-msgstr "Visa/dölj"
-
-
-msgid "Clean Up"
-msgstr "Städa upp"
-
-
 msgid "Asset"
 msgstr "Tillgång"
 
@@ -9399,42 +9455,6 @@ msgid "Link/Transfer Data"
 msgstr "Länka/överför data"
 
 
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Adjust"
-msgstr "Justera"
-
-
-msgid "Propagate"
-msgstr "Propagera"
-
-
-msgid "Names"
-msgstr "Namn"
-
-
-msgid "Utilities"
-msgstr "Verktyg"
-
-
-msgid "Math"
-msgstr "Matematik"
-
-
-msgid "Merge"
-msgstr "Sammanfoga"
-
-
-msgid "Special Characters"
-msgstr "Specialtecken"
-
-
-msgid "Text"
-msgstr "Text"
-
-
 msgid "Read"
 msgstr "Läs"
 
@@ -9443,16 +9463,12 @@ msgid "Write"
 msgstr "Skriv"
 
 
-msgid "Pivot Point"
-msgstr "Fast punkt"
-
-
 msgid "Primitives"
 msgstr "Primitiver"
 
 
-msgid "Snap"
-msgstr "Snäpp"
+msgid "Propagate"
+msgstr "Propagera"
 
 
 msgid "Instances"
@@ -9467,32 +9483,16 @@ msgid "Deprecated"
 msgstr "Föråldrad"
 
 
-msgid "Mirror"
-msgstr "Spegla"
-
-
-msgid "Local View"
-msgstr "Lokal vy"
-
-
-msgid "Viewpoint"
-msgstr "Visningspunkt"
-
-
-msgid "Navigation"
-msgstr "Navigering"
-
-
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Align View"
-msgstr "Justera vy"
+msgid "Merge"
+msgstr "Sammanfoga"
 
 
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
+msgid "Special Characters"
+msgstr "Specialtecken"
 
 
 msgid "Animals"
@@ -10238,10 +10238,6 @@ msgstr "Optimal visning"
 
 msgid "Total Levels"
 msgstr "Totalt antal nivåer"
-
-
-msgid "Bake Target"
-msgstr "Bakningsmål"
 
 
 msgid "Node Group"
@@ -21393,10 +21389,6 @@ msgid "Palette Color"
 msgstr "Palettfärg"
 
 
-msgid "VR"
-msgstr "VR"
-
-
 msgid "Active Tool"
 msgstr "Aktivt verktyg"
 
@@ -21423,6 +21415,10 @@ msgstr "Mätning"
 
 msgid "Stroke Placement"
 msgstr "Streckplacering"
+
+
+msgid "VR"
+msgstr "VR"
 
 
 msgid "Import Settings"
@@ -34421,10 +34417,6 @@ msgstr "Addera och subtrahera"
 
 msgid "Utility"
 msgstr "Verktyg"
-
-
-msgid "Smoothness "
-msgstr "Mjukhet "
 
 
 msgid "Factor Max"

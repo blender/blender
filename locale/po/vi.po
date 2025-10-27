@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-10-27 09:50+0000\n"
 "PO-Revision-Date: 2025-10-14 21:59+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -34329,16 +34329,144 @@ msgid "Editor menu containing buttons"
 msgstr "Trình đơn của trình biên soạn có chứa các nút"
 
 
-msgid "Assign Material"
-msgstr "Ấn Định Nguyên Vật Liệu"
+msgid "Text"
+msgstr "Văn Bản"
+
+
+msgid "Metaball"
+msgstr "Siêu Cầu"
+
+
+msgid "Show/Hide"
+msgstr "Hiện/Ẩn Giấu"
+
+
+msgid "Names"
+msgstr "Tên"
+
+
+msgid "Bone Roll"
+msgstr "Lăn Xương"
+
+
+msgid "Clean Up"
+msgstr "Dọn Dẹp"
+
+
+msgid "Pivot Point"
+msgstr "Điểm Tựa"
+
+
+msgid "Snap"
+msgstr "Bám Dính"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Suy Giảm Dần trong Biên Soạn Cân Đối"
+
+
+msgid "Mask Edit"
+msgstr "Biên Soạn Màn Chắn Lọc"
+
+
+msgid "Automasking"
+msgstr "Tự Động Chắn Lọc"
+
+
+msgid "Face Sets Edit"
+msgstr "Biên Soạn các Mặt Ấn Định"
+
+
+msgid "Vertex Group Locks"
+msgstr "Khóa của Nhóm Điểm Đỉnh"
+
+
+msgid "Layout"
+msgstr "Bố Trí"
+
+
+msgid "Mirror"
+msgstr "Phản Chiếu Đối Xứng"
+
+
+msgid "UV Mapping"
+msgstr "Ánh Xạ UV"
+
+
+msgid "Local View"
+msgstr "Góc Nhìn Cục Bộ"
+
+
+msgid "Viewpoint"
+msgstr "Điểm Nhìn"
+
+
+msgid "Navigation"
+msgstr "Điều Hướng"
+
+
+msgid "Align View"
+msgstr "Căn Chỉnh Góc Nhìn"
+
+
+msgid "Adjust"
+msgstr "Điều Chỉnh"
+
+
+msgid "Align View to Active"
+msgstr "Căn Chỉnh Góc Nhìn vào cái đang Hoạt Động"
+
+
+msgid "View Regions"
+msgstr "Vùng Góc Nhìn"
 
 
 msgid "Select More/Less"
 msgstr "Tăng/Giảm Lựa Chọn"
 
 
-msgid "Metaball"
-msgstr "Siêu Cầu"
+msgid "Keying"
+msgstr "Khóa Hóa"
+
+
+msgid "Tracking"
+msgstr "Giám Sát"
+
+
+msgid "Select Similar"
+msgstr "Chọn Tương Tự"
+
+
+msgid "Select All by Trait"
+msgstr "Chọn Toàn Bộ theo Đặc Điểm"
+
+
+msgid "Utilities"
+msgstr "Thường Trình"
+
+
+msgid "Select Linked"
+msgstr "Chọn cái Kết Nối"
+
+
+msgid "Math"
+msgstr "Toán"
+
+
+msgid "Select Loops"
+msgstr "Chọn Vòng Mạch"
+
+
+msgid "Creative"
+msgstr "Kiến Tạo"
+
+
+msgid "Assign Material"
+msgstr "Ấn Định Nguyên Vật Liệu"
+
+
+msgid "Render Preview"
+msgstr "Góc Nhìn Kết Xuất"
 
 
 msgid "Light"
@@ -34373,14 +34501,6 @@ msgid "Quick Effects"
 msgstr "Hiệu Ứng Nhanh"
 
 
-msgid "Show/Hide"
-msgstr "Hiện/Ẩn Giấu"
-
-
-msgid "Clean Up"
-msgstr "Dọn Dẹp"
-
-
 msgid "Asset"
 msgstr "Tài Sản"
 
@@ -34401,12 +34521,20 @@ msgid "Hooks"
 msgstr "Móc"
 
 
-msgid "Vertex Group Locks"
-msgstr "Khóa của Nhóm Điểm Đỉnh"
+msgid "Read"
+msgstr "Đọc"
 
 
-msgid "Layout"
-msgstr "Bố Trí"
+msgid "Sample"
+msgstr "Lấy Mẫu Vật"
+
+
+msgid "Write"
+msgstr "Viết"
+
+
+msgid "Primitives"
+msgstr "Hình Cơ Bản"
 
 
 msgid "Trim/Add"
@@ -34433,48 +34561,32 @@ msgid "In-Betweens"
 msgstr "Bước Trung Gian"
 
 
-msgid "Adjust"
-msgstr "Điều Chỉnh"
+msgid "Gizmo"
+msgstr "Dụng Cụ"
 
 
 msgid "Propagate"
 msgstr "Lan Truyền"
 
 
+msgid "Instances"
+msgstr "Thực Thể"
+
+
 msgid "Bone Collections"
 msgstr "Bộ Sưu Tập Xương"
 
 
-msgid "Keying"
-msgstr "Khóa Hóa"
-
-
-msgid "Names"
-msgstr "Tên"
-
-
-msgid "Tracking"
-msgstr "Giám Sát"
-
-
-msgid "Utilities"
-msgstr "Thường Trình"
+msgid "Import"
+msgstr "Nhập Khẩu"
 
 
 msgid "Toggle Bone Options"
 msgstr "Bật/Tắt Tùy Chọn về Xương"
 
 
-msgid "Math"
-msgstr "Toán"
-
-
 msgid "Enable Bone Options"
 msgstr "Bật các Tùy Chọn về Xương"
-
-
-msgid "Creative"
-msgstr "Kiến Tạo"
 
 
 msgid "Disable Bone Options"
@@ -34483,6 +34595,10 @@ msgstr "Tắt các Tùy Chọn về Xương"
 
 msgid "Mesh Select Mode"
 msgstr "Chế Độ Chọn Khung Lưới"
+
+
+msgid "Deprecated"
+msgstr "Lỗi Thời"
 
 
 msgid "Face Data"
@@ -34497,8 +34613,12 @@ msgid "Set Face Strength"
 msgstr "Đặt Cường Độ Mặt"
 
 
-msgid "Render Preview"
-msgstr "Góc Nhìn Kết Xuất"
+msgid "List"
+msgstr "Nâng"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Merge"
@@ -34513,136 +34633,16 @@ msgid "Kerning"
 msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
 
 
-msgid "Text"
-msgstr "Văn Bản"
-
-
-msgid "Bone Roll"
-msgstr "Lăn Xương"
-
-
-msgid "Read"
-msgstr "Đọc"
-
-
-msgid "Sample"
-msgstr "Lấy Mẫu Vật"
-
-
-msgid "Write"
-msgstr "Viết"
-
-
-msgid "Pivot Point"
-msgstr "Điểm Tựa"
-
-
-msgid "Primitives"
-msgstr "Hình Cơ Bản"
-
-
-msgid "Snap"
-msgstr "Bám Dính"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Suy Giảm Dần trong Biên Soạn Cân Đối"
-
-
-msgid "Mask Edit"
-msgstr "Biên Soạn Màn Chắn Lọc"
-
-
-msgid "Automasking"
-msgstr "Tự Động Chắn Lọc"
-
-
-msgid "Face Sets Edit"
-msgstr "Biên Soạn các Mặt Ấn Định"
-
-
-msgid "Gizmo"
-msgstr "Dụng Cụ"
-
-
-msgid "Instances"
-msgstr "Thực Thể"
-
-
-msgid "Import"
-msgstr "Nhập Khẩu"
-
-
-msgid "Deprecated"
-msgstr "Lỗi Thời"
-
-
-msgid "Mirror"
-msgstr "Phản Chiếu Đối Xứng"
-
-
-msgid "UV Mapping"
-msgstr "Ánh Xạ UV"
-
-
-msgid "Local View"
-msgstr "Góc Nhìn Cục Bộ"
-
-
-msgid "List"
-msgstr "Nâng"
-
-
-msgid "Viewpoint"
-msgstr "Điểm Nhìn"
-
-
-msgid "Navigation"
-msgstr "Điều Hướng"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Align View"
-msgstr "Căn Chỉnh Góc Nhìn"
-
-
-msgid "Align View to Active"
-msgstr "Căn Chỉnh Góc Nhìn vào cái đang Hoạt Động"
-
-
-msgid "View Regions"
-msgstr "Vùng Góc Nhìn"
-
-
-msgid "Select Similar"
-msgstr "Chọn Tương Tự"
-
-
-msgid "Select All by Trait"
-msgstr "Chọn Toàn Bộ theo Đặc Điểm"
+msgid "Keyframe Insert Pie"
+msgstr "Trình Đơn Rẻ Quạt Chèn Khung Khóa"
 
 
 msgid "Animals"
 msgstr "Động Vật"
 
 
-msgid "Select Linked"
-msgstr "Chọn cái Kết Nối"
-
-
 msgid "Basic"
 msgstr "Cơ Bản"
-
-
-msgid "Select Loops"
-msgstr "Chọn Vòng Mạch"
-
-
-msgid "Keyframe Insert Pie"
-msgstr "Trình Đơn Rẻ Quạt Chèn Khung Khóa"
 
 
 msgid "Bone Collection Specials"
@@ -40503,16 +40503,8 @@ msgid "Location on disk where the bake data is stored"
 msgstr "Vị trí trên đĩa nơi lưu trữ dữ liệu nướng"
 
 
-msgid "Bake Target"
-msgstr "Mục Tiêu Nướng"
-
-
 msgid "Where to store the baked data"
 msgstr "Nơi lưu trữ dữ liệu nướng"
-
-
-msgid "Packed"
-msgstr "Đóng Gói"
 
 
 msgid "Pack the baked data into the .blend file"
@@ -51434,10 +51426,6 @@ msgstr "Tĩnh"
 
 msgid "Bake a single frame"
 msgstr "Nướng một khung hình duy nhất"
-
-
-msgid "Inherit from Modifier"
-msgstr "Kế Thừa từ Bộ Điều Chỉnh"
 
 
 msgid "Use setting from the modifier"
@@ -88351,6 +88339,10 @@ msgid "Don't import textures"
 msgstr "Không nhập khẩu các chất liệu"
 
 
+msgid "Packed"
+msgstr "Đóng Gói"
+
+
 msgid "Import textures as packed data"
 msgstr "Nhập khẩu các chất liệu dưới dạng dữ liệu đã được đóng gói"
 
@@ -89515,46 +89507,6 @@ msgid "Panel containing UI elements"
 msgstr "Bảng có chứa các phần tử Giao Diện Người Dùng (UI)"
 
 
-msgid "Auto-Masking"
-msgstr "Tự Động Chắn Lọc"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Điêu Khắc Đường Cong: Các Tùy Chọn về Thêm Đường Cong"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Điêu Khắc Đường Cong Tham Số Suy Giảm Dần"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Tỷ Lệ Phình Ra/Thu Lại của Đường Cong"
-
-
-msgid "Viewport Debug"
-msgstr "Hiệu Chỉnh Lỗi Cổng Nhìn"
-
-
-msgid "VR"
-msgstr "Virtual Reality: Thực Tế Ảo"
-
-
-msgid "VR Info"
-msgstr "Thông Tin VR"
-
-
-msgid "glTF Variants"
-msgstr "Biến Thể glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Biến Thể Nguyên Vật Liệu glTF"
-
-
-msgid "glTF Animations"
-msgstr "Hoạt Họa glTF"
-
-
 msgid "Active Tool"
 msgstr "Công Cụ đang Hoạt Động"
 
@@ -89657,6 +89609,46 @@ msgstr "Lập Thể"
 
 msgid "Multi Frame"
 msgstr "Đa Khung Hình"
+
+
+msgid "glTF Variants"
+msgstr "Biến Thể glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Biến Thể Nguyên Vật Liệu glTF"
+
+
+msgid "Auto-Masking"
+msgstr "Tự Động Chắn Lọc"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Điêu Khắc Đường Cong: Các Tùy Chọn về Thêm Đường Cong"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Điêu Khắc Đường Cong Tham Số Suy Giảm Dần"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Tỷ Lệ Phình Ra/Thu Lại của Đường Cong"
+
+
+msgid "Viewport Debug"
+msgstr "Hiệu Chỉnh Lỗi Cổng Nhìn"
+
+
+msgid "glTF Animations"
+msgstr "Hoạt Họa glTF"
+
+
+msgid "VR"
+msgstr "Virtual Reality: Thực Tế Ảo"
+
+
+msgid "VR Info"
+msgstr "Thông Tin VR"
 
 
 msgid "Import Settings"
@@ -116167,10 +116159,6 @@ msgid "Cannot read OSO bytecode to store in node at {!r}"
 msgstr "Không thể đọc mã byte OSO (định dạng Open Shading Compiled Object: Open Shading Compiled Object: Đối Tượng Tô Bóng Mở Biên Dịch) để lưu trong nút tại %r"
 
 
-msgid "Failed to write .oso file next to external .osl file at "
-msgstr "Thất bại trong việc ghi tập tin .oso kế tiếp tập tin .osl, ở bên ngoài, tại "
-
-
 msgid "Use Intel OpenImageDenoise AI denoiser"
 msgstr "Sử Dụng Bộ Khử Nhiễu AI Intel OpenImageDenoise"
 
@@ -116852,10 +116840,6 @@ msgid "Selected nodes are not of the same type as {}"
 msgstr "Các nút được chọn là bất đồng thể loại với {}"
 
 
-msgid "Ignored {} (not of the same type as {}), "
-msgstr "Bỏ qua {} (bất đồng thể loại với {}), "
-
-
 msgid "No folder selected"
 msgstr "Không có thư mục nào đã được chọn cả"
 
@@ -116932,16 +116916,16 @@ msgid "This node has no inputs to swap"
 msgstr "Nút này không có đầu vào để hoán đổi được"
 
 
+msgid "Ignored {} (not of the same type as {})"
+msgstr "Bỏ qua {} (bất đồng thể loại với {})"
+
+
 msgid "Ignored {}"
 msgstr "Bỏ qua {}"
 
 
 msgid "This node has no input connections to swap"
 msgstr "Nút này không có kết nối đầu vào nào để hoán đổi được cả"
-
-
-msgid "Ignored {} (not of the same type as {})"
-msgstr "Bỏ qua {} (bất đồng thể loại với {})"
 
 
 msgid "Some connections have been lost due to differing numbers of output sockets"
@@ -118174,10 +118158,6 @@ msgid "Unable to mirror, no mirror object/bone configured"
 msgstr "Không thể phản chiếu đối xứng, không thấy có đối tượng/xương phản chiếu đối xứng nào đã được cấu hình cả"
 
 
-msgid "Unsupported mode: %r"
-msgstr "Chế độ chưa được hỗ trợ: %r"
-
-
 msgid "Some strings were fixed, don't forget to save the .blend file to keep those changes"
 msgstr "Một số chuỗi văn bản đã được sửa chữa, chớ quên lưu tập tin .blend để giữ lại các thay đổi"
 
@@ -118192,10 +118172,6 @@ msgstr "Quá trình xóa bản xem trước cho tập tin '{:s}' bị thất b�
 
 msgid "No active camera in the scene"
 msgstr "Không có máy quay phim nào đang hoạt động trong cảnh cả"
-
-
-msgid "Unexpected modifier type: "
-msgstr "Thể loại bộ điều chỉnh không chấp nhận: "
 
 
 msgid "Target object not specified"
@@ -118370,10 +118346,6 @@ msgid "Object: {:s}, Mesh: '{:s}' has {:d} loops (for {:d} faces), expected {:d}
 msgstr "Đối Tượng: {:s}, Khung Lưới: '{:s}' có {:d} vòng mạch (đối với {:d} mặt), kỳ vọng {:d}"
 
 
-msgid "Modifiers cannot be added to object: "
-msgstr "Bộ điều chỉnh không thể cho thêm đối tượng vào: "
-
-
 msgid "Object {!r} already has {!r} F-Curve(s). Remove these before trying again"
 msgstr "Đối tượng {!r} đã có {!r} Đường Cong-F. Xóa những cái này đi trước khi thử lại nhé"
 
@@ -118496,10 +118468,6 @@ msgstr "Không thể viết đè sắp đặt trước: {:s}"
 
 msgid "Unable to remove preset: {!r}"
 msgstr "Không thể xóa sắp đặt trước: {!r}"
-
-
-msgid "Failed to execute the preset: "
-msgstr "Thất bại trong việc thi hành sắp đặt sẵn: "
 
 
 msgid "No other objects selected"
@@ -118953,10 +118921,6 @@ msgid "Python evaluation failed: "
 msgstr "Tính toán của Python bị thất bại: "
 
 
-msgid "Failed to assign value: "
-msgstr "Thất bại trong việc ấn định giá trị: "
-
-
 msgid "Strip(s)"
 msgstr "Các Dải Phim"
 
@@ -118985,10 +118949,6 @@ msgid "Rename {:d} {:s}"
 msgstr "Đổi tên {:d} {:s}"
 
 
-msgid "Invalid regular expression (find): "
-msgstr "Biểu thức chính quy không hợp lệ (lùng tìm): "
-
-
 msgid "Version: {:s}"
 msgstr "Phiên bản: {:s}"
 
@@ -119011,10 +118971,6 @@ msgstr "Không tìm thấy kiểu dữ liệu \"{:s}\""
 
 msgid "Material(s)"
 msgstr "Các Nguyên Vật Liệu"
-
-
-msgid "Invalid regular expression (replace): "
-msgstr "Biểu thức chính quy không hợp lệ (thay thế): "
 
 
 msgctxt "Operator"
@@ -135547,10 +135503,6 @@ msgid "Dependency Loop"
 msgstr "Sự Phụ Thuộc bị Luẩn Quẩn trong vòng Tuần Hoàn"
 
 
-msgid "Unsupported Menu Socket"
-msgstr "Ổ Cắm Trình Đơn chưa được Hỗ Trợ"
-
-
 msgid "Closed by Default"
 msgstr "Đóng theo Mặc Định"
 
@@ -143127,6 +143079,10 @@ msgid "Create a separate curve instance for every layer"
 msgstr "Tạo một thực thể đường cong riêng biệt cho mỗi tầng lớp"
 
 
+msgid "Revert"
+msgstr "Quay Trở Lại"
+
+
 msgid "Integration Scheme"
 msgstr "Loại Tích Phân"
 
@@ -146045,10 +146001,6 @@ msgid "Revert to the Saved File"
 msgstr "Quay trở lại về tập tin vốn Đã Lưu"
 
 
-msgid "Revert"
-msgstr "Quay Trở Lại"
-
-
 msgid "Clear Recent Files List"
 msgstr "Xóa Danh Sách các Tập Tin Gần Đây"
 
@@ -147362,10 +147314,6 @@ msgid "Utility"
 msgstr "Tiện Ích"
 
 
-msgid "Chromatic Aberation"
-msgstr "Thích Nghi Sắc Độ"
-
-
 msgid "Create a vector from its cylindrical components."
 msgstr "Kiến Tạo một vectơ từ các thành phần X, Y và Z"
 
@@ -147404,10 +147352,6 @@ msgstr "Hình Trụ Trung Tâm"
 
 msgid "Split Toning"
 msgstr "Tách Phân"
-
-
-msgid "Smoothness "
-msgstr "Mức Độ Làm Mịn "
 
 
 msgid "Tune Image"
