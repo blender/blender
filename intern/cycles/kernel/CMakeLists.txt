@@ -463,7 +463,7 @@ endif()
 
 # CUDA module
 
-function(cuda_add_common_flags cuda_version in_flags out_flags)
+function(cuda_add_common_flags cuda_version arch in_flags out_flags)
   set(flags ${in_flags})
 
   if(CUDA_HOST_COMPILER)
@@ -484,6 +484,11 @@ function(cuda_add_common_flags cuda_version in_flags out_flags)
 
   if(WITH_NANOVDB)
     set(flags ${flags} -D WITH_NANOVDB)
+  endif()
+
+  if("${cuda_version}" GREATER_EQUAL 123 AND "${arch}" STREQUAL "sm_120")
+    # Enable jump table generation for the SVM switch statement.
+    set(flags ${flags} --jump-table-density 80)
   endif()
 
   if(NOT WITH_CYCLES_CUDA_BUILD_SERIAL AND "${cuda_version}" GREATER_EQUAL 129)
@@ -557,7 +562,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
       -I ${CMAKE_CURRENT_SOURCE_DIR}/device/cuda
       -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_file})
 
-    cuda_add_common_flags(${cuda_version} "${cuda_flags}" cuda_flags)
+    cuda_add_common_flags(${cuda_version} ${arch} "${cuda_flags}" cuda_flags)
 
     set(_cuda_nvcc_args
       -arch=${arch}
@@ -863,7 +868,7 @@ if(WITH_CYCLES_CUDA_BINARIES AND WITH_CYCLES_DEVICE_OPTIX)
       endif()
     endif()
 
-    cuda_add_common_flags(${cuda_version} "${cuda_flags}" cuda_flags)
+    cuda_add_common_flags(${cuda_version} ${arch} "${cuda_flags}" cuda_flags)
 
     add_custom_command(
       OUTPUT

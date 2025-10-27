@@ -1502,9 +1502,9 @@ ccl_device void svm_node_closure_weight(ccl_private float *stack,
   *closure_weight = rgb_to_spectrum(stack_load_float3(stack, weight_offset));
 }
 
-ccl_device_noinline void svm_node_emission_weight(ccl_private float *stack,
-                                                  ccl_private Spectrum *closure_weight,
-                                                  const uint4 node)
+ccl_device void svm_node_emission_weight(ccl_private float *stack,
+                                         ccl_private Spectrum *closure_weight,
+                                         const uint4 node)
 {
   const uint color_offset = node.y;
   const uint strength_offset = node.z;
