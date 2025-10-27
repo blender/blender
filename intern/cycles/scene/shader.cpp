@@ -103,6 +103,7 @@ Shader::Shader() : Node(get_node_type())
   has_volume_spatial_varying = false;
   has_volume_attribute_dependency = false;
   has_volume_connected = false;
+  prev_has_surface_shadow_transparency = false;
   prev_volume_step_rate = 0.0f;
   has_light_path_node = false;
 
@@ -117,6 +118,7 @@ Shader::Shader() : Node(get_node_type())
   need_update_uvs = true;
   need_update_attribute = true;
   need_update_displacement = true;
+  shadow_transparency_needs_realloc = true;
 }
 
 static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
@@ -308,6 +310,21 @@ void Shader::set_graph(unique_ptr<ShaderGraph> &&graph_)
   has_volume_connected = (graph->output()->input("Volume")->link != nullptr);
 }
 
+bool Shader::has_surface_shadow_transparency() const
+{
+  if (!use_transparent_shadow) {
+    return false;
+  }
+
+  for (ShaderNode *node : graph->nodes) {
+    if (node->has_surface_transparent()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 void Shader::tag_update(Scene *scene)
 {
   /* update tag */
@@ -391,6 +408,11 @@ void Shader::tag_update(Scene *scene)
     need_update_attribute = true;
     scene->geometry_manager->tag_update(scene, GeometryManager::SHADER_ATTRIBUTE_MODIFIED);
     scene->procedural_manager->tag_update();
+  }
+
+  if (prev_has_surface_shadow_transparency != has_surface_shadow_transparency()) {
+    prev_has_surface_shadow_transparency = !prev_has_surface_shadow_transparency;
+    shadow_transparency_needs_realloc = true;
   }
 
   if (has_volume != prev_has_volume || volume_step_rate != prev_volume_step_rate) {

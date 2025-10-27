@@ -403,6 +403,10 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
           device_update_flags |= ATTRS_NEED_REALLOC;
         }
       }
+
+      if (geom->is_hair() && shader->shadow_transparency_needs_realloc) {
+        device_update_flags |= ATTR_FLOAT_NEEDS_REALLOC;
+      }
     }
 
     /* only check for modified attributes if we do not need to reallocate them already */
@@ -984,6 +988,7 @@ void GeometryManager::device_update(Device *device,
     shader->need_update_uvs = false;
     shader->need_update_attribute = false;
     shader->need_update_displacement = false;
+    shader->shadow_transparency_needs_realloc = false;
   }
 
   const Scene::MotionType need_motion = scene->need_motion();
