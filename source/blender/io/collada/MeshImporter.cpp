@@ -808,6 +808,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
 
   geom_uid_mat_mapping_map[collada_mesh->getUniqueId()] = mat_prim_map;
   material_indices.finish();
+  sharp_faces.finish();
 }
 
 void MeshImporter::get_vector(float v[3], COLLADAFW::MeshVertexData &arr, int i, int stride)
