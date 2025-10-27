@@ -11,6 +11,7 @@
 
 #include <optional>
 
+#include "BLI_generic_virtual_array.hh"
 #include "BLI_implicit_sharing.h"
 #include "BLI_memory_counter_fwd.hh"
 #include "BLI_span.hh"
@@ -672,9 +673,11 @@ struct CustomDataTransferLayerMap {
   const float *mix_weights = nullptr;
 
   /** Data source array (can be regular CD data, vertices/edges/etc., key-blocks...). */
-  const void *data_src = nullptr;
+  std::variant<const void *, blender::GVArray> data_src;
   /** Data dest array (same type as dat_src). */
-  void *data_dst = nullptr;
+  std::variant<void *, blender::GMutableVArraySpan> data_dst = nullptr;
+  /** Split from #bke::GSpanAttributeWriter to avoid including BKE_attribute.hh. */
+  std::function<void()> tag_modified_fn;
   /** Index to affect in data_src (used e.g. for vgroups). */
   int data_src_n = 0;
   /** Index to affect in data_dst (used e.g. for vgroups). */
@@ -696,8 +699,7 @@ struct CustomDataTransferLayerMap {
 /**
  * Those functions assume src_n and dst_n layers of given type exist in resp. src and dst.
  */
-void CustomData_data_transfer(const MeshPairRemap *me_remap,
-                              const CustomDataTransferLayerMap *laymap);
+void CustomData_data_transfer(const MeshPairRemap *me_remap, CustomDataTransferLayerMap *laymap);
 
 /* .blend file I/O */
 

@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include "BKE_attribute_legacy_convert.hh"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_customdata_types.h"
@@ -411,6 +412,52 @@ float data_transfer_interp_float_do(const int mix_mode,
 /* Helpers to match sources and destinations data layers
  * (also handles 'conversions' in CD_FAKE cases). */
 
+static void data_transfer_layersmapping_add_item(
+    Vector<CustomDataTransferLayerMap> *r_map,
+    const int cddata_type,
+    const int mix_mode,
+    const float mix_factor,
+    const float *mix_weights,
+    std::variant<const void *, blender::GVArray> data_src,
+    std::variant<void *, blender::bke::GSpanAttributeWriter> data_dst,
+    const int data_src_n,
+    const int data_dst_n,
+    const size_t elem_size,
+    const size_t data_size,
+    const size_t data_offset,
+    cd_datatransfer_interp interp,
+    void *interp_data)
+{
+  CustomDataTransferLayerMap item{};
+
+  BLI_assert(std::visit([](const auto &value) { return bool(value); }, data_dst));
+
+  item.data_type = cddata_type;
+  item.mix_mode = mix_mode;
+  item.mix_factor = mix_factor;
+  item.mix_weights = mix_weights;
+
+  item.data_src = std::move(data_src);
+  if (auto *attr = std::get_if<blender::bke::GSpanAttributeWriter>(&data_dst)) {
+    item.data_dst = std::move(attr->span);
+    item.tag_modified_fn = std::move(attr->tag_modified_fn);
+  }
+  else {
+    item.data_dst = std::get<void *>(data_dst);
+  }
+  item.data_src_n = data_src_n;
+  item.data_dst_n = data_dst_n;
+  item.elem_size = elem_size;
+
+  item.data_size = data_size;
+  item.data_offset = data_offset;
+
+  item.interp = interp;
+  item.interp_data = interp_data;
+
+  r_map->append(std::move(item));
+}
+
 void data_transfer_layersmapping_add_item(Vector<CustomDataTransferLayerMap> *r_map,
                                           const int cddata_type,
                                           const int mix_mode,
@@ -426,47 +473,41 @@ void data_transfer_layersmapping_add_item(Vector<CustomDataTransferLayerMap> *r_
                                           cd_datatransfer_interp interp,
                                           void *interp_data)
 {
-  CustomDataTransferLayerMap item{};
-
-  BLI_assert(data_dst != nullptr);
-
-  item.data_type = cddata_type;
-  item.mix_mode = mix_mode;
-  item.mix_factor = mix_factor;
-  item.mix_weights = mix_weights;
-
-  item.data_src = data_src;
-  item.data_dst = data_dst;
-  item.data_src_n = data_src_n;
-  item.data_dst_n = data_dst_n;
-  item.elem_size = elem_size;
-
-  item.data_size = data_size;
-  item.data_offset = data_offset;
-
-  item.interp = interp;
-  item.interp_data = interp_data;
-
-  r_map->append(item);
+  data_transfer_layersmapping_add_item(
+      r_map,
+      cddata_type,
+      mix_mode,
+      mix_factor,
+      mix_weights,
+      std::variant<const void *, blender::GVArray>(data_src),
+      std::variant<void *, blender::bke::GSpanAttributeWriter>(data_dst),
+      data_src_n,
+      data_dst_n,
+      elem_size,
+      data_size,
+      data_offset,
+      interp,
+      interp_data);
 }
 
-static void data_transfer_layersmapping_add_item_cd(Vector<CustomDataTransferLayerMap> *r_map,
-                                                    const int cddata_type,
-                                                    const int mix_mode,
-                                                    const float mix_factor,
-                                                    const float *mix_weights,
-                                                    const void *data_src,
-                                                    void *data_dst,
-                                                    cd_datatransfer_interp interp,
-                                                    void *interp_data)
+static void data_transfer_layersmapping_add_item_cd(
+    Vector<CustomDataTransferLayerMap> *r_map,
+    const int cddata_type,
+    const int mix_mode,
+    const float mix_factor,
+    const float *mix_weights,
+    std::variant<const void *, blender::GVArray> data_src,
+    std::variant<void *, blender::bke::GSpanAttributeWriter> data_dst,
+    cd_datatransfer_interp interp,
+    void *interp_data)
 {
   data_transfer_layersmapping_add_item(r_map,
                                        cddata_type,
                                        mix_mode,
                                        mix_factor,
                                        mix_weights,
-                                       data_src,
-                                       data_dst,
+                                       std::move(data_src),
+                                       std::move(data_dst),
                                        0,
                                        0,
                                        0,
@@ -486,30 +527,35 @@ static void data_transfer_layersmapping_add_item_cd(Vector<CustomDataTransferLay
 static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
     Vector<CustomDataTransferLayerMap> *r_map,
     const eCustomDataType cddata_type,
+    const blender::bke::AttrDomain domain,
     const int mix_mode,
     const float mix_factor,
     const float *mix_weights,
-    const int num_elem_dst,
     const bool use_create,
     const bool use_delete,
-    const CustomData &cd_src,
-    CustomData &cd_dst,
+    const Mesh &mesh_src,
+    Mesh &mesh_dst,
+    const blender::Span<std::string> src_names,
+    const blender::Span<std::string> dst_names,
     const int tolayers,
     const bool *use_layers_src,
     const int num_layers_src)
 {
-  const void *data_src;
-  void *data_dst = nullptr;
+  using namespace blender;
+  bke::AttributeAccessor src_attributes = mesh_src.attributes();
+  bke::MutableAttributeAccessor dst_attributes = mesh_dst.attributes_for_write();
+  const bke::AttrType attr_type = *bke::custom_data_type_to_attr_type(cddata_type);
+  std::variant<const void *, blender::GVArray> data_src;
+  std::variant<void *, blender::bke::GSpanAttributeWriter> data_dst = nullptr;
   int idx_src = num_layers_src;
-  int idx_dst, tot_dst = CustomData_number_of_layers(&cd_dst, cddata_type);
-  bool *data_dst_to_delete = nullptr;
+  int idx_dst, tot_dst = dst_names.size();
 
   if (!use_layers_src) {
     /* No source at all, we can only delete all destination if requested. */
     if (use_delete) {
       idx_dst = tot_dst;
       while (idx_dst--) {
-        CustomData_free_layer(&cd_dst, cddata_type, idx_dst);
+        dst_attributes.remove(dst_names[idx_dst]);
       }
     }
     return true;
@@ -529,7 +575,8 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
         if (use_create) {
           /* Create as much data layers as necessary! */
           for (; idx_dst < idx_src; idx_dst++) {
-            CustomData_add_layer(&cd_dst, cddata_type, CD_SET_DEFAULT, num_elem_dst);
+            dst_attributes.add(
+                src_names[idx_dst], domain, attr_type, bke::AttributeInitDefaultValue());
           }
         }
         else {
@@ -539,7 +586,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
       }
       else if (use_delete && idx_dst > idx_src) {
         while (idx_dst-- > idx_src) {
-          CustomData_free_layer(&cd_dst, cddata_type, idx_dst);
+          dst_attributes.remove(dst_names[idx_dst]);
         }
       }
       if (r_map) {
@@ -547,27 +594,22 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
           if (!use_layers_src[idx_src]) {
             continue;
           }
-          data_src = CustomData_get_layer_n(&cd_src, cddata_type, idx_src);
-          data_dst = CustomData_get_layer_n_for_write(&cd_dst, cddata_type, idx_src, num_elem_dst);
+          data_src = *src_attributes.lookup(src_names[idx_src], domain, attr_type);
+          data_dst = dst_attributes.lookup_for_write_span(dst_names[idx_dst]);
           data_transfer_layersmapping_add_item_cd(r_map,
                                                   cddata_type,
                                                   mix_mode,
                                                   mix_factor,
                                                   mix_weights,
-                                                  data_src,
-                                                  data_dst,
+                                                  std::move(data_src),
+                                                  std::move(data_dst),
                                                   nullptr,
                                                   nullptr);
         }
       }
       break;
-    case DT_LAYERS_NAME_DST:
-      if (use_delete) {
-        if (tot_dst) {
-          data_dst_to_delete = MEM_malloc_arrayN<bool>(size_t(tot_dst), __func__);
-          memset(data_dst_to_delete, true, sizeof(*data_dst_to_delete) * size_t(tot_dst));
-        }
-      }
+    case DT_LAYERS_NAME_DST: {
+      Vector<std::string> data_dst_to_delete;
 
       while (idx_src--) {
         const char *name;
@@ -576,13 +618,13 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
           continue;
         }
 
-        name = CustomData_get_layer_name(&cd_src, cddata_type, idx_src);
-        data_src = CustomData_get_layer_n(&cd_src, cddata_type, idx_src);
-        idx_dst = CustomData_get_named_layer(&cd_dst, cddata_type, name);
-        if (idx_dst == -1) {
+        name = src_names[idx_src].c_str();
+        data_src = *src_attributes.lookup(src_names[idx_src], domain, attr_type);
+        data_dst = dst_attributes.lookup_for_write_span(name);
+        if (!std::get<bke::GSpanAttributeWriter>(data_dst)) {
           if (use_create) {
-            CustomData_add_layer_named(&cd_dst, cddata_type, CD_SET_DEFAULT, num_elem_dst, name);
-            idx_dst = CustomData_get_named_layer(&cd_dst, cddata_type, name);
+            dst_attributes.add(name, domain, attr_type, bke::AttributeInitDefaultValue());
+            data_dst = dst_attributes.lookup_for_write_span(name);
           }
           else {
             /* If we are not allowed to create missing dst data layers,
@@ -590,37 +632,33 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
             continue;
           }
         }
-        else if (data_dst_to_delete) {
-          data_dst_to_delete[idx_dst] = false;
+        else if (use_delete) {
+          data_dst_to_delete.append(name);
         }
         if (r_map) {
-          data_dst = CustomData_get_layer_n_for_write(&cd_dst, cddata_type, idx_dst, num_elem_dst);
+          data_dst = dst_attributes.lookup_for_write_span(name);
           data_transfer_layersmapping_add_item_cd(r_map,
                                                   cddata_type,
                                                   mix_mode,
                                                   mix_factor,
                                                   mix_weights,
-                                                  data_src,
-                                                  data_dst,
+                                                  std::move(data_src),
+                                                  std::move(data_dst),
                                                   nullptr,
                                                   nullptr);
         }
       }
 
-      if (data_dst_to_delete) {
-        /* NOTE:
-         * This won't affect newly created layers, if any, since tot_dst has not been updated!
-         * Also, looping backward ensures us we do not suffer
-         * from index shifting when deleting a layer. */
-        for (idx_dst = tot_dst; idx_dst--;) {
-          if (data_dst_to_delete[idx_dst]) {
-            CustomData_free_layer(&cd_dst, cddata_type, idx_dst);
-          }
-        }
-
-        MEM_freeN(data_dst_to_delete);
+      /* NOTE:
+       * This won't affect newly created layers, if any, since tot_dst has not been updated!
+       * Also, looping backward ensures us we do not suffer
+       * from index shifting when deleting a layer. */
+      for (const StringRef name : data_dst_to_delete) {
+        dst_attributes.remove(name);
       }
+
       break;
+    }
     default:
       return false;
   }
@@ -630,56 +668,101 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
 
 static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerMap> *r_map,
                                                  const eCustomDataType cddata_type,
+                                                 const blender::bke::AttrDomain domain,
                                                  const int mix_mode,
                                                  const float mix_factor,
                                                  const float *mix_weights,
-                                                 const int num_elem_dst,
                                                  const bool use_create,
                                                  const bool use_delete,
-                                                 const CustomData &cd_src,
-                                                 CustomData &cd_dst,
+                                                 const Mesh &mesh_src,
+                                                 Mesh &mesh_dst,
                                                  const int fromlayers,
                                                  const int tolayers)
 {
-  void *data_dst = nullptr;
+  using namespace blender;
+  bke::AttributeAccessor src_attributes = mesh_src.attributes();
+  bke::MutableAttributeAccessor dst_attributes = mesh_dst.attributes_for_write();
+  const bke::AttrType attr_type = *bke::custom_data_type_to_attr_type(cddata_type);
+
+  Vector<std::string> src_names;
+  mesh_src.attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.domain == domain && iter.data_type == attr_type) {
+      src_names.append(iter.name);
+    }
+  });
+  Vector<std::string> dst_names;
+  mesh_dst.attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.domain == domain && iter.data_type == attr_type) {
+      dst_names.append(iter.name);
+    }
+  });
+
+  std::variant<void *, bke::GSpanAttributeWriter> data_dst = nullptr;
 
   if (fromlayers == DT_LAYERS_ACTIVE_SRC || fromlayers >= 0) {
     /* NOTE: use_delete has not much meaning in this case, ignored. */
 
-    int idx_src;
+    std::string name_src;
     if (fromlayers >= 0) { /* Real-layer index */
-      idx_src = fromlayers;
+      name_src = src_names[fromlayers];
     }
     else {
-      idx_src = CustomData_get_active_layer(&cd_src, cddata_type);
-      if (idx_src == -1) {
+      name_src = [&]() -> StringRef {
+        switch (cddata_type) {
+          case CD_PROP_FLOAT2:
+            return mesh_src.active_uv_map_name();
+          case CD_PROP_COLOR:
+          case CD_PROP_BYTE_COLOR:
+            return StringRef(mesh_src.active_color_attribute);
+          default:
+            BLI_assert_unreachable();
+            return "";
+        }
+      }();
+      if (name_src.empty()) {
         return true;
       }
     }
-    const void *data_src = CustomData_get_layer_n(&cd_src, cddata_type, idx_src);
+    const int idx_src = src_names.first_index_of(name_src);
+
+    GVArray data_src = *src_attributes.lookup(name_src, domain, attr_type);
     if (!data_src) {
       return true;
     }
 
+    std::string name_dst;
     int idx_dst;
     if (tolayers >= 0) { /* Real-layer index */
-      idx_dst = tolayers;
-      data_dst = CustomData_get_layer_n_for_write(&cd_dst, cddata_type, idx_dst, num_elem_dst);
+      name_dst = dst_names[tolayers];
+      data_dst = dst_attributes.lookup_for_write_span(name_dst);
     }
     else if (tolayers == DT_LAYERS_ACTIVE_DST) {
-      idx_dst = CustomData_get_active_layer(&cd_dst, cddata_type);
-      if (idx_dst == -1) {
+      name_dst = [&]() -> StringRef {
+        switch (cddata_type) {
+          case CD_PROP_FLOAT2:
+            return mesh_src.active_uv_map_name();
+          case CD_PROP_COLOR:
+          case CD_PROP_BYTE_COLOR:
+            return StringRef(mesh_src.active_color_attribute);
+          default:
+            BLI_assert_unreachable();
+            return "";
+        }
+      }();
+      if (name_dst.empty()) {
         if (!use_create) {
           return true;
         }
-        data_dst = CustomData_add_layer(&cd_dst, cddata_type, CD_SET_DEFAULT, num_elem_dst);
+        name_dst = name_src;
+        dst_attributes.add(name_dst, domain, attr_type, bke::AttributeInitDefaultValue());
+        data_dst = dst_attributes.lookup_for_write_span(name_dst);
       }
       else {
-        data_dst = CustomData_get_layer_n_for_write(&cd_dst, cddata_type, idx_dst, num_elem_dst);
+        data_dst = dst_attributes.lookup_for_write_span(name_dst);
       }
     }
     else if (tolayers == DT_LAYERS_INDEX_DST) {
-      int num = CustomData_number_of_layers(&cd_dst, cddata_type);
+      int num = dst_names.size();
       idx_dst = idx_src;
       if (num <= idx_dst) {
         if (!use_create) {
@@ -687,28 +770,30 @@ static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerM
         }
         /* Create as much data layers as necessary! */
         for (; num <= idx_dst; num++) {
-          CustomData_add_layer(&cd_dst, cddata_type, CD_SET_DEFAULT, num_elem_dst);
+          dst_attributes.add(src_names[num], domain, attr_type, bke::AttributeInitDefaultValue());
         }
       }
-      data_dst = CustomData_get_layer_n_for_write(&cd_dst, cddata_type, idx_dst, num_elem_dst);
+
+      data_dst = dst_attributes.lookup_for_write_span(name_dst);
     }
     else if (tolayers == DT_LAYERS_NAME_DST) {
-      const char *name = CustomData_get_layer_name(&cd_src, cddata_type, idx_src);
-      idx_dst = CustomData_get_named_layer(&cd_dst, cddata_type, name);
-      if (idx_dst == -1) {
+      const char *name = name_src.c_str();
+      if (mesh_dst.attributes().lookup_meta_data(name) !=
+          bke::AttributeMetaData{domain, attr_type})
+      {
         if (!use_create) {
           return true;
         }
-        CustomData_add_layer_named(&cd_dst, cddata_type, CD_SET_DEFAULT, num_elem_dst, name);
-        idx_dst = CustomData_get_named_layer(&cd_dst, cddata_type, name);
+
+        dst_attributes.add(name, domain, attr_type, bke::AttributeInitDefaultValue());
       }
-      data_dst = CustomData_get_layer_n_for_write(&cd_dst, cddata_type, idx_dst, num_elem_dst);
+      data_dst = dst_attributes.lookup_for_write_span(name);
     }
     else {
       return false;
     }
 
-    if (!data_dst) {
+    if (!std::visit([&](const auto &value) { return bool(value); }, data_dst)) {
       return false;
     }
 
@@ -719,13 +804,13 @@ static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerM
                                               mix_factor,
                                               mix_weights,
                                               data_src,
-                                              data_dst,
+                                              std::move(data_dst),
                                               nullptr,
                                               nullptr);
     }
   }
   else if (fromlayers == DT_LAYERS_ALL_SRC) {
-    int num_src = CustomData_number_of_layers(&cd_src, cddata_type);
+    int num_src = src_names.size();
     bool *use_layers_src = num_src ? MEM_malloc_arrayN<bool>(size_t(num_src), __func__) : nullptr;
     bool ret;
 
@@ -735,14 +820,16 @@ static bool data_transfer_layersmapping_cdlayers(Vector<CustomDataTransferLayerM
 
     ret = data_transfer_layersmapping_cdlayers_multisrc_to_dst(r_map,
                                                                cddata_type,
+                                                               domain,
                                                                mix_mode,
                                                                mix_factor,
                                                                mix_weights,
-                                                               num_elem_dst,
                                                                use_create,
                                                                use_delete,
-                                                               cd_src,
-                                                               cd_dst,
+                                                               mesh_src,
+                                                               mesh_dst,
+                                                               src_names,
+                                                               dst_names,
                                                                tolayers,
                                                                use_layers_src,
                                                                num_src);
@@ -769,7 +856,6 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
                                                  int mix_mode,
                                                  float mix_factor,
                                                  const float *mix_weights,
-                                                 const int num_elem_dst,
                                                  const bool use_create,
                                                  const bool use_delete,
                                                  const int fromlayers,
@@ -810,14 +896,14 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
     else if (cddata_type == CD_PROP_BYTE_COLOR) {
       if (!data_transfer_layersmapping_cdlayers(r_map,
                                                 CD_PROP_BYTE_COLOR,
+                                                bke::AttrDomain::Point,
                                                 mix_mode,
                                                 mix_factor,
                                                 mix_weights,
-                                                num_elem_dst,
                                                 use_create,
                                                 use_delete,
-                                                me_src->vert_data,
-                                                me_dst->vert_data,
+                                                *me_src,
+                                                *me_dst,
                                                 fromlayers,
                                                 tolayers))
       {
@@ -828,14 +914,14 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
     else if (cddata_type == CD_PROP_COLOR) {
       if (!data_transfer_layersmapping_cdlayers(r_map,
                                                 CD_PROP_COLOR,
+                                                bke::AttrDomain::Point,
                                                 mix_mode,
                                                 mix_factor,
                                                 mix_weights,
-                                                num_elem_dst,
                                                 use_create,
                                                 use_delete,
-                                                me_src->vert_data,
-                                                me_dst->vert_data,
+                                                *me_src,
+                                                *me_dst,
                                                 fromlayers,
                                                 tolayers))
       {
@@ -981,14 +1067,14 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
     if (cddata_type == CD_FAKE_UV) {
       if (!data_transfer_layersmapping_cdlayers(r_map,
                                                 CD_PROP_FLOAT2,
+                                                bke::AttrDomain::Corner,
                                                 mix_mode,
                                                 mix_factor,
                                                 mix_weights,
-                                                num_elem_dst,
                                                 use_create,
                                                 use_delete,
-                                                me_src->corner_data,
-                                                me_dst->corner_data,
+                                                *me_src,
+                                                *me_dst,
                                                 fromlayers,
                                                 tolayers))
       {
@@ -1024,14 +1110,14 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
     else if (cddata_type == CD_PROP_BYTE_COLOR) {
       if (!data_transfer_layersmapping_cdlayers(r_map,
                                                 CD_PROP_BYTE_COLOR,
+                                                bke::AttrDomain::Corner,
                                                 mix_mode,
                                                 mix_factor,
                                                 mix_weights,
-                                                num_elem_dst,
                                                 use_create,
                                                 use_delete,
-                                                me_src->corner_data,
-                                                me_dst->corner_data,
+                                                *me_src,
+                                                *me_dst,
                                                 fromlayers,
                                                 tolayers))
       {
@@ -1042,14 +1128,14 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
     else if (cddata_type == CD_PROP_COLOR) {
       if (!data_transfer_layersmapping_cdlayers(r_map,
                                                 CD_PROP_COLOR,
+                                                bke::AttrDomain::Corner,
                                                 mix_mode,
                                                 mix_factor,
                                                 mix_weights,
-                                                num_elem_dst,
                                                 use_create,
                                                 use_delete,
-                                                me_src->corner_data,
-                                                me_dst->corner_data,
+                                                *me_src,
+                                                *me_dst,
                                                 fromlayers,
                                                 tolayers))
       {
@@ -1074,7 +1160,7 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
           mix_weights,
           CustomData_get_layer_named(&me_src->face_data, CD_PROP_BOOL, "sharp_face"),
           CustomData_get_layer_named_for_write(
-              &me_dst->face_data, CD_PROP_BOOL, "sharp_face", num_elem_dst),
+              &me_dst->face_data, CD_PROP_BOOL, "sharp_face", me_dst->faces_num),
           nullptr,
           nullptr);
       return true;
@@ -1150,8 +1236,6 @@ void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
     }
 
     if (DT_DATATYPE_IS_VERT(dtdata_type)) {
-      const int num_elem_dst = me_dst->verts_num;
-
       data_transfer_layersmapping_generate(nullptr,
                                            ob_src,
                                            ob_dst,
@@ -1162,7 +1246,6 @@ void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
                                            0,
                                            0.0f,
                                            nullptr,
-                                           num_elem_dst,
                                            use_create,
                                            use_delete,
                                            fromlayers,
@@ -1176,8 +1259,6 @@ void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
       }
     }
     if (DT_DATATYPE_IS_EDGE(dtdata_type)) {
-      const int num_elem_dst = me_dst->edges_num;
-
       data_transfer_layersmapping_generate(nullptr,
                                            ob_src,
                                            ob_dst,
@@ -1188,7 +1269,6 @@ void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
                                            0,
                                            0.0f,
                                            nullptr,
-                                           num_elem_dst,
                                            use_create,
                                            use_delete,
                                            fromlayers,
@@ -1196,8 +1276,6 @@ void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
                                            nullptr);
     }
     if (DT_DATATYPE_IS_LOOP(dtdata_type)) {
-      const int num_elem_dst = me_dst->corners_num;
-
       data_transfer_layersmapping_generate(nullptr,
                                            ob_src,
                                            ob_dst,
@@ -1208,7 +1286,6 @@ void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
                                            0,
                                            0.0f,
                                            nullptr,
-                                           num_elem_dst,
                                            use_create,
                                            use_delete,
                                            fromlayers,
@@ -1222,8 +1299,6 @@ void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
       }
     }
     if (DT_DATATYPE_IS_FACE(dtdata_type)) {
-      const int num_elem_dst = me_dst->faces_num;
-
       data_transfer_layersmapping_generate(nullptr,
                                            ob_src,
                                            ob_dst,
@@ -1234,7 +1309,6 @@ void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
                                            0,
                                            0.0f,
                                            nullptr,
-                                           num_elem_dst,
                                            use_create,
                                            use_delete,
                                            fromlayers,
@@ -1414,7 +1488,6 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                                                mix_mode,
                                                mix_factor,
                                                weights[VDATA],
-                                               num_verts_dst,
                                                use_create,
                                                use_delete,
                                                fromlayers,
@@ -1489,7 +1562,6 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                                                mix_mode,
                                                mix_factor,
                                                weights[EDATA],
-                                               edges_dst.size(),
                                                use_create,
                                                use_delete,
                                                fromlayers,
@@ -1570,7 +1642,6 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                                                mix_mode,
                                                mix_factor,
                                                weights[LDATA],
-                                               corner_verts_dst.size(),
                                                use_create,
                                                use_delete,
                                                fromlayers,
@@ -1651,7 +1722,6 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                                                mix_mode,
                                                mix_factor,
                                                weights[PDATA],
-                                               faces_dst.size(),
                                                use_create,
                                                use_delete,
                                                fromlayers,

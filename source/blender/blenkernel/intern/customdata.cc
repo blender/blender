@@ -4809,15 +4809,27 @@ void customdata_data_transfer_interp_normal_normals(const CustomDataTransferLaye
   CustomData_data_mix_value(data_type, tmp_dst, data_dst, mix_mode, mix_factor);
 }
 
-void CustomData_data_transfer(const MeshPairRemap *me_remap,
-                              const CustomDataTransferLayerMap *laymap)
+void CustomData_data_transfer(const MeshPairRemap *me_remap, CustomDataTransferLayerMap *laymap)
 {
+  using namespace blender;
   MeshPairRemapItem *mapit = me_remap->items;
   const int totelem = me_remap->items_num;
 
   const int data_type = laymap->data_type;
-  const void *data_src = laymap->data_src;
-  void *data_dst = laymap->data_dst;
+  GVArraySpan data_src_span;
+  const void *data_src = [&]() -> const void * {
+    if (std::holds_alternative<const void *>(laymap->data_src)) {
+      return std::get<const void *>(laymap->data_src);
+    }
+    data_src_span = std::get<GVArray>(laymap->data_src);
+    return data_src_span.data();
+  }();
+  void *data_dst = [&]() -> void * {
+    if (std::holds_alternative<void *>(laymap->data_dst)) {
+      return std::get<void *>(laymap->data_dst);
+    }
+    return std::get<GMutableVArraySpan>(laymap->data_dst).data();
+  }();
 
   size_t data_step;
   size_t data_size;
@@ -4882,6 +4894,13 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap,
            mapit->weights_src,
            sources_num,
            mix_factor);
+  }
+
+  if (laymap->tag_modified_fn) {
+    laymap->tag_modified_fn();
+  }
+  if (std::holds_alternative<GMutableVArraySpan>(laymap->data_dst)) {
+    std::get<GMutableVArraySpan>(laymap->data_dst).save();
   }
 
   MEM_SAFE_FREE(tmp_data_src);
