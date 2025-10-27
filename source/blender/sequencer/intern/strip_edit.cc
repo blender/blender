@@ -87,6 +87,8 @@ bool SEQ_edit_sequence_swap(Scene *scene, Sequence *seq_a, Sequence *seq_b, cons
   seq_time_effect_range_set(scene, seq_a);
   seq_time_effect_range_set(scene, seq_b);
 
+  SEQ_sequence_lookup_tag(scene, SEQ_LOOKUP_TAG_INVALID);
+
   return true;
 }
 
