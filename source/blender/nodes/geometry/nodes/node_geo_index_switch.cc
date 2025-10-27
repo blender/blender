@@ -23,6 +23,7 @@
 #include "BLO_read_write.hh"
 
 #include "BKE_node_socket_value.hh"
+#include "BKE_node_tree_reference_lifetimes.hh"
 
 namespace blender::nodes::node_geo_index_switch_cc {
 
@@ -107,8 +108,11 @@ static void node_declare(NodeDeclarationBuilder &b)
   if (supports_fields) {
     output.dependent_field().reference_pass_all();
   }
-  else if (data_type == SOCK_GEOMETRY) {
+  if (bke::node_tree_reference_lifetimes::can_contain_referenced_data(data_type)) {
     output.propagate_all();
+  }
+  if (bke::node_tree_reference_lifetimes::can_contain_reference(data_type)) {
+    output.reference_pass_all();
   }
   output.structure_type(structure_type);
 
