@@ -780,18 +780,16 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   HairAttributeID attr_id;
   uint *uv_id = nullptr;
   uint *col_id = nullptr;
-  VectorSet<StringRefNull> uv_map_names = psmd->mesh_final->uv_map_names();
-  int num_uv_layers = uv_map_names.size();
   Vector<StringRef> color_attribute_names;
   int num_col_layers = 0;
-  const StringRef active_uv = psmd->mesh_final->default_uv_map_name();
-  const char *active_col = psmd->mesh_final->active_color_attribute;
   const MTFace **mtfaces = nullptr;
   const MCol **mcols = nullptr;
   float (**parent_uvs)[2] = nullptr;
   MCol **parent_mcol = nullptr;
 
+  VectorSet<StringRefNull> uv_map_names;
   if (psmd != nullptr) {
+    psmd->mesh_final->uv_map_names();
     psmd->mesh_final->attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
       if (iter.domain == bke::AttrDomain::Corner && iter.data_type == bke::AttrType::ColorByte) {
         color_attribute_names.append(iter.name);
@@ -799,12 +797,15 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
     });
     num_col_layers = color_attribute_names.size();
   }
+  int num_uv_layers = uv_map_names.size();
 
   attr_id.pos = GPU_vertformat_attr_add(&format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
   attr_id.tan = GPU_vertformat_attr_add(&format, "nor", gpu::VertAttrType::SFLOAT_32_32_32);
   attr_id.ind = GPU_vertformat_attr_add(&format, "ind", gpu::VertAttrType::SINT_32);
 
   if (psmd) {
+    const StringRef active_uv = psmd->mesh_final->default_uv_map_name();
+    const char *active_col = psmd->mesh_final->active_color_attribute;
     uv_id = MEM_malloc_arrayN<uint>(num_uv_layers, "UV attr format");
     col_id = MEM_malloc_arrayN<uint>(color_attribute_names.size(), "Col attr format");
 
