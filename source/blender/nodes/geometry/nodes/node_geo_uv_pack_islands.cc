@@ -70,6 +70,16 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(ShapeMethod::Aabb)
       .optional_label()
       .description("Method used for packing UV islands");
+  b.add_input<decl::Vector>("Bottom Left")
+      .default_value({0.0f, 0.0f})
+      .dimensions(2)
+      .subtype(PROP_XYZ)
+      .description("Bottom-left corner of packing bounds");
+  b.add_input<decl::Vector>("Top Right")
+      .default_value({1.0f, 1.0f})
+      .dimensions(2)
+      .subtype(PROP_XYZ)
+      .description("Top-right corner of packing bounds");
 }
 
 static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
@@ -78,6 +88,8 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
                                            const bool rotate,
                                            const float margin,
                                            const eUVPackIsland_ShapeMethod shape_method,
+                                           const float3 bottom,
+                                           const float3 top,
                                            const AttrDomain domain)
 {
   const Span<float3> positions = mesh.vert_positions();
@@ -132,7 +144,12 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
   params.shape_method = shape_method;
   params.rotate_method = rotate ? ED_UVPACK_ROTATION_ANY : ED_UVPACK_ROTATION_NONE;
   params.margin = margin;
-
+  if (top.x > bottom.x && top.y > bottom.y) {
+    params.udim_base_offset[0] = bottom.x;
+    params.udim_base_offset[1] = bottom.y;
+    params.target_extent = top.y - bottom.y;
+    params.target_aspect_y = (top.x - bottom.x) / (top.y - bottom.y);
+  }
   geometry::uv_parametrizer_pack(handle, params);
   geometry::uv_parametrizer_flush(handle);
   delete (handle);
@@ -148,19 +165,25 @@ class PackIslandsFieldInput final : public bke::MeshFieldInput {
   const bool rotate_;
   const float margin_;
   const eUVPackIsland_ShapeMethod shape_method_;
+  const float3 bottom_;
+  const float3 top_;
 
  public:
   PackIslandsFieldInput(const Field<bool> selection_field,
                         const Field<float3> uv_field,
                         const bool rotate,
                         const float margin,
-                        const eUVPackIsland_ShapeMethod shape_method)
+                        const eUVPackIsland_ShapeMethod shape_method,
+                        const float3 bottom,
+                        const float3 top)
       : bke::MeshFieldInput(CPPType::get<float3>(), "Pack UV Islands Field"),
         selection_field_(selection_field),
         uv_field_(uv_field),
         rotate_(rotate),
         margin_(margin),
-        shape_method_(shape_method)
+        shape_method_(shape_method),
+        bottom_(bottom),
+        top_(top)
   {
     category_ = Category::Generated;
   }
@@ -170,7 +193,7 @@ class PackIslandsFieldInput final : public bke::MeshFieldInput {
                                  const IndexMask & /*mask*/) const final
   {
     return construct_uv_gvarray(
-        mesh, selection_field_, uv_field_, rotate_, margin_, shape_method_, domain);
+        mesh, selection_field_, uv_field_, rotate_, margin_, shape_method_, bottom_, top_, domain);
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
@@ -194,9 +217,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<float3> uv_field = params.extract_input<Field<float3>>("UV");
   const bool rotate = params.extract_input<bool>("Rotate");
   const float margin = params.extract_input<float>("Margin");
+  const float3 bottom = params.extract_input<float3>("Bottom Left");
+  const float3 top = params.extract_input<float3>("Top Right");
   params.set_output("UV",
                     Field<float3>(std::make_shared<PackIslandsFieldInput>(
-                        selection_field, uv_field, rotate, margin, shape_method)));
+                        selection_field, uv_field, rotate, margin, shape_method, bottom, top)));
 }
 
 static void node_register()
