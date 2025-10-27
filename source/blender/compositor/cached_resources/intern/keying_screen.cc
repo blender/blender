@@ -226,7 +226,7 @@ void KeyingScreen::compute_cpu(const float smoothness,
     }
     weighted_sum /= sum_of_weights;
 
-    this->result.store_pixel(texel, weighted_sum);
+    this->result.store_pixel(texel, Color(weighted_sum));
   });
 }
 

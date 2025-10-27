@@ -168,7 +168,8 @@ class FilterOperation : public NodeOperation {
         float3 color_y = float3(0.0f);
         for (int j = 0; j < 3; j++) {
           for (int i = 0; i < 3; i++) {
-            float3 color = input.load_pixel_extended<float4>(texel + int2(i - 1, j - 1)).xyz();
+            float3 color =
+                float4(input.load_pixel_extended<Color>(texel + int2(i - 1, j - 1))).xyz();
             color_x += color * kernel[j][i];
             color_y += color * kernel[i][j];
           }
@@ -180,12 +181,12 @@ class FilterOperation : public NodeOperation {
 
         /* Mix the channel-wise magnitude with the original color at the center of the kernel using
          * the input factor. */
-        float4 color = input.load_pixel<float4>(texel);
+        float4 color = float4(input.load_pixel<Color>(texel));
         magnitude = math::interpolate(
             color.xyz(), magnitude, factor.load_pixel<float, true>(texel));
 
         /* Store the channel-wise magnitude with the original alpha of the input. */
-        output.store_pixel(texel, float4(magnitude, color.w));
+        output.store_pixel(texel, Color(float4(magnitude, color.w)));
       });
     }
     else {
@@ -194,16 +195,17 @@ class FilterOperation : public NodeOperation {
         float4 color = float4(0.0f);
         for (int j = 0; j < 3; j++) {
           for (int i = 0; i < 3; i++) {
-            color += input.load_pixel_extended<float4>(texel + int2(i - 1, j - 1)) * kernel[j][i];
+            color += float4(input.load_pixel_extended<Color>(texel + int2(i - 1, j - 1))) *
+                     kernel[j][i];
           }
         }
 
         /* Mix with the original color at the center of the kernel using the input factor. */
         color = math::interpolate(
-            input.load_pixel<float4>(texel), color, factor.load_pixel<float, true>(texel));
+            float4(input.load_pixel<Color>(texel)), color, factor.load_pixel<float, true>(texel));
 
         /* Store the color making sure it is not negative. */
-        output.store_pixel(texel, math::max(color, float4(0.0f)));
+        output.store_pixel(texel, Color(math::max(color, float4(0.0f))));
       });
     }
   }

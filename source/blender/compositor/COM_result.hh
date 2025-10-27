@@ -10,6 +10,7 @@
 #include <variant>
 
 #include "BLI_assert.h"
+#include "BLI_color_types.hh"
 #include "BLI_compiler_compat.h"
 #include "BLI_cpp_type.hh"
 #include "BLI_generic_pointer.hh"
@@ -39,9 +40,9 @@ enum class ResultType : uint8_t {
   Float2,
   Float3,
   Float4,
+  Color,
   Int,
   Int2,
-  Color,
   Bool,
   Menu,
 
@@ -62,6 +63,8 @@ enum class ResultStorageType : uint8_t {
   /* Stored as a buffer on the CPU and wrapped in a GMutableSpan. */
   CPU,
 };
+
+using Color = ColorSceneLinear4f<eAlpha::Premultiplied>;
 
 /* ------------------------------------------------------------------------------------------------
  * Result
@@ -135,7 +138,16 @@ class Result {
    * which will be identical to that stored in the data_ member. The active variant member depends
    * on the type of the result. This member is uninitialized and should not be used if the result
    * is not a single value. */
-  std::variant<float, float2, float3, float4, int32_t, int2, bool, std::string, nodes::MenuValue>
+  std::variant<float,
+               float2,
+               float3,
+               float4,
+               Color,
+               int32_t,
+               int2,
+               bool,
+               nodes::MenuValue,
+               std::string>
       single_value_ = 0.0f;
   /* The domain of the result. This only matters if the result was not a single value. See the
    * discussion in COM_domain.hh for more information. */
@@ -903,7 +915,7 @@ BLI_INLINE_METHOD float4 Result::sample_cubic_extended(const float2 &coordinates
 static void sample_ewa_extended_read_callback(void *userdata, int x, int y, float result[4])
 {
   const Result *input = static_cast<const Result *>(userdata);
-  const float4 sampled_result = input->load_pixel_extended<float4>(int2(x, y));
+  const Color sampled_result = input->load_pixel_extended<Color>(int2(x, y));
   copy_v4_v4(result, sampled_result);
 }
 
@@ -940,7 +952,7 @@ BLI_INLINE_METHOD float4 Result::sample_ewa_extended(const float2 &coordinates,
 static void sample_ewa_zero_read_callback(void *userdata, int x, int y, float result[4])
 {
   const Result *input = static_cast<const Result *>(userdata);
-  const float4 sampled_result = input->load_pixel_zero<float4>(int2(x, y));
+  const Color sampled_result = input->load_pixel_zero<Color>(int2(x, y));
   copy_v4_v4(result, sampled_result);
 }
 

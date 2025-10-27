@@ -32,7 +32,7 @@ static void blur_pass(const Result &input,
     float4 accumulated_color = float4(0.0f);
 
     /* First, compute the contribution of the center pixel. */
-    float4 center_color = input.load_pixel<float4>(texel);
+    float4 center_color = float4(input.load_pixel<Color>(texel));
     float center_weight = weights.load_pixel<float>(int2(0));
     accumulated_color += center_color * center_weight;
     accumulated_weight += center_weight;
@@ -51,14 +51,14 @@ static void blur_pass(const Result &input,
       /* Add 0.5 to evaluate at the center of the pixels. */
       float weight =
           weights.sample_bilinear_extended(float2((float(i) + 0.5f) / float(radius + 1), 0.0f)).x;
-      accumulated_color += input.load_pixel_extended<float4>(texel + int2(i, 0)) * weight;
-      accumulated_color += input.load_pixel_extended<float4>(texel + int2(-i, 0)) * weight;
+      accumulated_color += float4(input.load_pixel_extended<Color>(texel + int2(i, 0))) * weight;
+      accumulated_color += float4(input.load_pixel_extended<Color>(texel + int2(-i, 0))) * weight;
       accumulated_weight += weight * 2.0f;
     }
 
     /* Write the color using the transposed texel. See the horizontal_pass_cpu function for more
      * information on the rational behind this. */
-    output.store_pixel(int2(texel.y, texel.x), accumulated_color / accumulated_weight);
+    output.store_pixel(int2(texel.y, texel.x), Color(accumulated_color / accumulated_weight));
   });
 }
 

@@ -209,7 +209,8 @@ class ScaleOperation : public NodeOperation {
 
       output.store_pixel(
           texel,
-          input.sample(scaled_coordinates, interpolation, extension_mode_x, extension_mode_y));
+          Color(input.sample(
+              scaled_coordinates, interpolation, extension_mode_x, extension_mode_y)));
     });
   }
 

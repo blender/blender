@@ -142,8 +142,8 @@ class MovieDistortionOperation : public NodeOperation {
     output.allocate_texture(distortion_grid.domain());
 
     parallel_for(distortion_grid.domain().size, [&](const int2 texel) {
-      output.store_pixel(texel,
-                         input.sample_bilinear_zero(distortion_grid.load_pixel<float2>(texel)));
+      output.store_pixel(
+          texel, Color(input.sample_bilinear_zero(distortion_grid.load_pixel<float2>(texel))));
     });
   }
 

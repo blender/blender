@@ -174,7 +174,7 @@ class DisplaceOperation : public NodeOperation {
       const float2 coordinates = this->compute_coordinates(base_texel, size, displacement);
       output.store_pixel(
           base_texel,
-          image.sample(coordinates, interpolation, extension_mode_x, extension_mode_y));
+          Color(image.sample(coordinates, interpolation, extension_mode_x, extension_mode_y)));
     });
   }
 
@@ -224,7 +224,8 @@ class DisplaceOperation : public NodeOperation {
                                            const float2 &y_gradient) {
         /* Sample the input using the displaced coordinates passing in the computed gradients in
          * order to utilize the anisotropic filtering capabilities of the sampler. */
-        output.store_pixel(texel, image.sample_ewa_zero(coordinates, x_gradient, y_gradient));
+        output.store_pixel(texel,
+                           Color(image.sample_ewa_zero(coordinates, x_gradient, y_gradient)));
       };
 
       compute_anisotropic_pixel(

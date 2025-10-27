@@ -391,7 +391,7 @@ class GlareOperation : public NodeOperation {
 
       switch (quality) {
         case CMP_NODE_GLARE_QUALITY_HIGH: {
-          color = input.load_pixel<float4>(texel);
+          color = float4(input.load_pixel<Color>(texel));
           break;
         }
 
@@ -454,7 +454,7 @@ class GlareOperation : public NodeOperation {
       float4 rgba;
       hsv_to_rgb_v(hsva, rgba);
 
-      output.store_pixel(texel, float4(rgba.xyz(), 1.0f));
+      output.store_pixel(texel, Color(float4(rgba.xyz(), 1.0f)));
     });
 
     return output;
@@ -599,7 +599,8 @@ class GlareOperation : public NodeOperation {
     const int2 size = output.domain().size;
     parallel_for(size, [&](const int2 texel) {
       float2 normalized_coordinates = (float2(texel) + float2(0.5f)) / float2(size);
-      output.store_pixel(texel, highlights.sample_bilinear_extended(normalized_coordinates));
+      output.store_pixel(texel,
+                         Color(highlights.sample_bilinear_extended(normalized_coordinates)));
     });
   }
 
@@ -712,7 +713,7 @@ class GlareOperation : public NodeOperation {
     Result output = this->context().create_result(ResultType::Color);
     output.allocate_texture(size);
     parallel_for(size, [&](const int2 texel) {
-      output.store_pixel(texel, highlights.load_pixel<float4>(texel));
+      output.store_pixel(texel, highlights.load_pixel<Color>(texel));
     });
 
     const int iterations = this->get_number_of_iterations();
@@ -733,13 +734,13 @@ class GlareOperation : public NodeOperation {
            * in the same column. */
           for (int y = 0; y < height; y++) {
             int2 texel = int2(x, y);
-            float4 previous_output = output.load_pixel_zero<float4>(texel - int2(0, i));
-            float4 current_input = output.load_pixel<float4>(texel);
-            float4 next_input = output.load_pixel_zero<float4>(texel + int2(0, i));
+            float4 previous_output = float4(output.load_pixel_zero<Color>(texel - int2(0, i)));
+            float4 current_input = float4(output.load_pixel<Color>(texel));
+            float4 next_input = float4(output.load_pixel_zero<Color>(texel + int2(0, i)));
 
             float4 neighbor_average = (previous_output + next_input) / 2.0f;
             float4 causal_output = math::interpolate(current_input, neighbor_average, fade_factor);
-            output.store_pixel(texel, causal_output);
+            output.store_pixel(texel, Color(causal_output));
           }
 
           /* Non Causal Pass:
@@ -748,14 +749,14 @@ class GlareOperation : public NodeOperation {
            * input in the same column. */
           for (int y = height - 1; y >= 0; y--) {
             int2 texel = int2(x, y);
-            float4 previous_output = output.load_pixel_zero<float4>(texel + int2(0, i));
-            float4 current_input = output.load_pixel<float4>(texel);
-            float4 next_input = output.load_pixel_zero<float4>(texel - int2(0, i));
+            float4 previous_output = float4(output.load_pixel_zero<Color>(texel + int2(0, i)));
+            float4 current_input = float4(output.load_pixel<Color>(texel));
+            float4 next_input = float4(output.load_pixel_zero<Color>(texel - int2(0, i)));
 
             float4 neighbor_average = (previous_output + next_input) / 2.0f;
             float4 non_causal_output = math::interpolate(
                 current_input, neighbor_average, fade_factor);
-            output.store_pixel(texel, non_causal_output);
+            output.store_pixel(texel, Color(non_causal_output));
           }
         }
 
@@ -763,10 +764,10 @@ class GlareOperation : public NodeOperation {
          * the horizontal pass to the vertical pass. */
         for (int y = 0; y < height; y++) {
           int2 texel = int2(x, y);
-          float4 horizontal = horizontal_pass_result.load_pixel<float4>(texel);
-          float4 vertical = output.load_pixel<float4>(texel);
+          float4 horizontal = float4(horizontal_pass_result.load_pixel<Color>(texel));
+          float4 vertical = float4(output.load_pixel<Color>(texel));
           float4 combined = horizontal + vertical;
-          output.store_pixel(texel, float4(combined.xyz(), 1.0f));
+          output.store_pixel(texel, Color(float4(combined.xyz(), 1.0f)));
         }
       }
     });
@@ -817,7 +818,7 @@ class GlareOperation : public NodeOperation {
     Result horizontal_pass_result = context().create_result(ResultType::Color);
     horizontal_pass_result.allocate_texture(size);
     parallel_for(size, [&](const int2 texel) {
-      horizontal_pass_result.store_pixel(texel, highlights.load_pixel<float4>(texel));
+      horizontal_pass_result.store_pixel(texel, highlights.load_pixel<Color>(texel));
     });
 
     const int iterations = this->get_number_of_iterations();
@@ -836,14 +837,15 @@ class GlareOperation : public NodeOperation {
            * the same row. */
           for (int x = 0; x < width; x++) {
             int2 texel = int2(x, y);
-            float4 previous_output = horizontal_pass_result.load_pixel_zero<float4>(texel -
-                                                                                    int2(i, 0));
-            float4 current_input = horizontal_pass_result.load_pixel<float4>(texel);
-            float4 next_input = horizontal_pass_result.load_pixel_zero<float4>(texel + int2(i, 0));
+            float4 previous_output = float4(
+                horizontal_pass_result.load_pixel_zero<Color>(texel - int2(i, 0)));
+            float4 current_input = float4(horizontal_pass_result.load_pixel<Color>(texel));
+            float4 next_input = float4(
+                horizontal_pass_result.load_pixel_zero<Color>(texel + int2(i, 0)));
 
             float4 neighbor_average = (previous_output + next_input) / 2.0f;
             float4 causal_output = math::interpolate(current_input, neighbor_average, fade_factor);
-            horizontal_pass_result.store_pixel(texel, causal_output);
+            horizontal_pass_result.store_pixel(texel, Color(causal_output));
           }
 
           /* Non Causal Pass:
@@ -852,15 +854,16 @@ class GlareOperation : public NodeOperation {
            * input in the same row. */
           for (int x = width - 1; x >= 0; x--) {
             int2 texel = int2(x, y);
-            float4 previous_output = horizontal_pass_result.load_pixel_zero<float4>(texel +
-                                                                                    int2(i, 0));
-            float4 current_input = horizontal_pass_result.load_pixel<float4>(texel);
-            float4 next_input = horizontal_pass_result.load_pixel_zero<float4>(texel - int2(i, 0));
+            float4 previous_output = float4(
+                horizontal_pass_result.load_pixel_zero<Color>(texel + int2(i, 0)));
+            float4 current_input = float4(horizontal_pass_result.load_pixel<Color>(texel));
+            float4 next_input = float4(
+                horizontal_pass_result.load_pixel_zero<Color>(texel - int2(i, 0)));
 
             float4 neighbor_average = (previous_output + next_input) / 2.0f;
             float4 non_causal_output = math::interpolate(
                 current_input, neighbor_average, fade_factor);
-            horizontal_pass_result.store_pixel(texel, non_causal_output);
+            horizontal_pass_result.store_pixel(texel, Color(non_causal_output));
           }
         }
       }
@@ -927,7 +930,7 @@ class GlareOperation : public NodeOperation {
     Result output = this->context().create_result(ResultType::Color);
     output.allocate_texture(size);
     parallel_for(size, [&](const int2 texel) {
-      output.store_pixel(texel, highlights.load_pixel<float4>(texel));
+      output.store_pixel(texel, highlights.load_pixel<Color>(texel));
     });
 
     const int iterations = this->get_number_of_iterations();
@@ -951,13 +954,13 @@ class GlareOperation : public NodeOperation {
            * of the previous output and next input in the same anti diagonal. */
           for (int j = 0; j < anti_diagonal_length; j++) {
             int2 texel = start + j * direction;
-            float4 previous_output = output.load_pixel_zero<float4>(texel - i * direction);
-            float4 current_input = output.load_pixel<float4>(texel);
-            float4 next_input = output.load_pixel_zero<float4>(texel + i * direction);
+            float4 previous_output = float4(output.load_pixel_zero<Color>(texel - i * direction));
+            float4 current_input = float4(output.load_pixel<Color>(texel));
+            float4 next_input = float4(output.load_pixel_zero<Color>(texel + i * direction));
 
             float4 neighbor_average = (previous_output + next_input) / 2.0f;
             float4 causal_output = math::interpolate(current_input, neighbor_average, fade_factor);
-            output.store_pixel(texel, causal_output);
+            output.store_pixel(texel, Color(causal_output));
           }
 
           /* Non Causal Pass:
@@ -966,14 +969,14 @@ class GlareOperation : public NodeOperation {
            * previous output and next input in the same diagonal. */
           for (int j = 0; j < anti_diagonal_length; j++) {
             int2 texel = end - j * direction;
-            float4 previous_output = output.load_pixel_zero<float4>(texel + i * direction);
-            float4 current_input = output.load_pixel<float4>(texel);
-            float4 next_input = output.load_pixel_zero<float4>(texel - i * direction);
+            float4 previous_output = float4(output.load_pixel_zero<Color>(texel + i * direction));
+            float4 current_input = float4(output.load_pixel<Color>(texel));
+            float4 next_input = float4(output.load_pixel_zero<Color>(texel - i * direction));
 
             float4 neighbor_average = (previous_output + next_input) / 2.0f;
             float4 non_causal_output = math::interpolate(
                 current_input, neighbor_average, fade_factor);
-            output.store_pixel(texel, non_causal_output);
+            output.store_pixel(texel, Color(non_causal_output));
           }
         }
 
@@ -981,10 +984,10 @@ class GlareOperation : public NodeOperation {
          * result of the diagonal pass to the vertical pass. */
         for (int j = 0; j < anti_diagonal_length; j++) {
           int2 texel = start + j * direction;
-          float4 horizontal = diagonal_pass_result.load_pixel<float4>(texel);
-          float4 vertical = output.load_pixel<float4>(texel);
+          float4 horizontal = float4(diagonal_pass_result.load_pixel<Color>(texel));
+          float4 vertical = float4(output.load_pixel<Color>(texel));
           float4 combined = horizontal + vertical;
-          output.store_pixel(texel, float4(combined.xyz(), 1.0f));
+          output.store_pixel(texel, Color(float4(combined.xyz(), 1.0f)));
         }
       }
     });
@@ -1035,7 +1038,7 @@ class GlareOperation : public NodeOperation {
     Result diagonal_pass_result = this->context().create_result(ResultType::Color);
     diagonal_pass_result.allocate_texture(size);
     parallel_for(size, [&](const int2 texel) {
-      diagonal_pass_result.store_pixel(texel, highlights.load_pixel<float4>(texel));
+      diagonal_pass_result.store_pixel(texel, highlights.load_pixel<Color>(texel));
     });
 
     const int iterations = this->get_number_of_iterations();
@@ -1059,15 +1062,15 @@ class GlareOperation : public NodeOperation {
            * previous output and next input in the same diagonal. */
           for (int j = 0; j < diagonal_length; j++) {
             int2 texel = start + j * direction;
-            float4 previous_output = diagonal_pass_result.load_pixel_zero<float4>(texel -
-                                                                                  i * direction);
-            float4 current_input = diagonal_pass_result.load_pixel<float4>(texel);
-            float4 next_input = diagonal_pass_result.load_pixel_zero<float4>(texel +
-                                                                             i * direction);
+            float4 previous_output = float4(
+                diagonal_pass_result.load_pixel_zero<Color>(texel - i * direction));
+            float4 current_input = float4(diagonal_pass_result.load_pixel<Color>(texel));
+            float4 next_input = float4(
+                diagonal_pass_result.load_pixel_zero<Color>(texel + i * direction));
 
             float4 neighbor_average = (previous_output + next_input) / 2.0f;
             float4 causal_output = math::interpolate(current_input, neighbor_average, fade_factor);
-            diagonal_pass_result.store_pixel(texel, causal_output);
+            diagonal_pass_result.store_pixel(texel, Color(causal_output));
           }
 
           /* Non Causal Pass:
@@ -1076,16 +1079,16 @@ class GlareOperation : public NodeOperation {
            * previous output and next input in the same diagonal. */
           for (int j = 0; j < diagonal_length; j++) {
             int2 texel = end - j * direction;
-            float4 previous_output = diagonal_pass_result.load_pixel_zero<float4>(texel +
-                                                                                  i * direction);
-            float4 current_input = diagonal_pass_result.load_pixel<float4>(texel);
-            float4 next_input = diagonal_pass_result.load_pixel_zero<float4>(texel -
-                                                                             i * direction);
+            float4 previous_output = float4(
+                diagonal_pass_result.load_pixel_zero<Color>(texel + i * direction));
+            float4 current_input = float4(diagonal_pass_result.load_pixel<Color>(texel));
+            float4 next_input = float4(
+                diagonal_pass_result.load_pixel_zero<Color>(texel - i * direction));
 
             float4 neighbor_average = (previous_output + next_input) / 2.0f;
             float4 non_causal_output = math::interpolate(
                 current_input, neighbor_average, fade_factor);
-            diagonal_pass_result.store_pixel(texel, non_causal_output);
+            diagonal_pass_result.store_pixel(texel, Color(non_causal_output));
           }
         }
       }
@@ -1115,7 +1118,7 @@ class GlareOperation : public NodeOperation {
     }
     else {
       parallel_for(size, [&](const int2 texel) {
-        accumulated_streaks_result.store_pixel(texel, float4(0.0f));
+        accumulated_streaks_result.store_pixel(texel, Color(float4(0.0f)));
       });
     }
 
@@ -1202,7 +1205,7 @@ class GlareOperation : public NodeOperation {
     Result input = this->context().create_result(ResultType::Color);
     input.allocate_texture(size);
     parallel_for(size, [&](const int2 texel) {
-      input.store_pixel(texel, highlights.load_pixel<float4>(texel));
+      input.store_pixel(texel, highlights.load_pixel<Color>(texel));
     });
 
     Result output = this->context().create_result(ResultType::Color);
@@ -1250,7 +1253,7 @@ class GlareOperation : public NodeOperation {
          * streak, which is the desired result. */
         float4 center_color = input.sample_bilinear_zero(coordinates);
         float4 output_color = (center_color + weighted_neighbors_sum) / 2.0f;
-        output.store_pixel(texel, output_color);
+        output.store_pixel(texel, Color(output_color));
       });
 
       /* The accumulated result serves as the input for the next iteration, so copy the result to
@@ -1258,7 +1261,7 @@ class GlareOperation : public NodeOperation {
        * copying for the last iteration since it is not needed. */
       if (iteration != iterations_range.last()) {
         parallel_for(size, [&](const int2 texel) {
-          input.store_pixel(texel, output.load_pixel<float4>(texel));
+          input.store_pixel(texel, output.load_pixel<Color>(texel));
         });
       }
     }
@@ -1301,10 +1304,10 @@ class GlareOperation : public NodeOperation {
 
     const int2 size = streak.domain().size;
     parallel_for(size, [&](const int2 texel) {
-      float4 attenuated_streak = streak.load_pixel<float4>(texel) * attenuation_factor;
-      float4 current_accumulated_streaks = accumulated_streaks.load_pixel<float4>(texel);
+      float4 attenuated_streak = float4(streak.load_pixel<Color>(texel)) * attenuation_factor;
+      float4 current_accumulated_streaks = float4(accumulated_streaks.load_pixel<Color>(texel));
       float4 combined_streaks = current_accumulated_streaks + attenuated_streak;
-      accumulated_streaks.store_pixel(texel, float4(combined_streaks.xyz(), 1.0f));
+      accumulated_streaks.store_pixel(texel, Color(float4(combined_streaks.xyz(), 1.0f)));
     });
   }
 
@@ -1465,7 +1468,7 @@ class GlareOperation : public NodeOperation {
     const int2 size = base_ghost.domain().size;
     accumulated_ghosts_result.allocate_texture(size);
     parallel_for(size, [&](const int2 texel) {
-      accumulated_ghosts_result.store_pixel(texel, float4(0.0f));
+      accumulated_ghosts_result.store_pixel(texel, Color(float4(0.0f)));
     });
 
     /* Copy the highlights result into a new result because the output will be copied to the input
@@ -1473,7 +1476,7 @@ class GlareOperation : public NodeOperation {
     Result input = context().create_result(ResultType::Color);
     input.allocate_texture(size);
     parallel_for(size, [&](const int2 texel) {
-      input.store_pixel(texel, base_ghost.load_pixel<float4>(texel));
+      input.store_pixel(texel, base_ghost.load_pixel<Color>(texel));
     });
 
     /* For the given number of iterations, accumulate four ghosts with different scales and color
@@ -1512,9 +1515,10 @@ class GlareOperation : public NodeOperation {
           accumulated_ghost += input.sample_bilinear_zero(scaled_coordinates) * multiplier;
         }
 
-        float4 current_accumulated_ghost = accumulated_ghosts_result.load_pixel<float4>(texel);
+        float4 current_accumulated_ghost = float4(
+            accumulated_ghosts_result.load_pixel<Color>(texel));
         float4 combined_ghost = current_accumulated_ghost + accumulated_ghost;
-        accumulated_ghosts_result.store_pixel(texel, float4(combined_ghost.xyz(), 1.0f));
+        accumulated_ghosts_result.store_pixel(texel, Color(float4(combined_ghost.xyz(), 1.0f)));
       });
 
       /* The accumulated result serves as the input for the next iteration, so copy the result to
@@ -1522,7 +1526,7 @@ class GlareOperation : public NodeOperation {
        * copying for the last iteration since it is not needed. */
       if (i != iterations_range.last()) {
         parallel_for(size, [&](const int2 texel) {
-          input.store_pixel(texel, accumulated_ghosts_result.load_pixel<float4>(texel));
+          input.store_pixel(texel, accumulated_ghosts_result.load_pixel<Color>(texel));
         });
       }
     }
@@ -1627,7 +1631,7 @@ class GlareOperation : public NodeOperation {
       float4 big_ghost = big_ghost_result.sample_bilinear_zero(big_ghost_coordinates) *
                          big_ghost_attenuator;
 
-      combined_ghost.store_pixel(texel, small_ghost + big_ghost);
+      combined_ghost.store_pixel(texel, Color(small_ghost + big_ghost));
     });
   }
 
@@ -1753,7 +1757,7 @@ class GlareOperation : public NodeOperation {
       }
       else {
         parallel_for(bloom_result.domain().size, [&](const int2 texel) {
-          bloom_result.store_pixel(texel, highlights.load_pixel<float4>(texel));
+          bloom_result.store_pixel(texel, highlights.load_pixel<Color>(texel));
         });
       }
       return bloom_result;
@@ -1839,8 +1843,8 @@ class GlareOperation : public NodeOperation {
       upsampled += (1.0f / 16.0f) *
                    input.sample_bilinear_extended(coordinates + pixel_size * float2(1.0f, 1.0f));
 
-      float4 combined = output.load_pixel<float4>(texel) + upsampled;
-      output.store_pixel(texel, float4(combined.xyz(), 1.0f));
+      float4 combined = float4(output.load_pixel<Color>(texel)) + upsampled;
+      output.store_pixel(texel, Color(float4(combined.xyz(), 1.0f)));
     });
   }
 
@@ -1864,7 +1868,7 @@ class GlareOperation : public NodeOperation {
     }
     else {
       parallel_for(base_layer.domain().size, [&](const int2 texel) {
-        base_layer.store_pixel(texel, highlights.load_pixel<float4>(texel));
+        base_layer.store_pixel(texel, highlights.load_pixel<Color>(texel));
       });
     }
 
@@ -2016,7 +2020,7 @@ class GlareOperation : public NodeOperation {
                                   lower_left_weighted_sum + lower_right_weighted_sum);
       }
 
-      output.store_pixel(texel, result);
+      output.store_pixel(texel, Color(result));
     });
   }
 
@@ -2261,7 +2265,7 @@ class GlareOperation : public NodeOperation {
       }
       else {
         parallel_for(sun_beams_result.domain().size, [&](const int2 texel) {
-          sun_beams_result.store_pixel(texel, highlights.load_pixel<float4>(texel));
+          sun_beams_result.store_pixel(texel, highlights.load_pixel<Color>(texel));
         });
       }
       return sun_beams_result;
@@ -2368,7 +2372,7 @@ class GlareOperation : public NodeOperation {
       else {
         accumulated_color = highlights.sample_bilinear_zero(coordinates);
       }
-      output.store_pixel(texel, accumulated_color);
+      output.store_pixel(texel, Color(accumulated_color));
     });
     return output;
   }
@@ -2419,7 +2423,7 @@ class GlareOperation : public NodeOperation {
       }
       else {
         parallel_for(kernel_result.domain().size, [&](const int2 texel) {
-          kernel_result.store_pixel(texel, highlights.load_pixel<float4>(texel));
+          kernel_result.store_pixel(texel, highlights.load_pixel<Color>(texel));
         });
       }
       return kernel_result;
@@ -2462,8 +2466,8 @@ class GlareOperation : public NodeOperation {
     else {
       parallel_for(size, [&](const int2 texel) {
         const float2 normalized_coordinates = (float2(texel) + float2(0.5f)) / float2(size);
-        downsampled_kernel.store_pixel(texel,
-                                       kernel.sample_bilinear_extended(normalized_coordinates));
+        downsampled_kernel.store_pixel(
+            texel, Color(kernel.sample_bilinear_extended(normalized_coordinates)));
       });
     }
 
@@ -2581,7 +2585,7 @@ class GlareOperation : public NodeOperation {
     parallel_for(domain.size, [&](const int2 texel) {
       /* Make sure the input is not negative
        * to avoid a subtractive effect when adding the glare. */
-      float4 input_color = math::max(float4(0.0f), input.load_pixel<float4>(texel));
+      float4 input_color = math::max(float4(0.0f), float4(input.load_pixel<Color>(texel)));
 
       float2 normalized_coordinates = (float2(texel) + float2(0.5f)) / float2(input.domain().size);
       float4 glare_color = glare_result.sample_bilinear_extended(normalized_coordinates);
@@ -2595,7 +2599,7 @@ class GlareOperation : public NodeOperation {
 
       float3 combined_color = input_color.xyz() + glare_rgba.xyz() * tint;
 
-      output.store_pixel(texel, float4(combined_color, input_color.w));
+      output.store_pixel(texel, Color(float4(combined_color, input_color.w)));
     });
   }
 
@@ -2658,7 +2662,7 @@ class GlareOperation : public NodeOperation {
       hsv_to_rgb_v(glare_hsva, glare_rgba);
 
       float3 adjusted_glare_value = glare_rgba.xyz() * tint;
-      output.store_pixel(texel, float4(adjusted_glare_value, 1.0f));
+      output.store_pixel(texel, Color(float4(adjusted_glare_value, 1.0f)));
     });
   }
 
@@ -2719,7 +2723,7 @@ class GlareOperation : public NodeOperation {
 
   float3 get_tint()
   {
-    return this->get_input("Tint").get_single_value_default(float4(1.0f)).xyz();
+    return float4(this->get_input("Tint").get_single_value_default(Color(1.0f))).xyz();
   }
 
   float get_size()

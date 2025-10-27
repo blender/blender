@@ -1514,7 +1514,7 @@ static Result calculate_blending_weights_gpu(Context &context,
   smaa_precomputed_textures.bind_area_texture(shader, "area_tx");
   smaa_precomputed_textures.bind_search_texture(shader, "search_tx");
 
-  Result weights = context.create_result(ResultType::Color);
+  Result weights = context.create_result(ResultType::Float4);
   weights.allocate_texture(edges.domain());
   weights.bind_as_image(shader, "weights_img");
 
@@ -1536,7 +1536,7 @@ static Result calculate_blending_weights_cpu(Context &context,
   const SMAAPrecomputedTextures &smaa_precomputed_textures =
       context.cache_manager().smaa_precomputed_textures.get(context);
 
-  Result weights_result = context.create_result(ResultType::Color);
+  Result weights_result = context.create_result(ResultType::Float4);
   weights_result.allocate_texture(edges.domain());
 
   const int2 size = edges.domain().size;

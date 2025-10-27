@@ -214,7 +214,7 @@ class CornerPinOperation : public NodeOperation {
       float3 transformed_coordinates = float3x3(homography_matrix) * float3(coordinates, 1.0f);
       /* Point is at infinity and will be zero when sampled, so early exit. */
       if (transformed_coordinates.z == 0.0f) {
-        output.store_pixel(texel, float4(0.0f));
+        output.store_pixel(texel, Color(float4(0.0f)));
         return;
       }
 
@@ -238,7 +238,7 @@ class CornerPinOperation : public NodeOperation {
       float4 plane_color = plane_mask ? sampled_color * plane_mask->load_pixel<float>(texel) :
                                         sampled_color;
 
-      output.store_pixel(texel, plane_color);
+      output.store_pixel(texel, Color(plane_color));
     });
   }
 

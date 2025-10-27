@@ -121,7 +121,7 @@ class BilateralBlurOperation : public NodeOperation {
     output.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
-      float4 center_determinator = determinator_image.load_pixel<float4>(texel);
+      float4 center_determinator = float4(determinator_image.load_pixel<Color>(texel));
 
       /* Go over the pixels in the blur window of the specified radius around the center pixel, and
        * for pixels whose determinator is close enough to the determinator of the center pixel,
@@ -130,14 +130,15 @@ class BilateralBlurOperation : public NodeOperation {
       float4 accumulated_color = float4(0.0f);
       for (int y = -radius; y <= radius; y++) {
         for (int x = -radius; x <= radius; x++) {
-          float4 determinator = determinator_image.load_pixel_extended<float4>(texel + int2(x, y));
+          float4 determinator = float4(
+              determinator_image.load_pixel_extended<Color>(texel + int2(x, y)));
           float difference = math::dot(math::abs(center_determinator - determinator).xyz(),
                                        float3(1.0f)) /
                              3.0f;
 
           if (difference < threshold) {
             accumulated_weight += 1.0f;
-            accumulated_color += input.load_pixel_extended<float4>(texel + int2(x, y));
+            accumulated_color += float4(input.load_pixel_extended<Color>(texel + int2(x, y)));
           }
         }
       }
@@ -147,7 +148,7 @@ class BilateralBlurOperation : public NodeOperation {
       float4 fallback = float4(float3(0.0f), 1.0f);
       float4 color = (accumulated_weight != 0.0f) ? (accumulated_color / accumulated_weight) :
                                                     fallback;
-      output.store_pixel(texel, color);
+      output.store_pixel(texel, Color(color));
     });
   }
 

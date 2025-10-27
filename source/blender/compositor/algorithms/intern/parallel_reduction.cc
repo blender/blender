@@ -136,7 +136,7 @@ static float sum_red_cpu(const Result &result)
       result.domain().size,
       0.0,
       [&](const int2 texel, double &accumulated_value) {
-        accumulated_value += result.load_pixel<float4>(texel).x;
+        accumulated_value += result.load_pixel<Color>(texel).r;
       },
       [&](const double &a, const double &b) { return a + b; }));
 }
@@ -170,7 +170,7 @@ static float sum_green_cpu(const Result &result)
       result.domain().size,
       0.0,
       [&](const int2 texel, double &accumulated_value) {
-        accumulated_value += result.load_pixel<float4>(texel).y;
+        accumulated_value += result.load_pixel<Color>(texel).g;
       },
       [&](const double &a, const double &b) { return a + b; }));
 }
@@ -204,7 +204,7 @@ static float sum_blue_cpu(const Result &result)
       result.domain().size,
       0.0,
       [&](const int2 texel, double &accumulated_value) {
-        accumulated_value += result.load_pixel<float4>(texel).z;
+        accumulated_value += result.load_pixel<Color>(texel).b;
       },
       [&](const double &a, const double &b) { return a + b; }));
 }
@@ -242,7 +242,7 @@ static float sum_luminance_cpu(const Result &result, const float3 &luminance_coe
       result.domain().size,
       0.0,
       [&](const int2 texel, double &accumulated_value) {
-        accumulated_value += math::dot(result.load_pixel<float4>(texel).xyz(),
+        accumulated_value += math::dot(float4(result.load_pixel<Color>(texel)).xyz(),
                                        luminance_coefficients);
       },
       [&](const double &a, const double &b) { return a + b; }));
@@ -281,7 +281,7 @@ static float sum_log_luminance_cpu(const Result &result, const float3 &luminance
       result.domain().size,
       0.0,
       [&](const int2 texel, double &accumulated_value) {
-        const float luminance = math::dot(result.load_pixel<float4>(texel).xyz(),
+        const float luminance = math::dot(float4(result.load_pixel<Color>(texel)).xyz(),
                                           luminance_coefficients);
         accumulated_value += std::log(math::max(luminance, 1e-5f));
       },
@@ -319,7 +319,7 @@ static float4 sum_color_cpu(const Result &result)
       result.domain().size,
       double4(0.0),
       [&](const int2 texel, double4 &accumulated_value) {
-        accumulated_value += double4(result.load_pixel<float4>(texel));
+        accumulated_value += double4(float4(result.load_pixel<Color>(texel)));
       },
       [&](const double4 &a, const double4 &b) { return a + b; }));
 }
@@ -362,7 +362,7 @@ static float sum_red_squared_difference_cpu(const Result &result, const float su
       result.domain().size,
       0.0,
       [&](const int2 texel, double &accumulated_value) {
-        accumulated_value += math::square(result.load_pixel<float4>(texel).x - subtrahend);
+        accumulated_value += math::square(result.load_pixel<Color>(texel).r - subtrahend);
       },
       [&](const double &a, const double &b) { return a + b; }));
 }
@@ -401,7 +401,7 @@ static float sum_green_squared_difference_cpu(const Result &result, const float 
       result.domain().size,
       0.0,
       [&](const int2 texel, double &accumulated_value) {
-        accumulated_value += math::square(result.load_pixel<float4>(texel).y - subtrahend);
+        accumulated_value += math::square(result.load_pixel<Color>(texel).g - subtrahend);
       },
       [&](const double &a, const double &b) { return a + b; }));
 }
@@ -440,7 +440,7 @@ static float sum_blue_squared_difference_cpu(const Result &result, const float s
       result.domain().size,
       0.0,
       [&](const int2 texel, double &accumulated_value) {
-        accumulated_value += math::square(result.load_pixel<float4>(texel).z - subtrahend);
+        accumulated_value += math::square(result.load_pixel<Color>(texel).b - subtrahend);
       },
       [&](const double &a, const double &b) { return a + b; }));
 }
@@ -483,7 +483,7 @@ static float sum_luminance_squared_difference_cpu(const Result &result,
       result.domain().size,
       0.0,
       [&](const int2 texel, double &accumulated_value) {
-        const float luminance = math::dot(result.load_pixel<float4>(texel).xyz(),
+        const float luminance = math::dot(float4(result.load_pixel<Color>(texel)).xyz(),
                                           luminance_coefficients);
         accumulated_value += math::square(luminance - subtrahend);
       },
@@ -531,7 +531,7 @@ static float maximum_luminance_cpu(const Result &result, const float3 &luminance
       result.domain().size,
       std::numeric_limits<float>::lowest(),
       [&](const int2 texel, float &accumulated_value) {
-        const float luminance = math::dot(result.load_pixel<float4>(texel).xyz(),
+        const float luminance = math::dot(float4(result.load_pixel<Color>(texel)).xyz(),
                                           luminance_coefficients);
         accumulated_value = math::max(accumulated_value, luminance);
       },
@@ -694,7 +694,7 @@ static float minimum_luminance_cpu(const Result &result, const float3 &luminance
       result.domain().size,
       std::numeric_limits<float>::max(),
       [&](const int2 texel, float &accumulated_value) {
-        const float luminance = math::dot(result.load_pixel<float4>(texel).xyz(),
+        const float luminance = math::dot(float4(result.load_pixel<Color>(texel)).xyz(),
                                           luminance_coefficients);
         accumulated_value = math::min(accumulated_value, luminance);
       },

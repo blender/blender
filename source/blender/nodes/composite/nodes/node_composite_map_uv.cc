@@ -197,7 +197,7 @@ class MapUVOperation : public NodeOperation {
 
     Result &output = get_result("Image");
     output.allocate_single_value();
-    output.set_single_value(result);
+    output.set_single_value(Color(result));
   }
 
   void execute_cpu_interpolation(const Interpolation &interpolation)
@@ -225,7 +225,7 @@ class MapUVOperation : public NodeOperation {
 
       float4 result = sampled_color * alpha;
 
-      output_image.store_pixel(texel, result);
+      output_image.store_pixel(texel, Color(result));
     });
   }
 
@@ -286,7 +286,7 @@ class MapUVOperation : public NodeOperation {
 
         float4 result = sampled_color * alpha;
 
-        output_image.store_pixel(texel, result);
+        output_image.store_pixel(texel, Color(result));
       };
 
       /* Compute each of the pixels in the 2x2 block, making sure to exempt out of bounds right

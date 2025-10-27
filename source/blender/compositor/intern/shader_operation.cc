@@ -213,7 +213,7 @@ static void initialize_input_stack_value(const DInputSocket input, GPUNodeStack 
       break;
     }
     case SOCK_RGBA: {
-      const float4 value = float4(input->default_value_typed<bNodeSocketValueRGBA>()->value);
+      const Color value = Color(input->default_value_typed<bNodeSocketValueRGBA>()->value);
       copy_v4_v4(stack.vec, value);
       break;
     }

@@ -105,8 +105,9 @@ float4 sample_pixel(Context &context,
       case ResultType::Float3:
         return float4(input.get_single_value<float3>(), 1.0f);
       case ResultType::Float4:
-      case ResultType::Color:
         return input.get_single_value<float4>();
+      case ResultType::Color:
+        return float4(input.get_single_value<Color>());
       default:
         break;
     }

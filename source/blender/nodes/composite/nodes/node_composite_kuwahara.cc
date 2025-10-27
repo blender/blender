@@ -305,7 +305,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
         else {
           for (int j = 0; j <= radius; j++) {
             for (int i = 0; i <= radius; i++) {
-              float4 color = input->load_pixel_zero<float4>(texel + int2(i, j) * sign);
+              float4 color = float4(input->load_pixel_zero<Color>(texel + int2(i, j) * sign));
               mean_of_color_of_quadrants[q] += color;
               mean_of_squared_color_of_quadrants[q] += color * color;
             }
@@ -331,7 +331,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
         }
       }
 
-      output.store_pixel(texel, mean_color_of_chosen_quadrant);
+      output.store_pixel(texel, Color(mean_color_of_chosen_quadrant));
     });
   }
 
@@ -343,7 +343,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
   void execute_anisotropic()
   {
     Result structure_tensor = compute_structure_tensor();
-    Result smoothed_structure_tensor = context().create_result(ResultType::Color);
+    Result smoothed_structure_tensor = context().create_result(ResultType::Float4);
     symmetric_separable_blur(
         context(), structure_tensor, smoothed_structure_tensor, float2(this->get_uniformity()));
     structure_tensor.release();
@@ -462,7 +462,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
 
       float radius = math::max(0.0f, size.load_pixel<float, true>(texel));
       if (radius == 0.0f) {
-        output.store_pixel(texel, input.load_pixel<float4>(texel));
+        output.store_pixel(texel, input.load_pixel<Color>(texel));
         return;
       }
 
@@ -527,7 +527,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
        * and weight separately first. Luckily, the zero coordinates of the center pixel zeros out
        * most of the complex computations below, and it can easily be shown that the weight for the
        * center pixel in all sectors is simply (1 / number_of_sectors). */
-      float4 center_color = input.load_pixel<float4>(texel);
+      float4 center_color = float4(input.load_pixel<Color>(texel));
       float4 center_color_squared = center_color * center_color;
       float center_weight = 1.0f / number_of_sectors;
       float4 weighted_center_color = center_color * center_weight;
@@ -617,8 +617,8 @@ class ConvertKuwaharaOperation : public NodeOperation {
                                          sector_weights_sum;
 
           /* Load the color of the pixel and its mirrored pixel and compute their square. */
-          float4 upper_color = input.load_pixel_extended<float4>(texel + int2(i, j));
-          float4 lower_color = input.load_pixel_extended<float4>(texel - int2(i, j));
+          float4 upper_color = float4(input.load_pixel_extended<Color>(texel + int2(i, j)));
+          float4 lower_color = float4(input.load_pixel_extended<Color>(texel - int2(i, j)));
           float4 upper_color_squared = upper_color * upper_color;
           float4 lower_color_squared = lower_color * lower_color;
 
@@ -673,7 +673,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
         weighted_sum /= sum_of_weights;
       }
 
-      output.store_pixel(texel, weighted_sum);
+      output.store_pixel(texel, Color(weighted_sum));
     });
   }
 
@@ -695,7 +695,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
     input.bind_as_texture(shader, "input_tx");
 
     const Domain domain = compute_domain();
-    Result structure_tensor = context().create_result(ResultType::Color);
+    Result structure_tensor = context().create_result(ResultType::Float4);
     structure_tensor.allocate_texture(domain);
     structure_tensor.bind_as_image(shader, "structure_tensor_img");
 
@@ -713,7 +713,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
     const Result &input = this->get_input("Image");
 
     const Domain domain = this->compute_domain();
-    Result structure_tensor_image = context().create_result(ResultType::Color);
+    Result structure_tensor_image = context().create_result(ResultType::Float4);
     structure_tensor_image.allocate_texture(domain);
 
     /* Computes the structure tensor of the image using a Dirac delta window function as described
@@ -731,20 +731,20 @@ class ConvertKuwaharaOperation : public NodeOperation {
       const float center_weight = 1.0f - 2.0f * corner_weight;
 
       float3 x_partial_derivative =
-          input.load_pixel_extended<float4>(texel + int2(-1, 1)).xyz() * -corner_weight +
-          input.load_pixel_extended<float4>(texel + int2(-1, 0)).xyz() * -center_weight +
-          input.load_pixel_extended<float4>(texel + int2(-1, -1)).xyz() * -corner_weight +
-          input.load_pixel_extended<float4>(texel + int2(1, 1)).xyz() * corner_weight +
-          input.load_pixel_extended<float4>(texel + int2(1, 0)).xyz() * center_weight +
-          input.load_pixel_extended<float4>(texel + int2(1, -1)).xyz() * corner_weight;
+          float4(input.load_pixel_extended<Color>(texel + int2(-1, 1))).xyz() * -corner_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(-1, 0))).xyz() * -center_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(-1, -1))).xyz() * -corner_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(1, 1))).xyz() * corner_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(1, 0))).xyz() * center_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(1, -1))).xyz() * corner_weight;
 
       float3 y_partial_derivative =
-          input.load_pixel_extended<float4>(texel + int2(-1, 1)).xyz() * corner_weight +
-          input.load_pixel_extended<float4>(texel + int2(0, 1)).xyz() * center_weight +
-          input.load_pixel_extended<float4>(texel + int2(1, 1)).xyz() * corner_weight +
-          input.load_pixel_extended<float4>(texel + int2(-1, -1)).xyz() * -corner_weight +
-          input.load_pixel_extended<float4>(texel + int2(0, -1)).xyz() * -center_weight +
-          input.load_pixel_extended<float4>(texel + int2(1, -1)).xyz() * -corner_weight;
+          float4(input.load_pixel_extended<Color>(texel + int2(-1, 1))).xyz() * corner_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(0, 1))).xyz() * center_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(1, 1))).xyz() * corner_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(-1, -1))).xyz() * -corner_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(0, -1))).xyz() * -center_weight +
+          float4(input.load_pixel_extended<Color>(texel + int2(1, -1))).xyz() * -corner_weight;
 
       float dxdx = math::dot(x_partial_derivative, x_partial_derivative);
       float dxdy = math::dot(x_partial_derivative, y_partial_derivative);
