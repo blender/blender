@@ -17,6 +17,19 @@
 
 namespace blender::gpu {
 
+inline bool is_half_float(TextureFormat format)
+{
+  switch (format) {
+    case TextureFormat::SFLOAT_16_16_16_16:
+    case TextureFormat::SFLOAT_16_16_16:
+    case TextureFormat::SFLOAT_16_16:
+    case TextureFormat::SFLOAT_16:
+      return true;
+    default:
+      return false;
+  }
+}
+
 enum GPUTextureFormatFlag {
   /* The format has a depth component and can be used as depth attachment. */
   GPU_FORMAT_DEPTH = (1 << 0),

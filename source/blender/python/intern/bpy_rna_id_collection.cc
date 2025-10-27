@@ -572,14 +572,6 @@ const EnumPropertyItem rna_enum_file_path_foreach_flag_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-/** Wrapper for MEM_SAFE_FREE() as deallocator for std::unique_ptr. */
-struct MEM_freeN_smart_ptr_deleter {
-  void operator()(void *pointer) const noexcept
-  {
-    MEM_SAFE_FREE(pointer);
-  }
-};
-
 static bool foreach_id_file_path_foreach_callback(BPathForeachPathData *bpath_data,
                                                   char *path_dst,
                                                   const size_t path_dst_maxncpy,

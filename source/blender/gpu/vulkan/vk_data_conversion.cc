@@ -1077,11 +1077,23 @@ static void convert_buffer(void *dst_memory,
       convert_per_component<UI8, F16>(dst_memory, src_memory, buffer_size, device_format);
       break;
 
-    case ConversionType::FLOAT_TO_HALF:
-      blender::math::float_to_half_array(static_cast<const float *>(src_memory),
-                                         static_cast<uint16_t *>(dst_memory),
-                                         to_component_len(device_format) * buffer_size);
+    case ConversionType::FLOAT_TO_HALF: {
+      size_t element_len = to_component_len(device_format) * buffer_size;
+      Span<float> src(static_cast<const float *>(src_memory), element_len);
+      MutableSpan<uint16_t> dst(static_cast<uint16_t *>(dst_memory), element_len);
+
+      constexpr int64_t chunk_size = 4 * 1024 * 1024;
+
+      threading::parallel_for(IndexRange(element_len), chunk_size, [&](const IndexRange range) {
+        /* Doing float to half conversion manually to avoid implementation specific behavior
+         * regarding Inf and NaNs. Use make finite version to avoid unexpected black pixels on
+         * certain implementation. For platform parity we clamp these infinite values to finite
+         * values. */
+        blender::math::float_to_half_make_finite_array(
+            src.slice(range).data(), dst.slice(range).data(), range.size());
+      });
       break;
+    }
     case ConversionType::HALF_TO_FLOAT:
       blender::math::half_to_float_array(static_cast<const uint16_t *>(src_memory),
                                          static_cast<float *>(dst_memory),
