@@ -227,6 +227,19 @@ void GLStorageBuf::read(void *data)
     return;
   }
 
+  if (!read_fence_) {
+    /* Synchronous path. */
+    if (GLContext::direct_state_access_support) {
+      glGetNamedBufferSubData(ssbo_id_, 0, size_in_bytes_, data);
+    }
+    else {
+      glBindBuffer(GL_COPY_READ_BUFFER, ssbo_id_);
+      glGetBufferSubData(GL_COPY_READ_BUFFER, 0, size_in_bytes_, data);
+      glBindBuffer(GL_COPY_READ_BUFFER, 0);
+    }
+    return;
+  }
+
   if (!persistent_ptr_ || !read_fence_) {
     this->async_flush_to_host();
   }

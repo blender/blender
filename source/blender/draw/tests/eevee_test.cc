@@ -25,8 +25,6 @@ using ShadowTileDataBuf = draw::StorageArrayBuffer<ShadowTileDataPacked, SHADOW_
 
 static void test_eevee_shadow_shift_clear()
 {
-  BLOCK_GPU_TEST_ON(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_ANY)
-
   GPU_render_begin();
   ShadowTileMapDataBuf tilemaps_data = {"tilemaps_data"};
   ShadowTileDataBuf tiles_data = {"tiles_data"};
@@ -98,8 +96,6 @@ DRAW_TEST(eevee_shadow_shift_clear)
 
 static void test_eevee_shadow_shift()
 {
-  BLOCK_GPU_TEST_ON(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_ANY)
-
   GPU_render_begin();
   ShadowTileMapDataBuf tilemaps_data = {"tilemaps_data"};
   ShadowTileDataBuf tiles_data = {"tiles_data"};
@@ -199,8 +195,6 @@ DRAW_TEST(eevee_shadow_shift)
 
 static void test_eevee_shadow_tag_update()
 {
-  BLOCK_GPU_TEST_ON(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL);
-
   GPU_render_begin();
   using namespace blender::math;
   StorageVectorBuffer<uint, 128> past_casters_updated = {"PastCastersUpdated"};
@@ -373,8 +367,6 @@ DRAW_TEST(eevee_shadow_tag_update)
 
 static void test_eevee_shadow_free()
 {
-  BLOCK_GPU_TEST_ON(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_ANY)
-
   GPU_render_begin();
   ShadowTileMapDataBuf tilemaps_data = {"tilemaps_data"};
   ShadowTileDataBuf tiles_data = {"tiles_data"};
@@ -749,8 +741,6 @@ class TestAlloc {
 
 static void test_eevee_shadow_alloc()
 {
-  BLOCK_GPU_TEST_ON(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_ANY)
-
   TestAlloc(SHADOW_MAX_PAGE);
   TestAlloc(1);
   TestAlloc(0);
@@ -1575,8 +1565,6 @@ DRAW_TEST(eevee_shadow_tilemap_amend)
 
 static void test_eevee_shadow_page_mask_ex(int max_view_per_tilemap)
 {
-  BLOCK_GPU_TEST_ON(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_ANY)
-
   GPU_render_begin();
   ShadowTileMapDataBuf tilemaps_data = {"tilemaps_data"};
   ShadowTileDataBuf tiles_data = {"tiles_data"};
