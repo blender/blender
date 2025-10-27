@@ -47,7 +47,7 @@ class DummyBackend : public GPUBackend {
   {
     return new DummyBatch;
   }
-  Fence *fence_alloc() override
+  Fence *fence_alloc(const char * /*name*/) override
   {
     return nullptr;
   }

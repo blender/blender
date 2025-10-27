@@ -112,7 +112,7 @@ class GLFence : public Fence {
   GLsync gl_sync_ = 0;
 
  public:
-  GLFence() : Fence() {};
+  GLFence(const char *name) : Fence(name) {};
   ~GLFence();
 
   void signal() override;

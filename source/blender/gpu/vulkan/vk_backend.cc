@@ -576,9 +576,9 @@ Batch *VKBackend::batch_alloc()
   return new VKBatch();
 }
 
-Fence *VKBackend::fence_alloc()
+Fence *VKBackend::fence_alloc(const char *name)
 {
-  return new VKFence();
+  return new VKFence(name);
 }
 
 FrameBuffer *VKBackend::framebuffer_alloc(const char *name)

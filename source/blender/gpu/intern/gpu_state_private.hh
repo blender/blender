@@ -169,9 +169,10 @@ class StateManager {
 class Fence {
  protected:
   bool signalled_ = false;
+  const char *name = nullptr;
 
  public:
-  Fence() = default;
+  Fence(const char *name) : name(name) {}
   virtual ~Fence() = default;
 
   virtual void signal() = 0;

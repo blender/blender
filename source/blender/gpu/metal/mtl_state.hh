@@ -99,7 +99,7 @@ class MTLFence : public Fence {
   uint64_t last_signalled_value_ = 0;
 
  public:
-  MTLFence() : Fence() {};
+  MTLFence(const char *name) : Fence(name) {};
   ~MTLFence() override;
 
   void signal() override;

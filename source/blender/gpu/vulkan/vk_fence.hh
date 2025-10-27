@@ -19,6 +19,7 @@ class VKFence : public Fence {
   TimelineValue timeline_value_;
 
  public:
+  VKFence(const char *name) : Fence(name) {}
   void signal() override;
   void wait() override;
 };

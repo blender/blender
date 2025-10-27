@@ -96,9 +96,9 @@ class GLBackend : public GPUBackend {
     return new GLBatch();
   };
 
-  Fence *fence_alloc() override
+  Fence *fence_alloc(const char *name) override
   {
-    return new GLFence();
+    return new GLFence(name);
   };
 
   FrameBuffer *framebuffer_alloc(const char *name) override

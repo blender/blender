@@ -613,6 +613,7 @@ void MTLFence::signal()
     MTLContext *ctx = MTLContext::get();
     BLI_assert(ctx);
     mtl_event_ = [ctx->device newEvent];
+    mtl_event_.label = @(name);
   }
   MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
