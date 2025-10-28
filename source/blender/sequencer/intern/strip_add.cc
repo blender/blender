@@ -537,7 +537,7 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
 
 void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool lock_range)
 {
-  int prev_startdisp = 0, prev_enddisp = 0;
+  int prev_start_frame = 0, prev_end_frame = 0;
   /* NOTE: don't rename the strip, will break animation curves. */
 
   if (ELEM(strip->type,
@@ -554,8 +554,8 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
 
   if (lock_range) {
     /* keep so we don't have to move the actual start and end points (only the data) */
-    prev_startdisp = time_left_handle_frame_get(scene, strip);
-    prev_enddisp = time_right_handle_frame_get(scene, strip);
+    prev_start_frame = time_left_handle_frame_get(scene, strip);
+    prev_end_frame = time_right_handle_frame_get(scene, strip);
   }
 
   switch (strip->type) {
@@ -697,8 +697,7 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
   free_strip_proxy(strip);
 
   if (lock_range) {
-    time_left_handle_frame_set(scene, strip, prev_startdisp);
-    time_right_handle_frame_set(scene, strip, prev_enddisp);
+    time_handles_frame_set(scene, strip, prev_start_frame, prev_end_frame);
   }
 
   relations_invalidate_cache_raw(scene, strip);
