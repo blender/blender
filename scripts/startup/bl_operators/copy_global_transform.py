@@ -697,6 +697,8 @@ class OBJECT_OT_fix_to_camera(FixToCameraCommon, Operator):
 
     def _execute(self, context: Context, transformables: list[Transformable]) -> None:
         from bpy_extras.anim_utils import AutoKeying
+        from bpy_extras.wm_utils import progress_report
+
         depsgraph = context.view_layer.depsgraph
         scene = context.scene
 
@@ -712,15 +714,22 @@ class OBJECT_OT_fix_to_camera(FixToCameraCommon, Operator):
             frame_start = scene.frame_start
             frame_end = scene.frame_end
 
-        with AutoKeying.options(
-            keytype=self.keytype,
-            use_loc=self.use_location,
-            use_rot=self.use_rotation,
-            use_scale=self.use_scale,
-            force_autokey=True,
+        with (
+            AutoKeying.options(
+                keytype=self.keytype,
+                use_loc=self.use_location,
+                use_rot=self.use_rotation,
+                use_scale=self.use_scale,
+                force_autokey=True,
+            ),
+            progress_report.ProgressReport(context.window_manager) as progress,
         ):
-            for frame in range(frame_start, frame_end + scene.frame_step, scene.frame_step):
+            frames_to_visit = range(frame_start, frame_end + scene.frame_step, scene.frame_step)
+            progress.enter_substeps(len(frames_to_visit))
+
+            for frame in frames_to_visit:
                 scene.frame_set(frame)
+                progress.step()
 
                 camera_eval = scene.camera.evaluated_get(depsgraph)
                 cam_matrix_world = camera_eval.matrix_world
