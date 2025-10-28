@@ -540,6 +540,15 @@ void time_right_handle_frame_set(const Scene *scene, Strip *strip, int timeline_
   time_update_meta_strip_range(scene, lookup_meta_by_strip(scene->ed, strip));
 }
 
+void time_handles_frame_set(const Scene *scene,
+                            Strip *strip,
+                            int left_handle_timeline_frame,
+                            int right_handle_timeline_frame)
+{
+  time_right_handle_frame_set(scene, strip, right_handle_timeline_frame);
+  time_left_handle_frame_set(scene, strip, left_handle_timeline_frame);
+}
+
 void strip_time_translate_handles(const Scene *scene, Strip *strip, const int offset)
 {
   strip->startofs += offset;
