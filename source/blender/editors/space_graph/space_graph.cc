@@ -935,6 +935,13 @@ static void graph_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   sipo->runtime.ghost_curves = tmpGhosts;
 }
 
+static bool action_region_poll_hide_in_driver_mode(const RegionPollParams *params)
+{
+  BLI_assert(params->area->spacetype == SPACE_GRAPH);
+  const SpaceGraph *sipo = static_cast<const SpaceGraph *>(params->area->spacedata.first);
+  return sipo->mode != SIPO_MODE_DRIVERS;
+}
+
 void ED_spacetype_ipo()
 {
   std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
@@ -992,6 +999,7 @@ void ED_spacetype_ipo()
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
   art->init = graph_header_region_init;
   art->draw = graph_header_region_draw;
+  art->poll = action_region_poll_hide_in_driver_mode;
 
   BLI_addhead(&st->regiontypes, art);
 
