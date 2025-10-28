@@ -325,7 +325,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   if (sipo->mode != SIPO_MODE_DRIVERS) {
     UI_view2d_view_orthoSpecial(region, v2d, true);
     int marker_draw_flag = DRAW_MARKERS_MARGIN;
-    if (sipo->flag & SIPO_SHOW_MARKERS && region->winy > (UI_ANIM_MINY + UI_MARKER_MARGIN_Y)) {
+    if (ED_markers_region_visible(CTX_wm_area(C), region)) {
       ED_markers_draw(C, marker_draw_flag);
     }
   }
