@@ -241,6 +241,7 @@ MTLContext::MTLContext(void *ghost_window, void *ghost_context)
 
   /* Register present callback. */
   this->ghost_context_->metalRegisterPresentCallback(&present);
+  this->ghost_context_->metalRegisterXrBlitCallback(&xr_blit);
 
   /* Create FrameBuffer handles. */
   MTLFrameBuffer *mtl_front_left = new MTLFrameBuffer(this, "front_left");
@@ -2742,6 +2743,39 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
       BLI_assert(false);
     }
   }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name XR blitting function called from the GHOST Metal XR binding.
+ * \{ */
+
+void xr_blit(id<MTLTexture> metal_xr_texture,
+             const int ofsx,
+             const int ofsy,
+             const int width,
+             const int height)
+{
+  gpu::MTLContext *ctx = gpu::MTLContext::get();
+
+  gpu::MTLFrameBuffer *source_framebuffer = ctx->get_current_framebuffer();
+  MTLAttachment src_attachment = source_framebuffer->get_color_attachment(0);
+  id<MTLTexture> src_texture = src_attachment.texture->get_metal_handle_base();
+
+  MTLOrigin origin = MTLOriginMake(ofsx, ofsy, 0);
+  MTLSize size = MTLSizeMake(width, height, 1);
+
+  id<MTLBlitCommandEncoder> blit_encoder = ctx->main_command_buffer.ensure_begin_blit_encoder();
+  [blit_encoder copyFromTexture:src_texture
+                    sourceSlice:0
+                    sourceLevel:0
+                   sourceOrigin:origin
+                     sourceSize:size
+                      toTexture:metal_xr_texture
+               destinationSlice:0
+               destinationLevel:0
+              destinationOrigin:origin];
 }
 
 /** \} */

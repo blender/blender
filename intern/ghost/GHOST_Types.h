@@ -1057,6 +1057,7 @@ typedef enum GHOST_TXrGraphicsBinding {
   GHOST_kXrGraphicsUnknown = 0,
   GHOST_kXrGraphicsOpenGL,
   GHOST_kXrGraphicsVulkan,
+  GHOST_kXrGraphicsMetal,
 #  ifdef WIN32
   GHOST_kXrGraphicsOpenGLD3D11,
   GHOST_kXrGraphicsVulkanD3D11,

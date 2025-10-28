@@ -181,6 +181,10 @@ class MTLTexture : public Texture {
   friend class MTLFrameBuffer;
   friend class MTLStorageBuf;
 
+  /* Special case: The XR blitting function needs access to the Metal blit encoder and handles
+   * for directly blitting from an UNORM to an SRGB texture without color space conversion. */
+  friend void xr_blit(id<MTLTexture> metal_xr_texture, int ofsx, int ofsy, int width, int height);
+
  private:
   /* Where the textures data comes from. */
   enum {
