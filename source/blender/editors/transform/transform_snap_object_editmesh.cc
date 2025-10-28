@@ -61,6 +61,7 @@ struct SnapCache_EditMesh : public SnapObjectContext::SnapCache {
   {
     if (this->mesh) {
       BKE_id_free(nullptr, this->mesh);
+      this->mesh = nullptr;
     }
   }
 
