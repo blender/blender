@@ -26,8 +26,7 @@ VKBuffer::~VKBuffer()
 
 bool VKBuffer::create(size_t size_in_bytes,
                       VkBufferUsageFlags buffer_usage,
-                      VkMemoryPropertyFlags required_flags,
-                      VkMemoryPropertyFlags preferred_flags,
+                      VmaMemoryUsage vma_memory_usage,
                       VmaAllocationCreateFlags allocation_flags,
                       float priority,
                       bool export_memory)
@@ -79,9 +78,7 @@ bool VKBuffer::create(size_t size_in_bytes,
   VmaAllocationCreateInfo vma_create_info = {};
   vma_create_info.flags = allocation_flags;
   vma_create_info.priority = priority;
-  vma_create_info.requiredFlags = required_flags;
-  vma_create_info.preferredFlags = preferred_flags;
-  vma_create_info.usage = VMA_MEMORY_USAGE_UNKNOWN;
+  vma_create_info.usage = vma_memory_usage;
 
   if (export_memory) {
     create_info.pNext = &external_memory_create_info;

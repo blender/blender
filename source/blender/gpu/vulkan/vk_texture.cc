@@ -263,8 +263,7 @@ void VKTexture::read_sub(
     size_t device_memory_size = sample_len * to_bytesize(device_format_);
     staging_buffer.create(device_memory_size,
                           VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                          VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
+                          VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
                           /* Although we are only reading, we need to set the host access random
                            * bit to improve the performance on AMD GPUs. */
                           VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT |
@@ -402,10 +401,9 @@ void VKTexture::update_sub(int mip,
   if (data) {
     staging_buffer.create(device_memory_size,
                           VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                          VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
                           VMA_ALLOCATION_CREATE_MAPPED_BIT |
-                              VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+                              VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
                           0.4f);
     vk_buffer = staging_buffer.vk_handle();
     /* Rows are sequentially stored, when unpack row length is 0, or equal to the extent width. In
