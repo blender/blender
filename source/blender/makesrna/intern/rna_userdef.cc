@@ -6626,6 +6626,15 @@ static void rna_def_userdef_input(BlenderRNA *brna)
       "NDOF Lock Horizon",
       "Lock Horizon forces the horizon to be kept leveled as it currently is");
 
+  prop = RNA_def_property(srna, "ndof_fly_speed_auto", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "ndof_flag", NDOF_FLY_SPEED_AUTO);
+  RNA_def_property_ui_text(prop,
+                           "Auto Fly Speed",
+                           "Automatically adjusts fly navigation speed "
+                           "based on the distance of objects near the center of the viewport, "
+                           "making it easier to navigate complex scenes. "
+                           "Speed is recalculated each time movement starts.");
+
   prop = RNA_def_property(srna, "ndof_orbit_center_auto", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "ndof_flag", NDOF_ORBIT_CENTER_AUTO);
   RNA_def_property_ui_text(prop,

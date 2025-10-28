@@ -28,7 +28,8 @@ using blender::float3;
 
 #ifdef WITH_INPUT_NDOF
 static bool ndof_orbit_center_is_valid(const RegionView3D *rv3d, const float3 &center);
-static bool ndof_orbit_center_is_auto(const View3D *v3d, const RegionView3D *rv3d);
+static bool ndof_orbit_center_is_used_no_viewport();
+static bool ndof_orbit_center_is_used(const View3D *v3d, const RegionView3D *rv3d);
 #endif
 
 /* -------------------------------------------------------------------- */
@@ -108,9 +109,7 @@ static float view3d_ndof_pan_speed_calc_from_dist(RegionView3D *rv3d, const floa
 static float view3d_ndof_pan_speed_calc(RegionView3D *rv3d)
 {
   float tvec[3];
-  if (NDOF_IS_ORBIT_AROUND_CENTER_MODE(&U) && (U.ndof_flag & NDOF_ORBIT_CENTER_AUTO) &&
-      (rv3d->ndof_flag & RV3D_NDOF_OFS_IS_VALID))
-  {
+  if ((rv3d->ndof_flag & RV3D_NDOF_OFS_IS_VALID) && ndof_orbit_center_is_used_no_viewport()) {
     negate_v3_v3(tvec, rv3d->ndof_ofs);
   }
   else {
@@ -166,21 +165,8 @@ static void view3d_ndof_pan_zoom(const wmNDOFMotionData &ndof,
 
   if (has_translate) {
 
-    if (U.ndof_navigation_mode == NDOF_NAVIGATION_MODE_FLY) {
-      /* For "Fly Mode" translations we use arbitrary defined, constant
-       * speed values for each axis. Normally, these values are defined
-       * by the 3Dconnexion navigation library. To recreate original navigation
-       * experience, the translation speed values were picked experimentally here.
-       * This is intended to apply only for the "Fly Mode" (3D viewport). */
-      const float fly_speed[3] = {6.5f, 3.3f, 8.0f};
-      pan_vec[0] *= fly_speed[0] * ndof.time_delta;
-      pan_vec[1] *= fly_speed[1] * ndof.time_delta;
-      pan_vec[2] *= fly_speed[2] * ndof.time_delta;
-    }
-    else {
-      const float speed = view3d_ndof_pan_speed_calc(rv3d);
-      pan_vec *= speed * ndof.time_delta;
-    }
+    const float speed = view3d_ndof_pan_speed_calc(rv3d);
+    pan_vec *= speed * ndof.time_delta;
 
     /* transform motion from view to world coordinates */
     float view_inv[4];
@@ -189,6 +175,11 @@ static void view3d_ndof_pan_zoom(const wmNDOFMotionData &ndof,
 
     /* move center of view opposite of hand motion (this is camera mode, not object mode) */
     sub_v3_v3(rv3d->ofs, pan_vec);
+
+    /* When in Fly mode with "Auto" speed, move `ndof_ofs` as well (to keep the speed constant). */
+    if (!NDOF_IS_ORBIT_AROUND_CENTER_MODE(&U) && (U.ndof_flag & NDOF_FLY_SPEED_AUTO)) {
+      sub_v3_v3(rv3d->ndof_ofs, pan_vec);
+    }
 
     if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW) {
       view3d_boxview_sync(area, region);
@@ -272,7 +263,7 @@ static void view3d_ndof_orbit(const wmNDOFMotionData &ndof,
 
   if (apply_dyn_ofs) {
     /* Use NDOF center as a dynamic offset. */
-    if (ndof_orbit_center_is_auto(v3d, rv3d)) {
+    if (ndof_orbit_center_is_used(v3d, rv3d)) {
       if (rv3d->ndof_flag & RV3D_NDOF_OFS_IS_VALID) {
         if (ndof_orbit_center_is_valid(vod->rv3d, -float3(rv3d->ndof_ofs))) {
           vod->use_dyn_ofs = true;
@@ -411,12 +402,24 @@ void view3d_ndof_fly(const wmNDOFMotionData &ndof,
 /** \name NDOF Orbit Center Calculation
  * \{ */
 
-static bool ndof_orbit_center_is_auto(const View3D *v3d, const RegionView3D *rv3d)
+static bool ndof_orbit_center_is_used_no_viewport()
 {
-  if (!NDOF_IS_ORBIT_AROUND_CENTER_MODE(&U)) {
-    return false;
+  if (NDOF_IS_ORBIT_AROUND_CENTER_MODE(&U)) {
+    if ((U.ndof_flag & NDOF_ORBIT_CENTER_AUTO) == 0) {
+      return false;
+    }
   }
-  if ((U.ndof_flag & NDOF_ORBIT_CENTER_AUTO) == 0) {
+  else {
+    if ((U.ndof_flag & NDOF_FLY_SPEED_AUTO) == 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+static bool ndof_orbit_center_is_used(const View3D *v3d, const RegionView3D *rv3d)
+{
+  if (!ndof_orbit_center_is_used_no_viewport()) {
     return false;
   }
   if (v3d->ob_center_cursor || v3d->ob_center) {
@@ -464,7 +467,7 @@ static std::optional<float3> ndof_orbit_center_calc_from_bounds(Depsgraph *depsg
 {
   std::optional<Bounds<float3>> bounding_box = std::nullopt;
 
-  if (U.ndof_flag & NDOF_ORBIT_CENTER_SELECTED) {
+  if ((U.ndof_flag & NDOF_ORBIT_CENTER_SELECTED) && NDOF_IS_ORBIT_AROUND_CENTER_MODE(&U)) {
     bool do_zoom = false;
     bounding_box = view3d_calc_minmax_selected(depsgraph, area, region, false, false, &do_zoom);
   }
@@ -491,42 +494,70 @@ static std::optional<float3> ndof_orbit_center_calc_from_bounds(Depsgraph *depsg
   return std::nullopt;
 }
 
-static float ndof_read_zbuf(ARegion *region)
+static float ndof_read_zbuf_rect(ARegion *region, const rcti &rect, int r_xy[2])
 {
-  view3d_region_operator_needs_gpu(region);
-
   /* Avoid allocating the whole depth buffer. */
   ViewDepths depth_temp = {0};
-  {
-    /* Some small rectangle in the middle of the view3d region. */
-    rcti rect;
-    const int region_center[2] = {region->winx / 2, region->winy / 2};
-    BLI_rcti_init_pt_radius(&rect, region_center, 2);
-    view3d_depths_rect_create(region, &rect, &depth_temp);
-  }
+  rcti rect_clip = rect;
+  view3d_depths_rect_create(region, &rect_clip, &depth_temp);
 
   /* Find the closest Z pixel. */
-  const float depth_near = view3d_depth_near(&depth_temp);
+  float depth_near;
+
+  if (r_xy) {
+    depth_near = view3d_depth_near_ex(&depth_temp, r_xy);
+  }
+  else {
+    depth_near = view3d_depth_near(&depth_temp);
+  }
 
   MEM_SAFE_FREE(depth_temp.depths);
 
   return depth_near;
 }
 
+/**
+ * Sample viewport region and get the nearest (depth-wise) point in screen space.
+ * \return
+ * - X, Y components: region space X, Y coordinate of the sample.
+ * - Z component: depth of the sample (the nearest value).
+ */
+static std::optional<float3> ndof_get_min_depth_pt(ARegion *region, const rcti &rect)
+{
+  int xy[2] = {0, 0};
+  const float depth_near = ndof_read_zbuf_rect(region, rect, xy);
+  if (depth_near == FLT_MAX) {
+    return std::nullopt;
+  }
+  const float3 result = {float(xy[0]), float(xy[1]), depth_near};
+  return result;
+}
+
 static std::optional<float3> ndof_orbit_center_calc_from_zbuf(Depsgraph *depsgraph,
                                                               ScrArea *area,
                                                               ARegion *region)
 {
+  rcti sample_rect;
 
-  const float depth_near = ndof_read_zbuf(region);
-  if (depth_near == FLT_MAX) {
+  if (U.ndof_navigation_mode == NDOF_NAVIGATION_MODE_FLY) {
+    /* Move the region to the bottom to enhance navigation in architectural-visualization. */
+    sample_rect.xmin = 0.3f * region->winx;
+    sample_rect.xmax = 0.7f * region->winx;
+    sample_rect.ymin = 0.2f * region->winy;
+    sample_rect.ymax = 0.6f * region->winy;
+  }
+  else {
+    int view_center[2] = {region->winx / 2, region->winy / 2};
+    BLI_rcti_init_pt_radius(&sample_rect, view_center, 0.05f * region->winx);
+  }
+
+  const std::optional<float3> min_depth_pt = ndof_get_min_depth_pt(region, sample_rect);
+  if (!min_depth_pt) {
     return std::nullopt;
   }
-  float region_center_x = region->winx / 2.0f;
-  float region_center_y = region->winy / 2.0f;
-  blender::float3 zbuf_center{};
 
-  if (!ED_view3d_unproject_v3(region, region_center_x, region_center_y, depth_near, zbuf_center)) {
+  blender::float3 zbuf_center;
+  if (!ED_view3d_unproject_v3(region, UNPACK3(*min_depth_pt), zbuf_center)) {
     return std::nullopt;
   }
 
@@ -536,7 +567,12 @@ static std::optional<float3> ndof_orbit_center_calc_from_zbuf(Depsgraph *depsgra
 
   /* Use the found center if either #NDOF_ORBIT_CENTER_SELECTED is not enabled,
    * there are no selected objects center is within bounding box of selected objects. */
-  if ((U.ndof_flag & NDOF_ORBIT_CENTER_SELECTED) == 0) {
+  if (NDOF_IS_ORBIT_AROUND_CENTER_MODE(&U)) {
+    if ((U.ndof_flag & NDOF_ORBIT_CENTER_SELECTED) == 0) {
+      return zbuf_center;
+    }
+  }
+  else {
     return zbuf_center;
   }
 
@@ -764,7 +800,7 @@ static wmOperatorStatus ndof_orbit_zoom_invoke_impl(bContext *C,
     /* pass */
   }
   else if (ndof.progress == P_STARTING) {
-    if (ndof_orbit_center_is_auto(v3d, rv3d)) {
+    if (ndof_orbit_center_is_used(v3d, rv3d)) {
       /* If center was recalculated then update the point location for drawing. */
       if (std::optional<float3> center_test = ndof_orbit_center_calc(
               vod->depsgraph, vod->area, vod->region))

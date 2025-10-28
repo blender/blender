@@ -1060,6 +1060,8 @@ typedef enum eNdof_Flag {
   NDOF_ORBIT_CENTER_AUTO = (1 << 17),
   NDOF_ORBIT_CENTER_SELECTED = (1 << 18),
   NDOF_SHOW_GUIDE_ORBIT_CENTER = (1 << 19),
+  /** Must only be used when `!NDOF_IS_ORBIT_AROUND_CENTER_MODE(&U)`. */
+  NDOF_FLY_SPEED_AUTO = (1 << 20),
 } eNdof_Flag;
 
 /**
