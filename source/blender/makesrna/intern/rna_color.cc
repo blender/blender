@@ -811,7 +811,7 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
 
       if (&scene->sequencer_colorspace_settings == colorspace_settings) {
         /* Scene colorspace was changed. */
-        blender::seq::cache_cleanup(scene);
+        blender::seq::cache_cleanup(scene, blender::seq::CacheCleanup::All);
       }
       else {
         /* Strip colorspace was likely changed. */

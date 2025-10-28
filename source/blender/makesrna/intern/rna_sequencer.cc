@@ -339,7 +339,7 @@ static void rna_SequenceEditor_update_cache(Main * /*bmain*/, Scene *scene, Poin
   Editing *ed = scene->ed;
 
   blender::seq::relations_free_imbuf(scene, &ed->seqbase, false);
-  blender::seq::cache_cleanup(scene);
+  blender::seq::cache_cleanup(scene, blender::seq::CacheCleanup::FinalAndIntra);
 }
 
 static void rna_SequenceEditor_cache_settings_changed(Main * /*bmain*/,

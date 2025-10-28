@@ -127,6 +127,7 @@ static wmOperatorStatus sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /
       seq::relations_free_imbuf(scene, &ed->seqbase, false);
     }
   }
+  seq::cache_cleanup(scene, seq::CacheCleanup::FinalAndIntra);
 
   return OPERATOR_FINISHED;
 }

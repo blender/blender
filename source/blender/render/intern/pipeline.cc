@@ -1550,6 +1550,8 @@ static void do_render_sequencer(Render *re)
         Editing *ed = re->pipeline_scene_eval->ed;
         if (ed) {
           blender::seq::relations_free_imbuf(re->pipeline_scene_eval, &ed->seqbase, true);
+          blender::seq::cache_cleanup(re->pipeline_scene_eval,
+                                      blender::seq::CacheCleanup::FinalAndIntra);
         }
       }
       IMB_freeImBuf(ibuf_arr[view_id]);
@@ -1593,9 +1595,9 @@ static void do_render_full_pipeline(Render *re)
 
   re->i.starttime = BLI_time_now_seconds();
 
-  /* ensure no images are in memory from previous animated sequences */
+  /* ensure no rendered results are cached from previous animated sequences */
   BKE_image_all_free_anim_ibufs(re->main, re->r.cfra);
-  blender::seq::cache_cleanup(re->scene);
+  blender::seq::cache_cleanup(re->scene, blender::seq::CacheCleanup::FinalAndIntra);
 
   if (RE_engine_render(re, true)) {
     /* in this case external render overrides all */

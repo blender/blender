@@ -1506,7 +1506,7 @@ static wmOperatorStatus sequencer_refresh_all_exec(bContext *C, wmOperator * /*o
 
   seq::relations_free_imbuf(scene, &ed->seqbase, false);
   blender::seq::media_presence_free(scene);
-  seq::cache_cleanup(scene);
+  seq::cache_cleanup(scene, seq::CacheCleanup::All);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 

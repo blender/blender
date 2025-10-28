@@ -125,7 +125,7 @@ static wmOperatorStatus wm_set_working_color_space_exec(bContext *C, wmOperator 
   RE_FreeInteractiveCompositorRenders();
   blender::seq::prefetch_stop_all();
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    blender::seq::cache_cleanup(scene);
+    blender::seq::cache_cleanup(scene, blender::seq::CacheCleanup::All);
   }
 
   /* Free all images, they may have scene linear float buffers. */
