@@ -26,7 +26,7 @@ class GPUWorker {
   Vector<std::unique_ptr<std::thread>> threads_;
   std::condition_variable condition_var_;
   std::mutex &mutex_;
-  bool terminate_ = false;
+  std::atomic<bool> terminate_ = false;
 
  public:
   enum class ContextType {
