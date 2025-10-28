@@ -708,10 +708,6 @@ static bool ui_but_dragedit_update_mval(uiHandleButtonData *data,
                                         int mx,
                                         blender::FunctionRef<int()> drag_threshold_fn)
 {
-  if (mx == data->draglastx) {
-    return false;
-  }
-
   if (data->draglock) {
     const int threshold = drag_threshold_fn();
     if (abs(mx - data->dragstartx) < threshold) {
