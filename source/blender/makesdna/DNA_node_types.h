@@ -169,7 +169,6 @@ typedef struct bNodeSocket {
 
   /** Custom dynamic defined label. */
   char label[/*MAX_NAME*/ 64];
-  char short_label[/*MAX_NAME*/ 64];
   char description[/*MAX_NAME*/ 64];
 
   /**
