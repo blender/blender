@@ -202,7 +202,7 @@ int ANIM_add_driver_with_target(ReportList *reports,
  *
  * Add a new driver for the specified property on the given ID block
  *
- * \param flag is of type eCreateDriverFlags. Passing the flag as 0 is also an option which will
+ * \param flag: is of type #eCreateDriverFlags. Passing the flag as 0 is also an option which will
  * create a driver without a variable.
  */
 int ANIM_add_driver(
