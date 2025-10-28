@@ -109,25 +109,15 @@ FCurve *alloc_driver_fcurve(const char rna_path[],
     /* add some new driver data */
     fcu->driver = MEM_callocN<ChannelDriver>("ChannelDriver");
 
-    /* F-Modifier or Keyframes? */
-    if (creation_mode == DRIVER_FCURVE_GENERATOR) {
-      /* Python API Backwards compatibility hack:
-       * Create FModifier so that old scripts won't break
-       * for now before 2.7 series -- (September 4, 2013)
-       */
-      add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_GENERATOR, fcu);
-    }
-    else {
-      /* add 2 keyframes so that user has something to work with
-       * - These are configured to 0,0 and 1,1 to give a 1-1 mapping
-       *   which can be easily tweaked from there.
-       */
-      const KeyframeSettings settings = get_keyframe_settings(false);
-      insert_vert_fcurve(fcu, {0.0f, 0.0f}, settings, INSERTKEY_FAST);
-      insert_vert_fcurve(fcu, {1.0f, 1.0f}, settings, INSERTKEY_FAST);
-      fcu->extend = FCURVE_EXTRAPOLATE_LINEAR;
-      BKE_fcurve_handles_recalc(fcu);
-    }
+    /* Add 2 keyframes so that user has something to work with
+     * - These are configured to 0,0 and 1,1 to give a 1-1 mapping
+     *   which can be easily tweaked from there.
+     */
+    const KeyframeSettings settings = get_keyframe_settings(false);
+    insert_vert_fcurve(fcu, {0.0f, 0.0f}, settings, INSERTKEY_FAST);
+    insert_vert_fcurve(fcu, {1.0f, 1.0f}, settings, INSERTKEY_FAST);
+    fcu->extend = FCURVE_EXTRAPOLATE_LINEAR;
+    BKE_fcurve_handles_recalc(fcu);
   }
 
   return fcu;
@@ -148,16 +138,13 @@ static int add_driver_with_target(ReportList * /*reports*/,
                                   PropertyRNA *dst_prop,
                                   PointerRNA *src_ptr,
                                   PropertyRNA *src_prop,
-                                  short flag,
                                   int driver_type)
 {
   FCurve *fcu;
-  short add_mode = (flag & CREATEDRIVER_WITH_FMODIFIER) ? DRIVER_FCURVE_GENERATOR :
-                                                          DRIVER_FCURVE_KEYFRAMES;
   const char *prop_name = RNA_property_identifier(src_prop);
 
   /* Create F-Curve with Driver */
-  fcu = verify_driver_fcurve(dst_id, dst_path, dst_index, eDriverFCurveCreationMode(add_mode));
+  fcu = verify_driver_fcurve(dst_id, dst_path, dst_index, DRIVER_FCURVE_KEYFRAMES);
 
   if (fcu && fcu->driver) {
     ChannelDriver *driver = fcu->driver;
@@ -343,7 +330,6 @@ int ANIM_add_driver_with_target(ReportList *reports,
                                            prop,
                                            &ptr2,
                                            prop2,
-                                           flag,
                                            driver_type);
       }
       break;
@@ -365,7 +351,6 @@ int ANIM_add_driver_with_target(ReportList *reports,
                                            prop,
                                            &ptr2,
                                            prop2,
-                                           flag,
                                            driver_type);
       }
       break;
@@ -384,7 +369,6 @@ int ANIM_add_driver_with_target(ReportList *reports,
                                         prop,
                                         &ptr2,
                                         prop2,
-                                        flag,
                                         driver_type);
       break;
     }
@@ -433,10 +417,8 @@ int ANIM_add_driver(
 
   /* will only loop once unless the array index was -1 */
   for (; array_index < array_index_max; array_index++) {
-    short add_mode = (flag & CREATEDRIVER_WITH_FMODIFIER) ? 2 : 1;
-
     /* create F-Curve with Driver */
-    fcu = verify_driver_fcurve(id, rna_path, array_index, eDriverFCurveCreationMode(add_mode));
+    fcu = verify_driver_fcurve(id, rna_path, array_index, DRIVER_FCURVE_KEYFRAMES);
 
     if (fcu && fcu->driver) {
       ChannelDriver *driver = fcu->driver;
