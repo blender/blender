@@ -3069,9 +3069,22 @@ def fbx_data_from_scene(scene, depsgraph, settings):
 
     # Materials
     mesh_material_indices = {}
-    _objs_indices = {}
-    for ma, (ma_key, ob_objs) in data_materials.items():
-        for ob_obj in ob_objs:
+    for ob_obj in objects:
+        ob_mat_idx = 0
+        me = None
+        if ob_obj.type in BLENDER_OBJECT_TYPES_MESHLIKE:
+            _mesh_key, me, _free = data_meshes[ob_obj]
+        # NOTE: If a mesh has multiple material slots with the same material, they are combined into one
+        # single connexion (slot).
+        # Even if duplicate materials were exported without combining them into one slot, keeping duplicate
+        # materials separated does not appear to be common behavior of external software when importing FBX.
+        # Also, None (empty slots, no material) are always skipped/ignored.
+        done_materials_for_object = {None}
+        for ma in ob_obj.materials:
+            if ma in done_materials_for_object:
+                continue
+            done_materials_for_object.add(ma)
+            ma_key, _ob_objs = data_materials[ma]
             connections.append((b"OO", get_fbx_uuid_from_key(ma_key), ob_obj.fbx_uuid, None))
             # Get index of this material for this object (or dupliobject).
             # Material indices for mesh faces are determined by their order in 'ma to ob' connections.
@@ -3080,13 +3093,13 @@ def fbx_data_from_scene(scene, depsgraph, settings):
             # Should not be an issue in practice, and it's needed in case we export duplis but not the original!
             if ob_obj.type not in BLENDER_OBJECT_TYPES_MESHLIKE:
                 continue
-            _mesh_key, me, _free = data_meshes[ob_obj]
-            idx = _objs_indices[ob_obj] = _objs_indices.get(ob_obj, -1) + 1
-            # XXX If a mesh has multiple material slots with the same material, they are combined into one slot.
-            # Even if duplicate materials were exported without combining them into one slot, keeping duplicate
-            # materials separated does not appear to be common behavior of external software when importing FBX.
-            mesh_material_indices.setdefault(me, {})[ma] = idx
-    del _objs_indices
+            if ma not in mesh_material_indices.setdefault(me, {}):
+                mesh_material_indices[me][ma] = ob_mat_idx
+            else:
+                print("WARNING: Cannot register a valid material index for '{}' from '{}' mesh, '{}' object. "
+                      "Most likely, different objects using the same mesh, but different material slots layouts."
+                      "".format(ma.name, me.name, ob_obj.name))
+            ob_mat_idx += 1
 
     # Textures
     for (ma, sock_name), (tex_key, fbx_prop) in data_textures.items():

@@ -147,8 +147,15 @@ static void constraint_bone_name_fix(Object *rename_ob,
      * animate the constraint target. */
     if (curcon->type == CONSTRAINT_TYPE_ACTION && constraint_ob == rename_ob) {
       bActionConstraint *actcon = static_cast<bActionConstraint *>(curcon->data);
-      BKE_action_fix_paths_rename(
-          &rename_ob->id, actcon->act, "pose.bones", oldname, newname, 0, 0, true);
+      BKE_action_fix_paths_rename(&rename_ob->id,
+                                  actcon->act,
+                                  actcon->action_slot_handle,
+                                  "pose.bones",
+                                  oldname,
+                                  newname,
+                                  0,
+                                  0,
+                                  true);
     }
   }
 }
