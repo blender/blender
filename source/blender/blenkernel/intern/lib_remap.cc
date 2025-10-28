@@ -186,13 +186,25 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
   ID **id_p = cb_data->id_pointer;
   IDRemap *id_remap_data = static_cast<IDRemap *>(cb_data->user_data);
 
+  const bool is_self_embedded = (id_self->flag & ID_FLAG_EMBEDDED_DATA) != 0;
+
   /* Those asserts ensure the general sanity of ID tags regarding 'embedded' ID data (root
    * node-trees and co). */
   BLI_assert(id_owner == id_remap_data->id_owner);
-  BLI_assert(id_self == id_owner || (id_self->flag & ID_FLAG_EMBEDDED_DATA) != 0);
+  BLI_assert(id_self == id_owner || is_self_embedded);
 
   /* Early exit when id pointer isn't set. */
   if (*id_p == nullptr) {
+    return IDWALK_RET_NOP;
+  }
+
+  /* Similar to above early-out on `IDWALK_CB_EMBEDDED` calls on ID pointers to embedded data, the
+   * 'loopback' pointers of embedded IDs towards their owner ID should never be remapped here.
+   *
+   * This relation between owner ID and its embedded ID is not the responsibility of ID management,
+   * and should never be affected by ID remapping.
+   */
+  if (is_self_embedded && (cb_flag & IDWALK_CB_LOOPBACK) != 0 && *id_p == id_owner) {
     return IDWALK_RET_NOP;
   }
 
