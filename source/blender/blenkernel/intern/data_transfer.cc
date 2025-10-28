@@ -250,9 +250,7 @@ int BKE_object_data_transfer_dttype_to_srcdst_index(const int dtdata_type)
  * If a match can't be found, use the first color layer that can be found (to ensure a valid string
  * is set).
  */
-static void transfer_active_color_string(Mesh *mesh_dst,
-                                         const Mesh *mesh_src,
-                                         const AttrDomainMask mask_domain)
+static void transfer_active_color_string(Mesh *mesh_dst, const Mesh *mesh_src)
 {
   using namespace blender;
   if (mesh_dst->active_color_attribute) {
@@ -271,12 +269,15 @@ static void transfer_active_color_string(Mesh *mesh_dst,
     mesh_dst->active_color_attribute = BLI_strdupn(name.data(), name.size());
   }
   else {
-    AttributeOwner owner_dst = AttributeOwner::from_id(&mesh_dst->id);
-    CustomDataLayer *first_color_layer = BKE_attribute_from_index(
-        owner_dst, 0, mask_domain, CD_MASK_COLOR_ALL);
-    if (first_color_layer != nullptr) {
-      mesh_dst->active_color_attribute = BLI_strdup(first_color_layer->name);
-    }
+    mesh_dst->attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+      if (mesh_dst->active_color_attribute) {
+        return;
+      }
+      if (!bke::mesh::is_color_attribute({iter.domain, iter.data_type})) {
+        return;
+      }
+      mesh_dst->active_color_attribute = BLI_strdupn(iter.name.data(), iter.name.size());
+    });
   }
 }
 
@@ -285,9 +286,7 @@ static void transfer_active_color_string(Mesh *mesh_dst,
  * If a match cant be found, use the first color layer that can be found (to ensure a valid string
  * is set).
  */
-static void transfer_default_color_string(Mesh *mesh_dst,
-                                          const Mesh *mesh_src,
-                                          const AttrDomainMask mask_domain)
+static void transfer_default_color_string(Mesh *mesh_dst, const Mesh *mesh_src)
 {
   using namespace blender;
   if (mesh_dst->default_color_attribute) {
@@ -306,12 +305,15 @@ static void transfer_default_color_string(Mesh *mesh_dst,
     mesh_dst->default_color_attribute = BLI_strdupn(name.data(), name.size());
   }
   else {
-    AttributeOwner owner_dst = AttributeOwner::from_id(&mesh_dst->id);
-    CustomDataLayer *first_color_layer = BKE_attribute_from_index(
-        owner_dst, 0, mask_domain, CD_MASK_COLOR_ALL);
-    if (first_color_layer != nullptr) {
-      mesh_dst->default_color_attribute = BLI_strdup(first_color_layer->name);
-    }
+    mesh_dst->attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+      if (mesh_dst->default_color_attribute) {
+        return;
+      }
+      if (!bke::mesh::is_color_attribute({iter.domain, iter.data_type})) {
+        return;
+      }
+      mesh_dst->default_color_attribute = BLI_strdupn(iter.name.data(), iter.name.size());
+    });
   }
 }
 
@@ -1260,8 +1262,8 @@ void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
       /* Make sure we have active/default color layers if none existed before.
        * Use the active/default from src (if it was transferred), otherwise the first. */
       if (ELEM(cddata_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
-        transfer_active_color_string(me_dst, me_src, ATTR_DOMAIN_MASK_POINT);
-        transfer_default_color_string(me_dst, me_src, ATTR_DOMAIN_MASK_POINT);
+        transfer_active_color_string(me_dst, me_src);
+        transfer_default_color_string(me_dst, me_src);
       }
     }
     if (DT_DATATYPE_IS_EDGE(dtdata_type)) {
@@ -1300,8 +1302,8 @@ void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
       /* Make sure we have active/default color layers if none existed before.
        * Use the active/default from src (if it was transferred), otherwise the first. */
       if (ELEM(cddata_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
-        transfer_active_color_string(me_dst, me_src, ATTR_DOMAIN_MASK_CORNER);
-        transfer_default_color_string(me_dst, me_src, ATTR_DOMAIN_MASK_CORNER);
+        transfer_active_color_string(me_dst, me_src);
+        transfer_default_color_string(me_dst, me_src);
       }
     }
     if (DT_DATATYPE_IS_FACE(dtdata_type)) {
