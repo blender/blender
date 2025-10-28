@@ -380,45 +380,13 @@ class VKPipelinePool : public NonCopyable {
   friend class VKDevice;
 
  private:
-  Map<VKGraphicsInfo, VkPipeline> graphic_pipelines_;
-  /* Partially initialized structures to reuse. */
-
-  VkGraphicsPipelineCreateInfo vk_graphics_pipeline_create_info_;
-  VkPipelineRenderingCreateInfo vk_pipeline_rendering_create_info_;
-  VkPipelineShaderStageCreateInfo vk_pipeline_shader_stage_create_info_[3];
-  VkPipelineInputAssemblyStateCreateInfo vk_pipeline_input_assembly_state_create_info_;
-  VkPipelineVertexInputStateCreateInfo vk_pipeline_vertex_input_state_create_info_;
-
-  VkPipelineRasterizationStateCreateInfo vk_pipeline_rasterization_state_create_info_;
-  VkPipelineRasterizationProvokingVertexStateCreateInfoEXT
-      vk_pipeline_rasterization_provoking_vertex_state_info_;
-
-  Vector<VkDynamicState> vk_dynamic_states_;
-  VkPipelineDynamicStateCreateInfo vk_pipeline_dynamic_state_create_info_;
-
-  VkPipelineViewportStateCreateInfo vk_pipeline_viewport_state_create_info_;
-  VkPipelineDepthStencilStateCreateInfo vk_pipeline_depth_stencil_state_create_info_;
-
-  VkPipelineMultisampleStateCreateInfo vk_pipeline_multisample_state_create_info_;
-
-  Vector<VkPipelineColorBlendAttachmentState> vk_pipeline_color_blend_attachment_states_;
-  VkPipelineColorBlendStateCreateInfo vk_pipeline_color_blend_state_create_info_;
-  VkPipelineColorBlendAttachmentState vk_pipeline_color_blend_attachment_state_template_;
-
-  VkSpecializationInfo vk_specialization_info_;
-  Vector<VkSpecializationMapEntry> vk_specialization_map_entries_;
-  VkPushConstantRange vk_push_constant_range_;
-
   VkPipelineCache vk_pipeline_cache_static_;
   VkPipelineCache vk_pipeline_cache_non_static_;
 
-  Mutex mutex_;
-
   VKPipelineMap<VKComputeInfo> compute_;
+  VKPipelineMap<VKGraphicsInfo> graphics_;
 
  public:
-  VKPipelinePool();
-
   void init();
 
   /**
@@ -428,7 +396,7 @@ class VKPipelinePool : public NonCopyable {
    * pipeline creation process.
    *
    * \param compute_info:     Description of the pipeline to compile.
-   * \param is_static_shader: Pipelines from static pipelines are cached between Blender sessions.
+   * \param is_static_shader: Pipelines from static shaders are cached between Blender sessions.
    *                          Pipelines from dynamic shaders are only cached for the duration of a
    *                          single Blender session.
    * \param vk_pipeline_base: An already existing pipeline that can be used as a base when
@@ -446,8 +414,17 @@ class VKPipelinePool : public NonCopyable {
    *
    * When vk_pipeline_base is a valid pipeline handle, the pipeline base will be used to speed up
    * pipeline creation process.
+   *
+   * \param graphics_info:    Description of the pipeline to compile.
+   * \param is_static_shader: Pipelines from static shaders are cached between Blender sessions.
+   *                          Pipelines from dynamic shaders are only cached for the duration of
+   *                          a single Blender session.
+   * \param vk_pipeline_base: An already existing pipeline that can be used as a base when
+   *                          compiling the pipeline.
+   * \param name:             Name to give as a debug label when creating a pipeline.
+   * \returns The handle of the compiled pipeline.
    */
-  VkPipeline get_or_create_graphics_pipeline(VKGraphicsInfo &graphics_info,
+  VkPipeline get_or_create_graphics_pipeline(const VKGraphicsInfo &graphics_info,
                                              bool is_static_shader,
                                              VkPipeline vk_pipeline_base,
                                              StringRefNull name);
@@ -488,7 +465,7 @@ class VKPipelinePool : public NonCopyable {
    * shader modules can change and shader module identifiers cannot be used. We use the build info
    * to check if the identifiers can be reused.
    *
-   * The cache will not be written when G_DEBUG_GPU is active. In this case the shader modules have
+   * The cache will not be written when G_DEBUG_GPU is active. In this case the shader modules will
    * been generated with debug information and other compiler settings are used. This will clutter
    * the pipeline cache.
    *
@@ -496,11 +473,6 @@ class VKPipelinePool : public NonCopyable {
    * flag is set.
    */
   void write_to_disk();
-
- private:
-  VkSpecializationInfo *specialization_info_update(
-      Span<shader::SpecializationConstant::Value> specialization_constants);
-  void specialization_info_reset();
 };
 
 }  // namespace blender::gpu
