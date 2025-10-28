@@ -328,9 +328,9 @@ void GPU_memory_barrier(GPUBarrier barrier)
   Context::get()->state_manager->issue_barrier(barrier);
 }
 
-GPUFence *GPU_fence_create(const char *name)
+GPUFence *GPU_fence_create()
 {
-  Fence *fence = GPUBackend::get()->fence_alloc(name);
+  Fence *fence = GPUBackend::get()->fence_alloc();
   return wrap(fence);
 }
 

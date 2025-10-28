@@ -57,7 +57,7 @@ class GPUBackend {
   virtual Context *context_alloc(void *ghost_window, void *ghost_context) = 0;
 
   virtual Batch *batch_alloc() = 0;
-  virtual Fence *fence_alloc(const char *name) = 0;
+  virtual Fence *fence_alloc() = 0;
   virtual FrameBuffer *framebuffer_alloc(const char *name) = 0;
   virtual IndexBuf *indexbuf_alloc() = 0;
   virtual PixelBuffer *pixelbuf_alloc(size_t size) = 0;

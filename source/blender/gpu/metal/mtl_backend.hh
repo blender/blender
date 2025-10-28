@@ -59,7 +59,7 @@ class MTLBackend : public GPUBackend {
    * due to allocation of Objective-C objects. */
   Context *context_alloc(void *ghost_window, void *ghost_context) override;
   Batch *batch_alloc() override;
-  Fence *fence_alloc(const char *name) override;
+  Fence *fence_alloc() override;
   FrameBuffer *framebuffer_alloc(const char *name) override;
   IndexBuf *indexbuf_alloc() override;
   PixelBuffer *pixelbuf_alloc(size_t size) override;

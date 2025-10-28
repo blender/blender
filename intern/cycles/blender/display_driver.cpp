@@ -927,8 +927,8 @@ bool BlenderDisplayDriver::gpu_resources_create()
     return false;
   }
 
-  gpu_upload_sync_ = GPU_fence_create("upload");
-  gpu_render_sync_ = GPU_fence_create("render");
+  gpu_upload_sync_ = GPU_fence_create();
+  gpu_render_sync_ = GPU_fence_create();
 
   if (!DCHECK_NOTNULL(gpu_upload_sync_) || !DCHECK_NOTNULL(gpu_render_sync_)) {
     LOG_ERROR << "Error creating GPU synchronization primitives.";

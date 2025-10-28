@@ -67,9 +67,9 @@ Batch *MTLBackend::batch_alloc()
   return new MTLBatch();
 };
 
-Fence *MTLBackend::fence_alloc(const char *name)
+Fence *MTLBackend::fence_alloc()
 {
-  return new MTLFence(name);
+  return new MTLFence();
 };
 
 FrameBuffer *MTLBackend::framebuffer_alloc(const char *name)

@@ -230,17 +230,7 @@ void GPU_apply_state();
  */
 void GPU_memory_barrier(GPUBarrier barrier);
 
-/**
- * \brief Create a new fence object to synchronize between commands.
- *
- * Fences are synchronization primitives that can be used to insert a fine-grained dependency
- * between commands submitted.
- *
- * \name name: debug label of the fence.
- *
- * \note name is used to label the GPU object on Metal.
- */
-GPUFence *GPU_fence_create(const char *name);
+GPUFence *GPU_fence_create();
 void GPU_fence_free(GPUFence *fence);
 void GPU_fence_signal(GPUFence *fence);
 void GPU_fence_wait(GPUFence *fence);
