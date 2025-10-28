@@ -179,8 +179,20 @@ static void add_udim_tiles(Image *image, const blender::Vector<int> &indices)
 {
   image->source = IMA_SRC_TILED;
 
+  /* All images are created with a default, 1001, first tile. If this tile does not end up being
+   * used, it should be removed. */
+  ImageTile *first_tile = BKE_image_get_tile(image, 0);
+  bool remove_first = true;
+
   for (int tile_number : indices) {
     BKE_image_add_tile(image, tile_number, nullptr);
+    if (tile_number == first_tile->tile_number) {
+      remove_first = false;
+    }
+  }
+
+  if (remove_first) {
+    BKE_image_remove_tile(image, first_tile);
   }
 }
 
