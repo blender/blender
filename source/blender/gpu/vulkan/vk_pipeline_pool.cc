@@ -10,6 +10,7 @@
 
 #include "BLI_fileops.hh"
 #include "BLI_path_utils.hh"
+#include "BLI_time.h"
 
 #include "CLG_log.h"
 
@@ -18,29 +19,13 @@
 
 #ifdef WITH_BUILDINFO
 extern "C" char build_hash[];
-static CLG_LogRef LOG = {"gpu.vulkan"};
 #endif
+static CLG_LogRef LOG = {"gpu.vulkan"};
 
 namespace blender::gpu {
 
 VKPipelinePool::VKPipelinePool()
 {
-  /* Initialize VkComputePipelineCreateInfo */
-  vk_compute_pipeline_create_info_.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-  vk_compute_pipeline_create_info_.pNext = nullptr;
-  vk_compute_pipeline_create_info_.flags = 0;
-  vk_compute_pipeline_create_info_.layout = VK_NULL_HANDLE;
-  vk_compute_pipeline_create_info_.basePipelineHandle = VK_NULL_HANDLE;
-  vk_compute_pipeline_create_info_.basePipelineIndex = 0;
-  VkPipelineShaderStageCreateInfo &vk_pipeline_shader_stage_create_info =
-      vk_compute_pipeline_create_info_.stage;
-  vk_pipeline_shader_stage_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-  vk_pipeline_shader_stage_create_info.pNext = nullptr;
-  vk_pipeline_shader_stage_create_info.flags = 0;
-  vk_pipeline_shader_stage_create_info.stage = VK_SHADER_STAGE_COMPUTE_BIT;
-  vk_pipeline_shader_stage_create_info.module = VK_NULL_HANDLE;
-  vk_pipeline_shader_stage_create_info.pName = "main";
-
   /* Initialize VkGraphicsPipelineCreateInfo */
   vk_graphics_pipeline_create_info_ = {};
   vk_graphics_pipeline_create_info_.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -182,49 +167,86 @@ void VKPipelinePool::specialization_info_reset()
   vk_specialization_info_.pMapEntries = nullptr;
 }
 
-VkPipeline VKPipelinePool::get_or_create_compute_pipeline(VKComputeInfo &compute_info,
+/* -------------------------------------------------------------------- */
+/** \name Compute pipelines
+ * \{ */
+
+VkPipeline VKPipelinePool::get_or_create_compute_pipeline(const VKComputeInfo &compute_info,
                                                           const bool is_static_shader,
                                                           VkPipeline vk_pipeline_base,
                                                           StringRefNull name)
 {
-  std::scoped_lock lock(mutex_);
-  const VkPipeline *found_pipeline = compute_pipelines_.lookup_ptr(compute_info);
-  if (found_pipeline) {
-    VkPipeline result = *found_pipeline;
-    BLI_assert(result != VK_NULL_HANDLE);
-    return result;
+  VkPipelineCache vk_pipeline_cache = is_static_shader ? vk_pipeline_cache_static_ :
+                                                         vk_pipeline_cache_non_static_;
+  return compute_.get_or_create(compute_info, vk_pipeline_cache, vk_pipeline_base, name);
+}
+
+template<>
+VkPipeline VKPipelineMap<VKComputeInfo>::create(const VKComputeInfo &compute_info,
+                                                VkPipelineCache vk_pipeline_cache,
+                                                VkPipeline vk_pipeline_base,
+                                                StringRefNull name)
+{
+  /* Building compute pipeline create info */
+  const bool do_specialization_constants = !compute_info.specialization_constants.is_empty();
+  VkComputePipelineCreateInfo vk_compute_pipeline_create_info = {
+      VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+      nullptr,
+      0,
+      {VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+       nullptr,
+       0,
+       VK_SHADER_STAGE_COMPUTE_BIT,
+       compute_info.vk_shader_module,
+       "main",
+       nullptr},
+      compute_info.vk_pipeline_layout,
+      vk_pipeline_base,
+      0};
+
+  /* Specialization constants */
+  VkSpecializationInfo vk_specialization_info;
+  Array<VkSpecializationMapEntry> vk_specialization_map_entries(
+      compute_info.specialization_constants.size());
+  if (do_specialization_constants) {
+    vk_compute_pipeline_create_info.stage.pSpecializationInfo = &vk_specialization_info;
+    for (uint32_t index : IndexRange(compute_info.specialization_constants.size())) {
+      vk_specialization_map_entries[index] = {
+          index, uint32_t(index * sizeof(uint32_t)), sizeof(uint32_t)};
+    }
+    vk_specialization_info = {uint32_t(vk_specialization_map_entries.size()),
+                              vk_specialization_map_entries.data(),
+                              compute_info.specialization_constants.size() * sizeof(uint32_t),
+                              compute_info.specialization_constants.data()};
   }
 
-  vk_compute_pipeline_create_info_.layout = compute_info.vk_pipeline_layout;
-  vk_compute_pipeline_create_info_.stage.module = compute_info.vk_shader_module;
-  vk_compute_pipeline_create_info_.basePipelineHandle = vk_pipeline_base;
-  vk_compute_pipeline_create_info_.stage.pSpecializationInfo = specialization_info_update(
-      compute_info.specialization_constants);
-
-  /* Build pipeline. */
+  /* Create pipeline. */
   VKBackend &backend = VKBackend::get();
   VKDevice &device = backend.device;
+
+  double start_time = BLI_time_now_seconds();
   VkPipeline pipeline = VK_NULL_HANDLE;
   vkCreateComputePipelines(device.vk_handle(),
-                           is_static_shader ? vk_pipeline_cache_static_ :
-                                              vk_pipeline_cache_non_static_,
+                           vk_pipeline_cache,
                            1,
-                           &vk_compute_pipeline_create_info_,
+                           &vk_compute_pipeline_create_info,
                            nullptr,
                            &pipeline);
+  double end_time = BLI_time_now_seconds();
   debug::object_label(pipeline, name);
-  compute_pipelines_.add(compute_info, pipeline);
-
-  /* Reset values to initial value. */
-  vk_compute_pipeline_create_info_.flags = 0;
-  vk_compute_pipeline_create_info_.layout = VK_NULL_HANDLE;
-  vk_compute_pipeline_create_info_.stage.module = VK_NULL_HANDLE;
-  vk_compute_pipeline_create_info_.stage.pSpecializationInfo = nullptr;
-  vk_compute_pipeline_create_info_.basePipelineHandle = VK_NULL_HANDLE;
-  specialization_info_reset();
+  CLOG_DEBUG(&LOG,
+             "Compiled compute pipeline %s in %fms ",
+             name.c_str(),
+             (end_time - start_time) * 1000.0);
 
   return pipeline;
 }
+
+/* \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Graphics pipelines
+ * \{ */
 
 VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graphics_info,
                                                            const bool is_static_shader,
@@ -656,37 +678,36 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
   return pipeline;
 }
 
+/* \} */
+
 void VKPipelinePool::discard(VKDiscardPool &discard_pool, VkPipelineLayout vk_pipeline_layout)
 {
-  std::scoped_lock lock(mutex_);
-  compute_pipelines_.remove_if([&](auto item) {
-    if (item.key.vk_pipeline_layout == vk_pipeline_layout) {
-      discard_pool.discard_pipeline(item.value);
-      return true;
-    }
-    return false;
-  });
-  graphic_pipelines_.remove_if([&](auto item) {
-    if (item.key.vk_pipeline_layout == vk_pipeline_layout) {
-      discard_pool.discard_pipeline(item.value);
-      return true;
-    }
-    return false;
-  });
+  compute_.discard(discard_pool, vk_pipeline_layout);
+
+  {
+    std::scoped_lock lock(mutex_);
+    graphic_pipelines_.remove_if([&](auto item) {
+      if (item.key.vk_pipeline_layout == vk_pipeline_layout) {
+        discard_pool.discard_pipeline(item.value);
+        return true;
+      }
+      return false;
+    });
+  }
 }
 
 void VKPipelinePool::free_data()
 {
-  std::scoped_lock lock(mutex_);
   VKDevice &device = VKBackend::get().device;
-  for (VkPipeline &vk_pipeline : graphic_pipelines_.values()) {
-    vkDestroyPipeline(device.vk_handle(), vk_pipeline, nullptr);
+  {
+    std::scoped_lock lock(mutex_);
+    for (VkPipeline &vk_pipeline : graphic_pipelines_.values()) {
+      vkDestroyPipeline(device.vk_handle(), vk_pipeline, nullptr);
+    }
+    graphic_pipelines_.clear();
   }
-  graphic_pipelines_.clear();
-  for (VkPipeline &vk_pipeline : compute_pipelines_.values()) {
-    vkDestroyPipeline(device.vk_handle(), vk_pipeline, nullptr);
-  }
-  compute_pipelines_.clear();
+
+  compute_.free_data(device.vk_handle());
 
   vkDestroyPipelineCache(device.vk_handle(), vk_pipeline_cache_static_, nullptr);
   vkDestroyPipelineCache(device.vk_handle(), vk_pipeline_cache_non_static_, nullptr);
