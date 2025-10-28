@@ -240,16 +240,13 @@ void GLStorageBuf::read(void *data)
     return;
   }
 
-  if (!persistent_ptr_ || !read_fence_) {
-    this->async_flush_to_host();
-  }
-
   while (glClientWaitSync(read_fence_, GL_SYNC_FLUSH_COMMANDS_BIT, 1000) == GL_TIMEOUT_EXPIRED) {
     /* Repeat until the data is ready. */
   }
   glDeleteSync(read_fence_);
   read_fence_ = nullptr;
 
+  BLI_assert(persistent_ptr_);
   memcpy(data, persistent_ptr_, size_in_bytes_);
 }
 
