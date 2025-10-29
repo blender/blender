@@ -504,12 +504,23 @@ static void id_delete_tag(bContext *C, ReportList *reports, TreeElement *te, Tre
       BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked library '%s'", id->name);
       return;
     }
-    if (CTX_data_scene(C)->id.lib == lib) {
+    Scene *active_scene = CTX_data_scene(C);
+    if (active_scene->id.lib == lib) {
       BKE_reportf(reports,
                   RPT_WARNING,
                   "Cannot delete library '%s', as it contains the currently active Scene",
                   id->name);
       return;
+    }
+    for (Library *packed_lib : lib->runtime->archived_libraries) {
+      if (active_scene->id.lib == packed_lib) {
+        BKE_reportf(reports,
+                    RPT_WARNING,
+                    "Cannot delete library '%s', as it contains the archive library of the "
+                    "currently active packed Scene",
+                    id->name);
+        return;
+      }
     }
   }
   if (id->tag & ID_TAG_INDIRECT) {
