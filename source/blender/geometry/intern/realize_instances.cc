@@ -1231,7 +1231,7 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
 
   const int64_t tot_points = offsets.pointcloud_offset;
   if (!valid_int_num(tot_points)) {
-    r_result.errors.append(RPT_("Realized point cloud is too large."));
+    r_result.errors.append(RPT_("Realized point cloud has too many points."));
     return;
   }
 
@@ -1674,7 +1674,7 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   if (!valid_int_num(tot_vertices) || !valid_int_num(tot_edges) || !valid_int_num(tot_loops) ||
       !valid_int_num(tot_faces))
   {
-    r_result.errors.append(RPT_("Realized mesh is too large."));
+    r_result.errors.append(RPT_("Realized mesh has too many elements."));
     return;
   }
 
@@ -2070,7 +2070,7 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
 
   if (!valid_int_num(points_num) || !valid_int_num(curves_num) || !valid_int_num(custom_knot_num))
   {
-    r_result.errors.append(RPT_("Realized curves data is too large."));
+    r_result.errors.append(RPT_("Realized curves data has too many elements."));
     return;
   }
 
