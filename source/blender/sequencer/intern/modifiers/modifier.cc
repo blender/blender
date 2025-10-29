@@ -24,8 +24,6 @@
 #include "BKE_colortools.hh"
 #include "BKE_screen.hh"
 
-#include "IMB_colormanagement.hh"
-
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
@@ -35,7 +33,6 @@
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
-#include "SEQ_transform.hh"
 #include "SEQ_utils.hh"
 
 #include "UI_interface.hh"

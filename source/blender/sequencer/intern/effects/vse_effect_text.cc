@@ -33,7 +33,6 @@
 #include "DNA_space_types.h"
 #include "DNA_vfont_types.h"
 
-#include "IMB_colormanagement.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "SEQ_effects.hh"

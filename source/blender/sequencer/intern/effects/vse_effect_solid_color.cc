@@ -11,8 +11,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
-#include "IMB_imbuf.hh"
-
 #include "effects.hh"
 
 namespace blender::seq {

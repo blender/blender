@@ -9,7 +9,6 @@
 #pragma once
 
 #include "BLI_map.hh"
-#include "BLI_rect.h"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
@@ -21,8 +20,6 @@
 #include "RNA_access.hh"
 
 #include "GPU_viewport.hh"
-
-#include "ED_sequencer.hh"
 
 #include "sequencer_scopes.hh"
 

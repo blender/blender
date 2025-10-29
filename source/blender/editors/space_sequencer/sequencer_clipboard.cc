@@ -14,7 +14,6 @@
 
 #include "BLI_math_vector_types.hh"
 #include "BLO_readfile.hh"
-#include "BLO_writefile.hh"
 #include "MEM_guardedalloc.h"
 
 #include "ED_outliner.hh"
@@ -31,13 +30,11 @@
 
 #include "BKE_anim_data.hh"
 #include "BKE_appdir.hh"
-#include "BKE_blender_copybuffer.hh"
 #include "BKE_blendfile.hh"
 #include "BKE_context.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"

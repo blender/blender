@@ -15,7 +15,6 @@
 #include "DNA_scene_types.h"
 
 #include "GPU_immediate.hh"
-#include "GPU_matrix.hh"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
@@ -32,15 +31,10 @@
 #include "BKE_screen.hh"
 
 #include "IMB_colormanagement.hh"
-#include "IMB_imbuf.hh"
 
-#include "GPU_state.hh"
-
-#include "ED_markers.hh"
 #include "ED_screen.hh"
 #include "ED_sequencer.hh"
 #include "ED_space_api.hh"
-#include "ED_time_scrub_ui.hh"
 #include "ED_transform.hh"
 #include "ED_util.hh"
 #include "ED_view3d_offscreen.hh" /* Only for sequencer view3d drawing callback. */
@@ -49,7 +43,6 @@
 #include "WM_message.hh"
 
 #include "SEQ_channels.hh"
-#include "SEQ_modifier.hh"
 #include "SEQ_offscreen.hh"
 #include "SEQ_preview_cache.hh"
 #include "SEQ_retiming.hh"

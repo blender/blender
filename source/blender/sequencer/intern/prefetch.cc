@@ -23,7 +23,6 @@
 #include "BLI_vector_set.hh"
 
 #include "IMB_imbuf.hh"
-#include "IMB_imbuf_types.hh"
 
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
@@ -44,8 +43,6 @@
 #include "SEQ_sequencer.hh"
 
 #include "SEQ_time.hh"
-#include "cache/final_image_cache.hh"
-#include "cache/source_image_cache.hh"
 #include "prefetch.hh"
 #include "render.hh"
 

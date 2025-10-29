@@ -33,7 +33,6 @@
 #include "ED_markers.hh"
 #include "ED_screen.hh"
 #include "ED_sequencer.hh"
-#include "ED_time_scrub_ui.hh"
 #include "ED_util_imbuf.hh"
 
 /* Own include. */

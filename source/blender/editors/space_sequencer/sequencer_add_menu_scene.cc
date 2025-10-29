@@ -14,7 +14,6 @@
 #include "DNA_space_types.h"
 #include "DNA_workspace_types.h"
 
-#include "BKE_asset.hh"
 #include "BKE_idprop.hh"
 #include "BKE_main.hh"
 #include "BKE_scene.hh"
@@ -26,7 +25,6 @@
 
 #include "ED_asset.hh"
 #include "ED_asset_menu_utils.hh"
-#include "ED_sequencer.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"
