@@ -780,6 +780,7 @@ class TOPBAR_PT_name_marker(Panel):
             sd.show_pose_markers and context.active_action
         )
 
+    @staticmethod
     def is_using_sequencer(context):
         sd = context.space_data
         return sd.type == 'SEQUENCE_EDITOR'
