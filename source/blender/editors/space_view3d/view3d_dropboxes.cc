@@ -511,7 +511,7 @@ static void view3d_collection_drop_copy_external_asset(bContext *C, wmDrag *drag
 
   /* XXX Without an undo push here, there will be a crash when the user modifies operator
    * properties. The stuff we do in these drop callbacks just isn't safe over undo/redo. */
-  ED_undo_push(C, "Collection_Drop");
+  ED_undo_push(C, "Drop Collection");
 }
 
 static void view3d_id_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
