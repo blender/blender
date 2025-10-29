@@ -89,6 +89,7 @@ class GHOST_System : public GHOST_ISystem {
 
   /** \copydoc #GHOST_ISystem::getWindowUnderCursor */
   GHOST_IWindow *getWindowUnderCursor(int32_t x, int32_t y) override;
+  GHOST_CSD_Params window_csd_params_;
 
   /***************************************************************************************
    * Event management functionality
@@ -180,6 +181,13 @@ class GHOST_System : public GHOST_ISystem {
   uint *getClipboardImage(int *r_width, int *r_height) const override;
   /** \copydoc #GHOST_ISystem::putClipboardImage */
   GHOST_TSuccess putClipboardImage(uint *rgba, int width, int height) const override;
+
+  /***************************************************************************************
+   * Window "Client Side Decorations" (CSD)
+   ***************************************************************************************/
+
+  void setWindowCSD(const GHOST_CSD_Params &params) override;
+  const GHOST_CSD_Params &getWindowCSD() const;
 
   /** \copydoc #GHOST_ISystem::showMessageBox */
   GHOST_TSuccess showMessageBox(const char * /*title*/,

@@ -960,24 +960,6 @@ Copyright (c) 2020 Simon Ser.
 Copyright (c) 2006, 2008 Junio C Hamano.
 ]=])
 
-set(WAYLAND_LIBDECOR_VERSION 0.2.2)
-set(WAYLAND_LIBDECOR_FILE libdecor-${WAYLAND_LIBDECOR_VERSION}.tar.xz)
-set(WAYLAND_LIBDECOR_URI https://gitlab.freedesktop.org/libdecor/libdecor/-/releases/${WAYLAND_LIBDECOR_VERSION}/downloads/libdecor-${WAYLAND_LIBDECOR_VERSION}.tar.xz)
-set(WAYLAND_LIBDECOR_HASH 5b7f4a10a9335b62101bccc220e2d13a)
-set(WAYLAND_LIBDECOR_HASH_TYPE MD5)
-set(WAYLAND_LIBDECOR_HOMEPAGE https://gitlab.freedesktop.org/libdecor/libdecor)
-set(WAYLAND_LIBDECOR_LICENSE SPDX:MIT)
-set(WAYLAND_LIBDECOR_COPYRIGHT [=[
-Copyright © 2010 Intel Corporation.
-Copyright © 2011 Benjamin Franzke.
-Copyright © 2018-2021 Jonas Ådahl.
-Copyright © 2019 Christian Rauch.
-Copyright (c) 2006, 2008 Junio C Hamano.
-Copyright © 2017-2018 Red Hat Inc.
-Copyright © 2012 Collabora, Ltd.
-Copyright © 2008 Kristian Høgsberg.
-]=])
-
 set(WAYLAND_WESTON_VERSION 14.0.2)
 set(WAYLAND_WESTON_FILE weston-${WAYLAND_WESTON_VERSION}.tar.xz)
 set(WAYLAND_WESTON_URI https://gitlab.freedesktop.org/wayland/weston/-/releases/${WAYLAND_WESTON_VERSION}/downloads/weston-${WAYLAND_WESTON_VERSION}.tar.xz)

@@ -233,6 +233,12 @@ GHOST_WindowHandle GHOST_GetWindowUnderCursor(GHOST_SystemHandle systemhandle,
   return (GHOST_WindowHandle)window;
 }
 
+void GHOST_SetWindowCSD(GHOST_SystemHandle systemhandle, GHOST_CSD_Params *params)
+{
+  GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
+  system->setWindowCSD(*params);
+}
+
 bool GHOST_ProcessEvents(GHOST_SystemHandle systemhandle, bool waitForEvent)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;

@@ -95,10 +95,16 @@
 #  include "BLI_threads.h"
 #endif
 
+static void wm_window_csd_title_redraw_tag(wmWindowManager *wm, wmWindow *win);
+
 /* The global to talk to GHOST. */
 static GHOST_SystemHandle g_system = nullptr;
 #if !(defined(WIN32) || defined(__APPLE__))
 static const char *g_system_backend_id = nullptr;
+#endif
+
+#ifdef WITH_GHOST_CSD
+static bool g_system_use_csd = false;
 #endif
 
 static CLG_LogRef LOG_GHOST_SYSTEM = {"ghost.system"};
@@ -1762,6 +1768,7 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
 
       wm_event_add_ghostevent(wm, win, type, data, event_time_ms);
       win->active = 0;
+      wm_window_csd_title_redraw_tag(wm, win);
       break;
     }
     case GHOST_kEventWindowActivate: {
@@ -1774,6 +1781,7 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
       /* No context change! `C->wm->runtime->windrawable` is drawable, or for area queues. */
       wm->runtime->winactive = win;
       win->active = 1;
+      wm_window_csd_title_redraw_tag(wm, win);
 
       /* Zero the `keymodifier`, it hangs on hotkeys that open windows otherwise. */
       win->runtime->eventstate->keymodifier = EVENT_NONE;
@@ -1820,15 +1828,18 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
       if (G.debug & G_DEBUG_EVENTS) {
         printf("%s: ghost redraw decor %d\n", __func__, win->winid);
       }
+      /* Update state here to make sure that out CSD maximize/un-maximize buttons
+       * show the correct state. */
+      GHOST_TWindowState state = GHOST_GetWindowState(
+          static_cast<GHOST_WindowHandle>(win->runtime->ghostwin));
+      win->windowstate = state;
 
       wm_window_make_drawable(wm, win);
-#if 0
-        /* NOTE(@ideasman42): Ideally we could swap-buffers to avoid a full redraw.
-         * however this causes window flickering on resize with LIBDECOR under WAYLAND. */
-        wm_window_swap_buffer_release(win);
-#else
-      WM_event_add_notifier_ex(wm, win, NC_WINDOW, nullptr);
-#endif
+
+      /* When using CSD, the un-maximized state and maximized state has different padding.
+       * We need to redraw the content of the window to make sure it fits with the new padding. */
+      WM_event_add_notifier_ex(wm, win, NC_SCREEN | NA_EDITED, nullptr);
+      WM_event_add_notifier_ex(wm, win, NC_WINDOW | NA_EDITED, nullptr);
 
       break;
     }
@@ -1959,6 +1970,7 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
       /* No context change! `C->wm->runtime->windrawable` is drawable, or for area queues. */
       wm->runtime->winactive = win;
       win->active = 1;
+      wm_window_csd_title_redraw_tag(wm, win);
 
       WM_event_add(win, &event);
 
@@ -2169,6 +2181,33 @@ void wm_window_events_process(const bContext *C)
 /** \name Ghost Init/Exit
  * \{ */
 
+#ifdef WITH_GHOST_CSD
+static int32_t wm_window_csd_layout_callback(const int32_t window_size[2],
+                                             const int32_t fractional_scale[2],
+                                             GHOST_TWindowState window_state,
+                                             GHOST_CSD_Elem *csd_elems)
+{
+  return WM_window_csd_layout_callback(
+      window_size, fractional_scale, char(window_state), csd_elems);
+}
+
+void WM_window_csd_params_update()
+{
+  if (g_system_use_csd == false) {
+    return;
+  }
+
+  GHOST_CSD_Params csd_params = {
+      /*layout_callback*/ wm_window_csd_layout_callback,
+
+      /*cursor_drag_threshold*/ U.drag_threshold_mouse,
+      /*cursor_double_click_ms*/ U.dbl_click_time,
+  };
+  GHOST_SetWindowCSD(g_system, &csd_params);
+}
+
+#endif /* WITH_GHOST_CSD */
+
 void wm_ghost_init(bContext *C)
 {
   if (g_system) {
@@ -2214,6 +2253,15 @@ void wm_ghost_init(bContext *C)
   }
 
   GHOST_UseWindowFocus(wm_init_state.window_focus);
+
+#ifdef WITH_GHOST_CSD
+  if (wm_init_state.window_frame &&
+      ((WM_capabilities_flag() & WM_CAPABILITY_WINDOW_DECORATION_SERVER_SIDE) == 0))
+  {
+    g_system_use_csd = true;
+    WM_window_csd_params_update();
+  }
+#endif /* WITH_GHOST_CSD */
 }
 
 void wm_ghost_init_background()
@@ -2383,6 +2431,9 @@ eWM_CapabilitiesFlag WM_capabilities_flag()
   }
   if (ghost_flag & GHOST_kCapabilityWindowPath) {
     flag |= WM_CAPABILITY_WINDOW_PATH;
+  }
+  if (ghost_flag & GHOST_kCapabilityWindowDecorationServerSide) {
+    flag |= WM_CAPABILITY_WINDOW_DECORATION_SERVER_SIDE;
   }
   return flag;
 }
@@ -2999,8 +3050,43 @@ void WM_window_native_pixel_coords(const wmWindow *win, int *x, int *y)
   *y *= fac;
 }
 
+static void wm_window_csd_title_redraw_tag(wmWindowManager *wm, wmWindow *win)
+{
+  /* Redraw the title bar if necessary. */
+#ifdef WITH_GHOST_CSD
+  if (WM_window_is_csd(win)) {
+    WM_event_add_notifier_ex(wm, win, NC_WINDOW, nullptr);
+  }
+#else
+  UNUSED_VARS(wm, win);
+#endif
+}
+
+bool WM_window_is_csd(const wmWindow *win)
+{
+#ifdef WITH_GHOST_CSD
+  if (g_system_use_csd && !WM_window_is_fullscreen(win)) {
+    return true;
+  }
+#else
+  UNUSED_VARS(win);
+#endif
+  return false;
+}
+
 void WM_window_rect_calc(const wmWindow *win, rcti *r_rect)
 {
+#ifdef WITH_GHOST_CSD
+  if (WM_window_is_csd(win) &&
+      /* This will be null when creating the window.
+       * So we can't calculate CSD here. */
+      (win->runtime->ghostwin != nullptr))
+  {
+    WM_window_csd_rect_calc(win, r_rect);
+    return;
+  }
+#endif /* WITH_GHOST_CSD */
+
   const blender::int2 win_size = WM_window_native_pixel_size(win);
   BLI_rcti_init(r_rect, 0, win_size[0], 0, win_size[1]);
 }

@@ -95,6 +95,7 @@ static CLG_LogRef LOG = {"image"};
 
 /** Used in user viable messages. */
 static const char *message_prefix = "Animation Player";
+static const char *playanim_window_title = "Blender Animation Player";
 
 struct PlayState;
 static void playanim_window_zoom(PlayState &ps, const float zoom_offset);
@@ -202,6 +203,11 @@ struct PlayDisplayContext {
   float ui_scale;
   /** Window & viewport size in pixels. */
   blender::int2 size;
+
+#ifdef WITH_GHOST_CSD
+  bool use_window_csd;
+  float ui_window_csd_alpha;
+#endif
 };
 
 /**
@@ -305,6 +311,66 @@ static blender::int2 playanim_window_size_get(GHOST_WindowHandle ghost_window)
   GHOST_DisposeRectangle(bounds);
   return window_size;
 }
+
+static bool playanim_window_contains_point(GHOST_WindowHandle ghost_window,
+                                           const bool use_window_csd,
+                                           const int32_t cx,
+                                           const int32_t cy)
+{
+  const blender::int2 window_size = playanim_window_size_get(ghost_window);
+  if (cx >= 0 && cx < window_size[0] && cy >= 0 && cy <= window_size[1]) {
+#ifdef WITH_GHOST_CSD
+    if (use_window_csd) {
+      const GHOST_TWindowState state = GHOST_GetWindowState(ghost_window);
+      GHOST_CSD_Elem csd_elems[GHOST_kCSDType_NUM];
+      const int fractional_scale[2] = {
+          GHOST_CSD_DPI_FRACTIONAL_BASE,
+          GHOST_GetDPIHint(ghost_window),
+      };
+      const int csd_elems_num = WM_window_csd_layout_callback(
+          window_size, fractional_scale, state, csd_elems);
+      for (int i = 0; i < csd_elems_num; i += 1) {
+        GHOST_CSD_Elem &elem = csd_elems[i];
+        if (elem.type == GHOST_kCSDTypeBody) {
+          if (!((cx >= elem.bounds[0][0] && cx <= elem.bounds[0][1]) &&
+                (cy >= elem.bounds[1][0] && cy <= elem.bounds[1][1])))
+          {
+            return false;
+          }
+          break;
+        }
+      }
+    }
+#else
+    UNUSED_VARS(use_window_csd);
+#endif /* !WITH_GHOST_CSD */
+
+    return true;
+  }
+  return false;
+}
+
+#ifdef WITH_GHOST_CSD
+static int32_t wm_window_csd_layout_callback(const int32_t window_size[2],
+                                             const int32_t fractional_scale[2],
+                                             GHOST_TWindowState window_state,
+                                             GHOST_CSD_Elem *csd_elems)
+{
+  return WM_window_csd_layout_callback(
+      window_size, fractional_scale, char(window_state), csd_elems);
+}
+
+static void playanim_window_csd_params_update(GhostData &ghost_data)
+{
+  GHOST_CSD_Params csd_params = {
+      /*layout_callback*/ wm_window_csd_layout_callback,
+
+      /*cursor_drag_threshold*/ 6 /* NOTE: `U.drag_threshold_mouse` isn't initialized. */,
+      /*cursor_double_click_ms*/ 350 /* NOTE: `U.dbl_click_time` isn't initialized. */,
+  };
+  GHOST_SetWindowCSD(ghost_data.system, &csd_params);
+}
+#endif /* WITH_GHOST_CSD */
 
 static void playanim_gpu_matrix()
 {
@@ -667,7 +733,8 @@ static void draw_display_buffer(const PlayDisplayContext &display_ctx,
 }
 
 /**
- * \param font_id: ID of the font to display (-1 when no text should be displayed).
+ * \param show_status: When true, show status text for the frame.
+ * \param font_id: ID of the font to display.
  * \param frame_step: Frame step (may be used in text display).
  * \param draw_zoom: Default to 1.0 (no zoom).
  * \param draw_flip: X/Y flipping (ignored when null).
@@ -678,6 +745,7 @@ static void playanim_toscreen_ex(GhostData &ghost_data,
                                  const PlayAnimPict *picture,
                                  ImBuf *ibuf,
                                  /* Run-time drawing arguments (not used on-load). */
+                                 const bool show_status,
                                  const int font_id,
                                  const int frame_step,
                                  const float draw_zoom,
@@ -731,7 +799,7 @@ static void playanim_toscreen_ex(GhostData &ghost_data,
 
   pupdate_time();
 
-  if ((font_id != -1) && picture) {
+  if (show_status && (font_id != -1) && (picture != nullptr)) {
     const int font_margin = int(10 * display_ctx.ui_scale);
     float fsizex_inv, fsizey_inv;
     char label[32 + FILE_MAX];
@@ -795,6 +863,37 @@ static void playanim_toscreen_ex(GhostData &ghost_data,
   }
 
   GPU_render_step();
+
+#ifdef WITH_GHOST_CSD
+  if (display_ctx.use_window_csd && (display_ctx.ui_window_csd_alpha > 0.0f)) {
+    const GHOST_TWindowState state = GHOST_GetWindowState(ghost_data.window);
+    if (ELEM(state, GHOST_kWindowStateNormal, GHOST_kWindowStateMaximized)) {
+      GPU_matrix_push();
+      const uint16_t dpi = GHOST_GetDPIHint(ghost_data.window);
+      const blender::int2 window_size = playanim_window_size_get(ghost_data.window);
+      const bool is_active = true; /* Alpha is zero when inactive. */
+      const int font_size = 11;    /* Un-scaled (same as default panel point size). */
+
+      const uchar text_color[3] = {255, 255, 255};
+      WM_window_csd_draw_titlebar_ex(window_size,
+                                     state,
+                                     is_active,
+                                     dpi,
+                                     playanim_window_title,
+                                     font_id,
+                                     font_size,
+                                     nullptr,
+                                     text_color,
+                                     display_ctx.ui_window_csd_alpha);
+      GPU_matrix_pop();
+
+      GPU_viewport(0, 0, window_size[0], window_size[1]);
+      GPU_scissor(0, 0, window_size[0], window_size[1]);
+      playanim_gpu_matrix();
+    }
+  }
+#endif /* WITH_GHOST_CSD */
+
   if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
     GPU_flush();
   }
@@ -810,6 +909,7 @@ static void playanim_toscreen_on_load(GhostData &ghost_data,
                                       const PlayAnimPict *picture,
                                       ImBuf *ibuf)
 {
+  const bool show_status = false;
   const int font_id = -1; /* Don't draw text. */
   const int frame_step = -1;
   const float zoom = 1.0f;
@@ -820,6 +920,7 @@ static void playanim_toscreen_on_load(GhostData &ghost_data,
                        display_ctx,
                        picture,
                        ibuf,
+                       show_status,
                        font_id,
                        frame_step,
                        zoom,
@@ -842,12 +943,12 @@ static void playanim_toscreen(PlayState &ps, const PlayAnimPict *picture, ImBuf 
     }
   }
 
-  int font_id = -1;
+  bool show_status = false;
   if ((ps.ghost_data.qual & (WS_QUAL_SHIFT | WS_QUAL_LMOUSE)) ||
       /* Always inform the user of an error, this should be an exceptional case. */
       (ibuf == nullptr))
   {
-    font_id = ps.font_id;
+    show_status = true;
   }
 
   BLI_assert(ps.loading == false);
@@ -855,7 +956,8 @@ static void playanim_toscreen(PlayState &ps, const PlayAnimPict *picture, ImBuf 
                        ps.display_ctx,
                        picture,
                        ibuf,
-                       font_id,
+                       show_status,
+                       ps.font_id,
                        ps.frame_step,
                        ps.zoom,
                        ps.draw_flip,
@@ -1472,14 +1574,16 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr p
     }
     case GHOST_kEventButtonDown:
     case GHOST_kEventButtonUp: {
+#ifdef WITH_GHOST_CSD
+      const bool use_window_csd = ps.display_ctx.use_window_csd;
+#else
+      const bool use_window_csd = false;
+#endif
       const GHOST_TEventButtonData *bd = static_cast<const GHOST_TEventButtonData *>(data);
       int cx, cy;
-      const blender::int2 window_size = playanim_window_size_get(ghost_window);
-
-      const bool inside_window = (GHOST_GetCursorPosition(ghost_system, ghost_window, &cx, &cy) ==
-                                  GHOST_kSuccess) &&
-                                 (cx >= 0 && cx < window_size[0] && cy >= 0 &&
-                                  cy <= window_size[1]);
+      const bool inside_window =
+          (GHOST_GetCursorPosition(ghost_system, ghost_window, &cx, &cy) == GHOST_kSuccess) &&
+          playanim_window_contains_point(ghost_window, use_window_csd, cx, cy);
 
       if (bd->button == GHOST_kButtonMaskLeft) {
         if (type == GHOST_kEventButtonDown) {
@@ -1515,6 +1619,28 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr p
       break;
     }
     case GHOST_kEventCursorMove: {
+#ifdef WITH_GHOST_CSD
+      if (ps.display_ctx.use_window_csd) {
+        const GHOST_TEventCursorData *cd = static_cast<const GHOST_TEventCursorData *>(data);
+        float &alpha = ps.display_ctx.ui_window_csd_alpha;
+        const blender::int2 window_size = playanim_window_size_get(ghost_window);
+
+        /* The vertical range to highlight the title (when the cursor is near). */
+        const int upper_y = window_size.y / 6;
+        const int lower_y = window_size.y / 3;
+        const int y = cd->y;
+        if ((y > lower_y) || UNLIKELY(upper_y == lower_y)) {
+          alpha = 0.0f;
+        }
+        if (y < upper_y) {
+          alpha = 1.0f;
+        }
+        else {
+          alpha = (lower_y - y) / float(lower_y - upper_y);
+        }
+      }
+#endif
+
       if (ps.ghost_data.qual & WS_QUAL_LMOUSE) {
         const GHOST_TEventCursorData *cd = static_cast<const GHOST_TEventCursorData *>(data);
         int cx, cy;
@@ -1541,6 +1667,11 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr p
     }
     case GHOST_kEventWindowActivate:
     case GHOST_kEventWindowDeactivate: {
+#ifdef WITH_GHOST_CSD
+      if (ps.display_ctx.use_window_csd) {
+        ps.display_ctx.ui_window_csd_alpha = 0.0f;
+      }
+#endif
       ps.ghost_data.qual &= ~WS_QUAL_MOUSE;
       break;
     }
@@ -1749,6 +1880,11 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
   IMB_init();
   MOV_init();
 
+#ifdef WITH_GHOST_CSD
+  ps.display_ctx.use_window_csd = false; /* Initialize after GHOST's system. */
+  ps.display_ctx.ui_window_csd_alpha = 0.0f;
+#endif
+
   STRNCPY_UTF8(ps.display_ctx.display_settings.display_device,
                IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE));
   IMB_colormanagement_init_untonemapped_view_settings(&ps.display_ctx.view_settings,
@@ -1884,12 +2020,20 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
         return EXIT_FAILURE;
       }
 
+#ifdef WITH_GHOST_CSD
+      ps.display_ctx.use_window_csd = (GHOST_GetCapabilities() &
+                                       GHOST_kCapabilityWindowDecorationServerSide) == 0;
+      if (ps.display_ctx.use_window_csd) {
+        playanim_window_csd_params_update(ps.ghost_data);
+      }
+#endif
+
       GPU_backend_ghost_system_set(ps.ghost_data.system);
 
       GHOST_UseNativePixels();
 
       ps.ghost_data.window = playanim_window_open(ps.ghost_data.system,
-                                                  "Blender Animation Player",
+                                                  playanim_window_title,
                                                   window_pos[0],
                                                   window_pos[1],
                                                   ibuf->x,

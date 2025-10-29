@@ -21,6 +21,7 @@ GHOST_System::GHOST_System()
     : native_pixel_(false),
       window_focus_(true),
       auto_focus_(true),
+      window_csd_params_({nullptr}),
       timer_manager_(nullptr),
       window_manager_(nullptr),
       event_manager_(nullptr),
@@ -53,6 +54,16 @@ GHOST_TSuccess GHOST_System::putClipboardImage(uint * /*rgba*/,
                                                int /*height*/) const
 {
   return GHOST_kFailure;
+}
+
+void GHOST_System::setWindowCSD(const GHOST_CSD_Params &params)
+{
+  window_csd_params_ = params;
+}
+
+const GHOST_CSD_Params &GHOST_System::getWindowCSD() const
+{
+  return window_csd_params_;
 }
 
 GHOST_ITimerTask *GHOST_System::installTimer(uint64_t delay,

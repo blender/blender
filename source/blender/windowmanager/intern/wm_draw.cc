@@ -63,6 +63,7 @@
 #include "wm_event_system.hh"
 #include "wm_surface.hh"
 #include "wm_window.hh"
+#include "wm_window_private.hh"
 
 #include "UI_resources.hh"
 
@@ -1219,6 +1220,13 @@ static void wm_draw_window(bContext *C, wmWindow *win)
 
   bScreen *screen = WM_window_get_active_screen(win);
   bool stereo = WM_stereo3d_enabled(win, false);
+
+#ifdef WITH_GHOST_CSD
+  /* Title bar. */
+  if (WM_window_is_csd(win)) {
+    WM_window_csd_draw_titlebar(win);
+  }
+#endif
 
   /* Draw area regions into their own frame-buffer. This way we can redraw
    * the areas that need it, and blit the rest from existing frame-buffers. */

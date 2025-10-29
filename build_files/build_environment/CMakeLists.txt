@@ -173,7 +173,6 @@ if(UNIX AND NOT APPLE)
   include(cmake/wayland_protocols.cmake)
   # Can be removed when the build-bot upgrades to v1.20.x or newer.
   include(cmake/wayland.cmake)
-  include(cmake/wayland_libdecor.cmake)
   include(cmake/wayland_weston.cmake)
 endif()
 include(cmake/shaderc_deps.cmake)

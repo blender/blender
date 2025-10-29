@@ -547,6 +547,10 @@ static void wm_init_userdef(Main *bmain)
   /* Update input device preference. */
   WM_init_input_devices();
 
+#ifdef WITH_GHOST_CSD
+  WM_window_csd_params_update();
+#endif
+
   BLO_sanitize_experimental_features_userpref_blend(&U);
 
   wm_gpu_backend_override_from_userdef();

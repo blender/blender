@@ -217,6 +217,8 @@ enum eWM_CapabilitiesFlag {
   WM_CAPABILITY_MULTIMONITOR_PLACEMENT = (1 << 12),
   /** Support for the window to show a file-path (otherwise include in the title text). */
   WM_CAPABILITY_WINDOW_PATH = (1 << 13),
+  /** Support for window server side decorations (SSD). */
+  WM_CAPABILITY_WINDOW_DECORATION_SERVER_SIDE = (1 << 14),
   /** The initial value, indicates the value needs to be set by inspecting GHOST. */
   WM_CAPABILITY_INITIALIZED = (1u << 31),
 };
@@ -313,6 +315,14 @@ int WM_window_native_pixel_y(const wmWindow *win);
 blender::int2 WM_window_native_pixel_size(const wmWindow *win);
 
 void WM_window_native_pixel_coords(const wmWindow *win, int *x, int *y);
+/**
+ * Return non-nil if the CSD is used.
+ */
+bool WM_window_is_csd(const wmWindow *win);
+/**
+ * Calculate the window content sub-region when CSD is used.
+ */
+void WM_window_csd_rect_calc(const wmWindow *win, rcti *r_rect);
 /**
  * Get boundaries usable by all window contents, including global areas.
  */
@@ -429,6 +439,11 @@ void WM_window_title_set(wmWindow *win, const char *title);
  * Also refresh the modified-state (for main windows).
  */
 void WM_window_title_refresh(wmWindowManager *wm, wmWindow *win);
+
+/**
+ * Update the parameters for CSD.
+ */
+void WM_window_csd_params_update();
 
 bool WM_stereo3d_enabled(wmWindow *win, bool skip_stereo3d_check);
 
@@ -1767,6 +1782,10 @@ void wmViewport(const rcti *winrct);
 void wmPartialViewport(rcti *drawrct, const rcti *winrct, const rcti *partialrct);
 void wmWindowViewport(const wmWindow *win);
 void wmWindowViewport_ex(const wmWindow *win, float offset);
+
+/* Closely related to #wmWindowViewport but for drawing the title-bar. */
+void wmWindowViewportTitle_ex(const rcti &rect, float offset);
+void wmWindowViewportTitle(const rcti &rect);
 
 /* OpenGL utilities with safety check. */
 void wmOrtho2(float x1, float x2, float y1, float y2);

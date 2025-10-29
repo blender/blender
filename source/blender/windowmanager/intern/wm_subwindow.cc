@@ -89,6 +89,20 @@ void wmWindowViewport(const wmWindow *win)
   wmWindowViewport_ex(win, -GLA_PIXEL_OFS);
 }
 
+void wmWindowViewportTitle_ex(const rcti &rect, float offset)
+{
+  GPU_viewport(rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+  GPU_scissor(rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+
+  wmOrtho2_offset(rect.xmax, rect.ymax, offset);
+  GPU_matrix_identity_set();
+}
+
+void wmWindowViewportTitle(const rcti &rect)
+{
+  wmWindowViewportTitle_ex(rect, -GLA_PIXEL_OFS);
+}
+
 void wmOrtho2(float x1, float x2, float y1, float y2)
 {
   /* Prevent opengl from generating errors. */
