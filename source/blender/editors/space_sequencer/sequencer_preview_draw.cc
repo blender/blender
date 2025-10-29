@@ -1120,7 +1120,7 @@ static void text_selection_draw(const bContext *C, const Strip *strip, uint pos)
       selection_quad[i] = math::transform_point(transform_mat, selection_quad[i]);
       selection_quad[i].x *= view_aspect;
     }
-    for (int i : blender::Vector<int>{0, 1, 2, 2, 3, 0}) {
+    for (int i : {0, 1, 2, 2, 3, 0}) {
       immVertex2f(pos, selection_quad[i][0], selection_quad[i][1]);
     }
 
@@ -1178,7 +1178,7 @@ static void text_edit_draw_cursor(const bContext *C, const Strip *strip, uint po
     cursor_quad[i] = math::transform_point(transform_mat, cursor_quad[i]);
     cursor_quad[i].x *= view_aspect;
   }
-  for (int i : blender::Vector<int>{0, 1, 2, 2, 3, 0}) {
+  for (int i : {0, 1, 2, 2, 3, 0}) {
     immVertex2f(pos, cursor_quad[i][0], cursor_quad[i][1]);
   }
 
