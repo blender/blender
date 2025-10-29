@@ -38,6 +38,7 @@ GPU_SHADER_CREATE_END()
 GPU_SHADER_CREATE_INFO(gpu_shader_3D_clipped_uniform_color)
 VERTEX_IN(0, float3, pos)
 FRAGMENT_OUT(0, float4, fragColor)
+BUILTINS(BuiltinBits::CLIP_DISTANCES)
 PUSH_CONSTANT(float4x4, ModelViewProjectionMatrix)
 PUSH_CONSTANT(float4, color)
 /* TODO(@fclem): Put those two to one UBO. */

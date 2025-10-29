@@ -662,6 +662,8 @@ std::string ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_
   store_bool_function << store_bool_function_header << store_function_start;
   store_menu_function << store_menu_function_header << store_function_start;
 
+  shader_create_info.builtins(BuiltinBits::GLOBAL_INVOCATION_ID);
+
   int output_index = 0;
   for (StringRefNull output_identifier : output_sockets_to_output_identifiers_map_.values()) {
     const Result &result = get_result(output_identifier);

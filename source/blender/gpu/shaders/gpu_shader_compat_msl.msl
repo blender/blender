@@ -19,7 +19,10 @@
 #include "gpu_shader_msl_matrix.msl"
 #include "gpu_shader_msl_matrix_legacy.msl"
 #include "gpu_shader_msl_sampler.msl"
+#include "gpu_shader_msl_types.msl"
 #include "gpu_shader_msl_types_legacy.msl"
+/* Wrapper needs to be last. */
+#include "gpu_shader_msl_wrapper.msl"
 
 /* Suppress unhelpful shader compiler warnings. */
 #pragma clang diagnostic ignored "-Wunused-variable"
@@ -31,12 +34,6 @@
 #define MSL_SHARED_VARS_ASSIGN
 #define MSL_SHARED_VARS_DECLARE
 #define MSL_SHARED_VARS_PASS
-
-/* int implicitly cast to bool in MSL. */
-using bool32_t = int32_t;
-
-using vec3_1010102_Unorm = uint32_t;
-using vec3_1010102_Inorm = int32_t;
 
 /* Array syntax compatibility. */
 /* clang-format off */

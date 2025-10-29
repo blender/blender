@@ -151,6 +151,31 @@ class ShaderInterface {
 
   inline uint valid_bindings_get(const ShaderInput *const inputs, const uint inputs_len) const;
 
+  bool attr_len_get() const
+  {
+    return attr_len_;
+  }
+
+  bool ubo_len_get() const
+  {
+    return ubo_len_;
+  }
+
+  bool uniform_len_get() const
+  {
+    return uniform_len_;
+  }
+
+  bool ssbo_len_get() const
+  {
+    return ssbo_len_;
+  }
+
+  bool constant_len_get() const
+  {
+    return constant_len_;
+  }
+
  protected:
   static inline const char *builtin_uniform_name(GPUUniformBuiltin u);
   static inline const char *builtin_uniform_block_name(GPUUniformBlockBuiltin u);

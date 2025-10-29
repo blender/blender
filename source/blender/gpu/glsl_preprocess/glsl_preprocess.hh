@@ -52,6 +52,8 @@ enum Builtin : uint64_t {
   FragStencilRef = hash("gl_FragStencilRefARB"),
   FrontFacing = hash("gl_FrontFacing"),
   GlobalInvocationID = hash("gl_GlobalInvocationID"),
+  InstanceIndex = hash("gpu_InstanceIndex"),
+  BaseInstance = hash("gpu_BaseInstance"),
   InstanceID = hash("gl_InstanceID"),
   LocalInvocationID = hash("gl_LocalInvocationID"),
   LocalInvocationIndex = hash("gl_LocalInvocationIndex"),
@@ -1489,6 +1491,8 @@ class Preprocessor {
                             "gl_FragStencilRefARB",
                             "gl_FrontFacing",
                             "gl_GlobalInvocationID",
+                            "gpu_InstanceIndex",
+                            "gpu_BaseInstance",
                             "gl_InstanceID",
                             "gl_LocalInvocationID",
                             "gl_LocalInvocationIndex",
@@ -2441,21 +2445,17 @@ class Preprocessor {
      */
     std::stringstream args, assign, declare, pass;
 
-    bool first = true;
     for (SharedVar &var : shared_vars_) {
-      char sep = first ? ' ' : ',';
-
-      args << sep << "threadgroup " << var.type << "(&_" << var.name << ")" << var.array;
-      assign << (first ? ':' : ',') << var.name << "(_" << var.name << ")";
+      args << "threadgroup " << var.type << "(&_" << var.name << ")" << var.array << ",  ";
+      assign << var.name << "(_" << var.name << "),  ";
       declare << "threadgroup " << var.type << ' ' << var.name << var.array << ";";
-      pass << sep << var.name;
-      first = false;
+      pass << var.name << ",  ";
     }
 
     suffix << "#define MSL_SHARED_VARS_ARGS " << args.str() << "\n";
     suffix << "#define MSL_SHARED_VARS_ASSIGN " << assign.str() << "\n";
     suffix << "#define MSL_SHARED_VARS_DECLARE " << declare.str() << "\n";
-    suffix << "#define MSL_SHARED_VARS_PASS (" << pass.str() << ")\n";
+    suffix << "#define MSL_SHARED_VARS_PASS " << pass.str() << "\n";
     suffix << "\n";
 
     return suffix.str();

@@ -96,8 +96,9 @@ bool ShaderCreateInfo::is_vulkan_compatible() const
 
 /** \} */
 
-void ShaderCreateInfo::resource_guard_defines(std::string &defines) const
+std::string ShaderCreateInfo::resource_guard_defines() const
 {
+  std::string defines;
   if (name_.startswith("MA") || name_.startswith("WO")) {
     defines += "#define CREATE_INFO_Material\n";
   }
@@ -108,8 +109,9 @@ void ShaderCreateInfo::resource_guard_defines(std::string &defines) const
     const ShaderCreateInfo &info = *reinterpret_cast<const ShaderCreateInfo *>(
         gpu_shader_create_info_get(info_name.c_str()));
 
-    info.resource_guard_defines(defines);
+    defines += info.resource_guard_defines();
   }
+  return defines;
 }
 
 void ShaderCreateInfo::finalize(const bool recursive)
@@ -337,6 +339,19 @@ std::string ShaderCreateInfo::check_error() const
     }
   }
 
+  for (const StageInterfaceInfo *interface : this->vertex_out_interfaces_) {
+    for (const StageInterfaceInfo::InOut &inout : interface->inouts) {
+      if (inout.name.is_array()) {
+        error += "Shader " + this->name_ + " : \"" + interface->name + "." + inout.name + "\":";
+        error += " Array types are not allowed in shader stage interfaces.\n";
+      }
+      if (inout.type == Type::float3x3_t || inout.type == Type::float4x4_t) {
+        error += "Shader " + this->name_ + " : \"" + interface->name + "." + inout.name + "\":";
+        error += " Matrix types are not allowed in shader stage interfaces.\n";
+      }
+    }
+  }
+
   if (!this->is_vulkan_compatible()) {
     error += this->name_ +
              " contains a stage interface using an instance name and mixed interpolation modes. "
@@ -453,9 +468,19 @@ void ShaderCreateInfo::validate_vertex_attributes(const ShaderCreateInfo *other_
 {
   uint32_t attr_bits = 0;
   for (auto &attr : vertex_inputs_) {
-    if (attr.index >= 16 || attr.index < 0) {
+    if (attr.type == Type::float3x3_t) {
+      std::cout << name_ << ": \"" << attr.name << "\" : float3x3 unsupported as vertex attribute."
+                << std::endl;
+      BLI_assert(0);
+    }
+    if (attr.type == Type::float4x4_t) {
+      std::cout << name_ << ": \"" << attr.name << "\" : float4x4 unsupported as vertex attribute."
+                << std::endl;
+      BLI_assert(0);
+    }
+    if (attr.name.is_array()) {
       std::cout << name_ << ": \"" << attr.name
-                << "\" : Type::float3x3_t unsupported as vertex attribute." << std::endl;
+                << "\" : arrays are unsupported as vertex attribute." << std::endl;
       BLI_assert(0);
     }
     if (attr.index >= 16 || attr.index < 0) {
@@ -626,11 +651,7 @@ bool gpu_shader_create_info_compile(const char *name_starts_with_filter)
   Vector<blender::gpu::Shader *> result = GPU_shader_batch_finalize(batch);
 
   for (int i : result.index_range()) {
-    const ShaderCreateInfo *info = reinterpret_cast<const ShaderCreateInfo *>(infos[i]);
-    if (result[i] == nullptr) {
-      std::cerr << "Compilation " << info->name_.c_str() << " Failed\n";
-    }
-    else {
+    if (result[i]) {
       success++;
 #if 0 /* TODO(fclem): This is too verbose for now. Make it a cmake option. */
         /* Test if any resource is optimized out and print a warning if that's the case. */

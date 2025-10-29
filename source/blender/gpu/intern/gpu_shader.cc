@@ -32,7 +32,7 @@ extern "C" char datatoc_gpu_shader_colorspace_lib_glsl[];
 
 namespace blender::gpu {
 
-std::string Shader::defines_declare(const shader::ShaderCreateInfo &info) const
+std::string Shader::defines_declare(const shader::ShaderCreateInfo &info)
 {
   std::string defines;
   for (const auto &def : info.defines_) {
@@ -662,33 +662,37 @@ void Shader::set_framebuffer_srgb_target(int use_srgb_to_linear)
 /** \name ShaderCompiler
  * \{ */
 
-Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_batch_compilation)
+Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info,
+                                bool is_batch_compilation)
 {
   using Clock = std::chrono::steady_clock;
   using TimePoint = Clock::time_point;
 
   using namespace blender::gpu::shader;
-  const_cast<ShaderCreateInfo &>(info).finalize();
-  BLI_assert(info.do_static_compilation_ || info.is_generated_);
+  const_cast<ShaderCreateInfo &>(orig_info).finalize();
+  BLI_assert(orig_info.do_static_compilation_ || orig_info.is_generated_);
 
   TimePoint start_time;
 
   if (Context::get()) {
     /* Context can be null in Vulkan compilation threads. */
     GPU_debug_group_begin(GPU_DEBUG_SHADER_COMPILATION_GROUP);
-    GPU_debug_group_begin(info.name_.c_str());
+    GPU_debug_group_begin(orig_info.name_.c_str());
   }
   else if (G.profile_gpu) {
     start_time = Clock::now();
   }
 
-  const std::string error = info.check_error();
+  const std::string error = orig_info.check_error();
   if (!error.empty()) {
     std::cerr << error << "\n";
     BLI_assert(false);
   }
 
-  Shader *shader = GPUBackend::get()->shader_alloc(info.name_.c_str());
+  Shader *shader = GPUBackend::get()->shader_alloc(orig_info.name_.c_str());
+
+  const shader::ShaderCreateInfo &info = shader->patch_create_info(orig_info);
+
   /* Needs to be called before init as GL uses the default specialization constants state to insert
    * default shader inside a map. */
   shader->specialization_constants_init(info);
@@ -702,7 +706,7 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
   std::string defines = shader->defines_declare(info);
   std::string resources = shader->resources_declare(info);
 
-  info.resource_guard_defines(defines);
+  defines += info.resource_guard_defines();
 
   defines += "#define USE_GPU_SHADER_CREATE_INFO\n";
 
@@ -742,7 +746,7 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
       sources.append("(); }\n");
     }
 
-    shader->vertex_shader_from_glsl(sources);
+    shader->vertex_shader_from_glsl(info, sources);
   }
 
   if (!info.fragment_source_.is_empty()) {
@@ -769,7 +773,7 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
       sources.append("(); }\n");
     }
 
-    shader->fragment_shader_from_glsl(sources);
+    shader->fragment_shader_from_glsl(info, sources);
   }
 
   if (!info.geometry_source_.is_empty()) {
@@ -795,7 +799,7 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
       sources.append("(); }\n");
     }
 
-    shader->geometry_shader_from_glsl(sources);
+    shader->geometry_shader_from_glsl(info, sources);
   }
 
   if (!info.compute_source_.is_empty()) {
@@ -819,7 +823,7 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
       sources.append("(); }\n");
     }
 
-    shader->compute_shader_from_glsl(sources);
+    shader->compute_shader_from_glsl(info, sources);
   }
 
   if (!shader->finalize(&info)) {

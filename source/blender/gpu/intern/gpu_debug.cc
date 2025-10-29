@@ -58,6 +58,28 @@ void GPU_debug_get_groups_names(int name_buf_len, char *r_name_buf)
   r_name_buf[len - 3] = '\0';
 }
 
+std::string GPU_debug_get_groups_names(IndexRange levels)
+{
+  Context *ctx = Context::get();
+  if (ctx == nullptr) {
+    return "";
+  }
+  DebugStack &stack = ctx->debug_stack;
+  if (stack.is_empty()) {
+    return "";
+  }
+  std::string result;
+
+  int i = 0;
+  for (StringRef &name : stack) {
+    if (levels.contains(i++)) {
+      result += name;
+      result += " > ";
+    }
+  }
+  return result.substr(0, result.size() - 3);
+}
+
 bool GPU_debug_group_match(const char *ref)
 {
   /* Otherwise there will be no names. */

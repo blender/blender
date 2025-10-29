@@ -50,15 +50,15 @@ float4 attr_load_color(PointCloudPoint point, samplerBuffer cd_buf, int index)
 {
   return pointcloud_get_customdata_vec4(cd_buf);
 }
-float4 attr_load_vec4(PointCloudPoint point, samplerBuffer cd_buf, int index)
+float4 attr_load_float4(PointCloudPoint point, samplerBuffer cd_buf, int index)
 {
   return pointcloud_get_customdata_vec4(cd_buf);
 }
-float3 attr_load_vec3(PointCloudPoint point, samplerBuffer cd_buf, int index)
+float3 attr_load_float3(PointCloudPoint point, samplerBuffer cd_buf, int index)
 {
   return pointcloud_get_customdata_vec3(cd_buf);
 }
-float2 attr_load_vec2(PointCloudPoint point, samplerBuffer cd_buf, int index)
+float2 attr_load_float2(PointCloudPoint point, samplerBuffer cd_buf, int index)
 {
   return pointcloud_get_customdata_vec2(cd_buf);
 }

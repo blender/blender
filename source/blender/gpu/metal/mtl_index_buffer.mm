@@ -135,7 +135,11 @@ void MTLIndexBuf::upload_data()
         ibo_ = MTLContext::get_global_memory_manager()->allocate(alloc_size_, true);
       }
       BLI_assert(ibo_);
-      ibo_->set_label(@"Index Buffer");
+#ifndef NDEBUG
+      static std::atomic<int> global_counter = 0;
+      int index = global_counter.fetch_add(1);
+      ibo_->set_label([NSString stringWithFormat:@"IBO %i", index]);
+#endif
     }
 
     /* No need to keep copy of data_ in system memory. */
@@ -178,7 +182,7 @@ void MTLIndexBuf::update_sub(uint32_t start, uint32_t len, const void *data)
    * Stage update contents in temporary buffer. */
   MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
-  MTLTemporaryBuffer range = ctx->get_scratchbuffer_manager().scratch_buffer_allocate_range(len);
+  MTLTemporaryBuffer range = ctx->get_scratch_buffer_manager().scratch_buffer_allocate_range(len);
   memcpy(range.data, data, len);
 
   /* Copy updated contents into primary buffer.

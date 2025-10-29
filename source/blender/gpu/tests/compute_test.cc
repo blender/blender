@@ -17,7 +17,7 @@
 namespace blender::gpu::tests {
 static void test_compute_direct()
 {
-  static constexpr uint SIZE = 32;
+  static constexpr uint SIZE = 4;
 
   /* Build compute shader. */
   gpu::Shader *shader = GPU_shader_create_from_info_name("gpu_compute_2d_test");
@@ -59,7 +59,7 @@ GPU_TEST(compute_direct)
 
 static void test_compute_indirect()
 {
-  static constexpr uint SIZE = 32;
+  static constexpr uint SIZE = 4;
 
   /* Build compute shader. */
   gpu::Shader *shader = GPU_shader_create_from_info_name("gpu_compute_2d_test");

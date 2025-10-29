@@ -336,6 +336,8 @@ static blender::gpu::Shader *compile_eval_stencil_shader(BufferDescriptor const 
   using namespace blender::gpu::shader;
   ShaderCreateInfo info("opensubdiv_compute_eval");
   info.local_group_size(workGroupSize, 1, 1);
+  info.builtins(BuiltinBits::GLOBAL_INVOCATION_ID);
+  info.builtins(BuiltinBits::NUM_WORK_GROUP);
 
   /* Ensure the basis code has access to proper backend specification define: it is not guaranteed
    * that the code provided by OpenSubdiv specifies it. For example, it doesn't for GLSL but it
@@ -443,6 +445,8 @@ static blender::gpu::Shader *compile_eval_patches_shader(BufferDescriptor const 
   using namespace blender::gpu::shader;
   ShaderCreateInfo info("opensubdiv_compute_eval");
   info.local_group_size(workGroupSize, 1, 1);
+  info.builtins(BuiltinBits::GLOBAL_INVOCATION_ID);
+  info.builtins(BuiltinBits::NUM_WORK_GROUP);
 
   /* Ensure the basis code has access to proper backend specification define: it is not guaranteed
    * that the code provided by OpenSubdiv specifies it. For example, it doesn't for GLSL but it

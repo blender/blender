@@ -20,6 +20,7 @@
 #include "GPU_capabilities.hh"
 #include "GPU_debug.hh"
 
+#include "GPU_debug.hh"
 #include "draw_cache_extract.hh"
 #include "draw_subdivision.hh"
 

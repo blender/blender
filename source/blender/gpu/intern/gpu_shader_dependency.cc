@@ -83,6 +83,8 @@ struct GPUSource {
         return BuiltinBits::FRONT_FACING;
       case Builtin::GlobalInvocationID:
         return BuiltinBits::GLOBAL_INVOCATION_ID;
+      case Builtin::InstanceIndex:
+      case Builtin::BaseInstance:
       case Builtin::InstanceID:
         return BuiltinBits::INSTANCE_ID;
       case Builtin::LocalInvocationID:
