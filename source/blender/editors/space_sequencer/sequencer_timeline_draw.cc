@@ -1889,6 +1889,7 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   if (ctx.scene) {
     ANIM_draw_previewrange(ctx.scene, ctx.v2d, 1);
   }
+  UI_view2d_view_restore(C);
   draw_timeline_gizmos(&ctx);
   draw_timeline_post_view_callbacks(&ctx);
   if (ctx.scene) {
