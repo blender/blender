@@ -911,20 +911,11 @@ void ShaderCompiler::batch_cancel(BatchHandle &handle)
   Batch *batch = batches_.pop(handle);
   compilation_queue_.remove_batch(batch);
 
-  if (batch->is_specialization_batch()) {
-    /* For specialization batches, we block until ready, since base shader compilation may be
-     * cancelled afterwards, leaving the specialization with a deleted base shader. */
-    compilation_finished_notification_.wait(lock, [&]() { return batch->is_ready(); });
-  }
-
-  if (batch->is_ready()) {
-    batch->free_shaders();
-    MEM_delete(batch);
-  }
-  else {
-    /* If it's currently compiling, the compilation thread makes the cleanup. */
-    batch->is_cancelled = true;
-  }
+  /* If it was already being compiled, wait until it's ready so the calling thread can safely
+   * delete the ShaderCreateInfos. */
+  compilation_finished_notification_.wait(lock, [&]() { return batch->is_ready(); });
+  batch->free_shaders();
+  MEM_delete(batch);
 
   handle = 0;
 }
@@ -1015,14 +1006,7 @@ void ShaderCompiler::do_work(void *work_payload)
     specialize_shader(batch->specializations[shader_index]);
   }
 
-  {
-    std::lock_guard lock(mutex_);
-    batch->pending_compilations--;
-    if (batch->is_ready() && batch->is_cancelled) {
-      batch->free_shaders();
-      MEM_delete(batch);
-    }
-  }
+  batch->pending_compilations--;
 
   compilation_finished_notification_.notify_all();
 }
