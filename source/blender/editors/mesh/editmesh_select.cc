@@ -243,7 +243,7 @@ void EDBM_select_mirrored(BMEditMesh *em,
   *r_totfail = totfail;
 }
 
-bool EDBM_select_mirrored_extend_all(Object *obedit, BMEditMesh *em)
+static bool UNUSED_FUNCTION(EDBM_select_mirrored_extend_all)(Object *obedit, BMEditMesh *em)
 {
   BMesh *bm = em->bm;
   int selectmode = em->selectmode;
