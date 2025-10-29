@@ -142,7 +142,6 @@ class ShaderCompiler {
     Vector<ShaderSpecialization> specializations;
 
     std::atomic<int> pending_compilations = 0;
-    std::atomic<bool> is_cancelled = false;
 
     bool is_specialization_batch()
     {
