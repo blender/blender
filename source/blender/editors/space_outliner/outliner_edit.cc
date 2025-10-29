@@ -561,12 +561,16 @@ static bool id_delete_tag(bContext *C,
       BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked library '%s'", id->name);
       return false;
     }
-    if (scene_curr->id.lib == lib) {
+    blender::Set<Library *> libraries{lib};
+    libraries.add_multiple_new(lib->runtime->archived_libraries.as_span());
+    BLI_assert(!libraries.contains(nullptr));
+    if (libraries.contains(scene_curr->id.lib)) {
       scene_new = BKE_scene_find_replacement(
-          *bmain, *scene_curr, [&lib](const Scene &scene) -> bool {
+          *bmain, *scene_curr, [&libraries](const Scene &scene) -> bool {
             return (
-                /* The candidate scene must belong to a different library. */
-                scene.id.lib != lib &&
+                /* The candidate scene must belong to a different set of libraries (owner library
+                 * and all of its archive ones). */
+                !libraries.contains(scene.id.lib) &&
                 /* The candidate scene must not be tagged for deletion. */
                 (scene.id.tag & ID_TAG_DOIT) == 0 &&
                 /* The candidate scene must be locale, or its library must not be tagged for
