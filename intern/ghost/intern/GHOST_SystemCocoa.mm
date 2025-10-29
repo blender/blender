@@ -1606,20 +1606,27 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 
       if (window->getCursorGrabModeIsWarp() && !is_tablet) {
         /* Wrap cursor at area/window boundaries. */
-        GHOST_Rect bounds, windowBounds, correctedBounds;
-
-        /* fall back to window bounds */
+        GHOST_Rect bounds;
         if (window->getCursorGrabBounds(bounds) == GHOST_kFailure) {
+          /* Fall back to window bounds. */
           window->getClientBounds(bounds);
         }
 
-        /* Switch back to Cocoa coordinates orientation
-         * (y=0 at bottom, the same as blender internal BTW!), and to client coordinates. */
-        window->getClientBounds(windowBounds);
-        window->screenToClient(bounds.l_, bounds.b_, correctedBounds.l_, correctedBounds.t_);
-        window->screenToClient(bounds.r_, bounds.t_, correctedBounds.r_, correctedBounds.b_);
-        correctedBounds.b_ = (windowBounds.b_ - windowBounds.t_) - correctedBounds.b_;
-        correctedBounds.t_ = (windowBounds.b_ - windowBounds.t_) - correctedBounds.t_;
+        GHOST_Rect corrected_bounds;
+        /* If the bound rectangle coordinates use a bottom-left origin (Blender / Cocoa), like in
+         * the case of custom bounds, flip them to use a top-left origin (GHOST). */
+        if (bounds.t_ > bounds.b_) {
+          GHOST_Rect window_bounds;
+          window->getClientBounds(window_bounds);
+          window->screenToClient(bounds.l_, bounds.b_, corrected_bounds.l_, corrected_bounds.t_);
+          window->screenToClient(bounds.r_, bounds.t_, corrected_bounds.r_, corrected_bounds.b_);
+
+          corrected_bounds.b_ = (window_bounds.b_ - window_bounds.t_) - corrected_bounds.b_;
+          corrected_bounds.t_ = (window_bounds.b_ - window_bounds.t_) - corrected_bounds.t_;
+        }
+        else {
+          corrected_bounds = bounds;
+        }
 
         /* Get accumulation from previous mouse warps. */
         int32_t x_accum, y_accum;
@@ -1636,7 +1643,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
         /* Warp mouse cursor if needed. */
         int32_t warped_x_mouse = x_mouse;
         int32_t warped_y_mouse = y_mouse;
-        correctedBounds.wrapPoint(warped_x_mouse, warped_y_mouse, 4, window->getCursorGrabAxis());
+        corrected_bounds.wrapPoint(warped_x_mouse, warped_y_mouse, 4, window->getCursorGrabAxis());
 
         /* Set new cursor position. */
         if (x_mouse != warped_x_mouse || y_mouse != warped_y_mouse) {
