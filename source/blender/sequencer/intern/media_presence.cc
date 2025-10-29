@@ -24,7 +24,7 @@
 
 namespace blender::seq {
 
-static blender::Mutex presence_lock;
+static Mutex presence_lock;
 
 static bool check_sound_media_missing(const bSound *sound)
 {

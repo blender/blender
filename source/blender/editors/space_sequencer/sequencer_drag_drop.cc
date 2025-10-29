@@ -90,12 +90,10 @@ static void generic_poll_operations(const wmEvent *event, uint8_t type)
  * preview of the file dragged. This checks when drag-and-drop is done with a single file, and when
  * only a expected `file_handler` can be used, so internal drop-box can be used instead of the
  * `file_handler`. */
-static bool test_single_file_handler_poll(const bContext *C,
-                                          wmDrag *drag,
-                                          blender::StringRef file_handler)
+static bool test_single_file_handler_poll(const bContext *C, wmDrag *drag, StringRef file_handler)
 {
   const auto paths = WM_drag_get_paths(drag);
-  auto file_handlers = blender::bke::file_handlers_poll_file_drop(C, paths);
+  auto file_handlers = bke::file_handlers_poll_file_drop(C, paths);
   return paths.size() == 1 && file_handlers.size() == 1 &&
          file_handler == file_handlers[0]->idname;
 }
@@ -211,7 +209,7 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
     float snap_frame;
     bool valid_snap;
 
-    valid_snap = blender::ed::transform::snap_sequencer_to_closest_strip_calc(
+    valid_snap = transform::snap_sequencer_to_closest_strip_calc(
         scene, region, start_frame, end_frame, &snap_delta, &snap_frame);
 
     if (valid_snap) {
@@ -280,7 +278,7 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
     ListBase *channels = seq::channels_displayed_get(ed);
     SpaceSeq *sseq = CTX_wm_space_seq(C);
 
-    blender::VectorSet strips = seq::query_rendered_strips(
+    VectorSet strips = seq::query_rendered_strips(
         scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
 
     /* Get the top most strip channel that is in view. */
@@ -393,7 +391,7 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
   UI_SetTheme(SPACE_SEQ, RGN_TYPE_WINDOW);
 
   if (coords->use_snapping) {
-    blender::ed::transform::sequencer_snap_point(region, coords->snap_point_x);
+    transform::sequencer_snap_point(region, coords->snap_point_x);
   }
 
   /* Init GPU drawing. */

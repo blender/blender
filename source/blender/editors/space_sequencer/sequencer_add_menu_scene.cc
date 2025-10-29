@@ -68,8 +68,7 @@ static void sequencer_add_catalog_assets_draw(const bContext *C, Menu *menu)
   }
   asset::AssetItemTree &tree = *sseq->runtime->assets_for_menu;
 
-  const std::optional<blender::StringRefNull> menu_path = CTX_data_string_get(
-      C, "asset_catalog_path");
+  const std::optional<StringRefNull> menu_path = CTX_data_string_get(C, "asset_catalog_path");
   if (!menu_path) {
     return;
   }
@@ -139,7 +138,7 @@ static void sequencer_add_scene_draw(const bContext *C, Menu *menu)
   }
 
   uiLayout *layout = menu->layout;
-  layout->operator_context_set(blender::wm::OpCallContext::InvokeRegionWin);
+  layout->operator_context_set(wm::OpCallContext::InvokeRegionWin);
 
   /* New scene. */
   {
@@ -182,7 +181,7 @@ static void sequencer_add_scene_draw(const bContext *C, Menu *menu)
     layout->op("SEQUENCER_OT_scene_strip_add",
                IFACE_("Scenes..."),
                ICON_SCENE_DATA,
-               blender::wm::OpCallContext::InvokeDefault,
+               wm::OpCallContext::InvokeDefault,
                UI_ITEM_NONE);
   }
   else if (scenes_len > 1) {
@@ -201,7 +200,7 @@ static void sequencer_add_scene_draw(const bContext *C, Menu *menu)
       PointerRNA op_ptr = layout->op("SEQUENCER_OT_scene_strip_add",
                                      scene->id.name + 2,
                                      ICON_NONE,
-                                     blender::wm::OpCallContext::InvokeRegionWin,
+                                     wm::OpCallContext::InvokeRegionWin,
                                      UI_ITEM_NONE);
       RNA_enum_set(&op_ptr, "scene", i);
     }

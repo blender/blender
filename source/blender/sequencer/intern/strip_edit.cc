@@ -71,7 +71,7 @@ bool edit_strip_swap(Scene *scene, Strip *strip_a, Strip *strip_b, const char **
     }
   }
 
-  blender::dna::shallow_swap(*strip_a, *strip_b);
+  dna::shallow_swap(*strip_a, *strip_b);
 
   /* swap back names so animation fcurves don't get swapped */
   STRNCPY(name, strip_a->name + 2);
@@ -246,7 +246,7 @@ bool edit_move_strip_to_meta(Scene *scene,
     return false;
   }
 
-  blender::VectorSet<Strip *> strips;
+  VectorSet<Strip *> strips;
   strips.add(src_strip);
   iterator_set_expand(scene, seqbase, strips, query_strip_effect_chain);
 
@@ -376,7 +376,7 @@ static bool seq_edit_split_effect_inputs_intersect(const Scene *scene,
 }
 
 static bool seq_edit_split_operation_permitted_check(const Scene *scene,
-                                                     blender::Span<Strip *> strips,
+                                                     Span<Strip *> strips,
                                                      const int timeline_frame,
                                                      const char **r_error)
 {
@@ -421,7 +421,7 @@ Strip *edit_strip_split(Main *bmain,
   }
 
   /* Whole strip effect chain must be duplicated in order to preserve relationships. */
-  blender::VectorSet<Strip *> strips;
+  VectorSet<Strip *> strips;
   strips.add(strip);
   iterator_set_expand(scene,
                       seqbase,
@@ -444,7 +444,7 @@ Strip *edit_strip_split(Main *bmain,
     BLI_addtail(&left_strips, strip_iter);
 
     if (ignore_connections) {
-      seq::disconnect(strip_iter);
+      disconnect(strip_iter);
     }
 
     /* Duplicate curves from backup, so they can be renamed along with split strips. */

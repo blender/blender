@@ -39,8 +39,7 @@ static bool strip_for_each_recursive(ListBase *seqbase, ForEachFunc callback, vo
   return true;
 }
 
-static bool strip_for_each_recursive(ListBase *seqbase,
-                                     blender::FunctionRef<bool(Strip *)> callback)
+static bool strip_for_each_recursive(ListBase *seqbase, FunctionRef<bool(Strip *)> callback)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
     if (!callback(strip)) {
@@ -61,7 +60,7 @@ void foreach_strip(ListBase *seqbase, ForEachFunc callback, void *user_data)
   strip_for_each_recursive(seqbase, callback, user_data);
 }
 
-void foreach_strip(ListBase *seqbase, blender::FunctionRef<bool(Strip *)> callback)
+void foreach_strip(ListBase *seqbase, FunctionRef<bool(Strip *)> callback)
 {
   strip_for_each_recursive(seqbase, callback);
 }
@@ -286,7 +285,7 @@ void query_strip_connected_and_effect_chain(const Scene *scene,
                                             VectorSet<Strip *> &r_strips)
 {
 
-  blender::Vector<Strip *> pending;
+  Vector<Strip *> pending;
   pending.append(reference_strip);
 
   while (!pending.is_empty()) {

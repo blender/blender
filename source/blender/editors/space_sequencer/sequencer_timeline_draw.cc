@@ -217,10 +217,10 @@ static StripDrawContext strip_draw_context_get(TimelineDrawContext *ctx, Strip *
   strip_ctx.strip = strip;
   strip_ctx.bottom = strip->channel + STRIP_OFSBOTTOM;
   strip_ctx.top = strip->channel + STRIP_OFSTOP;
-  strip_ctx.left_handle = seq::time_left_handle_frame_get(scene, strip);
-  strip_ctx.right_handle = seq::time_right_handle_frame_get(scene, strip);
-  strip_ctx.content_start = seq::time_start_frame_get(strip);
-  strip_ctx.content_end = seq::time_content_end_frame_get(scene, strip);
+  strip_ctx.left_handle = time_left_handle_frame_get(scene, strip);
+  strip_ctx.right_handle = time_right_handle_frame_get(scene, strip);
+  strip_ctx.content_start = time_start_frame_get(strip);
+  strip_ctx.content_end = time_content_end_frame_get(scene, strip);
 
   if (strip->type == STRIP_TYPE_SOUND_RAM && strip->sound != nullptr) {
     /* Visualize sub-frame sound offsets. */
@@ -241,8 +241,8 @@ static StripDrawContext strip_draw_context_get(TimelineDrawContext *ctx, Strip *
   strip_draw_context_set_retiming_overlay_visibility(ctx, &strip_ctx);
   strip_ctx.strip_is_too_small = (!strip_ctx.can_draw_text_overlay &&
                                   !strip_ctx.can_draw_strip_content);
-  strip_ctx.is_active_strip = strip == seq::select_active_get(scene);
-  strip_ctx.is_single_image = seq::transform_single_image_check(strip);
+  strip_ctx.is_active_strip = strip == select_active_get(scene);
+  strip_ctx.is_single_image = transform_single_image_check(strip);
   strip_ctx.handle_width = strip_handle_draw_size_get(ctx->scene, strip, ctx->pixelx);
   strip_ctx.show_strip_color_tag = (ctx->sseq->timeline_overlay.flag &
                                     SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG);
@@ -250,7 +250,7 @@ static StripDrawContext strip_draw_context_get(TimelineDrawContext *ctx, Strip *
   /* Determine if strip (or contents of meta strip) has missing data/media. */
   strip_ctx.missing_data_block = !strip_has_valid_data(strip);
   strip_ctx.missing_media = media_presence_is_missing(scene, strip);
-  strip_ctx.is_connected = seq::is_strip_connected(strip);
+  strip_ctx.is_connected = is_strip_connected(strip);
   if (strip->type == STRIP_TYPE_META) {
     const ListBase *seqbase = &strip->seqbase;
     LISTBASE_FOREACH (const Strip *, sub, seqbase) {
@@ -270,7 +270,7 @@ static StripDrawContext strip_draw_context_get(TimelineDrawContext *ctx, Strip *
     strip_ctx.strip_content_top = strip_ctx.top;
   }
 
-  strip_ctx.is_muted = seq::render_is_muted(ctx->channels, strip);
+  strip_ctx.is_muted = render_is_muted(ctx->channels, strip);
   strip_ctx.curve = nullptr;
   return strip_ctx;
 }
@@ -641,7 +641,7 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
 
   uchar col[4];
 
-  int chan_min = seq::MAX_CHANNELS;
+  int chan_min = MAX_CHANNELS;
   int chan_max = 0;
   int chan_range = 0;
   /* Some vertical margin to account for rounded corners, so that contents do
@@ -659,7 +659,7 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
   ListBase *meta_channels;
   int offset;
 
-  meta_seqbase = seq::get_seqbase_from_strip(strip_meta, &meta_channels, &offset);
+  meta_seqbase = get_seqbase_from_strip(strip_meta, &meta_channels, &offset);
 
   if (!meta_seqbase || BLI_listbase_is_empty(meta_seqbase)) {
     return;
@@ -687,8 +687,8 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
 
   /* Draw only immediate children (1 level depth). */
   LISTBASE_FOREACH (Strip *, strip, meta_seqbase) {
-    float x1_chan = seq::time_left_handle_frame_get(scene, strip) + offset;
-    float x2_chan = seq::time_right_handle_frame_get(scene, strip) + offset;
+    float x1_chan = time_left_handle_frame_get(scene, strip) + offset;
+    float x2_chan = time_right_handle_frame_get(scene, strip) + offset;
     if (x1_chan <= meta_x2 && x2_chan >= meta_x1) {
       float y_chan = (strip->channel - chan_min) / float(chan_range) * draw_range;
       float y1_chan, y2_chan;
@@ -1224,8 +1224,7 @@ static void draw_seq_timeline_channels(TimelineDrawContext *ctx)
 {
   View2D *v2d = ctx->v2d;
   UI_view2d_view_ortho(v2d);
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_blend(GPU_BLEND_ALPHA);
   immUniformThemeColor(TH_ROW_ALTERNATE);
@@ -1603,8 +1602,7 @@ static void draw_timeline_sfra_efra(TimelineDrawContext *ctx)
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* Draw overlay outside of frame range. */
@@ -1796,8 +1794,7 @@ static void draw_overlap_frame_indicator(const Scene *scene, const View2D *v2d)
                           scene->ed->overlay_frame_abs :
                           scene->r.cfra + scene->ed->overlay_frame_ofs;
 
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);

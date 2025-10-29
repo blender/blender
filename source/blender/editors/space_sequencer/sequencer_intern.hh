@@ -119,9 +119,9 @@ struct TimelineDrawContext {
   Editing *ed;
   ListBase *channels;
   GPUViewport *viewport;
-  blender::gpu::FrameBuffer *framebuffer_overlay;
+  gpu::FrameBuffer *framebuffer_overlay;
   float pixelx, pixely; /* Width and height of pixel in timeline space. */
-  blender::Map<SeqRetimingKey *, Strip *> retiming_selection;
+  Map<SeqRetimingKey *, Strip *> retiming_selection;
 
   SeqQuadsBatch *quads;
 };
@@ -160,7 +160,7 @@ ImBuf *sequencer_ibuf_get(const bContext *C, int timeline_frame, const char *vie
 
 void draw_strip_thumbnails(TimelineDrawContext *ctx,
                            StripsDrawBatch &strips_batch,
-                           const blender::Vector<StripDrawContext> &strips);
+                           const Vector<StripDrawContext> &strips);
 
 /* sequencer_draw_channels.c */
 
@@ -196,7 +196,7 @@ bool sequencer_view_strips_poll(bContext *C);
  * \param C: context
  * \return collection of strips (`Strip`)
  */
-blender::VectorSet<Strip *> all_strips_from_context(bContext *C);
+VectorSet<Strip *> all_strips_from_context(bContext *C);
 
 /* Externals. */
 
@@ -380,7 +380,7 @@ wmOperatorStatus sequencer_retiming_box_select_exec(bContext *C, wmOperator *op)
 void sequencer_retiming_draw_continuity(const TimelineDrawContext *timeline_ctx,
                                         const StripDrawContext &strip_ctx);
 void sequencer_retiming_keys_draw(const TimelineDrawContext *timeline_ctx,
-                                  blender::Span<StripDrawContext> strips);
+                                  Span<StripDrawContext> strips);
 void sequencer_retiming_speed_draw(const TimelineDrawContext *timeline_ctx,
                                    const StripDrawContext &strip_ctx);
 void realize_fake_keys(const Scene *scene, Strip *strip);
@@ -404,12 +404,12 @@ void SEQUENCER_OT_text_cursor_set(wmOperatorType *ot);
 void SEQUENCER_OT_text_edit_copy(wmOperatorType *ot);
 void SEQUENCER_OT_text_edit_paste(wmOperatorType *ot);
 void SEQUENCER_OT_text_edit_cut(wmOperatorType *ot);
-blender::int2 strip_text_cursor_offset_to_position(const TextVarsRuntime *text, int cursor_offset);
-blender::IndexRange strip_text_selection_range_get(const TextVars *data);
+int2 strip_text_cursor_offset_to_position(const TextVarsRuntime *text, int cursor_offset);
+IndexRange strip_text_selection_range_get(const TextVars *data);
 
 /* `sequencer_timeline_draw.cc` */
-blender::Vector<Strip *> sequencer_visible_strips_get(const bContext *C);
-blender::Vector<Strip *> sequencer_visible_strips_get(const Scene *scene, const View2D *v2d);
+Vector<Strip *> sequencer_visible_strips_get(const bContext *C);
+Vector<Strip *> sequencer_visible_strips_get(const Scene *scene, const View2D *v2d);
 
 /* `sequencer_clipboard.cc` */
 wmOperatorStatus sequencer_clipboard_copy_exec(bContext *C, wmOperator *op);

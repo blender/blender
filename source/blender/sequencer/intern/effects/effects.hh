@@ -43,28 +43,28 @@ ImBuf *prepare_effect_imbufs(const RenderData *context,
                              ImBuf *ibuf2,
                              bool uninitialized_pixels = true);
 
-blender::Array<float> make_gaussian_blur_kernel(float rad, int size);
+Array<float> make_gaussian_blur_kernel(float rad, int size);
 
-inline blender::float4 load_premul_pixel(const uchar *ptr)
+inline float4 load_premul_pixel(const uchar *ptr)
 {
-  blender::float4 res;
+  float4 res;
   straight_uchar_to_premul_float(res, ptr);
   return res;
 }
 
-inline blender::float4 load_premul_pixel(const float *ptr)
+inline float4 load_premul_pixel(const float *ptr)
 {
-  return blender::float4(ptr);
+  return float4(ptr);
 }
 
-inline void store_premul_pixel(const blender::float4 &pix, uchar *dst)
+inline void store_premul_pixel(const float4 &pix, uchar *dst)
 {
   premul_float_to_straight_uchar(dst, pix);
 }
 
-inline void store_premul_pixel(const blender::float4 &pix, float *dst)
+inline void store_premul_pixel(const float4 &pix, float *dst)
 {
-  *reinterpret_cast<blender::float4 *>(dst) = pix;
+  *reinterpret_cast<float4 *>(dst) = pix;
 }
 
 inline void store_opaque_black_pixel(uchar *dst)
@@ -129,22 +129,21 @@ static void apply_effect_op(const OpT &op, const ImBuf *src1, const ImBuf *src2,
                  "Sequencer only supports 4 channel images");
   BLI_assert_msg(dst->channels == 0 || dst->channels == 4,
                  "Sequencer only supports 4 channel images");
-  blender::threading::parallel_for(
-      blender::IndexRange(size_t(dst->x) * dst->y), 32 * 1024, [&](blender::IndexRange range) {
-        int64_t offset = range.first() * 4;
-        if (dst->float_buffer.data) {
-          const float *src1_ptr = src1->float_buffer.data + offset;
-          const float *src2_ptr = src2->float_buffer.data + offset;
-          float *dst_ptr = dst->float_buffer.data + offset;
-          op.apply(src1_ptr, src2_ptr, dst_ptr, range.size());
-        }
-        else {
-          const uchar *src1_ptr = src1->byte_buffer.data + offset;
-          const uchar *src2_ptr = src2->byte_buffer.data + offset;
-          uchar *dst_ptr = dst->byte_buffer.data + offset;
-          op.apply(src1_ptr, src2_ptr, dst_ptr, range.size());
-        }
-      });
+  threading::parallel_for(IndexRange(size_t(dst->x) * dst->y), 32 * 1024, [&](IndexRange range) {
+    int64_t offset = range.first() * 4;
+    if (dst->float_buffer.data) {
+      const float *src1_ptr = src1->float_buffer.data + offset;
+      const float *src2_ptr = src2->float_buffer.data + offset;
+      float *dst_ptr = dst->float_buffer.data + offset;
+      op.apply(src1_ptr, src2_ptr, dst_ptr, range.size());
+    }
+    else {
+      const uchar *src1_ptr = src1->byte_buffer.data + offset;
+      const uchar *src2_ptr = src2->byte_buffer.data + offset;
+      uchar *dst_ptr = dst->byte_buffer.data + offset;
+      op.apply(src1_ptr, src2_ptr, dst_ptr, range.size());
+    }
+  });
 }
 
 TextVarsRuntime *text_effect_calc_runtime(const Strip *strip, int font, const int2 image_size);

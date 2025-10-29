@@ -431,7 +431,7 @@ bool proxy_rebuild_context(Main *bmain,
                            Depsgraph *depsgraph,
                            Scene *scene,
                            Strip *strip,
-                           blender::Set<std::string> *processed_paths,
+                           Set<std::string> *processed_paths,
                            ListBase *queue,
                            bool build_only_on_bad_performance)
 {

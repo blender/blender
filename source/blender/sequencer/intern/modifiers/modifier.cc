@@ -61,8 +61,8 @@ static bool modifier_has_persistent_uid(const Strip &strip, int uid)
 
 void modifier_persistent_uid_init(const Strip &strip, StripModifierData &smd)
 {
-  uint64_t hash = blender::get_default_hash(blender::StringRef(smd.name));
-  blender::RandomNumberGenerator rng{uint32_t(hash)};
+  uint64_t hash = get_default_hash(StringRef(smd.name));
+  RandomNumberGenerator rng{uint32_t(hash)};
   while (true) {
     const int new_uid = rng.get_int32();
     if (new_uid <= 0) {
@@ -106,7 +106,7 @@ static void modifier_panel_header(const bContext * /*C*/, Panel *panel)
 
   /* Modifier Icon. */
   sub = &layout->row(true);
-  sub->emboss_set(blender::ui::EmbossType::None);
+  sub->emboss_set(ui::EmbossType::None);
   PointerRNA active_op_ptr = sub->op(
       "SEQUENCER_OT_strip_modifier_set_active", "", RNA_struct_ui_icon(ptr->type));
   RNA_string_set(&active_op_ptr, "modifier", smd->name);
@@ -124,7 +124,7 @@ static void modifier_panel_header(const bContext * /*C*/, Panel *panel)
 
   /* Delete button. */
   sub = &row->row(false);
-  sub->emboss_set(blender::ui::EmbossType::None);
+  sub->emboss_set(ui::EmbossType::None);
   PointerRNA remove_op_ptr = sub->op("SEQUENCER_OT_strip_modifier_remove", "", ICON_X);
   RNA_string_set(&remove_op_ptr, "name", smd->name);
   buttons_number++;
@@ -134,7 +134,7 @@ static void modifier_panel_header(const bContext * /*C*/, Panel *panel)
     name_row->prop(ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
   }
   else {
-    row->alignment_set(blender::ui::LayoutAlign::Right);
+    row->alignment_set(ui::LayoutAlign::Right);
   }
 
   /* Extra padding for delete button. */
@@ -191,7 +191,7 @@ static void modifier_reorder(bContext *C, Panel *panel, const int new_index)
   WM_operator_properties_create_ptr(&props_ptr, ot);
   RNA_string_set(&props_ptr, "modifier", smd->name);
   RNA_int_set(&props_ptr, "index", new_index);
-  WM_operator_name_call_ptr(C, ot, blender::wm::OpCallContext::InvokeDefault, &props_ptr, nullptr);
+  WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &props_ptr, nullptr);
   WM_operator_properties_free(&props_ptr);
 }
 

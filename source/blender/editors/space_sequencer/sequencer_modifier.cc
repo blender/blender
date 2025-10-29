@@ -471,7 +471,7 @@ static wmOperatorStatus modifier_set_active_exec(bContext *C, wmOperator *op)
 
   StripModifierData *smd = seq::modifier_find_by_name(strip, name);
   /* If there is no modifier set for this operator, clear the active modifier field. */
-  blender::seq::modifier_set_active(strip, smd);
+  seq::modifier_set_active(strip, smd);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
