@@ -165,7 +165,8 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 static void NODE_OT_index_switch_item_add(wmOperatorType *ot)
 {
-  socket_items::ops::add_item<IndexSwitchItemsAccessor>(ot, "Add Item", __func__, "Add bake item");
+  socket_items::ops::add_item<IndexSwitchItemsAccessor>(
+      ot, "Add Item", __func__, "Add an item to the index switch");
 }
 
 static void NODE_OT_index_switch_item_remove(wmOperatorType *ot)
