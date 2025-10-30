@@ -846,6 +846,9 @@ gpu::Batch *CurvesEvalCache::batch_get(const int evaluated_point_count,
     if (use_cyclic) {
       segment_count += curve_count;
     }
+    /* The last segment is always a restart vertex. However, it is not accounted for inside the
+     * data buffers and can lead to out of bound reads (see #148914). */
+    segment_count -= (segment_count > 0) ? 1 : 0;
     vert_per_segment = 1;
     prim_type = GPU_PRIM_LINE_STRIP;
   }
@@ -855,6 +858,9 @@ gpu::Batch *CurvesEvalCache::batch_get(const int evaluated_point_count,
     if (use_cyclic) {
       segment_count += curve_count;
     }
+    /* The last segment is always a restart vertex. However, it is not accounted for inside the
+     * data buffers and can lead to out of bound reads (see #148914). */
+    segment_count -= (segment_count > 0) ? 1 : 0;
     vert_per_segment = 2;
     prim_type = GPU_PRIM_TRI_STRIP;
   }
