@@ -471,7 +471,7 @@ class NODE_OT_swap_node(NodeSwapOperator, Operator):
             if old_node in nodes_to_delete:
                 continue
 
-            if old_node.bl_idname == self.type:
+            if (old_node.bl_idname == self.type) and (not hasattr(old_node, "node_tree")):
                 self.apply_node_settings(old_node)
                 continue
 
