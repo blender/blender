@@ -185,13 +185,21 @@ const shader::ShaderCreateInfo &MTLShader::patch_create_info(
 
 std::string MTLShader::entry_point_name_get(const ShaderStage stage)
 {
+  std::string name = this->name_get();
+  /* Escape the shader name to be able to use it inside an identifier. */
+  for (char &c : name) {
+    if (!std::isalnum(c)) {
+      c = '_';
+    }
+  }
+
   switch (stage) {
     case ShaderStage::VERTEX:
-      return this->name_get() + "_vert";
+      return "_" + name + "_vert";
     case ShaderStage::FRAGMENT:
-      return this->name_get() + "_frag";
+      return "_" + name + "_frag";
     case ShaderStage::COMPUTE:
-      return this->name_get() + "_comp";
+      return "_" + name + "_comp";
     default:
       BLI_assert_unreachable();
       return "";
