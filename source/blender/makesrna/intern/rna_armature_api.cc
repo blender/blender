@@ -35,6 +35,7 @@
 static void rna_EditBone_align_roll(EditBone *ebo, const float no[3])
 {
   ebo->roll = ED_armature_ebone_roll_to_vector(ebo, no, false);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, nullptr);
 }
 
 static float rna_Bone_do_envelope(Bone *bone, const float vec[3])
