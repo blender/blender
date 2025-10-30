@@ -71,18 +71,6 @@ const char *to_string(ShaderStage stage)
 MTLShader::MTLShader(MTLContext *ctx, const char *name) : Shader(name)
 {
   context_ = ctx;
-
-#ifndef NDEBUG
-  /* Remove invalid symbols from shader name to ensure debug entry-point function name is valid. */
-  for (uint i : IndexRange(strlen(this->name))) {
-    char c = this->name[i];
-    if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
-    }
-    else {
-      this->name[i] = '_';
-    }
-  }
-#endif
 }
 
 MTLShader::~MTLShader()
