@@ -2028,6 +2028,11 @@ static void blendfile_relocate_postprocess_cleanup(BlendfileLinkAppendContext &l
   FOREACH_MAIN_ID_BEGIN (&bmain, id_iter) {
     if (id_iter->lib) {
       ids_to_delete.remove(&id_iter->lib->id);
+      /* If the used library is an archive one, its owner 'normal' library is also used. */
+      if (id_iter->lib->archive_parent_library) {
+        BLI_assert(id_iter->lib->flag & LIBRARY_FLAG_IS_ARCHIVE);
+        ids_to_delete.remove(&id_iter->lib->archive_parent_library->id);
+      }
     }
   }
   FOREACH_MAIN_ID_END;
@@ -2131,7 +2136,8 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
   /* Since some IDs have been removed from Main, trying to rebuild collections hierarchy should not
    * happen. It has to be done manually below once removed IDs have been added back to Main. Also
    * see #136432. */
-  lapp_context->params->flag |= BLO_LIBLINK_COLLECTION_NO_HIERARCHY_REBUILD;
+  BKE_blendfile_link_append_context_flag_set(
+      lapp_context, BLO_LIBLINK_COLLECTION_NO_HIERARCHY_REBUILD, true);
 
   BKE_blendfile_link_append_context_init_done(lapp_context);
 
