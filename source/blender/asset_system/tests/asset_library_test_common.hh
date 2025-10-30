@@ -14,6 +14,7 @@
 
 #include "BKE_appdir.hh"
 #include "BKE_callbacks.hh"
+#include "BKE_idtype.hh"
 
 #include "BLI_fileops.h"
 #include "BLI_path_utils.hh"
@@ -43,6 +44,7 @@ class AssetLibraryTestBase : public testing::Test {
   {
     testing::Test::SetUpTestSuite();
     CLG_init();
+    BKE_idtype_init();
     /* Current File library needs this. */
     BKE_callback_global_init();
   }
