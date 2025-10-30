@@ -97,15 +97,11 @@ struct VKGraphicsInfo {
   };
   struct FragmentShader {
     VkShaderModule vk_fragment_module;
-    Vector<VkViewport> viewports;
-    Vector<VkRect2D> scissors;
-    std::optional<uint64_t> cached_hash;
+    uint32_t viewport_count;
 
     bool operator==(const FragmentShader &other) const
     {
-      if (vk_fragment_module != other.vk_fragment_module ||
-          viewports.size() != other.viewports.size() || scissors.size() != other.scissors.size() ||
-          hash() != other.hash())
+      if (vk_fragment_module != other.vk_fragment_module || viewport_count != other.viewport_count)
       {
         return false;
       }
@@ -115,24 +111,8 @@ struct VKGraphicsInfo {
 
     uint64_t hash() const
     {
-      if (cached_hash.has_value()) {
-        return *cached_hash;
-      }
-      return calc_hash();
-    }
-
-    void update_hash()
-    {
-      cached_hash = calc_hash();
-    }
-
-   private:
-    uint64_t calc_hash() const
-    {
       uint64_t hash = uint64_t(vk_fragment_module);
-      hash = hash * 33 ^ uint64_t(viewports.size());
-      hash = hash * 33 ^ uint64_t(scissors.size());
-
+      hash = hash * 33 ^ uint64_t(viewport_count);
       return hash;
     }
   };

@@ -318,10 +318,10 @@ VkPipeline VKPipelineMap<VKGraphicsInfo>::create(const VKGraphicsInfo &graphics_
   /* Viewport state */
   vk_pipeline_viewport_state_create_info.pViewports = nullptr;
   vk_pipeline_viewport_state_create_info.viewportCount =
-      graphics_info.fragment_shader.viewports.size();
+      graphics_info.fragment_shader.viewport_count;
   vk_pipeline_viewport_state_create_info.pScissors = nullptr;
   vk_pipeline_viewport_state_create_info.scissorCount =
-      graphics_info.fragment_shader.scissors.size();
+      graphics_info.fragment_shader.viewport_count;
 
   /* Color blending */
   VKBackend &backend = VKBackend::get();

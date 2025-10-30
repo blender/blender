@@ -69,6 +69,11 @@ void VKFrameBuffer::bind(bool enabled_srgb)
   attachment_states_.fill(GPU_ATTACHMENT_WRITE);
 }
 
+uint32_t VKFrameBuffer::viewport_size() const
+{
+  return this->multi_viewport_ ? GPU_MAX_VIEWPORTS : 1;
+}
+
 void VKFrameBuffer::vk_viewports_append(Vector<VkViewport> &r_viewports) const
 {
   BLI_assert(r_viewports.is_empty());
