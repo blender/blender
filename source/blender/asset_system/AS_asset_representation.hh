@@ -75,7 +75,7 @@ class AssetRepresentation : NonCopyable, NonMovable {
   /**
    * Makes sure the asset ready to load a preview, if necessary.
    *
-   * For local IDs it calls #BKE_previewimg_id_ensure(). For others, this sets loading information
+   * For local IDs it calls #BKE_previewimg_id_get(). For others, this sets loading information
    * to the preview but doesn't actually load it. To load it, attach its
    * #PreviewImageRuntime::icon_id to a UI button (UI loads it asynchronously then) or call
    * #BKE_previewimg_ensure() (not asynchronous).
