@@ -243,7 +243,7 @@ static uint16_t bind_attribute_as_ssbo(const ShaderInterface *interface,
        * But for now, changes are a bit too invasive. Will need to be revisited later on. */
       char uniform_name_len[] = "gpu_attr_0_len";
       uniform_name_len[9] = '0' + input->location;
-      const int loc = GPU_shader_get_uniform(shader, name);
+      const int loc = GPU_shader_get_uniform(shader, uniform_name_len);
       if (loc != -1) {
         int data = a->type.comp_len();
         GPU_shader_uniform_int_ex(shader, loc, 1, 1, &data);
