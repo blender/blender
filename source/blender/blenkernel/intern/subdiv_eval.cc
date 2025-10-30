@@ -177,7 +177,7 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
   MEM_freeN(buffer);
 }
 
-static void set_vertex_data_from_orco(Subdiv *subdiv, const Mesh *mesh)
+static void set_vert_data_from_orco(Subdiv *subdiv, const Mesh *mesh)
 {
   const float (*orco)[3] = static_cast<const float (*)[3]>(
       CustomData_get_layer(&mesh->vert_data, CD_ORCO));
@@ -261,7 +261,7 @@ bool eval_refine_from_mesh(Subdiv *subdiv,
     set_face_varying_data_from_uv(subdiv, mesh, uv_map, i);
   }
   /* Set vertex data to orco. */
-  set_vertex_data_from_orco(subdiv, mesh);
+  set_vert_data_from_orco(subdiv, mesh);
   /* Update evaluator to the new coarse geometry. */
   stats_begin(&subdiv->stats, SUBDIV_STATS_EVALUATOR_REFINE);
   subdiv->evaluator->eval_output->refine();
@@ -344,13 +344,13 @@ void eval_limit_point_and_normal(Subdiv *subdiv,
   r_N = math::normalize(math::cross(dPdu, dPdv));
 }
 
-void eval_vertex_data(
-    Subdiv *subdiv, const int ptex_face_index, const float u, const float v, float r_vertex_data[])
+void eval_vert_data(
+    Subdiv *subdiv, const int ptex_face_index, const float u, const float v, float r_vert_data[])
 {
 #ifdef WITH_OPENSUBDIV
-  subdiv->evaluator->eval_output->evaluateVertexData(ptex_face_index, u, v, r_vertex_data);
+  subdiv->evaluator->eval_output->evaluateVertexData(ptex_face_index, u, v, r_vert_data);
 #else
-  UNUSED_VARS(subdiv, ptex_face_index, u, v, r_vertex_data);
+  UNUSED_VARS(subdiv, ptex_face_index, u, v, r_vert_data);
 #endif
 }
 

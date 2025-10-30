@@ -25,34 +25,34 @@ using ForeachTopologyInformationCb = bool (*)(const ForeachContext *context,
                                               int num_faces,
                                               const int *subdiv_face_offset);
 
-using ForeachVertexFromCornerCb = void (*)(const ForeachContext *context,
-                                           void *tls,
-                                           int ptex_face_index,
-                                           float u,
-                                           float v,
-                                           int coarse_vertex_index,
-                                           int coarse_face_index,
-                                           int coarse_corner,
-                                           int subdiv_vertex_index);
-
-using ForeachVertexFromEdgeCb = void (*)(const ForeachContext *context,
+using ForeachVertFromCornerCb = void (*)(const ForeachContext *context,
                                          void *tls,
                                          int ptex_face_index,
                                          float u,
                                          float v,
-                                         int coarse_edge_index,
+                                         int coarse_vert_index,
                                          int coarse_face_index,
                                          int coarse_corner,
-                                         int subdiv_vertex_index);
+                                         int subdiv_vert_index);
 
-using ForeachVertexInnerCb = void (*)(const ForeachContext *context,
-                                      void *tls,
-                                      int ptex_face_index,
-                                      float u,
-                                      float v,
-                                      int coarse_face_index,
-                                      int coarse_corner,
-                                      int subdiv_vertex_index);
+using ForeachVertFromEdgeCb = void (*)(const ForeachContext *context,
+                                       void *tls,
+                                       int ptex_face_index,
+                                       float u,
+                                       float v,
+                                       int coarse_edge_index,
+                                       int coarse_face_index,
+                                       int coarse_corner,
+                                       int subdiv_vert_index);
+
+using ForeachVertInnerCb = void (*)(const ForeachContext *context,
+                                    void *tls,
+                                    int ptex_face_index,
+                                    float u,
+                                    float v,
+                                    int coarse_face_index,
+                                    int coarse_corner,
+                                    int subdiv_vert_index);
 
 using ForeachEdgeCb = void (*)(const ForeachContext *context,
                                void *tls,
@@ -71,7 +71,7 @@ using ForeachLoopCb = void (*)(const ForeachContext *context,
                                int coarse_face_index,
                                int coarse_corner,
                                int subdiv_loop_index,
-                               int subdiv_vertex_index,
+                               int subdiv_vert_index,
                                int subdiv_edge_index);
 
 using ForeachPolygonCb = void (*)(const ForeachContext *context,
@@ -83,14 +83,14 @@ using ForeachPolygonCb = void (*)(const ForeachContext *context,
 
 using ForeachLooseCb = void (*)(const ForeachContext *context,
                                 void *tls,
-                                int coarse_vertex_index,
-                                int subdiv_vertex_index);
+                                int coarse_vert_index,
+                                int subdiv_vert_index);
 
-using ForeachVertexOfLooseEdgeCb = void (*)(const ForeachContext *context,
-                                            void *tls,
-                                            int coarse_edge_index,
-                                            float u,
-                                            int subdiv_vertex_index);
+using ForeachVertOfLooseEdgeCb = void (*)(const ForeachContext *context,
+                                          void *tls,
+                                          int coarse_edge_index,
+                                          float u,
+                                          int subdiv_vert_index);
 
 struct ForeachContext {
   /**
@@ -104,24 +104,24 @@ struct ForeachContext {
    * These callbacks are called from every ptex which shares "emitting"
    * vertex or edge.
    */
-  ForeachVertexFromCornerCb vertex_every_corner = nullptr;
-  ForeachVertexFromEdgeCb vertex_every_edge = nullptr;
+  ForeachVertFromCornerCb vert_every_corner = nullptr;
+  ForeachVertFromEdgeCb vert_every_edge = nullptr;
   /**
    * Those callbacks are run once per subdivision vertex, ptex is undefined
    * as in it will be whatever first ptex face happened to be traversed in
    * the multi-threaded environment and which shares "emitting" vertex or edge.
    */
-  ForeachVertexFromCornerCb vertex_corner = nullptr;
-  ForeachVertexFromEdgeCb vertex_edge = nullptr;
+  ForeachVertFromCornerCb vert_corner = nullptr;
+  ForeachVertFromEdgeCb vert_edge = nullptr;
   /** Called exactly once, always corresponds to a single ptex face. */
-  ForeachVertexInnerCb vertex_inner = nullptr;
+  ForeachVertInnerCb vert_inner = nullptr;
   /**
    * Called once for each loose vertex. One loose coarse vertex corresponds
    * to a single subdivision vertex.
    */
-  ForeachLooseCb vertex_loose = nullptr;
+  ForeachLooseCb vert_loose = nullptr;
   /** Called once per vertex created for loose edge. */
-  ForeachVertexOfLooseEdgeCb vertex_of_loose_edge = nullptr;
+  ForeachVertOfLooseEdgeCb vert_of_loose_edge = nullptr;
   /**
    * \note If subdivided edge does not come from coarse edge, ORIGINDEX_NONE
    * will be passed as coarse_edge_index.

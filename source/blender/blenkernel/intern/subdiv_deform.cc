@@ -65,11 +65,11 @@ static void subdiv_mesh_context_free(SubdivDeformContext *ctx)
 /** \name Accumulation helpers
  * \{ */
 
-static void subdiv_accumulate_vertex_displacement(SubdivDeformContext *ctx,
-                                                  const int ptex_face_index,
-                                                  const float u,
-                                                  const float v,
-                                                  int vertex_index)
+static void subdiv_accumulate_vert_displacement(SubdivDeformContext *ctx,
+                                                const int ptex_face_index,
+                                                const float u,
+                                                const float v,
+                                                int vert_index)
 {
   Subdiv *subdiv = ctx->subdiv;
   float3 dummy_P;
@@ -82,14 +82,14 @@ static void subdiv_accumulate_vertex_displacement(SubdivDeformContext *ctx,
     eval_displacement(subdiv, ptex_face_index, u, v, dPdu, dPdv, D);
     /* NOTE: The storage for vertex coordinates is coming from an external world, not necessarily
      * initialized to zeroes. */
-    if (ctx->accumulated_counters[vertex_index] == 0) {
-      copy_v3_v3(ctx->vert_positions[vertex_index], D);
+    if (ctx->accumulated_counters[vert_index] == 0) {
+      copy_v3_v3(ctx->vert_positions[vert_index], D);
     }
     else {
-      add_v3_v3(ctx->vert_positions[vertex_index], D);
+      add_v3_v3(ctx->vert_positions[vert_index], D);
     }
   }
-  ++ctx->accumulated_counters[vertex_index];
+  ++ctx->accumulated_counters[vert_index];
 }
 
 /** \} */
@@ -111,47 +111,47 @@ static bool subdiv_mesh_topology_info(const ForeachContext *foreach_context,
   return true;
 }
 
-static void subdiv_mesh_vertex_every_corner(const ForeachContext *foreach_context,
-                                            void * /*tls*/,
-                                            const int ptex_face_index,
-                                            const float u,
-                                            const float v,
-                                            const int coarse_vertex_index,
-                                            const int /*coarse_face_index*/,
-                                            const int /*coarse_corner*/,
-                                            const int /*subdiv_vertex_index*/)
+static void subdiv_mesh_vert_every_corner(const ForeachContext *foreach_context,
+                                          void * /*tls*/,
+                                          const int ptex_face_index,
+                                          const float u,
+                                          const float v,
+                                          const int coarse_vert_index,
+                                          const int /*coarse_face_index*/,
+                                          const int /*coarse_corner*/,
+                                          const int /*subdiv_vert_index*/)
 {
   SubdivDeformContext *ctx = static_cast<SubdivDeformContext *>(foreach_context->user_data);
-  subdiv_accumulate_vertex_displacement(ctx, ptex_face_index, u, v, coarse_vertex_index);
+  subdiv_accumulate_vert_displacement(ctx, ptex_face_index, u, v, coarse_vert_index);
 }
 
-static void subdiv_mesh_vertex_corner(const ForeachContext *foreach_context,
-                                      void * /*tls*/,
-                                      const int ptex_face_index,
-                                      const float u,
-                                      const float v,
-                                      const int coarse_vertex_index,
-                                      const int /*coarse_face_index*/,
-                                      const int /*coarse_corner*/,
-                                      const int /*subdiv_vertex_index*/)
+static void subdiv_mesh_vert_corner(const ForeachContext *foreach_context,
+                                    void * /*tls*/,
+                                    const int ptex_face_index,
+                                    const float u,
+                                    const float v,
+                                    const int coarse_vert_index,
+                                    const int /*coarse_face_index*/,
+                                    const int /*coarse_corner*/,
+                                    const int /*subdiv_vert_index*/)
 {
   SubdivDeformContext *ctx = static_cast<SubdivDeformContext *>(foreach_context->user_data);
   float inv_num_accumulated = 1.0f;
   if (ctx->accumulated_counters != nullptr) {
-    inv_num_accumulated = 1.0f / ctx->accumulated_counters[coarse_vertex_index];
+    inv_num_accumulated = 1.0f / ctx->accumulated_counters[coarse_vert_index];
   }
   /* Displacement is accumulated in subdiv vertex position.
    * Needs to be backed up before copying data from original vertex. */
   float D[3] = {0.0f, 0.0f, 0.0f};
-  float3 &vertex_co = ctx->vert_positions[coarse_vertex_index];
+  float3 &vert_co = ctx->vert_positions[coarse_vert_index];
   if (ctx->have_displacement) {
-    copy_v3_v3(D, vertex_co);
+    copy_v3_v3(D, vert_co);
     mul_v3_fl(D, inv_num_accumulated);
   }
   /* Copy custom data and evaluate position. */
-  vertex_co = eval_limit_point(ctx->subdiv, ptex_face_index, u, v);
+  vert_co = eval_limit_point(ctx->subdiv, ptex_face_index, u, v);
   /* Apply displacement. */
-  add_v3_v3(vertex_co, D);
+  add_v3_v3(vert_co, D);
 }
 
 /** \} */
@@ -168,9 +168,9 @@ static void setup_foreach_callbacks(const SubdivDeformContext *subdiv_context,
   foreach_context->topology_info = subdiv_mesh_topology_info;
   /* Every boundary geometry. Used for displacement and normals averaging. */
   if (subdiv_context->have_displacement) {
-    foreach_context->vertex_every_corner = subdiv_mesh_vertex_every_corner;
+    foreach_context->vert_every_corner = subdiv_mesh_vert_every_corner;
   }
-  foreach_context->vertex_corner = subdiv_mesh_vertex_corner;
+  foreach_context->vert_corner = subdiv_mesh_vert_corner;
 }
 
 /** \} */
