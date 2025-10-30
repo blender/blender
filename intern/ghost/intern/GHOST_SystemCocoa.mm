@@ -1613,9 +1613,21 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
         }
 
         GHOST_Rect corrected_bounds;
-        /* If the bound rectangle coordinates use a bottom-left origin (Blender / Cocoa), like in
-         * the case of custom bounds, flip them to use a top-left origin (GHOST). */
-        if (bounds.t_ > bounds.b_) {
+        /* Wrapping bounds are in window local coordinates, using GHOST (top-left) origin. */
+        if (window->getCursorGrabMode() == GHOST_kGrabHide) {
+          /* If the cursor is hidden, use the entire window. */
+          corrected_bounds.t_ = 0;
+          corrected_bounds.l_ = 0;
+
+          NSWindow *cocoa_window = (NSWindow *)window->getOSWindow();
+          const NSSize frame_size = cocoa_window.frame.size;
+
+          corrected_bounds.b_ = frame_size.height;
+          corrected_bounds.r_ = frame_size.width;
+        }
+        else {
+          /* If the cursor is visible, use custom grab bounds provided in Cocoa bottom-left origin.
+           * Flip them to use a GHOST top-left origin. */
           GHOST_Rect window_bounds;
           window->getClientBounds(window_bounds);
           window->screenToClient(bounds.l_, bounds.b_, corrected_bounds.l_, corrected_bounds.t_);
@@ -1624,9 +1636,22 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
           corrected_bounds.b_ = (window_bounds.b_ - window_bounds.t_) - corrected_bounds.b_;
           corrected_bounds.t_ = (window_bounds.b_ - window_bounds.t_) - corrected_bounds.t_;
         }
-        else {
-          corrected_bounds = bounds;
-        }
+
+        /* Clip the grabbing bounds to the current monitor bounds to prevent the cursor from
+         * getting stuck at the edge of the screen. First compute the visible window frame: */
+        NSWindow *cocoa_window = (NSWindow *)window->getOSWindow();
+        NSRect screen_visible_frame = window->getScreen().visibleFrame;
+        NSRect window_visible_frame = NSIntersectionRect(cocoa_window.frame, screen_visible_frame);
+        NSRect local_visible_frame = [cocoa_window convertRectFromScreen:window_visible_frame];
+
+        GHOST_Rect visible_rect;
+        visible_rect.l_ = local_visible_frame.origin.x;
+        visible_rect.t_ = local_visible_frame.origin.y;
+        visible_rect.r_ = local_visible_frame.origin.x + local_visible_frame.size.width;
+        visible_rect.b_ = local_visible_frame.origin.y + local_visible_frame.size.height;
+
+        /* Then clip the corrected bound using the visible window rect. */
+        visible_rect.clip(corrected_bounds);
 
         /* Get accumulation from previous mouse warps. */
         int32_t x_accum, y_accum;
