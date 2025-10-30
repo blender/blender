@@ -152,8 +152,10 @@ IDTypeInfo IDType_ID_CF = {
     /*lib_override_apply_post*/ nullptr,
 };
 
+#if defined(WITH_ALEMBIC) || defined(WITH_USD)
 /* TODO: make this per cache file to avoid global locks. */
 static blender::Mutex cache_mutex;
+#endif
 
 void BKE_cachefile_reader_open(CacheFile *cache_file,
                                CacheReader **reader,
