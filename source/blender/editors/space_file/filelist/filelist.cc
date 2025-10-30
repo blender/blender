@@ -2980,7 +2980,7 @@ static void filelist_readjob_main_assets_add_items(FileListReadJob *job_params,
                                                                              id_iter);
     entry->local_data.id = id_iter;
     if (job_params->load_asset_library) {
-      entry->asset = job_params->load_asset_library->add_local_id_asset(entry->relpath, *id_iter);
+      entry->asset = job_params->load_asset_library->add_local_id_asset(*id_iter);
     }
     entries_num++;
     BLI_addtail(&tmp_entries, entry);
