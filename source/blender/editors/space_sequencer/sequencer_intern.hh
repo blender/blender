@@ -129,8 +129,8 @@ struct TimelineDrawContext {
 /* `sequencer_timeline_draw.cc` */
 
 /* Returns value in frames (view-space), 5px for large strips, 1/4 of the strip for smaller. */
-float strip_handle_draw_size_get(const Scene *scene, Strip *strip, float pixelx);
-void draw_timeline_seq(const bContext *C, ARegion *region);
+float strip_handle_draw_size_get(const Scene *scene, const Strip *strip, float pixelx);
+void draw_timeline_seq(const bContext *C, const ARegion *region);
 void draw_timeline_seq_display(const bContext *C, ARegion *region);
 
 /* `sequencer_preview_draw.cc` */
@@ -158,7 +158,7 @@ ImBuf *sequencer_ibuf_get(const bContext *C, int timeline_frame, const char *vie
 
 /* `sequencer_thumbnails.cc` */
 
-void draw_strip_thumbnails(TimelineDrawContext *ctx,
+void draw_strip_thumbnails(const TimelineDrawContext &ctx,
                            StripsDrawBatch &strips_batch,
                            const Vector<StripDrawContext> &strips);
 
@@ -377,11 +377,10 @@ wmOperatorStatus sequencer_retiming_select_all_exec(bContext *C, wmOperator *op)
 wmOperatorStatus sequencer_retiming_box_select_exec(bContext *C, wmOperator *op);
 
 /* `sequencer_retiming_draw.cc` */
-void sequencer_retiming_draw_continuity(const TimelineDrawContext *timeline_ctx,
+void sequencer_retiming_draw_continuity(const TimelineDrawContext &ctx,
                                         const StripDrawContext &strip_ctx);
-void sequencer_retiming_keys_draw(const TimelineDrawContext *timeline_ctx,
-                                  Span<StripDrawContext> strips);
-void sequencer_retiming_speed_draw(const TimelineDrawContext *timeline_ctx,
+void sequencer_retiming_keys_draw(const TimelineDrawContext &ctx, Span<StripDrawContext> strips);
+void sequencer_retiming_speed_draw(const TimelineDrawContext &ctx,
                                    const StripDrawContext &strip_ctx);
 void realize_fake_keys(const Scene *scene, Strip *strip);
 SeqRetimingKey *try_to_realize_fake_keys(const bContext *C, Strip *strip, const int mval[2]);

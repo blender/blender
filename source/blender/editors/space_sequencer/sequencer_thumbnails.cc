@@ -281,13 +281,13 @@ struct ThumbsDrawBatch {
   }
 };
 
-void draw_strip_thumbnails(TimelineDrawContext *ctx,
+void draw_strip_thumbnails(const TimelineDrawContext &ctx,
                            StripsDrawBatch &strips_batch,
                            const Vector<StripDrawContext> &strips)
 {
   /* Nothing to do if we're not showing thumbnails overall. */
-  if ((ctx->sseq->flag & SEQ_SHOW_OVERLAY) == 0 ||
-      (ctx->sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_THUMBNAILS) == 0)
+  if ((ctx.sseq->flag & SEQ_SHOW_OVERLAY) == 0 ||
+      (ctx.sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_THUMBNAILS) == 0)
   {
     return;
   }
@@ -296,7 +296,7 @@ void draw_strip_thumbnails(TimelineDrawContext *ctx,
   Vector<SeqThumbInfo> thumbs;
   for (const StripDrawContext &strip : strips) {
     get_seq_strip_thumbnails(
-        ctx->v2d, ctx->C, ctx->scene, strip, ctx->pixelx, ctx->pixely, strip.is_muted, thumbs);
+        ctx.v2d, ctx.C, ctx.scene, strip, ctx.pixelx, ctx.pixely, strip.is_muted, thumbs);
   }
   if (thumbs.is_empty()) {
     return;
@@ -304,7 +304,7 @@ void draw_strip_thumbnails(TimelineDrawContext *ctx,
 
   ColorManagedViewSettings *view_settings;
   ColorManagedDisplaySettings *display_settings;
-  IMB_colormanagement_display_settings_from_ctx(ctx->C, &view_settings, &display_settings);
+  IMB_colormanagement_display_settings_from_ctx(ctx.C, &view_settings, &display_settings);
 
   /* Arrange thumbnail images into a texture atlas, using a simple
    * "add to current row until end, then start a new row". Thumbnail
@@ -386,7 +386,7 @@ void draw_strip_thumbnails(TimelineDrawContext *ctx,
 
   /* Draw all thumbnails. */
   GPU_matrix_push_projection();
-  wmOrtho2_region_pixelspace(ctx->region);
+  wmOrtho2_region_pixelspace(ctx.region);
 
   ThumbsDrawBatch batch(strips_batch, atlas);
   for (int64_t i = 0; i < rects.size(); i++) {
