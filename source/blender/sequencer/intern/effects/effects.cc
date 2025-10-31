@@ -8,6 +8,8 @@
  * \ingroup sequencer
  */
 
+#include "BKE_fcurve.hh"
+
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
@@ -16,6 +18,8 @@
 #include "IMB_metadata.hh"
 
 #include "RE_pipeline.h"
+
+#include "RNA_prototypes.hh"
 
 #include "SEQ_render.hh"
 #include "SEQ_time.hh"
@@ -102,11 +106,19 @@ static void init_noop(Strip * /*strip*/) {}
 
 static void load_noop(Strip * /*strip*/) {}
 
-static void free_noop(Strip * /*strip*/, const bool /*do_id_user*/) {}
+static void free_default(Strip *strip, const bool /*do_id_user*/)
+{
+  MEM_SAFE_FREE(strip->effectdata);
+}
 
 static int num_inputs_default()
 {
   return 2;
+}
+
+static void copy_effect_default(Strip *dst, const Strip *src, const int /*flag*/)
+{
+  dst->effectdata = MEM_dupallocN(src->effectdata);
 }
 
 static StripEarlyOut early_out_noop(const Strip * /*strip*/, float /*fac*/)
@@ -141,19 +153,23 @@ StripEarlyOut early_out_mul_input1(const Strip * /*strip*/, float fac)
   return StripEarlyOut::DoEffect;
 }
 
-static void get_default_fac_noop(const Scene * /*scene*/,
-                                 const Strip * /*strip*/,
-                                 float /*timeline_frame*/,
-                                 float *fac)
+void effect_ensure_initialized(Strip *strip)
 {
-  *fac = 1.0f;
+  if (strip->effectdata == nullptr) {
+    EffectHandle h = strip_effect_handle_get(strip);
+    if (h.init != nullptr) {
+      h.init(strip);
+    }
+  }
 }
 
-void get_default_fac_fade(const Scene *scene, const Strip *strip, float timeline_frame, float *fac)
+void effect_free(Strip *strip)
 {
-  *fac = float(timeline_frame - time_left_handle_frame_get(scene, strip));
-  *fac /= time_strip_length_get(scene, strip);
-  *fac = math::clamp(*fac, 0.0f, 1.0f);
+  EffectHandle h = strip_effect_handle_get(strip);
+  if (h.free != nullptr) {
+    h.free(strip, true);
+    BLI_assert(strip->effectdata == nullptr);
+  }
 }
 
 EffectHandle effect_handle_get(StripType strip_type)
@@ -163,11 +179,10 @@ EffectHandle effect_handle_get(StripType strip_type)
   rval.init = init_noop;
   rval.num_inputs = num_inputs_default;
   rval.load = load_noop;
-  rval.free = free_noop;
+  rval.free = free_default;
   rval.early_out = early_out_noop;
-  rval.get_default_fac = get_default_fac_noop;
   rval.execute = nullptr;
-  rval.copy = nullptr;
+  rval.copy = copy_effect_default;
 
   switch (strip_type) {
     case STRIP_TYPE_CROSS:
@@ -232,9 +247,8 @@ static EffectHandle effect_handle_for_blend_mode_get(StripBlendMode blend)
   rval.init = init_noop;
   rval.num_inputs = num_inputs_default;
   rval.load = load_noop;
-  rval.free = free_noop;
+  rval.free = free_default;
   rval.early_out = early_out_noop;
-  rval.get_default_fac = get_default_fac_noop;
   rval.execute = nullptr;
   rval.copy = nullptr;
 
@@ -324,6 +338,31 @@ EffectHandle strip_blend_mode_handle_get(Strip *strip)
   return rval;
 }
 
+static float transition_fader_calc(const Scene *scene, const Strip *strip, float timeline_frame)
+{
+  float fac = float(timeline_frame - time_left_handle_frame_get(scene, strip));
+  fac /= time_strip_length_get(scene, strip);
+  fac = math::clamp(fac, 0.0f, 1.0f);
+  return fac;
+}
+
+float effect_fader_calc(Scene *scene, Strip *strip, float timeline_frame)
+{
+  if (strip->flag & SEQ_USE_EFFECT_DEFAULT_FADE) {
+    if (effect_is_transition(StripType(strip->type))) {
+      return transition_fader_calc(scene, strip, timeline_frame);
+    }
+    return 1.0f;
+  }
+
+  const FCurve *fcu = id_data_find_fcurve(
+      &scene->id, strip, &RNA_Strip, "effect_fader", 0, nullptr);
+  if (fcu) {
+    return evaluate_fcurve(fcu, timeline_frame);
+  }
+  return strip->effect_fader;
+}
+
 int effect_get_num_inputs(int strip_type)
 {
   EffectHandle rval = effect_handle_get(StripType(strip_type));
@@ -331,6 +370,11 @@ int effect_get_num_inputs(int strip_type)
     return 0;
   }
   return rval.num_inputs();
+}
+
+bool effect_is_transition(StripType type)
+{
+  return ELEM(type, STRIP_TYPE_CROSS, STRIP_TYPE_GAMCROSS, STRIP_TYPE_WIPE);
 }
 
 }  // namespace blender::seq

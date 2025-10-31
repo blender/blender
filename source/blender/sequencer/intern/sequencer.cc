@@ -41,7 +41,6 @@
 #include "SEQ_channels.hh"
 #include "SEQ_connect.hh"
 #include "SEQ_edit.hh"
-#include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_modifier.hh"
 #include "SEQ_preview_cache.hh"
@@ -60,6 +59,7 @@
 #include "cache/final_image_cache.hh"
 #include "cache/intra_frame_cache.hh"
 #include "cache/source_image_cache.hh"
+#include "effects/effects.hh"
 #include "modifiers/modifier.hh"
 #include "prefetch.hh"
 #include "sequencer.hh"
@@ -593,8 +593,7 @@ static Strip *strip_duplicate(Main *bmain,
     strip_new->data->stripdata = static_cast<StripElem *>(MEM_dupallocN(strip->data->stripdata));
   }
   else if (strip->is_effect()) {
-    EffectHandle sh;
-    sh = strip_effect_handle_get(strip);
+    EffectHandle sh = strip_effect_handle_get(strip);
     if (sh.copy) {
       sh.copy(strip_new, strip, flag);
     }

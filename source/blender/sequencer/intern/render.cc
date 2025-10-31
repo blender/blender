@@ -28,7 +28,6 @@
 
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
-#include "BKE_fcurve.hh"
 #include "BKE_global.hh"
 #include "BKE_image.hh"
 #include "BKE_layer.hh"
@@ -50,8 +49,6 @@
 #include "IMB_metadata.hh"
 
 #include "MOV_read.hh"
-
-#include "RNA_prototypes.hh"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
@@ -767,10 +764,8 @@ static ImBuf *seq_render_effect_strip_impl(const RenderData *context,
                                            float timeline_frame)
 {
   Scene *scene = context->scene;
-  float fac;
   int i;
   EffectHandle sh = strip_effect_handle_get(strip);
-  const FCurve *fcu = nullptr;
   ImBuf *ibuf[2];
   Strip *input[2];
   ImBuf *out = nullptr;
@@ -786,18 +781,7 @@ static ImBuf *seq_render_effect_strip_impl(const RenderData *context,
     return out;
   }
 
-  if (strip->flag & SEQ_USE_EFFECT_DEFAULT_FADE) {
-    sh.get_default_fac(scene, strip, timeline_frame, &fac);
-  }
-  else {
-    fcu = id_data_find_fcurve(&scene->id, strip, &RNA_Strip, "effect_fader", 0, nullptr);
-    if (fcu) {
-      fac = evaluate_fcurve(fcu, timeline_frame);
-    }
-    else {
-      fac = strip->effect_fader;
-    }
-  }
+  float fac = effect_fader_calc(scene, strip, timeline_frame);
 
   StripEarlyOut early_out = sh.early_out(strip, fac);
 

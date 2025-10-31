@@ -3080,9 +3080,6 @@ static wmOperatorStatus sequencer_change_effect_type_exec(bContext *C, wmOperato
   const int old_type = strip->type;
   const int new_type = RNA_enum_get(op->ptr, "type");
 
-  /* Free previous effect and init new effect. */
-  seq::EffectHandle sh;
-
   if (!strip->is_effect()) {
     return OPERATOR_CANCELLED;
   }
@@ -3092,8 +3089,8 @@ static wmOperatorStatus sequencer_change_effect_type_exec(bContext *C, wmOperato
     return OPERATOR_CANCELLED;
   }
 
-  sh = seq::strip_effect_handle_get(strip);
-  sh.free(strip, true);
+  /* Free previous effect. */
+  seq::effect_free(strip);
 
   strip->type = new_type;
 
@@ -3107,8 +3104,8 @@ static wmOperatorStatus sequencer_change_effect_type_exec(bContext *C, wmOperato
     seq::ensure_unique_name(strip, scene);
   }
 
-  sh = seq::strip_effect_handle_get(strip);
-  sh.init(strip);
+  /* Init new effect. */
+  seq::effect_ensure_initialized(strip);
 
   seq::relations_invalidate_cache(scene, strip);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);

@@ -1308,7 +1308,7 @@ static void draw_strips_background(const TimelineDrawContext &ctx,
 
     /* Transition state. */
     if (show_overlay && strip.can_draw_strip_content &&
-        ELEM(strip.strip->type, STRIP_TYPE_CROSS, STRIP_TYPE_GAMCROSS, STRIP_TYPE_WIPE))
+        seq::effect_is_transition(StripType(strip.strip->type)))
     {
       data.flags |= GPU_SEQ_FLAG_TRANSITION;
 

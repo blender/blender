@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "DNA_sequence_types.h"
 #include "DNA_vec_types.h"
 
 #include "BLI_math_vector_types.hh"
@@ -13,66 +14,16 @@
  * \ingroup sequencer
  */
 
-struct ImBuf;
-struct Scene;
 struct Strip;
-struct TextVars;
+struct VFont;
 
 namespace blender::seq {
 
-struct SeqRenderState;
-struct RenderData;
-
-enum class StripEarlyOut {
-  NoInput = -1,  /* No input needed. */
-  DoEffect = 0,  /* No early out (do the effect). */
-  UseInput1 = 1, /* Output = input1. */
-  UseInput2 = 2, /* Output = input2. */
-};
-
-struct EffectHandle {
-  /* constructors & destructor */
-  /* init is _only_ called on first creation */
-  void (*init)(Strip *strip);
-
-  /* number of input strips needed
-   * (called directly after construction) */
-  int (*num_inputs)();
-
-  /* load is called first time after readblenfile in
-   * get_sequence_effect automatically */
-  void (*load)(Strip *seqconst);
-
-  /* duplicate */
-  void (*copy)(Strip *dst, const Strip *src, int flag);
-
-  /* destruct */
-  void (*free)(Strip *strip, bool do_id_user);
-
-  StripEarlyOut (*early_out)(const Strip *strip, float fac);
-
-  /* sets the default `fac` value */
-  void (*get_default_fac)(const Scene *scene,
-                          const Strip *strip,
-                          float timeline_frame,
-                          float *fac);
-
-  /* execute the effect */
-  ImBuf *(*execute)(const RenderData *context,
-                    SeqRenderState *state,
-                    Strip *strip,
-                    float timeline_frame,
-                    float fac,
-                    ImBuf *ibuf1,
-                    ImBuf *ibuf2);
-};
-
-/** Get the effect handle for a given strip, and load the strip if it has not been loaded already.
- * If `strip` is not an effect strip, returns empty `EffectHandle`. */
-EffectHandle strip_effect_handle_get(Strip *strip);
+void effect_ensure_initialized(Strip *strip);
+void effect_free(Strip *strip);
 int effect_get_num_inputs(int strip_type);
-void effect_text_font_unload(TextVars *data, bool do_id_user);
-void effect_text_font_load(TextVars *data, bool do_id_user);
+bool effect_is_transition(StripType type);
+void effect_text_font_set(Strip *strip, VFont *font);
 bool effects_can_render_text(const Strip *strip);
 
 struct CharInfo {

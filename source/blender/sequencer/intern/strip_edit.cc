@@ -395,7 +395,7 @@ static bool seq_edit_split_operation_permitted_check(const Scene *scene,
     if (effect_get_num_inputs(strip->type) <= 1) {
       continue;
     }
-    if (ELEM(strip->type, STRIP_TYPE_CROSS, STRIP_TYPE_GAMCROSS, STRIP_TYPE_WIPE)) {
+    if (effect_is_transition(StripType(strip->type))) {
       *r_error = "Splitting transition effect is not permitted.";
       return false;
     }

@@ -25,17 +25,13 @@ namespace blender::seq {
 
 static void init_speed_effect(Strip *strip)
 {
-  if (strip->effectdata) {
-    MEM_freeN(strip->effectdata);
-  }
-
-  SpeedControlVars *v = MEM_callocN<SpeedControlVars>("speedcontrolvars");
-  strip->effectdata = v;
-
-  v->speed_control_type = SEQ_SPEED_STRETCH;
-  v->speed_fader = 1.0f;
-  v->speed_fader_length = 0.0f;
-  v->speed_fader_frame_number = 0.0f;
+  MEM_SAFE_FREE(strip->effectdata);
+  SpeedControlVars *data = MEM_callocN<SpeedControlVars>("speedcontrolvars");
+  strip->effectdata = data;
+  data->speed_control_type = SEQ_SPEED_STRETCH;
+  data->speed_fader = 1.0f;
+  data->speed_fader_length = 0.0f;
+  data->speed_fader_frame_number = 0.0f;
 }
 
 static void load_speed_effect(Strip *strip)
@@ -60,9 +56,8 @@ static void free_speed_effect(Strip *strip, const bool /*do_id_user*/)
 
 static void copy_speed_effect(Strip *dst, const Strip *src, const int /*flag*/)
 {
-  SpeedControlVars *v;
   dst->effectdata = MEM_dupallocN(src->effectdata);
-  v = (SpeedControlVars *)dst->effectdata;
+  SpeedControlVars *v = (SpeedControlVars *)dst->effectdata;
   v->frameMap = nullptr;
 }
 

@@ -158,26 +158,13 @@ static float calc_wipe_blend(const WipeData *data, int x, int y)
 
 static void init_wipe_effect(Strip *strip)
 {
-  if (strip->effectdata) {
-    MEM_freeN(strip->effectdata);
-  }
-
+  MEM_SAFE_FREE(strip->effectdata);
   strip->effectdata = MEM_callocN<WipeVars>("wipevars");
 }
 
 static int num_inputs_wipe()
 {
   return 2;
-}
-
-static void free_wipe_effect(Strip *strip, const bool /*do_id_user*/)
-{
-  MEM_SAFE_FREE(strip->effectdata);
-}
-
-static void copy_wipe_effect(Strip *dst, const Strip *src, const int /*flag*/)
-{
-  dst->effectdata = MEM_dupallocN(src->effectdata);
 }
 
 template<typename T>
@@ -253,10 +240,7 @@ void wipe_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_wipe_effect;
   rval.num_inputs = num_inputs_wipe;
-  rval.free = free_wipe_effect;
-  rval.copy = copy_wipe_effect;
   rval.early_out = early_out_fade;
-  rval.get_default_fac = get_default_fac_fade;
   rval.execute = do_wipe_effect;
 }
 

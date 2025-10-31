@@ -43,7 +43,6 @@
 
 #include "SEQ_add.hh"
 #include "SEQ_edit.hh"
-#include "SEQ_effects.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
 #include "SEQ_sequencer.hh"
@@ -51,6 +50,7 @@
 #include "SEQ_transform.hh"
 #include "SEQ_utils.hh"
 
+#include "effects/effects.hh"
 #include "multiview.hh"
 #include "proxy.hh"
 #include "strip_time.hh"
