@@ -366,7 +366,8 @@ inline bNodeTreeInterfaceSocket *add_interface_socket_from_node(bNodeTree &ntree
                                                                 const bNodeSocket &from_sock,
                                                                 const StringRef socket_type)
 {
-  return add_interface_socket_from_node(ntree, from_node, from_sock, socket_type, from_sock.name);
+  return add_interface_socket_from_node(
+      ntree, from_node, from_sock, socket_type, node_socket_label(from_sock));
 }
 
 inline bNodeTreeInterfaceSocket *add_interface_socket_from_node(bNodeTree &ntree,
@@ -374,7 +375,7 @@ inline bNodeTreeInterfaceSocket *add_interface_socket_from_node(bNodeTree &ntree
                                                                 const bNodeSocket &from_sock)
 {
   return add_interface_socket_from_node(
-      ntree, from_node, from_sock, from_sock.typeinfo->idname, from_sock.name);
+      ntree, from_node, from_sock, from_sock.typeinfo->idname, node_socket_label(from_sock));
 }
 
 /**

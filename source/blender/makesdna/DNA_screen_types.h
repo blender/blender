@@ -340,7 +340,7 @@ typedef struct uiList { /* some list UI data need to be saved in file */
 } uiList;
 
 typedef enum uiViewStateFlag {
-  UI_VIEW_COLLAPSE_FILTER_OPTIONS = (1 << 0),
+  UI_VIEW_SHOW_FILTER_OPTIONS = (1 << 0),
 } uiViewStateFlag;
 
 /** See #uiViewStateLink. */
