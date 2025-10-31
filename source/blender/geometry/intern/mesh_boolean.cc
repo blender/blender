@@ -494,14 +494,17 @@ static Mesh *imesh_to_mesh(meshintersect::IMesh *im, MeshesToIMeshInfo &mim)
   }
 
   {
-    MutableSpan<int> face_offsets = result->face_offsets_for_write();
-    threading::parallel_for(im->face_index_range(), 4096, [&](const IndexRange range) {
-      for (const int face : range) {
-        const meshintersect::Face *f = im->face(face);
-        face_offsets[face] = f->size();
-      }
-    });
-    const OffsetIndices dst_faces = offset_indices::accumulate_counts_to_offsets(face_offsets);
+    OffsetIndices<int> dst_faces;
+    if (out_faces_num != 0) {
+      MutableSpan<int> face_offsets = result->face_offsets_for_write();
+      threading::parallel_for(im->face_index_range(), 4096, [&](const IndexRange range) {
+        for (const int face : range) {
+          const meshintersect::Face *f = im->face(face);
+          face_offsets[face] = f->size();
+        }
+      });
+      dst_faces = offset_indices::accumulate_counts_to_offsets(face_offsets);
+    }
 
     MutableSpan<int> dst_corner_verts = result->corner_verts_for_write();
     threading::parallel_for(im->face_index_range(), 4096, [&](const IndexRange range) {
