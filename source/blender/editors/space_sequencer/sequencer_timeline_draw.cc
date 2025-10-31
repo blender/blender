@@ -48,6 +48,7 @@
 
 #include "SEQ_channels.hh"
 #include "SEQ_connect.hh"
+#include "SEQ_effects.hh"
 #include "SEQ_prefetch.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
