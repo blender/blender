@@ -1024,6 +1024,17 @@ static void ui_block_colorpicker(const bContext * /*C*/,
 
 static int ui_colorpicker_wheel_cb(const bContext * /*C*/, uiBlock *block, const wmEvent *event)
 {
+  uiPopupBlockHandle *popup = block->handle;
+  bool mouse_in_region = popup && BLI_rcti_isect_pt(&popup->region->winrct,
+                                                    float(event->xy[0]),
+                                                    float(event->xy[1]));
+
+  if (popup && !mouse_in_region && (ISMOUSE_WHEEL(event->type) || event->type == MOUSEPAN)) {
+    /* Exit and save color if moving mouse wheel or trackpad panning while outside the popup. */
+    popup->menuretval = UI_RETURN_OK;
+    return 1;
+  }
+
   /* Increase/Decrease the Color HSV Value component using the mouse wheel. */
   float add = 0.0f;
 
@@ -1044,7 +1055,6 @@ static int ui_colorpicker_wheel_cb(const bContext * /*C*/, uiBlock *block, const
   if (add != 0.0f) {
     for (const std::unique_ptr<uiBut> &but : block->buttons) {
       if (but->type == ButType::HsvCube && but->active == nullptr) {
-        uiPopupBlockHandle *popup = block->handle;
         ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
         float *hsv_perceptual = cpicker->hsv_perceptual;
 
