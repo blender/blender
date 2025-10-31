@@ -822,11 +822,7 @@ static Mesh *try_load_mesh(const DictionaryValue &io_geometry,
     return nullptr;
   }
 
-  Mesh *mesh = BKE_mesh_new_nomain(0, 0, 0, 0);
-  CustomData_free_layer_named(&mesh->vert_data, "position");
-  CustomData_free_layer_named(&mesh->edge_data, ".edge_verts");
-  CustomData_free_layer_named(&mesh->corner_data, ".corner_vert");
-  CustomData_free_layer_named(&mesh->corner_data, ".corner_edge");
+  Mesh *mesh = bke::mesh_new_no_attributes(0, 0, 0, 0);
   mesh->verts_num = io_mesh->lookup_int("num_vertices").value_or(0);
   mesh->edges_num = io_mesh->lookup_int("num_edges").value_or(0);
   mesh->faces_num = io_mesh->lookup_int("num_polygons").value_or(0);
