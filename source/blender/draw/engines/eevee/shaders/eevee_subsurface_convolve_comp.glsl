@@ -95,6 +95,7 @@ void main()
 
 #ifdef GROUPSHARED_CACHE
   cache_populate(center_uv);
+  barrier();
 #endif
 
   float depth = reverse_z::read(texelFetch(depth_tx, texel, 0).r);
