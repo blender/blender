@@ -5393,86 +5393,105 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
                                             MOD_LINEART_MATCH_OUTPUT_VGROUP;
 
   using blender::StringRef;
+  using blender::Vector;
+
+  auto ensure_target_defgroup = [&](StringRef group_name) {
+    int group_index = 0;
+    LISTBASE_FOREACH_INDEX (bDeformGroup *, group, &new_curves.vertex_group_names, group_index) {
+      if (group_name == StringRef(group->name)) {
+        return group_index;
+      }
+    }
+    bDeformGroup *defgroup = MEM_callocN<bDeformGroup>(__func__);
+    group_name.copy_utf8_truncated(defgroup->name);
+    BLI_addtail(&new_curves.vertex_group_names, defgroup);
+    return group_index;
+  };
 
   int up_to_point = 0;
   for (int chain_i : writer.index_range()) {
     LineartChainWriteInfo &cwi = writer[chain_i];
 
-    blender::Vector<StringRef> defnames;
-    MDeformVert *src_dvert = nullptr;
+    Vector<int> src_to_dst_defgroup;
+
+    blender::Span<MDeformVert> src_dvert;
     Mesh *src_mesh = nullptr;
+    MutableSpan<MDeformVert> dv = new_curves.deform_verts_for_write();
+    int target_defgroup = ensure_target_defgroup(vgname);
     if (source_vgname) {
       Object *eval_ob = DEG_get_evaluated(depsgraph, cwi.chain->object_ref);
       if (eval_ob && eval_ob->type == OB_MESH) {
         src_mesh = BKE_object_get_evaluated_mesh(eval_ob);
-        src_dvert = src_mesh->deform_verts_for_write().data();
-        const ListBase *deflist = BKE_id_defgroup_list_get(&src_mesh->id);
-        LISTBASE_FOREACH (bDeformGroup *, defgroup, deflist) {
-          if (StringRef(defgroup->name).startswith(source_vgname)) {
-            defnames.append(defgroup->name);
+        src_dvert = src_mesh->deform_verts();
+      }
+    }
+
+    if (!src_dvert.is_empty()) {
+      const ListBase *deflist = &src_mesh->vertex_group_names;
+      int group_index = 0;
+      LISTBASE_FOREACH_INDEX (bDeformGroup *, defgroup, deflist, group_index) {
+        if (StringRef(defgroup->name).startswith(source_vgname)) {
+          const int target_group_index = weight_transfer_match_output ?
+                                             ensure_target_defgroup(defgroup->name) :
+                                             target_defgroup;
+          src_to_dst_defgroup.append(target_group_index);
+        }
+        else {
+          src_to_dst_defgroup.append(-1);
+        }
+      }
+    }
+
+    if (!src_to_dst_defgroup.is_empty()) {
+      auto transfer_to_matching_groups = [&](const int64_t source_index, const int target_index) {
+        for (const int from_group : src_to_dst_defgroup.index_range()) {
+          if (from_group < 0) {
+            continue;
           }
+          const MDeformWeight *mdw_from = BKE_defvert_find_index(&src_dvert[source_index],
+                                                                 from_group);
+          MDeformWeight *mdw_to = BKE_defvert_ensure_index(&dv[target_index],
+                                                           src_to_dst_defgroup[from_group]);
+          const float source_weight = mdw_from ? mdw_from->weight : 0.0f;
+          mdw_to->weight = invert_input ? (1 - source_weight) : source_weight;
+        }
+      };
+
+      auto transfer_to_singular_group = [&](const int64_t source_index, const int target_index) {
+        float highest_weight = 0.0f;
+        for (const int from_group : src_to_dst_defgroup.index_range()) {
+          if (from_group < 0) {
+            continue;
+          }
+          const MDeformWeight *mdw_from = BKE_defvert_find_index(&src_dvert[source_index],
+                                                                 from_group);
+          const float source_weight = mdw_from ? mdw_from->weight : 0.0f;
+          highest_weight = std::max(highest_weight, source_weight);
+        }
+        MDeformWeight *mdw_to = BKE_defvert_ensure_index(&dv[target_index], target_defgroup);
+        mdw_to->weight = invert_input ? (1 - highest_weight) : highest_weight;
+      };
+
+      int i;
+      LISTBASE_FOREACH_INDEX (LineartEdgeChainItem *, eci, &cwi.chain->chain, i) {
+        int point_i = i + up_to_point;
+        point_positions[point_i] = blender::math::transform_point(inverse_mat, float3(eci->gpos));
+        point_radii.span[point_i] = thickness / 2.0f;
+        if (point_opacities) {
+          point_opacities.span[point_i] = opacity;
+        }
+
+        const int64_t vindex = eci->index - cwi.chain->index_offset;
+
+        if (weight_transfer_match_output) {
+          transfer_to_matching_groups(vindex, point_i);
+        }
+        else {
+          transfer_to_singular_group(vindex, point_i);
         }
       }
     }
 
-    auto transfer_to_matching_groups = [&](const int point_i, const int64_t vindex) {
-      for (const StringRef defname : defnames) {
-        const int src_deform_group = BKE_id_defgroup_name_index(&src_mesh->id, defname);
-        if (UNLIKELY(src_deform_group < 0)) {
-          continue;
-        }
-        MDeformWeight *mdw = BKE_defvert_ensure_index(&src_dvert[vindex], src_deform_group);
-        SpanAttributeWriter<float> weights = attributes.lookup_or_add_for_write_span<float>(
-            defname, AttrDomain::Point);
-        if (UNLIKELY(!weights)) {
-          continue;
-        }
-        weights.span[point_i] = invert_input ? (1 - mdw->weight) : mdw->weight;
-        weights.finish();
-      }
-    };
-
-    auto transfer_to_singular_group = [&](const int point_i, const int64_t vindex) {
-      SpanAttributeWriter<float> target_weights = attributes.lookup_or_add_for_write_span<float>(
-          vgname, AttrDomain::Point);
-      if (UNLIKELY(!target_weights)) {
-        return;
-      }
-      float highest_weight = 0.0f;
-      for (const StringRef defname : defnames) {
-        const int src_deform_group = BKE_id_defgroup_name_index(&src_mesh->id, defname);
-        if (UNLIKELY(src_deform_group < 0)) {
-          continue;
-        }
-        MDeformWeight *mdw = BKE_defvert_ensure_index(&src_dvert[vindex], src_deform_group);
-        const AttributeReader<float> weights = attributes.lookup<float>(defname);
-        if (UNLIKELY(!weights)) {
-          continue;
-        }
-        highest_weight = std::max(highest_weight, mdw->weight);
-      }
-      target_weights.span[point_i] = highest_weight;
-      target_weights.finish();
-    };
-
-    int i;
-    LISTBASE_FOREACH_INDEX (LineartEdgeChainItem *, eci, &cwi.chain->chain, i) {
-      int point_i = i + up_to_point;
-      point_positions[point_i] = blender::math::transform_point(inverse_mat, float3(eci->gpos));
-      point_radii.span[point_i] = thickness / 2.0f;
-      if (point_opacities) {
-        point_opacities.span[point_i] = opacity;
-      }
-
-      const int64_t vindex = eci->index - cwi.chain->index_offset;
-
-      if (weight_transfer_match_output) {
-        transfer_to_matching_groups(point_i, vindex);
-      }
-      else {
-        transfer_to_singular_group(point_i, vindex);
-      }
-    }
     offsets[chain_i] = up_to_point;
     stroke_materials.span[chain_i] = max_ii(mat_nr, 0);
     up_to_point += cwi.point_count;
