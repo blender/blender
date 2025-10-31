@@ -119,8 +119,11 @@ enum LibraryForeachIDCallbackFlag {
   /** This ID pointer is expected to be overridden by default, in liboverride hierarchy context. */
   IDWALK_CB_OVERRIDE_LIBRARY_HIERARCHY_DEFAULT = (1 << 18),
 
+  /** This ID pointer is runtime data and it should not affect the ID.deep_hash computation. */
+  IDWALK_CB_HASH_IGNORE = (1 << 19),
+
 };
-ENUM_OPERATORS(LibraryForeachIDCallbackFlag, IDWALK_CB_OVERRIDE_LIBRARY_HIERARCHY_DEFAULT);
+ENUM_OPERATORS(LibraryForeachIDCallbackFlag, IDWALK_CB_HASH_IGNORE);
 
 enum {
   IDWALK_RET_NOP = 0,
