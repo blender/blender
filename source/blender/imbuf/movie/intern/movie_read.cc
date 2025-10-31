@@ -1049,8 +1049,6 @@ static int ffmpeg_generic_seek_workaround(MovieReader *anim,
   int64_t current_pts = *requested_pts;
   int64_t offset = 0;
 
-  int64_t cur_pts, prev_pts = -1;
-
   /* Step backward frame by frame until we find the key frame we are looking for. */
   while (current_pts != 0) {
     current_pts = *requested_pts - int64_t(round(offset * ffmpeg_steps_per_frame_get(anim)));
@@ -1072,11 +1070,11 @@ static int ffmpeg_generic_seek_workaround(MovieReader *anim,
     }
 
     /* If this packet contains an I-frame, this could be the frame that we need. */
-    bool is_key_frame = read_packet->flags & AV_PKT_FLAG_KEY;
+    const bool is_key_frame = read_packet->flags & AV_PKT_FLAG_KEY;
     /* We need to check the packet timestamp as the key frame could be for a GOP forward in the
      * video stream. So if it has a larger timestamp than the frame we want, ignore it.
      */
-    cur_pts = timestamp_from_pts_or_dts(read_packet->pts, read_packet->dts);
+    const int64_t cur_pts = timestamp_from_pts_or_dts(read_packet->pts, read_packet->dts);
     av_packet_free(&read_packet);
 
     if (is_key_frame) {
@@ -1091,7 +1089,6 @@ static int ffmpeg_generic_seek_workaround(MovieReader *anim,
       break;
     }
 
-    prev_pts = cur_pts;
     offset++;
   }
 
