@@ -1845,6 +1845,9 @@ ID *PartialWriteContext::id_add_copy(const ID *id, const bool regenerate_session
                           /* NOTE: Could make this an option if needed in the future */
                           LIB_ID_COPY_ASSET_METADATA);
   ctx_root_id = BKE_id_copy_in_lib(nullptr, id->lib, id, std::nullopt, nullptr, copy_flags);
+  if (!ctx_root_id) {
+    return ctx_root_id;
+  }
   ctx_root_id->tag |= ID_TAG_TEMP_MAIN;
   /* It is critical to preserve the deep hash here, as the copy put in the partial write context is
    * expected to be a perfect duplicate of the packed ID (including all of its dependencies). This
@@ -1912,6 +1915,7 @@ Library *PartialWriteContext::ensure_library(ID *ctx_id)
   Library *ctx_base_lib = this->libraries_map_.lookup_default(lib_path, nullptr);
   if (!ctx_base_lib) {
     ctx_base_lib = reinterpret_cast<Library *>(id_add_copy(&src_base_lib->id, true));
+    BLI_assert(ctx_base_lib);
     this->libraries_map_.add(lib_path, ctx_base_lib);
   }
   /* The mapping should only contain real libraries, never packed ones. */
@@ -1996,6 +2000,13 @@ ID *PartialWriteContext::id_add(
   blender::Vector<std::pair<ID *, PartialWriteContext::IDAddOperations>> post_process_ids_todo;
 
   ctx_root_id = id_add_copy(id, false);
+  if (!ctx_root_id) {
+    CLOG_ERROR(&LOG_PARTIALWRITE,
+               "Failed to copy ID '%s', could not add it to the partial write context",
+               id->name);
+    return ctx_root_id;
+  }
+
   BLI_assert(ctx_root_id->session_uid == id->session_uid);
   local_ctx_id_map.add(id, ctx_root_id);
   post_process_ids_todo.append({ctx_root_id, options.operations});
@@ -2087,6 +2098,15 @@ ID *PartialWriteContext::id_add(
       }
       ctx_deps_id = this->id_add_copy(orig_deps_id, duplicate_dependencies);
       local_ctx_id_map.add(orig_deps_id, ctx_deps_id);
+      if (!ctx_deps_id) {
+        CLOG_ERROR(&LOG_PARTIALWRITE,
+                   "Failed to copy ID '%s' (used by ID '%s'), could not add it to the partial "
+                   "write context",
+                   (*id_ptr)->name,
+                   cb_data->owner_id->name);
+        *id_ptr = nullptr;
+        return IDWALK_RET_NOP;
+      }
       ids_to_process.add(ctx_deps_id);
       post_process_ids_todo.append({ctx_deps_id, operations_final});
     }

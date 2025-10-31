@@ -940,7 +940,8 @@ void id_remap_fn(bContext *C,
 
 static int outliner_id_copy_tag(SpaceOutliner *space_outliner,
                                 ListBase *tree,
-                                blender::bke::blendfile::PartialWriteContext &copybuffer)
+                                blender::bke::blendfile::PartialWriteContext &copybuffer,
+                                ReportList *reports)
 {
   using namespace blender::bke::blendfile;
 
@@ -956,17 +957,27 @@ static int outliner_id_copy_tag(SpaceOutliner *space_outliner,
          * copy/pasting. */
         continue;
       }
-      copybuffer.id_add(tselem->id,
-                        PartialWriteContext::IDAddOptions{
-                            (PartialWriteContext::IDAddOperations::SET_FAKE_USER |
-                             PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK |
-                             PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES)},
-                        nullptr);
-      num_ids++;
+      const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(tselem->id);
+      if (id_type->flags & (IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING)) {
+        BKE_reportf(reports,
+                    RPT_INFO,
+                    "Copying ID '%s' is not possible, '%s' type of data-blocks is not supported",
+                    tselem->id->name,
+                    id_type->name);
+      }
+      if (copybuffer.id_add(tselem->id,
+                            PartialWriteContext::IDAddOptions{
+                                (PartialWriteContext::IDAddOperations::SET_FAKE_USER |
+                                 PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK |
+                                 PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES)},
+                            nullptr))
+      {
+        num_ids++;
+      }
     }
 
     /* go over sub-tree */
-    num_ids += outliner_id_copy_tag(space_outliner, &te->subtree, copybuffer);
+    num_ids += outliner_id_copy_tag(space_outliner, &te->subtree, copybuffer, reports);
   }
 
   return num_ids;
@@ -980,7 +991,8 @@ static wmOperatorStatus outliner_id_copy_exec(bContext *C, wmOperator *op)
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   PartialWriteContext copybuffer{*bmain};
 
-  const int num_ids = outliner_id_copy_tag(space_outliner, &space_outliner->tree, copybuffer);
+  const int num_ids = outliner_id_copy_tag(
+      space_outliner, &space_outliner->tree, copybuffer, op->reports);
   if (num_ids == 0) {
     BKE_report(op->reports, RPT_INFO, "No selected data-blocks to copy");
     return OPERATOR_CANCELLED;
