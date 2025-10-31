@@ -705,6 +705,11 @@ static bool supports_handle_ranges(DupliObject *dupli, Object *parent)
     return !BKE_modifiers_findby_type(ob, eModifierType_Fluid);
   }
 
+  if (ob_type == OB_GREASE_PENCIL) {
+    GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(dupli->ob_data);
+    return grease_pencil->flag & GREASE_PENCIL_STROKE_ORDER_3D;
+  }
+
   return true;
 }
 
