@@ -2497,8 +2497,8 @@ static wmOperatorStatus sequencer_meta_make_exec(bContext *C, wmOperator * /*op*
 
   seq::prefetch_stop(scene);
 
-  int channel_max = 1, channel_min = INT_MAX, meta_start_frame = MAXFRAME,
-      meta_end_frame = MINFRAME;
+  int channel_max = 1, channel_min = std::numeric_limits<int>::max(), meta_start_frame = MAXFRAME,
+      meta_end_frame = std::numeric_limits<int>::min();
   Strip *strip_meta = seq::strip_alloc(active_seqbase, 1, 1, STRIP_TYPE_META);
 
   /* Remove all selected from main list, and put in meta.
