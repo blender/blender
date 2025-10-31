@@ -197,6 +197,7 @@ struct CustomSocketDrawParams {
 };
 
 using CustomSocketDrawFn = std::function<void(CustomSocketDrawParams &params)>;
+using CustomSocketLabelFn = std::function<StringRefNull(bNode node)>;
 using SocketUsageInferenceFn =
     std::function<std::optional<bool>(const socket_usage_inference::SocketUsageParams &params)>;
 
@@ -266,6 +267,10 @@ class SocketDeclaration : public ItemDeclaration {
    * Draw function that overrides how the socket is drawn for a specific node.
    */
   std::unique_ptr<CustomSocketDrawFn> custom_draw_fn;
+  /**
+   * Custom label function so a socket can display a different text depending on what it does.
+   */
+  std::unique_ptr<CustomSocketLabelFn> label_fn;
   /**
    * Determines whether this socket is used based on other input values and based on which outputs
    * are used.
@@ -431,6 +436,11 @@ class BaseSocketDeclarationBuilder {
    * based on which outputs are used.
    */
   BaseSocketDeclarationBuilder &usage_inference(SocketUsageInferenceFn fn);
+
+  /**
+   * Provide a function that determines the UI label of this socket.
+   */
+  BaseSocketDeclarationBuilder &label_fn(CustomSocketLabelFn fn);
 
   /**
    * Utility method for the case when the node has a single menu input and this socket is only used

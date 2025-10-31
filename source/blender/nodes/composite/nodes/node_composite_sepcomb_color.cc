@@ -24,48 +24,6 @@ static void node_cmp_combsep_color_init(bNodeTree * /*ntree*/, bNode *node)
   node->storage = data;
 }
 
-static void node_cmp_combsep_color_label(const ListBase *sockets, CMPNodeCombSepColorMode mode)
-{
-  bNodeSocket *sock1 = (bNodeSocket *)sockets->first;
-  bNodeSocket *sock2 = sock1->next;
-  bNodeSocket *sock3 = sock2->next;
-
-  node_sock_label_clear(sock1);
-  node_sock_label_clear(sock2);
-  node_sock_label_clear(sock3);
-
-  switch (mode) {
-    case CMP_NODE_COMBSEP_COLOR_RGB:
-      node_sock_label(sock1, "Red");
-      node_sock_label(sock2, "Green");
-      node_sock_label(sock3, "Blue");
-      break;
-    case CMP_NODE_COMBSEP_COLOR_HSV:
-      node_sock_label(sock1, "Hue");
-      node_sock_label(sock2, "Saturation");
-      node_sock_label(sock3, "Value");
-      break;
-    case CMP_NODE_COMBSEP_COLOR_HSL:
-      node_sock_label(sock1, "Hue");
-      node_sock_label(sock2, "Saturation");
-      node_sock_label(sock3, "Lightness");
-      break;
-    case CMP_NODE_COMBSEP_COLOR_YCC:
-      node_sock_label(sock1, "Y");
-      node_sock_label(sock2, "Cb");
-      node_sock_label(sock3, "Cr");
-      break;
-    case CMP_NODE_COMBSEP_COLOR_YUV:
-      node_sock_label(sock1, "Y");
-      node_sock_label(sock2, "U");
-      node_sock_label(sock3, "V");
-      break;
-    default:
-      BLI_assert_unreachable();
-      break;
-  }
-}
-
 /* **************** SEPARATE COLOR ******************** */
 
 namespace blender::nodes::node_composite_separate_color_cc {
@@ -76,16 +34,49 @@ static void cmp_node_separate_color_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_output<decl::Float>("Red");
-  b.add_output<decl::Float>("Green");
-  b.add_output<decl::Float>("Blue");
+  b.add_output<decl::Float>("Red").label_fn([](bNode node) {
+    switch (node_storage(node).mode) {
+      case CMP_NODE_COMBSEP_COLOR_RGB:
+      default:
+        return IFACE_("Red");
+      case CMP_NODE_COMBSEP_COLOR_HSV:
+      case CMP_NODE_COMBSEP_COLOR_HSL:
+        return IFACE_("Hue");
+      case CMP_NODE_COMBSEP_COLOR_YCC:
+      case CMP_NODE_COMBSEP_COLOR_YUV:
+        return IFACE_("Y");
+    }
+  });
+  b.add_output<decl::Float>("Green").label_fn([](bNode node) {
+    switch (node_storage(node).mode) {
+      case CMP_NODE_COMBSEP_COLOR_RGB:
+      default:
+        return IFACE_("Green");
+      case CMP_NODE_COMBSEP_COLOR_HSV:
+      case CMP_NODE_COMBSEP_COLOR_HSL:
+        return IFACE_("Saturation");
+      case CMP_NODE_COMBSEP_COLOR_YCC:
+        return IFACE_("Cb");
+      case CMP_NODE_COMBSEP_COLOR_YUV:
+        return IFACE_("U");
+    }
+  });
+  b.add_output<decl::Float>("Blue").label_fn([](bNode node) {
+    switch (node_storage(node).mode) {
+      case CMP_NODE_COMBSEP_COLOR_RGB:
+      default:
+        return IFACE_("Blue");
+      case CMP_NODE_COMBSEP_COLOR_HSV:
+        return CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "Value");
+      case CMP_NODE_COMBSEP_COLOR_HSL:
+        return IFACE_("Lightness");
+      case CMP_NODE_COMBSEP_COLOR_YCC:
+        return IFACE_("Cr");
+      case CMP_NODE_COMBSEP_COLOR_YUV:
+        return IFACE_("V");
+    }
+  });
   b.add_output<decl::Float>("Alpha");
-}
-
-static void cmp_node_separate_color_update(bNodeTree * /*ntree*/, bNode *node)
-{
-  const NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)node->storage;
-  node_cmp_combsep_color_label(&node->outputs, (CMPNodeCombSepColorMode)storage->mode);
 }
 
 using namespace blender::compositor;
@@ -239,7 +230,6 @@ static void register_node_type_cmp_separate_color()
   ntype.initfunc = node_cmp_combsep_color_init;
   blender::bke::node_type_storage(
       ntype, "NodeCMPCombSepColor", node_free_standard_storage, node_copy_standard_storage);
-  ntype.updatefunc = file_ns::cmp_node_separate_color_update;
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
@@ -256,17 +246,65 @@ NODE_STORAGE_FUNCS(NodeCMPCombSepColor)
 static void cmp_node_combine_color_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("Red").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Green").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Blue").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Red")
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .label_fn([](bNode node) {
+        switch (node_storage(node).mode) {
+          case CMP_NODE_COMBSEP_COLOR_RGB:
+          default:
+            return IFACE_("Red");
+          case CMP_NODE_COMBSEP_COLOR_HSV:
+          case CMP_NODE_COMBSEP_COLOR_HSL:
+            return IFACE_("Hue");
+          case CMP_NODE_COMBSEP_COLOR_YCC:
+          case CMP_NODE_COMBSEP_COLOR_YUV:
+            return IFACE_("Y");
+        }
+      });
+  b.add_input<decl::Float>("Green")
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .label_fn([](bNode node) {
+        switch (node_storage(node).mode) {
+          case CMP_NODE_COMBSEP_COLOR_RGB:
+          default:
+            return IFACE_("Green");
+          case CMP_NODE_COMBSEP_COLOR_HSV:
+          case CMP_NODE_COMBSEP_COLOR_HSL:
+            return IFACE_("Saturation");
+          case CMP_NODE_COMBSEP_COLOR_YCC:
+            return IFACE_("Cb");
+          case CMP_NODE_COMBSEP_COLOR_YUV:
+            return IFACE_("U");
+        }
+      });
+  b.add_input<decl::Float>("Blue")
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .label_fn([](bNode node) {
+        switch (node_storage(node).mode) {
+          case CMP_NODE_COMBSEP_COLOR_RGB:
+          default:
+            return IFACE_("Blue");
+          case CMP_NODE_COMBSEP_COLOR_HSV:
+            return CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "Value");
+          case CMP_NODE_COMBSEP_COLOR_HSL:
+            return IFACE_("Lightness");
+          case CMP_NODE_COMBSEP_COLOR_YCC:
+            return IFACE_("Cr");
+          case CMP_NODE_COMBSEP_COLOR_YUV:
+            return IFACE_("V");
+        }
+      });
   b.add_input<decl::Float>("Alpha").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
   b.add_output<decl::Color>("Image");
-}
-
-static void cmp_node_combine_color_update(bNodeTree * /*ntree*/, bNode *node)
-{
-  const NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)node->storage;
-  node_cmp_combsep_color_label(&node->inputs, (CMPNodeCombSepColorMode)storage->mode);
 }
 
 using namespace blender::compositor;
@@ -438,7 +476,6 @@ static void register_node_type_cmp_combine_color()
   ntype.initfunc = node_cmp_combsep_color_init;
   blender::bke::node_type_storage(
       ntype, "NodeCMPCombSepColor", node_free_standard_storage, node_copy_standard_storage);
-  ntype.updatefunc = file_ns::cmp_node_combine_color_update;
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 

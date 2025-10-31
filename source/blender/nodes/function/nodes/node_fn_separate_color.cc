@@ -21,21 +21,43 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Color>("Color").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_output<decl::Float>("Red");
-  b.add_output<decl::Float>("Green");
-  b.add_output<decl::Float>("Blue");
+  b.add_output<decl::Float>("Red").label_fn([](bNode node) {
+    switch (node_storage(node).mode) {
+      case NODE_COMBSEP_COLOR_RGB:
+      default:
+        return IFACE_("Red");
+      case NODE_COMBSEP_COLOR_HSV:
+      case NODE_COMBSEP_COLOR_HSL:
+        return IFACE_("Hue");
+    }
+  });
+  b.add_output<decl::Float>("Green").label_fn([](bNode node) {
+    switch (node_storage(node).mode) {
+      case NODE_COMBSEP_COLOR_RGB:
+      default:
+        return IFACE_("Green");
+      case NODE_COMBSEP_COLOR_HSV:
+      case NODE_COMBSEP_COLOR_HSL:
+        return IFACE_("Saturation");
+    }
+  });
+  b.add_output<decl::Float>("Blue").label_fn([](bNode node) {
+    switch (node_storage(node).mode) {
+      case NODE_COMBSEP_COLOR_RGB:
+      default:
+        return IFACE_("Blue");
+      case NODE_COMBSEP_COLOR_HSV:
+        return CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "Value");
+      case NODE_COMBSEP_COLOR_HSL:
+        return IFACE_("Lightness");
+    }
+  });
   b.add_output<decl::Float>("Alpha");
 };
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   layout->prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
-}
-
-static void node_update(bNodeTree * /*tree*/, bNode *node)
-{
-  const NodeCombSepColor &storage = node_storage(*node);
-  node_combsep_color_label(&node->outputs, (NodeCombSepColorMode)storage.mode);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -223,7 +245,6 @@ static void node_register()
   ntype.enum_name_legacy = "SEPARATE_COLOR";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
-  ntype.updatefunc = node_update;
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(
       ntype, "NodeCombSepColor", node_free_standard_storage, node_copy_standard_storage);
