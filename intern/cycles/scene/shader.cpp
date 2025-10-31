@@ -394,6 +394,7 @@ void Shader::tag_update(Scene *scene)
   if (has_displacement) {
     if (displacement_method == DISPLACE_BOTH) {
       attributes.add(ATTR_STD_POSITION_UNDISPLACED);
+      attributes.add(ATTR_STD_NORMAL_UNDISPLACED);
     }
     if (displacement_method_is_modified()) {
       need_update_displacement = true;
