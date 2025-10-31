@@ -5093,7 +5093,12 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
         wt = widget_type(UI_WTYPE_PREVIEW_TILE);
         break;
       case ButType::Popover:
-        wt = popover_widget_type(but, rect);
+        if (but->icon == 0) {
+          wt = popover_widget_type(but, rect);
+        }
+        else { /* Currently used for presets. */
+          wt = widget_type(UI_WTYPE_ICON);
+        }
         break;
       case ButType::NodeSocket:
         wt = widget_type(UI_WTYPE_NODESOCKET);
