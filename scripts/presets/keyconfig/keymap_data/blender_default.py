@@ -904,6 +904,8 @@ def km_screen_editing(params):
          {"properties": [("use_hide_panels", True)]}),
         # Area move after action zones
         ("screen.area_move", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        ("screen.area_move", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True},
+         {"properties": [("snap", True)]}),
         ("screen.area_options", {"type": 'RIGHTMOUSE', "value": 'PRESS'}, None),
     ])
 
