@@ -76,6 +76,7 @@ def drawlayout(context, layout, mode='non-panel'):
 
     col = layout.column(align=True)
     col.operator(operators.NWAlignNodes.bl_idname, icon='CENTER_ONLY')
+    col.operator(operators.NWCenterNodes.bl_idname, icon='SNAP_FACE_CENTER')
     col.separator()
 
     col = layout.column(align=True)

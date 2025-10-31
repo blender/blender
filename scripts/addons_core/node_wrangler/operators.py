@@ -31,7 +31,7 @@ from .interface import NWConnectionListInputs, NWConnectionListOutputs
 from .utils.constants import blend_types, geo_combine_operations, operations, navs, get_texture_node_types, rl_outputs
 from .utils.draw import draw_callback_nodeoutline
 from .utils.paths import match_files_to_socket_names, split_into_components
-from .utils.nodes import (node_mid_pt, autolink, node_at_pos, get_nodes_links,
+from .utils.nodes import (node_mid_pt, autolink, abs_node_location, node_at_pos, get_nodes_links,
                           force_update, nw_check,
                           nw_check_not_empty, nw_check_selected, nw_check_active, nw_check_space_type,
                           nw_check_node_type, nw_check_visible_outputs, get_viewer_image, nw_check_viewer_node, NWBase,
@@ -1902,6 +1902,54 @@ class NWAlignNodes(Operator, NWBase):
         return {'FINISHED'}
 
 
+class NWCenterNodes(Operator, NWBase):
+    """Move selected nodes to the center of the node editor"""
+    bl_idname = "node.nw_center_nodes"
+    bl_label = "Center Nodes"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return nw_check(cls, context) and nw_check_selected(cls, context)
+
+    def execute(self, context):
+        selection = context.selected_nodes
+
+        # Pick outermost selected nodes
+        nodes = []
+        for node in selection:
+            if node.parent and node.parent.select:
+                continue
+            nodes.append(node)
+
+        # Get bound center of picked nodes
+        nodes_x = []
+        nodes_y = []
+        nodes_right = []
+        nodes_bottom = []
+        for n in nodes:
+            loc_abs = abs_node_location(n)
+            nodes_x.append(loc_abs.x)
+            nodes_y.append(loc_abs.y)
+            if n.type == 'FRAME':
+                nodes_right.append(loc_abs.x + n.width)
+                nodes_bottom.append(loc_abs.y - n.height)
+            elif n.type == 'REROUTE':
+                nodes_right.append(loc_abs.x)
+                nodes_bottom.append(loc_abs.y)
+            else:
+                nodes_right.append(loc_abs.x + n.width)
+                nodes_bottom.append(loc_abs.y - n.dimensions.y)
+        mid_x = (min(nodes_x) + max(nodes_right)) / 2
+        mid_y = (max(nodes_y) + min(nodes_bottom)) / 2
+
+        for node in nodes:
+            node.location.x -= mid_x
+            node.location.y -= mid_y
+
+        return {'FINISHED'}
+
+
 class NWSelectParentChildren(Operator, NWBase):
     bl_idname = "node.nw_select_parent_child"
     bl_label = "Select Parent or Children"
@@ -2407,6 +2455,7 @@ classes = (
     NWAddReroutes,
     NWLinkActiveToSelected,
     NWAlignNodes,
+    NWCenterNodes,
     NWSelectParentChildren,
     NWDetachOutputs,
     NWLinkToOutputNode,
