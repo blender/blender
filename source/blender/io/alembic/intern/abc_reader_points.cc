@@ -152,6 +152,10 @@ static void read_point_arb_geom_params(const IPointsSchema &schema,
                                        bke::MutableAttributeAccessor &attribute_accessor)
 {
   const ICompoundProperty prop = schema.getArbGeomParams();
+  if (!prop.valid()) {
+    return;
+  }
+
   for (size_t i = 0; i < prop.getNumProperties(); i++) {
     const PropertyHeader header = prop.getPropertyHeader(i);
     const PropertyType property_type = header.getPropertyType();
