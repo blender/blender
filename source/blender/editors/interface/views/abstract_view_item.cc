@@ -123,7 +123,7 @@ void AbstractViewItem::change_state_delayed()
     }
     else if (is_active_) {
       is_active_ = false;
-      is_selected_ = false;
+      this->set_selected(false);
     }
   }
   if (std::optional<bool> is_selected = should_be_selected()) {
