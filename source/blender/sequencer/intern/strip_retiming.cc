@@ -271,7 +271,7 @@ bool retiming_key_is_freeze_frame(const SeqRetimingKey *key)
 
 static bool strip_retiming_transition_is_linear(const Strip *strip, const SeqRetimingKey *key)
 {
-  const float prev_speed = retiming_key_speed_get(strip, key - 1);
+  const float prev_speed = retiming_key_speed_get(strip, key);
   const float next_speed = retiming_key_speed_get(strip, key + 2);
 
   return abs(prev_speed - next_speed) < 0.01f;
@@ -737,7 +737,7 @@ static void strip_retiming_fix_transitions(const Scene *scene, Strip *strip, Seq
     }
   }
 
-  if (!retiming_is_last_key(strip, key)) {
+  if (!retiming_is_last_key(strip, &retiming_keys_get(strip)[key_index])) {
     SeqRetimingKey *next_key = &retiming_keys_get(strip)[key_index + 1];
     if (retiming_key_is_transition_start(next_key)) {
       strip_retiming_fix_transition(scene, strip, next_key);
@@ -819,6 +819,7 @@ float retiming_key_speed_get(const Strip *strip, const SeqRetimingKey *key)
     return 1.0f;
   }
 
+  BLI_assert(retiming_key_index_get(strip, key) > 0);
   const SeqRetimingKey *key_prev = key - 1;
   const int frame_index_max = strip->len - 1;
   const float frame_index_start = round_fl_to_int(key_prev->retiming_factor * frame_index_max);
