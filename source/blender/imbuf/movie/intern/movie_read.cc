@@ -1044,6 +1044,8 @@ static int ffmpeg_generic_seek_workaround(MovieReader *anim,
                                           int64_t *requested_pts,
                                           int64_t pts_to_search)
 {
+  AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
+  int64_t start_pts = v_st->start_time;
   int64_t current_pts = *requested_pts;
   int64_t offset = 0;
 
@@ -1084,9 +1086,8 @@ static int ffmpeg_generic_seek_workaround(MovieReader *anim,
       }
     }
 
-    if (cur_pts == prev_pts) {
-      /* We got the same key frame packet twice.
-       * This probably means that we have hit the beginning of the stream. */
+    /* We have hit the beginning of the stream. */
+    if (cur_pts <= start_pts) {
       break;
     }
 
