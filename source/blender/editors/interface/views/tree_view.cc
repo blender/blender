@@ -27,6 +27,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_multi_value_map.hh"
+#include "BLI_string.h"
 
 #include "UI_tree_view.hh"
 
@@ -145,13 +146,21 @@ void AbstractTreeView::set_default_rows(int default_rows)
   custom_height_ = std::make_unique<int>(default_rows * padded_item_height());
 }
 
+void AbstractTreeView::toggle_show_display_options()
+{
+  show_display_options_ = !show_display_options_;
+}
+
 std::optional<uiViewState> AbstractTreeView::persistent_state() const
 {
+  uiViewState state{};
+
+  SET_FLAG_FROM_TEST(state.flag, !show_display_options_, UI_VIEW_COLLAPSE_FILTER_OPTIONS);
+  BLI_strncpy(state.search_string, search_string_.get(), sizeof(state.search_string));
+
   if (!custom_height_ && !scroll_value_) {
     return {};
   }
-
-  uiViewState state{0};
 
   if (custom_height_) {
     state.custom_height = *custom_height_ * UI_INV_SCALE_FAC;
@@ -172,6 +181,9 @@ void AbstractTreeView::persistent_state_apply(const uiViewState &state)
   if (state.scroll_offset) {
     scroll_value_ = std::make_shared<int>(state.scroll_offset);
   }
+
+  show_display_options_ = (state.flag & UI_VIEW_COLLAPSE_FILTER_OPTIONS) == 0;
+  BLI_strncpy(search_string_.get(), state.search_string, sizeof(search_string_));
 }
 
 int AbstractTreeView::count_visible_descendants(const AbstractTreeViewItem &parent) const
@@ -322,6 +334,8 @@ void AbstractTreeView::update_children_from_old(const AbstractView &old_view)
 
   custom_height_ = old_tree_view.custom_height_;
   scroll_value_ = old_tree_view.scroll_value_;
+  search_string_ = old_tree_view.search_string_;
+  show_display_options_ = old_tree_view.show_display_options_;
   update_children_from_old_recursive(*this, old_tree_view);
 }
 
@@ -795,6 +809,16 @@ bool AbstractTreeViewItem::matches(const AbstractViewItem &other) const
   return true;
 }
 
+void AbstractTreeViewItem::on_filter_change()
+{
+  if (is_filtered_visible_) {
+    foreach_parent([&](AbstractTreeViewItem &item) {
+      item.is_filtered_visible_ = true;
+      item.set_collapsed(false);
+    });
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
 class TreeViewLayoutBuilder {
@@ -824,6 +848,24 @@ static int count_visible_items(AbstractTreeView &tree_view)
                          AbstractTreeView::IterOptions::SkipCollapsed |
                              AbstractTreeView::IterOptions::SkipFiltered);
   return item_count;
+}
+
+static void set_filtering_collapsed_fn(bContext *C, void * /*but_arg1*/, void * /*arg2*/)
+{
+  const wmWindow *win = CTX_wm_window(C);
+  if (!(win && win->eventstate)) {
+    return;
+  }
+  const ARegion *region = CTX_wm_region(C);
+  if (!region) {
+    return;
+  }
+
+  if (AbstractView *view = UI_region_view_find_at(region, win->eventstate->xy, 2 * UI_UNIT_Y)) {
+    if (AbstractTreeView *tree_view = dynamic_cast<AbstractTreeView *>(view)) {
+      tree_view->toggle_show_display_options();
+    }
+  }
 }
 
 void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
@@ -866,7 +908,9 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
   tree_view.foreach_item(
       [&, this](AbstractTreeViewItem &item) {
         if ((index >= first_visible_index) && (index <= max_visible_index)) {
-          this->build_row(item);
+          if (item.is_filtered_visible()) {
+            this->build_row(item);
+          }
         }
         index++;
       },
@@ -898,6 +942,18 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
     }
 
     block_layout_set_current(block, col);
+
+    /* Bottom */
+    uiLayout *bottom = &col->row(false);
+    UI_block_emboss_set(block, ui::EmbossType::None);
+    int icon = tree_view.show_display_options_ ? ICON_DISCLOSURE_TRI_DOWN :
+                                                 ICON_DISCLOSURE_TRI_RIGHT;
+    uiBut *but = uiDefIconBut(
+        block, ButType::IconToggle, 0, icon, 0, 0, UI_UNIT_X, UI_UNIT_Y * 0.3, nullptr, 0, 0, "");
+    UI_but_func_set(but, set_filtering_collapsed_fn, nullptr, nullptr);
+    UI_block_emboss_set(block, ui::EmbossType::Emboss);
+    bottom->column(false);
+
     uiDefIconButI(block,
                   ButType::Grip,
                   0,
@@ -910,6 +966,25 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
                   0,
                   0,
                   "");
+
+    if (tree_view.show_display_options_) {
+      block_layout_set_current(block, col);
+      uiBut *but = uiDefBut(block,
+                            ButType::Text,
+                            1,
+                            "",
+                            0,
+                            0,
+                            UI_TREEVIEW_INDENT,
+                            UI_UNIT_Y,
+                            tree_view.search_string_.get(),
+                            0,
+                            UI_MAX_NAME_STR,
+                            "");
+      UI_but_flag_enable(but, UI_BUT_TEXTEDIT_UPDATE | UI_BUT_VALUE_CLEAR);
+      UI_but_flag_enable(but, UI_BUT_UNDO);
+      ui_def_but_icon(but, ICON_VIEWZOOM, UI_HAS_ICON);
+    }
   }
 
   block_layout_set_current(block, &parent_layout);
@@ -1008,7 +1083,6 @@ void TreeViewBuilder::ensure_min_rows_items(AbstractTreeView &tree_view)
 void TreeViewBuilder::build_tree_view(const bContext &C,
                                       AbstractTreeView &tree_view,
                                       uiLayout &layout,
-                                      std::optional<StringRef> search_string,
                                       const bool add_box)
 {
   uiBlock &block = *layout.block();
@@ -1021,8 +1095,12 @@ void TreeViewBuilder::build_tree_view(const bContext &C,
   tree_view.build_tree();
   tree_view.update_from_old(block);
   tree_view.change_state_delayed();
-  tree_view.filter(search_string);
-
+  {
+    /* Setup search string to filter out elements with matching characters. */
+    char string[UI_MAX_NAME_STR];
+    BLI_strncpy_ensure_pad(string, tree_view.search_string_.get(), '*', sizeof(string));
+    tree_view.filter(tree_view.search_string_ ? std::optional{string} : std::nullopt);
+  }
   ensure_min_rows_items(tree_view);
 
   /* Ensure the given layout is actually active. */
