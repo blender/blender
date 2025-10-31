@@ -171,6 +171,10 @@ void AbstractView::filter(std::optional<StringRef> filter_str)
     item.is_filtered_visible_ = is_empty ||
                                 item.should_be_filtered_visible(StringRefNull(*filter_str));
 
+    if (item.is_filtered_visible_) {
+      item.on_filter_change();
+    }
+
     if (filter_changed) {
       item.is_highlighted_search_ = false;
       /* On new filtering input, force the first visible item to be highlighted and in view, so
