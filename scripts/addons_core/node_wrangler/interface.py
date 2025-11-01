@@ -353,7 +353,7 @@ class NWLinkUseNodeNameMenu(Menu, NWBaseMenu):
 
 class NWLinkUseOutputsNamesMenu(Menu, NWBaseMenu):
     bl_idname = "NODE_MT_nw_link_use_outputs_names_menu"
-    bl_label = "Use Outputs Names"
+    bl_label = "Use Output Names"
 
     def draw(self, context):
         layout = self.layout
@@ -416,8 +416,7 @@ class NWAttributeMenu(bpy.types.Menu):
 
 def select_parent_children_buttons(self, context):
     layout = self.layout
-    layout.operator(operators.NWSelectParentChildren.bl_idname,
-                    text="Select frame's members (children)").option = 'CHILD'
+    layout.operator(operators.NWSelectParentChildren.bl_idname, text="Select Frame Children").option = 'CHILD'
     layout.operator(operators.NWSelectParentChildren.bl_idname, text="Select Parent Frame").option = 'PARENT'
 
 

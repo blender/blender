@@ -347,10 +347,10 @@ kmi_defs = (
      True, True, (('with_menu', True),), n_("Lazy Connect with Socket Menu")),
     # Align Nodes
     (operators.NWAlignNodes.bl_idname, 'EQUAL', 'PRESS', False, True,
-     False, None, n_("Align selected nodes neatly in a row/column")),
+     False, None, n_("Align Nodes")),
     # Reset Nodes (Back Space)
     (operators.NWResetNodes.bl_idname, 'BACK_SPACE', 'PRESS', False, False,
-     False, None, n_("Revert node back to default state, but keep connections")),
+     False, None, n_("Reset Nodes")),
     # MENUS
     ('wm.call_menu', 'W', 'PRESS', False, True, False, (('name', interface.NodeWranglerMenu.bl_idname),), n_("Node Wrangler (Menu)")),
     ('wm.call_menu', 'SLASH', 'PRESS', False, False, False,
