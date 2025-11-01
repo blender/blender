@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Utility script, called by ``run.py`` to run inside Blender,
+Utility script, called by ``run.py`` or ``blender_headless.py`` to run inside Blender,
 to avoid boilerplate code having to be added into each test.
 """
 
