@@ -555,7 +555,7 @@ class NWMergeNodes(Operator, NWBase):
         description="Type of Merge to be used",
         items=(
             ('AUTO', 'Auto', 'Automatic output type detection'),
-            ('SHADER', 'Shader', 'Merge using ADD or MIX Shader'),
+            ('SHADER', 'Shader', 'Merge using Add or Mix Shader'),
             ('GEOMETRY', 'Geometry', 'Merge using Mesh Boolean or Join Geometry nodes'),
             ('MIX', 'Mix Node', 'Merge using Mix nodes'),
             ('MATH', 'Math Node', 'Merge using Math nodes'),
@@ -1663,7 +1663,7 @@ class NWAddReroutes(Operator, NWBase):
     """Add Reroute Nodes and link them to outputs of selected nodes"""
     bl_idname = "node.nw_add_reroutes"
     bl_label = "Add Reroutes"
-    bl_description = "Add Reroutes to outputs"
+    bl_description = "Add reroutes to outputs"
     bl_options = {'REGISTER', 'UNDO'}
 
     option: EnumProperty(
@@ -1958,7 +1958,7 @@ class NWSelectParentChildren(Operator, NWBase):
     option: EnumProperty(
         name="Option",
         items=(
-            ('PARENT', 'Select Parent', 'Select Parent Frame'),
+            ('PARENT', 'Select Parent', 'Select parent frame'),
             ('CHILD', 'Select Children', 'Select members of selected frame'),
         )
     )
@@ -2316,7 +2316,7 @@ class NWSaveViewer(bpy.types.Operator, ExportHelper):
 
 
 class NWResetNodes(bpy.types.Operator):
-    """Reset Nodes in Selection"""
+    """Reset nodes in selection"""
     bl_idname = "node.nw_reset_nodes"
     bl_label = "Reset Nodes"
     bl_options = {'REGISTER', 'UNDO'}

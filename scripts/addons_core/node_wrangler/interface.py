@@ -97,7 +97,7 @@ class NodeWranglerPanel(Panel, NWBaseMenu):
     remove: StringProperty()
 
     def draw(self, context):
-        self.layout.label(text="(Quick access: Shift+W)")
+        self.layout.label(text="(Quick Access: Shift+W)")
         drawlayout(context, self.layout, mode='panel')
 
 
@@ -299,7 +299,7 @@ class NWCopyLabelMenu(Menu, NWBaseMenu):
 class NWAddReroutesMenu(Menu, NWBaseMenu):
     bl_idname = "NODE_MT_nw_add_reroutes_menu"
     bl_label = "Add Reroutes"
-    bl_description = "Add Reroute Nodes to Selected Nodes' Outputs"
+    bl_description = "Add reroute nodes to selected nodes' outputs"
 
     def draw(self, context):
         layout = self.layout
@@ -418,7 +418,7 @@ def select_parent_children_buttons(self, context):
     layout = self.layout
     layout.operator(operators.NWSelectParentChildren.bl_idname,
                     text="Select frame's members (children)").option = 'CHILD'
-    layout.operator(operators.NWSelectParentChildren.bl_idname, text="Select parent frame").option = 'PARENT'
+    layout.operator(operators.NWSelectParentChildren.bl_idname, text="Select Parent Frame").option = 'PARENT'
 
 
 def attr_nodes_menu_func(self, context):
