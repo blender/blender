@@ -1049,7 +1049,8 @@ static int ffmpeg_generic_seek_workaround(MovieReader *anim,
   int64_t current_pts = *requested_pts;
   int64_t offset = 0;
 
-  int64_t cur_pts, prev_pts = -1;
+  int64_t cur_pts;
+  // int64_t prev_pts = -1; /* UNUSED. */
 
   /* Step backward frame by frame until we find the key frame we are looking for. */
   while (current_pts != 0) {
@@ -1091,7 +1092,7 @@ static int ffmpeg_generic_seek_workaround(MovieReader *anim,
       break;
     }
 
-    prev_pts = cur_pts;
+    // prev_pts = cur_pts; /* UNUSED. */
     offset++;
   }
 
