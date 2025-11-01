@@ -785,16 +785,12 @@ void BM_mesh_calc_uvs_grid(BMesh *bm,
                            const int cd_loop_uv_offset)
 {
   BMFace *f;
-  BMLoop *l;
-  BMIter iter, liter;
+  BMIter iter;
 
   const float dx = 1.0f / float(x_segments);
   const float dy = 1.0f / float(y_segments);
-  const float dx_wrap = 1.0 - (dx / 2.0f);
-  float x = 0.0f;
-  float y = dy;
 
-  int loop_index;
+  uint face_index = 0;
 
   BLI_assert(cd_loop_uv_offset != -1);
 
@@ -803,35 +799,44 @@ void BM_mesh_calc_uvs_grid(BMesh *bm,
       continue;
     }
 
+    const uint ix = face_index % x_segments;
+    const uint iy = face_index / x_segments;
+
+    BMIter liter;
+    BMLoop *l;
+    int loop_index;
+
     BM_ITER_ELEM_INDEX (l, &liter, f, BM_LOOPS_OF_FACE, loop_index) {
       float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
 
       switch (loop_index) {
-        case 0:
-          y -= dy;
+        case 0: {
+          luv[0] = ix * dx;
+          luv[1] = iy * dy;
           break;
-        case 1:
-          x += dx;
+        }
+        case 1: {
+          luv[0] = (ix + 1) * dx;
+          luv[1] = iy * dy;
           break;
-        case 2:
-          y += dy;
+        }
+        case 2: {
+          luv[0] = (ix + 1) * dx;
+          luv[1] = (iy + 1) * dy;
           break;
-        case 3:
-          x -= dx;
+        }
+        case 3: {
+          luv[0] = ix * dx;
+          luv[1] = (iy + 1) * dy;
           break;
-        default:
+        }
+        default: {
           break;
+        }
       }
-
-      luv[0] = x;
-      luv[1] = y;
     }
 
-    x += dx;
-    if (x >= dx_wrap) {
-      x = 0.0f;
-      y += dy;
-    }
+    face_index++;
   }
 }
 
