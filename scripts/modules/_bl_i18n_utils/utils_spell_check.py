@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import enchant
 import os
 import pickle
 import re
@@ -10,6 +9,7 @@ import re
 try:
     import enchant
 except ModuleNotFoundError:
+    enchant = None
     print("WARNING: No `enchant` python module found, no spell check will happen.")
 
 
