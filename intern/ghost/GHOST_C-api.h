@@ -228,8 +228,7 @@ extern GHOST_TSuccess GHOST_DisposeWindow(GHOST_SystemHandle systemhandle,
  */
 extern bool GHOST_ValidWindow(GHOST_SystemHandle systemhandle, GHOST_WindowHandle windowhandle);
 
-/*
- **
+/**
  * Returns high dynamic range color information about this window.
  * \return HDR info.
  */

@@ -548,9 +548,11 @@ struct wmNotifier {
 #define ND_ASSET_LIST (1 << 16)
 #define ND_ASSET_LIST_PREVIEW (2 << 16)
 #define ND_ASSET_LIST_READING (3 << 16)
-/* Catalog data changed, requiring a redraw of catalog UIs. Note that this doesn't denote a
- * reloading of asset libraries & their catalogs should happen. That only happens on explicit user
- * action. */
+/**
+ * Catalog data changed, requiring a redraw of catalog UIs. Note that this doesn't denote a
+ * reloading of asset libraries & their catalogs should happen.
+ * That only happens on explicit user action.
+ */
 #define ND_ASSET_CATALOGS (4 << 16)
 
 /* Subtype, 256 entries too. */
@@ -849,15 +851,22 @@ struct wmEvent {
  */
 enum wmProgress {
   P_NOT_STARTED = 0,
-  P_STARTING,    /* <-- */
-  P_IN_PROGRESS, /* <-- only these are sent for NDOF motion. */
-  P_FINISHING,   /* <-- */
+  /** Only sent for NDOF motion. */
+  P_STARTING,
+  /** Only sent for NDOF motion. */
+  P_IN_PROGRESS,
+  /** Only sent for NDOF motion. */
+  P_FINISHING,
   P_FINISHED,
 };
 
 #ifdef WITH_INPUT_NDOF
+/**
+ * NDOF (3D mouse) motion event data.
+ *
+ * Awfully similar to #GHOST_TEventNDOFMotionData.
+ */
 struct wmNDOFMotionData {
-  /* Awfully similar to #GHOST_TEventNDOFMotionData. */
   /**
    * Each component normally ranges from -1 to +1, but can exceed that.
    * These use blender standard view coordinates,
@@ -885,10 +894,10 @@ struct wmNDOFMotionData {
 #endif /* WITH_INPUT_NDOF */
 
 #ifdef WITH_XR_OPENXR
-/* Similar to GHOST_XrPose. */
+/** Similar to #GHOST_XrPose. */
 struct wmXrPose {
   float position[3];
-  /* Blender convention (w, x, y, z). */
+  /** Blender convention (w, x, y, z). */
   float orientation_quat[4];
 };
 
@@ -943,8 +952,10 @@ enum wmTimerFlags {
   WM_TIMER_NO_FREE_CUSTOM_DATA = 1 << 0,
 
   /* Internal flags, should not be used outside of WM code. */
-  /** This timer has been tagged for removal and deletion, handled by WM code to ensure timers are
-   * deleted in a safe context. */
+  /**
+   * This timer has been tagged for removal and deletion, handled by WM code to ensure timers are
+   * deleted in a safe context.
+   */
   WM_TIMER_TAGGED_FOR_REMOVAL = 1 << 16,
 };
 ENUM_OPERATORS(wmTimerFlags)
@@ -1269,9 +1280,9 @@ struct wmDragAssetListItem {
 
 struct wmDragPath {
   blender::Vector<std::string> paths;
-  /* File type of each path in #paths. */
+  /** File type of each path in #paths. */
   blender::Vector<int> file_types; /* #eFileSel_File_Types. */
-  /* Bit flag of file types in #paths. */
+  /** Bit flag of file types in #paths. */
   int file_types_bit_flag; /* #eFileSel_File_Types. */
   std::string tooltip;
 };
@@ -1385,7 +1396,7 @@ struct wmDropBox {
 
   /**
    * Override the default cursor overlay drawing function.
-   * Can be used to draw text or thumbnails. IE a tooltip for drag and drop.
+   * Can be used to draw text or thumbnails. IE a tool-tip for drag and drop.
    * \param xy: Cursor location in window coordinates (#wmEvent.xy compatible).
    */
   void (*draw_droptip)(bContext *C, wmWindow *win, wmDrag *drag, const int xy[2]);
@@ -1401,7 +1412,7 @@ struct wmDropBox {
   /** Custom data for drawing. */
   void *draw_data;
 
-  /** Custom tooltip shown during dragging. */
+  /** Custom tool-tip shown during dragging. */
   WMDropboxTooltipFunc tooltip;
 
   /**
@@ -1414,7 +1425,7 @@ struct wmDropBox {
   /** #wmOperatorType::idname, needed for re-registration. */
   char opname[64];
 
-  /** Operator properties, assigned to ptr->data and can be written to a file. */
+  /** Operator properties, assigned to `ptr->data` and can be written to a file. */
   IDProperty *properties;
   /** RNA pointer to access properties. */
   PointerRNA *ptr;
@@ -1425,20 +1436,20 @@ struct wmDropBox {
  * Allows UI code to call #WM_tooltip_timer_init without each user having to handle the timer.
  */
 struct wmTooltipState {
-  /** Create tooltip on this event. */
+  /** Create tool-tip on this event. */
   wmTimer *timer;
-  /** The area the tooltip is created in. */
+  /** The area the tool-tip is created in. */
   ScrArea *area_from;
-  /** The region the tooltip is created in. */
+  /** The region the tool-tip is created in. */
   ARegion *region_from;
-  /** The tooltip region. */
+  /** The tool-tip region. */
   ARegion *region;
-  /** Create the tooltip region (assign to 'region'). */
+  /** Create the tool-tip region (assign to 'region'). */
   ARegion *(*init)(
       bContext *C, ARegion *region, int *pass, double *pass_delay, bool *r_exit_on_event);
   /** Exit on any event, not needed for buttons since their highlight state is used. */
   bool exit_on_event;
-  /** Cursor location at the point of tooltip creation. */
+  /** Cursor location at the point of tool-tip creation. */
   int event_xy[2];
   /** Pass, use when we want multiple tips, count down to zero. */
   int pass;
