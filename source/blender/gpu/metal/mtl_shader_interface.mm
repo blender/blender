@@ -99,14 +99,16 @@ MTLShaderInterface::MTLShaderInterface(const char *name,
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::SAMPLER) {
       sampler_names_offsets_[res.slot] = name_buffer_offset;
       copy_input_name(input, res.sampler.name, name_buffer_, name_buffer_offset);
-      input->location = input->binding = res.slot;
+      input->location = -1; /* Setting location is not possible in MSL. */
+      input->binding = res.slot;
       enabled_tex_mask_ |= (1ull << input->binding);
       input++;
     }
     else if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
       image_names_offsets_[res.slot] = name_buffer_offset;
       copy_input_name(input, res.image.name, name_buffer_, name_buffer_offset);
-      input->location = input->binding = res.slot;
+      input->location = -1; /* Setting location is not possible in MSL. */
+      input->binding = res.slot;
       enabled_ima_mask_ |= (1 << input->binding);
       input++;
     }
