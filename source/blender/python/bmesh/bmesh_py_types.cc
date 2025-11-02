@@ -1503,7 +1503,7 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmesh_select_flush_mode_doc,
-    ".. method:: select_flush_mode(/, *, flush_down=False)\n"
+    ".. method:: select_flush_mode(*, flush_down=False)\n"
     "\n"
     "   Flush selection based on the current mode current "
     ":class:`bmesh.types.BMesh.select_mode`.\n"
@@ -1679,7 +1679,7 @@ static PyObject *bpy_bmesh_uv_select_flush_shared(BPy_BMesh *self, PyObject *val
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmesh_uv_select_sync_from_mesh_doc,
-    ".. method:: uv_select_sync_from_mesh(/, *, "
+    ".. method:: uv_select_sync_from_mesh(*, "
     "sticky_select_mode='SHARED_LOCATION')\n"
     "\n"
     "   Sync selection from mesh to UVs.\n"
