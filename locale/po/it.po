@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-27 09:50+0000\n"
-"PO-Revision-Date: 2025-09-09 13:59+0000\n"
+"POT-Creation-Date: 2025-11-03 10:44+0000\n"
+"PO-Revision-Date: 2025-10-30 01:59+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
@@ -24550,136 +24550,12 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Text"
-msgstr "Testo"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
-
-
-msgid "Names"
-msgstr "Nomi"
-
-
-msgid "Bone Roll"
-msgstr "Rollio Osso"
-
-
-msgid "Clean Up"
-msgstr "Ripulisci"
-
-
-msgid "Pivot Point"
-msgstr "Punto di Perno"
-
-
-msgid "Snap"
-msgstr "Aggancia"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Decadimento Modifica Proporzionale"
-
-
-msgid "Mask Edit"
-msgstr "Modifica Maschera"
-
-
-msgid "Automasking"
-msgstr "Automascheramento"
-
-
-msgid "Face Sets Edit"
-msgstr "Modifica Sets di Facce"
-
-
-msgid "Vertex Group Locks"
-msgstr "Blocchi del Gruppo di Vertici"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Mirror"
-msgstr "Specchia"
-
-
-msgid "UV Mapping"
-msgstr "Mappatura UV"
-
-
-msgid "Local View"
-msgstr "Vista Locale"
-
-
-msgid "Viewpoint"
-msgstr "Punto di vista"
-
-
-msgid "Navigation"
-msgstr "Navigazione"
-
-
-msgid "Align View"
-msgstr "Allinea Vista"
-
-
-msgid "Adjust"
-msgstr "Regola"
-
-
-msgid "Align View to Active"
-msgstr "Allinea Vista a Attivo"
-
-
-msgid "View Regions"
-msgstr "Regione Vista"
-
-
 msgid "Select More/Less"
 msgstr "Seleziona Più/Meno"
 
 
-msgid "Keying"
-msgstr "Keying"
-
-
-msgid "Tracking"
-msgstr "Tracciamento"
-
-
-msgid "Select Similar"
-msgstr "Seleziona Simili"
-
-
-msgid "Select All by Trait"
-msgstr "Seleziona Tutto per Caratteristica"
-
-
-msgid "Utilities"
-msgstr "Utilità"
-
-
-msgid "Select Linked"
-msgstr "Seleziona Collegati"
-
-
-msgid "Math"
-msgstr "Matematica"
-
-
-msgid "Select Loops"
-msgstr "Seleziona Anelli"
-
-
-msgid "Assign Material"
-msgstr "Assegna Materiale"
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Light"
@@ -24714,6 +24590,14 @@ msgid "Quick Effects"
 msgstr "Effetti Veloci"
 
 
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
+
+
+msgid "Clean Up"
+msgstr "Ripulisci"
+
+
 msgid "Asset"
 msgstr "Risorsa"
 
@@ -24734,20 +24618,12 @@ msgid "Hooks"
 msgstr "Ganci"
 
 
-msgid "Read"
-msgstr "Lettura"
+msgid "Layout"
+msgstr "Layout"
 
 
-msgid "Sample"
-msgstr "Campione"
-
-
-msgid "Write"
-msgstr "Scrittura"
-
-
-msgid "Primitives"
-msgstr "Primitive"
+msgid "Vertex Group Locks"
+msgstr "Blocchi del Gruppo di Vertici"
 
 
 msgid "Face Sets Init"
@@ -24756,6 +24632,10 @@ msgstr "Init Sets di Facce"
 
 msgid "Random Mask"
 msgstr "Maschera Casuale"
+
+
+msgid "Adjust"
+msgstr "Regola"
 
 
 msgid "Clear Transform"
@@ -24770,16 +24650,28 @@ msgid "Propagate"
 msgstr "Propaga"
 
 
-msgid "Instances"
-msgstr "Istanze"
+msgid "Keying"
+msgstr "Keying"
 
 
 msgid "Bone Collections"
 msgstr "Raccolte di Ossa"
 
 
-msgid "Import"
-msgstr "Importa"
+msgid "Tracking"
+msgstr "Tracciamento"
+
+
+msgid "Names"
+msgstr "Nomi"
+
+
+msgid "Utilities"
+msgstr "Utilità"
+
+
+msgid "Math"
+msgstr "Matematica"
 
 
 msgid "Toggle Bone Options"
@@ -24810,10 +24702,6 @@ msgid "Set Face Strength"
 msgstr "Imposta Intensità Faccia"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Merge"
 msgstr "Unisci"
 
@@ -24824,6 +24712,118 @@ msgstr "Caratteri Speciali"
 
 msgid "Kerning"
 msgstr "Crenatura"
+
+
+msgid "Text"
+msgstr "Testo"
+
+
+msgid "Bone Roll"
+msgstr "Rollio Osso"
+
+
+msgid "Read"
+msgstr "Lettura"
+
+
+msgid "Sample"
+msgstr "Campione"
+
+
+msgid "Write"
+msgstr "Scrittura"
+
+
+msgid "Primitives"
+msgstr "Primitive"
+
+
+msgid "Pivot Point"
+msgstr "Punto di Perno"
+
+
+msgid "Snap"
+msgstr "Aggancia"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Decadimento Modifica Proporzionale"
+
+
+msgid "Mask Edit"
+msgstr "Modifica Maschera"
+
+
+msgid "Automasking"
+msgstr "Automascheramento"
+
+
+msgid "Face Sets Edit"
+msgstr "Modifica Sets di Facce"
+
+
+msgid "Instances"
+msgstr "Istanze"
+
+
+msgid "Import"
+msgstr "Importa"
+
+
+msgid "Mirror"
+msgstr "Specchia"
+
+
+msgid "UV Mapping"
+msgstr "Mappatura UV"
+
+
+msgid "Local View"
+msgstr "Vista Locale"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Viewpoint"
+msgstr "Punto di vista"
+
+
+msgid "Navigation"
+msgstr "Navigazione"
+
+
+msgid "Align View"
+msgstr "Allinea Vista"
+
+
+msgid "Align View to Active"
+msgstr "Allinea Vista a Attivo"
+
+
+msgid "View Regions"
+msgstr "Regione Vista"
+
+
+msgid "Select Similar"
+msgstr "Seleziona Simili"
+
+
+msgid "Select All by Trait"
+msgstr "Seleziona Tutto per Caratteristica"
+
+
+msgid "Select Linked"
+msgstr "Seleziona Collegati"
+
+
+msgid "Select Loops"
+msgstr "Seleziona Anelli"
+
+
+msgid "Assign Material"
+msgstr "Assegna Materiale"
 
 
 msgid "Keyframe Insert Pie"
@@ -50130,6 +50130,10 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
+msgid "Auto-Masking"
+msgstr "Auto-Mascheramento"
+
+
 msgid "Shadow Settings"
 msgstr "Impostazioni Ombra"
 
@@ -50180,10 +50184,6 @@ msgstr "Giacitura Tratto"
 
 msgid "Stereoscopy"
 msgstr "Stereoscopia"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Mascheramento"
 
 
 msgid "Chain Scaling"
@@ -60288,8 +60288,16 @@ msgid "Image path {!r} not found, image may be packed or unsaved"
 msgstr "Percorso dell'immagine {!r} non trovato, forse l'immagine è incorporata o non salvata"
 
 
+msgid "No nodes selected."
+msgstr "Nessuno nodo selezionato."
+
+
 msgid "Active camera is not in this scene"
 msgstr "La camera attiva non è in questa scena"
+
+
+msgid "Modifiers cannot be added to object: {:s}"
+msgstr "Non è possibile aggiungere modificatori all'oggetto: {:s}"
 
 
 msgid "Fur Material"
@@ -60451,6 +60459,10 @@ msgstr "Supporto"
 msgctxt "Operator"
 msgid "User Communities"
 msgstr "Comunità Utenti"
+
+
+msgid "Failed to assign value: {:s}"
+msgstr "Impossibile impostare il valore: {:s}"
 
 
 msgid "Strip(s)"
@@ -62237,6 +62249,11 @@ msgstr "Cambia Percorso/Files"
 msgctxt "Operator"
 msgid "Swap Data"
 msgstr "Scambia Dati"
+
+
+msgctxt "Operator"
+msgid "Copy to Selected Strips..."
+msgstr "Copia agli Spezzoni Selezionati..."
 
 
 msgctxt "Operator"
@@ -68091,6 +68108,11 @@ msgid "Flaps"
 msgstr "Lembi"
 
 
+msgctxt "Color"
+msgid "Spill Channel"
+msgstr "Canale Dispersione"
+
+
 msgid "Correction for shadows"
 msgstr "Correzione per le ombre"
 
@@ -68795,6 +68817,10 @@ msgstr "Orlo"
 
 msgid "Blender File View"
 msgstr "Visualizza File di Blender"
+
+
+msgid "Failed to open file browser!"
+msgstr "Impossibile aprire il file browser!"
 
 
 msgid "To make changes to Preferences permanent, use \"Save Preferences\""

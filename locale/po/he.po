@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-27 09:50+0000\n"
-"PO-Revision-Date: 2025-07-23 15:33+0000\n"
-"Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
+"POT-Creation-Date: 2025-11-03 10:44+0000\n"
+"PO-Revision-Date: 2025-11-01 23:59+0000\n"
+"Last-Translator: golden dragon <trmhtk2@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
 "Language: he\n"
 "MIME-Version: 1.0\n"
@@ -27,6 +27,10 @@ msgid "Name of the AOV"
 msgstr "AOV-ה םש"
 
 
+msgid "Type"
+msgstr "גוס"
+
+
 msgid "Color"
 msgstr "עבצ"
 
@@ -40,7 +44,11 @@ msgstr "AOVs לש תמישר"
 
 
 msgid "Collection of AOVs"
-msgstr "AOVs לש ףסוא"
+msgstr "םי־AOV לש ףסוא"
+
+
+msgid "Action Group"
+msgstr "הלועפ תצובק"
 
 
 msgid "Color Set"
@@ -56,7 +64,7 @@ msgstr "םיעבצ"
 
 
 msgid "Select"
-msgstr "רחוב"
+msgstr "הריחב"
 
 
 msgctxt "ID"
@@ -70,8 +78,23 @@ msgstr "Grease Pencil"
 
 
 msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "Grease Pencil v3"
+
+
+msgctxt "ID"
 msgid "Image"
 msgstr "הנומת"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "םיקולב ץע"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "טקייבוא"
 
 
 msgctxt "ID"
@@ -117,11 +140,11 @@ msgstr "ףסוה"
 
 
 msgid "Subtract"
-msgstr "ריסחהל"
+msgstr "רוסיח"
 
 
 msgid "Multiply"
-msgstr "ליפכהל"
+msgstr "לפכ"
 
 
 msgid "Hold"
@@ -148,12 +171,20 @@ msgid "Default"
 msgstr "לדחמ תרירב"
 
 
+msgid "Graph Editor"
+msgstr "םיפרג ךרוע"
+
+
 msgid "Width"
 msgstr "בחור"
 
 
+msgid "Options"
+msgstr "תויורשפא"
+
+
 msgid "Data Type"
-msgstr "םינותנ סופיט"
+msgstr "םינותנ גוס"
 
 
 msgid "Vector"
@@ -168,8 +199,20 @@ msgid "Face"
 msgstr "האפ"
 
 
+msgid "Object"
+msgstr "טקייבוא"
+
+
 msgid "Indirect"
 msgstr "ףיקע"
+
+
+msgid "Where to save baked image textures"
+msgstr "תויופאה םקרמה תונומת ורמשי ובש םוקימה"
+
+
+msgid "Image Textures"
+msgstr "הנומת ימקרמ"
 
 
 msgid "Emission"
@@ -197,31 +240,31 @@ msgstr "םימקרמ"
 
 
 msgid "Collection of cameras"
-msgstr "תומלצמ לש ףסוא"
+msgstr "תומלצמ ףסוא"
 
 
 msgid "Collection of collections"
-msgstr "םיפסוא לש ףסוא"
+msgstr "םיפסוא ףסוא"
 
 
 msgid "Collection of images"
-msgstr "תונומת לש ףסוא"
+msgstr "תונומת ףסוא"
 
 
 msgid "Collection of lights"
-msgstr "תורוא לש ףסוא"
+msgstr "תורוא ףסוא"
 
 
 msgid "Collection of texts"
-msgstr "םיטסקט לש ףסוא"
+msgstr "םיטסקט ףסוא"
 
 
 msgid "Collection of textures"
-msgstr "םימקרמ לש ףסוא"
+msgstr "םימקרמ ףסוא"
 
 
 msgid "Collection of worlds"
-msgstr "תומלוע לש ףסוא"
+msgstr "תומלוע ףסוא"
 
 
 msgid "Speed"
@@ -229,7 +272,7 @@ msgstr "תוריהמ"
 
 
 msgid "Strength"
-msgstr "המצוע"
+msgstr "קזוח"
 
 
 msgid "Random"
@@ -246,6 +289,11 @@ msgstr "בנז"
 
 msgid "Vertex Color"
 msgstr "דוקדוק עבצ"
+
+
+msgctxt "GPencil"
+msgid "Radius"
+msgstr "סוידר"
 
 
 msgctxt "Amount"
@@ -312,6 +360,10 @@ msgstr "םוקימ"
 
 msgid "White Level"
 msgstr "ןבל תמר"
+
+
+msgid "Bézier"
+msgstr "הייזב"
 
 
 msgid "Surface"
@@ -428,6 +480,22 @@ msgid "Tool Header"
 msgstr "ילכ תרתוכ"
 
 
+msgid "Grease Pencil Layer"
+msgstr "Grease Pencil תבכש"
+
+
+msgid "Grease Pencil Layer Group"
+msgstr "Grease Pencil תובכש תצובק"
+
+
+msgid "Grease Pencil Group"
+msgstr "Grease Pencil תצובק"
+
+
+msgid "Grease Pencil Layers"
+msgstr "Grease Pencil תובכש"
+
+
 msgid "Red Green Blue"
 msgstr "לוחכ קורי םודא"
 
@@ -463,6 +531,10 @@ msgid "Smooth"
 msgstr "קלח"
 
 
+msgid "Use this brush in texture paint mode"
+msgstr "םקרמ תעיבצ בצמב וזה תשרבמב שמתשה"
+
+
 msgid "Up"
 msgstr "הלעמ"
 
@@ -473,6 +545,14 @@ msgstr "ביתנ"
 
 msgid "Mean"
 msgstr "עצוממ"
+
+
+msgid "Grease Pencil layer groups"
+msgstr "Grease Pencil תובכש תוצובק"
+
+
+msgid "Grease Pencil layers"
+msgstr "Grease Pencil תובכש"
 
 
 msgctxt "Material"
@@ -520,6 +600,10 @@ msgid "Weight Paint"
 msgstr "לקשמ תעיבצ"
 
 
+msgid "Texture Paint"
+msgstr "םקרמ תעיבצ"
+
+
 msgid "Vertex Groups"
 msgstr "דוקדוק תוצובק"
 
@@ -534,6 +618,14 @@ msgstr "רעיש"
 
 msgid "Quadratic"
 msgstr "יעוביר"
+
+
+msgid "Grease Pencil Sculpt Mode"
+msgstr "Grease Pencil‭ לוסיפ בצמ"
+
+
+msgid "Screen layouts of a workspace"
+msgstr "הדובע תביבס לש ךסמ תוסירפ"
 
 
 msgid "Mist"
@@ -556,6 +648,10 @@ msgid "Color Management"
 msgstr "עבצ לוהינ"
 
 
+msgid "Video"
+msgstr "ואידיו"
+
+
 msgctxt "UI_Events_KeyMaps"
 msgid "Pen"
 msgstr "טע"
@@ -566,8 +662,17 @@ msgid "Eraser"
 msgstr "קחמ"
 
 
+msgctxt "Action"
+msgid "Bézier"
+msgstr "הייזב"
+
+
 msgid "Group Name"
 msgstr "הצובק םש"
+
+
+msgid "Bézier Curve"
+msgstr "הייזב םוקע"
 
 
 msgctxt "FreestyleLineStyle"
@@ -583,10 +688,6 @@ msgid "Mask"
 msgstr "הכסמ"
 
 
-msgid "Mirror"
-msgstr "הארמ"
-
-
 msgid "Apply"
 msgstr "לחה"
 
@@ -595,8 +696,16 @@ msgid "Convert"
 msgstr "רמה"
 
 
+msgid "Layout"
+msgstr "הסירפ"
+
+
 msgid "Face Data"
 msgstr "האפ ינותנ"
+
+
+msgid "Mirror"
+msgstr "הארמ"
 
 
 msgid "Languages..."
@@ -653,6 +762,15 @@ msgstr "תופקתשה"
 
 msgid "Y Axis"
 msgstr "Y ריצ"
+
+
+msgid "Export UV layout to file"
+msgstr "ץבוקל UV תסירפ אציי"
+
+
+msgctxt "Operator"
+msgid "Export UV Layout"
+msgstr "UV תסירפ אציי"
 
 
 msgid "Generated"
@@ -713,6 +831,15 @@ msgstr "בלשמ"
 
 
 msgctxt "Operator"
+msgid "Transfer Mesh Data Layout"
+msgstr "תשר ינותנ תסירפ רבעה"
+
+
+msgid "Transfer layout of data layer(s) from active to selected meshes"
+msgstr "תורחבנ תותשרל הליעפ תשרמ םינותנ תובכש\\הבכש לש הסירפ רבעה"
+
+
+msgctxt "Operator"
 msgid "Select Vertex Group"
 msgstr "דוקדוק תצובק רחב"
 
@@ -740,6 +867,15 @@ msgstr "לוחתא"
 
 
 msgctxt "Operator"
+msgid "Texture Paint Mode"
+msgstr "םקרמ תעיבצ בצמ"
+
+
+msgid "Toggle texture paint mode in 3D view"
+msgstr "תידממ-תלת הגוצתב םקרמ תעיבצ בצמ לעפה"
+
+
+msgctxt "Operator"
 msgid "Replace"
 msgstr "ףילחהל"
 
@@ -748,8 +884,32 @@ msgid "Select All"
 msgstr "לכה רחוב"
 
 
+msgid "File format to export the UV layout to"
+msgstr "UV-ה תסירפ אצוית וליאש ץבוקה גוס"
+
+
+msgid "Export the UV layout to a vector SVG file"
+msgstr "םיירוטקוו SVG יצבוקל UV-ה תסירפ תא אציי"
+
+
+msgid "Export the UV layout to a vector EPS file"
+msgstr "םיירוטקוו EPS יצבוקל UV-ה תסירפ תא אציי"
+
+
+msgid "Export the UV layout to a bitmap image"
+msgstr "תויביס תפמ תונומתל UV-ה תסירפ תא אציי"
+
+
+msgid "Set amount of opacity for exported UV layout"
+msgstr "תאצוימה UV-ה תסירפל תופיקשה תומכ תא עבק"
+
+
+msgid "Rotate islands to improve layout"
+msgstr "הסירפה רופישל םייא בבוס"
+
+
 msgid "Remove"
-msgstr "רסה"
+msgstr "הרסה"
 
 
 msgid "Header Text"
@@ -760,8 +920,16 @@ msgid "Export Vertex Colors"
 msgstr "דוקדוק יעבצ אציי"
 
 
+msgid "Set image for texture painting directly"
+msgstr "רישי ןפואב םקרמ תעיבצל הנומת עבק"
+
+
 msgid "Color Picker"
 msgstr "םיעבצ רחוב"
+
+
+msgid "Use texture painting in Sculpt Mode"
+msgstr "לוסיפ בצמב םקרמ תעיבצב שמתשה"
 
 
 msgid "Manual"
@@ -820,6 +988,11 @@ msgstr "Grease Pencil"
 
 
 msgctxt "WindowManager"
+msgid "Graph Editor"
+msgstr "םיפרג ךרוע"
+
+
+msgctxt "WindowManager"
 msgid "Image"
 msgstr "הנומת"
 
@@ -874,8 +1047,17 @@ msgid "Movie"
 msgstr "טרס"
 
 
+msgctxt "Text"
+msgid "Weight"
+msgstr "לקשמ"
+
+
 msgid "AOV"
 msgstr "AOV"
+
+
+msgid "Video_Editing"
+msgstr "ואידיו_תכירע"
 
 
 msgid "Cancel"
@@ -1085,5 +1267,10 @@ msgstr "היצמינא"
 
 msgctxt "WorkSpace"
 msgid "Modeling"
-msgstr "תונמגוד"
+msgstr "לודימ"
+
+
+msgctxt "WorkSpace"
+msgid "Video Editing"
+msgstr "ואידיו תכירע"
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-27 09:50+0000\n"
+"POT-Creation-Date: 2025-11-03 10:44+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7240,48 +7240,12 @@ msgid "Mask"
 msgstr "Maski"
 
 
-msgid "Text"
-msgstr "Teksti"
-
-
-msgid "Metaball"
-msgstr "Metapallo"
-
-
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
-
-
-msgid "Names"
-msgstr "Nimet"
-
-
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
-
-
 msgid "Select More/Less"
 msgstr "Valitse enemmän/vähemmän"
 
 
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
-
-
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
-
-
-msgid "Utilities"
-msgstr "Työkalut"
-
-
-msgid "Math"
-msgstr "Matematiikka"
-
-
-msgid "Select Loops"
-msgstr "Valitse silmukat"
+msgid "Metaball"
+msgstr "Metapallo"
 
 
 msgid "Light"
@@ -7300,8 +7264,36 @@ msgid "Track"
 msgstr "Raide"
 
 
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
+
+
 msgid "Hooks"
 msgstr "Koukut"
+
+
+msgid "Random Mask"
+msgstr "Satunnainen maski"
+
+
+msgid "Names"
+msgstr "Nimet"
+
+
+msgid "Utilities"
+msgstr "Työkalut"
+
+
+msgid "Math"
+msgstr "Matematiikka"
+
+
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
+
+
+msgid "Text"
+msgstr "Teksti"
 
 
 msgid "Read"
@@ -7312,10 +7304,6 @@ msgid "Write"
 msgstr "Kirjoita"
 
 
-msgid "Random Mask"
-msgstr "Satunnainen maski"
-
-
 msgid "Instances"
 msgstr "Instanssit"
 
@@ -7324,12 +7312,24 @@ msgid "Import"
 msgstr "Tuo"
 
 
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
 
 
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
+
+
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
+
+
+msgid "Select Loops"
+msgstr "Valitse silmukat"
 
 
 msgid "Basic"

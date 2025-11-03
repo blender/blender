@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-27 09:50+0000\n"
+"POT-Creation-Date: 2025-11-03 10:44+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11531,68 +11531,8 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Text"
-msgstr "Tekst"
-
-
 msgid "Metaball"
 msgstr "Metakula"
-
-
-msgid "Show/Hide"
-msgstr "Pokaż/Ukryj"
-
-
-msgid "Clean Up"
-msgstr "Sprzątanie"
-
-
-msgid "Snap"
-msgstr "Przyciągnij"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proporcjonalne edytowanie spadku"
-
-
-msgid "Layout"
-msgstr "Układ"
-
-
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
-
-
-msgid "Local View"
-msgstr "Widok lokalny"
-
-
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
-
-
-msgid "Navigation"
-msgstr "Nawigacja"
-
-
-msgid "Keying"
-msgstr "Kluczowanie"
-
-
-msgid "Utilities"
-msgstr "Narzędzia"
-
-
-msgid "Select Linked"
-msgstr "Zaznacz powiązane"
-
-
-msgid "Math"
-msgstr "Matematyka"
-
-
-msgid "Assign Material"
-msgstr "Przypisanie materiału"
 
 
 msgid "Light"
@@ -11619,12 +11559,52 @@ msgid "Quick Effects"
 msgstr "Szybkie efekty"
 
 
+msgid "Show/Hide"
+msgstr "Pokaż/Ukryj"
+
+
+msgid "Clean Up"
+msgstr "Sprzątanie"
+
+
 msgid "Asset"
 msgstr "Prefabrykat"
 
 
 msgid "Convert"
 msgstr "Konwertuj"
+
+
+msgid "Layout"
+msgstr "Układ"
+
+
+msgid "Keying"
+msgstr "Kluczowanie"
+
+
+msgid "Bone Collections"
+msgstr "Kolekcja kości"
+
+
+msgid "Utilities"
+msgstr "Narzędzia"
+
+
+msgid "Math"
+msgstr "Matematyka"
+
+
+msgid "Face Data"
+msgstr "Dane ściany"
+
+
+msgid "Merge"
+msgstr "Scal"
+
+
+msgid "Text"
+msgstr "Tekst"
 
 
 msgid "Read"
@@ -11635,12 +11615,16 @@ msgid "Write"
 msgstr "Zapis"
 
 
+msgid "Snap"
+msgstr "Przyciągnij"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proporcjonalne edytowanie spadku"
+
+
 msgid "Gizmo"
 msgstr "Gizmo"
-
-
-msgid "Bone Collections"
-msgstr "Kolekcja kości"
 
 
 msgid "Import"
@@ -11651,12 +11635,28 @@ msgid "Deprecated"
 msgstr "Przestarzałe"
 
 
-msgid "Face Data"
-msgstr "Dane ściany"
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
 
 
-msgid "Merge"
-msgstr "Scal"
+msgid "Local View"
+msgstr "Widok lokalny"
+
+
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
+
+
+msgid "Navigation"
+msgstr "Nawigacja"
+
+
+msgid "Select Linked"
+msgstr "Zaznacz powiązane"
+
+
+msgid "Assign Material"
+msgstr "Przypisanie materiału"
 
 
 msgid "Catalog"

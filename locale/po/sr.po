@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-27 09:50+0000\n"
+"POT-Creation-Date: 2025-11-03 10:44+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8501,58 +8501,6 @@ msgid "Metaball"
 msgstr "Мета лопта"
 
 
-msgid "Show/Hide"
-msgstr "Прикажи/сакриј"
-
-
-msgid "Names"
-msgstr "Имена"
-
-
-msgid "Bone Roll"
-msgstr "Ролна костију"
-
-
-msgid "Snap"
-msgstr "Лепљење"
-
-
-msgid "Mirror"
-msgstr "Огледало"
-
-
-msgid "UV Mapping"
-msgstr "UV Мапирање"
-
-
-msgid "Local View"
-msgstr "Локални поглед"
-
-
-msgid "Navigation"
-msgstr "Навигација"
-
-
-msgid "Align View"
-msgstr "Поравнај поглед"
-
-
-msgid "Keying"
-msgstr "Збирка тастера"
-
-
-msgid "Tracking"
-msgstr "Праћење"
-
-
-msgid "Select Linked"
-msgstr "Изабери повезано"
-
-
-msgid "Math"
-msgstr "Математика"
-
-
 msgid "Light"
 msgstr "Светлост"
 
@@ -8577,6 +8525,10 @@ msgid "Quick Effects"
 msgstr "Брзи ефекти"
 
 
+msgid "Show/Hide"
+msgstr "Прикажи/сакриј"
+
+
 msgid "Hooks"
 msgstr "Удице"
 
@@ -8593,8 +8545,20 @@ msgid "Propagate"
 msgstr "Пренеси"
 
 
-msgid "Import"
-msgstr "Увоз"
+msgid "Keying"
+msgstr "Збирка тастера"
+
+
+msgid "Tracking"
+msgstr "Праћење"
+
+
+msgid "Names"
+msgstr "Имена"
+
+
+msgid "Math"
+msgstr "Математика"
 
 
 msgid "Toggle Bone Options"
@@ -8613,16 +8577,52 @@ msgid "Mesh Select Mode"
 msgstr "Мод избора мреже"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Merge"
 msgstr "Сједини"
 
 
 msgid "Special Characters"
 msgstr "Специјални знаци"
+
+
+msgid "Bone Roll"
+msgstr "Ролна костију"
+
+
+msgid "Snap"
+msgstr "Лепљење"
+
+
+msgid "Import"
+msgstr "Увоз"
+
+
+msgid "Mirror"
+msgstr "Огледало"
+
+
+msgid "UV Mapping"
+msgstr "UV Мапирање"
+
+
+msgid "Local View"
+msgstr "Локални поглед"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Navigation"
+msgstr "Навигација"
+
+
+msgid "Align View"
+msgstr "Поравнај поглед"
+
+
+msgid "Select Linked"
+msgstr "Изабери повезано"
 
 
 msgid "Basic"

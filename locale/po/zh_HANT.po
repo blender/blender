@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-27 09:50+0000\n"
+"POT-Creation-Date: 2025-11-03 10:44+0000\n"
 "PO-Revision-Date: 2025-07-27 17:01+0000\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -22414,116 +22414,12 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Text"
-msgstr "文字"
-
-
-msgid "Metaball"
-msgstr "變幻球"
-
-
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
-msgid "Names"
-msgstr "名稱"
-
-
-msgid "Bone Roll"
-msgstr "骨骼滾動"
-
-
-msgid "Clean Up"
-msgstr "清理"
-
-
-msgid "Pivot Point"
-msgstr "樞紐點"
-
-
-msgid "Snap"
-msgstr "吸附"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "比例化編輯衰落"
-
-
-msgid "Automasking"
-msgstr "自動遮罩"
-
-
-msgid "Face Sets Edit"
-msgstr "面集編輯"
-
-
-msgid "Layout"
-msgstr "配置"
-
-
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
-msgid "Local View"
-msgstr "區域檢視"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Navigation"
-msgstr "導覽"
-
-
-msgid "Align View"
-msgstr "對齊檢視"
-
-
-msgid "Adjust"
-msgstr "調整"
-
-
-msgid "Align View to Active"
-msgstr "對齊檢視至作用項"
-
-
-msgid "View Regions"
-msgstr "檢視範圍"
-
-
 msgid "Select More/Less"
 msgstr "選取更多/更少"
 
 
-msgid "Keying"
-msgstr "鍵處理"
-
-
-msgid "Tracking"
-msgstr "跟蹤"
-
-
-msgid "Select Similar"
-msgstr "選取相似者"
-
-
-msgid "Utilities"
-msgstr "效用"
-
-
-msgid "Select Linked"
-msgstr "選取連結項"
-
-
-msgid "Math"
-msgstr "數學公式"
+msgid "Metaball"
+msgstr "變幻球"
 
 
 msgid "Light"
@@ -22554,6 +22450,14 @@ msgid "Quick Effects"
 msgstr "快速效果"
 
 
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
 msgid "Asset"
 msgstr "素材"
 
@@ -22574,20 +22478,8 @@ msgid "Hooks"
 msgstr "鉤"
 
 
-msgid "Read"
-msgstr "讀取"
-
-
-msgid "Sample"
-msgstr "取樣"
-
-
-msgid "Write"
-msgstr "寫入"
-
-
-msgid "Primitives"
-msgstr "原形"
+msgid "Layout"
+msgstr "配置"
 
 
 msgid "Sculpt Set Pivot"
@@ -22596,6 +22488,10 @@ msgstr "設定樞紐點"
 
 msgid "Random Mask"
 msgstr "隨機遮罩"
+
+
+msgid "Adjust"
+msgstr "調整"
 
 
 msgid "Clear Transform"
@@ -22610,16 +22506,28 @@ msgid "Propagate"
 msgstr "增生"
 
 
-msgid "Instances"
-msgstr "實例化"
+msgid "Keying"
+msgstr "鍵處理"
 
 
 msgid "Bone Collections"
 msgstr "骨骼集盒"
 
 
-msgid "Import"
-msgstr "匯入"
+msgid "Tracking"
+msgstr "跟蹤"
+
+
+msgid "Names"
+msgstr "名稱"
+
+
+msgid "Utilities"
+msgstr "效用"
+
+
+msgid "Math"
+msgstr "數學公式"
 
 
 msgid "Toggle Bone Options"
@@ -22642,10 +22550,6 @@ msgid "Face Data"
 msgstr "面資料"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Merge"
 msgstr "合併"
 
@@ -22656,6 +22560,102 @@ msgstr "特殊字元"
 
 msgid "Kerning"
 msgstr "字間微調"
+
+
+msgid "Text"
+msgstr "文字"
+
+
+msgid "Bone Roll"
+msgstr "骨骼滾動"
+
+
+msgid "Read"
+msgstr "讀取"
+
+
+msgid "Sample"
+msgstr "取樣"
+
+
+msgid "Write"
+msgstr "寫入"
+
+
+msgid "Primitives"
+msgstr "原形"
+
+
+msgid "Pivot Point"
+msgstr "樞紐點"
+
+
+msgid "Snap"
+msgstr "吸附"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "比例化編輯衰落"
+
+
+msgid "Automasking"
+msgstr "自動遮罩"
+
+
+msgid "Face Sets Edit"
+msgstr "面集編輯"
+
+
+msgid "Instances"
+msgstr "實例化"
+
+
+msgid "Import"
+msgstr "匯入"
+
+
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Local View"
+msgstr "區域檢視"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Align View"
+msgstr "對齊檢視"
+
+
+msgid "Align View to Active"
+msgstr "對齊檢視至作用項"
+
+
+msgid "View Regions"
+msgstr "檢視範圍"
+
+
+msgid "Select Similar"
+msgstr "選取相似者"
+
+
+msgid "Select Linked"
+msgstr "選取連結項"
 
 
 msgid "Basic"
@@ -48362,6 +48362,14 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
+msgid "Auto-Masking"
+msgstr "自動遮罩"
+
+
+msgid "VR"
+msgstr "VR"
+
+
 msgid "Active Tool"
 msgstr "作用中工具"
 
@@ -48420,14 +48428,6 @@ msgstr "立體視覺"
 
 msgid "Multi Frame"
 msgstr "多重畫框"
-
-
-msgid "Auto-Masking"
-msgstr "自動遮罩"
-
-
-msgid "VR"
-msgstr "VR"
 
 
 msgid "Chain Scaling"
