@@ -7627,10 +7627,12 @@ GroupedSpan<int> calc_vert_neighbors(const SubdivCCG &subdiv_ccg,
   for (const int i : grids.index_range()) {
     const int grid = grids[i];
     const int node_verts_start = i * key.grid_area;
-    r_offset_data[node_verts_start] = r_data.size();
 
     for (const short y : IndexRange(key.grid_size)) {
       for (const short x : IndexRange(key.grid_size)) {
+        const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
+        r_offset_data[node_verts_start + offset] = r_data.size();
+
         SubdivCCGCoord coord{};
         coord.grid_index = grid;
         coord.x = x;
@@ -7642,6 +7644,7 @@ GroupedSpan<int> calc_vert_neighbors(const SubdivCCG &subdiv_ccg,
       }
     }
   }
+  r_offset_data.last() = r_data.size();
   return GroupedSpan<int>(r_offset_data.as_span(), r_data.as_span());
 }
 
