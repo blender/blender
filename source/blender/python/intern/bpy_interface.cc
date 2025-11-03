@@ -905,6 +905,53 @@ std::optional<std::string> BPY_python_current_file_and_line()
 }
 
 #ifdef WITH_PYTHON_MODULE
+
+/* -------------------------------------------------------------------- */
+/** \name Detect Exit Singleton
+ *
+ * Python does not reliably free all modules on exit.
+ * This means we can't rely on #PyModuleDef::m_free running to clean-up
+ * Blender data when Python exits.
+ *
+ * However Python *does* reliably clear the modules name-space.
+ * Store a singleton in modules which may reference Blender owned memory,
+ * calling #main_python_exit once the singleton has been cleared from the
+ * name-space of all modules.
+ * \{ */
+
+static void main_python_exit_ensure();
+
+static void bpy_detect_exit_singleton_cleanup(PyObject * /*capsule*/)
+{
+  main_python_exit_ensure();
+}
+
+static void bpy_detect_exit_singleton_add_to_module(PyObject *mod)
+{
+  static PyObject *singleton = nullptr;
+
+  /* Note that Python's API docs state that:
+   * - If this capsule will be stored as an attribute of a module,
+   *   the name should be specified as `modulename.attributename`.
+   * This is ignored here because the capsule is not intended for script author access.
+   * It also wouldn't make sense as it is stored in multiple modules. */
+  const char *bpy_detect_exit_singleton_id = "_bpy_detect_exit_singleton";
+  if (singleton == nullptr) {
+    /* This is ignored, but must be non-null,
+     * set an address that is non-null and easily identifiable. */
+    void *pointer = reinterpret_cast<void *>(uintptr_t(-1));
+    singleton = PyCapsule_New(
+        pointer, bpy_detect_exit_singleton_id, bpy_detect_exit_singleton_cleanup);
+    BLI_assert(singleton);
+  }
+  else {
+    Py_INCREF(singleton);
+  }
+  PyModule_AddObject(mod, bpy_detect_exit_singleton_id, singleton);
+}
+
+/** \} */
+
 /* TODO: reloading the module isn't functional at the moment. */
 
 static void bpy_module_free(void *mod);
@@ -912,6 +959,16 @@ static void bpy_module_free(void *mod);
 /* Defined in 'creator.c' when building as a Python module. */
 extern int main_python_enter(int argc, const char **argv);
 extern void main_python_exit();
+
+static void main_python_exit_ensure()
+{
+  static bool exit = false;
+  if (exit) {
+    return;
+  }
+  exit = true;
+  main_python_exit();
+}
 
 static struct PyModuleDef bpy_proxy_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
@@ -955,6 +1012,28 @@ static void bpy_module_delay_init(PyObject *bpy_proxy)
 
   /* Initialized in #BPy_init_modules(). */
   PyDict_Update(PyModule_GetDict(bpy_proxy), PyModule_GetDict(bpy_package_py));
+
+  {
+    /* Modules which themselves require access to Blender
+     * allocated resources to be freed should be included in this list.
+     * Once the last module has been cleared, the singleton will be de-allocated
+     * which calls #main_python_exit.
+     *
+     * Note that, other modules can be here as needed. */
+    const char *bpy_modules_array[] = {
+        "bpy.types",
+        /* Not technically required however as this is created early on
+         * in Blender's module initialization, it's likely to be cleared later,
+         * since module cleanup runs in the reverse of the order added to `sys.modules`. */
+        "_bpy",
+    };
+    PyObject *sys_modules = PyImport_GetModuleDict();
+    for (int i = 0; i < ARRAY_SIZE(bpy_modules_array); i++) {
+      PyObject *mod = PyDict_GetItemString(sys_modules, bpy_modules_array[i]);
+      BLI_assert(mod);
+      bpy_detect_exit_singleton_add_to_module(mod);
+    }
+  }
 }
 
 /**
@@ -1048,7 +1127,7 @@ PyMODINIT_FUNC PyInit_bpy()
 
 static void bpy_module_free(void * /*mod*/)
 {
-  main_python_exit();
+  main_python_exit_ensure();
 }
 
 #endif
