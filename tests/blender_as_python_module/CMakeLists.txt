@@ -9,7 +9,7 @@ function(add_blender_as_python_module_test testname testscript)
 
   add_test(
     NAME ${testname}
-    COMMAND ${TEST_PYTHON_EXE} ${TEST_PYTHON_EXE_EXTRA_ARGS} ${testscript} ${ARGN}
+    COMMAND ${TEST_PYTHON_EXE} ${TEST_PYTHON_EXE_EXTRA_ARGS} ${CMAKE_CURRENT_LIST_DIR}/${testscript} ${ARGN}
   )
 
   # On macOS, asan library must be loaded early.
@@ -21,4 +21,5 @@ function(add_blender_as_python_module_test testname testscript)
   endif()
 endfunction()
 
-add_blender_as_python_module_test(import_bpy ${CMAKE_CURRENT_LIST_DIR}/import_bpy.py ${CMAKE_INSTALL_PREFIX_WITH_CONFIG})
+add_blender_as_python_module_test(import_bpy import_bpy.py ${CMAKE_INSTALL_PREFIX_WITH_CONFIG})
+add_blender_as_python_module_test(cleanup_bpy cleanup_bpy.py ${CMAKE_INSTALL_PREFIX_WITH_CONFIG})
