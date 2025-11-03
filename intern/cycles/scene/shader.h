@@ -95,6 +95,7 @@ class Shader : public Node {
   bool need_update_uvs;
   bool need_update_attribute;
   bool need_update_displacement;
+  bool need_update_shadow_transparency;
   bool shadow_transparency_needs_realloc;
 
   /* If the shader has only volume components, the surface is assumed to

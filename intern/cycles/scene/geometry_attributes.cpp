@@ -189,7 +189,7 @@ void GeometryManager::update_svm_attributes(Device * /*unused*/,
     return;
   }
 
-  if (!dscene->attributes_map.need_realloc()) {
+  if ((attr_map_size == dscene->attributes_map.size()) && !dscene->attributes_map.need_realloc()) {
     return;
   }
 
@@ -465,7 +465,7 @@ void GeometryManager::device_update_attributes(Device *device,
       geom_attributes[i].add(shader->attributes);
     }
 
-    if (geom->is_hair() && static_cast<Hair *>(geom)->need_shadow_transparency()) {
+    if (geom->attributes.find(ATTR_STD_SHADOW_TRANSPARENCY)) {
       geom_attributes[i].add(ATTR_STD_SHADOW_TRANSPARENCY);
     }
   }
