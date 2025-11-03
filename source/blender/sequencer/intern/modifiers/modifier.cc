@@ -199,14 +199,14 @@ static short get_strip_modifier_expand_flag(const bContext * /*C*/, Panel *panel
 {
   PointerRNA *smd_ptr = UI_panel_custom_data_get(panel);
   StripModifierData *smd = reinterpret_cast<StripModifierData *>(smd_ptr->data);
-  return smd->layout_panel_open_flag;
+  return smd->ui_expand_flag;
 }
 
 static void set_strip_modifier_expand_flag(const bContext * /*C*/, Panel *panel, short expand_flag)
 {
   PointerRNA *smd_ptr = UI_panel_custom_data_get(panel);
   StripModifierData *smd = reinterpret_cast<StripModifierData *>(smd_ptr->data);
-  smd->layout_panel_open_flag = expand_flag;
+  smd->ui_expand_flag = expand_flag;
 }
 
 PanelType *modifier_panel_register(ARegionType *region_type,
@@ -361,7 +361,7 @@ StripModifierData *modifier_new(Strip *strip, const char *name, int type)
 
   smd->type = type;
   smd->flag |= STRIP_MODIFIER_FLAG_EXPANDED;
-  smd->layout_panel_open_flag |= UI_PANEL_DATA_EXPAND_ROOT;
+  smd->ui_expand_flag |= UI_PANEL_DATA_EXPAND_ROOT;
 
   if (!name || !name[0]) {
     STRNCPY_UTF8(smd->name, CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, smti->name));

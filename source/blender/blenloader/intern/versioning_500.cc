@@ -4082,8 +4082,7 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 4)) {
     /* Clear mute flag on node types that set ntype->no_muting = true. */
-    static const Set<std::string> no_muting_nodes = {"CompositorNodeSplit",
-                                                     "CompositorNodeViewer",
+    static const Set<std::string> no_muting_nodes = {"CompositorNodeViewer",
                                                      "NodeClosureInput",
                                                      "NodeClosureOutput",
                                                      "GeometryNodeForeachGeometryElementInput",
@@ -4108,6 +4107,20 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
           node->flag &= ~NODE_MUTED;
         }
       }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 114)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (!scene->ed) {
+        continue;
+      }
+      blender::seq::foreach_strip(&scene->ed->seqbase, [&](Strip *strip) {
+        LISTBASE_FOREACH (StripModifierData *, md, &strip->modifiers) {
+          md->ui_expand_flag = md->layout_panel_open_flag & UI_PANEL_DATA_EXPAND_ROOT;
+        }
+        return true;
+      });
     }
   }
 
