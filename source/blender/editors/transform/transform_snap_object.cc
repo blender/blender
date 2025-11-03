@@ -1171,7 +1171,7 @@ static bool snap_object_context_runtime_init(SnapObjectContext *sctx,
         }
 
         if (!sctx->grid.use_init_co) {
-          memset(sctx->grid.planes, 0, sizeof(sctx->grid.planes));
+          memset(reinterpret_cast<void *>(sctx->grid.planes), 0, sizeof(sctx->grid.planes));
           sctx->grid.planes[0][2] = 1.0f;
           if (math::abs(sctx->runtime.ray_dir[0]) < math::abs(sctx->runtime.ray_dir[1])) {
             sctx->grid.planes[1][1] = 1.0f;

@@ -648,8 +648,8 @@ static void waveform_draw_rgb(const float *waveform,
   GPU_vertbuf_data_alloc(*vbo, waveform_num);
   WaveformColorVertex *data = vbo->data<WaveformColorVertex>().data();
   for (int i = 0; i < waveform_num; i++) {
-    memcpy(&data->pos, waveform, sizeof(data->pos));
-    memcpy(&data->color, col, sizeof(float) * 3);
+    memcpy(reinterpret_cast<void *>(&data->pos), waveform, sizeof(data->pos));
+    memcpy(reinterpret_cast<void *>(&data->color), col, sizeof(float) * 3);
     data->color.w = alpha;
     waveform += 2;
     col += 3;

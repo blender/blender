@@ -63,7 +63,7 @@ static void rna_Mesh_calc_tangents(Mesh *mesh, ReportList *reports, const char *
   if (CustomData_has_layer(&mesh->corner_data, CD_MLOOPTANGENT)) {
     r_looptangents = static_cast<float4 *>(
         CustomData_get_layer_for_write(&mesh->corner_data, CD_MLOOPTANGENT, mesh->corners_num));
-    memset(r_looptangents, 0, sizeof(float4) * mesh->corners_num);
+    memset(reinterpret_cast<void *>(r_looptangents), 0, sizeof(float4) * mesh->corners_num);
   }
   else {
     r_looptangents = static_cast<float4 *>(CustomData_add_layer(
