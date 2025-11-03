@@ -393,8 +393,13 @@ class ShaderNodesInliner {
     const SocketInContext origin_socket = {from_context, used_link->fromsock};
     if (const auto *value = value_by_socket_.lookup_ptr(origin_socket)) {
       if (std::holds_alternative<DanglingValue>(value->value)) {
-        /* If the input value is dangling, use the value of the socket itself. */
-        this->store_socket_value(socket, {InputSocketValue{socket.socket}});
+        if (this->input_socket_may_have_dangling_value(socket)) {
+          this->store_socket_value(socket, {DanglingValue{}});
+        }
+        else {
+          /* If the input value is dangling, use the value of the socket itself. */
+          this->store_socket_value(socket, {InputSocketValue{socket.socket}});
+        }
         return;
       }
       /* If the socket linked to the input has a value already, copy that value to the current
@@ -407,6 +412,18 @@ class ShaderNodesInliner {
     }
     /* If the origin socket does not have a value yet, only schedule it for evaluation for now.*/
     this->schedule_socket(origin_socket);
+  }
+
+  /**
+   * Generally, input values of a node should never be dangling because otherwise the node can't be
+   * evaluated. However, if a node is never evaluated anyway, then its inputs can be dangling. This
+   * allows the dangling-state to be properly forwarded through the node.
+   */
+  bool input_socket_may_have_dangling_value(const SocketInContext &socket)
+  {
+    BLI_assert(socket->is_input());
+    const NodeInContext node = socket.owner_node();
+    return node->is_reroute() || node->is_muted();
   }
 
   const ComputeContext *get_link_source_context(const bNodeLink &link,
