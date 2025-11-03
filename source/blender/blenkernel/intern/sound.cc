@@ -1535,8 +1535,18 @@ bool BKE_sound_stream_info_get(Main *main,
 }
 
 #  ifdef WITH_RUBBERBAND
-void *BKE_sound_add_time_stretch_effect(void *sound_handle, float fps)
+void *BKE_sound_ensure_time_stretch_effect(void *sound_handle, void *sequence_handle, float fps)
 {
+  /* If sequence handle is already the time stretch effect with the same framerate, use that. */
+  AUD_Sound *cur_seq_sound = sequence_handle ? AUD_SequenceEntry_getSound(sequence_handle) :
+                                               nullptr;
+  if (AUD_Sound_isAnimateableTimeStretchPitchScale(cur_seq_sound) &&
+      AUD_Sound_animateableTimeStretchPitchScale_getFPS(cur_seq_sound) == fps)
+  {
+    return cur_seq_sound;
+  }
+
+  /* Otherwise create the time stretch effect. */
   return AUD_Sound_animateableTimeStretchPitchScale(
       sound_handle, fps, 1.0, 1.0, AUD_STRETCHER_QUALITY_HIGH, false);
 }
