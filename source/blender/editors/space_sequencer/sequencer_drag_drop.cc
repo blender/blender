@@ -46,7 +46,7 @@
 
 /* For querying audio files. */
 #ifdef WITH_AUDASPACE
-#  include "BKE_sound.h"
+#  include "BKE_sound.hh"
 #  include <AUD_Sound.h>
 #  include <AUD_Special.h>
 #endif

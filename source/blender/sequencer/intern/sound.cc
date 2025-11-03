@@ -23,7 +23,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_colortools.hh"
-#include "BKE_sound.h"
+#include "BKE_sound.hh"
 
 #ifdef WITH_CONVOLUTION
 #  include "AUD_Sound.h"

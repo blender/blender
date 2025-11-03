@@ -31,7 +31,7 @@
 #include "BKE_fcurve.hh"
 #include "BKE_global.hh"
 #include "BKE_screen.hh"
-#include "BKE_sound.h"
+#include "BKE_sound.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_markers.hh"

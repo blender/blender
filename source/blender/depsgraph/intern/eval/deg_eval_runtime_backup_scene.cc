@@ -8,7 +8,7 @@
 
 #include "intern/eval/deg_eval_runtime_backup_scene.h"
 
-#include "BKE_sound.h"
+#include "BKE_sound.hh"
 
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"

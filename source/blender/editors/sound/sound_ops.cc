@@ -31,7 +31,7 @@
 #include "BKE_packedFile.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
-#include "BKE_sound.h"
+#include "BKE_sound.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

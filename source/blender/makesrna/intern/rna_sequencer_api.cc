@@ -34,7 +34,6 @@
 #  include "BKE_movieclip.h"
 
 #  include "BKE_report.hh"
-#  include "BKE_sound.h"
 
 #  include "IMB_imbuf.hh"
 #  include "IMB_imbuf_types.hh"

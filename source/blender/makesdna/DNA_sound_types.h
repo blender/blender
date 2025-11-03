@@ -55,10 +55,6 @@ typedef struct bSound {
   char _pad[4];
   double offset_time;
 
-  /* Unused currently. */
-  // int type;
-  // struct bSound *child_sound;
-
   /**
    * The audaspace handle for cache.
    */
@@ -77,8 +73,6 @@ typedef struct bSound {
 
   /** Spin-lock for asynchronous loading of sounds. */
   void *spinlock;
-  /* XXX unused currently (SOUND_TYPE_LIMITER) */
-  // float start, end;
 
   /* Description of Audio channels, as of #eSoundChannels. */
   int audio_channels;
@@ -86,16 +80,6 @@ typedef struct bSound {
   int samplerate;
 
 } bSound;
-
-/* XXX unused currently */
-#if 0
-typedef enum eSound_Type {
-  SOUND_TYPE_INVALID = -1,
-  SOUND_TYPE_FILE = 0,
-  SOUND_TYPE_BUFFER = 1,
-  SOUND_TYPE_LIMITER = 2,
-} eSound_Type;
-#endif
 
 /** #bSound.flags */
 enum {

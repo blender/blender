@@ -53,10 +53,9 @@
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_packedFile.hh"
-#include "BKE_sound.h"
+#include "BKE_sound.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -263,7 +262,6 @@ bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
 
   sound = static_cast<bSound *>(BKE_libblock_alloc(bmain, ID_SO, BLI_path_basename(filepath), 0));
   STRNCPY(sound->filepath, filepath);
-  // sound->type = SOUND_TYPE_FILE; /* UNUSED. */
 
   /* Extract sound specs for bSound */
   SoundInfo info;
@@ -647,45 +645,6 @@ void BKE_sound_refresh_callback_bmain(Main *bmain)
   }
 }
 
-/* XXX unused currently */
-#  if 0
-bSound *BKE_sound_new_buffer(Main *bmain, bSound *source)
-{
-  bSound *sound = nullptr;
-
-  char name[MAX_ID_NAME + 5];
-  BLI_string_join(name, sizeof(name), "buf_", source->id.name);
-
-  sound = BKE_libblock_alloc(bmain, ID_SO, name);
-
-  sound->child_sound = source;
-  sound->type = SOUND_TYPE_BUFFER;
-
-  sound_load(bmain, sound);
-
-  return sound;
-}
-
-bSound *BKE_sound_new_limiter(Main *bmain, bSound *source, float start, float end)
-{
-  bSound *sound = nullptr;
-
-  char name[MAX_ID_NAME + 5];
-  BLI_string_join(name, sizeof(name), "lim_", source->id.name);
-
-  sound = BKE_libblock_alloc(bmain, ID_SO, name);
-
-  sound->child_sound = source;
-  sound->start = start;
-  sound->end = end;
-  sound->type = SOUND_TYPE_LIMITER;
-
-  sound_load(bmain, sound);
-
-  return sound;
-}
-#  endif
-
 void BKE_sound_cache(bSound *sound)
 {
   sound_verify_evaluated_id(&sound->id);
@@ -730,11 +689,6 @@ static void sound_load_audio(Main *bmain, bSound *sound, bool free_waveform)
     BKE_sound_free_waveform(sound);
   }
 
-/* XXX unused currently */
-#  if 0
-  switch (sound->type) {
-    case SOUND_TYPE_FILE:
-#  endif
   {
     char fullpath[FILE_MAX];
 
@@ -754,22 +708,6 @@ static void sound_load_audio(Main *bmain, bSound *sound, bool free_waveform)
       sound->handle = AUD_Sound_file(fullpath);
     }
   }
-/* XXX unused currently */
-#  if 0
-    break;
-  }
-  case SOUND_TYPE_BUFFER:
-    if (sound->child_sound && sound->child_sound->handle) {
-      sound->handle = AUD_bufferSound(sound->child_sound->handle);
-    }
-    break;
-  case SOUND_TYPE_LIMITER:
-    if (sound->child_sound && sound->child_sound->handle) {
-      sound->handle = AUD_limitSound(sound->child_sound, sound->start, sound->end);
-    }
-    break;
-}
-#  endif
   if (sound->flags & SOUND_FLAGS_MONO) {
     void *handle = AUD_Sound_rechannel(sound->handle, AUD_CHANNELS_MONO);
     AUD_Sound_free(sound->handle);

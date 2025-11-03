@@ -41,15 +41,6 @@ struct bSound *BKE_sound_new_file_exists_ex(struct Main *bmain,
                                             bool *r_exists);
 struct bSound *BKE_sound_new_file_exists(struct Main *bmain, const char *filepath);
 
-#if 0 /* UNUSED */
-struct bSound *BKE_sound_new_buffer(struct Main *bmain, struct bSound *source);
-
-struct bSound *BKE_sound_new_limiter(struct Main *bmain,
-                                     struct bSound *source,
-                                     float start,
-                                     float end);
-#endif
-
 void BKE_sound_cache(struct bSound *sound);
 
 void BKE_sound_delete_cache(struct bSound *sound);
@@ -210,8 +201,6 @@ void BKE_sound_jack_sync_callback_set(SoundJackSyncCallback callback);
 void BKE_sound_jack_scene_update(struct Scene *scene, int mode, double time);
 
 /* Dependency graph evaluation. */
-
-struct Depsgraph;
 
 void BKE_sound_evaluate(struct Depsgraph *depsgraph, struct Main *bmain, struct bSound *sound);
 

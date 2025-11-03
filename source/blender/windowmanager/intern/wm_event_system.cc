@@ -50,8 +50,6 @@
 #include "BKE_undo_system.hh"
 #include "BKE_workspace.hh"
 
-#include "BKE_sound.h"
-
 #include "BLT_translation.hh"
 
 #include "ED_asset.hh"

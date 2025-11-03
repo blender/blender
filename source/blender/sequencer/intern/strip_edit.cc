@@ -18,7 +18,7 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_sound.h"
+#include "BKE_sound.hh"
 
 #include "strip_time.hh"
 
