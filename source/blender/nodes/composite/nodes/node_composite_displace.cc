@@ -174,7 +174,7 @@ class DisplaceOperation : public NodeOperation {
       const float2 coordinates = this->compute_coordinates(base_texel, size, displacement);
       output.store_pixel(
           base_texel,
-          Color(image.sample(coordinates, interpolation, extension_mode_x, extension_mode_y)));
+          image.sample<Color>(coordinates, interpolation, extension_mode_x, extension_mode_y));
     });
   }
 

@@ -185,6 +185,32 @@ const char *RealizeOnDomainOperation::get_realization_shader_name()
   return nullptr;
 }
 
+template<typename T>
+static void realize_on_domain(const Result &input,
+                              Result &output,
+                              const float3x3 &inverse_transformation)
+{
+  const RealizationOptions realization_options = input.get_realization_options();
+  const int2 input_size = input.domain().size;
+  const int2 output_size = output.domain().size;
+  parallel_for(output_size, [&](const int2 texel) {
+    const float2 texel_coordinates = float2(texel) + float2(0.5f);
+
+    /* Transform the input image by transforming the domain coordinates with the inverse of input
+     * image's transformation. The inverse transformation is an affine matrix and thus the
+     * coordinates should be in homogeneous coordinates. */
+    const float2 transformed_coordinates =
+        (inverse_transformation * float3(texel_coordinates, 1.0f)).xy();
+
+    const float2 normalized_coordinates = transformed_coordinates / float2(input_size);
+    T sample = input.sample<T>(normalized_coordinates,
+                               realization_options.interpolation,
+                               realization_options.extension_x,
+                               realization_options.extension_y);
+    output.store_pixel(texel, sample);
+  });
+}
+
 void RealizeOnDomainOperation::realize_on_domain_cpu(const float3x3 &inverse_transformation)
 {
   Result &input = this->get_input();
@@ -193,27 +219,25 @@ void RealizeOnDomainOperation::realize_on_domain_cpu(const float3x3 &inverse_tra
   const Domain domain = this->compute_domain();
   output.allocate_texture(domain);
 
-  const RealizationOptions realization_options = input.get_realization_options();
-  parallel_for(domain.size, [&](const int2 texel) {
-    /* Add 0.5 to evaluate the input sampler at the center of the pixel. */
-    float2 coordinates = float2(texel) + float2(0.5f);
-
-    /* Transform the input image by transforming the domain coordinates with the inverse of input
-     * image's transformation. The inverse transformation is an affine matrix and thus the
-     * coordinates should be in homogeneous coordinates. */
-    coordinates = (inverse_transformation * float3(coordinates, 1.0f)).xy();
-
-    /* Subtract the offset and divide by the input image size to get the relevant coordinates into
-     * the sampler's expected [0, 1] range. */
-    const int2 input_size = input.domain().size;
-    float2 normalized_coordinates = coordinates / float2(input_size);
-
-    float4 sample = input.sample(normalized_coordinates,
-                                 realization_options.interpolation,
-                                 realization_options.extension_x,
-                                 realization_options.extension_y);
-    output.store_pixel_generic_type(texel, sample);
-  });
+  input.get_cpp_type()
+      .to_static_type_tag<float,
+                          float2,
+                          float3,
+                          float4,
+                          Color,
+                          int32_t,
+                          int2,
+                          bool,
+                          nodes::MenuValue>([&](auto type_tag) {
+        using T = typename decltype(type_tag)::type;
+        if constexpr (std::is_same_v<T, void>) {
+          /* Unsupported type. */
+          BLI_assert_unreachable();
+        }
+        else {
+          realize_on_domain<T>(input, output, inverse_transformation);
+        }
+      });
 }
 
 Domain RealizeOnDomainOperation::compute_domain()

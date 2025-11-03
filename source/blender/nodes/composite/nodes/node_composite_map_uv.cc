@@ -178,12 +178,12 @@ class MapUVOperation : public NodeOperation {
     const Result &input_image = get_input("Image");
 
     float2 uv_coordinates = input_uv.get_single_value<float3>().xy();
-    float4 sampled_color = sample_pixel(this->context(),
-                                        input_image,
-                                        interpolation,
-                                        extension_mode_x,
-                                        extension_mode_y,
-                                        uv_coordinates);
+    float4 sampled_color = float4(sample_pixel(this->context(),
+                                               input_image,
+                                               interpolation,
+                                               extension_mode_x,
+                                               extension_mode_y,
+                                               uv_coordinates));
 
     /* The UV input is assumed to contain an alpha channel as its third channel, since the
      * UV coordinates might be defined in only a subset area of the UV texture as mentioned.
@@ -213,8 +213,8 @@ class MapUVOperation : public NodeOperation {
 
     parallel_for(domain.size, [&](const int2 texel) {
       float2 uv_coordinates = input_uv.load_pixel<float3>(texel).xy();
-      float4 sampled_color = input_image.sample(
-          uv_coordinates, interpolation, extension_mode_x, extension_mode_y);
+      float4 sampled_color = float4(input_image.sample<Color>(
+          uv_coordinates, interpolation, extension_mode_x, extension_mode_y));
       /* The UV input is assumed to contain an alpha channel as its third channel, since the
        * UV coordinates might be defined in only a subset area of the UV texture as mentioned.
        * In that case, the alpha is typically opaque at the subset area and transparent
