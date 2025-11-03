@@ -500,16 +500,17 @@ class NWReloadImages(Operator):
                                                        'TextureNodeTree', 'GeometryNodeTree'}))
 
     def execute(self, context):
+        edit_tree = context.space_data.edit_tree
         nodes, links = get_nodes_links(context)
-        num_reloaded = 0
+        images_to_reload = set()
+
         for node in nodes:
             if (node.bl_idname == 'TextureNodeTexture'
                     and node.texture is not None
                     and node.texture.type == 'IMAGE'
                     and node.texture.image is not None):
                 # Legacy texture nodes.
-                node.texture.image.reload()
-                num_reloaded += 1
+                images_to_reload.add(node.texture.image)
             elif (node.bl_idname in {'CompositorNodeImage',
                                      'GeometryNodeInputImage',
                                      'ShaderNodeTexEnvironment',
@@ -517,8 +518,7 @@ class NWReloadImages(Operator):
                                      'TextureNodeImage'}
                     and node.image is not None):
                 # Image and environment textures.
-                node.image.reload()
-                num_reloaded += 1
+                images_to_reload.add(node.image)
             elif node.bl_idname in {'GeometryNodeGroup',
                                     'GeometryNodeImageInfo',
                                     'GeometryNodeImageTexture'}:
@@ -526,16 +526,37 @@ class NWReloadImages(Operator):
                 for sock in node.inputs:
                     if (sock.bl_idname == 'NodeSocketImage'
                             and sock.default_value is not None):
-                        sock.default_value.reload()
-                        num_reloaded += 1
+                        images_to_reload.add(sock.default_value)
 
-        if num_reloaded:
-            self.report({'INFO'}, rpt_("Reloaded {:d} image(s)").format(num_reloaded))
-            force_update(context)
-            return {'FINISHED'}
-        else:
+        # Images defined in group interface, typically used by modifier.
+        if edit_tree.bl_idname == 'GeometryNodeTree':
+            interface_ids = []
+            items = edit_tree.interface.items_tree
+            for item in items:
+                if (isinstance(item, bpy.types.NodeTreeInterfaceSocketImage)
+                        and item.in_out == 'INPUT'):
+                    interface_ids.append(item.identifier)
+            if interface_ids:
+                for obj in context.scene.objects:
+                    for mod in obj.modifiers:
+                        if not (mod.type == 'NODES' and mod.node_group == edit_tree):
+                            continue
+                        for id in interface_ids:
+                            if not (img := mod.get(id)):
+                                continue
+                            images_to_reload.add(img)
+
+        if not images_to_reload:
             self.report({'WARNING'}, "No images found to reload in this node tree")
             return {'CANCELLED'}
+
+        for img in images_to_reload:
+            img.reload()
+        force_update(context)
+        edit_tree.interface_update(context)
+
+        self.report({'INFO'}, rpt_("Reloaded {:d} image(s)").format(len(images_to_reload)))
+        return {'FINISHED'}
 
 
 class NWMergeNodes(Operator, NWBase):
