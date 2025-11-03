@@ -227,7 +227,7 @@ PyDoc_STRVAR(
     "   (no 720 degree pitches).\n"
     "\n"
     "   :arg axis: An axis string.\n"
-    "   :type axis: Literal['X, 'Y', 'Z']\n"
+    "   :type axis: Literal['X', 'Y', 'Z']\n"
     "   :arg angle: angle in radians.\n"
     "   :type angle: float\n");
 static PyObject *Euler_rotate_axis(EulerObject *self, PyObject *args)
