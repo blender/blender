@@ -1697,7 +1697,9 @@ bool BKE_sound_stream_info_get(Main * /*main*/,
 #endif /* WITH_AUDASPACE */
 
 #if !defined(WITH_AUDASPACE) || !defined(WITH_RUBBERBAND)
-void *BKE_sound_add_time_stretch_effect(void * /*sound_handle*/, float /*fps*/)
+void *BKE_sound_ensure_time_stretch_effect(void * /*sound_handle*/,
+                                           void * /*sequence_handle*/,
+                                           float /*fps*/)
 {
   return nullptr;
 }
