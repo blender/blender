@@ -4084,8 +4084,7 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 113)) {
     /* Clear mute flag on node types that set ntype->no_muting = true. */
-    static const Set<std::string> no_muting_nodes = {"CompositorNodeSplit",
-                                                     "CompositorNodeViewer",
+    static const Set<std::string> no_muting_nodes = {"CompositorNodeViewer",
                                                      "NodeClosureInput",
                                                      "NodeClosureOutput",
                                                      "GeometryNodeForeachGeometryElementInput",
