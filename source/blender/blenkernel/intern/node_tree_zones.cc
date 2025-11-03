@@ -341,10 +341,17 @@ static std::unique_ptr<bNodeTreeZones> discover_tree_zones(const bNodeTree &tree
     return {};
   }
 
-  for (const bNode *node : tree.nodes_by_type("NodeGroupOutput")) {
-    if (tree_zones->zone_by_node_id.contains(node->identifier)) {
-      /* Group output nodes must not be in a zone. */
-      return {};
+  for (const StringRefNull output_idname : {"NodeGroupOutput",
+                                            "ShaderNodeOutputMaterial",
+                                            "ShaderNodeOutputLight",
+                                            "ShaderNodeOutputWorld",
+                                            "ShaderNodeOutputAOV"})
+  {
+    for (const bNode *node : tree.nodes_by_type(output_idname)) {
+      if (tree_zones->zone_by_node_id.contains(node->identifier)) {
+        /* Output nodes must not be in a zone. */
+        return {};
+      }
     }
   }
 
