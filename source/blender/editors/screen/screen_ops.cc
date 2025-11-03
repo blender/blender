@@ -3372,8 +3372,12 @@ static void SCREEN_OT_frame_jump(wmOperatorType *ot)
 /* function to be called outside UI context, or for redo */
 static wmOperatorStatus frame_jump_delta_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_wm_space_seq(C) != nullptr ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
   const bool backward = RNA_boolean_get(op->ptr, "backward");
+
+  if (scene == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
 
   float delta = scene->r.time_jump_delta;
 
@@ -3401,6 +3405,7 @@ static wmOperatorStatus frame_jump_delta_exec(bContext *C, wmOperator *op)
   }
 
   ED_areas_do_frame_follow(C, true);
+  blender::ed::vse::sync_active_scene_and_time_with_scene_strip(*C);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
 

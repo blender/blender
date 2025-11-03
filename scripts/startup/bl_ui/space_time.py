@@ -46,11 +46,13 @@ def playback_controls(layout, context):
     tool_settings = scene.tool_settings if scene else None
     screen = context.screen
 
-    if scene:
-        layout.popover(
-            panel="TIME_PT_playback",
-            text="Playback",
-        )
+    if not scene:
+        return
+
+    layout.popover(
+        panel="TIME_PT_playback",
+        text="Playback",
+    )
 
     if tool_settings and not is_timeline:
         # The Keyframe settings are not exposed in the Timeline view.
@@ -337,7 +339,9 @@ class TIME_PT_jump(TimelinePanelButtons, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        scene = context.scene
+        st = context.space_data
+        is_sequencer = st.type == 'SEQUENCE_EDITOR' and st.view_type == 'SEQUENCER'
+        scene = context.scene if not is_sequencer else context.sequencer_scene
 
         layout.prop(scene, "time_jump_unit", expand=True, text="Jump Unit")
         layout.prop(scene, "time_jump_delta", text="Delta")
