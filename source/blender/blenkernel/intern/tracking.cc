@@ -2214,7 +2214,8 @@ bool BKE_tracking_camera_distortion_equal(const MovieTrackingCamera *a,
     case TRACKING_DISTORTION_MODEL_DIVISION:
       return a->division_k1 == b->division_k1 && a->division_k2 == b->division_k2;
     case TRACKING_DISTORTION_MODEL_NUKE:
-      return a->nuke_k1 == b->nuke_k1 && a->nuke_k2 == b->nuke_k2;
+      return a->nuke_k1 == b->nuke_k1 && a->nuke_k2 == b->nuke_k2 && a->nuke_p1 == b->nuke_p1 &&
+             a->nuke_p2 == b->nuke_p2;
     case TRACKING_DISTORTION_MODEL_BROWN:
       return a->brown_k1 == b->brown_k1 && a->brown_k2 == b->brown_k2 &&
              a->brown_k3 == b->brown_k3 && a->brown_k4 == b->brown_k4 &&
@@ -2240,10 +2241,11 @@ uint64_t BKE_tracking_camera_distortion_hash(const MovieTrackingCamera *camera)
                               float2(camera->principal_point),
                               float2(camera->division_k1, camera->division_k2));
     case TRACKING_DISTORTION_MODEL_NUKE:
-      return get_default_hash(camera->distortion_model,
-                              float2(camera->pixel_aspect, camera->focal),
-                              float2(camera->principal_point),
-                              float2(camera->nuke_k1, camera->nuke_k2));
+      return get_default_hash(
+          camera->distortion_model,
+          float2(camera->pixel_aspect, camera->focal),
+          float2(camera->principal_point),
+          float4(camera->nuke_k1, camera->nuke_k2, camera->nuke_p1, camera->nuke_p2));
     case TRACKING_DISTORTION_MODEL_BROWN:
       return get_default_hash(
           float2(camera->pixel_aspect, camera->focal),

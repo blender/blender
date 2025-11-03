@@ -1293,6 +1293,18 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "K2", "Second coefficient of second order Nuke distortion");
   RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_flushUpdate");
 
+  prop = RNA_def_property(srna, "nuke_p1", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_range(prop, -10, 10, 0.1, 3);
+  RNA_def_property_ui_text(prop, "P1", "First coefficient of tangential Nuke distortion");
+  RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_flushUpdate");
+
+  prop = RNA_def_property(srna, "nuke_p2", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_range(prop, -10, 10, 0.1, 3);
+  RNA_def_property_ui_text(prop, "P2", "Second coefficient of tangential Nuke distortion");
+  RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_flushUpdate");
+
   /* Brown-Conrady distortion parameters */
   prop = RNA_def_property(srna, "brown_k1", PROP_FLOAT, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

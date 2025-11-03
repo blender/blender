@@ -143,14 +143,16 @@ void InvertNukeDistortionModel(const T& focal_length_x,
                                const int image_height,
                                const T& k1,
                                const T& k2,
+                               const T& p1,
+                               const T& p2,
                                const T& image_x,
                                const T& image_y,
                                T* normalized_x,
                                T* normalized_y) {
-  // According to the documentation:
+  // According to the documentation for the anamorphic model:
   //
-  //   xu = xd / (1 + k0 * rd^2 + k1 * rd^4)
-  //   yu = yd / (1 + k0 * rd^2 + k1 * rd^4)
+  //   xu = xd / (1 + k0 * rd^2 + k1 * rd^4 + k2 * yd^2)
+  //   yu = yd / (1 + k0 * rd^2 + k1 * rd^4 + k3 * xd^2)
   //
   // Legend:
   //   (xd, yd) are the distorted cartesian coordinates,
@@ -160,6 +162,8 @@ void InvertNukeDistortionModel(const T& focal_length_x,
   //   the k-values are the distortion coefficients.
   //
   // The coordinate systems are relative to the distortion centre.
+  // Nukes k0, k1, k2, k3 correspond to Blenders k1, k2, p1, p2.
+  // The spherical model is identical except p1 and p2 are both zero.
 
   const int max_image_size = std::max(image_width, image_height);
   const double max_half_image_size = max_image_size * 0.5;
@@ -173,11 +177,12 @@ void InvertNukeDistortionModel(const T& focal_length_x,
   const T xd = (image_x - principal_point_x) / max_half_image_size;
   const T yd = (image_y - principal_point_y) / max_half_image_size;
 
-  T rd2 = xd * xd + yd * yd;
+  T xd2 = xd * xd;
+  T yd2 = yd * yd;
+  T rd2 = xd2 + yd2;
   T rd4 = rd2 * rd2;
-  T r_coeff = T(1) / (T(1) + k1 * rd2 + k2 * rd4);
-  T xu = xd * r_coeff;
-  T yu = yd * r_coeff;
+  T xu = xd / (T(1) + k1 * rd2 + k2 * rd4 + p1 * yd2);
+  T yu = yd / (T(1) + k1 * rd2 + k2 * rd4 + p2 * xd2);
 
   *normalized_x = xu * max_half_image_size / focal_length_x;
   *normalized_y = yu * max_half_image_size / focal_length_y;
@@ -197,6 +202,8 @@ void ApplyNukeDistortionModel(const double focal_length_x,
                               const int image_height,
                               const double k1,
                               const double k2,
+                              const double p1,
+                              const double p2,
                               const double normalized_x,
                               const double normalized_y,
                               double* image_x,
