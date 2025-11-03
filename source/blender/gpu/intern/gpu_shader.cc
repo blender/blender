@@ -1010,7 +1010,10 @@ void ShaderCompiler::do_work(void *work_payload)
     specialize_shader(batch->specializations[shader_index]);
   }
 
-  batch->pending_compilations--;
+  {
+    std::unique_lock lock(mutex_);
+    batch->pending_compilations--;
+  }
 
   compilation_finished_notification_.notify_all();
 }

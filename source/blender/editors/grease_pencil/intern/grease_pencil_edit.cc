@@ -3181,6 +3181,20 @@ static void GREASE_PENCIL_OT_extrude(wmOperatorType *ot)
 /** \name Reproject Strokes Operator
  * \{ */
 
+/* Determine how much the radius needs to be scaled to look the same from the view. */
+static float calculate_radius_projection_factor(const RegionView3D *rv3d,
+                                                const float3 &old_pos,
+                                                const float3 &new_pos)
+{
+  /* Don't scale the radius when the view is orthographic. */
+  if (!rv3d->is_persp) {
+    return 1.0f;
+  }
+
+  const float3 view_center = float3(rv3d->viewinv[3]);
+  return math::length(new_pos - view_center) / math::length(old_pos - view_center);
+}
+
 static wmOperatorStatus grease_pencil_reproject_exec(bContext *C, wmOperator *op)
 {
   Scene &scene = *CTX_data_scene(C);
@@ -3188,6 +3202,8 @@ static wmOperatorStatus grease_pencil_reproject_exec(bContext *C, wmOperator *op
 
   View3D *v3d = CTX_wm_view3d(C);
   ARegion *region = CTX_wm_region(C);
+
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
   const ReprojectMode mode = ReprojectMode(RNA_enum_get(op->ptr, "type"));
   const bool keep_original = RNA_boolean_get(op->ptr, "keep_original");
@@ -3249,6 +3265,7 @@ static wmOperatorStatus grease_pencil_reproject_exec(bContext *C, wmOperator *op
 
     threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
       bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+      MutableSpan<float> radii = curves.radius_for_write();
 
       IndexMaskMemory memory;
       const IndexMask editable_points = retrieve_editable_points(
@@ -3316,9 +3333,14 @@ static wmOperatorStatus grease_pencil_reproject_exec(bContext *C, wmOperator *op
                                                    hit_normal))
             {
               /* Apply offset over surface. */
-              position = math::transform_point(
+              const float3 new_pos = math::transform_point(
                   world_space_to_layer_space,
                   hit_position + math::normalize(ray_start - hit_position) * offset);
+
+              if (selection_name == ".selection") {
+                radii[point_i] *= calculate_radius_projection_factor(rv3d, position, new_pos);
+              }
+              position = new_pos;
             }
           });
         }
@@ -3326,7 +3348,12 @@ static wmOperatorStatus grease_pencil_reproject_exec(bContext *C, wmOperator *op
           const DrawingPlacement drawing_placement(
               scene, *region, *v3d, *object, &layer, mode, offset, nullptr);
           points_to_reproject.foreach_index(GrainSize(4096), [&](const int point_i) {
-            positions[point_i] = drawing_placement.reproject(positions[point_i]);
+            const float3 new_pos = drawing_placement.reproject(positions[point_i]);
+            if (selection_name == ".selection") {
+              radii[point_i] *= calculate_radius_projection_factor(
+                  rv3d, positions[point_i], new_pos);
+            }
+            positions[point_i] = new_pos;
           });
         }
 
