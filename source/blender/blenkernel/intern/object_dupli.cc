@@ -1349,15 +1349,16 @@ static void make_duplis_faces(const DupliContext *ctx)
   FaceDupliData_Params fdd_params = {ctx, (parent->transflag & OB_DUPLIFACES_SCALE) != 0};
 
   if (em != nullptr) {
-    const int uv_offset = CustomData_get_offset_named(
-        &em->bm->ldata, CD_PROP_FLOAT2, mesh_eval->default_uv_map_name());
+    const char *active_layer = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
+    const int cd_loop_uv_offset = CustomData_get_offset_named(
+        &em->bm->ldata, CD_PROP_FLOAT2, active_layer);
     FaceDupliData_EditMesh fdd{};
     fdd.params = fdd_params;
     fdd.em = em;
     fdd.vert_positions_deform = vert_positions_deform;
     fdd.has_orco = !vert_positions_deform.is_empty();
-    fdd.has_uvs = (uv_offset != -1);
-    fdd.cd_loop_uv_offset = uv_offset;
+    fdd.has_uvs = (cd_loop_uv_offset != -1);
+    fdd.cd_loop_uv_offset = cd_loop_uv_offset;
     make_child_duplis(ctx, &fdd, make_child_duplis_faces_from_editmesh);
   }
   else {
