@@ -9,6 +9,7 @@
 #include "BLI_array.hh"
 #include "BLI_array_utils.hh"
 #include "BLI_assert.h"
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
@@ -3196,10 +3197,13 @@ static wmOperatorStatus grease_pencil_reproject_exec(bContext *C, wmOperator *op
   const float offset = RNA_float_get(op->ptr, "offset");
 
   /* Init snap context for geometry projection. */
-  transform::SnapObjectContext *snap_context = nullptr;
-  if (mode == ReprojectMode::Surface) {
-    snap_context = transform::snap_object_context_create(&scene, 0);
-  }
+  threading::EnumerableThreadSpecific<transform::SnapObjectContext *> thread_snap_contexts(
+      [&]() -> transform::SnapObjectContext * {
+        if (mode == ReprojectMode::Surface) {
+          return transform::snap_object_context_create(&scene, 0);
+        }
+        return nullptr;
+      });
 
   const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(
       scene.toolsettings);
@@ -3300,6 +3304,7 @@ static wmOperatorStatus grease_pencil_reproject_exec(bContext *C, wmOperator *op
 
             transform::SnapObjectParams params{};
             params.snap_target_select = SCE_SNAP_TARGET_ALL;
+            transform::SnapObjectContext *snap_context = thread_snap_contexts.local();
             if (transform::snap_object_project_ray(snap_context,
                                                    depsgraph,
                                                    v3d,
@@ -3331,8 +3336,10 @@ static wmOperatorStatus grease_pencil_reproject_exec(bContext *C, wmOperator *op
     });
   }
 
-  if (snap_context != nullptr) {
-    transform::snap_object_context_destroy(snap_context);
+  for (transform::SnapObjectContext *snap_context : thread_snap_contexts) {
+    if (snap_context != nullptr) {
+      transform::snap_object_context_destroy(snap_context);
+    }
   }
 
   if (mode == ReprojectMode::Surface) {
