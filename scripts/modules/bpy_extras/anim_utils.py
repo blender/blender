@@ -136,6 +136,16 @@ def action_ensure_channelbag_for_slot(action: Action, slot: ActionSlot) -> Actio
     return strip.channelbag(slot, ensure=True)
 
 
+def animdata_get_channelbag_for_assigned_slot(anim_data) -> ActionChannelbag:
+    """Return the channelbag used in the given anim_data or None if there is no Action
+    + Slot combination defined."""
+    if not anim_data:
+        return None
+    if not anim_data.action or not anim_data.action_slot:
+        return None
+    return action_get_channelbag_for_slot(anim_data.action, anim_data.action_slot)
+
+
 def bake_action(
         obj,
         *,
