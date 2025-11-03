@@ -1191,8 +1191,16 @@ static void std_node_socket_draw(
       }
       else {
         uiLayout *row = &layout->split(0.4f, false);
-        row->label(label, ICON_NONE);
-        row->prop(ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
+        uiLayout *label_layout = &row->column(true);
+        label_layout->label(label, ICON_NONE);
+        uiLayout *color_layout = &row->column(true);
+        color_layout->prop(ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
+        /* Keep color layout active to avoid darkened color appearance when inactive. */
+        if (sock->is_inactive()) {
+          layout->active_set(true);
+          label_layout->active_set(false);
+          color_layout->active_set(true);
+        }
       }
       break;
     }
