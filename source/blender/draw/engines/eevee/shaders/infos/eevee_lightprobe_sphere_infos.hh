@@ -11,6 +11,8 @@
 #  include "eevee_common_infos.hh"
 #  include "eevee_lightprobe_shared.hh"
 #  include "eevee_lightprobe_volume_infos.hh"
+#  include "eevee_sampling_infos.hh"
+#  include "eevee_uniform_infos.hh"
 
 #  define SPHERE_PROBE
 #endif

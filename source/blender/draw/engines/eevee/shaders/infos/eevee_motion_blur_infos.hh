@@ -9,6 +9,7 @@
 #  include "draw_view_infos.hh"
 #  include "eevee_common_infos.hh"
 #  include "eevee_motion_blur_shared.hh"
+#  include "eevee_sampling_infos.hh"
 #  include "eevee_velocity_infos.hh"
 #endif
 
