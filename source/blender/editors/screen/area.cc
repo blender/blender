@@ -3549,9 +3549,9 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   UI_blocklist_update_window_matrix(C, &region->runtime->uiblocks);
 
   /* draw panels if they are large enough. */
-  const bool has_catgories = (region->panels_category_active.first != nullptr);
-  const short min_draw_size = has_catgories ? short(UI_PANEL_CATEGORY_MIN_WIDTH) + 20 :
-                                              std::min(region->runtime->type->prefsizex, 20);
+  const bool has_categories = (region->panels_category_active.first != nullptr);
+  const short min_draw_size = has_categories ? short(UI_PANEL_CATEGORY_MIN_WIDTH) + 20 :
+                                               std::min(region->runtime->type->prefsizex, 20);
   if (region->winx >= (min_draw_size * UI_SCALE_FAC / aspect)) {
     UI_panels_draw(C, region);
   }
