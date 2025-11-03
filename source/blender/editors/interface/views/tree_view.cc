@@ -949,7 +949,7 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
     int icon = tree_view.show_display_options_ ? ICON_DISCLOSURE_TRI_DOWN :
                                                  ICON_DISCLOSURE_TRI_RIGHT;
     uiBut *but = uiDefIconBut(
-        block, ButType::IconToggle, 0, icon, 0, 0, UI_UNIT_X, UI_UNIT_Y * 0.3, nullptr, 0, 0, "");
+        block, ButType::Toggle, 0, icon, 0, 0, UI_UNIT_X, UI_UNIT_Y * 0.3, nullptr, 0, 0, "");
     UI_but_func_set(but, set_filtering_collapsed_fn, nullptr, nullptr);
     UI_block_emboss_set(block, ui::EmbossType::Emboss);
     bottom->column(false);
