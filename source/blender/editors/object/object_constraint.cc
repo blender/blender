@@ -2652,19 +2652,20 @@ static wmOperatorStatus pose_ik_add_invoke(bContext *C, wmOperator *op, const wm
      * - the only thing that matters is that we want a target...
      */
     if (tar_pchan) {
-      PointerRNA op_ptr = layout->op("POSE_OT_ik_add", IFACE_("To Active Bone"), ICON_NONE);
+      PointerRNA op_ptr = layout->op("POSE_OT_ik_add", IFACE_("Target Selected Bone"), ICON_NONE);
       RNA_boolean_set(&op_ptr, "with_targets", true);
     }
     else {
-      PointerRNA op_ptr = layout->op("POSE_OT_ik_add", IFACE_("To Active Object"), ICON_NONE);
+      PointerRNA op_ptr = layout->op(
+          "POSE_OT_ik_add", IFACE_("Target Selected Object"), ICON_NONE);
       RNA_boolean_set(&op_ptr, "with_targets", true);
     }
   }
   else {
     /* we have a choice of adding to a new empty, or not setting any target (targetless IK) */
-    PointerRNA op_ptr = layout->op("POSE_OT_ik_add", IFACE_("To New Empty Object"), ICON_NONE);
+    PointerRNA op_ptr = layout->op("POSE_OT_ik_add", IFACE_("Target New Empty Object"), ICON_NONE);
     RNA_boolean_set(&op_ptr, "with_targets", true);
-    op_ptr = layout->op("POSE_OT_ik_add", IFACE_("Without Targets"), ICON_NONE);
+    op_ptr = layout->op("POSE_OT_ik_add", IFACE_("Without Target"), ICON_NONE);
     RNA_boolean_set(&op_ptr, "with_targets", false);
   }
 
@@ -2690,7 +2691,8 @@ void POSE_OT_ik_add(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Add IK to Bone";
-  ot->description = "Add IK Constraint to the active Bone";
+  ot->description =
+      "Add an IK Constraint to the active Bone. The target can be a selected bone or object";
   ot->idname = "POSE_OT_ik_add";
 
   /* API callbacks. */
