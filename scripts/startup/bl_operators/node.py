@@ -261,7 +261,7 @@ class NodeSwapOperator(NodeOperator):
     def transfer_node_properties(self, old_node, new_node):
         for attr in self.properties_to_pass:
             if (attr in self.settings):
-                return
+                continue
 
             if hasattr(old_node, attr) and hasattr(new_node, attr):
                 try:
