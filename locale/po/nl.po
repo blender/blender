@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-27 09:50+0000\n"
+"POT-Creation-Date: 2025-11-03 10:44+0000\n"
 "PO-Revision-Date: 2025-07-23 14:52+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2682,42 +2682,6 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Text"
-msgstr "Tekst"
-
-
-msgid "Show/Hide"
-msgstr "Toon/Verberg"
-
-
-msgid "Names"
-msgstr "Namen"
-
-
-msgid "Layout"
-msgstr "Indeling"
-
-
-msgid "Mirror"
-msgstr "Spiegel"
-
-
-msgid "Local View"
-msgstr "Lokale Scherm"
-
-
-msgid "Navigation"
-msgstr "Navigatie"
-
-
-msgid "Select Similar"
-msgstr "Selecteer Vergelijkbaar"
-
-
-msgid "Select Linked"
-msgstr "Selecteer Aaneengesloten"
-
-
 msgid "Light"
 msgstr "Licht"
 
@@ -2738,6 +2702,10 @@ msgid "Quick Effects"
 msgstr "Snelle Effecten"
 
 
+msgid "Show/Hide"
+msgstr "Toon/Verberg"
+
+
 msgid "Convert"
 msgstr "Converteer"
 
@@ -2746,12 +2714,44 @@ msgid "Hooks"
 msgstr "Haken"
 
 
+msgid "Layout"
+msgstr "Indeling"
+
+
 msgid "Clear Transform"
 msgstr "Maak Transformatie Leeg"
 
 
+msgid "Names"
+msgstr "Namen"
+
+
+msgid "Text"
+msgstr "Tekst"
+
+
 msgid "Import"
 msgstr "Importeren"
+
+
+msgid "Mirror"
+msgstr "Spiegel"
+
+
+msgid "Local View"
+msgstr "Lokale Scherm"
+
+
+msgid "Navigation"
+msgstr "Navigatie"
+
+
+msgid "Select Similar"
+msgstr "Selecteer Vergelijkbaar"
+
+
+msgid "Select Linked"
+msgstr "Selecteer Aaneengesloten"
 
 
 msgctxt "MovieClip"

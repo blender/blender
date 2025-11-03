@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-27 09:50+0000\n"
-"PO-Revision-Date: 2025-10-27 09:49+0000\n"
-"Last-Translator: \"Mattis V.\" <mattis@users.noreply.translate.blender.org>\n"
+"POT-Creation-Date: 2025-11-03 10:44+0000\n"
+"PO-Revision-Date: 2025-10-28 00:59+0000\n"
+"Last-Translator: Cedric Steiert <cedricsteiert@gmail.com>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -18706,112 +18706,12 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
-
-
-msgid "Names"
-msgstr "Namen"
-
-
-msgid "Clean Up"
-msgstr "Aufräumen"
-
-
-msgid "Pivot Point"
-msgstr "Drehpunkt"
-
-
-msgid "Snap"
-msgstr "Einrasten"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportionaler Bearbeitungsabfall"
-
-
-msgid "Mask Edit"
-msgstr "Maskenbearbeitung"
-
-
-msgid "Vertex Group Locks"
-msgstr "Punktgruppen sperren"
-
-
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Mirror"
-msgstr "Spiegeln"
-
-
-msgid "Local View"
-msgstr "Lokale Ansicht"
-
-
-msgid "Viewpoint"
-msgstr "Ansicht"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Ansicht ausrichten"
-
-
-msgid "Align View to Active"
-msgstr "Ansicht auf Aktiv ausrichten"
-
-
-msgid "View Regions"
-msgstr "Vierfenster Ansicht"
-
-
 msgid "Select More/Less"
 msgstr "Mehr/weniger anzeigen"
 
 
-msgid "Keying"
-msgstr "Schlüsselbilder"
-
-
-msgid "Tracking"
-msgstr "Verfolgen"
-
-
-msgid "Select Similar"
-msgstr "Ähnliche auswählen"
-
-
-msgid "Select All by Trait"
-msgstr "Alles nach Merkmal auswählen"
-
-
-msgid "Select Linked"
-msgstr "Verknüpfte auswählen"
-
-
-msgid "Math"
-msgstr "Mathematisch"
-
-
-msgid "Select Loops"
-msgstr "Schleifen auswählen"
-
-
-msgid "Assign Material"
-msgstr "Material zuweisen"
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Light"
@@ -18846,6 +18746,14 @@ msgid "Quick Effects"
 msgstr "Schnelle Effekte"
 
 
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
+
+
+msgid "Clean Up"
+msgstr "Aufräumen"
+
+
 msgid "Asset"
 msgstr "Asset"
 
@@ -18862,20 +18770,12 @@ msgid "Hooks"
 msgstr "Haken"
 
 
-msgid "Read"
-msgstr "Lesen"
+msgid "Layout"
+msgstr "Layout"
 
 
-msgid "Sample"
-msgstr "Beispiel"
-
-
-msgid "Write"
-msgstr "Schreiben"
-
-
-msgid "Primitives"
-msgstr "Grundkörper"
+msgid "Vertex Group Locks"
+msgstr "Punktgruppen sperren"
 
 
 msgid "Random Mask"
@@ -18890,12 +18790,20 @@ msgid "In-Betweens"
 msgstr "Dazwischen"
 
 
-msgid "Instances"
-msgstr "Instanzen"
+msgid "Keying"
+msgstr "Schlüsselbilder"
 
 
-msgid "Import"
-msgstr "Importieren"
+msgid "Tracking"
+msgstr "Verfolgen"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
+msgid "Math"
+msgstr "Mathematisch"
 
 
 msgid "Toggle Bone Options"
@@ -18918,10 +18826,6 @@ msgid "Face Data"
 msgstr "Flächendaten"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Merge"
 msgstr "Zusammenführen"
 
@@ -18932,6 +18836,102 @@ msgstr "Sonderzeichen"
 
 msgid "Kerning"
 msgstr "Kerning"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Read"
+msgstr "Lesen"
+
+
+msgid "Sample"
+msgstr "Beispiel"
+
+
+msgid "Write"
+msgstr "Schreiben"
+
+
+msgid "Primitives"
+msgstr "Grundkörper"
+
+
+msgid "Pivot Point"
+msgstr "Drehpunkt"
+
+
+msgid "Snap"
+msgstr "Einrasten"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportionaler Bearbeitungsabfall"
+
+
+msgid "Mask Edit"
+msgstr "Maskenbearbeitung"
+
+
+msgid "Instances"
+msgstr "Instanzen"
+
+
+msgid "Import"
+msgstr "Importieren"
+
+
+msgid "Mirror"
+msgstr "Spiegeln"
+
+
+msgid "Local View"
+msgstr "Lokale Ansicht"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Viewpoint"
+msgstr "Ansicht"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Ansicht ausrichten"
+
+
+msgid "Align View to Active"
+msgstr "Ansicht auf Aktiv ausrichten"
+
+
+msgid "View Regions"
+msgstr "Vierfenster Ansicht"
+
+
+msgid "Select Similar"
+msgstr "Ähnliche auswählen"
+
+
+msgid "Select All by Trait"
+msgstr "Alles nach Merkmal auswählen"
+
+
+msgid "Select Linked"
+msgstr "Verknüpfte auswählen"
+
+
+msgid "Select Loops"
+msgstr "Schleifen auswählen"
+
+
+msgid "Assign Material"
+msgstr "Material zuweisen"
 
 
 msgid "Assets"
@@ -28447,6 +28447,10 @@ msgid "Save images as JPEGs. (Images that need alpha are saved as PNGs though.) 
 msgstr "Speichern Sie Bilder als JPEGs. (Bilder, die Alpha benötigen, werden jedoch als PNGs gespeichert.) Seien Sie sich eines möglichen Qualitätsverlusts bewusst"
 
 
+msgid "Export materials"
+msgstr "Materialien exportieren"
+
+
 msgid "Do not export materials, and combine mesh primitive groups, losing material slot information"
 msgstr "Exportieren Sie keine Materialien, und kombinieren Sie Maschenprimitive Gruppen, wodurch Materialslotinformationen verloren gehen"
 
@@ -37572,7 +37576,7 @@ msgstr "Aktives Objekt als Kamera einsetzen"
 
 
 msgid "Set the active object as the active camera for this view or scene"
-msgstr "Aktives Objekt als aktive  Kamera für diese Ansicht oder Szene festlegen"
+msgstr "Aktives Objekt als aktive Kamera für diese Ansicht oder Szene festlegen"
 
 
 msgctxt "Operator"
@@ -38001,7 +38005,7 @@ msgstr "Entfernen"
 
 
 msgid "Context Attributes"
-msgstr "Kontext  Attribut"
+msgstr "Kontext-Attribute"
 
 
 msgid "Wrap"
@@ -38900,6 +38904,14 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
+msgid "Auto-Masking"
+msgstr "Automatisches Maskieren"
+
+
+msgid "VR"
+msgstr "VR"
+
+
 msgid "Active Tool"
 msgstr "Aktives Werkzeug"
 
@@ -38974,14 +38986,6 @@ msgstr "Zwiebelhaut"
 
 msgid "Stereoscopy"
 msgstr "Stereoskopie"
-
-
-msgid "Auto-Masking"
-msgstr "Automatisches Maskieren"
-
-
-msgid "VR"
-msgstr "VR"
 
 
 msgid "Chain Scaling"
@@ -48948,6 +48952,10 @@ msgid "Motion Tracking object not found"
 msgstr "Objekt zur Bewegungsverfolgung nicht gefunden"
 
 
+msgid "Unexpected modifier type: {:s}"
+msgstr "Unerwarteter Modifikatortyp: {:s}"
+
+
 msgid "Target object not specified"
 msgstr "Zielobjekt nicht spezifiziert"
 
@@ -49002,6 +49010,10 @@ msgstr "Voreinstellungspfad konnte nicht erstellt werden"
 
 msgid "Unable to remove default presets"
 msgstr "Standardmäßige Voreinstellung konnte nicht gelöscht werden"
+
+
+msgid "Failed to execute the preset: {:s}"
+msgstr "Voreinstellung konnte nicht ausgeführt werden: {:s}"
 
 
 msgid "No other objects selected"
@@ -54135,6 +54147,10 @@ msgid "Path too long, cannot save"
 msgstr "Pfad ist zu lang, konnte nicht gespeichert werden"
 
 
+msgid "Saving failed"
+msgstr "Speichern fehlgeschlagen"
+
+
 msgid "Unable to load %s from %s"
 msgstr "%s von %s konnte nicht geladen werden"
 
@@ -54447,6 +54463,10 @@ msgstr "Menü fehlt:"
 
 msgid "%d items"
 msgstr "%d Gegenstände"
+
+
+msgid "Color Space: "
+msgstr "Farbraum: "
 
 
 msgid "Value:"
@@ -58199,7 +58219,7 @@ msgstr "Engine '%s' ist nicht verfügbar für Szene '%s' (möglicherweise muss e
 
 
 msgid "Cannot overwrite used library '%.240s'"
-msgstr "Kann die genutzte Bibliothek  '%.240s' nicht überschreiben"
+msgstr "Kann die genutzte Bibliothek '%.240s' nicht überschreiben"
 
 
 msgid "Not a library"

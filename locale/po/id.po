@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6f9eadf7a433')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-27 09:50+0000\n"
+"POT-Creation-Date: 2025-11-03 10:44+0000\n"
 "PO-Revision-Date: 2025-07-23 14:57+0000\n"
 "Last-Translator: Michael Tribayu Jatnika Natawiria <mike.natawiria@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15246,52 +15246,8 @@ msgid "Mask"
 msgstr "Masker"
 
 
-msgid "Text"
-msgstr "Teks"
-
-
 msgid "Metaball"
 msgstr "Metabola"
-
-
-msgid "Names"
-msgstr "Nama"
-
-
-msgid "Snap"
-msgstr "Jepret"
-
-
-msgid "Layout"
-msgstr "Tata Letak"
-
-
-msgid "Mirror"
-msgstr "Cermin"
-
-
-msgid "Navigation"
-msgstr "Navigasi"
-
-
-msgid "Tracking"
-msgstr "Pelacakan"
-
-
-msgid "Utilities"
-msgstr "Utilitas"
-
-
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "Assign Material"
-msgstr "Tugaskan Bahan"
 
 
 msgid "Light"
@@ -15322,8 +15278,40 @@ msgid "Hooks"
 msgstr "Kait"
 
 
+msgid "Layout"
+msgstr "Tata Letak"
+
+
+msgid "Tracking"
+msgstr "Pelacakan"
+
+
+msgid "Names"
+msgstr "Nama"
+
+
+msgid "Utilities"
+msgstr "Utilitas"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Merge"
+msgstr "Menggabungkan"
+
+
+msgid "Text"
+msgstr "Teks"
+
+
 msgid "Sample"
 msgstr "Sampel"
+
+
+msgid "Snap"
+msgstr "Jepret"
 
 
 msgid "Gizmo"
@@ -15338,12 +15326,24 @@ msgid "Import"
 msgstr "Impor"
 
 
+msgid "Mirror"
+msgstr "Cermin"
+
+
 msgid "UV"
 msgstr "UV"
 
 
-msgid "Merge"
-msgstr "Menggabungkan"
+msgid "Navigation"
+msgstr "Navigasi"
+
+
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
+
+
+msgid "Assign Material"
+msgstr "Tugaskan Bahan"
 
 
 msgctxt "MovieClip"
