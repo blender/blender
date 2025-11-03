@@ -566,7 +566,7 @@ typedef struct StripModifierData {
    * Bits that can be used for open-states of layout panels in the modifier.
    */
   uint16_t layout_panel_open_flag;
-  char _pad[2];
+  uint16_t ui_expand_flag;
 
   StripModifierDataRuntime runtime;
 } StripModifierData;
