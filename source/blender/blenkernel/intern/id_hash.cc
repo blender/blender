@@ -3,6 +3,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <fcntl.h>
+#ifndef WIN32
+#  include <unistd.h>
+#else
+#  include <io.h>
+#endif
 #include <fmt/format.h>
 #include <mutex>
 #include <xxhash.h>
@@ -51,6 +56,8 @@ static std::optional<XXH128_hash_t> compute_file_hash_with_memory_map(const Stri
   if (file == -1) {
     return std::nullopt;
   }
+  BLI_SCOPED_DEFER([&]() { close(file); });
+
   BLI_mmap_file *mmap_file = BLI_mmap_open(file);
   if (!mmap_file) {
     return std::nullopt;
