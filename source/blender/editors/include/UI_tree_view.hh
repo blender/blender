@@ -284,7 +284,7 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
 
   int count_parents() const;
 
-  void on_filter_change() override;
+  void on_filter() override;
 
  protected:
   /** See AbstractViewItem::get_rename_string(). */

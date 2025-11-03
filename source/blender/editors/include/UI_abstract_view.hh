@@ -365,7 +365,7 @@ class AbstractViewItem {
   void rename_apply(const bContext &C);
 
   virtual void delete_item(bContext *C);
-  virtual void on_filter_change();
+  virtual void on_filter();
 
  protected:
   AbstractViewItem() = default;

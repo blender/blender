@@ -175,7 +175,7 @@ void AbstractView::filter(std::optional<StringRef> filter_str)
       /* Allow view types to hook into the filtering. For example tree views ensure matching
        * children have their parents visible and uncollapsed. If the search query is empty, all
        * items are visible by default, and nothing has to be done. */
-      item.on_filter_change();
+      item.on_filter();
     }
 
     if (filter_changed) {
