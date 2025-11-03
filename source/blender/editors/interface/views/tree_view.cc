@@ -811,6 +811,8 @@ bool AbstractTreeViewItem::matches(const AbstractViewItem &other) const
 
 void AbstractTreeViewItem::on_filter_change()
 {
+  BLI_assert(this->get_tree_view().search_string_ && this->get_tree_view().search_string_[0]);
+
   if (is_filtered_visible_) {
     foreach_parent([&](AbstractTreeViewItem &item) {
       item.is_filtered_visible_ = true;
