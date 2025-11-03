@@ -5442,47 +5442,47 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
       }
     }
 
-    if (!src_to_dst_defgroup.is_empty()) {
-      auto transfer_to_matching_groups = [&](const int64_t source_index, const int target_index) {
-        for (const int from_group : src_to_dst_defgroup.index_range()) {
-          if (from_group < 0) {
-            continue;
-          }
-          const MDeformWeight *mdw_from = BKE_defvert_find_index(&src_dvert[source_index],
-                                                                 from_group);
-          MDeformWeight *mdw_to = BKE_defvert_ensure_index(&dv[target_index],
-                                                           src_to_dst_defgroup[from_group]);
-          const float source_weight = mdw_from ? mdw_from->weight : 0.0f;
-          mdw_to->weight = invert_input ? (1 - source_weight) : source_weight;
+    auto transfer_to_matching_groups = [&](const int64_t source_index, const int target_index) {
+      for (const int from_group : src_to_dst_defgroup.index_range()) {
+        if (from_group < 0) {
+          continue;
         }
-      };
+        const MDeformWeight *mdw_from = BKE_defvert_find_index(&src_dvert[source_index],
+                                                               from_group);
+        MDeformWeight *mdw_to = BKE_defvert_ensure_index(&dv[target_index],
+                                                         src_to_dst_defgroup[from_group]);
+        const float source_weight = mdw_from ? mdw_from->weight : 0.0f;
+        mdw_to->weight = invert_input ? (1 - source_weight) : source_weight;
+      }
+    };
 
-      auto transfer_to_singular_group = [&](const int64_t source_index, const int target_index) {
-        float highest_weight = 0.0f;
-        for (const int from_group : src_to_dst_defgroup.index_range()) {
-          if (from_group < 0) {
-            continue;
-          }
-          const MDeformWeight *mdw_from = BKE_defvert_find_index(&src_dvert[source_index],
-                                                                 from_group);
-          const float source_weight = mdw_from ? mdw_from->weight : 0.0f;
-          highest_weight = std::max(highest_weight, source_weight);
+    auto transfer_to_singular_group = [&](const int64_t source_index, const int target_index) {
+      float highest_weight = 0.0f;
+      for (const int from_group : src_to_dst_defgroup.index_range()) {
+        if (from_group < 0) {
+          continue;
         }
-        MDeformWeight *mdw_to = BKE_defvert_ensure_index(&dv[target_index], target_defgroup);
-        mdw_to->weight = invert_input ? (1 - highest_weight) : highest_weight;
-      };
+        const MDeformWeight *mdw_from = BKE_defvert_find_index(&src_dvert[source_index],
+                                                               from_group);
+        const float source_weight = mdw_from ? mdw_from->weight : 0.0f;
+        highest_weight = std::max(highest_weight, source_weight);
+      }
+      MDeformWeight *mdw_to = BKE_defvert_ensure_index(&dv[target_index], target_defgroup);
+      mdw_to->weight = invert_input ? (1 - highest_weight) : highest_weight;
+    };
 
-      int i;
-      LISTBASE_FOREACH_INDEX (LineartEdgeChainItem *, eci, &cwi.chain->chain, i) {
-        int point_i = i + up_to_point;
-        point_positions[point_i] = blender::math::transform_point(inverse_mat, float3(eci->gpos));
-        point_radii.span[point_i] = thickness / 2.0f;
-        if (point_opacities) {
-          point_opacities.span[point_i] = opacity;
-        }
+    int i;
+    LISTBASE_FOREACH_INDEX (LineartEdgeChainItem *, eci, &cwi.chain->chain, i) {
+      int point_i = i + up_to_point;
+      point_positions[point_i] = blender::math::transform_point(inverse_mat, float3(eci->gpos));
+      point_radii.span[point_i] = thickness / 2.0f;
+      if (point_opacities) {
+        point_opacities.span[point_i] = opacity;
+      }
 
-        const int64_t vindex = eci->index - cwi.chain->index_offset;
+      const int64_t vindex = eci->index - cwi.chain->index_offset;
 
+      if (!src_to_dst_defgroup.is_empty()) {
         if (weight_transfer_match_output) {
           transfer_to_matching_groups(vindex, point_i);
         }
