@@ -597,7 +597,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
             continue;
           }
           data_src = *src_attributes.lookup(src_names[idx_src], domain, attr_type);
-          data_dst = dst_attributes.lookup_for_write_span(dst_names[idx_dst]);
+          data_dst = dst_attributes.lookup_for_write_span(dst_names[idx_src]);
           data_transfer_layersmapping_add_item_cd(r_map,
                                                   cddata_type,
                                                   mix_mode,
@@ -638,7 +638,6 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
           data_dst_to_delete.append(name);
         }
         if (r_map) {
-          data_dst = dst_attributes.lookup_for_write_span(name);
           data_transfer_layersmapping_add_item_cd(r_map,
                                                   cddata_type,
                                                   mix_mode,
@@ -1096,8 +1095,9 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
       {
         return false;
       }
+      return true;
     }
-    else if (cddata_type == CD_FAKE_LNOR) {
+    if (cddata_type == CD_FAKE_LNOR) {
       if (r_map) {
         /* Use #CD_NORMAL as a temporary storage for custom normals in 3D vector form.
          * A post-process step will convert this layer to "custom_normal". */
@@ -1123,7 +1123,7 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
       }
       return true;
     }
-    else if (cddata_type == CD_PROP_BYTE_COLOR) {
+    if (cddata_type == CD_PROP_BYTE_COLOR) {
       if (!data_transfer_layersmapping_cdlayers(r_map,
                                                 CD_PROP_BYTE_COLOR,
                                                 bke::AttrDomain::Corner,
@@ -1141,7 +1141,7 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
       }
       return true;
     }
-    else if (cddata_type == CD_PROP_COLOR) {
+    if (cddata_type == CD_PROP_COLOR) {
       if (!data_transfer_layersmapping_cdlayers(r_map,
                                                 CD_PROP_COLOR,
                                                 bke::AttrDomain::Corner,
@@ -1159,7 +1159,6 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
       }
       return true;
     }
-
     return false;
   }
   else if (elem_type == ME_POLY) {
@@ -1191,7 +1190,6 @@ static bool data_transfer_layersmapping_generate(Vector<CustomDataTransferLayerM
                                                 *me_dst);
       return true;
     }
-
     return false;
   }
 
