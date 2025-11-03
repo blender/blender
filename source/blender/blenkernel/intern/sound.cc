@@ -447,6 +447,16 @@ static void sound_device_use_end()
  */
 static bool sound_use_close_thread()
 {
+  /* No point starting a thread if sound is disabled and we're running headless. */
+  if (g_state.force_device && STREQ(g_state.force_device, "None")) {
+#  if defined(WITH_PYTHON_MODULE) || defined(WITH_HEADLESS)
+    return false;
+#  endif
+    if (G.background) {
+      return false;
+    }
+  }
+
 #  if OS_MAC
   /* Closing audio device on macOS prior to 15.2 could lead to interference with other software.
    * See #121911 for details. */

@@ -575,7 +575,20 @@ class Report:
                 crash = True
 
             if verbose:
-                print(" ".join(command))
+                def quote_expr_args(cmd):
+                    quoted = []
+                    quote_next = False
+                    for arg in cmd:
+                        if quote_next:
+                            quoted.append('"{}"'.format(arg))  # wrap the expression in quotes
+                            quote_next = False
+                        else:
+                            quoted.append(arg)
+                            if arg == "--python-expr":
+                                quote_next = True
+                    return quoted
+                print(' '.join(quote_expr_args(command)))
+
             if (verbose or crash) and output:
                 print(output.decode("utf-8", 'ignore'))
 
