@@ -436,6 +436,7 @@ struct GHOST_InstanceVK {
       }
 
       if (!device_vk.features.features.geometryShader ||
+          !device_vk.features.features.vertexPipelineStoresAndAtomics ||
           !device_vk.features.features.dualSrcBlend || !device_vk.features.features.logicOp ||
           !device_vk.features.features.imageCubeArray)
       {
@@ -516,6 +517,7 @@ struct GHOST_InstanceVK {
     device_features.multiViewport = VK_TRUE;
     device_features.shaderClipDistance = VK_TRUE;
     device_features.drawIndirectFirstInstance = VK_TRUE;
+    device_features.vertexPipelineStoresAndAtomics = VK_TRUE;
     device_features.fragmentStoresAndAtomics = VK_TRUE;
     device_features.samplerAnisotropy = device.features.features.samplerAnisotropy;
     device_features.wideLines = device.features.features.wideLines;
