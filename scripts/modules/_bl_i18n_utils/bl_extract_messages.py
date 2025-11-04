@@ -223,6 +223,18 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
 
         return blacklist_rna_class
 
+    def class_skip_unregistered():
+        skip_unregistered_rna_class = {
+            getattr(bpy.types, cls_id)
+            for cls_id in (
+                "Menu",
+                "Operator",
+                "Panel",
+            )
+        }
+
+        return skip_unregistered_rna_class
+    
     check_ctxt_rna = check_ctxt_rna_tip = None
     check_ctxt = reports["check_ctxt"]
     if check_ctxt:
@@ -345,6 +357,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
                     process_tooldef(tool_context, tools_group)
 
     blacklist_rna_class = class_blacklist()
+    skip_unregistered_rna_class = class_skip_unregistered()
 
     def walk_class(cls):
         bl_rna = cls.bl_rna
@@ -419,21 +432,16 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
         return cls_id
 
     def cls_set_generate_recurse(cls_list):
-        _base_types_of_skip_unregistered = [
-            bpy.types.Menu,
-            bpy.types.Operator,
-            bpy.types.Panel,
-        ]
         ret_cls_set = set()
         for cls in cls_list:
             # Do not process blacklisted classes, but do handle their children.
             if cls in blacklist_rna_class:
                 reports["rna_structs_skipped"].append(cls)
             elif any(
-                t in cls.__bases__ for t in _base_types_of_skip_unregistered
+                t in cls.__bases__ for t in skip_unregistered_rna_class
             ) and not getattr(cls, "is_registered", True):
-                # unregistering a python-defined operator/panel/menu does not remove it from the list of subclasses of
-                # `bpy.types.Operator`, `bpy.types.Panel` and `bpy.types.Menu`. This works around this issue.
+                # unregistering a python-defined class does not remove it from the list of subclasses of some
+                # base types, like `bpy.types.Operator`, `bpy.types.Panel` etc. This works around this issue.
                 # While not a huge problem for main UI messages extraction, it does break fairly badly
                 # extraction of specific add-ons UI messages, see #116579.
                 # Also see related #137910.
