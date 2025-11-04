@@ -1572,7 +1572,7 @@ static PyObject *bpy_bmesh_select_flush(BPy_BMesh *self, PyObject *value)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmesh_uv_select_flush_mode_doc,
-    ".. method:: uv_select_flush_mode(flush_down=False)\n"
+    ".. method:: uv_select_flush_mode(*, flush_down=False)\n"
     "\n"
     "   Flush selection based on the current mode current :class:`BMesh.select_mode`.\n"
     "\n"
