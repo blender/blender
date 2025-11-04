@@ -678,7 +678,7 @@ void SEQUENCER_OT_scene_strip_add(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Add Scene Strip";
   ot->idname = "SEQUENCER_OT_scene_strip_add";
-  ot->description = "Add a strip to the sequencer using a Blender scene as a source";
+  ot->description = "Add a strip re-using this scene as the source";
 
   /* API callbacks. */
   ot->invoke = sequencer_add_scene_strip_invoke;
@@ -772,7 +772,7 @@ void SEQUENCER_OT_scene_strip_add_new(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Add Strip with a new Scene";
   ot->idname = "SEQUENCER_OT_scene_strip_add_new";
-  ot->description = "Create a new Strip and assign a new Scene as source";
+  ot->description = "Add a strip using a new scene as the source";
 
   /* API callbacks. */
   ot->invoke = sequencer_add_scene_strip_new_invoke;
@@ -883,7 +883,7 @@ static std::string sequencer_add_scene_asset_get_description(bContext *C,
 void SEQUENCER_OT_add_scene_strip_from_scene_asset(wmOperatorType *ot)
 {
   ot->name = "Add Scene Asset";
-  ot->description = "Add a scene strip from a scene asset";
+  ot->description = "Add a strip using a duplicate of this scene asset as the source";
   ot->idname = "SEQUENCER_OT_add_scene_strip_from_scene_asset";
 
   ot->invoke = sequencer_add_scene_asset_invoke;
