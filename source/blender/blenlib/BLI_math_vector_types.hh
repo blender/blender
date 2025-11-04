@@ -201,8 +201,17 @@ struct VecBase : public vec_struct_base<T, Size, std::is_trivial_v<T>> {
 
   VecBase() = default;
 
-  /* Make assignment on swizzle result an error. */
+#if defined(__GNUC__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#endif
+
+  /** Make assignment on swizzle result an error. */
   VecBase &operator=(const VecBase &) & = default;
+
+#if defined(__GNUC__)
+#  pragma GCC diagnostic pop
+#endif
 
   template<BLI_ENABLE_IF_VEC(Size, > 1)> explicit VecBase(T value)
   {
