@@ -863,6 +863,10 @@ static bool mesh_validate_impl(const Mesh &mesh, const bool verbose, Mesh *mesh_
     if (valid_edges.size() < mesh.edges_num) {
       remove_invalid_edges(mesh, valid_edges);
     }
+
+    if (!faces_missing_edges.is_empty()) {
+      mesh_calc_edges(mesh, true, false);
+    }
   }
 
   valid &= validate_vertex_groups(mesh, verbose, mesh_mut);
