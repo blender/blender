@@ -385,7 +385,12 @@ class ShaderNodesInliner {
     }
     if (!used_link) {
       /* If there is no link on the input, use the value of the socket directly. */
-      this->store_socket_value(socket, {InputSocketValue{socket.socket}});
+      if (this->input_socket_may_have_dangling_value(socket)) {
+        this->store_socket_value(socket, {DanglingValue{}});
+      }
+      else {
+        this->store_socket_value(socket, {InputSocketValue{socket.socket}});
+      }
       return;
     }
 
@@ -518,12 +523,7 @@ class ShaderNodesInliner {
   void handle_output_socket__reroute(const SocketInContext &socket)
   {
     const NodeInContext node = socket.owner_node();
-    if (node->is_dangling_reroute()) {
-      this->store_socket_value_dangling(socket);
-      return;
-    }
-
-    const SocketInContext input_socket = {socket.context, &node->input_socket(0)};
+    const SocketInContext input_socket = node.input_socket(0);
     this->forward_value_or_schedule(socket, input_socket);
   }
 
@@ -1127,6 +1127,9 @@ class ShaderNodesInliner {
       return src_value;
     }
     if (std::get_if<LinkedSocketValue>(&src_value.value)) {
+      return src_value;
+    }
+    if (std::get_if<DanglingValue>(&src_value.value)) {
       return src_value;
     }
     const std::optional<PrimitiveSocketValue> src_primitive_value = src_value.to_primitive(
