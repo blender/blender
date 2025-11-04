@@ -481,7 +481,7 @@ static bool validate_vertex_groups(const Mesh &mesh, const bool verbose, Mesh *m
     return true;
   }
   Mutex mutex;
-  Vector<std::pair<int, Vector<std::string, 0>>> errors;
+  Vector<std::pair<int, Vector<std::string, 0>>> all_errors;
   Vector<std::pair<int, Vector<MDeformWeight, 0>>> replacements;
   threading::parallel_for(dverts.index_range(), 2048, [&](const IndexRange range) {
     for (const int vert : range) {
@@ -531,6 +531,7 @@ static bool validate_vertex_groups(const Mesh &mesh, const bool verbose, Mesh *m
 
       if (invalid) {
         std::lock_guard lock(mutex);
+        all_errors.append({vert, std::move(errors)});
         replacements.append({vert, std::move(fixed_weights)});
       }
     }
@@ -539,7 +540,7 @@ static bool validate_vertex_groups(const Mesh &mesh, const bool verbose, Mesh *m
     return true;
   }
   if (verbose) {
-    for (const auto &[vert, errors] : errors) {
+    for (const auto &[vert, errors] : all_errors) {
       for (const std::string &error : errors) {
         CLOG_ERROR(&LOG, "%s", error.c_str());
       }
