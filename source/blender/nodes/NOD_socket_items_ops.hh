@@ -118,6 +118,7 @@ inline void remove_active_item(wmOperatorType *ot,
   ot->idname = idname;
   ot->description = description;
   ot->poll = editable_node_active_poll<Accessor>;
+  ot->flag = OPTYPE_UNDO;
 
   ot->exec = [](bContext *C, wmOperator *op) -> wmOperatorStatus {
     PointerRNA node_ptr = get_active_node_to_operate_on(C, op, Accessor::node_idname);
@@ -144,6 +145,7 @@ inline void remove_item_by_index(wmOperatorType *ot,
   ot->idname = idname;
   ot->description = description;
   ot->poll = editable_node_active_poll<Accessor>;
+  ot->flag = OPTYPE_UNDO;
 
   ot->exec = [](bContext *C, wmOperator *op) -> wmOperatorStatus {
     PointerRNA node_ptr = get_active_node_to_operate_on(C, op, Accessor::node_idname);
@@ -170,6 +172,7 @@ inline void add_item(wmOperatorType *ot,
   ot->idname = idname;
   ot->description = description;
   ot->poll = editable_node_active_poll<Accessor>;
+  ot->flag = OPTYPE_UNDO;
 
   ot->exec = [](bContext *C, wmOperator *op) -> wmOperatorStatus {
     PointerRNA node_ptr = get_active_node_to_operate_on(C, op, Accessor::node_idname);
@@ -241,6 +244,7 @@ inline void move_active_item(wmOperatorType *ot,
   ot->idname = idname;
   ot->description = description;
   ot->poll = editable_node_active_poll<Accessor>;
+  ot->flag = OPTYPE_UNDO;
 
   ot->exec = [](bContext *C, wmOperator *op) -> wmOperatorStatus {
     PointerRNA node_ptr = get_active_node_to_operate_on(C, op, Accessor::node_idname);
