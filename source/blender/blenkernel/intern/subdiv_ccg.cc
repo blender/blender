@@ -397,11 +397,14 @@ std::unique_ptr<SubdivCCG> BKE_subdiv_to_ccg(Subdiv &subdiv,
   subdiv_ccg->faces = coarse_mesh.faces();
   subdiv_ccg->grids_num = subdiv_ccg->faces.total_size();
   subdiv_ccg->grid_to_face_map = coarse_mesh.corner_to_face_map();
-  subdiv_ccg_alloc_elements(*subdiv_ccg, subdiv, settings);
-  subdiv_ccg_init_faces_neighborhood(*subdiv_ccg);
-  if (!subdiv_ccg_evaluate_grids(*subdiv_ccg, subdiv, mask_evaluator)) {
-    stats_end(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
-    return nullptr;
+  if (coarse_mesh.corners_num) {
+    BLI_assert(subdiv.topology_refiner);
+    subdiv_ccg_alloc_elements(*subdiv_ccg, subdiv, settings);
+    subdiv_ccg_init_faces_neighborhood(*subdiv_ccg);
+    if (!subdiv_ccg_evaluate_grids(*subdiv_ccg, subdiv, mask_evaluator)) {
+      stats_end(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
+      return nullptr;
+    }
   }
   stats_end(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
   return subdiv_ccg;
