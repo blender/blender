@@ -338,6 +338,11 @@ bNodeSocket *version_node_add_socket_if_not_exist(bNodeTree *ntree,
       *ntree, *node, eNodeSocketInOut(in_out), type, subtype, identifier, name);
 }
 
+void version_node_tree_clear_interface(bNodeTree &ntree)
+{
+  ntree.tree_interface.clear_items();
+}
+
 void version_node_id(bNodeTree *ntree, const int node_type, const char *new_name)
 {
   for (bNode *node : ntree->all_nodes()) {
