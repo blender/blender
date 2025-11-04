@@ -1462,7 +1462,7 @@ class NWAddPrincipledSetup(Operator, NWBase, ImportHelper):
         match_files_to_socket_names(self.files, socketnames)
         # Remove socketnames without found files
         socketnames = [s for s in socketnames if s[2]
-                       and path.exists(self.directory + s[2])]
+                       and path.exists(bpy.path.abspath(self.directory) + s[2])]
         if not socketnames:
             self.report({'INFO'}, 'No matching images found')
             print('No matching images found')
