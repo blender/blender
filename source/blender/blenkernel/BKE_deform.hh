@@ -4,10 +4,13 @@
 
 #pragma once
 
+#include "DNA_meshdata_types.h"
+
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
+#include "BLI_vector_set.hh"
 #include "BLI_virtual_array_fwd.hh"
 
 /** \file
@@ -347,5 +350,18 @@ void gather_deform_verts(Span<MDeformVert> src, Span<int> indices, MutableSpan<M
 void gather_deform_verts(Span<MDeformVert> src,
                          const IndexMask &indices,
                          MutableSpan<MDeformVert> dst);
+
+struct WeightIndexGetter {
+  int operator()(const MDeformWeight &value) const
+  {
+    return value.def_nr;
+  }
+};
+using MDeformWeightSet = CustomIDVectorSet<MDeformWeight, WeightIndexGetter, 64>;
+
+MDeformVert mix_deform_verts(const Span<MDeformVert> src,
+                             const Span<int> indices,
+                             const Span<float> weights,
+                             MDeformWeightSet &dw_buffer);
 
 }  // namespace blender::bke
