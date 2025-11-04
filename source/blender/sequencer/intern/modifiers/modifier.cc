@@ -334,6 +334,7 @@ static void modifier_types_init(StripModifierTypeInfo *types[])
   INIT_TYPE(HueCorrect);
   INIT_TYPE(Mask);
   INIT_TYPE(SoundEqualizer);
+  INIT_TYPE(Pitch);
   INIT_TYPE(Tonemap);
   INIT_TYPE(WhiteBalance);
 #undef INIT_TYPE

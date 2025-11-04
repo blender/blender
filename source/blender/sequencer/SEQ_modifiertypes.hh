@@ -22,6 +22,7 @@ extern StripModifierTypeInfo seqModifierType_Curves;
 extern StripModifierTypeInfo seqModifierType_HueCorrect;
 extern StripModifierTypeInfo seqModifierType_Mask;
 extern StripModifierTypeInfo seqModifierType_SoundEqualizer;
+extern StripModifierTypeInfo seqModifierType_Pitch;
 extern StripModifierTypeInfo seqModifierType_Tonemap;
 extern StripModifierTypeInfo seqModifierType_WhiteBalance;
 
