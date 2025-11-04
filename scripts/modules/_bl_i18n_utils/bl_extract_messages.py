@@ -199,7 +199,7 @@ def process_msg(msgs, msgctxt, msgid, msgsrc, reports, check_ctxt, settings):
     msgsrc = settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM + msgsrc
     if key not in msgs:
         msgs[key] = utils.I18nMessage([msgctxt], [msgid], [], [msgsrc], settings=settings)
-    else:
+    elif msgsrc not in msgs[key].comment_lines:
         msgs[key].comment_lines.append(msgsrc)
 
 
