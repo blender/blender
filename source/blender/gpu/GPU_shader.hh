@@ -109,13 +109,23 @@ blender::Vector<blender::gpu::Shader *> GPU_shader_batch_finalize(BatchHandle &h
  */
 void GPU_shader_batch_cancel(BatchHandle &handle);
 /**
- *  Returns true if there's any batch still being compiled.
+ * Returns true if there's any batch still being compiled.
+ * NOTE: This returs true as long as there are batches in the compilation queue.
+ * It doesn't take into account if compilation is paused.
  */
 bool GPU_shader_batch_is_compiling();
 /**
  *  Wait until all the requested batches have been compiled.
  */
 void GPU_shader_batch_wait_for_all();
+/**
+ *  Pauses all shader compilations.
+ */
+void GPU_shader_batch_pause_compilations();
+/**
+ *  Resumes compilations after being paused.
+ */
+void GPU_shader_batch_resume_compilations();
 
 /** \} */
 

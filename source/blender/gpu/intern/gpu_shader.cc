@@ -234,6 +234,16 @@ void GPU_shader_batch_wait_for_all()
   GPUBackend::get()->get_compiler()->wait_for_all();
 }
 
+void GPU_shader_batch_pause_compilations()
+{
+  GPUBackend::get()->get_compiler()->pause_all();
+}
+
+void GPU_shader_batch_resume_compilations()
+{
+  GPUBackend::get()->get_compiler()->continue_all();
+}
+
 void GPU_shader_compile_static()
 {
   printf("Compiling all static GPU shaders. This process takes a while.\n");
@@ -910,18 +920,23 @@ BatchHandle ShaderCompiler::batch_compile(Span<const shader::ShaderCreateInfo *>
 
 void ShaderCompiler::batch_cancel(BatchHandle &handle)
 {
-  std::unique_lock lock(mutex_);
+  {
+    std::unique_lock lock(mutex_);
 
-  Batch *batch = batches_.pop(handle);
-  compilation_queue_.remove_batch(batch);
+    Batch *batch = batches_.pop(handle);
+    compilation_queue_.remove_batch(batch);
 
-  /* If it was already being compiled, wait until it's ready so the calling thread can safely
-   * delete the ShaderCreateInfos. */
-  compilation_finished_notification_.wait(lock, [&]() { return batch->is_ready(); });
-  batch->free_shaders();
-  MEM_delete(batch);
+    /* If it was already being compiled, wait until it's ready so the calling thread can safely
+     * delete the ShaderCreateInfos. */
+    compilation_finished_notification_.wait(lock, [&]() { return batch->is_ready(); });
+    batch->free_shaders();
+    MEM_delete(batch);
 
-  handle = 0;
+    handle = 0;
+  }
+
+  /* Count this as a finished compilation, since wait_for_all might be waiting. */
+  compilation_finished_notification_.notify_all();
 }
 
 bool ShaderCompiler::batch_is_ready(BatchHandle handle)
@@ -1016,6 +1031,11 @@ void ShaderCompiler::do_work(void *work_payload)
   }
 
   compilation_finished_notification_.notify_all();
+
+  /* Pause must happen after the work has finished and before more work is requested,
+   * otherwise we can run into deadlocks due to notifications desync. */
+  std::unique_lock lock(mutex_);
+  pause_finished_notification_.wait(lock, [&]() { return !is_paused_; });
 }
 
 bool ShaderCompiler::is_compiling_impl()
@@ -1045,7 +1065,25 @@ bool ShaderCompiler::is_compiling()
 void ShaderCompiler::wait_for_all()
 {
   std::unique_lock lock(mutex_);
+  BLI_assert(!is_paused_);
   compilation_finished_notification_.wait(lock, [&]() { return !is_compiling_impl(); });
+}
+
+void ShaderCompiler::pause_all()
+{
+  std::unique_lock lock(mutex_);
+  BLI_assert(!is_paused_);
+  is_paused_ = true;
+}
+
+void ShaderCompiler::continue_all()
+{
+  {
+    std::unique_lock lock(mutex_);
+    BLI_assert(is_paused_);
+    is_paused_ = false;
+  }
+  pause_finished_notification_.notify_all();
 }
 
 /** \} */

@@ -275,6 +275,9 @@ class ShaderCompiler {
 
   bool is_compiling_impl();
 
+  bool is_paused_ = false;
+  std::condition_variable pause_finished_notification_;
+
  protected:
   /* Must be called earlier from the destructor of the subclass if the compilation process relies
    * on subclass resources. */
@@ -307,6 +310,8 @@ class ShaderCompiler {
 
   bool is_compiling();
   void wait_for_all();
+  void pause_all();
+  void continue_all();
 };
 
 enum class Severity {
