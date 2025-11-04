@@ -66,6 +66,7 @@ add_dependencies(bf_editor_curves bf_rna)
 if(WITH_GTESTS)
   set(TEST_SRC
     tests/grease_pencil_merge_test.cc
+    tests/grease_pencil_trim_test.cc
   )
   set(TEST_INC
   )
