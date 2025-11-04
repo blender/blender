@@ -363,7 +363,7 @@ void *pitchmodifier_recreator(Strip * /*strip*/,
     return smd->runtime.last_sound_out;
   }
 
-#ifdef WITH_AUDASPACE
+#if defined(WITH_AUDASPACE) && defined(WITH_RUBBERBAND)
   PitchModifierData *pmd = (PitchModifierData *)smd;
 
   int quality = pmd->quality;
