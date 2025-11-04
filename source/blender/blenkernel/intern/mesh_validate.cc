@@ -886,32 +886,22 @@ static bool mesh_validate_impl(const Mesh &mesh, const bool verbose, Mesh *mesh_
   return false;
 }
 
-static bool mesh_validate(Mesh &mesh, const bool verbose)
+bool mesh_validate(Mesh &mesh, const bool verbose)
 {
+  if (verbose) {
+    CLOG_INFO(&LOG, "Validating Mesh: %s", mesh.id.name + 2);
+  }
   return mesh_validate_impl(mesh, verbose, &mesh);
 }
 
-static bool mesh_is_valid(const Mesh &mesh, const bool verbose)
+bool mesh_is_valid(const Mesh &mesh, const bool verbose)
 {
   return mesh_validate_impl(mesh, verbose, nullptr);
 }
 
+bool mesh_validate_material_indices(Mesh &mesh)
+{
+  return validate_material_indices(mesh, false, false, &mesh);
+}
+
 }  // namespace blender::bke
-
-bool BKE_mesh_validate(Mesh *mesh, const bool do_verbose, const bool /*cddata_check_mask*/)
-{
-  if (do_verbose) {
-    CLOG_INFO(&LOG, "Validating Mesh: %s", mesh->id.name + 2);
-  }
-  return !blender::bke::mesh_validate(*mesh, do_verbose);
-}
-
-bool BKE_mesh_is_valid(Mesh *mesh)
-{
-  return blender::bke::mesh_is_valid(*mesh, true);
-}
-
-bool BKE_mesh_validate_material_indices(Mesh *mesh)
-{
-  return !blender::bke::validate_material_indices(*mesh, false, false, mesh);
-}

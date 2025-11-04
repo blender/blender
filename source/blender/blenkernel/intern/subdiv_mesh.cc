@@ -1205,7 +1205,6 @@ Mesh *subdiv_to_mesh(Subdiv *subdiv, const ToMeshSettings *settings, const Mesh 
     attr.finish();
   }
 
-  // BKE_mesh_validate(result, true, true);
   stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
   subdiv_mesh_context_free(&subdiv_context);
   return result;

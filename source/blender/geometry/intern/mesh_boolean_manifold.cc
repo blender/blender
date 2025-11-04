@@ -1850,7 +1850,7 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
     bke::mesh_calc_edges(*mesh, false, false);
   }
 
-  BLI_assert(BKE_mesh_is_valid(mesh));
+  BLI_assert(bke::mesh_is_valid(*mesh));
 
   OutToInMaps out_to_in(&ma, joined_mesh, mesh, &mesh_offsets);
 
@@ -1937,7 +1937,7 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
   mesh->tag_loose_verts_none();
   mesh->tag_overlapping_none();
 
-  BLI_assert(BKE_mesh_is_valid(mesh));
+  BLI_assert(bke::mesh_is_valid(*mesh));
 
   return mesh;
 }

@@ -145,3 +145,5 @@ inline int BKE_mesh_origindex_mface_mpoly(const int *index_mf_to_mpoly,
   const int j = index_mf_to_mpoly[i];
   return (j != -1) ? (index_mp_to_orig ? index_mp_to_orig[j] : j) : -1;
 }
+
+void BKE_mesh_strip_loose_faces(Mesh *mesh);

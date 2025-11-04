@@ -830,13 +830,6 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
   corner_vert_attr.finish();
   corner_edge_attr.finish();
   material_index_attr.finish();
-
-#if 0  // XXX
-  BLI_assert(mesh->verts_num == vertex_index);
-  BLI_assert(mesh->edges_num == edge_index);
-  BLI_assert(mesh->corners_num == loop_index);
-  BKE_mesh_validate(mesh, true, true);
-#endif
 }
 
 // A replacement of BKE_object_add() for better performance.

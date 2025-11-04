@@ -219,7 +219,6 @@ void deform_coarse_vertices(Subdiv *subdiv,
   foreach_subdiv_geometry(subdiv, &foreach_context, &mesh_settings, coarse_mesh);
   stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
 
-  // BKE_mesh_validate(result, true, true);
   stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
 
   /* Free used memory. */

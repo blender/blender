@@ -572,7 +572,7 @@ static Mesh *imesh_to_mesh(meshintersect::IMesh *im, MeshesToIMeshInfo &mim)
   }
 
   if (dbg_level > 0) {
-    BKE_mesh_validate(result, true, true);
+    bke::mesh_validate(*result, true);
   }
   return result;
 }

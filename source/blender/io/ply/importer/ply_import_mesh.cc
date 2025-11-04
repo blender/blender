@@ -142,7 +142,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
 #ifndef NDEBUG
     verbose_validate = true;
 #endif
-    BKE_mesh_validate(mesh, verbose_validate, false);
+    bke::mesh_validate(*mesh, verbose_validate);
   }
 
   if (set_custom_normals_for_verts) {
