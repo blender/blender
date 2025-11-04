@@ -417,6 +417,8 @@ if(TEST_SRC_DIR_EXISTS)
   add_blender_test_allow_error(
     mesh_validate
     --python ${TEST_PYTHON_DIR}/mesh_validate.py
+    --
+    --testdir "${TEST_SRC_DIR}"
   )
 
   add_blender_test(
