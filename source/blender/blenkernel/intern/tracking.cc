@@ -2548,9 +2548,8 @@ void BKE_tracking_distortion_bounds_deltas(MovieDistortion *distortion,
     /* The tracking distortion functions expect the coordinates to be in the space of the image
      * where the tracking camera was calibrated. So we first remap the coordinates into that space,
      * apply the distortion, then remap back to the original coordinates space. This is done by
-     * dividing by the size then multiplying by the calibration size, making sure to add 0.5 to
-     * evaluate at the center of pixels. */
-    float2 coordinates = ((position + 0.5f) / float2(size)) * float2(calibration_size);
+     * dividing by the size then multiplying by the calibration size. */
+    float2 coordinates = (position / float2(size)) * float2(calibration_size);
     /* Notice that the condition is inverted, that's because when we are undistorting, we compute
      * the boundaries by distorting and vice versa. */
     float2 distorted_coordinates;
@@ -2568,39 +2567,41 @@ void BKE_tracking_distortion_bounds_deltas(MovieDistortion *distortion,
 
   /* Maximum distorted x location along the right edge of the image. */
   const float maximum_x = parallel_reduce(
-      size[1],
+      size[1] + 1,
       std::numeric_limits<float>::lowest(),
       [&](const int i, float &accumulated_value) {
-        accumulated_value = math::max(accumulated_value,
-                                      distortion_function(float2(size[0], i)).x);
+        const float2 position = float2(size[0], i);
+        accumulated_value = math::max(accumulated_value, distortion_function(position).x);
       },
       [&](const float &a, const float &b) { return math::max(a, b); });
 
   /* Minimum distorted x location along the left edge of the image. */
   const float minimum_x = parallel_reduce(
-      size[1],
+      size[1] + 1,
       std::numeric_limits<float>::max(),
       [&](const int i, float &accumulated_value) {
-        accumulated_value = math::min(accumulated_value, distortion_function(float2(0.0f, i)).x);
+        const float2 position = float2(0.0f, i);
+        accumulated_value = math::min(accumulated_value, distortion_function(position).x);
       },
       [&](const float &a, const float &b) { return math::min(a, b); });
 
   /* Minimum distorted y location along the bottom edge of the image. */
   const float minimum_y = parallel_reduce(
-      size[0],
+      size[0] + 1,
       std::numeric_limits<float>::max(),
       [&](const int i, float &accumulated_value) {
-        accumulated_value = math::min(accumulated_value, distortion_function(float2(i, 0.0f)).y);
+        const float2 position = float2(i, 0.0f);
+        accumulated_value = math::min(accumulated_value, distortion_function(position).y);
       },
       [&](const float &a, const float &b) { return math::min(a, b); });
 
   /* Maximum distorted y location along the top edge of the image. */
   const float maximum_y = parallel_reduce(
-      size[0],
+      size[0] + 1,
       std::numeric_limits<float>::lowest(),
       [&](const int i, float &accumulated_value) {
-        accumulated_value = math::max(accumulated_value,
-                                      distortion_function(float2(i, size[1])).y);
+        const float2 position = float2(i, size[1]);
+        accumulated_value = math::max(accumulated_value, distortion_function(position).y);
       },
       [&](const float &a, const float &b) { return math::max(a, b); });
 
@@ -2612,10 +2613,10 @@ void BKE_tracking_distortion_bounds_deltas(MovieDistortion *distortion,
   const float top_delta = maximum_y - size[1];
 
   /* Round the deltas away from zero. */
-  *r_right = int(right_delta < 0.0f ? math::floor(right_delta) : math::ceil(right_delta));
-  *r_left = int(left_delta < 0.0f ? math::floor(left_delta) : math::ceil(left_delta));
-  *r_bottom = int(bottom_delta < 0.0f ? math::floor(bottom_delta) : math::ceil(bottom_delta));
-  *r_top = int(top_delta < 0.0f ? math::floor(top_delta) : math::ceil(top_delta));
+  *r_right = int(math::ceil(right_delta));
+  *r_left = int(math::ceil(left_delta));
+  *r_bottom = int(math::ceil(bottom_delta));
+  *r_top = int(math::ceil(top_delta));
 }
 
 /* --------------------------------------------------------------------
