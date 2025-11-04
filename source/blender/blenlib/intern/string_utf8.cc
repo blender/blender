@@ -1027,6 +1027,51 @@ bool BLI_str_utf32_char_is_optional_break_before(char32_t codepoint, char32_t co
   return false;
 }
 
+bool BLI_str_utf32_char_is_terminal_punctuation(char32_t codepoint)
+{
+  /* Characters marking the end of sentences according to Unicode Text Segmentation
+   * (Standard Annex #29), Sentence Break Property (ATerm, STerm).
+   * Only the characters available in Blender are matched. */
+
+  return (ELEM(codepoint,
+               0x002E,    /* Full stop. */
+               0x2024,    /* One dot leader. */
+               0xFE52,    /* Small full stop. */
+               0xFF0E,    /* Fullwidth full stop. */
+               0x0021,    /* Exclamation mark. */
+               0x003F,    /* Question mark. */
+               0x0589,    /* Armenian full stop. */
+               0x061F,    /* Arabic question mark. */
+               0x06D4,    /* Arabic full stop. */
+               0x0964,    /* Devanagari danda. */
+               0x0965,    /* Devanagari double danda. */
+               0x104A,    /* Myanmar sign little section. */
+               0x104B,    /* Myanmar sign section. */
+               0x1362,    /* Ethiopic full stop. */
+               0x1367,    /* Ethiopic question mark. */
+               0x1368) || /* Ethiopic paragraph separator. */
+          ELEM(codepoint,
+               0x17D4,    /* Khmer sign khan. */
+               0x17D5,    /* Khmer sign bariyoosan. */
+               0x203C,    /* Double exclamation mark. */
+               0x203D,    /* Interrobang. */
+               0x2047,    /* Double question mark. */
+               0x2048,    /* Question exclamation mark. */
+               0x2049,    /* Exclamation question mark. */
+               0x3002,    /* Ideographic full stop. */
+               0xA9C8,    /* Javanese pada lingsa. */
+               0xA9C9,    /* Javanese pada lungsi. */
+               0xFE12,    /* Presentation form for vertical ideographic full stop. */
+               0xFE15,    /* Presentation form for vertical exclamation mark. */
+               0xFE16,    /* Presentation form for vertical question mark. */
+               0xFE56,    /* Small question mark. */
+               0xFE57,    /* Small exclamation mark. */
+               0xFF01) || /* Fullwidth exclamation mark. */
+          ELEM(codepoint,
+               0xFF1F,   /* Fullwidth question mark. */
+               0xFF61)); /* Halfwidth ideographic full stop. */
+}
+
 /** \} */ /* -------------------------------------------------------------------- */
 
 int BLI_str_utf8_size_or_error(const char *p)
