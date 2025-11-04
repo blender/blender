@@ -154,11 +154,12 @@ static void sequencer_add_scene_draw(const bContext *C, Menu *menu)
   asset::AssetItemTree &tree = *sseq->runtime->assets_for_menu;
   const bool show_assets = !(tree.catalogs.is_empty() && loading_finished &&
                              tree.unassigned_assets.is_empty());
+
+  layout->separator();
+
+  layout->label(IFACE_("Assets"), ICON_ASSET_MANAGER);
+
   if (show_assets) {
-    layout->separator();
-
-    layout->label(IFACE_("Assets"), ICON_ASSET_MANAGER);
-
     if (!loading_finished) {
       layout->label(IFACE_("Loading Asset Libraries"), ICON_INFO);
     }
@@ -170,24 +171,25 @@ static void sequencer_add_scene_draw(const bContext *C, Menu *menu)
     if (!tree.unassigned_assets.is_empty()) {
       layout->menu_contents("SEQUENCER_MT_scene_add_unassigned_assets");
     }
-
-    layout->separator();
   }
+  else {
+    layout->label(IFACE_("No scene assets."), ICON_NONE);
+  }
+
+  layout->separator();
 
   /* Show existing scenes. */
   Main *bmain = CTX_data_main(C);
   const int scenes_len = BLI_listbase_count(&bmain->scenes);
   if (scenes_len > 10) {
     layout->op("SEQUENCER_OT_scene_strip_add",
-               IFACE_("Scenes..."),
+               IFACE_("Scene Strip..."),
                ICON_SCENE_DATA,
                wm::OpCallContext::InvokeDefault,
                UI_ITEM_NONE);
   }
-  else if (scenes_len > 1) {
-    if (show_assets) {
-      layout->label(IFACE_("Scenes"), ICON_SCENE_DATA);
-    }
+  else {
+    layout->label(IFACE_("Scene Strip"), ICON_SCENE_DATA);
     const Scene *active_scene = CTX_data_sequencer_scene(C);
     int i = 0;
     LISTBASE_FOREACH_INDEX (Scene *, scene, &bmain->scenes, i) {

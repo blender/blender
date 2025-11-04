@@ -172,6 +172,8 @@ bNodeSocket *version_node_add_socket_if_not_exist(bNodeTree *ntree,
                                                   const char *identifier,
                                                   const char *name);
 
+void version_node_tree_clear_interface(bNodeTree &ntree);
+
 /**
  * The versioning code generally expects `SOCK_IS_LINKED` to be set correctly. This function
  * updates the flag on all sockets after changes to the node tree.

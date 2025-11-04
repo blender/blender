@@ -812,9 +812,21 @@ static void draw_warnings(const bContext *C,
   });
 
   uiLayout *col = &panel.body->column(false);
+  uiBlock *block = col->block();
   for (const NodeWarning *warning : warnings) {
     const int icon = node_warning_type_icon(warning->type);
-    col->label(RPT_(warning->message), icon);
+    const StringRef message = RPT_(warning->message);
+    uiBut *but = uiDefIconTextBut(
+        block, ButType::Label, 0, icon, message, 0, 0, 1, UI_UNIT_Y, nullptr, std::nullopt);
+    /* Add tooltip containing the same message. This is helpful if the message is very long so that
+     * it doesn't fit in the panel. */
+    UI_but_func_tooltip_set(
+        but,
+        [](bContext * /*C*/, void *argN, blender::StringRef /*tip*/) -> std::string {
+          return *static_cast<std::string *>(argN);
+        },
+        MEM_new<std::string>(__func__, message),
+        [](void *arg) { MEM_delete(static_cast<std::string *>(arg)); });
   }
 }
 
