@@ -14,7 +14,8 @@ def _update_handler(self, context):
 
 
 def main():
-    # This used to cause a memory leak and crash due to missing _bpy cleanup.
+    # This used to cause a memory leak and crash due to missing `bpy/__init__.so` cleanup,
+    # something that CPython doesn't guarantee. See #148959.
     bpy.types.Object.custom_property = bpy.props.FloatProperty(update=_update_handler)
 
 
