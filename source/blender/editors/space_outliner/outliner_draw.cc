@@ -1142,7 +1142,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
     props.modifier_show_viewport = RNA_struct_type_find_property(&RNA_Modifier, "show_viewport");
     props.modifier_show_render = RNA_struct_type_find_property(&RNA_Modifier, "show_render");
 
-    props.constraint_enable = RNA_struct_type_find_property(&RNA_Constraint, "mute");
+    props.constraint_enable = RNA_struct_type_find_property(&RNA_Constraint, "enabled");
 
     props.bone_hide_viewport = RNA_struct_type_find_property(&RNA_PoseBone, "hide");
 
