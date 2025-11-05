@@ -1608,7 +1608,7 @@ void CurvesEvalCache::ensure_positions(CurvesModule &module, ParticleDrawSource 
 
   this->evaluated_pos_rad_buf = gpu::VertBuf::device_only<float4>(src.evaluated_points_num());
 
-  float4x4 transform = src.object->world_to_object();
+  float4x4 transform = float4x4(src.psys->imat);
 
   module.evaluate_positions(true,
                             false,
