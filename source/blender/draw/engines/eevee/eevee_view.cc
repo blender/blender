@@ -393,7 +393,7 @@ void CaptureView::render_probes()
 
 void LookdevView::render()
 {
-  if (!inst_.lookdev.enabled_) {
+  if (!inst_.lookdev.use_reference_spheres_) {
     return;
   }
   GPU_debug_group_begin("Lookdev");

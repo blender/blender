@@ -21,6 +21,7 @@ using namespace draw;
 
 class Instance;
 class CaptureView;
+class LookdevModule;
 
 /* -------------------------------------------------------------------- */
 /** \name Reflection Probe Module
@@ -142,6 +143,13 @@ class SphereProbeModule {
   StorageBuffer<SphereProbeHarmonic, true> &spherical_harmonics_buf()
   {
     return spherical_harmonics_;
+  }
+
+  const SphereProbe &world_sphere_probe() const;
+
+  Texture &octahedral_probes_texture()
+  {
+    return probes_tx_;
   }
 
  private:
