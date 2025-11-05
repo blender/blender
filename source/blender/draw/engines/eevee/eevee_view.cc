@@ -71,6 +71,8 @@ void ShadingView::sync()
   }
 
   main_view_.sync(viewmat, winmat);
+
+  inst_.uniform_data.data.pipeline.is_main_view_inverted = main_view_.is_inverted();
 }
 
 void ShadingView::render()

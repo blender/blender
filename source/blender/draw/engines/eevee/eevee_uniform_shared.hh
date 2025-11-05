@@ -61,12 +61,14 @@ BLI_STATIC_ASSERT_ALIGN(ClampData, 16)
 struct PipelineInfoData {
   float alpha_hash_scale;
   bool32_t is_sphere_probe;
+  /* True if the main camera view has inverted handedness.
+   * This is the case if the camera has negative scale on one axis. */
+  bool32_t is_main_view_inverted;
   /* WORKAROUND: Usually we would use imageSize to get the number of layers and get this id.
    * However, some implementation return the number of layers from the base texture instead of the
    * texture view (see #146132). So we always pass the correct layer index manually to avoid any
    * platform inconsistency. */
   int gbuffer_additional_data_layer_id;
-  float _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(PipelineInfoData, 16)
 
