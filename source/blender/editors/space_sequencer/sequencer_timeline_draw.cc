@@ -1583,6 +1583,8 @@ static void draw_timeline_sfra_efra(const TimelineDrawContext &ctx)
   const View2D *v2d = ctx.v2d;
   const Editing *ed = seq::editing_get(scene);
   const int frame_sta = scene->r.sfra;
+  /* The VSE timeline uses a different convention of displaying frame ranges, since the VSE has to
+   * display the duration the frame. This is why there is the + 1 for the end frame. */
   const int frame_end = scene->r.efra + 1;
 
   GPU_blend(GPU_BLEND_ALPHA);
