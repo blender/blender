@@ -169,7 +169,7 @@ class Credits:
         chunk_size = 256
         chunk_list = []
         chunk = []
-        for i, c in enumerate(commit_iter):
+        for c in commit_iter:
             chunk.append(c)
             if len(chunk) >= chunk_size:
                 chunk_list.append(chunk)
@@ -329,50 +329,55 @@ def argparse_create() -> argparse.ArgumentParser:
     return parser
 
 
-def parse_organizations(authors_file: str) -> tuple[str, ...]:
-    """Parse the organizations section from the AUTHORS file."""
+def parse_organizations(authors_file: str) -> tuple[str, ...] | None:
+    """
+    Parse the organizations section from the AUTHORS file.
+    Return the sorted organizations or None if they could not be found.
+    """
     orgs = []
-    section_begin = "BEGIN organizations section"
-    section_end = "END organizations section"
+    section_begin = "# BEGIN organizations section"
+    section_end = "# END organizations section"
     in_section = False
     found_end = False
 
     with open(authors_file, "r", encoding="utf-8") as fh:
         for line in fh:
-            if line.startswith("# {:s}".format(section_begin)):
+            if line.startswith(section_begin):
                 in_section = True
                 continue
-            elif line.startswith("# {:s}".format(section_end)):
+            if line.startswith(section_end):
                 found_end = True
                 break
 
             if in_section and line and not line.startswith("#"):
-                # Extract organization name before '<'
+                # Extract organization name before `<`.
                 org_name = line.split("<")[0].strip()
-                # Expected result: "<b>Blender Foundation</b>"
+                # Expected result: `<b>Blender Foundation</b>`.
                 orgs.append("<b>{:s}</b>".format(html.escape(org_name)))
 
     if not in_section:
-        print("Error: Could not find \"{:s}\" on AUTHORS file: {:s}".format(section_begin, authors_file))
-        sys.exit(-1)
-    elif not found_end:
-        print("Error: Could not find \"{:s}\" on AUTHORS file: {:s}".format(section_end, authors_file))
-        sys.exit(-1)
+        print("Error: Could not find \"{:s}\" in AUTHORS file: {:s}".format(section_begin, authors_file))
+        return None
+    if not found_end:
+        print("Error: Could not find \"{:s}\" in AUTHORS file: {:s}".format(section_end, authors_file))
+        return None
 
     sorted_unique_organizations = tuple(sorted(set(orgs)))
     return sorted_unique_organizations
 
 
-def main() -> None:
+def main() -> int:
 
     # ----------
     # Parse Args
 
     args = argparse_create().parse_args()
 
-    # Get organizations in HTML <b> tags
+    # Get organizations in HTML `<b>` tags.
     authors_file = os.path.join(args.source_dir, "AUTHORS")
     contrib_companies = parse_organizations(authors_file)
+    if contrib_companies is None:
+        return 1
 
     credits = Credits()
     # commit_range = "HEAD~10..HEAD"
@@ -396,7 +401,8 @@ def main() -> None:
         use_email=args.use_email,
     )
     print("Written: credits.html")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
