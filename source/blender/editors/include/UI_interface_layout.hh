@@ -778,38 +778,38 @@ inline void uiLayout::search_weight_set(float weight)
 inline float uiLayout::scale_x() const
 {
   return scale_[0];
-};
+}
 inline void uiLayout::scale_x_set(float scale)
 {
   scale_[0] = scale;
-};
+}
 
 inline float uiLayout::scale_y() const
 {
   return scale_[1];
-};
+}
 inline void uiLayout::scale_y_set(float scale)
 {
   scale_[1] = scale;
-};
+}
 
 inline float uiLayout::ui_units_x() const
 {
   return units_[0];
-};
+}
 inline void uiLayout::ui_units_x_set(float width)
 {
   units_[0] = width;
-};
+}
 
 inline float uiLayout::ui_units_y() const
 {
   return units_[1];
-};
+}
 inline void uiLayout::ui_units_y_set(float height)
 {
   units_[1] = height;
-};
+}
 
 inline int uiLayout::width() const
 {
