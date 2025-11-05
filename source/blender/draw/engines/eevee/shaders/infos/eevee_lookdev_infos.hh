@@ -57,7 +57,12 @@ IMAGE(4, SPHERE_PROBE_FORMAT, write, image2DArray, out_sphere_mip4)
 STORAGE_BUF(0, read, SphereProbeHarmonic, in_sh)
 STORAGE_BUF(1, write, SphereProbeHarmonic, out_sh)
 /* WORKAROUND: The no_restrict flag is only here to workaround an NVidia linker bug. */
+#ifdef GLSL_CPP_STUBS
+STORAGE_BUF(2, read, LightData, in_sun)
+#else
+/* WORKAROUND: The no_restrict flag is only here to workaround an NVidia linker bug. */
 STORAGE_BUF(2, no_restrict | Qualifier::read, LightData, in_sun)
+#endif
 STORAGE_BUF(3, write, LightData, out_sun)
 COMPUTE_SOURCE("eevee_lookdev_copy_world_comp.glsl")
 DO_STATIC_COMPILATION()
