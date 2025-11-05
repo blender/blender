@@ -3892,6 +3892,12 @@ static int ui_do_but_textedit(
           if (data->searchbox) {
             data->cancel = data->escapecancel = true;
           }
+#ifdef WITH_INPUT_IME
+          else if (is_ime_composing && ime_data->composite.size() && but->type == ButType::Text) {
+            ui_textedit_insert_buf(
+                but, text_edit, ime_data->composite.c_str(), ime_data->composite.size());
+          }
+#endif
           button_activate_state(C, but, BUTTON_STATE_EXIT);
           retval = WM_UI_HANDLER_BREAK;
         }
