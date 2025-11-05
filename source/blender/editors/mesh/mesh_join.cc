@@ -649,6 +649,11 @@ wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
                           corner_ranges,
                           *dst_mesh);
 
+  BKE_id_attributes_active_color_set(&dst_mesh->id,
+                                     BKE_id_attributes_active_color_name(&active_mesh->id));
+  BKE_id_attributes_default_color_set(&dst_mesh->id,
+                                      BKE_id_attributes_default_color_name(&active_mesh->id));
+
   /* Copy multires data to the out-of-main mesh. */
   if (get_multires_modifier(scene, active_object, true)) {
     if (std::any_of(objects_to_join.begin(), objects_to_join.end(), [](const Object *object) {
