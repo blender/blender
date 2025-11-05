@@ -22,6 +22,7 @@ __all__ = (
 # Improvements to this script may apply there too.
 
 import argparse
+import html
 import io
 import multiprocessing
 import os
@@ -328,6 +329,40 @@ def argparse_create() -> argparse.ArgumentParser:
     return parser
 
 
+def parse_organizations(authors_file: str) -> tuple[str, ...]:
+    """Parse the organizations section from the AUTHORS file."""
+    orgs = []
+    section_begin = "BEGIN organizations section"
+    section_end = "END organizations section"
+    in_section = False
+    found_end = False
+
+    with open(authors_file, "r", encoding="utf-8") as fh:
+        for line in fh:
+            if line.startswith("# {:s}".format(section_begin)):
+                in_section = True
+                continue
+            elif line.startswith("# {:s}".format(section_end)):
+                found_end = True
+                break
+
+            if in_section and line and not line.startswith("#"):
+                # Extract organization name before '<'
+                org_name = line.split("<")[0].strip()
+                # Expected result: "<b>Blender Foundation</b>"
+                orgs.append("<b>{:s}</b>".format(html.escape(org_name)))
+
+    if not in_section:
+        print("Error: Could not find \"{:s}\" on AUTHORS file: {:s}".format(section_begin, authors_file))
+        sys.exit(-1)
+    elif not found_end:
+        print("Error: Could not find \"{:s}\" on AUTHORS file: {:s}".format(section_end, authors_file))
+        sys.exit(-1)
+
+    sorted_unique_organizations = tuple(sorted(set(orgs)))
+    return sorted_unique_organizations
+
+
 def main() -> None:
 
     # ----------
@@ -335,20 +370,9 @@ def main() -> None:
 
     args = argparse_create().parse_args()
 
-    # TODO, there are for sure more companies then are currently listed.
-    # 1 liners for in HTML syntax.
-    contrib_companies = (
-        "<b>Adidas</b> - Principled BSDF shader in Cycles",
-        "<b>AMD</b> - Cycles HIP GPU rendering, CPU optimizations, Hydra integration",
-        "<b>Apple</b> - Metal GPU backends, USD integration",
-        "<b>AutoCRC</b> - Improvements to fluid particles, vertex color baking",
-        "<b>BioSkill GmbH</b> - H3D compatibility for X3D Exporter, OBJ Nurbs Import/Export",
-        "<b>Facebook</b> - Cycles subsurface scattering improvements",
-        "<b>Intel</b> - Cycles oneAPI GPU rendering, CPU optimizations",
-        "<b>NVIDIA</b> - Cycles OptiX GPU rendering, USD integration",
-        "<b>Sony Interactive Entertainment</b> - Deployment improvements",
-        "<b>Unity Technologies</b> - FBX Exporter",
-    )
+    # Get organizations in HTML <b> tags
+    authors_file = os.path.join(args.source_dir, "AUTHORS")
+    contrib_companies = parse_organizations(authors_file)
 
     credits = Credits()
     # commit_range = "HEAD~10..HEAD"
