@@ -69,10 +69,11 @@ def runScriptInBlender(blender_directory, script):
 
     process = subprocess.Popen(command,
                                shell=False,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT)
-    output, error = process.communicate()
-    return process.returncode == 0
+                               text=True,
+                               stdout=subprocess.DEVNULL,
+                               stderr=subprocess.PIPE)
+    _, error = process.communicate()
+    return process.returncode == 0, error
 
 
 class ScriptUnitTesting(unittest.TestCase):
@@ -80,5 +81,6 @@ class ScriptUnitTesting(unittest.TestCase):
         # Parse arguments which are not handled by unit testing framework.
         args = parseArguments()
         # Perform actual test,
-        self.assertTrue(runScriptInBlender(args.directory, script),
-                        "Failed to run script {}" . format(script))
+        returncode, error = runScriptInBlender(args.directory, script)
+        self.assertTrue(returncode,
+                        f"Failed to run script {script} in Blender.\nError output:\n{error}")

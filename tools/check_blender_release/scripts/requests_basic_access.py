@@ -4,9 +4,10 @@
 
 import requests
 
-r = requests.get("https://blender.org/", verify=True)
+website = "https://blender.org/"
 
-assert r.status_code == 200
-assert r.reason == "OK"
-assert True if r.ok else False
-assert len(r.content) > 256
+r = requests.get(website, verify=True)
+
+assert r.status_code == 200, f"{website} returned a status code {r.status_code}, we expected 200"
+assert r.reason == "OK", f"Didn't get 'OK' response from {website}, got {r.reason}"
+assert len(r.content) > 256, f"The content we got from the web request is too small to be valid"
