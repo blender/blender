@@ -692,6 +692,10 @@ static const EnumPropertyItem spreadsheet_table_id_type_items[] = {
 
 #  include "RE_engine.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Private Utilities
+ * \{ */
+
 static StructRNA *rna_Space_refine(PointerRNA *ptr)
 {
   SpaceLink *space = (SpaceLink *)ptr->data;
@@ -743,6 +747,7 @@ static StructRNA *rna_Space_refine(PointerRNA *ptr)
 
 static ScrArea *rna_area_from_space(const PointerRNA *ptr)
 {
+  RNA_struct_is_a(ptr->type, &RNA_Space);
   bScreen *screen = reinterpret_cast<bScreen *>(ptr->owner_id);
   SpaceLink *link = static_cast<SpaceLink *>(ptr->data);
   return BKE_screen_find_area_from_space(screen, link);
@@ -774,6 +779,22 @@ static void rna_area_region_from_regiondata(PointerRNA *ptr, ScrArea **r_area, A
 
   area_region_from_regiondata(screen, regiondata, r_area, r_region);
 }
+
+/**
+ * Utility to run after a "space" property changes that determines the active tool.
+ *
+ * Needed when the tool is defined by a space type.
+ */
+static void rna_space_active_tool_reset(const PointerRNA *ptr)
+{
+  if (ScrArea *area = rna_area_from_space(ptr)) {
+    area->runtime.tool = nullptr;
+    area->runtime.is_tool_set = false;
+    area->flag |= AREA_FLAG_ACTIVE_TOOL_UPDATE;
+  }
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Region Flag Access
@@ -1792,11 +1813,14 @@ static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
   return RNA_pointer_create_with_parent(*ptr, &RNA_SpaceUVEditor, ptr->data);
 }
 
-static void rna_SpaceImageEditor_mode_update(Main *bmain, Scene *scene, PointerRNA * /*ptr*/)
+static void rna_SpaceImageEditor_mode_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   if (scene != nullptr) {
     ED_space_image_paint_update(bmain, static_cast<wmWindowManager *>(bmain->wm.first), scene);
   }
+
+  /* The mode defines the tool. */
+  rna_space_active_tool_reset(ptr);
 }
 
 static void rna_SpaceImageEditor_show_stereo_set(PointerRNA *ptr, bool value)
