@@ -1072,11 +1072,14 @@ static wmOperatorStatus grease_pencil_set_uniform_opacity_exec(bContext *C, wmOp
     bke::curves::fill_points<float>(points_by_curve, strokes, opacity_stroke, opacities);
 
     if (SpanAttributeWriter<float> fill_opacities = attributes.lookup_or_add_for_write_span<float>(
-            "fill_opacity", AttrDomain::Curve))
+            "fill_opacity",
+            AttrDomain::Curve,
+            bke::AttributeInitVArray(VArray<float>::from_single(1.0f, curves.curves_num()))))
     {
       strokes.foreach_index(GrainSize(2048), [&](const int64_t curve) {
         fill_opacities.span[curve] = opacity_fill;
       });
+      fill_opacities.finish();
     }
 
     changed = true;
