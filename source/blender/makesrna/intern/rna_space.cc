@@ -8208,6 +8208,7 @@ static void rna_def_space_node(BlenderRNA *brna)
       prop, NC_SPACE | ND_SPACE_NODE_VIEW, "rna_SpaceNodeEditor_show_backdrop_update");
 
   prop = RNA_def_property(srna, "selected_node_group", PROP_POINTER, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ID_REFCOUNT);
   RNA_def_property_pointer_funcs(
       prop, nullptr, nullptr, nullptr, "rna_SpaceNodeEditor_selected_node_group_poll");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_CONTEXT_UPDATE);
