@@ -487,7 +487,7 @@ static int BKE_fcurve_bezt_binarysearch_index_ex(const BezTriple array[],
     if (frame > midfra) {
       start = mid + 1;
     }
-    else if (frame < midfra) {
+    else {
       end = mid - 1;
     }
   }
