@@ -321,7 +321,8 @@ template<typename T> inline void cast_from_float4(T *data, const float4 value)
 template<typename T, bool compress_as_srgb = false>
 inline void processor_apply_pixels_rgba(const OCIO::Processor *processor,
                                         T *pixels,
-                                        const size_t num_pixels)
+                                        const size_t num_pixels,
+                                        const bool ignore_alpha)
 {
   /* TODO: implement faster version for when we know the conversion
    * is a simple matrix transform between linear spaces. In that case
@@ -338,7 +339,7 @@ inline void processor_apply_pixels_rgba(const OCIO::Processor *processor,
     for (size_t i = 0; i < width; i++) {
       float4 value = cast_to_float4(pixels + 4 * (j + i));
 
-      if (!(value.w <= 0.0f || value.w == 1.0f)) {
+      if (!ignore_alpha && !(value.w <= 0.0f || value.w == 1.0f)) {
         const float inv_alpha = 1.0f / value.w;
         value.x *= inv_alpha;
         value.y *= inv_alpha;
@@ -358,7 +359,7 @@ inline void processor_apply_pixels_rgba(const OCIO::Processor *processor,
         value = color_linear_to_srgb_v4(value);
       }
 
-      if (!(value.w <= 0.0f || value.w == 1.0f)) {
+      if (!ignore_alpha && !(value.w <= 0.0f || value.w == 1.0f)) {
         value.x *= value.w;
         value.y *= value.w;
         value.z *= value.w;
@@ -415,8 +416,12 @@ inline void processor_apply_pixels_grayscale(const OCIO::Processor *processor,
 #endif
 
 template<typename T>
-void ColorSpaceManager::to_scene_linear(
-    ustring colorspace, T *pixels, const size_t num_pixels, bool is_rgba, bool compress_as_srgb)
+void ColorSpaceManager::to_scene_linear(ustring colorspace,
+                                        T *pixels,
+                                        const size_t num_pixels,
+                                        bool is_rgba,
+                                        bool compress_as_srgb,
+                                        bool ignore_alpha)
 {
 #ifdef WITH_OCIO
   const OCIO::Processor *processor = (const OCIO::Processor *)get_processor(colorspace);
@@ -425,11 +430,11 @@ void ColorSpaceManager::to_scene_linear(
     if (is_rgba) {
       if (compress_as_srgb) {
         /* Compress output as sRGB. */
-        processor_apply_pixels_rgba<T, true>(processor, pixels, num_pixels);
+        processor_apply_pixels_rgba<T, true>(processor, pixels, num_pixels, ignore_alpha);
       }
       else {
         /* Write output as scene linear directly. */
-        processor_apply_pixels_rgba<T>(processor, pixels, num_pixels);
+        processor_apply_pixels_rgba<T>(processor, pixels, num_pixels, ignore_alpha);
       }
     }
     else {
@@ -515,9 +520,9 @@ void ColorSpaceManager::init_fallback_config()
 }
 
 /* Template instantiations so we don't have to inline functions. */
-template void ColorSpaceManager::to_scene_linear(ustring, uchar *, size_t, bool, bool);
-template void ColorSpaceManager::to_scene_linear(ustring, ushort *, size_t, bool, bool);
-template void ColorSpaceManager::to_scene_linear(ustring, half *, size_t, bool, bool);
-template void ColorSpaceManager::to_scene_linear(ustring, float *, size_t, bool, bool);
+template void ColorSpaceManager::to_scene_linear(ustring, uchar *, size_t, bool, bool, bool);
+template void ColorSpaceManager::to_scene_linear(ustring, ushort *, size_t, bool, bool, bool);
+template void ColorSpaceManager::to_scene_linear(ustring, half *, size_t, bool, bool, bool);
+template void ColorSpaceManager::to_scene_linear(ustring, float *, size_t, bool, bool, bool);
 
 CCL_NAMESPACE_END
