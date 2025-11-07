@@ -11,6 +11,8 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_string.h"
 
+#include "CLG_log.h"
+
 #include "GPU_capabilities.hh"
 #include "GPU_debug.hh"
 #include "GPU_matrix.hh"
@@ -29,6 +31,8 @@
 #include <string>
 
 extern "C" char datatoc_gpu_shader_colorspace_lib_glsl[];
+
+static CLG_LogRef LOG = {"gpu.shader"};
 
 namespace blender::gpu {
 
@@ -698,6 +702,8 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info,
     std::cerr << error << "\n";
     BLI_assert(false);
   }
+
+  CLOG_INFO(&LOG, "Compiling Shader \"%s\"", orig_info.name_.c_str());
 
   Shader *shader = GPUBackend::get()->shader_alloc(orig_info.name_.c_str());
 
