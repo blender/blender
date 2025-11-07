@@ -154,11 +154,21 @@ class ShaderCompiler {
     std::string comp;
   };
 
+  struct Batch;
+  struct ParallelWork {
+    ShaderCompiler *compiler = nullptr;
+    ShaderCompiler::Batch *batch = nullptr;
+    int shader_index = 0;
+    WorkID id = 0;
+  };
+
   struct Batch {
     Vector<Shader *> shaders;
     Vector<const shader::ShaderCreateInfo *> infos;
 
     Vector<ShaderSpecialization> specializations;
+
+    Vector<std::unique_ptr<ParallelWork>> works;
 
     std::atomic<int> pending_compilations = 0;
 
@@ -187,89 +197,12 @@ class ShaderCompiler {
   std::mutex mutex_;
   std::condition_variable compilation_finished_notification_;
 
-  struct ParallelWork {
-    Batch *batch = nullptr;
-    int shader_index = 0;
-  };
-
-  struct CompilationQueue {
-    std::deque<ParallelWork> low_priority;
-    std::deque<ParallelWork> normal_priority;
-    std::deque<ParallelWork> high_priority;
-
-    void push(ParallelWork &&work, CompilationPriority priority)
-    {
-      switch (priority) {
-        case CompilationPriority::Low:
-          low_priority.push_back(work);
-          break;
-        case CompilationPriority::Medium:
-          normal_priority.push_back(work);
-          break;
-        case CompilationPriority::High:
-          high_priority.push_back(work);
-          break;
-        default:
-          BLI_assert_unreachable();
-          break;
-      }
-    }
-
-    ParallelWork pop()
-    {
-      if (!high_priority.empty()) {
-        ParallelWork work = high_priority.front();
-        high_priority.pop_front();
-        return work;
-      }
-      if (!normal_priority.empty()) {
-        ParallelWork work = normal_priority.front();
-        normal_priority.pop_front();
-        return work;
-      }
-      if (!low_priority.empty()) {
-        ParallelWork work = low_priority.front();
-        low_priority.pop_front();
-        return work;
-      }
-      BLI_assert_unreachable();
-      return {};
-    }
-
-    bool is_empty()
-    {
-      return low_priority.empty() && normal_priority.empty() && high_priority.empty();
-    }
-
-    void remove_batch(Batch *batch)
-    {
-      auto remove = [](std::deque<ParallelWork> &queue, Batch *batch) {
-        for (ParallelWork &work : queue) {
-          if (work.batch == batch) {
-            work = {};
-            batch->pending_compilations--;
-          }
-        }
-
-        queue.erase(std::remove_if(queue.begin(),
-                                   queue.end(),
-                                   [](const ParallelWork &work) { return !work.batch; }),
-                    queue.end());
-      };
-
-      remove(low_priority, batch);
-      remove(normal_priority, batch);
-      remove(high_priority, batch);
-    }
-  };
-  CompilationQueue compilation_queue_;
-
   std::unique_ptr<GPUWorker> compilation_worker_;
 
   bool support_specializations_;
 
-  void *pop_work();
-  void do_work(void *work_payload);
+  static void do_work_static_cb(void *payload);
+  void do_work(ParallelWork &work);
 
   BatchHandle next_batch_handle_ = 1;
 
