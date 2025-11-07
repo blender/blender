@@ -36,7 +36,7 @@ struct RenderData {
   eSpaceSeq_Proxy_RenderSize preview_render_size = SEQ_RENDER_SIZE_SCENE;
   bool use_proxies = false;
   bool ignore_missing_media = false;
-  int for_render = 0;
+  bool for_render = false;
   int motion_blur_samples = 0;
   float motion_blur_shutter = 0.0f;
   bool skip_cache = false;
@@ -68,7 +68,7 @@ void render_new_render_data(Main *bmain,
                             int rectx,
                             int recty,
                             eSpaceSeq_Proxy_RenderSize preview_render_size,
-                            int for_render,
+                            bool for_render,
                             RenderData *r_context);
 StripElem *render_give_stripelem(const Scene *scene, const Strip *strip, int timeline_frame);
 
