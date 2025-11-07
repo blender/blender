@@ -225,7 +225,7 @@ class Credits:
         fh.write("<h3>Individual Contributors</h3>\n\n")
         for author, cu in sorted_authors.items():
             fh.write("{:s}, {:,d} {:s} {:s}<br />\n".format(
-                author if use_email else author.split("<", 1)[0].rstrip(),
+                html.escape(author if use_email else author.split("<", 1)[0].rstrip()),
                 cu.commit_total,
                 commit_word[cu.commit_total > 1],
                 (
