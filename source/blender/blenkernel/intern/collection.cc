@@ -2129,30 +2129,21 @@ bool BKE_collection_validate(Collection *collection)
   bool is_ok = true;
 
   /* Check that children have each collection used/referenced only once. */
-  GSet *processed_collections = BLI_gset_ptr_new(__func__);
+  blender::Set<Collection *> processed_collections;
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    void **r_key;
-    if (BLI_gset_ensure_p_ex(processed_collections, child->collection, &r_key)) {
+    if (!processed_collections.add(child->collection)) {
       is_ok = false;
-    }
-    else {
-      *r_key = child->collection;
     }
   }
 
   /* Check that parents have each collection used/referenced only once. */
-  BLI_gset_clear(processed_collections, nullptr);
+  processed_collections.clear();
   LISTBASE_FOREACH (CollectionParent *, parent, &collection->runtime->parents) {
-    void **r_key;
-    if (BLI_gset_ensure_p_ex(processed_collections, parent->collection, &r_key)) {
+    if (!processed_collections.add(parent->collection)) {
       is_ok = false;
-    }
-    else {
-      *r_key = parent->collection;
     }
   }
 
-  BLI_gset_free(processed_collections, nullptr);
   return is_ok;
 }
 
