@@ -135,7 +135,7 @@ ImBuf *sequencer_ibuf_get(const bContext *C, const int timeline_frame, const cha
   int recty = roundf(render_scale * scene->r.ysch);
 
   seq::render_new_render_data(
-      bmain, depsgraph, scene, rectx, recty, render_size_mode, false, &context);
+      bmain, depsgraph, scene, rectx, recty, render_size_mode, nullptr, &context);
   context.view_id = BKE_scene_multiview_view_id_get(&scene->r, viewname);
   context.use_proxies = (sseq->flag & SEQ_USE_PROXIES) != 0;
   context.is_playing = screen->animtimer != nullptr;

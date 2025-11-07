@@ -1445,7 +1445,7 @@ static void do_render_sequencer(Render *re)
                          re_x,
                          re_y,
                          SEQ_RENDER_SIZE_SCENE,
-                         true,
+                         re,
                          &context);
 
   /* The render-result gets destroyed during the rendering, so we first collect all ibufs

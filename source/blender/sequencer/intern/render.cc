@@ -213,7 +213,7 @@ void render_new_render_data(Main *bmain,
                             int rectx,
                             int recty,
                             eSpaceSeq_Proxy_RenderSize preview_render_size,
-                            int for_render,
+                            Render *render,
                             RenderData *r_context)
 {
   r_context->bmain = bmain;
@@ -223,7 +223,7 @@ void render_new_render_data(Main *bmain,
   r_context->recty = recty;
   r_context->preview_render_size = preview_render_size;
   r_context->ignore_missing_media = false;
-  r_context->for_render = for_render;
+  r_context->render = render;
   r_context->motion_blur_samples = 0;
   r_context->motion_blur_shutter = 0;
   r_context->skip_cache = false;
@@ -1455,7 +1455,7 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
   }
 
   const bool is_rendering = G.is_rendering;
-  const bool is_preview = !context->for_render && (context->scene->r.seq_prev_type) != OB_RENDER;
+  const bool is_preview = !context->render && (context->scene->r.seq_prev_type) != OB_RENDER;
   const bool use_gpencil = (strip->flag & SEQ_SCENE_NO_ANNOTATION) == 0;
   double frame = double(scene->r.sfra) + double(frame_index) + double(strip->anim_startofs);
 

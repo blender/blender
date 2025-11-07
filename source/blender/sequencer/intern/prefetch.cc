@@ -332,7 +332,7 @@ static void seq_prefetch_update_context(const RenderData *context)
                          context->rectx,
                          context->recty,
                          context->preview_render_size,
-                         false,
+                         nullptr,
                          &pfjob->context_cpy);
   pfjob->context_cpy.is_prefetch_render = true;
   pfjob->context_cpy.task_id = SEQ_TASK_PREFETCH_RENDER;
@@ -343,7 +343,7 @@ static void seq_prefetch_update_context(const RenderData *context)
                          context->rectx,
                          context->recty,
                          context->preview_render_size,
-                         false,
+                         nullptr,
                          &pfjob->context);
   pfjob->context.is_prefetch_render = false;
 
