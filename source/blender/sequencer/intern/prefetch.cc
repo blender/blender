@@ -236,6 +236,8 @@ static void seq_prefetch_free_depsgraph(PrefetchJob *pfjob)
 static void seq_prefetch_update_depsgraph(PrefetchJob *pfjob)
 {
   DEG_evaluate_on_framechange(pfjob->depsgraph, seq_prefetch_cfra(pfjob));
+  /* Prevent depsgraph from copying scene data to evaluated scene. It would reset updated frame. */
+  DEG_ids_clear_recalc(pfjob->depsgraph, false);
 }
 
 static void seq_prefetch_init_depsgraph(PrefetchJob *pfjob)
