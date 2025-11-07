@@ -1035,7 +1035,7 @@ static void strip_update_sound_properties(const Scene *scene, const Strip *strip
 
 static void strip_update_sound_modifiers(Strip *strip)
 {
-  void *sound_handle = strip->sound->playback_handle;
+  void *sound_handle = BKE_sound_playback_handle_get(strip->sound);
   bool needs_update = false;
 
   LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {

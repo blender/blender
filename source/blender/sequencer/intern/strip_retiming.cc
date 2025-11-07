@@ -1099,7 +1099,7 @@ void retiming_sound_animation_data_set(const Scene *scene, const Strip *strip)
   correct_pitch = false;
 #endif
 
-  void *sound_handle = strip->sound ? strip->sound->playback_handle : nullptr;
+  void *sound_handle = BKE_sound_playback_handle_get(strip->sound);
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   if (correct_pitch) {
     sound_handle = BKE_sound_ensure_time_stretch_effect(

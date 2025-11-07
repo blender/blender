@@ -439,22 +439,9 @@ static void color3ubv_from_seq(const Scene *curscene,
 
 static void waveform_job_start_if_needed(const bContext *C, const Strip *strip)
 {
-  bSound *sound = strip->sound;
-
-  BLI_spin_lock(static_cast<SpinLock *>(sound->spinlock));
-  if (!sound->waveform) {
-    /* Load the waveform data if it hasn't been loaded and cached already. */
-    if (!(sound->tags & SOUND_TAGS_WAVEFORM_LOADING)) {
-      /* Prevent sounds from reloading. */
-      sound->tags |= SOUND_TAGS_WAVEFORM_LOADING;
-      BLI_spin_unlock(static_cast<SpinLock *>(sound->spinlock));
-      sequencer_preview_add_sound(C, strip);
-    }
-    else {
-      BLI_spin_unlock(static_cast<SpinLock *>(sound->spinlock));
-    }
+  if (BKE_sound_runtime_start_waveform_loading(strip->sound)) {
+    sequencer_preview_add_sound(C, strip);
   }
-  BLI_spin_unlock(static_cast<SpinLock *>(sound->spinlock));
 }
 
 static float align_frame_with_pixel(float frame_coord, float frames_per_pixel)
@@ -504,8 +491,8 @@ static void draw_seq_waveform_overlay(const TimelineDrawContext &ctx,
 
   waveform_job_start_if_needed(ctx.C, strip);
 
-  SoundWaveform *waveform = static_cast<SoundWaveform *>(strip->sound->waveform);
-  if (waveform == nullptr || waveform->length == 0) {
+  const Vector<float> *waveform = BKE_sound_runtime_get_waveform(strip->sound);
+  if (waveform == nullptr || waveform->is_empty()) {
     return; /* Waveform was not built. */
   }
 
@@ -515,6 +502,7 @@ static void draw_seq_waveform_overlay(const TimelineDrawContext &ctx,
   uchar color_rms[4] = {255, 255, 255, 204};
   ctx.quads->add_line(draw_start_frame, y_zero, draw_end_frame, y_zero, color);
 
+  const int waveform_sample_count = waveform->size() / 3;
   float prev_y_mid = y_zero;
   for (int i = 0; i < pixels_to_draw; i++) {
     float timeline_frame = sample_start_frame + i * frames_per_pixel;
@@ -526,23 +514,23 @@ static void draw_seq_waveform_overlay(const TimelineDrawContext &ctx,
       continue;
     }
 
-    if (sample_index >= waveform->length) {
+    if (sample_index >= waveform_sample_count) {
       break;
     }
 
-    float value_min = waveform->data[sample_index * 3];
-    float value_max = waveform->data[sample_index * 3 + 1];
-    float rms = waveform->data[sample_index * 3 + 2];
+    float value_min = (*waveform)[sample_index * 3];
+    float value_max = (*waveform)[sample_index * 3 + 1];
+    float rms = (*waveform)[sample_index * 3 + 2];
 
     if (samples_per_pixel > 1.0f) {
       /* We need to sum up the values we skip over until the next step. */
       float next_pos = sample + samples_per_pixel;
       int end_idx = round_fl_to_int(next_pos);
 
-      for (int j = sample_index + 1; (j < waveform->length) && (j < end_idx); j++) {
-        value_min = min_ff(value_min, waveform->data[j * 3]);
-        value_max = max_ff(value_max, waveform->data[j * 3 + 1]);
-        rms = max_ff(rms, waveform->data[j * 3 + 2]);
+      for (int j = sample_index + 1; (j < waveform_sample_count) && (j < end_idx); j++) {
+        value_min = min_ff(value_min, (*waveform)[j * 3]);
+        value_max = max_ff(value_max, (*waveform)[j * 3 + 1]);
+        rms = max_ff(rms, (*waveform)[j * 3 + 2]);
       }
     }
 
