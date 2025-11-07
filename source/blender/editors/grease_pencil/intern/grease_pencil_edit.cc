@@ -1934,9 +1934,12 @@ static wmOperatorStatus grease_pencil_move_to_layer_exec(bContext *C, wmOperator
       continue;
     }
 
-    if (!layer_dst.frames().lookup_ptr(info.frame_number)) {
+    bool is_key_inserted = false;
+    const bool has_active_key = ensure_active_keyframe(
+        *scene, grease_pencil, layer_dst, false, is_key_inserted);
+    if (has_active_key && is_key_inserted) {
       /* Move geometry to a new drawing in target layer. */
-      Drawing &drawing_dst = *grease_pencil.insert_frame(layer_dst, info.frame_number);
+      Drawing &drawing_dst = *grease_pencil.get_drawing_at(layer_dst, info.frame_number);
       drawing_dst.strokes_for_write() = bke::curves_copy_curve_selection(
           curves_src, selected_strokes, {});
 
