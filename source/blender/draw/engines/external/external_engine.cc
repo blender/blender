@@ -22,6 +22,7 @@
 #include "DNA_view3d_types.h"
 
 #include "ED_image.hh"
+#include "ED_render.hh"
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
@@ -322,7 +323,13 @@ class Instance : public DrawEngine {
 
   void draw_scene_do_image()
   {
-    Scene *scene = draw_ctx->scene;
+    /* Get scene from the render job, to show progress for scenes render as part
+     * of compositor or sequencer. */
+    Scene *scene = ED_render_job_get_current_scene(draw_ctx->evil_C);
+    if (scene == nullptr) {
+      scene = draw_ctx->scene;
+    }
+
     Render *re = RE_GetSceneRender(scene);
     RenderEngine *engine = RE_engine_get(re);
 
@@ -449,9 +456,14 @@ RenderEngineType DRW_engine_viewport_external_type = {
 
 bool DRW_engine_external_acquire_for_image_editor(const DRWContext *draw_ctx)
 {
-  const SpaceLink *space_data = draw_ctx->space_data;
-  Scene *scene = draw_ctx->scene;
+  /* Get scene from the render job, to show progress for scenes render as part
+   * of compositor or sequencer. */
+  Scene *scene = ED_render_job_get_current_scene(draw_ctx->evil_C);
+  if (scene == nullptr) {
+    scene = draw_ctx->scene;
+  }
 
+  const SpaceLink *space_data = draw_ctx->space_data;
   if (space_data == nullptr) {
     return false;
   }

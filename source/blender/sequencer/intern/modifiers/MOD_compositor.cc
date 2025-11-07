@@ -86,7 +86,7 @@ class CompositorContext : public compositor::Context {
   compositor::OutputTypes needed_outputs() const override
   {
     compositor::OutputTypes needed_outputs = compositor::OutputTypes::Composite;
-    if (!render_data_.for_render) {
+    if (!render_data_.render) {
       needed_outputs |= compositor::OutputTypes::Viewer;
     }
     return needed_outputs;

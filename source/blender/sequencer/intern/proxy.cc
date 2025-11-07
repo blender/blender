@@ -551,7 +551,7 @@ void proxy_rebuild(IndexBuildContext *context, wmJobWorkerStatus *worker_status)
                          width,
                          height,
                          SEQ_RENDER_SIZE_PROXY_100,
-                         false,
+                         nullptr,
                          &render_context);
 
   render_context.skip_cache = true;

@@ -123,7 +123,7 @@ static SourceImageCache::Key get_key(const RenderData *context,
 {
   const float frame_index = give_cache_frame_index(scene, strip, timeline_frame);
   eDrawType draw_type = OB_RENDER;
-  if (!context->for_render && strip->type == STRIP_TYPE_SCENE) {
+  if (!context->render && strip->type == STRIP_TYPE_SCENE) {
     draw_type = eDrawType(scene->r.seq_prev_type);
   }
   return {frame_index, context->view_id, draw_type};
