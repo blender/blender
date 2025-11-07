@@ -216,16 +216,18 @@ class Credits:
     ) -> None:
         commit_word = "commit", "commits"
 
-        sorted_authors = {}
         if sort == "commit":
-            sorted_authors = dict(sorted(self.users.items(), key=lambda item: item[1].commit_total))
+            sorted_authors = dict(sorted(
+                self.users.items(),
+                key=lambda item: (item[1].commit_total, item[0]),
+            ))
         else:
             sorted_authors = dict(sorted(self.users.items()))
 
         fh.write("<h3>Individual Contributors</h3>\n\n")
         for author, cu in sorted_authors.items():
             fh.write("{:s}, {:,d} {:s} {:s}<br />\n".format(
-                author if use_email else author.split("<", 1)[0].rstrip(),
+                html.escape(author if use_email else author.split("<", 1)[0].rstrip()),
                 cu.commit_total,
                 commit_word[cu.commit_total > 1],
                 (
