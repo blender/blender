@@ -43,6 +43,11 @@ struct VKComputeInfo {
     hash = hash * 33 ^ specialization_constants.hash();
     return hash;
   }
+
+  VkPipelineLayout vk_pipeline_layout_get() const
+  {
+    return vk_pipeline_layout;
+  }
 };
 
 /**
@@ -79,44 +84,48 @@ struct VKGraphicsInfo {
       return hash;
     }
   };
-  struct PreRasterization {
+  struct Shaders {
+    VkPipelineLayout vk_pipeline_layout;
     VkShaderModule vk_vertex_module;
     VkShaderModule vk_geometry_module;
-    bool operator==(const PreRasterization &other) const
+    VkShaderModule vk_fragment_module;
+    VkPrimitiveTopology vk_topology;
+    uint32_t viewport_count;
+    GPUState state;
+    GPUStateMutable mutable_state;
+    Vector<shader::SpecializationConstant::Value> specialization_constants;
+    bool has_depth;
+    bool has_stencil;
+    bool operator==(const Shaders &other) const
     {
       return vk_vertex_module == other.vk_vertex_module &&
-             vk_geometry_module == other.vk_geometry_module;
+             vk_geometry_module == other.vk_geometry_module &&
+             vk_fragment_module == other.vk_fragment_module &&
+             vk_pipeline_layout == other.vk_pipeline_layout && vk_topology == other.vk_topology &&
+             viewport_count == other.viewport_count && state == other.state &&
+             mutable_state == other.mutable_state &&
+             specialization_constants == other.specialization_constants &&
+             has_depth == other.has_depth && has_stencil == other.has_stencil;
     }
+
     uint64_t hash() const
     {
-      uint64_t hash = 0;
+      uint64_t hash = viewport_count;
       hash = hash * 33 ^ uint64_t(vk_vertex_module);
       hash = hash * 33 ^ uint64_t(vk_geometry_module);
-      return hash;
-    }
-  };
-  struct FragmentShader {
-    VkShaderModule vk_fragment_module;
-    uint32_t viewport_count;
-
-    bool operator==(const FragmentShader &other) const
-    {
-      if (vk_fragment_module != other.vk_fragment_module || viewport_count != other.viewport_count)
-      {
-        return false;
-      }
-
-      return true;
-    }
-
-    uint64_t hash() const
-    {
-      uint64_t hash = uint64_t(vk_fragment_module);
-      hash = hash * 33 ^ uint64_t(viewport_count);
+      hash = hash * 33 ^ uint64_t(vk_fragment_module);
+      hash = hash * 33 ^ uint64_t(vk_pipeline_layout);
+      hash = hash * 33 ^ uint64_t(vk_topology);
+      hash = hash * 33 ^ state.data;
+      hash = hash * 33 ^ mutable_state.data[0];
+      hash = hash * 33 ^ mutable_state.data[1];
+      hash = hash * 33 ^ specialization_constants.hash();
+      hash = hash * 33 ^ (uint64_t(has_depth) << 1 | uint64_t(has_stencil));
       return hash;
     }
   };
   struct FragmentOut {
+    GPUState state;
     uint32_t color_attachment_size;
 
     /* Dynamic rendering */
@@ -126,11 +135,12 @@ struct VKGraphicsInfo {
 
     bool operator==(const FragmentOut &other) const
     {
-#if 1
+#if 0
       return hash() == other.hash();
 #else
-      if (depth_attachment_format != other.depth_attachment_format ||
+      if (state != other.state || depth_attachment_format != other.depth_attachment_format ||
           stencil_attachment_format != other.stencil_attachment_format ||
+          color_attachment_size != other.color_attachment_size ||
           color_attachment_formats.size() != other.color_attachment_formats.size())
       {
         return false;
@@ -138,10 +148,11 @@ struct VKGraphicsInfo {
 
       if (memcmp(color_attachment_formats.data(),
                  other.color_attachment_formats.data(),
-                 color_attachment_formats.size() * sizeof(VkFormat)) == 0)
+                 color_attachment_size * sizeof(VkFormat)) != 0)
       {
         return false;
       }
+
       return true;
 #endif
     }
@@ -151,42 +162,33 @@ struct VKGraphicsInfo {
       uint64_t hash = uint64_t(depth_attachment_format);
       hash = hash * 33 ^ uint64_t(stencil_attachment_format);
       hash = hash * 33 ^ XXH3_64bits(color_attachment_formats.data(),
-                                     color_attachment_formats.size() * sizeof(VkFormat));
+                                     color_attachment_size * sizeof(VkFormat));
+      hash = hash * 33 ^ state.data;
       return hash;
     }
   };
 
   VertexIn vertex_in;
-  PreRasterization pre_rasterization;
-  FragmentShader fragment_shader;
+  Shaders shaders;
   FragmentOut fragment_out;
-
-  GPUState state;
-  GPUStateMutable mutable_state;
-  VkPipelineLayout vk_pipeline_layout;
-  Vector<shader::SpecializationConstant::Value> specialization_constants;
 
   bool operator==(const VKGraphicsInfo &other) const
   {
-    return vertex_in == other.vertex_in && pre_rasterization == other.pre_rasterization &&
-           fragment_shader == other.fragment_shader && fragment_out == other.fragment_out &&
-           vk_pipeline_layout == other.vk_pipeline_layout &&
-           specialization_constants == other.specialization_constants && state == other.state &&
-           mutable_state == other.mutable_state;
+    return vertex_in == other.vertex_in && shaders == other.shaders &&
+           fragment_out == other.fragment_out;
   };
   uint64_t hash() const
   {
     uint64_t hash = 0;
     hash = hash * 33 ^ vertex_in.hash();
-    hash = hash * 33 ^ pre_rasterization.hash();
-    hash = hash * 33 ^ fragment_shader.hash();
+    hash = hash * 33 ^ shaders.hash();
     hash = hash * 33 ^ fragment_out.hash();
-    hash = hash * 33 ^ uint64_t(vk_pipeline_layout);
-    hash = hash * 33 ^ specialization_constants.hash();
-    hash = hash * 33 ^ state.data;
-    hash = hash * 33 ^ mutable_state.data[0];
-    hash = hash * 33 ^ mutable_state.data[1];
     return hash;
+  }
+
+  VkPipelineLayout vk_pipeline_layout_get() const
+  {
+    return shaders.vk_pipeline_layout;
   }
 };
 
@@ -256,6 +258,7 @@ template<typename PipelineInfo> class VKPipelineMap {
     BLI_assert_unreachable();
     return VK_NULL_HANDLE;
   }
+
   /**
    * Discard all pipelines associated with the given layout
    */
@@ -263,7 +266,7 @@ template<typename PipelineInfo> class VKPipelineMap {
   {
     std::scoped_lock lock(mutex_);
     pipelines_.remove_if([&](auto item) {
-      if (item.key.vk_pipeline_layout == vk_pipeline_layout) {
+      if (item.key.vk_pipeline_layout_get() == vk_pipeline_layout) {
         discard_pool.discard_pipeline(item.value);
         return true;
       }
@@ -389,7 +392,7 @@ class VKPipelinePool : public NonCopyable {
                                             StringRefNull name);
 
   /**
-   * Get an existing or create a new compute pipeline based on the provided ComputeInfo.
+   * Get an existing or create a new graphics pipeline based on the provided ComputeInfo.
    *
    * When vk_pipeline_base is a valid pipeline handle, the pipeline base will be used to speed up
    * pipeline creation process.
