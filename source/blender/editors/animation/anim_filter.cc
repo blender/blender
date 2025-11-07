@@ -3951,12 +3951,9 @@ static size_t animdata_filter_remove_invalid(ListBase *anim_data)
 /* Remove duplicate entries in animation channel list */
 static size_t animdata_filter_remove_duplis(ListBase *anim_data)
 {
-  GSet *gs;
-  size_t items = 0;
-
   /* Build new hash-table to efficiently store and retrieve which entries have been
    * encountered already while searching. */
-  gs = BLI_gset_ptr_new(__func__);
+  blender::Set<const void *> gs;
 
   /* loop through items, removing them from the list if a similar item occurs already */
   LISTBASE_FOREACH_MUTABLE (bAnimListElem *, ale, anim_data) {
@@ -3965,21 +3962,14 @@ static size_t animdata_filter_remove_duplis(ListBase *anim_data)
      *   ale->type in combination too to capture corner cases
      *   (where same data performs differently)
      */
-    if (BLI_gset_add(gs, ale->data)) {
-      /* this entry is 'unique' and can be kept */
-      items++;
-    }
-    else {
+    if (!gs.add(ale->data)) {
       /* this entry isn't needed anymore */
       BLI_freelinkN(anim_data, ale);
     }
   }
 
-  /* free the hash... */
-  BLI_gset_free(gs, nullptr);
-
   /* return the number of items still in the list */
-  return items;
+  return gs.size();
 }
 
 /* ----------- Public API --------------- */
