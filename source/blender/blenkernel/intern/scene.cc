@@ -341,13 +341,16 @@ static void scene_copy_data(Main *bmain,
     scene_dst->ed->show_missing_media_flag = scene_src->ed->show_missing_media_flag;
     scene_dst->ed->proxy_storage = scene_src->ed->proxy_storage;
     STRNCPY(scene_dst->ed->proxy_dir, scene_src->ed->proxy_dir);
-    blender::seq::seqbase_duplicate_recursive(bmain,
-                                              scene_src,
-                                              scene_dst,
-                                              &scene_dst->ed->seqbase,
-                                              &scene_src->ed->seqbase,
-                                              blender::seq::StripDuplicate::All,
-                                              flag_subdata);
+    blender::seq::seqbase_duplicate_recursive(
+        bmain,
+        scene_src,
+        scene_dst,
+        &scene_dst->ed->seqbase,
+        &scene_src->ed->seqbase,
+        /* NOTE: Never use #StripDuplicate::Data here (would generate recursive ID duplication not,
+         * supported at all here). */
+        blender::seq::StripDuplicate::All,
+        flag_subdata);
     BLI_duplicatelist(&scene_dst->ed->channels, &scene_src->ed->channels);
   }
 
@@ -1793,7 +1796,11 @@ void BKE_scene_copy_data_eevee(Scene *sce_dst, const Scene *sce_src)
   sce_dst->eevee = sce_src->eevee;
 }
 
-Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
+Scene *BKE_scene_duplicate(Main *bmain,
+                           Scene *sce,
+                           eSceneCopyMethod type,
+                           eDupli_ID_Flags duplicate_flags,
+                           /*eLibIDDuplicateFlags*/ uint duplicate_options)
 {
   Scene *sce_copy;
 
@@ -1850,22 +1857,16 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     return sce_copy;
   }
 
-  eDupli_ID_Flags duplicate_flags = (eDupli_ID_Flags)(U.dupflag | USER_DUP_OBJECT);
-
-  sce_copy = (Scene *)BKE_id_copy(bmain, (ID *)sce);
-  id_us_min(&sce_copy->id);
-  id_us_ensure_real(&sce_copy->id);
-
-  /* Scene duplication is always root of duplication currently, and never a subprocess.
+  /* Scene duplication is always root of duplication currently, and so `is_root_id` is always true.
    *
-   * Keep these around though, as this allow the rest of the duplication code to stay in sync with
-   * the layout and behavior as the other duplicate functions (see e.g. #BKE_collection_duplicate
-   * or #BKE_object_duplicate).
+   * Keep `is_root_id` around though, as this allows the rest of the duplication code to stay in
+   * sync with the layout and behavior as the other duplicate functions (see e.g.
+   * #BKE_collection_duplicate or #BKE_object_duplicate).
    *
-   * TOOD: At some point it would be nice to deduplicate this logic and move common behavior into
+   * TODO: At some point it would be nice to deduplicate this logic and move common behavior into
    * generic ID management code, with IDType callbacks for specific duplication behavior only. */
-  const bool is_subprocess = false;
-  const bool is_root_id = true;
+  const bool is_subprocess = (duplicate_options & LIB_ID_DUPLICATE_IS_SUBPROCESS) != 0;
+  const bool is_root_id = (duplicate_options & LIB_ID_DUPLICATE_IS_ROOT_ID) != 0;
   const int copy_flags = LIB_ID_COPY_DEFAULT;
 
   if (!is_subprocess) {
@@ -1880,12 +1881,26 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     }
   }
 
-  /* Usages of the duplicated scene also need to be remapped in new duplicated IDs. */
-  ID_NEW_SET(sce, sce_copy);
+  if (is_subprocess) {
+    if (sce->id.newid != nullptr) {
+      return blender::id_cast<Scene *>(sce->id.newid);
+    }
+    sce_copy = blender::id_cast<Scene *>(
+        BKE_id_copy_for_duplicate(bmain, (ID *)sce, duplicate_flags, copy_flags));
+  }
+  else {
+    BLI_assert(sce->id.newid == nullptr);
+    sce_copy = blender::id_cast<Scene *>(BKE_id_copy(bmain, (ID *)sce));
+    id_us_min(&sce_copy->id);
+    /* Usages of the duplicated scene also need to be remapped in new duplicated IDs. */
+    ID_NEW_SET(sce, sce_copy);
+
+    /* In subprocesses, action data is duplicated in `BKE_id_copy_for_duplicate`, match that: */
+    BKE_animdata_duplicate_id_action(bmain, &sce_copy->id, duplicate_flags);
+  }
+  id_us_ensure_real(&sce_copy->id);
 
   /* Extra actions, most notably SCE_FULL_COPY also duplicates several 'children' datablocks. */
-
-  BKE_animdata_duplicate_id_action(bmain, &sce_copy->id, duplicate_flags);
 
   /* Exception for the compositor; Before 5.0, creating a linked copy of the scene created a new
    * compositing node tree with a Render Layers node that referred to the new scene.

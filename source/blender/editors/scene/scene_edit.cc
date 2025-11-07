@@ -60,7 +60,11 @@ static Scene *scene_add(Main *bmain, Scene *scene_old, eSceneCopyMethod method)
       ED_editors_flush_edits(bmain);
     }
 
-    scene_new = BKE_scene_duplicate(bmain, scene_old, method);
+    scene_new = BKE_scene_duplicate(bmain,
+                                    scene_old,
+                                    method,
+                                    static_cast<eDupli_ID_Flags>(U.dupflag | USER_DUP_OBJECT),
+                                    LIB_ID_DUPLICATE_IS_ROOT_ID);
   }
 
   return scene_new;
