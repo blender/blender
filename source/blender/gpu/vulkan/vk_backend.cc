@@ -60,7 +60,9 @@ bool GPU_vulkan_is_supported_driver(VkPhysicalDevice vk_physical_device)
       vk_physical_device_driver_properties.conformanceVersion.subminor,
       vk_physical_device_driver_properties.conformanceVersion.patch);
 
-  /* Intel IRIS on 10th gen CPU (and older) crashes due to multiple driver issues.
+#ifdef _WIN32
+  /* Intel IRIS on 10th gen CPU (and older) crashes with drivers before 101.2140 due to multiple
+   * driver issues.
    *
    * 1) Workbench is working, but EEVEE pipelines are failing. Calling vkCreateGraphicsPipelines
    * for certain EEVEE shaders (Shadow, Deferred rendering) would return with VK_SUCCESS, but
@@ -72,11 +74,16 @@ bool GPU_vulkan_is_supported_driver(VkPhysicalDevice vk_physical_device)
    */
   if (vk_physical_device_driver_properties.driverID == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS &&
       vk_physical_device_properties.properties.deviceType ==
-          VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU &&
-      conformance_version < VK_MAKE_API_VERSION(1, 3, 2, 0))
+          VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
   {
-    return false;
+    const uint32_t driver_version = vk_physical_device_properties.properties.driverVersion;
+    uint32_t driver_version_major = driver_version >> 14u;
+    uint32_t driver_version_minor = driver_version & 0x3fffu;
+    if (driver_version_major < 101 || driver_version_major == 101 && driver_version_minor < 2140) {
+      return false;
+    }
   }
+#endif
 
 #ifndef _WIN32
   /* NVIDIA drivers below 550 don't work on Linux. When sending command to the GPU there is not

@@ -1642,10 +1642,21 @@ def fbx_data_material_elements(root, ma, scene_data):
     if scene_data.settings.use_custom_props:
         fbx_data_element_custom_properties(props, ma)
 
+def _get_image_filepath(img):
+    if len(img.filepath) > 0:
+        return img.filepath
+
+    # It's possible to have a packed image without a filepath. Pick a filepath
+    # that is unlikely to conflict.
+    filepath = os.path.join("textures", "packed")
+    if img.library:
+        filepath = os.path.join(filepath, bpy.path.clean_name(img.library.name))
+    return "//" + os.path.join(filepath, bpy.path.clean_name(img.name))
 
 def _gen_vid_path(img, scene_data):
     msetts = scene_data.settings.media_settings
-    fname_rel = bpy_extras.io_utils.path_reference(img.filepath, msetts.base_src, msetts.base_dst, msetts.path_mode,
+    img_filepath = _get_image_filepath(img)
+    fname_rel = bpy_extras.io_utils.path_reference(img_filepath, msetts.base_src, msetts.base_dst, msetts.path_mode,
                                                    msetts.subdir, msetts.copy_set, img.library)
     fname_abs = os.path.normpath(os.path.abspath(os.path.join(msetts.base_dst, fname_rel)))
     return fname_abs, fname_rel
