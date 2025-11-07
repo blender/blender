@@ -515,6 +515,15 @@ static void seq_duplicate_postprocess(Main *bmain,
   const int remap_flag = ID_REMAP_FORCE_OBDATA_IN_EDITMODE | ID_REMAP_SKIP_USER_CLEAR;
 
   if (int(dupe_flag & StripDuplicate::Data) != 0) {
+    /* Remapping newids in Scenes will usually trigger a view_layers/collections resync after each
+     * scene. Besides performances considerations, this is also bad because it means some
+     * not-yet-remapped scenes will get their viewlayer updated while still referencing old
+     * (source) collections, objects etc. This can e.g. lead to losing the active object in the
+     * duplicated scenes.
+     *
+     * So instead, prevent any resync untill all new IDs have been remapped. */
+    BKE_layer_collection_resync_forbid();
+
     /* Newly created datablocks may reference IDs that themselves have also been duplicated in the
      * "current duplication". E.g. a scene may have a custom property that refers to itself; when
      * it is duplicated, we should ensure that these references are properly remapped.
@@ -539,6 +548,8 @@ static void seq_duplicate_postprocess(Main *bmain,
         BKE_libblock_relink_to_newid(bmain, mask_src->id.newid, remap_flag);
       }
     }
+
+    BKE_layer_collection_resync_allow();
 
     if (bmain != nullptr) {
 #ifndef NDEBUG
