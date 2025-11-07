@@ -35,17 +35,11 @@ enum class StripEarlyOut {
 };
 
 struct EffectHandle {
-  /* constructors & destructor */
-  /* init is _only_ called on first creation */
+  /* #init is only called on first creation, or when changing effect type. */
   void (*init)(Strip *strip);
 
-  /* number of input strips needed
-   * (called directly after construction) */
+  /* Number of input strips needed for this effect. */
   int (*num_inputs)();
-
-  /* load is called first time after readblenfile in
-   * get_sequence_effect automatically */
-  void (*load)(Strip *seqconst);
 
   /* duplicate */
   void (*copy)(Strip *dst, const Strip *src, int flag);
@@ -65,7 +59,7 @@ struct EffectHandle {
                     ImBuf *ibuf2);
 };
 
-/** Get the effect handle for a given strip, and load the strip if it has not been loaded already.
+/** Get the effect handle for a given strip.
  * If `strip` is not an effect strip, returns empty `EffectHandle`. */
 EffectHandle strip_effect_handle_get(Strip *strip);
 

@@ -167,8 +167,7 @@ Strip *add_effect_strip(Scene *scene, ListBase *seqbase, LoadData *load_data)
       seqbase, load_data->start_frame, load_data->channel, load_data->effect.type);
 
   strip->flag |= SEQ_USE_EFFECT_DEFAULT_FADE;
-  EffectHandle sh = strip_effect_handle_get(strip);
-  sh.init(strip);
+  effect_ensure_initialized(strip);
 
   if (effect_get_num_inputs(strip->type) != 0) {
     strip->input1 = load_data->effect.input1;

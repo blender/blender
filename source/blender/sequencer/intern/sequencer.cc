@@ -968,9 +968,11 @@ static bool strip_read_data_cb(Strip *strip, void *user_data)
       case STRIP_TYPE_COLOR:
         BLO_read_struct(reader, SolidColorVars, &strip->effectdata);
         break;
-      case STRIP_TYPE_SPEED:
+      case STRIP_TYPE_SPEED: {
         BLO_read_struct(reader, SpeedControlVars, &strip->effectdata);
-        break;
+        SpeedControlVars *speed = static_cast<SpeedControlVars *>(strip->effectdata);
+        speed->frameMap = nullptr;
+      } break;
       case STRIP_TYPE_WIPE:
         BLO_read_struct(reader, WipeVars, &strip->effectdata);
         break;
@@ -988,6 +990,8 @@ static bool strip_read_data_cb(Strip *strip, void *user_data)
         TextVars *text = static_cast<TextVars *>(strip->effectdata);
         BLO_read_string(reader, &text->text_ptr);
         text->text_len_bytes = text->text_ptr ? strlen(text->text_ptr) : 0;
+        text->text_blf_id = STRIP_FONT_NOT_LOADED;
+        text->runtime = nullptr;
       } break;
       case STRIP_TYPE_COLORMIX:
         BLO_read_struct(reader, ColorMixVars, &strip->effectdata);
@@ -1000,16 +1004,6 @@ static bool strip_read_data_cb(Strip *strip, void *user_data)
   }
 
   BLO_read_struct(reader, Stereo3dFormat, &strip->stereo3d_format);
-
-  if (strip->is_effect()) {
-    strip->runtime.flag |= STRIP_EFFECT_NOT_LOADED;
-  }
-
-  if (strip->type == STRIP_TYPE_TEXT) {
-    TextVars *t = static_cast<TextVars *>(strip->effectdata);
-    t->text_blf_id = STRIP_FONT_NOT_LOADED;
-    t->runtime = nullptr;
-  }
 
   BLO_read_struct(reader, IDProperty, &strip->prop);
   IDP_BlendDataRead(reader, &strip->prop);

@@ -34,12 +34,6 @@ static void init_speed_effect(Strip *strip)
   data->speed_fader_frame_number = 0.0f;
 }
 
-static void load_speed_effect(Strip *strip)
-{
-  SpeedControlVars *v = (SpeedControlVars *)strip->effectdata;
-  v->frameMap = nullptr;
-}
-
 static int num_inputs_speed()
 {
   return 1;
@@ -205,7 +199,6 @@ void speed_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_speed_effect;
   rval.num_inputs = num_inputs_speed;
-  rval.load = load_speed_effect;
   rval.free = free_speed_effect;
   rval.copy = copy_speed_effect;
   rval.execute = do_speed_effect;

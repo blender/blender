@@ -720,7 +720,6 @@ typedef enum eStripRuntimeFlag {
   STRIP_CLAMPED_LH = (1 << 0),
   STRIP_CLAMPED_RH = (1 << 1),
   STRIP_OVERLAP = (1 << 2),
-  STRIP_EFFECT_NOT_LOADED = (1 << 3), /* Set when reading blend file, cleared after. */
   STRIP_MARK_FOR_DELETE = (1 << 4),
   STRIP_IGNORE_CHANNEL_LOCK = (1 << 5), /* For #SEQUENCER_OT_duplicate_move macro. */
   STRIP_SHOW_OFFSETS = (1 << 6),        /* Set during #SEQUENCER_OT_slip. */

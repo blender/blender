@@ -104,8 +104,6 @@ Array<float> make_gaussian_blur_kernel(float rad, int size)
 
 static void init_noop(Strip * /*strip*/) {}
 
-static void load_noop(Strip * /*strip*/) {}
-
 static void free_default(Strip *strip, const bool /*do_id_user*/)
 {
   MEM_SAFE_FREE(strip->effectdata);
@@ -178,7 +176,6 @@ EffectHandle effect_handle_get(StripType strip_type)
 
   rval.init = init_noop;
   rval.num_inputs = num_inputs_default;
-  rval.load = load_noop;
   rval.free = free_default;
   rval.early_out = early_out_noop;
   rval.execute = nullptr;
@@ -246,7 +243,6 @@ static EffectHandle effect_handle_for_blend_mode_get(StripBlendMode blend)
 
   rval.init = init_noop;
   rval.num_inputs = num_inputs_default;
-  rval.load = load_noop;
   rval.free = free_default;
   rval.early_out = early_out_noop;
   rval.execute = nullptr;
@@ -303,39 +299,20 @@ static EffectHandle effect_handle_for_blend_mode_get(StripBlendMode blend)
 
 EffectHandle strip_effect_handle_get(Strip *strip)
 {
-  EffectHandle rval = {};
-
+  EffectHandle h = {};
   if (strip->is_effect()) {
-    rval = effect_handle_get(StripType(strip->type));
-    if ((strip->runtime.flag & STRIP_EFFECT_NOT_LOADED) != 0) {
-      rval.load(strip);
-      strip->runtime.flag &= ~STRIP_EFFECT_NOT_LOADED;
-    }
+    h = effect_handle_get(StripType(strip->type));
   }
-
-  return rval;
+  return h;
 }
 
 EffectHandle strip_blend_mode_handle_get(Strip *strip)
 {
-  EffectHandle rval = {};
-
+  EffectHandle h = {};
   if (strip->blend_mode != STRIP_BLEND_REPLACE) {
-    if ((strip->runtime.flag & STRIP_EFFECT_NOT_LOADED) != 0) {
-      /* load the effect first */
-      rval = effect_handle_get(StripType(strip->type));
-      rval.load(strip);
-    }
-
-    rval = effect_handle_for_blend_mode_get(StripBlendMode(strip->blend_mode));
-    if ((strip->runtime.flag & STRIP_EFFECT_NOT_LOADED) != 0) {
-      /* now load the blend and unset unloaded flag */
-      rval.load(strip);
-      strip->runtime.flag &= ~STRIP_EFFECT_NOT_LOADED;
-    }
+    h = effect_handle_for_blend_mode_get(StripBlendMode(strip->blend_mode));
   }
-
-  return rval;
+  return h;
 }
 
 static float transition_fader_calc(const Scene *scene, const Strip *strip, float timeline_frame)

@@ -281,12 +281,6 @@ static void free_text_effect(Strip *strip, const bool do_id_user)
   }
 }
 
-static void load_text_effect(Strip *strip)
-{
-  TextVars *data = static_cast<TextVars *>(strip->effectdata);
-  text_font_load(data, false);
-}
-
 static void copy_text_effect(Strip *dst, const Strip *src, const int flag)
 {
   dst->effectdata = MEM_dupallocN(src->effectdata);
@@ -812,7 +806,6 @@ int text_effect_font_init(const RenderData *context, const Strip *strip, FontFla
 
   if (data->text_blf_id == STRIP_FONT_NOT_LOADED) {
     data->text_blf_id = -1;
-
     text_font_load(data, false);
   }
 
@@ -1089,7 +1082,6 @@ void text_effect_get_handle(EffectHandle &rval)
   rval.num_inputs = num_inputs_text;
   rval.init = init_text_effect;
   rval.free = free_text_effect;
-  rval.load = load_text_effect;
   rval.copy = copy_text_effect;
   rval.early_out = early_out_text;
   rval.execute = do_text_effect;
