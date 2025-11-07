@@ -1401,7 +1401,7 @@ static void recalcData_pose(TransInfo *t)
     }
   }
   else {
-    GSet *motionpath_updates = BLI_gset_ptr_new("motionpath updates");
+    Set<Object *> motionpath_updates;
 
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       Object *ob = tc->poseobj;
@@ -1435,19 +1435,16 @@ static void recalcData_pose(TransInfo *t)
       }
 
       if (motionpath_need_update_pose(t->scene, ob)) {
-        BLI_gset_insert(motionpath_updates, ob);
+        motionpath_updates.add(ob);
       }
 
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
 
     /* Update motion paths once for all transformed bones in an object. */
-    GSetIterator gs_iter;
-    GSET_ITER (gs_iter, motionpath_updates) {
-      Object *ob = static_cast<Object *>(BLI_gsetIterator_getKey(&gs_iter));
+    for (Object *ob : motionpath_updates) {
       ED_pose_recalculate_paths(t->context, t->scene, ob, POSE_PATH_CALC_RANGE_CURRENT_FRAME);
     }
-    BLI_gset_free(motionpath_updates, nullptr);
   }
 }
 
