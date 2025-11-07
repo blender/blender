@@ -3020,7 +3020,15 @@ static wmOperatorStatus drop_named_material_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  BKE_object_material_assign(CTX_data_main(C), ob, ma, mat_slot, BKE_MAT_ASSIGN_USERPREF);
+  int assign_type = BKE_MAT_ASSIGN_USERPREF;
+  /* When trying to assign to non-editable object data, assign to the object instead. */
+  if (BKE_id_is_editable(bmain, &ob->id) && ob->data &&
+      !BKE_id_is_editable(bmain, static_cast<ID *>(ob->data)))
+  {
+    assign_type = BKE_MAT_ASSIGN_OBJECT;
+  }
+
+  BKE_object_material_assign(CTX_data_main(C), ob, ma, mat_slot, assign_type);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
 
