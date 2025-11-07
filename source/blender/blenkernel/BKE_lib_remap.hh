@@ -206,7 +206,7 @@ void BKE_libblock_relink_multiple(Main *bmain,
  * \note `ID_TAG_NEW` is cleared.
  *
  * Very specific usage, not sure we'll keep it on the long run,
- * currently only used in Object/Collection duplication code.
+ * currently only used in Scene/Object/Collection duplication code.
  */
 void BKE_libblock_relink_to_newid(Main *bmain, ID *id, int remap_flag) ATTR_NONNULL();
 
