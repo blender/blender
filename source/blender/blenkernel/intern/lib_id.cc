@@ -1269,7 +1269,7 @@ void BKE_main_id_repair_duplicate_names_listbase(Main *bmain, ListBase *lb)
 
   /* Fill an array because renaming sorts. */
   ID **id_array = MEM_malloc_arrayN<ID *>(size_t(lb_len), __func__);
-  GSet *gset = BLI_gset_str_new_ex(__func__, lb_len);
+  blender::Set<blender::StringRef> name_set;
   int i = 0;
   LISTBASE_FOREACH (ID *, id, lb) {
     if (!ID_IS_LINKED(id)) {
@@ -1278,12 +1278,11 @@ void BKE_main_id_repair_duplicate_names_listbase(Main *bmain, ListBase *lb)
     }
   }
   for (i = 0; i < lb_len; i++) {
-    if (!BLI_gset_add(gset, BKE_id_name(*id_array[i]))) {
+    if (!name_set.add(BKE_id_name(*id_array[i]))) {
       BKE_id_new_name_validate(
           *bmain, *lb, *id_array[i], nullptr, IDNewNameMode::RenameExistingNever, false);
     }
   }
-  BLI_gset_free(gset, nullptr);
   MEM_freeN(id_array);
 }
 
