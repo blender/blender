@@ -41,7 +41,7 @@ BaseRender::~BaseRender()
 
 Render::Render()
 {
-  display = std::make_unique<RenderDisplay>();
+  display = std::make_shared<RenderDisplay>();
 }
 
 Render::~Render()

@@ -193,13 +193,15 @@ struct Render : public BaseRender {
   char viewname[MAX_NAME] = "";
 
   /**
-   * GPU context and callbacks.
+   * GPU context and callbacks. This can be shared for recursive compositor and
+   * sequencer renders that we want to display in the same place.
    */
-  std::unique_ptr<RenderDisplay> display;
+  std::shared_ptr<RenderDisplay> display;
+  bool display_shared = false;
 };
 
 struct RenderDisplay {
-  RenderDisplay(bool create_gpu_context = false);
+  explicit RenderDisplay(bool create_gpu_context = false);
   ~RenderDisplay();
 
   void *ensure_blender_gpu_context();

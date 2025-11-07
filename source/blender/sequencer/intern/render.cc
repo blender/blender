@@ -1556,6 +1556,8 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
 
     const float subframe = frame - floorf(frame);
 
+    RE_display_share(re, context->render);
+
     RE_RenderFrame(re,
                    context->bmain,
                    scene,
@@ -1564,6 +1566,8 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
                    floorf(frame),
                    subframe,
                    false);
+
+    RE_display_free(re);
 
     /* restore previous state after it was toggled on & off by RE_RenderFrame */
     G.is_rendering = is_rendering;

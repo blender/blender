@@ -682,7 +682,9 @@ void RE_FreeUnusedGPUResources()
 
     if (do_free) {
       re_gpu_texture_caches_free(re);
-      RE_display_clear(re);
+      if (!re->display_shared) {
+        RE_display_free(re);
+      }
 
       /* We also free the resources from the interactive compositor render of the scene if one
        * exists. */
@@ -690,7 +692,9 @@ void RE_FreeUnusedGPUResources()
           RenderGlobal.interactive_compositor_renders.lookup_default(re->owner, nullptr);
       if (interactive_compositor_render) {
         re_gpu_texture_caches_free(interactive_compositor_render);
-        RE_display_clear(interactive_compositor_render);
+        if (!interactive_compositor_render->display_shared) {
+          RE_display_free(interactive_compositor_render);
+        }
       }
     }
   }
@@ -930,7 +934,8 @@ void RE_prepare_viewlayer_cb(Render *re,
 
 void RE_display_init(Render *re, const bool use_gpu_context)
 {
-  re->display = std::make_unique<RenderDisplay>(use_gpu_context);
+  re->display_shared = false;
+  re->display = std::make_shared<RenderDisplay>(use_gpu_context);
 
   re->display->display_update_cb = result_rcti_nothing;
   re->display->current_scene_update_cb = current_scene_nothing;
@@ -944,9 +949,26 @@ void RE_display_init(Render *re, const bool use_gpu_context)
   }
 }
 
-void RE_display_clear(Render *re)
+void RE_display_share(Render *re, const Render *parent_re)
 {
-  re->display->clear();
+  /* Use for compositor and sequencer, which can render scenes recursively.
+   * It more efficient, and we can only create this context on the main thread. */
+  if (parent_re == nullptr || re == parent_re) {
+    return;
+  }
+
+  re->display_shared = true;
+  re->display = parent_re->display;
+}
+
+void RE_display_free(Render *re)
+{
+  if (re->display_shared) {
+    RE_display_init(re, false);
+  }
+  else {
+    re->display->clear();
+  }
 }
 
 void *RE_system_gpu_context_get(Render *re)
@@ -1080,17 +1102,11 @@ static void do_render_compositor_scene(Render *re, Scene *sce, int cfra)
   resc->main = re->main;
   resc->scene = sce;
 
-  /* copy callbacks */
-  resc->display->display_update_cb = re->display->display_update_cb;
-  resc->display->duh = re->display->duh;
-  resc->display->test_break_cb = re->display->test_break_cb;
-  resc->display->tbh = re->display->tbh;
-  resc->display->stats_draw_cb = re->display->stats_draw_cb;
-  resc->display->sdh = re->display->sdh;
-  resc->display->current_scene_update_cb = re->display->current_scene_update_cb;
-  resc->display->suh = re->display->suh;
+  RE_display_share(resc, re);
 
   do_render_engine(resc);
+
+  RE_display_free(resc);
 }
 
 /* Get the scene referenced by the given node if the node uses its render. Returns nullptr
@@ -1935,7 +1951,7 @@ static void render_pipeline_free(Render *re)
   }
 
   /* Destroy the opengl context in the correct thread. */
-  RE_display_clear(re);
+  RE_display_free(re);
 }
 
 void RE_RenderFrame(Render *re,

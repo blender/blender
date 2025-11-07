@@ -815,7 +815,7 @@ static void render_endjob(void *rjv)
 
   /* Clear display GPU context and callbacks since this may be used again
    * by e.g. the sequencer (#24508). */
-  RE_display_clear(rj->re);
+  RE_display_free(rj->re);
 
   if (rj->main != G_MAIN) {
     BKE_main_free(rj->main);
