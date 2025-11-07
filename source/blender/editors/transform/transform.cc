@@ -1559,6 +1559,10 @@ static bool transinfo_show_overlay(TransInfo *t, ARegion *region)
       const SpaceImage *sima = static_cast<const SpaceImage *>(t->area->spacedata.first);
       return (sima->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS) != 0;
     }
+    case SPACE_SEQ: {
+      const SpaceSeq *sseq = static_cast<const SpaceSeq *>(t->area->spacedata.first);
+      return (sseq->flag & SEQ_SHOW_OVERLAY) != 0;
+    }
   }
   return false;
 }
