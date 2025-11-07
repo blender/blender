@@ -216,9 +216,11 @@ class Credits:
     ) -> None:
         commit_word = "commit", "commits"
 
-        sorted_authors = {}
         if sort == "commit":
-            sorted_authors = dict(sorted(self.users.items(), key=lambda item: item[1].commit_total))
+            sorted_authors = dict(sorted(
+                self.users.items(),
+                key=lambda item: (item[1].commit_total, item[0]),
+            ))
         else:
             sorted_authors = dict(sorted(self.users.items()))
 
