@@ -1112,6 +1112,26 @@ bool WM_operator_poll(bContext *C, wmOperatorType *ot)
   return true;
 }
 
+bool WM_operator_poll_or_report_error(bContext *C, wmOperatorType *ot, ReportList *reports)
+{
+  CTX_wm_operator_poll_msg_clear(C);
+  if (WM_operator_poll(C, ot)) {
+    return true;
+  }
+  bool msg_free = false;
+  const char *msg = CTX_wm_operator_poll_msg_get(C, &msg_free);
+  CTX_wm_operator_poll_msg_clear(C);
+  BKE_reportf(reports,
+              RPT_ERROR,
+              "Invalid context: \"%s\", %s",
+              CTX_IFACE_(ot->translation_context, ot->name),
+              msg ? msg : IFACE_("poll failed"));
+  if (msg_free) {
+    MEM_freeN(msg);
+  }
+  return false;
+}
+
 bool WM_operator_poll_context(bContext *C, wmOperatorType *ot, blender::wm::OpCallContext context)
 {
   /* Sets up the new context and calls #wm_operator_invoke() with poll_only. */

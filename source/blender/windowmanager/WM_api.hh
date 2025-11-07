@@ -982,6 +982,21 @@ void WM_operator_handlers_clear(wmWindowManager *wm, wmOperatorType *ot);
 
 bool WM_operator_poll(bContext *C, wmOperatorType *ot);
 bool WM_operator_poll_context(bContext *C, wmOperatorType *ot, blender::wm::OpCallContext context);
+
+/**
+ * Check poll succeeds or returns false & report an error.
+ *
+ * This can be used from #wmOperatorType::exec for operators that use the file-selector.
+ * It's needed in this case because the context can be changed once the file-selector
+ * has been activated.
+ *
+ * \return true or false & report an error.
+ *
+ * \note It's best practice that `ot->poll` sets the "poll message",
+ * otherwise a generic (unhelpful) error will be used.
+ */
+bool WM_operator_poll_or_report_error(bContext *C, wmOperatorType *ot, ReportList *reports);
+
 /**
  * For running operators with frozen context (modal handlers, menus).
  *

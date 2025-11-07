@@ -610,6 +610,12 @@ static wmOperatorStatus paste_from_file(bContext *C, ReportList *reports, const 
 
 static wmOperatorStatus paste_from_file_exec(bContext *C, wmOperator *op)
 {
+  if (op->flag & OP_IS_INVOKE) {
+    if (!WM_operator_poll_or_report_error(C, op->type, op->reports)) {
+      return OPERATOR_CANCELLED;
+    }
+  }
+
   std::string filepath = RNA_string_get(op->ptr, "filepath");
   wmOperatorStatus retval = paste_from_file(C, op->reports, filepath.c_str());
   return retval;

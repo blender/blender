@@ -699,8 +699,11 @@ bool ED_operator_editfont(bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
   if (obedit && obedit->type == OB_FONT) {
-    return nullptr != ((Curve *)obedit->data)->editfont;
+    if (((Curve *)obedit->data)->editfont) {
+      return true;
+    }
   }
+  CTX_wm_operator_poll_msg_set(C, "expected an active edit-font object");
   return false;
 }
 
