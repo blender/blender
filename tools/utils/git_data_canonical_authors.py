@@ -58,6 +58,11 @@ def canonical_author_map() -> dict[str, str]:
         "Aleksandr Zinovev <roaoao@gmail.com>": (
             "raa <roaoao@gmail.com>",
         ),
+        "Alex Fuller <boberfly@gmail.com>": (
+            "Alex <boberfly@gmail.com>",
+            "Alex Fuller <boberfly@noreply.localhost>",
+            "Alex Fuller <mistaed>",
+        ),
         "Alexander Gavrilov <angavrilov@gmail.com>": (
             "Alexander Gavrilov <alexander.gavrilov@jetbrains.com>",
         ),
@@ -215,6 +220,9 @@ def canonical_author_map() -> dict[str, str]:
             "Christoph Lendenfeld <ChrisLend>",
             "Christoph Lendenfeld <chris.lend@gmx.at>",
             "Christoph Lendenfeld <chrislend@noreply.localhost>",
+        ),
+        "Christophe Hery <chery@fb.com>": (
+            "Christophe Hery <chery>",
         ),
         "Clément Foucault <foucault.clem@gmail.com>": (
             "Clment Foucault <fclem>",
@@ -477,6 +485,9 @@ def canonical_author_map() -> dict[str, str]:
             "Joseph Eagar <joeedh>",
             "Joseph Eagar <josepheagar@noreply.localhost>",
         ),
+        "Josh Belanich <jbelanich@gmail.com>": (
+            "Josh Belanich <jbelanich>",
+        ),
         "Josh Maros <joshm-2@noreply.localhost>": (
             "Josh Maros <60271685+joshua-maros@users.noreply.github.com>",
             "joshua-maros <60271685+joshua-maros@users.noreply.github.com>",
@@ -581,6 +592,9 @@ def canonical_author_map() -> dict[str, str]:
         "Marcos Perez <pistolario>": (
             "Marcos Perez <pistolario@noreply.localhost>",
         ),
+        "Mark Stead <mark@stead.id.au>": (
+            "Mark Stead <Scumbag>",
+        ),
         "Martijn Berger <mberger@denc.com>": (
             "Martijn Berger <martijn.berger@gmail.com>",
             "Martijn Berger <mberger@denc.nl>",
@@ -679,6 +693,10 @@ def canonical_author_map() -> dict[str, str]:
         ),
         "Nikita Sirgienko <nikita.sirgienko@intel.com>": (
             "Nikita Sirgienko <sirgienko>",
+            "Nikita Sirgienko <sirgienko@noreply.localhost>",
+        ),
+        "Olivier Maury <omaury@meta.com>": (
+            "Olivier Maury <omaury>",
         ),
         "Omar Emara <mail@OmarEmara.dev>": (
             "Omar Emara <OmarSquircleArt>",
@@ -725,6 +743,9 @@ def canonical_author_map() -> dict[str, str]:
         "Pavel \u0160eve\u010dek <sevecek@sirrah.troja.mff.cuni.cz>": (
             "Pavel \u0160eve\u010dek <pavel-sevecek@noreply.localhost>",
             "pavel <sevecek@sirrah.troja.mff.cuni.cz>",
+        ),
+        "Pedro A <povmaniac@noreply.localhost>": (
+            "Pedro A <povmaniaco>",
         ),
         "Philipp Oeser <philipp@blender.org>": (
             "Philipp Oeser <info@graphics-engineer.com>",
@@ -780,6 +801,7 @@ def canonical_author_map() -> dict[str, str]:
             "Robin Hohnsbeen <robin-4@noreply.localhost>",
         ),
         "Sahar A. Kashi <sahar.alipourkashi@amd.com>": (
+            "Sahar A. Kashi  <sahar.alipourkashi@amd.com>",
             "Sahar A. Kashi <salipour@noreply.localhost>",
             "Sahar Kashi <sahar.kashi@amd.com>",
             "salipourto <sahar.alipourkashi@amd.com>",
@@ -793,6 +815,9 @@ def canonical_author_map() -> dict[str, str]:
         ),
         "Sean Kim <SeanCTKim@protonmail.com>": (
             "Sean Kim <sean-kim@noreply.localhost>",
+        ),
+        "Sean Stirling <sean.stirling@codeplay.com>": (
+            "Sean Stirling <sstirlin@qti.qualcomm.com>",
         ),
         "Sebastian Herholz <sebastian.herholz@intel.com>": (
             "Sebastian Herholz <Sebastian.Herholz@gmail.com>",
@@ -952,8 +977,14 @@ def canonical_author_map() -> dict[str, str]:
             "EaryChow <zhouzijun200047@163.com>",
             "Zijun Zhou <eary@noreply.localhost>",
         ),
+        "bartus <bartus@noreply.localhost>": (
+            "bartus <szczepaniak.bartek+github@gmail.com>",
+        ),
         "dupoxy <dupoxy@gmail.com>": (
             "dupoxy <dupoxy@noreply.localhost>",
+        ),
+        "howetuft <howetuft@gmail.com>": (
+            "howetuft <howetuft>",
         ),
         "jon denning <gfxcoder@gmail.com>": (
             "Jon Denning <gfxcoder>",
