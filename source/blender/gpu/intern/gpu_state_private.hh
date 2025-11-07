@@ -83,8 +83,6 @@ inline GPUState operator~(const GPUState &a)
 union GPUStateMutable {
   struct {
     /* Viewport State */
-    /** TODO: remove. */
-    float depth_range[2];
     /** Positive if using program point size. */
     /* TODO(fclem): should be passed as uniform to all shaders. */
     float point_size;
@@ -98,7 +96,7 @@ union GPUStateMutable {
     /* IMPORTANT: ensure x64 struct alignment. */
   };
   /* Here to allow fast bit-wise ops. */
-  uint64_t data[3];
+  uint64_t data[2];
 };
 
 BLI_STATIC_ASSERT(sizeof(GPUStateMutable) == sizeof(GPUStateMutable::data),
@@ -106,7 +104,7 @@ BLI_STATIC_ASSERT(sizeof(GPUStateMutable) == sizeof(GPUStateMutable::data),
 
 inline bool operator==(const GPUStateMutable &a, const GPUStateMutable &b)
 {
-  return a.data[0] == b.data[0] && a.data[1] == b.data[1] && a.data[2] == b.data[2];
+  return a.data[0] == b.data[0] && a.data[1] == b.data[1];
 }
 
 inline bool operator!=(const GPUStateMutable &a, const GPUStateMutable &b)

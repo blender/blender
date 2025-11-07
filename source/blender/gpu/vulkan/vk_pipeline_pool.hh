@@ -186,7 +186,6 @@ struct VKGraphicsInfo {
     hash = hash * 33 ^ state.data;
     hash = hash * 33 ^ mutable_state.data[0];
     hash = hash * 33 ^ mutable_state.data[1];
-    hash = hash * 33 ^ mutable_state.data[2];
     return hash;
   }
 };

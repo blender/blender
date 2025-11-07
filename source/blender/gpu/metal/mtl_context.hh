@@ -150,8 +150,6 @@ struct MTLContextDepthStencilState {
   /* Depth State. */
   bool depth_write_enable;
   bool depth_test_enabled;
-  float depth_range_near;
-  float depth_range_far;
   MTLCompareFunction depth_function;
   float depth_bias;
   float depth_slope_scale;

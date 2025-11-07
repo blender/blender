@@ -997,8 +997,6 @@ void MTLContext::pipeline_state_init()
   /* Depth State. */
   this->pipeline_state.depth_stencil_state.depth_write_enable = false;
   this->pipeline_state.depth_stencil_state.depth_test_enabled = false;
-  this->pipeline_state.depth_stencil_state.depth_range_near = 0.0;
-  this->pipeline_state.depth_stencil_state.depth_range_far = 1.0;
   this->pipeline_state.depth_stencil_state.depth_function = MTLCompareFunctionAlways;
   this->pipeline_state.depth_stencil_state.depth_bias = 0.0;
   this->pipeline_state.depth_stencil_state.depth_slope_scale = 0.0;
@@ -1240,8 +1238,8 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
       viewport.originY = (double)this->pipeline_state.viewport_offset_y[v];
       viewport.width = (double)this->pipeline_state.viewport_width[v];
       viewport.height = (double)this->pipeline_state.viewport_height[v];
-      viewport.znear = this->pipeline_state.depth_stencil_state.depth_range_near;
-      viewport.zfar = this->pipeline_state.depth_stencil_state.depth_range_far;
+      viewport.znear = 0.0f;
+      viewport.zfar = 1.0f;
     }
     [rec setViewports:viewports count:this->pipeline_state.num_active_viewports];
   }
@@ -1252,8 +1250,8 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
     viewport.originY = (double)this->pipeline_state.viewport_offset_y[0];
     viewport.width = (double)this->pipeline_state.viewport_width[0];
     viewport.height = (double)this->pipeline_state.viewport_height[0];
-    viewport.znear = this->pipeline_state.depth_stencil_state.depth_range_near;
-    viewport.zfar = this->pipeline_state.depth_stencil_state.depth_range_far;
+    viewport.znear = 0.0f;
+    viewport.zfar = 1.0f;
     [rec setViewport:viewport];
   }
 

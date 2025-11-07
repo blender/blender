@@ -115,19 +115,6 @@ void MTLStateManager::set_state(const GPUState &state)
   current_ = state;
 }
 
-void MTLStateManager::mtl_depth_range(float near, float far)
-{
-  BLI_assert(context_);
-  BLI_assert(near >= 0.0 && near < 1.0);
-  BLI_assert(far > 0.0 && far <= 1.0);
-  MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
-  MTLContextDepthStencilState &ds_state = pipeline_state.depth_stencil_state;
-
-  ds_state.depth_range_near = near;
-  ds_state.depth_range_far = far;
-  pipeline_state.dirty_flags |= MTL_PIPELINE_STATE_VIEWPORT_FLAG;
-}
-
 void MTLStateManager::set_mutable_state(const GPUStateMutable &state)
 {
   GPUStateMutable changed = state ^ current_mutable_;
@@ -141,11 +128,6 @@ void MTLStateManager::set_mutable_state(const GPUStateMutable &state)
   if (changed.line_width != 0) {
     pipeline_state.line_width = state.line_width;
     pipeline_state.dirty_flags |= MTL_PIPELINE_STATE_PSO_FLAG;
-  }
-
-  if (float_as_uint(changed.depth_range[0]) != 0 || float_as_uint(changed.depth_range[1]) != 0) {
-    /* TODO remove, should modify the projection matrix instead. */
-    mtl_depth_range(state.depth_range[0], state.depth_range[1]);
   }
 
   if (changed.stencil_compare_mask != 0 || changed.stencil_reference != 0 ||
