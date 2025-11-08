@@ -85,13 +85,14 @@ class GradientFunction : public mf::MultiFunction {
 
     switch (gradient_type_) {
       case SHD_BLEND_LINEAR: {
-        mask.foreach_index([&](const int64_t i) { fac[i] = vector[i].x; });
+        mask.foreach_index(
+            [&](const int64_t i) { fac[i] = math::clamp(vector[i].x, 0.0f, 1.0f); });
         break;
       }
       case SHD_BLEND_QUADRATIC: {
         mask.foreach_index([&](const int64_t i) {
           const float r = std::max(vector[i].x, 0.0f);
-          fac[i] = r * r;
+          fac[i] = math::clamp(r * r, 0.0f, 1.0f);
         });
         break;
       }
@@ -104,7 +105,10 @@ class GradientFunction : public mf::MultiFunction {
         break;
       }
       case SHD_BLEND_DIAGONAL: {
-        mask.foreach_index([&](const int64_t i) { fac[i] = (vector[i].x + vector[i].y) * 0.5f; });
+        mask.foreach_index([&](const int64_t i) {
+          fac[i] = (vector[i].x + vector[i].y) * 0.5f;
+          fac[i] = math::clamp(fac[i], 0.0f, 1.0f);
+        });
         break;
       }
       case SHD_BLEND_RADIAL: {

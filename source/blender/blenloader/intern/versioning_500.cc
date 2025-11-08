@@ -2955,6 +2955,227 @@ static void do_version_adaptive_subdivision(Main *bmain)
   }
 }
 
+static void do_version_texture_gradient_clamp(bNodeTree *node_tree)
+{
+  using namespace blender::bke;
+
+  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNode *, node, &node_tree->nodes) {
+    if (node->type_legacy != SH_NODE_TEX_GRADIENT) {
+      continue;
+    }
+    auto *data = static_cast<NodeTexGradient *>(node->storage);
+    if (!ELEM(data->gradient_type, SHD_BLEND_LINEAR, SHD_BLEND_QUADRATIC, SHD_BLEND_DIAGONAL)) {
+      /* Nothing to do. No changes for other gradient types. */
+      continue;
+    }
+
+    bNodeSocket *factor_output = node_find_socket(*node, SOCK_OUT, "Fac");
+    bNodeSocket *color_output = node_find_socket(*node, SOCK_OUT, "Color");
+    bNodeSocket *vector_input = node_find_socket(*node, SOCK_IN, "Vector");
+
+    bool is_factor_output_linked = false;
+    bool is_color_output_linked = false;
+    bNodeLink *vector_input_link = nullptr;
+
+    LISTBASE_FOREACH (bNodeLink *, link, &node_tree->links) {
+      if (link->fromsock == factor_output) {
+        is_factor_output_linked = true;
+      }
+      else if (link->fromsock == color_output) {
+        is_color_output_linked = true;
+      }
+      else if (link->tosock == vector_input) {
+        vector_input_link = link;
+      }
+    }
+
+    if (!is_factor_output_linked && !is_color_output_linked) {
+      /* Node is not linked, nothing to do. */
+      continue;
+    }
+
+    bNode *gradient_node = nullptr;
+    bNodeSocket *gradient_socket = nullptr;
+
+    bNode &separate = version_node_add_empty(*node_tree, "ShaderNodeSeparateXYZ");
+    bNodeSocket &separate_input = version_node_add_socket(
+        *node_tree, separate, SOCK_IN, "NodeSocketVector", "Vector");
+    bNodeSocket &separate_x_output = version_node_add_socket(
+        *node_tree, separate, SOCK_OUT, "NodeSocketFloat", "X");
+    bNodeSocket &separate_y_output = version_node_add_socket(
+        *node_tree, separate, SOCK_OUT, "NodeSocketFloat", "Y");
+    version_node_add_socket(*node_tree, separate, SOCK_OUT, "NodeSocketFloat", "Z");
+
+    copy_v2_v2(separate.location, node->location);
+
+    switch (data->gradient_type) {
+      case SHD_BLEND_LINEAR: {
+        /* Gradient = X */
+        gradient_node = &separate;
+        gradient_socket = &separate_x_output;
+        break;
+      }
+      case SHD_BLEND_QUADRATIC: {
+        /* Gradient = (max(X, 0))^2 */
+        bNode &max = version_node_add_empty(*node_tree, "ShaderNodeMath");
+        bNodeSocket &max_input_a = version_node_add_socket(
+            *node_tree, max, SOCK_IN, "NodeSocketFloat", "Value");
+        bNodeSocket &max_input_b = version_node_add_socket(
+            *node_tree, max, SOCK_IN, "NodeSocketFloat", "Value_001");
+        version_node_add_socket(*node_tree, max, SOCK_IN, "NodeSocketFloat", "Value_002");
+
+        bNodeSocket &max_output = version_node_add_socket(
+            *node_tree, max, SOCK_OUT, "NodeSocketFloat", "Value");
+
+        max.location[0] = separate.location[0] + 20.0f;
+        max.location[1] = separate.location[1];
+
+        max.custom1 = NODE_MATH_MAXIMUM;
+
+        version_node_add_link(*node_tree, separate, separate_x_output, max, max_input_a);
+        max_input_b.default_value_typed<bNodeSocketValueFloat>()->value = 0.0f;
+
+        bNode &multiply = version_node_add_empty(*node_tree, "ShaderNodeMath");
+
+        bNodeSocket &multiply_input_a = version_node_add_socket(
+            *node_tree, multiply, SOCK_IN, "NodeSocketFloat", "Value");
+        bNodeSocket &multiply_input_b = version_node_add_socket(
+            *node_tree, multiply, SOCK_IN, "NodeSocketFloat", "Value_001");
+        version_node_add_socket(*node_tree, multiply, SOCK_IN, "NodeSocketFloat", "Value_002");
+
+        bNodeSocket &multiply_output = version_node_add_socket(
+            *node_tree, multiply, SOCK_OUT, "NodeSocketFloat", "Value");
+
+        multiply.location[0] = max.location[0] + 20.0f;
+        multiply.location[1] = max.location[1];
+        multiply.custom1 = NODE_MATH_MULTIPLY;
+
+        version_node_add_link(*node_tree, max, max_output, multiply, multiply_input_a);
+        version_node_add_link(*node_tree, max, max_output, multiply, multiply_input_b);
+
+        gradient_node = &multiply;
+        gradient_socket = &multiply_output;
+        break;
+      }
+      case SHD_BLEND_DIAGONAL: {
+        /* Gradient = (X + Y) * 0.5. */
+        bNode &add = version_node_add_empty(*node_tree, "ShaderNodeMath");
+        bNodeSocket &add_input_a = version_node_add_socket(
+            *node_tree, add, SOCK_IN, "NodeSocketFloat", "Value");
+        bNodeSocket &add_input_b = version_node_add_socket(
+            *node_tree, add, SOCK_IN, "NodeSocketFloat", "Value_001");
+        version_node_add_socket(*node_tree, add, SOCK_IN, "NodeSocketFloat", "Value_002");
+
+        bNodeSocket &add_output = version_node_add_socket(
+            *node_tree, add, SOCK_OUT, "NodeSocketFloat", "Value");
+
+        add.location[0] = separate.location[0] + 20.0f;
+        add.location[1] = separate.location[1];
+        add.custom1 = NODE_MATH_ADD;
+
+        version_node_add_link(*node_tree, separate, separate_x_output, add, add_input_a);
+        version_node_add_link(*node_tree, separate, separate_y_output, add, add_input_b);
+
+        bNode &multiply = version_node_add_empty(*node_tree, "ShaderNodeMath");
+        bNodeSocket &multiply_input_a = version_node_add_socket(
+            *node_tree, multiply, SOCK_IN, "NodeSocketFloat", "Value");
+        bNodeSocket &multiply_input_b = version_node_add_socket(
+            *node_tree, multiply, SOCK_IN, "NodeSocketFloat", "Value_001");
+        version_node_add_socket(*node_tree, multiply, SOCK_IN, "NodeSocketFloat", "Value_002");
+
+        bNodeSocket &multiply_output = version_node_add_socket(
+            *node_tree, multiply, SOCK_OUT, "NodeSocketFloat", "Value");
+
+        copy_v2_v2(multiply.location, node->location);
+        multiply.location[0] = add.location[0] + 20.0f;
+        multiply.location[1] = add.location[1];
+
+        multiply.custom1 = NODE_MATH_MULTIPLY;
+
+        version_node_add_link(*node_tree, add, add_output, multiply, multiply_input_a);
+
+        static_cast<bNodeSocketValueFloat *>(multiply_input_b.default_value)->value = 0.5f;
+
+        gradient_node = &multiply;
+        gradient_socket = &multiply_output;
+        break;
+      }
+    }
+
+    if (is_factor_output_linked) {
+      /* Output socket can be connected to multiple nodes, so consider all links. */
+      LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
+        if (link->fromsock == factor_output) {
+          version_node_add_link(
+              *node_tree, *gradient_node, *gradient_socket, *link->tonode, *link->tosock);
+          node_remove_link(node_tree, *link);
+        }
+      }
+    }
+
+    if (is_color_output_linked) {
+      bNode &combine = version_node_add_empty(*node_tree, "FunctionNodeCombineColor");
+      bNodeSocket &combine_red = version_node_add_socket(
+          *node_tree, combine, SOCK_IN, "NodeSocketFloat", "Red");
+      bNodeSocket &combine_green = version_node_add_socket(
+          *node_tree, combine, SOCK_IN, "NodeSocketFloat", "Green");
+      bNodeSocket &combine_blue = version_node_add_socket(
+          *node_tree, combine, SOCK_IN, "NodeSocketFloat", "Blue");
+      bNodeSocket &combine_alpha = version_node_add_socket(
+          *node_tree, combine, SOCK_IN, "NodeSocketFloat", "Alpha");
+
+      bNodeSocket &combine_output = version_node_add_socket(
+          *node_tree, combine, SOCK_OUT, "NodeSocketColor", "Color");
+
+      NodeCombSepColor *storage = MEM_callocN<NodeCombSepColor>(__func__);
+      storage->mode = NODE_COMBSEP_COLOR_RGB;
+      combine.storage = storage;
+
+      combine.location[0] = gradient_node->location[0] + 20.0f;
+      combine.location[1] = gradient_node->location[1];
+
+      version_node_add_link(*node_tree, *gradient_node, *gradient_socket, combine, combine_red);
+      version_node_add_link(*node_tree, *gradient_node, *gradient_socket, combine, combine_green);
+      version_node_add_link(*node_tree, *gradient_node, *gradient_socket, combine, combine_blue);
+
+      static_cast<bNodeSocketValueFloat *>(combine_alpha.default_value)->value = 1.0f;
+
+      LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
+        if (link->fromsock == color_output) {
+          version_node_add_link(*node_tree, combine, combine_output, *link->tonode, *link->tosock);
+          node_remove_link(node_tree, *link);
+        }
+      }
+
+      gradient_node = &combine;
+      gradient_socket = &combine_output;
+    }
+
+    if (vector_input_link) {
+      version_node_add_link(*node_tree,
+                            *vector_input_link->fromnode,
+                            *vector_input_link->fromsock,
+                            separate,
+                            separate_input);
+      node_remove_link(node_tree, *vector_input_link);
+    }
+    else {
+      /* Gradient texture's input in geometry nodes defaults to using Input Positon if it's not
+       * connected. */
+      bNode &position = version_node_add_empty(*node_tree, "GeometryNodeInputPosition");
+      bNodeSocket &position_output = version_node_add_socket(
+          *node_tree, position, SOCK_OUT, "NodeSocketVector", "Position");
+      position.location[0] = separate.location[0] - 20.0f;
+      position.location[1] = separate.location[1] - 20.0f;
+
+      version_node_add_link(*node_tree, position, position_output, separate, separate_input);
+    }
+
+    node_tree_set_type(*node_tree);
+    version_node_remove(*node_tree, *node);
+  }
+}
+
 void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   using namespace blender;
@@ -4131,6 +4352,17 @@ void blo_do_versions_500(FileData *fd, Library * /*lib*/, Main *bmain)
          * added through the Python API. Remove these interface sockets here before they cause
          * problems further down the line. */
         version_node_tree_clear_interface(*node_tree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 117)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_GEOMETRY) {
+        /* Gradient Texture node did not clamp results for the Compositor CPU and geometry nodes.
+         * The compositor is not versioned to unify it with GPU backend. */
+        do_version_texture_gradient_clamp(node_tree);
       }
     }
     FOREACH_NODETREE_END;
