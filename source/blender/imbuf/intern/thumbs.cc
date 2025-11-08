@@ -667,37 +667,41 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSourc
  * So idea is to 'lock' a given source file path.
  */
 
-static struct IMBThumbLocks {
-  GSet *locked_paths;
-  int lock_counter;
-  ThreadCondition cond;
-} thumb_locks = {nullptr};
+struct IMBThumbLocks {
+  blender::Set<std::string> locked_paths;
+  int lock_counter = 0;
+  ThreadCondition cond = {};
+};
+
+static IMBThumbLocks &get_thumb_locks()
+{
+  static IMBThumbLocks thumb_locks{};
+  return thumb_locks;
+}
 
 void IMB_thumb_locks_acquire()
 {
   BLI_thread_lock(LOCK_IMAGE);
 
+  IMBThumbLocks &thumb_locks = get_thumb_locks();
   if (thumb_locks.lock_counter == 0) {
-    BLI_assert(thumb_locks.locked_paths == nullptr);
-    thumb_locks.locked_paths = BLI_gset_str_new(__func__);
     BLI_condition_init(&thumb_locks.cond);
   }
   thumb_locks.lock_counter++;
 
-  BLI_assert(thumb_locks.locked_paths != nullptr);
   BLI_assert(thumb_locks.lock_counter > 0);
   BLI_thread_unlock(LOCK_IMAGE);
 }
 
 void IMB_thumb_locks_release()
 {
+  IMBThumbLocks &thumb_locks = get_thumb_locks();
   BLI_thread_lock(LOCK_IMAGE);
-  BLI_assert((thumb_locks.locked_paths != nullptr) && (thumb_locks.lock_counter > 0));
+  BLI_assert(thumb_locks.lock_counter > 0);
 
   thumb_locks.lock_counter--;
   if (thumb_locks.lock_counter == 0) {
-    BLI_gset_free(thumb_locks.locked_paths, MEM_freeN);
-    thumb_locks.locked_paths = nullptr;
+    thumb_locks.locked_paths.clear();
     BLI_condition_end(&thumb_locks.cond);
   }
 
@@ -706,15 +710,13 @@ void IMB_thumb_locks_release()
 
 void IMB_thumb_path_lock(const char *path)
 {
-  void *key = BLI_strdup(path);
+  IMBThumbLocks &thumb_locks = get_thumb_locks();
 
   BLI_thread_lock(LOCK_IMAGE);
-  BLI_assert((thumb_locks.locked_paths != nullptr) && (thumb_locks.lock_counter > 0));
+  BLI_assert(thumb_locks.lock_counter > 0);
 
-  if (thumb_locks.locked_paths) {
-    while (!BLI_gset_add(thumb_locks.locked_paths, key)) {
-      BLI_condition_wait_global_mutex(&thumb_locks.cond, LOCK_IMAGE);
-    }
+  while (!thumb_locks.locked_paths.add(path)) {
+    BLI_condition_wait_global_mutex(&thumb_locks.cond, LOCK_IMAGE);
   }
 
   BLI_thread_unlock(LOCK_IMAGE);
@@ -722,17 +724,15 @@ void IMB_thumb_path_lock(const char *path)
 
 void IMB_thumb_path_unlock(const char *path)
 {
-  const void *key = path;
+  IMBThumbLocks &thumb_locks = get_thumb_locks();
 
   BLI_thread_lock(LOCK_IMAGE);
-  BLI_assert((thumb_locks.locked_paths != nullptr) && (thumb_locks.lock_counter > 0));
+  BLI_assert(thumb_locks.lock_counter > 0);
 
-  if (thumb_locks.locked_paths) {
-    if (!BLI_gset_remove(thumb_locks.locked_paths, key, MEM_freeN)) {
-      BLI_assert_unreachable();
-    }
-    BLI_condition_notify_all(&thumb_locks.cond);
+  if (!thumb_locks.locked_paths.remove(path)) {
+    BLI_assert_unreachable();
   }
+  BLI_condition_notify_all(&thumb_locks.cond);
 
   BLI_thread_unlock(LOCK_IMAGE);
 }
