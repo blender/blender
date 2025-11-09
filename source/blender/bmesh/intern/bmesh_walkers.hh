@@ -10,6 +10,8 @@
 
 #include "bmesh_class.hh"
 
+#include "BLI_set.hh"
+
 /*
  * NOTE: do NOT modify topology while walking a mesh!
  */
@@ -49,8 +51,8 @@ struct BMWalker {
 
   BMWFlag flag;
 
-  struct GSet *visit_set;
-  struct GSet *visit_set_alt;
+  blender::Set<const void *> *visit_set;
+  blender::Set<const void *> *visit_set_alt;
   int depth;
 };
 

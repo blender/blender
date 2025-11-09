@@ -65,8 +65,8 @@ void BMW_init(BMWalker *walker,
   walker->mask_edge = mask_edge;
   walker->mask_face = mask_face;
 
-  walker->visit_set = BLI_gset_ptr_new("bmesh walkers");
-  walker->visit_set_alt = BLI_gset_ptr_new("bmesh walkers sec");
+  walker->visit_set = MEM_new<blender::Set<const void *>>("bmesh walkers");
+  walker->visit_set_alt = MEM_new<blender::Set<const void *>>("bmesh walkers sec");
 
   if (UNLIKELY(type >= BMW_MAXWALKERS || type < 0)) {
     fprintf(stderr,
@@ -107,8 +107,8 @@ void BMW_init(BMWalker *walker,
 void BMW_end(BMWalker *walker)
 {
   BLI_mempool_destroy(walker->worklist);
-  BLI_gset_free(walker->visit_set, nullptr);
-  BLI_gset_free(walker->visit_set_alt, nullptr);
+  MEM_delete(walker->visit_set);
+  MEM_delete(walker->visit_set_alt);
 }
 
 void *BMW_step(BMWalker *walker)
@@ -190,6 +190,6 @@ void BMW_reset(BMWalker *walker)
     BMW_state_remove(walker);
   }
   walker->depth = 0;
-  BLI_gset_clear(walker->visit_set, nullptr);
-  BLI_gset_clear(walker->visit_set_alt, nullptr);
+  walker->visit_set->clear();
+  walker->visit_set_alt->clear();
 }
