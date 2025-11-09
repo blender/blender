@@ -55,8 +55,6 @@
 #include "ED_util.hh"
 #include "ED_view3d.hh"
 
-#include "BIF_glutil.hh"
-
 #include "SEQ_channels.hh"
 #include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"

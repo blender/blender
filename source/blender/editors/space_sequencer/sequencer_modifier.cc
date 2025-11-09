@@ -30,7 +30,6 @@
 
 #include "UI_interface_c.hh"
 
-/* Own include. */
 #include "sequencer_intern.hh"
 
 namespace blender::ed::vse {

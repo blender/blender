@@ -68,7 +68,6 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
-/* Own include. */
 #include "sequencer_intern.hh"
 
 namespace blender::ed::vse {

@@ -32,7 +32,6 @@
 
 #include "ED_screen.hh"
 
-/* Own include. */
 #include "sequencer_intern.hh"
 
 namespace blender::ed::vse {

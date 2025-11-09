@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup bke
+ * \ingroup sequencer
  */
 
 #include <algorithm>
@@ -12,7 +12,6 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_sound_types.h"
 
 #include "BLI_bounds.hh"
 #include "BLI_listbase.h"

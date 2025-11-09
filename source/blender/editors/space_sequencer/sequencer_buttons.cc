@@ -6,8 +6,6 @@
  * \ingroup spseq
  */
 
-#include <cstring>
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"

@@ -47,8 +47,6 @@
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 
-/* For menu, popup, icons, etc. */
-
 #include "ED_outliner.hh"
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
@@ -56,7 +54,6 @@
 
 #include "UI_view2d.hh"
 
-/* Own include. */
 #include "sequencer_intern.hh"
 
 namespace blender::ed::vse {

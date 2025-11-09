@@ -69,7 +69,6 @@
 
 #include "BLF_api.hh"
 
-/* Own include. */
 #include "sequencer_intern.hh"
 #include "sequencer_quads_batch.hh"
 #include "sequencer_strips_batch.hh"

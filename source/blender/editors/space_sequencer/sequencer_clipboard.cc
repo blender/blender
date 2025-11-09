@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup bke
+ * \ingroup spseq
  */
 
 #include <algorithm>
@@ -59,11 +59,6 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#ifdef WITH_AUDASPACE
-#  include <AUD_Special.h>
-#endif
-
-/* Own include. */
 #include "sequencer_intern.hh"
 
 namespace blender::ed::vse {

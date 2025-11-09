@@ -25,10 +25,8 @@
 
 #include "RNA_define.hh"
 
-/* For menu, popup, icons, etc. */
 #include "ED_screen.hh"
 
-/* Own include. */
 #include "sequencer_intern.hh"
 
 namespace blender::ed::vse {

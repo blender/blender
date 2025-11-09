@@ -32,7 +32,6 @@
 #include "SEQ_retiming.hh"
 #include "SEQ_time.hh"
 
-/* Own include. */
 #include "sequencer_intern.hh"
 #include "sequencer_quads_batch.hh"
 

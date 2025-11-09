@@ -62,7 +62,6 @@
 #include "RNA_enum_types.hh"
 #include "RNA_prototypes.hh"
 
-/* For menu, popup, icons, etc. */
 #include "ED_fileselect.hh"
 #include "ED_numinput.hh"
 #include "ED_object.hh"
@@ -78,7 +77,6 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
-/* Own include. */
 #include "sequencer_intern.hh"
 #include <cstddef>
 #include <fmt/format.h>

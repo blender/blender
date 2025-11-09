@@ -28,14 +28,12 @@
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 
-/* For menu, popup, icons, etc. */
 #include "ED_anim_api.hh"
 #include "ED_markers.hh"
 #include "ED_screen.hh"
 #include "ED_sequencer.hh"
 #include "ED_util_imbuf.hh"
 
-/* Own include. */
 #include "sequencer_intern.hh"
 
 namespace blender::ed::vse {
