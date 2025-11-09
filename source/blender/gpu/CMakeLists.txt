@@ -372,8 +372,8 @@ set(METAL_SRC
   metal/mtl_backend.hh
   metal/mtl_batch.hh
   metal/mtl_capabilities.hh
-  metal/mtl_common.hh
   metal/mtl_command_buffer.hh
+  metal/mtl_common.hh
   metal/mtl_context.hh
   metal/mtl_debug.hh
   metal/mtl_framebuffer.hh
