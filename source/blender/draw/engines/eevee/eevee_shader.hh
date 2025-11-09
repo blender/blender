@@ -13,6 +13,7 @@
 
 #include <array>
 
+#include "BLI_enum_flags.hh"
 #include "BLI_map.hh"
 #include "BLI_mutex.hh"
 
@@ -98,6 +99,7 @@ enum eShaderType {
   LIGHTPROBE_IRRADIANCE_LOAD,
   LIGHTPROBE_IRRADIANCE_WORLD,
 
+  LOOKDEV_COPY_WORLD,
   LOOKDEV_DISPLAY,
 
   MOTION_BLUR_GATHER,
@@ -197,7 +199,7 @@ enum ShaderGroups : uint32_t {
   MATERIAL_SHADERS = 1 << 20,
   VOLUME_PROBE_SHADERS = 1 << 21,
 };
-ENUM_OPERATORS(ShaderGroups, VOLUME_PROBE_SHADERS)
+ENUM_OPERATORS(ShaderGroups)
 
 /**
  * Shader module. shared between instances.

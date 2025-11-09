@@ -855,4 +855,10 @@ AUD_API void AUD_Sound_animateableTimeStretchPitchScale_setFPS(AUD_Sound* sound,
 	dynamic_cast<AnimateableTimeStretchPitchScale*>(sound->get())->setFPS(value);
 }
 
+AUD_API bool AUD_Sound_isAnimateableTimeStretchPitchScale(AUD_Sound* sound)
+{
+	assert(sound);
+	return dynamic_cast<AnimateableTimeStretchPitchScale*>(sound->get()) != nullptr;
+}
+
 #endif

@@ -13,7 +13,6 @@
 #include "DNA_sequence_types.h"
 
 #include "SEQ_modifier.hh"
-#include "SEQ_modifiertypes.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"

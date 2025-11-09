@@ -197,8 +197,9 @@ struct CustomSocketDrawParams {
 };
 
 using CustomSocketDrawFn = std::function<void(CustomSocketDrawParams &params)>;
-using InputSocketUsageInferenceFn = std::function<std::optional<bool>(
-    const socket_usage_inference::InputSocketUsageParams &params)>;
+using CustomSocketLabelFn = std::function<StringRefNull(bNode node)>;
+using SocketUsageInferenceFn =
+    std::function<std::optional<bool>(const socket_usage_inference::SocketUsageParams &params)>;
 
 /**
  * Describes a single input or output socket. This is subclassed for different socket types.
@@ -267,10 +268,14 @@ class SocketDeclaration : public ItemDeclaration {
    */
   std::unique_ptr<CustomSocketDrawFn> custom_draw_fn;
   /**
-   * Determines whether this input socket is used based on other input values and based on which
-   * outputs are used.
+   * Custom label function so a socket can display a different text depending on what it does.
    */
-  std::unique_ptr<InputSocketUsageInferenceFn> usage_inference_fn;
+  std::unique_ptr<CustomSocketLabelFn> label_fn;
+  /**
+   * Determines whether this socket is used based on other input values and based on which outputs
+   * are used.
+   */
+  std::unique_ptr<SocketUsageInferenceFn> usage_inference_fn;
 
   friend NodeDeclarationBuilder;
   friend class BaseSocketDeclarationBuilder;
@@ -427,10 +432,15 @@ class BaseSocketDeclarationBuilder {
   BaseSocketDeclarationBuilder &custom_draw(CustomSocketDrawFn fn);
 
   /**
-   * Provide a function that determines whether this input socket is used based on other input
-   * values and based on which outputs are used.
+   * Provide a function that determines whether this socket is used based on other input values and
+   * based on which outputs are used.
    */
-  BaseSocketDeclarationBuilder &usage_inference(InputSocketUsageInferenceFn fn);
+  BaseSocketDeclarationBuilder &usage_inference(SocketUsageInferenceFn fn);
+
+  /**
+   * Provide a function that determines the UI label of this socket.
+   */
+  BaseSocketDeclarationBuilder &label_fn(CustomSocketLabelFn fn);
 
   /**
    * Utility method for the case when the node has a single menu input and this socket is only used

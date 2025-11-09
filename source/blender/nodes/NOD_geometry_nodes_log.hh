@@ -32,6 +32,7 @@
 
 #include "BLI_cache_mutex.hh"
 #include "BLI_compute_context.hh"
+#include "BLI_enum_flags.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_generic_pointer.hh"
 #include "BLI_linear_allocator_chunked_list.hh"
@@ -80,7 +81,7 @@ enum class NamedAttributeUsage {
   Write = 1 << 1,
   Remove = 1 << 2,
 };
-ENUM_OPERATORS(NamedAttributeUsage, NamedAttributeUsage::Remove);
+ENUM_OPERATORS(NamedAttributeUsage);
 
 /**
  * Values of different types are logged differently. This is necessary because some types are so

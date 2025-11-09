@@ -301,7 +301,7 @@ def argparse_create():
     import argparse
 
     # When --help or no args are given, print this help
-    description = "Test basic realtionship info of loaded data."
+    description = "Test basic relationship info of loaded data."
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument(
         "--src-test-dir",

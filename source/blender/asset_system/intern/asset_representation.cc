@@ -11,7 +11,9 @@
 #include "BLI_path_utils.hh"
 
 #include "BKE_blendfile.hh"
-#include "BKE_icons.h"
+#include "BKE_icons.hh"
+#include "BKE_idtype.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_preview_image.hh"
 
 #include "DNA_ID.h"
@@ -35,12 +37,8 @@ AssetRepresentation::AssetRepresentation(StringRef relative_asset_path,
 {
 }
 
-AssetRepresentation::AssetRepresentation(StringRef relative_asset_path,
-                                         ID &id,
-                                         AssetLibrary &owner_asset_library)
-    : owner_asset_library_(owner_asset_library),
-      relative_identifier_(relative_asset_path),
-      asset_(&id)
+AssetRepresentation::AssetRepresentation(ID &id, AssetLibrary &owner_asset_library)
+    : owner_asset_library_(owner_asset_library), asset_(&id)
 {
   if (!id.asset_data) {
     throw std::invalid_argument("Passed ID is not an asset");
@@ -58,13 +56,13 @@ AssetRepresentation::~AssetRepresentation()
 
 AssetWeakReference AssetRepresentation::make_weak_reference() const
 {
-  return AssetWeakReference::make_reference(owner_asset_library_, relative_identifier_);
+  return AssetWeakReference::make_reference(owner_asset_library_, library_relative_identifier());
 }
 
 void AssetRepresentation::ensure_previewable()
 {
   if (ID *id = this->local_id()) {
-    PreviewImage *preview = BKE_previewimg_id_ensure(id);
+    PreviewImage *preview = BKE_previewimg_id_get(id);
     BKE_icon_preview_ensure(id, preview);
     return;
   }
@@ -115,6 +113,14 @@ AssetMetaData &AssetRepresentation::get_metadata() const
 
 StringRefNull AssetRepresentation::library_relative_identifier() const
 {
+  if (const ID *id = this->local_id()) {
+    StringRef idname = BKE_id_name(*id);
+    /* Lazy-create/-update with the latest ID name. */
+    if (!StringRef{relative_identifier_}.endswith(idname)) {
+      relative_identifier_ = StringRef{BKE_idtype_idcode_to_name(GS(id->name))} + SEP_STR + idname;
+    }
+  }
+
   return relative_identifier_;
 }
 
@@ -124,7 +130,7 @@ std::string AssetRepresentation::full_path() const
   BLI_path_join(filepath,
                 sizeof(filepath),
                 owner_asset_library_.root_path().c_str(),
-                relative_identifier_.c_str());
+                library_relative_identifier().c_str());
   return filepath;
 }
 

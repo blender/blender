@@ -66,17 +66,6 @@ static const EnumPropertyItem rna_enum_brush_texture_slot_map_all_mode_items[] =
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-#ifdef RNA_RUNTIME
-static const EnumPropertyItem rna_enum_brush_texture_slot_map_texture_mode_items[] = {
-    {MTEX_MAP_MODE_VIEW, "VIEW_PLANE", 0, "View Plane", ""},
-    {MTEX_MAP_MODE_TILED, "TILED", 0, "Tiled", ""},
-    {MTEX_MAP_MODE_3D, "3D", 0, "3D", ""},
-    {MTEX_MAP_MODE_RANDOM, "RANDOM", 0, "Random", ""},
-    {MTEX_MAP_MODE_STENCIL, "STENCIL", 0, "Stencil", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-#endif
-
 const EnumPropertyItem rna_enum_brush_curve_preset_items[] = {
     {BRUSH_CURVE_CUSTOM, "CUSTOM", ICON_RNDCURVE, "Custom", ""},
     {BRUSH_CURVE_SMOOTH, "SMOOTH", ICON_SMOOTHCURVE, "Smooth", ""},
@@ -372,7 +361,7 @@ static EnumPropertyItem rna_enum_gpencil_brush_modes_items[] = {
 #  include "BKE_colorband.hh"
 #  include "BKE_context.hh"
 #  include "BKE_gpencil_legacy.h"
-#  include "BKE_icons.h"
+#  include "BKE_icons.hh"
 #  include "BKE_layer.hh"
 #  include "BKE_material.hh"
 #  include "BKE_paint.hh"
@@ -1064,6 +1053,14 @@ static const EnumPropertyItem *rna_BrushTextureSlot_map_mode_itemf(bContext *C,
                                                                    PropertyRNA * /*prop*/,
                                                                    bool * /*r_free*/)
 {
+  static const EnumPropertyItem rna_enum_brush_texture_slot_map_texture_mode_items[] = {
+      {MTEX_MAP_MODE_VIEW, "VIEW_PLANE", 0, "View Plane", ""},
+      {MTEX_MAP_MODE_TILED, "TILED", 0, "Tiled", ""},
+      {MTEX_MAP_MODE_3D, "3D", 0, "3D", ""},
+      {MTEX_MAP_MODE_RANDOM, "RANDOM", 0, "Random", ""},
+      {MTEX_MAP_MODE_STENCIL, "STENCIL", 0, "Stencil", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
 
   if (C == nullptr) {
     return rna_enum_brush_texture_slot_map_all_mode_items;

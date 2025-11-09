@@ -9,7 +9,7 @@
 #include "BKE_studiolight.h"
 
 #include "BKE_appdir.hh"
-#include "BKE_icons.h"
+#include "BKE_icons.hh"
 
 #include "BLI_dynstr.h"
 #include "BLI_fileops.h"

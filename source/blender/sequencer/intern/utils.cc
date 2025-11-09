@@ -46,7 +46,6 @@
 
 #include "multiview.hh"
 #include "proxy.hh"
-#include "sequencer.hh"
 #include "utils.hh"
 
 namespace blender::seq {

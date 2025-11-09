@@ -34,4 +34,4 @@ ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_sculpt_mask)
+CREATE_INFO_VARIANT(overlay_sculpt_mask_clipped, overlay_sculpt_mask, drw_clipped)

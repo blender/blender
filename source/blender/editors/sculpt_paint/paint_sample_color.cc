@@ -102,9 +102,7 @@ static blender::float2 imapaint_pick_uv(const Mesh *mesh_eval,
   }
 
   if (uv_map.is_empty()) {
-    const char *active_name = CustomData_get_active_layer_name(&mesh_eval->corner_data,
-                                                               CD_PROP_FLOAT2);
-    uv_map = *attributes.lookup<float2>(active_name, bke::AttrDomain::Corner);
+    uv_map = *attributes.lookup<float2>(mesh_eval->active_uv_map_name(), bke::AttrDomain::Corner);
   }
 
   return bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
@@ -198,7 +196,7 @@ static void paint_sample_color(
       const VArray material_indices = *attributes.lookup_or_default<int>(
           "material_index", bke::AttrDomain::Face, 0);
 
-      if (CustomData_has_layer(&mesh_eval->corner_data, CD_PROP_FLOAT2)) {
+      if (!mesh_eval->uv_map_names().is_empty()) {
         ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
         const int mval[2] = {x, y};
@@ -483,7 +481,8 @@ static wmOperatorStatus sample_color_modal(bContext *C, wmOperator *op, const wm
 static bool sample_color_poll(bContext *C)
 {
   return (image_paint_poll_ignore_tool(C) || vertex_paint_poll_ignore_tool(C) ||
-          blender::ed::greasepencil::grease_pencil_painting_poll(C));
+          blender::ed::greasepencil::grease_pencil_painting_poll(C) ||
+          blender::ed::greasepencil::grease_pencil_vertex_painting_poll(C));
 }
 
 void PAINT_OT_sample_color(wmOperatorType *ot)

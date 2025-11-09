@@ -430,7 +430,7 @@ static void motion_blur_cpu(const Result &input_image,
         float4 center_motion = input_velocity.load_pixel<float4, true>(texel);
         float2 center_previous_motion = center_motion.xy() * shutter_speed;
         float2 center_next_motion = center_motion.zw() * -shutter_speed;
-        float4 center_color = input_image.load_pixel<float4>(texel);
+        float4 center_color = float4(input_image.load_pixel<Color>(texel));
 
         /* Randomize tile boundary to avoid ugly discontinuities. Randomize 1/4th of the tile.
          * Note this randomize only in one direction but in practice it's enough. */
@@ -494,7 +494,7 @@ static void motion_blur_cpu(const Result &input_image,
         float blend_fac = math::clamp(1.0f - accum.weight.y / accum.weight.z, 0.0f, 1.0f);
         float4 out_color = (accum.fg / accum.weight.z) + center_color * blend_fac;
 
-        output.store_pixel(texel, out_color);
+        output.store_pixel(texel, Color(out_color));
       }
     }
   });

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-11-03 10:44+0000\n"
 "PO-Revision-Date: 2025-07-23 15:03+0000\n"
 "Last-Translator: Amy Lily <lillya.assist@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21327,20 +21327,20 @@ msgid "Keying"
 msgstr "Inserção de chaves"
 
 
-msgid "Names"
-msgstr "Nomes"
-
-
 msgid "Tracking"
 msgstr "Rastreamento"
 
 
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
+msgid "Names"
+msgstr "Nomes"
 
 
 msgid "Math"
 msgstr "Matemática"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
 
 
 msgid "Enable Bone Options"
@@ -21407,16 +21407,16 @@ msgid "Local View"
 msgstr "Visão local"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Viewpoint"
 msgstr "Ponto de visualização"
 
 
 msgid "Navigation"
 msgstr "Navegação"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View"
@@ -21443,12 +21443,12 @@ msgid "Select Linked"
 msgstr "Selecionar vinculados(as)"
 
 
-msgid "Basic"
-msgstr "Básico"
-
-
 msgid "Select Loops"
 msgstr "Selecionar anéis"
+
+
+msgid "Basic"
+msgstr "Básico"
 
 
 msgctxt "MovieClip"
@@ -59378,10 +59378,6 @@ msgstr "Sem texto ou arquivo especificado no nó, nada para compilar."
 
 msgid "External shader script must have .osl or .oso extension, or be a module name"
 msgstr "Script de sombreador externo deve possuir extensão .osl ou .oso, ou ser um nome de módulo."
-
-
-msgid "Failed to write .oso file next to external .osl file at "
-msgstr "Falha ao escrever arquivo .oso próximo ao local externo onde o .osl está."
 
 
 msgid "No compatible GPUs found for Cycles"

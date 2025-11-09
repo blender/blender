@@ -13,10 +13,11 @@
  *
  * When initializing a new version of Blender in main, after branching out the current one into
  * its release branch:
- * - Copy that file and rename it to the proper new version number (e.g. `versioning_501.cc`).
+ * - Copy that file and rename it to the proper new version number (e.g. `versioning_510.cc`).
  * - Rename the two functions below by replacing the `xxx` with the matching new version number.
  * - Add the new file to CMakeList.txt
- * - Add matching calls in #do_versions_after_linking and #do_versions, in `readfile.cc`.
+ * - Add matching calls in #do_versions_after_linking and #do_versions, in `readfile.cc` and update
+ * declarations in`readfile.hh`.
  */
 
 #define DNA_DEPRECATED_ALLOW

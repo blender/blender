@@ -65,11 +65,22 @@ class TestCollection:
                     continue
 
                 test_name = test.name()
-                found = False
+
+                included = False
+                excluded = False
+
                 for name_filter in names_filter:
-                    if fnmatch.fnmatch(test_name, name_filter):
-                        found = True
-                if not found:
+                    is_exclusion = name_filter.startswith('!')
+                    pattern = name_filter[1:] if is_exclusion else name_filter
+
+                    if fnmatch.fnmatch(test_name, pattern):
+                        if is_exclusion:
+                            excluded = True
+                            break
+                        else:
+                            included = True
+
+                if not included or excluded:
                     continue
 
                 self.tests.append(test)

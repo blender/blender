@@ -163,7 +163,6 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
       ++iter;
     }
     usd_instancer.GetPrototypesRel().SetTargets(proto_wrapper_paths);
-    stage->GetRootLayer()->Save();
   }
 
   /* proto indices */
@@ -203,8 +202,6 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
    * if not, we need to clean the extra prototypes from the prototype relationship for a cleaner
    * USD export. */
   compact_prototypes(usd_instancer, time, proto_wrapper_paths);
-
-  stage->GetRootLayer()->Save();
 }
 
 void USDPointInstancerWriter::process_instance_reference(

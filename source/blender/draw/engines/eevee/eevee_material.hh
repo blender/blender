@@ -12,8 +12,10 @@
 
 #include "DRW_render.hh"
 
+#include "BLI_enum_flags.hh"
 #include "BLI_map.hh"
 #include "BLI_vector.hh"
+
 #include "GPU_material.hh"
 
 #include "draw_pass.hh"
@@ -136,7 +138,7 @@ enum eClosureBits : uint32_t {
 
   CLOSURE_TRANSMISSION = CLOSURE_SSS | CLOSURE_REFRACTION | CLOSURE_TRANSLUCENT,
 };
-ENUM_OPERATORS(eClosureBits, CLOSURE_CLEARCOAT)
+ENUM_OPERATORS(eClosureBits)
 
 static inline eClosureBits shader_closure_bits_from_flag(const GPUMaterial *gpumat)
 {

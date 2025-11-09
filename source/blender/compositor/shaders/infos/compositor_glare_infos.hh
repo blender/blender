@@ -193,3 +193,25 @@ DEFINE("JITTER")
 PUSH_CONSTANT(float, jitter_factor)
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
+
+/* ------
+ * Kernel
+ * ------ */
+
+GPU_SHADER_CREATE_INFO(compositor_glare_kernel_downsample_shared)
+LOCAL_GROUP_SIZE(16, 16)
+SAMPLER(0, sampler2D, input_tx)
+COMPUTE_SOURCE("compositor_glare_kernel_downsample.glsl")
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(compositor_glare_kernel_downsample_color)
+ADDITIONAL_INFO(compositor_glare_kernel_downsample_shared)
+IMAGE(0, SFLOAT_16_16_16_16, write, image2D, output_img)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(compositor_glare_kernel_downsample_float)
+ADDITIONAL_INFO(compositor_glare_kernel_downsample_shared)
+IMAGE(0, SFLOAT_16, write, image2D, output_img)
+DO_STATIC_COMPILATION()
+GPU_SHADER_CREATE_END()

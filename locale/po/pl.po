@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-11-03 10:44+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11531,10 +11531,6 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Assign Material"
-msgstr "Przypisanie materiału"
-
-
 msgid "Metaball"
 msgstr "Metakula"
 
@@ -11583,12 +11579,12 @@ msgid "Layout"
 msgstr "Układ"
 
 
-msgid "Bone Collections"
-msgstr "Kolekcja kości"
-
-
 msgid "Keying"
 msgstr "Kluczowanie"
+
+
+msgid "Bone Collections"
+msgstr "Kolekcja kości"
 
 
 msgid "Utilities"
@@ -11657,6 +11653,10 @@ msgstr "Nawigacja"
 
 msgid "Select Linked"
 msgstr "Zaznacz powiązane"
+
+
+msgid "Assign Material"
+msgstr "Przypisanie materiału"
 
 
 msgid "Catalog"
@@ -20441,10 +20441,6 @@ msgid "GeometryNodes"
 msgstr "GeometryNodes"
 
 
-msgid "Modifiers cannot be added to object: "
-msgstr "Nie można dodać modyfikatora do obiektu: "
-
-
 msgid "Active object is not a mesh"
 msgstr "Aktywny obiekt nie jest siatką"
 
@@ -20568,10 +20564,6 @@ msgstr "Wsparcie"
 msgctxt "Operator"
 msgid "User Communities"
 msgstr "Społeczność użytkowników"
-
-
-msgid "Failed to assign value: "
-msgstr "Ustawienie wartości nie powiodło się: "
 
 
 msgid "Object(s)"
@@ -26260,10 +26252,6 @@ msgstr " nazwane atrybuty"
 
 msgid "Disconnect"
 msgstr "Rozłącz"
-
-
-msgid "Unsupported Menu Socket"
-msgstr "Nieobsługiwane gniazdo menu"
 
 
 msgid "Library path '%s' does not exist, correct this before saving"

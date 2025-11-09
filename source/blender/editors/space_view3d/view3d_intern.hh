@@ -68,7 +68,10 @@ void view3d_draw_region_info(const bContext *C, ARegion *region);
 void view3d_depths_rect_create(ARegion *region, rcti *rect, ViewDepths *r_d);
 /**
  * Utility function to find the closest Z value, use for auto-depth.
+ *
+ * \param r_xy: When non-null, set this to the region relative position of the hit.
  */
+float view3d_depth_near_ex(ViewDepths *d, int r_xy[2]);
 float view3d_depth_near(ViewDepths *d);
 
 /* view3d_dropboxes.cc */

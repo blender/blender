@@ -6,6 +6,7 @@
 #include "usd_armature_utils.hh"
 #include "usd_attribute_utils.hh"
 #include "usd_blend_shape_utils.hh"
+#include "usd_hierarchy_iterator.hh"
 #include "usd_skel_convert.hh"
 #include "usd_utils.hh"
 
@@ -125,6 +126,7 @@ void USDGenericMeshWriter::do_write(HierarchyContext &context)
     auto prim = usd_export_context_.stage->GetPrimAtPath(usd_export_context_.usd_path);
     if (prim.IsValid() && object_eval) {
       prim.SetActive((object_eval->duplicator_visibility_flag & OB_DUPLI_FLAG_RENDER) != 0);
+      add_to_prim_map(prim.GetPath(), &mesh->id);
       write_id_properties(prim, mesh->id, get_export_time_code());
     }
 
@@ -146,8 +148,7 @@ void USDGenericMeshWriter::write_custom_data(const Object *obj,
 {
   const bke::AttributeAccessor attributes = mesh->attributes();
 
-  const StringRef active_uvmap_name = CustomData_get_render_layer_name(&mesh->corner_data,
-                                                                       CD_PROP_FLOAT2);
+  const StringRef active_uvmap_name = mesh->default_uv_map_name();
 
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
     /* Skip "internal" Blender properties and attributes processed elsewhere.

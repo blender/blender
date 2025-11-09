@@ -201,7 +201,9 @@ NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
                                               const int x,
                                               const int y)
 {
-  const float size = NODE_RESIZE_MARGIN * math::max(snode.runtime->aspect, 1.0f);
+  const bool node_is_collapsed = node->flag & NODE_COLLAPSED;
+  const float size = NODE_RESIZE_MARGIN * math::max(snode.runtime->aspect, 1.0f) *
+                     (node_is_collapsed ? 3.0f : 1.0f);
 
   if (node->is_frame()) {
     NodeFrame *data = (NodeFrame *)node->storage;
@@ -231,17 +233,6 @@ NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
     return dir;
   }
 
-  if (node->flag & NODE_COLLAPSED) {
-    /* right part of node */
-    rctf bounds = node->runtime->draw_bounds;
-    bounds.xmin = node->runtime->draw_bounds.xmax - 1.0f * U.widget_unit;
-    if (BLI_rctf_isect_pt(&bounds, x, y)) {
-      return NODE_RESIZE_RIGHT;
-    }
-
-    return NODE_RESIZE_NONE;
-  }
-
   const rctf &bounds = node->runtime->draw_bounds;
   NodeResizeDirection dir = NODE_RESIZE_NONE;
 
@@ -250,6 +241,15 @@ NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
   }
   if (x >= bounds.xmin && x < bounds.xmin + size && y >= bounds.ymin && y < bounds.ymax) {
     dir |= NODE_RESIZE_LEFT;
+
+    if (node_is_collapsed) {
+      /* Prevent conflict with the collapse/expand icon. */
+      if ((abs(y - BLI_rctf_cent_y(&bounds)) < 0.4f * U.widget_unit) &&
+          (x > (bounds.xmin + 0.4f * U.widget_unit)))
+      {
+        dir = NODE_RESIZE_NONE;
+      }
+    }
   }
   return dir;
 }
@@ -1064,6 +1064,7 @@ static void draw_node_socket_name_editable(uiLayout *layout,
 {
   if (sock->runtime->declaration) {
     if (sock->runtime->declaration->socket_name_rna) {
+      layout->alignment_set(ui::LayoutAlign::Left);
       layout->emboss_set(ui::EmbossType::None);
       layout->prop((&sock->runtime->declaration->socket_name_rna->owner),
                    sock->runtime->declaration->socket_name_rna->property_name,
@@ -1191,8 +1192,16 @@ static void std_node_socket_draw(
       }
       else {
         uiLayout *row = &layout->split(0.4f, false);
-        row->label(label, ICON_NONE);
-        row->prop(ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
+        uiLayout *label_layout = &row->column(true);
+        label_layout->label(label, ICON_NONE);
+        uiLayout *color_layout = &row->column(true);
+        color_layout->prop(ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
+        /* Keep color layout active to avoid darkened color appearance when inactive. */
+        if (sock->is_inactive()) {
+          layout->active_set(true);
+          label_layout->active_set(false);
+          color_layout->active_set(true);
+        }
       }
       break;
     }

@@ -1804,11 +1804,11 @@ static void initialize_compositor_sequencer_node_group(const bContext *C, bNodeT
   BLI_assert(BLI_listbase_count(&ntree.nodes) == 0);
 
   ntree.tree_interface.add_socket(
-      DATA_("Image"), "", "NodeSocketColor", NODE_INTERFACE_SOCKET_INPUT, nullptr);
+      "Image", "", "NodeSocketColor", NODE_INTERFACE_SOCKET_INPUT, nullptr);
   ntree.tree_interface.add_socket(
-      DATA_("Mask"), "", "NodeSocketColor", NODE_INTERFACE_SOCKET_INPUT, nullptr);
+      "Mask", "", "NodeSocketColor", NODE_INTERFACE_SOCKET_INPUT, nullptr);
   ntree.tree_interface.add_socket(
-      DATA_("Image"), "", "NodeSocketColor", NODE_INTERFACE_SOCKET_OUTPUT, nullptr);
+      "Image", "", "NodeSocketColor", NODE_INTERFACE_SOCKET_OUTPUT, nullptr);
 
   bNode *output_node = blender::bke::node_add_node(C, ntree, "NodeGroupOutput");
   output_node->location[0] = 200.0f;

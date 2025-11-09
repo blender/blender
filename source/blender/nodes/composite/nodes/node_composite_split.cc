@@ -106,8 +106,8 @@ class SplitOperation : public NodeOperation {
       const float projection = math::dot(normal, direction_to_line_point);
       const bool is_below_line = projection <= 0;
       output_image.store_pixel(texel,
-                               is_below_line ? first_image.load_pixel<float4, true>(texel) :
-                                               second_image.load_pixel<float4, true>(texel));
+                               is_below_line ? first_image.load_pixel<Color, true>(texel) :
+                                               second_image.load_pixel<Color, true>(texel));
     });
   }
 
@@ -147,8 +147,6 @@ static void register_node_type_cmp_split()
   ntype.declare = file_ns::cmp_node_split_declare;
   ntype.flag |= NODE_PREVIEW;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
-
-  ntype.no_muting = true;
 
   blender::bke::node_register_type(ntype);
 }

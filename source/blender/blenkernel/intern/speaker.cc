@@ -17,7 +17,7 @@
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_speaker.h"
+#include "BKE_speaker.hh"
 
 #include "BLO_read_write.hh"
 

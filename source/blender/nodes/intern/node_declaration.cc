@@ -604,6 +604,12 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::field_on(const Span<
   return *this;
 }
 
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::label_fn(CustomSocketLabelFn fn)
+{
+  decl_base_->label_fn = std::make_unique<CustomSocketLabelFn>(std::move(fn));
+  return *this;
+}
+
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::short_label(std::string value)
 {
   decl_base_->short_label = std::move(value);
@@ -769,9 +775,9 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::custom_draw(CustomSo
 }
 
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::usage_inference(
-    InputSocketUsageInferenceFn fn)
+    SocketUsageInferenceFn fn)
 {
-  decl_base_->usage_inference_fn = std::make_unique<InputSocketUsageInferenceFn>(std::move(fn));
+  decl_base_->usage_inference_fn = std::make_unique<SocketUsageInferenceFn>(std::move(fn));
   return *this;
 }
 
@@ -810,19 +816,21 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::usage_by_single_menu
     bNodeSocketValueMenu *value = socket.default_value_typed<bNodeSocketValueMenu>();
     value->value = menu_value;
   });
-  this->usage_inference([menu_value](const socket_usage_inference::InputSocketUsageParams &params)
+  this->usage_inference([menu_value](const socket_usage_inference::SocketUsageParams &params)
                             -> std::optional<bool> {
     const bNodeSocket &socket = find_single_menu_input(params.node);
-    if (const std::optional<bool> any_output_used = params.any_output_is_used()) {
-      if (!*any_output_used) {
-        /* If no output is used, none of the inputs is used either. */
-        return false;
+    if (params.socket.is_input()) {
+      if (const std::optional<bool> any_output_used = params.any_output_is_used()) {
+        if (!*any_output_used) {
+          /* If no output is used, none of the inputs is used either. */
+          return false;
+        }
       }
-    }
-    else {
-      /* It's not known if any output is used yet. This function will be called again once new
-       * information about output usages is available. */
-      return std::nullopt;
+      else {
+        /* It's not known if any output is used yet. This function will be called again once new
+         * information about output usages is available. */
+        return std::nullopt;
+      }
     }
     return params.menu_input_may_be(socket.identifier, menu_value);
   });
@@ -850,17 +858,19 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::usage_by_menu(
   });
   this->usage_inference(
       [menu_input_identifier, menu_values](
-          const socket_usage_inference::InputSocketUsageParams &params) -> std::optional<bool> {
-        if (const std::optional<bool> any_output_used = params.any_output_is_used()) {
-          if (!*any_output_used) {
-            /* If no output is used, none of the inputs is used either. */
-            return false;
+          const socket_usage_inference::SocketUsageParams &params) -> std::optional<bool> {
+        if (params.socket.is_input()) {
+          if (const std::optional<bool> any_output_used = params.any_output_is_used()) {
+            if (!*any_output_used) {
+              /* If no output is used, none of the inputs is used either. */
+              return false;
+            }
           }
-        }
-        else {
-          /* It's not known if any output is used yet. This function will be called again once new
-           * information about output usages is available. */
-          return std::nullopt;
+          else {
+            /* It's not known if any output is used yet. This function will be called again once
+             * new information about output usages is available. */
+            return std::nullopt;
+          }
         }
 
         /* Check if the menu might be any of the given values. */

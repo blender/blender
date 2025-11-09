@@ -60,7 +60,9 @@ bool GPU_vulkan_is_supported_driver(VkPhysicalDevice vk_physical_device)
       vk_physical_device_driver_properties.conformanceVersion.subminor,
       vk_physical_device_driver_properties.conformanceVersion.patch);
 
-  /* Intel IRIS on 10th gen CPU (and older) crashes due to multiple driver issues.
+#ifdef _WIN32
+  /* Intel IRIS on 10th gen CPU (and older) crashes with drivers before 101.2140 due to multiple
+   * driver issues.
    *
    * 1) Workbench is working, but EEVEE pipelines are failing. Calling vkCreateGraphicsPipelines
    * for certain EEVEE shaders (Shadow, Deferred rendering) would return with VK_SUCCESS, but
@@ -72,11 +74,16 @@ bool GPU_vulkan_is_supported_driver(VkPhysicalDevice vk_physical_device)
    */
   if (vk_physical_device_driver_properties.driverID == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS &&
       vk_physical_device_properties.properties.deviceType ==
-          VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU &&
-      conformance_version < VK_MAKE_API_VERSION(1, 3, 2, 0))
+          VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
   {
-    return false;
+    const uint32_t driver_version = vk_physical_device_properties.properties.driverVersion;
+    uint32_t driver_version_major = driver_version >> 14u;
+    uint32_t driver_version_minor = driver_version & 0x3fffu;
+    if (driver_version_major < 101 || driver_version_major == 101 && driver_version_minor < 2140) {
+      return false;
+    }
   }
+#endif
 
 #ifndef _WIN32
   /* NVIDIA drivers below 550 don't work on Linux. When sending command to the GPU there is not
@@ -167,6 +174,9 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   }
   if (features.features.fragmentStoresAndAtomics == VK_FALSE) {
     missing_capabilities.append("fragment stores and atomics");
+  }
+  if (features.features.vertexPipelineStoresAndAtomics == VK_FALSE) {
+    missing_capabilities.append("vertex pipeline stores and atomics");
   }
   if (features_11.shaderDrawParameters == VK_FALSE) {
     missing_capabilities.append("shader draw parameters");
@@ -426,7 +436,6 @@ void VKBackend::detect_workarounds(VKDevice &device)
     extensions.fragment_shader_barycentric = false;
     extensions.dynamic_rendering_local_read = false;
     extensions.dynamic_rendering_unused_attachments = false;
-    extensions.descriptor_buffer = false;
     extensions.pageable_device_local_memory = false;
     extensions.wide_lines = false;
     GCaps.stencil_export_support = false;
@@ -448,11 +457,6 @@ void VKBackend::detect_workarounds(VKDevice &device)
   extensions.dynamic_rendering_unused_attachments = device.supports_extension(
       VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
   extensions.logic_ops = device.physical_device_features_get().logicOp;
-  /* For stability reasons descriptor buffers have been disabled. */
-#if 0
-  extensions.descriptor_buffer = device.supports_extension(
-      VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
-#endif
   extensions.maintenance4 = device.supports_extension(VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
   extensions.memory_priority = device.supports_extension(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME);
   extensions.pageable_device_local_memory = device.supports_extension(
@@ -465,29 +469,6 @@ void VKBackend::detect_workarounds(VKDevice &device)
 #else
   extensions.external_memory = false;
 #endif
-
-  /* Descriptor buffers are disabled on the NVIDIA platform due to performance regressions. Both
-   * still seem to be faster than OpenGL.
-   *
-   * See #140125
-   */
-  if (device.vk_physical_device_driver_properties_.driverID == VK_DRIVER_ID_NVIDIA_PROPRIETARY) {
-    extensions.descriptor_buffer = false;
-  }
-
-  /* Running render tests fails consistently in some scenes. The cause is that too many descriptor
-   * sets are required for rendering resulting in failing allocations of the descriptor buffer. We
-   * work around this issue by not using descriptor buffers on these platforms.
-   *
-   * TODO: recheck when the backed memory gets freed and how to improve it.
-   *
-   * See #141476
-   */
-  if (device.vk_physical_device_driver_properties_.driverID ==
-      VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS)
-  {
-    extensions.descriptor_buffer = false;
-  }
 
   /* AMD GPUs don't support texture formats that use are aligned to 24 or 48 bits. */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY) ||

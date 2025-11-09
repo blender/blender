@@ -33,7 +33,6 @@
 #include "DNA_space_types.h"
 #include "DNA_vfont_types.h"
 
-#include "IMB_colormanagement.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "SEQ_effects.hh"
@@ -171,10 +170,7 @@ bool effects_can_render_text(const Strip *strip)
 
 static void init_text_effect(Strip *strip)
 {
-  if (strip->effectdata) {
-    MEM_freeN(strip->effectdata);
-  }
-
+  MEM_SAFE_FREE(strip->effectdata);
   TextVars *data = MEM_callocN<TextVars>("textvars");
   strip->effectdata = data;
 
@@ -207,7 +203,7 @@ static void init_text_effect(Strip *strip)
   data->wrap_width = 1.0f;
 }
 
-void effect_text_font_unload(TextVars *data, const bool do_id_user)
+static void text_font_unload(TextVars *data, const bool do_id_user)
 {
   if (data == nullptr) {
     return;
@@ -226,7 +222,20 @@ void effect_text_font_unload(TextVars *data, const bool do_id_user)
   }
 }
 
-void effect_text_font_load(TextVars *data, const bool do_id_user)
+void effect_text_font_set(Strip *strip, VFont *font)
+{
+  if (strip == nullptr || strip->type != STRIP_TYPE_TEXT) {
+    return;
+  }
+  TextVars *data = static_cast<TextVars *>(strip->effectdata);
+  text_font_unload(data, true);
+
+  id_us_plus(&font->id);
+  data->text_blf_id = STRIP_FONT_NOT_LOADED;
+  data->text_font = font;
+}
+
+static void text_font_load(TextVars *data, const bool do_id_user)
 {
   VFont *vfont = data->text_font;
   if (vfont == nullptr) {
@@ -262,7 +271,7 @@ void effect_text_font_load(TextVars *data, const bool do_id_user)
 static void free_text_effect(Strip *strip, const bool do_id_user)
 {
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
-  effect_text_font_unload(data, do_id_user);
+  text_font_unload(data, do_id_user);
 
   if (data) {
     MEM_SAFE_FREE(data->text_ptr);
@@ -270,12 +279,6 @@ static void free_text_effect(Strip *strip, const bool do_id_user)
     MEM_freeN(data);
     strip->effectdata = nullptr;
   }
-}
-
-static void load_text_effect(Strip *strip)
-{
-  TextVars *data = static_cast<TextVars *>(strip->effectdata);
-  effect_text_font_load(data, false);
 }
 
 static void copy_text_effect(Strip *dst, const Strip *src, const int flag)
@@ -286,7 +289,7 @@ static void copy_text_effect(Strip *dst, const Strip *src, const int flag)
 
   data->runtime = nullptr;
   data->text_blf_id = -1;
-  effect_text_font_load(data, (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0);
+  text_font_load(data, (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0);
 }
 
 static int num_inputs_text()
@@ -803,8 +806,7 @@ int text_effect_font_init(const RenderData *context, const Strip *strip, FontFla
 
   if (data->text_blf_id == STRIP_FONT_NOT_LOADED) {
     data->text_blf_id = -1;
-
-    effect_text_font_load(data, false);
+    text_font_load(data, false);
   }
 
   if (data->text_blf_id >= 0) {
@@ -1080,7 +1082,6 @@ void text_effect_get_handle(EffectHandle &rval)
   rval.num_inputs = num_inputs_text;
   rval.init = init_text_effect;
   rval.free = free_text_effect;
-  rval.load = load_text_effect;
   rval.copy = copy_text_effect;
   rval.early_out = early_out_text;
   rval.execute = do_text_effect;

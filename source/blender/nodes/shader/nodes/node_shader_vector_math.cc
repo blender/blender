@@ -25,10 +25,58 @@ namespace blender::nodes::node_shader_vector_math_cc {
 static void sh_node_vector_math_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Vector>("Vector", "Vector_001").min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Vector>("Vector", "Vector_002").min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Float>("Scale").default_value(1.0f).min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f).label_fn([](bNode node) {
+    switch (node.custom1) {
+      case NODE_VECTOR_MATH_POWER:
+        return IFACE_("Base");
+      default:
+        return IFACE_("Vector");
+    }
+  });
+  b.add_input<decl::Vector>("Vector", "Vector_001")
+      .min(-10000.0f)
+      .max(10000.0f)
+      .label_fn([](bNode node) {
+        switch (node.custom1) {
+          case NODE_VECTOR_MATH_POWER:
+            return IFACE_("Exponent");
+          case NODE_VECTOR_MATH_MULTIPLY_ADD:
+            return IFACE_("Multiplier");
+          case NODE_VECTOR_MATH_FACEFORWARD:
+            return IFACE_("Incident");
+          case NODE_VECTOR_MATH_WRAP:
+            return IFACE_("Max");
+          case NODE_VECTOR_MATH_SNAP:
+            return IFACE_("Increment");
+          default:
+            return IFACE_("Vector");
+        }
+      });
+  b.add_input<decl::Vector>("Vector", "Vector_002")
+      .min(-10000.0f)
+      .max(10000.0f)
+      .label_fn([](bNode node) {
+        switch (node.custom1) {
+          case NODE_VECTOR_MATH_MULTIPLY_ADD:
+            return IFACE_("Addend");
+          case NODE_VECTOR_MATH_FACEFORWARD:
+            return IFACE_("Reference");
+          case NODE_VECTOR_MATH_WRAP:
+            return IFACE_("Min");
+          default:
+            return IFACE_("Vector");
+        }
+      });
+  b.add_input<decl::Float>("Scale").default_value(1.0f).min(-10000.0f).max(10000.0f).label_fn(
+      [](bNode node) {
+        switch (node.custom1) {
+          case NODE_VECTOR_MATH_SCALE:
+          default:
+            return IFACE_("Scale");
+          case NODE_VECTOR_MATH_REFRACT:
+            return IFACE_("IOR");
+        }
+      });
   b.add_output<decl::Vector>("Vector");
   b.add_output<decl::Float>("Value");
 }
@@ -167,7 +215,6 @@ static int gpu_shader_vector_math(GPUMaterial *mat,
 
 static void node_shader_update_vector_math(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *sockA = (bNodeSocket *)BLI_findlink(&node->inputs, 0);
   bNodeSocket *sockB = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
   bNodeSocket *sockC = (bNodeSocket *)BLI_findlink(&node->inputs, 2);
   bNodeSocket *sockScale = bke::node_find_socket(*node, SOCK_IN, "Scale");
@@ -209,39 +256,6 @@ static void node_shader_update_vector_math(bNodeTree *ntree, bNode *node)
                                          NODE_VECTOR_MATH_LENGTH,
                                          NODE_VECTOR_MATH_DISTANCE,
                                          NODE_VECTOR_MATH_DOT_PRODUCT));
-
-  /* Labels */
-  node_sock_label_clear(sockA);
-  node_sock_label_clear(sockB);
-  node_sock_label_clear(sockC);
-  node_sock_label_clear(sockScale);
-  switch (node->custom1) {
-    case NODE_VECTOR_MATH_POWER:
-      node_sock_label(sockA, "Base");
-      node_sock_label(sockB, "Exponent");
-      break;
-    case NODE_VECTOR_MATH_MULTIPLY_ADD:
-      node_sock_label(sockB, "Multiplier");
-      node_sock_label(sockC, "Addend");
-      break;
-    case NODE_VECTOR_MATH_FACEFORWARD:
-      node_sock_label(sockB, "Incident");
-      node_sock_label(sockC, "Reference");
-      break;
-    case NODE_VECTOR_MATH_WRAP:
-      node_sock_label(sockB, "Max");
-      node_sock_label(sockC, "Min");
-      break;
-    case NODE_VECTOR_MATH_SNAP:
-      node_sock_label(sockB, "Increment");
-      break;
-    case NODE_VECTOR_MATH_REFRACT:
-      node_sock_label(sockScale, "IOR");
-      break;
-    case NODE_VECTOR_MATH_SCALE:
-      node_sock_label(sockScale, "Scale");
-      break;
-  }
 }
 
 static const mf::MultiFunction *get_multi_function(const bNode &node)

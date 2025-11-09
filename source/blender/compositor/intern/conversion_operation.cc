@@ -4,8 +4,6 @@
 
 #include <fmt/format.h>
 
-#include "BLI_color.hh"
-#include "BLI_cpp_type.hh"
 #include "BLI_generic_span.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
@@ -42,18 +40,18 @@ static bool is_conversion_supported(const ResultType from_type, const ResultType
     case ResultType::Float2:
     case ResultType::Float3:
     case ResultType::Float4:
+    case ResultType::Color:
     case ResultType::Int:
     case ResultType::Int2:
-    case ResultType::Color:
     case ResultType::Bool:
       switch (to_type) {
         case ResultType::Float:
         case ResultType::Float2:
         case ResultType::Float3:
         case ResultType::Float4:
+        case ResultType::Color:
         case ResultType::Int:
         case ResultType::Int2:
-        case ResultType::Color:
         case ResultType::Bool:
           return true;
         case ResultType::Menu:
@@ -132,68 +130,19 @@ SimpleOperation *ConversionOperation::construct_if_needed(Context &context,
   return nullptr;
 }
 
-/* Gets the single value of the given result as a single element GSpan. This calls the underlying
- * single_value method to construct a GSpan from the GPointer, however, it has an exception for
- * color types, since colors are stored as float4 internally, while their semantic type is
- * ColorSceneLinear4f<eAlpha::Premultiplied> during conversion. */
-static GSpan get_result_single_value(const Result &result)
-{
-  if (result.type() == ResultType::Color) {
-    return GSpan(
-        CPPType::get<ColorSceneLinear4f<eAlpha::Premultiplied>>(), result.single_value().get(), 1);
-  }
-
-  return GSpan(result.single_value().type(), result.single_value().get(), 1);
-}
-
-static GMutableSpan get_result_single_value(Result &result)
-{
-  if (result.type() == ResultType::Color) {
-    return GMutableSpan(
-        CPPType::get<ColorSceneLinear4f<eAlpha::Premultiplied>>(), result.single_value().get(), 1);
-  }
-
-  return GMutableSpan(result.single_value().type(), result.single_value().get(), 1);
-}
-
 void ConversionOperation::execute_single(const Result &input, Result &output)
 {
   const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
-  conversions.convert_to_initialized_n(get_result_single_value(input),
-                                       get_result_single_value(output));
+  conversions.convert_to_initialized_n(
+      GSpan(input.single_value().type(), input.single_value().get(), 1),
+      GMutableSpan(output.single_value().type(), output.single_value().get(), 1));
   output.update_single_value_data();
-}
-
-/* Gets the CPU data of the given result as a GSpan. This calls the underlying cpu_data method,
- * however, it has an exception for color types, since colors are stored as float4 internally,
- * while their semantic type is ColorSceneLinear4f<eAlpha::Premultiplied> during conversion. */
-static GSpan get_result_data(const Result &result)
-{
-  if (result.type() == ResultType::Color) {
-    return GSpan(CPPType::get<ColorSceneLinear4f<eAlpha::Premultiplied>>(),
-                 result.cpu_data().data(),
-                 result.cpu_data().size());
-  }
-
-  return result.cpu_data();
-}
-
-/* Same as get_result_data but takes non-const result and returns a GMutableSpan. */
-static GMutableSpan get_result_data(Result &result)
-{
-  if (result.type() == ResultType::Color) {
-    return GMutableSpan(CPPType::get<ColorSceneLinear4f<eAlpha::Premultiplied>>(),
-                        result.cpu_data().data(),
-                        result.cpu_data().size());
-  }
-
-  return result.cpu_data();
 }
 
 void ConversionOperation::execute_cpu(const Result &input, Result &output)
 {
   const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
-  conversions.convert_to_initialized_n(get_result_data(input), get_result_data(output));
+  conversions.convert_to_initialized_n(input.cpu_data(), output.cpu_data());
 }
 
 }  // namespace blender::compositor

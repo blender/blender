@@ -395,6 +395,21 @@ static const ID *data_for_snap(Object *ob_eval, eSnapEditType edit_mode_type, bo
   return static_cast<const ID *>(ob_eval->data);
 }
 
+/**
+ * Mesh used for snapping (`dupli-list` instances).
+ *
+ * A version of #data_for_snap for instances.
+ */
+static const ID *data_for_snap_dupli(Object *ob_eval, ID *ob_data)
+{
+  /* For curve and surface objects, use the evaluated mesh so snapping
+   * works with the final geometry instead of the coarse cage, see: #143060. */
+  if (ELEM(ob_eval->type, OB_CURVES_LEGACY, OB_CURVES, OB_SURF)) {
+    return &BKE_object_get_evaluated_mesh(ob_eval)->id;
+  }
+  return ob_data;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -490,12 +505,10 @@ static eSnapMode iter_snap_objects(SnapObjectContext *sctx, IterSnapObjsCallback
       object_duplilist(sctx->runtime.depsgraph, sctx->scene, obj_eval, nullptr, duplilist);
       for (DupliObject &dupli_ob : duplilist) {
         BLI_assert(DEG_is_evaluated(dupli_ob.ob));
-        if ((tmp = sob_callback(sctx,
-                                dupli_ob.ob,
-                                dupli_ob.ob_data,
-                                float4x4(dupli_ob.mat),
-                                is_object_active,
-                                false)) != SCE_SNAP_TO_NONE)
+        const ID *ob_data = data_for_snap_dupli(dupli_ob.ob, dupli_ob.ob_data);
+        if ((tmp = sob_callback(
+                 sctx, dupli_ob.ob, ob_data, float4x4(dupli_ob.mat), is_object_active, false)) !=
+            SCE_SNAP_TO_NONE)
         {
           ret = tmp;
         }
@@ -1158,7 +1171,7 @@ static bool snap_object_context_runtime_init(SnapObjectContext *sctx,
         }
 
         if (!sctx->grid.use_init_co) {
-          memset(sctx->grid.planes, 0, sizeof(sctx->grid.planes));
+          memset(reinterpret_cast<void *>(sctx->grid.planes), 0, sizeof(sctx->grid.planes));
           sctx->grid.planes[0][2] = 1.0f;
           if (math::abs(sctx->runtime.ray_dir[0]) < math::abs(sctx->runtime.ray_dir[1])) {
             sctx->grid.planes[1][1] = 1.0f;

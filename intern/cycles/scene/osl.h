@@ -151,9 +151,9 @@ class OSLShaderManager : public ShaderManager {
 class OSLCompiler {
  public:
 #ifdef WITH_OSL
-  OSLCompiler(OSL::ShadingSystem *ss, Scene *scene);
+  OSLCompiler(OSL::ShadingSystem *ss, Scene *scene, Device *device);
 #endif
-  void compile(OSLGlobals *og, int shader_id, Shader *shader);
+  void compile(Shader *shader);
 
   void add(ShaderNode *node, const char *name, bool isfilepath = false);
 
@@ -202,6 +202,7 @@ class OSLCompiler {
   OSL::ShaderGroupRef current_group;
 #endif
 
+  Device *device;
   ShaderType current_type;
   Shader *current_shader;
 

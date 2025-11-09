@@ -83,6 +83,8 @@ const EnumPropertyItem *grid_socket_type_items_filter_fn(bContext *C,
 
 void node_geo_exec_with_missing_openvdb(GeoNodeExecParams &params);
 
+void node_geo_exec_with_too_old_openvdb(GeoNodeExecParams &params);
+
 void draw_data_blocks(const bContext *C, uiLayout *layout, PointerRNA &bake_rna);
 
 }  // namespace blender::nodes

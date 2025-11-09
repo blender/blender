@@ -89,6 +89,7 @@
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 
+#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"

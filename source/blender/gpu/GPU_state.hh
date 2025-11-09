@@ -8,7 +8,8 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
+#include "BLI_sys_types.h"
 
 /** Opaque type hiding blender::gpu::Fence. */
 struct GPUFence;
@@ -24,7 +25,7 @@ enum GPUWriteMask {
   GPU_WRITE_COLOR = (GPU_WRITE_RED | GPU_WRITE_GREEN | GPU_WRITE_BLUE | GPU_WRITE_ALPHA),
 };
 
-ENUM_OPERATORS(GPUWriteMask, GPU_WRITE_COLOR)
+ENUM_OPERATORS(GPUWriteMask)
 
 enum GPUBarrier {
   /* Texture Barrier. */
@@ -58,7 +59,7 @@ enum GPUBarrier {
   // GPU_BARRIER_CLIENT_MAPPED_BUFFER = (1 << 15), /* Not implemented yet. */
 };
 
-ENUM_OPERATORS(GPUBarrier, GPU_BARRIER_BUFFER_UPDATE)
+ENUM_OPERATORS(GPUBarrier)
 
 /* NOTE: For Metal and Vulkan only.
  * TODO(Metal): Update barrier calls to use stage flags. */
@@ -71,7 +72,7 @@ enum GPUStageBarrierBits {
                            GPU_BARRIER_STAGE_COMPUTE),
 };
 
-ENUM_OPERATORS(GPUStageBarrierBits, GPU_BARRIER_STAGE_COMPUTE)
+ENUM_OPERATORS(GPUStageBarrierBits)
 
 /**
  * Defines the fixed pipeline blending equation.
@@ -93,6 +94,10 @@ enum GPUBlend {
   /** Replace logic op: SRC * (1 - DST)
    * NOTE: Does not modify alpha. */
   GPU_BLEND_INVERT,
+  /** Stores min(SRC, DST) per component. */
+  GPU_BLEND_MIN,
+  /** Stores max(SRC, DST) per component. */
+  GPU_BLEND_MAX,
   /** Order independent transparency.
    * NOTE: Cannot be used as is. Needs special setup (frame-buffer, shader ...). */
   GPU_BLEND_OIT,
@@ -149,7 +154,6 @@ void GPU_depth_test(GPUDepthTest test);
 void GPU_stencil_test(GPUStencilTest test);
 void GPU_provoking_vertex(GPUProvokingVertex vert);
 void GPU_front_facing(bool invert);
-void GPU_depth_range(float near, float far);
 void GPU_scissor_test(bool enable);
 void GPU_line_smooth(bool enable);
 /**

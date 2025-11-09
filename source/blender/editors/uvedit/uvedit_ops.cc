@@ -21,12 +21,12 @@
 #include "DNA_space_types.h"
 
 #include "BLI_bounds.hh"
+#include "BLI_enum_flags.hh"
 #include "BLI_kdtree.h"
 #include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
@@ -87,21 +87,6 @@ bool ED_uvedit_test(Object *obedit)
   ret = EDBM_uv_check(em);
 
   return ret;
-}
-
-static int UNUSED_FUNCTION(ED_operator_uvmap_mesh)(bContext *C)
-{
-  Object *ob = CTX_data_active_object(C);
-
-  if (ob && ob->type == OB_MESH) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
-
-    if (CustomData_get_layer(&mesh->corner_data, CD_PROP_FLOAT2) != nullptr) {
-      return 1;
-    }
-  }
-
-  return 0;
 }
 
 /** \} */
@@ -491,7 +476,7 @@ enum eUVEndPointPrecedence {
   UVEP_SELECTED = (1 << 0),
   UVEP_PINNED = (1 << 1), /* i.e. Pinned verts are preferred to selected. */
 };
-ENUM_OPERATORS(eUVEndPointPrecedence, UVEP_PINNED);
+ENUM_OPERATORS(eUVEndPointPrecedence);
 
 static eUVEndPointPrecedence uvedit_line_update_get_precedence(const bool pinned)
 {
@@ -1731,11 +1716,12 @@ static wmOperatorStatus uv_pin_exec(bContext *C, wmOperator *op)
       scene, view_layer, nullptr);
 
   for (Object *obedit : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    Mesh &mesh = *static_cast<Mesh *>(obedit->data);
+    BMEditMesh *em = mesh.runtime->edit_mesh.get();
 
     bool changed = false;
 
-    const char *active_uv_name = CustomData_get_active_layer_name(&em->bm->ldata, CD_PROP_FLOAT2);
+    const StringRef active_uv_name = mesh.active_uv_map_name();
     if (em->bm->totvertsel == 0) {
       continue;
     }

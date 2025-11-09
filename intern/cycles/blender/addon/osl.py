@@ -150,6 +150,8 @@ def osl_param_ensure_property(ccam, param):
         ui.update(subtype='ANGLE')
     elif datatype is float and metadata.get('unit') == 'm':
         ui.update(subtype='DISTANCE')
+    elif datatype is float and metadata.get('unit') == 'mm':
+        ui.update(subtype='DISTANCE_CAMERA')
     elif datatype is float and metadata.get('unit') in ('s', 'sec'):
         ui.update(subtype='TIME_ABSOLUTE')
     elif metadata.get('slider'):

@@ -49,22 +49,11 @@ class MTLContext;
 #  define shader_debug_printf(...) /* Null print. */
 #endif
 
-/* Offset base specialization constant ID for function constants declared in CreateInfo. */
-#define MTL_SHADER_SPECIALIZATION_CONSTANT_BASE_ID 30
 /* Maximum threshold for specialized shader variant count.
  * This is a catch-all to prevent excessive PSO permutations from being created and also catch
  * parameters which should ideally not be used for specialization. */
 #define MTL_SHADER_MAX_SPECIALIZED_PSOS 5
 
-/* Desired reflection data for a buffer binding. */
-struct MTLBufferArgumentData {
-  uint32_t index;
-  uint32_t size;
-  uint32_t alignment;
-  bool active;
-};
-
-/* Metal Render Pipeline State Instance. */
 struct MTLRenderPipelineStateInstance {
   /* Function instances with specialization.
    * Required for argument encoder construction. */
@@ -77,30 +66,29 @@ struct MTLRenderPipelineStateInstance {
   /** Derived information. */
   /* Unique index for PSO variant. */
   uint32_t shader_pso_index;
-  /* Base bind index for binding uniform buffers, offset based on other
-   * bound buffers such as vertex buffers, as the count can vary. */
-  int base_uniform_buffer_index;
-  /* Base bind index for binding storage buffers. */
-  int base_storage_buffer_index;
   /* buffer bind slot used for null attributes (-1 if not needed). */
   int null_attribute_buffer_index;
   /* Topology class. */
   MTLPrimitiveTopologyClass prim_type;
 
-  /** Reflection Data.
-   * Currently used to verify whether uniform buffers of incorrect sizes being bound, due to left
-   * over bindings being used for slots that did not need updating for a particular draw. Metal
-   * Back-end over-generates bindings due to detecting their presence, though in many cases, the
-   * bindings in the source are not all used for a given shader.
-   * This information can also be used to eliminate redundant/unused bindings. */
-  bool reflection_data_available;
-  blender::Vector<MTLBufferArgumentData> buffer_bindings_reflection_data_vert;
-  blender::Vector<MTLBufferArgumentData> buffer_bindings_reflection_data_frag;
+  /**
+   * Reflection Data.
+   * This information can also be used to eliminate redundant/unused bindings.
+   * Does only contains SSBO, UBO, Argument and Push Constant buffers. VBO bindings are masked out.
+   */
+  uint32_t used_buf_vert_mask = 0;
+  uint32_t used_buf_frag_mask = 0;
+  /* Same thing for images. */
+  uint16_t used_ima_vert_mask = 0;
+  uint16_t used_ima_frag_mask = 0;
+  /* Same thing for samplers. */
+  uint64_t used_tex_vert_mask = 0;
+  uint64_t used_tex_frag_mask = 0;
+
+  void parse_reflection_data(::MTLRenderPipelineReflection *reflection_data);
 };
 
-/* Common compute pipeline state. */
 struct MTLComputePipelineStateCommon {
-
   /* Thread-group information is common for all PSO variants. */
   int threadgroup_x_len = 1;
   int threadgroup_y_len = 1;
@@ -116,38 +104,16 @@ struct MTLComputePipelineStateCommon {
   }
 };
 
-/* Metal Compute Pipeline State instance per PSO. */
 struct MTLComputePipelineStateInstance {
-
   /** Derived information. */
   /* Unique index for PSO variant. */
   uint32_t shader_pso_index;
-  /* Base bind index for binding uniform buffers, offset based on other
-   * bound buffers such as vertex buffers, as the count can vary. */
-  int base_uniform_buffer_index = -1;
-  /* Base bind index for binding storage buffers. */
-  int base_storage_buffer_index = -1;
 
   /* Function instances with specialization.
    * Required for argument encoder construction. */
   id<MTLFunction> compute = nil;
   /* PSO handle. */
   id<MTLComputePipelineState> pso = nil;
-};
-
-/* #MTLShaderBuilder source wrapper used during initial compilation. */
-struct MTLShaderBuilder {
-  NSString *msl_source_vert_ = @"";
-  NSString *msl_source_frag_ = @"";
-  NSString *msl_source_compute_ = @"";
-
-  /* Generated GLSL source used during compilation. */
-  std::string glsl_vertex_source_ = "";
-  std::string glsl_fragment_source_ = "";
-  std::string glsl_compute_source_ = "";
-
-  /* Indicates whether source code has been provided via MSL directly. */
-  bool source_from_msl_ = false;
 };
 
 /**
@@ -171,21 +137,18 @@ class MTLShader : public Shader {
   /* Context Handle. */
   MTLContext *context_ = nullptr;
 
-  /** Shader source code. */
-  MTLShaderBuilder *shd_builder_ = nullptr;
-  NSString *vertex_function_name_ = @"";
-  NSString *fragment_function_name_ = @"";
-  NSString *compute_function_name_ = @"";
+  /* Can be nullptr if no uniform is present inside the shader. */
+  MTLPushConstantBuf *push_constant_buf_ = nullptr;
 
   /** Compiled shader resources. */
   id<MTLLibrary> shader_library_vert_ = nil;
   id<MTLLibrary> shader_library_frag_ = nil;
-  id<MTLLibrary> shader_library_compute_ = nil;
+  id<MTLLibrary> shader_library_comp_ = nil;
   bool valid_ = false;
 
   /** Render pipeline state and PSO caching. */
   /* Metal API Descriptor used for creation of unique PSOs based on rendering state. */
-  MTLRenderPipelineDescriptor *pso_descriptor_ = nil;
+  ::MTLRenderPipelineDescriptor *pso_descriptor_ = nil;
   /* Metal backend struct containing all high-level pipeline state parameters
    * which contribute to instantiation of a unique PSO. */
   MTLRenderPipelineStateDescriptor current_pipeline_state_;
@@ -198,53 +161,28 @@ class MTLShader : public Shader {
   blender::Map<MTLComputePipelineStateDescriptor, MTLComputePipelineStateInstance *>
       compute_pso_cache_;
 
-  /* True to enable multi-layered rendering support. */
-  bool uses_gpu_layer = false;
-
-  /* True to enable multi-viewport rendering support. */
-  bool uses_gpu_viewport_index = false;
-
-  /* Metal Shader Uniform data store.
-   * This blocks is used to store current shader push_constant
-   * data before it is submitted to the GPU. This is currently
-   * stored per shader instance, though depending on GPU module
-   * functionality, this could potentially be a global data store.
-   * This data is associated with the PushConstantBlock, which is
-   * always at index zero in the UBO list. */
-  void *push_constant_data_ = nullptr;
-  bool push_constant_modified_ = false;
-
-  /* Special definition for Max TotalThreadsPerThreadgroup tuning. */
-  uint maxTotalThreadsPerThreadgroup_Tuning_ = 0;
-
   /* Set to true when batch compiling */
   bool async_compilation_ = false;
 
-  /* If greater than one, use argument buffer to support arbitrary number of samplers. */
-  int arg_buf_samplers_vert_ = 0;
-  int arg_buf_samplers_frag_ = 0;
-  int arg_buf_samplers_comp_ = 0;
-
-  bool finalize_shader(const shader::ShaderCreateInfo *info = nullptr);
-
  public:
   MTLShader(MTLContext *ctx, const char *name);
-  MTLShader(MTLContext *ctx,
-            MTLShaderInterface *interface,
-            const char *name,
-            NSString *input_vertex_source,
-            NSString *input_fragment_source,
-            NSString *vertex_function_name_,
-            NSString *fragment_function_name_);
   ~MTLShader();
 
   void init(const shader::ShaderCreateInfo & /*info*/, bool is_batch_compilation) override;
 
+  /* Patch create infos for any additional resources that could be needed. */
+  const shader::ShaderCreateInfo &patch_create_info(
+      const shader::ShaderCreateInfo &original_info) override;
+
   /* Assign GLSL source. */
-  void vertex_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
-  void geometry_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
-  void fragment_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
-  void compute_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
+  void vertex_shader_from_glsl(const shader::ShaderCreateInfo &info,
+                               MutableSpan<StringRefNull> sources) override;
+  void geometry_shader_from_glsl(const shader::ShaderCreateInfo &info,
+                                 MutableSpan<StringRefNull> sources) override;
+  void fragment_shader_from_glsl(const shader::ShaderCreateInfo &info,
+                                 MutableSpan<StringRefNull> sources) override;
+  void compute_shader_from_glsl(const shader::ShaderCreateInfo &info,
+                                MutableSpan<StringRefNull> sources) override;
 
   /* Compile and build - Return true if successful. */
   bool finalize(const shader::ShaderCreateInfo *info = nullptr) override;
@@ -258,7 +196,7 @@ class MTLShader : public Shader {
   }
   bool has_compute_shader_lib()
   {
-    return (shader_library_compute_ != nil);
+    return (shader_library_comp_ != nil);
   }
   bool has_parent_shader()
   {
@@ -268,48 +206,61 @@ class MTLShader : public Shader {
   {
     return current_pipeline_state_;
   }
-  MTLShaderInterface *get_interface()
+
+  MTLShaderInterface &get_interface()
   {
-    return static_cast<MTLShaderInterface *>(this->interface);
+    return *static_cast<MTLShaderInterface *>(this->interface);
   }
-  void *get_push_constant_data()
+
+  /* Might return nullptr if no push constants are present in the interface. */
+  MTLPushConstantBuf *get_push_constant_buf()
   {
-    return push_constant_data_;
+    return push_constant_buf_;
   }
 
   /* Shader source generators from create-info.
    * These aren't all used by Metal, as certain parts of source code generation
    * for shader entry-points and resource mapping occur during `finalize`. */
-  std::string resources_declare(const shader::ShaderCreateInfo &info) const override;
-  std::string vertex_interface_declare(const shader::ShaderCreateInfo &info) const override;
-  std::string fragment_interface_declare(const shader::ShaderCreateInfo &info) const override;
-  std::string geometry_interface_declare(const shader::ShaderCreateInfo &info) const override;
-  std::string geometry_layout_declare(const shader::ShaderCreateInfo &info) const override;
-  std::string compute_layout_declare(const shader::ShaderCreateInfo &info) const override;
+  std::string resources_declare(const shader::ShaderCreateInfo & /*info*/) const override
+  {
+    return "";
+  }
+  std::string vertex_interface_declare(const shader::ShaderCreateInfo & /*info*/) const override
+  {
+    return "";
+  }
+  std::string fragment_interface_declare(const shader::ShaderCreateInfo & /*info*/) const override
+  {
+    return "";
+  }
+  std::string geometry_interface_declare(const shader::ShaderCreateInfo & /*info*/) const override
+  {
+    return "";
+  }
+  std::string geometry_layout_declare(const shader::ShaderCreateInfo & /*info*/) const override
+  {
+    return "";
+  }
+  std::string compute_layout_declare(const shader::ShaderCreateInfo & /*info*/) const override
+  {
+    return "";
+  }
 
   void bind(const shader::SpecializationConstants *constants_state) override;
   void unbind() override;
 
   void uniform_float(int location, int comp_len, int array_size, const float *data) override;
   void uniform_int(int location, int comp_len, int array_size, const int *data) override;
-  bool get_push_constant_is_dirty();
-  void push_constant_bindstate_mark_dirty(bool is_dirty);
-
-  /* Metal shader properties and source mapping. */
-  void set_vertex_function_name(NSString *vetex_function_name);
-  void set_fragment_function_name(NSString *fragment_function_name);
-  void set_compute_function_name(NSString *compute_function_name);
-  void shader_source_from_msl(NSString *input_vertex_source, NSString *input_fragment_source);
-  void shader_compute_source_from_msl(NSString *input_compute_source);
-  void set_interface(MTLShaderInterface *interface);
 
   MTLRenderPipelineStateInstance *bake_current_pipeline_state(MTLContext *ctx,
                                                               MTLPrimitiveTopologyClass prim_type);
-  MTLRenderPipelineStateInstance *bake_pipeline_state(
+  /* Bakes and caches a PSO for graphic. */
+  MTLRenderPipelineStateInstance *bake_graphic_pipeline_state(
       MTLContext *ctx,
       MTLPrimitiveTopologyClass prim_type,
       const MTLRenderPipelineStateDescriptor &pipeline_descriptor);
 
+  /* Bakes and caches a PSO for compute. */
   MTLComputePipelineStateInstance *bake_compute_pipeline_state(
       MTLContext *ctx, MTLComputePipelineStateDescriptor &compute_pipeline_descriptor);
 
@@ -319,9 +270,12 @@ class MTLShader : public Shader {
   }
 
  private:
-  /* Generate MSL shader from GLSL source. */
-  bool generate_msl_from_glsl(const shader::ShaderCreateInfo *info);
-  bool generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *info);
+  /** Create, compile and attach the shader stage to the shader program. */
+  id<MTLLibrary> create_shader_library(const shader::ShaderCreateInfo &info,
+                                       ShaderStage stage,
+                                       MutableSpan<StringRefNull> sources);
+
+  std::string entry_point_name_get(const ShaderStage stage);
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MTLShader");
 };
@@ -433,11 +387,9 @@ inline MTLVertexFormat to_mtl(GPUVertCompType component_type,
   switch (fetch_mode) { \
     case GPU_FETCH_INT: \
       FORMAT_PER_COMP(_type, ) \
+    case GPU_FETCH_INT_TO_FLOAT_UNIT: \
     case GPU_FETCH_FLOAT: \
       BLI_assert_msg(0, "Invalid fetch mode for integer attribute"); \
-      break; \
-    case GPU_FETCH_INT_TO_FLOAT_UNIT: \
-      /* Fallback to manual conversion */ \
       break; \
   } \
   break;
@@ -543,86 +495,6 @@ inline bool mtl_format_is_normalized(MTLVertexFormat format)
 
 #undef FORMAT_PER_TYPE
   return false;
-}
-
-/**
- * Returns whether the METAL API can internally convert between the input type of data in the
- * incoming vertex buffer and the format used by the vertex attribute inside the shader.
- *
- * - Returns TRUE if the type can be converted internally, along with returning the appropriate
- *   type to be passed into the #MTLVertexAttributeDescriptorPSO.
- *
- * - Returns FALSE if the type cannot be converted internally e.g. casting Int4 to Float4.
- *
- * If implicit conversion is not possible, then we can fallback to performing manual attribute
- * conversion using the special attribute read function specializations in the shader.
- * These functions selectively convert between types based on the specified vertex
- * attribute `GPUVertFetchMode fetch_mode` e.g. `GPU_FETCH_INT`.
- */
-inline MTLVertexFormat mtl_convert_vertex_format_ex(MTLVertexFormat shader_attr_format,
-                                                    GPUVertCompType component_type,
-                                                    uint32_t component_len,
-                                                    GPUVertFetchMode fetch_mode)
-{
-  MTLVertexFormat vertex_attr_format = to_mtl(component_type, fetch_mode, component_len);
-
-  if (vertex_attr_format == MTLVertexFormatInvalid) {
-    /* No valid builtin conversion known or error. */
-    return vertex_attr_format;
-  }
-
-  if (vertex_attr_format == shader_attr_format) {
-    /* Everything matches. Nothing to do. */
-    return vertex_attr_format;
-  }
-
-  if (vertex_attr_format == MTLVertexFormatInt1010102Normalized) {
-    BLI_assert_msg(format_get_component_type(shader_attr_format) == MTLVertexFormatFloat,
-                   "Vertex format is GPU_COMP_I10 but shader input is not float");
-    return vertex_attr_format;
-  }
-
-  /* Attribute type mismatch. Check if casting is supported. */
-  MTLVertexFormat shader_attr_comp_type = format_get_component_type(shader_attr_format);
-  MTLVertexFormat vertex_attr_comp_type = format_get_component_type(vertex_attr_format);
-
-  if (shader_attr_comp_type == vertex_attr_comp_type) {
-    /* Conversion of vectors of different lengths is valid. */
-    return vertex_attr_format;
-  }
-
-  if (shader_attr_comp_type != MTLVertexFormatFloat) {
-    BLI_assert_msg(vertex_attr_comp_type != MTLVertexFormatFloat,
-                   "Vertex format is GPU_COMP_F32 but shader input is not float");
-  }
-  /* Casting normalized MTLVertexFormat types are only valid to float or half. */
-  if (shader_attr_comp_type == MTLVertexFormatFloat) {
-    BLI_assert_msg(mtl_format_is_normalized(vertex_attr_comp_type),
-                   "Vertex format is INT_TO_FLOAT_UNIT but shader input is not float");
-  }
-  /* The sign of an integer MTLVertexFormat can not be cast to a shader argument with an integer
-   * type of a different sign. */
-  if (shader_attr_comp_type == MTLVertexFormatInt) {
-    BLI_assert_msg(ELEM(vertex_attr_comp_type, MTLVertexFormatChar, MTLVertexFormatShort),
-                   "Vertex format is either I8 or I16 but shader input is not float");
-  }
-  if (shader_attr_comp_type == MTLVertexFormatUInt) {
-    BLI_assert_msg(ELEM(vertex_attr_comp_type, MTLVertexFormatUChar, MTLVertexFormatUShort),
-                   "Vertex format is either U8 or U16 but shader input is not float");
-  }
-  /* Valid automatic conversion. */
-  return vertex_attr_format;
-}
-
-inline bool mtl_convert_vertex_format(MTLVertexFormat shader_attr_format,
-                                      GPUVertCompType component_type,
-                                      uint32_t component_len,
-                                      GPUVertFetchMode fetch_mode,
-                                      MTLVertexFormat *r_convertedFormat)
-{
-  *r_convertedFormat = mtl_convert_vertex_format_ex(
-      shader_attr_format, component_type, component_len, fetch_mode);
-  return (*r_convertedFormat != MTLVertexFormatInvalid);
 }
 
 }  // namespace blender::gpu

@@ -184,6 +184,15 @@ extern void *(*MEM_calloc_arrayN_aligned)(
         (v) = nullptr; \
       } \
     } while (0)
+
+/** Wrapper for MEM_SAFE_FREE() as deallocator for std::unique_ptr. */
+struct MEM_freeN_smart_ptr_deleter {
+  void operator()(void *pointer) const noexcept
+  {
+    MEM_SAFE_FREE(pointer);
+  }
+};
+
 #else
 #  define MEM_SAFE_FREE(v) \
     do { \

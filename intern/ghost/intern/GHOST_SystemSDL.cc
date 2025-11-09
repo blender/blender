@@ -808,7 +808,9 @@ GHOST_TCapabilityFlag GHOST_SystemSDL::getCapabilities() const
           /* No support yet for RGBA mouse cursors. */
           GHOST_kCapabilityCursorRGBA |
           /* No support yet for dynamic cursor generation. */
-          GHOST_kCapabilityCursorGenerator));
+          GHOST_kCapabilityCursorGenerator |
+          /* No support for window path meta-data. */
+          GHOST_kCapabilityWindowPath));
 }
 
 char *GHOST_SystemSDL::getClipboard(bool /*selection*/) const

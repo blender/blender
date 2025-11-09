@@ -71,6 +71,8 @@ void ShadingView::sync()
   }
 
   main_view_.sync(viewmat, winmat);
+
+  inst_.uniform_data.data.pipeline.is_main_view_inverted = main_view_.is_inverted();
 }
 
 void ShadingView::render()
@@ -391,7 +393,7 @@ void CaptureView::render_probes()
 
 void LookdevView::render()
 {
-  if (!inst_.lookdev.enabled_) {
+  if (!inst_.lookdev.use_reference_spheres_) {
     return;
   }
   GPU_debug_group_begin("Lookdev");

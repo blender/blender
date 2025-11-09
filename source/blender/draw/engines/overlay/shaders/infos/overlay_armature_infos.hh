@@ -49,7 +49,11 @@ ADDITIONAL_INFO(draw_globals)
 STORAGE_BUF(0, read, float4x4, data_buf[])
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS(overlay_armature_sphere_outline)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_armature_sphere_outline_selectable, overlay_armature_sphere_outline, overlay_select)
+CREATE_INFO_VARIANT(overlay_armature_sphere_outline_clipped, overlay_armature_sphere_outline, drw_clipped)
+CREATE_INFO_VARIANT(overlay_armature_sphere_outline_selectable_clipped, overlay_armature_sphere_outline_selectable, drw_clipped)
+/* clang-format on */
 
 GPU_SHADER_INTERFACE_INFO(overlay_armature_sphere_solid_iface)
 FLAT(float3, final_state_color)
@@ -77,7 +81,11 @@ ADDITIONAL_INFO(draw_globals)
 STORAGE_BUF(0, read, float4x4, data_buf[])
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS(overlay_armature_sphere_solid)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_armature_sphere_solid_selectable, overlay_armature_sphere_solid, overlay_select)
+CREATE_INFO_VARIANT(overlay_armature_sphere_solid_clipped, overlay_armature_sphere_solid, drw_clipped)
+CREATE_INFO_VARIANT(overlay_armature_sphere_solid_selectable_clipped, overlay_armature_sphere_solid_selectable, drw_clipped)
+/* clang-format on */
 
 /** \} */
 
@@ -105,7 +113,11 @@ ADDITIONAL_INFO(gpu_index_buffer_load)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS(overlay_armature_shape_outline)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_armature_shape_outline_selectable, overlay_armature_shape_outline, overlay_select)
+CREATE_INFO_VARIANT(overlay_armature_shape_outline_clipped, overlay_armature_shape_outline, drw_clipped)
+CREATE_INFO_VARIANT(overlay_armature_shape_outline_selectable_clipped, overlay_armature_shape_outline_selectable, drw_clipped)
+/* clang-format on */
 
 GPU_SHADER_INTERFACE_INFO(overlay_armature_shape_solid_iface)
 SMOOTH(float4, final_color)
@@ -127,7 +139,11 @@ ADDITIONAL_INFO(draw_globals)
 STORAGE_BUF(0, read, float4x4, data_buf[])
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS(overlay_armature_shape_solid)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_armature_shape_solid_selectable, overlay_armature_shape_solid, overlay_select)
+CREATE_INFO_VARIANT(overlay_armature_shape_solid_clipped, overlay_armature_shape_solid, drw_clipped)
+CREATE_INFO_VARIANT(overlay_armature_shape_solid_selectable_clipped, overlay_armature_shape_solid_selectable, drw_clipped)
+/* clang-format on */
 
 GPU_SHADER_INTERFACE_INFO(overlay_armature_shape_wire_iface)
 FLAT(float4, final_color)
@@ -152,7 +168,11 @@ ADDITIONAL_INFO(gpu_index_buffer_load)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS(overlay_armature_shape_wire)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_armature_shape_wire_selectable, overlay_armature_shape_wire, overlay_select)
+CREATE_INFO_VARIANT(overlay_armature_shape_wire_clipped, overlay_armature_shape_wire, drw_clipped)
+CREATE_INFO_VARIANT(overlay_armature_shape_wire_selectable_clipped, overlay_armature_shape_wire_selectable, drw_clipped)
+/* clang-format on */
 
 GPU_SHADER_CREATE_INFO(overlay_armature_shape_wire_strip)
 DO_STATIC_COMPILATION()
@@ -160,7 +180,11 @@ ADDITIONAL_INFO(overlay_armature_shape_wire)
 DEFINE("FROM_LINE_STRIP")
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS(overlay_armature_shape_wire_strip)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_armature_shape_wire_strip_selectable, overlay_armature_shape_wire_strip, overlay_select)
+CREATE_INFO_VARIANT(overlay_armature_shape_wire_strip_clipped, overlay_armature_shape_wire_strip, drw_clipped)
+CREATE_INFO_VARIANT(overlay_armature_shape_wire_strip_selectable_clipped, overlay_armature_shape_wire_strip_selectable, drw_clipped)
+/* clang-format on */
 
 /** \} */
 
@@ -183,7 +207,11 @@ ADDITIONAL_INFO(draw_globals)
 STORAGE_BUF(0, read, BoneEnvelopeData, data_buf[])
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS(overlay_armature_envelope_outline)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_armature_envelope_outline_selectable, overlay_armature_envelope_outline, overlay_select)
+CREATE_INFO_VARIANT(overlay_armature_envelope_outline_clipped, overlay_armature_envelope_outline, drw_clipped)
+CREATE_INFO_VARIANT(overlay_armature_envelope_outline_selectable_clipped, overlay_armature_envelope_outline_selectable, drw_clipped)
+/* clang-format on */
 
 GPU_SHADER_INTERFACE_INFO(overlay_armature_envelope_solid_iface)
 FLAT(float3, final_state_color)
@@ -205,7 +233,11 @@ ADDITIONAL_INFO(draw_globals)
 STORAGE_BUF(0, read, BoneEnvelopeData, data_buf[])
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS(overlay_armature_envelope_solid)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_armature_envelope_solid_selectable, overlay_armature_envelope_solid, overlay_select)
+CREATE_INFO_VARIANT(overlay_armature_envelope_solid_clipped, overlay_armature_envelope_solid, drw_clipped)
+CREATE_INFO_VARIANT(overlay_armature_envelope_solid_selectable_clipped, overlay_armature_envelope_solid_selectable, drw_clipped)
+/* clang-format on */
 
 /** \} */
 
@@ -233,7 +265,12 @@ ADDITIONAL_INFO(draw_globals)
 STORAGE_BUF(0, read, BoneStickData, data_buf[])
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_armature_stick, overlay_armature_stick_base)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_armature_stick, overlay_armature_stick_base, draw_modelmat)
+CREATE_INFO_VARIANT(overlay_armature_stick_selectable, overlay_armature_stick_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_armature_stick_clipped, overlay_armature_stick, drw_clipped)
+CREATE_INFO_VARIANT(overlay_armature_stick_selectable_clipped, overlay_armature_stick_selectable, drw_clipped)
+/* clang-format on */
 
 /** \} */
 
@@ -254,7 +291,7 @@ ADDITIONAL_INFO(draw_globals)
 STORAGE_BUF(0, read, ExtraInstanceData, data_buf[])
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_armature_dof)
+CREATE_INFO_VARIANT(overlay_armature_dof_clipped, overlay_armature_dof, drw_clipped)
 
 /** \} */
 
@@ -274,6 +311,11 @@ ADDITIONAL_INFO(draw_globals)
 STORAGE_BUF(0, read, VertexData, data_buf[])
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_armature_wire, overlay_armature_wire_base)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_armature_wire, overlay_armature_wire_base, draw_modelmat)
+CREATE_INFO_VARIANT(overlay_armature_wire_selectable, overlay_armature_wire_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_armature_wire_clipped, overlay_armature_wire, drw_clipped)
+CREATE_INFO_VARIANT(overlay_armature_wire_selectable_clipped, overlay_armature_wire_selectable, drw_clipped)
+/* clang-format on */
 
 /** \} */

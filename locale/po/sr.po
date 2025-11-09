@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-11-03 10:44+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8549,20 +8549,20 @@ msgid "Keying"
 msgstr "Збирка тастера"
 
 
-msgid "Names"
-msgstr "Имена"
-
-
 msgid "Tracking"
 msgstr "Праћење"
 
 
-msgid "Toggle Bone Options"
-msgstr "Мање/више информација"
+msgid "Names"
+msgstr "Имена"
 
 
 msgid "Math"
 msgstr "Математика"
+
+
+msgid "Toggle Bone Options"
+msgstr "Мање/више информација"
 
 
 msgid "Enable Bone Options"
@@ -8609,12 +8609,12 @@ msgid "Local View"
 msgstr "Локални поглед"
 
 
-msgid "Navigation"
-msgstr "Навигација"
-
-
 msgid "UV"
 msgstr "UV"
+
+
+msgid "Navigation"
+msgstr "Навигација"
 
 
 msgid "Align View"

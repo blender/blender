@@ -78,7 +78,7 @@ static void zero_pad_cpu(const Result &input,
       switch (input.type()) {
         case ResultType::Color:
           parallel_for(extended_domain.size, [&](const int2 texel) {
-            output.store_pixel(texel, input.load_pixel_zero<float4>(texel - size));
+            output.store_pixel(texel, input.load_pixel_zero<Color>(texel - size));
           });
           break;
         default:

@@ -22,7 +22,8 @@ static void node_declare(NodeDeclarationBuilder &b)
                     .default_value(2.0f)
                     .min(0.0f)
                     .subtype(PROP_DISTANCE)
-                    .description("The X axis size of the shape");
+                    .description("The X axis size of the shape")
+                    .available(false);
   auto &height = b.add_input<decl::Float>("Height")
                      .default_value(2.0f)
                      .min(0.0f)

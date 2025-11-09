@@ -214,7 +214,7 @@ class CornerPinOperation : public NodeOperation {
       float3 transformed_coordinates = float3x3(homography_matrix) * float3(coordinates, 1.0f);
       /* Point is at infinity and will be zero when sampled, so early exit. */
       if (transformed_coordinates.z == 0.0f) {
-        output.store_pixel(texel, float4(0.0f));
+        output.store_pixel(texel, Color(float4(0.0f)));
         return;
       }
 
@@ -222,8 +222,8 @@ class CornerPinOperation : public NodeOperation {
       float4 sampled_color;
 
       if (interpolation != Interpolation::Anisotropic) {
-        sampled_color = input.sample(
-            projected_coordinates, interpolation, extension_mode_x, extension_mode_y);
+        sampled_color = float4(input.sample<Color>(
+            projected_coordinates, interpolation, extension_mode_x, extension_mode_y));
       }
       else {
         /* The derivatives of the projected coordinates with respect to x and y are the first and
@@ -238,7 +238,7 @@ class CornerPinOperation : public NodeOperation {
       float4 plane_color = plane_mask ? sampled_color * plane_mask->load_pixel<float>(texel) :
                                         sampled_color;
 
-      output.store_pixel(texel, plane_color);
+      output.store_pixel(texel, Color(plane_color));
     });
   }
 

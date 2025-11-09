@@ -14,6 +14,8 @@
 
 #include "GPU_material.hh"
 
+#include "COM_result.hh"
+
 #include "node_composite_util.hh"
 
 namespace blender::nodes::node_composite_premulkey_cc {
@@ -57,18 +59,25 @@ static int node_gpu_material(GPUMaterial *material,
   return GPU_stack_link(material, node, "node_composite_convert_alpha", inputs, outputs);
 }
 
+static float4 convert_alpha(const float4 &color, const MenuValue &type)
+{
+  switch (CMPNodeAlphaConvertMode(type.value)) {
+    case CMP_NODE_ALPHA_CONVERT_PREMULTIPLY:
+      return float4(color.xyz() * color.w, color.w);
+    case CMP_NODE_ALPHA_CONVERT_UNPREMULTIPLY:
+      return color.w == 0.0f ? color : float4(color.xyz() / color.w, color.w);
+  }
+  return color;
+}
+
+using blender::compositor::Color;
+
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  static auto function = mf::build::SI2_SO<float4, MenuValue, float4>(
+  static auto function = mf::build::SI2_SO<Color, MenuValue, Color>(
       "Alpha Convert",
-      [](const float4 color, const MenuValue type) -> float4 {
-        switch (CMPNodeAlphaConvertMode(type.value)) {
-          case CMP_NODE_ALPHA_CONVERT_PREMULTIPLY:
-            return float4(color.xyz() * color.w, color.w);
-          case CMP_NODE_ALPHA_CONVERT_UNPREMULTIPLY:
-            return color.w == 0.0f ? color : float4(color.xyz() / color.w, color.w);
-        }
-        return color;
+      [](const Color &color, const MenuValue &type) -> Color {
+        return Color(convert_alpha(float4(color), type));
       },
       mf::build::exec_presets::AllSpanOrSingle());
   builder.set_matching_fn(function);

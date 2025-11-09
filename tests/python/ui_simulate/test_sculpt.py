@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-This file does not run anything, it's methods are accessed for tests by: ``run.py``.
+This file does not run anything, its methods are accessed for tests by ``run_blender_setup.py``.
 """
 
 

@@ -21,15 +21,15 @@ float4 attr_load_tangent(WorldPoint point, float4 tangent, int index)
 {
   return float4(0);
 }
-float4 attr_load_vec4(WorldPoint point, float4 attr, int index)
+float4 attr_load_float4(WorldPoint point, float4 attr, int index)
 {
   return float4(0);
 }
-float3 attr_load_vec3(WorldPoint point, float3 attr, int index)
+float3 attr_load_float3(WorldPoint point, float3 attr, int index)
 {
   return float3(0);
 }
-float2 attr_load_vec2(WorldPoint point, float2 attr, int index)
+float2 attr_load_float2(WorldPoint point, float2 attr, int index)
 {
   return float2(0);
 }

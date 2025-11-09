@@ -127,7 +127,6 @@ template<typename T> int findMSB(T x)
 
 /* Base instance with offsets. */
 #define gpu_BaseInstance gl_BaseInstanceARB
-#define gpu_InstanceIndex (gl_InstanceID + gpu_BaseInstance)
 
 #ifdef MTL_WORKGROUP_SIZE_X
 /* Older Metal compiler version don't treat vector component access as constexpr.

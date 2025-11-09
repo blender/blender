@@ -8,8 +8,6 @@
 #include "BKE_lib_id.hh"
 #include "BKE_pointcloud.hh"
 
-#include "attribute_access_intern.hh"
-
 namespace blender::bke {
 
 /* -------------------------------------------------------------------- */

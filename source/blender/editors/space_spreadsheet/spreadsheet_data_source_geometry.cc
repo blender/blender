@@ -88,6 +88,12 @@ static void add_mesh_debug_column_names(
       if (CustomData_has_layer(&mesh.vert_data, CD_ORIGINDEX)) {
         fn({(char *)"Original Index"}, false);
       }
+      if (CustomData_has_layer(&mesh.vert_data, CD_ORCO)) {
+        fn({(char *)"CD_ORCO"}, false);
+      }
+      if (CustomData_has_layer(&mesh.vert_data, CD_CLOTH_ORCO)) {
+        fn({(char *)"CD_CLOTH_ORCO"}, false);
+      }
       break;
     case bke::AttrDomain::Edge:
       if (CustomData_has_layer(&mesh.edge_data, CD_ORIGINDEX)) {
@@ -102,6 +108,9 @@ static void add_mesh_debug_column_names(
       fn({(char *)"Corner Size"}, false);
       break;
     case bke::AttrDomain::Corner:
+      if (CustomData_has_layer(&mesh.corner_data, CD_ORIGSPACE_MLOOP)) {
+        fn({(char *)"CD_ORIGSPACE_MLOOP"}, false);
+      }
       break;
     default:
       BLI_assert_unreachable();
@@ -121,6 +130,22 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
         if (data) {
           return std::make_unique<ColumnValues>(name,
                                                 VArray<int>::from_span({data, mesh.verts_num}));
+        }
+      }
+      if (name == "CD_ORCO") {
+        const float3 *data = static_cast<const float3 *>(
+            CustomData_get_layer(&mesh.vert_data, CD_ORCO));
+        if (data) {
+          return std::make_unique<ColumnValues>(name,
+                                                VArray<float3>::from_span({data, mesh.verts_num}));
+        }
+      }
+      if (name == "CD_CLOTH_ORCO") {
+        const float3 *data = static_cast<const float3 *>(
+            CustomData_get_layer(&mesh.vert_data, CD_CLOTH_ORCO));
+        if (data) {
+          return std::make_unique<ColumnValues>(name,
+                                                VArray<float3>::from_span({data, mesh.verts_num}));
         }
       }
       return {};
@@ -159,6 +184,14 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
       return {};
     }
     case bke::AttrDomain::Corner: {
+      if (name == "CD_ORIGSPACE_MLOOP") {
+        const float2 *data = static_cast<const float2 *>(
+            CustomData_get_layer(&mesh.corner_data, CD_ORIGSPACE_MLOOP));
+        if (data) {
+          return std::make_unique<ColumnValues>(
+              name, VArray<float2>::from_span({data, mesh.corners_num}));
+        }
+      }
       return {};
     }
     default:

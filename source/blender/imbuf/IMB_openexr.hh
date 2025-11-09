@@ -4,13 +4,13 @@
 
 /** \file
  * \ingroup imbuf
+ *
+ * API for reading and writing multi-layer EXR files.
  */
 
 #pragma once
 
 #include "BLI_string_ref.hh"
-
-/* API for reading and writing multi-layer EXR files. */
 
 /* XXX layer+pass name max 64? */
 #define EXR_LAY_MAXNAME 64

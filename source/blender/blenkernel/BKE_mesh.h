@@ -430,65 +430,6 @@ void BKE_mesh_calc_relative_deform(const int *face_offsets,
                                    const float (*vert_cos_org)[3],
                                    float (*vert_cos_new)[3]);
 
-/* *** mesh_validate.cc *** */
-
-/**
- * Validates and corrects a Mesh.
- *
- * \returns true if a change is made.
- */
-bool BKE_mesh_validate(Mesh *mesh, bool do_verbose, bool cddata_check_mask);
-/**
- * Checks if a Mesh is valid without any modification. This is always verbose.
- * \returns True if the mesh is valid.
- */
-bool BKE_mesh_is_valid(Mesh *mesh);
-/**
- * Check all material indices of faces are valid, invalid ones are set to 0.
- * \returns True if the material indices are valid.
- */
-bool BKE_mesh_validate_material_indices(Mesh *mesh);
-
-/**
- * Validate the mesh, \a do_fixes requires \a mesh to be non-null.
- *
- * \return false if no changes needed to be made.
- */
-bool BKE_mesh_validate_arrays(Mesh *mesh,
-                              float (*vert_positions)[3],
-                              unsigned int verts_num,
-                              blender::int2 *edges,
-                              unsigned int edges_num,
-                              MFace *legacy_faces,
-                              unsigned int legacy_faces_num,
-                              const int *corner_verts,
-                              int *corner_edges,
-                              unsigned int corners_num,
-                              const int *face_offsets,
-                              unsigned int faces_num,
-                              MDeformVert *dverts, /* assume totvert length */
-                              bool do_verbose,
-                              bool do_fixes,
-                              bool *r_change);
-
-/**
- * \returns is_valid.
- */
-bool BKE_mesh_validate_all_customdata(CustomData *vert_data,
-                                      uint verts_num,
-                                      CustomData *edge_data,
-                                      uint edges_num,
-                                      CustomData *corner_data,
-                                      uint corners_num,
-                                      CustomData *face_data,
-                                      uint faces_num,
-                                      bool check_meshmask,
-                                      bool do_verbose,
-                                      bool do_fixes,
-                                      bool *r_change);
-
-void BKE_mesh_strip_loose_faces(Mesh *mesh);
-
 /* **** Depsgraph evaluation **** */
 
 void BKE_mesh_eval_geometry(Depsgraph *depsgraph, Mesh *mesh);

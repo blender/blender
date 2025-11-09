@@ -708,10 +708,6 @@ static bool ui_but_dragedit_update_mval(uiHandleButtonData *data,
                                         int mx,
                                         blender::FunctionRef<int()> drag_threshold_fn)
 {
-  if (mx == data->draglastx) {
-    return false;
-  }
-
   if (data->draglock) {
     const int threshold = drag_threshold_fn();
     if (abs(mx - data->dragstartx) < threshold) {
@@ -3438,8 +3434,12 @@ static bool ui_textedit_copypaste(uiBut *but, uiTextEdit &text_edit, const int m
 
 #ifdef WITH_INPUT_IME
 /* Enable IME, and setup #uiBut IME data. */
-static void ui_textedit_ime_begin(wmWindow *win, uiBut * /*but*/)
+static void ui_textedit_ime_begin(wmWindow *win, uiBut *but)
 {
+  if (ELEM(but->type, ButType::Num, ButType::NumSlider)) {
+    return;
+  }
+
   /* XXX Is this really needed? */
   int x, y;
 
@@ -3454,13 +3454,19 @@ static void ui_textedit_ime_begin(wmWindow *win, uiBut * /*but*/)
 }
 
 /* Disable IME, and clear #uiBut IME data. */
-static void ui_textedit_ime_end(wmWindow *win, uiBut * /*but*/)
+static void ui_textedit_ime_end(wmWindow *win, uiBut *but)
 {
+  if (ELEM(but->type, ButType::Num, ButType::NumSlider)) {
+    return;
+  }
   wm_window_IME_end(win);
 }
 
 void ui_but_ime_reposition(uiBut *but, int x, int y, bool complete)
 {
+  if (ELEM(but->type, ButType::Num, ButType::NumSlider)) {
+    return;
+  }
   BLI_assert(but->active || but->semi_modal_state);
   uiHandleButtonData *data = but->semi_modal_state ? but->semi_modal_state : but->active;
 
@@ -3896,6 +3902,12 @@ static int ui_do_but_textedit(
           if (data->searchbox) {
             data->cancel = data->escapecancel = true;
           }
+#ifdef WITH_INPUT_IME
+          else if (is_ime_composing && ime_data->composite.size() && but->type == ButType::Text) {
+            ui_textedit_insert_buf(
+                but, text_edit, ime_data->composite.c_str(), ime_data->composite.size());
+          }
+#endif
           button_activate_state(C, but, BUTTON_STATE_EXIT);
           retval = WM_UI_HANDLER_BREAK;
         }
@@ -6862,7 +6874,8 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but,
   }
 #endif
 
-  ui_but_v3_get(but, rgb);
+  /* Always start from original value to avoid numerical drift. */
+  copy_v3_v3(rgb, data->origvec);
   ui_scene_linear_to_perceptual_space(but, rgb);
 
   ui_rgb_to_color_picker_HSVCUBE_compat_v(hsv_but, rgb, hsv);
@@ -7155,8 +7168,9 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but,
   rcti rect;
   BLI_rcti_rctf_copy(&rect, &but->rect);
 
+  /* Always start from original value to avoid numerical drift. */
   float rgb[3];
-  ui_but_v3_get(but, rgb);
+  copy_v3_v3(rgb, data->origvec);
   ui_scene_linear_to_perceptual_space(but, rgb);
   ui_color_picker_rgb_to_hsv_compat(rgb, hsv);
 
@@ -11169,7 +11183,7 @@ static int ui_handle_menu_event(bContext *C,
 
             /* Menu search if space-bar or #MenuTypeFlag::SearchOnKeyPress. */
             MenuType *mt = WM_menutype_find(menu->menu_idname, true);
-            if ((mt && bool(mt->flag & MenuTypeFlag::SearchOnKeyPress)) ||
+            if ((mt && flag_is_set(mt->flag, MenuTypeFlag::SearchOnKeyPress)) ||
                 event->type == EVT_SPACEKEY)
             {
               if ((level != 0) && (but == nullptr || !menu->menu_idname[0])) {

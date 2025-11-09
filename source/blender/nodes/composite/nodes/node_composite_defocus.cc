@@ -205,7 +205,7 @@ class DefocusOperation : public NodeOperation {
           }
 
           float4 weight = load_weight(int2(x, y), radius);
-          float4 input_color = input.load_pixel_extended<float4>(texel + int2(x, y));
+          float4 input_color = float4(input.load_pixel_extended<Color>(texel + int2(x, y)));
 
           accumulated_color += input_color * weight;
           accumulated_weight += weight;
@@ -214,7 +214,7 @@ class DefocusOperation : public NodeOperation {
 
       accumulated_color = math::safe_divide(accumulated_color, accumulated_weight);
 
-      output.store_pixel(texel, accumulated_color);
+      output.store_pixel(texel, Color(accumulated_color));
     });
   }
 

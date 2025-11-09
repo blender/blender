@@ -79,11 +79,11 @@ static inline void store_pixel(float4 pix, float *ptr)
 }
 static inline void store_pixel(float4 pix, float2 *ptr)
 {
-  memcpy(ptr, &pix, sizeof(*ptr));
+  memcpy(reinterpret_cast<void *>(ptr), &pix, sizeof(*ptr));
 }
 static inline void store_pixel(float4 pix, float3 *ptr)
 {
-  memcpy(ptr, &pix, sizeof(*ptr));
+  memcpy(reinterpret_cast<void *>(ptr), &pix, sizeof(*ptr));
 }
 static inline void store_pixel(float4 pix, float4 *ptr)
 {
@@ -230,7 +230,7 @@ struct ScaleUpY {
     /* Special case: source is 1px high (see #70356). */
     if (UNLIKELY(ibufy == 1)) {
       for (int y = newy; y > 0; y--) {
-        memcpy(dst, src, sizeof(T) * ibufx);
+        memcpy(reinterpret_cast<void *>(dst), src, sizeof(T) * ibufx);
         dst += ibufx;
       }
     }

@@ -40,7 +40,6 @@ void VKExtensions::log() const
              " - [%c] fragment shader barycentric\n"
              " - [%c] wide lines\n"
              "Device extensions\n"
-             " - [%c] descriptor buffer\n"
              " - [%c] dynamic rendering local read\n"
              " - [%c] dynamic rendering unused attachments\n"
              " - [%c] external memory\n"
@@ -52,7 +51,6 @@ void VKExtensions::log() const
              shader_output_layer ? 'X' : ' ',
              fragment_shader_barycentric ? 'X' : ' ',
              wide_lines ? 'X' : ' ',
-             descriptor_buffer ? 'X' : ' ',
              dynamic_rendering_local_read ? 'X' : ' ',
              dynamic_rendering_unused_attachments ? 'X' : ' ',
              external_memory ? 'X' : ' ',
@@ -177,14 +175,6 @@ void VKDevice::init_functions()
 #endif
   }
 
-  /* VK_EXT_descriptor_buffer */
-  functions.vkGetDescriptorSetLayoutSize = LOAD_FUNCTION(vkGetDescriptorSetLayoutSizeEXT);
-  functions.vkGetDescriptorSetLayoutBindingOffset = LOAD_FUNCTION(
-      vkGetDescriptorSetLayoutBindingOffsetEXT);
-  functions.vkGetDescriptor = LOAD_FUNCTION(vkGetDescriptorEXT);
-  functions.vkCmdBindDescriptorBuffers = LOAD_FUNCTION(vkCmdBindDescriptorBuffersEXT);
-  functions.vkCmdSetDescriptorBufferOffsets = LOAD_FUNCTION(vkCmdSetDescriptorBufferOffsetsEXT);
-
 #undef LOAD_FUNCTION
 }
 
@@ -204,15 +194,6 @@ void VKDevice::init_physical_device_properties()
   vk_physical_device_id_properties_.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES;
   vk_physical_device_properties.pNext = &vk_physical_device_driver_properties_;
   vk_physical_device_driver_properties_.pNext = &vk_physical_device_id_properties_;
-
-  if (supports_extension(VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME)) {
-    vk_physical_device_descriptor_buffer_properties_ = {
-        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT};
-    vk_physical_device_descriptor_buffer_properties_.pNext =
-        vk_physical_device_driver_properties_.pNext;
-    vk_physical_device_driver_properties_.pNext =
-        &vk_physical_device_descriptor_buffer_properties_;
-  }
 
   if (supports_extension(VK_KHR_MAINTENANCE_4_EXTENSION_NAME)) {
     vk_physical_device_maintenance4_properties_.pNext = vk_physical_device_properties.pNext;
@@ -270,8 +251,7 @@ void VKDevice::init_dummy_buffer()
 {
   dummy_buffer.create(sizeof(float4x4),
                       VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                      VkMemoryPropertyFlags(0),
+                      VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
                       VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
                       1.0f);
   debug::object_label(dummy_buffer.vk_handle(), "DummyBuffer");
@@ -576,8 +556,8 @@ void VKDevice::debug_print()
   resources.debug_print();
   std::ostream &os = std::cout;
   os << "Pipelines\n";
-  os << " Graphics: " << pipelines.graphic_pipelines_.size() << "\n";
-  os << " Compute: " << pipelines.compute_pipelines_.size() << "\n";
+  os << " Graphics: " << pipelines.graphics_.size() << "\n";
+  os << " Compute: " << pipelines.compute_.size() << "\n";
   os << "Descriptor sets\n";
   os << " VkDescriptorSetLayouts: " << descriptor_set_layouts_.size() << "\n";
   for (const VKThreadData *thread_data : thread_data_) {

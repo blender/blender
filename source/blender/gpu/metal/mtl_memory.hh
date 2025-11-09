@@ -56,7 +56,7 @@
  *
  *  Usage:
  *
- *    MTLContext::get_scratchbuffer_manager() - to fetch active manager.
+ *    MTLContext::get_scratch_buffer_manager() - to fetch active manager.
  *
  *    MTLTemporaryBuffer scratch_buffer_allocate_range(size)
  *    MTLTemporaryBuffer scratch_buffer_allocate_range_aligned(size, align)

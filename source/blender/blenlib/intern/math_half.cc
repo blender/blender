@@ -280,18 +280,18 @@ void blender::math::float_to_half_make_finite_array(const float *src, uint16_t *
     __m128i h8 = _mm256_cvtps_ph(src8, _MM_FROUND_TO_NEAREST_INT);
     /* Handle inf/nan. */
     {
-      const __m128i exp_mask = _mm_set1_epi16(0x7c00);
+      const __m128i exp_mask = _mm_set1_epi16(0x7c00u);
       __m128i exp_all_ones = _mm_cmpeq_epi16(_mm_and_si128(h8, exp_mask), exp_mask);
-      const __m128i mant_mask = _mm_set1_epi16(0x03ff);
+      const __m128i mant_mask = _mm_set1_epi16(0x03ffu);
       const __m128i zero = _mm_setzero_si128();
       __m128i mant_is_zero = _mm_cmpeq_epi16(_mm_and_si128(h8, mant_mask), zero);
       __m128i is_inf = _mm_and_si128(exp_all_ones, mant_is_zero);
       const __m128i all_ones = _mm_cmpeq_epi16(zero, zero);
       __m128i is_nan = _mm_and_si128(exp_all_ones, _mm_andnot_si128(mant_is_zero, all_ones));
-      const __m128i sign_mask = _mm_set1_epi16(0x8000);
+      const __m128i sign_mask = _mm_set1_epi16(0x8000u);
       __m128i signbits = _mm_and_si128(h8, sign_mask);
-      __m128i inf_res = _mm_or_si128(signbits, _mm_set1_epi16(0x7bff)); /* +/- 65504 */
-      __m128i nan_res = signbits;                                       /* +/- 0 */
+      __m128i inf_res = _mm_or_si128(signbits, _mm_set1_epi16(0x7bffu)); /* +/- 65504 */
+      __m128i nan_res = signbits;                                        /* +/- 0 */
       /* Select final result. */
       h8 = _mm_blendv_epi8(h8, inf_res, is_inf);
       h8 = _mm_blendv_epi8(h8, nan_res, is_nan);
@@ -306,19 +306,19 @@ void blender::math::float_to_half_make_finite_array(const float *src, uint16_t *
     __m128i h4 = F32_to_F16_4x(src4);
     /* Handle inf/nan. */
     {
-      __m128i hi_part = _mm_and_si128(h4, _mm_set1_epi32(0xffff0000));
-      const __m128i exp_mask = _mm_set1_epi16(0x7c00);
+      __m128i hi_part = _mm_and_si128(h4, _mm_set1_epi32(0xffff0000u));
+      const __m128i exp_mask = _mm_set1_epi16(0x7c00u);
       __m128i exp_all_ones = _mm_cmpeq_epi16(_mm_and_si128(h4, exp_mask), exp_mask);
-      const __m128i mant_mask = _mm_set1_epi16(0x03ff);
+      const __m128i mant_mask = _mm_set1_epi16(0x03ffu);
       const __m128i zero = _mm_setzero_si128();
       __m128i mant_is_zero = _mm_cmpeq_epi16(_mm_and_si128(h4, mant_mask), zero);
       __m128i is_inf = _mm_and_si128(exp_all_ones, mant_is_zero);
       const __m128i all_ones = _mm_cmpeq_epi16(zero, zero);
       __m128i is_nan = _mm_and_si128(exp_all_ones, _mm_andnot_si128(mant_is_zero, all_ones));
-      const __m128i sign_mask = _mm_set1_epi16(0x8000);
+      const __m128i sign_mask = _mm_set1_epi16(0x8000u);
       __m128i signbits = _mm_and_si128(h4, sign_mask);
-      __m128i inf_res = _mm_or_si128(signbits, _mm_set1_epi16(0x7bff)); /* +/- 65504 */
-      __m128i nan_res = signbits;                                       /* +/- 0 */
+      __m128i inf_res = _mm_or_si128(signbits, _mm_set1_epi16(0x7bffu)); /* +/- 65504 */
+      __m128i nan_res = signbits;                                        /* +/- 0 */
       /* Select final result. */
       h4 = _mm_blendv_epi8(h4, inf_res, is_inf);
       h4 = _mm_blendv_epi8(h4, nan_res, is_nan);
@@ -337,17 +337,17 @@ void blender::math::float_to_half_make_finite_array(const float *src, uint16_t *
     /* Handle inf/nan. */
     {
       uint16x4_t hu4 = vreinterpret_u16_f16(h4);
-      const uint16x4_t exp_mask = vdup_n_u16(0x7c00);
+      const uint16x4_t exp_mask = vdup_n_u16(0x7c00u);
       uint16x4_t exp_all_ones = vceq_u16(vand_u16(hu4, exp_mask), exp_mask);
-      const uint16x4_t mant_mask = vdup_n_u16(0x03ff);
+      const uint16x4_t mant_mask = vdup_n_u16(0x03ffu);
       const uint16x4_t zero = vdup_n_u16(0);
       uint16x4_t mant_is_zero = vceq_u16(vand_u16(hu4, mant_mask), zero);
       uint16x4_t is_inf = vand_u16(exp_all_ones, mant_is_zero);
       uint16x4_t is_nan = vand_u16(exp_all_ones, vmvn_u16(mant_is_zero));
-      const uint16x4_t sign_mask = vdup_n_u16(0x8000);
+      const uint16x4_t sign_mask = vdup_n_u16(0x8000u);
       uint16x4_t signbits = vand_u16(hu4, sign_mask);
-      uint16x4_t inf_res = vorr_u16(signbits, vdup_n_u16(0x7bff)); /* +/- 65504 */
-      uint16x4_t nan_res = signbits;                               /* +/- 0 */
+      uint16x4_t inf_res = vorr_u16(signbits, vdup_n_u16(0x7bffu)); /* +/- 65504 */
+      uint16x4_t nan_res = signbits;                                /* +/- 0 */
       /* Select final result. */
       hu4 = vbsl_u16(is_inf, inf_res, hu4);
       hu4 = vbsl_u16(is_nan, nan_res, hu4);

@@ -468,6 +468,11 @@ extern AUD_API AUD_Sound* AUD_Sound_mutable(AUD_Sound* sound);
      * \return The fps of the sound.
      */
     extern AUD_API float AUD_Sound_animateableTimeStretchPitchScale_getFPS(AUD_Sound* sequence);
+
+    /**
+     * Checks if sound is an instance of AnimateableTimeStretchPitchScale effect.
+     */
+    extern AUD_API bool AUD_Sound_isAnimateableTimeStretchPitchScale(AUD_Sound* sound);
 #endif
 
 #ifdef __cplusplus

@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_array.hh"
+#include "BLI_enum_flags.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "ED_anim_api.hh" /* for enum eAnimFilter_Flags */
@@ -162,7 +163,7 @@ enum eKeyframeIterFlags {
   /* Represents "Show Handles" option (SIPO_NOHANDLES). */
   KEYFRAME_ITER_HANDLES_INVISIBLE = (1 << 4),
 };
-ENUM_OPERATORS(eKeyframeIterFlags, KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE)
+ENUM_OPERATORS(eKeyframeIterFlags)
 
 /** \} */
 
@@ -319,17 +320,6 @@ short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked,
                                       KeyframeEditFunc key_ok,
                                       KeyframeEditFunc key_cb,
                                       FcuEditFunc fcu_cb);
-/**
- * Same as #ANIM_animchannel_keyframes_loop, except #bAnimListElem wrapper is not needed.
- * \param keytype: is #eAnim_KeyType.
- */
-short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked,
-                                          bDopeSheet *ads,
-                                          void *data,
-                                          int keytype,
-                                          KeyframeEditFunc key_ok,
-                                          KeyframeEditFunc key_cb,
-                                          FcuEditFunc fcu_cb);
 
 /**
  * Calls callback_fn() for each keyframe in each fcurve in the filtered animation context.

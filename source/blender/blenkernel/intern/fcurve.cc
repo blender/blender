@@ -29,6 +29,7 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_task.hh"
+#include "BLI_vector_set.hh"
 
 #include "BLT_translation.hh"
 
@@ -487,7 +488,7 @@ static int BKE_fcurve_bezt_binarysearch_index_ex(const BezTriple array[],
     if (frame > midfra) {
       start = mid + 1;
     }
-    else if (frame < midfra) {
+    else {
       end = mid - 1;
     }
   }
@@ -767,27 +768,24 @@ float *BKE_fcurves_calc_keyed_frames_ex(FCurve **fcurve_array,
   /* Use `1e-3f` as the smallest possible value since these are converted to integers
    * and we can be sure `MAXFRAME / 1e-3f < INT_MAX` as it's around half the size. */
   const double interval_db = max_ff(interval, 1e-3f);
-  GSet *frames_unique = BLI_gset_int_new(__func__);
+  blender::VectorSet<int> frames_unique;
   for (int fcurve_index = 0; fcurve_index < fcurve_array_len; fcurve_index++) {
     const FCurve *fcu = fcurve_array[fcurve_index];
     for (int i = 0; i < fcu->totvert; i++) {
       const BezTriple *bezt = &fcu->bezt[i];
       const double value = round(double(bezt->vec[1][0]) / interval_db);
       BLI_assert(value > INT_MIN && value < INT_MAX);
-      BLI_gset_add(frames_unique, POINTER_FROM_INT(int(value)));
+      frames_unique.add(int(value));
     }
   }
 
-  const size_t frames_len = BLI_gset_len(frames_unique);
+  const size_t frames_len = frames_unique.size();
   float *frames = MEM_malloc_arrayN<float>(frames_len, __func__);
 
-  GSetIterator gs_iter;
-  int i = 0;
-  GSET_ITER_INDEX (gs_iter, frames_unique, i) {
-    const int value = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
+  for (const int i : frames_unique.index_range()) {
+    const int value = frames_unique[i];
     frames[i] = double(value) * interval_db;
   }
-  BLI_gset_free(frames_unique, nullptr);
 
   qsort(frames, frames_len, sizeof(*frames), BLI_sortutil_cmp_float);
   *r_frames_len = frames_len;

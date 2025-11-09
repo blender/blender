@@ -263,8 +263,7 @@ void VKTexture::read_sub(
     size_t device_memory_size = sample_len * to_bytesize(device_format_);
     staging_buffer.create(device_memory_size,
                           VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                          VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
+                          VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
                           /* Although we are only reading, we need to set the host access random
                            * bit to improve the performance on AMD GPUs. */
                           VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT |
@@ -402,10 +401,9 @@ void VKTexture::update_sub(int mip,
   if (data) {
     staging_buffer.create(device_memory_size,
                           VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                          VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
                           VMA_ALLOCATION_CREATE_MAPPED_BIT |
-                              VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+                              VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
                           0.4f);
     vk_buffer = staging_buffer.vk_handle();
     /* Rows are sequentially stored, when unpack row length is 0, or equal to the extent width. In
@@ -420,11 +418,13 @@ void VKTexture::update_sub(int mip,
     else {
       BLI_assert_msg(!is_compressed,
                      "Compressed data with texture_unpack_row_length != 0 is not supported.");
+      BLI_assert_msg(extent[2] <= 1,
+                     "3D texture data with texture_unpack_row_length != 0 is not supported.");
       size_t dst_row_stride = extent.x * to_bytesize(device_format_);
       size_t src_row_stride = texture_unpack_row_length * to_bytesize(format_, format);
       uint8_t *dst_ptr = static_cast<uint8_t *>(staging_buffer.mapped_memory_get());
       const uint8_t *src_ptr = static_cast<const uint8_t *>(data);
-      for (int x = 0; x < extent.x; x++) {
+      for (int y = 0; y < extent.y; y++) {
         convert_host_to_device(dst_ptr, src_ptr, extent.x, format, format_, device_format_);
         src_ptr += src_row_stride;
         dst_ptr += dst_row_stride;
@@ -800,7 +800,7 @@ const VKImageView &VKTexture::image_view_get(VKImageViewArrayed arrayed, VKImage
         0, ELEM(type_, GPU_TEXTURE_CUBE, GPU_TEXTURE_CUBE_ARRAY) ? 6 : 1);
   }
 
-  if (bool(flags & VKImageViewFlags::NO_SWIZZLING)) {
+  if (flag_is_set(flags, VKImageViewFlags::NO_SWIZZLING)) {
     image_view_info_.swizzle[0] = 'r';
     image_view_info_.swizzle[1] = 'g';
     image_view_info_.swizzle[2] = 'b';

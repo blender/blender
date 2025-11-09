@@ -12,6 +12,8 @@
 #include <ostream>
 #include <type_traits>
 
+#include "BLI_build_config.h"
+#include "BLI_math_vector_swizzle.hh"
 #include "BLI_math_vector_unroll.hh"
 #include "BLI_utildefines.h"
 
@@ -25,21 +27,141 @@ using as_uint_type = std::conditional_t<sizeof(T) == sizeof(uint8_t), uint8_t,
                      std::conditional_t<sizeof(T) == sizeof(uint64_t), uint64_t, void>>>>;
 /* clang-format on */
 
-template<typename T, int Size> struct vec_struct_base {
+template<typename T, int Size, bool is_trivial_type> struct vec_struct_base {
   std::array<T, Size> values;
 };
 
-template<typename T> struct vec_struct_base<T, 2> {
+template<typename T> struct vec_struct_base<T, 2, false> : VecSwizzleFunc<T, 2> {
   T x, y;
 };
 
-template<typename T> struct vec_struct_base<T, 3> {
+template<typename T> struct vec_struct_base<T, 3, false> : VecSwizzleFunc<T, 3> {
   T x, y, z;
 };
 
-template<typename T> struct vec_struct_base<T, 4> {
+template<typename T> struct vec_struct_base<T, 4, false> : VecSwizzleFunc<T, 4> {
   T x, y, z, w;
 };
+
+/**
+ * Avoid warning caused by anonymous struct in unions.
+ */
+#if COMPILER_GCC
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wpedantic"
+#elif COMPILER_CLANG
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
+#  pragma clang diagnostic ignored "-Wnested-anon-types"
+#elif COMPILER_MSVC
+#  pragma warning(push)
+#  pragma warning(disable : 4201)  // nonstandard extension used : nameless struct/union
+#endif
+
+template<typename T> struct vec_struct_base<T, 2, true> {
+  union {
+#ifndef NDEBUG
+    /* Easier to read inside a debugger. */
+    std::array<T, 2> debug_values_;
+#endif
+    struct {
+      T x;
+      union {
+        struct {
+          /* This still needs to be wrapped in a struct to avoid a MSVC 16.5+ bug. */
+          T y;
+        };
+        Y_SWIZZLES;
+      };
+    };
+    /* Nesting to avoid readability issues inside a debugger. */
+    union {
+      X_SWIZZLES;
+      XY_SWIZZLES;
+    };
+  };
+};
+
+template<typename T> struct vec_struct_base<T, 3, true> {
+  union {
+#ifndef NDEBUG
+    /* Easier to read inside a debugger. */
+    std::array<T, 3> debug_values_;
+#endif
+    struct {
+      T x;
+      union {
+        struct {
+          T y;
+          union {
+            struct {
+              /* This still needs to be wrapped in a struct to avoid a MSVC 16.5+ bug. */
+              T z;
+            };
+            Z_SWIZZLES;
+          };
+        };
+        Y_SWIZZLES;
+        YZ_SWIZZLES;
+      };
+    };
+    /* Nesting to avoid readability issues inside a debugger. */
+    union {
+      X_SWIZZLES;
+      XY_SWIZZLES;
+      XYZ_SWIZZLES;
+    };
+  };
+};
+
+template<typename T> struct vec_struct_base<T, 4, true> {
+  union {
+#ifndef NDEBUG
+    /* Useful for debugging. */
+    std::array<T, 4> debug_values_;
+#endif
+    struct {
+      T x;
+      union {
+        struct {
+          T y;
+          union {
+            struct {
+              T z;
+              union {
+                struct {
+                  /* This still needs to be wrapped in a struct to avoid a MSVC 16.5+ bug. */
+                  T w;
+                };
+                W_SWIZZLES;
+              };
+            };
+            Z_SWIZZLES;
+            ZW_SWIZZLES;
+          };
+        };
+        Y_SWIZZLES;
+        YZ_SWIZZLES;
+        YZW_SWIZZLES;
+      };
+    };
+    /* Nesting to avoid readability issues inside a debugger. */
+    union {
+      X_SWIZZLES;
+      XY_SWIZZLES;
+      XYZ_SWIZZLES;
+      XYZW_SWIZZLES;
+    };
+  };
+};
+
+#if COMPILER_GCC
+#  pragma GCC diagnostic pop
+#elif COMPILER_CLANG
+#  pragma clang diagnostic pop
+#elif COMPILER_MSVC
+#  pragma warning(pop)
+#endif
 
 namespace math {
 
@@ -63,7 +185,8 @@ template<typename T> uint64_t vector_hash(const T &vec)
 
 }  // namespace math
 
-template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> {
+template<typename T, int Size>
+struct VecBase : public vec_struct_base<T, Size, std::is_trivial_v<T>> {
 
   BLI_STATIC_ASSERT(alignof(T) <= sizeof(T),
                     "VecBase is not compatible with aligned type for now.");
@@ -78,6 +201,18 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
 
   VecBase() = default;
 
+#if defined(__GNUC__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#endif
+
+  /** Make assignment on swizzle result an error. */
+  VecBase &operator=(const VecBase &) & = default;
+
+#if defined(__GNUC__)
+#  pragma GCC diagnostic pop
+#endif
+
   template<BLI_ENABLE_IF_VEC(Size, > 1)> explicit VecBase(T value)
   {
     for (int i = 0; i < Size; i++) {
@@ -90,25 +225,25 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
   {
   }
 
-  template<BLI_ENABLE_IF_VEC(Size, == 1)> VecBase(T _x)
+  template<BLI_ENABLE_IF_VEC(Size, == 1)> constexpr VecBase(T _x)
   {
     this->x = _x;
   }
 
-  template<BLI_ENABLE_IF_VEC(Size, == 2)> VecBase(T _x, T _y)
+  template<BLI_ENABLE_IF_VEC(Size, == 2)> constexpr VecBase(T _x, T _y)
   {
     this->x = _x;
     this->y = _y;
   }
 
-  template<BLI_ENABLE_IF_VEC(Size, == 3)> VecBase(T _x, T _y, T _z)
+  template<BLI_ENABLE_IF_VEC(Size, == 3)> constexpr VecBase(T _x, T _y, T _z)
   {
     this->x = _x;
     this->y = _y;
     this->z = _z;
   }
 
-  template<BLI_ENABLE_IF_VEC(Size, == 4)> VecBase(T _x, T _y, T _z, T _w)
+  template<BLI_ENABLE_IF_VEC(Size, == 4)> constexpr VecBase(T _x, T _y, T _z, T _w)
   {
     this->x = _x;
     this->y = _y;
@@ -174,38 +309,6 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
     for (int i = 0; i < Size; i++) {
       (*this)[i] = T(other[i]);
     }
-  }
-
-  /** Swizzling. */
-
-  template<BLI_ENABLE_IF_VEC(Size, >= 2)> VecBase<T, 2> xy() const
-  {
-    return *reinterpret_cast<const VecBase<T, 2> *>(this);
-  }
-
-  template<BLI_ENABLE_IF_VEC(Size, >= 3)> VecBase<T, 2> yz() const
-  {
-    return *reinterpret_cast<const VecBase<T, 2> *>(&((*this)[1]));
-  }
-
-  template<BLI_ENABLE_IF_VEC(Size, >= 4)> VecBase<T, 2> zw() const
-  {
-    return *reinterpret_cast<const VecBase<T, 2> *>(&((*this)[2]));
-  }
-
-  template<BLI_ENABLE_IF_VEC(Size, >= 3)> VecBase<T, 3> xyz() const
-  {
-    return *reinterpret_cast<const VecBase<T, 3> *>(this);
-  }
-
-  template<BLI_ENABLE_IF_VEC(Size, >= 4)> VecBase<T, 3> yzw() const
-  {
-    return *reinterpret_cast<const VecBase<T, 3> *>(&((*this)[1]));
-  }
-
-  template<BLI_ENABLE_IF_VEC(Size, >= 4)> VecBase<T, 4> xyzw() const
-  {
-    return *reinterpret_cast<const VecBase<T, 4> *>(this);
   }
 
 #undef BLI_ENABLE_IF_VEC

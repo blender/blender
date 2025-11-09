@@ -149,7 +149,7 @@ void convolve(Context &context,
    * format for better cache locality, that is, RRRR...GGGG...BBBB...AAAA. */
   threading::memory_bandwidth_bound_task(spatial_pixels_count * sizeof(float), [&]() {
     parallel_for(spatial_size, [&](const int2 texel) {
-      const float4 pixel_color = input_cpu.load_pixel_zero<float4>(texel);
+      const Color pixel_color = input_cpu.load_pixel_zero<Color>(texel);
       for (const int channel : IndexRange(input_channels_count)) {
         float *buffer = image_spatial_domain_channels[channel];
         const int64_t index = texel.y * int64_t(spatial_size.x) + texel.x;
@@ -174,7 +174,7 @@ void convolve(Context &context,
                                     mod_i(centered_texel.y, spatial_size.y));
 
     const float4 kernel_value = is_color_kernel ?
-                                    kernel_cpu.load_pixel_zero<float4>(wrapped_texel) :
+                                    float4(kernel_cpu.load_pixel_zero<Color>(wrapped_texel)) :
                                     float4(kernel_cpu.load_pixel_zero<float>(wrapped_texel));
     for (const int channel : IndexRange(kernel_channels_count)) {
       float *buffer = kernel_spatial_domain_channels[channel];
@@ -247,7 +247,7 @@ void convolve(Context &context,
         const int64_t index = texel.x + texel.y * int64_t(spatial_size.x);
         color[channel] = image_spatial_domain_channels[channel][index];
       }
-      output_cpu.store_pixel(texel, color);
+      output_cpu.store_pixel(texel, Color(color));
     });
   });
 

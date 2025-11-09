@@ -604,12 +604,7 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 
   BKE_reports_init(&reports, RPT_STORE | RPT_PRINT_HANDLED_BY_OWNER);
 
-  result = ANIM_add_driver(&reports,
-                           self->ptr->owner_id,
-                           path_full,
-                           index,
-                           CREATEDRIVER_WITH_FMODIFIER,
-                           DRIVER_TYPE_PYTHON);
+  result = ANIM_add_driver(&reports, self->ptr->owner_id, path_full, index, 0, DRIVER_TYPE_PYTHON);
 
   if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1) {
     /* Pass. */

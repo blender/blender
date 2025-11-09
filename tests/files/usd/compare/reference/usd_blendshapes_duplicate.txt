@@ -1,0 +1,172 @@
+==== Meshes: 3
+- Mesh 'o1' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/2 0/1 1/3 2/3 
+  - attr 'skel:jointWeights' FLOAT POINT
+    - 1.000 1.000 1.000 1.000 
+  - attr 'skel:jointIndices' INT POINT
+    - 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.050, -0.400, 0.000)
+    - (0.050, -0.400, 0.000)
+    - (-0.050, 0.400, 0.000)
+    - (0.050, 0.400, 0.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'st' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - vertex groups:
+    - 0=1.000
+    - 0=1.000
+    - 0=1.000
+    - 0=1.000
+  - shape key 'Basis' w:0.000 vgrp:'' 0:(-0.050, -0.400, 0.000) 1:(0.050, -0.400, 0.000) 2:(-0.050, 0.400, 0.000)
+  - shape key 'Key_1' w:0.000 vgrp:'' 0:(0.950, -0.400, 0.000) 1:(1.050, -0.400, 0.000) 2:(0.950, 0.400, 0.000)
+
+- Mesh 'o2' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/2 0/1 1/3 2/3 
+  - attr 'skel:jointWeights' FLOAT POINT
+    - 1.000 1.000 1.000 1.000 
+  - attr 'skel:jointIndices' INT POINT
+    - 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.050, -0.400, 0.000)
+    - (0.050, -0.400, 0.000)
+    - (-0.050, 0.400, 0.000)
+    - (0.050, 0.400, 0.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'st' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - vertex groups:
+    - 0=1.000
+    - 0=1.000
+    - 0=1.000
+    - 0=1.000
+  - shape key 'Basis' w:0.000 vgrp:'' 0:(-0.050, -0.400, 0.000) 1:(0.050, -0.400, 0.000) 2:(-0.050, 0.400, 0.000)
+  - shape key 'Key_1' w:0.000 vgrp:'' 0:(0.950, -0.400, 0.000) 1:(1.050, -0.400, 0.000) 2:(0.950, 0.400, 0.000)
+
+- Mesh 'o3' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/2 0/1 1/3 2/3 
+  - attr 'skel:jointWeights' FLOAT POINT
+    - 1.000 1.000 1.000 1.000 
+  - attr 'skel:jointIndices' INT POINT
+    - 0 0 0 0 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.050, -0.400, 0.000)
+    - (0.050, -0.400, 0.000)
+    - (-0.050, 0.400, 0.000)
+    - (0.050, 0.400, 0.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'st' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - vertex groups:
+    - 0=1.000
+    - 0=1.000
+    - 0=1.000
+    - 0=1.000
+  - shape key 'Basis' w:0.000 vgrp:'' 0:(-0.050, -0.400, 0.000) 1:(0.050, -0.400, 0.000) 2:(-0.050, 0.400, 0.000)
+  - shape key 'Key_1' w:0.000 vgrp:'' 0:(0.950, -0.400, 0.000) 1:(1.050, -0.400, 0.000) 2:(0.950, 0.400, 0.000)
+
+==== Objects: 5
+- Obj 'Armature' ARMATURE data:'Armature' par:'Armature.001'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Armature.001' EMPTY
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'o1' MESH data:'o1' par:'Armature.001'
+  - pos 0.000, 1.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 1 vertex groups
+    - 'Bone' 
+  - 1 modifiers
+    - ARMATURE 'Armature'
+- Obj 'o2' MESH data:'o2' par:'Armature.001'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 1 vertex groups
+    - 'Bone' 
+  - 1 modifiers
+    - ARMATURE 'Armature'
+- Obj 'o3' MESH data:'o3' par:'Armature.001'
+  - pos 0.000, -1.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 1 vertex groups
+    - 'Bone' 
+  - 1 modifiers
+    - ARMATURE 'Armature'
+
+==== Actions: 3
+- Action 'o1Action' curverange:(1.0 .. 3.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:1
+ - Channelbag slot 'KEKey' curves:1
+  - fcu 'key_blocks["Key_1"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO) rh:(1.333, 0.000 AUTO)
+    - (2.000, 0.333) lh:(1.667, 0.167 AUTO) rh:(2.333, 0.500 AUTO)
+    - (3.000, 0.667) lh:(2.667, 0.667 AUTO) rh:(3.333, 0.667 AUTO)
+
+- Action 'o2Action' curverange:(1.0 .. 3.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:1
+ - Channelbag slot 'KEKey.001' curves:1
+  - fcu 'key_blocks["Key_1"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO) rh:(1.333, 0.000 AUTO)
+    - (2.000, 0.333) lh:(1.667, 0.167 AUTO) rh:(2.333, 0.500 AUTO)
+    - (3.000, 0.667) lh:(2.667, 0.667 AUTO) rh:(3.333, 0.667 AUTO)
+
+- Action 'o3Action' curverange:(1.0 .. 3.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:1
+ - Channelbag slot 'KEKey.002' curves:1
+  - fcu 'key_blocks["Key_1"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO) rh:(1.333, 0.000 AUTO)
+    - (2.000, 0.333) lh:(1.667, 0.167 AUTO) rh:(2.333, 0.500 AUTO)
+    - (3.000, 0.667) lh:(2.667, 0.667 AUTO) rh:(3.333, 0.667 AUTO)
+
+==== Armatures: 1
+- Armature 'Armature' 1 bones
+  - bone 'Bone' h:(0.000, 0.000, 0.000) t:(0.000, 0.000, 1.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+      0.000 1.000 0.000 0.000
+

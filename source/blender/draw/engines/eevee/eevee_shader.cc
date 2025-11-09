@@ -375,6 +375,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_horizon_scan";
     case HORIZON_SETUP:
       return "eevee_horizon_setup";
+    case LOOKDEV_COPY_WORLD:
+      return "eevee_lookdev_copy_world";
     case LOOKDEV_DISPLAY:
       return "eevee_lookdev_display";
     case MOTION_BLUR_GATHER:

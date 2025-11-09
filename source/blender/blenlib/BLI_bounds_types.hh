@@ -62,6 +62,12 @@ template<typename T> struct Bounds {
    * This matches the behavior of #BLI_rcti_pad/#BLI_rctf_pad.
    */
   template<typename PaddingT> void pad(const PaddingT &padding);
+
+  /**
+   * Returns true if \a point is inside the bounds.
+   * This matches the behavior of #BLI_rctf_isect_pt/#BLI_rcti_isect_pt.
+   */
+  bool contains(const T &point);
 };
 
 }  // namespace blender

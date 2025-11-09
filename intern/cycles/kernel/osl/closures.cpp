@@ -18,7 +18,9 @@
 
 #include "kernel/globals.h"
 
+#include "kernel/geom/attribute.h"
 #include "kernel/geom/object.h"
+#include "kernel/geom/primitive.h"
 #include "kernel/util/differential.h"
 
 #include "kernel/osl/camera.h"
@@ -128,31 +130,28 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const ThreadKernelGlobalsCPU *kg,
 
       /* set state as if undisplaced */
       if (sd->flag & SD_HAS_DISPLACEMENT) {
-        float data[9];
-        const bool found = kg->osl.globals->services->get_attribute(
-            globals,
-            true,
-            OSLRenderServices::u_empty,
-            TypeVector,
-            OSLRenderServices::u_geom_undisplaced,
-            data);
-        (void)found;
-        assert(found);
+        const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_POSITION_UNDISPLACED);
+        kernel_assert(desc.offset != ATTR_STD_NOT_FOUND);
 
-        differential3 tmp_dP;
-        sd->P = make_float3(data[0], data[1], data[2]);
-        tmp_dP.dx = make_float3(data[3], data[4], data[5]);
-        tmp_dP.dy = make_float3(data[6], data[7], data[8]);
+        dual3 P = primitive_surface_attribute<float3>(kg, sd, desc, true, true);
+        object_position_transform(kg, sd, &P);
 
-        object_position_transform(kg, sd, &sd->P);
-        object_dir_transform(kg, sd, &tmp_dP.dx);
-        object_dir_transform(kg, sd, &tmp_dP.dy);
-
-        sd->dP = differential_make_compact(tmp_dP);
+        sd->P = P.val;
+        sd->dP = differential_make_compact(P);
 
         globals->P = TO_VEC3(sd->P);
-        globals->dPdx = TO_VEC3(tmp_dP.dx);
-        globals->dPdy = TO_VEC3(tmp_dP.dy);
+        globals->dPdx = TO_VEC3(P.dx);
+        globals->dPdy = TO_VEC3(P.dy);
+
+        /* Set normal as if undisplaced. */
+        const AttributeDescriptor ndesc = find_attribute(kg, sd, ATTR_STD_NORMAL_UNDISPLACED);
+        if (ndesc.offset != ATTR_STD_NOT_FOUND) {
+          float3 N = safe_normalize(
+              primitive_surface_attribute<float3>(kg, sd, ndesc, false, false).val);
+          object_normal_transform(kg, sd, &N);
+          sd->N = (sd->flag & SD_BACKFACING) ? -N : N;
+          globals->N = TO_VEC3(sd->N);
+        }
       }
 
       /* execute bump shader */

@@ -983,6 +983,11 @@ void CLG_logref_list_all(void (*callback)(const char *identifier, void *user_dat
 
 void CLG_logref_init(CLG_LogRef *clg_ref)
 {
+  if (g_ctx == nullptr) {
+    fprintf(stderr, "CLG logging used without initialization, aborting.\n");
+    abort();
+  }
+
 #ifdef WITH_CLOG_PTHREADS
   /* Only runs once when initializing a static type in most cases. */
   pthread_mutex_lock(&g_ctx->types_lock);

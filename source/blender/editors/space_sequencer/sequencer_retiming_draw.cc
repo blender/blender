@@ -213,6 +213,10 @@ SeqRetimingKey *retiming_mouseover_key_get(const bContext *C, const int mval[2],
   const Scene *scene = CTX_data_sequencer_scene(C);
   const View2D *v2d = UI_view2d_fromcontext(C);
   for (Strip *strip : sequencer_visible_strips_get(C)) {
+    if (!seq::retiming_data_is_editable(strip)) {
+      continue;
+    }
+
     rctf box = strip_retiming_keys_box_get(scene, v2d, strip);
     if (!BLI_rctf_isect_pt(&box, mval[0], mval[1])) {
       continue;
@@ -234,14 +238,13 @@ SeqRetimingKey *retiming_mouseover_key_get(const bContext *C, const int mval[2],
   return nullptr;
 }
 
-static bool can_draw_retiming(const TimelineDrawContext *timeline_ctx,
-                              const StripDrawContext &strip_ctx)
+static bool can_draw_retiming(const TimelineDrawContext &ctx, const StripDrawContext &strip_ctx)
 {
-  if (timeline_ctx->ed == nullptr) {
+  if (ctx.ed == nullptr) {
     return false;
   }
 
-  if (!retiming_keys_can_be_displayed(timeline_ctx->sseq)) {
+  if (!retiming_keys_can_be_displayed(ctx.sseq)) {
     return false;
   }
 
@@ -260,13 +263,13 @@ static bool can_draw_retiming(const TimelineDrawContext *timeline_ctx,
 /** \name Retiming Key
  * \{ */
 
-static void retime_key_draw(const TimelineDrawContext *timeline_ctx,
+static void retime_key_draw(const TimelineDrawContext &ctx,
                             const StripDrawContext &strip_ctx,
                             const SeqRetimingKey *key,
                             const KeyframeShaderBindings &sh_bindings)
 {
-  const Scene *scene = timeline_ctx->scene;
-  const View2D *v2d = timeline_ctx->v2d;
+  const Scene *scene = ctx.scene;
+  const View2D *v2d = ctx.v2d;
   Strip *strip = strip_ctx.strip;
 
   const float key_x = key_x_get(scene, strip, key);
@@ -283,8 +286,7 @@ static void retime_key_draw(const TimelineDrawContext *timeline_ctx,
     key_type = BEZT_KEYTYPE_MOVEHOLD;
   }
 
-  const bool is_selected = timeline_ctx->retiming_selection.contains(
-      const_cast<SeqRetimingKey *>(key));
+  const bool is_selected = ctx.retiming_selection.contains(const_cast<SeqRetimingKey *>(key));
   const int size = KEY_SIZE;
   const float bottom = KEY_CENTER;
 
@@ -307,18 +309,16 @@ static void retime_key_draw(const TimelineDrawContext *timeline_ctx,
                       0);
 }
 
-void sequencer_retiming_draw_continuity(const TimelineDrawContext *timeline_ctx,
+void sequencer_retiming_draw_continuity(const TimelineDrawContext &ctx,
                                         const StripDrawContext &strip_ctx)
 {
-  if (!can_draw_retiming(timeline_ctx, strip_ctx) ||
-      seq::retiming_keys_count(strip_ctx.strip) == 0)
-  {
+  if (!can_draw_retiming(ctx, strip_ctx) || seq::retiming_keys_count(strip_ctx.strip) == 0) {
     return;
   }
 
   const Strip *strip = strip_ctx.strip;
-  const View2D *v2d = timeline_ctx->v2d;
-  const Scene *scene = timeline_ctx->scene;
+  const View2D *v2d = ctx.v2d;
+  const Scene *scene = ctx.scene;
   const float left_handle_position = UI_view2d_view_to_region_x(v2d, strip_ctx.left_handle);
   const float right_handle_position = UI_view2d_view_to_region_x(v2d, strip_ctx.right_handle);
 
@@ -345,8 +345,8 @@ void sequencer_retiming_draw_continuity(const TimelineDrawContext *timeline_ctx,
 
     uchar color[4];
     if (seq::retiming_data_is_editable(strip) &&
-        (timeline_ctx->retiming_selection.contains(const_cast<SeqRetimingKey *>(&key)) ||
-         timeline_ctx->retiming_selection.contains(const_cast<SeqRetimingKey *>(&key - 1))))
+        (ctx.retiming_selection.contains(const_cast<SeqRetimingKey *>(&key)) ||
+         ctx.retiming_selection.contains(const_cast<SeqRetimingKey *>(&key - 1))))
     {
       color[0] = 166;
       color[1] = 127;
@@ -359,7 +359,7 @@ void sequencer_retiming_draw_continuity(const TimelineDrawContext *timeline_ctx,
       color[2] = 0;
       color[3] = 25;
     }
-    timeline_ctx->quads->add_quad(prev_key_position, bottom, key_position, top, color);
+    ctx.quads->add_quad(prev_key_position, bottom, key_position, top, color);
   }
 }
 
@@ -376,24 +376,24 @@ static SeqRetimingKey fake_retiming_key_init(const Scene *scene, const Strip *st
 
 /* If there are no keys, draw fake keys and create real key when they are selected. */
 /* TODO: would be nice to draw continuity between fake keys. */
-static bool fake_keys_draw(const TimelineDrawContext *timeline_ctx,
+static bool fake_keys_draw(const TimelineDrawContext &ctx,
                            const StripDrawContext &strip_ctx,
                            const KeyframeShaderBindings &sh_bindings)
 {
   const Strip *strip = strip_ctx.strip;
-  const Scene *scene = timeline_ctx->scene;
+  const Scene *scene = ctx.scene;
 
   if (!seq::retiming_is_active(strip) && !seq::retiming_data_is_editable(strip)) {
     return false;
   }
 
-  const int left_key_frame = left_fake_key_frame_get(timeline_ctx->C, strip);
+  const int left_key_frame = left_fake_key_frame_get(ctx.C, strip);
   if (seq::retiming_key_get_by_timeline_frame(scene, strip, left_key_frame) == nullptr) {
     SeqRetimingKey fake_key = fake_retiming_key_init(scene, strip, left_key_frame);
-    retime_key_draw(timeline_ctx, strip_ctx, &fake_key, sh_bindings);
+    retime_key_draw(ctx, strip_ctx, &fake_key, sh_bindings);
   }
 
-  int right_key_frame = right_fake_key_frame_get(timeline_ctx->C, strip);
+  int right_key_frame = right_fake_key_frame_get(ctx.C, strip);
   if (seq::retiming_key_get_by_timeline_frame(scene, strip, right_key_frame) == nullptr) {
     /* `key_x_get()` compensates 1 frame offset of last key, however this can not
      * be conveyed via `fake_key` alone. Therefore the same offset must be emulated. */
@@ -401,38 +401,34 @@ static bool fake_keys_draw(const TimelineDrawContext *timeline_ctx,
       right_key_frame += 1;
     }
     SeqRetimingKey fake_key = fake_retiming_key_init(scene, strip, right_key_frame);
-    retime_key_draw(timeline_ctx, strip_ctx, &fake_key, sh_bindings);
+    retime_key_draw(ctx, strip_ctx, &fake_key, sh_bindings);
   }
   return true;
 }
 
-void sequencer_retiming_keys_draw(const TimelineDrawContext *timeline_ctx,
-                                  blender::Span<StripDrawContext> strips)
+void sequencer_retiming_keys_draw(const TimelineDrawContext &ctx, Span<StripDrawContext> strips)
 {
   if (strips.is_empty()) {
     return;
   }
-  if (timeline_ctx->ed == nullptr || !retiming_keys_can_be_displayed(timeline_ctx->sseq)) {
+  if (ctx.ed == nullptr || !retiming_keys_can_be_displayed(ctx.sseq)) {
     return;
   }
 
   GPU_matrix_push_projection();
-  wmOrtho2_region_pixelspace(timeline_ctx->region);
+  wmOrtho2_region_pixelspace(ctx.region);
 
-  const View2D *v2d = timeline_ctx->v2d;
+  const View2D *v2d = ctx.v2d;
 
   GPUVertFormat *format = immVertexFormat();
   KeyframeShaderBindings sh_bindings;
-  sh_bindings.pos_id = GPU_vertformat_attr_add(
-      format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
-  sh_bindings.size_id = GPU_vertformat_attr_add(
-      format, "size", blender::gpu::VertAttrType::SFLOAT_32);
+  sh_bindings.pos_id = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
+  sh_bindings.size_id = GPU_vertformat_attr_add(format, "size", gpu::VertAttrType::SFLOAT_32);
   sh_bindings.color_id = GPU_vertformat_attr_add(
-      format, "color", blender::gpu::VertAttrType::UNORM_8_8_8_8);
+      format, "color", gpu::VertAttrType::UNORM_8_8_8_8);
   sh_bindings.outline_color_id = GPU_vertformat_attr_add(
-      format, "outlineColor", blender::gpu::VertAttrType::UNORM_8_8_8_8);
-  sh_bindings.flags_id = GPU_vertformat_attr_add(
-      format, "flags", blender::gpu::VertAttrType::UINT_32);
+      format, "outlineColor", gpu::VertAttrType::UNORM_8_8_8_8);
+  sh_bindings.flags_id = GPU_vertformat_attr_add(format, "flags", gpu::VertAttrType::UINT_32);
 
   GPU_program_point_size(true);
   immBindBuiltinProgram(GPU_SHADER_KEYFRAME_SHAPE);
@@ -444,15 +440,15 @@ void sequencer_retiming_keys_draw(const TimelineDrawContext *timeline_ctx,
   immBeginAtMost(GPU_PRIM_POINTS, MAX_KEYS_IN_BATCH);
 
   for (const StripDrawContext &strip_ctx : strips) {
-    if (!can_draw_retiming(timeline_ctx, strip_ctx)) {
+    if (!can_draw_retiming(ctx, strip_ctx)) {
       continue;
     }
-    if (fake_keys_draw(timeline_ctx, strip_ctx, sh_bindings)) {
+    if (fake_keys_draw(ctx, strip_ctx, sh_bindings)) {
       point_counter += 2;
     }
 
     for (const SeqRetimingKey &key : seq::retiming_keys_get(strip_ctx.strip)) {
-      retime_key_draw(timeline_ctx, strip_ctx, &key, sh_bindings);
+      retime_key_draw(ctx, strip_ctx, &key, sh_bindings);
       point_counter++;
 
       /* Next key plus possible two fake keys for next sequence would need at
@@ -498,15 +494,15 @@ static size_t label_str_get(const Strip *strip,
       r_label_str, label_str_maxncpy, "%d%%", round_fl_to_int(speed * 100.0f));
 }
 
-static bool label_rect_get(const TimelineDrawContext *timeline_ctx,
+static bool label_rect_get(const TimelineDrawContext &ctx,
                            const StripDrawContext &strip_ctx,
                            const SeqRetimingKey *key,
                            const char *label_str,
                            const size_t label_len,
                            rctf *rect)
 {
-  const bContext *C = timeline_ctx->C;
-  const Scene *scene = timeline_ctx->scene;
+  const bContext *C = ctx.C;
+  const Scene *scene = ctx.scene;
   const SeqRetimingKey *next_key = key + 1;
   const float width = pixels_to_view_width(C, BLF_width(BLF_default(), label_str, label_len));
   const float height = pixels_to_view_height(C, BLF_height(BLF_default(), label_str, label_len));
@@ -521,12 +517,12 @@ static bool label_rect_get(const TimelineDrawContext *timeline_ctx,
   return width < xmax - xmin - pixels_to_view_width(C, KEY_SIZE);
 }
 
-static void retime_speed_text_draw(const TimelineDrawContext *timeline_ctx,
+static void retime_speed_text_draw(const TimelineDrawContext &ctx,
                                    const StripDrawContext &strip_ctx,
                                    const SeqRetimingKey *key)
 {
   const Strip *strip = strip_ctx.strip;
-  const Scene *scene = timeline_ctx->scene;
+  const Scene *scene = ctx.scene;
 
   if (seq::retiming_is_last_key(strip, key)) {
     return;
@@ -543,7 +539,7 @@ static void retime_speed_text_draw(const TimelineDrawContext *timeline_ctx,
   rctf label_rect;
   size_t label_len = label_str_get(strip, key, label_str, sizeof(label_str));
 
-  if (!label_rect_get(timeline_ctx, strip_ctx, key, label_str, label_len, &label_rect)) {
+  if (!label_rect_get(ctx, strip_ctx, key, label_str, label_len, &label_rect)) {
     return; /* Not enough space to draw the label. */
   }
 
@@ -553,22 +549,21 @@ static void retime_speed_text_draw(const TimelineDrawContext *timeline_ctx,
     col[3] = 255;
   }
 
-  UI_view2d_text_cache_add(
-      timeline_ctx->v2d, label_rect.xmin, label_rect.ymin, label_str, label_len, col);
+  UI_view2d_text_cache_add(ctx.v2d, label_rect.xmin, label_rect.ymin, label_str, label_len, col);
 }
 
-void sequencer_retiming_speed_draw(const TimelineDrawContext *timeline_ctx,
+void sequencer_retiming_speed_draw(const TimelineDrawContext &ctx,
                                    const StripDrawContext &strip_ctx)
 {
-  if (!can_draw_retiming(timeline_ctx, strip_ctx)) {
+  if (!can_draw_retiming(ctx, strip_ctx)) {
     return;
   }
 
   for (const SeqRetimingKey &key : seq::retiming_keys_get(strip_ctx.strip)) {
-    retime_speed_text_draw(timeline_ctx, strip_ctx, &key);
+    retime_speed_text_draw(ctx, strip_ctx, &key);
   }
 
-  UI_view2d_view_ortho(timeline_ctx->v2d);
+  UI_view2d_view_ortho(ctx.v2d);
 }
 
 /** \} */

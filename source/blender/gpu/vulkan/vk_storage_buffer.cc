@@ -83,8 +83,7 @@ void VKStorageBuffer::allocate()
                                                 VK_BUFFER_USAGE_TRANSFER_DST_BIT;
   buffer_.create(size_in_bytes_,
                  buffer_usage_flags,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                 VkMemoryPropertyFlags(0),
+                 VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
                  VmaAllocationCreateFlags(0),
                  0.8f);
   if (buffer_.is_allocated()) {

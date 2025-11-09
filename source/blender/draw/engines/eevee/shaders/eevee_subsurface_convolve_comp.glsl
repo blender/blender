@@ -28,11 +28,6 @@ COMPUTE_SHADER_CREATE_INFO(eevee_subsurface_convolve)
 #include "gpu_shader_math_vector_safe_lib.glsl"
 #include "gpu_shader_shared_exponent_lib.glsl"
 
-/* Produces NaN tile artifacts on Metal (M1). */
-#ifndef GPU_METAL
-#  define GROUPSHARED_CACHE
-#endif
-
 struct SubSurfaceSample {
   float3 radiance;
   float depth;
@@ -44,8 +39,6 @@ struct SubSurfaceSample {
 shared float3 cached_radiance[SUBSURFACE_GROUP_SIZE][SUBSURFACE_GROUP_SIZE];
 shared uint cached_sss_id[SUBSURFACE_GROUP_SIZE][SUBSURFACE_GROUP_SIZE];
 shared float cached_depth[SUBSURFACE_GROUP_SIZE][SUBSURFACE_GROUP_SIZE];
-
-#ifdef GROUPSHARED_CACHE
 
 void cache_populate(float2 local_uv)
 {
@@ -68,17 +61,14 @@ bool cache_sample(uint2 texel, out SubSurfaceSample samp)
   samp.depth = cached_depth[texel.y][texel.x];
   return true;
 }
-#endif
 
 SubSurfaceSample sample_neighborhood(float2 sample_uv)
 {
   SubSurfaceSample samp;
-#ifdef GROUPSHARED_CACHE
   uint2 sample_texel = uint2(sample_uv * float2(textureSize(depth_tx, 0)));
   if (cache_sample(sample_texel, samp)) {
     return samp;
   }
-#endif
   samp.depth = reverse_z::read(texture(depth_tx, sample_uv).r);
   samp.sss_id = texture(object_id_tx, sample_uv).r;
   samp.radiance = texture(radiance_tx, sample_uv).rgb;
@@ -93,9 +83,8 @@ void main()
 
   float2 center_uv = (float2(texel) + 0.5f) / float2(textureSize(gbuf_header_tx, 0).xy);
 
-#ifdef GROUPSHARED_CACHE
   cache_populate(center_uv);
-#endif
+  barrier();
 
   float depth = reverse_z::read(texelFetch(depth_tx, texel, 0).r);
   float3 vP = drw_point_screen_to_view(float3(center_uv, depth));

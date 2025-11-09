@@ -6,6 +6,7 @@
  * \ingroup eevee
  */
 
+#include "BLI_math_axis_angle.hh"
 #include "BLI_rect.h"
 
 #include "BKE_image.hh"
@@ -37,20 +38,9 @@ LookdevWorld::LookdevWorld()
   bNodeTree *ntree = bke::node_tree_add_tree_embedded(
       nullptr, &world->id, "Lookdev World Nodetree", ntreeType_Shader->idname);
 
-  bNode *coordinate = bke::node_add_static_node(nullptr, *ntree, SH_NODE_TEX_COORD);
-  bNodeSocket *coordinate_out = bke::node_find_socket(*coordinate, SOCK_OUT, "Generated");
-
-  bNode *rotate = bke::node_add_static_node(nullptr, *ntree, SH_NODE_VECTOR_ROTATE);
-  rotate->custom1 = NODE_VECTOR_ROTATE_TYPE_AXIS_Z;
-  bNodeSocket *rotate_vector_in = bke::node_find_socket(*rotate, SOCK_IN, "Vector");
-  angle_socket_ = static_cast<bNodeSocketValueFloat *>(
-      bke::node_find_socket(*rotate, SOCK_IN, "Angle")->default_value);
-  bNodeSocket *rotate_out = bke::node_find_socket(*rotate, SOCK_OUT, "Vector");
-
   bNode *environment = bke::node_add_static_node(nullptr, *ntree, SH_NODE_TEX_ENVIRONMENT);
   environment_node_ = environment;
   NodeTexImage *environment_storage = static_cast<NodeTexImage *>(environment->storage);
-  bNodeSocket *environment_vector_in = bke::node_find_socket(*environment, SOCK_IN, "Vector");
   bNodeSocket *environment_out = bke::node_find_socket(*environment, SOCK_OUT, "Color");
 
   bNode *background = bke::node_add_static_node(nullptr, *ntree, SH_NODE_BACKGROUND);
@@ -62,8 +52,6 @@ LookdevWorld::LookdevWorld()
   bNode *output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_WORLD);
   bNodeSocket *output_in = bke::node_find_socket(*output, SOCK_IN, "Surface");
 
-  bke::node_add_link(*ntree, *coordinate, *coordinate_out, *rotate, *rotate_vector_in);
-  bke::node_add_link(*ntree, *rotate, *rotate_out, *environment, *environment_vector_in);
   bke::node_add_link(*ntree, *environment, *environment_out, *background, *background_color_in);
   bke::node_add_link(*ntree, *background, *background_out, *output, *output_in);
   bke::node_set_active(*ntree, *output);
@@ -97,7 +85,6 @@ bool LookdevWorld::sync(const LookdevParameters &new_parameters)
 
   if (parameters_changed) {
     intensity_socket_->value = parameters_.intensity;
-    angle_socket_->value = parameters_.rot_z;
 
     GPU_TEXTURE_FREE_SAFE(image->gputexture[TEXTARGET_2D][0]);
     environment_node_->id = nullptr;
@@ -218,9 +205,10 @@ blender::gpu::Batch *LookdevModule::sphere_get(const SphereLOD level_of_detail)
 void LookdevModule::init(const rcti *visible_rect)
 {
   visible_rect_ = *visible_rect;
-  enabled_ = inst_.is_viewport() && inst_.overlays_enabled() && inst_.use_lookdev_overlay();
+  use_reference_spheres_ = inst_.is_viewport() && inst_.overlays_enabled() &&
+                           inst_.use_lookdev_overlay();
 
-  if (enabled_) {
+  if (use_reference_spheres_) {
     const int2 extent_dummy(1);
     constexpr eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_WRITE |
                                        GPU_TEXTURE_USAGE_SHADER_READ;
@@ -228,6 +216,17 @@ void LookdevModule::init(const rcti *visible_rect)
     dummy_aov_color_tx_.ensure_2d_array(
         gpu::TextureFormat::SFLOAT_16_16_16_16, extent_dummy, 1, usage);
     dummy_aov_value_tx_.ensure_2d_array(gpu::TextureFormat::SFLOAT_16, extent_dummy, 1, usage);
+  }
+
+  if (inst_.is_viewport()) {
+    const ::View3DShading &shading = inst_.v3d->shading;
+    bool use_viewspace_lighting = (shading.flag & V3D_SHADING_STUDIOLIGHT_VIEW_ROTATION) != 0;
+    if (assign_if_different(use_viewspace_lighting_, use_viewspace_lighting)) {
+      inst_.sampling.reset();
+    }
+    if (assign_if_different(studio_light_rotation_z_, shading.studiolight_rot_z)) {
+      inst_.sampling.reset();
+    }
   }
 }
 
@@ -260,7 +259,7 @@ static int calc_sphere_extent(const float viewport_scale)
 
 void LookdevModule::sync()
 {
-  if (!enabled_) {
+  if (!use_reference_spheres_) {
     return;
   }
   const float viewport_scale = calc_viewport_scale();
@@ -353,7 +352,7 @@ void LookdevModule::sync_display()
 
 void LookdevModule::draw(View &view)
 {
-  if (!enabled_) {
+  if (!use_reference_spheres_) {
     return;
   }
 
@@ -366,9 +365,31 @@ void LookdevModule::draw(View &view)
   }
 }
 
+void LookdevModule::rotate_world()
+{
+  if (!inst_.is_viewport()) {
+    return;
+  }
+
+  AxisAngle axis_angle_rotation(AxisSigned::Z_POS, studio_light_rotation_z_);
+  float4x4 rotation = math::from_rotation<float4x4>(axis_angle_rotation);
+  if (use_viewspace_lighting_) {
+    CartesianBasis target(AxisSigned::X_POS, AxisSigned::Z_NEG, AxisSigned::Y_POS);
+    rotation = inst_.camera.data_get().viewinv * math::from_rotation<float4x4>(target) * rotation;
+  }
+
+  if (assign_if_different(last_rotation_matrix_, rotation)) {
+    rotate_world_probe_data(inst_.sphere_probes.octahedral_probes_texture(),
+                            inst_.sphere_probes.world_sphere_probe().atlas_coord,
+                            inst_.sphere_probes.spherical_harmonics_buf(),
+                            inst_.world.sunlight,
+                            rotation);
+  }
+}
+
 void LookdevModule::display()
 {
-  if (!enabled_) {
+  if (!use_reference_spheres_) {
     return;
   }
 
@@ -379,6 +400,109 @@ void LookdevModule::display()
   GPU_framebuffer_viewport_reset(dfbl->default_fb);
   GPU_framebuffer_bind(dfbl->default_fb);
   inst_.manager->submit(display_ps_);
+}
+
+void LookdevModule::store_world_probe_data(
+    Texture &in_sphere_probe,
+    const SphereProbeAtlasCoord &atlas_coord,
+    StorageBuffer<SphereProbeHarmonic, true> &in_volume_probe,
+    UniformBuffer<LightData> &in_sunlight)
+{
+  SphereProbeUvArea read_coord = atlas_coord.as_sampling_coord();
+  SphereProbePixelArea write_coord_mip0 = atlas_coord.as_write_coord(0);
+  SphereProbePixelArea write_coord_mip1 = atlas_coord.as_write_coord(1);
+  SphereProbePixelArea write_coord_mip2 = atlas_coord.as_write_coord(2);
+  SphereProbePixelArea write_coord_mip3 = atlas_coord.as_write_coord(3);
+  SphereProbePixelArea write_coord_mip4 = atlas_coord.as_write_coord(4);
+
+  if (world_sphere_probe_.ensure_2d_array(gpu::TextureFormat::SPHERE_PROBE_FORMAT,
+                                          in_sphere_probe.size().xy(),
+                                          1,
+                                          GPU_TEXTURE_USAGE_GENERAL,
+                                          nullptr,
+                                          5))
+  {
+    GPU_texture_mipmap_mode(world_sphere_probe_, true, true);
+    world_sphere_probe_.ensure_mip_views();
+  }
+
+  PassSimple pass = {__func__};
+  pass.init();
+  pass.shader_set(inst_.shaders.static_shader_get(LOOKDEV_COPY_WORLD));
+  pass.push_constant("read_coord_packed", reinterpret_cast<int4 *>(&read_coord));
+  pass.push_constant("write_coord_mip0_packed", reinterpret_cast<int4 *>(&write_coord_mip0));
+  pass.push_constant("write_coord_mip1_packed", reinterpret_cast<int4 *>(&write_coord_mip1));
+  pass.push_constant("write_coord_mip2_packed", reinterpret_cast<int4 *>(&write_coord_mip2));
+  pass.push_constant("write_coord_mip3_packed", reinterpret_cast<int4 *>(&write_coord_mip3));
+  pass.push_constant("write_coord_mip4_packed", reinterpret_cast<int4 *>(&write_coord_mip4));
+  pass.push_constant("lookdev_rotation", float4x4::identity());
+  pass.bind_texture("in_sphere_tx", in_sphere_probe);
+  pass.bind_image("out_sphere_mip0", world_sphere_probe_.mip_view(0));
+  pass.bind_image("out_sphere_mip1", world_sphere_probe_.mip_view(1));
+  pass.bind_image("out_sphere_mip2", world_sphere_probe_.mip_view(2));
+  pass.bind_image("out_sphere_mip3", world_sphere_probe_.mip_view(3));
+  pass.bind_image("out_sphere_mip4", world_sphere_probe_.mip_view(4));
+  pass.bind_ssbo("in_sh", in_volume_probe);
+  pass.bind_ssbo("out_sh", world_volume_probe_);
+  pass.bind_ssbo("in_sun", in_sunlight);
+  pass.bind_ssbo("out_sun", world_sunlight_);
+  int3 dispatch_size = int3(
+      int2(math::divide_ceil(int2(write_coord_mip0.extent), int2(SPHERE_PROBE_REMAP_GROUP_SIZE))),
+      1);
+  pass.dispatch(dispatch_size);
+
+  inst_.manager->submit(pass);
+
+  last_rotation_matrix_ = float4x4::identity();
+}
+
+/* TODO(fclem): Call this as soon as possible inside the frame drawing and tag world probe volume
+ * to update. Volume probe update is the only thing that needs to be triggered to make sure the SH
+ * are copied to all volume probes. Sphere probes are already updated by this function. */
+void LookdevModule::rotate_world_probe_data(
+    Texture &dst_sphere_probe,
+    const SphereProbeAtlasCoord &atlas_coord,
+    StorageBuffer<SphereProbeHarmonic, true> &dst_volume_probe,
+    UniformBuffer<LightData> &dst_sunlight,
+    float4x4 &rotation)
+{
+  SphereProbeUvArea read_coord = atlas_coord.as_sampling_coord();
+  SphereProbePixelArea write_coord_mip0 = atlas_coord.as_write_coord(0);
+  SphereProbePixelArea write_coord_mip1 = atlas_coord.as_write_coord(1);
+  SphereProbePixelArea write_coord_mip2 = atlas_coord.as_write_coord(2);
+  SphereProbePixelArea write_coord_mip3 = atlas_coord.as_write_coord(3);
+  SphereProbePixelArea write_coord_mip4 = atlas_coord.as_write_coord(4);
+
+  PassSimple pass = {__func__};
+  pass.init();
+  pass.shader_set(inst_.shaders.static_shader_get(LOOKDEV_COPY_WORLD));
+  pass.push_constant("read_coord_packed", reinterpret_cast<int4 *>(&read_coord));
+  pass.push_constant("write_coord_mip0_packed", reinterpret_cast<int4 *>(&write_coord_mip0));
+  pass.push_constant("write_coord_mip1_packed", reinterpret_cast<int4 *>(&write_coord_mip1));
+  pass.push_constant("write_coord_mip2_packed", reinterpret_cast<int4 *>(&write_coord_mip2));
+  pass.push_constant("write_coord_mip3_packed", reinterpret_cast<int4 *>(&write_coord_mip3));
+  pass.push_constant("write_coord_mip4_packed", reinterpret_cast<int4 *>(&write_coord_mip4));
+  pass.push_constant("lookdev_rotation", rotation);
+  pass.bind_texture("in_sphere_tx", &world_sphere_probe_);
+  pass.bind_image("out_sphere_mip0", dst_sphere_probe.mip_view(0));
+  pass.bind_image("out_sphere_mip1", dst_sphere_probe.mip_view(1));
+  pass.bind_image("out_sphere_mip2", dst_sphere_probe.mip_view(2));
+  pass.bind_image("out_sphere_mip3", dst_sphere_probe.mip_view(3));
+  pass.bind_image("out_sphere_mip4", dst_sphere_probe.mip_view(4));
+  pass.bind_ssbo("in_sh", world_volume_probe_);
+  pass.bind_ssbo("out_sh", dst_volume_probe);
+  pass.bind_ssbo("in_sun", world_sunlight_);
+  pass.bind_ssbo("out_sun", dst_sunlight);
+  int3 dispatch_size = int3(
+      int2(math::divide_ceil(int2(write_coord_mip0.extent), int2(SPHERE_PROBE_REMAP_GROUP_SIZE))),
+      1);
+  pass.dispatch(dispatch_size);
+
+  inst_.manager->submit(pass);
+  /* Tag world to update the SH stored in the volume probe atlas.
+   * If any volume probe is visible, thi will reupload the baked data.
+   * This is the costly part of this feature. */
+  inst_.volume_probes.update_world_irradiance();
 }
 
 /** \} */
@@ -399,7 +523,6 @@ LookdevParameters::LookdevParameters(const ::View3D *v3d)
   show_scene_world = shading.type == OB_RENDER ? shading.flag & V3D_SHADING_SCENE_WORLD_RENDER :
                                                  shading.flag & V3D_SHADING_SCENE_WORLD;
   if (!show_scene_world) {
-    rot_z = shading.studiolight_rot_z;
     background_opacity = shading.studiolight_background;
     blur = shading.studiolight_blur;
     intensity = shading.studiolight_intensity;
@@ -409,9 +532,9 @@ LookdevParameters::LookdevParameters(const ::View3D *v3d)
 
 bool LookdevParameters::operator==(const LookdevParameters &other) const
 {
-  return hdri == other.hdri && rot_z == other.rot_z &&
-         background_opacity == other.background_opacity && blur == other.blur &&
-         intensity == other.intensity && show_scene_world == other.show_scene_world;
+  return hdri == other.hdri && background_opacity == other.background_opacity &&
+         blur == other.blur && intensity == other.intensity &&
+         show_scene_world == other.show_scene_world;
 }
 
 bool LookdevParameters::operator!=(const LookdevParameters &other) const

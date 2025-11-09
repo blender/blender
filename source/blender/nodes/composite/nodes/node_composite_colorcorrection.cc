@@ -20,6 +20,8 @@
 
 #include "GPU_material.hh"
 
+#include "COM_result.hh"
+
 #include "node_composite_util.hh"
 
 /* ******************* Color Correction ********************************* */
@@ -301,15 +303,17 @@ static float4 color_correction(const float4 &color,
                 color.w);
 }
 
+using blender::compositor::Color;
+
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
   float3 luminance_coefficients;
   IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
 
   builder.construct_and_set_matching_fn_cb([=]() {
-    return mf::build::detail::build_multi_function_with_n_inputs_one_output<float4>(
+    return mf::build::detail::build_multi_function_with_n_inputs_one_output<Color>(
         "Color Correction",
-        [=](const float4 &color,
+        [=](const Color &color,
             const float &mask,
             const float &master_saturation,
             const float &master_contrast,
@@ -335,38 +339,38 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
             const float &end_midtones,
             const bool &apply_on_red,
             const bool &apply_on_green,
-            const bool &apply_on_blue) -> float4 {
-          return color_correction(color,
-                                  mask,
-                                  master_saturation,
-                                  master_contrast,
-                                  master_gamma,
-                                  master_gain,
-                                  master_offset,
-                                  highlights_saturation,
-                                  highlights_contrast,
-                                  highlights_gamma,
-                                  highlights_gain,
-                                  highlights_offset,
-                                  midtones_saturation,
-                                  midtones_contrast,
-                                  midtones_gamma,
-                                  midtones_gain,
-                                  midtones_offset,
-                                  shadows_saturation,
-                                  shadows_contrast,
-                                  shadows_gamma,
-                                  shadows_gain,
-                                  shadows_offset,
-                                  start_midtones,
-                                  end_midtones,
-                                  apply_on_red,
-                                  apply_on_green,
-                                  apply_on_blue,
-                                  luminance_coefficients);
+            const bool &apply_on_blue) -> Color {
+          return Color(color_correction(float4(color),
+                                        mask,
+                                        master_saturation,
+                                        master_contrast,
+                                        master_gamma,
+                                        master_gain,
+                                        master_offset,
+                                        highlights_saturation,
+                                        highlights_contrast,
+                                        highlights_gamma,
+                                        highlights_gain,
+                                        highlights_offset,
+                                        midtones_saturation,
+                                        midtones_contrast,
+                                        midtones_gamma,
+                                        midtones_gain,
+                                        midtones_offset,
+                                        shadows_saturation,
+                                        shadows_contrast,
+                                        shadows_gamma,
+                                        shadows_gain,
+                                        shadows_offset,
+                                        start_midtones,
+                                        end_midtones,
+                                        apply_on_red,
+                                        apply_on_green,
+                                        apply_on_blue,
+                                        luminance_coefficients));
         },
         mf::build::exec_presets::SomeSpanOrSingle<0>(),
-        TypeSequence<float4,
+        TypeSequence<Color,
                      float,
                      float,
                      float,

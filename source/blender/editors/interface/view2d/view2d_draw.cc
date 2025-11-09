@@ -71,7 +71,7 @@ static int get_divisor(const int distance)
   }
 
   /* In case none of the above if is true, the divisor will be the full distance meaning the next
-   * step down from that number is 1.  */
+   * step down from that number is 1. */
   return distance;
 }
 

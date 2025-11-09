@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-11-03 10:44+0000\n"
 "PO-Revision-Date: 2025-10-17 15:15+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
@@ -25536,10 +25536,6 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Assign Material"
-msgstr "Dodeli material"
-
-
 msgid "Select More/Less"
 msgstr "Izberi več / manj"
 
@@ -25620,6 +25616,10 @@ msgid "Random Mask"
 msgstr "Naključna maska"
 
 
+msgid "Adjust"
+msgstr "Prilagoditev"
+
+
 msgid "Clear Transform"
 msgstr "Počisti transformacijo"
 
@@ -25628,28 +25628,24 @@ msgid "In-Betweens"
 msgstr "Vmesni okvirji"
 
 
-msgid "Adjust"
-msgstr "Prilagoditev"
-
-
 msgid "Propagate"
 msgstr "Razširjanje"
-
-
-msgid "Bone Collections"
-msgstr "Zbirke kosti"
 
 
 msgid "Keying"
 msgstr "Ključenje"
 
 
-msgid "Names"
-msgstr "Imena"
+msgid "Bone Collections"
+msgstr "Zbirke kosti"
 
 
 msgid "Tracking"
 msgstr "Sledenje"
+
+
+msgid "Names"
+msgstr "Imena"
 
 
 msgid "Utilities"
@@ -25712,12 +25708,12 @@ msgid "Write"
 msgstr "Zapiši"
 
 
-msgid "Pivot Point"
-msgstr "Osišče"
-
-
 msgid "Primitives"
 msgstr "Primitivi"
+
+
+msgid "Pivot Point"
+msgstr "Osišče"
 
 
 msgid "Snap"
@@ -25760,12 +25756,16 @@ msgid "UV Mapping"
 msgstr "Preslikanje UV"
 
 
+msgid "List"
+msgstr "Seznam"
+
+
 msgid "Local View"
 msgstr "Krajevni pogled"
 
 
-msgid "List"
-msgstr "Seznam"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Viewpoint"
@@ -25774,10 +25774,6 @@ msgstr "Gledišče"
 
 msgid "Navigation"
 msgstr "Navigacija"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View"
@@ -25800,20 +25796,24 @@ msgid "Select All by Trait"
 msgstr "Izberi vse po značilnosti"
 
 
-msgid "Animals"
-msgstr "Živali"
-
-
 msgid "Select Linked"
 msgstr "Izberi povezano"
 
 
-msgid "Basic"
-msgstr "Osnovno"
-
-
 msgid "Select Loops"
 msgstr "Izberi zanke"
+
+
+msgid "Assign Material"
+msgstr "Dodeli material"
+
+
+msgid "Animals"
+msgstr "Živali"
+
+
+msgid "Basic"
+msgstr "Osnovno"
 
 
 msgid "Rigify Meta-Rigs"
@@ -28162,16 +28162,8 @@ msgid "Nodes Modifier"
 msgstr "Modifikator Vozlišča"
 
 
-msgid "Bake Target"
-msgstr "Cilj peke"
-
-
 msgid "Where to store the baked data"
 msgstr "Kam shraniti zapečene podatke"
-
-
-msgid "Packed"
-msgstr "V datoteki"
 
 
 msgid "Node Group"
@@ -48622,6 +48614,10 @@ msgid "Import Textures"
 msgstr "Uvozi teksture"
 
 
+msgid "Packed"
+msgstr "V datoteki"
+
+
 msgid "Import USD Preview"
 msgstr "Predogled uvoza USD"
 
@@ -61909,10 +61905,6 @@ msgid "Unable to mirror, no mirror object/bone configured"
 msgstr "Ni bilo mogoče zrcaliti, noben zrcalni objekt/kost ni nastavljen"
 
 
-msgid "Unsupported mode: %r"
-msgstr "Nepodprt način: %r"
-
-
 msgid "Node group must have a geometry output"
 msgstr "Skupina vozlišč mora imeti izhod z geometrijo"
 
@@ -62318,10 +62310,6 @@ msgstr "Ne najdem tipa \"{:s}\""
 
 msgid "Material(s)"
 msgstr "Material/i"
-
-
-msgid "Invalid regular expression (replace): "
-msgstr "Neveljavni regularni izraz (zamenjava): "
 
 
 msgctxt "Operator"
@@ -74643,10 +74631,6 @@ msgid "Dependency Loop"
 msgstr "Zanka"
 
 
-msgid "Unsupported Menu Socket"
-msgstr "Nepodprta menijska vtičnica"
-
-
 msgid "Closed by Default"
 msgstr "Privzeto zaprto"
 
@@ -77351,6 +77335,10 @@ msgid "Element"
 msgstr "Element"
 
 
+msgid "Revert"
+msgstr "Obnovi shranjeno"
+
+
 msgid "Divergence"
 msgstr "Divergenca"
 
@@ -78279,10 +78267,6 @@ msgstr ""
 
 msgid "Warning: There are unsaved external image(s)."
 msgstr "Pozor: V projektu so neshranjene zunanje slike."
-
-
-msgid "Revert"
-msgstr "Obnovi shranjeno"
 
 
 msgid "Clear Recent Files List"

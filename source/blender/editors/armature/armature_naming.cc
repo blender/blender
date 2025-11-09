@@ -111,8 +111,14 @@ static void ed_armature_bone_unique_name(bArmature *arm, char *name)
 /** \name Bone Renaming (Object & Edit Mode API)
  * \{ */
 
-/* helper call for armature_bone_rename */
-static void constraint_bone_name_fix(Object *ob,
+/**
+ * Helper call for `armature_bone_rename()`.
+ *
+ * \param rename_ob: The object whose bone was renamed.
+ * \param constraint_ob: The object that owns the constraints in `conlist`.
+ */
+static void constraint_bone_name_fix(Object *rename_ob,
+                                     Object *constraint_ob,
                                      ListBase *conlist,
                                      const char *oldname,
                                      const char *newname)
@@ -123,7 +129,7 @@ static void constraint_bone_name_fix(Object *ob,
     /* constraint targets */
     if (BKE_constraint_targets_get(curcon, &targets)) {
       LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
-        if (ct->tar == ob) {
+        if (ct->tar == rename_ob) {
           if (STREQ(ct->subtarget, oldname)) {
             STRNCPY_UTF8(ct->subtarget, newname);
           }
@@ -133,11 +139,23 @@ static void constraint_bone_name_fix(Object *ob,
       BKE_constraint_targets_flush(curcon, &targets, false);
     }
 
-    /* action constraints */
-    if (curcon->type == CONSTRAINT_TYPE_ACTION) {
+    /* Actions from action constraints.
+     *
+     * We only rename channels in the action if the action constraint and the
+     * bone rename are from the same object. This is because the action of an
+     * action constraint animates the constrained object/bone, it does not
+     * animate the constraint target. */
+    if (curcon->type == CONSTRAINT_TYPE_ACTION && constraint_ob == rename_ob) {
       bActionConstraint *actcon = static_cast<bActionConstraint *>(curcon->data);
-      BKE_action_fix_paths_rename(
-          &ob->id, actcon->act, "pose.bones", oldname, newname, 0, 0, true);
+      BKE_action_fix_paths_rename(&rename_ob->id,
+                                  actcon->act,
+                                  actcon->action_slot_handle,
+                                  "pose.bones",
+                                  oldname,
+                                  newname,
+                                  0,
+                                  0,
+                                  true);
     }
   }
 }
@@ -232,11 +250,11 @@ void ED_armature_bone_rename(Main *bmain,
              cob = static_cast<Object *>(cob->id.next))
         {
           if (cob->constraints.first) {
-            constraint_bone_name_fix(ob, &cob->constraints, oldname, newname);
+            constraint_bone_name_fix(ob, cob, &cob->constraints, oldname, newname);
           }
           if (cob->pose) {
             LISTBASE_FOREACH (bPoseChannel *, pchan, &cob->pose->chanbase) {
-              constraint_bone_name_fix(ob, &pchan->constraints, oldname, newname);
+              constraint_bone_name_fix(ob, cob, &pchan->constraints, oldname, newname);
             }
           }
         }

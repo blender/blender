@@ -224,11 +224,8 @@ bke::GAttributeReader active_color_attribute(const Mesh &mesh)
   if (!colors) {
     return {};
   }
-  const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(colors.varray.type());
-  if ((CD_TYPE_AS_MASK(data_type) & CD_MASK_COLOR_ALL) == 0) {
-    return {};
-  }
-  if ((ATTR_DOMAIN_AS_MASK(colors.domain) & ATTR_DOMAIN_MASK_COLOR) == 0) {
+  const bke::AttrType data_type = bke::cpp_type_to_attribute_type(colors.varray.type());
+  if (!bke::mesh::is_color_attribute({colors.domain, data_type})) {
     return {};
   }
   return colors;
@@ -242,12 +239,8 @@ bke::GSpanAttributeWriter active_color_attribute_for_write(Mesh &mesh)
   if (!colors) {
     return {};
   }
-  const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(colors.span.type());
-  if ((CD_TYPE_AS_MASK(data_type) & CD_MASK_COLOR_ALL) == 0) {
-    colors.finish();
-    return {};
-  }
-  if ((ATTR_DOMAIN_AS_MASK(colors.domain) & ATTR_DOMAIN_MASK_COLOR) == 0) {
+  const bke::AttrType data_type = bke::cpp_type_to_attribute_type(colors.span.type());
+  if (!bke::mesh::is_color_attribute({colors.domain, data_type})) {
     colors.finish();
     return {};
   }

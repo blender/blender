@@ -36,7 +36,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       if (srv->viewflag & SCE_VIEW_DISABLE) {
         continue;
       }
-      b.add_input<decl::Color>(N_(srv->name))
+      b.add_input<decl::Color>(srv->name)
           .default_value({0.0f, 0.0f, 0.0f, 1.0f})
           .structure_type(StructureType::Dynamic);
     }

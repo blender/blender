@@ -681,7 +681,7 @@ static void check_finalization(ThreadQueue *queue)
   }
 }
 
-void BLI_thread_queue_cancel_work(ThreadQueue *queue, uint64_t work_id)
+bool BLI_thread_queue_cancel_work(ThreadQueue *queue, uint64_t work_id)
 {
   pthread_mutex_lock(&queue->mutex);
 
@@ -707,6 +707,8 @@ void BLI_thread_queue_cancel_work(ThreadQueue *queue, uint64_t work_id)
   }
 
   pthread_mutex_unlock(&queue->mutex);
+
+  return found;
 }
 
 void *BLI_thread_queue_pop(ThreadQueue *queue)

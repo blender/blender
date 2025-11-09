@@ -341,7 +341,8 @@ typedef struct ThemeSpace {
   unsigned char nurb_sel_uline[4], nurb_sel_vline[4];
 
   /** Dope-sheet. */
-  unsigned char ds_ipoline[4];
+  unsigned char anim_interpolation_linear[4], anim_interpolation_constant[4],
+      anim_interpolation_other[4];
   /** Keyframe border. */
   unsigned char keyborder[4], keyborder_select[4];
   char _pad4[3];

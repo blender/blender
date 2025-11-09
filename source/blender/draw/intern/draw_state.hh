@@ -6,7 +6,7 @@
 
 #include "GPU_state.hh"
 
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
 
 /** \file
  * \ingroup draw
@@ -65,8 +65,7 @@ typedef enum : uint32_t {
   DRW_STATE_BLEND_ALPHA_UNDER_PREMUL = (11 << 11),
 
   /* See GPU_clip_control_unit_range. */
-  DRW_STATE_CLIP_CONTROL_UNIT_RANGE = (1 << 26),
-  DRW_STATE_IN_FRONT_SELECT = (1 << 27),
+  DRW_STATE_CLIP_CONTROL_UNIT_RANGE = (1 << 27),
   DRW_STATE_SHADOW_OFFSET = (1 << 28),
   DRW_STATE_CLIP_PLANES = (1 << 29),
   DRW_STATE_FIRST_VERTEX_CONVENTION = (1 << 30),
@@ -74,7 +73,7 @@ typedef enum : uint32_t {
   DRW_STATE_PROGRAM_POINT_SIZE = (1u << 31),
 } DRWState;
 
-ENUM_OPERATORS(DRWState, DRW_STATE_PROGRAM_POINT_SIZE);
+ENUM_OPERATORS(DRWState);
 
 #define DRW_STATE_DEFAULT \
   (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL)

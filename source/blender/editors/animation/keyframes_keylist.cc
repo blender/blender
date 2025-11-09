@@ -869,8 +869,20 @@ static void compute_keyblock_data(ActKeyBlockInfo *info,
   }
 
   /* Remember non-bezier interpolation info. */
-  if (prev->ipo != BEZT_IPO_BEZ) {
-    info->flag |= ACTKEYBLOCK_FLAG_NON_BEZIER;
+  switch (eBezTriple_Interpolation(prev->ipo)) {
+    case BEZT_IPO_BEZ:
+      break;
+    case BEZT_IPO_LIN:
+      info->flag |= ACTKEYBLOCK_FLAG_IPO_LINEAR;
+      break;
+    case BEZT_IPO_CONST:
+      info->flag |= ACTKEYBLOCK_FLAG_IPO_CONSTANT;
+      break;
+    default:
+      /* For automatic bezier interpolations, such as easings (cubic, circular, etc), and dynamic
+       * (back, bounce, elastic). */
+      info->flag |= ACTKEYBLOCK_FLAG_IPO_OTHER;
+      break;
   }
 
   info->sel = BEZT_ISSEL_ANY(prev) || BEZT_ISSEL_ANY(beztn);

@@ -11,6 +11,8 @@
 #  include "eevee_common_infos.hh"
 #  include "eevee_lightprobe_shared.hh"
 #  include "eevee_lightprobe_volume_infos.hh"
+#  include "eevee_sampling_infos.hh"
+#  include "eevee_uniform_infos.hh"
 
 #  define SPHERE_PROBE
 #endif
@@ -30,7 +32,7 @@ SAMPLER(0, samplerCube, cubemap_tx)
 SAMPLER(1, sampler2DArray, atlas_tx)
 STORAGE_BUF(0, write, SphereProbeHarmonic, out_sh[])
 STORAGE_BUF(1, write, SphereProbeSunLight, out_sun[])
-IMAGE(0, SFLOAT_16_16_16_16, write, image2DArray, atlas_img)
+IMAGE(0, SPHERE_PROBE_FORMAT, write, image2DArray, atlas_img)
 COMPUTE_SOURCE("eevee_lightprobe_sphere_remap_comp.glsl")
 TYPEDEF_SOURCE("eevee_defines.hh")
 TYPEDEF_SOURCE("eevee_lightprobe_shared.hh")

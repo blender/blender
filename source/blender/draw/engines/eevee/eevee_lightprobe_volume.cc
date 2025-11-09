@@ -846,7 +846,7 @@ void IrradianceBake::sync()
     }
     {
       /* Take the sorted lists array and copy adjacent surfel indices back to the Surfels.
-       * Also relink coplanar surfels to avoid over shadowing.  */
+       * Also relink coplanar surfels to avoid over shadowing. */
       PassSimple::Sub &sub = pass.sub("ListBuild");
       sub.shader_set(inst_.shaders.static_shader_get(SURFEL_LIST_BUILD));
       sub.bind_ssbo(SURFEL_BUF_SLOT, &surfels_buf_);

@@ -227,8 +227,17 @@ void GLStorageBuf::read(void *data)
     return;
   }
 
-  if (!persistent_ptr_ || !read_fence_) {
-    this->async_flush_to_host();
+  if (!read_fence_) {
+    /* Synchronous path. */
+    if (GLContext::direct_state_access_support) {
+      glGetNamedBufferSubData(ssbo_id_, 0, size_in_bytes_, data);
+    }
+    else {
+      glBindBuffer(GL_COPY_READ_BUFFER, ssbo_id_);
+      glGetBufferSubData(GL_COPY_READ_BUFFER, 0, size_in_bytes_, data);
+      glBindBuffer(GL_COPY_READ_BUFFER, 0);
+    }
+    return;
   }
 
   while (glClientWaitSync(read_fence_, GL_SYNC_FLUSH_COMMANDS_BIT, 1000) == GL_TIMEOUT_EXPIRED) {
@@ -237,6 +246,7 @@ void GLStorageBuf::read(void *data)
   glDeleteSync(read_fence_);
   read_fence_ = nullptr;
 
+  BLI_assert(persistent_ptr_);
   memcpy(data, persistent_ptr_, size_in_bytes_);
 }
 

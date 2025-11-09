@@ -9,6 +9,7 @@
 #pragma once
 
 #include "GHOST_Context.hh"
+#include "GHOST_Types.h"
 
 #include <Cocoa/Cocoa.h>
 #include <Metal/Metal.h>
@@ -22,6 +23,8 @@
 @class NSView;
 
 class GHOST_ContextMTL : public GHOST_Context {
+  friend class GHOST_XrGraphicsBindingMetal;
+
  public:
   /* Defines the number of simultaneous command buffers which can be in flight.
    * The default limit of `64` is considered to be optimal for Blender. Too many command buffers
@@ -128,10 +131,11 @@ class GHOST_ContextMTL : public GHOST_Context {
   MTLDevice *metalDevice();
 
   /**
-   * Register present callback
+   * Callback registration.
    */
   void metalRegisterPresentCallback(void (*callback)(
       MTLRenderPassDescriptor *, id<MTLRenderPipelineState>, id<MTLTexture>, id<CAMetalDrawable>));
+  void metalRegisterXrBlitCallback(void (*callback)(id<MTLTexture>, int, int, int, int));
 
  private:
   /** Metal state */
@@ -163,6 +167,8 @@ class GHOST_ContextMTL : public GHOST_Context {
                                  id<MTLRenderPipelineState>,
                                  id<MTLTexture>,
                                  id<CAMetalDrawable>);
+  /* XR texture blitting callback. */
+  void (*xrBlitCallback)(id<MTLTexture>, int, int, int, int);
 
   int mtl_SwapInterval;
 

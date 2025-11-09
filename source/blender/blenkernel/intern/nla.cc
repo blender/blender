@@ -38,7 +38,7 @@
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_nla.hh"
-#include "BKE_sound.h"
+#include "BKE_sound.hh"
 
 #include "BLO_read_write.hh"
 

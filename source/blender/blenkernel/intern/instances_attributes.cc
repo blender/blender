@@ -4,7 +4,6 @@
 
 #include "BKE_instances.hh"
 
-#include "attribute_access_intern.hh"
 #include "attribute_storage_access.hh"
 
 namespace blender::bke {

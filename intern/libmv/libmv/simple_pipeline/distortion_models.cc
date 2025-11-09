@@ -333,6 +333,8 @@ struct ApplyNukeIntrinsicsCostFunction {
                                   const int image_height,
                                   const double k1,
                                   const double k2,
+                                  const double p1,
+                                  const double p2,
                                   const double expected_normalized_x,
                                   const double expected_normalized_y)
       : focal_length_x_(focal_length_x),
@@ -343,6 +345,8 @@ struct ApplyNukeIntrinsicsCostFunction {
         image_height_(image_height),
         k1_(k1),
         k2_(k2),
+        p1_(p1),
+        p2_(p2),
         expected_normalized_x_(expected_normalized_x),
         expected_normalized_y_(expected_normalized_y) {}
 
@@ -357,6 +361,8 @@ struct ApplyNukeIntrinsicsCostFunction {
                               image_height_,
                               k1_,
                               k2_,
+                              p1_,
+                              p2_,
                               image_coordinate(0),
                               image_coordinate(1),
                               &actual_normalized_x,
@@ -373,7 +379,7 @@ struct ApplyNukeIntrinsicsCostFunction {
   double principal_point_y_;
   int image_width_;
   int image_height_;
-  double k1_, k2_;
+  double k1_, k2_, p1_, p2_;
   double expected_normalized_x_, expected_normalized_y_;
 };
 
@@ -385,6 +391,8 @@ void ApplyNukeDistortionModel(const double focal_length_x,
                               const int image_height,
                               const double k1,
                               const double k2,
+                              const double p1,
+                              const double p2,
                               const double normalized_x,
                               const double normalized_y,
                               double* image_x,
@@ -406,6 +414,8 @@ void ApplyNukeDistortionModel(const double focal_length_x,
                                                   image_height,
                                                   k1,
                                                   k2,
+                                                  p1,
+                                                  p2,
                                                   normalized_x,
                                                   normalized_y);
   Solver::SolverParameters params;

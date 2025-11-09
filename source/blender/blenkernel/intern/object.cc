@@ -124,7 +124,7 @@
 #include "BKE_scene.hh"
 #include "BKE_shader_fx.h"
 #include "BKE_softbody.h"
-#include "BKE_speaker.h"
+#include "BKE_speaker.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_vfont.hh"
 #include "BKE_volume.hh"

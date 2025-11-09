@@ -133,14 +133,13 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   UVWarpModifierData *umd = (UVWarpModifierData *)md;
   const MDeformVert *dvert;
   int defgrp_index;
-  char uvname[MAX_CUSTOMDATA_LAYER_NAME];
   float warp_mat[4][4];
   const int axis_u = umd->axis_u;
   const int axis_v = umd->axis_v;
   const bool invert_vgroup = (umd->flag & MOD_UVWARP_INVERT_VGROUP) != 0;
 
   /* make sure there are UV Maps available */
-  if (!CustomData_has_layer(&mesh->corner_data, CD_PROP_FLOAT2)) {
+  if (mesh->uv_map_names().is_empty()) {
     return mesh;
   }
 
@@ -191,7 +190,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   translate_m4(warp_mat, -umd->center[0], -umd->center[1], 0.0f);
 
   /* make sure we're using an existing layer */
-  CustomData_validate_layer_name(&mesh->corner_data, CD_PROP_FLOAT2, umd->uvlayer_name, uvname);
+  const blender::StringRef uvname = mesh->uv_map_names().contains(umd->uvlayer_name) ?
+                                        umd->uvlayer_name :
+                                        mesh->active_uv_map_name();
 
   const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();

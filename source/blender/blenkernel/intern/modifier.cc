@@ -707,6 +707,24 @@ Object *BKE_modifiers_is_deformed_by_lattice(Object *ob)
 {
   VirtualModifierData virtual_modifier_data;
   ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
+
+  if (ob->type == OB_GREASE_PENCIL) {
+    GreasePencilLatticeModifierData *gplmd = nullptr;
+    /* return the first selected lattice, this lets us use multiple lattices */
+    for (; md; md = md->next) {
+      if (md->type == eModifierType_GreasePencilLattice) {
+        gplmd = reinterpret_cast<GreasePencilLatticeModifierData *>(md);
+        if (gplmd->object && (gplmd->object->base_flag & BASE_SELECTED)) {
+          return gplmd->object;
+        }
+      }
+    }
+    if (gplmd) { /* if we're still here then return the last lattice */
+      return gplmd->object;
+    }
+    return nullptr;
+  }
+
   LatticeModifierData *lmd = nullptr;
 
   /* return the first selected lattice, this lets us use multiple lattices */

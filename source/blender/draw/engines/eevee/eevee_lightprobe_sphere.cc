@@ -106,7 +106,7 @@ bool SphereProbeModule::ensure_atlas()
    * the resource bindings. */
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_WRITE | GPU_TEXTURE_USAGE_SHADER_READ;
 
-  if (probes_tx_.ensure_2d_array(gpu::TextureFormat::SFLOAT_16_16_16_16,
+  if (probes_tx_.ensure_2d_array(gpu::TextureFormat::SPHERE_PROBE_FORMAT,
                                  int2(SPHERE_PROBE_ATLAS_RES),
                                  instance_.light_probes.sphere_layer_count(),
                                  usage,
@@ -188,6 +188,11 @@ SphereProbeModule::UpdateInfo SphereProbeModule::update_info_from_probe(SpherePr
   return info;
 }
 
+const SphereProbe &SphereProbeModule::world_sphere_probe() const
+{
+  return instance_.light_probes.world_sphere_;
+}
+
 std::optional<SphereProbeModule::UpdateInfo> SphereProbeModule::world_update_info_pop()
 {
   SphereProbe &world_probe = instance_.light_probes.world_sphere_;
@@ -239,9 +244,12 @@ void SphereProbeModule::remap_to_octahedral_projection(const SphereProbeAtlasCoo
     instance_.manager->submit(convolve_ps_);
   }
 
+  /* This is only true for the world probe. */
   if (extract_spherical_harmonics) {
     instance_.manager->submit(sum_sh_ps_);
     instance_.manager->submit(sum_sun_ps_);
+    instance_.lookdev.store_world_probe_data(
+        probes_tx_, atlas_coord, spherical_harmonics_, instance_.world.sunlight);
     /* All volume probe that needs to composite the world probe need to be updated. */
     instance_.volume_probes.update_world_irradiance();
   }

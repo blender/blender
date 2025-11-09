@@ -36,6 +36,13 @@ class Context;
 #define SOURCES_INDEX_VERSION 0
 #define SOURCES_INDEX_SPECIALIZATION_CONSTANTS 1
 
+struct PatchedShaderCreateInfo {
+  shader::ShaderCreateInfo info;
+  shader::ShaderCreateInfoStringCache names;
+
+  PatchedShaderCreateInfo(const shader::ShaderCreateInfo &info_) : info(info_) {}
+};
+
 /**
  * Implementation of shader compilation and uniforms handling.
  * Base class which is then specialized for each implementation (GL, VK, ...).
@@ -65,6 +72,10 @@ class Shader {
    * when updating new materials. */
   Shader *parent_shader_ = nullptr;
 
+  /* In some situation, a backend might want to transform the create infos before it is being
+   * parsed. */
+  std::unique_ptr<PatchedShaderCreateInfo> patched_info_;
+
  public:
   Shader(const char *name);
   virtual ~Shader();
@@ -72,10 +83,18 @@ class Shader {
   /* TODO: Remove `is_batch_compilation`. */
   virtual void init(const shader::ShaderCreateInfo &info, bool is_batch_compilation) = 0;
 
-  virtual void vertex_shader_from_glsl(MutableSpan<StringRefNull> sources) = 0;
-  virtual void geometry_shader_from_glsl(MutableSpan<StringRefNull> sources) = 0;
-  virtual void fragment_shader_from_glsl(MutableSpan<StringRefNull> sources) = 0;
-  virtual void compute_shader_from_glsl(MutableSpan<StringRefNull> sources) = 0;
+  /* Patch create infos for any additional resources that could be needed. */
+  virtual const shader::ShaderCreateInfo &patch_create_info(
+      const shader::ShaderCreateInfo &original_info) = 0;
+
+  virtual void vertex_shader_from_glsl(const shader::ShaderCreateInfo &info,
+                                       MutableSpan<StringRefNull> sources) = 0;
+  virtual void geometry_shader_from_glsl(const shader::ShaderCreateInfo &info,
+                                         MutableSpan<StringRefNull> sources) = 0;
+  virtual void fragment_shader_from_glsl(const shader::ShaderCreateInfo &info,
+                                         MutableSpan<StringRefNull> sources) = 0;
+  virtual void compute_shader_from_glsl(const shader::ShaderCreateInfo &info,
+                                        MutableSpan<StringRefNull> sources) = 0;
   virtual bool finalize(const shader::ShaderCreateInfo *info = nullptr) = 0;
   /* Pre-warms PSOs using parent shader's cached PSO descriptors. Limit specifies maximum PSOs to
    * warm. If -1, compiles all PSO permutations in parent shader.
@@ -92,7 +111,7 @@ class Shader {
   /* Add specialization constant declarations to shader instance. */
   void specialization_constants_init(const shader::ShaderCreateInfo &info);
 
-  std::string defines_declare(const shader::ShaderCreateInfo &info) const;
+  static std::string defines_declare(const shader::ShaderCreateInfo &info);
   virtual std::string resources_declare(const shader::ShaderCreateInfo &info) const = 0;
   virtual std::string vertex_interface_declare(const shader::ShaderCreateInfo &info) const = 0;
   virtual std::string fragment_interface_declare(const shader::ShaderCreateInfo &info) const = 0;
@@ -135,14 +154,23 @@ class ShaderCompiler {
     std::string comp;
   };
 
+  struct Batch;
+  struct ParallelWork {
+    ShaderCompiler *compiler = nullptr;
+    ShaderCompiler::Batch *batch = nullptr;
+    int shader_index = 0;
+    WorkID id = 0;
+  };
+
   struct Batch {
     Vector<Shader *> shaders;
     Vector<const shader::ShaderCreateInfo *> infos;
 
     Vector<ShaderSpecialization> specializations;
 
+    Vector<std::unique_ptr<ParallelWork>> works;
+
     std::atomic<int> pending_compilations = 0;
-    std::atomic<bool> is_cancelled = false;
 
     bool is_specialization_batch()
     {
@@ -169,93 +197,19 @@ class ShaderCompiler {
   std::mutex mutex_;
   std::condition_variable compilation_finished_notification_;
 
-  struct ParallelWork {
-    Batch *batch = nullptr;
-    int shader_index = 0;
-  };
-
-  struct CompilationQueue {
-    std::deque<ParallelWork> low_priority;
-    std::deque<ParallelWork> normal_priority;
-    std::deque<ParallelWork> high_priority;
-
-    void push(ParallelWork &&work, CompilationPriority priority)
-    {
-      switch (priority) {
-        case CompilationPriority::Low:
-          low_priority.push_back(work);
-          break;
-        case CompilationPriority::Medium:
-          normal_priority.push_back(work);
-          break;
-        case CompilationPriority::High:
-          high_priority.push_back(work);
-          break;
-        default:
-          BLI_assert_unreachable();
-          break;
-      }
-    }
-
-    ParallelWork pop()
-    {
-      if (!high_priority.empty()) {
-        ParallelWork work = high_priority.front();
-        high_priority.pop_front();
-        return work;
-      }
-      if (!normal_priority.empty()) {
-        ParallelWork work = normal_priority.front();
-        normal_priority.pop_front();
-        return work;
-      }
-      if (!low_priority.empty()) {
-        ParallelWork work = low_priority.front();
-        low_priority.pop_front();
-        return work;
-      }
-      BLI_assert_unreachable();
-      return {};
-    }
-
-    bool is_empty()
-    {
-      return low_priority.empty() && normal_priority.empty() && high_priority.empty();
-    }
-
-    void remove_batch(Batch *batch)
-    {
-      auto remove = [](std::deque<ParallelWork> &queue, Batch *batch) {
-        for (ParallelWork &work : queue) {
-          if (work.batch == batch) {
-            work = {};
-            batch->pending_compilations--;
-          }
-        }
-
-        queue.erase(std::remove_if(queue.begin(),
-                                   queue.end(),
-                                   [](const ParallelWork &work) { return !work.batch; }),
-                    queue.end());
-      };
-
-      remove(low_priority, batch);
-      remove(normal_priority, batch);
-      remove(high_priority, batch);
-    }
-  };
-  CompilationQueue compilation_queue_;
-
   std::unique_ptr<GPUWorker> compilation_worker_;
 
   bool support_specializations_;
 
-  void *pop_work();
-  void do_work(void *work_payload);
+  static void do_work_static_cb(void *payload);
+  void do_work(ParallelWork &work);
 
   BatchHandle next_batch_handle_ = 1;
 
   bool is_compiling_impl();
+
+  bool is_paused_ = false;
+  std::condition_variable pause_finished_notification_;
 
  protected:
   /* Must be called earlier from the destructor of the subclass if the compilation process relies
@@ -289,6 +243,8 @@ class ShaderCompiler {
 
   bool is_compiling();
   void wait_for_all();
+  void pause_all();
+  void continue_all();
 };
 
 enum class Severity {

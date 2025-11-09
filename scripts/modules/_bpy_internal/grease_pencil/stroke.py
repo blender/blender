@@ -328,7 +328,9 @@ class GreasePencilStroke(AttributeGetterSetter):
         previous_end = self._points_end_index
         new_size = self._points_end_index - self._points_start_index + count
         self._drawing.resize_strokes(
-            sizes=[new_size], indices=[self._curve_index])
+            sizes=[new_size],
+            indices=[self._curve_index],
+        )
         self._points_end_index = self._points_start_index + new_size
         return GreasePencilStrokePointSlice(self._drawing, self._curve_index, previous_end, self._points_end_index)
 
@@ -341,7 +343,9 @@ class GreasePencilStroke(AttributeGetterSetter):
         if new_size < 1:
             new_size = 1
         self._drawing.resize_strokes(
-            sizes=[new_size], indices=[self._curve_index])
+            sizes=[new_size],
+            indices=[self._curve_index],
+        )
         self._points_end_index = self._points_start_index + new_size
 
     @property

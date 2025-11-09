@@ -94,6 +94,8 @@ class Cursor : Overlay {
      * So make sure it is set otherwise it can be in undefined state (see #136911). */
     pass.push_constant("gpu_attr_0_fetch_int", false);
     pass.push_constant("gpu_attr_1_fetch_unorm8", false);
+    pass.push_constant("gpu_attr_0_len", 3);
+    pass.push_constant("gpu_attr_1_len", 3);
     /* See `polyline_draw_workaround`. */
     int3 vert_stride_count_line = {2, 9999 /* Doesn't matter. */, 0};
     int3 vert_stride_count_circle = {1, 9999 /* Doesn't matter. */, 0};

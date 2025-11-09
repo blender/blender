@@ -31,6 +31,6 @@ StripProxy *seq_strip_proxy_alloc();
  *
  * \return collection of effect strips
  */
-blender::Span<Strip *> SEQ_lookup_effects_by_strip(Editing *ed, const Strip *key);
+Span<Strip *> SEQ_lookup_effects_by_strip(Editing *ed, const Strip *key);
 
 }  // namespace blender::seq

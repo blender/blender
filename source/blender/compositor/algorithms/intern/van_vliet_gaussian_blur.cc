@@ -61,14 +61,14 @@ static void sum_causal_and_non_causal_results_cpu(const Result &first_causal_inp
   parallel_for(domain.size, [&](const int2 texel) {
     /* The Van Vliet filter is a parallel interconnection filter, meaning its output is the sum of
      * all of its causal and non causal filters. */
-    float4 filter_output = first_causal_input.load_pixel<float4>(texel) +
-                           first_non_causal_input.load_pixel<float4>(texel) +
-                           second_causal_input.load_pixel<float4>(texel) +
-                           second_non_causal_input.load_pixel<float4>(texel);
+    float4 filter_output = float4(first_causal_input.load_pixel<Color>(texel)) +
+                           float4(first_non_causal_input.load_pixel<Color>(texel)) +
+                           float4(second_causal_input.load_pixel<Color>(texel)) +
+                           float4(second_non_causal_input.load_pixel<Color>(texel));
 
     /* Write the color using the transposed texel. See the sum_causal_and_non_causal_results method
      * for more information on the rational behind this. */
-    output.store_pixel(int2(texel.y, texel.x), filter_output);
+    output.store_pixel(int2(texel.y, texel.x), Color(filter_output));
   });
 }
 
@@ -268,7 +268,7 @@ static void blur_pass_cpu(Context &context,
      * current input is at index 0 and the oldest input is at index FILTER_ORDER. We assume Neumann
      * boundary condition, so we initialize all inputs by the boundary pixel. */
     int2 boundary_texel = is_causal ? int2(0, y) : int2(width - 1, y);
-    float4 input_boundary = input.load_pixel<float4>(boundary_texel);
+    float4 input_boundary = float4(input.load_pixel<Color>(boundary_texel));
     float4 inputs[FILTER_ORDER + 1] = {input_boundary, input_boundary, input_boundary};
 
     /* Create an array that holds the last FILTER_ORDER outputs along with the current output. The
@@ -282,7 +282,7 @@ static void blur_pass_cpu(Context &context,
     for (int x = 0; x < width; x++) {
       /* Run forward across rows for the causal filter and backward for the non causal filter. */
       int2 texel = is_causal ? int2(x, y) : int2(width - 1 - x, y);
-      inputs[0] = input.load_pixel<float4>(texel);
+      inputs[0] = float4(input.load_pixel<Color>(texel));
 
       /* Compute the filter based on its difference equation, this is not in the Van Vliet paper
        * because the filter was decomposed, but it is essentially similar to Equation (28) for the
@@ -306,18 +306,18 @@ static void blur_pass_cpu(Context &context,
        * them in a separate shader dispatch for better parallelism. */
       if (is_causal) {
         if (is_first_filter) {
-          first_causal_output.store_pixel(texel, outputs[0]);
+          first_causal_output.store_pixel(texel, Color(outputs[0]));
         }
         else {
-          second_causal_output.store_pixel(texel, outputs[0]);
+          second_causal_output.store_pixel(texel, Color(outputs[0]));
         }
       }
       else {
         if (is_first_filter) {
-          first_non_causal_output.store_pixel(texel, outputs[0]);
+          first_non_causal_output.store_pixel(texel, Color(outputs[0]));
         }
         else {
-          second_non_causal_output.store_pixel(texel, outputs[0]);
+          second_non_causal_output.store_pixel(texel, Color(outputs[0]));
         }
       }
 

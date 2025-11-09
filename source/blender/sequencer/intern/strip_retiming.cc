@@ -23,7 +23,7 @@
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
-#include "BKE_sound.h"
+#include "BKE_sound.hh"
 
 #include "SEQ_iterator.hh"
 #include "SEQ_retiming.hh"
@@ -271,7 +271,7 @@ bool retiming_key_is_freeze_frame(const SeqRetimingKey *key)
 
 static bool strip_retiming_transition_is_linear(const Strip *strip, const SeqRetimingKey *key)
 {
-  const float prev_speed = retiming_key_speed_get(strip, key - 1);
+  const float prev_speed = retiming_key_speed_get(strip, key);
   const float next_speed = retiming_key_speed_get(strip, key + 2);
 
   return abs(prev_speed - next_speed) < 0.01f;
@@ -737,7 +737,7 @@ static void strip_retiming_fix_transitions(const Scene *scene, Strip *strip, Seq
     }
   }
 
-  if (!retiming_is_last_key(strip, key)) {
+  if (!retiming_is_last_key(strip, &retiming_keys_get(strip)[key_index])) {
     SeqRetimingKey *next_key = &retiming_keys_get(strip)[key_index + 1];
     if (retiming_key_is_transition_start(next_key)) {
       strip_retiming_fix_transition(scene, strip, next_key);
@@ -819,6 +819,7 @@ float retiming_key_speed_get(const Strip *strip, const SeqRetimingKey *key)
     return 1.0f;
   }
 
+  BLI_assert(retiming_key_index_get(strip, key) > 0);
   const SeqRetimingKey *key_prev = key - 1;
   const int frame_index_max = strip->len - 1;
   const float frame_index_start = round_fl_to_int(key_prev->retiming_factor * frame_index_max);
@@ -1098,10 +1099,11 @@ void retiming_sound_animation_data_set(const Scene *scene, const Strip *strip)
   correct_pitch = false;
 #endif
 
-  void *sound_handle = strip->sound ? strip->sound->playback_handle : nullptr;
+  void *sound_handle = BKE_sound_playback_handle_get(strip->sound);
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   if (correct_pitch) {
-    sound_handle = BKE_sound_add_time_stretch_effect(sound_handle, scene_fps);
+    sound_handle = BKE_sound_ensure_time_stretch_effect(
+        sound_handle, strip->scene_sound, scene_fps);
     BKE_sound_set_scene_sound_pitch_constant_range(
         strip->scene_sound, 0, strip->start + strip->len, 1.0f);
   }

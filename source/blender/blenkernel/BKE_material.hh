@@ -209,7 +209,7 @@ void BKE_id_material_eval_ensure_default_slot(ID *id);
  * \param col: new value.
  * \param fac: Zero for is no change.
  */
-void ramp_blend(int type, float r_col[3], float fac, const float col[3]);
+void ramp_blend(int type, float r_col[4], float fac, const float col[4]);
 
 /** \} */
 

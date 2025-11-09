@@ -549,6 +549,7 @@ void Instance::render_sample()
     sampling.step();
 
     capture_view.render_world();
+    lookdev.rotate_world();
     capture_view.render_probes();
 
     main_view.render();

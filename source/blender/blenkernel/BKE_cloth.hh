@@ -227,7 +227,7 @@ void clothModifier_do(ClothModifierData *clmd,
                       Depsgraph *depsgraph,
                       Scene *scene,
                       Object *ob,
-                      Mesh *mesh,
+                      const Mesh *mesh,
                       float (*vertexCos)[3]);
 
 int cloth_uses_vgroup(ClothModifierData *clmd);

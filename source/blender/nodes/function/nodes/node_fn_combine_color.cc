@@ -20,9 +20,52 @@ NODE_STORAGE_FUNCS(NodeCombSepColor)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("Red").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Green").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Blue").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Red")
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .label_fn([](bNode node) {
+        switch (node_storage(node).mode) {
+          case NODE_COMBSEP_COLOR_RGB:
+          default:
+            return IFACE_("Red");
+          case NODE_COMBSEP_COLOR_HSV:
+          case NODE_COMBSEP_COLOR_HSL:
+            return IFACE_("Hue");
+        }
+      });
+  b.add_input<decl::Float>("Green")
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .label_fn([](bNode node) {
+        switch (node_storage(node).mode) {
+          case NODE_COMBSEP_COLOR_RGB:
+          default:
+            return IFACE_("Green");
+          case NODE_COMBSEP_COLOR_HSV:
+          case NODE_COMBSEP_COLOR_HSL:
+            return IFACE_("Saturation");
+        }
+      });
+  b.add_input<decl::Float>("Blue")
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .label_fn([](bNode node) {
+        switch (node_storage(node).mode) {
+          case NODE_COMBSEP_COLOR_RGB:
+          default:
+            return IFACE_("Blue");
+          case NODE_COMBSEP_COLOR_HSV:
+            return CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "Value");
+          case NODE_COMBSEP_COLOR_HSL:
+            return IFACE_("Lightness");
+        }
+      });
   b.add_input<decl::Float>("Alpha").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
   b.add_output<decl::Color>("Color");
 };
@@ -30,12 +73,6 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   layout->prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
-}
-
-static void node_update(bNodeTree * /*tree*/, bNode *node)
-{
-  const NodeCombSepColor &storage = node_storage(*node);
-  node_combsep_color_label(&node->inputs, (NodeCombSepColorMode)storage.mode);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -106,7 +143,6 @@ static void node_register()
   ntype.enum_name_legacy = "COMBINE_COLOR";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
-  ntype.updatefunc = node_update;
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(
       ntype, "NodeCombSepColor", node_free_standard_storage, node_copy_standard_storage);

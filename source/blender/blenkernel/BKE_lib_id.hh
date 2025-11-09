@@ -33,9 +33,9 @@
 #include <optional>
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
 #include "DNA_ID.h"
@@ -470,7 +470,7 @@ enum eLibIDDuplicateFlags {
   LIB_ID_DUPLICATE_IS_ROOT_ID = 1 << 1,
 };
 
-ENUM_OPERATORS(eLibIDDuplicateFlags, LIB_ID_DUPLICATE_IS_ROOT_ID)
+ENUM_OPERATORS(eLibIDDuplicateFlags)
 
 /* `lib_remap.cc` (keep here since they're general functions) */
 /**
@@ -615,6 +615,17 @@ void BKE_libblock_management_main_remove(Main *bmain, void *idv);
 void BKE_libblock_management_usercounts_set(Main *bmain, void *idv);
 void BKE_libblock_management_usercounts_clear(Main *bmain, void *idv);
 
+/**
+ * Flag this linked ID as directly used by another ID in the current blend file.
+ *
+ * If the ID was marked as indirectly/weakly linked, those flags are cleared.
+ *
+ * This is a no-op when `id` is `nullptr` or not linked.
+ *
+ * This status is rechecked for the whole Main data-base as a step of pre-blendfile writing (see
+ * #write_id_direct_linked_data_process_cb() and its usage in #write_file_handle). This ensures
+ * that no reference to indirectly used IDs are kept in the written blendfile.
+ */
 void id_lib_extern(ID *id);
 void id_lib_indirect_weak_link(ID *id);
 /**

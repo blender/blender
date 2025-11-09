@@ -21,12 +21,14 @@ namespace blender::bke {
 std::optional<AttrType> custom_data_type_to_attr_type(const eCustomDataType data_type)
 {
   switch (data_type) {
+    /* These types are not used for actual #CustomData layers. */
     case CD_NUMTYPES:
     case CD_AUTO_FROM_NAME:
     case CD_TANGENT:
-      /* These type is not used for actual #CustomData layers. */
       BLI_assert_unreachable();
       return std::nullopt;
+
+    /* These types are only used for versioning old files. */
     case CD_MVERT:
     case CD_MSTICKY:
     case CD_MEDGE:
@@ -44,29 +46,43 @@ std::optional<AttrType> custom_data_type_to_attr_type(const eCustomDataType data
     case CD_TESSLOOPNORMAL:
     case CD_FREESTYLE_EDGE:
     case CD_FREESTYLE_FACE:
-      /* These types are only used for versioning old files. */
       return std::nullopt;
+
+    /* These types are only used for #BMesh. */
     case CD_SHAPEKEY:
     case CD_SHAPE_KEYINDEX:
     case CD_BM_ELEM_PYPTR:
-      /* These types are only used for #BMesh. */
       return std::nullopt;
-    case CD_MDEFORMVERT:
+
+    /* Only used for legacy #MFace data. */
     case CD_MFACE:
-    case CD_MCOL:
-    case CD_ORIGINDEX:
-    case CD_NORMAL:
     case CD_ORIGSPACE:
+    case CD_MCOL:
+      return std::nullopt;
+
+    /* Custom data on vertices. */
+    case CD_MDEFORMVERT:
+    case CD_MVERT_SKIN:
     case CD_ORCO:
-    case CD_MDISPS:
     case CD_CLOTH_ORCO:
+      return std::nullopt;
+
+    /* Custom data on face corners. */
+    case CD_NORMAL:
+    case CD_MDISPS:
     case CD_ORIGSPACE_MLOOP:
     case CD_GRID_PAINT_MASK:
-    case CD_MVERT_SKIN:
-    case CD_MLOOPTANGENT:
-      /* These types are not generic. They will either be moved to some generic data type or
-       * #AttributeStorage will be extended to be able to support a similar format. */
       return std::nullopt;
+
+    /* Use for editing/selecting original data from evaluated mesh (vertices, edges, faces). */
+    case CD_ORIGINDEX:
+      return std::nullopt;
+
+    /* Used as a cache of tangents for current RNA API (face corners). */
+    case CD_MLOOPTANGENT:
+      return std::nullopt;
+
+    /* Attribute types. */
     case CD_PROP_FLOAT:
       return AttrType::Float;
     case CD_PROP_INT32:

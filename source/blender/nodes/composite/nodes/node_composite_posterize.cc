@@ -16,6 +16,8 @@
 
 #include "GPU_material.hh"
 
+#include "COM_result.hh"
+
 #include "node_composite_util.hh"
 
 /* **************** Posterize ******************** */
@@ -44,13 +46,20 @@ static int node_gpu_material(GPUMaterial *material,
   return GPU_stack_link(material, node, "node_composite_posterize", inputs, outputs);
 }
 
+using blender::compositor::Color;
+
+static float4 posterize(const float4 &color, const float steps)
+{
+  const float sanitized_steps = math::clamp(steps, 2.0f, 1024.0f);
+  return float4(math::floor(color.xyz() * sanitized_steps) / sanitized_steps, color.w);
+}
+
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  static auto function = mf::build::SI2_SO<float4, float, float4>(
+  static auto function = mf::build::SI2_SO<Color, float, Color>(
       "Posterize",
-      [](const float4 &color, const float steps) -> float4 {
-        const float sanitized_steps = math::clamp(steps, 2.0f, 1024.0f);
-        return float4(math::floor(color.xyz() * sanitized_steps) / sanitized_steps, color.w);
+      [](const Color &color, const float steps) -> Color {
+        return Color(posterize(float4(color), steps));
       },
       mf::build::exec_presets::SomeSpanOrSingle<0>());
   builder.set_matching_fn(function);

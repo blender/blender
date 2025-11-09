@@ -190,7 +190,10 @@ struct DrawKeylistUIData {
   float unsel_color[4];
   float sel_mhcol[4];
   float unsel_mhcol[4];
-  float ipo_color[4];
+
+  float ipo_color_linear[4];
+  float ipo_color_constant[4];
+  float ipo_color_other[4];
   float ipo_color_mix[4];
 
   /* Show interpolation and handle type? */
@@ -218,18 +221,22 @@ static void channel_ui_data_init(DrawKeylistUIData *ctx,
 
   UI_GetThemeColor4fv(TH_LONGKEY_SELECT, ctx->sel_color);
   UI_GetThemeColor4fv(TH_LONGKEY, ctx->unsel_color);
-  UI_GetThemeColor4fv(TH_DOPESHEET_IPOLINE, ctx->ipo_color);
+  UI_GetThemeColor4fv(TH_DOPESHEET_IPOLINE, ctx->ipo_color_linear);
+  UI_GetThemeColor4fv(TH_DOPESHEET_IPOCONST, ctx->ipo_color_constant);
+  UI_GetThemeColor4fv(TH_DOPESHEET_IPOOTHER, ctx->ipo_color_other);
+  UI_GetThemeColor4fv(TH_KEYTYPE_KEYFRAME, ctx->ipo_color_mix);
 
   ctx->sel_color[3] *= ctx->alpha;
   ctx->unsel_color[3] *= ctx->alpha;
-  ctx->ipo_color[3] *= ctx->alpha;
+  ctx->ipo_color_linear[3] *= ctx->alpha;
+  ctx->ipo_color_constant[3] *= ctx->alpha;
+  ctx->ipo_color_other[3] *= ctx->alpha;
+  ctx->ipo_color_mix[3] *= ctx->alpha * 0.5f;
 
   copy_v4_v4(ctx->sel_mhcol, ctx->sel_color);
   ctx->sel_mhcol[3] *= 0.8f;
   copy_v4_v4(ctx->unsel_mhcol, ctx->unsel_color);
   ctx->unsel_mhcol[3] *= 0.8f;
-  copy_v4_v4(ctx->ipo_color_mix, ctx->ipo_color);
-  ctx->ipo_color_mix[3] *= 0.5f;
 }
 
 static void draw_keylist_block_gpencil(const DrawKeylistUIData *ctx,
@@ -298,11 +305,30 @@ static void draw_keylist_block_interpolation_line(const DrawKeylistUIData *ctx,
   box.ymin = ypos - ctx->ipo_size;
   box.ymax = ypos + ctx->ipo_size;
 
-  UI_draw_roundbox_4fv(&box,
-                       true,
-                       3.0f,
-                       (ab->block.conflict & ACTKEYBLOCK_FLAG_NON_BEZIER) ? ctx->ipo_color_mix :
-                                                                            ctx->ipo_color);
+  /* Color for interpolation lines based on their type */
+  const float *color = nullptr;
+
+  constexpr short IPO_FLAGS = ACTKEYBLOCK_FLAG_IPO_OTHER | ACTKEYBLOCK_FLAG_IPO_LINEAR |
+                              ACTKEYBLOCK_FLAG_IPO_CONSTANT;
+  if (ab->block.conflict & IPO_FLAGS) {
+    /* This is a summary line that combines multiple interpolation modes. */
+    color = ctx->ipo_color_mix;
+  }
+  else if (ab->block.flag & ACTKEYBLOCK_FLAG_IPO_OTHER) {
+    color = ctx->ipo_color_other;
+  }
+  else if (ab->block.flag & ACTKEYBLOCK_FLAG_IPO_LINEAR) {
+    color = ctx->ipo_color_linear;
+  }
+  else if (ab->block.flag & ACTKEYBLOCK_FLAG_IPO_CONSTANT) {
+    color = ctx->ipo_color_constant;
+  }
+  else {
+    /* No line to draw. */
+    return;
+  }
+
+  UI_draw_roundbox_4fv(&box, true, 3.0f, color);
 }
 
 static void draw_keylist_block(const DrawKeylistUIData *ctx, const ActKeyColumn *ab, float ypos)
@@ -326,9 +352,7 @@ static void draw_keylist_block(const DrawKeylistUIData *ctx, const ActKeyColumn 
         draw_keylist_block_standard(ctx, ab, ypos);
       }
     }
-    if (ctx->show_ipo && actkeyblock_is_valid(ab) &&
-        (ab->block.flag & ACTKEYBLOCK_FLAG_NON_BEZIER))
-    {
+    if (ctx->show_ipo && actkeyblock_is_valid(ab) && (ab->block.flag)) {
       /* draw an interpolation line */
       draw_keylist_block_interpolation_line(ctx, ab, ypos);
     }

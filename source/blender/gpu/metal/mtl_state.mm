@@ -115,19 +115,6 @@ void MTLStateManager::set_state(const GPUState &state)
   current_ = state;
 }
 
-void MTLStateManager::mtl_depth_range(float near, float far)
-{
-  BLI_assert(context_);
-  BLI_assert(near >= 0.0 && near < 1.0);
-  BLI_assert(far > 0.0 && far <= 1.0);
-  MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
-  MTLContextDepthStencilState &ds_state = pipeline_state.depth_stencil_state;
-
-  ds_state.depth_range_near = near;
-  ds_state.depth_range_far = far;
-  pipeline_state.dirty_flags |= MTL_PIPELINE_STATE_VIEWPORT_FLAG;
-}
-
 void MTLStateManager::set_mutable_state(const GPUStateMutable &state)
 {
   GPUStateMutable changed = state ^ current_mutable_;
@@ -141,11 +128,6 @@ void MTLStateManager::set_mutable_state(const GPUStateMutable &state)
   if (changed.line_width != 0) {
     pipeline_state.line_width = state.line_width;
     pipeline_state.dirty_flags |= MTL_PIPELINE_STATE_PSO_FLAG;
-  }
-
-  if (float_as_uint(changed.depth_range[0]) != 0 || float_as_uint(changed.depth_range[1]) != 0) {
-    /* TODO remove, should modify the projection matrix instead. */
-    mtl_depth_range(state.depth_range[0], state.depth_range[1]);
   }
 
   if (changed.stencil_compare_mask != 0 || changed.stencil_reference != 0 ||
@@ -474,6 +456,9 @@ void MTLStateManager::set_blend(const GPUBlend value)
       dst_alpha = MTLBlendFactorOne;
       break;
     }
+    /* Factors are not use in min or max mode, but avoid uninitialized values. */;
+    case GPU_BLEND_MIN:
+    case GPU_BLEND_MAX:
     case GPU_BLEND_SUBTRACT:
     case GPU_BLEND_ADDITIVE_PREMULT: {
       /* Let alpha accumulate. */
@@ -538,7 +523,15 @@ void MTLStateManager::set_blend(const GPUBlend value)
   BLI_assert(context_);
   MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
 
-  if (value == GPU_BLEND_SUBTRACT) {
+  if (value == GPU_BLEND_MIN) {
+    pipeline_state.rgb_blend_op = MTLBlendOperationMin;
+    pipeline_state.alpha_blend_op = MTLBlendOperationMin;
+  }
+  else if (value == GPU_BLEND_MAX) {
+    pipeline_state.rgb_blend_op = MTLBlendOperationMax;
+    pipeline_state.alpha_blend_op = MTLBlendOperationMax;
+  }
+  else if (value == GPU_BLEND_SUBTRACT) {
     pipeline_state.rgb_blend_op = MTLBlendOperationReverseSubtract;
     pipeline_state.alpha_blend_op = MTLBlendOperationReverseSubtract;
   }

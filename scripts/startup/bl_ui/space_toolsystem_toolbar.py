@@ -1945,9 +1945,10 @@ class _defs_vertex_paint:
         if context is None:
             return True
         ob = context.active_object
-        return (ob and ob.type == 'MESH' and
-                (ob.data.use_paint_mask or
-                 ob.data.use_paint_mask_vertex))
+        return (
+            ob and ob.type == 'MESH' and
+            (ob.data.use_paint_mask or ob.data.use_paint_mask_vertex)
+        )
 
     @ToolDef.from_fn
     def blur():

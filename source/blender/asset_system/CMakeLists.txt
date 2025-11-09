@@ -59,6 +59,7 @@ add_library(bf::asset_system ALIAS bf_asset_system)
 
 if(WITH_GTESTS)
   set(TEST_INC
+    ../editors/asset
   )
   set(TEST_SRC
     tests/asset_catalog_path_test.cc
@@ -73,6 +74,7 @@ if(WITH_GTESTS)
   )
   set(TEST_LIB
     bf_asset_system
+    PRIVATE bf_editor_asset
   )
   blender_add_test_suite_lib(asset_system
     "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}" "${TEST_COMMON_SRC}"

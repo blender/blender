@@ -21,11 +21,11 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
-#include "BLI_utildefines.h"
 
 struct ID;
 struct Main;
@@ -206,7 +206,7 @@ void BKE_libblock_relink_multiple(Main *bmain,
  * \note `ID_TAG_NEW` is cleared.
  *
  * Very specific usage, not sure we'll keep it on the long run,
- * currently only used in Object/Collection duplication code.
+ * currently only used in Scene/Object/Collection duplication code.
  */
 void BKE_libblock_relink_to_newid(Main *bmain, ID *id, int remap_flag) ATTR_NONNULL();
 
@@ -260,7 +260,7 @@ enum IDRemapperApplyOptions {
 
   ID_REMAP_APPLY_DEFAULT = 0,
 };
-ENUM_OPERATORS(IDRemapperApplyOptions, ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF)
+ENUM_OPERATORS(IDRemapperApplyOptions)
 
 using IDRemapperIterFunction = void (*)(ID *old_id, ID *new_id, void *user_data);
 using IDTypeFilter = uint64_t;

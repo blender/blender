@@ -29,6 +29,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
@@ -566,7 +567,7 @@ static void seq_load_apply_generic_options(bContext *C, wmOperator *op, Strip *s
 
   if (RNA_boolean_get(op->ptr, "overlap_shuffle_override")) {
     /* Use set overlap_mode to fix overlaps. */
-    blender::VectorSet<Strip *> strip_col;
+    VectorSet<Strip *> strip_col;
     strip_col.add(strip);
 
     ScrArea *area = CTX_wm_area(C);
@@ -678,7 +679,7 @@ void SEQUENCER_OT_scene_strip_add(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Add Scene Strip";
   ot->idname = "SEQUENCER_OT_scene_strip_add";
-  ot->description = "Add a strip to the sequencer using a Blender scene as a source";
+  ot->description = "Add a strip re-using this scene as the source";
 
   /* API callbacks. */
   ot->invoke = sequencer_add_scene_strip_invoke;
@@ -772,7 +773,7 @@ void SEQUENCER_OT_scene_strip_add_new(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Add Strip with a new Scene";
   ot->idname = "SEQUENCER_OT_scene_strip_add_new";
-  ot->description = "Create a new Strip and assign a new Scene as source";
+  ot->description = "Add a strip using a new scene as the source";
 
   /* API callbacks. */
   ot->invoke = sequencer_add_scene_strip_new_invoke;
@@ -807,7 +808,12 @@ static Scene *sequencer_add_scene_asset(const bContext &C,
 
   if (asset.is_local_id()) {
     /* Local scene that needs to be duplicated. */
-    Scene *scene_copy = BKE_scene_duplicate(&bmain, scene_asset, SCE_COPY_FULL);
+    Scene *scene_copy = BKE_scene_duplicate(
+        &bmain,
+        scene_asset,
+        SCE_COPY_FULL,
+        static_cast<eDupli_ID_Flags>(U.dupflag | USER_DUP_OBJECT),
+        LIB_ID_DUPLICATE_IS_ROOT_ID);
     return scene_copy;
   }
   return scene_asset;
@@ -883,7 +889,7 @@ static std::string sequencer_add_scene_asset_get_description(bContext *C,
 void SEQUENCER_OT_add_scene_strip_from_scene_asset(wmOperatorType *ot)
 {
   ot->name = "Add Scene Asset";
-  ot->description = "Add a scene strip from a scene asset";
+  ot->description = "Add a strip using a duplicate of this scene asset as the source";
   ot->idname = "SEQUENCER_OT_add_scene_strip_from_scene_asset";
 
   ot->invoke = sequencer_add_scene_asset_invoke;
@@ -1087,7 +1093,7 @@ static IMB_Proxy_Size seq_get_proxy_size_flags(bContext *C)
   return proxy_sizes;
 }
 
-static void seq_build_proxy(bContext *C, blender::Span<Strip *> movie_strips)
+static void seq_build_proxy(bContext *C, Span<Strip *> movie_strips)
 {
   if (U.sequencer_proxy_setup != USER_SEQ_PROXY_SETUP_AUTOMATIC) {
     return;
@@ -1137,7 +1143,7 @@ static void sequencer_add_movie_sync_sound_strip(
 static void sequencer_add_movie_multiple_strips(bContext *C,
                                                 wmOperator *op,
                                                 seq::LoadData *load_data,
-                                                blender::VectorSet<Strip *> &r_movie_strips)
+                                                VectorSet<Strip *> &r_movie_strips)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_sequencer_scene(C);
@@ -1145,7 +1151,7 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
   bool overlap_shuffle_override = RNA_boolean_get(op->ptr, "overlap") == false &&
                                   RNA_boolean_get(op->ptr, "overlap_shuffle_override");
   bool has_seq_overlap = false;
-  blender::Vector<Strip *> added_strips;
+  Vector<Strip *> added_strips;
 
   RNA_BEGIN (op->ptr, itemptr, "files") {
     char dir_only[FILE_MAX];
@@ -1210,7 +1216,7 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
 static bool sequencer_add_movie_single_strip(bContext *C,
                                              wmOperator *op,
                                              seq::LoadData *load_data,
-                                             blender::VectorSet<Strip *> &r_movie_strips)
+                                             VectorSet<Strip *> &r_movie_strips)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_sequencer_scene(C);
@@ -1218,7 +1224,7 @@ static bool sequencer_add_movie_single_strip(bContext *C,
 
   Strip *strip_movie = nullptr;
   Strip *strip_sound = nullptr;
-  blender::Vector<Strip *> added_strips;
+  Vector<Strip *> added_strips;
 
   strip_movie = seq::add_movie_strip(bmain, scene, ed->current_strips(), load_data);
 
@@ -1297,7 +1303,7 @@ static wmOperatorStatus sequencer_add_movie_strip_exec(bContext *C, wmOperator *
     deselect_all_strips(scene);
   }
 
-  blender::VectorSet<Strip *> movie_strips;
+  VectorSet<Strip *> movie_strips;
   const int tot_files = RNA_property_collection_length(op->ptr,
                                                        RNA_struct_find_property(op->ptr, "files"));
 
@@ -1786,7 +1792,7 @@ static wmOperatorStatus sequencer_add_image_strip_exec(bContext *C, wmOperator *
      * is set, every frame between `offset` and `max_framenr` . */
     sequencer_add_image_strip_load_files(op, scene, strip, &load_data, range);
 
-    seq::add_image_init_alpha_mode(strip);
+    seq::add_image_init_alpha_mode(bmain, scene, strip);
 
     /* Adjust starting length of strip.
      * Note that this length differs from `strip->len`, which is always 1 for single images. */

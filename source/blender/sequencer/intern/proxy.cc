@@ -34,7 +34,6 @@
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
-#include "IMB_metadata.hh"
 
 #include "MOV_read.hh"
 
@@ -361,7 +360,7 @@ static bool seq_proxy_multiview_context_invalid(Strip *strip,
       char filepath[FILE_MAX];
       BLI_path_join(
           filepath, sizeof(filepath), strip->data->dirpath, strip->data->stripdata->filename);
-      BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
+      BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&scene->id));
       BKE_scene_multiview_view_prefix_get(scene, filepath, prefix_vars->prefix, &prefix_vars->ext);
     }
 
@@ -432,7 +431,7 @@ bool proxy_rebuild_context(Main *bmain,
                            Depsgraph *depsgraph,
                            Scene *scene,
                            Strip *strip,
-                           blender::Set<std::string> *processed_paths,
+                           Set<std::string> *processed_paths,
                            ListBase *queue,
                            bool build_only_on_bad_performance)
 {
@@ -552,7 +551,7 @@ void proxy_rebuild(IndexBuildContext *context, wmJobWorkerStatus *worker_status)
                          width,
                          height,
                          SEQ_RENDER_SIZE_PROXY_100,
-                         false,
+                         nullptr,
                          &render_context);
 
   render_context.skip_cache = true;

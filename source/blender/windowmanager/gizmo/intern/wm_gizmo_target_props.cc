@@ -17,6 +17,7 @@
 #include "WM_message.hh"
 #include "WM_types.hh"
 
+#include "ED_keyframes_edit.hh"
 #include "ED_screen.hh"
 
 #include "ANIM_keyframing.hh"
@@ -86,6 +87,7 @@ void WM_gizmo_target_property_def_func_ptr(wmGizmo *gz,
   gz_prop->custom_func.value_set_fn = params->value_set_fn;
   gz_prop->custom_func.range_get_fn = params->range_get_fn;
   gz_prop->custom_func.free_fn = params->free_fn;
+  gz_prop->custom_func.foreach_rna_prop_fn = params->foreach_rna_prop_fn;
   gz_prop->custom_func.user_data = params->user_data;
 
   if (gz->type->property_update) {
@@ -310,8 +312,18 @@ void WM_gizmo_target_property_anim_autokey(bContext *C,
     Scene *scene = CTX_data_scene(C);
     const float cfra = float(scene->r.cfra);
     const int index = gz_prop->index == -1 ? 0 : gz_prop->index;
+    ANIM_deselect_keys_in_animation_editors(C);
     blender::animrig::autokeyframe_property(
         C, scene, &gz_prop->ptr, gz_prop->prop, index, cfra, false);
+  }
+  else if (gz_prop->custom_func.foreach_rna_prop_fn) {
+    Scene *scene = CTX_data_scene(C);
+    auto autokey_fn = [C, scene](PointerRNA &ptr, PropertyRNA *prop, int index) {
+      blender::animrig::autokeyframe_property(
+          C, scene, &ptr, prop, index, float(scene->r.cfra), false);
+    };
+    ANIM_deselect_keys_in_animation_editors(C);
+    gz_prop->custom_func.foreach_rna_prop_fn(gz_prop, autokey_fn);
   }
 }
 

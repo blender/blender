@@ -61,6 +61,10 @@
 
 #pragma once
 
+#include "BLI_index_range.hh"
+
+#include <string>
+
 #define GPU_DEBUG_SHADER_COMPILATION_GROUP "Shader Compilation"
 #define GPU_DEBUG_SHADER_SPECIALIZATION_GROUP "Shader Specialization"
 
@@ -71,6 +75,7 @@ void GPU_debug_group_end();
  * "Group1 > Group 2 > Group3 > ... > GroupN : "
  */
 void GPU_debug_get_groups_names(int name_buf_len, char *r_name_buf);
+std::string GPU_debug_get_groups_names(blender::IndexRange levels = blender::IndexRange(0, 9999));
 /**
  * Return true if inside a debug group with the same name.
  */

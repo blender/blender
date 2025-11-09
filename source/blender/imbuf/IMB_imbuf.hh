@@ -11,8 +11,8 @@
 
 #include "../gpu/GPU_texture.hh"
 
+#include "BLI_enum_flags.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_utildefines.h"
 
 #include "IMB_imbuf_types.hh"
 
@@ -54,7 +54,7 @@ ImBuf *IMB_load_image_from_filepath(const char *filepath,
  */
 bool IMB_save_image(ImBuf *ibuf, const char *filepath, const int flags);
 
-/*
+/**
  * Test image file.
  */
 bool IMB_test_image(const char *filepath);
@@ -62,7 +62,7 @@ bool IMB_test_image_type_matches(const char *filepath, int filetype);
 int IMB_test_image_type_from_memory(const unsigned char *buf, size_t buf_size);
 int IMB_test_image_type(const char *filepath);
 
-/*
+/**
  * Load thumbnail image.
  */
 enum class IMBThumbLoadFlags {
@@ -71,14 +71,14 @@ enum class IMBThumbLoadFlags {
    */
   LoadLargeFiles = (1 << 0),
 };
-ENUM_OPERATORS(IMBThumbLoadFlags, IMBThumbLoadFlags::LoadLargeFiles);
+ENUM_OPERATORS(IMBThumbLoadFlags);
 
 ImBuf *IMB_thumb_load_image(const char *filepath,
                             const size_t max_thumb_size,
                             char colorspace[IM_MAX_SPACE],
                             const IMBThumbLoadFlags load_flags = IMBThumbLoadFlags::Zero);
 
-/*
+/**
  * Allocate and free image buffer.
  */
 ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y, unsigned char planes, unsigned int flags);
@@ -448,7 +448,7 @@ void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, const float b
 void IMB_flipx(ImBuf *ibuf);
 void IMB_flipy(ImBuf *ibuf);
 
-/* Rotate by 90 degree increments. Returns true if the ImBuf is altered. */
+/** Rotate by 90 degree increments. Returns true if the ImBuf is altered. */
 bool IMB_rotate_orthogonal(ImBuf *ibuf, int degrees);
 
 /* Pre-multiply alpha. */
@@ -514,8 +514,10 @@ void IMB_free_float_pixels(ImBuf *ibuf);
 /** Deallocate all CPU side data storage (byte, float, encoded). */
 void IMB_free_all_data(ImBuf *ibuf);
 
-/* Free the GPU textures of the given image buffer, leaving the CPU buffers unchanged.
- * The ibuf can be nullptr, in which case the function does nothing. */
+/**
+ * Free the GPU textures of the given image buffer, leaving the CPU buffers unchanged.
+ * The ibuf can be nullptr, in which case the function does nothing.
+ */
 void IMB_free_gpu_textures(ImBuf *ibuf);
 
 /**

@@ -165,7 +165,7 @@ class ConvertToDisplayOperation : public NodeOperation {
     output_image.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
-      output_image.store_pixel(texel, input_image.load_pixel<float4>(texel));
+      output_image.store_pixel(texel, input_image.load_pixel<Color>(texel));
     });
 
     IMB_colormanagement_processor_apply(color_processor,
@@ -184,7 +184,7 @@ class ConvertToDisplayOperation : public NodeOperation {
         &nctd.view_settings, &nctd.display_settings, DISPLAY_SPACE_VIDEO_OUTPUT, do_inverse());
 
     Result &input_image = get_input("Image");
-    float4 color = input_image.get_single_value<float4>();
+    Color color = input_image.get_single_value<Color>();
 
     IMB_colormanagement_processor_apply_pixel(color_processor, color, 3);
     IMB_colormanagement_processor_free(color_processor);

@@ -9,7 +9,7 @@
 using namespace metal;
 
 /* Generate wrapper structs for combined texture and sampler type. */
-#if MTL_ARGUMENT_BUFFER_NUM_SAMPLERS > 0
+#ifdef MTL_USE_SAMPLER_ARGUMENT_BUFFER
 using sampler_ptr = constant sampler *;
 #else
 using sampler_ptr = thread sampler *;
@@ -53,6 +53,9 @@ struct _mtl_sampler {
   /* clang-format on */
   /* Using `using` would invalidate the whole class. */
 #define gradient typename gradient_n<Dim, Cube>::type
+
+  thread TextureT *texture;
+  sampler_ptr samp = nullptr;
 
 #ifndef MTL_SUPPORTS_TEXTURE_ATOMICS
   /* If native texture atomics are unsupported, we instead utilize a custom type which wraps a
@@ -140,13 +143,14 @@ struct _mtl_sampler {
     }
   };
 
-  AtomicEmulation<T, Dim + Array, Atomic> atomic;
+  AtomicEmulation<T, Dim + Array, Atomic> atomic = {};
 #endif
 
-  thread TextureT *texture;
-  sampler_ptr samp;
+  template<int dim, int array, bool At = false> SizeVec size_impl(uint lod) const
+  {
+    return 0; /* Reference implementation. Never used in practice. */
+  }
 
-  template<int dim, int array, bool At = false> SizeVec size_impl(uint lod) const {}
   template<> SizeVec size_impl<1, 0>(uint lod) const
   {
     return SizeVec(texture->get_width());
@@ -168,6 +172,10 @@ struct _mtl_sampler {
     return SizeVec(texture->get_width(lod), texture->get_height(lod), texture->get_depth(lod));
   }
 #ifndef MTL_SUPPORTS_TEXTURE_ATOMICS
+  template<> SizeVec size_impl<2, 0, true>(uint lod) const
+  {
+    return SizeVec(texture->get_width(lod), texture->get_height(lod));
+  }
   template<> SizeVec size_impl<2, 1, true>(uint lod) const
   {
     return SizeVec(atomic.texture_size);
@@ -471,39 +479,22 @@ struct _mtl_sampler {
 
 /* Add any types as needed. */
 #define TEMPLATE template<typename T = float, access A = access::sample>
-TEMPLATE using sampler2DDepth = _mtl_sampler<T, A, depth2d<T, A>, true, 2, 0, 0>;
-TEMPLATE using sampler2DArrayDepth = _mtl_sampler<T, A, depth2d_array<T, A>, true, 2, 0, 1>;
-TEMPLATE using depthCube = _mtl_sampler<T, A, texturecube<T, A>, true, 2, 1, 1>;
-TEMPLATE using depthCubeArray = _mtl_sampler<T, A, texturecube_array<T, A>, true, 2, 1, 1>;
-TEMPLATE using sampler1D = _mtl_sampler<T, A, texture1d<T, A>, false, 1, 0, 0>;
-TEMPLATE using sampler1DArray = _mtl_sampler<T, A, texture1d_array<T, A>, false, 1, 0, 1>;
-TEMPLATE using sampler2D = _mtl_sampler<T, A, texture2d<T, A>, false, 2, 0, 0>;
-TEMPLATE using sampler2DArray = _mtl_sampler<T, A, texture2d_array<T, A>, false, 2, 0, 1>;
-TEMPLATE using sampler3D = _mtl_sampler<T, A, texture3d<T, A>, false, 3, 0, 0>;
-TEMPLATE using samplerBuffer = _mtl_sampler<T, A, texture_buffer<T, A>, false, 1, 0, 0>;
-TEMPLATE using samplerCube = _mtl_sampler<T, A, texturecube<T, A>, false, 2, 1, 0>;
-TEMPLATE using samplerCubeArray = _mtl_sampler<T, A, texturecube_array<T, A>, false, 2, 1, 1>;
-/* Atomic textures are defined as 2D textures with special layout for 3D texture emulation. */
-TEMPLATE using sampler2DAtomic = _mtl_sampler<T, A, texture2d<T, A>, false, 2, 0, 0, true>;
-TEMPLATE using sampler2DArrayAtomic = _mtl_sampler<T, A, texture2d<T, A>, false, 2, 0, 1, true>;
-TEMPLATE using sampler3DAtomic = _mtl_sampler<T, A, texture2d<T, A>, false, 3, 0, 0, true>;
+TEMPLATE using _sampler2DDepth = _mtl_sampler<T, A, depth2d<T, A>, true, 2, 0, 0>;
+TEMPLATE using _sampler2DArrayDepth = _mtl_sampler<T, A, depth2d_array<T, A>, true, 2, 0, 1>;
+TEMPLATE using _samplerCubeDepth = _mtl_sampler<T, A, texturecube<T, A>, true, 2, 1, 1>;
+TEMPLATE using _samplerCubeArrayDepth = _mtl_sampler<T, A, texturecube_array<T, A>, true, 2, 1, 1>;
+TEMPLATE using _sampler1D = _mtl_sampler<T, A, texture1d<T, A>, false, 1, 0, 0>;
+TEMPLATE using _sampler1DArray = _mtl_sampler<T, A, texture1d_array<T, A>, false, 1, 0, 1>;
+TEMPLATE using _sampler2D = _mtl_sampler<T, A, texture2d<T, A>, false, 2, 0, 0>;
+TEMPLATE using _sampler2DArray = _mtl_sampler<T, A, texture2d_array<T, A>, false, 2, 0, 1>;
+TEMPLATE using _sampler3D = _mtl_sampler<T, A, texture3d<T, A>, false, 3, 0, 0>;
+TEMPLATE using _samplerBuffer = _mtl_sampler<T, A, texture_buffer<T, A>, false, 1, 0, 0>;
+TEMPLATE using _samplerCube = _mtl_sampler<T, A, texturecube<T, A>, false, 2, 1, 0>;
+TEMPLATE using _samplerCubeArray = _mtl_sampler<T, A, texturecube_array<T, A>, false, 2, 1, 1>;
 
-/* Used by backend to declare the samplers. Could be removed. */
-TEMPLATE using _mtl_sampler_depth_2d = sampler2DDepth<T, A>;
-TEMPLATE using _mtl_sampler_depth_2d_array = sampler2DArrayDepth<T, A>;
-TEMPLATE using _mtl_sampler_depth_cube = depthCube<T, A>;
-TEMPLATE using _mtl_sampler_depth_cube_array = depthCubeArray<T, A>;
-TEMPLATE using _mtl_sampler_1d = sampler1D<T, A>;
-TEMPLATE using _mtl_sampler_1d_array = sampler1DArray<T, A>;
-TEMPLATE using _mtl_sampler_2d = sampler2D<T, A>;
-TEMPLATE using _mtl_sampler_2d_array = sampler2DArray<T, A>;
-TEMPLATE using _mtl_sampler_3d = sampler3D<T, A>;
-TEMPLATE using _mtl_sampler_buffer = samplerBuffer<T, A>;
-TEMPLATE using _mtl_sampler_cube = samplerCube<T, A>;
-TEMPLATE using _mtl_sampler_cube_array = samplerCubeArray<T, A>;
-TEMPLATE using _mtl_sampler_2d_atomic = sampler2DAtomic<T, A>;
-TEMPLATE using _mtl_sampler_2d_array_atomic = sampler2DArrayAtomic<T, A>;
-TEMPLATE using _mtl_sampler_3d_atomic = sampler3DAtomic<T, A>;
+TEMPLATE using _sampler2DAtomic = _mtl_sampler<T, A, texture2d<T, A>, false, 2, 0, 0, true>;
+TEMPLATE using _sampler2DArrayAtomic = _mtl_sampler<T, A, texture2d<T, A>, false, 2, 0, 1, true>;
+TEMPLATE using _sampler3DAtomic = _mtl_sampler<T, A, texture2d<T, A>, false, 3, 0, 0, true>;
 #undef TEMPLATE
 
 /** Sampler functions */
@@ -566,100 +557,97 @@ SAMPLER_FN DataVec texelFetchOffset(SamplerT texture, IntCoord coord, int lod, I
 
 /* Variant for 1D samplers. Discard the lod. */
 template<typename T, access A>
-typename sampler1D<T, A>::DataVec texelFetch(sampler1D<T, A> texture, int coord, int lod = 0)
+typename _sampler1D<T, A>::DataVec texelFetch(_sampler1D<T, A> texture, int coord, int lod = 0)
 {
   return texture.fetch(coord);
 }
 
 /* Variant for 1DArray samplers. Discard the lod. */
 template<typename T, access A>
-typename sampler1DArray<T, A>::DataVec texelFetch(sampler1DArray<T, A> texture,
-                                                  int2 coord,
-                                                  int lod = 0)
+typename _sampler1DArray<T, A>::DataVec texelFetch(_sampler1DArray<T, A> texture,
+                                                   int2 coord,
+                                                   int lod = 0)
 {
   return texture.fetch(coord);
 }
 
 /* Variant for buffer samplers. Discard the lod. */
 template<typename T, access A>
-typename samplerBuffer<T, A>::DataVec texelFetch(samplerBuffer<T, A> texture,
-                                                 int coord,
-                                                 int lod = 0)
+typename _samplerBuffer<T, A>::DataVec texelFetch(_samplerBuffer<T, A> texture,
+                                                  int coord,
+                                                  int lod = 0)
 {
   uint texel = uint(coord);
   if (texel < texture.texture->get_width()) {
     return texture.texture->read(texel);
   }
-  return typename samplerBuffer<T, A>::DataVec(0);
+  return typename _samplerBuffer<T, A>::DataVec(0);
 }
 
 #undef SAMPLER_FN
 
 #ifndef MTL_SUPPORTS_TEXTURE_ATOMICS
 /* textureSize functions for fallback atomic textures. */
-template<typename T, access A>
-int2 textureSize(thread _mtl_sampler_2d_atomic<T, A> image, uint lod)
+template<typename T, access A> int2 textureSize(thread _sampler2DAtomic<T, A> image, uint lod)
 {
   return int2(image.texture->get_width(lod), image.texture->get_height(lod));
 }
 
-template<typename T, access A>
-int3 textureSize(thread _mtl_sampler_2d_array_atomic<T, A> image, uint lod)
+template<typename T, access A> int3 textureSize(thread _sampler2DArrayAtomic<T, A> image, uint lod)
 {
   return int3(image.texture_size);
 }
 
-template<typename T, access A>
-int3 textureSize(thread _mtl_sampler_3d_atomic<T, A> image, uint lod)
+template<typename T, access A> int3 textureSize(thread _sampler3DAtomic<T, A> image, uint lod)
 {
   return int3(image.texture_size);
 }
 #endif
 
 /* Samplers as function parameters. */
-#define sampler1D thread _mtl_sampler_1d<float>
-#define sampler1DArray thread _mtl_sampler_1d_array<float>
-#define sampler2D thread _mtl_sampler_2d<float>
-#define sampler2DDepth thread _mtl_sampler_depth_2d<float>
-#define sampler2DShadow thread _mtl_sampler_depth_2d<float>
-#define sampler2DArray thread _mtl_sampler_2d_array<float>
-#define sampler2DArrayDepth thread _mtl_sampler_depth_2d_array<float>
-#define sampler2DArrayShadow thread _mtl_sampler_depth_2d_array<float>
-#define sampler3D thread _mtl_sampler_3d<float>
-#define samplerBuffer thread _mtl_sampler_buffer<float, access::read>
-#define samplerCube thread _mtl_sampler_cube<float>
-#define samplerCubeDepth thread _mtl_sampler_depth_cube<float>
-#define samplerCubeShadow thread _mtl_sampler_depth_cube<float>
-#define samplerCubeArray thread _mtl_sampler_cube_array<float>
-#define samplerCubeArrayDepth thread _mtl_sampler_depth_cube_array<float>
-#define samplerCubeArrayShadow thread _mtl_sampler_depth_cube_array<float>
+#define sampler1D thread _sampler1D<float>
+#define sampler1DArray thread _sampler1DArray<float>
+#define sampler2D thread _sampler2D<float>
+#define sampler2DDepth thread _sampler2DDepth<float>
+#define sampler2DShadow thread _sampler2DShadow<float>
+#define sampler2DArray thread _sampler2DArray<float>
+#define sampler2DArrayDepth thread _sampler2DArrayDepth<float>
+#define sampler2DArrayShadow thread _sampler2DArrayShadow<float>
+#define sampler3D thread _sampler3D<float>
+#define samplerBuffer thread _samplerBuffer<float, access::read>
+#define samplerCube thread _samplerCube<float>
+#define samplerCubeDepth thread _samplerCubeDepth<float>
+#define samplerCubeShadow thread _samplerCubeShadow<float>
+#define samplerCubeArray thread _samplerCubeArray<float>
+#define samplerCubeArrayDepth thread _samplerCubeArrayDepth<float>
+#define samplerCubeArrayShadow thread _samplerCubeArrayShadow<float>
 
-#define usampler1D thread _mtl_sampler_1d<uint>
-#define usampler1DArray thread _mtl_sampler_1d_array<uint>
-#define usampler2D thread _mtl_sampler_2d<uint>
-#define usampler2DArray thread _mtl_sampler_2d_array<uint>
-#define usampler3D thread _mtl_sampler_3d<uint>
-#define usamplerBuffer thread _mtl_sampler_buffer<uint, access::read>
-#define usamplerCube thread _mtl_sampler_cube<uint>
-#define usamplerCubeArray thread _mtl_sampler_cube_array<uint>
+#define usampler1D thread _sampler1D<uint>
+#define usampler1DArray thread _sampler1DArray<uint>
+#define usampler2D thread _sampler2D<uint>
+#define usampler2DArray thread _sampler2DArray<uint>
+#define usampler3D thread _sampler3D<uint>
+#define usamplerBuffer thread _samplerBuffer<uint, access::read>
+#define usamplerCube thread _samplerCube<uint>
+#define usamplerCubeArray thread _samplerCubeArray<uint>
 
-#define isampler1D thread _mtl_sampler_1d<int>
-#define isampler1DArray thread _mtl_sampler_1d_array<int>
-#define isampler2D thread _mtl_sampler_2d<int>
-#define isampler2DArray thread _mtl_sampler_2d_array<int>
-#define isampler3D thread _mtl_sampler_3d<int>
-#define isamplerBuffer thread _mtl_sampler_buffer<int, access::read>
-#define isamplerCube thread _mtl_sampler_cube<int>
-#define isamplerCubeArray thread _mtl_sampler_cube_array<int>
+#define isampler1D thread _sampler1D<int>
+#define isampler1DArray thread _sampler1DArray<int>
+#define isampler2D thread _sampler2D<int>
+#define isampler2DArray thread _sampler2DArray<int>
+#define isampler3D thread _sampler3D<int>
+#define isamplerBuffer thread _samplerBuffer<int, access::read>
+#define isamplerCube thread _samplerCube<int>
+#define isamplerCubeArray thread _samplerCubeArray<int>
 
 #ifndef MTL_SUPPORTS_TEXTURE_ATOMICS
 /* If texture atomics are unsupported, map atomic types to internal atomic fallback type. */
-#  define usampler2DArrayAtomic _mtl_sampler_2d_array_atomic<uint>
-#  define usampler2DAtomic _mtl_sampler_2d_atomic<uint>
-#  define usampler3DAtomic _mtl_sampler_3d_atomic<uint>
-#  define isampler2DArrayAtomic _mtl_sampler_2d_array_atomic<int>
-#  define isampler2DAtomic _mtl_sampler_2d_atomic<int>
-#  define isampler3DAtomic _mtl_sampler_3d_atomic<int>
+#  define usampler2DArrayAtomic _sampler2DArrayAtomic<uint>
+#  define usampler2DAtomic _sampler2DAtomic<uint>
+#  define usampler3DAtomic _sampler3DAtomic<uint>
+#  define isampler2DArrayAtomic _sampler2DArrayAtomic<int>
+#  define isampler2DAtomic _sampler2DAtomic<int>
+#  define isampler3DAtomic _sampler3DAtomic<int>
 #else
 #  define usampler2DArrayAtomic usampler2DArray
 #  define usampler2DAtomic usampler2D
@@ -667,11 +655,4 @@ int3 textureSize(thread _mtl_sampler_3d_atomic<T, A> image, uint lod)
 #  define isampler2DArrayAtomic isampler2DArray
 #  define isampler2DAtomic isampler2D
 #  define isampler3DAtomic isampler3D
-#endif
-
-/* Sampler struct for argument buffer. */
-#if MTL_ARGUMENT_BUFFER_NUM_SAMPLERS > 0
-struct SStruct {
-  array<sampler, MTL_ARGUMENT_BUFFER_NUM_SAMPLERS> sampler_args [[id(0)]];
-};
 #endif

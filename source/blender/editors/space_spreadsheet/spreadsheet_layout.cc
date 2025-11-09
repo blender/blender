@@ -407,15 +407,30 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                   params.height,
                                   nullptr,
                                   std::nullopt);
-    UI_but_func_tooltip_set(
-        but,
-        [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
-          char dst[BLI_STR_FORMAT_INT64_GROUPED_SIZE];
-          BLI_str_format_int64_grouped(dst, *(int64_t *)argN);
-          return fmt::format("{} {}", dst, TIP_("bytes"));
-        },
-        MEM_dupallocN<int64_t>(__func__, value),
-        MEM_freeN);
+    switch (display_hint) {
+      case ColumnValueDisplayHint::Bytes: {
+        UI_but_func_tooltip_set(
+            but,
+            [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
+              char dst[BLI_STR_FORMAT_INT64_GROUPED_SIZE];
+              BLI_str_format_int64_grouped(dst, *(int64_t *)argN);
+              return fmt::format("{} {}", dst, TIP_("bytes"));
+            },
+            MEM_dupallocN<int64_t>(__func__, value),
+            MEM_freeN);
+        break;
+      }
+      default: {
+        UI_but_func_tooltip_set(
+            but,
+            [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
+              return fmt::format("{}", *(int64_t *)argN);
+            },
+            MEM_dupallocN<int64_t>(__func__, value),
+            MEM_freeN);
+        break;
+      }
+    }
     /* Right-align Integers. */
     UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
     UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);

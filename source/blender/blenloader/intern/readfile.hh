@@ -16,6 +16,7 @@
 #  include "BLI_winstuff.h"
 #endif
 
+#include "BLI_enum_flags.hh"
 #include "BLI_fileops.h"
 #include "BLI_filereader.h"
 #include "BLI_map.hh"
@@ -62,7 +63,7 @@ enum eFileDataFlag {
    */
   FD_FLAGS_HAS_INVALID_ID_NAMES = 1 << 6,
 };
-ENUM_OPERATORS(eFileDataFlag, FD_FLAGS_IS_MEMFILE)
+ENUM_OPERATORS(eFileDataFlag)
 
 /* Disallow since it's 32bit on ms-windows. */
 #ifdef __GNUC__
@@ -311,6 +312,7 @@ void blo_do_versions_430(FileData *fd, Library *lib, Main *bmain);
 void blo_do_versions_440(FileData *fd, Library *lib, Main *bmain);
 void blo_do_versions_450(FileData *fd, Library *lib, Main *bmain);
 void blo_do_versions_500(FileData *fd, Library *lib, Main *bmain);
+void blo_do_versions_510(FileData *fd, Library *lib, Main *bmain);
 
 void do_versions_after_linking_250(Main *bmain);
 void do_versions_after_linking_260(Main *bmain);
@@ -325,6 +327,7 @@ void do_versions_after_linking_430(FileData *fd, Main *bmain);
 void do_versions_after_linking_440(FileData *fd, Main *bmain);
 void do_versions_after_linking_450(FileData *fd, Main *bmain);
 void do_versions_after_linking_500(FileData *fd, Main *bmain);
+void do_versions_after_linking_510(FileData *fd, Main *bmain);
 
 void do_versions_after_setup(Main *new_bmain,
                              BlendfileLinkAppendContext *lapp_context,

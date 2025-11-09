@@ -325,7 +325,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   if (sipo->mode != SIPO_MODE_DRIVERS) {
     UI_view2d_view_orthoSpecial(region, v2d, true);
     int marker_draw_flag = DRAW_MARKERS_MARGIN;
-    if (sipo->flag & SIPO_SHOW_MARKERS && region->winy > (UI_ANIM_MINY + UI_MARKER_MARGIN_Y)) {
+    if (ED_markers_region_visible(CTX_wm_area(C), region)) {
       ED_markers_draw(C, marker_draw_flag);
     }
   }
@@ -935,6 +935,13 @@ static void graph_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   sipo->runtime.ghost_curves = tmpGhosts;
 }
 
+static bool action_region_poll_hide_in_driver_mode(const RegionPollParams *params)
+{
+  BLI_assert(params->area->spacetype == SPACE_GRAPH);
+  const SpaceGraph *sipo = static_cast<const SpaceGraph *>(params->area->spacedata.first);
+  return sipo->mode != SIPO_MODE_DRIVERS;
+}
+
 void ED_spacetype_ipo()
 {
   std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
@@ -992,6 +999,7 @@ void ED_spacetype_ipo()
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
   art->init = graph_header_region_init;
   art->draw = graph_header_region_draw;
+  art->poll = action_region_poll_hide_in_driver_mode;
 
   BLI_addhead(&st->regiontypes, art);
 

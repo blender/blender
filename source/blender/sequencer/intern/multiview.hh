@@ -8,8 +8,6 @@
  * \ingroup sequencer
  */
 
-#include <cstddef>
-
 struct MovieReader;
 struct Scene;
 

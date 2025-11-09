@@ -14,7 +14,6 @@
 
 #include "BLI_math_vector_types.hh"
 #include "BLO_readfile.hh"
-#include "BLO_writefile.hh"
 #include "MEM_guardedalloc.h"
 
 #include "ED_outliner.hh"
@@ -31,13 +30,11 @@
 
 #include "BKE_anim_data.hh"
 #include "BKE_appdir.hh"
-#include "BKE_blender_copybuffer.hh"
 #include "BKE_blendfile.hh"
 #include "BKE_context.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
@@ -319,18 +316,18 @@ wmOperatorStatus sequencer_clipboard_copy_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
 
-  blender::VectorSet<Strip *> selected = seq::query_selected_strips(ed->current_strips());
+  VectorSet<Strip *> selected = seq::query_selected_strips(ed->current_strips());
 
   if (selected.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
-  blender::VectorSet<Strip *> effect_chain;
+  VectorSet<Strip *> effect_chain;
   effect_chain.add_multiple(selected);
   seq::iterator_set_expand(
       scene, ed->current_strips(), effect_chain, seq::query_strip_effect_chain);
 
-  blender::VectorSet<Strip *> expanded;
+  VectorSet<Strip *> expanded;
   for (Strip *strip : effect_chain) {
     if (!(strip->flag & SELECT)) {
       strip->flag |= SELECT;

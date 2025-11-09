@@ -288,7 +288,11 @@ class IMesh {
   }
 
   /** Returns index in vert_ where v is, or #NO_INDEX. */
-  int lookup_vert(const Vert *v) const;
+  int lookup_vert(const Vert *v) const
+  {
+    BLI_assert(vert_populated_);
+    return vert_to_index_.lookup_default(v, NO_INDEX);
+  }
 
   IndexRange vert_index_range() const
   {

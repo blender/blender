@@ -105,8 +105,15 @@ static void joined_armature_fix_links_constraints(Main *bmain,
       bActionConstraint *data = static_cast<bActionConstraint *>(con->data);
 
       if (data->act) {
-        BKE_action_fix_paths_rename(
-            &tarArm->id, data->act, "pose.bones[", pchan->name, curbone->name, 0, 0, false);
+        BKE_action_fix_paths_rename(&tarArm->id,
+                                    data->act,
+                                    data->action_slot_handle,
+                                    "pose.bones[",
+                                    pchan->name,
+                                    curbone->name,
+                                    0,
+                                    0,
+                                    false);
 
         DEG_id_tag_update_ex(bmain, &data->act->id, ID_RECALC_SYNC_TO_EVAL);
       }

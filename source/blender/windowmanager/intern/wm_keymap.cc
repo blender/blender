@@ -61,7 +61,7 @@ struct wmKeyMapItemFind_Params {
  * Item in a keymap, that maps from an event to an operator or modal map item.
  * \{ */
 
-static wmKeyMapItem *wm_keymap_item_copy(wmKeyMapItem *kmi)
+static wmKeyMapItem *wm_keymap_item_copy(const wmKeyMapItem *kmi)
 {
   wmKeyMapItem *kmin = static_cast<wmKeyMapItem *>(MEM_dupallocN(kmi));
 
@@ -185,7 +185,7 @@ static void wm_keymap_item_properties_update_ot_from_list(ListBase *km_lb,
   }
 }
 
-static bool wm_keymap_item_equals_result(wmKeyMapItem *a, wmKeyMapItem *b)
+static bool wm_keymap_item_equals_result(const wmKeyMapItem *a, const wmKeyMapItem *b)
 {
   return (STREQ(a->idname, b->idname) &&
           /* We do not really care about which Main we pass here, TBH. */
@@ -193,7 +193,7 @@ static bool wm_keymap_item_equals_result(wmKeyMapItem *a, wmKeyMapItem *b)
           (a->flag & KMI_INACTIVE) == (b->flag & KMI_INACTIVE) && a->propvalue == b->propvalue);
 }
 
-static bool wm_keymap_item_equals(wmKeyMapItem *a, wmKeyMapItem *b)
+static bool wm_keymap_item_equals(const wmKeyMapItem *a, const wmKeyMapItem *b)
 {
   return (wm_keymap_item_equals_result(a, b) && a->type == b->type && a->val == b->val &&
           a->shift == b->shift && a->ctrl == b->ctrl && a->alt == b->alt && a->oskey == b->oskey &&
@@ -564,7 +564,7 @@ wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap,
   return kmi;
 }
 
-wmKeyMapItem *WM_keymap_add_item_copy(wmKeyMap *keymap, wmKeyMapItem *kmi_src)
+wmKeyMapItem *WM_keymap_add_item_copy(wmKeyMap *keymap, const wmKeyMapItem *kmi_src)
 {
   wmKeyMapItem *kmi_dst = wm_keymap_item_copy(kmi_src);
 
@@ -612,7 +612,7 @@ static void wm_keymap_addon_add(wmKeyMap *keymap, wmKeyMap *addonmap)
   }
 }
 
-static wmKeyMapItem *wm_keymap_find_item_equals(wmKeyMap *km, wmKeyMapItem *needle)
+static wmKeyMapItem *wm_keymap_find_item_equals(wmKeyMap *km, const wmKeyMapItem *needle)
 {
   LISTBASE_FOREACH (wmKeyMapItem *, kmi, &km->items) {
     if (wm_keymap_item_equals(kmi, needle)) {
@@ -623,7 +623,7 @@ static wmKeyMapItem *wm_keymap_find_item_equals(wmKeyMap *km, wmKeyMapItem *need
   return nullptr;
 }
 
-static wmKeyMapItem *wm_keymap_find_item_equals_result(wmKeyMap *km, wmKeyMapItem *needle)
+static wmKeyMapItem *wm_keymap_find_item_equals_result(wmKeyMap *km, const wmKeyMapItem *needle)
 {
   LISTBASE_FOREACH (wmKeyMapItem *, kmi, &km->items) {
     if (wm_keymap_item_equals_result(kmi, needle)) {
@@ -1304,7 +1304,7 @@ std::optional<std::string> WM_modalkeymap_operator_items_to_string(wmOperatorTyp
 
 static wmKeyMapItem *wm_keymap_item_find_in_keymap(wmKeyMap *keymap,
                                                    const char *opname,
-                                                   IDProperty *properties,
+                                                   const IDProperty *properties,
                                                    const bool is_strict,
                                                    const wmKeyMapItemFind_Params *params)
 {
@@ -1391,7 +1391,7 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(const bContext *C,
                                                   ListBase *handlers,
                                                   const char *opname,
                                                   blender::wm::OpCallContext /*opcontext*/,
-                                                  IDProperty *properties,
+                                                  const IDProperty *properties,
                                                   const bool is_strict,
                                                   const wmKeyMapItemFind_Params *params,
                                                   wmKeyMap **r_keymap)
@@ -1427,7 +1427,7 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(const bContext *C,
 static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C,
                                                const char *opname,
                                                blender::wm::OpCallContext opcontext,
-                                               IDProperty *properties,
+                                               const IDProperty *properties,
                                                const bool is_strict,
                                                const wmKeyMapItemFind_Params *params,
                                                wmKeyMap **r_keymap)
@@ -2141,7 +2141,7 @@ const char *WM_bool_as_string(bool test)
 /** \name Keymap Queries
  * \{ */
 
-wmKeyMapItem *WM_keymap_item_find_id(wmKeyMap *keymap, int id)
+wmKeyMapItem *WM_keymap_item_find_id(wmKeyMap *keymap, const int id)
 {
   LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
     if (kmi->id == id) {
@@ -2154,7 +2154,7 @@ wmKeyMapItem *WM_keymap_item_find_id(wmKeyMap *keymap, int id)
 
 wmKeyMapItem *WM_keymap_item_find_match(wmKeyMap *km_base,
                                         wmKeyMap *km_match,
-                                        wmKeyMapItem *kmi_match,
+                                        const wmKeyMapItem *kmi_match,
                                         ReportList *reports)
 {
   /* NOTE: this is called by RNA, some of the reports in this function

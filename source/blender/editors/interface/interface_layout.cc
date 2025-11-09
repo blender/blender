@@ -18,13 +18,13 @@
 
 #include "BLI_array.hh"
 #include "BLI_dynstr.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_path_utils.hh"
 #include "BLI_rect.h"
 #include "BLI_string_ref.hh"
 #include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
@@ -48,6 +48,7 @@
 #include "fmt/format.h"
 #include "interface_intern.hh"
 
+using blender::int2;
 using blender::StringRef;
 using blender::StringRefNull;
 struct uiButtonItem;
@@ -134,7 +135,7 @@ enum class ItemInternalFlag : uint8_t {
   PropDecorate = 1 << 5,
   PropDecorateNoPad = 1 << 6,
 };
-ENUM_OPERATORS(ItemInternalFlag, ItemInternalFlag::PropDecorateNoPad)
+ENUM_OPERATORS(ItemInternalFlag)
 
 /** Helper internal struct to provide #uiItem private/protected access. */
 struct ItemInternal {
@@ -145,12 +146,12 @@ struct ItemInternal {
 
   [[nodiscard]] static bool use_property_decorate_no_pad(const uiItem *item)
   {
-    return bool(item->flag_ & ItemInternalFlag::PropDecorateNoPad);
+    return flag_is_set(item->flag_, ItemInternalFlag::PropDecorateNoPad);
   };
 
   [[nodiscard]] static bool box_item(const uiItem *item)
   {
-    return bool(item->flag_ & ItemInternalFlag::BoxItem);
+    return flag_is_set(item->flag_, ItemInternalFlag::BoxItem);
   }
   static void box_item_set(uiItem *item, bool box_item)
   {
@@ -159,7 +160,7 @@ struct ItemInternal {
 
   [[nodiscard]] static bool auto_fixed_size(const uiItem *item)
   {
-    return bool(item->flag_ & ItemInternalFlag::AutoFixedSize);
+    return flag_is_set(item->flag_, ItemInternalFlag::AutoFixedSize);
   }
   static void auto_fixed_size_set(uiItem *item, bool auto_fixed_size)
   {
@@ -177,6 +178,9 @@ struct LayoutInternal {
   static void layout_resolve(uiLayout *layout);
   static uiButtonItem *ui_layout_find_button_item(const uiLayout *layout, const uiBut *but);
   static uiLayout *ui_item_prop_split_layout_hack(uiLayout *layout_parent, uiLayout *layout_split);
+  static void layout_offset_size_set(uiLayout *layout, int x, int y, int w, int h);
+  static void layout_move(uiLayout *layout, int delta_xmin, int delta_xmax);
+  static void layout_space_set(uiLayout *layout, int space);
 };
 
 }  // namespace blender::ui
@@ -470,50 +474,32 @@ static int ui_text_icon_width(uiLayout *layout,
       layout, name, icon, compact ? ui_text_pad_compact : ui_text_pad_default, UI_FSTYLE_WIDGET);
 }
 
-static void ui_item_size(const uiItem *item, int *r_w, int *r_h)
+blender::int2 uiItem::size() const
 {
-  if (item->type() == uiItemType::Button) {
-    const uiButtonItem *bitem = static_cast<const uiButtonItem *>(item);
-
-    if (r_w) {
-      *r_w = BLI_rctf_size_x(&bitem->but->rect);
-    }
-    if (r_h) {
-      *r_h = BLI_rctf_size_y(&bitem->but->rect);
-    }
+  if (this->type() == uiItemType::Button) {
+    const uiButtonItem *bitem = static_cast<const uiButtonItem *>(this);
+    return {int(BLI_rctf_size_x(&bitem->but->rect)), int(BLI_rctf_size_y(&bitem->but->rect))};
   }
-  else {
-    const uiLayout *litem = static_cast<const uiLayout *>(item);
-
-    if (r_w) {
-      *r_w = litem->w_;
-    }
-    if (r_h) {
-      *r_h = litem->h_;
-    }
-  }
+  return static_cast<const uiLayout *>(this)->size();
 }
 
-static void ui_item_offset(const uiItem *item, int *r_x, int *r_y)
+blender::int2 uiLayout::offset() const
 {
-  if (item->type() == uiItemType::Button) {
-    const uiButtonItem *bitem = static_cast<const uiButtonItem *>(item);
+  return {x_, y_};
+}
 
-    if (r_x) {
-      *r_x = bitem->but->rect.xmin;
-    }
-    if (r_y) {
-      *r_y = bitem->but->rect.ymin;
-    }
+blender::int2 uiLayout::size() const
+{
+  return {w_, h_};
+}
+
+blender::int2 uiItem::offset() const
+{
+  if (this->type() == uiItemType::Button) {
+    const uiButtonItem *bitem = static_cast<const uiButtonItem *>(this);
+    return {int(bitem->but->rect.xmin), int(bitem->but->rect.ymin)};
   }
-  else {
-    if (r_x) {
-      *r_x = 0;
-    }
-    if (r_y) {
-      *r_y = 0;
-    }
-  }
+  return {0, 0};
 }
 
 static void ui_item_position(uiItem *item, const int x, const int y, const int w, const int h)
@@ -529,13 +515,16 @@ static void ui_item_position(uiItem *item, const int x, const int y, const int w
     ui_but_update(bitem->but); /* For `strlen`. */
   }
   else {
-    uiLayout *litem = static_cast<uiLayout *>(item);
-
-    litem->x_ = x;
-    litem->y_ = y + h;
-    litem->w_ = w;
-    litem->h_ = h;
+    LayoutInternal::layout_offset_size_set(static_cast<uiLayout *>(item), x, y + h, w, h);
   }
+}
+
+void LayoutInternal::layout_offset_size_set(uiLayout *layout, int x, int y, int w, int h)
+{
+  layout->x_ = x;
+  layout->y_ = y;
+  layout->w_ = w;
+  layout->h_ = h;
 }
 
 static void ui_item_move(uiItem *item, const int delta_xmin, const int delta_xmax)
@@ -549,15 +538,23 @@ static void ui_item_move(uiItem *item, const int delta_xmin, const int delta_xma
     ui_but_update(bitem->but); /* For `strlen`. */
   }
   else {
-    uiLayout *litem = static_cast<uiLayout *>(item);
-
-    if (delta_xmin > 0) {
-      litem->x_ += delta_xmin;
-    }
-    else {
-      litem->w_ += delta_xmax;
-    }
+    LayoutInternal::layout_move(static_cast<uiLayout *>(item), delta_xmin, delta_xmax);
   }
+}
+
+void LayoutInternal::layout_move(uiLayout *layout, int delta_xmin, int delta_xmax)
+{
+  if (delta_xmin > 0) {
+    layout->x_ += delta_xmin;
+  }
+  else {
+    layout->w_ += delta_xmax;
+  }
+}
+
+void LayoutInternal::layout_space_set(uiLayout *layout, int space)
+{
+  layout->space_ = space;
 }
 
 /** \} */
@@ -596,7 +593,7 @@ static uiLayout *ui_item_local_sublayout(uiLayout *test, uiLayout *layout, bool 
     sub = &layout->column(align);
   }
 
-  sub->space_ = 0;
+  LayoutInternal::layout_space_set(sub, 0);
   return sub;
 }
 
@@ -1139,7 +1136,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
      * number of labels can end up aligning thousands of buttons when displaying key-map search (a
      * heavy operation), see: #78636. */
     sub = &layout->row(layout->align());
-    sub->space_ = 0;
+    LayoutInternal::layout_space_set(sub, 0);
   }
 
   if (!name.is_empty()) {
@@ -1941,7 +1938,7 @@ void uiLayout::prop(PointerRNA *ptr,
   uiBlock *block = this->block();
   char namestr[UI_MAX_NAME_STR];
   const bool use_prop_sep = this->use_property_split();
-  const bool inside_prop_sep = bool(flag_ & uiItemInternalFlag::InsidePropSep);
+  const bool inside_prop_sep = flag_is_set(flag_, uiItemInternalFlag::InsidePropSep);
   /* Columns can define a heading to insert. If the first item added to a split layout doesn't have
    * a label to display in the first column, the heading is inserted there. Otherwise it's inserted
    * as a new row before the first item. */
@@ -2268,7 +2265,7 @@ void uiLayout::prop(PointerRNA *ptr,
         results_are_suggestions = true;
       }
     }
-    but = ui_but_add_search(but, ptr, prop, nullptr, nullptr, results_are_suggestions);
+    but = ui_but_add_search(but, ptr, prop, nullptr, nullptr, nullptr, results_are_suggestions);
 
     if (layout->red_alert()) {
       UI_but_flag_enable(but, UI_BUT_REDALERT);
@@ -2643,6 +2640,7 @@ uiBut *ui_but_add_search(uiBut *but,
                          PropertyRNA *prop,
                          PointerRNA *searchptr,
                          PropertyRNA *searchprop,
+                         PropertyRNA *item_searchprop,
                          const bool results_are_suggestions)
 {
   /* for ID's we do automatic lookup */
@@ -2685,11 +2683,13 @@ uiBut *ui_but_add_search(uiBut *but,
     if (searchptr) {
       coll_search->search_ptr = *searchptr;
       coll_search->search_prop = searchprop;
+      coll_search->item_search_prop = item_searchprop;
     }
     else {
       /* Rely on `has_search_fn`. */
       coll_search->search_ptr = PointerRNA_NULL;
       coll_search->search_prop = nullptr;
+      coll_search->item_search_prop = nullptr;
     }
 
     coll_search->search_but = but;
@@ -2731,6 +2731,7 @@ void uiLayout::prop_search(PointerRNA *ptr,
                            PropertyRNA *prop,
                            PointerRNA *searchptr,
                            PropertyRNA *searchprop,
+                           PropertyRNA *item_searchprop,
                            const std::optional<StringRefNull> name_opt,
                            int icon,
                            bool results_are_suggestions)
@@ -2750,6 +2751,12 @@ void uiLayout::prop_search(PointerRNA *ptr,
     RNA_warning("search collection property is not a collection type: %s.%s",
                 RNA_struct_identifier(searchptr->type),
                 RNA_property_identifier(searchprop));
+    return;
+  }
+  if (item_searchprop && RNA_property_type(item_searchprop) != PROP_STRING) {
+    RNA_warning("Search collection items' property is not a string type: %s.%s",
+                RNA_struct_identifier(RNA_property_pointer_type(searchptr, searchprop)),
+                RNA_property_identifier(item_searchprop));
     return;
   }
 
@@ -2779,7 +2786,8 @@ void uiLayout::prop_search(PointerRNA *ptr,
   w += UI_UNIT_X; /* X icon needs more space */
   uiBut *but = ui_item_with_label(this, block, name, icon, ptr, prop, 0, 0, 0, w, h, 0);
 
-  but = ui_but_add_search(but, ptr, prop, searchptr, searchprop, results_are_suggestions);
+  but = ui_but_add_search(
+      but, ptr, prop, searchptr, searchprop, item_searchprop, results_are_suggestions);
 }
 
 void uiLayout::prop_search(PointerRNA *ptr,
@@ -2803,7 +2811,7 @@ void uiLayout::prop_search(PointerRNA *ptr,
     return;
   }
 
-  this->prop_search(ptr, prop, searchptr, searchprop, name, icon, false);
+  this->prop_search(ptr, prop, searchptr, searchprop, nullptr, name, icon, false);
 }
 
 void ui_item_menutype_func(bContext *C, uiLayout *layout, void *arg_mt)
@@ -3576,7 +3584,6 @@ void LayoutRow::estimate_impl()
   if (this->type() == uiItemType::LayoutRoot) {
     return;
   }
-  int itemw, itemh;
   bool min_size_flag = true;
 
   w_ = 0;
@@ -3589,12 +3596,12 @@ void LayoutRow::estimate_impl()
   const uiItem *item_last = this->items().last();
   for (uiItem *item : this->items()) {
     const bool is_item_last = (item == item_last);
-    ui_item_size(item, &itemw, &itemh);
+    const int2 size = item->size();
 
     min_size_flag = min_size_flag && item->fixed_size();
 
-    w_ += itemw;
-    h_ = std::max(itemh, h_);
+    w_ += size.x;
+    h_ = std::max(size.y, h_);
 
     if (!is_item_last) {
       w_ += space_;
@@ -3618,7 +3625,7 @@ void LayoutRow::resolve_impl()
   }
 
   int last_free_item_idx = -1;
-  int x, neww, newtotw, itemw, minw, itemh, offset;
+  int x, neww, newtotw, minw, offset;
   int freew, fixedx, freex, flag = 0, lastw = 0;
   float extra_pixel;
 
@@ -3628,8 +3635,7 @@ void LayoutRow::resolve_impl()
   int tot = 0;
 
   for (uiItem *item : this->items()) {
-    ui_item_size(item, &itemw, &itemh);
-    totw += itemw;
+    totw += item->size().x;
     tot++;
   }
 
@@ -3658,12 +3664,12 @@ void LayoutRow::resolve_impl()
       }
       const bool is_item_last = (item == item_last);
 
-      ui_item_size(item, &itemw, &itemh);
-      minw = ui_litem_min_width(itemw);
+      int2 size = item->size();
+      minw = ui_litem_min_width(size.x);
 
       if (w - lastw > 0) {
         neww = ui_item_fit(
-            itemw, x, totw, w - lastw, is_item_last, this->alignment(), &extra_pixel);
+            size.x, x, totw, w - lastw, is_item_last, this->alignment(), &extra_pixel);
       }
       else {
         neww = 0; /* no space left, all will need clamping to minimum size */
@@ -3686,16 +3692,16 @@ void LayoutRow::resolve_impl()
         /* fixed size */
         ItemInternal::auto_fixed_size_set(item, true);
         if (item->type() != uiItemType::Button && item->fixed_size()) {
-          minw = itemw;
+          minw = size.x;
         }
         fixedw += minw;
         flag = 1;
-        newtotw -= itemw;
+        newtotw -= size.x;
       }
       else {
         /* keep free size */
         ItemInternal::auto_fixed_size_set(item, false);
-        freew += itemw;
+        freew += size.x;
       }
     }
 
@@ -3712,23 +3718,23 @@ void LayoutRow::resolve_impl()
   for (uiItem *item : this->items()) {
     item_idx++;
     const bool is_item_last = (item == item_last);
-    ui_item_size(item, &itemw, &itemh);
-    minw = ui_litem_min_width(itemw);
+    int2 size = item->size();
+    minw = ui_litem_min_width(size.x);
 
     if (ItemInternal::auto_fixed_size(item)) {
       /* fixed minimum size items */
       if (item->type() != uiItemType::Button && item->fixed_size()) {
-        minw = itemw;
+        minw = size.x;
       }
-      itemw = ui_item_fit(
+      size.x = ui_item_fit(
           minw, fixedx, fixedw, min_ii(w, fixedw), is_item_last, this->alignment(), &extra_pixel);
-      fixedx += itemw;
+      fixedx += size.x;
     }
     else {
       /* free size item */
-      itemw = ui_item_fit(
-          itemw, freex, freew, w - fixedw, is_item_last, this->alignment(), &extra_pixel);
-      freex += itemw;
+      size.x = ui_item_fit(
+          size.x, freex, freew, w - fixedw, is_item_last, this->alignment(), &extra_pixel);
+      freex += size.x;
       last_free_item_idx = item_idx;
     }
 
@@ -3746,9 +3752,9 @@ void LayoutRow::resolve_impl()
     }
 
     /* position item */
-    ui_item_position(item, x + offset, y - itemh, itemw, itemh);
+    ui_item_position(item, x + offset, y - size.y, size.x, size.y);
 
-    x += itemw;
+    x += size.x;
     if (!is_item_last) {
       x += space_;
     }
@@ -3809,7 +3815,6 @@ void LayoutColumn::estimate_impl()
     return;
   }
   const bool is_box = this->type() == uiItemType::LayoutBox;
-  int itemw, itemh;
   bool min_size_flag = true;
 
   w_ = 0;
@@ -3817,12 +3822,12 @@ void LayoutColumn::estimate_impl()
 
   for (auto *iter = this->items().begin(); iter != this->items().end(); iter++) {
     uiItem *item = *iter;
-    ui_item_size(item, &itemw, &itemh);
+    const int2 size = item->size();
 
     min_size_flag = min_size_flag && item->fixed_size();
 
-    w_ = std::max(w_, itemw);
-    h_ += itemh;
+    w_ = std::max(w_, size.x);
+    h_ += size.y;
 
     const uiItem *next_item = (item == this->items().last()) ? nullptr : *(iter + 1);
     const int spaces_num = spaces_after_column_item(this, item, next_item, is_box);
@@ -3844,11 +3849,10 @@ void LayoutColumn::resolve_impl()
 
   for (auto *iter = this->items().begin(); iter != this->items().end(); iter++) {
     uiItem *item = *iter;
-    int itemw, itemh;
-    ui_item_size(item, &itemw, &itemh);
+    const int2 size = item->size();
 
-    y -= itemh;
-    ui_item_position(item, x, y, is_menu ? itemw : w_, itemh);
+    y -= size.y;
+    ui_item_position(item, x, y, is_menu ? size.x : w_, size.y);
 
     const uiItem *next_item = (item == this->items().last()) ? nullptr : *(iter + 1);
     const int spaces_num = spaces_after_column_item(this, item, next_item, is_box);
@@ -3904,7 +3908,6 @@ static bool ui_item_is_radial_drawable(uiButtonItem *bitem)
 
 void LayoutRadial::resolve_impl()
 {
-  int itemh, itemw;
   int itemnum = 0;
 
   /* For the radial layout we will use Matt Ebb's design
@@ -3960,18 +3963,18 @@ void LayoutRadial::resolve_impl()
       this->block()->pie_data.pie_dir_mask |= 1 << int(dir);
     }
 
-    ui_item_size(item, &itemw, &itemh);
+    const int2 size = item->size();
 
     ui_item_position(item,
-                     x + (vec[0] * pie_radius) + (factor[0] * itemw),
-                     y + (vec[1] * pie_radius) + (factor[1] * itemh),
-                     itemw,
-                     itemh);
+                     x + (vec[0] * pie_radius) + (factor[0] * size.x),
+                     y + (vec[1] * pie_radius) + (factor[1] * size.y),
+                     size.x,
+                     size.y);
 
-    minx = min_ii(minx, x + (vec[0] * pie_radius) - (itemw / 2));
-    maxx = max_ii(maxx, x + (vec[0] * pie_radius) + (itemw / 2));
-    miny = min_ii(miny, y + (vec[1] * pie_radius) - (itemh / 2));
-    maxy = max_ii(maxy, y + (vec[1] * pie_radius) + (itemh / 2));
+    minx = min_ii(minx, x + (vec[0] * pie_radius) - (size.x / 2));
+    maxx = max_ii(maxx, x + (vec[0] * pie_radius) + (size.x / 2));
+    miny = min_ii(miny, y + (vec[1] * pie_radius) - (size.y / 2));
+    maxy = max_ii(maxy, y + (vec[1] * pie_radius) + (size.y / 2));
   }
 
   x_ = minx;
@@ -3995,14 +3998,14 @@ void LayoutRootPieMenu::resolve_impl()
   uiItem *item = this->items().first();
 
   if (item->type() == uiItemType::Button) {
-    int itemh, itemw, x, y;
+    int x, y;
     x = x_;
     y = y_;
 
-    ui_item_size(item, &itemw, &itemh);
+    const int2 size = item->size();
 
     ui_item_position(
-        item, x - itemw / 2, y + UI_SCALE_FAC * (U.pie_menu_threshold + 9.0f), itemw, itemh);
+        item, x - size.x / 2, y + UI_SCALE_FAC * (U.pie_menu_threshold + 9.0f), size.x, size.y);
   }
 }
 
@@ -4012,7 +4015,9 @@ void uiLayoutItemPanelHeader::estimate_impl()
   BLI_assert(this->items().size() == 1);
   uiItem *item = this->items().first();
 
-  ui_item_size(item, &w_, &h_);
+  const int2 size = item->size();
+  w_ = size.x;
+  h_ = size.y;
 }
 
 void uiLayoutItemPanelHeader::resolve_impl()
@@ -4022,10 +4027,9 @@ void uiLayoutItemPanelHeader::resolve_impl()
   BLI_assert(this->items().size() == 1);
   uiItem *item = this->items().first();
 
-  int w, h;
-  ui_item_size(item, &w, &h);
-  y_ -= h;
-  ui_item_position(item, x_, y_, w_, h);
+  const int2 size = item->size();
+  y_ -= size.y;
+  ui_item_position(item, x_, y_, w_, size.y);
   const float offset = UI_style_get_dpi()->panelspace;
   panel->runtime->layout_panels.headers.append(
       {float(y_) - offset, float(y_ + h_) - offset, open_prop_owner, open_prop_name});
@@ -4106,15 +4110,15 @@ void uiLayoutItemFlow::estimate_impl()
   const uiStyle *style = this->root()->style;
   uiLayoutItemFlow *flow = this;
 
-  int itemw, itemh, maxw = 0;
+  int maxw = 0;
 
   /* compute max needed width and total height */
   int toth = 0;
   int totitem = 0;
   for (uiItem *item : this->items()) {
-    ui_item_size(item, &itemw, &itemh);
-    maxw = std::max(maxw, itemw);
-    toth += itemh;
+    const int2 size = item->size();
+    maxw = std::max(maxw, size.x);
+    toth += size.y;
     totitem++;
   }
 
@@ -4144,12 +4148,12 @@ void uiLayoutItemFlow::estimate_impl()
   /* create column per column */
   int col = 0;
   for (uiItem *item : this->items()) {
-    ui_item_size(item, &itemw, &itemh);
+    const int2 size = item->size();
 
-    y -= itemh + style->buttonspacey;
+    y -= size.y + style->buttonspacey;
     miny = min_ii(miny, y);
-    emy -= itemh;
-    maxw = max_ii(itemw, maxw);
+    emy -= size.y;
+    maxw = max_ii(size.x, maxw);
 
     /* decide to go to next one */
     if (col < flow->totcol - 1 && emy <= -emh) {
@@ -4168,13 +4172,13 @@ void uiLayoutItemFlow::estimate_impl()
 void uiLayoutItemFlow::resolve_impl()
 {
   const uiStyle *style = this->root()->style;
-  int col, emh, itemw, itemh;
+  int col, emh;
 
   /* compute max needed width and total height */
   int toth = 0;
   for (uiItem *item : this->items()) {
-    ui_item_size(item, &itemw, &itemh);
-    toth += itemh;
+    const int2 size = item->size();
+    toth += size.y;
   }
 
   /* compute sizes */
@@ -4189,13 +4193,13 @@ void uiLayoutItemFlow::resolve_impl()
   col = 0;
   int w = (w_ - (this->totcol - 1) * style->columnspace) / this->totcol;
   for (uiItem *item : this->items()) {
-    ui_item_size(item, &itemw, &itemh);
+    int2 size = item->size();
 
-    itemw = (this->alignment() == blender::ui::LayoutAlign::Expand) ? w : min_ii(w, itemw);
+    size.x = (this->alignment() == blender::ui::LayoutAlign::Expand) ? w : min_ii(w, size.x);
 
-    y -= itemh;
-    emy -= itemh;
-    ui_item_position(item, x, y, itemw, itemh);
+    y -= size.y;
+    emy -= size.y;
+    ui_item_position(item, x, y, size.x, size.y);
     y -= style->buttonspacey;
     miny = min_ii(miny, y);
 
@@ -4285,12 +4289,11 @@ static void ui_litem_grid_flow_compute(blender::Span<uiItem *> items,
 
   int i = 0;
   for (const uiItem *item : items) {
-    int item_w, item_h;
-    ui_item_size(item, &item_w, &item_h);
+    const int2 size = item->size();
 
-    global_avg_w += float(item_w * item_w);
-    global_totweight_w += float(item_w);
-    global_max_h = max_ii(global_max_h, item_h);
+    global_avg_w += float(size.x * size.x);
+    global_totweight_w += float(size.x);
+    global_max_h = max_ii(global_max_h, size.y);
 
     if (parameters->tot_rows != 0 && parameters->tot_columns != 0) {
       const int index_col = parameters->row_major ? i % parameters->tot_columns :
@@ -4298,10 +4301,10 @@ static void ui_litem_grid_flow_compute(blender::Span<uiItem *> items,
       const int index_row = parameters->row_major ? i / parameters->tot_columns :
                                                     i % parameters->tot_rows;
 
-      avg_w[index_col] += float(item_w * item_w);
-      totweight_w[index_col] += float(item_w);
+      avg_w[index_col] += float(size.x * size.x);
+      totweight_w[index_col] += float(size.x);
 
-      max_h[index_row] = max_ii(max_h[index_row], item_h);
+      max_h[index_row] = max_ii(max_h[index_row], size.y);
     }
 
     if (results->tot_items) {
@@ -4554,16 +4557,18 @@ void uiLayoutItemGridFlow::resolve_impl()
   for (uiItem *item : this->items()) {
     const int col = this->row_major ? i % this->tot_columns : i / this->tot_rows;
     const int row = this->row_major ? i / this->tot_columns : i % this->tot_rows;
-    int item_w, item_h;
-    ui_item_size(item, &item_w, &item_h);
+    int2 size = item->size();
 
     const int w = widths[col];
     const int h = heights[row];
+    if (this->alignment() == blender::ui::LayoutAlign::Expand) {
+      size = {w, h};
+    }
+    else {
+      size = {min_ii(w, size.x), min_ii(h, size.y)};
+    }
 
-    item_w = (this->alignment() == blender::ui::LayoutAlign::Expand) ? w : min_ii(w, item_w);
-    item_h = (this->alignment() == blender::ui::LayoutAlign::Expand) ? h : min_ii(h, item_h);
-
-    ui_item_position(item, cos_x[col], cos_y[row], item_w, item_h);
+    ui_item_position(item, cos_x[col], cos_y[row], size.x, size.y);
     i++;
   }
 
@@ -4581,15 +4586,14 @@ void LayoutAbsolute::estimate_impl()
   h_ = 0;
 
   for (uiItem *item : this->items()) {
-    int itemx, itemy, itemw, itemh;
-    ui_item_offset(item, &itemx, &itemy);
-    ui_item_size(item, &itemw, &itemh);
+    const int2 offset = item->offset();
+    const int2 size = item->size();
 
-    minx = min_ii(minx, itemx);
-    miny = min_ii(miny, itemy);
+    minx = min_ii(minx, offset.x);
+    miny = min_ii(miny, offset.y);
 
-    w_ = std::max(w_, itemx + itemw);
-    h_ = std::max(h_, itemy + itemh);
+    w_ = std::max(w_, offset.x + size.x);
+    h_ = std::max(h_, offset.y + size.y);
   }
 
   w_ -= minx;
@@ -4599,7 +4603,7 @@ void LayoutAbsolute::estimate_impl()
 void LayoutAbsolute::resolve_impl()
 {
   float scalex = 1.0f, scaley = 1.0f;
-  int x, y, newx, newy, itemx, itemy, itemh, itemw;
+  int x, y, newx, newy;
 
   int minx = 1e6;
   int miny = 1e6;
@@ -4607,14 +4611,14 @@ void LayoutAbsolute::resolve_impl()
   int toth = 0;
 
   for (uiItem *item : this->items()) {
-    ui_item_offset(item, &itemx, &itemy);
-    ui_item_size(item, &itemw, &itemh);
+    const int2 offset = item->offset();
+    const int2 size = item->size();
 
-    minx = min_ii(minx, itemx);
-    miny = min_ii(miny, itemy);
+    minx = min_ii(minx, offset.x);
+    miny = min_ii(miny, offset.y);
 
-    totw = max_ii(totw, itemx + itemw);
-    toth = max_ii(toth, itemy + itemh);
+    totw = max_ii(totw, offset.x + size.x);
+    toth = max_ii(toth, offset.y + size.y);
   }
 
   totw -= minx;
@@ -4631,22 +4635,22 @@ void LayoutAbsolute::resolve_impl()
   y = y_ - scaley * toth;
 
   for (uiItem *item : this->items()) {
-    ui_item_offset(item, &itemx, &itemy);
-    ui_item_size(item, &itemw, &itemh);
+    int2 offset = item->offset();
+    int2 size = item->size();
 
     if (scalex != 1.0f) {
-      newx = (itemx - minx) * scalex;
-      itemw = (itemx - minx + itemw) * scalex - newx;
-      itemx = minx + newx;
+      newx = (offset.x - minx) * scalex;
+      size.x = (offset.x - minx + size.x) * scalex - newx;
+      offset.x = minx + newx;
     }
 
     if (scaley != 1.0f) {
-      newy = (itemy - miny) * scaley;
-      itemh = (itemy - miny + itemh) * scaley - newy;
-      itemy = miny + newy;
+      newy = (offset.y - miny) * scaley;
+      size.y = (offset.y - miny + size.y) * scaley - newy;
+      offset.y = miny + newy;
     }
 
-    ui_item_position(item, x + itemx - minx, y + itemy - miny, itemw, itemh);
+    ui_item_position(item, x + offset.x - minx, y + offset.y - miny, size.x, size.y);
   }
 
   w_ = scalex * totw;
@@ -4683,10 +4687,9 @@ void uiLayoutItemSplit::resolve_impl()
   const uiItem *item_last = this->items().last();
   for (uiItem *item : this->items()) {
     const bool is_item_last = (item == item_last);
-    int itemh;
-    ui_item_size(item, nullptr, &itemh);
+    const int2 size = item->size();
 
-    ui_item_position(item, x, y - itemh, colw, itemh);
+    ui_item_position(item, x, y - size.y, colw, size.y);
     x += colw;
 
     if (!is_item_last) {
@@ -4712,11 +4715,10 @@ void LayoutOverlap::estimate_impl()
   h_ = 0;
 
   for (uiItem *item : this->items()) {
-    int itemw, itemh;
-    ui_item_size(item, &itemw, &itemh);
+    const int2 size = item->size();
 
-    w_ = std::max(itemw, w_);
-    h_ = std::max(itemh, h_);
+    w_ = std::max(size.x, w_);
+    h_ = std::max(size.y, h_);
   }
 }
 
@@ -4727,11 +4729,10 @@ void LayoutOverlap::resolve_impl()
   const int y = y_;
 
   for (uiItem *item : this->items()) {
-    int itemw, itemh;
-    ui_item_size(item, &itemw, &itemh);
-    ui_item_position(item, x, y - itemh, w_, itemh);
+    const int2 size = item->size();
+    ui_item_position(item, x, y - size.y, w_, size.y);
 
-    h_ = std::max(h_, itemh);
+    h_ = std::max(h_, size.y);
   }
 
   x_ = x;
@@ -4938,7 +4939,7 @@ static uiLayoutItemBx *ui_layout_box(uiLayout *layout, ButType type)
   uiLayoutItemBx *box = MEM_new<uiLayoutItemBx>(__func__);
   LayoutInternal::init_from_parent(box, layout, false);
 
-  box->space_ = layout->root()->style->columnspace;
+  LayoutInternal::layout_space_set(box, layout->root()->style->columnspace);
 
   blender::ui::block_layout_set_current(layout->block(), box);
 
@@ -5057,7 +5058,7 @@ void uiLayout::emboss_set(blender::ui::EmbossType emboss)
 
 bool uiLayout::use_property_split() const
 {
-  return bool(flag_ & uiItemInternalFlag::PropSep);
+  return flag_is_set(flag_, uiItemInternalFlag::PropSep);
 }
 
 void uiLayout::use_property_split_set(bool is_sep)
@@ -5067,7 +5068,7 @@ void uiLayout::use_property_split_set(bool is_sep)
 
 bool uiLayout::use_property_decorate() const
 {
-  return bool(flag_ & uiItemInternalFlag::PropDecorate);
+  return flag_is_set(flag_, uiItemInternalFlag::PropDecorate);
 }
 
 void uiLayout::use_property_decorate_set(bool is_sep)
@@ -5266,8 +5267,6 @@ bool UI_block_apply_search_filter(uiBlock *block, const char *search_filter)
 
 static void ui_item_scale(uiLayout *litem, const float scale[2])
 {
-  int x, y, w, h;
-
   for (auto riter = litem->items().rbegin(); riter != litem->items().rend(); riter++) {
     uiItem *item = *riter;
     if (item->type() != uiItemType::Button) {
@@ -5275,20 +5274,20 @@ static void ui_item_scale(uiLayout *litem, const float scale[2])
       ui_item_scale(subitem, scale);
     }
 
-    ui_item_size(item, &w, &h);
-    ui_item_offset(item, &x, &y);
+    int2 size = item->size();
+    int2 offset = item->offset();
 
     if (scale[0] != 0.0f) {
-      x *= scale[0];
-      w *= scale[0];
+      offset.x *= scale[0];
+      size.x *= scale[0];
     }
 
     if (scale[1] != 0.0f) {
-      y *= scale[1];
-      h *= scale[1];
+      offset.y *= scale[1];
+      size.y *= scale[1];
     }
 
-    ui_item_position(item, x, y, w, h);
+    ui_item_position(item, offset.x, offset.y, size.x, size.y);
   }
 }
 
@@ -5410,7 +5409,7 @@ static blender::int2 ui_layout_end(uiBlock *block, uiLayout *layout)
 
   LayoutInternal::layout_estimate(layout);
   LayoutInternal::layout_resolve(layout);
-  return {layout->x_, layout->y_};
+  return layout->offset();
 }
 
 static void ui_layout_free(uiLayout *layout)
@@ -5479,25 +5478,24 @@ uiLayout &block_layout(uiBlock *block,
   /* Only used when 'uiItemInternalFlag::PropSep' is set. */
   layout->use_property_decorate_set(true);
 
-  layout->x_ = x;
-  layout->y_ = y;
-  layout->space_ = style->templatespace;
+  LayoutInternal::layout_space_set(layout, style->templatespace);
   layout->active_set(true);
   layout->enabled_set(true);
   layout->emboss_set(EmbossType::Undefined);
-
+  int w = 0, h = 0;
   if (ELEM(type, LayoutType::Menu, LayoutType::PieMenu)) {
-    layout->space_ = 0;
+    LayoutInternal::layout_space_set(layout, 0);
   }
 
   if (dir == LayoutDirection::Horizontal) {
-    layout->h_ = size;
+    h = size;
     layout->root()->emh = em * UI_UNIT_Y;
   }
   else {
-    layout->w_ = size;
+    w = size;
     layout->root()->emw = em * UI_UNIT_X;
   }
+  LayoutInternal::layout_offset_size_set(layout, x, y, w, h);
 
   block->curlayout = layout;
   root->layout = layout;
@@ -5525,11 +5523,10 @@ void LayoutInternal::layout_add_but(uiLayout *layout, uiBut *but)
   uiButtonItem *bitem = MEM_new<uiButtonItem>(__func__);
   bitem->but = but;
 
-  int w, h;
-  ui_item_size((uiItem *)bitem, &w, &h);
+  int2 size = bitem->size();
   /* XXX uiBut hasn't scaled yet
    * we can flag the button as not expandable, depending on its size */
-  if (w <= 2 * UI_UNIT_X && but->str.empty()) {
+  if (size.x <= 2 * UI_UNIT_X && but->str.empty()) {
     bitem->fixed_size_set(true);
   }
 
@@ -5626,7 +5623,7 @@ void uiItem::fixed_size_set(bool fixed_size)
 
 bool uiItem::fixed_size() const
 {
-  return bool(flag_ & uiItemInternalFlag::FixedSize);
+  return flag_is_set(flag_, uiItemInternalFlag::FixedSize);
 }
 
 void uiLayout::operator_context_set(blender::wm::OpCallContext opcontext)
@@ -5862,7 +5859,7 @@ void UI_menutype_draw(bContext *C, MenuType *mt, uiLayout *layout)
   }
 
   uiBlock *block = layout->block();
-  if (bool(mt->flag & MenuTypeFlag::SearchOnKeyPress)) {
+  if (flag_is_set(mt->flag, MenuTypeFlag::SearchOnKeyPress)) {
     UI_block_flag_enable(block, UI_BLOCK_NO_ACCELERATOR_KEYS);
   }
   if (mt->listener) {

@@ -7,7 +7,7 @@
  * Enums for space type in the user interface.
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
 
 #pragma once
 
@@ -598,7 +598,7 @@ typedef enum eFileSel_Params_Flag {
   /** Enables filtering by asset catalog. */
   FILE_FILTER_ASSET_CATALOG = (1 << 15),
 } eFileSel_Params_Flag;
-ENUM_OPERATORS(eFileSel_Params_Flag, FILE_FILTER_ASSET_CATALOG);
+ENUM_OPERATORS(eFileSel_Params_Flag);
 
 typedef enum eFileSel_Params_AssetCatalogVisibility {
   FILE_SHOW_ASSETS_ALL_CATALOGS,
@@ -654,7 +654,7 @@ typedef enum eFileSel_File_Types {
   FILE_TYPE_DIR = (1 << 30),
   FILE_TYPE_BLENDERLIB = (1u << 31),
 } eFileSel_File_Types;
-ENUM_OPERATORS(eFileSel_File_Types, FILE_TYPE_BLENDERLIB);
+ENUM_OPERATORS(eFileSel_File_Types);
 
 /** Selection Flags #FileList::selection_state. */
 typedef enum eDirEntry_SelectFlag {
@@ -663,7 +663,7 @@ typedef enum eDirEntry_SelectFlag {
   FILE_SEL_SELECTED = (1 << 3),
   FILE_SEL_EDITING = (1 << 4),
 } eDirEntry_SelectFlag;
-ENUM_OPERATORS(eDirEntry_SelectFlag, FILE_SEL_EDITING);
+ENUM_OPERATORS(eDirEntry_SelectFlag);
 
 /* ***** Related to file browser, but never saved in DNA, only here to help with RNA. ***** */
 

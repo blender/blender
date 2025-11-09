@@ -1,0 +1,39 @@
+/* SPDX-FileCopyrightText: 2025 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+/**
+ * Start of the shader stage wrapping class.
+ * This class allows to mimic GLSL global variable & resource access.
+ *
+ * This has some consequences:
+ * - It prevents the use of function prototype (as every function becomes a class method).
+ * - All global variables become a class member which increases register usage. This is very
+ *   problematic for static arrays. This is usually better to move them to the associated function
+ *   scope to avoid overhead. Our shader pipeline has a linter for this.
+ * - Everything needs to be setup through references which are set by the class constructor. This
+ *   has to be generated at runtime and increases the code complexity.
+ */
+
+#pragma once
+
+/* File generated at runtime. This is just an example implementation. */
+#pragma runtime_generated
+
+#include "gpu_shader_msl_types.msl"
+
+/* Compilation constants go here. */
+constant int my_compilation_constant = 2;
+
+/* Specialization constants go here. */
+constant int my_specialization_constant [[function_constant(64)]];
+
+/* If needed Bindless Sampler argument buffer type declaration goes here. */
+struct BindlessSamplers {
+  /* 64 here is replaced by the number of sampler used in the shader. */
+  array<sampler, 64> samplers [[id(0)]];
+};
+
+/* Commented out for parser to work. */
+// struct mtl_Vert {
+/* The class is left unterminated on purpose. It wraps around all the shader code base. */

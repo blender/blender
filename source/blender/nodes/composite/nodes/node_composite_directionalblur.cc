@@ -177,7 +177,7 @@ class DirectionalBlurOperation : public NodeOperation {
         current_sin = new_sin;
       }
 
-      output.store_pixel(texel, accumulated_color / iterations);
+      output.store_pixel(texel, Color(accumulated_color / iterations));
     });
   }
 

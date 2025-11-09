@@ -9,6 +9,7 @@
 #include "BKE_camera.h"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
@@ -248,24 +249,26 @@ void SceneState::init(const DRWContext *context,
   draw_object_id = (draw_outline || draw_curvature);
 };
 
-static const CustomData *get_loop_custom_data(const Mesh *mesh)
+static bool mesh_has_color_attribute(const Mesh &mesh)
 {
-  if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
-    BLI_assert(mesh->runtime->edit_mesh != nullptr);
-    BLI_assert(mesh->runtime->edit_mesh->bm != nullptr);
-    return &mesh->runtime->edit_mesh->bm->ldata;
+  if (mesh.runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+    const BMesh &bm = *mesh.runtime->edit_mesh->bm;
+    const BMDataLayerLookup attr = BM_data_layer_lookup(bm, mesh.active_color_attribute);
+    return attr && bke::mesh::is_color_attribute(bke::AttributeMetaData{attr.domain, attr.type});
   }
-  return &mesh->corner_data;
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  return bke::mesh::is_color_attribute(attributes.lookup_meta_data(mesh.active_color_attribute));
 }
 
-static const CustomData *get_vert_custom_data(const Mesh *mesh)
+static bool mesh_has_uv_map_attribute(const Mesh &mesh)
 {
-  if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
-    BLI_assert(mesh->runtime->edit_mesh != nullptr);
-    BLI_assert(mesh->runtime->edit_mesh->bm != nullptr);
-    return &mesh->runtime->edit_mesh->bm->vdata;
+  if (mesh.runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+    const BMesh &bm = *mesh.runtime->edit_mesh->bm;
+    const BMDataLayerLookup attr = BM_data_layer_lookup(bm, mesh.active_uv_map_name());
+    return attr && bke::mesh::is_uv_map(bke::AttributeMetaData{attr.domain, attr.type});
   }
-  return &mesh->vert_data;
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  return bke::mesh::is_uv_map(attributes.lookup_meta_data(mesh.active_uv_map_name()));
 }
 
 ObjectState::ObjectState(const DRWContext *draw_ctx,
@@ -288,12 +291,7 @@ ObjectState::ObjectState(const DRWContext *draw_ctx,
       return false;
     }
     const Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob);
-    const CustomData *cd_vdata = get_vert_custom_data(&mesh);
-    const CustomData *cd_ldata = get_loop_custom_data(&mesh);
-    return CustomData_has_layer(cd_vdata, CD_PROP_COLOR) ||
-           CustomData_has_layer(cd_vdata, CD_PROP_BYTE_COLOR) ||
-           CustomData_has_layer(cd_ldata, CD_PROP_COLOR) ||
-           CustomData_has_layer(cd_ldata, CD_PROP_BYTE_COLOR);
+    return mesh_has_color_attribute(mesh);
   };
 
   const auto has_uv = [&]() {
@@ -301,8 +299,7 @@ ObjectState::ObjectState(const DRWContext *draw_ctx,
       return false;
     }
     const Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob);
-    const CustomData *cd_ldata = get_loop_custom_data(&mesh);
-    return CustomData_has_layer(cd_ldata, CD_PROP_FLOAT2);
+    return mesh_has_uv_map_attribute(mesh);
   };
 
   if (color_type == V3D_SHADING_TEXTURE_COLOR && (!has_uv() || ob->dt < OB_TEXTURE)) {

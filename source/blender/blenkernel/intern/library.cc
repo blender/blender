@@ -562,6 +562,11 @@ static void pack_linked_id(Main &bmain,
           BLI_assert(packed_id->lib == archive_lib);
           UNUSED_VARS_NDEBUG(archive_lib);
 
+          if (GS(packed_id->name) == ID_SCE) {
+            /* Like in #scene_blend_read_data. */
+            id_us_ensure_real(packed_id);
+          }
+
           packed_id->deep_hash = deep_hashes.hashes.lookup(linked_id);
           id_remapper.add(linked_id, packed_id);
           ids_to_remap.add(packed_id);

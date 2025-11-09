@@ -28,7 +28,7 @@ class RenderMonitor {
   {
     if (_re && !info.empty()) {
       _re->i.infostr = info.c_str();
-      _re->stats_draw(&_re->i);
+      _re->display->stats_draw(&_re->i);
       _re->i.infostr = nullptr;
     }
   }
@@ -36,13 +36,13 @@ class RenderMonitor {
   inline void progress(float i)
   {
     if (_re) {
-      _re->progress(i);
+      _re->display->progress(i);
     }
   }
 
   inline bool testBreak()
   {
-    return _re && _re->test_break();
+    return _re && _re->display->test_break();
   }
 
  protected:

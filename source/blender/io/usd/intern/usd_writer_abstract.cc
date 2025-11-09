@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_abstract.hh"
 #include "usd_attribute_utils.hh"
+#include "usd_hierarchy_iterator.hh"
 #include "usd_utils.hh"
 #include "usd_writer_material.hh"
 
@@ -33,10 +34,7 @@ static std::string get_mesh_active_uvlayer_name(const Object *ob)
   }
 
   const Mesh *mesh = static_cast<Mesh *>(ob->data);
-
-  const char *name = CustomData_get_active_layer_name(&mesh->corner_data, CD_PROP_FLOAT2);
-
-  return name ? name : "";
+  return mesh->active_uv_map_name();
 }
 
 template<typename USDT>
@@ -235,6 +233,7 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material_created(
       usd_export_context_, usd_path, material, active_uv, reports());
 
   auto prim = usd_material.GetPrim();
+  add_to_prim_map(prim.GetPath(), &material->id);
   write_id_properties(prim, material->id, get_export_time_code());
 
   return usd_material;
@@ -478,6 +477,13 @@ void USDAbstractWriter::author_extent(const pxr::UsdGeomBoundable &boundable,
 
   pxr::UsdAttribute attr_extent = boundable.CreateExtentAttr(pxr::VtValue(), true);
   set_attribute(attr_extent, extent, time, usd_value_writer_);
+}
+
+void USDAbstractWriter::add_to_prim_map(const pxr::SdfPath &usd_path, const ID *id) const
+{
+  if (usd_export_context_.hierarchy_iterator) {
+    usd_export_context_.hierarchy_iterator->add_to_prim_map(usd_path, id);
+  }
 }
 
 }  // namespace blender::io::usd

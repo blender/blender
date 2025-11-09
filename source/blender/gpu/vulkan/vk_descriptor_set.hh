@@ -166,52 +166,6 @@ class VKDescriptorSetPoolUpdator : public VKDescriptorSetUpdator {
   Vector<VkWriteDescriptorSet> vk_write_descriptor_sets_;
 };
 
-class VKDescriptorBufferUpdator : public VKDescriptorSetUpdator {
- public:
-  /* Offset to the beginning of the current descriptor set. */
-  VkDeviceSize descriptor_set_head = 0;
-  /* Offset to the end (+1) of the current descriptor set. */
-  VkDeviceSize descriptor_set_tail = 0;
-  /* Current layout of the descriptor set being filled. */
-  VKDescriptorBufferLayout layout;
-  /* Descriptor buffers */
-  Vector<std::unique_ptr<VKBuffer>> buffers;
-
-  /* Current descriptor buffer handle and offset. */
-  VkDeviceAddress descriptor_buffer_device_address = 0;
-  uint8_t *descriptor_buffer_data = nullptr;
-  VkDeviceSize descriptor_buffer_offset = 0;
-
-  void allocate_new_descriptor_set(VKDevice &device,
-                                   VKContext &context,
-                                   VKShader &shader,
-                                   VkDescriptorSetLayout vk_descriptor_set_layout,
-                                   render_graph::VKPipelineData &r_pipeline_data) override;
-
-  void upload_descriptor_sets() override;
-
- protected:
-  void bind_texel_buffer(VKVertexBuffer &vertex_buffer,
-                         VKDescriptorSet::Location location) override;
-  void bind_buffer(VkDescriptorType vk_descriptor_type,
-                   VkBuffer vk_buffer,
-                   VkDeviceAddress vk_device_address,
-                   VkDeviceSize buffer_offset,
-                   VkDeviceSize size_in_bytes,
-                   VKDescriptorSet::Location location) override;
-  void bind_image(VkDescriptorType vk_descriptor_type,
-                  VkSampler vk_sampler,
-                  VkImageView vk_image_view,
-                  VkImageLayout vk_image_layout,
-                  VKDescriptorSet::Location location) override;
-
- private:
-  inline uint8_t *get_descriptor_binding_ptr(uint32_t binding) const
-  {
-    return descriptor_buffer_data + descriptor_buffer_offset + layout.binding_offsets[binding];
-  }
-};
-
 class VKDescriptorSetTracker {
   friend class VKDescriptorSet;
 
@@ -219,7 +173,6 @@ class VKDescriptorSetTracker {
   VkDescriptorSetLayout vk_descriptor_set_layout_ = VK_NULL_HANDLE;
 
  public:
-  class VKDescriptorBufferUpdator descriptor_buffers;
   class VKDescriptorSetPoolUpdator descriptor_sets;
 
   VKDescriptorSetTracker() {}

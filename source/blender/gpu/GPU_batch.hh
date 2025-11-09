@@ -18,8 +18,8 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
 #include "BLI_index_range.hh"
-#include "BLI_utildefines.h"
 
 #include "GPU_index_buffer.hh"
 #include "GPU_shader.hh"
@@ -58,7 +58,7 @@ enum GPUBatchFlag {
 BLI_STATIC_ASSERT(GPU_BATCH_OWNS_INDEX < GPU_BATCH_INIT,
                   "GPUBatchFlag: Error: status flags are shadowed by the ownership bits!")
 
-ENUM_OPERATORS(GPUBatchFlag, GPU_BATCH_DIRTY)
+ENUM_OPERATORS(GPUBatchFlag)
 
 namespace blender::gpu {
 

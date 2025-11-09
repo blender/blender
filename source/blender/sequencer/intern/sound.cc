@@ -23,7 +23,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_colortools.hh"
-#include "BKE_sound.h"
+#include "BKE_sound.hh"
 
 #ifdef WITH_CONVOLUTION
 #  include "AUD_Sound.h"
@@ -35,12 +35,18 @@
 
 #include "strip_time.hh"
 
+#ifdef WITH_AUDASPACE
+#  include "AUD_Types.h"
+#endif
+
 namespace blender::seq {
 
 /* Unlike _update_sound_ functions,
  * these ones take info from audaspace to update sequence length! */
 const SoundModifierWorkerInfo workersSoundModifiers[] = {
-    {eSeqModifierType_SoundEqualizer, sound_equalizermodifier_recreator}, {0, nullptr}};
+    {eSeqModifierType_SoundEqualizer, sound_equalizermodifier_recreator},
+    {eSeqModifierType_Pitch, pitchmodifier_recreator},
+    {0, nullptr}};
 
 #ifdef WITH_CONVOLUTION
 static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, ListBase *seqbase)
@@ -345,6 +351,72 @@ void *sound_equalizermodifier_recreator(Strip *strip,
 #else
   UNUSED_VARS(strip, smd, sound_in, needs_update);
   return nullptr;
+#endif
+}
+
+void *pitchmodifier_recreator(Strip * /*strip*/,
+                              StripModifierData *smd,
+                              void *sound_in,
+                              bool &needs_update)
+{
+  if (!needs_update && smd->runtime.last_sound_in == sound_in) {
+    return smd->runtime.last_sound_out;
+  }
+
+#if defined(WITH_AUDASPACE) && defined(WITH_RUBBERBAND)
+  PitchModifierData *pmd = (PitchModifierData *)smd;
+
+  int quality = pmd->quality;
+  switch (quality) {
+    case PITCH_QUALITY_HIGH:
+      quality = AUD_STRETCHER_QUALITY_HIGH;
+      break;
+    case PITCH_QUALITY_FAST:
+      quality = AUD_STRETCHER_QUALITY_FAST;
+      break;
+    case PITCH_QUALITY_CONSISTENT:
+      quality = AUD_STRETCHER_QUALITY_CONSISTENT;
+      break;
+    default:
+      quality = AUD_STRETCHER_QUALITY_HIGH;
+  }
+
+  double pitch_scale = 0;
+  int mode = pmd->mode;
+  if (mode == PITCH_MODE_SEMITONES) {
+    pitch_scale = pow(2.0, (pmd->semitones + (pmd->cents / 100.0)) / 12.0);
+  }
+  else if (mode == PITCH_MODE_RATIO) {
+    pitch_scale = pmd->ratio;
+
+    if (pitch_scale <= 0.0) {
+      pitch_scale = 1.0;
+      pmd->ratio = 1.0;
+    }
+  }
+
+  if (pitch_scale == 0) {
+    if (smd->runtime.last_sound_in == sound_in) {
+      return smd->runtime.last_sound_out;
+    }
+    else {
+      return sound_in;
+    }
+  }
+
+  AUD_Sound *sound_out = AUD_Sound_timeStretchPitchScale(
+      sound_in, 1, pitch_scale, (AUD_StretcherQuality)quality, pmd->preserve_formant);
+  needs_update = true;
+  smd->runtime.last_sound_in = sound_in;
+  smd->runtime.last_sound_out = sound_out;
+  return sound_out;
+#else
+  if (smd->runtime.last_sound_in == sound_in) {
+    return smd->runtime.last_sound_out;
+  }
+  else {
+    return sound_in;
+  }
 #endif
 }
 

@@ -465,7 +465,7 @@ class MixColorFunction : public mf::MultiFunction {
 
     if (clamp_result_) {
       mask.foreach_index_optimized<int64_t>(
-          [&](const int64_t i) { clamp_v3(results[i], 0.0f, 1.0f); });
+          [&](const int64_t i) { clamp_v4(results[i], 0.0f, 1.0f); });
     }
   }
 };

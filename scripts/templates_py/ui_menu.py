@@ -16,11 +16,11 @@ class CustomMenu(bpy.types.Menu):
         layout.label(text="Hello world!", icon='WORLD_DATA')
 
         # use an operator enum property to populate a sub-menu
-        layout.operator_menu_enum("object.select_by_type",
-                                  property="type",
-                                  text="Select All by Type",
-                                  )
-
+        layout.operator_menu_enum(
+            "object.select_by_type",
+            property="type",
+            text="Select All by Type",
+        )
         # call another menu
         layout.operator("wm.call_menu", text="Unwrap").name = "VIEW3D_MT_uv_map"
 

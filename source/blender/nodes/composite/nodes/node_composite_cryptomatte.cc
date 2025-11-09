@@ -382,7 +382,7 @@ class BaseCryptoMatteOperation : public NodeOperation {
     parallel_for(domain.size, [&](const int2 texel) {
       /* Each layer stores two ranks, each rank contains a pair, the identifier and the coverage of
        * the entity identified by the identifier. */
-      float2 first_rank = first_layer.load_pixel<float4>(texel + lower_bound).xy();
+      float2 first_rank = float4(first_layer.load_pixel<Color>(texel + lower_bound)).xy();
       float id_of_first_rank = first_rank.x;
 
       /* There is no logic to this, we just compute arbitrary compressed versions of the identifier
@@ -392,7 +392,7 @@ class BaseCryptoMatteOperation : public NodeOperation {
       float green = float(hash_value << 8) / float(0xFFFFFFFFu);
       float blue = float(hash_value << 16) / float(0xFFFFFFFFu);
 
-      output.store_pixel(texel, float4(id_of_first_rank, green, blue, 1.0f));
+      output.store_pixel(texel, Color(id_of_first_rank, green, blue, 1.0f));
     });
   }
 
@@ -475,7 +475,7 @@ class BaseCryptoMatteOperation : public NodeOperation {
        * blur and transparency." ACM SIGGRAPH 2015 Posters. 2015. 1-1.
        */
       parallel_for(domain.size, [&](const int2 texel) {
-        float4 layer = layer_result.load_pixel<float4>(texel + lower_bound);
+        float4 layer = float4(layer_result.load_pixel<Color>(texel + lower_bound));
 
         /* Each Cryptomatte layer stores two ranks. */
         float2 first_rank = layer.xy();
@@ -551,11 +551,11 @@ class BaseCryptoMatteOperation : public NodeOperation {
     output.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
-      float4 input_color = input.load_pixel<float4, true>(texel);
+      float4 input_color = float4(input.load_pixel<Color, true>(texel));
       float input_matte = matte.load_pixel<float>(texel);
 
       /* Premultiply the alpha to the image. */
-      output.store_pixel(texel, input_color * input_matte);
+      output.store_pixel(texel, Color(input_color * input_matte));
     });
   }
 

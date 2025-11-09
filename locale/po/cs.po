@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-11-03 10:44+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Jan Vavřínek <janvavrinek1@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13834,10 +13834,6 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
-
-
 msgid "Metaball"
 msgstr "Meta objekt"
 
@@ -13898,12 +13894,12 @@ msgid "Keying"
 msgstr "Klíčovací sestava"
 
 
-msgid "Names"
-msgstr "Názvy"
-
-
 msgid "Tracking"
 msgstr "Sledování"
+
+
+msgid "Names"
+msgstr "Názvy"
 
 
 msgid "Utilities"
@@ -13980,6 +13976,10 @@ msgstr "Zarovnat pohled"
 
 msgid "Select Linked"
 msgstr "Vybrat Propojené"
+
+
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
 
 
 msgid "Basic"

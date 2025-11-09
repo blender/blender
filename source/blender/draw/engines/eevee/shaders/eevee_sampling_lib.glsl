@@ -9,7 +9,7 @@
  * Also contains some sample mapping functions.
  */
 
-#include "infos/eevee_common_infos.hh"
+#include "infos/eevee_sampling_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_sampling_data)
 

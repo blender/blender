@@ -1475,56 +1475,54 @@ static void region_overlap_fix(ScrArea *area, ARegion *region)
   }
 }
 
-bool ED_region_is_overlap(int spacetype, int regiontype)
+bool ED_region_is_overlap(const int spacetype, const int regiontype)
 {
   if (regiontype == RGN_TYPE_HUD) {
     return true;
   }
-  if (U.uiflag2 & USER_REGION_OVERLAP) {
-    if (spacetype == SPACE_NODE) {
-      if (ELEM(regiontype,
-               RGN_TYPE_TOOLS,
-               RGN_TYPE_UI,
-               RGN_TYPE_ASSET_SHELF,
-               RGN_TYPE_ASSET_SHELF_HEADER))
-      {
-        return true;
-      }
-    }
-    else if (spacetype == SPACE_VIEW3D) {
+  if ((U.uiflag2 & USER_REGION_OVERLAP) == 0) {
+    return false;
+  }
+
+  switch (spacetype) {
+    case SPACE_NODE:
+      return ELEM(regiontype,
+                  RGN_TYPE_TOOLS,
+                  RGN_TYPE_UI,
+                  RGN_TYPE_ASSET_SHELF,
+                  RGN_TYPE_ASSET_SHELF_HEADER);
+
+    case SPACE_VIEW3D:
       if (regiontype == RGN_TYPE_HEADER) {
-        /* Do not treat as overlapped if no transparency. */
+        /* Only treat as overlapped if there is transparency. */
         bTheme *theme = UI_GetTheme();
         return theme->space_view3d.header[3] != 255;
       }
-      if (ELEM(regiontype,
-               RGN_TYPE_TOOLS,
-               RGN_TYPE_UI,
-               RGN_TYPE_TOOL_PROPS,
-               RGN_TYPE_FOOTER,
-               RGN_TYPE_TOOL_HEADER,
-               RGN_TYPE_ASSET_SHELF,
-               RGN_TYPE_ASSET_SHELF_HEADER))
-      {
-        return true;
-      }
-    }
-    else if (spacetype == SPACE_IMAGE) {
-      if (ELEM(regiontype,
-               RGN_TYPE_TOOLS,
-               RGN_TYPE_UI,
-               RGN_TYPE_TOOL_PROPS,
-               RGN_TYPE_FOOTER,
-               RGN_TYPE_TOOL_HEADER,
-               RGN_TYPE_ASSET_SHELF,
-               RGN_TYPE_ASSET_SHELF_HEADER))
-      {
-        return true;
-      }
-    }
-  }
+      return ELEM(regiontype,
+                  RGN_TYPE_TOOLS,
+                  RGN_TYPE_UI,
+                  RGN_TYPE_TOOL_PROPS,
+                  RGN_TYPE_FOOTER,
+                  RGN_TYPE_TOOL_HEADER,
+                  RGN_TYPE_ASSET_SHELF,
+                  RGN_TYPE_ASSET_SHELF_HEADER);
 
-  return false;
+    case SPACE_IMAGE:
+      return ELEM(regiontype,
+                  RGN_TYPE_TOOLS,
+                  RGN_TYPE_UI,
+                  RGN_TYPE_TOOL_PROPS,
+                  RGN_TYPE_FOOTER,
+                  RGN_TYPE_TOOL_HEADER,
+                  RGN_TYPE_ASSET_SHELF,
+                  RGN_TYPE_ASSET_SHELF_HEADER);
+
+    default:
+      /* Most editors do not support any region overlap. It is fine if newly-added space types also
+       * default to not having region overlap; this 'switch' doesn't have to be religiously updated
+       * for every newly added type. */
+      return false;
+  }
 }
 
 static void region_rect_recursive(
@@ -1921,7 +1919,7 @@ static void area_calc_totrct(const bScreen *screen, ScrArea *area, const rcti *w
 /**
  * Update the `ARegion::visible` flag.
  */
-static void region_evaulate_visibility(ARegion *region)
+static void region_evaluate_visibility(ARegion *region)
 {
   bool hidden = (region->flag & (RGN_FLAG_POLL_FAILED | RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) !=
                 0;
@@ -2067,7 +2065,7 @@ void ED_area_update_region_sizes(wmWindowManager *wm, wmWindow *win, ScrArea *ar
     if (region->flag & RGN_FLAG_POLL_FAILED) {
       continue;
     }
-    region_evaulate_visibility(region);
+    region_evaluate_visibility(region);
 
     /* region size may have changed, init does necessary adjustments */
     if (region->runtime->type->init) {
@@ -2178,7 +2176,7 @@ void ED_area_init(bContext *C, const wmWindow *win, ScrArea *area)
 
   /* region windows, default and own handlers */
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    region_evaulate_visibility(region);
+    region_evaluate_visibility(region);
 
     if (region->runtime->visible) {
       /* default region handlers */
@@ -2303,7 +2301,7 @@ void ED_region_floating_init(ARegion *region)
   BLI_assert(region->alignment == RGN_ALIGN_FLOAT);
 
   /* refresh can be called before window opened */
-  region_evaulate_visibility(region);
+  region_evaluate_visibility(region);
 
   region_update_rect(region);
 }
@@ -2826,7 +2824,7 @@ void ED_area_newspace(bContext *C, ScrArea *area, int type, const bool skip_regi
 
   if (BLI_listbase_is_single(&CTX_wm_screen(C)->areabase)) {
     /* If there is only one area update the window title. */
-    WM_window_title(CTX_wm_manager(C), CTX_wm_window(C));
+    WM_window_title_refresh(CTX_wm_manager(C), CTX_wm_window(C));
   }
 
   /* See #WM_capabilities_flag code-comments for details on the background check. */
@@ -3414,7 +3412,9 @@ void ED_region_panels_layout_ex(const bContext *C,
   }
 }
 
-void ED_region_draw_overflow_indication(const ScrArea *area, ARegion *region, rcti *mask)
+void ED_region_draw_overflow_indication(const ScrArea *area,
+                                        const ARegion *region,
+                                        const rcti *mask)
 {
   if (!(region->flag & RGN_FLAG_INDICATE_OVERFLOW)) {
     return;
@@ -3549,9 +3549,9 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   UI_blocklist_update_window_matrix(C, &region->runtime->uiblocks);
 
   /* draw panels if they are large enough. */
-  const bool has_catgories = (region->panels_category_active.first != nullptr);
-  const short min_draw_size = has_catgories ? short(UI_PANEL_CATEGORY_MIN_WIDTH) + 20 :
-                                              std::min(region->runtime->type->prefsizex, 20);
+  const bool has_categories = (region->panels_category_active.first != nullptr);
+  const short min_draw_size = has_categories ? short(UI_PANEL_CATEGORY_MIN_WIDTH) + 20 :
+                                               std::min(region->runtime->type->prefsizex, 20);
   if (region->winx >= (min_draw_size * UI_SCALE_FAC / aspect)) {
     UI_panels_draw(C, region);
   }

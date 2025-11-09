@@ -9,9 +9,10 @@
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_customdata.hh"
+#include "BKE_attribute.hh"
 #include "BKE_image.hh"
 #include "BKE_material.hh"
+#include "BKE_mesh.hh"
 #include "BKE_paint.hh"
 
 #include "IMB_imbuf_types.hh"
@@ -71,19 +72,29 @@ bool BKE_paint_canvas_image_get(PaintModeSettings *settings,
   return *r_image != nullptr;
 }
 
-int BKE_paint_canvas_uvmap_layer_index_get(const PaintModeSettings *settings, Object *ob)
+static bool has_uv_map_attribute(const Mesh &mesh, const blender::StringRef name)
+{
+  using namespace blender;
+  return bke::mesh::is_uv_map(mesh.attributes().lookup_meta_data(name));
+}
+
+std::optional<blender::StringRef> BKE_paint_canvas_uvmap_name_get(
+    const PaintModeSettings *settings, Object *ob)
 {
   switch (settings->canvas_source) {
     case PAINT_CANVAS_SOURCE_COLOR_ATTRIBUTE:
-      return -1;
+      return std::nullopt;
     case PAINT_CANVAS_SOURCE_IMAGE: {
       /* Use active uv map of the object. */
       if (ob->type != OB_MESH) {
-        return -1;
+        return std::nullopt;
       }
 
       const Mesh *mesh = static_cast<Mesh *>(ob->data);
-      return CustomData_get_active_layer_index(&mesh->corner_data, CD_PROP_FLOAT2);
+      if (!has_uv_map_attribute(*mesh, mesh->active_uv_map_name())) {
+        return std::nullopt;
+      }
+      return mesh->active_uv_map_name();
     }
     case PAINT_CANVAS_SOURCE_MATERIAL: {
       /* Use uv map of the canvas. */
@@ -93,25 +104,27 @@ int BKE_paint_canvas_uvmap_layer_index_get(const PaintModeSettings *settings, Ob
       }
 
       if (ob->type != OB_MESH) {
-        return -1;
+        return std::nullopt;
       }
 
       if (slot->uvname == nullptr) {
-        return -1;
+        return std::nullopt;
       }
 
       const Mesh *mesh = static_cast<Mesh *>(ob->data);
-      return CustomData_get_named_layer_index(&mesh->corner_data, CD_PROP_FLOAT2, slot->uvname);
+      if (!has_uv_map_attribute(*mesh, slot->uvname)) {
+        return std::nullopt;
+      }
+      return slot->uvname;
     }
   }
-  return -1;
+  return std::nullopt;
 }
 
 char *BKE_paint_canvas_key_get(PaintModeSettings *settings, Object *ob)
 {
   std::stringstream ss;
-  int active_uv_map_layer_index = BKE_paint_canvas_uvmap_layer_index_get(settings, ob);
-  ss << "UV_MAP:" << active_uv_map_layer_index;
+  ss << "UV_MAP:" << BKE_paint_canvas_uvmap_name_get(settings, ob).value_or("");
 
   Image *image;
   ImageUser *image_user;

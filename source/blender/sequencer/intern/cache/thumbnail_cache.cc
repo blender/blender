@@ -547,8 +547,7 @@ void thumbnail_cache_invalidate_strip(Scene *scene, const Strip *strip)
           paths_count = int(MEM_allocN_len(elem) / sizeof(*elem));
         }
         char filepath[FILE_MAX];
-        const char *basepath = strip->scene ? ID_BLEND_PATH_FROM_GLOBAL(&strip->scene->id) :
-                                              BKE_main_blendfile_path_from_global();
+        const char *basepath = ID_BLEND_PATH_FROM_GLOBAL(&scene->id);
         for (int i = 0; i < paths_count; i++, elem++) {
           BLI_path_join(filepath, sizeof(filepath), strip->data->dirpath, elem->filename);
           BLI_path_abs(filepath, basepath);

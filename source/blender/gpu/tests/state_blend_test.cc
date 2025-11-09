@@ -135,4 +135,20 @@ static void test_blend_background()
 }
 GPU_TEST(blend_background)
 
+static void test_blend_min()
+{
+  blend_test<GPU_BLEND_MIN>(float4(1.0f, 2.0f, 3.0f, 4.0f),
+                            float4(4.0f, 3.0f, 2.0f, 1.0f),
+                            float4(1.0f, 2.0f, 2.0f, 1.0f));
+}
+GPU_TEST(blend_min)
+
+static void test_blend_max()
+{
+  blend_test<GPU_BLEND_MAX>(float4(1.0f, 2.0f, 3.0f, 4.0f),
+                            float4(4.0f, 3.0f, 2.0f, 1.0f),
+                            float4(4.0f, 3.0f, 3.0f, 4.0f));
+}
+GPU_TEST(blend_max)
+
 }  // namespace blender::gpu::tests

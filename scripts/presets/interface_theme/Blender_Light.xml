@@ -630,7 +630,9 @@
         keyframe_border_selected="#000000ff"
         keyframe_scale_factor="1"
         summary="#d3660066"
-        interpolation_line="#94e575cc"
+        anim_interpolation_linear="#94e575cc"
+        anim_interpolation_constant="#e59c7bcc"
+        anim_interpolation_other="#5dbabeb3"
         simulated_frames="#721e65ff"
         >
         <space>

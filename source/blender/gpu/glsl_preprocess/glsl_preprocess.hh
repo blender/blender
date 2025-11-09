@@ -52,6 +52,8 @@ enum Builtin : uint64_t {
   FragStencilRef = hash("gl_FragStencilRefARB"),
   FrontFacing = hash("gl_FrontFacing"),
   GlobalInvocationID = hash("gl_GlobalInvocationID"),
+  InstanceIndex = hash("gpu_InstanceIndex"),
+  BaseInstance = hash("gpu_BaseInstance"),
   InstanceID = hash("gl_InstanceID"),
   LocalInvocationID = hash("gl_LocalInvocationID"),
   LocalInvocationIndex = hash("gl_LocalInvocationIndex"),
@@ -109,6 +111,10 @@ struct Source {
   std::vector<std::string> dependencies;
   std::vector<PrintfFormat> printf_formats;
   std::vector<FunctionFormat> functions;
+  std::vector<std::string> create_infos;
+  std::vector<std::string> create_infos_declarations;
+  std::vector<std::string> create_infos_dependencies;
+  std::vector<std::string> create_infos_defines;
 
   std::string serialize(const std::string &function_name) const
   {
@@ -143,6 +149,25 @@ struct Source {
     /* Avoid warnings. */
     ss << "  UNUSED_VARS(source, g_functions, g_formats);\n";
     ss << "}\n";
+    return ss.str();
+  }
+
+  std::string serialize_infos() const
+  {
+    std::stringstream ss;
+    ss << "#pragma once\n";
+    ss << "\n";
+    for (auto dependency : create_infos_dependencies) {
+      ss << "#include \"" << dependency << "\"\n";
+    }
+    ss << "\n";
+    for (auto define : create_infos_defines) {
+      ss << define;
+    }
+    ss << "\n";
+    for (auto declaration : create_infos_declarations) {
+      ss << declaration << "\n";
+    }
     return ss.str();
   }
 };
@@ -224,6 +249,8 @@ class Preprocessor {
         pragma_runtime_generated_parsing(str);
         pragma_once_linting(str, filename, report_error);
       }
+      parse_defines(str, report_error);
+      str = create_info_parse_and_remove(str, report_error);
       str = include_parse_and_remove(str, report_error);
       str = pragmas_mutation(str, report_error);
       str = swizzle_function_mutation(str, report_error);
@@ -705,6 +732,107 @@ class Preprocessor {
     parser.apply_mutations();
   }
 
+  void parse_defines(const std::string &str, report_callback report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
+    Parser parser(str, report_error);
+    parser.foreach_match("#w", [&](const std::vector<Token> &tokens) {
+      if (tokens[1].str() == "define") {
+        metadata.create_infos_defines.emplace_back(tokens[1].next().scope().str());
+      }
+    });
+  }
+
+  std::string create_info_parse_and_remove(const std::string &str, report_callback report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    Parser parser(str, report_error);
+
+    auto get_placeholder = [](const string &name) {
+      string placeholder;
+      placeholder += "#ifdef CREATE_INFO_" + name + "\n";
+      placeholder += "CREATE_INFO_" + name + "_RESOURCES\n";
+      placeholder += "#endif\n";
+      return placeholder;
+    };
+
+    parser.foreach_match("w(..)", [&](const std::vector<Token> &tokens) {
+      if (tokens[0].str() == "CREATE_INFO_VARIANT") {
+        const string variant_name = tokens[1].scope().start().next().str();
+        metadata.create_infos.emplace_back(variant_name);
+
+        const string variant_decl = parser.substr_range_inclusive(tokens.front(), tokens.back());
+        metadata.create_infos_declarations.emplace_back(variant_decl);
+
+        parser.replace(tokens.front(), tokens.back(), get_placeholder(variant_name));
+        return;
+      }
+      if (tokens[0].str() == "GPU_SHADER_CREATE_INFO") {
+        const string variant_name = tokens[1].scope().start().next().str();
+        metadata.create_infos.emplace_back(variant_name);
+
+        const size_t start_end = tokens.back().str_index_last();
+        const string end_tok = "GPU_SHADER_CREATE_END()";
+        const size_t end_pos = parser.data_get().str.find(end_tok, start_end);
+        if (end_pos == string::npos) {
+          report_error(ERROR_TOK(tokens[0]), "Missing create info end.");
+          return;
+        }
+
+        const string variant_decl = parser.substr_range_inclusive(tokens.front().str_index_start(),
+                                                                  end_pos + end_tok.size());
+        metadata.create_infos_declarations.emplace_back(variant_decl);
+
+        parser.replace(tokens.front().str_index_start(),
+                       end_pos + end_tok.size(),
+                       get_placeholder(variant_name));
+        return;
+      }
+      if (tokens[0].str() == "GPU_SHADER_NAMED_INTERFACE_INFO") {
+        const size_t start_end = tokens.back().str_index_last();
+        const string end_str = "GPU_SHADER_NAMED_INTERFACE_END(";
+        size_t end_pos = parser.data_get().str.find(end_str, start_end);
+        if (end_pos == string::npos) {
+          report_error(ERROR_TOK(tokens[0]), "Missing create info end.");
+          return;
+        }
+
+        end_pos = parser.data_get().str.find(')', end_pos);
+        if (end_pos == string::npos) {
+          report_error(ERROR_TOK(tokens[0]), "Missing parenthesis at info end.");
+          return;
+        }
+
+        const string variant_decl = parser.substr_range_inclusive(tokens.front().str_index_start(),
+                                                                  end_pos);
+        metadata.create_infos_declarations.emplace_back(variant_decl);
+
+        parser.erase(tokens.front().str_index_start(), end_pos);
+        return;
+      }
+      if (tokens[0].str() == "GPU_SHADER_INTERFACE_INFO") {
+        const size_t start_end = tokens.back().str_index_last();
+        const string end_str = "GPU_SHADER_INTERFACE_END()";
+        size_t end_pos = parser.data_get().str.find(end_str, start_end);
+        if (end_pos == string::npos) {
+          report_error(ERROR_TOK(tokens[0]), "Missing create info end.");
+          return;
+        }
+        const string variant_decl = parser.substr_range_inclusive(tokens.front().str_index_start(),
+                                                                  end_pos + end_str.size());
+        metadata.create_infos_declarations.emplace_back(variant_decl);
+
+        // parser.erase(tokens.front().str_index_start(), end_pos + end_str.size());
+        return;
+      }
+    });
+
+    return parser.result_get();
+  }
+
   std::string include_parse_and_remove(const std::string &str, report_callback report_error)
   {
     using namespace std;
@@ -716,8 +844,19 @@ class Preprocessor {
       if (tokens[1].str() != "include") {
         return;
       }
-      string dependency_name = tokens[2].str_exclusive();
-      /* Assert that includes are at the top of the file. */
+      const string dependency_name = tokens[2].str_exclusive();
+
+      if (dependency_name.find("defines.hh") != string::npos) {
+        /* Dependencies between create infos are not needed for reflections.
+         * Only the dependencies on the defines are needed. */
+        metadata.create_infos_dependencies.emplace_back(dependency_name);
+      }
+
+      if (dependency_name == "BLI_utildefines_variadic.h") {
+        /* Skip GLSL-C++ stubs. They are only for IDE linting. */
+        parser.erase(tokens.front(), tokens.back());
+        return;
+      }
       if (dependency_name == "gpu_shader_compat.hh") {
         /* Skip GLSL-C++ stubs. They are only for IDE linting. */
         parser.erase(tokens.front(), tokens.back());
@@ -1352,6 +1491,8 @@ class Preprocessor {
                             "gl_FragStencilRefARB",
                             "gl_FrontFacing",
                             "gl_GlobalInvocationID",
+                            "gpu_InstanceIndex",
+                            "gpu_BaseInstance",
                             "gl_InstanceID",
                             "gl_LocalInvocationID",
                             "gl_LocalInvocationIndex",
@@ -2304,21 +2445,17 @@ class Preprocessor {
      */
     std::stringstream args, assign, declare, pass;
 
-    bool first = true;
     for (SharedVar &var : shared_vars_) {
-      char sep = first ? ' ' : ',';
-
-      args << sep << "threadgroup " << var.type << "(&_" << var.name << ")" << var.array;
-      assign << (first ? ':' : ',') << var.name << "(_" << var.name << ")";
+      args << "threadgroup " << var.type << "(&_" << var.name << ")" << var.array << ",  ";
+      assign << var.name << "(_" << var.name << "),  ";
       declare << "threadgroup " << var.type << ' ' << var.name << var.array << ";";
-      pass << sep << var.name;
-      first = false;
+      pass << var.name << ",  ";
     }
 
     suffix << "#define MSL_SHARED_VARS_ARGS " << args.str() << "\n";
     suffix << "#define MSL_SHARED_VARS_ASSIGN " << assign.str() << "\n";
     suffix << "#define MSL_SHARED_VARS_DECLARE " << declare.str() << "\n";
-    suffix << "#define MSL_SHARED_VARS_PASS (" << pass.str() << ")\n";
+    suffix << "#define MSL_SHARED_VARS_PASS " << pass.str() << "\n";
     suffix << "\n";
 
     return suffix.str();

@@ -655,7 +655,7 @@ static bool use_playhead_snapping(bContext *C)
   return scene->toolsettings->snap_flag_playhead & SCE_SNAP;
 }
 
-static bool sequencer_skip_for_handle_tweak(const bContext *C, const wmEvent *event)
+static bool sequencer_is_mouse_over_handle(const bContext *C, const wmEvent *event)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
   if (!blender::seq::editing_get(scene)) {
@@ -683,7 +683,9 @@ static wmOperatorStatus change_frame_invoke(bContext *C, wmOperator *op, const w
   /* This check is done in case scrubbing and strip tweaking in the sequencer are bound to the same
    * event (e.g. RCS keymap where both are activated on left mouse press). Tweaking should take
    * precedence. */
-  if (CTX_wm_space_seq(C) && sequencer_skip_for_handle_tweak(C, event)) {
+  if (RNA_boolean_get(op->ptr, "pass_through_on_strip_handles") && CTX_wm_space_seq(C) &&
+      sequencer_is_mouse_over_handle(C, event))
+  {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
@@ -859,6 +861,11 @@ static void ANIM_OT_change_frame(wmOperatorType *ot)
   prop = RNA_def_boolean(ot->srna, "snap", false, "Snap", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna, "seq_solo_preview", false, "Strip Preview", "");
+  prop = RNA_def_boolean(ot->srna,
+                         "pass_through_on_strip_handles",
+                         false,
+                         "Pass Through on Strip Handles",
+                         "Allow another operator to operate on strip handles");
 }
 
 /** \} */

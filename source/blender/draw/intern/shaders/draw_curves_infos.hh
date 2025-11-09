@@ -46,7 +46,7 @@ STORAGE_BUF(CURVE_CYCLIC_SLOT, read, uint, curves_cyclic_buf[]) /* Actually bool
 STORAGE_BUF(HANDLES_POS_LEFT_SLOT, read, float, handles_positions_left_buf[])
 STORAGE_BUF(HANDLES_POS_RIGHT_SLOT, read, float, handles_positions_right_buf[])
 STORAGE_BUF(BEZIER_OFFSETS_SLOT, read, int, bezier_offsets_buf[])
-/* Nurbs (alias of other buffers).  */
+/* Nurbs (alias of other buffers). */
 // STORAGE_BUF(CURVES_ORDER_SLOT, read, uint, curves_order_buf[])  /* Actually int8_t. */
 // STORAGE_BUF(BASIS_CACHE_SLOT, read, float, basis_cache_buf[])
 // STORAGE_BUF(CONTROL_WEIGHTS_SLOT, read, float, control_weights_buf[])

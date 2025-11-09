@@ -7,6 +7,7 @@
 #include "FN_multi_function.hh"
 
 #include "BKE_anonymous_attribute_make.hh"
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_node.hh"
 #include "BKE_node_socket_value.hh"
 #include "BKE_volume_grid.hh"

@@ -152,8 +152,9 @@ class AddPresetBase:
                 self.report({'WARNING'}, "Failed to create presets path")
                 return {'CANCELLED'}
 
-            if _is_path_readonly(target_path):
-                self.report({'WARNING'}, "Cannot create presets with built-in names")
+            preset_filepath = bpy.utils.preset_find(filename, self.preset_subdir, ext=ext)
+            if _is_path_readonly(target_path) or preset_filepath:
+                self.report({'WARNING'}, "Cannot create preset \"{:s}\", as the name already exists".format(name))
                 return {'CANCELLED'}
 
             filepath = os.path.join(target_path, filename) + ext

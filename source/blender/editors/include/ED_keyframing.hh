@@ -117,8 +117,6 @@ bool ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *keyingset);
 enum eCreateDriverFlags {
   /** create drivers with a default variable for nicer UI */
   CREATEDRIVER_WITH_DEFAULT_DVAR = (1 << 0),
-  /** Create drivers with Generator FModifier (for backwards compatibility). */
-  CREATEDRIVER_WITH_FMODIFIER = (1 << 1),
 };
 
 /** Heuristic to use for connecting target properties to driven ones */
@@ -151,8 +149,6 @@ enum eDriverFCurveCreationMode {
   DRIVER_FCURVE_LOOKUP_ONLY = 0,
   /** Add with keyframes, for visual tweaking. */
   DRIVER_FCURVE_KEYFRAMES = 1,
-  /** Add with generator, for script backwards compatibility. */
-  DRIVER_FCURVE_GENERATOR = 2,
   /** Add without data, for pasting. */
   DRIVER_FCURVE_EMPTY = 3
 };
@@ -205,6 +201,9 @@ int ANIM_add_driver_with_target(ReportList *reports,
  * \brief Main Driver Management API calls.
  *
  * Add a new driver for the specified property on the given ID block
+ *
+ * \param flag: is of type #eCreateDriverFlags. Passing the flag as 0 is also an option which will
+ * create a driver without a variable.
  */
 int ANIM_add_driver(
     ReportList *reports, ID *id, const char rna_path[], int array_index, short flag, int type);

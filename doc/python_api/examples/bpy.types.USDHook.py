@@ -108,6 +108,8 @@ Methods:
 
 - ``get_stage()``: returns the USD stage to be saved
 - ``get_depsgraph()``: returns the Blender scene dependency graph
+- ``get_prim_map()`` returns a ``dict`` where the key is an exported USD Prim path and the value a ``list``
+  of the IDs associated with that prim.
 
 
 USDMaterialExportContext

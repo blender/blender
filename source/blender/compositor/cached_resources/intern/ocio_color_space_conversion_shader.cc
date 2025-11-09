@@ -325,6 +325,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
 
     shader_create_info_.local_group_size(16, 16);
     shader_create_info_.sampler(0, ImageType::Float2D, input_sampler_name());
+    shader_create_info_.builtins(BuiltinBits::GLOBAL_INVOCATION_ID);
     shader_create_info_.image(0,
                               Result::gpu_texture_format(ResultType::Color, precision_),
                               Qualifier::write,

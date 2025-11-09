@@ -14,6 +14,7 @@
 #include "BLI_array.hh"
 #include "BLI_math_constants.h"
 
+#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
@@ -207,10 +208,7 @@ static void reset_uv_map(Mesh *mesh, const StringRef name)
 
 void ED_mesh_uv_loop_reset(bContext *C, Mesh *mesh)
 {
-  /* could be ldata or pdata */
-  CustomData *ldata = mesh_customdata_get_type(mesh, BM_LOOP, nullptr);
-  const char *name = CustomData_get_active_layer_name(ldata, CD_PROP_FLOAT2);
-  reset_uv_map(mesh, name);
+  reset_uv_map(mesh, mesh->active_uv_map_name());
 
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
 }
@@ -218,6 +216,7 @@ void ED_mesh_uv_loop_reset(bContext *C, Mesh *mesh)
 int ED_mesh_uv_add(
     Mesh *mesh, const char *name, const bool active_set, const bool do_init, ReportList *reports)
 {
+  using namespace blender;
   /* NOTE: keep in sync with #ED_mesh_color_add. */
 
   int layernum_dst;
@@ -251,26 +250,25 @@ int ED_mesh_uv_add(
     }
   }
   else {
-    layernum_dst = CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
+    bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+    layernum_dst = mesh->uv_map_names().size();
     if (layernum_dst >= MAX_MTFACE) {
       BKE_reportf(reports, RPT_WARNING, "Cannot add more than %i UV maps", MAX_MTFACE);
       return -1;
     }
 
-    if (CustomData_has_layer(&mesh->corner_data, CD_PROP_FLOAT2) && do_init) {
-      CustomData_add_layer_named_with_data(
-          &mesh->corner_data,
-          CD_PROP_FLOAT2,
-          MEM_dupallocN(CustomData_get_layer(&mesh->corner_data, CD_PROP_FLOAT2)),
-          mesh->corners_num,
-          unique_name,
-          nullptr);
+    const StringRef active_name = mesh->active_uv_map_name();
+    if (!active_name.is_empty() && do_init) {
+      const VArray<float2> active_uv_map = *attributes.lookup_or_default<float2>(
+          active_name, bke::AttrDomain::Corner, float2(0));
+      attributes.add<float2>(
+          unique_name, bke::AttrDomain::Corner, bke::AttributeInitVArray(active_uv_map));
 
       is_init = true;
     }
     else {
-      CustomData_add_layer_named(
-          &mesh->corner_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->corners_num, unique_name);
+      attributes.add<float2>(
+          unique_name, bke::AttrDomain::Corner, bke::AttributeInitDefaultValue());
     }
 
     if (active_set || layernum_dst == 0) {
@@ -299,7 +297,7 @@ blender::VArray<bool> ED_mesh_uv_map_pin_layer_get(const Mesh *mesh, const int u
 {
   using namespace blender::bke;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-  const char *uv_name = CustomData_get_layer_name(&mesh->corner_data, CD_PROP_FLOAT2, uv_index);
+  const char *uv_name = mesh->uv_map_names()[uv_index].c_str();
   return get_corner_boolean_attribute(*mesh, BKE_uv_map_pin_name_get(uv_name, buffer));
 }
 
@@ -315,30 +313,30 @@ blender::bke::AttributeWriter<bool> ED_mesh_uv_map_pin_layer_ensure(Mesh *mesh, 
 {
   using namespace blender::bke;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-  const char *uv_name = CustomData_get_layer_name(&mesh->corner_data, CD_PROP_FLOAT2, uv_index);
+  const char *uv_name = mesh->uv_map_names()[uv_index].c_str();
   return ensure_corner_boolean_attribute(*mesh, BKE_uv_map_pin_name_get(uv_name, buffer));
 }
 
 void ED_mesh_uv_ensure(Mesh *mesh, const char *name)
 {
-  int layernum_dst;
-
   if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-    layernum_dst = CustomData_number_of_layers(&em->bm->ldata, CD_PROP_FLOAT2);
+    int layernum_dst = CustomData_number_of_layers(&em->bm->ldata, CD_PROP_FLOAT2);
     if (layernum_dst == 0) {
       ED_mesh_uv_add(mesh, name, true, true, nullptr);
     }
   }
   else {
-    layernum_dst = CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
-    if (layernum_dst == 0) {
+    if (mesh->uv_map_names().is_empty()) {
       ED_mesh_uv_add(mesh, name, true, true, nullptr);
     }
   }
 }
 
-int ED_mesh_color_add(
-    Mesh *mesh, const char *name, const bool active_set, const bool do_init, ReportList *reports)
+std::string ED_mesh_color_add(Mesh *mesh,
+                              const char *name,
+                              const bool active_set,
+                              const bool do_init,
+                              ReportList * /*reports*/)
 {
   using namespace blender;
   /* If no name is supplied, provide a backwards compatible default. */
@@ -347,36 +345,47 @@ int ED_mesh_color_add(
   }
 
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
-  CustomDataLayer *layer = BKE_attribute_new(
-      owner, name, CD_PROP_BYTE_COLOR, bke::AttrDomain::Corner, reports);
+  std::string new_name = BKE_attribute_calc_unique_name(owner, name);
 
-  if (do_init) {
-    const char *active_name = mesh->active_color_attribute;
-    if (const CustomDataLayer *active_layer = BKE_id_attributes_color_find(&mesh->id, active_name))
-    {
-      if (const BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+  const StringRef active_name = mesh->active_color_attribute;
+  if (const BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+    BM_data_layer_add_named(em->bm, &em->bm->ldata, CD_PROP_BYTE_COLOR, new_name);
+    if (do_init) {
+      const BMDataLayerLookup active_attr = BM_data_layer_lookup(*em->bm, name);
+      if (active_attr.type == bke::AttrType::ColorByte &&
+          active_attr.domain == bke::AttrDomain::Corner)
+      {
         BMesh &bm = *em->bm;
         const int src_i = CustomData_get_named_layer(&bm.ldata, CD_PROP_BYTE_COLOR, active_name);
-        const int dst_i = CustomData_get_named_layer(&bm.ldata, CD_PROP_BYTE_COLOR, layer->name);
+        const int dst_i = CustomData_get_named_layer(&bm.ldata, CD_PROP_BYTE_COLOR, new_name);
         BM_data_layer_copy(&bm, &bm.ldata, CD_PROP_BYTE_COLOR, src_i, dst_i);
       }
-      else {
-        memcpy(
-            layer->data, active_layer->data, CustomData_get_elem_size(layer) * mesh->corners_num);
+    }
+  }
+  else {
+    bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+    attributes.add<ColorGeometry4b>(
+        new_name, bke::AttrDomain::Corner, bke::AttributeInitDefaultValue());
+    if (do_init) {
+      if (const VArray active_attr = *attributes.lookup<ColorGeometry4b>(active_name,
+                                                                         bke::AttrDomain::Corner))
+      {
+        bke::SpanAttributeWriter new_attr = attributes.lookup_for_write_span<ColorGeometry4b>(
+            new_name);
+        active_attr.materialize(new_attr.span);
+        new_attr.finish();
       }
     }
   }
 
   if (active_set) {
-    BKE_id_attributes_active_color_set(&mesh->id, layer->name);
+    BKE_id_attributes_active_color_set(&mesh->id, new_name);
   }
 
   DEG_id_tag_update(&mesh->id, 0);
   WM_main_add_notifier(NC_GEOM | ND_DATA, mesh);
 
-  int dummy;
-  const CustomData *data = mesh_customdata_get_type(mesh, BM_LOOP, &dummy);
-  return CustomData_get_named_layer(data, CD_PROP_BYTE_COLOR, layer->name);
+  return new_name;
 }
 
 bool ED_mesh_color_ensure(Mesh *mesh, const char *name)
@@ -425,13 +434,20 @@ static bool uv_texture_remove_poll(bContext *C)
 
   Object *ob = blender::ed::object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  CustomData *ldata = mesh_customdata_get_type(mesh, BM_LOOP, nullptr);
-  const int active = CustomData_get_active_layer(ldata, CD_PROP_FLOAT2);
-  if (active != -1) {
-    return true;
+  const StringRef active_name = mesh->active_uv_map_name();
+  if (mesh->runtime->edit_mesh) {
+    const BMesh &bm = *mesh->runtime->edit_mesh->bm;
+    if (!CustomData_has_layer_named(&bm.ldata, CD_PROP_FLOAT2, active_name)) {
+      return false;
+    }
+  }
+  else {
+    if (!mesh->uv_map_names().contains_as(active_name)) {
+      return false;
+    }
   }
 
-  return false;
+  return true;
 }
 
 static wmOperatorStatus mesh_uv_texture_add_exec(bContext *C, wmOperator *op)
@@ -473,8 +489,7 @@ static wmOperatorStatus mesh_uv_texture_remove_exec(bContext *C, wmOperator *op)
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
-  CustomData *ldata = mesh_customdata_get_type(mesh, BM_LOOP, nullptr);
-  const char *name = CustomData_get_active_layer_name(ldata, CD_PROP_FLOAT2);
+  const StringRef name = mesh->active_uv_map_name();
   if (!BKE_attribute_remove(owner, name, op->reports)) {
     return OPERATOR_CANCELLED;
   }

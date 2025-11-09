@@ -439,17 +439,13 @@ static bool strip_update_proxy_cb(Strip *strip, void * /*user_data*/)
   return true;
 }
 
-static bool strip_update_effectdata_cb(Strip *strip, void * /*user_data*/)
+static bool strip_init_text_effect_data(Strip *strip, void * /*user_data*/)
 {
   if (strip->type != STRIP_TYPE_TEXT) {
     return true;
   }
 
-  if (strip->effectdata == nullptr) {
-    blender::seq::EffectHandle effect_handle = blender::seq::strip_effect_handle_get(strip);
-    effect_handle.init(strip);
-  }
-
+  blender::seq::effect_ensure_initialized(strip);
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
   if (data->color[3] == 0.0f) {
     copy_v4_fl(data->color, 1.0f);
@@ -1128,7 +1124,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        blender::seq::foreach_strip(&scene->ed->seqbase, strip_update_effectdata_cb, nullptr);
+        blender::seq::foreach_strip(&scene->ed->seqbase, strip_init_text_effect_data, nullptr);
       }
     }
 

@@ -10,6 +10,7 @@
 
 #include <string>
 
+#include "BLI_enum_flags.hh"
 #include "BLI_math_base.h"
 #include "BLI_set.hh"
 
@@ -91,7 +92,7 @@ enum eGPUMaterialFlag {
   /* Tells the render engine the material was just compiled or updated. */
   GPU_MATFLAG_UPDATED = (1 << 29),
 };
-ENUM_OPERATORS(eGPUMaterialFlag, GPU_MATFLAG_UPDATED);
+ENUM_OPERATORS(eGPUMaterialFlag);
 
 using GPUCodegenCallbackFn = void (*)(void *thunk,
                                       GPUMaterial *mat,

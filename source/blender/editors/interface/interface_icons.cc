@@ -23,6 +23,7 @@
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_grease_pencil_types.h"
+#include "DNA_object_force_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
 
@@ -31,7 +32,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"
-#include "BKE_icons.h"
+#include "BKE_icons.hh"
 #include "BKE_paint.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_studiolight.h"
@@ -1517,6 +1518,9 @@ static void svg_replace_color_attributes(std::string &svg,
       {"blender_crease", nullptr, TH_CREASE},
       {"blender_seam", nullptr, TH_SEAM},
       {"blender_sharp", nullptr, TH_SHARP},
+      {"blender_ipo_linear", btheme->space_action.anim_interpolation_linear},
+      {"blender_ipo_constant", btheme->space_action.anim_interpolation_constant},
+      {"blender_ipo_other", btheme->space_action.anim_interpolation_other},
   };
 
   for (const ColorItem &item : items) {
@@ -1914,6 +1918,9 @@ int ui_id_icon_get(const bContext *C, ID *id, const bool big)
     case ID_SCR:
       iconid = ui_id_screen_get_icon(C, id);
       break;
+    case ID_OB:
+      iconid = UI_icon_from_object_type((Object *)id);
+      break;
     case ID_GR:
       iconid = UI_icon_color_from_collection((Collection *)id);
       break;
@@ -2121,6 +2128,56 @@ int UI_icon_from_object_mode(const int mode)
       return ICON_POSE_HLT;
     case OB_MODE_PAINT_GREASE_PENCIL:
       return ICON_GREASEPENCIL;
+  }
+  return ICON_NONE;
+}
+
+int UI_icon_from_object_type(const Object *object)
+{
+  switch (object->type) {
+    case OB_LAMP:
+      return ICON_OUTLINER_OB_LIGHT;
+    case OB_MESH:
+      return ICON_OUTLINER_OB_MESH;
+    case OB_CAMERA:
+      return ICON_OUTLINER_OB_CAMERA;
+    case OB_CURVES_LEGACY:
+      return ICON_OUTLINER_OB_CURVE;
+    case OB_MBALL:
+      return ICON_OUTLINER_OB_META;
+    case OB_LATTICE:
+      return ICON_OUTLINER_OB_LATTICE;
+    case OB_ARMATURE:
+      return ICON_OUTLINER_OB_ARMATURE;
+    case OB_FONT:
+      return ICON_OUTLINER_OB_FONT;
+    case OB_SURF:
+      return ICON_OUTLINER_OB_SURFACE;
+    case OB_SPEAKER:
+      return ICON_OUTLINER_OB_SPEAKER;
+    case OB_LIGHTPROBE:
+      return ICON_OUTLINER_OB_LIGHTPROBE;
+    case OB_CURVES:
+      return ICON_OUTLINER_OB_CURVES;
+    case OB_POINTCLOUD:
+      return ICON_OUTLINER_OB_POINTCLOUD;
+    case OB_VOLUME:
+      return ICON_OUTLINER_OB_VOLUME;
+    case OB_EMPTY:
+      if (object->instance_collection && (object->transflag & OB_DUPLICOLLECTION)) {
+        return ICON_OUTLINER_OB_GROUP_INSTANCE;
+      }
+      else if (object->empty_drawtype == OB_EMPTY_IMAGE) {
+        return ICON_OUTLINER_OB_IMAGE;
+      }
+      else if (object->pd && object->pd->forcefield) {
+        return ICON_OUTLINER_OB_FORCE_FIELD;
+      }
+      else {
+        return ICON_OUTLINER_OB_EMPTY;
+      }
+    case OB_GREASE_PENCIL:
+      return ICON_OUTLINER_OB_GREASEPENCIL;
   }
   return ICON_NONE;
 }

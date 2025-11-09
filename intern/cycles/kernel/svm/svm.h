@@ -397,9 +397,6 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       SVM_CASE(NODE_CURVES)
       offset = svm_node_curves(kg, stack, node, offset);
       break;
-      SVM_CASE(NODE_FLOAT_CURVE)
-      offset = svm_node_curve(kg, stack, node, offset);
-      break;
       SVM_CASE(NODE_TANGENT)
       svm_node_tangent(kg, sd, stack, node);
       break;
@@ -459,7 +456,6 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       svm_node_ao<node_feature_mask>(kg, state, sd, stack, node);
       break;
 #endif
-
       SVM_CASE(NODE_AOV_START)
       if (!svm_node_aov_check(path_flag, render_buffer)) {
         return;
@@ -470,6 +466,9 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       break;
       SVM_CASE(NODE_AOV_VALUE)
       svm_node_aov_value<node_feature_mask>(kg, state, stack, node, render_buffer);
+      break;
+      SVM_CASE(NODE_FLOAT_CURVE)
+      offset = svm_node_curve(kg, stack, node, offset);
       break;
       SVM_CASE(NODE_MIX_COLOR)
       svm_node_mix_color(stack, node.y, node.z, node.w);

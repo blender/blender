@@ -28,10 +28,6 @@ class MTLUniformBuf : public UniformBuf {
   /* Allocation Handle. */
   gpu::MTLBuffer *metal_buffer_ = nullptr;
 
-  /* Whether buffer has contents, if false, no GPU buffer will
-   * have yet been allocated. */
-  bool has_data_ = false;
-
   /* Bind-state tracking. */
   int bind_slot_ = -1;
   MTLContext *bound_ctx_ = nullptr;

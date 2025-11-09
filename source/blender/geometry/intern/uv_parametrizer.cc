@@ -4219,6 +4219,7 @@ void uv_parametrizer_pack(ParamHandle *handle, const UVPackIsland_Params &params
     for (PVert *v = chart->verts; v; v = v->nextlink) {
       geometry::mul_v2_m2_add_v2v2(v->uv, matrix, v->uv, pack_island->pre_translate);
     }
+    geometry::p_chart_uv_translate(chart, params.udim_base_offset);
 
     pack_island_vector[i] = nullptr;
     delete pack_island;

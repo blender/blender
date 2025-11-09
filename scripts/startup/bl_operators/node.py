@@ -211,8 +211,10 @@ class NodeAddOperator(NodeOperator):
     def poll(cls, context):
         space = context.space_data
         # Needs active node editor and a tree to add nodes to.
-        return (space and (space.type == 'NODE_EDITOR') and
-                space.edit_tree and space.edit_tree.is_editable)
+        return (
+            space and (space.type == 'NODE_EDITOR') and
+            space.edit_tree and space.edit_tree.is_editable
+        )
 
     # Default invoke stores the mouse position to place the node correctly
     # and optionally invokes the transform operator.
@@ -259,7 +261,7 @@ class NodeSwapOperator(NodeOperator):
     def transfer_node_properties(self, old_node, new_node):
         for attr in self.properties_to_pass:
             if (attr in self.settings):
-                return
+                continue
 
             if hasattr(old_node, attr) and hasattr(new_node, attr):
                 try:
@@ -469,7 +471,7 @@ class NODE_OT_swap_node(NodeSwapOperator, Operator):
             if old_node in nodes_to_delete:
                 continue
 
-            if old_node.bl_idname == self.type:
+            if (old_node.bl_idname == self.type) and (not hasattr(old_node, "node_tree")):
                 self.apply_node_settings(old_node)
                 continue
 

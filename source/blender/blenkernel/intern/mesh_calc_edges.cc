@@ -15,6 +15,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_attribute_filter.hh"
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
@@ -237,7 +238,7 @@ void mesh_calc_edges(Mesh &mesh,
 {
 
   if (mesh.edges_num == 0 && mesh.corners_num == 0) {
-    /* BLI_assert(BKE_mesh_is_valid(&mesh)); */
+    /* BLI_assert(mesh_is_valid(mesh)); */
     return;
   }
 
@@ -245,7 +246,7 @@ void mesh_calc_edges(Mesh &mesh,
     CustomData_free(&mesh.edge_data);
     mesh.edges_num = 0;
     mesh.tag_loose_edges_none();
-    /* BLI_assert(BKE_mesh_is_valid(&mesh)); */
+    /* BLI_assert(mesh_is_valid(mesh)); */
     return;
   }
 
@@ -271,7 +272,7 @@ void mesh_calc_edges(Mesh &mesh,
   const bool original_edges_are_distinct = original_unique_edge_num == mesh.edges_num;
 
   if (mesh.corners_num == 0 && keep_existing_edges && original_edges_are_distinct) {
-    /* BLI_assert(BKE_mesh_is_valid(&mesh)); */
+    /* BLI_assert(mesh_is_valid(&mesh)); */
     return;
   }
 
@@ -307,7 +308,7 @@ void mesh_calc_edges(Mesh &mesh,
     array_utils::gather(edge_map_to_result_index.as_span(), corner_edges.as_span(), corner_edges);
 
     BLI_assert(!corner_edges.contains(-1));
-    BLI_assert(BKE_mesh_is_valid(&mesh));
+    BLI_assert(mesh_is_valid(mesh));
     return;
   }
 
@@ -557,7 +558,7 @@ void mesh_calc_edges(Mesh &mesh,
   /* Explicitly clear edge maps, because that way it can be parallelized. */
   calc_edges::clear_hash_tables(edge_maps);
 
-  /* BLI_assert(BKE_mesh_is_valid(&mesh)); */
+  /* BLI_assert(mesh_is_valid(mesh)); */
 }
 
 void mesh_calc_edges(Mesh &mesh, bool keep_existing_edges, const bool select_new_edges)

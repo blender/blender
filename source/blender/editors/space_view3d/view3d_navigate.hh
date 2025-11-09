@@ -13,8 +13,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bounds_types.hh"
+#include "BLI_enum_flags.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.h"
 
 #include "DNA_windowmanager_enums.h"
 
@@ -51,7 +51,7 @@ enum eV3D_OpPropFlag {
   V3D_OP_PROP_USE_ALL_REGIONS = (1 << 2),
   V3D_OP_PROP_USE_MOUSE_INIT = (1 << 3),
 };
-ENUM_OPERATORS(eV3D_OpPropFlag, V3D_OP_PROP_USE_MOUSE_INIT);
+ENUM_OPERATORS(eV3D_OpPropFlag);
 
 enum eV3D_OpEvent {
   VIEW_PASS = 0,
@@ -89,7 +89,7 @@ enum eViewOpsFlag {
 
   VIEWOPS_FLAG_INIT_ZFAC = (1 << 4),
 };
-ENUM_OPERATORS(eViewOpsFlag, VIEWOPS_FLAG_INIT_ZFAC);
+ENUM_OPERATORS(eViewOpsFlag);
 
 struct ViewOpsType {
   eViewOpsFlag flag;

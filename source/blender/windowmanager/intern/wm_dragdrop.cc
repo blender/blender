@@ -797,7 +797,17 @@ bool WM_drag_asset_will_import_linked(const wmDrag *drag)
   }
 
   const wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
-  return ELEM(asset_drag->import_settings.method, ASSET_IMPORT_LINK, ASSET_IMPORT_PACK);
+  return asset_drag->import_settings.method == ASSET_IMPORT_LINK;
+}
+
+bool WM_drag_asset_will_import_packed(const wmDrag *drag)
+{
+  if (drag->type != WM_DRAG_ASSET) {
+    return false;
+  }
+
+  const wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
+  return asset_drag->import_settings.method == ASSET_IMPORT_PACK;
 }
 
 ID *WM_drag_get_local_ID_or_import_from_asset(const bContext *C, const wmDrag *drag, int idcode)

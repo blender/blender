@@ -15,17 +15,17 @@
 
 #include "BKE_context.hh"
 
+#include "ED_sequencer.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
-#include "RNA_prototypes.hh"
 
 #include "SEQ_modifier.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_select.hh"
-#include "SEQ_sequencer.hh"
 #include "SEQ_sound.hh"
 
 #include "UI_interface_c.hh"
@@ -471,7 +471,7 @@ static wmOperatorStatus modifier_set_active_exec(bContext *C, wmOperator *op)
 
   StripModifierData *smd = seq::modifier_find_by_name(strip, name);
   /* If there is no modifier set for this operator, clear the active modifier field. */
-  blender::seq::modifier_set_active(strip, smd);
+  seq::modifier_set_active(strip, smd);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 

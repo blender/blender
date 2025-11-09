@@ -2,6 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+#include "gpu_shader_compat.hh"
+
 /* A shorthand for 1D textureSize with a zero LOD. */
 int texture_size(sampler1D sampler_1d)
 {

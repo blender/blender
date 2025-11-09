@@ -41,7 +41,11 @@ ADDITIONAL_INFO(draw_globals)
 STORAGE_BUF(0, read, ExtraInstanceData, data_buf[])
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS(overlay_extra)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_extra_selectable, overlay_extra, overlay_select)
+CREATE_INFO_VARIANT(overlay_extra_clipped, overlay_extra, drw_clipped)
+CREATE_INFO_VARIANT(overlay_extra_selectable_clipped, overlay_extra_selectable, drw_clipped)
+/* clang-format on */
 
 GPU_SHADER_CREATE_INFO(overlay_extra_spot_cone)
 DO_STATIC_COMPILATION()
@@ -49,7 +53,7 @@ ADDITIONAL_INFO(overlay_extra)
 DEFINE("IS_SPOT_CONE")
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_extra_spot_cone)
+CREATE_INFO_VARIANT(overlay_extra_spot_cone_clipped, overlay_extra_spot_cone, drw_clipped)
 
 /** \} */
 
@@ -73,7 +77,12 @@ ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_extra_grid, overlay_extra_grid_base)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_extra_grid, overlay_extra_grid_base, draw_modelmat)
+CREATE_INFO_VARIANT(overlay_extra_grid_selectable, overlay_extra_grid_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_extra_grid_clipped, overlay_extra_grid, drw_clipped)
+CREATE_INFO_VARIANT(overlay_extra_grid_selectable_clipped, overlay_extra_grid_selectable, drw_clipped)
+/* clang-format on */
 
 /** \} */
 
@@ -95,7 +104,11 @@ ADDITIONAL_INFO(draw_globals)
 STORAGE_BUF(0, read, float4, data_buf[])
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS(overlay_extra_groundline)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_extra_groundline_selectable, overlay_extra_groundline, overlay_select)
+CREATE_INFO_VARIANT(overlay_extra_groundline_clipped, overlay_extra_groundline, drw_clipped)
+CREATE_INFO_VARIANT(overlay_extra_groundline_selectable_clipped, overlay_extra_groundline_selectable, drw_clipped)
+/* clang-format on */
 
 /** \} */
 
@@ -124,7 +137,12 @@ ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_extra_wire, overlay_extra_wire_base)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_extra_wire, overlay_extra_wire_base, draw_modelmat)
+CREATE_INFO_VARIANT(overlay_extra_wire_selectable, overlay_extra_wire_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_extra_wire_clipped, overlay_extra_wire, drw_clipped)
+CREATE_INFO_VARIANT(overlay_extra_wire_selectable_clipped, overlay_extra_wire_selectable, drw_clipped)
+/* clang-format on */
 
 GPU_SHADER_CREATE_INFO(overlay_extra_wire_object_base)
 VERTEX_IN(0, float3, pos)
@@ -141,7 +159,12 @@ ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_extra_wire_object, overlay_extra_wire_object_base)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_extra_wire_object, overlay_extra_wire_object_base, draw_modelmat)
+CREATE_INFO_VARIANT(overlay_extra_wire_object_selectable, overlay_extra_wire_object_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_extra_wire_object_clipped, overlay_extra_wire_object, drw_clipped)
+CREATE_INFO_VARIANT(overlay_extra_wire_object_selectable_clipped, overlay_extra_wire_object_selectable, drw_clipped)
+/* clang-format on */
 
 /** \} */
 
@@ -168,7 +191,12 @@ TYPEDEF_SOURCE("overlay_shader_shared.hh")
 STORAGE_BUF(0, read, VertexData, data_buf[])
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_extra_point, overlay_extra_point_base)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_extra_point, overlay_extra_point_base, draw_modelmat)
+CREATE_INFO_VARIANT(overlay_extra_point_selectable, overlay_extra_point_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_extra_point_clipped, overlay_extra_point, drw_clipped)
+CREATE_INFO_VARIANT(overlay_extra_point_selectable_clipped, overlay_extra_point_selectable, drw_clipped)
+/* clang-format on */
 
 GPU_SHADER_INTERFACE_INFO(overlay_extra_loose_point_iface)
 SMOOTH(float4, final_color)
@@ -186,7 +214,12 @@ ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_extra_loose_point, overlay_extra_loose_point_base)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_extra_loose_point, overlay_extra_loose_point_base, draw_modelmat)
+CREATE_INFO_VARIANT(overlay_extra_loose_point_selectable, overlay_extra_loose_point_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_extra_loose_point_clipped, overlay_extra_loose_point, drw_clipped)
+CREATE_INFO_VARIANT(overlay_extra_loose_point_selectable_clipped, overlay_extra_loose_point_selectable, drw_clipped)
+/* clang-format on */
 
 /** \} */
 
@@ -218,7 +251,7 @@ ADDITIONAL_INFO(gpu_index_buffer_load)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_motion_path_line)
+CREATE_INFO_VARIANT(overlay_motion_path_line_clipped, overlay_motion_path_line, drw_clipped)
 
 GPU_SHADER_INTERFACE_INFO(overlay_motion_path_point_iface)
 FLAT(float4, final_color)
@@ -242,7 +275,7 @@ ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_motion_path_point)
+CREATE_INFO_VARIANT(overlay_motion_path_point_clipped, overlay_motion_path_point, drw_clipped)
 
 /** \} */
 
@@ -270,7 +303,12 @@ ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_image, overlay_image_base)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_image, overlay_image_base, draw_modelmat)
+CREATE_INFO_VARIANT(overlay_image_selectable, overlay_image_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_image_clipped, overlay_image, drw_clipped)
+CREATE_INFO_VARIANT(overlay_image_selectable_clipped, overlay_image_selectable, drw_clipped)
+/* clang-format on */
 
 GPU_SHADER_CREATE_INFO(overlay_image_depth_bias_base)
 ADDITIONAL_INFO(overlay_image_base)
@@ -278,7 +316,12 @@ DEFINE("DEPTH_BIAS")
 PUSH_CONSTANT(float4x4, depth_bias_winmat)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_image_depth_bias, overlay_image_depth_bias_base)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_image_depth_bias, overlay_image_depth_bias_base, draw_modelmat)
+CREATE_INFO_VARIANT(overlay_image_depth_bias_selectable, overlay_image_depth_bias_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_image_depth_bias_clipped, overlay_image_depth_bias, drw_clipped)
+CREATE_INFO_VARIANT(overlay_image_depth_bias_selectable_clipped, overlay_image_depth_bias_selectable, drw_clipped)
+/* clang-format on */
 
 /** \} */
 
@@ -303,7 +346,7 @@ ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_CLIP_VARIATION(overlay_gpencil_canvas)
+CREATE_INFO_VARIANT(overlay_gpencil_canvas_clipped, overlay_gpencil_canvas, drw_clipped)
 
 /** \} */
 
@@ -330,7 +373,12 @@ ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_particle_dot, overlay_particle_dot_base)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_particle_dot, overlay_particle_dot_base, draw_modelmat)
+CREATE_INFO_VARIANT(overlay_particle_dot_selectable, overlay_particle_dot_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_particle_dot_clipped, overlay_particle_dot, drw_clipped)
+CREATE_INFO_VARIANT(overlay_particle_dot_selectable_clipped, overlay_particle_dot_selectable, drw_clipped)
+/* clang-format on */
 
 GPU_SHADER_CREATE_INFO(overlay_particle_shape_base)
 TYPEDEF_SOURCE("overlay_shader_shared.hh")
@@ -348,7 +396,12 @@ ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_particle_shape, overlay_particle_shape_base)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_particle_shape, overlay_particle_shape_base, draw_modelmat)
+CREATE_INFO_VARIANT(overlay_particle_shape_selectable, overlay_particle_shape_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_particle_shape_clipped, overlay_particle_shape, drw_clipped)
+CREATE_INFO_VARIANT(overlay_particle_shape_selectable_clipped, overlay_particle_shape_selectable, drw_clipped)
+/* clang-format on */
 
 GPU_SHADER_CREATE_INFO(overlay_particle_hair_base)
 TYPEDEF_SOURCE("overlay_shader_shared.hh")
@@ -367,6 +420,11 @@ ADDITIONAL_INFO(draw_object_infos)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-OVERLAY_INFO_VARIATIONS_MODELMAT(overlay_particle_hair, overlay_particle_hair_base)
+/* clang-format off */
+CREATE_INFO_VARIANT(overlay_particle_hair, overlay_particle_hair_base, draw_modelmat)
+CREATE_INFO_VARIANT(overlay_particle_hair_selectable, overlay_particle_hair_base, draw_modelmat_with_custom_id, overlay_select)
+CREATE_INFO_VARIANT(overlay_particle_hair_clipped, overlay_particle_hair, drw_clipped)
+CREATE_INFO_VARIANT(overlay_particle_hair_selectable_clipped, overlay_particle_hair_selectable, drw_clipped)
+/* clang-format on */
 
 /** \} */

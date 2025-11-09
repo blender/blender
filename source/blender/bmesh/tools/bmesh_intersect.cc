@@ -26,6 +26,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_memarena.h"
+#include "BLI_set.hh"
 #include "BLI_sort_utils.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -1408,14 +1409,14 @@ bool BM_mesh_intersect(BMesh *bm,
 
     /* Remove verts! */
     {
-      GSet *verts_invalid = BLI_gset_ptr_new(__func__);
+      blender::Set<BMVert *> verts_invalid;
 
       for (node = s.vert_dissolve; node; node = node->next) {
         /* arena allocated, don't free */
         BMVert *v = static_cast<BMVert *>(node->link);
         if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
           if (!v->e) {
-            BLI_gset_add(verts_invalid, v);
+            verts_invalid.add(v);
             BM_vert_kill(bm, v);
           }
         }
@@ -1424,8 +1425,7 @@ bool BM_mesh_intersect(BMesh *bm,
       {
         uint i;
         for (i = 0; i < STACK_SIZE(splice_ls); i++) {
-          if (!BLI_gset_haskey(verts_invalid, splice_ls[i][0]) &&
-              !BLI_gset_haskey(verts_invalid, splice_ls[i][1]))
+          if (!verts_invalid.contains(splice_ls[i][0]) && !verts_invalid.contains(splice_ls[i][1]))
           {
             if (!BM_edge_exists(UNPACK2(splice_ls[i])) &&
                 !BM_vert_splice_check_double(UNPACK2(splice_ls[i])))
@@ -1435,8 +1435,6 @@ bool BM_mesh_intersect(BMesh *bm,
           }
         }
       }
-
-      BLI_gset_free(verts_invalid, nullptr);
     }
 
     MEM_freeN(splice_ls);

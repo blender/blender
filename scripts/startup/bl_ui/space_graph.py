@@ -27,8 +27,10 @@ def drivers_editor_footer(layout, context):
     layout.label(
         text=iface_("Driver: {:s} ({:s})").format(
             act_fcurve.id_data.name,
-            act_fcurve.data_path),
-        translate=False)
+            act_fcurve.data_path,
+        ),
+        translate=False,
+    )
 
     if act_driver.variables:
         layout.separator(type='LINE')
@@ -213,7 +215,8 @@ class GRAPH_MT_view(Menu):
         layout.prop(st, "show_region_ui")
         layout.prop(st, "show_region_hud")
         layout.prop(st, "show_region_channels")
-        layout.prop(st, "show_region_footer", text="Playback Controls")
+        if st.mode != 'DRIVERS':
+            layout.prop(st, "show_region_footer", text="Playback Controls")
         layout.separator()
 
         layout.operator("graph.view_selected")

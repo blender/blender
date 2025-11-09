@@ -196,21 +196,21 @@ void world_material_to_dome_light(const USDExportParams &params,
     std::string source_path = cache_image_color(res.color);
     const std::string base_path = stage->GetRootLayer()->GetRealPath();
 
-    char file_path[FILE_MAX];
-    BLI_path_split_file_part(source_path.c_str(), file_path, FILE_MAX);
+    char file_name[FILE_MAX];
+    BLI_path_split_file_part(source_path.c_str(), file_name, FILE_MAX);
     char dest_path[FILE_MAX];
     BLI_path_split_dir_part(base_path.c_str(), dest_path, FILE_MAX);
 
     BLI_path_append_dir(dest_path, FILE_MAX, "textures");
     BLI_dir_create_recursive(dest_path);
 
-    BLI_path_append(dest_path, FILE_MAX, file_path);
+    BLI_path_append(dest_path, FILE_MAX, file_name);
 
     if (BLI_copy(source_path.c_str(), dest_path) != 0) {
       CLOG_WARN(&LOG, "USD Export: Couldn't write world color image to %s", dest_path);
     }
     else {
-      BLI_path_join(dest_path, FILE_MAX, ".", "textures", file_path);
+      BLI_path_join(dest_path, FILE_MAX, ".", "textures", file_name);
       BLI_string_replace_char(dest_path, '\\', '/');
       dome_light.CreateTextureFileAttr().Set(pxr::SdfAssetPath(dest_path));
     }

@@ -51,18 +51,15 @@ void point_map_to_tube(float3 vin, out float3 vout)
   vout = float3(u, v, 0.0f);
 }
 
-/* 16bits floats limits. Higher/Lower values produce +/-inf. */
-#define safe_color(a) (clamp(a, -65520.0f, 65520.0f))
-
 void node_tex_image_linear(float3 co, sampler2D ima, out float4 color, out float alpha)
 {
 #ifdef GPU_FRAGMENT_SHADER
   float2 dx = gpu_dfdx(co.xy) * texture_lod_bias_get();
   float2 dy = gpu_dfdy(co.xy) * texture_lod_bias_get();
 
-  color = safe_color(textureGrad(ima, co.xy, dx, dy));
+  color = textureGrad(ima, co.xy, dx, dy);
 #else
-  color = safe_color(texture(ima, co.xy));
+  color = texture(ima, co.xy);
 #endif
 
   alpha = color.a;
@@ -70,7 +67,7 @@ void node_tex_image_linear(float3 co, sampler2D ima, out float4 color, out float
 
 void node_tex_image_cubic(float3 co, sampler2D ima, out float4 color, out float alpha)
 {
-  color = safe_color(texture_bicubic(ima, co.xy));
+  color = texture_bicubic(ima, co.xy);
   alpha = color.a;
 }
 
@@ -204,7 +201,7 @@ void node_tex_tile_linear(
     float3 co, sampler2DArray ima, sampler1DArray map, out float4 color, out float alpha)
 {
   if (node_tex_tile_lookup(co, ima, map)) {
-    color = safe_color(texture(ima, co));
+    color = texture(ima, co);
   }
   else {
     color = float4(1.0f, 0.0f, 1.0f, 1.0f);
@@ -236,10 +233,10 @@ void node_tex_tile_cubic(
     final_co.zw = tc + 1.0f + f1;
     final_co /= tex_size.xyxy;
 
-    color = safe_color(textureLod(ima, float3(final_co.xy, co.z), 0.0f)) * s0.x * s0.y;
-    color += safe_color(textureLod(ima, float3(final_co.zy, co.z), 0.0f)) * s1.x * s0.y;
-    color += safe_color(textureLod(ima, float3(final_co.xw, co.z), 0.0f)) * s0.x * s1.y;
-    color += safe_color(textureLod(ima, float3(final_co.zw, co.z), 0.0f)) * s1.x * s1.y;
+    color = textureLod(ima, float3(final_co.xy, co.z), 0.0f) * s0.x * s0.y;
+    color += textureLod(ima, float3(final_co.zy, co.z), 0.0f) * s1.x * s0.y;
+    color += textureLod(ima, float3(final_co.xw, co.z), 0.0f) * s0.x * s1.y;
+    color += textureLod(ima, float3(final_co.zw, co.z), 0.0f) * s1.x * s1.y;
   }
   else {
     color = float4(1.0f, 0.0f, 1.0f, 1.0f);

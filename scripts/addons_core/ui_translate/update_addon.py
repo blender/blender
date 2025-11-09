@@ -69,7 +69,8 @@ def enum_addons(self, context):
             has_translation, _ = utils_i18n.I18n.check_py_module_has_translations(src, setts)
             name = mod_info["name"]
             if has_translation:
-                name = name + " *"
+                # Show "*" to the left for consistency with unsaved files in the title bar.
+                name = "* " + name
             _cached_enum_addons.append((mod.__name__, name, mod_info["description"]))
         _cached_enum_addons.sort(key=lambda i: i[1])
     return _cached_enum_addons

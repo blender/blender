@@ -242,9 +242,9 @@ static void summed_area_table_cpu(Result &input,
       float4 accumulated_color = float4(0.0f);
       for (const int x : IndexRange(size.x)) {
         const int2 texel = int2(x, y);
-        const float4 color = input.load_pixel<float4>(texel);
+        const float4 color = float4(input.load_pixel<Color>(texel));
         accumulated_color += operation == SummedAreaTableOperation::Square ? color * color : color;
-        output.store_pixel(texel, accumulated_color);
+        output.store_pixel(texel, Color(accumulated_color));
       }
     }
   });
@@ -255,9 +255,9 @@ static void summed_area_table_cpu(Result &input,
       float4 accumulated_color = float4(0.0f);
       for (const int y : IndexRange(size.y)) {
         const int2 texel = int2(x, y);
-        const float4 color = output.load_pixel<float4>(texel);
+        const float4 color = float4(output.load_pixel<Color>(texel));
         accumulated_color += color;
-        output.store_pixel(texel, accumulated_color);
+        output.store_pixel(texel, Color(accumulated_color));
       }
     }
   });

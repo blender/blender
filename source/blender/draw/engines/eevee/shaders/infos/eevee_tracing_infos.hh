@@ -8,7 +8,10 @@
 
 #  include "draw_view_infos.hh"
 #  include "eevee_common_infos.hh"
+#  include "eevee_lightprobe_infos.hh"
 #  include "eevee_raytrace_shared.hh"
+#  include "eevee_sampling_infos.hh"
+#  include "eevee_uniform_infos.hh"
 
 #  define SPHERE_PROBE
 #endif
@@ -19,11 +22,6 @@
 /* -------------------------------------------------------------------- */
 /** \name Ray tracing Pipeline
  * \{ */
-
-#define image_out(slot, format, type, name) \
-  image(slot, format, Qualifier::write, type, name, Frequency::PASS)
-#define image_in(slot, format, type, name) \
-  image(slot, format, Qualifier::read, type, name, Frequency::PASS)
 
 GPU_SHADER_CREATE_INFO(eevee_ray_tile_classify)
 DO_STATIC_COMPILATION()
@@ -73,6 +71,8 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_ray_trace_fallback)
 DO_STATIC_COMPILATION()
+/* The use of UTIL_TEXEL doesn't directly pull the builtins from eevee_defines.hh. */
+BUILTINS(BuiltinBits::GLOBAL_INVOCATION_ID)
 LOCAL_GROUP_SIZE(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)
 TYPEDEF_SOURCE("eevee_defines.hh")
 ADDITIONAL_INFO(eevee_gbuffer_data)
@@ -91,6 +91,8 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_ray_trace_planar)
 DO_STATIC_COMPILATION()
+/* The use of UTIL_TEXEL doesn't directly pull the builtins from eevee_defines.hh. */
+BUILTINS(BuiltinBits::GLOBAL_INVOCATION_ID)
 LOCAL_GROUP_SIZE(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)
 DEFINE("PLANAR_PROBES")
 TYPEDEF_SOURCE("eevee_defines.hh")
@@ -111,6 +113,8 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_ray_trace_screen)
 DO_STATIC_COMPILATION()
+/* The use of UTIL_TEXEL doesn't directly pull the builtins from eevee_defines.hh. */
+BUILTINS(BuiltinBits::GLOBAL_INVOCATION_ID)
 LOCAL_GROUP_SIZE(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)
 TYPEDEF_SOURCE("eevee_defines.hh")
 ADDITIONAL_INFO(eevee_global_ubo)
@@ -265,6 +269,8 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_horizon_resolve)
 DO_STATIC_COMPILATION()
+/* The use of UTIL_TEXEL doesn't directly pull the builtins from eevee_defines.hh. */
+BUILTINS(BuiltinBits::GLOBAL_INVOCATION_ID)
 LOCAL_GROUP_SIZE(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)
 TYPEDEF_SOURCE("eevee_defines.hh")
 ADDITIONAL_INFO(eevee_gbuffer_data)
@@ -286,8 +292,5 @@ STORAGE_BUF(7, read, uint, tiles_coord_buf[])
 MTL_MAX_TOTAL_THREADS_PER_THREADGROUP(400)
 COMPUTE_SOURCE("eevee_horizon_resolve_comp.glsl")
 GPU_SHADER_CREATE_END()
-
-#undef image_out
-#undef image_in
 
 /** \} */

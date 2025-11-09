@@ -24,7 +24,7 @@
 #define HANDLES_POS_RIGHT_SLOT 6
 #define BEZIER_OFFSETS_SLOT 7
 
-/* Nurbs (alias of other buffers).  */
+/* Nurbs (alias of other buffers). */
 #define CURVES_ORDER_SLOT CURVE_RESOLUTION_SLOT
 #define BASIS_CACHE_SLOT HANDLES_POS_LEFT_SLOT
 #define CONTROL_WEIGHTS_SLOT HANDLES_POS_RIGHT_SLOT

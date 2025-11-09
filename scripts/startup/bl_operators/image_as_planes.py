@@ -297,7 +297,9 @@ class MaterialProperties_MixIn:
             ('BLENDED',
              "Blended",
              "Allows for colored transparency, but incompatible with render passes and ray-tracing. "
-             "Also known as forward rendering.")))
+             "Also known as forward rendering."),
+        ),
+    )
 
     use_backface_culling: BoolProperty(
         name="Backface Culling",

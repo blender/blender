@@ -21,6 +21,7 @@
 #import <QuartzCore/QuartzCore.h>
 
 #include <cassert>
+#include <mutex>
 #include <vector>
 
 static const MTLPixelFormat METAL_FRAMEBUFFERPIXEL_FORMAT_EDR = MTLPixelFormatRGBA16Float;
@@ -121,6 +122,10 @@ GHOST_ContextMTL::GHOST_ContextMTL(const GHOST_ContextParams &context_params,
 
 GHOST_ContextMTL::~GHOST_ContextMTL()
 {
+  /* Multiple threads can release their own context at the same time. */
+  static std::mutex mutex;
+  std::scoped_lock lock(mutex);
+
   metalFree();
 
   if (owns_metal_device_) {
@@ -211,6 +216,12 @@ void GHOST_ContextMTL::metalRegisterPresentCallback(void (*callback)(
     MTLRenderPassDescriptor *, id<MTLRenderPipelineState>, id<MTLTexture>, id<CAMetalDrawable>))
 {
   this->contextPresentCallback = callback;
+}
+
+void GHOST_ContextMTL::metalRegisterXrBlitCallback(
+    void (*callback)(id<MTLTexture>, int, int, int, int))
+{
+  this->xrBlitCallback = callback;
 }
 
 GHOST_TSuccess GHOST_ContextMTL::initializeDrawingContext()

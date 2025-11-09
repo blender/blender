@@ -44,6 +44,7 @@
 
 #include "BKE_asset.hh"
 #include "BKE_asset_edit.hh"
+#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_ccg.hh"
@@ -720,6 +721,8 @@ bool BKE_paint_brush_set(Paint *paint, Brush *brush)
   if (brush != nullptr) {
     paint->brush_asset_reference = asset_reference_create_from_brush(brush);
   }
+
+  BKE_paint_invalidate_overlay_all();
 
   return true;
 }

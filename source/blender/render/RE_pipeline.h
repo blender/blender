@@ -186,12 +186,6 @@ struct Render *RE_NewInteractiveCompositorRender(const struct Scene *scene);
 /* Assign default dummy callbacks. */
 
 /**
- * Called for new renders and when finishing rendering
- * so we always have valid callbacks on a render.
- */
-void RE_InitRenderCB(struct Render *re);
-
-/**
  * Use free render as signal to do everything over (previews).
  *
  * Only call this while you know it will remove the link too.
@@ -416,17 +410,14 @@ bool RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
 struct RenderResult *RE_MultilayerConvert(
     ExrHandle *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
 
-/* Display and event callbacks. */
-
 /**
- * Image and movie output has to move to either #ImBuf or kernel.
- */
-void RE_display_init_cb(struct Render *re,
-                        void *handle,
-                        void (*f)(void *handle, RenderResult *rr));
-void RE_display_clear_cb(struct Render *re,
-                         void *handle,
-                         void (*f)(void *handle, RenderResult *rr));
+ * Display, event callbacks and GPU contexts
+ * */
+
+void RE_display_init(Render *re, bool use_gpu_context);
+void RE_display_share(Render *re, const Render *parent_re);
+void RE_display_free(Render *re);
+
 void RE_display_update_cb(struct Render *re,
                           void *handle,
                           void (*f)(void *handle, RenderResult *rr, struct rcti *rect));
@@ -441,12 +432,8 @@ void RE_current_scene_update_cb(struct Render *re,
                                 void *handle,
                                 void (*f)(void *handle, struct Scene *scene));
 
-void RE_system_gpu_context_ensure(Render *re);
-void RE_system_gpu_context_free(Render *re);
 void *RE_system_gpu_context_get(Render *re);
-
 void *RE_blender_gpu_context_ensure(Render *re);
-void RE_blender_gpu_context_free(Render *re);
 
 /**
  * \param x: ranges from -1 to 1.

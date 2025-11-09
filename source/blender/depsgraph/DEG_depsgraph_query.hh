@@ -10,10 +10,10 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_iterator.h"
 #include "BLI_set.hh"
-#include "BLI_utildefines.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -214,7 +214,7 @@ enum DegIterFlag {
   DEG_ITER_OBJECT_FLAG_VISIBLE = (1 << 3),
   DEG_ITER_OBJECT_FLAG_DUPLI = (1 << 4),
 };
-ENUM_OPERATORS(DegIterFlag, DEG_ITER_OBJECT_FLAG_DUPLI)
+ENUM_OPERATORS(DegIterFlag)
 
 struct DEGObjectIterSettings {
   Depsgraph *depsgraph;

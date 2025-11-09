@@ -6,6 +6,9 @@ set(INC_GLSL
   .
   ..
 
+  # For variadic macros
+  ../../../blenlib
+
   ../../../gpu
   ../../../gpu/intern
   ../../../gpu/shaders

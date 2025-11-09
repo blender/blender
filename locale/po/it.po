@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
-"PO-Revision-Date: 2025-09-09 13:59+0000\n"
+"POT-Creation-Date: 2025-11-03 10:44+0000\n"
+"PO-Revision-Date: 2025-10-30 01:59+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
@@ -24550,10 +24550,6 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Assign Material"
-msgstr "Assegna Materiale"
-
-
 msgid "Select More/Less"
 msgstr "Seleziona Più/Meno"
 
@@ -24622,12 +24618,12 @@ msgid "Hooks"
 msgstr "Ganci"
 
 
-msgid "Vertex Group Locks"
-msgstr "Blocchi del Gruppo di Vertici"
-
-
 msgid "Layout"
 msgstr "Layout"
+
+
+msgid "Vertex Group Locks"
+msgstr "Blocchi del Gruppo di Vertici"
 
 
 msgid "Face Sets Init"
@@ -24638,6 +24634,10 @@ msgid "Random Mask"
 msgstr "Maschera Casuale"
 
 
+msgid "Adjust"
+msgstr "Regola"
+
+
 msgid "Clear Transform"
 msgstr "Cancella Trasformazione"
 
@@ -24646,40 +24646,36 @@ msgid "In-Betweens"
 msgstr "Intermedio"
 
 
-msgid "Adjust"
-msgstr "Regola"
-
-
 msgid "Propagate"
 msgstr "Propaga"
-
-
-msgid "Bone Collections"
-msgstr "Raccolte di Ossa"
 
 
 msgid "Keying"
 msgstr "Keying"
 
 
-msgid "Names"
-msgstr "Nomi"
+msgid "Bone Collections"
+msgstr "Raccolte di Ossa"
 
 
 msgid "Tracking"
 msgstr "Tracciamento"
 
 
+msgid "Names"
+msgstr "Nomi"
+
+
 msgid "Utilities"
 msgstr "Utilità"
 
 
-msgid "Toggle Bone Options"
-msgstr "Attiva/disattiva Opzioni Osso"
-
-
 msgid "Math"
 msgstr "Matematica"
+
+
+msgid "Toggle Bone Options"
+msgstr "Attiva/disattiva Opzioni Osso"
 
 
 msgid "Enable Bone Options"
@@ -24738,12 +24734,12 @@ msgid "Write"
 msgstr "Scrittura"
 
 
-msgid "Pivot Point"
-msgstr "Punto di Perno"
-
-
 msgid "Primitives"
 msgstr "Primitive"
+
+
+msgid "Pivot Point"
+msgstr "Punto di Perno"
 
 
 msgid "Snap"
@@ -24786,16 +24782,16 @@ msgid "Local View"
 msgstr "Vista Locale"
 
 
+msgid "UV"
+msgstr "UV"
+
+
 msgid "Viewpoint"
 msgstr "Punto di vista"
 
 
 msgid "Navigation"
 msgstr "Navigazione"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Align View"
@@ -24822,16 +24818,20 @@ msgid "Select Linked"
 msgstr "Seleziona Collegati"
 
 
-msgid "Basic"
-msgstr "Di Base"
-
-
 msgid "Select Loops"
 msgstr "Seleziona Anelli"
 
 
+msgid "Assign Material"
+msgstr "Assegna Materiale"
+
+
 msgid "Keyframe Insert Pie"
 msgstr "Torta Inserisci Keyframe"
+
+
+msgid "Basic"
+msgstr "Di Base"
 
 
 msgid "Bone Collection Specials"
@@ -28385,14 +28385,6 @@ msgstr "Mantieni Confini"
 
 msgid "Nodes Modifier"
 msgstr "Modificatore Nodi"
-
-
-msgid "Bake Target"
-msgstr "Target Precalcolo"
-
-
-msgid "Packed"
-msgstr "Compresso"
 
 
 msgid "Pack the baked data into the .blend file"
@@ -49776,6 +49768,10 @@ msgid "Textures Directory"
 msgstr "Cartella Texture"
 
 
+msgid "Packed"
+msgstr "Compresso"
+
+
 msgid "All Custom"
 msgstr "Tutto Personalizzato"
 
@@ -60292,12 +60288,16 @@ msgid "Image path {!r} not found, image may be packed or unsaved"
 msgstr "Percorso dell'immagine {!r} non trovato, forse l'immagine è incorporata o non salvata"
 
 
+msgid "No nodes selected."
+msgstr "Nessuno nodo selezionato."
+
+
 msgid "Active camera is not in this scene"
 msgstr "La camera attiva non è in questa scena"
 
 
-msgid "Modifiers cannot be added to object: "
-msgstr "Non possono essere aggiunti modificatori all'oggetto: "
+msgid "Modifiers cannot be added to object: {:s}"
+msgstr "Non è possibile aggiungere modificatori all'oggetto: {:s}"
 
 
 msgid "Fur Material"
@@ -60461,8 +60461,8 @@ msgid "User Communities"
 msgstr "Comunità Utenti"
 
 
-msgid "Failed to assign value: "
-msgstr "Impossibile impostare il valore: "
+msgid "Failed to assign value: {:s}"
+msgstr "Impossibile impostare il valore: {:s}"
 
 
 msgid "Strip(s)"
@@ -62249,6 +62249,11 @@ msgstr "Cambia Percorso/Files"
 msgctxt "Operator"
 msgid "Swap Data"
 msgstr "Scambia Dati"
+
+
+msgctxt "Operator"
+msgid "Copy to Selected Strips..."
+msgstr "Copia agli Spezzoni Selezionati..."
 
 
 msgctxt "Operator"
@@ -68103,6 +68108,11 @@ msgid "Flaps"
 msgstr "Lembi"
 
 
+msgctxt "Color"
+msgid "Spill Channel"
+msgstr "Canale Dispersione"
+
+
 msgid "Correction for shadows"
 msgstr "Correzione per le ombre"
 
@@ -68807,6 +68817,10 @@ msgstr "Orlo"
 
 msgid "Blender File View"
 msgstr "Visualizza File di Blender"
+
+
+msgid "Failed to open file browser!"
+msgstr "Impossibile aprire il file browser!"
 
 
 msgid "To make changes to Preferences permanent, use \"Save Preferences\""

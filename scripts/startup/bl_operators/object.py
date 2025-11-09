@@ -49,8 +49,10 @@ class SelectPattern(Operator):
         if self.case_sensitive:
             pattern_match = fnmatch.fnmatchcase
         else:
-            pattern_match = (lambda a, b:
-                             fnmatch.fnmatchcase(a.upper(), b.upper()))
+            pattern_match = (
+                lambda a, b:
+                fnmatch.fnmatchcase(a.upper(), b.upper())
+            )
         is_ebone = False
         is_pbone = False
         obj = context.object
@@ -424,8 +426,10 @@ class ShapeTransfer(Operator):
             # Method 1, edge
             if mode == 'OFFSET':
                 for i, vert_cos in enumerate(median_coords):
-                    vert_cos.append(target_coords[i] +
-                                    (orig_shape_coords[i] - orig_coords[i]))
+                    vert_cos.append(
+                        target_coords[i] +
+                        (orig_shape_coords[i] - orig_coords[i])
+                    )
 
             elif mode == 'RELATIVE_FACE':
                 for poly in me.polygons:
@@ -625,11 +629,12 @@ class MakeDupliFace(Operator):
 
         SCALE_FAC = 0.01
         offset = 0.5 * SCALE_FAC
-        base_tri = (Vector((-offset, -offset, 0.0)),
-                    Vector((+offset, -offset, 0.0)),
-                    Vector((+offset, +offset, 0.0)),
-                    Vector((-offset, +offset, 0.0)),
-                    )
+        base_tri = (
+            Vector((-offset, -offset, 0.0)),
+            Vector((+offset, -offset, 0.0)),
+            Vector((+offset, +offset, 0.0)),
+            Vector((-offset, +offset, 0.0)),
+        )
 
         def matrix_to_quad(matrix):
             # scale = matrix.median_scale

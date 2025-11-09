@@ -681,6 +681,7 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
   }
 
   auto prim = usd_curves->GetPrim();
+  add_to_prim_map(prim.GetPath(), &curves_id->id);
   write_id_properties(prim, curves_id->id, time);
 
   this->author_extent(*usd_curves, curves.bounds_min_max(), time);

@@ -18,6 +18,7 @@
 #include "BLI_array_utils.hh"
 #include "BLI_atomic_disjoint_set.hh"
 #include "BLI_dial_2d.h"
+#include "BLI_enum_flags.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_axis_angle.hh"
@@ -30,7 +31,6 @@
 #include "BLI_span.hh"
 #include "BLI_task.h"
 #include "BLI_task.hh"
-#include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
 #include "DNA_brush_types.h"
@@ -1360,7 +1360,7 @@ enum class AverageDataFlags : uint8_t {
 
   All = Position | Normal
 };
-ENUM_OPERATORS(AverageDataFlags, AverageDataFlags::Normal);
+ENUM_OPERATORS(AverageDataFlags);
 
 static void calc_area_normal_and_center_node_mesh(const Object &object,
                                                   const Span<float3> vert_positions,
@@ -1401,9 +1401,9 @@ static void calc_area_normal_and_center_node_mesh(const Object &object,
         if (!hide_vert.is_empty() && hide_vert[vert]) {
           continue;
         }
-        const bool needs_normal = bool(flag & AverageDataFlags::Normal) &&
+        const bool needs_normal = flag_is_set(flag, AverageDataFlags::Normal) &&
                                   distances_sq[i] <= normal_radius_sq;
-        const bool needs_center = bool(flag & AverageDataFlags::Position) &&
+        const bool needs_center = flag_is_set(flag, AverageDataFlags::Position) &&
                                   distances_sq[i] <= position_radius_sq;
         if (!needs_normal && !needs_center) {
           continue;
@@ -1433,9 +1433,9 @@ static void calc_area_normal_and_center_node_mesh(const Object &object,
     if (!hide_vert.is_empty() && hide_vert[vert]) {
       continue;
     }
-    const bool needs_normal = bool(flag & AverageDataFlags::Normal) &&
+    const bool needs_normal = flag_is_set(flag, AverageDataFlags::Normal) &&
                               distances_sq[i] <= normal_radius_sq;
-    const bool needs_center = bool(flag & AverageDataFlags::Position) &&
+    const bool needs_center = flag_is_set(flag, AverageDataFlags::Position) &&
                               distances_sq[i] <= position_radius_sq;
     if (!needs_normal && !needs_center) {
       continue;
@@ -1497,9 +1497,9 @@ static void calc_area_normal_and_center_node_grids(const Object &object,
           }
           const int node_vert = grid_range_node[offset];
 
-          const bool needs_normal = bool(flag & AverageDataFlags::Normal) &&
+          const bool needs_normal = flag_is_set(flag, AverageDataFlags::Normal) &&
                                     distances_sq[node_vert] <= normal_radius_sq;
-          const bool needs_center = bool(flag & AverageDataFlags::Position) &&
+          const bool needs_center = flag_is_set(flag, AverageDataFlags::Position) &&
                                     distances_sq[node_vert] <= position_radius_sq;
           if (!needs_normal && !needs_center) {
             continue;
@@ -1541,9 +1541,9 @@ static void calc_area_normal_and_center_node_grids(const Object &object,
       const int node_vert = grid_range_node[offset];
       const int vert = grid_range[offset];
 
-      const bool needs_normal = uint8_t(flag & AverageDataFlags::Normal) != 0 &&
+      const bool needs_normal = flag_is_set(flag, AverageDataFlags::Normal) &&
                                 distances_sq[node_vert] <= normal_radius_sq;
-      const bool needs_center = uint8_t(flag & AverageDataFlags::Position) != 0 &&
+      const bool needs_center = flag_is_set(flag, AverageDataFlags::Position) &&
                                 distances_sq[node_vert] <= position_radius_sq;
       if (!needs_normal && !needs_center) {
         continue;
@@ -1609,9 +1609,9 @@ static void calc_area_normal_and_center_node_bmesh(const Object &object,
         ss, positions, eBrushFalloffShape(brush.falloff_shape), distances_sq);
 
     for (const int i : orig_tris.index_range()) {
-      const bool needs_normal = bool(flag & AverageDataFlags::Normal) &&
+      const bool needs_normal = flag_is_set(flag, AverageDataFlags::Normal) &&
                                 distances_sq[i] <= normal_radius_sq;
-      const bool needs_center = bool(flag & AverageDataFlags::Position) &&
+      const bool needs_center = flag_is_set(flag, AverageDataFlags::Position) &&
                                 distances_sq[i] <= position_radius_sq;
       if (!needs_normal && !needs_center) {
         continue;
@@ -1652,9 +1652,9 @@ static void calc_area_normal_and_center_node_bmesh(const Object &object,
         i++;
         continue;
       }
-      const bool needs_normal = bool(flag & AverageDataFlags::Normal) &&
+      const bool needs_normal = flag_is_set(flag, AverageDataFlags::Normal) &&
                                 distances_sq[i] <= normal_radius_sq;
-      const bool needs_center = bool(flag & AverageDataFlags::Position) &&
+      const bool needs_center = flag_is_set(flag, AverageDataFlags::Position) &&
                                 distances_sq[i] <= position_radius_sq;
       if (!needs_normal && !needs_center) {
         i++;
@@ -1688,9 +1688,9 @@ static void calc_area_normal_and_center_node_bmesh(const Object &object,
       i++;
       continue;
     }
-    const bool needs_normal = bool(flag & AverageDataFlags::Normal) &&
+    const bool needs_normal = flag_is_set(flag, AverageDataFlags::Normal) &&
                               distances_sq[i] <= normal_radius_sq;
-    const bool needs_center = bool(flag & AverageDataFlags::Position) &&
+    const bool needs_center = flag_is_set(flag, AverageDataFlags::Position) &&
                               distances_sq[i] <= position_radius_sq;
     if (!needs_normal && !needs_center) {
       i++;
@@ -4372,7 +4372,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt &sd, Object &ob, Po
     cache.initial_radius = object_space_radius_get(*cache.vc, paint, brush, cache.location);
 
     if (!BKE_brush_use_locked_size(&paint, &brush)) {
-      BKE_brush_unprojected_size_set(&paint, &brush, cache.initial_radius);
+      BKE_brush_unprojected_size_set(&paint, &brush, cache.initial_radius * 2.0f);
     }
   }
 
@@ -7627,10 +7627,12 @@ GroupedSpan<int> calc_vert_neighbors(const SubdivCCG &subdiv_ccg,
   for (const int i : grids.index_range()) {
     const int grid = grids[i];
     const int node_verts_start = i * key.grid_area;
-    r_offset_data[node_verts_start] = r_data.size();
 
     for (const short y : IndexRange(key.grid_size)) {
       for (const short x : IndexRange(key.grid_size)) {
+        const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
+        r_offset_data[node_verts_start + offset] = r_data.size();
+
         SubdivCCGCoord coord{};
         coord.grid_index = grid;
         coord.x = x;
@@ -7642,6 +7644,7 @@ GroupedSpan<int> calc_vert_neighbors(const SubdivCCG &subdiv_ccg,
       }
     }
   }
+  r_offset_data.last() = r_data.size();
   return GroupedSpan<int>(r_offset_data.as_span(), r_data.as_span());
 }
 

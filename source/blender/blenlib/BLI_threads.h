@@ -189,8 +189,10 @@ uint64_t BLI_thread_queue_push(ThreadQueue *queue, void *work, ThreadQueueWorkPr
 
 /**
  * Remove the corresponding work from the queue.
+ *
+ * \returns true if the work_id was still in the queue.
  */
-void BLI_thread_queue_cancel_work(ThreadQueue *queue, uint64_t work_id);
+bool BLI_thread_queue_cancel_work(ThreadQueue *queue, uint64_t work_id);
 
 /**
  * Pop the oldest, highest priority work from the queue.

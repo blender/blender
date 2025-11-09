@@ -309,7 +309,7 @@ class PlaneTrackDeformOperation : public NodeOperation {
       /* Premultiply the mask value as an alpha. */
       float4 plane_color = accumulated_color * plane_mask.load_pixel<float>(texel);
 
-      output.store_pixel(texel, plane_color);
+      output.store_pixel(texel, Color(plane_color));
     });
   }
 

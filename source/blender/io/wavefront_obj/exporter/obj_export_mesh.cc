@@ -272,8 +272,7 @@ StringRef OBJMesh::get_object_mesh_name() const
 
 void OBJMesh::store_uv_coords_and_indices()
 {
-  const StringRef active_uv_name = CustomData_get_active_layer_name(&export_mesh_->corner_data,
-                                                                    CD_PROP_FLOAT2);
+  const StringRef active_uv_name = export_mesh_->active_uv_map_name();
   if (active_uv_name.is_empty()) {
     uv_coords_.clear();
     return;

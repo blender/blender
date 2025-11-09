@@ -109,7 +109,6 @@
     .bg_stamp = {0.0f, 0.0f, 0.0f, 0.25f}, \
  \
     .seq_prev_type = OB_SOLID, \
-    .seq_rend_type = OB_SOLID, \
     .seq_flag = 0, \
  \
     .threads = 1, \

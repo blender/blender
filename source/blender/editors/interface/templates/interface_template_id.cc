@@ -1163,8 +1163,26 @@ static void template_ID(const bContext *C,
                              TIP_("Direct linked library data-block, click to make local, "
                                   "Shift + Click to create a library override"));
         }
+
         if (disabled) {
           UI_but_flag_enable(but, UI_BUT_DISABLED);
+        }
+        /* When displaying the material selector for objects, the material slot may be assigned to
+         * the object data instead of the object. In that case disable the button if the object
+         * data is non-editable. Otherwise the button does nothing. */
+        else if (Object *object;
+                 (GS(idfrom->name) == ID_OB) && (object = blender::id_cast<Object *>(idfrom)) &&
+                 (template_ui.idcode == ID_MA) &&
+                 /* Trying to assign to linked/packed object data. */
+                 (object->data && ID_IS_LINKED(object->data)) &&
+                 /* Means material is assigned to the object data, not the object. */
+                 (object->matbits &&
+                  (object->matbits[blender::math::max(object->actcol - 1, 0)] == 0)))
+        {
+          UI_but_disable(but,
+                         N_("Material is assigned to the object data, which is linked/packed "
+                            "and therefore not editable. Change to link this material slot to the "
+                            "object instead, or make the object data local."));
         }
         else {
           UI_but_funcN_set(but,

@@ -4,7 +4,9 @@
 
 #pragma once
 
-#include "infos/eevee_material_infos.hh"
+#include "infos/eevee_geom_infos.hh"
+
+#include "infos/eevee_uniform_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_geom_mesh)
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
@@ -87,6 +89,9 @@ void init_globals()
   g_data.N = (gl_FrontFacing) ? g_data.N : -g_data.N;
   g_data.Ni = (gl_FrontFacing) ? g_data.Ni : -g_data.Ni;
   g_data.Ng = safe_normalize(cross(gpu_dfdx(g_data.P), gpu_dfdy(g_data.P)));
+  if (uniform_buf.pipeline.is_main_view_inverted) {
+    g_data.Ng = -g_data.Ng;
+  }
 #endif
 
 #if defined(MAT_GEOM_MESH)

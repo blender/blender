@@ -21,6 +21,7 @@
 #include "BLI_span.hh"
 #include "BLI_task.hh"
 
+#include "BKE_attribute.h"
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.hh"

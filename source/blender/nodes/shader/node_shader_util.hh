@@ -65,7 +65,7 @@ struct XYZ_to_RGB /* Transposed #imbuf_xyz_to_rgb, passed as 3x vec3. */
   float r[3], g[3], b[3];
 };
 
-void node_gpu_stack_from_data(GPUNodeStack *gs, int type, bNodeStack *ns);
+void node_gpu_stack_from_data(GPUNodeStack *gs, bNodeSocket *socket, bNodeStack *ns);
 void node_data_from_gpu_stack(bNodeStack *ns, GPUNodeStack *gs);
 void node_shader_gpu_bump_tex_coord(GPUMaterial *mat, bNode *node, GPUNodeLink **link);
 void node_shader_gpu_default_tex_coord(GPUMaterial *mat, bNode *node, GPUNodeLink **link);

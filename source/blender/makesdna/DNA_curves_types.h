@@ -13,7 +13,7 @@
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
 
-#include "BLI_utildefines.h"
+#include "BLI_enum_flags.hh"
 
 #ifdef __cplusplus
 namespace blender::bke {
@@ -244,7 +244,7 @@ typedef enum eCurvesSymmetryType {
   CURVES_SYMMETRY_Y = 1 << 1,
   CURVES_SYMMETRY_Z = 1 << 2,
 } eCurvesSymmetryType;
-ENUM_OPERATORS(eCurvesSymmetryType, CURVES_SYMMETRY_Z)
+ENUM_OPERATORS(eCurvesSymmetryType)
 
 /* Only one material supported currently. */
 #define CURVES_MATERIAL_NR 1

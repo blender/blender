@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-11-03 10:44+0000\n"
 "PO-Revision-Date: 2025-07-23 14:57+0000\n"
 "Last-Translator: Michael Tribayu Jatnika Natawiria <mike.natawiria@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15246,10 +15246,6 @@ msgid "Mask"
 msgstr "Masker"
 
 
-msgid "Assign Material"
-msgstr "Tugaskan Bahan"
-
-
 msgid "Metaball"
 msgstr "Metabola"
 
@@ -15286,12 +15282,12 @@ msgid "Layout"
 msgstr "Tata Letak"
 
 
-msgid "Names"
-msgstr "Nama"
-
-
 msgid "Tracking"
 msgstr "Pelacakan"
+
+
+msgid "Names"
+msgstr "Nama"
 
 
 msgid "Utilities"
@@ -15334,16 +15330,20 @@ msgid "Mirror"
 msgstr "Cermin"
 
 
-msgid "Navigation"
-msgstr "Navigasi"
-
-
 msgid "UV"
 msgstr "UV"
 
 
+msgid "Navigation"
+msgstr "Navigasi"
+
+
 msgid "Select Linked"
 msgstr "Seleksi yang Terhubung"
+
+
+msgid "Assign Material"
+msgstr "Tugaskan Bahan"
 
 
 msgctxt "MovieClip"
@@ -27242,10 +27242,6 @@ msgstr "Gagal membuat jalur preset"
 
 msgid "Unable to remove default presets"
 msgstr "Tidak dapat menghapus preset default"
-
-
-msgid "Failed to execute the preset: "
-msgstr "Gagal mengeksekusi preset: "
 
 
 msgid "No other objects selected"
