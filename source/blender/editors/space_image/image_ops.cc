@@ -1368,10 +1368,11 @@ static wmOperatorStatus image_open_exec(bContext *C, wmOperator *op)
   ImageOpenData *iod = static_cast<ImageOpenData *>(op->customdata);
   ID *owner_id = iod->pprop.ptr.owner_id;
   Library *owner_library = owner_id ? owner_id->lib : nullptr;
+  blender::StringRefNull blendfile_path = BKE_main_blendfile_path(bmain);
   blender::StringRefNull root_path = owner_library ? owner_library->runtime->filepath_abs :
-                                                     BKE_main_blendfile_path(bmain);
+                                                     blendfile_path;
 
-  ListBase ranges = ED_image_filesel_detect_sequences(root_path, op, use_udim);
+  ListBase ranges = ED_image_filesel_detect_sequences(blendfile_path, root_path, op, use_udim);
   LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
     Image *ima_range = image_open_single(bmain, owner_library, op, range, use_multiview);
 

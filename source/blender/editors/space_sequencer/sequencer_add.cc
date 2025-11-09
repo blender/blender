@@ -1760,7 +1760,8 @@ static wmOperatorStatus sequencer_add_image_strip_exec(bContext *C, wmOperator *
     return OPERATOR_CANCELLED;
   }
 
-  ListBase ranges = ED_image_filesel_detect_sequences(BKE_main_blendfile_path(bmain), op, false);
+  const char *blendfile_path = BKE_main_blendfile_path(bmain);
+  ListBase ranges = ED_image_filesel_detect_sequences(blendfile_path, blendfile_path, op, false);
   if (BLI_listbase_is_empty(&ranges)) {
     sequencer_add_free(C, op);
     return OPERATOR_CANCELLED;
