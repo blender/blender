@@ -165,15 +165,51 @@ static void view3d_ndof_pan_zoom(const wmNDOFMotionData &ndof,
 
   if (has_translate) {
 
-    const float speed = view3d_ndof_pan_speed_calc(rv3d);
-    pan_vec *= speed * ndof.time_delta;
-
     /* transform motion from view to world coordinates */
     float view_inv[4];
     invert_qt_qt_normalized(view_inv, rv3d->viewquat);
-    mul_qt_v3(view_inv, pan_vec);
 
-    /* move center of view opposite of hand motion (this is camera mode, not object mode) */
+    if (U.ndof_navigation_mode == NDOF_NAVIGATION_MODE_DRONE) {
+      /* Setting up higher margin for a smoother transition. */
+      const float eps_yz_swap = 0.02f;
+
+      /* If camera orientation is top/bottom, then swap panning axis
+       * and negate Y to simulate drone behavior. */
+      float zvec[3] = {0, 0, 1};
+      mul_qt_v3(view_inv, zvec);
+
+      if (std::abs(zvec[2]) > (1.0f - eps_yz_swap)) {
+        std::swap(pan_vec.z, pan_vec.y);
+        pan_vec.y *= -1.0f;
+        mul_qt_v3(view_inv, pan_vec);
+      }
+      else {
+        /* In other cases, buffer Y and discard it during calculations,
+         * limiting the pan movement to XZ plane. */
+        const float pan_vec_y_prev = pan_vec.y;
+        pan_vec.y = 0.0f;
+
+        /* Calculate the `pan_vec` in view space, and set Z to an absolute value afterwards. */
+        mul_qt_v3(view_inv, pan_vec);
+        pan_vec.z = pan_vec_y_prev;
+
+        /* If the view is turned upside down, then invert the pan Z value. */
+        float yvec[3] = {0, 1, 0};
+        mul_qt_v3(view_inv, yvec);
+
+        if (yvec[2] < 0.0f) {
+          pan_vec.z *= -1.0f;
+        }
+      }
+    }
+    else {
+      mul_qt_v3(view_inv, pan_vec);
+    }
+
+    const float speed = view3d_ndof_pan_speed_calc(rv3d);
+    pan_vec *= speed * ndof.time_delta;
+
+    /* Move center of view opposite of hand motion (this is camera mode, not object mode). */
     sub_v3_v3(rv3d->ofs, pan_vec);
 
     /* When in Fly mode with "Auto" speed, move `ndof_ofs` as well (to keep the speed constant). */
@@ -187,12 +223,68 @@ static void view3d_ndof_pan_zoom(const wmNDOFMotionData &ndof,
   }
 }
 
+/**
+ * View leveling algorithm.
+ *
+ * \return a correction angle to be applied around `view_z_axis`
+ * or zero if the angle cannot be calculated.
+ */
+static float view3d_ndof_calc_leveling_angle(const float view_x_axis[3],
+                                             const float view_y_axis[3],
+                                             const float view_z_axis[3])
+{
+  /* Check if view is already leveled. */
+  const bool view_not_leveled = std::abs(view_x_axis[2]) > 0.001f;
+
+  if (view_not_leveled) {
+
+    float isect_vec[3] = {0, 0, 0};
+    float isect_pt[3] = {0, 0, 0};
+
+    /* Find the intersection vector between horizon (XY) plane and view plane. */
+    const float horizon_normal[3] = {0, 0, 1};
+    if (!isect_plane_plane_v3(horizon_normal, view_z_axis, isect_pt, isect_vec)) {
+      /* NOTE: this is highly unlikely to fail as `view_not_leveled`
+       * is expected to rule out the possibility of intersection failing. */
+
+      /* While it's not a hard-error if this fails, assert as it's likely a logical error. */
+      BLI_assert(false);
+
+      return 0.0f;
+    }
+    normalize_v3(isect_vec);
+
+    /* Invert the direction of intersection vector if view is oriented upside down. */
+    if (view_y_axis[2] < 0.0f) {
+      negate_v3(isect_vec);
+    }
+
+    /* Determine the angle to rotate the view over it's Y axis,
+     * to make view's X axis lie on the horizon plane (world XY). */
+    const float cosine = dot_v3v3(view_x_axis, isect_vec);
+    float x_to_horizon_angle = acos(cosine);
+
+    /* Invert the leveling rotation direction if the view is tilted clockwise
+     * with Y axis pointing up, or it is tilted counter-clockwise
+     * with Y axis pointing down. */
+    if (((view_x_axis[2] < 0.0f) && (view_y_axis[2] > 0.0f)) ||
+        ((view_x_axis[2] > 0.0f) && (view_y_axis[2] < 0.0f)))
+    {
+      x_to_horizon_angle *= -1.0f;
+    }
+
+    return x_to_horizon_angle;
+  }
+  return 0.0f;
+}
+
 static void view3d_ndof_orbit(const wmNDOFMotionData &ndof,
                               ScrArea *area,
                               ARegion *region,
                               ViewOpsData *vod,
                               const bool apply_dyn_ofs)
 {
+
   View3D *v3d = static_cast<View3D *>(area->spacedata.first);
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
@@ -206,11 +298,12 @@ static void view3d_ndof_orbit(const wmNDOFMotionData &ndof,
 
   invert_qt_qt_normalized(view_inv, rv3d->viewquat);
 
-  if (U.ndof_flag & NDOF_LOCK_HORIZON) {
+  if (NDOF_IS_HORIZON_LOCKED(&U)) {
     /* Turntable view code adapted for 3D mouse use. */
     float angle, quat[4];
     float xvec[3] = {1, 0, 0};
     float yvec[3] = {0, 1, 0};
+    float zvec[3] = {0, 0, 1};
 
     /* only use XY, ignore Z */
     blender::float3 rot = WM_event_ndof_rotation_get_for_navigation(ndof);
@@ -219,6 +312,16 @@ static void view3d_ndof_orbit(const wmNDOFMotionData &ndof,
     mul_qt_v3(view_inv, xvec);
     /* Determine the direction of the Y vector (to check if the view is upside down). */
     mul_qt_v3(view_inv, yvec);
+    /* Determine the direction of the Z vector (for view leveling rotation around this vector). */
+    mul_qt_v3(view_inv, zvec);
+
+    /* Level the view to a "horizon plane". */
+    const float leveling_angle = view3d_ndof_calc_leveling_angle(xvec, yvec, zvec);
+    if (leveling_angle != 0.0f) {
+      float leveling_quat[4];
+      axis_angle_to_quat(leveling_quat, zvec, leveling_angle);
+      mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, leveling_quat);
+    }
 
     /* Perform the up/down rotation */
     angle = ndof.time_delta * rot[0];
@@ -362,7 +465,7 @@ void view3d_ndof_fly(const wmNDOFMotionData &ndof,
       axis_angle_to_quat(rotation, axis, angle);
       mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rotation);
 
-      if (U.ndof_flag & NDOF_LOCK_HORIZON) {
+      if (NDOF_IS_HORIZON_LOCKED(&U)) {
         /* force an upright viewpoint
          * TODO: make this less... sudden */
         float view_horizon[3] = {1.0f, 0.0f, 0.0f};    /* view +x */
@@ -539,7 +642,7 @@ static std::optional<float3> ndof_orbit_center_calc_from_zbuf(Depsgraph *depsgra
 {
   rcti sample_rect;
 
-  if (U.ndof_navigation_mode == NDOF_NAVIGATION_MODE_FLY) {
+  if (!NDOF_IS_ORBIT_AROUND_CENTER_MODE(&U)) {
     /* Move the region to the bottom to enhance navigation in architectural-visualization. */
     sample_rect.xmin = 0.3f * region->winx;
     sample_rect.xmax = 0.7f * region->winx;

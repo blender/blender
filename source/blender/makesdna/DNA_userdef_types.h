@@ -1034,10 +1034,15 @@ typedef enum eTimecodeStyles {
 typedef enum eNdof_Flag {
   NDOF_SHOW_GUIDE_ORBIT_AXIS = (1 << 0),
   NDOF_FLY_HELICOPTER = (1 << 1),
+  /**
+   * \note In most cases this flag shouldn't be checked directly.
+   * Use #NDOF_IS_HORIZON_LOCKED instead.
+   */
   NDOF_LOCK_HORIZON = (1 << 2),
 
   /* The following might not need to be saved between sessions,
    * but they do need to live somewhere accessible. */
+
   NDOF_SHOULD_PAN = (1 << 3),
   NDOF_SHOULD_ZOOM = (1 << 4),
   NDOF_SHOULD_ROTATE = (1 << 5),
@@ -1082,7 +1087,12 @@ typedef enum eNdof_Navigation_Mode {
    * since it's confusing for users when 2D/3D navigation is inverted, see: #144751.
    */
   NDOF_NAVIGATION_MODE_FLY = 1,
-  /* TODO: implement "Target Camera Mode" and "Drone Mode" */
+  /**
+   * A "Fly Mode" style navigation but pushing the cap forward
+   * while looking down will not change the altitude of the camera.
+   */
+  NDOF_NAVIGATION_MODE_DRONE = 2,
+  /* TODO: implement "Target Camera Mode" */
 } eNdof_Navigation_Mode;
 
 /**
@@ -1093,6 +1103,10 @@ typedef enum eNdof_Navigation_Mode {
  */
 #define NDOF_IS_ORBIT_AROUND_CENTER_MODE(userdef) \
   ((userdef)->ndof_navigation_mode == NDOF_NAVIGATION_MODE_OBJECT)
+
+#define NDOF_IS_HORIZON_LOCKED(userdef) \
+  ((userdef)->ndof_navigation_mode == NDOF_NAVIGATION_MODE_DRONE) || \
+      ((userdef)->ndof_flag & NDOF_LOCK_HORIZON)
 
 #define NDOF_PIXELS_PER_SECOND 600.0f
 
