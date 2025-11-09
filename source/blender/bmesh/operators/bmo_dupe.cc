@@ -552,19 +552,15 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
   BMOperator dupop, extop;
   float cent[3], dvec[3];
   float axis[3];
-  float phi;
-  int steps, do_dupli, a;
-  bool use_dvec;
 
   BMO_slot_vec_get(op->slots_in, "cent", cent);
   BMO_slot_vec_get(op->slots_in, "axis", axis);
   normalize_v3(axis);
   BMO_slot_vec_get(op->slots_in, "dvec", dvec);
-  use_dvec = !is_zero_v3(dvec);
-  steps = BMO_slot_int_get(op->slots_in, "steps");
+  const bool use_dvec = !is_zero_v3(dvec);
+  const int steps = BMO_slot_int_get(op->slots_in, "steps");
   const float angle_total = BMO_slot_float_get(op->slots_in, "angle");
-  phi = angle_total / steps;
-  do_dupli = BMO_slot_bool_get(op->slots_in, "use_duplicate");
+  const bool do_dupli = BMO_slot_bool_get(op->slots_in, "use_duplicate");
   const bool use_normal_flip = BMO_slot_bool_get(op->slots_in, "use_normal_flip");
   /* Caller needs to perform other sanity checks (such as the spin being 360d). */
   const bool use_merge = BMO_slot_bool_get(op->slots_in, "use_merge") && steps >= 3;
@@ -587,12 +583,12 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
   }
 
   BMO_slot_copy(op, slots_in, "geom", op, slots_out, "geom_last.out");
-  for (a = 0; a < steps; a++) {
+  for (int a = 0; a < steps; a++) {
     /* Calculate rotation matrix for this step independently to avoid floating-point error
-     * accumulation. For step a (0-indexed), rotate by (a + 1) * phi from the original angle. */
+     * accumulation. */
     float rmat[3][3];
     {
-      float step_angle = phi * (a + 1);
+      const float step_angle = angle_total * (float(a + 1) / float(steps));
       axis_angle_normalized_to_mat3(rmat, axis, step_angle);
     }
 
@@ -634,11 +630,11 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
         /* For extrude mode, we need to rotate the extruded geometry.
          * The extruded geometry is at the position of the previous step,
          * so we rotate it by phi to get to the current step position. */
-        const float step_angle_prev = phi * a;
-        const float step_angle_curr = phi * (a + 1);
-        const float rotation_delta = step_angle_curr - step_angle_prev;
+        const float step_angle_prev = angle_total * (float(a) / float(steps));
+        const float step_angle_curr = angle_total * (float(a + 1) / float(steps));
+        const float step_angle_delta = step_angle_curr - step_angle_prev;
         float rmat_delta[3][3];
-        axis_angle_normalized_to_mat3(rmat_delta, axis, rotation_delta);
+        axis_angle_normalized_to_mat3(rmat_delta, axis, step_angle_delta);
         BMO_op_callf(bm,
                      op->flag,
                      "rotate cent=%v matrix=%m3 space=%s verts=%S",
