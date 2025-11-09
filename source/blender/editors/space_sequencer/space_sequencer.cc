@@ -1268,7 +1268,7 @@ void ED_spacetype_sequencer()
 
   /* Set the sequencer callback when not in background mode. */
   if (G.background == 0) {
-    seq::view3d_fn = reinterpret_cast<seq::DrawViewFn>(ED_view3d_draw_offscreen_imbuf_simple);
+    seq::view3d_fn = ED_view3d_draw_offscreen_imbuf_simple;
   }
 }
 

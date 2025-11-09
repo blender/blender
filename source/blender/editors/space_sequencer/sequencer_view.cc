@@ -61,8 +61,7 @@ void SEQUENCER_OT_sample(wmOperatorType *ot)
   ot->flag = OPTYPE_BLOCKING;
 
   /* Not implemented. */
-  PropertyRNA *prop;
-  prop = RNA_def_int(ot->srna, "size", 1, 1, 128, "Sample Size", "", 1, 64);
+  PropertyRNA *prop = RNA_def_int(ot->srna, "size", 1, 1, 128, "Sample Size", "", 1, 64);
   RNA_def_property_subtype(prop, PROP_PIXEL);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }

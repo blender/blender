@@ -65,10 +65,6 @@
 #include "UI_interface_layout.hh"
 #include "UI_view2d.hh"
 
-#ifdef WITH_AUDASPACE
-#  include <AUD_Sequence.h>
-#endif
-
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
@@ -108,7 +104,7 @@ static void sequencer_add_init(bContext * /*C*/, wmOperator *op)
 static void sequencer_add_free(bContext * /*C*/, wmOperator *op)
 {
   if (op->customdata) {
-    SequencerAddData *sad = reinterpret_cast<SequencerAddData *>(op->customdata);
+    SequencerAddData *sad = static_cast<SequencerAddData *>(op->customdata);
     MEM_delete(sad);
     op->customdata = nullptr;
   }
@@ -346,7 +342,7 @@ static void sequencer_file_drop_channel_frame_set(bContext *C,
 
 static bool op_invoked_by_drop_event(const wmOperator *op)
 {
-  SequencerAddData *sad = reinterpret_cast<SequencerAddData *>(op->customdata);
+  SequencerAddData *sad = static_cast<SequencerAddData *>(op->customdata);
   if (sad == nullptr) {
     return false;
   }
@@ -368,7 +364,7 @@ static void sequencer_generic_invoke_xy__internal(
 
   int timeline_frame = scene->r.cfra;
   if (event && (flag & SEQPROP_NOPATHS)) {
-    SequencerAddData *sad = reinterpret_cast<SequencerAddData *>(op->customdata);
+    SequencerAddData *sad = static_cast<SequencerAddData *>(op->customdata);
     sad->is_drop_event = true;
     sequencer_file_drop_channel_frame_set(C, op, event);
   }
@@ -501,7 +497,7 @@ static bool load_data_init_from_operator(seq::LoadData *load_data, bContext *C, 
       RNA_property_boolean_get(op->ptr, prop))
   {
     if (op->customdata) {
-      SequencerAddData *sad = reinterpret_cast<SequencerAddData *>(op->customdata);
+      SequencerAddData *sad = static_cast<SequencerAddData *>(op->customdata);
       ImageFormatData *imf = &sad->im_format;
 
       load_data->use_multiview = true;
@@ -1412,7 +1408,7 @@ static bool sequencer_add_draw_check_fn(PointerRNA *ptr, PropertyRNA *prop, void
 static void sequencer_add_draw(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  SequencerAddData *sad = reinterpret_cast<SequencerAddData *>(op->customdata);
+  SequencerAddData *sad = static_cast<SequencerAddData *>(op->customdata);
   ImageFormatData *imf = &sad->im_format;
 
   bool is_redo_panel = sad == nullptr;

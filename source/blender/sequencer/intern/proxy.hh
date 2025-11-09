@@ -10,9 +10,7 @@
 
 struct ImBuf;
 struct MovieReader;
-struct SeqRenderData;
 struct Strip;
-struct anim;
 
 namespace blender::seq {
 

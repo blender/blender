@@ -182,12 +182,11 @@ static ImBuf *do_speed_effect(const RenderData *context,
 {
   const SpeedControlVars *s = (SpeedControlVars *)strip->effectdata;
   EffectHandle cross_effect = effect_handle_get(STRIP_TYPE_CROSS);
-  ImBuf *out;
 
   if (s->flags & SEQ_SPEED_USE_INTERPOLATION) {
     fac = speed_effect_interpolation_ratio_get(context->scene, strip, timeline_frame);
     /* Current frame is ibuf1, next frame is ibuf2. */
-    out = cross_effect.execute(context, state, nullptr, timeline_frame, fac, ibuf1, ibuf2);
+    ImBuf *out = cross_effect.execute(context, state, nullptr, timeline_frame, fac, ibuf1, ibuf2);
     return out;
   }
 

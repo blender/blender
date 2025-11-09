@@ -100,7 +100,7 @@ static void modifier_panel_header(const bContext * /*C*/, Panel *panel)
 
   /* Don't use #modifier_panel_get_property_pointers, we don't want to lock the header. */
   PointerRNA *ptr = UI_panel_custom_data_get(panel);
-  StripModifierData *smd = reinterpret_cast<StripModifierData *>(ptr->data);
+  StripModifierData *smd = static_cast<StripModifierData *>(ptr->data);
 
   UI_panel_context_pointer_set(panel, "modifier", ptr);
 
@@ -184,7 +184,7 @@ bool modifier_ui_poll(const bContext *C, PanelType * /*pt*/)
 static void modifier_reorder(bContext *C, Panel *panel, const int new_index)
 {
   PointerRNA *smd_ptr = UI_panel_custom_data_get(panel);
-  StripModifierData *smd = reinterpret_cast<StripModifierData *>(smd_ptr->data);
+  StripModifierData *smd = static_cast<StripModifierData *>(smd_ptr->data);
 
   PointerRNA props_ptr;
   wmOperatorType *ot = WM_operatortype_find("SEQUENCER_OT_strip_modifier_move_to_index", false);
@@ -198,14 +198,14 @@ static void modifier_reorder(bContext *C, Panel *panel, const int new_index)
 static short get_strip_modifier_expand_flag(const bContext * /*C*/, Panel *panel)
 {
   PointerRNA *smd_ptr = UI_panel_custom_data_get(panel);
-  StripModifierData *smd = reinterpret_cast<StripModifierData *>(smd_ptr->data);
+  StripModifierData *smd = static_cast<StripModifierData *>(smd_ptr->data);
   return smd->ui_expand_flag;
 }
 
 static void set_strip_modifier_expand_flag(const bContext * /*C*/, Panel *panel, short expand_flag)
 {
   PointerRNA *smd_ptr = UI_panel_custom_data_get(panel);
-  StripModifierData *smd = reinterpret_cast<StripModifierData *>(smd_ptr->data);
+  StripModifierData *smd = static_cast<StripModifierData *>(smd_ptr->data);
   smd->ui_expand_flag = expand_flag;
 }
 

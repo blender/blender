@@ -35,10 +35,8 @@ static ImBuf *do_adjustment_impl(const RenderData *context,
                                  Strip *strip,
                                  float timeline_frame)
 {
-  Editing *ed;
   ImBuf *i = nullptr;
-
-  ed = context->scene->ed;
+  Editing *ed = context->scene->ed;
 
   ListBase *seqbasep = get_seqbase_by_strip(context->scene, strip);
   ListBase *channels = get_channels_by_strip(ed, strip);
@@ -60,10 +58,7 @@ static ImBuf *do_adjustment_impl(const RenderData *context,
    * a meta-strip and have that work on everything below the meta-strip. */
 
   if (!i) {
-    Strip *meta;
-
-    meta = lookup_meta_by_strip(ed, strip);
-
+    Strip *meta = lookup_meta_by_strip(ed, strip);
     if (meta) {
       i = do_adjustment_impl(context, state, meta, timeline_frame);
     }
@@ -80,18 +75,13 @@ static ImBuf *do_adjustment(const RenderData *context,
                             ImBuf * /*ibuf1*/,
                             ImBuf * /*ibuf2*/)
 {
-  ImBuf *out;
-  Editing *ed;
-
-  ed = context->scene->ed;
-
+  Editing *ed = context->scene->ed;
   if (!ed || state->strips_rendering_seqbase.contains(strip)) {
     return nullptr;
   }
 
   state->strips_rendering_seqbase.add(strip);
-  out = do_adjustment_impl(context, state, strip, timeline_frame);
-
+  ImBuf *out = do_adjustment_impl(context, state, strip, timeline_frame);
   return out;
 }
 
