@@ -345,7 +345,7 @@ std::string ShaderCreateInfo::check_error() const
         error += "Shader " + this->name_ + " : \"" + interface->name + "." + inout.name + "\":";
         error += " Array types are not allowed in shader stage interfaces.\n";
       }
-      if (inout.type == Type::float3x3_t || inout.type == Type::float4x4_t) {
+      if (ELEM(inout.type, Type::float3x3_t, Type::float4x4_t)) {
         error += "Shader " + this->name_ + " : \"" + interface->name + "." + inout.name + "\":";
         error += " Matrix types are not allowed in shader stage interfaces.\n";
       }

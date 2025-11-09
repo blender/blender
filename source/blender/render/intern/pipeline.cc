@@ -953,7 +953,7 @@ void RE_display_share(Render *re, const Render *parent_re)
 {
   /* Use for compositor and sequencer, which can render scenes recursively.
    * It more efficient, and we can only create this context on the main thread. */
-  if (parent_re == nullptr || re == parent_re) {
+  if (ELEM(parent_re, nullptr, re)) {
     return;
   }
 

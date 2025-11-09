@@ -156,7 +156,7 @@ std::optional<uiViewState> AbstractTreeView::persistent_state() const
   uiViewState state{};
 
   SET_FLAG_FROM_TEST(state.flag, show_display_options_, UI_VIEW_SHOW_FILTER_OPTIONS);
-  BLI_strncpy(state.search_string, search_string_.get(), sizeof(state.search_string));
+  STRNCPY(state.search_string, search_string_.get());
 
   if (!custom_height_ && !scroll_value_) {
     return {};

@@ -3399,7 +3399,7 @@ static wmOperatorStatus frame_jump_delta_exec(bContext *C, wmOperator *op)
     delta *= scene->r.frs_sec / scene->r.frs_sec_base;
   }
 
-  int step = (int)delta;
+  int step = int(delta);
   float fraction = delta - step;
   if (backward) {
     scene->r.cfra -= step;
@@ -3413,7 +3413,7 @@ static wmOperatorStatus frame_jump_delta_exec(bContext *C, wmOperator *op)
   /* Check if subframe has a non-fractional component, and roll that into cfra. */
   if (scene->r.subframe < 0.0f || scene->r.subframe >= 1.0f) {
     const float subframe_offset = floorf(scene->r.subframe);
-    const int frame_offset = (int)subframe_offset;
+    const int frame_offset = int(subframe_offset);
     scene->r.cfra += frame_offset;
     scene->r.subframe -= subframe_offset;
   }

@@ -1599,7 +1599,7 @@ void file_sfile_to_operator_ex(
   PropertyRNA *prop;
   char dir[FILE_MAX];
 
-  BLI_strncpy(dir, params->dir, FILE_MAX);
+  STRNCPY(dir, params->dir);
   BLI_path_slash_ensure(dir, FILE_MAX);
 
   /* XXX, not real length */
