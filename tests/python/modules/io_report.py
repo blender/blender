@@ -17,7 +17,10 @@ import pathlib
 from . import global_report
 from io import StringIO
 from mathutils import Matrix
-from typing import Callable, Optional
+
+from collections.abc import (
+    Callable,
+)
 
 
 def fmtf(f: float) -> str:
@@ -70,7 +73,7 @@ class Report:
         output_dir: pathlib.Path,
         input_dir: pathlib.Path,
         reference_dir: pathlib.Path,
-        comparison_func: Callable[[str, dict], None] = None,
+        comparison_func: Callable[[str, dict], None] | None = None,
     ):
         self.title = title
         self.output_dir = output_dir
@@ -864,11 +867,19 @@ integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw
         desc.close()
         return text
 
-    def import_and_check(self, input_file: pathlib.Path, import_func: Callable[[str, dict], None]) -> bool:
+    def import_and_check(
+            self,
+            input_file: pathlib.Path,
+            import_func: Callable[[str, dict], None],
+    ) -> bool:
         return self.generate_and_check(input_file=input_file, generate_func=import_func)
 
-    def generate_and_check(self, input_file: pathlib.Path, generate_func: Callable[[
-            str, dict], None], output_filepath: Optional[pathlib.Path] = None) -> bool:
+    def generate_and_check(
+            self,
+            input_file: pathlib.Path,
+            generate_func: Callable[[str, dict], None],
+            output_filepath: pathlib.Path | None = None,
+    ) -> bool:
         """
         Imports a single file using the provided import function, and
         checks whether it matches with expected template, returns
