@@ -47,7 +47,7 @@ static const Mesh *get_mesh_ref(const Object *ob_eval)
  * - While the lookup uses the original object data, change-detection uses the evaluated object.
  * - A change causes the previously cached mesh (#SnapCache_EditMesh::mesh) to be freed.
  * - The cached mesh may be referenced by a snap "hit", so freeing it may crash
- *   when that mesh is later later accessed.
+ *   when that mesh is later accessed.
  *
  * Furthermore, constantly re-creating cache is inefficient.
  *

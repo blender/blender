@@ -314,7 +314,7 @@ static void test_shader_texture_atomic()
   if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_VULKAN)) {
     GTEST_SKIP() << "Test has been temporary disabled on Vulkan due to a missing synchronization "
                     "between the two dispatches. The fix itself is in the making, but takes more "
-                    "time than expected. See #149463 more more details.";
+                    "time than expected. See #149463 more details.";
   }
 
   gpu::Shader *shader = GPU_shader_create_from_info_name("gpu_texture_atomic_test");
