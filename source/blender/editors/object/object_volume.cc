@@ -78,7 +78,8 @@ static wmOperatorStatus volume_import_exec(bContext *C, wmOperator *op)
   const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
   bool imported = false;
 
-  ListBase ranges = ED_image_filesel_detect_sequences(BKE_main_blendfile_path(bmain), op, false);
+  const char *blendfile_path = BKE_main_blendfile_path(bmain);
+  ListBase ranges = ED_image_filesel_detect_sequences(blendfile_path, blendfile_path, op, false);
   LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
     char filename[FILE_MAX];
     BLI_path_split_file_part(range->filepath, filename, sizeof(filename));
