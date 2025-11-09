@@ -13,6 +13,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_mempool.h"
+#include "BLI_set.hh"
 #include "BLI_stack.h"
 #include "BLI_utildefines_iter.h"
 
@@ -674,8 +675,11 @@ void BM_edgeloop_flip(BMesh * /*bm*/, BMEdgeLoopStore *el_store)
   BLI_listbase_reverse(&el_store->verts);
 }
 
-void BM_edgeloop_expand(
-    BMesh *bm, BMEdgeLoopStore *el_store, int el_store_len, bool split, GSet *split_edges)
+void BM_edgeloop_expand(BMesh *bm,
+                        BMEdgeLoopStore *el_store,
+                        int el_store_len,
+                        bool split,
+                        blender::Set<BMEdge *> *split_edges)
 {
   bool split_swap = true;
 
@@ -691,7 +695,7 @@ void BM_edgeloop_expand(
                             0.0f); \
     v_split->e = e_split; \
     BLI_assert(v_split == e_split->v2); \
-    BLI_gset_insert(split_edges, e_split); \
+    split_edges->add(e_split); \
     (node_copy)->data = v_split; \
   } \
   ((void)0)
