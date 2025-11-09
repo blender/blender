@@ -280,7 +280,7 @@ class GHOST_SystemWayland : public GHOST_System {
                  bool completed) const;
   void ime_end(const GHOST_WindowWayland *win) const;
 
-  bool use_window_frame_get();
+  bool use_window_frame_get() const;
 
   static const char *xdg_app_id_get();
 

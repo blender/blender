@@ -9396,7 +9396,7 @@ GHOST_TimerManager *GHOST_SystemWayland::ghost_timer_manager()
 }
 #endif
 
-bool GHOST_SystemWayland::use_window_frame_get()
+bool GHOST_SystemWayland::use_window_frame_get() const
 {
   return display_->use_window_frame;
 }
