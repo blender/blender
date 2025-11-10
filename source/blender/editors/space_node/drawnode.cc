@@ -1064,7 +1064,7 @@ static void draw_node_socket_name_editable(uiLayout *layout,
 {
   if (sock->runtime->declaration) {
     if (sock->runtime->declaration->socket_name_rna) {
-      layout->alignment_set(ui::LayoutAlign::Left);
+      layout->alignment_set(ui::LayoutAlign::Expand);
       layout->emboss_set(ui::EmbossType::None);
       layout->prop((&sock->runtime->declaration->socket_name_rna->owner),
                    sock->runtime->declaration->socket_name_rna->property_name,
