@@ -405,7 +405,7 @@ Example of a matrix, vector multiplication:
 
 .. code-block:: python
 
-   bpy.context.object.matrix_world @ bpy.context.object.data.verts[0].co
+   bpy.context.object.matrix_world @ bpy.context.object.data.vertices[0].co
 
 .. note::
 
