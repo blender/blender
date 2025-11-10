@@ -4,7 +4,10 @@
 
 import requests
 
-website = "https://blender.org/"
+# Test this specific endpoint because this will check for a connection to the
+# buildbot master. We should be quite sure that this endpoint is up if the
+# builder is running the release check scripts.
+website = "https://builder.blender.org/admin/"
 
 r = requests.get(website, verify=True, timeout=30)
 
