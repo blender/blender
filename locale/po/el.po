@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 10:44+0000\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:19+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -515,28 +515,16 @@ msgid "Keyboard"
 msgstr "Πληκτρολόγιο"
 
 
-msgid "Metaball"
-msgstr "Μετα-σφαίρα"
-
-
-msgid "Light"
-msgstr "Φως"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
-msgid "Apply"
-msgstr "Εφαρμογή"
-
-
 msgid "Track"
 msgstr "Ανίχνευση"
 
 
 msgid "Make Single User"
 msgstr "Ορισμός Ενός Χρήστη"
+
+
+msgid "Apply"
+msgstr "Εφαρμογή"
 
 
 msgid "Merge"
@@ -547,12 +535,12 @@ msgid "Text"
 msgstr "Κείμενο"
 
 
+msgid "Metaball"
+msgstr "Μετα-σφαίρα"
+
+
 msgid "Snap"
 msgstr "Προσκόλληση"
-
-
-msgid "Import"
-msgstr "Εισαγωγή"
 
 
 msgid "Mirror"
@@ -561,6 +549,18 @@ msgstr "Καθρέφτισμα"
 
 msgid "Select Linked"
 msgstr "Επιλογή Συνδεδεμένων"
+
+
+msgid "Import"
+msgstr "Εισαγωγή"
+
+
+msgid "Light"
+msgstr "Φως"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
 
 
 msgid "Cache"

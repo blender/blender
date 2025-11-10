@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 10:44+0000\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -2572,18 +2572,6 @@ msgid "Mask"
 msgstr "आवरण"
 
 
-msgid "Light"
-msgstr "प्रकाश"
-
-
-msgid "Rigid Body"
-msgstr "कठोर-पदार्थ"
-
-
-msgid "Apply"
-msgstr "लागू करें"
-
-
 msgid "Track"
 msgstr "ट्रैक"
 
@@ -2604,16 +2592,12 @@ msgid "Hooks"
 msgstr "खूँटी"
 
 
-msgid "Keying"
-msgstr "कुंजीयन"
-
-
 msgid "Names"
 msgstr "नाम"
 
 
-msgid "Math"
-msgstr "गणित"
+msgid "Apply"
+msgstr "लागू करें"
 
 
 msgid "Toggle Bone Options"
@@ -2628,6 +2612,14 @@ msgid "Merge"
 msgstr "विलय करें"
 
 
+msgid "Keying"
+msgstr "कुंजीयन"
+
+
+msgid "Math"
+msgstr "गणित"
+
+
 msgid "Text"
 msgstr "पाठ"
 
@@ -2640,16 +2632,24 @@ msgid "Snap"
 msgstr "स्नैप"
 
 
-msgid "Import"
-msgstr "आयात करें"
-
-
 msgid "Mirror"
 msgstr "दर्पण"
 
 
+msgid "Import"
+msgstr "आयात करें"
+
+
 msgid "UV"
 msgstr "यूवी"
+
+
+msgid "Light"
+msgstr "प्रकाश"
+
+
+msgid "Rigid Body"
+msgstr "कठोर-पदार्थ"
 
 
 msgid "Basic"
@@ -6105,10 +6105,6 @@ msgstr "अंतर्गत होने के लिए कोई अति�
 
 msgid "Add IK"
 msgstr "इक जोड़ें"
-
-
-msgid "To New Empty Object"
-msgstr "नया रिक्त ऑब्जेक्ट के लिए"
 
 
 msgid "Could not find scene"

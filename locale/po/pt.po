@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2025-11-03 10:44+0000\n"
-"PO-Revision-Date: 2025-10-31 23:59+0000\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
+"PO-Revision-Date: 2025-11-04 22:59+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -34888,38 +34888,6 @@ msgid "Editor menu containing buttons"
 msgstr "Menu de editor contendo botões"
 
 
-msgid "Select More/Less"
-msgstr "Seleccionar mais ou menos"
-
-
-msgid "Metaball"
-msgstr "Esfera-meta"
-
-
-msgid "Light"
-msgstr "Leve"
-
-
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
-msgid "Add Image"
-msgstr "Adicionar Imagem"
-
-
-msgid "Relations"
-msgstr "Relações"
-
-
-msgid "Rigid Body"
-msgstr "Corpo rígido"
-
-
-msgid "Apply"
-msgstr "Aplicar"
-
-
 msgid "Track"
 msgstr "Rastrear"
 
@@ -34956,10 +34924,6 @@ msgid "Hooks"
 msgstr "Ganchos"
 
 
-msgid "Layout"
-msgstr "Organizar"
-
-
 msgid "Vertex Group Locks"
 msgstr "Bloqueios de Grupos de Vértices"
 
@@ -34980,10 +34944,6 @@ msgid "Random Mask"
 msgstr "Máscara Aleatória"
 
 
-msgid "Adjust"
-msgstr "Ajustar"
-
-
 msgid "Clear Transform"
 msgstr "Limpar transformações"
 
@@ -34996,32 +34956,16 @@ msgid "Propagate"
 msgstr "Propagar"
 
 
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
 msgid "Bone Collections"
 msgstr "Colecções de Ossos"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
 
 
 msgid "Names"
 msgstr "Nomes"
 
 
-msgid "Utilities"
-msgstr "Utilidades"
-
-
-msgid "Math"
-msgstr "Matemática"
-
-
-msgid "Creative"
-msgstr "Criativo"
+msgid "Apply"
+msgstr "Aplicar"
 
 
 msgid "Toggle Bone Options"
@@ -35034,6 +34978,10 @@ msgstr "Ativar opções de ossos"
 
 msgid "Disable Bone Options"
 msgstr "Desativar as opções de ossos"
+
+
+msgid "Layout"
+msgstr "Organizar"
 
 
 msgid "Mesh Select Mode"
@@ -35052,16 +35000,36 @@ msgid "Set Face Strength"
 msgstr "Definir Força das Faces"
 
 
-msgid "Render Preview"
-msgstr "Pré-Visualização da Render"
-
-
 msgid "Merge"
 msgstr "Fundir"
 
 
+msgid "Adjust"
+msgstr "Ajustar"
+
+
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
+
+
+msgid "Utilities"
+msgstr "Utilidades"
+
+
+msgid "Math"
+msgstr "Matemática"
+
+
 msgid "Special Characters"
 msgstr "Caracteres especiais"
+
+
+msgid "Creative"
+msgstr "Criativo"
 
 
 msgid "Kerning"
@@ -35072,24 +35040,16 @@ msgid "Text"
 msgstr "Texto"
 
 
+msgid "Metaball"
+msgstr "Esfera-meta"
+
+
 msgid "Bone Roll"
 msgstr "Rolagem do osso"
 
 
-msgid "Read"
-msgstr "Ler"
-
-
-msgid "Sample"
-msgstr "Amostrar"
-
-
-msgid "Write"
-msgstr "Escrever"
-
-
-msgid "Primitives"
-msgstr "Primitivas"
+msgid "Render Preview"
+msgstr "Pré-Visualização da Render"
 
 
 msgid "Pivot Point"
@@ -35116,20 +35076,20 @@ msgid "Face Sets Edit"
 msgstr "Edições de Conjuntos de Faces"
 
 
-msgid "Gizmo"
-msgstr "Apetrecho"
+msgid "Read"
+msgstr "Ler"
 
 
-msgid "Instances"
-msgstr "Instâncias"
+msgid "Sample"
+msgstr "Amostrar"
 
 
-msgid "Import"
-msgstr "Importar"
+msgid "Write"
+msgstr "Escrever"
 
 
-msgid "Deprecated"
-msgstr "Decontinuado"
+msgid "Primitives"
+msgstr "Primitivas"
 
 
 msgid "Mirror"
@@ -35140,16 +35100,8 @@ msgid "UV Mapping"
 msgstr "Mapeamento UV"
 
 
-msgid "List"
-msgstr "Lista"
-
-
 msgid "Local View"
 msgstr "Visão local"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Viewpoint"
@@ -35172,6 +35124,18 @@ msgid "View Regions"
 msgstr "Regiões de Visualização"
 
 
+msgid "Select More/Less"
+msgstr "Seleccionar mais ou menos"
+
+
+msgid "Gizmo"
+msgstr "Apetrecho"
+
+
+msgid "Instances"
+msgstr "Instâncias"
+
+
 msgid "Select Similar"
 msgstr "Seleccionar por similaridades"
 
@@ -35188,8 +35152,44 @@ msgid "Select Loops"
 msgstr "Seleccionar Anéis"
 
 
+msgid "Import"
+msgstr "Importar"
+
+
+msgid "Deprecated"
+msgstr "Decontinuado"
+
+
 msgid "Assign Material"
 msgstr "Aplicar Material"
+
+
+msgid "List"
+msgstr "Lista"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "Leve"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
+
+
+msgid "Relations"
+msgstr "Relações"
+
+
+msgid "Rigid Body"
+msgstr "Corpo rígido"
 
 
 msgid "Keyframe Insert Pie"
@@ -72213,6 +72213,10 @@ msgid "Toggle collapsing of selected nodes"
 msgstr "Alternar colapsar nós seleccionados"
 
 
+msgid "Add an item to the index switch"
+msgstr "Adicionar um item à troca de índice"
+
+
 msgid "Remove an item from the index switch"
 msgstr "Remover um item da troca de índice"
 
@@ -79230,10 +79234,6 @@ msgid "Add IK to Bone"
 msgstr "Adicionar cinemática inversa para o osso"
 
 
-msgid "Add IK Constraint to the active Bone"
-msgstr "Adiciona uma restrição de cinemática inversa para o osso activo."
-
-
 msgid "With Targets"
 msgstr "Com alvos"
 
@@ -82509,10 +82509,6 @@ msgid "Add Scene Asset"
 msgstr "Adicionar Recurso de Cena"
 
 
-msgid "Add a scene strip from a scene asset"
-msgstr "Adicionar uma faixa de cena a partir de um recurso de cena"
-
-
 msgid "Channel to place this strip into"
 msgstr "Canal no qual colocar esta faixa"
 
@@ -83300,17 +83296,9 @@ msgid "Add Scene Strip"
 msgstr "Adicionar faixa de cena"
 
 
-msgid "Add a strip to the sequencer using a Blender scene as a source"
-msgstr "Adicionar uma faixa ao editor de sequências usando uma cena Blender como origem"
-
-
 msgctxt "Operator"
 msgid "Add Strip with a new Scene"
 msgstr "Adicionar uma Faixa com uma nova Cena"
-
-
-msgid "Create a new Strip and assign a new Scene as source"
-msgstr "Criar nova faixa e atribuir nova cena como origem"
 
 
 msgid "Add new Strip with a new empty Scene with default settings"
@@ -91152,6 +91140,10 @@ msgid "Paint the material with a color attribute"
 msgstr "Pintar o material com atributo de cor"
 
 
+msgid "Grease Pencil Sculpt Paint"
+msgstr "Pintura de Escultura Grease Pencil"
+
+
 msgid "Image Paint"
 msgstr "Pintura de imagem"
 
@@ -91194,6 +91186,10 @@ msgstr "Pontilhar"
 
 msgid "Amount of dithering when painting on byte images"
 msgstr "Quantidade de pontilhado na pintura em imagens de bytes"
+
+
+msgid "Texture filtering type"
+msgstr "Tipo de filtragem de textura"
 
 
 msgid "Invert the stencil layer"
@@ -91248,12 +91244,20 @@ msgid "Set image for texture painting directly"
 msgstr "Permite definir a imagem para pintura de textura diretamente."
 
 
+msgid "Screen Grab Size"
+msgstr "Tamanho de Ecrã de Agarrar"
+
+
 msgid "Size to capture the image for re-projecting"
 msgstr "Tamanho para capturar a imagem para re-projeção."
 
 
 msgid "Bleed"
 msgstr "Sangrar"
+
+
+msgid "Extend paint beyond the faces' UVs to reduce seams (in pixels, slower)"
+msgstr "Prolongar a pintura além das UVs das faces para reduzir costuras visíveis (em pixeis, mais lento)"
 
 
 msgid "Stencil Color"
@@ -91308,8 +91312,16 @@ msgid "Set the mask layer from the UV map buttons"
 msgstr "Define a camada de máscara a partir dos botões de mapa UV."
 
 
+msgid "Maximum edge length for dynamic topology sculpting (as divisor of Blender unit - higher value means smaller edge length)"
+msgstr "Comprimento máximo de arestas para a escultura de topologia dinâmica (como um divisor de unidades Blender - valores mais altos significam menores comprimentos de arestas)"
+
+
 msgid "Detail Percentage"
 msgstr "Porcentagem de detalhes"
+
+
+msgid "Maximum edge length for dynamic topology sculpting (in brush percentage)"
+msgstr "Comprimento máximo de aresta para escultura de topologia dinâmica (em porcentagem do pincel)"
 
 
 msgid "Detail Refine Method"
@@ -91372,8 +91384,24 @@ msgid "Constant Detail"
 msgstr "Detalhes constantes"
 
 
+msgid "Mesh detail is constant in world space according to detail size"
+msgstr "Detalhes da malha são constantes no espaço de cena, de acordo com tamanho dos detalhes"
+
+
 msgid "Brush Detail"
 msgstr "Detalhes do pincel"
+
+
+msgid "Mesh detail is relative to brush size"
+msgstr "Detalhes da malha são relativos ao tamanho do pincel"
+
+
+msgid "Manual Detail"
+msgstr "Detalhe Manual"
+
+
+msgid "Mesh detail does not change on each stroke, only when using Flood Fill"
+msgstr "Detalhe da malha não altera com cada pincelada, apenas ao usar Peeenchimento por Derrame"
 
 
 msgid "Amount of gravity after each dab"
@@ -91412,6 +91440,22 @@ msgid "Source and destination for symmetrize operator"
 msgstr "Fonte e destinação para o operador de simetrização."
 
 
+msgid "Transform Mode"
+msgstr "Modo de Transformação"
+
+
+msgid "How the transformation is going to be applied to the target"
+msgstr "Como a transformação será aplicada ao alvo"
+
+
+msgid "Applies the transformation to all vertices in the mesh"
+msgstr "Aplica a transformação a todos os vértices da malha"
+
+
+msgid "Applies the transformation simulating elasticity using the radius of the cursor"
+msgstr "Aplica a transformação simulando elasticidade usando o raio do cursor"
+
+
 msgid "Use Deform Only"
 msgstr "Usar apenas deformação"
 
@@ -91432,6 +91476,18 @@ msgid "Restrict painting to vertices in the group"
 msgstr "Restringe a pintura aos vértices dentro do grupo."
 
 
+msgid "Properties of paint mode"
+msgstr "Propriedades do modo de pintura"
+
+
+msgid "Image used as painting target"
+msgstr "Imagem usada como alvo de pintura"
+
+
+msgid "Source to select canvas from"
+msgstr "Origem da qual seleccionar tela"
+
+
 msgid "Palette Color"
 msgstr "Cor da paleta"
 
@@ -91448,12 +91504,100 @@ msgid "Active Palette Color"
 msgstr "Cor activa da paleta"
 
 
+msgid "Panel containing UI elements"
+msgstr "Painel contendo elementos do Interface do Utilizador"
+
+
+msgid "VR"
+msgstr "RV"
+
+
+msgid "VR Info"
+msgstr "Informação RV"
+
+
+msgid "glTF Variants"
+msgstr "Variantes glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Variantes de material glTF"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animações glTF"
+
+
+msgid "Active Tool"
+msgstr "Ferramenta Activa"
+
+
+msgid "View Lock"
+msgstr "Trancar Vista"
+
+
+msgid "Selectability & Visibility"
+msgstr "Selectividade e Visibilidade"
+
+
+msgid "Wireframe Color"
+msgstr "Cor da Vista em Arame"
+
+
+msgid "Shadow Settings"
+msgstr "Definições de Sombra"
+
+
+msgid "SSAO Settings"
+msgstr "Definições SSAO"
+
+
+msgid "Cavity"
+msgstr "Cavidade"
+
+
 msgid "Render Pass"
 msgstr "Passo de renderização"
 
 
+msgid "Compositor"
+msgstr "Compositor"
+
+
+msgid "Overlays"
+msgstr "Sobreposições"
+
+
+msgid "Guides"
+msgstr "Guias"
+
+
+msgid "Viewer Node"
+msgstr "Nó de Visualização"
+
+
 msgid "Motion Tracking"
 msgstr "Captura de movimentos"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Modo de Edição de Malha"
+
+
+msgid "Measurement"
+msgstr "Medição"
+
+
+msgid "Curve Edit Mode"
+msgstr "Modo Edição de Curva"
+
+
+msgid "Curves Edit Mode"
+msgstr "Modo Edição de Curvas"
 
 
 msgid "Snapping"
@@ -91464,8 +91608,44 @@ msgid "Transform Orientations"
 msgstr "Orientações de transformação"
 
 
+msgid "Stroke Placement"
+msgstr "Posicionamento de Traços"
+
+
+msgid "Drawing Plane"
+msgstr "Plano de Desenho"
+
+
+msgid "Grease Pencil Options"
+msgstr "Opções Grease Pencil"
+
+
+msgid "Quad View"
+msgstr "Vista Quádrupla"
+
+
 msgid "Stereoscopy"
 msgstr "Estereoscopia"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Máscara"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Opções de Adição de Curvas de Escultura de Curvas"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Decaimento de Parâmetros de Escultura de Curva"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Escala de Crescimento/Encolhimento de Curva"
+
+
+msgid "Viewport Debug"
+msgstr "Diagnóstico de Janela de Visualização"
 
 
 msgid "Bone Constraints"
@@ -91476,8 +91656,24 @@ msgid "Bendy Bones"
 msgstr "Ossos maleáveis"
 
 
+msgid "Viewport Display"
+msgstr "Exibição na Janela de Visualização"
+
+
+msgid "Custom Shape"
+msgstr "Forma Personalizada"
+
+
+msgid "Rigify Type"
+msgstr "Tipo de Rigify"
+
+
 msgid "Camera Presets"
 msgstr "Predefinições de câmara"
+
+
+msgid "Footage"
+msgstr "Filmagem"
 
 
 msgid "Predefined tracking camera intrinsics"
@@ -105935,22 +106131,6 @@ msgstr "Adicionar Exportador"
 
 msgid "Add IK"
 msgstr "Adicionar cinemática inversa"
-
-
-msgid "To Active Bone"
-msgstr "Para o osso activo"
-
-
-msgid "To Active Object"
-msgstr "Para o objecto activo"
-
-
-msgid "To New Empty Object"
-msgstr "Para um novo objecto vazio"
-
-
-msgid "Without Targets"
-msgstr "Sem alvos"
 
 
 msgid "Could not find constraint data for Child-Of Set Inverse"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 10:44+0000\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7240,26 +7240,6 @@ msgid "Mask"
 msgstr "Maski"
 
 
-msgid "Select More/Less"
-msgstr "Valitse enemmän/vähemmän"
-
-
-msgid "Metaball"
-msgstr "Metapallo"
-
-
-msgid "Light"
-msgstr "Valo"
-
-
-msgid "Light Probe"
-msgstr "Valoluotain"
-
-
-msgid "Add Image"
-msgstr "Lisää kuva"
-
-
 msgid "Track"
 msgstr "Raide"
 
@@ -7280,6 +7260,10 @@ msgid "Names"
 msgstr "Nimet"
 
 
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
+
+
 msgid "Utilities"
 msgstr "Työkalut"
 
@@ -7288,12 +7272,12 @@ msgid "Math"
 msgstr "Matematiikka"
 
 
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
-
-
 msgid "Text"
 msgstr "Teksti"
+
+
+msgid "Metaball"
+msgstr "Metapallo"
 
 
 msgid "Read"
@@ -7304,20 +7288,16 @@ msgid "Write"
 msgstr "Kirjoita"
 
 
-msgid "Instances"
-msgstr "Instanssit"
-
-
-msgid "Import"
-msgstr "Tuo"
-
-
 msgid "UV Mapping"
 msgstr "UV-kartoittaminen"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Select More/Less"
+msgstr "Valitse enemmän/vähemmän"
+
+
+msgid "Instances"
+msgstr "Instanssit"
 
 
 msgid "Select Similar"
@@ -7330,6 +7310,26 @@ msgstr "Valitse kaikki piirteen mukaan"
 
 msgid "Select Loops"
 msgstr "Valitse silmukat"
+
+
+msgid "Import"
+msgstr "Tuo"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "Valo"
+
+
+msgid "Light Probe"
+msgstr "Valoluotain"
+
+
+msgid "Add Image"
+msgstr "Lisää kuva"
 
 
 msgid "Basic"
@@ -12393,6 +12393,10 @@ msgid "Torus"
 msgstr "Torus"
 
 
+msgid "No objects selected"
+msgstr "Yhtäkään objektia ei ole valittu"
+
+
 msgid "The Scene needs a camera"
 msgstr "Kohtaus tarvitsee kameran"
 
@@ -14322,22 +14326,6 @@ msgid "Suzanne"
 msgstr "Suzanne"
 
 
-msgid "To Active Bone"
-msgstr "Aktiiviseen luuhun"
-
-
-msgid "To Active Object"
-msgstr "Aktiiviseen objektiin"
-
-
-msgid "To New Empty Object"
-msgstr "Uuteen tyhjään objektiin"
-
-
-msgid "Without Targets"
-msgstr "Ilman kohteita"
-
-
 msgid "Path is already animated"
 msgstr "Polku on jo animoitu"
 
@@ -14348,10 +14336,6 @@ msgstr "Yhtäkään kokoelmaa ei ole valittu"
 
 msgid "Unexpected error, collection not found"
 msgstr "Yllättävä virhe, kokoelmaa ei löydy"
-
-
-msgid "No objects selected"
-msgstr "Yhtäkään objektia ei ole valittu"
 
 
 msgid "Could not find hook modifier"

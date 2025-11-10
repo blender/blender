@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 10:44+0000\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
 "PO-Revision-Date: 2025-10-28 00:59+0000\n"
 "Last-Translator: Cedric Steiert <cedricsteiert@gmail.com>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -18706,38 +18706,6 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Select More/Less"
-msgstr "Mehr/weniger anzeigen"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Light"
-msgstr "Licht"
-
-
-msgid "Light Probe"
-msgstr "Lichtsonde"
-
-
-msgid "Add Image"
-msgstr "Bild hinzufügen"
-
-
-msgid "Relations"
-msgstr "Beziehungen"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
-msgid "Apply"
-msgstr "Anwenden"
-
-
 msgid "Track"
 msgstr "Spur"
 
@@ -18770,10 +18738,6 @@ msgid "Hooks"
 msgstr "Haken"
 
 
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Vertex Group Locks"
 msgstr "Punktgruppen sperren"
 
@@ -18790,20 +18754,12 @@ msgid "In-Betweens"
 msgstr "Dazwischen"
 
 
-msgid "Keying"
-msgstr "Schlüsselbilder"
-
-
-msgid "Tracking"
-msgstr "Verfolgen"
-
-
 msgid "Names"
 msgstr "Namen"
 
 
-msgid "Math"
-msgstr "Mathematisch"
+msgid "Apply"
+msgstr "Anwenden"
 
 
 msgid "Toggle Bone Options"
@@ -18818,6 +18774,10 @@ msgid "Disable Bone Options"
 msgstr "Knochen-Optionen ausschalten"
 
 
+msgid "Layout"
+msgstr "Layout"
+
+
 msgid "Mesh Select Mode"
 msgstr "Maschenauswahlmodus"
 
@@ -18828,6 +18788,18 @@ msgstr "Flächendaten"
 
 msgid "Merge"
 msgstr "Zusammenführen"
+
+
+msgid "Keying"
+msgstr "Schlüsselbilder"
+
+
+msgid "Tracking"
+msgstr "Verfolgen"
+
+
+msgid "Math"
+msgstr "Mathematisch"
 
 
 msgid "Special Characters"
@@ -18842,20 +18814,8 @@ msgid "Text"
 msgstr "Text"
 
 
-msgid "Read"
-msgstr "Lesen"
-
-
-msgid "Sample"
-msgstr "Beispiel"
-
-
-msgid "Write"
-msgstr "Schreiben"
-
-
-msgid "Primitives"
-msgstr "Grundkörper"
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Pivot Point"
@@ -18874,12 +18834,20 @@ msgid "Mask Edit"
 msgstr "Maskenbearbeitung"
 
 
-msgid "Instances"
-msgstr "Instanzen"
+msgid "Read"
+msgstr "Lesen"
 
 
-msgid "Import"
-msgstr "Importieren"
+msgid "Sample"
+msgstr "Beispiel"
+
+
+msgid "Write"
+msgstr "Schreiben"
+
+
+msgid "Primitives"
+msgstr "Grundkörper"
 
 
 msgid "Mirror"
@@ -18888,10 +18856,6 @@ msgstr "Spiegeln"
 
 msgid "Local View"
 msgstr "Lokale Ansicht"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Viewpoint"
@@ -18914,6 +18878,14 @@ msgid "View Regions"
 msgstr "Vierfenster Ansicht"
 
 
+msgid "Select More/Less"
+msgstr "Mehr/weniger anzeigen"
+
+
+msgid "Instances"
+msgstr "Instanzen"
+
+
 msgid "Select Similar"
 msgstr "Ähnliche auswählen"
 
@@ -18930,8 +18902,36 @@ msgid "Select Loops"
 msgstr "Schleifen auswählen"
 
 
+msgid "Import"
+msgstr "Importieren"
+
+
 msgid "Assign Material"
 msgstr "Material zuweisen"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "Light Probe"
+msgstr "Lichtsonde"
+
+
+msgid "Add Image"
+msgstr "Bild hinzufügen"
+
+
+msgid "Relations"
+msgstr "Beziehungen"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
 
 
 msgid "Assets"
@@ -38904,10 +38904,6 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
-msgid "Auto-Masking"
-msgstr "Automatisches Maskieren"
-
-
 msgid "VR"
 msgstr "VR"
 
@@ -38986,6 +38982,10 @@ msgstr "Zwiebelhaut"
 
 msgid "Stereoscopy"
 msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Automatisches Maskieren"
 
 
 msgid "Chain Scaling"
@@ -48932,6 +48932,10 @@ msgid "Nothing to bake"
 msgstr "Nichts zu backen"
 
 
+msgid "No objects selected"
+msgstr "Keine Objekte ausgewählt"
+
+
 msgid "No single next item found"
 msgstr "Kein einzelnes nächstes Item gefunden"
 
@@ -55318,18 +55322,6 @@ msgid "Add IK"
 msgstr "IK hinzufügen"
 
 
-msgid "To Active Bone"
-msgstr "Zum aktiven Knochen"
-
-
-msgid "To Active Object"
-msgstr "Zum aktiven Objekt"
-
-
-msgid "Without Targets"
-msgstr "Ohne Ziele"
-
-
 msgid "Child Of constraint not found"
 msgstr "Kind der Beschränkung nicht gefunden"
 
@@ -55356,10 +55348,6 @@ msgstr "Keine Sammlung ausgewählt"
 
 msgid "Unexpected error, collection not found"
 msgstr "Unerwarteter Fehler, keine Sammlung gefunden"
-
-
-msgid "No objects selected"
-msgstr "Keine Objekte ausgewählt"
 
 
 msgid "%s already in %s"
