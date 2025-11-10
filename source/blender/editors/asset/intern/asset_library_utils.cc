@@ -29,10 +29,13 @@ namespace blender::ed::asset {
 static asset_system::AssetCatalog &library_ensure_catalog(
     asset_system::AssetLibrary &library, const asset_system::AssetCatalogPath &path)
 {
-  if (asset_system::AssetCatalog *catalog = library.catalog_service().find_catalog_by_path(path)) {
+  asset_system::AssetCatalogService &catalog_service = library.catalog_service();
+  if (asset_system::AssetCatalog *catalog = catalog_service.find_catalog_by_path(path)) {
     return *catalog;
   }
-  return *library.catalog_service().create_catalog(path);
+  asset_system::AssetCatalog *new_catalog = catalog_service.create_catalog(path);
+  catalog_service.tag_has_unsaved_changes(new_catalog);
+  return *new_catalog;
 }
 
 blender::asset_system::AssetCatalog &library_ensure_catalogs_in_path(
