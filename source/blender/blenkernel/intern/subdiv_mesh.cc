@@ -123,8 +123,13 @@ static void subdiv_mesh_ctx_cache_uv_layers(SubdivMeshContext *ctx)
   Mesh *subdiv_mesh = ctx->subdiv_mesh;
   bke::MutableAttributeAccessor attributes = subdiv_mesh->attributes_for_write();
   for (const StringRef name : coarse_mesh.uv_map_names()) {
-    ctx->uv_maps.append(
-        attributes.lookup_or_add_for_write_only_span<float2>(name, AttrDomain::Corner));
+    SpanAttributeWriter uv_map = attributes.lookup_or_add_for_write_only_span<float2>(
+        name, AttrDomain::Corner);
+    if (!uv_map) {
+      /* Attribute lookup can fail because of name collisions with vertex groups. */
+      continue;
+    }
+    ctx->uv_maps.append(std::move(uv_map));
   }
 
   /* Copy active & default UV map names. */
