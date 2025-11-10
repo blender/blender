@@ -239,43 +239,20 @@ struct ExtractionGraph {
  public:
   TaskGraph *graph = BLI_task_graph_create();
 
- private:
-  /* WORKAROUND: BLI_gset_free is not allowing to pass a data pointer to the free function. */
-  static thread_local TaskGraph *task_graph_ptr_;
-
- public:
   ~ExtractionGraph()
   {
     BLI_assert_msg(graph == nullptr, "Missing call to work_and_wait");
   }
 
-  /* `delayed_extraction` is a set of object to add to the graph before running.
-   * The non-null, the set is consumed and freed after use. */
-  void work_and_wait(GSet *&delayed_extraction)
+  void work_and_wait()
   {
     BLI_assert_msg(graph, "Trying to submit more than once");
-
-    if (delayed_extraction) {
-      task_graph_ptr_ = graph;
-      BLI_gset_free(delayed_extraction, delayed_extraction_free_callback);
-      task_graph_ptr_ = nullptr;
-      delayed_extraction = nullptr;
-    }
 
     BLI_task_graph_work_and_wait(graph);
     BLI_task_graph_free(graph);
     graph = nullptr;
   }
-
- private:
-  static void delayed_extraction_free_callback(void *object)
-  {
-    blender::draw::drw_batch_cache_generate_requested_evaluated_mesh_or_curve(
-        reinterpret_cast<Object *>(object), *task_graph_ptr_);
-  }
 };
-
-thread_local TaskGraph *ExtractionGraph::task_graph_ptr_ = nullptr;
 
 /** \} */
 
@@ -1001,7 +978,13 @@ void DRWContext::sync(iter_callback_t iter_callback)
   iter_callback(dupli_handler, extraction);
 
   dupli_handler.extract_all(extraction);
-  extraction.work_and_wait(this->delayed_extraction);
+  for (Object *object : this->delayed_extraction) {
+    blender::draw::drw_batch_cache_generate_requested_evaluated_mesh_or_curve(object,
+                                                                              *extraction.graph);
+  }
+  this->delayed_extraction.clear();
+
+  extraction.work_and_wait();
 
   DRW_curves_update(*view_data_active->manager);
 }
