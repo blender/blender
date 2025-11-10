@@ -53,7 +53,6 @@ struct DRWData;
 struct DRWViewData;
 struct GPUViewport;
 struct DRWTextStore;
-struct GSet;
 struct GPUViewport;
 namespace blender::draw {
 class TextureFromPool;

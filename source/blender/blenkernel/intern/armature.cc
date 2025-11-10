@@ -2910,8 +2910,8 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
     /* Find the custom B-Bone handles. */
     BKE_pchan_rebuild_bbone_handles(pose, pchan);
     /* Re-validate that we are still using a valid pchan form custom transform. */
-    /* Note that we could store pointers of freed pchan in a GSet to speed this up, however this is
-     * supposed to be a rarely used feature, so for now assuming that always building that GSet
+    /* Note that we could store pointers of freed pchan in a set to speed this up, however this is
+     * supposed to be a rarely used feature, so for now assuming that always building that set
      * would be less optimal. */
     if (pchan->custom_tx != nullptr && BLI_findindex(&pose->chanbase, pchan->custom_tx) == -1) {
       pchan->custom_tx = nullptr;

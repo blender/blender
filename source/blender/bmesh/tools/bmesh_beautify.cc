@@ -39,7 +39,7 @@ using blender::Span;
 #endif
 
 /* -------------------------------------------------------------------- */
-/* GSet for edge rotation */
+/* Set for edge rotation */
 
 struct EdRotState {
   /**
