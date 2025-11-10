@@ -2285,8 +2285,8 @@ static wmOperatorStatus image_save_sequence_exec(bContext *C, wmOperator *op)
 
   /* get total dirty buffers and first dirty buffer which is used for menu */
   ibuf = nullptr;
-  if (image->cache != nullptr) {
-    iter = IMB_moviecacheIter_new(image->cache);
+  if (image->runtime->cache != nullptr) {
+    iter = IMB_moviecacheIter_new(image->runtime->cache);
     while (!IMB_moviecacheIter_done(iter)) {
       ibuf = IMB_moviecacheIter_getImBuf(iter);
       if (ibuf != nullptr && ibuf->userflags & IB_BITMAPDIRTY) {
@@ -2309,7 +2309,7 @@ static wmOperatorStatus image_save_sequence_exec(bContext *C, wmOperator *op)
   BLI_path_split_dir_part(first_ibuf->filepath, di, sizeof(di));
   BKE_reportf(op->reports, RPT_INFO, "%d image(s) will be saved in %s", tot, di);
 
-  iter = IMB_moviecacheIter_new(image->cache);
+  iter = IMB_moviecacheIter_new(image->runtime->cache);
   while (!IMB_moviecacheIter_done(iter)) {
     ibuf = IMB_moviecacheIter_getImBuf(iter);
 
