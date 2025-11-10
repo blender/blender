@@ -283,7 +283,7 @@ static void bm_loop_calc_uv_angle_from_dir(BMLoop *l,
 
 struct UVRipSingle {
   /** Walk around the selected UV point, store #BMLoop. */
-  GSet *loops;
+  blender::Set<BMLoop *> *loops;
 };
 
 /**
@@ -307,7 +307,7 @@ static UVRipSingle *uv_rip_single_from_loop(BMLoop *l_init_orig,
 {
   UVRipSingle *rip = MEM_callocN<UVRipSingle>(__func__);
   const float *co_center = BM_ELEM_CD_GET_FLOAT_P(l_init_orig, cd_loop_uv_offset);
-  rip->loops = BLI_gset_ptr_new(__func__);
+  rip->loops = MEM_new<blender::Set<BMLoop *>>(__func__);
 
   /* Track the closest loop, start walking from this so in the event we have multiple
    * disconnected fans, we can rip away loops connected to this one. */
@@ -337,7 +337,7 @@ static UVRipSingle *uv_rip_single_from_loop(BMLoop *l_init_orig,
           /* Clear at the same time. */
           UL(l)->is_select_vert_single = true;
           UL(l)->side = 0;
-          BLI_gset_add(rip->loops, l);
+          rip->loops->add(l);
 
           /* Update `l_init_close` */
           float corner_angle_test;
@@ -393,9 +393,7 @@ static UVRipSingle *uv_rip_single_from_loop(BMLoop *l_init_orig,
     /* Simply rip off the current fan, all tagging is done. */
   }
   else {
-    GSetIterator gs_iter;
-    GSET_ITER (gs_iter, rip->loops) {
-      BMLoop *l = static_cast<BMLoop *>(BLI_gsetIterator_getKey(&gs_iter));
+    for (BMLoop *l : *rip->loops) {
       UL(l)->side = 0;
     }
 
@@ -423,7 +421,7 @@ static UVRipSingle *uv_rip_single_from_loop(BMLoop *l_init_orig,
 
 static void uv_rip_single_free(UVRipSingle *rip)
 {
-  BLI_gset_free(rip->loops, nullptr);
+  MEM_delete(rip->loops);
   MEM_freeN(rip);
 }
 
@@ -875,9 +873,7 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
           UVRipSingle *rip = uv_rip_single_from_loop(l, co, aspect_y, offsets.uv);
           /* We only ever use one side. */
           const int side_from_cursor = 0;
-          GSetIterator gs_iter;
-          GSET_ITER (gs_iter, rip->loops) {
-            BMLoop *l_iter = static_cast<BMLoop *>(BLI_gsetIterator_getKey(&gs_iter));
+          for (BMLoop *l_iter : *rip->loops) {
             ULData *ul = UL(l_iter);
             if (ul->side == side_from_cursor) {
               uvedit_uv_select_disable(scene, bm, l_iter);
