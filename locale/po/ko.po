@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 10:44+0000\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:30+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -23640,38 +23640,6 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
-msgid "Select More/Less"
-msgstr "선택 증가/감소"
-
-
-msgid "Metaball"
-msgstr "메타볼"
-
-
-msgid "Light"
-msgstr "라이트"
-
-
-msgid "Light Probe"
-msgstr "라이트 프로브"
-
-
-msgid "Add Image"
-msgstr "이미지를 추가"
-
-
-msgid "Relations"
-msgstr "관계"
-
-
-msgid "Rigid Body"
-msgstr "리지드 바디"
-
-
-msgid "Apply"
-msgstr "적용"
-
-
 msgid "Track"
 msgstr "트랙"
 
@@ -23700,10 +23668,6 @@ msgid "Hooks"
 msgstr "후크"
 
 
-msgid "Layout"
-msgstr "레이아웃"
-
-
 msgid "Sculpt Set Pivot"
 msgstr "스컬프트 설정 피벗"
 
@@ -23720,20 +23684,12 @@ msgid "Propagate"
 msgstr "전파"
 
 
-msgid "Keying"
-msgstr "키잉"
-
-
-msgid "Tracking"
-msgstr "트래킹"
-
-
 msgid "Names"
 msgstr "이름"
 
 
-msgid "Math"
-msgstr "수학"
+msgid "Apply"
+msgstr "적용"
 
 
 msgid "Toggle Bone Options"
@@ -23746,6 +23702,10 @@ msgstr "본 옵션을 사용"
 
 msgid "Disable Bone Options"
 msgstr "본 옵션을 사용 중지"
+
+
+msgid "Layout"
+msgstr "레이아웃"
 
 
 msgid "Mesh Select Mode"
@@ -23768,6 +23728,18 @@ msgid "Merge"
 msgstr "병합"
 
 
+msgid "Keying"
+msgstr "키잉"
+
+
+msgid "Tracking"
+msgstr "트래킹"
+
+
+msgid "Math"
+msgstr "수학"
+
+
 msgid "Special Characters"
 msgstr "특수 문자"
 
@@ -23780,16 +23752,12 @@ msgid "Text"
 msgstr "텍스트"
 
 
+msgid "Metaball"
+msgstr "메타볼"
+
+
 msgid "Bone Roll"
 msgstr "본 롤"
-
-
-msgid "Sample"
-msgstr "샘플"
-
-
-msgid "Primitives"
-msgstr "프리미티브"
 
 
 msgid "Pivot Point"
@@ -23808,8 +23776,12 @@ msgid "Mask Edit"
 msgstr "마스크 편집"
 
 
-msgid "Import"
-msgstr "가져오기"
+msgid "Sample"
+msgstr "샘플"
+
+
+msgid "Primitives"
+msgstr "프리미티브"
 
 
 msgid "Mirror"
@@ -23822,10 +23794,6 @@ msgstr "UV 맵핑"
 
 msgid "Local View"
 msgstr "로컬 뷰"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Viewpoint"
@@ -23848,6 +23816,10 @@ msgid "View Regions"
 msgstr "뷰 지역"
 
 
+msgid "Select More/Less"
+msgstr "선택 증가/감소"
+
+
 msgid "Select Similar"
 msgstr "유사한 선택"
 
@@ -23864,8 +23836,36 @@ msgid "Select Loops"
 msgstr "루프를 선택"
 
 
+msgid "Import"
+msgstr "가져오기"
+
+
 msgid "Assign Material"
 msgstr "매테리얼을 할당"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "라이트"
+
+
+msgid "Light Probe"
+msgstr "라이트 프로브"
+
+
+msgid "Add Image"
+msgstr "이미지를 추가"
+
+
+msgid "Relations"
+msgstr "관계"
+
+
+msgid "Rigid Body"
+msgstr "리지드 바디"
 
 
 msgid "Basic"
@@ -46938,10 +46938,6 @@ msgid "Add IK to Bone"
 msgstr "IK를 본에 추가"
 
 
-msgid "Add IK Constraint to the active Bone"
-msgstr "활성 본에 IK 제약을 추가"
-
-
 msgid "With Targets"
 msgstr "대상와 함께"
 
@@ -67219,6 +67215,10 @@ msgid "3D View"
 msgstr "3D 뷰"
 
 
+msgid "No objects selected"
+msgstr "선택된 오브젝트가 없습니다"
+
+
 msgid "Active object is not a mesh"
 msgstr "활성 오브젝트는 메쉬가 아님"
 
@@ -73504,22 +73504,6 @@ msgid "Add IK"
 msgstr "IK를 추가"
 
 
-msgid "To Active Bone"
-msgstr "활성 본으로"
-
-
-msgid "To Active Object"
-msgstr "활성 오브젝트로"
-
-
-msgid "To New Empty Object"
-msgstr "새로운 엠프티 오브젝트로"
-
-
-msgid "Without Targets"
-msgstr "대상 없이"
-
-
 msgid "Could not find constraint data for Child-Of Set Inverse"
 msgstr "대상의 자식 설정 반전에 대한 제약 조건 데이터를 찾을 수 없습니다"
 
@@ -73574,10 +73558,6 @@ msgstr "선택된 컬렉션이 없음"
 
 msgid "Unexpected error, collection not found"
 msgstr "예기치 않은 오류, 컬렉션을 찾을 수 없습니다"
-
-
-msgid "No objects selected"
-msgstr "선택된 오브젝트가 없습니다"
 
 
 msgid "%s already in %s"

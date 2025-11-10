@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 10:44+0000\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:16+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28433,22 +28433,6 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Metaball"
-msgstr "Mpira wa miguu"
-
-
-msgid "Light"
-msgstr "Mwanga"
-
-
-msgid "Light Probe"
-msgstr "Uchunguzi wa Mwanga"
-
-
-msgid "Apply"
-msgstr "Tumia"
-
-
 msgid "Show/Hide"
 msgstr "Onyesha/Ficha"
 
@@ -28461,8 +28445,20 @@ msgid "Asset"
 msgstr "Mali"
 
 
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
+
+
+msgid "Apply"
+msgstr "Tumia"
+
+
 msgid "Layout"
 msgstr "Mpangilio"
+
+
+msgid "Merge"
+msgstr "Unganisha"
 
 
 msgid "Adjust"
@@ -28471,10 +28467,6 @@ msgstr "Rekebisha"
 
 msgid "Keying"
 msgstr "Kuweka"
-
-
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
 
 
 msgid "Tracking"
@@ -28489,12 +28481,20 @@ msgid "Math"
 msgstr "Hisabati"
 
 
-msgid "Merge"
-msgstr "Unganisha"
-
-
 msgid "Text"
 msgstr "Maandishi"
+
+
+msgid "Metaball"
+msgstr "Mpira wa miguu"
+
+
+msgid "Pivot Point"
+msgstr "Egemeo"
+
+
+msgid "Snap"
+msgstr "Picha"
 
 
 msgid "Read"
@@ -28513,16 +28513,20 @@ msgid "Primitives"
 msgstr "Watu wa kwanza"
 
 
-msgid "Pivot Point"
-msgstr "Egemeo"
+msgid "Mirror"
+msgstr "Kioo"
 
 
-msgid "Snap"
-msgstr "Picha"
+msgid "Navigation"
+msgstr "Urambazaji"
 
 
 msgid "Instances"
 msgstr "Matukio"
+
+
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
 
 
 msgid "Import"
@@ -28533,16 +28537,12 @@ msgid "Deprecated"
 msgstr "Imeacha kutumika"
 
 
-msgid "Mirror"
-msgstr "Kioo"
+msgid "Light"
+msgstr "Mwanga"
 
 
-msgid "Navigation"
-msgstr "Urambazaji"
-
-
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
+msgid "Light Probe"
+msgstr "Uchunguzi wa Mwanga"
 
 
 msgid "Keyframe Insert Pie"
@@ -63709,10 +63709,6 @@ msgid "Add IK to Bone"
 msgstr "Ongeza MA kwenye Mfupa"
 
 
-msgid "Add IK Constraint to the active Bone"
-msgstr "Ongeza Kizuizi cha MA kwenye Mfupa unaofanya kazi"
-
-
 msgid "With Targets"
 msgstr "Na Malengo"
 
@@ -67025,17 +67021,9 @@ msgid "Add Scene Strip"
 msgstr "Ongeza Ukanda wa Onyesho"
 
 
-msgid "Add a strip to the sequencer using a Blender scene as a source"
-msgstr "Ongeza kamba kwenye mpangilio kwa kutumia eneo la Blender kama chanzo"
-
-
 msgctxt "Operator"
 msgid "Add Strip with a new Scene"
 msgstr "Ongeza Mkanda kwa Onyesho jipya"
-
-
-msgid "Create a new Strip and assign a new Scene as source"
-msgstr "Unda Ukanda mpya na ukabidhi Onyesho jipya kama chanzo"
 
 
 msgid "Add new Strip with a new empty Scene with default settings"
@@ -73184,22 +73172,6 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
-msgid "Auto-Masking"
-msgstr "Kufunika Masking Kiotomatiki"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Mchoro wa Mikunjo Ongeza Chaguzi za Mviringo"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Curves Sculpt Parameta Falloff"
-
-
-msgid "Viewport Debug"
-msgstr "Utatuzi wa kituo cha kutazama"
-
-
 msgid "View Lock"
 msgstr "Kufuli ya Tazama"
 
@@ -73262,6 +73234,22 @@ msgstr "Mtazamo wa Quad"
 
 msgid "Multi Frame"
 msgstr "Fremu nyingi"
+
+
+msgid "Auto-Masking"
+msgstr "Kufunika Masking Kiotomatiki"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Mchoro wa Mikunjo Ongeza Chaguzi za Mviringo"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Curves Sculpt Parameta Falloff"
+
+
+msgid "Viewport Debug"
+msgstr "Utatuzi wa kituo cha kutazama"
 
 
 msgid "Motion Blur"
@@ -93478,6 +93466,10 @@ msgid "All bone collections are in use"
 msgstr "Mikusanyo yote ya mifupa inatumika"
 
 
+msgid "No objects selected"
+msgstr "Hakuna vitu vilivyochaguliwa"
+
+
 msgid "Go to pose mode to copy pose bone colors"
 msgstr "Nenda kwenye modi ya pozi ili kunakili rangi za mfupa"
 
@@ -103389,22 +103381,6 @@ msgid "Add IK"
 msgstr "Ongeza MA"
 
 
-msgid "To Active Bone"
-msgstr "Kwa Mfupa Hai"
-
-
-msgid "To Active Object"
-msgstr "Kwa Kitu Amilifu"
-
-
-msgid "To New Empty Object"
-msgstr "Kwa Kitu Kipya Kitupu"
-
-
-msgid "Without Targets"
-msgstr "Bila Malengo"
-
-
 msgid "Could not find constraint data for Child-Of Set Inverse"
 msgstr "Haikuweza kupata data ya kikwazo kwa Inverse ya Mtoto wa Seti"
 
@@ -103523,10 +103499,6 @@ msgstr "Hitilafu isiyotarajiwa, mkusanyiko haujapatikana"
 
 msgid "Cannot add objects to a library override or linked collection"
 msgstr "Haiwezi kuongeza vitu kwenye ubatilishaji wa maktaba au mkusanyiko uliounganishwa"
-
-
-msgid "No objects selected"
-msgstr "Hakuna vitu vilivyochaguliwa"
 
 
 msgid "%s already in %s"

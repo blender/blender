@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-11-03 10:44+0000\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:03+0000\n"
 "Last-Translator: Amy Lily <lillya.assist@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21243,38 +21243,6 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
-msgid "Light"
-msgstr "Luz"
-
-
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
-msgid "Add Image"
-msgstr "Adicionar Imagem"
-
-
-msgid "Relations"
-msgstr "Relações"
-
-
-msgid "Rigid Body"
-msgstr "Corpo rígido"
-
-
-msgid "Apply"
-msgstr "Aplicar"
-
-
 msgid "Track"
 msgstr "Rastrear"
 
@@ -21303,10 +21271,6 @@ msgid "Hooks"
 msgstr "Ganchos"
 
 
-msgid "Layout"
-msgstr "Organizar"
-
-
 msgid "Random Mask"
 msgstr "Máscara Aleatória"
 
@@ -21323,20 +21287,12 @@ msgid "Propagate"
 msgstr "Propagar"
 
 
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
-msgid "Tracking"
-msgstr "Rastreamento"
-
-
 msgid "Names"
 msgstr "Nomes"
 
 
-msgid "Math"
-msgstr "Matemática"
+msgid "Apply"
+msgstr "Aplicar"
 
 
 msgid "Toggle Bone Options"
@@ -21351,6 +21307,10 @@ msgid "Disable Bone Options"
 msgstr "Desabilitar as opções de ossos"
 
 
+msgid "Layout"
+msgstr "Organizar"
+
+
 msgid "Mesh Select Mode"
 msgstr "Modo de seleção de malhas"
 
@@ -21363,12 +21323,28 @@ msgid "Merge"
 msgstr "Fundir"
 
 
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
+
+
+msgid "Math"
+msgstr "Matemática"
+
+
 msgid "Special Characters"
 msgstr "Caracteres especiais"
 
 
 msgid "Text"
 msgstr "Texto"
+
+
+msgid "Metaball"
+msgstr "Meta-esfera"
 
 
 msgid "Bone Roll"
@@ -21387,14 +21363,6 @@ msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
 
 
-msgid "Instances"
-msgstr "Instâncias"
-
-
-msgid "Import"
-msgstr "Importar"
-
-
 msgid "Mirror"
 msgstr "Espelhar"
 
@@ -21405,10 +21373,6 @@ msgstr "Mapeamento UV"
 
 msgid "Local View"
 msgstr "Visão local"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Viewpoint"
@@ -21431,6 +21395,14 @@ msgid "View Regions"
 msgstr "Visualizar Regiões"
 
 
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
+msgid "Instances"
+msgstr "Instâncias"
+
+
 msgid "Select Similar"
 msgstr "Selecionar por similaridades"
 
@@ -21445,6 +21417,34 @@ msgstr "Selecionar vinculados(as)"
 
 msgid "Select Loops"
 msgstr "Selecionar anéis"
+
+
+msgid "Import"
+msgstr "Importar"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
+
+
+msgid "Relations"
+msgstr "Relações"
+
+
+msgid "Rigid Body"
+msgstr "Corpo rígido"
 
 
 msgid "Basic"
@@ -42594,10 +42594,6 @@ msgstr "Etiquetar os ossos selecionados para que não sejam visíveis no modo de
 msgctxt "Operator"
 msgid "Add IK to Bone"
 msgstr "Adicionar cinemática inversa para o osso"
-
-
-msgid "Add IK Constraint to the active Bone"
-msgstr "Adiciona uma restrição de cinemática inversa para o osso ativo."
 
 
 msgid "With Targets"
@@ -64628,22 +64624,6 @@ msgstr "Problema ao gerar e gravar o objeto \"%s\""
 
 msgid "Add IK"
 msgstr "Adicionar cinemática inversa"
-
-
-msgid "To Active Bone"
-msgstr "Para o osso ativo"
-
-
-msgid "To Active Object"
-msgstr "Para o objeto ativo"
-
-
-msgid "To New Empty Object"
-msgstr "Para um novo objeto vazio"
-
-
-msgid "Without Targets"
-msgstr "Sem alvos"
 
 
 msgid "Could not find constraint data for Child-Of Set Inverse"

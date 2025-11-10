@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 10:44+0000\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -8497,26 +8497,6 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Metaball"
-msgstr "Meta lopta"
-
-
-msgid "Light"
-msgstr "Svetlost"
-
-
-msgid "Relations"
-msgstr "Odnosi"
-
-
-msgid "Rigid Body"
-msgstr "Kruto telo"
-
-
-msgid "Apply"
-msgstr "Primeni"
-
-
 msgid "Track"
 msgstr "Staza"
 
@@ -8545,20 +8525,12 @@ msgid "Propagate"
 msgstr "Prenesi"
 
 
-msgid "Keying"
-msgstr "Zbirka tastera"
-
-
-msgid "Tracking"
-msgstr "Praćenje"
-
-
 msgid "Names"
 msgstr "Imena"
 
 
-msgid "Math"
-msgstr "Matematika"
+msgid "Apply"
+msgstr "Primeni"
 
 
 msgid "Toggle Bone Options"
@@ -8581,8 +8553,24 @@ msgid "Merge"
 msgstr "Sjedini"
 
 
+msgid "Keying"
+msgstr "Zbirka tastera"
+
+
+msgid "Tracking"
+msgstr "Praćenje"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
 msgid "Special Characters"
 msgstr "Specijalni znaci"
+
+
+msgid "Metaball"
+msgstr "Meta lopta"
 
 
 msgid "Bone Roll"
@@ -8591,10 +8579,6 @@ msgstr "Rolna kostiju"
 
 msgid "Snap"
 msgstr "Lepljenje"
-
-
-msgid "Import"
-msgstr "Uvoz"
 
 
 msgid "Mirror"
@@ -8609,10 +8593,6 @@ msgid "Local View"
 msgstr "Lokalni pogled"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Navigation"
 msgstr "Navigacija"
 
@@ -8623,6 +8603,26 @@ msgstr "Poravnaj pogled"
 
 msgid "Select Linked"
 msgstr "Izaberi povezano"
+
+
+msgid "Import"
+msgstr "Uvoz"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "Svetlost"
+
+
+msgid "Relations"
+msgstr "Odnosi"
+
+
+msgid "Rigid Body"
+msgstr "Kruto telo"
 
 
 msgid "Basic"
@@ -16850,10 +16850,6 @@ msgid "Add IK to Bone"
 msgstr "Dodaj IK na kost"
 
 
-msgid "Add IK Constraint to the active Bone"
-msgstr "Dodaje IK ograničenja aktivnoj kosti"
-
-
 msgctxt "Operator"
 msgid "Remove IK"
 msgstr "Ukloni IK"
@@ -24538,22 +24534,6 @@ msgstr "Objekat nije pronađen"
 
 msgid "No active mesh object"
 msgstr "Bez aktivnog meš objekta"
-
-
-msgid "To Active Bone"
-msgstr "Na aktivnu kost"
-
-
-msgid "To Active Object"
-msgstr "Na aktivni objekat"
-
-
-msgid "To New Empty Object"
-msgstr "Na novi prazan objekat"
-
-
-msgid "Without Targets"
-msgstr "Bez cilja"
 
 
 msgid "Object (Keep Transform)"

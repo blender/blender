@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 10:44+0000\n"
-"PO-Revision-Date: 2025-11-02 23:59+0000\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
+"PO-Revision-Date: 2025-11-10 04:59+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
 "Language: ja\n"
@@ -35448,38 +35448,6 @@ msgid "Editor menu containing buttons"
 msgstr "ボタンを含むエディターメニュー"
 
 
-msgid "Select More/Less"
-msgstr "選択の拡大縮小"
-
-
-msgid "Metaball"
-msgstr "メタボール"
-
-
-msgid "Light"
-msgstr "ライト"
-
-
-msgid "Light Probe"
-msgstr "ライトプローブ"
-
-
-msgid "Add Image"
-msgstr "画像を追加"
-
-
-msgid "Relations"
-msgstr "関係"
-
-
-msgid "Rigid Body"
-msgstr "リジッドボディ"
-
-
-msgid "Apply"
-msgstr "適用"
-
-
 msgid "Track"
 msgstr "トラック"
 
@@ -35516,10 +35484,6 @@ msgid "Hooks"
 msgstr "フック"
 
 
-msgid "Layout"
-msgstr "レイアウト"
-
-
 msgid "Vertex Group Locks"
 msgstr "頂点グループのロック"
 
@@ -35540,10 +35504,6 @@ msgid "Random Mask"
 msgstr "ランダムマスク"
 
 
-msgid "Adjust"
-msgstr "調整"
-
-
 msgid "Clear Transform"
 msgstr "トランスフォームをクリア"
 
@@ -35556,32 +35516,16 @@ msgid "Propagate"
 msgstr "伝播"
 
 
-msgid "Keying"
-msgstr "キーイング"
-
-
 msgid "Bone Collections"
 msgstr "ボーンコレクション"
-
-
-msgid "Tracking"
-msgstr "トラッキング"
 
 
 msgid "Names"
 msgstr "名前"
 
 
-msgid "Utilities"
-msgstr "ユーティリティ"
-
-
-msgid "Math"
-msgstr "数式"
-
-
-msgid "Creative"
-msgstr "クリエイティブ"
+msgid "Apply"
+msgstr "適用"
 
 
 msgid "Toggle Bone Options"
@@ -35594,6 +35538,10 @@ msgstr "ボーンオプションを有効化"
 
 msgid "Disable Bone Options"
 msgstr "ボーンオプションを無効化"
+
+
+msgid "Layout"
+msgstr "レイアウト"
 
 
 msgid "Mesh Select Mode"
@@ -35612,16 +35560,36 @@ msgid "Set Face Strength"
 msgstr "面の強さを設定"
 
 
-msgid "Render Preview"
-msgstr "レンダープレビュー"
-
-
 msgid "Merge"
 msgstr "マージ"
 
 
+msgid "Adjust"
+msgstr "調整"
+
+
+msgid "Keying"
+msgstr "キーイング"
+
+
+msgid "Tracking"
+msgstr "トラッキング"
+
+
+msgid "Utilities"
+msgstr "ユーティリティ"
+
+
+msgid "Math"
+msgstr "数式"
+
+
 msgid "Special Characters"
 msgstr "特殊文字"
+
+
+msgid "Creative"
+msgstr "クリエイティブ"
 
 
 msgid "Kerning"
@@ -35632,24 +35600,16 @@ msgid "Text"
 msgstr "テキスト"
 
 
+msgid "Metaball"
+msgstr "メタボール"
+
+
 msgid "Bone Roll"
 msgstr "ボーンロール"
 
 
-msgid "Read"
-msgstr "読込"
-
-
-msgid "Sample"
-msgstr "サンプル"
-
-
-msgid "Write"
-msgstr "書込"
-
-
-msgid "Primitives"
-msgstr "プリミティブ"
+msgid "Render Preview"
+msgstr "レンダープレビュー"
 
 
 msgid "Pivot Point"
@@ -35676,20 +35636,20 @@ msgid "Face Sets Edit"
 msgstr "面セット編集"
 
 
-msgid "Gizmo"
-msgstr "ギズモ"
+msgid "Read"
+msgstr "読込"
 
 
-msgid "Instances"
-msgstr "インスタンス"
+msgid "Sample"
+msgstr "サンプル"
 
 
-msgid "Import"
-msgstr "インポート"
+msgid "Write"
+msgstr "書込"
 
 
-msgid "Deprecated"
-msgstr "廃止予定"
+msgid "Primitives"
+msgstr "プリミティブ"
 
 
 msgid "Mirror"
@@ -35700,16 +35660,8 @@ msgid "UV Mapping"
 msgstr "UVマッピング"
 
 
-msgid "List"
-msgstr "リスト"
-
-
 msgid "Local View"
 msgstr "ローカルビュー"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Viewpoint"
@@ -35732,6 +35684,18 @@ msgid "View Regions"
 msgstr "ビュー領域設定"
 
 
+msgid "Select More/Less"
+msgstr "選択の拡大縮小"
+
+
+msgid "Gizmo"
+msgstr "ギズモ"
+
+
+msgid "Instances"
+msgstr "インスタンス"
+
+
 msgid "Select Similar"
 msgstr "類似選択"
 
@@ -35748,8 +35712,44 @@ msgid "Select Loops"
 msgstr "ループ選択"
 
 
+msgid "Import"
+msgstr "インポート"
+
+
+msgid "Deprecated"
+msgstr "廃止予定"
+
+
 msgid "Assign Material"
 msgstr "マテリアルを割り当て"
+
+
+msgid "List"
+msgstr "リスト"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "ライト"
+
+
+msgid "Light Probe"
+msgstr "ライトプローブ"
+
+
+msgid "Add Image"
+msgstr "画像を追加"
+
+
+msgid "Relations"
+msgstr "関係"
+
+
+msgid "Rigid Body"
+msgstr "リジッドボディ"
 
 
 msgid "Keyframe Insert Pie"
@@ -47860,7 +47860,7 @@ msgstr "配置方法"
 
 
 msgid "Method to use for scattering points"
-msgstr "ポイント配置に使用される方法"
+msgstr "配置に使用される方法"
 
 
 msgid "Distribute points randomly inside of the volume"
@@ -73226,6 +73226,10 @@ msgid "Toggle collapsing of selected nodes"
 msgstr "選択中のノードの折り畳み状態を切り替えます"
 
 
+msgid "Add an item to the index switch"
+msgstr "インデックススイッチにアイテムを追加します"
+
+
 msgid "Remove an item from the index switch"
 msgstr "インデックススイッチからアイテムを削除します"
 
@@ -80299,10 +80303,6 @@ msgid "Add IK to Bone"
 msgstr "IKをボーンに追加"
 
 
-msgid "Add IK Constraint to the active Bone"
-msgstr "IKコンストレイントをアクティブボーンに追加"
-
-
 msgid "With Targets"
 msgstr "ターゲット付き"
 
@@ -83610,10 +83610,6 @@ msgid "Add Scene Asset"
 msgstr "シーンアセットを追加"
 
 
-msgid "Add a scene strip from a scene asset"
-msgstr "シーンアセットからシーンストリップを追加します"
-
-
 msgid "Channel to place this strip into"
 msgstr "このストリップを配置するチャネル"
 
@@ -84403,17 +84399,9 @@ msgid "Add Scene Strip"
 msgstr "シーンストリップを追加"
 
 
-msgid "Add a strip to the sequencer using a Blender scene as a source"
-msgstr "Blender のシーンをソースとするストリップをシーケンサーに追加します"
-
-
 msgctxt "Operator"
 msgid "Add Strip with a new Scene"
 msgstr "ストリップと新規シーンを追加"
-
-
-msgid "Create a new Strip and assign a new Scene as source"
-msgstr "新規ストリップを作成し，新規シーンにソースとして割り当てます"
 
 
 msgid "Add new Strip with a new empty Scene with default settings"
@@ -92742,26 +92730,6 @@ msgid "Panel containing UI elements"
 msgstr "UIの要素を含むパネル"
 
 
-msgid "Auto-Masking"
-msgstr "自動マスク"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "カーブスカルプトカーブ追加オプション"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "カーブスカルプトパラメーター減衰"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "カーブスケールを拡大/収縮"
-
-
-msgid "Viewport Debug"
-msgstr "ビューポートデバッグ"
-
-
 msgid "VR"
 msgstr "VR"
 
@@ -92888,6 +92856,26 @@ msgstr "立体視"
 
 msgid "Multi Frame"
 msgstr "マルチフレーム"
+
+
+msgid "Auto-Masking"
+msgstr "自動マスク"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "カーブスカルプトカーブ追加オプション"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "カーブスカルプトパラメーター減衰"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "カーブスケールを拡大/収縮"
+
+
+msgid "Viewport Debug"
+msgstr "ビューポートデバッグ"
 
 
 msgid "Import Settings"
@@ -96992,6 +96980,17 @@ msgid "Device up/down directly controls the Z position of the 3D viewport"
 msgstr "デバイスの上下方向で3Dビューポートの Z 位置を直接制御します"
 
 
+msgid "Auto Fly Speed"
+msgstr "自動フライスピード"
+
+
+msgid "Automatically adjusts fly navigation speed based on the distance of objects near the center of the viewport, making it easier to navigate complex scenes. Speed is recalculated each time movement starts."
+msgstr ""
+"自動的にフライナビゲーションの速度を，ビューポートの中央付近の\n"
+"オブジェクトとの距離に基づいて調整することで，複雑なシーンでの\n"
+"ナビゲーションを簡単にします．速度は移動開始毎に再計算されます."
+
+
 msgid "Pan / Zoom Camera View"
 msgstr "パン / ズームカメラビュー"
 
@@ -98223,10 +98222,6 @@ msgid "Czech - Čeština"
 msgstr "チェコ語 - Čeština"
 
 
-msgid "Locale code: cs_CZ. Translation progress: 28%"
-msgstr "ロケールコード：cs_CZ．翻訳の進行状況: 28％"
-
-
 msgid "Danish - Dansk"
 msgstr "デンマーク語 - Dansk"
 
@@ -98237,10 +98232,6 @@ msgstr "ロケールコード：da．翻訳の進行状況: 3％"
 
 msgid "Dutch - Nederlands"
 msgstr "オランダ語 - Nederlands"
-
-
-msgid "Locale code: nl_NL. Translation progress: 6%"
-msgstr "ロケールコード：nl_NL．翻訳の進行状況: 6％"
 
 
 msgid "English (UK)"
@@ -98347,12 +98338,12 @@ msgid "Italian - Italiano"
 msgstr "イタリア語 - Italiano"
 
 
+msgid "Locale code: it_IT. Translation progress: 44%"
+msgstr "ロケールコード：it_IT．翻訳の進行状況: 44％"
+
+
 msgid "Japanese - 日本語"
 msgstr "日本語 - Japanese"
-
-
-msgid "Locale code: ja_JP. Translation progress: 99%"
-msgstr "ロケールコード：ja_JP．翻訳の進行状況: 99％"
 
 
 msgid "Khmer - ខ្មែរ"
@@ -98479,10 +98470,6 @@ msgid "Slovenian - Slovenščina"
 msgstr "スロべニア語 - Slovenščina"
 
 
-msgid "Locale code: sl. Translation progress: 51%"
-msgstr "ロケールコード：sl．翻訳の進行状況: 51％"
-
-
 msgid "Spanish - Español"
 msgstr "スペイン語 - Español"
 
@@ -98493,10 +98480,6 @@ msgstr "ロケールコード：es．翻訳の進行状況: 100％"
 
 msgid "Swahili - Kiswahili"
 msgstr "スワヒリ語 - Kiswahili"
-
-
-msgid "Locale code: sw. Translation progress: 74%"
-msgstr "ロケールコード：sw．翻訳の進行状況: 74％"
 
 
 msgid "Swedish - Svenska"
@@ -98549,10 +98532,6 @@ msgstr "ロケールコード：ur．翻訳の進行状況: 88％"
 
 msgid "Vietnamese - Tiếng Việt"
 msgstr "ベトナム語 - Tiếng Việt"
-
-
-msgid "Locale code: vi_VN. Translation progress: 96%"
-msgstr "ロケールコード：vi_VN．翻訳の進行状況: 96％"
 
 
 msgid "Reference Sphere Size"
@@ -120729,6 +120708,30 @@ msgid "Add-on Enabled"
 msgstr "有効アドオン"
 
 
+msgid ", failed"
+msgstr "，失敗しました"
+
+
+msgid ", some actions failed"
+msgstr "，一部のアクションが失敗しました"
+
+
+msgid "Internal error, unknown state!{:s}"
+msgstr "内部エラー，未知の状態です！{:s}"
+
+
+msgid "Checking for Extension Updates{:s}"
+msgstr "エクステンションの更新をチェック{:s}"
+
+
+msgid "All Extensions Up-to-date{:s}"
+msgstr "全エクステンションを更新{:s}"
+
+
+msgid "Extensions Updates Available ({:d}){:s}"
+msgstr "{:d} 個のエクステンションを更新{:s}"
+
+
 msgid "Demo"
 msgstr "デモ"
 
@@ -122944,6 +122947,10 @@ msgid "No Action slot is assigned, so there is nothing to un-assign"
 msgstr "割り当て済みアクションスロットがないため，何も割り当て解除していません"
 
 
+msgid "No objects selected"
+msgstr "選択オブジェクトがありません"
+
+
 msgid "Go to pose mode to copy pose bone colors"
 msgstr "ポーズボーンカラーのコピーはポーズモードで行ってください"
 
@@ -125085,12 +125092,16 @@ msgid "Strip Name"
 msgstr "ストリップ名"
 
 
-msgid "Max B-frames"
-msgstr "最大Bフレーム数"
-
-
 msgid "HDR needs H.265 or AV1"
 msgstr "HDR は H.265 または AV1 が必要です"
+
+
+msgid "HDR needs 10 or 12 bits"
+msgstr "HDR は10または12ビットの色深度が必要です"
+
+
+msgid "Max B-frames"
+msgstr "最大Bフレーム数"
 
 
 msgid "Buffer"
@@ -125119,10 +125130,6 @@ msgstr "メートル"
 
 msgid "Pixels/{:s}"
 msgstr "ピクセル/{:s}"
-
-
-msgid "HDR needs 10 or 12 bits"
-msgstr "HDR は10または12ビットの色深度が必要です"
 
 
 msgid "Mask Mapping"
@@ -131749,6 +131756,10 @@ msgid "Failed to delete asset library file"
 msgstr "アセットライブラリファイルの削除に失敗"
 
 
+msgid "Could not create a copy of ID '%s' to write it in the library"
+msgstr "ライブラリに書き込む，ID「%s」のコピーが作成できません"
+
+
 msgid "Saved \"%s\""
 msgstr "「%s」を保存"
 
@@ -137495,22 +137506,6 @@ msgid "Add IK"
 msgstr "IKを追加"
 
 
-msgid "To Active Bone"
-msgstr "アクティブボーン"
-
-
-msgid "To Active Object"
-msgstr "アクティブオブジェクト"
-
-
-msgid "To New Empty Object"
-msgstr "新規エンプティオブジェクト"
-
-
-msgid "Without Targets"
-msgstr "ターゲットなし"
-
-
 msgid "Could not find constraint data for Child-Of Set Inverse"
 msgstr "チャイルドの逆補正設定用のコンストレイントデータがありません"
 
@@ -137667,10 +137662,6 @@ msgstr "予期せぬエラー，コレクションが見つかりません"
 
 msgid "Cannot add objects to a library override or linked collection"
 msgstr "ライブラリオーバーライドまたはリンクコレクションにはオブジェクトを追加できません"
-
-
-msgid "No objects selected"
-msgstr "選択オブジェクトがありません"
 
 
 msgid "Unable to change object mode while transforming"
@@ -141814,6 +141805,10 @@ msgid "Cannot delete library '%s', as it contains the currently active Scene"
 msgstr "ライブラリ「%s」は現在のアクティブシーンを含んでいるため削除できません"
 
 
+msgid "Cannot delete library '%s', as it contains the archive library of the currently active packed Scene"
+msgstr "ライブラリ「%s」は現在アクティブなパック中シーンのアーカイブライブラリを含んでいるため削除できません"
+
+
 msgid "Cannot delete indirectly linked id '%s'"
 msgstr "間接的にリンクされたID「%s」は削除できません"
 
@@ -141832,6 +141827,10 @@ msgstr "無効な新旧のIDペア(「%s」と「%s」)です"
 
 msgid "Old ID '%s' is linked from a library, indirect usages of this data-block will not be remapped"
 msgstr "旧ID「%s」がライブラリからリンクされており，このデータブロックの間接的な使用はリマップされません"
+
+
+msgid "Copying ID '%s' is not possible, '%s' type of data-blocks is not supported"
+msgstr "ID「%s」がコピーできません.「%s」タイプのデータブロックは未対応です"
 
 
 msgid "Copied %d selected data-block(s)"
@@ -142259,10 +142258,6 @@ msgstr "シーンフレームレートを「%.4g」に設定（%.4gから変換�
 
 msgid "Empty Scene"
 msgstr "空の空間"
-
-
-msgid "Scenes..."
-msgstr "シーン..."
 
 
 msgid ""
@@ -143004,6 +142999,11 @@ msgstr "FPS: %i"
 
 msgid "Create object instance from object-data"
 msgstr "オブジェクトデータからオブジェクトインスタンスを作成します"
+
+
+msgctxt "Operator"
+msgid "Drop Collection"
+msgstr "コレクションをドロップ"
 
 
 msgid "X-Ray not available in current mode"
@@ -143776,6 +143776,18 @@ msgstr "Freestyle: ビューマップ作成"
 
 msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle: ストロークレンダリング"
+
+
+msgid "Realized point cloud has too many points."
+msgstr "実体化後のポイントクラウドのポイントが多すぎです."
+
+
+msgid "Realized mesh has too many elements."
+msgstr "実体化後のメッシュの要素が多すぎです."
+
+
+msgid "Realized curves data has too many elements."
+msgstr "実体化後のカーブデータの要素が多すぎです."
 
 
 msgid "Realized grease pencil has too many layers."
@@ -155520,6 +155532,10 @@ msgid "Keep highlights in check by working in Log space and working only on the 
 msgstr "Log 空間内での処理でハイライトを抑制し，可能なら明度のみ処理します"
 
 
+msgid "The amount of diamond sharpening"
+msgstr "ダイアモンドシャープ化の量"
+
+
 msgid "Unsharp Mask"
 msgstr "アンシャープマスク"
 
@@ -155556,6 +155572,10 @@ msgid "Align Rotation"
 msgstr "回転を揃える"
 
 
+msgid "Rotate copies based on the array shape"
+msgstr "配列の形状に基づきコピーを回転します"
+
+
 msgid "Angular Distance"
 msgstr "間の角度"
 
@@ -155576,6 +155596,10 @@ msgid "Circle Segment"
 msgstr "円の部分"
 
 
+msgid "Whether the copies should fan out in a full circle or an arc"
+msgstr "完全な円または円弧のどちらでコピーを扇状に広げるか"
+
+
 msgid "The number of copies to generate"
 msgstr "作成するコピーの数"
 
@@ -155588,6 +155612,10 @@ msgid "Method to choose the number of duplicates"
 msgstr "コピーの数を選択する方法"
 
 
+msgid "Reference curve object for array"
+msgstr "配列用に参照するカーブオブジェクト"
+
+
 msgid "The distance along the curve between copies"
 msgstr "カーブに沿ったコピー間の距離"
 
@@ -155596,8 +155624,30 @@ msgid "Exclude First"
 msgstr "最初を除外"
 
 
+msgid "Exclude the first (original) copy from randomization"
+msgstr "最初（オリジナル）の物をランダム化から除外します"
+
+
 msgid "Exclude Last"
 msgstr "最後を除外"
+
+
+msgid "Exclude the last copy from randomization"
+msgstr "最後のコピーをランダム化から除外します"
+
+
+msgid "The forward direction along the array shape"
+msgstr "配列の形状に沿った前方向"
+
+
+msgid "Merge overlapping points by their distance. (Realize Instances must be enabled)"
+msgstr ""
+"重なっているポイントを距離でマージします.\n"
+"（「インスタンス実体化」の有効化が必要です）"
+
+
+msgid "Distance below which points will be merged"
+msgstr "この距離未満のポイントが統合されます"
 
 
 msgid "Amount to move each copy relative to its bounding box size"
@@ -155606,6 +155656,10 @@ msgstr "各コピーをバウンディングボックスのサイズに対して
 
 msgid "Offset Method"
 msgstr "オフセットメソッド"
+
+
+msgid "Method to interpret the offset parameters"
+msgstr "オフセットパラメーターを解釈する方法"
 
 
 msgid "Per Curve"
@@ -155620,16 +155674,44 @@ msgid "Distance of the instances from the origin"
 msgstr "原点からインスタンスまでの距離"
 
 
+msgid "Randomize transforms between all copies"
+msgstr "すべてのコピーのトランスフォームをランダム化します"
+
+
 msgid "Randomize Flipping"
 msgstr "ランダム反転"
+
+
+msgid "Flip a fraction of copies along individual axes"
+msgstr "コピーの一部を各軸で反転します"
 
 
 msgid "Randomize Offset"
 msgstr "ランダムオフセット"
 
 
+msgid "Offset the copies randomly"
+msgstr "コピーのオフセットをランダム化します"
+
+
+msgid "Rotate the copies randomly"
+msgstr "コピーの回転をランダム化します"
+
+
+msgid "Scale the copies randomly"
+msgstr "コピーのスケールをランダム化します"
+
+
+msgid "Scale the copies randomly per axis"
+msgstr "コピーのスケールを軸毎にランダム化します"
+
+
 msgid "Randomize Scale Axes"
-msgstr "ランダムスケール軸"
+msgstr "スケール軸のランダム化"
+
+
+msgid "Whether to apply random scale uniformly or per axis"
+msgstr "ランダムスケールを均一または軸毎に適用します"
 
 
 msgid "Turn the output into a single geometry rather than instances (required by many other modifiers)"
@@ -155640,6 +155722,12 @@ msgid "Relative Space"
 msgstr "相対空間"
 
 
+msgid "Use relative space for the input geometry so the transforms of both inputs in relation are considered"
+msgstr ""
+"両入力のトランスフォームの関係を考慮できるよう，\n"
+"相対空間を入力ジオメトリに使用します."
+
+
 msgid "Rotation accumulated for each copy"
 msgstr "各コピーで回転を蓄積します"
 
@@ -155648,12 +155736,24 @@ msgid "Scale accumulated for each copy"
 msgstr "各コピーでスケーリングを蓄積します"
 
 
+msgid "Base value to control random variation in a reproducible way"
+msgstr "再生成時のランダムバリエーションを操作するベース値"
+
+
 msgid "Method used for arranging the duplicates"
 msgstr "コピーを配置するのに使用する方法"
 
 
+msgid "Total angle used to fan out the copies in a circular arc"
+msgstr "円や円弧内でコピーを弧状に配置する角度の総計"
+
+
 msgid "Transform Object"
 msgstr "トランスフォームオブジェクト"
+
+
+msgid "Reference object to define the accumulated transform"
+msgstr "トランスフォームの累積を決める参照オブジェクト"
 
 
 msgid "Transform Reference"
@@ -155662,6 +155762,14 @@ msgstr "トランスフォーム参照"
 
 msgid "Define the transform locally or with an object's transform"
 msgstr "トランスフォームをローカル，またはオブジェクトのトランスフォームで設定するかを決めます"
+
+
+msgid "Translation accumulated for each copy"
+msgstr "各コピーで回転を累積します"
+
+
+msgid "The up direction along the array shape"
+msgstr "配列の形状に沿った方向に対する上方向"
 
 
 msgid "Invalid Distance"
@@ -155680,8 +155788,28 @@ msgid "Create a box selection"
 msgstr "ボックス選択を作成します"
 
 
+msgid "Center position of box selection"
+msgstr "ボックス選択の中央位置"
+
+
+msgid "Elements inside the box"
+msgstr "ボックスの内側の要素"
+
+
+msgid "Edge length of box selection"
+msgstr "ボックス選択の辺の長さ"
+
+
+msgid "Offset from the ground plane"
+msgstr "地面からの距離"
+
+
 msgid "Convert curve geometry into tube meshes"
 msgstr "カーブジオメトリをチューブメッシュに変換します"
+
+
+msgid "Fill the holes at the tube ends with cap geometry"
+msgstr "チューブの端をふたの形状で埋めます"
 
 
 msgid "Caps Align Normals"
@@ -155704,8 +155832,16 @@ msgid "Caps Extrapolate Radius"
 msgstr "半径を外挿"
 
 
+msgid "Adjust the shape of the cap to follow the change in radius towards the curve ends"
+msgstr "ふたの形状をカーブの端方向での半径の変化に合わせて調整します"
+
+
 msgid "Caps Input"
 msgstr "ふたの入力"
+
+
+msgid "How the cap geometry input should be exposed"
+msgstr "ふたのジオメトリ入力を取得する方法"
 
 
 msgid "Caps Merge"
@@ -155718,6 +155854,10 @@ msgstr "ふたの形状とベースメッシュを合成します（インスタ
 
 msgid "Caps Resolution"
 msgstr "ふたの解像度"
+
+
+msgid "Amount of edge loops the round caps are generated with"
+msgstr "丸いふた生成時の辺ループの数"
 
 
 msgid "Caps Smooth"
@@ -155736,20 +155876,46 @@ msgid "Geometry to add to the start of each curve"
 msgstr "各カーブの開始に追加するジオメトリ"
 
 
+msgid "Method used to build the start and end geometry"
+msgstr "最初と最後の形状を生成するのに使用するメソッド"
+
+
 msgid "Consider Curve Radius"
-msgstr "カーブの半径を考慮"
+msgstr "カーブ半径を考慮"
+
+
+msgid "Consider the main curve's radius attribute as a factor when mapping the V component by the profile curve's length parameter"
+msgstr ""
+"V 成分を断面カーブの長さパラメーターでマッピングする時\n"
+"メインカーブの半径（radius）属性を係数と見なします"
 
 
 msgid "Curve geometry defining the curve path"
 msgstr "カーブパスで定義されたカーブ形状"
 
 
+msgid "Tube mesh"
+msgstr "チューブメッシュ"
+
+
+msgid "Controls for the shape of the tube profile"
+msgstr "チューブ断面の形状を操作します"
+
+
 msgid "Profile Geometry"
 msgstr "断面の形状"
 
 
+msgid "Shape defining a section of the tube, using the XY plane"
+msgstr "XY 平面を使用してチューブの断面の形状を決めます"
+
+
 msgid "Profile Input"
 msgstr "断面入力"
+
+
+msgid "How the profile geometry input should be exposed"
+msgstr "断面ジオメトリ入力を取得する方法"
 
 
 msgid "Profile Mode"
@@ -155776,28 +155942,60 @@ msgid "Resample"
 msgstr "リサンプル"
 
 
+msgid "Resample the input curve before meshing"
+msgstr "メッシュ化の前に入力カーブを再サンプリングします"
+
+
 msgid "Resample Count"
 msgstr "リサンプル数"
+
+
+msgid "Number of sample points on the curve"
+msgstr "カーブ内のサンプルポイントの数"
 
 
 msgid "Resample Length"
 msgstr "リサンプルの長さ"
 
 
+msgid "Distance between two sample points along the curve"
+msgstr "カーブに沿った二つのサンプルポイントの距離"
+
+
 msgid "Resample Mode"
 msgstr "リサンプルモード"
+
+
+msgid "How to specify the number of samples"
+msgstr "サンプル数を指定する方法"
 
 
 msgid "Resample Scale"
 msgstr "リサンプルスケール"
 
 
+msgid "Scale factor applied on the automatically derived resample length"
+msgstr "自動的に導出したリサンプルの長さに適用スケール係数"
+
+
+msgid "Distance factor multiplied with the curve's radius attribute to define the resulting tube radius"
+msgstr "最終的なチューブ半径を決める，カーブの radius 属性に乗算される距離係数"
+
+
 msgid "Use smooth vertex normals instead of face normals for the result mesh"
 msgstr "結果のメッシュで面の法線ではなくスムージングした頂点の法線を使用します"
 
 
+msgid "Generate UV attribute data on the curve geometry"
+msgstr "UV 属性データをカーブジオメトリに生成します"
+
+
 msgid "UV Map Name"
 msgstr "UVマップ名"
+
+
+msgid "Name of the UV map attribute to generate"
+msgstr "生成する UV マップ属性の名前"
 
 
 msgid "UV Map Parameter U"
@@ -155832,16 +156030,46 @@ msgid "Displace geometry by an offset iteratively"
 msgstr "ジオメトリをオフセットで繰り返し変形します"
 
 
+msgid "Distance of the displacement offset in normal direction"
+msgstr "法線方向に移動するオフセットの距離"
+
+
+msgid "Input method how to generate the displacement vector"
+msgstr "ディスプレイスメントベクトルを生成する方法の入力のタイプ"
+
+
 msgid "Offset Vector"
 msgstr "オフセットベクトル"
+
+
+msgid "Displacement offset vector"
+msgstr "ディスプレイスメントのオフセットベクトル"
 
 
 msgid "Post Substep Process"
 msgstr "ポストサブステッププロセス"
 
 
+msgid "Geometry process to apply after each displacement step"
+msgstr "各ディスプレイスメントステップ後に適用するジオメトリプロセス"
+
+
+msgid "Selection of points that should be displaced"
+msgstr "ディスプレイスメントしたいポイントの選択"
+
+
+msgid "Factor that the displacement is multiplied with"
+msgstr "移動量と乗算される係数"
+
+
 msgid "Substeps"
 msgstr "サブステップ数"
+
+
+msgid "Number of steps to divide the full displacement into. Fields, including normal and position, are re-evaluated before each step."
+msgstr ""
+"移動量を分割するステップ数．\n"
+"法線や位置などのフィールドは各ステップの前に再評価されます."
 
 
 msgid "Substeps <1 means the process is not executed"
@@ -155861,7 +156089,15 @@ msgstr "面内の面コーナーの隣り合う二つの辺の間の角度を返
 
 
 msgid "Bisector"
-msgstr "二分割"
+msgstr "二等分線"
+
+
+msgid "Directional vector pointing central between next and previous edge of a face corner"
+msgstr "面コーナーの次と前の辺の間の中心を指す方向ベクトル"
+
+
+msgid "Angle between the next and previous edge of a face corner within the face"
+msgstr "面内の面コーナーの次と前の辺の間の角度"
 
 
 msgid "Geometry Input"
@@ -155872,6 +156108,32 @@ msgid "Take reference geometry as input"
 msgstr "参照ジオメトリを入力として取ります"
 
 
+msgid "Input the geometry as an instance. (Further processing might require non-instance geometry)"
+msgstr ""
+"ジオメトリをインスタンスとして入力します．\n"
+" (以降の処理は非インスタンスジオメトリが必要になるかもしれません)"
+
+
+msgid "Collection to use as the input geometry"
+msgstr "入力ジオメトリとして使用するコレクション"
+
+
+msgid "How the geometry input should be exposed"
+msgstr "出力するジオメトリ入力の種類"
+
+
+msgid "Object to use as the input geometry"
+msgstr "入力ジオメトリとして使用するオブジェクト"
+
+
+msgid "Transform the input relative to the main geometry"
+msgstr "入力をメインジオメトリと相対的にトランスフォームします"
+
+
+msgid "Replace the incoming geometry with the selected input geometry"
+msgstr "入力ジオメトリを指定したジオメトリで置き換えます"
+
+
 msgid "Instance on Elements"
 msgstr "要素にインスタンス作成"
 
@@ -155880,40 +156142,130 @@ msgid "Create copies of referenced geometry on geometry elements"
 msgstr "参照するジオメトリをジオメトリ要素上にコピーします"
 
 
+msgid "Rotate instances based on the shape of the incoming geometry"
+msgstr "入力ジオメトリの形状に基づき，インスタンスを回転します"
+
+
+msgid "Instance geometry collection"
+msgstr "インスタンスジオメトリコレクション"
+
+
 msgid "Corner Offset"
 msgstr "コーナーオフセット"
+
+
+msgid "Offset the instances on face corners into their respective face"
+msgstr "面コーナー上のインスタンスを各面にずらします"
 
 
 msgid "Corner Offset Distance"
 msgstr "コーナーオフセットの距離"
 
 
+msgid "Distance to offset the instances from the face corner"
+msgstr "面コーナーからインスタンスをずらす距離"
+
+
 msgid "Corner Offset Factor"
 msgstr "コーナーオフセット係数"
+
+
+msgid "Move the instances towards the face center"
+msgstr "面の中心に向かってインスタンスを移動します"
 
 
 msgid "Corner Offset Method"
 msgstr "コーナーオフセット方法"
 
 
+msgid "Method for direction of the offset along the corner"
+msgstr "コーナーに沿ってずらす方向を決める方法"
+
+
 msgid "Even Edge Distance"
 msgstr "均等な端との距離"
+
+
+msgid "Adjust the offset distance to keep an even perpendicular distance to edges"
+msgstr "辺との垂線の距離が均等になるよう，オフセット距離を調整します"
+
+
+msgid "How the instance geometry input should be exposed"
+msgstr "インスタンスジオメトリ入力を取得する方法"
+
+
+msgid "Instance geometry input"
+msgstr "インスタンスジオメトリ入力"
+
+
+msgid "Method how the child instance is chosen per element"
+msgstr "要素毎に子インスタンスを選択する方法"
+
+
+msgid "Which child instance to pick per element by index"
+msgstr "子インスタンスを要素毎にインデックスで選択します"
 
 
 msgid "Instance On"
 msgstr "インスタンス配置先"
 
 
+msgid "Geometry element type to instance on"
+msgstr "インスタンスの配置先のジオメトリ要素タイプ"
+
+
+msgid "How the instance geometry data-block should be exposed"
+msgstr "インスタンスジオメトリデータブロックを取得する方法"
+
+
 msgid "Keep Surface"
 msgstr "表面を維持"
+
+
+msgid "Keep the original incoming geometry and join it with the instance geometry"
+msgstr "オリジナルの入力ジオメトリを維持し，インスタンスジオメトリを統合します"
+
+
+msgid "Specify which elements to use for instancing. (Floating point values result in a random selection)"
+msgstr ""
+"どの要素をインスタンス化に使用するかを指定します.\n"
+"（Float 値は結果的にランダム選択になります）"
+
+
+msgid "Instance geometry object"
+msgstr "インスタンスジオメトリオブジェクト"
+
+
+msgid "Choose child instances each element instead of instancing the entire geometry"
+msgstr "ジオメトリ全体のインスタンス化の代わりに，各要素に子インスタンスを選択します"
+
+
+msgid "Scale the instances on each local axis"
+msgstr "ローカル軸毎にインスタンスをスケーリングします"
 
 
 msgid "Scale by Face Area"
 msgstr "面積で拡大縮小"
 
 
+msgid "Scale the instances based on the face area of the incoming geometry"
+msgstr "入力ジオメトリの面積に基づきインスタンスをスケーリングします"
+
+
 msgid "Scale by Face Area Multiplier"
-msgstr "面積の乗数でスケーリング"
+msgstr "面積の乗数で拡大縮小"
+
+
+msgid "Multiply the instance scale with a factor to calibrate the considered face area"
+msgstr "インスタンスのスケールと係数を乗算し面積を考慮した調整を行います"
+
+
+msgid "Distance to offset each instance along the normal of the incoming geometry"
+msgstr "入力ジオメトリの法線に沿って各インスタンスをずらす距離"
+
+
+msgid "Configuration regarding the transformation of each instance"
+msgstr "各インスタンスのトランスフォームに関する設定"
 
 
 msgid "Pick Instance is on, but there is no instances to pick from. Falling back to use input as instance."
@@ -155930,6 +156282,10 @@ msgid "Returns a selection of boundary edges"
 msgstr "境界の辺の選択を返します"
 
 
+msgid "Selection of edges that are part of the boundary of a mesh surface"
+msgstr "メッシュ表面の境界の一部の辺の選択"
+
+
 msgid "Is Edge Loose"
 msgstr "孤立辺フラグ"
 
@@ -155938,12 +156294,20 @@ msgid "Returns a selection of loose edges"
 msgstr "孤立する辺の選択を返します"
 
 
+msgid "Selection of edges that are not connected to a face"
+msgstr "面につながっていない辺の選択"
+
+
 msgid "Is Edge Manifold"
 msgstr "多様体の辺フラグ"
 
 
 msgid "Returns a selection of manifold edges"
 msgstr "多様体の辺の選択を返します"
+
+
+msgid "Selection of edges that connect two faces of a mesh surface"
+msgstr "メッシュ表面の二つの面につながる辺の選択"
 
 
 msgid "Is UV Split"
@@ -155957,6 +156321,14 @@ msgstr ""
 "定義されます"
 
 
+msgid "Selection of edges that signify a discontinuity of the input vectors"
+msgstr "入力ベクトルの切れ目を示す辺の選択"
+
+
+msgid "Vectors to compare between connected face corners of an egde for differences. (Supports 3D vectors)"
+msgstr "ある辺とつながる面コーナー間の違いを比較するベクトル (3Dベクトル対応)"
+
+
 msgid "Normal Selection"
 msgstr "法線で選択"
 
@@ -155965,16 +156337,46 @@ msgid "Create a selection by normal"
 msgstr "法線で選択を作成します"
 
 
+msgid "Target direction to compare the normal to"
+msgstr "法線を比較するターゲット方向"
+
+
+msgid "Selection of elements with normals matching a target direction. (The normal is evaluated on the same domain as this selection output)"
+msgstr ""
+"ターゲット方向と法線がマッチする要素の選択.\n"
+" (法線はこの出力選択と同じドメインで評価されます)"
+
+
+msgid "Maximum angle between normal and target to include in the selection"
+msgstr "選択に含める法線とターゲットの間の最大角度"
+
+
 msgid "Returns a uniformly distributed random rotation"
 msgstr "一様分布のランダム回転を返します"
 
 
+msgid "Identifier per element used for randomization"
+msgstr "ランダム化に使用される要素毎の識別子"
+
+
 msgid "Max Zenith"
-msgstr "最大"
+msgstr "天頂最大"
+
+
+msgid "Upper limit of the tilt away from the +Z direction"
+msgstr "＋Z 方向から傾ける上限"
 
 
 msgid "Min Zenith"
-msgstr "最小"
+msgstr "天頂最小"
+
+
+msgid "Lower limit of the tilt away from the +Z direction"
+msgstr "＋Z 方向から傾ける下限"
+
+
+msgid "Random rotations resulting in uniformly distributed directions. Rotation around the Z axis is fully random."
+msgstr "方向を一様に分布するランダム回転．Z 軸中心の回転は完全にランダムです."
 
 
 msgid "Randomize Transforms"
@@ -155989,32 +156391,138 @@ msgid "Flipping"
 msgstr "反転"
 
 
+msgid "Flip a fraction of instances along individual axes"
+msgstr "一部のインスタンスを各軸で反転します"
+
+
+msgid "Randomize instance transforms in their individual local space"
+msgstr "インスタンスのトランスフォームを個別のローカル空間でランダム化します"
+
+
+msgid "Offset the instances randomly"
+msgstr "インスタンスをランダムに移動します"
+
+
+msgid "Rotate the instances randomly"
+msgstr "インスタンスをランダムに回転します"
+
+
+msgid "Scale the instances randomly"
+msgstr "インスタンスをランダムに拡大縮小します"
+
+
+msgid "Scale the instances randomly per axis"
+msgstr "軸毎にインスタンスをランダムに拡大縮小します"
+
+
 msgid "Scale Axes"
 msgstr "スケール軸"
+
+
+msgid "Selection of instances to randomize"
+msgstr "ランダム化するインスタンスの選択"
 
 
 msgid "Scatter referenced geometry on a surface mesh"
 msgstr "メッシュ表面に参照ジオメトリを配置します"
 
 
+msgid "Rotate instances based on the shape of the surface geometry"
+msgstr "インスタンスを表面の形状に基づき回転します"
+
+
 msgid "Alignment Axis"
 msgstr "揃える軸"
+
+
+msgid "Which axis to align with the normal of the surface geometry"
+msgstr "表面ジオメトリの法線に揃える軸"
+
+
+msgid "Exact number of scattered instances before masking"
+msgstr "マスキング前にインスタンスを配置する正確な数"
+
+
+msgid "Collection providing the instance geometry used for scattering"
+msgstr "配置に使用するインスタンスジオメトリを提供するコレクション"
+
+
+msgid "Amount of scattered instances per unit squared"
+msgstr "単位平方毎にインスタンスを配置する数"
 
 
 msgid "Density Method"
 msgstr "密度メソッド"
 
 
+msgid "Method to define the number of scattered instances"
+msgstr "インスタンスを配置する数を決める方法"
+
+
 msgid "Distribution Mask"
 msgstr "分布マスク"
+
+
+msgid "Mask to multiply the density by"
+msgstr "密度と乗算するマスク"
 
 
 msgid "Image Mask"
 msgstr "画像マスク"
 
 
+msgid "Grayscale image texture used to remove scattered instances"
+msgstr "配置されたインスタンスを除去するのに使用するグレースケールの画像"
+
+
+msgid "Geometry that is instanced on the scattered points"
+msgstr "配置されたポイント上にインスタンス化するジオメトリ"
+
+
 msgid "Instance Seed"
 msgstr "インスタンスシード"
+
+
+msgid "Base value to control random instance variation in a reproducible way"
+msgstr "ランダムなインスタンスのバリエーションを再現可能な方法でコントロールするベース値"
+
+
+msgid "Configuration of the scattered instances"
+msgstr "配置されたインスタンスの設定"
+
+
+msgid "Keep the original incoming geometry and join it with the scattered geometry"
+msgstr "オリジナルの入力ジオメトリを維持し，配置されたジオメトリを統合します"
+
+
+msgid "Additional masking applied after the initial scattering of instances"
+msgstr "最初のインスタンス配置後に適用される追加のマスク"
+
+
+msgid "Mesh on whose faces to scatter on"
+msgstr "配置する面のメッシュ"
+
+
+msgid "Minimum allowed distance between the centers of two scattered instances. Increase value for a more locally even distribution."
+msgstr ""
+"二つの配置インスタンスの原点間で可能な最小距離．\n"
+"大きくすると局所的な配置がより均等になります"
+
+
+msgid "Object providing the instance geometry used for scattering"
+msgstr "配置に使用されるインスタンスジオメトリを提供するオブジェクト"
+
+
+msgid "Randomize transforms between all scattered instances"
+msgstr "配置されたすべてのオブジェクト間のトランスフォームをランダム化します"
+
+
+msgid "Scale the instances down randomly"
+msgstr "インスタンスをランダムに縮小します"
+
+
+msgid "Scale the instances down randomly per axis"
+msgstr "軸毎にインスタンスをランダムに縮小します"
 
 
 msgid "Randomize Seed"
@@ -156025,12 +156533,44 @@ msgid "Reset Transform"
 msgstr "トランスフォームリセット"
 
 
+msgid "Reset the transforms of each individual child instance"
+msgstr "子インスタンス毎にトランスフォームをリセットします"
+
+
+msgid "Scale of the instances on each local axis"
+msgstr "軸毎にインスタンスを拡大縮小します"
+
+
 msgid "Scatter on Instances"
 msgstr "インスタンス上に配置"
 
 
+msgid "Use instances contained in the incoming geometry as base for scattering"
+msgstr "入力ジオメトリ内に含まれるインスタンスを配置のベースとして使用します"
+
+
+msgid "Which faces to scatter on"
+msgstr "どの面に配置するか"
+
+
+msgid "Distance to offset each instance along the normal of the surface geometry"
+msgstr "表面ジオメトリの法線に沿った，各インスタンスのオフセット距離"
+
+
+msgid "Configure the transformation of scattered instances"
+msgstr "配置されたインスタンスのトランスフォームの設定"
+
+
+msgid "Texture coordinates used to map the image on the surface"
+msgstr "表面に画像をマッピングするのに使用するテクスチャ座標系"
+
+
 msgid "Viewport Visibility"
 msgstr "ビューでの可視性"
+
+
+msgid "Amount of scattered instances shown in the viewport"
+msgstr "ビューポート内に表示する配置インスタンスの量"
 
 
 msgid "Smooth Geometry"
@@ -156063,6 +156603,18 @@ msgstr "球選択"
 
 msgid "Create a spherical selection"
 msgstr "球による選択を作成します"
+
+
+msgid "Center position of the sphere selection"
+msgstr "球選択の中心位置"
+
+
+msgid "Maximum distance of the element from the selection center"
+msgstr "選択の中心からの要素の最大距離"
+
+
+msgid "Selection of elements within a sphere"
+msgstr "球内の要素を選択します"
 
 
 msgid "Attach Hair Curves to Surface"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 10:44+0000\n"
-"PO-Revision-Date: 2025-11-01 23:59+0000\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
+"PO-Revision-Date: 2025-11-10 04:59+0000\n"
 "Last-Translator: golden dragon <trmhtk2@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
 "Language: he\n"
@@ -52,19 +52,127 @@ msgstr "הלועפ תצובק"
 
 
 msgid "Color Set"
-msgstr "םיעבצ טס"
+msgstr "םיעבצ תכרע"
+
+
+msgid "Custom color set to use"
+msgstr "שומישל תישיא תמאתומ םיעבצ תכרע"
 
 
 msgid "Default Colors"
 msgstr "לדחמ תרירב יעבצ"
 
 
+msgid "01 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 01"
+
+
+msgid "02 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 02"
+
+
+msgid "03 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 03"
+
+
+msgid "04 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 04"
+
+
+msgid "05 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 05"
+
+
+msgid "06 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 06"
+
+
+msgid "07 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 07"
+
+
+msgid "08 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 08"
+
+
+msgid "09 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 09"
+
+
+msgid "10 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 10"
+
+
+msgid "11 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 11"
+
+
+msgid "12 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 12"
+
+
+msgid "13 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 13"
+
+
+msgid "14 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 14"
+
+
+msgid "15 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 15"
+
+
+msgid "16 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 16"
+
+
+msgid "17 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 17"
+
+
+msgid "18 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 18"
+
+
+msgid "19 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 19"
+
+
+msgid "20 - Theme Color Set"
+msgstr "אשונ יעבצ תכרע - 20"
+
+
+msgid "Custom Color Set"
+msgstr "תישיא תמאתומ םיעבצ תכרע"
+
+
 msgid "Colors"
 msgstr "םיעבצ"
 
 
+msgid "Copy of the colors associated with the group's color set"
+msgstr "הצובקה לש םיעבצה תכרעל םיכיושמה םיעבצה תקתעה"
+
+
+msgid "Color set is user-defined instead of a fixed theme color set"
+msgstr "םיעובק אשונ תכרע יעבצ םוקמב שמתשמה ידי לע תרדגומ םיעבצה תכרע"
+
+
 msgid "Select"
 msgstr "הריחב"
+
+
+msgid "Strips"
+msgstr "תועוצר"
+
+
+msgid "The list of strips that are on this animation layer"
+msgstr "וזה היצמינאה תבכשבש תועוצרה תמישר"
+
+
+msgid "Collection of animation layers"
+msgstr "היצמינא תובכש לש ףסוא"
 
 
 msgctxt "ID"
@@ -88,6 +196,11 @@ msgstr "הנומת"
 
 
 msgctxt "ID"
+msgid "Mesh"
+msgstr "הרוצ"
+
+
+msgctxt "ID"
 msgid "Node Tree"
 msgstr "םיקולב ץע"
 
@@ -95,6 +208,36 @@ msgstr "םיקולב ץע"
 msgctxt "ID"
 msgid "Object"
 msgstr "טקייבוא"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "םיעבצ תטלפ"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "קיקלח"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "הנצס"
+
+
+msgctxt "ID"
+msgid "Screen"
+msgstr "ךסמ"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "לילצ"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "לוקמר"
 
 
 msgctxt "ID"
@@ -107,12 +250,57 @@ msgid "Texture"
 msgstr "םקרמ"
 
 
+msgctxt "ID"
+msgid "Volume"
+msgstr "חפנ"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "תונולחה להנמ"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "הדובע בחרמ"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "םלוע"
+
+
+msgctxt "ID"
+msgid "Unspecified"
+msgstr "רדגומ אל"
+
+
+msgid "Action Strip"
+msgstr "הלועפ תעוצר"
+
+
+msgid "Action Strips"
+msgstr "הלועפ תועוצר"
+
+
+msgid "Collection of animation strips"
+msgstr "היצמינא תועוצר ףסוא"
+
+
+msgid "Add-on"
+msgstr "ףסות"
+
+
 msgid "Module"
 msgstr "לודומ"
 
 
 msgid "Module name"
-msgstr "לודומה םש"
+msgstr "לודומ םש"
+
+
+msgid "Add-on Preferences"
+msgstr "ףסות תופדעה"
 
 
 msgid "Off"
@@ -123,12 +311,28 @@ msgid "Full"
 msgstr "אלמ"
 
 
+msgid "Allow glTF Embedded format"
+msgstr "עמטומ glTF טמרופ רשפא"
+
+
 msgid "Center"
 msgstr "זכרמ"
 
 
+msgid "User Add-ons"
+msgstr "שמתשמה לש םיפסות"
+
+
+msgid "Collection of add-ons"
+msgstr "םיפסות ףסוא"
+
+
 msgid "Animation Data"
 msgstr "היצמינא ינותנ"
+
+
+msgid "Animation data for data-block"
+msgstr "םינותנ-קולבל היצמינא ינותנ"
 
 
 msgid "Replace"
@@ -151,12 +355,48 @@ msgid "Hold"
 msgstr "קיזחהל"
 
 
+msgid "Action Influence"
+msgstr "הלועפ תעפשה"
+
+
+msgid "Animation Visualization"
+msgstr "היצמינא תשחמה"
+
+
+msgid "Settings for the visualization of motion"
+msgstr "העונת לש תילאוזיו השחמהל תורדגה"
+
+
+msgid "Motion Paths"
+msgstr "העונת יביתנ"
+
+
+msgid "Motion Path settings for visualization"
+msgstr "תילאוזיו השחמהל העונת ביתנ תורדגה"
+
+
+msgid "Motion Path Settings"
+msgstr "העונת ביתנ תורדגה"
+
+
+msgid "Motion Path settings for animation visualization"
+msgstr "היצמינא לש תילאוזיו השחמהל העונת ביתנ תורדגה"
+
+
+msgid "Bake Location"
+msgstr "הייפא םוקימ"
+
+
 msgid "Heads"
 msgstr "םישאר"
 
 
 msgid "Tails"
 msgstr "תובנז"
+
+
+msgid "Calculate bone paths from tails"
+msgstr "תובנזהמ תומצעה יביתנ תא בשח"
 
 
 msgid "After Current"
@@ -171,8 +411,24 @@ msgid "Default"
 msgstr "לדחמ תרירב"
 
 
+msgid "Empty"
+msgstr "קיר"
+
+
+msgid "UV/Image Editor"
+msgstr "UV\\תונומתה ךרוע"
+
+
+msgid "View and edit images and UV Maps"
+msgstr "UV תופמו תונומת ךורעו הפצ"
+
+
 msgid "Graph Editor"
 msgstr "םיפרג ךרוע"
+
+
+msgid "Edit properties of active object and related data-blocks"
+msgstr "םירושק םינותנ-יקולבו ליעפה טקייבואה לש םינותנ ךורע"
 
 
 msgid "Width"
@@ -187,8 +443,16 @@ msgid "Data Type"
 msgstr "םינותנ גוס"
 
 
+msgid "Boolean"
+msgstr "ינאילוב"
+
+
 msgid "Vector"
 msgstr "רוטקו"
+
+
+msgid "Point"
+msgstr "הדוקנ"
 
 
 msgid "Edge"
@@ -199,8 +463,51 @@ msgid "Face"
 msgstr "האפ"
 
 
+msgid "Face Corner"
+msgstr "האפ תניפ"
+
+
+msgid "Layer"
+msgstr "הבכש"
+
+
+msgid "Is Required"
+msgstr "ץוחנ"
+
+
+msgctxt "Amount"
+msgid "Storage Type"
+msgstr "ןוסחא גוס"
+
+
+msgctxt "Amount"
+msgid "Array"
+msgstr "ךרעמ"
+
+
+msgid "Store a value for every element"
+msgstr "טנמלא לכ רובע ךרע רומש"
+
+
+msgctxt "Amount"
+msgid "Single"
+msgstr "דיחי"
+
+
+msgid "Active Color"
+msgstr "ליעפ עבצ"
+
+
 msgid "Object"
 msgstr "טקייבוא"
+
+
+msgid "Image filepath to use when saving externally"
+msgstr "ינוציח ןפואב רמשית הנומתה ובש ביתנה"
+
+
+msgid "Image Format"
+msgstr "הנומת טמרופ"
 
 
 msgid "Indirect"
@@ -211,24 +518,120 @@ msgid "Where to save baked image textures"
 msgstr "תויופאה םקרמה תונומת ורמשי ובש םוקימה"
 
 
+msgid "Target"
+msgstr "הרטמ"
+
+
 msgid "Image Textures"
 msgstr "הנומת ימקרמ"
+
+
+msgid "Low Resolution Mesh"
+msgstr "הכומנ היצולוזרב הרוצ"
 
 
 msgid "Emission"
 msgstr "הטילפ"
 
 
+msgid "Active Camera"
+msgstr "הליעפ המלצמ"
+
+
+msgid "Cameras"
+msgstr "תומלצמ"
+
+
 msgid "Collections"
 msgstr "םיפסוא"
+
+
+msgid "Curves"
+msgstr "םילוקיע"
 
 
 msgid "Grease Pencil"
 msgstr "Grease Pencil"
 
 
+msgid "Hair Curves"
+msgstr "רעיש ילוקיע"
+
+
 msgid "Images"
 msgstr "תונומת"
+
+
+msgid "Masks data-blocks"
+msgstr "תוכסמ ינותנ-יקולב"
+
+
+msgid "Material data-blocks"
+msgstr "םירמוח ינותנ-יקולב"
+
+
+msgid "Meshes"
+msgstr "תורוצ"
+
+
+msgid "Mesh data-blocks"
+msgstr "תורוצ ינותנ-יקולב"
+
+
+msgid "Movie Clip data-blocks"
+msgstr "ואידיו-יפילק ינותנ-יקולב"
+
+
+msgid "Node Groups"
+msgstr "םיקולב תוצובק"
+
+
+msgid "Node group data-blocks"
+msgstr "םיקולב תוצובק ינותנ-יקולב"
+
+
+msgid "Object data-blocks"
+msgstr "םיטקייבוא ינותנ-יקולב"
+
+
+msgid "Palette data-blocks"
+msgstr "םיעבצ תוטלפ ינותנ-יקולב"
+
+
+msgid "Particles"
+msgstr "םיקיקלח"
+
+
+msgid "Particle data-blocks"
+msgstr "םיקיקלח ינותנ-יקולב"
+
+
+msgid "Point cloud data-blocks"
+msgstr "תודוקנ יננע ינותנ-יקולב"
+
+
+msgid "Scenes"
+msgstr "תונצס"
+
+
+msgid "Scene data-blocks"
+msgstr "תונצס ינותנ-יקולב"
+
+
+msgid "Screens"
+msgstr "םיכסמ"
+
+
+msgid "Screen data-blocks"
+msgstr "םיכסמ ינותנ-יקולב"
+
+
+msgid "Shape Keys"
+msgstr "הרוצ תוחתפמ"
+
+
+msgid "Sounds"
+msgstr "םילילצ"
 
 
 msgid "Texts"
@@ -239,6 +642,10 @@ msgid "Textures"
 msgstr "םימקרמ"
 
 
+msgid "Main Cameras"
+msgstr "תוירקיע תומלצמ"
+
+
 msgid "Collection of cameras"
 msgstr "תומלצמ ףסוא"
 
@@ -247,12 +654,40 @@ msgid "Collection of collections"
 msgstr "םיפסוא ףסוא"
 
 
+msgid "Collection of curves"
+msgstr "םילוקיע ףסוא"
+
+
+msgid "Collection of hair curves"
+msgstr "רעיש ילוקיע ףסוא"
+
+
 msgid "Collection of images"
 msgstr "תונומת ףסוא"
 
 
 msgid "Collection of lights"
 msgstr "תורוא ףסוא"
+
+
+msgid "Main Meshes"
+msgstr "תוירקיע תורוצ"
+
+
+msgid "Collection of meshes"
+msgstr "תורוצ ףסוא"
+
+
+msgid "Main Particle Settings"
+msgstr "תוירקיע םיקיקלח תורדגה"
+
+
+msgid "Collection of particle settings"
+msgstr "םיקיקלח תורדגה לש ףסוא"
+
+
+msgid "Collection of sounds"
+msgstr "םילילצ ףסוא"
 
 
 msgid "Collection of texts"
@@ -279,6 +714,14 @@ msgid "Random"
 msgstr "יארקא"
 
 
+msgid "End Handle Scale"
+msgstr "םויס תידי לדוג"
+
+
+msgid "Start Handle Scale"
+msgstr "הלחתה תידי לדוג"
+
+
 msgid "Head"
 msgstr "שאר"
 
@@ -287,8 +730,22 @@ msgid "Tail"
 msgstr "בנז"
 
 
+msgid "Color Set ID"
+msgstr "ID םיעבצה תכרע לש"
+
+
 msgid "Vertex Color"
 msgstr "דוקדוק עבצ"
+
+
+msgctxt "GPencil"
+msgid "Mode"
+msgstr "בצמ"
+
+
+msgctxt "Brush"
+msgid "Direction"
+msgstr "ןוויכ"
 
 
 msgctxt "GPencil"
@@ -310,12 +767,30 @@ msgid "Saturation"
 msgstr "היוור"
 
 
+msgctxt "File browser"
+msgid "Path"
+msgstr "ביתנ"
+
+
+msgctxt "Camera"
+msgid "Depth"
+msgstr "קמוע"
+
+
 msgid "Image"
 msgstr "הנומת"
 
 
 msgid "Rotation"
 msgstr "בוביס"
+
+
+msgid "Scale"
+msgstr "לדוג"
+
+
+msgid "Scale the background image"
+msgstr "עקרה תנומתל לדוג עבק"
 
 
 msgid "Left"
@@ -326,12 +801,44 @@ msgid "Right"
 msgstr "ןימי"
 
 
+msgid "Child Particle"
+msgstr "דלי קיקלח"
+
+
+msgid "Triangles with all vertices in this group are not used during object collisions"
+msgstr "םיטקייבוא תויושגנתה ךלהמב םישמושמ אל וזה הצובקב םידוקדוקה לכ םע םישולשמ"
+
+
+msgid "Triangles with all vertices in this group are not used during self collisions"
+msgstr "תוימצע תויושגנתה ךלהמב םישמושמ אל וזה הצובקב םידוקדוקה לכ םע םישולשמ"
+
+
+msgid "Pressure Scale"
+msgstr "ץחל תמצוע"
+
+
+msgid "Export Properties"
+msgstr "םינייפאמ אציי"
+
+
+msgid "Kill Particles"
+msgstr "םיקיקלח דמשה"
+
+
+msgid "Kill collided particles"
+msgstr "םישגנתמ םיקיקלח דמשה"
+
+
 msgid "Gamma"
 msgstr "אמג"
 
 
 msgid "View"
 msgstr "הגוצת"
+
+
+msgid "Soft Light"
+msgstr "ךר רוא"
 
 
 msgid "Constant"
@@ -350,8 +857,65 @@ msgid "Error"
 msgstr "האיגש"
 
 
+msgid "Influence"
+msgstr "העפשה"
+
+
+msgid "Camera Solver"
+msgstr "המלצמ רתופ"
+
+
+msgid "Copy Scale"
+msgstr "לדוג קתעה"
+
+
+msgid "Copy the scale factors of a target (with an optional offset), so that they are scaled by the same amount"
+msgstr "תומכ התואב ולדגיש ךכ ,(ילנויצפוא קחרמ םע) הרטמ לש לדוגה רוטקפ תא קתעה"
+
+
+msgid "Limit Scale"
+msgstr "לדוג לבגה"
+
+
+msgid "X Scale"
+msgstr "X לדוג"
+
+
+msgid "Y Scale"
+msgstr "Y לדוג"
+
+
+msgid "Z Scale"
+msgstr "Z לדוג"
+
+
 msgid "Head/Tail"
 msgstr "בנז/שאר"
+
+
+msgctxt "Constraint"
+msgid "Power"
+msgstr "המצוע"
+
+
+msgid "Combine original scale with copied scale"
+msgstr "קתעומ לדוג םע ירוקמה לדוגה תא בלש"
+
+
+msgid "Copy the target's X scale"
+msgstr "X-ה ריצ לע הרטמה לש לדוגה תא קתעה"
+
+
+msgid "Copy the target's Y scale"
+msgstr "Y-ה ריצ לע הרטמה לש לדוגה תא קתעה"
+
+
+msgid "Copy the target's Z scale"
+msgstr "Z-ה ריצ לע הרטמה לש לדוגה תא קתעה"
+
+
+msgid "Camera"
+msgstr "המלצמ"
 
 
 msgid "Location"
@@ -366,6 +930,10 @@ msgid "Bézier"
 msgstr "הייזב"
 
 
+msgid "Cursor"
+msgstr "ןמס"
+
+
 msgid "Surface"
 msgstr "חטשמ"
 
@@ -374,12 +942,32 @@ msgid "Scene"
 msgstr "הנצס"
 
 
+msgid "Particle System"
+msgstr "םיקיקלח תכרעמ"
+
+
+msgid "Show Particles"
+msgstr "םיקיקלח גצה"
+
+
 msgid "Only Show Selected"
 msgstr "םירחבנ גצה קר"
 
 
+msgid "Display Particle"
+msgstr "םיקיקלח גצה"
+
+
+msgid "Include visualization of particle related animation data"
+msgstr "םיקיקלחל םירושקה היצמינא ינותנ לש הגצה לולכ"
+
+
 msgid "Bone Name"
 msgstr "םצעה םש"
+
+
+msgid "Particle Systems"
+msgstr "םיקיקלח תוכרעמ"
 
 
 msgctxt "Brush"
@@ -389,6 +977,14 @@ msgstr "קלח"
 
 msgid "Shrink"
 msgstr "ץווכ"
+
+
+msgid "Resolution"
+msgstr "היצולוזר"
+
+
+msgid "Output image resolution"
+msgstr "טלפ תנומת תייצולוזר"
 
 
 msgid "UV Texture"
@@ -411,6 +1007,11 @@ msgid "Modifiers"
 msgstr "םינשמ"
 
 
+msgctxt "Sound"
+msgid "Volume"
+msgstr "עמש תמצוע"
+
+
 msgid "Roughness"
 msgstr "תוסג"
 
@@ -428,12 +1029,32 @@ msgid "Size"
 msgstr "לדוג"
 
 
+msgid "Force field based on a texture"
+msgstr "םקרמ סיסב לע חוכ הדש"
+
+
+msgid "Image strip"
+msgstr "הנומת תעוצר"
+
+
+msgid "Movie strip"
+msgstr "ואידיו תעוצר"
+
+
+msgid "Sound strip"
+msgstr "עמש תעוצר"
+
+
 msgid "Animations"
 msgstr "תויצמינא"
 
 
 msgid "Environment"
 msgstr "הביבס"
+
+
+msgid "Blend File"
+msgstr "Blend ץבוק"
 
 
 msgid "Sort"
@@ -448,6 +1069,10 @@ msgid "Start"
 msgstr "הלחתה"
 
 
+msgid "Smoke Grid Resolution"
+msgstr "ןשע תשר תייצולוזר"
+
+
 msgid "Time"
 msgstr "ןמז"
 
@@ -457,7 +1082,7 @@ msgstr "תופיפצ"
 
 
 msgid "Vertex Group"
-msgstr "דוקדוק תצובק"
+msgstr "םידוקדוק תצובק"
 
 
 msgid "Collection"
@@ -516,6 +1141,18 @@ msgid "Full Name"
 msgstr "אלמ םש"
 
 
+msgid "Tag"
+msgstr "גת"
+
+
+msgid "Fake User"
+msgstr "ףיוזמ שמתשמ"
+
+
+msgid "Users"
+msgstr "םישמתשמ"
+
+
 msgctxt "Curves"
 msgid "Smooth"
 msgstr "קלח"
@@ -531,8 +1168,16 @@ msgid "Smooth"
 msgstr "קלח"
 
 
+msgid "Show Cursor Preview"
+msgstr "ןמס לש המידקמ הגוצת גצה"
+
+
 msgid "Use this brush in texture paint mode"
 msgstr "םקרמ תעיבצ בצמב וזה תשרבמב שמתשה"
+
+
+msgid "Use this brush in weight paint mode"
+msgstr "לקשמ תעיבצ בצמב וזה תשרבמב שמתשה"
 
 
 msgid "Up"
@@ -576,12 +1221,20 @@ msgid "Vertices"
 msgstr "םידוקדוק"
 
 
+msgid "Use Proxy / Timecode"
+msgstr "ןמז דוק \\ יסקורפב שמתשה"
+
+
 msgid "Tool"
 msgstr "ילכ"
 
 
 msgid "Faces"
 msgstr "תואפ"
+
+
+msgid "Object Mode"
+msgstr "טקייבוא בצמ"
 
 
 msgid "Edit Mode"
@@ -608,6 +1261,14 @@ msgid "Vertex Groups"
 msgstr "דוקדוק תוצובק"
 
 
+msgid "Force Field 1"
+msgstr "1 חוכ הדש"
+
+
+msgid "Force Field 2"
+msgstr "2 חוכ הדש"
+
+
 msgid "Number"
 msgstr "רפסמ"
 
@@ -620,12 +1281,20 @@ msgid "Quadratic"
 msgstr "יעוביר"
 
 
+msgid "Switch to this object mode when activating the workspace"
+msgstr "לעפומ הז הדובע בחרמ רשאכ טקייבוא בצמל רבעה"
+
+
 msgid "Grease Pencil Sculpt Mode"
 msgstr "Grease Pencil‭ לוסיפ בצמ"
 
 
 msgid "Screen layouts of a workspace"
 msgstr "הדובע תביבס לש ךסמ תוסירפ"
+
+
+msgid "Set the active scene and time based on the current scene strip"
+msgstr "תיחכונה הנצסה תעוצר יפ לע ןמזהו הליעפה הנצסה תא עבק"
 
 
 msgid "Mist"
@@ -671,6 +1340,10 @@ msgid "Group Name"
 msgstr "הצובק םש"
 
 
+msgid "Target object from which the distance is measured"
+msgstr "קחרמה דדמיי וליאש דעי טקייבוא"
+
+
 msgid "Bézier Curve"
 msgstr "הייזב םוקע"
 
@@ -688,12 +1361,12 @@ msgid "Mask"
 msgstr "הכסמ"
 
 
-msgid "Apply"
-msgstr "לחה"
-
-
 msgid "Convert"
 msgstr "רמה"
+
+
+msgid "Apply"
+msgstr "לחה"
 
 
 msgid "Layout"
@@ -708,12 +1381,28 @@ msgid "Mirror"
 msgstr "הארמ"
 
 
+msgid "Proxy"
+msgstr "יסקורפ"
+
+
 msgid "Languages..."
 msgstr "..תופש"
 
 
+msgid "Strip"
+msgstr "העוצר"
+
+
 msgid "Add Modifier"
 msgstr "הנשמ ףסוה"
+
+
+msgid "Effect Strip"
+msgstr "טקפא תעוצר"
+
+
+msgid "Movie Strip"
+msgstr "ואידיו תעוצר"
 
 
 msgid "Python"
@@ -726,6 +1415,14 @@ msgstr "תכרעמ"
 
 msgid "Smooth"
 msgstr "קלח"
+
+
+msgid "Invert vertex group influence"
+msgstr "םידוקדוק תצובק תעפשה ךופה"
+
+
+msgid "Use Vertex Groups"
+msgstr "םידוקדוק תצובקב שמתשה"
 
 
 msgid "Vertex group name"
@@ -744,8 +1441,60 @@ msgid "Space"
 msgstr "חוור"
 
 
+msgid "Invert Vertex Group"
+msgstr "םידוקדוק תצובק ךופה"
+
+
 msgid "World"
 msgstr "םלוע"
+
+
+msgid "Movie Clip Proxy"
+msgstr "ואידיו פילק יסקורפ"
+
+
+msgid "Build proxy resolution 100% of the original footage dimension"
+msgstr "ירוקמה ןוטרסה לש םידממהמ 100% לש היצולוזרב יסקורפ תיינב"
+
+
+msgid "Build proxy resolution 25% of the original footage dimension"
+msgstr "ירוקמה ןוטרסה לש םידממהמ 25% לש היצולוזרב יסקורפ תיינב"
+
+
+msgid "Build proxy resolution 50% of the original footage dimension"
+msgstr "ירוקמה ןוטרסה לש םידממהמ 50% לש היצולוזרב יסקורפ תיינב"
+
+
+msgid "Build proxy resolution 75% of the original footage dimension"
+msgstr "ירוקמה ןוטרסה לש םידממהמ 75% לש היצולוזרב יסקורפ תיינב"
+
+
+msgid "Location to store the proxy files"
+msgstr "יסקורפה יצבוק ורמשי ובש םוקימה"
+
+
+msgid "NLA Strip"
+msgstr "NLA תעוצר"
+
+
+msgid "NLA Strip is active"
+msgstr "הליעפ NLA תעוצר"
+
+
+msgid "NLA Strip is selected"
+msgstr "הרחבנ NLA תעוצר"
+
+
+msgid "Strip Time"
+msgstr "העוצר ןמז"
+
+
+msgid "NLA Strips"
+msgstr "NLA תועוצר"
+
+
+msgid "Type of NLA Strip"
+msgstr "NLA תעוצר גוס"
 
 
 msgid "Combine Color"
@@ -758,6 +1507,18 @@ msgstr "עקר"
 
 msgid "Reflection"
 msgstr "תופקתשה"
+
+
+msgid "Light Path"
+msgstr "רוא ביתנ"
+
+
+msgid "Map Range"
+msgstr "ךרע יופימ"
+
+
+msgid "Remap a value from a range to a target range"
+msgstr "דעי חווטל חווטמ ךרע שדחמ הפמ"
 
 
 msgid "Y Axis"
@@ -805,6 +1566,10 @@ msgid "Language"
 msgstr "הפש"
 
 
+msgid "Enter edit mode when adding this object"
+msgstr "הז טקייבוא ףסונ רשאכ הכירע בצמל רובע"
+
+
 msgid "Lamp"
 msgstr "הרונמ"
 
@@ -837,6 +1602,15 @@ msgstr "תשר ינותנ תסירפ רבעה"
 
 msgid "Transfer layout of data layer(s) from active to selected meshes"
 msgstr "תורחבנ תותשרל הליעפ תשרמ םינותנ תובכש\\הבכש לש הסירפ רבעה"
+
+
+msgid "Toggle object's edit mode"
+msgstr "טקייבואה לש הכירע בצמ לעפה"
+
+
+msgctxt "Operator"
+msgid "Set Object Mode"
+msgstr "טקייבוא בצמ עבק"
 
 
 msgctxt "Operator"
@@ -873,6 +1647,27 @@ msgstr "םקרמ תעיבצ בצמ"
 
 msgid "Toggle texture paint mode in 3D view"
 msgstr "תידממ-תלת הגוצתב םקרמ תעיבצ בצמ לעפה"
+
+
+msgctxt "Operator"
+msgid "Weight Paint Mode"
+msgstr "לקשמ תעיבצ בצמ"
+
+
+msgid "Toggle weight paint mode in 3D view"
+msgstr "תידממ תלת הגוצתב לקשמ תעיבצ בצמ לעפה"
+
+
+msgid "Toggle particle edit mode"
+msgstr "םיקיקלח תכירע בצמ לעפה"
+
+
+msgid "Object is directly controlled by animation system"
+msgstr "היצמינאה תכרעמ ידי לע ןיטולחל טלשי טקייבואה"
+
+
+msgid "Edit user preferences and system settings"
+msgstr "תכרעמ תורדגהו שמתשמ תופדעה ךורע"
 
 
 msgctxt "Operator"
@@ -924,8 +1719,112 @@ msgid "Set image for texture painting directly"
 msgstr "רישי ןפואב םקרמ תעיבצל הנומת עבק"
 
 
+msgid "Properties of vertex and weight paint mode"
+msgstr "לקשמ תעיבצ בצמו םידוקדוק תורדגה"
+
+
 msgid "Color Picker"
 msgstr "םיעבצ רחוב"
+
+
+msgid "Force Field Settings"
+msgstr "חוכ הדש תורדגה"
+
+
+msgid "Force Fields"
+msgstr "חוכ תודש"
+
+
+msgid "White Balance"
+msgstr "ןבל ןוזיא"
+
+
+msgid "White Balance Presets"
+msgstr "שארמ םיעובק"
+
+
+msgid "Shadows"
+msgstr "םיללצ"
+
+
+msgid "Encoding"
+msgstr "דודיק"
+
+
+msgid "Audio"
+msgstr "וידוא"
+
+
+msgid "Object Color"
+msgstr "טקייבוא עבצ"
+
+
+msgid "Pixel Density"
+msgstr "םילסקיפ תופיפצ"
+
+
+msgid "Note"
+msgstr "הרעה"
+
+
+msgid "Time Stretching"
+msgstr "ןמז תחיתמ"
+
+
+msgid "Cache Settings"
+msgstr "ןומטמ תורדגה"
+
+
+msgid "Scene Strip Display"
+msgstr "הנצס תעוצר תגוצת"
+
+
+msgid "Proxy Settings"
+msgstr "יסקורפ תורדגה"
+
+
+msgid "Waveforms"
+msgstr "לג תורוצ"
+
+
+msgid "Operating System Settings"
+msgstr "הלעפה תכרעמ תורדגה"
+
+
+msgid "Default tools for particle mode"
+msgstr "םיקיקלח בצמל לדחמ תרירב םילכ"
+
+
+msgid "Particle in a particle system"
+msgstr "םיקיקלחה תכרעמב קיקלח"
+
+
+msgid "Properties of particle editing mode"
+msgstr "םיקיקלח תכירע בצמ לש תופדעה"
+
+
+msgid "Particle select and display mode"
+msgstr "םיקיקלח לש הכירעו הריחב בצמ"
+
+
+msgid "Particle system in an object"
+msgstr "טקייבואב םיקיקלח תכרעמ"
+
+
+msgid "Child particles generated by the particle system"
+msgstr "םיקיקלחה תכרעמ ידי לע םירצונש דלי יקיקלח"
+
+
+msgid "Particle system can be edited in particle mode"
+msgstr "םיקיקלח בצמב םיקיקלחה תכרעמ תא ךורעל ןתינ"
+
+
+msgid "Particle system has been edited in particle mode"
+msgstr "םיקיקלח בצמב הכרענ םיקיקלח תכרעמ"
+
+
+msgid "Particle system name"
+msgstr "םיקיקלח תכרעמ םש"
 
 
 msgid "Use texture painting in Sculpt Mode"
@@ -942,6 +1841,10 @@ msgstr "תרתוכ םוקימ"
 
 msgid "Language"
 msgstr "הפש"
+
+
+msgid "Color range used for weight visualization in weight painting mode"
+msgstr "לקשמ תעיבצ בצמב לקשמ לש תילאוזיו השחמהב שומישל םיעבצ חווט"
 
 
 msgid "Language Name"
@@ -966,6 +1869,10 @@ msgid "Lift"
 msgstr "יוליע"
 
 
+msgid "Force Field"
+msgstr "חוכ הדש"
+
+
 msgid "Grease Pencil Sculpt"
 msgstr "Grease Pencil לוסיפ"
 
@@ -976,6 +1883,14 @@ msgstr "םש יפל ןיימ"
 
 msgid "UV Sculpting"
 msgstr "UV לוסיפ"
+
+
+msgid "Use Grid"
+msgstr "תשרב שמתשה"
+
+
+msgid "Active Object Only"
+msgstr "דבלב ליעפ טקייבוא"
 
 
 msgid "Error Message"
@@ -1013,6 +1928,11 @@ msgstr "םש יפל ןיימ"
 
 msgid "Detail"
 msgstr "טוריפ"
+
+
+msgctxt "Operator"
+msgid "Force Field"
+msgstr "חוכ הדש"
 
 
 msgid "Dimension"
@@ -1125,6 +2045,54 @@ msgstr "םינייפאמ אלל"
 
 msgid "Stop this job"
 msgstr "וז הדובע רוצע"
+
+
+msgctxt "Mesh"
+msgid "Plane"
+msgstr "חטשמ"
+
+
+msgctxt "Mesh"
+msgid "Cube"
+msgstr "הייבוק"
+
+
+msgctxt "Mesh"
+msgid "Circle"
+msgstr "לגעמ"
+
+
+msgctxt "Mesh"
+msgid "Cylinder"
+msgstr "לילג"
+
+
+msgctxt "Mesh"
+msgid "Cone"
+msgstr "סונוק"
+
+
+msgctxt "Mesh"
+msgid "Grid"
+msgstr "תשר"
+
+
+msgctxt "Mesh"
+msgid "Suzanne"
+msgstr "ןזוס"
+
+
+msgctxt "Mesh"
+msgid "Sphere"
+msgstr "רודכ"
+
+
+msgid "Profile Shape"
+msgstr "ליפורפ תרוצ"
+
+
+msgid "Vertex select needs to be enabled in weight paint mode"
+msgstr "לקשמ תעיבצ בצמב תלעפומ תויהל הכירצ דוקדוק תריחב"
 
 
 msgid "vertex data"
@@ -1240,6 +2208,23 @@ msgid "Rotations"
 msgstr "םיבוביס"
 
 
+msgctxt "Countable"
+msgid "Grid"
+msgstr "תשר"
+
+
+msgid "Volume to convert to a mesh"
+msgstr "תשרל רמויש חפנ"
+
+
+msgid "Warnings"
+msgstr "תורהזא"
+
+
+msgid "Bake Path"
+msgstr "הייפא ביתנ"
+
+
 msgid "Incoming"
 msgstr "סנכנ"
 
@@ -1250,6 +2235,14 @@ msgstr "2עבצ"
 
 msgid "Row Height"
 msgstr "הרוש הבוג"
+
+
+msgid "Detail Roughness"
+msgstr "םיטרפ סופסח"
+
+
+msgid "No mesh in active object"
+msgstr "ליעפה טקייבואב תשר ןיא"
 
 
 msgid "Bricks 1"

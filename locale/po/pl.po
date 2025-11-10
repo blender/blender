@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 10:44+0000\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11531,26 +11531,6 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Metaball"
-msgstr "Metakula"
-
-
-msgid "Light"
-msgstr "Światło"
-
-
-msgid "Light Probe"
-msgstr "Sonda świetlna"
-
-
-msgid "Rigid Body"
-msgstr "Bryła sztywna"
-
-
-msgid "Apply"
-msgstr "Zastosuj"
-
-
 msgid "Track"
 msgstr "Ścieżka"
 
@@ -11575,24 +11555,16 @@ msgid "Convert"
 msgstr "Konwertuj"
 
 
-msgid "Layout"
-msgstr "Układ"
-
-
-msgid "Keying"
-msgstr "Kluczowanie"
-
-
 msgid "Bone Collections"
 msgstr "Kolekcja kości"
 
 
-msgid "Utilities"
-msgstr "Narzędzia"
+msgid "Apply"
+msgstr "Zastosuj"
 
 
-msgid "Math"
-msgstr "Matematyka"
+msgid "Layout"
+msgstr "Układ"
 
 
 msgid "Face Data"
@@ -11603,16 +11575,24 @@ msgid "Merge"
 msgstr "Scal"
 
 
+msgid "Keying"
+msgstr "Kluczowanie"
+
+
+msgid "Utilities"
+msgstr "Narzędzia"
+
+
+msgid "Math"
+msgstr "Matematyka"
+
+
 msgid "Text"
 msgstr "Tekst"
 
 
-msgid "Read"
-msgstr "Odczyt"
-
-
-msgid "Write"
-msgstr "Zapis"
+msgid "Metaball"
+msgstr "Metakula"
 
 
 msgid "Snap"
@@ -11623,16 +11603,12 @@ msgid "Proportional Editing Falloff"
 msgstr "Proporcjonalne edytowanie spadku"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
+msgid "Read"
+msgstr "Odczyt"
 
 
-msgid "Import"
-msgstr "Importuj"
-
-
-msgid "Deprecated"
-msgstr "Przestarzałe"
+msgid "Write"
+msgstr "Zapis"
 
 
 msgid "Mirror"
@@ -11651,12 +11627,36 @@ msgid "Navigation"
 msgstr "Nawigacja"
 
 
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
 msgid "Select Linked"
 msgstr "Zaznacz powiązane"
 
 
+msgid "Import"
+msgstr "Importuj"
+
+
+msgid "Deprecated"
+msgstr "Przestarzałe"
+
+
 msgid "Assign Material"
 msgstr "Przypisanie materiału"
+
+
+msgid "Light"
+msgstr "Światło"
+
+
+msgid "Light Probe"
+msgstr "Sonda świetlna"
+
+
+msgid "Rigid Body"
+msgstr "Bryła sztywna"
 
 
 msgid "Catalog"
@@ -24852,22 +24852,6 @@ msgstr "Problem wypalenia obiektu \"%s\""
 
 msgid "Add IK"
 msgstr "Dodaj IK"
-
-
-msgid "To Active Bone"
-msgstr "Do aktywnej kości"
-
-
-msgid "To Active Object"
-msgstr "Do aktywnego obiektu"
-
-
-msgid "To New Empty Object"
-msgstr "Do nowego, pustego obiektu"
-
-
-msgid "Without Targets"
-msgstr "Bez celów"
 
 
 msgid "Could not find constraint data for Child-Of Set Inverse"

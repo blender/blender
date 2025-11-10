@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 10:44+0000\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -28977,38 +28977,6 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Select More/Less"
-msgstr "Daha Fazla/Daha Az Seç"
-
-
-msgid "Metaball"
-msgstr "Metabol"
-
-
-msgid "Light"
-msgstr "Işık"
-
-
-msgid "Light Probe"
-msgstr "Işık Sondası"
-
-
-msgid "Add Image"
-msgstr "Resim Ekle"
-
-
-msgid "Relations"
-msgstr "İlişkiler"
-
-
-msgid "Rigid Body"
-msgstr "Sert Gövde"
-
-
-msgid "Apply"
-msgstr "Uygula"
-
-
 msgid "Track"
 msgstr "İzlemek"
 
@@ -29045,10 +29013,6 @@ msgid "Hooks"
 msgstr "Kancalar"
 
 
-msgid "Layout"
-msgstr "Yerleşim"
-
-
 msgid "Vertex Group Locks"
 msgstr "Vertex Grup Kilitleri"
 
@@ -29069,10 +29033,6 @@ msgid "Random Mask"
 msgstr "Rastgele Maske"
 
 
-msgid "Adjust"
-msgstr "Ayarlamak"
-
-
 msgid "Clear Transform"
 msgstr "Temizle Dönüşüm"
 
@@ -29085,28 +29045,16 @@ msgid "Propagate"
 msgstr "Yaymak"
 
 
-msgid "Keying"
-msgstr "Anahtarlama"
-
-
 msgid "Bone Collections"
 msgstr "Kemik Koleksiyonları"
-
-
-msgid "Tracking"
-msgstr "Takip"
 
 
 msgid "Names"
 msgstr "Adlar"
 
 
-msgid "Utilities"
-msgstr "Kamu hizmetleri"
-
-
-msgid "Math"
-msgstr "Matematik"
+msgid "Apply"
+msgstr "Uygula"
 
 
 msgid "Toggle Bone Options"
@@ -29119,6 +29067,10 @@ msgstr "Kemik Seçeneklerini Etkinleştir"
 
 msgid "Disable Bone Options"
 msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
+
+
+msgid "Layout"
+msgstr "Yerleşim"
 
 
 msgid "Mesh Select Mode"
@@ -29141,6 +29093,26 @@ msgid "Merge"
 msgstr "Birleştir"
 
 
+msgid "Adjust"
+msgstr "Ayarlamak"
+
+
+msgid "Keying"
+msgstr "Anahtarlama"
+
+
+msgid "Tracking"
+msgstr "Takip"
+
+
+msgid "Utilities"
+msgstr "Kamu hizmetleri"
+
+
+msgid "Math"
+msgstr "Matematik"
+
+
 msgid "Special Characters"
 msgstr "Özel Karakterler"
 
@@ -29153,24 +29125,12 @@ msgid "Text"
 msgstr "Metin"
 
 
+msgid "Metaball"
+msgstr "Metabol"
+
+
 msgid "Bone Roll"
 msgstr "Kemik Rulosu"
-
-
-msgid "Read"
-msgstr "Okumak"
-
-
-msgid "Sample"
-msgstr "Örnek"
-
-
-msgid "Write"
-msgstr "Yazmak"
-
-
-msgid "Primitives"
-msgstr "İlkel"
 
 
 msgid "Pivot Point"
@@ -29197,16 +29157,20 @@ msgid "Face Sets Edit"
 msgstr "Yüz Setleri Düzenle"
 
 
-msgid "Instances"
-msgstr "Örnekler"
+msgid "Read"
+msgstr "Okumak"
 
 
-msgid "Import"
-msgstr "İçe Aktar"
+msgid "Sample"
+msgstr "Örnek"
 
 
-msgid "Deprecated"
-msgstr "Kullanım dışı bırakıldı"
+msgid "Write"
+msgstr "Yazmak"
+
+
+msgid "Primitives"
+msgstr "İlkel"
 
 
 msgid "Mirror"
@@ -29219,10 +29183,6 @@ msgstr "UV Haritalama"
 
 msgid "Local View"
 msgstr "Yerel Görünüm"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Viewpoint"
@@ -29245,6 +29205,14 @@ msgid "View Regions"
 msgstr "Bölgeleri Görüntüle"
 
 
+msgid "Select More/Less"
+msgstr "Daha Fazla/Daha Az Seç"
+
+
+msgid "Instances"
+msgstr "Örnekler"
+
+
 msgid "Select Similar"
 msgstr "Benzerini Seç"
 
@@ -29261,8 +29229,40 @@ msgid "Select Loops"
 msgstr "Döngüleri Seç"
 
 
+msgid "Import"
+msgstr "İçe Aktar"
+
+
+msgid "Deprecated"
+msgstr "Kullanım dışı bırakıldı"
+
+
 msgid "Assign Material"
 msgstr "Malzeme Atamak"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "Işık"
+
+
+msgid "Light Probe"
+msgstr "Işık Sondası"
+
+
+msgid "Add Image"
+msgstr "Resim Ekle"
+
+
+msgid "Relations"
+msgstr "İlişkiler"
+
+
+msgid "Rigid Body"
+msgstr "Sert Gövde"
 
 
 msgid "Keyframe Insert Pie"
@@ -66145,10 +66145,6 @@ msgid "Add IK to Bone"
 msgstr "IK'yi Kemiğe Ekle"
 
 
-msgid "Add IK Constraint to the active Bone"
-msgstr "Etkin Kemiğe IK Kısıtlaması ekleyin"
-
-
 msgid "With Targets"
 msgstr "Hedeflerle"
 
@@ -69689,10 +69685,6 @@ msgstr "Sahne Şeridi Ekle"
 msgctxt "Operator"
 msgid "Add Strip with a new Scene"
 msgstr "Yeni bir Sahne ile Strip ekleyin"
-
-
-msgid "Create a new Strip and assign a new Scene as source"
-msgstr "Yeni bir Şerit oluşturun ve kaynak olarak yeni bir Sahne atayın"
 
 
 msgid "Add new Strip with a new empty Scene with default settings"
@@ -76415,26 +76407,6 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
-msgid "Auto-Masking"
-msgstr "Otomatik Maskeleme"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Eğriler Heykel Eğri Seçenekleri Ekle"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Eğriler Şekil Parametresi Düşüşü"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Eğriler Büyüyor/Küçülüyor Ölçekleme"
-
-
-msgid "Viewport Debug"
-msgstr "Görüş Alanı Hata Ayıklaması"
-
-
 msgid "VR"
 msgstr "Sanal Gerçeklik"
 
@@ -76541,6 +76513,26 @@ msgstr "Stereoskopi"
 
 msgid "Multi Frame"
 msgstr "Çoklu Çerçeve"
+
+
+msgid "Auto-Masking"
+msgstr "Otomatik Maskeleme"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Eğriler Heykel Eğri Seçenekleri Ekle"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Eğriler Şekil Parametresi Düşüşü"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Eğriler Büyüyor/Küçülüyor Ölçekleme"
+
+
+msgid "Viewport Debug"
+msgstr "Görüş Alanı Hata Ayıklaması"
 
 
 msgid "Chain Scaling"
@@ -100548,6 +100540,10 @@ msgid "This data-block has no Action slot assigned"
 msgstr "Bu veri bloğuna atanmış bir Eylem yuvası yok"
 
 
+msgid "No objects selected"
+msgstr "Hiçbir nesne seçilmedi"
+
+
 msgid "Go to pose mode to copy pose bone colors"
 msgstr "Poz kemiği renklerini kopyalamak için poz moduna geçin"
 
@@ -112063,22 +112059,6 @@ msgid "Add IK"
 msgstr "IK ekle"
 
 
-msgid "To Active Bone"
-msgstr "Aktif Kemik"
-
-
-msgid "To Active Object"
-msgstr "Etkin Nesneye"
-
-
-msgid "To New Empty Object"
-msgstr "Yeni Boş Nesneye"
-
-
-msgid "Without Targets"
-msgstr "Hedefsiz"
-
-
 msgid "Could not find constraint data for Child-Of Set Inverse"
 msgstr "Child-Of Set Inverse için kısıtlama verisi bulunamadı"
 
@@ -112185,10 +112165,6 @@ msgstr "Beklenmeyen hata, koleksiyon bulunamadı"
 
 msgid "Cannot add objects to a library override or linked collection"
 msgstr "Bir kitaplık geçersiz kılma veya bağlantılı koleksiyona nesne eklenemez"
-
-
-msgid "No objects selected"
-msgstr "Hiçbir nesne seçilmedi"
 
 
 msgid "%s already in %s"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 10:44+0000\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
 "PO-Revision-Date: 2025-10-30 01:59+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -24550,38 +24550,6 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Select More/Less"
-msgstr "Seleziona Più/Meno"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Light"
-msgstr "Luce"
-
-
-msgid "Light Probe"
-msgstr "Sensore di Luce"
-
-
-msgid "Add Image"
-msgstr "Aggiungi Immagine"
-
-
-msgid "Relations"
-msgstr "Relazioni"
-
-
-msgid "Rigid Body"
-msgstr "Corpo Rigido"
-
-
-msgid "Apply"
-msgstr "Applica"
-
-
 msgid "Track"
 msgstr "Traccia"
 
@@ -24618,10 +24586,6 @@ msgid "Hooks"
 msgstr "Ganci"
 
 
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Vertex Group Locks"
 msgstr "Blocchi del Gruppo di Vertici"
 
@@ -24632,10 +24596,6 @@ msgstr "Init Sets di Facce"
 
 msgid "Random Mask"
 msgstr "Maschera Casuale"
-
-
-msgid "Adjust"
-msgstr "Regola"
 
 
 msgid "Clear Transform"
@@ -24650,28 +24610,16 @@ msgid "Propagate"
 msgstr "Propaga"
 
 
-msgid "Keying"
-msgstr "Keying"
-
-
 msgid "Bone Collections"
 msgstr "Raccolte di Ossa"
-
-
-msgid "Tracking"
-msgstr "Tracciamento"
 
 
 msgid "Names"
 msgstr "Nomi"
 
 
-msgid "Utilities"
-msgstr "Utilità"
-
-
-msgid "Math"
-msgstr "Matematica"
+msgid "Apply"
+msgstr "Applica"
 
 
 msgid "Toggle Bone Options"
@@ -24684,6 +24632,10 @@ msgstr "Abilita Opzioni Osso"
 
 msgid "Disable Bone Options"
 msgstr "Disabilita Opzioni Osso"
+
+
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Mesh Select Mode"
@@ -24706,6 +24658,26 @@ msgid "Merge"
 msgstr "Unisci"
 
 
+msgid "Adjust"
+msgstr "Regola"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Tracking"
+msgstr "Tracciamento"
+
+
+msgid "Utilities"
+msgstr "Utilità"
+
+
+msgid "Math"
+msgstr "Matematica"
+
+
 msgid "Special Characters"
 msgstr "Caratteri Speciali"
 
@@ -24718,24 +24690,12 @@ msgid "Text"
 msgstr "Testo"
 
 
+msgid "Metaball"
+msgstr "Metaball"
+
+
 msgid "Bone Roll"
 msgstr "Rollio Osso"
-
-
-msgid "Read"
-msgstr "Lettura"
-
-
-msgid "Sample"
-msgstr "Campione"
-
-
-msgid "Write"
-msgstr "Scrittura"
-
-
-msgid "Primitives"
-msgstr "Primitive"
 
 
 msgid "Pivot Point"
@@ -24762,12 +24722,20 @@ msgid "Face Sets Edit"
 msgstr "Modifica Sets di Facce"
 
 
-msgid "Instances"
-msgstr "Istanze"
+msgid "Read"
+msgstr "Lettura"
 
 
-msgid "Import"
-msgstr "Importa"
+msgid "Sample"
+msgstr "Campione"
+
+
+msgid "Write"
+msgstr "Scrittura"
+
+
+msgid "Primitives"
+msgstr "Primitive"
 
 
 msgid "Mirror"
@@ -24780,10 +24748,6 @@ msgstr "Mappatura UV"
 
 msgid "Local View"
 msgstr "Vista Locale"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Viewpoint"
@@ -24806,6 +24770,14 @@ msgid "View Regions"
 msgstr "Regione Vista"
 
 
+msgid "Select More/Less"
+msgstr "Seleziona Più/Meno"
+
+
+msgid "Instances"
+msgstr "Istanze"
+
+
 msgid "Select Similar"
 msgstr "Seleziona Simili"
 
@@ -24822,8 +24794,36 @@ msgid "Select Loops"
 msgstr "Seleziona Anelli"
 
 
+msgid "Import"
+msgstr "Importa"
+
+
 msgid "Assign Material"
 msgstr "Assegna Materiale"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "Luce"
+
+
+msgid "Light Probe"
+msgstr "Sensore di Luce"
+
+
+msgid "Add Image"
+msgstr "Aggiungi Immagine"
+
+
+msgid "Relations"
+msgstr "Relazioni"
+
+
+msgid "Rigid Body"
+msgstr "Corpo Rigido"
 
 
 msgid "Keyframe Insert Pie"
@@ -45076,10 +45076,6 @@ msgid "Add IK to Bone"
 msgstr "Aggiunge IK all'Osso"
 
 
-msgid "Add IK Constraint to the active Bone"
-msgstr "Aggiunge un vincolo IK all'osso attivo"
-
-
 msgid "With Targets"
 msgstr "Con Obiettivi"
 
@@ -46607,10 +46603,6 @@ msgstr "Utilizza le informazioni del canale alpha dell'immagine"
 msgctxt "Operator"
 msgid "Add Scene Strip"
 msgstr "Aggiunge Spezzone Scena"
-
-
-msgid "Add a strip to the sequencer using a Blender scene as a source"
-msgstr "Aggiunge uno spezzone al sequencer utilizzando una scena Blender come sorgente"
 
 
 msgid "Select a strip (last selected becomes the \"active strip\")"
@@ -50130,10 +50122,6 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
-msgid "Auto-Masking"
-msgstr "Auto-Mascheramento"
-
-
 msgid "Shadow Settings"
 msgstr "Impostazioni Ombra"
 
@@ -50184,6 +50172,10 @@ msgstr "Giacitura Tratto"
 
 msgid "Stereoscopy"
 msgstr "Stereoscopia"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Mascheramento"
 
 
 msgid "Chain Scaling"
@@ -65794,22 +65786,6 @@ msgstr "Calcolo della simulazione..."
 
 msgid "Add IK"
 msgstr "Aggiungi Cinematica Inversa (IK)"
-
-
-msgid "To Active Bone"
-msgstr "All'Osso Attivo"
-
-
-msgid "To Active Object"
-msgstr "All'Oggetto Attivo"
-
-
-msgid "To New Empty Object"
-msgstr "A Nuovo Oggetto Vuoto"
-
-
-msgid "Without Targets"
-msgstr "Senza Obiettivi"
 
 
 msgid "Child Of constraint not found"

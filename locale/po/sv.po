@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'6cf0458fdf00')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 10:44+0000\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
 "PO-Revision-Date: 2025-10-15 14:42+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -9335,38 +9335,6 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Select More/Less"
-msgstr "Markera mera/mindre"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
-
-
-msgid "Light"
-msgstr "Ljus"
-
-
-msgid "Light Probe"
-msgstr "Ljussond"
-
-
-msgid "Add Image"
-msgstr "Lägg till bild"
-
-
-msgid "Relations"
-msgstr "Relationer"
-
-
-msgid "Rigid Body"
-msgstr "Rigid kropp"
-
-
-msgid "Apply"
-msgstr "Applicera"
-
-
 msgid "Track"
 msgstr "Spår"
 
@@ -9395,20 +9363,28 @@ msgid "Link/Transfer Data"
 msgstr "Länka/överför data"
 
 
-msgid "Layout"
-msgstr "Layout"
-
-
-msgid "Adjust"
-msgstr "Justera"
-
-
 msgid "Propagate"
 msgstr "Propagera"
 
 
 msgid "Names"
 msgstr "Namn"
+
+
+msgid "Apply"
+msgstr "Applicera"
+
+
+msgid "Layout"
+msgstr "Layout"
+
+
+msgid "Merge"
+msgstr "Sammanfoga"
+
+
+msgid "Adjust"
+msgstr "Justera"
 
 
 msgid "Utilities"
@@ -9419,16 +9395,24 @@ msgid "Math"
 msgstr "Matematik"
 
 
-msgid "Merge"
-msgstr "Sammanfoga"
-
-
 msgid "Special Characters"
 msgstr "Specialtecken"
 
 
 msgid "Text"
 msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Metaboll"
+
+
+msgid "Pivot Point"
+msgstr "Fast punkt"
+
+
+msgid "Snap"
+msgstr "Snäpp"
 
 
 msgid "Read"
@@ -9443,36 +9427,12 @@ msgid "Primitives"
 msgstr "Primitiver"
 
 
-msgid "Pivot Point"
-msgstr "Fast punkt"
-
-
-msgid "Snap"
-msgstr "Snäpp"
-
-
-msgid "Instances"
-msgstr "Instanser"
-
-
-msgid "Import"
-msgstr "Importera"
-
-
-msgid "Deprecated"
-msgstr "Föråldrad"
-
-
 msgid "Mirror"
 msgstr "Spegla"
 
 
 msgid "Local View"
 msgstr "Lokal vy"
-
-
-msgid "UV"
-msgstr "UV"
 
 
 msgid "Viewpoint"
@@ -9491,8 +9451,48 @@ msgid "Align View to Active"
 msgstr "Justera vy till aktiv"
 
 
+msgid "Select More/Less"
+msgstr "Markera mera/mindre"
+
+
+msgid "Instances"
+msgstr "Instanser"
+
+
+msgid "Import"
+msgstr "Importera"
+
+
+msgid "Deprecated"
+msgstr "Föråldrad"
+
+
 msgid "Assign Material"
 msgstr "Tilldela material"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "Ljus"
+
+
+msgid "Light Probe"
+msgstr "Ljussond"
+
+
+msgid "Add Image"
+msgstr "Lägg till bild"
+
+
+msgid "Relations"
+msgstr "Relationer"
+
+
+msgid "Rigid Body"
+msgstr "Rigid kropp"
 
 
 msgid "Animals"
@@ -31411,10 +31411,6 @@ msgstr "Bakar noder..."
 
 msgid "Add IK"
 msgstr "Lägg till IK"
-
-
-msgid "Without Targets"
-msgstr "Utan mål"
 
 
 msgid "Cannot edit library data"
