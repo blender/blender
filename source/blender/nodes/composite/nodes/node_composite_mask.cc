@@ -97,9 +97,7 @@ class MaskOperation : public NodeOperation {
   void execute() override
   {
     Result &output_mask = this->get_result("Mask");
-    if (!this->get_mask() ||
-        (!this->is_fixed_size() && !this->context().is_valid_compositing_region()))
-    {
+    if (!this->get_mask()) {
       output_mask.allocate_invalid();
       return;
     }

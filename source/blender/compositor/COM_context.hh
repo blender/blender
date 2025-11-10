@@ -59,12 +59,11 @@ class Context {
   /* Returns all output types that should be computed. */
   virtual OutputTypes needed_outputs() const = 0;
 
-  /* Get the rectangular region representing the area of the input that the compositor will operate
-   * on. Conversely, the compositor will only update the region of the output that corresponds to
-   * the compositing region. In the base case, the compositing region covers the entirety of the
-   * render region. In other cases, the compositing region might be a subset of the render region.
-   * Callers should check the validity of the region through is_valid_compositing_region(), since
-   * the region can be zero sized. */
+  /* Get the rectangular region representing to the area of the input that the compositor will
+   * operate on. Conversely, the compositor will only update the region of the output that
+   * corresponds to the compositing region. In the base case, the compositing region covers the
+   * entirety of the render region. In other cases, the compositing region might be a subset of the
+   * render region. */
   virtual Bounds<int2> get_compositing_region() const = 0;
 
   /* Get the result where the result of the compositor should be written. */
@@ -140,14 +139,8 @@ class Context {
    * every evaluation. */
   void reset();
 
-  /* Get the size of the compositing region. See get_compositing_region(). The output size is
-   * sanitized such that it is at least 1 in both dimensions. However, the developer is expected to
-   * gracefully handled zero sizes regions by checking the is_valid_compositing_region method. */
+  /* Get the size of the compositing region. See get_compositing_region(). */
   int2 get_compositing_region_size() const;
-
-  /* Returns true if the compositing region has a valid size, that is, has at least one pixel in
-   * both dimensions, returns false otherwise. */
-  bool is_valid_compositing_region() const;
 
   /* Get the normalized render percentage of the active scene. */
   float get_render_percentage() const;

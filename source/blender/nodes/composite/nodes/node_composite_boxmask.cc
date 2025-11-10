@@ -112,15 +112,6 @@ class BoxMaskOperation : public NodeOperation {
 
   void execute() override
   {
-    const Result &input_mask = get_input("Mask");
-    Result &output_mask = get_result("Mask");
-    /* For single value masks, the output will assume the compositing region, so ensure it is valid
-     * first. See the compute_domain method. */
-    if (input_mask.is_single_value() && !context().is_valid_compositing_region()) {
-      output_mask.allocate_invalid();
-      return;
-    }
-
     if (this->context().use_gpu()) {
       this->execute_gpu();
     }

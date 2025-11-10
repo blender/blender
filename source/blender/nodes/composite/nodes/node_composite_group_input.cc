@@ -53,11 +53,6 @@ class GroupInputOperation : public NodeOperation {
       return;
     }
 
-    if (!this->context().is_valid_compositing_region()) {
-      result.allocate_invalid();
-      return;
-    }
-
     result.set_type(pass.type());
     result.set_precision(pass.precision());
 

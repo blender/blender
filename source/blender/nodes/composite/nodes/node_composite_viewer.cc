@@ -51,14 +51,6 @@ class ViewerOperation : public NodeOperation {
 
   void execute() override
   {
-    /* Viewers are treated as composite outputs that should be in the bounds of the compositing
-     * region, so do nothing if the compositing region is invalid. */
-    if (this->context().treat_viewer_as_compositor_output() &&
-        !this->context().is_valid_compositing_region())
-    {
-      return;
-    }
-
     const Result &image = this->get_input("Image");
     if (image.is_single_value()) {
       this->execute_clear();

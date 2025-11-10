@@ -79,12 +79,7 @@ void Context::reset()
 
 int2 Context::get_compositing_region_size() const
 {
-  return math::max(int2(1), this->get_compositing_region().size());
-}
-
-bool Context::is_valid_compositing_region() const
-{
-  return !this->get_compositing_region().is_empty();
+  return this->get_compositing_region().size();
 }
 
 float Context::get_render_percentage() const

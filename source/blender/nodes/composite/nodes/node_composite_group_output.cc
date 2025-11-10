@@ -43,10 +43,6 @@ class GroupOutputOperation : public NodeOperation {
 
   void execute() override
   {
-    if (!this->context().is_valid_compositing_region()) {
-      return;
-    }
-
     /* Get the first input to be written to the output. The rest of the inputs are ignored. Only
      * color sockets are supported. */
     const bNodeSocket *input_socket = this->node()->input_sockets()[0];

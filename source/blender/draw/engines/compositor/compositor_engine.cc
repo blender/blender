@@ -220,6 +220,10 @@ class Instance : public DrawEngine {
 
   void draw(Manager & /*manager*/) final
   {
+    if (context_.get_compositing_region().is_empty()) {
+      return;
+    }
+
     DRW_submission_start();
 
 #if defined(__APPLE__)

@@ -564,11 +564,6 @@ class RenderLayerOperation : public NodeOperation {
       return;
     }
 
-    if (!this->context().is_valid_compositing_region()) {
-      result.allocate_invalid();
-      return;
-    }
-
     /* Vector sockets are 3D by default, so we need to overwrite the type if the pass turned out to
      * be 4D. */
     if (result.type() == ResultType::Float3 && pass.type() == ResultType::Float4) {
