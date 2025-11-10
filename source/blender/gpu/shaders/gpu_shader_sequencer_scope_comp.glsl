@@ -60,8 +60,8 @@ void main()
     int column = texel.x / 3;
 
     /* Use a bit desaturated color, and blend in a bit of original pixel color. */
-    float other_channels = 0.6;
-    float factor = 0.4;
+    float other_channels = 0.6f;
+    float factor = 0.4f;
     if (channel == 0) {
       pos.x = column - image_width / 2;
       pos.y = (color.r - 0.5f) * image_height;

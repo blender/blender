@@ -16,9 +16,9 @@ void main()
   uint vertex_end = min(vertex_start + vertices_per_thread, uint(vertex_count));
 
   for (uint vertex_id = vertex_start; vertex_id < vertex_end; vertex_id++) {
-    out_buf[start_offset + vertex_id] = float4(in_buf[vertex_id * vertex_stride + 0],
-                                               in_buf[vertex_id * vertex_stride + 1],
-                                               in_buf[vertex_id * vertex_stride + 2],
-                                               1.0f);
+    out_buf[uint(start_offset) + vertex_id] = float4(in_buf[vertex_id * uint(vertex_stride) + 0],
+                                                     in_buf[vertex_id * uint(vertex_stride) + 1],
+                                                     in_buf[vertex_id * uint(vertex_stride) + 2],
+                                                     1.0f);
   }
 }

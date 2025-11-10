@@ -62,7 +62,7 @@ void main()
       /* All verts are behind the camera. */
       return;
     }
-    else if (clipped > 0) {
+    if (clipped > 0) {
       /* Not all verts are behind the near clip plane. */
       if (intersect(frustum, box)) {
         /* We cannot correctly handle this case so we fall back by covering the whole view. */
@@ -101,7 +101,7 @@ void main()
   for (int lod = 0; lod <= SHADOW_TILEMAP_LOD; lod++, box_min >>= 1, box_max >>= 1) {
     for (int y = box_min.y; y <= box_max.y; y++) {
       for (int x = box_min.x; x <= box_max.x; x++) {
-        int tile_index = shadow_tile_offset(uint2(x, y), tilemap.tiles_index, lod);
+        int tile_index = shadow_tile_offset(uint2(uint(x), uint(y)), tilemap.tiles_index, lod);
         atomicOr(tiles_buf[tile_index], uint(SHADOW_DO_UPDATE));
       }
     }

@@ -38,7 +38,7 @@ void main()
   float3 albedo = float3(0.0f);
 
   for (int i = 0; i < CLOSURE_BIN_COUNT; i++) {
-    ClosureUndetermined cl = g_closure_get_resolved(i, 1.0f);
+    ClosureUndetermined cl = g_closure_get_resolved(uchar(i), 1.0f);
     if (cl.weight <= CLOSURE_WEIGHT_CUTOFF) {
       continue;
     }

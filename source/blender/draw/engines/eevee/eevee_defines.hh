@@ -47,10 +47,10 @@
 /* Maximum number of thread-groups dispatched for remapping a probe to octahedral mapping. */
 #define SPHERE_PROBE_MAX_HARMONIC SQUARE(SPHERE_PROBE_ATLAS_RES / SPHERE_PROBE_REMAP_GROUP_SIZE)
 /* Start and end value for mixing sphere probe and volume probes. */
-#define SPHERE_PROBE_MIX_START_ROUGHNESS 0.7
-#define SPHERE_PROBE_MIX_END_ROUGHNESS 0.9
+#define SPHERE_PROBE_MIX_START_ROUGHNESS 0.7f
+#define SPHERE_PROBE_MIX_END_ROUGHNESS 0.9f
 /* Roughness of the last mip map for sphere probes. */
-#define SPHERE_PROBE_MIP_MAX_ROUGHNESS 0.7
+#define SPHERE_PROBE_MIP_MAX_ROUGHNESS 0.7f
 #define SPHERE_PROBE_FORMAT SFLOAT_16_16_16_16
 /**
  * Limited by the UBO size limit `(16384 bytes / sizeof(SphereProbeData))`.
@@ -304,7 +304,7 @@
 
 #define CLOSURE_WEIGHT_CUTOFF 1e-5f
 /* Treat closure as singular if the roughness is below this threshold. */
-#define BSDF_ROUGHNESS_THRESHOLD 2e-2
+#define BSDF_ROUGHNESS_THRESHOLD 2e-2f
 
 /* Cannot use math libraries in shared headers yet. */
-#define EEVEE_PI 3.14159265358979323846 /* pi */
+#define EEVEE_PI 3.14159265358979323846f /* pi */

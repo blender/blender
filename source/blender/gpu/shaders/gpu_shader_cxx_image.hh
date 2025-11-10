@@ -55,6 +55,14 @@ IMG_TEMPLATE uint imageAtomicXor(T &, IntCoord, uint) RET;
 IMG_TEMPLATE uint imageAtomicOr(T &, IntCoord, uint) RET;
 IMG_TEMPLATE uint imageAtomicExchange(T &, IntCoord, uint) RET;
 IMG_TEMPLATE uint imageAtomicCompSwap(T &, IntCoord, uint, uint) RET;
+IMG_TEMPLATE int imageAtomicAdd(T &, IntCoord, int) RET;
+IMG_TEMPLATE int imageAtomicMin(T &, IntCoord, int) RET;
+IMG_TEMPLATE int imageAtomicMax(T &, IntCoord, int) RET;
+IMG_TEMPLATE int imageAtomicAnd(T &, IntCoord, int) RET;
+IMG_TEMPLATE int imageAtomicXor(T &, IntCoord, int) RET;
+IMG_TEMPLATE int imageAtomicOr(T &, IntCoord, int) RET;
+IMG_TEMPLATE int imageAtomicExchange(T &, IntCoord, int) RET;
+IMG_TEMPLATE int imageAtomicCompSwap(T &, IntCoord, int, int) RET;
 /* Cannot write to a read only image. */
 IMG_TEMPLATE uint imageAtomicAdd(const T &, IntCoord, uint) = delete;
 IMG_TEMPLATE uint imageAtomicMin(const T &, IntCoord, uint) = delete;
@@ -64,6 +72,14 @@ IMG_TEMPLATE uint imageAtomicXor(const T &, IntCoord, uint) = delete;
 IMG_TEMPLATE uint imageAtomicOr(const T &, IntCoord, uint) = delete;
 IMG_TEMPLATE uint imageAtomicExchange(const T &, IntCoord, uint) = delete;
 IMG_TEMPLATE uint imageAtomicCompSwap(const T &, IntCoord, uint, uint) = delete;
+IMG_TEMPLATE int imageAtomicAdd(const T &, IntCoord, int) = delete;
+IMG_TEMPLATE int imageAtomicMin(const T &, IntCoord, int) = delete;
+IMG_TEMPLATE int imageAtomicMax(const T &, IntCoord, int) = delete;
+IMG_TEMPLATE int imageAtomicAnd(const T &, IntCoord, int) = delete;
+IMG_TEMPLATE int imageAtomicXor(const T &, IntCoord, int) = delete;
+IMG_TEMPLATE int imageAtomicOr(const T &, IntCoord, int) = delete;
+IMG_TEMPLATE int imageAtomicExchange(const T &, IntCoord, int) = delete;
+IMG_TEMPLATE int imageAtomicCompSwap(const T &, IntCoord, int, int) = delete;
 
 #undef IMG_TEMPLATE
 

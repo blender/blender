@@ -23,12 +23,12 @@ bool node_tex_tile_lookup(inout float3 co, sampler1DArray map)
   }
 
   /* Fetch tile information. */
-  float tile_layer = texelFetch(map, int2(tile, 0), 0).x;
+  float tile_layer = texelFetch(map, int2(int(tile), 0), 0).x;
   if (tile_layer < 0.0f) {
     return false;
   }
 
-  float4 tile_info = texelFetch(map, int2(tile, 1), 0);
+  float4 tile_info = texelFetch(map, int2(int(tile), 1), 0);
 
   co = float3(((co.xy - tile_pos) * tile_info.zw) + tile_info.xy, tile_layer);
   return true;

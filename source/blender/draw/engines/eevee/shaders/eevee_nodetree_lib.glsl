@@ -620,7 +620,7 @@ float texture_lod_bias_get()
  */
 float derivative_scale_get()
 {
-  return 1.0 / float(uniform_buf.film.scaling_factor);
+  return 1.0f / float(uniform_buf.film.scaling_factor);
 }
 
 /** \} */

@@ -90,7 +90,7 @@ int culling_z_to_zbin(float scale, float bias, float z)
         int bit_index; \
         while ((bit_index = findLSB(word)) != -1) { \
           word &= ~1u << uint(bit_index); \
-          uint _item_index = word_idx * 32u + bit_index;
+          uint _item_index = word_idx * 32u + uint(bit_index);
 
 #endif
 

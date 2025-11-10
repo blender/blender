@@ -58,7 +58,7 @@ Vertex read_vertex(uint index)
 #else
   uint base_index = index * DIMENSIONS;
   for (int i = 0; i < DIMENSIONS; i++) {
-    result.vertex_data[i] = src_data[base_index + i];
+    result.vertex_data[i] = src_data[base_index + uint(i)];
   }
 #endif
   return result;
@@ -85,12 +85,12 @@ void write_vertex(uint index, Vertex v)
     dst_data[base_index] = 0;
   }
 #elif defined(GPU_COMP_I32)
-  uint base_index = shader_data.dst_offset + index * DIMENSIONS;
+  uint base_index = uint(shader_data.dst_offset) + index * DIMENSIONS;
   for (int i = 0; i < DIMENSIONS; i++) {
     dst_data[base_index + i] = int(round(v.vertex_data[i]));
   }
 #else
-  uint base_index = shader_data.dst_offset + index * DIMENSIONS;
+  uint base_index = uint(shader_data.dst_offset) + index * DIMENSIONS;
 #  ifdef NORMALIZE
   vec3 value = vec3(v.vertex_data[0], v.vertex_data[1], v.vertex_data[2]);
   value = normalize(value);
@@ -98,7 +98,7 @@ void write_vertex(uint index, Vertex v)
   v.vertex_data[1] = value.y;
   v.vertex_data[2] = value.z;
 #  endif
-  for (int i = 0; i < DIMENSIONS; i++) {
+  for (uint i = 0; i < DIMENSIONS; i++) {
     dst_data[base_index + i] = v.vertex_data[i];
   }
 #endif
@@ -165,7 +165,7 @@ void main()
 
   /* Find which coarse polygon we came from. */
   uint coarse_face = coarse_face_index_from_subdiv_quad_index(quad_index,
-                                                              shader_data.coarse_face_count);
+                                                              uint(shader_data.coarse_face_count));
   uint loop_start = get_loop_start(coarse_face);
 
   /* Find the number of vertices for the coarse polygon. */

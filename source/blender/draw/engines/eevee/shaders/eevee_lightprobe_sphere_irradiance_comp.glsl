@@ -25,7 +25,7 @@ void main()
   sh.L1.Mp1 = float4(0.0f);
 
   /* First sum onto the local memory. */
-  uint valid_data_len = probe_remap_dispatch_size.x * probe_remap_dispatch_size.y;
+  uint valid_data_len = uint(probe_remap_dispatch_size.x * probe_remap_dispatch_size.y);
   constexpr uint iter_count = uint(SPHERE_PROBE_MAX_HARMONIC) / gl_WorkGroupSize.x;
   for (uint i = 0; i < iter_count; i++) {
     uint index = gl_WorkGroupSize.x * i + gl_LocalInvocationIndex;

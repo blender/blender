@@ -37,6 +37,14 @@ template<int C, int R> struct MatOp {
   {
     return *reinterpret_cast<ColT *>(this);
   }
+  const ColT &operator[](uint) const
+  {
+    return *reinterpret_cast<const ColT *>(this);
+  }
+  ColT &operator[](uint)
+  {
+    return *reinterpret_cast<ColT *>(this);
+  }
 
   MatT operator+() RET;
   MatT operator-() RET;

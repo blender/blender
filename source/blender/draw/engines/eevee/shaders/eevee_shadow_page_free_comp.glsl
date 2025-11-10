@@ -49,7 +49,7 @@ void main()
       }
       else {
         if (tile.is_allocated) {
-          shadow_page_cache_append(tile, tile_index);
+          shadow_page_cache_append(tile, uint(tile_index));
         }
       }
 

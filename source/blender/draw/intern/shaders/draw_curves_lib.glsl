@@ -191,7 +191,7 @@ Point point_get(uint vertex_id)
   pt.curve_id = indirection.curve_id;
   pt.curve_segment = indirection.curve_segment;
 
-  float4 pos_rad = point_position_and_radius_get(pt.point_id);
+  float4 pos_rad = point_position_and_radius_get(uint(pt.point_id));
 
   bool restart_strip = indirection.is_end_of_curve || segment.is_end_of_segment;
   pt.P = (restart_strip) ? float3(NAN_FLT) : pos_rad.xyz;
@@ -200,14 +200,14 @@ Point point_get(uint vertex_id)
 
   if (pt.curve_segment == 0) {
     /* Hair root. */
-    pt.T = point_position_get(pt.point_id + 1) - pt.P;
+    pt.T = point_position_get(uint(pt.point_id + 1)) - pt.P;
   }
   else if (indirection.is_cyclic_point) {
     /* Cyclic end point must match start point. */
-    pt.T = point_position_get(pt.point_id - pt.curve_segment + 1) - pt.P;
+    pt.T = point_position_get(uint(pt.point_id - pt.curve_segment + 1)) - pt.P;
   }
   else {
-    pt.T = pt.P - point_position_get(pt.point_id - 1);
+    pt.T = pt.P - point_position_get(uint(pt.point_id - 1));
   }
   return pt;
 }
