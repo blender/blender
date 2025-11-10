@@ -5396,6 +5396,9 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
   using blender::Vector;
 
   auto ensure_target_defgroup = [&](StringRef group_name) {
+    if (group_name.is_empty()) {
+      return -1;
+    }
     int group_index = 0;
     LISTBASE_FOREACH_INDEX (bDeformGroup *, group, &new_curves.vertex_group_names, group_index) {
       if (group_name == StringRef(group->name)) {
