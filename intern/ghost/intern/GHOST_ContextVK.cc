@@ -29,6 +29,8 @@
 
 #include "CLG_log.h"
 
+#include "BLI_vector.hh"
+
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -150,8 +152,8 @@ void GHOST_Frame::destroy(VkDevice vk_device)
  * \{ */
 
 struct GHOST_ExtensionsVK {
-  vector<VkExtensionProperties> extensions;
-  vector<const char *> enabled;
+  blender::Vector<VkExtensionProperties> extensions;
+  blender::Vector<const char *> enabled;
 
   bool is_supported(const char *extension_name) const
   {
@@ -163,7 +165,7 @@ struct GHOST_ExtensionsVK {
     return false;
   }
 
-  bool is_supported(const vector<const char *> &extension_names)
+  bool is_supported(blender::Span<const char *> extension_names)
   {
     for (const char *extension_name : extension_names) {
       if (!is_supported(extension_name)) {
@@ -181,7 +183,7 @@ struct GHOST_ExtensionsVK {
                  "Vulkan: %s extension enabled: name=%s",
                  optional ? "optional" : "required",
                  extension_name);
-      enabled.push_back(extension_name);
+      enabled.append(extension_name);
       return true;
     }
 
@@ -194,7 +196,20 @@ struct GHOST_ExtensionsVK {
     return false;
   }
 
-  bool enable(const vector<const char *> &extension_names, bool optional = false)
+  bool disable(const char *extension_name)
+  {
+    bool is_extension_enabled = is_enabled(extension_name);
+    if (is_extension_enabled) {
+      CLOG_TRACE(
+          &LOG, "Vulkan: extension disabled for compatibility reasons: name=%s", extension_name);
+      enabled.remove(enabled.first_index_of(extension_name));
+      return true;
+    }
+
+    return false;
+  }
+
+  bool enable(const blender::Span<const char *> &extension_names, bool optional = false)
   {
     bool failure = false;
     for (const char *extension_name : extension_names) {
@@ -412,7 +427,7 @@ struct GHOST_InstanceVK {
   }
 
   bool select_physical_device(const GHOST_GPUDevice &preferred_device,
-                              const vector<const char *> &required_extensions)
+                              const blender::Span<const char *> required_extensions)
   {
     VkPhysicalDevice best_physical_device = VK_NULL_HANDLE;
 
@@ -489,8 +504,8 @@ struct GHOST_InstanceVK {
   }
 
   bool create_device(const bool use_vk_ext_swapchain_maintenance1,
-                     vector<const char *> &required_device_extensions,
-                     vector<const char *> &optional_device_extensions)
+                     blender::Span<const char *> required_device_extensions,
+                     blender::Span<const char *> optional_device_extensions)
   {
     device.emplace(vk_physical_device, use_vk_ext_swapchain_maintenance1);
     GHOST_DeviceVK &device = *this->device;
@@ -1445,8 +1460,8 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   }
 #endif
 
-  vector<const char *> required_device_extensions;
-  vector<const char *> optional_device_extensions;
+  blender::Vector<const char *> required_device_extensions;
+  blender::Vector<const char *> optional_device_extensions;
 
   /* Initialize VkInstance */
   if (!vulkan_instance.has_value()) {
@@ -1470,13 +1485,13 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
       if (use_vk_ext_swapchain_maintenance1) {
         instance_vk.extensions.enable(VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME);
         instance_vk.extensions.enable(VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME);
-        optional_device_extensions.push_back(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
+        optional_device_extensions.append(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
       }
 
       use_vk_ext_swapchain_colorspace = instance_vk.extensions.enable(
           VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME, true);
 
-      required_device_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+      required_device_extensions.append(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
 
     if (!instance_vk.create_instance(
@@ -1545,23 +1560,22 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   if (!vulkan_instance->device.has_value()) {
     /* External memory extensions. */
 #ifdef _WIN32
-    optional_device_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
+    optional_device_extensions.append(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
 #else
-    optional_device_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
+    optional_device_extensions.append(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
 #endif
 
-    required_device_extensions.push_back(VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
-    required_device_extensions.push_back(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
-    optional_device_extensions.push_back(VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME);
-    optional_device_extensions.push_back(
-        VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
-    optional_device_extensions.push_back(VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME);
-    optional_device_extensions.push_back(VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
-    optional_device_extensions.push_back(VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);
-    optional_device_extensions.push_back(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
-    optional_device_extensions.push_back(VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME);
-    optional_device_extensions.push_back(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME);
-    optional_device_extensions.push_back(VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME);
+    required_device_extensions.append(VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
+    required_device_extensions.append(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+    optional_device_extensions.append(VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME);
+    optional_device_extensions.append(VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
+    optional_device_extensions.append(VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME);
+    optional_device_extensions.append(VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
+    optional_device_extensions.append(VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);
+    optional_device_extensions.append(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
+    optional_device_extensions.append(VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME);
+    optional_device_extensions.append(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME);
+    optional_device_extensions.append(VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME);
 
     if (!instance_vk.select_physical_device(preferred_device_, required_device_extensions)) {
       return GHOST_kFailure;
