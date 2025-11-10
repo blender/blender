@@ -193,7 +193,11 @@ finally:
  *
  * key (ordered loop pointers).
  * \{ */
-static GSet *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
+
+using BMEdgeLoopStorePair = std::pair<BMEdgeLoopStore *, BMEdgeLoopStore *>;
+
+static blender::VectorSet<BMEdgeLoopStorePair> bm_edgering_pair_calc(BMesh *bm,
+                                                                     ListBase *eloops_rim)
 {
   /**
    * Method for finding pairs:
@@ -209,7 +213,7 @@ static GSet *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
    * could sort and optimize this but not really so important.
    */
 
-  GSet *eloop_pair_gs = BLI_gset_pair_new(__func__);
+  blender::VectorSet<BMEdgeLoopStorePair> eloop_pair_set;
   GHash *vert_eloop_gh = BLI_ghash_ptr_new(__func__);
 
   BMEdgeLoopStore *el_store;
@@ -237,7 +241,7 @@ static GSet *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
       if (BMO_edge_flag_test(bm, e, EDGE_RING)) {
         BMEdgeLoopStore *el_store_other;
         BMVert *v_other = BM_edge_other_vert(e, v);
-        GHashPair pair_test;
+        BMEdgeLoopStorePair pair_test;
 
         el_store_other = static_cast<BMEdgeLoopStore *>(BLI_ghash_lookup(vert_eloop_gh, v_other));
 
@@ -249,11 +253,8 @@ static GSet *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
           if (pair_test.first > pair_test.second) {
             std::swap(pair_test.first, pair_test.second);
           }
-
-          void **pair_key_p;
-          if (!BLI_gset_ensure_p_ex(eloop_pair_gs, &pair_test, &pair_key_p)) {
-            *pair_key_p = BLI_ghashutil_pairalloc(pair_test.first, pair_test.second);
-          }
+          /* The pair may exist already. */
+          eloop_pair_set.add(pair_test);
         }
       }
     }
@@ -261,12 +262,7 @@ static GSet *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
 
   BLI_ghash_free(vert_eloop_gh, nullptr, nullptr);
 
-  if (BLI_gset_len(eloop_pair_gs) == 0) {
-    BLI_gset_free(eloop_pair_gs, nullptr);
-    eloop_pair_gs = nullptr;
-  }
-
-  return eloop_pair_gs;
+  return eloop_pair_set;
 }
 
 /** \} */
@@ -1204,26 +1200,24 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
     }
   }
   else {
-    GSetIterator gs_iter;
-    int i;
-
-    GSet *eloop_pairs_gs = bm_edgering_pair_calc(bm, &eloops_rim);
+    const blender::VectorSet<BMEdgeLoopStorePair> eloop_pairs_gs = bm_edgering_pair_calc(
+        bm, &eloops_rim);
     LoopPairStore **lpair_arr;
 
-    if (eloop_pairs_gs == nullptr) {
+    if (eloop_pairs_gs.is_empty()) {
       BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "Edge-rings are not connected");
       goto cleanup;
     }
 
-    lpair_arr = BLI_array_alloca(lpair_arr, BLI_gset_len(eloop_pairs_gs));
+    lpair_arr = BLI_array_alloca(lpair_arr, eloop_pairs_gs.size());
 
     /* first cache pairs */
-    GSET_ITER_INDEX (gs_iter, eloop_pairs_gs, i) {
-      GHashPair *eloop_pair = static_cast<GHashPair *>(BLI_gsetIterator_getKey(&gs_iter));
-      BMEdgeLoopStore *el_store_a = static_cast<BMEdgeLoopStore *>((void *)eloop_pair->first);
-      BMEdgeLoopStore *el_store_b = static_cast<BMEdgeLoopStore *>((void *)eloop_pair->second);
-      LoopPairStore *lpair;
+    for (const int i : eloop_pairs_gs.index_range()) {
+      const BMEdgeLoopStorePair &eloop_pair = eloop_pairs_gs[i];
+      BMEdgeLoopStore *el_store_a = eloop_pair.first;
+      BMEdgeLoopStore *el_store_b = eloop_pair.second;
 
+      LoopPairStore *lpair;
       if (bm_edgeloop_check_overlap_all(bm, el_store_a, el_store_b)) {
         lpair = bm_edgering_pair_store_create(bm, el_store_a, el_store_b, interp_mode);
       }
@@ -1235,10 +1229,10 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
       BLI_assert(bm_verts_tag_count(bm) == 0);
     }
 
-    GSET_ITER_INDEX (gs_iter, eloop_pairs_gs, i) {
-      GHashPair *eloop_pair = static_cast<GHashPair *>(BLI_gsetIterator_getKey(&gs_iter));
-      BMEdgeLoopStore *el_store_a = static_cast<BMEdgeLoopStore *>((void *)eloop_pair->first);
-      BMEdgeLoopStore *el_store_b = static_cast<BMEdgeLoopStore *>((void *)eloop_pair->second);
+    for (const int i : eloop_pairs_gs.index_range()) {
+      const BMEdgeLoopStorePair &eloop_pair = eloop_pairs_gs[i];
+      BMEdgeLoopStore *el_store_a = eloop_pair.first;
+      BMEdgeLoopStore *el_store_b = eloop_pair.second;
       LoopPairStore *lpair = lpair_arr[i];
 
       if (lpair) {
@@ -1250,7 +1244,6 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
 
       BLI_assert(bm_verts_tag_count(bm) == 0);
     }
-    BLI_gset_free(eloop_pairs_gs, MEM_freeN);
   }
 
 cleanup:
