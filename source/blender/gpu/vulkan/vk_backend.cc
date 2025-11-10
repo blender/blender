@@ -81,6 +81,12 @@ bool GPU_vulkan_is_supported_driver(VkPhysicalDevice vk_physical_device)
 #endif
 
 #ifndef _WIN32
+  uint32_t conformance_version = VK_MAKE_API_VERSION(
+      vk_physical_device_driver_properties.conformanceVersion.major,
+      vk_physical_device_driver_properties.conformanceVersion.minor,
+      vk_physical_device_driver_properties.conformanceVersion.subminor,
+      vk_physical_device_driver_properties.conformanceVersion.patch);
+
   /* NVIDIA drivers below 550 don't work on Linux. When sending command to the GPU there is not
    * always a reply back when they are finished. The issue is reported on the Internet many times,
    * but there is no mention of a solution. This means that on Linux we can only support GTX900 and
