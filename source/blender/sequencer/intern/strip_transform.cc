@@ -628,9 +628,9 @@ float2 transform_image_raw_size_get(const Scene *scene, const Strip *strip)
     const FontFlags font_flags = ((data->flag & SEQ_TEXT_BOLD) ? BLF_BOLD : BLF_NONE) |
                                  ((data->flag & SEQ_TEXT_ITALIC) ? BLF_ITALIC : BLF_NONE);
     const int font = text_effect_font_init(nullptr, strip, font_flags);
-
     const TextVarsRuntime *runtime = text_effect_calc_runtime(
         strip, font, int2(scene_render_size));
+    BLF_disable(font, font_flags);
 
     const float2 text_size(float(BLI_rcti_size_x(&runtime->text_boundbox)),
                            float(BLI_rcti_size_y(&runtime->text_boundbox)));
