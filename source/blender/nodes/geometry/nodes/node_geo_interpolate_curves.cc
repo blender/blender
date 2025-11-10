@@ -120,7 +120,9 @@ static Map<int, KDTree_3d *> build_kdtrees_for_root_positions(
       BLI_kdtree_3d_insert(kdtree, curve_i, root_pos);
     }
   }
-  threading::parallel_for_each(kdtrees.values(),
+  Vector<KDTree_3d *> kdtrees_vec;
+  kdtrees_vec.extend(kdtrees.values().begin(), kdtrees.values().end());
+  threading::parallel_for_each(kdtrees_vec,
                                [](KDTree_3d *kdtree) { BLI_kdtree_3d_balance(kdtree); });
   return kdtrees;
 }
