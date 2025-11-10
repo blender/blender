@@ -22,7 +22,7 @@ set(SRC_GLSL_COMP
 #   compositor_bokeh_image.glsl
 #   compositor_box_mask.glsl
 #   compositor_compute_preview.glsl
-#   compositor_convert.glsl
+  compositor_convert.glsl
 #   compositor_cryptomatte_image.glsl
 #   compositor_cryptomatte_matte.glsl
 #   compositor_cryptomatte_pick.glsl
