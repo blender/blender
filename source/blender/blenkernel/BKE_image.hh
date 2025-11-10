@@ -11,6 +11,7 @@
 #include "BLI_mutex.hh"
 
 #include <cstdint>
+#include <limits>
 #include <optional>
 
 namespace blender::gpu {
@@ -50,10 +51,10 @@ struct StampData;
 #define IMA_UDIM_MAX 2000
 
 /* Image gpu runtime defaults */
-#define IMAGE_GPU_FRAME_NONE INT_MAX
-#define IMAGE_GPU_PASS_NONE SHRT_MAX
-#define IMAGE_GPU_LAYER_NONE SHRT_MAX
-#define IMAGE_GPU_VIEW_NONE SHRT_MAX
+constexpr int IMAGE_GPU_FRAME_NONE = std::numeric_limits<int>::max();
+constexpr int IMAGE_GPU_PASS_NONE = std::numeric_limits<short>::max();
+constexpr int IMAGE_GPU_LAYER_NONE = std::numeric_limits<short>::max();
+constexpr int IMAGE_GPU_VIEW_NONE = std::numeric_limits<short>::max();
 
 namespace blender::bke {
 
