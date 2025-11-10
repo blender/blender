@@ -88,9 +88,9 @@ struct ForeachTaskContext {
    * vertices, edges and polygons arrays, where first element of the face
    * begins.
    */
-  int *subdiv_vert_offset;
-  int *subdiv_edge_offset;
-  int *subdiv_face_offset;
+  Array<int> subdiv_vert_offset;
+  Array<int> subdiv_edge_offset;
+  Array<int> subdiv_face_offset;
   /* Indexed by base face index, element indicates total number of ptex faces
    * created for preceding base faces.
    */
@@ -247,11 +247,9 @@ static void subdiv_foreach_ctx_init(Subdiv *subdiv, ForeachTaskContext *ctx)
   /* Allocate maps and offsets. */
   ctx->coarse_vertices_used_map = BLI_BITMAP_NEW(coarse_mesh->verts_num, "vertices used map");
   ctx->coarse_edges_used_map = BLI_BITMAP_NEW(coarse_mesh->edges_num, "edges used map");
-  ctx->subdiv_vert_offset = MEM_malloc_arrayN<int>(size_t(coarse_mesh->faces_num), "vert_offset");
-  ctx->subdiv_edge_offset = MEM_malloc_arrayN<int>(size_t(coarse_mesh->faces_num),
-                                                   "subdiv_edge_offset");
-  ctx->subdiv_face_offset = MEM_malloc_arrayN<int>(size_t(coarse_mesh->faces_num),
-                                                   "subdiv_edge_offset");
+  ctx->subdiv_vert_offset.reinitialize(coarse_mesh->faces_num);
+  ctx->subdiv_edge_offset.reinitialize(coarse_mesh->faces_num);
+  ctx->subdiv_face_offset.reinitialize(coarse_mesh->faces_num);
   /* Initialize all offsets. */
   subdiv_foreach_ctx_init_offsets(ctx);
   /* Calculate number of geometry in the result subdivision mesh. */
@@ -263,9 +261,6 @@ static void subdiv_foreach_ctx_free(ForeachTaskContext *ctx)
 {
   MEM_freeN(ctx->coarse_vertices_used_map);
   MEM_freeN(ctx->coarse_edges_used_map);
-  MEM_freeN(ctx->subdiv_vert_offset);
-  MEM_freeN(ctx->subdiv_edge_offset);
-  MEM_freeN(ctx->subdiv_face_offset);
 }
 
 /** \} */
@@ -1804,7 +1799,7 @@ bool foreach_subdiv_geometry(Subdiv *subdiv,
                                 ctx.num_subdiv_edges,
                                 ctx.num_subdiv_loops,
                                 ctx.num_subdiv_faces,
-                                ctx.subdiv_face_offset))
+                                ctx.subdiv_face_offset.data()))
     {
       subdiv_foreach_ctx_free(&ctx);
       return false;
