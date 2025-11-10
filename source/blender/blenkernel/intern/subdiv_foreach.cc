@@ -239,6 +239,7 @@ static void subdiv_foreach_ctx_init_offsets(ForeachTaskContext *ctx)
       face_offset += num_ptex_faces_per_face * num_faces_per_ptex_get(no_quad_patch_resolution);
     }
   }
+  ctx->subdiv_face_offset.last() = face_offset;
 }
 
 static void subdiv_foreach_ctx_init(Subdiv *subdiv, ForeachTaskContext *ctx)
@@ -249,7 +250,8 @@ static void subdiv_foreach_ctx_init(Subdiv *subdiv, ForeachTaskContext *ctx)
   ctx->coarse_edges_used_map = BLI_BITMAP_NEW(coarse_mesh->edges_num, "edges used map");
   ctx->subdiv_vert_offset.reinitialize(coarse_mesh->faces_num);
   ctx->subdiv_edge_offset.reinitialize(coarse_mesh->faces_num);
-  ctx->subdiv_face_offset.reinitialize(coarse_mesh->faces_num);
+  /* One extra element for #OffsetIndices encoding. */
+  ctx->subdiv_face_offset.reinitialize(coarse_mesh->faces_num + 1);
   /* Initialize all offsets. */
   subdiv_foreach_ctx_init_offsets(ctx);
   /* Calculate number of geometry in the result subdivision mesh. */
@@ -1606,39 +1608,6 @@ static void subdiv_foreach_loops(ForeachTaskContext *ctx, void *tls, int face_in
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Polygons traverse process
- * \{ */
-
-static void subdiv_foreach_faces(ForeachTaskContext *ctx, void *tls, int face_index)
-{
-  const int resolution = ctx->settings->resolution;
-  const int start_face_index = ctx->subdiv_face_offset[face_index];
-  /* Base/coarse mesh information. */
-  const IndexRange coarse_face = ctx->coarse_faces[face_index];
-  const int num_ptex_faces_per_face = num_ptex_faces_per_face_get(coarse_face);
-  const int ptex_resolution = ptex_face_resolution_get(coarse_face, resolution);
-  const int num_faces_per_ptex = num_faces_per_ptex_get(ptex_resolution);
-  const int num_loops_per_ptex = 4 * num_faces_per_ptex;
-  const int start_loop_index = 4 * start_face_index;
-  /* Hi-poly subdivided mesh. */
-  int subdiv_faceon_index = start_face_index;
-  for (int ptex_of_face_index = 0; ptex_of_face_index < num_ptex_faces_per_face;
-       ptex_of_face_index++)
-  {
-    for (int subdiv_face_index = 0; subdiv_face_index < num_faces_per_ptex;
-         subdiv_face_index++, subdiv_faceon_index++)
-    {
-      const int loopstart = start_loop_index + (ptex_of_face_index * num_loops_per_ptex) +
-                            (subdiv_face_index * 4);
-      ctx->foreach_context->poly(
-          ctx->foreach_context, tls, face_index, subdiv_faceon_index, loopstart, 4);
-    }
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Loose elements traverse process
  * \{ */
 
@@ -1760,9 +1729,6 @@ static void subdiv_foreach_task(void *__restrict userdata,
   if (ctx->foreach_context->loop != nullptr) {
     subdiv_foreach_loops(ctx, tls->userdata_chunk, face_index);
   }
-  if (ctx->foreach_context->poly != nullptr) {
-    subdiv_foreach_faces(ctx, tls->userdata_chunk, face_index);
-  }
 }
 
 static void subdiv_foreach_boundary_edges_task(void *__restrict userdata,
@@ -1815,6 +1781,10 @@ bool foreach_subdiv_geometry(Subdiv *subdiv,
   parallel_range_settings.min_iter_per_thread = 1;
   if (context->user_data_tls_free != nullptr) {
     parallel_range_settings.func_free = subdiv_foreach_free;
+  }
+
+  if (context->faces) {
+    context->faces(context, OffsetIndices<int>(ctx.subdiv_face_offset));
   }
 
   /* TODO(sergey): Possible optimization is to have a single pool and push all

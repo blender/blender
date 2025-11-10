@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_offset_indices.hh"
 #include "BLI_sys_types.h"
 
 struct Mesh;
@@ -74,12 +75,13 @@ using ForeachLoopCb = void (*)(const ForeachContext *context,
                                int subdiv_vert_index,
                                int subdiv_edge_index);
 
-using ForeachPolygonCb = void (*)(const ForeachContext *context,
-                                  void *tls,
-                                  int coarse_face_index,
-                                  int subdiv_face_index,
-                                  int start_loop_index,
-                                  int num_loops);
+/**
+ * \param subdiv_faces_by_base_face: Groups the subdivided faces by the base mesh face they came
+ * from (all the subdivided faces for a single base mesh face are contiguous). For more
+ * information, see #OffsetIndices.
+ */
+using FacesCb = void (*)(const ForeachContext *context,
+                         blender::OffsetIndices<int> subdiv_faces_by_base_face);
 
 using ForeachLooseCb = void (*)(const ForeachContext *context,
                                 void *tls,
@@ -130,9 +132,17 @@ struct ForeachContext {
   /**
    * \note If subdivided loop does not come from coarse loop, ORIGINDEX_NONE
    * will be passed as coarse_loop_index.
+   *
+   * \note All the face corners for a particular face are contiguous, and the face corners have the
+   * same order in the mesh as their faces.
    */
   ForeachLoopCb loop = nullptr;
-  ForeachPolygonCb poly = nullptr;
+
+  /**
+   * Called once for the whole mesh, passing the #OffsetIndices encoding the groups of subdivided
+   * faces corresponding to each base mesh face.
+   */
+  FacesCb faces = nullptr;
 
   /**
    * User-defined pointer, to allow callbacks know something about context the

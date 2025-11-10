@@ -11,6 +11,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
@@ -48,7 +49,6 @@ struct SubdivMeshContext {
   Mesh *subdiv_mesh;
   MutableSpan<float3> subdiv_positions;
   MutableSpan<int2> subdiv_edges;
-  MutableSpan<int> subdiv_face_offsets;
   MutableSpan<int> subdiv_corner_verts;
   MutableSpan<int> subdiv_corner_edges;
 
@@ -143,7 +143,6 @@ static void subdiv_mesh_ctx_cache_custom_data_layers(SubdivMeshContext *ctx)
   Mesh *subdiv_mesh = ctx->subdiv_mesh;
   ctx->subdiv_positions = subdiv_mesh->vert_positions_for_write();
   ctx->subdiv_edges = subdiv_mesh->edges_for_write();
-  ctx->subdiv_face_offsets = subdiv_mesh->face_offsets_for_write();
   ctx->subdiv_corner_verts = subdiv_mesh->corner_verts_for_write();
   ctx->subdiv_corner_edges = subdiv_mesh->corner_edges_for_write();
 
@@ -848,7 +847,7 @@ static bool subdiv_mesh_topology_info(const ForeachContext *foreach_context,
   BKE_mesh_copy_parameters_for_eval(subdiv_context->subdiv_mesh, &coarse_mesh);
 
   if (num_faces != 0) {
-    subdiv_mesh.face_offsets_for_write().last() = num_loops;
+    offset_indices::fill_constant_group_size(4, 0, subdiv_mesh.face_offsets_for_write());
   }
 
   /* Create corner data for interpolation without topology attributes. */
@@ -1302,22 +1301,23 @@ static void subdiv_mesh_loop(const ForeachContext *foreach_context,
  * \{ */
 
 static void subdiv_mesh_face(const ForeachContext *foreach_context,
-                             void * /*tls*/,
-                             const int coarse_face_index,
-                             const int subdiv_face_index,
-                             const int start_loop_index,
-                             const int /*num_loops*/)
+                             blender::OffsetIndices<int> subdiv_faces_by_base_face)
 {
-  BLI_assert(coarse_face_index != ORIGINDEX_NONE);
   SubdivMeshContext *ctx = static_cast<SubdivMeshContext *>(foreach_context->user_data);
-  copy_attrs(ctx->coarse_face_attr_spans,
-             coarse_face_index,
-             subdiv_face_index,
-             ctx->subdiv_face_attr_spans);
-  if (!ctx->coarse_face_origindex.is_empty()) {
-    ctx->subdiv_face_origindex[subdiv_face_index] = ctx->coarse_face_origindex[coarse_face_index];
-  }
-  ctx->subdiv_face_offsets[subdiv_face_index] = start_loop_index;
+  threading::memory_bandwidth_bound_task(int64_t(ctx->subdiv_mesh->faces_num) * 4, [&]() {
+    for (const int i : ctx->coarse_face_attrs.index_range()) {
+      bke::attribute_math::gather_to_groups(subdiv_faces_by_base_face,
+                                            ctx->coarse_faces.index_range(),
+                                            ctx->coarse_face_attr_spans[i],
+                                            ctx->subdiv_face_attr_spans[i]);
+    }
+    if (!ctx->coarse_face_origindex.is_empty()) {
+      array_utils::gather_to_groups(subdiv_faces_by_base_face,
+                                    ctx->coarse_faces.index_range(),
+                                    ctx->coarse_face_origindex,
+                                    ctx->subdiv_face_origindex);
+    }
+  });
 }
 
 /** \} */
@@ -1478,7 +1478,7 @@ static void setup_foreach_callbacks(const SubdivMeshContext *subdiv_context,
   foreach_context->vert_inner = subdiv_mesh_vert_inner;
   foreach_context->edge = subdiv_mesh_edge;
   foreach_context->loop = subdiv_mesh_loop;
-  foreach_context->poly = subdiv_mesh_face;
+  foreach_context->faces = subdiv_mesh_face;
   foreach_context->vert_loose = subdiv_mesh_vert_loose;
   foreach_context->vert_of_loose_edge = subdiv_mesh_vert_of_loose_edge;
   foreach_context->user_data_tls_free = subdiv_mesh_tls_free;
