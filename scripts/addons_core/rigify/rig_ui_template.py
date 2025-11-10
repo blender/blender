@@ -839,7 +839,7 @@ class RigUI(bpy.types.Panel):
     bl_category = 'Item'
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         if context.mode != 'POSE':
             return False
         try:
@@ -883,7 +883,7 @@ class RigBakeSettings(bpy.types.Panel):
     bl_category = 'Item'
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         return RigUI.poll(context) and find_action(context.active_object) is not None
 
     def draw(self, context):
@@ -900,7 +900,7 @@ class RigLayers(bpy.types.Panel):
     bl_category = 'Item'
 
     @classmethod
-    def poll(self, context):
+    def poll(cls, context):
         try:
             return (context.active_object.data.get("rig_id") == rig_id)
         except (AttributeError, KeyError, TypeError):
