@@ -405,7 +405,7 @@ static void strip_transform_handle_overwrite_split(Scene *scene,
   /* Because we are doing a soft split, bmain is not used in SEQ_edit_strip_split, so we can
    * pass nullptr here. */
   Main *bmain = nullptr;
-
+  const char *error_msg = nullptr;
   Strip *split_strip = edit_strip_split(bmain,
                                         scene,
                                         seqbasep,
@@ -413,15 +413,23 @@ static void strip_transform_handle_overwrite_split(Scene *scene,
                                         time_left_handle_frame_get(scene, transformed),
                                         SPLIT_SOFT,
                                         true,
-                                        nullptr);
-  edit_strip_split(bmain,
-                   scene,
-                   seqbasep,
-                   split_strip,
-                   time_right_handle_frame_get(scene, transformed),
-                   SPLIT_SOFT,
-                   true,
-                   nullptr);
+                                        &error_msg);
+  if (split_strip == nullptr) {
+    return;
+  }
+
+  error_msg = nullptr;
+  if (edit_strip_split(bmain,
+                       scene,
+                       seqbasep,
+                       split_strip,
+                       time_right_handle_frame_get(scene, transformed),
+                       SPLIT_SOFT,
+                       true,
+                       &error_msg) == nullptr)
+  {
+    return;
+  }
   edit_flag_for_removal(scene, seqbasep, split_strip);
   edit_remove_flagged_strips(scene, seqbasep);
 }
@@ -463,9 +471,14 @@ static void strip_transform_handle_overwrite(Scene *scene,
   VectorSet targets = query_overwrite_targets(scene, seqbasep, transformed_strips);
   VectorSet<Strip *> strips_to_delete;
 
+  ListBase *channels = channels_displayed_get(editing_get(scene));
   for (Strip *target : targets) {
     for (Strip *transformed : transformed_strips) {
       if (transformed->channel != target->channel) {
+        continue;
+      }
+      /* Do not allow overwriting/trimming/deleting locked strips. */
+      if (transform_is_locked(channels, target)) {
         continue;
       }
 
