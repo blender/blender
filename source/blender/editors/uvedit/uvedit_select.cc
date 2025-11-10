@@ -4394,15 +4394,15 @@ static void uv_select_flush_from_tag_loop(const Scene *scene, Object *obedit, co
   BMLoop *l;
   BMIter iter, liter;
 
-  const bool use_mesh_select = (ts->uv_flag & UV_FLAG_SELECT_SYNC) &&
-                               (bm->uv_select_sync_valid == false);
-
   if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
     uvedit_select_prepare_sync_select(scene, bm);
   }
   else {
     uvedit_select_prepare_custom_data(scene, bm);
   }
+  const bool use_mesh_select = (ts->uv_flag & UV_FLAG_SELECT_SYNC) &&
+                               (bm->uv_select_sync_valid == false);
+
   const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
   if ((use_mesh_select == false) && ts->uv_sticky == UV_STICKY_VERT) {
@@ -4433,12 +4433,22 @@ static void uv_select_flush_from_tag_loop(const Scene *scene, Object *obedit, co
       }
       if (select) {
         if (tag_all && uvedit_face_visible_test(scene, efa)) {
-          uvedit_face_select_set_no_sync(ts, bm, efa, true);
+          if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
+            BM_face_uvselect_set_noflush(bm, efa, true);
+          }
+          else {
+            uvedit_face_select_set_no_sync(ts, bm, efa, true);
+          }
         }
       }
       else {
         if (tag_any && uvedit_face_visible_test(scene, efa)) {
-          uvedit_face_select_set_no_sync(ts, bm, efa, false);
+          if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
+            BM_face_uvselect_set_noflush(bm, efa, false);
+          }
+          else {
+            uvedit_face_select_set_no_sync(ts, bm, efa, false);
+          }
         }
       }
     }
@@ -4458,12 +4468,22 @@ static void uv_select_flush_from_tag_loop(const Scene *scene, Object *obedit, co
       }
       if (select) {
         if (tag_all && uvedit_face_visible_test(scene, efa)) {
-          uvedit_face_select_set_no_sync(ts, bm, efa, true);
+          if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
+            BM_face_uvselect_set_noflush(bm, efa, true);
+          }
+          else {
+            uvedit_face_select_set_no_sync(ts, bm, efa, true);
+          }
         }
       }
       else {
         if (tag_any && uvedit_face_visible_test(scene, efa)) {
-          uvedit_face_select_set_no_sync(ts, bm, efa, false);
+          if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
+            BM_face_uvselect_set_noflush(bm, efa, false);
+          }
+          else {
+            uvedit_face_select_set_no_sync(ts, bm, efa, false);
+          }
         }
       }
     }
