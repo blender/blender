@@ -35,7 +35,7 @@ STORAGE_BUF(1, read, LightData, in_light_buf[])
 STORAGE_BUF(2, write, LightData, out_light_buf[])
 STORAGE_BUF(3, write, float, out_zdist_buf[])
 STORAGE_BUF(4, write, uint, out_key_buf[])
-UNIFORM_BUF(0, LightData, sunlight_buf)
+UNIFORM_BUF(0, LightData, sunlight_buf[2])
 COMPUTE_SOURCE("eevee_light_culling_select_comp.glsl")
 GPU_SHADER_CREATE_END()
 

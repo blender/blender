@@ -73,12 +73,7 @@ void init_globals()
 #elif defined(MAT_CAPTURE)
   g_data.ray_type = RAY_TYPE_DIFFUSE;
 #else
-  if (uniform_buf.pipeline.is_sphere_probe) {
-    g_data.ray_type = RAY_TYPE_GLOSSY;
-  }
-  else {
-    g_data.ray_type = RAY_TYPE_CAMERA;
-  }
+  g_data.ray_type = uniform_buf.pipeline.ray_type;
 #endif
   g_data.ray_depth = 0.0f;
   g_data.ray_length = distance(g_data.P, drw_view_position());

@@ -406,7 +406,7 @@ void LookdevModule::store_world_probe_data(
     Texture &in_sphere_probe,
     const SphereProbeAtlasCoord &atlas_coord,
     StorageBuffer<SphereProbeHarmonic, true> &in_volume_probe,
-    UniformBuffer<LightData> &in_sunlight)
+    UniformArrayBuffer<LightData, 2> &in_sunlight)
 {
   SphereProbeUvArea read_coord = atlas_coord.as_sampling_coord();
   SphereProbePixelArea write_coord_mip0 = atlas_coord.as_write_coord(0);
@@ -444,7 +444,7 @@ void LookdevModule::store_world_probe_data(
   pass.bind_image("out_sphere_mip4", world_sphere_probe_.mip_view(4));
   pass.bind_ssbo("in_sh", in_volume_probe);
   pass.bind_ssbo("out_sh", world_volume_probe_);
-  pass.bind_ssbo("in_sun", in_sunlight);
+  pass.bind_ssbo("in_sun", in_sunlight); /* Note only the 1st member of the array is read. */
   pass.bind_ssbo("out_sun", world_sunlight_);
   int3 dispatch_size = int3(
       int2(math::divide_ceil(int2(write_coord_mip0.extent), int2(SPHERE_PROBE_REMAP_GROUP_SIZE))),
@@ -456,14 +456,14 @@ void LookdevModule::store_world_probe_data(
   last_rotation_matrix_ = float4x4::identity();
 }
 
-/* TODO(fclem): Call this as soon as possible inside the frame drawing and tag world probe volume
+/* This is called as soon as possible inside the frame drawing and tag world probe volume
  * to update. Volume probe update is the only thing that needs to be triggered to make sure the SH
  * are copied to all volume probes. Sphere probes are already updated by this function. */
 void LookdevModule::rotate_world_probe_data(
     Texture &dst_sphere_probe,
     const SphereProbeAtlasCoord &atlas_coord,
     StorageBuffer<SphereProbeHarmonic, true> &dst_volume_probe,
-    UniformBuffer<LightData> &dst_sunlight,
+    UniformArrayBuffer<LightData, 2> &dst_sunlight,
     float4x4 &rotation)
 {
   SphereProbeUvArea read_coord = atlas_coord.as_sampling_coord();

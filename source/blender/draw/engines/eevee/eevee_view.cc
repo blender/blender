@@ -300,23 +300,50 @@ void CaptureView::render_world()
   GPU_debug_group_begin("World.Capture");
 
   if (update_info->do_render) {
-    for (int face : IndexRange(6)) {
-      float4x4 view_m4 = cubeface_mat(face);
-      float4x4 win_m4 = math::projection::perspective(-update_info->clipping_distances.x,
-                                                      update_info->clipping_distances.x,
-                                                      -update_info->clipping_distances.x,
-                                                      update_info->clipping_distances.x,
-                                                      update_info->clipping_distances.x,
-                                                      update_info->clipping_distances.y);
-      view.sync(view_m4, win_m4);
+    auto render_cubemap = [&](RayPipelineType ray_type) {
+      if (assign_if_different(inst_.pipelines.data.ray_type, ray_type)) {
+        inst_.uniform_data.push_update();
+      }
 
-      combined_fb_.ensure(GPU_ATTACHMENT_NONE,
-                          GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.sphere_probes.cubemap_tx_, face));
-      GPU_framebuffer_bind(combined_fb_);
-      inst_.pipelines.world.render(view);
+      for (int face : IndexRange(6)) {
+        float4x4 view_m4 = cubeface_mat(face);
+        float4x4 win_m4 = math::projection::perspective(-update_info->clipping_distances.x,
+                                                        update_info->clipping_distances.x,
+                                                        -update_info->clipping_distances.x,
+                                                        update_info->clipping_distances.x,
+                                                        update_info->clipping_distances.x,
+                                                        update_info->clipping_distances.y);
+        view.sync(view_m4, win_m4);
+
+        combined_fb_.ensure(
+            GPU_ATTACHMENT_NONE,
+            GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.sphere_probes.cubemap_tx_, face));
+        GPU_framebuffer_bind(combined_fb_);
+        inst_.pipelines.world.render(view);
+      }
+    };
+
+    if (inst_.pipelines.world.use_lightpath_node()) {
+      render_cubemap(RAY_TYPE_DIFFUSE);
+      inst_.sphere_probes.remap_to_octahedral_projection(
+          update_info->atlas_coord, false, true, WORLD_SUN_DIFFUSE);
+
+      render_cubemap(RAY_TYPE_GLOSSY);
+      inst_.sphere_probes.remap_to_octahedral_projection(
+          update_info->atlas_coord, true, false, WORLD_SUN_GLOSSY);
+    }
+    else {
+      render_cubemap(RAY_TYPE_GLOSSY);
+      inst_.sphere_probes.remap_to_octahedral_projection(
+          update_info->atlas_coord, true, true, WORLD_SUN_COMBINED);
     }
 
-    inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord, true);
+    /* All volume probe that needs to composite the world probe need to be updated. */
+    inst_.volume_probes.update_world_irradiance();
+  }
+
+  if (assign_if_different(inst_.pipelines.data.ray_type, RAY_TYPE_CAMERA)) {
+    inst_.uniform_data.push_update();
   }
 
   GPU_debug_group_end();
@@ -329,8 +356,7 @@ void CaptureView::render_probes()
   while (const auto update_info = inst_.sphere_probes.probe_update_info_pop()) {
     GPU_debug_group_begin("Probe.Capture");
 
-    if (!inst_.pipelines.data.is_sphere_probe) {
-      inst_.pipelines.data.is_sphere_probe = true;
+    if (assign_if_different(inst_.pipelines.data.ray_type, RAY_TYPE_GLOSSY)) {
       inst_.uniform_data.push_update();
     }
 
@@ -376,11 +402,10 @@ void CaptureView::render_probes()
     inst_.render_buffers.release();
     inst_.gbuffer.release();
     GPU_debug_group_end();
-    inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord, false);
+    inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord, true, false);
   }
 
-  if (inst_.pipelines.data.is_sphere_probe) {
-    inst_.pipelines.data.is_sphere_probe = false;
+  if (assign_if_different(inst_.pipelines.data.ray_type, RAY_TYPE_CAMERA)) {
     inst_.uniform_data.push_update();
   }
 }

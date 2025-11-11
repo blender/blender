@@ -168,7 +168,7 @@ class LookdevModule {
    */
   Texture world_sphere_probe_ = {"world_sphere_probe_"};
   StorageBuffer<SphereProbeHarmonic, true> world_volume_probe_ = {"world_volume_probe_"};
-  UniformBuffer<LightData> world_sunlight_ = {"world_sunlight_"};
+  UniformArrayBuffer<LightData, 2> world_sunlight_ = {"world_sunlight_"};
 
  public:
   LookdevModule(Instance &inst);
@@ -186,12 +186,12 @@ class LookdevModule {
   void store_world_probe_data(Texture &in_sphere_probe,
                               const SphereProbeAtlasCoord &atlas_coord,
                               StorageBuffer<SphereProbeHarmonic, true> &in_volume_probe,
-                              UniformBuffer<LightData> &in_sunlight);
+                              UniformArrayBuffer<LightData, 2> &in_sunlight);
 
   void rotate_world_probe_data(Texture &dst_sphere_probe,
                                const SphereProbeAtlasCoord &atlas_coord,
                                StorageBuffer<SphereProbeHarmonic, true> &dst_volume_probe,
-                               UniformBuffer<LightData> &dst_sunlight,
+                               UniformArrayBuffer<LightData, 2> &dst_sunlight,
                                float4x4 &rotation);
 
  private:

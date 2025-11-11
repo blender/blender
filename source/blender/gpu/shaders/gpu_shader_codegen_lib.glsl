@@ -50,12 +50,6 @@ float2 calc_barycentric_co(int vertid)
 #define float4_from_float2(v) float4(v.xy, 0.0f, 1.0f)
 #define float4_from_float(v) float4(float3(v), 1.0f)
 
-/* TODO: Move to shader_shared. */
-#define RAY_TYPE_CAMERA 0
-#define RAY_TYPE_SHADOW 1
-#define RAY_TYPE_DIFFUSE 2
-#define RAY_TYPE_GLOSSY 3
-
 #ifdef GPU_FRAGMENT_SHADER
 #  define FrontFacing gl_FrontFacing
 #else
