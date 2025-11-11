@@ -4996,8 +4996,17 @@ static int ui_do_but_TEX(
       }
     }
     else if (ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE) && (event->modifier & KM_CTRL)) {
-      const int inc_value = (event->type == WHEELUPMOUSE) ? 1 : -1;
-      return ui_do_but_text_value_cycle(C, but, data, inc_value);
+      if ((but->type == ButType::SearchMenu) && but->func_argN &&
+          (static_cast<uiButSearch *>(but)->arg == but->func_argN))
+      {
+        /* Disable value cycling for search buttons with an allocated search data argument. This
+         * causes issues because the search data is moved to the "afterfuncs", but search updating
+         * requires it again. See #147539. */
+      }
+      else {
+        const int inc_value = (event->type == WHEELUPMOUSE) ? 1 : -1;
+        return ui_do_but_text_value_cycle(C, but, data, inc_value);
+      }
     }
   }
   else if (data->state == BUTTON_STATE_TEXT_EDITING) {
