@@ -130,7 +130,7 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   int last_tot_items_ = 0;
 
   bool scroll_active_into_view_on_draw_ = false;
-  bool show_display_options_ = false;
+  std::shared_ptr<char> show_display_options_ = std::make_shared<char>(0);
   /* `char[UI_MAX_NAME_STR]` wrapped in shared pointer, to keep a stable pointer over
    * reconstruction that can be passed to buttons. */
   std::shared_ptr<char[]> search_string_{new char[256 /*UI_MAX_NAME_STR*/]{}};
@@ -165,7 +165,6 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
    * \note Value should be greater than #MIN_ROWS. This is to prevent resizing below certain
    * height. */
   void set_default_rows(int default_rows);
-  void toggle_show_display_options();
 
  protected:
   virtual void build_tree() = 0;

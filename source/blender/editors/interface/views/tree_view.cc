@@ -146,17 +146,12 @@ void AbstractTreeView::set_default_rows(int default_rows)
   custom_height_ = std::make_unique<int>(default_rows * padded_item_height());
 }
 
-void AbstractTreeView::toggle_show_display_options()
-{
-  show_display_options_ = !show_display_options_;
-}
-
 std::optional<uiViewState> AbstractTreeView::persistent_state() const
 {
   uiViewState state{};
 
-  SET_FLAG_FROM_TEST(state.flag, show_display_options_, UI_VIEW_SHOW_FILTER_OPTIONS);
-  STRNCPY(state.search_string, search_string_.get());
+  SET_FLAG_FROM_TEST(state.flag, *show_display_options_, UI_VIEW_SHOW_FILTER_OPTIONS);
+  BLI_strncpy(state.search_string, search_string_.get(), sizeof(state.search_string));
 
   if (!custom_height_ && !scroll_value_) {
     return {};
@@ -182,7 +177,7 @@ void AbstractTreeView::persistent_state_apply(const uiViewState &state)
     scroll_value_ = std::make_shared<int>(state.scroll_offset);
   }
 
-  show_display_options_ = (state.flag & UI_VIEW_SHOW_FILTER_OPTIONS) != 0;
+  *show_display_options_ = (state.flag & UI_VIEW_SHOW_FILTER_OPTIONS) != 0;
   BLI_strncpy(search_string_.get(), state.search_string, UI_MAX_NAME_STR);
 }
 
@@ -852,24 +847,6 @@ static int count_visible_items(AbstractTreeView &tree_view)
   return item_count;
 }
 
-static void set_filtering_collapsed_fn(bContext *C, void * /*but_arg1*/, void * /*arg2*/)
-{
-  const wmWindow *win = CTX_wm_window(C);
-  if (!(win && win->eventstate)) {
-    return;
-  }
-  const ARegion *region = CTX_wm_region(C);
-  if (!region) {
-    return;
-  }
-
-  if (AbstractView *view = UI_region_view_find_at(region, win->eventstate->xy, 2 * UI_UNIT_Y)) {
-    if (AbstractTreeView *tree_view = dynamic_cast<AbstractTreeView *>(view)) {
-      tree_view->toggle_show_display_options();
-    }
-  }
-}
-
 void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
 {
   uiLayout &parent_layout = this->current_layout();
@@ -948,12 +925,23 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
     /* Bottom */
     uiLayout *bottom = &col->row(false);
     UI_block_emboss_set(block, ui::EmbossType::None);
-    int icon = tree_view.show_display_options_ ? ICON_DISCLOSURE_TRI_DOWN :
-                                                 ICON_DISCLOSURE_TRI_RIGHT;
-    uiBut *but = uiDefIconBut(
-        block, ButType::Toggle, 0, icon, 0, 0, UI_UNIT_X, UI_UNIT_Y * 0.3, nullptr, 0, 0, "");
+
+    int icon = *tree_view.show_display_options_ ? ICON_DISCLOSURE_TRI_DOWN :
+                                                  ICON_DISCLOSURE_TRI_RIGHT;
+    uiBut *but = uiDefIconButBitC(block,
+                                  ButType::Toggle,
+                                  1,
+                                  0,
+                                  icon,
+                                  0,
+                                  0,
+                                  UI_UNIT_X,
+                                  UI_UNIT_Y * 0.5,
+                                  tree_view.show_display_options_.get(),
+                                  0,
+                                  0,
+                                  TIP_(""));
     UI_but_flag_disable(but, UI_BUT_UNDO);
-    UI_but_func_set(but, set_filtering_collapsed_fn, nullptr, nullptr);
     UI_block_emboss_set(block, ui::EmbossType::Emboss);
     bottom->column(false);
 
@@ -970,7 +958,7 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
                   0,
                   "");
 
-    if (tree_view.show_display_options_) {
+    if (*tree_view.show_display_options_) {
       block_layout_set_current(block, col);
       uiBut *but = uiDefBut(block,
                             ButType::Text,
