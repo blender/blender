@@ -2223,7 +2223,7 @@ class GlareOperation : public NodeOperation {
       GPU_texture_copy(fog_glow_result, highlights);
     }
     else {
-      parallel_for(fog_glow_result.domain().size, [&](const int2 texel) {
+      parallel_for(fog_glow_result.domain().data_size, [&](const int2 texel) {
         fog_glow_result.store_pixel(texel, highlights.load_pixel<float4>(texel));
       });
     }

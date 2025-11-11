@@ -266,7 +266,7 @@ void convolve(Context &context,
     GPU_texture_copy(output, input);
   }
   else {
-    parallel_for(output.domain().size, [&](const int2 texel) {
+    parallel_for(output.domain().data_size, [&](const int2 texel) {
       output.store_pixel(texel, input.load_pixel<float4>(texel));
     });
   }
