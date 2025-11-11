@@ -164,7 +164,7 @@ static WorkSpaceLayout *workspace_change_get_new_layout(Main *bmain,
 
   /* ED_workspace_duplicate may have stored a layout to activate
    * once the workspace gets activated. */
-  if (win->workspace_hook->temp_workspace_store) {
+  if (win->workspace_hook->temp_layout_store) {
     layout_new = win->workspace_hook->temp_layout_store;
   }
   else {
