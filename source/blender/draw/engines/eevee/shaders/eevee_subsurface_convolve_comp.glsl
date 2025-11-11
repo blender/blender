@@ -36,9 +36,10 @@ struct SubSurfaceSample {
 
 /* TODO(fclem): These need to be outside the check because of MSL backend glue.
  * This likely will contribute to register usage. Better get rid of if or make it working. */
-shared float3 cached_radiance[SUBSURFACE_GROUP_SIZE][SUBSURFACE_GROUP_SIZE];
-shared uint cached_sss_id[SUBSURFACE_GROUP_SIZE][SUBSURFACE_GROUP_SIZE];
-shared float cached_depth[SUBSURFACE_GROUP_SIZE][SUBSURFACE_GROUP_SIZE];
+
+shared float3 cached_radiance[gl_WorkGroupSize.x][gl_WorkGroupSize.y];
+shared uint cached_sss_id[gl_WorkGroupSize.x][gl_WorkGroupSize.y];
+shared float cached_depth[gl_WorkGroupSize.x][gl_WorkGroupSize.y];
 
 void cache_populate(float2 local_uv)
 {

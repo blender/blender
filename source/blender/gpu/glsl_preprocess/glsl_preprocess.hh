@@ -105,10 +105,16 @@ struct PrintfFormat {
   std::string format;
 };
 
+struct SharedVariable {
+  std::string type;
+  std::string name;
+};
+
 struct Source {
   std::vector<Builtin> builtins;
   /* Note: Could be a set, but for now the order matters. */
   std::vector<std::string> dependencies;
+  std::vector<SharedVariable> shared_variables;
   std::vector<PrintfFormat> printf_formats;
   std::vector<FunctionFormat> functions;
   std::vector<std::string> create_infos;
@@ -141,6 +147,9 @@ struct Source {
     }
     for (auto dependency : dependencies) {
       ss << "  source.add_dependency(\"" << dependency << "\");\n";
+    }
+    for (auto var : shared_variables) {
+      ss << "  source.add_shared_variable(Type::" << var.type << "_t, \"" << var.name << "\");\n";
     }
     for (auto format : printf_formats) {
       ss << "  source.add_printf_format(uint32_t(" << std::to_string(format.hash) << "), "
@@ -185,13 +194,6 @@ class Preprocessor {
   using uint64_t = std::uint64_t;
   using report_callback = std::function<void(
       int error_line, int error_char, std::string error_line_string, const char *error_str)>;
-  struct SharedVar {
-    std::string type;
-    std::string name;
-    std::string array;
-  };
-
-  std::vector<SharedVar> shared_vars_;
 
   metadata::Source metadata;
 
@@ -236,10 +238,10 @@ class Preprocessor {
       return "";
     }
     str = remove_comments(str, report_error);
-    threadgroup_variables_parsing(str);
     if (language == BLENDER_GLSL || language == CPP) {
       str = disabled_code_mutation(str, report_error);
     }
+    str = threadgroup_variables_parse_and_remove(str, report_error);
     parse_builtins(str, filename);
     if (language == BLENDER_GLSL || language == CPP) {
       if (do_parse_function) {
@@ -305,7 +307,7 @@ class Preprocessor {
     str = argument_decorator_macro_injection(str);
     str = array_constructor_macro_injection(str);
     r_metadata = metadata;
-    return line_directive_prefix(filename) + str + threadgroup_variables_suffix();
+    return line_directive_prefix(filename) + str;
   }
 
   /* Variant use for python shaders. */
@@ -1446,12 +1448,37 @@ class Preprocessor {
     return parser.result_get();
   }
 
-  void threadgroup_variables_parsing(const std::string &str)
+  std::string threadgroup_variables_parse_and_remove(const std::string &str,
+                                                     report_callback &report_error)
   {
-    std::regex regex(R"(shared\s+(\w+)\s+(\w+)([^;]*);)");
-    regex_global_search(str, regex, [&](const std::smatch &match) {
-      shared_vars_.push_back({match[1].str(), match[2].str(), match[3].str()});
+    using namespace std;
+    using namespace shader::parser;
+
+    Parser parser(str, report_error);
+
+    auto process_shared_var = [&](Token shared_tok, Token type, Token name, Token decl_end) {
+      if (shared_tok.str() == "shared") {
+        metadata.shared_variables.push_back(
+            {type.str(), parser.substr_range_inclusive(name, decl_end.prev())});
+
+        parser.erase(shared_tok, decl_end);
+      }
+    };
+    parser.foreach_match("www;", [&](const std::vector<Token> &tokens) {
+      process_shared_var(tokens[0], tokens[1], tokens[2], tokens.back());
     });
+    parser.foreach_match("www[..];", [&](const std::vector<Token> &tokens) {
+      process_shared_var(tokens[0], tokens[1], tokens[2], tokens.back());
+    });
+    parser.foreach_match("www[..][..];", [&](const std::vector<Token> &tokens) {
+      process_shared_var(tokens[0], tokens[1], tokens[2], tokens.back());
+    });
+    parser.foreach_match("www[..][..][..];", [&](const std::vector<Token> &tokens) {
+      process_shared_var(tokens[0], tokens[1], tokens[2], tokens.back());
+    });
+    /* If more array depth is needed, find a less dumb solution. */
+
+    return parser.result_get();
   }
 
   void parse_library_functions(const std::string &str)
@@ -2373,92 +2400,6 @@ class Preprocessor {
         }
       });
     });
-  }
-
-  std::string threadgroup_variables_suffix()
-  {
-    if (shared_vars_.empty()) {
-      return "";
-    }
-
-    std::stringstream suffix;
-    /**
-     * For Metal shaders to compile, shared (threadgroup) variable cannot be declared globally.
-     * They must reside within a function scope. Hence, we need to extract these declarations and
-     * generate shared memory blocks within the entry point function. These shared memory blocks
-     * can then be passed as references to the remaining shader via the class function scope.
-     *
-     * The shared variable definitions from the source file are replaced with references to
-     * threadgroup memory blocks (using _shared_sta and _shared_end macros), but kept in-line in
-     * case external macros are used to declare the dimensions.
-     *
-     * Each part of the codegen is stored inside macros so that we don't have to do string
-     * replacement at runtime.
-     */
-    suffix << "\n";
-    /* Arguments of the wrapper class constructor. */
-    suffix << "#undef MSL_SHARED_VARS_ARGS\n";
-    /* References assignment inside wrapper class constructor. */
-    suffix << "#undef MSL_SHARED_VARS_ASSIGN\n";
-    /* Declaration of threadgroup variables in entry point function. */
-    suffix << "#undef MSL_SHARED_VARS_DECLARE\n";
-    /* Arguments for wrapper class constructor call. */
-    suffix << "#undef MSL_SHARED_VARS_PASS\n";
-
-    /**
-     * Example replacement:
-     *
-     * \code{.cc}
-     * // Source
-     * shared float bar[10];                                    // Source declaration.
-     * shared float foo;                                        // Source declaration.
-     * // Rest of the source ...
-     * // End of Source
-     *
-     * // Backend Output
-     * class Wrapper {                                          // Added at runtime by backend.
-     *
-     * threadgroup float (&foo);                                // Replaced by regex and macros.
-     * threadgroup float (&bar)[10];                            // Replaced by regex and macros.
-     * // Rest of the source ...
-     *
-     * Wrapper (                                                // Added at runtime by backend.
-     * threadgroup float (&_foo), threadgroup float (&_bar)[10] // MSL_SHARED_VARS_ARGS
-     * )                                                        // Added at runtime by backend.
-     * : foo(_foo), bar(_bar)                                   // MSL_SHARED_VARS_ASSIGN
-     * {}                                                       // Added at runtime by backend.
-     *
-     * }; // End of Wrapper                                     // Added at runtime by backend.
-     *
-     * kernel entry_point() {                                   // Added at runtime by backend.
-     *
-     * threadgroup float foo;                                   // MSL_SHARED_VARS_DECLARE
-     * threadgroup float bar[10]                                // MSL_SHARED_VARS_DECLARE
-     *
-     * Wrapper wrapper                                          // Added at runtime by backend.
-     * (foo, bar)                                               // MSL_SHARED_VARS_PASS
-     * ;                                                        // Added at runtime by backend.
-     *
-     * }                                                        // Added at runtime by backend.
-     * // End of Backend Output
-     * \endcode
-     */
-    std::stringstream args, assign, declare, pass;
-
-    for (SharedVar &var : shared_vars_) {
-      args << "threadgroup " << var.type << "(&_" << var.name << ")" << var.array << ",  ";
-      assign << var.name << "(_" << var.name << "),  ";
-      declare << "threadgroup " << var.type << ' ' << var.name << var.array << ";";
-      pass << var.name << ",  ";
-    }
-
-    suffix << "#define MSL_SHARED_VARS_ARGS " << args.str() << "\n";
-    suffix << "#define MSL_SHARED_VARS_ASSIGN " << assign.str() << "\n";
-    suffix << "#define MSL_SHARED_VARS_DECLARE " << declare.str() << "\n";
-    suffix << "#define MSL_SHARED_VARS_PASS " << pass.str() << "\n";
-    suffix << "\n";
-
-    return suffix.str();
   }
 
   std::string line_directive_prefix(const std::string &filepath)

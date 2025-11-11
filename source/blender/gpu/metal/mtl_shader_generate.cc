@@ -1364,14 +1364,8 @@ std::pair<std::string, std::string> generate_entry_point(const ShaderCreateInfo 
   out << generated.wrapper_class_members.str();
   out << "\n";
   out << "  " << stage_class_name << "(";
-  if (stage == ShaderStage::COMPUTE) {
-    out << "MSL_SHARED_VARS_ARGS\n"; /* TODO(fclem): Replace by interface. */
-  }
   out << generated.wrapper_constructor_parameters.str() << "\n";
   out << "  ) " << (generated.wrapper_constructor_assign.is_first_arg ? "" : ":");
-  if (stage == ShaderStage::COMPUTE) {
-    out << "MSL_SHARED_VARS_ASSIGN\n"; /* TODO(fclem): Replace by interface. */
-  }
   out << generated.wrapper_constructor_assign.str();
   out << " {}\n";
   out << "};\n\n";
@@ -1400,16 +1394,9 @@ std::pair<std::string, std::string> generate_entry_point(const ShaderCreateInfo 
     out << LINE;
     out << generated.entry_point_start.str();
 
-    if (stage == ShaderStage::COMPUTE) {
-      out << "MSL_SHARED_VARS_DECLARE\n"; /* TODO(fclem): Replace by interface. */
-    }
-
     out << LINE;
     out << "  " << stage_class_name << " " << stage_inst_name;
     out << "  {";
-    if (stage == ShaderStage::COMPUTE) {
-      out << "MSL_SHARED_VARS_PASS\n"; /* TODO(fclem): Replace by interface. */
-    }
     out << generated.wrapper_instance_init.str() << "\n";
     out << "  };\n\n";
 

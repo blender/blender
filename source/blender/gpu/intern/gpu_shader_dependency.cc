@@ -66,6 +66,8 @@ struct GPUSource {
   /* True if this file content is supposed to be generated at runtime. */
   bool generated = false;
 
+  Vector<shader::ShaderCreateInfo::SharedVariable, 0> shared_variables;
+
   /* NOTE: The next few functions are needed to keep isolation of the preprocessor.
    * Eventually, this should be revisited and the preprocessor should output
    * GPU structures. */
@@ -191,6 +193,11 @@ struct GPUSource {
   void add_dependency(StringRef line)
   {
     dependencies_names.append(line);
+  }
+
+  void add_shared_variable(const shader::Type type, const StringRefNull name)
+  {
+    shared_variables.append({type, name});
   }
 
   void add_printf_format(uint32_t format_hash, std::string format, GPUPrintFormatMap *format_map)
@@ -339,6 +346,8 @@ struct GPUSource {
         return 1;
       }
       dependencies.append_non_duplicates(dependency_source);
+
+      this->shared_variables.extend(dependency_source->shared_variables);
     }
     dependencies_names.clear();
     return 0;
@@ -592,6 +601,22 @@ BuiltinBits gpu_shader_dependency_get_builtins(const StringRefNull shader_source
   }
   GPUSource *source = g_sources->lookup(shader_source_name);
   return source->builtins_get();
+}
+
+Span<ShaderCreateInfo::SharedVariable> gpu_shader_dependency_get_shared_variables(
+    const StringRefNull shader_source_name)
+{
+  if (shader_source_name.is_empty()) {
+    return {};
+  }
+  if (g_sources->contains(shader_source_name) == false) {
+    std::cerr << "Error: Could not find \"" << shader_source_name
+              << "\" in the list of registered source.\n";
+    BLI_assert(0);
+    return {};
+  }
+  GPUSource *source = g_sources->lookup(shader_source_name);
+  return source->shared_variables;
 }
 
 Vector<StringRefNull> gpu_shader_dependency_get_resolved_source(
