@@ -2345,18 +2345,6 @@ static wmOperatorStatus modifier_set_active_invoke(bContext *C,
   return retval;
 }
 
-static bool modifier_set_active_poll(bContext *C)
-{
-  /* Only make this operator work in the Modifiers tab of the Properties editor.
-   * Otherwise it may eat up too many mouse click events. */
-  SpaceProperties *space_properties = CTX_wm_space_properties(C);
-  if (!(space_properties && space_properties->mainb == BCONTEXT_MODIFIER)) {
-    return false;
-  }
-
-  return ED_operator_object_active_only(C);
-}
-
 void OBJECT_OT_modifier_set_active(wmOperatorType *ot)
 {
   ot->name = "Set Active Modifier";
@@ -2365,7 +2353,7 @@ void OBJECT_OT_modifier_set_active(wmOperatorType *ot)
 
   ot->invoke = modifier_set_active_invoke;
   ot->exec = modifier_set_active_exec;
-  ot->poll = modifier_set_active_poll;
+  ot->poll = ED_operator_object_active_only;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
   edit_modifier_properties(ot);
