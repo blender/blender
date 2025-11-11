@@ -5355,7 +5355,9 @@ static wmOperatorStatus channels_bake_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static bool channels_bake_poll_property(const bContext *C, wmOperator *op, const PropertyRNA *prop)
+static bool channels_bake_poll_property(const bContext * /* C */,
+                                        wmOperator *op,
+                                        const PropertyRNA *prop)
 {
   const char *prop_id = RNA_property_identifier(prop);
   if (STREQ(prop_id, "range")) {
