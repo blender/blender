@@ -53,6 +53,15 @@ AUTHOR_LINES_SKIP = 4
 # Stop counting after this line limit.
 AUTHOR_LINES_LIMIT = 100
 
+AUTHOR_DIRECTORIES_SKIP: tuple[bytes, ...] = (
+    b"blender/extern/",
+    b"blender/intern/opennl/",
+    # Will have own authors file.
+    b"intern/cycles/",
+    # Will have own authors file.
+    b"intern/libmv/libmv/",
+)
+
 
 # -----------------------------------------------------------------------------
 # Lookup Table to clean up the authors
@@ -138,16 +147,7 @@ class Credits:
 
     @classmethod
     def is_credit_commit_valid(cls, c: GitCommit) -> bool:
-        ignore_dir = (
-            b"blender/extern/",
-            b"blender/intern/opennl/",
-            # Will have own authors file.
-            b"intern/cycles/",
-            # Will have own authors file.
-            b"intern/libmv/libmv/"
-        )
-
-        if not any(f for f in c.files if not f.startswith(ignore_dir)):
+        if not any(f for f in c.files if not f.startswith(AUTHOR_DIRECTORIES_SKIP)):
             return False
 
         return True
@@ -362,6 +362,17 @@ def argparse_create() -> argparse.ArgumentParser:
         default=False,
         help="Add commits & changed lines as metadata after the author."
     )
+    parser.add_argument(
+        "--all-authors",
+        action='store_true',
+        dest="all_authors",
+        default=False,
+        help=(
+            "Include all authors (don't skip based on paths or commit count/size). "
+            "This can be useful when when updating: "
+            "'./tools/utils/git_data_canonical_authors.py' which is also used for credit generation."
+        )
+    )
 
     return parser
 
@@ -370,11 +381,19 @@ def argparse_create() -> argparse.ArgumentParser:
 # Main Function
 
 def main() -> int:
+    global AUTHOR_DIRECTORIES_SKIP
+    global AUTHOR_LINES_SKIP
+    global AUTHOR_LINES_LIMIT
 
     # ----------
     # Parse Args
 
     args = argparse_create().parse_args()
+
+    if args.all_authors:
+        AUTHOR_DIRECTORIES_SKIP = ()
+        AUTHOR_LINES_SKIP = 0
+        AUTHOR_LINES_LIMIT = 0
 
     credits = Credits()
     # commit_range = "HEAD~10..HEAD"
