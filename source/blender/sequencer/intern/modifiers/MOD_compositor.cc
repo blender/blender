@@ -102,7 +102,7 @@ class CompositorContext : public compositor::Context {
     return false;
   }
 
-  Bounds<int2> get_compositing_region() const override
+  Bounds<int2> get_input_region() const override
   {
     return Bounds<int2>(int2(0), int2(image_buffer_->x, image_buffer_->y));
   }

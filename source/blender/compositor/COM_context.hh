@@ -59,12 +59,10 @@ class Context {
   /* Returns all output types that should be computed. */
   virtual OutputTypes needed_outputs() const = 0;
 
-  /* Get the rectangular region representing to the area of the input that the compositor will
-   * operate on. Conversely, the compositor will only update the region of the output that
-   * corresponds to the compositing region. In the base case, the compositing region covers the
-   * entirety of the render region. In other cases, the compositing region might be a subset of the
-   * render region. */
-  virtual Bounds<int2> get_compositing_region() const = 0;
+  /* Get the rectangular region representing the area of the input that the compositor will operate
+   * on. In the base case, the input region covers the entirety of the input. In other cases, the
+   * input region might be a subset of the input. */
+  virtual Bounds<int2> get_input_region() const = 0;
 
   /* Write the result of the compositor. */
   virtual void write_output(const Result &result) = 0;

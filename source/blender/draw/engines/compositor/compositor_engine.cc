@@ -81,10 +81,9 @@ class Context : public compositor::Context {
     return true;
   }
 
-  /* We limit the compositing region to the camera region if in camera view, while we use the
-   * entire viewport otherwise. We also use the entire viewport when doing viewport rendering since
-   * the viewport is already the camera region in that case. */
-  Bounds<int2> get_compositing_region() const override
+  /* Get the bounds of the camera region in pixels relative to the viewport. In case the viewport
+   * has no camera region or is an image render, return the bounds of the entire viewport. */
+  Bounds<int2> get_camera_region() const
   {
     const DRWContext *draw_ctx = DRW_context_get();
     const int2 viewport_size = int2(draw_ctx->viewport_size_get());
@@ -111,6 +110,14 @@ class Context : public compositor::Context {
         .value_or(Bounds<int2>(int2(0)));
   }
 
+  /* We limit the input region to the camera region if in camera view, while we use the entire
+   * viewport otherwise. We also use the entire viewport when doing viewport rendering since the
+   * viewport is already the camera region in that case. */
+  Bounds<int2> get_input_region() const override
+  {
+    return this->get_camera_region();
+  }
+
   void write_output(const compositor::Result &result) override
   {
     gpu::Texture *output = DRW_context_get()->viewport_texture_list_get()->color;
@@ -123,7 +130,7 @@ class Context : public compositor::Context {
                                            compositor::ResultPrecision::Half);
     GPU_shader_bind(shader);
 
-    const Bounds<int2> bounds = this->get_compositing_region();
+    const Bounds<int2> bounds = this->get_camera_region();
     GPU_shader_uniform_2iv(shader, "lower_bound", bounds.min);
     GPU_shader_uniform_2iv(shader, "upper_bound", bounds.max);
 
@@ -237,7 +244,7 @@ class Instance : public DrawEngine {
 
   void draw(Manager & /*manager*/) final
   {
-    if (context_.get_compositing_region().is_empty()) {
+    if (context_.get_camera_region().is_empty()) {
       return;
     }
 

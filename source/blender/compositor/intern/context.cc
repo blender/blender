@@ -79,7 +79,7 @@ void Context::reset()
 
 int2 Context::get_compositing_region_size() const
 {
-  return this->get_compositing_region().size();
+  return this->get_input_region().size();
 }
 
 float Context::get_render_percentage() const
