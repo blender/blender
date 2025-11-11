@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_map.hh"
+#include "BLI_set.hh"
 #include "BLI_timeit.hh"
 #include "BLI_utility_mixins.hh"
 
@@ -42,11 +43,19 @@ class SequencerRuntime {
   ~SequencerRuntime();
 };
 
+/* Audio runtime data. */
+struct SceneAudioRuntime {
+  void *sound_scene = nullptr;
+  void *playback_handle = nullptr;
+  void *sound_scrub_handle = nullptr;
+  Set<void *> speaker_handles;
+};
+
 class SceneRuntime : NonCopyable, NonMovable {
  public:
   CompositorRuntime compositor;
-
   SequencerRuntime sequencer;
+  SceneAudioRuntime audio;
 };
 
 }  // namespace blender::bke

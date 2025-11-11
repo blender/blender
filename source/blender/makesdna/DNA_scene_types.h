@@ -2172,11 +2172,6 @@ typedef struct Scene {
   /** First is the [scene, translate, rotate, scale]. */
   TransformOrientationSlot orientation_slots[4];
 
-  void *sound_scene;
-  void *playback_handle;
-  void *sound_scrub_handle;
-  void *speaker_handles;
-
   /** (runtime) info/cache used for presenting playback frame-rate info to the user. */
   void *fps_info;
 

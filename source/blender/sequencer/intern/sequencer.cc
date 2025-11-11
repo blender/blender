@@ -66,6 +66,8 @@
 #include "prefetch.hh"
 #include "sequencer.hh"
 
+#include "BKE_scene_runtime.hh"
+
 namespace blender::seq {
 
 /* -------------------------------------------------------------------- */
@@ -1198,7 +1200,9 @@ static void seq_update_scene_strip_sound(const Scene *scene, Strip *strip)
   /* Mute sound when all scene strips using particular scene are not rendering sequencer strips. */
   bool sequencer_is_used = scene_sequencer_is_used(strip->scene, &scene->ed->seqbase);
 
-  if (!sequencer_is_used && strip->scene->sound_scene != nullptr && strip->scene->ed != nullptr) {
+  if (!sequencer_is_used && strip->scene->runtime->audio.sound_scene != nullptr &&
+      strip->scene->ed != nullptr)
+  {
     foreach_strip(&strip->scene->ed->seqbase, seq_mute_sound_strips_cb, strip->scene);
   }
 }

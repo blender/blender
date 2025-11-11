@@ -31,6 +31,7 @@
 #include "BKE_packedFile.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
+#include "BKE_scene_runtime.hh"
 #include "BKE_sound.hh"
 
 #include "RNA_access.hh"
@@ -365,7 +366,7 @@ static wmOperatorStatus sound_mixdown_exec(bContext *C, wmOperator *op)
   const int end_frame = scene_eval->r.efra;
 
   if (split) {
-    result = AUD_mixdown_per_channel(scene_eval->sound_scene,
+    result = AUD_mixdown_per_channel(scene_eval->runtime->audio.sound_scene,
                                      start_frame * specs.rate / fps,
                                      (end_frame - start_frame + 1) * specs.rate / fps,
                                      accuracy,
@@ -381,7 +382,7 @@ static wmOperatorStatus sound_mixdown_exec(bContext *C, wmOperator *op)
                                      sizeof(error_message));
   }
   else {
-    result = AUD_mixdown(scene_eval->sound_scene,
+    result = AUD_mixdown(scene_eval->runtime->audio.sound_scene,
                          start_frame * specs.rate / fps,
                          (end_frame - start_frame + 1) * specs.rate / fps,
                          accuracy,

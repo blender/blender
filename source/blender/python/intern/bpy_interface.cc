@@ -35,6 +35,7 @@
 #include "RNA_types.hh"
 
 #include "bpy.hh"
+#include "bpy_audaspace.hh"
 #include "bpy_capi_utils.hh"
 #include "bpy_intern_string.hh"
 #include "bpy_path.hh"
@@ -270,11 +271,6 @@ void BPY_context_set(bContext *C)
 extern "C" PyObject *Manta_initPython();
 #endif
 
-#ifdef WITH_AUDASPACE_PY
-/* Defined in `AUD_C-API.cpp`. */
-extern "C" PyObject *AUD_initPython();
-#endif
-
 #ifdef WITH_CYCLES
 /* Defined in `cycles` module. */
 static PyObject *CCL_initPython()
@@ -309,7 +305,7 @@ static _inittab bpy_internal_modules[] = {
     {"manta", Manta_initPython},
 #endif
 #ifdef WITH_AUDASPACE_PY
-    {"aud", AUD_initPython},
+    {"aud", BPyInit_audaspace},
 #endif
 #ifdef WITH_CYCLES
     {"_cycles", CCL_initPython},

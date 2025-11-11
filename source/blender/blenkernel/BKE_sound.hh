@@ -85,7 +85,6 @@ bool BKE_sound_stream_info_get(Main *main,
 AUD_Device *BKE_sound_mixdown(const Scene *scene, AUD_DeviceSpecs specs, int start, float volume);
 #endif
 
-void BKE_sound_reset_scene_runtime(Scene *scene);
 void BKE_sound_create_scene(Scene *scene);
 void BKE_sound_ensure_scene(Scene *scene);
 

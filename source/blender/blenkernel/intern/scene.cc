@@ -232,8 +232,6 @@ static void scene_init_data(ID *id)
   srv = static_cast<SceneRenderView *>(scene->r.views.last);
   STRNCPY(srv->suffix, STEREO_RIGHT_SUFFIX);
 
-  BKE_sound_reset_scene_runtime(scene);
-
   /* color management */
   colorspace_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_SEQUENCER);
 
@@ -331,8 +329,6 @@ static void scene_copy_data(Main *bmain,
   if (scene_src->display.shading.prop) {
     scene_dst->display.shading.prop = IDP_CopyProperty(scene_src->display.shading.prop);
   }
-
-  BKE_sound_reset_scene_runtime(scene_dst);
 
   /* Copy sequencer, this is local data! */
   if (scene_src->ed) {
@@ -1263,8 +1259,6 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
   sce->customdata_mask = CustomData_MeshMasks{};
   sce->customdata_mask_modal = CustomData_MeshMasks{};
 
-  BKE_sound_reset_scene_runtime(sce);
-
   /* set users to one by default, not in lib-link, this will increase it for compo nodes */
   id_us_ensure_real(&sce->id);
 
@@ -1846,8 +1840,6 @@ Scene *BKE_scene_duplicate(Main *bmain,
     /* tool settings */
     BKE_toolsettings_free(sce_copy->toolsettings);
     sce_copy->toolsettings = BKE_toolsettings_copy(sce->toolsettings, 0);
-
-    BKE_sound_reset_scene_runtime(sce_copy);
 
     /* grease pencil */
     sce_copy->gpd = nullptr;
