@@ -2,16 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_bounds_types.hh"
-#include "BLI_math_vector_types.hh"
-
 #include "BLT_translation.hh"
 
 #include "UI_resources.hh"
 
 #include "DNA_space_types.h"
-
-#include "GPU_shader.hh"
 
 #include "BKE_context.hh"
 
@@ -51,81 +46,9 @@ class GroupOutputOperation : public NodeOperation {
     }
 
     const Result &image = this->get_input(input_socket->identifier);
-    if (image.is_single_value()) {
-      this->execute_clear(image);
-    }
-    else {
-      this->execute_copy(image);
-    }
+    this->context().write_output(image);
   }
 
-  void execute_clear(const Result &image)
-  {
-    Color color = image.get_single_value<Color>();
-
-    const Domain domain = this->compute_domain();
-    Result output = this->context().get_output(domain);
-    if (this->context().use_gpu()) {
-      GPU_texture_clear(output, GPU_DATA_FLOAT, color);
-    }
-    else {
-      parallel_for(domain.size, [&](const int2 texel) { output.store_pixel(texel, color); });
-    }
-  }
-
-  void execute_copy(const Result &image)
-  {
-    if (this->context().use_gpu()) {
-      this->execute_copy_gpu(image);
-    }
-    else {
-      this->execute_copy_cpu(image);
-    }
-  }
-
-  void execute_copy_gpu(const Result &image)
-  {
-    const Domain domain = this->compute_domain();
-    Result output = this->context().get_output(domain);
-
-    gpu::Shader *shader = this->context().get_shader("compositor_write_output",
-                                                     output.precision());
-    GPU_shader_bind(shader);
-
-    const Bounds<int2> bounds = this->context().get_compositing_region();
-    GPU_shader_uniform_2iv(shader, "lower_bound", bounds.min);
-    GPU_shader_uniform_2iv(shader, "upper_bound", bounds.max);
-
-    image.bind_as_texture(shader, "input_tx");
-
-    output.bind_as_image(shader, "output_img");
-
-    compute_dispatch_threads_at_least(shader, domain.size);
-
-    image.unbind_as_texture();
-    output.unbind_as_image();
-    GPU_shader_unbind();
-  }
-
-  void execute_copy_cpu(const Result &image)
-  {
-    const Domain domain = this->compute_domain();
-    Result output = this->context().get_output(domain);
-
-    const Bounds<int2> bounds = this->context().use_context_bounds_for_input_output() ?
-                                    this->context().get_compositing_region() :
-                                    Bounds<int2>(int2(0, 0), domain.size);
-    parallel_for(domain.size, [&](const int2 texel) {
-      const int2 output_texel = texel + bounds.min;
-      if (output_texel.x > bounds.max.x || output_texel.y > bounds.max.y) {
-        return;
-      }
-      output.store_pixel(texel + bounds.min, image.load_pixel<Color>(texel));
-    });
-  }
-
-  /* The operation domain has the same size as the compositing region without any transformations
-   * applied. */
   Domain compute_domain() override
   {
     if (this->context().use_context_bounds_for_input_output()) {

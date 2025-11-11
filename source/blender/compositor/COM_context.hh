@@ -40,9 +40,9 @@ ENUM_OPERATORS(OutputTypes)
  *
  * A Context is an abstract class that is implemented by the caller of the evaluator to provide the
  * necessary data and functionalities for the correct operation of the evaluator. This includes
- * providing input data like render passes and the active scene, as well as references to the data
- * where the output of the evaluator will be written. Finally, the class have an instance of a
- * static resource manager for acquiring cached resources efficiently. */
+ * providing input data like render passes and the active scene, as well as callbacks to write the
+ * outputs of the compositor. Finally, the class have an instance of a static resource manager for
+ * acquiring cached resources efficiently. */
 class Context {
  private:
   /* A static cache manager that can be used to acquire cached resources for the compositor
@@ -66,13 +66,11 @@ class Context {
    * render region. */
   virtual Bounds<int2> get_compositing_region() const = 0;
 
-  /* Get the result where the result of the compositor should be written. */
-  virtual Result get_output(Domain domain) = 0;
+  /* Write the result of the compositor. */
+  virtual void write_output(const Result &result) = 0;
 
-  /* Get the result where the result of the compositor viewer should be written, given the domain
-   * of the result to be viewed, its precision, and whether the output is a non-color data image
-   * that should be displayed without view transform. */
-  virtual Result get_viewer_output(Domain domain, bool is_data, ResultPrecision precision) = 0;
+  /* Write the result of the compositor viewer. */
+  virtual void write_viewer(const Result &result) = 0;
 
   /* Get the result where the given input is stored. */
   virtual Result get_input(StringRef name) = 0;

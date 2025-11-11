@@ -27,6 +27,7 @@
 #include "COM_domain.hh"
 #include "COM_evaluator.hh"
 #include "COM_result.hh"
+#include "COM_utilities.hh"
 
 #include "GPU_context.hh"
 #include "GPU_state.hh"
@@ -110,22 +111,38 @@ class Context : public compositor::Context {
         .value_or(Bounds<int2>(int2(0)));
   }
 
-  compositor::Result get_output(compositor::Domain /*domain*/) override
+  void write_output(const compositor::Result &result) override
   {
-    compositor::Result result = this->create_result(compositor::ResultType::Color,
-                                                    compositor::ResultPrecision::Half);
-    result.wrap_external(DRW_context_get()->viewport_texture_list_get()->color);
-    return result;
+    gpu::Texture *output = DRW_context_get()->viewport_texture_list_get()->color;
+    if (result.is_single_value()) {
+      GPU_texture_clear(output, GPU_DATA_FLOAT, result.get_single_value<compositor::Color>());
+      return;
+    }
+
+    gpu::Shader *shader = this->get_shader("compositor_write_output",
+                                           compositor::ResultPrecision::Half);
+    GPU_shader_bind(shader);
+
+    const Bounds<int2> bounds = this->get_compositing_region();
+    GPU_shader_uniform_2iv(shader, "lower_bound", bounds.min);
+    GPU_shader_uniform_2iv(shader, "upper_bound", bounds.max);
+
+    result.bind_as_texture(shader, "input_tx");
+
+    const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
+    GPU_texture_image_bind(output, image_unit);
+
+    compositor::compute_dispatch_threads_at_least(shader, result.domain().size);
+
+    result.unbind_as_texture();
+    GPU_texture_image_unbind(output);
+    GPU_shader_unbind();
   }
 
-  compositor::Result get_viewer_output(compositor::Domain /*domain*/,
-                                       bool /*is_data*/,
-                                       compositor::ResultPrecision /*precision*/) override
+  void write_viewer(const compositor::Result &result) override
   {
-    compositor::Result result = this->create_result(compositor::ResultType::Color,
-                                                    compositor::ResultPrecision::Half);
-    result.wrap_external(DRW_context_get()->viewport_texture_list_get()->color);
-    return result;
+    /* Within compositor modifier, output and viewer output function the same. */
+    this->write_output(result);
   }
 
   compositor::Result get_pass(const Scene *scene, int view_layer_index, const char *name) override
