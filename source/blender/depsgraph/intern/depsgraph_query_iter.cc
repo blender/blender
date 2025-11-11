@@ -154,7 +154,13 @@ bool deg_iterator_duplis_step(DEGObjectIterData *data)
     }
   }
 
-  DEG_iterator_temp_object_free_properties(data->dupli_object_current, &data->temp_dupli_object);
+  /* Even if the `dupli_list` is not empty, it may happen that none of its entry is displayed (e.g.
+   * #DEG_iterator_dupli_is_visible return `false` for all of the duplis). In such cases,
+   * `dupli_object_current` will also be `nullptr`, and nothing needs to be freed here.
+   * See also #149673 for a reproducible case. */
+  if (data->dupli_object_current) {
+    DEG_iterator_temp_object_free_properties(data->dupli_object_current, &data->temp_dupli_object);
+  }
   data->dupli_list.clear();
   data->dupli_parent = nullptr;
   data->dupli_object_next = nullptr;
