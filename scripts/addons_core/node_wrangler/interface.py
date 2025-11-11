@@ -128,9 +128,9 @@ class NWMergeNodesMenu(Menu, NWBaseMenu):
         else:
             layout.menu(NWMergeMixMenu.bl_idname, text="Use Mix Nodes")
             layout.menu(NWMergeMathMenu.bl_idname, text="Use Math Nodes")
-            props = layout.operator(operators.NWMergeNodes.bl_idname, text="Use Z-Combine Nodes")
+            props = layout.operator(operators.NWMergeNodes.bl_idname, text="Use Depth Combine Nodes")
             props.mode = 'MIX'
-            props.merge_type = 'ZCOMBINE'
+            props.merge_type = 'DEPTH_COMBINE'
             props = layout.operator(operators.NWMergeNodes.bl_idname, text="Use Alpha Over Nodes")
             props.mode = 'MIX'
             props.merge_type = 'ALPHAOVER'

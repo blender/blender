@@ -196,7 +196,7 @@ kmi_defs = (
     (operators.NWMergeNodes.bl_idname, 'PERIOD', 'PRESS', True, False, False,
         (('mode', 'GREATER_THAN'), ('merge_type', 'MATH'),), n_("Merge Nodes (Greater Than)")),
     (operators.NWMergeNodes.bl_idname, 'NUMPAD_PERIOD', 'PRESS', True, False, False,
-        (('mode', 'MIX'), ('merge_type', 'ZCOMBINE'),), n_("Merge Nodes (Z-Combine)")),
+        (('mode', 'MIX'), ('merge_type', 'DEPTH_COMBINE'),), n_("Merge Nodes (Depth Combine)")),
     # NWMergeNodes with Ctrl Alt (MIX or ALPHAOVER)
     (operators.NWMergeNodes.bl_idname, 'NUMPAD_0', 'PRESS', True, False, True,
         (('mode', 'MIX'), ('merge_type', 'ALPHAOVER'),), n_("Merge Nodes (Alpha Over)")),

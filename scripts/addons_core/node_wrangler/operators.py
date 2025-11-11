@@ -580,7 +580,7 @@ class NWMergeNodes(Operator, NWBase):
             ('GEOMETRY', 'Geometry', 'Merge using Mesh Boolean or Join Geometry nodes'),
             ('MIX', 'Mix Node', 'Merge using Mix nodes'),
             ('MATH', 'Math Node', 'Merge using Math nodes'),
-            ('ZCOMBINE', 'Z-Combine Node', 'Merge using Z-Combine nodes'),
+            ('DEPTH_COMBINE', 'Depth Combine Node', 'Merge using Depth Combine nodes'),
             ('ALPHAOVER', 'Alpha Over Node', 'Merge using Alpha Over nodes'),
         ),
     )
@@ -687,10 +687,10 @@ class NWMergeNodes(Operator, NWBase):
         nodes, links = get_nodes_links(context)
         mode = self.mode
         merge_type = self.merge_type
-        # Prevent trying to add Z-Combine in not 'COMPOSITING' node tree.
-        # 'ZCOMBINE' works only if mode == 'MIX'
-        # Setting mode to None prevents trying to add 'ZCOMBINE' node.
-        if (merge_type == 'ZCOMBINE' or merge_type == 'ALPHAOVER') and tree_type != 'COMPOSITING':
+        # Prevent trying to add Depth Combine in not 'COMPOSITING' node tree.
+        # 'DEPTH_COMBINE' works only if mode == 'MIX'
+        # Setting mode to None prevents trying to add 'DEPTH_COMBINE' node.
+        if (merge_type == 'DEPTH_COMBINE' or merge_type == 'ALPHAOVER') and tree_type != 'COMPOSITING':
             merge_type = 'MIX'
             mode = 'MIX'
         if (merge_type != 'MATH' and merge_type != 'GEOMETRY') and tree_type == 'GEOMETRY':
@@ -759,7 +759,7 @@ class NWMergeNodes(Operator, NWBase):
                             ('GEOMETRY', [t[0] for t in geo_combine_operations], selected_geometry),
                             ('MIX', [t[0] for t in blend_types], selected_mix),
                             ('MATH', [t[0] for t in operations], selected_math),
-                            ('ZCOMBINE', ('MIX', ), selected_z),
+                            ('DEPTH_COMBINE', ('MIX', ), selected_z),
                             ('ALPHAOVER', ('MIX', ), selected_alphaover),
                             ('BOOLEAN', (''), selected_boolean),
                     ):
@@ -946,7 +946,7 @@ class NWMergeNodes(Operator, NWBase):
             # add link from "first" selected and "first" add node
             node_to = nodes[count_after - 1]
             connect_sockets(first_selected_output, node_to.inputs[first])
-            if node_to.type == 'ZCOMBINE':
+            if node_to.type == 'DEPTH_COMBINE':
                 for fs_out in first_selected.outputs:
                     if fs_out != first_selected_output and fs_out.name in ('Z', 'Depth'):
                         connect_sockets(fs_out, node_to.inputs[1])
@@ -959,7 +959,7 @@ class NWMergeNodes(Operator, NWBase):
                     node_to_input_i = first
                     node_to_z_i = 1  # if z combine - link z to first z input
                     connect_sockets(get_first_enabled_output(node_from), node_to.inputs[node_to_input_i])
-                    if node_to.type == 'ZCOMBINE':
+                    if node_to.type == 'DEPTH_COMBINE':
                         for from_out in node_from.outputs:
                             if from_out != get_first_enabled_output(node_from) and from_out.name in ('Z', 'Depth'):
                                 connect_sockets(from_out, node_to.inputs[node_to_z_i])
@@ -969,7 +969,7 @@ class NWMergeNodes(Operator, NWBase):
                     node_to_input_i = second
                     node_to_z_i = 3  # if z combine - link z to second z input
                     connect_sockets(get_first_enabled_output(node_from), node_to.inputs[node_to_input_i])
-                    if node_to.type == 'ZCOMBINE':
+                    if node_to.type == 'DEPTH_COMBINE':
                         for from_out in node_from.outputs:
                             if from_out != get_first_enabled_output(node_from) and from_out.name in ('Z', 'Depth'):
                                 connect_sockets(from_out, node_to.inputs[node_to_z_i])
