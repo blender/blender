@@ -432,7 +432,6 @@ static int BKE_fcurve_bezt_binarysearch_index_ex(const BezTriple array[],
                                                  bool *r_replace)
 {
   int start = 0, end = arraylen;
-  int loopbreaker = 0, maxloop = arraylen * 2;
 
   /* Initialize replace-flag first. */
   *r_replace = false;
@@ -467,10 +466,7 @@ static int BKE_fcurve_bezt_binarysearch_index_ex(const BezTriple array[],
     return arraylen;
   }
 
-  /* Most of the time, this loop is just to find where to put it
-   * 'loopbreaker' is just here to prevent infinite loops.
-   */
-  for (loopbreaker = 0; (start <= end) && (loopbreaker < maxloop); loopbreaker++) {
+  while (start <= end) {
     /* Compute and get midpoint. */
 
     /* We calculate the midpoint this way to avoid int overflows... */
@@ -491,19 +487,6 @@ static int BKE_fcurve_bezt_binarysearch_index_ex(const BezTriple array[],
     else {
       end = mid - 1;
     }
-  }
-
-  /* Print error if loop-limit exceeded. */
-  if (loopbreaker == (maxloop - 1)) {
-    CLOG_ERROR(&LOG, "search taking too long");
-
-    /* Include debug info. */
-    CLOG_ERROR(&LOG,
-               "\tround = %d: start = %d, end = %d, arraylen = %d",
-               loopbreaker,
-               start,
-               end,
-               arraylen);
   }
 
   /* Not found, so return where to place it. */
