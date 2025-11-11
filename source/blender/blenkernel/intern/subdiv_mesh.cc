@@ -95,6 +95,10 @@ struct SubdivMeshContext {
   Span<MDeformVert> coarse_dverts;
   MutableSpan<MDeformVert> subdiv_dverts;
 
+  /* Base and result mesh vertex group data. */
+  Span<MVertSkin> coarse_CD_MVERT_SKIN;
+  MutableSpan<MVertSkin> subdiv_CD_MVERT_SKIN;
+
   /* Base and result mesh data for interpolating custom normals. */
   Span<float3> coarse_CD_NORMAL;
   MutableSpan<float3> subdiv_CD_NORMAL;
@@ -164,6 +168,15 @@ static void subdiv_mesh_ctx_cache_custom_data_layers(SubdivMeshContext *ctx)
   ctx->coarse_dverts = coarse_mesh.deform_verts();
   if (!ctx->coarse_dverts.is_empty()) {
     ctx->subdiv_dverts = subdiv_mesh->deform_verts_for_write();
+  }
+  if (const auto *src = static_cast<const MVertSkin *>(
+          CustomData_get_layer(&coarse_mesh.vert_data, CD_MVERT_SKIN)))
+  {
+    ctx->coarse_CD_MVERT_SKIN = {src, coarse_mesh.verts_num};
+    ctx->subdiv_CD_MVERT_SKIN = {
+        static_cast<MVertSkin *>(CustomData_add_layer(
+            &subdiv_mesh->vert_data, CD_MVERT_SKIN, CD_CONSTRUCT, subdiv_mesh->verts_num)),
+        subdiv_mesh->verts_num};
   }
   if (const auto *src = static_cast<const float3 *>(
           CustomData_get_layer(&coarse_mesh.corner_data, CD_NORMAL)))
@@ -286,6 +299,19 @@ static void loops_of_ptex_get(LoopsOfPtex *loops_of_ptex,
 /* -------------------------------------------------------------------- */
 /** \name Vertex custom data interpolation helpers
  * \{ */
+
+static MVertSkin mix_CD_MVERT_SKIN(const Span<MVertSkin> src,
+                                   const Span<int> src_indices,
+                                   const Span<float> weights)
+{
+  float3 radius;
+  for (const int i : src_indices.index_range()) {
+    radius += float3(src[src_indices[i]].radius) * weights[i];
+  }
+  MVertSkin result{};
+  copy_v3_v3(result.radius, radius);
+  return result;
+}
 
 static float3 mix_normals(const Span<float3> src,
                           const Span<int> src_indices,
@@ -423,6 +449,7 @@ struct VerticesForInterpolation {
    * unnecessary copies for regular faces, where we can simply use base vertices. */
   Span<GSpan> vert_data;
   Span<MDeformVert> dverts_data;
+  Span<MVertSkin> CD_MVERT_SKIN_data;
   /* Vertices data calculated for ptex corners. There are always 4 elements
    * in these arrays, aligned the following way:
    *
@@ -436,6 +463,7 @@ struct VerticesForInterpolation {
   LinearAllocator<> allocator;
   Array<GSpan> storage_spans;
   std::array<MDeformVert, 4> dverts_storage = {};
+  std::array<MVertSkin, 4> CD_MVERT_SKIN_storage = {};
   /* Indices within vert_data to interpolate for. The indices are aligned
    * with uv coordinates in a similar way as indices in storage_spans. */
   std::array<int, 4> vert_indices;
@@ -465,6 +493,7 @@ static void vert_interpolation_from_face(const SubdivMeshContext *ctx,
   if (coarse_face.size() == 4) {
     vert_interpolation->vert_data = ctx->coarse_vert_attr_spans;
     vert_interpolation->dverts_data = ctx->coarse_dverts;
+    vert_interpolation->CD_MVERT_SKIN_data = ctx->coarse_CD_MVERT_SKIN;
     vert_interpolation->vert_indices[0] = ctx->coarse_corner_verts[coarse_face.start() + 0];
     vert_interpolation->vert_indices[1] = ctx->coarse_corner_verts[coarse_face.start() + 1];
     vert_interpolation->vert_indices[2] = ctx->coarse_corner_verts[coarse_face.start() + 2];
@@ -473,6 +502,7 @@ static void vert_interpolation_from_face(const SubdivMeshContext *ctx,
   else {
     vert_interpolation->vert_data = vert_interpolation->storage_spans;
     vert_interpolation->dverts_data = vert_interpolation->dverts_storage;
+    vert_interpolation->CD_MVERT_SKIN_data = vert_interpolation->CD_MVERT_SKIN_storage;
     vert_interpolation->vert_indices[0] = 0;
     vert_interpolation->vert_indices[1] = 1;
     vert_interpolation->vert_indices[2] = 2;
@@ -494,6 +524,10 @@ static void vert_interpolation_from_face(const SubdivMeshContext *ctx,
       BKE_defvert_array_free_elems(&vert_interpolation->dverts_storage[2], 1);
       vert_interpolation->dverts_storage[2] = mix_deform_verts(
           ctx->coarse_dverts, indices, weights, vert_interpolation->dvert_mix_buffer);
+    }
+    if (!ctx->coarse_CD_MVERT_SKIN.is_empty()) {
+      vert_interpolation->CD_MVERT_SKIN_storage[2] = mix_CD_MVERT_SKIN(
+          ctx->coarse_CD_MVERT_SKIN, indices, weights);
     }
   }
 }
@@ -520,6 +554,9 @@ static void vert_interpolation_from_corner(const SubdivMeshContext *ctx,
       BKE_defvert_array_copy(
           vert_interpolation->dverts_storage.data(), &ctx->coarse_dverts[vert], 1);
     }
+    if (!ctx->coarse_CD_MVERT_SKIN.is_empty()) {
+      vert_interpolation->CD_MVERT_SKIN_storage[0] = ctx->coarse_CD_MVERT_SKIN[vert];
+    }
     /* Interpolate remaining ptex face corners, which hits loops
      * middle points.
      *
@@ -544,6 +581,10 @@ static void vert_interpolation_from_corner(const SubdivMeshContext *ctx,
       vert_interpolation->dverts_storage[1] = mix_deform_verts(
           ctx->coarse_dverts, first_indices, {0.5f, 0.5f}, vert_interpolation->dvert_mix_buffer);
     }
+    if (!ctx->coarse_CD_MVERT_SKIN.is_empty()) {
+      vert_interpolation->CD_MVERT_SKIN_storage[1] = mix_CD_MVERT_SKIN(
+          ctx->coarse_CD_MVERT_SKIN, first_indices, {0.5f, 0.5f});
+    }
     mix_attrs(ctx->coarse_vert_attr_spans,
               last_indices,
               0.5f,
@@ -553,6 +594,10 @@ static void vert_interpolation_from_corner(const SubdivMeshContext *ctx,
       BKE_defvert_array_free_elems(&vert_interpolation->dverts_storage[3], 1);
       vert_interpolation->dverts_storage[3] = mix_deform_verts(
           ctx->coarse_dverts, last_indices, {0.5f, 0.5f}, vert_interpolation->dvert_mix_buffer);
+    }
+    if (!ctx->coarse_CD_MVERT_SKIN.is_empty()) {
+      vert_interpolation->CD_MVERT_SKIN_storage[3] = mix_CD_MVERT_SKIN(
+          ctx->coarse_CD_MVERT_SKIN, last_indices, {0.5f, 0.5f});
     }
   }
 }
@@ -902,6 +947,9 @@ static void subdiv_vert_data_copy(const SubdivMeshContext *ctx,
     BKE_defvert_array_copy(
         &ctx->subdiv_dverts[subdiv_vert_index], &ctx->coarse_dverts[coarse_vert_index], 1);
   }
+  if (!ctx->coarse_CD_MVERT_SKIN.is_empty()) {
+    ctx->subdiv_CD_MVERT_SKIN[subdiv_vert_index] = ctx->coarse_CD_MVERT_SKIN[coarse_vert_index];
+  }
 }
 
 static float4 quad_weights_from_uv(const float u, const float v)
@@ -925,10 +973,16 @@ static void subdiv_vert_data_interpolate(const SubdivMeshContext *ctx,
     ctx->subdiv_vert_origindex[subdiv_vert_index] = ORIGINDEX_NONE;
   }
   if (!ctx->coarse_dverts.is_empty()) {
-    ctx->subdiv_dverts[subdiv_vert_index] = mix_deform_verts(ctx->coarse_dverts,
+    ctx->subdiv_dverts[subdiv_vert_index] = mix_deform_verts(vert_interpolation->dverts_data,
                                                              vert_interpolation->vert_indices,
                                                              Span(&weights.x, 4),
                                                              vert_interpolation->dvert_mix_buffer);
+  }
+  if (!ctx->coarse_CD_MVERT_SKIN.is_empty()) {
+    ctx->subdiv_CD_MVERT_SKIN[subdiv_vert_index] = mix_CD_MVERT_SKIN(
+        vert_interpolation->CD_MVERT_SKIN_data,
+        vert_interpolation->vert_indices,
+        Span(&weights.x, 4));
   }
 }
 
@@ -1386,6 +1440,10 @@ static void subdiv_mesh_vert_of_loose_edge_interpolate(SubdivMeshContext *ctx,
     MDeformWeightSet dvert_mix_buffer;
     ctx->subdiv_dverts[subdiv_vert_index] = mix_deform_verts(
         ctx->coarse_dverts, coarse_vert_indices, {1.0f - u, u}, dvert_mix_buffer);
+  }
+  if (!ctx->coarse_CD_MVERT_SKIN.is_empty()) {
+    ctx->subdiv_CD_MVERT_SKIN[subdiv_vert_index] = mix_CD_MVERT_SKIN(
+        ctx->coarse_CD_MVERT_SKIN, coarse_vert_indices, {1.0f - u, u});
   }
 }
 
