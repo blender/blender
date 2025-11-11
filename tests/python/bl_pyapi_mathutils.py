@@ -417,6 +417,30 @@ class ColorTesting(unittest.TestCase):
         _test_flat_buffer_protocol(self, Color, 3)
 
 
+# Test features of `mathutils` types.
+class TypeTesting(unittest.TestCase):
+
+    def test_keywords_unsupported_matrix(self):
+        with self.assertRaises(TypeError) as context:
+            Matrix(dummy=None)
+        self.assertEqual(str(context.exception), "Matrix(): takes no keyword args")
+
+    def test_keywords_unsupported_vector(self):
+        with self.assertRaises(TypeError) as context:
+            Vector(dummy=None)
+        self.assertEqual(str(context.exception), "Vector(): takes no keyword args")
+
+    def test_keywords_unsupported_color(self):
+        with self.assertRaises(TypeError) as context:
+            Color(dummy=None)
+        self.assertEqual(str(context.exception), "mathutils.Color(): takes no keyword args")
+
+    def test_keywords_unsupported_euler(self):
+        with self.assertRaises(TypeError) as context:
+            Euler(dummy=None)
+        self.assertEqual(str(context.exception), "mathutils.Euler(): takes no keyword args")
+
+
 class KDTreeTesting(unittest.TestCase):
     @staticmethod
     def kdtree_create_grid_3d_data(tot):

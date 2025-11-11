@@ -66,7 +66,7 @@ static PyObject *Color_vectorcall(PyObject *type,
                                   const size_t nargsf,
                                   PyObject *kwnames)
 {
-  if (UNLIKELY(kwnames && PyDict_Size(kwnames))) {
+  if (UNLIKELY(kwnames && PyTuple_GET_SIZE(kwnames))) {
     PyErr_SetString(PyExc_TypeError,
                     "mathutils.Color(): "
                     "takes no keyword args");
