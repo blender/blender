@@ -110,7 +110,7 @@ void BokehKernel::compute_gpu(Context &context,
 
   this->result.bind_as_image(shader, "output_img");
 
-  compute_dispatch_threads_at_least(shader, this->result.domain().size);
+  compute_dispatch_threads_at_least(shader, this->result.domain().data_size);
 
   this->result.unbind_as_image();
   GPU_shader_unbind();
@@ -262,7 +262,7 @@ void BokehKernel::compute_cpu(const int sides,
                               const float catadioptric,
                               const float lens_shift)
 {
-  const int2 size = this->result.domain().size;
+  const int2 size = this->result.domain().data_size;
   const float exterior_angle = compute_exterior_angle(sides);
   const float corrected_rotation = compute_rotation(rotation, sides);
 

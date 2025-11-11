@@ -98,7 +98,7 @@ class MovieDistortionOperation : public NodeOperation {
     const Result &distortion_grid = context().cache_manager().distortion_grids.get(
         context(),
         get_movie_clip(),
-        domain.size,
+        domain.data_size,
         get_distortion_type(),
         context().get_frame_number());
 
@@ -126,7 +126,7 @@ class MovieDistortionOperation : public NodeOperation {
     output_image.allocate_texture(distortion_grid.domain());
     output_image.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, distortion_grid.domain().size);
+    compute_dispatch_threads_at_least(shader, distortion_grid.domain().data_size);
 
     input_image.unbind_as_texture();
     distortion_grid.unbind_as_texture();
@@ -141,7 +141,7 @@ class MovieDistortionOperation : public NodeOperation {
     Result &output = get_result("Image");
     output.allocate_texture(distortion_grid.domain());
 
-    parallel_for(distortion_grid.domain().size, [&](const int2 texel) {
+    parallel_for(distortion_grid.domain().data_size, [&](const int2 texel) {
       output.store_pixel(
           texel, Color(input.sample_bilinear_zero(distortion_grid.load_pixel<float2>(texel))));
     });

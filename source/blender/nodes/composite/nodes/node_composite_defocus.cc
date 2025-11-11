@@ -142,7 +142,7 @@ class DefocusOperation : public NodeOperation {
     output.allocate_texture(domain);
     output.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     GPU_shader_unbind();
     input.unbind_as_texture();
@@ -182,7 +182,7 @@ class DefocusOperation : public NodeOperation {
           1.0f - ((float2(texel) + float2(radius + 0.5f)) / (radius * 2.0f + 1.0f)));
     };
 
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       float center_radius = math::max(0.0f, radius.load_pixel<float, true>(texel));
 
       /* Go over the window of the given search radius and accumulate the colors multiplied by
@@ -251,7 +251,7 @@ class DefocusOperation : public NodeOperation {
     output_radius.allocate_texture(domain);
     output_radius.bind_as_image(shader, "radius_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     GPU_shader_unbind();
     input_depth.unbind_as_texture();
@@ -282,7 +282,7 @@ class DefocusOperation : public NodeOperation {
     const Domain domain = input_depth.domain();
     output_radius.allocate_texture(domain);
 
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       float depth = input_depth.load_pixel<float>(texel);
       output_radius.store_pixel(texel, compute_radius(depth));
     });
@@ -336,7 +336,7 @@ class DefocusOperation : public NodeOperation {
     output_radius.allocate_texture(domain);
     output_radius.bind_as_image(shader, "radius_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     GPU_shader_unbind();
     input_depth.unbind_as_texture();
@@ -383,7 +383,7 @@ class DefocusOperation : public NodeOperation {
     const Domain domain = input_depth.domain();
     output_radius.allocate_texture(domain);
 
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       float depth = input_depth.load_pixel<float>(texel);
       output_radius.store_pixel(texel, compute_radius(depth));
     });
@@ -456,7 +456,7 @@ class DefocusOperation : public NodeOperation {
    * an invalid camera. Note that the stored sensor size is in millimeter, so convert to meters. */
   float compute_pixels_per_meter()
   {
-    const int2 size = compute_domain().size;
+    const int2 size = compute_domain().data_size;
     const Camera *camera = get_camera();
     const float default_value = size.x / (DEFAULT_SENSOR_WIDTH / 1000.0f);
     if (!camera) {

@@ -67,7 +67,7 @@ inline float4 summed_area_table_sum(const Result &table,
                                     const int2 &upper_bound)
 {
   int2 corrected_lower_bound = lower_bound - int2(1);
-  int2 corrected_upper_bound = math::min(table.domain().size - int2(1), upper_bound);
+  int2 corrected_upper_bound = math::min(table.domain().data_size - int2(1), upper_bound);
   float4 addend = float4(table.load_pixel_zero<Color>(corrected_upper_bound)) +
                   float4(table.load_pixel_zero<Color>(corrected_lower_bound));
   float4 subtrahend = float4(table.load_pixel_zero<Color>(

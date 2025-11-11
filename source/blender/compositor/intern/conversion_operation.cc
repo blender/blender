@@ -103,7 +103,7 @@ void ConversionOperation::execute()
     input.bind_as_texture(shader, "input_tx");
     result.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, input.domain().size);
+    compute_dispatch_threads_at_least(shader, input.domain().data_size);
 
     input.unbind_as_texture();
     result.unbind_as_image();

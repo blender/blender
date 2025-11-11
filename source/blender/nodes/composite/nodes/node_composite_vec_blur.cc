@@ -102,7 +102,7 @@ static Result compute_max_tile_velocity_cpu(Context &context, const Result &velo
   }
 
   const int2 tile_size = int2(MOTION_BLUR_TILE_SIZE);
-  const int2 velocity_size = velocity_image.domain().size;
+  const int2 velocity_size = velocity_image.domain().data_size;
   const int2 tiles_count = math::divide_ceil(velocity_size, tile_size);
   Result output = context.create_result(ResultType::Float4);
   output.allocate_texture(Domain(tiles_count));
@@ -193,7 +193,7 @@ static Result dilate_max_velocity_cpu(Context &context,
     return output;
   }
 
-  const int2 size = max_tile_velocity.domain().size;
+  const int2 size = max_tile_velocity.domain().data_size;
   Result output = context.create_result(ResultType::Float4);
   output.allocate_texture(Domain(size));
 
@@ -418,7 +418,7 @@ static void motion_blur_cpu(const Result &input_image,
                             const int samples_count,
                             const float shutter_speed)
 {
-  const int2 size = input_image.domain().size;
+  const int2 size = input_image.domain().data_size;
   threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
     for (const int64_t y : sub_y_range) {
       for (const int64_t x : IndexRange(size.x)) {
@@ -543,7 +543,7 @@ class VectorBlurOperation : public NodeOperation {
     input.bind_as_texture(shader, "input_tx");
 
     Result output = context().create_result(ResultType::Float4);
-    const int2 tiles_count = math::divide_ceil(input.domain().size, int2(32));
+    const int2 tiles_count = math::divide_ceil(input.domain().data_size, int2(32));
     output.allocate_texture(Domain(tiles_count));
     output.bind_as_image(shader, "output_img");
 
@@ -581,7 +581,7 @@ class VectorBlurOperation : public NodeOperation {
     const int slot = GPU_shader_get_ssbo_binding(shader, "tile_indirection_buf");
     GPU_storagebuf_bind(tile_indirection_buffer, slot);
 
-    compute_dispatch_threads_at_least(shader, max_tile_velocity.domain().size);
+    compute_dispatch_threads_at_least(shader, max_tile_velocity.domain().data_size);
 
     GPU_shader_unbind();
     max_tile_velocity.unbind_as_texture();
@@ -618,7 +618,7 @@ class VectorBlurOperation : public NodeOperation {
     output.allocate_texture(domain);
     output.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, output.domain().size);
+    compute_dispatch_threads_at_least(shader, output.domain().data_size);
 
     GPU_shader_unbind();
     input.unbind_as_texture();

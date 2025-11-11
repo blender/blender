@@ -225,7 +225,8 @@ class Context : public compositor::Context {
     void *lock;
     ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user, &lock);
 
-    const int2 size = result.is_single_value() ? this->get_render_size() : result.domain().size;
+    const int2 size = result.is_single_value() ? this->get_render_size() :
+                                                 result.domain().data_size;
     if (image_buffer->x != size.x || image_buffer->y != size.y) {
       IMB_free_byte_pixels(image_buffer);
       IMB_free_float_pixels(image_buffer);

@@ -118,7 +118,7 @@ class LevelsOperation : public NodeOperation {
   float compute_mean()
   {
     const Result &input = get_input("Image");
-    return compute_sum() / (input.domain().size.x * input.domain().size.y);
+    return compute_sum() / (input.domain().data_size.x * input.domain().data_size.y);
   }
 
   float compute_sum()
@@ -147,7 +147,7 @@ class LevelsOperation : public NodeOperation {
   {
     const Result &input = get_input("Image");
     const float sum = compute_sum_squared_difference(mean);
-    return std::sqrt(sum / (input.domain().size.x * input.domain().size.y));
+    return std::sqrt(sum / (input.domain().data_size.x * input.domain().data_size.y));
   }
 
   float compute_sum_squared_difference(float subtrahend)

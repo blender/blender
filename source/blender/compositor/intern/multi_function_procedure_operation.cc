@@ -57,7 +57,7 @@ MultiFunctionProcedureOperation::MultiFunctionProcedureOperation(Context &contex
 void MultiFunctionProcedureOperation::execute()
 {
   const Domain domain = compute_domain();
-  const int64_t size = int64_t(domain.size.x) * domain.size.y;
+  const int64_t size = int64_t(domain.data_size.x) * domain.data_size.y;
   const IndexMask mask = IndexMask(size);
   mf::ParamsBuilder parameter_builder{*procedure_executor_, &mask};
 

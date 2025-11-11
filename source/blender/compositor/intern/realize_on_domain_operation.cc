@@ -42,13 +42,14 @@ void RealizeOnDomainOperation::execute()
 {
   /* Translate the input such that it is centered in the virtual compositing space. Adding any
    * corrective translation if necessary. */
-  const float2 input_center_translation = float2(-float2(this->get_input().domain().size) / 2.0f);
+  const float2 input_center_translation = float2(-float2(this->get_input().domain().data_size) /
+                                                 2.0f);
   const float3x3 input_transformation = math::translate(
       this->get_input().domain().transformation,
       input_center_translation + this->compute_corrective_translation());
 
   /* Translate the output such that it is centered in the virtual compositing space. */
-  const float2 output_center_translation = -float2(this->compute_domain().size) / 2.0f;
+  const float2 output_center_translation = -float2(this->compute_domain().data_size) / 2.0f;
   const float3x3 output_transformation = math::translate(this->compute_domain().transformation,
                                                          output_center_translation);
 
@@ -77,8 +78,8 @@ float2 RealizeOnDomainOperation::compute_corrective_translation()
    * to the centering translation. Which introduce fuzzy result due to interpolation. So if one
    * is odd and the other is even, detected by testing the low bit of the xor of the sizes, shift
    * the input by 1/2 pixel so the pixels align. */
-  const int2 output_size = this->compute_domain().size;
-  const int2 input_size = this->get_input().domain().size;
+  const int2 output_size = this->compute_domain().data_size;
+  const int2 input_size = this->get_input().domain().data_size;
   return float2(((input_size[0] ^ output_size[0]) & 1) ? -0.5f : 0.0f,
                 ((input_size[1] ^ output_size[1]) & 1) ? -0.5f : 0.0f);
 }
@@ -115,7 +116,7 @@ void RealizeOnDomainOperation::realize_on_domain_gpu(const float3x3 &inverse_tra
   output.allocate_texture(domain);
   output.bind_as_image(shader, "domain_img");
 
-  compute_dispatch_threads_at_least(shader, domain.size);
+  compute_dispatch_threads_at_least(shader, domain.data_size);
 
   input.unbind_as_texture();
   output.unbind_as_image();
@@ -191,8 +192,8 @@ static void realize_on_domain(const Result &input,
                               const float3x3 &inverse_transformation)
 {
   const RealizationOptions realization_options = input.get_realization_options();
-  const int2 input_size = input.domain().size;
-  const int2 output_size = output.domain().size;
+  const int2 input_size = input.domain().data_size;
+  const int2 output_size = output.domain().data_size;
   parallel_for(output_size, [&](const int2 texel) {
     const float2 texel_coordinates = float2(texel) + float2(0.5f);
 
@@ -252,7 +253,7 @@ static constexpr float transformation_tolerance = 10e-6f;
 Domain RealizeOnDomainOperation::compute_realized_transformation_domain(
     Context &context, const Domain &domain, const bool realize_translation)
 {
-  const int2 size = domain.size;
+  const int2 size = domain.data_size;
 
   /* If the domain is only infinitesimally rotated or scaled, return a domain with just the
    * translation component if not realizing translation. */

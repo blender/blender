@@ -22,7 +22,7 @@ static void extract_alpha_gpu(Context &context, Result &input, Result &output)
   output.allocate_texture(input.domain());
   output.bind_as_image(shader, "output_img");
 
-  compute_dispatch_threads_at_least(shader, input.domain().size);
+  compute_dispatch_threads_at_least(shader, input.domain().data_size);
 
   GPU_shader_unbind();
   input.unbind_as_texture();
@@ -32,7 +32,7 @@ static void extract_alpha_gpu(Context &context, Result &input, Result &output)
 static void extract_alpha_cpu(Result &input, Result &output)
 {
   output.allocate_texture(input.domain());
-  parallel_for(input.domain().size, [&](const int2 texel) {
+  parallel_for(input.domain().data_size, [&](const int2 texel) {
     output.store_pixel(texel, input.load_pixel<Color>(texel).a);
   });
 }

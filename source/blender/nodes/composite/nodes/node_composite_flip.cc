@@ -72,7 +72,7 @@ class FlipOperation : public NodeOperation {
     result.allocate_texture(domain);
     result.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input.unbind_as_texture();
     result.unbind_as_image();
@@ -90,8 +90,8 @@ class FlipOperation : public NodeOperation {
     Result &output = get_result("Image");
     output.allocate_texture(domain);
 
-    const int2 size = domain.size;
-    parallel_for(domain.size, [&](const int2 texel) {
+    const int2 size = domain.data_size;
+    parallel_for(domain.data_size, [&](const int2 texel) {
       int2 flipped_texel = texel;
       if (flip_x) {
         flipped_texel.x = size.x - texel.x - 1;

@@ -595,7 +595,7 @@ class RenderLayerOperation : public NodeOperation {
     result.allocate_texture(Domain(this->context().get_compositing_region_size()));
     result.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, result.domain().size);
+    compute_dispatch_threads_at_least(shader, result.domain().data_size);
 
     GPU_shader_unbind();
     pass.unbind_as_texture();
@@ -644,12 +644,12 @@ class RenderLayerOperation : public NodeOperation {
 
     /* Special case for alpha output. */
     if (pass.type() == ResultType::Color && result.type() == ResultType::Float) {
-      parallel_for(result.domain().size, [&](const int2 texel) {
+      parallel_for(result.domain().data_size, [&](const int2 texel) {
         result.store_pixel(texel, pass.load_pixel<Color>(texel + lower_bound).a);
       });
     }
     else {
-      parallel_for(result.domain().size, [&](const int2 texel) {
+      parallel_for(result.domain().data_size, [&](const int2 texel) {
         result.store_pixel_generic_type(texel, pass.load_pixel_generic_type(texel + lower_bound));
       });
     }

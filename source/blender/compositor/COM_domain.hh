@@ -145,7 +145,7 @@ struct RealizationOptions {
 class Domain {
  public:
   /* The size of the domain in pixels. */
-  int2 size;
+  int2 data_size;
   /* The 2D transformation of the domain defining its translation in pixels, rotation, and scale in
    * the virtual compositing space. */
   float3x3 transformation;

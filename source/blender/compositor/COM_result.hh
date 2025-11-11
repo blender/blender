@@ -611,7 +611,7 @@ BLI_INLINE_METHOD T Result::load_pixel_extended(const int2 &texel) const
     BLI_assert(!this->is_single_value());
   }
 
-  const int2 clamped_texel = math::clamp(texel, int2(0), domain_.size - int2(1));
+  const int2 clamped_texel = math::clamp(texel, int2(0), domain_.data_size - int2(1));
   return this->cpu_data().typed<T>()[this->get_pixel_index(clamped_texel)];
 }
 
@@ -627,7 +627,9 @@ BLI_INLINE_METHOD T Result::load_pixel_fallback(const int2 &texel, const T &fall
     BLI_assert(!this->is_single_value());
   }
 
-  if (texel.x < 0 || texel.y < 0 || texel.x >= domain_.size.x || texel.y >= domain_.size.y) {
+  if (texel.x < 0 || texel.y < 0 || texel.x >= domain_.data_size.x ||
+      texel.y >= domain_.data_size.y)
+  {
     return fallback;
   }
 
@@ -694,7 +696,7 @@ BLI_INLINE_METHOD T Result::sample(const float2 &coordinates,
     }
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   const float2 texel_coordinates = coordinates * float2(size);
 
   if constexpr (is_same_any_v<T, float, float2, float3, float4, Color>) {
@@ -769,7 +771,7 @@ BLI_INLINE_METHOD float4 Result::sample_nearest_zero(const float2 &coordinates) 
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   const float2 texel_coordinates = coordinates * float2(size);
 
   const float *buffer = static_cast<const float *>(this->cpu_data().data());
@@ -793,7 +795,7 @@ BLI_INLINE_METHOD float4 Result::sample_nearest_wrap(const float2 &coordinates,
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   const float2 texel_coordinates = coordinates * float2(size);
 
   const float *buffer = static_cast<const float *>(this->cpu_data().data());
@@ -820,7 +822,7 @@ BLI_INLINE_METHOD float4 Result::sample_bilinear_wrap(const float2 &coordinates,
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   const float2 texel_coordinates = coordinates * float2(size) - 0.5f;
 
   const float *buffer = static_cast<const float *>(this->cpu_data().data());
@@ -847,7 +849,7 @@ BLI_INLINE_METHOD float4 Result::sample_cubic_wrap(const float2 &coordinates,
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   const float2 texel_coordinates = coordinates * float2(size) - 0.5f;
 
   const float *buffer = static_cast<const float *>(this->cpu_data().data());
@@ -872,7 +874,7 @@ BLI_INLINE_METHOD float4 Result::sample_bilinear_zero(const float2 &coordinates)
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   const float2 texel_coordinates = (coordinates * float2(size)) - 0.5f;
 
   const float *buffer = static_cast<const float *>(this->cpu_data().data());
@@ -894,7 +896,7 @@ BLI_INLINE_METHOD float4 Result::sample_nearest_extended(const float2 &coordinat
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   const float2 texel_coordinates = coordinates * float2(size);
 
   const float *buffer = static_cast<const float *>(this->cpu_data().data());
@@ -916,7 +918,7 @@ BLI_INLINE_METHOD float4 Result::sample_bilinear_extended(const float2 &coordina
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   const float2 texel_coordinates = (coordinates * float2(size)) - 0.5f;
 
   const float *buffer = static_cast<const float *>(this->cpu_data().data());
@@ -938,7 +940,7 @@ BLI_INLINE_METHOD float4 Result::sample_cubic_extended(const float2 &coordinates
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   const float2 texel_coordinates = (coordinates * float2(size)) - 0.5f;
 
   const float *buffer = static_cast<const float *>(this->cpu_data().data());
@@ -975,7 +977,7 @@ BLI_INLINE_METHOD float4 Result::sample_ewa_extended(const float2 &coordinates,
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   BLI_ewa_filter(size.x,
                  size.y,
                  false,
@@ -1012,7 +1014,7 @@ BLI_INLINE_METHOD float4 Result::sample_ewa_zero(const float2 &coordinates,
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   BLI_ewa_filter(size.x,
                  size.y,
                  false,
@@ -1030,8 +1032,9 @@ BLI_INLINE_METHOD int64_t Result::get_pixel_index(const int2 &texel) const
 {
   BLI_assert(!is_single_value_);
   BLI_assert(this->is_allocated());
-  BLI_assert(texel.x >= 0 && texel.y >= 0 && texel.x < domain_.size.x && texel.y < domain_.size.y);
-  return int64_t(texel.y) * domain_.size.x + texel.x;
+  BLI_assert(texel.x >= 0 && texel.y >= 0 && texel.x < domain_.data_size.x &&
+             texel.y < domain_.data_size.y);
+  return int64_t(texel.y) * domain_.data_size.x + texel.x;
 }
 
 }  // namespace blender::compositor

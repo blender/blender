@@ -189,7 +189,7 @@ void KeyingScreen::compute_gpu(Context &context,
 
   this->result.bind_as_image(shader, "output_img");
 
-  compute_dispatch_threads_at_least(shader, this->result.domain().size);
+  compute_dispatch_threads_at_least(shader, this->result.domain().data_size);
 
   this->result.unbind_as_image();
   GPU_storagebuf_unbind(positions_ssbo);
@@ -205,7 +205,7 @@ void KeyingScreen::compute_cpu(const float smoothness,
                                const Vector<float4> &marker_colors)
 {
   float squared_shape_parameter = math::square(1.0f / smoothness);
-  const int2 size = this->result.domain().size;
+  const int2 size = this->result.domain().data_size;
   parallel_for(size, [&](const int2 texel) {
     float2 normalized_pixel_location = (float2(texel) + float2(0.5f)) / float2(size);
 

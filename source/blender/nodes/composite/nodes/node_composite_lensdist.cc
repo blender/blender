@@ -344,14 +344,14 @@ class LensDistortionOperation : public NodeOperation {
 
     const Domain domain = compute_domain();
 
-    const float dispersion = (get_dispersion() * HORIZONTAL_DISPERSION_SCALE) / domain.size.x;
+    const float dispersion = (get_dispersion() * HORIZONTAL_DISPERSION_SCALE) / domain.data_size.x;
     GPU_shader_uniform_1f(shader, "dispersion", dispersion);
 
     Result &output_image = get_result("Image");
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input_image.unbind_as_texture();
     output_image.unbind_as_image();
@@ -361,14 +361,14 @@ class LensDistortionOperation : public NodeOperation {
   void execute_horizontal_distortion_cpu()
   {
     const Domain domain = compute_domain();
-    const float dispersion = (get_dispersion() * HORIZONTAL_DISPERSION_SCALE) / domain.size.x;
+    const float dispersion = (get_dispersion() * HORIZONTAL_DISPERSION_SCALE) / domain.data_size.x;
 
     const Result &input = get_input("Image");
 
     Result &output = get_result("Image");
     output.allocate_texture(domain);
 
-    const int2 size = domain.size;
+    const int2 size = domain.data_size;
     parallel_for(size, [&](const int2 texel) {
       /* Get the normalized coordinates of the pixel centers. */
       float2 normalized_texel = (float2(texel) + float2(0.5f)) / float2(size);
@@ -415,7 +415,7 @@ class LensDistortionOperation : public NodeOperation {
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input_image.unbind_as_texture();
     output_image.unbind_as_image();
@@ -442,7 +442,7 @@ class LensDistortionOperation : public NodeOperation {
     Result &output = get_result("Image");
     output.allocate_texture(domain);
 
-    const int2 size = domain.size;
+    const int2 size = domain.data_size;
     parallel_for(size, [&](const int2 texel) {
       radial_lens_distortion(texel, input, output, size, chromatic_distortion, scale, use_jitter);
     });

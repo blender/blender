@@ -132,7 +132,7 @@ class FilterOperation : public NodeOperation {
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input_image.unbind_as_texture();
     factor.unbind_as_texture();
@@ -160,7 +160,7 @@ class FilterOperation : public NodeOperation {
     output.allocate_texture(domain);
 
     if (this->is_edge_filter()) {
-      parallel_for(domain.size, [&](const int2 texel) {
+      parallel_for(domain.data_size, [&](const int2 texel) {
         /* Compute the dot product between the 3x3 window around the pixel and the edge detection
          * kernel in the X direction and Y direction. The Y direction kernel is computed by
          * transposing the given X direction kernel. */
@@ -190,7 +190,7 @@ class FilterOperation : public NodeOperation {
       });
     }
     else {
-      parallel_for(domain.size, [&](const int2 texel) {
+      parallel_for(domain.data_size, [&](const int2 texel) {
         /* Compute the dot product between the 3x3 window around the pixel and the kernel. */
         float4 color = float4(0.0f);
         for (int j = 0; j < 3; j++) {

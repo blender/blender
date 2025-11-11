@@ -25,7 +25,7 @@ static void blur_pass(const Result &input, const Result &weights, Result &output
 
   /* Notice that the size is transposed, see the note on the horizontal pass method for more
    * information on the reasoning behind this. */
-  const int2 size = int2(output.domain().size.y, output.domain().size.x);
+  const int2 size = int2(output.domain().data_size.y, output.domain().data_size.x);
   parallel_for(size, [&](const int2 texel) {
     /* Use float4 for Color types since Color does not support arithmetics. */
     using AccumulateT = std::conditional_t<std::is_same_v<T, Color>, float4, T>;
@@ -39,7 +39,7 @@ static void blur_pass(const Result &input, const Result &weights, Result &output
      * weights texture only stores the weights for the positive half, but since the filter is
      * symmetric, the same weight is used for the negative half and we add both of their
      * contributions. */
-    for (int i = 1; i < weights.domain().size.x; i++) {
+    for (int i = 1; i < weights.domain().data_size.x; i++) {
       float weight = weights.load_pixel<float>(int2(i, 0));
       accumulated_value += AccumulateT(input.load_pixel_extended<T>(texel + int2(i, 0))) * weight;
       accumulated_value += AccumulateT(input.load_pixel_extended<T>(texel + int2(-i, 0))) * weight;
@@ -90,13 +90,13 @@ static Result horizontal_pass_gpu(Context &context,
    * spatial cache locality in the shader and to avoid having two separate shaders for each blur
    * pass. */
   Domain domain = input.domain();
-  const int2 transposed_domain = int2(domain.size.y, domain.size.x);
+  const int2 transposed_domain = int2(domain.data_size.y, domain.data_size.x);
 
   Result output = context.create_result(input.type());
   output.allocate_texture(transposed_domain);
   output.bind_as_image(shader, "output_img");
 
-  compute_dispatch_threads_at_least(shader, domain.size);
+  compute_dispatch_threads_at_least(shader, domain.data_size);
 
   GPU_shader_unbind();
   input.unbind_as_texture();
@@ -123,7 +123,7 @@ static Result horizontal_pass_cpu(Context &context,
    * spatial cache locality in the shader and to avoid having two separate shaders for each blur
    * pass. */
   const Domain domain = input.domain();
-  const int2 transposed_domain = int2(domain.size.y, domain.size.x);
+  const int2 transposed_domain = int2(domain.data_size.y, domain.data_size.x);
 
   Result output = context.create_result(input.type());
   output.allocate_texture(transposed_domain);
@@ -179,7 +179,7 @@ static void vertical_pass_gpu(Context &context,
 
   /* Notice that the domain is transposed, see the note on the horizontal pass method for more
    * information on the reasoning behind this. */
-  compute_dispatch_threads_at_least(shader, int2(domain.size.y, domain.size.x));
+  compute_dispatch_threads_at_least(shader, int2(domain.data_size.y, domain.data_size.x));
 
   GPU_shader_unbind();
   horizontal_pass_result.unbind_as_texture();

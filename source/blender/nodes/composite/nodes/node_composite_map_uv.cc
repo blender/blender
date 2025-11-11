@@ -135,7 +135,7 @@ class MapUVOperation : public NodeOperation {
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input_image.unbind_as_texture();
     input_uv.unbind_as_texture();
@@ -211,7 +211,7 @@ class MapUVOperation : public NodeOperation {
     Result &output_image = get_result("Image");
     output_image.allocate_texture(domain);
 
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       float2 uv_coordinates = input_uv.load_pixel<float3>(texel).xy();
       float4 sampled_color = float4(input_image.sample<Color>(
           uv_coordinates, interpolation, extension_mode_x, extension_mode_y));
@@ -244,8 +244,8 @@ class MapUVOperation : public NodeOperation {
      * the image in 2x2 blocks of pixels, where the derivatives are computed horizontally and
      * vertically across the 2x2 block such that odd texels use a forward finite difference
      * equation while even invocations use a backward finite difference equation. */
-    const int2 size = domain.size;
-    const int2 uv_size = input_uv.domain().size;
+    const int2 size = domain.data_size;
+    const int2 uv_size = input_uv.domain().data_size;
     parallel_for(math::divide_ceil(size, int2(2)), [&](const int2 base_texel) {
       const int x = base_texel.x * 2;
       const int y = base_texel.y * 2;

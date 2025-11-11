@@ -40,8 +40,8 @@ void convolve(Context &context,
    * kernel size and vice versa to avoid the kernel affecting the pixels at the other side of
    * image. The kernel size is limited by the image size since it will have no effect on the image
    * during convolution. */
-  const int2 image_size = input.domain().size;
-  const int2 kernel_size = kernel.domain().size;
+  const int2 image_size = input.domain().data_size;
+  const int2 kernel_size = kernel.domain().data_size;
   const int2 needed_padding_amount = math::max(kernel_size, image_size);
   const int2 needed_spatial_size = image_size + needed_padding_amount - 1;
   const int2 spatial_size = fftw::optimal_size_for_real_transform(needed_spatial_size);

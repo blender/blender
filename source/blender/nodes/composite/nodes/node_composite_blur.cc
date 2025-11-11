@@ -169,7 +169,7 @@ class BlurOperation : public NodeOperation {
     output.allocate_texture(domain);
     output.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     GPU_shader_unbind();
     output.unbind_as_image();
@@ -186,14 +186,14 @@ class BlurOperation : public NodeOperation {
     const Domain domain = input.domain();
     output.allocate_texture(domain);
 
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       float4 accumulated_color = float4(0.0f);
 
       /* First, compute the contribution of the center pixel. */
       float4 center_color = float4(input.load_pixel_extended<Color>(texel));
       accumulated_color += center_color * weights.load_pixel<float>(int2(0));
 
-      int2 weights_size = weights.domain().size;
+      int2 weights_size = weights.domain().data_size;
 
       /* Then, compute the contributions of the pixels along the x axis of the filter, noting that
        * the weights texture only stores the weights for the positive half, but since the filter is
@@ -266,7 +266,7 @@ class BlurOperation : public NodeOperation {
     output.allocate_texture(domain);
     output.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     GPU_shader_unbind();
     output.unbind_as_image();
@@ -284,7 +284,7 @@ class BlurOperation : public NodeOperation {
     const Domain domain = input.domain();
     output.allocate_texture(domain);
 
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       float4 accumulated_color = float4(0.0f);
       float4 accumulated_weight = float4(0.0f);
 

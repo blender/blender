@@ -185,7 +185,7 @@ class CornerPinOperation : public NodeOperation {
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input_image.unbind_as_texture();
     if (plane_mask) {
@@ -207,7 +207,7 @@ class CornerPinOperation : public NodeOperation {
     const ExtensionMode extension_mode_x = this->get_extension_mode_x();
     const ExtensionMode extension_mode_y = this->get_extension_mode_y();
 
-    const int2 size = domain.size;
+    const int2 size = domain.data_size;
     parallel_for(size, [&](const int2 texel) {
       float2 coordinates = (float2(texel) + float2(0.5f)) / float2(size);
 
@@ -268,7 +268,7 @@ class CornerPinOperation : public NodeOperation {
     plane_mask.allocate_texture(domain);
     plane_mask.bind_as_image(shader, "mask_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     plane_mask.unbind_as_image();
     GPU_shader_unbind();
@@ -284,7 +284,7 @@ class CornerPinOperation : public NodeOperation {
     Result plane_mask = context().create_result(ResultType::Float);
     plane_mask.allocate_texture(domain);
 
-    const int2 size = domain.size;
+    const int2 size = domain.data_size;
     parallel_for(size, [&](const int2 texel) {
       float2 coordinates = (float2(texel) + float2(0.5f)) / float2(size);
 

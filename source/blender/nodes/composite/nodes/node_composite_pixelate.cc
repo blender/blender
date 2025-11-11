@@ -73,7 +73,7 @@ class PixelateOperation : public NodeOperation {
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     GPU_shader_unbind();
     output_image.unbind_as_image();
@@ -88,7 +88,7 @@ class PixelateOperation : public NodeOperation {
     const Domain domain = compute_domain();
     output.allocate_texture(domain);
 
-    const int2 size = domain.size;
+    const int2 size = domain.data_size;
     const int pixel_size = get_pixel_size();
     parallel_for(size, [&](const int2 texel) {
       int2 start = (texel / int2(pixel_size)) * int2(pixel_size);

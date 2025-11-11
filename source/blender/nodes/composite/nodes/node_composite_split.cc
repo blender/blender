@@ -80,7 +80,7 @@ class SplitOperation : public NodeOperation {
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     first_image.unbind_as_texture();
     second_image.unbind_as_texture();
@@ -101,7 +101,7 @@ class SplitOperation : public NodeOperation {
     const float2 normal = {-math::sin(rotation), math::cos(rotation)};
     const float2 line_point = this->get_position(domain);
 
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       const float2 direction_to_line_point = line_point - float2(texel);
       const float projection = math::dot(normal, direction_to_line_point);
       const bool is_below_line = projection <= 0;
@@ -115,7 +115,7 @@ class SplitOperation : public NodeOperation {
   {
     const float2 relative_position =
         this->get_input("Position").get_single_value_default(float2(0.5f, 0.5f));
-    return float2(domain.size) * relative_position;
+    return float2(domain.data_size) * relative_position;
   }
 
   math::AngleRadian get_rotation()

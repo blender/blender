@@ -104,7 +104,7 @@ class InpaintOperation : public NodeOperation {
     inpainting_boundary.allocate_texture(domain);
     inpainting_boundary.bind_as_image(shader, "boundary_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input.unbind_as_texture();
     inpainting_boundary.unbind_as_image();
@@ -129,7 +129,7 @@ class InpaintOperation : public NodeOperation {
      * Technically, we needn't restrict the output to just the boundary pixels, since the algorithm
      * can still operate if the interior of the region was also included. However, the algorithm
      * operates more accurately when the number of pixels to be flooded is minimum. */
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       /* Identify if any of the 8 neighbors around the center pixel are transparent. */
       bool has_transparent_neighbors = false;
       for (int j = -1; j <= 1; j++) {
@@ -201,7 +201,7 @@ class InpaintOperation : public NodeOperation {
     smoothing_radius.allocate_texture(domain);
     smoothing_radius.bind_as_image(shader, "smoothing_radius_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input.unbind_as_texture();
     flooded_boundary.unbind_as_texture();
@@ -228,7 +228,7 @@ class InpaintOperation : public NodeOperation {
     /* Fill the inpainting region by sampling the color of the nearest boundary pixel.
      * Additionally, compute some information about the inpainting region, like the distance to the
      * boundary, as well as the blur radius to use to smooth out that region. */
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       float4 color = float4(input.load_pixel<Color>(texel));
 
       /* An opaque pixel, not part of the inpainting region. */
@@ -296,7 +296,7 @@ class InpaintOperation : public NodeOperation {
     output.allocate_texture(domain);
     output.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input.unbind_as_texture();
     inpainted_region.unbind_as_texture();
@@ -316,7 +316,7 @@ class InpaintOperation : public NodeOperation {
     Result &output = this->get_result("Image");
     output.allocate_texture(domain);
 
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       float4 color = float4(input.load_pixel<Color>(texel));
 
       /* An opaque pixel, not part of the inpainting region, write the original color. */

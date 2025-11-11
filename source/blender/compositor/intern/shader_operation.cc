@@ -67,7 +67,7 @@ void ShaderOperation::execute()
   bind_inputs(shader);
   bind_outputs(shader);
 
-  compute_dispatch_threads_at_least(shader, domain.size);
+  compute_dispatch_threads_at_least(shader, domain.data_size);
 
   GPU_texture_unbind_all();
   GPU_texture_image_unbind_all();

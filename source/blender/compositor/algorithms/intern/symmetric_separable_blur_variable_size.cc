@@ -26,7 +26,7 @@ static void blur_pass(const Result &input,
 {
   /* Notice that the size is transposed, see the note on the horizontal pass method for more
    * information on the reasoning behind this. */
-  const int2 size = int2(output.domain().size.y, output.domain().size.x);
+  const int2 size = int2(output.domain().data_size.y, output.domain().data_size.x);
   parallel_for(size, [&](const int2 texel) {
     float accumulated_weight = 0.0f;
     float4 accumulated_color = float4(0.0f);
@@ -92,13 +92,13 @@ static Result horizontal_pass_gpu(Context &context,
    * spatial cache locality in the shader and to avoid having two separate shaders for each blur
    * pass. */
   Domain domain = input.domain();
-  const int2 transposed_domain = int2(domain.size.y, domain.size.x);
+  const int2 transposed_domain = int2(domain.data_size.y, domain.data_size.x);
 
   Result output = context.create_result(input.type());
   output.allocate_texture(transposed_domain);
   output.bind_as_image(shader, "output_img");
 
-  compute_dispatch_threads_at_least(shader, domain.size);
+  compute_dispatch_threads_at_least(shader, domain.data_size);
 
   GPU_shader_unbind();
   input.unbind_as_texture();
@@ -127,7 +127,7 @@ static Result horizontal_pass_cpu(Context &context,
    * spatial cache locality in the shader and to avoid having two separate shaders for each blur
    * pass. */
   Domain domain = input.domain();
-  const int2 transposed_domain = int2(domain.size.y, domain.size.x);
+  const int2 transposed_domain = int2(domain.data_size.y, domain.data_size.x);
 
   Result output = context.create_result(input.type());
   output.allocate_texture(transposed_domain);
@@ -178,7 +178,7 @@ static void vertical_pass_gpu(Context &context,
 
   /* Notice that the domain is transposed, see the note on the horizontal pass method for more
    * information on the reasoning behind this. */
-  compute_dispatch_threads_at_least(shader, int2(domain.size.y, domain.size.x));
+  compute_dispatch_threads_at_least(shader, int2(domain.data_size.y, domain.data_size.x));
 
   GPU_shader_unbind();
   horizontal_pass_result.unbind_as_texture();

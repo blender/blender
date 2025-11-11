@@ -99,7 +99,7 @@ class DespeckleOperation : public NodeOperation {
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     GPU_shader_unbind();
     output_image.unbind_as_image();
@@ -128,7 +128,7 @@ class DespeckleOperation : public NodeOperation {
                                 float3(1.0f, 0.0f, 1.0f),
                                 float3(corner_weight, 1.0f, corner_weight));
 
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       float4 center_color = float4(input.load_pixel<Color>(texel));
 
       /* Go over the pixels in the 3x3 window around the center pixel and compute the total sum of

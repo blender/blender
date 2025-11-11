@@ -81,7 +81,7 @@ class GroupInputOperation : public NodeOperation {
     result.allocate_texture(Domain(this->context().get_compositing_region_size()));
     result.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, result.domain().size);
+    compute_dispatch_threads_at_least(shader, result.domain().data_size);
 
     GPU_shader_unbind();
     pass.unbind_as_texture();
@@ -123,7 +123,7 @@ class GroupInputOperation : public NodeOperation {
 
     const int2 size = this->context().use_context_bounds_for_input_output() ?
                           this->context().get_compositing_region_size() :
-                          pass.domain().size;
+                          pass.domain().data_size;
     result.allocate_texture(size);
 
     parallel_for(size, [&](const int2 texel) {

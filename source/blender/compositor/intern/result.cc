@@ -395,7 +395,7 @@ void Result::allocate_texture(const Domain domain,
   BLI_assert(!Result::is_single_value_only_type(this->type()));
 
   is_single_value_ = false;
-  this->allocate_data(domain.size, from_pool, storage_type);
+  this->allocate_data(domain.data_size, from_pool, storage_type);
   domain_ = domain;
 }
 
@@ -465,7 +465,7 @@ Result Result::upload_to_gpu(const bool from_pool) const
   BLI_assert(this->is_allocated());
 
   Result result = Result(*context_, this->type(), this->precision());
-  result.allocate_texture(this->domain().size, from_pool, ResultStorageType::GPU);
+  result.allocate_texture(this->domain().data_size, from_pool, ResultStorageType::GPU);
 
   GPU_texture_update(result, this->get_gpu_data_format(), this->cpu_data().data());
   return result;
@@ -479,7 +479,7 @@ Result Result::download_to_cpu() const
   Result result = Result(*context_, this->type(), this->precision());
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
   void *data = GPU_texture_read(*this, this->get_gpu_data_format(), 0);
-  result.steal_data(data, this->domain().size);
+  result.steal_data(data, this->domain().data_size);
 
   return result;
 }
@@ -783,7 +783,7 @@ int64_t Result::size_in_bytes() const
   if (this->is_single_value()) {
     return pixel_size;
   }
-  const int2 image_size = this->domain().size;
+  const int2 image_size = this->domain().data_size;
   return pixel_size * image_size.x * image_size.y;
 }
 

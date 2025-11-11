@@ -38,7 +38,7 @@ static void sum_causal_and_non_causal_results_gpu(Context &context,
   output.allocate_texture(transposed_domain);
   output.bind_as_image(shader, "output_img");
 
-  compute_dispatch_threads_at_least(shader, domain.size);
+  compute_dispatch_threads_at_least(shader, domain.data_size);
 
   GPU_shader_unbind();
   first_causal_input.unbind_as_texture();
@@ -58,7 +58,7 @@ static void sum_causal_and_non_causal_results_cpu(const Result &first_causal_inp
   const Domain domain = first_causal_input.domain();
   const Domain transposed_domain = domain.transposed();
   output.allocate_texture(transposed_domain);
-  parallel_for(domain.size, [&](const int2 texel) {
+  parallel_for(domain.data_size, [&](const int2 texel) {
     /* The Van Vliet filter is a parallel interconnection filter, meaning its output is the sum of
      * all of its causal and non causal filters. */
     float4 filter_output = float4(first_causal_input.load_pixel<Color>(texel)) +
@@ -170,7 +170,7 @@ static void blur_pass_gpu(Context &context,
   /* The second dispatch dimension is 4 dispatches, one for the first causal filter, one for the
    * first non causal filter, one for the second causal filter, and one for the second non causal
    * filter. */
-  compute_dispatch_threads_at_least(shader, int2(domain.size.y, 4), int2(64, 4));
+  compute_dispatch_threads_at_least(shader, int2(domain.data_size.y, 4), int2(64, 4));
 
   GPU_shader_unbind();
   input.unbind_as_texture();
@@ -219,7 +219,7 @@ static void blur_pass_cpu(Context &context,
   /* The first dispatch dimension is 4 dispatches, one for the first causal filter, one for the
    * first non causal filter, one for the second causal filter, and one for the second non causal
    * filter. */
-  const int2 parallel_for_size = int2(4, domain.size.y);
+  const int2 parallel_for_size = int2(4, domain.data_size.y);
   /* Blur the input horizontally by applying a fourth order IIR filter approximating a Gaussian
    * filter using Van Vliet's design method. This is based on the following paper:
    *
@@ -235,7 +235,7 @@ static void blur_pass_cpu(Context &context,
   parallel_for(parallel_for_size, [&](const int2 invocation) {
     /* The shader runs parallel across rows but serially across columns. */
     int y = invocation.y;
-    int width = input.domain().size.x;
+    int width = input.domain().data_size.x;
 
     /* The second dispatch dimension is four dispatches:
      *

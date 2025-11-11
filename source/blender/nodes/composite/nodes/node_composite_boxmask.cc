@@ -127,7 +127,7 @@ class BoxMaskOperation : public NodeOperation {
 
     const Domain domain = compute_domain();
 
-    GPU_shader_uniform_2iv(shader, "domain_size", domain.size);
+    GPU_shader_uniform_2iv(shader, "domain_size", domain.data_size);
 
     GPU_shader_uniform_2fv(shader, "location", get_location());
     GPU_shader_uniform_2fv(shader, "size", get_size() / 2.0f);
@@ -144,7 +144,7 @@ class BoxMaskOperation : public NodeOperation {
     output_mask.allocate_texture(domain);
     output_mask.bind_as_image(shader, "output_mask_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input_mask.unbind_as_texture();
     value.unbind_as_texture();
@@ -177,7 +177,7 @@ class BoxMaskOperation : public NodeOperation {
     const Domain domain = this->compute_domain();
     output_mask.allocate_texture(domain);
 
-    const int2 domain_size = domain.size;
+    const int2 domain_size = domain.data_size;
     const float2 location = this->get_location();
     const float2 size = this->get_size() / 2.0f;
     const float cos_angle = math::cos(this->get_angle());

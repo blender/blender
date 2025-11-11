@@ -132,7 +132,7 @@ class Context : public compositor::Context {
     const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
     GPU_texture_image_bind(output, image_unit);
 
-    compositor::compute_dispatch_threads_at_least(shader, result.domain().size);
+    compositor::compute_dispatch_threads_at_least(shader, result.domain().data_size);
 
     result.unbind_as_texture();
     GPU_texture_image_unbind(output);

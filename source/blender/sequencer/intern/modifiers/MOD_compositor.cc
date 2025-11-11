@@ -115,7 +115,7 @@ class CompositorContext : public compositor::Context {
     }
 
     result_translation_ = result.domain().transformation.location();
-    const int2 size = result.domain().size;
+    const int2 size = result.domain().data_size;
     if (size != int2(image_buffer_->x, image_buffer_->y)) {
       /* Output size is different (e.g. image is blurred with expanded bounds);
        * need to allocate appropriately sized buffer. */

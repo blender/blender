@@ -30,7 +30,7 @@ static void compute_preview_cpu(Context &context,
                                 const Result &input_result,
                                 bke::bNodePreview *preview)
 {
-  const int2 input_size = input_result.domain().size;
+  const int2 input_size = input_result.domain().data_size;
   const int2 preview_size = int2(preview->ibuf->x, preview->ibuf->y);
 
   ColormanageProcessor *color_processor = IMB_colormanagement_display_processor_new(
@@ -125,7 +125,7 @@ void compute_preview(Context &context, const DNode &node, const Result &input_re
   bNodeTree *root_tree = const_cast<bNodeTree *>(
       &node.context()->derived_tree().root_context().btree());
 
-  const int2 preview_size = compute_preview_size(input_result.domain().size);
+  const int2 preview_size = compute_preview_size(input_result.domain().data_size);
 
   bke::bNodePreview *preview = bke::node_preview_verify(
       root_tree->runtime->previews, node.instance_key(), preview_size.x, preview_size.y, true);

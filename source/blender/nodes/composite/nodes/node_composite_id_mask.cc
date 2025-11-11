@@ -84,7 +84,7 @@ class IDMaskOperation : public NodeOperation {
     output_mask.allocate_texture(domain);
     output_mask.bind_as_image(shader, "output_mask_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input_mask.unbind_as_texture();
     output_mask.unbind_as_image();
@@ -100,7 +100,7 @@ class IDMaskOperation : public NodeOperation {
     const Domain domain = compute_domain();
     output_mask.allocate_texture(domain);
 
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       float input_mask_value = input_mask.load_pixel<float>(texel);
       float mask = int(math::round(input_mask_value)) == index ? 1.0f : 0.0f;
       output_mask.store_pixel(texel, mask);
