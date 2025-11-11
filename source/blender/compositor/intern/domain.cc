@@ -14,10 +14,16 @@
 
 namespace blender::compositor {
 
-Domain::Domain(const int2 &size) : data_size(size), transformation(float3x3::identity()) {}
+Domain::Domain(const int2 &size)
+    : data_size(size),
+      display_size(size),
+      data_offset(int2(0)),
+      transformation(float3x3::identity())
+{
+}
 
 Domain::Domain(const int2 &size, const float3x3 &transformation)
-    : data_size(size), transformation(transformation)
+    : data_size(size), display_size(size), data_offset(int2(0)), transformation(transformation)
 {
 }
 
@@ -30,6 +36,8 @@ Domain Domain::transposed() const
 {
   Domain domain = *this;
   domain.data_size = int2(this->data_size.y, this->data_size.x);
+  domain.display_size = int2(this->display_size.y, this->display_size.x);
+  domain.data_offset = int2(this->data_offset.y, this->data_offset.x);
   return domain;
 }
 
