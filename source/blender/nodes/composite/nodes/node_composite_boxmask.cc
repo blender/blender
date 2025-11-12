@@ -79,9 +79,9 @@ static void box_mask(const Result &base_mask,
                      const float sin_angle)
 {
   parallel_for(domain.data_size, [&](const int2 texel) {
-    float2 uv = float2(texel) / float2(domain.data_size - int2(1));
+    float2 uv = float2(texel + domain.data_offset) / float2(domain.display_size - int2(1));
     uv -= location;
-    uv.y *= float(domain.data_size.y) / float(domain.data_size.x);
+    uv.y *= float(domain.display_size.y) / float(domain.display_size.x);
     uv = float2x2(float2(cos_angle, -sin_angle), float2(sin_angle, cos_angle)) * uv;
     bool is_inside = math::abs(uv.x) < size.x && math::abs(uv.y) < size.y;
 
@@ -128,7 +128,8 @@ class BoxMaskOperation : public NodeOperation {
 
     const Domain domain = compute_domain();
 
-    GPU_shader_uniform_2iv(shader, "domain_size", domain.data_size);
+    GPU_shader_uniform_2iv(shader, "display_size", domain.display_size);
+    GPU_shader_uniform_2iv(shader, "data_offset", domain.data_offset);
 
     GPU_shader_uniform_2fv(shader, "location", get_location());
     GPU_shader_uniform_2fv(shader, "size", get_size() / 2.0f);

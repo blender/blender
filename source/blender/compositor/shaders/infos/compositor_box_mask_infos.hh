@@ -6,7 +6,8 @@
 
 GPU_SHADER_CREATE_INFO(compositor_box_mask_shared)
 LOCAL_GROUP_SIZE(16, 16)
-PUSH_CONSTANT(int2, domain_size)
+PUSH_CONSTANT(int2, display_size)
+PUSH_CONSTANT(int2, data_offset)
 PUSH_CONSTANT(float2, location)
 PUSH_CONSTANT(float2, size)
 PUSH_CONSTANT(float, cos_angle)
