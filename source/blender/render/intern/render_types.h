@@ -201,9 +201,9 @@ struct Render : public BaseRender {
 };
 
 struct RenderDisplay {
-  explicit RenderDisplay(bool create_gpu_context = false);
   ~RenderDisplay();
 
+  void ensure_system_gpu_context();
   void *ensure_blender_gpu_context();
   void clear();
 

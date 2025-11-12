@@ -477,8 +477,6 @@ static void view3d_ob_drop_copy_external_asset(bContext *C, wmDrag *drag, wmDrop
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
-  RNA_int_set(drop->ptr, "session_uid", id->session_uid);
-
   BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, (Object *)id);
   if (base != nullptr) {
@@ -490,9 +488,17 @@ static void view3d_ob_drop_copy_external_asset(bContext *C, wmDrag *drag, wmDrop
   /* Make objects local so they can be transformed. */
   if (WM_drag_asset_will_import_packed(drag)) {
     make_selected_objects_local(*bmain, *scene, *view_layer, *CTX_wm_view3d(C), false);
+
+    /* Making the IDs local might result in a new, copied ID. */
+    if (id->newid) {
+      id = id->newid;
+    }
   }
 
   ED_outliner_select_sync_from_object_tag(C);
+
+  /* Do after making local, since that changes the session UID. */
+  RNA_int_set(drop->ptr, "session_uid", id->session_uid);
 
   /* Make sure the depsgraph is evaluated so the new object's transforms are up-to-date.
    * The evaluated #Object::object_to_world() will be copied back to the original object
@@ -576,9 +582,6 @@ static void view3d_collection_drop_copy_external_asset(bContext *C, wmDrag *drag
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
-  RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
-  RNA_boolean_set(drop->ptr, "use_instance", asset_drag->import_settings.use_instance_collections);
-
   /* Make an object active, just use the first one in the collection. */
   CollectionObject *cobject = static_cast<CollectionObject *>(collection->gobject.first);
   BKE_view_layer_synced_ensure(scene, view_layer);
@@ -593,9 +596,17 @@ static void view3d_collection_drop_copy_external_asset(bContext *C, wmDrag *drag
   /* Make objects local so they can be transformed. */
   if (WM_drag_asset_will_import_packed(drag) && !use_instance_collections) {
     make_selected_objects_local(*bmain, *scene, *view_layer, *CTX_wm_view3d(C), true);
+
+    /* Making the IDs local might result in a new, copied ID. */
+    collection = blender::id_cast<Collection *>(id->newid ? id->newid : id);
+    id = &collection->id;
   }
 
   ED_outliner_select_sync_from_object_tag(C);
+
+  /* Do after making local, since that changes the session UID. */
+  RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
+  RNA_boolean_set(drop->ptr, "use_instance", asset_drag->import_settings.use_instance_collections);
 
   V3DSnapCursorState *snap_state = static_cast<V3DSnapCursorState *>(drop->draw_data);
   if (snap_state) {
