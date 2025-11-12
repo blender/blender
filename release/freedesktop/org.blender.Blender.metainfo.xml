@@ -52,17 +52,17 @@
             <description>
                 <p>New features:</p>
                 <ul>
-                    <li>Completely overhauled color management pipeline that natively supports wide-gamut and HDR color spaces</li>
+                    <li>Completely overhauled color management pipeline now natively supports wide-gamut and HDR color spaces</li>
                     <li>Cycles: unbiased volume rendering, multi bounce SSS</li>
                     <li>Video Sequencer: added a compositor strip modifier</li>
                 </ul>
                 <p>Enhancements:</p>
                 <ul>
-                    <li>EEVEE Material Compilation Speed has been improved</li>
-                    <li>Geometry Nodes: Support for Bundles, Closures and new Volume nodes</li>
-                    <li>Grease Pencil: Motion Blur support</li>
-                    <li>Rendering: New multiple scattering mode for Sky and a new Radial Tiling node</li>
-                    <li>Several improvements for Virtual Reality</li>
+                    <li>EEVEE: material compilation speed has been improved</li>
+                    <li>Geometry Nodes: support for Bundles, Closures and new volume nodes</li>
+                    <li>Grease Pencil: motion blur support</li>
+                    <li>Rendering: new multiple scattering mode for Sky node and a new Radial Tiling node</li>
+                    <li>Several improvements for virtual reality</li>
                 </ul>
             </description>
         </release>
