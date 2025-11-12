@@ -962,12 +962,8 @@ void RE_display_share(Render *re, const Render *parent_re)
 
 void RE_display_free(Render *re)
 {
-  if (re->display_shared) {
-    RE_display_init(re);
-  }
-  else {
-    re->display->clear();
-  }
+  /* Re-initializing with a new RenderDisplay will free the GPU contexts. */
+  RE_display_init(re);
 }
 
 void *RE_system_gpu_context_get(Render *re)
