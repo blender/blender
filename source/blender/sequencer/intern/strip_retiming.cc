@@ -115,7 +115,7 @@ void retiming_data_ensure(Strip *strip)
 
   strip->retiming_keys = MEM_calloc_arrayN<SeqRetimingKey>(2, __func__);
   SeqRetimingKey *key = strip->retiming_keys + 1;
-  key->strip_frame_index = strip->len - 1;
+  key->strip_frame_index = strip->len;
   key->retiming_factor = 1.0f;
   strip->retiming_keys_num = 2;
 }
@@ -821,7 +821,7 @@ float retiming_key_speed_get(const Strip *strip, const SeqRetimingKey *key)
 
   BLI_assert(retiming_key_index_get(strip, key) > 0);
   const SeqRetimingKey *key_prev = key - 1;
-  const int frame_index_max = strip->len - 1;
+  const int frame_index_max = strip->len;
   const float frame_index_start = round_fl_to_int(key_prev->retiming_factor * frame_index_max);
   const float frame_index_end = round_fl_to_int(key->retiming_factor * frame_index_max);
   const float segment_content_frame_count = frame_index_end - frame_index_start;
@@ -839,7 +839,7 @@ void retiming_key_speed_set(
 
   const SeqRetimingKey *key_prev = key - 1;
 
-  const int frame_index_max = strip->len - 1;
+  const int frame_index_max = strip->len;
   const float frame_index_prev = round_fl_to_int(key_prev->retiming_factor * frame_index_max);
   const float frame_index = round_fl_to_int(key->retiming_factor * frame_index_max);
 
