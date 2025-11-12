@@ -53,13 +53,8 @@ float give_frame_index(const Scene *scene, const Strip *strip, float timeline_fr
 {
   float frame_index;
   float sta = time_start_frame_get(strip);
-  float end = time_content_end_frame_get(scene, strip) - 1;
-  float frame_index_max = strip->len - 1;
-
-  if (strip->is_effect()) {
-    end = time_right_handle_frame_get(scene, strip);
-    frame_index_max = end - sta;
-  }
+  float end = strip->is_effect() ? time_right_handle_frame_get(scene, strip) :
+                                   time_content_end_frame_get(scene, strip) - 1;
 
   if (end < sta) {
     return -1;
@@ -83,9 +78,12 @@ float give_frame_index(const Scene *scene, const Strip *strip, float timeline_fr
 
   if (retiming_is_active(strip)) {
     const float retiming_factor = strip_retiming_evaluate(strip, frame_index);
-    frame_index = retiming_factor * frame_index_max;
+    /* Retiming maps frame index from 0 up to `strip->len`, because key is positioned at the end of
+     * last frame. Otherwise the last frame could not be retimed. */
+    frame_index = retiming_factor * strip->len;
   }
   /* Clamp frame index to strip content frame range. */
+  float frame_index_max = strip->is_effect() ? end - sta : strip->len - 1;
   frame_index = clamp_f(frame_index, 0, frame_index_max);
 
   if (strip->strobe > 1.0f) {
@@ -454,7 +452,7 @@ int time_strip_length_get(const Scene *scene, const Strip *strip)
         scene, strip, retiming_last_key_get(strip));
     /* Last key is mapped to last frame index. Numbering starts from 0. */
     const int sound_offset = time_get_rounded_sound_offset(strip, scene_fps);
-    return last_key_frame + 1 - time_start_frame_get(strip) - sound_offset;
+    return last_key_frame - time_start_frame_get(strip) - sound_offset;
   }
 
   return strip->len / time_media_playback_rate_factor_get(strip, scene_fps);

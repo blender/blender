@@ -473,7 +473,7 @@ static void rna_Strip_retiming_key_frame_set(PointerRNA *ptr, int value)
     return;
   }
 
-  blender::seq::retiming_key_timeline_frame_set(scene, strip, key, value);
+  blender::seq::retiming_key_timeline_frame_set(scene, strip, key, value, true);
   blender::seq::relations_invalidate_cache_raw(scene, strip);
 }
 

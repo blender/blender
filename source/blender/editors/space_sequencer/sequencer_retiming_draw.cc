@@ -55,9 +55,6 @@ static float strip_y_rescale(const Strip *strip, const float y_value)
 
 static float key_x_get(const Scene *scene, const Strip *strip, const SeqRetimingKey *key)
 {
-  if (seq::retiming_is_last_key(strip, key)) {
-    return seq::retiming_key_timeline_frame_get(scene, strip, key) + 1;
-  }
   return seq::retiming_key_timeline_frame_get(scene, strip, key);
 }
 
@@ -120,7 +117,7 @@ int right_fake_key_frame_get(const bContext *C, const Strip *strip)
   const Scene *scene = CTX_data_sequencer_scene(C);
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   const int sound_offset = seq::time_get_rounded_sound_offset(strip, scene_fps);
-  const int content_end = seq::time_content_end_frame_get(scene, strip) - 1 + sound_offset;
+  const int content_end = seq::time_content_end_frame_get(scene, strip) + sound_offset;
   return min_ii(content_end, seq::time_right_handle_frame_get(scene, strip));
 }
 
@@ -141,14 +138,7 @@ static bool retiming_fake_key_frame_clicked(const bContext *C,
   const float left_distance = fabs(UI_view2d_view_to_region_x(v2d, left_frame) - mval[0]);
 
   const int right_frame = right_fake_key_frame_get(C, strip);
-  int right_x = right_frame;
-  /* `key_x_get()` compensates 1 frame offset of last key, however this can not
-   * be conveyed via `fake_key` alone. Therefore the same offset must be emulated. */
-  if (seq::time_right_handle_frame_get(scene, strip) >=
-      seq::time_content_end_frame_get(scene, strip))
-  {
-    right_x += 1;
-  }
+  const int right_x = right_frame;
   const float right_distance = fabs(UI_view2d_view_to_region_x(v2d, right_x) - mval[0]);
 
   r_frame = (left_distance < right_distance) ? left_frame : right_frame;
@@ -394,11 +384,6 @@ static bool fake_keys_draw(const TimelineDrawContext &ctx,
 
   int right_key_frame = right_fake_key_frame_get(ctx.C, strip);
   if (seq::retiming_key_get_by_timeline_frame(scene, strip, right_key_frame) == nullptr) {
-    /* `key_x_get()` compensates 1 frame offset of last key, however this can not
-     * be conveyed via `fake_key` alone. Therefore the same offset must be emulated. */
-    if (strip_ctx.right_handle >= seq::time_content_end_frame_get(scene, strip)) {
-      right_key_frame += 1;
-    }
     SeqRetimingKey fake_key = fake_retiming_key_init(scene, strip, right_key_frame);
     retime_key_draw(ctx, strip_ctx, &fake_key, sh_bindings);
   }
