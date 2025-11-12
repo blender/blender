@@ -409,7 +409,7 @@ view_transforms:
     name: ACES 1.1 Rec.2100-PQ - HDR 2000 nits
     family: ACES
     description: |
-      ACES Output Transform for 2000 nit HDR D65 video, limited to Rec.2020 gamut
+      ACES 1.1 Output Transform for 2000 nit HDR D65 video, limited to Rec.2020 gamut
     from_scene_reference: !<GroupTransform>
       children:
         - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
@@ -419,7 +419,7 @@ view_transforms:
     name: ACES 1.1 Rec.2100-PQ - HDR 4000 nits
     family: ACES
     description: |
-      ACES Output Transform for 4000 nit HDR D65 video, limited to Rec.2020 gamut
+      ACES 1.1 Output Transform for 4000 nit HDR D65 video, limited to Rec.2020 gamut
     from_scene_reference: !<GroupTransform>
       children:
         - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: ACES2065-1}
