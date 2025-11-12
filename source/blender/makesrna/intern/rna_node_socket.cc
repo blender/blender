@@ -607,6 +607,16 @@ void rna_NodeSocketStandard_color_default(PointerRNA *ptr, PropertyRNA * /*prop*
 #  endif
 }
 
+std::string rna_NodeSocketStandard_string_default(PointerRNA *ptr, PropertyRNA * /*prop*/)
+{
+  bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
+  if (!sock->runtime->declaration) {
+    return "";
+  }
+  auto *decl = static_cast<const blender::nodes::decl::String *>(sock->runtime->declaration);
+  return decl->default_value;
+}
+
 int rna_NodeSocketStandard_menu_default(PointerRNA *ptr, PropertyRNA * /*prop*/)
 {
   bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
@@ -1479,6 +1489,7 @@ static void rna_def_node_socket_string(BlenderRNA *brna,
   RNA_def_property_string_sdna(prop, nullptr, "value");
   RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
   RNA_def_property_ui_name_func(prop, "rna_NodeSocketStandard_name_func");
+  RNA_def_property_string_default_func(prop, "rna_NodeSocketStandard_string_default");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_update");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 
