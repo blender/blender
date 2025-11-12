@@ -66,7 +66,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeSwitch *data = MEM_callocN<NodeSwitch>(__func__);
-  data->input_type = SOCK_GEOMETRY;
+  data->input_type = SOCK_FLOAT;
   node->storage = data;
 }
 
