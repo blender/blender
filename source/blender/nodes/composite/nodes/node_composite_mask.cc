@@ -106,7 +106,7 @@ class MaskOperation : public NodeOperation {
     Result &cached_mask = context().cache_manager().cached_masks.get(
         this->context(),
         this->get_mask(),
-        domain.data_size,
+        domain,
         this->get_aspect_ratio(),
         this->get_use_feather(),
         this->get_motion_blur_samples(),
