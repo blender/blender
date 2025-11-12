@@ -243,7 +243,7 @@ static void recalcData_sequencer_retiming(TransInfo *t)
       seq::retiming_transition_key_frame_set(t->scene, strip, key, round_fl_to_int(new_frame));
     }
     else {
-      seq::retiming_key_timeline_frame_set(t->scene, strip, key, new_frame);
+      seq::retiming_key_timeline_frame_set(t->scene, strip, key, new_frame, true);
     }
 
     seq::relations_invalidate_cache(t->scene, strip);
