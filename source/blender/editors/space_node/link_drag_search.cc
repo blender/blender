@@ -435,7 +435,6 @@ static uiBlock *create_search_popup_block(bContext *C, ARegion *region, void *ar
 
   uiBut *but = uiDefSearchBut(block,
                               storage.search,
-                              0,
                               ICON_VIEWZOOM,
                               sizeof(storage.search),
                               storage.in_out() == SOCK_OUT ? 10 : 10 - UI_searchbox_size_x(),
@@ -458,7 +457,6 @@ static uiBlock *create_search_popup_block(bContext *C, ARegion *region, void *ar
   /* Fake button to hold space for the search items. */
   uiDefBut(block,
            ButType::Label,
-           0,
            "",
            storage.in_out() == SOCK_OUT ? 10 : 10 - UI_searchbox_size_x(),
            10 - UI_searchbox_size_y(),

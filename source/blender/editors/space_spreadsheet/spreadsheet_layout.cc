@@ -91,7 +91,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
     const StringRefNull name = spreadsheet_layout_.columns[column_index].values->name();
     uiBut *but = uiDefIconTextBut(params.block,
                                   ButType::Label,
-                                  0,
                                   ICON_NONE,
                                   name,
                                   params.xmin,
@@ -118,7 +117,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
     std::string index_str = std::to_string(real_index);
     uiBut *but = uiDefIconTextBut(params.block,
                                   ButType::Label,
-                                  0,
                                   ICON_NONE,
                                   index_str,
                                   params.xmin,
@@ -166,7 +164,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       const std::string value_str = std::to_string(value);
       uiBut *but = uiDefIconTextBut(params.block,
                                     ButType::Label,
-                                    0,
                                     ICON_NONE,
                                     value_str,
                                     params.xmin,
@@ -202,7 +199,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       const std::string value_str = ss.str();
       uiBut *but = uiDefIconTextBut(params.block,
                                     ButType::Label,
-                                    0,
                                     ICON_NONE,
                                     value_str,
                                     params.xmin,
@@ -228,7 +224,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       const int icon = value ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
       uiBut *but = uiDefIconTextBut(params.block,
                                     ButType::Label,
-                                    0,
                                     icon,
                                     "",
                                     params.xmin,
@@ -275,7 +270,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       const int icon = get_instance_reference_icon(value);
       uiDefIconTextBut(params.block,
                        ButType::Label,
-                       0,
                        icon,
                        name.c_str(),
                        params.xmin,
@@ -289,7 +283,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
     if (type.is<std::string>()) {
       uiDefIconTextBut(params.block,
                        ButType::Label,
-                       0,
                        ICON_NONE,
                        *value_ptr.get<std::string>(),
                        params.xmin + CELL_PADDING_X,
@@ -305,7 +298,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       *prop = *value_ptr.get<MStringProperty>();
       uiBut *but = uiDefIconTextBut(params.block,
                                     ButType::Label,
-                                    0,
                                     ICON_NONE,
                                     StringRef(prop->s, prop->s_len),
                                     params.xmin + CELL_PADDING_X,
@@ -354,7 +346,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       const std::string value_str = ss.str();
       uiBut *but = uiDefIconTextBut(params.block,
                                     ButType::Label,
-                                    0,
                                     ICON_NONE,
                                     value_str,
                                     params.xmin + i * segment_width,
@@ -398,7 +389,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
     }
     uiBut *but = uiDefIconTextBut(params.block,
                                   ButType::Label,
-                                  0,
                                   ICON_NONE,
                                   value_str,
                                   params.xmin,
@@ -447,7 +437,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       const std::string value_str = ss.str();
       uiBut *but = uiDefIconTextBut(params.block,
                                     ButType::Label,
-                                    0,
                                     ICON_NONE,
                                     value_str,
                                     params.xmin + i * segment_width,
@@ -481,7 +470,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       const std::string value_str = ss.str();
       uiBut *but = uiDefIconTextBut(params.block,
                                     ButType::Label,
-                                    0,
                                     ICON_NONE,
                                     value_str,
                                     params.xmin + i * segment_width,
@@ -531,7 +519,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
   {
     uiBut *but = uiDefIconTextBut(params.block,
                                   ButType::Label,
-                                  0,
                                   ICON_NONE,
                                   "...",
                                   params.xmin,

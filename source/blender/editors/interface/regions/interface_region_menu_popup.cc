@@ -461,11 +461,11 @@ static void create_title_button(uiLayout *layout, const char *title, int icon)
 
   if (icon) {
     SNPRINTF_UTF8(titlestr, " %s", title);
-    uiDefIconTextBut(block, ButType::Label, 0, icon, titlestr, 0, 0, 200, UI_UNIT_Y, nullptr, "");
+    uiDefIconTextBut(block, ButType::Label, icon, titlestr, 0, 0, 200, UI_UNIT_Y, nullptr, "");
   }
   else {
     uiBut *but = uiDefBut(
-        block, ButType::Label, 0, title, 0, 0, 200, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
+        block, ButType::Label, title, 0, 0, 200, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
     but->drawflag = UI_BUT_TEXT_LEFT;
   }
 
@@ -834,7 +834,6 @@ void UI_popup_block_template_confirm_op(uiLayout *layout,
     uiBlock *block = row->block();
     uiBut *but = uiDefIconTextBut(block,
                                   ButType::But,
-                                  1,
                                   ICON_NONE,
                                   cancel_text,
                                   0,
@@ -843,6 +842,7 @@ void UI_popup_block_template_confirm_op(uiLayout *layout,
                                   UI_UNIT_Y,
                                   nullptr,
                                   "");
+    UI_but_retval_set(but, 1);
 
     return but;
   };

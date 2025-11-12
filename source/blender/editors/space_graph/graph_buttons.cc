@@ -428,7 +428,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
       uiItemL_respect_property_split(col, IFACE_("Key Frame"), ICON_NONE);
       but = uiDefButR(block,
                       ButType::Num,
-                      B_REDR,
                       "",
                       0,
                       0,
@@ -440,12 +439,12 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       std::nullopt);
+      UI_but_retval_set(but, B_REDR);
       UI_but_func_set(but, graphedit_activekey_update_cb, fcu, bezt);
 
       uiItemL_respect_property_split(col, IFACE_("Value"), ICON_NONE);
       but = uiDefButR(block,
                       ButType::Num,
-                      B_REDR,
                       "",
                       0,
                       0,
@@ -457,6 +456,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       std::nullopt);
+      UI_but_retval_set(but, B_REDR);
       UI_but_func_set(but, graphedit_activekey_update_cb, fcu, bezt);
       UI_but_unit_type_set(but, unit);
     }
@@ -468,7 +468,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
       uiItemL_respect_property_split(col, IFACE_("Left Handle Type"), ICON_NONE);
       but = uiDefButR(block,
                       ButType::Menu,
-                      B_REDR,
                       std::nullopt,
                       0,
                       0,
@@ -480,12 +479,12 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       "Type of left handle");
+      UI_but_retval_set(but, B_REDR);
       UI_but_func_set(but, graphedit_activekey_handles_cb, fcu, bezt);
 
       uiItemL_respect_property_split(col, IFACE_("Frame"), ICON_NONE);
       but = uiDefButR(block,
                       ButType::Num,
-                      B_REDR,
                       "",
                       0,
                       0,
@@ -497,12 +496,12 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       std::nullopt);
+      UI_but_retval_set(but, B_REDR);
       UI_but_func_set(but, graphedit_activekey_left_handle_coord_cb, fcu, bezt);
 
       uiItemL_respect_property_split(col, IFACE_("Value"), ICON_NONE);
       but = uiDefButR(block,
                       ButType::Num,
-                      B_REDR,
                       "",
                       0,
                       0,
@@ -514,6 +513,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       std::nullopt);
+      UI_but_retval_set(but, B_REDR);
       UI_but_func_set(but, graphedit_activekey_left_handle_coord_cb, fcu, bezt);
       UI_but_unit_type_set(but, unit);
     }
@@ -526,7 +526,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
       uiItemL_respect_property_split(col, IFACE_("Right Handle Type"), ICON_NONE);
       but = uiDefButR(block,
                       ButType::Menu,
-                      B_REDR,
                       std::nullopt,
                       0,
                       0,
@@ -538,12 +537,12 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       "Type of right handle");
+      UI_but_retval_set(but, B_REDR);
       UI_but_func_set(but, graphedit_activekey_handles_cb, fcu, bezt);
 
       uiItemL_respect_property_split(col, IFACE_("Frame"), ICON_NONE);
       but = uiDefButR(block,
                       ButType::Num,
-                      B_REDR,
                       "",
                       0,
                       0,
@@ -555,12 +554,12 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       std::nullopt);
+      UI_but_retval_set(but, B_REDR);
       UI_but_func_set(but, graphedit_activekey_right_handle_coord_cb, fcu, bezt);
 
       uiItemL_respect_property_split(col, IFACE_("Value"), ICON_NONE);
       but = uiDefButR(block,
                       ButType::Num,
-                      B_REDR,
                       "",
                       0,
                       0,
@@ -572,6 +571,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       std::nullopt);
+      UI_but_retval_set(but, B_REDR);
       UI_but_func_set(but, graphedit_activekey_right_handle_coord_cb, fcu, bezt);
       UI_but_unit_type_set(but, unit);
     }
@@ -931,7 +931,6 @@ static void graph_draw_driven_property_enabled_btn(uiLayout *layout,
   uiBlock *block = layout->block();
   uiDefButR(block,
             ButType::CheckboxN,
-            0,
             label,
             0,
             0,
@@ -1102,7 +1101,6 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
   but = uiDefIconTextBut(
       block,
       ButType::But,
-      B_IPO_DEPCHANGE,
       ICON_ADD,
       IFACE_("Add Input Variable"),
       0,
@@ -1111,6 +1109,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
       UI_UNIT_Y,
       nullptr,
       TIP_("Add a Driver Variable to keep track of an input used by the driver"));
+  UI_but_retval_set(but, B_IPO_DEPCHANGE);
   UI_but_func_set(but, driver_add_var_cb, driver, nullptr);
 
   if (is_popover) {
@@ -1170,7 +1169,6 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     if (dvar->flag & DVAR_FLAG_INVALID_NAME) {
       but = uiDefIconBut(block,
                          ButType::But,
-                         B_IPO_DEPCHANGE,
                          ICON_ERROR,
                          290,
                          0,
@@ -1180,13 +1178,13 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
                          0.0,
                          0.0,
                          TIP_("Invalid variable name, click here for details"));
+      UI_but_retval_set(but, B_IPO_DEPCHANGE);
       UI_but_func_set(but, driver_dvar_invalid_name_query_cb, dvar, nullptr); /* XXX: reports? */
     }
 
     /* 1.3) remove button */
     but = uiDefIconBut(block,
                        ButType::But,
-                       B_IPO_DEPCHANGE,
                        ICON_X,
                        290,
                        0,
@@ -1196,6 +1194,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
                        0.0,
                        0.0,
                        TIP_("Delete target variable"));
+    UI_but_retval_set(but, B_IPO_DEPCHANGE);
     UI_but_func_set(but, driver_delete_var_cb, driver, dvar);
     UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
@@ -1262,7 +1261,6 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
   but = uiDefIconTextBut(
       block,
       ButType::But,
-      B_IPO_DEPCHANGE,
       ICON_FILE_REFRESH,
       IFACE_("Update Dependencies"),
       0,
@@ -1271,6 +1269,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
       UI_UNIT_Y,
       nullptr,
       TIP_("Force updates of dependencies - Only use this if drivers are not updating correctly"));
+  UI_but_retval_set(but, B_IPO_DEPCHANGE);
   UI_but_func_set(but, driver_update_flags_cb, fcu, nullptr);
 }
 

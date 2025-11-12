@@ -159,7 +159,6 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
     block = col->block();
     but = uiDefIconTextBut(block,
                            ButType::But,
-                           0,
                            ICON_FILE_REFRESH,
                            IFACE_("Reset"),
                            0,

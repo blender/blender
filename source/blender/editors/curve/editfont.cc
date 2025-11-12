@@ -721,7 +721,6 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
 
   uiBut *text_but = uiDefBut(block,
                              ButType::Text,
-                             0,
                              "",
                              0,
                              0,
@@ -752,17 +751,17 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
 
   if (windows_layout) {
     confirm = uiDefIconTextBut(
-        block, ButType::But, 0, 0, IFACE_("Insert"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
+        block, ButType::But, 0, IFACE_("Insert"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
     split->column(false);
   }
 
   cancel = uiDefIconTextBut(
-      block, ButType::But, 0, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
+      block, ButType::But, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
 
   if (!windows_layout) {
     split->column(false);
     confirm = uiDefIconTextBut(
-        block, ButType::But, 0, 0, IFACE_("Insert"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
+        block, ButType::But, 0, IFACE_("Insert"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
   }
 
   UI_block_func_set(block, nullptr, nullptr, nullptr);

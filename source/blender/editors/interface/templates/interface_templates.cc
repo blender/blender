@@ -181,8 +181,8 @@ uiBlock *template_common_search_menu(const bContext *C,
                   UI_SEARCHBOX_BOUNDS;
 
     /* fake button, it holds space for search items */
-    uiDefBut(block, ButType::Label, 0, "", 0, UI_UNIT_Y, w, h, nullptr, 0, 0, std::nullopt);
-    but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 0, 0, w, UI_UNIT_Y, "");
+    uiDefBut(block, ButType::Label, "", 0, UI_UNIT_Y, w, h, nullptr, 0, 0, std::nullopt);
+    but = uiDefSearchBut(block, search, ICON_VIEWZOOM, sizeof(search), 0, 0, w, UI_UNIT_Y, "");
     UI_but_search_preview_grid_size_set(but, preview_rows, preview_cols);
   }
   /* list view */
@@ -194,7 +194,6 @@ uiBlock *template_common_search_menu(const bContext *C,
     /* fake button, it holds space for search items */
     uiDefBut(block,
              ButType::Label,
-             0,
              "",
              0,
              search_but_height,
@@ -206,7 +205,7 @@ uiBlock *template_common_search_menu(const bContext *C,
              std::nullopt);
     but = uiDefSearchBut(block,
                          search,
-                         0,
+
                          ICON_VIEWZOOM,
                          sizeof(search),
                          0,
@@ -293,7 +292,7 @@ void uiTemplateNodeSocket(uiLayout *layout, bContext * /*C*/, const float color[
    * Eventually it should be possible to use theme colors for this purpose,
    * but this requires a better design for extendable color palettes in user preferences. */
   uiBut *but = uiDefBut(
-      block, ButType::NodeSocket, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0, 0, "");
+      block, ButType::NodeSocket, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0, 0, "");
   rgba_float_to_uchar(but->col, color);
 
   UI_block_align_end(block);

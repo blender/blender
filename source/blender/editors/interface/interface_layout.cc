@@ -653,7 +653,7 @@ static void ui_item_array(uiLayout *layout,
 
   /* create label */
   if (!name.is_empty() && show_text) {
-    uiDefBut(block, ButType::Label, 0, name, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
+    uiDefBut(block, ButType::Label, name, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
   }
 
   /* create buttons */
@@ -767,7 +767,6 @@ static void ui_item_array(uiLayout *layout,
   else if (subtype == PROP_DIRECTION && !expand) {
     uiDefButR_prop(block,
                    ButType::Unitvec,
-                   0,
                    name,
                    x,
                    y,
@@ -892,16 +891,16 @@ static void ui_item_enum_expand_elem_exec(uiLayout *layout,
   uiBut *but;
   if (icon && name[0] && !icon_only) {
     but = uiDefIconTextButR_prop(
-        block, but_type, 0, icon, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, std::nullopt);
+        block, but_type, icon, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, std::nullopt);
   }
   else if (icon) {
     const int w = (is_first) ? itemw : ceilf(itemw - U.pixelsize);
     but = uiDefIconButR_prop(
-        block, but_type, 0, icon, 0, 0, w, h, ptr, prop, -1, 0, value, std::nullopt);
+        block, but_type, icon, 0, 0, w, h, ptr, prop, -1, 0, value, std::nullopt);
   }
   else {
     but = uiDefButR_prop(
-        block, but_type, 0, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, std::nullopt);
+        block, but_type, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, std::nullopt);
   }
 
   if (RNA_property_flag(prop) & PROP_ENUM_FLAG) {
@@ -1158,7 +1157,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
       else {
         w_label = w_hint / 3;
       }
-      uiDefBut(block, ButType::Label, 0, name, x, y, w_label, h, nullptr, 0.0, 0.0, "");
+      uiDefBut(block, ButType::Label, name, x, y, w_label, h, nullptr, 0.0, 0.0, "");
     }
   }
 
@@ -1196,7 +1195,6 @@ static uiBut *ui_item_with_label(uiLayout *layout,
   else if (flag & UI_ITEM_R_EVENT) {
     but = uiDefButR_prop(block,
                          ButType::KeyEvent,
-                         0,
                          name,
                          x,
                          y,
@@ -1215,7 +1213,6 @@ static uiBut *ui_item_with_label(uiLayout *layout,
 
     but = uiDefButR_prop(block,
                          ButType::HotkeyEvent,
-                         0,
                          kmi_str,
                          x,
                          y,
@@ -1343,7 +1340,7 @@ static void ui_item_disabled(uiLayout *layout, const char *name)
 
   const int w = ui_text_icon_width(layout, name, 0, false);
 
-  uiBut *but = uiDefBut(block, ButType::Label, 0, name, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
+  uiBut *but = uiDefBut(block, ButType::Label, name, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
   UI_but_disable(but, "");
 }
 
@@ -1551,7 +1548,6 @@ void uiLayout::op_enum_items(wmOperatorType *ot,
     /* Add a blank button to the beginning of the row. */
     uiDefIconBut(block,
                  ButType::Label,
-                 0,
                  ICON_BLANK1,
                  0,
                  0,
@@ -1629,7 +1625,6 @@ void uiLayout::op_enum_items(wmOperatorType *ot,
            * it will add a fake blank icon! */
           but = uiDefBut(block,
                          ButType::Label,
-                         0,
                          item->name,
                          0,
                          0,
@@ -2130,7 +2125,6 @@ void uiLayout::prop(PointerRNA *ptr,
           }
           but = uiDefBut(block,
                          ButType::Label,
-                         0,
                          use_prefix ? StringRef(name_with_suffix.data(), name_with_suffix.size()) :
                                       str,
                          0,
@@ -2148,7 +2142,7 @@ void uiLayout::prop(PointerRNA *ptr,
         }
       }
       else {
-        but = uiDefBut(block, ButType::Label, 0, name, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
+        but = uiDefBut(block, ButType::Label, name, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
         but->drawflag |= UI_BUT_TEXT_RIGHT;
         but->drawflag &= ~UI_BUT_TEXT_LEFT;
 
@@ -2232,15 +2226,14 @@ void uiLayout::prop(PointerRNA *ptr,
   else if (type == PROP_ENUM && index == RNA_ENUM_VALUE) {
     if (icon && !name.is_empty() && !icon_only) {
       uiDefIconTextButR_prop(
-          block, ButType::Row, 0, icon, name, 0, 0, w, h, ptr, prop, -1, 0, value, std::nullopt);
+          block, ButType::Row, icon, name, 0, 0, w, h, ptr, prop, -1, 0, value, std::nullopt);
     }
     else if (icon) {
       uiDefIconButR_prop(
-          block, ButType::Row, 0, icon, 0, 0, w, h, ptr, prop, -1, 0, value, std::nullopt);
+          block, ButType::Row, icon, 0, 0, w, h, ptr, prop, -1, 0, value, std::nullopt);
     }
     else {
-      uiDefButR_prop(
-          block, ButType::Row, 0, name, 0, 0, w, h, ptr, prop, -1, 0, value, std::nullopt);
+      uiDefButR_prop(block, ButType::Row, name, 0, 0, w, h, ptr, prop, -1, 0, value, std::nullopt);
     }
   }
   /* expanded enum */
@@ -2965,18 +2958,8 @@ void uiLayout::decorator(PointerRNA *ptr, PropertyRNA *prop, int index)
   col.emboss_ = blender::ui::EmbossType::None;
 
   if (ELEM(nullptr, ptr, prop) || !RNA_property_animateable(ptr, prop)) {
-    uiBut *but = uiDefIconBut(block,
-                              ButType::Decorator,
-                              0,
-                              ICON_BLANK1,
-                              0,
-                              0,
-                              UI_UNIT_X,
-                              UI_UNIT_Y,
-                              nullptr,
-                              0.0,
-                              0.0,
-                              "");
+    uiBut *but = uiDefIconBut(
+        block, ButType::Decorator, ICON_BLANK1, 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
     but->flag |= UI_BUT_DISABLED;
     return;
   }
@@ -2988,7 +2971,6 @@ void uiLayout::decorator(PointerRNA *ptr, PropertyRNA *prop, int index)
   for (int i = 0; i < (is_expand ? RNA_property_array_length(ptr, prop) : 1); i++) {
     uiButDecorator *but = (uiButDecorator *)uiDefIconBut(block,
                                                          ButType::Decorator,
-                                                         0,
                                                          ICON_DOT,
                                                          0,
                                                          0,
@@ -3136,13 +3118,13 @@ static uiBut *uiItem_simple(uiLayout *layout,
   const int w = ui_text_icon_width_ex(layout, name, icon, ui_text_pad_none, UI_FSTYLE_WIDGET);
   uiBut *but;
   if (icon && !name.is_empty()) {
-    but = uiDefIconTextBut(block, but_type, 0, icon, name, 0, 0, w, UI_UNIT_Y, nullptr, tooltip);
+    but = uiDefIconTextBut(block, but_type, icon, name, 0, 0, w, UI_UNIT_Y, nullptr, tooltip);
   }
   else if (icon) {
-    but = uiDefIconBut(block, but_type, 0, icon, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, tooltip);
+    but = uiDefIconBut(block, but_type, icon, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, tooltip);
   }
   else {
-    but = uiDefBut(block, but_type, 0, name, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, tooltip);
+    but = uiDefBut(block, but_type, name, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, tooltip);
   }
 
   /* to compensate for string size padding in ui_text_icon_width,
@@ -3277,7 +3259,6 @@ void uiLayout::separator(float factor, const LayoutSeparatorType type)
   blender::ui::block_layout_set_current(block, this);
   uiBut *but = uiDefBut(block,
                         but_type,
-                        0,
                         "",
                         0,
                         0,
@@ -3315,7 +3296,6 @@ void uiLayout::progress_indicator(const char *text,
   blender::ui::block_layout_set_current(block, this);
   uiBut *but = uiDefBut(block,
                         ButType::Progress,
-                        0,
                         (text) ? text : "",
                         0,
                         0,
@@ -3353,7 +3333,7 @@ void uiLayout::separator_spacer()
 
   blender::ui::block_layout_set_current(block, this);
   uiDefBut(
-      block, ButType::SeprSpacer, 0, "", 0, 0, 0.3f * UI_UNIT_X, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
+      block, ButType::SeprSpacer, "", 0, 0, 0.3f * UI_UNIT_X, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
 }
 
 void uiLayout::menu_fn(const StringRefNull name, int icon, uiMenuCreateFunc func, void *arg)
@@ -4800,7 +4780,7 @@ PanelLayout uiLayout::panel_prop(const bContext *C,
     uiBlock *block = row->block();
     const int icon = is_open ? ICON_DOWNARROW_HLT : ICON_RIGHTARROW;
     const int width = ui_text_icon_width(this, "", icon, false);
-    uiDefIconTextBut(block, ButType::Label, 0, icon, "", 0, 0, width, UI_UNIT_Y, nullptr, "");
+    uiDefIconTextBut(block, ButType::Label, icon, "", 0, 0, width, UI_UNIT_Y, nullptr, "");
 
     panel_layout.header = row;
   }
@@ -4943,7 +4923,7 @@ static uiLayoutItemBx *ui_layout_box(uiLayout *layout, ButType type)
 
   blender::ui::block_layout_set_current(layout->block(), box);
 
-  box->roundbox = uiDefBut(layout->block(), type, 0, "", 0, 0, 0, 0, nullptr, 0.0, 0.0, "");
+  box->roundbox = uiDefBut(layout->block(), type, "", 0, 0, 0, 0, nullptr, 0.0, 0.0, "");
 
   return box;
 }
@@ -5101,7 +5081,7 @@ void uiLayoutListItemAddPadding(uiLayout *layout)
   row->fixed_size_set(true);
 
   uiDefBut(
-      block, ButType::Sepr, 0, "", 0, 0, uiLayoutListItemPaddingWidth(), 0, nullptr, 0.0, 0.0, "");
+      block, ButType::Sepr, "", 0, 0, uiLayoutListItemPaddingWidth(), 0, nullptr, 0.0, 0.0, "");
 
   /* Restore. */
   blender::ui::block_layout_set_current(block, layout);
@@ -5438,8 +5418,7 @@ static void ui_layout_add_padding_button(uiLayoutRoot *root)
     uiLayout *prev_layout = block->curlayout;
 
     block->curlayout = root->layout;
-    uiDefBut(
-        block, ButType::Sepr, 0, "", 0, 0, root->padding, root->padding, nullptr, 0.0, 0.0, "");
+    uiDefBut(block, ButType::Sepr, "", 0, 0, root->padding, root->padding, nullptr, 0.0, 0.0, "");
     block->curlayout = prev_layout;
   }
 }

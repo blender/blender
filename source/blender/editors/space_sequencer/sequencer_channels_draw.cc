@@ -113,7 +113,6 @@ static float draw_channel_widget_mute(const SeqChannelDrawContext *context,
   UI_block_emboss_set(block, ui::EmbossType::None);
   uiBut *but = uiDefIconButR_prop(block,
                                   ButType::Toggle,
-                                  1,
                                   icon,
                                   context->v2d->cur.xmax / context->scale - offset,
                                   y,
@@ -125,6 +124,7 @@ static float draw_channel_widget_mute(const SeqChannelDrawContext *context,
                                   0,
                                   0,
                                   std::nullopt);
+  UI_but_retval_set(but, 1);
 
   char *tooltip = BLI_sprintfN(
       "%s channel %d", seq::channel_is_muted(channel) ? "Unmute" : "Mute", channel_index);
@@ -152,7 +152,6 @@ static float draw_channel_widget_lock(const SeqChannelDrawContext *context,
   UI_block_emboss_set(block, ui::EmbossType::None);
   uiBut *but = uiDefIconButR_prop(block,
                                   ButType::Toggle,
-                                  1,
                                   icon,
                                   context->v2d->cur.xmax / context->scale - offset,
                                   y,
@@ -164,6 +163,7 @@ static float draw_channel_widget_lock(const SeqChannelDrawContext *context,
                                   0,
                                   0,
                                   "");
+  UI_but_retval_set(but, 1);
 
   char *tooltip = BLI_sprintfN(
       "%s channel %d", seq::channel_is_locked(channel) ? "Unlock" : "Lock", channel_index);
@@ -229,7 +229,6 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
     UI_block_emboss_set(block, ui::EmbossType::Emboss);
     uiBut *but = uiDefButR(block,
                            ButType::Text,
-                           1,
                            "",
                            rect.xmin,
                            rect.ymin,
@@ -241,6 +240,7 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
                            0,
                            0,
                            std::nullopt);
+    UI_but_retval_set(but, 1);
     UI_block_emboss_set(block, ui::EmbossType::None);
 
     if (UI_but_active_only(context->C, context->region, block, but) == false) {
@@ -253,7 +253,6 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
     const char *label = seq::channel_name_get(context->channels, channel_index);
     uiDefBut(block,
              ButType::Label,
-             0,
              label,
              rect.xmin,
              rect.ymin,

@@ -102,14 +102,14 @@ static void ui_imageuser_slot_menu(bContext *C, uiLayout *layout, void *image_p)
       icon = ICON_DOT;
     }
     uiBut *but = uiDefIconTextBut(
-        block, ButType::ButMenu, B_NOP, icon, str, 0, 0, UI_UNIT_X * 5, UI_UNIT_X, nullptr, "");
+        block, ButType::ButMenu, icon, str, 0, 0, UI_UNIT_X * 5, UI_UNIT_X, nullptr, "");
+    UI_but_retval_set(but, B_NOP);
     UI_but_func_set(but, [image, slot_id](bContext & /*C*/) { image->render_slot = slot_id; });
   }
 
   layout->separator();
   uiDefBut(block,
            ButType::Label,
-           0,
            IFACE_("Slot"),
            0,
            0,
@@ -183,40 +183,39 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, uiLayout *layout, void *rn
 
   const char *fake_name = ui_imageuser_layer_fake_name(rr);
   if (fake_name) {
-    uiDefButS(block,
-              ButType::ButMenu,
-              B_NOP,
-              fake_name,
-              0,
-              0,
-              UI_UNIT_X * 5,
-              UI_UNIT_X,
-              &iuser->layer,
-              0.0,
-              0.0,
-              "");
+    uiBut *but = uiDefButS(block,
+                           ButType::ButMenu,
+                           fake_name,
+                           0,
+                           0,
+                           UI_UNIT_X * 5,
+                           UI_UNIT_X,
+                           &iuser->layer,
+                           0.0,
+                           0.0,
+                           "");
+    UI_but_retval_set(but, B_NOP);
   }
 
   int nr = fake_name ? 1 : 0;
   for (RenderLayer *rl = static_cast<RenderLayer *>(rr->layers.first); rl; rl = rl->next, nr++) {
-    uiDefButS(block,
-              ButType::ButMenu,
-              B_NOP,
-              rl->name,
-              0,
-              0,
-              UI_UNIT_X * 5,
-              UI_UNIT_X,
-              &iuser->layer,
-              float(nr),
-              0.0,
-              "");
+    uiBut *but = uiDefButS(block,
+                           ButType::ButMenu,
+                           rl->name,
+                           0,
+                           0,
+                           UI_UNIT_X * 5,
+                           UI_UNIT_X,
+                           &iuser->layer,
+                           float(nr),
+                           0.0,
+                           "");
+    UI_but_retval_set(but, B_NOP);
   }
 
   layout->separator();
   uiDefBut(block,
            ButType::Label,
-           0,
            IFACE_("Layer"),
            0,
            0,
@@ -272,24 +271,23 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, uiLayout *layout, void *rnd
     }
     BLI_addtail(&added_passes, BLI_genericNodeN(rpass->name));
 
-    uiDefButS(block,
-              ButType::ButMenu,
-              B_NOP,
-              IFACE_(rpass->name),
-              0,
-              0,
-              UI_UNIT_X * 5,
-              UI_UNIT_X,
-              &iuser->pass,
-              float(nr),
-              0.0,
-              "");
+    uiBut *but = uiDefButS(block,
+                           ButType::ButMenu,
+                           IFACE_(rpass->name),
+                           0,
+                           0,
+                           UI_UNIT_X * 5,
+                           UI_UNIT_X,
+                           &iuser->pass,
+                           float(nr),
+                           0.0,
+                           "");
+    UI_but_retval_set(but, B_NOP);
   }
 
   layout->separator();
   uiDefBut(block,
            ButType::Label,
-           0,
            IFACE_("Pass"),
            0,
            0,
@@ -329,7 +327,6 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, uiLayout *layout, void *
 
   uiDefBut(block,
            ButType::Label,
-           0,
            IFACE_("View"),
            0,
            0,
@@ -346,18 +343,18 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, uiLayout *layout, void *
   for (rview = static_cast<RenderView *>(rr ? rr->views.last : nullptr); rview;
        rview = rview->prev, nr--)
   {
-    uiDefButS(block,
-              ButType::ButMenu,
-              B_NOP,
-              IFACE_(rview->name),
-              0,
-              0,
-              UI_UNIT_X * 5,
-              UI_UNIT_X,
-              &iuser->view,
-              float(nr),
-              0.0,
-              "");
+    uiBut *but = uiDefButS(block,
+                           ButType::ButMenu,
+                           IFACE_(rview->name),
+                           0,
+                           0,
+                           UI_UNIT_X * 5,
+                           UI_UNIT_X,
+                           &iuser->view,
+                           float(nr),
+                           0.0,
+                           "");
+    UI_but_retval_set(but, B_NOP);
   }
 
   BKE_image_release_renderresult(scene, image, rr);
@@ -377,7 +374,6 @@ static void ui_imageuser_view_menu_multiview(bContext * /*C*/, uiLayout *layout,
 
   uiDefBut(block,
            ButType::Label,
-           0,
            IFACE_("View"),
            0,
            0,
@@ -392,18 +388,18 @@ static void ui_imageuser_view_menu_multiview(bContext * /*C*/, uiLayout *layout,
 
   nr = BLI_listbase_count(&image->views) - 1;
   for (iv = static_cast<ImageView *>(image->views.last); iv; iv = iv->prev, nr--) {
-    uiDefButS(block,
-              ButType::ButMenu,
-              B_NOP,
-              IFACE_(iv->name),
-              0,
-              0,
-              UI_UNIT_X * 5,
-              UI_UNIT_X,
-              &iuser->view,
-              float(nr),
-              0.0,
-              "");
+    uiBut *but = uiDefButS(block,
+                           ButType::ButMenu,
+                           IFACE_(iv->name),
+                           0,
+                           0,
+                           UI_UNIT_X * 5,
+                           UI_UNIT_X,
+                           &iuser->view,
+                           float(nr),
+                           0.0,
+                           "");
+    UI_but_retval_set(but, B_NOP);
   }
 }
 

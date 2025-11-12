@@ -1104,7 +1104,7 @@ static uiBlock *ui_alert_create(bContext *C, ARegion *region, void *user_data)
 
     uiBlock *buttons_block = layout->block();
     uiBut *okay_but = uiDefBut(
-        buttons_block, ButType::But, 0, "OK", 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, "");
+        buttons_block, ButType::But, "OK", 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, "");
     UI_but_func_set(okay_but, ui_alert_ok_cb, user_data, block);
     UI_but_flag_enable(okay_but, UI_BUT_ACTIVE_DEFAULT);
   }

@@ -298,7 +298,6 @@ class CollectionViewItem : public BasicTreeViewItem {
 
     uiBut *button = uiDefIconButR(block,
                                   ButType::But,
-                                  0,
                                   icon,
                                   0,
                                   0,

@@ -66,7 +66,6 @@ static void rotation_mode_menu_callback(bContext *, uiLayout *layout, void *)
     const int width = 9 * UI_UNIT_X;
     uiBut *but = uiDefButI(layout->block(),
                            ButType::Row,
-                           0,
                            IFACE_(mode_info.name),
                            0,
                            yco,

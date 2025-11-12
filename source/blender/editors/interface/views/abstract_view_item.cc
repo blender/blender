@@ -228,7 +228,6 @@ void AbstractViewItem::add_rename_button(uiBlock &block)
   AbstractView &view = this->get_view();
   uiBut *rename_but = uiDefBut(&block,
                                ButType::Text,
-                               1,
                                "",
                                0,
                                0,
@@ -238,6 +237,7 @@ void AbstractViewItem::add_rename_button(uiBlock &block)
                                1.0f,
                                view.get_rename_buffer().size(),
                                "");
+  UI_but_retval_set(rename_but, 1);
 
   /* Gotta be careful with what's passed to the `arg1` here. Any view data will be freed once the
    * callback is executed. */
