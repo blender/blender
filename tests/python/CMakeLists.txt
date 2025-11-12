@@ -1232,6 +1232,36 @@ if(TEST_SRC_DIR_EXISTS)
   )
 endif()
 
+if(TEST_SRC_DIR_EXISTS)
+  add_blender_test_allow_error(
+    io_gltf_import
+    --python ${CMAKE_CURRENT_LIST_DIR}/io_gltf_import_test.py
+    --
+    --testdir "${TEST_SRC_DIR}/io_tests/gltf/import"
+    --outdir "${TEST_OUT_DIR}/io_gltf"
+  )
+endif()
+
+if(TEST_SRC_DIR_EXISTS)
+  add_blender_test_allow_error(
+    io_gltf_roundtrip
+    --python ${CMAKE_CURRENT_LIST_DIR}/io_gltf_roundtrip_test.py
+    --
+    --testdir "${TEST_SRC_DIR}/io_tests/gltf/roundtrip"
+    --outdir "${TEST_OUT_DIR}/io_gltf"
+  )
+endif()
+
+if(TEST_SRC_DIR_EXISTS)
+  add_blender_test_allow_error(
+    io_gltf_export
+    --python ${CMAKE_CURRENT_LIST_DIR}/io_gltf_export_test.py
+    --
+    --testdir "${TEST_SRC_DIR}/io_tests/gltf/export"
+    --outdir "${TEST_OUT_DIR}/io_gltf"
+  )
+endif()
+
 if(WITH_IO_WAVEFRONT_OBJ AND TEST_SRC_DIR_EXISTS)
   add_blender_test_allow_error(
     io_obj_import
