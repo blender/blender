@@ -375,7 +375,10 @@ void OSLManager::shading_system_init(ShaderManager::SceneLinearSpace colorspace)
 
       auto ss = std::shared_ptr<OSL::ShadingSystem>(
           new OSL::ShadingSystem(services, get_texture_system(), &errhandler),
-          [](auto *ss) { util_aligned_delete(static_cast<OSLRenderServices *>(ss->renderer())); });
+          [](OSL::ShadingSystem *ss) {
+            util_aligned_delete(static_cast<OSLRenderServices *>(ss->renderer()));
+            delete ss;
+          });
       ss->attribute("lockgeom", 1);
       ss->attribute("commonspace", "world");
       ss->attribute("searchpath:shader", shader_path);
