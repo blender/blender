@@ -70,24 +70,6 @@ bool Render::prepare_viewlayer(ViewLayer *view_layer, Depsgraph *depsgraph)
 /** \name RenderDisplay
  * \{ */
 
-RenderDisplay::RenderDisplay(bool create_gpu_context)
-{
-  if (create_gpu_context) {
-    BLI_assert(BLI_thread_is_main());
-
-    if (system_gpu_context == nullptr) {
-      /* Needs to be created in the main thread. */
-      system_gpu_context = WM_system_gpu_context_create();
-      /* The context is activated during creation, so release it here since the function should not
-       * have context activation as a side effect. Then activate the drawable's context below. */
-      if (system_gpu_context) {
-        WM_system_gpu_context_release(system_gpu_context);
-      }
-      wm_window_reset_drawable();
-    }
-  }
-}
-
 RenderDisplay::~RenderDisplay()
 {
   clear();
@@ -118,6 +100,22 @@ void RenderDisplay::clear()
   progress_cb = nullptr;
   draw_lock_cb = nullptr;
   test_break_cb = nullptr;
+}
+
+void RenderDisplay::ensure_system_gpu_context()
+{
+  BLI_assert(BLI_thread_is_main());
+
+  if (system_gpu_context == nullptr) {
+    /* Needs to be created in the main thread. */
+    system_gpu_context = WM_system_gpu_context_create();
+    /* The context is activated during creation, so release it here since the function should not
+     * have context activation as a side effect. Then activate the drawable's context below. */
+    if (system_gpu_context) {
+      WM_system_gpu_context_release(system_gpu_context);
+    }
+    wm_window_reset_drawable();
+  }
 }
 
 void *RenderDisplay::ensure_blender_gpu_context()

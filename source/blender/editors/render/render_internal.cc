@@ -1180,7 +1180,8 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
 
   /* setup new render */
   re = RE_NewSceneRender(scene);
-  RE_display_init(re, true);
+  RE_display_init(re);
+  RE_display_ensure_gpu_context(re);
   RE_test_break_cb(re, rj, render_breakjob);
   RE_draw_lock_cb(re, rj, render_drawlock);
   RE_display_update_cb(re, rj, image_rect_update);

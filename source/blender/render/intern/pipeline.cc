@@ -509,7 +509,7 @@ Render *RE_NewRender(const void *owner)
     re->owner = owner;
   }
 
-  RE_display_init(re, false);
+  RE_display_init(re);
 
   return re;
 }
@@ -932,10 +932,10 @@ void RE_prepare_viewlayer_cb(Render *re,
 /** \name Display and GPU context
  * \{ */
 
-void RE_display_init(Render *re, const bool use_gpu_context)
+void RE_display_init(Render *re)
 {
   re->display_shared = false;
-  re->display = std::make_shared<RenderDisplay>(use_gpu_context);
+  re->display = std::make_shared<RenderDisplay>();
 
   re->display->display_update_cb = result_rcti_nothing;
   re->display->current_scene_update_cb = current_scene_nothing;
@@ -947,6 +947,11 @@ void RE_display_init(Render *re, const bool use_gpu_context)
   else {
     re->display->stats_draw_cb = stats_nothing;
   }
+}
+
+void RE_display_ensure_gpu_context(Render *re)
+{
+  re->display->ensure_system_gpu_context();
 }
 
 void RE_display_share(Render *re, const Render *parent_re)
@@ -964,7 +969,7 @@ void RE_display_share(Render *re, const Render *parent_re)
 void RE_display_free(Render *re)
 {
   if (re->display_shared) {
-    RE_display_init(re, false);
+    RE_display_init(re);
   }
   else {
     re->display->clear();

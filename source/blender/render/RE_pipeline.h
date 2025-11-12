@@ -414,7 +414,8 @@ struct RenderResult *RE_MultilayerConvert(
  * Display, event callbacks and GPU contexts
  * */
 
-void RE_display_init(Render *re, bool use_gpu_context);
+void RE_display_init(Render *re);
+void RE_display_ensure_gpu_context(Render *re);
 void RE_display_share(Render *re, const Render *parent_re);
 void RE_display_free(Render *re);
 
