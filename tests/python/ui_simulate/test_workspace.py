@@ -131,8 +131,8 @@ def sanity_check_storyboarding():
 
     yield from _call_by_name(e, "Add Workspace")
     yield e.t()     # Storyboarding
-    yield e.d()     # 2D Full Canvas
-    t.assertEqual(window.workspace.name_full.split(".", 1)[0], "2D Full Canvas")
+    yield e.v()     # Video Editing
+    t.assertEqual(window.workspace.name_full.split(".", 1)[0], "Video Editing")
 
     yield from _call_by_name(e, "Add Workspace")
     yield e.t()     # Storyboarding
