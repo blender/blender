@@ -2064,17 +2064,17 @@ void BKE_main_id_refcount_recompute(Main *bmain, const bool do_linked_only)
 }
 
 static void library_make_local_copying_check(ID *id,
-                                             GSet *loop_tags,
+                                             blender::Set<ID *> &loop_tags,
                                              MainIDRelations *id_relations,
-                                             GSet *done_ids)
+                                             blender::Set<ID *> &done_ids)
 {
-  if (BLI_gset_haskey(done_ids, id)) {
+  if (done_ids.contains(id)) {
     return; /* Already checked, nothing else to do. */
   }
 
   MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(
       BLI_ghash_lookup(id_relations->relations_from_pointers, id));
-  BLI_gset_insert(loop_tags, id);
+  loop_tags.add(id);
   for (MainIDRelationsEntryItem *from_id_entry = entry->from_ids; from_id_entry != nullptr;
        from_id_entry = from_id_entry->next)
   {
@@ -2097,8 +2097,8 @@ static void library_make_local_copying_check(ID *id,
       /* Local user, early out to avoid some gset querying... */
       continue;
     }
-    if (!BLI_gset_haskey(done_ids, from_id)) {
-      if (BLI_gset_haskey(loop_tags, from_id)) {
+    if (!done_ids.contains(from_id)) {
+      if (loop_tags.contains(from_id)) {
         /* We are in a 'dependency loop' of IDs, this does not say us anything, skip it.
          * Note that this is the situation that can lead to archipelagos of linked data-blocks
          * (since all of them have non-local users, they would all be duplicated,
@@ -2121,8 +2121,8 @@ static void library_make_local_copying_check(ID *id,
       break;
     }
   }
-  BLI_gset_add(done_ids, id);
-  BLI_gset_remove(loop_tags, id, nullptr);
+  done_ids.add(id);
+  loop_tags.remove(id);
 }
 
 void BKE_library_make_local(Main *bmain,
@@ -2146,7 +2146,7 @@ void BKE_library_make_local(Main *bmain,
   LinkNode *copied_ids = nullptr;
   MemArena *linklist_mem = BLI_memarena_new(512 * sizeof(*todo_ids), __func__);
 
-  GSet *done_ids = BLI_gset_ptr_new(__func__);
+  blender::Set<ID *> done_ids;
 
 #ifdef DEBUG_TIME
   TIMEIT_START(make_local);
@@ -2215,7 +2215,7 @@ void BKE_library_make_local(Main *bmain,
       }
       else {
         /* Linked ID that we won't be making local (needed info for step 2, see below). */
-        BLI_gset_add(done_ids, id);
+        done_ids.add(id);
       }
     }
   }
@@ -2228,14 +2228,12 @@ void BKE_library_make_local(Main *bmain,
   /* Step 2: Check which data-blocks we can directly make local
    * (because they are only used by already, or future, local data),
    * others will need to be duplicated. */
-  GSet *loop_tags = BLI_gset_ptr_new(__func__);
+  blender::Set<ID *> loop_tags;
   for (LinkNode *it = todo_ids; it; it = it->next) {
     library_make_local_copying_check(
         static_cast<ID *>(it->link), loop_tags, bmain->relations, done_ids);
-    BLI_assert(BLI_gset_len(loop_tags) == 0);
+    BLI_assert(loop_tags.is_empty());
   }
-  BLI_gset_free(loop_tags, nullptr);
-  BLI_gset_free(done_ids, nullptr);
 
   /* Next step will most likely add new IDs, better to get rid of this mapping now. */
   BKE_main_relations_free(bmain);
