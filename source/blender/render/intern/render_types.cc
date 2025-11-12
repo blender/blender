@@ -72,11 +72,6 @@ bool Render::prepare_viewlayer(ViewLayer *view_layer, Depsgraph *depsgraph)
 
 RenderDisplay::~RenderDisplay()
 {
-  clear();
-}
-
-void RenderDisplay::clear()
-{
   if (blender_gpu_context) {
     WM_system_gpu_context_activate(system_gpu_context);
     GPU_context_active_set(static_cast<GPUContext *>(blender_gpu_context));
