@@ -1834,13 +1834,17 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                     col.label(text=rpt_("or AMD Radeon Pro %s driver or newer") %
                               pro_driver_version, icon='BLANK1', translate=False)
                 elif sys.platform.startswith("linux"):
+                    rocm_version = "6.0"
                     driver_version = "23.40"
                     col.label(
                         text=rpt_("Requires AMD GPU with RDNA architecture"),
                         icon='BLANK1',
                         translate=False)
-                    col.label(text=rpt_("and AMD driver version %s or newer") % driver_version, icon='BLANK1',
-                              translate=False)
+                    col.label(
+                        text=rpt_("and ROCm HIP Runtime %s or newer") %
+                        rocm_version, icon='BLANK1', translate=False)
+                    col.label(text=rpt_("or AMD driver version %s or newer") %
+                              driver_version, icon='BLANK1', translate=False)
             elif device_type == 'ONEAPI':
                 import sys
                 if sys.platform.startswith("win"):
