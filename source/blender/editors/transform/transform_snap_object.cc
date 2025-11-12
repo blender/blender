@@ -20,6 +20,7 @@
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_object.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -397,15 +398,13 @@ static const ID *data_for_snap(Object *ob_eval, eSnapEditType edit_mode_type, bo
 
 /**
  * Mesh used for snapping (`dupli-list` instances).
- *
  * A version of #data_for_snap for instances.
  */
-static const ID *data_for_snap_dupli(Object *ob_eval, ID *ob_data)
+static const ID *data_for_snap_dupli(ID *ob_data)
 {
-  /* For curve and surface objects, use the evaluated mesh so snapping
-   * works with the final geometry instead of the coarse cage, see: #143060. */
-  if (ELEM(ob_eval->type, OB_CURVES_LEGACY, OB_CURVES, OB_SURF)) {
-    return &BKE_object_get_evaluated_mesh(ob_eval)->id;
+  if (GS(ob_data->name) == ID_ME) {
+    Mesh *mesh = blender::id_cast<Mesh *>(ob_data);
+    return reinterpret_cast<const ID *>(BKE_mesh_wrapper_ensure_subdivision(mesh));
   }
   return ob_data;
 }
@@ -505,7 +504,7 @@ static eSnapMode iter_snap_objects(SnapObjectContext *sctx, IterSnapObjsCallback
       object_duplilist(sctx->runtime.depsgraph, sctx->scene, obj_eval, nullptr, duplilist);
       for (DupliObject &dupli_ob : duplilist) {
         BLI_assert(DEG_is_evaluated(dupli_ob.ob));
-        const ID *ob_data = data_for_snap_dupli(dupli_ob.ob, dupli_ob.ob_data);
+        const ID *ob_data = dupli_ob.ob_data ? data_for_snap_dupli(dupli_ob.ob_data) : nullptr;
         if ((tmp = sob_callback(
                  sctx, dupli_ob.ob, ob_data, float4x4(dupli_ob.mat), is_object_active, false)) !=
             SCE_SNAP_TO_NONE)
