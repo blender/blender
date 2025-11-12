@@ -102,9 +102,9 @@ class CompositorContext : public compositor::Context {
     return false;
   }
 
-  Bounds<int2> get_input_region() const override
+  compositor::Domain get_compositing_domain() const override
   {
-    return Bounds<int2>(int2(0), int2(image_buffer_->x, image_buffer_->y));
+    return compositor::Domain(int2(image_buffer_->x, image_buffer_->y));
   }
 
   void write_output(const compositor::Result &result) override

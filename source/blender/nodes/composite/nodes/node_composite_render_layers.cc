@@ -592,7 +592,7 @@ class RenderLayerOperation : public NodeOperation {
 
     pass.bind_as_texture(shader, "input_tx");
 
-    result.allocate_texture(Domain(this->context().get_compositing_region_size()));
+    result.allocate_texture(this->context().get_compositing_domain());
     result.bind_as_image(shader, "output_img");
 
     compute_dispatch_threads_at_least(shader, result.domain().data_size);
@@ -640,7 +640,7 @@ class RenderLayerOperation : public NodeOperation {
      * compositing region into an appropriately sized result. */
     const int2 lower_bound = this->context().get_input_region().min;
 
-    result.allocate_texture(Domain(this->context().get_compositing_region_size()));
+    result.allocate_texture(this->context().get_compositing_domain());
 
     /* Special case for alpha output. */
     if (pass.type() == ResultType::Color && result.type() == ResultType::Float) {

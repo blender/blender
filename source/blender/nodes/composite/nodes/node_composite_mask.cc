@@ -117,20 +117,15 @@ class MaskOperation : public NodeOperation {
 
   Domain compute_domain() override
   {
-    return Domain(this->compute_size());
-  }
-
-  int2 compute_size()
-  {
     if (this->get_flags() & CMP_NODE_MASK_FLAG_SIZE_FIXED) {
-      return this->get_size();
+      return Domain(this->get_size());
     }
 
     if (this->get_flags() & CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE) {
-      return this->get_size() * this->context().get_render_percentage();
+      return Domain(this->get_size() * this->context().get_render_percentage());
     }
 
-    return this->context().get_compositing_region_size();
+    return this->context().get_compositing_domain();
   }
 
   int2 get_size()

@@ -59,10 +59,12 @@ class Context {
   /* Returns all output types that should be computed. */
   virtual OutputTypes needed_outputs() const = 0;
 
-  /* Get the rectangular region representing the area of the input that the compositor will operate
-   * on. In the base case, the input region covers the entirety of the input. In other cases, the
-   * input region might be a subset of the input. */
-  virtual Bounds<int2> get_input_region() const = 0;
+  /* Returns the domain that the inputs and outputs of the context will be in. Note that the inputs
+   * might be larger than this domain, and relevant input operations need to crop the inputs to
+   * match this domain by calling the get_input_region method. Also note that the context might
+   * require the output to be returned as is without being constrained by this domain by returning
+   * false in the use_context_bounds_for_input_output method. */
+  virtual Domain get_compositing_domain() const = 0;
 
   /* Write the result of the compositor. */
   virtual void write_output(const Result &result) = 0;
@@ -75,6 +77,11 @@ class Context {
 
   /* True if the compositor should use GPU acceleration. */
   virtual bool use_gpu() const = 0;
+
+  /* Get the rectangular region representing the area of the input that should be read from the
+   * get_input and get_pass methods. In the base case, the input region covers the entirety of the
+   * input. In other cases, the input region might be a subset of the input. */
+  virtual Bounds<int2> get_input_region() const;
 
   /* Get the strip that the compositing modifier is applied to. */
   virtual const Strip *get_strip() const;
@@ -134,9 +141,6 @@ class Context {
   /* Resets the context's internal structures like the cache manager. This should be called before
    * every evaluation. */
   void reset();
-
-  /* Get the size of the compositing region. See get_compositing_region(). */
-  int2 get_compositing_region_size() const;
 
   /* Get the normalized render percentage of the active scene. */
   float get_render_percentage() const;

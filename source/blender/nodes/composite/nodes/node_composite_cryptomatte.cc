@@ -867,7 +867,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
   {
     switch (get_source()) {
       case CMP_NODE_CRYPTOMATTE_SOURCE_RENDER:
-        return Domain(context().get_compositing_region_size());
+        return context().get_compositing_domain();
       case CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE:
         return compute_image_domain();
     }

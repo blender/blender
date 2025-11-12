@@ -81,6 +81,42 @@ class Context : public compositor::Context {
     return true;
   }
 
+  /* In case the viewport has no camera region or is an image render, the domain covers the entire
+   * viewport. But in case the camera region is not entirely visible in the viewport, the data size
+   * of the domain will only cover the intersection of the viewport and the camera regions, while
+   * the display size will cover the virtual extension of the camera region. */
+  compositor::Domain get_compositing_domain() const override
+  {
+    const DRWContext *draw_ctx = DRW_context_get();
+
+    /* No camera region or is a viewport render, the domain is the entire viewport. */
+    if (draw_ctx->rv3d->persp != RV3D_CAMOB || draw_ctx->is_viewport_image_render()) {
+      return compositor::Domain(int2(draw_ctx->viewport_size_get()));
+    }
+
+    rctf camera_border;
+    ED_view3d_calc_camera_border(draw_ctx->scene,
+                                 draw_ctx->depsgraph,
+                                 draw_ctx->region,
+                                 draw_ctx->v3d,
+                                 draw_ctx->rv3d,
+                                 false,
+                                 &camera_border);
+
+    const Bounds<int2> camera_region = Bounds<int2>(
+        int2(int(camera_border.xmin), int(camera_border.ymin)),
+        int2(int(camera_border.xmax), int(camera_border.ymax)));
+
+    const Bounds<int2> render_region = Bounds<int2>(int2(0), int2(draw_ctx->viewport_size_get()));
+    const Bounds<int2> border_region =
+        blender::bounds::intersect(render_region, camera_region).value();
+
+    compositor::Domain domain = compositor::Domain(camera_region.size());
+    domain.data_size = border_region.size();
+    domain.data_offset = border_region.min - camera_region.min;
+    return domain;
+  }
+
   /* Get the bounds of the camera region in pixels relative to the viewport. In case the viewport
    * has no camera region or is an image render, return the bounds of the entire viewport. */
   Bounds<int2> get_camera_region() const
@@ -89,6 +125,7 @@ class Context : public compositor::Context {
     const int2 viewport_size = int2(draw_ctx->viewport_size_get());
     const Bounds<int2> render_region = Bounds<int2>(int2(0), viewport_size);
 
+    /* No camera region or is a viewport render, the domain is the entire viewport. */
     if (draw_ctx->rv3d->persp != RV3D_CAMOB || draw_ctx->is_viewport_image_render()) {
       return render_region;
     }
@@ -110,9 +147,6 @@ class Context : public compositor::Context {
         .value_or(Bounds<int2>(int2(0)));
   }
 
-  /* We limit the input region to the camera region if in camera view, while we use the entire
-   * viewport otherwise. We also use the entire viewport when doing viewport rendering since the
-   * viewport is already the camera region in that case. */
   Bounds<int2> get_input_region() const override
   {
     return this->get_camera_region();
