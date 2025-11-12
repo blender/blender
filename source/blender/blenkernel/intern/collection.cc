@@ -2405,12 +2405,14 @@ void BKE_scene_collections_iterator_end(BLI_Iterator *iter)
 /* scene objects iterator */
 
 struct SceneObjectsIteratorData {
-  GSet *visited;
+  blender::Set<Object *> *visited;
   CollectionObject *cob_next;
   BLI_Iterator scene_collection_iter;
 };
 
-static void scene_objects_iterator_begin(BLI_Iterator *iter, Scene *scene, GSet *visited_objects)
+static void scene_objects_iterator_begin(BLI_Iterator *iter,
+                                         Scene *scene,
+                                         blender::Set<Object *> *visited_objects)
 {
   SceneObjectsIteratorData *data = MEM_callocN<SceneObjectsIteratorData>(__func__);
 
@@ -2422,7 +2424,7 @@ static void scene_objects_iterator_begin(BLI_Iterator *iter, Scene *scene, GSet 
     data->visited = visited_objects;
   }
   else {
-    data->visited = BLI_gset_ptr_new(__func__);
+    data->visited = MEM_new<blender::Set<Object *>>(__func__);
   }
 
   /* We wrap the scene-collection iterator here to go over the scene collections. */
@@ -2505,13 +2507,10 @@ void BKE_scene_objects_iterator_end_ex(BLI_Iterator *iter)
 /**
  * Ensures we only get each object once, even when included in several collections.
  */
-static CollectionObject *object_base_unique(GSet *gs, CollectionObject *cob)
+static CollectionObject *object_base_unique(blender::Set<Object *> &gs, CollectionObject *cob)
 {
   for (; cob != nullptr; cob = cob->next) {
-    Object *ob = cob->ob;
-    void **ob_key_p;
-    if (!BLI_gset_ensure_p_ex(gs, ob, &ob_key_p)) {
-      *ob_key_p = ob;
+    if (gs.add(cob->ob)) {
       return cob;
     }
   }
@@ -2521,7 +2520,7 @@ static CollectionObject *object_base_unique(GSet *gs, CollectionObject *cob)
 void BKE_scene_objects_iterator_next(BLI_Iterator *iter)
 {
   SceneObjectsIteratorData *data = static_cast<SceneObjectsIteratorData *>(iter->data);
-  CollectionObject *cob = data->cob_next ? object_base_unique(data->visited, data->cob_next) :
+  CollectionObject *cob = data->cob_next ? object_base_unique(*data->visited, data->cob_next) :
                                            nullptr;
 
   if (cob) {
@@ -2536,7 +2535,7 @@ void BKE_scene_objects_iterator_next(BLI_Iterator *iter)
       collection = static_cast<Collection *>(data->scene_collection_iter.current);
       /* get the first unique object of this collection */
       CollectionObject *new_cob = object_base_unique(
-          data->visited, static_cast<CollectionObject *>(collection->gobject.first));
+          *data->visited, static_cast<CollectionObject *>(collection->gobject.first));
       if (new_cob) {
         data->cob_next = new_cob->next;
         iter->current = new_cob->ob;
@@ -2557,28 +2556,28 @@ void BKE_scene_objects_iterator_end(BLI_Iterator *iter)
   if (data) {
     BKE_scene_collections_iterator_end(&data->scene_collection_iter);
     if (data->visited != nullptr) {
-      BLI_gset_free(data->visited, nullptr);
+      MEM_delete(data->visited);
     }
     MEM_freeN(data);
   }
 }
 
-GSet *BKE_scene_objects_as_gset(Scene *scene, GSet *objects_gset)
+blender::Set<Object *> *BKE_scene_objects_as_set(Scene *scene, blender::Set<Object *> *objects_set)
 {
   BLI_Iterator iter;
-  scene_objects_iterator_begin(&iter, scene, objects_gset);
+  scene_objects_iterator_begin(&iter, scene, objects_set);
   while (iter.valid) {
     BKE_scene_objects_iterator_next(&iter);
   }
 
-  /* `return_gset` is either given `objects_gset` (if non-nullptr), or the GSet allocated by the
+  /* `return_set` is either given `objects_set` (if non-nullptr), or the Set allocated by the
    * iterator. Either way, we want to get it back, and prevent `BKE_scene_objects_iterator_end`
    * from freeing it. */
-  GSet *return_gset = ((SceneObjectsIteratorData *)iter.data)->visited;
+  blender::Set<Object *> *return_set = ((SceneObjectsIteratorData *)iter.data)->visited;
   ((SceneObjectsIteratorData *)iter.data)->visited = nullptr;
   BKE_scene_objects_iterator_end(&iter);
 
-  return return_gset;
+  return return_set;
 }
 
 /** \} */
