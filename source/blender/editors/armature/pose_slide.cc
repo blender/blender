@@ -963,8 +963,6 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
     status.item_bool(
         IFACE_("Bone Visibility"), !(v3d->overlay.flag & V3D_OVERLAY_HIDE_BONES), ICON_EVENT_H);
   }
-
-  ED_area_status_text(pso->area, "");
 }
 
 /**
@@ -1130,7 +1128,6 @@ static wmOperatorStatus pose_slide_modal(bContext *C, wmOperator *op, const wmEv
       if (event->val == KM_PRESS) {
         /* Return to normal cursor and header status. */
         ED_workspace_status_text(C, nullptr);
-        ED_area_status_text(pso->area, nullptr);
         WM_cursor_modal_restore(win);
 
         /* Depsgraph updates + redraws. Redraw needed to remove UI. */
@@ -1151,7 +1148,6 @@ static wmOperatorStatus pose_slide_modal(bContext *C, wmOperator *op, const wmEv
       if (event->val == KM_PRESS) {
         /* Return to normal cursor and header status. */
         ED_workspace_status_text(C, nullptr);
-        ED_area_status_text(pso->area, nullptr);
         WM_cursor_modal_restore(win);
 
         /* Reset transforms back to original state. */
