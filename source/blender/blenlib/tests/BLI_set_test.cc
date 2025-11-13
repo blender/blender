@@ -471,6 +471,17 @@ TEST(set, LookupKeyOrAdd)
   EXPECT_EQ(set.size(), 3);
 }
 
+TEST(set, LookupKeyOrAddCb)
+{
+  Set<MyKeyType> set;
+  EXPECT_EQ(set.lookup_key_or_add_cb({1, 10}, [&]() { return MyKeyType{1, 100}; }).attached_data,
+            100);
+  EXPECT_EQ(set.lookup_key_or_add_cb({1, 5}, [&]() { return MyKeyType{1, 50}; }).attached_data,
+            100);
+  EXPECT_EQ(set.lookup_key_or_add_cb({2, 20}, [&]() { return MyKeyType{2, 200}; }).attached_data,
+            200);
+}
+
 TEST(set, StringViewKeys)
 {
   Set<std::string_view> set;
