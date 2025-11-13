@@ -31,6 +31,18 @@ static int node_shader_gpu_light_path(GPUMaterial *mat,
                                       GPUNodeStack *in,
                                       GPUNodeStack *out)
 {
+  if (out[2].hasoutput ||  /* Is Diffuse Ray. */
+      out[3].hasoutput ||  /* Is Glossy Ray. */
+      out[4].hasoutput ||  /* Is Singular Ray. */
+      out[5].hasoutput ||  /* Is Reflection Ray. */
+      out[6].hasoutput ||  /* Is Transmission Ray. */
+      out[10].hasoutput || /* Diffuse Depth. */
+      out[11].hasoutput || /* Glossy Depth. */
+      out[13].hasoutput)   /* Transmission Depth. */
+  {
+    /* Used to detect that the world has a specific look for diffuse path. */
+    GPU_material_flag_set(mat, GPU_MATFLAG_IS_DIFFUSE_OR_GLOSSY_RAY_FLAG);
+  }
   return GPU_stack_link(mat, node, "node_light_path", in, out);
 }
 

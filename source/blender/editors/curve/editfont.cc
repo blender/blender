@@ -610,6 +610,12 @@ static wmOperatorStatus paste_from_file(bContext *C, ReportList *reports, const 
 
 static wmOperatorStatus paste_from_file_exec(bContext *C, wmOperator *op)
 {
+  if (op->flag & OP_IS_INVOKE) {
+    if (!WM_operator_poll_or_report_error(C, op->type, op->reports)) {
+      return OPERATOR_CANCELLED;
+    }
+  }
+
   std::string filepath = RNA_string_get(op->ptr, "filepath");
   wmOperatorStatus retval = paste_from_file(C, op->reports, filepath.c_str());
   return retval;
@@ -715,7 +721,6 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
 
   uiBut *text_but = uiDefBut(block,
                              ButType::Text,
-                             0,
                              "",
                              0,
                              0,
@@ -746,17 +751,17 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
 
   if (windows_layout) {
     confirm = uiDefIconTextBut(
-        block, ButType::But, 0, 0, IFACE_("Insert"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
+        block, ButType::But, 0, IFACE_("Insert"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
     split->column(false);
   }
 
   cancel = uiDefIconTextBut(
-      block, ButType::But, 0, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
+      block, ButType::But, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
 
   if (!windows_layout) {
     split->column(false);
     confirm = uiDefIconTextBut(
-        block, ButType::But, 0, 0, IFACE_("Insert"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
+        block, ButType::But, 0, IFACE_("Insert"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
   }
 
   UI_block_func_set(block, nullptr, nullptr, nullptr);

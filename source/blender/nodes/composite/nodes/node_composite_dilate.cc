@@ -144,13 +144,13 @@ class DilateErodeOperation : public NodeOperation {
      * spatial cache locality in the shader and to avoid having two separate shaders for each of
      * the passes. */
     const Domain domain = compute_domain();
-    const int2 transposed_domain = int2(domain.size.y, domain.size.x);
+    const int2 transposed_domain = int2(domain.data_size.y, domain.data_size.x);
 
     Result horizontal_pass_result = context().create_result(ResultType::Float);
     horizontal_pass_result.allocate_texture(transposed_domain);
     horizontal_pass_result.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     GPU_shader_unbind();
     input_mask.unbind_as_texture();
@@ -172,7 +172,7 @@ class DilateErodeOperation : public NodeOperation {
      * spatial cache locality in the shader and to avoid having two separate shaders for each of
      * the passes. */
     const Domain domain = compute_domain();
-    const int2 transposed_domain = int2(domain.size.y, domain.size.x);
+    const int2 transposed_domain = int2(domain.data_size.y, domain.data_size.x);
 
     Result horizontal_pass_result = context().create_result(ResultType::Float);
     horizontal_pass_result.allocate_texture(transposed_domain);
@@ -213,7 +213,7 @@ class DilateErodeOperation : public NodeOperation {
 
     /* Notice that the domain is transposed, see the note on the horizontal pass method for more
      * information on the reasoning behind this. */
-    compute_dispatch_threads_at_least(shader, int2(domain.size.y, domain.size.x));
+    compute_dispatch_threads_at_least(shader, int2(domain.data_size.y, domain.data_size.x));
 
     GPU_shader_unbind();
     horizontal_pass_result.unbind_as_texture();
@@ -265,7 +265,7 @@ class DilateErodeOperation : public NodeOperation {
 
     /* Notice that the domain is transposed, see the note on the horizontal pass method for more
      * information on the reasoning behind this. */
-    const int2 image_size = int2(output.domain().size.y, output.domain().size.x);
+    const int2 image_size = int2(output.domain().data_size.y, output.domain().data_size.x);
 
     /* We process rows in tiles whose size is the same as the structuring element size. So we
      * compute the number of tiles using ceiling division, noting that the last tile might not be
@@ -375,7 +375,7 @@ class DilateErodeOperation : public NodeOperation {
     output.allocate_texture(domain);
     output.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     GPU_shader_unbind();
     output.unbind_as_image();
@@ -389,7 +389,7 @@ class DilateErodeOperation : public NodeOperation {
     const Domain domain = compute_domain();
     output.allocate_texture(domain);
 
-    const int2 image_size = input.domain().size;
+    const int2 image_size = input.domain().data_size;
 
     const float inset = math::max(this->get_falloff_size(), 10e-6f);
     const int radius = this->get_morphological_distance_threshold_radius();
@@ -443,7 +443,7 @@ class DilateErodeOperation : public NodeOperation {
      *
      * Since the erode/dilate distance is already signed appropriately as described before, we just
      * add it in both cases. */
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       /* Apply a threshold operation on the center pixel, where the threshold is currently
        * hard-coded at 0.5. The pixels with values larger than the threshold are said to be
        * masked. */

@@ -17,6 +17,8 @@
 #include "DNA_material_types.h"
 #include "DNA_volume_types.h"
 
+#include "NOD_geometry_nodes_list.hh"
+
 namespace blender::bke::bake {
 
 using namespace io::serialize;
@@ -191,6 +193,17 @@ void VolumeGridBakeItem::count_memory(MemoryCounter &memory) const
 }
 
 #endif
+
+ListBakeItem::ListBakeItem(nodes::ListPtr list) : value(std::move(list)) {}
+
+ListBakeItem::ListBakeItem(Vector<BundleBakeItem> &&items) : value(std::move(items)) {}
+
+ListBakeItem::~ListBakeItem() = default;
+
+void ListBakeItem::count_memory(MemoryCounter & /*memory*/) const
+{
+  /* TODO this function seems unused atm. */
+}
 
 PrimitiveBakeItem::PrimitiveBakeItem(const CPPType &type, const void *value) : type_(type)
 {

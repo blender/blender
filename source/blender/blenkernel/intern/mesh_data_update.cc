@@ -57,9 +57,9 @@ namespace blender::bke {
 // #define USE_MODIFIER_VALIDATE
 
 #ifdef USE_MODIFIER_VALIDATE
-#  define ASSERT_IS_VALID_MESH_INPUT(mesh) (BLI_assert(BKE_mesh_is_valid(mesh) == true))
+#  define ASSERT_IS_VALID_MESH_INPUT(mesh) (BLI_assert(mesh_is_valid(*mesh)))
 #  define ASSERT_IS_VALID_MESH_OUTPUT(mesh) \
-    (BLI_assert((mesh == nullptr) || (BKE_mesh_is_valid(mesh) == true)))
+    (BLI_assert((mesh == nullptr) || (mesh_is_valid(*mesh))))
 #else
 #  define ASSERT_IS_VALID_MESH_INPUT(mesh) \
     { \

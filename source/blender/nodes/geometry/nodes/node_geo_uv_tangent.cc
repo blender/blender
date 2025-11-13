@@ -57,7 +57,7 @@ static float3 compute_triangle_tangent(const float3 &p1,
   const float s2 = uv3.x - uv1.x;
   const float t1 = uv2.y - uv1.y;
   const float t2 = uv3.y - uv1.y;
-  const float r = 1.0f / (s1 * t2 - s2 * t1);
+  const float r = math::safe_rcp(s1 * t2 - s2 * t1);
   const float3 tangent((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r);
   return tangent;
 }

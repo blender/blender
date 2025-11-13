@@ -9,7 +9,7 @@ VERTEX_SHADER_CREATE_INFO(gpu_shader_sequencer_thumbs)
 void main()
 {
   int id = gl_InstanceID;
-  thumb_id = id;
+  thumb_id = uint(id);
   int vid = gl_VertexID;
   SeqStripThumbData thumb = thumb_data[id];
   float4 coords = float4(thumb.x1, thumb.y1, thumb.x2, thumb.y2);

@@ -220,7 +220,7 @@ void ABCGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
   UVSample uvs_and_indices;
 
   if (args_.export_params->uvs) {
-    const char *name = get_uv_sample(uvs_and_indices, m_custom_data_config, &mesh->corner_data);
+    const char *name = get_uv_sample(uvs_and_indices, m_custom_data_config, *mesh);
 
     if (!uvs_and_indices.indices.empty() && !uvs_and_indices.uvs.empty()) {
       OV2fGeomParam::Sample uv_sample;
@@ -232,10 +232,8 @@ void ABCGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
       mesh_sample.setUVs(uv_sample);
     }
 
-    write_custom_data(abc_poly_mesh_schema_.getArbGeomParams(),
-                      m_custom_data_config,
-                      &mesh->corner_data,
-                      CD_PROP_FLOAT2);
+    write_custom_data(
+        abc_poly_mesh_schema_.getArbGeomParams(), m_custom_data_config, *mesh, CD_PROP_FLOAT2);
   }
 
   if (args_.export_params->normals) {
@@ -287,7 +285,7 @@ void ABCGenericMeshWriter::write_subd(HierarchyContext &context, Mesh *mesh)
 
   UVSample sample;
   if (args_.export_params->uvs) {
-    const char *name = get_uv_sample(sample, m_custom_data_config, &mesh->corner_data);
+    const char *name = get_uv_sample(sample, m_custom_data_config, *mesh);
 
     if (!sample.indices.empty() && !sample.uvs.empty()) {
       OV2fGeomParam::Sample uv_sample;
@@ -299,10 +297,8 @@ void ABCGenericMeshWriter::write_subd(HierarchyContext &context, Mesh *mesh)
       subdiv_sample.setUVs(uv_sample);
     }
 
-    write_custom_data(abc_subdiv_schema_.getArbGeomParams(),
-                      m_custom_data_config,
-                      &mesh->corner_data,
-                      CD_PROP_FLOAT2);
+    write_custom_data(
+        abc_subdiv_schema_.getArbGeomParams(), m_custom_data_config, *mesh, CD_PROP_FLOAT2);
   }
 
   if (args_.export_params->orcos) {
@@ -355,7 +351,7 @@ void ABCGenericMeshWriter::write_arb_geo_params(Mesh *mesh)
   else {
     arb_geom_params = abc_poly_mesh_.getSchema().getArbGeomParams();
   }
-  write_custom_data(arb_geom_params, m_custom_data_config, &mesh->corner_data, CD_PROP_BYTE_COLOR);
+  write_custom_data(arb_geom_params, m_custom_data_config, *mesh, CD_PROP_BYTE_COLOR);
 }
 
 bool ABCGenericMeshWriter::get_velocities(Mesh *mesh, std::vector<Imath::V3f> &vels)

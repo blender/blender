@@ -247,7 +247,7 @@ static void radial_lens_distortion(const int2 texel,
    * write a zero transparent color and return. */
   float3 distortion_bounds = chromatic_distortion * distance_squared;
   if (distortion_bounds.x > 1.0f || distortion_bounds.y > 1.0f || distortion_bounds.z > 1.0f) {
-    output.store_pixel(texel, float4(0.0f));
+    output.store_pixel(texel, Color(float4(0.0f)));
     return;
   }
 
@@ -293,7 +293,7 @@ static void radial_lens_distortion(const int2 texel,
    * doesn't change regardless of jitter. */
   color *= float4(float3(2.0f), 1.0f) / float4(number_of_steps);
 
-  output.store_pixel(texel, color);
+  output.store_pixel(texel, Color(color));
 }
 
 class LensDistortionOperation : public NodeOperation {
@@ -344,14 +344,14 @@ class LensDistortionOperation : public NodeOperation {
 
     const Domain domain = compute_domain();
 
-    const float dispersion = (get_dispersion() * HORIZONTAL_DISPERSION_SCALE) / domain.size.x;
+    const float dispersion = (get_dispersion() * HORIZONTAL_DISPERSION_SCALE) / domain.data_size.x;
     GPU_shader_uniform_1f(shader, "dispersion", dispersion);
 
     Result &output_image = get_result("Image");
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input_image.unbind_as_texture();
     output_image.unbind_as_image();
@@ -361,26 +361,26 @@ class LensDistortionOperation : public NodeOperation {
   void execute_horizontal_distortion_cpu()
   {
     const Domain domain = compute_domain();
-    const float dispersion = (get_dispersion() * HORIZONTAL_DISPERSION_SCALE) / domain.size.x;
+    const float dispersion = (get_dispersion() * HORIZONTAL_DISPERSION_SCALE) / domain.data_size.x;
 
     const Result &input = get_input("Image");
 
     Result &output = get_result("Image");
     output.allocate_texture(domain);
 
-    const int2 size = domain.size;
+    const int2 size = domain.data_size;
     parallel_for(size, [&](const int2 texel) {
       /* Get the normalized coordinates of the pixel centers. */
       float2 normalized_texel = (float2(texel) + float2(0.5f)) / float2(size);
 
       /* Sample the red and blue channels shifted by the dispersion amount. */
       const float4 red = input.sample_bilinear_zero(normalized_texel + float2(dispersion, 0.0f));
-      const float4 green = input.load_pixel<float4>(texel);
+      const float4 green = float4(input.load_pixel<Color>(texel));
       const float4 blue = input.sample_bilinear_zero(normalized_texel - float2(dispersion, 0.0f));
 
       const float alpha = blender::math::dot(float3(red.w, green.w, blue.w), float3(1.0f)) / 3.0f;
 
-      output.store_pixel(texel, float4(red.x, green.y, blue.z, alpha));
+      output.store_pixel(texel, Color(red.x, green.y, blue.z, alpha));
     });
   }
 
@@ -415,7 +415,7 @@ class LensDistortionOperation : public NodeOperation {
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input_image.unbind_as_texture();
     output_image.unbind_as_image();
@@ -442,7 +442,7 @@ class LensDistortionOperation : public NodeOperation {
     Result &output = get_result("Image");
     output.allocate_texture(domain);
 
-    const int2 size = domain.size;
+    const int2 size = domain.data_size;
     parallel_for(size, [&](const int2 texel) {
       radial_lens_distortion(texel, input, output, size, chromatic_distortion, scale, use_jitter);
     });

@@ -81,7 +81,7 @@ struct CDStreamConfig {
  * Returns the name of the UV layer.
  *
  * For now the active layer is used, maybe needs a better way to choose this. */
-const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, CustomData *data);
+const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, const Mesh &mesh);
 
 void write_generated_coordinates(const OCompoundProperty &prop, CDStreamConfig &config);
 
@@ -95,7 +95,7 @@ void read_generated_coordinates(const ICompoundProperty &prop,
 
 void write_custom_data(const OCompoundProperty &prop,
                        CDStreamConfig &config,
-                       CustomData *data,
+                       const Mesh &mesh,
                        int data_type);
 
 void read_custom_data(const std::string &iobject_full_name,

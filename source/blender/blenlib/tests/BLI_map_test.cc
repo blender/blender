@@ -777,6 +777,43 @@ TEST(map, AddCbMove)
   EXPECT_EQ(value, "");
 }
 
+struct IntMapKey {
+  int value;
+};
+
+struct IntMapKeyHash {
+  uint64_t operator()(const IntMapKey *key) const
+  {
+    return uint64_t(key->value);
+  }
+};
+
+struct IntMapKeyEq {
+  bool operator()(const IntMapKey *a, const IntMapKey *b) const
+  {
+    return a->value == b->value;
+  }
+};
+
+TEST(map, PointerKeyCustomEq)
+{
+  IntMapKey key1a{1};
+  IntMapKey key1b{1};
+  IntMapKey key2{2};
+  Map<const IntMapKey *, int, 4, DefaultProbingStrategy, IntMapKeyHash, IntMapKeyEq> map;
+  EXPECT_TRUE(map.add(&key1a, 10));
+  EXPECT_FALSE(map.add(&key1b, 11));
+  EXPECT_EQ(map.lookup(&key1a), 10);
+  EXPECT_EQ(map.lookup(&key1b), 10);
+  EXPECT_TRUE(map.add(&key2, 20));
+  EXPECT_TRUE(map.remove(&key1b));
+  EXPECT_FALSE(map.contains(&key1a));
+  EXPECT_FALSE(map.contains(&key1b));
+  EXPECT_TRUE(map.remove(&key2));
+  EXPECT_FALSE(map.remove(&key1a));
+  EXPECT_FALSE(map.remove(&key2));
+}
+
 /**
  * Set this to 1 to activate the benchmark. It is disabled by default, because it prints a lot.
  */

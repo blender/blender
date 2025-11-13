@@ -31,6 +31,11 @@ uint outline_colorid_get()
   return 0u;
 }
 
+#if defined(GPU_NVIDIA) && defined(GPU_OPENGL)
+/* WORKAROUND: Fix legacy driver compiler issue (see #148472). */
+#  define const
+#endif
+
 void main()
 {
   const curves::Point ls_pt = curves::point_get(uint(gl_VertexID));

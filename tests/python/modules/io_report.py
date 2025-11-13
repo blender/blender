@@ -17,7 +17,10 @@ import pathlib
 from . import global_report
 from io import StringIO
 from mathutils import Matrix
-from typing import Callable
+
+from collections.abc import (
+    Callable,
+)
 
 
 def fmtf(f: float) -> str:
@@ -50,6 +53,7 @@ class Report:
         'global_dir',
         'input_dir',
         'reference_dir',
+        'generate_data_desc',
         'tested_count',
         'failed_list',
         'passed_list',
@@ -69,12 +73,14 @@ class Report:
         output_dir: pathlib.Path,
         input_dir: pathlib.Path,
         reference_dir: pathlib.Path,
+        comparison_func: Callable[[str, dict], None] | None = None,
     ):
         self.title = title
         self.output_dir = output_dir
         self.global_dir = os.path.dirname(output_dir)
         self.input_dir = input_dir
         self.reference_dir = reference_dir
+        self.generate_data_desc = comparison_func if comparison_func else self.generate_generic_data_desc
 
         self.tested_count = 0
         self.failed_list = []
@@ -251,6 +257,7 @@ integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw
             self.failed_html += test_html
         else:
             self.passed_html += test_html
+        return not error
 
     @staticmethod
     def _val_to_str(val) -> str:
@@ -419,7 +426,7 @@ integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw
                     desc.write(f" slot:{adt.action_slot.identifier}")
                 desc.write(f" blend:{adt.action_blend_type} drivers:{len(adt.drivers)}\n")
 
-    def generate_main_data_desc(self) -> str:
+    def generate_generic_data_desc(self) -> str:
         """Generates textual description of the current state of the
         Blender main data."""
 
@@ -860,24 +867,48 @@ integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw
         desc.close()
         return text
 
-    def import_and_check(self, input_file: pathlib.Path, import_func: Callable[[str, dict], None]) -> bool:
+    def import_and_check(
+            self,
+            input_file: pathlib.Path,
+            import_func: Callable[[str, dict], None],
+    ) -> bool:
+        return self.generate_and_check(input_file=input_file, generate_func=import_func)
+
+    def generate_and_check(
+            self,
+            input_file: pathlib.Path,
+            generate_func: Callable[[str, dict], None],
+            output_filepath: pathlib.Path | None = None,
+    ) -> bool:
         """
         Imports a single file using the provided import function, and
         checks whether it matches with expected template, returns
         comparison result.
 
         If there is a .json file next to the input file, the parameters from
-        that one file will be passed as extra parameters to the import function.
+        that one file will be passed as extra parameters to the generate function.
+        If there is a .export.json file next to the input file, it is assumed
+        that this is an export or round-trip test, and the parameters from that
+        file will be passed as extra export parameters to the generate function.
+        In this case, output_filepath is expected to be provided as well.
 
         When working in template update mode (environment variable
         BLENDER_TEST_UPDATE=1), updates the template with new result
         and always returns true.
+
+        This function also supports import/export tests (called round-trips),
+        and exports, where the export parameters are read from a .export.json
+        file next to the input file, and passed to the generate function as well.
+        In this case, the output file is expected to be written to a temporary folder.
+        Here, output_filepath is the name of the output file to read the result from
+        (absolute name is used here, as it is inside a temporary folder).
+
         """
         self.tested_count += 1
         input_basename = pathlib.Path(input_file).stem
         print(f"Importing {input_file}...", flush=True)
 
-        # load json parameters if they exist
+        # load json parameters if they exist, for import
         params = {}
         input_params_file = input_file.with_suffix(".json")
         if input_params_file.exists():
@@ -887,10 +918,26 @@ integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw
             except:
                 pass
 
-        # import
+        # load json parameters if they exist, for export
+        params_export = {}
+        output_params_file = input_file.with_suffix(".export.json")
+        if output_params_file.exists():
+            try:
+                with output_params_file.open('r', encoding='utf-8') as file:
+                    params_export = json.load(file)
+            except:
+                pass
+
+        # Generate (import, export or round-trip)
         try:
-            import_func(str(input_file), params)
-            got_desc = self.generate_main_data_desc()
+            if not output_filepath:
+                # Import (check Blender data, so no output file)
+                generate_func(str(input_file), params)
+                got_desc = self.generate_data_desc()
+            else:
+                # Export or round-trip (check output file)
+                generate_func(str(input_file), str(output_filepath), params, params_export)
+                got_desc = self.generate_data_desc(output_filepath)
         except RuntimeError as ex:
             got_desc = f"Error during import: {ex}"
 
@@ -908,8 +955,8 @@ integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw
                 self.updated_list.append(input_basename)
         else:
             # compare result with expected reference
-            self._add_test_result(input_basename, got_desc, ref_desc)
-            if ref_desc == got_desc:
+            result = self._add_test_result(input_basename, got_desc, ref_desc)
+            if result:
                 self.passed_list.append(input_basename)
             else:
                 self.failed_list.append(input_basename)

@@ -38,13 +38,14 @@ void SphereProbeModule::begin_sync()
     PassSimple &pass = remap_ps_;
     pass.init();
     pass.specialize_constant(shader, "extract_sh", &extract_sh_);
-    pass.specialize_constant(shader, "extract_sun", &extract_sh_);
+    pass.specialize_constant(shader, "extract_sun", &extract_sun_);
     pass.shader_set(shader);
     pass.bind_texture("cubemap_tx", &cubemap_tx_);
     pass.bind_texture("atlas_tx", &probes_tx_);
     pass.bind_image("atlas_img", &probes_tx_);
     pass.bind_ssbo("out_sh", &tmp_spherical_harmonics_);
     pass.bind_ssbo("out_sun", &tmp_sunlight_);
+    pass.push_constant("do_remap_mip0", &do_remap_mip0_);
     pass.push_constant("probe_coord_packed", reinterpret_cast<int4 *>(&probe_sampling_coord_));
     pass.push_constant("write_coord_packed", reinterpret_cast<int4 *>(&probe_write_coord_));
     pass.push_constant("world_coord_packed", reinterpret_cast<int4 *>(&world_data.atlas_coord));
@@ -79,6 +80,7 @@ void SphereProbeModule::begin_sync()
     PassSimple &pass = sum_sun_ps_;
     pass.init();
     pass.shader_set(instance_.shaders.static_shader_get(SPHERE_PROBE_SUNLIGHT));
+    pass.push_constant("sun_id", &extract_sun_index_);
     pass.push_constant("probe_remap_dispatch_size", &dispatch_probe_pack_);
     pass.bind_ssbo("in_sun", &tmp_sunlight_);
     pass.bind_ssbo("sunlight_buf", &instance_.world.sunlight);
@@ -106,7 +108,7 @@ bool SphereProbeModule::ensure_atlas()
    * the resource bindings. */
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_WRITE | GPU_TEXTURE_USAGE_SHADER_READ;
 
-  if (probes_tx_.ensure_2d_array(gpu::TextureFormat::SFLOAT_16_16_16_16,
+  if (probes_tx_.ensure_2d_array(gpu::TextureFormat::SPHERE_PROBE_FORMAT,
                                  int2(SPHERE_PROBE_ATLAS_RES),
                                  instance_.light_probes.sphere_layer_count(),
                                  usage,
@@ -188,6 +190,11 @@ SphereProbeModule::UpdateInfo SphereProbeModule::update_info_from_probe(SpherePr
   return info;
 }
 
+const SphereProbe &SphereProbeModule::world_sphere_probe() const
+{
+  return instance_.light_probes.world_sphere_;
+}
+
 std::optional<SphereProbeModule::UpdateInfo> SphereProbeModule::world_update_info_pop()
 {
   SphereProbe &world_probe = instance_.light_probes.world_sphere_;
@@ -215,7 +222,9 @@ std::optional<SphereProbeModule::UpdateInfo> SphereProbeModule::probe_update_inf
 }
 
 void SphereProbeModule::remap_to_octahedral_projection(const SphereProbeAtlasCoord &atlas_coord,
-                                                       bool extract_spherical_harmonics)
+                                                       bool convolve_octahedral,
+                                                       bool extract_spherical_harmonics,
+                                                       int extract_sun_index)
 {
   /* Update shader parameters that change per dispatch. */
   probe_sampling_coord_ = atlas_coord.as_sampling_coord();
@@ -224,26 +233,36 @@ void SphereProbeModule::remap_to_octahedral_projection(const SphereProbeAtlasCoo
   dispatch_probe_pack_ = int3(
       int2(math::divide_ceil(int2(resolution), int2(SPHERE_PROBE_REMAP_GROUP_SIZE))), 1);
   extract_sh_ = extract_spherical_harmonics;
+  extract_sun_ = extract_sun_index != -1;
+  do_remap_mip0_ = convolve_octahedral;
   instance_.manager->submit(remap_ps_);
 
-  /* Populate the mip levels */
-  for (auto i : IndexRange(SPHERE_PROBE_MIPMAP_LEVELS - 1)) {
-    convolve_lod_ = i;
-    convolve_input_ = probes_tx_.mip_view(i);
-    convolve_output_ = probes_tx_.mip_view(i + 1);
-    probe_read_coord_ = atlas_coord.as_write_coord(i);
-    probe_write_coord_ = atlas_coord.as_write_coord(i + 1);
-    int out_mip_res = probe_write_coord_.extent;
-    dispatch_probe_convolve_ = int3(
-        math::divide_ceil(int2(out_mip_res), int2(SPHERE_PROBE_GROUP_SIZE)), 1);
-    instance_.manager->submit(convolve_ps_);
+  if (convolve_octahedral) {
+    /* Populate the mip levels */
+    for (auto i : IndexRange(SPHERE_PROBE_MIPMAP_LEVELS - 1)) {
+      convolve_lod_ = i;
+      convolve_input_ = probes_tx_.mip_view(i);
+      convolve_output_ = probes_tx_.mip_view(i + 1);
+      probe_read_coord_ = atlas_coord.as_write_coord(i);
+      probe_write_coord_ = atlas_coord.as_write_coord(i + 1);
+      int out_mip_res = probe_write_coord_.extent;
+      dispatch_probe_convolve_ = int3(
+          math::divide_ceil(int2(out_mip_res), int2(SPHERE_PROBE_GROUP_SIZE)), 1);
+      instance_.manager->submit(convolve_ps_);
+    }
   }
 
+  /* This is only true for the world probe. */
   if (extract_spherical_harmonics) {
     instance_.manager->submit(sum_sh_ps_);
+  }
+  if (extract_sun_) {
+    extract_sun_index_ = extract_sun_index;
     instance_.manager->submit(sum_sun_ps_);
-    /* All volume probe that needs to composite the world probe need to be updated. */
-    instance_.volume_probes.update_world_irradiance();
+  }
+  if (extract_spherical_harmonics || extract_sun_) {
+    instance_.lookdev.store_world_probe_data(
+        probes_tx_, atlas_coord, spherical_harmonics_, instance_.world.sunlight);
   }
 
   /* Sync with atlas usage for shading. */

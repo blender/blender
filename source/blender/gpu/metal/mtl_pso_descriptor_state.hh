@@ -25,7 +25,7 @@ namespace blender::gpu {
  * for use in PSO construction and caching.
  */
 struct MTLVertexAttributeDescriptorPSO {
-  MTLVertexFormat format;
+  ::MTLVertexFormat format;
   int offset;
   int buffer_index;
   GPUVertFetchMode format_conversion_mode;
@@ -53,19 +53,21 @@ struct MTLVertexAttributeDescriptorPSO {
 };
 
 struct MTLVertexBufferLayoutDescriptorPSO {
-  MTLVertexStepFunction step_function;
+  ::MTLVertexStepFunction step_function;
   int step_rate;
   int stride;
+  int buffer_slot;
 
   bool operator==(const MTLVertexBufferLayoutDescriptorPSO &other) const
   {
     return (step_function == other.step_function) && (step_rate == other.step_rate) &&
-           (stride == other.stride);
+           (stride == other.stride) && (buffer_slot == other.buffer_slot);
   }
 
   uint64_t hash() const
   {
-    return uint64_t(uint64_t(this->step_function) ^ (this->step_rate << 4) ^ (this->stride << 8));
+    return uint64_t(uint64_t(this->step_function) ^ (this->step_rate << 4) ^ (this->stride << 8) ^
+                    (uint64_t(this->buffer_slot) << 32));
   }
 
   void reset()
@@ -77,14 +79,13 @@ struct MTLVertexBufferLayoutDescriptorPSO {
 };
 
 struct MTLVertexDescriptor {
-
   /* Core Vertex Attributes. */
   MTLVertexAttributeDescriptorPSO attributes[GPU_VERT_ATTR_MAX_LEN];
   MTLVertexBufferLayoutDescriptorPSO buffer_layouts[GPU_BATCH_VBO_MAX_LEN];
   int max_attribute_value;
   int total_attributes;
   int num_vert_buffers;
-  MTLPrimitiveTopologyClass prim_topology_class;
+  ::MTLPrimitiveTopologyClass prim_topology_class;
 
   bool operator==(const MTLVertexDescriptor &other) const
   {
@@ -104,7 +105,7 @@ struct MTLVertexDescriptor {
       }
     }
 
-    for (const int b : IndexRange(this->num_vert_buffers)) {
+    for (const int b : IndexRange(ARRAY_SIZE(this->buffer_layouts))) {
       if (!(this->buffer_layouts[b] == other.buffer_layouts[b])) {
         return false;
       }

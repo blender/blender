@@ -81,36 +81,96 @@ static PyTypeObject BlenderAppType;
 
 static PyStructSequence_Field app_info_fields[] = {
     {"version",
-     "The Blender version as a tuple of 3 numbers (major, minor, micro). eg. (4, 3, 1)"},
+     "The Blender version as a tuple of 3 numbers (major, minor, micro). eg. (4, 3, 1)\n"
+     "\n"
+     ":type: tuple[int, int, int]\n"},
     {"version_file",
      "The Blender File version, as a tuple of 3 numbers (major, minor, file sub-version), that "
      "will be used to save a .blend file. The last item in this tuple indicates the file "
      "sub-version, which is different from the release micro version (the last item of the "
      "``bpy.app.version`` tuple). The file sub-version can be incremented multiple times while a "
      "Blender version is under development. This value is, and should be, used for handling "
-     "compatibility changes between Blender versions"},
-    {"version_string", "The Blender version formatted as a string"},
-    {"version_cycle", "The release status of this build alpha/beta/rc/release"},
+     "compatibility changes between Blender versions\n"
+     "\n"
+     ":type: tuple[int, int, int]\n"},
+    {"version_string",
+     "The Blender version formatted as a string\n"
+     "\n"
+     ":type: str\n"},
+    {"version_cycle",
+     "The release status of this build alpha/beta/rc/release\n"
+     "\n"
+     ":type: str\n"},
     {"background",
-     "Boolean, True when blender is running without a user interface (started with -b)"},
-    {"module", "Boolean, True when running Blender as a python module"},
-    {"factory_startup", "Boolean, True when blender is running with --factory-startup)"},
-    {"portable", "Boolean, True unless blender was built to reference absolute paths (on UNIX)."},
+     "Boolean, True when blender is running without a user interface (started with -b)\n"
+     "\n"
+     ":type: bool\n"},
+    {"module",
+     "Boolean, True when running Blender as a python module\n"
+     "\n"
+     ":type: bool\n"},
+    {"factory_startup",
+     "Boolean, True when blender is running with --factory-startup\n"
+     "\n"
+     ":type: bool\n"},
+    {"portable",
+     "Boolean, True unless blender was built to reference absolute paths (on UNIX).\n"
+     "\n"
+     ":type: bool\n"},
 
     /* buildinfo */
-    {"build_date", "The date this blender instance was built"},
-    {"build_time", "The time this blender instance was built"},
-    {"build_commit_timestamp", "The unix timestamp of commit this blender instance was built"},
-    {"build_commit_date", "The date of commit this blender instance was built"},
-    {"build_commit_time", "The time of commit this blender instance was built"},
-    {"build_hash", "The commit hash this blender instance was built with"},
-    {"build_branch", "The branch this blender instance was built from"},
-    {"build_platform", "The platform this blender instance was built for"},
-    {"build_type", "The type of build (Release, Debug)"},
-    {"build_cflags", "C compiler flags"},
-    {"build_cxxflags", "C++ compiler flags"},
-    {"build_linkflags", "Binary linking flags"},
-    {"build_system", "Build system used"},
+    {"build_date",
+     "The date this blender instance was built\n"
+     "\n"
+     ":type: bytes\n"},
+    {"build_time",
+     "The time this blender instance was built\n"
+     "\n"
+     ":type: bytes\n"},
+    {"build_commit_timestamp",
+     "The unix timestamp of commit this blender instance was built\n"
+     "\n"
+     ":type: int\n"},
+    {"build_commit_date",
+     "The date of commit this blender instance was built\n"
+     "\n"
+     ":type: bytes\n"},
+    {"build_commit_time",
+     "The time of commit this blender instance was built\n"
+     "\n"
+     ":type: bytes\n"},
+    {"build_hash",
+     "The commit hash this blender instance was built with\n"
+     "\n"
+     ":type: bytes\n"},
+    {"build_branch",
+     "The branch this blender instance was built from\n"
+     "\n"
+     ":type: bytes\n"},
+    {"build_platform",
+     "The platform this blender instance was built for\n"
+     "\n"
+     ":type: bytes\n"},
+    {"build_type",
+     "The type of build (Release, Debug)\n"
+     "\n"
+     ":type: bytes\n"},
+    {"build_cflags",
+     "C compiler flags\n"
+     "\n"
+     ":type: bytes\n"},
+    {"build_cxxflags",
+     "C++ compiler flags\n"
+     "\n"
+     ":type: bytes\n"},
+    {"build_linkflags",
+     "Binary linking flags\n"
+     "\n"
+     ":type: bytes\n"},
+    {"build_system",
+     "Build system used\n"
+     "\n"
+     ":type: bytes\n"},
 
     /* submodules */
     {"alembic", "Alembic library information backend"},
@@ -244,7 +304,9 @@ PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_debug_doc,
     "Boolean, for debug info "
-    "(started with ``--debug`` / ``--debug-*`` matching this attribute name).");
+    "(started with ``--debug`` / ``--debug-*`` matching this attribute name).\n"
+    "\n"
+    ":type: bool\n");
 static PyObject *bpy_app_debug_get(PyObject * /*self*/, void *closure)
 {
   const int flag = POINTER_AS_INT(closure);
@@ -275,17 +337,37 @@ PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_internet_offline_doc,
     "Boolean, true when internet access is allowed by Blender & 3rd party scripts "
-    "(read-only).");
+    "(read-only).\n"
+    "\n"
+    ":type: bool\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_internet_offline_override_doc,
     "Boolean, true when internet access preference is overridden by the command line "
-    "(read-only).");
+    "(read-only).\n"
+    "\n"
+    ":type: bool\n");
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_global_flag_doc,
     "Boolean, for application behavior "
-    "(started with ``--enable-*`` matching this attribute name)");
+    "(started with ``--enable-*`` matching this attribute name)\n"
+    "\n"
+    ":type: bool\n");
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_app_autoexec_fail_doc,
+    "Boolean, True when auto-execution of scripts failed (read-only).\n"
+    "\n"
+    ":type: bool\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_app_autoexec_fail_quiet_doc,
+    "Boolean, True when auto-execution failure should be quiet, set after the warning is shown "
+    "once for the current blend file (read-only).\n"
+    "\n"
+    ":type: bool\n");
 
 static PyObject *bpy_app_global_flag_get(PyObject * /*self*/, void *closure)
 {
@@ -328,7 +410,9 @@ static int bpy_app_global_flag_set__only_disable(PyObject * /*self*/,
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_debug_value_doc,
-    "Short, number which can be set to non-zero values for testing purposes.");
+    "Short, number which can be set to non-zero values for testing purposes.\n"
+    "\n"
+    ":type: int\n");
 static PyObject *bpy_app_debug_value_get(PyObject * /*self*/, void * /*closure*/)
 {
   return PyLong_FromLong(G.debug_value);
@@ -354,7 +438,9 @@ static int bpy_app_debug_value_set(PyObject * /*self*/, PyObject *value, void * 
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_tempdir_doc,
-    "String, the temp directory used by blender (read-only).");
+    "String, the temp directory used by blender (read-only).\n"
+    "\n"
+    ":type: str\n");
 static PyObject *bpy_app_tempdir_get(PyObject * /*self*/, void * /*closure*/)
 {
   return PyC_UnicodeFromBytes(BKE_tempdir_session());
@@ -363,7 +449,9 @@ static PyObject *bpy_app_tempdir_get(PyObject * /*self*/, void * /*closure*/)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_driver_dict_doc,
-    "Dictionary for drivers namespace, editable in-place, reset on file load (read-only).");
+    "Dictionary for drivers namespace, editable in-place, reset on file load (read-only).\n"
+    "\n"
+    ":type: dict[str, Any]\n");
 static PyObject *bpy_app_driver_dict_get(PyObject * /*self*/, void * /*closure*/)
 {
   if (bpy_pydriver_Dict == nullptr) {
@@ -379,12 +467,21 @@ static PyObject *bpy_app_driver_dict_get(PyObject * /*self*/, void * /*closure*/
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_app_preview_render_size_doc,
-    "Reference size for icon/preview renders (read-only).");
+    "Reference size for icon/preview renders (read-only).\n"
+    "\n"
+    ":type: int\n");
 static PyObject *bpy_app_preview_render_size_get(PyObject * /*self*/, void *closure)
 {
   return PyLong_FromLong(
       long(UI_icon_preview_to_render_size(eIconSizes(POINTER_AS_INT(closure)))));
 }
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_app_autoexec_fail_message_doc,
+    "String, message describing the auto-execution failure (read-only).\n"
+    "\n"
+    ":type: str\n");
 
 static PyObject *bpy_app_autoexec_fail_message_get(PyObject * /*self*/, void * /*closure*/)
 {
@@ -396,7 +493,9 @@ PyDoc_STRVAR(
     bpy_app_python_args_doc,
     "Leading arguments to use when calling Python directly (via ``sys.executable``). "
     "These arguments match settings Blender uses to "
-    "ensure Python runs with a compatible environment (read-only).");
+    "ensure Python runs with a compatible environment (read-only).\n"
+    "\n"
+    ":type: tuple[str, ...]\n");
 static PyObject *bpy_app_python_args_get(PyObject * /*self*/, void * /*closure*/)
 {
   const char *args[1];
@@ -413,7 +512,9 @@ PyDoc_STRVAR(
     bpy_app_binary_path_doc,
     "The location of Blender's executable, useful for utilities that open new instances. "
     "Read-only unless Blender is built as a Python module - in this case the value is "
-    "an empty string which script authors may point to a Blender binary.");
+    "an empty string which script authors may point to a Blender binary.\n"
+    "\n"
+    ":type: str\n");
 static PyObject *bpy_app_binary_path_get(PyObject * /*self*/, void * /*closure*/)
 {
   return PyC_UnicodeFromBytes(BKE_appdir_program_path());
@@ -543,14 +644,18 @@ static PyGetSetDef bpy_app_getsets[] = {
     {"autoexec_fail",
      bpy_app_global_flag_get,
      nullptr,
-     nullptr,
+     bpy_app_autoexec_fail_doc,
      (void *)G_FLAG_SCRIPT_AUTOEXEC_FAIL},
     {"autoexec_fail_quiet",
      bpy_app_global_flag_get,
      nullptr,
-     nullptr,
+     bpy_app_autoexec_fail_quiet_doc,
      (void *)G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET},
-    {"autoexec_fail_message", bpy_app_autoexec_fail_message_get, nullptr, nullptr, nullptr},
+    {"autoexec_fail_message",
+     bpy_app_autoexec_fail_message_get,
+     nullptr,
+     bpy_app_autoexec_fail_message_doc,
+     nullptr},
 
     {"python_args", bpy_app_python_args_get, nullptr, bpy_app_python_args_doc, nullptr},
 
@@ -615,7 +720,9 @@ PyDoc_STRVAR(
     "\n"
     "   :arg all: Return all arguments, "
     "even those which aren't available for the current platform.\n"
-    "   :type all: bool\n");
+    "   :type all: bool\n"
+    "   :return: Help text.\n"
+    "   :rtype: str\n");
 static PyObject *bpy_app_help_text(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
   bool all = false;

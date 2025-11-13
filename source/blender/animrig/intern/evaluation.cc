@@ -195,10 +195,8 @@ void apply_evaluation_result(const EvaluationResult &evaluation_result,
     if (flush_to_original) {
       /* Convert the StringRef to a `const char *`, as the rest of the RNA path handling code in
        * BKE still uses `char *` instead of `StringRef`. */
-      animsys_write_orig_anim_rna(&animated_id_ptr,
-                                  StringRefNull(prop_ident.rna_path).c_str(),
-                                  prop_ident.array_index,
-                                  animated_value);
+      animsys_write_orig_anim_rna(
+          &animated_id_ptr, prop_ident.rna_path.c_str(), prop_ident.array_index, animated_value);
     }
   }
 }

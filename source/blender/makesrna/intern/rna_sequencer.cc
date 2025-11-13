@@ -52,7 +52,8 @@ struct EffectInfo {
   {eSeqModifierType_WhiteBalance, "WHITE_BALANCE", ICON_MOD_WHITE_BALANCE, "White Balance", ""}
 
 #define RNA_ENUM_SEQUENCER_AUDIO_MODIFIER_TYPE_ITEMS \
-  {eSeqModifierType_SoundEqualizer, "SOUND_EQUALIZER", ICON_NONE, "Sound Equalizer", ""}
+  {eSeqModifierType_SoundEqualizer, "SOUND_EQUALIZER", ICON_NONE, "Sound Equalizer", ""}, \
+  {eSeqModifierType_Pitch, "PITCH", ICON_NONE, "Pitch", ""}
 /* clang-format on */
 
 const EnumPropertyItem rna_enum_strip_modifier_type_items[] = {
@@ -106,6 +107,31 @@ const EnumPropertyItem rna_enum_strip_scale_method_items[] = {
      0,
      "Use Original Size",
      "Display image at its original size"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+const EnumPropertyItem rna_enum_pitch_mode_items[] = {
+    {ePitchMode::PITCH_MODE_SEMITONES,
+     "SEMITONES",
+     0,
+     "Semitones",
+     "Shift pitch using semitones and cents"},
+    {ePitchMode::PITCH_MODE_RATIO, "RATIO", 0, "Ratio", "Shift pitch using a direct ratio"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+const EnumPropertyItem rna_enum_pitch_quality_items[] = {
+    {ePitchQuality::PITCH_QUALITY_HIGH,
+     "HIGH",
+     0,
+     "High",
+     "Prioritize high-quality pitch processing"},
+    {ePitchQuality::PITCH_QUALITY_FAST, "FAST", 0, "Fast", "Prioritize speed over audio quality"},
+    {ePitchQuality::PITCH_QUALITY_CONSISTENT,
+     "CONSISTENT",
+     0,
+     "Consistent",
+     "Prioritize consistency for dynamic pitch changes"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -339,7 +365,7 @@ static void rna_SequenceEditor_update_cache(Main * /*bmain*/, Scene *scene, Poin
   Editing *ed = scene->ed;
 
   blender::seq::relations_free_imbuf(scene, &ed->seqbase, false);
-  blender::seq::cache_cleanup(scene);
+  blender::seq::cache_cleanup(scene, blender::seq::CacheCleanup::FinalAndIntra);
 }
 
 static void rna_SequenceEditor_cache_settings_changed(Main * /*bmain*/,
@@ -447,7 +473,7 @@ static void rna_Strip_retiming_key_frame_set(PointerRNA *ptr, int value)
     return;
   }
 
-  blender::seq::retiming_key_timeline_frame_set(scene, strip, key, value);
+  blender::seq::retiming_key_timeline_frame_set(scene, strip, key, value, true);
   blender::seq::relations_invalidate_cache_raw(scene, strip);
 }
 
@@ -791,14 +817,8 @@ static void rna_Strip_text_font_set(PointerRNA *ptr,
                                     ReportList * /*reports*/)
 {
   Strip *strip = static_cast<Strip *>(ptr->data);
-  TextVars *data = static_cast<TextVars *>(strip->effectdata);
   VFont *value = static_cast<VFont *>(ptr_value.data);
-
-  blender::seq::effect_text_font_unload(data, true);
-
-  id_us_plus(&value->id);
-  data->text_blf_id = STRIP_FONT_NOT_LOADED;
-  data->text_font = value;
+  blender::seq::effect_text_font_set(strip, value);
 }
 
 /* name functions that ignore the first two characters */
@@ -1445,6 +1465,8 @@ static StructRNA *rna_StripModifier_refine(PointerRNA *ptr)
       return &RNA_SoundEqualizerModifier;
     case eSeqModifierType_Compositor:
       return &RNA_SequencerCompositorModifierData;
+    case eSeqModifierType_Pitch:
+      return &RNA_PitchModifier;
     default:
       return &RNA_StripModifier;
   }
@@ -1547,6 +1569,43 @@ static void rna_StripModifier_EQCurveMapping_update(Main *bmain,
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS | ID_RECALC_AUDIO);
   DEG_relations_tag_update(bmain);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
+}
+
+static void rna_StripModifier_Pitch_semitones_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  /* Convert semitones and cents to pitch scale factor. */
+  PitchModifierData *pmd = (PitchModifierData *)ptr->data;
+  int semitones = pmd->semitones;
+  int &cents = pmd->cents;
+  if (semitones >= 12 && cents > 0) {
+    cents = 0;
+  }
+  else if (semitones <= -12 && cents < 0) {
+    cents = 0;
+  }
+
+  rna_StripModifier_update(bmain, scene, ptr);
+}
+
+static void rna_StripModifier_Pitch_mode_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  PitchModifierData *pmd = (PitchModifierData *)ptr->data;
+  int mode = pmd->mode;
+  if (mode == PITCH_MODE_SEMITONES) {
+    /* Convert ratio into semitones */
+    double pitch_scale = pmd->ratio;
+    double total_semitones = 12.0 * log2(pitch_scale);
+    int semitones = (int)floor(total_semitones);
+    double cents = (total_semitones - semitones) * 100.0;
+    pmd->semitones = semitones;
+    pmd->cents = cents;
+  }
+  else if (mode == PITCH_MODE_RATIO) {
+    /* Convert semitones into ratio */
+    pmd->ratio = pow(2.0, (pmd->semitones + (pmd->cents / 100.0)) / 12.0);
+  }
+
+  rna_StripModifier_update(bmain, scene, ptr);
 }
 
 static bool rna_StripModifier_otherStrip_poll(PointerRNA *ptr, PointerRNA value)
@@ -4138,9 +4197,65 @@ static void rna_def_sound_equalizer_modifier(BlenderRNA *brna)
   rna_def_graphical_sound_equalizer(brna);
 }
 
+static void rna_def_pitch_modifier(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+  srna = RNA_def_struct(brna, "PitchModifier", "StripModifier");
+  RNA_def_struct_sdna(srna, "PitchModifierData");
+  RNA_def_struct_ui_text(srna, "PitchModifier", "Shift Audio Pitch");
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "mode");
+  RNA_def_property_enum_items(prop, rna_enum_pitch_mode_items);
+  RNA_def_property_ui_text(prop, "Mode", "Mode of the pitch shift");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_StripModifier_Pitch_mode_update");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "semitones", PROP_INT, PROP_FACTOR);
+  RNA_def_property_int_sdna(prop, nullptr, "semitones");
+  RNA_def_property_range(prop, -12, 12);
+  RNA_def_property_ui_text(prop, "Semitones", "Number of semitones to shift the pitch.");
+  RNA_def_property_update(
+      prop, NC_SCENE | ND_SEQUENCER, "rna_StripModifier_Pitch_semitones_update");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "cents", PROP_INT, PROP_FACTOR);
+  RNA_def_property_int_sdna(prop, nullptr, "cents");
+  RNA_def_property_range(prop, -100, 100);
+  RNA_def_property_ui_text(prop, "Cents", "A cent is one one-hundredth of a semi-tone.");
+  RNA_def_property_update(
+      prop, NC_SCENE | ND_SEQUENCER, "rna_StripModifier_Pitch_semitones_update");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "ratio", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "ratio");
+  RNA_def_property_range(prop, 0.5, 2);
+  RNA_def_property_ui_range(prop, 0.5f, 2.0f, 0.1f, -1);
+  RNA_def_property_ui_text(prop, "Ratio", "Factor by which the audio pitch is scaled.");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_StripModifier_update");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "preserve_formant", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "preserve_formant", 0);
+  RNA_def_property_ui_text(prop,
+                           "Preserve Vocal Formants",
+                           "Whether to preserve the vocal formants when shifting the pitch.");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_StripModifier_update");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "quality", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "quality");
+  RNA_def_property_enum_items(prop, rna_enum_pitch_quality_items);
+  RNA_def_property_ui_text(prop, "Quality", "Quality of the pitch shifting");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_StripModifier_update");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+}
+
 static void rna_def_sound_modifiers(BlenderRNA *brna)
 {
   rna_def_sound_equalizer_modifier(brna);
+  rna_def_pitch_modifier(brna);
 }
 
 void RNA_def_sequencer(BlenderRNA *brna)

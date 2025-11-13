@@ -18,6 +18,11 @@
 
 namespace blender::compositor {
 
+Bounds<int2> Context::get_input_region() const
+{
+  return Bounds<int2>(int2(0), this->get_compositing_domain().display_size);
+}
+
 Result Context::get_pass(const Scene * /*scene*/, int /*view_layer*/, const char * /*name*/)
 {
   return this->create_result(compositor::ResultType::Color);
@@ -75,16 +80,6 @@ bool Context::is_canceled() const
 void Context::reset()
 {
   cache_manager_.reset();
-}
-
-int2 Context::get_compositing_region_size() const
-{
-  return math::max(int2(1), this->get_compositing_region().size());
-}
-
-bool Context::is_valid_compositing_region() const
-{
-  return !this->get_compositing_region().is_empty();
 }
 
 float Context::get_render_percentage() const

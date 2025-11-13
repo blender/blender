@@ -27,6 +27,7 @@
 #include "BLI_math_base.h"
 #include "BLI_mutex.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -1658,6 +1659,12 @@ int RNA_property_string_maxlength(PropertyRNA *prop)
 {
   StringPropertyRNA *sprop = (StringPropertyRNA *)rna_ensure_property(prop);
   return sprop->maxlength;
+}
+
+bool RNA_property_string_is_utf8(PropertyRNA *prop)
+{
+  const PropertySubType subtype = RNA_property_subtype(prop);
+  return !ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME, PROP_BYTESTRING);
 }
 
 StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop)
@@ -4022,6 +4029,10 @@ static size_t property_string_length_storage(PointerRNA *ptr, PropertyRNAOrID &p
   if (sprop->length_ex) {
     return size_t(sprop->length_ex(ptr, &sprop->property));
   }
+  if (sprop->get_default) {
+    const std::string default_value = sprop->get_default(ptr, prop_rna_or_id.rnaprop);
+    return default_value.size();
+  }
   return strlen(sprop->defaultvalue);
 }
 
@@ -4045,6 +4056,9 @@ static std::string property_string_get(PointerRNA *ptr, PropertyRNAOrID &prop_rn
   }
   if (sprop->get_ex) {
     return sprop->get_ex(ptr, &sprop->property);
+  }
+  if (sprop->get_default) {
+    return sprop->get_default(ptr, prop_rna_or_id.rnaprop);
   }
   return sprop->defaultvalue;
 }
@@ -4207,7 +4221,10 @@ void RNA_property_string_set_bytes(PointerRNA *ptr, PropertyRNA *prop, const cha
   }
 }
 
-void RNA_property_string_get_default(PropertyRNA *prop, char *value, const int value_maxncpy)
+void RNA_property_string_get_default(PointerRNA *ptr,
+                                     PropertyRNA *prop,
+                                     char *value,
+                                     const int value_maxncpy)
 {
   StringPropertyRNA *sprop = (StringPropertyRNA *)rna_ensure_property(prop);
 
@@ -4226,6 +4243,16 @@ void RNA_property_string_get_default(PropertyRNA *prop, char *value, const int v
 
   BLI_assert(RNA_property_type(prop) == PROP_STRING);
 
+  if (sprop->get_default) {
+    std::string default_value = sprop->get_default(ptr, prop);
+    if (RNA_property_string_is_utf8(prop)) {
+      BLI_strncpy_utf8(value, default_value.c_str(), value_maxncpy);
+    }
+    else {
+      BLI_strncpy(value, default_value.c_str(), value_maxncpy);
+    }
+    return;
+  }
   strcpy(value, sprop->defaultvalue);
 }
 
@@ -4246,7 +4273,7 @@ char *RNA_property_string_get_default_alloc(
     buf = MEM_calloc_arrayN<char>(size_t(length) + 1, __func__);
   }
 
-  RNA_property_string_get_default(prop, buf, length + 1);
+  RNA_property_string_get_default(ptr, prop, buf, length + 1);
 
   if (r_len) {
     *r_len = length;
@@ -4255,7 +4282,7 @@ char *RNA_property_string_get_default_alloc(
   return buf;
 }
 
-int RNA_property_string_default_length(PointerRNA * /*ptr*/, PropertyRNA *prop)
+int RNA_property_string_default_length(PointerRNA *ptr, PropertyRNA *prop)
 {
   StringPropertyRNA *sprop = (StringPropertyRNA *)rna_ensure_property(prop);
 
@@ -4273,6 +4300,10 @@ int RNA_property_string_default_length(PointerRNA * /*ptr*/, PropertyRNA *prop)
   }
 
   BLI_assert(RNA_property_type(prop) == PROP_STRING);
+  if (sprop->get_default) {
+    const std::string default_value = sprop->get_default(ptr, prop);
+    return default_value.size();
+  }
 
   return strlen(sprop->defaultvalue);
 }

@@ -29,15 +29,13 @@ MTLUniformBuf::~MTLUniformBuf()
     metal_buffer_->free();
     metal_buffer_ = nullptr;
   }
-  has_data_ = false;
 
   /* Ensure UBO is not bound to active CTX.
    * UBO bindings are reset upon Context-switch so we do not need
    * to check deactivated context's. */
   MTLContext *ctx = MTLContext::get();
   if (ctx) {
-    for (int i = 0; i < MTL_MAX_BUFFER_BINDINGS; i++) {
-      MTLUniformBufferBinding &slot = ctx->pipeline_state.ubo_bindings[i];
+    for (MTLUniformBufferBinding &slot : ctx->pipeline_state.ubo_bindings) {
       if (slot.bound && slot.ubo == this) {
         slot.bound = false;
         slot.ubo = nullptr;
@@ -70,23 +68,22 @@ void MTLUniformBuf::update(const void *data)
   BLI_assert(ctx->device);
   UNUSED_VARS_NDEBUG(ctx);
 
-  if (data != nullptr) {
+  if (data) {
     metal_buffer_ = MTLContext::get_global_memory_manager()->allocate_with_data(
         size_in_bytes_, true, data);
-    has_data_ = true;
-
-#ifndef NDEBUG
-    metal_buffer_->set_label([NSString stringWithFormat:@"Uniform Buffer %s", name_]);
-#endif
-    BLI_assert(metal_buffer_ != nullptr);
-    BLI_assert(metal_buffer_->get_metal_buffer() != nil);
   }
   else {
-    /* If data is not yet present, no buffer will be allocated and MTLContext will use an empty
-     * null buffer, containing zeroes, if the UBO is bound. */
-    metal_buffer_ = nullptr;
-    has_data_ = false;
+    metal_buffer_ = MTLContext::get_global_memory_manager()->allocate(size_in_bytes_, true);
   }
+
+#ifndef NDEBUG
+  static std::atomic<int> global_counter = 0;
+  int index = global_counter.fetch_add(1);
+  metal_buffer_->set_label([NSString stringWithFormat:@"UBO %i %s", index, name_]);
+#endif
+
+  BLI_assert(metal_buffer_ != nullptr);
+  BLI_assert(metal_buffer_->get_metal_buffer() != nil);
 }
 
 void MTLUniformBuf::clear_to_zero()
@@ -186,7 +183,7 @@ void MTLUniformBuf::unbind()
 id<MTLBuffer> MTLUniformBuf::get_metal_buffer()
 {
   BLI_assert(this);
-  if (metal_buffer_ != nullptr && has_data_) {
+  if (metal_buffer_ != nullptr) {
     metal_buffer_->debug_ensure_used();
     return metal_buffer_->get_metal_buffer();
   }

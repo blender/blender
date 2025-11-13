@@ -39,7 +39,8 @@ class AssetRepresentation : NonCopyable, NonMovable {
    * Uniquely identifies the asset within the asset library. Currently this is always a path (path
    * within the asset library).
    */
-  std::string relative_identifier_;
+  /* Mutable to allow lazy updating on name changes in #library_relative_identifier(). */
+  mutable std::string relative_identifier_;
 
   /** Information specific to online assets. */
   struct OnlineAssetInfo {
@@ -90,7 +91,7 @@ class AssetRepresentation : NonCopyable, NonMovable {
    * Constructs an asset representation for an ID stored in the current file. This makes the asset
    * local and fully editable.
    */
-  AssetRepresentation(StringRef relative_asset_path, ID &id, AssetLibrary &owner_asset_library);
+  AssetRepresentation(ID &id, AssetLibrary &owner_asset_library);
   ~AssetRepresentation();
 
   /**
@@ -103,7 +104,7 @@ class AssetRepresentation : NonCopyable, NonMovable {
   /**
    * Makes sure the asset ready to load a preview, if necessary.
    *
-   * For local IDs it calls #BKE_previewimg_id_ensure(). For others, this sets loading information
+   * For local IDs it calls #BKE_previewimg_id_get(). For others, this sets loading information
    * to the preview but doesn't actually load it. To load it, attach its
    * #PreviewImageRuntime::icon_id to a UI button (UI loads it asynchronously then) or call
    * #BKE_previewimg_ensure() (not asynchronous).

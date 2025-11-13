@@ -104,9 +104,10 @@ void UI_draw_roundbox_4fv_ex(const rctf *rect,
   blender::gpu::Batch *batch = ui_batch_roundbox_widget_get();
   GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
   GPU_batch_uniform_4fv_array(batch, "parameters", 11, (const float (*)[4]) & widget_params);
+  const GPUBlend old_blend = GPU_blend_get();
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_batch_draw(batch);
-  GPU_blend(GPU_BLEND_NONE);
+  GPU_blend(old_blend);
 }
 
 void UI_draw_roundbox_3ub_alpha(
@@ -648,8 +649,8 @@ static void waveform_draw_rgb(const float *waveform,
   GPU_vertbuf_data_alloc(*vbo, waveform_num);
   WaveformColorVertex *data = vbo->data<WaveformColorVertex>().data();
   for (int i = 0; i < waveform_num; i++) {
-    memcpy(&data->pos, waveform, sizeof(data->pos));
-    memcpy(&data->color, col, sizeof(float) * 3);
+    memcpy(reinterpret_cast<void *>(&data->pos), waveform, sizeof(data->pos));
+    memcpy(reinterpret_cast<void *>(&data->color), col, sizeof(float) * 3);
     data->color.w = alpha;
     waveform += 2;
     col += 3;

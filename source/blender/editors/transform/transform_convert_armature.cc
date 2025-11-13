@@ -13,11 +13,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_set.hh"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
@@ -1401,7 +1401,7 @@ static void recalcData_pose(TransInfo *t)
     }
   }
   else {
-    GSet *motionpath_updates = BLI_gset_ptr_new("motionpath updates");
+    Set<Object *> motionpath_updates;
 
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       Object *ob = tc->poseobj;
@@ -1435,19 +1435,16 @@ static void recalcData_pose(TransInfo *t)
       }
 
       if (motionpath_need_update_pose(t->scene, ob)) {
-        BLI_gset_insert(motionpath_updates, ob);
+        motionpath_updates.add(ob);
       }
 
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
 
     /* Update motion paths once for all transformed bones in an object. */
-    GSetIterator gs_iter;
-    GSET_ITER (gs_iter, motionpath_updates) {
-      Object *ob = static_cast<Object *>(BLI_gsetIterator_getKey(&gs_iter));
+    for (Object *ob : motionpath_updates) {
       ED_pose_recalculate_paths(t->context, t->scene, ob, POSE_PATH_CALC_RANGE_CURRENT_FRAME);
     }
-    BLI_gset_free(motionpath_updates, nullptr);
   }
 }
 
@@ -1655,7 +1652,7 @@ static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
       ANIM_deselect_keys_in_animation_editors(C);
     }
 
-    GSet *motionpath_updates = BLI_gset_ptr_new("motionpath updates");
+    Set<Object *> motionpath_updates;
 
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       short targetless_ik = 0;
@@ -1705,19 +1702,16 @@ static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
       }
 
       if (t->mode != TFM_DUMMY && motionpath_need_update_pose(t->scene, ob)) {
-        BLI_gset_insert(motionpath_updates, ob);
+        motionpath_updates.add(ob);
       }
     }
 
     /* Update motion paths once for all transformed bones in an object. */
-    GSetIterator gs_iter;
-    GSET_ITER (gs_iter, motionpath_updates) {
+    for (Object *ob : motionpath_updates) {
       const ePosePathCalcRange range = canceled ? POSE_PATH_CALC_RANGE_CURRENT_FRAME :
                                                   POSE_PATH_CALC_RANGE_CHANGED;
-      ob = static_cast<Object *>(BLI_gsetIterator_getKey(&gs_iter));
       ED_pose_recalculate_paths(C, t->scene, ob, range);
     }
-    BLI_gset_free(motionpath_updates, nullptr);
   }
 }
 

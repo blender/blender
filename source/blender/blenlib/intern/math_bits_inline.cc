@@ -52,6 +52,13 @@ MINLINE unsigned int bitscan_forward_clear_uint(unsigned int *a)
   return i;
 }
 
+MINLINE unsigned int bitscan_forward_clear_uint64(uint64_t *a)
+{
+  unsigned int i = bitscan_forward_uint64(*a);
+  *a &= (*a) - 1;
+  return i;
+}
+
 MINLINE int bitscan_forward_clear_i(int *a)
 {
   return (int)bitscan_forward_clear_uint((unsigned int *)a);

@@ -308,7 +308,7 @@ std::weak_ptr<AssetRepresentation> AssetLibrary::add_local_id_asset(StringRef re
                                                                     ID &id)
 {
   return asset_storage_.local_id_assets.lookup_key_or_add(
-      std::make_shared<AssetRepresentation>(relative_asset_path, id, *this));
+      std::make_shared<AssetRepresentation>(id, *this));
 }
 
 bool AssetLibrary::remove_asset(AssetRepresentation &asset)
@@ -458,7 +458,6 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs()
     if (!BKE_preferences_asset_library_is_valid(asset_library, true)) {
       continue;
     }
-
     AssetLibraryReference library_ref{};
     library_ref.custom_library_index = i;
     library_ref.type = ASSET_LIBRARY_CUSTOM;

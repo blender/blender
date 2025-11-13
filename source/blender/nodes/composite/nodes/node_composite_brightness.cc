@@ -19,6 +19,8 @@
 
 #include "GPU_material.hh"
 
+#include "COM_result.hh"
+
 #include "node_composite_util.hh"
 
 /* **************** Brightness and Contrast  ******************** */
@@ -72,12 +74,14 @@ static float4 brightness_and_contrast(const float4 &color,
   return float4(color.xyz() * multiplier + offset, color.w);
 }
 
+using blender::compositor::Color;
+
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  static auto function = mf::build::SI3_SO<float4, float, float, float4>(
+  static auto function = mf::build::SI3_SO<Color, float, float, Color>(
       "Brightness And Contrast",
-      [](const float4 &color, const float brightness, const float contrast) -> float4 {
-        return brightness_and_contrast(color, brightness, contrast);
+      [](const Color &color, const float brightness, const float contrast) -> Color {
+        return Color(brightness_and_contrast(float4(color), brightness, contrast));
       },
       mf::build::exec_presets::SomeSpanOrSingle<0>());
   builder.set_matching_fn(function);

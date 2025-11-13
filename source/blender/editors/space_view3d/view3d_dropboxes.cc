@@ -13,9 +13,11 @@
 #include "BKE_idprop.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_lib_remap.hh"
 #include "BKE_library.hh"
 #include "BKE_object.hh"
 
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -372,6 +374,86 @@ static void view3d_ob_drop_copy_local_id(bContext * /*C*/, wmDrag *drag, wmDropB
   RNA_float_set_array(drop->ptr, "matrix", &obmat_final[0][0]);
 }
 
+/**
+ * Make all selected objects and the collections (if \a localize_collections is set) local so
+ * objects can be transformed. The object data and other dependencies are kept linked/packed.
+ *
+ * This is a bit of a minimum effort solution. Ideally there would be a version of
+ * #BKE_lib_id_make_local() that allows passing multiple IDs to make local.
+ */
+static void make_selected_objects_local(Main &bmain,
+                                        Scene &scene,
+                                        ViewLayer &view_layer,
+                                        View3D &v3d,
+                                        const bool localize_parent_collections)
+{
+  blender::Set<Collection *> collections_to_localize;
+
+  if (localize_parent_collections) {
+    /* Collect the collections containing the selected objects. */
+    LISTBASE_FOREACH (Collection *, collection, &bmain.collections) {
+      if (ID_IS_LINKED(collection) &&
+          /* This #BKE_view_layer_has_collection() check requires the view layer to be synced.
+           * That's why we first collect the collections before doing any changes. Otherwise we'd
+           * have to sync the view layer after every "make local" operation. */
+          BKE_view_layer_has_collection(&view_layer, collection))
+      {
+        FOREACH_SELECTED_OBJECT_BEGIN (&view_layer, &v3d, ob_selected) {
+          if (BKE_collection_has_object(collection, ob_selected)) {
+            collections_to_localize.add(collection);
+            break;
+          }
+        }
+        FOREACH_SELECTED_OBJECT_END;
+      }
+    }
+  }
+
+  blender::Vector<ID *> localized_ids;
+
+  /* Make IDs local. When an ID gets made local, pointers to it will be remapped to the new local
+   * version. However, this doesn't work if the pointer is owned by linked data too.
+   *
+   * E.g. when multiple objects are linked/packed together, they may point to each other. An object
+   * that is being made local may be pointed to by another object that hasn't been made local yet.
+   * So this pointer cannot be remapped yet either.
+   *
+   * That's why we do another remapping pass below, over all IDs that were made local. This catches
+   * remaining old pointers.
+   */
+  {
+    const auto make_id_local = [&bmain, &localized_ids](ID *id) {
+      BKE_lib_id_make_local(
+          &bmain, id, LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR | LIB_ID_MAKELOCAL_LIBOVERRIDE_CLEAR);
+      if (id->newid) {
+        BLI_assert(ID_IS_LINKED(id));
+        BLI_assert(!ID_IS_LINKED(id->newid));
+
+        localized_ids.append(id);
+      }
+    };
+
+    for (Collection *collection : collections_to_localize) {
+      make_id_local(&collection->id);
+    }
+    BKE_view_layer_synced_ensure(&scene, &view_layer);
+
+    FOREACH_SELECTED_OBJECT_BEGIN (&view_layer, &v3d, ob_selected) {
+      make_id_local(&ob_selected->id);
+    }
+    FOREACH_SELECTED_OBJECT_END;
+  }
+
+  /* Make sure all remaining pointers from the linked IDs are replaced by the new one. */
+  {
+    blender::bke::id::IDRemapper remapper;
+    for (ID *id : localized_ids) {
+      remapper.add(id, id->newid);
+    }
+    BKE_libblock_remap_multiple(&bmain, remapper, ID_REMAP_SKIP_INDIRECT_USAGE);
+  }
+}
+
 /* Mostly the same logic as #view3d_collection_drop_copy_external_asset(), just different enough to
  * make sharing code a bit difficult. */
 static void view3d_ob_drop_copy_external_asset(bContext *C, wmDrag *drag, wmDropBox *drop)
@@ -383,6 +465,7 @@ static void view3d_ob_drop_copy_external_asset(bContext *C, wmDrag *drag, wmDrop
   BLI_assert(drag->type == WM_DRAG_ASSET);
 
   wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
@@ -391,10 +474,8 @@ static void view3d_ob_drop_copy_external_asset(bContext *C, wmDrag *drag, wmDrop
   ID *id = WM_drag_asset_id_import(C, asset_drag, FILE_AUTOSELECT);
 
   /* TODO(sergey): Only update relations for the current scene. */
-  DEG_relations_tag_update(CTX_data_main(C));
+  DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
-
-  RNA_int_set(drop->ptr, "session_uid", id->session_uid);
 
   BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, (Object *)id);
@@ -403,7 +484,21 @@ static void view3d_ob_drop_copy_external_asset(bContext *C, wmDrag *drag, wmDrop
     WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
   }
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+
+  /* Make objects local so they can be transformed. */
+  if (WM_drag_asset_will_import_packed(drag)) {
+    make_selected_objects_local(*bmain, *scene, *view_layer, *CTX_wm_view3d(C), false);
+
+    /* Making the IDs local might result in a new, copied ID. */
+    if (id->newid) {
+      id = id->newid;
+    }
+  }
+
   ED_outliner_select_sync_from_object_tag(C);
+
+  /* Do after making local, since that changes the session UID. */
+  RNA_int_set(drop->ptr, "session_uid", id->session_uid);
 
   /* Make sure the depsgraph is evaluated so the new object's transforms are up-to-date.
    * The evaluated #Object::object_to_world() will be copied back to the original object
@@ -467,6 +562,7 @@ static void view3d_collection_drop_copy_external_asset(bContext *C, wmDrag *drag
   BLI_assert(drag->type == WM_DRAG_ASSET);
 
   wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
@@ -483,11 +579,8 @@ static void view3d_collection_drop_copy_external_asset(bContext *C, wmDrag *drag
   asset_drag->import_settings.use_instance_collections = use_instance_collections;
 
   /* TODO(sergey): Only update relations for the current scene. */
-  DEG_relations_tag_update(CTX_data_main(C));
+  DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
-
-  RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
-  RNA_boolean_set(drop->ptr, "use_instance", asset_drag->import_settings.use_instance_collections);
 
   /* Make an object active, just use the first one in the collection. */
   CollectionObject *cobject = static_cast<CollectionObject *>(collection->gobject.first);
@@ -499,7 +592,21 @@ static void view3d_collection_drop_copy_external_asset(bContext *C, wmDrag *drag
     WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
   }
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+
+  /* Make objects local so they can be transformed. */
+  if (WM_drag_asset_will_import_packed(drag) && !use_instance_collections) {
+    make_selected_objects_local(*bmain, *scene, *view_layer, *CTX_wm_view3d(C), true);
+
+    /* Making the IDs local might result in a new, copied ID. */
+    collection = blender::id_cast<Collection *>(id->newid ? id->newid : id);
+    id = &collection->id;
+  }
+
   ED_outliner_select_sync_from_object_tag(C);
+
+  /* Do after making local, since that changes the session UID. */
+  RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
+  RNA_boolean_set(drop->ptr, "use_instance", asset_drag->import_settings.use_instance_collections);
 
   V3DSnapCursorState *snap_state = static_cast<V3DSnapCursorState *>(drop->draw_data);
   if (snap_state) {
@@ -511,7 +618,7 @@ static void view3d_collection_drop_copy_external_asset(bContext *C, wmDrag *drag
 
   /* XXX Without an undo push here, there will be a crash when the user modifies operator
    * properties. The stuff we do in these drop callbacks just isn't safe over undo/redo. */
-  ED_undo_push(C, "Collection_Drop");
+  ED_undo_push(C, "Drop Collection");
 }
 
 static void view3d_id_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
@@ -519,7 +626,6 @@ static void view3d_id_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
   ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
 
   WM_operator_properties_id_lookup_set_from_id(drop->ptr, id);
-  RNA_boolean_set(drop->ptr, "show_datablock_in_modifier", (drag->type != WM_DRAG_ASSET));
 }
 
 static void view3d_geometry_nodes_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)

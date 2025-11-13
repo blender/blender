@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:08+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -26378,42 +26378,6 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Assign Material"
-msgstr "Призначити Матеріал"
-
-
-msgid "Select More/Less"
-msgstr "Вибрати більше/менше"
-
-
-msgid "Metaball"
-msgstr "Метакуля"
-
-
-msgid "Light"
-msgstr "Слабко"
-
-
-msgid "Light Probe"
-msgstr "Проба Освітлення"
-
-
-msgid "Add Image"
-msgstr "Додати Зображення"
-
-
-msgid "Relations"
-msgstr "Зв'язки"
-
-
-msgid "Rigid Body"
-msgstr "Тверде тіло"
-
-
-msgid "Apply"
-msgstr "Застосувати"
-
-
 msgid "Track"
 msgstr "Стеження"
 
@@ -26454,10 +26418,6 @@ msgid "Vertex Group Locks"
 msgstr "Блокування Груп Вершин"
 
 
-msgid "Layout"
-msgstr "Розстановка"
-
-
 msgid "Sculpt Set Pivot"
 msgstr "Ліплення Задати Опертя"
 
@@ -26478,28 +26438,16 @@ msgid "Propagate"
 msgstr "Поширити"
 
 
-msgid "Keying"
-msgstr "Ключування"
-
-
 msgid "Names"
 msgstr "Назви"
 
 
-msgid "Tracking"
-msgstr "Стеження"
-
-
-msgid "Utilities"
-msgstr "Утиліти"
+msgid "Apply"
+msgstr "Застосувати"
 
 
 msgid "Toggle Bone Options"
 msgstr "Перемкнути параметри кісток"
-
-
-msgid "Math"
-msgstr "Математика"
 
 
 msgid "Enable Bone Options"
@@ -26508,6 +26456,10 @@ msgstr "Увімкнути параметри кісток"
 
 msgid "Disable Bone Options"
 msgstr "Відключити параметри кісток"
+
+
+msgid "Layout"
+msgstr "Розстановка"
 
 
 msgid "Mesh Select Mode"
@@ -26530,6 +26482,22 @@ msgid "Merge"
 msgstr "Об'єднання"
 
 
+msgid "Keying"
+msgstr "Ключування"
+
+
+msgid "Tracking"
+msgstr "Стеження"
+
+
+msgid "Utilities"
+msgstr "Утиліти"
+
+
+msgid "Math"
+msgstr "Математика"
+
+
 msgid "Special Characters"
 msgstr "Спеціальні символи"
 
@@ -26542,20 +26510,16 @@ msgid "Text"
 msgstr "Текст"
 
 
+msgid "Metaball"
+msgstr "Метакуля"
+
+
 msgid "Bone Roll"
 msgstr "Прокручення Кістки"
 
 
-msgid "Sample"
-msgstr "Вибірка"
-
-
 msgid "Pivot Point"
 msgstr "Точка Опертя"
-
-
-msgid "Primitives"
-msgstr "Примітиви"
 
 
 msgid "Snap"
@@ -26578,8 +26542,12 @@ msgid "Face Sets Edit"
 msgstr "Редагування Наборів Граней"
 
 
-msgid "Import"
-msgstr "Імпортувати"
+msgid "Sample"
+msgstr "Вибірка"
+
+
+msgid "Primitives"
+msgstr "Примітиви"
 
 
 msgid "Mirror"
@@ -26602,10 +26570,6 @@ msgid "Navigation"
 msgstr "Навігація"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Align View"
 msgstr "Вирівняти Огляд"
 
@@ -26616,6 +26580,10 @@ msgstr "Вирівняти Огляд за Активним"
 
 msgid "View Regions"
 msgstr "Регіони Огляду"
+
+
+msgid "Select More/Less"
+msgstr "Вибрати більше/менше"
 
 
 msgid "Select Similar"
@@ -26630,12 +26598,44 @@ msgid "Select Linked"
 msgstr "Виділити пов'язане"
 
 
-msgid "Basic"
-msgstr "Основний"
-
-
 msgid "Select Loops"
 msgstr "Виділити петлі"
+
+
+msgid "Import"
+msgstr "Імпортувати"
+
+
+msgid "Assign Material"
+msgstr "Призначити Матеріал"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "Слабко"
+
+
+msgid "Light Probe"
+msgstr "Проба Освітлення"
+
+
+msgid "Add Image"
+msgstr "Додати Зображення"
+
+
+msgid "Relations"
+msgstr "Зв'язки"
+
+
+msgid "Rigid Body"
+msgstr "Тверде тіло"
+
+
+msgid "Basic"
+msgstr "Основний"
 
 
 msgid "Assets"
@@ -53375,10 +53375,6 @@ msgid "Add IK to Bone"
 msgstr "Додати ІК до кістки"
 
 
-msgid "Add IK Constraint to the active Bone"
-msgstr "Додати для активної кістки примус ІК"
-
-
 msgid "With Targets"
 msgstr "З цілями"
 
@@ -61088,10 +61084,6 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
-msgid "Auto-Masking"
-msgstr "Авто-Маскування"
-
-
 msgid "VR"
 msgstr "ВР"
 
@@ -61174,6 +61166,10 @@ msgstr "Стереоскопія"
 
 msgid "Multi Frame"
 msgstr "Багато Кадр"
+
+
+msgid "Auto-Masking"
+msgstr "Авто-Маскування"
 
 
 msgid "Chain Scaling"
@@ -76614,10 +76610,6 @@ msgid "External shader script must have .osl or .oso extension, or be a module n
 msgstr "Зовнішній скрипт шейдера повинен мати розширення .osl чи .oso, або бути іменем модуля"
 
 
-msgid "Failed to write .oso file next to external .osl file at "
-msgstr "Збій запису файлу .oso поряд із зовнішнім файлом .osl у"
-
-
 msgid "Noise Threshold"
 msgstr "Поріг Шуму"
 
@@ -76949,6 +76941,10 @@ msgstr "Тор"
 
 msgid "Nothing to bake"
 msgstr "Нічого запікати"
+
+
+msgid "No objects selected"
+msgstr "Жоден з об'єктів не вибрано"
 
 
 msgid "Selection pair not found"
@@ -84696,22 +84692,6 @@ msgid "Add IK"
 msgstr "Додати ІК"
 
 
-msgid "To Active Bone"
-msgstr "До активної кістки"
-
-
-msgid "To Active Object"
-msgstr "До активного об'єкта"
-
-
-msgid "To New Empty Object"
-msgstr "До нового об'єкта порожняка"
-
-
-msgid "Without Targets"
-msgstr "Без цілей"
-
-
 msgid "Could not find constraint data for Child-Of Set Inverse"
 msgstr "Не знайдено даних примусу для задання інверсії примусу нащадок"
 
@@ -84778,10 +84758,6 @@ msgstr "Жодну колекцію не вибрано"
 
 msgid "Unexpected error, collection not found"
 msgstr "Неочікувана помилка, колекцію не знайдено"
-
-
-msgid "No objects selected"
-msgstr "Жоден з об'єктів не вибрано"
 
 
 msgid "%s already in %s"

@@ -37,7 +37,9 @@
 #include "BLI_alloca.h"
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
+#include "BLI_set.hh"
 #include "BLI_string.h"
+#include "BLI_string_ref.hh"
 #include "BLI_sys_types.h" /* For `intptr_t` support. */
 #include "BLI_system.h"    /* For #BLI_system_backtrace stub. */
 #include "BLI_utildefines.h"
@@ -1524,16 +1526,17 @@ static int make_structDNA(
   /* Check versioning errors which could cause duplicate names,
    * do last because names are stripped. */
   {
-    GSet *members_unique = BLI_gset_str_new_ex(__func__, 512);
     for (int struct_index = 0; struct_index < structs_num; struct_index++) {
       const short *sp = structs[struct_index];
       const char *type = types[sp[0]];
       const int len = sp[1];
       sp += 2;
+      blender::Set<blender::StringRef> members_unique;
+      members_unique.reserve(len);
       for (int a = 0; a < len; a++, sp += 2) {
         char *member = members[sp[1]];
         DNA_member_id_strip(member);
-        if (!BLI_gset_add(members_unique, member)) {
+        if (!members_unique.add(member)) {
           fprintf(stderr,
                   "Error: duplicate name found '%s.%s', "
                   "likely cause is 'dna_rename_defs.h'\n",
@@ -1542,9 +1545,7 @@ static int make_structDNA(
           return 1;
         }
       }
-      BLI_gset_clear(members_unique, nullptr);
     }
-    BLI_gset_free(members_unique, nullptr);
   }
 
   MEM_freeN(structdata);

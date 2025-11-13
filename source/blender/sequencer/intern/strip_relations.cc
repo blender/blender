@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup bke
+ * \ingroup sequencer
  */
 
 #include "DNA_scene_types.h"
@@ -46,23 +46,21 @@ bool relation_is_effect_of_strip(const Strip *effect, const Strip *input)
   return ELEM(input, effect->input1, effect->input2);
 }
 
-void cache_cleanup(Scene *scene)
+void cache_cleanup(Scene *scene, CacheCleanup mode)
 {
-  thumbnail_cache_clear(scene);
-  source_image_cache_clear(scene);
-  final_image_cache_clear(scene);
-  intra_frame_cache_invalidate(scene);
-  preview_cache_invalidate(scene);
-}
-
-void cache_cleanup_intra(Scene *scene)
-{
-  intra_frame_cache_invalidate(scene);
-}
-
-void cache_cleanup_final(Scene *scene)
-{
-  final_image_cache_clear(scene);
+  if (flag_is_set(mode, CacheCleanup::Thumbnails)) {
+    thumbnail_cache_clear(scene);
+  }
+  if (flag_is_set(mode, CacheCleanup::SourceImage)) {
+    source_image_cache_clear(scene);
+  }
+  if (flag_is_set(mode, CacheCleanup::FinalImage)) {
+    final_image_cache_clear(scene);
+  }
+  if (flag_is_set(mode, CacheCleanup::IntraFrame)) {
+    intra_frame_cache_invalidate(scene);
+    preview_cache_invalidate(scene);
+  }
 }
 
 void cache_settings_changed(Scene *scene)
@@ -224,7 +222,6 @@ void relations_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
     return;
   }
 
-  cache_cleanup(scene);
   prefetch_stop(scene);
 
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
@@ -393,19 +390,18 @@ void relations_session_uid_generate(Strip *strip)
 
 static bool get_uids_cb(Strip *strip, void *user_data)
 {
-  GSet *used_uids = (GSet *)user_data;
-  const SessionUID *session_uid = &strip->runtime.session_uid;
-  if (!BLI_session_uid_is_generated(session_uid)) {
+  Set<SessionUID> &used_uids = *static_cast<Set<SessionUID> *>(user_data);
+  const SessionUID &session_uid = strip->runtime.session_uid;
+  if (!BLI_session_uid_is_generated(&session_uid)) {
     printf("Sequence %s does not have UID generated.\n", strip->name);
     return true;
   }
 
-  if (BLI_gset_lookup(used_uids, session_uid) != nullptr) {
+  if (used_uids.contains(session_uid)) {
     printf("Sequence %s has duplicate UID generated.\n", strip->name);
     return true;
   }
-
-  BLI_gset_insert(used_uids, (void *)session_uid);
+  used_uids.add(session_uid);
   return true;
 }
 
@@ -415,12 +411,8 @@ void relations_check_uids_unique_and_report(const Scene *scene)
     return;
   }
 
-  GSet *used_uids = BLI_gset_new(
-      BLI_session_uid_ghash_hash, BLI_session_uid_ghash_compare, "sequencer used uids");
-
-  foreach_strip(&scene->ed->seqbase, get_uids_cb, used_uids);
-
-  BLI_gset_free(used_uids, nullptr);
+  Set<SessionUID> used_uids;
+  foreach_strip(&scene->ed->seqbase, get_uids_cb, &used_uids);
 }
 
 bool exists_in_seqbase(const Strip *strip, const ListBase *seqbase)

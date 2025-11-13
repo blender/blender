@@ -34,8 +34,8 @@ void forward_lighting_eval(float thickness, out float3 radiance, out float3 tran
 
   ClosureLightStack stack;
   for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT; i++) {
-    ClosureUndetermined cl = g_closure_get(i);
-    closure_light_set(stack, i, closure_light_new(cl, V));
+    ClosureUndetermined cl = g_closure_get(uchar(i));
+    closure_light_set(stack, uchar(i), closure_light_new(cl, V));
   }
 
   /* TODO(fclem): If transmission (no SSS) is present, we could reduce LIGHT_CLOSURE_EVAL_COUNT

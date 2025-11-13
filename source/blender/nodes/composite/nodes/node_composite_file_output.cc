@@ -452,7 +452,7 @@ class FileOutputOperation : public NodeOperation {
         continue;
       }
 
-      const int2 size = result.domain().size;
+      const int2 size = result.domain().data_size;
       FileOutput &file_output = this->context().render_context()->get_file_output(
           image_path, format, size, save_as_render);
 
@@ -483,7 +483,7 @@ class FileOutputOperation : public NodeOperation {
       return;
     }
 
-    const int2 size = result.domain().size;
+    const int2 size = result.domain().data_size;
     FileOutput &file_output = this->context().render_context()->get_file_output(
         image_path, format, size, true);
 
@@ -503,7 +503,7 @@ class FileOutputOperation : public NodeOperation {
   void execute_multi_layer()
   {
     /* We only write images, not single values. */
-    const int2 size = this->compute_domain().size;
+    const int2 size = this->compute_domain().data_size;
     if (size == int2(1)) {
       return;
     }
@@ -550,8 +550,8 @@ class FileOutputOperation : public NodeOperation {
   {
     /* For single values, we fill a buffer that covers the domain of the operation with the value
      * of the result. */
-    const int2 size = result.is_single_value() ? this->compute_domain().size :
-                                                 result.domain().size;
+    const int2 size = result.is_single_value() ? this->compute_domain().data_size :
+                                                 result.domain().data_size;
 
     /* The image buffer in the file output will take ownership of this buffer and freeing it will
      * be its responsibility. */
@@ -661,7 +661,7 @@ class FileOutputOperation : public NodeOperation {
       buffer = static_cast<float *>(MEM_dupallocN(result.cpu_data().data()));
     }
 
-    const int2 size = result.domain().size;
+    const int2 size = result.domain().data_size;
     switch (result.type()) {
       case ResultType::Color:
         file_output.add_view(view_name, 4, buffer);

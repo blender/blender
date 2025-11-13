@@ -315,12 +315,12 @@ static int get_face_grid_index(const MultiresReshapeSmoothContext *reshape_smoot
   return grid_index;
 }
 
-static std::optional<GridCoord> vertex_grid_coord_with_grid_index(const Vertex *vertex,
-                                                                  const int grid_index)
+static std::optional<GridCoord> vert_grid_coord_with_grid_index(const Vertex *vert,
+                                                                const int grid_index)
 {
-  for (const int i : vertex->grid_coords.index_range()) {
-    if (vertex->grid_coords[i].grid_index == grid_index) {
-      return vertex->grid_coords[i];
+  for (const int i : vert->grid_coords.index_range()) {
+    if (vert->grid_coords[i].grid_index == grid_index) {
+      return vert->grid_coords[i];
     }
   }
   return std::nullopt;
@@ -340,7 +340,7 @@ static std::array<std::optional<GridCoord>, 4> grid_coords_from_face_verts(
   for (const int i : face.index_range()) {
     const int corner_index = face[i];
     Corner *corner = &reshape_smooth_context->geometry.corners[corner_index];
-    result[i] = vertex_grid_coord_with_grid_index(
+    result[i] = vert_grid_coord_with_grid_index(
         &reshape_smooth_context->geometry.vertices[corner->vert_index], grid_index);
     BLI_assert(result[i].has_value());
   }
@@ -495,43 +495,43 @@ static bool foreach_topology_info(const blender::bke::subdiv::ForeachContext *fo
   return true;
 }
 
-static void foreach_single_vertex(const blender::bke::subdiv::ForeachContext *foreach_context,
-                                  const GridCoord *grid_coord,
-                                  const int coarse_vertex_index,
-                                  const int subdiv_vertex_index)
+static void foreach_single_vert(const blender::bke::subdiv::ForeachContext *foreach_context,
+                                const GridCoord *grid_coord,
+                                const int coarse_vert_index,
+                                const int subdiv_vert_index)
 {
   MultiresReshapeSmoothContext *reshape_smooth_context =
       static_cast<MultiresReshapeSmoothContext *>(foreach_context->user_data);
 
-  BLI_assert(subdiv_vertex_index < reshape_smooth_context->geometry.vertices.size());
+  BLI_assert(subdiv_vert_index < reshape_smooth_context->geometry.vertices.size());
 
-  Vertex *vertex = &reshape_smooth_context->geometry.vertices[subdiv_vertex_index];
+  Vertex *vert = &reshape_smooth_context->geometry.vertices[subdiv_vert_index];
 
-  vertex->grid_coords.append(*grid_coord);
+  vert->grid_coords.append(*grid_coord);
 
-  if (coarse_vertex_index == -1) {
+  if (coarse_vert_index == -1) {
     return;
   }
 
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
-  if (reshape_context->cd_vertex_crease.is_empty()) {
+  if (reshape_context->cd_vert_crease.is_empty()) {
     return;
   }
 
-  float crease = reshape_context->cd_vertex_crease[coarse_vertex_index];
+  float crease = reshape_context->cd_vert_crease[coarse_vert_index];
   if (crease == 0.0f) {
     return;
   }
 
   crease = get_effective_crease_float(reshape_smooth_context, crease);
-  vertex->sharpness = blender::bke::subdiv::crease_to_sharpness(crease);
+  vert->sharpness = blender::bke::subdiv::crease_to_sharpness(crease);
 }
 
 /* TODO(sergey): De-duplicate with similar function in multires_reshape_vertcos.cc */
-static void foreach_vertex(const blender::bke::subdiv::ForeachContext *foreach_context,
-                           const PTexCoord *ptex_coord,
-                           const int coarse_vertex_index,
-                           const int subdiv_vertex_index)
+static void foreach_vert(const blender::bke::subdiv::ForeachContext *foreach_context,
+                         const PTexCoord *ptex_coord,
+                         const int coarse_vert_index,
+                         const int subdiv_vert_index)
 {
   const MultiresReshapeSmoothContext *reshape_smooth_context =
       static_cast<const MultiresReshapeSmoothContext *>(foreach_context->user_data);
@@ -549,13 +549,13 @@ static void foreach_vertex(const blender::bke::subdiv::ForeachContext *foreach_c
     for (int current_corner = 0; current_corner < num_corners; ++current_corner) {
       GridCoord corner_grid_coord = grid_coord;
       corner_grid_coord.grid_index = start_grid_index + current_corner;
-      foreach_single_vertex(
-          foreach_context, &corner_grid_coord, coarse_vertex_index, subdiv_vertex_index);
+      foreach_single_vert(
+          foreach_context, &corner_grid_coord, coarse_vert_index, subdiv_vert_index);
     }
     return;
   }
 
-  foreach_single_vertex(foreach_context, &grid_coord, coarse_vertex_index, subdiv_vertex_index);
+  foreach_single_vert(foreach_context, &grid_coord, coarse_vert_index, subdiv_vert_index);
 
   if (grid_coord.u == 0.0f) {
     GridCoord prev_grid_coord;
@@ -563,8 +563,7 @@ static void foreach_vertex(const blender::bke::subdiv::ForeachContext *foreach_c
     prev_grid_coord.u = grid_coord.v;
     prev_grid_coord.v = 0.0f;
 
-    foreach_single_vertex(
-        foreach_context, &prev_grid_coord, coarse_vertex_index, subdiv_vertex_index);
+    foreach_single_vert(foreach_context, &prev_grid_coord, coarse_vert_index, subdiv_vert_index);
   }
 
   if (grid_coord.v == 0.0f) {
@@ -573,60 +572,58 @@ static void foreach_vertex(const blender::bke::subdiv::ForeachContext *foreach_c
     next_grid_coord.u = 0.0f;
     next_grid_coord.v = grid_coord.u;
 
-    foreach_single_vertex(
-        foreach_context, &next_grid_coord, coarse_vertex_index, subdiv_vertex_index);
+    foreach_single_vert(foreach_context, &next_grid_coord, coarse_vert_index, subdiv_vert_index);
   }
 }
 
-static void foreach_vertex_inner(const blender::bke::subdiv::ForeachContext *foreach_context,
-                                 void * /*tls*/,
-                                 const int ptex_face_index,
-                                 const float ptex_face_u,
-                                 const float ptex_face_v,
-                                 const int /*coarse_face_index*/,
-                                 const int /*coarse_corner*/,
-                                 const int subdiv_vertex_index)
+static void foreach_vert_inner(const blender::bke::subdiv::ForeachContext *foreach_context,
+                               void * /*tls*/,
+                               const int ptex_face_index,
+                               const float ptex_face_u,
+                               const float ptex_face_v,
+                               const int /*coarse_face_index*/,
+                               const int /*coarse_corner*/,
+                               const int subdiv_vert_index)
 {
   PTexCoord ptex_coord{};
   ptex_coord.ptex_face_index = ptex_face_index;
   ptex_coord.u = ptex_face_u;
   ptex_coord.v = ptex_face_v;
-  foreach_vertex(foreach_context, &ptex_coord, -1, subdiv_vertex_index);
+  foreach_vert(foreach_context, &ptex_coord, -1, subdiv_vert_index);
 }
 
-static void foreach_vertex_every_corner(
-    const blender::bke::subdiv::ForeachContext *foreach_context,
-    void * /*tls_v*/,
-    const int ptex_face_index,
-    const float ptex_face_u,
-    const float ptex_face_v,
-    const int coarse_vertex_index,
-    const int /*coarse_face_index*/,
-    const int /*coarse_face_corner*/,
-    const int subdiv_vertex_index)
-{
-  PTexCoord ptex_coord{};
-  ptex_coord.ptex_face_index = ptex_face_index;
-  ptex_coord.u = ptex_face_u;
-  ptex_coord.v = ptex_face_v;
-  foreach_vertex(foreach_context, &ptex_coord, coarse_vertex_index, subdiv_vertex_index);
-}
-
-static void foreach_vertex_every_edge(const blender::bke::subdiv::ForeachContext *foreach_context,
+static void foreach_vert_every_corner(const blender::bke::subdiv::ForeachContext *foreach_context,
                                       void * /*tls_v*/,
                                       const int ptex_face_index,
                                       const float ptex_face_u,
                                       const float ptex_face_v,
-                                      const int /*coarse_edge_index*/,
+                                      const int coarse_vert_index,
                                       const int /*coarse_face_index*/,
                                       const int /*coarse_face_corner*/,
-                                      const int subdiv_vertex_index)
+                                      const int subdiv_vert_index)
 {
   PTexCoord ptex_coord{};
   ptex_coord.ptex_face_index = ptex_face_index;
   ptex_coord.u = ptex_face_u;
   ptex_coord.v = ptex_face_v;
-  foreach_vertex(foreach_context, &ptex_coord, -1, subdiv_vertex_index);
+  foreach_vert(foreach_context, &ptex_coord, coarse_vert_index, subdiv_vert_index);
+}
+
+static void foreach_vert_every_edge(const blender::bke::subdiv::ForeachContext *foreach_context,
+                                    void * /*tls_v*/,
+                                    const int ptex_face_index,
+                                    const float ptex_face_u,
+                                    const float ptex_face_v,
+                                    const int /*coarse_edge_index*/,
+                                    const int /*coarse_face_index*/,
+                                    const int /*coarse_face_corner*/,
+                                    const int subdiv_vert_index)
+{
+  PTexCoord ptex_coord{};
+  ptex_coord.ptex_face_index = ptex_face_index;
+  ptex_coord.u = ptex_face_u;
+  ptex_coord.v = ptex_face_v;
+  foreach_vert(foreach_context, &ptex_coord, -1, subdiv_vert_index);
 }
 
 static void foreach_loop(const blender::bke::subdiv::ForeachContext *foreach_context,
@@ -638,7 +635,7 @@ static void foreach_loop(const blender::bke::subdiv::ForeachContext *foreach_con
                          const int coarse_face_index,
                          const int coarse_corner,
                          const int subdiv_loop_index,
-                         const int subdiv_vertex_index,
+                         const int subdiv_vert_index,
                          const int /*subdiv_edge_index*/)
 {
   MultiresReshapeSmoothContext *reshape_smooth_context =
@@ -648,7 +645,7 @@ static void foreach_loop(const blender::bke::subdiv::ForeachContext *foreach_con
   BLI_assert(subdiv_loop_index < reshape_smooth_context->geometry.corners.size());
 
   Corner *corner = &reshape_smooth_context->geometry.corners[subdiv_loop_index];
-  corner->vert_index = subdiv_vertex_index;
+  corner->vert_index = subdiv_vert_index;
 
   const int first_grid_index = reshape_context->face_start_grid_index[coarse_face_index];
   corner->grid_index = first_grid_index + coarse_corner;
@@ -669,18 +666,17 @@ static void foreach_poly(const blender::bke::subdiv::ForeachContext *foreach_con
   reshape_smooth_context->geometry.face_offsets[subdiv_face_index] = start_loop_index;
 }
 
-static void foreach_vertex_of_loose_edge(
-    const blender::bke::subdiv::ForeachContext *foreach_context,
-    void * /*tls*/,
-    const int /*coarse_edge_index*/,
-    const float /*u*/,
-    const int vertex_index)
+static void foreach_vert_of_loose_edge(const blender::bke::subdiv::ForeachContext *foreach_context,
+                                       void * /*tls*/,
+                                       const int /*coarse_edge_index*/,
+                                       const float /*u*/,
+                                       const int vert_index)
 {
   MultiresReshapeSmoothContext *reshape_smooth_context =
       static_cast<MultiresReshapeSmoothContext *>(foreach_context->user_data);
-  Vertex *vertex = &reshape_smooth_context->geometry.vertices[vertex_index];
+  Vertex *vert = &reshape_smooth_context->geometry.vertices[vert_index];
 
-  vertex->is_infinite_sharp = !vertex->grid_coords.is_empty();
+  vert->is_infinite_sharp = !vert->grid_coords.is_empty();
 }
 
 static void store_edge(MultiresReshapeSmoothContext *reshape_smooth_context,
@@ -767,12 +763,12 @@ static void geometry_create(MultiresReshapeSmoothContext *reshape_smooth_context
 
   blender::bke::subdiv::ForeachContext foreach_context{};
   foreach_context.topology_info = foreach_topology_info;
-  foreach_context.vertex_inner = foreach_vertex_inner;
-  foreach_context.vertex_every_corner = foreach_vertex_every_corner;
-  foreach_context.vertex_every_edge = foreach_vertex_every_edge;
+  foreach_context.vert_inner = foreach_vert_inner;
+  foreach_context.vert_every_corner = foreach_vert_every_corner;
+  foreach_context.vert_every_edge = foreach_vert_every_edge;
   foreach_context.loop = foreach_loop;
   foreach_context.poly = foreach_poly;
-  foreach_context.vertex_of_loose_edge = foreach_vertex_of_loose_edge;
+  foreach_context.vert_of_loose_edge = foreach_vert_of_loose_edge;
   foreach_context.edge = foreach_edge;
   foreach_context.user_data = reshape_smooth_context;
 
@@ -882,24 +878,24 @@ static float get_edge_sharpness(const OpenSubdiv_Converter *converter, const int
   return edge->sharpness;
 }
 
-static float get_vertex_sharpness(const OpenSubdiv_Converter *converter, const int vertex_index)
+static float get_vert_sharpness(const OpenSubdiv_Converter *converter, const int vert_index)
 {
   const MultiresReshapeSmoothContext *reshape_smooth_context =
       static_cast<const MultiresReshapeSmoothContext *>(converter->user_data);
-  BLI_assert(vertex_index < reshape_smooth_context->geometry.vertices.size());
+  BLI_assert(vert_index < reshape_smooth_context->geometry.vertices.size());
 
-  const Vertex *vertex = &reshape_smooth_context->geometry.vertices[vertex_index];
+  const Vertex *vertex = &reshape_smooth_context->geometry.vertices[vert_index];
   return vertex->sharpness;
 }
 
-static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter, int vertex_index)
+static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter, int vert_index)
 {
   const MultiresReshapeSmoothContext *reshape_smooth_context =
       static_cast<const MultiresReshapeSmoothContext *>(converter->user_data);
 
-  BLI_assert(vertex_index < reshape_smooth_context->geometry.vertices.size());
+  BLI_assert(vert_index < reshape_smooth_context->geometry.vertices.size());
 
-  const Vertex *vertex = &reshape_smooth_context->geometry.vertices[vertex_index];
+  const Vertex *vertex = &reshape_smooth_context->geometry.vertices[vert_index];
   return vertex->is_infinite_sharp;
 }
 
@@ -929,7 +925,7 @@ static void converter_init(const MultiresReshapeSmoothContext *reshape_smooth_co
   converter->getNumVertexFaces = nullptr;
   converter->getVertexFaces = nullptr;
   converter->isInfiniteSharpVertex = is_infinite_sharp_vertex;
-  converter->getVertexSharpness = get_vertex_sharpness;
+  converter->getVertexSharpness = get_vert_sharpness;
 
   converter->getNumUVLayers = nullptr;
   converter->precalcUVLayer = nullptr;
@@ -968,7 +964,7 @@ static void reshape_subdiv_create(MultiresReshapeSmoothContext *reshape_smooth_c
 /* Callback to provide coarse position for subdivision surface topology at a reshape level. */
 using ReshapeSubdivCoarsePositionCb =
     void(const MultiresReshapeSmoothContext *reshape_smooth_context,
-         const Vertex *vertex,
+         const Vertex *vert,
          blender::float3 &r_P);
 
 /* Refine subdivision surface topology at a reshape level for new coarse vertices positions. */
@@ -981,17 +977,17 @@ static void reshape_subdiv_refine(const MultiresReshapeSmoothContext *reshape_sm
 
   const int num_vertices = reshape_smooth_context->geometry.vertices.size();
   for (int i = 0; i < num_vertices; ++i) {
-    const Vertex *vertex = &reshape_smooth_context->geometry.vertices[i];
+    const Vertex *vert = &reshape_smooth_context->geometry.vertices[i];
     blender::float3 P;
-    coarse_position_cb(reshape_smooth_context, vertex, P);
+    coarse_position_cb(reshape_smooth_context, vert, P);
     reshape_subdiv->evaluator->eval_output->setCoarsePositions(P, i, 1);
   }
   reshape_subdiv->evaluator->eval_output->refine();
 }
 
-BLI_INLINE const GridCoord *reshape_subdiv_refine_vertex_grid_coord(const Vertex *vertex)
+BLI_INLINE const GridCoord *reshape_subdiv_refine_vert_grid_coord(const Vertex *vert)
 {
-  if (vertex->grid_coords.is_empty()) {
+  if (vert->grid_coords.is_empty()) {
     /* This is a loose vertex, the coordinate is not important. */
     /* TODO(sergey): Once the subdiv_foreach() supports properly ignoring loose elements this
      * should become an assert instead. */
@@ -999,17 +995,17 @@ BLI_INLINE const GridCoord *reshape_subdiv_refine_vertex_grid_coord(const Vertex
   }
   /* NOTE: All grid coordinates will point to the same object position, so can be simple and use
    * first grid coordinate. */
-  return &vertex->grid_coords[0];
+  return &vert->grid_coords[0];
 }
 
 /* Version of reshape_subdiv_refine() which uses coarse position from original grids. */
 static void reshape_subdiv_refine_orig_P(
     const MultiresReshapeSmoothContext *reshape_smooth_context,
-    const Vertex *vertex,
+    const Vertex *vert,
     blender::float3 &r_P)
 {
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
-  const GridCoord *grid_coord = reshape_subdiv_refine_vertex_grid_coord(vertex);
+  const GridCoord *grid_coord = reshape_subdiv_refine_vert_grid_coord(vert);
 
   /* Check whether this is a loose vertex. */
   if (grid_coord == nullptr) {
@@ -1038,11 +1034,11 @@ static void reshape_subdiv_refine_orig(const MultiresReshapeSmoothContext *resha
 /* Version of reshape_subdiv_refine() which uses coarse position from final grids. */
 static void reshape_subdiv_refine_final_P(
     const MultiresReshapeSmoothContext *reshape_smooth_context,
-    const Vertex *vertex,
+    const Vertex *vert,
     blender::float3 &r_P)
 {
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
-  const GridCoord *grid_coord = reshape_subdiv_refine_vertex_grid_coord(vertex);
+  const GridCoord *grid_coord = reshape_subdiv_refine_vert_grid_coord(vert);
 
   /* Check whether this is a loose vertex. */
   if (grid_coord == nullptr) {

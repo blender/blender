@@ -17,6 +17,8 @@ BLOCKLIST_HYDRA = [
     "image.blend",
     # VDB rendering is incorrect on Metal
     "overlapping_octrees.blend",
+    # No number of sample support, so will not converge to gray as expected
+    "white_noise_256spp.blend",
 ]
 
 BLOCKLIST_USD = [
@@ -27,6 +29,8 @@ BLOCKLIST_USD = [
     "light_tree_node_subtended_angle.blend",
     # VDB rendering is incorrect on Metal
     "overlapping_octrees.blend",
+    # No number of sample support, so will not converge to gray as expected
+    "white_noise_256spp.blend",
 ]
 
 # Metal support in Storm is no as good as OpenGL, though this needs to be
@@ -54,15 +58,11 @@ BLOCKLIST_METAL = [
     "openvdb.*.blend",
     "principled_bsdf_interior",
     # Other
-    "white_noise.*.blend",
-    "musgrave_multifractal.*.blend",
     "autosmooth_custom_normals.blend",
 ]
 
 # AMD seems to have similar limitations as Metal for transparency.
 BLOCKLIST_AMD = BLOCKLIST_METAL + [
-    "musgrave_.*_multifractal.*.blend",
-    "noise_lacunarity.blend",
 ]
 
 # Minor difference in texture coordinate for white noise hash.
@@ -71,9 +71,6 @@ BLOCKLIST_INTEL = [
     "hair_transmission.blend",
     "principled_bsdf_emission.blend",
     "principled_bsdf_sheen.blend",
-    "musgrave_.*_multifractal.*.blend",
-    "noise_lacunarity.blend",
-    "white_noise.*.blend",
 ]
 
 

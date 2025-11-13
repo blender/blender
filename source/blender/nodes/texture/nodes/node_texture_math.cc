@@ -6,6 +6,7 @@
  * \ingroup texnodes
  */
 
+#include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "node_texture_util.hh"
 #include "node_util.hh"
@@ -317,6 +318,60 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
   }
 }
 
+static void node_update(bNodeTree *ntree, bNode *node)
+{
+  node_math_update(ntree, node);
+
+  bNodeSocket *sock1 = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 0));
+  bNodeSocket *sock2 = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 1));
+  bNodeSocket *sock3 = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 2));
+
+  node_sock_label_clear(sock1);
+  node_sock_label_clear(sock2);
+  node_sock_label_clear(sock3);
+
+  switch (node->custom1) {
+    case NODE_MATH_WRAP:
+      node_sock_label(sock2, "Max");
+      node_sock_label(sock3, "Min");
+      break;
+    case NODE_MATH_MULTIPLY_ADD:
+      node_sock_label(sock2, "Multiplier");
+      node_sock_label(sock3, "Addend");
+      break;
+    case NODE_MATH_LESS_THAN:
+    case NODE_MATH_GREATER_THAN:
+      node_sock_label(sock2, "Threshold");
+      break;
+    case NODE_MATH_PINGPONG:
+      node_sock_label(sock2, "Scale");
+      break;
+    case NODE_MATH_SNAP:
+      node_sock_label(sock2, "Increment");
+      break;
+    case NODE_MATH_POWER:
+      node_sock_label(sock1, "Base");
+      node_sock_label(sock2, "Exponent");
+      break;
+    case NODE_MATH_LOGARITHM:
+      node_sock_label(sock2, "Base");
+      break;
+    case NODE_MATH_DEGREES:
+      node_sock_label(sock1, "Radians");
+      break;
+    case NODE_MATH_RADIANS:
+      node_sock_label(sock1, "Degrees");
+      break;
+    case NODE_MATH_COMPARE:
+      node_sock_label(sock3, "Epsilon");
+      break;
+    case NODE_MATH_SMOOTH_MAX:
+    case NODE_MATH_SMOOTH_MIN:
+      node_sock_label(sock3, "Distance");
+      break;
+  }
+}
+
 static void exec(void *data,
                  int /*thread*/,
                  bNode *node,
@@ -338,7 +393,7 @@ void register_node_type_tex_math()
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.labelfunc = node_math_label;
   ntype.exec_fn = exec;
-  ntype.updatefunc = node_math_update;
+  ntype.updatefunc = node_update;
 
   blender::bke::node_register_type(ntype);
 }

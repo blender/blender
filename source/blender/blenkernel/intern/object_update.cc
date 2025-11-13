@@ -227,6 +227,7 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
   Object *object_orig = DEG_get_original(object);
   /* Base flags. */
   object_orig->base_flag = object->base_flag;
+  object_orig->base_local_view_bits = object->base_local_view_bits;
   /* Transformation flags. */
   copy_m4_m4(object_orig->runtime->object_to_world.ptr(), object->object_to_world().ptr());
   copy_m4_m4(object_orig->runtime->world_to_object.ptr(), object->world_to_object().ptr());

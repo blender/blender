@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/eevee_material_infos.hh"
+#include "infos/eevee_geom_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(eevee_clip_plane)
 VERTEX_SHADER_CREATE_INFO(eevee_geom_volume)

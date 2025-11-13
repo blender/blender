@@ -847,6 +847,13 @@ static bool pass_right_to_left(const bNodeTree &tree,
         for (const bNodeSocket *socket : node->output_sockets()) {
           required_data_on_inputs |= r_required_data_by_socket[socket->index_in_tree()];
         }
+        /* References available on inputs are also required on the data inputs because they may be
+         * used by the closure. */
+        for (const bNodeSocket *socket : node->input_sockets()) {
+          if (can_contain_reference(eNodeSocketDatatype(socket->type))) {
+            required_data_on_inputs |= potential_reference_by_socket[socket->index_in_tree()];
+          }
+        }
         for (const bNodeSocket *socket : node->input_sockets()) {
           const int dst_index = socket->index_in_tree();
           r_required_data_by_socket[dst_index] |= required_data_on_inputs;

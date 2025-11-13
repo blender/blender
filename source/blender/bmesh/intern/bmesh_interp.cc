@@ -1040,31 +1040,39 @@ BMDataLayerLookup BM_data_layer_lookup(const BMesh &bm, const blender::StringRef
 {
   using namespace blender;
   for (const CustomDataLayer &layer : Span(bm.vdata.layers, bm.vdata.totlayer)) {
-    if (layer.name == name) {
-      return {layer.offset,
-              bke::AttrDomain::Point,
-              *bke::custom_data_type_to_attr_type(eCustomDataType(layer.type))};
+    if (const std::optional<bke::AttrType> type = bke::custom_data_type_to_attr_type(
+            eCustomDataType(layer.type)))
+    {
+      if (layer.name == name) {
+        return {layer.offset, bke::AttrDomain::Point, *type};
+      }
     }
   }
   for (const CustomDataLayer &layer : Span(bm.edata.layers, bm.edata.totlayer)) {
-    if (layer.name == name) {
-      return {layer.offset,
-              bke::AttrDomain::Edge,
-              *bke::custom_data_type_to_attr_type(eCustomDataType(layer.type))};
+    if (const std::optional<bke::AttrType> type = bke::custom_data_type_to_attr_type(
+            eCustomDataType(layer.type)))
+    {
+      if (layer.name == name) {
+        return {layer.offset, bke::AttrDomain::Edge, *type};
+      }
     }
   }
   for (const CustomDataLayer &layer : Span(bm.pdata.layers, bm.pdata.totlayer)) {
-    if (layer.name == name) {
-      return {layer.offset,
-              bke::AttrDomain::Face,
-              *bke::custom_data_type_to_attr_type(eCustomDataType(layer.type))};
+    if (const std::optional<bke::AttrType> type = bke::custom_data_type_to_attr_type(
+            eCustomDataType(layer.type)))
+    {
+      if (layer.name == name) {
+        return {layer.offset, bke::AttrDomain::Face, *type};
+      }
     }
   }
   for (const CustomDataLayer &layer : Span(bm.ldata.layers, bm.ldata.totlayer)) {
-    if (layer.name == name) {
-      return {layer.offset,
-              bke::AttrDomain::Corner,
-              *bke::custom_data_type_to_attr_type(eCustomDataType(layer.type))};
+    if (const std::optional<bke::AttrType> type = bke::custom_data_type_to_attr_type(
+            eCustomDataType(layer.type)))
+    {
+      if (layer.name == name) {
+        return {layer.offset, bke::AttrDomain::Corner, *type};
+      }
     }
   }
   return {};

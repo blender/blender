@@ -171,8 +171,8 @@ class DenoiseOperation : public NodeOperation {
     device.set("setAffinity", false);
     device.commit();
 
-    const int width = input_image.domain().size.x;
-    const int height = input_image.domain().size.y;
+    const int width = input_image.domain().data_size.x;
+    const int height = input_image.domain().data_size.y;
     const int pixel_stride = sizeof(float) * 4;
     const eGPUDataFormat data_format = GPU_DATA_FLOAT;
 
@@ -293,9 +293,9 @@ class DenoiseOperation : public NodeOperation {
       /* OIDN already wrote to the output directly, however, OIDN skips the alpha channel, so we
        * need to restore it. */
       parallel_for(int2(width, height), [&](const int2 texel) {
-        const float alpha = input_image.load_pixel<float4>(texel).w;
-        output_image.store_pixel(texel,
-                                 float4(output_image.load_pixel<float4>(texel).xyz(), alpha));
+        const float alpha = input_image.load_pixel<Color>(texel).a;
+        output_image.store_pixel(
+            texel, Color(float4(float4(output_image.load_pixel<Color>(texel)).xyz(), alpha)));
       });
     }
 

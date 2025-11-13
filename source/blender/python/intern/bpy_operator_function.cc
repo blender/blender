@@ -220,7 +220,7 @@ static PyObject *bpy_op_fn_str(BPyOpFunction *self)
   }
   memcpy(op_mod_str, idname_py, op_mod_str_len);
   op_mod_str[op_mod_str_len] = '\0';
-  BLI_strncpy(op_fn_str, dot_pos + 1, sizeof(op_fn_str));
+  STRNCPY(op_fn_str, dot_pos + 1);
 
   return PyUnicode_FromFormat(
       "<function bpy.ops.%s.%s at %p>", op_mod_str, op_fn_str, (void *)self);
@@ -575,11 +575,10 @@ PyObject *pyop_create_function(PyObject * /*self*/, PyObject *args)
 
   /* Construct the Blender `idname` (e.g., `OBJECT_OT_select_all`). */
   char op_mod_str_upper[OP_MAX_TYPENAME];
-  BLI_strncpy(op_mod_str_upper, op_mod_str, sizeof(op_mod_str_upper));
+  STRNCPY(op_mod_str_upper, op_mod_str);
   BLI_str_toupper_ascii(op_mod_str_upper, sizeof(op_mod_str_upper));
 
-  const size_t idname_len = BLI_snprintf(
-      op_fn->idname, sizeof(op_fn->idname), "%s_OT_%s", op_mod_str_upper, op_fn_str);
+  const size_t idname_len = SNPRINTF(op_fn->idname, "%s_OT_%s", op_mod_str_upper, op_fn_str);
   /* Prevented by the #OP_MAX_TYPENAME check. */
   BLI_assert(idname_len < sizeof(op_fn->idname));
   UNUSED_VARS_NDEBUG(idname_len);

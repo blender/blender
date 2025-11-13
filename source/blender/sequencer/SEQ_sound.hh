@@ -61,4 +61,9 @@ EQCurveMappingData *sound_equalizermodifier_add_graph(SoundEqualizerModifierData
 void sound_equalizermodifier_remove_graph(SoundEqualizerModifierData *semd,
                                           EQCurveMappingData *eqcmd);
 
+void *pitchmodifier_recreator(Strip * /*strip*/,
+                              StripModifierData *smd,
+                              void *sound,
+                              bool &needs_update);
+
 }  // namespace blender::seq

@@ -70,13 +70,20 @@ class WorldPipeline {
 
   PassSimple cubemap_face_ps_ = {"World.Probe"};
 
+  bool use_lightpath_node_ = false;
+
  public:
   WorldPipeline(Instance &inst) : inst_(inst) {};
 
   void sync(GPUMaterial *gpumat);
   void render(View &view);
 
-};  // namespace blender::eevee
+  /* NOTE: Is valid after WorldPipeline::sync. */
+  bool use_lightpath_node() const
+  {
+    return use_lightpath_node_;
+  }
+};
 
 /** \} */
 
@@ -739,7 +746,7 @@ class PipelineModule {
 
   void begin_sync()
   {
-    data.is_sphere_probe = false;
+    data.ray_type = RAY_TYPE_CAMERA;
     probe.begin_sync();
     planar.begin_sync();
     deferred.begin_sync();

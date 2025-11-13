@@ -34,8 +34,7 @@ VkDeviceSize VKStreamingBuffer::update(VKContext &context, const void *data, siz
     VKBuffer &host_buffer = *host_buffer_.value().get();
     host_buffer.create(vk_buffer_size_,
                        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                       VMA_MEMORY_USAGE_AUTO,
                        VMA_ALLOCATION_CREATE_MAPPED_BIT |
                            VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
                        0.4f);

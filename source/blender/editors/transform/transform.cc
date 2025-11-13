@@ -1559,6 +1559,20 @@ static bool transinfo_show_overlay(TransInfo *t, ARegion *region)
       const SpaceImage *sima = static_cast<const SpaceImage *>(t->area->spacedata.first);
       return (sima->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS) != 0;
     }
+    case SPACE_SEQ: {
+      const SpaceSeq *sseq = static_cast<const SpaceSeq *>(t->area->spacedata.first);
+      return (sseq->flag & SEQ_SHOW_OVERLAY) != 0;
+    }
+    case SPACE_ACTION: {
+      const SpaceAction *sact = static_cast<const SpaceAction *>(t->area->spacedata.first);
+      return (sact->overlays.flag & ADS_OVERLAY_SHOW_OVERLAYS) != 0;
+    }
+
+    case SPACE_GRAPH: {
+      /* There is no overlay flag defined yet for the Graph Editor. But there is the proportional
+       * editing drawing that will not happen if we return false here. */
+      return true;
+    }
   }
   return false;
 }

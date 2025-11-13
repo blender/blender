@@ -44,12 +44,11 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const StringRefNull 
   uiLayout *col = &layout->column(true);
   uiBlock *block = col->block();
 
-  uiDefBut(block, ButType::Histogram, 0, "", 0, 0, UI_UNIT_X * 10, hist->height, hist, 0, 0, "");
+  uiDefBut(block, ButType::Histogram, "", 0, 0, UI_UNIT_X * 10, hist->height, hist, 0, 0, "");
 
   /* Resize grip. */
   uiDefIconButI(block,
                 ButType::Grip,
-                0,
                 ICON_GRIP,
                 0,
                 0,
@@ -93,7 +92,6 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const StringRefNull p
 
   uiDefBut(block,
            ButType::Waveform,
-           0,
            "",
            0,
            0,
@@ -107,7 +105,6 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const StringRefNull p
   /* Resize grip. */
   uiDefIconButI(block,
                 ButType::Grip,
-                0,
                 ICON_GRIP,
                 0,
                 0,
@@ -151,7 +148,6 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const StringRefNul
 
   uiDefBut(block,
            ButType::Vectorscope,
-           0,
            "",
            0,
            0,
@@ -165,7 +161,6 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const StringRefNul
   /* Resize grip. */
   uiDefIconButI(block,
                 ButType::Grip,
-                0,
                 ICON_GRIP,
                 0,
                 0,

@@ -154,12 +154,12 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
       SNPRINTF_UTF8(titlestr, " %s", title);
       w = ui_pie_menu_title_width(titlestr, icon);
       but = uiDefIconTextBut(
-          pie->pie_block, ButType::Label, 0, icon, titlestr, 0, 0, w, UI_UNIT_Y, nullptr, "");
+          pie->pie_block, ButType::Label, icon, titlestr, 0, 0, w, UI_UNIT_Y, nullptr, "");
     }
     else {
       w = ui_pie_menu_title_width(title, 0);
       but = uiDefBut(
-          pie->pie_block, ButType::Label, 0, title, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
+          pie->pie_block, ButType::Label, title, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
     }
     /* do not align left */
     but->drawflag &= ~UI_BUT_TEXT_LEFT;
@@ -311,7 +311,6 @@ void ui_pie_menu_level_create(uiBlock *block,
   /* add a 'more' menu entry */
   uiBut *but = uiDefIconTextBut(block,
                                 ButType::But,
-                                0,
                                 ICON_PLUS,
                                 "More",
                                 0,

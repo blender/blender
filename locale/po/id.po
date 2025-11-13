@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
 "PO-Revision-Date: 2025-07-23 14:57+0000\n"
 "Last-Translator: Michael Tribayu Jatnika Natawiria <mike.natawiria@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15246,30 +15246,6 @@ msgid "Mask"
 msgstr "Masker"
 
 
-msgid "Assign Material"
-msgstr "Tugaskan Bahan"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Light"
-msgstr "Cahaya"
-
-
-msgid "Light Probe"
-msgstr "Probe Cahaya"
-
-
-msgid "Add Image"
-msgstr "Tambah Gambar"
-
-
-msgid "Apply"
-msgstr "Tetapkan"
-
-
 msgid "Track"
 msgstr "Lacak"
 
@@ -15282,12 +15258,20 @@ msgid "Hooks"
 msgstr "Kait"
 
 
+msgid "Names"
+msgstr "Nama"
+
+
+msgid "Apply"
+msgstr "Tetapkan"
+
+
 msgid "Layout"
 msgstr "Tata Letak"
 
 
-msgid "Names"
-msgstr "Nama"
+msgid "Merge"
+msgstr "Menggabungkan"
 
 
 msgid "Tracking"
@@ -15302,32 +15286,20 @@ msgid "Math"
 msgstr "Matematika"
 
 
-msgid "Merge"
-msgstr "Menggabungkan"
-
-
 msgid "Text"
 msgstr "Teks"
 
 
-msgid "Sample"
-msgstr "Sampel"
+msgid "Metaball"
+msgstr "Metabola"
 
 
 msgid "Snap"
 msgstr "Jepret"
 
 
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Contoh-contoh"
-
-
-msgid "Import"
-msgstr "Impor"
+msgid "Sample"
+msgstr "Sampel"
 
 
 msgid "Mirror"
@@ -15338,12 +15310,40 @@ msgid "Navigation"
 msgstr "Navigasi"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Contoh-contoh"
 
 
 msgid "Select Linked"
 msgstr "Seleksi yang Terhubung"
+
+
+msgid "Import"
+msgstr "Impor"
+
+
+msgid "Assign Material"
+msgstr "Tugaskan Bahan"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "Cahaya"
+
+
+msgid "Light Probe"
+msgstr "Probe Cahaya"
+
+
+msgid "Add Image"
+msgstr "Tambah Gambar"
 
 
 msgctxt "MovieClip"
@@ -27242,10 +27242,6 @@ msgstr "Gagal membuat jalur preset"
 
 msgid "Unable to remove default presets"
 msgstr "Tidak dapat menghapus preset default"
-
-
-msgid "Failed to execute the preset: "
-msgstr "Gagal mengeksekusi preset: "
 
 
 msgid "No other objects selected"

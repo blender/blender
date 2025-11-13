@@ -13,8 +13,10 @@ namespace blender::gpu {
 /*** Derived from: https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf ***/
 /** Upper Bound/Fixed Limits **/
 
-#define MTL_MAX_TEXTURE_SLOTS 128
-#define MTL_MAX_SAMPLER_SLOTS MTL_MAX_TEXTURE_SLOTS
+#define MTL_MAX_IMAGE_SLOTS GPU_MAX_IMAGE /* Must match becaus of StateManager::image_formats. */
+#define MTL_MAX_SAMPLER_SLOTS 64
+/* Theoretical limit is 128 no target hardware. */
+#define MTL_MAX_TEXTURE_SLOTS (MTL_MAX_SAMPLER_SLOTS + MTL_MAX_IMAGE_SLOTS)
 /* Max limit without using bind-less for samplers. */
 #define MTL_MAX_DEFAULT_SAMPLERS 16
 /* Total maximum buffers which can be bound to an encoder, for use within a shader.
@@ -27,6 +29,8 @@ namespace blender::gpu {
 #define MTL_MAX_BUFFER_BINDINGS 31
 #define MTL_MAX_VERTEX_INPUT_ATTRIBUTES 31
 #define MTL_MAX_UNIFORMS_PER_BLOCK 64
+
+#define MTL_MAX_SET_BYTES_SIZE 4096
 
 enum AppleGPUType { APPLE_GPU_UNKNOWN = 0, APPLE_GPU_M1 = 1, APPLE_GPU_M2 = 2, APPLE_GPU_M3 = 3 };
 

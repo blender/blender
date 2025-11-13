@@ -72,7 +72,7 @@ template<
     /* Alignment in bytes. Do not align matrices whose size is not a multiple of 4 component.
      * This is in order to avoid padding when using arrays of matrices. */
     int Alignment = (((NumCol * NumRow) % 4 == 0) ? 4 : 1) * sizeof(T)>
-struct alignas(Alignment) MatBase : public vec_struct_base<VecBase<T, NumRow>, NumCol> {
+struct alignas(Alignment) MatBase : public vec_struct_base<VecBase<T, NumRow>, NumCol, false> {
 
   using base_type = T;
   using vec3_type = VecBase<T, 3>;

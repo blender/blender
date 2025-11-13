@@ -158,7 +158,7 @@ class AssetLibrary {
       std::unique_ptr<AssetMetaData> metadata,
       StringRef download_dst_filepath);
   /** See #AssetLibrary::add_external_on_disk_asset(). */
-  std::weak_ptr<AssetRepresentation> add_local_id_asset(StringRef relative_asset_path, ID &id);
+  std::weak_ptr<AssetRepresentation> add_local_id_asset(ID &id);
   /**
    * Remove an asset from the library that was added using #add_external_on_disk_asset() or
    * #add_local_id_asset(). Can usually be expected to be constant time complexity (worst case may

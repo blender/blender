@@ -1088,10 +1088,7 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(const uint8_t *bitm
       cols++;
     }
 
-    if (custom_cursor_) {
-      DestroyCursor(custom_cursor_);
-      custom_cursor_ = nullptr;
-    }
+    HCURSOR previous_cursor = custom_cursor_;
 
     memset(&andData, 0xFF, sizeof(andData));
     memset(&xorData, 0, sizeof(xorData));
@@ -1118,6 +1115,10 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(const uint8_t *bitm
 
     if (::GetForegroundWindow() == h_wnd_) {
       loadCursor(getCursorVisibility(), GHOST_kStandardCursorCustom);
+    }
+
+    if (previous_cursor) {
+      DestroyCursor(previous_cursor);
     }
 
     return GHOST_kSuccess;
@@ -1168,10 +1169,7 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(const uint8_t *bitm
   icon_info.hbmMask = empty_mask;
   icon_info.hbmColor = bmp;
 
-  if (custom_cursor_) {
-    DestroyCursor(custom_cursor_);
-    custom_cursor_ = nullptr;
-  }
+  HCURSOR previous_cursor = custom_cursor_;
 
   custom_cursor_ = CreateIconIndirect(&icon_info);
   DeleteObject(bmp);
@@ -1183,6 +1181,10 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(const uint8_t *bitm
 
   if (::GetForegroundWindow() == h_wnd_) {
     loadCursor(getCursorVisibility(), GHOST_kStandardCursorCustom);
+  }
+
+  if (previous_cursor) {
+    DestroyCursor(previous_cursor);
   }
 
   return GHOST_kSuccess;

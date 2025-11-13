@@ -8,7 +8,7 @@
  * For each shadow view, copy page atlas location to the indirection table before render.
  */
 
-#include "infos/eevee_shadow_infos.hh"
+#include "infos/eevee_shadow_pipeline_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_shadow_tilemap_rendermap)
 
@@ -58,7 +58,7 @@ void main()
         /* Add page mapping for indexing the page position in atlas and in the frame-buffer. */
         dst_coord_buf[page_index] = page_packed;
         src_coord_buf[page_index] = packUvec4x8(
-            uint4(relative_tile_co.x, relative_tile_co.y, view_index, 0));
+            uint4(int4(relative_tile_co.x, relative_tile_co.y, view_index, 0)));
         /* Tag tile as rendered. Should be safe since only one thread is reading and writing. */
         tiles_buf[tile_index] |= SHADOW_IS_RENDERED;
         /* Statistics. */

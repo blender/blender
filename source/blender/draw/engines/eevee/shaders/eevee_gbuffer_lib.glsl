@@ -434,7 +434,7 @@ struct Header {
 
   uchar closure_len() const
   {
-    return reduce_add(int3(not(this->empty_bins())));
+    return uchar(reduce_add(int3(not(this->empty_bins()))));
   }
 
   uchar normal_len() const

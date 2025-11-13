@@ -6,8 +6,6 @@
  * \ingroup spseq
  */
 
-#include <cstring>
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
@@ -23,7 +21,6 @@
 #include "ED_sequencer.hh"
 
 #include "IMB_imbuf.hh"
-#include "IMB_imbuf_types.hh"
 
 #include "sequencer_intern.hh"
 

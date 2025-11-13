@@ -25,8 +25,8 @@ void main()
   }
 
   uint loop_index = quad_index * 4;
-  uint coarse_quad_index = coarse_face_index_from_subdiv_quad_index(quad_index,
-                                                                    shader_data.coarse_face_count);
+  uint coarse_quad_index = coarse_face_index_from_subdiv_quad_index(
+      quad_index, uint(shader_data.coarse_face_count));
 
 #ifdef SINGLE_MATERIAL
   uint triangle_loop_index = quad_index * 6;

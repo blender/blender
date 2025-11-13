@@ -17,14 +17,8 @@ namespace blender::bke {
 struct ImageRuntime;
 }  // namespace blender::bke
 using ImageRuntimeHandle = blender::bke::ImageRuntime;
-
-namespace blender::gpu {
-class Texture;
-}  // namespace blender::gpu
-using GPUTexture = blender::gpu::Texture;
 #else
 typedef struct ImageRuntimeHandle ImageRuntimeHandle;
-typedef struct GPUTexture GPUTexture;
 #endif
 
 struct MovieReader;
@@ -142,11 +136,6 @@ typedef struct Image {
   /** File path. */
   char filepath[/*FILE_MAX*/ 1024];
 
-  /** Not written in file. */
-  struct MovieCache *cache;
-  /** Not written in file, 2 = stereo eyes. */
-  GPUTexture *gputexture[/*TEXTARGET_COUNT*/ 3][2];
-
   /* sources from: */
   ListBase anims;
   struct RenderResult *rr;
@@ -158,24 +147,17 @@ typedef struct Image {
   short source, type;
   int lastframe;
 
-  /* GPU texture flag. */
-  int gpuframenr;
-  short gpuflag;
-  short gpu_pass;
-  short gpu_layer;
-  short gpu_view;
-
   /* Number of iterations to perform when extracting mask for uv seam fixing. */
   short seam_margin;
 
-  char _pad2[2];
+  char _pad2[6];
 
   /** Deprecated. */
   struct PackedFile *packedfile DNA_DEPRECATED;
   struct ListBase packedfiles;
   struct PreviewImage *preview;
 
-  int lastused;
+  char _pad3[4];
 
   /* for generated images */
   int gen_x DNA_DEPRECATED, gen_y DNA_DEPRECATED;
@@ -284,9 +266,3 @@ enum {
   IMA_ALPHA_CHANNEL_PACKED = 2,
   IMA_ALPHA_IGNORE = 3,
 };
-
-/* Image gpu runtime defaults */
-#define IMAGE_GPU_FRAME_NONE INT_MAX
-#define IMAGE_GPU_PASS_NONE SHRT_MAX
-#define IMAGE_GPU_LAYER_NONE SHRT_MAX
-#define IMAGE_GPU_VIEW_NONE SHRT_MAX

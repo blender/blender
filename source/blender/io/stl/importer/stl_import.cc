@@ -98,7 +98,7 @@ Mesh *read_stl_file(const STLImportParams &import_params)
 #ifndef NDEBUG
     verbose_validate = true;
 #endif
-    BKE_mesh_validate(mesh, verbose_validate, false);
+    bke::mesh_validate(*mesh, verbose_validate);
   }
 
   return mesh;

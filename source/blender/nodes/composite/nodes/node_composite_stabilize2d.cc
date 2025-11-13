@@ -93,8 +93,8 @@ class Stabilize2DOperation : public NodeOperation {
       return;
     }
 
-    const int width = input.domain().size.x;
-    const int height = input.domain().size.y;
+    const int width = input.domain().data_size.x;
+    const int height = input.domain().data_size.y;
     const int frame_number = BKE_movieclip_remap_scene_to_clip_frame(movie_clip,
                                                                      context().get_frame_number());
 

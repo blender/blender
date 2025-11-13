@@ -16,6 +16,8 @@
 
 #include "GPU_material.hh"
 
+#include "COM_result.hh"
+
 #include "node_composite_util.hh"
 
 /* **************** Exposure ******************** */
@@ -44,12 +46,19 @@ static int node_gpu_material(GPUMaterial *material,
   return GPU_stack_link(material, node, "node_composite_exposure", inputs, outputs);
 }
 
+static float4 adjust_exposure(const float4 &color, const float exposure)
+{
+  return float4(color.xyz() * std::exp2(exposure), color.w);
+}
+
+using blender::compositor::Color;
+
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  static auto function = mf::build::SI2_SO<float4, float, float4>(
+  static auto function = mf::build::SI2_SO<Color, float, Color>(
       "Exposure",
-      [](const float4 &color, const float exposure) -> float4 {
-        return float4(color.xyz() * std::exp2(exposure), color.w);
+      [](const Color &color, const float exposure) -> Color {
+        return Color(adjust_exposure(float4(color), exposure));
       },
       mf::build::exec_presets::SomeSpanOrSingle<0>());
   builder.set_matching_fn(function);

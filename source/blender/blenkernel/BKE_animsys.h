@@ -134,6 +134,7 @@ char *BKE_animsys_fix_rna_path_rename(struct ID *owner_id,
  */
 void BKE_action_fix_paths_rename(struct ID *owner_id,
                                  struct bAction *act,
+                                 int32_t /*slot_handle_t*/ slot_handle,
                                  const char *prefix,
                                  const char *oldName,
                                  const char *newName,

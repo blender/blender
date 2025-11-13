@@ -82,12 +82,6 @@ class Context : public compositor::Context {
   /* Input data. */
   ContextInputData input_data_;
 
-  /* Output combined result. */
-  compositor::Result output_result_;
-
-  /* Viewer output result. */
-  compositor::Result viewer_output_result_;
-
   /* Cached GPU and CPU passes that the compositor took ownership of. Those had their reference
    * count incremented when accessed and need to be freed/have their reference count decremented
    * when destroying the context. */
@@ -95,18 +89,10 @@ class Context : public compositor::Context {
   Vector<ImBuf *> cached_cpu_passes_;
 
  public:
-  Context(const ContextInputData &input_data)
-      : compositor::Context(),
-        input_data_(input_data),
-        output_result_(this->create_result(compositor::ResultType::Color)),
-        viewer_output_result_(this->create_result(compositor::ResultType::Color))
-  {
-  }
+  Context(const ContextInputData &input_data) : compositor::Context(), input_data_(input_data) {}
 
   virtual ~Context()
   {
-    output_result_.release();
-    viewer_output_result_.release();
     for (blender::gpu::Texture *pass : cached_gpu_passes_) {
       GPU_texture_free(pass);
     }
@@ -165,55 +151,112 @@ class Context : public compositor::Context {
     return size;
   }
 
-  Bounds<int2> get_compositing_region() const override
+  compositor::Domain get_compositing_domain() const override
   {
-    return Bounds<int2>(int2(0), this->get_render_size());
+    return compositor::Domain(this->get_render_size());
   }
 
-  compositor::Result get_output(compositor::Domain /*domain*/) override
+  void write_output(const compositor::Result &result) override
   {
-    const int2 render_size = get_render_size();
-    if (output_result_.is_allocated()) {
-      /* If the allocated result have the same size as the render size, return it as is. */
-      if (render_size == output_result_.domain().size) {
-        return output_result_;
-      }
-      /* Otherwise, the size changed, so release its data and reset it, then we reallocate it on
-       * the new render size below. */
-      output_result_.release();
-      output_result_ = this->create_result(compositor::ResultType::Color);
-    }
+    Render *render = RE_GetSceneRender(input_data_.scene);
+    RenderResult *render_result = RE_AcquireResultWrite(render);
 
-    output_result_.allocate_texture(render_size, false);
-    return output_result_;
+    if (render_result) {
+      RenderView *render_view = RE_RenderViewGetByName(render_result,
+                                                       input_data_.view_name.c_str());
+      ImBuf *image_buffer = RE_RenderViewEnsureImBuf(render_result, render_view);
+      render_result->have_combined = true;
+
+      if (result.is_single_value()) {
+        float *data = MEM_malloc_arrayN<float>(
+            4 * size_t(render_result->rectx) * size_t(render_result->recty), __func__);
+        IMB_assign_float_buffer(image_buffer, data, IB_TAKE_OWNERSHIP);
+        IMB_rectfill(image_buffer, result.get_single_value<compositor::Color>());
+      }
+      else if (this->use_gpu()) {
+        GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+        float *output_buffer = static_cast<float *>(GPU_texture_read(result, GPU_DATA_FLOAT, 0));
+        IMB_assign_float_buffer(image_buffer, output_buffer, IB_TAKE_OWNERSHIP);
+      }
+      else {
+        float *data = MEM_malloc_arrayN<float>(
+            4 * size_t(render_result->rectx) * size_t(render_result->recty), __func__);
+        IMB_assign_float_buffer(image_buffer, data, IB_TAKE_OWNERSHIP);
+        std::memcpy(image_buffer->float_buffer.data,
+                    result.cpu_data().data(),
+                    render_result->rectx * render_result->recty * 4 * sizeof(float));
+      }
+    }
+    RE_ReleaseResult(render);
+
+    Image *image = BKE_image_ensure_viewer(G.main, IMA_TYPE_R_RESULT, "Render Result");
+    BKE_image_partial_update_mark_full_update(image);
+    BLI_thread_lock(LOCK_DRAW_IMAGE);
+    BKE_image_signal(G.main, image, nullptr, IMA_SIGNAL_FREE);
+    BLI_thread_unlock(LOCK_DRAW_IMAGE);
   }
 
-  compositor::Result get_viewer_output(compositor::Domain domain,
-                                       const bool is_data,
-                                       compositor::ResultPrecision precision) override
+  void write_viewer(const compositor::Result &result) override
   {
-    viewer_output_result_.set_transformation(domain.transformation);
-    viewer_output_result_.meta_data.is_non_color_data = is_data;
+    Image *image = BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
+    const float2 translation = result.domain().transformation.location();
+    image->runtime->backdrop_offset[0] = translation.x;
+    image->runtime->backdrop_offset[1] = translation.y;
 
-    if (viewer_output_result_.is_allocated()) {
-      /* If the allocated result have the same size and precision as requested, return it as is. */
-      if (domain.size == viewer_output_result_.domain().size &&
-          precision == viewer_output_result_.precision())
-      {
-        return viewer_output_result_;
-      }
-
-      /* Otherwise, the size or precision changed, so release its data and reset it, then we
-       * reallocate it on the new domain below. */
-      viewer_output_result_.release();
-      viewer_output_result_ = this->create_result(compositor::ResultType::Color);
-      viewer_output_result_.set_transformation(domain.transformation);
-      viewer_output_result_.meta_data.is_non_color_data = is_data;
+    if (result.meta_data.is_non_color_data) {
+      image->flag &= ~IMA_VIEW_AS_RENDER;
+    }
+    else {
+      image->flag |= IMA_VIEW_AS_RENDER;
     }
 
-    viewer_output_result_.set_precision(precision);
-    viewer_output_result_.allocate_texture(domain, false);
-    return viewer_output_result_;
+    ImageUser image_user = {nullptr};
+    image_user.multi_index = BKE_scene_multiview_view_id_get(input_data_.render_data,
+                                                             input_data_.view_name.c_str());
+
+    if (BKE_scene_multiview_is_render_view_first(input_data_.render_data,
+                                                 input_data_.view_name.c_str()))
+    {
+      BKE_image_ensure_viewer_views(input_data_.render_data, image, &image_user);
+    }
+
+    BLI_thread_lock(LOCK_DRAW_IMAGE);
+
+    void *lock;
+    ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user, &lock);
+
+    const int2 size = result.is_single_value() ? this->get_render_size() :
+                                                 result.domain().data_size;
+    if (image_buffer->x != size.x || image_buffer->y != size.y) {
+      IMB_free_byte_pixels(image_buffer);
+      IMB_free_float_pixels(image_buffer);
+      image_buffer->x = size.x;
+      image_buffer->y = size.y;
+      IMB_alloc_float_pixels(image_buffer, 4, false);
+      image_buffer->userflags |= IB_DISPLAY_BUFFER_INVALID;
+    }
+
+    BKE_image_release_ibuf(image, image_buffer, lock);
+    BLI_thread_unlock(LOCK_DRAW_IMAGE);
+
+    if (result.is_single_value()) {
+      IMB_rectfill(image_buffer, result.get_single_value<compositor::Color>());
+    }
+    else if (this->use_gpu()) {
+      GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+      float *output_buffer = static_cast<float *>(GPU_texture_read(result, GPU_DATA_FLOAT, 0));
+      IMB_assign_float_buffer(image_buffer, output_buffer, IB_TAKE_OWNERSHIP);
+    }
+    else {
+      std::memcpy(image_buffer->float_buffer.data,
+                  result.cpu_data().data(),
+                  size.x * size.y * 4 * sizeof(float));
+    }
+
+    BKE_image_partial_update_mark_full_update(image);
+    if (input_data_.node_tree->runtime->update_draw) {
+      input_data_.node_tree->runtime->update_draw(input_data_.node_tree->runtime->udh);
+    }
   }
 
   compositor::Result get_pass(const Scene *scene, int view_layer_id, const char *name) override
@@ -408,114 +451,6 @@ class Context : public compositor::Context {
     RE_ReleaseResult(render);
   }
 
-  void output_to_render_result()
-  {
-    if (!output_result_.is_allocated()) {
-      return;
-    }
-
-    Render *re = RE_GetSceneRender(input_data_.scene);
-    RenderResult *rr = RE_AcquireResultWrite(re);
-
-    if (rr) {
-      RenderView *rv = RE_RenderViewGetByName(rr, input_data_.view_name.c_str());
-      ImBuf *ibuf = RE_RenderViewEnsureImBuf(rr, rv);
-      rr->have_combined = true;
-
-      if (this->use_gpu()) {
-        GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-        float *output_buffer = static_cast<float *>(
-            GPU_texture_read(output_result_, GPU_DATA_FLOAT, 0));
-        IMB_assign_float_buffer(ibuf, output_buffer, IB_TAKE_OWNERSHIP);
-      }
-      else {
-        float *data = MEM_malloc_arrayN<float>(4 * size_t(rr->rectx) * size_t(rr->recty),
-                                               __func__);
-        IMB_assign_float_buffer(ibuf, data, IB_TAKE_OWNERSHIP);
-        std::memcpy(
-            data, output_result_.cpu_data().data(), rr->rectx * rr->recty * 4 * sizeof(float));
-      }
-    }
-
-    if (re) {
-      RE_ReleaseResult(re);
-      re = nullptr;
-    }
-
-    Image *image = BKE_image_ensure_viewer(G.main, IMA_TYPE_R_RESULT, "Render Result");
-    BKE_image_partial_update_mark_full_update(image);
-    BLI_thread_lock(LOCK_DRAW_IMAGE);
-    BKE_image_signal(G.main, image, nullptr, IMA_SIGNAL_FREE);
-    BLI_thread_unlock(LOCK_DRAW_IMAGE);
-  }
-
-  void viewer_output_to_viewer_image()
-  {
-    if (!viewer_output_result_.is_allocated()) {
-      return;
-    }
-
-    Image *image = BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
-    const float2 translation = viewer_output_result_.domain().transformation.location();
-    image->runtime->backdrop_offset[0] = translation.x;
-    image->runtime->backdrop_offset[1] = translation.y;
-
-    if (viewer_output_result_.meta_data.is_non_color_data) {
-      image->flag &= ~IMA_VIEW_AS_RENDER;
-    }
-    else {
-      image->flag |= IMA_VIEW_AS_RENDER;
-    }
-
-    ImageUser image_user = {nullptr};
-    image_user.multi_index = BKE_scene_multiview_view_id_get(input_data_.render_data,
-                                                             input_data_.view_name.c_str());
-
-    if (BKE_scene_multiview_is_render_view_first(input_data_.render_data,
-                                                 input_data_.view_name.c_str()))
-    {
-      BKE_image_ensure_viewer_views(input_data_.render_data, image, &image_user);
-    }
-
-    BLI_thread_lock(LOCK_DRAW_IMAGE);
-
-    void *lock;
-    ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user, &lock);
-
-    const int2 size = viewer_output_result_.domain().size;
-    if (image_buffer->x != size.x || image_buffer->y != size.y) {
-      IMB_free_byte_pixels(image_buffer);
-      IMB_free_float_pixels(image_buffer);
-      image_buffer->x = size.x;
-      image_buffer->y = size.y;
-      IMB_alloc_float_pixels(image_buffer, 4);
-      image_buffer->userflags |= IB_DISPLAY_BUFFER_INVALID;
-    }
-
-    BKE_image_release_ibuf(image, image_buffer, lock);
-    BLI_thread_unlock(LOCK_DRAW_IMAGE);
-
-    if (this->use_gpu()) {
-      GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-      float *output_buffer = static_cast<float *>(
-          GPU_texture_read(viewer_output_result_, GPU_DATA_FLOAT, 0));
-
-      std::memcpy(
-          image_buffer->float_buffer.data, output_buffer, size.x * size.y * 4 * sizeof(float));
-      MEM_freeN(output_buffer);
-    }
-    else {
-      std::memcpy(image_buffer->float_buffer.data,
-                  viewer_output_result_.cpu_data().data(),
-                  size.x * size.y * 4 * sizeof(float));
-    }
-
-    BKE_image_partial_update_mark_full_update(image);
-    if (input_data_.node_tree->runtime->update_draw) {
-      input_data_.node_tree->runtime->update_draw(input_data_.node_tree->runtime->udh);
-    }
-  }
-
   compositor::RenderContext *render_context() const override
   {
     return input_data_.render_context;
@@ -626,9 +561,6 @@ class Compositor {
       compositor::Evaluator evaluator(*context_);
       evaluator.evaluate();
     }
-
-    context_->output_to_render_result();
-    context_->viewer_output_to_viewer_image();
 
     if (context_->use_gpu()) {
       blender::gpu::TexturePool::get().reset();

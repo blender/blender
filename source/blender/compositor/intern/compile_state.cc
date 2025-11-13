@@ -237,7 +237,7 @@ Domain CompileState::compute_pixel_node_domain(DNode node)
        * compositing region. Notice that the lower the domain priority value is, the higher the
        * priority is, hence the less than comparison. */
       if (input_descriptor.domain_priority < current_domain_priority) {
-        node_domain = Domain(context_.get_compositing_region_size());
+        node_domain = context_.get_compositing_domain();
         current_domain_priority = input_descriptor.domain_priority;
       }
       continue;

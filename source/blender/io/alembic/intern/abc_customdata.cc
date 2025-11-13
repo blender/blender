@@ -7,6 +7,7 @@
  */
 
 #include "abc_customdata.h"
+#include "BLI_color_types.hh"
 #include "abc_axis_conversion.h"
 #include "abc_util.h"
 
@@ -59,14 +60,8 @@ static const std::string propNameOriginalCoordinates("Pref");
 static void get_uvs(const CDStreamConfig &config,
                     std::vector<Imath::V2f> &uvs,
                     std::vector<uint32_t> &uvidx,
-                    const void *cd_data)
+                    const Span<float2> uv_map_array)
 {
-  const float2 *uv_map_array = static_cast<const float2 *>(cd_data);
-
-  if (!uv_map_array) {
-    return;
-  }
-
   const OffsetIndices faces = config.mesh->faces();
   int *corner_verts = config.corner_verts;
 
@@ -78,7 +73,7 @@ static void get_uvs(const CDStreamConfig &config,
     /* Iterate in reverse order to match exported polygons. */
     for (const int i : faces.index_range()) {
       const IndexRange face = faces[i];
-      const float2 *loopuv = uv_map_array + face.start() + face.size();
+      const float2 *loopuv = uv_map_array.data() + face.start() + face.size();
 
       for (int j = 0; j < face.size(); j++, count++) {
         loopuv--;
@@ -97,7 +92,7 @@ static void get_uvs(const CDStreamConfig &config,
     for (const int i : faces.index_range()) {
       const IndexRange face = faces[i];
       int *face_verts = corner_verts + face.start() + face.size();
-      const float2 *loopuv = uv_map_array + face.start() + face.size();
+      const float2 *loopuv = uv_map_array.data() + face.start() + face.size();
 
       for (int j = 0; j < face.size(); j++) {
         face_verts--;
@@ -127,19 +122,20 @@ static void get_uvs(const CDStreamConfig &config,
   }
 }
 
-const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, CustomData *data)
+const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, const Mesh &mesh)
 {
-  const int active_uvlayer = CustomData_get_active_layer(data, CD_PROP_FLOAT2);
-
-  if (active_uvlayer < 0) {
+  const StringRefNull name = mesh.active_uv_map_name();
+  if (name.is_empty()) {
+    return "";
+  }
+  const VArraySpan uv_map = *mesh.attributes().lookup<float2>(name, bke::AttrDomain::Corner);
+  if (uv_map.is_empty()) {
     return "";
   }
 
-  const void *cd_data = CustomData_get_layer_n(data, CD_PROP_FLOAT2, active_uvlayer);
+  get_uvs(config, sample.uvs, sample.indices, uv_map);
 
-  get_uvs(config, sample.uvs, sample.indices, cd_data);
-
-  return CustomData_get_layer_name(data, CD_PROP_FLOAT2, active_uvlayer);
+  return name.c_str();
 }
 
 /* Convention to write UVs:
@@ -149,7 +145,7 @@ const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, Custom
  */
 static void write_uv(const OCompoundProperty &prop,
                      CDStreamConfig &config,
-                     const void *data,
+                     const Span<float2> data,
                      const std::string &uv_map_name)
 {
   std::vector<uint32_t> indices;
@@ -275,33 +271,33 @@ void write_generated_coordinates(const OCompoundProperty &prop, CDStreamConfig &
 
 void write_custom_data(const OCompoundProperty &prop,
                        CDStreamConfig &config,
-                       CustomData *data,
+                       const Mesh &mesh,
                        int data_type)
 {
-  eCustomDataType cd_data_type = eCustomDataType(data_type);
-
-  if (!CustomData_has_layer(data, cd_data_type)) {
-    return;
-  }
-
-  const int active_layer = CustomData_get_active_layer(data, cd_data_type);
-  const int tot_layers = CustomData_number_of_layers(data, cd_data_type);
-
-  for (int i = 0; i < tot_layers; i++) {
-    const void *cd_data = CustomData_get_layer_n(data, cd_data_type, i);
-    std::string name = get_valid_abc_name(CustomData_get_layer_name(data, cd_data_type, i));
-
-    if (cd_data_type == CD_PROP_FLOAT2) {
-      /* Already exported. */
-      if (i == active_layer) {
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  if (data_type == CD_PROP_FLOAT2) {
+    const StringRef active_uv_name = mesh.active_uv_map_name();
+    for (const StringRefNull name : mesh.uv_map_names()) {
+      if (name == active_uv_name) {
+        /* Already exported. */
         continue;
       }
-
-      write_uv(prop, config, cd_data, name);
+      const VArraySpan uv_map = *attributes.lookup<float2>(name, bke::AttrDomain::Corner);
+      write_uv(prop, config, uv_map, get_valid_abc_name(name.c_str()));
     }
-    else if (cd_data_type == CD_PROP_BYTE_COLOR) {
-      write_mcol(prop, config, cd_data, name);
-    }
+  }
+  else if (data_type == CD_PROP_BYTE_COLOR) {
+    mesh.attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+      if (iter.data_type != bke::AttrType::ColorByte) {
+        return;
+      }
+      if (iter.domain != bke::AttrDomain::Corner) {
+        return;
+      }
+      const VArraySpan attr = *attributes.lookup<ColorGeometry4b>(iter.name,
+                                                                  bke::AttrDomain::Corner);
+      write_mcol(prop, config, attr.data(), get_valid_abc_name(iter.name.c_str()));
+    });
   }
 }
 

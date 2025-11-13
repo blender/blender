@@ -366,8 +366,8 @@ def smoke_step_$ID$():\n\
     mantaMsg('Vorticity')\n\
     if using_fire_s$ID$:\n\
         flame_s$ID$.copyFrom(fuel_s$ID$) # temporarily misuse flame grid as vorticity storage\n\
-        flame_s$ID$.multConst(flameVorticity_s$ID$)\n\
-    vorticityConfinement(vel=vel_s$ID$, flags=flags_s$ID$, strength=vorticity_s$ID$, strengthCell=flame_s$ID$ if using_fire_s$ID$ else None)\n\
+        flame_s$ID$.multConst(flameVorticity_s$ID$ * s$ID$.timestep / frameLengthUnscaled_s$ID$)\n\
+    vorticityConfinement(vel=vel_s$ID$, flags=flags_s$ID$, strength=vorticity_s$ID$ * s$ID$.timestep / frameLengthUnscaled_s$ID$, strengthCell=flame_s$ID$ if using_fire_s$ID$ else None)\n\
     \n\
     if using_heat_s$ID$:\n\
         mantaMsg('Adding heat buoyancy')\n\

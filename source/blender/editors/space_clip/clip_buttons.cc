@@ -130,7 +130,7 @@ void uiTemplateMovieClip(uiLayout *layout,
   if (clip) {
     uiLayout *row = &layout->row(false);
     uiBlock *block = row->block();
-    uiDefBut(block, ButType::Label, 0, IFACE_("File Path:"), 0, 19, 145, 19, nullptr, 0, 0, "");
+    uiDefBut(block, ButType::Label, IFACE_("File Path:"), 0, 19, 145, 19, nullptr, 0, 0, "");
 
     row = &layout->row(false);
     uiLayout *split = &row->split(0.0f, false);
@@ -188,7 +188,6 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const StringRefNull prop
 
   uiDefBut(block,
            ButType::TrackPreview,
-           0,
            "",
            0,
            0,
@@ -202,7 +201,6 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const StringRefNull prop
   /* Resize grip. */
   uiDefIconButI(block,
                 ButType::Grip,
-                0,
                 ICON_GRIP,
                 0,
                 0,
@@ -438,7 +436,6 @@ void uiTemplateMarker(uiLayout *layout,
     uiBut *bt = uiDefIconButBitI(block,
                                  ButType::ToggleN,
                                  MARKER_DISABLED,
-                                 0,
                                  ICON_HIDE_OFF,
                                  0,
                                  0,
@@ -461,7 +458,6 @@ void uiTemplateMarker(uiLayout *layout,
       uiBlock *block = layout->absolute_block();
       uiDefBut(block,
                ButType::Label,
-               0,
                IFACE_("Track is locked"),
                0,
                0,
@@ -509,19 +505,19 @@ void uiTemplateMarker(uiLayout *layout,
       tip = TIP_("Marker is enabled at current frame");
     }
 
-    uiDefButBitI(block,
-                 ButType::CheckboxN,
-                 MARKER_DISABLED,
-                 B_MARKER_FLAG,
-                 IFACE_("Enabled"),
-                 0.5 * UI_UNIT_X,
-                 9.5 * UI_UNIT_Y,
-                 7.25 * UI_UNIT_X,
-                 UI_UNIT_Y,
-                 &cb->marker_flag,
-                 0,
-                 0,
-                 tip);
+    uiBut *but = uiDefButBitI(block,
+                              ButType::CheckboxN,
+                              MARKER_DISABLED,
+                              IFACE_("Enabled"),
+                              0.5 * UI_UNIT_X,
+                              9.5 * UI_UNIT_Y,
+                              7.25 * UI_UNIT_X,
+                              UI_UNIT_Y,
+                              &cb->marker_flag,
+                              0,
+                              0,
+                              tip);
+    UI_but_retval_set(but, B_MARKER_FLAG);
 
     uiLayout *col = &layout->column(true);
     col->active_set((cb->marker_flag & MARKER_DISABLED) == 0);
@@ -531,7 +527,6 @@ void uiTemplateMarker(uiLayout *layout,
 
     uiDefBut(block,
              ButType::Label,
-             0,
              IFACE_("Position:"),
              0,
              10 * UI_UNIT_Y,
@@ -543,7 +538,6 @@ void uiTemplateMarker(uiLayout *layout,
              "");
     uiBut *bt = uiDefButF(block,
                           ButType::Num,
-                          B_MARKER_POS,
                           IFACE_("X:"),
                           0.5 * UI_UNIT_X,
                           9 * UI_UNIT_Y,
@@ -553,11 +547,11 @@ void uiTemplateMarker(uiLayout *layout,
                           -10 * width,
                           10.0 * width,
                           TIP_("X-position of marker at frame in screen coordinates"));
+    UI_but_retval_set(bt, B_MARKER_POS);
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
     bt = uiDefButF(block,
                    ButType::Num,
-                   B_MARKER_POS,
                    IFACE_("Y:"),
                    8.25 * UI_UNIT_X,
                    9 * UI_UNIT_Y,
@@ -567,12 +561,12 @@ void uiTemplateMarker(uiLayout *layout,
                    -10 * height,
                    10.0 * height,
                    TIP_("Y-position of marker at frame in screen coordinates"));
+    UI_but_retval_set(bt, B_MARKER_POS);
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
 
     uiDefBut(block,
              ButType::Label,
-             0,
              IFACE_("Offset:"),
              0,
              8 * UI_UNIT_Y,
@@ -584,7 +578,6 @@ void uiTemplateMarker(uiLayout *layout,
              "");
     bt = uiDefButF(block,
                    ButType::Num,
-                   B_MARKER_OFFSET,
                    IFACE_("X:"),
                    0.5 * UI_UNIT_X,
                    7 * UI_UNIT_Y,
@@ -594,11 +587,11 @@ void uiTemplateMarker(uiLayout *layout,
                    -10 * width,
                    10.0 * width,
                    TIP_("X-offset to parenting point"));
+    UI_but_retval_set(bt, B_MARKER_OFFSET);
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
     bt = uiDefButF(block,
                    ButType::Num,
-                   B_MARKER_OFFSET,
                    IFACE_("Y:"),
                    8.25 * UI_UNIT_X,
                    7 * UI_UNIT_Y,
@@ -608,12 +601,12 @@ void uiTemplateMarker(uiLayout *layout,
                    -10 * height,
                    10.0 * height,
                    TIP_("Y-offset to parenting point"));
+    UI_but_retval_set(bt, B_MARKER_OFFSET);
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
 
     uiDefBut(block,
              ButType::Label,
-             0,
              IFACE_("Pattern Area:"),
              0,
              6 * UI_UNIT_Y,
@@ -625,7 +618,6 @@ void uiTemplateMarker(uiLayout *layout,
              "");
     bt = uiDefButF(block,
                    ButType::Num,
-                   B_MARKER_PAT_DIM,
                    IFACE_("Width:"),
                    0.5 * UI_UNIT_X,
                    5 * UI_UNIT_Y,
@@ -635,11 +627,11 @@ void uiTemplateMarker(uiLayout *layout,
                    3.0f,
                    10.0 * width,
                    TIP_("Width of marker's pattern in screen coordinates"));
+    UI_but_retval_set(bt, B_MARKER_PAT_DIM);
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
     bt = uiDefButF(block,
                    ButType::Num,
-                   B_MARKER_PAT_DIM,
                    IFACE_("Height:"),
                    0.5 * UI_UNIT_X,
                    4 * UI_UNIT_Y,
@@ -649,12 +641,12 @@ void uiTemplateMarker(uiLayout *layout,
                    3.0f,
                    10.0 * height,
                    TIP_("Height of marker's pattern in screen coordinates"));
+    UI_but_retval_set(bt, B_MARKER_PAT_DIM);
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
 
     uiDefBut(block,
              ButType::Label,
-             0,
              IFACE_("Search Area:"),
              0,
              3 * UI_UNIT_Y,
@@ -666,7 +658,6 @@ void uiTemplateMarker(uiLayout *layout,
              "");
     bt = uiDefButF(block,
                    ButType::Num,
-                   B_MARKER_SEARCH_POS,
                    IFACE_("X:"),
                    0.5 * UI_UNIT_X,
                    2 * UI_UNIT_Y,
@@ -676,11 +667,11 @@ void uiTemplateMarker(uiLayout *layout,
                    -width,
                    width,
                    TIP_("X-position of search at frame relative to marker's position"));
+    UI_but_retval_set(bt, B_MARKER_SEARCH_POS);
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
     bt = uiDefButF(block,
                    ButType::Num,
-                   B_MARKER_SEARCH_POS,
                    IFACE_("Y:"),
                    8.25 * UI_UNIT_X,
                    2 * UI_UNIT_Y,
@@ -690,11 +681,11 @@ void uiTemplateMarker(uiLayout *layout,
                    -height,
                    height,
                    TIP_("Y-position of search at frame relative to marker's position"));
+    UI_but_retval_set(bt, B_MARKER_SEARCH_POS);
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
     bt = uiDefButF(block,
                    ButType::Num,
-                   B_MARKER_SEARCH_DIM,
                    IFACE_("Width:"),
                    0.5 * UI_UNIT_X,
                    1 * UI_UNIT_Y,
@@ -704,11 +695,11 @@ void uiTemplateMarker(uiLayout *layout,
                    3.0f,
                    10.0 * width,
                    TIP_("Width of marker's search in screen coordinates"));
+    UI_but_retval_set(bt, B_MARKER_SEARCH_DIM);
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
     bt = uiDefButF(block,
                    ButType::Num,
-                   B_MARKER_SEARCH_DIM,
                    IFACE_("Height:"),
                    0.5 * UI_UNIT_X,
                    0 * UI_UNIT_Y,
@@ -718,6 +709,7 @@ void uiTemplateMarker(uiLayout *layout,
                    3.0f,
                    10.0 * height,
                    TIP_("Height of marker's search in screen coordinates"));
+    UI_but_retval_set(bt, B_MARKER_SEARCH_DIM);
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
 

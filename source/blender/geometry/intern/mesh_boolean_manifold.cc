@@ -1455,21 +1455,29 @@ static MeshAssembly assemble_mesh_from_meshgl(MeshGL &mgl, const MeshOffsets &me
   return ma;
 }
 
-void copy_attribute_using_map(const GSpan src, const Span<int> out_to_in_map, GMutableSpan dst)
+template<typename T>
+void copy_attribute_using_map(const Span<T> src, const Span<int> out_to_in_map, MutableSpan<T> dst)
 {
-  const CPPType &type = dst.type();
-  const void *default_value = type.default_value();
   const int grain_size = 20000;
   threading::parallel_for(out_to_in_map.index_range(), grain_size, [&](const IndexRange range) {
     for (const int out_elem : range) {
       const int in_elem = out_to_in_map[out_elem];
       if (in_elem == -1) {
-        type.copy_construct(default_value, dst[out_elem]);
+        dst[out_elem] = T();
       }
       else {
-        type.copy_construct(src[in_elem], dst[out_elem]);
+        dst[out_elem] = src[in_elem];
       }
     }
+  });
+}
+
+void copy_attribute_using_map(const GSpan src, const Span<int> out_to_in_map, GMutableSpan dst)
+{
+  const CPPType &type = dst.type();
+  bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
+    using T = decltype(dummy);
+    copy_attribute_using_map(src.typed<T>(), out_to_in_map, dst.typed<T>());
   });
 }
 
@@ -1842,7 +1850,7 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
     bke::mesh_calc_edges(*mesh, false, false);
   }
 
-  BLI_assert(BKE_mesh_is_valid(mesh));
+  BLI_assert(bke::mesh_is_valid(*mesh));
 
   OutToInMaps out_to_in(&ma, joined_mesh, mesh, &mesh_offsets);
 
@@ -1929,7 +1937,7 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
   mesh->tag_loose_verts_none();
   mesh->tag_overlapping_none();
 
-  BLI_assert(BKE_mesh_is_valid(mesh));
+  BLI_assert(bke::mesh_is_valid(*mesh));
 
   return mesh;
 }

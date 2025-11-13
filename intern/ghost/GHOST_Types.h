@@ -183,7 +183,12 @@ typedef enum {
    * Support accurately placing windows on multiple monitors.
    */
   GHOST_kCapabilityMultiMonitorPlacement = (1 << 12),
-
+  /**
+   * A "path" for a window is supported.
+   * This indicates that #GHOST_IWindow::setPath can be used
+   * without the need to include the windows file-path in its title.
+   */
+  GHOST_kCapabilityWindowPath = (1 << 13),
 } GHOST_TCapabilityFlag;
 
 /**
@@ -196,7 +201,8 @@ typedef enum {
    GHOST_kCapabilityClipboardImage | GHOST_kCapabilityDesktopSample | GHOST_kCapabilityInputIME | \
    GHOST_kCapabilityTrackpadPhysicalDirection | GHOST_kCapabilityWindowDecorationStyles | \
    GHOST_kCapabilityKeyboardHyperKey | GHOST_kCapabilityCursorRGBA | \
-   GHOST_kCapabilityCursorGenerator | GHOST_kCapabilityMultiMonitorPlacement)
+   GHOST_kCapabilityCursorGenerator | GHOST_kCapabilityMultiMonitorPlacement | \
+   GHOST_kCapabilityWindowPath)
 
 /* Xtilt and Ytilt represent how much the pen is tilted away from
  * vertically upright in either the X or Y direction, with X and Y the
@@ -1051,6 +1057,7 @@ typedef enum GHOST_TXrGraphicsBinding {
   GHOST_kXrGraphicsUnknown = 0,
   GHOST_kXrGraphicsOpenGL,
   GHOST_kXrGraphicsVulkan,
+  GHOST_kXrGraphicsMetal,
 #  ifdef WIN32
   GHOST_kXrGraphicsOpenGLD3D11,
   GHOST_kXrGraphicsVulkanD3D11,

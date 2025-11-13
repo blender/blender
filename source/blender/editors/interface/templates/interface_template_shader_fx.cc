@@ -11,7 +11,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_screen.hh"
-#include "BKE_shader_fx.h"
+#include "BKE_shader_fx.hh"
 
 #include "ED_object.hh"
 

@@ -214,6 +214,7 @@ def SVGGetMaterial(color, context):
     output.location[0] += bsdf.width + 20.0
     node_tree.links.new(bsdf.outputs["BSDF"], output.inputs["Surface"])
     bsdf.inputs["Color"].default_value = (*diffuse_color, 0.0)
+    mat.diffuse_color = (*diffuse_color, 1.0)
 
     materials[color] = mat
 

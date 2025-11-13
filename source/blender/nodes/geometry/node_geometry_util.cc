@@ -111,6 +111,12 @@ void node_geo_exec_with_missing_openvdb(GeoNodeExecParams &params)
                            TIP_("Disabled, Blender was compiled without OpenVDB"));
 }
 
+void node_geo_exec_with_too_old_openvdb(GeoNodeExecParams &params)
+{
+  params.set_default_remaining_outputs();
+  params.error_message_add(NodeWarningType::Error, TIP_("Disabled, OpenVDB version is too old"));
+}
+
 }  // namespace blender::nodes
 
 bool geo_node_poll_default(const blender::bke::bNodeType * /*ntype*/,

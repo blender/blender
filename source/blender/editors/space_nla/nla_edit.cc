@@ -45,6 +45,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
 #include "UI_view2d.hh"
@@ -2222,14 +2223,14 @@ static wmOperatorStatus nlaedit_apply_scale_exec(bContext *C, wmOperator * /*op*
 
         /* setup iterator, and iterate over all the keyframes in the action,
          * applying this scaling */
+        blender::animrig::Action &action = strip->act->wrap();
+        blender::Span<FCurve *> fcurves = blender::animrig::fcurves_for_action_slot(
+            action, strip->action_slot_handle);
         ked.data = strip;
-        ANIM_animchanneldata_keyframes_loop(&ked,
-                                            ac.ads,
-                                            strip->act,
-                                            ALE_ACT,
-                                            nullptr,
-                                            bezt_apply_nlamapping,
-                                            BKE_fcurve_handles_recalc);
+        for (FCurve *fcurve : fcurves) {
+          ANIM_fcurve_keyframes_loop(
+              &ked, fcurve, nullptr, bezt_apply_nlamapping, BKE_fcurve_handles_recalc);
+        }
 
         /* clear scale of strip now that it has been applied,
          * and recalculate the extents of the action now that it has been scaled
@@ -2249,6 +2250,11 @@ static wmOperatorStatus nlaedit_apply_scale_exec(bContext *C, wmOperator * /*op*
         strip->actstart = start;
         strip->actend = end;
 
+        /* We have to update the action itself. Tagging the bAnimListElem will just update the ID
+         * owning the NLA, not the action itself. This may be a bug of ANIM_animdata_update but so
+         * far no other operator had issues with this so for this 5.0 fix I (Christoph) kept the
+         * scope of the change small. */
+        DEG_id_tag_update(&strip->act->id, ID_RECALC_ANIMATION);
         ale->update |= ANIM_UPDATE_DEPS;
       }
     }

@@ -708,10 +708,6 @@ static bool ui_but_dragedit_update_mval(uiHandleButtonData *data,
                                         int mx,
                                         blender::FunctionRef<int()> drag_threshold_fn)
 {
-  if (mx == data->draglastx) {
-    return false;
-  }
-
   if (data->draglock) {
     const int threshold = drag_threshold_fn();
     if (abs(mx - data->dragstartx) < threshold) {
@@ -1306,18 +1302,20 @@ static void ui_apply_but_TEX(bContext *C, uiBut *but, uiHandleButtonData *data)
   ui_but_string_set(C, but, data->text_edit.edit_string);
   ui_but_update_edited(but);
 
-  /* give butfunc a copy of the original text too.
-   * feature used for bone renaming, channels, etc.
-   * afterfunc frees rename_orig */
-  if (data->text_edit.original_string && (but->flag & UI_BUT_TEXTEDIT_UPDATE)) {
-    /* In this case, we need to keep `original_string` available,
-     * to restore real org string in case we cancel after having typed something already. */
-    but->rename_orig = BLI_strdup(data->text_edit.original_string);
-  }
   /* only if there are afterfuncs, otherwise 'renam_orig' isn't freed */
-  else if (ui_afterfunc_check(but->block, but)) {
-    but->rename_orig = data->text_edit.original_string;
-    data->text_edit.original_string = nullptr;
+  if (ui_afterfunc_check(but->block, but)) {
+    /* give butfunc a copy of the original text too.
+     * feature used for bone renaming, channels, etc.
+     * afterfunc frees rename_orig */
+    if (data->text_edit.original_string && (but->flag & UI_BUT_TEXTEDIT_UPDATE)) {
+      /* In this case, we need to keep `original_string` available,
+       * to restore real org string in case we cancel after having typed something already. */
+      but->rename_orig = BLI_strdup(data->text_edit.original_string);
+    }
+    else {
+      but->rename_orig = data->text_edit.original_string;
+      data->text_edit.original_string = nullptr;
+    }
   }
 
   void *orig_arg2 = but->func_arg2;
@@ -3438,8 +3436,12 @@ static bool ui_textedit_copypaste(uiBut *but, uiTextEdit &text_edit, const int m
 
 #ifdef WITH_INPUT_IME
 /* Enable IME, and setup #uiBut IME data. */
-static void ui_textedit_ime_begin(wmWindow *win, uiBut * /*but*/)
+static void ui_textedit_ime_begin(wmWindow *win, uiBut *but)
 {
+  if (ELEM(but->type, ButType::Num, ButType::NumSlider)) {
+    return;
+  }
+
   /* XXX Is this really needed? */
   int x, y;
 
@@ -3454,13 +3456,19 @@ static void ui_textedit_ime_begin(wmWindow *win, uiBut * /*but*/)
 }
 
 /* Disable IME, and clear #uiBut IME data. */
-static void ui_textedit_ime_end(wmWindow *win, uiBut * /*but*/)
+static void ui_textedit_ime_end(wmWindow *win, uiBut *but)
 {
+  if (ELEM(but->type, ButType::Num, ButType::NumSlider)) {
+    return;
+  }
   wm_window_IME_end(win);
 }
 
 void ui_but_ime_reposition(uiBut *but, int x, int y, bool complete)
 {
+  if (ELEM(but->type, ButType::Num, ButType::NumSlider)) {
+    return;
+  }
   BLI_assert(but->active || but->semi_modal_state);
   uiHandleButtonData *data = but->semi_modal_state ? but->semi_modal_state : but->active;
 
@@ -3896,6 +3904,12 @@ static int ui_do_but_textedit(
           if (data->searchbox) {
             data->cancel = data->escapecancel = true;
           }
+#ifdef WITH_INPUT_IME
+          else if (is_ime_composing && ime_data->composite.size() && but->type == ButType::Text) {
+            ui_textedit_insert_buf(
+                but, text_edit, ime_data->composite.c_str(), ime_data->composite.size());
+          }
+#endif
           button_activate_state(C, but, BUTTON_STATE_EXIT);
           retval = WM_UI_HANDLER_BREAK;
         }
@@ -4982,8 +4996,17 @@ static int ui_do_but_TEX(
       }
     }
     else if (ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE) && (event->modifier & KM_CTRL)) {
-      const int inc_value = (event->type == WHEELUPMOUSE) ? 1 : -1;
-      return ui_do_but_text_value_cycle(C, but, data, inc_value);
+      if ((but->type == ButType::SearchMenu) && but->func_argN &&
+          (static_cast<uiButSearch *>(but)->arg == but->func_argN))
+      {
+        /* Disable value cycling for search buttons with an allocated search data argument. This
+         * causes issues because the search data is moved to the "afterfuncs", but search updating
+         * requires it again. See #147539. */
+      }
+      else {
+        const int inc_value = (event->type == WHEELUPMOUSE) ? 1 : -1;
+        return ui_do_but_text_value_cycle(C, but, data, inc_value);
+      }
     }
   }
   else if (data->state == BUTTON_STATE_TEXT_EDITING) {
@@ -6862,7 +6885,8 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but,
   }
 #endif
 
-  ui_but_v3_get(but, rgb);
+  /* Always start from original value to avoid numerical drift. */
+  copy_v3_v3(rgb, data->origvec);
   ui_scene_linear_to_perceptual_space(but, rgb);
 
   ui_rgb_to_color_picker_HSVCUBE_compat_v(hsv_but, rgb, hsv);
@@ -7155,8 +7179,9 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but,
   rcti rect;
   BLI_rcti_rctf_copy(&rect, &but->rect);
 
+  /* Always start from original value to avoid numerical drift. */
   float rgb[3];
-  ui_but_v3_get(but, rgb);
+  copy_v3_v3(rgb, data->origvec);
   ui_scene_linear_to_perceptual_space(but, rgb);
   ui_color_picker_rgb_to_hsv_compat(rgb, hsv);
 

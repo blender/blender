@@ -20,7 +20,6 @@ struct ImBuf;
 struct rctf;
 struct rcti;
 
-struct GSet;
 struct ImageFormatData;
 struct Stereo3dFormat;
 

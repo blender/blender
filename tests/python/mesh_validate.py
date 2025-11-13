@@ -6,6 +6,11 @@
 import unittest
 import bpy
 import sys
+import pathlib
+
+"""
+blender -b --factory-startup --python tests/python/mesh_validate.py -- --testdir tests/files/
+"""
 
 
 class TestMeshValidate(unittest.TestCase):
@@ -108,6 +113,34 @@ class TestMeshValidate(unittest.TestCase):
         self.assertFalse(mesh.validate(verbose=True))
 
 
+args = None
+
+
+class TestMeshValidateExistingFile(unittest.TestCase):
+    def setUp(self):
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "sculpting/invalid_mdisp_cube.blend"), load_ui=False)
+
+    def test_mesh_with_bad_multires_displacements(self):
+        mesh = bpy.context.active_object.data
+        self.assertTrue(mesh.validate(verbose=True))
+        self.assertFalse(mesh.validate(verbose=True))
+
+
+def main():
+    global args
+    import argparse
+
+    argv = [sys.argv[0]]
+    if '--' in sys.argv:
+        argv += sys.argv[sys.argv.index('--') + 1:]
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--testdir', required=True, type=pathlib.Path)
+
+    args, remaining = parser.parse_known_args(argv)
+
+    unittest.main(argv=remaining)
+
+
 if __name__ == '__main__':
-    sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
-    unittest.main()
+    main()

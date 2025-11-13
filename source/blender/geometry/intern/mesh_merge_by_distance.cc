@@ -17,6 +17,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
+#include "BKE_deform.hh"
 #include "BKE_mesh.hh"
 #include "DNA_meshdata_types.h"
 
@@ -1498,50 +1499,15 @@ static void mix_vertex_groups(const Mesh &mesh_src,
                               const GroupedSpan<int> dst_to_src,
                               Mesh &mesh_dst)
 {
-  const char *func = __func__;
   const Span<MDeformVert> src_dverts = mesh_src.deform_verts();
   if (src_dverts.is_empty()) {
     return;
   }
   MutableSpan<MDeformVert> dst_dverts = mesh_dst.deform_verts_for_write();
   threading::parallel_for(dst_to_src.index_range(), 256, [&](const IndexRange range) {
-    struct WeightIndexGetter {
-      int operator()(const MDeformWeight &value) const
-      {
-        return value.def_nr;
-      }
-    };
-    CustomIDVectorSet<MDeformWeight, WeightIndexGetter, 64> weights;
-
+    bke::MDeformWeightSet weights;
     for (const int dst_vert : range) {
-      MDeformVert &dst_dvert = dst_dverts[dst_vert];
-
-      const Span<int> src_verts = dst_to_src[dst_vert];
-      if (src_verts.size() == 1) {
-        const MDeformVert &src_dvert = src_dverts[src_verts.first()];
-        dst_dvert.dw = MEM_malloc_arrayN<MDeformWeight>(src_dvert.totweight, func);
-        std::copy_n(src_dvert.dw, src_dvert.totweight, dst_dvert.dw);
-        dst_dvert.totweight = src_dvert.totweight;
-        continue;
-      }
-
-      const float src_num_inv = math::rcp(float(src_verts.size()));
-      for (const int src_vert : src_verts) {
-        const MDeformVert &src_dvert = src_dverts[src_vert];
-        for (const MDeformWeight &src_weight : Span(src_dvert.dw, src_dvert.totweight)) {
-          const int i = weights.index_of_or_add(MDeformWeight{src_weight.def_nr, 0.0f});
-          const_cast<MDeformWeight &>(weights[i]).weight += src_weight.weight * src_num_inv;
-        }
-      }
-
-      std::sort(const_cast<MDeformWeight *>(weights.begin()),
-                const_cast<MDeformWeight *>(weights.end()),
-                [](const auto &a, const auto &b) { return a.def_nr < b.def_nr; });
-
-      dst_dvert.dw = MEM_malloc_arrayN<MDeformWeight>(weights.size(), func);
-      dst_dvert.totweight = weights.size();
-      std::copy(weights.begin(), weights.end(), dst_dvert.dw);
-      weights.clear_and_keep_capacity();
+      dst_dverts[dst_vert] = mix_deform_verts(src_dverts, dst_to_src[dst_vert], {}, weights);
     }
   });
 }

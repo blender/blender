@@ -92,7 +92,6 @@
 #include "BKE_pointcloud.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
-#include "BKE_speaker.h"
 #include "BKE_vfont.hh"
 #include "BKE_volume.hh"
 

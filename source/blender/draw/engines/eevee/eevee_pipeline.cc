@@ -129,18 +129,14 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   pass.bind_resources(inst_.sphere_probes);
   pass.bind_resources(inst_.volume_probes);
   pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+
+  /* Split the rendering of the world in two passes. */
+  use_lightpath_node_ = GPU_material_flag_get(gpumat, GPU_MATFLAG_IS_DIFFUSE_OR_GLOSSY_RAY_FLAG);
 }
 
 void WorldPipeline::render(View &view)
 {
-  /* TODO(Miguel Pozo): All world probes are rendered as RAY_TYPE_GLOSSY. */
-  inst_.pipelines.data.is_sphere_probe = true;
-  inst_.uniform_data.push_update();
-
   inst_.manager->submit(cubemap_face_ps_, view);
-
-  inst_.pipelines.data.is_sphere_probe = false;
-  inst_.uniform_data.push_update();
 }
 
 /** \} */
@@ -1481,7 +1477,7 @@ void PlanarProbePipeline::render(View &view,
 {
   GPU_debug_group_begin("Planar.Capture");
 
-  inst_.pipelines.data.is_sphere_probe = true;
+  inst_.pipelines.data.ray_type = RAY_TYPE_GLOSSY;
   inst_.uniform_data.push_update();
 
   GPU_framebuffer_bind(gbuffer_fb);
@@ -1504,7 +1500,7 @@ void PlanarProbePipeline::render(View &view,
   GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(eval_light_ps_, view);
 
-  inst_.pipelines.data.is_sphere_probe = false;
+  inst_.pipelines.data.ray_type = RAY_TYPE_CAMERA;
   inst_.uniform_data.push_update();
 
   GPU_debug_group_end();

@@ -93,7 +93,7 @@ static void draw_current_frame(const Scene *scene,
   const float box_min_width = 24.0f * UI_SCALE_FAC;
   const float box_width = std::max(text_width + (2.0f * text_padding), box_min_width);
   const float box_margin = 2.0f * UI_SCALE_FAC;
-  const float shadow_width = UI_SCALE_FAC;
+  float shadow_width = UI_SCALE_FAC;
   const float tri_top = ceil(scrub_region_rect->ymin + box_margin);
   const float tri_half_width = 6.0f * UI_SCALE_FAC;
   const float tri_height = 6.0f * UI_SCALE_FAC;
@@ -123,8 +123,15 @@ static void draw_current_frame(const Scene *scene,
     immUnbindProgram();
 
     /* Vertical line. */
-    rect.xmin = floor(subframe_x - U.pixelsize) - shadow_width;
-    rect.xmax = floor(subframe_x + U.pixelsize + 1.0f) + shadow_width;
+    if (UI_SCALE_FAC < 0.91f) {
+      shadow_width = 1.0f;
+      rect.xmin = floor(subframe_x) - shadow_width;
+      rect.xmax = rect.xmin + U.pixelsize + shadow_width + shadow_width;
+    }
+    else {
+      rect.xmin = floor(subframe_x - U.pixelsize) - shadow_width;
+      rect.xmax = floor(subframe_x + U.pixelsize + 1.0f) + shadow_width;
+    }
     rect.ymin = 0.0f;
     rect.ymax = ceil(scrub_region_rect->ymax - box_margin + shadow_width);
     UI_draw_roundbox_4fv_ex(&rect, fg_color, nullptr, 1.0f, bg_color, shadow_width, 0.0f);

@@ -11,7 +11,8 @@
  * the destination texel.
  */
 
-#include "infos/eevee_material_infos.hh"
+#include "infos/eevee_geom_infos.hh"
+#include "infos/eevee_surf_shadow_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_geom_mesh)
 FRAGMENT_SHADER_CREATE_INFO(eevee_surf_shadow_atomic)

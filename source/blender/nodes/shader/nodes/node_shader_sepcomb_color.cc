@@ -25,15 +25,37 @@ NODE_STORAGE_FUNCS(NodeCombSepColor)
 static void sh_node_sepcolor_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Color").default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_output<decl::Float>("Red");
-  b.add_output<decl::Float>("Green");
-  b.add_output<decl::Float>("Blue");
-}
-
-static void node_sepcolor_update(bNodeTree * /*ntree*/, bNode *node)
-{
-  const NodeCombSepColor &storage = node_storage(*node);
-  node_combsep_color_label(&node->outputs, (NodeCombSepColorMode)storage.mode);
+  b.add_output<decl::Float>("Red").label_fn([](bNode node) {
+    switch (node_storage(node).mode) {
+      case NODE_COMBSEP_COLOR_RGB:
+      default:
+        return IFACE_("Red");
+      case NODE_COMBSEP_COLOR_HSL:
+      case NODE_COMBSEP_COLOR_HSV:
+        return IFACE_("Hue");
+    }
+  });
+  b.add_output<decl::Float>("Green").label_fn([](bNode node) {
+    switch (node_storage(node).mode) {
+      case NODE_COMBSEP_COLOR_RGB:
+      default:
+        return IFACE_("Green");
+      case NODE_COMBSEP_COLOR_HSL:
+      case NODE_COMBSEP_COLOR_HSV:
+        return IFACE_("Saturation");
+    }
+  });
+  b.add_output<decl::Float>("Blue").label_fn([](bNode node) {
+    switch (node_storage(node).mode) {
+      case NODE_COMBSEP_COLOR_RGB:
+      default:
+        return IFACE_("Blue");
+      case NODE_COMBSEP_COLOR_HSL:
+        return IFACE_("Lightness");
+      case NODE_COMBSEP_COLOR_HSV:
+        return CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "Value");
+    }
+  });
 }
 
 static const char *gpu_shader_get_name(int mode)
@@ -107,7 +129,6 @@ void register_node_type_sh_sepcolor()
   ntype.enum_name_legacy = "SEPARATE_COLOR";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::sh_node_sepcolor_declare;
-  ntype.updatefunc = file_ns::node_sepcolor_update;
   ntype.initfunc = node_combsep_color_init;
   blender::bke::node_type_storage(
       ntype, "NodeCombSepColor", node_free_standard_storage, node_copy_standard_storage);
@@ -129,12 +150,6 @@ static void sh_node_combcolor_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Green").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
   b.add_input<decl::Float>("Blue").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
   b.add_output<decl::Color>("Color");
-}
-
-static void node_combcolor_update(bNodeTree * /*ntree*/, bNode *node)
-{
-  const NodeCombSepColor &storage = node_storage(*node);
-  node_combsep_color_label(&node->inputs, (NodeCombSepColorMode)storage.mode);
 }
 
 static const char *gpu_shader_get_name(int mode)
@@ -212,7 +227,6 @@ void register_node_type_sh_combcolor()
   ntype.enum_name_legacy = "COMBINE_COLOR";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::sh_node_combcolor_declare;
-  ntype.updatefunc = file_ns::node_combcolor_update;
   ntype.initfunc = node_combsep_color_init;
   blender::bke::node_type_storage(
       ntype, "NodeCombSepColor", node_free_standard_storage, node_copy_standard_storage);

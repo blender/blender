@@ -9,7 +9,9 @@
  */
 
 #include "BLI_function_ref.hh"
+#include "BLI_hash.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_struct_equality_utils.hh"
 #include "BLI_sys_types.h"
 
 struct BVHTree;
@@ -31,6 +33,13 @@ struct BVHTreeAxisRange {
 struct BVHTreeOverlap {
   int indexA;
   int indexB;
+
+  uint64_t hash() const
+  {
+    return blender::get_default_hash(this->indexA, this->indexB);
+  }
+
+  BLI_STRUCT_EQUALITY_OPERATORS_2(BVHTreeOverlap, indexA, indexB)
 };
 
 struct BVHTreeNearest {

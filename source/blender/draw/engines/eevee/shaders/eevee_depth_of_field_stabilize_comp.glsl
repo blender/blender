@@ -37,12 +37,14 @@ struct DofSample {
 /* -------------------------------------------------------------------- */
 /** \name LDS Cache
  * \{ */
-#define cache_size (gl_WorkGroupSize.x + 2)
-shared float4 color_cache[cache_size][cache_size];
-shared float coc_cache[cache_size][cache_size];
+
+shared float4 color_cache[gl_WorkGroupSize.x + 2][gl_WorkGroupSize.x + 2];
+shared float coc_cache[gl_WorkGroupSize.x + 2][gl_WorkGroupSize.x + 2];
 /* Need 2 pixel border for depth. */
+shared float depth_cache[gl_WorkGroupSize.x + 4][gl_WorkGroupSize.x + 4];
+
+#define cache_size (gl_WorkGroupSize.x + 2)
 #define cache_depth_size (gl_WorkGroupSize.x + 4)
-shared float depth_cache[cache_depth_size][cache_depth_size];
 
 void dof_cache_init()
 {

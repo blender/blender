@@ -139,16 +139,6 @@ class VKCommandBufferInterface {
   /* VK_EXT_debug_utils */
   virtual void begin_debug_utils_label(const VkDebugUtilsLabelEXT *vk_debug_utils_label) = 0;
   virtual void end_debug_utils_label() = 0;
-
-  /* VK_EXT_descriptor_buffer */
-  virtual void bind_descriptor_buffers(
-      uint32_t buffer_count, const VkDescriptorBufferBindingInfoEXT *p_binding_infos) = 0;
-  virtual void set_descriptor_buffer_offsets(VkPipelineBindPoint pipeline_bind_point,
-                                             VkPipelineLayout layout,
-                                             uint32_t first_set,
-                                             uint32_t set_count,
-                                             const uint32_t *p_buffer_indices,
-                                             const VkDeviceSize *p_offsets) = 0;
 };
 
 class VKCommandBufferWrapper : public VKCommandBufferInterface {
@@ -268,16 +258,6 @@ class VKCommandBufferWrapper : public VKCommandBufferInterface {
   void end_rendering() override;
   void begin_debug_utils_label(const VkDebugUtilsLabelEXT *vk_debug_utils_label) override;
   void end_debug_utils_label() override;
-
-  /* VK_EXT_descriptor_buffer */
-  void bind_descriptor_buffers(uint32_t buffer_count,
-                               const VkDescriptorBufferBindingInfoEXT *p_binding_infos) override;
-  void set_descriptor_buffer_offsets(VkPipelineBindPoint pipeline_bind_point,
-                                     VkPipelineLayout layout,
-                                     uint32_t first_set,
-                                     uint32_t set_count,
-                                     const uint32_t *p_buffer_indices,
-                                     const VkDeviceSize *p_offsets) override;
 };
 
 }  // namespace blender::gpu::render_graph

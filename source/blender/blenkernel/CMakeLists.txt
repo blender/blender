@@ -503,11 +503,11 @@ set(SRC
   BKE_scene.hh
   BKE_scene_runtime.hh
   BKE_screen.hh
-  BKE_shader_fx.h
+  BKE_shader_fx.hh
   BKE_shrinkwrap.hh
   BKE_softbody.h
-  BKE_sound.h
-  BKE_speaker.h
+  BKE_sound.hh
+  BKE_speaker.hh
   BKE_studiolight.h
   BKE_subdiv.hh
   BKE_subdiv_ccg.hh

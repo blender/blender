@@ -15,7 +15,7 @@
 
 #include "BLI_assert.h"
 
-#include "BKE_sound.h"
+#include "BKE_sound.hh"
 
 #include "SEQ_iterator.hh"
 

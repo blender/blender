@@ -12,6 +12,8 @@
 
 #include "BKE_duplilist.hh"
 
+#include "DNA_userdef_enums.h"
+
 struct Base;
 struct Collection;
 struct Depsgraph;
@@ -121,7 +123,11 @@ Scene *BKE_scene_set_name(Main *bmain, const char *name);
 ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, int flag);
 void BKE_toolsettings_free(ToolSettings *toolsettings);
 
-Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type);
+Scene *BKE_scene_duplicate(Main *bmain,
+                           Scene *sce,
+                           eSceneCopyMethod type,
+                           eDupli_ID_Flags duplicate_flags,
+                           /*eLibIDDuplicateFlags*/ uint duplicate_options);
 void BKE_scene_groups_relink(Scene *sce);
 
 /**

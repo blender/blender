@@ -1851,7 +1851,7 @@ static PyObject* Sound_timeStretchPitchScale(Sound* self, PyObject* args, PyObje
 PyDoc_STRVAR(M_aud_Sound_animateableTimeStretchPitchScale_doc, ".. method:: animateableTimeStretchPitchScale(fps[, time_stretch, pitch_scale, quality, preserve_formant])\n\n"
                                                                "   Applies time-stretching and pitch-scaling to the sound.\n\n"
                                                                "   :arg fps: The FPS of the animation system.\n"
-                                                               "   :type fps float\n"
+                                                               "   :type fps: float\n"
                                                                "   :arg time_stretch: The factor by which to stretch or compress time.\n"
                                                                "   :type time_stretch: float or :class:`AnimateablePropertyP`\n"
                                                                "   :arg pitch_scale: The factor by which to adjust the pitch.\n"

@@ -15,6 +15,8 @@
 
 #include "GPU_material.hh"
 
+#include "COM_result.hh"
+
 #include "node_composite_util.hh"
 
 namespace blender::nodes::node_composite_channel_matte_cc {
@@ -376,12 +378,14 @@ static void channel_key(const float4 color,
   output_color = color * matte;
 }
 
+using blender::compositor::Color;
+
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
   static auto function =
-      mf::build::detail::build_multi_function_with_n_inputs_two_outputs<float4, float>(
+      mf::build::detail::build_multi_function_with_n_inputs_two_outputs<Color, float>(
           "Channel Key",
-          [=](const float4 &color,
+          [=](const Color &color,
               const float &minimum,
               const float &maximum,
               const MenuValue &color_space,
@@ -394,9 +398,10 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
               const MenuValue &hsv_limit_channel,
               const MenuValue &yuv_limit_channel,
               const MenuValue &ycc_limit_channel,
-              float4 &output_color,
+              Color &output_color,
               float &matte) -> void {
-            channel_key(color,
+            float4 out_color;
+            channel_key(float4(color),
                         minimum,
                         maximum,
                         CMPNodeChannelMatteColorSpace(color_space.value),
@@ -409,11 +414,12 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
                         hsv_limit_channel.value,
                         yuv_limit_channel.value,
                         ycc_limit_channel.value,
-                        output_color,
+                        out_color,
                         matte);
+            output_color = Color(out_color);
           },
           mf::build::exec_presets::SomeSpanOrSingle<0>(),
-          TypeSequence<float4,
+          TypeSequence<Color,
                        float,
                        float,
                        MenuValue,

@@ -550,7 +550,7 @@ class CLIP_PT_tools_solve(CLIP_PT_tracking_panel, Panel):
         col.prop(settings, "refine_intrinsics_radial_distortion", text="Radial Distortion")
 
         row = col.row()
-        row.active = (camera.distortion_model == 'BROWN')
+        row.active = (camera.distortion_model in ('BROWN', 'NUKE'))
         row.prop(settings, "refine_intrinsics_tangential_distortion", text="Tangential Distortion")
 
         col = layout.column(align=True)
@@ -940,6 +940,9 @@ class CLIP_PT_tracking_lens(Panel):
             col = layout.column(align=True)
             col.prop(camera, "nuke_k1")
             col.prop(camera, "nuke_k2")
+            col.separator()
+            col.prop(camera, "nuke_p1")
+            col.prop(camera, "nuke_p2")
         elif camera.distortion_model == 'BROWN':
             col = layout.column(align=True)
             col.prop(camera, "brown_k1")

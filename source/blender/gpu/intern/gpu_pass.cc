@@ -221,6 +221,17 @@ class GPUPassCache {
   std::mutex mutex_;
 
  public:
+  ~GPUPassCache()
+  {
+    /* Pause to prevent new compilations to start while we are cancelling them. */
+    GPU_shader_batch_pause_compilations();
+    for (int i : IndexRange(GPU_MAT_ENGINE_MAX)) {
+      passes_[i][0].clear();
+      passes_[i][1].clear();
+    }
+    GPU_shader_batch_resume_compilations();
+  }
+
   void add(eGPUMaterialEngine engine,
            GPUCodegen &codegen,
            bool deferred_compilation,

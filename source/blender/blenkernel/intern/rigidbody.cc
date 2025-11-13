@@ -1530,10 +1530,12 @@ void BKE_rigidbody_remove_object(Main *bmain, Scene *scene, Object *ob, const bo
           if (rbc->ob1 == ob) {
             rbc->ob1 = nullptr;
             DEG_id_tag_update(&obt->id, ID_RECALC_SYNC_TO_EVAL);
+            rigidbody_validate_sim_constraint(rbw, obt, false);
           }
           if (rbc->ob2 == ob) {
             rbc->ob2 = nullptr;
             DEG_id_tag_update(&obt->id, ID_RECALC_SYNC_TO_EVAL);
+            rigidbody_validate_sim_constraint(rbw, obt, false);
           }
         }
       }

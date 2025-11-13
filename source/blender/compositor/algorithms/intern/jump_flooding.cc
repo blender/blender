@@ -31,7 +31,7 @@ static void jump_flooding_pass_gpu(Context &context, Result &input, Result &outp
   input.bind_as_texture(shader, "input_tx");
   output.bind_as_image(shader, "output_img");
 
-  compute_dispatch_threads_at_least(shader, input.domain().size);
+  compute_dispatch_threads_at_least(shader, input.domain().data_size);
 
   GPU_shader_unbind();
   input.unbind_as_texture();
@@ -52,7 +52,7 @@ static void jump_flooding_pass_gpu(Context &context, Result &input, Result &outp
  * initialize and encode the jump flooding values. */
 static void jump_flooding_pass_cpu(Result &input, Result &output, int step_size)
 {
-  parallel_for(input.domain().size, [&](const int2 texel) {
+  parallel_for(input.domain().data_size, [&](const int2 texel) {
     /* For each of the previously flooded pixels in the 3x3 window of the given step size around
      * the center pixel, find the position of the closest seed pixel that is closest to the current
      * center pixel. */
@@ -127,7 +127,7 @@ void jump_flooding(Context &context, Result &input, Result &output)
   /* The algorithm starts with a step size that is half the size of the image. However, the
    * algorithm assumes a square image that is a power of two in width without loss of generality.
    * To generalize that, we use half the next power of two of the maximum dimension. */
-  const int max_size = math::max(input.domain().size.x, input.domain().size.y);
+  const int max_size = math::max(input.domain().data_size.x, input.domain().data_size.y);
   int step_size = power_of_2_max_i(max_size) / 2;
 
   /* Successively apply a jump flooding pass, halving the step size every time and swapping the

@@ -111,7 +111,7 @@ class DoubleEdgeMaskOperation : public NodeOperation {
     outer_boundary.allocate_texture(domain);
     outer_boundary.bind_as_image(shader, "outer_boundary_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     inner_mask.unbind_as_texture();
     outer_mask.unbind_as_texture();
@@ -140,7 +140,7 @@ class DoubleEdgeMaskOperation : public NodeOperation {
      * Technically, we needn't restrict the output to just the boundary pixels, since the algorithm
      * can still operate if the interior of the masks was also included. However, the algorithm
      * operates more accurately when the number of pixels to be flooded is minimum. */
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       /* Identify if any of the 8 neighbors around the center pixel are not masked. */
       bool has_inner_non_masked_neighbors = false;
       bool has_outer_non_masked_neighbors = false;
@@ -224,7 +224,7 @@ class DoubleEdgeMaskOperation : public NodeOperation {
     output.allocate_texture(domain);
     output.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     inner_mask.unbind_as_texture();
     outer_mask.unbind_as_texture();
@@ -256,7 +256,7 @@ class DoubleEdgeMaskOperation : public NodeOperation {
      *   Outer Boundary  |---------$---------|  Inner Boundary
      *                   |                   |
      */
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       /* Pixels inside the inner mask are always 1.0. */
       float inner_mask = inner_mask_input.load_pixel<float>(texel);
       if (inner_mask != 0.0f) {

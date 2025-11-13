@@ -548,22 +548,26 @@ void VKShader::build_shader_module(MutableSpan<StringRefNull> sources,
   r_shader_module.is_ready = true;
 }
 
-void VKShader::vertex_shader_from_glsl(MutableSpan<StringRefNull> sources)
+void VKShader::vertex_shader_from_glsl(const shader::ShaderCreateInfo & /*info*/,
+                                       MutableSpan<StringRefNull> sources)
 {
   build_shader_module(sources, shaderc_vertex_shader, vertex_module);
 }
 
-void VKShader::geometry_shader_from_glsl(MutableSpan<StringRefNull> sources)
+void VKShader::geometry_shader_from_glsl(const shader::ShaderCreateInfo & /*info*/,
+                                         MutableSpan<StringRefNull> sources)
 {
   build_shader_module(sources, shaderc_geometry_shader, geometry_module);
 }
 
-void VKShader::fragment_shader_from_glsl(MutableSpan<StringRefNull> sources)
+void VKShader::fragment_shader_from_glsl(const shader::ShaderCreateInfo & /*info*/,
+                                         MutableSpan<StringRefNull> sources)
 {
   build_shader_module(sources, shaderc_fragment_shader, fragment_module);
 }
 
-void VKShader::compute_shader_from_glsl(MutableSpan<StringRefNull> sources)
+void VKShader::compute_shader_from_glsl(const shader::ShaderCreateInfo & /*info*/,
+                                        MutableSpan<StringRefNull> sources)
 {
   build_shader_module(sources, shaderc_compute_shader, compute_module);
 }
@@ -586,7 +590,7 @@ bool VKShader::finalize(const shader::ShaderCreateInfo *info)
     Vector<StringRefNull> sources;
     sources.append("version");
     sources.append(source);
-    geometry_shader_from_glsl(sources);
+    geometry_shader_from_glsl(*info, sources);
   }
 
   const VKShaderInterface &vk_interface = interface_get();
@@ -1285,32 +1289,43 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(GPUPrimType primitive,
       "drawing fragments. Calling code should be adapted to use a shader that sets the "
       "gl_PointSize before entering the fragment stage. For example `GPU_SHADER_3D_POINT_*`.");
 
-  /* TODO: Graphics info should be cached in VKContext and only the changes should be applied. */
-  VKGraphicsInfo graphics_info = {};
-  graphics_info.specialization_constants.extend(constants_state.values);
-  graphics_info.vk_pipeline_layout = vk_pipeline_layout;
+  const VkPrimitiveTopology vk_topology = to_vk_primitive_topology(primitive);
+  const VkFormat depth_attachment_format = framebuffer.depth_attachment_format_get();
+  const VkFormat stencil_attachment_format = framebuffer.stencil_attachment_format_get();
 
-  graphics_info.vertex_in.vk_topology = to_vk_primitive_topology(primitive);
+  VKGraphicsInfo graphics_info = {};
+  graphics_info.vertex_in.vk_topology = vk_topology;
   graphics_info.vertex_in.attributes = vao.attributes;
   graphics_info.vertex_in.bindings = vao.bindings;
 
-  graphics_info.pre_rasterization.vk_vertex_module = vertex_module.vk_shader_module;
-  graphics_info.pre_rasterization.vk_geometry_module = geometry_module.vk_shader_module;
+  graphics_info.shaders.vk_vertex_module = vertex_module.vk_shader_module;
+  graphics_info.shaders.vk_geometry_module = geometry_module.vk_shader_module;
+  graphics_info.shaders.vk_fragment_module = fragment_module.vk_shader_module;
+  graphics_info.shaders.vk_pipeline_layout = vk_pipeline_layout;
+  graphics_info.shaders.vk_topology = vk_topology;
+  graphics_info.shaders.state = state_manager.state;
+  graphics_info.shaders.mutable_state = state_manager.mutable_state;
+  graphics_info.shaders.viewport_count = framebuffer.viewport_size();
+  graphics_info.shaders.specialization_constants.extend(constants_state.values);
+  graphics_info.shaders.has_depth = depth_attachment_format != VK_FORMAT_UNDEFINED;
+  graphics_info.shaders.has_stencil = stencil_attachment_format != VK_FORMAT_UNDEFINED;
+  /* Cleanup mutable state to increase cache hits. */
+  /* NOTE: Refactor stencils to use dynamic state. #149452 */
+  if (!graphics_info.shaders.has_stencil || state_manager.state.stencil_test == GPU_STENCIL_NONE) {
+    graphics_info.shaders.mutable_state.stencil_write_mask = 0u;
+    graphics_info.shaders.mutable_state.stencil_compare_mask = 0u;
+    graphics_info.shaders.mutable_state.stencil_reference = 0u;
+  }
+  if (primitive != GPU_PRIM_POINTS) {
+    graphics_info.shaders.mutable_state.point_size = 1.0f;
+  }
+  graphics_info.shaders.mutable_state.line_width = 1.0f;
 
-  graphics_info.fragment_shader.vk_fragment_module = fragment_module.vk_shader_module;
-  graphics_info.state = state_manager.state;
-  graphics_info.mutable_state = state_manager.mutable_state;
-  graphics_info.fragment_shader.viewports.clear();
-  framebuffer.vk_viewports_append(graphics_info.fragment_shader.viewports);
-  graphics_info.fragment_shader.scissors.clear();
-  framebuffer.vk_render_areas_append(graphics_info.fragment_shader.scissors);
-
-  graphics_info.fragment_out.depth_attachment_format = framebuffer.depth_attachment_format_get();
-  graphics_info.fragment_out.stencil_attachment_format =
-      framebuffer.stencil_attachment_format_get();
+  graphics_info.fragment_out.depth_attachment_format = depth_attachment_format;
+  graphics_info.fragment_out.stencil_attachment_format = stencil_attachment_format;
   graphics_info.fragment_out.color_attachment_formats.extend(
       framebuffer.color_attachment_formats_get());
-  graphics_info.fragment_out.color_attachment_size = framebuffer.color_attachment_size;
+  graphics_info.fragment_out.state = state_manager.state;
 
   VKDevice &device = VKBackend::get().device;
   /* Store result in local variable to ensure thread safety. */

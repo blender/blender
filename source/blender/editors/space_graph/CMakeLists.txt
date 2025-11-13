@@ -44,9 +44,6 @@ set(LIB
 )
 
 if(WITH_AUDASPACE)
-  list(APPEND LIB
-    bf_intern_audaspace
-  )
   list(APPEND INC_SYS
     ${AUDASPACE_C_INCLUDE_DIRS}
   )

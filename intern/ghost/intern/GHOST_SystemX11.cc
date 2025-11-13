@@ -1819,7 +1819,9 @@ GHOST_TCapabilityFlag GHOST_SystemX11::getCapabilities() const
           /* No support yet for RGBA mouse cursors. */
           GHOST_kCapabilityCursorRGBA |
           /* No support yet for dynamic cursor generation. */
-          GHOST_kCapabilityCursorGenerator));
+          GHOST_kCapabilityCursorGenerator |
+          /* No support for window path meta-data. */
+          GHOST_kCapabilityWindowPath));
 }
 
 void GHOST_SystemX11::addDirtyWindow(GHOST_WindowX11 *bad_wind)

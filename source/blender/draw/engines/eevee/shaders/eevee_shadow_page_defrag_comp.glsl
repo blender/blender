@@ -18,7 +18,7 @@
  *     `[----xxxxxx------]`
  */
 
-#include "infos/eevee_shadow_infos.hh"
+#include "infos/eevee_shadow_pipeline_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_shadow_page_defrag)
 
@@ -101,7 +101,7 @@ void main()
       shadow_page_cache_update_page_ref(src % max_page, dst % max_page);
       /* Move page. */
       pages_cached_buf[dst % max_page] = pages_cached_buf[src % max_page];
-      pages_cached_buf[src % max_page] = uint2(-1);
+      pages_cached_buf[src % max_page] = uint2(~0u);
 
       find_first_valid(src, dst);
     }

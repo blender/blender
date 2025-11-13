@@ -7,7 +7,8 @@
 
 /* Store volumetric properties into the froxel textures. */
 
-#include "infos/eevee_material_infos.hh"
+#include "infos/eevee_geom_infos.hh"
+#include "infos/eevee_surf_volume_infos.hh"
 
 #ifdef GLSL_CPP_STUBS
 #  define MAT_VOLUME

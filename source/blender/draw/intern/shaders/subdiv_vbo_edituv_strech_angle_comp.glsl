@@ -35,9 +35,9 @@ void main()
     uint prev_loop_index = start_loop_index + (i + 3) % 4;
 
     /* Compute 2d edge vectors from UVs. */
-    float2 cur_uv = uvs[shader_data.src_offset + cur_loop_index];
-    float2 next_uv = uvs[shader_data.src_offset + next_loop_index];
-    float2 prev_uv = uvs[shader_data.src_offset + prev_loop_index];
+    float2 cur_uv = uvs[uint(shader_data.src_offset) + cur_loop_index];
+    float2 next_uv = uvs[uint(shader_data.src_offset) + next_loop_index];
+    float2 prev_uv = uvs[uint(shader_data.src_offset) + prev_loop_index];
 
     float2 norm_uv_edge0 = normalize(prev_uv - cur_uv);
     float2 norm_uv_edge1 = normalize(cur_uv - next_uv);

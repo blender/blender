@@ -242,7 +242,7 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
     if (config.modifier_error_message) {
       *config.modifier_error_message = "Mesh hash invalid geometry; more details on the console";
     }
-    BKE_mesh_validate(config.mesh, true, true);
+    bke::mesh_validate(*config.mesh, true);
   }
 }
 
@@ -623,7 +623,7 @@ void AbcMeshReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
   }
 
   if (m_settings->validate_meshes) {
-    BKE_mesh_validate(mesh, false, false);
+    bke::mesh_validate(*mesh, false);
   }
 
   readFaceSetsSample(bmain, mesh, sample_sel);
@@ -1070,7 +1070,7 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
   }
 
   if (m_settings->validate_meshes) {
-    BKE_mesh_validate(mesh, false, false);
+    bke::mesh_validate(*mesh, false);
   }
 
   if (m_settings->always_add_cache_reader || has_animations(m_schema, m_settings)) {

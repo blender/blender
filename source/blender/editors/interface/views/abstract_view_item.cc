@@ -8,6 +8,7 @@
 
 #include "BKE_context.hh"
 
+#include "BLI_fnmatch.h"
 #include "BLI_listbase.h"
 
 #include "WM_api.hh"
@@ -122,7 +123,7 @@ void AbstractViewItem::change_state_delayed()
     }
     else if (is_active_) {
       is_active_ = false;
-      is_selected_ = false;
+      this->set_selected(false);
     }
   }
   if (std::optional<bool> is_selected = should_be_selected()) {
@@ -227,7 +228,6 @@ void AbstractViewItem::add_rename_button(uiBlock &block)
   AbstractView &view = this->get_view();
   uiBut *rename_but = uiDefBut(&block,
                                ButType::Text,
-                               1,
                                "",
                                0,
                                0,
@@ -237,6 +237,7 @@ void AbstractViewItem::add_rename_button(uiBlock &block)
                                1.0f,
                                view.get_rename_buffer().size(),
                                "");
+  UI_but_retval_set(rename_but, 1);
 
   /* Gotta be careful with what's passed to the `arg1` here. Any view data will be freed once the
    * callback is executed. */
@@ -257,6 +258,11 @@ void AbstractViewItem::delete_item(bContext * /*C*/)
   /* No deletion by default. Needs type specific implementation. */
 }
 
+void AbstractViewItem::on_filter()
+{
+  /* No action by default. Needs type specific implementation. */
+}
+
 /** \} */
 
 /* ---------------------------------------------------------------------- */
@@ -274,9 +280,10 @@ void AbstractViewItem::build_context_menu(bContext & /*C*/, uiLayout & /*column*
 /** \name Filtering
  * \{ */
 
-bool AbstractViewItem::should_be_filtered_visible(const StringRefNull /*filter_string*/) const
+bool AbstractViewItem::should_be_filtered_visible(const StringRefNull filter_string) const
 {
-  return true;
+  StringRef name = this->get_rename_string();
+  return fnmatch(filter_string.c_str(), name.data(), FNM_CASEFOLD) == 0;
 }
 
 bool AbstractViewItem::is_filtered_visible() const

@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
-"PO-Revision-Date: 2025-07-23 15:02+0000\n"
-"Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
+"PO-Revision-Date: 2025-10-28 00:59+0000\n"
+"Last-Translator: Cedric Steiert <cedricsteiert@gmail.com>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -18706,42 +18706,6 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Assign Material"
-msgstr "Material zuweisen"
-
-
-msgid "Select More/Less"
-msgstr "Mehr/weniger anzeigen"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Light"
-msgstr "Licht"
-
-
-msgid "Light Probe"
-msgstr "Lichtsonde"
-
-
-msgid "Add Image"
-msgstr "Bild hinzufügen"
-
-
-msgid "Relations"
-msgstr "Beziehungen"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
-msgid "Apply"
-msgstr "Anwenden"
-
-
 msgid "Track"
 msgstr "Spur"
 
@@ -18778,10 +18742,6 @@ msgid "Vertex Group Locks"
 msgstr "Punktgruppen sperren"
 
 
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Random Mask"
 msgstr "Zufällige Maske"
 
@@ -18794,24 +18754,16 @@ msgid "In-Betweens"
 msgstr "Dazwischen"
 
 
-msgid "Keying"
-msgstr "Schlüsselbilder"
-
-
 msgid "Names"
 msgstr "Namen"
 
 
-msgid "Tracking"
-msgstr "Verfolgen"
+msgid "Apply"
+msgstr "Anwenden"
 
 
 msgid "Toggle Bone Options"
 msgstr "Knochen-Optionen umschalten"
-
-
-msgid "Math"
-msgstr "Mathematisch"
 
 
 msgid "Enable Bone Options"
@@ -18820,6 +18772,10 @@ msgstr "Knochen-Optionen einschalten"
 
 msgid "Disable Bone Options"
 msgstr "Knochen-Optionen ausschalten"
+
+
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Mesh Select Mode"
@@ -18834,6 +18790,18 @@ msgid "Merge"
 msgstr "Zusammenführen"
 
 
+msgid "Keying"
+msgstr "Schlüsselbilder"
+
+
+msgid "Tracking"
+msgstr "Verfolgen"
+
+
+msgid "Math"
+msgstr "Mathematisch"
+
+
 msgid "Special Characters"
 msgstr "Sonderzeichen"
 
@@ -18846,24 +18814,12 @@ msgid "Text"
 msgstr "Text"
 
 
-msgid "Read"
-msgstr "Lesen"
-
-
-msgid "Sample"
-msgstr "Beispiel"
-
-
-msgid "Write"
-msgstr "Schreiben"
+msgid "Metaball"
+msgstr "Metaball"
 
 
 msgid "Pivot Point"
 msgstr "Drehpunkt"
-
-
-msgid "Primitives"
-msgstr "Grundkörper"
 
 
 msgid "Snap"
@@ -18878,12 +18834,20 @@ msgid "Mask Edit"
 msgstr "Maskenbearbeitung"
 
 
-msgid "Instances"
-msgstr "Instanzen"
+msgid "Read"
+msgstr "Lesen"
 
 
-msgid "Import"
-msgstr "Importieren"
+msgid "Sample"
+msgstr "Beispiel"
+
+
+msgid "Write"
+msgstr "Schreiben"
+
+
+msgid "Primitives"
+msgstr "Grundkörper"
 
 
 msgid "Mirror"
@@ -18902,10 +18866,6 @@ msgid "Navigation"
 msgstr "Navigation"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Align View"
 msgstr "Ansicht ausrichten"
 
@@ -18916,6 +18876,14 @@ msgstr "Ansicht auf Aktiv ausrichten"
 
 msgid "View Regions"
 msgstr "Vierfenster Ansicht"
+
+
+msgid "Select More/Less"
+msgstr "Mehr/weniger anzeigen"
+
+
+msgid "Instances"
+msgstr "Instanzen"
 
 
 msgid "Select Similar"
@@ -18932,6 +18900,38 @@ msgstr "Verknüpfte auswählen"
 
 msgid "Select Loops"
 msgstr "Schleifen auswählen"
+
+
+msgid "Import"
+msgstr "Importieren"
+
+
+msgid "Assign Material"
+msgstr "Material zuweisen"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "Light Probe"
+msgstr "Lichtsonde"
+
+
+msgid "Add Image"
+msgstr "Bild hinzufügen"
+
+
+msgid "Relations"
+msgstr "Beziehungen"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
 
 
 msgid "Assets"
@@ -28447,6 +28447,10 @@ msgid "Save images as JPEGs. (Images that need alpha are saved as PNGs though.) 
 msgstr "Speichern Sie Bilder als JPEGs. (Bilder, die Alpha benötigen, werden jedoch als PNGs gespeichert.) Seien Sie sich eines möglichen Qualitätsverlusts bewusst"
 
 
+msgid "Export materials"
+msgstr "Materialien exportieren"
+
+
 msgid "Do not export materials, and combine mesh primitive groups, losing material slot information"
 msgstr "Exportieren Sie keine Materialien, und kombinieren Sie Maschenprimitive Gruppen, wodurch Materialslotinformationen verloren gehen"
 
@@ -37572,7 +37576,7 @@ msgstr "Aktives Objekt als Kamera einsetzen"
 
 
 msgid "Set the active object as the active camera for this view or scene"
-msgstr "Aktives Objekt als aktive  Kamera für diese Ansicht oder Szene festlegen"
+msgstr "Aktives Objekt als aktive Kamera für diese Ansicht oder Szene festlegen"
 
 
 msgctxt "Operator"
@@ -38001,7 +38005,7 @@ msgstr "Entfernen"
 
 
 msgid "Context Attributes"
-msgstr "Kontext  Attribut"
+msgstr "Kontext-Attribute"
 
 
 msgid "Wrap"
@@ -38900,10 +38904,6 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
-msgid "Auto-Masking"
-msgstr "Automatisches Maskieren"
-
-
 msgid "VR"
 msgstr "VR"
 
@@ -38982,6 +38982,10 @@ msgstr "Zwiebelhaut"
 
 msgid "Stereoscopy"
 msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Automatisches Maskieren"
 
 
 msgid "Chain Scaling"
@@ -41043,6 +41047,14 @@ msgstr "Das Vorgabeverzeichnis, um nach Texturen zu suchen"
 
 msgid "Auto Save Temporary Files"
 msgstr "Temporäre Dateien automatisch speichern"
+
+
+msgid ""
+"Automatic saving of temporary files in temp directory, uses process ID.\n"
+"Warning: Sculpt and edit mode data won't be saved"
+msgstr ""
+"Automatisches Speichern temporärer Dateien im Temp-Verzeichnis, verwendet Prozess ID.\n"
+"Warnung: Skulptur- und Bearbeitungsmodus-Daten werden nicht gespeichert"
 
 
 msgid "Compress File"
@@ -48920,6 +48932,10 @@ msgid "Nothing to bake"
 msgstr "Nichts zu backen"
 
 
+msgid "No objects selected"
+msgstr "Keine Objekte ausgewählt"
+
+
 msgid "No single next item found"
 msgstr "Kein einzelnes nächstes Item gefunden"
 
@@ -48940,8 +48956,8 @@ msgid "Motion Tracking object not found"
 msgstr "Objekt zur Bewegungsverfolgung nicht gefunden"
 
 
-msgid "Unexpected modifier type: "
-msgstr "Unerwarteter Modifizierungstyp: "
+msgid "Unexpected modifier type: {:s}"
+msgstr "Unerwarteter Modifikatortyp: {:s}"
 
 
 msgid "Target object not specified"
@@ -49000,8 +49016,8 @@ msgid "Unable to remove default presets"
 msgstr "Standardmäßige Voreinstellung konnte nicht gelöscht werden"
 
 
-msgid "Failed to execute the preset: "
-msgstr "Voreinstellung konnte nicht ausgeführt werden: "
+msgid "Failed to execute the preset: {:s}"
+msgstr "Voreinstellung konnte nicht ausgeführt werden: {:s}"
 
 
 msgid "No other objects selected"
@@ -53943,6 +53959,14 @@ msgid "<no path>"
 msgstr "<kein Pfad>"
 
 
+msgid "Rename Selected Time Marker"
+msgstr "Ausgewählte Zeitmarker umbenennen"
+
+
+msgid "Selecting the camera is only supported in object mode"
+msgstr "Das Auswählen der Kamera wird nur im Objektmodus unterstützt"
+
+
 msgid "Scene not found"
 msgstr "Szene nicht gefunden"
 
@@ -53951,8 +53975,84 @@ msgid "Cannot re-link markers into the same scene"
 msgstr "Konnte Marker nicht wieder zur selben Szene verknüpfen"
 
 
+msgid "No markers are selected"
+msgstr "Keine Marker ausgewählt"
+
+
+msgid "Markers are locked"
+msgstr "Marker sind gesperrt"
+
+
+msgid "Toggle Snapping"
+msgstr "Einrasten umschalten"
+
+
+msgid "Start frame clamped to valid rendering range"
+msgstr "Startbild in gültigem Renderbereich festklemmen"
+
+
+msgid "End frame clamped to valid rendering range"
+msgstr "Endbild in gültigem Renderbereich festklemmen"
+
+
+msgid "The action %s is not editable"
+msgstr "Die Aktion %s ist nicht bearbeitbar"
+
+
+msgid "Failed to merge any animation. Note that NLA strips cannot be merged"
+msgstr "Animationen konnten nicht zusammengeführt werden. Beachte, dass NLA-Streifen nicht zusammengeführt werden können"
+
+
+msgid "Expected an animation area to be active"
+msgstr "Aktiver Animationbereich erwartet"
+
+
+msgid "Active object has no action"
+msgstr "Aktives Objekt hat keine Aktion"
+
+
+msgid "Paste driver: no driver to paste"
+msgstr "Treiber einfügen: kein Treiber zum Einfügen vorhanden"
+
+
+msgid "Driver has no variables to copy"
+msgstr "Treiber hat keine Variablen zum Kopieren"
+
+
+msgid "No driver variables in the internal clipboard to paste"
+msgstr "Keine Treibervariablen in der internen Zwischenablage zum Einfügen vorhanden"
+
+
+msgid "Cannot paste driver variables without a driver"
+msgstr "Treibervariablen können nicht ohne Treiber eingefügt werden"
+
+
+msgid "Could not add driver, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "Treiber konnte nicht hinzugefügt werden, da der RNA-Pfad für die gegebene ID ungültig ist (ID = %s, Pfad = %s)"
+
+
+msgid "Could not find driver to copy, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "Treiber zum Kopieren konnte nicht gefunden werden, da der RNA-Pfad für die gegebene ID ungültig ist (ID = %s, Pfad = %s)"
+
+
+msgid "Could not paste driver, as RNA path is invalid for the given ID (ID = %s, path = %s)"
+msgstr "Treiber konnte nicht eingefügt werden, da der RNA-Pfad für die gegebene ID ungültig ist (ID = %s, Pfad = %s)"
+
+
 msgid "Out"
 msgstr "Ausschneiden"
+
+
+msgid "<Unknown Modifier>"
+msgstr "<Unbekannter Modifikator>"
+
+
+msgid "y = (Ax + B)"
+msgstr "y = (Ax + B)"
+
+
+msgid "× (Ax + B)"
+msgstr "× (Ax + B)"
 
 
 msgid "Add Control Point"
@@ -54049,6 +54149,10 @@ msgstr "Pfad ist leer, konnte nicht gespeichert werden"
 
 msgid "Path too long, cannot save"
 msgstr "Pfad ist zu lang, konnte nicht gespeichert werden"
+
+
+msgid "Saving failed"
+msgstr "Speichern fehlgeschlagen"
 
 
 msgid "Unable to load %s from %s"
@@ -54363,6 +54467,10 @@ msgstr "Menü fehlt:"
 
 msgid "%d items"
 msgstr "%d Gegenstände"
+
+
+msgid "Color Space: "
+msgstr "Farbraum: "
 
 
 msgid "Value:"
@@ -55214,18 +55322,6 @@ msgid "Add IK"
 msgstr "IK hinzufügen"
 
 
-msgid "To Active Bone"
-msgstr "Zum aktiven Knochen"
-
-
-msgid "To Active Object"
-msgstr "Zum aktiven Objekt"
-
-
-msgid "Without Targets"
-msgstr "Ohne Ziele"
-
-
 msgid "Child Of constraint not found"
 msgstr "Kind der Beschränkung nicht gefunden"
 
@@ -55252,10 +55348,6 @@ msgstr "Keine Sammlung ausgewählt"
 
 msgid "Unexpected error, collection not found"
 msgstr "Unerwarteter Fehler, keine Sammlung gefunden"
-
-
-msgid "No objects selected"
-msgstr "Keine Objekte ausgewählt"
 
 
 msgid "%s already in %s"
@@ -58115,7 +58207,7 @@ msgstr "Engine '%s' ist nicht verfügbar für Szene '%s' (möglicherweise muss e
 
 
 msgid "Cannot overwrite used library '%.240s'"
-msgstr "Kann die genutzte Bibliothek  '%.240s' nicht überschreiben"
+msgstr "Kann die genutzte Bibliothek '%.240s' nicht überschreiben"
 
 
 msgid "Not a library"

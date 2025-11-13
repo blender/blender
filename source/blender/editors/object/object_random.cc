@@ -124,7 +124,7 @@ static wmOperatorStatus object_rand_verts_exec(bContext *C, wmOperator *op)
       ED_transverts_update_obedit(&tvs, ob_iter);
       ED_transverts_free(&tvs);
 
-      WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob_iter);
+      WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob_iter);
       changed_multi = true;
     }
   }

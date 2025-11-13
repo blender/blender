@@ -85,6 +85,12 @@ bool wm_xr_init(wmWindowManager *wm)
         break;
 #endif
 
+#ifdef WITH_METAL_BACKEND
+      case GPU_BACKEND_METAL:
+        gpu_bindings_candidates.append(GHOST_kXrGraphicsMetal);
+        break;
+#endif
+
       default:
         break;
     }

@@ -67,7 +67,6 @@
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_pointcache.h"
-#include "BKE_sound.h"
 
 #include "SEQ_relations.hh"
 

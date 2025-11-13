@@ -103,7 +103,7 @@ struct MultiresReshapeContext {
   blender::Span<int> face_ptex_offset;
 
   /* Vertex crease custom data layer, empty if none is present. */
-  blender::VArraySpan<float> cd_vertex_crease;
+  blender::VArraySpan<float> cd_vert_crease;
   /* Edge crease custom data layer, empty if none is present. */
   blender::VArraySpan<float> cd_edge_crease;
 };

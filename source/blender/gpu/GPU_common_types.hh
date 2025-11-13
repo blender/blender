@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
@@ -73,6 +74,18 @@ enum GPUFrontFace {
   GPU_CLOCKWISE,
   GPU_COUNTERCLOCKWISE,
 };
+
+namespace blender::gpu {
+
+enum class ShaderStage : uint8_t {
+  VERTEX = 1 << 0,
+  FRAGMENT = 1 << 1,
+  COMPUTE = 2 << 1,
+  ANY = (ShaderStage::VERTEX | ShaderStage::FRAGMENT | ShaderStage::COMPUTE),
+};
+ENUM_OPERATORS(ShaderStage);
+
+}  // namespace blender::gpu
 
 namespace blender::gpu::shader {
 

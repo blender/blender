@@ -280,10 +280,10 @@ static void test_framebuffer_multi_viewport()
   const float4 clear_color(0.0f);
   GPU_framebuffer_clear_color(framebuffer, clear_color);
 
-  ShaderCreateInfo create_info("");
+  ShaderCreateInfo create_info("gpu_framebuffer_layer_viewport_test");
   create_info.vertex_source("gpu_framebuffer_layer_viewport_test.glsl");
   create_info.fragment_source("gpu_framebuffer_layer_viewport_test.glsl");
-  create_info.builtins(BuiltinBits::VIEWPORT_INDEX | BuiltinBits::LAYER);
+  create_info.builtins(BuiltinBits::VIEWPORT_INDEX | BuiltinBits::LAYER | BuiltinBits::VERTEX_ID);
   create_info.fragment_out(0, Type::int2_t, "out_value");
 
   gpu::Shader *shader = GPU_shader_create_from_info(
@@ -347,8 +347,9 @@ static void test_framebuffer_subpass_input()
   const float4 clear_color(0.0f);
   GPU_framebuffer_clear_color(framebuffer, clear_color);
 
-  ShaderCreateInfo create_info_write("");
+  ShaderCreateInfo create_info_write("gpu_framebuffer_subpass_input_test");
   create_info_write.define("WRITE");
+  create_info_write.builtins(BuiltinBits::VERTEX_ID);
   create_info_write.vertex_source("gpu_framebuffer_subpass_input_test.glsl");
   create_info_write.fragment_source("gpu_framebuffer_subpass_input_test.glsl");
   create_info_write.fragment_out(0, Type::int_t, "out_value", DualBlend::NONE, 0);
@@ -356,8 +357,9 @@ static void test_framebuffer_subpass_input()
   gpu::Shader *shader_write = GPU_shader_create_from_info(
       reinterpret_cast<GPUShaderCreateInfo *>(&create_info_write));
 
-  ShaderCreateInfo create_info_read("");
+  ShaderCreateInfo create_info_read("gpu_framebuffer_subpass_input_test");
   create_info_read.define("READ");
+  create_info_read.builtins(BuiltinBits::VERTEX_ID);
   create_info_read.vertex_source("gpu_framebuffer_subpass_input_test.glsl");
   create_info_read.fragment_source("gpu_framebuffer_subpass_input_test.glsl");
   create_info_read.subpass_in(0, Type::int_t, ImageType::Int2D, "in_value", 0);

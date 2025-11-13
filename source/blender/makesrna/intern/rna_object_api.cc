@@ -890,7 +890,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_ui_description(func, "Get the local view state for this object");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "viewport", "SpaceView3D", "", "Viewport in local view");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_boolean(func, "result", false, "", "Object local view state");
   RNA_def_function_return(func, parm);
 
@@ -898,7 +898,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_ui_description(func, "Set the local view state for this object");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "viewport", "SpaceView3D", "", "Viewport in local view");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR | PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR | PARM_REQUIRED);
   parm = RNA_def_boolean(func, "state", false, "", "Local view state to define");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
@@ -907,7 +907,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_ui_description(
       func, "Check for local view and local collections for this viewport and object");
   parm = RNA_def_pointer(func, "viewport", "SpaceView3D", "", "Viewport in local collections");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_boolean(func, "result", false, "", "Object viewport visibility");
   RNA_def_function_return(func, parm);
 

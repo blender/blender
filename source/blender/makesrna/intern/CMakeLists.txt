@@ -223,6 +223,7 @@ set(SRC_RNA_INC
 
 set(SRC
   makesrna.cc
+  makesrna_utils.cc
   rna_define.cc
   ${DEFSRC}
   ${APISRC}
@@ -230,6 +231,8 @@ set(SRC
   # Needed for defaults.
   ../../../../release/datafiles/userdef/userdef_default.c
   ../../../../release/datafiles/userdef/userdef_default_theme.c
+
+  makesrna_utils.hh
 )
 
 set(INC
@@ -489,3 +492,14 @@ set(LIB
 )
 
 blender_add_lib(bf_rna "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+if(WITH_GTESTS)
+  set(TEST_SRC
+    makesrna_utils.cc
+    makesrna_test.cc
+  )
+  set(TEST_LIB
+    ${LIB}
+  )
+  blender_add_test_suite_lib(bf_makesrna "${TEST_SRC}" "${INC}" "${INC_SYS}" "${TEST_LIB}")
+endif()

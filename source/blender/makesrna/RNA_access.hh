@@ -277,6 +277,11 @@ int RNA_property_array_item_index(PropertyRNA *prop, char name);
  */
 int RNA_property_string_maxlength(PropertyRNA *prop);
 
+/**
+ * \return true when the string is stored as UTF-8. Otherwise this is e.g. a byte string.
+ */
+bool RNA_property_string_is_utf8(PropertyRNA *prop);
+
 const char *RNA_property_ui_name(const PropertyRNA *prop, const PointerRNA *ptr = nullptr);
 const char *RNA_property_ui_name_raw(const PropertyRNA *prop, const PointerRNA *ptr = nullptr);
 const char *RNA_property_ui_description(const PropertyRNA *prop);
@@ -546,7 +551,10 @@ std::optional<std::string> RNA_property_string_path_filter(const bContext *C,
  * string, when a `get_transform` callback is defined).
  */
 int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop);
-void RNA_property_string_get_default(PropertyRNA *prop, char *value, int value_maxncpy);
+void RNA_property_string_get_default(PointerRNA *ptr,
+                                     PropertyRNA *prop,
+                                     char *value,
+                                     int value_maxncpy);
 char *RNA_property_string_get_default_alloc(PointerRNA *ptr,
                                             PropertyRNA *prop,
                                             char *fixedbuf,

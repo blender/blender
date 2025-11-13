@@ -28,7 +28,7 @@
 #include "BKE_lib_remap.hh"
 #include "BKE_modifier.hh"
 #include "BKE_screen.hh"
-#include "BKE_shader_fx.h"
+#include "BKE_shader_fx.hh"
 
 #include "BLT_translation.hh"
 

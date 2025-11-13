@@ -386,8 +386,8 @@ static wmOperatorStatus screen_render_exec(bContext *C, wmOperator *op)
   /* cleanup sequencer caches before starting user triggered render.
    * otherwise, invalidated cache entries can make their way into
    * the output rendering. We can't put that into RE_RenderFrame,
-   * since sequence rendering can call that recursively... (peter) */
-  blender::seq::cache_cleanup(scene);
+   * since sequence rendering can call that recursively... */
+  blender::seq::cache_cleanup(scene, blender::seq::CacheCleanup::FinalAndIntra);
 
   RE_SetReports(re, op->reports);
 
@@ -813,10 +813,9 @@ static void render_endjob(void *rjv)
 {
   RenderJob *rj = static_cast<RenderJob *>(rjv);
 
-  /* This render may be used again by the sequencer without the active
-   * 'Render' where the callbacks would be re-assigned. assign dummy callbacks
-   * to avoid referencing freed render-jobs bug #24508. */
-  RE_InitRenderCB(rj->re);
+  /* Clear display GPU context and callbacks since this may be used again
+   * by e.g. the sequencer (#24508). */
+  RE_display_free(rj->re);
 
   if (rj->main != G_MAIN) {
     BKE_main_free(rj->main);
@@ -1091,7 +1090,7 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
   ED_editors_flush_edits_ex(bmain, true, false);
 
   /* Cleanup VSE cache, since it is not guaranteed that stored images are invalid. */
-  blender::seq::cache_cleanup(scene);
+  blender::seq::cache_cleanup(scene, blender::seq::CacheCleanup::FinalAndIntra);
 
   /* store spare
    * get view3d layer, local layer, make this nice API call to render
@@ -1181,13 +1180,14 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
 
   /* setup new render */
   re = RE_NewSceneRender(scene);
+  RE_display_init(re);
+  RE_display_ensure_gpu_context(re);
   RE_test_break_cb(re, rj, render_breakjob);
   RE_draw_lock_cb(re, rj, render_drawlock);
   RE_display_update_cb(re, rj, image_rect_update);
   RE_current_scene_update_cb(re, rj, current_scene_update);
   RE_stats_draw_cb(re, rj, image_renderinfo_cb);
   RE_progress_cb(re, rj, render_progress_update);
-  RE_system_gpu_context_ensure(re);
 
   rj->re = re;
   G.is_break = false;

@@ -8,7 +8,6 @@
 #include "GPU_shader.hh"
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
-#include "GPU_texture_pool.hh"
 
 #include "COM_context.hh"
 #include "COM_result.hh"
@@ -31,12 +30,12 @@ static char const *get_pixel_sampler_shader_name(const Interpolation &interpolat
   return "compositor_sample_pixel";
 }
 
-static float4 sample_pixel_gpu(Context &context,
-                               const Result &input,
-                               const Interpolation &interpolation,
-                               const ExtensionMode &extension_mode_x,
-                               const ExtensionMode &extension_mode_y,
-                               const float2 coordinates)
+static Color sample_pixel_gpu(Context &context,
+                              const Result &input,
+                              const Interpolation &interpolation,
+                              const ExtensionMode &extension_mode_x,
+                              const ExtensionMode &extension_mode_y,
+                              const float2 coordinates)
 {
   gpu::Shader *shader = context.get_shader(get_pixel_sampler_shader_name(interpolation));
   GPU_shader_bind(shader);
@@ -71,56 +70,41 @@ static float4 sample_pixel_gpu(Context &context,
   float *pixel = static_cast<float *>(GPU_texture_read(output, GPU_DATA_FLOAT, 0));
   output.release();
 
-  float4 sampled_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
-  output.get_cpp_type().copy_assign(pixel, sampled_value);
-
+  Color sampled_color = Color(pixel);
   MEM_freeN(pixel);
 
-  return sampled_value;
+  return sampled_color;
 }
 
-static float4 sample_pixel_cpu(const Result &input,
-                               const Interpolation &interpolation,
-                               const ExtensionMode &extension_mode_x,
-                               const ExtensionMode &extension_mode_y,
-                               const float2 coordinates)
+static Color sample_pixel_cpu(const Result &input,
+                              const Interpolation &interpolation,
+                              const ExtensionMode &extension_mode_x,
+                              const ExtensionMode &extension_mode_y,
+                              const float2 coordinates)
 {
-  return input.sample(coordinates, interpolation, extension_mode_x, extension_mode_y);
+  return input.sample<Color>(coordinates, interpolation, extension_mode_x, extension_mode_y);
 }
 
 /* Samples a pixel from a result. */
-float4 sample_pixel(Context &context,
-                    const Result &input,
-                    const Interpolation &interpolation,
-                    const ExtensionMode &extension_mode_x,
-                    const ExtensionMode &extension_mode_y,
-                    const float2 coordinates)
+Color sample_pixel(Context &context,
+                   const Result &input,
+                   const Interpolation &interpolation,
+                   const ExtensionMode &extension_mode_x,
+                   const ExtensionMode &extension_mode_y,
+                   const float2 coordinates)
 {
-  if (input.is_single_value()) {
-    switch (input.type()) {
-      case ResultType::Float:
-        return float4(input.get_single_value<float>(), 0.0f, 0.0f, 1.0f);
-      case ResultType::Float2:
-        return float4(input.get_single_value<float2>(), 0.0f, 1.0f);
-      case ResultType::Float3:
-        return float4(input.get_single_value<float3>(), 1.0f);
-      case ResultType::Float4:
-      case ResultType::Color:
-        return input.get_single_value<float4>();
-      default:
-        break;
-    }
+  BLI_assert(input.type() == ResultType::Color);
 
-    BLI_assert_unreachable();
-    return float4(0.0f);
+  if (input.is_single_value()) {
+    return input.get_single_value<Color>();
   }
+
   if (context.use_gpu()) {
     return sample_pixel_gpu(
         context, input, interpolation, extension_mode_x, extension_mode_y, coordinates);
   }
-  else {
-    return sample_pixel_cpu(input, interpolation, extension_mode_x, extension_mode_y, coordinates);
-  }
+
+  return sample_pixel_cpu(input, interpolation, extension_mode_x, extension_mode_y, coordinates);
 }
 
 }  // namespace blender::compositor

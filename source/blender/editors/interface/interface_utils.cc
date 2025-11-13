@@ -75,7 +75,6 @@ uiBut *uiDefAutoButR(uiBlock *block,
       if (icon && name && name->is_empty()) {
         but = uiDefIconButR_prop(block,
                                  ButType::IconToggle,
-                                 0,
                                  icon,
                                  x,
                                  y,
@@ -91,7 +90,6 @@ uiBut *uiDefAutoButR(uiBlock *block,
       else if (icon) {
         but = uiDefIconTextButR_prop(block,
                                      ButType::IconToggle,
-                                     0,
                                      icon,
                                      name,
                                      x,
@@ -108,7 +106,6 @@ uiBut *uiDefAutoButR(uiBlock *block,
       else {
         but = uiDefButR_prop(block,
                              ButType::Checkbox,
-                             0,
                              name,
                              x,
                              y,
@@ -127,20 +124,8 @@ uiBut *uiDefAutoButR(uiBlock *block,
     case PROP_FLOAT: {
       if (RNA_property_array_check(prop) && index == -1) {
         if (ELEM(RNA_property_subtype(prop), PROP_COLOR, PROP_COLOR_GAMMA)) {
-          but = uiDefButR_prop(block,
-                               ButType::Color,
-                               0,
-                               name,
-                               x,
-                               y,
-                               width,
-                               height,
-                               ptr,
-                               prop,
-                               -1,
-                               0,
-                               0,
-                               std::nullopt);
+          but = uiDefButR_prop(
+              block, ButType::Color, name, x, y, width, height, ptr, prop, -1, 0, 0, std::nullopt);
         }
         else {
           return nullptr;
@@ -151,7 +136,6 @@ uiBut *uiDefAutoButR(uiBlock *block,
       {
         but = uiDefButR_prop(block,
                              ButType::NumSlider,
-                             0,
                              name,
                              x,
                              y,
@@ -165,20 +149,8 @@ uiBut *uiDefAutoButR(uiBlock *block,
                              std::nullopt);
       }
       else {
-        but = uiDefButR_prop(block,
-                             ButType::Num,
-                             0,
-                             name,
-                             x,
-                             y,
-                             width,
-                             height,
-                             ptr,
-                             prop,
-                             index,
-                             0,
-                             0,
-                             std::nullopt);
+        but = uiDefButR_prop(
+            block, ButType::Num, name, x, y, width, height, ptr, prop, index, 0, 0, std::nullopt);
       }
 
       if (RNA_property_flag(prop) & PROP_TEXTEDIT_UPDATE) {
@@ -188,25 +160,12 @@ uiBut *uiDefAutoButR(uiBlock *block,
     }
     case PROP_ENUM:
       if (icon && name && name->is_empty()) {
-        but = uiDefIconButR_prop(block,
-                                 ButType::Menu,
-                                 0,
-                                 icon,
-                                 x,
-                                 y,
-                                 width,
-                                 height,
-                                 ptr,
-                                 prop,
-                                 index,
-                                 0,
-                                 0,
-                                 std::nullopt);
+        but = uiDefIconButR_prop(
+            block, ButType::Menu, icon, x, y, width, height, ptr, prop, index, 0, 0, std::nullopt);
       }
       else if (icon) {
         but = uiDefIconTextButR_prop(block,
                                      ButType::Menu,
-                                     0,
                                      icon,
                                      std::nullopt,
                                      x,
@@ -221,43 +180,18 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                      std::nullopt);
       }
       else {
-        but = uiDefButR_prop(block,
-                             ButType::Menu,
-                             0,
-                             name,
-                             x,
-                             y,
-                             width,
-                             height,
-                             ptr,
-                             prop,
-                             index,
-                             0,
-                             0,
-                             std::nullopt);
+        but = uiDefButR_prop(
+            block, ButType::Menu, name, x, y, width, height, ptr, prop, index, 0, 0, std::nullopt);
       }
       break;
     case PROP_STRING:
       if (icon && name && name->is_empty()) {
-        but = uiDefIconButR_prop(block,
-                                 ButType::Text,
-                                 0,
-                                 icon,
-                                 x,
-                                 y,
-                                 width,
-                                 height,
-                                 ptr,
-                                 prop,
-                                 index,
-                                 0,
-                                 0,
-                                 std::nullopt);
+        but = uiDefIconButR_prop(
+            block, ButType::Text, icon, x, y, width, height, ptr, prop, index, 0, 0, std::nullopt);
       }
       else if (icon) {
         but = uiDefIconTextButR_prop(block,
                                      ButType::Text,
-                                     0,
                                      icon,
                                      name,
                                      x,
@@ -272,20 +206,8 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                      std::nullopt);
       }
       else {
-        but = uiDefButR_prop(block,
-                             ButType::Text,
-                             0,
-                             name,
-                             x,
-                             y,
-                             width,
-                             height,
-                             ptr,
-                             prop,
-                             index,
-                             0,
-                             0,
-                             std::nullopt);
+        but = uiDefButR_prop(
+            block, ButType::Text, name, x, y, width, height, ptr, prop, index, 0, 0, std::nullopt);
       }
 
       if (RNA_property_flag(prop) & PROP_TEXTEDIT_UPDATE) {
@@ -305,7 +227,6 @@ uiBut *uiDefAutoButR(uiBlock *block,
 
       but = uiDefIconTextButR_prop(block,
                                    ButType::SearchMenu,
-                                   0,
                                    icon,
                                    name,
                                    x,
@@ -318,14 +239,14 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                    0,
                                    0,
                                    std::nullopt);
-      ui_but_add_search(but, ptr, prop, nullptr, nullptr, false);
+      ui_but_add_search(but, ptr, prop, nullptr, nullptr, nullptr, false);
       break;
     }
     case PROP_COLLECTION: {
       char text[256];
       SNPRINTF_UTF8(text, IFACE_("%d items"), RNA_property_collection_length(ptr, prop));
       but = uiDefBut(
-          block, ButType::Label, 0, text, x, y, width, height, nullptr, 0, 0, std::nullopt);
+          block, ButType::Label, text, x, y, width, height, nullptr, 0, 0, std::nullopt);
       UI_but_flag_enable(but, UI_BUT_DISABLED);
       break;
     }
@@ -536,7 +457,19 @@ void ui_rna_collection_search_update_fn(
           has_sep_char = ID_IS_LINKED(id);
         }
       }
+      else if (data->item_search_prop) {
+        name = RNA_property_string_get_alloc(
+            &itemptr, data->item_search_prop, name_buf, sizeof(name_buf), nullptr);
+      }
       else if (itemptr.type == &RNA_ActionSlot) {
+        /* FIXME: This special case is fairly annoying.
+         *
+         * `item_search_prop` now allows to specify another string property than the default RNA
+         * struct name one as source, but icons are still an issue. RNA access API for icons likely
+         * needs some love, to allow callbacks, data-based icons retrieval, in addition to the
+         * purely static options currently available (see #RNA_struct_ui_icon and
+         * #RNA_property_ui_icon).
+         */
         PropertyRNA *prop = RNA_struct_find_property(&itemptr, "name_display");
         name = RNA_property_string_get_alloc(&itemptr, prop, name_buf, sizeof(name_buf), nullptr);
         /* Also show an icon for the data-block type that each slot is intended for. */

@@ -90,7 +90,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
    * Sets the file name represented by this window.
    * \param filepath: The file directory.
    */
-  GHOST_TSuccess setPath(const char *filepath) override;
+  void setPath(const char *filepath) override;
 
   /**
    * Apply the window decoration style using the current flags and settings.

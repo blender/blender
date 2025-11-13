@@ -350,7 +350,9 @@ class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
     if (new_size != this->len_) {
       /* Manual realloc since MEM_reallocN_aligned does not exists. */
       T *new_data_ = (T *)MEM_mallocN_aligned(new_size * sizeof(T), 16, this->name_);
-      memcpy(new_data_, this->data_, min_uu(this->len_, new_size) * sizeof(T));
+      memcpy(reinterpret_cast<void *>(new_data_),
+             this->data_,
+             min_uu(this->len_, new_size) * sizeof(T));
       MEM_freeN(static_cast<void *>(this->data_));
       this->data_ = new_data_;
       GPU_storagebuf_free(this->ssbo_);

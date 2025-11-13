@@ -11,12 +11,12 @@
 
 namespace blender::compositor {
 
-/* Samples a pixel from a result. */
-float4 sample_pixel(Context &context,
-                    const Result &input,
-                    const Interpolation &interpolation,
-                    const ExtensionMode &extension_mode_x,
-                    const ExtensionMode &extension_mode_y,
-                    const float2 coordinates);
+/* Samples a pixel from a color result. */
+Color sample_pixel(Context &context,
+                   const Result &input,
+                   const Interpolation &interpolation,
+                   const ExtensionMode &extension_mode_x,
+                   const ExtensionMode &extension_mode_y,
+                   const float2 coordinates);
 
 }  // namespace blender::compositor

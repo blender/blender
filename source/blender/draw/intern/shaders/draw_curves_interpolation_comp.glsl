@@ -42,7 +42,7 @@ template<> InterpPosition input_load<InterpPosition>(int point_index)
   const auto &transform = push_constant_get(draw_curves_interpolate_position, transform);
   const auto &positions = buffer_get(draw_curves_interpolate_position, positions_buf);
   InterpPosition interp;
-  interp.data.xyz = gpu_attr_load_float3(positions, int2(3, 0), point_index);
+  interp.data.xyz = gpu_attr_load_float3(positions, int2(3, 0), uint(point_index));
   interp.data.w = buffer_get(draw_curves_interpolate_position, radii_buf)[point_index];
   /* Bake object transform for legacy hair particle. */
   interp.data.xyz = transform_point(transform, interp.data.xyz);
@@ -117,7 +117,7 @@ template<> float output_load<float>(int evaluated_point_index)
 void output_write(int evaluated_point_index, InterpPosition interp)
 {
   /* Clamp radius to 0 to avoid negative radius due to interpolation. */
-  interp.data.w = max(0.0, interp.data.w);
+  interp.data.w = max(0.0f, interp.data.w);
   buffer_get(draw_curves_interpolate_position,
              evaluated_positions_radii_buf)[evaluated_point_index] = interp.data;
 }
@@ -312,8 +312,8 @@ template<> void evaluate_segment<InterpPosition>(const int2 points, const IndexR
   InterpPosition p1 = input_load<InterpPosition>(points.y);
 
   const float3 point_0 = p0.data.xyz;
-  const float3 point_1 = gpu_attr_load_float3(handles_right, int2(3, 0), points.x);
-  const float3 point_2 = gpu_attr_load_float3(handles_left, int2(3, 0), points.y);
+  const float3 point_1 = gpu_attr_load_float3(handles_right, int2(3, 0), uint(points.x));
+  const float3 point_2 = gpu_attr_load_float3(handles_left, int2(3, 0), uint(points.y));
   const float3 point_3 = p1.data.xyz;
 
   const float rad_0 = p0.data.w;
@@ -381,7 +381,7 @@ void evaluate_curve(const IndexRange points,
     const IndexRange segment_range = offset_indices::load_range_from_buffer(bezier_offsets_buf,
                                                                             offsets.start() + i);
     const IndexRange evaluated_segment_range = evaluated_points.slice(segment_range);
-    const int2 point_ids = get_points(i, points, is_curve_cyclic);
+    const int2 point_ids = get_points(uint(i), points, is_curve_cyclic);
 
     evaluate_segment<InterpType>(point_ids, evaluated_segment_range);
   }

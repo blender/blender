@@ -25,10 +25,8 @@
 
 #include "RNA_define.hh"
 
-/* For menu, popup, icons, etc. */
 #include "ED_screen.hh"
 
-/* Own include. */
 #include "sequencer_intern.hh"
 
 namespace blender::ed::vse {
@@ -50,7 +48,7 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
   wmJob *wm_job = seq::ED_seq_proxy_wm_job_get(C);
   seq::ProxyJob *pj = seq::ED_seq_proxy_job_get(C, wm_job);
 
-  blender::Set<std::string> processed_paths;
+  Set<std::string> processed_paths;
   bool selected = false; /* Check for no selected strips */
 
   LISTBASE_FOREACH (Strip *, strip, seq::active_seqbase_get(ed)) {
@@ -110,7 +108,7 @@ static wmOperatorStatus sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /
     return OPERATOR_CANCELLED;
   }
 
-  blender::Set<std::string> processed_paths;
+  Set<std::string> processed_paths;
 
   LISTBASE_FOREACH (Strip *, strip, seq::active_seqbase_get(ed)) {
     if (strip->flag & SELECT) {
@@ -127,6 +125,7 @@ static wmOperatorStatus sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /
       seq::relations_free_imbuf(scene, &ed->seqbase, false);
     }
   }
+  seq::cache_cleanup(scene, seq::CacheCleanup::FinalAndIntra);
 
   return OPERATOR_FINISHED;
 }

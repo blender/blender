@@ -586,6 +586,8 @@ struct StringPropertyRNA {
   PropStringGetTransformFunc get_transform;
   PropStringSetTransformFunc set_transform;
 
+  PropStringGetFuncEx get_default;
+
   /**
    * Optional callback to list candidates for a string.
    * This is only for use as suggestions in UI, other values may be assigned.

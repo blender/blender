@@ -12,16 +12,5 @@ void main()
     return;
   }
 
-  float4 input_color = texture_load(input_tx, texel);
-
-#if defined(DIRECT_OUTPUT)
-  float4 output_color = input_color;
-#elif defined(OPAQUE_OUTPUT)
-  float4 output_color = float4(input_color.rgb, 1.0f);
-#elif defined(ALPHA_OUTPUT)
-  float alpha = texture_load(alpha_tx, texel).x;
-  float4 output_color = float4(input_color.rgb, alpha);
-#endif
-
-  imageStore(output_img, texel + lower_bound, output_color);
+  imageStore(output_img, texel + lower_bound, texture_load(input_tx, texel));
 }

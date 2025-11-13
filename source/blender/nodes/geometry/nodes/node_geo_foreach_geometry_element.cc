@@ -409,7 +409,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
   else {
     params.add_item_full_name(
-        fmt::format(IFACE_("For Each Element {} Main"), UI_MENU_ARROW_SEP),
+        fmt::format(fmt::runtime(IFACE_("For Each Element {} Main")), UI_MENU_ARROW_SEP),
         [](LinkSearchOpParams &params) {
           const auto [input_node, output_node] = add_foreach_zone(params);
           socket_items::clear<ForeachGeometryElementGenerationItemsAccessor>(*output_node);
@@ -417,7 +417,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
         });
 
     params.add_item_full_name(
-        fmt::format(IFACE_("For Each Element {} Generated"), UI_MENU_ARROW_SEP),
+        fmt::format(fmt::runtime(IFACE_("For Each Element {} Generated")), UI_MENU_ARROW_SEP),
         [](LinkSearchOpParams &params) {
           const auto [input_node, output_node] = add_foreach_zone(params);
           params.node_tree.ensure_topology_cache();

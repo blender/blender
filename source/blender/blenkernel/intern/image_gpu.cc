@@ -82,7 +82,7 @@ static int smaller_power_of_2_limit(int num)
 
 static blender::gpu::Texture *gpu_texture_create_tile_mapping(Image *ima, const int multiview_eye)
 {
-  blender::gpu::Texture *tilearray = ima->gputexture[TEXTARGET_2D_ARRAY][multiview_eye];
+  blender::gpu::Texture *tilearray = ima->runtime->gputexture[TEXTARGET_2D_ARRAY][multiview_eye];
 
   if (tilearray == nullptr) {
     return nullptr;
@@ -253,7 +253,7 @@ static blender::gpu::Texture *gpu_texture_create_tile_array(Image *ima, ImBuf *m
     GPU_texture_update_mipmap_chain(tex);
     GPU_texture_mipmap_mode(tex, true, true);
     if (ima) {
-      ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
+      ima->runtime->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
     }
   }
   else {
@@ -278,7 +278,7 @@ static blender::gpu::Texture **get_image_gpu_texture_ptr(Image *ima,
   BLI_assert(ELEM(multiview_eye, 0, 1));
 
   if (in_range) {
-    return &(ima->gputexture[textarget][multiview_eye]);
+    return &(ima->runtime->gputexture[textarget][multiview_eye]);
   }
   return nullptr;
 }
@@ -353,9 +353,10 @@ void BKE_image_ensure_gpu_texture(Image *image, ImageUser *iuser)
 
   /* Note that the image can cache both stereo views, so we only invalidate the cache if the view
    * index is more than 2. */
-  if (!ELEM(image->gpu_pass, IMAGE_GPU_PASS_NONE, iuser->pass) ||
-      !ELEM(image->gpu_layer, IMAGE_GPU_LAYER_NONE, iuser->layer) ||
-      (!ELEM(image->gpu_view, IMAGE_GPU_VIEW_NONE, iuser->multi_index) && iuser->multi_index >= 2))
+  if (!ELEM(image->runtime->gpu_pass, IMAGE_GPU_PASS_NONE, iuser->pass) ||
+      !ELEM(image->runtime->gpu_layer, IMAGE_GPU_LAYER_NONE, iuser->layer) ||
+      (!ELEM(image->runtime->gpu_view, IMAGE_GPU_VIEW_NONE, iuser->multi_index) &&
+       iuser->multi_index >= 2))
   {
     BKE_image_partial_update_mark_full_update(image);
   }
@@ -388,12 +389,12 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
   if (requested_view < 2) {
     requested_view = 0;
   }
-  if (ima->gpu_pass != requested_pass || ima->gpu_layer != requested_layer ||
-      ima->gpu_view != requested_view)
+  if (ima->runtime->gpu_pass != requested_pass || ima->runtime->gpu_layer != requested_layer ||
+      ima->runtime->gpu_view != requested_view)
   {
-    ima->gpu_pass = requested_pass;
-    ima->gpu_layer = requested_layer;
-    ima->gpu_view = requested_view;
+    ima->runtime->gpu_pass = requested_pass;
+    ima->runtime->gpu_layer = requested_layer;
+    ima->runtime->gpu_view = requested_view;
     /* The cache should be invalidated here, but it is intentionally isn't due to possible
      * performance implications, see the BKE_image_ensure_gpu_texture function for more
      * information. */
@@ -475,7 +476,7 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
 
       if (GPU_mipmap_enabled()) {
         GPU_texture_update_mipmap_chain(*result.texture);
-        ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
+        ima->runtime->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
         GPU_texture_mipmap_mode(*result.texture, true, true);
       }
       else {
@@ -561,21 +562,21 @@ static void image_free_gpu(Image *ima, const bool immediate)
 {
   for (int eye = 0; eye < 2; eye++) {
     for (int i = 0; i < TEXTARGET_COUNT; i++) {
-      if (ima->gputexture[i][eye] != nullptr) {
+      if (ima->runtime->gputexture[i][eye] != nullptr) {
         if (immediate) {
-          GPU_texture_free(ima->gputexture[i][eye]);
+          GPU_texture_free(ima->runtime->gputexture[i][eye]);
         }
         else {
           std::scoped_lock lock(gpu_texture_queue_mutex);
-          BLI_linklist_prepend(&gpu_texture_free_queue, ima->gputexture[i][eye]);
+          BLI_linklist_prepend(&gpu_texture_free_queue, ima->runtime->gputexture[i][eye]);
         }
 
-        ima->gputexture[i][eye] = nullptr;
+        ima->runtime->gputexture[i][eye] = nullptr;
       }
     }
   }
 
-  ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
+  ima->runtime->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
 }
 
 void BKE_image_free_gputextures(Image *ima)
@@ -624,12 +625,12 @@ void BKE_image_free_old_gputextures(Main *bmain)
   lasttime = ctime;
 
   LISTBASE_FOREACH (Image *, ima, &bmain->images) {
-    if ((ima->flag & IMA_NOCOLLECT) == 0 && ctime - ima->lastused > U.textimeout) {
+    if ((ima->flag & IMA_NOCOLLECT) == 0 && ctime - ima->runtime->lastused > U.textimeout) {
       /* If it's in GL memory, deallocate and set time tag to current time
        * This gives textures a "second chance" to be used before dying. */
       if (BKE_image_has_opengl_texture(ima)) {
         BKE_image_free_gputextures(ima);
-        ima->lastused = ctime;
+        ima->runtime->lastused = ctime;
       }
       /* Otherwise, just kill the buffers */
       else {
@@ -887,7 +888,7 @@ static void gpu_texture_update_from_ibuf(blender::gpu::Texture *tex,
     GPU_texture_update_mipmap_chain(tex);
   }
   else {
-    ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
+    ima->runtime->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
   }
 
   GPU_texture_unbind(tex);
@@ -897,14 +898,14 @@ static void image_update_gputexture_ex(
     Image *ima, ImageTile *tile, ImBuf *ibuf, int x, int y, int w, int h)
 {
   const int eye = 0;
-  blender::gpu::Texture *tex = ima->gputexture[TEXTARGET_2D][eye];
+  blender::gpu::Texture *tex = ima->runtime->gputexture[TEXTARGET_2D][eye];
   /* Check if we need to update the main gputexture. */
   if (tex != nullptr && tile == ima->tiles.first) {
     gpu_texture_update_from_ibuf(tex, ima, ibuf, nullptr, x, y, w, h);
   }
 
   /* Check if we need to update the array gputexture. */
-  tex = ima->gputexture[TEXTARGET_2D_ARRAY][eye];
+  tex = ima->runtime->gputexture[TEXTARGET_2D_ARRAY][eye];
   if (tex != nullptr) {
     gpu_texture_update_from_ibuf(tex, ima, ibuf, tile, x, y, w, h);
   }
@@ -938,11 +939,11 @@ void BKE_image_paint_set_mipmap(Main *bmain, bool mipmap)
 {
   LISTBASE_FOREACH (Image *, ima, &bmain->images) {
     if (BKE_image_has_opengl_texture(ima)) {
-      if (ima->gpuflag & IMA_GPU_MIPMAP_COMPLETE) {
+      if (ima->runtime->gpuflag & IMA_GPU_MIPMAP_COMPLETE) {
         for (int a = 0; a < TEXTARGET_COUNT; a++) {
           if (ELEM(a, TEXTARGET_2D, TEXTARGET_2D_ARRAY)) {
             for (int eye = 0; eye < 2; eye++) {
-              blender::gpu::Texture *tex = ima->gputexture[a][eye];
+              blender::gpu::Texture *tex = ima->runtime->gputexture[a][eye];
               if (tex != nullptr) {
                 GPU_texture_mipmap_mode(tex, mipmap, true);
               }
@@ -955,7 +956,7 @@ void BKE_image_paint_set_mipmap(Main *bmain, bool mipmap)
       }
     }
     else {
-      ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
+      ima->runtime->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
     }
   }
 }

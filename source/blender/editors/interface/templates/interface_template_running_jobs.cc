@@ -253,7 +253,6 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
     const int textwidth = UI_fontstyle_string_width(fstyle, name);
     uiDefIconTextBut(block,
                      ButType::Label,
-                     0,
                      op_name ? 0 : icon,
                      name,
                      0,
@@ -275,7 +274,6 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
       tip_arg->owner = owner;
       uiButProgress *but_progress = (uiButProgress *)uiDefIconTextBut(block,
                                                                       ButType::Progress,
-                                                                      0,
                                                                       ICON_NONE,
                                                                       text,
                                                                       UI_UNIT_X,
@@ -290,31 +288,31 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
     }
 
     if (!wm->runtime->is_interface_locked) {
-      uiDefIconTextBut(block,
-                       ButType::But,
-                       handle_event,
-                       ICON_PANEL_CLOSE,
-                       "",
-                       0,
-                       0,
-                       UI_UNIT_X,
-                       UI_UNIT_Y,
-                       nullptr,
-                       TIP_("Stop this job"));
+      uiBut *but = uiDefIconTextBut(block,
+                                    ButType::But,
+                                    ICON_PANEL_CLOSE,
+                                    "",
+                                    0,
+                                    0,
+                                    UI_UNIT_X,
+                                    UI_UNIT_Y,
+                                    nullptr,
+                                    TIP_("Stop this job"));
+      UI_but_retval_set(but, handle_event);
     }
   }
 
   if (ED_screen_animation_no_scrub(wm)) {
-    uiDefIconTextBut(block,
-                     ButType::But,
-                     B_STOPANIM,
-                     ICON_CANCEL,
-                     IFACE_("Anim Player"),
-                     0,
-                     0,
-                     UI_UNIT_X * 5.0f,
-                     UI_UNIT_Y,
-                     nullptr,
-                     TIP_("Stop animation playback"));
+    uiBut *but = uiDefIconTextBut(block,
+                                  ButType::But,
+                                  ICON_CANCEL,
+                                  IFACE_("Anim Player"),
+                                  0,
+                                  0,
+                                  UI_UNIT_X * 5.0f,
+                                  UI_UNIT_Y,
+                                  nullptr,
+                                  TIP_("Stop animation playback"));
+    UI_but_retval_set(but, B_STOPANIM);
   }
 }

@@ -11,6 +11,8 @@
 
 #include "BLI_index_mask.hh"
 
+#include "ED_grease_pencil.hh"
+
 #include "transform.hh"
 
 struct BMEditMesh;
@@ -93,6 +95,8 @@ struct TransDataVertSlideVert {
  * Used for both curves and grease pencil objects.
  */
 struct CurvesTransformData {
+  Vector<ed::greasepencil::MutableDrawingInfo> drawings;
+
   IndexMaskMemory memory;
   Vector<IndexMask> selection_by_layer;
 

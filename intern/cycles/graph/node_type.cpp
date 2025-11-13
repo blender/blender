@@ -6,14 +6,20 @@
 
 #include "util/log.h"
 #include "util/transform.h"
+#include "util/types_float3.h"
 
 CCL_NAMESPACE_BEGIN
 
 /* Node Socket Type */
 
-size_t SocketType::size() const
+size_t SocketType::storage_size() const
 {
-  return size(type);
+  return size(type, false);
+}
+
+size_t SocketType::packed_size() const
+{
+  return size(type, true);
 }
 
 bool SocketType::is_array() const
@@ -21,7 +27,7 @@ bool SocketType::is_array() const
   return (type >= BOOLEAN_ARRAY);
 }
 
-size_t SocketType::size(Type type)
+size_t SocketType::size(Type type, bool packed)
 {
   switch (type) {
     case UNDEFINED:
@@ -39,13 +45,10 @@ size_t SocketType::size(Type type)
     case UINT64:
       return sizeof(uint64_t);
     case COLOR:
-      return sizeof(float3);
     case VECTOR:
-      return sizeof(float3);
     case POINT:
-      return sizeof(float3);
     case NORMAL:
-      return sizeof(float3);
+      return (packed) ? sizeof(packed_float3) : sizeof(float3);
     case POINT2:
       return sizeof(float2);
     case CLOSURE:

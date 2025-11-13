@@ -97,9 +97,7 @@ class MaskOperation : public NodeOperation {
   void execute() override
   {
     Result &output_mask = this->get_result("Mask");
-    if (!this->get_mask() ||
-        (!this->is_fixed_size() && !this->context().is_valid_compositing_region()))
-    {
+    if (!this->get_mask()) {
       output_mask.allocate_invalid();
       return;
     }
@@ -108,7 +106,7 @@ class MaskOperation : public NodeOperation {
     Result &cached_mask = context().cache_manager().cached_masks.get(
         this->context(),
         this->get_mask(),
-        domain.size,
+        domain,
         this->get_aspect_ratio(),
         this->get_use_feather(),
         this->get_motion_blur_samples(),
@@ -119,20 +117,15 @@ class MaskOperation : public NodeOperation {
 
   Domain compute_domain() override
   {
-    return Domain(this->compute_size());
-  }
-
-  int2 compute_size()
-  {
     if (this->get_flags() & CMP_NODE_MASK_FLAG_SIZE_FIXED) {
-      return this->get_size();
+      return Domain(this->get_size());
     }
 
     if (this->get_flags() & CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE) {
-      return this->get_size() * this->context().get_render_percentage();
+      return Domain(this->get_size() * this->context().get_render_percentage());
     }
 
-    return this->context().get_compositing_region_size();
+    return this->context().get_compositing_domain();
   }
 
   int2 get_size()

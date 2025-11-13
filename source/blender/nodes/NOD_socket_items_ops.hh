@@ -38,10 +38,6 @@ inline PointerRNA get_active_node_to_operate_on(bContext *C,
   if (!ID_IS_EDITABLE(snode->edittree)) {
     return PointerRNA_NULL;
   }
-  const bke::bNodeTreeZones *zones = snode->edittree->zones();
-  if (!zones) {
-    return PointerRNA_NULL;
-  }
 
   bNode *node = nullptr;
   if (RNA_struct_property_is_set(op->ptr, "node_identifier")) {
@@ -54,12 +50,20 @@ inline PointerRNA get_active_node_to_operate_on(bContext *C,
   if (!node) {
     return PointerRNA_NULL;
   }
-  if (const bke::bNodeTreeZone *zone = zones->get_zone_by_node(node->identifier)) {
-    if (zone->input_node() == node) {
-      /* Assume the data is generally stored on the output and not the input node. */
-      node = const_cast<bNode *>(zone->output_node());
+
+  if (bke::zone_type_by_node_type(node->type_legacy) != nullptr) {
+    const bke::bNodeTreeZones *zones = snode->edittree->zones();
+    if (!zones) {
+      return PointerRNA_NULL;
+    }
+    if (const bke::bNodeTreeZone *zone = zones->get_zone_by_node(node->identifier)) {
+      if (zone->input_node() == node) {
+        /* Assume the data is generally stored on the output and not the input node. */
+        node = const_cast<bNode *>(zone->output_node());
+      }
     }
   }
+
   if (node->idname != node_idname) {
     return PointerRNA_NULL;
   }
@@ -114,6 +118,7 @@ inline void remove_active_item(wmOperatorType *ot,
   ot->idname = idname;
   ot->description = description;
   ot->poll = editable_node_active_poll<Accessor>;
+  ot->flag = OPTYPE_UNDO;
 
   ot->exec = [](bContext *C, wmOperator *op) -> wmOperatorStatus {
     PointerRNA node_ptr = get_active_node_to_operate_on(C, op, Accessor::node_idname);
@@ -140,6 +145,7 @@ inline void remove_item_by_index(wmOperatorType *ot,
   ot->idname = idname;
   ot->description = description;
   ot->poll = editable_node_active_poll<Accessor>;
+  ot->flag = OPTYPE_UNDO;
 
   ot->exec = [](bContext *C, wmOperator *op) -> wmOperatorStatus {
     PointerRNA node_ptr = get_active_node_to_operate_on(C, op, Accessor::node_idname);
@@ -166,6 +172,7 @@ inline void add_item(wmOperatorType *ot,
   ot->idname = idname;
   ot->description = description;
   ot->poll = editable_node_active_poll<Accessor>;
+  ot->flag = OPTYPE_UNDO;
 
   ot->exec = [](bContext *C, wmOperator *op) -> wmOperatorStatus {
     PointerRNA node_ptr = get_active_node_to_operate_on(C, op, Accessor::node_idname);
@@ -237,6 +244,7 @@ inline void move_active_item(wmOperatorType *ot,
   ot->idname = idname;
   ot->description = description;
   ot->poll = editable_node_active_poll<Accessor>;
+  ot->flag = OPTYPE_UNDO;
 
   ot->exec = [](bContext *C, wmOperator *op) -> wmOperatorStatus {
     PointerRNA node_ptr = get_active_node_to_operate_on(C, op, Accessor::node_idname);

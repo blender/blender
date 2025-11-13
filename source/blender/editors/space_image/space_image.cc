@@ -410,7 +410,7 @@ static void image_listener(const wmSpaceTypeListenerParams *params)
            * any change on `wmn->reference`. If we could track the upstream dependencies,
            * unnecessary redraws could be reduced. Until then, just redraw. See #98594. */
           if (ob && (ob->mode & OB_MODE_EDIT) && sima->mode == SI_MODE_UV) {
-            if (sima->lock && (sima->flag & SI_DRAWSHADOW)) {
+            if (sima->lock && ((sima->flag & SI_DRAWSHADOW) || (sima->flag & SI_DRAW_STRETCH))) {
               ED_area_tag_refresh(area);
               ED_area_tag_redraw(area);
             }

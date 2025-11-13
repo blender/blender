@@ -86,7 +86,7 @@ class CompositorContext : public compositor::Context {
   compositor::OutputTypes needed_outputs() const override
   {
     compositor::OutputTypes needed_outputs = compositor::OutputTypes::Composite;
-    if (!render_data_.for_render) {
+    if (!render_data_.render) {
       needed_outputs |= compositor::OutputTypes::Viewer;
     }
     return needed_outputs;
@@ -102,34 +102,37 @@ class CompositorContext : public compositor::Context {
     return false;
   }
 
-  Bounds<int2> get_compositing_region() const override
+  compositor::Domain get_compositing_domain() const override
   {
-    return Bounds<int2>(int2(0), int2(image_buffer_->x, image_buffer_->y));
+    return compositor::Domain(int2(image_buffer_->x, image_buffer_->y));
   }
 
-  compositor::Result get_output(compositor::Domain domain) override
+  void write_output(const compositor::Result &result) override
   {
-    result_translation_ = domain.transformation.location();
-    compositor::Result result = this->create_result(compositor::ResultType::Color);
-    if (domain.size.x != image_buffer_->x || domain.size.y != image_buffer_->y) {
+    if (result.is_single_value()) {
+      IMB_rectfill(image_buffer_, result.get_single_value<compositor::Color>());
+      return;
+    }
+
+    result_translation_ = result.domain().transformation.location();
+    const int2 size = result.domain().data_size;
+    if (size != int2(image_buffer_->x, image_buffer_->y)) {
       /* Output size is different (e.g. image is blurred with expanded bounds);
        * need to allocate appropriately sized buffer. */
       IMB_free_all_data(image_buffer_);
-      image_buffer_->x = domain.size.x;
-      image_buffer_->y = domain.size.y;
+      image_buffer_->x = size.x;
+      image_buffer_->y = size.y;
       IMB_alloc_float_pixels(image_buffer_, 4, false);
     }
-    result.wrap_external(image_buffer_->float_buffer.data,
-                         int2(image_buffer_->x, image_buffer_->y));
-    return result;
+    std::memcpy(image_buffer_->float_buffer.data,
+                result.cpu_data().data(),
+                sizeof(float) * 4 * size.x * size.y);
   }
 
-  compositor::Result get_viewer_output(compositor::Domain domain,
-                                       bool /*is_data*/,
-                                       compositor::ResultPrecision /*precision*/) override
+  void write_viewer(const compositor::Result &result) override
   {
     /* Within compositor modifier, output and viewer output function the same. */
-    return get_output(domain);
+    this->write_output(result);
   }
 
   compositor::Result get_input(StringRef name) override

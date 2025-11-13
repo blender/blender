@@ -149,7 +149,6 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
 
       uiBut *toggle_but = uiDefButC(block,
                                     ButType::Checkbox,
-                                    0,
                                     "",
                                     0,
                                     0,

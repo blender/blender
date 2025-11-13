@@ -23,8 +23,8 @@ void emit_line(uint line_offset, uint quad_index, uint start_loop_index, uint co
 {
   uint vertex_index = start_loop_index + corner_index;
 
-  uint coarse_quad_index = coarse_face_index_from_subdiv_quad_index(quad_index,
-                                                                    shader_data.coarse_face_count);
+  uint coarse_quad_index = coarse_face_index_from_subdiv_quad_index(
+      quad_index, uint(shader_data.coarse_face_count));
 
   if ((shader_data.use_hide && is_face_hidden(coarse_quad_index)) ||
       (input_edge_draw_flag[vertex_index] == 0))
@@ -71,8 +71,8 @@ void main()
    * per line). */
   uint start_line_index = index * 8;
 
-  for (int i = 0; i < 4; i++) {
-    emit_line(start_line_index + i * 2, index, start_loop_index, i);
+  for (uint i = 0; i < 4; i++) {
+    emit_line(start_line_index + i * 2u, index, start_loop_index, i);
   }
 #endif
 }

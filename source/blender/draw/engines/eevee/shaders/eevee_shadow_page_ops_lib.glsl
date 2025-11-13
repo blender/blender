@@ -27,7 +27,7 @@
  * IMPORTANT: Do not forget to manually store the tile data after doing operations on them.
  */
 
-#include "infos/eevee_shadow_infos.hh"
+#include "infos/eevee_shadow_pipeline_infos.hh"
 
 #ifdef GPU_LIBRARY_SHADER
 SHADER_LIBRARY_CREATE_INFO(eevee_shadow_page_free)
@@ -45,7 +45,7 @@ void shadow_page_free(inout ShadowTileData tile)
   /* Insert in heap. */
   pages_free_buf[index] = shadow_page_pack(tile.page);
   /* Remove from tile. */
-  tile.page = uint3(-1);
+  tile.page = uint3(~0u);
   tile.is_cached = false;
   tile.is_allocated = false;
 }
@@ -78,7 +78,7 @@ void shadow_page_cache_append(inout ShadowTileData tile, uint tile_index)
   /* Insert in heap. */
   pages_cached_buf[index] = uint2(shadow_page_pack(tile.page), tile_index);
   /* Remove from tile. */
-  tile.page = uint3(-1);
+  tile.page = uint3(~0u);
   tile.cache_index = index;
   tile.is_cached = true;
   tile.is_allocated = false;
@@ -97,7 +97,7 @@ void shadow_page_cache_remove(inout ShadowTileData tile)
   tile.is_cached = false;
   tile.is_allocated = true;
   /* Remove from heap. Leaves hole in the buffer. This is handled by the defragment phase. */
-  pages_cached_buf[index] = uint2(-1);
+  pages_cached_buf[index] = uint2(~0u);
 }
 
 /* Update cached page reference when a cached page moves inside the cached page buffer. */

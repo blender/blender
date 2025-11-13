@@ -40,8 +40,8 @@ void convolve(Context &context,
    * kernel size and vice versa to avoid the kernel affecting the pixels at the other side of
    * image. The kernel size is limited by the image size since it will have no effect on the image
    * during convolution. */
-  const int2 image_size = input.domain().size;
-  const int2 kernel_size = kernel.domain().size;
+  const int2 image_size = input.domain().data_size;
+  const int2 kernel_size = kernel.domain().data_size;
   const int2 needed_padding_amount = math::max(kernel_size, image_size);
   const int2 needed_spatial_size = image_size + needed_padding_amount - 1;
   const int2 spatial_size = fftw::optimal_size_for_real_transform(needed_spatial_size);
@@ -149,7 +149,7 @@ void convolve(Context &context,
    * format for better cache locality, that is, RRRR...GGGG...BBBB...AAAA. */
   threading::memory_bandwidth_bound_task(spatial_pixels_count * sizeof(float), [&]() {
     parallel_for(spatial_size, [&](const int2 texel) {
-      const float4 pixel_color = input_cpu.load_pixel_zero<float4>(texel);
+      const Color pixel_color = input_cpu.load_pixel_zero<Color>(texel);
       for (const int channel : IndexRange(input_channels_count)) {
         float *buffer = image_spatial_domain_channels[channel];
         const int64_t index = texel.y * int64_t(spatial_size.x) + texel.x;
@@ -174,7 +174,7 @@ void convolve(Context &context,
                                     mod_i(centered_texel.y, spatial_size.y));
 
     const float4 kernel_value = is_color_kernel ?
-                                    kernel_cpu.load_pixel_zero<float4>(wrapped_texel) :
+                                    float4(kernel_cpu.load_pixel_zero<Color>(wrapped_texel)) :
                                     float4(kernel_cpu.load_pixel_zero<float>(wrapped_texel));
     for (const int channel : IndexRange(kernel_channels_count)) {
       float *buffer = kernel_spatial_domain_channels[channel];
@@ -247,7 +247,7 @@ void convolve(Context &context,
         const int64_t index = texel.x + texel.y * int64_t(spatial_size.x);
         color[channel] = image_spatial_domain_channels[channel][index];
       }
-      output_cpu.store_pixel(texel, color);
+      output_cpu.store_pixel(texel, Color(color));
     });
   });
 
@@ -266,7 +266,7 @@ void convolve(Context &context,
     GPU_texture_copy(output, input);
   }
   else {
-    parallel_for(output.domain().size, [&](const int2 texel) {
+    parallel_for(output.domain().data_size, [&](const int2 texel) {
       output.store_pixel(texel, input.load_pixel<float4>(texel));
     });
   }

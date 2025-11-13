@@ -320,17 +320,6 @@ short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked,
                                       KeyframeEditFunc key_ok,
                                       KeyframeEditFunc key_cb,
                                       FcuEditFunc fcu_cb);
-/**
- * Same as #ANIM_animchannel_keyframes_loop, except #bAnimListElem wrapper is not needed.
- * \param keytype: is #eAnim_KeyType.
- */
-short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked,
-                                          bDopeSheet *ads,
-                                          void *data,
-                                          int keytype,
-                                          KeyframeEditFunc key_ok,
-                                          KeyframeEditFunc key_cb,
-                                          FcuEditFunc fcu_cb);
 
 /**
  * Calls callback_fn() for each keyframe in each fcurve in the filtered animation context.

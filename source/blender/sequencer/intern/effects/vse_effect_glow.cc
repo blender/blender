@@ -126,34 +126,20 @@ static void blur_isolate_highlights(const float4 *in,
 
 static void init_glow_effect(Strip *strip)
 {
-  if (strip->effectdata) {
-    MEM_freeN(strip->effectdata);
-  }
-
-  GlowVars *glow = MEM_callocN<GlowVars>("glowvars");
-  strip->effectdata = glow;
-
-  glow->fMini = 0.25;
-  glow->fClamp = 1.0;
-  glow->fBoost = 0.5;
-  glow->dDist = 3.0;
-  glow->dQuality = 3;
-  glow->bNoComp = 0;
+  MEM_SAFE_FREE(strip->effectdata);
+  GlowVars *data = MEM_callocN<GlowVars>("glowvars");
+  strip->effectdata = data;
+  data->fMini = 0.25f;
+  data->fClamp = 1.0f;
+  data->fBoost = 0.5f;
+  data->dDist = 3.0f;
+  data->dQuality = 3;
+  data->bNoComp = 0;
 }
 
 static int num_inputs_glow()
 {
   return 1;
-}
-
-static void free_glow_effect(Strip *strip, const bool /*do_id_user*/)
-{
-  MEM_SAFE_FREE(strip->effectdata);
-}
-
-static void copy_glow_effect(Strip *dst, const Strip *src, const int /*flag*/)
-{
-  dst->effectdata = MEM_dupallocN(src->effectdata);
 }
 
 static void do_glow_effect_byte(Strip *strip,
@@ -263,8 +249,6 @@ void glow_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_glow_effect;
   rval.num_inputs = num_inputs_glow;
-  rval.free = free_glow_effect;
-  rval.copy = copy_glow_effect;
   rval.execute = do_glow_effect;
 }
 

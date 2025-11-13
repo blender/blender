@@ -323,7 +323,8 @@ static void rna_uiItemPointerR(uiLayout *layout,
                                const char *text_ctxt,
                                bool translate,
                                int icon,
-                               const bool results_are_suggestions)
+                               const bool results_are_suggestions,
+                               const char *item_searchpropname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
   if (!prop) {
@@ -337,11 +338,23 @@ static void rna_uiItemPointerR(uiLayout *layout,
     return;
   }
 
+  PropertyRNA *item_searchprop = nullptr;
+  if (item_searchpropname && item_searchpropname[0]) {
+    StructRNA *collection_item_type = RNA_property_pointer_type(searchptr, searchprop);
+    item_searchprop = RNA_struct_type_find_property(collection_item_type, item_searchpropname);
+    if (!item_searchprop) {
+      RNA_warning("Collection items search property not found: %s.%s",
+                  RNA_struct_identifier(collection_item_type),
+                  item_searchpropname);
+    }
+  }
+
   /* Get translated name (label). */
   std::optional<StringRefNull> text = rna_translate_ui_text(
       name, text_ctxt, nullptr, prop, translate);
 
-  layout->prop_search(ptr, prop, searchptr, searchprop, text, icon, results_are_suggestions);
+  layout->prop_search(
+      ptr, prop, searchptr, searchprop, item_searchprop, text, icon, results_are_suggestions);
 }
 
 void rna_uiLayoutDecorator(uiLayout *layout, PointerRNA *ptr, const char *propname, int index)
@@ -1485,6 +1498,13 @@ void RNA_api_ui_layout(StructRNA *srna)
   api_ui_item_common(func);
   RNA_def_boolean(
       func, "results_are_suggestions", false, "", "Accept inputs that do not match any item");
+  parm = RNA_def_string(func,
+                        "item_search_property",
+                        nullptr,
+                        0,
+                        "",
+                        "Identifier of the string property in each collection's items to use for "
+                        "searching (defaults to the items' type 'name property')");
 
   func = RNA_def_function(srna, "prop_decorator", "rna_uiLayoutDecorator");
   api_ui_item_rna_common(func);

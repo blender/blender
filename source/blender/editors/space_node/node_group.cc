@@ -1516,8 +1516,11 @@ static bNode *node_group_make_from_node_declaration(bContext &C,
     }
   }
 
-  /* Remove the old node because it has been replaced. */
-  bke::node_remove_node(&bmain, ntree, src_node, true);
+  /* Remove the old node because it has been replaced. Use the name of the removed node for the new
+   * group node. This also keeps animation data working. */
+  std::string old_node_name = src_node.name;
+  bke::node_remove_node(&bmain, ntree, src_node, true, false);
+  STRNCPY(gnode->name, old_node_name.c_str());
 
   BKE_ntree_update_tag_node_property(&ntree, gnode);
   BKE_main_ensure_invariants(bmain);

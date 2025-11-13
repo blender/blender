@@ -106,7 +106,7 @@ void node_tree_interface_draw(bContext &C, uiLayout &layout, bNodeTree &tree)
         col.prop(
             &panel_toggle_socket_ptr, "hide_in_modifier", UI_ITEM_NONE, std::nullopt, ICON_NONE);
         col.prop(
-            &panel_toggle_socket_ptr, "force_non_field", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+            &panel_toggle_socket_ptr, "structure_type", UI_ITEM_NONE, IFACE_("Shape"), ICON_NONE);
       }
     }
   }

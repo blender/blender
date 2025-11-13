@@ -486,7 +486,7 @@ void import_meshes(Main &bmain,
 #ifndef NDEBUG
       verbose_validate = true;
 #endif
-      BKE_mesh_validate(mesh, verbose_validate, false);
+      bke::mesh_validate(*mesh, verbose_validate);
     }
 
     if (has_custom_normals) {

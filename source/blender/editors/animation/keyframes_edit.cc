@@ -470,50 +470,6 @@ short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked,
   return 0;
 }
 
-short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked,
-                                          bDopeSheet *ads,
-                                          void *data,
-                                          int keytype,
-                                          KeyframeEditFunc key_ok,
-                                          KeyframeEditFunc key_cb,
-                                          FcuEditFunc fcu_cb)
-{
-  /* sanity checks */
-  if (data == nullptr) {
-    return 0;
-  }
-
-  /* method to use depends on the type of keyframe data */
-  switch (keytype) {
-    /* direct keyframe data (these loops are exposed) */
-    case ALE_FCURVE: /* F-Curve */
-      return ANIM_fcurve_keyframes_loop(ked, static_cast<FCurve *>(data), key_ok, key_cb, fcu_cb);
-
-    /* indirect 'summaries' (these are not exposed directly)
-     * NOTE: must keep this code in sync with the drawing code and also the filtering code!
-     */
-    case ALE_GROUP: /* action group */
-      return agrp_keyframes_loop(ked, static_cast<bActionGroup *>(data), key_ok, key_cb, fcu_cb);
-    case ALE_ACTION_LAYERED:
-    case ALE_ACTION_SLOT:
-      /* This function is only used in nlaedit_apply_scale_exec(). Since the NLA has no support for
-       * layered Actions in strips, there is no need to implement this here. */
-      return 0;
-    case ALE_ACT: /* action */
-      return action_legacy_keyframes_loop(
-          ked, static_cast<bAction *>(data), key_ok, key_cb, fcu_cb);
-    case ALE_OB: /* object */
-      return ob_keyframes_loop(ked, ads, static_cast<Object *>(data), key_ok, key_cb, fcu_cb);
-    case ALE_SCE: /* scene */
-      return scene_keyframes_loop(ked, ads, static_cast<Scene *>(data), key_ok, key_cb, fcu_cb);
-    case ALE_ALL: /* 'all' (DopeSheet summary) */
-      return summary_keyframes_loop(
-          ked, static_cast<bAnimContext *>(data), key_ok, key_cb, fcu_cb);
-  }
-
-  return 0;
-}
-
 void ANIM_animdata_keyframe_callback(bAnimContext *ac,
                                      eAnimFilter_Flags filter,
                                      KeyframeEditFunc callback_fn)

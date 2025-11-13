@@ -130,7 +130,10 @@ class LightModule {
 
   /** Map of light objects data. Converted to flat array each frame. */
   Map<ObjectKey, Light> light_map_;
-  ObjectKey world_sunlight_key;
+  /** In order to treat the world sunlights the same way as regular lights, an #ObjectKey needs to
+   * be associated to each of them. */
+  ObjectKey world_sunlight_key_[WORLD_SUN_MAX] = {ObjectKey(WORLD_SUN_DIFFUSE),
+                                                  ObjectKey(WORLD_SUN_GLOSSY)};
   /** Flat array sent to GPU, populated from light_map_. Source buffer for light culling. */
   LightDataBuf light_buf_ = {"Lights_no_cull"};
   /** Luminous intensity to consider the light boundary at. Used for culling. */
@@ -201,6 +204,8 @@ class LightModule {
   void culling_pass_sync();
   void update_pass_sync();
   void debug_pass_sync();
+
+  void add_world_sun_light(const ObjectKey &key, bool use_diffuse, bool use_glossy);
 };
 
 /** \} */

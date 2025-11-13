@@ -21,6 +21,7 @@ class ArrayImplicitSharingData : public ImplicitSharingInfo {
   void delete_self_with_data() override
   {
     type.destruct_n(this->data, this->size);
+    MEM_freeN(this->data);
     MEM_delete(this);
   }
 };

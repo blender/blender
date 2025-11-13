@@ -8,7 +8,6 @@
 /* Number of frames over which rolling averages are taken. */
 #define MTL_FRAME_AVERAGE_COUNT 15
 #define MTL_MAX_DRAWABLES 3
-#define MTL_MAX_SET_BYTES_SIZE 4096
 #define MTL_FORCE_WAIT_IDLE 0
 
 /* Number of frames for which we retain in-flight resources such as scratch buffers.

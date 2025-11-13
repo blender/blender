@@ -91,7 +91,7 @@ class LevelsOperation : public NodeOperation {
     }
 
     mean_result.allocate_single_value();
-    const float3 input = float3(get_input("Image").get_single_value<float4>());
+    const float3 input = float3(get_input("Image").get_single_value<Color>());
 
     switch (get_channel()) {
       case CMP_NODE_LEVLES_RED:
@@ -118,7 +118,7 @@ class LevelsOperation : public NodeOperation {
   float compute_mean()
   {
     const Result &input = get_input("Image");
-    return compute_sum() / (input.domain().size.x * input.domain().size.y);
+    return compute_sum() / (input.domain().data_size.x * input.domain().data_size.y);
   }
 
   float compute_sum()
@@ -147,7 +147,7 @@ class LevelsOperation : public NodeOperation {
   {
     const Result &input = get_input("Image");
     const float sum = compute_sum_squared_difference(mean);
-    return std::sqrt(sum / (input.domain().size.x * input.domain().size.y));
+    return std::sqrt(sum / (input.domain().data_size.x * input.domain().data_size.y));
   }
 
   float compute_sum_squared_difference(float subtrahend)
@@ -200,7 +200,7 @@ static void register_node_type_cmp_view_levels()
   ntype.ui_name = "Levels";
   ntype.ui_description = "Compute average and standard deviation of pixel values";
   ntype.enum_name_legacy = "LEVELS";
-  ntype.nclass = NODE_CLASS_OUTPUT;
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_levels_declare;
   ntype.flag |= NODE_PREVIEW;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

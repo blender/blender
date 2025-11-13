@@ -87,8 +87,8 @@ DenoisedAuxiliaryPass::DenoisedAuxiliaryPass(Context &context,
     this->denoised_buffer = static_cast<float *>(MEM_dupallocN(pass.cpu_data().data()));
   }
 
-  const int width = pass.domain().size.x;
-  const int height = pass.domain().size.y;
+  const int width = pass.domain().data_size.x;
+  const int height = pass.domain().data_size.y;
 
   /* Float3 results might be stored in 4-component textures due to hardware limitations, so we
    * need to use the pixel stride of the texture. */

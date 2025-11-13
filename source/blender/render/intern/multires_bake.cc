@@ -234,8 +234,7 @@ struct MeshArrays {
   {
     bke::AttributeAccessor attributes = mesh.attributes();
 
-    const StringRef active_uv_map = CustomData_get_active_layer_name(&mesh.corner_data,
-                                                                     CD_PROP_FLOAT2);
+    const StringRef active_uv_map = mesh.active_uv_map_name();
     vert_positions = mesh.vert_positions();
     vert_normals = mesh.vert_normals();
 
@@ -1074,7 +1073,7 @@ static Array<GridCoord> get_subdivided_corner_grid_coords(subdiv::Subdiv &subdiv
                             const int coarse_face_index,
                             const int coarse_corner,
                             const int subdiv_corner_index,
-                            const int /*subdiv_vertex_index*/,
+                            const int /*subdiv_vert_index*/,
                             const int /*subdiv_edge_index*/) {
     SubdividedCornerGridCoordData *data = static_cast<SubdividedCornerGridCoordData *>(
         context->user_data);
@@ -1123,15 +1122,15 @@ static void rasterize_subdivided_face(const MultiresBaker &baker,
 
   for (int i = 0; i < 4; ++i) {
     const int corner = face[i];
-    const int vertex = mesh_arrays.corner_verts[corner];
+    const int vert = mesh_arrays.corner_verts[corner];
 
     BLI_assert(corner_grid_coords[corner].grid_index == quad.grid_index);
     quad.grid_uvs[i] = corner_grid_coords[corner].uv;
 
     quad.tex_uvs[i] = mesh_arrays.uv_map[corner] - tile.uv_offset;
-    quad.positions[i] = mesh_arrays.vert_positions[vertex];
+    quad.positions[i] = mesh_arrays.vert_positions[vert];
     if (!quad.is_flat) {
-      quad.normals[i] = mesh_arrays.vert_normals[vertex];
+      quad.normals[i] = mesh_arrays.vert_normals[vert];
     }
 
     if (quad.has_uv_tangents) {
@@ -1330,7 +1329,7 @@ static Array<GridCoord> get_highres_mesh_loop_grid_coords(
                             const int bake_level_face_index,
                             const int /*bake_level_corner*/,
                             const int highres_corner_index,
-                            const int /*highres_vertex_index*/,
+                            const int /*highres_vert_index*/,
                             const int /*highres_edge_index*/) {
     HighresCornerGridCoordData *data = static_cast<HighresCornerGridCoordData *>(
         context->user_data);
@@ -1575,10 +1574,12 @@ static void bake_ibuf_filter(ImBuf &ibuf,
   if (margin) {
     switch (margin_type) {
       case R_BAKE_ADJACENT_FACES: {
-        const char *active_uv_map = CustomData_get_active_layer_name(&bake_level_mesh.corner_data,
-                                                                     CD_PROP_FLOAT2);
-        RE_generate_texturemargin_adjacentfaces(
-            &ibuf, mask.data(), margin, &bake_level_mesh, active_uv_map, uv_offset);
+        RE_generate_texturemargin_adjacentfaces(&ibuf,
+                                                mask.data(),
+                                                margin,
+                                                &bake_level_mesh,
+                                                bake_level_mesh.active_uv_map_name(),
+                                                uv_offset);
         break;
       }
       default:

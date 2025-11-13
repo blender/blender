@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup bke
+ * \ingroup sequencer
  */
 
 #include <algorithm>
@@ -31,20 +31,18 @@
 #include "BKE_mask.h"
 #include "BKE_movieclip.h"
 #include "BKE_scene.hh"
-#include "BKE_sound.h"
+#include "BKE_sound.hh"
 
 #include "DEG_depsgraph_query.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
-#include "IMB_metadata.hh"
 
 #include "MOV_read.hh"
 
 #include "SEQ_add.hh"
 #include "SEQ_edit.hh"
-#include "SEQ_effects.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
 #include "SEQ_sequencer.hh"
@@ -52,9 +50,9 @@
 #include "SEQ_transform.hh"
 #include "SEQ_utils.hh"
 
+#include "effects/effects.hh"
 #include "multiview.hh"
 #include "proxy.hh"
-#include "sequencer.hh"
 #include "strip_time.hh"
 
 namespace blender::seq {
@@ -169,8 +167,7 @@ Strip *add_effect_strip(Scene *scene, ListBase *seqbase, LoadData *load_data)
       seqbase, load_data->start_frame, load_data->channel, load_data->effect.type);
 
   strip->flag |= SEQ_USE_EFFECT_DEFAULT_FADE;
-  EffectHandle sh = strip_effect_handle_get(strip);
-  sh.init(strip);
+  effect_ensure_initialized(strip);
 
   if (effect_get_num_inputs(strip->type) != 0) {
     strip->input1 = load_data->effect.input1;
@@ -205,7 +202,7 @@ void add_image_load_file(Scene *scene, Strip *strip, size_t strip_frame, const c
   STRNCPY(se->filename, filename);
 }
 
-void add_image_init_alpha_mode(Strip *strip)
+void add_image_init_alpha_mode(Main *bmain, Scene *scene, Strip *strip)
 {
   if (strip->data && strip->data->stripdata) {
     char filepath[FILE_MAX];
@@ -213,7 +210,7 @@ void add_image_init_alpha_mode(Strip *strip)
 
     BLI_path_join(
         filepath, sizeof(filepath), strip->data->dirpath, strip->data->stripdata->filename);
-    BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
+    BLI_path_abs(filepath, ID_BLEND_PATH(bmain, &scene->id));
 
     /* Initialize input color space. */
     if (strip->type == STRIP_TYPE_IMAGE) {
@@ -261,7 +258,8 @@ Strip *add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
   /* Set initial scale based on load_data->fit_method. */
   char file_path[FILE_MAX];
   STRNCPY(file_path, load_data->path);
-  BLI_path_abs(file_path, BKE_main_blendfile_path(bmain));
+  BLI_path_abs(file_path, ID_BLEND_PATH(bmain, &scene->id));
+
   ImBuf *ibuf = IMB_load_image_from_filepath(
       file_path, IB_byte_data | IB_multilayer, strip->data->colorspace_settings.name);
   if (ibuf != nullptr) {
@@ -401,7 +399,7 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
 {
   char filepath[sizeof(load_data->path)];
   STRNCPY(filepath, load_data->path);
-  BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
+  BLI_path_abs(filepath, ID_BLEND_PATH(bmain, &scene->id));
 
   char colorspace[/*MAX_COLORSPACE_NAME*/ 64] = "\0";
   bool is_multiview_loaded = false;
@@ -536,7 +534,7 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
 
 void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool lock_range)
 {
-  int prev_startdisp = 0, prev_enddisp = 0;
+  int prev_start_frame = 0, prev_end_frame = 0;
   /* NOTE: don't rename the strip, will break animation curves. */
 
   if (ELEM(strip->type,
@@ -553,8 +551,8 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
 
   if (lock_range) {
     /* keep so we don't have to move the actual start and end points (only the data) */
-    prev_startdisp = time_left_handle_frame_get(scene, strip);
-    prev_enddisp = time_right_handle_frame_get(scene, strip);
+    prev_start_frame = time_left_handle_frame_get(scene, strip);
+    prev_end_frame = time_right_handle_frame_get(scene, strip);
   }
 
   switch (strip->type) {
@@ -577,7 +575,7 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
 
       BLI_path_join(
           filepath, sizeof(filepath), strip->data->dirpath, strip->data->stripdata->filename);
-      BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
+      BLI_path_abs(filepath, ID_BLEND_PATH(bmain, &scene->id));
 
       relations_strip_free_anim(strip);
 
@@ -696,8 +694,7 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
   free_strip_proxy(strip);
 
   if (lock_range) {
-    time_left_handle_frame_set(scene, strip, prev_startdisp);
-    time_right_handle_frame_set(scene, strip, prev_enddisp);
+    time_handles_frame_set(scene, strip, prev_start_frame, prev_end_frame);
   }
 
   relations_invalidate_cache_raw(scene, strip);

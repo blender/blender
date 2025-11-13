@@ -105,7 +105,7 @@ static PyObject *Euler_vectorcall(PyObject *type,
                                   const size_t nargsf,
                                   PyObject *kwnames)
 {
-  if (UNLIKELY(kwnames && PyDict_Size(kwnames))) {
+  if (UNLIKELY(kwnames && PyTuple_GET_SIZE(kwnames))) {
     PyErr_SetString(PyExc_TypeError,
                     "mathutils.Euler(): "
                     "takes no keyword args");
@@ -145,6 +145,20 @@ static PyObject *Euler_vectorcall(PyObject *type,
     }
   }
   return Euler_CreatePyObject(eul, order, (PyTypeObject *)type);
+}
+
+static PyObject *Euler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+  /* Only called on sub-classes. */
+  if (UNLIKELY(kwds && PyDict_GET_SIZE(kwds))) {
+    PyErr_SetString(PyExc_TypeError,
+                    "mathutils.Euler(): "
+                    "takes no keyword args");
+    return nullptr;
+  }
+  PyObject *const *args_array = &PyTuple_GET_ITEM(args, 0);
+  const size_t args_array_num = PyTuple_GET_SIZE(args);
+  return Euler_vectorcall(reinterpret_cast<PyObject *>(type), args_array, args_array_num, nullptr);
 }
 
 /** \} */
@@ -227,7 +241,7 @@ PyDoc_STRVAR(
     "   (no 720 degree pitches).\n"
     "\n"
     "   :arg axis: An axis string.\n"
-    "   :type axis: Literal['X, 'Y', 'Z']\n"
+    "   :type axis: Literal['X', 'Y', 'Z']\n"
     "   :arg angle: angle in radians.\n"
     "   :type angle: float\n");
 static PyObject *Euler_rotate_axis(EulerObject *self, PyObject *args)
@@ -946,7 +960,7 @@ PyTypeObject euler_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ nullptr,
     /*tp_alloc*/ nullptr,
-    /*tp_new*/ nullptr,
+    /*tp_new*/ Euler_new,
     /*tp_free*/ nullptr,
     /*tp_is_gc*/ (inquiry)BaseMathObject_is_gc,
     /*tp_bases*/ nullptr,

@@ -1,0 +1,177 @@
+#usda 1.0
+(
+    defaultPrim = "root"
+    doc = "Blender v5.1.0 Alpha"
+    endTimeCode = 3
+    metersPerUnit = 1
+    startTimeCode = 1
+    timeCodesPerSecond = 24
+    upAxis = "Z"
+)
+
+def Xform "root" (
+    customData = {
+        dictionary Blender = {
+            bool generated = 1
+        }
+    }
+)
+{
+    def SkelRoot "Armature"
+    {
+        def Skeleton "Armature" (
+            prepend apiSchemas = ["SkelBindingAPI"]
+        )
+        {
+            uniform matrix4d[] bindTransforms = [( (1, 0, 0, 0), (0, 0, 1, 0), (0, -1, 0, 0), (0, 0, 0, 1) )]
+            uniform token[] joints = ["Bone"]
+            float[] primvars:blender:bone_lengths = [1] (
+                interpolation = "uniform"
+            )
+            uniform matrix4d[] restTransforms = [( (1, 0, 0, 0), (0, 0, 1, 0), (0, -1, 0, 0), (0, 0, 0, 1) )]
+            rel skel:animationSource = </root/Armature/Armature/Action>
+
+            def SkelAnimation "Action"
+            {
+                uniform token[] blendShapes = ["Key_1", "Key_1", "Key_1"]
+                float[] blendShapeWeights.timeSamples = {
+                    1: [0, 0, 0],
+                    2: [0.33333334, 0.16666667, 0.5],
+                    3: [0.6666667, 0.33333334, 1],
+                }
+                uniform token[] joints = ["Bone"]
+                quatf[] rotations = [(0.70710677, 0.70710677, 0, 0)]
+                half3[] scales = [(1, 1, 1)]
+                float3[] translations = [(0, 0, 0)]
+            }
+        }
+
+        def Xform "o1"
+        {
+            float3 xformOp:rotateXYZ = (0, -0, 0)
+            float3 xformOp:scale = (1, 1, 1)
+            double3 xformOp:translate = (0, 1, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+            def Mesh "o1" (
+                active = true
+                prepend apiSchemas = ["SkelBindingAPI"]
+            )
+            {
+                float3[] extent = [(-0.050000012, -0.39999998, 0), (0.050000012, 0.39999998, 0)]
+                int[] faceVertexCounts = [4]
+                int[] faceVertexIndices = [0, 1, 3, 2]
+                normal3f[] normals = [(0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, 1)] (
+                    interpolation = "faceVarying"
+                )
+                point3f[] points = [(-0.050000012, -0.39999998, 0), (0.050000012, -0.39999998, 0), (-0.050000012, 0.39999998, 0), (0.050000012, 0.39999998, 0)]
+                matrix4d primvars:skel:geomBindTransform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 1, 0, 1) )
+                int[] primvars:skel:jointIndices = [0, 0, 0, 0] (
+                    elementSize = 1
+                    interpolation = "vertex"
+                )
+                float[] primvars:skel:jointWeights = [1, 1, 1, 1] (
+                    elementSize = 1
+                    interpolation = "vertex"
+                )
+                texCoord2f[] primvars:st = [(0, 0), (1, 0), (1, 1), (0, 1)] (
+                    interpolation = "faceVarying"
+                )
+                uniform token[] skel:blendShapes = ["Key_1"]
+                rel skel:blendShapeTargets = </root/Armature/o1/o1/Key_1>
+                rel skel:skeleton = </root/Armature/Armature>
+                uniform token subdivisionScheme = "none"
+
+                def BlendShape "Key_1"
+                {
+                    uniform vector3f[] offsets = [(1, 0, 0), (0.99999994, 0, 0), (1, 0, 0), (0.99999994, 0, 0)]
+                    uniform int[] pointIndices = [0, 1, 2, 3]
+                }
+            }
+        }
+
+        def Xform "o3"
+        {
+            float3 xformOp:rotateXYZ = (0, -0, 0)
+            float3 xformOp:scale = (1, 1, 1)
+            double3 xformOp:translate = (0, -1, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+            def Mesh "o3" (
+                active = true
+                prepend apiSchemas = ["SkelBindingAPI"]
+            )
+            {
+                float3[] extent = [(-0.050000012, -0.39999998, 0), (0.050000012, 0.39999998, 0)]
+                int[] faceVertexCounts = [4]
+                int[] faceVertexIndices = [0, 1, 3, 2]
+                normal3f[] normals = [(0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, 1)] (
+                    interpolation = "faceVarying"
+                )
+                point3f[] points = [(-0.050000012, -0.39999998, 0), (0.050000012, -0.39999998, 0), (-0.050000012, 0.39999998, 0), (0.050000012, 0.39999998, 0)]
+                matrix4d primvars:skel:geomBindTransform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, -1, 0, 1) )
+                int[] primvars:skel:jointIndices = [0, 0, 0, 0] (
+                    elementSize = 1
+                    interpolation = "vertex"
+                )
+                float[] primvars:skel:jointWeights = [1, 1, 1, 1] (
+                    elementSize = 1
+                    interpolation = "vertex"
+                )
+                texCoord2f[] primvars:st = [(0, 0), (1, 0), (1, 1), (0, 1)] (
+                    interpolation = "faceVarying"
+                )
+                uniform token[] skel:blendShapes = ["Key_1"]
+                rel skel:blendShapeTargets = </root/Armature/o3/o3/Key_1>
+                rel skel:skeleton = </root/Armature/Armature>
+                uniform token subdivisionScheme = "none"
+
+                def BlendShape "Key_1"
+                {
+                    uniform vector3f[] offsets = [(1, 0, 0), (0.99999994, 0, 0), (1, 0, 0), (0.99999994, 0, 0)]
+                    uniform int[] pointIndices = [0, 1, 2, 3]
+                }
+            }
+        }
+
+        def Xform "o2"
+        {
+            def Mesh "o2" (
+                active = true
+                prepend apiSchemas = ["SkelBindingAPI"]
+            )
+            {
+                float3[] extent = [(-0.050000012, -0.39999998, 0), (0.050000012, 0.39999998, 0)]
+                int[] faceVertexCounts = [4]
+                int[] faceVertexIndices = [0, 1, 3, 2]
+                normal3f[] normals = [(0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, 1)] (
+                    interpolation = "faceVarying"
+                )
+                point3f[] points = [(-0.050000012, -0.39999998, 0), (0.050000012, -0.39999998, 0), (-0.050000012, 0.39999998, 0), (0.050000012, 0.39999998, 0)]
+                matrix4d primvars:skel:geomBindTransform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
+                int[] primvars:skel:jointIndices = [0, 0, 0, 0] (
+                    elementSize = 1
+                    interpolation = "vertex"
+                )
+                float[] primvars:skel:jointWeights = [1, 1, 1, 1] (
+                    elementSize = 1
+                    interpolation = "vertex"
+                )
+                texCoord2f[] primvars:st = [(0, 0), (1, 0), (1, 1), (0, 1)] (
+                    interpolation = "faceVarying"
+                )
+                uniform token[] skel:blendShapes = ["Key_1"]
+                rel skel:blendShapeTargets = </root/Armature/o2/o2/Key_1>
+                rel skel:skeleton = </root/Armature/Armature>
+                uniform token subdivisionScheme = "none"
+
+                def BlendShape "Key_1"
+                {
+                    uniform vector3f[] offsets = [(1, 0, 0), (0.99999994, 0, 0), (1, 0, 0), (0.99999994, 0, 0)]
+                    uniform int[] pointIndices = [0, 1, 2, 3]
+                }
+            }
+        }
+    }
+}
+

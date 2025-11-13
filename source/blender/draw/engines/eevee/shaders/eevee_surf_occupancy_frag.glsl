@@ -30,7 +30,8 @@
  *
  */
 
-#include "infos/eevee_material_infos.hh"
+#include "infos/eevee_geom_infos.hh"
+#include "infos/eevee_surf_volume_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_geom_mesh)
 FRAGMENT_SHADER_CREATE_INFO(eevee_surf_occupancy)
@@ -66,7 +67,7 @@ void main()
       uint hit_id = imageAtomicAdd(hit_count_img, texel, 1u);
       if (hit_id < VOLUME_HIT_DEPTH_MAX) {
         float value = gl_FrontFacing ? volume_z : -volume_z;
-        imageStore(hit_depth_img, int3(texel, hit_id), float4(value));
+        imageStore(hit_depth_img, int3(texel, int(hit_id)), float4(value));
       }
     }
   }

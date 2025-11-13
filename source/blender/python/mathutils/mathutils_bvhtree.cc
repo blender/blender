@@ -585,9 +585,10 @@ static PyObject *py_bvhtree_overlap(PyBVHTree *self, PyBVHTree *other)
   }
   else {
     const bool use_unique = (self->orig_index || other->orig_index);
-    GSet *pair_test = use_unique ?
-                          BLI_gset_new_ex(overlap_hash, overlap_cmp, __func__, overlap_len) :
-                          nullptr;
+    blender::Set<BVHTreeOverlap> pair_test;
+    if (use_unique) {
+      pair_test.reserve(overlap_len);
+    }
     /* simple case, no index remapping */
     uint i;
 
@@ -602,7 +603,7 @@ static PyObject *py_bvhtree_overlap(PyBVHTree *self, PyBVHTree *other)
         }
 
         /* skip if its already added */
-        if (!BLI_gset_add(pair_test, &overlap[i])) {
+        if (!pair_test.add(overlap[i])) {
           continue;
         }
       }
@@ -613,10 +614,6 @@ static PyObject *py_bvhtree_overlap(PyBVHTree *self, PyBVHTree *other)
 
       PyList_Append(ret, item);
       Py_DECREF(item);
-    }
-
-    if (pair_test) {
-      BLI_gset_free(pair_test, nullptr);
     }
   }
 

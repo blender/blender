@@ -22,7 +22,6 @@
 #include "RNA_access.hh"
 
 #include "modifier.hh"
-#include "render.hh"
 
 namespace blender::seq {
 
