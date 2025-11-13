@@ -1309,6 +1309,17 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(GPUPrimType primitive,
   graphics_info.shaders.specialization_constants.extend(constants_state.values);
   graphics_info.shaders.has_depth = depth_attachment_format != VK_FORMAT_UNDEFINED;
   graphics_info.shaders.has_stencil = stencil_attachment_format != VK_FORMAT_UNDEFINED;
+  /* Cleanup mutable state to increase cache hits. */
+  /* NOTE: Refactor stencils to use dynamic state. #149452 */
+  if (!graphics_info.shaders.has_stencil) {
+    graphics_info.shaders.mutable_state.stencil_write_mask = 0u;
+    graphics_info.shaders.mutable_state.stencil_compare_mask = 0u;
+    graphics_info.shaders.mutable_state.stencil_reference = 0u;
+  }
+  if (primitive != GPU_PRIM_POINTS) {
+    graphics_info.shaders.mutable_state.point_size = 1.0f;
+  }
+  graphics_info.shaders.mutable_state.line_width = 1.0f;
 
   graphics_info.fragment_out.depth_attachment_format = depth_attachment_format;
   graphics_info.fragment_out.stencil_attachment_format = stencil_attachment_format;
