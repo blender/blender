@@ -158,7 +158,7 @@ int SCULPT_vertex_count_get(const Object &object)
     case blender::bke::pbvh::Type::BMesh:
       return BM_mesh_elem_count(ss.bm, BM_VERT);
     case blender::bke::pbvh::Type::Grids:
-      return BKE_pbvh_get_grid_num_verts(object);
+      return BKE_sculpt_get_grid_num_verts(object);
   }
 
   return 0;

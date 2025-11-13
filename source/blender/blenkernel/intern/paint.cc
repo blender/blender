@@ -2516,6 +2516,22 @@ MultiresModifierData *BKE_sculpt_multires_active(const Scene *scene, Object *ob)
   return sculpt_multires_modifier_get(scene, ob, false);
 }
 
+int BKE_sculpt_get_grid_num_verts(const Object &object)
+{
+  const SculptSession &ss = *object.sculpt;
+  BLI_assert(blender::bke::object::pbvh_get(object)->type() == blender::bke::pbvh::Type::Grids);
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
+  return ss.subdiv_ccg->grids_num * key.grid_area;
+}
+
+int BKE_sculpt_get_grid_num_faces(const Object &object)
+{
+  const SculptSession &ss = *object.sculpt;
+  BLI_assert(blender::bke::object::pbvh_get(object)->type() == blender::bke::pbvh::Type::Grids);
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
+  return ss.subdiv_ccg->grids_num * square_i(key.grid_size - 1);
+}
+
 /* Checks if there are any supported deformation modifiers active */
 static bool sculpt_modifiers_active(const Scene *scene, const Sculpt *sd, Object *ob)
 {
