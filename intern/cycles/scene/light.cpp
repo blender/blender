@@ -1265,8 +1265,6 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
     klights[light_index].strength[2] = light->strength.z;
 
     if (light->light_type == LIGHT_POINT || light->light_type == LIGHT_SPOT) {
-      shader_id &= ~SHADER_AREA_LIGHT;
-
       const float radius = light->size;
       const float invarea = (light->normalize) ? 1.0f / light->area(object->get_tfm()) : 1.0f;
 
@@ -1283,8 +1281,6 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
       klights[light_index].spot.is_sphere = light->get_is_sphere() && radius != 0.0f;
     }
     else if (light->light_type == LIGHT_DISTANT) {
-      shader_id &= ~SHADER_AREA_LIGHT;
-
       const float angle = light->angle / 2.0f;
 
       if (light->use_mis && angle > 0.0f) {
@@ -1310,7 +1306,6 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
 
       dscene->data.background.light_index = light_index;
 
-      shader_id &= ~SHADER_AREA_LIGHT;
       shader_id |= SHADER_USE_MIS;
 
       if (!(visibility & PATH_RAY_DIFFUSE)) {

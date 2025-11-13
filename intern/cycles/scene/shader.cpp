@@ -506,7 +506,7 @@ int ShaderManager::get_shader_id(Shader *shader, bool smooth)
   }
 
   /* default flags */
-  id |= SHADER_CAST_SHADOW | SHADER_AREA_LIGHT;
+  id |= SHADER_CAST_SHADOW;
 
   return id;
 }
