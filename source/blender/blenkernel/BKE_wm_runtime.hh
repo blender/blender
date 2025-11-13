@@ -8,7 +8,6 @@
 
 #pragma once
 
-struct GSet;
 struct UndoStack;
 struct wmMsgBus;
 struct wmKeyConfig;

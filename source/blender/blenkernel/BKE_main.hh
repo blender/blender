@@ -36,7 +36,6 @@
 struct BLI_mempool;
 struct BlendThumbnail;
 struct GHash;
-struct GSet;
 struct ID;
 struct IDNameLib_Map;
 struct ImBuf;
