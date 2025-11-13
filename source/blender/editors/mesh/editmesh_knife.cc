@@ -239,7 +239,7 @@ struct KnifeTool_OpData {
   /* Reused for edge-net filling. */
   struct {
     /* Cleared each use. */
-    GSet *edge_visit;
+    blender::Set<BMEdge *> *edge_visit;
 #ifdef USE_NET_ISLAND_CONNECT
     MemArena *arena;
 #endif
@@ -2080,7 +2080,7 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMesh *bm, BMFace *f, Li
   /* Point to knife edges we've created edges in, edge_array aligned. */
   KnifeEdge **kfe_array = static_cast<KnifeEdge **>(BLI_array_alloca(kfe_array, edge_array_len));
 
-  BLI_assert(BLI_gset_len(kcd->edgenet.edge_visit) == 0);
+  BLI_assert(kcd->edgenet.edge_visit->is_empty());
 
   i = 0;
   LISTBASE_FOREACH (LinkData *, ref, kfedges) {
@@ -2122,7 +2122,7 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMesh *bm, BMFace *f, Li
 
     BLI_assert(kfe->e);
 
-    if (BLI_gset_add(kcd->edgenet.edge_visit, kfe->e)) {
+    if (kcd->edgenet.edge_visit->add(kfe->e)) {
       kfe_array[i] = is_new_edge ? kfe : nullptr;
       edge_array[i] = kfe->e;
       i += 1;
@@ -2176,7 +2176,7 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMesh *bm, BMFace *f, Li
 #endif
   }
 
-  BLI_gset_clear(kcd->edgenet.edge_visit, nullptr);
+  kcd->edgenet.edge_visit->clear();
 }
 
 static int sort_verts_by_dist_cb(void *co_p, const void *cur_a_p, const void *cur_b_p)
@@ -3957,7 +3957,7 @@ static void knifetool_init(ViewContext *vc,
 #ifdef USE_NET_ISLAND_CONNECT
   kcd->edgenet.arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 15), __func__);
 #endif
-  kcd->edgenet.edge_visit = BLI_gset_ptr_new(__func__);
+  kcd->edgenet.edge_visit = MEM_new<blender::Set<BMEdge *>>(__func__);
 
   kcd->vthresh = KMAXDIST - 1;
   kcd->ethresh = KMAXDIST;
@@ -4032,7 +4032,7 @@ static void knifetool_exit_ex(KnifeTool_OpData *kcd)
 #ifdef USE_NET_ISLAND_CONNECT
   BLI_memarena_free(kcd->edgenet.arena);
 #endif
-  BLI_gset_free(kcd->edgenet.edge_visit, nullptr);
+  MEM_delete(kcd->edgenet.edge_visit);
 
   /* Tag for redraw. */
   ED_region_tag_redraw(kcd->region);
