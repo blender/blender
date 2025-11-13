@@ -217,7 +217,8 @@ template<typename T> struct DefaultHash<T *> {
 };
 
 namespace detail {
-static constexpr std::array<uint64_t, 3> default_hash_factors = {19349669, 83492791, 3632623};
+static constexpr std::array<uint64_t, 5> default_hash_factors = {
+    19349669, 83492791, 3632623, 8789800933, 7235126189};
 
 template<size_t... I, typename... Args>
 inline uint64_t get_default_hash_array(std::index_sequence<I...> /*indices*/, const Args &...args)
