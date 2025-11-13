@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "gpu_shader_create_info.hh"
+#include "compositor_mask_types.hh"
 
 GPU_SHADER_CREATE_INFO(compositor_ellipse_mask_shared)
 LOCAL_GROUP_SIZE(16, 16)
@@ -17,12 +18,6 @@ SAMPLER(1, sampler2D, mask_value_tx)
 IMAGE(0, SFLOAT_16, write, image2D, output_mask_img)
 COMPUTE_SOURCE("compositor_ellipse_mask.glsl")
 GPU_SHADER_CREATE_END()
-
-/* TODO(fclem): deduplicate. */
-#define CMP_NODE_MASKTYPE_ADD 0
-#define CMP_NODE_MASKTYPE_SUBTRACT 1
-#define CMP_NODE_MASKTYPE_MULTIPLY 2
-#define CMP_NODE_MASKTYPE_NOT 3
 
 GPU_SHADER_CREATE_INFO(compositor_ellipse_mask_add)
 ADDITIONAL_INFO(compositor_ellipse_mask_shared)

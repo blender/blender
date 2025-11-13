@@ -3,12 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "gpu_shader_compositor_texture_utilities.glsl"
-
-/* TODO(fclem): deduplicate. */
-#define CMP_NODE_MASKTYPE_ADD 0
-#define CMP_NODE_MASKTYPE_SUBTRACT 1
-#define CMP_NODE_MASKTYPE_MULTIPLY 2
-#define CMP_NODE_MASKTYPE_NOT 3
+#include "library/gpu_shader_compositor_mask_types.glsl"
 
 void main()
 {
