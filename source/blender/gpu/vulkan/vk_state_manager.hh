@@ -265,7 +265,7 @@ class VKStateManager : public StateManager {
   /**
    * Row length for unpacking host data when uploading texture data.
    *
-   * When set to zero (0) host data can be assumed to be stored sequential.
+   * When set to zero (0) host data can be assumed to be stored sequentially.
    */
   uint texture_unpack_row_length_get() const;
 };

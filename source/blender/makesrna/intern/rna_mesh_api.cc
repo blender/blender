@@ -63,7 +63,7 @@ static void rna_Mesh_calc_tangents(Mesh *mesh, ReportList *reports, const char *
   if (CustomData_has_layer(&mesh->corner_data, CD_MLOOPTANGENT)) {
     r_looptangents = static_cast<float4 *>(
         CustomData_get_layer_for_write(&mesh->corner_data, CD_MLOOPTANGENT, mesh->corners_num));
-    memset(r_looptangents, 0, sizeof(float4) * mesh->corners_num);
+    memset(reinterpret_cast<void *>(r_looptangents), 0, sizeof(float4) * mesh->corners_num);
   }
   else {
     r_looptangents = static_cast<float4 *>(CustomData_add_layer(
@@ -244,6 +244,16 @@ static void rna_Mesh_clear_geometry(Mesh *mesh)
   WM_main_add_notifier(NC_GEOM | ND_DATA, mesh);
 }
 
+static bool rna_Mesh_validate(Mesh *mesh, const bool verbose, const bool /*clean_customdata*/)
+{
+  return !blender::bke::mesh_validate(*mesh, verbose);
+}
+
+static bool rna_Mesh_validate_material_indices(Mesh *mesh)
+{
+  return !blender::bke::mesh_validate_material_indices(*mesh);
+}
+
 #else
 
 void RNA_api_mesh(StructRNA *srna)
@@ -378,20 +388,17 @@ void RNA_api_mesh(StructRNA *srna)
       func,
       "Remove all geometry from the mesh. Note that this does not free shape keys or materials.");
 
-  func = RNA_def_function(srna, "validate", "BKE_mesh_validate");
+  func = RNA_def_function(srna, "validate", "rna_Mesh_validate");
   RNA_def_function_ui_description(func,
                                   "Validate geometry, return True when the mesh has had "
                                   "invalid geometry corrected/removed");
   RNA_def_boolean(func, "verbose", false, "Verbose", "Output information about the errors found");
-  RNA_def_boolean(func,
-                  "clean_customdata",
-                  true,
-                  "Clean Custom Data",
-                  "Remove temp/cached custom-data layers, like e.g. normals...");
+  RNA_def_boolean(
+      func, "clean_customdata", true, "Clean Custom Data", "Deprecated, has no effect");
   parm = RNA_def_boolean(func, "result", false, "Result", "");
   RNA_def_function_return(func, parm);
 
-  func = RNA_def_function(srna, "validate_material_indices", "BKE_mesh_validate_material_indices");
+  func = RNA_def_function(srna, "validate_material_indices", "rna_Mesh_validate_material_indices");
   RNA_def_function_ui_description(
       func,
       "Validate material indices of polygons, return True when the mesh has had "

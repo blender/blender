@@ -38,17 +38,21 @@ struct wmSurface {
 };
 
 /* Create/Free. */
+
 void wm_surface_add(wmSurface *surface);
 void wm_surface_remove(wmSurface *surface);
 void wm_surfaces_free();
 
 /* Utils. */
+
 void wm_surfaces_iter(bContext *C, void (*cb)(bContext *, wmSurface *));
 
 /* Evaluation. */
+
 void wm_surfaces_do_depsgraph(bContext *C);
 
 /* Drawing. */
+
 void wm_surface_make_drawable(wmSurface *surface);
 void wm_surface_clear_drawable();
 void wm_surface_set_drawable(wmSurface *surface, bool activate);

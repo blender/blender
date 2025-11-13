@@ -137,16 +137,6 @@ static void image_runtime_free_data(Image *image)
   BKE_image_partial_update_register_free(image);
 }
 
-static void image_gpu_runtime_reset(Image *ima)
-{
-  ima->lastused = 0;
-  ima->gpuflag = 0;
-  ima->gpuframenr = IMAGE_GPU_FRAME_NONE;
-  ima->gpu_pass = IMAGE_GPU_PASS_NONE;
-  ima->gpu_layer = IMAGE_GPU_LAYER_NONE;
-  ima->gpu_view = IMAGE_GPU_VIEW_NONE;
-}
-
 static void image_init_data(ID *id)
 {
   Image *image = (Image *)id;
@@ -162,8 +152,9 @@ static void image_copy_data(Main * /*bmain*/,
                             const ID *id_src,
                             const int flag)
 {
-  Image *image_dst = (Image *)id_dst;
   const Image *image_src = (const Image *)id_src;
+  Image *image_dst = (Image *)id_dst;
+  image_dst->runtime = MEM_new<blender::bke::ImageRuntime>(__func__);
 
   BKE_color_managed_colorspace_settings_copy(&image_dst->colorspace_settings,
                                              &image_src->colorspace_settings);
@@ -175,7 +166,6 @@ static void image_copy_data(Main * /*bmain*/,
   BLI_duplicatelist(&image_dst->views, &image_src->views);
 
   /* Cleanup stuff that cannot be copied. */
-  image_dst->cache = nullptr;
   image_dst->rr = nullptr;
 
   BLI_duplicatelist(&image_dst->renderslots, &image_src->renderslots);
@@ -187,20 +177,12 @@ static void image_copy_data(Main * /*bmain*/,
 
   BLI_duplicatelist(&image_dst->tiles, &image_src->tiles);
 
-  for (int eye = 0; eye < 2; eye++) {
-    for (int i = 0; i < TEXTARGET_COUNT; i++) {
-      image_dst->gputexture[i][eye] = nullptr;
-    }
-  }
-
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
     BKE_previewimg_id_copy(&image_dst->id, &image_src->id);
   }
   else {
     image_dst->preview = nullptr;
   }
-
-  image_dst->runtime = MEM_new<blender::bke::ImageRuntime>(__func__);
 }
 
 static void image_free_data(ID *id)
@@ -239,31 +221,11 @@ static void image_foreach_cache(ID *id,
   Image *image = (Image *)id;
   IDCacheKey key;
   key.id_session_uid = id->session_uid;
-  key.identifier = offsetof(Image, cache);
-  function_callback(id, &key, (void **)&image->cache, 0, user_data);
 
   key.identifier = offsetof(Image, anims.first);
   function_callback(id, &key, &image->anims.first, 0, user_data);
   key.identifier = offsetof(Image, anims.last);
   function_callback(id, &key, &image->anims.last, 0, user_data);
-
-  auto gputexture_offset = [image](int target, int eye) {
-    constexpr size_t base_offset = offsetof(Image, gputexture);
-    blender::gpu::Texture **first = &image->gputexture[0][0];
-    const size_t array_offset = sizeof(*first) * (&image->gputexture[target][eye] - first);
-    return base_offset + array_offset;
-  };
-
-  for (int eye = 0; eye < 2; eye++) {
-    for (int a = 0; a < TEXTARGET_COUNT; a++) {
-      blender::gpu::Texture *texture = image->gputexture[a][eye];
-      if (texture == nullptr) {
-        continue;
-      }
-      key.identifier = gputexture_offset(a, eye);
-      function_callback(id, &key, (void **)&image->gputexture[a][eye], 0, user_data);
-    }
-  }
 
   key.identifier = offsetof(Image, rr);
   function_callback(id, &key, (void **)&image->rr, 0, user_data);
@@ -271,6 +233,31 @@ static void image_foreach_cache(ID *id,
   LISTBASE_FOREACH (RenderSlot *, slot, &image->renderslots) {
     key.identifier = size_t(BLI_ghashutil_strhash_p(slot->name));
     function_callback(id, &key, (void **)&slot->render, 0, user_data);
+  }
+
+  /* Ensure we don't collide with the identifiers used above. */
+  constexpr size_t runtime_base_id = size_t(1) << 32u;
+
+  key.identifier = runtime_base_id + offsetof(ImageRuntimeHandle, cache);
+  function_callback(id, &key, (void **)&image->runtime->cache, 0, user_data);
+
+  auto gputexture_offset = [image](int target, int eye) {
+    constexpr size_t base_offset = offsetof(ImageRuntimeHandle, gputexture);
+    blender::gpu::Texture **first = &image->runtime->gputexture[0][0];
+    const size_t array_offset = sizeof(*first) *
+                                (&image->runtime->gputexture[target][eye] - first);
+    return base_offset + array_offset;
+  };
+
+  for (int eye = 0; eye < 2; eye++) {
+    for (int a = 0; a < TEXTARGET_COUNT; a++) {
+      const blender::gpu::Texture *texture = image->runtime->gputexture[a][eye];
+      if (texture == nullptr) {
+        continue;
+      }
+      key.identifier = runtime_base_id + gputexture_offset(a, eye);
+      function_callback(id, &key, (void **)&image->runtime->gputexture[a][eye], 0, user_data);
+    }
   }
 }
 
@@ -338,14 +325,9 @@ static void image_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
   /* Clear all data that isn't read to reduce false detection of changed image during memfile undo.
    */
-  ima->cache = nullptr;
-  image_gpu_runtime_reset(ima);
+  ima->runtime = nullptr;
+
   BLI_listbase_clear(&ima->anims);
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 2; j++) {
-      ima->gputexture[i][j] = nullptr;
-    }
-  }
 
   ImagePackedFile *imapf;
 
@@ -420,7 +402,6 @@ static void image_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_previewimg_blend_read(reader, ima->preview);
   BLO_read_struct(reader, Stereo3dFormat, &ima->stereo3d_format);
 
-  image_gpu_runtime_reset(ima);
   ima->runtime = MEM_new<blender::bke::ImageRuntime>(__func__);
 }
 
@@ -432,7 +413,7 @@ static void image_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
   /* Needs to be done *after* cache pointers are restored (call to
    * `foreach_cache`/`blo_cache_storage_entry_restore_in_new`), easier for now to do it in
    * lib_link... */
-  if (ima->cache == nullptr) {
+  if (ima->runtime->cache == nullptr) {
     BKE_image_free_buffers(ima);
   }
 }
@@ -526,37 +507,37 @@ static void imagecache_put(Image *image, int index, ImBuf *ibuf)
 {
   ImageCacheKey key;
 
-  if (image->cache == nullptr) {
+  if (image->runtime->cache == nullptr) {
     // char cache_name[64];
     // SNPRINTF_UTF8(cache_name, "Image Datablock %s", image->id.name);
 
-    image->cache = IMB_moviecache_create(
+    image->runtime->cache = IMB_moviecache_create(
         "Image Datablock Cache", sizeof(ImageCacheKey), imagecache_hashhash, imagecache_hashcmp);
-    IMB_moviecache_set_getdata_callback(image->cache, imagecache_keydata);
+    IMB_moviecache_set_getdata_callback(image->runtime->cache, imagecache_keydata);
   }
 
   key.index = index;
 
-  IMB_moviecache_put(image->cache, &key, ibuf);
+  IMB_moviecache_put(image->runtime->cache, &key, ibuf);
 }
 
 static void imagecache_remove(Image *image, int index)
 {
-  if (image->cache == nullptr) {
+  if (image->runtime->cache == nullptr) {
     return;
   }
 
   ImageCacheKey key;
   key.index = index;
-  IMB_moviecache_remove(image->cache, &key);
+  IMB_moviecache_remove(image->runtime->cache, &key);
 }
 
 static ImBuf *imagecache_get(Image *image, int index, bool *r_is_cached_empty)
 {
-  if (image->cache) {
+  if (image->runtime->cache) {
     ImageCacheKey key;
     key.index = index;
-    return IMB_moviecache_get(image->cache, &key, r_is_cached_empty);
+    return IMB_moviecache_get(image->runtime->cache, &key, r_is_cached_empty);
   }
 
   return nullptr;
@@ -570,9 +551,9 @@ static ImBuf *imagecache_get(Image *image, int index, bool *r_is_cached_empty)
 
 static void image_free_cached_frames(Image *image)
 {
-  if (image->cache) {
-    IMB_moviecache_free(image->cache);
-    image->cache = nullptr;
+  if (image->runtime->cache) {
+    IMB_moviecache_free(image->runtime->cache);
+    image->runtime->cache = nullptr;
   }
 }
 
@@ -763,9 +744,9 @@ void BKE_image_merge(Main *bmain, Image *dest, Image *source)
       std::scoped_lock lock_src(source->runtime->cache_mutex);
       std::scoped_lock lock_dst(dest->runtime->cache_mutex);
 
-      if (source->cache != nullptr) {
+      if (source->runtime->cache != nullptr) {
         MovieCacheIter *iter;
-        iter = IMB_moviecacheIter_new(source->cache);
+        iter = IMB_moviecacheIter_new(source->runtime->cache);
         while (!IMB_moviecacheIter_done(iter)) {
           ImBuf *ibuf = IMB_moviecacheIter_getImBuf(iter);
           ImageCacheKey *key = static_cast<ImageCacheKey *>(IMB_moviecacheIter_getUserKey(iter));
@@ -803,7 +784,7 @@ bool BKE_image_has_opengl_texture(Image *ima)
 {
   for (int eye = 0; eye < 2; eye++) {
     for (int i = 0; i < TEXTARGET_COUNT; i++) {
-      if (ima->gputexture[i][eye] != nullptr) {
+      if (ima->runtime->gputexture[i][eye] != nullptr) {
         return true;
       }
     }
@@ -1536,7 +1517,7 @@ void BKE_image_packfiles_from_mem(ReportList *reports,
 
 void BKE_image_tag_time(Image *ima)
 {
-  ima->lastused = BLI_time_now_seconds_i();
+  ima->runtime->lastused = BLI_time_now_seconds_i();
 }
 
 static uintptr_t image_mem_size(Image *image)
@@ -1550,8 +1531,8 @@ static uintptr_t image_mem_size(Image *image)
 
   std::scoped_lock lock(image->runtime->cache_mutex);
 
-  if (image->cache != nullptr) {
-    MovieCacheIter *iter = IMB_moviecacheIter_new(image->cache);
+  if (image->runtime->cache != nullptr) {
+    MovieCacheIter *iter = IMB_moviecacheIter_new(image->runtime->cache);
 
     while (!IMB_moviecacheIter_done(iter)) {
       ImBuf *ibuf = IMB_moviecacheIter_getImBuf(iter);
@@ -1627,12 +1608,12 @@ void BKE_image_free_all_textures(Main *bmain)
   for (ima = static_cast<Image *>(bmain->images.first); ima;
        ima = static_cast<Image *>(ima->id.next))
   {
-    if (ima->cache && (ima->id.tag & ID_TAG_DOIT)) {
+    if (ima->runtime->cache && (ima->id.tag & ID_TAG_DOIT)) {
 #ifdef CHECK_FREED_SIZE
       uintptr_t old_size = image_mem_size(ima);
 #endif
 
-      IMB_moviecache_cleanup(ima->cache, imagecache_check_dirty, nullptr);
+      IMB_moviecache_cleanup(ima->runtime->cache, imagecache_check_dirty, nullptr);
 
 #ifdef CHECK_FREED_SIZE
       tot_freed_size += old_size - image_mem_size(ima);
@@ -1657,8 +1638,8 @@ static bool imagecache_check_free_anim(ImBuf *ibuf, void * /*userkey*/, void *us
 void BKE_image_free_anim_ibufs(Image *ima, int except_frame)
 {
   std::scoped_lock lock(ima->runtime->cache_mutex);
-  if (ima->cache != nullptr) {
-    IMB_moviecache_cleanup(ima->cache, imagecache_check_free_anim, &except_frame);
+  if (ima->runtime->cache != nullptr) {
+    IMB_moviecache_cleanup(ima->runtime->cache, imagecache_check_free_anim, &except_frame);
   }
 }
 
@@ -3051,9 +3032,9 @@ static void image_free_tile(Image *ima, ImageTile *tile)
     }
 
     for (int eye = 0; eye < 2; eye++) {
-      if (ima->gputexture[i][eye] != nullptr) {
-        GPU_texture_free(ima->gputexture[i][eye]);
-        ima->gputexture[i][eye] = nullptr;
+      if (ima->runtime->gputexture[i][eye] != nullptr) {
+        GPU_texture_free(ima->runtime->gputexture[i][eye]);
+        ima->runtime->gputexture[i][eye] = nullptr;
       }
     }
   }
@@ -3443,13 +3424,13 @@ ImageTile *BKE_image_add_tile(Image *ima, int tile_number, const char *label)
 
   for (int eye = 0; eye < 2; eye++) {
     /* Reallocate GPU tile array. */
-    if (ima->gputexture[TEXTARGET_2D_ARRAY][eye] != nullptr) {
-      GPU_texture_free(ima->gputexture[TEXTARGET_2D_ARRAY][eye]);
-      ima->gputexture[TEXTARGET_2D_ARRAY][eye] = nullptr;
+    if (ima->runtime->gputexture[TEXTARGET_2D_ARRAY][eye] != nullptr) {
+      GPU_texture_free(ima->runtime->gputexture[TEXTARGET_2D_ARRAY][eye]);
+      ima->runtime->gputexture[TEXTARGET_2D_ARRAY][eye] = nullptr;
     }
-    if (ima->gputexture[TEXTARGET_TILE_MAPPING][eye] != nullptr) {
-      GPU_texture_free(ima->gputexture[TEXTARGET_TILE_MAPPING][eye]);
-      ima->gputexture[TEXTARGET_TILE_MAPPING][eye] = nullptr;
+    if (ima->runtime->gputexture[TEXTARGET_TILE_MAPPING][eye] != nullptr) {
+      GPU_texture_free(ima->runtime->gputexture[TEXTARGET_TILE_MAPPING][eye]);
+      ima->runtime->gputexture[TEXTARGET_TILE_MAPPING][eye] = nullptr;
     }
   }
   BKE_image_partial_update_mark_full_update(ima);
@@ -3497,13 +3478,13 @@ void BKE_image_reassign_tile(Image *ima, ImageTile *tile, int new_tile_number)
 
   for (int eye = 0; eye < 2; eye++) {
     /* Reallocate GPU tile array. */
-    if (ima->gputexture[TEXTARGET_2D_ARRAY][eye] != nullptr) {
-      GPU_texture_free(ima->gputexture[TEXTARGET_2D_ARRAY][eye]);
-      ima->gputexture[TEXTARGET_2D_ARRAY][eye] = nullptr;
+    if (ima->runtime->gputexture[TEXTARGET_2D_ARRAY][eye] != nullptr) {
+      GPU_texture_free(ima->runtime->gputexture[TEXTARGET_2D_ARRAY][eye]);
+      ima->runtime->gputexture[TEXTARGET_2D_ARRAY][eye] = nullptr;
     }
-    if (ima->gputexture[TEXTARGET_TILE_MAPPING][eye] != nullptr) {
-      GPU_texture_free(ima->gputexture[TEXTARGET_TILE_MAPPING][eye]);
-      ima->gputexture[TEXTARGET_TILE_MAPPING][eye] = nullptr;
+    if (ima->runtime->gputexture[TEXTARGET_TILE_MAPPING][eye] != nullptr) {
+      GPU_texture_free(ima->runtime->gputexture[TEXTARGET_TILE_MAPPING][eye]);
+      ima->runtime->gputexture[TEXTARGET_TILE_MAPPING][eye] = nullptr;
     }
   }
   BKE_image_partial_update_mark_full_update(ima);
@@ -4458,7 +4439,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
    *
    * 2. Provides an image buffer which can be used to communicate the render resolution (with
    * possible border render applied to it) prior to the actual pixels storage is allocated. */
-  if (ima->cache == nullptr) {
+  if (ima->runtime->cache == nullptr) {
     ImBuf *empty_ibuf = IMB_allocImBuf(0, 0, 0, 0);
     image_assign_ibuf(ima, empty_ibuf, IMA_NO_INDEX, 0);
 
@@ -5093,14 +5074,14 @@ void BKE_image_user_frame_calc(Image *ima, ImageUser *iuser, int cfra)
       iuser->flag |= IMA_USER_FRAME_IN_RANGE;
     }
 
-    if (ima && ima->gpuframenr != iuser->framenr) {
+    if (ima && ima->runtime->gpuframenr != iuser->framenr) {
       /* NOTE: a single texture and refresh doesn't really work when
        * multiple image users may use different frames, this is to
        * be improved with perhaps a GPU texture cache. */
-      if (ima->gpuframenr != IMAGE_GPU_FRAME_NONE) {
+      if (ima->runtime->gpuframenr != IMAGE_GPU_FRAME_NONE) {
         BKE_image_partial_update_mark_full_update(ima);
       }
-      ima->gpuframenr = iuser->framenr;
+      ima->runtime->gpuframenr = iuser->framenr;
     }
 
     iuser->flag &= ~IMA_NEED_FRAME_RECALC;
@@ -5389,8 +5370,8 @@ bool BKE_image_is_dirty_writable(Image *image, bool *r_is_writable)
   bool is_writable = false;
 
   std::scoped_lock lock(image->runtime->cache_mutex);
-  if (image->cache != nullptr) {
-    MovieCacheIter *iter = IMB_moviecacheIter_new(image->cache);
+  if (image->runtime->cache != nullptr) {
+    MovieCacheIter *iter = IMB_moviecacheIter_new(image->runtime->cache);
 
     while (!IMB_moviecacheIter_done(iter)) {
       ImBuf *ibuf = IMB_moviecacheIter_getImBuf(iter);
@@ -5432,8 +5413,8 @@ bool BKE_image_buffer_format_writable(ImBuf *ibuf)
 void BKE_image_file_format_set(Image *image, int ftype, const ImbFormatOptions *options)
 {
   std::scoped_lock lock(image->runtime->cache_mutex);
-  if (image->cache != nullptr) {
-    MovieCacheIter *iter = IMB_moviecacheIter_new(image->cache);
+  if (image->runtime->cache != nullptr) {
+    MovieCacheIter *iter = IMB_moviecacheIter_new(image->runtime->cache);
 
     while (!IMB_moviecacheIter_done(iter)) {
       ImBuf *ibuf = IMB_moviecacheIter_getImBuf(iter);
@@ -5452,8 +5433,8 @@ bool BKE_image_has_loaded_ibuf(Image *image)
   bool has_loaded_ibuf = false;
 
   std::scoped_lock lock(image->runtime->cache_mutex);
-  if (image->cache != nullptr) {
-    MovieCacheIter *iter = IMB_moviecacheIter_new(image->cache);
+  if (image->runtime->cache != nullptr) {
+    MovieCacheIter *iter = IMB_moviecacheIter_new(image->runtime->cache);
 
     while (!IMB_moviecacheIter_done(iter)) {
       ImBuf *ibuf = IMB_moviecacheIter_getImBuf(iter);
@@ -5475,8 +5456,8 @@ ImBuf *BKE_image_get_ibuf_with_name(Image *image, const char *filepath)
   ImBuf *ibuf = nullptr;
 
   std::scoped_lock lock(image->runtime->cache_mutex);
-  if (image->cache != nullptr) {
-    MovieCacheIter *iter = IMB_moviecacheIter_new(image->cache);
+  if (image->runtime->cache != nullptr) {
+    MovieCacheIter *iter = IMB_moviecacheIter_new(image->runtime->cache);
 
     while (!IMB_moviecacheIter_done(iter)) {
       ImBuf *current_ibuf = IMB_moviecacheIter_getImBuf(iter);
@@ -5498,8 +5479,8 @@ ImBuf *BKE_image_get_first_ibuf(Image *image)
   ImBuf *ibuf = nullptr;
 
   std::scoped_lock lock(image->runtime->cache_mutex);
-  if (image->cache != nullptr) {
-    MovieCacheIter *iter = IMB_moviecacheIter_new(image->cache);
+  if (image->runtime->cache != nullptr) {
+    MovieCacheIter *iter = IMB_moviecacheIter_new(image->runtime->cache);
 
     while (!IMB_moviecacheIter_done(iter)) {
       ibuf = IMB_moviecacheIter_getImBuf(iter);

@@ -1060,7 +1060,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
         uiBut *but2 = uiDefIconTextBut(
             block,
             ButType::But,
-            0,
             ICON_MENU_PANEL,
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Quick Favorites"),
             0,
@@ -1084,7 +1083,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       uiBut *but2 = uiDefIconTextBut(
           block,
           ButType::But,
-          0,
           ICON_MENU_PANEL,
           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add to Quick Favorites"),
           0,
@@ -1133,7 +1131,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
         uiBut *but2 = uiDefIconTextBut(
             block,
             ButType::But,
-            0,
             ICON_HAND,
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Change Shortcut"),
             0,
@@ -1149,7 +1146,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       else {
         uiBut *but2 = uiDefIconTextBut(block,
                                        ButType::But,
-                                       0,
                                        ICON_HAND,
                                        IFACE_("Non-Keyboard Shortcut"),
                                        0,
@@ -1165,7 +1161,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       uiBut *but2 = uiDefIconTextBut(
           block,
           ButType::But,
-          0,
           ICON_BLANK1,
           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove Shortcut"),
           0,
@@ -1181,7 +1176,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       uiBut *but2 = uiDefIconTextBut(
           block,
           ButType::But,
-          0,
           ICON_HAND,
           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Shortcut"),
           0,

@@ -114,7 +114,12 @@ TEST_F(SceneTest, linked_copy_id_remapping)
   IDP_AddToGroup(action_idgroup_src,
                  bke::idprop::create(idp_action2action_name, &action_src->id).release());
 
-  Scene *scene_copy = BKE_scene_duplicate(bmain, scene_src, SCE_COPY_LINK_COLLECTION);
+  Scene *scene_copy = BKE_scene_duplicate(
+      bmain,
+      scene_src,
+      SCE_COPY_LINK_COLLECTION,
+      static_cast<eDupli_ID_Flags>(U.dupflag | USER_DUP_OBJECT),
+      LIB_ID_DUPLICATE_IS_ROOT_ID);
 
   /* Source data should remain unchanged. */
 

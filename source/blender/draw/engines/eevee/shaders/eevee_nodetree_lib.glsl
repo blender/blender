@@ -5,6 +5,7 @@
 #pragma once
 
 #include "infos/eevee_common_infos.hh"
+#include "infos/eevee_uniform_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
 SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
@@ -619,7 +620,7 @@ float texture_lod_bias_get()
  */
 float derivative_scale_get()
 {
-  return 1.0 / float(uniform_buf.film.scaling_factor);
+  return 1.0f / float(uniform_buf.film.scaling_factor);
 }
 
 /** \} */

@@ -5389,26 +5389,90 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
 
   MutableSpan<int> offsets = new_curves.offsets_for_write();
 
-  SpanAttributeWriter<float> vgroup_weights;
-  if (vgname) {
-    vgroup_weights = attributes.lookup_or_add_for_write_span<float>(vgname, AttrDomain::Point);
-  }
+  const bool weight_transfer_match_output = modifier_calculation_flags &
+                                            MOD_LINEART_MATCH_OUTPUT_VGROUP;
+
+  using blender::StringRef;
+  using blender::Vector;
+
+  auto ensure_target_defgroup = [&](StringRef group_name) {
+    if (group_name.is_empty()) {
+      return -1;
+    }
+    int group_index = 0;
+    LISTBASE_FOREACH_INDEX (bDeformGroup *, group, &new_curves.vertex_group_names, group_index) {
+      if (group_name == StringRef(group->name)) {
+        return group_index;
+      }
+    }
+    bDeformGroup *defgroup = MEM_callocN<bDeformGroup>(__func__);
+    group_name.copy_utf8_truncated(defgroup->name);
+    BLI_addtail(&new_curves.vertex_group_names, defgroup);
+    return group_index;
+  };
 
   int up_to_point = 0;
   for (int chain_i : writer.index_range()) {
     LineartChainWriteInfo &cwi = writer[chain_i];
 
-    MDeformVert *src_dvert = nullptr;
-    int src_deform_group = -1;
+    Vector<int> src_to_dst_defgroup;
+
+    blender::Span<MDeformVert> src_dvert;
     Mesh *src_mesh = nullptr;
-    if (source_vgname && vgroup_weights) {
+    MutableSpan<MDeformVert> dv = new_curves.deform_verts_for_write();
+    int target_defgroup = ensure_target_defgroup(vgname);
+    if (source_vgname) {
       Object *eval_ob = DEG_get_evaluated(depsgraph, cwi.chain->object_ref);
       if (eval_ob && eval_ob->type == OB_MESH) {
         src_mesh = BKE_object_get_evaluated_mesh(eval_ob);
-        src_dvert = src_mesh->deform_verts_for_write().data();
-        src_deform_group = BKE_id_defgroup_name_index(&src_mesh->id, source_vgname);
+        src_dvert = src_mesh->deform_verts();
       }
     }
+
+    if (!src_dvert.is_empty()) {
+      const ListBase *deflist = &src_mesh->vertex_group_names;
+      int group_index = 0;
+      LISTBASE_FOREACH_INDEX (bDeformGroup *, defgroup, deflist, group_index) {
+        if (StringRef(defgroup->name).startswith(source_vgname)) {
+          const int target_group_index = weight_transfer_match_output ?
+                                             ensure_target_defgroup(defgroup->name) :
+                                             target_defgroup;
+          src_to_dst_defgroup.append(target_group_index);
+        }
+        else {
+          src_to_dst_defgroup.append(-1);
+        }
+      }
+    }
+
+    auto transfer_to_matching_groups = [&](const int64_t source_index, const int target_index) {
+      for (const int from_group : src_to_dst_defgroup.index_range()) {
+        if (from_group < 0 || UNLIKELY(source_index >= src_dvert.size())) {
+          continue;
+        }
+        const MDeformWeight *mdw_from = BKE_defvert_find_index(&src_dvert[source_index],
+                                                               from_group);
+        MDeformWeight *mdw_to = BKE_defvert_ensure_index(&dv[target_index],
+                                                         src_to_dst_defgroup[from_group]);
+        const float source_weight = mdw_from ? mdw_from->weight : 0.0f;
+        mdw_to->weight = invert_input ? (1 - source_weight) : source_weight;
+      }
+    };
+
+    auto transfer_to_singular_group = [&](const int64_t source_index, const int target_index) {
+      float highest_weight = 0.0f;
+      for (const int from_group : src_to_dst_defgroup.index_range()) {
+        if (from_group < 0 || UNLIKELY(source_index >= src_dvert.size())) {
+          continue;
+        }
+        const MDeformWeight *mdw_from = BKE_defvert_find_index(&src_dvert[source_index],
+                                                               from_group);
+        const float source_weight = mdw_from ? mdw_from->weight : 0.0f;
+        highest_weight = std::max(highest_weight, source_weight);
+      }
+      MDeformWeight *mdw_to = BKE_defvert_ensure_index(&dv[target_index], target_defgroup);
+      mdw_to->weight = invert_input ? (1 - highest_weight) : highest_weight;
+    };
 
     int i;
     LISTBASE_FOREACH_INDEX (LineartEdgeChainItem *, eci, &cwi.chain->chain, i) {
@@ -5419,22 +5483,22 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
         point_opacities.span[point_i] = opacity;
       }
 
-      if (src_deform_group >= 0) {
-        const int64_t vindex = eci->index - cwi.chain->index_offset;
-        if (UNLIKELY(vindex >= src_mesh->verts_num)) {
-          vgroup_weights.span[point_i] = 0;
-          continue;
-        }
-        MDeformWeight *mdw = BKE_defvert_ensure_index(&src_dvert[vindex], src_deform_group);
+      const int64_t vindex = eci->index - cwi.chain->index_offset;
 
-        vgroup_weights.span[point_i] = invert_input ? (1 - mdw->weight) : mdw->weight;
+      if (!src_to_dst_defgroup.is_empty()) {
+        if (weight_transfer_match_output) {
+          transfer_to_matching_groups(vindex, point_i);
+        }
+        else {
+          transfer_to_singular_group(vindex, point_i);
+        }
       }
     }
+
     offsets[chain_i] = up_to_point;
     stroke_materials.span[chain_i] = max_ii(mat_nr, 0);
     up_to_point += cwi.point_count;
   }
-  vgroup_weights.finish();
 
   offsets[writer.index_range().last() + 1] = up_to_point;
 

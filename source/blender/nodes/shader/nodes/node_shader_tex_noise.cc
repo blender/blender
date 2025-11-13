@@ -439,16 +439,16 @@ NODE_SHADER_MATERIALX_BEGIN
   NodeItem scale = get_input_value("Scale", NodeItem::Type::Float);
   NodeItem detail = get_input_default("Detail", NodeItem::Type::Float);
   NodeItem lacunarity = get_input_value("Lacunarity", NodeItem::Type::Float);
+  /* Empirically, higher octaves lead to NaNs on e.g. Metal and NVIDIA. */
+  const int octaves = int(math::clamp(detail.value->asA<float>(), 1.0f, 13.0f));
 
   NodeItem position = create_node("position", NodeItem::Type::Vector3);
   position = position * scale;
 
-  return create_node("fractal3d",
-                     STREQ(socket_out_->identifier, "Fac") ? NodeItem::Type::Float :
-                                                             NodeItem::Type::Color3,
-                     {{"position", position},
-                      {"octaves", val(int(detail.value->asA<float>()))},
-                      {"lacunarity", lacunarity}});
+  return create_node(
+      "fractal3d",
+      STREQ(socket_out_->identifier, "Fac") ? NodeItem::Type::Float : NodeItem::Type::Color3,
+      {{"position", position}, {"octaves", val(octaves)}, {"lacunarity", lacunarity}});
 }
 #endif
 NODE_SHADER_MATERIALX_END

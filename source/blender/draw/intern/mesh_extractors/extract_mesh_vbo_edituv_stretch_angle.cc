@@ -76,7 +76,8 @@ static void extract_uv_stretch_angle_bm(const MeshRenderData &mr,
                                         MutableSpan<UVStretchAngle> vbo_data)
 {
   const BMesh &bm = *mr.bm;
-  const int uv_offset = CustomData_get_offset(&bm.ldata, CD_PROP_FLOAT2);
+  const StringRef active_name = mr.mesh->active_uv_map_name();
+  const int uv_offset = CustomData_get_offset_named(&bm.ldata, CD_PROP_FLOAT2, active_name);
 
   float auv[2][2], last_auv[2];
   float av[2][3], last_av[3];

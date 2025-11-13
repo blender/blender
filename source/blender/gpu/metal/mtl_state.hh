@@ -71,7 +71,6 @@ class MTLStateManager : public StateManager {
   void set_facing(const bool invert);
   void set_backface_culling(const GPUFaceCullTest test);
   void set_provoking_vert(const GPUProvokingVertex vert);
-  void set_shadow_bias(const bool enable);
   void set_blend(const GPUBlend value);
 
   void set_state(const GPUState &state);
@@ -79,7 +78,6 @@ class MTLStateManager : public StateManager {
 
   /* METAL State utility functions. */
   void mtl_state_init();
-  void mtl_depth_range(float near, float far);
   void mtl_stencil_mask(uint mask);
   void mtl_stencil_set_func(GPUStencilTest stencil_func, int ref, uint mask);
   void mtl_clip_plane_enable(uint i);

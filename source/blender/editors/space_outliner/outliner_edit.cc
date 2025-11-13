@@ -561,12 +561,16 @@ static bool id_delete_tag(bContext *C,
       BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked library '%s'", id->name);
       return false;
     }
-    if (scene_curr->id.lib == lib) {
+    blender::Set<Library *> libraries{lib};
+    libraries.add_multiple_new(lib->runtime->archived_libraries.as_span());
+    BLI_assert(!libraries.contains(nullptr));
+    if (libraries.contains(scene_curr->id.lib)) {
       scene_new = BKE_scene_find_replacement(
-          *bmain, *scene_curr, [&lib](const Scene &scene) -> bool {
+          *bmain, *scene_curr, [&libraries](const Scene &scene) -> bool {
             return (
-                /* The candidate scene must belong to a different library. */
-                scene.id.lib != lib &&
+                /* The candidate scene must belong to a different set of libraries (owner library
+                 * and all of its archive ones). */
+                !libraries.contains(scene.id.lib) &&
                 /* The candidate scene must not be tagged for deletion. */
                 (scene.id.tag & ID_TAG_DOIT) == 0 &&
                 /* The candidate scene must be locale, or its library must not be tagged for
@@ -936,7 +940,8 @@ void id_remap_fn(bContext *C,
 
 static int outliner_id_copy_tag(SpaceOutliner *space_outliner,
                                 ListBase *tree,
-                                blender::bke::blendfile::PartialWriteContext &copybuffer)
+                                blender::bke::blendfile::PartialWriteContext &copybuffer,
+                                ReportList *reports)
 {
   using namespace blender::bke::blendfile;
 
@@ -952,17 +957,27 @@ static int outliner_id_copy_tag(SpaceOutliner *space_outliner,
          * copy/pasting. */
         continue;
       }
-      copybuffer.id_add(tselem->id,
-                        PartialWriteContext::IDAddOptions{
-                            (PartialWriteContext::IDAddOperations::SET_FAKE_USER |
-                             PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK |
-                             PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES)},
-                        nullptr);
-      num_ids++;
+      const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(tselem->id);
+      if (id_type->flags & (IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING)) {
+        BKE_reportf(reports,
+                    RPT_INFO,
+                    "Copying ID '%s' is not possible, '%s' type of data-blocks is not supported",
+                    tselem->id->name,
+                    id_type->name);
+      }
+      if (copybuffer.id_add(tselem->id,
+                            PartialWriteContext::IDAddOptions{
+                                (PartialWriteContext::IDAddOperations::SET_FAKE_USER |
+                                 PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK |
+                                 PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES)},
+                            nullptr))
+      {
+        num_ids++;
+      }
     }
 
     /* go over sub-tree */
-    num_ids += outliner_id_copy_tag(space_outliner, &te->subtree, copybuffer);
+    num_ids += outliner_id_copy_tag(space_outliner, &te->subtree, copybuffer, reports);
   }
 
   return num_ids;
@@ -976,7 +991,8 @@ static wmOperatorStatus outliner_id_copy_exec(bContext *C, wmOperator *op)
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   PartialWriteContext copybuffer{*bmain};
 
-  const int num_ids = outliner_id_copy_tag(space_outliner, &space_outliner->tree, copybuffer);
+  const int num_ids = outliner_id_copy_tag(
+      space_outliner, &space_outliner->tree, copybuffer, op->reports);
   if (num_ids == 0) {
     BKE_report(op->reports, RPT_INFO, "No selected data-blocks to copy");
     return OPERATOR_CANCELLED;
@@ -2455,8 +2471,15 @@ static int unused_message_popup_width_compute(bContext *C)
   return int(std::max(max_messages_width, 300.0f));
 }
 
-static void outliner_orphans_purge_cleanup(wmOperator *op)
+static void outliner_orphans_purge_cleanup(bContext *C,
+                                           wmOperator *op,
+                                           const bool is_abort = false)
 {
+  if (is_abort) {
+    /* In case of abort, ensure that temp tag is cleared in all IDs, since they were not deleted.
+     */
+    BKE_main_id_tag_all(CTX_data_main(C), ID_TAG_DOIT, false);
+  }
   if (op->customdata) {
     MEM_delete(static_cast<LibQueryUnusedIDsData *>(op->customdata));
     op->customdata = nullptr;
@@ -2514,9 +2537,54 @@ static wmOperatorStatus outliner_orphans_purge_exec(bContext *C, wmOperator *op)
 
   if (data.num_total[INDEX_ID_NULL] == 0) {
     BKE_report(op->reports, RPT_INFO, "No orphaned data-blocks to purge");
-    MEM_delete(static_cast<LibQueryUnusedIDsData *>(op->customdata));
-    op->customdata = nullptr;
+    outliner_orphans_purge_cleanup(C, op, true);
     return OPERATOR_CANCELLED;
+  }
+
+  if (data.num_total[INDEX_ID_SCE] > 0) {
+    BKE_report(op->reports,
+               RPT_WARNING,
+               "Attempt to delete scenes as part of a purge operation, should never happen");
+
+    SceneReplaceData scene_replace_data;
+
+    /* Get the scene currently expected to become the active scene. */
+    Scene *scene_curr = scene_replace_data.active_scene_get(C);
+    if (scene_curr && scene_curr->id.tag & ID_TAG_DOIT) {
+      Scene *scene_new = BKE_scene_find_replacement(
+          *bmain, *scene_curr, [](const Scene &scene) -> bool {
+            return (
+                /* The candidate scene must not be tagged for deletion. */
+                (scene.id.tag & ID_TAG_DOIT) == 0 &&
+                /* The candidate scene must be locale, or its library must not be tagged for
+                 * deletion. */
+                (!scene.id.lib || (scene.id.lib->id.tag & ID_TAG_DOIT) == 0));
+          });
+      if (!scene_new) {
+        BKE_reportf(op->reports,
+                    RPT_ERROR,
+                    "Cannot find a scene to replace the active purged one '%s'",
+                    scene_curr->id.name);
+        outliner_orphans_purge_cleanup(C, op, true);
+        return OPERATOR_CANCELLED;
+      }
+
+      BLI_assert(scene_curr != scene_new);
+      BLI_assert((scene_new->id.tag & ID_TAG_DOIT) == 0);
+      if (!scene_replace_data.scene_to_delete) {
+        scene_replace_data.scene_to_delete = scene_curr;
+      }
+      else {
+        BLI_assert(scene_replace_data.scene_to_delete == CTX_data_scene(C));
+      }
+      scene_replace_data.scene_to_activate = scene_new;
+    }
+
+    BLI_assert(scene_replace_data.is_valid());
+    if (scene_replace_data.can_replace()) {
+      ED_scene_replace_active_for_deletion(
+          *C, *bmain, *scene_replace_data.scene_to_delete, scene_replace_data.scene_to_activate);
+    }
   }
 
   BKE_id_multi_tagged_delete(bmain);
@@ -2537,14 +2605,14 @@ static wmOperatorStatus outliner_orphans_purge_exec(bContext *C, wmOperator *op)
   /* Force full redraw of the UI. */
   WM_main_add_notifier(NC_WINDOW, nullptr);
 
-  outliner_orphans_purge_cleanup(op);
+  outliner_orphans_purge_cleanup(C, op);
 
   return OPERATOR_FINISHED;
 }
 
-static void outliner_orphans_purge_cancel(bContext * /*C*/, wmOperator *op)
+static void outliner_orphans_purge_cancel(bContext *C, wmOperator *op)
 {
-  outliner_orphans_purge_cleanup(op);
+  outliner_orphans_purge_cleanup(C, op, true);
 }
 
 static void outliner_orphans_purge_ui(bContext * /*C*/, wmOperator *op)

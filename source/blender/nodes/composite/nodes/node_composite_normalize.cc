@@ -76,7 +76,7 @@ class NormalizeOperation : public NodeOperation {
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     GPU_shader_unbind();
     output_image.unbind_as_image();
@@ -91,7 +91,7 @@ class NormalizeOperation : public NodeOperation {
     Result &output = this->get_result("Value");
     output.allocate_texture(domain);
 
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       const float value = image.load_pixel<float>(texel);
       const float normalized_value = (value - minimum) * scale;
       const float clamped_value = math::clamp(normalized_value, 0.0f, 1.0f);

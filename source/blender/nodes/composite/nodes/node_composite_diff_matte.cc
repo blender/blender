@@ -18,6 +18,8 @@
 
 #include "GPU_material.hh"
 
+#include "COM_result.hh"
+
 #include "node_composite_util.hh"
 
 /* ******************* channel Difference Matte ********************************* */
@@ -61,26 +63,39 @@ static int node_gpu_material(GPUMaterial *material,
   return GPU_stack_link(material, node, "node_composite_difference_matte", inputs, outputs);
 }
 
+static void difference_matte(const float4 &color,
+                             const float4 &key,
+                             const float &tolerance,
+                             const float &falloff,
+                             float4 &result,
+                             float &matte)
+{
+  float difference = math::dot(math::abs(color - key).xyz(), float3(1.0f)) / 3.0f;
+
+  bool is_opaque = difference > tolerance + falloff;
+  float alpha = is_opaque ? color.w :
+                            math::safe_divide(math::max(0.0f, difference - tolerance), falloff);
+
+  matte = math::min(alpha, color.w);
+  result = color * matte;
+}
+
+using blender::compositor::Color;
+
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
   builder.construct_and_set_matching_fn_cb([=]() {
-    return mf::build::SI4_SO2<float4, float4, float, float, float4, float>(
+    return mf::build::SI4_SO2<Color, Color, float, float, Color, float>(
         "Difference Key",
-        [=](const float4 &color,
-            const float4 &key,
+        [=](const Color &color,
+            const Color &key,
             const float &tolerance,
             const float &falloff,
-            float4 &result,
+            Color &output_color,
             float &matte) -> void {
-          float difference = math::dot(math::abs(color - key).xyz(), float3(1.0f)) / 3.0f;
-
-          bool is_opaque = difference > tolerance + falloff;
-          float alpha = is_opaque ?
-                            color.w :
-                            math::safe_divide(math::max(0.0f, difference - tolerance), falloff);
-
-          matte = math::min(alpha, color.w);
-          result = color * matte;
+          float4 out_color;
+          difference_matte(float4(color), float4(key), tolerance, falloff, out_color, matte);
+          output_color = Color(out_color);
         },
         mf::build::exec_presets::SomeSpanOrSingle<0, 1>());
   });

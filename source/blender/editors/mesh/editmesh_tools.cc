@@ -2503,8 +2503,13 @@ static wmOperatorStatus edbm_hide_exec(bContext *C, wmOperator *op)
       }
     }
 
+    /* Disable as this causes the following problem:
+     * Selecting an area of interest (on one side of the mesh), "Invert" then "Hide"
+     * will hide the area of interest too. */
+#if 0
     /* Only if symmetry is enabled. */
     EDBM_select_mirrored_extend_all(obedit, em);
+#endif
 
     if (EDBM_mesh_hide(em, unselected)) {
       EDBMUpdate_Params params{};

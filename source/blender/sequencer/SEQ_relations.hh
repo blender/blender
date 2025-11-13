@@ -10,6 +10,8 @@
 
 #include <cstddef>
 
+#include "BLI_enum_flags.hh"
+
 struct ListBase;
 struct Main;
 struct MovieClip;
@@ -74,9 +76,22 @@ void relations_check_uids_unique_and_report(const Scene *scene);
  */
 void relations_session_uid_generate(Strip *strip);
 
-void cache_cleanup(Scene *scene);
-void cache_cleanup_intra(Scene *scene);
-void cache_cleanup_final(Scene *scene);
+enum class CacheCleanup {
+  FinalImage = (1 << 0),
+  SourceImage = (1 << 1),
+  Thumbnails = (1 << 2),
+  IntraFrame = (1 << 3),
+
+  /* All cache types. */
+  All = FinalImage | SourceImage | Thumbnails | IntraFrame,
+
+  /* Typical "what gets rendered" cache types: final frame
+   * cache, plus various intra-frame cached things. */
+  FinalAndIntra = FinalImage | IntraFrame,
+};
+ENUM_OPERATORS(CacheCleanup);
+
+void cache_cleanup(Scene *scene, CacheCleanup mode);
 
 void cache_settings_changed(Scene *scene);
 bool is_cache_full(const Scene *scene);

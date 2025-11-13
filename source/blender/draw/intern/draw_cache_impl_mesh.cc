@@ -1112,31 +1112,30 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
       }
     }
 
-    /* Verify that all surface batches have needed attribute layers.
-     */
+    /* Verify that all surface batches have needed attribute layers, i.e. that none of the shaders
+     * need vertex buffers that aren't currently cached. */
     /* TODO(fclem): We could be a bit smarter here and only do it per
      * material. */
     const bool uvs_overlap = drw_attributes_overlap(&cache.cd_used.uv, &cache.cd_needed.uv);
     const bool tan_overlap = drw_attributes_overlap(&cache.cd_used.tan, &cache.cd_needed.tan);
     const bool attr_overlap = drw_attributes_overlap(&cache.attr_used, &cache.attr_needed);
-    const bool orco_overlap = cache.cd_used.orco == cache.cd_needed.orco;
-    const bool tan_orco_overlap = cache.cd_used.tan_orco == cache.cd_needed.tan_orco;
-    const bool sculpt_overlap = cache.cd_used.sculpt_overlays == cache.cd_needed.sculpt_overlays;
-    if (!uvs_overlap || !tan_overlap || !attr_overlap || !orco_overlap || !tan_orco_overlap ||
-        !sculpt_overlap)
+    if (!uvs_overlap || !tan_overlap || !attr_overlap ||
+        (cache.cd_needed.orco && !cache.cd_used.orco) ||
+        (cache.cd_needed.tan_orco && !cache.cd_used.tan_orco) ||
+        (cache.cd_needed.sculpt_overlays && !cache.cd_used.sculpt_overlays))
     {
       FOREACH_MESH_BUFFER_CACHE (cache, mbc) {
         if (!uvs_overlap) {
           mbc->buff.vbos.remove(VBOType::UVs);
           cd_uv_update = true;
         }
-        if (!tan_overlap || !tan_orco_overlap) {
+        if (!tan_overlap || cache.cd_used.tan_orco != cache.cd_needed.tan_orco) {
           mbc->buff.vbos.remove(VBOType::Tangents);
         }
-        if (!orco_overlap) {
+        if (cache.cd_used.orco != cache.cd_needed.orco) {
           mbc->buff.vbos.remove(VBOType::Orco);
         }
-        if (!sculpt_overlap) {
+        if (cache.cd_used.sculpt_overlays != cache.cd_needed.sculpt_overlays) {
           mbc->buff.vbos.remove(VBOType::SculptData);
         }
         if (!attr_overlap) {

@@ -599,7 +599,7 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
   const short mat_nr = short(BMO_slot_int_get(op->slots_in, "mat_nr"));
   const bool use_smooth = BMO_slot_bool_get(op->slots_in, "use_smooth");
   const bool use_interp_simple = BMO_slot_bool_get(op->slots_in, "use_interp_simple");
-  GSet *split_edges = nullptr;
+  std::unique_ptr<blender::Set<BMEdge *>> split_edges;
 
   int count;
   bool changed = false;
@@ -692,14 +692,14 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
       const int len_b = BM_edgeloop_length_get(estore_pairs[i][1]);
       if (len_a != len_b) {
         if (split_edges == nullptr) {
-          split_edges = BLI_gset_ptr_new(__func__);
+          split_edges = std::make_unique<blender::Set<BMEdge *>>();
         }
 
         if (len_a < len_b) {
-          BM_edgeloop_expand(bm, estore_pairs[i][0], len_b, true, split_edges);
+          BM_edgeloop_expand(bm, estore_pairs[i][0], len_b, true, split_edges.get());
         }
         else {
-          BM_edgeloop_expand(bm, estore_pairs[i][1], len_a, true, split_edges);
+          BM_edgeloop_expand(bm, estore_pairs[i][1], len_a, true, split_edges.get());
         }
       }
     }
@@ -712,12 +712,9 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
   changed = true;
 
   if (split_edges) {
-    GSetIterator gs_iter;
-    GSET_ITER (gs_iter, split_edges) {
-      BMEdge *e = static_cast<BMEdge *>(BLI_gsetIterator_getKey(&gs_iter));
+    for (BMEdge *e : *split_edges) {
       BM_edge_collapse(bm, e, e->v2, true, true);
     }
-    BLI_gset_free(split_edges, nullptr);
   }
 
 cleanup:

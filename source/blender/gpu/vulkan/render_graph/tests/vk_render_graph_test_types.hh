@@ -463,21 +463,6 @@ class CommandBufferLog : public VKCommandBufferInterface {
 
   void begin_debug_utils_label(const VkDebugUtilsLabelEXT * /*vk_debug_utils_label*/) override {}
   void end_debug_utils_label() override {}
-
-  /* VK_EXT_descriptor_buffer */
-  void bind_descriptor_buffers(
-      uint32_t /*buffer_count*/,
-      const VkDescriptorBufferBindingInfoEXT * /*p_binding_infos*/) override
-  {
-  }
-  void set_descriptor_buffer_offsets(VkPipelineBindPoint /*pipeline_bind_point*/,
-                                     VkPipelineLayout /*layout*/,
-                                     uint32_t /*first_set*/,
-                                     uint32_t /*set_count*/,
-                                     const uint32_t * /*p_buffer_indices*/,
-                                     const VkDeviceSize * /*p_offsets*/) override
-  {
-  }
 };
 
 class VKRenderGraphTest : public ::testing::Test {

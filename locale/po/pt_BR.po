@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
 "PO-Revision-Date: 2025-07-23 15:03+0000\n"
 "Last-Translator: Amy Lily <lillya.assist@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21243,38 +21243,6 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
-msgid "Light"
-msgstr "Luz"
-
-
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
-msgid "Add Image"
-msgstr "Adicionar Imagem"
-
-
-msgid "Relations"
-msgstr "Relações"
-
-
-msgid "Rigid Body"
-msgstr "Corpo rígido"
-
-
-msgid "Apply"
-msgstr "Aplicar"
-
-
 msgid "Track"
 msgstr "Rastrear"
 
@@ -21303,10 +21271,6 @@ msgid "Hooks"
 msgstr "Ganchos"
 
 
-msgid "Layout"
-msgstr "Organizar"
-
-
 msgid "Random Mask"
 msgstr "Máscara Aleatória"
 
@@ -21323,24 +21287,16 @@ msgid "Propagate"
 msgstr "Propagar"
 
 
-msgid "Keying"
-msgstr "Inserção de chaves"
-
-
 msgid "Names"
 msgstr "Nomes"
 
 
-msgid "Tracking"
-msgstr "Rastreamento"
+msgid "Apply"
+msgstr "Aplicar"
 
 
 msgid "Toggle Bone Options"
 msgstr "Alternar opções de ossos"
-
-
-msgid "Math"
-msgstr "Matemática"
 
 
 msgid "Enable Bone Options"
@@ -21349,6 +21305,10 @@ msgstr "Habilitar opções de ossos"
 
 msgid "Disable Bone Options"
 msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Layout"
+msgstr "Organizar"
 
 
 msgid "Mesh Select Mode"
@@ -21363,12 +21323,28 @@ msgid "Merge"
 msgstr "Fundir"
 
 
+msgid "Keying"
+msgstr "Inserção de chaves"
+
+
+msgid "Tracking"
+msgstr "Rastreamento"
+
+
+msgid "Math"
+msgstr "Matemática"
+
+
 msgid "Special Characters"
 msgstr "Caracteres especiais"
 
 
 msgid "Text"
 msgstr "Texto"
+
+
+msgid "Metaball"
+msgstr "Meta-esfera"
 
 
 msgid "Bone Roll"
@@ -21385,14 +21361,6 @@ msgstr "Atrair"
 
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Instances"
-msgstr "Instâncias"
-
-
-msgid "Import"
-msgstr "Importar"
 
 
 msgid "Mirror"
@@ -21415,10 +21383,6 @@ msgid "Navigation"
 msgstr "Navegação"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Align View"
 msgstr "Alinhar visualização"
 
@@ -21429,6 +21393,14 @@ msgstr "Alinhar vista para o ativo"
 
 msgid "View Regions"
 msgstr "Visualizar Regiões"
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
+msgid "Instances"
+msgstr "Instâncias"
 
 
 msgid "Select Similar"
@@ -21443,12 +21415,40 @@ msgid "Select Linked"
 msgstr "Selecionar vinculados(as)"
 
 
-msgid "Basic"
-msgstr "Básico"
-
-
 msgid "Select Loops"
 msgstr "Selecionar anéis"
+
+
+msgid "Import"
+msgstr "Importar"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
+
+
+msgid "Relations"
+msgstr "Relações"
+
+
+msgid "Rigid Body"
+msgstr "Corpo rígido"
+
+
+msgid "Basic"
+msgstr "Básico"
 
 
 msgctxt "MovieClip"
@@ -42596,10 +42596,6 @@ msgid "Add IK to Bone"
 msgstr "Adicionar cinemática inversa para o osso"
 
 
-msgid "Add IK Constraint to the active Bone"
-msgstr "Adiciona uma restrição de cinemática inversa para o osso ativo."
-
-
 msgid "With Targets"
 msgstr "Com alvos"
 
@@ -59380,10 +59376,6 @@ msgid "External shader script must have .osl or .oso extension, or be a module n
 msgstr "Script de sombreador externo deve possuir extensão .osl ou .oso, ou ser um nome de módulo."
 
 
-msgid "Failed to write .oso file next to external .osl file at "
-msgstr "Falha ao escrever arquivo .oso próximo ao local externo onde o .osl está."
-
-
 msgid "No compatible GPUs found for Cycles"
 msgstr "Não foram encontradas GPUs compatíveis para o Cycles"
 
@@ -64632,22 +64624,6 @@ msgstr "Problema ao gerar e gravar o objeto \"%s\""
 
 msgid "Add IK"
 msgstr "Adicionar cinemática inversa"
-
-
-msgid "To Active Bone"
-msgstr "Para o osso ativo"
-
-
-msgid "To Active Object"
-msgstr "Para o objeto ativo"
-
-
-msgid "To New Empty Object"
-msgstr "Para um novo objeto vazio"
-
-
-msgid "Without Targets"
-msgstr "Sem alvos"
 
 
 msgid "Could not find constraint data for Child-Of Set Inverse"

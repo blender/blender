@@ -105,8 +105,21 @@ IDLE_WAIT_ON_READ = 0.05
 
 
 # -----------------------------------------------------------------------------
+# Typing Stubs
+#
+# These functions exist to allow messages to be translated,
+# without having to depend on Blender-only modules, as this module is fully type-checked
+# as well as being used outside of Blender.
+
+
+# Maybe overwritten by `bpy.app.translations.pgettext_rpt`.
+def rpt_(text: str) -> str:
+    return text
+
+# -----------------------------------------------------------------------------
 # Internal Functions.
 #
+
 
 if sys.platform == "win32":
     # See: https://stackoverflow.com/a/35052424/432509
@@ -1123,25 +1136,25 @@ class CommandBatch:
         if status_data.failure_count == 0:
             fail_text = ""
         elif status_data.failure_count == status_data.count:
-            fail_text = ", failed"
+            fail_text = rpt_(", failed")
         else:
-            fail_text = ", some actions failed"
+            fail_text = rpt_(", some actions failed")
 
         if (
                 status_data.flag == (1 << CommandBatchItem.STATUS_NOT_YET_STARTED) or
                 status_data.flag & (1 << CommandBatchItem.STATUS_RUNNING)
         ):
-            return "Checking for Extension Updates{:s}".format(fail_text), 'SORTTIME'
+            return rpt_("Checking for Extension Updates{:s}").format(fail_text), 'SORTTIME'
 
         if status_data.flag == 1 << CommandBatchItem.STATUS_COMPLETE:
             if update_count > 0:
                 # NOTE: the UI design in #120612 has the number of extensions available in icon.
                 # Include in the text as this is not yet supported.
-                return "Extensions Updates Available ({:d}){:s}".format(update_count, fail_text), 'INTERNET'
-            return "All Extensions Up-to-date{:s}".format(fail_text), 'CHECKMARK'
+                return rpt_("Extensions Updates Available ({:d}){:s}").format(update_count, fail_text), 'INTERNET'
+            return rpt_("All Extensions Up-to-date{:s}").format(fail_text), 'CHECKMARK'
 
         # Should never reach this line!
-        return "Internal error, unknown state!{:s}".format(fail_text), 'ERROR'
+        return rpt_("Internal error, unknown state!{:s}").format(fail_text), 'ERROR'
 
     def calc_status_log_or_none(self) -> list[tuple[str, str]] | None:
         """

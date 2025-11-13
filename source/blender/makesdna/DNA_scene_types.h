@@ -912,11 +912,9 @@ typedef struct RenderData {
 
   /** Sequencer options. */
   char seq_prev_type;
-  /** UNUSED. */
-  char seq_rend_type;
   /** Flag use for sequence render/draw. */
   char seq_flag;
-  char _pad5[3];
+  char _pad5[4];
 
   /* Render simplify. */
   short simplify_subsurf;
@@ -2174,11 +2172,6 @@ typedef struct Scene {
   /** First is the [scene, translate, rotate, scale]. */
   TransformOrientationSlot orientation_slots[4];
 
-  void *sound_scene;
-  void *playback_handle;
-  void *sound_scrub_handle;
-  void *speaker_handles;
-
   /** (runtime) info/cache used for presenting playback frame-rate info to the user. */
   void *fps_info;
 
@@ -2397,8 +2390,6 @@ enum {
   R_LINE_THICKNESS_ABSOLUTE = 1,
   R_LINE_THICKNESS_RELATIVE = 2,
 };
-
-/* Sequencer seq_prev_type seq_rend_type. */
 
 /** #RenderData::engine (scene.cc) */
 extern const char *RE_engine_id_BLENDER_EEVEE;

@@ -7,6 +7,7 @@
 #  include "gpu_shader_compat.hh"
 
 #  include "eevee_common_infos.hh"
+#  include "eevee_uniform_infos.hh"
 #endif
 
 #include "eevee_defines.hh"

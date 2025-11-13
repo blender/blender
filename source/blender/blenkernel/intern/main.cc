@@ -620,18 +620,18 @@ void BKE_main_relations_tag_set(Main *bmain, const eMainIDRelationsEntryTags tag
   BLI_ghashIterator_free(gh_iter);
 }
 
-GSet *BKE_main_gset_create(Main *bmain, GSet *gset)
+blender::Set<const ID *> *BKE_main_set_create(Main *bmain, blender::Set<const ID *> *set)
 {
-  if (gset == nullptr) {
-    gset = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
+  if (set == nullptr) {
+    set = MEM_new<blender::Set<const ID *>>(__func__);
   }
 
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    BLI_gset_add(gset, id);
+    set->add(id);
   }
   FOREACH_MAIN_ID_END;
-  return gset;
+  return set;
 }
 
 /* Utils for ID's library weak reference API. */

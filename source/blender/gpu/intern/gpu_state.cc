@@ -116,11 +116,6 @@ void GPU_depth_mask(bool depth)
   state.write_mask = write_mask;
 }
 
-void GPU_shadow_offset(bool enable)
-{
-  SET_IMMUTABLE_STATE(shadow_bias, enable);
-}
-
 void GPU_clip_distances(int distances_enabled)
 {
   SET_IMMUTABLE_STATE(clip_distances, distances_enabled);
@@ -155,13 +150,6 @@ void GPU_clip_control_unit_range(bool enable)
 /* -------------------------------------------------------------------- */
 /** \name Mutable State Setters
  * \{ */
-
-void GPU_depth_range(float near, float far)
-{
-  StateManager *stack = Context::get()->state_manager;
-  auto &state = stack->mutable_state;
-  copy_v2_fl2(state.depth_range, near, far);
-}
 
 void GPU_line_width(float width)
 {
@@ -367,14 +355,11 @@ StateManager::StateManager()
   state.provoking_vert = GPU_VERTEX_LAST;
   state.logic_op_xor = false;
   state.invert_facing = false;
-  state.shadow_bias = false;
   state.clip_distances = 0;
   state.clip_control = false;
   state.polygon_smooth = false;
   state.line_smooth = false;
 
-  mutable_state.depth_range[0] = 0.0f;
-  mutable_state.depth_range[1] = 1.0f;
   mutable_state.point_size = -1.0f; /* Negative is not using point size. */
   mutable_state.line_width = 1.0f;
   mutable_state.stencil_write_mask = 0x00;

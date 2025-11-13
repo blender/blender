@@ -116,7 +116,7 @@ class CropOperation : public NodeOperation {
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input_image.unbind_as_texture();
     output_image.unbind_as_image();
@@ -133,13 +133,13 @@ class CropOperation : public NodeOperation {
     Result &output = this->get_result("Image");
     output.allocate_texture(domain);
 
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       /* The lower bound is inclusive and upper bound is exclusive. */
       bool is_inside = texel.x >= bounds.min.x && texel.y >= bounds.min.y &&
                        texel.x < bounds.max.x && texel.y < bounds.max.y;
       /* Write the pixel color if it is inside the cropping region, otherwise, write zero. */
-      float4 color = is_inside ? input.load_pixel<float4>(texel) : float4(0.0f);
-      output.store_pixel(texel, color);
+      float4 color = is_inside ? float4(input.load_pixel<Color>(texel)) : float4(0.0f);
+      output.store_pixel(texel, Color(color));
     });
   }
 
@@ -190,7 +190,7 @@ class CropOperation : public NodeOperation {
     output.allocate_texture(Domain(size, this->compute_domain().transformation));
 
     parallel_for(size, [&](const int2 texel) {
-      output.store_pixel(texel, input.load_pixel<float4>(texel + bounds.min));
+      output.store_pixel(texel, input.load_pixel<Color>(texel + bounds.min));
     });
   }
 
@@ -204,7 +204,7 @@ class CropOperation : public NodeOperation {
     }
 
     const Bounds<int2> bounds = this->compute_cropping_bounds();
-    const int2 input_size = input.domain().size;
+    const int2 input_size = input.domain().data_size;
     /* The cropping bounds cover the whole image, so no cropping happens. */
     if (bounds.min == int2(0) && bounds.max == input_size) {
       return true;
@@ -215,7 +215,7 @@ class CropOperation : public NodeOperation {
 
   Bounds<int2> compute_cropping_bounds()
   {
-    const int2 input_size = this->get_input("Image").domain().size;
+    const int2 input_size = this->get_input("Image").domain().data_size;
 
     const int x = math::clamp(
         this->get_input("X").get_single_value_default(0), 0, input_size.x - 1);

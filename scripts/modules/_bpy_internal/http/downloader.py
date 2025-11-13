@@ -548,7 +548,11 @@ class BackgroundDownloader:
         self._shutdown_event.set()
 
         # Send the CANCEL message to shut down the background process.
-        self._connection.send(PipeMessage(PipeMsgType.CANCEL, None))
+        try:
+            self._connection.send(PipeMessage(PipeMsgType.CANCEL, None))
+        except BrokenPipeError:
+            # The other side is already shut down, which is fine.
+            pass
 
         # Keep receiving incoming messages, to avoid the background process
         # getting stuck on a send() call.
@@ -832,41 +836,46 @@ def _download_queued_items(
     downloader.periodic_check = periodic_check
     downloader.timeout = options.timeout
 
-    while periodic_check():
-        # Pop an item off the front of the queue.
-        try:
-            queued_download = download_queue.popleft()
-        except IndexError:
-            time.sleep(0.1)
-            continue
+    try:
+        while periodic_check():
+            # Pop an item off the front of the queue.
+            try:
+                queued_download = download_queue.popleft()
+            except IndexError:
+                time.sleep(0.1)
+                continue
 
-        http_req_descr, local_path = queued_download
+            http_req_descr, local_path = queued_download
 
-        # Try and download it.
-        try:
-            downloader.download_to_file(
-                http_req_descr.url,
-                local_path,
-                http_method=http_req_descr.http_method,
-            )
-        except DownloadCancelled:
-            # Can be logged at a lower level, because the caller did the
-            # cancelling, and can log/report things more loudly if necessary.
-            log.debug("download got cancelled: %s", http_req_descr)
-        except HTTPRequestDownloadError as ex:
-            # HTTP errors that were not an explicit cancellation. These are
-            # communicated to the main process via the messaging system, so they
-            # do not need much logging here.
-            log.debug("could not download: %s: %s", http_req_descr, ex)
-        except OSError as ex:
-            # Things like "disk full", "permission denied", shouldn't need a
-            # full stack trace. These are communicated to the main process via
-            # the messaging system, so they do not need much logging here.
-            log.debug("could not download: %s: %s", http_req_descr, ex)
-        except Exception as ex:
-            # Unexpected errors should really be logged here, as they may
-            # indicate bugs (typos, dependencies not found, etc).
-            log.exception("unexpected error downloading %s: %s", http_req_descr, ex)
+            # Try and download it.
+            try:
+                downloader.download_to_file(
+                    http_req_descr.url,
+                    local_path,
+                    http_method=http_req_descr.http_method,
+                )
+            except DownloadCancelled:
+                # Can be logged at a lower level, because the caller did the
+                # cancelling, and can log/report things more loudly if necessary.
+                log.debug("download got cancelled: %s", http_req_descr)
+            except HTTPRequestDownloadError as ex:
+                # HTTP errors that were not an explicit cancellation. These are
+                # communicated to the main process via the messaging system, so they
+                # do not need much logging here.
+                log.debug("could not download: %s: %s", http_req_descr, ex)
+            except OSError as ex:
+                # Things like "disk full", "permission denied", shouldn't need a
+                # full stack trace. These are communicated to the main process via
+                # the messaging system, so they do not need much logging here.
+                log.debug("could not download: %s: %s", http_req_descr, ex)
+            except Exception as ex:
+                # Unexpected errors should really be logged here, as they may
+                # indicate bugs (typos, dependencies not found, etc).
+                log.exception("unexpected error downloading %s: %s", http_req_descr, ex)
+
+    except KeyboardInterrupt:
+        log.warning("Keyboard interrupt received, shutting down the downloader process")
+        do_shutdown.set()
 
     try:
         rx_thread.join(timeout=1.0)

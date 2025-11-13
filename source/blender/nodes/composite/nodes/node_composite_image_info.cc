@@ -57,13 +57,13 @@ class ImageInfoOperation : public NodeOperation {
       const Domain realized_domain =
           RealizeOnDomainOperation::compute_realized_transformation_domain(this->context(),
                                                                            domain);
-      dimensions_result.set_single_value(float2(realized_domain.size));
+      dimensions_result.set_single_value(float2(realized_domain.data_size));
     }
 
     Result &resolution_result = this->get_result("Resolution");
     if (resolution_result.should_compute()) {
       resolution_result.allocate_single_value();
-      resolution_result.set_single_value(float2(domain.size));
+      resolution_result.set_single_value(float2(domain.data_size));
     }
 
     math::AngleRadian rotation;

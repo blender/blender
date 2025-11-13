@@ -47,8 +47,7 @@ class VKBuffer : public NonCopyable {
    */
   bool create(size_t size,
               VkBufferUsageFlags buffer_usage,
-              VkMemoryPropertyFlags required_flags,
-              VkMemoryPropertyFlags preferred_flags,
+              VmaMemoryUsage vma_memory_usage,
               VmaAllocationCreateFlags vma_allocation_flags,
               float priority,
               bool export_memory = false);

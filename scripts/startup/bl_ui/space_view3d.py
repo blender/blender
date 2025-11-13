@@ -6647,11 +6647,9 @@ class VIEW3D_PT_shading_lighting(Panel):
                 split = layout.split(factor=0.95)
                 col = split.column()
 
-                engine = context.scene.render.engine
-                row = col.row()
-                if engine == 'BLENDER_WORKBENCH':
-                    row.prop(shading, "use_studiolight_view_rotation", text="", icon='WORLD', toggle=True)
-                    row = row.row()
+                row = col.row(align=True)
+                row.prop(shading, "use_studiolight_view_rotation", text="", icon='WORLD', toggle=True)
+                row = row.row(align=True)
                 row.prop(shading, "studiolight_rotate_z", text="Rotation")
 
                 col.prop(shading, "studiolight_intensity")

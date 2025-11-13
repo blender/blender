@@ -31,7 +31,15 @@ template<typename T, int Sz> struct VecOp {
   {
     return *reinterpret_cast<const T *>(this);
   }
+  const T &operator[](unsigned int) const
+  {
+    return *reinterpret_cast<const T *>(this);
+  }
   T &operator[](int)
+  {
+    return *reinterpret_cast<T *>(this);
+  }
+  T &operator[](unsigned int)
   {
     return *reinterpret_cast<T *>(this);
   }

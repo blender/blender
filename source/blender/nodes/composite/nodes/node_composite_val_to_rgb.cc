@@ -17,6 +17,8 @@
 
 #include "GPU_material.hh"
 
+#include "COM_result.hh"
+
 #include "node_composite_util.hh"
 
 namespace blender::nodes::node_composite_rgb_to_bw_cc {
@@ -43,16 +45,23 @@ static int node_gpu_material(GPUMaterial *material,
       material, node, "color_to_luminance", inputs, outputs, GPU_constant(luminance_coefficients));
 }
 
+using blender::compositor::Color;
+
+static float color_to_luminance(const float4 &color, const float3 &luminance_coefficients)
+{
+  return math::dot(color.xyz(), luminance_coefficients);
+}
+
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
   float3 luminance_coefficients;
   IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
 
   builder.construct_and_set_matching_fn_cb([=]() {
-    return mf::build::SI1_SO<float4, float>(
+    return mf::build::SI1_SO<Color, float>(
         "RGB to BW",
-        [=](const float4 &color) -> float {
-          return math::dot(color.xyz(), luminance_coefficients);
+        [=](const Color &color) -> float {
+          return color_to_luminance(float4(color), luminance_coefficients);
         },
         mf::build::exec_presets::AllSpanOrSingle());
   });

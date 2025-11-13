@@ -172,7 +172,6 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node)
   for (sock = (bNodeSocket *)node->outputs.first; sock; sock = sock_next, sock_index++) {
     sock_next = sock->next;
     if (BLI_linklist_index(available_sockets.list, sock) >= 0) {
-      sock->flag &= ~SOCK_HIDDEN;
       blender::bke::node_set_socket_availability(*ntree, *sock, true);
     }
     else {

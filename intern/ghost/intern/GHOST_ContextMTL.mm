@@ -218,6 +218,12 @@ void GHOST_ContextMTL::metalRegisterPresentCallback(void (*callback)(
   this->contextPresentCallback = callback;
 }
 
+void GHOST_ContextMTL::metalRegisterXrBlitCallback(
+    void (*callback)(id<MTLTexture>, int, int, int, int))
+{
+  this->xrBlitCallback = callback;
+}
+
 GHOST_TSuccess GHOST_ContextMTL::initializeDrawingContext()
 {
   @autoreleasepool {

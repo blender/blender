@@ -60,15 +60,15 @@ float4 attr_load_color(CurvesPoint point, samplerBuffer cd_buf, int index)
 {
   return texelFetch(cd_buf, point.curve_id).rgba;
 }
-float4 attr_load_vec4(CurvesPoint point, samplerBuffer cd_buf, int index)
+float4 attr_load_float4(CurvesPoint point, samplerBuffer cd_buf, int index)
 {
   return texelFetch(cd_buf, curves_attribute_element_id(point, index)).rgba;
 }
-float3 attr_load_vec3(CurvesPoint point, samplerBuffer cd_buf, int index)
+float3 attr_load_float3(CurvesPoint point, samplerBuffer cd_buf, int index)
 {
   return texelFetch(cd_buf, curves_attribute_element_id(point, index)).rgb;
 }
-float2 attr_load_vec2(CurvesPoint point, samplerBuffer cd_buf, int index)
+float2 attr_load_float2(CurvesPoint point, samplerBuffer cd_buf, int index)
 {
   return texelFetch(cd_buf, curves_attribute_element_id(point, index)).rg;
 }

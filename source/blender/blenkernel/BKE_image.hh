@@ -11,11 +11,13 @@
 #include "BLI_mutex.hh"
 
 #include <cstdint>
+#include <limits>
 #include <optional>
 
 namespace blender::gpu {
 class Texture;
 }  // namespace blender::gpu
+using GPUTexture = blender::gpu::Texture;
 
 namespace blender::ocio {
 class ColorSpace;
@@ -35,6 +37,7 @@ struct ImbFormatOptions;
 struct Library;
 struct ListBase;
 struct Main;
+struct MovieCache;
 struct Object;
 struct PartialUpdateRegister;
 struct PartialUpdateUser;
@@ -47,12 +50,32 @@ struct StampData;
 #define IMA_MAX_SPACE 64
 #define IMA_UDIM_MAX 2000
 
+/* Image gpu runtime defaults */
+constexpr int IMAGE_GPU_FRAME_NONE = std::numeric_limits<int>::max();
+constexpr int IMAGE_GPU_PASS_NONE = std::numeric_limits<short>::max();
+constexpr int IMAGE_GPU_LAYER_NONE = std::numeric_limits<short>::max();
+constexpr int IMAGE_GPU_VIEW_NONE = std::numeric_limits<short>::max();
+
 namespace blender::bke {
 
 struct ImageRuntime {
   /* Mutex used to guarantee thread-safe access to the cached ImBuf of the corresponding image ID.
    */
   Mutex cache_mutex;
+
+  MovieCache *cache = nullptr;
+
+  /* The 2 is for the left/right stereo eyes. */
+  GPUTexture *gputexture[/*TEXTARGET_COUNT*/ 3][2] = {};
+
+  /* GPU texture flag. */
+  int gpuframenr = IMAGE_GPU_FRAME_NONE;
+  short gpuflag = 0;
+  short gpu_pass = IMAGE_GPU_PASS_NONE;
+  short gpu_layer = IMAGE_GPU_LAYER_NONE;
+  short gpu_view = IMAGE_GPU_VIEW_NONE;
+
+  int lastused = 0;
 
   /** Register containing partial updates. */
   PartialUpdateRegister *partial_update_register = nullptr;

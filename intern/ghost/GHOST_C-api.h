@@ -228,8 +228,7 @@ extern GHOST_TSuccess GHOST_DisposeWindow(GHOST_SystemHandle systemhandle,
  */
 extern bool GHOST_ValidWindow(GHOST_SystemHandle systemhandle, GHOST_WindowHandle windowhandle);
 
-/*
- **
+/**
  * Returns high dynamic range color information about this window.
  * \return HDR info.
  */
@@ -589,7 +588,7 @@ extern char *GHOST_GetTitle(GHOST_WindowHandle windowhandle);
  * \param filepath: The file directory.
  * \return Indication if the backend implements file associated with window.
  */
-extern GHOST_TSuccess GHOST_SetPath(GHOST_WindowHandle windowhandle, const char *filepath);
+extern void GHOST_SetPath(GHOST_WindowHandle windowhandle, const char *filepath);
 
 /**
  * Return the current window decoration style flags.

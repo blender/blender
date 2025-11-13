@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup bke
+ * \ingroup sequencer
  */
 
 #include <algorithm>
@@ -46,7 +46,6 @@
 
 #include "multiview.hh"
 #include "proxy.hh"
-#include "sequencer.hh"
 #include "utils.hh"
 
 namespace blender::seq {

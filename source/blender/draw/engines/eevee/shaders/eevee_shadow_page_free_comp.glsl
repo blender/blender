@@ -10,7 +10,7 @@
  * Note that we also count the number of new page allocations needed.
  */
 
-#include "infos/eevee_shadow_infos.hh"
+#include "infos/eevee_shadow_pipeline_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(eevee_shadow_page_free)
 
@@ -49,7 +49,7 @@ void main()
       }
       else {
         if (tile.is_allocated) {
-          shadow_page_cache_append(tile, tile_index);
+          shadow_page_cache_append(tile, uint(tile_index));
         }
       }
 

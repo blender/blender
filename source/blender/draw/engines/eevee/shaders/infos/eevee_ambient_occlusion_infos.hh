@@ -8,6 +8,7 @@
 
 #  include "draw_view_infos.hh"
 #  include "eevee_common_infos.hh"
+#  include "eevee_sampling_infos.hh"
 
 #  define HORIZON_OCCLUSION
 #endif

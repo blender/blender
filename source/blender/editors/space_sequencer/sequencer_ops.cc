@@ -6,8 +6,6 @@
  * \ingroup spseq
  */
 
-#include <cstdlib>
-
 #include "DNA_space_types.h"
 
 #include "WM_api.hh"

@@ -241,7 +241,7 @@ static int rna_Image_gl_touch(
 
   BKE_image_tag_time(image);
 
-  if (image->gputexture[TEXTARGET_2D][0] == nullptr) {
+  if (image->runtime->gputexture[TEXTARGET_2D][0] == nullptr) {
     error = rna_Image_gl_load(image, reports, frame, layer_index, pass_index);
   }
 

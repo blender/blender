@@ -130,6 +130,10 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   int last_tot_items_ = 0;
 
   bool scroll_active_into_view_on_draw_ = false;
+  std::shared_ptr<char> show_display_options_ = std::make_shared<char>(0);
+  /* `char[UI_MAX_NAME_STR]` wrapped in shared pointer, to keep a stable pointer over
+   * reconstruction that can be passed to buttons. */
+  std::shared_ptr<char[]> search_string_{new char[256 /*UI_MAX_NAME_STR*/]{}};
 
   friend class AbstractTreeViewItem;
   friend class TreeViewBuilder;
@@ -279,6 +283,8 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
 
   int count_parents() const;
 
+  void on_filter() override;
+
  protected:
   /** See AbstractViewItem::get_rename_string(). */
   /* virtual */ StringRef get_rename_string() const override;
@@ -427,7 +433,6 @@ class TreeViewBuilder {
   static void build_tree_view(const bContext &C,
                               AbstractTreeView &tree_view,
                               uiLayout &layout,
-                              std::optional<StringRef> search_string = {},
                               bool add_box = true);
 
  private:

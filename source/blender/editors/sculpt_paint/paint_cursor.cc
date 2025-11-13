@@ -1071,15 +1071,15 @@ static void paint_cursor_update_unprojected_size(Paint &paint,
     }
 
     /* Convert brush radius from 2D to 3D. */
-    float unprojected_size = paint_calc_object_space_radius(vc, location, projected_radius);
+    float unprojected_radius = paint_calc_object_space_radius(vc, location, projected_radius);
 
     /* Scale 3D brush radius by pressure. */
     if (paint_runtime.stroke_active && BKE_brush_use_size_pressure(&brush)) {
-      unprojected_size *= paint_runtime.size_pressure_value;
+      unprojected_radius *= paint_runtime.size_pressure_value;
     }
 
     /* Set cached value in either Brush or UnifiedPaintSettings. */
-    BKE_brush_unprojected_size_set(&paint, &brush, unprojected_size);
+    BKE_brush_unprojected_size_set(&paint, &brush, unprojected_radius * 2.0f);
   }
 }
 
@@ -1476,7 +1476,7 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext &pcon
   paint_cursor_update_pixel_radius(pcontext);
 
   if (BKE_brush_use_locked_size(pcontext.paint, &brush)) {
-    BKE_brush_size_set(pcontext.paint, &brush, pcontext.pixel_radius);
+    BKE_brush_size_set(pcontext.paint, &brush, pcontext.pixel_radius * 2.0f);
   }
 
   if (pcontext.is_cursor_over_mesh) {

@@ -397,7 +397,7 @@ if(DEFINED LIBDIR)
     ${SYCL_ROOT_DIR}/lib/libur_*.so
     ${SYCL_ROOT_DIR}/lib/libur_*.so.*
   )
-  list(FILTER _sycl_runtime_libraries EXCLUDE REGEX ".*\.py")
+  list(FILTER _sycl_runtime_libraries EXCLUDE REGEX "\\.py$")
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
   unset(_sycl_runtime_libraries)
 endif()

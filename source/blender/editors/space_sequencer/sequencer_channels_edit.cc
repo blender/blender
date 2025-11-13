@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup sequencer
+ * \ingroup spseq
  */
 
 #include "DNA_screen_types.h"
@@ -17,7 +17,6 @@
 
 #include "WM_api.hh"
 
-/* Own include. */
 #include "sequencer_intern.hh"
 
 namespace blender::ed::vse {

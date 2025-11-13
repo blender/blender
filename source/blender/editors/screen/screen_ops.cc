@@ -47,7 +47,7 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
-#include "BKE_sound.h"
+#include "BKE_sound.hh"
 #include "BKE_workspace.hh"
 
 #include "WM_api.hh"
@@ -699,8 +699,11 @@ bool ED_operator_editfont(bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
   if (obedit && obedit->type == OB_FONT) {
-    return nullptr != ((Curve *)obedit->data)->editfont;
+    if (((Curve *)obedit->data)->editfont) {
+      return true;
+    }
   }
+  CTX_wm_operator_poll_msg_set(C, "expected an active edit-font object");
   return false;
 }
 
@@ -1729,6 +1732,7 @@ struct sAreaMoveData {
   eScreenAxis dir_axis;
   AreaMoveSnapType snap_type;
   bScreen *screen;
+  ScrArea *area1, *area2;
   double start_time;
   double end_time;
   wmWindow *win;
@@ -1856,6 +1860,7 @@ static bool area_move_init(bContext *C, wmOperator *op)
   /* required properties */
   int x = RNA_int_get(op->ptr, "x");
   int y = RNA_int_get(op->ptr, "y");
+  bool snap_prop = RNA_boolean_get(op->ptr, "snap");
 
   /* setup */
   ScrEdge *actedge = screen_geom_find_active_scredge(win, screen, x, y);
@@ -1874,6 +1879,9 @@ static bool area_move_init(bContext *C, wmOperator *op)
 
   sAreaMoveData *md = MEM_callocN<sAreaMoveData>("sAreaMoveData");
   op->customdata = md;
+
+  const int xy[2] = {x, y};
+  screen_area_edge_from_cursor(C, xy, &md->area1, &md->area2);
 
   md->dir_axis = screen_geom_edge_is_horizontal(actedge) ? SCREEN_AXIS_H : SCREEN_AXIS_V;
   if (md->dir_axis == SCREEN_AXIS_H) {
@@ -1894,8 +1902,14 @@ static bool area_move_init(bContext *C, wmOperator *op)
   area_move_set_limits(
       win, screen, md->dir_axis, &md->bigger, &md->smaller, &use_bigger_smaller_snap);
 
-  md->snap_type = use_bigger_smaller_snap ? SNAP_BIGGER_SMALLER_ONLY : SNAP_AREAGRID;
+  if (snap_prop) {
+    md->snap_type = SNAP_FRACTION_AND_ADJACENT;
+  }
+  else {
+    md->snap_type = use_bigger_smaller_snap ? SNAP_BIGGER_SMALLER_ONLY : SNAP_AREAGRID;
+  }
 
+  md->win = win;
   md->screen = screen;
   md->start_time = BLI_time_now_seconds();
   md->end_time = md->start_time + AREA_MOVE_LINE_FADEIN;
@@ -1904,27 +1918,21 @@ static bool area_move_init(bContext *C, wmOperator *op)
   return true;
 }
 
-static int area_snap_calc_location(const bScreen *screen,
-                                   const enum AreaMoveSnapType snap_type,
-                                   const int delta,
-                                   const int origval,
-                                   const eScreenAxis dir_axis,
-                                   const int bigger,
-                                   const int smaller)
+static int area_snap_calc_location(sAreaMoveData *md, const int delta)
 {
-  BLI_assert(snap_type != SNAP_NONE);
+  BLI_assert(md->snap_type != SNAP_NONE);
   int m_cursor_final = -1;
-  const int m_cursor = origval + delta;
-  const int m_span = float(bigger + smaller);
-  const int m_min = origval - smaller;
+  const int m_cursor = md->origval + delta;
+  const int m_span = float(md->bigger + md->smaller);
+  const int m_min = md->origval - md->smaller;
   // const int axis_max = axis_min + m_span;
 
-  switch (snap_type) {
+  switch (md->snap_type) {
     case SNAP_AREAGRID: {
       m_cursor_final = m_cursor;
-      if (!ELEM(delta, bigger, -smaller)) {
+      if (!ELEM(delta, md->bigger, -md->smaller)) {
         m_cursor_final -= (m_cursor % AREAGRID);
-        CLAMP(m_cursor_final, origval - smaller, origval + bigger);
+        CLAMP(m_cursor_final, md->origval - md->smaller, md->origval + md->bigger);
       }
 
       /* Slight snap to vertical minimum and maximum. */
@@ -1932,37 +1940,55 @@ static int area_snap_calc_location(const bScreen *screen,
       if (m_cursor_final < (m_min + snap_threshold)) {
         m_cursor_final = m_min;
       }
-      else if (m_cursor_final > (origval + bigger - snap_threshold)) {
-        m_cursor_final = origval + bigger;
+      else if (m_cursor_final > (md->origval + md->bigger - snap_threshold)) {
+        m_cursor_final = md->origval + md->bigger;
       }
     } break;
 
     case SNAP_BIGGER_SMALLER_ONLY:
-      m_cursor_final = (m_cursor >= bigger) ? bigger : smaller;
+      m_cursor_final = (m_cursor >= md->bigger) ? md->bigger : md->smaller;
       break;
 
     case SNAP_FRACTION_AND_ADJACENT: {
-      const int axis = (dir_axis == SCREEN_AXIS_V) ? 0 : 1;
+      const int axis = (md->dir_axis == SCREEN_AXIS_V) ? 0 : 1;
       int snap_dist_best = INT_MAX;
       {
-        const float div_array[] = {
-            0.0f,
-            1.0f / 12.0f,
-            2.0f / 12.0f,
-            3.0f / 12.0f,
-            4.0f / 12.0f,
-            5.0f / 12.0f,
-            6.0f / 12.0f,
-            7.0f / 12.0f,
-            8.0f / 12.0f,
-            9.0f / 12.0f,
-            10.0f / 12.0f,
-            11.0f / 12.0f,
-            1.0f,
-        };
+        rcti screen_rect;
+        WM_window_screen_rect_calc(md->win, &screen_rect);
+
+        const int screen_size = (md->dir_axis == SCREEN_AXIS_V) ? BLI_rcti_size_x(&screen_rect) :
+                                                                  BLI_rcti_size_y(&screen_rect);
+        const int screen_min = (md->dir_axis == SCREEN_AXIS_V) ? screen_rect.xmin :
+                                                                 screen_rect.ymin;
+
+        /* Number of snap sections between the end-snap points. Minimum is 2, which
+         * results in a single extra position at 50%. Should be even and easily divisible. */
+        const int interior_snap_divisor = 24;
+        /* Minimum snap helps to cull any that are too close to the endpoint snaps. */
+        const int min_snap = int(float(screen_size) / float(interior_snap_divisor) / 4.0f);
+
+        blender::Vector<int> snaps(interior_snap_divisor + 1);
+        snaps[0] = m_min;
+        for (int i = 1; i < interior_snap_divisor; i++) {
+          snaps[i] = (screen_min + round_fl_to_int(screen_size * i / interior_snap_divisor));
+        }
+        snaps[interior_snap_divisor] = (m_min + m_span);
+
         /* Test the snap to the best division. */
-        for (int i = 0; i < ARRAY_SIZE(div_array); i++) {
-          const int m_cursor_test = m_min + round_fl_to_int(m_span * div_array[i]);
+        for (int i = 0; i < snaps.size(); i++) {
+          const int m_cursor_test = snaps[i];
+          if (m_cursor_test < (m_min) ||
+              (m_cursor_test > m_min && m_cursor_test < (m_min + min_snap)))
+          {
+            /* Ignore snaps too close to the minimum snap position. */
+            continue;
+          }
+          if (m_cursor_test > (m_min + m_span) ||
+              (m_cursor_test < (m_min + m_span) && m_cursor_test > (m_min + m_span - min_snap)))
+          {
+            /* Ignore snaps too close to the maximum snap position. */
+            continue;
+          }
           const int snap_dist_test = abs(m_cursor - m_cursor_test);
           if (snap_dist_best >= snap_dist_test) {
             snap_dist_best = snap_dist_test;
@@ -1971,20 +1997,20 @@ static int area_snap_calc_location(const bScreen *screen,
         }
       }
 
-      LISTBASE_FOREACH (const ScrVert *, v1, &screen->vertbase) {
+      LISTBASE_FOREACH (const ScrVert *, v1, &md->screen->vertbase) {
         if (!v1->editflag) {
           continue;
         }
         const int v_loc = (&v1->vec.x)[!axis];
 
-        LISTBASE_FOREACH (const ScrVert *, v2, &screen->vertbase) {
+        LISTBASE_FOREACH (const ScrVert *, v2, &md->screen->vertbase) {
           if (v2->editflag) {
             continue;
           }
           if (v_loc == (&v2->vec.x)[!axis]) {
             const int v_loc2 = (&v2->vec.x)[axis];
             /* Do not snap to the vertices at the ends. */
-            if ((origval - smaller) < v_loc2 && v_loc2 < (origval + bigger)) {
+            if ((md->origval - md->smaller) < v_loc2 && v_loc2 < (md->origval + md->bigger)) {
               const int snap_dist_test = abs(m_cursor - v_loc2);
               if (snap_dist_best >= snap_dist_test) {
                 snap_dist_best = snap_dist_test;
@@ -2000,47 +2026,38 @@ static int area_snap_calc_location(const bScreen *screen,
       break;
   }
 
-  BLI_assert(ELEM(snap_type, SNAP_BIGGER_SMALLER_ONLY) ||
-             IN_RANGE_INCL(m_cursor_final, origval - smaller, origval + bigger));
+  BLI_assert(ELEM(md->snap_type, SNAP_BIGGER_SMALLER_ONLY) ||
+             IN_RANGE_INCL(m_cursor_final, md->origval - md->smaller, md->origval + md->bigger));
 
   return m_cursor_final;
 }
 
-/* moves selected screen edge amount of delta, used by split & move */
-static void area_move_apply_do(bContext *C,
-                               int delta,
-                               const int origval,
-                               const eScreenAxis dir_axis,
-                               const int bigger,
-                               const int smaller,
-                               const enum AreaMoveSnapType snap_type)
+/* Moves selected screen edge amount of delta. */
+static void area_move_apply_do(bContext *C, int delta, sAreaMoveData *md)
 {
   WorkspaceStatus status(C);
   status.item(IFACE_("Confirm"), ICON_MOUSE_LMB);
   status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
-  status.item_bool(IFACE_("Snap"), snap_type == SNAP_FRACTION_AND_ADJACENT, ICON_EVENT_CTRL);
+  status.item_bool(IFACE_("Snap"), md->snap_type == SNAP_FRACTION_AND_ADJACENT, ICON_EVENT_CTRL);
 
-  wmWindow *win = CTX_wm_window(C);
-  bScreen *screen = CTX_wm_screen(C);
   short final_loc = -1;
   bool doredraw = false;
 
-  if (snap_type != SNAP_BIGGER_SMALLER_ONLY) {
-    CLAMP(delta, -smaller, bigger);
+  if (md->snap_type != SNAP_BIGGER_SMALLER_ONLY) {
+    CLAMP(delta, -md->smaller, md->bigger);
   }
 
-  if (snap_type == SNAP_NONE) {
-    final_loc = origval + delta;
+  if (md->snap_type == SNAP_NONE) {
+    final_loc = md->origval + delta;
   }
   else {
-    final_loc = area_snap_calc_location(
-        screen, snap_type, delta, origval, dir_axis, bigger, smaller);
+    final_loc = area_snap_calc_location(md, delta);
   }
 
   BLI_assert(final_loc != -1);
-  short axis = (dir_axis == SCREEN_AXIS_V) ? 0 : 1;
+  short axis = (md->dir_axis == SCREEN_AXIS_V) ? 0 : 1;
 
-  ED_screen_verts_iter(win, screen, v1)
+  ED_screen_verts_iter(md->win, md->screen, v1)
   {
     if (v1->editflag) {
       short oldval = (&v1->vec.x)[axis];
@@ -2057,7 +2074,7 @@ static void area_move_apply_do(bContext *C,
   /* only redraw if we actually moved a screen vert, for AREAGRID */
   if (doredraw) {
     bool redraw_all = false;
-    ED_screen_areas_iter (win, screen, area) {
+    ED_screen_areas_iter (md->win, md->screen, area) {
       if (area->v1->editflag || area->v2->editflag || area->v3->editflag || area->v4->editflag) {
         if (ED_area_is_global(area)) {
           /* Snap to minimum or maximum for global areas. */
@@ -2069,23 +2086,23 @@ static void area_move_apply_do(bContext *C,
             area->global->cur_fixed_height = area->global->size_max;
           }
 
-          screen->do_refresh = true;
+          md->screen->do_refresh = true;
           redraw_all = true;
         }
         ED_area_tag_redraw_no_rebuild(area);
       }
     }
     if (redraw_all) {
-      ED_screen_areas_iter (win, screen, area) {
+      ED_screen_areas_iter (md->win, md->screen, area) {
         ED_area_tag_redraw(area);
       }
     }
 
-    ED_screen_global_areas_sync(win);
+    ED_screen_global_areas_sync(md->win);
 
     WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr); /* redraw everything */
     /* Update preview thumbnail */
-    BKE_icon_changed(screen->id.icon_id);
+    BKE_icon_changed(md->screen->id.icon_id);
   }
 }
 
@@ -2094,7 +2111,7 @@ static void area_move_apply(bContext *C, wmOperator *op)
   sAreaMoveData *md = static_cast<sAreaMoveData *>(op->customdata);
   int delta = RNA_int_get(op->ptr, "delta");
 
-  area_move_apply_do(C, delta, md->origval, md->dir_axis, md->bigger, md->smaller, md->snap_type);
+  area_move_apply_do(C, delta, md);
 }
 
 static void area_move_exit(bContext *C, wmOperator *op)
@@ -2223,6 +2240,8 @@ static wmOperatorStatus area_move_modal(bContext *C, wmOperator *op, const wmEve
 
 static void SCREEN_OT_area_move(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Move Area Edges";
   ot->description = "Move selected area edges";
@@ -2241,6 +2260,9 @@ static void SCREEN_OT_area_move(wmOperatorType *ot)
   RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
   RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
   RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
+
+  prop = RNA_def_boolean(ot->srna, "snap", false, "Snapping", "Enable snapping");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -2288,7 +2310,6 @@ struct sAreaSplitData {
   int bigger, smaller;   /* constraints for moving new edge */
   int delta;             /* delta move edge */
   int origmin, origsize; /* to calculate fac, for property storage */
-  int previewmode;       /* draw preview-line, then split. */
   void *draw_callback;   /* call `screen_draw_split_preview` */
   bool do_snap;
 
@@ -2605,30 +2626,11 @@ static wmOperatorStatus area_split_invoke(bContext *C, wmOperator *op, const wmE
   }
 
   sAreaSplitData *sd = (sAreaSplitData *)op->customdata;
-
-  if (event->type == EVT_ACTIONZONE_AREA) {
-    /* do the split */
-    if (area_split_apply(C, op)) {
-      area_move_set_limits(win, screen, dir_axis, &sd->bigger, &sd->smaller, nullptr);
-
-      /* add temp handler for edge move or cancel */
-      screen_modal_action_begin();
-      WM_event_add_modal_handler(C, op);
-
-      return OPERATOR_RUNNING_MODAL;
-    }
-  }
-  else {
-    sd->previewmode = 1;
-    sd->draw_callback = WM_draw_cb_activate(win, area_split_draw_cb, op);
-    /* add temp handler for edge move or cancel */
-    WM_event_add_modal_handler(C, op);
-    area_split_preview_update_cursor(C, op);
-
-    return OPERATOR_RUNNING_MODAL;
-  }
-
-  return OPERATOR_PASS_THROUGH;
+  sd->draw_callback = WM_draw_cb_activate(win, area_split_draw_cb, op);
+  /* add temp handler for edge move or cancel */
+  WM_event_add_modal_handler(C, op);
+  area_split_preview_update_cursor(C, op);
+  return OPERATOR_RUNNING_MODAL;
 }
 
 /* function to be called outside UI context, or for redo */
@@ -2646,21 +2648,77 @@ static wmOperatorStatus area_split_exec(bContext *C, wmOperator *op)
 
 static void area_split_cancel(bContext *C, wmOperator *op)
 {
-  sAreaSplitData *sd = (sAreaSplitData *)op->customdata;
+  area_split_exit(C, op);
+}
 
-  if (sd->previewmode) {
-    /* pass */
-  }
-  else {
-    if (screen_area_join(C, op->reports, CTX_wm_screen(C), sd->sarea, sd->narea)) {
-      if (CTX_wm_area(C) == sd->narea) {
-        CTX_wm_area_set(C, nullptr);
-        CTX_wm_region_set(C, nullptr);
+static int area_split_snap_calc_location(const bScreen *screen,
+                                         const int delta,
+                                         const int origval,
+                                         const eScreenAxis dir_axis,
+                                         const int bigger,
+                                         const int smaller)
+{
+  int m_cursor_final = -1;
+  const int m_cursor = origval + delta;
+  const int m_span = float(bigger + smaller);
+  const int m_min = origval - smaller;
+
+  const int axis = (dir_axis == SCREEN_AXIS_V) ? 0 : 1;
+  int snap_dist_best = INT_MAX;
+  {
+    const float div_array[] = {
+        0.0f,
+        1.0f / 12.0f,
+        2.0f / 12.0f,
+        3.0f / 12.0f,
+        4.0f / 12.0f,
+        5.0f / 12.0f,
+        6.0f / 12.0f,
+        7.0f / 12.0f,
+        8.0f / 12.0f,
+        9.0f / 12.0f,
+        10.0f / 12.0f,
+        11.0f / 12.0f,
+        1.0f,
+    };
+    /* Test the snap to the best division. */
+    for (int i = 0; i < ARRAY_SIZE(div_array); i++) {
+      const int m_cursor_test = m_min + round_fl_to_int(m_span * div_array[i]);
+      const int snap_dist_test = abs(m_cursor - m_cursor_test);
+      if (snap_dist_best >= snap_dist_test) {
+        snap_dist_best = snap_dist_test;
+        m_cursor_final = m_cursor_test;
       }
-      sd->narea = nullptr;
     }
   }
-  area_split_exit(C, op);
+
+  LISTBASE_FOREACH (const ScrVert *, v1, &screen->vertbase) {
+    if (!v1->editflag) {
+      continue;
+    }
+    const int v_loc = (&v1->vec.x)[!axis];
+
+    LISTBASE_FOREACH (const ScrVert *, v2, &screen->vertbase) {
+      if (v2->editflag) {
+        continue;
+      }
+      if (v_loc == (&v2->vec.x)[!axis]) {
+        const int v_loc2 = (&v2->vec.x)[axis];
+        /* Do not snap to the vertices at the ends. */
+        if ((origval - smaller) < v_loc2 && v_loc2 < (origval + bigger)) {
+          const int snap_dist_test = abs(m_cursor - v_loc2);
+          if (snap_dist_best >= snap_dist_test) {
+            snap_dist_best = snap_dist_test;
+            m_cursor_final = v_loc2;
+          }
+        }
+      }
+    }
+  }
+
+  BLI_assert(IN_RANGE_INCL(m_cursor_final, origval - smaller, origval + bigger));
+
+  return m_cursor_final;
 }
 
 static wmOperatorStatus area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -2675,45 +2733,32 @@ static wmOperatorStatus area_split_modal(bContext *C, wmOperator *op, const wmEv
       update_factor = true;
       break;
 
-    case LEFTMOUSE:
-      if (sd->previewmode) {
-        float inner[4] = {1.0f, 1.0f, 1.0f, 0.1f};
-        float outline[4] = {1.0f, 1.0f, 1.0f, 0.3f};
-        screen_animate_area_highlight(CTX_wm_window(C),
-                                      CTX_wm_screen(C),
-                                      &sd->sarea->totrct,
-                                      inner,
-                                      outline,
-                                      AREA_SPLIT_FADEOUT);
-        area_split_apply(C, op);
-        area_split_exit(C, op);
-        return OPERATOR_FINISHED;
-      }
-      else {
-        if (event->val == KM_RELEASE) { /* mouse up */
-          area_split_exit(C, op);
-          return OPERATOR_FINISHED;
-        }
-      }
+    case LEFTMOUSE: {
+      float inner[4] = {1.0f, 1.0f, 1.0f, 0.1f};
+      float outline[4] = {1.0f, 1.0f, 1.0f, 0.3f};
+      screen_animate_area_highlight(CTX_wm_window(C),
+                                    CTX_wm_screen(C),
+                                    &sd->sarea->totrct,
+                                    inner,
+                                    outline,
+                                    AREA_SPLIT_FADEOUT);
+      area_split_apply(C, op);
+      area_split_exit(C, op);
+      return OPERATOR_FINISHED;
       break;
+    }
 
     case MIDDLEMOUSE:
     case EVT_TABKEY:
-      if (sd->previewmode == 0) {
-        /* pass */
-      }
-      else {
-        if (event->val == KM_PRESS) {
-          if (sd->sarea) {
-            const eScreenAxis dir_axis = eScreenAxis(RNA_property_enum_get(op->ptr, prop_dir));
-            RNA_property_enum_set(
-                op->ptr, prop_dir, (dir_axis == SCREEN_AXIS_V) ? SCREEN_AXIS_H : SCREEN_AXIS_V);
-            area_split_preview_update_cursor(C, op);
-            update_factor = true;
-          }
+      if (event->val == KM_PRESS) {
+        if (sd->sarea) {
+          const eScreenAxis dir_axis = eScreenAxis(RNA_property_enum_get(op->ptr, prop_dir));
+          RNA_property_enum_set(
+              op->ptr, prop_dir, (dir_axis == SCREEN_AXIS_V) ? SCREEN_AXIS_H : SCREEN_AXIS_V);
+          area_split_preview_update_cursor(C, op);
+          update_factor = true;
         }
       }
-
       break;
 
     case RIGHTMOUSE: /* cancel operation */
@@ -2737,70 +2782,44 @@ static wmOperatorStatus area_split_modal(bContext *C, wmOperator *op, const wmEv
     sd->delta = (dir_axis == SCREEN_AXIS_V) ? event->xy[0] - sd->origval :
                                               event->xy[1] - sd->origval;
 
-    if (sd->previewmode == 0) {
-      if (sd->do_snap) {
-        const int snap_loc = area_snap_calc_location(CTX_wm_screen(C),
-                                                     SNAP_FRACTION_AND_ADJACENT,
-                                                     sd->delta,
-                                                     sd->origval,
-                                                     dir_axis,
-                                                     sd->bigger,
-                                                     sd->smaller);
-        sd->delta = snap_loc - sd->origval;
-        area_move_apply_do(C,
-                           sd->delta,
-                           sd->origval,
-                           dir_axis,
-                           sd->bigger,
-                           sd->smaller,
-                           SNAP_FRACTION_AND_ADJACENT);
+    if (sd->sarea) {
+      ED_area_tag_redraw(sd->sarea);
+    }
+
+    area_split_preview_update_cursor(C, op);
+
+    /* area context not set */
+    sd->sarea = BKE_screen_find_area_xy(CTX_wm_screen(C), SPACE_TYPE_ANY, event->xy);
+
+    if (sd->sarea) {
+      ScrArea *area = sd->sarea;
+      if (dir_axis == SCREEN_AXIS_V) {
+        sd->origmin = area->v1->vec.x;
+        sd->origsize = area->v4->vec.x - sd->origmin;
       }
       else {
-        area_move_apply_do(
-            C, sd->delta, sd->origval, dir_axis, sd->bigger, sd->smaller, SNAP_NONE);
+        sd->origmin = area->v1->vec.y;
+        sd->origsize = area->v2->vec.y - sd->origmin;
       }
+
+      if (sd->do_snap) {
+        area->v1->editflag = area->v2->editflag = area->v3->editflag = area->v4->editflag = 1;
+
+        const int snap_loc = area_split_snap_calc_location(CTX_wm_screen(C),
+                                                           sd->delta,
+                                                           sd->origval,
+                                                           dir_axis,
+                                                           sd->origmin + sd->origsize,
+                                                           -sd->origmin);
+
+        area->v1->editflag = area->v2->editflag = area->v3->editflag = area->v4->editflag = 0;
+        sd->delta = snap_loc - sd->origval;
+      }
+
+      ED_area_tag_redraw(sd->sarea);
     }
-    else {
-      if (sd->sarea) {
-        ED_area_tag_redraw(sd->sarea);
-      }
 
-      area_split_preview_update_cursor(C, op);
-
-      /* area context not set */
-      sd->sarea = BKE_screen_find_area_xy(CTX_wm_screen(C), SPACE_TYPE_ANY, event->xy);
-
-      if (sd->sarea) {
-        ScrArea *area = sd->sarea;
-        if (dir_axis == SCREEN_AXIS_V) {
-          sd->origmin = area->v1->vec.x;
-          sd->origsize = area->v4->vec.x - sd->origmin;
-        }
-        else {
-          sd->origmin = area->v1->vec.y;
-          sd->origsize = area->v2->vec.y - sd->origmin;
-        }
-
-        if (sd->do_snap) {
-          area->v1->editflag = area->v2->editflag = area->v3->editflag = area->v4->editflag = 1;
-
-          const int snap_loc = area_snap_calc_location(CTX_wm_screen(C),
-                                                       SNAP_FRACTION_AND_ADJACENT,
-                                                       sd->delta,
-                                                       sd->origval,
-                                                       dir_axis,
-                                                       sd->origmin + sd->origsize,
-                                                       -sd->origmin);
-
-          area->v1->editflag = area->v2->editflag = area->v3->editflag = area->v4->editflag = 0;
-          sd->delta = snap_loc - sd->origval;
-        }
-
-        ED_area_tag_redraw(sd->sarea);
-      }
-
-      CTX_wm_screen(C)->do_draw = true;
-    }
+    CTX_wm_screen(C)->do_draw = true;
 
     float fac = float(sd->delta + sd->origval - sd->origmin) / sd->origsize;
     RNA_float_set(op->ptr, "factor", fac);
@@ -3372,8 +3391,12 @@ static void SCREEN_OT_frame_jump(wmOperatorType *ot)
 /* function to be called outside UI context, or for redo */
 static wmOperatorStatus frame_jump_delta_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_wm_space_seq(C) != nullptr ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
   const bool backward = RNA_boolean_get(op->ptr, "backward");
+
+  if (scene == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
 
   float delta = scene->r.time_jump_delta;
 
@@ -3381,7 +3404,7 @@ static wmOperatorStatus frame_jump_delta_exec(bContext *C, wmOperator *op)
     delta *= scene->r.frs_sec / scene->r.frs_sec_base;
   }
 
-  int step = (int)delta;
+  int step = int(delta);
   float fraction = delta - step;
   if (backward) {
     scene->r.cfra -= step;
@@ -3395,12 +3418,13 @@ static wmOperatorStatus frame_jump_delta_exec(bContext *C, wmOperator *op)
   /* Check if subframe has a non-fractional component, and roll that into cfra. */
   if (scene->r.subframe < 0.0f || scene->r.subframe >= 1.0f) {
     const float subframe_offset = floorf(scene->r.subframe);
-    const int frame_offset = (int)subframe_offset;
+    const int frame_offset = int(subframe_offset);
     scene->r.cfra += frame_offset;
     scene->r.subframe -= subframe_offset;
   }
 
   ED_areas_do_frame_follow(C, true);
+  blender::ed::vse::sync_active_scene_and_time_with_scene_strip(*C);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
 
@@ -3466,10 +3490,9 @@ static void keylist_from_graph_editor(bContext &C, AnimKeylist &keylist)
 }
 
 /* This is used for all editors where a more specific function isn't implemented. */
-static void keylist_fallback_for_keyframe_jump(bContext &C, AnimKeylist &keylist)
+static void keylist_fallback_for_keyframe_jump(bContext &C, Scene *scene, AnimKeylist &keylist)
 {
   bDopeSheet ads = {nullptr};
-  Scene *scene = CTX_data_scene(&C);
 
   /* Speed up dummy dope-sheet context with flags to perform necessary filtering. */
   if ((scene->flag & SCE_KEYS_NO_SELONLY) == 0) {
@@ -3479,6 +3502,12 @@ static void keylist_fallback_for_keyframe_jump(bContext &C, AnimKeylist &keylist
 
   /* populate tree with keyframe nodes */
   scene_to_keylist(&ads, scene, &keylist, 0, {-FLT_MAX, FLT_MAX});
+
+  /* Return early when invoked from sequencer with sequencer scene. Objects may belong to different
+   * scenes and are irrelevant. */
+  if (CTX_wm_space_seq(&C) != nullptr && scene == CTX_data_sequencer_scene(&C)) {
+    return;
+  }
 
   Object *ob = CTX_data_active_object(&C);
   if (ob) {
@@ -3503,7 +3532,7 @@ static void keylist_fallback_for_keyframe_jump(bContext &C, AnimKeylist &keylist
 /* function to be called outside UI context, or for redo */
 static wmOperatorStatus keyframe_jump_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_wm_space_seq(C) != nullptr ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
   const bool next = RNA_boolean_get(op->ptr, "next");
   bool done = false;
 
@@ -3526,7 +3555,7 @@ static wmOperatorStatus keyframe_jump_exec(bContext *C, wmOperator *op)
       break;
 
     default:
-      keylist_fallback_for_keyframe_jump(*C, *keylist);
+      keylist_fallback_for_keyframe_jump(*C, scene, *keylist);
       break;
   }
 
@@ -3574,6 +3603,7 @@ static wmOperatorStatus keyframe_jump_exec(bContext *C, wmOperator *op)
   }
 
   ED_areas_do_frame_follow(C, true);
+  blender::ed::vse::sync_active_scene_and_time_with_scene_strip(*C);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
 

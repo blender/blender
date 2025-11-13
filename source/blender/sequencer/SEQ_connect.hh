@@ -23,7 +23,7 @@ void connections_duplicate(ListBase *connections_dst, ListBase *connections_src)
  * connected.
  */
 bool disconnect(Strip *strip);
-bool disconnect(blender::VectorSet<Strip *> &strip_list);
+bool disconnect(VectorSet<Strip *> &strip_list);
 
 /**
  * Ensure that the strip has only bidirectional connections (expected behavior).
@@ -35,14 +35,14 @@ void cut_one_way_connections(Strip *strip);
  * strips already have will be severed before reconnection.
  */
 void connect(Strip *strip1, Strip *strip2);
-void connect(blender::VectorSet<Strip *> &strip_list);
+void connect(VectorSet<Strip *> &strip_list);
 
 /**
  * Returns a list of strips that the `strip` is connected to.
  * NOTE: This does not include `strip` itself.
  * This list is empty if `strip` is not connected.
  */
-blender::VectorSet<Strip *> connected_strips_get(const Strip *strip);
+VectorSet<Strip *> connected_strips_get(const Strip *strip);
 
 /**
  * Check whether a strip has any connections.
@@ -53,6 +53,6 @@ bool is_strip_connected(const Strip *strip);
  * Check whether the list of strips are a single connection "group", that is, they are all
  * connected to each other and there are no outside connections.
  */
-bool are_strips_connected_together(blender::VectorSet<Strip *> &strip_list);
+bool are_strips_connected_together(VectorSet<Strip *> &strip_list);
 
 }  // namespace blender::seq

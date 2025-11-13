@@ -1358,28 +1358,32 @@ void GLShader::update_program_and_sources(GLSources &stage_sources,
   }
 }
 
-void GLShader::vertex_shader_from_glsl(MutableSpan<StringRefNull> sources)
+void GLShader::vertex_shader_from_glsl(const shader::ShaderCreateInfo & /*info*/,
+                                       MutableSpan<StringRefNull> sources)
 {
   update_program_and_sources(vertex_sources_, sources);
   main_program_->vert_shader = create_shader_stage(
       GL_VERTEX_SHADER, sources, vertex_sources_, *constants);
 }
 
-void GLShader::geometry_shader_from_glsl(MutableSpan<StringRefNull> sources)
+void GLShader::geometry_shader_from_glsl(const shader::ShaderCreateInfo & /*info*/,
+                                         MutableSpan<StringRefNull> sources)
 {
   update_program_and_sources(geometry_sources_, sources);
   main_program_->geom_shader = create_shader_stage(
       GL_GEOMETRY_SHADER, sources, geometry_sources_, *constants);
 }
 
-void GLShader::fragment_shader_from_glsl(MutableSpan<StringRefNull> sources)
+void GLShader::fragment_shader_from_glsl(const shader::ShaderCreateInfo & /*info*/,
+                                         MutableSpan<StringRefNull> sources)
 {
   update_program_and_sources(fragment_sources_, sources);
   main_program_->frag_shader = create_shader_stage(
       GL_FRAGMENT_SHADER, sources, fragment_sources_, *constants);
 }
 
-void GLShader::compute_shader_from_glsl(MutableSpan<StringRefNull> sources)
+void GLShader::compute_shader_from_glsl(const shader::ShaderCreateInfo & /*info*/,
+                                        MutableSpan<StringRefNull> sources)
 {
   update_program_and_sources(compute_sources_, sources);
   main_program_->compute_shader = create_shader_stage(
@@ -1398,7 +1402,7 @@ bool GLShader::finalize(const shader::ShaderCreateInfo *info)
     sources.append("version");
     sources.append("/* Specialization Constants. */\n");
     sources.append(source);
-    geometry_shader_from_glsl(sources);
+    geometry_shader_from_glsl(*info, sources);
   }
 
   if (async_compilation_) {

@@ -167,7 +167,8 @@ PyDoc_STRVAR(
     "The inlined node tree.\n"
     "\n"
     ":type: :class:`bpy.types.NodeTree`\n");
-static PyObject *BPy_InlineShaderNodes_get_node_tree(BPy_InlineShaderNodes *self)
+static PyObject *BPy_InlineShaderNodes_get_node_tree(BPy_InlineShaderNodes *self,
+                                                     void * /*closure*/)
 {
   return pyrna_id_CreatePyObject(blender::id_cast<ID *>(self->inline_node_tree));
 }

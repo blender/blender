@@ -176,7 +176,7 @@ bool imb_savewebp(ImBuf *ibuf, const char *filepath, int /*flags*/)
 
     last_row = (uchar *)(rgb_rect + (size_t(ibuf->y - 1) * size_t(ibuf->x) * 3));
 
-    if (ibuf->foptions.quality == 100.0f) {
+    if (ibuf->foptions.quality == 100) {
       encoded_data_size = WebPEncodeLosslessRGB(
           last_row, ibuf->x, ibuf->y, -3 * ibuf->x, &encoded_data);
     }
@@ -189,7 +189,7 @@ bool imb_savewebp(ImBuf *ibuf, const char *filepath, int /*flags*/)
   else if (bytesperpixel == 4) {
     last_row = ibuf->byte_buffer.data + 4 * size_t(ibuf->y - 1) * size_t(ibuf->x);
 
-    if (ibuf->foptions.quality == 100.0f) {
+    if (ibuf->foptions.quality == 100) {
       encoded_data_size = WebPEncodeLosslessRGBA(
           last_row, ibuf->x, ibuf->y, -4 * ibuf->x, &encoded_data);
     }

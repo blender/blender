@@ -6,9 +6,9 @@
  * \ingroup shader_fx
  */
 
-#include "BKE_shader_fx.h"
+#include "BKE_shader_fx.hh"
 
-#include "FX_shader_types.h"
+#include "FX_shader_types.hh"
 
 void shaderfx_type_init(ShaderFxTypeInfo *types[])
 {

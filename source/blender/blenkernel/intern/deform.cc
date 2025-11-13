@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "BLI_math_base.hh"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_gpencil_legacy_types.h"
@@ -1256,19 +1257,20 @@ static void vgroups_datatransfer_interp(const CustomDataTransferLayerMap *laymap
   }
 }
 
-static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
-                                                                const int mix_mode,
-                                                                const float mix_factor,
-                                                                const float *mix_weights,
-                                                                const bool use_create,
-                                                                const bool use_delete,
-                                                                Object *ob_dst,
-                                                                const Mesh &mesh_src,
-                                                                Mesh &mesh_dst,
-                                                                const bool /*use_dupref_dst*/,
-                                                                const int tolayers,
-                                                                const bool *use_layers_src,
-                                                                const int num_layers_src)
+static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(
+    blender::Vector<CustomDataTransferLayerMap> *r_map,
+    const int mix_mode,
+    const float mix_factor,
+    const float *mix_weights,
+    const bool use_create,
+    const bool use_delete,
+    Object *ob_dst,
+    const Mesh &mesh_src,
+    Mesh &mesh_dst,
+    const bool /*use_dupref_dst*/,
+    const int tolayers,
+    const bool *use_layers_src,
+    const int num_layers_src)
 {
   int idx_src;
   int idx_dst;
@@ -1324,7 +1326,6 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
                                                elem_size,
                                                0,
                                                0,
-                                               0,
                                                vgroups_datatransfer_interp,
                                                nullptr);
         }
@@ -1377,7 +1378,6 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
                                                elem_size,
                                                0,
                                                0,
-                                               0,
                                                vgroups_datatransfer_interp,
                                                nullptr);
         }
@@ -1391,7 +1391,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
   return true;
 }
 
-bool data_transfer_layersmapping_vgroups(ListBase *r_map,
+bool data_transfer_layersmapping_vgroups(blender::Vector<CustomDataTransferLayerMap> *r_map,
                                          const int mix_mode,
                                          const float mix_factor,
                                          const float *mix_weights,
@@ -1497,7 +1497,6 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
                                            idx_src,
                                            idx_dst,
                                            elem_size,
-                                           0,
                                            0,
                                            0,
                                            vgroups_datatransfer_interp,
@@ -1787,6 +1786,44 @@ void gather_deform_verts(const Span<MDeformVert> src,
     dst[dst_i].totweight = src[src_i].totweight;
     dst[dst_i].flag = src[src_i].flag;
   });
+}
+
+MDeformVert mix_deform_verts(const Span<MDeformVert> src,
+                             const Span<int> indices,
+                             const Span<float> weights,
+                             MDeformWeightSet &dw_buffer)
+{
+  BLI_assert(weights.is_empty() || indices.size() == weights.size());
+  MDeformVert dst_dvert{};
+
+  if (indices.size() == 1) {
+    const MDeformVert &src_dvert = src[indices.first()];
+    dst_dvert.dw = MEM_malloc_arrayN<MDeformWeight>(src_dvert.totweight, __func__);
+    std::copy_n(src_dvert.dw, src_dvert.totweight, dst_dvert.dw);
+    dst_dvert.totweight = src_dvert.totweight;
+    return dst_dvert;
+  }
+
+  dw_buffer.clear_and_keep_capacity();
+  BLI_assert(!indices.is_empty());
+  const float src_num_inv = math::rcp(float(indices.size()));
+  for (const int i : indices.index_range()) {
+    const MDeformVert &src_dvert = src[indices[i]];
+    for (const MDeformWeight &src_weight : Span(src_dvert.dw, src_dvert.totweight)) {
+      const int weight_i = dw_buffer.index_of_or_add(MDeformWeight{src_weight.def_nr, 0.0f});
+      const float factor = weights.is_empty() ? src_num_inv : weights[i];
+      const_cast<MDeformWeight &>(dw_buffer[weight_i]).weight += src_weight.weight * factor;
+    }
+  }
+
+  std::sort(const_cast<MDeformWeight *>(dw_buffer.begin()),
+            const_cast<MDeformWeight *>(dw_buffer.end()),
+            [](const auto &a, const auto &b) { return a.def_nr < b.def_nr; });
+
+  dst_dvert.dw = MEM_malloc_arrayN<MDeformWeight>(dw_buffer.size(), __func__);
+  dst_dvert.totweight = dw_buffer.size();
+  std::copy(dw_buffer.begin(), dw_buffer.end(), dst_dvert.dw);
+  return dst_dvert;
 }
 
 }  // namespace blender::bke

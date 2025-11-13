@@ -397,7 +397,7 @@ static void node_foreach_id(ID *id, LibraryForeachIDData *data)
 
   if (ntree->runtime->geometry_nodes_eval_dependencies) {
     for (ID *&id_ref : ntree->runtime->geometry_nodes_eval_dependencies->ids.values()) {
-      BKE_LIB_FOREACHID_PROCESS_ID(data, id_ref, IDWALK_CB_NOP);
+      BKE_LIB_FOREACHID_PROCESS_ID(data, id_ref, IDWALK_CB_HASH_IGNORE);
     }
   }
 }
@@ -3490,12 +3490,10 @@ bNode *node_add_node(const bContext *C,
     node_unique_id(ntree, *node);
   }
   node->ui_order = ntree.all_nodes().size();
-
   idname.copy_utf8_truncated(node->idname);
-  node_set_typeinfo(C, &ntree, node, node_type_find(idname));
 
   BKE_ntree_update_tag_node_new(&ntree, node);
-
+  node_set_typeinfo(C, &ntree, node, node_type_find(idname));
   return node;
 }
 
@@ -4385,7 +4383,8 @@ void node_tree_free_local_node(bNodeTree &ntree, bNode &node)
   node_rebuild_id_vector(ntree);
 }
 
-void node_remove_node(Main *bmain, bNodeTree &ntree, bNode &node, const bool do_id_user)
+void node_remove_node(
+    Main *bmain, bNodeTree &ntree, bNode &node, const bool do_id_user, const bool remove_animation)
 {
   /* This function is not for localized node trees, we do not want
    * do to ID user reference-counting and removal of animation data then. */
@@ -4412,16 +4411,17 @@ void node_remove_node(Main *bmain, bNodeTree &ntree, bNode &node, const bool do_
     }
   }
 
-  /* Remove animation data. */
-  char propname_esc[MAX_IDPROP_NAME * 2];
-  char prefix[MAX_IDPROP_NAME * 2];
+  if (remove_animation) {
+    char propname_esc[MAX_IDPROP_NAME * 2];
+    char prefix[MAX_IDPROP_NAME * 2];
 
-  BLI_str_escape(propname_esc, node.name, sizeof(propname_esc));
-  SNPRINTF_UTF8(prefix, "nodes[\"%s\"]", propname_esc);
+    BLI_str_escape(propname_esc, node.name, sizeof(propname_esc));
+    SNPRINTF_UTF8(prefix, "nodes[\"%s\"]", propname_esc);
 
-  if (BKE_animdata_fix_paths_remove(&ntree.id, prefix)) {
-    if (bmain != nullptr) {
-      DEG_relations_tag_update(bmain);
+    if (BKE_animdata_fix_paths_remove(&ntree.id, prefix)) {
+      if (bmain != nullptr) {
+        DEG_relations_tag_update(bmain);
+      }
     }
   }
 
@@ -4995,7 +4995,14 @@ std::optional<StringRefNull> node_socket_short_label(const bNodeSocket &sock)
 
 StringRefNull node_socket_label(const bNodeSocket &sock)
 {
-  return (sock.label[0] != '\0') ? sock.label : sock.name;
+  /* The node is not explicitly defined. */
+  if (sock.runtime->declaration == nullptr) {
+    return (sock.label[0] != '\0') ? sock.label : sock.name;
+  }
+  if (sock.runtime->declaration->label_fn) {
+    return (*sock.runtime->declaration->label_fn)(sock.owner_node());
+  }
+  return sock.name;
 }
 
 const char *node_socket_translation_context(const bNodeSocket &sock)

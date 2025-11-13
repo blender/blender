@@ -10,6 +10,7 @@
 
 #include "BLI_build_config.h"
 #include "BLI_math_inline.h"
+#include "BLI_sys_types.h"
 
 /* Search the value from LSB to MSB for a set bit. Returns index of this bit. */
 
@@ -21,6 +22,7 @@ MINLINE unsigned int bitscan_forward_uint64(unsigned long long a);
 
 MINLINE int bitscan_forward_clear_i(int *a);
 MINLINE unsigned int bitscan_forward_clear_uint(unsigned int *a);
+MINLINE unsigned int bitscan_forward_clear_uint64(uint64_t *a);
 
 /* Search the value from MSB to LSB for a set bit. Returns index of this bit. */
 

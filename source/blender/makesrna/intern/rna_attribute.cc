@@ -17,6 +17,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
+#include "BKE_grease_pencil.hh"
 
 #include "BLT_translation.hh"
 
@@ -564,12 +565,53 @@ static int rna_Attribute_data_length(PointerRNA *ptr)
   return accessor.domain_size(attr->domain());
 }
 
+/**
+ * We don't know which attribute is changed exactly at this point, so we tag the geometry assuming
+ * any attribute may have changed.
+ */
+static void tag_any_attribute_changed(ID *id)
+{
+  switch (GS(id->name)) {
+    case ID_CV: {
+      Curves *curves = blender::id_cast<Curves *>(id);
+      curves->geometry.wrap().tag_topology_changed();
+      break;
+    }
+    case ID_ME: {
+      Mesh *mesh = blender::id_cast<Mesh *>(id);
+      mesh->tag_topology_changed();
+      break;
+    }
+    case ID_PT: {
+      PointCloud *pointcloud = blender::id_cast<PointCloud *>(id);
+      pointcloud->tag_positions_changed();
+      pointcloud->tag_radii_changed();
+      break;
+    }
+    case ID_GP: {
+      GreasePencil *grease_pencil = blender::id_cast<GreasePencil *>(id);
+      for (GreasePencilDrawingBase *drawing_base : grease_pencil->drawings()) {
+        if (drawing_base->type == GP_DRAWING) {
+          blender::bke::greasepencil::Drawing &drawing =
+              reinterpret_cast<GreasePencilDrawing *>(drawing_base)->wrap();
+          drawing.tag_topology_changed();
+        }
+      }
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+}
+
 static void rna_Attribute_update_data(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
 
   /* cheating way for importers to avoid slow updates */
   if (id->us > 0) {
+    tag_any_attribute_changed(id);
     DEG_id_tag_update(id, 0);
     WM_main_add_notifier(NC_GEOM | ND_DATA, id);
   }
@@ -1588,6 +1630,7 @@ static void rna_def_attribute_bool(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Bool Attribute Value", "Bool value in geometry attribute");
   prop = RNA_def_property(srna, "value", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "b", 0);
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
 }
 
 static void rna_def_attribute_int8(BlenderRNA *brna)
@@ -1620,6 +1663,7 @@ static void rna_def_attribute_int8(BlenderRNA *brna)
       srna, "8-bit Integer Attribute Value", "8-bit value in geometry attribute");
   prop = RNA_def_property(srna, "value", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "i");
+  RNA_def_property_update(prop, 0, "rna_Attribute_update_data");
 }
 
 static void rna_def_attribute_short2(BlenderRNA *brna)

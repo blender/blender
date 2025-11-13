@@ -460,10 +460,6 @@ bool ED_space_image_show_paint(const SpaceImage *sima)
 
 bool ED_space_image_show_mask(const SpaceImage *sima)
 {
-  if (ED_space_image_show_render(sima)) {
-    return false;
-  }
-
   return (sima->mode == SI_MODE_MASK);
 }
 

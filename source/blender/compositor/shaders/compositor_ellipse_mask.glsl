@@ -14,9 +14,9 @@ void main()
 {
   int2 texel = int2(gl_GlobalInvocationID.xy);
 
-  float2 uv = float2(texel) / float2(domain_size - int2(1));
+  float2 uv = float2(texel + data_offset) / float2(display_size - int2(1));
   uv -= location;
-  uv.y *= float(domain_size.y) / float(domain_size.x);
+  uv.y *= float(display_size.y) / float(display_size.x);
   uv = float2x2(cos_angle, -sin_angle, sin_angle, cos_angle) * uv;
   bool is_inside = length(uv / radius) < 1.0f;
 

@@ -24,9 +24,34 @@ namespace blender::nodes::node_fn_integer_math_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Int>("Value");
-  b.add_input<decl::Int>("Value", "Value_001");
-  b.add_input<decl::Int>("Value", "Value_002");
+
+  b.add_input<decl::Int>("Value").label_fn([](bNode node) {
+    switch (node.custom1) {
+      case NODE_INTEGER_MATH_POWER:
+        return IFACE_("Base");
+      default:
+        return IFACE_("Value");
+    }
+  });
+
+  b.add_input<decl::Int>("Value", "Value_001").label_fn([](bNode node) {
+    switch (node.custom1) {
+      case NODE_INTEGER_MATH_MULTIPLY_ADD:
+        return IFACE_("Multiplier");
+      case NODE_INTEGER_MATH_POWER:
+        return IFACE_("Exponent");
+      default:
+        return IFACE_("Value");
+    }
+  });
+  b.add_input<decl::Int>("Value", "Value_002").label_fn([](bNode node) {
+    switch (node.custom1) {
+      case NODE_INTEGER_MATH_MULTIPLY_ADD:
+        return IFACE_("Addend");
+      default:
+        return IFACE_("Value");
+    }
+  });
   b.add_output<decl::Int>("Value");
 };
 
@@ -47,21 +72,6 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
   bke::node_set_socket_availability(*ntree, *sockB, !one_input_ops);
   bke::node_set_socket_availability(*ntree, *sockC, three_input_ops);
-
-  node_sock_label_clear(sockA);
-  node_sock_label_clear(sockB);
-  node_sock_label_clear(sockC);
-  switch (node->custom1) {
-    case NODE_INTEGER_MATH_MULTIPLY_ADD:
-      node_sock_label(sockA, N_("Value"));
-      node_sock_label(sockB, N_("Multiplier"));
-      node_sock_label(sockC, N_("Addend"));
-      break;
-    case NODE_INTEGER_MATH_POWER:
-      node_sock_label(sockA, N_("Base"));
-      node_sock_label(sockB, N_("Exponent"));
-      break;
-  }
 }
 
 class SocketSearchOp {

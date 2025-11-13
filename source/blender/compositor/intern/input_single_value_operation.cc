@@ -70,7 +70,7 @@ void InputSingleValueOperation::execute()
       break;
     }
     case SOCK_RGBA: {
-      const float4 value = input_socket_->default_value_typed<bNodeSocketValueRGBA>()->value;
+      const Color value = input_socket_->default_value_typed<bNodeSocketValueRGBA>()->value;
       result.set_single_value(value);
       break;
     }

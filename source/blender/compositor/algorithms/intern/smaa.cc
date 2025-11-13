@@ -1447,7 +1447,7 @@ static Result detect_edges_gpu(Context &context,
   edges.allocate_texture(input.domain());
   edges.bind_as_image(shader, "edges_img");
 
-  compute_dispatch_threads_at_least(shader, input.domain().size);
+  compute_dispatch_threads_at_least(shader, input.domain().data_size);
 
   GPU_shader_unbind();
   input.unbind_as_texture();
@@ -1466,7 +1466,7 @@ static Result detect_edges_cpu(Context &context,
   Result edges = context.create_result(ResultType::Float2);
   edges.allocate_texture(input.domain());
 
-  const int2 size = input.domain().size;
+  const int2 size = input.domain().data_size;
   parallel_for(size, [&](const int2 texel) {
     const float2 coordinates = (float2(texel) + float2(0.5f)) / float2(size);
 
@@ -1514,11 +1514,11 @@ static Result calculate_blending_weights_gpu(Context &context,
   smaa_precomputed_textures.bind_area_texture(shader, "area_tx");
   smaa_precomputed_textures.bind_search_texture(shader, "search_tx");
 
-  Result weights = context.create_result(ResultType::Color);
+  Result weights = context.create_result(ResultType::Float4);
   weights.allocate_texture(edges.domain());
   weights.bind_as_image(shader, "weights_img");
 
-  compute_dispatch_threads_at_least(shader, edges.domain().size);
+  compute_dispatch_threads_at_least(shader, edges.domain().data_size);
 
   GPU_shader_unbind();
   edges.unbind_as_texture();
@@ -1536,10 +1536,10 @@ static Result calculate_blending_weights_cpu(Context &context,
   const SMAAPrecomputedTextures &smaa_precomputed_textures =
       context.cache_manager().smaa_precomputed_textures.get(context);
 
-  Result weights_result = context.create_result(ResultType::Color);
+  Result weights_result = context.create_result(ResultType::Float4);
   weights_result.allocate_texture(edges.domain());
 
-  const int2 size = edges.domain().size;
+  const int2 size = edges.domain().data_size;
   parallel_for(size, [&](const int2 texel) {
     const float2 coordinates = (float2(texel) + float2(0.5f)) / float2(size);
 
@@ -1606,7 +1606,7 @@ static void blend_neighborhood_gpu(Context &context,
   output.allocate_texture(input.domain());
   output.bind_as_image(shader, "output_img");
 
-  compute_dispatch_threads_at_least(shader, input.domain().size);
+  compute_dispatch_threads_at_least(shader, input.domain().data_size);
 
   GPU_shader_unbind();
   input.unbind_as_texture();
@@ -1618,7 +1618,7 @@ static void blend_neighborhood_cpu(const Result &input, const Result &weights, R
 {
   output.allocate_texture(input.domain());
 
-  const int2 size = input.domain().size;
+  const int2 size = input.domain().data_size;
   parallel_for(size, [&](const int2 texel) {
     const float2 coordinates = (float2(texel) + float2(0.5f)) / float2(size);
 

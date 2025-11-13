@@ -65,7 +65,7 @@ class BokehImageOperation : public NodeOperation {
 
     const Result &bokeh_kernel = this->context().cache_manager().bokeh_kernels.get(
         this->context(),
-        domain.size,
+        domain.data_size,
         this->get_flaps(),
         this->get_angle(),
         this->get_roundness(),

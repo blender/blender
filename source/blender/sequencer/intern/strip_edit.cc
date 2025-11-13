@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup bke
+ * \ingroup sequencer
  */
 
 #include "DNA_scene_types.h"
@@ -18,7 +18,7 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_sound.h"
+#include "BKE_sound.hh"
 
 #include "strip_time.hh"
 
@@ -71,7 +71,7 @@ bool edit_strip_swap(Scene *scene, Strip *strip_a, Strip *strip_b, const char **
     }
   }
 
-  blender::dna::shallow_swap(*strip_a, *strip_b);
+  dna::shallow_swap(*strip_a, *strip_b);
 
   /* swap back names so animation fcurves don't get swapped */
   STRNCPY(name, strip_a->name + 2);
@@ -246,7 +246,7 @@ bool edit_move_strip_to_meta(Scene *scene,
     return false;
   }
 
-  blender::VectorSet<Strip *> strips;
+  VectorSet<Strip *> strips;
   strips.add(src_strip);
   iterator_set_expand(scene, seqbase, strips, query_strip_effect_chain);
 
@@ -254,6 +254,8 @@ bool edit_move_strip_to_meta(Scene *scene,
     /* Move to meta. */
     edit_move_strip_to_seqbase(scene, seqbase, strip, &dst_stripm->seqbase);
   }
+
+  time_update_meta_strip_range(scene, dst_stripm);
 
   return true;
 }
@@ -374,7 +376,7 @@ static bool seq_edit_split_effect_inputs_intersect(const Scene *scene,
 }
 
 static bool seq_edit_split_operation_permitted_check(const Scene *scene,
-                                                     blender::Span<Strip *> strips,
+                                                     Span<Strip *> strips,
                                                      const int timeline_frame,
                                                      const char **r_error)
 {
@@ -393,7 +395,7 @@ static bool seq_edit_split_operation_permitted_check(const Scene *scene,
     if (effect_get_num_inputs(strip->type) <= 1) {
       continue;
     }
-    if (ELEM(strip->type, STRIP_TYPE_CROSS, STRIP_TYPE_GAMCROSS, STRIP_TYPE_WIPE)) {
+    if (effect_is_transition(StripType(strip->type))) {
       *r_error = "Splitting transition effect is not permitted.";
       return false;
     }
@@ -419,7 +421,7 @@ Strip *edit_strip_split(Main *bmain,
   }
 
   /* Whole strip effect chain must be duplicated in order to preserve relationships. */
-  blender::VectorSet<Strip *> strips;
+  VectorSet<Strip *> strips;
   strips.add(strip);
   iterator_set_expand(scene,
                       seqbase,
@@ -442,7 +444,7 @@ Strip *edit_strip_split(Main *bmain,
     BLI_addtail(&left_strips, strip_iter);
 
     if (ignore_connections) {
-      seq::disconnect(strip_iter);
+      disconnect(strip_iter);
     }
 
     /* Duplicate curves from backup, so they can be renamed along with split strips. */

@@ -25,7 +25,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
-#include "BKE_shader_fx.h"
+#include "BKE_shader_fx.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

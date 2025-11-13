@@ -389,6 +389,8 @@ class NukeCameraIntrinsics : public CameraIntrinsics {
   enum {
     OFFSET_K1,
     OFFSET_K2,
+    OFFSET_P1,
+    OFFSET_P2,
 
     // This defines the size of array which we need to have in order
     // to store all the coefficients.
@@ -404,9 +406,14 @@ class NukeCameraIntrinsics : public CameraIntrinsics {
 
   double k1() const { return parameters_[OFFSET_K1]; }
   double k2() const { return parameters_[OFFSET_K2]; }
+  double p1() const { return parameters_[OFFSET_P1]; }
+  double p2() const { return parameters_[OFFSET_P2]; }
 
   // Set radial distortion coeffcients.
-  void SetDistortion(double k1, double k2);
+  void SetRadialDistortion(double k1, double k2);
+
+  // Set tangential distortion coeffcients.
+  void SetTangentialDistortion(double p1, double p2);
 
   // Apply camera intrinsics to the normalized point to get image coordinates.
   //

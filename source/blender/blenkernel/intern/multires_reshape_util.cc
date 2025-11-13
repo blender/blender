@@ -221,7 +221,7 @@ bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape
   reshape_context->top.grid_size = subdiv::grid_size_from_level(reshape_context->top.level);
 
   const bke::AttributeAccessor attributes = base_mesh->attributes();
-  reshape_context->cd_vertex_crease = *attributes.lookup<float>("crease_vert", AttrDomain::Point);
+  reshape_context->cd_vert_crease = *attributes.lookup<float>("crease_vert", AttrDomain::Point);
   reshape_context->cd_edge_crease = *attributes.lookup<float>("crease_edge", AttrDomain::Edge);
 
   context_init_common(reshape_context);
@@ -295,7 +295,7 @@ bool multires_reshape_context_create_from_subdiv(MultiresReshapeContext *reshape
   reshape_context->base_corner_edges = base_mesh->corner_edges();
 
   const bke::AttributeAccessor attributes = base_mesh->attributes();
-  reshape_context->cd_vertex_crease = *attributes.lookup<float>("crease_vert", AttrDomain::Point);
+  reshape_context->cd_vert_crease = *attributes.lookup<float>("crease_vert", AttrDomain::Point);
 
   reshape_context->subdiv = subdiv;
   reshape_context->need_free_subdiv = false;

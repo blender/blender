@@ -24,8 +24,6 @@
 #include "BKE_colortools.hh"
 #include "BKE_screen.hh"
 
-#include "IMB_colormanagement.hh"
-
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
@@ -35,7 +33,6 @@
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
-#include "SEQ_transform.hh"
 #include "SEQ_utils.hh"
 
 #include "UI_interface.hh"
@@ -64,8 +61,8 @@ static bool modifier_has_persistent_uid(const Strip &strip, int uid)
 
 void modifier_persistent_uid_init(const Strip &strip, StripModifierData &smd)
 {
-  uint64_t hash = blender::get_default_hash(blender::StringRef(smd.name));
-  blender::RandomNumberGenerator rng{uint32_t(hash)};
+  uint64_t hash = get_default_hash(StringRef(smd.name));
+  RandomNumberGenerator rng{uint32_t(hash)};
   while (true) {
     const int new_uid = rng.get_int32();
     if (new_uid <= 0) {
@@ -103,13 +100,13 @@ static void modifier_panel_header(const bContext * /*C*/, Panel *panel)
 
   /* Don't use #modifier_panel_get_property_pointers, we don't want to lock the header. */
   PointerRNA *ptr = UI_panel_custom_data_get(panel);
-  StripModifierData *smd = reinterpret_cast<StripModifierData *>(ptr->data);
+  StripModifierData *smd = static_cast<StripModifierData *>(ptr->data);
 
   UI_panel_context_pointer_set(panel, "modifier", ptr);
 
   /* Modifier Icon. */
   sub = &layout->row(true);
-  sub->emboss_set(blender::ui::EmbossType::None);
+  sub->emboss_set(ui::EmbossType::None);
   PointerRNA active_op_ptr = sub->op(
       "SEQUENCER_OT_strip_modifier_set_active", "", RNA_struct_ui_icon(ptr->type));
   RNA_string_set(&active_op_ptr, "modifier", smd->name);
@@ -127,7 +124,7 @@ static void modifier_panel_header(const bContext * /*C*/, Panel *panel)
 
   /* Delete button. */
   sub = &row->row(false);
-  sub->emboss_set(blender::ui::EmbossType::None);
+  sub->emboss_set(ui::EmbossType::None);
   PointerRNA remove_op_ptr = sub->op("SEQUENCER_OT_strip_modifier_remove", "", ICON_X);
   RNA_string_set(&remove_op_ptr, "name", smd->name);
   buttons_number++;
@@ -137,7 +134,7 @@ static void modifier_panel_header(const bContext * /*C*/, Panel *panel)
     name_row->prop(ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
   }
   else {
-    row->alignment_set(blender::ui::LayoutAlign::Right);
+    row->alignment_set(ui::LayoutAlign::Right);
   }
 
   /* Extra padding for delete button. */
@@ -187,29 +184,29 @@ bool modifier_ui_poll(const bContext *C, PanelType * /*pt*/)
 static void modifier_reorder(bContext *C, Panel *panel, const int new_index)
 {
   PointerRNA *smd_ptr = UI_panel_custom_data_get(panel);
-  StripModifierData *smd = reinterpret_cast<StripModifierData *>(smd_ptr->data);
+  StripModifierData *smd = static_cast<StripModifierData *>(smd_ptr->data);
 
   PointerRNA props_ptr;
   wmOperatorType *ot = WM_operatortype_find("SEQUENCER_OT_strip_modifier_move_to_index", false);
   WM_operator_properties_create_ptr(&props_ptr, ot);
   RNA_string_set(&props_ptr, "modifier", smd->name);
   RNA_int_set(&props_ptr, "index", new_index);
-  WM_operator_name_call_ptr(C, ot, blender::wm::OpCallContext::InvokeDefault, &props_ptr, nullptr);
+  WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &props_ptr, nullptr);
   WM_operator_properties_free(&props_ptr);
 }
 
 static short get_strip_modifier_expand_flag(const bContext * /*C*/, Panel *panel)
 {
   PointerRNA *smd_ptr = UI_panel_custom_data_get(panel);
-  StripModifierData *smd = reinterpret_cast<StripModifierData *>(smd_ptr->data);
-  return smd->layout_panel_open_flag;
+  StripModifierData *smd = static_cast<StripModifierData *>(smd_ptr->data);
+  return smd->ui_expand_flag;
 }
 
 static void set_strip_modifier_expand_flag(const bContext * /*C*/, Panel *panel, short expand_flag)
 {
   PointerRNA *smd_ptr = UI_panel_custom_data_get(panel);
-  StripModifierData *smd = reinterpret_cast<StripModifierData *>(smd_ptr->data);
-  smd->layout_panel_open_flag = expand_flag;
+  StripModifierData *smd = static_cast<StripModifierData *>(smd_ptr->data);
+  smd->ui_expand_flag = expand_flag;
 }
 
 PanelType *modifier_panel_register(ARegionType *region_type,
@@ -337,6 +334,7 @@ static void modifier_types_init(StripModifierTypeInfo *types[])
   INIT_TYPE(HueCorrect);
   INIT_TYPE(Mask);
   INIT_TYPE(SoundEqualizer);
+  INIT_TYPE(Pitch);
   INIT_TYPE(Tonemap);
   INIT_TYPE(WhiteBalance);
 #undef INIT_TYPE
@@ -364,7 +362,7 @@ StripModifierData *modifier_new(Strip *strip, const char *name, int type)
 
   smd->type = type;
   smd->flag |= STRIP_MODIFIER_FLAG_EXPANDED;
-  smd->layout_panel_open_flag |= UI_PANEL_DATA_EXPAND_ROOT;
+  smd->ui_expand_flag |= UI_PANEL_DATA_EXPAND_ROOT;
 
   if (!name || !name[0]) {
     STRNCPY_UTF8(smd->name, CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, smti->name));

@@ -154,7 +154,6 @@ void GPU_depth_test(GPUDepthTest test);
 void GPU_stencil_test(GPUStencilTest test);
 void GPU_provoking_vertex(GPUProvokingVertex vert);
 void GPU_front_facing(bool invert);
-void GPU_depth_range(float near, float far);
 void GPU_scissor_test(bool enable);
 void GPU_line_smooth(bool enable);
 /**
@@ -184,7 +183,6 @@ void GPU_write_mask(GPUWriteMask mask);
 void GPU_color_mask(bool r, bool g, bool b, bool a);
 void GPU_depth_mask(bool depth);
 bool GPU_depth_mask_get();
-void GPU_shadow_offset(bool enable);
 void GPU_clip_distances(int distances_enabled);
 bool GPU_mipmap_enabled();
 void GPU_state_set(GPUWriteMask write_mask,

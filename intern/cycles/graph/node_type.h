@@ -88,9 +88,10 @@ struct SocketType {
   ustring ui_name;
   SocketModifiedFlags modified_flag_bit;
 
-  size_t size() const;
+  size_t storage_size() const;
+  size_t packed_size() const;
   bool is_array() const;
-  static size_t size(Type type);
+  static size_t size(Type type, bool packed);
   static size_t max_size();
   static ustring type_name(Type type);
   static void *zero_default_value();

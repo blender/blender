@@ -23,6 +23,7 @@
 #include "BLO_read_write.hh"
 
 #include "BKE_node_socket_value.hh"
+#include "BKE_node_tree_reference_lifetimes.hh"
 
 #include "COM_node_operation.hh"
 #include "COM_result.hh"
@@ -125,8 +126,11 @@ static void node_declare(NodeDeclarationBuilder &b)
   if (supports_fields) {
     output.dependent_field().reference_pass_all();
   }
-  else if (data_type == SOCK_GEOMETRY) {
+  if (bke::node_tree_reference_lifetimes::can_contain_referenced_data(data_type)) {
     output.propagate_all();
+  }
+  if (bke::node_tree_reference_lifetimes::can_contain_reference(data_type)) {
+    output.reference_pass_all();
   }
   output.structure_type(value_structure_type);
 
@@ -161,7 +165,8 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 static void NODE_OT_index_switch_item_add(wmOperatorType *ot)
 {
-  socket_items::ops::add_item<IndexSwitchItemsAccessor>(ot, "Add Item", __func__, "Add bake item");
+  socket_items::ops::add_item<IndexSwitchItemsAccessor>(
+      ot, "Add Item", __func__, "Add an item to the index switch");
 }
 
 static void NODE_OT_index_switch_item_remove(wmOperatorType *ot)
@@ -179,7 +184,7 @@ static void node_operators()
 static void node_init(bNodeTree *tree, bNode *node)
 {
   NodeIndexSwitch *data = MEM_callocN<NodeIndexSwitch>(__func__);
-  data->data_type = tree->type == NTREE_GEOMETRY ? SOCK_GEOMETRY : SOCK_RGBA;
+  data->data_type = tree->type == NTREE_GEOMETRY ? SOCK_FLOAT : SOCK_RGBA;
   data->next_identifier = 0;
 
   BLI_assert(data->items == nullptr);

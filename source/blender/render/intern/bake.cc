@@ -481,8 +481,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *mesh, bool tangent, Mesh *mesh_
   Array<float4> tspace;
   blender::Span<blender::float3> corner_normals;
   if (tangent) {
-    const StringRef active_uv_map = CustomData_get_active_layer_name(&mesh_eval->corner_data,
-                                                                     CD_PROP_FLOAT2);
+    const StringRef active_uv_map = mesh_eval->active_uv_map_name();
     const VArraySpan uv_map = *attributes.lookup<float2>(active_uv_map, bke::AttrDomain::Corner);
     Array<Array<float4>> result = bke::mesh::calc_uv_tangents(positions,
                                                               faces,

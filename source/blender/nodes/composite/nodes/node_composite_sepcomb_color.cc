@@ -12,6 +12,8 @@
 
 #include "GPU_material.hh"
 
+#include "COM_result.hh"
+
 #include "node_composite_util.hh"
 
 static void node_cmp_combsep_color_init(bNodeTree * /*ntree*/, bNode *node)
@@ -20,48 +22,6 @@ static void node_cmp_combsep_color_init(bNodeTree * /*ntree*/, bNode *node)
   data->mode = CMP_NODE_COMBSEP_COLOR_RGB;
   data->ycc_mode = BLI_YCC_ITU_BT709;
   node->storage = data;
-}
-
-static void node_cmp_combsep_color_label(const ListBase *sockets, CMPNodeCombSepColorMode mode)
-{
-  bNodeSocket *sock1 = (bNodeSocket *)sockets->first;
-  bNodeSocket *sock2 = sock1->next;
-  bNodeSocket *sock3 = sock2->next;
-
-  node_sock_label_clear(sock1);
-  node_sock_label_clear(sock2);
-  node_sock_label_clear(sock3);
-
-  switch (mode) {
-    case CMP_NODE_COMBSEP_COLOR_RGB:
-      node_sock_label(sock1, "Red");
-      node_sock_label(sock2, "Green");
-      node_sock_label(sock3, "Blue");
-      break;
-    case CMP_NODE_COMBSEP_COLOR_HSV:
-      node_sock_label(sock1, "Hue");
-      node_sock_label(sock2, "Saturation");
-      node_sock_label(sock3, "Value");
-      break;
-    case CMP_NODE_COMBSEP_COLOR_HSL:
-      node_sock_label(sock1, "Hue");
-      node_sock_label(sock2, "Saturation");
-      node_sock_label(sock3, "Lightness");
-      break;
-    case CMP_NODE_COMBSEP_COLOR_YCC:
-      node_sock_label(sock1, "Y");
-      node_sock_label(sock2, "Cb");
-      node_sock_label(sock3, "Cr");
-      break;
-    case CMP_NODE_COMBSEP_COLOR_YUV:
-      node_sock_label(sock1, "Y");
-      node_sock_label(sock2, "U");
-      node_sock_label(sock3, "V");
-      break;
-    default:
-      BLI_assert_unreachable();
-      break;
-  }
 }
 
 /* **************** SEPARATE COLOR ******************** */
@@ -74,16 +34,49 @@ static void cmp_node_separate_color_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_output<decl::Float>("Red");
-  b.add_output<decl::Float>("Green");
-  b.add_output<decl::Float>("Blue");
+  b.add_output<decl::Float>("Red").label_fn([](bNode node) {
+    switch (node_storage(node).mode) {
+      case CMP_NODE_COMBSEP_COLOR_RGB:
+      default:
+        return IFACE_("Red");
+      case CMP_NODE_COMBSEP_COLOR_HSV:
+      case CMP_NODE_COMBSEP_COLOR_HSL:
+        return IFACE_("Hue");
+      case CMP_NODE_COMBSEP_COLOR_YCC:
+      case CMP_NODE_COMBSEP_COLOR_YUV:
+        return IFACE_("Y");
+    }
+  });
+  b.add_output<decl::Float>("Green").label_fn([](bNode node) {
+    switch (node_storage(node).mode) {
+      case CMP_NODE_COMBSEP_COLOR_RGB:
+      default:
+        return IFACE_("Green");
+      case CMP_NODE_COMBSEP_COLOR_HSV:
+      case CMP_NODE_COMBSEP_COLOR_HSL:
+        return IFACE_("Saturation");
+      case CMP_NODE_COMBSEP_COLOR_YCC:
+        return IFACE_("Cb");
+      case CMP_NODE_COMBSEP_COLOR_YUV:
+        return IFACE_("U");
+    }
+  });
+  b.add_output<decl::Float>("Blue").label_fn([](bNode node) {
+    switch (node_storage(node).mode) {
+      case CMP_NODE_COMBSEP_COLOR_RGB:
+      default:
+        return IFACE_("Blue");
+      case CMP_NODE_COMBSEP_COLOR_HSV:
+        return CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "Value");
+      case CMP_NODE_COMBSEP_COLOR_HSL:
+        return IFACE_("Lightness");
+      case CMP_NODE_COMBSEP_COLOR_YCC:
+        return IFACE_("Cr");
+      case CMP_NODE_COMBSEP_COLOR_YUV:
+        return IFACE_("V");
+    }
+  });
   b.add_output<decl::Float>("Alpha");
-}
-
-static void cmp_node_separate_color_update(bNodeTree * /*ntree*/, bNode *node)
-{
-  const NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)node->storage;
-  node_cmp_combsep_color_label(&node->outputs, (CMPNodeCombSepColorMode)storage->mode);
 }
 
 using namespace blender::compositor;
@@ -121,72 +114,74 @@ static int node_gpu_material(GPUMaterial *material,
   return false;
 }
 
+using blender::compositor::Color;
+
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  static auto rgba_function = mf::build::SI1_SO4<float4, float, float, float, float>(
+  static auto rgba_function = mf::build::SI1_SO4<Color, float, float, float, float>(
       "Separate Color RGBA",
-      [](const float4 &color, float &r, float &g, float &b, float &a) -> void {
-        r = color.x;
-        g = color.y;
-        b = color.z;
-        a = color.w;
+      [](const Color &color, float &r, float &g, float &b, float &a) -> void {
+        r = color.r;
+        g = color.g;
+        b = color.b;
+        a = color.a;
       },
       mf::build::exec_presets::AllSpanOrSingle());
 
-  static auto hsva_function = mf::build::SI1_SO4<float4, float, float, float, float>(
+  static auto hsva_function = mf::build::SI1_SO4<Color, float, float, float, float>(
       "Separate Color HSVA",
-      [](const float4 &color, float &h, float &s, float &v, float &a) -> void {
-        rgb_to_hsv(color.x, color.y, color.z, &h, &s, &v);
-        a = color.w;
+      [](const Color &color, float &h, float &s, float &v, float &a) -> void {
+        rgb_to_hsv(color.r, color.g, color.b, &h, &s, &v);
+        a = color.a;
       },
       mf::build::exec_presets::AllSpanOrSingle());
 
-  static auto hsla_function = mf::build::SI1_SO4<float4, float, float, float, float>(
+  static auto hsla_function = mf::build::SI1_SO4<Color, float, float, float, float>(
       "Separate Color HSLA",
-      [](const float4 &color, float &h, float &s, float &l, float &a) -> void {
-        rgb_to_hsl(color.x, color.y, color.z, &h, &s, &l);
-        a = color.w;
+      [](const Color &color, float &h, float &s, float &l, float &a) -> void {
+        rgb_to_hsl(color.r, color.g, color.b, &h, &s, &l);
+        a = color.a;
       },
       mf::build::exec_presets::AllSpanOrSingle());
 
-  static auto yuva_function = mf::build::SI1_SO4<float4, float, float, float, float>(
+  static auto yuva_function = mf::build::SI1_SO4<Color, float, float, float, float>(
       "Separate Color YUVA",
-      [](const float4 &color, float &y, float &u, float &v, float &a) -> void {
-        rgb_to_yuv(color.x, color.y, color.z, &y, &u, &v, BLI_YUV_ITU_BT709);
-        a = color.w;
+      [](const Color &color, float &y, float &u, float &v, float &a) -> void {
+        rgb_to_yuv(color.r, color.g, color.b, &y, &u, &v, BLI_YUV_ITU_BT709);
+        a = color.a;
       },
       mf::build::exec_presets::AllSpanOrSingle());
 
-  static auto ycca_itu_601_function = mf::build::SI1_SO4<float4, float, float, float, float>(
+  static auto ycca_itu_601_function = mf::build::SI1_SO4<Color, float, float, float, float>(
       "Separate Color YCCA ITU 601",
-      [](const float4 &color, float &y, float &cb, float &cr, float &a) -> void {
-        rgb_to_ycc(color.x, color.y, color.z, &y, &cb, &cr, BLI_YCC_ITU_BT601);
+      [](const Color &color, float &y, float &cb, float &cr, float &a) -> void {
+        rgb_to_ycc(color.r, color.g, color.b, &y, &cb, &cr, BLI_YCC_ITU_BT601);
         y /= 255.0f;
         cb /= 255.0f;
         cr /= 255.0f;
-        a = color.w;
+        a = color.a;
       },
       mf::build::exec_presets::AllSpanOrSingle());
 
-  static auto ycca_itu_709_function = mf::build::SI1_SO4<float4, float, float, float, float>(
+  static auto ycca_itu_709_function = mf::build::SI1_SO4<Color, float, float, float, float>(
       "Separate Color YCCA ITU 709",
-      [](const float4 &color, float &y, float &cb, float &cr, float &a) -> void {
-        rgb_to_ycc(color.x, color.y, color.z, &y, &cb, &cr, BLI_YCC_ITU_BT709);
+      [](const Color &color, float &y, float &cb, float &cr, float &a) -> void {
+        rgb_to_ycc(color.r, color.g, color.b, &y, &cb, &cr, BLI_YCC_ITU_BT709);
         y /= 255.0f;
         cb /= 255.0f;
         cr /= 255.0f;
-        a = color.w;
+        a = color.a;
       },
       mf::build::exec_presets::AllSpanOrSingle());
 
-  static auto ycca_jpeg_function = mf::build::SI1_SO4<float4, float, float, float, float>(
+  static auto ycca_jpeg_function = mf::build::SI1_SO4<Color, float, float, float, float>(
       "Separate Color YCCA JPEG",
-      [](const float4 &color, float &y, float &cb, float &cr, float &a) -> void {
-        rgb_to_ycc(color.x, color.y, color.z, &y, &cb, &cr, BLI_YCC_JFIF_0_255);
+      [](const Color &color, float &y, float &cb, float &cr, float &a) -> void {
+        rgb_to_ycc(color.r, color.g, color.b, &y, &cb, &cr, BLI_YCC_JFIF_0_255);
         y /= 255.0f;
         cb /= 255.0f;
         cr /= 255.0f;
-        a = color.w;
+        a = color.a;
       },
       mf::build::exec_presets::AllSpanOrSingle());
 
@@ -235,7 +230,6 @@ static void register_node_type_cmp_separate_color()
   ntype.initfunc = node_cmp_combsep_color_init;
   blender::bke::node_type_storage(
       ntype, "NodeCMPCombSepColor", node_free_standard_storage, node_copy_standard_storage);
-  ntype.updatefunc = file_ns::cmp_node_separate_color_update;
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 
@@ -252,17 +246,65 @@ NODE_STORAGE_FUNCS(NodeCMPCombSepColor)
 static void cmp_node_combine_color_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("Red").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Green").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Blue").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Red")
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .label_fn([](bNode node) {
+        switch (node_storage(node).mode) {
+          case CMP_NODE_COMBSEP_COLOR_RGB:
+          default:
+            return IFACE_("Red");
+          case CMP_NODE_COMBSEP_COLOR_HSV:
+          case CMP_NODE_COMBSEP_COLOR_HSL:
+            return IFACE_("Hue");
+          case CMP_NODE_COMBSEP_COLOR_YCC:
+          case CMP_NODE_COMBSEP_COLOR_YUV:
+            return IFACE_("Y");
+        }
+      });
+  b.add_input<decl::Float>("Green")
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .label_fn([](bNode node) {
+        switch (node_storage(node).mode) {
+          case CMP_NODE_COMBSEP_COLOR_RGB:
+          default:
+            return IFACE_("Green");
+          case CMP_NODE_COMBSEP_COLOR_HSV:
+          case CMP_NODE_COMBSEP_COLOR_HSL:
+            return IFACE_("Saturation");
+          case CMP_NODE_COMBSEP_COLOR_YCC:
+            return IFACE_("Cb");
+          case CMP_NODE_COMBSEP_COLOR_YUV:
+            return IFACE_("U");
+        }
+      });
+  b.add_input<decl::Float>("Blue")
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .label_fn([](bNode node) {
+        switch (node_storage(node).mode) {
+          case CMP_NODE_COMBSEP_COLOR_RGB:
+          default:
+            return IFACE_("Blue");
+          case CMP_NODE_COMBSEP_COLOR_HSV:
+            return CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "Value");
+          case CMP_NODE_COMBSEP_COLOR_HSL:
+            return IFACE_("Lightness");
+          case CMP_NODE_COMBSEP_COLOR_YCC:
+            return IFACE_("Cr");
+          case CMP_NODE_COMBSEP_COLOR_YUV:
+            return IFACE_("V");
+        }
+      });
   b.add_input<decl::Float>("Alpha").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
   b.add_output<decl::Color>("Image");
-}
-
-static void cmp_node_combine_color_update(bNodeTree * /*ntree*/, bNode *node)
-{
-  const NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)node->storage;
-  node_cmp_combsep_color_label(&node->inputs, (CMPNodeCombSepColorMode)storage->mode);
 }
 
 using namespace blender::compositor;
@@ -300,89 +342,91 @@ static int node_gpu_material(GPUMaterial *material,
   return false;
 }
 
+using blender::compositor::Color;
+
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  static auto rgba_function = mf::build::SI4_SO<float, float, float, float, float4>(
+  static auto rgba_function = mf::build::SI4_SO<float, float, float, float, Color>(
       "Combine Color RGBA",
-      [](const float r, const float g, const float b, const float a) -> float4 {
-        return float4(r, g, b, a);
+      [](const float r, const float g, const float b, const float a) -> Color {
+        return Color(r, g, b, a);
       },
       mf::build::exec_presets::Materialized());
 
-  static auto hsva_function = mf::build::SI4_SO<float, float, float, float, float4>(
+  static auto hsva_function = mf::build::SI4_SO<float, float, float, float, Color>(
       "Combine Color HSVA",
-      [](const float h, const float s, const float v, const float a) -> float4 {
-        float4 result;
-        hsv_to_rgb(h, s, v, &result.x, &result.y, &result.z);
-        result.w = a;
+      [](const float h, const float s, const float v, const float a) -> Color {
+        Color result;
+        hsv_to_rgb(h, s, v, &result.r, &result.g, &result.b);
+        result.a = a;
         return result;
       },
       mf::build::exec_presets::Materialized());
 
-  static auto hsla_function = mf::build::SI4_SO<float, float, float, float, float4>(
+  static auto hsla_function = mf::build::SI4_SO<float, float, float, float, Color>(
       "Combine Color HSLA",
-      [](const float h, const float s, const float l, const float a) -> float4 {
-        float4 result;
-        hsl_to_rgb(h, s, l, &result.x, &result.y, &result.z);
-        result.w = a;
+      [](const float h, const float s, const float l, const float a) -> Color {
+        Color result;
+        hsl_to_rgb(h, s, l, &result.r, &result.g, &result.b);
+        result.a = a;
         return result;
       },
       mf::build::exec_presets::Materialized());
 
-  static auto yuva_function = mf::build::SI4_SO<float, float, float, float, float4>(
+  static auto yuva_function = mf::build::SI4_SO<float, float, float, float, Color>(
       "Combine Color YUVA",
-      [](const float y, const float u, const float v, const float a) -> float4 {
-        float4 result;
-        yuv_to_rgb(y, u, v, &result.x, &result.y, &result.z, BLI_YUV_ITU_BT709);
-        result.w = a;
+      [](const float y, const float u, const float v, const float a) -> Color {
+        Color result;
+        yuv_to_rgb(y, u, v, &result.r, &result.g, &result.b, BLI_YUV_ITU_BT709);
+        result.a = a;
         return result;
       },
       mf::build::exec_presets::Materialized());
 
-  static auto ycca_itu_601_function = mf::build::SI4_SO<float, float, float, float, float4>(
+  static auto ycca_itu_601_function = mf::build::SI4_SO<float, float, float, float, Color>(
       "Combine Color YCCA ITU 601",
-      [](const float y, const float cb, const float cr, const float a) -> float4 {
-        float4 result;
+      [](const float y, const float cb, const float cr, const float a) -> Color {
+        Color result;
         ycc_to_rgb(y * 255.0f,
                    cb * 255.0f,
                    cr * 255.0f,
-                   &result.x,
-                   &result.y,
-                   &result.z,
+                   &result.r,
+                   &result.g,
+                   &result.b,
                    BLI_YCC_ITU_BT601);
-        result.w = a;
+        result.a = a;
         return result;
       },
       mf::build::exec_presets::Materialized());
 
-  static auto ycca_itu_709_function = mf::build::SI4_SO<float, float, float, float, float4>(
+  static auto ycca_itu_709_function = mf::build::SI4_SO<float, float, float, float, Color>(
       "Combine Color YCCA ITU 709",
-      [](const float y, const float cb, const float cr, const float a) -> float4 {
-        float4 result;
+      [](const float y, const float cb, const float cr, const float a) -> Color {
+        Color result;
         ycc_to_rgb(y * 255.0f,
                    cb * 255.0f,
                    cr * 255.0f,
-                   &result.x,
-                   &result.y,
-                   &result.z,
+                   &result.r,
+                   &result.g,
+                   &result.b,
                    BLI_YCC_ITU_BT709);
-        result.w = a;
+        result.a = a;
         return result;
       },
       mf::build::exec_presets::Materialized());
 
-  static auto ycca_jpeg_function = mf::build::SI4_SO<float, float, float, float, float4>(
+  static auto ycca_jpeg_function = mf::build::SI4_SO<float, float, float, float, Color>(
       "Combine Color YCCA JPEG",
-      [](const float y, const float cb, const float cr, const float a) -> float4 {
-        float4 result;
+      [](const float y, const float cb, const float cr, const float a) -> Color {
+        Color result;
         ycc_to_rgb(y * 255.0f,
                    cb * 255.0f,
                    cr * 255.0f,
-                   &result.x,
-                   &result.y,
-                   &result.z,
+                   &result.r,
+                   &result.g,
+                   &result.b,
                    BLI_YCC_JFIF_0_255);
-        result.w = a;
+        result.a = a;
         return result;
       },
       mf::build::exec_presets::Materialized());
@@ -432,7 +476,6 @@ static void register_node_type_cmp_combine_color()
   ntype.initfunc = node_cmp_combsep_color_init;
   blender::bke::node_type_storage(
       ntype, "NodeCMPCombSepColor", node_free_standard_storage, node_copy_standard_storage);
-  ntype.updatefunc = file_ns::cmp_node_combine_color_update;
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 

@@ -426,7 +426,12 @@ string(APPEND PLATFORM_LINKFLAGS
   " -Wl,-unexported_symbols_list,'${PLATFORM_SYMBOLS_MAP}'"
 )
 
-if(${XCODE_VERSION} VERSION_GREATER_EQUAL 15.0)
+if(${XCODE_VERSION} VERSION_EQUAL 15.0)
+  # V4.5 specific workaround: Enforce the legacy Xcode linker to avoid incorrect
+  # assembly generation caused by known bugs in the modern linker shipped with
+  # Xcode 15.0. See issue #148792 for details.
+  string(APPEND PLATFORM_LINKFLAGS " -Wl,-ld_classic")
+elseif(${XCODE_VERSION} VERSION_GREATER_EQUAL 15.0)
   if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64" AND WITH_LEGACY_MACOS_X64_LINKER)
     # Silence "no platform load command found in <static library>, assuming: macOS".
     #

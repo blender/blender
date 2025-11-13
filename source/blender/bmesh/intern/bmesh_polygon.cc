@@ -17,6 +17,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_memarena.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_polyfill_2d_beautify.h"
@@ -28,8 +29,21 @@
 
 #include "intern/bmesh_private.hh"
 
+using blender::float2;
 using blender::float3;
 using blender::Span;
+
+/**
+ * Return an angle in the range: `[0.0..M_PI * 2]`.
+ */
+static float angle_signed_v2v2_pos(const float v1[2], const float v2[2])
+{
+  const float angle = angle_signed_v2v2(v1, v2);
+  if (angle < 0.0f) {
+    return angle + (M_PI * 2);
+  }
+  return angle;
+}
 
 /**
  * \brief COMPUTE POLY NORMAL (BMFace)
@@ -458,7 +472,8 @@ void BM_face_calc_tangent_from_edge_pair(const BMFace *f, float r_tangent[3])
   }
   else if (f->len == 4) {
     /* Use longest edge pair */
-    BM_face_calc_tangent_from_edge(f, r_tangent);
+    float r_tangent_dummy[3];
+    bm_face_calc_tangent_pair_from_quad_edge_pair(f, r_tangent, r_tangent_dummy);
   }
   else {
     /* For ngons use two longest disconnected edges */
@@ -1272,7 +1287,6 @@ void BM_face_triangulate(BMesh *bm,
 
 void BM_face_splits_check_legal(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 {
-  blender::float2 out = {-FLT_MAX, -FLT_MAX};
   float center[2] = {0.0f, 0.0f};
   float axis_mat[3][3];
   float (*projverts)[2] = BLI_array_alloca(projverts, f->len);
@@ -1301,36 +1315,62 @@ void BM_face_splits_check_legal(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int l
 
     /* center the projection for maximum accuracy */
     sub_v2_v2(projverts[i], center);
-
-    out[0] = max_ff(out[0], projverts[i][0]);
-    out[1] = max_ff(out[1], projverts[i][1]);
   }
   bm->elem_index_dirty |= BM_LOOP;
-
-  /* ensure we are well outside the face bounds (value is arbitrary) */
-  out += 1.0f;
 
   for (i = 0; i < len; i++) {
     edgeverts[i][0] = projverts[BM_elem_index_get(loops[i][0])];
     edgeverts[i][1] = projverts[BM_elem_index_get(loops[i][1])];
   }
-
-  /* do convexity test */
+  /* Check the split is inside the face, otherwise clear it.
+   *
+   * Ensure the edge between the two corners of the face defines a line that lies within the face.
+   * Consider an edge that connects both tips of a crescent-moon shaped face.
+   * In this case the edge would span the empty region and must not be considered "legal". */
   for (i = 0; i < len; i++) {
-    float mid[2];
-    mid_v2_v2v2(mid, edgeverts[i][0], edgeverts[i][1]);
+    /* Compare the angles at the loops. */
+    BMLoop **l_pair = loops[i];
+    const float *co_pair[2] = {
+        projverts[BM_elem_index_get(l_pair[0])],
+        projverts[BM_elem_index_get(l_pair[1])],
+    };
 
-    int isect = 0;
-    int j_prev;
-    for (j = 0, j_prev = f->len - 1; j < f->len; j_prev = j++) {
-      const float *f_edge[2] = {projverts[j_prev], projverts[j]};
-      if (isect_seg_seg_v2(UNPACK2(f_edge), mid, out) == ISECT_LINE_LINE_CROSS) {
-        isect++;
-      }
+    /* Always allow cuts that overlap (unlikely but not an error). */
+    if (UNLIKELY(equals_v2v2(co_pair[0], co_pair[1]))) {
+      continue;
     }
 
-    if (isect % 2 == 0) {
-      loops[i][0] = nullptr;
+    const float2 pair_dir = blender::math::normalize(float2(co_pair[1]) - float2(co_pair[0]));
+    for (const int side : blender::IndexRange(2)) {
+      const float2 co = float2(co_pair[side]);
+      BMLoop *l_prev = l_pair[side]->prev;
+      BMLoop *l_next = l_pair[side]->next;
+
+      /* Account for zero length edges, not essential but they shouldn't break the calculation. */
+      {
+        const int limit_init = f->len - 3;
+        int limit;
+        limit = limit_init;
+        while (UNLIKELY(equals_v2v2(co, projverts[BM_elem_index_get(l_prev)])) && limit-- > 0) {
+          l_prev = l_prev->prev;
+        }
+        limit = limit_init;
+        while (UNLIKELY(equals_v2v2(co, projverts[BM_elem_index_get(l_next)])) && limit-- > 0) {
+          l_next = l_next->next;
+        }
+      }
+
+      const float2 co_prev = float2(projverts[BM_elem_index_get(l_prev)]);
+      const float2 co_next = float2(projverts[BM_elem_index_get(l_next)]);
+
+      const float2 dir_other = side == 0 ? pair_dir : -pair_dir;
+      const float2 dir_prev = blender::math::normalize(co_prev - co);
+      const float2 dir_next = blender::math::normalize(co_next - co);
+
+      if (angle_signed_v2v2_pos(dir_prev, dir_other) > angle_signed_v2v2_pos(dir_prev, dir_next)) {
+        loops[i][0] = nullptr;
+        break;
+      }
     }
   }
 

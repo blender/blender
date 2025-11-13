@@ -1397,7 +1397,9 @@ class NodeTreeMainUpdater {
     };
 
     const bNodeTreeZones *fallback_zones = nullptr;
-    if (ntree.type == NTREE_GEOMETRY && !ntree.zones() && ntree.runtime->last_valid_zones) {
+    if (ELEM(ntree.type, NTREE_GEOMETRY, NTREE_SHADER) && !ntree.zones() &&
+        ntree.runtime->last_valid_zones)
+    {
       fallback_zones = ntree.runtime->last_valid_zones.get();
     }
 

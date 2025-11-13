@@ -1961,7 +1961,7 @@ static bool bone_mouse_select_menu(bContext *C,
   };
   ListBase bone_ref_list = {nullptr, nullptr};
 
-  GSet *added_bones = BLI_gset_ptr_new("Bone mouse select menu");
+  blender::Set<void *> added_bones;
 
   /* Select logic taken from #ed_armature_pick_bone_from_selectbuffer_impl
    * in `armature_select.cc`. */
@@ -2014,7 +2014,7 @@ static bool bone_mouse_select_menu(bContext *C,
     }
     /* We can hit a bone multiple times, so make sure we are not adding an already included bone
      * to the list. */
-    const bool is_duplicate_bone = BLI_gset_haskey(added_bones, bone_ptr);
+    const bool is_duplicate_bone = added_bones.contains(bone_ptr);
 
     if (!is_duplicate_bone) {
       bone_count++;
@@ -2024,11 +2024,9 @@ static bool bone_mouse_select_menu(bContext *C,
       bone_ref->depth_id = hit_result.depth;
       BLI_addtail(&bone_ref_list, (void *)bone_ref);
 
-      BLI_gset_insert(added_bones, bone_ptr);
+      added_bones.add(bone_ptr);
     }
   }
-
-  BLI_gset_free(added_bones, nullptr);
 
   if (bone_count == 0) {
     return false;

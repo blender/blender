@@ -995,7 +995,7 @@ static uiBut *template_id_def_new_but(uiBlock *block,
   }
   else {
     but = uiDefIconTextBut(
-        block, but_type, 0, icon, button_text, 0, 0, w, but_height, nullptr, std::nullopt);
+        block, but_type, icon, button_text, 0, 0, w, but_height, nullptr, std::nullopt);
     UI_but_funcN_set(but,
                      template_id_cb,
                      MEM_new<TemplateID>(__func__, template_ui),
@@ -1085,7 +1085,6 @@ static void template_ID(const bContext *C,
     name[0] = '\0';
     but = uiDefButR(block,
                     ButType::Text,
-                    0,
                     name,
                     0,
                     0,
@@ -1122,7 +1121,6 @@ static void template_ID(const bContext *C,
         if (ID_IS_PACKED(id)) {
           but = uiDefIconBut(block,
                              ButType::But,
-                             0,
                              ICON_PACKAGE,
                              0,
                              0,
@@ -1136,7 +1134,6 @@ static void template_ID(const bContext *C,
         else if (id->tag & ID_TAG_INDIRECT) {
           but = uiDefIconBut(block,
                              ButType::But,
-                             0,
                              ICON_LIBRARY_DATA_INDIRECT,
                              0,
                              0,
@@ -1151,7 +1148,6 @@ static void template_ID(const bContext *C,
         else {
           but = uiDefIconBut(block,
                              ButType::But,
-                             0,
                              ICON_LIBRARY_DATA_DIRECT,
                              0,
                              0,
@@ -1163,8 +1159,26 @@ static void template_ID(const bContext *C,
                              TIP_("Direct linked library data-block, click to make local, "
                                   "Shift + Click to create a library override"));
         }
+
         if (disabled) {
           UI_but_flag_enable(but, UI_BUT_DISABLED);
+        }
+        /* When displaying the material selector for objects, the material slot may be assigned to
+         * the object data instead of the object. In that case disable the button if the object
+         * data is non-editable. Otherwise the button does nothing. */
+        else if (Object *object;
+                 (GS(idfrom->name) == ID_OB) && (object = blender::id_cast<Object *>(idfrom)) &&
+                 (template_ui.idcode == ID_MA) &&
+                 /* Trying to assign to linked/packed object data. */
+                 (object->data && ID_IS_LINKED(object->data)) &&
+                 /* Means material is assigned to the object data, not the object. */
+                 (object->matbits &&
+                  (object->matbits[blender::math::max(object->actcol - 1, 0)] == 0)))
+        {
+          UI_but_disable(but,
+                         N_("Material is assigned to the object data, which is linked/packed "
+                            "and therefore not editable. Change to link this material slot to the "
+                            "object instead, or make the object data local."));
         }
         else {
           UI_but_funcN_set(but,
@@ -1179,7 +1193,6 @@ static void template_ID(const bContext *C,
         but = uiDefIconBut(
             block,
             ButType::But,
-            0,
             ICON_LIBRARY_DATA_OVERRIDE,
             0,
             0,
@@ -1208,7 +1221,6 @@ static void template_ID(const bContext *C,
       but = uiDefBut(
           block,
           ButType::But,
-          0,
           numstr,
           0,
           0,
@@ -1258,7 +1270,6 @@ static void template_ID(const bContext *C,
       {
         uiDefIconButR(block,
                       ButType::IconToggle,
-                      0,
                       ICON_FAKE_USER_OFF,
                       0,
                       0,
@@ -1332,7 +1343,6 @@ static void template_ID(const bContext *C,
     else {
       but = uiDefIconTextBut(block,
                              ButType::But,
-                             0,
                              ICON_FILEBROWSER,
                              (id) ? "" : IFACE_("Open"),
                              0,
@@ -1384,7 +1394,6 @@ static void template_ID(const bContext *C,
         but = uiDefIconBut(
             block,
             ButType::But,
-            0,
             ICON_X,
             0,
             0,
@@ -1460,7 +1469,6 @@ static void template_ID_tabs(const bContext *C,
 
     uiButTab *tab = (uiButTab *)uiDefButR_prop(block,
                                                ButType::Tab,
-                                               0,
                                                id->name + 2,
                                                0,
                                                0,

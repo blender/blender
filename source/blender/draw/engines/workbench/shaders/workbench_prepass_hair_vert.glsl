@@ -52,6 +52,11 @@ void workbench_hair_random_material(float rand,
   color = saturate(color + rand * (color + 0.05f));
 }
 
+#if defined(GPU_NVIDIA) && defined(GPU_OPENGL)
+/* WORKAROUND: Fix legacy driver compiler issue (see #148472). */
+#  define const
+#endif
+
 void main()
 {
   const curves::Point ls_pt = curves::point_get(uint(gl_VertexID));

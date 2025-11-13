@@ -8,6 +8,7 @@
 
 #include "BLI_map.hh"
 #include "BLI_mutex.hh"
+#include "BLI_struct_equality_utils.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_scene_types.h"
@@ -38,9 +39,20 @@ struct SourceImageCache {
     float strip_frame = 0;
   };
 
+  struct Key {
+    float source_frame = 0.0f;
+    int view_id = 0;
+    eDrawType scene_draw_type = OB_SOLID;
+
+    uint64_t hash() const
+    {
+      return get_default_hash(source_frame, view_id, scene_draw_type);
+    }
+    BLI_STRUCT_EQUALITY_OPERATORS_3(Key, source_frame, view_id, scene_draw_type);
+  };
+
   struct StripEntry {
-    /** Map key is {source media frame index (i.e. movie frame), view ID}. */
-    Map<std::pair<float, int>, FrameEntry> frames;
+    Map<Key, FrameEntry> frames;
   };
 
   Map<const Strip *, StripEntry> map_;
@@ -104,6 +116,19 @@ static float give_cache_frame_index(const Scene *scene, const Strip *strip, floa
   return frame_index;
 }
 
+static SourceImageCache::Key get_key(const RenderData *context,
+                                     const Scene *scene,
+                                     const Strip *strip,
+                                     float timeline_frame)
+{
+  const float frame_index = give_cache_frame_index(scene, strip, timeline_frame);
+  eDrawType draw_type = OB_RENDER;
+  if (!context->render && strip->type == STRIP_TYPE_SCENE) {
+    draw_type = eDrawType(scene->r.seq_prev_type);
+  }
+  return {frame_index, context->view_id, draw_type};
+}
+
 ImBuf *source_image_cache_get(const RenderData *context, const Strip *strip, float timeline_frame)
 {
   if (context->skip_cache || context->is_proxy_render || strip == nullptr) {
@@ -112,8 +137,7 @@ ImBuf *source_image_cache_get(const RenderData *context, const Strip *strip, flo
 
   Scene *scene = prefetch_get_original_scene_and_strip(context, strip);
   timeline_frame = math::round(timeline_frame);
-  const float frame_index = give_cache_frame_index(scene, strip, timeline_frame);
-  const int view_id = context->view_id;
+  const SourceImageCache::Key key = get_key(context, scene, strip, timeline_frame);
 
   ImBuf *res = nullptr;
   {
@@ -129,7 +153,7 @@ ImBuf *source_image_cache_get(const RenderData *context, const Strip *strip, flo
       return nullptr;
     }
     /* Search entries for the frame we want. */
-    SourceImageCache::FrameEntry *frame = val->frames.lookup_ptr({frame_index, view_id});
+    SourceImageCache::FrameEntry *frame = val->frames.lookup_ptr(key);
     if (frame != nullptr) {
       res = frame->image;
     }
@@ -161,9 +185,7 @@ void source_image_cache_put(const RenderData *context,
 
   Scene *scene = prefetch_get_original_scene_and_strip(context, strip);
   timeline_frame = math::round(timeline_frame);
-
-  const float frame_index = give_cache_frame_index(scene, strip, timeline_frame);
-  const int view_id = context->view_id;
+  const SourceImageCache::Key key = get_key(context, scene, strip, timeline_frame);
 
   IMB_refImBuf(image);
 
@@ -179,7 +201,7 @@ void source_image_cache_put(const RenderData *context,
   }
   BLI_assert_msg(val != nullptr, "Source image cache value should never be null here");
 
-  SourceImageCache::FrameEntry &frame = val->frames.lookup_or_add_default({frame_index, view_id});
+  SourceImageCache::FrameEntry &frame = val->frames.lookup_or_add_default(key);
   if (frame.image != nullptr) {
     IMB_freeImBuf(frame.image);
   }
@@ -294,7 +316,7 @@ bool source_image_cache_evict(Scene *scene)
   const int cur_frame = prefetch_loops_around ? timeline_start : scene->r.cfra;
 
   SourceImageCache::StripEntry *best_strip = nullptr;
-  std::pair<float, int> best_key = {};
+  SourceImageCache::Key best_key;
   int best_score = 0;
   for (const auto &strip : cache->map_.items()) {
     for (const auto &entry : strip.value.frames.items()) {

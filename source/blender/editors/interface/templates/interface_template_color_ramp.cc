@@ -96,7 +96,6 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
   {
     uiBut *but = uiDefIconTextBut(block,
                                   ButType::ButMenu,
-                                  1,
                                   ICON_ARROW_LEFTRIGHT,
                                   IFACE_("Flip Color Ramp"),
                                   0,
@@ -105,6 +104,7 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                   UI_UNIT_Y,
                                   nullptr,
                                   "");
+    UI_but_retval_set(but, 1);
     UI_but_func_set(but, [coba, cb](bContext &C) {
       colorband_flip(&C, coba);
       ED_region_tag_redraw(CTX_wm_region(&C));
@@ -114,7 +114,6 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
   {
     uiBut *but = uiDefIconTextBut(block,
                                   ButType::ButMenu,
-                                  1,
                                   ICON_BLANK1,
                                   IFACE_("Distribute Stops from Left"),
                                   0,
@@ -123,6 +122,7 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                   UI_UNIT_Y,
                                   nullptr,
                                   "");
+    UI_but_retval_set(but, 1);
     UI_but_func_set(but, [coba, cb](bContext &C) {
       colorband_distribute(&C, coba, false);
       ED_region_tag_redraw(CTX_wm_region(&C));
@@ -132,7 +132,6 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
   {
     uiBut *but = uiDefIconTextBut(block,
                                   ButType::ButMenu,
-                                  1,
                                   ICON_BLANK1,
                                   IFACE_("Distribute Stops Evenly"),
                                   0,
@@ -141,6 +140,7 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                   UI_UNIT_Y,
                                   nullptr,
                                   "");
+    UI_but_retval_set(but, 1);
     UI_but_func_set(but, [coba, cb](bContext &C) {
       colorband_distribute(&C, coba, true);
       ED_region_tag_redraw(CTX_wm_region(&C));
@@ -157,7 +157,6 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
   {
     uiBut *but = uiDefIconTextBut(block,
                                   ButType::ButMenu,
-                                  1,
                                   ICON_LOOP_BACK,
                                   IFACE_("Reset Color Ramp"),
                                   0,
@@ -166,6 +165,7 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                   UI_UNIT_Y,
                                   nullptr,
                                   "");
+    UI_but_retval_set(but, 1);
     UI_but_func_set(but, [coba, cb](bContext &C) {
       BKE_colorband_init(coba, true);
       ED_undo_push(&C, "Reset Color Ramp");
@@ -232,7 +232,6 @@ static void colorband_buttons_layout(uiLayout *layout,
 
   bt = uiDefIconTextBut(block,
                         ButType::But,
-                        0,
                         ICON_ADD,
                         "",
                         0,
@@ -245,7 +244,6 @@ static void colorband_buttons_layout(uiLayout *layout,
 
   bt = uiDefIconTextBut(block,
                         ButType::But,
-                        0,
                         ICON_REMOVE,
                         "",
                         xs + 2.0f * unit,
@@ -265,7 +263,6 @@ static void colorband_buttons_layout(uiLayout *layout,
   bt = uiDefIconBlockBut(block,
                          colorband_tools_fn,
                          tools_cb,
-                         0,
                          ICON_DOWNARROW_HLT,
                          xs + 4.0f * unit,
                          ys + UI_UNIT_Y,
@@ -299,7 +296,7 @@ static void colorband_buttons_layout(uiLayout *layout,
   row = &layout->row(false);
 
   bt = uiDefBut(
-      block, ButType::ColorBand, 0, "", xs, ys, BLI_rctf_size_x(butr), UI_UNIT_Y, coba, 0, 0, "");
+      block, ButType::ColorBand, "", xs, ys, BLI_rctf_size_x(butr), UI_UNIT_Y, coba, 0, 0, "");
   bt->rnapoin = cb.ptr;
   bt->rnaprop = cb.prop;
   UI_but_func_set(bt, [cb](bContext &C) { rna_update_cb(C, cb); });
@@ -317,7 +314,6 @@ static void colorband_buttons_layout(uiLayout *layout,
       row = &split->row(false);
       bt = uiDefButS(block,
                      ButType::Num,
-                     0,
                      "",
                      0,
                      0,
@@ -342,7 +338,6 @@ static void colorband_buttons_layout(uiLayout *layout,
       row = &subsplit->row(false);
       bt = uiDefButS(block,
                      ButType::Num,
-                     0,
                      "",
                      0,
                      0,

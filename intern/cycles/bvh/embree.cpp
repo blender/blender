@@ -231,7 +231,7 @@ void BVHEmbree::add_object(Object *ob, const int i)
   }
   else if (geom->is_hair()) {
     Hair *hair = static_cast<Hair *>(geom);
-    if (hair->num_curves() > 0) {
+    if (hair->is_traceable()) {
       add_curves(ob, hair, i);
     }
   }
@@ -771,7 +771,7 @@ void BVHEmbree::refit(Progress &progress)
       }
       else if (geom->is_hair()) {
         Hair *hair = static_cast<Hair *>(geom);
-        if (hair->num_curves() > 0) {
+        if (hair->is_traceable()) {
           RTCGeometry geom = rtcGetGeometry(scene, geom_id + 1);
           set_curve_vertex_buffer(geom, hair, true);
           rtcSetGeometryUserData(geom, (void *)hair->curve_segment_offset);

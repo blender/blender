@@ -430,27 +430,6 @@ void BKE_mesh_calc_relative_deform(const int *face_offsets,
                                    const float (*vert_cos_org)[3],
                                    float (*vert_cos_new)[3]);
 
-/* *** mesh_validate.cc *** */
-
-/**
- * Validates and corrects a Mesh.
- *
- * \returns true if a change is made.
- */
-bool BKE_mesh_validate(Mesh *mesh, bool do_verbose, bool cddata_check_mask);
-/**
- * Checks if a Mesh is valid without any modification. This is always verbose.
- * \returns True if the mesh is valid.
- */
-bool BKE_mesh_is_valid(Mesh *mesh);
-/**
- * Check all material indices of faces are valid, invalid ones are set to 0.
- * \returns True if the material indices are valid.
- */
-bool BKE_mesh_validate_material_indices(Mesh *mesh);
-
-void BKE_mesh_strip_loose_faces(Mesh *mesh);
-
 /* **** Depsgraph evaluation **** */
 
 void BKE_mesh_eval_geometry(Depsgraph *depsgraph, Mesh *mesh);

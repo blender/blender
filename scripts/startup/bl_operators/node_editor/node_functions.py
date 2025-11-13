@@ -74,7 +74,7 @@ def get_internal_socket(socket):
 
 
 def is_visible_socket(socket):
-    return not socket.hide and socket.enabled and socket.type != 'CUSTOM'
+    return socket.is_icon_visible and socket.type != 'CUSTOM'
 
 
 def is_viewer_link(link, output_node):

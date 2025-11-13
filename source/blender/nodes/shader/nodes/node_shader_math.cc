@@ -23,9 +23,63 @@ namespace blender::nodes::node_shader_math_cc {
 static void sh_node_math_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("Value").default_value(0.5f).min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Float>("Value", "Value_001").default_value(0.5f).min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Float>("Value", "Value_002").default_value(0.5f).min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("Value").default_value(0.5f).min(-10000.0f).max(10000.0f).label_fn(
+      [](bNode node) {
+        switch (node.custom1) {
+          case NODE_MATH_POWER:
+            return IFACE_("Base");
+          case NODE_MATH_DEGREES:
+            return IFACE_("Radians");
+          case NODE_MATH_RADIANS:
+            return IFACE_("Degrees");
+          default:
+            return IFACE_("Value");
+        }
+      });
+  b.add_input<decl::Float>("Value", "Value_001")
+      .default_value(0.5f)
+      .min(-10000.0f)
+      .max(10000.0f)
+      .label_fn([](bNode node) {
+        switch (node.custom1) {
+          case NODE_MATH_WRAP:
+            return IFACE_("Max");
+          case NODE_MATH_MULTIPLY_ADD:
+            return IFACE_("Multiplier");
+          case NODE_MATH_LESS_THAN:
+          case NODE_MATH_GREATER_THAN:
+            return IFACE_("Threshold");
+          case NODE_MATH_PINGPONG:
+            return IFACE_("Scale");
+          case NODE_MATH_SNAP:
+            return IFACE_("Increment");
+          case NODE_MATH_POWER:
+            return IFACE_("Exponent");
+          case NODE_MATH_LOGARITHM:
+            return IFACE_("Base");
+          default:
+            return IFACE_("Value");
+        }
+      });
+  b.add_input<decl::Float>("Value", "Value_002")
+      .default_value(0.5f)
+      .min(-10000.0f)
+      .max(10000.0f)
+      .label_fn([](bNode node) {
+        switch (node.custom1) {
+          case NODE_MATH_WRAP:
+            return IFACE_("Min");
+          case NODE_MATH_MULTIPLY_ADD:
+            return IFACE_("Addend");
+          case NODE_MATH_COMPARE:
+            return IFACE_("Epsilon");
+          case NODE_MATH_SMOOTH_MAX:
+          case NODE_MATH_SMOOTH_MIN:
+            return IFACE_("Distance");
+          default:
+            return IFACE_("Value");
+        }
+      });
   b.add_output<decl::Float>("Value");
 }
 

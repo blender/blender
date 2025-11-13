@@ -145,7 +145,7 @@ class ConvertToDisplayOperation : public NodeOperation {
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, ocio_shader.output_image_name());
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, domain.data_size);
 
     input_image.unbind_as_texture();
     output_image.unbind_as_image();
@@ -164,14 +164,14 @@ class ConvertToDisplayOperation : public NodeOperation {
     Result &output_image = get_result("Image");
     output_image.allocate_texture(domain);
 
-    parallel_for(domain.size, [&](const int2 texel) {
-      output_image.store_pixel(texel, input_image.load_pixel<float4>(texel));
+    parallel_for(domain.data_size, [&](const int2 texel) {
+      output_image.store_pixel(texel, input_image.load_pixel<Color>(texel));
     });
 
     IMB_colormanagement_processor_apply(color_processor,
                                         static_cast<float *>(output_image.cpu_data().data()),
-                                        domain.size.x,
-                                        domain.size.y,
+                                        domain.data_size.x,
+                                        domain.data_size.y,
                                         input_image.channels_count(),
                                         false);
     IMB_colormanagement_processor_free(color_processor);
@@ -184,7 +184,7 @@ class ConvertToDisplayOperation : public NodeOperation {
         &nctd.view_settings, &nctd.display_settings, DISPLAY_SPACE_VIDEO_OUTPUT, do_inverse());
 
     Result &input_image = get_input("Image");
-    float4 color = input_image.get_single_value<float4>();
+    Color color = input_image.get_single_value<Color>();
 
     IMB_colormanagement_processor_apply_pixel(color_processor, color, 3);
     IMB_colormanagement_processor_free(color_processor);

@@ -26,8 +26,7 @@ VKBuffer::~VKBuffer()
 
 bool VKBuffer::create(size_t size_in_bytes,
                       VkBufferUsageFlags buffer_usage,
-                      VkMemoryPropertyFlags required_flags,
-                      VkMemoryPropertyFlags preferred_flags,
+                      VmaMemoryUsage vma_memory_usage,
                       VmaAllocationCreateFlags allocation_flags,
                       float priority,
                       bool export_memory)
@@ -79,9 +78,7 @@ bool VKBuffer::create(size_t size_in_bytes,
   VmaAllocationCreateInfo vma_create_info = {};
   vma_create_info.flags = allocation_flags;
   vma_create_info.priority = priority;
-  vma_create_info.requiredFlags = required_flags;
-  vma_create_info.preferredFlags = preferred_flags;
-  vma_create_info.usage = VMA_MEMORY_USAGE_UNKNOWN;
+  vma_create_info.usage = vma_memory_usage;
 
   if (export_memory) {
     create_info.pNext = &external_memory_create_info;
@@ -90,11 +87,6 @@ bool VKBuffer::create(size_t size_in_bytes,
     /* Dedicated allocation for zero offset. */
     vma_create_info.flags |= VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
     vma_create_info.pool = device.vma_pools.external_memory_pixel_buffer.pool;
-  }
-
-  const bool use_descriptor_buffer = device.extensions_get().descriptor_buffer;
-  if (use_descriptor_buffer) {
-    create_info.usage |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
   }
 
   VkResult result = vmaCreateBuffer(
@@ -107,13 +99,6 @@ bool VKBuffer::create(size_t size_in_bytes,
   }
 
   device.resources.add_buffer(vk_buffer_);
-
-  if (use_descriptor_buffer) {
-    VkBufferDeviceAddressInfo vk_buffer_device_address_info = {
-        VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO, nullptr, vk_buffer_};
-    vk_device_address = vkGetBufferDeviceAddress(device.vk_handle(),
-                                                 &vk_buffer_device_address_info);
-  }
 
   vmaGetAllocationMemoryProperties(allocator, allocation_, &vk_memory_property_flags_);
   if (vk_memory_property_flags_ & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {

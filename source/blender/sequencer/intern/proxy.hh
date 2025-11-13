@@ -10,11 +10,11 @@
 
 struct ImBuf;
 struct MovieReader;
-struct SeqRenderData;
 struct Strip;
-struct anim;
 
 namespace blender::seq {
+
+struct RenderData;
 
 #define PROXY_MAXFILE (2 * FILE_MAXDIR + FILE_MAXFILE)
 ImBuf *seq_proxy_fetch(const RenderData *context, Strip *strip, int timeline_frame);

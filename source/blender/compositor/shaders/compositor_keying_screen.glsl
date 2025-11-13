@@ -4,9 +4,9 @@
 
 #include "gpu_shader_math_base_lib.glsl"
 
+shared float2 cached_marker_positions[gl_WorkGroupSize.x * gl_WorkGroupSize.y];
+shared float4 cached_marker_colors[gl_WorkGroupSize.x * gl_WorkGroupSize.y];
 #define CACHE_SIZE (gl_WorkGroupSize.x * gl_WorkGroupSize.y)
-shared float2 cached_marker_positions[CACHE_SIZE];
-shared float4 cached_marker_colors[CACHE_SIZE];
 
 /* Cache the initial part of the marker SSBOs in shared memory to make the interpolation loop
  * faster. */

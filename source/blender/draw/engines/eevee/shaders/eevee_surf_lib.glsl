@@ -4,7 +4,9 @@
 
 #pragma once
 
-#include "infos/eevee_material_infos.hh"
+#include "infos/eevee_geom_infos.hh"
+
+#include "infos/eevee_uniform_infos.hh"
 
 SHADER_LIBRARY_CREATE_INFO(eevee_geom_mesh)
 SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
@@ -71,12 +73,7 @@ void init_globals()
 #elif defined(MAT_CAPTURE)
   g_data.ray_type = RAY_TYPE_DIFFUSE;
 #else
-  if (uniform_buf.pipeline.is_sphere_probe) {
-    g_data.ray_type = RAY_TYPE_GLOSSY;
-  }
-  else {
-    g_data.ray_type = RAY_TYPE_CAMERA;
-  }
+  g_data.ray_type = uniform_buf.pipeline.ray_type;
 #endif
   g_data.ray_depth = 0.0f;
   g_data.ray_length = distance(g_data.P, drw_view_position());
@@ -87,6 +84,9 @@ void init_globals()
   g_data.N = (gl_FrontFacing) ? g_data.N : -g_data.N;
   g_data.Ni = (gl_FrontFacing) ? g_data.Ni : -g_data.Ni;
   g_data.Ng = safe_normalize(cross(gpu_dfdx(g_data.P), gpu_dfdy(g_data.P)));
+  if (uniform_buf.pipeline.is_main_view_inverted) {
+    g_data.Ng = -g_data.Ng;
+  }
 #endif
 
 #if defined(MAT_GEOM_MESH)

@@ -11,6 +11,7 @@
 
 #include <optional>
 
+#include "BLI_generic_virtual_array.hh"
 #include "BLI_implicit_sharing.h"
 #include "BLI_memory_counter_fwd.hh"
 #include "BLI_span.hh"
@@ -665,43 +666,40 @@ enum {
 };
 
 struct CustomDataTransferLayerMap {
-  CustomDataTransferLayerMap *next, *prev;
-
-  int data_type;
-  int mix_mode;
-  float mix_factor;
+  int data_type = 0;
+  int mix_mode = 0;
+  float mix_factor = 0.0f;
   /** If non-NULL, array of weights, one for each dest item, replaces mix_factor. */
-  const float *mix_weights;
+  const float *mix_weights = nullptr;
 
   /** Data source array (can be regular CD data, vertices/edges/etc., key-blocks...). */
-  const void *data_src;
+  std::variant<const void *, blender::GVArray> data_src;
   /** Data dest array (same type as dat_src). */
-  void *data_dst;
+  std::variant<void *, blender::GMutableVArraySpan> data_dst = nullptr;
+  /** Split from #bke::GSpanAttributeWriter to avoid including BKE_attribute.hh. */
+  std::function<void()> tag_modified_fn;
   /** Index to affect in data_src (used e.g. for vgroups). */
-  int data_src_n;
+  int data_src_n = 0;
   /** Index to affect in data_dst (used e.g. for vgroups). */
-  int data_dst_n;
+  int data_dst_n = 0;
   /** Size of one element of data_src/data_dst. */
-  size_t elem_size;
+  size_t elem_size = 0;
 
   /** Size of actual data we transfer. */
-  size_t data_size;
+  size_t data_size = 0;
   /** Offset of actual data we transfer (in element contained in data_src/dst). */
-  size_t data_offset;
-  /** For bit-flag transfer, flag(s) to affect in transferred data. */
-  uint64_t data_flag;
+  size_t data_offset = 0;
 
   /** Opaque pointer, to be used by specific interp callback (e.g. transform-space for normals). */
-  void *interp_data;
+  void *interp_data = nullptr;
 
-  cd_datatransfer_interp interp;
+  cd_datatransfer_interp interp = nullptr;
 };
 
 /**
  * Those functions assume src_n and dst_n layers of given type exist in resp. src and dst.
  */
-void CustomData_data_transfer(const MeshPairRemap *me_remap,
-                              const CustomDataTransferLayerMap *laymap);
+void CustomData_data_transfer(const MeshPairRemap *me_remap, CustomDataTransferLayerMap *laymap);
 
 /* .blend file I/O */
 

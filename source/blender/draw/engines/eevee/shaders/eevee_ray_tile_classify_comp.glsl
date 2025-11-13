@@ -17,7 +17,11 @@ COMPUTE_SHADER_CREATE_INFO(eevee_ray_tile_classify)
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
-shared uint tile_contains_ray_tracing[GBUFFER_LAYER_MAX];
+#if GBUFFER_LAYER_MAX > 3
+/* WORKAROUND: We can't use define inside shared variable definitions. */
+#  error Resize the array below
+#endif
+shared uint tile_contains_ray_tracing[4];
 shared uint tile_contains_horizon_scan;
 
 /* Returns a blend factor between different tracing method. */

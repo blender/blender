@@ -22,7 +22,7 @@ void main()
   sun.direction = float4(0.0f);
 
   /* First sum onto the local memory. */
-  uint valid_data_len = probe_remap_dispatch_size.x * probe_remap_dispatch_size.y;
+  uint valid_data_len = uint(probe_remap_dispatch_size.x * probe_remap_dispatch_size.y);
   constexpr uint iter_count = uint(SPHERE_PROBE_MAX_HARMONIC) / gl_WorkGroupSize.x;
   for (uint i = 0; i < iter_count; i++) {
     uint index = gl_WorkGroupSize.x * i + gl_LocalInvocationIndex;
@@ -52,7 +52,7 @@ void main()
 
   barrier();
   if (gl_LocalInvocationIndex == 0u) {
-    sunlight_buf.color = local_radiance[0];
+    sunlight_buf[sun_id].color = local_radiance[0];
 
     /* Normalize the sum to get the mean direction. The length of the vector gives us the size of
      * the sun light. */
@@ -62,9 +62,9 @@ void main()
 
     float3x3 tx = transpose(from_up_axis(direction));
     /* Convert to transform. */
-    sunlight_buf.object_to_world.x = float4(tx[0], 0.0f);
-    sunlight_buf.object_to_world.y = float4(tx[1], 0.0f);
-    sunlight_buf.object_to_world.z = float4(tx[2], 0.0f);
+    sunlight_buf[sun_id].object_to_world.x = float4(tx[0], 0.0f);
+    sunlight_buf[sun_id].object_to_world.y = float4(tx[1], 0.0f);
+    sunlight_buf[sun_id].object_to_world.z = float4(tx[2], 0.0f);
 
     /* Auto sun angle. */
     float sun_angle_cos = 2.0f * len - 1.0f;
@@ -77,10 +77,10 @@ void main()
     float shape_power = M_1_PI * (1.0f + 1.0f / square(sun_radius));
     float point_power = 1.0f;
 
-    sunlight_buf.power[LIGHT_DIFFUSE] = shape_power;
-    sunlight_buf.power[LIGHT_SPECULAR] = shape_power;
-    sunlight_buf.power[LIGHT_TRANSMISSION] = shape_power;
-    sunlight_buf.power[LIGHT_VOLUME] = point_power;
+    sunlight_buf[sun_id].power[LIGHT_DIFFUSE] = shape_power;
+    sunlight_buf[sun_id].power[LIGHT_SPECULAR] = shape_power;
+    sunlight_buf[sun_id].power[LIGHT_TRANSMISSION] = shape_power;
+    sunlight_buf[sun_id].power[LIGHT_VOLUME] = point_power;
 
     /* NOTE: Use the radius from UI instead of auto sun size for now. */
   }

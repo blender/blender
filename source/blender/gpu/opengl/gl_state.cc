@@ -105,9 +105,6 @@ void GLStateManager::set_state(const GPUState &state)
   if (changed.provoking_vert != 0) {
     set_provoking_vert((GPUProvokingVertex)state.provoking_vert);
   }
-  if (changed.shadow_bias != 0) {
-    set_shadow_bias(state.shadow_bias);
-  }
   if (changed.clip_control != 0) {
     set_clip_control(state.clip_control);
   }
@@ -151,11 +148,6 @@ void GLStateManager::set_mutable_state(const GPUStateMutable &state)
   if (float_as_uint(changed.line_width) != 0) {
     /* TODO: remove, should use wide line shader. */
     glLineWidth(clamp_f(state.line_width, line_width_range_[0], line_width_range_[1]));
-  }
-
-  if (float_as_uint(changed.depth_range[0]) != 0 || float_as_uint(changed.depth_range[1]) != 0) {
-    /* TODO: remove, should modify the projection matrix instead. */
-    glDepthRange(UNPACK2(state.depth_range));
   }
 
   if (changed.stencil_compare_mask != 0 || changed.stencil_reference != 0 ||
@@ -316,20 +308,6 @@ void GLStateManager::set_provoking_vert(const GPUProvokingVertex vert)
   GLenum value = (vert == GPU_VERTEX_FIRST) ? GL_FIRST_VERTEX_CONVENTION :
                                               GL_LAST_VERTEX_CONVENTION;
   glProvokingVertex(value);
-}
-
-void GLStateManager::set_shadow_bias(const bool enable)
-{
-  if (enable) {
-    glEnable(GL_POLYGON_OFFSET_FILL);
-    glEnable(GL_POLYGON_OFFSET_LINE);
-    /* 2.0 Seems to be the lowest possible slope bias that works in every case. */
-    glPolygonOffset(2.0f, 1.0f);
-  }
-  else {
-    glDisable(GL_POLYGON_OFFSET_FILL);
-    glDisable(GL_POLYGON_OFFSET_LINE);
-  }
 }
 
 void GLStateManager::set_clip_control(const bool enable)
@@ -561,7 +539,12 @@ void GLStateManager::texture_bind_apply()
 
 void GLStateManager::texture_unpack_row_length_set(uint len)
 {
-  glPixelStorei(GL_UNPACK_ROW_LENGTH, len);
+  texture_unpack_row_length_ = len;
+}
+
+uint GLStateManager::texture_unpack_row_length_get() const
+{
+  return texture_unpack_row_length_;
 }
 
 uint64_t GLStateManager::bound_texture_slots()

@@ -417,6 +417,8 @@ if(TEST_SRC_DIR_EXISTS)
   add_blender_test_allow_error(
     mesh_validate
     --python ${TEST_PYTHON_DIR}/mesh_validate.py
+    --
+    --testdir "${TEST_SRC_DIR}"
   )
 
   add_blender_test(
@@ -972,6 +974,7 @@ if(TEST_SRC_DIR_EXISTS)
     output
     color
     filter
+    texture
     utilities
     vector
 
@@ -1007,6 +1010,7 @@ if(WITH_GPU_COMPOSITOR_TESTS AND TEST_SRC_DIR_EXISTS)
     output
     color
     filter
+    texture
     utilities
     vector
 
@@ -1120,7 +1124,7 @@ if(TEST_SRC_DIR_EXISTS)
   endif()
 
   if(WITH_OPENSUBDIV)
-    list(APPEND geo_node_tests mesh/subdivision_tests)
+    list(APPEND geo_node_tests mesh/subdivision)
   endif()
 
   foreach(geo_node_test ${geo_node_tests})
@@ -1225,6 +1229,36 @@ if(TEST_SRC_DIR_EXISTS)
     --
     --testdir "${TEST_SRC_DIR}/io_tests/fbx"
     --outdir "${TEST_OUT_DIR}/io_fbx"
+  )
+endif()
+
+if(TEST_SRC_DIR_EXISTS)
+  add_blender_test_allow_error(
+    io_gltf_import
+    --python ${CMAKE_CURRENT_LIST_DIR}/io_gltf_import_test.py
+    --
+    --testdir "${TEST_SRC_DIR}/io_tests/gltf/import"
+    --outdir "${TEST_OUT_DIR}/io_gltf"
+  )
+endif()
+
+if(TEST_SRC_DIR_EXISTS)
+  add_blender_test_allow_error(
+    io_gltf_roundtrip
+    --python ${CMAKE_CURRENT_LIST_DIR}/io_gltf_roundtrip_test.py
+    --
+    --testdir "${TEST_SRC_DIR}/io_tests/gltf/roundtrip"
+    --outdir "${TEST_OUT_DIR}/io_gltf"
+  )
+endif()
+
+if(TEST_SRC_DIR_EXISTS)
+  add_blender_test_allow_error(
+    io_gltf_export
+    --python ${CMAKE_CURRENT_LIST_DIR}/io_gltf_export_test.py
+    --
+    --testdir "${TEST_SRC_DIR}/io_tests/gltf/export"
+    --outdir "${TEST_OUT_DIR}/io_gltf"
   )
 endif()
 

@@ -856,20 +856,22 @@ void WM_lib_reload(Library *lib, bContext *C, ReportList *reports)
 
   Main *bmain = CTX_data_main(C);
   LibraryLink_Params lapp_params;
-  BLO_library_link_params_init_with_context(&lapp_params,
-                                            bmain,
-                                            BLO_LIBLINK_USE_PLACEHOLDERS |
-                                                BLO_LIBLINK_FORCE_INDIRECT,
-                                            0,
-                                            CTX_data_scene(C),
-                                            CTX_data_view_layer(C),
-                                            nullptr);
+  BLO_library_link_params_init_with_context(
+      &lapp_params,
+      bmain,
+      (BLO_LIBLINK_USE_PLACEHOLDERS | BLO_LIBLINK_FORCE_INDIRECT | FILE_LINK),
+      0,
+      CTX_data_scene(C),
+      CTX_data_view_layer(C),
+      nullptr);
 
   BlendfileLinkAppendContext *lapp_context = BKE_blendfile_link_append_context_new(&lapp_params);
 
   BKE_blendfile_link_append_context_library_add(lapp_context, lib->runtime->filepath_abs, nullptr);
 
   BKE_blendfile_library_relocate(lapp_context, reports, lib, true);
+
+  BKE_blendfile_link_append_context_finalize(lapp_context);
 
   BKE_blendfile_link_append_context_free(lapp_context);
 
@@ -902,11 +904,6 @@ static wmOperatorStatus wm_lib_relocate_exec_do(bContext *C, wmOperator *op, boo
   BlendfileLinkAppendContext *lapp_context;
 
   char filepath[FILE_MAX], root[FILE_MAXDIR], libname[FILE_MAX], relname[FILE_MAX];
-  short flag = 0;
-
-  if (RNA_boolean_get(op->ptr, "relative_path")) {
-    flag |= FILE_RELPATH;
-  }
 
   if (lib->runtime->parent && !do_reload) {
     BKE_reportf(op->reports,
@@ -947,6 +944,15 @@ static wmOperatorStatus wm_lib_relocate_exec_do(bContext *C, wmOperator *op, boo
                   filepath);
       return OPERATOR_CANCELLED;
     }
+  }
+
+  int flag = FILE_LINK;
+  if (RNA_boolean_get(op->ptr, "relative_path")) {
+    flag |= FILE_RELPATH;
+  }
+  flag |= BLO_LIBLINK_FORCE_INDIRECT;
+  if (do_reload) {
+    flag |= BLO_LIBLINK_USE_PLACEHOLDERS;
   }
 
   LibraryLink_Params lapp_params;
@@ -1004,12 +1010,9 @@ static wmOperatorStatus wm_lib_relocate_exec_do(bContext *C, wmOperator *op, boo
     }
   }
 
-  BKE_blendfile_link_append_context_flag_set(lapp_context,
-                                             BLO_LIBLINK_FORCE_INDIRECT |
-                                                 (do_reload ? BLO_LIBLINK_USE_PLACEHOLDERS : 0),
-                                             true);
-
   BKE_blendfile_library_relocate(lapp_context, op->reports, lib, do_reload);
+
+  BKE_blendfile_link_append_context_finalize(lapp_context);
 
   BKE_blendfile_link_append_context_free(lapp_context);
 

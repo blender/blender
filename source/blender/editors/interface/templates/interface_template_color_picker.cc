@@ -53,20 +53,8 @@ void uiTemplateColorPicker(uiLayout *layout,
     case USER_CP_SQUARE_SV:
     case USER_CP_SQUARE_HS:
     case USER_CP_SQUARE_HV:
-      hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
-                                               ButType::HsvCube,
-                                               0,
-                                               "",
-                                               0,
-                                               0,
-                                               WHEEL_SIZE,
-                                               WHEEL_SIZE,
-                                               ptr,
-                                               prop,
-                                               -1,
-                                               0.0,
-                                               0.0,
-                                               "");
+      hsv_but = (uiButHSVCube *)uiDefButR_prop(
+          block, ButType::HsvCube, "", 0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop, -1, 0.0, 0.0, "");
       switch (U.color_picker_type) {
         case USER_CP_SQUARE_SV:
           hsv_but->gradient_type = UI_GRAD_SV;
@@ -87,7 +75,6 @@ void uiTemplateColorPicker(uiLayout *layout,
     default:
       but = uiDefButR_prop(block,
                            ButType::HsvCircle,
-                           0,
                            "",
                            0,
                            0,
@@ -120,7 +107,6 @@ void uiTemplateColorPicker(uiLayout *layout,
         row->separator();
         hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
                                                  ButType::HsvCube,
-                                                 0,
                                                  "",
                                                  WHEEL_SIZE + 6,
                                                  0,
@@ -138,7 +124,6 @@ void uiTemplateColorPicker(uiLayout *layout,
         col->separator();
         hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
                                                  ButType::HsvCube,
-                                                 0,
                                                  "",
                                                  0,
                                                  4,
@@ -156,7 +141,6 @@ void uiTemplateColorPicker(uiLayout *layout,
         col->separator();
         hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
                                                  ButType::HsvCube,
-                                                 0,
                                                  "",
                                                  0,
                                                  4,
@@ -174,7 +158,6 @@ void uiTemplateColorPicker(uiLayout *layout,
         col->separator();
         hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
                                                  ButType::HsvCube,
-                                                 0,
                                                  "",
                                                  0,
                                                  4,
@@ -195,7 +178,6 @@ void uiTemplateColorPicker(uiLayout *layout,
         row->separator();
         hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
                                                  ButType::HsvCube,
-                                                 0,
                                                  "",
                                                  WHEEL_SIZE + 6,
                                                  0,
@@ -325,7 +307,6 @@ void uiTemplatePalette(uiLayout *layout,
     PointerRNA color_ptr = RNA_pointer_create_discrete(&palette->id, &RNA_PaletteColor, color);
     uiButColor *color_but = (uiButColor *)uiDefButR(block,
                                                     ButType::Color,
-                                                    0,
                                                     "",
                                                     0,
                                                     0,

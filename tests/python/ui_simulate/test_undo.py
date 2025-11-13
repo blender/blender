@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-This file does not run anything, it's methods are accessed for tests by: ``run.py``.
+This file does not run anything, its methods are accessed for tests by ``run_blender_setup.py``.
 """
 import datetime
 
@@ -12,16 +12,6 @@ import datetime
 # are handled. This isn't great but seems not to be a problem for users?
 _MENU_CONFIRM_HACK = True
 
-# FIXME: When running multi window tests, the view layer in the new window
-# may not be updated after a single event loop. This fixed delay is to allow
-# the corresponding tests to run as expected. See: #136012.
-_MENU_CONFIRM_HACK_MULTI_WINDOW_PAUSE_SECONDS = 1 / 60
-
-# WARNING: macOS and windows require an extra delay (it's unclear why), see: #146143.
-import sys
-if sys.platform in {"darwin", "win32"}:
-    _MENU_CONFIRM_HACK_MULTI_WINDOW_PAUSE_SECONDS = 1 / 6
-del sys
 
 # -----------------------------------------------------------------------------
 # Utilities
@@ -787,6 +777,30 @@ def view3d_multi_mode_select():
         yield e.ctrl.z()
 
 
+def _ui_hack_idle_until(until, idle=1 / 60, timeout=1.0):
+    """
+    Idle while the internal event loop runs until a specified condition is true.
+
+    This should be used sparingly as it likely represents some other failure condition inside Blender. Currently, the
+    only known needed usecase is for multi window undo tests which need separate view layers. See #148903 for further
+    information on this issue.
+
+    Note: In practice, the timeout value of 1.0 seconds should be more than enough for all cases. In testing with a
+    fixed, constant delay, the tests succeeded with a timeout of 1/6th of a second.
+    :param until: lambda to check the condition of after each sleep
+    :param idle: how long to idle between checks of the `until` lambda.
+        Defaults to 60Hz due to common refresh rates.
+    :param timeout: the max time in seconds that this busy wait will execute.
+    :return:
+    """
+    import time
+    start_time = time.time()
+    current_time = time.time()
+    while current_time - start_time < timeout or not until():
+        yield datetime.timedelta(seconds=idle)
+        current_time = time.time()
+
+
 def view3d_multi_mode_multi_window():
     e_a, t = _test_vars(window_a := _test_window())
     yield from _call_menu(e_a, "Window -> New Main Window")
@@ -796,8 +810,7 @@ def view3d_multi_mode_multi_window():
     yield from _call_menu(e_b, "New Scene")
     yield e_b.ret()
     if _MENU_CONFIRM_HACK:
-        # We wait for a brief period of time after confirming to ensure that each main window has a different view layer
-        yield datetime.timedelta(seconds=_MENU_CONFIRM_HACK_MULTI_WINDOW_PAUSE_SECONDS)
+        yield from _ui_hack_idle_until(lambda: window_a.view_layer != window_b.view_layer)
 
     t.assertNotEqual(window_a.view_layer, window_b.view_layer, "Windows should have different view layers")
 
@@ -955,8 +968,7 @@ def view3d_edit_mode_multi_window():
     yield from _call_menu(e_b, "New Scene")
     yield e_b.ret()
     if _MENU_CONFIRM_HACK:
-        # We wait for a brief period of time after confirming to ensure that each main window has a different view layer
-        yield datetime.timedelta(seconds=_MENU_CONFIRM_HACK_MULTI_WINDOW_PAUSE_SECONDS)
+        yield from _ui_hack_idle_until(lambda: window_a.view_layer != window_b.view_layer)
 
     t.assertNotEqual(window_a.view_layer, window_b.view_layer, "Windows should have different view layers")
 

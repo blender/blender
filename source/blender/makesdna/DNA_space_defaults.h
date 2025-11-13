@@ -22,6 +22,11 @@
     .blend_factor = 0.7f, \
   }
 
+#define _DNA_DEFAULT_SpaceClipOverlay \
+  { \
+    .flag = SC_SHOW_OVERLAYS | SC_SHOW_CURSOR, \
+  }
+
 #define _DNA_DEFAULT_SpaceClip \
   { \
     .spacetype = SPACE_CLIP, \
@@ -48,6 +53,7 @@
     .around = V3D_AROUND_CENTER_MEDIAN, \
     .cursor = {0, 0}, \
     .mask_info = _DNA_DEFAULT_MaskSpaceInfo, \
+    .overlay = _DNA_DEFAULT_SpaceClipOverlay, \
   }
 
 /** \} */

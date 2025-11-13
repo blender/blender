@@ -43,7 +43,7 @@ static void apply_morphological_operator_gpu(Context &context,
   blurred_input.bind_as_image(shader, "blurred_input_img", true);
 
   Domain domain = input.domain();
-  compute_dispatch_threads_at_least(shader, domain.size);
+  compute_dispatch_threads_at_least(shader, domain.data_size);
 
   GPU_shader_unbind();
   input.unbind_as_texture();
@@ -57,14 +57,14 @@ static void apply_morphological_operator_cpu(const Result &input,
   Domain domain = input.domain();
   switch (operation) {
     case MorphologicalBlurOperation::Dilate:
-      parallel_for(domain.size, [&](const int2 texel) {
+      parallel_for(domain.data_size, [&](const int2 texel) {
         float input_value = input.load_pixel<float>(texel);
         float blurred_value = blurred_input.load_pixel<float>(texel);
         blurred_input.store_pixel(texel, math::max(input_value, blurred_value));
       });
       break;
     case MorphologicalBlurOperation::Erode:
-      parallel_for(domain.size, [&](const int2 texel) {
+      parallel_for(domain.data_size, [&](const int2 texel) {
         float input_value = input.load_pixel<float>(texel);
         float blurred_value = blurred_input.load_pixel<float>(texel);
         blurred_input.store_pixel(texel, math::min(input_value, blurred_value));

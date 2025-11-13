@@ -344,8 +344,8 @@ gpu::VertBufPtr extract_normals_subdiv(const MeshRenderData &mr,
       GPU_vertbuf_create_on_device(vert_normals_format, subdiv_cache.num_subdiv_verts));
   draw_subdiv_accumulate_normals(subdiv_cache,
                                  &pos,
-                                 subdiv_cache.subdiv_vertex_face_adjacency_offsets,
-                                 subdiv_cache.subdiv_vertex_face_adjacency,
+                                 subdiv_cache.subdiv_vert_face_adjacency_offsets,
+                                 subdiv_cache.subdiv_vert_face_adjacency,
                                  subdiv_corner_verts.get(),
                                  vert_normals.get());
 

@@ -275,7 +275,7 @@ class KeyingOperation : public NodeOperation {
     output.allocate_texture(input.domain());
     output.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, input.domain().size);
+    compute_dispatch_threads_at_least(shader, input.domain().data_size);
 
     GPU_shader_unbind();
     input.unbind_as_texture();
@@ -291,20 +291,20 @@ class KeyingOperation : public NodeOperation {
     Result output = context().create_result(ResultType::Color);
     output.allocate_texture(input.domain());
 
-    parallel_for(input.domain().size, [&](const int2 texel) {
-      const float4 color = input.load_pixel<float4>(texel);
+    parallel_for(input.domain().data_size, [&](const int2 texel) {
+      const Color color = input.load_pixel<Color>(texel);
       float4 color_ycca;
-      rgb_to_ycc(color.x,
-                 color.y,
-                 color.z,
+      rgb_to_ycc(color.r,
+                 color.g,
+                 color.b,
                  &color_ycca.x,
                  &color_ycca.y,
                  &color_ycca.z,
                  BLI_YCC_ITU_BT709);
       color_ycca /= 255.0f;
-      color_ycca.w = color.w;
+      color_ycca.w = color.a;
 
-      output.store_pixel(texel, color_ycca);
+      output.store_pixel(texel, Color(color_ycca));
     });
 
     return output;
@@ -332,7 +332,7 @@ class KeyingOperation : public NodeOperation {
     output.allocate_texture(input.domain());
     output.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, input.domain().size);
+    compute_dispatch_threads_at_least(shader, input.domain().data_size);
 
     GPU_shader_unbind();
     input.unbind_as_texture();
@@ -349,18 +349,18 @@ class KeyingOperation : public NodeOperation {
     Result output = context().create_result(ResultType::Color);
     output.allocate_texture(input.domain());
 
-    parallel_for(input.domain().size, [&](const int2 texel) {
-      const float4 color = input.load_pixel<float4>(texel);
+    parallel_for(input.domain().data_size, [&](const int2 texel) {
+      const Color color = input.load_pixel<Color>(texel);
       float4 color_ycca;
-      rgb_to_ycc(color.x,
-                 color.y,
-                 color.z,
+      rgb_to_ycc(color.r,
+                 color.g,
+                 color.b,
                  &color_ycca.x,
                  &color_ycca.y,
                  &color_ycca.z,
                  BLI_YCC_ITU_BT709);
 
-      const float2 new_chroma_cb_cr = new_chroma.load_pixel<float4>(texel).yz();
+      const float2 new_chroma_cb_cr = float4(new_chroma.load_pixel<Color>(texel)).yz();
       color_ycca.y = new_chroma_cb_cr.x * 255.0f;
       color_ycca.z = new_chroma_cb_cr.y * 255.0f;
 
@@ -372,9 +372,9 @@ class KeyingOperation : public NodeOperation {
                  &color_rgba.y,
                  &color_rgba.z,
                  BLI_YCC_ITU_BT709);
-      color_rgba.w = color.w;
+      color_rgba.w = color.a;
 
-      output.store_pixel(texel, color_rgba);
+      output.store_pixel(texel, Color(color_rgba));
     });
 
     return output;
@@ -404,7 +404,7 @@ class KeyingOperation : public NodeOperation {
     output.allocate_texture(input.domain());
     output.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, input.domain().size);
+    compute_dispatch_threads_at_least(shader, input.domain().data_size);
 
     GPU_shader_unbind();
     input.unbind_as_texture();
@@ -436,8 +436,8 @@ class KeyingOperation : public NodeOperation {
       return (color[indices.x] - weighted_average) * math::abs(1.0f - weighted_average);
     };
 
-    parallel_for(input.domain().size, [&](const int2 texel) {
-      float4 input_color = input.load_pixel<float4>(texel);
+    parallel_for(input.domain().data_size, [&](const int2 texel) {
+      float4 input_color = float4(input.load_pixel<Color>(texel));
 
       /* We assume that the keying screen will not be overexposed in the image, so if the input
        * brightness is high, we assume the pixel is opaque. */
@@ -446,7 +446,7 @@ class KeyingOperation : public NodeOperation {
         return;
       }
 
-      float4 key_color = key.load_pixel<float4, true>(texel);
+      float4 key_color = float4(key.load_pixel<Color, true>(texel));
       int3 key_saturation_indices = compute_saturation_indices(key_color.xyz());
       float input_saturation = compute_saturation(input_color, key_saturation_indices);
       float key_saturation = compute_saturation(key_color, key_saturation_indices);
@@ -531,7 +531,7 @@ class KeyingOperation : public NodeOperation {
       output_edges.bind_as_image(shader, "output_edges_img");
     }
 
-    compute_dispatch_threads_at_least(shader, input_matte.domain().size);
+    compute_dispatch_threads_at_least(shader, input_matte.domain().data_size);
 
     GPU_shader_unbind();
     input_matte.unbind_as_texture();
@@ -571,7 +571,7 @@ class KeyingOperation : public NodeOperation {
       output_edges.allocate_texture(input_matte.domain());
     }
 
-    parallel_for(input_matte.domain().size, [&](const int2 texel) {
+    parallel_for(input_matte.domain().data_size, [&](const int2 texel) {
       float matte = input_matte.load_pixel<float>(texel);
 
       /* Search the neighborhood around the current matte value and identify if it lies along the
@@ -753,7 +753,7 @@ class KeyingOperation : public NodeOperation {
     output.allocate_texture(matte.domain());
     output.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, input.domain().size);
+    compute_dispatch_threads_at_least(shader, input.domain().data_size);
 
     GPU_shader_unbind();
     input.unbind_as_texture();
@@ -781,9 +781,9 @@ class KeyingOperation : public NodeOperation {
       return int3(index_of_max, max_index, min_index);
     };
 
-    parallel_for(input.domain().size, [&](const int2 texel) {
-      float4 key_color = key.load_pixel<float4, true>(texel);
-      float4 color = input.load_pixel<float4>(texel);
+    parallel_for(input.domain().data_size, [&](const int2 texel) {
+      float4 key_color = float4(key.load_pixel<Color, true>(texel));
+      float4 color = float4(input.load_pixel<Color>(texel));
       float matte = matte_image.load_pixel<float>(texel);
 
       /* Alpha multiply the matte to the image. */
@@ -795,7 +795,7 @@ class KeyingOperation : public NodeOperation {
           color[indices.y], color[indices.z], despill_balance);
       color[indices.x] -= math::max(0.0f, (color[indices.x] - weighted_average) * despill_factor);
 
-      output.store_pixel(texel, color);
+      output.store_pixel(texel, Color(color));
     });
   }
 

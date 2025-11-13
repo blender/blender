@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'2b3706e29f27')\n"
+"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 08:46+0000\n"
-"PO-Revision-Date: 2025-09-09 13:59+0000\n"
+"POT-Creation-Date: 2025-11-10 09:45+0000\n"
+"PO-Revision-Date: 2025-10-30 01:59+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
@@ -24550,42 +24550,6 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Assign Material"
-msgstr "Assegna Materiale"
-
-
-msgid "Select More/Less"
-msgstr "Seleziona Più/Meno"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Light"
-msgstr "Luce"
-
-
-msgid "Light Probe"
-msgstr "Sensore di Luce"
-
-
-msgid "Add Image"
-msgstr "Aggiungi Immagine"
-
-
-msgid "Relations"
-msgstr "Relazioni"
-
-
-msgid "Rigid Body"
-msgstr "Corpo Rigido"
-
-
-msgid "Apply"
-msgstr "Applica"
-
-
 msgid "Track"
 msgstr "Traccia"
 
@@ -24626,10 +24590,6 @@ msgid "Vertex Group Locks"
 msgstr "Blocchi del Gruppo di Vertici"
 
 
-msgid "Layout"
-msgstr "Layout"
-
-
 msgid "Face Sets Init"
 msgstr "Init Sets di Facce"
 
@@ -24646,10 +24606,6 @@ msgid "In-Betweens"
 msgstr "Intermedio"
 
 
-msgid "Adjust"
-msgstr "Regola"
-
-
 msgid "Propagate"
 msgstr "Propaga"
 
@@ -24658,28 +24614,16 @@ msgid "Bone Collections"
 msgstr "Raccolte di Ossa"
 
 
-msgid "Keying"
-msgstr "Keying"
-
-
 msgid "Names"
 msgstr "Nomi"
 
 
-msgid "Tracking"
-msgstr "Tracciamento"
-
-
-msgid "Utilities"
-msgstr "Utilità"
+msgid "Apply"
+msgstr "Applica"
 
 
 msgid "Toggle Bone Options"
 msgstr "Attiva/disattiva Opzioni Osso"
-
-
-msgid "Math"
-msgstr "Matematica"
 
 
 msgid "Enable Bone Options"
@@ -24688,6 +24632,10 @@ msgstr "Abilita Opzioni Osso"
 
 msgid "Disable Bone Options"
 msgstr "Disabilita Opzioni Osso"
+
+
+msgid "Layout"
+msgstr "Layout"
 
 
 msgid "Mesh Select Mode"
@@ -24710,6 +24658,26 @@ msgid "Merge"
 msgstr "Unisci"
 
 
+msgid "Adjust"
+msgstr "Regola"
+
+
+msgid "Keying"
+msgstr "Keying"
+
+
+msgid "Tracking"
+msgstr "Tracciamento"
+
+
+msgid "Utilities"
+msgstr "Utilità"
+
+
+msgid "Math"
+msgstr "Matematica"
+
+
 msgid "Special Characters"
 msgstr "Caratteri Speciali"
 
@@ -24722,28 +24690,16 @@ msgid "Text"
 msgstr "Testo"
 
 
+msgid "Metaball"
+msgstr "Metaball"
+
+
 msgid "Bone Roll"
 msgstr "Rollio Osso"
 
 
-msgid "Read"
-msgstr "Lettura"
-
-
-msgid "Sample"
-msgstr "Campione"
-
-
-msgid "Write"
-msgstr "Scrittura"
-
-
 msgid "Pivot Point"
 msgstr "Punto di Perno"
-
-
-msgid "Primitives"
-msgstr "Primitive"
 
 
 msgid "Snap"
@@ -24766,12 +24722,20 @@ msgid "Face Sets Edit"
 msgstr "Modifica Sets di Facce"
 
 
-msgid "Instances"
-msgstr "Istanze"
+msgid "Read"
+msgstr "Lettura"
 
 
-msgid "Import"
-msgstr "Importa"
+msgid "Sample"
+msgstr "Campione"
+
+
+msgid "Write"
+msgstr "Scrittura"
+
+
+msgid "Primitives"
+msgstr "Primitive"
 
 
 msgid "Mirror"
@@ -24794,10 +24758,6 @@ msgid "Navigation"
 msgstr "Navigazione"
 
 
-msgid "UV"
-msgstr "UV"
-
-
 msgid "Align View"
 msgstr "Allinea Vista"
 
@@ -24808,6 +24768,14 @@ msgstr "Allinea Vista a Attivo"
 
 msgid "View Regions"
 msgstr "Regione Vista"
+
+
+msgid "Select More/Less"
+msgstr "Seleziona Più/Meno"
+
+
+msgid "Instances"
+msgstr "Istanze"
 
 
 msgid "Select Similar"
@@ -24822,16 +24790,48 @@ msgid "Select Linked"
 msgstr "Seleziona Collegati"
 
 
-msgid "Basic"
-msgstr "Di Base"
-
-
 msgid "Select Loops"
 msgstr "Seleziona Anelli"
 
 
+msgid "Import"
+msgstr "Importa"
+
+
+msgid "Assign Material"
+msgstr "Assegna Materiale"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Light"
+msgstr "Luce"
+
+
+msgid "Light Probe"
+msgstr "Sensore di Luce"
+
+
+msgid "Add Image"
+msgstr "Aggiungi Immagine"
+
+
+msgid "Relations"
+msgstr "Relazioni"
+
+
+msgid "Rigid Body"
+msgstr "Corpo Rigido"
+
+
 msgid "Keyframe Insert Pie"
 msgstr "Torta Inserisci Keyframe"
+
+
+msgid "Basic"
+msgstr "Di Base"
 
 
 msgid "Bone Collection Specials"
@@ -28385,14 +28385,6 @@ msgstr "Mantieni Confini"
 
 msgid "Nodes Modifier"
 msgstr "Modificatore Nodi"
-
-
-msgid "Bake Target"
-msgstr "Target Precalcolo"
-
-
-msgid "Packed"
-msgstr "Compresso"
 
 
 msgid "Pack the baked data into the .blend file"
@@ -45084,10 +45076,6 @@ msgid "Add IK to Bone"
 msgstr "Aggiunge IK all'Osso"
 
 
-msgid "Add IK Constraint to the active Bone"
-msgstr "Aggiunge un vincolo IK all'osso attivo"
-
-
 msgid "With Targets"
 msgstr "Con Obiettivi"
 
@@ -46615,10 +46603,6 @@ msgstr "Utilizza le informazioni del canale alpha dell'immagine"
 msgctxt "Operator"
 msgid "Add Scene Strip"
 msgstr "Aggiunge Spezzone Scena"
-
-
-msgid "Add a strip to the sequencer using a Blender scene as a source"
-msgstr "Aggiunge uno spezzone al sequencer utilizzando una scena Blender come sorgente"
 
 
 msgid "Select a strip (last selected becomes the \"active strip\")"
@@ -49776,6 +49760,10 @@ msgid "Textures Directory"
 msgstr "Cartella Texture"
 
 
+msgid "Packed"
+msgstr "Compresso"
+
+
 msgid "All Custom"
 msgstr "Tutto Personalizzato"
 
@@ -50134,10 +50122,6 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
-msgid "Auto-Masking"
-msgstr "Auto-Mascheramento"
-
-
 msgid "Shadow Settings"
 msgstr "Impostazioni Ombra"
 
@@ -50188,6 +50172,10 @@ msgstr "Giacitura Tratto"
 
 msgid "Stereoscopy"
 msgstr "Stereoscopia"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Mascheramento"
 
 
 msgid "Chain Scaling"
@@ -60292,12 +60280,16 @@ msgid "Image path {!r} not found, image may be packed or unsaved"
 msgstr "Percorso dell'immagine {!r} non trovato, forse l'immagine è incorporata o non salvata"
 
 
+msgid "No nodes selected."
+msgstr "Nessuno nodo selezionato."
+
+
 msgid "Active camera is not in this scene"
 msgstr "La camera attiva non è in questa scena"
 
 
-msgid "Modifiers cannot be added to object: "
-msgstr "Non possono essere aggiunti modificatori all'oggetto: "
+msgid "Modifiers cannot be added to object: {:s}"
+msgstr "Non è possibile aggiungere modificatori all'oggetto: {:s}"
 
 
 msgid "Fur Material"
@@ -60461,8 +60453,8 @@ msgid "User Communities"
 msgstr "Comunità Utenti"
 
 
-msgid "Failed to assign value: "
-msgstr "Impossibile impostare il valore: "
+msgid "Failed to assign value: {:s}"
+msgstr "Impossibile impostare il valore: {:s}"
 
 
 msgid "Strip(s)"
@@ -62249,6 +62241,11 @@ msgstr "Cambia Percorso/Files"
 msgctxt "Operator"
 msgid "Swap Data"
 msgstr "Scambia Dati"
+
+
+msgctxt "Operator"
+msgid "Copy to Selected Strips..."
+msgstr "Copia agli Spezzoni Selezionati..."
 
 
 msgctxt "Operator"
@@ -65791,22 +65788,6 @@ msgid "Add IK"
 msgstr "Aggiungi Cinematica Inversa (IK)"
 
 
-msgid "To Active Bone"
-msgstr "All'Osso Attivo"
-
-
-msgid "To Active Object"
-msgstr "All'Oggetto Attivo"
-
-
-msgid "To New Empty Object"
-msgstr "A Nuovo Oggetto Vuoto"
-
-
-msgid "Without Targets"
-msgstr "Senza Obiettivi"
-
-
 msgid "Child Of constraint not found"
 msgstr "Vincolo Figlio Di non trovato"
 
@@ -68103,6 +68084,11 @@ msgid "Flaps"
 msgstr "Lembi"
 
 
+msgctxt "Color"
+msgid "Spill Channel"
+msgstr "Canale Dispersione"
+
+
 msgid "Correction for shadows"
 msgstr "Correzione per le ombre"
 
@@ -68807,6 +68793,10 @@ msgstr "Orlo"
 
 msgid "Blender File View"
 msgstr "Visualizza File di Blender"
+
+
+msgid "Failed to open file browser!"
+msgstr "Impossibile aprire il file browser!"
 
 
 msgid "To make changes to Preferences permanent, use \"Save Preferences\""

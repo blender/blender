@@ -16,7 +16,7 @@
 #include "BKE_material.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_shader_fx.h"
+#include "BKE_shader_fx.hh"
 
 #include "BKE_camera.h"
 

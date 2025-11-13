@@ -1,0 +1,512 @@
+==== Meshes: 3
+- Mesh 'Cube' vtx:24 face:12 loop:36 edge:30
+    - 1 13 19 1 19 ... 12 0 15 0 3 
+    - 1/19 1/13 13/19 1/7 7/19 ... 0/15 12/15 0/12 3/15 0/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.000, 1.000, 1.000)
+    - (1.000, 1.000, 1.000)
+    - (1.000, 1.000, 1.000)
+      ...
+    - (-1.000, -1.000, -1.000)
+    - (-1.000, -1.000, -1.000)
+    - (-1.000, -1.000, -1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'Color' BYTE_COLOR CORNER
+    - (0.004, 0.000, 0.332, 1.000)
+    - (0.004, 0.000, 0.332, 1.000)
+    - (0.004, 0.000, 0.332, 1.000)
+      ...
+    - (0.004, 0.000, 0.332, 1.000)
+    - (0.004, 0.000, 0.332, 1.000)
+    - (0.004, 0.000, 0.332, 1.000)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.625, 0.500)
+    - (0.875, 0.500)
+    - (0.875, 0.750)
+      ...
+    - (0.375, 0.250)
+    - (0.625, 0.500)
+    - (0.375, 0.500)
+  - vertex groups:
+    - 1=0.845 0=0.155
+    - 1=0.845 0=0.155
+    - 1=0.845 0=0.155
+    - 0=0.860 1=0.140
+    - 0=0.860 1=0.140
+  - 1 materials
+    - 'Material' 
+  - shape key 'Basis' w:1.000 vgrp:'' 0:(1.000, 1.000, 1.000) 1:(1.000, 1.000, 1.000) 2:(1.000, 1.000, 1.000)
+  - shape key 'Key 1' w:0.000 vgrp:'' 0:(1.602, 1.623, 2.261) 1:(1.602, 1.623, 2.261) 2:(1.602, 1.623, 2.261)
+  - shape key 'Key 2' w:0.000 vgrp:'' 0:(1.000, 1.000, 1.000) 1:(1.000, 1.000, 1.000) 2:(1.000, 1.000, 1.000)
+
+- Mesh 'Icosphere' vtx:42 face:80 loop:240 edge:120
+    - 0 13 12 1 13 ... 13 14 13 1 14 
+    - 0/12 1/13 2/14 1/15 5/16 ... 13/15 13/16 12/14 12/13 13/14 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, -1.000)
+    - (0.724, -0.526, -0.447)
+    - (-0.276, -0.851, -0.447)
+      ...
+    - (-0.425, -0.309, 0.851)
+    - (-0.425, 0.309, 0.851)
+    - (0.162, 0.500, 0.851)
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.182, 0.000)
+    - (0.227, 0.079)
+    - (0.136, 0.079)
+      ...
+    - (0.227, 0.079)
+    - (0.273, 0.157)
+    - (0.182, 0.157)
+
+- Mesh 'Suzanne' vtx:1966 face:968 loop:2904 edge:2435
+    - 152 2 10 152 10 ... 1228 1220 1954 1220 1505 
+    - 10/152 2/152 2/10 144/152 10/144 ... 1220/1954 1228/1954 1220/1228 1505/1954 1220/1505 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.438, -0.766, 0.164)
+    - (0.438, -0.766, 0.164)
+    - (0.438, -0.766, 0.164)
+      ...
+    - (-0.859, 0.383, 0.383)
+    - (-0.859, 0.383, 0.383)
+    - (-0.859, 0.383, 0.383)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (19, -5723)
+    - (185, -15356)
+    - (12, -25504)
+      ...
+    - (372, -26512)
+    - (1201, -27096)
+    - (6003, 17731)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.843, 0.589)
+    - (0.834, 0.612)
+    - (0.794, 0.612)
+      ...
+    - (0.176, 0.608)
+    - (0.342, 0.588)
+    - (0.242, 0.641)
+  - shape key 'Basis' w:1.000 vgrp:'' 0:(0.438, -0.766, 0.164) 1:(0.438, -0.766, 0.164) 2:(0.438, -0.766, 0.164)
+  - shape key 'Key 1' w:0.000 vgrp:'' 0:(0.438, -0.766, 0.164) 1:(0.438, -0.766, 0.164) 2:(0.438, -0.766, 0.164)
+
+==== Objects: 5
+- Obj 'Armature' ARMATURE data:'Armature'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (QUATERNION)
+  - scl 1.000, 1.000, 1.000
+  - anim act:Action slot:OBArmature blend:REPLACE drivers:0
+- Obj 'Cube' EMPTY par:'Armature'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (QUATERNION)
+  - scl 1.000, 1.000, 1.000
+  - props: fl:extras_float=1.000
+- Obj 'Cube.001' MESH data:'Cube' par:'Armature'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (QUATERNION)
+  - scl 1.000, 1.000, 1.000
+  - 2 vertex groups
+    - 'Bone' 'Bone.001' 
+  - 1 modifiers
+    - ARMATURE 'Armature'
+- Obj 'Icosphere' MESH data:'Icosphere'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Suzanne' MESH data:'Suzanne'
+  - pos -4.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (QUATERNION)
+  - scl 1.000, 1.000, 1.000
+  - anim act:Action slot:OBSuzanne blend:REPLACE drivers:0
+
+==== Materials: 1
+- Mat 'Material'
+  - base color (0.800, 0.800, 0.800)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.500
+  - surface_render_method BLENDED
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.400
+  - backface False probe True shadow False
+
+==== Actions: 2
+- Action 'Action' curverange:(1.0 .. 24.0) layers:1
+- ActionLayer layer0 strips:1
+ - Keyframe strip channelbags:4
+ - Channelbag slot 'OBArmature' curves:20
+  - fcu 'pose.bones["Bone"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:24 grp:'Bone'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.022) lh:(1.667, 0.008 AUTO_CLAMPED) rh:(2.333, 0.036 AUTO_CLAMPED)
+    - (3.000, 0.085) lh:(2.667, 0.058 AUTO_CLAMPED) rh:(3.333, 0.113 AUTO_CLAMPED)
+      ...
+    - (22.000, 3.915) lh:(21.667, 3.887 AUTO_CLAMPED) rh:(22.333, 3.942 AUTO_CLAMPED)
+    - (23.000, 3.978) lh:(22.667, 3.964 AUTO_CLAMPED) rh:(23.333, 3.992 AUTO_CLAMPED)
+    - (24.000, 4.000) lh:(23.667, 4.000 AUTO_CLAMPED) rh:(24.333, 4.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:24 grp:'Bone'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (22.000, 0.000) lh:(21.667, 0.000 AUTO_CLAMPED) rh:(22.333, 0.000 AUTO_CLAMPED)
+    - (23.000, 0.000) lh:(22.667, 0.000 AUTO_CLAMPED) rh:(23.333, 0.000 AUTO_CLAMPED)
+    - (24.000, 0.000) lh:(23.667, 0.000 AUTO_CLAMPED) rh:(24.333, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:24 grp:'Bone'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (22.000, 0.000) lh:(21.667, 0.000 AUTO_CLAMPED) rh:(22.333, 0.000 AUTO_CLAMPED)
+    - (23.000, 0.000) lh:(22.667, 0.000 AUTO_CLAMPED) rh:(23.333, 0.000 AUTO_CLAMPED)
+    - (24.000, 0.000) lh:(23.667, 0.000 AUTO_CLAMPED) rh:(24.333, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:24 grp:'Bone'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO_CLAMPED) rh:(2.333, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.667, 1.000 AUTO_CLAMPED) rh:(3.333, 1.000 AUTO_CLAMPED)
+      ...
+    - (22.000, 0.718) lh:(21.667, 0.721 AUTO_CLAMPED) rh:(22.333, 0.714 AUTO_CLAMPED)
+    - (23.000, 0.710) lh:(22.667, 0.712 AUTO_CLAMPED) rh:(23.333, 0.708 AUTO_CLAMPED)
+    - (24.000, 0.707) lh:(23.667, 0.707 AUTO_CLAMPED) rh:(24.333, 0.707 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:24 grp:'Bone'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (22.000, 0.000) lh:(21.667, 0.000 AUTO_CLAMPED) rh:(22.333, 0.000 AUTO_CLAMPED)
+    - (23.000, 0.000) lh:(22.667, 0.000 AUTO_CLAMPED) rh:(23.333, 0.000 AUTO_CLAMPED)
+    - (24.000, 0.000) lh:(23.667, 0.000 AUTO_CLAMPED) rh:(24.333, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:24 grp:'Bone'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.004) lh:(1.667, 0.001 AUTO_CLAMPED) rh:(2.333, 0.006 AUTO_CLAMPED)
+    - (3.000, 0.015) lh:(2.667, 0.010 AUTO_CLAMPED) rh:(3.333, 0.020 AUTO_CLAMPED)
+      ...
+    - (22.000, 0.696) lh:(21.667, 0.693 AUTO_CLAMPED) rh:(22.333, 0.700 AUTO_CLAMPED)
+    - (23.000, 0.704) lh:(22.667, 0.703 AUTO_CLAMPED) rh:(23.333, 0.706 AUTO_CLAMPED)
+    - (24.000, 0.707) lh:(23.667, 0.707 AUTO_CLAMPED) rh:(24.333, 0.707 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].rotation_quaternion[3]' smooth:CONT_ACCEL extra:CONSTANT keyframes:24 grp:'Bone'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (22.000, 0.000) lh:(21.667, 0.000 AUTO_CLAMPED) rh:(22.333, 0.000 AUTO_CLAMPED)
+    - (23.000, 0.000) lh:(22.667, 0.000 AUTO_CLAMPED) rh:(23.333, 0.000 AUTO_CLAMPED)
+    - (24.000, 0.000) lh:(23.667, 0.000 AUTO_CLAMPED) rh:(24.333, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:24 grp:'Bone'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.006) lh:(1.667, 1.002 AUTO_CLAMPED) rh:(2.333, 1.009 AUTO_CLAMPED)
+    - (3.000, 1.021) lh:(2.667, 1.014 AUTO_CLAMPED) rh:(3.333, 1.028 AUTO_CLAMPED)
+      ...
+    - (22.000, 1.979) lh:(21.667, 1.972 AUTO_CLAMPED) rh:(22.333, 1.986 AUTO_CLAMPED)
+    - (23.000, 1.994) lh:(22.667, 1.991 AUTO_CLAMPED) rh:(23.333, 1.998 AUTO_CLAMPED)
+    - (24.000, 2.000) lh:(23.667, 2.000 AUTO_CLAMPED) rh:(24.333, 2.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:24 grp:'Bone'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.006) lh:(1.667, 1.002 AUTO_CLAMPED) rh:(2.333, 1.009 AUTO_CLAMPED)
+    - (3.000, 1.021) lh:(2.667, 1.014 AUTO_CLAMPED) rh:(3.333, 1.028 AUTO_CLAMPED)
+      ...
+    - (22.000, 1.979) lh:(21.667, 1.972 AUTO_CLAMPED) rh:(22.333, 1.986 AUTO_CLAMPED)
+    - (23.000, 1.994) lh:(22.667, 1.991 AUTO_CLAMPED) rh:(23.333, 1.998 AUTO_CLAMPED)
+    - (24.000, 2.000) lh:(23.667, 2.000 AUTO_CLAMPED) rh:(24.333, 2.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:24 grp:'Bone'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.006) lh:(1.667, 1.002 AUTO_CLAMPED) rh:(2.333, 1.009 AUTO_CLAMPED)
+    - (3.000, 1.021) lh:(2.667, 1.014 AUTO_CLAMPED) rh:(3.333, 1.028 AUTO_CLAMPED)
+      ...
+    - (22.000, 1.979) lh:(21.667, 1.972 AUTO_CLAMPED) rh:(22.333, 1.986 AUTO_CLAMPED)
+    - (23.000, 1.994) lh:(22.667, 1.991 AUTO_CLAMPED) rh:(23.333, 1.998 AUTO_CLAMPED)
+    - (24.000, 2.000) lh:(23.667, 2.000 AUTO_CLAMPED) rh:(24.333, 2.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone.001"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bone.001'
+    - (1.000, 0.000) lh:(-6.667, 0.000 AUTO_CLAMPED) rh:(8.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+    - (24.000, 0.000) lh:(16.333, 0.000 AUTO_CLAMPED) rh:(31.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'pose.bones["Bone.001"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bone.001'
+    - (1.000, 0.000) lh:(-6.667, 0.000 AUTO_CLAMPED) rh:(8.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+    - (24.000, 0.000) lh:(16.333, 0.000 AUTO_CLAMPED) rh:(31.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'pose.bones["Bone.001"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bone.001'
+    - (1.000, 0.000) lh:(-6.667, 0.000 AUTO_CLAMPED) rh:(8.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+    - (24.000, 0.000) lh:(16.333, 0.000 AUTO_CLAMPED) rh:(31.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'pose.bones["Bone.001"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bone.001'
+    - (1.000, 1.000) lh:(-6.667, 1.000 AUTO_CLAMPED) rh:(8.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+    - (24.000, 1.000) lh:(16.333, 1.000 AUTO_CLAMPED) rh:(31.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'pose.bones["Bone.001"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bone.001'
+    - (1.000, 0.000) lh:(-6.667, 0.000 AUTO_CLAMPED) rh:(8.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+    - (24.000, 0.000) lh:(16.333, 0.000 AUTO_CLAMPED) rh:(31.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+ - Channelbag slot 'OBSuzanne' curves:10
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:24 grp:'Object Transforms'
+    - (1.000, -4.000) lh:(0.667, -4.000 AUTO_CLAMPED) rh:(1.333, -4.000 AUTO_CLAMPED)
+    - (2.000, -4.000) lh:(1.667, -4.000 AUTO_CLAMPED) rh:(2.333, -4.000 AUTO_CLAMPED)
+    - (3.000, -4.000) lh:(2.667, -4.000 AUTO_CLAMPED) rh:(3.333, -4.000 AUTO_CLAMPED)
+      ...
+    - (22.000, -4.000) lh:(21.667, -4.000 AUTO_CLAMPED) rh:(22.333, -4.000 AUTO_CLAMPED)
+    - (23.000, -4.000) lh:(22.667, -4.000 AUTO_CLAMPED) rh:(23.333, -4.000 AUTO_CLAMPED)
+    - (24.000, -4.000) lh:(23.667, -4.000 AUTO_CLAMPED) rh:(24.333, -4.000 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:24 grp:'Object Transforms'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (22.000, 0.000) lh:(21.667, 0.000 AUTO_CLAMPED) rh:(22.333, 0.000 AUTO_CLAMPED)
+    - (23.000, 0.000) lh:(22.667, 0.000 AUTO_CLAMPED) rh:(23.333, 0.000 AUTO_CLAMPED)
+    - (24.000, 0.000) lh:(23.667, 0.000 AUTO_CLAMPED) rh:(24.333, 0.000 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:24 grp:'Object Transforms'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.011) lh:(1.667, 0.004 AUTO_CLAMPED) rh:(2.333, 0.018 AUTO_CLAMPED)
+    - (3.000, 0.043) lh:(2.667, 0.029 AUTO_CLAMPED) rh:(3.333, 0.057 AUTO_CLAMPED)
+      ...
+    - (22.000, 1.957) lh:(21.667, 1.943 AUTO_CLAMPED) rh:(22.333, 1.971 AUTO_CLAMPED)
+    - (23.000, 1.989) lh:(22.667, 1.982 AUTO_CLAMPED) rh:(23.333, 1.996 AUTO_CLAMPED)
+    - (24.000, 2.000) lh:(23.667, 2.000 AUTO_CLAMPED) rh:(24.333, 2.000 AUTO_CLAMPED)
+  - fcu 'rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Object Transforms'
+    - (1.000, 1.000) lh:(-6.667, 1.000 AUTO_CLAMPED) rh:(8.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+    - (24.000, 1.000) lh:(16.333, 1.000 AUTO_CLAMPED) rh:(31.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Object Transforms'
+    - (1.000, 0.000) lh:(-6.667, 0.000 AUTO_CLAMPED) rh:(8.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+    - (24.000, 0.000) lh:(16.333, 0.000 AUTO_CLAMPED) rh:(31.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Object Transforms'
+    - (1.000, 0.000) lh:(-6.667, 0.000 AUTO_CLAMPED) rh:(8.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+    - (24.000, 0.000) lh:(16.333, 0.000 AUTO_CLAMPED) rh:(31.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'rotation_quaternion[3]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Object Transforms'
+    - (1.000, 0.000) lh:(-6.667, 0.000 AUTO_CLAMPED) rh:(8.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+    - (24.000, 0.000) lh:(16.333, 0.000 AUTO_CLAMPED) rh:(31.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Object Transforms'
+    - (1.000, 1.000) lh:(-6.667, 1.000 AUTO_CLAMPED) rh:(8.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+    - (24.000, 1.000) lh:(16.333, 1.000 AUTO_CLAMPED) rh:(31.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Object Transforms'
+    - (1.000, 1.000) lh:(-6.667, 1.000 AUTO_CLAMPED) rh:(8.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+    - (24.000, 1.000) lh:(16.333, 1.000 AUTO_CLAMPED) rh:(31.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Object Transforms'
+    - (1.000, 1.000) lh:(-6.667, 1.000 AUTO_CLAMPED) rh:(8.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+    - (24.000, 1.000) lh:(16.333, 1.000 AUTO_CLAMPED) rh:(31.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+ - Channelbag slot 'KESuzanne' curves:1
+  - fcu 'key_blocks["Key 1"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:24
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.006) lh:(1.667, 0.002 AUTO_CLAMPED) rh:(2.333, 0.009 AUTO_CLAMPED)
+    - (3.000, 0.021) lh:(2.667, 0.014 AUTO_CLAMPED) rh:(3.333, 0.028 AUTO_CLAMPED)
+      ...
+    - (22.000, 0.979) lh:(21.667, 0.972 AUTO_CLAMPED) rh:(22.333, 0.986 AUTO_CLAMPED)
+    - (23.000, 0.994) lh:(22.667, 0.991 AUTO_CLAMPED) rh:(23.333, 0.998 AUTO_CLAMPED)
+    - (24.000, 1.000) lh:(23.667, 1.000 AUTO_CLAMPED) rh:(24.333, 1.000 AUTO_CLAMPED)
+ - Channelbag slot 'KECube.001' curves:2
+  - fcu 'key_blocks["Key 1"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:24
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.006) lh:(1.667, 0.002 AUTO_CLAMPED) rh:(2.333, 0.009 AUTO_CLAMPED)
+    - (3.000, 0.021) lh:(2.667, 0.014 AUTO_CLAMPED) rh:(3.333, 0.028 AUTO_CLAMPED)
+      ...
+    - (22.000, 0.979) lh:(21.667, 0.972 AUTO_CLAMPED) rh:(22.333, 0.986 AUTO_CLAMPED)
+    - (23.000, 0.994) lh:(22.667, 0.991 AUTO_CLAMPED) rh:(23.333, 0.998 AUTO_CLAMPED)
+    - (24.000, 1.000) lh:(23.667, 1.000 AUTO_CLAMPED) rh:(24.333, 1.000 AUTO_CLAMPED)
+  - fcu 'key_blocks["Key 2"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:24
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (22.000, 0.000) lh:(21.667, 0.000 AUTO_CLAMPED) rh:(22.333, 0.000 AUTO_CLAMPED)
+    - (23.000, 0.000) lh:(22.667, 0.000 AUTO_CLAMPED) rh:(23.333, 0.000 AUTO_CLAMPED)
+    - (24.000, 0.000) lh:(23.667, 0.000 AUTO_CLAMPED) rh:(24.333, 0.000 AUTO_CLAMPED)
+
+- Action 'Action2' curverange:(1.0 .. 36.0) layers:1
+- ActionLayer layer0 strips:1
+ - Keyframe strip channelbags:4
+ - Channelbag slot 'OBArmature' curves:20
+  - fcu 'pose.bones["Bone"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:36 grp:'Bone'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (34.000, -0.295) lh:(33.667, -0.188 AUTO_CLAMPED) rh:(34.333, -0.403 AUTO_CLAMPED)
+    - (35.000, -0.548) lh:(34.667, -0.488 AUTO_CLAMPED) rh:(35.333, -0.607 AUTO_CLAMPED)
+    - (36.000, -0.639) lh:(35.667, -0.639 AUTO_CLAMPED) rh:(36.333, -0.639 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:36 grp:'Bone'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (34.000, 4.394) lh:(33.667, 4.284 AUTO_CLAMPED) rh:(34.333, 4.504 AUTO_CLAMPED)
+    - (35.000, 4.652) lh:(34.667, 4.592 AUTO_CLAMPED) rh:(35.333, 4.712 AUTO_CLAMPED)
+    - (36.000, 4.745) lh:(35.667, 4.745 AUTO_CLAMPED) rh:(36.333, 4.745 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:36 grp:'Bone'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (34.000, -4.412) lh:(33.667, -4.301 AUTO_CLAMPED) rh:(34.333, -4.522 AUTO_CLAMPED)
+    - (35.000, -4.671) lh:(34.667, -4.610 AUTO_CLAMPED) rh:(35.333, -4.732 AUTO_CLAMPED)
+    - (36.000, -4.765) lh:(35.667, -4.765 AUTO_CLAMPED) rh:(36.333, -4.765 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:36 grp:'Bone'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO_CLAMPED) rh:(2.333, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.667, 1.000 AUTO_CLAMPED) rh:(3.333, 1.000 AUTO_CLAMPED)
+      ...
+    - (34.000, 0.999) lh:(33.667, 0.998 AUTO_CLAMPED) rh:(34.333, 0.999 AUTO_CLAMPED)
+    - (35.000, 1.000) lh:(34.667, 1.000 AUTO_CLAMPED) rh:(35.333, 1.000 AUTO_CLAMPED)
+    - (36.000, 1.000) lh:(35.667, 1.000 AUTO_CLAMPED) rh:(36.333, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:36 grp:'Bone'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (34.000, 0.000) lh:(33.667, 0.000 AUTO_CLAMPED) rh:(34.333, 0.000 AUTO_CLAMPED)
+    - (35.000, 0.000) lh:(34.667, 0.000 AUTO_CLAMPED) rh:(35.333, 0.000 AUTO_CLAMPED)
+    - (36.000, 0.000) lh:(35.667, 0.000 AUTO_CLAMPED) rh:(36.333, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:36 grp:'Bone'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (34.000, 0.053) lh:(33.667, 0.070 AUTO_CLAMPED) rh:(34.333, 0.036 AUTO_CLAMPED)
+    - (35.000, 0.014) lh:(34.667, 0.023 AUTO_CLAMPED) rh:(35.333, 0.005 AUTO_CLAMPED)
+    - (36.000, 0.000) lh:(35.667, 0.000 AUTO_CLAMPED) rh:(36.333, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].rotation_quaternion[3]' smooth:CONT_ACCEL extra:CONSTANT keyframes:36 grp:'Bone'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (34.000, 0.000) lh:(33.667, 0.000 AUTO_CLAMPED) rh:(34.333, 0.000 AUTO_CLAMPED)
+    - (35.000, 0.000) lh:(34.667, 0.000 AUTO_CLAMPED) rh:(35.333, 0.000 AUTO_CLAMPED)
+    - (36.000, 0.000) lh:(35.667, 0.000 AUTO_CLAMPED) rh:(36.333, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:36 grp:'Bone'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO_CLAMPED) rh:(2.333, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.667, 1.000 AUTO_CLAMPED) rh:(3.333, 1.000 AUTO_CLAMPED)
+      ...
+    - (34.000, 1.074) lh:(33.667, 1.097 AUTO_CLAMPED) rh:(34.333, 1.051 AUTO_CLAMPED)
+    - (35.000, 1.020) lh:(34.667, 1.032 AUTO_CLAMPED) rh:(35.333, 1.007 AUTO_CLAMPED)
+    - (36.000, 1.000) lh:(35.667, 1.000 AUTO_CLAMPED) rh:(36.333, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:36 grp:'Bone'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO_CLAMPED) rh:(2.333, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.667, 1.000 AUTO_CLAMPED) rh:(3.333, 1.000 AUTO_CLAMPED)
+      ...
+    - (34.000, 1.074) lh:(33.667, 1.097 AUTO_CLAMPED) rh:(34.333, 1.051 AUTO_CLAMPED)
+    - (35.000, 1.020) lh:(34.667, 1.032 AUTO_CLAMPED) rh:(35.333, 1.007 AUTO_CLAMPED)
+    - (36.000, 1.000) lh:(35.667, 1.000 AUTO_CLAMPED) rh:(36.333, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:36 grp:'Bone'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO_CLAMPED) rh:(2.333, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.667, 1.000 AUTO_CLAMPED) rh:(3.333, 1.000 AUTO_CLAMPED)
+      ...
+    - (34.000, 1.074) lh:(33.667, 1.097 AUTO_CLAMPED) rh:(34.333, 1.051 AUTO_CLAMPED)
+    - (35.000, 1.020) lh:(34.667, 1.032 AUTO_CLAMPED) rh:(35.333, 1.007 AUTO_CLAMPED)
+    - (36.000, 1.000) lh:(35.667, 1.000 AUTO_CLAMPED) rh:(36.333, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone.001"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bone.001'
+    - (1.000, 0.000) lh:(-10.667, 0.000 AUTO_CLAMPED) rh:(12.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+    - (36.000, 0.000) lh:(24.333, 0.000 AUTO_CLAMPED) rh:(47.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'pose.bones["Bone.001"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bone.001'
+    - (1.000, 0.000) lh:(-10.667, 0.000 AUTO_CLAMPED) rh:(12.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+    - (36.000, 0.000) lh:(24.333, 0.000 AUTO_CLAMPED) rh:(47.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'pose.bones["Bone.001"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bone.001'
+    - (1.000, 0.000) lh:(-10.667, 0.000 AUTO_CLAMPED) rh:(12.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+    - (36.000, 0.000) lh:(24.333, 0.000 AUTO_CLAMPED) rh:(47.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'pose.bones["Bone.001"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bone.001'
+    - (1.000, 1.000) lh:(-10.667, 1.000 AUTO_CLAMPED) rh:(12.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+    - (36.000, 1.000) lh:(24.333, 1.000 AUTO_CLAMPED) rh:(47.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'pose.bones["Bone.001"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bone.001'
+    - (1.000, 0.000) lh:(-10.667, 0.000 AUTO_CLAMPED) rh:(12.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+    - (36.000, 0.000) lh:(24.333, 0.000 AUTO_CLAMPED) rh:(47.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+ - Channelbag slot 'OBSuzanne' curves:10
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:36 grp:'Object Transforms'
+    - (1.000, -4.000) lh:(0.667, -4.000 AUTO_CLAMPED) rh:(1.333, -4.000 AUTO_CLAMPED)
+    - (2.000, -4.000) lh:(1.667, -4.000 AUTO_CLAMPED) rh:(2.333, -4.000 AUTO_CLAMPED)
+    - (3.000, -4.000) lh:(2.667, -4.000 AUTO_CLAMPED) rh:(3.333, -4.000 AUTO_CLAMPED)
+      ...
+    - (34.000, -4.000) lh:(33.667, -4.000 AUTO_CLAMPED) rh:(34.333, -4.000 AUTO_CLAMPED)
+    - (35.000, -4.000) lh:(34.667, -4.000 AUTO_CLAMPED) rh:(35.333, -4.000 AUTO_CLAMPED)
+    - (36.000, -4.000) lh:(35.667, -4.000 AUTO_CLAMPED) rh:(36.333, -4.000 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:36 grp:'Object Transforms'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (34.000, 0.000) lh:(33.667, 0.000 AUTO_CLAMPED) rh:(34.333, 0.000 AUTO_CLAMPED)
+    - (35.000, 0.000) lh:(34.667, 0.000 AUTO_CLAMPED) rh:(35.333, 0.000 AUTO_CLAMPED)
+    - (36.000, 0.000) lh:(35.667, 0.000 AUTO_CLAMPED) rh:(36.333, 0.000 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:36 grp:'Object Transforms'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, -0.017) lh:(1.667, -0.006 AUTO_CLAMPED) rh:(2.333, -0.027 AUTO_CLAMPED)
+    - (3.000, -0.064) lh:(2.667, -0.043 AUTO_CLAMPED) rh:(3.333, -0.085 AUTO_CLAMPED)
+      ...
+    - (34.000, -3.000) lh:(33.667, -3.000 AUTO_CLAMPED) rh:(34.333, -3.000 AUTO_CLAMPED)
+    - (35.000, -3.000) lh:(34.667, -3.000 AUTO_CLAMPED) rh:(35.333, -3.000 AUTO_CLAMPED)
+    - (36.000, -3.000) lh:(35.667, -3.000 AUTO_CLAMPED) rh:(36.333, -3.000 AUTO_CLAMPED)
+  - fcu 'rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Object Transforms'
+    - (1.000, 1.000) lh:(-10.667, 1.000 AUTO_CLAMPED) rh:(12.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+    - (36.000, 1.000) lh:(24.333, 1.000 AUTO_CLAMPED) rh:(47.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Object Transforms'
+    - (1.000, 0.000) lh:(-10.667, 0.000 AUTO_CLAMPED) rh:(12.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+    - (36.000, 0.000) lh:(24.333, 0.000 AUTO_CLAMPED) rh:(47.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Object Transforms'
+    - (1.000, 0.000) lh:(-10.667, 0.000 AUTO_CLAMPED) rh:(12.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+    - (36.000, 0.000) lh:(24.333, 0.000 AUTO_CLAMPED) rh:(47.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'rotation_quaternion[3]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Object Transforms'
+    - (1.000, 0.000) lh:(-10.667, 0.000 AUTO_CLAMPED) rh:(12.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+    - (36.000, 0.000) lh:(24.333, 0.000 AUTO_CLAMPED) rh:(47.667, 0.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Object Transforms'
+    - (1.000, 1.000) lh:(-10.667, 1.000 AUTO_CLAMPED) rh:(12.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+    - (36.000, 1.000) lh:(24.333, 1.000 AUTO_CLAMPED) rh:(47.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Object Transforms'
+    - (1.000, 1.000) lh:(-10.667, 1.000 AUTO_CLAMPED) rh:(12.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+    - (36.000, 1.000) lh:(24.333, 1.000 AUTO_CLAMPED) rh:(47.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Object Transforms'
+    - (1.000, 1.000) lh:(-10.667, 1.000 AUTO_CLAMPED) rh:(12.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+    - (36.000, 1.000) lh:(24.333, 1.000 AUTO_CLAMPED) rh:(47.667, 1.000 AUTO_CLAMPED) int:CONSTANT
+ - Channelbag slot 'KESuzanne' curves:1
+  - fcu 'key_blocks["Key 1"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:36
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 0.994) lh:(1.667, 0.998 AUTO_CLAMPED) rh:(2.333, 0.991 AUTO_CLAMPED)
+    - (3.000, 0.979) lh:(2.667, 0.986 AUTO_CLAMPED) rh:(3.333, 0.972 AUTO_CLAMPED)
+      ...
+    - (34.000, 0.000) lh:(33.667, 0.000 AUTO_CLAMPED) rh:(34.333, 0.000 AUTO_CLAMPED)
+    - (35.000, 0.000) lh:(34.667, 0.000 AUTO_CLAMPED) rh:(35.333, 0.000 AUTO_CLAMPED)
+    - (36.000, 0.000) lh:(35.667, 0.000 AUTO_CLAMPED) rh:(36.333, 0.000 AUTO_CLAMPED)
+ - Channelbag slot 'KECube.001' curves:2
+  - fcu 'key_blocks["Key 1"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:36
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (34.000, 0.074) lh:(33.667, 0.097 AUTO_CLAMPED) rh:(34.333, 0.051 AUTO_CLAMPED)
+    - (35.000, 0.020) lh:(34.667, 0.032 AUTO_CLAMPED) rh:(35.333, 0.007 AUTO_CLAMPED)
+    - (36.000, 0.000) lh:(35.667, 0.000 AUTO_CLAMPED) rh:(36.333, 0.000 AUTO_CLAMPED)
+  - fcu 'key_blocks["Key 2"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:36
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (34.000, 0.000) lh:(33.667, 0.000 AUTO_CLAMPED) rh:(34.333, 0.000 AUTO_CLAMPED)
+    - (35.000, 0.000) lh:(34.667, 0.000 AUTO_CLAMPED) rh:(35.333, 0.000 AUTO_CLAMPED)
+    - (36.000, 0.000) lh:(35.667, 0.000 AUTO_CLAMPED) rh:(36.333, 0.000 AUTO_CLAMPED)
+
+==== Armatures: 1
+- Armature 'Armature' 2 bones
+  - bone 'Bone' h:(0.000, 0.000, -1.000) t:(0.000, 0.000, 0.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+      0.000 1.000 0.000 -1.000
+  - bone 'Bone.001' parent:'Bone' h:(0.000, 0.000, 0.000) t:(0.000, 1.000, 0.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+      0.000 1.000 0.000 0.000
+
+==== Images: 1
+- Image 'Albedo' 256x256 32bpp
+

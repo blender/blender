@@ -139,7 +139,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   const bool invert_vgroup = (umd->flag & MOD_UVWARP_INVERT_VGROUP) != 0;
 
   /* make sure there are UV Maps available */
-  if (!CustomData_has_layer(&mesh->corner_data, CD_PROP_FLOAT2)) {
+  if (mesh->uv_map_names().is_empty()) {
     return mesh;
   }
 

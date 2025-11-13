@@ -63,21 +63,21 @@ class ImageCoordinatesOperation : public NodeOperation {
 
     if (uniform_coordinates_result.should_compute()) {
       const Result &uniform_coordinates = this->context().cache_manager().image_coordinates.get(
-          this->context(), domain.size, CoordinatesType::Uniform);
+          this->context(), domain.data_size, CoordinatesType::Uniform);
       uniform_coordinates_result.wrap_external(uniform_coordinates);
       uniform_coordinates_result.transform(domain.transformation);
     }
 
     if (normalized_coordinates_result.should_compute()) {
       const Result &normalized_coordinates = this->context().cache_manager().image_coordinates.get(
-          this->context(), domain.size, CoordinatesType::Normalized);
+          this->context(), domain.data_size, CoordinatesType::Normalized);
       normalized_coordinates_result.wrap_external(normalized_coordinates);
       normalized_coordinates_result.transform(domain.transformation);
     }
 
     if (pixel_coordinates_result.should_compute()) {
       const Result &pixel_coordinates = this->context().cache_manager().image_coordinates.get(
-          this->context(), domain.size, CoordinatesType::Pixel);
+          this->context(), domain.data_size, CoordinatesType::Pixel);
       pixel_coordinates_result.wrap_external(pixel_coordinates);
       pixel_coordinates_result.transform(domain.transformation);
     }

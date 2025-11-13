@@ -28,15 +28,12 @@
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 
-/* For menu, popup, icons, etc. */
 #include "ED_anim_api.hh"
 #include "ED_markers.hh"
 #include "ED_screen.hh"
 #include "ED_sequencer.hh"
-#include "ED_time_scrub_ui.hh"
 #include "ED_util_imbuf.hh"
 
-/* Own include. */
 #include "sequencer_intern.hh"
 
 namespace blender::ed::vse {
@@ -62,8 +59,7 @@ void SEQUENCER_OT_sample(wmOperatorType *ot)
   ot->flag = OPTYPE_BLOCKING;
 
   /* Not implemented. */
-  PropertyRNA *prop;
-  prop = RNA_def_int(ot->srna, "size", 1, 1, 128, "Sample Size", "", 1, 64);
+  PropertyRNA *prop = RNA_def_int(ot->srna, "size", 1, 1, 128, "Sample Size", "", 1, 64);
   RNA_def_property_subtype(prop, PROP_PIXEL);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
@@ -187,7 +183,7 @@ static bool view_frame_preview_scope(bContext *C, wmOperator *op, ARegion *regio
 
   if (sseq->mainb == SEQ_DRAW_IMG_HISTOGRAM) {
     /* For histogram scope, use extents of the histogram. */
-    const vse::ScopeHistogram &hist = sseq->runtime->scopes.histogram;
+    const ScopeHistogram &hist = sseq->runtime->scopes.histogram;
     if (hist.data.is_empty()) {
       return false;
     }
@@ -350,11 +346,9 @@ void SEQUENCER_OT_view_zoom_ratio(wmOperatorType *ot)
 /** \name Frame Selected Operator
  * \{ */
 
-static void seq_view_collection_rect_preview(Scene *scene,
-                                             blender::Span<Strip *> strips,
-                                             rctf *rect)
+static void seq_view_collection_rect_preview(Scene *scene, Span<Strip *> strips, rctf *rect)
 {
-  const blender::Bounds<blender::float2> box = seq::image_transform_bounding_box_from_collection(
+  const Bounds<float2> box = seq::image_transform_bounding_box_from_collection(
       scene, strips, true);
 
   rect->xmin = box.min[0];
@@ -373,9 +367,7 @@ static void seq_view_collection_rect_preview(Scene *scene,
   BLI_rctf_scale(rect, 1.1f);
 }
 
-static void seq_view_collection_rect_timeline(const bContext *C,
-                                              blender::Span<Strip *> strips,
-                                              rctf *rect)
+static void seq_view_collection_rect_timeline(const bContext *C, Span<Strip *> strips, rctf *rect)
 {
   const Scene *scene = CTX_data_sequencer_scene(C);
   int xmin = MAXFRAME * 2;
@@ -453,7 +445,7 @@ static wmOperatorStatus sequencer_view_selected_exec(bContext *C, wmOperator *op
     return OPERATOR_FINISHED;
   }
 
-  blender::VectorSet strips = selected_strips_from_context(C);
+  VectorSet strips = selected_strips_from_context(C);
   if (strips.is_empty()) {
     return OPERATOR_CANCELLED;
   }

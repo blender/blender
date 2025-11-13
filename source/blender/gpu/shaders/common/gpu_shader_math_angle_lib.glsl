@@ -21,6 +21,6 @@ struct AngleRadian {
 
   static AngleRadian from_degree(float angle_degree)
   {
-    return AngleRadian(angle_degree * (M_PI / 180.0));
+    return AngleRadian(angle_degree * (M_PI / 180.0f));
   }
 };

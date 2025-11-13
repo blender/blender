@@ -14,10 +14,16 @@
 
 namespace blender::compositor {
 
-Domain::Domain(const int2 &size) : size(size), transformation(float3x3::identity()) {}
+Domain::Domain(const int2 &size)
+    : data_size(size),
+      display_size(size),
+      data_offset(int2(0)),
+      transformation(float3x3::identity())
+{
+}
 
 Domain::Domain(const int2 &size, const float3x3 &transformation)
-    : size(size), transformation(transformation)
+    : data_size(size), display_size(size), data_offset(int2(0)), transformation(transformation)
 {
 }
 
@@ -29,7 +35,9 @@ void Domain::transform(const float3x3 &input_transformation)
 Domain Domain::transposed() const
 {
   Domain domain = *this;
-  domain.size = int2(this->size.y, this->size.x);
+  domain.data_size = int2(this->data_size.y, this->data_size.x);
+  domain.display_size = int2(this->display_size.y, this->display_size.x);
+  domain.data_offset = int2(this->data_offset.y, this->data_offset.x);
   return domain;
 }
 
@@ -40,12 +48,12 @@ Domain Domain::identity()
 
 bool Domain::is_equal(const Domain &a, const Domain &b, const float epsilon)
 {
-  return a.size == b.size && math::is_equal(a.transformation, b.transformation, epsilon);
+  return a.data_size == b.data_size && math::is_equal(a.transformation, b.transformation, epsilon);
 }
 
 bool operator==(const Domain &a, const Domain &b)
 {
-  return a.size == b.size && a.transformation == b.transformation;
+  return a.data_size == b.data_size && a.transformation == b.transformation;
 }
 
 bool operator!=(const Domain &a, const Domain &b)

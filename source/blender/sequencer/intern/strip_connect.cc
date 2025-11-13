@@ -55,7 +55,7 @@ bool disconnect(Strip *strip)
   return true;
 }
 
-bool disconnect(blender::VectorSet<Strip *> &strip_list)
+bool disconnect(VectorSet<Strip *> &strip_list)
 {
   bool changed = false;
   for (Strip *strip : strip_list) {
@@ -92,14 +92,14 @@ void connect(Strip *strip1, Strip *strip2)
   if (strip1 == nullptr || strip2 == nullptr) {
     return;
   }
-  blender::VectorSet<Strip *> strip_list;
+  VectorSet<Strip *> strip_list;
   strip_list.add(strip1);
   strip_list.add(strip2);
 
   connect(strip_list);
 }
 
-void connect(blender::VectorSet<Strip *> &strip_list)
+void connect(VectorSet<Strip *> &strip_list)
 {
   strip_list.remove_if([&](Strip *strip) { return strip == nullptr; });
 
@@ -116,9 +116,9 @@ void connect(blender::VectorSet<Strip *> &strip_list)
   }
 }
 
-blender::VectorSet<Strip *> connected_strips_get(const Strip *strip)
+VectorSet<Strip *> connected_strips_get(const Strip *strip)
 {
-  blender::VectorSet<Strip *> connections;
+  VectorSet<Strip *> connections;
   if (strip != nullptr) {
     LISTBASE_FOREACH (StripConnection *, con, &strip->connections) {
       connections.add(con->strip_ref);
@@ -135,11 +135,11 @@ bool is_strip_connected(const Strip *strip)
   return !BLI_listbase_is_empty(&strip->connections);
 }
 
-bool are_strips_connected_together(blender::VectorSet<Strip *> &strip_list)
+bool are_strips_connected_together(VectorSet<Strip *> &strip_list)
 {
   const int expected_connection_num = strip_list.size() - 1;
   for (Strip *strip1 : strip_list) {
-    blender::VectorSet<Strip *> connections = connected_strips_get(strip1);
+    VectorSet<Strip *> connections = connected_strips_get(strip1);
     int found_connection_num = connections.size();
     if (found_connection_num != expected_connection_num) {
       return false;

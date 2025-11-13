@@ -378,6 +378,25 @@ class Set {
   }
 
   /**
+   * Returns the key in the set that is equal to the given key. If the key does not exist, a new
+   * key is created with the callback, added to the set and returned.
+   *
+   * Note, the value created by the callback has to compare equal to the given key and also has to
+   * have the same hash.
+   */
+  template<typename CreateValueF>
+  const Key &lookup_key_or_add_cb(const Key &key, CreateValueF &&create_value)
+  {
+    return this->lookup_key_or_add_cb_as(key, std::forward<CreateValueF>(create_value));
+  }
+  template<typename ForwardKey, typename CreateValueF>
+  const Key &lookup_key_or_add_cb_as(ForwardKey &&key, CreateValueF &&create_value)
+  {
+    return this->lookup_key_or_add_cb__impl(
+        std::forward<ForwardKey>(key), hash_(key), std::forward<CreateValueF>(create_value));
+  }
+
+  /**
    * Deletes the key from the set. Returns true when the key did exist beforehand, otherwise false.
    *
    * This is similar to std::unordered_set::erase.
@@ -898,6 +917,27 @@ class Set {
       }
       if (slot.is_empty()) {
         slot.occupy(std::forward<ForwardKey>(key), hash);
+        BLI_assert(hash_(*slot.key()) == hash);
+        occupied_and_removed_slots_++;
+        return *slot.key();
+      }
+    }
+    SET_SLOT_PROBING_END();
+  }
+
+  template<typename ForwardKey, typename CreateKeyF>
+  const Key &lookup_key_or_add_cb__impl(ForwardKey &&key,
+                                        const uint64_t hash,
+                                        CreateKeyF &&create_key)
+  {
+    this->ensure_can_add();
+
+    SET_SLOT_PROBING_BEGIN (hash, slot) {
+      if (slot.contains(key, is_equal_, hash)) {
+        return *slot.key();
+      }
+      if (slot.is_empty()) {
+        slot.occupy(create_key(), hash);
         BLI_assert(hash_(*slot.key()) == hash);
         occupied_and_removed_slots_++;
         return *slot.key();

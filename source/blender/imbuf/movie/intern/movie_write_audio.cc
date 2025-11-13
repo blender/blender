@@ -32,7 +32,7 @@
 #  include "BLI_utildefines.h"
 
 #  include "BKE_report.hh"
-#  include "BKE_sound.h"
+#  include "BKE_sound.hh"
 
 #  include "CLG_log.h"
 

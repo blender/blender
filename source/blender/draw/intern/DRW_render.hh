@@ -53,7 +53,6 @@ struct DRWData;
 struct DRWViewData;
 struct GPUViewport;
 struct DRWTextStore;
-struct GSet;
 struct GPUViewport;
 namespace blender::draw {
 class TextureFromPool;
@@ -285,7 +284,7 @@ struct DRWContext {
   DRWTextStore **text_store_p = nullptr;
 
   /** Contains list of objects that needs to be extracted from other objects. */
-  GSet *delayed_extraction = nullptr;
+  blender::Set<Object *> delayed_extraction;
 
   /* TODO(fclem): Public. */
 

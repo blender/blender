@@ -7,6 +7,7 @@
  */
 
 #include "BKE_global.hh"
+#include "BLI_math_half.hh"
 
 #include "DNA_userdef_types.h"
 
@@ -47,9 +48,6 @@ void gpu::MTLTexture::mtl_texture_init()
   /* Metal properties. */
   texture_ = nil;
   mip_swizzle_view_ = nil;
-
-  /* Binding information. */
-  is_bound_ = false;
 
   /* VBO. */
   vert_buffer_ = nullptr;
@@ -100,11 +98,9 @@ gpu::MTLTexture::MTLTexture(const char *name,
 gpu::MTLTexture::~MTLTexture()
 {
   /* Unbind if bound. */
-  if (is_bound_) {
-    MTLContext *ctx = MTLContext::get();
-    if (ctx != nullptr) {
-      ctx->state_manager->texture_unbind(this);
-    }
+  MTLContext *ctx = MTLContext::get();
+  if (ctx != nullptr) {
+    ctx->state_manager->texture_unbind(this);
   }
 
   /* Free memory. */
@@ -442,7 +438,8 @@ gpu::FrameBuffer *gpu::MTLTexture::get_blit_framebuffer(int dst_slice, uint dst_
   /* Check if layer has changed. */
   bool update_attachments = false;
   if (!blit_fb_) {
-    blit_fb_ = GPU_framebuffer_create("gpu_blit");
+    std::string fb_name = StringRefNull(this->name_) + "_blit_fb";
+    blit_fb_ = GPU_framebuffer_create(fb_name.c_str());
     update_attachments = true;
   }
 
@@ -504,6 +501,34 @@ void gpu::MTLTexture::update_sub(
   BLI_assert(mip >= mip_min_ && mip <= mip_max_);
   BLI_assert(mip < texture_.mipmapLevelCount);
   BLI_assert(texture_.mipmapLevelCount >= mip_max_);
+
+  std::unique_ptr<uint16_t, MEM_freeN_smart_ptr_deleter> clamped_half_buffer = nullptr;
+
+  if (data != nullptr && type == GPU_DATA_FLOAT && is_half_float(format_)) {
+    size_t pixel_count = max_ii(extent[0], 1) * max_ii(extent[1], 1) * max_ii(extent[2], 1);
+    size_t total_component_count = to_component_len(format_) * pixel_count;
+
+    clamped_half_buffer.reset(
+        (uint16_t *)MEM_mallocN_aligned(sizeof(uint16_t) * total_component_count, 128, __func__));
+
+    Span<float> src(static_cast<const float *>(data), total_component_count);
+    MutableSpan<uint16_t> dst(static_cast<uint16_t *>(clamped_half_buffer.get()),
+                              total_component_count);
+
+    constexpr int64_t chunk_size = 4 * 1024 * 1024;
+
+    threading::parallel_for(
+        IndexRange(total_component_count), chunk_size, [&](const IndexRange range) {
+          /* Doing float to half conversion manually to avoid implementation specific behavior
+           * regarding Inf and NaNs. Use make finite version to avoid unexpected black pixels on
+           * certain implementation. For platform parity we clamp these infinite values to finite
+           * values. */
+          blender::math::float_to_half_make_finite_array(
+              src.slice(range).data(), dst.slice(range).data(), range.size());
+        });
+    data = clamped_half_buffer.get();
+    type = GPU_DATA_HALF_FLOAT;
+  }
 
   /* DEPTH FLAG - Depth formats cannot use direct BLIT - pass off to their own routine which will
    * do a depth-only render. */

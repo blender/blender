@@ -10,6 +10,7 @@
 #include <variant>
 
 #include "BLI_assert.h"
+#include "BLI_color_types.hh"
 #include "BLI_compiler_compat.h"
 #include "BLI_cpp_type.hh"
 #include "BLI_generic_pointer.hh"
@@ -19,6 +20,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_memory_utils.hh"
 
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
@@ -39,9 +41,9 @@ enum class ResultType : uint8_t {
   Float2,
   Float3,
   Float4,
+  Color,
   Int,
   Int2,
-  Color,
   Bool,
   Menu,
 
@@ -62,6 +64,8 @@ enum class ResultStorageType : uint8_t {
   /* Stored as a buffer on the CPU and wrapped in a GMutableSpan. */
   CPU,
 };
+
+using Color = ColorSceneLinear4f<eAlpha::Premultiplied>;
 
 /* ------------------------------------------------------------------------------------------------
  * Result
@@ -135,7 +139,16 @@ class Result {
    * which will be identical to that stored in the data_ member. The active variant member depends
    * on the type of the result. This member is uninitialized and should not be used if the result
    * is not a single value. */
-  std::variant<float, float2, float3, float4, int32_t, int2, bool, std::string, nodes::MenuValue>
+  std::variant<float,
+               float2,
+               float3,
+               float4,
+               Color,
+               int32_t,
+               int2,
+               bool,
+               nodes::MenuValue,
+               std::string>
       single_value_ = 0.0f;
   /* The domain of the result. This only matters if the result was not a single value. See the
    * discussion in COM_domain.hh for more information. */
@@ -425,10 +438,16 @@ class Result {
    * works. */
   void store_pixel_generic_type(const int2 &texel, const float4 &pixel_value);
 
-  float4 sample(const float2 &coordinates,
-                const Interpolation &interpolation,
-                const ExtensionMode &extend_mode_x,
-                const ExtensionMode &extend_mode_y) const;
+  /* Samples the result at the given normalized coordinates with the given interpolation and
+   * boundary conditions. The interpolation is ignored for non float types that do not support
+   * interpolation. Assumes the result stores a value of the given template type. If the
+   * CouldBeSingleValue template argument is true and the result is a single value result, then
+   * that single value is returned for all coordinates. */
+  template<typename T, bool CouldBeSingleValue = false>
+  T sample(const float2 &coordinates,
+           const Interpolation &interpolation,
+           const ExtensionMode &extend_mode_x,
+           const ExtensionMode &extend_mode_y) const;
 
   /* Equivalent to the GLSL texture() function with nearest interpolation and zero boundary
    * condition. The coordinates are thus expected to have half-pixels offsets. A float4 is always
@@ -592,7 +611,7 @@ BLI_INLINE_METHOD T Result::load_pixel_extended(const int2 &texel) const
     BLI_assert(!this->is_single_value());
   }
 
-  const int2 clamped_texel = math::clamp(texel, int2(0), domain_.size - int2(1));
+  const int2 clamped_texel = math::clamp(texel, int2(0), domain_.data_size - int2(1));
   return this->cpu_data().typed<T>()[this->get_pixel_index(clamped_texel)];
 }
 
@@ -608,7 +627,9 @@ BLI_INLINE_METHOD T Result::load_pixel_fallback(const int2 &texel, const T &fall
     BLI_assert(!this->is_single_value());
   }
 
-  if (texel.x < 0 || texel.y < 0 || texel.x >= domain_.size.x || texel.y >= domain_.size.y) {
+  if (texel.x < 0 || texel.y < 0 || texel.x >= domain_.data_size.x ||
+      texel.y >= domain_.data_size.y)
+  {
     return fallback;
   }
 
@@ -645,64 +666,101 @@ BLI_INLINE_METHOD void Result::store_pixel_generic_type(const int2 &texel,
   this->get_cpp_type().copy_assign(pixel_value, this->cpu_data()[this->get_pixel_index(texel)]);
 }
 
-BLI_INLINE_METHOD float4 Result::sample(const float2 &coordinates,
-                                        const Interpolation &interpolation,
-                                        const ExtensionMode &mode_x,
-                                        const ExtensionMode &mode_y) const
+BLI_INLINE int wrap_coordinates(float coordinates, int size, const ExtensionMode extension_mode)
 {
-  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
-  if (is_single_value_) {
-    this->get_cpp_type().copy_assign(this->cpu_data().data(), pixel_value);
+  switch (extension_mode) {
+    case ExtensionMode::Extend:
+      return math::clamp(int(coordinates), 0, size - 1);
+    case ExtensionMode::Repeat:
+      return int(math::floored_mod(coordinates, float(size)));
+    case ExtensionMode::Clip:
+      if (coordinates < 0.0f || coordinates >= size) {
+        return -1;
+      }
+      return int(coordinates);
+  }
+
+  BLI_assert_unreachable();
+  return 0;
+}
+
+template<typename T, bool CouldBeSingleValue>
+BLI_INLINE_METHOD T Result::sample(const float2 &coordinates,
+                                   const Interpolation &interpolation,
+                                   const ExtensionMode &mode_x,
+                                   const ExtensionMode &mode_y) const
+{
+  if constexpr (CouldBeSingleValue) {
+    if (is_single_value_) {
+      return this->get_single_value<T>();
+    }
+  }
+
+  const int2 size = domain_.data_size;
+  const float2 texel_coordinates = coordinates * float2(size);
+
+  if constexpr (is_same_any_v<T, float, float2, float3, float4, Color>) {
+    const math::InterpWrapMode extension_mode_x = map_extension_mode_to_wrap_mode(mode_x);
+    const math::InterpWrapMode extension_mode_y = map_extension_mode_to_wrap_mode(mode_y);
+
+    T pixel_value = T(0);
+    const float *buffer = static_cast<const float *>(this->cpu_data().data());
+    float *output = nullptr;
+    if constexpr (std::is_same_v<T, float>) {
+      output = &pixel_value;
+    }
+    else {
+      output = pixel_value;
+    }
+
+    switch (interpolation) {
+      case Interpolation::Nearest:
+        math::interpolate_nearest_wrapmode_fl(buffer,
+                                              output,
+                                              size.x,
+                                              size.y,
+                                              this->channels_count(),
+                                              texel_coordinates.x,
+                                              texel_coordinates.y,
+                                              extension_mode_x,
+                                              extension_mode_y);
+        break;
+      case Interpolation::Bilinear:
+        math::interpolate_bilinear_wrapmode_fl(buffer,
+                                               output,
+                                               size.x,
+                                               size.y,
+                                               this->channels_count(),
+                                               texel_coordinates.x - 0.5f,
+                                               texel_coordinates.y - 0.5f,
+                                               extension_mode_x,
+                                               extension_mode_y);
+        break;
+      case Interpolation::Bicubic:
+      case Interpolation::Anisotropic:
+        math::interpolate_cubic_bspline_wrapmode_fl(buffer,
+                                                    output,
+                                                    size.x,
+                                                    size.y,
+                                                    this->channels_count(),
+                                                    texel_coordinates.x - 0.5f,
+                                                    texel_coordinates.y - 0.5f,
+                                                    extension_mode_x,
+                                                    extension_mode_y);
+        break;
+    }
+
     return pixel_value;
   }
-
-  const int2 size = domain_.size;
-  const float2 texel_coordinates = (interpolation == Interpolation::Nearest) ?
-                                       coordinates * float2(size) :
-                                       (coordinates * float2(size)) - 0.5f;
-
-  const float *buffer = static_cast<const float *>(this->cpu_data().data());
-  const math::InterpWrapMode extension_mode_x = map_extension_mode_to_wrap_mode(mode_x);
-  const math::InterpWrapMode extension_mode_y = map_extension_mode_to_wrap_mode(mode_y);
-
-  switch (interpolation) {
-    case Interpolation::Nearest:
-      math::interpolate_nearest_wrapmode_fl(buffer,
-                                            pixel_value,
-                                            size.x,
-                                            size.y,
-                                            this->channels_count(),
-                                            texel_coordinates.x,
-                                            texel_coordinates.y,
-                                            extension_mode_x,
-                                            extension_mode_y);
-      break;
-    case Interpolation::Bilinear:
-      math::interpolate_bilinear_wrapmode_fl(buffer,
-                                             pixel_value,
-                                             size.x,
-                                             size.y,
-                                             this->channels_count(),
-                                             texel_coordinates.x,
-                                             texel_coordinates.y,
-                                             extension_mode_x,
-                                             extension_mode_y);
-      break;
-    case Interpolation::Bicubic:
-    case Interpolation::Anisotropic:
-      math::interpolate_cubic_bspline_wrapmode_fl(buffer,
-                                                  pixel_value,
-                                                  size.x,
-                                                  size.y,
-                                                  this->channels_count(),
-                                                  texel_coordinates.x,
-                                                  texel_coordinates.y,
-                                                  extension_mode_x,
-                                                  extension_mode_y);
-      break;
+  else {
+    /* Non float types do not support interpolations and are always sampled in nearest. */
+    const int x = wrap_coordinates(texel_coordinates.x, size.x, mode_x);
+    const int y = wrap_coordinates(texel_coordinates.y, size.y, mode_y);
+    if (x < 0 || y < 0) {
+      return T(0);
+    }
+    return this->load_pixel<T>(int2(x, y));
   }
-
-  return pixel_value;
 }
 
 BLI_INLINE_METHOD float4 Result::sample_nearest_zero(const float2 &coordinates) const
@@ -713,7 +771,7 @@ BLI_INLINE_METHOD float4 Result::sample_nearest_zero(const float2 &coordinates) 
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   const float2 texel_coordinates = coordinates * float2(size);
 
   const float *buffer = static_cast<const float *>(this->cpu_data().data());
@@ -737,7 +795,7 @@ BLI_INLINE_METHOD float4 Result::sample_nearest_wrap(const float2 &coordinates,
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   const float2 texel_coordinates = coordinates * float2(size);
 
   const float *buffer = static_cast<const float *>(this->cpu_data().data());
@@ -764,7 +822,7 @@ BLI_INLINE_METHOD float4 Result::sample_bilinear_wrap(const float2 &coordinates,
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   const float2 texel_coordinates = coordinates * float2(size) - 0.5f;
 
   const float *buffer = static_cast<const float *>(this->cpu_data().data());
@@ -791,7 +849,7 @@ BLI_INLINE_METHOD float4 Result::sample_cubic_wrap(const float2 &coordinates,
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   const float2 texel_coordinates = coordinates * float2(size) - 0.5f;
 
   const float *buffer = static_cast<const float *>(this->cpu_data().data());
@@ -816,7 +874,7 @@ BLI_INLINE_METHOD float4 Result::sample_bilinear_zero(const float2 &coordinates)
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   const float2 texel_coordinates = (coordinates * float2(size)) - 0.5f;
 
   const float *buffer = static_cast<const float *>(this->cpu_data().data());
@@ -838,7 +896,7 @@ BLI_INLINE_METHOD float4 Result::sample_nearest_extended(const float2 &coordinat
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   const float2 texel_coordinates = coordinates * float2(size);
 
   const float *buffer = static_cast<const float *>(this->cpu_data().data());
@@ -860,7 +918,7 @@ BLI_INLINE_METHOD float4 Result::sample_bilinear_extended(const float2 &coordina
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   const float2 texel_coordinates = (coordinates * float2(size)) - 0.5f;
 
   const float *buffer = static_cast<const float *>(this->cpu_data().data());
@@ -882,7 +940,7 @@ BLI_INLINE_METHOD float4 Result::sample_cubic_extended(const float2 &coordinates
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   const float2 texel_coordinates = (coordinates * float2(size)) - 0.5f;
 
   const float *buffer = static_cast<const float *>(this->cpu_data().data());
@@ -903,7 +961,7 @@ BLI_INLINE_METHOD float4 Result::sample_cubic_extended(const float2 &coordinates
 static void sample_ewa_extended_read_callback(void *userdata, int x, int y, float result[4])
 {
   const Result *input = static_cast<const Result *>(userdata);
-  const float4 sampled_result = input->load_pixel_extended<float4>(int2(x, y));
+  const Color sampled_result = input->load_pixel_extended<Color>(int2(x, y));
   copy_v4_v4(result, sampled_result);
 }
 
@@ -919,7 +977,7 @@ BLI_INLINE_METHOD float4 Result::sample_ewa_extended(const float2 &coordinates,
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   BLI_ewa_filter(size.x,
                  size.y,
                  false,
@@ -940,7 +998,7 @@ BLI_INLINE_METHOD float4 Result::sample_ewa_extended(const float2 &coordinates,
 static void sample_ewa_zero_read_callback(void *userdata, int x, int y, float result[4])
 {
   const Result *input = static_cast<const Result *>(userdata);
-  const float4 sampled_result = input->load_pixel_zero<float4>(int2(x, y));
+  const Color sampled_result = input->load_pixel_zero<Color>(int2(x, y));
   copy_v4_v4(result, sampled_result);
 }
 
@@ -956,7 +1014,7 @@ BLI_INLINE_METHOD float4 Result::sample_ewa_zero(const float2 &coordinates,
     return pixel_value;
   }
 
-  const int2 size = domain_.size;
+  const int2 size = domain_.data_size;
   BLI_ewa_filter(size.x,
                  size.y,
                  false,
@@ -974,8 +1032,9 @@ BLI_INLINE_METHOD int64_t Result::get_pixel_index(const int2 &texel) const
 {
   BLI_assert(!is_single_value_);
   BLI_assert(this->is_allocated());
-  BLI_assert(texel.x >= 0 && texel.y >= 0 && texel.x < domain_.size.x && texel.y < domain_.size.y);
-  return int64_t(texel.y) * domain_.size.x + texel.x;
+  BLI_assert(texel.x >= 0 && texel.y >= 0 && texel.x < domain_.data_size.x &&
+             texel.y < domain_.data_size.y);
+  return int64_t(texel.y) * domain_.data_size.x + texel.x;
 }
 
 }  // namespace blender::compositor

@@ -26,7 +26,7 @@ float get_grid(float2 co, float2 fwidthCos, float2 grid_scale)
   grid_domain /= fwidthCos;
   /* Collapse waves. */
   float line_dist = min(grid_domain.x, grid_domain.y);
-  return 1.0 - LINE_STEP(line_dist - grid_buf.line_size);
+  return 1.0f - LINE_STEP(line_dist - grid_buf.line_size);
 }
 
 float3 get_axes(float3 co, float3 fwidthCos, float line_size)

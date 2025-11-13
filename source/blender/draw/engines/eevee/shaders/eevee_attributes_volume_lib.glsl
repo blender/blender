@@ -66,15 +66,15 @@ float4 attr_load_tangent(VolumePoint point, sampler3D tex, int index)
 {
   return float4(0);
 }
-float4 attr_load_vec4(VolumePoint point, sampler3D tex, int index)
+float4 attr_load_float4(VolumePoint point, sampler3D tex, int index)
 {
   return texture(tex, grid_coordinates(index));
 }
-float3 attr_load_vec3(VolumePoint point, sampler3D tex, int index)
+float3 attr_load_float3(VolumePoint point, sampler3D tex, int index)
 {
   return texture(tex, grid_coordinates(index)).rgb;
 }
-float2 attr_load_vec2(VolumePoint point, sampler3D tex, int index)
+float2 attr_load_float2(VolumePoint point, sampler3D tex, int index)
 {
   return texture(tex, grid_coordinates(index)).rg;
 }

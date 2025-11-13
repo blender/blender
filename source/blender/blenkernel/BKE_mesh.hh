@@ -453,6 +453,26 @@ void mesh_data_update(Depsgraph &depsgraph,
 /** Remove strings referring to attributes if they no longer exist. */
 void mesh_remove_invalid_attribute_strings(Mesh &mesh);
 
+/**
+ * Check whether the mesh upholds required invariants and fix errors by removing invalid elements
+ * or correcting attribute values.
+ *
+ * \return True if the mesh was valid (fixes were not applied).
+ */
+bool mesh_validate(Mesh &mesh, bool verbose = false);
+
+/**
+ * Check whether the mesh upholds required invariants.
+ * \return True if the mesh is valid.
+ */
+bool mesh_is_valid(const Mesh &mesh, bool verbose = true);
+
+/**
+ * Check whether face material indices are valid, and correct them if not.
+ * \return True if the indices were valid.
+ */
+bool mesh_validate_material_indices(Mesh &mesh);
+
 void mesh_apply_spatial_organization(Mesh &mesh);
 const AttributeAccessorFunctions &mesh_attribute_accessor_functions();
 

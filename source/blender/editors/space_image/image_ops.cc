@@ -1368,10 +1368,11 @@ static wmOperatorStatus image_open_exec(bContext *C, wmOperator *op)
   ImageOpenData *iod = static_cast<ImageOpenData *>(op->customdata);
   ID *owner_id = iod->pprop.ptr.owner_id;
   Library *owner_library = owner_id ? owner_id->lib : nullptr;
+  blender::StringRefNull blendfile_path = BKE_main_blendfile_path(bmain);
   blender::StringRefNull root_path = owner_library ? owner_library->runtime->filepath_abs :
-                                                     BKE_main_blendfile_path(bmain);
+                                                     blendfile_path;
 
-  ListBase ranges = ED_image_filesel_detect_sequences(root_path, op, use_udim);
+  ListBase ranges = ED_image_filesel_detect_sequences(blendfile_path, root_path, op, use_udim);
   LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
     Image *ima_range = image_open_single(bmain, owner_library, op, range, use_multiview);
 
@@ -2284,8 +2285,8 @@ static wmOperatorStatus image_save_sequence_exec(bContext *C, wmOperator *op)
 
   /* get total dirty buffers and first dirty buffer which is used for menu */
   ibuf = nullptr;
-  if (image->cache != nullptr) {
-    iter = IMB_moviecacheIter_new(image->cache);
+  if (image->runtime->cache != nullptr) {
+    iter = IMB_moviecacheIter_new(image->runtime->cache);
     while (!IMB_moviecacheIter_done(iter)) {
       ibuf = IMB_moviecacheIter_getImBuf(iter);
       if (ibuf != nullptr && ibuf->userflags & IB_BITMAPDIRTY) {
@@ -2308,7 +2309,7 @@ static wmOperatorStatus image_save_sequence_exec(bContext *C, wmOperator *op)
   BLI_path_split_dir_part(first_ibuf->filepath, di, sizeof(di));
   BKE_reportf(op->reports, RPT_INFO, "%d image(s) will be saved in %s", tot, di);
 
-  iter = IMB_moviecacheIter_new(image->cache);
+  iter = IMB_moviecacheIter_new(image->runtime->cache);
   while (!IMB_moviecacheIter_done(iter)) {
     ibuf = IMB_moviecacheIter_getImBuf(iter);
 

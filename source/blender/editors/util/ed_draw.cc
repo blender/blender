@@ -126,8 +126,8 @@ static void draw_overshoot_triangle(const uint8_t color[4],
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_polygon_smooth(true);
   immUniformColor3ubvAlpha(color, 225);
-  const float triangle_side_length = facing_right ? 6 * U.pixelsize : -6 * U.pixelsize;
-  const float triangle_offset = facing_right ? 2 * U.pixelsize : -2 * U.pixelsize;
+  const float triangle_side_length = facing_right ? 6 * UI_SCALE_FAC : -6 * UI_SCALE_FAC;
+  const float triangle_offset = facing_right ? 2 * UI_SCALE_FAC : -2 * UI_SCALE_FAC;
 
   immBegin(GPU_PRIM_TRIS, 3);
   immVertex2f(shdr_pos_2d, x + triangle_offset + triangle_side_length, y);
@@ -251,13 +251,14 @@ static void draw_backdrop(const int fontid,
                        property_label.size(),
                        &property_name_pixel_size[0],
                        &property_name_pixel_size[1]);
-  const float pad[2] = {(region_y_size - base_tick_height) / 2 + 12.0f * U.pixelsize,
-                        2.0f * U.pixelsize};
+  const float pad[2] = {(region_y_size - base_tick_height) / 2 + 12.0f * UI_SCALE_FAC,
+                        3.0f * UI_SCALE_FAC};
   rctf backdrop_rect{};
   backdrop_rect.xmin = main_line_rect->xmin - property_name_pixel_size[0] - pad[0];
   backdrop_rect.xmax = main_line_rect->xmax + percent_string_pixel_size[0] + pad[0];
   backdrop_rect.ymin = pad[1];
   backdrop_rect.ymax = region_y_size - pad[1];
+  UI_draw_roundbox_corner_set(UI_CNR_ALL);
   UI_draw_roundbox_3ub_alpha(&backdrop_rect, true, 4.0f, color_bg, color_bg[3]);
 }
 
@@ -298,8 +299,8 @@ static void slider_draw(const bContext * /*C*/, ARegion *region, void *arg)
   BLF_color3ubv(fontid, color_text);
   BLF_rotation(fontid, 0.0f);
 
-  const float line_width = 1.5 * U.pixelsize;
-  const float base_tick_height = 12.0 * U.pixelsize;
+  const float line_width = 1.5 * UI_SCALE_FAC;
+  const float base_tick_height = 12.0 * UI_SCALE_FAC;
   const float line_y = region->winy / 2;
 
   rctf main_line_rect{};
@@ -380,7 +381,7 @@ static void slider_draw(const bContext * /*C*/, ARegion *region, void *arg)
                        &factor_string_pixel_size[0],
                        &factor_string_pixel_size[1]);
 
-  const float text_padding = 12.0 * U.pixelsize;
+  const float text_padding = 12.0 * UI_SCALE_FAC;
   const float factor_string_pos_x = main_line_rect.xmax + text_padding;
   BLF_position(
       fontid, factor_string_pos_x, (region->winy / 2) - factor_string_pixel_size[1] / 2, 0.0f);
@@ -458,18 +459,23 @@ tSlider *ED_slider_create(bContext *C)
   /* Add draw callback. Always in header. */
   if (slider->area) {
     LISTBASE_FOREACH (ARegion *, region, &slider->area->regionbase) {
-      if (region->regiontype == RGN_TYPE_HEADER) {
+      /* Keep logic in sync with ED_area_status_text. */
+      if (region->regiontype == RGN_TYPE_HEADER && region->runtime->visible) {
         slider->region_header = region;
-        if (!G.background) {
-          slider->draw_handle = ED_region_draw_cb_activate(
-              region->runtime->type, slider_draw, slider, REGION_DRAW_POST_PIXEL);
-        }
+        /* Hide the area menu bar contents, as the slider will be drawn on top. Only for the header
+         * since the tool header is already empty in the center.*/
+        ED_area_status_text(slider->area, "");
+      }
+      else if (region->regiontype == RGN_TYPE_TOOL_HEADER && region->runtime->visible) {
+        slider->region_header = region;
+        break;
       }
     }
+    if (slider->region_header && !G.background) {
+      slider->draw_handle = ED_region_draw_cb_activate(
+          slider->region_header->runtime->type, slider_draw, slider, REGION_DRAW_POST_PIXEL);
+    }
   }
-
-  /* Hide the area menu bar contents, as the slider will be drawn on top. */
-  ED_area_status_text(slider->area, "");
 
   return slider;
 }

@@ -541,12 +541,6 @@ void IMesh::set_faces(Span<Face *> faces)
   face_ = faces;
 }
 
-int IMesh::lookup_vert(const Vert *v) const
-{
-  BLI_assert(vert_populated_);
-  return vert_to_index_.lookup_default(v, NO_INDEX);
-}
-
 void IMesh::populate_vert()
 {
   /* This is likely an overestimate, since verts are shared between

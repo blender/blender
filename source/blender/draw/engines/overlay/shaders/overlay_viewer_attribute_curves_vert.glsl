@@ -11,6 +11,11 @@ VERTEX_SHADER_CREATE_INFO(overlay_viewer_attribute_curves)
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 
+#if defined(GPU_NVIDIA) && defined(GPU_OPENGL)
+/* WORKAROUND: Fix legacy driver compiler issue (see #148472). */
+#  define const
+#endif
+
 void main()
 {
   const curves::Point ls_pt = curves::point_get(uint(gl_VertexID));

@@ -32,7 +32,7 @@ struct DRW_MeshCDMask {
   bool sculpt_overlays = false;
   bool edit_uv = false;
   BLI_STRUCT_EQUALITY_OPERATORS_6(
-      DRW_MeshCDMask, uv.as_span(), uv.as_span(), orco, tan_orco, sculpt_overlays, edit_uv);
+      DRW_MeshCDMask, uv.as_span(), tan.as_span(), orco, tan_orco, sculpt_overlays, edit_uv);
   void clear()
   {
     uv.clear_and_keep_capacity();

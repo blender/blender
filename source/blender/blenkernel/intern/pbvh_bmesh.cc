@@ -2526,23 +2526,23 @@ static void print_flag_factors(int flag)
 static void pbvh_bmesh_verify(Tree *pbvh)
 {
   /* Build list of faces & verts to lookup. */
-  GSet *faces_all = BLI_gset_ptr_new_ex(__func__, pbvh->header.bm->totface);
+  blender::Set<BMFace *> faces_all;
   BMIter iter;
 
   {
     BMFace *f;
     BM_ITER_MESH (f, &iter, pbvh->header.bm, BM_FACES_OF_MESH) {
       BLI_assert(BM_ELEM_CD_GET_INT(f, cd_face_node_offset) != DYNTOPO_NODE_NONE);
-      BLI_gset_insert(faces_all, f);
+      faces_all.add(f);
     }
   }
 
-  GSet *verts_all = BLI_gset_ptr_new_ex(__func__, pbvh->header.bm->totvert);
+  blender::Set<BMVert *> verts_all;
   {
     BMVert *v;
     BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
       if (BM_ELEM_CD_GET_INT(v, cd_vert_node_offset) != DYNTOPO_NODE_NONE) {
-        BLI_gset_insert(verts_all, v);
+        verts_all.add(v);
       }
     }
   }
@@ -2556,8 +2556,8 @@ static void pbvh_bmesh_verify(Tree *pbvh)
       totvert += n->bm_unique_verts_ ? n->bm_unique_verts_.size() : 0;
     }
 
-    BLI_assert(totface == BLI_gset_len(faces_all));
-    BLI_assert(totvert == BLI_gset_len(verts_all));
+    BLI_assert(totface == faces_all.size());
+    BLI_assert(totvert == verts_all.size());
   }
 
   {
@@ -2666,7 +2666,7 @@ static void pbvh_bmesh_verify(Tree *pbvh)
       for (BMFace *f : n->bm_faces_) {
         Node *n_other = pbvh_bmesh_node_lookup(pbvh, f);
         BLI_assert(n == n_other);
-        BLI_assert(BLI_gset_haskey(faces_all, f));
+        BLI_assert(faces_all.contains(f));
       }
 
       GSET_ITER (gs_iter, n->bm_unique_verts_) {
@@ -2674,20 +2674,17 @@ static void pbvh_bmesh_verify(Tree *pbvh)
         Node *n_other = pbvh_bmesh_node_lookup(pbvh, v);
         BLI_assert(!BLI_gset_haskey(n->bm_other_verts_, v));
         BLI_assert(n == n_other);
-        BLI_assert(BLI_gset_haskey(verts_all, v));
+        BLI_assert(verts_all.contains(v));
       }
 
       GSET_ITER (gs_iter, n->bm_other_verts_) {
         BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
         /* this happens sometimes and seems harmless */
         // BLI_assert(!BM_vert_face_check(v));
-        BLI_assert(BLI_gset_haskey(verts_all, v));
+        BLI_assert(verts_all.contains(v));
       }
     }
   }
-
-  BLI_gset_free(faces_all, nullptr);
-  BLI_gset_free(verts_all, nullptr);
 }
 
 #endif

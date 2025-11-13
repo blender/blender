@@ -18,7 +18,9 @@
 #include "BLI_task.hh"
 
 #include "GPU_capabilities.hh"
+#include "GPU_debug.hh"
 
+#include "GPU_debug.hh"
 #include "draw_cache_extract.hh"
 #include "draw_subdivision.hh"
 
@@ -363,6 +365,9 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
   if (ibos_to_create.is_empty() && vbos_to_create.is_empty()) {
     return;
   }
+
+  static gpu::DebugScope subdiv_extract_scope = {"SubdivExtraction"};
+  auto capture = subdiv_extract_scope.scoped_capture();
 
   if (vbos_to_create.contains(VBOType::Position) || vbos_to_create.contains(VBOType::Orco)) {
     gpu::VertBufPtr orco_vbo;

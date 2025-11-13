@@ -38,7 +38,6 @@ class CurveRefinePass;
 class View;
 }  // namespace blender::draw
 struct GPUMaterial;
-struct GSet;
 
 /* -------------------------------------------------------------------- */
 /** \name Memory Pools

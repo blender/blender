@@ -125,7 +125,7 @@ void main()
       texelFetch(gbuf_header_tx, int3(texel, 0), 0).r);
 
   uchar data_layer = header.closure_len();
-  float2 data_packed = imageLoad(gbuf_normal_img, int3(texel, data_layer)).rg;
+  float2 data_packed = imageLoad(gbuf_normal_img, int3(texel, int(data_layer))).rg;
   float gbuffer_thickness = gbuffer::thickness_unpack(data_packed.x);
   if (gbuffer_thickness == 0.0f) {
     return;
@@ -138,6 +138,6 @@ void main()
 
   if ((shadow_thickness < abs(gbuffer_thickness))) {
     data_packed.x = gbuffer::thickness_pack(sign(gbuffer_thickness) * shadow_thickness);
-    imageStore(gbuf_normal_img, int3(texel, data_layer), float4(data_packed, 0.0f, 0.0f));
+    imageStore(gbuf_normal_img, int3(texel, int(data_layer)), float4(data_packed, 0.0f, 0.0f));
   }
 }

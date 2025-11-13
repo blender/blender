@@ -417,6 +417,197 @@ class ColorTesting(unittest.TestCase):
         _test_flat_buffer_protocol(self, Color, 3)
 
 
+# Test features of `mathutils` types.
+class TypeTesting(unittest.TestCase):
+
+    def test_keywords_unsupported_matrix(self):
+        with self.assertRaises(TypeError) as context:
+            Matrix(dummy=None)
+        self.assertEqual(str(context.exception), "Matrix(): takes no keyword args")
+
+    def test_keywords_unsupported_vector(self):
+        with self.assertRaises(TypeError) as context:
+            Vector(dummy=None)
+        self.assertEqual(str(context.exception), "Vector(): takes no keyword args")
+
+    def test_keywords_unsupported_color(self):
+        with self.assertRaises(TypeError) as context:
+            Color(dummy=None)
+        self.assertEqual(str(context.exception), "mathutils.Color(): takes no keyword args")
+
+    def test_keywords_unsupported_euler(self):
+        with self.assertRaises(TypeError) as context:
+            Euler(dummy=None)
+        self.assertEqual(str(context.exception), "mathutils.Euler(): takes no keyword args")
+
+    def test_subclass_matrix(self):
+        class MyMatrix(Matrix):
+            __slots__ = (
+                "offset",
+            )
+
+            def __new__(cls, *args, **kw):
+                del kw
+                return super().__new__(cls, *args)
+
+            def __init__(self, *args, offset=0.0):
+                self.offset = offset
+
+            def __str__(self):
+                return "{:s}({!r})".format(type(self).__name__, tuple(tuple(x) for x in self))
+
+            def my_sum_and_offset(self):
+                return sum(iter([i for v in self for i in v])) + self.offset
+
+        value = MyMatrix(offset=1.0)
+        self.assertEqual(
+            str(value),
+            "MyMatrix(((1.0, 0.0, 0.0, 0.0), (0.0, 1.0, 0.0, 0.0), (0.0, 0.0, 1.0, 0.0), (0.0, 0.0, 0.0, 1.0)))",
+        )
+        self.assertEqual(value.my_sum_and_offset(), 5.0)
+        value.offset += 1.0
+        self.assertEqual(value.my_sum_and_offset(), 6.0)
+
+        value = MyMatrix(((1.0, 2.0, 3.0), (4.0, 5.0, 6.0), (7.0, 8.0, 9.0)), offset=5.0)
+        self.assertEqual(str(value), "MyMatrix(((1.0, 2.0, 3.0), (4.0, 5.0, 6.0), (7.0, 8.0, 9.0)))")
+        self.assertEqual(value.my_sum_and_offset(), 50.0)
+
+        # Ensure `__slots__` is working.
+        with self.assertRaises(AttributeError):
+            value.offset_other = 5.0
+
+    def test_subclass_vector(self):
+        class MyVector(Vector):
+            __slots__ = (
+                "offset",
+            )
+
+            def __new__(cls, *args, **kw):
+                del kw
+                return super().__new__(cls, *args)
+
+            def __init__(self, *args, offset=0.0):
+                self.offset = offset
+
+            def __str__(self):
+                return "{:s}({!r})".format(type(self).__name__, tuple(self))
+
+            def my_sum_and_offset(self):
+                return sum(iter(self)) + self.offset
+
+        value = MyVector(offset=1.0)
+        self.assertEqual(str(value), "MyVector((0.0, 0.0, 0.0))")
+        self.assertEqual(value.my_sum_and_offset(), 1.0)
+        value.offset += 1.0
+        self.assertEqual(value.my_sum_and_offset(), 2.0)
+
+        value = MyVector((1.0, 2.0, 3.0), offset=4.0)
+        self.assertEqual(str(value), "MyVector((1.0, 2.0, 3.0))")
+        self.assertEqual(value.my_sum_and_offset(), 10.0)
+
+        # Ensure `__slots__` is working.
+        with self.assertRaises(AttributeError):
+            value.offset_other = 5.0
+
+    def test_subclass_color(self):
+        class MyColor(Color):
+            __slots__ = (
+                "offset",
+            )
+
+            def __new__(cls, *args, **kw):
+                del kw
+                return super().__new__(cls, *args)
+
+            def __init__(self, *args, offset=0.0):
+                self.offset = offset
+
+            def __str__(self):
+                return "{:s}({!r})".format(type(self).__name__, tuple(self))
+
+            def my_sum_and_offset(self):
+                return sum(iter(self)) + self.offset
+
+        value = MyColor(offset=1.0)
+        self.assertEqual(str(value), "MyColor((0.0, 0.0, 0.0))")
+        self.assertEqual(value.my_sum_and_offset(), 1.0)
+
+        value = MyColor((1.0, 2.0, 3.0), offset=4.0)
+        self.assertEqual(str(value), "MyColor((1.0, 2.0, 3.0))")
+        self.assertEqual(value.my_sum_and_offset(), 10.0)
+
+        # Ensure `__slots__` is working.
+        with self.assertRaises(AttributeError):
+            value.offset_other = 5.0
+        value.offset += 1.0
+
+    def test_subclass_quaternion(self):
+        class MyQuaternion(Quaternion):
+            __slots__ = (
+                "offset",
+            )
+
+            def __new__(cls, *args, **_kw):
+                return super().__new__(cls, *args)
+
+            def __init__(self, *args, offset=0.0):
+                self.offset = offset
+
+            def __str__(self):
+                return "{:s}({!r})".format(type(self).__name__, tuple(self))
+
+            def my_sum_and_offset(self):
+                return sum(iter(self)) + self.offset
+
+        value = MyQuaternion(offset=1.0)
+        self.assertEqual(str(value), "MyQuaternion((1.0, 0.0, 0.0, 0.0))")
+        self.assertEqual(value.my_sum_and_offset(), 2.0)
+        value.offset += 1.0
+        self.assertEqual(value.my_sum_and_offset(), 3.0)
+
+        value = MyQuaternion((1.0, 2.0, 3.0, 4.0), offset=4.0)
+        self.assertEqual(str(value), "MyQuaternion((1.0, 2.0, 3.0, 4.0))")
+        self.assertEqual(value.my_sum_and_offset(), 14.0)
+
+        # Ensure `__slots__` is working.
+        with self.assertRaises(AttributeError):
+            value.offset_other = 5.0
+
+    def test_subclass_euler(self):
+        class MyEuler(Euler):
+            __slots__ = (
+                "offset",
+            )
+
+            def __new__(cls, *args, **kw):
+                del kw
+                return super().__new__(cls, *args)
+
+            def __init__(self, *args, offset=0.0):
+                self.offset = offset
+
+            def __str__(self):
+                return "{:s}({!r})".format(type(self).__name__, tuple(self))
+
+            def my_sum_and_offset(self):
+                return sum(iter(self)) + self.offset
+
+        value = MyEuler(offset=1.0)
+        self.assertEqual(str(value), "MyEuler((0.0, 0.0, 0.0))")
+        self.assertEqual(value.my_sum_and_offset(), 1.0)
+        value.offset += 1.0
+        self.assertEqual(value.my_sum_and_offset(), 2.0)
+
+        value = MyEuler((1.0, 2.0, 3.0), offset=4.0)
+        self.assertEqual(str(value), "MyEuler((1.0, 2.0, 3.0))")
+        self.assertEqual(value.my_sum_and_offset(), 10.0)
+
+        # Ensure `__slots__` is working.
+        with self.assertRaises(AttributeError):
+            value.offset_other = 5.0
+        value.offset += 1.0
+
+
 class KDTreeTesting(unittest.TestCase):
     @staticmethod
     def kdtree_create_grid_3d_data(tot):

@@ -976,7 +976,8 @@ class IMAGE_MT_editor_menus(Menu):
             layout.menu("MASK_MT_select")
 
         if ima and ima.is_dirty:
-            layout.menu("IMAGE_MT_image", text="Image*")
+            # Show "*" to the left for consistency with unsaved files in the title bar.
+            layout.menu("IMAGE_MT_image", text="* Image")
         else:
             layout.menu("IMAGE_MT_image", text="Image")
 
@@ -1794,7 +1795,7 @@ class IMAGE_PT_overlay_mask(MASK_PT_display, Panel):
     def poll(cls, context):
         si = context.space_data
 
-        return si.ui_mode == 'MASK'
+        return si.mode == 'MASK'
 
 
 # Grease Pencil properties

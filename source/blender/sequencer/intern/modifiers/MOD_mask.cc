@@ -15,7 +15,6 @@
 #include "DNA_sequence_types.h"
 
 #include "SEQ_modifier.hh"
-#include "SEQ_render.hh"
 #include "SEQ_transform.hh"
 
 #include "UI_interface.hh"

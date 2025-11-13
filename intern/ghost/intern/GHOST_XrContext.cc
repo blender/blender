@@ -403,6 +403,13 @@ static const char *openxr_ext_name_from_wm_gpu_binding(GHOST_TXrGraphicsBinding 
       return nullptr;
 #endif
 
+    case GHOST_kXrGraphicsMetal:
+#ifdef WITH_METAL_BACKEND
+      return XR_KHR_METAL_ENABLE_EXTENSION_NAME;
+#else
+      return nullptr;
+#endif
+
 #ifdef WIN32
 #  ifdef WITH_OPENGL_BACKEND
     case GHOST_kXrGraphicsOpenGLD3D11:

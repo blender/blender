@@ -48,6 +48,24 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="5.0" date="2025-11-18">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Completely overhauled color management pipeline now natively supports wide-gamut and HDR color spaces</li>
+                    <li>Cycles: unbiased volume rendering, multi bounce SSS</li>
+                    <li>Video Sequencer: added a compositor strip modifier</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>EEVEE: material compilation speed has been improved</li>
+                    <li>Geometry Nodes: support for Bundles, Closures and new volume nodes</li>
+                    <li>Grease Pencil: motion blur support</li>
+                    <li>Rendering: new multiple scattering mode for Sky node and a new Radial Tiling node</li>
+                    <li>Several improvements for virtual reality</li>
+                </ul>
+            </description>
+        </release>
         <release version="4.5" date="2025-07-15">
             <description>
                 <p>New features:</p>

@@ -25,12 +25,14 @@ namespace blender::compositor {
  * Cached Mask Key.
  */
 
-CachedMaskKey::CachedMaskKey(int2 size,
+CachedMaskKey::CachedMaskKey(const Domain &domain,
                              float aspect_ratio,
                              bool use_feather,
                              int motion_blur_samples,
                              float motion_blur_shutter)
-    : size(size),
+    : data_size(domain.data_size),
+      display_size(domain.display_size),
+      data_offset(domain.data_offset),
       aspect_ratio(aspect_ratio),
       use_feather(use_feather),
       motion_blur_samples(motion_blur_samples),
@@ -40,14 +42,17 @@ CachedMaskKey::CachedMaskKey(int2 size,
 
 uint64_t CachedMaskKey::hash() const
 {
-  return get_default_hash(
-      size, use_feather, motion_blur_samples, float2(motion_blur_shutter, aspect_ratio));
+  return get_default_hash(get_default_hash(data_size, display_size, data_offset),
+                          use_feather,
+                          motion_blur_samples,
+                          float2(motion_blur_shutter, aspect_ratio));
 }
 
 bool operator==(const CachedMaskKey &a, const CachedMaskKey &b)
 {
-  return a.size == b.size && a.aspect_ratio == b.aspect_ratio && a.use_feather == b.use_feather &&
-         a.motion_blur_samples == b.motion_blur_samples &&
+  return a.data_size == b.data_size && a.display_size == b.display_size &&
+         a.data_offset == b.data_offset && a.aspect_ratio == b.aspect_ratio &&
+         a.use_feather == b.use_feather && a.motion_blur_samples == b.motion_blur_samples &&
          a.motion_blur_shutter == b.motion_blur_shutter;
 }
 
@@ -100,7 +105,7 @@ static Vector<MaskRasterHandle *> get_mask_raster_handles(Mask *mask,
 
 CachedMask::CachedMask(Context &context,
                        Mask *mask,
-                       int2 size,
+                       const Domain &domain,
                        int frame,
                        float aspect_ratio,
                        bool use_feather,
@@ -109,13 +114,13 @@ CachedMask::CachedMask(Context &context,
     : result(context.create_result(ResultType::Float))
 {
   Vector<MaskRasterHandle *> handles = get_mask_raster_handles(
-      mask, size, frame, use_feather, motion_blur_samples, motion_blur_shutter);
+      mask, domain.display_size, frame, use_feather, motion_blur_samples, motion_blur_shutter);
 
-  this->result.allocate_texture(size, false, ResultStorageType::CPU);
-  parallel_for(size, [&](const int2 texel) {
+  this->result.allocate_texture(domain, false, ResultStorageType::CPU);
+  parallel_for(domain.data_size, [&](const int2 texel) {
     /* Compute the coordinates in the [0, 1] range and add 0.5 to evaluate the mask at the
      * center of pixels. */
-    float2 coordinates = (float2(texel) + 0.5f) / float2(size);
+    float2 coordinates = (float2(texel + domain.data_offset) + 0.5f) / float2(domain.display_size);
     /* Do aspect ratio correction around the center 0.5 point. */
     coordinates = (coordinates - float2(0.5)) * float2(1.0, aspect_ratio) + float2(0.5);
 
@@ -166,14 +171,14 @@ void CachedMaskContainer::reset()
 
 Result &CachedMaskContainer::get(Context &context,
                                  Mask *mask,
-                                 int2 size,
+                                 const Domain &domain,
                                  float aspect_ratio,
                                  bool use_feather,
                                  int motion_blur_samples,
                                  float motion_blur_shutter)
 {
   const CachedMaskKey key(
-      size, aspect_ratio, use_feather, motion_blur_samples, motion_blur_shutter);
+      domain, aspect_ratio, use_feather, motion_blur_samples, motion_blur_shutter);
 
   const std::string library_key = mask->id.lib ? mask->id.lib->id.name : "";
   const std::string id_key = std::string(mask->id.name) + library_key;
@@ -189,7 +194,7 @@ Result &CachedMaskContainer::get(Context &context,
   auto &cached_mask = *cached_masks_for_id.lookup_or_add_cb(key, [&]() {
     return std::make_unique<CachedMask>(context,
                                         mask,
-                                        size,
+                                        domain,
                                         context.get_frame_number(),
                                         aspect_ratio,
                                         use_feather,

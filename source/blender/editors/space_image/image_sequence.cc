@@ -29,7 +29,7 @@
  *
  * The output is a list of frame ranges, each containing a list of frames with matching names.
  */
-static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
+static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges, bool *r_was_relative)
 {
   char dir[FILE_MAXDIR];
   const bool do_frame_range = RNA_boolean_get(op->ptr, "use_sequence_detection");
@@ -75,6 +75,8 @@ static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
     MEM_freeN(filename);
   }
   RNA_END;
+
+  *r_was_relative = BLI_path_is_rel(dir);
 }
 
 static int image_cmp_frame(const void *a, const void *b)
@@ -95,24 +97,16 @@ static int image_cmp_frame(const void *a, const void *b)
  * From a list of frames, compute the start (offset) and length of the sequence
  * of contiguous frames. If `detect_udim` is set, it will return UDIM tiles as well.
  */
-static void image_detect_frame_range(blender::StringRefNull root_path,
-                                     ImageFrameRange *range,
-                                     const bool detect_udim)
+static void image_detect_frame_range(ImageFrameRange *range, const bool detect_udim)
 {
+  /* UDIM detection relies on the paths resolving on the file-system (being absolute). */
+  BLI_assert(!BLI_path_is_rel(range->filepath));
+
   /* UDIM */
   if (detect_udim) {
-    const bool was_relative = BLI_path_is_rel(range->filepath);
-    if (was_relative) {
-      BLI_path_abs(range->filepath, root_path.c_str());
-    }
-
     int udim_start, udim_range;
     range->udims_detected = BKE_image_get_tile_info(
         range->filepath, &range->udim_tiles, &udim_start, &udim_range);
-
-    if (was_relative) {
-      BLI_path_rel(range->filepath, root_path.c_str());
-    }
 
     if (range->udims_detected) {
       range->offset = udim_start;
@@ -147,22 +141,21 @@ static void image_detect_frame_range(blender::StringRefNull root_path,
   }
 }
 
-ListBase ED_image_filesel_detect_sequences(blender::StringRefNull root_path,
+ListBase ED_image_filesel_detect_sequences(blender::StringRefNull blendfile_path,
+                                           blender::StringRefNull root_path,
                                            wmOperator *op,
                                            const bool detect_udim)
 {
   ListBase ranges;
   BLI_listbase_clear(&ranges);
 
+  bool was_relative = false;
+
   /* File browser. */
   if (RNA_struct_property_is_set(op->ptr, "directory") &&
       RNA_struct_property_is_set(op->ptr, "files"))
   {
-    image_sequence_get_frame_ranges(op, &ranges);
-
-    LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
-      image_detect_frame_range(root_path, range, detect_udim);
-    }
+    image_sequence_get_frame_ranges(op, &ranges, &was_relative);
   }
   /* Filepath property for drag & drop etc. */
   else {
@@ -173,7 +166,17 @@ ListBase ED_image_filesel_detect_sequences(blender::StringRefNull root_path,
     BLI_addtail(&ranges, range);
 
     STRNCPY(range->filepath, filepath);
-    image_detect_frame_range(root_path, range, detect_udim);
+    was_relative = BLI_path_is_rel(filepath);
+  }
+
+  LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
+    if (was_relative) {
+      BLI_path_abs(range->filepath, blendfile_path.c_str());
+    }
+    image_detect_frame_range(range, detect_udim);
+    if (was_relative) {
+      BLI_path_rel(range->filepath, root_path.c_str());
+    }
   }
 
   return ranges;

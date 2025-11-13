@@ -1033,7 +1033,8 @@ void MEM_guarded_printmemlist_pydict()
 }
 void mem_guarded_clearmemlist()
 {
-  membase->first = membase->last = nullptr;
+  membase->first = nullptr;
+  membase->last = nullptr;
 }
 
 void MEM_guarded_freeN(void *vmemh, const AllocationType allocation_type)

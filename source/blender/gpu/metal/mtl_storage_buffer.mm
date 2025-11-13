@@ -101,8 +101,7 @@ MTLStorageBuf::~MTLStorageBuf()
    * to check deactivated context's. */
   MTLContext *ctx = MTLContext::get();
   if (ctx) {
-    for (int i = 0; i < MTL_MAX_BUFFER_BINDINGS; i++) {
-      MTLStorageBufferBinding &slot = ctx->pipeline_state.ssbo_bindings[i];
+    for (MTLStorageBufferBinding &slot : ctx->pipeline_state.ssbo_bindings) {
       if (slot.bound && slot.ssbo == this) {
         slot.bound = false;
         slot.ssbo = nullptr;
@@ -136,7 +135,9 @@ void MTLStorageBuf::init()
       size_in_bytes_, (usage_ == GPU_USAGE_DEVICE_ONLY) ? false : true);
 
 #ifndef NDEBUG
-  metal_buffer_->set_label([NSString stringWithFormat:@"Storage Buffer %s", name_]);
+  static std::atomic<int> global_counter = 0;
+  int index = global_counter.fetch_add(1);
+  metal_buffer_->set_label([NSString stringWithFormat:@"SSBO %i %s", index, name_]);
 #endif
   BLI_assert(metal_buffer_ != nullptr);
   BLI_assert(metal_buffer_->get_metal_buffer() != nil);
@@ -381,7 +382,7 @@ void MTLStorageBuf::async_flush_to_host()
   /* Encode event signal and flush command buffer to ensure GPU work is in the pipeline for future
    * reads. */
   ctx->main_command_buffer.encode_signal_event(gpu_write_fence_, ++host_read_signal_value_);
-  GPU_flush();
+  ctx->flush();
 }
 
 void MTLStorageBuf::read(void *data)

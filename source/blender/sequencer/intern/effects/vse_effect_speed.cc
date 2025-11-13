@@ -25,23 +25,13 @@ namespace blender::seq {
 
 static void init_speed_effect(Strip *strip)
 {
-  if (strip->effectdata) {
-    MEM_freeN(strip->effectdata);
-  }
-
-  SpeedControlVars *v = MEM_callocN<SpeedControlVars>("speedcontrolvars");
-  strip->effectdata = v;
-
-  v->speed_control_type = SEQ_SPEED_STRETCH;
-  v->speed_fader = 1.0f;
-  v->speed_fader_length = 0.0f;
-  v->speed_fader_frame_number = 0.0f;
-}
-
-static void load_speed_effect(Strip *strip)
-{
-  SpeedControlVars *v = (SpeedControlVars *)strip->effectdata;
-  v->frameMap = nullptr;
+  MEM_SAFE_FREE(strip->effectdata);
+  SpeedControlVars *data = MEM_callocN<SpeedControlVars>("speedcontrolvars");
+  strip->effectdata = data;
+  data->speed_control_type = SEQ_SPEED_STRETCH;
+  data->speed_fader = 1.0f;
+  data->speed_fader_length = 0.0f;
+  data->speed_fader_frame_number = 0.0f;
 }
 
 static int num_inputs_speed()
@@ -60,9 +50,8 @@ static void free_speed_effect(Strip *strip, const bool /*do_id_user*/)
 
 static void copy_speed_effect(Strip *dst, const Strip *src, const int /*flag*/)
 {
-  SpeedControlVars *v;
   dst->effectdata = MEM_dupallocN(src->effectdata);
-  v = (SpeedControlVars *)dst->effectdata;
+  SpeedControlVars *v = (SpeedControlVars *)dst->effectdata;
   v->frameMap = nullptr;
 }
 
@@ -193,12 +182,11 @@ static ImBuf *do_speed_effect(const RenderData *context,
 {
   const SpeedControlVars *s = (SpeedControlVars *)strip->effectdata;
   EffectHandle cross_effect = effect_handle_get(STRIP_TYPE_CROSS);
-  ImBuf *out;
 
   if (s->flags & SEQ_SPEED_USE_INTERPOLATION) {
     fac = speed_effect_interpolation_ratio_get(context->scene, strip, timeline_frame);
     /* Current frame is ibuf1, next frame is ibuf2. */
-    out = cross_effect.execute(context, state, nullptr, timeline_frame, fac, ibuf1, ibuf2);
+    ImBuf *out = cross_effect.execute(context, state, nullptr, timeline_frame, fac, ibuf1, ibuf2);
     return out;
   }
 
@@ -210,7 +198,6 @@ void speed_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_speed_effect;
   rval.num_inputs = num_inputs_speed;
-  rval.load = load_speed_effect;
   rval.free = free_speed_effect;
   rval.copy = copy_speed_effect;
   rval.execute = do_speed_effect;

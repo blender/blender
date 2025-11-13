@@ -14,6 +14,8 @@
 
 #include "GPU_material.hh"
 
+#include "COM_result.hh"
+
 #include "node_composite_util.hh"
 
 namespace blender::nodes::node_composite_color_spill_cc {
@@ -162,27 +164,29 @@ static float4 color_spill(const float4 color,
   return float4(map > 0.0f ? color.xyz() + spill_scale * map : color.xyz(), color.w);
 }
 
+using blender::compositor::Color;
+
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  static auto function = mf::build::
-      SI8_SO<float4, float, MenuValue, MenuValue, MenuValue, float, bool, float4, float4>(
+  static auto function =
+      mf::build::SI8_SO<Color, float, MenuValue, MenuValue, MenuValue, float, bool, Color, Color>(
           "Color Spill",
-          [=](const float4 &color,
+          [=](const Color &color,
               const float &factor,
               const MenuValue spill_channel,
               const MenuValue limit_method,
               const MenuValue limit_channel,
               const float &limit_scale,
               const bool &use_spill_strength,
-              const float4 &spill_strength) -> float4 {
-            return color_spill(color,
-                               factor,
-                               spill_channel.value,
-                               CMPNodeColorSpillLimitAlgorithm(limit_method.value),
-                               limit_channel.value,
-                               limit_scale,
-                               use_spill_strength,
-                               spill_strength);
+              const Color &spill_strength) -> Color {
+            return Color(color_spill(float4(color),
+                                     factor,
+                                     spill_channel.value,
+                                     CMPNodeColorSpillLimitAlgorithm(limit_method.value),
+                                     limit_channel.value,
+                                     limit_scale,
+                                     use_spill_strength,
+                                     float4(spill_strength)));
           },
           mf::build::exec_presets::SomeSpanOrSingle<0>());
   builder.set_matching_fn(function);

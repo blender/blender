@@ -47,8 +47,6 @@
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 
-/* For menu, popup, icons, etc. */
-
 #include "ED_outliner.hh"
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
@@ -56,7 +54,6 @@
 
 #include "UI_view2d.hh"
 
-/* Own include. */
 #include "sequencer_intern.hh"
 
 namespace blender::ed::vse {
@@ -67,8 +64,8 @@ namespace blender::ed::vse {
 
 class MouseCoords {
  public:
-  blender::int2 region;
-  blender::float2 view;
+  int2 region;
+  float2 view;
 
   MouseCoords(const View2D *v2d, int x, int y)
   {
@@ -102,7 +99,7 @@ Strip *strip_under_mouse_get(const Scene *scene, const View2D *v2d, const int mv
   float mouse_co[2];
   UI_view2d_region_to_view(v2d, mval[0], mval[1], &mouse_co[0], &mouse_co[1]);
 
-  blender::Vector<Strip *> visible = sequencer_visible_strips_get(scene, v2d);
+  Vector<Strip *> visible = sequencer_visible_strips_get(scene, v2d);
   int mouse_channel = int(mouse_co[1]);
   for (Strip *strip : visible) {
     if (strip->channel != mouse_channel) {
@@ -118,7 +115,7 @@ Strip *strip_under_mouse_get(const Scene *scene, const View2D *v2d, const int mv
   return nullptr;
 }
 
-blender::VectorSet<Strip *> all_strips_from_context(bContext *C)
+VectorSet<Strip *> all_strips_from_context(bContext *C)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
@@ -133,7 +130,7 @@ blender::VectorSet<Strip *> all_strips_from_context(bContext *C)
   return seq::query_all_strips(seqbase);
 }
 
-blender::VectorSet<Strip *> selected_strips_from_context(bContext *C)
+VectorSet<Strip *> selected_strips_from_context(bContext *C)
 {
   const Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
@@ -143,8 +140,7 @@ blender::VectorSet<Strip *> selected_strips_from_context(bContext *C)
   const bool is_preview = sequencer_view_has_preview_poll(C);
 
   if (is_preview) {
-    blender::VectorSet strips = seq::query_rendered_strips(
-        scene, channels, seqbase, scene->r.cfra, 0);
+    VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
     strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
     return strips;
   }
@@ -407,8 +403,7 @@ void recurs_sel_strip(Strip *strip_meta)
 
 bool strip_point_image_isect(const Scene *scene, const Strip *strip, float point_view[2])
 {
-  const blender::Array<blender::float2> strip_image_quad = seq::image_transform_final_quad_get(
-      scene, strip);
+  const Array<float2> strip_image_quad = seq::image_transform_final_quad_get(scene, strip);
   return isect_point_quad_v2(point_view,
                              strip_image_quad[0],
                              strip_image_quad[1],
@@ -442,7 +437,7 @@ static wmOperatorStatus sequencer_de_select_all_exec(bContext *C, wmOperator *op
     return sequencer_retiming_select_all_exec(C, op);
   }
 
-  blender::VectorSet strips = all_strips_from_context(C);
+  VectorSet strips = all_strips_from_context(C);
 
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
@@ -513,7 +508,7 @@ static wmOperatorStatus sequencer_select_inverse_exec(bContext *C, wmOperator * 
     return OPERATOR_CANCELLED;
   }
 
-  blender::VectorSet strips = all_strips_from_context(C);
+  VectorSet strips = all_strips_from_context(C);
 
   for (Strip *strip : strips) {
     if (strip->flag & SELECT) {
@@ -739,7 +734,7 @@ static Strip *strip_select_from_preview(
       UI_view2d_scale_get_y(v2d),
   };
 
-  blender::VectorSet strips = seq::query_rendered_strips(
+  VectorSet strips = seq::query_rendered_strips(
       scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
 
   SeqSelect_Link *slink_active = nullptr;
@@ -750,7 +745,7 @@ static Strip *strip_select_from_preview(
     float center_dist_sq_test = 0.0f;
     if (center) {
       /* Detect overlapping center points (scaled by the zoom level). */
-      blender::float2 co = seq::image_transform_origin_offset_pixelspace_get(scene, strip);
+      float2 co = seq::image_transform_origin_offset_pixelspace_get(scene, strip);
       sub_v2_v2(co, mouseco_view);
       mul_v2_v2(co, center_scale_px);
       center_dist_sq_test = len_squared_v2(co);
@@ -842,14 +837,14 @@ static bool element_already_selected(const StripSelection &selection)
 
 static void sequencer_select_connected_strips(const StripSelection &selection)
 {
-  blender::VectorSet<Strip *> sources;
+  VectorSet<Strip *> sources;
   sources.add(selection.strip1);
   if (selection.strip2) {
     sources.add(selection.strip2);
   }
 
   for (Strip *source : sources) {
-    blender::VectorSet<Strip *> connections = seq::connected_strips_get(source);
+    VectorSet<Strip *> connections = seq::connected_strips_get(source);
     for (Strip *connection : connections) {
       /* Copy selection settings exactly for connected strips. */
       connection->flag &= ~STRIP_ALLSEL;
@@ -871,7 +866,7 @@ static void sequencer_copy_handles_to_selected_strips(const Scene *scene,
   Strip *source = selection.strip1;
   /* Test for neighboring strips in the `copy_to` list. If any border one another, remove them,
    * since we don't want to mess with dual handles. */
-  blender::VectorSet<Strip *> test(copy_to);
+  VectorSet<Strip *> test(copy_to);
   test.add(source);
   for (Strip *test_strip : test) {
     /* Don't copy left handle over to a `test_strip` that has a strip directly on its left. */
@@ -1067,9 +1062,9 @@ static float strip_to_frame_distance(const Scene *scene,
  * The area considered includes padded handles past strip bounds, so multiple strips may be
  * returned.
  */
-static blender::Vector<Strip *> padded_strips_under_mouse_get(const Scene *scene,
-                                                              const View2D *v2d,
-                                                              float mouse_co[2])
+static Vector<Strip *> padded_strips_under_mouse_get(const Scene *scene,
+                                                     const View2D *v2d,
+                                                     float mouse_co[2])
 {
   Editing *ed = seq::editing_get(scene);
 
@@ -1077,7 +1072,7 @@ static blender::Vector<Strip *> padded_strips_under_mouse_get(const Scene *scene
     return {};
   }
 
-  blender::Vector<Strip *> strips;
+  Vector<Strip *> strips;
   LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
     if (strip->channel != int(mouse_co[1])) {
       continue;
@@ -1135,7 +1130,7 @@ static eStripHandle strip_handle_under_cursor_get(const Scene *scene,
 }
 
 static bool is_mouse_over_both_handles_of_adjacent_strips(const Scene *scene,
-                                                          blender::Vector<Strip *> strips,
+                                                          Vector<Strip *> strips,
                                                           const View2D *v2d,
                                                           float mouse_co[2])
 {
@@ -1169,7 +1164,7 @@ StripSelection pick_strip_and_handle(const Scene *scene, const View2D *v2d, floa
     return selection;
   }
 
-  blender::Vector<Strip *> strips = padded_strips_under_mouse_get(scene, v2d, mouse_co);
+  Vector<Strip *> strips = padded_strips_under_mouse_get(scene, v2d, mouse_co);
 
   if (strips.size() == 0) {
     return selection;
@@ -1234,7 +1229,7 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
     /* Attempt to realize any other connected strips' fake keys. */
     if (seq::is_strip_connected(strip_key_owner)) {
       const int key_frame = seq::retiming_key_timeline_frame_get(scene, strip_key_owner, key);
-      blender::VectorSet<Strip *> connections = seq::connected_strips_get(strip_key_owner);
+      VectorSet<Strip *> connections = seq::connected_strips_get(strip_key_owner);
       for (Strip *connection : connections) {
         if (key_frame == left_fake_key_frame_get(C, connection) ||
             key_frame == right_fake_key_frame_get(C, connection))
@@ -1617,7 +1612,7 @@ static bool select_more_less_impl(Scene *scene, bool select_more)
     return false;
   }
 
-  GSet *neighbors = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "Linked strips");
+  Set<Strip *> neighbors;
   const int neighbor_selection_filter = select_more ? 0 : SELECT;
   const int selection_filter = select_more ? SELECT : 0;
 
@@ -1628,19 +1623,16 @@ static bool select_more_less_impl(Scene *scene, bool select_more)
     Strip *neighbor = find_neighboring_strip(
         scene, strip, seq::SIDE_LEFT, neighbor_selection_filter);
     if (neighbor) {
-      BLI_gset_add(neighbors, neighbor);
+      neighbors.add(neighbor);
     }
     neighbor = find_neighboring_strip(scene, strip, seq::SIDE_RIGHT, neighbor_selection_filter);
     if (neighbor) {
-      BLI_gset_add(neighbors, neighbor);
+      neighbors.add(neighbor);
     }
   }
 
   bool changed = false;
-  GSetIterator gsi;
-  BLI_gsetIterator_init(&gsi, neighbors);
-  while (!BLI_gsetIterator_done(&gsi)) {
-    Strip *neighbor = static_cast<Strip *>(BLI_gsetIterator_getKey(&gsi));
+  for (Strip *neighbor : neighbors) {
     if (select_more) {
       neighbor->flag |= SELECT;
       recurs_sel_strip(neighbor);
@@ -1649,10 +1641,7 @@ static bool select_more_less_impl(Scene *scene, bool select_more)
       neighbor->flag &= ~SELECT;
     }
     changed = true;
-    BLI_gsetIterator_step(&gsi);
   }
-
-  BLI_gset_free(neighbors, nullptr);
   return changed;
 }
 
@@ -2094,8 +2083,7 @@ static bool strip_box_select_rect_image_isect(const Scene *scene,
                                               const Strip *strip,
                                               const rctf *rect)
 {
-  const blender::Array<blender::float2> strip_image_quad = seq::image_transform_final_quad_get(
-      scene, strip);
+  const Array<float2> strip_image_quad = seq::image_transform_final_quad_get(scene, strip);
   float rect_quad[4][2] = {{rect->xmax, rect->ymax},
                            {rect->xmax, rect->ymin},
                            {rect->xmin, rect->ymin},
@@ -2125,7 +2113,7 @@ static void seq_box_select_strip_from_preview(const bContext *C,
   ListBase *channels = seq::channels_displayed_get(ed);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
 
-  blender::VectorSet strips = seq::query_rendered_strips(
+  VectorSet strips = seq::query_rendered_strips(
       scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
   for (Strip *strip : strips) {
     if (!strip_box_select_rect_image_isect(scene, strip, rect)) {
@@ -2409,7 +2397,7 @@ static bool do_lasso_select_preview(bContext *C,
   ListBase *channels = seq::channels_displayed_get(ed);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
 
-  blender::VectorSet strips = seq::query_rendered_strips(
+  VectorSet strips = seq::query_rendered_strips(
       scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
   for (Strip *strip : strips) {
     float2 origin = seq::image_transform_origin_offset_pixelspace_get(scene, strip);
@@ -2700,7 +2688,7 @@ static const EnumPropertyItem sequencer_prop_select_grouped_types[] = {
 
 #define STRIP_CHANNEL_CHECK(_strip, _chan) ELEM((_chan), 0, (_strip)->channel)
 
-static bool select_grouped_type(blender::Span<Strip *> strips,
+static bool select_grouped_type(Span<Strip *> strips,
                                 ListBase * /*seqbase*/,
                                 Strip *act_strip,
                                 const int channel)
@@ -2717,7 +2705,7 @@ static bool select_grouped_type(blender::Span<Strip *> strips,
   return changed;
 }
 
-static bool select_grouped_type_basic(blender::Span<Strip *> strips,
+static bool select_grouped_type_basic(Span<Strip *> strips,
                                       ListBase * /*seqbase*/,
                                       Strip *act_strip,
                                       const int channel)
@@ -2737,7 +2725,7 @@ static bool select_grouped_type_basic(blender::Span<Strip *> strips,
   return changed;
 }
 
-static bool select_grouped_type_effect(blender::Span<Strip *> strips,
+static bool select_grouped_type_effect(Span<Strip *> strips,
                                        ListBase * /*seqbase*/,
                                        Strip *act_strip,
                                        const int channel)
@@ -2757,7 +2745,7 @@ static bool select_grouped_type_effect(blender::Span<Strip *> strips,
   return changed;
 }
 
-static bool select_grouped_data(blender::Span<Strip *> strips,
+static bool select_grouped_data(Span<Strip *> strips,
                                 ListBase * /*seqbase*/,
                                 Strip *act_strip,
                                 const int channel)
@@ -2816,13 +2804,13 @@ static bool select_grouped_data(blender::Span<Strip *> strips,
   return changed;
 }
 
-static bool select_grouped_effect(blender::Span<Strip *> strips,
+static bool select_grouped_effect(Span<Strip *> strips,
                                   ListBase * /*seqbase*/,
                                   Strip *act_strip,
                                   const int channel)
 {
   bool changed = false;
-  blender::Set<StripType> effects;
+  Set<StripType> effects;
 
   for (const Strip *strip : strips) {
     if (STRIP_CHANNEL_CHECK(strip, channel) && strip->is_effect() &&
@@ -2848,7 +2836,7 @@ static bool select_grouped_effect(blender::Span<Strip *> strips,
 }
 
 static bool select_grouped_time_overlap(const Scene *scene,
-                                        blender::Span<Strip *> strips,
+                                        Span<Strip *> strips,
                                         ListBase * /*seqbase*/,
                                         Strip *act_strip)
 {
@@ -2872,7 +2860,7 @@ static bool select_grouped_time_overlap(const Scene *scene,
 static void query_lower_channel_strips(const Scene *scene,
                                        Strip *strip_reference,
                                        ListBase *seqbase,
-                                       blender::VectorSet<Strip *> &strips)
+                                       VectorSet<Strip *> &strips)
 {
   LISTBASE_FOREACH (Strip *, strip_test, seqbase) {
     if (strip_test->channel > strip_reference->channel) {
@@ -2892,7 +2880,7 @@ static void query_lower_channel_strips(const Scene *scene,
 /* Select all strips within time range and with lower channel of initial selection. Then select
  * effect chains of these strips. */
 static bool select_grouped_effect_link(const Scene *scene,
-                                       blender::VectorSet<Strip *> strips,
+                                       VectorSet<Strip *> strips,
                                        ListBase *seqbase,
                                        Strip * /*act_strip*/,
                                        const int /*channel*/)
@@ -2930,7 +2918,7 @@ static wmOperatorStatus sequencer_select_grouped_exec(bContext *C, wmOperator *o
     return OPERATOR_CANCELLED;
   }
 
-  blender::VectorSet strips = all_strips_from_context(C);
+  VectorSet strips = all_strips_from_context(C);
 
   if (act_strip == nullptr || (is_preview && !strips.contains(act_strip))) {
     BKE_report(op->reports, RPT_ERROR, "No active strip!");

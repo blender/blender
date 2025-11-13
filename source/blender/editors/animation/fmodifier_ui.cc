@@ -328,7 +328,6 @@ static void fmodifier_panel_header(const bContext *C, Panel *panel)
   /* Delete button. */
   uiBut *but = uiDefIconBut(block,
                             ButType::But,
-                            B_REDR,
                             ICON_X,
                             0,
                             0,
@@ -338,6 +337,7 @@ static void fmodifier_panel_header(const bContext *C, Panel *panel)
                             0.0,
                             0.0,
                             TIP_("Delete Modifier"));
+  UI_but_retval_set(but, B_REDR);
   FModifierDeleteContext *ctx = MEM_mallocN<FModifierDeleteContext>(__func__);
   ctx->owner_id = owner_id;
   ctx->modifiers = fmodifier_list_space_specific(C);
@@ -689,7 +689,6 @@ static void envelope_panel_draw(const bContext *C, Panel *panel)
 
   uiBut *but = uiDefBut(block,
                         ButType::But,
-                        B_FMODIFIER_REDRAW,
                         IFACE_("Add Control Point"),
                         0,
                         0,
@@ -699,6 +698,7 @@ static void envelope_panel_draw(const bContext *C, Panel *panel)
                         0,
                         0,
                         TIP_("Add a new control-point to the envelope on the current frame"));
+  UI_but_retval_set(but, B_FMODIFIER_REDRAW);
   UI_but_func_set(but, fmod_envelope_addpoint_cb, env, nullptr);
 
   col = &layout->column(false);
@@ -719,7 +719,6 @@ static void envelope_panel_draw(const bContext *C, Panel *panel)
 
     but = uiDefIconBut(block,
                        ButType::But,
-                       B_FMODIFIER_REDRAW,
                        ICON_X,
                        0,
                        0,
@@ -729,6 +728,7 @@ static void envelope_panel_draw(const bContext *C, Panel *panel)
                        0.0,
                        0.0,
                        TIP_("Delete envelope control point"));
+    UI_but_retval_set(but, B_FMODIFIER_REDRAW);
     UI_but_func_set(but, fmod_envelope_deletepoint_cb, env, POINTER_FROM_INT(i));
     UI_block_align_begin(block);
   }

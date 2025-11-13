@@ -16,6 +16,7 @@
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_path_utils.hh" /* Only for assertions. */
+#include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -294,7 +295,7 @@ PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
 LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh)
 {
   FileData *fd = (FileData *)bh;
-  GSet *gathered = BLI_gset_ptr_new("linkable_groups gh");
+  blender::Set<const char *> gathered;
   LinkNode *names = nullptr;
   BHead *bhead;
 
@@ -306,14 +307,12 @@ LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh)
       if (BKE_idtype_idcode_is_linkable(bhead->code)) {
         const char *str = BKE_idtype_idcode_to_name(bhead->code);
 
-        if (BLI_gset_add(gathered, (void *)str)) {
+        if (gathered.add(str)) {
           BLI_linklist_prepend(&names, BLI_strdup(str));
         }
       }
     }
   }
-
-  BLI_gset_free(gathered, nullptr);
 
   return names;
 }

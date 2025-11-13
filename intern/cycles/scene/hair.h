@@ -133,6 +133,11 @@ class Hair : public Geometry {
     return curve_keys.size() - curve_first_key.size();
   }
 
+  bool is_traceable() const
+  {
+    return num_segments() > 0;
+  }
+
   /* UDIM */
   void get_uv_tiles(ustring map, unordered_set<int> &tiles) override;
 
@@ -145,7 +150,8 @@ class Hair : public Geometry {
   PrimitiveType primitive_type() const override;
 
   /* Attributes */
-  bool need_shadow_transparency();
+  bool need_shadow_transparency() const;
+  bool need_update_shadow_transparency() const;
   bool update_shadow_transparency(Device *device, Scene *scene, Progress &progress);
 };
 

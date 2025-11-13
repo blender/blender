@@ -1160,25 +1160,10 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
   search[0] = '\0';
-#if 0 /* Ok, this isn't so easy. */
-  uiDefBut(block,
-           ButType::Label,
-           0,
-           WM_operatortype_name(op->type, op->ptr),
-           0,
-           0,
-           UI_searchbox_size_x(),
-           UI_UNIT_Y,
-           nullptr,
-           0.0,
-           0.0,
-           "");
-#endif
   uiBut *but = uiDefSearchButO_ptr(block,
                                    op->type,
                                    static_cast<IDProperty *>(op->ptr->data),
                                    search,
-                                   0,
                                    ICON_VIEWZOOM,
                                    sizeof(search),
                                    0,
@@ -1188,7 +1173,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
                                    "");
 
   /* Fake button, it holds space for search items. */
-  uiDefBut(block, ButType::Label, 0, "", 0, -height, width, height, nullptr, 0, 0, std::nullopt);
+  uiDefBut(block, ButType::Label, "", 0, -height, width, height, nullptr, 0, 0, std::nullopt);
 
   /* Move it downwards, mouse over button. */
   UI_block_bounds_set_popup(block, UI_SEARCHBOX_BOUNDS, blender::int2{0, -UI_UNIT_Y});
@@ -1645,7 +1630,6 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
     if (windows_layout) {
       confirm_but = uiDefBut(col_block,
                              ButType::But,
-                             0,
                              data->confirm_text.c_str(),
                              0,
                              0,
@@ -1659,13 +1643,12 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
     }
 
     cancel_but = uiDefBut(
-        col_block, ButType::But, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, "");
+        col_block, ButType::But, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, "");
 
     if (!windows_layout) {
       col->column(false);
       confirm_but = uiDefBut(col_block,
                              ButType::But,
-                             0,
                              data->confirm_text.c_str(),
                              0,
                              0,
@@ -2037,7 +2020,6 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdat
 
   uiBut *but = uiDefSearchBut(block,
                               g_search_text,
-                              0,
                               ICON_VIEWZOOM,
                               sizeof(g_search_text),
                               0,
@@ -2066,7 +2048,6 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdat
   const int height = init_data->size[1] - UI_SEARCHBOX_BOUNDS;
   uiDefBut(block,
            ButType::Label,
-           0,
            "",
            0,
            -height,

@@ -566,7 +566,7 @@ typedef struct StripModifierData {
    * Bits that can be used for open-states of layout panels in the modifier.
    */
   uint16_t layout_panel_open_flag;
-  char _pad[2];
+  uint16_t ui_expand_flag;
 
   StripModifierDataRuntime runtime;
 } StripModifierData;
@@ -648,6 +648,28 @@ typedef struct SoundEqualizerModifierData {
   ListBase graphics;
 } SoundEqualizerModifierData;
 
+typedef enum ePitchMode {
+  PITCH_MODE_SEMITONES = 0,
+  PITCH_MODE_RATIO = 1,
+} ePitchMode;
+
+typedef enum ePitchQuality {
+  PITCH_QUALITY_HIGH = 0,
+  PITCH_QUALITY_FAST = 1,
+  PITCH_QUALITY_CONSISTENT = 2,
+} ePitchQuality;
+
+typedef struct PitchModifierData {
+  StripModifierData modifier;
+  int mode; /*ePitchMode*/
+  int semitones;
+  int cents;
+  float ratio;
+  char preserve_formant;
+  char _pad[3];
+  int quality; /*ePitchQuality*/
+} PitchModifierData;
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -698,7 +720,6 @@ typedef enum eStripRuntimeFlag {
   STRIP_CLAMPED_LH = (1 << 0),
   STRIP_CLAMPED_RH = (1 << 1),
   STRIP_OVERLAP = (1 << 2),
-  STRIP_EFFECT_NOT_LOADED = (1 << 3), /* Set when reading blend file, cleared after. */
   STRIP_MARK_FOR_DELETE = (1 << 4),
   STRIP_IGNORE_CHANNEL_LOCK = (1 << 5), /* For #SEQUENCER_OT_duplicate_move macro. */
   STRIP_SHOW_OFFSETS = (1 << 6),        /* Set during #SEQUENCER_OT_slip. */
@@ -896,6 +917,7 @@ typedef enum eStripModifierType {
   eSeqModifierType_Tonemap = 7,
   eSeqModifierType_SoundEqualizer = 8,
   eSeqModifierType_Compositor = 9,
+  eSeqModifierType_Pitch = 10,
   /* Keep last. */
   NUM_STRIP_MODIFIER_TYPES,
 } eStripModifierType;

@@ -18,7 +18,7 @@ namespace blender::eevee {
 #endif
 
 /* 5% error threshold. */
-#define DOF_FAST_GATHER_COC_ERROR 0.05
+#define DOF_FAST_GATHER_COC_ERROR 0.05f
 #define DOF_GATHER_RING_COUNT 5
 #define DOF_DILATE_RING_COUNT 3
 

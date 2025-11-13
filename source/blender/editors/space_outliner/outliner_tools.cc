@@ -861,7 +861,7 @@ static uiBlock *merged_element_search_menu(bContext *C, ARegion *region, void *d
 
   short menu_width = 10 * UI_UNIT_X;
   but = uiDefSearchBut(
-      block, search, 0, ICON_VIEWZOOM, sizeof(search), 0, 0, menu_width, UI_UNIT_Y, "");
+      block, search, ICON_VIEWZOOM, sizeof(search), 0, 0, menu_width, UI_UNIT_Y, "");
   UI_but_func_search_set(but,
                          nullptr,
                          merged_element_search_update_fn,
@@ -874,8 +874,7 @@ static uiBlock *merged_element_search_menu(bContext *C, ARegion *region, void *d
 
   /* Fake button to hold space for search items */
   const int height = UI_searchbox_size_y() - UI_SEARCHBOX_BOUNDS;
-  uiDefBut(
-      block, ButType::Label, 0, "", 0, -height, menu_width, height, nullptr, 0, 0, std::nullopt);
+  uiDefBut(block, ButType::Label, "", 0, -height, menu_width, height, nullptr, 0, 0, std::nullopt);
 
   /* Center the menu on the cursor */
   const int offset[2] = {-(menu_width / 2), 0};

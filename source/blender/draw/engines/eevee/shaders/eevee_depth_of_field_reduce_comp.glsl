@@ -81,9 +81,8 @@ float fast_luma(float3 color)
   return (2.0f * color.g) + color.r + color.b;
 }
 
-#define cache_size (gl_WorkGroupSize.x)
-shared float4 color_cache[cache_size][cache_size];
-shared float coc_cache[cache_size][cache_size];
+shared float4 color_cache[gl_WorkGroupSize.x][gl_WorkGroupSize.x];
+shared float coc_cache[gl_WorkGroupSize.x][gl_WorkGroupSize.x];
 
 void store_color_cache(uint2 coord, float4 value)
 {

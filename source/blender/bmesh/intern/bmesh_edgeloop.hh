@@ -10,8 +10,9 @@
 
 #include "bmesh_class.hh"
 
+#include "BLI_set.hh"
+
 struct BMEdgeLoopStore;
-struct GSet;
 struct ListBase;
 
 /* multiple edgeloops (ListBase) */
@@ -64,8 +65,11 @@ bool BM_edgeloop_calc_normal_aligned(BMesh *bm,
                                      BMEdgeLoopStore *el_store,
                                      const float no_align[3]);
 void BM_edgeloop_flip(BMesh *bm, BMEdgeLoopStore *el_store);
-void BM_edgeloop_expand(
-    BMesh *bm, BMEdgeLoopStore *el_store, int el_store_len, bool split, GSet *split_edges);
+void BM_edgeloop_expand(BMesh *bm,
+                        BMEdgeLoopStore *el_store,
+                        int el_store_len,
+                        bool split,
+                        blender::Set<BMEdge *> *split_edges);
 
 bool BM_edgeloop_overlap_check(BMEdgeLoopStore *el_store_a, BMEdgeLoopStore *el_store_b);
 

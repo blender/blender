@@ -1606,20 +1606,52 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 
       if (window->getCursorGrabModeIsWarp() && !is_tablet) {
         /* Wrap cursor at area/window boundaries. */
-        GHOST_Rect bounds, windowBounds, correctedBounds;
-
-        /* fall back to window bounds */
+        GHOST_Rect bounds;
         if (window->getCursorGrabBounds(bounds) == GHOST_kFailure) {
+          /* Fall back to window bounds. */
           window->getClientBounds(bounds);
         }
 
-        /* Switch back to Cocoa coordinates orientation
-         * (y=0 at bottom, the same as blender internal BTW!), and to client coordinates. */
-        window->getClientBounds(windowBounds);
-        window->screenToClient(bounds.l_, bounds.b_, correctedBounds.l_, correctedBounds.t_);
-        window->screenToClient(bounds.r_, bounds.t_, correctedBounds.r_, correctedBounds.b_);
-        correctedBounds.b_ = (windowBounds.b_ - windowBounds.t_) - correctedBounds.b_;
-        correctedBounds.t_ = (windowBounds.b_ - windowBounds.t_) - correctedBounds.t_;
+        GHOST_Rect corrected_bounds;
+        /* Wrapping bounds are in window local coordinates, using GHOST (top-left) origin. */
+        if (window->getCursorGrabMode() == GHOST_kGrabHide) {
+          /* If the cursor is hidden, use the entire window. */
+          corrected_bounds.t_ = 0;
+          corrected_bounds.l_ = 0;
+
+          NSWindow *cocoa_window = (NSWindow *)window->getOSWindow();
+          const NSSize frame_size = cocoa_window.frame.size;
+
+          corrected_bounds.b_ = frame_size.height;
+          corrected_bounds.r_ = frame_size.width;
+        }
+        else {
+          /* If the cursor is visible, use custom grab bounds provided in Cocoa bottom-left origin.
+           * Flip them to use a GHOST top-left origin. */
+          GHOST_Rect window_bounds;
+          window->getClientBounds(window_bounds);
+          window->screenToClient(bounds.l_, bounds.b_, corrected_bounds.l_, corrected_bounds.t_);
+          window->screenToClient(bounds.r_, bounds.t_, corrected_bounds.r_, corrected_bounds.b_);
+
+          corrected_bounds.b_ = (window_bounds.b_ - window_bounds.t_) - corrected_bounds.b_;
+          corrected_bounds.t_ = (window_bounds.b_ - window_bounds.t_) - corrected_bounds.t_;
+        }
+
+        /* Clip the grabbing bounds to the current monitor bounds to prevent the cursor from
+         * getting stuck at the edge of the screen. First compute the visible window frame: */
+        NSWindow *cocoa_window = (NSWindow *)window->getOSWindow();
+        NSRect screen_visible_frame = window->getScreen().visibleFrame;
+        NSRect window_visible_frame = NSIntersectionRect(cocoa_window.frame, screen_visible_frame);
+        NSRect local_visible_frame = [cocoa_window convertRectFromScreen:window_visible_frame];
+
+        GHOST_Rect visible_rect;
+        visible_rect.l_ = local_visible_frame.origin.x;
+        visible_rect.t_ = local_visible_frame.origin.y;
+        visible_rect.r_ = local_visible_frame.origin.x + local_visible_frame.size.width;
+        visible_rect.b_ = local_visible_frame.origin.y + local_visible_frame.size.height;
+
+        /* Then clip the corrected bound using the visible window rect. */
+        visible_rect.clip(corrected_bounds);
 
         /* Get accumulation from previous mouse warps. */
         int32_t x_accum, y_accum;
@@ -1636,7 +1668,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
         /* Warp mouse cursor if needed. */
         int32_t warped_x_mouse = x_mouse;
         int32_t warped_y_mouse = y_mouse;
-        correctedBounds.wrapPoint(warped_x_mouse, warped_y_mouse, 4, window->getCursorGrabAxis());
+        corrected_bounds.wrapPoint(warped_x_mouse, warped_y_mouse, 4, window->getCursorGrabAxis());
 
         /* Set new cursor position. */
         if (x_mouse != warped_x_mouse || y_mouse != warped_y_mouse) {

@@ -22,6 +22,7 @@ __all__ = (
 # Improvements to this script may apply there too.
 
 import argparse
+import html
 import io
 import multiprocessing
 import os
@@ -168,7 +169,7 @@ class Credits:
         chunk_size = 256
         chunk_list = []
         chunk = []
-        for i, c in enumerate(commit_iter):
+        for c in commit_iter:
             chunk.append(c)
             if len(chunk) >= chunk_size:
                 chunk_list.append(chunk)
@@ -215,16 +216,18 @@ class Credits:
     ) -> None:
         commit_word = "commit", "commits"
 
-        sorted_authors = {}
         if sort == "commit":
-            sorted_authors = dict(sorted(self.users.items(), key=lambda item: item[1].commit_total))
+            sorted_authors = dict(sorted(
+                self.users.items(),
+                key=lambda item: (item[1].commit_total, item[0]),
+            ))
         else:
             sorted_authors = dict(sorted(self.users.items()))
 
         fh.write("<h3>Individual Contributors</h3>\n\n")
         for author, cu in sorted_authors.items():
             fh.write("{:s}, {:,d} {:s} {:s}<br />\n".format(
-                author if use_email else author.split("<", 1)[0].rstrip(),
+                html.escape(author if use_email else author.split("<", 1)[0].rstrip()),
                 cu.commit_total,
                 commit_word[cu.commit_total > 1],
                 (
@@ -328,27 +331,55 @@ def argparse_create() -> argparse.ArgumentParser:
     return parser
 
 
-def main() -> None:
+def parse_organizations(authors_file: str) -> tuple[str, ...] | None:
+    """
+    Parse the organizations section from the AUTHORS file.
+    Return the sorted organizations or None if they could not be found.
+    """
+    orgs = []
+    section_begin = "# BEGIN organizations section"
+    section_end = "# END organizations section"
+    in_section = False
+    found_end = False
+
+    with open(authors_file, "r", encoding="utf-8") as fh:
+        for line in fh:
+            if line.startswith(section_begin):
+                in_section = True
+                continue
+            if line.startswith(section_end):
+                found_end = True
+                break
+
+            if in_section and line and not line.startswith("#"):
+                # Extract organization name before `<`.
+                org_name = line.split("<")[0].strip()
+                # Expected result: `<b>Blender Foundation</b>`.
+                orgs.append("<b>{:s}</b>".format(html.escape(org_name)))
+
+    if not in_section:
+        print("Error: Could not find \"{:s}\" in AUTHORS file: {:s}".format(section_begin, authors_file))
+        return None
+    if not found_end:
+        print("Error: Could not find \"{:s}\" in AUTHORS file: {:s}".format(section_end, authors_file))
+        return None
+
+    sorted_unique_organizations = tuple(sorted(set(orgs)))
+    return sorted_unique_organizations
+
+
+def main() -> int:
 
     # ----------
     # Parse Args
 
     args = argparse_create().parse_args()
 
-    # TODO, there are for sure more companies then are currently listed.
-    # 1 liners for in HTML syntax.
-    contrib_companies = (
-        "<b>Adidas</b> - Principled BSDF shader in Cycles",
-        "<b>AMD</b> - Cycles HIP GPU rendering, CPU optimizations, Hydra integration",
-        "<b>Apple</b> - Metal GPU backends, USD integration",
-        "<b>AutoCRC</b> - Improvements to fluid particles, vertex color baking",
-        "<b>BioSkill GmbH</b> - H3D compatibility for X3D Exporter, OBJ Nurbs Import/Export",
-        "<b>Facebook</b> - Cycles subsurface scattering improvements",
-        "<b>Intel</b> - Cycles oneAPI GPU rendering, CPU optimizations",
-        "<b>NVIDIA</b> - Cycles OptiX GPU rendering, USD integration",
-        "<b>Sony Interactive Entertainment</b> - Deployment improvements",
-        "<b>Unity Technologies</b> - FBX Exporter",
-    )
+    # Get organizations in HTML `<b>` tags.
+    authors_file = os.path.join(args.source_dir, "AUTHORS")
+    contrib_companies = parse_organizations(authors_file)
+    if contrib_companies is None:
+        return 1
 
     credits = Credits()
     # commit_range = "HEAD~10..HEAD"
@@ -372,7 +403,8 @@ def main() -> None:
         use_email=args.use_email,
     )
     print("Written: credits.html")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

@@ -2067,8 +2067,7 @@ void BKE_pose_check_uids_unique_and_report(const bPose *pose)
     return;
   }
 
-  GSet *used_uids = BLI_gset_new(
-      BLI_session_uid_ghash_hash, BLI_session_uid_ghash_compare, "sequencer used uids");
+  blender::Set<SessionUID> used_uids;
 
   LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
     const SessionUID *session_uid = &pchan->runtime.session_uid;
@@ -2077,15 +2076,11 @@ void BKE_pose_check_uids_unique_and_report(const bPose *pose)
       continue;
     }
 
-    if (BLI_gset_lookup(used_uids, session_uid) != nullptr) {
+    if (!used_uids.add(*session_uid)) {
       printf("Pose channel %s has duplicate UID generated.\n", pchan->name);
       continue;
     }
-
-    BLI_gset_insert(used_uids, (void *)session_uid);
   }
-
-  BLI_gset_free(used_uids, nullptr);
 }
 
 void BKE_pose_blend_write(BlendWriter *writer, bPose *pose)

@@ -2345,18 +2345,6 @@ static wmOperatorStatus modifier_set_active_invoke(bContext *C,
   return retval;
 }
 
-static bool modifier_set_active_poll(bContext *C)
-{
-  /* Only make this operator work in the Modifiers tab of the Properties editor.
-   * Otherwise it may eat up too many mouse click events. */
-  SpaceProperties *space_properties = CTX_wm_space_properties(C);
-  if (!(space_properties && space_properties->mainb == BCONTEXT_MODIFIER)) {
-    return false;
-  }
-
-  return ED_operator_object_active_only(C);
-}
-
 void OBJECT_OT_modifier_set_active(wmOperatorType *ot)
 {
   ot->name = "Set Active Modifier";
@@ -2365,7 +2353,7 @@ void OBJECT_OT_modifier_set_active(wmOperatorType *ot)
 
   ot->invoke = modifier_set_active_invoke;
   ot->exec = modifier_set_active_exec;
-  ot->poll = modifier_set_active_poll;
+  ot->poll = ED_operator_object_active_only;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
   edit_modifier_properties(ot);
@@ -2582,7 +2570,7 @@ static bool skin_edit_poll(bContext *C)
           !ID_IS_OVERRIDE_LIBRARY(ob) && !ID_IS_OVERRIDE_LIBRARY(ob->data));
 }
 
-static void skin_root_clear(BMVert *bm_vert, GSet *visited, const int cd_vert_skin_offset)
+static void skin_root_clear(BMVert *bm_vert, Set<BMVert *> &visited, const int cd_vert_skin_offset)
 {
   BMEdge *bm_edge;
   BMIter bm_iter;
@@ -2590,7 +2578,7 @@ static void skin_root_clear(BMVert *bm_vert, GSet *visited, const int cd_vert_sk
   BM_ITER_ELEM (bm_edge, &bm_iter, bm_vert, BM_EDGES_OF_VERT) {
     BMVert *v2 = BM_edge_other_vert(bm_edge, bm_vert);
 
-    if (BLI_gset_add(visited, v2)) {
+    if (visited.add(v2)) {
       MVertSkin *vs = static_cast<MVertSkin *>(BM_ELEM_CD_GET_VOID_P(v2, cd_vert_skin_offset));
 
       /* clear vertex root flag and add to visited set */
@@ -2607,7 +2595,7 @@ static wmOperatorStatus skin_root_mark_exec(bContext *C, wmOperator * /*op*/)
   BMEditMesh *em = BKE_editmesh_from_object(ob);
   BMesh *bm = em->bm;
 
-  GSet *visited = BLI_gset_ptr_new(__func__);
+  Set<BMVert *> visited;
 
   BKE_mesh_ensure_skin_customdata(static_cast<Mesh *>(ob->data));
 
@@ -2616,7 +2604,7 @@ static wmOperatorStatus skin_root_mark_exec(bContext *C, wmOperator * /*op*/)
   BMVert *bm_vert;
   BMIter bm_iter;
   BM_ITER_MESH (bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
-    if (BM_elem_flag_test(bm_vert, BM_ELEM_SELECT) && BLI_gset_add(visited, bm_vert)) {
+    if (BM_elem_flag_test(bm_vert, BM_ELEM_SELECT) && visited.add(bm_vert)) {
       MVertSkin *vs = static_cast<MVertSkin *>(
           BM_ELEM_CD_GET_VOID_P(bm_vert, cd_vert_skin_offset));
 
@@ -2627,8 +2615,6 @@ static wmOperatorStatus skin_root_mark_exec(bContext *C, wmOperator * /*op*/)
       skin_root_clear(bm_vert, visited, cd_vert_skin_offset);
     }
   }
-
-  BLI_gset_free(visited, nullptr);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);

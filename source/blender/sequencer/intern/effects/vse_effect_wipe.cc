@@ -8,6 +8,7 @@
 
 #include <algorithm>
 
+#include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 
 #include "DNA_sequence_types.h"
@@ -20,274 +21,144 @@
 
 namespace blender::seq {
 
-struct WipeZone {
-  float angle;
-  int flip;
-  int xo, yo;
-  int width;
-  float pythangle;
-  float clockWidth;
-  int type;
-  bool forward;
+struct WipeData {
+  WipeData(const WipeVars *wipe, int width, int height, float fac)
+  {
+    this->type = eEffectWipeType(wipe->wipetype);
+    this->forward = wipe->forward != 0;
+    this->size = float2(width, height);
+
+    if (this->type == SEQ_WIPE_SINGLE) {
+      /* Position that the wipe line goes through: moves along
+       * the image diagonal. The other diagonal when angle is negative. */
+      this->pos = this->size * (this->forward ? fac : (1.0f - fac));
+      if (wipe->angle < 0.0f) {
+        this->pos.x = this->size.x - this->pos.x;
+      }
+    }
+    if (this->type == SEQ_WIPE_DOUBLE) {
+      /* For double blend, position goes from center of screen
+       * along the diagonal. The other blend line position will be
+       * a mirror of it. */
+      float2 offset = this->size * (this->forward ? (1.0f - fac) : fac) * 0.5f;
+      if (wipe->angle < 0.0f) {
+        offset.x = -offset.x;
+      }
+      this->pos = this->size * 0.5f + offset;
+    }
+
+    /* Line direction: (cos(a), sin(a)). Perpendicular: (-sin(a), cos(a)).
+     * Angle is negative to match previous behavior. */
+    this->normal.x = -sinf(-wipe->angle);
+    this->normal.y = cosf(-wipe->angle);
+
+    /* Blend zone width. */
+    float blend_width = wipe->edgeWidth * ((width + height) / 2.0f);
+    if (ELEM(this->type, SEQ_WIPE_DOUBLE, SEQ_WIPE_IRIS)) {
+      blend_width *= 0.5f;
+    }
+    /* For single/double wipes, make sure the blend zone goes to zero at start & end
+     * of transition. */
+    if (ELEM(this->type, SEQ_WIPE_SINGLE, SEQ_WIPE_DOUBLE)) {
+      blend_width = std::min(blend_width, fac * this->size.y);
+      blend_width = std::min(blend_width, this->size.y - fac * this->size.y);
+    }
+    this->blend_width_inv = math::safe_rcp(blend_width);
+
+    if (this->type == SEQ_WIPE_IRIS) {
+      /* Distance to Iris circle at current factor. */
+      float2 iris = this->size * 0.5f * (this->forward ? (1.0f - fac) : fac);
+      this->iris_dist = math::length(iris);
+    }
+
+    if (this->type == SEQ_WIPE_CLOCK) {
+      float angle_cur = 2.0f * float(M_PI) * (this->forward ? (1.0f - fac) : fac);
+      float angle_width = wipe->edgeWidth * float(M_PI);
+      float delta_neg = angle_width * (this->forward ? fac : (1.0f - fac));
+      float delta_pos = angle_width * (this->forward ? (1.0f - fac) : fac);
+      this->clock_angles.x = std::max(angle_cur - delta_neg, 0.0f);
+      this->clock_angles.y = std::min(angle_cur + delta_pos, 2.0f * float(M_PI));
+      this->clock_angle_inv_dif = math::safe_rcp(this->clock_angles.y - this->clock_angles.x);
+    }
+  }
+
+  float2 size;   /* Image size. */
+  float2 pos;    /* Position that wipe line goes through. */
+  float2 normal; /* Normal vector to single/double wipe line. */
+  float blend_width_inv = 0.0f;
+  float iris_dist = 0.0f;
+  float2 clock_angles; /* Min, max clock angles at current factor. */
+  float clock_angle_inv_dif = 0.0f;
+  eEffectWipeType type;
+  bool forward = false;
 };
 
-static WipeZone precalc_wipe_zone(const WipeVars *wipe, int xo, int yo)
+static float calc_wipe_band(float dist, float inv_width)
 {
-  WipeZone zone;
-  zone.flip = (wipe->angle < 0.0f);
-  zone.angle = tanf(fabsf(wipe->angle));
-  zone.xo = xo;
-  zone.yo = yo;
-  zone.width = int(wipe->edgeWidth * ((xo + yo) / 2.0f));
-  zone.pythangle = 1.0f / sqrtf(zone.angle * zone.angle + 1.0f);
-  zone.clockWidth = wipe->edgeWidth * float(M_PI);
-  zone.type = wipe->wipetype;
-  zone.forward = wipe->forward != 0;
-  return zone;
+  if (inv_width == 0.0f) {
+    return dist < 0.0f ? 0.0f : 1.0f;
+  }
+  return dist * inv_width + 0.5f;
 }
 
-/**
- * This function calculates the blur band for the wipe effects.
- */
-static float in_band(float width, float dist, int side, int dir)
+static float calc_wipe_blend(const WipeData *data, int x, int y)
 {
-  float alpha;
+  float output = 0.0f;
+  switch (data->type) {
+    case SEQ_WIPE_SINGLE: {
+      /* Distance to line: dot(pixel_pos - line_pos, line_normal). */
+      float dist = math::dot(float2(x, y) - data->pos, data->normal);
+      output = calc_wipe_band(dist, data->blend_width_inv);
+    } break;
 
-  if (width == 0) {
-    return float(side);
-  }
+    case SEQ_WIPE_DOUBLE: {
+      /* Distance to line: dot(pixel_pos - line_pos, line_normal).
+       * For double wipe, we have two lines to calculate the distance to. */
+      float2 pos1 = data->pos;
+      float2 pos2 = data->size - data->pos;
+      float dist1 = math::dot(float2(x, y) - pos1, -data->normal);
+      float dist2 = math::dot(float2(x, y) - pos2, data->normal);
+      float dist = std::min(dist1, dist2);
+      output = calc_wipe_band(dist, data->blend_width_inv);
+    } break;
 
-  if (width < dist) {
-    return float(side);
-  }
-
-  if (side == 1) {
-    alpha = (dist + 0.5f * width) / (width);
-  }
-  else {
-    alpha = (0.5f * width - dist) / (width);
-  }
-
-  if (dir == 0) {
-    alpha = 1 - alpha;
-  }
-
-  return alpha;
-}
-
-static float check_zone(const WipeZone *wipezone, int x, int y, float fac)
-{
-  float posx, posy, hyp, hyp2, angle, hwidth, b1, b2, b3, pointdist;
-  float temp1, temp2, temp3, temp4; /* some placeholder variables */
-  int xo = wipezone->xo;
-  int yo = wipezone->yo;
-  float halfx = xo * 0.5f;
-  float halfy = yo * 0.5f;
-  float widthf, output = 0;
-  int width;
-
-  if (wipezone->flip) {
-    x = xo - x;
-  }
-  angle = wipezone->angle;
-
-  if (wipezone->forward) {
-    posx = fac * xo;
-    posy = fac * yo;
-  }
-  else {
-    posx = xo - fac * xo;
-    posy = yo - fac * yo;
-  }
-
-  switch (wipezone->type) {
-    case SEQ_WIPE_SINGLE:
-      width = min_ii(wipezone->width, fac * yo);
-      width = min_ii(width, yo - fac * yo);
-
-      if (angle == 0.0f) {
-        b1 = posy;
-        b2 = y;
-        hyp = fabsf(y - posy);
+    case SEQ_WIPE_CLOCK: {
+      float2 offset = float2(x, y) - data->size * 0.5f;
+      if (math::length_squared(offset) < 1.0e-3f) {
+        output = 0.0f;
       }
       else {
-        b1 = posy - (-angle) * posx;
-        b2 = y - (-angle) * x;
-        hyp = fabsf(angle * x + y + (-posy - angle * posx)) * wipezone->pythangle;
-      }
-
-      if (angle < 0) {
-        temp1 = b1;
-        b1 = b2;
-        b2 = temp1;
-      }
-
-      if (wipezone->forward) {
-        if (b1 < b2) {
-          output = in_band(width, hyp, 1, 1);
+        float angle;
+        angle = atan2f(offset.y, offset.x);
+        if (angle < 0.0f) {
+          angle += 2.0f * float(M_PI);
+        }
+        if (angle < data->clock_angles.x) {
+          output = 1;
+        }
+        else if (angle > data->clock_angles.y) {
+          output = 0;
         }
         else {
-          output = in_band(width, hyp, 0, 1);
+          output = (data->clock_angles.y - angle) * data->clock_angle_inv_dif;
         }
       }
-      else {
-        if (b1 < b2) {
-          output = in_band(width, hyp, 0, 1);
-        }
-        else {
-          output = in_band(width, hyp, 1, 1);
-        }
-      }
-      break;
+    } break;
 
-    case SEQ_WIPE_DOUBLE:
-      if (!wipezone->forward) {
-        fac = 1.0f - fac; /* Go the other direction */
-      }
-
-      width = wipezone->width; /* calculate the blur width */
-      hwidth = width * 0.5f;
-      if (angle == 0) {
-        b1 = posy * 0.5f;
-        b3 = yo - posy * 0.5f;
-        b2 = y;
-
-        hyp = fabsf(y - posy * 0.5f);
-        hyp2 = fabsf(y - (yo - posy * 0.5f));
-      }
-      else {
-        b1 = posy * 0.5f - (-angle) * posx * 0.5f;
-        b3 = (yo - posy * 0.5f) - (-angle) * (xo - posx * 0.5f);
-        b2 = y - (-angle) * x;
-
-        hyp = fabsf(angle * x + y + (-posy * 0.5f - angle * posx * 0.5f)) * wipezone->pythangle;
-        hyp2 = fabsf(angle * x + y + (-(yo - posy * 0.5f) - angle * (xo - posx * 0.5f))) *
-               wipezone->pythangle;
-      }
-
-      hwidth = min_ff(hwidth, fabsf(b3 - b1) / 2.0f);
-
-      if (b2 < b1 && b2 < b3) {
-        output = in_band(hwidth, hyp, 0, 1);
-      }
-      else if (b2 > b1 && b2 > b3) {
-        output = in_band(hwidth, hyp2, 0, 1);
-      }
-      else {
-        if (hyp < hwidth && hyp2 > hwidth) {
-          output = in_band(hwidth, hyp, 1, 1);
-        }
-        else if (hyp > hwidth && hyp2 < hwidth) {
-          output = in_band(hwidth, hyp2, 1, 1);
-        }
-        else {
-          output = in_band(hwidth, hyp2, 1, 1) * in_band(hwidth, hyp, 1, 1);
-        }
-      }
-      if (!wipezone->forward) {
-        output = 1 - output;
-      }
-      break;
-    case SEQ_WIPE_CLOCK:
-      /*
-       * temp1: angle of effect center in rads
-       * temp2: angle of line through (halfx, halfy) and (x, y) in rads
-       * temp3: angle of low side of blur
-       * temp4: angle of high side of blur
-       */
-      output = 1.0f - fac;
-      widthf = wipezone->clockWidth;
-      temp1 = 2.0f * float(M_PI) * fac;
-
-      if (wipezone->forward) {
-        temp1 = 2.0f * float(M_PI) - temp1;
-      }
-
-      x = x - halfx;
-      y = y - halfy;
-
-      temp2 = atan2f(y, x);
-      if (temp2 < 0.0f) {
-        temp2 += 2.0f * float(M_PI);
-      }
-
-      if (wipezone->forward) {
-        temp3 = temp1 - widthf * fac;
-        temp4 = temp1 + widthf * (1 - fac);
-      }
-      else {
-        temp3 = temp1 - widthf * (1 - fac);
-        temp4 = temp1 + widthf * fac;
-      }
-      temp3 = std::max<float>(temp3, 0);
-      temp4 = std::min(temp4, 2.0f * float(M_PI));
-
-      if (temp2 < temp3) {
-        output = 0;
-      }
-      else if (temp2 > temp4) {
-        output = 1;
-      }
-      else {
-        output = (temp2 - temp3) / (temp4 - temp3);
-      }
-      if (x == 0 && y == 0) {
-        output = 1;
-      }
-      if (output != output) {
-        output = 1;
-      }
-      if (wipezone->forward) {
-        output = 1 - output;
-      }
-      break;
-    case SEQ_WIPE_IRIS:
-      if (xo > yo) {
-        yo = xo;
-      }
-      else {
-        xo = yo;
-      }
-
-      if (!wipezone->forward) {
-        fac = 1 - fac;
-      }
-
-      width = wipezone->width;
-      hwidth = width * 0.5f;
-
-      temp1 = (halfx - (halfx)*fac);
-      pointdist = hypotf(temp1, temp1);
-
-      temp2 = hypotf(halfx - x, halfy - y);
-      if (temp2 > pointdist) {
-        output = in_band(hwidth, fabsf(temp2 - pointdist), 0, 1);
-      }
-      else {
-        output = in_band(hwidth, fabsf(temp2 - pointdist), 1, 1);
-      }
-
-      if (!wipezone->forward) {
-        output = 1 - output;
-      }
-
-      break;
+    case SEQ_WIPE_IRIS: {
+      float dist = math::distance(float2(x, y), data->size * 0.5f);
+      output = calc_wipe_band(data->iris_dist - dist, data->blend_width_inv);
+    } break;
   }
-  if (output < 0) {
-    output = 0;
-  }
-  else if (output > 1) {
-    output = 1;
+  if (!data->forward) {
+    output = 1.0f - output;
   }
   return output;
 }
 
 static void init_wipe_effect(Strip *strip)
 {
-  if (strip->effectdata) {
-    MEM_freeN(strip->effectdata);
-  }
-
+  MEM_SAFE_FREE(strip->effectdata);
   strip->effectdata = MEM_callocN<WipeVars>("wipevars");
 }
 
@@ -296,58 +167,38 @@ static int num_inputs_wipe()
   return 2;
 }
 
-static void free_wipe_effect(Strip *strip, const bool /*do_id_user*/)
-{
-  MEM_SAFE_FREE(strip->effectdata);
-}
-
-static void copy_wipe_effect(Strip *dst, const Strip *src, const int /*flag*/)
-{
-  dst->effectdata = MEM_dupallocN(src->effectdata);
-}
-
 template<typename T>
 static void do_wipe_effect(
     const Strip *strip, float fac, int width, int height, const T *rect1, const T *rect2, T *out)
 {
   using namespace blender;
   const WipeVars *wipe = (const WipeVars *)strip->effectdata;
-  const WipeZone wipezone = precalc_wipe_zone(wipe, width, height);
+
+  const WipeData data(wipe, width, height, fac);
 
   threading::parallel_for(IndexRange(height), 64, [&](const IndexRange y_range) {
-    const T *cp1 = rect1 ? rect1 + y_range.first() * width * 4 : nullptr;
-    const T *cp2 = rect2 ? rect2 + y_range.first() * width * 4 : nullptr;
+    const T *cp1 = rect1 + y_range.first() * width * 4;
+    const T *cp2 = rect2 + y_range.first() * width * 4;
     T *rt = out + y_range.first() * width * 4;
     for (const int y : y_range) {
       for (int x = 0; x < width; x++) {
-        float check = check_zone(&wipezone, x, y, fac);
-        if (check) {
-          if (cp1) {
-            float4 col1 = load_premul_pixel(cp1);
-            float4 col2 = load_premul_pixel(cp2);
-            float4 col = col1 * check + col2 * (1.0f - check);
-            store_premul_pixel(col, rt);
-          }
-          else {
-            store_opaque_black_pixel(rt);
-          }
+        float blend = calc_wipe_blend(&data, x, y);
+        if (blend <= 0.0f) {
+          memcpy(rt, cp2, sizeof(T) * 4);
+        }
+        else if (blend >= 1.0f) {
+          memcpy(rt, cp1, sizeof(T) * 4);
         }
         else {
-          if (cp2) {
-            memcpy(rt, cp2, sizeof(T) * 4);
-          }
-          else {
-            store_opaque_black_pixel(rt);
-          }
+          float4 col1 = load_premul_pixel(cp1);
+          float4 col2 = load_premul_pixel(cp2);
+          float4 col = col1 * blend + col2 * (1.0f - blend);
+          store_premul_pixel(col, rt);
         }
 
         rt += 4;
-        if (cp1 != nullptr) {
-          cp1 += 4;
-        }
-        if (cp2 != nullptr) {
-          cp2 += 4;
-        }
+        cp1 += 4;
+        cp2 += 4;
       }
     }
   });
@@ -389,10 +240,7 @@ void wipe_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_wipe_effect;
   rval.num_inputs = num_inputs_wipe;
-  rval.free = free_wipe_effect;
-  rval.copy = copy_wipe_effect;
   rval.early_out = early_out_fade;
-  rval.get_default_fac = get_default_fac_fade;
   rval.execute = do_wipe_effect;
 }
 

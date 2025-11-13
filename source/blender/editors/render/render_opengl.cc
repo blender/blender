@@ -484,7 +484,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
                                          oglrender->sizex,
                                          oglrender->sizey,
                                          SEQ_RENDER_SIZE_SCENE,
-                                         false,
+                                         nullptr,
                                          &context);
 
     for (view_id = 0; view_id < oglrender->views_len; view_id++) {

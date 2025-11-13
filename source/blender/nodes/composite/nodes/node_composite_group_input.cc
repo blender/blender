@@ -53,11 +53,6 @@ class GroupInputOperation : public NodeOperation {
       return;
     }
 
-    if (!this->context().is_valid_compositing_region()) {
-      result.allocate_invalid();
-      return;
-    }
-
     result.set_type(pass.type());
     result.set_precision(pass.precision());
 
@@ -78,15 +73,15 @@ class GroupInputOperation : public NodeOperation {
 
     /* The compositing space might be limited to a subset of the pass texture, so only read that
      * compositing region into an appropriately sized result. */
-    const int2 lower_bound = this->context().get_compositing_region().min;
+    const int2 lower_bound = this->context().get_input_region().min;
     GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
 
     pass.bind_as_texture(shader, "input_tx");
 
-    result.allocate_texture(Domain(this->context().get_compositing_region_size()));
+    result.allocate_texture(this->context().get_compositing_domain());
     result.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, result.domain().size);
+    compute_dispatch_threads_at_least(shader, result.domain().data_size);
 
     GPU_shader_unbind();
     pass.unbind_as_texture();
@@ -124,14 +119,14 @@ class GroupInputOperation : public NodeOperation {
   {
     /* The compositing space might be limited to a subset of the pass texture, so only read that
      * compositing region into an appropriately sized result. */
-    const int2 lower_bound = this->context().get_compositing_region().min;
+    const int2 lower_bound = this->context().get_input_region().min;
 
-    const int2 size = this->context().use_context_bounds_for_input_output() ?
-                          this->context().get_compositing_region_size() :
-                          pass.domain().size;
-    result.allocate_texture(size);
+    const Domain domain = this->context().use_context_bounds_for_input_output() ?
+                              this->context().get_compositing_domain() :
+                              pass.domain();
+    result.allocate_texture(domain);
 
-    parallel_for(size, [&](const int2 texel) {
+    parallel_for(domain.data_size, [&](const int2 texel) {
       result.store_pixel_generic_type(texel, pass.load_pixel_generic_type(texel + lower_bound));
     });
   }
