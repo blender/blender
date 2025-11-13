@@ -5827,13 +5827,16 @@ void MESH_OT_region_to_loop(wmOperatorType *ot)
 /** \name Select Loop to Region Operator
  * \{ */
 
-static int loop_find_region(BMLoop *l, int flag, GSet *visit_face_set, BMFace ***region_out)
+static int loop_find_region(BMLoop *l,
+                            int flag,
+                            blender::Set<BMFace *> &visit_face_set,
+                            BMFace ***region_out)
 {
   blender::Vector<BMFace *> stack;
   blender::Vector<BMFace *> region;
 
   stack.append(l->f);
-  BLI_gset_insert(visit_face_set, l->f);
+  visit_face_set.add(l->f);
 
   while (!stack.is_empty()) {
     BMIter liter1, liter2;
@@ -5854,7 +5857,7 @@ static int loop_find_region(BMLoop *l, int flag, GSet *visit_face_set, BMFace **
           continue;
         }
 
-        if (BLI_gset_add(visit_face_set, l2->f)) {
+        if (visit_face_set.add(l2->f)) {
           stack.append(l2->f);
         }
       }
@@ -5892,13 +5895,12 @@ static int verg_radial(const void *va, const void *vb)
  */
 static int loop_find_regions(BMEditMesh *em, const bool selbigger)
 {
-  GSet *visit_face_set;
   BMIter iter;
   const int edges_len = em->bm->totedgesel;
   BMEdge *e;
   int count = 0, i;
 
-  visit_face_set = BLI_gset_ptr_new_ex(__func__, edges_len);
+  blender::Set<BMFace *> visit_face_set;
   BMEdge **edges = MEM_malloc_arrayN<BMEdge *>(edges_len, __func__);
 
   i = 0;
@@ -5928,7 +5930,7 @@ static int loop_find_regions(BMEditMesh *em, const bool selbigger)
     }
 
     BM_ITER_ELEM (l, &liter, e, BM_LOOPS_OF_EDGE) {
-      if (BLI_gset_haskey(visit_face_set, l->f)) {
+      if (visit_face_set.contains(l->f)) {
         continue;
       }
 
@@ -5967,7 +5969,6 @@ static int loop_find_regions(BMEditMesh *em, const bool selbigger)
   }
 
   MEM_freeN(edges);
-  BLI_gset_free(visit_face_set, nullptr);
 
   return count;
 }
