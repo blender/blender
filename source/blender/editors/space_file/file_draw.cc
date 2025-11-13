@@ -1750,7 +1750,6 @@ static void file_draw_asset_library_internet_access_required_hint(const bContext
 
   uiDefBut(block,
            ButType::Roundbox,
-           0,
            "",
            sx,
            sy - box_height,
@@ -1768,7 +1767,6 @@ static void file_draw_asset_library_internet_access_required_hint(const bContext
   {
     uiDefIconTextBut(block,
                      ButType::Label,
-                     0,
                      ICON_INTERNET_OFFLINE,
                      "Internet Access Required",
                      sx,
@@ -1861,7 +1859,6 @@ static void file_draw_asset_library_remote_loading_failed_hint(const bContext *C
 
   uiDefBut(block,
            ButType::Roundbox,
-           0,
            "",
            sx,
            sy - box_height,
@@ -1879,7 +1876,6 @@ static void file_draw_asset_library_remote_loading_failed_hint(const bContext *C
   {
     uiDefIconTextBut(block,
                      ButType::Label,
-                     0,
                      ICON_CANCEL,
                      "Asset Library Download Failed",
                      sx,
