@@ -396,6 +396,8 @@ static void animdata_copy_id_action(Main *bmain,
   if (adt) {
     if (adt->action && (do_linked_id || !ID_IS_LINKED(adt->action))) {
       bAction *cloned_action = reinterpret_cast<bAction *>(BKE_id_copy(bmain, &adt->action->id));
+
+      cloned_action->id.us = 0;
       if (set_newid) {
         ID_NEW_SET(adt->action, cloned_action);
       }
@@ -409,6 +411,8 @@ static void animdata_copy_id_action(Main *bmain,
     }
     if (adt->tmpact && (do_linked_id || !ID_IS_LINKED(adt->tmpact))) {
       bAction *cloned_action = reinterpret_cast<bAction *>(BKE_id_copy(bmain, &adt->tmpact->id));
+
+      cloned_action->id.us = 0;
       if (set_newid) {
         ID_NEW_SET(adt->tmpact, cloned_action);
       }
