@@ -291,8 +291,12 @@ void VKContext::update_pipeline_data(GPUPrimType primitive,
   VKShader &vk_shader = unwrap(*shader);
   VKFrameBuffer &framebuffer = *active_framebuffer_get();
 
+  VKStateManager &state_manager = state_manager_get();
+  /* Disable non-vulkan state flags to reduce unneeded pipeline compilation. */
+  state_manager.state.clip_control = 0;
+
   /* Override size of point shader when GPU_point size < 0 */
-  const float point_size = state_manager_get().mutable_state.point_size;
+  const float point_size = state_manager.mutable_state.point_size;
   if (primitive == GPU_PRIM_POINTS && point_size < 0.0) {
     GPU_shader_uniform_1f(shader, "size", -point_size);
   }
@@ -307,9 +311,8 @@ void VKContext::update_pipeline_data(GPUPrimType primitive,
 
   if (is_line_primitive) {
     const bool supports_wide_lines = VKBackend::get().device.extensions_get().wide_lines;
-    r_pipeline_data.line_width = supports_wide_lines ?
-                                     state_manager_get().mutable_state.line_width :
-                                     1.0f;
+    r_pipeline_data.line_width = supports_wide_lines ? state_manager.mutable_state.line_width :
+                                                       1.0f;
   }
   else {
     r_pipeline_data.line_width.reset();
@@ -317,7 +320,7 @@ void VKContext::update_pipeline_data(GPUPrimType primitive,
 
   update_pipeline_data(vk_shader,
                        vk_shader.ensure_and_get_graphics_pipeline(
-                           primitive, vao, state_manager_get(), framebuffer, constants_state_),
+                           primitive, vao, state_manager, framebuffer, constants_state_),
                        r_pipeline_data.pipeline_data);
 }
 

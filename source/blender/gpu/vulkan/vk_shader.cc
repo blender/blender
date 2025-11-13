@@ -1311,7 +1311,7 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(GPUPrimType primitive,
   graphics_info.shaders.has_stencil = stencil_attachment_format != VK_FORMAT_UNDEFINED;
   /* Cleanup mutable state to increase cache hits. */
   /* NOTE: Refactor stencils to use dynamic state. #149452 */
-  if (!graphics_info.shaders.has_stencil) {
+  if (!graphics_info.shaders.has_stencil || state_manager.state.stencil_test == GPU_STENCIL_NONE) {
     graphics_info.shaders.mutable_state.stencil_write_mask = 0u;
     graphics_info.shaders.mutable_state.stencil_compare_mask = 0u;
     graphics_info.shaders.mutable_state.stencil_reference = 0u;
