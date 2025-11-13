@@ -494,7 +494,14 @@ Strip *meta_stack_pop(Editing *ed)
  * \{ */
 
 struct StripDuplicateContext {
-  /* TODO(john): Cleanup dupe code by adding bmain, dupe_flag, copy_flag, etc to this context. */
+  Main *bmain;
+  const Scene *scene_src;
+  Scene *scene_dst;
+  /* Mapping from original strips to their duplicates, for fixing effect/modifier/connection links
+   * in `seq_duplicate_postprocess`. */
+  Map<Strip *, Strip *> strip_map;
+  StripDuplicate dupe_flag;
+  int copy_flag;
 
   /* Sources of newly created datablocks when duplicating strips.
    * Processed with `seq_duplicate_postprocess`. */
@@ -503,14 +510,24 @@ struct StripDuplicateContext {
   Set<Mask *> masks;
 };
 
-static void seq_duplicate_postprocess(Main *bmain,
-                                      StripDuplicateContext &ctx,
-                                      Map<Strip *, Strip *> &strip_map,
-                                      const StripDuplicate dupe_flag)
+static StripDuplicateContext strip_duplicate_context_get(
+    Main *bmain, const Scene *scene_src, Scene *scene_dst, StripDuplicate dupe_flag, int copy_flag)
+{
+  StripDuplicateContext ctx;
+  ctx.bmain = bmain;
+  ctx.scene_src = scene_src;
+  ctx.scene_dst = scene_dst;
+  ctx.dupe_flag = dupe_flag;
+  ctx.copy_flag = copy_flag;
+
+  return ctx;
+}
+
+static void seq_duplicate_postprocess(StripDuplicateContext &ctx)
 {
   const int remap_flag = ID_REMAP_FORCE_OBDATA_IN_EDITMODE | ID_REMAP_SKIP_USER_CLEAR;
 
-  if (int(dupe_flag & StripDuplicate::Data) != 0) {
+  if (flag_is_set(ctx.dupe_flag, StripDuplicate::Data)) {
     /* Remapping newids in Scenes will usually trigger a view_layers/collections resync after each
      * scene. Besides performances considerations, this is also bad because it means some
      * not-yet-remapped scenes will get their viewlayer updated while still referencing old
@@ -529,31 +546,31 @@ static void seq_duplicate_postprocess(Main *bmain,
     for (Scene *scene_src : ctx.scenes) {
       BLI_assert(scene_src);
       if (scene_src->id.newid) {
-        BKE_libblock_relink_to_newid(bmain, scene_src->id.newid, remap_flag);
+        BKE_libblock_relink_to_newid(ctx.bmain, scene_src->id.newid, remap_flag);
       }
     }
     for (MovieClip *movieclip_src : ctx.movieclips) {
       BLI_assert(movieclip_src);
       if (movieclip_src->id.newid) {
-        BKE_libblock_relink_to_newid(bmain, movieclip_src->id.newid, remap_flag);
+        BKE_libblock_relink_to_newid(ctx.bmain, movieclip_src->id.newid, remap_flag);
       }
     }
     for (Mask *mask_src : ctx.masks) {
       BLI_assert(mask_src);
       if (mask_src->id.newid) {
-        BKE_libblock_relink_to_newid(bmain, mask_src->id.newid, remap_flag);
+        BKE_libblock_relink_to_newid(ctx.bmain, mask_src->id.newid, remap_flag);
       }
     }
 
     BKE_layer_collection_resync_allow();
 
-    if (bmain != nullptr) {
+    if (ctx.bmain != nullptr) {
 #ifndef NDEBUG
       /* Calls to `BKE_libblock_relink_to_newid` above are supposed to have cleared all these
        * flags.
        */
       ID *id_iter;
-      FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+      FOREACH_MAIN_ID_BEGIN (ctx.bmain, id_iter) {
         BLI_assert((id_iter->tag & ID_TAG_NEW) == 0);
       }
       FOREACH_MAIN_ID_END;
@@ -561,9 +578,9 @@ static void seq_duplicate_postprocess(Main *bmain,
 
       /* Clear temporary `newid` for potentially copied datablocks (scene, mask, and movieclip)
        * to indicate that we have finished processing them. */
-      BKE_main_id_newptr_and_tag_clear(bmain);
+      BKE_main_id_newptr_and_tag_clear(ctx.bmain);
 
-      BKE_main_collection_sync(bmain);
+      BKE_main_collection_sync(ctx.bmain);
     }
   }
   else {
@@ -573,32 +590,24 @@ static void seq_duplicate_postprocess(Main *bmain,
   }
 
   /* Fix effect, modifier, and connected strip links. */
-  for (Strip *strip_new : strip_map.values()) {
-    seq_new_fix_links_recursive(strip_new, strip_map);
+  for (Strip *strip_new : ctx.strip_map.values()) {
+    seq_new_fix_links_recursive(strip_new, ctx.strip_map);
   }
 
   /* One-way connections must be cut after all connections are remapped above. */
-  for (Strip *strip_new : strip_map.values()) {
+  for (Strip *strip_new : ctx.strip_map.values()) {
     if (is_strip_connected(strip_new)) {
       cut_one_way_connections(strip_new);
     }
   }
 }
 
-static Strip *strip_duplicate(Main *bmain,
-                              const Scene *scene_src,
-                              Scene *scene_dst,
-                              ListBase *new_seq_list,
-                              Strip *strip,
-                              const StripDuplicate dupe_flag,
-                              const int flag,
-                              Map<Strip *, Strip *> &strip_map,
-                              StripDuplicateContext &ctx)
+static Strip *strip_duplicate(StripDuplicateContext &ctx, ListBase *seqbase_dst, Strip *strip)
 {
   Strip *strip_new = static_cast<Strip *>(MEM_dupallocN(strip));
-  strip_map.add(strip, strip_new);
+  ctx.strip_map.add(strip, strip_new);
 
-  if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
+  if ((ctx.copy_flag & LIB_ID_CREATE_NO_MAIN) == 0) {
     relations_session_uid_generate(strip_new);
   }
 
@@ -624,10 +633,10 @@ static Strip *strip_duplicate(Main *bmain,
   }
 
   if (strip->prop) {
-    strip_new->prop = IDP_CopyProperty_ex(strip->prop, flag);
+    strip_new->prop = IDP_CopyProperty_ex(strip->prop, ctx.copy_flag);
   }
   if (strip->system_properties) {
-    strip_new->system_properties = IDP_CopyProperty_ex(strip->system_properties, flag);
+    strip_new->system_properties = IDP_CopyProperty_ex(strip->system_properties, ctx.copy_flag);
   }
 
   if (strip_new->modifiers.first) {
@@ -650,10 +659,10 @@ static Strip *strip_duplicate(Main *bmain,
     channels_duplicate(&strip_new->channels, &strip->channels);
   }
   else if (strip->type == STRIP_TYPE_SCENE) {
-    if (flag_is_set(dupe_flag, StripDuplicate::Data) && strip_new->scene != nullptr) {
+    if (flag_is_set(ctx.dupe_flag, StripDuplicate::Data) && strip_new->scene != nullptr) {
       Scene *scene_old = strip_new->scene;
       ctx.scenes.add(scene_old);
-      strip_new->scene = BKE_scene_duplicate(bmain,
+      strip_new->scene = BKE_scene_duplicate(ctx.bmain,
                                              scene_old,
                                              SCE_COPY_FULL,
                                              eDupli_ID_Flags(U.dupflag | USER_DUP_OBJECT),
@@ -662,28 +671,28 @@ static Strip *strip_duplicate(Main *bmain,
     }
     strip_new->data->stripdata = nullptr;
     if (strip->scene_sound) {
-      strip_new->scene_sound = BKE_sound_scene_add_scene_sound_defaults(scene_dst, strip_new);
+      strip_new->scene_sound = BKE_sound_scene_add_scene_sound_defaults(ctx.scene_dst, strip_new);
     }
   }
   else if (strip->type == STRIP_TYPE_MOVIECLIP) {
-    if (flag_is_set(dupe_flag, StripDuplicate::Data) && strip_new->clip != nullptr) {
+    if (flag_is_set(ctx.dupe_flag, StripDuplicate::Data) && strip_new->clip != nullptr) {
       MovieClip *clip_old = strip_new->clip;
       ctx.movieclips.add(clip_old);
       strip_new->clip = reinterpret_cast<MovieClip *>(BKE_id_copy_for_duplicate(
-          bmain, reinterpret_cast<ID *>(clip_old), USER_DUP_LINKED_ID, LIB_ID_COPY_DEFAULT));
+          ctx.bmain, reinterpret_cast<ID *>(clip_old), USER_DUP_LINKED_ID, LIB_ID_COPY_DEFAULT));
     }
-    if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+    if ((ctx.copy_flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
       id_us_plus(&strip_new->clip->id);
     }
   }
   else if (strip->type == STRIP_TYPE_MASK) {
-    if (flag_is_set(dupe_flag, StripDuplicate::Data) && strip_new->mask != nullptr) {
+    if (flag_is_set(ctx.dupe_flag, StripDuplicate::Data) && strip_new->mask != nullptr) {
       Mask *mask_old = strip_new->mask;
       ctx.masks.add(mask_old);
       strip_new->mask = reinterpret_cast<Mask *>(BKE_id_copy_for_duplicate(
-          bmain, reinterpret_cast<ID *>(mask_old), USER_DUP_LINKED_ID, LIB_ID_COPY_DEFAULT));
+          ctx.bmain, reinterpret_cast<ID *>(mask_old), USER_DUP_LINKED_ID, LIB_ID_COPY_DEFAULT));
     }
-    if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+    if ((ctx.copy_flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
       id_us_plus(&strip_new->mask->id);
     }
   }
@@ -694,7 +703,7 @@ static Strip *strip_duplicate(Main *bmain,
   else if (strip->type == STRIP_TYPE_SOUND_RAM) {
     strip_new->data->stripdata = static_cast<StripElem *>(MEM_dupallocN(strip->data->stripdata));
     strip_new->scene_sound = nullptr;
-    if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+    if ((ctx.copy_flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
       id_us_plus((ID *)strip_new->sound);
     }
   }
@@ -704,7 +713,7 @@ static Strip *strip_duplicate(Main *bmain,
   else if (strip->is_effect()) {
     EffectHandle sh = strip_effect_handle_get(strip);
     if (sh.copy) {
-      sh.copy(strip_new, strip, flag);
+      sh.copy(strip_new, strip, ctx.copy_flag);
     }
 
     strip_new->data->stripdata = nullptr;
@@ -720,13 +729,13 @@ static Strip *strip_duplicate(Main *bmain,
    * (see #55668). Note that unique name check itself could be done at a later step in calling
    * code, once all sequencer strips have been duplicated (that was first, simpler solution),
    * but then handling of animation data will be broken (see #60194). */
-  if (new_seq_list != nullptr) {
-    BLI_addtail(new_seq_list, strip_new);
+  if (seqbase_dst != nullptr) {
+    BLI_addtail(seqbase_dst, strip_new);
   }
 
-  if (scene_src == scene_dst) {
-    if (flag_is_set(dupe_flag, StripDuplicate::UniqueName)) {
-      strip_unique_name_set(scene_dst, &scene_dst->ed->seqbase, strip_new);
+  if (ctx.scene_src == ctx.scene_dst) {
+    if (flag_is_set(ctx.dupe_flag, StripDuplicate::UniqueName)) {
+      strip_unique_name_set(ctx.scene_dst, &ctx.scene_dst->ed->seqbase, strip_new);
     }
   }
 
@@ -738,21 +747,14 @@ static Strip *strip_duplicate(Main *bmain,
   return strip_new;
 }
 
-static Strip *strip_duplicate_recursive_impl(Main *bmain,
-                                             const Scene *scene_src,
-                                             Scene *scene_dst,
-                                             ListBase *new_seq_list,
-                                             Strip *strip,
-                                             const StripDuplicate dupe_flag,
-                                             Map<Strip *, Strip *> &strip_map,
-                                             StripDuplicateContext &ctx)
+static Strip *strip_duplicate_recursive_impl(StripDuplicateContext &ctx,
+                                             ListBase *seqbase_dst,
+                                             Strip *strip)
 {
-  Strip *strip_new = strip_duplicate(
-      bmain, scene_src, scene_dst, new_seq_list, strip, dupe_flag, 0, strip_map, ctx);
+  Strip *strip_new = strip_duplicate(ctx, seqbase_dst, strip);
   if (strip->type == STRIP_TYPE_META) {
-    LISTBASE_FOREACH (Strip *, s, &strip->seqbase) {
-      strip_duplicate_recursive_impl(
-          bmain, scene_src, scene_dst, &strip_new->seqbase, s, dupe_flag, strip_map, ctx);
+    LISTBASE_FOREACH (Strip *, strip_child, &strip->seqbase) {
+      strip_duplicate_recursive_impl(ctx, &strip_new->seqbase, strip_child);
     }
   }
   return strip_new;
@@ -761,52 +763,38 @@ static Strip *strip_duplicate_recursive_impl(Main *bmain,
 Strip *strip_duplicate_recursive(Main *bmain,
                                  const Scene *scene_src,
                                  Scene *scene_dst,
-                                 ListBase *new_seq_list,
+                                 ListBase *seqbase_dst,
                                  Strip *strip,
                                  const StripDuplicate dupe_flag)
 {
-  StripDuplicateContext ctx;
-  Map<Strip *, Strip *> strip_map;
+  StripDuplicateContext ctx = strip_duplicate_context_get(
+      bmain, scene_src, scene_dst, dupe_flag, 0);
 
-  Strip *strip_new = strip_duplicate_recursive_impl(
-      bmain, scene_src, scene_dst, new_seq_list, strip, dupe_flag, strip_map, ctx);
+  Strip *strip_new = strip_duplicate_recursive_impl(ctx, seqbase_dst, strip);
 
-  seq_duplicate_postprocess(bmain, ctx, strip_map, dupe_flag);
+  seq_duplicate_postprocess(ctx);
 
   return strip_new;
 }
 
-static void seqbase_dupli_recursive(Main *bmain,
-                                    const Scene *scene_src,
-                                    Scene *scene_dst,
-                                    ListBase *nseqbase,
-                                    const ListBase *seqbase,
-                                    const StripDuplicate dupe_flag,
-                                    const int flag,
-                                    Map<Strip *, Strip *> &strip_map,
-                                    StripDuplicateContext &ctx)
+static void seqbase_duplicate_recursive_impl(StripDuplicateContext &ctx,
+                                             ListBase *seqbase_dst,
+                                             const ListBase *seqbase_src)
 {
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if ((strip->flag & SELECT) == 0 && !flag_is_set(dupe_flag, StripDuplicate::All)) {
+  LISTBASE_FOREACH (Strip *, strip, seqbase_src) {
+    if ((strip->flag & SELECT) == 0 && !flag_is_set(ctx.dupe_flag, StripDuplicate::All)) {
       continue;
     }
 
-    Strip *strip_new = strip_duplicate(
-        bmain, scene_src, scene_dst, nseqbase, strip, dupe_flag, flag, strip_map, ctx);
+    Strip *strip_new = strip_duplicate(ctx, seqbase_dst, strip);
     BLI_assert(strip_new != nullptr);
 
     if (strip->type == STRIP_TYPE_META) {
-      /* Always include meta all strip children. */
-      const StripDuplicate dupe_flag_recursive = dupe_flag | StripDuplicate::All;
-      seqbase_dupli_recursive(bmain,
-                              scene_src,
-                              scene_dst,
-                              &strip_new->seqbase,
-                              &strip->seqbase,
-                              dupe_flag_recursive,
-                              flag,
-                              strip_map,
-                              ctx);
+      const StripDuplicate dupe_flag_restore = ctx.dupe_flag;
+      /* Always duplicate all strip children inside a selected metastrip. */
+      ctx.dupe_flag |= StripDuplicate::All;
+      seqbase_duplicate_recursive_impl(ctx, &strip_new->seqbase, &strip->seqbase);
+      ctx.dupe_flag = dupe_flag_restore;
     }
   }
 }
@@ -814,18 +802,17 @@ static void seqbase_dupli_recursive(Main *bmain,
 void seqbase_duplicate_recursive(Main *bmain,
                                  const Scene *scene_src,
                                  Scene *scene_dst,
-                                 ListBase *nseqbase,
-                                 const ListBase *seqbase,
+                                 ListBase *seqbase_dst,
+                                 const ListBase *seqbase_src,
                                  const StripDuplicate dupe_flag,
-                                 const int flag)
+                                 const int copy_flag)
 {
-  StripDuplicateContext ctx;
-  Map<Strip *, Strip *> strip_map;
+  StripDuplicateContext ctx = strip_duplicate_context_get(
+      bmain, scene_src, scene_dst, dupe_flag, copy_flag);
 
-  seqbase_dupli_recursive(
-      bmain, scene_src, scene_dst, nseqbase, seqbase, dupe_flag, flag, strip_map, ctx);
+  seqbase_duplicate_recursive_impl(ctx, seqbase_dst, seqbase_src);
 
-  seq_duplicate_postprocess(bmain, ctx, strip_map, dupe_flag);
+  seq_duplicate_postprocess(ctx);
 }
 
 bool is_valid_strip_channel(const Strip *strip)
