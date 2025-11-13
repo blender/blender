@@ -108,10 +108,10 @@ struct ISectEpsilon {
 
 struct ISectState {
   BMesh *bm;
-  GHash *edgetri_cache;    /* int[4]: BMVert */
-  GHash *edge_verts;       /* BMEdge: LinkList(of verts), new and original edges */
-  GHash *face_edges;       /* BMFace-index: LinkList(of edges), only original faces */
-  GSet *wire_edges;        /* BMEdge  (could use tags instead) */
+  GHash *edgetri_cache; /* int[4]: BMVert */
+  GHash *edge_verts;    /* BMEdge: LinkList(of verts), new and original edges */
+  GHash *face_edges;    /* BMFace-index: LinkList(of edges), only original faces */
+  blender::Set<BMEdge *> *wire_edges;
   LinkNode *vert_dissolve; /* BMVert's */
 
   MemArena *mem_arena;
@@ -815,12 +815,12 @@ static void bm_isect_tri_tri(ISectState *s,
          * if not (ie_vs[0].index == -1 or ie_vs[1].index == -1):
          *     continue */
         ie = BM_edge_create(s->bm, UNPACK2(ie_vs), nullptr, eBMCreateFlag(0));
-        BLI_gset_insert(s->wire_edges, ie);
+        s->wire_edges->add(ie);
       }
       else {
         ie_exists = true;
         /* may already exist */
-        BLI_gset_add(s->wire_edges, ie);
+        s->wire_edges->add(ie);
 
         if (BM_edge_in_face(ie, f)) {
           continue;
@@ -985,7 +985,7 @@ bool BM_mesh_intersect(BMesh *bm,
 
   s.edge_verts = BLI_ghash_ptr_new(__func__);
   s.face_edges = BLI_ghash_int_new(__func__);
-  s.wire_edges = BLI_gset_ptr_new(__func__);
+  s.wire_edges = MEM_new<blender::Set<BMEdge *>>(__func__);
   s.vert_dissolve = nullptr;
 
   s.mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
@@ -1187,7 +1187,7 @@ bool BM_mesh_intersect(BMesh *bm,
       printf("# SPLITTING EDGE: %d, %u\n", BM_elem_index_get(e), v_ls_base->list_len);
 #  endif
       /* intersect */
-      is_wire = BLI_gset_haskey(s.wire_edges, e);
+      is_wire = s.wire_edges->contains(e);
 
 #  ifdef USE_PARANOID
       for (node = v_ls_base->list; node; node = node->next) {
@@ -1218,7 +1218,7 @@ bool BM_mesh_intersect(BMesh *bm,
           }
           v_prev = vi;
           if (is_wire) {
-            BLI_gset_insert(s.wire_edges, e_split);
+            s.wire_edges->add(e_split);
           }
         }
       }
@@ -1245,8 +1245,8 @@ bool BM_mesh_intersect(BMesh *bm,
     }
 
     splice_ls = static_cast<BMVert *(*)[2]>(
-        MEM_mallocN(BLI_gset_len(s.wire_edges) * sizeof(*splice_ls), __func__));
-    STACK_INIT(splice_ls, BLI_gset_len(s.wire_edges));
+        MEM_mallocN(size_t(s.wire_edges->size()) * sizeof(*splice_ls), __func__));
+    STACK_INIT(splice_ls, s.wire_edges->size());
 
     for (node = s.vert_dissolve; node; node = node->next) {
       BMEdge *e_pair[2];
@@ -1268,7 +1268,7 @@ bool BM_mesh_intersect(BMesh *bm,
       /* It's possible the vertex to dissolve is an edge on an existing face
        * that doesn't divide the face, therefor the edges are not wire
        * and shouldn't be handled here, see: #63787. */
-      if (!BLI_gset_haskey(s.wire_edges, e_pair[0]) || !BLI_gset_haskey(s.wire_edges, e_pair[1])) {
+      if (!s.wire_edges->contains(e_pair[0]) || !s.wire_edges->contains(e_pair[1])) {
         continue;
       }
 
@@ -1401,7 +1401,7 @@ bool BM_mesh_intersect(BMesh *bm,
             } while ((l_iter = l_iter->radial_next) != e->l);
           }
 
-          BLI_gset_remove(s.wire_edges, e, nullptr);
+          s.wire_edges->remove(e);
           BM_edge_kill(bm, e);
         }
       }
@@ -1480,24 +1480,17 @@ bool BM_mesh_intersect(BMesh *bm,
 
 #ifdef USE_SEPARATE
   if (use_separate) {
-    GSetIterator gs_iter;
-
     BM_mesh_elem_hflag_disable_all(bm, BM_EDGE, BM_ELEM_TAG, false);
 
-    GSET_ITER (gs_iter, s.wire_edges) {
-      BMEdge *e = static_cast<BMEdge *>(BLI_gsetIterator_getKey(&gs_iter));
+    for (BMEdge *e : *s.wire_edges) {
       BM_elem_flag_enable(e, BM_ELEM_TAG);
     }
 
     BM_mesh_edgesplit(bm, false, true, false);
   }
   else if (boolean_mode != BMESH_ISECT_BOOLEAN_NONE || use_edge_tag) {
-    GSetIterator gs_iter;
-
     /* no need to clear for boolean */
-
-    GSET_ITER (gs_iter, s.wire_edges) {
-      BMEdge *e = static_cast<BMEdge *>(BLI_gsetIterator_getKey(&gs_iter));
+    for (BMEdge *e : *s.wire_edges) {
       BM_elem_flag_enable(e, BM_ELEM_TAG);
     }
   }
@@ -1648,7 +1641,7 @@ bool BM_mesh_intersect(BMesh *bm,
 
   BLI_ghash_free(s.edge_verts, nullptr, nullptr);
   BLI_ghash_free(s.face_edges, nullptr, nullptr);
-  BLI_gset_free(s.wire_edges, nullptr);
+  MEM_delete(s.wire_edges);
 
   BLI_memarena_free(s.mem_arena);
 
