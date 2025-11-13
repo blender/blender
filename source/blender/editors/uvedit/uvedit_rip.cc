@@ -433,25 +433,25 @@ static void uv_rip_single_free(UVRipSingle *rip)
 
 struct UVRipPairs {
   /** Walk along the UV selection, store #BMLoop. */
-  GSet *loops;
+  blender::Set<BMLoop *> *loops;
 };
 
 static void uv_rip_pairs_add(UVRipPairs *rip, BMLoop *l)
 {
   ULData *ul = UL(l);
-  BLI_assert(!BLI_gset_haskey(rip->loops, l));
+  BLI_assert(!rip->loops->contains(l));
   BLI_assert(ul->in_rip_pairs == false);
   ul->in_rip_pairs = true;
-  BLI_gset_add(rip->loops, l);
+  rip->loops->add(l);
 }
 
 static void uv_rip_pairs_remove(UVRipPairs *rip, BMLoop *l)
 {
   ULData *ul = UL(l);
-  BLI_assert(BLI_gset_haskey(rip->loops, l));
+  BLI_assert(rip->loops->contains(l));
   BLI_assert(ul->in_rip_pairs == true);
   ul->in_rip_pairs = false;
-  BLI_gset_remove(rip->loops, l, nullptr);
+  rip->loops->remove(l);
 }
 
 /**
@@ -557,7 +557,7 @@ static UVRipPairs *uv_rip_pairs_from_loop(BMLoop *l_init,
                                           const int cd_loop_uv_offset)
 {
   UVRipPairs *rip = MEM_callocN<UVRipPairs>(__func__);
-  rip->loops = BLI_gset_ptr_new(__func__);
+  rip->loops = MEM_new<blender::Set<BMLoop *>>(__func__);
 
   /* We can rely on this stack being small, as we're walking down two sides of an edge loop,
    * so the stack won't be much larger than the total number of fans at any one vertex. */
@@ -676,7 +676,7 @@ static UVRipPairs *uv_rip_pairs_from_loop(BMLoop *l_init,
 
 static void uv_rip_pairs_free(UVRipPairs *rip)
 {
-  BLI_gset_free(rip->loops, nullptr);
+  MEM_delete(rip->loops);
   MEM_freeN(rip);
 }
 
@@ -695,9 +695,7 @@ static bool uv_rip_pairs_calc_center_and_direction(UVRipPairs *rip,
   for (int i = 0; i < 2; i++) {
     zero_v2(r_dir_side[i]);
   }
-  GSetIterator gs_iter;
-  GSET_ITER (gs_iter, rip->loops) {
-    BMLoop *l = static_cast<BMLoop *>(BLI_gsetIterator_getKey(&gs_iter));
+  for (BMLoop *l : *rip->loops) {
     int side = UL(l)->side;
     const float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
     add_v2_v2(r_center, luv);
@@ -715,7 +713,7 @@ static bool uv_rip_pairs_calc_center_and_direction(UVRipPairs *rip,
     }
     side_total[side] += 1;
   }
-  center_total += BLI_gset_len(rip->loops);
+  center_total += rip->loops->size();
 
   for (int i = 0; i < 2; i++) {
     normalize_v2(r_dir_side[i]);
@@ -855,9 +853,7 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
               side_from_cursor = (dot_v2v2(dir_side[0], dir_cursor) -
                                   dot_v2v2(dir_side[1], dir_cursor)) < 0.0f;
             }
-            GSetIterator gs_iter;
-            GSET_ITER (gs_iter, rip->loops) {
-              BMLoop *l_iter = static_cast<BMLoop *>(BLI_gsetIterator_getKey(&gs_iter));
+            for (BMLoop *l_iter : *rip->loops) {
               ULData *ul = UL(l_iter);
               if (ul->side == side_from_cursor) {
                 uvedit_uv_select_disable(scene, bm, l_iter);
