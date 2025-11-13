@@ -747,7 +747,7 @@ static StructRNA *rna_Space_refine(PointerRNA *ptr)
 
 static ScrArea *rna_area_from_space(const PointerRNA *ptr)
 {
-  RNA_struct_is_a(ptr->type, &RNA_Space);
+  BLI_assert(RNA_struct_is_a(ptr->type, &RNA_Space));
   bScreen *screen = reinterpret_cast<bScreen *>(ptr->owner_id);
   SpaceLink *link = static_cast<SpaceLink *>(ptr->data);
   return BKE_screen_find_area_from_space(screen, link);
