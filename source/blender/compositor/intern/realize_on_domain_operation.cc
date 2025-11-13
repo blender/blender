@@ -253,20 +253,24 @@ static constexpr float transformation_tolerance = 10e-6f;
 Domain RealizeOnDomainOperation::compute_realized_transformation_domain(
     Context &context, const Domain &domain, const bool realize_translation)
 {
-  const int2 size = domain.data_size;
-
   /* If the domain is only infinitesimally rotated or scaled, return a domain with just the
    * translation component if not realizing translation. */
   if (math::is_equal(
           float2x2(domain.transformation), float2x2::identity(), transformation_tolerance))
   {
     if (realize_translation) {
-      return Domain(size);
+      Domain realized_domain = domain;
+      realized_domain.transformation = float3x3::identity();
+      return realized_domain;
     }
-    return Domain(size, math::from_location<float3x3>(domain.transformation.location()));
+    Domain realized_domain = domain;
+    realized_domain.transformation = math::from_location<float3x3>(
+        domain.transformation.location());
+    return realized_domain;
   }
 
   /* Compute the 4 corners of the domain. */
+  const int2 size = domain.data_size;
   const float2 lower_left_corner = float2(0.0f);
   const float2 lower_right_corner = float2(size.x, 0.0f);
   const float2 upper_left_corner = float2(0.0f, size.y);
