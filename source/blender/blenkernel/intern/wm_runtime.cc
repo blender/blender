@@ -29,9 +29,6 @@ WindowManagerRuntime::~WindowManagerRuntime()
   BKE_reports_free(&this->reports);
 
   BLI_freelistN(&this->notifier_queue);
-  if (this->notifier_queue_set) {
-    BLI_gset_free(this->notifier_queue_set, nullptr);
-  }
 
   while (wmOperator *op = static_cast<wmOperator *>(BLI_pophead(&this->operators))) {
     WM_operator_free(op);

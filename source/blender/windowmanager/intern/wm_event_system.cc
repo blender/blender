@@ -320,29 +320,27 @@ void wm_event_init_from_window(wmWindow *win, wmEvent *event)
 /** \name Notifiers & Listeners
  * \{ */
 
+namespace blender::bke {
 /**
  * Hash for #wmWindowManager.notifier_queue_set, ignores `window`.
  */
-static uint note_hash_for_queue_fn(const void *ptr)
+uint64_t wmNotifierHashForQueue::operator()(const wmNotifier *note) const
 {
-  const wmNotifier *note = static_cast<const wmNotifier *>(ptr);
-  return (BLI_ghashutil_ptrhash(note->reference) ^
-          (note->category | note->data | note->subtype | note->action));
+  return get_default_hash(
+      note->reference, note->category, note->data, note->subtype, note->action);
 }
-
 /**
  * Comparison for #wmWindowManager.notifier_queue_set
  *
  * \note This is not an exact equality function as the `window` is ignored.
  */
-static bool note_cmp_for_queue_fn(const void *a, const void *b)
+bool wmNotifierEqForQueue::operator()(const wmNotifier *a, const wmNotifier *b) const
 {
-  const wmNotifier *note_a = static_cast<const wmNotifier *>(a);
-  const wmNotifier *note_b = static_cast<const wmNotifier *>(b);
-  return !(((note_a->category | note_a->data | note_a->subtype | note_a->action) ==
-            (note_b->category | note_b->data | note_b->subtype | note_b->action)) &&
-           (note_a->reference == note_b->reference));
+  return ((a->category | a->data | a->subtype | a->action) ==
+          (b->category | b->data | b->subtype | b->action)) &&
+         (a->reference == b->reference);
 }
+}  // namespace blender::bke
 
 static void wm_event_add_notifier_intern(wmWindowManager *wm,
                                          const wmWindow *win,
@@ -363,19 +361,12 @@ static void wm_event_add_notifier_intern(wmWindowManager *wm,
 
   BLI_assert(!wm_notifier_is_clear(&note_test));
 
-  if (wm->runtime->notifier_queue_set == nullptr) {
-    wm->runtime->notifier_queue_set = BLI_gset_new_ex(
-        note_hash_for_queue_fn, note_cmp_for_queue_fn, __func__, 1024);
-  }
-
-  void **note_p;
-  if (BLI_gset_ensure_p_ex(wm->runtime->notifier_queue_set, &note_test, &note_p)) {
-    return;
-  }
-  wmNotifier *note = MEM_callocN<wmNotifier>(__func__);
-  *note = note_test;
-  *note_p = note;
-  BLI_addtail(&wm->runtime->notifier_queue, note);
+  wm->runtime->notifier_queue_set.lookup_key_or_add_cb(&note_test, [&]() {
+    wmNotifier *note = MEM_callocN<wmNotifier>(__func__);
+    *note = note_test;
+    BLI_addtail(&wm->runtime->notifier_queue, note);
+    return note;
+  });
 }
 
 void WM_event_add_notifier_ex(wmWindowManager *wm, const wmWindow *win, uint type, void *reference)
@@ -415,9 +406,7 @@ void WM_main_remove_notifier_reference(const void *reference)
   if (wm) {
     LISTBASE_FOREACH_MUTABLE (wmNotifier *, note, &wm->runtime->notifier_queue) {
       if (note->reference == reference) {
-        const bool removed = BLI_gset_remove(wm->runtime->notifier_queue_set, note, nullptr);
-        BLI_assert(removed);
-        UNUSED_VARS_NDEBUG(removed);
+        wm->runtime->notifier_queue_set.remove_contained(note);
 
         /* Remove unless this is being iterated over by the caller.
          * This is done to prevent `wm->runtime->notifier_queue` accumulating notifiers
@@ -730,9 +719,7 @@ void wm_event_do_notifiers(bContext *C)
     /* NOTE: no need to set `wm->runtime->notifier_current` since it's been removed from the queue.
      */
 
-    const bool removed = BLI_gset_remove(wm->runtime->notifier_queue_set, note, nullptr);
-    BLI_assert(removed);
-    UNUSED_VARS_NDEBUG(removed);
+    wm->runtime->notifier_queue_set.remove_contained(note);
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       Scene *scene = WM_window_get_active_scene(win);
       bScreen *screen = WM_window_get_active_screen(win);
