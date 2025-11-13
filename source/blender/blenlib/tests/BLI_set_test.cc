@@ -412,6 +412,38 @@ TEST(set, IntrusiveIntKey)
   EXPECT_TRUE(set.remove(4));
 }
 
+struct IntKeyModHash {
+  uint64_t operator()(const int key) const
+  {
+    EXPECT_GE(key, 0);
+    return uint64_t(key % 10);
+  }
+};
+
+struct IntKeyModEq {
+  bool operator()(const int a, const int b) const
+  {
+    EXPECT_GE(a, 0);
+    EXPECT_GE(b, 0);
+    return a % 10 == b % 10;
+  }
+};
+
+TEST(set, IntrusiveIntKeyCustomEq)
+{
+  Set<int, 2, DefaultProbingStrategy, IntKeyModHash, IntKeyModEq, IntegerSetSlot<int, -1, -2>> set;
+  EXPECT_TRUE(set.add(1));
+  EXPECT_TRUE(set.add(2));
+  EXPECT_FALSE(set.add(1));
+  EXPECT_FALSE(set.add(11));
+  EXPECT_FALSE(set.add(101));
+  EXPECT_TRUE(set.add(103));
+  EXPECT_TRUE(set.contains(3));
+  EXPECT_FALSE(set.remove(54));
+  EXPECT_TRUE(set.remove(52));
+  EXPECT_FALSE(set.contains(2));
+}
+
 struct MyKeyType {
   uint32_t key;
   int32_t attached_data;
