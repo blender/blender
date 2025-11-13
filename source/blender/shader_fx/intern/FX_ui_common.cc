@@ -14,7 +14,7 @@
 #include "BKE_context.hh"
 #include "BKE_library.hh"
 #include "BKE_screen.hh"
-#include "BKE_shader_fx.h"
+#include "BKE_shader_fx.hh"
 
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -34,7 +34,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "FX_ui_common.h" /* Self include */
+#include "FX_ui_common.hh" /* Self include */
 
 /* -------------------------------------------------------------------- */
 /** \name Panel Drag and Drop, Expansion Saving

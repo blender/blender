@@ -17,7 +17,7 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/FX_shader_util.h
+  intern/FX_shader_util.hh
   intern/FX_ui_common.cc
 
   intern/FX_shader_blur.cc
@@ -31,8 +31,8 @@ set(SRC
   intern/FX_shader_util.cc
   intern/FX_shader_wave.cc
 
-  intern/FX_ui_common.h
-  FX_shader_types.h
+  intern/FX_ui_common.hh
+  FX_shader_types.hh
 )
 
 set(LIB

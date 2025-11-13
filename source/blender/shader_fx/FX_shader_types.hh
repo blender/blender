@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_shader_fx.h"
+#include "BKE_shader_fx.hh"
 
 /* ****************** Type structures for all effects ****************** */
 

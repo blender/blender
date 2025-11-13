@@ -51,15 +51,15 @@ typedef enum {
 } ShaderFxTypeFlag;
 
 typedef void (*ShaderFxIDWalkFunc)(void *user_data,
-                                   struct Object *ob,
-                                   struct ID **idpoin,
+                                   Object *ob,
+                                   ID **idpoin,
                                    LibraryForeachIDCallbackFlag cb_flag);
 typedef void (*ShaderFxTexWalkFunc)(void *user_data,
-                                    struct Object *ob,
-                                    struct ShaderFxData *fx,
+                                    Object *ob,
+                                    ShaderFxData *fx,
                                     const char *propname);
 
-typedef struct ShaderFxTypeInfo {
+struct ShaderFxTypeInfo {
   /* The user visible name for this effect */
   char name[32];
 
@@ -77,21 +77,21 @@ typedef struct ShaderFxTypeInfo {
   /* Copy instance data for this effect type. Should copy all user
    * level settings to the target effect.
    */
-  void (*copy_data)(const struct ShaderFxData *fx, struct ShaderFxData *target);
+  void (*copy_data)(const ShaderFxData *fx, ShaderFxData *target);
 
   /* Initialize new instance data for this effect type, this function
    * should set effect variables to their default values.
    *
    * This function is optional.
    */
-  void (*init_data)(struct ShaderFxData *fx);
+  void (*init_data)(ShaderFxData *fx);
 
   /* Free internal effect data variables, this function should
    * not free the fx variable itself.
    *
    * This function is optional.
    */
-  void (*free_data)(struct ShaderFxData *fx);
+  void (*free_data)(ShaderFxData *fx);
 
   /* Return a boolean value indicating if this effect is able to be
    * calculated based on the effect data. This is *not* regarding the
@@ -101,21 +101,20 @@ typedef struct ShaderFxTypeInfo {
    *
    * This function is optional (assumes never disabled if not present).
    */
-  bool (*is_disabled)(struct ShaderFxData *fx, bool use_render_params);
+  bool (*is_disabled)(ShaderFxData *fx, bool use_render_params);
 
   /* Add the appropriate relations to the dependency graph.
    *
    * This function is optional.
    */
-  void (*update_depsgraph)(struct ShaderFxData *fx,
-                           const struct ModifierUpdateDepsgraphContext *ctx);
+  void (*update_depsgraph)(ShaderFxData *fx, const ModifierUpdateDepsgraphContext *ctx);
 
   /* Should return true if the effect needs to be recalculated on time
    * changes.
    *
    * This function is optional (assumes false if not present).
    */
-  bool (*depends_on_time)(struct ShaderFxData *fx);
+  bool (*depends_on_time)(ShaderFxData *fx);
 
   /* Should call the given walk function with a pointer to each ID
    * pointer (i.e. each data-block pointer) that the effect data
@@ -124,18 +123,15 @@ typedef struct ShaderFxTypeInfo {
    *
    * This function is optional.
    */
-  void (*foreach_ID_link)(struct ShaderFxData *fx,
-                          struct Object *ob,
-                          ShaderFxIDWalkFunc walk,
-                          void *user_data);
+  void (*foreach_ID_link)(ShaderFxData *fx, Object *ob, ShaderFxIDWalkFunc walk, void *user_data);
 
   /* Should iterate over every working space color. */
   void (*foreach_working_space_color)(ShaderFxData *fx,
                                       const IDTypeForeachColorFunctionCallback &func);
 
   /* Register the panel types for the effect's UI. */
-  void (*panel_register)(struct ARegionType *region_type);
-} ShaderFxTypeInfo;
+  void (*panel_register)(ARegionType *region_type);
+};
 
 #define SHADERFX_TYPE_PANEL_PREFIX "FX_PT_"
 
@@ -151,38 +147,35 @@ void BKE_shaderfx_init(void);
  * the defined prefix.
  */
 void BKE_shaderfxType_panel_id(ShaderFxType type, char *r_idname);
-void BKE_shaderfx_panel_expand(struct ShaderFxData *fx);
+void BKE_shaderfx_panel_expand(ShaderFxData *fx);
 const ShaderFxTypeInfo *BKE_shaderfx_get_info(ShaderFxType type);
-struct ShaderFxData *BKE_shaderfx_new(int type);
-void BKE_shaderfx_free_ex(struct ShaderFxData *fx, int flag);
-void BKE_shaderfx_free(struct ShaderFxData *fx);
+ShaderFxData *BKE_shaderfx_new(int type);
+void BKE_shaderfx_free_ex(ShaderFxData *fx, int flag);
+void BKE_shaderfx_free(ShaderFxData *fx);
 /**
  * Check unique name.
  */
-void BKE_shaderfx_unique_name(struct ListBase *shaders, struct ShaderFxData *fx);
-bool BKE_shaderfx_depends_ontime(struct ShaderFxData *fx);
+void BKE_shaderfx_unique_name(ListBase *shaders, ShaderFxData *fx);
+bool BKE_shaderfx_depends_ontime(ShaderFxData *fx);
 /**
  * Check whether given shaderfx is not local (i.e. from linked data) when the object is a library
  * override.
  *
  * \param shaderfx: May be NULL, in which case we consider it as a non-local shaderfx case.
  */
-bool BKE_shaderfx_is_nonlocal_in_liboverride(const struct Object *ob,
-                                             const struct ShaderFxData *shaderfx);
-struct ShaderFxData *BKE_shaderfx_findby_type(struct Object *ob, ShaderFxType type);
-struct ShaderFxData *BKE_shaderfx_findby_name(struct Object *ob, const char *name);
-void BKE_shaderfx_copydata_generic(const struct ShaderFxData *fx_src, struct ShaderFxData *fx_dst);
-void BKE_shaderfx_copydata(struct ShaderFxData *fx, struct ShaderFxData *target);
-void BKE_shaderfx_copydata_ex(struct ShaderFxData *fx, struct ShaderFxData *target, int flag);
-void BKE_shaderfx_copy(struct ListBase *dst, const struct ListBase *src);
-void BKE_shaderfx_foreach_ID_link(struct Object *ob, ShaderFxIDWalkFunc walk, void *user_data);
+bool BKE_shaderfx_is_nonlocal_in_liboverride(const Object *ob, const ShaderFxData *shaderfx);
+ShaderFxData *BKE_shaderfx_findby_type(Object *ob, ShaderFxType type);
+ShaderFxData *BKE_shaderfx_findby_name(Object *ob, const char *name);
+void BKE_shaderfx_copydata_generic(const ShaderFxData *fx_src, ShaderFxData *fx_dst);
+void BKE_shaderfx_copydata(ShaderFxData *fx, ShaderFxData *target);
+void BKE_shaderfx_copydata_ex(ShaderFxData *fx, ShaderFxData *target, int flag);
+void BKE_shaderfx_copy(ListBase *dst, const ListBase *src);
+void BKE_shaderfx_foreach_ID_link(Object *ob, ShaderFxIDWalkFunc walk, void *user_data);
 
 /**
  * Check if exist grease pencil effects.
  */
-bool BKE_shaderfx_has_gpencil(const struct Object *ob);
+bool BKE_shaderfx_has_gpencil(const Object *ob);
 
-void BKE_shaderfx_blend_write(struct BlendWriter *writer, struct ListBase *fxbase);
-void BKE_shaderfx_blend_read_data(struct BlendDataReader *reader,
-                                  struct ListBase *lb,
-                                  struct Object *ob);
+void BKE_shaderfx_blend_write(BlendWriter *writer, ListBase *fxbase);
+void BKE_shaderfx_blend_read_data(BlendDataReader *reader, ListBase *lb, Object *ob);
