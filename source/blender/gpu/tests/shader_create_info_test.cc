@@ -22,7 +22,7 @@ static void test_static_shaders()
                     "need the workaround.";
   }
 
-  EXPECT_TRUE(gpu_shader_create_info_compile(nullptr));
+  EXPECT_TRUE(gpu_shader_create_info_compile_all(nullptr));
 }
 GPU_TEST(static_shaders)
 

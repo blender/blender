@@ -54,7 +54,7 @@ class VKShader : public Shader {
   VKShader(const char *name);
   virtual ~VKShader();
 
-  void init(const shader::ShaderCreateInfo &info, bool is_batch_compilation) override;
+  void init(const shader::ShaderCreateInfo &info, bool is_codegen_only) override;
 
   const shader::ShaderCreateInfo &patch_create_info(
       const shader::ShaderCreateInfo &original_info) override

@@ -142,11 +142,6 @@ MTLShader::~MTLShader()
   valid_ = false;
 }
 
-void MTLShader::init(const shader::ShaderCreateInfo & /*info*/, bool is_batch_compilation)
-{
-  async_compilation_ = is_batch_compilation;
-}
-
 const shader::ShaderCreateInfo &MTLShader::patch_create_info(
     const shader::ShaderCreateInfo &original_info)
 {
@@ -1109,7 +1104,7 @@ Shader *MTLShaderCompiler::compile_shader(const shader::ShaderCreateInfo &info)
   return shader;
 }
 
-void MTLShaderCompiler::specialize_shader(ShaderSpecialization &specialization)
+void MTLShaderCompiler::specialize_shader(const ShaderSpecialization &specialization)
 {
   MTLShader *shader = static_cast<MTLShader *>(specialization.shader);
 
