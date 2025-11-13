@@ -126,7 +126,6 @@ struct VKGraphicsInfo {
   };
   struct FragmentOut {
     GPUState state;
-    uint32_t color_attachment_size;
 
     /* Dynamic rendering */
     VkFormat depth_attachment_format;
@@ -140,15 +139,7 @@ struct VKGraphicsInfo {
 #else
       if (state != other.state || depth_attachment_format != other.depth_attachment_format ||
           stencil_attachment_format != other.stencil_attachment_format ||
-          color_attachment_size != other.color_attachment_size ||
-          color_attachment_formats.size() != other.color_attachment_formats.size())
-      {
-        return false;
-      }
-
-      if (memcmp(color_attachment_formats.data(),
-                 other.color_attachment_formats.data(),
-                 color_attachment_size * sizeof(VkFormat)) != 0)
+          color_attachment_formats != other.color_attachment_formats)
       {
         return false;
       }
@@ -162,7 +153,7 @@ struct VKGraphicsInfo {
       uint64_t hash = uint64_t(depth_attachment_format);
       hash = hash * 33 ^ uint64_t(stencil_attachment_format);
       hash = hash * 33 ^ XXH3_64bits(color_attachment_formats.data(),
-                                     color_attachment_size * sizeof(VkFormat));
+                                     color_attachment_formats.size() * sizeof(VkFormat));
       hash = hash * 33 ^ state.data;
       return hash;
     }

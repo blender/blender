@@ -37,8 +37,6 @@ class VKFrameBuffer : public FrameBuffer {
   Array<GPUAttachmentState, GPU_FB_MAX_ATTACHMENT> attachment_states_;
 
  public:
-  uint32_t color_attachment_size = 0u;
-
   /**
    * Create a conventional frame-buffer to attach texture to.
    */
@@ -82,6 +80,9 @@ class VKFrameBuffer : public FrameBuffer {
   void render_area_update(VkRect2D &render_area) const;
   VkFormat depth_attachment_format_get() const;
   VkFormat stencil_attachment_format_get() const;
+  /**
+   * \brief Get color attachment formats in used by the framebuffer.
+   */
   Span<VkFormat> color_attachment_formats_get() const;
 
   /**

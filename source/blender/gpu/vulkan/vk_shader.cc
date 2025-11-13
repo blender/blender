@@ -1314,7 +1314,6 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(GPUPrimType primitive,
   graphics_info.fragment_out.stencil_attachment_format = stencil_attachment_format;
   graphics_info.fragment_out.color_attachment_formats.extend(
       framebuffer.color_attachment_formats_get());
-  graphics_info.fragment_out.color_attachment_size = framebuffer.color_attachment_size;
   graphics_info.fragment_out.state = state_manager.state;
 
   VKDevice &device = VKBackend::get().device;
