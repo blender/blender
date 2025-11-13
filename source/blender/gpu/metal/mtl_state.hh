@@ -71,7 +71,6 @@ class MTLStateManager : public StateManager {
   void set_facing(const bool invert);
   void set_backface_culling(const GPUFaceCullTest test);
   void set_provoking_vert(const GPUProvokingVertex vert);
-  void set_shadow_bias(const bool enable);
   void set_blend(const GPUBlend value);
 
   void set_state(const GPUState &state);

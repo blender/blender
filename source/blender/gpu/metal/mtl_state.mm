@@ -100,9 +100,6 @@ void MTLStateManager::set_state(const GPUState &state)
   if (changed.provoking_vert != 0) {
     set_provoking_vert((GPUProvokingVertex)state.provoking_vert);
   }
-  if (changed.shadow_bias != 0) {
-    set_shadow_bias(state.shadow_bias);
-  }
 
   /* TODO remove (Following GLState). */
   if (changed.polygon_smooth) {
@@ -391,32 +388,6 @@ void MTLStateManager::set_provoking_vert(const GPUProvokingVertex /*vert*/)
    * For example, wireframe rendering and edit-mesh shaders utilize an SSBO-based
    * vertex pulling mechanism which considers the inverse convention for flat
    * shading, to ensure consistent results with OpenGL. */
-}
-
-void MTLStateManager::set_shadow_bias(const bool enable)
-{
-  /* Check Current Context. */
-  BLI_assert(context_);
-  MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
-  MTLContextDepthStencilState &ds_state = pipeline_state.depth_stencil_state;
-
-  /* Apply State. */
-  if (enable) {
-    ds_state.depth_bias_enabled_for_lines = true;
-    ds_state.depth_bias_enabled_for_tris = true;
-    ds_state.depth_bias = 2.0f;
-    ds_state.depth_slope_scale = 1.0f;
-  }
-  else {
-    ds_state.depth_bias_enabled_for_lines = false;
-    ds_state.depth_bias_enabled_for_tris = false;
-    ds_state.depth_bias = 0.0f;
-    ds_state.depth_slope_scale = 0.0f;
-  }
-
-  /* Mark Dirty - Ensure context updates depth-stencil state between draws. */
-  pipeline_state.dirty_flags |= MTL_PIPELINE_STATE_DEPTHSTENCIL_FLAG;
-  pipeline_state.dirty = true;
 }
 
 void MTLStateManager::set_blend(const GPUBlend value)

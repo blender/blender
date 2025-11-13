@@ -116,11 +116,6 @@ void GPU_depth_mask(bool depth)
   state.write_mask = write_mask;
 }
 
-void GPU_shadow_offset(bool enable)
-{
-  SET_IMMUTABLE_STATE(shadow_bias, enable);
-}
-
 void GPU_clip_distances(int distances_enabled)
 {
   SET_IMMUTABLE_STATE(clip_distances, distances_enabled);
@@ -360,7 +355,6 @@ StateManager::StateManager()
   state.provoking_vert = GPU_VERTEX_LAST;
   state.logic_op_xor = false;
   state.invert_facing = false;
-  state.shadow_bias = false;
   state.clip_distances = 0;
   state.clip_control = false;
   state.polygon_smooth = false;

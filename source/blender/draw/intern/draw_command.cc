@@ -318,13 +318,6 @@ void StateSet::execute(RecordingState &recording_state) const
     GPU_clip_control_unit_range(false);
   }
 
-  if (new_state & DRW_STATE_SHADOW_OFFSET) {
-    GPU_shadow_offset(true);
-  }
-  else {
-    GPU_shadow_offset(false);
-  }
-
   /* TODO: this should be part of shader state. */
   GPU_clip_distances(recording_state.clip_plane_count);
 

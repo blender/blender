@@ -998,11 +998,6 @@ void MTLContext::pipeline_state_init()
   this->pipeline_state.depth_stencil_state.depth_write_enable = false;
   this->pipeline_state.depth_stencil_state.depth_test_enabled = false;
   this->pipeline_state.depth_stencil_state.depth_function = MTLCompareFunctionAlways;
-  this->pipeline_state.depth_stencil_state.depth_bias = 0.0;
-  this->pipeline_state.depth_stencil_state.depth_slope_scale = 0.0;
-  this->pipeline_state.depth_stencil_state.depth_bias_enabled_for_points = false;
-  this->pipeline_state.depth_stencil_state.depth_bias_enabled_for_lines = false;
-  this->pipeline_state.depth_stencil_state.depth_bias_enabled_for_tris = false;
 
   /* Stencil State. */
   this->pipeline_state.depth_stencil_state.stencil_test_enabled = false;
@@ -1461,23 +1456,7 @@ void MTLContext::ensure_depth_stencil_state(MTLPrimitiveType prim_type)
     }
 
     if (hasDepthTarget) {
-      bool doBias = false;
-      switch (prim_type) {
-        case MTLPrimitiveTypeTriangle:
-        case MTLPrimitiveTypeTriangleStrip:
-          doBias = this->pipeline_state.depth_stencil_state.depth_bias_enabled_for_tris;
-          break;
-        case MTLPrimitiveTypeLine:
-        case MTLPrimitiveTypeLineStrip:
-          doBias = this->pipeline_state.depth_stencil_state.depth_bias_enabled_for_lines;
-          break;
-        case MTLPrimitiveTypePoint:
-          doBias = this->pipeline_state.depth_stencil_state.depth_bias_enabled_for_points;
-          break;
-      }
-      [rec setDepthBias:(doBias) ? this->pipeline_state.depth_stencil_state.depth_bias : 0
-             slopeScale:(doBias) ? this->pipeline_state.depth_stencil_state.depth_slope_scale : 0
-                  clamp:0];
+      [rec setDepthBias:0 slopeScale:0 clamp:0];
     }
   }
 }

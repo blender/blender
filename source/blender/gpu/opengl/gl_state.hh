@@ -101,7 +101,6 @@ class GLStateManager : public StateManager {
   static void set_facing(bool invert);
   static void set_backface_culling(GPUFaceCullTest test);
   static void set_provoking_vert(GPUProvokingVertex vert);
-  static void set_shadow_bias(bool enable);
   static void set_clip_control(bool enable);
   static void set_blend(GPUBlend value);
 

@@ -39,7 +39,6 @@ union GPUState {
     /** Enable bits. */
     uint32_t logic_op_xor : 1;
     uint32_t invert_facing : 1;
-    uint32_t shadow_bias : 1;
     /** Clip range of 0..1 on OpenGL. */
     uint32_t clip_control : 1;
     /** Number of clip distances enabled. */

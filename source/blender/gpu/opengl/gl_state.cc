@@ -105,9 +105,6 @@ void GLStateManager::set_state(const GPUState &state)
   if (changed.provoking_vert != 0) {
     set_provoking_vert((GPUProvokingVertex)state.provoking_vert);
   }
-  if (changed.shadow_bias != 0) {
-    set_shadow_bias(state.shadow_bias);
-  }
   if (changed.clip_control != 0) {
     set_clip_control(state.clip_control);
   }
@@ -311,20 +308,6 @@ void GLStateManager::set_provoking_vert(const GPUProvokingVertex vert)
   GLenum value = (vert == GPU_VERTEX_FIRST) ? GL_FIRST_VERTEX_CONVENTION :
                                               GL_LAST_VERTEX_CONVENTION;
   glProvokingVertex(value);
-}
-
-void GLStateManager::set_shadow_bias(const bool enable)
-{
-  if (enable) {
-    glEnable(GL_POLYGON_OFFSET_FILL);
-    glEnable(GL_POLYGON_OFFSET_LINE);
-    /* 2.0 Seems to be the lowest possible slope bias that works in every case. */
-    glPolygonOffset(2.0f, 1.0f);
-  }
-  else {
-    glDisable(GL_POLYGON_OFFSET_FILL);
-    glDisable(GL_POLYGON_OFFSET_LINE);
-  }
 }
 
 void GLStateManager::set_clip_control(const bool enable)

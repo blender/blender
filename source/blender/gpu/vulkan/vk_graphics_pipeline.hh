@@ -351,15 +351,6 @@ struct VKGraphicsPipelineCreateInfoBuilder {
 
     vk_pipeline_rasterization_state_create_info.cullMode = to_vk_cull_mode_flags(
         static_cast<GPUFaceCullTest>(shaders_info.state.culling_test));
-    if (shaders_info.state.shadow_bias) {
-      vk_pipeline_rasterization_state_create_info.depthBiasEnable = VK_TRUE;
-      vk_pipeline_rasterization_state_create_info.depthBiasSlopeFactor = 2.0f;
-      vk_pipeline_rasterization_state_create_info.depthBiasConstantFactor = 1.0f;
-      vk_pipeline_rasterization_state_create_info.depthBiasClamp = 0.0f;
-    }
-    else {
-      vk_pipeline_rasterization_state_create_info.depthBiasEnable = VK_FALSE;
-    }
     vk_pipeline_rasterization_state_create_info.frontFace = shaders_info.state.invert_facing ?
                                                                 VK_FRONT_FACE_COUNTER_CLOCKWISE :
                                                                 VK_FRONT_FACE_CLOCKWISE;
