@@ -91,6 +91,7 @@ LANGUAGES = (
     (56, "Lithuanian - Lietuviškai", "lt"),
     (57, "English (UK)", "en_GB"),
     (58, "Malayalam - മലയാളം", "ml"),
+    (59, "Bengali - বাংলা", "bn_IN"),
 )
 
 # Default context, in py (keep in sync with `BLT_translation.hh`)!
