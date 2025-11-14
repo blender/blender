@@ -723,6 +723,9 @@ static void rna_def_node_socket(BlenderRNA *brna)
       {SOCK_DISPLAY_SHAPE_CIRCLE_DOT, "CIRCLE_DOT", 0, "Circle with inner dot", ""},
       {SOCK_DISPLAY_SHAPE_SQUARE_DOT, "SQUARE_DOT", 0, "Square with inner dot", ""},
       {SOCK_DISPLAY_SHAPE_DIAMOND_DOT, "DIAMOND_DOT", 0, "Diamond with inner dot", ""},
+      {SOCK_DISPLAY_SHAPE_LINE, "LINE", 0, "Line", ""},
+      {SOCK_DISPLAY_SHAPE_VOLUME_GRID, "VOLUME_GRID", 0, "Volume Grid", ""},
+      {SOCK_DISPLAY_SHAPE_LIST, "LIST", 0, "List", ""},
       {0, nullptr, 0, nullptr, nullptr}};
 
   static const float default_draw_color[] = {0.0f, 0.0f, 0.0f, 1.0f};
