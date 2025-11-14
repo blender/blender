@@ -517,9 +517,9 @@ bool BKE_attribute_remove(AttributeOwner &owner, const StringRef name, ReportLis
   }
 
   if (owner.type() == AttributeOwnerType::Mesh) {
-    const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(owner);
     Mesh *mesh = owner.get_mesh();
     if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+      const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(owner);
       for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
         if (CustomData *data = info[domain].customdata) {
           const std::string name_copy = name;
@@ -663,21 +663,36 @@ int BKE_attributes_length(const AttributeOwner &owner,
                           AttrDomainMask domain_mask,
                           eCustomDataMask mask)
 {
-  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(owner);
+  using namespace blender;
+  if (owner.type() == AttributeOwnerType::Mesh) {
+    const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(owner);
+    int length = 0;
+    for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
+      const CustomData *customdata = info[domain].customdata;
+      if (customdata == nullptr) {
+        continue;
+      }
 
-  int length = 0;
-
-  for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
-    const CustomData *customdata = info[domain].customdata;
-    if (customdata == nullptr) {
-      continue;
-    }
-
-    if ((1 << int(domain)) & domain_mask) {
-      length += CustomData_number_of_layers_typemask(customdata, mask);
+      if ((1 << int(domain)) & domain_mask) {
+        length += CustomData_number_of_layers_typemask(customdata, mask);
+      }
+      return length;
     }
   }
-
+  const bke::AttributeStorage &storage = *owner.get_storage();
+  if (domain_mask == ATTR_DOMAIN_MASK_ALL && mask == CD_MASK_PROP_ALL) {
+    return storage.count();
+  }
+  int length = 0;
+  storage.foreach([&](const bke::Attribute &attr) {
+    if (!(ATTR_DOMAIN_AS_MASK(attr.domain()) & domain_mask)) {
+      return;
+    }
+    if (!(CD_TYPE_AS_MASK(*bke::attr_type_to_custom_data_type(attr.data_type())) & mask)) {
+      return;
+    }
+    length++;
+  });
   return length;
 }
 

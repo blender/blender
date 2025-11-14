@@ -937,38 +937,14 @@ int rna_AttributeGroup_color_length(PointerRNA *ptr)
 {
   using namespace blender;
   AttributeOwner owner = owner_from_pointer_rna(ptr);
-  if (owner.type() == AttributeOwnerType::Mesh) {
-    return BKE_attributes_length(owner, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
-  }
-
-  bke::AttributeStorage &storage = *owner.get_storage();
-  int count = 0;
-  storage.foreach([&](bke::Attribute &attr) {
-    if (!(ATTR_DOMAIN_AS_MASK(attr.domain()) & ATTR_DOMAIN_MASK_COLOR)) {
-      return;
-    }
-    if (!(CD_TYPE_AS_MASK(*bke::attr_type_to_custom_data_type(attr.data_type())) &
-          CD_MASK_COLOR_ALL))
-    {
-      return;
-    }
-    count++;
-  });
-  return count;
+  return BKE_attributes_length(owner, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
 }
 
 int rna_AttributeGroup_length(PointerRNA *ptr)
 {
   using namespace blender;
   AttributeOwner owner = owner_from_pointer_rna(ptr);
-  if (owner.type() == AttributeOwnerType::Mesh) {
-    return BKE_attributes_length(owner, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
-  }
-
-  bke::AttributeStorage &storage = *owner.get_storage();
-  int count = 0;
-  storage.foreach([&](bke::Attribute & /*attr*/) { count++; });
-  return count;
+  return BKE_attributes_length(owner, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
 }
 
 bool rna_AttributeGroup_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
