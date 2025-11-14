@@ -20,10 +20,13 @@ struct bContext;
 struct ARegionType;
 struct ImBuf;
 struct Strip;
-struct uiLayout;
 struct Panel;
 struct PanelType;
 struct PointerRNA;
+
+namespace blender::ui {
+struct Layout;
+}  // namespace blender::ui
 
 namespace blender::seq {
 
@@ -63,7 +66,7 @@ void modifier_apply_stack(ModifierApplyContext &context, int timeline_frame);
 
 bool modifier_persistent_uids_are_valid(const Strip &strip);
 
-void draw_mask_input_type_settings(const bContext *C, uiLayout *layout, PointerRNA *ptr);
+void draw_mask_input_type_settings(const bContext *C, ui::Layout *layout, PointerRNA *ptr);
 
 bool modifier_ui_poll(const bContext *C, PanelType *pt);
 

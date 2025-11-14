@@ -25,13 +25,13 @@
 
 struct bContext;
 struct uiBlock;
-struct uiLayout;
 
 namespace blender::ui {
 
 class AbstractTreeView;
 class AbstractTreeViewItem;
 class TreeViewItemDropTarget;
+struct Layout;
 
 /* ---------------------------------------------------------------------- */
 /** \name Tree-View Item Container
@@ -223,7 +223,7 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
  public:
   /* virtual */ ~AbstractTreeViewItem() override = default;
 
-  virtual void build_row(uiLayout &row) = 0;
+  virtual void build_row(Layout &row) = 0;
 
   /* virtual */ std::optional<std::string> debug_name() const override;
 
@@ -342,9 +342,9 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
 
   void add_treerow_button(uiBlock &block);
   int indent_width() const;
-  void add_indent(uiLayout &row) const;
+  void add_indent(Layout &row) const;
   void add_collapse_chevron(uiBlock &block) const;
-  void add_rename_button(uiLayout &row);
+  void add_rename_button(Layout &row);
 
   bool has_active_child() const;
 };
@@ -368,8 +368,8 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
 
   explicit BasicTreeViewItem(StringRef label, BIFIconID icon = ICON_NONE);
 
-  void build_row(uiLayout &row) override;
-  void add_label(uiLayout &layout, StringRefNull label_override = "");
+  void build_row(Layout &row) override;
+  void add_label(Layout &layout, StringRefNull label_override = "");
   void set_on_activate_fn(ActivateFn fn);
   /**
    * Set a custom callback to check if this item should be active.
@@ -432,7 +432,7 @@ class TreeViewBuilder {
  public:
   static void build_tree_view(const bContext &C,
                               AbstractTreeView &tree_view,
-                              uiLayout &layout,
+                              Layout &layout,
                               bool add_box = true);
 
  private:

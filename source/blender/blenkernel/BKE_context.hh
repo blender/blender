@@ -254,7 +254,7 @@ const char *CTX_wm_operator_poll_msg_get(bContext *C, bool *r_free);
  *
  * \note even though the function name suggests this is limited to situations
  * when the poll function returns false, this is not the case. Even when the
- * operator is disabled because it is added to a disabled uiLayout, this message
+ * operator is disabled because it is added to a disabled blender::ui::Layout, this message
  * will show.
  */
 void CTX_wm_operator_poll_msg_set(bContext *C, const char *msg);

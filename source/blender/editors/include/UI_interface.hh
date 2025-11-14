@@ -29,7 +29,6 @@ struct PointerRNA;
 struct StructRNA;
 struct uiBlock;
 struct uiBut;
-struct uiLayout;
 struct uiList;
 struct uiSearchItems;
 struct wmDrag;
@@ -37,6 +36,7 @@ struct wmEvent;
 namespace blender::ui {
 class AbstractView;
 class AbstractViewItem;
+struct Layout;
 }  // namespace blender::ui
 
 void UI_but_func_set(uiBut *but, std::function<void(bContext &)> func);
@@ -86,7 +86,7 @@ void context_path_add_generic(Vector<ContextPathItem> &path,
                               const BIFIconID icon_override = ICON_NONE,
                               std::function<void(bContext &)> handle_func = nullptr);
 
-void template_breadcrumbs(uiLayout &layout, Span<ContextPathItem> context_path);
+void template_breadcrumbs(Layout &layout, Span<ContextPathItem> context_path);
 
 void attribute_search_add_items(StringRef str,
                                 bool can_create_attribute,

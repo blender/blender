@@ -24,10 +24,12 @@ struct FileSelectParams;
 struct Main;
 struct SpaceFile;
 struct View2D;
-struct uiLayout;
 namespace blender::asset_system {
 class AssetLibrary;
 }
+namespace blender::ui {
+struct Layout;
+}  // namespace blender::ui
 
 bool file_main_region_needs_refresh_before_draw(SpaceFile *sfile);
 
@@ -245,7 +247,7 @@ namespace blender::ed::asset_browser {
 
 void file_create_asset_catalog_tree_view_in_layout(const bContext *C,
                                                    asset_system::AssetLibrary *asset_library,
-                                                   uiLayout *layout,
+                                                   ui::Layout *layout,
                                                    SpaceFile *space_file,
                                                    FileAssetSelectParams *params);
 

@@ -15,13 +15,17 @@ struct Panel;
 struct ARegionType;
 struct PanelType;
 struct bContext;
-struct uiLayout;
+
+namespace blender::ui {
+struct Layout;
+}  // namespace blender::ui
+
 using PanelDrawFn = void (*)(const bContext *, Panel *);
 
 /**
  * Draw shaderfx error message.
  */
-void shaderfx_panel_end(uiLayout *layout, PointerRNA *ptr);
+void shaderfx_panel_end(blender::ui::Layout *layout, PointerRNA *ptr);
 
 /**
  * Gets RNA pointers for the active object and the panel's shaderfx data.

@@ -33,7 +33,6 @@ struct bContext;
 struct bScreen;
 struct rcti;
 struct uiBlock;
-struct uiLayout;
 struct wmKeyConfig;
 struct wmMsgSubscribeKey;
 struct wmMsgSubscribeValue;
@@ -44,6 +43,10 @@ struct wmRegionMessageSubscribeParams;
 struct wmSpaceTypeListenerParams;
 struct wmWindow;
 struct wmWindowManager;
+
+namespace blender::ui {
+struct Layout;
+}  // namespace blender::ui
 
 /* regions */
 /** Only exported for WM. */
@@ -172,7 +175,7 @@ void ED_region_info_draw_multiline(ARegion *region,
                                    const char *text_array[],
                                    const float fill_color[4],
                                    bool full_redraw);
-void ED_region_image_metadata_panel_draw(ImBuf *ibuf, uiLayout *layout);
+void ED_region_image_metadata_panel_draw(ImBuf *ibuf, blender::ui::Layout *layout);
 void ED_region_grid_draw(ARegion *region, float zoomx, float zoomy, float x0, float y0);
 float ED_region_blend_alpha(ARegion *region);
 const rcti *ED_region_visible_rect(ARegion *region);
@@ -392,9 +395,9 @@ ScrArea *ED_screen_temp_space_open(bContext *C,
                                    eSpace_Type space_type,
                                    int display_type,
                                    bool dialog) ATTR_NONNULL(1);
-void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *arg);
-void ED_screens_footer_tools_menu_create(bContext *C, uiLayout *layout, void *arg);
-void ED_screens_region_flip_menu_create(bContext *C, uiLayout *layout, void *arg);
+void ED_screens_header_tools_menu_create(bContext *C, blender::ui::Layout *layout, void *arg);
+void ED_screens_footer_tools_menu_create(bContext *C, blender::ui::Layout *layout, void *arg);
+void ED_screens_region_flip_menu_create(bContext *C, blender::ui::Layout *layout, void *arg);
 /**
  * \return true if any active area requires to see in 3D.
  */

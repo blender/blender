@@ -38,7 +38,6 @@
 struct bContext;
 struct uiBlock;
 struct uiButViewItem;
-struct uiLayout;
 struct ViewLink;
 struct wmNotifier;
 
@@ -51,6 +50,8 @@ enum class ViewScrollDirection {
   UP,
   DOWN,
 };
+
+struct Layout;
 
 class AbstractView {
   friend class AbstractViewItem;
@@ -227,7 +228,7 @@ class AbstractViewItem {
  public:
   virtual ~AbstractViewItem() = default;
 
-  virtual void build_context_menu(bContext &C, uiLayout &column) const;
+  virtual void build_context_menu(bContext &C, Layout &column) const;
 
   /**
    * Like #activate() but does not call #on_activate(). Use it to reflect changes in the active
