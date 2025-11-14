@@ -473,6 +473,7 @@ static void rna_Object_active_shape_update(Main *bmain, Scene * /*scene*/, Point
     }
   }
 
+  WM_main_add_notifier(NC_OBJECT | ND_TRANSFORM, ob);
   rna_Object_internal_update_data_impl(ptr);
 }
 
