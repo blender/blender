@@ -16,6 +16,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -214,10 +215,16 @@ IDTypeInfo IDType_ID_MSK = {
     /*lib_override_apply_post*/ nullptr,
 };
 
-static struct {
+struct MaskClipboard {
   ListBase splines;
-  GHash *id_hash;
-} mask_clipboard = {{nullptr}};
+  blender::Map<ID *, std::string> id_hash;
+};
+
+static MaskClipboard &get_mask_clipboard()
+{
+  static MaskClipboard mask_clipboard;
+  return mask_clipboard;
+}
 
 static MaskSplinePoint *mask_spline_point_next(MaskSpline *spline,
                                                MaskSplinePoint *points_array,
@@ -1950,23 +1957,17 @@ int BKE_mask_get_duration(Mask *mask)
 
 /*********************** clipboard *************************/
 
-static void mask_clipboard_free_ex(bool final_free)
+static void mask_clipboard_clear()
 {
+  MaskClipboard &mask_clipboard = get_mask_clipboard();
   BKE_mask_spline_free_list(&mask_clipboard.splines);
   BLI_listbase_clear(&mask_clipboard.splines);
-  if (mask_clipboard.id_hash) {
-    if (final_free) {
-      BLI_ghash_free(mask_clipboard.id_hash, nullptr, MEM_freeN);
-    }
-    else {
-      BLI_ghash_clear(mask_clipboard.id_hash, nullptr, MEM_freeN);
-    }
-  }
+  mask_clipboard.id_hash.clear();
 }
 
 void BKE_mask_clipboard_free()
 {
-  mask_clipboard_free_ex(true);
+  mask_clipboard_clear();
 }
 
 void BKE_mask_clipboard_copy_from_layer(MaskLayer *mask_layer)
@@ -1976,10 +1977,8 @@ void BKE_mask_clipboard_copy_from_layer(MaskLayer *mask_layer)
     return;
   }
 
-  mask_clipboard_free_ex(false);
-  if (mask_clipboard.id_hash == nullptr) {
-    mask_clipboard.id_hash = BLI_ghash_ptr_new("mask clipboard ID hash");
-  }
+  mask_clipboard_clear();
+  MaskClipboard &mask_clipboard = get_mask_clipboard();
 
   LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
     if (spline->flag & SELECT) {
@@ -1987,12 +1986,7 @@ void BKE_mask_clipboard_copy_from_layer(MaskLayer *mask_layer)
       for (int i = 0; i < spline_new->tot_point; i++) {
         MaskSplinePoint *point = &spline_new->points[i];
         if (point->parent.id) {
-          if (!BLI_ghash_lookup(mask_clipboard.id_hash, point->parent.id)) {
-            int len = strlen(point->parent.id->name);
-            char *name_copy = MEM_malloc_arrayN<char>(size_t(len) + 1, "mask clipboard ID name");
-            memcpy(name_copy, point->parent.id->name, len + 1);
-            BLI_ghash_insert(mask_clipboard.id_hash, point->parent.id, name_copy);
-          }
+          mask_clipboard.id_hash.add(point->parent.id, point->parent.id->name);
         }
       }
 
@@ -2003,26 +1997,22 @@ void BKE_mask_clipboard_copy_from_layer(MaskLayer *mask_layer)
 
 bool BKE_mask_clipboard_is_empty()
 {
-  return BLI_listbase_is_empty(&mask_clipboard.splines);
+  return BLI_listbase_is_empty(&get_mask_clipboard().splines);
 }
 
 void BKE_mask_clipboard_paste_to_layer(Main *bmain, MaskLayer *mask_layer)
 {
+  MaskClipboard &mask_clipboard = get_mask_clipboard();
   LISTBASE_FOREACH (MaskSpline *, spline, &mask_clipboard.splines) {
     MaskSpline *spline_new = BKE_mask_spline_copy(spline);
 
     for (int i = 0; i < spline_new->tot_point; i++) {
       MaskSplinePoint *point = &spline_new->points[i];
       if (point->parent.id) {
-        const char *id_name = static_cast<const char *>(
-            BLI_ghash_lookup(mask_clipboard.id_hash, point->parent.id));
-        ListBase *listbase;
-
-        BLI_assert(id_name != nullptr);
-
-        listbase = which_libbase(bmain, GS(id_name));
+        const blender::StringRefNull id_name = mask_clipboard.id_hash.lookup(point->parent.id);
+        ListBase *listbase = which_libbase(bmain, GS(id_name.c_str()));
         point->parent.id = static_cast<ID *>(
-            BLI_findstring(listbase, id_name + 2, offsetof(ID, name) + 2));
+            BLI_findstring(listbase, id_name.c_str() + 2, offsetof(ID, name) + 2));
       }
     }
 
