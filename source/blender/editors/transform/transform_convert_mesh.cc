@@ -151,7 +151,7 @@ struct TransCustomDataLayer {
   BMesh *bm;
   MemArena *arena;
 
-  GHash *origfaces;
+  Map<BMFace *, BMFace *> *origfaces;
   BMesh *bm_origfaces;
 
   /* Special handle for multi-resolution. */
@@ -280,17 +280,16 @@ static void mesh_customdatacorrect_init_vert(TransCustomDataLayer *tcld,
     BMLoop *l_prev, *l_next;
 
     /* Generic custom-data correction. Copy face data. */
-    void **val_p;
-    if (!BLI_ghash_ensure_p(tcld->origfaces, l->f, &val_p)) {
+    tcld->origfaces->lookup_or_add_cb(l->f, [&]() {
       BMFace *f_copy = BM_face_copy(
           tcld->bm_origfaces, cd_face_map, cd_loop_map, l->f, true, true);
-      *val_p = f_copy;
 #ifdef USE_FACE_SUBSTITUTE
       if (is_zero_v3(l->f->no)) {
         mesh_customdatacorrect_face_substitute_set(tcld, l->f, f_copy);
       }
 #endif
-    }
+      return f_copy;
+    });
 
     if (tcld->use_merge_group) {
       if ((l_prev = BM_loop_find_prev_nodouble(l, l->next, FLT_EPSILON)) &&
@@ -329,7 +328,7 @@ static void mesh_customdatacorrect_init_container_generic(TransDataContainer * /
 {
   BMesh *bm = tcld->bm;
 
-  GHash *origfaces = BLI_ghash_ptr_new(__func__);
+  auto *origfaces = MEM_new<Map<BMFace *, BMFace *>>(__func__);
   BMeshCreateParams params{};
   params.use_toolflags = false;
   BMesh *bm_origfaces = BM_mesh_create(&bm_mesh_allocsize_default, &params);
@@ -442,9 +441,7 @@ static void mesh_customdatacorrect_free(TransCustomDataLayer *tcld)
   if (tcld->bm_origfaces) {
     BM_mesh_free(tcld->bm_origfaces);
   }
-  if (tcld->origfaces) {
-    BLI_ghash_free(tcld->origfaces, nullptr, nullptr);
-  }
+  MEM_delete(tcld->origfaces);
   if (tcld->merge_group.origverts) {
     BLI_ghash_free(tcld->merge_group.origverts, nullptr, nullptr);
   }
@@ -552,7 +549,7 @@ static void mesh_customdatacorrect_apply_vert(TransCustomDataLayer *tcld,
     BMFace *f_copy; /* The copy of 'f'. */
     BMLoop *l = static_cast<BMLoop *>(BM_iter_step(&liter));
 
-    f_copy = static_cast<BMFace *>(BLI_ghash_lookup(tcld->origfaces, l->f));
+    f_copy = tcld->origfaces->lookup(l->f);
 
 #ifdef USE_FACE_SUBSTITUTE
     /* In some faces it is not possible to calculate interpolation,
@@ -644,7 +641,7 @@ static void mesh_customdatacorrect_apply_vert(TransCustomDataLayer *tcld,
     }
 
     BM_ITER_ELEM_INDEX (l, &liter, v, BM_LOOPS_OF_VERT, j) {
-      BMFace *f_copy = static_cast<BMFace *>(BLI_ghash_lookup(tcld->origfaces, l->f));
+      BMFace *f_copy = tcld->origfaces->lookup(l->f);
       float f_copy_center[3];
       BMIter liter_other;
       BMLoop *l_other;
@@ -713,10 +710,9 @@ static void mesh_customdatacorrect_restore(TransInfo *t)
     const BMCustomDataCopyMap cd_loop_map = CustomData_bmesh_copy_map_calc(bm_copy->ldata,
                                                                            bm->ldata);
 
-    GHashIterator gh_iter;
-    GHASH_ITER (gh_iter, tcld->origfaces) {
-      BMFace *f = static_cast<BMFace *>(BLI_ghashIterator_getKey(&gh_iter));
-      BMFace *f_copy = static_cast<BMFace *>(BLI_ghashIterator_getValue(&gh_iter));
+    for (const auto &item : tcld->origfaces->items()) {
+      BMFace *f = item.key;
+      BMFace *f_copy = item.value;
       BLI_assert(f->len == f_copy->len);
 
       BMLoop *l_iter, *l_first, *l_copy;
