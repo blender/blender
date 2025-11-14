@@ -738,7 +738,7 @@ static bool colormanage_compatible_look(const ocio::Look *look, const char *view
 static bool colormanage_use_look(const char *look_name, const char *view_name)
 {
   const ocio::Look *look = g_config->get_look_by_name(look_name);
-  return (look->is_noop == false && colormanage_compatible_look(look, view_name));
+  return (look && look->is_noop == false && colormanage_compatible_look(look, view_name));
 }
 
 void colormanage_cache_free(ImBuf *ibuf)
@@ -1113,6 +1113,11 @@ void IMB_colormanagement_check_file_config(Main *bmain)
     ok &= colormanage_check_display_settings(&scene->display_settings, "scene", default_display);
     ok &= colormanage_check_view_settings(
         &scene->display_settings, &scene->view_settings, "scene");
+
+    ok &= colormanage_check_display_settings(
+        &scene->r.im_format.display_settings, "scene output", default_display);
+    ok &= colormanage_check_view_settings(
+        &scene->r.im_format.display_settings, &scene->r.im_format.view_settings, "scene output");
 
     sequencer_colorspace_settings = &scene->sequencer_colorspace_settings;
 
