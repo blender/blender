@@ -4056,6 +4056,7 @@ static void project_paint_bleed_add_face_user(const ProjPaintState *ps,
 /* Return true if evaluated mesh can be painted on, false otherwise */
 static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *ps)
 {
+  using namespace blender;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob = ps->ob;
 
@@ -4088,14 +4089,39 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   ps->edges_eval = ps->mesh_eval->edges();
   ps->faces_eval = ps->mesh_eval->faces();
   ps->corner_verts_eval = ps->mesh_eval->corner_verts();
-  ps->select_poly_eval = (const bool *)CustomData_get_layer_named(
-      &ps->mesh_eval->face_data, CD_PROP_BOOL, ".select_poly");
-  ps->hide_poly_eval = (const bool *)CustomData_get_layer_named(
-      &ps->mesh_eval->face_data, CD_PROP_BOOL, ".hide_poly");
-  ps->material_indices = (const int *)CustomData_get_layer_named(
-      &ps->mesh_eval->face_data, CD_PROP_INT32, "material_index");
-  ps->sharp_faces_eval = static_cast<const bool *>(
-      CustomData_get_layer_named(&ps->mesh_eval->face_data, CD_PROP_BOOL, "sharp_face"));
+  ps->select_poly_eval = nullptr;
+  ps->hide_poly_eval = nullptr;
+  ps->material_indices = nullptr;
+  ps->sharp_faces_eval = nullptr;
+  const bke::AttributeAccessor attributes = ps->mesh_eval->attributes();
+  if (const bke::GAttributeReader attr = attributes.lookup(".select_poly")) {
+    if (attr.domain == bke::AttrDomain::Face && attr.varray.type().is<bool>()) {
+      if (attr.varray.is_span()) {
+        ps->select_poly_eval = attr.varray.get_internal_span().typed<bool>().data();
+      }
+    }
+  }
+  if (const bke::GAttributeReader attr = attributes.lookup(".hide_poly")) {
+    if (attr.domain == bke::AttrDomain::Face && attr.varray.type().is<bool>()) {
+      if (attr.varray.is_span()) {
+        ps->hide_poly_eval = attr.varray.get_internal_span().typed<bool>().data();
+      }
+    }
+  }
+  if (const bke::GAttributeReader attr = attributes.lookup("material_index")) {
+    if (attr.domain == bke::AttrDomain::Face && attr.varray.type().is<int>()) {
+      if (attr.varray.is_span()) {
+        ps->material_indices = attr.varray.get_internal_span().typed<int>().data();
+      }
+    }
+  }
+  if (const bke::GAttributeReader attr = attributes.lookup("sharp_face")) {
+    if (attr.domain == bke::AttrDomain::Face && attr.varray.type().is<bool>()) {
+      if (attr.varray.is_span()) {
+        ps->sharp_faces_eval = attr.varray.get_internal_span().typed<bool>().data();
+      }
+    }
+  }
 
   ps->totvert_eval = ps->mesh_eval->verts_num;
   ps->faces_num_eval = ps->mesh_eval->faces_num;
