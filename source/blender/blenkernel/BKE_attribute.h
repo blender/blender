@@ -134,14 +134,14 @@ int *BKE_attributes_active_index_p(AttributeOwner &owner);
 
 CustomData *BKE_attributes_iterator_next_domain(AttributeOwner &owner,
                                                 struct CustomDataLayer *layers);
-CustomDataLayer *BKE_attribute_from_index(AttributeOwner &owner,
-                                          int lookup_index,
-                                          AttrDomainMask domain_mask,
-                                          eCustomDataMask layer_mask);
+std::optional<blender::StringRef> BKE_attribute_from_index(AttributeOwner &owner,
+                                                           int lookup_index,
+                                                           AttrDomainMask domain_mask,
+                                                           eCustomDataMask layer_mask);
 
 /** Layer is allowed to be nullptr; if so -1 (layer not found) will be returned. */
 int BKE_attribute_to_index(const AttributeOwner &owner,
-                           const CustomDataLayer *layer,
+                           const blender::StringRef name,
                            AttrDomainMask domain_mask,
                            eCustomDataMask layer_mask);
 

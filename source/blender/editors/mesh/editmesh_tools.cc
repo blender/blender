@@ -3144,7 +3144,7 @@ static wmOperatorStatus edbm_rotate_colors_exec(bContext *C, wmOperator *op)
     }
 
     int color_index = BKE_attribute_to_index(
-        owner, layer, ATTR_DOMAIN_MASK_CORNER, CD_MASK_COLOR_ALL);
+        owner, layer->name, ATTR_DOMAIN_MASK_CORNER, CD_MASK_COLOR_ALL);
     EDBM_op_init(em,
                  &bmop,
                  op,
@@ -3195,7 +3195,7 @@ static wmOperatorStatus edbm_reverse_colors_exec(bContext *C, wmOperator *op)
     BMOperator bmop;
 
     int color_index = BKE_attribute_to_index(
-        owner, layer, ATTR_DOMAIN_MASK_CORNER, CD_MASK_COLOR_ALL);
+        owner, layer->name, ATTR_DOMAIN_MASK_CORNER, CD_MASK_COLOR_ALL);
     EDBM_op_init(
         em, &bmop, op, "reverse_colors faces=%hf color_index=%i", BM_ELEM_SELECT, color_index);
 
