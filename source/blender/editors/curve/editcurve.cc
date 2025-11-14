@@ -5963,16 +5963,14 @@ static wmOperatorStatus toggle_cyclic_invoke(bContext *C,
 {
   Object *obedit = CTX_data_edit_object(C);
   ListBase *editnurb = object_editcurve_get(obedit);
-  uiPopupMenu *pup;
-  uiLayout *layout;
 
   if (obedit->type == OB_SURF) {
     LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       if (nu->pntsu > 1 || nu->pntsv > 1) {
         if (nu->type == CU_NURBS) {
-          pup = UI_popup_menu_begin(C, IFACE_("Direction"), ICON_NONE);
-          layout = UI_popup_menu_layout(pup);
-          layout->op_enum(op->type->idname, "direction");
+          uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Direction"), ICON_NONE);
+          blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
+          layout.op_enum(op->type->idname, "direction");
           UI_popup_menu_end(C, pup);
           return OPERATOR_INTERFACE;
         }

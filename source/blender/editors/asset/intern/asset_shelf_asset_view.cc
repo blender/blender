@@ -63,8 +63,8 @@ class AssetViewItem : public ui::PreviewGridItem {
   AssetViewItem(asset_system::AssetRepresentation &asset_, StringRef identifier, StringRef label);
 
   void disable_asset_drag();
-  void build_grid_tile(const bContext &C, uiLayout &layout) const override;
-  void build_context_menu(bContext &C, uiLayout &column) const override;
+  void build_grid_tile(const bContext &C, ui::Layout &layout) const override;
+  void build_context_menu(bContext &C, ui::Layout &column) const override;
   std::optional<bool> should_be_active() const override;
   void on_activate(bContext &C) override;
   bool should_be_filtered_visible(StringRefNull filter_string) const override;
@@ -217,7 +217,7 @@ static std::optional<wmOperatorCallParams> create_asset_operator_params(
   return wmOperatorCallParams{ot, op_props, wm::OpCallContext::InvokeRegionWin};
 }
 
-void AssetViewItem::build_grid_tile(const bContext & /*C*/, uiLayout &layout) const
+void AssetViewItem::build_grid_tile(const bContext & /*C*/, ui::Layout &layout) const
 {
   const AssetView &asset_view = reinterpret_cast<const AssetView &>(this->get_view());
   const AssetShelfType &shelf_type = *asset_view.shelf_.type;
@@ -272,7 +272,7 @@ void AssetViewItem::build_grid_tile(const bContext & /*C*/, uiLayout &layout) co
   ui::PreviewGridItem::build_grid_tile_button(layout, preview_id);
 }
 
-void AssetViewItem::build_context_menu(bContext &C, uiLayout &column) const
+void AssetViewItem::build_context_menu(bContext &C, ui::Layout &column) const
 {
   const AssetView &asset_view = dynamic_cast<const AssetView &>(this->get_view());
   const AssetShelfType &shelf_type = *asset_view.shelf_.type;
@@ -340,7 +340,7 @@ static std::string filter_string_get(const AssetShelf &shelf)
   return search_string;
 }
 
-void build_asset_view(uiLayout &layout,
+void build_asset_view(ui::Layout &layout,
                       const AssetLibraryReference &library_ref,
                       const AssetShelf &shelf,
                       const bContext &C)

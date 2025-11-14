@@ -527,15 +527,15 @@ void region_layout(const bContext *C, ARegion *region)
   const uiStyle *style = UI_style_get_dpi();
   const int padding_y = main_region_padding_y();
   const int padding_x = main_region_padding_x();
-  uiLayout &layout = ui::block_layout(block,
-                                      ui::LayoutDirection::Vertical,
-                                      ui::LayoutType::Panel,
-                                      padding_x,
-                                      -padding_y,
-                                      region->winx - 2 * padding_x,
-                                      0,
-                                      0,
-                                      style);
+  ui::Layout &layout = ui::block_layout(block,
+                                        ui::LayoutDirection::Vertical,
+                                        ui::LayoutType::Panel,
+                                        padding_x,
+                                        -padding_y,
+                                        region->winx - 2 * padding_x,
+                                        0,
+                                        0,
+                                        style);
 
   build_asset_view(layout, active_shelf->settings.asset_library_reference, *active_shelf, *C);
 
@@ -798,7 +798,7 @@ static uiBut *add_tab_button(uiBlock &block, StringRefNull name)
   return but;
 }
 
-static void add_catalog_tabs(AssetShelf &shelf, uiLayout &layout)
+static void add_catalog_tabs(AssetShelf &shelf, ui::Layout &layout)
 {
   uiBlock *block = layout.block();
   AssetShelfSettings &shelf_settings = shelf.settings;
@@ -841,30 +841,30 @@ static void add_catalog_tabs(AssetShelf &shelf, uiLayout &layout)
 
 static void asset_shelf_header_draw(const bContext *C, Header *header)
 {
-  uiLayout *layout = header->layout;
-  uiBlock *block = layout->block();
+  ui::Layout &layout = *header->layout;
+  uiBlock *block = layout.block();
   const AssetLibraryReference *library_ref = CTX_wm_asset_library_ref(C);
 
   list::storage_fetch(library_ref, C);
 
   UI_block_emboss_set(block, ui::EmbossType::None);
-  layout->popover(C, "ASSETSHELF_PT_catalog_selector", "", ICON_COLLAPSEMENU);
+  layout.popover(C, "ASSETSHELF_PT_catalog_selector", "", ICON_COLLAPSEMENU);
   UI_block_emboss_set(block, ui::EmbossType::Emboss);
 
-  layout->separator();
+  layout.separator();
 
   PointerRNA shelf_ptr = active_shelf_ptr_from_context(C);
   if (AssetShelf *shelf = static_cast<AssetShelf *>(shelf_ptr.data)) {
-    add_catalog_tabs(*shelf, *layout);
+    add_catalog_tabs(*shelf, layout);
   }
 
-  layout->separator_spacer();
+  layout.separator_spacer();
 
-  layout->popover(C, "ASSETSHELF_PT_display", "", ICON_IMGDISPLAY);
-  uiLayout *sub = &layout->row(false);
+  layout.popover(C, "ASSETSHELF_PT_display", "", ICON_IMGDISPLAY);
+  ui::Layout &sub = layout.row(false);
   /* Same as file/asset browser header. */
-  sub->ui_units_x_set(8);
-  sub->prop(&shelf_ptr, "search_filter", UI_ITEM_NONE, "", ICON_VIEWZOOM);
+  sub.ui_units_x_set(8);
+  sub.prop(&shelf_ptr, "search_filter", UI_ITEM_NONE, "", ICON_VIEWZOOM);
 }
 
 static void header_regiontype_register(ARegionType *region_type, const int space_type)

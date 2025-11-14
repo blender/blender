@@ -46,7 +46,7 @@ void send_redraw_notifier(const bContext &C);
 AssetShelfType *ensure_shelf_has_type(AssetShelf &shelf);
 AssetShelf *create_shelf_from_type(AssetShelfType &type);
 
-void library_selector_draw(const bContext *C, ui::Layout *layout, AssetShelf &shelf);
+void library_selector_draw(const bContext *C, ui::Layout &layout, AssetShelf &shelf);
 
 /**
  * Deep-copies \a shelf_regiondata into newly allocated memory. Must be freed using

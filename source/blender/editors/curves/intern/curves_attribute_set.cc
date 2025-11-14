@@ -186,9 +186,9 @@ static wmOperatorStatus set_attribute_invoke(bContext *C, wmOperator *op, const 
 
 static void set_attribute_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = &op->layout->column(true);
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  ui::Layout &layout = op->layout->column(true);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
   Object *object = CTX_data_active_object(C);
   Curves &curves_id = *static_cast<Curves *>(object->data);
@@ -198,7 +198,7 @@ static void set_attribute_ui(bContext *C, wmOperator *op)
   const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   const bke::AttributeMetaData meta_data = *curves.attributes().lookup_meta_data(name);
   const StringRefNull prop_name = geometry::rna_property_name_for_type(meta_data.data_type);
-  layout->prop(op->ptr, prop_name, UI_ITEM_NONE, name, ICON_NONE);
+  layout.prop(op->ptr, prop_name, UI_ITEM_NONE, name, ICON_NONE);
 }
 
 void CURVES_OT_attribute_set(wmOperatorType *ot)
