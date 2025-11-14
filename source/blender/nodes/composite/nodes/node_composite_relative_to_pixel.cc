@@ -209,7 +209,7 @@ class RelativeToPixelOperation : public NodeOperation {
 
     const Domain domain = RealizeOnDomainOperation::compute_realized_transformation_domain(
         this->context(), input_image.domain());
-    const float2 image_size = float2(domain.data_size);
+    const float2 image_size = float2(domain.display_size);
     switch (this->get_reference_dimension()) {
       case CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_PER_DIMENSION:
         return image_size;
