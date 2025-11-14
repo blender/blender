@@ -89,10 +89,10 @@ struct RealizePointCloudTask {
 
 /** Start indices in the final output mesh. */
 struct MeshElementStartIndices {
-  int vertex = 0;
+  int vert = 0;
   int edge = 0;
   int face = 0;
-  int loop = 0;
+  int corner = 0;
 };
 
 struct MeshRealizeInfo {
@@ -108,7 +108,7 @@ struct MeshRealizeInfo {
   /** Matches the order in #AllMeshesInfo.attributes. */
   Array<std::optional<GVArraySpan>> attributes;
   /** Vertex ids stored on the mesh. If there are no ids, this #Span is empty. */
-  Span<int> stored_vertex_ids;
+  Span<int> stored_vert_ids;
   VArray<int> material_indices;
   /** Custom normals are rotated based on each instance's transformation. */
   GVArraySpan custom_normal;
@@ -283,7 +283,7 @@ struct GatherTasks {
 struct GatherOffsets {
   int64_t pointcloud_offset = 0;
   struct {
-    int64_t vertex = 0;
+    int64_t vert = 0;
     int64_t edge = 0;
     int64_t face = 0;
     int64_t corner = 0;
@@ -369,7 +369,7 @@ static int64_t get_final_points_num(const GatherTasks &tasks)
   }
   if (!tasks.mesh_tasks.is_empty()) {
     const RealizeMeshTask &task = tasks.mesh_tasks.last();
-    points_num += task.start_indices.vertex + task.mesh_info->mesh->verts_num;
+    points_num += task.start_indices.vert + task.mesh_info->mesh->verts_num;
   }
   if (!tasks.curve_tasks.is_empty()) {
     const RealizeCurveTask &task = tasks.curve_tasks.last();
@@ -645,7 +645,7 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
         if (mesh != nullptr && mesh->verts_num > 0) {
           const int mesh_index = gather_info.meshes.order.index_of(mesh);
           const MeshRealizeInfo &mesh_info = gather_info.meshes.realize_info[mesh_index];
-          gather_info.r_tasks.mesh_tasks.append({{int(gather_info.r_offsets.mesh_offsets.vertex),
+          gather_info.r_tasks.mesh_tasks.append({{int(gather_info.r_offsets.mesh_offsets.vert),
                                                   int(gather_info.r_offsets.mesh_offsets.edge),
                                                   int(gather_info.r_offsets.mesh_offsets.face),
                                                   int(gather_info.r_offsets.mesh_offsets.corner)},
@@ -653,7 +653,7 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
                                                  base_transform,
                                                  base_instance_context.meshes,
                                                  base_instance_context.id});
-          gather_info.r_offsets.mesh_offsets.vertex += mesh->verts_num;
+          gather_info.r_offsets.mesh_offsets.vert += mesh->verts_num;
           gather_info.r_offsets.mesh_offsets.edge += mesh->edges_num;
           gather_info.r_offsets.mesh_offsets.corner += mesh->corners_num;
           gather_info.r_offsets.mesh_offsets.face += mesh->faces_num;
@@ -1419,7 +1419,7 @@ static AllMeshesInfo preprocess_meshes(const bke::GeometrySet &geometry_set,
       if (ids_attribute && ids_attribute.domain == bke::AttrDomain::Point &&
           ids_attribute.varray.type().is<int>() && ids_attribute.varray.is_span())
       {
-        mesh_info.stored_vertex_ids = ids_attribute.varray.get_internal_span().typed<int>();
+        mesh_info.stored_vert_ids = ids_attribute.varray.get_internal_span().typed<int>();
       }
     }
     mesh_info.material_indices = *attributes.lookup_or_default<int>(
@@ -1483,7 +1483,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
                                       MutableSpan<int> all_dst_face_offsets,
                                       MutableSpan<int> all_dst_corner_verts,
                                       MutableSpan<int> all_dst_corner_edges,
-                                      MutableSpan<int> all_dst_vertex_ids,
+                                      MutableSpan<int> all_dst_vert_ids,
                                       MutableSpan<int> all_dst_material_indices,
                                       GSpanAttributeWriter &all_dst_custom_normals)
 {
@@ -1496,37 +1496,39 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
   const Span<int> src_corner_verts = mesh_info.corner_verts;
   const Span<int> src_corner_edges = mesh_info.corner_edges;
 
-  const IndexRange dst_vert_range(task.start_indices.vertex, src_positions.size());
+  const IndexRange dst_vert_range(task.start_indices.vert, src_positions.size());
   const IndexRange dst_edge_range(task.start_indices.edge, src_edges.size());
   const IndexRange dst_face_range(task.start_indices.face, src_faces.size());
-  const IndexRange dst_loop_range(task.start_indices.loop, src_corner_verts.size());
+  const IndexRange dst_corner_range(task.start_indices.corner, src_corner_verts.size());
 
   MutableSpan<float3> dst_positions = all_dst_positions.slice(dst_vert_range);
   MutableSpan<int2> dst_edges = all_dst_edges.slice(dst_edge_range);
   MutableSpan<int> dst_face_offsets = all_dst_face_offsets.slice(dst_face_range);
-  MutableSpan<int> dst_corner_verts = all_dst_corner_verts.slice(dst_loop_range);
-  MutableSpan<int> dst_corner_edges = all_dst_corner_edges.slice(dst_loop_range);
+  MutableSpan<int> dst_corner_verts = all_dst_corner_verts.slice(dst_corner_range);
+  MutableSpan<int> dst_corner_edges = all_dst_corner_edges.slice(dst_corner_range);
 
   math::transform_points(src_positions, task.transform, dst_positions);
 
   threading::parallel_for(src_edges.index_range(), 1024, [&](const IndexRange edge_range) {
     for (const int i : edge_range) {
-      dst_edges[i] = src_edges[i] + task.start_indices.vertex;
+      dst_edges[i] = src_edges[i] + task.start_indices.vert;
     }
   });
-  threading::parallel_for(src_corner_verts.index_range(), 1024, [&](const IndexRange loop_range) {
-    for (const int i : loop_range) {
-      dst_corner_verts[i] = src_corner_verts[i] + task.start_indices.vertex;
-    }
-  });
-  threading::parallel_for(src_corner_edges.index_range(), 1024, [&](const IndexRange loop_range) {
-    for (const int i : loop_range) {
-      dst_corner_edges[i] = src_corner_edges[i] + task.start_indices.edge;
-    }
-  });
+  threading::parallel_for(
+      src_corner_verts.index_range(), 1024, [&](const IndexRange corner_range) {
+        for (const int i : corner_range) {
+          dst_corner_verts[i] = src_corner_verts[i] + task.start_indices.vert;
+        }
+      });
+  threading::parallel_for(
+      src_corner_edges.index_range(), 1024, [&](const IndexRange corner_range) {
+        for (const int i : corner_range) {
+          dst_corner_edges[i] = src_corner_edges[i] + task.start_indices.edge;
+        }
+      });
   threading::parallel_for(src_faces.index_range(), 1024, [&](const IndexRange face_range) {
     for (const int i : face_range) {
-      dst_face_offsets[i] = src_faces[i].start() + task.start_indices.loop;
+      dst_face_offsets[i] = src_faces[i].start() + task.start_indices.corner;
     }
   });
   if (!all_dst_material_indices.is_empty()) {
@@ -1555,11 +1557,11 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
     }
   }
 
-  if (!all_dst_vertex_ids.is_empty()) {
+  if (!all_dst_vert_ids.is_empty()) {
     create_result_ids(options,
-                      mesh_info.stored_vertex_ids,
+                      mesh_info.stored_vert_ids,
                       task.id,
-                      all_dst_vertex_ids.slice(task.start_indices.vertex, mesh.verts_num));
+                      all_dst_vert_ids.slice(task.start_indices.vert, mesh.verts_num));
   }
 
   const auto domain_to_range = [&](const bke::AttrDomain domain) {
@@ -1571,7 +1573,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
       case bke::AttrDomain::Face:
         return dst_face_range;
       case bke::AttrDomain::Corner:
-        return dst_loop_range;
+        return dst_corner_range;
       default:
         BLI_assert_unreachable();
         return IndexRange();
@@ -1581,11 +1583,11 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
   if (all_dst_custom_normals) {
     if (all_dst_custom_normals.span.type().is<short2>()) {
       if (mesh_info.custom_normal.is_empty()) {
-        all_dst_custom_normals.span.typed<short2>().slice(dst_loop_range).fill(short2(0));
+        all_dst_custom_normals.span.typed<short2>().slice(dst_corner_range).fill(short2(0));
       }
       else {
         all_dst_custom_normals.span.typed<short2>()
-            .slice(dst_loop_range)
+            .slice(dst_corner_range)
             .copy_from(mesh_info.custom_normal.typed<short2>());
       }
     }
@@ -1666,19 +1668,19 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
     return;
   }
 
-  const int64_t tot_vertices = offsets.mesh_offsets.vertex;
-  const int64_t tot_edges = offsets.mesh_offsets.edge;
-  const int64_t tot_loops = offsets.mesh_offsets.corner;
-  const int64_t tot_faces = offsets.mesh_offsets.face;
+  const int64_t verts_num = offsets.mesh_offsets.vert;
+  const int64_t edges_num = offsets.mesh_offsets.edge;
+  const int64_t faces_num = offsets.mesh_offsets.face;
+  const int64_t corners_num = offsets.mesh_offsets.corner;
 
-  if (!valid_int_num(tot_vertices) || !valid_int_num(tot_edges) || !valid_int_num(tot_loops) ||
-      !valid_int_num(tot_faces))
+  if (!valid_int_num(verts_num) || !valid_int_num(edges_num) || !valid_int_num(corners_num) ||
+      !valid_int_num(faces_num))
   {
     r_result.errors.append(RPT_("Realized mesh has too many elements."));
     return;
   }
 
-  Mesh *dst_mesh = BKE_mesh_new_nomain(tot_vertices, tot_edges, tot_faces, tot_loops);
+  Mesh *dst_mesh = BKE_mesh_new_nomain(verts_num, edges_num, faces_num, corners_num);
   r_result.geometry.replace_mesh(dst_mesh);
   bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
   MutableSpan<float3> dst_positions = dst_mesh->vert_positions_for_write();
@@ -1705,10 +1707,9 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   }
 
   /* Prepare id attribute. */
-  SpanAttributeWriter<int> vertex_ids;
+  SpanAttributeWriter<int> vert_ids;
   if (all_meshes_info.create_id_attribute) {
-    vertex_ids = dst_attributes.lookup_or_add_for_write_only_span<int>("id",
-                                                                       bke::AttrDomain::Point);
+    vert_ids = dst_attributes.lookup_or_add_for_write_only_span<int>("id", bke::AttrDomain::Point);
   }
   /* Prepare material indices. */
   SpanAttributeWriter<int> material_indices;
@@ -1773,7 +1774,7 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
                                 dst_face_offsets,
                                 dst_corner_verts,
                                 dst_corner_edges,
-                                vertex_ids.span,
+                                vert_ids.span,
                                 material_indices.span,
                                 custom_normals);
     }
@@ -1783,7 +1784,7 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   for (GSpanAttributeWriter &dst_attribute : dst_attribute_writers) {
     dst_attribute.finish();
   }
-  vertex_ids.finish();
+  vert_ids.finish();
   material_indices.finish();
   custom_normals.finish();
 
