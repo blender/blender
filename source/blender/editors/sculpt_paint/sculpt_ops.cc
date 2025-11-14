@@ -430,14 +430,8 @@ void object_sculpt_mode_enter(Main &bmain,
       if (flag == 0) {
         /* pass */
       }
-      else if (flag & dyntopo::VDATA) {
-        message_unsupported = RPT_("vertex data");
-      }
-      else if (flag & dyntopo::EDATA) {
-        message_unsupported = RPT_("edge data");
-      }
-      else if (flag & dyntopo::LDATA) {
-        message_unsupported = RPT_("face data");
+      else if (flag & dyntopo::ATTRIBUTES) {
+        message_unsupported = RPT_("attributes");
       }
       else if (flag & dyntopo::MODIFIER) {
         message_unsupported = RPT_("constructive modifier");
