@@ -3186,12 +3186,14 @@ bool CustomData_free_layer_active(CustomData *data, const eCustomDataType type)
   return CustomData_free_layer(data, type, index);
 }
 
-void CustomData_free_layers(CustomData *data, const eCustomDataType type)
+bool CustomData_free_layers(CustomData *data, const eCustomDataType type)
 {
   const int index = CustomData_get_layer_index(data, type);
+  bool any_removed = false;
   while (CustomData_free_layer(data, type, index)) {
-    /* pass */
+    any_removed = true;
   }
+  return any_removed;
 }
 
 bool CustomData_has_layer_named(const CustomData *data,

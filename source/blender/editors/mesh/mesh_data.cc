@@ -50,66 +50,6 @@ using blender::MutableSpan;
 using blender::Span;
 using blender::StringRef;
 
-static CustomData *mesh_customdata_get_type(Mesh *mesh, const char htype, int *r_tot)
-{
-  CustomData *data;
-  BMesh *bm = (mesh->runtime->edit_mesh) ? mesh->runtime->edit_mesh->bm : nullptr;
-  int tot;
-
-  switch (htype) {
-    case BM_VERT:
-      if (bm) {
-        data = &bm->vdata;
-        tot = bm->totvert;
-      }
-      else {
-        data = &mesh->vert_data;
-        tot = mesh->verts_num;
-      }
-      break;
-    case BM_EDGE:
-      if (bm) {
-        data = &bm->edata;
-        tot = bm->totedge;
-      }
-      else {
-        data = &mesh->edge_data;
-        tot = mesh->edges_num;
-      }
-      break;
-    case BM_LOOP:
-      if (bm) {
-        data = &bm->ldata;
-        tot = bm->totloop;
-      }
-      else {
-        data = &mesh->corner_data;
-        tot = mesh->corners_num;
-      }
-      break;
-    case BM_FACE:
-      if (bm) {
-        data = &bm->pdata;
-        tot = bm->totface;
-      }
-      else {
-        data = &mesh->face_data;
-        tot = mesh->faces_num;
-      }
-      break;
-    default:
-      BLI_assert(0);
-      tot = 0;
-      data = nullptr;
-      break;
-  }
-
-  if (r_tot) {
-    *r_tot = tot;
-  }
-  return data;
-}
-
 static void mesh_uv_reset_array(float **fuv, const int len)
 {
   if (len == 3) {
@@ -414,9 +354,9 @@ bool ED_mesh_color_ensure(Mesh *mesh, const char *name)
   return true;
 }
 
-/*********************** General poll ************************/
+/*********************** UV texture operators ************************/
 
-static bool layers_poll(bContext *C)
+static bool uv_maps_poll(bContext *C)
 {
   Object *ob = blender::ed::object::context_object(C);
   ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
@@ -424,11 +364,9 @@ static bool layers_poll(bContext *C)
           ID_IS_EDITABLE(data) && !ID_IS_OVERRIDE_LIBRARY(data));
 }
 
-/*********************** UV texture operators ************************/
-
 static bool uv_texture_remove_poll(bContext *C)
 {
-  if (!layers_poll(C)) {
+  if (!uv_maps_poll(C)) {
     return false;
   }
 
@@ -470,16 +408,13 @@ static wmOperatorStatus mesh_uv_texture_add_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_uv_texture_add(wmOperatorType *ot)
 {
-  /* identifiers */
   ot->name = "Add UV Map";
   ot->description = "Add UV map";
   ot->idname = "MESH_OT_uv_texture_add";
 
-  /* API callbacks. */
-  ot->poll = layers_poll;
+  ot->poll = uv_maps_poll;
   ot->exec = mesh_uv_texture_add_exec;
 
-  /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
@@ -508,124 +443,114 @@ static wmOperatorStatus mesh_uv_texture_remove_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 {
-  /* identifiers */
   ot->name = "Remove UV Map";
   ot->description = "Remove UV map";
   ot->idname = "MESH_OT_uv_texture_remove";
 
-  /* API callbacks. */
   ot->poll = uv_texture_remove_poll;
   ot->exec = mesh_uv_texture_remove_exec;
 
-  /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* *** CustomData clear functions, we need an operator for each *** */
-
-static wmOperatorStatus mesh_customdata_clear_exec__internal(bContext *C,
-                                                             char htype,
-                                                             const eCustomDataType type)
-{
-  Mesh *mesh = ED_mesh_context(C);
-
-  CustomData *data = mesh_customdata_get_type(mesh, htype, nullptr);
-
-  BLI_assert(CustomData_layertype_is_singleton(type) == true);
-
-  if (CustomData_has_layer(data, type)) {
-    if (mesh->runtime->edit_mesh) {
-      BM_data_layer_free(mesh->runtime->edit_mesh->bm, data, type);
-    }
-    else {
-      CustomData_free_layers(data, type);
-    }
-
-    DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
-
-    return OPERATOR_FINISHED;
-  }
-  return OPERATOR_CANCELLED;
-}
-
-/* Clear Mask */
 static bool mesh_customdata_mask_clear_poll(bContext *C)
 {
   Object *ob = blender::ed::object::context_object(C);
-  if (ob && ob->type == OB_MESH) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
-
-    /* special case - can't run this if we're in sculpt mode */
-    if (ob->mode & OB_MODE_SCULPT) {
-      return false;
+  if (!ob) {
+    return false;
+  }
+  if (ob->type != OB_MESH) {
+    return false;
+  }
+  if (ob->mode & OB_MODE_SCULPT) {
+    return false;
+  }
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  if (!ID_IS_EDITABLE(mesh) || ID_IS_OVERRIDE_LIBRARY(mesh)) {
+    return false;
+  }
+  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+    if (CustomData_has_layer_named(&em->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask")) {
+      return true;
     }
-
-    if (ID_IS_EDITABLE(mesh) && !ID_IS_OVERRIDE_LIBRARY(mesh)) {
-      CustomData *data = mesh_customdata_get_type(mesh, BM_VERT, nullptr);
-      if (CustomData_has_layer_named(data, CD_PROP_FLOAT, ".sculpt_mask")) {
-        return true;
-      }
-      data = mesh_customdata_get_type(mesh, BM_LOOP, nullptr);
-      if (CustomData_has_layer(data, CD_GRID_PAINT_MASK)) {
-        return true;
-      }
+    if (CustomData_has_layer(&em->bm->ldata, CD_GRID_PAINT_MASK)) {
+      return true;
     }
+    return false;
+  }
+  if (CustomData_has_layer(&mesh->corner_data, CD_GRID_PAINT_MASK)) {
+    return true;
+  }
+  if (mesh->attributes().contains(".sculpt_mask")) {
+    return true;
   }
   return false;
 }
-static wmOperatorStatus mesh_customdata_mask_clear_exec(bContext *C, wmOperator *op)
+
+static wmOperatorStatus mesh_customdata_mask_clear_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *object = blender::ed::object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(object->data);
-  AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
-  const bool ret_a = BKE_attribute_remove(owner, ".sculpt_mask", op->reports);
-  int ret_b = mesh_customdata_clear_exec__internal(C, BM_LOOP, CD_GRID_PAINT_MASK);
-
-  if (ret_a || ret_b == OPERATOR_FINISHED) {
-    return OPERATOR_FINISHED;
+  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+    const bool removed_a = CustomData_free_layer_named(&em->bm->vdata, ".sculpt_mask");
+    const bool removed_b = CustomData_free_layers(&em->bm->ldata, CD_GRID_PAINT_MASK);
+    if (!(removed_a || removed_b)) {
+      return OPERATOR_CANCELLED;
+    }
   }
-  return OPERATOR_CANCELLED;
+  else {
+    const bool removed_a = mesh->attributes_for_write().remove(".sculpt_mask");
+    const bool removed_b = CustomData_free_layers(&mesh->corner_data, CD_GRID_PAINT_MASK);
+    if (!(removed_a || removed_b)) {
+      return OPERATOR_CANCELLED;
+    }
+  }
+  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
+  return OPERATOR_FINISHED;
 }
 
 void MESH_OT_customdata_mask_clear(wmOperatorType *ot)
 {
-  /* NOTE: no create_mask yet */
-
-  /* identifiers */
   ot->name = "Clear Sculpt Mask Data";
   ot->idname = "MESH_OT_customdata_mask_clear";
   ot->description = "Clear vertex sculpt masking data from the mesh";
 
-  /* API callbacks. */
   ot->exec = mesh_customdata_mask_clear_exec;
   ot->poll = mesh_customdata_mask_clear_poll;
 
-  /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/**
- * Clear Skin
- * \return -1 invalid state, 0 no skin, 1 has skin.
- */
-static int mesh_customdata_skin_state(bContext *C)
+enum class SkinState {
+  Invalid = -1,
+  NoSkin = 0,
+  HasSkin = 1,
+};
+static SkinState mesh_customdata_skin_state(bContext *C)
 {
   Object *ob = blender::ed::object::context_object(C);
-
-  if (ob && ob->type == OB_MESH) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
-    if (ID_IS_EDITABLE(mesh) && !ID_IS_OVERRIDE_LIBRARY(mesh)) {
-      CustomData *data = mesh_customdata_get_type(mesh, BM_VERT, nullptr);
-      return CustomData_has_layer(data, CD_MVERT_SKIN);
-    }
+  if (!ob) {
+    return SkinState::Invalid;
   }
-  return -1;
+  if (ob->type != OB_MESH) {
+    return SkinState::Invalid;
+  }
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  if (!ID_IS_EDITABLE(mesh) || ID_IS_OVERRIDE_LIBRARY(mesh)) {
+    return SkinState::Invalid;
+  }
+  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+    return CustomData_has_layer(&em->bm->vdata, CD_MVERT_SKIN) ? SkinState::HasSkin :
+                                                                 SkinState::NoSkin;
+  }
+  return CustomData_has_layer(&mesh->vert_data, CD_MVERT_SKIN) ? SkinState::HasSkin :
+                                                                 SkinState::NoSkin;
 }
 
 static bool mesh_customdata_skin_add_poll(bContext *C)
 {
-  return (mesh_customdata_skin_state(C) == 0);
+  return mesh_customdata_skin_state(C) == SkinState::NoSkin;
 }
 
 static wmOperatorStatus mesh_customdata_skin_add_exec(bContext *C, wmOperator * /*op*/)
@@ -643,67 +568,72 @@ static wmOperatorStatus mesh_customdata_skin_add_exec(bContext *C, wmOperator * 
 
 void MESH_OT_customdata_skin_add(wmOperatorType *ot)
 {
-  /* identifiers */
   ot->name = "Add Skin Data";
   ot->idname = "MESH_OT_customdata_skin_add";
   ot->description = "Add a vertex skin layer";
 
-  /* API callbacks. */
   ot->exec = mesh_customdata_skin_add_exec;
   ot->poll = mesh_customdata_skin_add_poll;
 
-  /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static bool mesh_customdata_skin_clear_poll(bContext *C)
 {
-  return (mesh_customdata_skin_state(C) == 1);
+  return mesh_customdata_skin_state(C) == SkinState::HasSkin;
 }
 
 static wmOperatorStatus mesh_customdata_skin_clear_exec(bContext *C, wmOperator * /*op*/)
 {
-  return mesh_customdata_clear_exec__internal(C, BM_VERT, CD_MVERT_SKIN);
+  Object *object = blender::ed::object::context_object(C);
+  Mesh *mesh = static_cast<Mesh *>(object->data);
+  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+    if (!CustomData_free_layers(&em->bm->vdata, CD_MVERT_SKIN)) {
+      return OPERATOR_CANCELLED;
+    }
+  }
+  else {
+    if (!CustomData_free_layers(&mesh->vert_data, CD_MVERT_SKIN)) {
+      return OPERATOR_CANCELLED;
+    }
+  }
+  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
+  return OPERATOR_FINISHED;
 }
 
 void MESH_OT_customdata_skin_clear(wmOperatorType *ot)
 {
-  /* identifiers */
   ot->name = "Clear Skin Data";
   ot->idname = "MESH_OT_customdata_skin_clear";
   ot->description = "Clear vertex skin layer";
 
-  /* API callbacks. */
   ot->exec = mesh_customdata_skin_clear_exec;
   ot->poll = mesh_customdata_skin_clear_poll;
 
-  /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* Clear custom loop normals */
 static wmOperatorStatus mesh_customdata_custom_splitnormals_add_exec(bContext *C,
                                                                      wmOperator * /*op*/)
 {
   using namespace blender;
   Mesh *mesh = ED_mesh_context(C);
-  if (BKE_mesh_has_custom_loop_normals(mesh)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  if (mesh->runtime->edit_mesh) {
-    BMesh &bm = *mesh->runtime->edit_mesh->bm;
-    BM_data_layer_ensure_named(&bm, &bm.ldata, CD_PROP_INT16_2D, "custom_normal");
+  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+    if (BM_data_layer_lookup(*em->bm, "custom_normal")) {
+      return OPERATOR_CANCELLED;
+    }
+    BM_data_layer_ensure_named(em->bm, &em->bm->ldata, CD_PROP_INT16_2D, "custom_normal");
   }
   else {
-    if (!mesh->attributes_for_write().add<short2>(
-            "custom_normal", bke::AttrDomain::Corner, bke::AttributeInitDefaultValue()))
-    {
+    bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+    const bke::AttributeInitDefaultValue init;
+    if (!attributes.add<short2>("custom_normal", bke::AttrDomain::Corner, init)) {
       return OPERATOR_CANCELLED;
     }
   }
 
-  DEG_id_tag_update(&mesh->id, 0);
+  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
 
   return OPERATOR_FINISHED;
@@ -711,24 +641,21 @@ static wmOperatorStatus mesh_customdata_custom_splitnormals_add_exec(bContext *C
 
 void MESH_OT_customdata_custom_splitnormals_add(wmOperatorType *ot)
 {
-  /* identifiers */
   ot->name = "Add Custom Normals Data";
   ot->idname = "MESH_OT_customdata_custom_splitnormals_add";
   ot->description = "Add a custom normals layer, if none exists yet";
 
-  /* API callbacks. */
   ot->exec = mesh_customdata_custom_splitnormals_add_exec;
   ot->poll = ED_operator_editable_mesh;
 
-  /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static wmOperatorStatus mesh_customdata_custom_splitnormals_clear_exec(bContext *C,
                                                                        wmOperator * /*op*/)
 {
+  using namespace blender;
   Mesh *mesh = ED_mesh_context(C);
-
   if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
     BMesh &bm = *em->bm;
     if (!CustomData_has_layer_named(&bm.ldata, CD_PROP_INT16_2D, "custom_normal")) {
@@ -740,7 +667,8 @@ static wmOperatorStatus mesh_customdata_custom_splitnormals_clear_exec(bContext 
     }
   }
   else {
-    if (!mesh->attributes_for_write().remove("custom_normal")) {
+    bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+    if (!attributes.remove("custom_normal")) {
       return OPERATOR_CANCELLED;
     }
   }
@@ -754,16 +682,13 @@ static wmOperatorStatus mesh_customdata_custom_splitnormals_clear_exec(bContext 
 
 void MESH_OT_customdata_custom_splitnormals_clear(wmOperatorType *ot)
 {
-  /* identifiers */
   ot->name = "Clear Custom Normals Data";
   ot->idname = "MESH_OT_customdata_custom_splitnormals_clear";
   ot->description = "Remove the custom normals layer, if it exists";
 
-  /* API callbacks. */
   ot->exec = mesh_customdata_custom_splitnormals_clear_exec;
   ot->poll = ED_operator_editable_mesh;
 
-  /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
