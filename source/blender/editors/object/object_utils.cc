@@ -342,47 +342,41 @@ void object_xform_skip_child_container_update_all(XFormObjectSkipChild_Container
  *
  * \{ */
 
-struct XFormObjectData_Container {
-  GHash *obdata_in_obmode_map = nullptr;
-};
-
 struct XFormObjectData_Extra {
   Object *ob = nullptr;
   float obmat_orig[4][4] = {};
   std::unique_ptr<XFormObjectData> xod;
 };
 
+struct XFormObjectData_Container {
+  Map<ID *, std::unique_ptr<XFormObjectData_Extra>> obdata_in_obmode_map;
+};
+
 void data_xform_container_item_ensure(XFormObjectData_Container *xds, Object *ob)
 {
-  if (xds->obdata_in_obmode_map == nullptr) {
-    xds->obdata_in_obmode_map = BLI_ghash_ptr_new(__func__);
-  }
-
-  void **xf_p;
-  if (!BLI_ghash_ensure_p(xds->obdata_in_obmode_map, ob->data, &xf_p)) {
-    XFormObjectData_Extra *xf = MEM_new<XFormObjectData_Extra>(__func__);
+  xds->obdata_in_obmode_map.lookup_or_add_cb(static_cast<ID *>(ob->data), [&]() {
+    auto xf = std::make_unique<XFormObjectData_Extra>();
     copy_m4_m4(xf->obmat_orig, ob->object_to_world().ptr());
     xf->ob = ob;
     /* Result may be nullptr, that's OK. */
     xf->xod = data_xform_create(static_cast<ID *>(ob->data));
-    *xf_p = xf;
-  }
+    return xf;
+  });
 }
 
 void data_xform_container_update_all(XFormObjectData_Container *xds,
                                      Main *bmain,
                                      Depsgraph *depsgraph)
 {
-  if (xds->obdata_in_obmode_map == nullptr) {
+  if (xds->obdata_in_obmode_map.is_empty()) {
     return;
   }
   BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
 
-  GHashIterator gh_iter;
-  GHASH_ITER (gh_iter, xds->obdata_in_obmode_map) {
-    ID *id = static_cast<ID *>(BLI_ghashIterator_getKey(&gh_iter));
-    XFormObjectData_Extra *xf = static_cast<XFormObjectData_Extra *>(
-        BLI_ghashIterator_getValue(&gh_iter));
+  for (const auto &item : xds->obdata_in_obmode_map.items()) {
+    ID *id = item.key;
+    XFormObjectData_Extra *xf = item.value.get();
+
     if (!xf->xod) {
       continue;
     }
@@ -404,23 +398,13 @@ void data_xform_container_update_all(XFormObjectData_Container *xds,
   }
 }
 
-/** Callback for #GHash free. */
-static void trans_obdata_in_obmode_free_elem(void *xf_p)
-{
-  XFormObjectData_Extra *xf = static_cast<XFormObjectData_Extra *>(xf_p);
-  MEM_delete(xf);
-}
-
 XFormObjectData_Container *data_xform_container_create()
 {
-  XFormObjectData_Container *xds = MEM_new<XFormObjectData_Container>(__func__);
-  xds->obdata_in_obmode_map = BLI_ghash_ptr_new(__func__);
-  return xds;
+  return MEM_new<XFormObjectData_Container>(__func__);
 }
 
 void data_xform_container_destroy(XFormObjectData_Container *xds)
 {
-  BLI_ghash_free(xds->obdata_in_obmode_map, nullptr, trans_obdata_in_obmode_free_elem);
   MEM_delete(xds);
 }
 
