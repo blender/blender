@@ -144,9 +144,7 @@ void BKE_id_attributes_active_color_set(struct ID *id, std::optional<blender::St
 void BKE_id_attributes_active_color_clear(struct ID *id);
 void BKE_id_attributes_default_color_set(struct ID *id, std::optional<blender::StringRef> name);
 
-const struct CustomDataLayer *BKE_id_attributes_color_find(const struct ID *id,
-                                                           blender::StringRef name);
-bool BKE_color_attribute_supported(const struct Mesh &mesh, blender::StringRef name);
+bool BKE_id_attributes_color_find(const struct ID *id, blender::StringRef name);
 
 std::string BKE_attribute_calc_unique_name(const AttributeOwner &owner, blender::StringRef name);
 

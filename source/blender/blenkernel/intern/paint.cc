@@ -2793,7 +2793,7 @@ void BKE_sculpt_color_layer_create_if_needed(Object *object)
   using namespace blender::bke;
   Mesh *orig_me = BKE_object_get_original_mesh(object);
 
-  if (BKE_color_attribute_supported(*orig_me, orig_me->active_color_attribute)) {
+  if (BKE_id_attributes_color_find(&orig_me->id, orig_me->active_color_attribute)) {
     return;
   }
 

@@ -981,15 +981,10 @@ void BKE_id_attributes_default_color_set(ID *id, const std::optional<StringRef> 
   }
 }
 
-const CustomDataLayer *BKE_id_attributes_color_find(const ID *id, const StringRef name)
+bool BKE_id_attributes_color_find(const ID *id, const StringRef name)
 {
   AttributeOwner owner = AttributeOwner::from_id(const_cast<ID *>(id));
-  return BKE_attribute_search(owner, name, CD_MASK_COLOR_ALL, ATTR_DOMAIN_MASK_COLOR);
-}
-
-bool BKE_color_attribute_supported(const Mesh &mesh, const StringRef name)
-{
-  return blender::bke::mesh::is_color_attribute(mesh.attributes().lookup_meta_data(name));
+  return BKE_attribute_to_index(owner, name, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL) != -1;
 }
 
 StringRef BKE_uv_map_pin_name_get(const StringRef uv_map_name, char *buffer)
