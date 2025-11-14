@@ -1917,6 +1917,40 @@ class USDExportTest(AbstractUSDTest):
             file_list = zfile.namelist()
             self.assertIn('textures/color_0C0C0C.exr', file_list)
 
+    def test_export_indexed_uvs(self):
+        """Test that UV maps are exported with proper indexing."""
+
+        # Create a simple cube
+        bpy.ops.mesh.primitive_cube_add()
+        cube = bpy.context.active_object
+        cube.name = "Cube"
+
+        # Export the mesh
+        export_path = self.tempdir / "uv_indexed_test.usda"
+        self.export_and_validate(
+            filepath=str(export_path),
+            export_uvmaps=True,
+            rename_uvmaps=True,
+            evaluation_mode="RENDER",
+        )
+
+        # Load and validate the exported USD
+        stage = Usd.Stage.Open(str(export_path))
+        mesh_prim = stage.GetPrimAtPath("/root/Cube/Cube")
+
+        primvars_api = UsdGeom.PrimvarsAPI(mesh_prim)
+        uv_primvar = primvars_api.GetPrimvar("st")
+        self.assertTrue(uv_primvar.IsIndexed(), "UV primvar should be indexed")
+        self.assertEqual(uv_primvar.GetInterpolation(), UsdGeom.Tokens.faceVarying,
+                         "UV interpolation should be faceVarying")
+
+        uv_values = uv_primvar.Get()
+        uv_indices = uv_primvar.GetIndices()
+        self.assertIsNotNone(uv_indices, "UV primvar should have indices")
+        self.assertEqual(len(uv_indices), 24, "Should have 24 UV indices (one per face vertex)")
+        self.assertLess(len(uv_values), 24,
+                        f"Unique UV count ({len(uv_values)}) should be less than face vertex count (24)")
+
 
 class USDHookBase:
     instructions = {}
