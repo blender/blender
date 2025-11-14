@@ -67,7 +67,7 @@ class BlenderStrokeRenderer : public StrokeRenderer {
   float _z, _z_delta;
   uint _mesh_id;
   bool _use_shading_nodes;
-  struct GHash *_nodetree_hash;
+  mutable blender::Map<bNodeTree *, Material *> _nodetree_hash;
 
   static const char *uvNames[];
 

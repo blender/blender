@@ -158,9 +158,6 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count)
   // Reset serial mesh ID (used for BlenderStrokeRenderer::NewMesh())
   _mesh_id = 0xffffffff;
 
-  // Create a bNodeTree-to-Material hash table
-  _nodetree_hash = BLI_ghash_ptr_new("BlenderStrokeRenderer::_nodetree_hash");
-
   // Depsgraph
   freestyle_depsgraph = DEG_graph_new(
       freestyle_bmain, freestyle_scene, view_layer, DAG_EVAL_RENDER);
@@ -171,8 +168,6 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count)
 
 BlenderStrokeRenderer::~BlenderStrokeRenderer()
 {
-  BLI_ghash_free(_nodetree_hash, nullptr, nullptr);
-
   DEG_graph_free(freestyle_depsgraph);
 
   FreeStrokeGroups();
@@ -439,11 +434,8 @@ void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 {
   bNodeTree *nt = iStrokeRep->getNodeTree();
-  Material *ma = (Material *)BLI_ghash_lookup(_nodetree_hash, nt);
-  if (!ma) {
-    ma = BlenderStrokeRenderer::GetStrokeShader(freestyle_bmain, nt, false);
-    BLI_ghash_insert(_nodetree_hash, nt, ma);
-  }
+  Material *ma = _nodetree_hash.lookup_or_add_cb(
+      nt, [&]() { return BlenderStrokeRenderer::GetStrokeShader(freestyle_bmain, nt, false); });
   iStrokeRep->setMaterial(ma);
 
   const vector<Strip *> &strips = iStrokeRep->getStrips();
