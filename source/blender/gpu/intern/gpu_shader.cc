@@ -921,6 +921,7 @@ AsyncCompilationHandle ShaderCompiler::async_compilation(const shader::ShaderCre
   }
   else {
     compilation->shader = compile(*info, false);
+    compilation->is_ready = true;
   }
 
   return handle;
@@ -932,7 +933,7 @@ void ShaderCompiler::asyc_compilation_cancel(AsyncCompilationHandle &handle)
     std::unique_lock lock(mutex_);
 
     AsyncCompilation *compilation = async_compilations_.pop(handle);
-    if (compilation_worker_->cancel_work(compilation->work->id)) {
+    if (compilation_worker_ && compilation_worker_->cancel_work(compilation->work->id)) {
       compilation->is_ready = true;
     }
 
@@ -1045,6 +1046,10 @@ bool ShaderCompiler::is_compiling_impl()
 {
   /* The mutex should be locked before calling this function. */
   BLI_assert(!mutex_.try_lock());
+
+  if (compilation_worker_ == nullptr) {
+    return false;
+  }
 
   if (!compilation_worker_->is_empty()) {
     return true;
