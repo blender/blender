@@ -23,6 +23,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_customdata.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
@@ -326,6 +327,12 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   bke::SpanAttributeWriter mloopcols_value =
       attributes.lookup_or_add_for_write_span<ColorGeometry4b>(pimd->value_layer_name,
                                                                bke::AttrDomain::Corner);
+
+  bke::LegacyMeshInterpolator vert_interp(*mesh, *result, bke::AttrDomain::Point);
+  bke::LegacyMeshInterpolator edge_interp(*mesh, *result, bke::AttrDomain::Edge);
+  bke::LegacyMeshInterpolator face_interp(*mesh, *result, bke::AttrDomain::Face);
+  bke::LegacyMeshInterpolator corner_interp(*mesh, *result, bke::AttrDomain::Corner);
+
   int *vert_part_index = nullptr;
   float *vert_part_value = nullptr;
   if (mloopcols_index) {
@@ -350,7 +357,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       ParticleKey state;
       int vindex = p_skip * totvert + k;
 
-      CustomData_copy_data(&mesh->vert_data, &result->vert_data, k, vindex, 1);
+      vert_interp.copy(k, vindex, 1);
 
       if (vert_part_index != nullptr) {
         vert_part_index[vindex] = p;
@@ -469,7 +476,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     }
 
     /* Create edges and adjust edge vertex indices. */
-    CustomData_copy_data(&mesh->edge_data, &result->edge_data, 0, p_skip * totedge, totedge);
+    edge_interp.copy(0, p_skip * totedge, totedge);
     blender::int2 *edge = &edges[p_skip * totedge];
     for (k = 0; k < totedge; k++, edge++) {
       (*edge)[0] += p_skip * totvert;
@@ -480,7 +487,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     for (k = 0; k < faces_num; k++) {
       const blender::IndexRange in_face = orig_faces[k];
 
-      CustomData_copy_data(&mesh->face_data, &result->face_data, k, p_skip * faces_num + k, 1);
+      face_interp.copy(k, p_skip * faces_num + k, 1);
       const int dst_face_start = in_face.start() + p_skip * totloop;
       face_offsets[p_skip * faces_num + k] = dst_face_start;
 
@@ -489,8 +496,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
         int dst_corner_i = dst_face_start;
         int j = in_face.size();
 
-        CustomData_copy_data(
-            &mesh->corner_data, &result->corner_data, in_face.start(), dst_face_start, j);
+        corner_interp.copy(in_face.start(), dst_face_start, j);
         for (; j; j--, orig_corner_i++, dst_corner_i++) {
           corner_verts[dst_corner_i] = orig_corner_verts[orig_corner_i] + (p_skip * totvert);
           corner_edges[dst_corner_i] = orig_corner_edges[orig_corner_i] + (p_skip * totedge);

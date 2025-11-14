@@ -27,6 +27,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_attribute.hh"
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_customdata.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
@@ -420,7 +421,12 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   int *origindex = static_cast<int *>(
       CustomData_get_layer_for_write(&result->face_data, CD_ORIGINDEX, result->faces_num));
 
-  CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, 0, int(totvert));
+  bke::LegacyMeshInterpolator vert_interp(*mesh, *result, bke::AttrDomain::Point);
+  bke::LegacyMeshInterpolator edge_interp(*mesh, *result, bke::AttrDomain::Edge);
+  bke::LegacyMeshInterpolator face_interp(*mesh, *result, bke::AttrDomain::Face);
+  bke::LegacyMeshInterpolator corner_interp(*mesh, *result, bke::AttrDomain::Corner);
+
+  vert_interp.copy(0, 0, int(totvert));
 
   if (!uv_map_names.is_empty()) {
     const float zero_co[3] = {0};
@@ -773,8 +779,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     }
 
     /* copy a slice */
-    CustomData_copy_data(
-        &mesh->vert_data, &result->vert_data, 0, int(varray_stride), int(totvert));
+    vert_interp.copy(0, int(varray_stride), int(totvert));
 
     /* set location */
     for (j = 0; j < totvert; j++) {
@@ -873,8 +878,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
       /* Polygon */
       if (has_mpoly_orig) {
-        CustomData_copy_data(
-            &mesh->face_data, &result->face_data, int(face_index_orig), face_index, 1);
+        face_interp.copy(int(face_index_orig), face_index, 1);
         origindex[face_index] = int(face_index_orig);
       }
       else {
@@ -887,26 +891,10 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       /* Loop-Custom-Data */
       if (has_mloop_orig) {
 
-        CustomData_copy_data(&mesh->corner_data,
-                             &result->corner_data,
-                             int(mloop_index_orig[0]),
-                             new_loop_index + 0,
-                             1);
-        CustomData_copy_data(&mesh->corner_data,
-                             &result->corner_data,
-                             int(mloop_index_orig[1]),
-                             new_loop_index + 1,
-                             1);
-        CustomData_copy_data(&mesh->corner_data,
-                             &result->corner_data,
-                             int(mloop_index_orig[1]),
-                             new_loop_index + 2,
-                             1);
-        CustomData_copy_data(&mesh->corner_data,
-                             &result->corner_data,
-                             int(mloop_index_orig[0]),
-                             new_loop_index + 3,
-                             1);
+        corner_interp.copy(int(mloop_index_orig[0]), new_loop_index + 0, 1);
+        corner_interp.copy(int(mloop_index_orig[1]), new_loop_index + 1, 1);
+        corner_interp.copy(int(mloop_index_orig[1]), new_loop_index + 2, 1);
+        corner_interp.copy(int(mloop_index_orig[0]), new_loop_index + 3, 1);
 
         if (!uv_map_names.is_empty()) {
           const float uv_u_offset_a = float(step) * uv_u_scale;
