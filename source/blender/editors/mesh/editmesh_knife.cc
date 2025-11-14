@@ -245,10 +245,10 @@ struct KnifeTool_OpData {
 #endif
   } edgenet;
 
-  GHash *origvertmap;
-  GHash *origedgemap;
-  GHash *kedgefacemap;
-  GHash *facetrimap;
+  blender::Map<BMVert *, KnifeVert *> *origvertmap;
+  blender::Map<BMEdge *, KnifeEdge *> *origedgemap;
+  blender::Map<BMFace *, ListBase *> *kedgefacemap;
+  blender::Map<BMFace *, int> *facetrimap;
 
   KnifeBVH bvh;
 
@@ -1635,7 +1635,7 @@ static KnifeEdge *new_knife_edge(KnifeTool_OpData *kcd)
 /* Get a KnifeVert wrapper for an existing BMVert. */
 static KnifeVert *get_bm_knife_vert(KnifeTool_OpData *kcd, BMVert *v, int ob_index)
 {
-  KnifeVert *kfv = static_cast<KnifeVert *>(BLI_ghash_lookup(kcd->origvertmap, v));
+  KnifeVert *kfv = kcd->origvertmap->lookup_default(v, nullptr);
   const float *cageco;
 
   if (!kfv) {
@@ -1657,7 +1657,7 @@ static KnifeVert *get_bm_knife_vert(KnifeTool_OpData *kcd, BMVert *v, int ob_ind
     kfv->v = v;
     kfv->ob_index = ob_index;
 
-    BLI_ghash_insert(kcd->origvertmap, v, kfv);
+    kcd->origvertmap->add(v, kfv);
     BM_ITER_ELEM (f, &bmiter, v, BM_FACES_OF_VERT) {
       knife_append_list(kcd, &kfv->faces, f);
     }
@@ -1669,7 +1669,7 @@ static KnifeVert *get_bm_knife_vert(KnifeTool_OpData *kcd, BMVert *v, int ob_ind
 /* Get a KnifeEdge wrapper for an existing BMEdge. */
 static KnifeEdge *get_bm_knife_edge(KnifeTool_OpData *kcd, BMEdge *e, int ob_index)
 {
-  KnifeEdge *kfe = static_cast<KnifeEdge *>(BLI_ghash_lookup(kcd->origedgemap, e));
+  KnifeEdge *kfe = kcd->origedgemap->lookup_default(e, nullptr);
   if (!kfe) {
     BMIter bmiter;
     BMFace *f;
@@ -1681,7 +1681,7 @@ static KnifeEdge *get_bm_knife_edge(KnifeTool_OpData *kcd, BMEdge *e, int ob_ind
 
     knife_add_to_vert_edges(kcd, kfe);
 
-    BLI_ghash_insert(kcd->origedgemap, e, kfe);
+    kcd->origedgemap->add(e, kfe);
 
     BM_ITER_ELEM (f, &bmiter, e, BM_FACES_OF_EDGE) {
       knife_append_list(kcd, &kfe->faces, f);
@@ -1693,7 +1693,7 @@ static KnifeEdge *get_bm_knife_edge(KnifeTool_OpData *kcd, BMEdge *e, int ob_ind
 
 static ListBase *knife_get_face_kedges(KnifeTool_OpData *kcd, int ob_index, BMFace *f)
 {
-  ListBase *list = static_cast<ListBase *>(BLI_ghash_lookup(kcd->kedgefacemap, f));
+  ListBase *list = kcd->kedgefacemap->lookup_default(f, nullptr);
 
   if (!list) {
     BMIter bmiter;
@@ -1705,7 +1705,7 @@ static ListBase *knife_get_face_kedges(KnifeTool_OpData *kcd, int ob_index, BMFa
       knife_append_list(kcd, list, get_bm_knife_edge(kcd, e, ob_index));
     }
 
-    BLI_ghash_insert(kcd->kedgefacemap, f, list);
+    kcd->kedgefacemap->add(f, list);
   }
 
   return list;
@@ -1932,16 +1932,11 @@ static void prepare_linehits_for_cut(KnifeTool_OpData *kcd)
 
 /* Add hit to list of hits in facehits[f], where facehits is a map, if not already there. */
 static void add_hit_to_facehits(KnifeTool_OpData *kcd,
-                                GHash *facehits,
+                                blender::Map<BMFace *, ListBase *> &facehits,
                                 BMFace *f,
                                 KnifeLineHit *hit)
 {
-  ListBase *list = static_cast<ListBase *>(BLI_ghash_lookup(facehits, f));
-
-  if (!list) {
-    list = knife_empty_list(kcd);
-    BLI_ghash_insert(facehits, f, list);
-  }
+  ListBase *list = facehits.lookup_or_add_cb(f, [&]() { return knife_empty_list(kcd); });
   knife_append_list_no_dup(kcd, list, hit);
 }
 
@@ -2293,10 +2288,6 @@ static void knife_make_cuts(KnifeTool_OpData *kcd, int ob_index)
  */
 static void knife_add_cut(KnifeTool_OpData *kcd)
 {
-  GHash *facehits;
-  BMFace *f;
-  GHashIterator giter;
-  ListBase *list;
 
   /* Allocate new undo frame on stack, unless cut is being dragged. */
   if (!kcd->is_drag_undo) {
@@ -2327,7 +2318,7 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
   }
 
   /* Make facehits: map face -> list of linehits touching it. */
-  facehits = BLI_ghash_ptr_new("knife facehits");
+  blender::Map<BMFace *, ListBase *> facehits;
   for (KnifeLineHit &hit : kcd->linehits) {
     KnifeLineHit *lh = &hit;
     if (lh->f) {
@@ -2349,9 +2340,9 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
    * the linehits will be filled in (as edges are split or
    * in-face verts are made), so it may be true that both
    * the v and the kfe or f fields will be non-null. */
-  GHASH_ITER (giter, facehits) {
-    f = (BMFace *)BLI_ghashIterator_getKey(&giter);
-    list = (ListBase *)BLI_ghashIterator_getValue(&giter);
+  for (const auto &item : facehits.items()) {
+    BMFace *f = item.key;
+    ListBase *list = item.value;
     knife_cut_face(kcd, f, list);
   }
 
@@ -2370,7 +2361,6 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
     linehit_to_knifepos(&kcd->prev, lh);
   }
 
-  BLI_ghash_free(facehits, nullptr, nullptr);
   kcd->linehits.clear_and_shrink();
 }
 
@@ -2397,7 +2387,7 @@ static void set_lowest_face_tri(KnifeTool_OpData *kcd, BMEditMesh *em, BMFace *f
 {
   int i;
 
-  if (BLI_ghash_lookup(kcd->facetrimap, f)) {
+  if (kcd->facetrimap->contains(f)) {
     return;
   }
 
@@ -2413,7 +2403,7 @@ static void set_lowest_face_tri(KnifeTool_OpData *kcd, BMEditMesh *em, BMFace *f
     i++;
   }
 
-  BLI_ghash_insert(kcd->facetrimap, f, POINTER_FROM_INT(i + 1));
+  kcd->facetrimap->add(f, i + 1);
 }
 
 /* This should only be called for faces that have had a lowest face tri set by previous function.
@@ -2422,7 +2412,7 @@ static int get_lowest_face_tri(KnifeTool_OpData *kcd, BMFace *f)
 {
   int ans;
 
-  ans = POINTER_AS_INT(BLI_ghash_lookup(kcd->facetrimap, f));
+  ans = kcd->facetrimap->lookup(f);
   BLI_assert(ans != 0);
   return ans - 1;
 }
@@ -3973,10 +3963,10 @@ static void knifetool_init(ViewContext *vc,
   kcd->undostack = BLI_stack_new(sizeof(KnifeUndoFrame), "knife undostack");
   kcd->splitstack = BLI_stack_new(sizeof(KnifeEdge *), "knife splitstack");
 
-  kcd->origedgemap = BLI_ghash_ptr_new("knife origedgemap");
-  kcd->origvertmap = BLI_ghash_ptr_new("knife origvertmap");
-  kcd->kedgefacemap = BLI_ghash_ptr_new("knife kedgefacemap");
-  kcd->facetrimap = BLI_ghash_ptr_new("knife facetrimap");
+  kcd->origedgemap = MEM_new<blender::Map<BMEdge *, KnifeEdge *>>("knife origedgemap");
+  kcd->origvertmap = MEM_new<blender::Map<BMVert *, KnifeVert *>>("knife origvertmap");
+  kcd->kedgefacemap = MEM_new<blender::Map<BMFace *, ListBase *>>("knife kedgefacemap");
+  kcd->facetrimap = MEM_new<blender::Map<BMFace *, int>>("knife facetrimap");
 
   knife_pos_data_clear(&kcd->curr);
   knife_pos_data_clear(&kcd->prev);
@@ -4023,10 +4013,10 @@ static void knifetool_exit_ex(KnifeTool_OpData *kcd)
   BLI_stack_free(kcd->undostack);
   BLI_stack_free(kcd->splitstack);
 
-  BLI_ghash_free(kcd->origedgemap, nullptr, nullptr);
-  BLI_ghash_free(kcd->origvertmap, nullptr, nullptr);
-  BLI_ghash_free(kcd->kedgefacemap, nullptr, nullptr);
-  BLI_ghash_free(kcd->facetrimap, nullptr, nullptr);
+  MEM_delete(kcd->origedgemap);
+  MEM_delete(kcd->origvertmap);
+  MEM_delete(kcd->kedgefacemap);
+  MEM_delete(kcd->facetrimap);
 
   BLI_memarena_free(kcd->arena);
 #ifdef USE_NET_ISLAND_CONNECT
