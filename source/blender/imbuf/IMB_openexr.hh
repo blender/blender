@@ -87,3 +87,10 @@ void IMB_exr_add_view(ExrHandle *handle, const char *name);
 bool IMB_exr_has_multilayer(ExrHandle *handle);
 
 bool IMB_exr_get_ppm(ExrHandle *handle, double ppm[2]);
+
+/* Retrieves the EXR display window information. The information is in the same structure specified
+ * in ImBuf, see its documentation for more information. */
+void IMB_get_exr_display_window(ExrHandle *handle,
+                                int display_size[2],
+                                int display_offset[2],
+                                int data_offset[2]);

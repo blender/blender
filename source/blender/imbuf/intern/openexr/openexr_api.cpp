@@ -2060,6 +2060,30 @@ bool IMB_exr_get_ppm(ExrHandle *handle, double ppm[2])
   return exr_get_ppm(*handle->ifile, ppm);
 }
 
+static void get_exr_display_window(const MultiPartInputFile &file,
+                                   int display_size[2],
+                                   int display_offset[2],
+                                   int data_offset[2])
+{
+  const Header &header = file.header(0);
+  const Box2i data_window = header.dataWindow();
+  const Box2i display_window = header.displayWindow();
+  display_size[0] = display_window.size()[0] + 1;
+  display_size[1] = display_window.size()[1] + 1;
+  display_offset[0] = display_window.min[0];
+  display_offset[1] = display_window.min[1];
+  data_offset[0] = data_window.min[0] - display_window.min[0];
+  data_offset[1] = data_window.min[1] - display_window.min[1];
+}
+
+void IMB_get_exr_display_window(ExrHandle *handle,
+                                int display_size[2],
+                                int display_offset[2],
+                                int data_offset[2])
+{
+  get_exr_display_window(*handle->ifile, display_size, display_offset, data_offset);
+}
+
 ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, ImFileColorSpace &r_colorspace)
 {
   ImBuf *ibuf = nullptr;
@@ -2099,6 +2123,9 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, ImFileColorSpa
       ibuf = IMB_allocImBuf(width, height, is_alpha ? 32 : 24, 0);
       ibuf->foptions.flag |= exr_is_half_float(*file) ? OPENEXR_HALF : 0;
       ibuf->foptions.flag |= openexr_header_get_compression(file_header);
+
+      ibuf->flags |= IB_has_display_window;
+      get_exr_display_window(*file, ibuf->display_size, ibuf->display_offset, ibuf->data_offset);
 
       exr_get_ppm(*file, ibuf->ppm);
 
