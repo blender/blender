@@ -463,24 +463,40 @@ static wmOperatorStatus geometry_color_attribute_add_exec(bContext *C, wmOperato
   RNA_string_get(op->ptr, "name", name);
   eCustomDataType type = eCustomDataType(RNA_enum_get(op->ptr, "data_type"));
   bke::AttrDomain domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
-  AttributeOwner owner = AttributeOwner::from_id(id);
-  CustomDataLayer *layer = BKE_attribute_new(owner, name, type, domain, op->reports);
 
   float color[4];
   RNA_float_get_array(op->ptr, "color", color);
 
-  if (layer == nullptr) {
-    return OPERATOR_CANCELLED;
+  AttributeOwner owner = AttributeOwner::from_id(id);
+  const std::string unique_name = BKE_attribute_calc_unique_name(owner, name);
+
+  if (owner.type() == AttributeOwnerType::Mesh) {
+    CustomDataLayer *layer = BKE_attribute_new(owner, unique_name, type, domain, op->reports);
+    if (layer == nullptr) {
+      return OPERATOR_CANCELLED;
+    }
+
+    BKE_id_attributes_active_color_set(id, unique_name);
+    if (!BKE_id_attributes_color_find(id, BKE_id_attributes_default_color_name(id).value_or(""))) {
+      BKE_id_attributes_default_color_set(id, unique_name);
+    }
+    sculpt_paint::object_active_color_fill(*ob, color, false);
+    DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+    return OPERATOR_FINISHED;
   }
 
-  BKE_id_attributes_active_color_set(id, layer->name);
+  bke::MutableAttributeAccessor attributes = *owner.get_accessor();
+  attributes.add(unique_name,
+                 domain,
+                 *bke::custom_data_type_to_attr_type(type),
+                 bke::AttributeInitDefaultValue());
 
+  BKE_id_attributes_active_color_set(id, unique_name);
   if (!BKE_id_attributes_color_find(id, BKE_id_attributes_default_color_name(id).value_or(""))) {
-    BKE_id_attributes_default_color_set(id, layer->name);
+    BKE_id_attributes_default_color_set(id, unique_name);
   }
-
   sculpt_paint::object_active_color_fill(*ob, color, false);
-
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 
@@ -830,7 +846,7 @@ static wmOperatorStatus geometry_color_attribute_duplicate_exec(bContext *C, wmO
   if (!active_name) {
     return OPERATOR_CANCELLED;
   }
-if (GS(id->name) != ID_ME) {
+  if (GS(id->name) != ID_ME) {
     return OPERATOR_CANCELLED;
   }
   Mesh &mesh = *id_cast<Mesh *>(id);
