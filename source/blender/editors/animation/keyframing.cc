@@ -535,7 +535,7 @@ static wmOperatorStatus insert_key_menu_invoke(bContext *C,
    * hence the #OPERATOR_INTERFACE return. */
   uiPopupMenu *pup = UI_popup_menu_begin(
       C, WM_operatortype_name(op->type, op->ptr).c_str(), ICON_NONE);
-  uiLayout *layout = UI_popup_menu_layout(pup);
+  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
 
   /* Even though `ANIM_OT_keyframe_insert_menu` can show a menu in one line,
    * prefer `ANIM_OT_keyframe_insert_by_name` so users can bind keys to specific
@@ -550,7 +550,7 @@ static wmOperatorStatus insert_key_menu_invoke(bContext *C,
   for (int i = 0; i < totitem; i++) {
     const EnumPropertyItem *item = &item_array[i];
     if (item->identifier[0] != '\0') {
-      PointerRNA op_ptr = layout->op("ANIM_OT_keyframe_insert_by_name", item->name, item->icon);
+      PointerRNA op_ptr = layout.op("ANIM_OT_keyframe_insert_by_name", item->name, item->icon);
       RNA_string_set(&op_ptr, "type", item->identifier);
     }
     else {
@@ -558,7 +558,7 @@ static wmOperatorStatus insert_key_menu_invoke(bContext *C,
        * NOTE: If in the future the enum includes them, additional layout code can be
        * added to show them - although that doesn't seem likely. */
       BLI_assert(item->name == nullptr);
-      layout->separator();
+      layout.separator();
     }
   }
 
