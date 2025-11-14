@@ -96,13 +96,6 @@ bool BKE_attribute_remove(AttributeOwner &owner,
                           blender::StringRef name,
                           struct ReportList *reports);
 
-/**
- * Creates a duplicate attribute layer.
- */
-struct CustomDataLayer *BKE_attribute_duplicate(AttributeOwner &owner,
-                                                blender::StringRef name,
-                                                struct ReportList *reports);
-
 const struct CustomDataLayer *BKE_attribute_search(const AttributeOwner &owner,
                                                    blender::StringRef name,
                                                    eCustomDataMask type,

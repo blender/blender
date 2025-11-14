@@ -423,69 +423,6 @@ CustomDataLayer *BKE_attribute_new(AttributeOwner &owner,
   return (index == -1) ? nullptr : &(customdata->layers[index]);
 }
 
-static void bke_attribute_copy_if_exists(AttributeOwner &owner,
-                                         const StringRef srcname,
-                                         const StringRef dstname)
-{
-  using namespace blender::bke;
-
-  std::optional<MutableAttributeAccessor> attributes = owner.get_accessor();
-  if (!attributes) {
-    return;
-  }
-
-  GAttributeReader src = attributes->lookup(srcname);
-  if (!src) {
-    return;
-  }
-
-  attributes->add(dstname,
-                  src.domain,
-                  cpp_type_to_attribute_type(src.varray.type()),
-                  AttributeInitVArray(src.varray));
-}
-
-CustomDataLayer *BKE_attribute_duplicate(AttributeOwner &owner,
-                                         const StringRef name,
-                                         ReportList *reports)
-{
-  using namespace blender::bke;
-  std::string uniquename = BKE_attribute_calc_unique_name(owner, name);
-
-  if (owner.type() == AttributeOwnerType::Mesh) {
-    Mesh *mesh = owner.get_mesh();
-    if (mesh->runtime->edit_mesh) {
-      BLI_assert_unreachable();
-      return nullptr;
-    }
-  }
-
-  std::optional<MutableAttributeAccessor> attributes = owner.get_accessor();
-  if (!attributes) {
-    return nullptr;
-  }
-
-  GAttributeReader src = attributes->lookup(name);
-  if (!src) {
-    BKE_report(reports, RPT_ERROR, "Attribute is not part of this geometry");
-    return nullptr;
-  }
-
-  const AttrType type = cpp_type_to_attribute_type(src.varray.type());
-  attributes->add(uniquename, src.domain, type, AttributeInitVArray(src.varray));
-
-  if (owner.type() == AttributeOwnerType::Mesh && type == AttrType::Float2) {
-    /* Duplicate UV sub-attributes. */
-    char buffer_src[MAX_CUSTOMDATA_LAYER_NAME];
-    char buffer_dst[MAX_CUSTOMDATA_LAYER_NAME];
-    bke_attribute_copy_if_exists(owner,
-                                 BKE_uv_map_pin_name_get(name, buffer_src),
-                                 BKE_uv_map_pin_name_get(uniquename, buffer_dst));
-  }
-
-  return BKE_attribute_search_for_write(owner, uniquename, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
-}
-
 static int color_name_to_index(AttributeOwner &owner, const StringRef name)
 {
   return BKE_attribute_to_index(owner, name, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);

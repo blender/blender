@@ -822,7 +822,7 @@ void GEOMETRY_OT_color_attribute_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static wmOperatorStatus geometry_color_attribute_duplicate_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus geometry_color_attribute_duplicate_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = object::context_object(C);
   ID *id = static_cast<ID *>(ob->data);
@@ -830,14 +830,20 @@ static wmOperatorStatus geometry_color_attribute_duplicate_exec(bContext *C, wmO
   if (!active_name) {
     return OPERATOR_CANCELLED;
   }
-
+if (GS(id->name) != ID_ME) {
+    return OPERATOR_CANCELLED;
+  }
+  Mesh &mesh = *id_cast<Mesh *>(id);
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  bke::GAttributeReader src = attributes.lookup(*active_name);
   AttributeOwner owner = AttributeOwner::from_id(id);
-  CustomDataLayer *new_layer = BKE_attribute_duplicate(owner, *active_name, op->reports);
-  if (new_layer == nullptr) {
+  std::string uniquename = BKE_attribute_calc_unique_name(owner, *active_name);
+  const bke::AttrType type = bke::cpp_type_to_attribute_type(src.varray.type());
+  if (!attributes.add(uniquename, src.domain, type, bke::AttributeInitVArray(src.varray))) {
     return OPERATOR_CANCELLED;
   }
 
-  BKE_id_attributes_active_color_set(id, new_layer->name);
+  BKE_id_attributes_active_color_set(id, uniquename);
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
