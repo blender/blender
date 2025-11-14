@@ -53,7 +53,7 @@
 #  include "DNA_scene_types.h"
 
 #  include "BLI_kdopbvh.hh"
-#  include "BLI_kdtree.h"
+#  include "BLI_kdtree.hh"
 #  include "BLI_math_vector.hh"
 #  include "BLI_mutex.hh"
 #  include "BLI_threads.h"

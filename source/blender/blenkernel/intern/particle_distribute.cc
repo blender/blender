@@ -12,7 +12,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_jitter_2d.h"
-#include "BLI_kdtree.h"
+#include "BLI_kdtree.hh"
 #include "BLI_math_geom.h"
 #include "BLI_rand.h"
 #include "BLI_sort.h"

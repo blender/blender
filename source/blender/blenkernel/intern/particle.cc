@@ -34,7 +34,7 @@
 #include "DNA_texture_types.h"
 
 #include "BLI_kdopbvh.hh"
-#include "BLI_kdtree.h"
+#include "BLI_kdtree.hh"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_base_safe.h"

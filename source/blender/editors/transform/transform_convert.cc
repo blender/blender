@@ -14,7 +14,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_function_ref.hh"
-#include "BLI_kdtree.h"
+#include "BLI_kdtree.hh"
 #include "BLI_linklist_stack.h"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"

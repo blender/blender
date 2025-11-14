@@ -24,7 +24,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_kdtree.h"
+#include "BLI_kdtree.hh"
 #include "BLI_rand.hh"
 #include "BLI_task.hh"
 

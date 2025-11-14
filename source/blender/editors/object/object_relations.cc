@@ -27,7 +27,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
 
-#include "BLI_kdtree.h"
+#include "BLI_kdtree.hh"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"

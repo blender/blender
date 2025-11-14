@@ -10,7 +10,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLI_kdtree.h"
+#include "BLI_kdtree.hh"
 #include "BLI_map.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"

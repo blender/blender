@@ -13,7 +13,7 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_heap_simple.h"
-#include "BLI_kdtree.h"
+#include "BLI_kdtree.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
