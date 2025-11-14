@@ -613,8 +613,8 @@ int BKE_attributes_length(const AttributeOwner &owner,
       if ((1 << int(domain)) & domain_mask) {
         length += CustomData_number_of_layers_typemask(customdata, mask);
       }
-      return length;
     }
+    return length;
   }
   const bke::AttributeStorage &storage = *owner.get_storage();
   if (domain_mask == ATTR_DOMAIN_MASK_ALL && mask == CD_MASK_PROP_ALL) {
