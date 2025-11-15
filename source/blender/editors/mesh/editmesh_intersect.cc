@@ -577,26 +577,19 @@ struct LinkBase {
   uint list_len;
 };
 
-static void ghash_insert_face_edge_link(GHash *gh,
+static void ghash_insert_face_edge_link(blender::Map<BMFace *, LinkBase *> &gh,
                                         BMFace *f_key,
                                         BMEdge *e_val,
                                         MemArena *mem_arena)
 {
-  void **ls_base_p;
-  LinkBase *ls_base;
-  LinkNode *ls;
-
-  if (!BLI_ghash_ensure_p(gh, f_key, &ls_base_p)) {
-    ls_base = static_cast<LinkBase *>(*ls_base_p = BLI_memarena_alloc(mem_arena,
-                                                                      sizeof(*ls_base)));
+  LinkBase *ls_base = gh.lookup_or_add_cb(f_key, [&]() {
+    LinkBase *ls_base = static_cast<LinkBase *>(BLI_memarena_alloc(mem_arena, sizeof(*ls_base)));
     ls_base->list = nullptr;
     ls_base->list_len = 0;
-  }
-  else {
-    ls_base = static_cast<LinkBase *>(*ls_base_p);
-  }
+    return ls_base;
+  });
 
-  ls = static_cast<LinkNode *>(BLI_memarena_alloc(mem_arena, sizeof(*ls)));
+  LinkNode *ls = static_cast<LinkNode *>(BLI_memarena_alloc(mem_arena, sizeof(*ls)));
   ls->next = ls_base->list;
   ls->link = e_val;
   ls_base->list = ls;
@@ -957,7 +950,7 @@ static wmOperatorStatus edbm_face_split_by_edges_exec(bContext *C, wmOperator * 
     /* we may have remaining isolated regions remaining,
      * these will need to have connecting edges created */
     if (!BLI_stack_is_empty(edges_loose)) {
-      GHash *face_edge_map = BLI_ghash_ptr_new(__func__);
+      blender::Map<BMFace *, LinkBase *> face_edge_map;
 
       MemArena *mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 
@@ -992,11 +985,10 @@ static wmOperatorStatus edbm_face_split_by_edges_exec(bContext *C, wmOperator * 
       /* detect edges chains that span faces
        * and splice vertices into the closest edges */
       {
-        GHashIterator gh_iter;
 
-        GHASH_ITER (gh_iter, face_edge_map) {
-          BMFace *f = static_cast<BMFace *>(BLI_ghashIterator_getKey(&gh_iter));
-          LinkBase *e_ls_base = static_cast<LinkBase *>(BLI_ghashIterator_getValue(&gh_iter));
+        for (const auto &item : face_edge_map.items()) {
+          BMFace *f = item.key;
+          LinkBase *e_ls_base = item.value;
           LinkNode *e_link = e_ls_base->list;
 
           do {
@@ -1035,11 +1027,9 @@ static wmOperatorStatus edbm_face_split_by_edges_exec(bContext *C, wmOperator * 
       {
         MemArena *mem_arena_edgenet = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 
-        GHashIterator gh_iter;
-
-        GHASH_ITER (gh_iter, face_edge_map) {
-          BMFace *f = static_cast<BMFace *>(BLI_ghashIterator_getKey(&gh_iter));
-          LinkBase *e_ls_base = static_cast<LinkBase *>(BLI_ghashIterator_getValue(&gh_iter));
+        for (const auto &item : face_edge_map.items()) {
+          BMFace *f = item.key;
+          LinkBase *e_ls_base = item.value;
 
           bm_face_split_by_edges_island_connect(
               bm, f, e_ls_base->list, e_ls_base->list_len, mem_arena_edgenet);
@@ -1051,8 +1041,6 @@ static wmOperatorStatus edbm_face_split_by_edges_exec(bContext *C, wmOperator * 
       }
 
       BLI_memarena_free(mem_arena);
-
-      BLI_ghash_free(face_edge_map, nullptr, nullptr);
 
       EDBMUpdate_Params params{};
       params.calc_looptris = true;
