@@ -95,6 +95,7 @@
 
 #include "BLI_assert.h"
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 #include "BLI_mempool.h"
 #include "BLI_utildefines.h"
 
@@ -1773,52 +1774,35 @@ bool BLI_array_store_is_valid(BArrayStore *bs)
   /* Check User Count & Lost References
    * ---------------------------------- */
   {
-    GHashIterator gh_iter;
-
-#define GHASH_PTR_ADD_USER(gh, pt) \
-  { \
-    void **val; \
-    if (BLI_ghash_ensure_p((gh), (pt), &val)) { \
-      *((int *)val) += 1; \
-    } \
-    else { \
-      *((int *)val) = 1; \
-    } \
-  } \
-  ((void)0)
-
     /* Count chunk_list's. */
-    GHash *chunk_list_map = BLI_ghash_ptr_new(__func__);
-    GHash *chunk_map = BLI_ghash_ptr_new(__func__);
+    blender::Map<BChunkList *, int> chunk_list_map;
+    blender::Map<BChunk *, int> chunk_map;
 
     int totrefs = 0;
     LISTBASE_FOREACH (BArrayState *, state, &bs->states) {
-      GHASH_PTR_ADD_USER(chunk_list_map, state->chunk_list);
+      chunk_list_map.lookup_or_add(state->chunk_list, 0)++;
     }
-    GHASH_ITER (gh_iter, chunk_list_map) {
-      const BChunkList *chunk_list = static_cast<const BChunkList *>(
-          BLI_ghashIterator_getKey(&gh_iter));
-      const int users = POINTER_AS_INT(BLI_ghashIterator_getValue(&gh_iter));
+    for (const auto &item : chunk_list_map.items()) {
+      const BChunkList *chunk_list = item.key;
+      const int users = item.value;
       if (!(chunk_list->users == users)) {
         ok = false;
         goto user_finally;
       }
     }
-    if (!(BLI_mempool_len(bs->memory.chunk_list) == int(BLI_ghash_len(chunk_list_map)))) {
+    if (!(BLI_mempool_len(bs->memory.chunk_list) == chunk_list_map.size())) {
       ok = false;
       goto user_finally;
     }
 
     /* Count chunk's. */
-    GHASH_ITER (gh_iter, chunk_list_map) {
-      const BChunkList *chunk_list = static_cast<const BChunkList *>(
-          BLI_ghashIterator_getKey(&gh_iter));
+    for (const BChunkList *chunk_list : chunk_list_map.keys()) {
       LISTBASE_FOREACH (const BChunkRef *, cref, &chunk_list->chunk_refs) {
-        GHASH_PTR_ADD_USER(chunk_map, cref->link);
+        chunk_map.lookup_or_add(cref->link, 0)++;
         totrefs += 1;
       }
     }
-    if (!(BLI_mempool_len(bs->memory.chunk) == int(BLI_ghash_len(chunk_map)))) {
+    if (!(BLI_mempool_len(bs->memory.chunk) == chunk_map.size())) {
       ok = false;
       goto user_finally;
     }
@@ -1827,22 +1811,17 @@ bool BLI_array_store_is_valid(BArrayStore *bs)
       goto user_finally;
     }
 
-    GHASH_ITER (gh_iter, chunk_map) {
-      const BChunk *chunk = static_cast<const BChunk *>(BLI_ghashIterator_getKey(&gh_iter));
-      const int users = POINTER_AS_INT(BLI_ghashIterator_getValue(&gh_iter));
+    for (const auto &item : chunk_map.items()) {
+      const BChunk *chunk = item.key;
+      const int users = item.value;
       if (!(chunk->users == users)) {
         ok = false;
         goto user_finally;
       }
     }
-
-#undef GHASH_PTR_ADD_USER
-
-  user_finally:
-    BLI_ghash_free(chunk_list_map, nullptr, nullptr);
-    BLI_ghash_free(chunk_map, nullptr, nullptr);
   }
 
+user_finally:
   return ok;
   /* TODO: dangling pointer checks. */
 }
