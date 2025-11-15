@@ -341,8 +341,8 @@ using UVVertMap = Map<BMVert *, Vector<UVVertBucket>>;
 struct BevelParams {
   /** Records BevVerts made. */
   blender::Map<BMVert *, BevVert *> vert_hash;
-  /** Records new faces: key BMFace*, value one of {VERT/EDGE/RECON}_POLY. */
-  GHash *face_hash;
+  /** Records new faces. */
+  std::optional<blender::Map<BMFace *, FKind>> face_hash;
   /** Records `UVFace` made. */
   blender::Map<BMFace *, UVFace *> uv_face_hash;
   /** Container which keeps track of UV vert connectivity in different UV maps. */
@@ -450,14 +450,13 @@ static void disable_flag_out_edge(BMesh *bm, BMEdge *bme)
 static void record_face_kind(BevelParams *bp, BMFace *f, FKind fkind)
 {
   if (bp->face_hash) {
-    BLI_ghash_insert(bp->face_hash, f, POINTER_FROM_INT(fkind));
+    bp->face_hash->add(f, fkind);
   }
 }
 
 static FKind get_face_kind(BevelParams *bp, BMFace *f)
 {
-  void *val = BLI_ghash_lookup(bp->face_hash, f);
-  return val ? (FKind)POINTER_AS_INT(val) : F_ORIG;
+  return bp->face_hash->lookup_default(f, F_ORIG);
 }
 
 /* Are d1 and d2 parallel or nearly so? */
@@ -7906,7 +7905,6 @@ void BM_mesh_bevel(BMesh *bm,
   bp.miter_outer = miter_outer;
   bp.miter_inner = miter_inner;
   bp.spread = spread;
-  bp.face_hash = nullptr;
   bp.profile_type = profile_type;
   bp.custom_profile = custom_profile;
   bp.vmesh_method = vmesh_method;
@@ -7957,8 +7955,7 @@ void BM_mesh_bevel(BMesh *bm,
     set_profile_spacing(&bp, &bp.pro_spacing_miter, false);
   }
 
-  bp.face_hash = BLI_ghash_ptr_new(__func__);
-  BLI_ghash_flag_set(bp.face_hash, GHASH_FLAG_ALLOW_DUPES);
+  bp.face_hash.emplace();
 
   math_layer_info_init(&bp, bm);
   uv_vert_map_init(&bp, bm);
@@ -8089,7 +8086,6 @@ void BM_mesh_bevel(BMesh *bm,
   }
 
   /* Primary free. */
-  BLI_ghash_free(bp.face_hash, nullptr, nullptr);
   BLI_memarena_free(bp.mem_arena);
 
 #ifdef BEVEL_DEBUG_TIME
