@@ -159,8 +159,7 @@ struct TransCustomDataLayer {
 
   /* Optionally merge custom-data groups (this keeps UVs connected for example). */
   struct {
-    /** Map {#BMVert: #TransDataBasic}. */
-    GHash *origverts;
+    Map<BMVert *, TransDataBasic *> *origverts;
     TransCustomDataMergeGroup *data;
     int data_len;
     /** Array size of 'layer_math_map_len'
@@ -319,7 +318,7 @@ static void mesh_customdatacorrect_init_vert(TransCustomDataLayer *tcld,
       merge_data->cd_loop_groups = nullptr;
     }
 
-    BLI_ghash_insert(tcld->merge_group.origverts, v, td);
+    tcld->merge_group.origverts->add(v, td);
   }
 }
 
@@ -365,7 +364,8 @@ static void mesh_customdatacorrect_init_container_merge_group(TransDataContainer
   tcld->merge_group.data_len = tc->data_len + tc->data_mirror_len;
   tcld->merge_group.customdatalayer_map = customdatalayer_map;
   tcld->merge_group.customdatalayer_map_len = layer_math_map_len;
-  tcld->merge_group.origverts = BLI_ghash_ptr_new_ex(__func__, tcld->merge_group.data_len);
+  tcld->merge_group.origverts = MEM_new<Map<BMVert *, TransDataBasic *>>(__func__);
+  tcld->merge_group.origverts->reserve(tcld->merge_group.data_len);
   tcld->merge_group.data = static_cast<TransCustomDataMergeGroup *>(BLI_memarena_alloc(
       tcld->arena, tcld->merge_group.data_len * sizeof(*tcld->merge_group.data)));
 }
@@ -443,7 +443,7 @@ static void mesh_customdatacorrect_free(TransCustomDataLayer *tcld)
   }
   MEM_delete(tcld->origfaces);
   if (tcld->merge_group.origverts) {
-    BLI_ghash_free(tcld->merge_group.origverts, nullptr, nullptr);
+    MEM_delete(tcld->merge_group.origverts);
   }
   if (tcld->arena) {
     BLI_memarena_free(tcld->arena);
@@ -513,8 +513,7 @@ void transform_convert_mesh_customdatacorrect_init(TransInfo *t)
  */
 static const float *mesh_vert_orig_co_get(TransCustomDataLayer *tcld, BMVert *v)
 {
-  TransDataBasic *td = static_cast<TransDataBasic *>(
-      BLI_ghash_lookup(tcld->merge_group.origverts, v));
+  TransDataBasic *td = tcld->merge_group.origverts->lookup_default(v, nullptr);
   return td ? td->iloc : v->co;
 }
 
