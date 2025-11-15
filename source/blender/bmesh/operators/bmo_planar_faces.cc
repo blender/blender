@@ -22,8 +22,8 @@
 #define ELE_FACE_ADJUST (1 << 1)
 
 struct VertAccum {
-  float co[3];
-  int co_tot;
+  float co[3] = {};
+  int co_tot = 0;
 };
 
 void bmo_planar_faces_exec(BMesh *bm, BMOperator *op)
@@ -37,8 +37,6 @@ void bmo_planar_faces_exec(BMesh *bm, BMOperator *op)
 
   BMOIter oiter;
   BMFace *f;
-  BLI_mempool *vert_accum_pool;
-  GHash *vaccum_map;
   float (*faces_center)[3];
   int i, iter_step, shared_vert_num;
 
@@ -66,11 +64,10 @@ void bmo_planar_faces_exec(BMesh *bm, BMOperator *op)
     BMO_face_flag_enable(bm, f, ELE_FACE_ADJUST);
   }
 
-  vert_accum_pool = BLI_mempool_create(sizeof(VertAccum), 0, 512, BLI_MEMPOOL_NOP);
-  vaccum_map = BLI_ghash_ptr_new_ex(__func__, shared_vert_num);
+  blender::Map<BMVert *, VertAccum> vaccum_map;
+  vaccum_map.reserve(shared_vert_num);
 
   for (iter_step = 0; iter_step < iterations; iter_step++) {
-    GHashIterator gh_iter;
     bool changed = false;
 
     BMO_ITER_INDEX (f, &oiter, op->slots_in, "faces", BM_FACE, i) {
@@ -94,30 +91,23 @@ void bmo_planar_faces_exec(BMesh *bm, BMOperator *op)
 
       l_iter = l_first = BM_FACE_FIRST_LOOP(f);
       do {
-        VertAccum *va;
-        void **va_p;
+        VertAccum &va = vaccum_map.lookup_or_add_default(l_iter->v);
         float co[3];
-
-        if (!BLI_ghash_ensure_p(vaccum_map, l_iter->v, &va_p)) {
-          *va_p = BLI_mempool_calloc(vert_accum_pool);
-        }
-        va = static_cast<VertAccum *>(*va_p);
-
         closest_to_plane_normalized_v3(co, plane, l_iter->v->co);
-        va->co_tot += 1;
+        va.co_tot += 1;
 
-        interp_v3_v3v3(va->co, va->co, co, 1.0f / float(va->co_tot));
+        interp_v3_v3v3(va.co, va.co, co, 1.0f / float(va.co_tot));
       } while ((l_iter = l_iter->next) != l_first);
     }
 
-    GHASH_ITER (gh_iter, vaccum_map) {
-      BMVert *v = static_cast<BMVert *>(BLI_ghashIterator_getKey(&gh_iter));
-      VertAccum *va = static_cast<VertAccum *>(BLI_ghashIterator_getValue(&gh_iter));
+    for (const auto &item : vaccum_map.items()) {
+      BMVert *v = item.key;
+      const VertAccum &va = item.value;
       BMIter iter;
 
-      if (len_squared_v3v3(v->co, va->co) > eps_sq) {
+      if (len_squared_v3v3(v->co, va.co) > eps_sq) {
         BMO_vert_flag_enable(bm, v, ELE_VERT_ADJUST);
-        interp_v3_v3v3(v->co, v->co, va->co, fac);
+        interp_v3_v3v3(v->co, v->co, va.co, fac);
         changed = true;
       }
 
@@ -134,11 +124,8 @@ void bmo_planar_faces_exec(BMesh *bm, BMOperator *op)
       break;
     }
 
-    BLI_ghash_clear(vaccum_map, nullptr, nullptr);
-    BLI_mempool_clear(vert_accum_pool);
+    vaccum_map.clear();
   }
 
   MEM_freeN(faces_center);
-  BLI_ghash_free(vaccum_map, nullptr, nullptr);
-  BLI_mempool_destroy(vert_accum_pool);
 }
