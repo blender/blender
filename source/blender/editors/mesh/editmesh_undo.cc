@@ -780,11 +780,12 @@ static void um_arraystore_free(UndoMesh *um)
 static UndoMesh **mesh_undostep_reference_elems_from_objects(Object **object, int object_len)
 {
   /* Map: `Mesh.id.session_uid` -> `UndoMesh`. */
-  GHash *uuid_map = BLI_ghash_ptr_new_ex(__func__, object_len);
+  blender::Map<int, UndoMesh **> uuid_map;
+  uuid_map.reserve(object_len);
   UndoMesh **um_references = MEM_calloc_arrayN<UndoMesh *>(object_len, __func__);
   for (int i = 0; i < object_len; i++) {
     const Mesh *mesh = static_cast<const Mesh *>(object[i]->data);
-    BLI_ghash_insert(uuid_map, POINTER_FROM_INT(mesh->id.session_uid), &um_references[i]);
+    uuid_map.add(mesh->id.session_uid, &um_references[i]);
   }
   int uuid_map_len = object_len;
 
@@ -793,17 +794,13 @@ static UndoMesh **mesh_undostep_reference_elems_from_objects(Object **object, in
    * - There are no undo steps left to look for. */
   UndoMesh *um_iter = static_cast<UndoMesh *>(um_arraystore.local_links.last);
   while (um_iter && (uuid_map_len != 0)) {
-    UndoMesh **um_p;
-    if ((um_p = static_cast<UndoMesh **>(BLI_ghash_popkey(
-             uuid_map, POINTER_FROM_INT(um_iter->mesh->id.session_uid), nullptr))))
-    {
+    if (UndoMesh **um_p = uuid_map.pop_default(um_iter->mesh->id.session_uid, nullptr)) {
       *um_p = um_iter;
       uuid_map_len--;
     }
     um_iter = um_iter->local_prev;
   }
-  BLI_assert(uuid_map_len == BLI_ghash_len(uuid_map));
-  BLI_ghash_free(uuid_map, nullptr, nullptr);
+  BLI_assert(uuid_map_len == uuid_map.size());
   if (uuid_map_len == object_len) {
     MEM_freeN(um_references);
     um_references = nullptr;
