@@ -700,8 +700,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
 
   /* BMVert original location storage */
   const bool use_vert_coords_orig = use_edge_rail;
-  MemArena *vert_coords_orig = nullptr;
-  GHash *vert_coords = nullptr;
+  blender::Map<BMVert *, blender::float3> vert_coords;
 
   BMVert *v;
   BMEdge *e;
@@ -768,24 +767,6 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
       /* initialize no and e_new after */
     }
   }
-
-  if (use_vert_coords_orig) {
-    vert_coords_orig = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
-    vert_coords = BLI_ghash_ptr_new(__func__);
-  }
-
-/* Utility macros. */
-#define VERT_ORIG_STORE(_v) \
-  { \
-    float *_co = static_cast<float *>(BLI_memarena_alloc(vert_coords_orig, sizeof(float[3]))); \
-    copy_v3_v3(_co, (_v)->co); \
-    BLI_ghash_insert(vert_coords, _v, _co); \
-  } \
-  (void)0
-#define VERT_ORIG_GET(_v) (const float *)BLI_ghash_lookup_default(vert_coords, (_v), (_v)->co)
-/* memory for the coords isn't given back to the arena,
- * acceptable in this case since it runs a fixed number of times. */
-#define VERT_ORIG_REMOVE(_v) BLI_ghash_remove(vert_coords, (_v), nullptr, nullptr)
 
   for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
     if ((es->l = bm_edge_is_mixed_face_tag(es->e_old->l))) {
@@ -884,7 +865,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
         /* in some cases the edge doesn't split off */
         if (vout_len == 1) {
           if (use_vert_coords_orig) {
-            VERT_ORIG_STORE(vout[0]);
+            vert_coords.add(vout[0], vout[0]->co);
           }
           MEM_freeN(vout);
           continue;
@@ -898,7 +879,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
           int vecpair[2];
 
           if (use_vert_coords_orig) {
-            VERT_ORIG_STORE(v_split);
+            vert_coords.add(v_split, v_split->co);
           }
 
           /* find adjacent */
@@ -954,12 +935,12 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
                 if (l_other_a->v == l_other_b->v) {
                   /* both edges faces are adjacent, but we don't need to know the shared edge
                    * having both verts is enough. */
-                  const float *co_other;
+                  blender::float3 co_other;
 
                   /* note that we can't use 'l_other_a->v' directly since it
                    * may be inset and give a feedback loop. */
                   if (use_vert_coords_orig) {
-                    co_other = VERT_ORIG_GET(l_other_a->v);
+                    co_other = vert_coords.lookup_default(l_other_a->v, l_other_a->v->co);
                   }
                   else {
                     co_other = l_other_a->v->co;
@@ -1119,7 +1100,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
               else {
                 if (BM_vert_splice(bm, v_glue, v_split)) {
                   if (use_vert_coords_orig) {
-                    VERT_ORIG_REMOVE(v_split);
+                    vert_coords.remove(v_split);
                   }
                 }
               }
@@ -1130,11 +1111,6 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
         MEM_freeN(vout);
       }
     }
-  }
-
-  if (use_vert_coords_orig) {
-    BLI_memarena_free(vert_coords_orig);
-    BLI_ghash_free(vert_coords, nullptr, nullptr);
   }
 
   if (use_interpolate) {
