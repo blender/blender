@@ -285,9 +285,8 @@ static bke::CurvesGeometry create_curves_from_segments(const bke::CurvesGeometry
         point_to_interpolate.append({start_edge.x, start_edge.y, start_factor});
       }
 
-      segment.foreach_point([&](const int index) {
-        point_to_interpolate.append({index, index, 0.0f});
-      });
+      segment.foreach_point(
+          [&](const int index) { point_to_interpolate.append({index, index, 0.0f}); });
 
       if (reversed) {
         point_to_interpolate.as_mutable_span().take_back(segment.points_num()).reverse();
