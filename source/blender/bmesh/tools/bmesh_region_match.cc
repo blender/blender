@@ -929,15 +929,15 @@ static bool bm_edge_is_region_boundary(BMEdge *e)
   return true;
 }
 
-static void bm_face_region_pivot_edge_use_best(GHash *gh,
+static void bm_face_region_pivot_edge_use_best(const blender::Map<BMVert *, SUID_Int> &gh,
                                                BMEdge *e_test,
                                                BMEdge **r_e_pivot_best,
                                                SUID_Int e_pivot_best_id[2])
 {
   SUID_Int e_pivot_test_id[2];
 
-  e_pivot_test_id[0] = (SUID_Int)BLI_ghash_lookup(gh, e_test->v1);
-  e_pivot_test_id[1] = (SUID_Int)BLI_ghash_lookup(gh, e_test->v2);
+  e_pivot_test_id[0] = gh.lookup_default(e_test->v1, 0);
+  e_pivot_test_id[1] = gh.lookup_default(e_test->v2, 0);
   if (e_pivot_test_id[0] > e_pivot_test_id[1]) {
     std::swap(e_pivot_test_id[0], e_pivot_test_id[1]);
   }
@@ -987,7 +987,7 @@ static SUID_Int bm_face_region_vert_boundary_id(BMVert *v)
 /**
  * Accumulate id's from a previous pass (swap sign each pass)
  */
-static SUID_Int bm_face_region_vert_pass_id(GHash *gh, BMVert *v)
+static SUID_Int bm_face_region_vert_pass_id(const blender::Map<BMVert *, SUID_Int> &gh, BMVert *v)
 {
   BMIter eiter;
   BMEdge *e;
@@ -1005,7 +1005,7 @@ static SUID_Int bm_face_region_vert_pass_id(GHash *gh, BMVert *v)
       BMVert *v_other = BM_edge_other_vert(e, v);
       if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
         /* non-zero values aren't allowed... so no need to check haskey */
-        SUID_Int v_other_id = (SUID_Int)BLI_ghash_lookup(gh, v_other);
+        SUID_Int v_other_id = gh.lookup_default(v_other, 0);
         if (v_other_id > 0) {
           v_sum_id += v_other_id;
           tot += 1;
@@ -1055,7 +1055,7 @@ static BMEdge *bm_face_region_pivot_edge_find(BMFace **faces_region,
   BLI_LINKSTACK_DECLARE(vert_queue_prev, BMVert *);
   BLI_LINKSTACK_DECLARE(vert_queue_next, BMVert *);
 
-  GHash *gh = BLI_ghash_ptr_new(__func__);
+  blender::Map<BMVert *, SUID_Int> gh;
   uint i;
 
   BMEdge *e_pivot = nullptr;
@@ -1081,13 +1081,13 @@ static BMEdge *bm_face_region_pivot_edge_find(BMFace **faces_region,
       if (bm_edge_is_region_boundary(e)) {
         uint j;
         for (j = 0; j < 2; j++) {
-          void **val_p;
-          if (!BLI_ghash_ensure_p(gh, (&e->v1)[j], &val_p)) {
-            SUID_Int v_id = bm_face_region_vert_boundary_id((&e->v1)[j]);
-            *val_p = (void *)v_id;
-            BLI_LINKSTACK_PUSH(vert_queue_prev, (&e->v1)[j]);
+          BMVert *v = (&e->v1)[j];
+          gh.lookup_or_add_cb(v, [&]() {
+            SUID_Int v_id = bm_face_region_vert_boundary_id(v);
+            BLI_LINKSTACK_PUSH(vert_queue_prev, v);
             vert_queue_used += 1;
-          }
+            return v_id;
+          });
         }
       }
       else {
@@ -1102,20 +1102,18 @@ static BMEdge *bm_face_region_pivot_edge_find(BMFace **faces_region,
     while ((v = BLI_LINKSTACK_POP(vert_queue_prev))) {
       BMIter eiter;
       BMEdge *e;
-      BLI_assert(BLI_ghash_haskey(gh, v));
-      BLI_assert((SUID_Int)BLI_ghash_lookup(gh, v) > 0);
+      BLI_assert(gh.lookup(v) > 0);
       BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
         if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
           BMVert *v_other = BM_edge_other_vert(e, v);
           if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
-            void **val_p;
-            if (!BLI_ghash_ensure_p(gh, v_other, &val_p)) {
+            gh.lookup_or_add_cb(v_other, [&]() {
               /* add as negative, so we know not to read from them this pass */
               const SUID_Int v_id_other = -bm_face_region_vert_pass_id(gh, v_other);
-              *val_p = (void *)v_id_other;
               BLI_LINKSTACK_PUSH(vert_queue_next, v_other);
               vert_queue_used += 1;
-            }
+              return v_id_other;
+            });
           }
         }
       }
@@ -1125,9 +1123,9 @@ static BMEdge *bm_face_region_pivot_edge_find(BMFace **faces_region,
     {
       LinkNode *v_link;
       for (v_link = vert_queue_next; v_link; v_link = v_link->next) {
-        SUID_Int *v_id_p = (SUID_Int *)BLI_ghash_lookup_p(gh, v_link->link);
-        *v_id_p = -(*v_id_p);
-        BLI_assert(*v_id_p > 0);
+        SUID_Int &v_id = gh.lookup(static_cast<BMVert *>(v_link->link));
+        v_id = -v_id;
+        BLI_assert(v_id > 0);
       }
     }
 
@@ -1204,8 +1202,6 @@ static BMEdge *bm_face_region_pivot_edge_find(BMFace **faces_region,
 
   BLI_LINKSTACK_FREE(vert_queue_prev);
   BLI_LINKSTACK_FREE(vert_queue_next);
-
-  BLI_ghash_free(gh, nullptr, nullptr);
 
   if (e_pivot == nullptr) {
 #  ifdef DEBUG_PRINT
