@@ -214,7 +214,7 @@ static blender::VectorSet<BMEdgeLoopStorePair> bm_edgering_pair_calc(BMesh *bm,
    */
 
   blender::VectorSet<BMEdgeLoopStorePair> eloop_pair_set;
-  GHash *vert_eloop_gh = BLI_ghash_ptr_new(__func__);
+  blender::Map<BMVert *, BMEdgeLoopStore *> vert_eloop_map;
 
   BMEdgeLoopStore *el_store;
 
@@ -224,7 +224,7 @@ static blender::VectorSet<BMEdgeLoopStorePair> bm_edgering_pair_calc(BMesh *bm,
   {
     LinkData *node = static_cast<LinkData *>(BM_edgeloop_verts_get(el_store)->first);
     do {
-      BLI_ghash_insert(vert_eloop_gh, node->data, el_store);
+      vert_eloop_map.add(static_cast<BMVert *>(node->data), el_store);
     } while ((node = node->next));
   }
 
@@ -239,11 +239,10 @@ static blender::VectorSet<BMEdgeLoopStorePair> bm_edgering_pair_calc(BMesh *bm,
 
     BM_ITER_ELEM (e, &eiter, (BMVert *)v, BM_EDGES_OF_VERT) {
       if (BMO_edge_flag_test(bm, e, EDGE_RING)) {
-        BMEdgeLoopStore *el_store_other;
         BMVert *v_other = BM_edge_other_vert(e, v);
         BMEdgeLoopStorePair pair_test;
 
-        el_store_other = static_cast<BMEdgeLoopStore *>(BLI_ghash_lookup(vert_eloop_gh, v_other));
+        BMEdgeLoopStore *el_store_other = vert_eloop_map.lookup_default(v_other, nullptr);
 
         /* in rare cases we can't find a match */
         if (el_store_other) {
@@ -259,8 +258,6 @@ static blender::VectorSet<BMEdgeLoopStorePair> bm_edgering_pair_calc(BMesh *bm,
       }
     }
   }
-
-  BLI_ghash_free(vert_eloop_gh, nullptr, nullptr);
 
   return eloop_pair_set;
 }
@@ -433,8 +430,8 @@ struct LoopPairStore {
 
   /* since we don't have reliable index values into the array,
    * store a map (BMVert -> index) */
-  GHash *nors_gh_a;
-  GHash *nors_gh_b;
+  blender::Map<BMVert *, uint> *nors_gh_a;
+  blender::Map<BMVert *, uint> *nors_gh_b;
 };
 
 static LoopPairStore *bm_edgering_pair_store_create(BMesh *bm,
@@ -456,7 +453,7 @@ static LoopPairStore *bm_edgering_pair_store_create(BMesh *bm,
     BMEdgeLoopStore *el_store_pair[2] = {el_store_a, el_store_b};
     uint side_index;
     float (*nors_pair[2])[3];
-    GHash *nors_gh_pair[2];
+    blender::Map<BMVert *, uint> *nors_gh_pair[2];
 
     BM_edgeloop_edges_get(el_store_a, e_arr_a);
     BM_edgeloop_edges_get(el_store_b, e_arr_b);
@@ -469,8 +466,8 @@ static LoopPairStore *bm_edgering_pair_store_create(BMesh *bm,
     nors_pair[0] = lpair->nors_a;
     nors_pair[1] = lpair->nors_b;
 
-    lpair->nors_gh_a = BLI_ghash_ptr_new(__func__);
-    lpair->nors_gh_b = BLI_ghash_ptr_new(__func__);
+    lpair->nors_gh_a = MEM_new<blender::Map<BMVert *, uint>>(__func__);
+    lpair->nors_gh_b = MEM_new<blender::Map<BMVert *, uint>>(__func__);
 
     nors_gh_pair[0] = lpair->nors_gh_a;
     nors_gh_pair[1] = lpair->nors_gh_b;
@@ -490,7 +487,7 @@ static LoopPairStore *bm_edgering_pair_store_create(BMesh *bm,
       /* iter vars */
       BMEdgeLoopStore *el_store = el_store_pair[side_index];
       ListBase *lb = BM_edgeloop_verts_get(el_store);
-      GHash *nors_gh_iter = nors_gh_pair[side_index];
+      blender::Map<BMVert *, uint> *nors_gh_iter = nors_gh_pair[side_index];
       float (*nor)[3] = nors_pair[side_index];
 
       LinkData *v_iter;
@@ -499,7 +496,7 @@ static LoopPairStore *bm_edgering_pair_store_create(BMesh *bm,
       {
         BMVert *v = static_cast<BMVert *>(v_iter->data);
         bm_vert_calc_surface_tangent(bm, v, nor[i]);
-        BLI_ghash_insert(nors_gh_iter, v, POINTER_FROM_UINT(i));
+        nors_gh_iter->add(v, i);
       }
     }
 
@@ -520,8 +517,8 @@ static void bm_edgering_pair_store_free(LoopPairStore *lpair, const int interp_m
     MEM_freeN(lpair->nors_a);
     MEM_freeN(lpair->nors_b);
 
-    BLI_ghash_free(lpair->nors_gh_a, nullptr, nullptr);
-    BLI_ghash_free(lpair->nors_gh_b, nullptr, nullptr);
+    MEM_delete(lpair->nors_gh_a);
+    MEM_delete(lpair->nors_gh_b);
   }
   MEM_freeN(lpair);
 }
@@ -777,11 +774,8 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
         bm_vert_calc_surface_tangent(bm, v_b, no_b);
 #else
         {
-          const uint index_a = POINTER_AS_UINT(BLI_ghash_lookup(lpair->nors_gh_a, v_a));
-          const uint index_b = POINTER_AS_UINT(BLI_ghash_lookup(lpair->nors_gh_b, v_b));
-
-          BLI_assert(BLI_ghash_haskey(lpair->nors_gh_a, v_a));
-          BLI_assert(BLI_ghash_haskey(lpair->nors_gh_b, v_b));
+          const uint index_a = lpair->nors_gh_a->lookup(v_a);
+          const uint index_b = lpair->nors_gh_b->lookup(v_b);
 
           copy_v3_v3(no_a, lpair->nors_a[index_a]);
           copy_v3_v3(no_b, lpair->nors_b[index_b]);
