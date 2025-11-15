@@ -922,6 +922,12 @@ static bke::GeometrySet::GatheredAttributes gather_attributes_to_propagate(
           /* For Grease Pencil, we want to propagate the instance attributes to the layers. */
           dst_domain = AttrDomain::Layer;
         }
+        else if (component_type == bke::GeometryComponent::Type::Curve &&
+                 !options.realize_to_point_domain)
+        {
+          /* For curves, storing the attribute on curves is more efficient. */
+          dst_domain = AttrDomain::Curve;
+        }
         else {
           /* Other instance attributes are realized on the point domain currently. */
           dst_domain = AttrDomain::Point;
