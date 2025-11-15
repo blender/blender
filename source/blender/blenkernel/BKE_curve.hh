@@ -17,6 +17,7 @@
 #include "BLI_span.hh"
 #include "BLI_sys_types.h"
 
+#include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 
 struct BezTriple;
@@ -160,8 +161,8 @@ blender::Array<blender::float3> BKE_curve_nurbs_key_vert_coords_alloc(const List
                                                                       const float *key);
 void BKE_curve_nurbs_key_vert_tilts_apply(ListBase *lb, const float *key);
 
-void BKE_curve_editNurb_keyIndex_delCV(GHash *keyindex, const void *cv);
-void BKE_curve_editNurb_keyIndex_free(GHash **keyindex);
+void BKE_curve_editNurb_keyIndex_delCV(CVKeyIndexMap *keyindex, const void *cv);
+void BKE_curve_editNurb_keyIndex_free(CVKeyIndexMap **keyindex);
 void BKE_curve_editNurb_free(Curve *cu);
 /**
  * Get list of nurbs from edit-nurbs structure.

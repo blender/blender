@@ -333,25 +333,29 @@ void BKE_curve_editfont_free(Curve *cu)
   }
 }
 
-static void curve_editNurb_keyIndex_cv_free_cb(void *val)
+static void curve_editNurb_keyIndex_cv_free_cb(CVKeyIndex *index)
 {
-  CVKeyIndex *index = (CVKeyIndex *)val;
   MEM_freeN(index->orig_cv);
-  MEM_freeN(val);
+  MEM_freeN(index);
 }
 
-void BKE_curve_editNurb_keyIndex_delCV(GHash *keyindex, const void *cv)
+void BKE_curve_editNurb_keyIndex_delCV(CVKeyIndexMap *keyindex, const void *cv)
 {
   BLI_assert(keyindex != nullptr);
-  BLI_ghash_remove(keyindex, cv, nullptr, curve_editNurb_keyIndex_cv_free_cb);
+  if (CVKeyIndex *index = keyindex->pop_default(cv, nullptr)) {
+    curve_editNurb_keyIndex_cv_free_cb(index);
+  }
 }
 
-void BKE_curve_editNurb_keyIndex_free(GHash **keyindex)
+void BKE_curve_editNurb_keyIndex_free(CVKeyIndexMap **keyindex)
 {
   if (!(*keyindex)) {
     return;
   }
-  BLI_ghash_free(*keyindex, nullptr, curve_editNurb_keyIndex_cv_free_cb);
+  for (CVKeyIndex *index : (*keyindex)->values()) {
+    curve_editNurb_keyIndex_cv_free_cb(index);
+  }
+  MEM_delete(*keyindex);
   *keyindex = nullptr;
 }
 
