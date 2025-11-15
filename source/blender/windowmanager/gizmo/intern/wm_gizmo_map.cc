@@ -275,13 +275,13 @@ bool WM_gizmomap_minmax(
  * TODO(@ideasman42): this uses unreliable order,
  * best we use an iterator function instead of a hash.
  */
-static GHash *WM_gizmomap_gizmo_hash_new(const bContext *C,
-                                         wmGizmoMap *gzmap,
-                                         bool (*poll)(const wmGizmo *, void *),
-                                         void *data,
-                                         const eWM_GizmoFlag flag_exclude)
+static blender::Set<wmGizmo *> WM_gizmomap_gizmo_hash_new(const bContext *C,
+                                                          wmGizmoMap *gzmap,
+                                                          bool (*poll)(const wmGizmo *, void *),
+                                                          void *data,
+                                                          const eWM_GizmoFlag flag_exclude)
 {
-  GHash *hash = BLI_ghash_ptr_new(__func__);
+  blender::Set<wmGizmo *> hash;
 
   /* Collect gizmos. */
   LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
@@ -289,7 +289,7 @@ static GHash *WM_gizmomap_gizmo_hash_new(const bContext *C,
       LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
         if (((flag_exclude == 0) || ((gz->flag & flag_exclude) == 0)) && (!poll || poll(gz, data)))
         {
-          BLI_ghash_insert(hash, gz, gz);
+          hash.add(gz);
         }
       }
     }
@@ -941,24 +941,20 @@ static bool wm_gizmomap_select_all_intern(bContext *C, wmGizmoMap *gzmap)
    * get tot_sel for allocating, once for actually selecting). Instead we collect
    * selectable gizmos in hash table and use this to get tot_sel and do selection. */
 
-  GHash *hash = WM_gizmomap_gizmo_hash_new(
+  blender::Set<wmGizmo *> hash = WM_gizmomap_gizmo_hash_new(
       C, gzmap, gizmo_selectable_poll, nullptr, WM_GIZMO_HIDDEN | WM_GIZMO_HIDDEN_SELECT);
-  GHashIterator gh_iter;
-  int i;
   bool changed = false;
 
-  wm_gizmomap_select_array_ensure_len_alloc(gzmap, BLI_ghash_len(hash));
+  wm_gizmomap_select_array_ensure_len_alloc(gzmap, hash.size());
 
-  GHASH_ITER_INDEX (gh_iter, hash, i) {
-    wmGizmo *gz_iter = static_cast<wmGizmo *>(BLI_ghashIterator_getValue(&gh_iter));
+  for (wmGizmo *gz_iter : hash) {
     WM_gizmo_select_set(gzmap, gz_iter, true);
   }
   /* Highlight first gizmo. */
   wm_gizmomap_highlight_set(gzmap, C, msel->items[0], msel->items[0]->highlight_part);
 
-  BLI_assert(BLI_ghash_len(hash) == msel->len);
+  BLI_assert(hash.size() == msel->len);
 
-  BLI_ghash_free(hash, nullptr, nullptr);
   return changed;
 }
 
