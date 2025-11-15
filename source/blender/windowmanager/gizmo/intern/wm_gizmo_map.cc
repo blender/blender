@@ -644,7 +644,10 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
       GPU_matrix_unproject_3fv(co_screen, rv3d->viewinv, rv3d->winmat, viewport, co_3d);
       float select_bias = gz->select_bias;
       if ((gz->flag & WM_GIZMO_DRAW_NO_SCALE) == 0) {
-        select_bias *= gz->scale_final;
+        /* Use the larger of the gizmo's final scale and a small minimum threshold to prevent the
+         * selection bias from collapsing when the gizmo becomes extremely small. See #100321. */
+        const float scale = std::max(gz->scale_final, 1e-2f);
+        select_bias *= scale;
       }
       sub_v3_v3(co_3d, co_3d_origin);
       const float dot_test = dot_v3v3(co_3d, co_direction) - select_bias;
