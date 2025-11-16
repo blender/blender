@@ -27,6 +27,10 @@
 #include "DNA_vec_types.h"
 #include "DNA_view3d_types.h"
 
+#ifdef __cplusplus
+#  include "BLI_map.hh"
+#endif
+
 struct AnimData;
 struct Brush;
 struct Collection;
@@ -41,6 +45,7 @@ struct Scene;
 struct World;
 struct bGPdata;
 struct bNodeTree;
+struct Depsgraph;
 
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
@@ -56,10 +61,12 @@ class ColorSpace;
 using PaintRuntimeHandle = blender::bke::PaintRuntime;
 using SceneRuntimeHandle = blender::bke::SceneRuntime;
 using ColorSpaceHandle = blender::ocio::ColorSpace;
+using SceneDepsgraphsMap = blender::Map<struct DepsgraphKey, Depsgraph *, 4>;
 #else   // __cplusplus
 typedef struct PaintRuntimeHandle PaintRuntimeHandle;
 typedef struct SceneRuntimeHandle SceneRuntimeHandle;
 typedef struct ColorSpaceHandle ColorSpaceHandle;
+typedef struct SceneDepsgraphsMap SceneDepsgraphsMap;
 #endif  // __cplusplus
 
 /* -------------------------------------------------------------------- */
@@ -2176,7 +2183,7 @@ typedef struct Scene {
   void *fps_info;
 
   /** None of the dependency graph vars is mean to be saved. */
-  struct GHash *depsgraph_hash;
+  SceneDepsgraphsMap *depsgraph_hash;
   char _pad7[4];
 
   /* User-Defined KeyingSets. */

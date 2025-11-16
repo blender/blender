@@ -3308,29 +3308,14 @@ struct DepsgraphKey {
   /* TODO(sergey): Need to include window somehow (same layer might be in a
    * different states in different windows).
    */
+
+  uint64_t hash() const
+  {
+    return blender::get_default_hash(this->view_layer);
+  }
+
+  BLI_STRUCT_EQUALITY_OPERATORS_1(DepsgraphKey, view_layer)
 };
-
-static uint depsgraph_key_hash(const void *key_v)
-{
-  const DepsgraphKey *key = static_cast<const DepsgraphKey *>(key_v);
-  uint hash = BLI_ghashutil_ptrhash(key->view_layer);
-  /* TODO(sergey): Include hash from other fields in the key. */
-  return hash;
-}
-
-static bool depsgraph_key_compare(const void *key_a_v, const void *key_b_v)
-{
-  const DepsgraphKey *key_a = static_cast<const DepsgraphKey *>(key_a_v);
-  const DepsgraphKey *key_b = static_cast<const DepsgraphKey *>(key_b_v);
-  /* TODO(sergey): Compare rest of. */
-  return !(key_a->view_layer == key_b->view_layer);
-}
-
-static void depsgraph_key_free(void *key_v)
-{
-  DepsgraphKey *key = static_cast<DepsgraphKey *>(key_v);
-  MEM_freeN(key);
-}
 
 static void depsgraph_key_value_free(void *value)
 {
@@ -3340,8 +3325,7 @@ static void depsgraph_key_value_free(void *value)
 
 void BKE_scene_allocate_depsgraph_hash(Scene *scene)
 {
-  scene->depsgraph_hash = BLI_ghash_new(
-      depsgraph_key_hash, depsgraph_key_compare, "Scene Depsgraph Hash");
+  scene->depsgraph_hash = MEM_new<SceneDepsgraphsMap>("Scene Depsgraph Hash");
 }
 
 void BKE_scene_ensure_depsgraph_hash(Scene *scene)
@@ -3356,7 +3340,10 @@ void BKE_scene_free_depsgraph_hash(Scene *scene)
   if (scene->depsgraph_hash == nullptr) {
     return;
   }
-  BLI_ghash_free(scene->depsgraph_hash, depsgraph_key_free, depsgraph_key_value_free);
+  for (Depsgraph *depsgraph : scene->depsgraph_hash->values()) {
+    DEG_graph_free(depsgraph);
+  }
+  MEM_delete(scene->depsgraph_hash);
   scene->depsgraph_hash = nullptr;
 }
 
@@ -3364,7 +3351,9 @@ void BKE_scene_free_view_layer_depsgraph(Scene *scene, ViewLayer *view_layer)
 {
   if (scene->depsgraph_hash != nullptr) {
     DepsgraphKey key = {view_layer};
-    BLI_ghash_remove(scene->depsgraph_hash, &key, depsgraph_key_free, depsgraph_key_value_free);
+    if (Depsgraph *depsgraph = scene->depsgraph_hash->pop_default(key, nullptr)) {
+      DEG_graph_free(depsgraph);
+    }
   }
 }
 
@@ -3390,25 +3379,11 @@ static Depsgraph **scene_get_depsgraph_p(Scene *scene,
   DepsgraphKey key;
   key.view_layer = view_layer;
 
-  Depsgraph **depsgraph_ptr;
   if (!allocate_ghash_entry) {
-    depsgraph_ptr = (Depsgraph **)BLI_ghash_lookup_p(scene->depsgraph_hash, &key);
-    return depsgraph_ptr;
+    return scene->depsgraph_hash->lookup_ptr(key);
   }
 
-  DepsgraphKey **key_ptr;
-  if (BLI_ghash_ensure_p_ex(
-          scene->depsgraph_hash, &key, (void ***)&key_ptr, (void ***)&depsgraph_ptr))
-  {
-    return depsgraph_ptr;
-  }
-
-  /* Depsgraph was not found in the ghash, but the key still needs allocating. */
-  *key_ptr = MEM_callocN<DepsgraphKey>(__func__);
-  **key_ptr = key;
-
-  *depsgraph_ptr = nullptr;
-  return depsgraph_ptr;
+  return &scene->depsgraph_hash->lookup_or_add(key, nullptr);
 }
 
 static Depsgraph **scene_ensure_depsgraph_p(Main *bmain, Scene *scene, ViewLayer *view_layer)
@@ -3453,7 +3428,7 @@ Depsgraph *BKE_scene_get_depsgraph(const Scene *scene, const ViewLayer *view_lay
 
   DepsgraphKey key;
   key.view_layer = view_layer;
-  return static_cast<Depsgraph *>(BLI_ghash_lookup(scene->depsgraph_hash, &key));
+  return scene->depsgraph_hash->lookup_default(key, nullptr);
 }
 
 Depsgraph *BKE_scene_ensure_depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer)
@@ -3493,7 +3468,7 @@ GHash *BKE_scene_undo_depsgraphs_extract(Main *bmain)
     LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
       DepsgraphKey key;
       key.view_layer = view_layer;
-      Depsgraph **depsgraph = (Depsgraph **)BLI_ghash_lookup_p(scene->depsgraph_hash, &key);
+      Depsgraph **depsgraph = scene->depsgraph_hash->lookup_ptr(key);
 
       if (depsgraph != nullptr && *depsgraph != nullptr) {
         char *key_full = scene_undo_depsgraph_gen_key(scene, view_layer, nullptr);
