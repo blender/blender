@@ -104,53 +104,60 @@ static bool wm_fbx_import_check(bContext * /*C*/, wmOperator * /*op*/)
   return false;
 }
 
-static void ui_fbx_import_settings(const bContext *C, uiLayout *layout, PointerRNA *ptr)
+static void ui_fbx_import_settings(const bContext *C, blender::ui::Layout &layout, PointerRNA *ptr)
 {
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
-  if (uiLayout *panel = layout->panel(C, "FBX_import_general", false, IFACE_("General"))) {
-    uiLayout *col = &panel->column(false);
-    col->prop(ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "use_custom_props", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiLayout &subcol = col->column(false);
+  if (blender::ui::Layout *panel = layout.panel(C, "FBX_import_general", false, IFACE_("General")))
+  {
+    blender::ui::Layout &col = panel->column(false);
+    col.prop(ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "use_custom_props", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    blender::ui::Layout &subcol = col.column(false);
     subcol.active_set(RNA_boolean_get(ptr, "use_custom_props"));
     subcol.prop(ptr, "use_custom_props_enum_as_string", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *panel = layout->panel(C, "FBX_import_geometry", false, IFACE_("Geometry"))) {
-    uiLayout *col = &panel->column(false);
-    col->prop(ptr, "use_custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "import_subdivision", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "import_colors", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "validate_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  if (blender::ui::Layout *panel = layout.panel(
+          C, "FBX_import_geometry", false, IFACE_("Geometry")))
+  {
+    blender::ui::Layout &col = panel->column(false);
+    col.prop(ptr, "use_custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "import_subdivision", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "import_colors", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "validate_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *panel = layout->panel(C, "FBX_import_material", true, IFACE_("Materials"))) {
-    uiLayout *col = &panel->column(false);
-    col->prop(ptr, "mtl_name_collision_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  if (blender::ui::Layout *panel = layout.panel(
+          C, "FBX_import_material", true, IFACE_("Materials")))
+  {
+    blender::ui::Layout &col = panel->column(false);
+    col.prop(ptr, "mtl_name_collision_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   {
-    PanelLayout panel = layout->panel(C, "FBX_import_anim", true);
+    PanelLayout panel = layout.panel(C, "FBX_import_anim", true);
     panel.header->use_property_split_set(false);
     panel.header->prop(ptr, "use_anim", UI_ITEM_NONE, "", ICON_NONE);
     panel.header->label(IFACE_("Animation"), ICON_NONE);
     if (panel.body) {
-      uiLayout *col = &panel.body->column(false);
-      col->prop(ptr, "anim_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      blender::ui::Layout &col = panel.body->column(false);
+      col.prop(ptr, "anim_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
   }
 
-  if (uiLayout *panel = layout->panel(C, "FBX_import_armature", false, IFACE_("Armature"))) {
-    uiLayout *col = &panel->column(false);
-    col->prop(ptr, "ignore_leaf_bones", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  if (blender::ui::Layout *panel = layout.panel(
+          C, "FBX_import_armature", false, IFACE_("Armature")))
+  {
+    blender::ui::Layout &col = panel->column(false);
+    col.prop(ptr, "ignore_leaf_bones", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
 static void wm_fbx_import_draw(bContext *C, wmOperator *op)
 {
-  ui_fbx_import_settings(C, op->layout, op->ptr);
+  ui_fbx_import_settings(C, *op->layout, op->ptr);
 }
 
 void WM_OT_fbx_import(wmOperatorType *ot)

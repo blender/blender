@@ -371,17 +371,18 @@ static wmOperatorStatus wm_usd_export_exec(bContext *C, wmOperator *op)
 
 static void wm_usd_export_draw(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  blender::ui::Layout &layout = *op->layout;
   PointerRNA *ptr = op->ptr;
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
-  if (uiLayout *panel = layout->panel(C, "USD_export_general", false, IFACE_("General"))) {
-    uiLayout *col = &panel->column(false);
+  if (blender::ui::Layout *panel = layout.panel(C, "USD_export_general", false, IFACE_("General")))
+  {
+    blender::ui::Layout *col = &panel->column(false);
     col->prop(ptr, "root_prim_path", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    uiLayout *sub = &col->column(true, IFACE_("Include"));
+    blender::ui::Layout *sub = &col->column(true, IFACE_("Include"));
     if (CTX_wm_space_file(C)) {
       sub->prop(ptr, "selected_objects_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
@@ -389,7 +390,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
 
     sub = &col->column(true, IFACE_("Blender Data"));
     sub->prop(ptr, "export_custom_properties", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiLayout *props_col = &sub->column(true);
+    blender::ui::Layout *props_col = &sub->column(true);
     props_col->prop(ptr, "custom_properties_namespace", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     props_col->prop(ptr, "author_blender_name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     props_col->active_set(RNA_boolean_get(op->ptr, "export_custom_properties"));
@@ -416,52 +417,57 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     col->prop(ptr, "evaluation_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *panel = layout->panel(C, "USD_export_types", false, IFACE_("Object Types"))) {
-    uiLayout *col = &panel->column(false);
-    col->prop(ptr, "export_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "export_lights", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  if (blender::ui::Layout *panel = layout.panel(
+          C, "USD_export_types", false, IFACE_("Object Types")))
+  {
+    blender::ui::Layout &col = panel->column(false);
+    col.prop(ptr, "export_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "export_lights", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    uiLayout *row = &col->row(true);
-    row->prop(ptr, "convert_world_material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    blender::ui::Layout &row = col.row(true);
+    row.prop(ptr, "convert_world_material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     const bool export_lights = RNA_boolean_get(ptr, "export_lights");
-    row->active_set(export_lights);
+    row.active_set(export_lights);
 
-    col->prop(ptr, "export_cameras", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "export_curves", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "export_points", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "export_volumes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "export_hair", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "export_cameras", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "export_curves", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "export_points", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "export_volumes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "export_hair", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *panel = layout->panel(C, "USD_export_geometry", false, IFACE_("Geometry"))) {
-    uiLayout *col = &panel->column(false);
-    col->prop(ptr, "export_uvmaps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "rename_uvmaps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "export_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  if (blender::ui::Layout *panel = layout.panel(
+          C, "USD_export_geometry", false, IFACE_("Geometry")))
+  {
+    blender::ui::Layout &col = panel->column(false);
+    col.prop(ptr, "export_uvmaps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "rename_uvmaps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "export_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    col->prop(ptr, "merge_parent_xform", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "triangulate_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "merge_parent_xform", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "triangulate_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     if (RNA_boolean_get(ptr, "triangulate_meshes")) {
-      col->prop(ptr, "quad_method", UI_ITEM_NONE, IFACE_("Method Quads"), ICON_NONE);
-      col->prop(ptr, "ngon_method", UI_ITEM_NONE, IFACE_("Polygons"), ICON_NONE);
+      col.prop(ptr, "quad_method", UI_ITEM_NONE, IFACE_("Method Quads"), ICON_NONE);
+      col.prop(ptr, "ngon_method", UI_ITEM_NONE, IFACE_("Polygons"), ICON_NONE);
     }
 
-    col->prop(ptr, "export_subdivision", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "export_subdivision", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *panel = layout->panel(C, "USD_export_rigging", true, IFACE_("Rigging"))) {
-    uiLayout *col = &panel->column(false);
+  if (blender::ui::Layout *panel = layout.panel(C, "USD_export_rigging", true, IFACE_("Rigging")))
+  {
+    blender::ui::Layout &col = panel->column(false);
 
-    col->prop(ptr, "export_shapekeys", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "export_armatures", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "export_shapekeys", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "export_armatures", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    uiLayout *row = &col->row(true);
-    row->prop(ptr, "only_deform_bones", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    row->active_set(RNA_boolean_get(ptr, "export_armatures"));
+    blender::ui::Layout &row = col.row(true);
+    row.prop(ptr, "only_deform_bones", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    row.active_set(RNA_boolean_get(ptr, "export_armatures"));
   }
 
   {
-    PanelLayout panel = layout->panel(C, "USD_export_materials", true);
+    PanelLayout panel = layout.panel(C, "USD_export_materials", true);
     panel.header->use_property_split_set(false);
     panel.header->prop(ptr, "export_materials", UI_ITEM_NONE, "", ICON_NONE);
     panel.header->label(IFACE_("Materials"), ICON_NONE);
@@ -469,32 +475,33 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
       const bool export_materials = RNA_boolean_get(ptr, "export_materials");
       panel.body->active_set(export_materials);
 
-      uiLayout *col = &panel.body->column(false);
+      blender::ui::Layout *col = &panel.body->column(false);
       col->prop(ptr, "generate_preview_surface", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       col->prop(ptr, "generate_materialx_network", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+
       col = &panel.body->column(true);
       col->use_property_split_set(true);
-
       col->prop(ptr, "export_textures_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
       const eUSDTexExportMode textures_mode = eUSDTexExportMode(
           RNA_enum_get(op->ptr, "export_textures_mode"));
 
-      uiLayout *col2 = &col->column(true);
-      col2->use_property_split_set(true);
-      col2->enabled_set(textures_mode == USD_TEX_EXPORT_NEW_PATH);
-      col2->prop(ptr, "overwrite_textures", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      col2->prop(ptr, "usdz_downscale_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      blender::ui::Layout &sub_col = col->column(true);
+      sub_col.use_property_split_set(true);
+      sub_col.enabled_set(textures_mode == USD_TEX_EXPORT_NEW_PATH);
+      sub_col.prop(ptr, "overwrite_textures", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      sub_col.prop(ptr, "usdz_downscale_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       if (RNA_enum_get(ptr, "usdz_downscale_size") == USD_TEXTURE_SIZE_CUSTOM) {
-        col2->prop(ptr, "usdz_downscale_custom_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+        sub_col.prop(ptr, "usdz_downscale_custom_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       }
     }
   }
 
-  if (uiLayout *panel = layout->panel(C, "USD_export_experimental", true, IFACE_("Experimental")))
+  if (blender::ui::Layout *panel = layout.panel(
+          C, "USD_export_experimental", true, IFACE_("Experimental")))
   {
-    uiLayout *col = &panel->column(false);
-    col->prop(ptr, "use_instancing", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    blender::ui::Layout &col = panel->column(false);
+    col.prop(ptr, "use_instancing", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
@@ -942,20 +949,21 @@ static void wm_usd_import_cancel(bContext * /*C*/, wmOperator *op)
 
 static void wm_usd_import_draw(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  blender::ui::Layout &layout = *op->layout;
   PointerRNA *ptr = op->ptr;
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
-  if (uiLayout *panel = layout->panel(C, "USD_import_general", false, IFACE_("General"))) {
-    uiLayout *col = &panel->column(false);
+  if (blender::ui::Layout *panel = layout.panel(C, "USD_import_general", false, IFACE_("General")))
+  {
+    blender::ui::Layout *col = &panel->column(false);
 
     col->prop(ptr, "prim_path_mask", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    uiLayout *sub = &col->column(true, IFACE_("Include"));
-    sub->prop(ptr, "import_visible_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    sub->prop(ptr, "import_defined_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    blender::ui::Layout &sub = col->column(true, IFACE_("Include"));
+    sub.prop(ptr, "import_visible_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    sub.prop(ptr, "import_defined_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     col = &panel->column(false);
     col->prop(ptr, "set_frame_range", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -968,34 +976,38 @@ static void wm_usd_import_draw(bContext *C, wmOperator *op)
     col->prop(ptr, "property_import_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *panel = layout->panel(C, "USD_import_types", false, IFACE_("Object Types"))) {
-    uiLayout *col = &panel->column(false);
-    col->prop(ptr, "import_cameras", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "import_curves", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "import_lights", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  if (blender::ui::Layout *panel = layout.panel(
+          C, "USD_import_types", false, IFACE_("Object Types")))
+  {
+    blender::ui::Layout &obj_col = panel->column(false);
+    obj_col.prop(ptr, "import_cameras", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    obj_col.prop(ptr, "import_curves", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    obj_col.prop(ptr, "import_lights", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    uiLayout *row = &col->row(true);
-    row->prop(ptr, "create_world_material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    blender::ui::Layout &row = obj_col.row(true);
+    row.prop(ptr, "create_world_material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     const bool import_lights = RNA_boolean_get(ptr, "import_lights");
-    row->active_set(import_lights);
+    row.active_set(import_lights);
 
-    col->prop(ptr, "import_materials", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "import_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "import_volumes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "import_points", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "import_shapes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    obj_col.prop(ptr, "import_materials", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    obj_col.prop(ptr, "import_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    obj_col.prop(ptr, "import_volumes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    obj_col.prop(ptr, "import_points", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    obj_col.prop(ptr, "import_shapes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    col = &panel->column(true, IFACE_("Display Purpose"));
-    col->prop(ptr, "import_render", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "import_proxy", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "import_guide", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    blender::ui::Layout &disp_col = panel->column(true, IFACE_("Display Purpose"));
+    disp_col.prop(ptr, "import_render", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    disp_col.prop(ptr, "import_proxy", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    disp_col.prop(ptr, "import_guide", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    col = &panel->column(true, IFACE_("Material Purpose"));
-    col->prop(ptr, "mtl_purpose", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    blender::ui::Layout &mtl_col = panel->column(true, IFACE_("Material Purpose"));
+    mtl_col.prop(ptr, "mtl_purpose", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *panel = layout->panel(C, "USD_import_geometry", true, IFACE_("Geometry"))) {
-    uiLayout *col = &panel->column(false);
+  if (blender::ui::Layout *panel = layout.panel(
+          C, "USD_import_geometry", true, IFACE_("Geometry")))
+  {
+    blender::ui::Layout *col = &panel->column(false);
     col->prop(ptr, "read_mesh_uvs", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col->prop(ptr, "read_mesh_colors", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col->prop(ptr, "read_mesh_attributes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -1006,45 +1018,49 @@ static void wm_usd_import_draw(bContext *C, wmOperator *op)
     col->prop(ptr, "merge_parent_xform", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *panel = layout->panel(C, "USD_import_rigging", true, IFACE_("Rigging"))) {
-    uiLayout *col = &panel->column(false);
-    col->prop(ptr, "import_blendshapes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "import_skeletons", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  if (blender::ui::Layout *panel = layout.panel(C, "USD_import_rigging", true, IFACE_("Rigging")))
+  {
+    blender::ui::Layout &col = panel->column(false);
+    col.prop(ptr, "import_blendshapes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "import_skeletons", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *panel = layout->panel(C, "USD_import_material", true, IFACE_("Materials"))) {
-    uiLayout *col = &panel->column(false);
+  if (blender::ui::Layout *panel = layout.panel(
+          C, "USD_import_material", true, IFACE_("Materials")))
+  {
+    blender::ui::Layout &col = panel->column(false);
 
-    col->prop(ptr, "import_all_materials", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "import_usd_preview", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->enabled_set(RNA_boolean_get(ptr, "import_materials"));
+    col.prop(ptr, "import_all_materials", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "import_usd_preview", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.enabled_set(RNA_boolean_get(ptr, "import_materials"));
 
-    uiLayout *row = &col->row(true);
-    row->prop(ptr, "set_material_blend", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    row->enabled_set(RNA_boolean_get(ptr, "import_usd_preview"));
-    col->prop(ptr, "mtl_name_collision_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    blender::ui::Layout &row = col.row(true);
+    row.prop(ptr, "set_material_blend", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    row.enabled_set(RNA_boolean_get(ptr, "import_usd_preview"));
+    col.prop(ptr, "mtl_name_collision_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *panel = layout->panel(C, "USD_import_texture", true, IFACE_("Textures"))) {
-    uiLayout *col = &panel->column(false);
+  if (blender::ui::Layout *panel = layout.panel(C, "USD_import_texture", true, IFACE_("Textures")))
+  {
+    blender::ui::Layout &col = panel->column(false);
 
-    col->prop(ptr, "import_textures_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "import_textures_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     bool copy_textures = RNA_enum_get(op->ptr, "import_textures_mode") == USD_TEX_IMPORT_COPY;
 
-    uiLayout *row = &col->row(true);
+    blender::ui::Layout *row = &col.row(true);
     row->prop(ptr, "import_textures_dir", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     row->enabled_set(copy_textures);
-    row = &col->row(true);
+    row = &col.row(true);
     row->prop(ptr, "tex_name_collision_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     row->enabled_set(copy_textures);
-    col->enabled_set(RNA_boolean_get(ptr, "import_materials"));
+    col.enabled_set(RNA_boolean_get(ptr, "import_materials"));
   }
 
-  if (uiLayout *panel = layout->panel(
+  if (blender::ui::Layout *panel = layout.panel(
           C, "USD_import_instancing", true, IFACE_("Particles and Instancing")))
   {
-    uiLayout *col = &panel->column(false);
-    col->prop(ptr, "support_scene_instancing", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    blender::ui::Layout &col = panel->column(false);
+    col.prop(ptr, "support_scene_instancing", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
