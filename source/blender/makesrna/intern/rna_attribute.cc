@@ -509,7 +509,7 @@ static bool rna_Attribute_is_required_get(PointerRNA *ptr)
   return BKE_attribute_required(owner, attr->name());
 }
 
-static void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   using namespace blender;
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
@@ -546,7 +546,7 @@ static void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRN
   }
 }
 
-static int rna_Attribute_data_length(PointerRNA *ptr)
+int rna_Attribute_data_length(PointerRNA *ptr)
 {
   using namespace blender;
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);

@@ -228,6 +228,9 @@ IDPropertyGroup *rna_struct_system_properties_get_func(PointerRNA ptr, bool do_c
 
 void rna_def_attributes_common(StructRNA *srna, AttributeOwnerType type);
 
+void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr);
+int rna_Attribute_data_length(PointerRNA *ptr);
+
 void rna_AttributeGroup_iterator_begin(CollectionPropertyIterator *iter, PointerRNA *ptr);
 void rna_AttributeGroup_iterator_next(CollectionPropertyIterator *iter);
 PointerRNA rna_AttributeGroup_iterator_get(CollectionPropertyIterator *iter);

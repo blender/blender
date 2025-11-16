@@ -851,21 +851,6 @@ static std::optional<std::string> rna_MeshUVLoopLayer_path(const PointerRNA *ptr
   return fmt::format("uv_layers[\"{}\"]", name_esc);
 }
 
-static void rna_MeshUVLoopLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-  Mesh *mesh = rna_mesh(ptr);
-  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-  const int length = (mesh->runtime->edit_mesh) ? 0 : mesh->corners_num;
-  CustomData_ensure_data_is_mutable(layer, length);
-  rna_iterator_array_begin(iter, ptr, layer->data, sizeof(float[2]), length, 0, nullptr);
-}
-
-static int rna_MeshUVLoopLayer_data_length(PointerRNA *ptr)
-{
-  Mesh *mesh = rna_mesh(ptr);
-  return (mesh->runtime->edit_mesh) ? 0 : mesh->corners_num;
-}
-
 static void bool_layer_begin(CollectionPropertyIterator *iter,
                              PointerRNA *ptr,
                              StringRef (*layername_func)(const StringRef uv_name, char *buffer))
@@ -974,16 +959,7 @@ static PointerRNA rna_MeshUVLoopLayer_pin_ensure(PointerRNA ptr)
 
 static void rna_MeshUVLoopLayer_uv_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  Mesh *mesh = rna_mesh(ptr);
-  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-
-  rna_iterator_array_begin(iter,
-                           ptr,
-                           layer->data,
-                           sizeof(float[2]),
-                           (mesh->runtime->edit_mesh) ? 0 : mesh->corners_num,
-                           0,
-                           nullptr);
+  rna_Attribute_data_begin(iter, ptr);
 }
 
 bool rna_MeshUVLoopLayer_uv_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
@@ -1082,25 +1058,6 @@ static void rna_Mesh_vertex_color_active_index_set(PointerRNA *ptr, int value)
                            value;
 
   BKE_id_attributes_active_color_set(&mesh->id, layer->name);
-}
-
-static void rna_MeshLoopColorLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-  Mesh *mesh = rna_mesh(ptr);
-  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-  rna_iterator_array_begin(iter,
-                           ptr,
-                           layer->data,
-                           sizeof(MLoopCol),
-                           (mesh->runtime->edit_mesh) ? 0 : mesh->corners_num,
-                           0,
-                           nullptr);
-}
-
-static int rna_MeshLoopColorLayer_data_length(PointerRNA *ptr)
-{
-  Mesh *mesh = rna_mesh(ptr);
-  return (mesh->runtime->edit_mesh) ? 0 : mesh->corners_num;
 }
 
 static bool rna_mesh_color_active_render_get(PointerRNA *ptr)
@@ -2256,11 +2213,11 @@ static void rna_def_mloopuv(BlenderRNA *brna)
       "Deprecated, use 'uv', 'vertex_select', 'edge_select' or 'pin' properties instead");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
-                                    "rna_MeshUVLoopLayer_data_begin",
+                                    "rna_Attribute_data_begin",
                                     "rna_iterator_array_next",
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_get",
-                                    "rna_MeshUVLoopLayer_data_length",
+                                    "rna_Attribute_data_length",
                                     nullptr,
                                     nullptr,
                                     nullptr);
@@ -2304,7 +2261,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
                                     "rna_iterator_array_next",
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_get",
-                                    "rna_MeshUVLoopLayer_data_length",
+                                    "rna_Attribute_data_length",
                                     "rna_MeshUVLoopLayer_uv_lookup_int",
                                     nullptr,
                                     nullptr);
@@ -2384,11 +2341,11 @@ static void rna_def_mloopcol(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Data", "");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
-                                    "rna_MeshLoopColorLayer_data_begin",
+                                    "rna_Attribute_data_begin",
                                     "rna_iterator_array_next",
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_get",
-                                    "rna_MeshLoopColorLayer_data_length",
+                                    "rna_Attribute_data_length",
                                     nullptr,
                                     nullptr,
                                     nullptr);
