@@ -199,6 +199,7 @@ const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
 #  include "BKE_attribute_legacy_convert.hh"
 #  include "BKE_curves.hh"
 #  include "BKE_customdata.hh"
+#  include "BKE_mesh_types.hh"
 #  include "BKE_report.hh"
 
 #  include "RNA_prototypes.hh"
@@ -258,7 +259,7 @@ static AttributeOwner owner_from_attribute_pointer_rna(PointerRNA *ptr)
   return AttributeOwner::from_id(owner_id);
 }
 
-static AttributeOwner owner_from_pointer_rna(PointerRNA *ptr)
+static AttributeOwner owner_from_pointer_rna(const PointerRNA *ptr)
 {
   /* For non-ID attribute owners, check the `ptr->type` to derive the `AttributeOwnerType`
    * and construct an `AttributeOwner` from that type and `ptr->data`. */
@@ -271,16 +272,15 @@ static AttributeOwner owner_from_pointer_rna(PointerRNA *ptr)
 static std::optional<std::string> rna_Attribute_path(const PointerRNA *ptr)
 {
   using namespace blender;
-  if (GS(ptr->owner_id->name) != ID_ME) {
-    bke::Attribute *attr = ptr->data_as<bke::Attribute>();
-    const std::string escaped_name = BLI_str_escape(attr->name().c_str());
-    return fmt::format("attributes[\"{}\"]", escaped_name);
+  if (GS(ptr->owner_id->name) == ID_ME) {
+    const CustomDataLayer *layer = static_cast<const CustomDataLayer *>(ptr->data);
+    char layer_name_esc[sizeof(layer->name) * 2];
+    BLI_str_escape(layer_name_esc, layer->name, sizeof(layer_name_esc));
+    return fmt::format("attributes[\"{}\"]", layer_name_esc);
   }
-
-  const CustomDataLayer *layer = static_cast<const CustomDataLayer *>(ptr->data);
-  char layer_name_esc[sizeof(layer->name) * 2];
-  BLI_str_escape(layer_name_esc, layer->name, sizeof(layer_name_esc));
-  return fmt::format("attributes[\"{}\"]", layer_name_esc);
+  bke::Attribute *attr = ptr->data_as<bke::Attribute>();
+  const std::string escaped_name = BLI_str_escape(attr->name().c_str());
+  return fmt::format("attributes[\"{}\"]", escaped_name);
 }
 
 static StructRNA *srna_by_custom_data_layer_type(const eCustomDataType type)
@@ -320,14 +320,13 @@ static StructRNA *srna_by_custom_data_layer_type(const eCustomDataType type)
 static StructRNA *rna_Attribute_refine(PointerRNA *ptr)
 {
   using namespace blender;
-  if (GS(ptr->owner_id->name) != ID_ME) {
-    bke::Attribute *attr = ptr->data_as<bke::Attribute>();
-    const eCustomDataType data_type = *bke::attr_type_to_custom_data_type(attr->data_type());
-    return srna_by_custom_data_layer_type(data_type);
+  if (GS(ptr->owner_id->name) == ID_ME) {
+    CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
+    return srna_by_custom_data_layer_type(eCustomDataType(layer->type));
   }
-
-  CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
-  return srna_by_custom_data_layer_type(eCustomDataType(layer->type));
+  bke::Attribute *attr = ptr->data_as<bke::Attribute>();
+  const eCustomDataType data_type = *bke::attr_type_to_custom_data_type(attr->data_type());
+  return srna_by_custom_data_layer_type(data_type);
 }
 
 static void rna_Attribute_name_get(PointerRNA *ptr, char *value)
@@ -394,24 +393,22 @@ static int rna_Attribute_name_editable(const PointerRNA *ptr, const char **r_inf
 static int rna_Attribute_type_get(PointerRNA *ptr)
 {
   using namespace blender;
-  if (GS(ptr->owner_id->name) != ID_ME) {
-    const bke::Attribute *attr = static_cast<const bke::Attribute *>(ptr->data);
-    return *bke::attr_type_to_custom_data_type(attr->data_type());
+  if (GS(ptr->owner_id->name) == ID_ME) {
+    CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
+    return layer->type;
   }
-
-  CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
-  return layer->type;
+  const bke::Attribute *attr = static_cast<const bke::Attribute *>(ptr->data);
+  return *bke::attr_type_to_custom_data_type(attr->data_type());
 }
 
 static int rna_Attribute_storage_type_get(PointerRNA *ptr)
 {
   using namespace blender;
-  if (GS(ptr->owner_id->name) != ID_ME) {
-    const bke::Attribute *attr = static_cast<const bke::Attribute *>(ptr->data);
-    return int(attr->storage_type());
+  if (GS(ptr->owner_id->name) == ID_ME) {
+    return int(bke::AttrStorageType::Array);
   }
-
-  return int(bke::AttrStorageType::Array);
+  const bke::Attribute *attr = static_cast<const bke::Attribute *>(ptr->data);
+  return int(attr->storage_type());
 }
 
 const EnumPropertyItem *rna_enum_attribute_domain_itemf(const AttributeOwner &owner,
@@ -484,7 +481,6 @@ static int rna_Attribute_domain_get(PointerRNA *ptr)
   if (owner.type() == AttributeOwnerType::Mesh) {
     return int(BKE_attribute_domain(owner, static_cast<const CustomDataLayer *>(ptr->data)));
   }
-
   const bke::Attribute *attr = static_cast<const bke::Attribute *>(ptr->data);
   return int(attr->domain());
 }
@@ -492,13 +488,12 @@ static int rna_Attribute_domain_get(PointerRNA *ptr)
 static bool rna_Attribute_is_internal_get(PointerRNA *ptr)
 {
   using namespace blender;
-  if (GS(ptr->owner_id->name) != ID_ME) {
-    const bke::Attribute *attr = static_cast<const bke::Attribute *>(ptr->data);
-    return !bke::allow_procedural_attribute_access(attr->name());
+  if (GS(ptr->owner_id->name) == ID_ME) {
+    const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
+    return !blender::bke::allow_procedural_attribute_access(layer->name);
   }
-
-  const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
-  return !blender::bke::allow_procedural_attribute_access(layer->name);
+  const bke::Attribute *attr = static_cast<const bke::Attribute *>(ptr->data);
+  return !bke::allow_procedural_attribute_access(attr->name());
 }
 
 static bool rna_Attribute_is_required_get(PointerRNA *ptr)
@@ -705,7 +700,6 @@ static PointerRNA rna_AttributeGroupID_new(
   if (owner.type() == AttributeOwnerType::Mesh) {
     CustomDataLayer *layer = BKE_attribute_new(
         owner, name, eCustomDataType(type), AttrDomain(domain), reports);
-
     if (!layer) {
       return PointerRNA_NULL;
     }
