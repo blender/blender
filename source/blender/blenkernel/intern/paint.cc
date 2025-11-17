@@ -3104,7 +3104,7 @@ bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const RegionView3D *rv3d)
   return true;
 }
 
-/* Returns the Face Set random color for rendering in the overlay given its ID and a color seed. */
+/* Returns the face set random color for rendering in the overlay given its ID and a color seed. */
 #define GOLDEN_RATIO_CONJUGATE 0.618033988749895f
 void BKE_paint_face_set_overlay_color_get(const int face_set, const int seed, uchar r_color[4])
 {

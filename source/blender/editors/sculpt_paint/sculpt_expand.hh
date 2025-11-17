@@ -86,10 +86,10 @@ struct Cache {
   /* Falloff type using when moving the origin for preview. */
   FalloffType move_preview_falloff_type;
 
-  /* Face set ID that is going to be used when creating a new Face Set. */
+  /* Face set ID that is going to be used when creating a new face set. */
   int next_face_set;
 
-  /* Face Set ID of the Face set selected for editing. */
+  /* Face set ID of the Face set selected for editing. */
   int update_face_set;
 
   /* Mouse position since the last time the origin was moved. Used for reference when moving the
@@ -103,7 +103,7 @@ struct Cache {
   int active_connected_islands[EXPAND_SYMM_AREAS];
 
   /* Snapping. */
-  /* Set containing all Face Sets IDs that Expand will use to snap the new data. */
+  /* Set containing all face set IDs that Expand will use to snap the new data. */
   std::unique_ptr<Set<int>> snap_enabled_face_sets;
 
   /* Texture distortion data. */
@@ -141,11 +141,11 @@ struct Cache {
    * instead of updating the active vertex and active falloff. */
   bool move;
 
-  /* When set to true, Expand will snap the new data to the Face Sets IDs found in
+  /* When set to true, Expand will snap the new data to the face set IDs found in
    * *original_face_sets. */
   bool snap;
 
-  /* When set to true, Expand will use the current Face Set ID to modify an existing Face Set
+  /* When set to true, Expand will use the current face set ID to modify an existing face set
    * instead of creating a new one. */
   bool modify_active_face_set;
 
@@ -160,11 +160,11 @@ struct Cache {
   float fill_color[4];
   short blend_mode;
 
-  /* Face Sets at the first step of the expand operation, before starting modifying the active
-   * vertex and active falloff. These are not the original Face Sets of the sculpt before starting
+  /* Face sets at the first step of the expand operation, before starting modifying the active
+   * vertex and active falloff. These are not the original face sets of the sculpt before starting
    * the operator as they could have been modified by Expand when initializing the operator and
-   * before starting changing the active vertex. These Face Sets are used for restoring and
-   * checking the Face Sets state while the Expand operation modal runs. */
+   * before starting changing the active vertex. These face sets are used for restoring and
+   * checking the face sets state while the Expand operation modal runs. */
   Array<int> initial_face_sets;
 
   /* Original data of the sculpt as it was before running the Expand operator. */

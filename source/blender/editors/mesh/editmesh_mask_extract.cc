@@ -58,10 +58,10 @@ static bool geometry_extract_poll(bContext *C)
 }
 
 struct GeometryExtractParams {
-  /* For extracting Face Sets. */
+  /* For extracting face sets. */
   int active_face_set;
 
-  /* For extracting Mask. */
+  /* For extracting mask. */
   float mask_threshold;
 
   /* Common parameters. */
@@ -184,7 +184,7 @@ static wmOperatorStatus geometry_extract_apply(bContext *C,
   bm_to_mesh_params.calc_object_remap = false;
   new_mesh = BKE_mesh_from_bmesh_nomain(bm, &bm_to_mesh_params, mesh);
 
-  /* Remove the Face Sets as they need to be recreated when entering Sculpt Mode in the new object.
+  /* Remove the face sets as they need to be recreated when entering Sculpt Mode in the new object.
    * TODO(pablodobarro): In the future we can try to preserve them from the original mesh. */
   new_mesh->attributes_for_write().remove(".sculpt_face_set");
 
@@ -535,7 +535,7 @@ static wmOperatorStatus paint_mask_slice_exec(bContext *C, wmOperator *op)
 
   if (ob.mode == OB_MODE_SCULPT) {
     if (mesh->attributes().contains(".sculpt_face_set")) {
-      /* Assign a new Face Set ID to the new faces created by the slice operation. */
+      /* Assign a new face set ID to the new faces created by the slice operation. */
       const int next_face_set_id = sculpt_paint::face_set::find_next_available_id(ob);
       sculpt_paint::face_set::initialize_none_to_id(mesh, next_face_set_id);
     }

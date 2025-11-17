@@ -1090,7 +1090,7 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
   bke::pbvh::update_normals(depsgraph, object, pbvh);
 
   /* When using the relax face sets meshes filter, each 3 iterations, do a whole mesh relax to
-   * smooth the contents of the Face Set. This produces better results as the relax operation is no
+   * smooth the contents of the face set. This produces better results as the relax operation is no
    * completely focused on the boundaries. */
   const bool relax_face_sets = !(ss.filter_cache->iteration_count % 3 == 0);
 

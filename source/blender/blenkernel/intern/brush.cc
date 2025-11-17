@@ -1785,7 +1785,7 @@ bool supports_topology_rake(const Brush &brush)
 }
 bool supports_auto_smooth(const Brush &brush)
 {
-  /* TODO: Should this support Face Sets...? */
+  /* TODO: Should this support face sets...? */
   return !ELEM(brush.sculpt_brush_type,
                SCULPT_BRUSH_TYPE_MASK,
                SCULPT_BRUSH_TYPE_SMOOTH,

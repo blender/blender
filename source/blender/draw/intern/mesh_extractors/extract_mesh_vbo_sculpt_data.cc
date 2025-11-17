@@ -160,7 +160,7 @@ gpu::VertBufPtr extract_sculpt_data_subdiv(const MeshRenderData &mr,
 
         uchar4 face_set_color(UCHAR_MAX);
         const int face_set_id = face_sets[face_index];
-        /* Skip for the default color Face Set to render it white. */
+        /* Skip for the default color face set to render it white. */
         if (face_set_id != default_face_set) {
           BKE_paint_face_set_overlay_color_get(face_set_id, face_set_seed, face_set_color);
         }

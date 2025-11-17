@@ -103,7 +103,7 @@ namespace blender::ed::sculpt_paint::undo {
  * Node type used for undo depends on specific operation and active sculpt mode ("regular" or
  * dynamic topology).
  *
- * Regular sculpt brushes will use Position, HideVert, HideFace, Mask, Face Set * nodes. These
+ * Regular sculpt brushes will use Position, HideVert, HideFace, Mask, FaceSet nodes. These
  * nodes are created for every BVH node which is affected by the brush. The undo push for the node
  * happens BEFORE modifications. This makes the operation undo to work in the following way: for
  * every node in the undo step swap happens between node in the undo stack and the corresponding
