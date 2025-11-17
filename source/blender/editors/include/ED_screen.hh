@@ -551,6 +551,7 @@ void ED_operatortypes_workspace();
 /* operators; context poll callbacks */
 
 bool ED_operator_screenactive(bContext *C);
+bool ED_operator_active_screen_and_scene(bContext *C);
 bool ED_operator_screenactive_nobackground(bContext *C);
 /**
  * When mouse is over area-edge.
