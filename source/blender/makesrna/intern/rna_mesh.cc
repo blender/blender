@@ -1801,10 +1801,8 @@ static void rna_MeshUVLoop_uv_set(PointerRNA *ptr, const float *value)
 
 static std::optional<std::string> rna_MeshLoopColorLayer_path(const PointerRNA *ptr)
 {
-  const CustomDataLayer *cdl = static_cast<const CustomDataLayer *>(ptr->data);
-  char name_esc[sizeof(cdl->name) * 2];
-  BLI_str_escape(name_esc, cdl->name, sizeof(name_esc));
-  return fmt::format("vertex_colors[\"{}\"]", name_esc);
+  return fmt::format("vertex_colors[\"{}\"]",
+                     BLI_str_escape(rna_Attribute_name_get(*ptr).c_str()));
 }
 
 static std::optional<std::string> rna_MeshColor_path(const PointerRNA *ptr)

@@ -274,15 +274,7 @@ static AttributeOwner owner_from_pointer_rna(const PointerRNA *ptr)
 static std::optional<std::string> rna_Attribute_path(const PointerRNA *ptr)
 {
   using namespace blender;
-  if (GS(ptr->owner_id->name) == ID_ME) {
-    const CustomDataLayer *layer = static_cast<const CustomDataLayer *>(ptr->data);
-    char layer_name_esc[sizeof(layer->name) * 2];
-    BLI_str_escape(layer_name_esc, layer->name, sizeof(layer_name_esc));
-    return fmt::format("attributes[\"{}\"]", layer_name_esc);
-  }
-  bke::Attribute *attr = ptr->data_as<bke::Attribute>();
-  const std::string escaped_name = BLI_str_escape(attr->name().c_str());
-  return fmt::format("attributes[\"{}\"]", escaped_name);
+  return fmt::format("attributes[\"{}\"]", BLI_str_escape(rna_Attribute_name_get(*ptr).c_str()));
 }
 
 static StructRNA *srna_by_custom_data_layer_type(const eCustomDataType type)
@@ -490,25 +482,13 @@ static int rna_Attribute_domain_get(PointerRNA *ptr)
 static bool rna_Attribute_is_internal_get(PointerRNA *ptr)
 {
   using namespace blender;
-  if (GS(ptr->owner_id->name) == ID_ME) {
-    const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
-    return !blender::bke::allow_procedural_attribute_access(layer->name);
-  }
-  const bke::Attribute *attr = static_cast<const bke::Attribute *>(ptr->data);
-  return !bke::allow_procedural_attribute_access(attr->name());
+  return !bke::allow_procedural_attribute_access(rna_Attribute_name_get(*ptr));
 }
 
 static bool rna_Attribute_is_required_get(PointerRNA *ptr)
 {
-  using namespace blender;
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
-  if (owner.type() == AttributeOwnerType::Mesh) {
-    const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
-    return BKE_attribute_required(owner, layer->name);
-  }
-
-  const bke::Attribute *attr = static_cast<const bke::Attribute *>(ptr->data);
-  return BKE_attribute_required(owner, attr->name());
+  return BKE_attribute_required(owner, rna_Attribute_name_get(*ptr));
 }
 
 void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -706,13 +686,15 @@ static PointerRNA rna_AttributeGroupID_new(
       return PointerRNA_NULL;
     }
 
-    if ((GS(id->name) == ID_ME) && ELEM(layer->type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
-      Mesh *mesh = (Mesh *)id;
-      if (!mesh->active_color_attribute) {
-        mesh->active_color_attribute = BLI_strdup(layer->name);
-      }
-      if (!mesh->default_color_attribute) {
-        mesh->default_color_attribute = BLI_strdup(layer->name);
+    if ((GS(id->name) == ID_ME)) {
+      if (ELEM(layer->type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
+        Mesh *mesh = (Mesh *)id;
+        if (!mesh->active_color_attribute) {
+          mesh->active_color_attribute = BLI_strdup(layer->name);
+        }
+        if (!mesh->default_color_attribute) {
+          mesh->default_color_attribute = BLI_strdup(layer->name);
+        }
       }
     }
 
