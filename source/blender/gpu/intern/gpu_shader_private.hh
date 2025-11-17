@@ -137,6 +137,11 @@ class Shader {
   static void set_srgb_uniform(Context *ctx, gpu::Shader *shader);
   static void set_framebuffer_srgb_target(int use_srgb_to_linear);
 
+  static void dump_source_to_disk(StringRef shader_name,
+                                  StringRef shader_name_with_stage_name,
+                                  StringRef extension,
+                                  StringRef source);
+
  protected:
   void print_log(Span<StringRefNull> sources,
                  const char *log,

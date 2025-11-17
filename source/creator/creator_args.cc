@@ -1543,7 +1543,8 @@ static int arg_handle_debug_gpu_scope_capture_set(int argc, const char **argv, v
 
 static const char arg_handle_debug_gpu_shader_source_doc[] =
     "\n"
-    "\tCapture the GPU commands issued inside the give scope name.\n"
+    "\tSave the compiled GPU shader source code for the given shader name.\n"
+    "\tThe given name can contain leading or trailing wildcard \"*\" to match multiple shaders."
     "\tFiles are saved in the current working directory inside a directory named \"Shaders\".";
 static int arg_handle_debug_gpu_shader_source(int argc, const char **argv, void * /*data*/)
 {

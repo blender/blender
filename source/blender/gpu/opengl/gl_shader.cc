@@ -1289,21 +1289,7 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage,
 
   std::string full_name = this->name_get() + "_" + stage_name_get(gl_stage);
 
-  if (this->name_get() == G.gpu_debug_shader_source_name) {
-    namespace fs = std::filesystem;
-    fs::path shader_dir = fs::current_path() / "Shaders";
-    fs::create_directories(shader_dir);
-    fs::path file_path = shader_dir / (full_name + ".glsl");
-
-    std::ofstream output_source_file(file_path);
-    if (output_source_file) {
-      output_source_file << concat_source;
-      output_source_file.close();
-    }
-    else {
-      std::cerr << "Shader Source Debug: Failed to open file: " << file_path << "\n";
-    }
-  }
+  dump_source_to_disk(this->name_get(), full_name, ".glsl", concat_source);
 
   /* Patch line directives so that we can make error reporting consistent. */
   size_t start_pos = 0;
