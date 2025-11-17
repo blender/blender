@@ -877,7 +877,7 @@ static void TRANSFORM_OT_translate(wmOperatorType *ot)
   ot->exec = transform_exec;
   ot->modal = transform_modal;
   ot->cancel = transform_cancel;
-  ot->poll = ED_operator_screenactive;
+  ot->poll = ED_operator_active_screen_and_scene;
   ot->poll_property = transform_poll_property;
 
   RNA_def_float_translation(
@@ -904,7 +904,7 @@ static void TRANSFORM_OT_resize(wmOperatorType *ot)
   ot->exec = transform_exec;
   ot->modal = transform_modal;
   ot->cancel = transform_cancel;
-  ot->poll = ED_operator_screenactive;
+  ot->poll = ED_operator_active_screen_and_scene;
   ot->poll_property = transform_poll_property;
 
   RNA_def_float_vector(
@@ -994,7 +994,7 @@ static void TRANSFORM_OT_rotate(wmOperatorType *ot)
   ot->exec = transform_exec;
   ot->modal = transform_modal;
   ot->cancel = transform_cancel;
-  ot->poll = ED_operator_screenactive;
+  ot->poll = ED_operator_active_screen_and_scene;
   ot->poll_property = transform_poll_property;
 
   RNA_def_float_rotation(
@@ -1198,7 +1198,7 @@ static void TRANSFORM_OT_mirror(wmOperatorType *ot)
   ot->exec = transform_exec;
   ot->modal = transform_modal;
   ot->cancel = transform_cancel;
-  ot->poll = ED_operator_screenactive;
+  ot->poll = ED_operator_active_screen_and_scene;
   ot->poll_property = transform_poll_property;
 
   properties_register(ot, P_ORIENT_MATRIX | P_CONSTRAINT | P_GPENCIL_EDIT | P_CENTER);
@@ -1442,7 +1442,7 @@ static void TRANSFORM_OT_transform(wmOperatorType *ot)
   ot->exec = transform_exec;
   ot->modal = transform_modal;
   ot->cancel = transform_cancel;
-  ot->poll = ED_operator_screenactive;
+  ot->poll = ED_operator_active_screen_and_scene;
   ot->poll_property = transform_poll_property;
 
   prop = RNA_def_enum(
