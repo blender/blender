@@ -732,18 +732,6 @@ static void rna_MeshVertex_undeformed_co_get(PointerRNA *ptr, float values[3])
   }
 }
 
-static int rna_CustomDataLayer_active_get(PointerRNA *ptr, CustomData *data, int type, bool render)
-{
-  int n = ((CustomDataLayer *)ptr->data) - data->layers;
-
-  if (render) {
-    return (n == CustomData_get_render_layer_index(data, eCustomDataType(type)));
-  }
-  else {
-    return (n == CustomData_get_active_layer_index(data, eCustomDataType(type)));
-  }
-}
-
 static int rna_CustomDataLayer_clone_get(PointerRNA *ptr, CustomData *data, int type)
 {
   int n = ((CustomDataLayer *)ptr->data) - data->layers;
@@ -994,10 +982,9 @@ static void rna_Mesh_uv_layer_stencil_index_set(PointerRNA *ptr, int value)
 
 static std::optional<std::string> rna_MeshUVLoopLayer_path(const PointerRNA *ptr)
 {
-  const CustomDataLayer *cdl = static_cast<const CustomDataLayer *>(ptr->data);
-  char name_esc[sizeof(cdl->name) * 2];
-  BLI_str_escape(name_esc, cdl->name, sizeof(name_esc));
-  return fmt::format("uv_layers[\"{}\"]", name_esc);
+  using namespace blender;
+  const StringRefNull name = rna_Attribute_name_get(*ptr);
+  return fmt::format("uv_layers[\"{}\"]", BLI_str_escape(name.c_str()));
 }
 
 static void bool_layer_begin(CollectionPropertyIterator *iter,
@@ -1125,12 +1112,12 @@ bool rna_MeshUVLoopLayer_uv_lookup_int(PointerRNA *ptr, int index, PointerRNA *r
 
 static bool rna_MeshUVLoopLayer_active_render_get(PointerRNA *ptr)
 {
-  return rna_CustomDataLayer_active_get(ptr, rna_mesh_ldata(ptr), CD_PROP_FLOAT2, 1);
+  return rna_Attribute_name_get(*ptr) == rna_mesh(ptr)->default_uv_map_name();
 }
 
 static bool rna_MeshUVLoopLayer_active_get(PointerRNA *ptr)
 {
-  return rna_CustomDataLayer_active_get(ptr, rna_mesh_ldata(ptr), CD_PROP_FLOAT2, 0);
+  return rna_Attribute_name_get(*ptr) == rna_mesh(ptr)->active_uv_map_name();
 }
 
 static bool rna_MeshUVLoopLayer_clone_get(PointerRNA *ptr)
@@ -1197,14 +1184,11 @@ static void rna_Mesh_vertex_color_active_set(PointerRNA *ptr,
                                              const PointerRNA value,
                                              ReportList * /*reports*/)
 {
-  Mesh *mesh = (Mesh *)ptr->data;
-  CustomDataLayer *layer = (CustomDataLayer *)value.data;
-
-  if (!layer) {
+  if (RNA_pointer_is_null(&value)) {
     return;
   }
-
-  BKE_id_attributes_active_color_set(&mesh->id, layer->name);
+  Mesh *mesh = (Mesh *)ptr->data;
+  BKE_id_attributes_active_color_set(&mesh->id, rna_Attribute_name_get(value));
 }
 
 static int rna_Mesh_vertex_color_active_index_get(PointerRNA *ptr)
@@ -1239,36 +1223,29 @@ static void rna_Mesh_vertex_color_active_index_set(PointerRNA *ptr, int value)
 static bool rna_mesh_color_active_render_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
-  return mesh->default_color_attribute && STREQ(mesh->default_color_attribute, layer->name);
+  return rna_Attribute_name_get(*ptr) == blender::StringRef(mesh->default_color_attribute);
 }
 
 static bool rna_mesh_color_active_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
-  return mesh->active_color_attribute && STREQ(mesh->active_color_attribute, layer->name);
+  return rna_Attribute_name_get(*ptr) == blender::StringRef(mesh->active_color_attribute);
 }
 
 static void rna_mesh_color_active_render_set(PointerRNA *ptr, bool value)
 {
-  if (value == false) {
-    return;
+  if (value) {
+    Mesh *mesh = rna_mesh(ptr);
+    BKE_id_attributes_default_color_set(&mesh->id, rna_Attribute_name_get(*ptr));
   }
-  Mesh *mesh = (Mesh *)ptr->owner_id;
-  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-  BKE_id_attributes_default_color_set(&mesh->id, layer->name);
 }
 
 static void rna_mesh_color_active_set(PointerRNA *ptr, bool value)
 {
-  if (value == false) {
-    return;
+  if (value) {
+    Mesh *mesh = rna_mesh(ptr);
+    BKE_id_attributes_active_color_set(&mesh->id, rna_Attribute_name_get(*ptr));
   }
-  Mesh *mesh = (Mesh *)ptr->owner_id;
-  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-
-  BKE_id_attributes_active_color_set(&mesh->id, layer->name);
 }
 
 static bool rna_skin_vertice_check(CollectionPropertyIterator *, void *data)

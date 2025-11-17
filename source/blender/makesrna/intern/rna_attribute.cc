@@ -1026,14 +1026,11 @@ static void rna_AttributeGroupMesh_active_color_set(PointerRNA *ptr,
                                                     PointerRNA attribute_ptr,
                                                     ReportList * /*reports*/)
 {
-  ID *id = ptr->owner_id;
-  CustomDataLayer *layer = static_cast<CustomDataLayer *>(attribute_ptr.data);
-  if (layer) {
-    BKE_id_attributes_active_color_set(id, layer->name);
+  if (RNA_pointer_is_null(&attribute_ptr)) {
+    BKE_id_attributes_active_color_clear(ptr->owner_id);
+    return;
   }
-  else {
-    BKE_id_attributes_active_color_clear(id);
-  }
+  BKE_id_attributes_active_color_set(ptr->owner_id, rna_Attribute_name_get(attribute_ptr));
 }
 
 static int rna_AttributeGroupMesh_active_color_index_get(PointerRNA *ptr)
@@ -1225,13 +1222,11 @@ static void rna_AttributeGroupGreasePencilDrawing_active_set(PointerRNA *ptr,
 {
   GreasePencilDrawing *drawing = static_cast<GreasePencilDrawing *>(ptr->data);
   AttributeOwner owner = AttributeOwner(AttributeOwnerType::GreasePencilDrawing, drawing);
-  CustomDataLayer *layer = static_cast<CustomDataLayer *>(attribute_ptr.data);
-  if (layer) {
-    BKE_attributes_active_set(owner, layer->name);
-  }
-  else {
+  if (RNA_pointer_is_null(&attribute_ptr)) {
     BKE_attributes_active_clear(owner);
+    return;
   }
+  BKE_attributes_active_set(owner, rna_Attribute_name_get(attribute_ptr));
 }
 
 static bool rna_AttributeGroupGreasePencilDrawing_active_poll(PointerRNA *ptr,
