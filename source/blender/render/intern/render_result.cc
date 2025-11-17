@@ -706,7 +706,7 @@ RenderResult *render_result_new_from_exr(
   int display_size[2];
   int display_offset[2];
   int data_offset[2];
-  IMB_get_exr_display_window(exrhandle, display_size, display_offset, data_offset);
+  IMB_exr_get_display_window(exrhandle, display_size, display_offset, data_offset);
 
   IMB_exr_multilayer_convert(exrhandle, rr, ml_addview_cb, ml_addlayer_cb, ml_addpass_cb);
 

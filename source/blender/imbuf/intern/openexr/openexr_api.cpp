@@ -2076,7 +2076,7 @@ static void get_exr_display_window(const MultiPartInputFile &file,
   data_offset[1] = data_window.min[1] - display_window.min[1];
 }
 
-void IMB_get_exr_display_window(ExrHandle *handle,
+void IMB_exr_get_display_window(ExrHandle *handle,
                                 int display_size[2],
                                 int display_offset[2],
                                 int data_offset[2])
