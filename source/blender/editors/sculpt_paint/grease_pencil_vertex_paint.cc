@@ -52,7 +52,7 @@ void VertexPaintOperation::on_stroke_extended(const bContext &C,
     const IndexMask point_selection = point_mask_for_stroke_operation(
         params, use_selection_masking, memory);
     if (!point_selection.is_empty() && do_points) {
-      Array<float2> view_positions = calculate_view_positions(params, point_selection);
+      const Array<float2> view_positions = view_positions_from_point_mask(params, point_selection);
       MutableSpan<ColorGeometry4f> vertex_colors = params.drawing.vertex_colors_for_write();
 
       if (invert) {
@@ -82,7 +82,7 @@ void VertexPaintOperation::on_stroke_extended(const bContext &C,
         params, use_selection_masking, memory);
     if (!fill_selection.is_empty() && do_fill) {
       const OffsetIndices<int> points_by_curve = params.drawing.strokes().points_by_curve();
-      Array<float2> view_positions = calculate_view_positions(params, point_selection);
+      const Array<float2> view_positions = view_positions_from_curve_mask(params, fill_selection);
       MutableSpan<ColorGeometry4f> fill_colors = params.drawing.fill_colors_for_write();
 
       if (invert) {

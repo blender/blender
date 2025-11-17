@@ -92,8 +92,8 @@ void VertexSmearOperation::init_color_grid(const bContext &C, const float2 start
     if (point_selection.is_empty()) {
       return false;
     }
-    const Array<float2> view_positions = calculate_view_positions(params, point_selection);
-    const Array<float> radii = calculate_view_radii(params, point_selection);
+    const Array<float2> view_positions = view_positions_from_point_mask(params, point_selection);
+    const Array<float> radii = view_radii_from_point_selection(params, point_selection);
     const VArray<ColorGeometry4f> vertex_colors = params.drawing.vertex_colors();
     /* Compute the colors in the grid by averaging the vertex colors of the points that
      * intersect each cell. */
@@ -163,7 +163,7 @@ void VertexSmearOperation::on_stroke_extended(const bContext &C,
     if (point_selection.is_empty()) {
       return false;
     }
-    const Array<float2> view_positions = calculate_view_positions(params, point_selection);
+    const Array<float2> view_positions = view_positions_from_point_mask(params, point_selection);
     MutableSpan<ColorGeometry4f> vertex_colors = params.drawing.vertex_colors_for_write();
     point_selection.foreach_index(GrainSize(1024), [&](const int64_t point_i) {
       const float2 view_pos = view_positions[point_i];

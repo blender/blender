@@ -69,7 +69,7 @@ void RandomizeOperation::on_stroke_extended(const bContext &C, const InputSample
         const uint32_t seed = this->unique_seed();
 
         bke::crazyspace::GeometryDeformation deformation = get_drawing_deformation(params);
-        Array<float2> view_positions = calculate_view_positions(params, point_mask);
+        const Array<float2> view_positions = view_positions_from_point_mask(params, point_mask);
         bke::CurvesGeometry &curves = params.drawing.strokes_for_write();
         bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
