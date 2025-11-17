@@ -103,51 +103,6 @@ static CustomData *rna_mesh_ldata(const PointerRNA *ptr)
 /** \name Generic CustomData Layer Functions
  * \{ */
 
-static void rna_cd_layer_name_set(CustomData *cdata, CustomDataLayer *cdl, const char *value)
-{
-  STRNCPY_UTF8(cdl->name, value);
-  CustomData_set_layer_unique_name(cdata, cdl - cdata->layers);
-}
-
-static void rna_MeshVertexLayer_name_set(PointerRNA *ptr, const char *value)
-{
-  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-
-  if (CD_TYPE_AS_MASK(eCustomDataType(layer->type)) & CD_MASK_PROP_ALL) {
-    AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
-    BKE_attribute_rename(owner, layer->name, value, nullptr);
-  }
-  else {
-    rna_cd_layer_name_set(rna_mesh_vdata(ptr), layer, value);
-  }
-}
-#  if 0
-static void rna_MeshEdgeLayer_name_set(PointerRNA *ptr, const char *value)
-{
-  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-
-  if (CD_TYPE_AS_MASK(eCustomDataType(layer->type)) & CD_MASK_PROP_ALL) {
-    AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
-    BKE_attribute_rename(owner, layer->name, value, nullptr);
-  }
-  else {
-    rna_cd_layer_name_set(rna_mesh_edata(ptr), layer, value);
-  }
-}
-#  endif
-static void rna_MeshLoopLayer_name_set(PointerRNA *ptr, const char *value)
-{
-  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-
-  if (CD_TYPE_AS_MASK(eCustomDataType(layer->type)) & CD_MASK_PROP_ALL) {
-    AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
-    BKE_attribute_rename(owner, layer->name, value, nullptr);
-  }
-  else {
-    rna_cd_layer_name_set(rna_mesh_ldata(ptr), layer, value);
-  }
-}
-
 static bool rna_Mesh_has_custom_normals_get(PointerRNA *ptr)
 {
   Mesh *mesh = static_cast<Mesh *>(ptr->data);
@@ -1363,6 +1318,14 @@ static std::optional<std::string> rna_MeshSkinVertex_path(const PointerRNA *ptr)
   return rna_VertCustomData_data_path(ptr, "skin_vertices", CD_MVERT_SKIN);
 }
 
+static void rna_MeshSkinVertexLayer_name_set(PointerRNA *ptr, const char *value)
+{
+  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+  CustomData *cdata = rna_mesh_vdata(ptr);
+  STRNCPY_UTF8(layer->name, value);
+  CustomData_set_layer_unique_name(cdata, layer - cdata->layers);
+}
+
 static void rna_MeshSkinVertexLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   Mesh *mesh = rna_mesh(ptr);
@@ -2473,7 +2436,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_struct_name_property(srna, prop);
-  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_MeshLoopLayer_name_set");
+  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_Attribute_name_set");
   RNA_def_property_string_maxlength(prop, MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX);
   RNA_def_property_ui_text(prop, "Name", "Name of UV map");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
@@ -2566,7 +2529,7 @@ static void rna_def_mloopcol(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_struct_name_property(srna, prop);
-  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_MeshLoopLayer_name_set");
+  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_Attribute_name_set");
   RNA_def_property_string_maxlength(prop, MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX);
   RNA_def_property_ui_text(prop, "Name", "Name of Vertex color layer");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
@@ -2904,7 +2867,7 @@ static void rna_def_skin_vertices(BlenderRNA *brna, PropertyRNA * /*cprop*/)
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_struct_name_property(srna, prop);
-  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_MeshVertexLayer_name_set");
+  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_MeshSkinVertexLayer_name_set");
   RNA_def_property_string_maxlength(prop, MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX);
   RNA_def_property_ui_text(prop, "Name", "Name of skin layer");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");

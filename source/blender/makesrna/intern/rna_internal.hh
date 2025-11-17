@@ -234,6 +234,7 @@ void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 int rna_Attribute_data_length(PointerRNA *ptr);
 
 blender::StringRefNull rna_Attribute_name_get(const PointerRNA &ptr);
+void rna_Attribute_name_set(PointerRNA *ptr, const char *value);
 
 void rna_AttributeGroup_iterator_begin(CollectionPropertyIterator *iter,
                                        PointerRNA *ptr,

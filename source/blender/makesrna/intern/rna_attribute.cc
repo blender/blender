@@ -357,7 +357,7 @@ int rna_Attribute_name_length(PointerRNA *ptr)
   return rna_Attribute_name_get(*ptr).size();
 }
 
-static void rna_Attribute_name_set(PointerRNA *ptr, const char *value)
+void rna_Attribute_name_set(PointerRNA *ptr, const char *value)
 {
   using namespace blender;
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
