@@ -118,7 +118,8 @@ bool BKE_attribute_rename(AttributeOwner &owner,
 
 int BKE_attributes_length(const AttributeOwner &owner,
                           AttrDomainMask domain_mask,
-                          eCustomDataMask mask);
+                          eCustomDataMask mask,
+                          bool include_anonymous = true);
 
 std::optional<blender::StringRefNull> BKE_attributes_active_name_get(AttributeOwner &owner);
 void BKE_attributes_active_set(AttributeOwner &owner, blender::StringRef name);
@@ -128,13 +129,15 @@ int *BKE_attributes_active_index_p(AttributeOwner &owner);
 std::optional<blender::StringRef> BKE_attribute_from_index(AttributeOwner &owner,
                                                            int lookup_index,
                                                            AttrDomainMask domain_mask,
-                                                           eCustomDataMask layer_mask);
+                                                           eCustomDataMask layer_mask,
+                                                           bool include_anonymous = true);
 
 /** Layer is allowed to be nullptr; if so -1 (layer not found) will be returned. */
 int BKE_attribute_to_index(const AttributeOwner &owner,
                            const blender::StringRef name,
                            AttrDomainMask domain_mask,
-                           eCustomDataMask layer_mask);
+                           eCustomDataMask layer_mask,
+                           bool include_anonymous = true);
 
 std::optional<blender::StringRef> BKE_id_attributes_active_color_name(const struct ID *id);
 std::optional<blender::StringRef> BKE_id_attributes_default_color_name(const struct ID *id);

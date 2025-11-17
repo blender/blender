@@ -11,6 +11,7 @@
 #include <cstring>
 #include <optional>
 
+#include "BKE_anonymous_attribute_id.hh"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_ID.h"
@@ -597,8 +598,9 @@ CustomDataLayer *BKE_attribute_search_for_write(AttributeOwner &owner,
 }
 
 int BKE_attributes_length(const AttributeOwner &owner,
-                          AttrDomainMask domain_mask,
-                          eCustomDataMask mask)
+                          const AttrDomainMask domain_mask,
+                          const eCustomDataMask mask,
+                          const bool include_anonymous)
 {
   using namespace blender;
   if (owner.type() == AttributeOwnerType::Mesh) {
@@ -609,15 +611,23 @@ int BKE_attributes_length(const AttributeOwner &owner,
       if (customdata == nullptr) {
         continue;
       }
-
-      if ((1 << int(domain)) & domain_mask) {
-        length += CustomData_number_of_layers_typemask(customdata, mask);
+      if (!customdata || !((1 << int(domain)) & domain_mask)) {
+        continue;
+      }
+      for (const CustomDataLayer &layer : Span(customdata->layers, customdata->totlayer)) {
+        if (!(mask & CD_TYPE_AS_MASK(eCustomDataType(layer.type)))) {
+          continue;
+        }
+        if (!include_anonymous && bke::attribute_name_is_anonymous(layer.name)) {
+          continue;
+        }
+        length++;
       }
     }
     return length;
   }
   const bke::AttributeStorage &storage = *owner.get_storage();
-  if (domain_mask == ATTR_DOMAIN_MASK_ALL && mask == CD_MASK_PROP_ALL) {
+  if (include_anonymous && domain_mask == ATTR_DOMAIN_MASK_ALL && mask == CD_MASK_PROP_ALL) {
     return storage.count();
   }
   int length = 0;
@@ -626,6 +636,9 @@ int BKE_attributes_length(const AttributeOwner &owner,
       return;
     }
     if (!(CD_TYPE_AS_MASK(*bke::attr_type_to_custom_data_type(attr.data_type())) & mask)) {
+      return;
+    }
+    if (!include_anonymous && bke::attribute_name_is_anonymous(attr.name())) {
       return;
     }
     length++;
@@ -785,9 +798,10 @@ int *BKE_attributes_active_index_p(AttributeOwner &owner)
 }
 
 std::optional<blender::StringRef> BKE_attribute_from_index(AttributeOwner &owner,
-                                                           int lookup_index,
-                                                           AttrDomainMask domain_mask,
-                                                           eCustomDataMask layer_mask)
+                                                           const int lookup_index,
+                                                           const AttrDomainMask domain_mask,
+                                                           const eCustomDataMask layer_mask,
+                                                           const bool include_anonymous)
 {
   using namespace blender;
   if (owner.type() == AttributeOwnerType::Mesh) {
@@ -796,26 +810,22 @@ std::optional<blender::StringRef> BKE_attribute_from_index(AttributeOwner &owner
     int index = 0;
     for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
       CustomData *customdata = info[domain].customdata;
-
       if (!customdata || !((1 << int(domain)) & domain_mask)) {
         continue;
       }
-
-      for (int i = 0; i < customdata->totlayer; i++) {
-        if (!(layer_mask & CD_TYPE_AS_MASK(eCustomDataType(customdata->layers[i].type))) ||
-            (customdata->layers[i].flag & CD_FLAG_TEMPORARY))
-        {
+      for (const CustomDataLayer &layer : Span(customdata->layers, customdata->totlayer)) {
+        if (!(layer_mask & CD_TYPE_AS_MASK(eCustomDataType(layer.type)))) {
           continue;
         }
-
-        if (index == lookup_index) {
-          return customdata->layers[i].name;
+        if (!include_anonymous && bke::attribute_name_is_anonymous(layer.name)) {
+          continue;
         }
-
+        if (index == lookup_index) {
+          return layer.name;
+        }
         index++;
       }
     }
-
     return std::nullopt;
   }
 
@@ -832,6 +842,9 @@ std::optional<blender::StringRef> BKE_attribute_from_index(AttributeOwner &owner
     if (!(CD_TYPE_AS_MASK(*bke::attr_type_to_custom_data_type(attr.data_type())) & layer_mask)) {
       return true;
     }
+    if (!include_anonymous && bke::attribute_name_is_anonymous(attr.name())) {
+      return true;
+    }
     if (index == lookup_index) {
       result = attr.name();
       return false;
@@ -845,7 +858,8 @@ std::optional<blender::StringRef> BKE_attribute_from_index(AttributeOwner &owner
 int BKE_attribute_to_index(const AttributeOwner &owner,
                            const StringRef name,
                            AttrDomainMask domain_mask,
-                           eCustomDataMask layer_mask)
+                           eCustomDataMask layer_mask,
+                           const bool include_anonymous)
 {
   using namespace blender;
   if (owner.type() == AttributeOwnerType::Mesh) {
@@ -857,18 +871,16 @@ int BKE_attribute_to_index(const AttributeOwner &owner,
       if (!customdata || !((1 << int(domain)) & domain_mask)) {
         continue;
       }
-      for (int i = 0; i < customdata->totlayer; i++) {
-        const CustomDataLayer *layer = customdata->layers + i;
-        if (!(layer_mask & CD_TYPE_AS_MASK(eCustomDataType(layer->type))) ||
-            (layer->flag & CD_FLAG_TEMPORARY))
-        {
+      for (const CustomDataLayer &layer : Span(customdata->layers, customdata->totlayer)) {
+        if (!(layer_mask & CD_TYPE_AS_MASK(eCustomDataType(layer.type)))) {
           continue;
         }
-
-        if (layer->name == name) {
+        if (!include_anonymous && bke::attribute_name_is_anonymous(layer.name)) {
+          continue;
+        }
+        if (layer.name == name) {
           return index;
         }
-
         index++;
       }
     }
@@ -885,6 +897,9 @@ int BKE_attribute_to_index(const AttributeOwner &owner,
       return true;
     }
     if (!(CD_TYPE_AS_MASK(*bke::attr_type_to_custom_data_type(attr.data_type())) & layer_mask)) {
+      return true;
+    }
+    if (!include_anonymous && bke::attribute_name_is_anonymous(attr.name())) {
       return true;
     }
     if (attr.name() == name) {

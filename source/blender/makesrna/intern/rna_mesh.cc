@@ -788,20 +788,16 @@ PointerRNA rna_Mesh_uv_layers_iterator_get(CollectionPropertyIterator *iter)
 
 static int rna_Mesh_uv_layers_length(PointerRNA *ptr)
 {
-  CustomData *data = rna_mesh_ldata(ptr);
-  return data ? CustomData_number_of_layers(data, CD_PROP_FLOAT2) -
-                    CustomData_number_of_anonymous_layers(data, CD_PROP_FLOAT2) :
-                0;
+  AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
+  return BKE_attributes_length(owner, ATTR_DOMAIN_MASK_CORNER, CD_MASK_PROP_FLOAT2, false);
 }
 
 static void rna_Mesh_uv_layer_index_range(PointerRNA *ptr, int *min, int *max, int *, int *)
 {
-  CustomData *data = rna_mesh_ldata(ptr);
+  AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
   *min = 0;
-  *max = data ? CustomData_number_of_layers(data, CD_PROP_FLOAT2) -
-                    CustomData_number_of_anonymous_layers(data, CD_PROP_FLOAT2) - 1 :
-                0;
-  *max = std::max(0, *max);
+  *max = std::max(
+      BKE_attributes_length(owner, ATTR_DOMAIN_MASK_CORNER, CD_MASK_PROP_FLOAT2, false) - 1, 0);
 }
 
 static PointerRNA rna_Mesh_uv_layer_active_get(PointerRNA *ptr)
@@ -834,11 +830,12 @@ static void rna_Mesh_uv_layer_active_set(PointerRNA *ptr, PointerRNA value, Repo
 
 static int rna_Mesh_uv_layer_active_index_get(PointerRNA *ptr)
 {
-  CustomData *data = rna_mesh_ldata(ptr);
-  if (data) {
-    return CustomData_get_active_layer(data, CD_PROP_FLOAT2);
-  }
-  return 0;
+  AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
+  return BKE_attribute_to_index(owner,
+                                rna_mesh(ptr)->active_uv_map_name(),
+                                ATTR_DOMAIN_MASK_CORNER,
+                                CD_MASK_PROP_FLOAT2,
+                                false);
 }
 
 static void rna_Mesh_uv_layer_active_index_set(PointerRNA *ptr, int value)
@@ -1109,20 +1106,17 @@ PointerRNA rna_Mesh_vertex_colors_iterator_get(CollectionPropertyIterator *iter)
 
 static int rna_Mesh_vertex_colors_length(PointerRNA *ptr)
 {
-  CustomData *data = rna_mesh_ldata(ptr);
-  return data ? CustomData_number_of_layers(data, CD_PROP_BYTE_COLOR) -
-                    CustomData_number_of_anonymous_layers(data, CD_PROP_BYTE_COLOR) :
-                0;
+  AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
+  return BKE_attributes_length(owner, ATTR_DOMAIN_MASK_CORNER, CD_MASK_PROP_BYTE_COLOR, false);
 }
 
 static void rna_Mesh_vertex_color_index_range(PointerRNA *ptr, int *min, int *max, int *, int *)
 {
-  CustomData *data = rna_mesh_ldata(ptr);
+  AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
   *min = 0;
-  *max = data ? CustomData_number_of_layers(data, CD_PROP_BYTE_COLOR) -
-                    CustomData_number_of_anonymous_layers(data, CD_PROP_BYTE_COLOR) - 1 :
-                0;
-  *max = std::max(0, *max);
+  *max = std::max(
+      BKE_attributes_length(owner, ATTR_DOMAIN_MASK_CORNER, CD_MASK_PROP_BYTE_COLOR, false) - 1,
+      0);
 }
 
 static PointerRNA rna_Mesh_vertex_color_active_get(PointerRNA *ptr)
@@ -1150,29 +1144,24 @@ static int rna_Mesh_vertex_color_active_index_get(PointerRNA *ptr)
 {
   Mesh *mesh = (Mesh *)ptr->data;
   AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
-  const CustomDataLayer *layer = BKE_attribute_search(
-      owner, mesh->active_color_attribute, CD_MASK_PROP_BYTE_COLOR, ATTR_DOMAIN_MASK_CORNER);
-  if (!layer) {
-    return 0;
-  }
-  CustomData *ldata = rna_mesh_ldata(ptr);
-  return layer - ldata->layers + CustomData_get_layer_index(ldata, CD_PROP_BYTE_COLOR);
+  return BKE_attribute_to_index(owner,
+                                mesh->active_color_attribute,
+                                ATTR_DOMAIN_MASK_CORNER,
+                                CD_MASK_PROP_BYTE_COLOR,
+                                false);
 }
 
 static void rna_Mesh_vertex_color_active_index_set(PointerRNA *ptr, int value)
 {
   Mesh *mesh = (Mesh *)ptr->data;
-  CustomData *ldata = rna_mesh_ldata(ptr);
-
-  if (value < 0 || value >= CustomData_number_of_layers(ldata, CD_PROP_BYTE_COLOR)) {
+  AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
+  const std::optional<StringRef> name = BKE_attribute_from_index(
+      owner, value, ATTR_DOMAIN_MASK_CORNER, CD_MASK_PROP_BYTE_COLOR, false);
+  if (!name) {
     fprintf(stderr, "Invalid loop byte attribute index %d\n", value);
     return;
   }
-
-  CustomDataLayer *layer = ldata->layers + CustomData_get_layer_index(ldata, CD_PROP_BYTE_COLOR) +
-                           value;
-
-  BKE_id_attributes_active_color_set(&mesh->id, layer->name);
+  BKE_id_attributes_active_color_set(&mesh->id, name);
 }
 
 static bool rna_mesh_color_active_render_get(PointerRNA *ptr)
