@@ -1931,10 +1931,10 @@ static PointerRNA rna_Mesh_vertex_color_new(Mesh *mesh,
   return RNA_pointer_create_discrete(&mesh->id, &RNA_MeshLoopColorLayer, cdl);
 }
 
-static void rna_Mesh_vertex_color_remove(Mesh *mesh, ReportList *reports, CustomDataLayer *layer)
+static void rna_Mesh_vertex_color_remove(Mesh *mesh, ReportList *reports, PointerRNA *ptr)
 {
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
-  BKE_attribute_remove(owner, layer->name, reports);
+  BKE_attribute_remove(owner, rna_Attribute_name_get(*ptr), reports);
 }
 
 static PointerRNA rna_Mesh_uv_layers_new(Mesh *mesh,
@@ -1955,25 +1955,26 @@ static PointerRNA rna_Mesh_uv_layers_new(Mesh *mesh,
   return ptr;
 }
 
-static void rna_Mesh_uv_layers_remove(Mesh *mesh, ReportList *reports, CustomDataLayer *layer)
+static void rna_Mesh_uv_layers_remove(Mesh *mesh, ReportList *reports, PointerRNA *uv_ptr)
 {
   using namespace blender;
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
+  const StringRefNull name = rna_Attribute_name_get(*uv_ptr);
   if (mesh->runtime->edit_mesh) {
     BMesh &bm = *mesh->runtime->edit_mesh->bm;
-    if (!CustomData_has_layer_named(&bm.ldata, CD_PROP_FLOAT2, layer->name)) {
-      BKE_reportf(reports, RPT_ERROR, "UV map '%s' not found", layer->name);
+    if (!CustomData_has_layer_named(&bm.ldata, CD_PROP_FLOAT2, name)) {
+      BKE_reportf(reports, RPT_ERROR, "UV map '%s' not found", name.c_str());
       return;
     }
   }
   else {
     bke::AttributeAccessor attributes = *owner.get_accessor();
-    if (!attributes.contains(layer->name)) {
-      BKE_reportf(reports, RPT_ERROR, "UV map '%s' not found", layer->name);
+    if (!attributes.contains(name)) {
+      BKE_reportf(reports, RPT_ERROR, "UV map '%s' not found", name.c_str());
       return;
     }
   }
-  BKE_attribute_remove(owner, layer->name, reports);
+  BKE_attribute_remove(owner, name, reports);
 }
 
 static bool rna_Mesh_is_editmode_get(PointerRNA *ptr)
@@ -2414,7 +2415,6 @@ static void rna_def_mloopuv(BlenderRNA *brna)
   PropertyRNA *prop, *parm;
 
   srna = RNA_def_struct(brna, "MeshUVLoopLayer", nullptr);
-  RNA_def_struct_sdna(srna, "CustomDataLayer");
   RNA_def_struct_path_func(srna, "rna_MeshUVLoopLayer_path");
 
   prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
@@ -2436,7 +2436,8 @@ static void rna_def_mloopuv(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_struct_name_property(srna, prop);
-  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_Attribute_name_set");
+  RNA_def_property_string_funcs(
+      prop, "rna_Attribute_name_get", "rna_Attribute_name_length", "rna_Attribute_name_set");
   RNA_def_property_string_maxlength(prop, MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX);
   RNA_def_property_ui_text(prop, "Name", "Name of UV map");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
@@ -2449,7 +2450,6 @@ static void rna_def_mloopuv(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "active_render", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "active_rnd", 0);
   RNA_def_property_boolean_funcs(
       prop, "rna_MeshUVLoopLayer_active_render_get", "rna_MeshUVLoopLayer_active_render_set");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -2457,7 +2457,6 @@ static void rna_def_mloopuv(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "active_clone", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "active_clone", 0);
   RNA_def_property_boolean_funcs(
       prop, "rna_MeshUVLoopLayer_clone_get", "rna_MeshUVLoopLayer_clone_set");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -2523,13 +2522,13 @@ static void rna_def_mloopcol(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "MeshLoopColorLayer", nullptr);
   RNA_def_struct_ui_text(
       srna, "Mesh Vertex Color Layer", "Layer of vertex colors in a Mesh data-block");
-  RNA_def_struct_sdna(srna, "CustomDataLayer");
   RNA_def_struct_path_func(srna, "rna_MeshLoopColorLayer_path");
   RNA_def_struct_ui_icon(srna, ICON_GROUP_VCOL);
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_struct_name_property(srna, prop);
-  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_Attribute_name_set");
+  RNA_def_property_string_funcs(
+      prop, "rna_Attribute_name_get", "rna_Attribute_name_length", "rna_Attribute_name_set");
   RNA_def_property_string_maxlength(prop, MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX);
   RNA_def_property_ui_text(prop, "Name", "Name of Vertex color layer");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
@@ -2541,7 +2540,6 @@ static void rna_def_mloopcol(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "active_render", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "active_rnd", 0);
   RNA_def_property_boolean_funcs(
       prop, "rna_mesh_color_active_render_get", "rna_mesh_color_active_render_set");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -2778,7 +2776,7 @@ static void rna_def_loop_colors(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_ui_description(func, "Remove a vertex color layer");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "layer", "MeshLoopColorLayer", "", "The layer to remove");
-  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
   prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
@@ -2833,7 +2831,7 @@ static void rna_def_uv_layers(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_ui_description(func, "Remove a UV map layer");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "layer", "MeshUVLoopLayer", "", "The layer to remove");
-  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 
   prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "MeshUVLoopLayer");

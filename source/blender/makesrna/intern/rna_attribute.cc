@@ -347,7 +347,7 @@ blender::StringRefNull rna_Attribute_name_get(const PointerRNA &ptr)
   return attr->name();
 }
 
-static void rna_Attribute_name_get(PointerRNA *ptr, char *value)
+void rna_Attribute_name_get(PointerRNA *ptr, char *value)
 {
   rna_Attribute_name_get(*ptr).copy_unsafe(value);
 }
@@ -1283,7 +1283,6 @@ static void rna_def_attribute_float(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "FloatAttribute", "Attribute");
-  RNA_def_struct_sdna(srna, "CustomDataLayer");
   RNA_def_struct_ui_text(
       srna, "Float Attribute", "Geometry attribute that stores floating-point values");
 
@@ -1317,7 +1316,6 @@ static void rna_def_attribute_float_vector(BlenderRNA *brna)
 
   /* Float Vector Attribute */
   srna = RNA_def_struct(brna, "FloatVectorAttribute", "Attribute");
-  RNA_def_struct_sdna(srna, "CustomDataLayer");
   RNA_def_struct_ui_text(
       srna, "Float Vector Attribute", "Geometry attribute that stores floating-point 3D vectors");
 
@@ -1355,7 +1353,6 @@ static void rna_def_attribute_float_color(BlenderRNA *brna)
 
   /* Float Color Attribute */
   srna = RNA_def_struct(brna, "FloatColorAttribute", "Attribute");
-  RNA_def_struct_sdna(srna, "CustomDataLayer");
   RNA_def_struct_ui_text(srna,
                          "Float Color Attribute",
                          "Geometry attribute that stores RGBA colors as floating-point values "
@@ -1404,7 +1401,6 @@ static void rna_def_attribute_byte_color(BlenderRNA *brna)
 
   /* Byte Color Attribute */
   srna = RNA_def_struct(brna, "ByteColorAttribute", "Attribute");
-  RNA_def_struct_sdna(srna, "CustomDataLayer");
   RNA_def_struct_ui_text(srna,
                          "Byte Color Attribute",
                          "Geometry attribute that stores RGBA colors as positive integer values "
@@ -1456,7 +1452,6 @@ static void rna_def_attribute_int(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "IntAttribute", "Attribute");
-  RNA_def_struct_sdna(srna, "CustomDataLayer");
   RNA_def_struct_ui_text(
       srna, "Integer Attribute", "Geometry attribute that stores integer values");
 
@@ -1488,7 +1483,6 @@ static void rna_def_attribute_string(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "StringAttribute", "Attribute");
-  RNA_def_struct_sdna(srna, "CustomDataLayer");
   RNA_def_struct_ui_text(srna, "String Attribute", "Geometry attribute that stores strings");
 
   prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
@@ -1523,7 +1517,6 @@ static void rna_def_attribute_bool(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "BoolAttribute", "Attribute");
-  RNA_def_struct_sdna(srna, "CustomDataLayer");
   RNA_def_struct_ui_text(srna, "Bool Attribute", "Geometry attribute that stores booleans");
 
   prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
@@ -1554,7 +1547,6 @@ static void rna_def_attribute_int8(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "ByteIntAttribute", "Attribute");
-  RNA_def_struct_sdna(srna, "CustomDataLayer");
   RNA_def_struct_ui_text(
       srna, "8-bit Integer Attribute", "Geometry attribute that stores 8-bit integers");
 
@@ -1587,7 +1579,6 @@ static void rna_def_attribute_short2(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "Short2Attribute", "Attribute");
-  RNA_def_struct_sdna(srna, "CustomDataLayer");
   RNA_def_struct_ui_text(srna,
                          "2D 16-Bit Integer Vector Attribute",
                          "Geometry attribute that stores 2D integer vectors");
@@ -1624,7 +1615,6 @@ static void rna_def_attribute_int2(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "Int2Attribute", "Attribute");
-  RNA_def_struct_sdna(srna, "CustomDataLayer");
   RNA_def_struct_ui_text(
       srna, "2D Integer Vector Attribute", "Geometry attribute that stores 2D integer vectors");
 
@@ -1660,7 +1650,6 @@ static void rna_def_attribute_quaternion(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "QuaternionAttribute", "Attribute");
-  RNA_def_struct_sdna(srna, "CustomDataLayer");
   RNA_def_struct_ui_text(srna, "Quaternion Attribute", "Geometry attribute that stores rotation");
 
   prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
@@ -1695,7 +1684,6 @@ static void rna_def_attribute_float4x4(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "Float4x4Attribute", "Attribute");
-  RNA_def_struct_sdna(srna, "CustomDataLayer");
   RNA_def_struct_ui_text(
       srna, "4x4 Matrix Attribute", "Geometry attribute that stores a 4 by 4 float matrix");
 
@@ -1731,7 +1719,6 @@ static void rna_def_attribute_float2(BlenderRNA *brna)
 
   /* Float2 Attribute */
   srna = RNA_def_struct(brna, "Float2Attribute", "Attribute");
-  RNA_def_struct_sdna(srna, "CustomDataLayer");
   RNA_def_struct_ui_text(
       srna, "Float2 Attribute", "Geometry attribute that stores floating-point 2D vectors");
 
