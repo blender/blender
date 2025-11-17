@@ -891,30 +891,61 @@ int rna_AttributeGroup_length(PointerRNA *ptr)
   return BKE_attributes_length(owner, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
 }
 
-bool rna_AttributeGroup_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
+PointerRNA rna_AttributeGroup_lookup_string(const PointerRNA &ptr,
+                                            const blender::StringRef key,
+                                            AttrDomainMask domain_mask,
+                                            eCustomDataMask cd_type_mask)
 {
   using namespace blender;
-  AttributeOwner owner = owner_from_pointer_rna(ptr);
+  AttributeOwner owner = owner_from_pointer_rna(&ptr);
   if (owner.type() == AttributeOwnerType::Mesh) {
-    if (CustomDataLayer *layer = BKE_attribute_search_for_write(
-            owner, key, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL))
-    {
-      rna_pointer_create_with_ancestors(*ptr, &RNA_Attribute, layer, *r_ptr);
-      return true;
+    const Mesh *mesh = owner.get_mesh();
+    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+      const BMDataLayerLookup attr = BM_data_layer_lookup(*em->bm, key);
+      if (!attr) {
+        return PointerRNA_NULL;
+      }
+      if (!(CD_TYPE_AS_MASK(*bke::attr_type_to_custom_data_type(attr.type)) & cd_type_mask)) {
+        return PointerRNA_NULL;
+      }
+      if (!(ATTR_DOMAIN_AS_MASK(attr.domain) & domain_mask)) {
+        return PointerRNA_NULL;
+      }
+      PointerRNA result;
+      rna_pointer_create_with_ancestors(
+          ptr, &RNA_Attribute, const_cast<CustomDataLayer *>(attr.layer), result);
+      return result;
     }
-
-    *r_ptr = PointerRNA_NULL;
-    return false;
+    else if (CustomDataLayer *layer = BKE_attribute_search_for_write(
+                 owner, key, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL))
+    {
+      PointerRNA result;
+      rna_pointer_create_with_ancestors(ptr, &RNA_Attribute, layer, result);
+      return result;
+    }
+    return PointerRNA_NULL;
   }
 
   bke::AttributeStorage &storage = *owner.get_storage();
   bke::Attribute *attr = storage.lookup(key);
   if (!attr) {
-    *r_ptr = PointerRNA_NULL;
-    return false;
+    return PointerRNA_NULL;
   }
-  rna_pointer_create_with_ancestors(*ptr, &RNA_Attribute, attr, *r_ptr);
-  return true;
+  if (!(ATTR_DOMAIN_AS_MASK(attr->domain()) & domain_mask)) {
+    return PointerRNA_NULL;
+  }
+  if (!(CD_TYPE_AS_MASK(*bke::attr_type_to_custom_data_type(attr->data_type())) & cd_type_mask)) {
+    return PointerRNA_NULL;
+  }
+  PointerRNA result;
+  rna_pointer_create_with_ancestors(ptr, &RNA_Attribute, attr, result);
+  return result;
+}
+
+bool rna_AttributeGroup_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
+{
+  *r_ptr = rna_AttributeGroup_lookup_string(*ptr, key, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
+  return !RNA_pointer_is_null(r_ptr);
 }
 
 static int rna_AttributeGroupID_active_index_get(PointerRNA *ptr)
@@ -931,15 +962,7 @@ static PointerRNA rna_AttributeGroupID_active_get(PointerRNA *ptr)
   if (!name) {
     return PointerRNA_NULL;
   }
-  if (owner.type() == AttributeOwnerType::Mesh) {
-    CustomDataLayer *layer = BKE_attribute_search_for_write(
-        owner, *name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
-    return RNA_pointer_create_with_parent(*ptr, &RNA_Attribute, layer);
-  }
-
-  bke::AttributeStorage &storage = *owner.get_storage();
-  bke::Attribute *attr = storage.lookup(*name);
-  return RNA_pointer_create_with_parent(*ptr, &RNA_Attribute, attr);
+  return rna_AttributeGroup_lookup_string(*ptr, *name, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
 }
 
 static void rna_AttributeGroupID_active_set(PointerRNA *ptr,
@@ -1011,15 +1034,11 @@ static int rna_AttributeGroupID_domain_size(ID *id, const int domain)
 
 static PointerRNA rna_AttributeGroupMesh_active_color_get(PointerRNA *ptr)
 {
-  AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
-  CustomDataLayer *layer = BKE_attribute_search_for_write(
-      owner,
+  return rna_AttributeGroup_lookup_string(
+      *ptr,
       BKE_id_attributes_active_color_name(ptr->owner_id).value_or(""),
-      CD_MASK_COLOR_ALL,
-      ATTR_DOMAIN_MASK_COLOR);
-
-  PointerRNA attribute_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Attribute, layer);
-  return attribute_ptr;
+      ATTR_DOMAIN_MASK_COLOR,
+      CD_MASK_COLOR_ALL);
 }
 
 static void rna_AttributeGroupMesh_active_color_set(PointerRNA *ptr,
