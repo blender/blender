@@ -2997,7 +2997,7 @@ void SCULPT_OT_expand(wmOperatorType *ot)
                              "use_modify_active",
                              false,
                              "Modify Active",
-                             "Modify the active Face Set instead of creating a new one");
+                             "Modify the active face set instead of creating a new one");
 
   ot->prop = RNA_def_boolean(
       ot->srna,

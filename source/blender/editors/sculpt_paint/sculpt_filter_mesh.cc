@@ -248,7 +248,7 @@ static EnumPropertyItem prop_mesh_filter_types[] = {
      "RELAX_FACE_SETS",
      0,
      "Relax Face Sets",
-     "Smooth the edges of all the Face Sets"},
+     "Smooth the edges of all the face sets"},
     {int(MeshFilterType::SurfaceSmooth),
      "SURFACE_SMOOTH",
      0,

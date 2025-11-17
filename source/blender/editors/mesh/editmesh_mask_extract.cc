@@ -392,7 +392,7 @@ static wmOperatorStatus face_set_extract_invoke(bContext *C, wmOperator *op, con
 void SCULPT_OT_face_set_extract(wmOperatorType *ot)
 {
   ot->name = "Face Set Extract";
-  ot->description = "Create a new mesh object from the selected Face Set";
+  ot->description = "Create a new mesh object from the selected face set";
   ot->idname = "SCULPT_OT_face_set_extract";
 
   ot->poll = geometry_extract_poll;
