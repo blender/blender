@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/compositor_despeckle_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_despeckle)
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 #include "gpu_shader_math_vector_compare_lib.glsl"
 

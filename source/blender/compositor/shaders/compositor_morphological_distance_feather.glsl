@@ -50,6 +50,10 @@
  * the erode case, except the minimum value is computed instead.
  */
 
+#include "infos/compositor_morphological_distance_feather_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_morphological_distance_feather_dilate)
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()

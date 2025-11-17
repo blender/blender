@@ -15,6 +15,10 @@
  * The `gpu_shader_compositor_jump_flooding_lib.glsl` library contains the necessary utility
  * functions to initialize and encode the jump flooding values. */
 
+#include "infos/compositor_jump_flooding_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_jump_flooding)
+
 #include "gpu_shader_compositor_jump_flooding_lib.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 #include "gpu_shader_math_vector_lib.glsl"

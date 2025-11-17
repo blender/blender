@@ -11,6 +11,10 @@
  * The structure tensor should then be smoothed using a Gaussian function to eliminate high
  * frequency details. */
 
+#include "infos/compositor_kuwahara_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_kuwahara_anisotropic_compute_structure_tensor)
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()

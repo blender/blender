@@ -2,9 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_create_info.hh"
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_shader_compat.hh"
+#endif
 
-using namespace blender::gpu::shader;
+#include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(compositor_cryptomatte_pick)
 LOCAL_GROUP_SIZE(16, 16)

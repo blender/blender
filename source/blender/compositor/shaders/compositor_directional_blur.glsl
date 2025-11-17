@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/compositor_directional_blur_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_directional_blur)
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()
@@ -27,7 +31,8 @@ void main()
     transformed_coordinates -= origin;
     transformed_coordinates /= current_scale;
     transformed_coordinates -= current_translation;
-    transformed_coordinates *= float2x2(current_cos, current_sin, -current_sin, current_cos);
+    transformed_coordinates = transformed_coordinates *
+                              float2x2(current_cos, current_sin, -current_sin, current_cos);
     transformed_coordinates += origin;
 
     accumulated_color += texture(input_tx, transformed_coordinates / input_size);

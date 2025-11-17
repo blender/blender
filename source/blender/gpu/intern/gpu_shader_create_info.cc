@@ -551,6 +551,17 @@ void gpu_shader_create_info_init()
 #define GPU_SHADER_INTERFACE_END() ;
 #define GPU_SHADER_CREATE_END() ;
 
+/* WORKAROUND: Avoid compilation warning due to placeholder macros for C++ shader compilation. */
+#if defined(__clang__)
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wmacro-redefined"
+#elif defined(__GNUC__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wmacro-redefined"
+#elif defined(_MSC_VER)
+  __pragma(warning(push)) __pragma(warning(suppress : 4100))
+#endif
+
 /* Declare, register and construct the infos. */
 #include "glsl_compositor_infos_list.hh"
 #include "glsl_draw_infos_list.hh"
@@ -558,6 +569,14 @@ void gpu_shader_create_info_init()
 #include "glsl_ocio_infos_list.hh"
 #ifdef WITH_OPENSUBDIV
 #  include "glsl_osd_infos_list.hh"
+#endif
+
+#if defined(__clang__)
+#  pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#  pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+      __pragma(warning(pop))
 #endif
 
   if (GPU_stencil_clasify_buffer_workaround()) {

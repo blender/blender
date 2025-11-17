@@ -11,6 +11,10 @@
  * still operate if the interior of the masks was also included. However, the algorithm operates
  * more accurately when the number of pixels to be flooded is minimum. */
 
+#include "infos/compositor_double_edge_mask_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_double_edge_mask_compute_boundary)
+
 #include "gpu_shader_compositor_jump_flooding_lib.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 

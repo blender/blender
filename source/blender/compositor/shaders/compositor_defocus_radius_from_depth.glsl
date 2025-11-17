@@ -8,6 +8,10 @@
  *   Potmesil, Michael, and Indranil Chakravarty. "A lens and aperture camera model for synthetic
  *   image generation." ACM SIGGRAPH Computer Graphics 15.3 (1981): 297-305. */
 
+#include "infos/compositor_defocus_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_defocus_radius_from_depth)
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()

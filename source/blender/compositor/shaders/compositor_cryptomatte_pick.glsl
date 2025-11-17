@@ -22,6 +22,10 @@
  * Except we put the identifier in the red channel by convention instead of the suggested blue
  * channel. */
 
+#include "infos/compositor_cryptomatte_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_cryptomatte_pick)
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()

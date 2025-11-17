@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/compositor_box_mask_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_box_mask_add)
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 /* TODO(fclem): deduplicate. */
