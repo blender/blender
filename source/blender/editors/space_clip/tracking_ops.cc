@@ -264,7 +264,7 @@ static wmOperatorStatus delete_track_invoke(bContext *C, wmOperator *op, const w
                                   IFACE_("Delete selected tracks?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
+                                  blender::ui::AlertIcon::None,
                                   false);
   }
   return delete_track_exec(C, op);
@@ -346,7 +346,7 @@ static wmOperatorStatus delete_marker_invoke(bContext *C,
                                   IFACE_("Delete marker for current frame from selected tracks?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
+                                  blender::ui::AlertIcon::None,
                                   false);
   }
   return delete_marker_exec(C, op);

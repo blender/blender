@@ -822,7 +822,7 @@ static wmOperatorStatus clear_anim_v3d_invoke(bContext *C,
                                   IFACE_("Remove animation from selected objects?"),
                                   nullptr,
                                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove"),
-                                  ALERT_ICON_NONE,
+                                  blender::ui::AlertIcon::None,
                                   false);
   }
   return clear_anim_v3d_exec(C, op);
@@ -939,7 +939,7 @@ static wmOperatorStatus clear_anim_vse_invoke(bContext *C,
                                   IFACE_("Remove animation from selected strips?"),
                                   nullptr,
                                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove"),
-                                  ALERT_ICON_NONE,
+                                  blender::ui::AlertIcon::None,
                                   false);
   }
   return clear_anim_vse_exec(C, op);
@@ -1128,7 +1128,7 @@ static wmOperatorStatus delete_key_vse_invoke(bContext *C,
                                   IFACE_("Delete keyframes from selected strips?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
+                                  blender::ui::AlertIcon::None,
                                   false);
   }
   return delete_key_vse_exec(C, op);
@@ -1269,7 +1269,7 @@ static wmOperatorStatus delete_key_v3d_invoke(bContext *C,
                                   IFACE_("Delete keyframes from selected objects?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
+                                  blender::ui::AlertIcon::None,
                                   false);
   }
   return delete_key_v3d_exec(C, op);

@@ -279,7 +279,7 @@ static wmOperatorStatus sculpt_dynamic_topology_toggle_invoke(bContext *C,
           RPT_("Attribute Data Detected"),
           RPT_("Dyntopo will not preserve colors, UVs, or other attributes"),
           IFACE_("Enable"),
-          ALERT_ICON_WARNING,
+          ui::AlertIcon::Warning,
           false);
     }
 
@@ -290,7 +290,7 @@ static wmOperatorStatus sculpt_dynamic_topology_toggle_invoke(bContext *C,
           RPT_("Generative Modifiers Detected!"),
           RPT_("Keeping the modifiers will increase polycount when returning to object mode"),
           IFACE_("Enable"),
-          ALERT_ICON_WARNING,
+          blender::ui::AlertIcon::Warning,
           false);
     }
   }

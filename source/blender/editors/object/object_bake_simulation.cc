@@ -876,7 +876,7 @@ static wmOperatorStatus bake_simulation_invoke(bContext *C,
                                   IFACE_("Overwrite existing bake data?"),
                                   nullptr,
                                   IFACE_("Bake"),
-                                  ALERT_ICON_NONE,
+                                  ui::AlertIcon::None,
                                   false);
   }
   Vector<NodeBakeRequest> requests = bake_simulation_gather_requests(C, op);

@@ -540,7 +540,7 @@ static wmOperatorStatus delete_curve_invoke(bContext *C, wmOperator *op, const w
                                   IFACE_("Delete track corresponding to the selected curve?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
+                                  blender::ui::AlertIcon::None,
                                   false);
   }
   return delete_curve_exec(C, op);

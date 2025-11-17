@@ -623,7 +623,7 @@ static wmOperatorStatus delete_metaelems_invoke(bContext *C,
                                   IFACE_("Delete selected metaball elements?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
+                                  blender::ui::AlertIcon::None,
                                   false);
   }
   return delete_metaelems_exec(C, op);

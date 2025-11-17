@@ -659,7 +659,7 @@ static wmOperatorStatus preferences_extension_repo_remove_invoke(bContext *C,
                                             IFACE_("Remove Repository");
 
   return WM_operator_confirm_ex(
-      C, op, nullptr, message.c_str(), confirm_text, ALERT_ICON_WARNING, true);
+      C, op, nullptr, message.c_str(), confirm_text, blender::ui::AlertIcon::Warning, true);
 }
 
 static wmOperatorStatus preferences_extension_repo_remove_exec(bContext *C, wmOperator *op)

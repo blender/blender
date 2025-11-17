@@ -2093,7 +2093,7 @@ static wmOperatorStatus modifier_apply_invoke(bContext *C, wmOperator *op, const
             IFACE_("Apply Modifier"),
             IFACE_("Make data single-user, apply modifier, and remove it from the list."),
             IFACE_("Apply"),
-            ALERT_ICON_WARNING,
+            ui::AlertIcon::Warning,
             false);
       }
     }

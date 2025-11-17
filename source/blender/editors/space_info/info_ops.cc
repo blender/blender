@@ -93,7 +93,7 @@ static wmOperatorStatus unpack_libraries_invoke(bContext *C,
                                 IFACE_("Restore Packed Linked Data to Their Original Locations"),
                                 IFACE_("Will create directories so that all paths are valid."),
                                 IFACE_("Unpack"),
-                                ALERT_ICON_INFO,
+                                blender::ui::AlertIcon::Info,
                                 false);
 }
 
@@ -185,7 +185,7 @@ static wmOperatorStatus pack_all_invoke(bContext *C, wmOperator *op, const wmEve
         IFACE_("Pack all used external files into this .blend file"),
         IFACE_("Warning: Some images are modified and these changes will be lost."),
         IFACE_("Pack"),
-        ALERT_ICON_WARNING,
+        blender::ui::AlertIcon::Warning,
         false);
   }
 

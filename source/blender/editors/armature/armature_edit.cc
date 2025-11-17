@@ -1295,7 +1295,7 @@ static wmOperatorStatus armature_delete_selected_invoke(bContext *C,
                                   IFACE_("Delete selected bones?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
+                                  blender::ui::AlertIcon::None,
                                   false);
   }
   return armature_delete_selected_exec(C, op);

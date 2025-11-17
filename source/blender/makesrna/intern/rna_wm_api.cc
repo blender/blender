@@ -244,7 +244,7 @@ static int rna_Operator_confirm(bContext *C,
                                 title_str ? title_str->c_str() : nullptr,
                                 message_str ? message_str->c_str() : nullptr,
                                 confirm_text_str ? confirm_text_str->c_str() : nullptr,
-                                icon);
+                                blender::ui::AlertIcon(icon));
 }
 
 static int rna_Operator_props_popup(bContext *C, wmOperator *op, wmEvent *event)
@@ -863,11 +863,11 @@ void RNA_api_window(StructRNA *srna)
 }
 
 const EnumPropertyItem rna_operator_popup_icon_items[] = {
-    {ALERT_ICON_NONE, "NONE", 0, "None", ""},
-    {ALERT_ICON_WARNING, "WARNING", 0, "Warning", ""},
-    {ALERT_ICON_QUESTION, "QUESTION", 0, "Question", ""},
-    {ALERT_ICON_ERROR, "ERROR", 0, "Error", ""},
-    {ALERT_ICON_INFO, "INFO", 0, "Info", ""},
+    {int(blender::ui::AlertIcon::None), "NONE", 0, "None", ""},
+    {int(blender::ui::AlertIcon::Warning), "WARNING", 0, "Warning", ""},
+    {int(blender::ui::AlertIcon::Question), "QUESTION", 0, "Question", ""},
+    {int(blender::ui::AlertIcon::Error), "ERROR", 0, "Error", ""},
+    {int(blender::ui::AlertIcon::Info), "INFO", 0, "Info", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -1007,7 +1007,7 @@ void RNA_api_wm(StructRNA *srna)
 
   parm = RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(parm, rna_operator_popup_icon_items);
-  RNA_def_property_enum_default(parm, ALERT_ICON_NONE);
+  RNA_def_property_enum_default(parm, int(blender::ui::AlertIcon::None));
   RNA_def_property_ui_text(parm, "Icon", "Optional icon displayed in the dialog");
 
   api_ui_item_common_translation(func);

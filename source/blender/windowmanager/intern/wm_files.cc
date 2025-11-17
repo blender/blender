@@ -2578,7 +2578,7 @@ static wmOperatorStatus wm_homefile_write_invoke(bContext *C,
                                   IFACE_("Overwrite Startup File"),
                                   IFACE_("Blender will start next time as it is now."),
                                   IFACE_("Overwrite"),
-                                  ALERT_ICON_QUESTION,
+                                  blender::ui::AlertIcon::Question,
                                   false);
   }
 
@@ -2593,7 +2593,7 @@ static wmOperatorStatus wm_homefile_write_invoke(bContext *C,
                                 IFACE_("Overwrite Template Startup File"),
                                 message.c_str(),
                                 IFACE_("Overwrite"),
-                                ALERT_ICON_QUESTION,
+                                blender::ui::AlertIcon::Question,
                                 false);
 }
 
@@ -2788,7 +2788,7 @@ static wmOperatorStatus wm_userpref_read_invoke(bContext *C,
       title.c_str(),
       IFACE_("To make changes to Preferences permanent, use \"Save Preferences\""),
       IFACE_("Load"),
-      ALERT_ICON_WARNING,
+      blender::ui::AlertIcon::Warning,
       false);
 }
 
@@ -3057,7 +3057,7 @@ static wmOperatorStatus wm_read_factory_settings_invoke(bContext *C,
                        "Warning: Your file is unsaved! Proceeding will abandon your changes.") :
                 IFACE_("To make changes to Preferences permanent, use \"Save Preferences\"."),
       IFACE_("Load"),
-      ALERT_ICON_WARNING,
+      blender::ui::AlertIcon::Warning,
       false);
 }
 
@@ -3424,7 +3424,7 @@ static wmOperatorStatus wm_revert_mainfile_invoke(bContext *C,
                                 IFACE_("Revert to the Saved File"),
                                 message.c_str(),
                                 IFACE_("Revert"),
-                                ALERT_ICON_WARNING,
+                                blender::ui::AlertIcon::Warning,
                                 false);
 }
 
@@ -4145,7 +4145,7 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
                                     text_width + int(style->columnspace * 2.5));
   const short icon_size = 40 * UI_SCALE_FAC;
   uiLayout *layout = uiItemsAlertBox(
-      block, style, dialog_width + icon_size, ALERT_ICON_ERROR, icon_size);
+      block, style, dialog_width + icon_size, blender::ui::AlertIcon::Error, icon_size);
 
   /* Title and explanation text. */
   uiLayout *col = &layout->column(true);
@@ -4322,7 +4322,7 @@ void wm_test_foreign_file_warning(bContext *C)
     UI_alert(C,
              RPT_("Unable to Load File"),
              RPT_("The file specified is not a valid Blend document."),
-             ALERT_ICON_ERROR,
+             blender::ui::AlertIcon::Error,
              false);
 
     CTX_wm_window_set(C, prevwin);
@@ -4485,7 +4485,7 @@ static uiBlock *block_create_save_file_overwrite_dialog(bContext *C, ARegion *re
       block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
-  uiLayout *layout = uiItemsAlertBox(block, 44, ALERT_ICON_WARNING);
+  uiLayout *layout = uiItemsAlertBox(block, 44, blender::ui::AlertIcon::Warning);
 
   /* Title. */
   if (bmain->has_forward_compatibility_issues) {
@@ -4727,8 +4727,9 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
       block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
-  uiLayout *layout = uiItemsAlertBox(
-      block, (bmain->colorspace.is_missing_opencolorio_config) ? 44 : 34, ALERT_ICON_QUESTION);
+  uiLayout *layout = uiItemsAlertBox(block,
+                                     (bmain->colorspace.is_missing_opencolorio_config) ? 44 : 34,
+                                     blender::ui::AlertIcon::Question);
 
   const bool needs_overwrite_confirm = BKE_main_needs_overwrite_confirm(bmain);
 
