@@ -34,7 +34,7 @@ struct Curves;
 struct GreasePencil;
 struct GreasePencilDrawing;
 
-typedef enum AttrDomainMask {
+enum AttrDomainMask : uint8_t {
   ATTR_DOMAIN_MASK_POINT = (1 << 0),
   ATTR_DOMAIN_MASK_EDGE = (1 << 1),
   ATTR_DOMAIN_MASK_FACE = (1 << 2),
@@ -42,7 +42,7 @@ typedef enum AttrDomainMask {
   ATTR_DOMAIN_MASK_CURVE = (1 << 4),
   ATTR_DOMAIN_MASK_GREASE_PENCIL_LAYER = (1 << 6),
   ATTR_DOMAIN_MASK_ALL = (1 << 7) - 1
-} AttrDomainMask;
+};
 ENUM_OPERATORS(AttrDomainMask);
 
 enum class AttributeOwnerType {
