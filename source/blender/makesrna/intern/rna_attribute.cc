@@ -331,30 +331,30 @@ static StructRNA *rna_Attribute_refine(PointerRNA *ptr)
   return srna_by_custom_data_layer_type(data_type);
 }
 
-static void rna_Attribute_name_get(PointerRNA *ptr, char *value)
+blender::StringRefNull rna_Attribute_name_get(const PointerRNA &ptr)
 {
   using namespace blender;
-  AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
-  if (owner.type() == AttributeOwnerType::Mesh) {
-    strcpy(value, ptr->data_as<CustomDataLayer>()->name);
-    return;
+  if (RNA_pointer_is_null(&ptr)) {
+    return "";
   }
-
-  const bke::Attribute *attr = ptr->data_as<bke::Attribute>();
-  attr->name().copy_unsafe(value);
+  ID *owner_id = ptr.owner_id;
+  const AttributeOwner owner = AttributeOwner::from_id(owner_id);
+  if (owner.type() == AttributeOwnerType::Mesh) {
+    const CustomDataLayer *layer = ptr.data_as<CustomDataLayer>();
+    return layer->name;
+  }
+  const bke::Attribute *attr = ptr.data_as<bke::Attribute>();
+  return attr->name();
 }
 
-static int rna_Attribute_name_length(PointerRNA *ptr)
+static void rna_Attribute_name_get(PointerRNA *ptr, char *value)
 {
-  using namespace blender;
-  AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
-  const CustomDataLayer *layer = ptr->data_as<CustomDataLayer>();
-  if (owner.type() == AttributeOwnerType::Mesh) {
-    return strlen(layer->name);
-  }
+  rna_Attribute_name_get(*ptr).copy_unsafe(value);
+}
 
-  const bke::Attribute *attr = ptr->data_as<bke::Attribute>();
-  return attr->name().size();
+int rna_Attribute_name_length(PointerRNA *ptr)
+{
+  return rna_Attribute_name_get(*ptr).size();
 }
 
 static void rna_Attribute_name_set(PointerRNA *ptr, const char *value)
