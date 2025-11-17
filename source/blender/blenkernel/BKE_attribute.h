@@ -125,8 +125,6 @@ void BKE_attributes_active_set(AttributeOwner &owner, blender::StringRef name);
 void BKE_attributes_active_clear(AttributeOwner &owner);
 int *BKE_attributes_active_index_p(AttributeOwner &owner);
 
-CustomData *BKE_attributes_iterator_next_domain(AttributeOwner &owner,
-                                                struct CustomDataLayer *layers);
 std::optional<blender::StringRef> BKE_attribute_from_index(AttributeOwner &owner,
                                                            int lookup_index,
                                                            AttrDomainMask domain_mask,

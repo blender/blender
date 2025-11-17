@@ -830,27 +830,17 @@ static void rna_CustomDataLayer_clone_set(PointerRNA *ptr, CustomData *data, int
 
 /* uv_layers */
 
-static bool rna_uv_layer_check(CollectionPropertyIterator *, void *data)
-{
-  CustomDataLayer *layer = (CustomDataLayer *)data;
-  return (blender::bke::attribute_name_is_anonymous(layer->name) || layer->type != CD_PROP_FLOAT2);
-}
-
 static void rna_Mesh_uv_layers_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  CustomData *data = rna_mesh_ldata(ptr);
-  if (data) {
-    rna_iterator_array_begin(iter,
-                             ptr,
-                             (void *)data->layers,
-                             sizeof(CustomDataLayer),
-                             data->totlayer,
-                             0,
-                             rna_uv_layer_check);
-  }
-  else {
-    rna_iterator_array_begin(iter, ptr, nullptr, 0, 0, 0, nullptr);
-  }
+  rna_AttributeGroup_iterator_begin(
+      iter, ptr, ATTR_DOMAIN_MASK_CORNER, CD_MASK_PROP_FLOAT2, false);
+}
+
+PointerRNA rna_Mesh_uv_layers_iterator_get(CollectionPropertyIterator *iter)
+{
+  using namespace blender;
+  CustomDataLayer *layer = *static_cast<CustomDataLayer **>(rna_iterator_array_get(iter));
+  return RNA_pointer_create_with_parent(iter->parent, &RNA_MeshUVLoopLayer, layer);
 }
 
 static int rna_Mesh_uv_layers_length(PointerRNA *ptr)
@@ -1208,28 +1198,17 @@ static void rna_MeshUVLoopLayer_clone_set(PointerRNA *ptr, bool value)
   rna_CustomDataLayer_clone_set(ptr, rna_mesh_ldata(ptr), value, CD_PROP_FLOAT2);
 }
 
-static bool rna_vertex_color_check(CollectionPropertyIterator *, void *data)
-{
-  CustomDataLayer *layer = (CustomDataLayer *)data;
-  return (blender::bke::attribute_name_is_anonymous(layer->name) ||
-          layer->type != CD_PROP_BYTE_COLOR);
-}
-
 static void rna_Mesh_vertex_colors_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  CustomData *data = rna_mesh_ldata(ptr);
-  if (data) {
-    rna_iterator_array_begin(iter,
-                             ptr,
-                             (void *)data->layers,
-                             sizeof(CustomDataLayer),
-                             data->totlayer,
-                             0,
-                             rna_vertex_color_check);
-  }
-  else {
-    rna_iterator_array_begin(iter, ptr, nullptr, 0, 0, 0, nullptr);
-  }
+  rna_AttributeGroup_iterator_begin(
+      iter, ptr, ATTR_DOMAIN_MASK_CORNER, CD_MASK_PROP_BYTE_COLOR, false);
+}
+
+PointerRNA rna_Mesh_vertex_colors_iterator_get(CollectionPropertyIterator *iter)
+{
+  using namespace blender;
+  CustomDataLayer *layer = *static_cast<CustomDataLayer **>(rna_iterator_array_get(iter));
+  return RNA_pointer_create_with_parent(iter->parent, &RNA_MeshLoopColorLayer, layer);
 }
 
 static int rna_Mesh_vertex_colors_length(PointerRNA *ptr)
@@ -3169,12 +3148,11 @@ static void rna_def_mesh(BlenderRNA *brna)
 
   /* UV loop layers */
   prop = RNA_def_property(srna, "uv_layers", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, nullptr, "corner_data.layers", "corner_data.totlayer");
   RNA_def_property_collection_funcs(prop,
                                     "rna_Mesh_uv_layers_begin",
-                                    nullptr,
-                                    nullptr,
-                                    nullptr,
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_Mesh_uv_layers_iterator_get",
                                     "rna_Mesh_uv_layers_length",
                                     nullptr,
                                     nullptr,
@@ -3221,12 +3199,11 @@ static void rna_def_mesh(BlenderRNA *brna)
   /* Vertex colors */
 
   prop = RNA_def_property(srna, "vertex_colors", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, nullptr, "corner_data.layers", "corner_data.totlayer");
   RNA_def_property_collection_funcs(prop,
                                     "rna_Mesh_vertex_colors_begin",
-                                    nullptr,
-                                    nullptr,
-                                    nullptr,
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_Mesh_vertex_colors_iterator_get",
                                     "rna_Mesh_vertex_colors_length",
                                     nullptr,
                                     nullptr,

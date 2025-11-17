@@ -784,30 +784,6 @@ int *BKE_attributes_active_index_p(AttributeOwner &owner)
   return nullptr;
 }
 
-CustomData *BKE_attributes_iterator_next_domain(AttributeOwner &owner, CustomDataLayer *layers)
-{
-  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(owner);
-
-  bool use_next = (layers == nullptr);
-
-  for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
-    CustomData *customdata = info[domain].customdata;
-    if (customdata == nullptr) {
-      continue;
-    }
-    if (customdata->layers && customdata->totlayer) {
-      if (customdata->layers == layers) {
-        use_next = true;
-      }
-      else if (use_next) {
-        return customdata;
-      }
-    }
-  }
-
-  return nullptr;
-}
-
 std::optional<blender::StringRef> BKE_attribute_from_index(AttributeOwner &owner,
                                                            int lookup_index,
                                                            AttrDomainMask domain_mask,
