@@ -116,6 +116,20 @@ blender_project_hack_post()
 
 enable_testing()
 
+# There are some circumstances where the git checkout doesn't grab
+# the files from LFS but produces small pointer files. The build system
+# does not pick up on this, and at runtime blender will throw a strange
+# error while it is trying to load the startup.blend file. For now just
+# check this file is over 1KB in size, and throw out a fatal error otherwise.
+
+if(EXISTS ${CMAKE_SOURCE_DIR}/release/datafiles/startup.blend)
+  file(SIZE ${CMAKE_SOURCE_DIR}/release/datafiles/startup.blend startup_size)
+  if(${startup_size} LESS 1024)
+    message(FATAL_ERROR "Detected incomplete startup blend, likely due to missing Git LFS checkout.\nRunning \"make update\" or \"git lfs pull\" may resolve the issue.")
+  endif()
+  unset(startup_size)
+endif()
+
 
 # -----------------------------------------------------------------------------
 # Test Compiler Support
