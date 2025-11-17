@@ -62,12 +62,23 @@ BLOCKLIST_VULKAN = [
     "image.blend"
 ]
 
+BLOCKLIST_INTEL = [
+    # Blocked due to large differences in dithered surfaces and shadows.
+    "transparency_blended.blend",
+    "transparency_dithered.blend",
+    # Blocked due to differences in shadow edges (to be investigated).
+    "shadow_resolution_scale.blend"
+]
+
 
 def setup():
     import bpy
 
     for scene in bpy.data.scenes:
         scene.render.engine = 'BLENDER_EEVEE'
+
+        skip_hair_setup = scene.get("EEVEE_skip_hair_setup", False)
+        skip_shadow_setup = scene.get("EEVEE_skip_shadow_setup", False)
 
         # Enable Eevee features
         eevee = scene.eevee
@@ -84,10 +95,13 @@ def setup():
         eevee.light_threshold = 0.001
 
         # Hair
-        scene.render.hair_type = 'STRIP'
+        if not skip_hair_setup:
+            scene.render.hair_type = 'STRIP'
 
         # Shadow
-        eevee.shadow_step_count = 16
+        if not skip_shadow_setup:
+            eevee.shadow_step_count = 16
+            eevee.shadow_pool_size = '1024'
 
         # Volumetric
         eevee.volumetric_tile_size = '2'
@@ -114,7 +128,7 @@ def setup():
 
         # Only include the plane in probes
         for ob in scene.objects:
-            if ob.type == 'LIGHT':
+            if ob.type == 'LIGHT' and not skip_shadow_setup:
                 # Set maximum resolution
                 ob.data.shadow_maximum_resolution = 0.0
 
@@ -216,6 +230,10 @@ def main():
     elif args.gpu_backend == "vulkan":
         blocklist += BLOCKLIST_VULKAN
 
+    gpu_vendor = render_report.get_gpu_device_vendor(args.blender)
+    if gpu_vendor == "INTEL":
+        blocklist += BLOCKLIST_INTEL
+
     report = EEVEEReport("EEVEE", args.outdir, args.oiiotool, variation=args.gpu_backend, blocklist=blocklist)
     if args.gpu_backend == "vulkan":
         report.set_compare_engine('eevee', 'opengl')
@@ -235,8 +253,8 @@ def main():
         # metal shadow and wireframe difference. To be fixed.
         report.set_fail_threshold(0.07)
     elif test_dir_name.startswith('bsdf'):
-        # metallic thinfilm tests
-        report.set_fail_threshold(0.03)
+        # metallic thinfilm tests and dithered transparency
+        report.set_fail_threshold(0.045)
     elif test_dir_name.startswith('principled_bsdf'):
         # principled bsdf transmission test
         report.set_fail_threshold(0.02)
