@@ -1005,28 +1005,6 @@ static void bool_layer_begin(CollectionPropertyIterator *iter,
   rna_Attribute_data_begin(iter, &bool_ptr);
 }
 
-static bool bool_layer_lookup_int(PointerRNA *ptr,
-                                  int index,
-                                  PointerRNA *r_ptr,
-                                  StringRef (*layername_func)(const StringRef uv_name,
-                                                              char *buffer))
-{
-  char buffer[MAX_CUSTOMDATA_LAYER_NAME];
-  Mesh *mesh = rna_mesh(ptr);
-  if (mesh->runtime->edit_mesh || index < 0 || index >= mesh->corners_num) {
-    return 0;
-  }
-  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-  const StringRef name = layername_func(layer->name, buffer);
-  MBoolProperty *data = (MBoolProperty *)CustomData_get_layer_named_for_write(
-      &mesh->corner_data, CD_PROP_BOOL, name, mesh->corners_num);
-  if (!data) {
-    return false;
-  }
-  rna_pointer_create_with_ancestors(*ptr, &RNA_BoolAttributeValue, data + index, *r_ptr);
-  return 1;
-}
-
 static int bool_layer_length(PointerRNA *ptr,
                              StringRef (*layername_func)(const StringRef uv_name, char *buffer))
 {
@@ -1071,11 +1049,6 @@ static void rna_MeshUVLoopLayer_pin_begin(CollectionPropertyIterator *iter, Poin
   bool_layer_begin(iter, ptr, BKE_uv_map_pin_name_get);
 }
 
-static bool rna_MeshUVLoopLayer_pin_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
-{
-  return bool_layer_lookup_int(ptr, index, r_ptr, BKE_uv_map_pin_name_get);
-}
-
 static int rna_MeshUVLoopLayer_pin_length(PointerRNA *ptr)
 {
   return bool_layer_length(ptr, BKE_uv_map_pin_name_get);
@@ -1089,18 +1062,6 @@ static PointerRNA rna_MeshUVLoopLayer_pin_ensure(PointerRNA ptr)
 static void rna_MeshUVLoopLayer_uv_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   rna_Attribute_data_begin(iter, ptr);
-}
-
-bool rna_MeshUVLoopLayer_uv_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
-{
-  Mesh *mesh = rna_mesh(ptr);
-  if (mesh->runtime->edit_mesh || index < 0 || index >= mesh->corners_num) {
-    return 0;
-  }
-  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-  rna_pointer_create_with_ancestors(
-      *ptr, &RNA_Float2AttributeValue, (float *)layer->data + 2 * index, *r_ptr);
-  return 1;
 }
 
 static bool rna_MeshUVLoopLayer_active_render_get(PointerRNA *ptr)
@@ -2446,7 +2407,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_get",
                                     "rna_Attribute_data_length",
-                                    "rna_MeshUVLoopLayer_uv_lookup_int",
+                                    nullptr,
                                     nullptr,
                                     nullptr);
 
@@ -2461,7 +2422,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_get",
                                     "rna_MeshUVLoopLayer_pin_length",
-                                    "rna_MeshUVLoopLayer_pin_lookup_int",
+                                    nullptr,
                                     nullptr,
                                     nullptr);
 
