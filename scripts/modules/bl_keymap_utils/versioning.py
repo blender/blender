@@ -286,7 +286,7 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
                         item_prop["properties"][toggle_path_index] = (
                             "use_secondary", ".".join((*updated_path_elements, toggle_path_identifier)))
 
-    if keyconfig_version < (5, 0, 118):
+    if keyconfig_version < (5, 1, 6):
         has_view_select = False
         has_view_scroll = False
 
