@@ -53,6 +53,7 @@ void USDPointsWriter::do_write(HierarchyContext &context)
     usd_value_writer_.SetAttribute(attr_widths, usd_widths, time);
   }
 
+  this->write_ids(points, usd_points, time);
   this->write_velocities(points, usd_points, time);
   this->write_custom_data(points, usd_points, time);
 
@@ -118,6 +119,20 @@ void USDPointsWriter::write_custom_data(const PointCloud *points,
 
     this->write_generic_data(iter, usd_points, time);
   });
+}
+
+void USDPointsWriter::write_ids(const PointCloud *points,
+                                const pxr::UsdGeomPoints &usd_points,
+                                const pxr::UsdTimeCode time)
+{
+  const VArraySpan ids = *points->attributes().lookup<int>("id", blender::bke::AttrDomain::Point);
+  if (ids.is_empty()) {
+    return;
+  }
+
+  pxr::VtInt64Array usd_ids(ids.begin(), ids.end());
+  pxr::UsdAttribute attr_ids = usd_points.CreateIdsAttr(pxr::VtValue(), true);
+  set_attribute(attr_ids, usd_ids, time, usd_value_writer_);
 }
 
 void USDPointsWriter::write_velocities(const PointCloud *points,

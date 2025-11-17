@@ -877,6 +877,35 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(len(indices2), 15)
         self.assertNotEqual(indices1, indices2)
 
+    def test_export_point_ids(self):
+        """Validate we can export animated PointCloud IDs"""
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_point_ids.blend"))
+        # Ensure the simulation zone data is baked for all relevant frames...
+        for frame in range(1, 7):
+            bpy.context.scene.frame_set(frame)
+        bpy.context.scene.frame_set(1)
+
+        export_path = self.tempdir / "usd_point_ids.usda"
+        self.export_and_validate(filepath=str(export_path), export_animation=True, evaluation_mode="RENDER")
+
+        stage = Usd.Stage.Open(str(export_path))
+
+        #
+        # Validate PointCloud data
+        #
+        points1 = UsdGeom.Points(stage.GetPrimAtPath("/root/pointcloud1/PointCloud"))
+
+        # IDs
+        attr_ids = points1.GetIdsAttr()
+        self.assertEqual(attr_ids.GetTimeSamples(), [1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
+        self.assertEqual(attr_ids.Get(1), [3])
+        self.assertEqual(attr_ids.Get(2), [6])
+        self.assertEqual(attr_ids.Get(3), [6, 9])
+        self.assertEqual(attr_ids.Get(4), [9, 12])
+        self.assertEqual(attr_ids.Get(5), [12, 15])
+        self.assertEqual(attr_ids.Get(6), [12, 15, 18])
+
     def test_export_curves(self):
         """Test exporting Curve types"""
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_curves_test.blend"))

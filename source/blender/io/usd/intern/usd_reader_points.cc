@@ -87,20 +87,41 @@ void USDPointsReader::read_geometry(bke::GeometrySet &geometry_set,
       radii.fill(widths[0] / 2.0f);
     }
     else {
-      for (int i_point = 0; i_point < widths.size(); i_point++) {
+      for (const int i_point : IndexRange(std::min(radii.size(), widths.size()))) {
         radii[i_point] = widths[i_point] / 2.0f;
       }
     }
   }
 
-  /* TODO: Read in ID and normal data.
-   * See UsdGeomPoints::GetIdsAttr and UsdGeomPointBased::GetNormalsAttr */
+  /* TODO: Once Blender supports custom normals for points, we can consider reading in normals.
+   * See UsdGeomPointBased::GetNormalsAttr */
 
-  /* Read in velocity and generic data. */
-  read_velocities(pointcloud, params.motion_sample_time);
-  read_custom_data(pointcloud, params.motion_sample_time);
+  /* Read in IDs, velocity, and generic data. */
+  this->read_ids(pointcloud, params.motion_sample_time);
+  this->read_velocities(pointcloud, params.motion_sample_time);
+  this->read_custom_data(pointcloud, params.motion_sample_time);
 
   geometry_set.replace_pointcloud(pointcloud);
+}
+
+void USDPointsReader::read_ids(PointCloud *pointcloud, const pxr::UsdTimeCode time) const
+{
+  pxr::VtInt64Array usd_ids;
+  points_prim_.GetIdsAttr().Get(&usd_ids, time);
+
+  if (!usd_ids.empty()) {
+    bke::MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
+    bke::SpanAttributeWriter<int> ids = attributes.lookup_or_add_for_write_only_span<int>(
+        "id", bke::AttrDomain::Point);
+
+    const Span<int64_t> usd_data(usd_ids.cdata(), usd_ids.size());
+    for (const int i_point : IndexRange(std::min(ids.span.size(), usd_data.size()))) {
+      /* Blender only supports int ID attributes so we have to narrow the value. */
+      ids.span[i_point] = int(usd_ids[i_point]);
+    }
+
+    ids.finish();
+  }
 }
 
 void USDPointsReader::read_velocities(PointCloud *pointcloud, const pxr::UsdTimeCode time) const
