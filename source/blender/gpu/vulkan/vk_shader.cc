@@ -24,7 +24,11 @@
 
 #include "BKE_global.hh"
 
+#include "CLG_log.h"
+
 #include <fmt/format.h>
+
+static CLG_LogRef LOG = {"gpu.vulkan"};
 
 using namespace blender::gpu::shader;
 
@@ -603,27 +607,30 @@ bool VKShader::finalize(const shader::ShaderCreateInfo *info)
   }
 
   push_constants = VKPushConstants(&vk_interface.push_constants_layout_get());
-  return finalize_post();
+  return finalize_post(info->pipelines_.as_span());
 }
 
-bool VKShader::finalize_post()
+bool VKShader::finalize_post(Span<PipelineState> pipelines)
 {
   bool result = finalize_shader_module(vertex_module, "vertex") &&
                 finalize_shader_module(geometry_module, "geometry") &&
                 finalize_shader_module(fragment_module, "fragment") &&
                 finalize_shader_module(compute_module, "compute");
 
-  /* Ensure that pipeline of compute shaders are already build. This can improve performance as it
-   * can triggers a back-end compilation step. In this step the Shader module SPIR-V is
-   * compiled to a shader program that can be executed by the device. Depending on the driver this
-   * can take some time as well. If this is done inside the main thread it will stall user
-   * interactivity.
-   */
-  if (result && is_compute_shader_) {
+  if (!result) {
+    return result;
+  }
+  /* Ensure that pipelines are already built. For compute shaders only the default state is
+   * compiled. For graphics shaders the pipeline state is read from the shader create info. */
+  if (is_compute_shader_) {
     /* This is only done for the first shader compilation (not specialization).
      * Give the default constants. */
     ensure_and_get_compute_pipeline(*constants);
   }
+  else {
+    result &= ensure_graphics_pipelines(pipelines);
+  }
+
   return result;
 }
 
@@ -1276,6 +1283,85 @@ VkPipeline VKShader::ensure_and_get_compute_pipeline(
   return vk_pipeline;
 }
 
+bool VKShader::ensure_graphics_pipelines(Span<shader::PipelineState> pipeline_states)
+{
+  BLI_assert(!is_compute_shader_);
+  has_precompiled_pipelines_ = !pipeline_states.is_empty();
+  for (const shader::PipelineState &pipeline_state : pipeline_states) {
+    const VkPrimitiveTopology vk_topology = to_vk_primitive_topology(pipeline_state.primitive_);
+
+    VKGraphicsInfo graphics_info = {};
+    graphics_info.vertex_in.vk_topology = vk_topology;
+    graphics_info.vertex_in.attributes.reserve(pipeline_state.vertex_inputs_.size());
+    graphics_info.vertex_in.bindings.reserve(pipeline_state.vertex_inputs_.size());
+    uint32_t binding = 0;
+    for (const shader::PipelineState::AttributeBinding &attribute_binding :
+         pipeline_state.vertex_inputs_)
+    {
+      const GPUVertAttr::Type attribute_type = {attribute_binding.type};
+      int location_len = ceil_division(attribute_type.comp_len(), 4);
+      for (const uint32_t location_offset : IndexRange(location_len)) {
+        graphics_info.vertex_in.attributes.append({
+            attribute_binding.location + location_offset,
+            binding,
+            to_vk_format(
+                attribute_type.comp_type(), attribute_type.size(), attribute_type.fetch_mode()),
+            attribute_binding.offset + location_offset * uint32_t(sizeof(float4)),
+        });
+        graphics_info.vertex_in.bindings.append(
+            {attribute_binding.binding, attribute_binding.stride, VK_VERTEX_INPUT_RATE_VERTEX});
+        binding++;
+      }
+    }
+
+    graphics_info.shaders.vk_vertex_module = vertex_module.vk_shader_module;
+    graphics_info.shaders.vk_geometry_module = geometry_module.vk_shader_module;
+    graphics_info.shaders.vk_fragment_module = fragment_module.vk_shader_module;
+    graphics_info.shaders.vk_pipeline_layout = vk_pipeline_layout;
+    graphics_info.shaders.vk_topology = vk_topology;
+    graphics_info.shaders.state = pipeline_state.state_;
+    graphics_info.shaders.mutable_state.point_size = 1.0f;
+    graphics_info.shaders.mutable_state.line_width = 1.0f;
+    graphics_info.shaders.mutable_state.stencil_write_mask = 0u;
+    graphics_info.shaders.mutable_state.stencil_compare_mask = 0u;
+    graphics_info.shaders.mutable_state.stencil_reference = 0u;
+    graphics_info.shaders.viewport_count = pipeline_state.viewport_count_;
+    graphics_info.shaders.specialization_constants.extend(
+        pipeline_state.specialization_constants_);
+    graphics_info.shaders.has_depth = pipeline_state.depth_format_ != TextureTargetFormat::Invalid;
+    graphics_info.shaders.has_stencil = pipeline_state.stencil_format_ !=
+                                        TextureTargetFormat::Invalid;
+
+    graphics_info.fragment_out.depth_attachment_format = to_vk_format(
+        pipeline_state.depth_format_);
+    graphics_info.fragment_out.stencil_attachment_format = to_vk_format(
+        pipeline_state.stencil_format_);
+    for (const TextureTargetFormat color_format : pipeline_state.color_formats_) {
+      graphics_info.fragment_out.color_attachment_formats.append(to_vk_format(color_format));
+    }
+    graphics_info.fragment_out.state = pipeline_state.state_;
+
+    VKDevice &device = VKBackend::get().device;
+    bool pipeline_created = false;
+    VkPipeline vk_pipeline = device.pipelines.get_or_create_graphics_pipeline(
+        graphics_info, is_static_shader_, vk_pipeline_base_, name_get(), pipeline_created);
+    UNUSED_VARS_NDEBUG(pipeline_created);
+    if (vk_pipeline == VK_NULL_HANDLE) {
+      return false;
+    }
+    BLI_assert_msg(pipeline_created,
+                   "Sanity check: Pipeline state is precompiled during shader creation, but "
+                   "resulting pipeline was "
+                   "already present in VKPipelinePool. This should not happen and might indicate "
+                   "that the same pipeline state is added multiple times.");
+    if (vk_pipeline_base_ == VK_NULL_HANDLE) {
+      vk_pipeline_base_ = vk_pipeline;
+    }
+  }
+
+  return true;
+}
+
 VkPipeline VKShader::ensure_and_get_graphics_pipeline(GPUPrimType primitive,
                                                       VKVertexAttributeObject &vao,
                                                       VKStateManager &state_manager,
@@ -1328,9 +1414,27 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(GPUPrimType primitive,
   graphics_info.fragment_out.state = state_manager.state;
 
   VKDevice &device = VKBackend::get().device;
-  /* Store result in local variable to ensure thread safety. */
+  bool pipeline_created = false;
   VkPipeline vk_pipeline = device.pipelines.get_or_create_graphics_pipeline(
-      graphics_info, is_static_shader_, vk_pipeline_base_, name_get());
+      graphics_info, is_static_shader_, vk_pipeline_base_, name_get(), pipeline_created);
+
+  UNUSED_VARS_NDEBUG(pipeline_created);
+#ifndef NDEBUG
+  if (has_precompiled_pipelines_ && pipeline_created) {
+    /* Sanity check: Used to detect mismatches between shader create info states and actual used
+     * pipeline states.
+     *
+     * NOTE: This could trigger false positives where input attributes are just different between
+     * objects that require a new pipeline state. */
+    CLOG_INFO(&LOG,
+              "Pipeline states were compiled for `%s`, however a pipeline state triggered a new "
+              "pipeline compilation.",
+              name_get().c_str());
+    const VKContext &context = *VKContext::get();
+    BLI_assert(!context.debug_pipeline_creation);
+  }
+#endif
+
   if (vk_pipeline_base_ == VK_NULL_HANDLE) {
     vk_pipeline_base_ = vk_pipeline;
   }

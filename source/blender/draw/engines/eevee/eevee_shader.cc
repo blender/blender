@@ -1217,6 +1217,51 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
     /* Avoid assert in ShaderCreateInfo::finalize. */
     info.batch_resources_.clear();
   }
+
+  /* Pipeline states to compile during shader compilation. */
+  /* NOTE: Currently only non-volume world shaders are added. Others will be added as well later
+   * on. */
+  switch (geometry_type) {
+    case MAT_GEOM_WORLD:
+      switch (pipeline_type) {
+        case MAT_PIPE_VOLUME_MATERIAL:
+          break;
+        default:
+          /* World Pipeline */
+          info.pipeline_state()
+              .primitive(GPU_PRIM_TRIS)
+              .state(GPU_WRITE_COLOR,
+                     GPU_BLEND_NONE,
+                     GPU_CULL_NONE,
+                     GPU_DEPTH_ALWAYS,
+                     GPU_STENCIL_NONE,
+                     GPU_STENCIL_OP_NONE,
+                     GPU_VERTEX_LAST)
+              .viewports(1)
+              .color_format(gpu::TextureTargetFormat::SFLOAT_16_16_16_16);
+
+          /* Background Pipeline */
+          info.pipeline_state()
+              .primitive(GPU_PRIM_TRIS)
+              .state(GPU_WRITE_COLOR,
+                     GPU_BLEND_NONE,
+                     GPU_CULL_NONE,
+                     GPU_DEPTH_EQUAL,
+                     GPU_STENCIL_NONE,
+                     GPU_STENCIL_OP_NONE,
+                     GPU_VERTEX_LAST)
+              .viewports(1)
+              .depth_format(gpu::TextureTargetFormat::SFLOAT_32_DEPTH_UINT_8)
+              .stencil_format(gpu::TextureTargetFormat::SFLOAT_32_DEPTH_UINT_8)
+              .color_format(gpu::TextureTargetFormat::SFLOAT_16_16_16_16);
+          ;
+          break;
+      }
+      break;
+
+    default:
+      break;
+  }
 }
 
 struct CallbackThunk {
