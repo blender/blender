@@ -608,7 +608,7 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
   else {
     /* Skip normalization. */
     factor = 1.0f;
-    offset = -min_coord;
+    offset = 0.0f;
   }
 
   BLI_assert(factor != 0.0f);
