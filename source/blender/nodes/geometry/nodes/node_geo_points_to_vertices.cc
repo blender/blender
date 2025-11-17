@@ -67,17 +67,18 @@ static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
   MutableAttributeAccessor dst_attributes = mesh->attributes_for_write();
 
   for (const int i : attributes.names.index_range()) {
-    const StringRef id = attributes.names[i];
+    const StringRef src_name = attributes.names[i];
+    const StringRef dst_name = src_name == ".selection" ? ".select_vert" : src_name;
     const bke::AttrType data_type = attributes.kinds[i].data_type;
-    const GAttributeReader src = src_attributes.lookup(id);
+    const GAttributeReader src = src_attributes.lookup(src_name);
     if (selection.size() == points->totpoint && src.sharing_info && src.varray.is_span()) {
       const bke::AttributeInitShared init(src.varray.get_internal_span().data(),
                                           *src.sharing_info);
-      dst_attributes.add(id, AttrDomain::Point, data_type, init);
+      dst_attributes.add(dst_name, AttrDomain::Point, data_type, init);
     }
     else {
       GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-          id, AttrDomain::Point, data_type);
+          dst_name, AttrDomain::Point, data_type);
       array_utils::gather(src.varray, selection, dst.span);
       dst.finish();
     }
