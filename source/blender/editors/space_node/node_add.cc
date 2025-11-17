@@ -14,6 +14,7 @@
 
 #include "DNA_collection_types.h"
 #include "DNA_node_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_texture_types.h"
 
 #include "BLI_easing.h"
@@ -39,6 +40,7 @@
 
 #include "IMB_colormanagement.hh"
 
+#include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
 #include "ED_asset.hh"
@@ -51,6 +53,11 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 #include "RNA_prototypes.hh"
+
+#include "SEQ_modifier.hh"
+#include "SEQ_relations.hh"
+#include "SEQ_select.hh"
+#include "SEQ_sequencer.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -1855,6 +1862,29 @@ static wmOperatorStatus new_compositor_sequencer_node_group_exec(bContext *C, wm
 
   bNodeTree *ntree = new_node_tree_impl(C, tree_name, "CompositorNodeTree");
   initialize_compositor_sequencer_node_group(C, *ntree);
+
+  Scene *scene = CTX_data_sequencer_scene(C);
+  Strip *strip = seq::select_active_get(scene);
+
+  /* Add modifier and assign node tree when the strip has no active compositor modifier. */
+  if (strip != nullptr && strip->type != STRIP_TYPE_SOUND_RAM) {
+    StripModifierData *active_smd = seq::modifier_get_active(strip);
+    if (!active_smd || active_smd->type != eSeqModifierType_Compositor) {
+      StripModifierData *smd = seq::modifier_new(strip, nullptr, eSeqModifierType_Compositor);
+      seq::modifier_persistent_uid_init(*strip, *smd);
+
+      SequencerCompositorModifierData *modifier_data =
+          reinterpret_cast<SequencerCompositorModifierData *>(smd);
+      modifier_data->node_group = ntree;
+      seq::relations_invalidate_cache(scene, strip);
+
+      /* Tag depsgraph relations for an update since the modifier should now be referencing a
+       * different node tree. */
+      Main *bmain = CTX_data_main(C);
+      DEG_relations_tag_update(bmain);
+      WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+    }
+  }
 
   BKE_ntree_update_after_single_tree_change(*CTX_data_main(C), *ntree);
   WM_event_add_notifier(C, NC_NODE | NA_ADDED, nullptr);
