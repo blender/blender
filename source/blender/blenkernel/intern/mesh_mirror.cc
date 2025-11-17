@@ -15,6 +15,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_attribute.hh"
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_deform.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
@@ -195,18 +196,23 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   Mesh *result = BKE_mesh_new_nomain_from_template(
       mesh, src_verts_num * 2, src_edges_num * 2, src_faces.size() * 2, src_loops_num * 2);
 
+  LegacyMeshInterpolator vert_interp(*mesh, *result, AttrDomain::Point);
+  LegacyMeshInterpolator edge_interp(*mesh, *result, AttrDomain::Edge);
+  LegacyMeshInterpolator face_interp(*mesh, *result, AttrDomain::Face);
+  LegacyMeshInterpolator corner_interp(*mesh, *result, AttrDomain::Corner);
+
   /* Copy custom-data to original geometry. */
-  CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, 0, src_verts_num);
-  CustomData_copy_data(&mesh->edge_data, &result->edge_data, 0, 0, src_edges_num);
-  CustomData_copy_data(&mesh->face_data, &result->face_data, 0, 0, src_faces.size());
-  CustomData_copy_data(&mesh->corner_data, &result->corner_data, 0, 0, src_loops_num);
+
+  vert_interp.copy(0, 0, src_verts_num);
+  edge_interp.copy(0, 0, src_edges_num);
+  face_interp.copy(0, 0, src_faces.size());
+  corner_interp.copy(0, 0, src_loops_num);
 
   /* Copy custom data to mirrored geometry. */
-  CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, src_verts_num, src_verts_num);
-  CustomData_copy_data(&mesh->edge_data, &result->edge_data, 0, src_edges_num, src_edges_num);
-  CustomData_copy_data(
-      &mesh->face_data, &result->face_data, 0, src_faces.size(), src_faces.size());
-  CustomData_copy_data(&mesh->corner_data, &result->corner_data, 0, src_loops_num, src_loops_num);
+  vert_interp.copy(0, src_verts_num, src_verts_num);
+  edge_interp.copy(0, src_edges_num, src_edges_num);
+  face_interp.copy(0, src_faces.size(), src_faces.size());
+  corner_interp.copy(0, src_loops_num, src_loops_num);
 
   if (do_vtargetmap) {
     /* second half is filled with -1 */
