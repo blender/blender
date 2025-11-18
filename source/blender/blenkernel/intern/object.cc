@@ -1429,16 +1429,7 @@ bool BKE_object_copy_modifier(Main *bmain,
         break;
     }
 
-    ModifierData *next_md = nullptr;
-    LISTBASE_FOREACH_BACKWARD (ModifierData *, md, &ob_dst->modifiers) {
-      if (md->flag & eModifierFlag_PinLast) {
-        next_md = md;
-      }
-      else {
-        break;
-      }
-    }
-    BLI_insertlinkbefore(&ob_dst->modifiers, next_md, md_dst);
+    BKE_modifiers_add_at_end_if_possible(ob_dst, md_dst);
     BKE_modifier_unique_name(&ob_dst->modifiers, md_dst);
     BKE_modifiers_persistent_uid_init(*ob_dst, *md_dst);
   }
