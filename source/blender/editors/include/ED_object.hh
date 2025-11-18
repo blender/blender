@@ -61,7 +61,7 @@ Object *context_object(const bContext *C);
  * \note context can be NULL when called from a enum with #PROP_ENUM_NO_CONTEXT.
  */
 Object *context_active_object(const bContext *C);
-void collection_hide_menu_draw(const bContext *C, ui::Layout *layout);
+void collection_hide_menu_draw(const bContext *C, ui::Layout &layout);
 
 /**
  * Return an array of objects:
