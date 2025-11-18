@@ -1101,7 +1101,8 @@ static void TRANSFORM_OT_shear(wmOperatorType *ot)
   ot->poll = transform_shear_poll;
   ot->poll_property = transform_poll_property;
 
-  RNA_def_float(ot->srna, "value", 0, -FLT_MAX, FLT_MAX, "Offset", "", -FLT_MAX, FLT_MAX);
+  RNA_def_float_rotation(
+      ot->srna, "angle", 0, nullptr, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI * 2, M_PI * 2);
 
   WM_operatortype_props_advanced_begin(ot);
 
