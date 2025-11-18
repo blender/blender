@@ -567,6 +567,7 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
   if (!device.is_initialized()) {
     device.init(ghost_context);
     device.extensions_get().log();
+    device.workarounds_get().log();
     init_device_list((GHOST_ContextHandle)ghost_context);
   }
 
