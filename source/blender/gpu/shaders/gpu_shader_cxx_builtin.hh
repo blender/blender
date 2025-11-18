@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "gpu_shader_cxx_matrix.hh"
 #include "gpu_shader_cxx_vector.hh"
 
 /* Some compilers complain about lack of return values. Keep it short. */
@@ -221,11 +220,6 @@ float2 unpackUnorm2x16(uint) RET;
 float2 unpackSnorm2x16(uint) RET;
 float4 unpackUnorm4x8(uint) RET;
 float4 unpackSnorm4x8(uint) RET;
-
-/* Matrices functions. */
-template<int C, int R> float determinant(MatBase<C, R>) RET;
-template<int C, int R> MatBase<C, R> inverse(MatBase<C, R>) RET;
-template<int C, int R> MatBase<R, C> transpose(MatBase<C, R>) RET;
 
 namespace gl_ComputeShader {
 void barrier() {}

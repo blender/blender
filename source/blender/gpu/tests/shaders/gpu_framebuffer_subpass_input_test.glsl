@@ -2,7 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "gpu_shader_compat.hh"
+
+#include "infos/gpu_shader_test_infos.hh"
+
 #ifdef GPU_VERTEX_SHADER
+VERTEX_SHADER_CREATE_INFO(gpu_framebuffer_subpass_input_test)
+
 void main()
 {
   /* Full-screen triangle. */
@@ -14,6 +20,7 @@ void main()
 #endif
 
 #ifdef GPU_FRAGMENT_SHADER
+FRAGMENT_SHADER_CREATE_INFO(gpu_framebuffer_subpass_input_test)
 
 #  ifdef WRITE
 void main()

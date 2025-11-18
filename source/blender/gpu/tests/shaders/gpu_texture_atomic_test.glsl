@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_test_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(gpu_texture_atomic_test)
+
 void main()
 {
   if (write_phase) {
