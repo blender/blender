@@ -8,6 +8,8 @@
 #endif
 
 #ifdef GLSL_CPP_STUBS
+#  undef OPERATOR
+#  undef FUNCTION
 #  define OPERATOR(x) x
 #  define FUNCTION(x) x
 #endif

@@ -8,6 +8,8 @@
 #endif
 
 #ifdef GLSL_CPP_STUBS
+#  undef OPERATOR
+#  undef LIMIT
 #  define OPERATOR(a, b) max(a, b)
 #  define LIMIT -FLT_MAX
 #endif

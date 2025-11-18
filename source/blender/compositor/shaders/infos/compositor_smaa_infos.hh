@@ -8,6 +8,7 @@
 #endif
 
 #ifdef GLSL_CPP_STUBS
+#  undef SMAA_RT_METRICS
 #  define SMAA_GLSL_3
 #  define SMAA_RT_METRICS float4(1.0f)
 #  define SMAA_PRESET_LOW

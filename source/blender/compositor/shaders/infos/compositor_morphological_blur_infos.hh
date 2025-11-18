@@ -8,6 +8,7 @@
 #endif
 
 #ifdef GLSL_CPP_STUBS
+#  undef OPERATOR
 #  define OPERATOR(x, y) max(x, y)
 #endif
 

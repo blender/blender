@@ -743,6 +743,9 @@ class Preprocessor {
       if (tokens[1].str() == "define") {
         metadata.create_infos_defines.emplace_back(tokens[1].next().scope().str());
       }
+      if (tokens[1].str() == "undef") {
+        metadata.create_infos_defines.emplace_back(tokens[1].next().scope().str());
+      }
     });
   }
 
