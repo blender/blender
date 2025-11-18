@@ -48,17 +48,20 @@ void Shader::dump_source_to_disk(StringRef shader_name,
     /* If using a single wildcard, match everything. */
   }
   else if (pattern.startswith("*") && pattern.endswith("*")) {
-    if (!shader_name.find(pattern.substr(1, pattern.size() - 2))) {
+    std::string sub_str = pattern.substr(1, pattern.size() - 2);
+    if (shader_name.find(sub_str) == std::string::npos) {
       return;
     }
   }
   else if (pattern.startswith("*")) {
-    if (!shader_name.endswith(pattern.substr(1))) {
+    std::string sub_str = pattern.substr(1);
+    if (!shader_name.endswith(sub_str)) {
       return;
     }
   }
   else if (pattern.endswith("*")) {
-    if (!shader_name.startswith(pattern.substr(0, pattern.size() - 1))) {
+    std::string sub_str = pattern.substr(0, pattern.size() - 1);
+    if (!shader_name.startswith(sub_str)) {
       return;
     }
   }
