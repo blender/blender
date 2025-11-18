@@ -242,26 +242,25 @@ static wmOperatorStatus edbm_intersect_exec(bContext *C, wmOperator *op)
 
 static void edbm_intersect_ui(bContext * /*C*/, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
-  uiLayout *row;
+  blender::ui::Layout &layout = *op->layout;
 
   bool use_exact = RNA_enum_get(op->ptr, "solver") == ISECT_SOLVER_EXACT;
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
-  row = &layout->row(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
+  blender::ui::Layout *row = &layout.row(false);
   row->prop(op->ptr, "mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout->separator();
-  row = &layout->row(false);
+  layout.separator();
+  row = &layout.row(false);
   row->prop(op->ptr, "separate_mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout->separator();
+  layout.separator();
 
-  row = &layout->row(false);
+  row = &layout.row(false);
   row->prop(op->ptr, "solver", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout->separator();
+  layout.separator();
 
   if (!use_exact) {
-    layout->prop(op->ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(op->ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
@@ -402,26 +401,25 @@ static wmOperatorStatus edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
 
 static void edbm_intersect_boolean_ui(bContext * /*C*/, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
-  uiLayout *row;
+  blender::ui::Layout &layout = *op->layout;
 
   bool use_exact = RNA_enum_get(op->ptr, "solver") == ISECT_SOLVER_EXACT;
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
-  row = &layout->row(false);
-  row->prop(op->ptr, "operation", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout->separator();
+  blender::ui::Layout &operation_row = layout.row(false);
+  operation_row.prop(op->ptr, "operation", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.separator();
 
-  row = &layout->row(false);
-  row->prop(op->ptr, "solver", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout->separator();
+  blender::ui::Layout &solver_row = layout.row(false);
+  solver_row.prop(op->ptr, "solver", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.separator();
 
-  layout->prop(op->ptr, "use_swap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(op->ptr, "use_self", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "use_swap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "use_self", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (!use_exact) {
-    layout->prop(op->ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(op->ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 

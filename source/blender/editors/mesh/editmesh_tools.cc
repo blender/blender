@@ -3980,18 +3980,18 @@ static const EnumPropertyItem *shape_itemf(bContext *C,
 
 static void edbm_blend_from_shape_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  blender::ui::Layout &layout = *op->layout;
   Object *obedit = CTX_data_edit_object(C);
   Mesh *mesh = static_cast<Mesh *>(obedit->data);
 
   PointerRNA ptr_key = RNA_id_pointer_create((ID *)mesh->key);
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
-  layout->prop_search(op->ptr, "shape", &ptr_key, "key_blocks", std::nullopt, ICON_SHAPEKEY_DATA);
-  layout->prop(op->ptr, "blend", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(op->ptr, "add", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop_search(op->ptr, "shape", &ptr_key, "key_blocks", std::nullopt, ICON_SHAPEKEY_DATA);
+  layout.prop(op->ptr, "blend", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "add", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 void MESH_OT_blend_from_shape(wmOperatorType *ot)
@@ -5790,23 +5790,23 @@ static bool edbm_decimate_check(bContext * /*C*/, wmOperator * /*op*/)
 
 static void edbm_decimate_ui(bContext * /*C*/, wmOperator *op)
 {
-  uiLayout *layout = op->layout, *row, *col, *sub;
+  blender::ui::Layout &layout = *op->layout;
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(op->ptr, "ratio", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "ratio", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->prop(op->ptr, "use_vertex_group", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col = &layout->column(false);
-  col->active_set(RNA_boolean_get(op->ptr, "use_vertex_group"));
-  col->prop(op->ptr, "vertex_group_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col->prop(op->ptr, "invert_vertex_group", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "use_vertex_group", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  blender::ui::Layout &col = layout.column(false);
+  col.active_set(RNA_boolean_get(op->ptr, "use_vertex_group"));
+  col.prop(op->ptr, "vertex_group_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(op->ptr, "invert_vertex_group", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = &layout->row(true, IFACE_("Symmetry"));
-  row->prop(op->ptr, "use_symmetry", UI_ITEM_NONE, "", ICON_NONE);
-  sub = &row->row(true);
-  sub->active_set(RNA_boolean_get(op->ptr, "use_symmetry"));
-  sub->prop(op->ptr, "symmetry_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  blender::ui::Layout &row = layout.row(true, IFACE_("Symmetry"));
+  row.prop(op->ptr, "use_symmetry", UI_ITEM_NONE, "", ICON_NONE);
+  blender::ui::Layout &sub = row.row(true);
+  sub.active_set(RNA_boolean_get(op->ptr, "use_symmetry"));
+  sub.prop(op->ptr, "symmetry_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 void MESH_OT_decimate(wmOperatorType *ot)
@@ -8735,15 +8735,15 @@ static bool point_normals_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop, vo
 
 static void edbm_point_normals_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  blender::ui::Layout &layout = *op->layout;
   wmWindowManager *wm = CTX_wm_manager(C);
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
   /* Main auto-draw call */
-  uiDefAutoButsRNA(layout,
+  uiDefAutoButsRNA(&layout,
                    &ptr,
                    point_normals_draw_check_prop,
                    nullptr,
@@ -9227,15 +9227,15 @@ static bool average_normals_draw_check_prop(PointerRNA *ptr,
 
 static void edbm_average_normals_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  blender::ui::Layout &layout = *op->layout;
   wmWindowManager *wm = CTX_wm_manager(C);
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
   /* Main auto-draw call */
-  uiDefAutoButsRNA(layout,
+  uiDefAutoButsRNA(&layout,
                    &ptr,
                    average_normals_draw_check_prop,
                    nullptr,
@@ -9481,13 +9481,13 @@ static bool normals_tools_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop, vo
 
 static void edbm_normals_tools_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  blender::ui::Layout &layout = *op->layout;
   wmWindowManager *wm = CTX_wm_manager(C);
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
   /* Main auto-draw call */
-  uiDefAutoButsRNA(layout,
+  uiDefAutoButsRNA(&layout,
                    &ptr,
                    normals_tools_draw_check_prop,
                    nullptr,
