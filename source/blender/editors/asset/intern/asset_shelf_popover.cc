@@ -118,7 +118,7 @@ class AssetCatalogTreeView : public ui::AbstractTreeView {
         library,
         shelf_.settings.asset_library_reference,
         [this](const asset_system::AssetRepresentation &asset) {
-          return (!shelf_.type->asset_poll || shelf_.type->asset_poll(shelf_.type, &asset));
+          return type_asset_poll(*shelf_.type, asset);
         });
 
     /* Keep the popup open when clicking to activate a catalog. */
