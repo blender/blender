@@ -210,6 +210,7 @@ if(WITH_GTESTS)
   set(TEST_SRC
     mesh_brush_common_tests.cc
     paint_test.cc
+    sculpt_boundary_tests.cc
     sculpt_detail_test.cc
     sculpt_undo_test.cc
   )

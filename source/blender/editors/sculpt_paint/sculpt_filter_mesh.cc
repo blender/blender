@@ -371,14 +371,16 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
         scale_factors(factors, strength);
         clamp_factors(factors, -1.0f, 1.0f);
 
-        const GroupedSpan<int> neighbors = calc_vert_neighbors_interior(faces,
-                                                                        corner_verts,
-                                                                        vert_to_face_map,
-                                                                        ss.vertex_info.boundary,
-                                                                        attribute_data.hide_poly,
-                                                                        verts,
-                                                                        tls.neighbor_offsets,
-                                                                        tls.neighbor_data);
+        const GroupedSpan<int> neighbors = calc_vert_neighbors_interior(
+            faces,
+            corner_verts,
+            vert_to_face_map,
+            ss.boundary_info_cache->verts,
+            ss.boundary_info_cache->edges,
+            attribute_data.hide_poly,
+            verts,
+            tls.neighbor_offsets,
+            tls.neighbor_data);
 
         tls.new_positions.resize(verts.size());
         const MutableSpan<float3> new_positions = tls.new_positions;
@@ -428,8 +430,13 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
 
         tls.new_positions.resize(positions.size());
         const MutableSpan<float3> new_positions = tls.new_positions;
-        smooth::neighbor_position_average_interior_grids(
-            faces, corner_verts, ss.vertex_info.boundary, subdiv_ccg, grids, new_positions);
+        smooth::neighbor_position_average_interior_grids(faces,
+                                                         corner_verts,
+                                                         ss.boundary_info_cache->verts,
+                                                         ss.boundary_info_cache->edges,
+                                                         subdiv_ccg,
+                                                         grids,
+                                                         new_positions);
 
         tls.translations.resize(positions.size());
         const MutableSpan<float3> translations = tls.translations;
@@ -978,7 +985,8 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
                                                 faces,
                                                 corner_verts,
                                                 vert_to_face_map,
-                                                ss.vertex_info.boundary,
+                                                ss.boundary_info_cache->verts,
+                                                ss.boundary_info_cache->edges,
                                                 attribute_data.face_sets,
                                                 attribute_data.hide_poly,
                                                 false,
@@ -1028,7 +1036,8 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
                                                 corner_verts,
                                                 face_sets,
                                                 vert_to_face_map,
-                                                ss.vertex_info.boundary,
+                                                ss.boundary_info_cache->verts,
+                                                ss.boundary_info_cache->edges,
                                                 grids,
                                                 false,
                                                 factors,
@@ -1133,7 +1142,8 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
                                                 faces,
                                                 corner_verts,
                                                 vert_to_face_map,
-                                                ss.vertex_info.boundary,
+                                                ss.boundary_info_cache->verts,
+                                                ss.boundary_info_cache->edges,
                                                 attribute_data.face_sets,
                                                 attribute_data.hide_poly,
                                                 relax_face_sets,
@@ -1193,7 +1203,8 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
                                                 corner_verts,
                                                 face_sets,
                                                 vert_to_face_map,
-                                                ss.vertex_info.boundary,
+                                                ss.boundary_info_cache->verts,
+                                                ss.boundary_info_cache->edges,
                                                 grids,
                                                 relax_face_sets,
                                                 factors,
