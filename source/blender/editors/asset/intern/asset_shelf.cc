@@ -13,12 +13,14 @@
 
 #include "AS_asset_catalog_path.hh"
 #include "AS_asset_library.hh"
+#include "AS_asset_representation.hh"
 
 #include "BLI_function_ref.hh"
 #include "BLI_listbase.h"
 #include "BLI_string_utf8.h"
 
 #include "BKE_context.hh"
+#include "BKE_idtype.hh"
 #include "BKE_main.hh"
 #include "BKE_screen.hh"
 
@@ -124,6 +126,24 @@ static bool type_poll_for_non_popup(const bContext &C,
   }
 
   return type_poll_no_spacetype_check(C, shelf_type);
+}
+
+bool type_asset_poll(const AssetShelfType &shelf_type,
+                     const asset_system::AssetRepresentation &asset)
+{
+
+  if (shelf_type.id_types_prefilter != 0) {
+    const uint64_t id_filter = BKE_idtype_idcode_to_idfilter(asset.get_id_type());
+    if ((shelf_type.id_types_prefilter & id_filter) == 0) {
+      return false;
+    }
+  }
+
+  if (shelf_type.asset_poll && !shelf_type.asset_poll(&shelf_type, &asset)) {
+    return false;
+  }
+
+  return true;
 }
 
 AssetShelfType *type_find_from_idname(const StringRef idname)

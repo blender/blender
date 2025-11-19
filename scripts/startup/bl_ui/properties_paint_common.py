@@ -21,6 +21,7 @@ class BrushAssetShelf:
         'ACTIVATE_FOR_CONTEXT_MENU',
     }
     bl_activate_operator = "BRUSH_OT_asset_activate"
+    filter_brush = True
     brush_type_prop = None
     mode_prop = None
 
