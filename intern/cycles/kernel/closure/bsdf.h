@@ -275,7 +275,7 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
       }
     }
   }
-  else {
+  else if (label != LABEL_NONE) {
     /* Shadow terminator offset. */
     const float frequency_multiplier =
         kernel_data_fetch(objects, sd->object).shadow_terminator_shading_offset;

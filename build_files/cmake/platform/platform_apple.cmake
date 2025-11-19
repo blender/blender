@@ -212,6 +212,11 @@ if(WITH_JACK)
   string(APPEND PLATFORM_LINKFLAGS " -F/Library/Frameworks -weak_framework jackmp")
 endif()
 
+if(WITH_VULKAN_BACKEND)
+  find_package(ShaderC REQUIRED)
+  find_package(Vulkan REQUIRED)
+endif()
+
 if(WITH_SDL)
   find_package(SDL2)
   set(SDL_INCLUDE_DIR ${SDL2_INCLUDE_DIRS})

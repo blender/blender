@@ -13,7 +13,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_array.hh"
-#include "BLI_kdtree.h"
+#include "BLI_kdtree.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"

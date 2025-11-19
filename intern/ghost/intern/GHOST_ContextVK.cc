@@ -10,6 +10,8 @@
 
 #ifdef _WIN32
 #  include <vulkan/vulkan_win32.h>
+#elif defined(__APPLE__)
+#  include <vulkan/vulkan_metal.h>
 #else /* X11/WAYLAND. */
 #  ifdef WITH_GHOST_X11
 #    include <vulkan/vulkan_xlib.h>
@@ -450,8 +452,16 @@ struct GHOST_InstanceVK {
         continue;
       }
 
-      if (!device_vk.features.features.geometryShader ||
+      if (
+#ifndef __APPLE__
+          !device_vk.features.features.geometryShader ||
+          !device_vk.features.features.multiViewport ||
+          !device_vk.features.features.shaderClipDistance ||
+          !device_vk.features.features.fragmentStoresAndAtomics ||
           !device_vk.features.features.vertexPipelineStoresAndAtomics ||
+#endif
+          !device_vk.features.features.multiDrawIndirect ||
+          !device_vk.features.features.imageCubeArray ||
           !device_vk.features.features.dualSrcBlend || !device_vk.features.features.logicOp ||
           !device_vk.features.features.imageCubeArray)
       {
@@ -524,16 +534,18 @@ struct GHOST_InstanceVK {
     queue_create_infos.push_back(graphic_queue_create_info);
 
     VkPhysicalDeviceFeatures device_features = {};
+#ifndef __APPLE__
     device_features.geometryShader = VK_TRUE;
+    device_features.multiViewport = VK_TRUE;
+    device_features.shaderClipDistance = VK_TRUE;
+    device_features.fragmentStoresAndAtomics = VK_TRUE;
+    device_features.vertexPipelineStoresAndAtomics = VK_TRUE;
+#endif
     device_features.logicOp = VK_TRUE;
     device_features.dualSrcBlend = VK_TRUE;
     device_features.imageCubeArray = VK_TRUE;
     device_features.multiDrawIndirect = VK_TRUE;
-    device_features.multiViewport = VK_TRUE;
-    device_features.shaderClipDistance = VK_TRUE;
     device_features.drawIndirectFirstInstance = VK_TRUE;
-    device_features.vertexPipelineStoresAndAtomics = VK_TRUE;
-    device_features.fragmentStoresAndAtomics = VK_TRUE;
     device_features.samplerAnisotropy = device.features.features.samplerAnisotropy;
     device_features.wideLines = device.features.features.wideLines;
 
@@ -673,7 +685,7 @@ GHOST_ContextVK::GHOST_ContextVK(const GHOST_ContextParams &context_params,
 #ifdef _WIN32
                                  HWND hwnd,
 #elif defined(__APPLE__)
-                                 CAMetalLayer *metal_layer,
+                                 void *metal_layer,
 #else
                                  GHOST_TVulkanPlatformType platform,
                                  /* X11 */
@@ -1518,7 +1530,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     info.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
     info.pNext = nullptr;
     info.flags = 0;
-    info.pLayer = metal_layer_;
+    info.pLayer = static_cast<CAMetalLayer *>(metal_layer_);
     VK_CHECK(vkCreateMetalSurfaceEXT(instance_vk.vk_instance, &info, nullptr, &surface_),
              GHOST_kFailure);
 #else
@@ -1561,11 +1573,14 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     /* External memory extensions. */
 #ifdef _WIN32
     optional_device_extensions.append(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
+#elif defined(__APPLE__)
 #else
     optional_device_extensions.append(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
 #endif
 
+#ifndef __APPLE__
     required_device_extensions.append(VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
+#endif
     required_device_extensions.append(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
     optional_device_extensions.append(VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME);
     optional_device_extensions.append(VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);

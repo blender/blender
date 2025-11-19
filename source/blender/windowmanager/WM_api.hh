@@ -81,6 +81,10 @@ namespace blender::asset_system {
 class AssetRepresentation;
 }
 
+namespace blender::ui {
+enum class AlertIcon : int8_t;
+}
+
 /* General API. */
 
 /**
@@ -896,10 +900,10 @@ wmOperatorStatus WM_operator_confirm_or_exec(bContext *C, wmOperator *op, const 
  */
 wmOperatorStatus WM_operator_confirm_ex(bContext *C,
                                         wmOperator *op,
-                                        const char *title = nullptr,
-                                        const char *message = nullptr,
-                                        const char *confirm_text = nullptr,
-                                        int icon = 0, /* ALERT_ICON_WARNING. */
+                                        const char *title,
+                                        const char *message,
+                                        const char *confirm_text,
+                                        blender::ui::AlertIcon icon,
                                         bool cancel_default = false);
 
 /**
@@ -1442,10 +1446,11 @@ void WM_uilisttype_free();
  * The "full" list-ID is an internal name used for storing and identifying a list. It is built like
  * this:
  * `{uiListType.idname}_{list_id}`, whereby `list_id` is an optional parameter passed to
- * `UILayout.template_list()`. If it is not set, the full list-ID is just `{uiListType.idname}_`.
+ * `blender::ui::Layout.template_list()`. If it is not set, the full list-ID is just
+ * `{uiListType.idname}_`.
  *
  * Note that whenever the Python API refers to the list-ID, it's the short, "non-full" one it
- * passed to `UILayout.template_list()`. C code can query that through
+ * passed to `blender::ui::Layout.template_list()`. C code can query that through
  * #WM_uilisttype_list_id_get().
  */
 void WM_uilisttype_to_full_list_id(const uiListType *ult,
@@ -2041,7 +2046,7 @@ void WM_window_status_area_tag_redraw(wmWindow *win);
  * use here since the area is stored in the window manager.
  */
 ScrArea *WM_window_status_area_find(wmWindow *win, bScreen *screen);
-bool WM_window_modal_keymap_status_draw(bContext *C, wmWindow *win, uiLayout *layout);
+bool WM_window_modal_keymap_status_draw(bContext *C, wmWindow *win, blender::ui::Layout *layout);
 
 /* `wm_event_query.cc` */
 

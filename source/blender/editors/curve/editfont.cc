@@ -706,15 +706,15 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
   const uiStyle *style = UI_style_get_dpi();
-  uiLayout &layout = blender::ui::block_layout(block,
-                                               blender::ui::LayoutDirection::Vertical,
-                                               blender::ui::LayoutType::Panel,
-                                               0,
-                                               0,
-                                               200 * UI_SCALE_FAC,
-                                               UI_UNIT_Y,
-                                               0,
-                                               style);
+  blender::ui::Layout &layout = blender::ui::block_layout(block,
+                                                          blender::ui::LayoutDirection::Vertical,
+                                                          blender::ui::LayoutType::Panel,
+                                                          0,
+                                                          0,
+                                                          200 * UI_SCALE_FAC,
+                                                          UI_UNIT_Y,
+                                                          0,
+                                                          style);
 
   uiItemL_ex(&layout, IFACE_("Insert Unicode Character"), ICON_NONE, true, false);
   layout.label(RPT_("Enter a Unicode codepoint hex value"), ICON_NONE);
@@ -746,20 +746,20 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
 
   uiBut *confirm = nullptr;
   uiBut *cancel = nullptr;
-  uiLayout *split = &layout.split(0.0f, true);
-  split->column(false);
+  blender::ui::Layout &split = layout.split(0.0f, true);
+  split.column(false);
 
   if (windows_layout) {
     confirm = uiDefIconTextBut(
         block, ButType::But, 0, IFACE_("Insert"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
-    split->column(false);
+    split.column(false);
   }
 
   cancel = uiDefIconTextBut(
       block, ButType::But, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
 
   if (!windows_layout) {
-    split->column(false);
+    split.column(false);
     confirm = uiDefIconTextBut(
         block, ButType::But, 0, IFACE_("Insert"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
   }

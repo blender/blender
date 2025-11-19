@@ -843,6 +843,38 @@ void BKE_modifier_free_temporary_data(ModifierData *md)
   }
 }
 
+void BKE_modifiers_add_at_end_if_possible(Object *ob, ModifierData *new_md)
+{
+  ModifierData *next_md = nullptr;
+  LISTBASE_FOREACH_BACKWARD (ModifierData *, md, &ob->modifiers) {
+    if (md->flag & eModifierFlag_PinLast) {
+      next_md = md;
+    }
+    else {
+      break;
+    }
+  }
+
+  const ModifierType mt = static_cast<ModifierType>(new_md->type);
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(mt);
+  const bool check_deform_only = (mti->flags & eModifierTypeFlag_RequiresOriginalData) ||
+                                 (mt == eModifierType_Hook);
+  if (check_deform_only) {
+    next_md = static_cast<ModifierData *>(ob->modifiers.first);
+
+    while (next_md && BKE_modifier_get_info(static_cast<ModifierType>(next_md->type))->type ==
+                          ModifierTypeType::OnlyDeform)
+    {
+      if (next_md->next && (next_md->next->flag & eModifierFlag_PinLast) != 0) {
+        break;
+      }
+      next_md = next_md->next;
+    }
+  }
+
+  BLI_insertlinkbefore(&ob->modifiers, next_md, new_md);
+}
+
 void BKE_modifiers_test_object(Object *ob)
 {
   /* just multires checked for now, since only multires

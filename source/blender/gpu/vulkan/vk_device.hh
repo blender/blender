@@ -102,6 +102,9 @@ struct VKWorkarounds {
      */
     bool r8g8b8 = false;
   } vertex_formats;
+
+  /** Log enabled workarounds. */
+  void log() const;
 };
 
 /**

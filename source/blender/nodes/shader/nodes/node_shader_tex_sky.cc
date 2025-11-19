@@ -148,6 +148,38 @@ static void sky_precompute_old(SkyModelPreetham *sunsky, const float sun_angles[
   sunsky->radiance[2] /= sky_perez_function(sunsky->config_y, 0, theta);
 }
 
+static void sky_simplify_multiscatter_elevation_rotation(float &sun_elevation, float &sun_rotation)
+{
+  /* Patch Sun position so users are able to animate the daylight cycle while keeping the shading
+   * code simple. */
+  float new_sun_elevation = sun_elevation;
+  float new_sun_rotation = sun_rotation;
+
+  /* Wrap `new_sun_elevation` into [-2PI..2PI] range. */
+  new_sun_elevation = fmodf(new_sun_elevation, 2.0f * M_PI);
+  /* Wrap `new_sun_elevation` into [-PI..PI] range. */
+  if (fabsf(new_sun_elevation) >= M_PI) {
+    new_sun_elevation -= copysignf(2.0f, new_sun_elevation) * M_PI;
+  }
+  /* Wrap `new_sun_elevation` into [-PI/2..PI/2] range while keeping the same absolute position.
+   */
+  if (new_sun_elevation >= M_PI / 2.0f || new_sun_elevation <= -M_PI / 2.0f) {
+    new_sun_elevation = copysignf(M_PI, new_sun_elevation) - new_sun_elevation;
+    new_sun_rotation += M_PI;
+  }
+
+  /* Wrap `new_sun_rotation` into [-2PI..2PI] range. */
+  new_sun_rotation = fmodf(new_sun_rotation, 2.0f * M_PI);
+  /* Wrap `new_sun_rotation` into [0..2PI] range. */
+  if (new_sun_rotation < 0.0f) {
+    new_sun_rotation += 2.0f * M_PI;
+  }
+  new_sun_rotation = 2.0f * M_PI - new_sun_rotation;
+
+  sun_elevation = new_sun_elevation;
+  sun_rotation = new_sun_rotation;
+}
+
 static int node_shader_gpu_tex_sky(GPUMaterial *mat,
                                    bNode *node,
                                    bNodeExecData * /*execdata*/,
@@ -229,6 +261,7 @@ static int node_shader_gpu_tex_sky(GPUMaterial *mat,
   /* Nishita */
   Array<float> pixels(4 * GPU_SKY_WIDTH * GPU_SKY_HEIGHT);
 
+  float sun_rotation = tex->sun_rotation;
   if (tex->sky_model == SHD_SKY_SINGLE_SCATTERING) {
     SKY_single_scattering_precompute_texture(pixels.data(),
                                              4,
@@ -239,24 +272,28 @@ static int node_shader_gpu_tex_sky(GPUMaterial *mat,
                                              tex->air_density,
                                              tex->aerosol_density,
                                              tex->ozone_density);
+
+    /* The multi-scatter case takes care of rotation wrapping in the
+     * sky_simplify_multiscatter_elevation_rotation(). */
+    sun_rotation = fmodf(sun_rotation, 2.0f * M_PI);
+    if (sun_rotation < 0.0f) {
+      sun_rotation += 2.0f * M_PI;
+    }
+    sun_rotation = 2.0f * M_PI - sun_rotation;
   }
   else {
+    float sun_elevation = tex->sun_elevation;
+    sky_simplify_multiscatter_elevation_rotation(sun_elevation, sun_rotation);
     SKY_multiple_scattering_precompute_texture(pixels.data(),
                                                4,
                                                GPU_SKY_WIDTH,
                                                GPU_SKY_HEIGHT,
-                                               tex->sun_elevation,
+                                               sun_elevation,
                                                tex->altitude,
                                                tex->air_density,
                                                tex->aerosol_density,
                                                tex->ozone_density);
   }
-
-  float sun_rotation = fmodf(tex->sun_rotation, 2.0f * M_PI);
-  if (sun_rotation < 0.0f) {
-    sun_rotation += 2.0f * M_PI;
-  }
-  sun_rotation = 2.0f * M_PI - sun_rotation;
 
   XYZ_to_RGB xyz_to_rgb;
   get_XYZ_to_RGB_for_gpu(&xyz_to_rgb);

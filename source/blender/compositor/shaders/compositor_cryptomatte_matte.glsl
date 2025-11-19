@@ -12,6 +12,10 @@
  *   and transparency." ACM SIGGRAPH 2015 Posters. 2015. 1-1.
  */
 
+#include "infos/compositor_cryptomatte_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_cryptomatte_matte)
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()

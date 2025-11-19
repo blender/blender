@@ -6,9 +6,12 @@
 
 struct bContext;
 struct PointerRNA;
-struct uiLayout;
 struct wmOperator;
 struct bNodeTree;
+
+namespace blender::ui {
+struct Layout;
+}  // namespace blender::ui
 
 namespace blender::nodes {
 
@@ -18,7 +21,7 @@ class GeoTreeLog;
 
 void draw_geometry_nodes_modifier_ui(const bContext &C,
                                      PointerRNA *modifier_ptr,
-                                     uiLayout &layout);
+                                     ui::Layout &layout);
 
 void draw_geometry_nodes_operator_redo_ui(const bContext &C,
                                           wmOperator &op,

@@ -33,6 +33,7 @@ set(SRC
   intern/grease_pencil_pen.cc
   intern/grease_pencil_primitive.cc
   intern/grease_pencil_randomize.cc
+  intern/grease_pencil_segments_geom.cc
   intern/grease_pencil_select.cc
   intern/grease_pencil_trim.cc
   intern/grease_pencil_undo.cc

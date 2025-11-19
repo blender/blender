@@ -18,6 +18,7 @@
 #include "UI_interface.hh"
 
 #include "BLT_translation.hh"
+#include "RNA_access.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -281,8 +282,9 @@ static void apply_shear(TransInfo *t)
     SNPRINTF_UTF8(str, IFACE_("Shear: %s %s"), c, t->proptext);
   }
   else {
+    const float angle_deg = RAD2DEGF(atanf(value));
     /* Default header print. */
-    SNPRINTF_UTF8(str, IFACE_("Shear: %.3f %s"), value, t->proptext);
+    SNPRINTF_UTF8(str, IFACE_("Shear: %.3f° %s"), angle_deg, t->proptext);
   }
 
   ED_area_status_text(t->area, str);
@@ -350,6 +352,8 @@ static void initShear(TransInfo *t, wmOperator *op)
   custom_data->update_status_bar = true;
   custom_data->op = op;
 
+  const float angle = RNA_float_get(op->ptr, "angle");
+  t->values[0] = tanf(angle);
   transform_mode_default_modal_orientation_set(t, V3D_ORIENT_VIEW);
 }
 

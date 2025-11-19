@@ -49,11 +49,6 @@ void BKE_preview_images_init();
 void BKE_preview_images_free();
 
 /**
- * Free the preview image for use in list.
- */
-void BKE_previewimg_freefunc(void *link);
-
-/**
  * Free the preview image.
  */
 void BKE_previewimg_free(PreviewImage **prv);

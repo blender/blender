@@ -1672,22 +1672,6 @@ Bounds<float3> bounds_get(const Tree &pbvh)
 
 }  // namespace blender::bke::pbvh
 
-int BKE_pbvh_get_grid_num_verts(const Object &object)
-{
-  const SculptSession &ss = *object.sculpt;
-  BLI_assert(blender::bke::object::pbvh_get(object)->type() == blender::bke::pbvh::Type::Grids);
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
-  return ss.subdiv_ccg->grids_num * key.grid_area;
-}
-
-int BKE_pbvh_get_grid_num_faces(const Object &object)
-{
-  const SculptSession &ss = *object.sculpt;
-  BLI_assert(blender::bke::object::pbvh_get(object)->type() == blender::bke::pbvh::Type::Grids);
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(*ss.subdiv_ccg);
-  return ss.subdiv_ccg->grids_num * square_i(key.grid_size - 1);
-}
-
 /***************************** Node Access ***********************************/
 
 void BKE_pbvh_node_mark_update(blender::bke::pbvh::Node &node)

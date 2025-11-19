@@ -2,6 +2,18 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_shader_compat.hh"
+#endif
+
+#ifdef GLSL_CPP_STUBS
+#  undef SMAA_RT_METRICS
+#  define SMAA_GLSL_3
+#  define SMAA_RT_METRICS float4(1.0f)
+#  define SMAA_PRESET_LOW
+#endif
+
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(compositor_smaa_edge_detection)

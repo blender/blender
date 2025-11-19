@@ -473,6 +473,12 @@ bool mesh_is_valid(const Mesh &mesh, bool verbose = true);
  */
 bool mesh_validate_material_indices(Mesh &mesh);
 
+/**
+ * Check whether faces contain duplicate vertex indices.
+ * \return a mask of all invalid faces.
+ */
+IndexMask mesh_find_faces_duplicate_verts(const Mesh &mesh, IndexMaskMemory &memory);
+
 void mesh_apply_spatial_organization(Mesh &mesh);
 const AttributeAccessorFunctions &mesh_attribute_accessor_functions();
 

@@ -209,7 +209,8 @@ class GHOST_ContextVK : public GHOST_Context {
 #ifdef _WIN32
   HWND hwnd_;
 #elif defined(__APPLE__)
-  CAMetalLayer *metal_layer_;
+  /* Is CAMetalLayer* */
+  void *metal_layer_;
 #else /* Linux */
   GHOST_TVulkanPlatformType platform_;
   /* X11 */

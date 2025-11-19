@@ -5,6 +5,10 @@
 /* Identical to eevee_motion_blur_dilate_comp.glsl but with minor adjustments to work with the
  * compositor. */
 
+#include "infos/compositor_motion_blur_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_motion_blur_max_velocity_dilate)
+
 #include "gpu_shader_compositor_motion_blur_lib.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 #include "gpu_shader_math_base_lib.glsl"

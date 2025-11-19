@@ -155,7 +155,7 @@ static void hull_output_triangles(BMesh *bm, BLI_mempool *hull_triangles)
 /***************************** Final Edges ****************************/
 
 struct HullFinalEdges {
-  GHash *edges;
+  blender::Map<BMVert *, ListBase *> *edges;
   BLI_mempool *base_pool, *link_pool;
 };
 
@@ -179,7 +179,7 @@ static int hull_final_edges_lookup(HullFinalEdges *final_edges, BMVert *v1, BMVe
     std::swap(v1, v2);
   }
 
-  adj = static_cast<ListBase *>(BLI_ghash_lookup(final_edges->edges, v1));
+  adj = final_edges->edges->lookup_default(v1, nullptr);
   if (!adj) {
     return false;
   }
@@ -193,7 +193,7 @@ static HullFinalEdges *hull_final_edges(BLI_mempool *hull_triangles)
   HullFinalEdges *final_edges;
 
   final_edges = MEM_callocN<HullFinalEdges>("HullFinalEdges");
-  final_edges->edges = BLI_ghash_ptr_new("final edges ghash");
+  final_edges->edges = MEM_new<blender::Map<BMVert *, ListBase *>>("final edges map");
   final_edges->base_pool = BLI_mempool_create(sizeof(ListBase), 0, 128, BLI_MEMPOOL_NOP);
   final_edges->link_pool = BLI_mempool_create(sizeof(LinkData), 0, 128, BLI_MEMPOOL_NOP);
 
@@ -208,18 +208,15 @@ static HullFinalEdges *hull_final_edges(BLI_mempool *hull_triangles)
     for (i = 0; i < 3; i++) {
       BMVert *v1 = t->v[i];
       BMVert *v2 = t->v[(i + 1) % 3];
-      ListBase *adj;
 
       /* Use lower vertex pointer for hash key */
       if (v1 > v2) {
         std::swap(v1, v2);
       }
 
-      adj = static_cast<ListBase *>(BLI_ghash_lookup(final_edges->edges, v1));
-      if (!adj) {
-        adj = static_cast<ListBase *>(BLI_mempool_calloc(final_edges->base_pool));
-        BLI_ghash_insert(final_edges->edges, v1, adj);
-      }
+      ListBase *adj = final_edges->edges->lookup_or_add_cb(v1, [&]() {
+        return static_cast<ListBase *>(BLI_mempool_calloc(final_edges->base_pool));
+      });
 
       if (!final_edges_find_link(adj, v2)) {
         link = static_cast<LinkData *>(BLI_mempool_calloc(final_edges->link_pool));
@@ -234,7 +231,7 @@ static HullFinalEdges *hull_final_edges(BLI_mempool *hull_triangles)
 
 static void hull_final_edges_free(HullFinalEdges *final_edges)
 {
-  BLI_ghash_free(final_edges->edges, nullptr, nullptr);
+  MEM_delete(final_edges->edges);
   BLI_mempool_destroy(final_edges->base_pool);
   BLI_mempool_destroy(final_edges->link_pool);
   MEM_freeN(final_edges);

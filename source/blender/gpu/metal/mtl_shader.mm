@@ -142,11 +142,6 @@ MTLShader::~MTLShader()
   valid_ = false;
 }
 
-void MTLShader::init(const shader::ShaderCreateInfo & /*info*/, bool is_batch_compilation)
-{
-  async_compilation_ = is_batch_compilation;
-}
-
 const shader::ShaderCreateInfo &MTLShader::patch_create_info(
     const shader::ShaderCreateInfo &original_info)
 {
@@ -258,25 +253,7 @@ id<MTLLibrary> MTLShader::create_shader_library(const shader::ShaderCreateInfo &
 
   std::string concat_source = fmt::to_string(fmt::join(sources, "")) + wrapper.second;
 
-  if (this->name_get() == G.gpu_debug_shader_source_name) {
-    NSFileManager *sharedFM = [NSFileManager defaultManager];
-    NSURL *app_bundle_url = [[NSBundle mainBundle] bundleURL];
-    NSURL *shader_dir = [[app_bundle_url URLByDeletingLastPathComponent]
-        URLByAppendingPathComponent:@"Shaders/"
-                        isDirectory:YES];
-
-    [sharedFM createDirectoryAtURL:shader_dir
-        withIntermediateDirectories:YES
-                         attributes:nil
-                              error:nil];
-
-    const char *path_cstr = [shader_dir fileSystemRepresentation];
-
-    std::ofstream output_source_file(std::string(path_cstr) + "/" +
-                                     this->entry_point_name_get(stage) + ".msl");
-    output_source_file << concat_source;
-    output_source_file.close();
-  }
+  dump_source_to_disk(this->name_get(), this->entry_point_name_get(stage), ".msl", concat_source);
 
   {
     ::MTLCompileOptions *options = get_compile_options(
@@ -1109,7 +1086,7 @@ Shader *MTLShaderCompiler::compile_shader(const shader::ShaderCreateInfo &info)
   return shader;
 }
 
-void MTLShaderCompiler::specialize_shader(ShaderSpecialization &specialization)
+void MTLShaderCompiler::specialize_shader(const ShaderSpecialization &specialization)
 {
   MTLShader *shader = static_cast<MTLShader *>(specialization.shader);
 

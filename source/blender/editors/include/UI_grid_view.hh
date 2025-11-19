@@ -22,13 +22,14 @@
 
 struct bContext;
 struct uiBlock;
-struct uiLayout;
 struct View2D;
 
 namespace blender::ui {
 
 class AbstractGridView;
 class GridViewItemDropTarget;
+
+struct Layout;
 
 /* ---------------------------------------------------------------------- */
 /** \name Grid-View Item Type
@@ -49,7 +50,7 @@ class AbstractGridViewItem : public AbstractViewItem {
  public:
   /* virtual */ ~AbstractGridViewItem() override = default;
 
-  virtual void build_grid_tile(const bContext &C, uiLayout &layout) const = 0;
+  virtual void build_grid_tile(const bContext &C, Layout &layout) const = 0;
 
   /* virtual */ std::optional<std::string> debug_name() const override;
 
@@ -175,7 +176,7 @@ class GridViewBuilder {
 
   void build_grid_view(const bContext &C,
                        AbstractGridView &grid_view,
-                       uiLayout &layout,
+                       Layout &layout,
                        std::optional<StringRef> search_string = {});
 };
 
@@ -209,9 +210,9 @@ class PreviewGridItem : public AbstractGridViewItem {
 
   PreviewGridItem(StringRef identifier, StringRef label, int preview_icon_id);
 
-  void build_grid_tile(const bContext &C, uiLayout &layout) const override;
+  void build_grid_tile(const bContext &C, Layout &layout) const override;
 
-  void build_grid_tile_button(uiLayout &layout,
+  void build_grid_tile_button(Layout &layout,
                               BIFIconID override_preview_icon_id = ICON_NONE) const;
 
   /**

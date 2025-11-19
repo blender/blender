@@ -189,13 +189,12 @@ static wmOperatorStatus grease_pencil_import_svg_exec(bContext *C, wmOperator *o
 
 static void grease_pencil_import_svg_draw(bContext * /*C*/, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
-  uiLayout *box = &layout->box();
-  uiLayout *col = &box->column(false);
-  col->prop(op->ptr, "resolution", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col->prop(op->ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  ui::Layout &layout = *op->layout;
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
+  ui::Layout &col = layout.box().column(false);
+  col.prop(op->ptr, "resolution", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(op->ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static bool grease_pencil_import_svg_poll(bContext *C)
@@ -372,46 +371,44 @@ enum class GreasePencilExportFiletype {
  *
  * \param ptr: RNA pointer to access the export operator's properties.
  */
-static void ui_gpencil_export_settings(uiLayout *layout,
+static void ui_gpencil_export_settings(blender::ui::Layout &layout,
                                        PointerRNA *ptr,
                                        GreasePencilExportFiletype file_type)
 {
-  uiLayout *box, *row, *col, *sub;
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  blender::ui::Layout *box = &layout.box();
 
-  box = &layout->box();
-
-  row = &box->row(false);
+  blender::ui::Layout *row = &box->row(false);
   row->label(IFACE_("Scene Options"), ICON_NONE);
 
   row = &box->row(false);
   row->prop(ptr, "selected_object_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  box = &layout->box();
+  box = &layout.box();
   row = &box->row(false);
   row->label(IFACE_("Export Options"), ICON_NONE);
 
-  col = &box->column(false);
-  sub = &col->column(false);
+  blender::ui::Layout &col = box->column(false);
+  blender::ui::Layout *sub = &col.column(false);
   sub->prop(ptr, "frame_mode", UI_ITEM_NONE, IFACE_("Frame"), ICON_NONE);
 
   box->use_property_split_set(true);
 
-  sub = &col->column(true);
+  sub = &col.column(true);
   sub->prop(ptr, "stroke_sample", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   sub->prop(ptr, "use_fill", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   sub->prop(ptr, "use_uniform_width", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (file_type == GreasePencilExportFiletype::SVG) {
-    col->prop(ptr, "use_clip_camera", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "use_clip_camera", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
 static void grease_pencil_export_svg_draw(bContext * /*C*/, wmOperator *op)
 {
-  ui_gpencil_export_settings(op->layout, op->ptr, GreasePencilExportFiletype::SVG);
+  ui_gpencil_export_settings(*op->layout, op->ptr, GreasePencilExportFiletype::SVG);
 }
 
 static bool grease_pencil_export_svg_poll(bContext *C)
@@ -549,7 +546,7 @@ static wmOperatorStatus grease_pencil_export_pdf_exec(bContext *C, wmOperator *o
 
 static void grease_pencil_export_pdf_draw(bContext * /*C*/, wmOperator *op)
 {
-  ui_gpencil_export_settings(op->layout, op->ptr, GreasePencilExportFiletype::PDF);
+  ui_gpencil_export_settings(*op->layout, op->ptr, GreasePencilExportFiletype::PDF);
 }
 
 static bool grease_pencil_export_pdf_poll(bContext *C)

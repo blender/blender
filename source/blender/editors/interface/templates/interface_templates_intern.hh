@@ -52,7 +52,7 @@ int template_search_textbut_height();
  * Add a block button for the search menu for templateID and templateSearch.
  */
 void template_add_button_search_menu(const bContext *C,
-                                     uiLayout *layout,
+                                     blender::ui::Layout *layout,
                                      uiBlock *block,
                                      PointerRNA *ptr,
                                      PropertyRNA *prop,

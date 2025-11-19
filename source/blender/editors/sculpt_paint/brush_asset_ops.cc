@@ -643,7 +643,7 @@ static wmOperatorStatus brush_asset_delete_invoke(bContext *C,
           IFACE_("Permanently delete brush asset blend file. This cannot be undone.") :
           IFACE_("Permanently delete brush. This cannot be undone."),
       IFACE_("Delete"),
-      ALERT_ICON_WARNING,
+      ui::AlertIcon::Warning,
       false);
 }
 

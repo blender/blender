@@ -651,7 +651,7 @@ ccl_device_inline auto isequal_mask(const float3 a, const float3 b)
 #if defined(__KERNEL_METAL__)
   return a == b;
 #elif defined __KERNEL_NEON__
-  return int3(vreinterpretq_m128i_s32(vceqq_f32(a.m128, b.m128)));
+  return int3(vreinterpretq_m128i_u32(vceqq_f32(a.m128, b.m128)));
 #elif defined(__KERNEL_SSE__)
   return int3(_mm_castps_si128(_mm_cmpeq_ps(a.m128, b.m128)));
 #else

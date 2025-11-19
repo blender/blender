@@ -15,6 +15,7 @@
 #  include "draw_view_infos.hh"
 #  include "gpu_shader_fullscreen_infos.hh"
 
+#  undef SMAA_RT_METRICS
 #  define SMAA_GLSL_3
 #  define SMAA_STAGE 1
 #  define SMAA_PRESET_HIGH

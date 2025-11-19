@@ -243,7 +243,7 @@ class ShaderModule {
     }
   };
 
-  Map<SpecializationsKey, SpecializationBatchHandle> specialization_handles_;
+  Map<SpecializationsKey, Vector<AsyncSpecializationHandle>> specialization_handles_;
 
   static gpu::StaticShaderCache<ShaderModule> &get_static_cache()
   {

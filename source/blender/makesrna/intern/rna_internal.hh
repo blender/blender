@@ -19,6 +19,8 @@
 #define RNA_MAGIC ((int)~0)
 
 enum class AttributeOwnerType;
+enum AttrDomainMask : uint8_t;
+using eCustomDataMask = uint64_t;
 
 struct FreestyleSettings;
 struct ID;
@@ -228,15 +230,29 @@ IDPropertyGroup *rna_struct_system_properties_get_func(PointerRNA ptr, bool do_c
 
 void rna_def_attributes_common(StructRNA *srna, AttributeOwnerType type);
 
+void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr);
+int rna_Attribute_data_length(PointerRNA *ptr);
+
+blender::StringRefNull rna_Attribute_name_get(const PointerRNA &ptr);
+void rna_Attribute_name_get(PointerRNA *ptr, char *value);
+int rna_Attribute_name_length(PointerRNA *ptr);
+void rna_Attribute_name_set(PointerRNA *ptr, const char *value);
+
+void rna_AttributeGroup_iterator_begin(CollectionPropertyIterator *iter,
+                                       PointerRNA *ptr,
+                                       AttrDomainMask domain_mask,
+                                       eCustomDataMask cd_type_mask,
+                                       bool include_anonymous);
 void rna_AttributeGroup_iterator_begin(CollectionPropertyIterator *iter, PointerRNA *ptr);
-void rna_AttributeGroup_iterator_next(CollectionPropertyIterator *iter);
 PointerRNA rna_AttributeGroup_iterator_get(CollectionPropertyIterator *iter);
 int rna_AttributeGroup_length(PointerRNA *ptr);
+PointerRNA rna_AttributeGroup_lookup_string(const PointerRNA &ptr,
+                                            const blender::StringRef key,
+                                            AttrDomainMask domain_mask,
+                                            eCustomDataMask cd_type_mask);
 bool rna_AttributeGroup_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr);
 
 void rna_AttributeGroup_color_iterator_begin(CollectionPropertyIterator *iter, PointerRNA *ptr);
-void rna_AttributeGroup_color_iterator_next(CollectionPropertyIterator *iter);
-PointerRNA rna_AttributeGroup_color_iterator_get(CollectionPropertyIterator *iter);
 int rna_AttributeGroup_color_length(PointerRNA *ptr);
 
 void rna_def_animdata_common(StructRNA *srna);

@@ -57,4 +57,17 @@ void pointcloud_convert_customdata_to_storage(PointCloud &pointcloud);
 /** See #mesh_convert_customdata_to_storage. */
 void grease_pencil_convert_customdata_to_storage(GreasePencil &grease_pencil);
 
+/** Abstraction for copying #CustomData layers and #AttributeStorage attributes. */
+class LegacyMeshInterpolator {
+
+  const CustomData &cd_src_;
+  CustomData &cd_dst_;
+
+ public:
+  LegacyMeshInterpolator(const Mesh &src, Mesh &dst, AttrDomain domain);
+
+  void copy(int src_index, int dst_index, int count) const;
+  void mix(Span<int> src_indices, std::optional<Span<float>> weights, int dst_index) const;
+};
+
 }  // namespace blender::bke

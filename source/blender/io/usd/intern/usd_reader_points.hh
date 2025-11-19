@@ -45,6 +45,7 @@ class USDPointsReader : public USDGeomReader {
                      USDMeshReadParams params,
                      const char **r_err_str) override;
 
+  void read_ids(PointCloud *pointcloud, const pxr::UsdTimeCode time) const;
   void read_velocities(PointCloud *pointcloud, const pxr::UsdTimeCode time) const;
   void read_custom_data(PointCloud *pointcloud, const pxr::UsdTimeCode time) const;
 

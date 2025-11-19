@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/compositor_realize_on_domain_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_realize_on_domain_bicubic_float)
+
 #include "gpu_shader_bicubic_sampler_lib.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 

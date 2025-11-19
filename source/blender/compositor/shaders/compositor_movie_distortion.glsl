@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/compositor_movie_distortion_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_movie_distortion)
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()

@@ -22,8 +22,6 @@
 
 namespace blender::ed::greasepencil::tests {
 
-static constexpr int BBOX_PADDING = 0;
-
 static bke::CurvesGeometry create_test_curves(const Span<int> offsets,
                                               const Span<float2> positions_2d,
                                               const Span<bool> cyclic)
@@ -45,28 +43,6 @@ static bke::CurvesGeometry create_test_curves(const Span<int> offsets,
   return curves;
 }
 
-static Array<rcti> calculate_curve_bounds(const OffsetIndices<int> src_offsets,
-                                          const Span<float2> positions_2d)
-{
-  Array<rcti> screen_space_curve_bounds(src_offsets.size());
-
-  for (const int i : src_offsets.index_range()) {
-    const IndexRange points = src_offsets[i];
-    auto bounds = bounds::min_max(positions_2d.slice(points));
-    rcti screen_space_bounds;
-    BLI_rcti_init(&screen_space_bounds,
-                  int(bounds->min.x),
-                  int(bounds->max.x),
-                  int(bounds->min.y),
-                  int(bounds->max.y));
-    BLI_rcti_pad(&screen_space_bounds, BBOX_PADDING, BBOX_PADDING);
-
-    screen_space_curve_bounds[i] = screen_space_bounds;
-  }
-
-  return screen_space_curve_bounds;
-}
-
 static void expect_near_positions(const blender::Span<float3> actual,
                                   const blender::Span<float2> expected)
 {
@@ -81,77 +57,69 @@ static void expect_near_positions(const blender::Span<float3> actual,
   }
 }
 
-static bke::CurvesGeometry trim_curve(const bke::CurvesGeometry &src,
-                                      const Span<float2> screen_space_positions,
-                                      const Span<int2> mcoords,
-                                      const bool keep_caps)
-{
-  const OffsetIndices<int> src_offsets = src.points_by_curve();
-  const Array<rcti> screen_space_bbox = calculate_curve_bounds(src_offsets,
-                                                               screen_space_positions);
-
-  /* Collect curves and curve points inside the lasso area. */
-  Vector<int> selected_curves;
-  Vector<Vector<int>> selected_points_in_curves;
-
-  for (const int src_curve : src.curves_range()) {
-    /* Look for curve points inside the lasso area. */
-    Vector<int> selected_points;
-    for (const int src_point : src_offsets[src_curve]) {
-      if (BLI_lasso_is_point_inside(mcoords,
-                                    int(screen_space_positions[src_point].x),
-                                    int(screen_space_positions[src_point].y),
-                                    IS_CLIPPED))
-      {
-        if (selected_points.is_empty()) {
-          selected_curves.append(src_curve);
-        }
-        selected_points.append(src_point);
-      }
-    }
-    if (!selected_points.is_empty()) {
-      selected_points_in_curves.append(std::move(selected_points));
-    }
-  }
-
-  IndexMaskMemory memory;
-  const IndexMask curve_selection = IndexMask::from_indices(selected_curves.as_span(), memory);
-
-  return ed::greasepencil::trim::trim_curve_segments(src,
-                                                     screen_space_positions,
-                                                     screen_space_bbox,
-                                                     curve_selection,
-                                                     selected_points_in_curves,
-                                                     keep_caps);
-}
-
 TEST(grease_pencil_trim, trim_two_edges)
 {
   using namespace bke::greasepencil;
   using namespace bke;
 
-  const Array<int2> mcoords = {{-1, 5}, {1, 5}, {1, 1}, {5, 1}, {5, -1}, {-1, -1}};
+  const Array<int2> mcoords = {{-10, 50}, {10, 50}, {10, 10}, {50, 10}, {50, -10}, {-10, -10}};
   const Array<int> src_offsets = {0, 2, 4, 6, 8};
   const Array<bool> src_cyclic = {false, false, false, false};
-  const Array<float2> screen_space_positions = {{2.0f, 0.0f},
-                                                {2.0f, 6.0f},
-                                                {4.0f, 0.0f},
-                                                {4.0f, 6.0f},
-                                                {0.0f, 2.0f},
-                                                {6.0f, 2.0f},
-                                                {0.0f, 4.0f},
-                                                {6.0f, 4.0f}};
+  const Array<float2> screen_space_positions = {{20.0f, 0.0f},
+                                                {20.0f, 60.0f},
+                                                {40.0f, 0.0f},
+                                                {40.0f, 60.0f},
+                                                {0.0f, 20.0f},
+                                                {60.0f, 20.0f},
+                                                {0.0f, 40.0f},
+                                                {60.0f, 40.0f}};
   const CurvesGeometry src = create_test_curves(src_offsets, screen_space_positions, src_cyclic);
-  const CurvesGeometry dst = trim_curve(src, screen_space_positions, mcoords, true);
+  const CurvesGeometry dst = trim::trim_curve_segments(
+      src, screen_space_positions, mcoords, src.curves_range(), src.curves_range(), true);
 
-  const Array<float2> expected_positions = {{2.0f, 2.0f},
-                                            {2.0f, 6.0f},
-                                            {4.0f, 2.0f},
-                                            {4.0f, 6.0f},
-                                            {2.0f, 2.0f},
-                                            {6.0f, 2.0f},
-                                            {2.0f, 4.0f},
-                                            {6.0f, 4.0f}};
+  const Array<float2> expected_positions = {{20.0f, 20.0f},
+                                            {20.0f, 60.0f},
+                                            {40.0f, 20.0f},
+                                            {40.0f, 60.0f},
+                                            {20.0f, 20.0f},
+                                            {60.0f, 20.0f},
+                                            {20.0f, 40.0f},
+                                            {60.0f, 40.0f}};
+  expect_near_positions(dst.positions(), expected_positions);
+}
+
+TEST(grease_pencil_trim, trim_sub_edges)
+{
+  using namespace bke::greasepencil;
+  using namespace bke;
+
+  const Array<int2> mcoords = {{10, 35}, {50, 35}, {50, 25}, {10, 25}};
+  const Array<int> src_offsets = {0, 2, 4, 6, 8};
+  const Array<bool> src_cyclic = {false, false, false, false};
+  const Array<float2> screen_space_positions = {{20.0f, 0.0f},
+                                                {20.0f, 60.0f},
+                                                {40.0f, 0.0f},
+                                                {40.0f, 60.0f},
+                                                {0.0f, 20.0f},
+                                                {60.0f, 20.0f},
+                                                {0.0f, 40.0f},
+                                                {60.0f, 40.0f}};
+  const CurvesGeometry src = create_test_curves(src_offsets, screen_space_positions, src_cyclic);
+  const CurvesGeometry dst = trim::trim_curve_segments(
+      src, screen_space_positions, mcoords, src.curves_range(), src.curves_range(), true);
+
+  const Array<float2> expected_positions = {{20.0f, 0.0f},
+                                            {20.0f, 20.0f},
+                                            {20.0f, 40.0f},
+                                            {20.0f, 60.0f},
+                                            {40.0f, 0.0f},
+                                            {40.0f, 20.0f},
+                                            {40.0f, 40.0f},
+                                            {40.0f, 60.0f},
+                                            {0.0f, 20.0f},
+                                            {60.0f, 20.0f},
+                                            {0.0f, 40.0f},
+                                            {60.0f, 40.0f}};
   expect_near_positions(dst.positions(), expected_positions);
 }
 
@@ -160,51 +128,268 @@ TEST(grease_pencil_trim, trim_plus_intersection)
   using namespace bke::greasepencil;
   using namespace bke;
 
-  const Array<int2> mcoords = {{2, -1}, {2, 1}, {4, 1}, {4, -1}};
+  const Array<int2> mcoords = {{20, -10}, {20, 10}, {40, 10}, {40, -10}};
   const Array<int> src_offsets = {0, 4, 8};
   const Array<bool> src_cyclic = {false, false};
-  const Array<float2> screen_space_positions = {{3.0f, 0.0f},
-                                                {3.0f, 2.0f},
-                                                {3.0f, 4.0f},
-                                                {3.0f, 6.0f},
-                                                {0.0f, 3.0f},
-                                                {2.0f, 3.0f},
-                                                {4.0f, 3.0f},
-                                                {6.0f, 3.0f}};
+  const Array<float2> screen_space_positions = {{30.0f, 0.0f},
+                                                {30.0f, 20.0f},
+                                                {30.0f, 40.0f},
+                                                {30.0f, 60.0f},
+                                                {0.0f, 30.0f},
+                                                {20.0f, 30.0f},
+                                                {40.0f, 30.0f},
+                                                {60.0f, 30.0f}};
   const CurvesGeometry src = create_test_curves(src_offsets, screen_space_positions, src_cyclic);
-  const CurvesGeometry dst = trim_curve(src, screen_space_positions, mcoords, true);
+  const CurvesGeometry dst = trim::trim_curve_segments(
+      src, screen_space_positions, mcoords, src.curves_range(), src.curves_range(), true);
 
-  const Array<float2> expected_positions = {{3.0f, 3.0f},
-                                            {3.0f, 4.0f},
-                                            {3.0f, 6.0f},
-                                            {0.0f, 3.0f},
-                                            {2.0f, 3.0f},
-                                            {4.0f, 3.0f},
-                                            {6.0f, 3.0f}};
+  const Array<float2> expected_positions = {{30.0f, 30.0f},
+                                            {30.0f, 40.0f},
+                                            {30.0f, 60.0f},
+                                            {0.0f, 30.0f},
+                                            {20.0f, 30.0f},
+                                            {40.0f, 30.0f},
+                                            {60.0f, 30.0f}};
   expect_near_positions(dst.positions(), expected_positions);
 }
 
-TEST(grease_pencil_trim, trim_t_intersection)
+TEST(grease_pencil_trim, trim_t_intersection_to_corner)
 {
   using namespace bke::greasepencil;
   using namespace bke;
 
-  const Array<int2> mcoords = {{-1, 2}, {1, 2}, {1, 4}, {-1, 4}};
+  const Array<int2> mcoords = {{-10, 20}, {10, 20}, {10, 40}, {-10, 40}};
   const Array<int> src_offsets = {0, 3, 7};
   const Array<bool> src_cyclic = {false, false};
-  const Array<float2> screen_space_positions = {{3.0f, 0.0f},
-                                                {3.0f, 2.0f},
-                                                {3.0f, 3.0f},
-                                                {0.0f, 3.0f},
-                                                {2.0f, 3.0f},
-                                                {4.0f, 3.0f},
-                                                {6.0f, 3.0f}};
+  const Array<float2> screen_space_positions = {{30.0f, 0.0f},
+                                                {30.0f, 20.0f},
+                                                {30.0f, 30.0f},
+                                                {0.0f, 30.0f},
+                                                {20.0f, 30.0f},
+                                                {40.0f, 30.0f},
+                                                {60.0f, 30.0f}};
   const CurvesGeometry src = create_test_curves(src_offsets, screen_space_positions, src_cyclic);
-  const CurvesGeometry dst = trim_curve(src, screen_space_positions, mcoords, true);
+  const CurvesGeometry dst = trim::trim_curve_segments(
+      src, screen_space_positions, mcoords, src.curves_range(), src.curves_range(), true);
+
+  const Array<float2> expected_positions = {{30.0f, 0.0f},
+                                            {30.0f, 20.0f},
+                                            {30.0f, 30.0f},
+                                            {30.0f, 30.0f},
+                                            {40.0f, 30.0f},
+                                            {60.0f, 30.0f}};
+  expect_near_positions(dst.positions(), expected_positions);
+}
+
+TEST(grease_pencil_trim, trim_t_intersection_line)
+{
+  using namespace bke::greasepencil;
+  using namespace bke;
+  const Array<int2> mcoords = {{20, -10}, {20, 10}, {40, 10}, {40, -10}};
+  const Array<bool> src_cyclic = {false, false};
+
+  /* Intersection at the start. */
+  {
+    const Array<int> src_offsets = {0, 2, 4};
+    const Array<float2> screen_space_positions = {
+        {30.0f, 30.0f}, {30.0f, 0.0f}, {0.0f, 30.0f}, {60.0f, 30.0f}};
+    const CurvesGeometry src = create_test_curves(src_offsets, screen_space_positions, src_cyclic);
+    const CurvesGeometry dst = trim::trim_curve_segments(
+        src, screen_space_positions, mcoords, src.curves_range(), src.curves_range(), true);
+
+    const Array<float2> expected_positions = {{0.0f, 30.0f}, {60.0f, 30.0f}};
+    expect_near_positions(dst.positions(), expected_positions);
+  }
+
+  /* Intersection at the end. */
+  {
+    const Array<int> src_offsets = {0, 2, 4};
+    const Array<float2> screen_space_positions = {
+        {30.0f, 0.0f}, {30.0f, 30.0f}, {0.0f, 30.0f}, {60.0f, 30.0f}};
+    const CurvesGeometry src = create_test_curves(src_offsets, screen_space_positions, src_cyclic);
+    const CurvesGeometry dst = trim::trim_curve_segments(
+        src, screen_space_positions, mcoords, src.curves_range(), src.curves_range(), true);
+
+    const Array<float2> expected_positions = {{0.0f, 30.0f}, {60.0f, 30.0f}};
+    expect_near_positions(dst.positions(), expected_positions);
+  }
+}
+
+TEST(grease_pencil_trim, trim_figure_eight)
+{
+  using namespace bke::greasepencil;
+  using namespace bke;
+
+  const Array<int2> mcoords = {{40, 20}, {40, 40}, {60, 40}, {60, 20}};
+  const Array<int> src_offsets = {0, 8};
+  const Array<bool> src_cyclic = {true};
+  const Array<float2> screen_space_positions = {{0.0f, 10.0f},
+                                                {0.0f, 30.0f},
+                                                {20.0f, 30.0f},
+                                                {30.0f, 10.0f},
+                                                {50.0f, 10.0f},
+                                                {50.0f, 30.0f},
+                                                {30.0f, 30.0f},
+                                                {20.0f, 10.0f}};
+  const CurvesGeometry src = create_test_curves(src_offsets, screen_space_positions, src_cyclic);
+  const CurvesGeometry dst = trim::trim_curve_segments(
+      src, screen_space_positions, mcoords, src.curves_range(), src.curves_range(), true);
+
+  const Array<float2> expected_positions = {{25.0f, 20.0f},
+                                            {20.0f, 10.0f},
+                                            {0.0f, 10.0f},
+                                            {0.0f, 30.0f},
+                                            {20.0f, 30.0f},
+                                            {25.0f, 20.0f}};
+  expect_near_positions(dst.positions(), expected_positions);
+}
+
+TEST(grease_pencil_trim, trim_no_geometry)
+{
+  using namespace bke::greasepencil;
+  using namespace bke;
+
+  const Array<int2> mcoords = {{0, 0}, {0, 5}, {5, 5}, {5, 0}};
+  const Array<int> src_offsets = {0, 2, 4};
+  const Array<bool> src_cyclic = {false, false};
+  const Array<float2> screen_space_positions = {
+      {10.0f, 10.0f}, {50.0f, 10.0f}, {10.0f, 50.0f}, {50.0f, 50.0f}};
+  const CurvesGeometry src = create_test_curves(src_offsets, screen_space_positions, src_cyclic);
+  const CurvesGeometry dst = trim::trim_curve_segments(
+      src, screen_space_positions, mcoords, src.curves_range(), src.curves_range(), true);
 
   const Array<float2> expected_positions = {
-      {3.0f, 0.0f}, {3.0f, 2.0f}, {3.0f, 3.0f}, {3.0f, 3.0f}, {4.0f, 3.0f}, {6.0f, 3.0f}};
+      {10.0f, 10.0f}, {50.0f, 10.0f}, {10.0f, 50.0f}, {50.0f, 50.0f}};
   expect_near_positions(dst.positions(), expected_positions);
+}
+
+TEST(grease_pencil_trim, trim_no_geometry_loop)
+{
+  using namespace bke::greasepencil;
+  using namespace bke;
+
+  const Array<int2> mcoords = {{0, 0}, {0, 5}, {5, 5}, {5, 0}};
+  const Array<int> src_offsets = {0, 3};
+  const Array<bool> src_cyclic = {true};
+  const Array<float2> screen_space_positions = {{10.0f, 10.0f}, {50.0f, 10.0f}, {10.0f, 50.0f}};
+  const CurvesGeometry src = create_test_curves(src_offsets, screen_space_positions, src_cyclic);
+  const CurvesGeometry dst = trim::trim_curve_segments(
+      src, screen_space_positions, mcoords, src.curves_range(), src.curves_range(), true);
+
+  const Array<float2> expected_positions = {{10.0f, 10.0f}, {50.0f, 10.0f}, {10.0f, 50.0f}};
+  expect_near_positions(dst.positions(), expected_positions);
+  EXPECT_EQ(dst.cyclic()[0], true);
+}
+
+TEST(grease_pencil_trim, trim_cyclical_corner)
+{
+  using namespace bke::greasepencil;
+  using namespace bke;
+
+  const Array<int2> mcoords = {{20, 20}, {40, 20}, {20, 40}};
+  const Array<int> src_offsets = {0, 3, 6};
+  const Array<bool> src_cyclic = {false, true};
+  const Array<float2> screen_space_positions = {{40.0f, 10.0f},
+                                                {10.0f, 10.0f},
+                                                {10.0f, 40.0f},
+                                                {0.0f, 30.0f},
+                                                {30.0f, 30.0f},
+                                                {30.0f, 0.0f}};
+  const CurvesGeometry src = create_test_curves(src_offsets, screen_space_positions, src_cyclic);
+  const CurvesGeometry dst = trim::trim_curve_segments(
+      src, screen_space_positions, mcoords, src.curves_range(), src.curves_range(), true);
+
+  const Array<float2> expected_positions = {{40.0f, 10.0f},
+                                            {10.0f, 10.0f},
+                                            {10.0f, 40.0f},
+                                            {30.0f, 10.0f},
+                                            {30.0f, 0.0f},
+                                            {0.0f, 30.0f},
+                                            {10.f, 30.0f}};
+  expect_near_positions(dst.positions(), expected_positions);
+}
+
+TEST(grease_pencil_trim, trim_no_geometry_edge_end_intersection)
+{
+  using namespace bke::greasepencil;
+  using namespace bke;
+
+  const Array<int2> mcoords = {{20, 10}, {20, 20}, {30, 20}, {30, 10}};
+  const Array<int> src_offsets = {0, 2, 5};
+  const Array<bool> src_cyclic = {false, false};
+  const Array<float2> screen_space_positions = {
+      {0.0f, 0.0f}, {20.0f, 0.0f}, {0.0f, 10.0f}, {10.0f, 20.0f}, {10.0f, 0.0f}};
+  const CurvesGeometry src = create_test_curves(src_offsets, screen_space_positions, src_cyclic);
+  const CurvesGeometry dst = trim::trim_curve_segments(
+      src, screen_space_positions, mcoords, src.curves_range(), src.curves_range(), true);
+
+  const Array<float2> expected_positions = {
+      {0.0f, 0.0f}, {20.0f, 0.0f}, {0.0f, 10.0f}, {10.0f, 20.0f}, {10.0f, 0.0f}};
+  expect_near_positions(dst.positions(), expected_positions);
+  EXPECT_EQ(dst.cyclic()[0], false);
+  EXPECT_EQ(dst.cyclic()[1], false);
+}
+
+TEST(grease_pencil_trim, trim_no_geometry_cyclical_loop)
+{
+  using namespace bke::greasepencil;
+  using namespace bke;
+
+  const Array<int2> mcoords = {{40, 50}, {40, 40}, {50, 40}, {50, 50}};
+  const Array<int> src_offsets = {0, 4, 6};
+  const Array<bool> src_cyclic = {true, false};
+  const Array<float2> screen_space_positions = {
+      {0.0f, 0.0f}, {20.0f, 0.0f}, {20.0f, 20.0f}, {0.0f, 20.0f}, {10.0f, 10.0f}, {30.0f, 0.0f}};
+  const CurvesGeometry src = create_test_curves(src_offsets, screen_space_positions, src_cyclic);
+  const CurvesGeometry dst = trim::trim_curve_segments(
+      src, screen_space_positions, mcoords, src.curves_range(), src.curves_range(), true);
+
+  const Array<float2> expected_positions = {
+      {0.0f, 0.0f}, {20.0f, 0.0f}, {20.0f, 20.0f}, {0.0f, 20.0f}, {10.0f, 10.0f}, {30.0f, 0.0f}};
+  expect_near_positions(dst.positions(), expected_positions);
+  EXPECT_EQ(dst.cyclic()[0], true);
+  EXPECT_EQ(dst.cyclic()[1], false);
+}
+
+TEST(grease_pencil_trim, trim_no_geometry_point_intersection)
+{
+  using namespace bke::greasepencil;
+  using namespace bke;
+
+  const Array<int2> mcoords = {{40, 50}, {40, 40}, {50, 40}, {50, 50}};
+  const Array<int> src_offsets = {0, 3, 6};
+  const Array<bool> src_cyclic = {false, false};
+  const Array<float2> screen_space_positions = {
+      {20.0f, 20.0f}, {10.0f, 10.0f}, {20.0f, 0.0f}, {0.0f, 20.0f}, {10.0f, 10.0f}, {0.0f, 0.0f}};
+  const CurvesGeometry src = create_test_curves(src_offsets, screen_space_positions, src_cyclic);
+  const CurvesGeometry dst = trim::trim_curve_segments(
+      src, screen_space_positions, mcoords, src.curves_range(), src.curves_range(), true);
+
+  const Array<float2> expected_positions = {
+      {20.0f, 20.0f}, {10.0f, 10.0f}, {20.0f, 0.0f}, {0.0f, 20.0f}, {10.0f, 10.0f}, {0.0f, 0.0f}};
+  expect_near_positions(dst.positions(), expected_positions);
+  EXPECT_EQ(dst.cyclic()[0], false);
+  EXPECT_EQ(dst.cyclic()[1], false);
+}
+
+TEST(grease_pencil_trim, trim_no_geometry_self_intersection_degeneracy)
+{
+  using namespace bke::greasepencil;
+  using namespace bke;
+
+  const Array<int2> mcoords = {{40, 50}, {40, 40}, {50, 40}, {50, 50}};
+  const Array<int> src_offsets = {0, 6};
+  const Array<bool> src_cyclic = {true};
+  const Array<float2> screen_space_positions = {
+      {0.0f, 20.0f}, {10.0f, 10.0f}, {0.0f, 0.0f}, {0.0f, 20.0f}, {10.0f, 10.0f}, {0.0f, 0.0f}};
+  const CurvesGeometry src = create_test_curves(src_offsets, screen_space_positions, src_cyclic);
+  const CurvesGeometry dst = trim::trim_curve_segments(
+      src, screen_space_positions, mcoords, src.curves_range(), src.curves_range(), true);
+
+  const Array<float2> expected_positions = {
+      {0.0f, 20.0f}, {10.0f, 10.0f}, {0.0f, 0.0f}, {0.0f, 20.0f}, {10.0f, 10.0f}, {0.0f, 0.0f}};
+  expect_near_positions(dst.positions(), expected_positions);
+  EXPECT_EQ(dst.cyclic()[0], true);
 }
 
 }  // namespace blender::ed::greasepencil::tests

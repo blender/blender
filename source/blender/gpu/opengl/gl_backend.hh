@@ -52,6 +52,8 @@ class GLBackend : public GPUBackend {
     GLBackend::platform_init();
 
     GLBackend::capabilities_init();
+    GLBackend::log_extensions();
+    GLBackend::log_workarounds();
     GLTexture::samplers_init();
   }
   ~GLBackend()
@@ -190,6 +192,9 @@ class GLBackend : public GPUBackend {
   static void platform_exit();
 
   static void capabilities_init();
+
+  static void log_extensions();
+  static void log_workarounds();
 };
 
 }  // namespace gpu

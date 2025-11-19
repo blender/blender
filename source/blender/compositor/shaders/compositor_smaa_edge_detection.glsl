@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/compositor_smaa_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_smaa_edge_detection)
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 #include "gpu_shader_smaa_lib.glsl"
 

@@ -26,6 +26,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
@@ -190,7 +191,7 @@ void USDGenericMeshWriter::write_custom_data(const Object *obj,
     /* UV Data. */
     if (iter.domain == bke::AttrDomain::Corner && iter.data_type == bke::AttrType::Float2) {
       if (usd_export_context_.export_params.export_uvmaps) {
-        this->write_uv_data(usd_mesh, iter, active_uvmap_name);
+        this->write_uv_data(mesh, usd_mesh, iter, active_uvmap_name);
       }
     }
 
@@ -252,7 +253,8 @@ void USDGenericMeshWriter::write_generic_data(const Mesh *mesh,
   copy_blender_attribute_to_primvar(attribute, attr.data_type, time, pv_attr, usd_value_writer_);
 }
 
-void USDGenericMeshWriter::write_uv_data(const pxr::UsdGeomMesh &usd_mesh,
+void USDGenericMeshWriter::write_uv_data(const Mesh *mesh,
+                                         const pxr::UsdGeomMesh &usd_mesh,
                                          const bke::AttributeIter &attr,
                                          const StringRef active_uvmap_name)
 {
@@ -268,6 +270,50 @@ void USDGenericMeshWriter::write_uv_data(const pxr::UsdGeomMesh &usd_mesh,
                              "st" :
                              attr.name;
 
+  /* Construct the UvVertMap containing the connectivity data for the UVs. */
+  const OffsetIndices<int> faces = mesh->faces();
+  const Span<int> corner_verts = mesh->corner_verts();
+  const VArraySpan<float2> uv_data(buffer);
+  UvVertMap *uv_vert_map = BKE_mesh_uv_vert_map_create(
+      faces, corner_verts, uv_data, mesh->verts_num, float2(STD_UV_CONNECT_LIMIT), false);
+
+  /* This will only be a nullptr if the `faces` are empty OR allocating space for
+   * the VertMap fails. */
+  if (!uv_vert_map) {
+    CLOG_WARN(&LOG,
+              "Couldn't resolve UV connectivity for mesh %s",
+              usd_export_context_.usd_path.GetAsString().c_str());
+    return;
+  }
+
+  /* From the connectivity data, extract the unique uvs and a mapping of corner index
+   * to the index of the corresponding unique uv for that corner. */
+  pxr::VtArray<pxr::GfVec2f> unique_uvs;
+  unique_uvs.reserve(mesh->verts_num);
+  Array<int> corner_to_uv_index(corner_verts.size(), -1);
+  for (int vertex_index = 0; vertex_index < mesh->verts_num; vertex_index++) {
+    const UvMapVert *uv_vert = BKE_mesh_uv_vert_map_get_vert(uv_vert_map, vertex_index);
+
+    /* Loop over all of the face vertices connected to this mesh vertex and accumulate the
+     * unique UVs. */
+    for (; uv_vert; uv_vert = uv_vert->next) {
+      const int corner_index = faces[uv_vert->face_index].start() + uv_vert->loop_of_face_index;
+      const float2 uv = uv_data[corner_index];
+      if (uv_vert->separate) {
+        unique_uvs.push_back(pxr::GfVec2f(uv.x, uv.y));
+      }
+      corner_to_uv_index[corner_index] = unique_uvs.size() - 1;
+    }
+  }
+  BKE_mesh_uv_vert_map_free(uv_vert_map);
+
+  /* Finally, build the USD indices array. */
+  pxr::VtIntArray indices;
+  indices.reserve(corner_verts.size());
+  for (const int corner_idx : corner_verts.index_range()) {
+    indices.push_back(corner_to_uv_index[corner_idx]);
+  }
+
   const pxr::UsdTimeCode time = get_export_time_code();
   const pxr::TfToken pv_name(
       make_safe_name(name, usd_export_context_.export_params.allow_unicode));
@@ -275,8 +321,8 @@ void USDGenericMeshWriter::write_uv_data(const pxr::UsdGeomMesh &usd_mesh,
 
   pxr::UsdGeomPrimvar pv_uv = pv_api.CreatePrimvar(
       pv_name, pxr::SdfValueTypeNames->TexCoord2fArray, pxr::UsdGeomTokens->faceVarying);
-
-  copy_blender_buffer_to_primvar<float2, pxr::GfVec2f>(buffer, time, pv_uv, usd_value_writer_);
+  set_attribute(pv_uv, unique_uvs, time, usd_value_writer_);
+  pv_uv.SetIndices(indices, time);
 }
 
 void USDGenericMeshWriter::free_export_mesh(Mesh *mesh)

@@ -15,6 +15,8 @@
 #include "DNA_vec_types.h"
 
 #ifdef __cplusplus
+#  include "BLI_map.hh"
+
 #  include <optional>
 #endif
 
@@ -177,6 +179,12 @@ typedef struct TextBox {
   float x, y, w, h;
 } TextBox;
 
+#ifdef __cplusplus
+using CVKeyIndexMap = blender::Map<const void *, struct CVKeyIndex *>;
+#else
+typedef struct CVKeyIndexMap CVKeyIndexMap;
+#endif
+
 /* These two Lines with # tell `makesdna` this struct can be excluded. */
 #
 #
@@ -187,7 +195,7 @@ typedef struct EditNurb {
   ListBase nurbs;
 
   /* index data for shape keys */
-  struct GHash *keyindex;
+  CVKeyIndexMap *keyindex;
 
   /* shape key being edited */
   int shapenr;

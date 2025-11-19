@@ -22,7 +22,7 @@
 
 #include "BLI_bounds.hh"
 #include "BLI_enum_flags.hh"
-#include "BLI_kdtree.h"
+#include "BLI_kdtree.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"

@@ -135,10 +135,12 @@ bke::crazyspace::GeometryDeformation get_drawing_deformation(
     const GreasePencilStrokeParams &params);
 
 /* Project points from layer space into 2D view space. */
-Array<float2> calculate_view_positions(const GreasePencilStrokeParams &params,
-                                       const IndexMask &selection);
-Array<float> calculate_view_radii(const GreasePencilStrokeParams &params,
-                                  const IndexMask &selection);
+Array<float2> view_positions_from_point_mask(const GreasePencilStrokeParams &params,
+                                             const IndexMask &point_mask);
+Array<float2> view_positions_from_curve_mask(const GreasePencilStrokeParams &params,
+                                             const IndexMask &curve_mask);
+Array<float> view_radii_from_point_selection(const GreasePencilStrokeParams &params,
+                                             const IndexMask &selection);
 
 /* Get an appropriate projection function from screen space to layer space.
  * This is an alternative to using the DrawingPlacement. */

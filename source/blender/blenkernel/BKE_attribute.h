@@ -34,7 +34,7 @@ struct Curves;
 struct GreasePencil;
 struct GreasePencilDrawing;
 
-typedef enum AttrDomainMask {
+enum AttrDomainMask : uint8_t {
   ATTR_DOMAIN_MASK_POINT = (1 << 0),
   ATTR_DOMAIN_MASK_EDGE = (1 << 1),
   ATTR_DOMAIN_MASK_FACE = (1 << 2),
@@ -42,7 +42,7 @@ typedef enum AttrDomainMask {
   ATTR_DOMAIN_MASK_CURVE = (1 << 4),
   ATTR_DOMAIN_MASK_GREASE_PENCIL_LAYER = (1 << 6),
   ATTR_DOMAIN_MASK_ALL = (1 << 7) - 1
-} AttrDomainMask;
+};
 ENUM_OPERATORS(AttrDomainMask);
 
 enum class AttributeOwnerType {
@@ -96,13 +96,6 @@ bool BKE_attribute_remove(AttributeOwner &owner,
                           blender::StringRef name,
                           struct ReportList *reports);
 
-/**
- * Creates a duplicate attribute layer.
- */
-struct CustomDataLayer *BKE_attribute_duplicate(AttributeOwner &owner,
-                                                blender::StringRef name,
-                                                struct ReportList *reports);
-
 const struct CustomDataLayer *BKE_attribute_search(const AttributeOwner &owner,
                                                    blender::StringRef name,
                                                    eCustomDataMask type,
@@ -125,25 +118,26 @@ bool BKE_attribute_rename(AttributeOwner &owner,
 
 int BKE_attributes_length(const AttributeOwner &owner,
                           AttrDomainMask domain_mask,
-                          eCustomDataMask mask);
+                          eCustomDataMask mask,
+                          bool include_anonymous = true);
 
 std::optional<blender::StringRefNull> BKE_attributes_active_name_get(AttributeOwner &owner);
 void BKE_attributes_active_set(AttributeOwner &owner, blender::StringRef name);
 void BKE_attributes_active_clear(AttributeOwner &owner);
 int *BKE_attributes_active_index_p(AttributeOwner &owner);
 
-CustomData *BKE_attributes_iterator_next_domain(AttributeOwner &owner,
-                                                struct CustomDataLayer *layers);
-CustomDataLayer *BKE_attribute_from_index(AttributeOwner &owner,
-                                          int lookup_index,
-                                          AttrDomainMask domain_mask,
-                                          eCustomDataMask layer_mask);
+std::optional<blender::StringRef> BKE_attribute_from_index(AttributeOwner &owner,
+                                                           int lookup_index,
+                                                           AttrDomainMask domain_mask,
+                                                           eCustomDataMask layer_mask,
+                                                           bool include_anonymous = true);
 
 /** Layer is allowed to be nullptr; if so -1 (layer not found) will be returned. */
 int BKE_attribute_to_index(const AttributeOwner &owner,
-                           const CustomDataLayer *layer,
+                           const blender::StringRef name,
                            AttrDomainMask domain_mask,
-                           eCustomDataMask layer_mask);
+                           eCustomDataMask layer_mask,
+                           bool include_anonymous = true);
 
 std::optional<blender::StringRef> BKE_id_attributes_active_color_name(const struct ID *id);
 std::optional<blender::StringRef> BKE_id_attributes_default_color_name(const struct ID *id);
@@ -151,9 +145,7 @@ void BKE_id_attributes_active_color_set(struct ID *id, std::optional<blender::St
 void BKE_id_attributes_active_color_clear(struct ID *id);
 void BKE_id_attributes_default_color_set(struct ID *id, std::optional<blender::StringRef> name);
 
-const struct CustomDataLayer *BKE_id_attributes_color_find(const struct ID *id,
-                                                           blender::StringRef name);
-bool BKE_color_attribute_supported(const struct Mesh &mesh, blender::StringRef name);
+bool BKE_id_attributes_color_find(const struct ID *id, blender::StringRef name);
 
 std::string BKE_attribute_calc_unique_name(const AttributeOwner &owner, blender::StringRef name);
 

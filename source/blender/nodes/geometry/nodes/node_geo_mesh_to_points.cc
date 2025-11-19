@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_attribute.h"
 #include "BLI_array_utils.hh"
 
 #include "DNA_mesh_types.h"
@@ -116,25 +117,26 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
                                                  attributes);
 
   for (const int i : attributes.names.index_range()) {
-    if (ELEM(attributes.names[i], "position", "radius")) {
+    if (ELEM(attributes.names[i], "position", "radius", ".select_edge", ".select_poly")) {
       continue;
     }
-    const StringRef attribute_id = attributes.names[i];
+    const StringRef src_name = attributes.names[i];
     const bke::AttrType data_type = attributes.kinds[i].data_type;
-    const bke::GAttributeReader src = src_attributes.lookup(attribute_id, domain, data_type);
+    const bke::GAttributeReader src = src_attributes.lookup(src_name, domain, data_type);
     if (!src) {
       /* Domain interpolation can fail if the source domain is empty. */
       continue;
     }
 
+    const StringRef dst_name = src_name == ".select_vert" ? ".selection" : src_name;
     if (share_arrays && src.domain == domain && src.sharing_info && src.varray.is_span()) {
       const bke::AttributeInitShared init(src.varray.get_internal_span().data(),
                                           *src.sharing_info);
-      dst_attributes.add(attribute_id, AttrDomain::Point, data_type, init);
+      dst_attributes.add(dst_name, AttrDomain::Point, data_type, init);
     }
     else {
       GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-          attribute_id, AttrDomain::Point, data_type);
+          dst_name, AttrDomain::Point, data_type);
       array_utils::gather(src.varray, selection, dst.span);
       dst.finish();
     }

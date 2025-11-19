@@ -240,16 +240,16 @@ static wmOperatorStatus mesh_set_attribute_invoke(bContext *C,
 
 static void mesh_set_attribute_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = &op->layout->column(true);
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  ui::Layout &layout = op->layout->column(true);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
   Mesh *mesh = ED_mesh_context(C);
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
   const StringRef name = *BKE_attributes_active_name_get(owner);
   const BMDataLayerLookup attr = BM_data_layer_lookup(*mesh->runtime->edit_mesh->bm, name);
   const StringRefNull prop_name = geometry::rna_property_name_for_type(attr.type);
-  layout->prop(op->ptr, prop_name, UI_ITEM_NONE, name, ICON_NONE);
+  layout.prop(op->ptr, prop_name, UI_ITEM_NONE, name, ICON_NONE);
 }
 
 }  // namespace set_attribute

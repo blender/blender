@@ -42,7 +42,6 @@ struct LayoutPanelHeader;
 struct Main;
 struct Scene;
 struct uiHandleButtonData;
-struct uiLayout;
 struct uiListType;
 struct uiStyle;
 struct uiUndoStack_Text;
@@ -52,6 +51,10 @@ struct wmEvent;
 struct wmKeyConfig;
 struct wmOperatorType;
 struct wmTimer;
+
+namespace blender::ui {
+struct Layout;
+}  // namespace blender::ui
 
 /* ****************** general defines ************** */
 
@@ -173,7 +176,7 @@ enum {
 struct uiBut {
 
   /** Pointer back to the layout item holding this button. */
-  uiLayout *layout = nullptr;
+  blender::ui::Layout *layout = nullptr;
   int flag = 0;
   int drawflag = 0;
   char flag2 = 0;
@@ -599,7 +602,7 @@ struct uiBlock {
   blender::Vector<uiButtonGroup> button_groups;
 
   ListBase layouts;
-  uiLayout *curlayout;
+  blender::ui::Layout *curlayout;
 
   blender::Vector<std::unique_ptr<bContextStore>> contexts;
 
@@ -1082,7 +1085,7 @@ uiPopupBlockHandle *ui_popup_menu_create(
 
 /* `interface_region_popover.cc` */
 
-using uiPopoverCreateFunc = std::function<void(bContext *, uiLayout *, PanelType *)>;
+using uiPopoverCreateFunc = std::function<void(bContext *, blender::ui::Layout *, PanelType *)>;
 
 uiPopupBlockHandle *ui_popover_panel_create(bContext *C,
                                             ARegion *butregion,
@@ -1426,12 +1429,14 @@ void ui_resources_free();
 
 /* `interface_layout.cc` */
 
-void ui_layout_add_but(uiLayout *layout, uiBut *but);
-void ui_layout_remove_but(uiLayout *layout, const uiBut *but);
+void ui_layout_add_but(blender::ui::Layout *layout, uiBut *but);
+void ui_layout_remove_but(blender::ui::Layout *layout, const uiBut *but);
 /**
  * \return true if the button was successfully replaced.
  */
-bool ui_layout_replace_but_ptr(uiLayout *layout, const void *old_but_ptr, uiBut *new_but);
+bool ui_layout_replace_but_ptr(blender::ui::Layout *layout,
+                               const void *old_but_ptr,
+                               uiBut *new_but);
 /**
  * \note May reallocate \a but, so the possibly new address is returned. May also override the
  *       #UI_BUT_DISABLED flag depending on if a search pointer-property pair was provided/found.
@@ -1448,10 +1453,10 @@ uiBut *ui_but_add_search(uiBut *but,
  * and set any button flagged as UI_BUT_LIST_ITEM as active/selected.
  * Needed to handle correctly text colors of active (selected) list item.
  */
-void ui_layout_list_set_labels_active(uiLayout *layout);
+void ui_layout_list_set_labels_active(blender::ui::Layout *layout);
 /* menu callback */
-void ui_item_menutype_func(bContext *C, uiLayout *layout, void *arg_mt);
-void ui_item_paneltype_func(bContext *C, uiLayout *layout, void *arg_pt);
+void ui_item_menutype_func(bContext *C, blender::ui::Layout *layout, void *arg_mt);
+void ui_item_paneltype_func(bContext *C, blender::ui::Layout *layout, void *arg_pt);
 
 /* `interface_button_group.cc` */
 

@@ -875,9 +875,9 @@ static std::string run_node_group_get_description(bContext *C,
 
 static void run_node_group_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  ui::Layout &layout = *op->layout;
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
   Main *bmain = CTX_data_main(C);
   PointerRNA bmain_ptr = RNA_main_pointer_create(bmain);
 
@@ -1357,20 +1357,20 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
       menu_path->data());
   BLI_assert(catalog_item != nullptr);
 
-  uiLayout *layout = menu->layout;
+  ui::Layout &layout = *menu->layout;
   bool add_separator = true;
 
   wmOperatorType *ot = WM_operatortype_find("GEOMETRY_OT_execute_node_group", true);
   for (const asset_system::AssetRepresentation *asset : assets) {
     if (add_separator) {
-      layout->separator();
+      layout.separator();
       add_separator = false;
     }
-    PointerRNA props_ptr = layout->op(ot,
-                                      IFACE_(asset->get_name()),
-                                      ICON_NONE,
-                                      wm::OpCallContext::InvokeRegionWin,
-                                      UI_ITEM_NONE);
+    PointerRNA props_ptr = layout.op(ot,
+                                     IFACE_(asset->get_name()),
+                                     ICON_NONE,
+                                     wm::OpCallContext::InvokeRegionWin,
+                                     UI_ITEM_NONE);
     asset::operator_asset_reference_props_set(*asset, props_ptr);
   }
 
@@ -1388,10 +1388,10 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
       return;
     }
     if (add_separator) {
-      layout->separator();
+      layout.separator();
       add_separator = false;
     }
-    asset::draw_menu_for_catalog(item, "GEO_MT_node_operator_catalog_assets", *layout);
+    asset::draw_menu_for_catalog(item, "GEO_MT_node_operator_catalog_assets", layout);
   });
 }
 
@@ -1439,14 +1439,14 @@ static void catalog_assets_draw_unassigned(const bContext *C, Menu *menu)
   if (!tree) {
     return;
   }
-  uiLayout *layout = menu->layout;
+  ui::Layout &layout = *menu->layout;
   wmOperatorType *ot = WM_operatortype_find("GEOMETRY_OT_execute_node_group", true);
   for (const asset_system::AssetRepresentation *asset : tree->unassigned_assets) {
-    PointerRNA props_ptr = layout->op(ot,
-                                      IFACE_(asset->get_name()),
-                                      ICON_NONE,
-                                      wm::OpCallContext::InvokeRegionWin,
-                                      UI_ITEM_NONE);
+    PointerRNA props_ptr = layout.op(ot,
+                                     IFACE_(asset->get_name()),
+                                     ICON_NONE,
+                                     wm::OpCallContext::InvokeRegionWin,
+                                     UI_ITEM_NONE);
     asset::operator_asset_reference_props_set(*asset, props_ptr);
   }
 
@@ -1467,15 +1467,15 @@ static void catalog_assets_draw_unassigned(const bContext *C, Menu *menu)
     }
 
     if (add_separator) {
-      layout->separator();
+      layout.separator();
       add_separator = false;
     }
     if (first) {
-      layout->label(IFACE_("Non-Assets"), ICON_NONE);
+      layout.label(IFACE_("Non-Assets"), ICON_NONE);
       first = false;
     }
 
-    PointerRNA props_ptr = layout->op(
+    PointerRNA props_ptr = layout.op(
         ot, group->id.name + 2, ICON_NONE, wm::OpCallContext::InvokeRegionWin, UI_ITEM_NONE);
     WM_operator_properties_id_lookup_set_from_id(&props_ptr, &group->id);
     /* Also set the name so it can be used for #run_node_group_get_name. */
@@ -1498,7 +1498,7 @@ MenuType node_group_operator_assets_menu_unassigned()
   return type;
 }
 
-void ui_template_node_operator_asset_menu_items(uiLayout &layout,
+void ui_template_node_operator_asset_menu_items(ui::Layout &layout,
                                                 const bContext &C,
                                                 const StringRef catalog_path)
 {
@@ -1519,12 +1519,12 @@ void ui_template_node_operator_asset_menu_items(uiLayout &layout,
   if (!all_library) {
     return;
   }
-  uiLayout *col = &layout.column(false);
-  col->context_string_set("asset_catalog_path", item->catalog_path().str());
-  col->menu_contents("GEO_MT_node_operator_catalog_assets");
+  ui::Layout &col = layout.column(false);
+  col.context_string_set("asset_catalog_path", item->catalog_path().str());
+  col.menu_contents("GEO_MT_node_operator_catalog_assets");
 }
 
-void ui_template_node_operator_asset_root_items(uiLayout &layout, const bContext &C)
+void ui_template_node_operator_asset_root_items(ui::Layout &layout, const bContext &C)
 {
   const Object *active_object = CTX_data_active_object(&C);
   if (!active_object) {

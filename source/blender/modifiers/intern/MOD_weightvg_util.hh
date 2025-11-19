@@ -21,7 +21,10 @@ struct PointerRNA;
 struct RNG;
 struct Scene;
 struct Tex;
-struct uiLayout;
+
+namespace blender::ui {
+struct Layout;
+}  // namespace blender::ui
 
 /*
  * XXX I'd like to make modified weights visible in WeightPaint mode,
@@ -100,4 +103,7 @@ void weightvg_update_vg(MDeformVert *dvert,
 /**
  * Common vertex weight mask interface elements for the modifier panels.
  */
-void weightvg_ui_common(const bContext *C, PointerRNA *ob_ptr, PointerRNA *ptr, uiLayout *layout);
+void weightvg_ui_common(const bContext *C,
+                        PointerRNA *ob_ptr,
+                        PointerRNA *ptr,
+                        blender::ui::Layout *layout);

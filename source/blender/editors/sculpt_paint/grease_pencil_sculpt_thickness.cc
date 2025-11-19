@@ -43,7 +43,7 @@ void ThicknessOperation::on_stroke_extended(const bContext &C, const InputSample
 
   this->foreach_editable_drawing_with_automask(
       C, [&](const GreasePencilStrokeParams &params, const IndexMask &point_mask) {
-        Array<float2> view_positions = calculate_view_positions(params, point_mask);
+        const Array<float2> view_positions = view_positions_from_point_mask(params, point_mask);
         bke::CurvesGeometry &curves = params.drawing.strokes_for_write();
         BLI_assert(view_positions.size() == curves.points_num());
         MutableSpan<float> radii = params.drawing.radii_for_write();

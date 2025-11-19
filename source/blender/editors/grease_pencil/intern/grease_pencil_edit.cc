@@ -368,30 +368,30 @@ static wmOperatorStatus grease_pencil_stroke_simplify_exec(bContext *C, wmOperat
 
 static void grease_pencil_simplify_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  ui::Layout &layout = *op->layout;
   wmWindowManager *wm = CTX_wm_manager(C);
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
-  layout->prop(&ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(&ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   const SimplifyMode mode = SimplifyMode(RNA_enum_get(op->ptr, "mode"));
 
   switch (mode) {
     case SimplifyMode::FIXED:
-      layout->prop(&ptr, "steps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(&ptr, "steps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
     case SimplifyMode::ADAPTIVE:
-      layout->prop(&ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(&ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
     case SimplifyMode::SAMPLE:
-      layout->prop(&ptr, "length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(&ptr, "length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
     case SimplifyMode::MERGE:
-      layout->prop(&ptr, "distance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(&ptr, "distance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
     default:
       break;
@@ -3392,22 +3392,19 @@ static wmOperatorStatus grease_pencil_reproject_exec(bContext *C, wmOperator *op
 
 static void grease_pencil_reproject_ui(bContext * /*C*/, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
-  uiLayout *row;
+  ui::Layout &layout = *op->layout;
 
   const ReprojectMode type = ReprojectMode(RNA_enum_get(op->ptr, "type"));
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
-  row = &layout->row(true);
-  row->prop(op->ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
+
+  layout.row(true).prop(op->ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (type == ReprojectMode::Surface) {
-    row = &layout->row(true);
-    row->prop(op->ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.row(true).prop(op->ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
-  row = &layout->row(true);
-  row->prop(op->ptr, "keep_original", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.row(true).prop(op->ptr, "keep_original", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void GREASE_PENCIL_OT_reproject(wmOperatorType *ot)
@@ -4714,15 +4711,15 @@ static wmOperatorStatus grease_pencil_convert_curve_type_exec(bContext *C, wmOpe
 
 static void grease_pencil_convert_curve_type_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  ui::Layout &layout = *op->layout;
   wmWindowManager *wm = CTX_wm_manager(C);
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
-  layout->prop(&ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(&ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   const CurveType dst_type = CurveType(RNA_enum_get(op->ptr, "type"));
 
@@ -4730,7 +4727,7 @@ static void grease_pencil_convert_curve_type_ui(bContext *C, wmOperator *op)
     return;
   }
 
-  layout->prop(&ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(&ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void GREASE_PENCIL_OT_convert_curve_type(wmOperatorType *ot)
@@ -4855,15 +4852,15 @@ static wmOperatorStatus grease_pencil_set_corner_type_exec(bContext *C, wmOperat
 
 static void grease_pencil_set_corner_type_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  ui::Layout &layout = *op->layout;
   wmWindowManager *wm = CTX_wm_manager(C);
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
-  layout->prop(&ptr, "corner_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(&ptr, "corner_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   const CornerType corner_type = CornerType(RNA_enum_get(op->ptr, "corner_type"));
 
@@ -4871,7 +4868,7 @@ static void grease_pencil_set_corner_type_ui(bContext *C, wmOperator *op)
     return;
   }
 
-  layout->prop(&ptr, "miter_angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(&ptr, "miter_angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void GREASE_PENCIL_OT_set_corner_type(wmOperatorType *ot)

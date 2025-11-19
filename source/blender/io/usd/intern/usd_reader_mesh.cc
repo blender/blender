@@ -31,7 +31,6 @@
 #include "BLI_ordered_edge.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
-#include "BLI_task.hh"
 #include "BLI_vector_set.hh"
 
 #include "BLT_translation.hh"
@@ -51,8 +50,6 @@
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 #include <pxr/usd/usdShade/tokens.h>
 #include <pxr/usd/usdSkel/bindingAPI.h>
-
-#include <fmt/core.h>
 
 #include <algorithm>
 
@@ -294,23 +291,9 @@ bool USDMeshReader::read_faces(Mesh *mesh) const
   }
 
   /* Check for faces with duplicate vertex indices. These will require a mesh validate to fix. */
-  const OffsetIndices<int> faces = mesh->faces();
-  const bool all_faces_ok = threading::parallel_reduce(
-      faces.index_range(),
-      1024,
-      true,
-      [&](const IndexRange part, const bool ok_so_far) {
-        bool current_faces_ok = ok_so_far;
-        if (ok_so_far) {
-          for (const int i : part) {
-            const IndexRange face_range = faces[i];
-            const Set<int, 32> used_verts(corner_verts.slice(face_range));
-            current_faces_ok = current_faces_ok && used_verts.size() == face_range.size();
-          }
-        }
-        return current_faces_ok;
-      },
-      std::logical_and<>());
+  IndexMaskMemory memory;
+  const IndexMask bad_faces = bke::mesh_find_faces_duplicate_verts(*mesh, memory);
+  const bool all_faces_ok = bad_faces.is_empty();
 
   /* If we detect bad faces it would be unsafe to continue beyond this point without first
    * performing a destructive validate. Any operation requiring mesh connectivity information can

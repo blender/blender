@@ -35,12 +35,12 @@ uint64_t BLI_session_uid_hash_uint64(const SessionUID *uid);
 uint BLI_session_uid_ghash_hash(const void *uid_v);
 bool BLI_session_uid_ghash_compare(const void *lhs_v, const void *rhs_v);
 
-namespace blender {
-
 inline bool operator==(const SessionUID &lhs, const SessionUID &rhs)
 {
   return BLI_session_uid_is_equal(&lhs, &rhs);
 }
+
+namespace blender {
 
 template<typename T> struct DefaultHash;
 

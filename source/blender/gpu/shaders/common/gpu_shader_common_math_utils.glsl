@@ -14,7 +14,9 @@ void invert_z(float3 v, out float3 outv)
 
 void vector_normalize(float3 normal, out float3 outnormal)
 {
-  outnormal = normalize(normal);
+  /* Match the safe normalize function in Cycles by defaulting to float3(0.0f) */
+  float length_sqr = dot(normal, normal);
+  outnormal = (length_sqr > 1e-35f) ? normal * inversesqrt(length_sqr) : float3(0.0f);
 }
 
 void vector_copy(float3 normal, out float3 outnormal)

@@ -87,6 +87,7 @@ struct RenderJob : public RenderJobBase {
   ReportList *reports;
   int orig_layer;
   int last_layer;
+  bool use_sequencer_scene;
   ScrArea *area;
   ColorManagedViewSettings view_settings;
   ColorManagedDisplaySettings display_settings;
@@ -356,15 +357,15 @@ static wmOperatorStatus screen_render_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  /* custom scene and single layer re-render */
+  screen_render_single_layer_set(op, mainp, active_layer, &scene, &single_layer);
+
   int frame_start, frame_end;
   get_render_operator_frame_range(op, scene, frame_start, frame_end);
   if (is_animation && frame_start > frame_end) {
     BKE_report(op->reports, RPT_ERROR, "Start frame is larger than end frame");
     return OPERATOR_CANCELLED;
   }
-
-  /* custom scene and single layer re-render */
-  screen_render_single_layer_set(op, mainp, active_layer, &scene, &single_layer);
 
   if (!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.im_format.imtype)) {
     BKE_report(
@@ -773,7 +774,7 @@ static void render_startjob(void *rjv, wmJobWorkerStatus *worker_status)
   RE_SetReports(rj->re, nullptr);
 }
 
-static void render_image_restore_layer(RenderJob *rj)
+static void render_image_restore_scene_and_layer(RenderJob *rj)
 {
   /* image window, compo node users */
 
@@ -786,6 +787,10 @@ static void render_image_restore_layer(RenderJob *rj)
         if (area == rj->area) {
           if (area->spacetype == SPACE_IMAGE) {
             SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+
+            /* Automatically show scene we just rendered. */
+            SET_FLAG_FROM_TEST(
+                sima->iuser.flag, rj->use_sequencer_scene, IMA_SHOW_SEQUENCER_SCENE);
 
             if (RE_HasSingleLayer(rj->re)) {
               /* For single layer renders keep the active layer
@@ -850,7 +855,7 @@ static void render_endjob(void *rjv)
   }
 
   if (rj->area) {
-    render_image_restore_layer(rj);
+    render_image_restore_scene_and_layer(rj);
   }
 
   /* XXX render stability hack */
@@ -1042,15 +1047,15 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
     return OPERATOR_CANCELLED;
   }
 
+  /* custom scene and single layer re-render */
+  screen_render_single_layer_set(op, bmain, active_layer, &scene, &single_layer);
+
   int frame_start, frame_end;
   get_render_operator_frame_range(op, scene, frame_start, frame_end);
   if (is_animation && frame_start > frame_end) {
     BKE_report(op->reports, RPT_ERROR, "Start frame is larger than end frame");
     return OPERATOR_CANCELLED;
   }
-
-  /* custom scene and single layer re-render */
-  screen_render_single_layer_set(op, bmain, active_layer, &scene, &single_layer);
 
   /* only one render job at a time */
   if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_RENDER)) {
@@ -1113,6 +1118,7 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
   rj->reports = op->reports;
   rj->orig_layer = 0;
   rj->last_layer = 0;
+  rj->use_sequencer_scene = use_sequencer_scene;
   rj->area = area;
   rj->frame_start = frame_start;
   rj->frame_end = frame_end;

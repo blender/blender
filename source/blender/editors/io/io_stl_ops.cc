@@ -79,23 +79,24 @@ static wmOperatorStatus wm_stl_export_exec(bContext *C, wmOperator *op)
 
 static void wm_stl_export_draw(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  blender::ui::Layout &layout = *op->layout;
   PointerRNA *ptr = op->ptr;
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
-  if (uiLayout *panel = layout->panel(C, "STL_export_general", false, IFACE_("General"))) {
-    uiLayout *col = &panel->column(false);
+  if (blender::ui::Layout *panel = layout.panel(C, "STL_export_general", false, IFACE_("General")))
+  {
+    blender::ui::Layout &col = panel->column(false);
 
-    uiLayout *sub = &col->column(false, IFACE_("Format"));
+    blender::ui::Layout *sub = &col.column(false, IFACE_("Format"));
     sub->prop(ptr, "ascii_format", UI_ITEM_NONE, IFACE_("ASCII"), ICON_NONE);
 
     /* The Batch mode and Selection only options only make sense when using regular export. */
     if (CTX_wm_space_file(C)) {
-      col->prop(ptr, "use_batch", UI_ITEM_NONE, IFACE_("Batch"), ICON_NONE);
+      col.prop(ptr, "use_batch", UI_ITEM_NONE, IFACE_("Batch"), ICON_NONE);
 
-      sub = &col->column(false, IFACE_("Include"));
+      sub = &col.column(false, IFACE_("Include"));
       sub->prop(ptr, "export_selected_objects", UI_ITEM_NONE, IFACE_("Selection Only"), ICON_NONE);
     }
 
@@ -105,9 +106,11 @@ static void wm_stl_export_draw(bContext *C, wmOperator *op)
     sub->prop(ptr, "up_axis", UI_ITEM_NONE, IFACE_("Up"), ICON_NONE);
   }
 
-  if (uiLayout *panel = layout->panel(C, "STL_export_geometry", false, IFACE_("Geometry"))) {
-    uiLayout *col = &panel->column(false);
-    col->prop(ptr, "apply_modifiers", UI_ITEM_NONE, IFACE_("Apply Modifiers"), ICON_NONE);
+  if (blender::ui::Layout *panel = layout.panel(
+          C, "STL_export_geometry", false, IFACE_("Geometry")))
+  {
+    blender::ui::Layout &col = panel->column(false);
+    col.prop(ptr, "apply_modifiers", UI_ITEM_NONE, IFACE_("Apply Modifiers"), ICON_NONE);
   }
 }
 
@@ -242,23 +245,27 @@ static bool wm_stl_import_check(bContext * /*C*/, wmOperator *op)
   return false;
 }
 
-static void ui_stl_import_settings(const bContext *C, uiLayout *layout, PointerRNA *ptr)
+static void ui_stl_import_settings(const bContext *C, blender::ui::Layout *layout, PointerRNA *ptr)
 {
   layout->use_property_split_set(true);
   layout->use_property_decorate_set(false);
 
-  if (uiLayout *panel = layout->panel(C, "STL_import_general", false, IFACE_("General"))) {
-    uiLayout *col = &panel->column(false);
-    col->prop(ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "use_scene_unit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward Axis"), ICON_NONE);
-    col->prop(ptr, "up_axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  if (blender::ui::Layout *panel = layout->panel(
+          C, "STL_import_general", false, IFACE_("General")))
+  {
+    blender::ui::Layout &col = panel->column(false);
+    col.prop(ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "use_scene_unit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward Axis"), ICON_NONE);
+    col.prop(ptr, "up_axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *panel = layout->panel(C, "STL_import_options", false, IFACE_("Options"))) {
-    uiLayout *col = &panel->column(false);
-    col->prop(ptr, "use_facet_normal", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "use_mesh_validate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  if (blender::ui::Layout *panel = layout->panel(
+          C, "STL_import_options", false, IFACE_("Options")))
+  {
+    blender::ui::Layout &col = panel->column(false);
+    col.prop(ptr, "use_facet_normal", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "use_mesh_validate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 

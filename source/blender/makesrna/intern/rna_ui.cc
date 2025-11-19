@@ -1703,7 +1703,7 @@ static void rna_def_ui_layout(BlenderRNA *brna)
   /* layout */
 
   srna = RNA_def_struct(brna, "UILayout", nullptr);
-  RNA_def_struct_sdna(srna, "uiLayout");
+  RNA_def_struct_sdna(srna, "blender::ui::Layout");
   RNA_def_struct_ui_text(srna, "UI Layout", "User interface layout in a panel or header");
 
   prop = RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
@@ -2405,6 +2405,16 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
   RNA_def_property_ui_text(
       prop, "Default Preview Size", "Default size of the asset preview thumbnails in pixels");
+
+  for (uint i = 0; rna_enum_id_type_filter_items[i].identifier; i++) {
+    const IDFilterEnumPropertyItem *item = &rna_enum_id_type_filter_items[i];
+
+    PropertyRNA *prop = RNA_def_property(srna, item->identifier, PROP_BOOLEAN, PROP_NONE);
+    RNA_def_property_boolean_sdna(prop, nullptr, "type->id_types_prefilter", item->flag);
+    RNA_def_property_ui_text(prop, item->name, item->description);
+    RNA_def_property_ui_icon(prop, item->icon, 0);
+    RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  }
 
   PropertyRNA *parm;
   FunctionRNA *func;

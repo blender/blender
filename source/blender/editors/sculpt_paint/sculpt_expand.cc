@@ -452,11 +452,9 @@ static IndexMask boundary_from_enabled(Object &object,
                                        IndexMaskMemory &memory)
 {
   SculptSession &ss = *object.sculpt;
-  const int totvert = SCULPT_vertex_count_get(object);
 
   const IndexMask enabled_mask = IndexMask::from_bits(enabled_verts, memory);
 
-  BitVector<> boundary_verts(totvert);
   switch (bke::object::pbvh_get(object)->type()) {
     case bke::pbvh::Type::Mesh: {
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);

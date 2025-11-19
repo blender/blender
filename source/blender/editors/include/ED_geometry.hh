@@ -78,9 +78,9 @@ MenuType node_group_operator_assets_menu_unassigned();
 
 void clear_operator_asset_trees();
 
-void ui_template_node_operator_asset_menu_items(uiLayout &layout,
+void ui_template_node_operator_asset_menu_items(ui::Layout &layout,
                                                 const bContext &C,
                                                 StringRef catalog_path);
-void ui_template_node_operator_asset_root_items(uiLayout &layout, const bContext &C);
+void ui_template_node_operator_asset_root_items(ui::Layout &layout, const bContext &C);
 
 }  // namespace blender::ed::geometry

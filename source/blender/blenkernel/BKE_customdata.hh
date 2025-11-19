@@ -301,8 +301,9 @@ bool CustomData_free_layer_active(CustomData *data, eCustomDataType type);
 
 /**
  * Same as #CustomData_free_layer_active, but free all layers with type.
+ * \return True if at least one layer was removed.
  */
-void CustomData_free_layers(CustomData *data, eCustomDataType type);
+bool CustomData_free_layers(CustomData *data, eCustomDataType type);
 
 /**
  * Returns true if a layer with the specified type exists.

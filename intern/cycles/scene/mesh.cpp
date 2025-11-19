@@ -820,7 +820,9 @@ void Mesh::update_tangents(Scene *scene, bool undisplaced)
   const char *tangent_sign_postfix = (undisplaced) ? ".undisplaced_tangent_sign" : ".tangent_sign";
 
   /* standard UVs */
-  if (need_attribute(scene, tangent_std) && !attributes.find(tangent_std)) {
+  if ((need_attribute(scene, tangent_std) || need_attribute(scene, tangent_sign_std)) &&
+      !attributes.find(tangent_std))
+  {
     mikk_compute_tangents(attr_std_uv,
                           this,
                           true,
@@ -837,8 +839,11 @@ void Mesh::update_tangents(Scene *scene, bool undisplaced)
     }
 
     const ustring tangent_name = ustring(attr.name.string() + tangent_postfix);
+    const ustring tangent_sign_name = ustring(attr.name.string() + tangent_sign_postfix);
 
-    if (need_attribute(scene, tangent_name) && !attributes.find(tangent_name)) {
+    if ((need_attribute(scene, tangent_name) || need_attribute(scene, tangent_sign_name)) &&
+        !attributes.find(tangent_name))
+    {
       mikk_compute_tangents(&attr,
                             this,
                             true,

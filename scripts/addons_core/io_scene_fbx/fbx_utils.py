@@ -284,38 +284,49 @@ def similar_values_iter(v1, v2, e=1e-6):
     return True
 
 
-def shape_difference_exclude_similar(sv_cos, ref_cos, e=1e-6):
+def shape_difference_exclude_similar(sv_cos_nors, ref_cos_nors, e=1e-6):
     """Return a tuple of:
         the difference between the vertex cos in sv_cos and ref_cos, excluding any that are nearly the same,
+        the corresponding vertex normal differences,
         and the indices of the vertices that are not nearly the same"""
-    assert(sv_cos.size == ref_cos.size)
+    sv_cos, sv_nors = sv_cos_nors
+    ref_cos, ref_nors = ref_cos_nors
+    assert(sv_cos.size == ref_cos.size == sv_nors.size == ref_nors.size)
 
     # Create views of 1 co per row of the arrays, only making copies if needed.
     sv_cos = sv_cos.reshape(-1, 3)
+    sv_nors = sv_nors.reshape(-1, 3)
     ref_cos = ref_cos.reshape(-1, 3)
+    ref_nors = ref_nors.reshape(-1, 3)
 
     # Quick check for equality
     if np.array_equal(sv_cos, ref_cos):
         # There's no difference between the two arrays.
         empty_cos = np.empty((0, 3), dtype=sv_cos.dtype)
+        empty_nors = np.empty((0, 3), dtype=sv_nors.dtype)
         empty_indices = np.empty(0, dtype=np.int32)
-        return empty_cos, empty_indices
+        return empty_cos, empty_nors, empty_indices
 
     # Note that unlike math.isclose(a,b), np.isclose(a,b) is not symmetrical and the second argument 'b', is
     # considered to be the reference value.
     # Note that atol=0 will mean that if only one co component being compared is zero, they won't be considered close.
-    similar_mask = np.isclose(sv_cos, ref_cos, atol=0, rtol=e)
+    similar_mask_cos = np.isclose(sv_cos, ref_cos, atol=0, rtol=e)
 
-    # A co is only similar if every component in it is similar.
-    co_similar_mask = np.all(similar_mask, axis=1)
+    # Normal tolerance is higher because it's only meant to add a few extra vertices compared to position check,
+    # and deltas below 1e-4 would hardly be visually noticeable anyway.
+    similar_mask_nors = np.isclose(sv_nors, ref_nors, atol=1e-4, rtol=e)
+
+    # A vertex is only similar if every component in both its position and normal are similar.
+    similar_mask = np.all(similar_mask_cos & similar_mask_nors, axis=1)
 
     # Get the indices of cos that are not similar.
-    not_similar_verts_idx = np.flatnonzero(~co_similar_mask)
+    not_similar_verts_idx = np.flatnonzero(~similar_mask)
 
     # Subtracting first over the entire arrays and then indexing seems faster than indexing both arrays first and then
     # subtracting, until less than about 3% of the cos are being indexed.
     difference_cos = (sv_cos - ref_cos)[not_similar_verts_idx]
-    return difference_cos, not_similar_verts_idx
+    difference_nors = (sv_nors - ref_nors)[not_similar_verts_idx]
+    return difference_cos, difference_nors, not_similar_verts_idx
 
 
 def _mat4_vec3_array_multiply(mat4, vec3_array, dtype=None, return_4d=False):

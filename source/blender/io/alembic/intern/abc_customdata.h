@@ -17,6 +17,8 @@
 #include <Alembic/AbcGeom/GeometryScope.h>
 #include <Alembic/AbcGeom/OGeomParam.h>
 
+#include "BKE_attribute.hh"
+
 #include <cstdint>
 #include <map>
 #include <string>
@@ -45,16 +47,13 @@ struct CDStreamConfig {
   float3 *positions = nullptr;
   int totvert = 0;
 
-  float2 *uv_map = nullptr;
-
-  CustomData *loopdata = nullptr;
+  bke::SpanAttributeWriter<float2> uv_map;
 
   bool pack_uvs = false;
 
   /* TODO(kevin): might need a better way to handle adding and/or updating
    * custom data such that it updates the custom data holder and its pointers properly. */
   Mesh *mesh = nullptr;
-  void *(*add_customdata_cb)(Mesh *mesh, const char *name, int data_type) = nullptr;
 
   Alembic::Abc::chrono_t time = 0.0;
   int timesample_index = 0;

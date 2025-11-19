@@ -32,11 +32,14 @@ struct Object;
 struct rcti;
 struct rctf;
 struct NodesModifierData;
-struct uiLayout;
 
 namespace blender::bke {
 class bNodeTreeZone;
 }
+
+namespace blender::ui {
+struct Layout;
+}  // namespace blender::ui
 
 namespace blender::ed::space_node {
 
@@ -136,7 +139,7 @@ bool node_editor_is_for_geometry_nodes_modifier(const SpaceNode &snode,
     bke::ComputeContextCache &compute_context_cache,
     const ComputeContext *parent_compute_context);
 
-void ui_template_node_asset_menu_items(uiLayout &layout,
+void ui_template_node_asset_menu_items(ui::Layout &layout,
                                        const bContext &C,
                                        StringRef catalog_path,
                                        const NodeAssetMenuOperatorType operator_type);
@@ -144,7 +147,7 @@ void ui_template_node_asset_menu_items(uiLayout &layout,
 /** See #SpaceNode_Runtime::node_can_sync_states. */
 Map<int, bool> &node_can_sync_cache_get(SpaceNode &snode);
 
-void node_tree_interface_draw(bContext &C, uiLayout &layout, bNodeTree &tree);
+void node_tree_interface_draw(bContext &C, ui::Layout &layout, bNodeTree &tree);
 
 const char *node_socket_get_label(const bNodeSocket *socket, const char *panel_label = nullptr);
 

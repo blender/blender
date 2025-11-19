@@ -24,6 +24,8 @@ struct RealizeInstancesOptions {
    * instances. Otherwise, instance attributes are ignored.
    */
   bool realize_instance_attributes = true;
+  /** Propagate instance attributes to the point domain rather than the curve domain. */
+  bool realize_to_point_domain = true;
 
   std::reference_wrapper<const bke::AttributeFilter> attribute_filter =
       bke::AttributeFilter::default_filter();

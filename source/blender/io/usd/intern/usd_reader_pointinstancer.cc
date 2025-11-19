@@ -53,12 +53,14 @@ void USDPointInstancerReader::read_geometry(bke::GeometrySet &geometry_set,
   pxr::VtArray<pxr::GfVec3f> usd_positions;
   pxr::VtArray<pxr::GfVec3f> usd_scales;
   pxr::VtArray<pxr::GfQuath> usd_orientations;
+  pxr::VtInt64Array usd_ids;
   pxr::VtArray<int> usd_proto_indices;
   std::vector<bool> usd_mask = point_instancer_prim_.ComputeMaskAtTime(params.motion_sample_time);
 
   point_instancer_prim_.GetPositionsAttr().Get(&usd_positions, params.motion_sample_time);
   point_instancer_prim_.GetScalesAttr().Get(&usd_scales, params.motion_sample_time);
   point_instancer_prim_.GetOrientationsAttr().Get(&usd_orientations, params.motion_sample_time);
+  point_instancer_prim_.GetIdsAttr().Get(&usd_ids, params.motion_sample_time);
   point_instancer_prim_.GetProtoIndicesAttr().Get(&usd_proto_indices, params.motion_sample_time);
 
   PointCloud *pointcloud = geometry_set.get_pointcloud_for_write();
@@ -105,6 +107,23 @@ void USDPointInstancerReader::read_geometry(bke::GeometrySet &geometry_set,
   }
 
   orientations_attribute.finish();
+
+  if (!usd_ids.empty()) {
+    bke::SpanAttributeWriter<int> ids_attribute =
+        attributes.lookup_or_add_for_write_only_span<int>("id", bke::AttrDomain::Point);
+
+    const Span<int64_t> usd_data(usd_ids.cdata(), usd_ids.size());
+    if (usd_data.size() < ids_attribute.span.size()) {
+      ids_attribute.span.fill(0);
+    }
+
+    for (const int i : IndexRange(std::min(usd_data.size(), ids_attribute.span.size()))) {
+      /* Blender only supports int ID attributes so we have to narrow the value. */
+      ids_attribute.span[i] = int(usd_data[i]);
+    }
+
+    ids_attribute.finish();
+  }
 
   bke::SpanAttributeWriter<int> proto_indices_attribute =
       attributes.lookup_or_add_for_write_only_span<int>("proto_index", bke::AttrDomain::Point);

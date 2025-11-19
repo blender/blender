@@ -548,11 +548,26 @@ void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/
 
   PointCloud *pointcloud = BKE_pointcloud_add(bmain, ob->id.name + 2);
   pointcloud->totpoint = mesh_eval->verts_num;
-  copy_attributes(mesh_eval->attributes(),
+
+  const AttributeAccessor src_attributes = mesh_eval->attributes();
+  MutableAttributeAccessor dst_attributes = pointcloud->attributes_for_write();
+  copy_attributes(src_attributes,
                   AttrDomain::Point,
                   AttrDomain::Point,
-                  {},
-                  pointcloud->attributes_for_write());
+                  attribute_filter_from_skip_ref({".select_vert", ".select_edge", ".select_poly"}),
+                  dst_attributes);
+
+  if (const GAttributeReader src = src_attributes.lookup(".select_vert")) {
+    const AttrType type = cpp_type_to_attribute_type(src.varray.type());
+    if (src.sharing_info && src.varray.is_span()) {
+      const bke::AttributeInitShared init(src.varray.get_internal_span().data(),
+                                          *src.sharing_info);
+      dst_attributes.add(".selection", AttrDomain::Point, type, init);
+    }
+    else {
+      dst_attributes.add(".selection", AttrDomain::Point, type, AttributeInitVArray(src.varray));
+    }
+  }
 
   BKE_id_materials_copy(bmain, (ID *)ob->data, (ID *)pointcloud);
 
@@ -575,11 +590,26 @@ void BKE_pointcloud_to_mesh(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/
   Mesh *mesh = BKE_mesh_add(bmain, ob->id.name + 2);
   if (const PointCloud *points = geometry.get_pointcloud()) {
     mesh->verts_num = points->totpoint;
-    copy_attributes(points->attributes(),
+    const AttributeAccessor src_attributes = points->attributes();
+    MutableAttributeAccessor dst_attributes = mesh->attributes_for_write();
+    copy_attributes(src_attributes,
                     AttrDomain::Point,
                     AttrDomain::Point,
-                    {},
-                    mesh->attributes_for_write());
+                    attribute_filter_from_skip_ref({".selection"}),
+                    dst_attributes);
+
+    if (const GAttributeReader src = src_attributes.lookup(".selection")) {
+      const AttrType type = cpp_type_to_attribute_type(src.varray.type());
+      if (src.sharing_info && src.varray.is_span()) {
+        const bke::AttributeInitShared init(src.varray.get_internal_span().data(),
+                                            *src.sharing_info);
+        dst_attributes.add(".select_vert", AttrDomain::Point, type, init);
+      }
+      else {
+        const AttributeInitVArray init(src.varray);
+        dst_attributes.add(".select_vert", AttrDomain::Point, type, init);
+      }
+    }
   }
 
   BKE_id_materials_copy(bmain, (ID *)ob->data, (ID *)mesh);
