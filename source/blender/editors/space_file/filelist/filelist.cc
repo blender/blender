@@ -146,10 +146,8 @@ static void remote_asset_library_refresh_online_assets_status(const FileList *fi
       entry->typeflag &= ~FILE_TYPE_ASSET_ONLINE;
       asset->online_asset_mark_downloaded();
 
-      if (FileDirEntry *cached_entry = static_cast<FileDirEntry *>(
-              BLI_ghash_lookup(filelist->filelist_cache->uids, POINTER_FROM_UINT(entry->uid))))
-      {
-        cached_entry->typeflag &= ~FILE_TYPE_ASSET_ONLINE;
+      if (FileDirEntry **cached_entry = filelist->filelist_cache->uids.lookup_ptr(entry->uid)) {
+        (*cached_entry)->typeflag &= ~FILE_TYPE_ASSET_ONLINE;
       }
     }
   }
