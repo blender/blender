@@ -60,6 +60,16 @@ void VKExtensions::log() const
              GPU_stencil_export_support() ? 'X' : ' ');
 }
 
+void VKWorkarounds::log() const
+{
+  CLOG_DEBUG(&LOG,
+             "Activated workarounds\n"
+             " - [%c] Not 16/32 bit aligned image formats\n"
+             " - [%c] rgb8 vertex format\n",
+             not_aligned_pixel_formats ? 'X' : ' ',
+             vertex_formats.r8g8b8 ? 'X' : ' ');
+}
+
 void VKDevice::reinit()
 {
   samplers_.free();

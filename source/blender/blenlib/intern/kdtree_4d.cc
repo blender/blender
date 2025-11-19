@@ -12,4 +12,4 @@
 #define KDTreeNode KDTreeNode_4d
 #define KDTreeNode_head KDTreeNode_head_4d
 #define KDTreeNearest KDTreeNearest_4d
-#include "kdtree_impl.h"
+#include "kdtree_impl.hh"

@@ -1173,7 +1173,7 @@ static wmOperatorStatus object_transform_apply_invoke(bContext *C,
                                     IFACE_("Warning: Multiple objects share the same data.\nMake "
                                            "single user and then apply transformations?"),
                                     IFACE_("Apply"),
-                                    ALERT_ICON_WARNING,
+                                    ui::AlertIcon::Warning,
                                     false);
     }
   }

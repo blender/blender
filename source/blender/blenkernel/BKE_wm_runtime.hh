@@ -8,7 +8,6 @@
 
 #pragma once
 
-struct GSet;
 struct UndoStack;
 struct wmMsgBus;
 struct wmKeyConfig;
@@ -21,7 +20,21 @@ struct wmIMEData;
 
 #include "DNA_windowmanager_types.h"
 
+#include "BLI_set.hh"
+
 namespace blender::bke {
+
+struct wmNotifierHashForQueue {
+  uint64_t operator()(const wmNotifier *note) const;
+};
+struct wmNotifierEqForQueue {
+  bool operator()(const wmNotifier *a, const wmNotifier *b) const;
+};
+using wmNotifierQueueSet = Set<const wmNotifier *,
+                               4,
+                               DefaultProbingStrategy,
+                               wmNotifierHashForQueue,
+                               wmNotifierEqForQueue>;
 
 struct WindowManagerRuntime {
   /** Separate active from drawable. */
@@ -51,7 +64,7 @@ struct WindowManagerRuntime {
    * For duplicate detection.
    * \note keep in sync with `notifier_queue` adding/removing elements must also update this set.
    */
-  GSet *notifier_queue_set = nullptr;
+  wmNotifierQueueSet notifier_queue_set;
 
   /** The current notifier in the `notifier_queue` being handled (clear instead of freeing). */
   const wmNotifier *notifier_current = nullptr;

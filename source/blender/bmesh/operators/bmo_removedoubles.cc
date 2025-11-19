@@ -11,7 +11,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
-#include "BLI_kdtree.h"
+#include "BLI_kdtree.hh"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_math_base.hh"
@@ -192,11 +192,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
   /* Maintain selection history. */
   const bool has_selected = !BLI_listbase_is_empty(&bm->selected);
   const bool use_targetmap_all = has_selected;
-  GHash *targetmap_all = nullptr;
-  if (use_targetmap_all) {
-    /* Map deleted to keep elem. */
-    targetmap_all = BLI_ghash_ptr_new(__func__);
-  }
+  blender::Map<void *, void *> targetmap_all;
 
   GHash *clusters = use_centroid ? BLI_ghash_ptr_new(__func__) : nullptr;
 
@@ -214,7 +210,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 
     if (use_targetmap_all) {
       BLI_assert(v != v_dst);
-      BLI_ghash_insert(targetmap_all, v, v_dst);
+      targetmap_all.add(v, v_dst);
     }
 
     /* Group vertices by their survivor. */
@@ -286,7 +282,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
         BM_elem_flag_merge_ex(e_new, e, BM_ELEM_HIDDEN);
         if (use_targetmap_all) {
           BLI_assert(e != e_new);
-          BLI_ghash_insert(targetmap_all, e, e_new);
+          targetmap_all.add(e, e_new);
         }
       }
 
@@ -339,7 +335,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
       if ((use_in_place == false) && (f_new != nullptr)) {
         BLI_assert(f != f_new);
         if (use_targetmap_all) {
-          BLI_ghash_insert(targetmap_all, f, f_new);
+          targetmap_all.add(f, f_new);
         }
         if (bm->act_face && (f == bm->act_face)) {
           bm->act_face = f_new;
@@ -349,11 +345,8 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
   }
 
   if (has_selected) {
-    BM_select_history_merge_from_targetmap(bm, targetmap_all, targetmap_all, targetmap_all, true);
-  }
-
-  if (use_targetmap_all) {
-    BLI_ghash_free(targetmap_all, nullptr, nullptr);
+    BM_select_history_merge_from_targetmap(
+        bm, &targetmap_all, &targetmap_all, &targetmap_all, true);
   }
 
   BMO_mesh_delete_oflag_context(bm, ELE_DEL, DEL_ONLYTAGGED, nullptr);

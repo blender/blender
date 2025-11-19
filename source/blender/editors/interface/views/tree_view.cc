@@ -923,12 +923,10 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
     /* Bottom */
     uiLayout *bottom = &col->row(false);
     UI_block_emboss_set(block, ui::EmbossType::None);
-    int icon = *tree_view.show_display_options_ ? ICON_DISCLOSURE_TRI_DOWN :
-                                                  ICON_DISCLOSURE_TRI_RIGHT;
     uiBut *but = uiDefIconButBitC(block,
-                                  ButType::Toggle,
+                                  ButType::IconToggleN,
                                   1,
-                                  icon,
+                                  ICON_DISCLOSURE_TRI_DOWN,
                                   0,
                                   0,
                                   UI_UNIT_X,
@@ -970,6 +968,7 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
       UI_but_flag_enable(but, UI_BUT_TEXTEDIT_UPDATE | UI_BUT_VALUE_CLEAR);
       UI_but_flag_disable(but, UI_BUT_UNDO);
       ui_def_but_icon(but, ICON_VIEWZOOM, UI_HAS_ICON);
+      UI_but_placeholder_set(but, IFACE_("Search"));
     }
   }
 
@@ -1068,7 +1067,7 @@ void TreeViewBuilder::ensure_min_rows_items(AbstractTreeView &tree_view)
 
 void TreeViewBuilder::build_tree_view(const bContext &C,
                                       AbstractTreeView &tree_view,
-                                      uiLayout &layout,
+                                      Layout &layout,
                                       const bool add_box)
 {
   uiBlock &block = *layout.block();

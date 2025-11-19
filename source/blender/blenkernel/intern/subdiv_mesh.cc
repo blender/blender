@@ -304,7 +304,7 @@ static MVertSkin mix_CD_MVERT_SKIN(const Span<MVertSkin> src,
                                    const Span<int> src_indices,
                                    const Span<float> weights)
 {
-  float3 radius;
+  float3 radius(0);
   for (const int i : src_indices.index_range()) {
     radius += float3(src[src_indices[i]].radius) * weights[i];
   }

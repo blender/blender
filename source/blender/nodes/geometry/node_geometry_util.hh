@@ -85,6 +85,6 @@ void node_geo_exec_with_missing_openvdb(GeoNodeExecParams &params);
 
 void node_geo_exec_with_too_old_openvdb(GeoNodeExecParams &params);
 
-void draw_data_blocks(const bContext *C, uiLayout *layout, PointerRNA &bake_rna);
+void draw_data_blocks(const bContext *C, ui::Layout *layout, PointerRNA &bake_rna);
 
 }  // namespace blender::nodes

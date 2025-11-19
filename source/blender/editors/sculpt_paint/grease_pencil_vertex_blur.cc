@@ -46,9 +46,7 @@ void VertexBlurOperation::on_stroke_extended(const bContext &C,
     if (stroke_selection.is_empty()) {
       return false;
     }
-    const IndexMask point_selection = point_mask_for_stroke_operation(
-        params, use_selection_masking, memory);
-    const Array<float2> view_positions = calculate_view_positions(params, point_selection);
+    const Array<float2> view_positions = view_positions_from_curve_mask(params, stroke_selection);
     const OffsetIndices<int> points_by_curve = params.drawing.strokes().points_by_curve();
     MutableSpan<ColorGeometry4f> vertex_colors = params.drawing.vertex_colors_for_write();
     stroke_selection.foreach_index(GrainSize(1024), [&](const int64_t curve) {

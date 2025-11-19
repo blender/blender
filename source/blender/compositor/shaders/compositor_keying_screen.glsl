@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/compositor_keying_screen_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_keying_screen)
+
 #include "gpu_shader_math_base_lib.glsl"
 
 shared float2 cached_marker_positions[gl_WorkGroupSize.x * gl_WorkGroupSize.y];

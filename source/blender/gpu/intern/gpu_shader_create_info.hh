@@ -22,6 +22,7 @@
 #  include "GPU_common_types.hh"
 #  include "GPU_material.hh"
 #  include "GPU_texture.hh"
+#  include "gpu_shader_create_info_pipeline.hh"
 
 #  include <iostream>
 #endif
@@ -1035,6 +1036,8 @@ struct ShaderCreateInfo {
    */
   Vector<StringRefNull> additional_infos_;
 
+  Vector<PipelineState, 0> pipelines_;
+
   /* API-specific parameters. */
 #  ifdef WITH_METAL_BACKEND
   ushort mtl_max_threads_per_threadgroup_ = 0;
@@ -1641,6 +1644,27 @@ struct ShaderCreateInfo {
       }
     }
     return slot;
+  }
+
+  /** \} */
+
+  /* -------------------------------------------------------------------- */
+  /** \name Pipeline warm-up
+   * \{ */
+
+  /**
+   * \brief Create a new pipeline state.
+   *
+   * On Metal and Vulkan pipelines states will be precompiled when creating the shader to reduce
+   * compilation stuttering when using the shader.
+   *
+   * \note returned pipeline state is only guaranteed to be valid until the next call to this
+   * function.
+   */
+  PipelineState &pipeline_state()
+  {
+    pipelines_.append({});
+    return pipelines_.last();
   }
 
   /** \} */

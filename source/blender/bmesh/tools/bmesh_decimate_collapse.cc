@@ -33,7 +33,7 @@
 
 #define USE_SYMMETRY
 #ifdef USE_SYMMETRY
-#  include "BLI_kdtree.h"
+#  include "BLI_kdtree.hh"
 #endif
 
 /* defines for testing */

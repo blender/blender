@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "gpu_shader_cxx_matrix.hh"
 #include "gpu_shader_cxx_vector.hh"
 
 /* Some compilers complain about lack of return values. Keep it short. */
@@ -165,6 +164,7 @@ template<typename T, int D> VecBase<T, D> mix(VecOp<T, D>, VecOp<T, D>, VecOp<bo
 
 VecBase<float, 3> cross(VecOp<float, 3>, VecOp<float, 3>) RET;
 template<int D> float dot(VecOp<float, D>, VecOp<float, D>) RET;
+float distance(float, float) RET;
 template<int D> float distance(VecOp<float, D>, VecOp<float, D>) RET;
 template<int D> float length(VecOp<float, D>) RET;
 template<int D> VecBase<float, D> normalize(VecOp<float, D>) RET;
@@ -220,11 +220,6 @@ float2 unpackUnorm2x16(uint) RET;
 float2 unpackSnorm2x16(uint) RET;
 float4 unpackUnorm4x8(uint) RET;
 float4 unpackSnorm4x8(uint) RET;
-
-/* Matrices functions. */
-template<int C, int R> float determinant(MatBase<C, R>) RET;
-template<int C, int R> MatBase<C, R> inverse(MatBase<C, R>) RET;
-template<int C, int R> MatBase<R, C> transpose(MatBase<C, R>) RET;
 
 namespace gl_ComputeShader {
 void barrier() {}

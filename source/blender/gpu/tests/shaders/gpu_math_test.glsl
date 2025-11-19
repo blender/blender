@@ -7,6 +7,10 @@
  * Comment out for correct compilation error line. */
 #line 9
 
+#include "infos/gpu_shader_test_infos.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(gpu_math_test)
+
 #include "gpu_shader_test_lib.glsl"
 
 #include "gpu_shader_math_axis_angle_lib.glsl"

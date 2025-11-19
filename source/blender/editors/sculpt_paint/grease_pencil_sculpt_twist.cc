@@ -55,7 +55,7 @@ void TwistOperation::on_stroke_extended(const bContext &C, const InputSample &ex
           const IndexMask &point_mask,
           const DeltaProjectionFunc &projection_fn) {
         bke::crazyspace::GeometryDeformation deformation = get_drawing_deformation(params);
-        Array<float2> view_positions = calculate_view_positions(params, point_mask);
+        const Array<float2> view_positions = view_positions_from_point_mask(params, point_mask);
         bke::CurvesGeometry &curves = params.drawing.strokes_for_write();
         MutableSpan<float3> positions = curves.positions_for_write();
 

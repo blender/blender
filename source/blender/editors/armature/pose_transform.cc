@@ -475,12 +475,12 @@ static wmOperatorStatus apply_armature_pose2bones_exec(bContext *C, wmOperator *
 
 static void apply_armature_pose2bones_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  blender::ui::Layout &layout = *op->layout;
   wmWindowManager *wm = CTX_wm_manager(C);
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
-  layout->prop(&ptr, "selected", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(&ptr, "selected", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 void POSE_OT_armature_apply(wmOperatorType *ot)

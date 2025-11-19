@@ -10,7 +10,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLI_kdtree.h"
+#include "BLI_kdtree.hh"
 #include "BLI_map.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -25,6 +25,7 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_lib_id.hh"
@@ -648,6 +649,7 @@ static void remap_uvs_23(
 
 static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
 {
+  using namespace blender;
   Mesh *split_m;
   MFace *mf = nullptr, *df1 = nullptr;
   MFace *mface = static_cast<MFace *>(
@@ -736,8 +738,9 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
   blender::MutableSpan<blender::float3> split_m_positions = split_m->vert_positions_for_write();
 
   /* copy new faces & verts (is it really this painful with custom data??) */
+  bke::LegacyMeshInterpolator vert_interp(*mesh, *split_m, bke::AttrDomain::Point);
   for (i = 0; i < totvert; i++) {
-    CustomData_copy_data(&mesh->vert_data, &split_m->vert_data, i, i, 1);
+    vert_interp.copy(i, i, 1);
   }
 
   /* override original facepa (original pointer is saved in caller function) */
@@ -755,8 +758,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
     const int ed_v1 = edge.v_low;
     const int ed_v2 = edge.v_high;
 
-    CustomData_free_elem(&split_m->vert_data, esplit, 1);
-    CustomData_copy_data(&split_m->vert_data, &split_m->vert_data, ed_v2, esplit, 1);
+    vert_interp.copy(ed_v2, esplit, 1);
 
     dupve = split_m_positions[esplit];
     copy_v3_v3(dupve, split_m_positions[ed_v2]);
@@ -895,6 +897,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
                          Scene *scene,
                          Mesh *to_explode)
 {
+  using namespace blender;
   Mesh *explode, *mesh = to_explode;
   MFace *mf = nullptr, *mface;
   // ParticleSettings *part=psmd->psys->part; /* UNUSED */
@@ -979,6 +982,8 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   const blender::Span<blender::float3> positions = mesh->vert_positions();
   blender::MutableSpan<blender::float3> explode_positions = explode->vert_positions_for_write();
 
+  bke::LegacyMeshInterpolator vert_interp(*mesh, *explode, bke::AttrDomain::Point);
+
   for (const auto [edge, v] : vertpahash.items()) {
     int ed_v1 = edge.v_low;
     int ed_v2 = edge.v_high;
@@ -986,7 +991,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
     copy_v3_v3(explode_positions[v], positions[ed_v1]);
 
-    CustomData_copy_data(&mesh->vert_data, &explode->vert_data, ed_v1, v, 1);
+    vert_interp.copy(ed_v1, v, 1);
 
     copy_v3_v3(explode_positions[v], positions[ed_v1]);
 

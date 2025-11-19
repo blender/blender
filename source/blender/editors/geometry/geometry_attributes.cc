@@ -463,24 +463,40 @@ static wmOperatorStatus geometry_color_attribute_add_exec(bContext *C, wmOperato
   RNA_string_get(op->ptr, "name", name);
   eCustomDataType type = eCustomDataType(RNA_enum_get(op->ptr, "data_type"));
   bke::AttrDomain domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
-  AttributeOwner owner = AttributeOwner::from_id(id);
-  CustomDataLayer *layer = BKE_attribute_new(owner, name, type, domain, op->reports);
 
   float color[4];
   RNA_float_get_array(op->ptr, "color", color);
 
-  if (layer == nullptr) {
-    return OPERATOR_CANCELLED;
+  AttributeOwner owner = AttributeOwner::from_id(id);
+  const std::string unique_name = BKE_attribute_calc_unique_name(owner, name);
+
+  if (owner.type() == AttributeOwnerType::Mesh) {
+    CustomDataLayer *layer = BKE_attribute_new(owner, unique_name, type, domain, op->reports);
+    if (layer == nullptr) {
+      return OPERATOR_CANCELLED;
+    }
+
+    BKE_id_attributes_active_color_set(id, unique_name);
+    if (!BKE_id_attributes_color_find(id, BKE_id_attributes_default_color_name(id).value_or(""))) {
+      BKE_id_attributes_default_color_set(id, unique_name);
+    }
+    sculpt_paint::object_active_color_fill(*ob, color, false);
+    DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+    return OPERATOR_FINISHED;
   }
 
-  BKE_id_attributes_active_color_set(id, layer->name);
+  bke::MutableAttributeAccessor attributes = *owner.get_accessor();
+  attributes.add(unique_name,
+                 domain,
+                 *bke::custom_data_type_to_attr_type(type),
+                 bke::AttributeInitDefaultValue());
 
+  BKE_id_attributes_active_color_set(id, unique_name);
   if (!BKE_id_attributes_color_find(id, BKE_id_attributes_default_color_name(id).value_or(""))) {
-    BKE_id_attributes_default_color_set(id, layer->name);
+    BKE_id_attributes_default_color_set(id, unique_name);
   }
-
   sculpt_paint::object_active_color_fill(*ob, color, false);
-
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 
@@ -660,14 +676,14 @@ static wmOperatorStatus geometry_attribute_convert_exec(bContext *C, wmOperator 
 
 static void geometry_color_attribute_add_ui(bContext * /*C*/, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  ui::Layout &layout = *op->layout;
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
-  layout->prop(op->ptr, "name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(op->ptr, "domain", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout->prop(op->ptr, "data_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout->prop(op->ptr, "color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "domain", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "data_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
@@ -822,7 +838,7 @@ void GEOMETRY_OT_color_attribute_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static wmOperatorStatus geometry_color_attribute_duplicate_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus geometry_color_attribute_duplicate_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = object::context_object(C);
   ID *id = static_cast<ID *>(ob->data);
@@ -830,14 +846,20 @@ static wmOperatorStatus geometry_color_attribute_duplicate_exec(bContext *C, wmO
   if (!active_name) {
     return OPERATOR_CANCELLED;
   }
-
+  if (GS(id->name) != ID_ME) {
+    return OPERATOR_CANCELLED;
+  }
+  Mesh &mesh = *id_cast<Mesh *>(id);
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  bke::GAttributeReader src = attributes.lookup(*active_name);
   AttributeOwner owner = AttributeOwner::from_id(id);
-  CustomDataLayer *new_layer = BKE_attribute_duplicate(owner, *active_name, op->reports);
-  if (new_layer == nullptr) {
+  std::string uniquename = BKE_attribute_calc_unique_name(owner, *active_name);
+  const bke::AttrType type = bke::cpp_type_to_attribute_type(src.varray.type());
+  if (!attributes.add(uniquename, src.domain, type, bke::AttributeInitVArray(src.varray))) {
     return OPERATOR_CANCELLED;
   }
 
-  BKE_id_attributes_active_color_set(id, new_layer->name);
+  BKE_id_attributes_active_color_set(id, uniquename);
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
@@ -906,13 +928,13 @@ static wmOperatorStatus geometry_attribute_convert_invoke(bContext *C,
 
 static void geometry_attribute_convert_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  ui::Layout &layout = *op->layout;
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
   Object *ob = object::context_object(C);
   if (ob->type == OB_MESH) {
-    layout->prop(op->ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(op->ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   const ConvertAttributeMode mode = ob->type == OB_MESH ?
@@ -921,9 +943,9 @@ static void geometry_attribute_convert_ui(bContext *C, wmOperator *op)
 
   if (mode == ConvertAttributeMode::Generic) {
     if (ob->type != OB_POINTCLOUD) {
-      layout->prop(op->ptr, "domain", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(op->ptr, "domain", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
-    layout->prop(op->ptr, "data_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(op->ptr, "data_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
@@ -1031,12 +1053,12 @@ static wmOperatorStatus geometry_color_attribute_convert_invoke(bContext *C,
 
 static void geometry_color_attribute_convert_ui(bContext * /*C*/, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  ui::Layout &layout = *op->layout;
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
-  layout->prop(op->ptr, "domain", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout->prop(op->ptr, "data_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "domain", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "data_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 void GEOMETRY_OT_color_attribute_convert(wmOperatorType *ot)

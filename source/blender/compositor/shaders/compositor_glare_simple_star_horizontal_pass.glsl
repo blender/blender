@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/compositor_glare_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_glare_simple_star_horizontal_pass)
+
 void main()
 {
   int width = imageSize(horizontal_img).x;

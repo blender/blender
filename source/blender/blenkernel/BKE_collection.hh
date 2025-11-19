@@ -10,9 +10,11 @@
 
 #include "BLI_ghash.h"
 #include "BLI_iterator.h"
+#include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_sys_types.h"
 
+#include "DNA_collection_types.h"
 #include "DNA_listBase.h"
 #include "DNA_userdef_enums.h"
 
@@ -49,6 +51,8 @@ enum {
   COLLECTION_TAG_COLLECTION_OBJECT_DIRTY = (1 << 1),
 };
 
+using CollectionObjectMap = blender::Map<const Object *, CollectionObject *>;
+
 namespace blender::bke {
 
 struct CollectionRuntime {
@@ -66,7 +70,7 @@ struct CollectionRuntime {
   ListBase parents = {};
 
   /** An optional map for faster lookups on #Collection.gobject */
-  GHash *gobject_hash = nullptr;
+  CollectionObjectMap *gobject_hash = nullptr;
 
   uint8_t tag = 0;
 };

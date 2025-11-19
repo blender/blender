@@ -45,9 +45,10 @@ VkPipeline VKPipelinePool::get_or_create_compute_pipeline(const VKComputeInfo &c
                                                           VkPipeline vk_pipeline_base,
                                                           StringRefNull name)
 {
+  bool created = false;
   VkPipelineCache vk_pipeline_cache = is_static_shader ? vk_pipeline_cache_static_ :
                                                          vk_pipeline_cache_non_static_;
-  return compute_.get_or_create(compute_info, vk_pipeline_cache, vk_pipeline_base, name);
+  return compute_.get_or_create(compute_info, vk_pipeline_cache, vk_pipeline_base, name, created);
 }
 
 template<>
@@ -120,7 +121,8 @@ VkPipeline VKPipelineMap<VKComputeInfo>::create(const VKComputeInfo &compute_inf
 VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(const VKGraphicsInfo &graphics_info,
                                                            const bool is_static_shader,
                                                            VkPipeline vk_pipeline_base,
-                                                           StringRefNull name)
+                                                           StringRefNull name,
+                                                           bool &r_created)
 {
   BLI_assert_msg(
       graphics_info.shaders.state == graphics_info.fragment_out.state,
@@ -128,7 +130,8 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(const VKGraphicsInfo 
       "otherwise an incorrect fragment output library will be linked.");
   VkPipelineCache vk_pipeline_cache = is_static_shader ? vk_pipeline_cache_static_ :
                                                          vk_pipeline_cache_non_static_;
-  return graphics_.get_or_create(graphics_info, vk_pipeline_cache, vk_pipeline_base, name);
+  return graphics_.get_or_create(
+      graphics_info, vk_pipeline_cache, vk_pipeline_base, name, r_created);
 }
 
 template<>

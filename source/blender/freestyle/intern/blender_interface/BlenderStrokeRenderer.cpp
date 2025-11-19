@@ -158,9 +158,6 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count)
   // Reset serial mesh ID (used for BlenderStrokeRenderer::NewMesh())
   _mesh_id = 0xffffffff;
 
-  // Create a bNodeTree-to-Material hash table
-  _nodetree_hash = BLI_ghash_ptr_new("BlenderStrokeRenderer::_nodetree_hash");
-
   // Depsgraph
   freestyle_depsgraph = DEG_graph_new(
       freestyle_bmain, freestyle_scene, view_layer, DAG_EVAL_RENDER);
@@ -171,8 +168,6 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count)
 
 BlenderStrokeRenderer::~BlenderStrokeRenderer()
 {
-  BLI_ghash_free(_nodetree_hash, nullptr, nullptr);
-
   DEG_graph_free(freestyle_depsgraph);
 
   FreeStrokeGroups();
@@ -439,11 +434,8 @@ void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 {
   bNodeTree *nt = iStrokeRep->getNodeTree();
-  Material *ma = (Material *)BLI_ghash_lookup(_nodetree_hash, nt);
-  if (!ma) {
-    ma = BlenderStrokeRenderer::GetStrokeShader(freestyle_bmain, nt, false);
-    BLI_ghash_insert(_nodetree_hash, nt, ma);
-  }
+  Material *ma = _nodetree_hash.lookup_or_add_cb(
+      nt, [&]() { return BlenderStrokeRenderer::GetStrokeShader(freestyle_bmain, nt, false); });
   iStrokeRep->setMaterial(ma);
 
   const vector<Strip *> &strips = iStrokeRep->getStrips();
@@ -618,27 +610,31 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
   int *corner_edges = corner_edge_attr.span.data();
   int *material_indices = material_index_attr.span.data();
 
+  std::array<bke::SpanAttributeWriter<float2>, 2> uv_map_attrs;
   blender::float2 *loopsuv[2] = {nullptr};
 
   if (hasTex) {
     // First UV layer
-    loopsuv[0] = static_cast<blender::float2 *>(CustomData_add_layer_named(
-        &mesh->corner_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->corners_num, uvNames[0]));
+    uv_map_attrs[0] = attributes.lookup_or_add_for_write_span<float2>(uvNames[0],
+                                                                      bke::AttrDomain::Corner);
+    loopsuv[0] = uv_map_attrs[0].span.data();
     CustomData_set_layer_active(&mesh->corner_data, CD_PROP_FLOAT2, 0);
 
     // Second UV layer
-    loopsuv[1] = static_cast<blender::float2 *>(CustomData_add_layer_named(
-        &mesh->corner_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->corners_num, uvNames[1]));
+    uv_map_attrs[1] = attributes.lookup_or_add_for_write_span<float2>(uvNames[1],
+                                                                      bke::AttrDomain::Corner);
+    loopsuv[1] = uv_map_attrs[1].span.data();
     CustomData_set_layer_active(&mesh->corner_data, CD_PROP_FLOAT2, 1);
   }
 
   // colors and transparency (the latter represented by grayscale colors)
-  MLoopCol *colors = (MLoopCol *)CustomData_add_layer_named(
-      &mesh->corner_data, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, mesh->corners_num, "Color");
-  MLoopCol *transp = (MLoopCol *)CustomData_add_layer_named(
-      &mesh->corner_data, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, mesh->corners_num, "Alpha");
-  BKE_id_attributes_active_color_set(
-      &mesh->id, CustomData_get_layer_name(&mesh->corner_data, CD_PROP_BYTE_COLOR, 0));
+  bke::SpanAttributeWriter<ColorGeometry4b> colors_attr =
+      attributes.lookup_or_add_for_write_span<ColorGeometry4b>("Color", bke::AttrDomain::Corner);
+  ColorGeometry4b *colors = colors_attr.span.data();
+  bke::SpanAttributeWriter<ColorGeometry4b> transp_attr =
+      attributes.lookup_or_add_for_write_span<ColorGeometry4b>("Alpha", bke::AttrDomain::Corner);
+  ColorGeometry4b *transp = transp_attr.span.data();
+  BKE_id_attributes_active_color_set(&mesh->id, "Color");
 
   mesh->mat = MEM_malloc_arrayN<Material *>(size_t(mesh->totcol), "MaterialList");
   for (const auto item : group->materials.items()) {
@@ -830,6 +826,10 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
   corner_vert_attr.finish();
   corner_edge_attr.finish();
   material_index_attr.finish();
+  uv_map_attrs[0].finish();
+  uv_map_attrs[1].finish();
+  colors_attr.finish();
+  transp_attr.finish();
 }
 
 // A replacement of BKE_object_add() for better performance.

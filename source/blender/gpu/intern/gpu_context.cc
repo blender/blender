@@ -278,6 +278,14 @@ void GPU_context_end_frame(GPUContext *ctx)
   }
 }
 
+void GPU_context_debug_pipeline_creation(GPUContext *ctx, bool enable)
+{
+  blender::gpu::Context *_ctx = unwrap(ctx);
+  if (_ctx) {
+    _ctx->debug_pipeline_creation = enable;
+  }
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Main context global mutex
  *

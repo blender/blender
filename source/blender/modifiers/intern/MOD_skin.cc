@@ -57,6 +57,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_deform.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
@@ -931,7 +932,9 @@ static Mesh *subdivide_base(const Mesh *orig)
   }
 
   /* Copy original vertex data */
-  CustomData_copy_data(&orig->vert_data, &result->vert_data, 0, 0, orig_vert_num);
+  blender::bke::LegacyMeshInterpolator vert_interp(
+      *orig, *result, blender::bke::AttrDomain::Point);
+  vert_interp.copy(0, 0, orig_vert_num);
 
   /* Subdivide edges */
   int result_edge_i = 0;

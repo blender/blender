@@ -409,6 +409,12 @@ void WM_cursor_set(wmWindow *win, int curs)
   }
 
   if (curs == WM_CURSOR_DEFAULT && win->modalcursor) {
+    /* If the cursor was set to default during the modal operation,
+     * this usually indicates that win->lastcursor is not relevant anymore.
+     * So update lastcursor to the default cursor as this is usually a safe
+     * cursor shape to fall back to (see #144345).
+     */
+    win->lastcursor = curs;
     curs = win->modalcursor;
   }
 

@@ -877,7 +877,7 @@ static void TRANSFORM_OT_translate(wmOperatorType *ot)
   ot->exec = transform_exec;
   ot->modal = transform_modal;
   ot->cancel = transform_cancel;
-  ot->poll = ED_operator_screenactive;
+  ot->poll = ED_operator_active_screen_and_scene;
   ot->poll_property = transform_poll_property;
 
   RNA_def_float_translation(
@@ -904,7 +904,7 @@ static void TRANSFORM_OT_resize(wmOperatorType *ot)
   ot->exec = transform_exec;
   ot->modal = transform_modal;
   ot->cancel = transform_cancel;
-  ot->poll = ED_operator_screenactive;
+  ot->poll = ED_operator_active_screen_and_scene;
   ot->poll_property = transform_poll_property;
 
   RNA_def_float_vector(
@@ -994,7 +994,7 @@ static void TRANSFORM_OT_rotate(wmOperatorType *ot)
   ot->exec = transform_exec;
   ot->modal = transform_modal;
   ot->cancel = transform_cancel;
-  ot->poll = ED_operator_screenactive;
+  ot->poll = ED_operator_active_screen_and_scene;
   ot->poll_property = transform_poll_property;
 
   RNA_def_float_rotation(
@@ -1101,7 +1101,8 @@ static void TRANSFORM_OT_shear(wmOperatorType *ot)
   ot->poll = transform_shear_poll;
   ot->poll_property = transform_poll_property;
 
-  RNA_def_float(ot->srna, "value", 0, -FLT_MAX, FLT_MAX, "Offset", "", -FLT_MAX, FLT_MAX);
+  RNA_def_float_rotation(
+      ot->srna, "angle", 0, nullptr, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI * 2, M_PI * 2);
 
   WM_operatortype_props_advanced_begin(ot);
 
@@ -1198,7 +1199,7 @@ static void TRANSFORM_OT_mirror(wmOperatorType *ot)
   ot->exec = transform_exec;
   ot->modal = transform_modal;
   ot->cancel = transform_cancel;
-  ot->poll = ED_operator_screenactive;
+  ot->poll = ED_operator_active_screen_and_scene;
   ot->poll_property = transform_poll_property;
 
   properties_register(ot, P_ORIENT_MATRIX | P_CONSTRAINT | P_GPENCIL_EDIT | P_CENTER);
@@ -1442,7 +1443,7 @@ static void TRANSFORM_OT_transform(wmOperatorType *ot)
   ot->exec = transform_exec;
   ot->modal = transform_modal;
   ot->cancel = transform_cancel;
-  ot->poll = ED_operator_screenactive;
+  ot->poll = ED_operator_active_screen_and_scene;
   ot->poll_property = transform_poll_property;
 
   prop = RNA_def_enum(

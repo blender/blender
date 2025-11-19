@@ -1017,16 +1017,16 @@ static wmOperatorStatus armature_parent_set_invoke(bContext *C,
 
   uiPopupMenu *pup = UI_popup_menu_begin(
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Make Parent"), ICON_NONE);
-  uiLayout *layout = UI_popup_menu_layout(pup);
+  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
 
-  uiLayout *row_offset = &layout->row(false);
-  row_offset->enabled_set(enable_offset);
-  PointerRNA op_ptr = row_offset->op("ARMATURE_OT_parent_set", IFACE_("Keep Offset"), ICON_NONE);
+  blender::ui::Layout &row_offset = layout.row(false);
+  row_offset.enabled_set(enable_offset);
+  PointerRNA op_ptr = row_offset.op("ARMATURE_OT_parent_set", IFACE_("Keep Offset"), ICON_NONE);
   RNA_enum_set(&op_ptr, "type", ARM_PAR_OFFSET);
 
-  uiLayout *row_connect = &layout->row(false);
-  row_connect->enabled_set(enable_connect);
-  op_ptr = row_connect->op("ARMATURE_OT_parent_set", IFACE_("Connected"), ICON_NONE);
+  blender::ui::Layout &row_connect = layout.row(false);
+  row_connect.enabled_set(enable_connect);
+  op_ptr = row_connect.op("ARMATURE_OT_parent_set", IFACE_("Connected"), ICON_NONE);
   RNA_enum_set(&op_ptr, "type", ARM_PAR_CONNECT);
 
   UI_popup_menu_end(C, pup);
@@ -1137,16 +1137,16 @@ static wmOperatorStatus armature_parent_clear_invoke(bContext *C,
 
   uiPopupMenu *pup = UI_popup_menu_begin(
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Parent"), ICON_NONE);
-  uiLayout *layout = UI_popup_menu_layout(pup);
+  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
 
-  uiLayout *row_clear = &layout->row(false);
-  row_clear->enabled_set(enable_clear);
-  PointerRNA op_ptr = row_clear->op("ARMATURE_OT_parent_clear", IFACE_("Clear Parent"), ICON_NONE);
+  blender::ui::Layout &row_clear = layout.row(false);
+  row_clear.enabled_set(enable_clear);
+  PointerRNA op_ptr = row_clear.op("ARMATURE_OT_parent_clear", IFACE_("Clear Parent"), ICON_NONE);
   RNA_enum_set(&op_ptr, "type", ARM_PAR_CLEAR);
 
-  uiLayout *row_disconnect = &layout->row(false);
-  row_disconnect->enabled_set(enable_disconnect);
-  op_ptr = row_disconnect->op("ARMATURE_OT_parent_clear", IFACE_("Disconnect Bone"), ICON_NONE);
+  blender::ui::Layout &row_disconnect = layout.row(false);
+  row_disconnect.enabled_set(enable_disconnect);
+  op_ptr = row_disconnect.op("ARMATURE_OT_parent_clear", IFACE_("Disconnect Bone"), ICON_NONE);
   RNA_enum_set(&op_ptr, "type", ARM_PAR_CLEAR_DISCONNECT);
 
   UI_popup_menu_end(C, pup);

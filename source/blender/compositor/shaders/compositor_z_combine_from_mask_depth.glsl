@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/compositor_z_combine_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_z_combine_from_mask_depth)
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()

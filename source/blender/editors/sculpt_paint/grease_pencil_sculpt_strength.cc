@@ -43,7 +43,7 @@ void StrengthOperation::on_stroke_extended(const bContext &C, const InputSample 
 
   this->foreach_editable_drawing_with_automask(
       C, [&](const GreasePencilStrokeParams &params, const IndexMask &point_mask) {
-        Array<float2> view_positions = calculate_view_positions(params, point_mask);
+        const Array<float2> view_positions = view_positions_from_point_mask(params, point_mask);
         MutableSpan<float> opacities = params.drawing.opacities_for_write();
 
         point_mask.foreach_index(GrainSize(4096), [&](const int64_t point_i) {

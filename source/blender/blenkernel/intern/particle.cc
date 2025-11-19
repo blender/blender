@@ -34,7 +34,7 @@
 #include "DNA_texture_types.h"
 
 #include "BLI_kdopbvh.hh"
-#include "BLI_kdtree.h"
+#include "BLI_kdtree.hh"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_base_safe.h"
@@ -3949,7 +3949,8 @@ static ModifierData *object_add_or_copy_particle_system(
 
   psmd = (ParticleSystemModifierData *)md;
   psmd->psys = psys;
-  BLI_addtail(&ob->modifiers, md);
+
+  BKE_modifiers_add_at_end_if_possible(ob, md);
   BKE_object_modifier_set_active(ob, md);
   BKE_modifiers_persistent_uid_init(*ob, *md);
 

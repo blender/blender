@@ -49,6 +49,10 @@
  * Since the erode/dilate distance is already signed appropriately as described before, we just add
  * it in both cases. */
 
+#include "infos/compositor_morphological_distance_threshold_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_morphological_distance_threshold)
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()
@@ -88,6 +92,7 @@ void main()
 
   /* Add the erode/dilate distance and divide by the inset amount as described in the discussion,
    * then clamp to the [0, 1] range. */
+  const auto &distance = push_constant_get(compositor_morphological_distance_threshold, distance);
   float value = clamp((signed_minimum_distance + distance) / inset, 0.0f, 1.0f);
 
   imageStore(output_img, texel, float4(value));

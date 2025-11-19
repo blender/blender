@@ -2,6 +2,18 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_shader_compat.hh"
+#endif
+
+#ifdef GLSL_CPP_STUBS
+#  undef OPERATOR
+#  undef FUNCTION
+#  define OPERATOR(x) x
+#  define FUNCTION(x) x
+#endif
+
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(compositor_morphological_distance_feather_shared)

@@ -203,20 +203,20 @@ class ShapeKeyItem : public ui::AbstractTreeViewItem {
     shape_key_.index = index;
   };
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     uiItemL_ex(&row, this->label_, ICON_SHAPEKEY_DATA, false, false);
-    uiLayout *sub = &row.row(true);
-    sub->use_property_decorate_set(false);
+    ui::Layout &sub = row.row(true);
+    sub.use_property_decorate_set(false);
     PointerRNA shapekey_ptr = RNA_pointer_create_discrete(
         &shape_key_.key->id, &RNA_ShapeKey, shape_key_.kb);
 
     if (shape_key_.index > 0) {
-      sub->prop(&shapekey_ptr, "value", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
+      sub.prop(&shapekey_ptr, "value", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
     }
 
-    sub->prop(&shapekey_ptr, "mute", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
-    sub->prop(&shapekey_ptr, "lock_shape", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
+    sub.prop(&shapekey_ptr, "mute", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
+    sub.prop(&shapekey_ptr, "lock_shape", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
     if (shape_key_.kb->flag & KEYBLOCK_MUTE) {
       row.active_set(false);
     }
@@ -277,7 +277,7 @@ class ShapeKeyItem : public ui::AbstractTreeViewItem {
     ED_undo_grouped_push(C, "Delete Shape Key");
   }
 
-  void build_context_menu(bContext &C, uiLayout &layout) const override
+  void build_context_menu(bContext &C, ui::Layout &layout) const override
   {
     MenuType *mt = WM_menutype_find("MESH_MT_shape_key_tree_context_menu", true);
     if (!mt) {
@@ -311,7 +311,7 @@ void ShapeKeyTreeView::build_tree()
   }
 }
 
-void template_tree(uiLayout *layout, bContext *C)
+void template_tree(ui::Layout *layout, bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob == nullptr) {

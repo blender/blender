@@ -10,7 +10,7 @@
 #include <cmath>
 #include <cstring>
 
-#include "BLI_kdtree.h"
+#include "BLI_kdtree.hh"
 
 #include "BLT_translation.hh"
 

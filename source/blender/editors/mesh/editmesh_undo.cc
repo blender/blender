@@ -214,18 +214,15 @@ static struct {
 
 } um_arraystore = {{{nullptr}}};
 
-static void um_arraystore_cd_compact(CustomData *cdata,
-                                     const size_t data_len,
-                                     const bool create,
-                                     const int bs_index,
-                                     const BArrayCustomData *bcd_reference,
-                                     BArrayCustomData **r_bcd_first)
+static void um_arraystore_cd_create(CustomData *cdata,
+                                    const size_t data_len,
+                                    const int bs_index,
+                                    const BArrayCustomData *bcd_reference,
+                                    BArrayCustomData **r_bcd_first)
 {
   using namespace blender;
   if (data_len == 0) {
-    if (create) {
-      *r_bcd_first = nullptr;
-    }
+    *r_bcd_first = nullptr;
   }
 
   const BArrayCustomData *bcd_reference_current = bcd_reference;
@@ -254,99 +251,91 @@ static void um_arraystore_cd_compact(CustomData *cdata,
     }
 
     const int stride = CustomData_sizeof(type);
-    BArrayStore *bs = create ? BLI_array_store_at_size_ensure(&um_arraystore.bs_stride[bs_index],
-                                                              stride,
-                                                              array_chunk_size_calc(stride)) :
-                               nullptr;
+    BArrayStore *bs = BLI_array_store_at_size_ensure(
+        &um_arraystore.bs_stride[bs_index], stride, array_chunk_size_calc(stride));
     const int layer_len = layer_end - layer_start;
 
-    if (create) {
-      if (bcd_reference_current && (bcd_reference_current->type == type)) {
-        /* common case, the reference is aligned */
-      }
-      else {
-        bcd_reference_current = nullptr;
+    if (bcd_reference_current && (bcd_reference_current->type == type)) {
+      /* common case, the reference is aligned */
+    }
+    else {
+      bcd_reference_current = nullptr;
 
-        /* Do a full lookup when unaligned. */
-        if (bcd_reference) {
-          const BArrayCustomData *bcd_iter = bcd_reference;
-          while (bcd_iter) {
-            if (bcd_iter->type == type) {
-              bcd_reference_current = bcd_iter;
-              break;
-            }
-            bcd_iter = bcd_iter->next;
+      /* Do a full lookup when unaligned. */
+      if (bcd_reference) {
+        const BArrayCustomData *bcd_iter = bcd_reference;
+        while (bcd_iter) {
+          if (bcd_iter->type == type) {
+            bcd_reference_current = bcd_iter;
+            break;
           }
+          bcd_iter = bcd_iter->next;
         }
       }
     }
 
-    if (create) {
-      bcd = MEM_new<BArrayCustomData>(__func__);
-      bcd->next = nullptr;
-      bcd->type = type;
-      bcd->states.reinitialize(layer_end - layer_start);
+    bcd = MEM_new<BArrayCustomData>(__func__);
+    bcd->next = nullptr;
+    bcd->type = type;
+    bcd->states.reinitialize(layer_end - layer_start);
 
-      if (bcd_prev) {
-        bcd_prev->next = bcd;
-        bcd_prev = bcd;
-      }
-      else {
-        bcd_first = bcd;
-        bcd_prev = bcd;
-      }
+    if (bcd_prev) {
+      bcd_prev->next = bcd;
+      bcd_prev = bcd;
+    }
+    else {
+      bcd_first = bcd;
+      bcd_prev = bcd;
     }
 
     CustomDataLayer *layer = &cdata->layers[layer_start];
     for (int i = 0; i < layer_len; i++, layer++) {
-      if (create) {
-        if (layer->data) {
-          if (layer_type_is_dynamic) {
-            /* See comment on `layer_type_is_dynamic` above. */
-            const ImplicitSharingInfo *sharing_info = layer->sharing_info;
-            sharing_info->add_user();
-            bcd->states[i] = ImplicitSharingInfoAndData{sharing_info, layer->data};
-          }
-          else {
-            const BArrayState *state_reference = nullptr;
-            if (bcd_reference_current && i < bcd_reference_current->states.size()) {
-              state_reference = std::get<BArrayState *>(bcd_reference_current->states[i]);
-            }
-
-            void *data_final = layer->data;
-            size_t data_final_size = size_t(data_len) * stride;
-
-#  ifdef USE_ARRAY_STORE_RLE
-            const bool use_rle = um_customdata_layer_use_rle(bcd);
-            uint8_t *data_enc = nullptr;
-            if (use_rle) {
-              /* Store the size in the encoded data (for convenience). */
-              size_t data_enc_extra_size = sizeof(size_t);
-              size_t data_enc_len;
-              data_enc = BLI_array_store_rle_encode(reinterpret_cast<const uint8_t *>(data_final),
-                                                    data_final_size,
-                                                    data_enc_extra_size,
-                                                    &data_enc_len);
-              memcpy(data_enc, &data_final_size, data_enc_extra_size);
-              data_final = data_enc;
-              data_final_size = data_enc_extra_size + data_enc_len;
-            }
-#  endif
-
-            bcd->states[i] = {
-                BLI_array_store_state_add(bs, data_final, data_final_size, state_reference),
-            };
-
-#  ifdef USE_ARRAY_STORE_RLE
-            if (use_rle) {
-              MEM_freeN(data_enc);
-            }
-#  endif
-          }
+      if (layer->data) {
+        if (layer_type_is_dynamic) {
+          /* See comment on `layer_type_is_dynamic` above. */
+          const ImplicitSharingInfo *sharing_info = layer->sharing_info;
+          sharing_info->add_user();
+          bcd->states[i] = ImplicitSharingInfoAndData{sharing_info, layer->data};
         }
         else {
-          bcd->states[i] = nullptr;
+          const BArrayState *state_reference = nullptr;
+          if (bcd_reference_current && i < bcd_reference_current->states.size()) {
+            state_reference = std::get<BArrayState *>(bcd_reference_current->states[i]);
+          }
+
+          void *data_final = layer->data;
+          size_t data_final_size = size_t(data_len) * stride;
+
+#  ifdef USE_ARRAY_STORE_RLE
+          const bool use_rle = um_customdata_layer_use_rle(bcd);
+          uint8_t *data_enc = nullptr;
+          if (use_rle) {
+            /* Store the size in the encoded data (for convenience). */
+            size_t data_enc_extra_size = sizeof(size_t);
+            size_t data_enc_len;
+            data_enc = BLI_array_store_rle_encode(reinterpret_cast<const uint8_t *>(data_final),
+                                                  data_final_size,
+                                                  data_enc_extra_size,
+                                                  &data_enc_len);
+            memcpy(data_enc, &data_final_size, data_enc_extra_size);
+            data_final = data_enc;
+            data_final_size = data_enc_extra_size + data_enc_len;
+          }
+#  endif
+
+          bcd->states[i] = {
+              BLI_array_store_state_add(bs, data_final, data_final_size, state_reference),
+          };
+
+#  ifdef USE_ARRAY_STORE_RLE
+          if (use_rle) {
+            MEM_freeN(data_enc);
+          }
+#  endif
         }
+      }
+      else {
+        bcd->states[i] = nullptr;
       }
 
       if (layer->data) {
@@ -356,15 +345,23 @@ static void um_arraystore_cd_compact(CustomData *cdata,
       }
     }
 
-    if (create) {
-      if (bcd_reference_current) {
-        bcd_reference_current = bcd_reference_current->next;
-      }
+    if (bcd_reference_current) {
+      bcd_reference_current = bcd_reference_current->next;
     }
   }
 
-  if (create) {
-    *r_bcd_first = bcd_first;
+  *r_bcd_first = bcd_first;
+}
+
+static void um_arraystore_cd_clear(CustomData *cdata)
+{
+  using namespace blender;
+  for (CustomDataLayer &layer : MutableSpan(cdata->layers, cdata->totlayer)) {
+    if (layer.data) {
+      layer.sharing_info->remove_user_and_delete_if_last();
+      layer.sharing_info = nullptr;
+      layer.data = nullptr;
+    }
   }
 }
 
@@ -453,11 +450,9 @@ static void um_arraystore_cd_free(BArrayCustomData *bcd, const int bs_index)
 }
 
 /**
- * \param create: When false, only free the arrays.
- * This is done since when reading from an undo state, they must be temporarily expanded.
- * then discarded afterwards, having this argument avoids having 2x code paths.
+ * Move data from allocated arrays to de-duplicated states and clear arrays.
  */
-static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool create)
+static void um_arraystore_compact(UndoMesh *um, const UndoMesh *um_ref)
 {
   Mesh *mesh = um->mesh;
 
@@ -471,54 +466,48 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
   blender::threading::parallel_invoke(
       4096 < (mesh->verts_num + mesh->edges_num + mesh->corners_num + mesh->faces_num),
       [&]() {
-        um_arraystore_cd_compact(&mesh->vert_data,
-                                 mesh->verts_num,
-                                 create,
-                                 ARRAY_STORE_INDEX_VERT,
-                                 um_ref ? um_ref->store.vdata : nullptr,
-                                 &um->store.vdata);
+        um_arraystore_cd_create(&mesh->vert_data,
+                                mesh->verts_num,
+                                ARRAY_STORE_INDEX_VERT,
+                                um_ref ? um_ref->store.vdata : nullptr,
+                                &um->store.vdata);
       },
       [&]() {
-        um_arraystore_cd_compact(&mesh->edge_data,
-                                 mesh->edges_num,
-                                 create,
-                                 ARRAY_STORE_INDEX_EDGE,
-                                 um_ref ? um_ref->store.edata : nullptr,
-                                 &um->store.edata);
+        um_arraystore_cd_create(&mesh->edge_data,
+                                mesh->edges_num,
+                                ARRAY_STORE_INDEX_EDGE,
+                                um_ref ? um_ref->store.edata : nullptr,
+                                &um->store.edata);
       },
       [&]() {
-        um_arraystore_cd_compact(&mesh->corner_data,
-                                 mesh->corners_num,
-                                 create,
-                                 ARRAY_STORE_INDEX_LOOP,
-                                 um_ref ? um_ref->store.ldata : nullptr,
-                                 &um->store.ldata);
+        um_arraystore_cd_create(&mesh->corner_data,
+                                mesh->corners_num,
+                                ARRAY_STORE_INDEX_LOOP,
+                                um_ref ? um_ref->store.ldata : nullptr,
+                                &um->store.ldata);
       },
       [&]() {
-        um_arraystore_cd_compact(&mesh->face_data,
-                                 mesh->faces_num,
-                                 create,
-                                 ARRAY_STORE_INDEX_POLY,
-                                 um_ref ? um_ref->store.pdata : nullptr,
-                                 &um->store.pdata);
+        um_arraystore_cd_create(&mesh->face_data,
+                                mesh->faces_num,
+                                ARRAY_STORE_INDEX_POLY,
+                                um_ref ? um_ref->store.pdata : nullptr,
+                                &um->store.pdata);
       },
       [&]() {
         if (mesh->face_offset_indices) {
-          BLI_assert(create == (um->store.face_offset_indices == nullptr));
-          if (create) {
-            const BArrayState *state_reference = um_ref ? um_ref->store.face_offset_indices :
-                                                          nullptr;
-            const size_t stride = sizeof(*mesh->face_offset_indices);
-            BArrayStore *bs = BLI_array_store_at_size_ensure(
-                &um_arraystore.bs_stride[ARRAY_STORE_INDEX_POLY_OFFSETS],
-                stride,
-                array_chunk_size_calc(stride));
-            um->store.face_offset_indices = BLI_array_store_state_add(bs,
-                                                                      mesh->face_offset_indices,
-                                                                      size_t(mesh->faces_num + 1) *
-                                                                          stride,
-                                                                      state_reference);
-          }
+          const BArrayState *state_reference = um_ref ? um_ref->store.face_offset_indices :
+                                                        nullptr;
+          const size_t stride = sizeof(*mesh->face_offset_indices);
+          BArrayStore *bs = BLI_array_store_at_size_ensure(
+              &um_arraystore.bs_stride[ARRAY_STORE_INDEX_POLY_OFFSETS],
+              stride,
+              array_chunk_size_calc(stride));
+          um->store.face_offset_indices = BLI_array_store_state_add(bs,
+                                                                    mesh->face_offset_indices,
+                                                                    size_t(mesh->faces_num + 1) *
+                                                                        stride,
+                                                                    state_reference);
+
           blender::implicit_sharing::free_shared_data(&mesh->face_offset_indices,
                                                       &mesh->runtime->face_offsets_sharing_info);
         }
@@ -526,25 +515,21 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
       [&]() {
         if (mesh->key && mesh->key->totkey) {
           const size_t stride = mesh->key->elemsize;
-          BArrayStore *bs = create ? BLI_array_store_at_size_ensure(
-                                         &um_arraystore.bs_stride[ARRAY_STORE_INDEX_SHAPE],
-                                         stride,
-                                         array_chunk_size_calc(stride)) :
-                                     nullptr;
-          if (create) {
-            um->store.keyblocks = static_cast<BArrayState **>(
-                MEM_mallocN(mesh->key->totkey * sizeof(*um->store.keyblocks), __func__));
-          }
+          BArrayStore *bs = BLI_array_store_at_size_ensure(
+              &um_arraystore.bs_stride[ARRAY_STORE_INDEX_SHAPE],
+              stride,
+              array_chunk_size_calc(stride));
+          um->store.keyblocks = static_cast<BArrayState **>(
+              MEM_mallocN(mesh->key->totkey * sizeof(*um->store.keyblocks), __func__));
+
           KeyBlock *keyblock = static_cast<KeyBlock *>(mesh->key->block.first);
           for (int i = 0; i < mesh->key->totkey; i++, keyblock = keyblock->next) {
-            if (create) {
-              const BArrayState *state_reference = (um_ref && um_ref->mesh->key &&
-                                                    (i < um_ref->mesh->key->totkey)) ?
-                                                       um_ref->store.keyblocks[i] :
-                                                       nullptr;
-              um->store.keyblocks[i] = BLI_array_store_state_add(
-                  bs, keyblock->data, size_t(keyblock->totelem) * stride, state_reference);
-            }
+            const BArrayState *state_reference = (um_ref && um_ref->mesh->key &&
+                                                  (i < um_ref->mesh->key->totkey)) ?
+                                                     um_ref->store.keyblocks[i] :
+                                                     nullptr;
+            um->store.keyblocks[i] = BLI_array_store_state_add(
+                bs, keyblock->data, size_t(keyblock->totelem) * stride, state_reference);
 
             if (keyblock->data) {
               MEM_freeN(keyblock->data);
@@ -555,17 +540,14 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
       },
       [&]() {
         if (mesh->mselect && mesh->totselect) {
-          BLI_assert(create == (um->store.mselect == nullptr));
-          if (create) {
-            const BArrayState *state_reference = um_ref ? um_ref->store.mselect : nullptr;
-            const size_t stride = sizeof(*mesh->mselect);
-            BArrayStore *bs = BLI_array_store_at_size_ensure(
-                &um_arraystore.bs_stride[ARRAY_STORE_INDEX_MSEL],
-                stride,
-                array_chunk_size_calc(stride));
-            um->store.mselect = BLI_array_store_state_add(
-                bs, mesh->mselect, size_t(mesh->totselect) * stride, state_reference);
-          }
+          const BArrayState *state_reference = um_ref ? um_ref->store.mselect : nullptr;
+          const size_t stride = sizeof(*mesh->mselect);
+          BArrayStore *bs = BLI_array_store_at_size_ensure(
+              &um_arraystore.bs_stride[ARRAY_STORE_INDEX_MSEL],
+              stride,
+              array_chunk_size_calc(stride));
+          um->store.mselect = BLI_array_store_state_add(
+              bs, mesh->mselect, size_t(mesh->totselect) * stride, state_reference);
 
           /* keep mesh->totselect for validation */
           MEM_freeN(mesh->mselect);
@@ -573,17 +555,37 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
         }
       });
 
-  if (create) {
-    um_arraystore.users += 1;
-  }
+  um_arraystore.users += 1;
 }
 
 /**
- * Move data from allocated arrays to de-duplicated states and clear arrays.
+ * Remove data we only expanded for temporary use.
  */
-static void um_arraystore_compact(UndoMesh *um, const UndoMesh *um_ref)
+static void um_arraystore_expand_clear(UndoMesh *um)
 {
-  um_arraystore_compact_ex(um, um_ref, true);
+  Mesh *mesh = um->mesh;
+  um_arraystore_cd_clear(&mesh->vert_data);
+  um_arraystore_cd_clear(&mesh->edge_data);
+  um_arraystore_cd_clear(&mesh->corner_data);
+  um_arraystore_cd_clear(&mesh->face_data);
+  if (mesh->face_offset_indices) {
+    blender::implicit_sharing::free_shared_data(&mesh->face_offset_indices,
+                                                &mesh->runtime->face_offsets_sharing_info);
+  }
+  if (mesh->key && mesh->key->totkey) {
+    KeyBlock *keyblock = static_cast<KeyBlock *>(mesh->key->block.first);
+    for (int i = 0; i < mesh->key->totkey; i++, keyblock = keyblock->next) {
+      if (keyblock->data) {
+        MEM_freeN(keyblock->data);
+        keyblock->data = nullptr;
+      }
+    }
+  }
+  if (mesh->mselect && mesh->totselect) {
+    /* keep mesh->totselect for validation */
+    MEM_freeN(mesh->mselect);
+    mesh->mselect = nullptr;
+  }
 }
 
 static void um_arraystore_compact_with_info(UndoMesh *um, const UndoMesh *um_ref)
@@ -652,14 +654,6 @@ static void um_arraystore_compact_cb(TaskPool *__restrict /*pool*/, void *taskda
 }
 
 #  endif /* USE_ARRAY_STORE_THREAD */
-
-/**
- * Remove data we only expanded for temporary use.
- */
-static void um_arraystore_expand_clear(UndoMesh *um)
-{
-  um_arraystore_compact_ex(um, nullptr, false);
-}
 
 static void um_arraystore_expand(UndoMesh *um)
 {
@@ -780,11 +774,12 @@ static void um_arraystore_free(UndoMesh *um)
 static UndoMesh **mesh_undostep_reference_elems_from_objects(Object **object, int object_len)
 {
   /* Map: `Mesh.id.session_uid` -> `UndoMesh`. */
-  GHash *uuid_map = BLI_ghash_ptr_new_ex(__func__, object_len);
+  blender::Map<int, UndoMesh **> uuid_map;
+  uuid_map.reserve(object_len);
   UndoMesh **um_references = MEM_calloc_arrayN<UndoMesh *>(object_len, __func__);
   for (int i = 0; i < object_len; i++) {
     const Mesh *mesh = static_cast<const Mesh *>(object[i]->data);
-    BLI_ghash_insert(uuid_map, POINTER_FROM_INT(mesh->id.session_uid), &um_references[i]);
+    uuid_map.add(mesh->id.session_uid, &um_references[i]);
   }
   int uuid_map_len = object_len;
 
@@ -793,17 +788,13 @@ static UndoMesh **mesh_undostep_reference_elems_from_objects(Object **object, in
    * - There are no undo steps left to look for. */
   UndoMesh *um_iter = static_cast<UndoMesh *>(um_arraystore.local_links.last);
   while (um_iter && (uuid_map_len != 0)) {
-    UndoMesh **um_p;
-    if ((um_p = static_cast<UndoMesh **>(BLI_ghash_popkey(
-             uuid_map, POINTER_FROM_INT(um_iter->mesh->id.session_uid), nullptr))))
-    {
+    if (UndoMesh **um_p = uuid_map.pop_default(um_iter->mesh->id.session_uid, nullptr)) {
       *um_p = um_iter;
       uuid_map_len--;
     }
     um_iter = um_iter->local_prev;
   }
-  BLI_assert(uuid_map_len == BLI_ghash_len(uuid_map));
-  BLI_ghash_free(uuid_map, nullptr, nullptr);
+  BLI_assert(uuid_map_len == uuid_map.size());
   if (uuid_map_len == object_len) {
     MEM_freeN(um_references);
     um_references = nullptr;

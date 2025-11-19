@@ -100,8 +100,8 @@ class GLShader : public Shader {
   GLProgram *main_program_ = nullptr;
 
   /* When true, the shader generates its GLSources but it's not compiled.
-   * (Used for batch compilation) */
-  bool async_compilation_ = false;
+   * (Used for subprocess compilation) */
+  bool is_codegen_only_ = false;
 
   /**
    * When the shader uses Specialization Constants these attribute contains the sources to
@@ -132,7 +132,7 @@ class GLShader : public Shader {
   GLShader(const char *name);
   ~GLShader();
 
-  void init(const shader::ShaderCreateInfo &info, bool is_batch_compilation) override;
+  void init(const shader::ShaderCreateInfo &info, bool is_codegen_only) override;
 
   const shader::ShaderCreateInfo &patch_create_info(
       const shader::ShaderCreateInfo &original_info) override
@@ -211,7 +211,7 @@ class GLShaderCompiler : public ShaderCompiler {
       : ShaderCompiler(GPU_max_parallel_compilations(), GPUWorker::ContextType::PerThread, true) {
         };
 
-  virtual void specialize_shader(ShaderSpecialization &specialization) override;
+  virtual void specialize_shader(const ShaderSpecialization &specialization) override;
 };
 
 #if BLI_SUBPROCESS_SUPPORT
@@ -266,7 +266,7 @@ class GLSubprocessShaderCompiler : public ShaderCompiler {
   virtual ~GLSubprocessShaderCompiler() override;
 
   virtual Shader *compile_shader(const shader::ShaderCreateInfo &info) override;
-  virtual void specialize_shader(ShaderSpecialization &specialization) override;
+  virtual void specialize_shader(const ShaderSpecialization &specialization) override;
 };
 
 #else

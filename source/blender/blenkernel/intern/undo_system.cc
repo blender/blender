@@ -986,6 +986,10 @@ static void UNUSED_FUNCTION(BKE_undosys_foreach_ID_ref(UndoStack *ustack,
 
 void BKE_undosys_print(UndoStack *ustack)
 {
+  if (!ustack) {
+    printf("No undo steps recorded yet.\n");
+    return;
+  }
   printf("Undo %d Steps (*: active, #=applied, M=memfile-active, S=skip)\n",
          BLI_listbase_count(&ustack->steps));
   int index = 0;

@@ -3144,7 +3144,7 @@ static wmOperatorStatus edbm_rotate_colors_exec(bContext *C, wmOperator *op)
     }
 
     int color_index = BKE_attribute_to_index(
-        owner, layer, ATTR_DOMAIN_MASK_CORNER, CD_MASK_COLOR_ALL);
+        owner, layer->name, ATTR_DOMAIN_MASK_CORNER, CD_MASK_COLOR_ALL);
     EDBM_op_init(em,
                  &bmop,
                  op,
@@ -3195,7 +3195,7 @@ static wmOperatorStatus edbm_reverse_colors_exec(bContext *C, wmOperator *op)
     BMOperator bmop;
 
     int color_index = BKE_attribute_to_index(
-        owner, layer, ATTR_DOMAIN_MASK_CORNER, CD_MASK_COLOR_ALL);
+        owner, layer->name, ATTR_DOMAIN_MASK_CORNER, CD_MASK_COLOR_ALL);
     EDBM_op_init(
         em, &bmop, op, "reverse_colors faces=%hf color_index=%i", BM_ELEM_SELECT, color_index);
 
@@ -3980,18 +3980,18 @@ static const EnumPropertyItem *shape_itemf(bContext *C,
 
 static void edbm_blend_from_shape_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  blender::ui::Layout &layout = *op->layout;
   Object *obedit = CTX_data_edit_object(C);
   Mesh *mesh = static_cast<Mesh *>(obedit->data);
 
   PointerRNA ptr_key = RNA_id_pointer_create((ID *)mesh->key);
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
-  layout->prop_search(op->ptr, "shape", &ptr_key, "key_blocks", std::nullopt, ICON_SHAPEKEY_DATA);
-  layout->prop(op->ptr, "blend", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(op->ptr, "add", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop_search(op->ptr, "shape", &ptr_key, "key_blocks", std::nullopt, ICON_SHAPEKEY_DATA);
+  layout.prop(op->ptr, "blend", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "add", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 void MESH_OT_blend_from_shape(wmOperatorType *ot)
@@ -5790,23 +5790,23 @@ static bool edbm_decimate_check(bContext * /*C*/, wmOperator * /*op*/)
 
 static void edbm_decimate_ui(bContext * /*C*/, wmOperator *op)
 {
-  uiLayout *layout = op->layout, *row, *col, *sub;
+  blender::ui::Layout &layout = *op->layout;
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(op->ptr, "ratio", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "ratio", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->prop(op->ptr, "use_vertex_group", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col = &layout->column(false);
-  col->active_set(RNA_boolean_get(op->ptr, "use_vertex_group"));
-  col->prop(op->ptr, "vertex_group_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col->prop(op->ptr, "invert_vertex_group", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "use_vertex_group", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  blender::ui::Layout &col = layout.column(false);
+  col.active_set(RNA_boolean_get(op->ptr, "use_vertex_group"));
+  col.prop(op->ptr, "vertex_group_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(op->ptr, "invert_vertex_group", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = &layout->row(true, IFACE_("Symmetry"));
-  row->prop(op->ptr, "use_symmetry", UI_ITEM_NONE, "", ICON_NONE);
-  sub = &row->row(true);
-  sub->active_set(RNA_boolean_get(op->ptr, "use_symmetry"));
-  sub->prop(op->ptr, "symmetry_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  blender::ui::Layout &row = layout.row(true, IFACE_("Symmetry"));
+  row.prop(op->ptr, "use_symmetry", UI_ITEM_NONE, "", ICON_NONE);
+  blender::ui::Layout &sub = row.row(true);
+  sub.active_set(RNA_boolean_get(op->ptr, "use_symmetry"));
+  sub.prop(op->ptr, "symmetry_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 void MESH_OT_decimate(wmOperatorType *ot)
@@ -8667,14 +8667,10 @@ static wmOperatorStatus edbm_point_normals_modal(bContext *C, wmOperator *op, co
     point_normals_cancel(C, op);
   }
 
-  /* If we allow other tools to run, we can't be sure if they will re-allocate
-   * the data this operator uses, see: #68159.
-   * Free the data here, then use #point_normals_ensure to add it back on demand. */
-  if (ret == OPERATOR_PASS_THROUGH) {
-    /* Don't free on mouse-move, causes creation/freeing of the loop data in an inefficient way. */
-    if (!ISMOUSE_MOTION(event->type)) {
-      point_normals_free(op);
-    }
+  /* Keep the normal data active while the operator is running,
+   * and only free it when the operation ends or is canceled. */
+  if (ELEM(ret, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
+    point_normals_free(op);
   }
   return ret;
 }
@@ -8739,15 +8735,15 @@ static bool point_normals_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop, vo
 
 static void edbm_point_normals_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  blender::ui::Layout &layout = *op->layout;
   wmWindowManager *wm = CTX_wm_manager(C);
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
   /* Main auto-draw call */
-  uiDefAutoButsRNA(layout,
+  uiDefAutoButsRNA(&layout,
                    &ptr,
                    point_normals_draw_check_prop,
                    nullptr,
@@ -9231,15 +9227,15 @@ static bool average_normals_draw_check_prop(PointerRNA *ptr,
 
 static void edbm_average_normals_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  blender::ui::Layout &layout = *op->layout;
   wmWindowManager *wm = CTX_wm_manager(C);
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
   /* Main auto-draw call */
-  uiDefAutoButsRNA(layout,
+  uiDefAutoButsRNA(&layout,
                    &ptr,
                    average_normals_draw_check_prop,
                    nullptr,
@@ -9485,13 +9481,13 @@ static bool normals_tools_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop, vo
 
 static void edbm_normals_tools_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  blender::ui::Layout &layout = *op->layout;
   wmWindowManager *wm = CTX_wm_manager(C);
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
   /* Main auto-draw call */
-  uiDefAutoButsRNA(layout,
+  uiDefAutoButsRNA(&layout,
                    &ptr,
                    normals_tools_draw_check_prop,
                    nullptr,

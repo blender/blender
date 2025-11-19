@@ -24,10 +24,9 @@ struct StepData;
 namespace blender::ed::sculpt_paint::dyntopo {
 
 enum WarnFlag {
-  VDATA = (1 << 0),
-  EDATA = (1 << 1),
-  LDATA = (1 << 2),
-  MODIFIER = (1 << 3),
+  OKAY = 0,
+  ATTRIBUTES = (1 << 1),
+  MODIFIER = (1 << 2),
 };
 ENUM_OPERATORS(WarnFlag);
 

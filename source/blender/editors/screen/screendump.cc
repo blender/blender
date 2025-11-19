@@ -210,18 +210,18 @@ static bool screenshot_draw_check_prop(PointerRNA * /*ptr*/,
 
 static void screenshot_draw(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  blender::ui::Layout &layout = *op->layout;
   ScreenshotData *scd = static_cast<ScreenshotData *>(op->customdata);
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
   /* image template */
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_ImageFormatSettings, &scd->im_format);
-  uiTemplateImageSettings(layout, C, &ptr, false);
+  uiTemplateImageSettings(&layout, C, &ptr, false);
 
   /* main draw call */
-  uiDefAutoButsRNA(layout,
+  uiDefAutoButsRNA(&layout,
                    op->ptr,
                    screenshot_draw_check_prop,
                    nullptr,

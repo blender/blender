@@ -876,7 +876,7 @@ static wmOperatorStatus bake_simulation_invoke(bContext *C,
                                   IFACE_("Overwrite existing bake data?"),
                                   nullptr,
                                   IFACE_("Bake"),
-                                  ALERT_ICON_NONE,
+                                  ui::AlertIcon::None,
                                   false);
   }
   Vector<NodeBakeRequest> requests = bake_simulation_gather_requests(C, op);
@@ -1103,18 +1103,15 @@ static wmOperatorStatus unpack_single_bake_invoke(bContext *C,
                                                   wmOperator *op,
                                                   const wmEvent * /*event*/)
 {
-  uiPopupMenu *pup;
-  uiLayout *layout;
+  uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Unpack"), ICON_NONE);
+  ui::Layout &layout = *UI_popup_menu_layout(pup);
 
-  pup = UI_popup_menu_begin(C, IFACE_("Unpack"), ICON_NONE);
-  layout = UI_popup_menu_layout(pup);
-
-  layout->operator_context_set(wm::OpCallContext::ExecDefault);
-  layout->op_enum(op->type->idname,
-                  "method",
-                  static_cast<IDProperty *>(op->ptr->data),
-                  wm::OpCallContext::ExecRegionWin,
-                  UI_ITEM_NONE);
+  layout.operator_context_set(wm::OpCallContext::ExecDefault);
+  layout.op_enum(op->type->idname,
+                 "method",
+                 static_cast<IDProperty *>(op->ptr->data),
+                 wm::OpCallContext::ExecRegionWin,
+                 UI_ITEM_NONE);
 
   UI_popup_menu_end(C, pup);
 

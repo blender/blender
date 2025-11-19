@@ -2,18 +2,23 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "gpu_shader_material_vector_math.glsl"
 #include "gpu_shader_math_base_lib.glsl"
 
 void node_tex_environment_equirectangular(float3 co, out float3 uv)
 {
-  float3 nco = normalize(co);
+  float3 nco = vector_math_safe_normalize(co);
+  if (nco.x == 0.0f || nco.y == 0.0f) {
+    uv = float3(0.0f);
+    return;
+  }
   uv.x = -atan(nco.y, nco.x) / (2.0f * M_PI) + 0.5f;
   uv.y = atan(nco.z, hypot(nco.x, nco.y)) / M_PI + 0.5f;
 }
 
 void node_tex_environment_mirror_ball(float3 co, out float3 uv)
 {
-  float3 nco = normalize(co);
+  float3 nco = vector_math_safe_normalize(co);
   nco.y -= 1.0f;
 
   float div = 2.0f * sqrt(max(-0.5f * nco.y, 0.0f));

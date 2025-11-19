@@ -599,6 +599,8 @@ void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval);
  * it's the last modifier on the stack and it is not on the first level.
  */
 MultiresModifierData *BKE_sculpt_multires_active(const Scene *scene, Object *ob);
+int BKE_sculpt_get_grid_num_verts(const Object &object);
+int BKE_sculpt_get_grid_num_faces(const Object &object);
 
 /**
  * Ensures a mask layer exists. If depsgraph and bmain are non-null,

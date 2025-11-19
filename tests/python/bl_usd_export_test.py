@@ -877,6 +877,35 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(len(indices2), 15)
         self.assertNotEqual(indices1, indices2)
 
+    def test_export_point_ids(self):
+        """Validate we can export animated PointCloud IDs"""
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_point_ids.blend"))
+        # Ensure the simulation zone data is baked for all relevant frames...
+        for frame in range(1, 7):
+            bpy.context.scene.frame_set(frame)
+        bpy.context.scene.frame_set(1)
+
+        export_path = self.tempdir / "usd_point_ids.usda"
+        self.export_and_validate(filepath=str(export_path), export_animation=True, evaluation_mode="RENDER")
+
+        stage = Usd.Stage.Open(str(export_path))
+
+        #
+        # Validate PointCloud data
+        #
+        points1 = UsdGeom.Points(stage.GetPrimAtPath("/root/pointcloud1/PointCloud"))
+
+        # IDs
+        attr_ids = points1.GetIdsAttr()
+        self.assertEqual(attr_ids.GetTimeSamples(), [1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
+        self.assertEqual(attr_ids.Get(1), [3])
+        self.assertEqual(attr_ids.Get(2), [6])
+        self.assertEqual(attr_ids.Get(3), [6, 9])
+        self.assertEqual(attr_ids.Get(4), [9, 12])
+        self.assertEqual(attr_ids.Get(5), [12, 15])
+        self.assertEqual(attr_ids.Get(6), [12, 15, 18])
+
     def test_export_curves(self):
         """Test exporting Curve types"""
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_curves_test.blend"))
@@ -1916,6 +1945,40 @@ class USDExportTest(AbstractUSDTest):
         with zipfile.ZipFile(export_path, 'r') as zfile:
             file_list = zfile.namelist()
             self.assertIn('textures/color_0C0C0C.exr', file_list)
+
+    def test_export_indexed_uvs(self):
+        """Test that UV maps are exported with proper indexing."""
+
+        # Create a simple cube
+        bpy.ops.mesh.primitive_cube_add()
+        cube = bpy.context.active_object
+        cube.name = "Cube"
+
+        # Export the mesh
+        export_path = self.tempdir / "uv_indexed_test.usda"
+        self.export_and_validate(
+            filepath=str(export_path),
+            export_uvmaps=True,
+            rename_uvmaps=True,
+            evaluation_mode="RENDER",
+        )
+
+        # Load and validate the exported USD
+        stage = Usd.Stage.Open(str(export_path))
+        mesh_prim = stage.GetPrimAtPath("/root/Cube/Cube")
+
+        primvars_api = UsdGeom.PrimvarsAPI(mesh_prim)
+        uv_primvar = primvars_api.GetPrimvar("st")
+        self.assertTrue(uv_primvar.IsIndexed(), "UV primvar should be indexed")
+        self.assertEqual(uv_primvar.GetInterpolation(), UsdGeom.Tokens.faceVarying,
+                         "UV interpolation should be faceVarying")
+
+        uv_values = uv_primvar.Get()
+        uv_indices = uv_primvar.GetIndices()
+        self.assertIsNotNone(uv_indices, "UV primvar should have indices")
+        self.assertEqual(len(uv_indices), 24, "Should have 24 UV indices (one per face vertex)")
+        self.assertLess(len(uv_values), 24,
+                        f"Unique UV count ({len(uv_values)}) should be less than face vertex count (24)")
 
 
 class USDHookBase:

@@ -2291,7 +2291,7 @@ void UI_icon_text_overlay_init_from_count(IconTextOverlay *text_overlay,
 
 /* ********** Alert Icons ********** */
 
-ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon, float size)
+ImBuf *UI_icon_alert_imbuf_get(blender::ui::AlertIcon icon, float size)
 {
 #ifdef WITH_HEADLESS
   UNUSED_VARS(icon, size);
@@ -2300,16 +2300,16 @@ ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon, float size)
 
   int icon_id = ICON_NONE;
   switch (icon) {
-    case ALERT_ICON_WARNING:
+    case blender::ui::AlertIcon::Warning:
       icon_id = ICON_WARNING_LARGE;
       break;
-    case ALERT_ICON_QUESTION:
+    case blender::ui::AlertIcon::Question:
       icon_id = ICON_QUESTION_LARGE;
       break;
-    case ALERT_ICON_ERROR:
+    case blender::ui::AlertIcon::Error:
       icon_id = ICON_CANCEL_LARGE;
       break;
-    case ALERT_ICON_INFO:
+    case blender::ui::AlertIcon::Info:
       icon_id = ICON_INFO_LARGE;
       break;
     default:

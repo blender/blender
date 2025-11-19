@@ -145,22 +145,22 @@ const asset_system::AssetRepresentation *operator_asset_reference_props_get_asse
 
 void draw_menu_for_catalog(const asset_system::AssetCatalogTreeItem &item,
                            const StringRefNull menu_name,
-                           uiLayout &layout)
+                           ui::Layout &layout)
 {
-  uiLayout *col = &layout.column(false);
-  col->context_string_set("asset_catalog_path", item.catalog_path().c_str());
-  col->menu(menu_name, IFACE_(item.get_name()), ICON_NONE);
+  ui::Layout &col = layout.column(false);
+  col.context_string_set("asset_catalog_path", item.catalog_path().c_str());
+  col.menu(menu_name, IFACE_(item.get_name()), ICON_NONE);
 }
 
 void draw_node_menu_for_catalog(const asset_system::AssetCatalogTreeItem &item,
                                 const StringRefNull operator_id,
                                 const StringRefNull menu_name,
-                                uiLayout &layout)
+                                ui::Layout &layout)
 {
-  uiLayout *col = &layout.column(false);
-  col->context_string_set("asset_catalog_path", item.catalog_path().c_str());
-  col->context_string_set("operator_id", operator_id);
-  col->menu(menu_name, IFACE_(item.get_name()), ICON_NONE);
+  ui::Layout &col = layout.column(false);
+  col.context_string_set("asset_catalog_path", item.catalog_path().c_str());
+  col.context_string_set("operator_id", operator_id);
+  col.menu(menu_name, IFACE_(item.get_name()), ICON_NONE);
 }
 
 }  // namespace blender::ed::asset

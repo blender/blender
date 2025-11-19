@@ -22,6 +22,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_attribute.hh"
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_mesh.hh"
@@ -337,22 +338,27 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
   bke::MutableAttributeAccessor result_attributes = result->attributes_for_write();
 
+  bke::LegacyMeshInterpolator vert_interp(*mesh, *result, bke::AttrDomain::Point);
+  bke::LegacyMeshInterpolator edge_interp(*mesh, *result, bke::AttrDomain::Edge);
+  bke::LegacyMeshInterpolator face_interp(*mesh, *result, bke::AttrDomain::Face);
+  bke::LegacyMeshInterpolator corner_interp(*mesh, *result, bke::AttrDomain::Corner);
+
   if (do_shell) {
-    CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, 0, int(verts_num));
-    CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, int(verts_num), int(verts_num));
+    vert_interp.copy(0, 0, int(verts_num));
+    vert_interp.copy(0, int(verts_num), int(verts_num));
 
-    CustomData_copy_data(&mesh->edge_data, &result->edge_data, 0, 0, int(edges_num));
-    CustomData_copy_data(&mesh->edge_data, &result->edge_data, 0, int(edges_num), int(edges_num));
+    edge_interp.copy(0, 0, int(edges_num));
+    edge_interp.copy(0, int(edges_num), int(edges_num));
 
-    CustomData_copy_data(&mesh->corner_data, &result->corner_data, 0, 0, int(loops_num));
+    corner_interp.copy(0, 0, int(loops_num));
     /* DO NOT copy here the 'copied' part of loop data, we want to reverse loops
      * (so that winding of copied face get reversed, so that normals get reversed
      * and point in expected direction...).
      * If we also copy data here, then this data get overwritten
      * (and allocated memory becomes a memory leak). */
 
-    CustomData_copy_data(&mesh->face_data, &result->face_data, 0, 0, int(faces_num));
-    CustomData_copy_data(&mesh->face_data, &result->face_data, 0, int(faces_num), int(faces_num));
+    face_interp.copy(0, 0, int(faces_num));
+    face_interp.copy(0, int(faces_num), int(faces_num));
     face_offsets.take_front(faces_num).copy_from(mesh->face_offsets().drop_back(1));
     for (const int i : orig_faces.index_range()) {
       face_offsets[faces_num + i] = orig_faces[i].start() + mesh->corners_num;
@@ -360,20 +366,20 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   }
   else {
     int i, j;
-    CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, 0, int(verts_num));
+    vert_interp.copy(0, 0, int(verts_num));
     for (i = 0, j = int(verts_num); i < verts_num; i++) {
       if (old_vert_arr[i] != INVALID_UNUSED) {
-        CustomData_copy_data(&mesh->vert_data, &result->vert_data, i, j, 1);
+        vert_interp.copy(i, j, 1);
         j++;
       }
     }
 
-    CustomData_copy_data(&mesh->edge_data, &result->edge_data, 0, 0, int(edges_num));
+    edge_interp.copy(0, 0, int(edges_num));
 
     for (i = 0, j = int(edges_num); i < edges_num; i++) {
       if (!ELEM(edge_users[i], INVALID_UNUSED, INVALID_PAIR)) {
         blender::int2 *ed_src, *ed_dst;
-        CustomData_copy_data(&mesh->edge_data, &result->edge_data, i, j, 1);
+        edge_interp.copy(i, j, 1);
 
         ed_src = &edges[i];
         ed_dst = &edges[j];
@@ -384,8 +390,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     }
 
     /* will be created later */
-    CustomData_copy_data(&mesh->corner_data, &result->corner_data, 0, 0, int(loops_num));
-    CustomData_copy_data(&mesh->face_data, &result->face_data, 0, 0, int(faces_num));
+    corner_interp.copy(0, 0, int(loops_num));
+    face_interp.copy(0, 0, int(faces_num));
     face_offsets.take_front(faces_num).copy_from(mesh->face_offsets().drop_back(1));
   }
 
@@ -436,22 +442,15 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       const int corner_2 = face.start() + mesh->corners_num;
 #if 0
       for (j = 0; j < face.size(); j++) {
-        CustomData_copy_data(&mesh->ldata,
-                             &result->ldata,
-                             face.start() + j,
-                             face.start() + (loop_end - j) + mesh->corners_num,
-                             1);
+        corner_interp.copy(face.start() + j, face.start() + (loop_end - j) + mesh->corners_num, 1);
       }
 #else
       /* slightly more involved, keep the first vertex the same for the copy,
        * ensures the diagonals in the new face match the original. */
       j = 0;
       for (int j_prev = loop_end; j < face.size(); j_prev = j++) {
-        CustomData_copy_data(&mesh->corner_data,
-                             &result->corner_data,
-                             face.start() + j,
-                             face.start() + (loop_end - j_prev) + mesh->corners_num,
-                             1);
+        corner_interp.copy(
+            face.start() + j, face.start() + (loop_end - j_prev) + mesh->corners_num, 1);
       }
 #endif
 
@@ -1061,8 +1060,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       const blender::int2 &edge = edges[eidx];
 
       /* copy most of the face settings */
-      CustomData_copy_data(
-          &mesh->face_data, &result->face_data, int(pidx), int((faces_num * stride) + i), 1);
+      face_interp.copy(int(pidx), int((faces_num * stride) + i), 1);
 
       const int old_face_size = orig_faces[pidx].size();
       face_offsets[new_face_index] = int(j + (loops_num * stride));
@@ -1072,14 +1070,10 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
       k2 = face_offsets[pidx] + (edge_order[eidx]);
 
-      CustomData_copy_data(
-          &mesh->corner_data, &result->corner_data, k2, int((loops_num * stride) + j + 0), 1);
-      CustomData_copy_data(
-          &mesh->corner_data, &result->corner_data, k1, int((loops_num * stride) + j + 1), 1);
-      CustomData_copy_data(
-          &mesh->corner_data, &result->corner_data, k1, int((loops_num * stride) + j + 2), 1);
-      CustomData_copy_data(
-          &mesh->corner_data, &result->corner_data, k2, int((loops_num * stride) + j + 3), 1);
+      corner_interp.copy(k2, int((loops_num * stride) + j + 0), 1);
+      corner_interp.copy(k1, int((loops_num * stride) + j + 1), 1);
+      corner_interp.copy(k1, int((loops_num * stride) + j + 2), 1);
+      corner_interp.copy(k2, int((loops_num * stride) + j + 3), 1);
 
       if (flip == false) {
         new_corner_verts[j] = edge[0];

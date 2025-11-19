@@ -14,9 +14,9 @@
 #include "DNA_ID.h"
 #include "DNA_movieclip_types.h"
 
+#include "BLI_map.hh"
 #include "BLI_threads.h"
 
-struct GHash;
 struct MovieTracking;
 struct MovieTrackingMarker;
 
@@ -30,7 +30,7 @@ typedef struct TracksMap {
   int num_tracks;
   MovieTrackingTrack *tracks;
 
-  struct GHash *hash;
+  blender::Map<MovieTrackingTrack *, MovieTrackingTrack *> *hash;
 
   int ptr;
 

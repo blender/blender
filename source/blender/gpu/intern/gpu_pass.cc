@@ -37,7 +37,7 @@ struct GPUPass {
   static inline std::atomic<uint64_t> compilation_counts = 0;
 
   GPUCodegenCreateInfo *create_info = nullptr;
-  BatchHandle compilation_handle = 0;
+  AsyncCompilationHandle compilation_handle = 0;
   std::atomic<blender::gpu::Shader *> shader = nullptr;
   std::atomic<GPUPassStatus> status = GPU_PASS_QUEUED;
   /* Orphaned GPUPasses gets freed by the garbage collector. */
@@ -74,8 +74,7 @@ struct GPUPass {
     GPUShaderCreateInfo *base_info = reinterpret_cast<GPUShaderCreateInfo *>(create_info);
 
     if (deferred_compilation) {
-      compilation_handle = GPU_shader_batch_create_from_infos(
-          Span<GPUShaderCreateInfo *>(&base_info, 1), compilation_priority());
+      compilation_handle = GPU_shader_async_compilation(base_info, compilation_priority());
     }
     else {
       shader = GPU_shader_create_from_info(base_info);
@@ -86,7 +85,7 @@ struct GPUPass {
   ~GPUPass()
   {
     if (compilation_handle) {
-      GPU_shader_batch_cancel(compilation_handle);
+      GPU_shader_async_compilation_cancel(compilation_handle);
     }
     else {
       BLI_assert(create_info == nullptr || (is_optimization_pass && status == GPU_PASS_QUEUED));
@@ -105,7 +104,7 @@ struct GPUPass {
     BLI_assert_msg(create_info, "GPUPass::finalize_compilation() called more than once.");
 
     if (compilation_handle) {
-      shader = GPU_shader_batch_finalize(compilation_handle).first();
+      shader = GPU_shader_async_compilation_finalize(compilation_handle);
     }
 
     compilation_timestamp = ++compilation_counts;
@@ -129,7 +128,7 @@ struct GPUPass {
   void update_compilation(double timestamp)
   {
     if (compilation_handle) {
-      if (GPU_shader_batch_is_ready(compilation_handle)) {
+      if (GPU_shader_async_compilation_is_ready(compilation_handle)) {
         finalize_compilation();
       }
     }
@@ -138,8 +137,7 @@ struct GPUPass {
     {
       BLI_assert(is_optimization_pass);
       GPUShaderCreateInfo *base_info = reinterpret_cast<GPUShaderCreateInfo *>(create_info);
-      compilation_handle = GPU_shader_batch_create_from_infos(
-          Span<GPUShaderCreateInfo *>(&base_info, 1), compilation_priority());
+      compilation_handle = GPU_shader_async_compilation(base_info, compilation_priority());
     }
   }
 
@@ -224,12 +222,12 @@ class GPUPassCache {
   ~GPUPassCache()
   {
     /* Pause to prevent new compilations to start while we are cancelling them. */
-    GPU_shader_batch_pause_compilations();
+    GPU_shader_compiler_pause();
     for (int i : IndexRange(GPU_MAT_ENGINE_MAX)) {
       passes_[i][0].clear();
       passes_[i][1].clear();
     }
-    GPU_shader_batch_resume_compilations();
+    GPU_shader_compiler_resume();
   }
 
   void add(eGPUMaterialEngine engine,
@@ -318,7 +316,7 @@ void GPU_pass_cache_update()
 
 void GPU_pass_cache_wait_for_all()
 {
-  GPU_shader_batch_wait_for_all();
+  GPU_shader_compiler_wait_for_all();
   g_cache->update();
 }
 

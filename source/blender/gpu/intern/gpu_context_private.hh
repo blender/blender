@@ -51,6 +51,7 @@ class Context {
 
   DebugStack debug_stack;
   bool debug_is_capturing = false;
+  bool debug_pipeline_creation = false;
 
   /* GPUContext counter used to assign a unique ID to each GPUContext.
    * NOTE(Metal): This is required by the Metal Backend, as a bug exists in the global OS shader

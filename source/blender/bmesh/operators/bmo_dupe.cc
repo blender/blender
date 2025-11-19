@@ -35,7 +35,7 @@ static BMVert *bmo_vert_copy(BMOperator *op,
                              BMesh *bm_dst,
                              const std::optional<BMCustomDataCopyMap> &cd_vert_map,
                              BMVert *v_src,
-                             GHash *vhash)
+                             blender::Map<BMVert *, BMVert *> &vhash)
 {
   BMVert *v_dst;
 
@@ -45,7 +45,7 @@ static BMVert *bmo_vert_copy(BMOperator *op,
   BMO_slot_map_elem_insert(op, slot_vertmap_out, v_dst, v_src);
 
   /* Insert new vertex into the vert hash */
-  BLI_ghash_insert(vhash, v_src, v_dst);
+  vhash.add(v_src, v_dst);
 
   /* Copy attributes */
   if (cd_vert_map.has_value()) {
@@ -73,8 +73,8 @@ static BMEdge *bmo_edge_copy(BMOperator *op,
                              BMesh *bm_src,
                              const std::optional<BMCustomDataCopyMap> &cd_edge_map,
                              BMEdge *e_src,
-                             GHash *vhash,
-                             GHash *ehash,
+                             blender::Map<BMVert *, BMVert *> &vhash,
+                             blender::Map<BMEdge *, BMEdge *> &ehash,
                              const bool use_edge_flip_from_face)
 {
   BMEdge *e_dst;
@@ -97,8 +97,8 @@ static BMEdge *bmo_edge_copy(BMOperator *op,
   }
 
   /* Lookup v1 and v2 */
-  e_dst_v1 = static_cast<BMVert *>(BLI_ghash_lookup(vhash, e_src->v1));
-  e_dst_v2 = static_cast<BMVert *>(BLI_ghash_lookup(vhash, e_src->v2));
+  e_dst_v1 = vhash.lookup(e_src->v1);
+  e_dst_v2 = vhash.lookup(e_src->v2);
 
   /* Create a new edge */
   e_dst = BM_edge_create(bm_dst, e_dst_v1, e_dst_v2, nullptr, BM_CREATE_SKIP_CD);
@@ -113,7 +113,7 @@ static BMEdge *bmo_edge_copy(BMOperator *op,
   }
 
   /* Insert new edge into the edge hash */
-  BLI_ghash_insert(ehash, e_src, e_dst);
+  ehash.add(e_src, e_dst);
 
   /* Copy attributes */
   if (cd_edge_map.has_value()) {
@@ -148,8 +148,8 @@ static BMFace *bmo_face_copy(BMOperator *op,
                              const std::optional<BMCustomDataCopyMap> &cd_face_map,
                              const std::optional<BMCustomDataCopyMap> &cd_loop_map,
                              BMFace *f_src,
-                             GHash *vhash,
-                             GHash *ehash)
+                             blender::Map<BMVert *, BMVert *> &vhash,
+                             blender::Map<BMEdge *, BMEdge *> &ehash)
 {
   BMFace *f_dst;
   BMVert **vtar = BLI_array_alloca(vtar, f_src->len);
@@ -163,8 +163,8 @@ static BMFace *bmo_face_copy(BMOperator *op,
   l_iter_src = l_first_src;
   i = 0;
   do {
-    vtar[i] = static_cast<BMVert *>(BLI_ghash_lookup(vhash, l_iter_src->v));
-    edar[i] = static_cast<BMEdge *>(BLI_ghash_lookup(ehash, l_iter_src->e));
+    vtar[i] = vhash.lookup(l_iter_src->v);
+    edar[i] = ehash.lookup(l_iter_src->e);
     i++;
   } while ((l_iter_src = l_iter_src->next) != l_first_src);
 
@@ -214,7 +214,6 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
   BMFace *f = nullptr;
 
   BMIter viter, eiter, fiter;
-  GHash *vhash, *ehash;
 
   BMOpSlot *slot_boundary_map_out = BMO_slot_get(op->slots_out, "boundary_map.out");
   BMOpSlot *slot_isovert_map_out = BMO_slot_get(op->slots_out, "isovert_map.out");
@@ -224,8 +223,8 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
   BMOpSlot *slot_face_map_out = BMO_slot_get(op->slots_out, "face_map.out");
 
   /* initialize pointer hashes */
-  vhash = BLI_ghash_ptr_new("bmesh dupeops v");
-  ehash = BLI_ghash_ptr_new("bmesh dupeops e");
+  blender::Map<BMVert *, BMVert *> vhash;
+  blender::Map<BMEdge *, BMEdge *> ehash;
 
   const std::optional<BMCustomDataCopyMap> cd_vert_map =
       (bm_src == bm_dst) ? std::nullopt :
@@ -338,10 +337,6 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_dst, BMesh *bm_src)
       BMO_face_flag_enable(bm_src, f, DUPE_DONE);
     }
   }
-
-  /* free pointer hashes */
-  BLI_ghash_free(vhash, nullptr, nullptr);
-  BLI_ghash_free(ehash, nullptr, nullptr);
 
   if (use_select_history) {
     BLI_assert(bm_src == bm_dst);

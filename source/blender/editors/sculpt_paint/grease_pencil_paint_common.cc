@@ -341,17 +341,17 @@ bke::crazyspace::GeometryDeformation get_drawing_deformation(
       &params.ob_eval, params.ob_orig, params.drawing);
 }
 
-Array<float2> calculate_view_positions(const GreasePencilStrokeParams &params,
-                                       const IndexMask &selection)
+Array<float2> view_positions_from_point_mask(const GreasePencilStrokeParams &params,
+                                             const IndexMask &point_mask)
 {
-  bke::crazyspace::GeometryDeformation deformation = get_drawing_deformation(params);
+  const bke::crazyspace::GeometryDeformation deformation = get_drawing_deformation(params);
 
   Array<float2> view_positions(deformation.positions.size());
 
   /* Compute screen space positions. */
   const float4x4 transform = params.layer.to_world_space(params.ob_eval);
-  selection.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
-    eV3DProjStatus result = ED_view3d_project_float_global(
+  point_mask.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
+    const eV3DProjStatus result = ED_view3d_project_float_global(
         &params.region,
         math::transform_point(transform, deformation.positions[point_i]),
         view_positions[point_i],
@@ -364,8 +364,35 @@ Array<float2> calculate_view_positions(const GreasePencilStrokeParams &params,
   return view_positions;
 }
 
-Array<float> calculate_view_radii(const GreasePencilStrokeParams &params,
-                                  const IndexMask &selection)
+Array<float2> view_positions_from_curve_mask(const GreasePencilStrokeParams &params,
+                                             const IndexMask &curve_mask)
+{
+  const bke::crazyspace::GeometryDeformation deformation = get_drawing_deformation(params);
+
+  Array<float2> view_positions(deformation.positions.size());
+
+  /* Compute screen space positions. */
+  const OffsetIndices points_by_curve = params.drawing.strokes().points_by_curve();
+  const float4x4 transform = params.layer.to_world_space(params.ob_eval);
+  curve_mask.foreach_index(GrainSize(256), [&](const int64_t curve_i) {
+    const IndexRange points = points_by_curve[curve_i];
+    for (const int point_i : points) {
+      const eV3DProjStatus result = ED_view3d_project_float_global(
+          &params.region,
+          math::transform_point(transform, deformation.positions[point_i]),
+          view_positions[point_i],
+          V3D_PROJ_TEST_NOP);
+      if (result != V3D_PROJ_RET_OK) {
+        view_positions[point_i] = float2(0);
+      }
+    }
+  });
+
+  return view_positions;
+}
+
+Array<float> view_radii_from_point_selection(const GreasePencilStrokeParams &params,
+                                             const IndexMask &selection)
 {
   const RegionView3D *rv3d = static_cast<RegionView3D *>(params.region.regiondata);
   bke::crazyspace::GeometryDeformation deformation = get_drawing_deformation(params);
@@ -698,11 +725,11 @@ void GreasePencilStrokeOperationCommon::init_auto_masking(const bContext &C,
     }
 
     if (use_auto_mask_layer || use_auto_mask_stroke || use_auto_mask_material) {
-      Array<float2> view_positions = calculate_view_positions(params, automask_info.point_mask);
-
       IndexMaskMemory memory;
       const IndexMask stroke_selection = curve_mask_for_stroke_operation(
           params, use_sculpt_selection_masking, memory);
+      const Array<float2> view_positions = view_positions_from_curve_mask(params,
+                                                                          stroke_selection);
       const IndexMask strokes_under_brush = IndexMask::from_predicate(
           stroke_selection, GrainSize(512), memory, [&](const int curve_i) {
             for (const int point_i : points_by_curve[curve_i]) {

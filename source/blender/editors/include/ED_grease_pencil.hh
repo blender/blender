@@ -912,12 +912,43 @@ bool apply_mask_as_segment_selection(bke::CurvesGeometry &curves,
                                      eSelectOp sel_op);
 
 namespace trim {
+
+/**
+ * Trim all segments of editable curves that are inside of a given lasso region.
+ *
+ * Note: All editable curves must also be visible.
+ *
+ * \param src: Curves geometry for target curves.
+ * \param screen_space_positions: Screen-space positions computed in advance.
+ * \param mcoords: Screen-space points that define the lasso region.
+ * \param editable_curves: Mask of all curves that can be trimmed.
+ * \param visible_curves: Mask of all curves that are visible.
+ * \param keep_caps: If the start and end cap attributes should *not* be set to `Flat`.
+ */
 bke::CurvesGeometry trim_curve_segments(const bke::CurvesGeometry &src,
                                         Span<float2> screen_space_positions,
-                                        Span<rcti> screen_space_curve_bounds,
-                                        const IndexMask &curve_selection,
-                                        const Vector<Vector<int>> &selected_points_in_curves,
+                                        Span<int2> mcoords,
+                                        const IndexMask &editable_curves,
+                                        const IndexMask &visible_curves,
                                         bool keep_caps);
+
+/**
+ * Trim the editable curves from the start and end until intersection or self-intersection.
+ * If a curve does not have intersection it will be unmodified.
+ *
+ * Note: All editable curves must also be visible.
+ *
+ * \param src: Curves geometry for target curves.
+ * \param screen_space_positions: Screen-space positions computed in advance.
+ * \param editable_curves: Mask of all curves that can be trimmed.
+ * \param visible_curves: Mask of all curves that are visible.
+ * \param keep_caps: If the start and end cap attributes should *not* be set to `Flat`.
+ */
+bke::CurvesGeometry trim_curve_segment_ends(const bke::CurvesGeometry &src,
+                                            Span<float2> screen_space_positions,
+                                            const IndexMask &editable_curves,
+                                            const IndexMask &visible_curves,
+                                            bool keep_caps);
 };  // namespace trim
 
 void merge_layers(const GreasePencil &src_grease_pencil,

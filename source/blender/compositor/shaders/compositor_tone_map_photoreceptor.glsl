@@ -6,6 +6,10 @@
  * from Reinhard, Erik, and Kate Devlin. "Dynamic range reduction inspired by photoreceptor
  * physiology." IEEE transactions on visualization and computer graphics 11.1 (2005): 13-24. */
 
+#include "infos/compositor_tone_map_photoreceptor_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_tone_map_photoreceptor)
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_math_vector_safe_lib.glsl"

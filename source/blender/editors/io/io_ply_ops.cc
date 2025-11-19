@@ -103,40 +103,44 @@ static wmOperatorStatus wm_ply_export_exec(bContext *C, wmOperator *op)
 
 static void wm_ply_export_draw(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  blender::ui::Layout &layout = *op->layout;
   PointerRNA *ptr = op->ptr;
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
-  if (uiLayout *panel = layout->panel(C, "PLY_export_general", false, IFACE_("General"))) {
-    uiLayout *col = &panel->column(false);
+  if (blender::ui::Layout *panel = layout.panel(C, "PLY_export_general", false, IFACE_("General")))
+  {
+    blender::ui::Layout &col = panel->column(false);
 
-    uiLayout *sub = &col->column(false, IFACE_("Format"));
-    sub->prop(ptr, "ascii_format", UI_ITEM_NONE, IFACE_("ASCII"), ICON_NONE);
-
+    {
+      blender::ui::Layout &sub = col.column(false, IFACE_("Format"));
+      sub.prop(ptr, "ascii_format", UI_ITEM_NONE, IFACE_("ASCII"), ICON_NONE);
+    }
     /* The Selection only options only make sense when using regular export. */
     if (CTX_wm_space_file(C)) {
-      sub = &col->column(false, IFACE_("Include"));
-      sub->prop(ptr, "export_selected_objects", UI_ITEM_NONE, IFACE_("Selection Only"), ICON_NONE);
+      blender::ui::Layout &sub = col.column(false, IFACE_("Include"));
+      sub.prop(ptr, "export_selected_objects", UI_ITEM_NONE, IFACE_("Selection Only"), ICON_NONE);
     }
 
-    col->prop(ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward Axis"), ICON_NONE);
-    col->prop(ptr, "up_axis", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
+    col.prop(ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward Axis"), ICON_NONE);
+    col.prop(ptr, "up_axis", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
   }
 
-  if (uiLayout *panel = layout->panel(C, "PLY_export_geometry", false, IFACE_("Geometry"))) {
-    uiLayout *col = &panel->column(false);
+  if (blender::ui::Layout *panel = layout.panel(
+          C, "PLY_export_geometry", false, IFACE_("Geometry")))
+  {
+    blender::ui::Layout &col = panel->column(false);
 
-    col->prop(ptr, "export_uv", UI_ITEM_NONE, IFACE_("UV Coordinates"), ICON_NONE);
-    col->prop(ptr, "export_normals", UI_ITEM_NONE, IFACE_("Vertex Normals"), ICON_NONE);
-    col->prop(ptr, "export_attributes", UI_ITEM_NONE, IFACE_("Vertex Attributes"), ICON_NONE);
-    col->prop(ptr, "export_colors", UI_ITEM_NONE, IFACE_("Vertex Colors"), ICON_NONE);
+    col.prop(ptr, "export_uv", UI_ITEM_NONE, IFACE_("UV Coordinates"), ICON_NONE);
+    col.prop(ptr, "export_normals", UI_ITEM_NONE, IFACE_("Vertex Normals"), ICON_NONE);
+    col.prop(ptr, "export_attributes", UI_ITEM_NONE, IFACE_("Vertex Attributes"), ICON_NONE);
+    col.prop(ptr, "export_colors", UI_ITEM_NONE, IFACE_("Vertex Colors"), ICON_NONE);
 
-    col->prop(
+    col.prop(
         ptr, "export_triangulated_mesh", UI_ITEM_NONE, IFACE_("Triangulated Mesh"), ICON_NONE);
-    col->prop(ptr, "apply_modifiers", UI_ITEM_NONE, IFACE_("Apply Modifiers"), ICON_NONE);
+    col.prop(ptr, "apply_modifiers", UI_ITEM_NONE, IFACE_("Apply Modifiers"), ICON_NONE);
   }
 }
 
@@ -281,29 +285,31 @@ static wmOperatorStatus wm_ply_import_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void ui_ply_import_settings(const bContext *C, uiLayout *layout, PointerRNA *ptr)
+static void ui_ply_import_settings(const bContext *C, blender::ui::Layout &layout, PointerRNA *ptr)
 {
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
 
-  if (uiLayout *panel = layout->panel(C, "PLY_import_general", false, IFACE_("General"))) {
-    uiLayout *col = &panel->column(false);
-    col->prop(ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "use_scene_unit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "forward_axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "up_axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  if (blender::ui::Layout *panel = layout.panel(C, "PLY_import_general", false, IFACE_("General")))
+  {
+    blender::ui::Layout &col = panel->column(false);
+    col.prop(ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "use_scene_unit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "forward_axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "up_axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *panel = layout->panel(C, "PLY_import_options", false, IFACE_("Options"))) {
-    uiLayout *col = &panel->column(false);
-    col->prop(ptr, "merge_verts", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "import_colors", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  if (blender::ui::Layout *panel = layout.panel(C, "PLY_import_options", false, IFACE_("Options")))
+  {
+    blender::ui::Layout &col = panel->column(false);
+    col.prop(ptr, "merge_verts", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "import_colors", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
 static void wm_ply_import_draw(bContext *C, wmOperator *op)
 {
-  ui_ply_import_settings(C, op->layout, op->ptr);
+  ui_ply_import_settings(C, *op->layout, op->ptr);
 }
 
 void WM_OT_ply_import(wmOperatorType *ot)

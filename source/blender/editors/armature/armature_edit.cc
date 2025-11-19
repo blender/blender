@@ -15,7 +15,6 @@
 
 #include "BLT_translation.hh"
 
-#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -1296,7 +1295,7 @@ static wmOperatorStatus armature_delete_selected_invoke(bContext *C,
                                   IFACE_("Delete selected bones?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
+                                  blender::ui::AlertIcon::None,
                                   false);
   }
   return armature_delete_selected_exec(C, op);
@@ -1342,7 +1341,7 @@ static wmOperatorStatus armature_dissolve_selected_exec(bContext *C, wmOperator 
     bool changed = false;
 
     /* store for mirror */
-    GHash *ebone_flag_orig = nullptr;
+    blender::Map<EditBone *, int> ebone_flag_orig;
     int ebone_num = 0;
 
     LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
@@ -1352,27 +1351,17 @@ static wmOperatorStatus armature_dissolve_selected_exec(bContext *C, wmOperator 
     }
 
     if (arm->flag & ARM_MIRROR_EDIT) {
-      GHashIterator gh_iter;
-
-      ebone_flag_orig = BLI_ghash_ptr_new_ex(__func__, ebone_num);
+      ebone_flag_orig.reserve(ebone_num);
       LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-        union {
-          int flag;
-          void *p;
-        } val = {0};
-        val.flag = ebone->flag;
-        BLI_ghash_insert(ebone_flag_orig, ebone, val.p);
+        ebone_flag_orig.add(ebone, ebone->flag);
       }
 
       armature_select_mirrored_ex(arm, BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL);
 
-      GHASH_ITER (gh_iter, ebone_flag_orig) {
-        union Value {
-          int flag;
-          void *p;
-        } *val_p = (Value *)BLI_ghashIterator_getValue_p(&gh_iter);
-        ebone = static_cast<EditBone *>(BLI_ghashIterator_getKey(&gh_iter));
-        val_p->flag = ebone->flag & ~val_p->flag;
+      for (const auto &item : ebone_flag_orig.items()) {
+        ebone = item.key;
+        int &flag = item.value;
+        flag = ebone->flag & ~flag;
       }
     }
 
@@ -1447,19 +1436,11 @@ static wmOperatorStatus armature_dissolve_selected_exec(bContext *C, wmOperator 
 
       if (arm->flag & ARM_MIRROR_EDIT) {
         LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-          union Value {
-            int flag;
-            void *p;
-          } *val_p = (Value *)BLI_ghash_lookup_p(ebone_flag_orig, ebone);
-          if (val_p && val_p->flag) {
-            ebone->flag &= ~val_p->flag;
+          if (const int *flag_p = ebone_flag_orig.lookup_ptr(ebone)) {
+            ebone->flag &= ~*flag_p;
           }
         }
       }
-    }
-
-    if (arm->flag & ARM_MIRROR_EDIT) {
-      BLI_ghash_free(ebone_flag_orig, nullptr, nullptr);
     }
 
     if (changed) {

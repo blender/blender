@@ -147,13 +147,26 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   vkGetPhysicalDeviceFeatures2(vk_physical_device, &features);
 
 #ifndef __APPLE__
+  /* Features currently not supported by Mesa KosmicKrisp. */
   if (features.features.geometryShader == VK_FALSE) {
     missing_capabilities.append("geometry shaders");
   }
+  if (features.features.multiViewport == VK_FALSE) {
+    missing_capabilities.append("multi viewport");
+  }
+  if (features.features.shaderClipDistance == VK_FALSE) {
+    missing_capabilities.append("shader clip distance");
+  }
+  if (features.features.fragmentStoresAndAtomics == VK_FALSE) {
+    missing_capabilities.append("fragment stores and atomics");
+  }
+  if (features.features.vertexPipelineStoresAndAtomics == VK_FALSE) {
+    missing_capabilities.append("vertex pipeline stores and atomics");
+  }
+#endif
   if (features.features.logicOp == VK_FALSE) {
     missing_capabilities.append("logical operations");
   }
-#endif
   if (features.features.dualSrcBlend == VK_FALSE) {
     missing_capabilities.append("dual source blending");
   }
@@ -163,20 +176,8 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   if (features.features.multiDrawIndirect == VK_FALSE) {
     missing_capabilities.append("multi draw indirect");
   }
-  if (features.features.multiViewport == VK_FALSE) {
-    missing_capabilities.append("multi viewport");
-  }
-  if (features.features.shaderClipDistance == VK_FALSE) {
-    missing_capabilities.append("shader clip distance");
-  }
   if (features.features.drawIndirectFirstInstance == VK_FALSE) {
     missing_capabilities.append("draw indirect first instance");
-  }
-  if (features.features.fragmentStoresAndAtomics == VK_FALSE) {
-    missing_capabilities.append("fragment stores and atomics");
-  }
-  if (features.features.vertexPipelineStoresAndAtomics == VK_FALSE) {
-    missing_capabilities.append("vertex pipeline stores and atomics");
   }
   if (features_11.shaderDrawParameters == VK_FALSE) {
     missing_capabilities.append("shader draw parameters");
@@ -567,6 +568,7 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
   if (!device.is_initialized()) {
     device.init(ghost_context);
     device.extensions_get().log();
+    device.workarounds_get().log();
     init_device_list((GHOST_ContextHandle)ghost_context);
   }
 

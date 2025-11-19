@@ -55,14 +55,14 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
   BMEdge *e;
   ScanFillContext sf_ctx;
   // ScanFillEdge *sf_edge; /* UNUSED */
-  GHash *sf_vert_map;
   float normal[3];
   const int scanfill_flag = BLI_SCANFILL_CALC_HOLES | BLI_SCANFILL_CALC_POLYS |
                             BLI_SCANFILL_CALC_LOOSE;
   uint nors_tot;
   bool calc_winding = false;
 
-  sf_vert_map = BLI_ghash_ptr_new_ex(__func__, BMO_slot_buffer_len(op->slots_in, "edges"));
+  blender::Map<BMVert *, ScanFillVert *> sf_vert_map;
+  sf_vert_map.reserve(BMO_slot_buffer_len(op->slots_in, "edges"));
 
   BMO_slot_vec_get(op->slots_in, "normal", normal);
 
@@ -78,20 +78,17 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
     calc_winding = (calc_winding || BM_edge_is_boundary(e));
 
     for (i = 0; i < 2; i++) {
-      if ((sf_verts[i] = static_cast<ScanFillVert *>(BLI_ghash_lookup(sf_vert_map, e_verts[i]))) ==
-          nullptr)
-      {
-        sf_verts[i] = BLI_scanfill_vert_add(&sf_ctx, e_verts[i]->co);
-        sf_verts[i]->tmp.p = e_verts[i];
-        BLI_ghash_insert(sf_vert_map, e_verts[i], sf_verts[i]);
-      }
+      sf_verts[i] = sf_vert_map.lookup_or_add_cb(e_verts[i], [&]() {
+        ScanFillVert *sf_vert = BLI_scanfill_vert_add(&sf_ctx, e_verts[i]->co);
+        sf_vert->tmp.p = e_verts[i];
+        return sf_vert;
+      });
     }
 
     /* sf_edge = */ BLI_scanfill_edge_add(&sf_ctx, UNPACK2(sf_verts));
     // sf_edge->tmp.p = e; /* UNUSED */
   }
-  nors_tot = BLI_ghash_len(sf_vert_map);
-  BLI_ghash_free(sf_vert_map, nullptr, nullptr);
+  nors_tot = sf_vert_map.size();
 
   if (is_zero_v3(normal)) {
     /* calculate the normal from the cross product of vert-edge pairs.

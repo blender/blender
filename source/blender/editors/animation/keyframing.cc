@@ -535,7 +535,7 @@ static wmOperatorStatus insert_key_menu_invoke(bContext *C,
    * hence the #OPERATOR_INTERFACE return. */
   uiPopupMenu *pup = UI_popup_menu_begin(
       C, WM_operatortype_name(op->type, op->ptr).c_str(), ICON_NONE);
-  uiLayout *layout = UI_popup_menu_layout(pup);
+  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
 
   /* Even though `ANIM_OT_keyframe_insert_menu` can show a menu in one line,
    * prefer `ANIM_OT_keyframe_insert_by_name` so users can bind keys to specific
@@ -550,7 +550,7 @@ static wmOperatorStatus insert_key_menu_invoke(bContext *C,
   for (int i = 0; i < totitem; i++) {
     const EnumPropertyItem *item = &item_array[i];
     if (item->identifier[0] != '\0') {
-      PointerRNA op_ptr = layout->op("ANIM_OT_keyframe_insert_by_name", item->name, item->icon);
+      PointerRNA op_ptr = layout.op("ANIM_OT_keyframe_insert_by_name", item->name, item->icon);
       RNA_string_set(&op_ptr, "type", item->identifier);
     }
     else {
@@ -558,7 +558,7 @@ static wmOperatorStatus insert_key_menu_invoke(bContext *C,
        * NOTE: If in the future the enum includes them, additional layout code can be
        * added to show them - although that doesn't seem likely. */
       BLI_assert(item->name == nullptr);
-      layout->separator();
+      layout.separator();
     }
   }
 
@@ -822,7 +822,7 @@ static wmOperatorStatus clear_anim_v3d_invoke(bContext *C,
                                   IFACE_("Remove animation from selected objects?"),
                                   nullptr,
                                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove"),
-                                  ALERT_ICON_NONE,
+                                  blender::ui::AlertIcon::None,
                                   false);
   }
   return clear_anim_v3d_exec(C, op);
@@ -939,7 +939,7 @@ static wmOperatorStatus clear_anim_vse_invoke(bContext *C,
                                   IFACE_("Remove animation from selected strips?"),
                                   nullptr,
                                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove"),
-                                  ALERT_ICON_NONE,
+                                  blender::ui::AlertIcon::None,
                                   false);
   }
   return clear_anim_vse_exec(C, op);
@@ -1128,7 +1128,7 @@ static wmOperatorStatus delete_key_vse_invoke(bContext *C,
                                   IFACE_("Delete keyframes from selected strips?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
+                                  blender::ui::AlertIcon::None,
                                   false);
   }
   return delete_key_vse_exec(C, op);
@@ -1269,7 +1269,7 @@ static wmOperatorStatus delete_key_v3d_invoke(bContext *C,
                                   IFACE_("Delete keyframes from selected objects?"),
                                   nullptr,
                                   IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
+                                  blender::ui::AlertIcon::None,
                                   false);
   }
   return delete_key_v3d_exec(C, op);

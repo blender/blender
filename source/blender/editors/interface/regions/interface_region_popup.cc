@@ -1005,7 +1005,7 @@ void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
 }
 
 struct uiAlertData {
-  eAlertIcon icon;
+  blender::ui::AlertIcon icon;
   std::string title;
   std::string message;
   bool compact;
@@ -1128,7 +1128,7 @@ static uiBlock *ui_alert_create(bContext *C, ARegion *region, void *user_data)
 void UI_alert(bContext *C,
               const StringRef title,
               const StringRef message,
-              const eAlertIcon icon,
+              const blender::ui::AlertIcon icon,
               const bool compact)
 {
   uiAlertData *data = MEM_new<uiAlertData>(__func__);

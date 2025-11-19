@@ -24,9 +24,16 @@ struct WindowRuntime;
 }  // namespace blender::bke
 using WindowManagerRuntimeHandle = blender::bke::WindowManagerRuntime;
 using WindowRuntimeHandle = blender::bke::WindowRuntime;
+
+namespace blender::ui {
+struct Layout;
+}  // namespace blender::ui
+using uiLayoutHandle = blender::ui::Layout;
+
 #else   // __cplusplus
 typedef struct WindowManagerRuntimeHandle WindowManagerRuntimeHandle;
 typedef struct WindowRuntimeHandle WindowRuntimeHandle;
+typedef struct uiLayoutHandle uiLayoutHandle;
 #endif  // __cplusplus
 
 #ifdef hyper /* MSVC defines. */
@@ -55,7 +62,6 @@ struct ReportList;
 struct Stereo3dFormat;
 struct bContext;
 struct bScreen;
-struct uiLayout;
 struct wmTimer;
 
 #define OP_MAX_TYPENAME 64
@@ -555,7 +561,7 @@ typedef struct wmOperator {
   /** Current running macro, not saved. */
   struct wmOperator *opm;
   /** Runtime for drawing. */
-  struct uiLayout *layout;
+  uiLayoutHandle *layout;
   short flag;
   char _pad[6];
 } wmOperator;

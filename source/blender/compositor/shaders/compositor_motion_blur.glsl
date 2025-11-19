@@ -12,6 +12,10 @@
  *   - The depth scale is constant and set to 100.
  *   - The motion scale is defined by the shutter_speed. */
 
+#include "infos/compositor_motion_blur_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_motion_blur)
+
 #include "gpu_shader_compositor_motion_blur_lib.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 

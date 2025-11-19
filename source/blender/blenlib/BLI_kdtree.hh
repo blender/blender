@@ -14,7 +14,7 @@
 #define KDTREE_PREFIX_ID BLI_kdtree_1d
 #define KDTree KDTree_1d
 #define KDTreeNearest KDTreeNearest_1d
-#include "BLI_kdtree_impl.h"
+#include "BLI_kdtree_impl.hh"
 #undef KD_DIMS
 #undef KDTree
 #undef KDTreeNearest
@@ -25,7 +25,7 @@
 #define KDTREE_PREFIX_ID BLI_kdtree_2d
 #define KDTree KDTree_2d
 #define KDTreeNearest KDTreeNearest_2d
-#include "BLI_kdtree_impl.h"
+#include "BLI_kdtree_impl.hh"
 #undef KD_DIMS
 #undef KDTree
 #undef KDTreeNearest
@@ -36,7 +36,7 @@
 #define KDTREE_PREFIX_ID BLI_kdtree_3d
 #define KDTree KDTree_3d
 #define KDTreeNearest KDTreeNearest_3d
-#include "BLI_kdtree_impl.h"
+#include "BLI_kdtree_impl.hh"
 #undef KD_DIMS
 #undef KDTree
 #undef KDTreeNearest
@@ -47,7 +47,7 @@
 #define KDTREE_PREFIX_ID BLI_kdtree_4d
 #define KDTree KDTree_4d
 #define KDTreeNearest KDTreeNearest_4d
-#include "BLI_kdtree_impl.h"
+#include "BLI_kdtree_impl.hh"
 #undef KD_DIMS
 #undef KDTree
 #undef KDTreeNearest

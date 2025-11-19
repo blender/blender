@@ -516,7 +516,6 @@ static int add_hook_object(const bContext *C,
                            ReportList *reports)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ModifierData *md = nullptr;
   HookModifierData *hmd = nullptr;
   float cent[3];
   float pose_mat[4][4];
@@ -538,14 +537,8 @@ static int add_hook_object(const bContext *C,
     mul_v3_m4v3(ob->loc, obedit->object_to_world().ptr(), cent);
   }
 
-  md = static_cast<ModifierData *>(obedit->modifiers.first);
-  while (md && BKE_modifier_get_info(ModifierType(md->type))->type == ModifierTypeType::OnlyDeform)
-  {
-    md = md->next;
-  }
-
   hmd = (HookModifierData *)BKE_modifier_new(eModifierType_Hook);
-  BLI_insertlinkbefore(&obedit->modifiers, md, hmd);
+  BKE_modifiers_add_at_end_if_possible(obedit, &hmd->modifier);
   SNPRINTF_UTF8(hmd->modifier.name, "Hook-%s", ob->id.name + 2);
   BKE_modifier_unique_name(&obedit->modifiers, (ModifierData *)hmd);
   BKE_modifiers_persistent_uid_init(*obedit, hmd->modifier);

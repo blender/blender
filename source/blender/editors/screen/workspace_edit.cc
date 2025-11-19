@@ -510,7 +510,7 @@ static WorkspaceConfigFileData *workspace_system_file_read(const char *app_templ
                       nullptr;
 }
 
-static void workspace_append_button(uiLayout *layout,
+static void workspace_append_button(blender::ui::Layout &layout,
                                     wmOperatorType *ot_append,
                                     const WorkSpace *workspace,
                                     const Main *from_main)
@@ -525,16 +525,16 @@ static void workspace_append_button(uiLayout *layout,
   BLI_assert(STREQ(ot_append->idname, "WORKSPACE_OT_append_activate"));
 
   PointerRNA opptr;
-  opptr = layout->op(ot_append,
-                     CTX_DATA_(BLT_I18NCONTEXT_ID_WORKSPACE, workspace->id.name + 2),
-                     ICON_NONE,
-                     blender::wm::OpCallContext::ExecDefault,
-                     UI_ITEM_NONE);
+  opptr = layout.op(ot_append,
+                    CTX_DATA_(BLT_I18NCONTEXT_ID_WORKSPACE, workspace->id.name + 2),
+                    ICON_NONE,
+                    blender::wm::OpCallContext::ExecDefault,
+                    UI_ITEM_NONE);
   RNA_string_set(&opptr, "idname", id->name + 2);
   RNA_string_set(&opptr, "filepath", filepath);
 }
 
-static void workspace_add_menu(bContext * /*C*/, uiLayout *layout, void *template_v)
+static void workspace_add_menu(bContext * /*C*/, blender::ui::Layout *layout, void *template_v)
 {
   const char *app_template = static_cast<const char *>(template_v);
   bool has_startup_items = false;
@@ -545,7 +545,7 @@ static void workspace_add_menu(bContext * /*C*/, uiLayout *layout, void *templat
 
   if (startup_config) {
     LISTBASE_FOREACH (WorkSpace *, workspace, &startup_config->workspaces) {
-      uiLayout *row = &layout->row(false);
+      blender::ui::Layout &row = layout->row(false);
       workspace_append_button(row, ot_append, workspace, startup_config->main);
       has_startup_items = true;
     }
@@ -568,7 +568,7 @@ static void workspace_add_menu(bContext * /*C*/, uiLayout *layout, void *templat
         has_title = true;
       }
 
-      uiLayout *row = &layout->row(false);
+      blender::ui::Layout &row = layout->row(false);
       workspace_append_button(row, ot_append, workspace, builtin_config->main);
     }
   }
@@ -587,9 +587,9 @@ static wmOperatorStatus workspace_add_invoke(bContext *C,
 {
   uiPopupMenu *pup = UI_popup_menu_begin(
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, op->type->name), ICON_ADD);
-  uiLayout *layout = UI_popup_menu_layout(pup);
+  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
 
-  layout->menu_fn(IFACE_("General"), ICON_NONE, workspace_add_menu, nullptr);
+  layout.menu_fn(IFACE_("General"), ICON_NONE, workspace_add_menu, nullptr);
 
   ListBase templates;
   BKE_appdir_app_templates(&templates);
@@ -601,15 +601,15 @@ static wmOperatorStatus workspace_add_invoke(bContext *C,
     BLI_path_to_display_name(display_name, sizeof(display_name), IFACE_(app_template));
 
     /* Steals ownership of link data string. */
-    layout->menu_fn_argN_free(display_name, ICON_NONE, workspace_add_menu, app_template);
+    layout.menu_fn_argN_free(display_name, ICON_NONE, workspace_add_menu, app_template);
   }
 
   BLI_freelistN(&templates);
 
-  layout->separator();
-  layout->op("WORKSPACE_OT_duplicate",
-             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Duplicate Current"),
-             ICON_DUPLICATE);
+  layout.separator();
+  layout.op("WORKSPACE_OT_duplicate",
+            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Duplicate Current"),
+            ICON_DUPLICATE);
 
   UI_popup_menu_end(C, pup);
 

@@ -12,8 +12,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
@@ -89,18 +89,14 @@ void BLI_scanfill_obj_dump(ScanFillContext *sf_ctx)
 }
 #endif
 
-static ListBase *edge_isect_ls_ensure(GHash *isect_hash, ScanFillEdge *eed)
+using IsectMap = blender::Map<ScanFillEdge *, ListBase *>;
+
+static ListBase *edge_isect_ls_ensure(IsectMap *isect_hash, ScanFillEdge *eed)
 {
-  void **val_p;
-
-  if (!BLI_ghash_ensure_p(isect_hash, eed, &val_p)) {
-    *val_p = MEM_callocN<ListBase>(__func__);
-  }
-
-  return static_cast<ListBase *>(*val_p);
+  return isect_hash->lookup_or_add_cb(eed, []() { return MEM_callocN<ListBase>(__func__); });
 }
 
-static ListBase *edge_isect_ls_add(GHash *isect_hash, ScanFillEdge *eed, ScanFillIsect *isect)
+static ListBase *edge_isect_ls_add(IsectMap *isect_hash, ScanFillEdge *eed, ScanFillIsect *isect)
 {
   ListBase *e_ls;
   LinkData *isect_link;
@@ -163,7 +159,7 @@ static bool scanfill_preprocess_self_isect(ScanFillContext *sf_ctx,
                                            ListBase *filledgebase)
 {
   PolyInfo *pi = &poly_info[poly_nr];
-  GHash *isect_hash = nullptr;
+  IsectMap *isect_hash = nullptr;
   ListBase isect_lb = {nullptr};
 
   /* warning, O(n2) check here, should use spatial lookup */
@@ -189,7 +185,7 @@ static bool scanfill_preprocess_self_isect(ScanFillContext *sf_ctx,
             ScanFillIsect *isect;
 
             if (UNLIKELY(isect_hash == nullptr)) {
-              isect_hash = BLI_ghash_ptr_new(__func__);
+              isect_hash = MEM_new<IsectMap>(__func__);
             }
 
             isect = MEM_mallocN<ScanFillIsect>(__func__);
@@ -222,7 +218,7 @@ static bool scanfill_preprocess_self_isect(ScanFillContext *sf_ctx,
 
     for (eed = pi->edge_first; eed; eed = (eed == pi->edge_last) ? nullptr : eed->next) {
       if (eed->user_flag & E_ISISECT) {
-        ListBase *e_ls = static_cast<ListBase *>(BLI_ghash_lookup(isect_hash, eed));
+        ListBase *e_ls = isect_hash->lookup_default(eed, nullptr);
 
         if (UNLIKELY(e_ls == nullptr)) {
           /* only happens in very rare cases (entirely overlapping splines).
@@ -280,7 +276,7 @@ static bool scanfill_preprocess_self_isect(ScanFillContext *sf_ctx,
   }
 
   BLI_freelistN(&isect_lb);
-  BLI_ghash_free(isect_hash, nullptr, nullptr);
+  MEM_delete(isect_hash);
 
   {
     ScanFillEdge *e_init;

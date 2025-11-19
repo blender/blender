@@ -546,6 +546,13 @@ bool BKE_modifiers_uses_multires(Object *ob);
 bool BKE_modifiers_uses_armature(Object *ob, bArmature *arm);
 bool BKE_modifiers_is_correctable_deformed(const Scene *scene, Object *ob);
 void BKE_modifier_free_temporary_data(ModifierData *md);
+/**
+ * Add a modifier at the end of the stack, but respect if there are modifiers which are "pinned to
+ * last" (put the new modifier before then). Also take into account that some modifiers can only be
+ * added after "only-deforming" modifiers (but need to stay before e.g. "generating" modifiers).
+ * Shares logic with #object_modifier_check_move_after().
+ */
+void BKE_modifiers_add_at_end_if_possible(Object *ob, ModifierData *new_md);
 
 struct CDMaskLink {
   CDMaskLink *next;

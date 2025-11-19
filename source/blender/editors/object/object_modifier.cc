@@ -184,28 +184,7 @@ ModifierData *modifier_add(
     /* get new modifier data to add */
     new_md = BKE_modifier_new(type);
 
-    ModifierData *next_md = nullptr;
-    LISTBASE_FOREACH_BACKWARD (ModifierData *, md, &ob->modifiers) {
-      if (md->flag & eModifierFlag_PinLast) {
-        next_md = md;
-      }
-      else {
-        break;
-      }
-    }
-    if (mti->flags & eModifierTypeFlag_RequiresOriginalData) {
-      next_md = static_cast<ModifierData *>(ob->modifiers.first);
-
-      while (next_md && BKE_modifier_get_info((ModifierType)next_md->type)->type ==
-                            ModifierTypeType::OnlyDeform)
-      {
-        if (next_md->next && (next_md->next->flag & eModifierFlag_PinLast) != 0) {
-          break;
-        }
-        next_md = next_md->next;
-      }
-    }
-    BLI_insertlinkbefore(&ob->modifiers, next_md, new_md);
+    BKE_modifiers_add_at_end_if_possible(ob, new_md);
     BKE_modifiers_persistent_uid_init(*ob, *new_md);
 
     if (name) {
@@ -213,7 +192,6 @@ ModifierData *modifier_add(
     }
 
     /* make sure modifier data has unique name */
-
     BKE_modifier_unique_name(&ob->modifiers, new_md);
 
     /* special cases */
@@ -2093,7 +2071,7 @@ static wmOperatorStatus modifier_apply_invoke(bContext *C, wmOperator *op, const
             IFACE_("Apply Modifier"),
             IFACE_("Make data single-user, apply modifier, and remove it from the list."),
             IFACE_("Apply"),
-            ALERT_ICON_WARNING,
+            ui::AlertIcon::Warning,
             false);
       }
     }

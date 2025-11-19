@@ -79,53 +79,51 @@ bool GPU_shader_create_info_check_error(const GPUShaderCreateInfo *_info, char r
 
 enum class CompilationPriority { Low, Medium, High };
 
-using BatchHandle = int64_t;
+using AsyncCompilationHandle = int64_t;
 /**
- * Request the creation of multiple shaders at once, allowing the backend to use multithreaded
- * compilation. Returns a handle that can be used to poll if all shaders have been compiled, and to
- * retrieve the compiled shaders.
- * NOTE: This function is asynchronous on OpenGL, but it's blocking on Vulkan.
- * WARNING: The GPUShaderCreateInfo pointers should be valid until `GPU_shader_batch_finalize` has
- * returned.
+ * Request the async compilation of a shader, allowing the backend to use multithreaded
+ * compilation. Returns a handle that can be used to poll if the shader has been compiled, and to
+ * retrieve the compiled shader.
+ * WARNING: The GPUShaderCreateInfo pointer should be valid until
+ * `GPU_shader_async_compilation_finalize` has returned.
  */
-BatchHandle GPU_shader_batch_create_from_infos(
-    blender::Span<const GPUShaderCreateInfo *> infos,
-    CompilationPriority priority = CompilationPriority::High);
+AsyncCompilationHandle GPU_shader_async_compilation(
+    const GPUShaderCreateInfo *info, CompilationPriority priority = CompilationPriority::High);
 /**
- * Returns true if all the shaders from the batch have finished their compilation.
+ * Returns true if the shader has already been compiled.
  */
-bool GPU_shader_batch_is_ready(BatchHandle handle);
+bool GPU_shader_async_compilation_is_ready(AsyncCompilationHandle handle);
 /**
- * Retrieve the compiled shaders, in the same order as the `GPUShaderCreateInfo`s.
- * If the compilation has not finished yet, this call will block the thread until all the shaders
- * are ready.
- * Shaders with compilation errors are returned as null pointers.
- * WARNING: The handle will be invalidated by this call, you can't request the same batch twice.
+ * Retrieve the compiled shader.
+ * If the compilation has not finished yet, this call will block the thread until the shader is
+ * ready. Shaders with compilation errors are returned as null pointers.
+ * WARNING: The handle will be invalidated by this call, you can't request the same shader twice.
  */
-blender::Vector<blender::gpu::Shader *> GPU_shader_batch_finalize(BatchHandle &handle);
+blender::gpu::Shader *GPU_shader_async_compilation_finalize(AsyncCompilationHandle &handle);
 /**
- * Cancel the compilation of the batch.
+ * Cancel the compilation of the shader.
  * WARNING: The handle will be invalidated by this call.
  */
-void GPU_shader_batch_cancel(BatchHandle &handle);
+void GPU_shader_async_compilation_cancel(AsyncCompilationHandle &handle);
+
 /**
- * Returns true if there's any batch still being compiled.
+ * Returns true if there's any shader still being compiled.
  * NOTE: This returs true as long as there are batches in the compilation queue.
  * It doesn't take into account if compilation is paused.
  */
-bool GPU_shader_batch_is_compiling();
+bool GPU_shader_compiler_has_pending_work();
 /**
- *  Wait until all the requested batches have been compiled.
+ *  Wait until all the requested shaders have been compiled.
  */
-void GPU_shader_batch_wait_for_all();
+void GPU_shader_compiler_wait_for_all();
 /**
  *  Pauses all shader compilations.
  */
-void GPU_shader_batch_pause_compilations();
+void GPU_shader_compiler_pause();
 /**
  *  Resumes compilations after being paused.
  */
-void GPU_shader_batch_resume_compilations();
+void GPU_shader_compiler_resume();
 
 /** \} */
 
@@ -276,7 +274,7 @@ bool GPU_shader_get_ssbo_input_info(const blender::gpu::Shader *shader,
 const blender::gpu::shader::SpecializationConstants &GPU_shader_get_default_constant_state(
     blender::gpu::Shader *sh);
 
-using SpecializationBatchHandle = int64_t;
+using AsyncSpecializationHandle = int64_t;
 
 struct ShaderSpecialization {
   blender::gpu::Shader *shader;
@@ -284,9 +282,9 @@ struct ShaderSpecialization {
 };
 
 /**
- * Request the compilation of multiple specialization constant variations at once,
- * allowing the backend to use multi-threaded compilation.
- * Returns a handle that can be used to poll if all variations have been compiled.
+ * Request the async compilation of a shader specialization, allowing the backend to use
+ * multi-threaded compilation.
+ * Returns a handle that can be used to poll if the compilation has finished.
  * A NULL handle indicates no compilation of any variant was possible (likely due to
  * some state being currently available) and so no batch was created. Compilation
  * of the specialized variant will instead occur at draw/dispatch time.
@@ -294,22 +292,21 @@ struct ShaderSpecialization {
  * Batches are processed one by one in FIFO order.
  * WARNING: Binding a specialization before the batch finishes will fail.
  */
-SpecializationBatchHandle GPU_shader_batch_specializations(
-    blender::Span<ShaderSpecialization> specializations,
+AsyncSpecializationHandle GPU_shader_async_specialization(
+    const ShaderSpecialization &specialization,
     CompilationPriority priority = CompilationPriority::High);
 
 /**
- * Returns true if all the specializations from the batch have finished their compilation.
- * NOTE: Polling this function is required for the compilation process to keep progressing.
+ * Returns true if the specialization has finished its compilation.
  * WARNING: Invalidates the handle if it returns true.
  */
-bool GPU_shader_batch_specializations_is_ready(SpecializationBatchHandle &handle);
+bool GPU_shader_async_specialization_is_ready(AsyncSpecializationHandle &handle);
 
 /**
- * Cancel the specialization batch.
+ * Cancel the specialization compilation.
  * WARNING: The handle will be invalidated by this call.
  */
-void GPU_shader_batch_specializations_cancel(SpecializationBatchHandle &handle);
+void GPU_shader_async_specialization_cancel(AsyncSpecializationHandle &handle);
 
 /** \} */
 
@@ -449,7 +446,7 @@ class StaticShader : NonCopyable {
   std::atomic<bool> failed_ = false;
   std::mutex mutex_;
   /* Handle for async compilation. */
-  BatchHandle compilation_handle_ = 0;
+  AsyncCompilationHandle compilation_handle_ = 0;
 
   void move(StaticShader &&other)
   {
@@ -480,7 +477,7 @@ class StaticShader : NonCopyable {
   ~StaticShader()
   {
     if (compilation_handle_) {
-      GPU_shader_batch_cancel(compilation_handle_);
+      GPU_shader_async_compilation_cancel(compilation_handle_);
     }
     GPU_SHADER_FREE_SAFE(shader_);
   }
@@ -495,8 +492,8 @@ class StaticShader : NonCopyable {
     std::scoped_lock lock(mutex_);
 
     if (compilation_handle_) {
-      if (GPU_shader_batch_is_ready(compilation_handle_)) {
-        shader_ = GPU_shader_batch_finalize(compilation_handle_)[0];
+      if (GPU_shader_async_compilation_is_ready(compilation_handle_)) {
+        shader_ = GPU_shader_async_compilation_finalize(compilation_handle_);
         failed_ = shader_ == nullptr;
       }
       return;
@@ -505,7 +502,7 @@ class StaticShader : NonCopyable {
     if (!shader_ && !failed_ && !compilation_handle_) {
       BLI_assert(!info_name_.empty());
       const GPUShaderCreateInfo *create_info = GPU_shader_create_info_get(info_name_.c_str());
-      compilation_handle_ = GPU_shader_batch_create_from_infos({&create_info, 1});
+      compilation_handle_ = GPU_shader_async_compilation(create_info);
     }
   }
 
@@ -524,7 +521,7 @@ class StaticShader : NonCopyable {
 
     if (!shader_ && !failed_) {
       if (compilation_handle_) {
-        shader_ = GPU_shader_batch_finalize(compilation_handle_)[0];
+        shader_ = GPU_shader_async_compilation_finalize(compilation_handle_);
       }
       else {
         BLI_assert(!info_name_.empty());

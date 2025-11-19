@@ -315,4 +315,48 @@ void grease_pencil_convert_customdata_to_storage(GreasePencil &grease_pencil)
   CustomData_reset(&grease_pencil.layers_data_legacy);
 }
 
+static const CustomData &get_custom_data(const Mesh &mesh, const AttrDomain domain)
+{
+  switch (domain) {
+    case AttrDomain::Point:
+      return mesh.vert_data;
+    case AttrDomain::Edge:
+      return mesh.edge_data;
+    case AttrDomain::Face:
+      return mesh.face_data;
+    case AttrDomain::Corner:
+      return mesh.corner_data;
+    default:
+      BLI_assert_unreachable();
+      return mesh.vert_data;
+  }
+}
+
+static CustomData &get_custom_data(Mesh &mesh, const AttrDomain domain)
+{
+  return const_cast<CustomData &>(get_custom_data(std::as_const(mesh), domain));
+}
+
+LegacyMeshInterpolator::LegacyMeshInterpolator(const Mesh &src, Mesh &dst, const AttrDomain domain)
+    : cd_src_(get_custom_data(src, domain)), cd_dst_(get_custom_data(dst, domain))
+{
+}
+
+void LegacyMeshInterpolator::copy(const int src_index, const int dst_index, const int count) const
+{
+  CustomData_copy_data(&cd_src_, &cd_dst_, src_index, dst_index, count);
+}
+
+void LegacyMeshInterpolator::mix(Span<int> src_indices,
+                                 const std::optional<Span<float>> weights,
+                                 const int dst_index) const
+{
+  CustomData_interp(&cd_src_,
+                    &cd_dst_,
+                    src_indices.data(),
+                    weights ? weights->data() : nullptr,
+                    src_indices.size(),
+                    dst_index);
+}
+
 }  // namespace blender::bke

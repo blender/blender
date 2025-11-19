@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/compositor_map_uv_infos.hh"
+
+COMPUTE_SHADER_CREATE_INFO(compositor_map_uv_anisotropic)
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 /* A shared table that stores the UV coordinates of all pixels in the work group. This is necessary

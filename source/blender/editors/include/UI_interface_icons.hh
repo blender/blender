@@ -41,16 +41,18 @@ struct IconTextOverlay {
 
 #define PREVIEW_DRAG_DRAW_SIZE 96.0f
 
-enum eAlertIcon {
-  ALERT_ICON_NONE = -1,
-  ALERT_ICON_WARNING = 0,
-  ALERT_ICON_QUESTION = 1,
-  ALERT_ICON_ERROR = 2,
-  ALERT_ICON_INFO = 3,
-  ALERT_ICON_MAX,
+namespace blender::ui {
+enum class AlertIcon : int8_t {
+  None = -1,
+  Warning = 0,
+  Question = 1,
+  Error = 2,
+  Info = 3,
+  Max,
 };
+}
 
-ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon, float size);
+ImBuf *UI_icon_alert_imbuf_get(blender::ui::AlertIcon icon, float size);
 
 /**
  * Resizable Icons for Blender
