@@ -901,7 +901,7 @@ GHOST_Context *GHOST_WindowCocoa::newDrawingContext(GHOST_TDrawingContextType ty
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kDrawingContextTypeVulkan: {
       GHOST_Context *context = new GHOST_ContextVK(
-          want_context_params_, metal_layer_, 1, 2, true, preferred_device_, &hdr_info_);
+          want_context_params_, metal_layer_, 1, 2, preferred_device_, &hdr_info_);
       if (context->initializeDrawingContext()) {
         return context;
       }

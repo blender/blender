@@ -976,7 +976,8 @@ if(NOT APPLE)
   option(WITH_VULKAN_BACKEND "Enable Vulkan as graphics backend" ON)
   mark_as_advanced(WITH_VULKAN_BACKEND)
 else()
-  set(WITH_VULKAN_BACKEND OFF)
+  option(WITH_VULKAN_BACKEND "Enable Vulkan as graphics backend (development option)" OFF)
+  mark_as_advanced(WITH_VULKAN_BACKEND)
 endif()
 
 # Metal
