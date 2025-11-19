@@ -1752,6 +1752,11 @@ void blo_do_versions_userdef(UserDef *userdef)
     do_versions_theme(userdef, btheme);
   }
 #undef USER_VERSION_ATLEAST
+
+  /* TODO subversion bump. */
+  {
+    userdef->uiflag2 |= USER_UIFLAG2_SHOW_ONLINE_ASSETS;
+  }
 }
 
 void BLO_sanitize_experimental_features_userpref_blend(UserDef *userdef)

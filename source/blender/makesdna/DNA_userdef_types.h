@@ -830,6 +830,7 @@ typedef enum eUserpref_UI_Flag2 {
   USER_REGION_OVERLAP = (1 << 1),
   USER_UIFLAG2_UNUSED_2 = (1 << 2),
   USER_UIFLAG2_UNUSED_3 = (1 << 3), /* dirty */
+  USER_UIFLAG2_SHOW_ONLINE_ASSETS = (1 << 4),
 } eUserpref_UI_Flag2;
 
 /** #UserDef.gpu_flag */
