@@ -568,6 +568,23 @@ def base_color(
 
         return
 
+    # In case the alpha cutoff is animated via KHR_animation_pointer, we need to force
+    # creation of clipping nodes
+    force_alpha_clip = False
+    if mh.gltf.data.extensions_used is not None and "KHR_animation_pointer" in mh.gltf.data.extensions_used:
+        if len(mh.pymat.animations) > 0:
+            for anim_idx in mh.pymat.animations.keys():
+                for channel_idx in mh.pymat.animations[anim_idx]:
+                    channel = mh.gltf.data.animations[anim_idx].channels[channel_idx]
+                    pointer_tab = channel.target.extensions["KHR_animation_pointer"]["pointer"].split("/")
+                    if len(pointer_tab) == 4 and pointer_tab[1] == "materials" and \
+                            pointer_tab[3] == "alphaCutoff":
+                        force_alpha_clip = True
+                        break
+                if force_alpha_clip:
+                    break
+
+
     # Opaque materials don't use the alpha socket
     if alpha_socket and alpha_mode == 'OPAQUE':
         alpha_socket.default_value = 1
@@ -576,10 +593,10 @@ def base_color(
     # Perform alpha clipping
     # alpha = if alpha >= cutoff then 1 else 0
     if alpha_socket and alpha_mode == 'MASK':
-        if alpha_cutoff == 0:
+        if alpha_cutoff == 0 and force_alpha_clip is False:
             alpha_socket.default_value = 1
             alpha_socket = None
-        elif alpha_cutoff > 1:
+        elif alpha_cutoff > 1 and force_alpha_clip is False:
             alpha_socket.default_value = 0
             alpha_socket = None
         else:

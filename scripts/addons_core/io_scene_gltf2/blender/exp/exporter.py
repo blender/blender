@@ -466,9 +466,22 @@ class GlTF2Exporter:
             if node.path not in ["translation", "rotation", "scale", "weights"] and node.path != "pointer":
                 if node.extensions is None:
                     node.extensions = {}
+                original_node = node.node # Used only for alpha pointer
+                original_path = node.path # Used only for alpha pointer
                 node.extensions["KHR_animation_pointer"] = {"pointer": node.path.replace("XXX", str(node.node))}
                 node.node = None
                 node.path = "pointer"
+
+                # In case the animation is on alpha, we need to change the alpha mode of the material
+                tab = original_path.split("/")
+                if len(tab) == 5 and tab[1] == "materials" and \
+                    tab[3] == "pbrMetallicRoughness" and tab[4] == "baseColorFactor" and \
+                    node.tmp_alpha_cst is False:
+
+                    self.__gltf.materials[original_node].alpha_mode = "BLEND"
+
+                node.tmp_alpha_cst = None
+
                 self.__append_unique_and_get_index(self.__gltf.extensions_used, "KHR_animation_pointer")
 
         return node
