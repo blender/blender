@@ -873,15 +873,22 @@ static void grease_pencil_edit_batch_ensure(Object &object,
       MutableSpan<float> selection_slice = edit_points_selection.slice(points);
       index_mask::masked_fill(selection_slice, 1.0f, selected_editable_points);
 
+      const IndexMask selected_editable_points_with_bezier =
+          ed::greasepencil::retrieve_editable_and_all_selected_points(
+              object, info.drawing, info.layer_index, CURVE_HANDLE_ALL, memory);
+
       MutableSpan<float> line_selection_slice = edit_line_selection.slice(points_eval);
 
       /* Poly curves evaluated points match the curve points, no need to interpolate. */
       if (curves.is_single_type(CURVE_TYPE_POLY)) {
-        array_utils::copy(selection_slice.as_span(), line_selection_slice);
+        index_mask::masked_fill(line_selection_slice, 1.0f, selected_editable_points_with_bezier);
       }
       else {
         curves.ensure_can_interpolate_to_evaluated();
-        curves.interpolate_to_evaluated(selection_slice.as_span(), line_selection_slice);
+        Array<float> selected_points(curves.points_num(), 0.0f);
+        index_mask::masked_fill(
+            selected_points.as_mutable_span(), 1.0f, selected_editable_points_with_bezier);
+        curves.interpolate_to_evaluated(selected_points.as_span(), line_selection_slice);
       }
     }
 
