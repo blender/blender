@@ -44,6 +44,7 @@
 #include "BKE_global.hh"
 #include "BKE_main.hh"
 
+#include "GPU_init_exit.hh"
 #include "GPU_shader.hh"
 
 #include "UI_interface_icons.hh"
@@ -704,7 +705,7 @@ static PyObject *bpy_app_is_job_running(PyObject * /*self*/, PyObject *args, PyO
   if (job_type_enum.value == WM_JOB_TYPE_SHADER_COMPILATION) {
     /* Shader compilation no longer uses the WM_job API, so we handle this as a special case
      * to avoid breaking the Python API. */
-    return PyBool_FromLong(GPU_shader_compiler_has_pending_work());
+    return PyBool_FromLong(GPU_is_init() && GPU_shader_compiler_has_pending_work());
   }
   return PyBool_FromLong(WM_jobs_has_running_type(wm, job_type_enum.value));
 }
