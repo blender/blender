@@ -311,11 +311,10 @@ class Preprocessor {
   }
 
   /* Variant use for python shaders. */
-  std::string process(const std::string &str)
+  std::string process(const std::string &str, metadata::Source &r_metadata)
   {
     auto no_err_report = [](int, int, std::string, const char *) {};
-    metadata::Source unused;
-    return process(GLSL, str, "", false, false, no_err_report, unused);
+    return process(GLSL, str, "", false, false, no_err_report, r_metadata);
   }
 
  private:

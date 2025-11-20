@@ -26,6 +26,7 @@
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_create_info_private.hh"
 #include "gpu_shader_dependency_private.hh"
+#include "gpu_shader_metadata_private.hh"
 #include "gpu_shader_private.hh"
 
 #include <filesystem>
@@ -227,19 +228,25 @@ blender::gpu::Shader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_in
   return GPUBackend::get()->get_compiler()->compile(info, false);
 }
 
-std::string GPU_shader_preprocess_source(StringRefNull original)
+std::string GPU_shader_preprocess_source(StringRefNull original,
+                                         blender::gpu::shader::ShaderCreateInfo &info)
 {
   if (original.is_empty()) {
     return original;
   }
   gpu::shader::Preprocessor processor;
-  return processor.process(original);
+  gpu::shader::metadata::Source metadata;
+  std::string processed_str = processor.process(original, metadata);
+  for (auto builtin : metadata.builtins) {
+    info.builtins(gpu::shader::convert_builtin_bit(builtin));
+  }
+  return processed_str;
 };
 
 blender::gpu::Shader *GPU_shader_create_from_info_python(const GPUShaderCreateInfo *_info)
 {
   using namespace blender::gpu::shader;
-  ShaderCreateInfo &info = *const_cast<ShaderCreateInfo *>(
+  ShaderCreateInfo info = *const_cast<ShaderCreateInfo *>(
       reinterpret_cast<const ShaderCreateInfo *>(_info));
 
   std::string vertex_source_original = info.vertex_source_generated;
@@ -247,17 +254,15 @@ blender::gpu::Shader *GPU_shader_create_from_info_python(const GPUShaderCreateIn
   std::string geometry_source_original = info.geometry_source_generated;
   std::string compute_source_original = info.compute_source_generated;
 
-  info.vertex_source_generated = GPU_shader_preprocess_source(info.vertex_source_generated);
-  info.fragment_source_generated = GPU_shader_preprocess_source(info.fragment_source_generated);
-  info.geometry_source_generated = GPU_shader_preprocess_source(info.geometry_source_generated);
-  info.compute_source_generated = GPU_shader_preprocess_source(info.compute_source_generated);
+  info.vertex_source_generated = GPU_shader_preprocess_source(info.vertex_source_generated, info);
+  info.fragment_source_generated = GPU_shader_preprocess_source(info.fragment_source_generated,
+                                                                info);
+  info.geometry_source_generated = GPU_shader_preprocess_source(info.geometry_source_generated,
+                                                                info);
+  info.compute_source_generated = GPU_shader_preprocess_source(info.compute_source_generated,
+                                                               info);
 
   blender::gpu::Shader *result = GPUBackend::get()->get_compiler()->compile(info, false);
-
-  info.vertex_source_generated = vertex_source_original;
-  info.fragment_source_generated = fragment_source_original;
-  info.geometry_source_generated = geometry_source_original;
-  info.compute_source_generated = compute_source_original;
 
   return result;
 }

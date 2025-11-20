@@ -163,6 +163,7 @@ set(SRC
   intern/gpu_shader_create_info_private.hh
   intern/gpu_shader_dependency_private.hh
   intern/gpu_shader_interface.hh
+  intern/gpu_shader_metadata_private.hh
   intern/gpu_shader_private.hh
   intern/gpu_state_private.hh
   intern/gpu_storage_buffer_private.hh
