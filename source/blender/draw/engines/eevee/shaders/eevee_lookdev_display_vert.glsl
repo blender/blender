@@ -17,7 +17,7 @@ void main()
   float2 sphere_size = float2(textureSize(metallic_tx, 0)) * invertedViewportSize;
   float2 margin = float2(0.125f, -0.125f) * sphere_size;
   float2 anchor_point = float2(1.0f, -1.0f) -
-                        float2(viewportSize.x - anchor.x, anchor.y) * invertedViewportSize *
+                        float2(viewportSize.x - anchor.x, -anchor.y) * invertedViewportSize *
                             float2(2.0f) -
                         margin;
 
