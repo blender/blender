@@ -1266,8 +1266,8 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
     return;
   }
 
-  uiLayout *row = &panel->layout->row(true);
-  row->alignment_set(blender::ui::LayoutAlign::Left);
+  blender::ui::Layout &row = panel->layout->row(true);
+  row.alignment_set(blender::ui::LayoutAlign::Left);
 
   bool first = true;
   for (int i = 0; i < path->len; i++) {
@@ -1303,7 +1303,7 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
 
     /* Add > triangle. */
     if (!first) {
-      row->label("", ICON_RIGHTARROW);
+      row.label("", ICON_RIGHTARROW);
     }
 
     /* Add icon and name. */
@@ -1312,24 +1312,24 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
     char *name = RNA_struct_name_get_alloc(ptr, namebuf, sizeof(namebuf), nullptr);
 
     if (name) {
-      uiItemLDrag(row, ptr, name, icon);
+      uiItemLDrag(&row, ptr, name, icon);
 
       if (name != namebuf) {
         MEM_freeN(name);
       }
     }
     else {
-      row->label("", icon);
+      row.label("", icon);
     }
 
     first = false;
   }
 
-  uiLayout *pin_row = &row->row(false);
-  pin_row->alignment_set(blender::ui::LayoutAlign::Right);
-  pin_row->separator_spacer();
-  pin_row->emboss_set(blender::ui::EmbossType::None);
-  pin_row->op(
+  blender::ui::Layout &pin_row = row.row(false);
+  pin_row.alignment_set(blender::ui::LayoutAlign::Right);
+  pin_row.separator_spacer();
+  pin_row.emboss_set(blender::ui::EmbossType::None);
+  pin_row.op(
       "BUTTONS_OT_toggle_pin", "", (sbuts->flag & SB_PIN_CONTEXT) ? ICON_PINNED : ICON_UNPINNED);
 }
 

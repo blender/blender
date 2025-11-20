@@ -481,7 +481,7 @@ static void template_texture_select(bContext *C, void *user_p, void * /*arg*/)
   ct->index = user->index;
 }
 
-static void template_texture_user_menu(bContext *C, uiLayout *layout, void * /*arg*/)
+static void template_texture_user_menu(bContext *C, blender::ui::Layout *layout, void * /*arg*/)
 {
   /* callback when opening texture user selection menu, to create buttons. */
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
@@ -529,7 +529,7 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void * /*a
   }
 }
 
-void uiTemplateTextureUser(uiLayout *layout, bContext *C)
+void uiTemplateTextureUser(blender::ui::Layout *layout, bContext *C)
 {
   /* Texture user selection drop-down menu. the available users have been
    * gathered before drawing in #ButsContextTexture, we merely need to
@@ -648,7 +648,10 @@ static void template_texture_show(bContext *C, void *data_p, void *prop_p)
   }
 }
 
-void uiTemplateTextureShow(uiLayout *layout, const bContext *C, PointerRNA *ptr, PropertyRNA *prop)
+void uiTemplateTextureShow(blender::ui::Layout *layout,
+                           const bContext *C,
+                           PointerRNA *ptr,
+                           PropertyRNA *prop)
 {
   /* Only show the button if there is actually a texture assigned. */
   Tex *texture = static_cast<Tex *>(RNA_property_pointer_get(ptr, prop).data);
