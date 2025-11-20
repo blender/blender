@@ -726,7 +726,7 @@ def camera_caching(data, action_name, slot_identifier, frame, export_settings):
             data[key1][key2][key3] = {}
             data[key1][key2][key3][key4] = {}
             for path in export_settings['KHR_animation_pointer']['cameras'][cam]['paths'].keys():
-                data[key1][key2][key3][ley4][path] = {}
+                data[key1][key2][key3][key4][path] = {}
 
         for path in export_settings['KHR_animation_pointer']['cameras'][cam]['paths'].keys():
             _render = bpy.context.scene.render
