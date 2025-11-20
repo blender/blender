@@ -10,14 +10,16 @@
 #  include "draw_view_infos.hh"
 #  include "eevee_common_infos.hh"
 #  include "eevee_debug_shared.hh"
+#  include "eevee_fullscreen_infos.hh"
 #  include "eevee_light_infos.hh"
 #  include "eevee_lightprobe_infos.hh"
 #  include "eevee_sampling_infos.hh"
 #  include "eevee_shadow_infos.hh"
 #  include "eevee_shadow_shared.hh"
 #  include "eevee_uniform_infos.hh"
-#  include "gpu_shader_fullscreen_infos.hh"
+#endif
 
+#ifdef GLSL_CPP_STUBS
 #  define SPHERE_PROBE
 #endif
 
@@ -362,7 +364,7 @@ PUSH_CONSTANT(int, debug_mode)
 PUSH_CONSTANT(int, debug_tilemap_index)
 DEPTH_WRITE(DepthWrite::ANY)
 FRAGMENT_SOURCE("eevee_shadow_debug_frag.glsl")
-ADDITIONAL_INFO(gpu_fullscreen)
+ADDITIONAL_INFO(eevee_fullscreen)
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(eevee_hiz_data)
 ADDITIONAL_INFO(eevee_light_data)

@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "infos/overlay_edit_mode_infos.hh"
+#include "infos/overlay_wireframe_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(overlay_edit_uv_edges)
 
@@ -32,7 +33,7 @@ void main()
     outer_color = float4(float3(0.0f), 1.0f);
   }
   else if (OVERLAY_UVLineStyle(line_style) == OVERLAY_UV_LINE_STYLE_DASH) {
-    if (fract(line_distance / dash_length) < 0.5f) {
+    if (fract(line_distance / float(dash_length)) < 0.5f) {
       inner_color = mix(float4(float3(0.35f), 1.0f), theme.colors.edge_select, selection_fac);
     }
   }

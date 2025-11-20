@@ -504,7 +504,7 @@ void gpu_shader_dependency_init()
 #undef SHADER_SOURCE
 #ifdef WITH_OPENSUBDIV
   const blender::StringRefNull patch_basis_source = openSubdiv_getGLSLPatchBasisSource();
-  g_sources->add_new(
+  g_sources->add_overwrite(
       "osd_patch_basis.glsl",
       new GPUSource("osd_patch_basis.glsl",
                     "osd_patch_basis.glsl",

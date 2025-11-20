@@ -11,6 +11,9 @@
 #  include "draw_object_infos_infos.hh"
 
 #  include "workbench_shader_shared.hh"
+#endif
+
+#ifdef GLSL_CPP_STUBS
 #  define VOLUME_SMOKE
 #  define VOLUME_OBJECT
 #  define USE_COBA

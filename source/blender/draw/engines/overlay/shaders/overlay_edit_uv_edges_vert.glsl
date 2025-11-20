@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "infos/overlay_edit_mode_infos.hh"
+#include "infos/overlay_wireframe_infos.hh"
 
 VERTEX_SHADER_CREATE_INFO(overlay_edit_uv_edges)
 

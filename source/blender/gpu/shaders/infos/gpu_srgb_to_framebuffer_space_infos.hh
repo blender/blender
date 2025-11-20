@@ -9,8 +9,6 @@
 #ifdef GPU_SHADER
 #  pragma once
 #  include "gpu_shader_compat.hh"
-
-#  include "gpu_srgb_to_framebuffer_space_infos.hh"
 #endif
 
 #include "gpu_shader_create_info.hh"

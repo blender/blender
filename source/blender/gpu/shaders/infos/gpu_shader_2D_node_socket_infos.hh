@@ -9,7 +9,9 @@
 #ifdef GPU_SHADER
 #  pragma once
 #  include "gpu_shader_compat.hh"
+#endif
 
+#ifdef GLSL_CPP_STUBS
 #  define widgetID 0
 #endif
 

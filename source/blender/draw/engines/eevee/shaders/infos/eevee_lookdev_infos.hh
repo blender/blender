@@ -11,7 +11,9 @@
 
 #  include "eevee_light_shared.hh"
 #  include "eevee_lightprobe_shared.hh"
+#endif
 
+#ifdef GLSL_CPP_STUBS
 #  define SPHERE_PROBE
 #endif
 

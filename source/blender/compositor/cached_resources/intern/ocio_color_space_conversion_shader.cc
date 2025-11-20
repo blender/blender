@@ -419,7 +419,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
   /* The processor shader and the ShaderCreateInfo used to construct it. Constructed and
    * initialized in the finalize() method. */
   gpu::Shader *shader_ = nullptr;
-  ShaderCreateInfo shader_create_info_ = ShaderCreateInfo("OCIO Processor");
+  ShaderCreateInfo shader_create_info_ = ShaderCreateInfo("OCIO_Processor");
 
   /* Stores the generated OCIOMain function as well as a number of helper functions. Initialized in
    * the createShaderText() method. */

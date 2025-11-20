@@ -60,10 +60,10 @@ static float4x4 get_world_shading_rotation_matrix(float studiolight_rot_z)
   return float4x4(R);
 }
 
-static LightData get_light_data_from_studio_solidlight(const SolidLight *sl,
-                                                       const float4x4 &world_shading_rotation)
+static SolidLightData get_light_data_from_studio_solidlight(const SolidLight *sl,
+                                                            const float4x4 &world_shading_rotation)
 {
-  LightData light = {};
+  SolidLightData light = {};
   if (sl && sl->flag) {
     float3 direction = math::transform_direction(world_shading_rotation, float3(sl->vec));
     light.direction = float4(direction, 0.0f);

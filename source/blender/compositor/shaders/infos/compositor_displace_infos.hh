@@ -5,7 +5,9 @@
 #ifdef GPU_SHADER
 #  pragma once
 #  include "gpu_shader_compat.hh"
+#endif
 
+#ifdef GLSL_CPP_STUBS
 #  define SAMPLER_FUNCTION texture
 #endif
 

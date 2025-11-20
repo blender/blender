@@ -4,10 +4,11 @@
 
 #pragma once
 
+#include "GPU_shader_shared_utils.hh"
+
 #ifndef GPU_SHADER
 #  include "BLI_math_vector.hh"
 #  include "GPU_shader.hh"
-#  include "GPU_shader_shared_utils.hh"
 #  include "draw_defines.hh"
 
 struct ViewCullingData;

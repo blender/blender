@@ -31,9 +31,11 @@
  */
 
 #include "infos/eevee_geom_infos.hh"
+#include "infos/eevee_nodetree_infos.hh"
 #include "infos/eevee_surf_volume_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(eevee_geom_mesh)
+FRAGMENT_SHADER_CREATE_INFO(eevee_nodetree)
 FRAGMENT_SHADER_CREATE_INFO(eevee_surf_occupancy)
 
 #include "eevee_occupancy_lib.glsl"

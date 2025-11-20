@@ -1102,6 +1102,33 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
              << attr_load.str();
   }
 
+  /* Bit of a workaround. Make sure that the nodetree UBO is part of the eevee_node_tree
+   * interface and not the interface with the shader name. */
+  for (auto &res : info.batch_resources_) {
+    res.info_name = "eevee_node_tree";
+  }
+  for (auto &res : info.pass_resources_) {
+    res.info_name = "eevee_node_tree";
+  }
+  for (auto &res : info.geometry_resources_) {
+    res.info_name = "eevee_node_tree";
+  }
+
+  std::string generated_resource_header = info.typedef_source_generated;
+  /* Insert resource declaration after types declaration. */
+  generated_resource_header += "#ifdef CREATE_INFO_RES_PASS_eevee_node_tree\n";
+  generated_resource_header += "CREATE_INFO_RES_PASS_eevee_node_tree\n";
+  generated_resource_header += "#endif\n";
+  generated_resource_header += "#ifdef CREATE_INFO_RES_BATCH_eevee_node_tree\n";
+  generated_resource_header += "CREATE_INFO_RES_BATCH_eevee_node_tree\n";
+  generated_resource_header += "#endif\n";
+  generated_resource_header += "#ifdef CREATE_INFO_RES_GEOMETRY_eevee_node_tree\n";
+  generated_resource_header += "CREATE_INFO_RES_GEOMETRY_eevee_node_tree\n";
+  generated_resource_header += "#endif\n";
+  generated_resource_header += "\n";
+
+  info.generated_sources.append({"eevee_nodetree_type_lib.glsl", {}, generated_resource_header});
+
   {
     const bool use_vertex_displacement = !codegen.displacement.empty() &&
                                          (displacement_type != MAT_DISPLACEMENT_BUMP) &&

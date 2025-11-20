@@ -20,7 +20,9 @@
 #  include "eevee_surf_shadow_infos.hh"
 #  include "eevee_surf_volume_infos.hh"
 #  include "eevee_surf_world_infos.hh"
+#endif
 
+#ifdef GLSL_CPP_STUBS
 #  define CURVES_SHADER
 #  define DRW_HAIR_INFO
 
@@ -29,7 +31,6 @@
 
 #  define SHADOW_UPDATE_ATOMIC_RASTER
 #  define MAT_TRANSPARENT
-
 #endif
 
 #include "eevee_defines.hh"

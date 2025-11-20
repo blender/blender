@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/compositor_ocio_infos.hh"
+
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 /* OCIOMain will be dynamically generated in the OCIOColorSpaceConversionShader class and appended

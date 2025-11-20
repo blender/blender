@@ -576,6 +576,7 @@ set(GLSL_SRC
   shaders/common/gpu_shader_common_mix_rgb.glsl
   shaders/common/gpu_shader_debug_gradients_lib.glsl
   shaders/common/gpu_shader_fullscreen_vert.glsl
+  shaders/common/gpu_shader_fullscreen_lib.glsl
   shaders/common/gpu_shader_index_load_lib.glsl
   shaders/common/gpu_shader_index_range_lib.glsl
   shaders/common/gpu_shader_math_angle_lib.glsl

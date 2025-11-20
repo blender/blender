@@ -11,8 +11,9 @@
 #  include "workbench_shader_shared.hh"
 
 #  include "draw_view_infos.hh"
-#  include "gpu_shader_fullscreen_infos.hh"
+#endif
 
+#ifdef GLSL_CPP_STUBS
 #  define WORKBENCH_LIGHTING_STUDIO
 #  define WORKBENCH_LIGHTING_MATCAP
 #  define WORKBENCH_LIGHTING_FLAT
@@ -37,7 +38,7 @@ TYPEDEF_SOURCE("workbench_shader_shared.hh")
 PUSH_CONSTANT(bool, force_shadowing)
 FRAGMENT_OUT(0, float4, frag_color)
 FRAGMENT_SOURCE("workbench_composite_frag.glsl")
-ADDITIONAL_INFO(gpu_fullscreen)
+VERTEX_SOURCE("workbench_fullscreen_vert.glsl")
 ADDITIONAL_INFO(draw_view)
 GPU_SHADER_CREATE_END()
 

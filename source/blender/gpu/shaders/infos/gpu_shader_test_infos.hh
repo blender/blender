@@ -11,10 +11,11 @@
 #  include "gpu_shader_compat.hh"
 
 #  include "GPU_shader_shared.hh"
+
+#  include "gpu_shader_fullscreen_infos.hh"
 #endif
 
 #include "gpu_shader_create_info.hh"
-#include "gpu_shader_fullscreen_infos.hh"
 
 GPU_SHADER_CREATE_INFO(gpu_shader_test)
 TYPEDEF_SOURCE("GPU_shader_shared.hh")
