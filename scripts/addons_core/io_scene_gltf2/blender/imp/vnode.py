@@ -201,15 +201,16 @@ def init_vnodes(gltf):
 
 
 def manage_gpu_instancing(gltf, vnode, i, ext, mesh_id):
+    attrs = ext.get('attributes', {})
 
-    trans_list = BinaryData.get_data_from_accessor(gltf, ext['attributes'].get('TRANSLATION', None)) \
-        if ext['attributes'].get('TRANSLATION', None) is not None else None
+    trans_list = BinaryData.get_data_from_accessor(gltf, attrs.get('TRANSLATION', None)) \
+        if attrs.get('TRANSLATION', None) is not None else None
 
-    rot_list = BinaryData.get_data_from_accessor(gltf, ext['attributes'].get('ROTATION', None)) \
-        if ext['attributes'].get('ROTATION', None) is not None else None
+    rot_list = BinaryData.get_data_from_accessor(gltf, attrs.get('ROTATION', None)) \
+        if attrs.get('ROTATION', None) is not None else None
 
-    scale_list = BinaryData.get_data_from_accessor(gltf, ext['attributes'].get('SCALE', None)) \
-        if ext['attributes'].get('SCALE', None) is not None else None
+    scale_list = BinaryData.get_data_from_accessor(gltf, attrs.get('SCALE', None)) \
+        if attrs.get('SCALE', None) is not None else None
 
     # Retrieve the first available attribute to get the number of children
     val = next((elem for elem in [
