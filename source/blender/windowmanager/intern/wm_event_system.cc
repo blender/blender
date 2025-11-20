@@ -6835,7 +6835,7 @@ bool WM_window_modal_keymap_status_draw(bContext *C, wmWindow *win, uiLayout *la
       continue;
     }
 
-    const int num_items_used = uiTemplateStatusBarModalItem(row, keymap, items + i);
+    const int num_items_used = uiTemplateStatusBarModalItem(row, op, keymap, items + i);
     if (num_items_used > 0) {
       /* Skip items in case consecutive items were merged. */
       i += num_items_used - 1;
