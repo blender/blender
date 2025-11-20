@@ -6,7 +6,6 @@ import bpy
 import math
 from typing import Optional, List, Dict, Any
 from ...io.com import lights_punctual as gltf2_io_lights_punctual
-from ...io.com import debug as gltf2_io_debug
 from ..com.extras import generate_extras
 from ..com.conversion import PBR_WATTS_TO_LUMENS
 from ..com.blender_default import LIGHTS

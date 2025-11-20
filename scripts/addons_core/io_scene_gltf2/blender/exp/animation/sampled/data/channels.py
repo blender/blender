@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-import bpy
 import typing
 from ......io.com import gltf2_io
 from ......blender.com.conversion import get_gltf_interpolation

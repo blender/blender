@@ -51,9 +51,7 @@ def get_cache_data(path: str,
         # - For this case, on first call, we will cache active action for all objects
         # - On next calls, we will cache only the action of current object, so we can disable viewport for others
 
-    need_to_enable_again = False
     if export_settings['gltf_optimize_disable_viewport'] is True and len(obj_uuids) == 1:
-        need_to_enable_again = True
         # Before baking, disabling from viewport all meshes
         for obj in [n.blender_object for n in export_settings['vtree'].nodes.values() if n.blender_type in
                     [VExportNode.OBJECT, VExportNode.ARMATURE, VExportNode.COLLECTION]]:

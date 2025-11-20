@@ -6,7 +6,6 @@ import bpy
 import typing
 from ......io.exp.user_extensions import export_user_extensions
 from ......io.com import gltf2_io
-from .....com.extras import generate_extras
 from .channels import gather_sk_sampled_channels
 
 

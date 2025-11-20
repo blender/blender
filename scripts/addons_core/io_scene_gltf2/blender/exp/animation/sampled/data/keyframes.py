@@ -2,10 +2,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-import typing
 import math
 import numpy as np
-import bpy
 from .....com.conversion import PBR_WATTS_TO_LUMENS
 from ....cache import cached
 from ...keyframes import Keyframe

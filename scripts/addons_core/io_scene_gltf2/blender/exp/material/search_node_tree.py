@@ -7,7 +7,6 @@
 #
 
 import bpy
-from mathutils import Vector, Matrix
 from io_scene_gltf2.blender.exp.cache import cached
 from ...com.material_helpers import get_gltf_node_name, get_gltf_node_old_name, get_gltf_old_group_node_name
 from ....blender.com.conversion import texture_transform_blender_to_gltf, inverted_trs_mapping_node

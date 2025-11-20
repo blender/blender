@@ -83,7 +83,7 @@ class BlenderMaterial():
 
     @staticmethod
     def set_double_sided(pymaterial, mat):
-        mat.use_backface_culling = (pymaterial.double_sided != True)
+        mat.use_backface_culling = not pymaterial.double_sided
 
     @staticmethod
     def set_eevee_surface_render_method(pymaterial, mat):

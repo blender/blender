@@ -458,6 +458,7 @@ def prepare_tracks_range(obj_uuid, track_data, export_settings, with_driver=True
     frame_start = 0
     frame_end = 0
 
+
     for idx, btrack in enumerate(tracks):
         frame_start = btrack.frame_start if idx == 0 else min(frame_start, btrack.frame_start)
         frame_end = btrack.frame_end if idx == 0 else max(frame_end, btrack.frame_end)

@@ -59,7 +59,7 @@ def make_fcurve(action, slot, co, data_path, index=0, group_name='', interpolati
             if group_name not in channelbag.groups:
                 channelbag.groups.new(group_name)
             fcurve.group = channelbag.groups[group_name]
-    except:
+    except Exception as _e:
         # Some non valid files can have multiple target path
         return None
 

@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import bpy
-import typing
 from ......io.com import gltf2_io
 from ......io.exp import binary_data as gltf2_io_binary_data
 from ......io.com import constants as gltf2_io_constants

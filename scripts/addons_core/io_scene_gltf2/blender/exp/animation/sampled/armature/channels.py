@@ -9,7 +9,6 @@ from ......io.exp.user_extensions import export_user_extensions
 from .....com.conversion import get_gltf_interpolation
 from .....com.conversion import get_target, get_channel_from_target
 from ...fcurves.channels import get_channel_groups
-from ...fcurves.channels import needs_baking
 from ...drivers import get_sk_drivers
 from ..object.channels import gather_sampled_object_channel
 from ..shapekeys.channels import gather_sampled_sk_channel
