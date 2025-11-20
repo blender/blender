@@ -249,21 +249,41 @@ blender::gpu::Shader *GPU_shader_create_from_info_python(const GPUShaderCreateIn
   ShaderCreateInfo info = *const_cast<ShaderCreateInfo *>(
       reinterpret_cast<const ShaderCreateInfo *>(_info));
 
-  std::string vertex_source_original = info.vertex_source_generated;
-  std::string fragment_source_original = info.fragment_source_generated;
-  std::string geometry_source_original = info.geometry_source_generated;
-  std::string compute_source_original = info.compute_source_generated;
+  const bool is_compute = !info.compute_source_generated.empty();
 
-  info.vertex_source_generated = GPU_shader_preprocess_source(info.vertex_source_generated, info);
-  info.fragment_source_generated = GPU_shader_preprocess_source(info.fragment_source_generated,
-                                                                info);
-  info.geometry_source_generated = GPU_shader_preprocess_source(info.geometry_source_generated,
-                                                                info);
-  info.compute_source_generated = GPU_shader_preprocess_source(info.compute_source_generated,
-                                                               info);
+  std::array<StringRefNull, 2> includes = {
+      "draw_colormanagement_lib.glsl",
+      "gpu_shader_python_typedef_lib.glsl",
+  };
+
+  auto preprocess_source = [&](const std::string &input_src) {
+    std::string processed_str;
+    processed_str += "#ifdef CREATE_INFO_RES_PASS_pyGPU_Shader\n";
+    processed_str += "CREATE_INFO_RES_PASS_pyGPU_Shader\n";
+    processed_str += "#endif\n";
+    processed_str += GPU_shader_preprocess_source(input_src, info);
+    return processed_str;
+  };
+
+  if (is_compute) {
+    info.compute_source("gpu_shader_python_comp.glsl");
+    info.generated_sources.append({"gpu_shader_python_comp.glsl",
+                                   includes,
+                                   preprocess_source(info.compute_source_generated)});
+  }
+  else {
+    info.vertex_source("gpu_shader_python_vert.glsl");
+    info.generated_sources.append({"gpu_shader_python_vert.glsl",
+                                   includes,
+                                   preprocess_source(info.vertex_source_generated)});
+
+    info.fragment_source("gpu_shader_python_frag.glsl");
+    info.generated_sources.append({"gpu_shader_python_frag.glsl",
+                                   includes,
+                                   preprocess_source(info.fragment_source_generated)});
+  }
 
   blender::gpu::Shader *result = GPUBackend::get()->get_compiler()->compile(info, false);
-
   return result;
 }
 
@@ -803,7 +823,6 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
     sources.append(resources);
     sources.append(interface);
     sources.extend(code);
-    sources.append(info.vertex_source_generated);
 
     if (info.vertex_entry_fn_ != "main") {
       sources.append("void main() { ");
@@ -829,7 +848,6 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
     sources.append(resources);
     sources.append(interface);
     sources.extend(code);
-    sources.append(info.fragment_source_generated);
 
     if (info.fragment_entry_fn_ != "main") {
       sources.append("void main() { ");
@@ -853,7 +871,6 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
     sources.append(resources);
     sources.append(layout);
     sources.append(interface);
-    sources.append(info.geometry_source_generated);
     sources.extend(code);
 
     if (info.geometry_entry_fn_ != "main") {
@@ -877,7 +894,6 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
     sources.append(layout);
     sources.append(resources);
     sources.extend(code);
-    sources.append(info.compute_source_generated);
 
     if (info.compute_entry_fn_ != "main") {
       sources.append("void main() { ");

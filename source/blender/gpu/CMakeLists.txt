@@ -566,6 +566,11 @@ set(GLSL_SRC
 
   shaders/gpu_shader_codegen_lib.glsl
 
+  shaders/gpu_shader_python_comp.glsl
+  shaders/gpu_shader_python_frag.glsl
+  shaders/gpu_shader_python_typedef_lib.glsl
+  shaders/gpu_shader_python_vert.glsl
+
   shaders/common/gpu_shader_attribute_load_lib.glsl
   shaders/common/gpu_shader_bicubic_sampler_lib.glsl
   shaders/common/gpu_shader_common_color_ramp.glsl
