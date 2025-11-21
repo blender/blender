@@ -39,7 +39,7 @@ class TIME_PT_playhead_snapping(Panel):
 
 def playback_controls(layout, context):
     st = context.space_data
-    is_sequencer = st.type == 'SEQUENCE_EDITOR' and st.view_type == 'SEQUENCER'
+    is_sequencer = st.type == 'SEQUENCE_EDITOR'
     is_timeline = st.type == 'DOPESHEET_EDITOR' and st.mode == 'TIMELINE'
 
     scene = context.scene if not is_sequencer else context.sequencer_scene
