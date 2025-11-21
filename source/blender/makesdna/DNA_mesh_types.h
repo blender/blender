@@ -166,8 +166,8 @@ typedef struct Mesh {
   float remesh_voxel_adaptivity;
 
   int face_sets_color_seed;
-  /* Stores the initial face set to be rendered white. This way the overlay can be enabled by
-   * default and face sets can be used without affecting the color of the mesh. */
+  /* Stores the initial Face Set to be rendered white. This way the overlay can be enabled by
+   * default and Face Sets can be used without affecting the color of the mesh. */
   int face_sets_color_default;
 
   /** The color attribute currently selected in the list and edited by a user. */
@@ -177,12 +177,14 @@ typedef struct Mesh {
 
   /**
    * The UV map currently selected in the list and edited by a user.
-   * Currently only used for file reading/writing (see #AttributeStorage).
+   * \note While the edit BMesh (`edit_mesh.bm`) is non null, that is the source of truth instead.
+   * Typical access should be through #Mesh::active_uv_map_name() rather than direct.
    */
   char *active_uv_map_attribute;
   /**
    * The UV map used by default (i.e. for rendering) if no name is given explicitly.
-   * Currently only used for file reading/writing (see #AttributeStorage).
+   * \note While the edit BMesh (`edit_mesh.bm`) is non null, that is the source of truth instead.
+   * Typical access should be through #Mesh::default_uv_map_name() rather than direct.
    */
   char *default_uv_map_attribute;
 
@@ -316,6 +318,9 @@ typedef struct Mesh {
   blender::StringRefNull active_uv_map_name() const;
   /** The name of the default UV map (e.g. for rendering) attribute, if any. */
   blender::StringRefNull default_uv_map_name() const;
+
+  void uv_maps_active_set(blender::StringRef name);
+  void uv_maps_default_set(blender::StringRef name);
 
   /**
    * Vertex group data, encoded as an array of indices and weights for every vertex.

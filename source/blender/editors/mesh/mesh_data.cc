@@ -186,7 +186,7 @@ int ED_mesh_uv_add(
       is_init = true;
     }
     if (active_set || layernum_dst == 0) {
-      CustomData_set_layer_active(&em->bm->ldata, CD_PROP_FLOAT2, layernum_dst);
+      mesh->uv_maps_active_set(unique_name);
     }
   }
   else {
@@ -212,7 +212,7 @@ int ED_mesh_uv_add(
     }
 
     if (active_set || layernum_dst == 0) {
-      CustomData_set_layer_active(&mesh->corner_data, CD_PROP_FLOAT2, layernum_dst);
+      mesh->uv_maps_active_set(name);
     }
   }
 

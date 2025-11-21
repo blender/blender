@@ -4161,8 +4161,8 @@ static void proj_paint_layer_clone_init(ProjPaintState *ps, ProjPaintLayerClone 
 
     if (uv_map_clone_base == nullptr) {
       /* get active instead */
-      uv_map_clone_base = static_cast<const float (*)[2]>(
-          CustomData_get_layer(&ps->mesh_eval->corner_data, CD_PROP_FLOAT2));
+      uv_map_clone_base = static_cast<const float (*)[2]>(CustomData_get_layer_named(
+          &ps->mesh_eval->corner_data, CD_PROP_FLOAT2, ps->mesh_eval->active_uv_map_name()));
     }
   }
 
@@ -4194,8 +4194,8 @@ static bool project_paint_clone_face_skip(ProjPaintState *ps,
             !(lc->uv_map_clone_base = static_cast<const float (*)[2]>(CustomData_get_layer_named(
                   &ps->mesh_eval->corner_data, CD_PROP_FLOAT2, lc->slot_clone->uvname))))
         {
-          lc->uv_map_clone_base = static_cast<const float (*)[2]>(
-              CustomData_get_layer(&ps->mesh_eval->corner_data, CD_PROP_FLOAT2));
+          lc->uv_map_clone_base = static_cast<const float (*)[2]>(CustomData_get_layer_named(
+              &ps->mesh_eval->corner_data, CD_PROP_FLOAT2, ps->mesh_eval->active_uv_map_name()));
         }
         lc->slot_last_clone = lc->slot_clone;
       }
@@ -4375,8 +4375,8 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
       slot = project_paint_face_paint_slot(ps, tri_index);
       /* all faces should have a valid slot, reassert here */
       if (slot == nullptr) {
-        uv_map_base = static_cast<const float (*)[2]>(
-            CustomData_get_layer(&ps->mesh_eval->corner_data, CD_PROP_FLOAT2));
+        uv_map_base = static_cast<const float (*)[2]>(CustomData_get_layer_named(
+            &ps->mesh_eval->corner_data, CD_PROP_FLOAT2, ps->mesh_eval->active_uv_map_name()));
         tpage = ps->canvas_ima;
       }
       else {
@@ -4385,8 +4385,8 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
               !(uv_map_base = static_cast<const float (*)[2]>(CustomData_get_layer_named(
                     &ps->mesh_eval->corner_data, CD_PROP_FLOAT2, slot->uvname))))
           {
-            uv_map_base = static_cast<const float (*)[2]>(
-                CustomData_get_layer(&ps->mesh_eval->corner_data, CD_PROP_FLOAT2));
+            uv_map_base = static_cast<const float (*)[2]>(CustomData_get_layer_named(
+                &ps->mesh_eval->corner_data, CD_PROP_FLOAT2, ps->mesh_eval->active_uv_map_name()));
           }
           slot_last = slot;
         }
@@ -4575,8 +4575,8 @@ static void project_paint_begin(const bContext *C,
 
     if (ps->uv_map_stencil_eval == nullptr) {
       /* get active instead */
-      ps->uv_map_stencil_eval = static_cast<const float (*)[2]>(
-          CustomData_get_layer(&ps->mesh_eval->corner_data, CD_PROP_FLOAT2));
+      ps->uv_map_stencil_eval = static_cast<const float (*)[2]>(CustomData_get_layer_named(
+          &ps->mesh_eval->corner_data, CD_PROP_FLOAT2, ps->mesh_eval->active_uv_map_name()));
     }
 
     if (ps->do_stencil_brush) {
