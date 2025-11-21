@@ -110,6 +110,219 @@ struct SharedVariable {
   std::string name;
 };
 
+struct ParsedResource {
+  /* Line this resource was defined. */
+  size_t line;
+
+  std::string var_type;
+  std::string var_name;
+  std::string var_array;
+
+  std::string res_type;
+  /* For images, storages, uniforms and samplers. */
+  std::string res_frequency;
+  /* For images, storages, uniforms and samplers. */
+  std::string res_slot;
+  /* For images & storages. */
+  std::string res_qualifier;
+  /* For specialization & compilation constants. */
+  std::string res_value;
+  /* For images. */
+  std::string res_format;
+  /* Optional condition to enable this resource. */
+  std::string res_condition;
+
+  std::string serialize() const
+  {
+    std::stringstream ss;
+    if (res_type == "sampler") {
+      if (res_frequency.empty()) {
+        ss << "IMAGE(" << res_slot << ", " << var_type << ", " << var_name << ")";
+      }
+      else {
+        ss << "IMAGE_FREQ(" << res_slot << ", " << var_type << ", " << var_name << ")";
+      }
+    }
+    else if (res_type == "image") {
+      if (res_frequency.empty()) {
+        ss << "IMAGE(" << res_slot << ", " << res_format << ", " << res_qualifier << ", "
+           << var_type << ", " << var_name << ")";
+      }
+      else {
+        ss << "IMAGE_FREQ(" << res_slot << ", " << res_format << ", " << res_qualifier << ", "
+           << var_type << ", " << var_name << ")";
+      }
+    }
+    else if (res_type == "uniform") {
+      if (res_frequency.empty()) {
+        ss << "UNIFORM_BUF(" << res_slot << ", " << var_type << ", " << var_name << var_array
+           << ")";
+      }
+      else {
+        ss << "UNIFORM_BUF_FREQ(" << res_slot << ", " << var_type << ", " << var_name << var_array
+           << ", " << res_frequency << ")";
+      }
+    }
+    else if (res_type == "storage") {
+      if (res_frequency.empty()) {
+        ss << "STORAGE_BUF(" << res_slot << ", " << res_qualifier << ", " << var_type << ", "
+           << var_name << var_array << ")";
+      }
+      else {
+        ss << "STORAGE_BUF_FREQ(" << res_slot << ", " << res_qualifier << ", " << var_type << ", "
+           << var_name << var_array << ", " << res_frequency << ")";
+      }
+    }
+    else if (res_type == "push_constant") {
+      ss << "PUSH_CONSTANT(" << var_type << ", " << var_name << ")";
+    }
+    else if (res_type == "compilation_constant") {
+      ss << "COMPILATION_CONSTANT(" << var_type << ", " << var_name << ", " << res_value << ")";
+    }
+    else if (res_type == "specialization_constant") {
+      ss << "SPECIALIZATION_CONSTANT(" << var_type << ", " << var_name << ", " << res_value << ")";
+    }
+    return ss.str();
+  }
+};
+
+struct ResourceTable : std::vector<ParsedResource> {
+  std::string name;
+};
+
+struct ParsedAttribute {
+  /* Line this resource was defined. */
+  size_t line;
+
+  std::string var_type;
+  std::string var_name;
+
+  std::string interpolation_mode;
+
+  std::string serialize() const
+  {
+    std::stringstream ss;
+    if (interpolation_mode == "flat") {
+      ss << "FLAT(" << var_type << ", " << var_name << ")";
+    }
+    else if (interpolation_mode == "smooth") {
+      ss << "SMOOTH(" << var_type << ", " << var_name << ")";
+    }
+    else if (interpolation_mode == "smooth") {
+      ss << "NO_PERSPECTIVE(" << var_type << ", " << var_name << ")";
+    }
+    return ss.str();
+  }
+};
+
+struct StageInterface : std::vector<ParsedAttribute> {
+  std::string name;
+  std::string instance_name;
+
+  std::string serialize() const
+  {
+    std::stringstream ss;
+    if (instance_name.empty()) {
+      ss << "GPU_SHADER_INTERFACE_INFO(" << name << ")\n";
+    }
+    else {
+      ss << "GPU_SHADER_NAMED_INTERFACE_INFO(" << name << ", " << instance_name << ")\n";
+    }
+
+    for (const auto &res : *this) {
+      ss << res.serialize() << "\n";
+    }
+
+    if (instance_name.empty()) {
+      ss << "GPU_SHADER_INTERFACE_END()\n";
+    }
+    else {
+      ss << "GPU_SHADER_NAMED_INTERFACE_END(" << instance_name << ")\n";
+    }
+    return ss.str();
+  }
+};
+
+struct ParsedFragOuput {
+  /* Line this resource was defined. */
+  size_t line;
+
+  std::string var_type;
+  std::string var_name;
+
+  std::string slot;
+  std::string dual_source;
+  std::string raster_order_group;
+
+  std::string serialize() const
+  {
+    std::stringstream ss;
+    if (!dual_source.empty()) {
+      ss << "FRAGMENT_OUT_DUAL(" << slot << ", " << var_type << ", " << var_name << ", "
+         << dual_source << ")";
+    }
+    else if (!raster_order_group.empty()) {
+      ss << "FRAGMENT_OUT_ROG(" << slot << ", " << var_type << ", " << var_name << ", "
+         << raster_order_group << ")";
+    }
+    else {
+      ss << "FRAGMENT_OUT(" << slot << ", " << var_type << ", " << var_name << ")";
+    }
+    return ss.str();
+  }
+};
+
+struct FragmentOutputs : std::vector<ParsedFragOuput> {
+  std::string name;
+
+  std::string serialize() const
+  {
+    std::stringstream ss;
+    ss << "GPU_SHADER_CREATE_INFO(" << name << ")\n";
+
+    for (const auto &res : *this) {
+      ss << res.serialize() << "\n";
+    }
+
+    ss << "GPU_SHADER_CREATE_END()\n";
+    return ss.str();
+  }
+};
+
+struct ParsedVertInput {
+  /* Line this resource was defined. */
+  size_t line;
+
+  std::string var_type;
+  std::string var_name;
+
+  std::string slot;
+
+  std::string serialize() const
+  {
+    std::stringstream ss;
+    ss << "VERTEX_IN(" << slot << ", " << var_type << ", " << var_name << ")";
+    return ss.str();
+  }
+};
+
+struct VertexInputs : std::vector<ParsedVertInput> {
+  std::string name;
+
+  std::string serialize() const
+  {
+    std::stringstream ss;
+    ss << "GPU_SHADER_CREATE_INFO(" << name << ")\n";
+
+    for (const auto &res : *this) {
+      ss << res.serialize() << "\n";
+    }
+
+    ss << "GPU_SHADER_CREATE_END()\n";
+    return ss.str();
+  }
+};
+
 struct Source {
   std::vector<Builtin> builtins;
   /* Note: Could be a set, but for now the order matters. */
@@ -121,6 +334,10 @@ struct Source {
   std::vector<std::string> create_infos_declarations;
   std::vector<std::string> create_infos_dependencies;
   std::vector<std::string> create_infos_defines;
+  std::vector<ResourceTable> resource_tables;
+  std::vector<StageInterface> stage_interfaces;
+  std::vector<FragmentOutputs> fragment_outputs;
+  std::vector<VertexInputs> vertex_inputs;
 
   std::string serialize(const std::string &function_name) const
   {
@@ -168,6 +385,26 @@ struct Source {
     ss << "\n";
     for (auto dependency : create_infos_dependencies) {
       ss << "#include \"" << dependency << "\"\n";
+    }
+    ss << "\n";
+    for (auto vert_inputs : vertex_inputs) {
+      ss << vert_inputs.serialize() << "\n";
+    }
+    ss << "\n";
+    for (auto frag_outputs : fragment_outputs) {
+      ss << frag_outputs.serialize() << "\n";
+    }
+    ss << "\n";
+    for (auto iface : stage_interfaces) {
+      ss << iface.serialize() << "\n";
+    }
+    ss << "\n";
+    for (auto res_table : resource_tables) {
+      ss << "GPU_SHADER_CREATE_INFO(" << res_table.name << ")\n";
+      for (const auto &res : res_table) {
+        ss << res.serialize() << "\n";
+      }
+      ss << "GPU_SHADER_CREATE_END()\n";
     }
     ss << "\n";
     for (auto define : create_infos_defines) {
@@ -259,6 +496,10 @@ class Preprocessor {
       str = enum_macro_injection(str, language == CPP, report_error);
       if (language == BLENDER_GLSL) {
         Parser parser(str, report_error);
+        resource_table_parsing(parser, report_error);
+        stage_interface_parsing(parser, report_error);
+        fragment_out_parsing(parser, report_error);
+        vertex_in_parsing(parser, report_error);
         using_mutation(parser, report_error);
 
         namespace_mutation(parser, report_error);
@@ -1660,6 +1901,261 @@ class Preprocessor {
     return hash_32;
   }
 
+  void static_strings_parsing(const std::string &str)
+  {
+    using namespace metadata;
+    /* Matches any character inside a pair of un-escaped quote. */
+    std::regex regex(R"("(?:[^"])*")");
+    regex_global_search(str, regex, [&](const std::smatch &match) {
+      std::string format = match[0].str();
+      metadata.printf_formats.emplace_back(metadata::PrintfFormat{hash_string(format), format});
+    });
+  }
+
+  std::string static_strings_mutation(std::string str)
+  {
+    /* Replaces all matches by the respective string hash. */
+    for (const metadata::PrintfFormat &format : metadata.printf_formats) {
+      const std::string &str_var = format.format;
+      std::regex escape_regex(R"([\\\.\^\$\+\(\)\[\]\{\}\|\?\*])");
+      std::string str_regex = std::regex_replace(str_var, escape_regex, "\\$&");
+
+      std::regex regex(str_regex);
+      str = std::regex_replace(str, regex, std::to_string(hash_string(str_var)) + 'u');
+    }
+    return str;
+  }
+
+  /* Move all method definition outside of struct definition blocks. */
+  void resource_table_parsing(Parser &parser, report_callback report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    parser.foreach_match("s[[..]]w{..};", [&](const std::vector<Token> &tokens) {
+      if (tokens[2].scope().str_exclusive() == "resource_table") {
+        Token srt_name = tokens[7];
+        Scope body = tokens[8].scope();
+
+        auto parse_resource = [&](Scope attributes,
+                                  bool /*is_static*/,
+                                  Token type,
+                                  Token name,
+                                  Scope array) -> metadata::ParsedResource {
+          metadata::ParsedResource resource{
+              type.line_number(), type.str(), name.str(), array.str()};
+          attributes.foreach_scope(ScopeType::Attribute, [&](const Scope &attribute) {
+            std::string type = attribute[0].str();
+            if (type == "sampler") {
+              resource.res_type = type;
+              resource.res_slot = attribute[2].str();
+            }
+            else if (type == "image") {
+              resource.res_type = type;
+              resource.res_slot = attribute[2].str();
+              resource.res_qualifier = attribute[4].str();
+              resource.res_format = attribute[6].str();
+            }
+            else if (type == "uniform") {
+              resource.res_type = type;
+              resource.res_slot = attribute[2].str();
+            }
+            else if (type == "storage") {
+              resource.res_type = type;
+              resource.res_slot = attribute[2].str();
+              resource.res_qualifier = attribute[4].str();
+            }
+            else if (type == "push_constant") {
+              resource.res_type = type;
+            }
+            else if (type == "compilation_constant") {
+              resource.res_type = type;
+              resource.res_value = attribute[2].str();
+            }
+            else if (type == "specialization_constant") {
+              resource.res_type = type;
+              resource.res_value = attribute[2].str();
+            }
+            else if (type == "condition") {
+              resource.res_condition = attribute[1].scope().str();
+            }
+            else if (type == "frequency") {
+              resource.res_frequency = attribute[2].str();
+            }
+            else {
+              report_error(ERROR_TOK(attribute[0]), "Unrecognized attribute");
+            }
+          });
+          return resource;
+        };
+
+        metadata::ResourceTable srt;
+        srt.name = srt_name.str();
+
+        body.foreach_match("[[..]]mww;", [&](const std::vector<Token> &tokens) {
+          auto res = parse_resource(
+              tokens[1].scope(), tokens[6].is_valid(), tokens[6], tokens[7], Scope::invalid());
+          srt.emplace_back(res);
+        });
+        body.foreach_match("[[..]]mw&w;", [&](const std::vector<Token> &tokens) {
+          auto res = parse_resource(
+              tokens[1].scope(), tokens[6].is_valid(), tokens[6], tokens[8], Scope::invalid());
+          srt.emplace_back(res);
+        });
+        body.foreach_match("[[..]]mw(&w)[..];", [&](const std::vector<Token> &tokens) {
+          auto res = parse_resource(
+              tokens[1].scope(), tokens[6].is_valid(), tokens[6], tokens[9], tokens[11].scope());
+          srt.emplace_back(res);
+        });
+
+        metadata.resource_tables.emplace_back(srt);
+        /* Erase SRT definition. The resources are defined by the backend at runtime. */
+        /* Note that this might change in the future. */
+        parser.erase(tokens[0], tokens.back());
+      }
+    });
+    parser.apply_mutations();
+  }
+
+  /* Move all method definition outside of struct definition blocks. */
+  void stage_interface_parsing(Parser &parser, report_callback /*report_error*/)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    auto parse_interface = [&](const std::vector<Token> &tokens) {
+      if (tokens[2].scope().str_exclusive() == "vertex_out") {
+        Token srt_name = tokens[7];
+        Scope body = tokens[8].scope();
+
+        metadata::StageInterface iface;
+        iface.name = srt_name.str();
+
+        if (tokens.back().prev().type() == TokenType::Word) {
+          iface.instance_name = srt_name.str();
+        }
+        else {
+          iface.instance_name = "";
+        }
+
+        body.foreach_match("[[..]]ww;", [&](const std::vector<Token> &tokens) {
+          Token interpolation_mode = tokens[1].scope()[1];
+          Token type = tokens[6];
+          Token name = tokens[7];
+
+          metadata::ParsedAttribute attr{
+              type.line_number(), type.str(), name.str(), interpolation_mode.str()};
+
+          iface.emplace_back(attr);
+        });
+
+        metadata.stage_interfaces.emplace_back(iface);
+        /* Erase SRT definition. The resources are defined by the backend at runtime. */
+        /* Note that this might change in the future. */
+        parser.erase(tokens[0], tokens.back());
+      }
+    };
+
+    parser.foreach_match("s[[..]]w{..};",
+                         [&](const std::vector<Token> &tokens) { parse_interface(tokens); });
+    parser.foreach_match("s[[..]]w{..}w;",
+                         [&](const std::vector<Token> &tokens) { parse_interface(tokens); });
+    parser.apply_mutations();
+  }
+
+  void vertex_in_parsing(Parser &parser, report_callback report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    parser.foreach_match("s[[..]]w{..};", [&](const std::vector<Token> &tokens) {
+      if (tokens[2].scope().str_exclusive() == "vertex_in") {
+        Token srt_name = tokens[7];
+        Scope body = tokens[8].scope();
+
+        metadata::VertexInputs iface;
+        iface.name = srt_name.str();
+
+        body.foreach_match("[[..]]ww;", [&](const std::vector<Token> &tokens) {
+          Scope attributes = tokens[1].scope();
+          Token type = tokens[6];
+          Token name = tokens[7];
+
+          metadata::ParsedVertInput frag_out{type.line_number(), type.str(), name.str()};
+
+          attributes.foreach_scope(ScopeType::Attribute, [&](const Scope &attribute) {
+            std::string type = attribute[0].str();
+            if (type == "attribute") {
+              frag_out.slot = attribute[2].str();
+            }
+            else {
+              report_error(ERROR_TOK(attribute[0]), "Unrecognized attribute");
+            }
+          });
+
+          iface.emplace_back(frag_out);
+        });
+
+        metadata.vertex_inputs.emplace_back(iface);
+        /* Erase SRT definition. The resources are defined by the backend at runtime. */
+        /* Note that this might change in the future. */
+        parser.erase(tokens[0], tokens.back());
+      }
+    });
+    parser.apply_mutations();
+  }
+
+  void fragment_out_parsing(Parser &parser, report_callback report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    parser.foreach_match("s[[..]]w{..};", [&](const std::vector<Token> &tokens) {
+      if (tokens[2].scope().str_exclusive() == "fragment_out") {
+        Token srt_name = tokens[7];
+        Scope body = tokens[8].scope();
+
+        metadata::FragmentOutputs iface;
+        iface.name = srt_name.str();
+
+        body.foreach_match("[[..]]ww;", [&](const std::vector<Token> &tokens) {
+          Scope attributes = tokens[1].scope();
+          Token type = tokens[6];
+          Token name = tokens[7];
+
+          metadata::ParsedFragOuput frag_out{type.line_number(), type.str(), name.str()};
+
+          attributes.foreach_scope(ScopeType::Attribute, [&](const Scope &attribute) {
+            std::string type = attribute[0].str();
+            if (type == "color") {
+              frag_out.slot = attribute[2].str();
+            }
+            else if (type == "raster_order_group") {
+              frag_out.raster_order_group = attribute[2].str();
+            }
+            else if (type == "color") {
+              frag_out.slot = attribute[2].str();
+            }
+            else if (type == "index") {
+              frag_out.dual_source = attribute[2].str();
+            }
+            else {
+              report_error(ERROR_TOK(attribute[0]), "Unrecognized attribute");
+            }
+          });
+
+          iface.emplace_back(frag_out);
+        });
+
+        metadata.fragment_outputs.emplace_back(iface);
+        /* Erase SRT definition. The resources are defined by the backend at runtime. */
+        /* Note that this might change in the future. */
+        parser.erase(tokens[0], tokens.back());
+      }
+    });
+    parser.apply_mutations();
+  }
+
   void static_strings_merging(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
@@ -1888,7 +2384,7 @@ class Preprocessor {
         return;
       }
       Scope attribute = attr_tok.prev().scope();
-      if (attribute.type() != ScopeType::Subscript) {
+      if (attribute.type() != ScopeType::Attributes) {
         return;
       }
 

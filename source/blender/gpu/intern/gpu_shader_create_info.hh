@@ -208,6 +208,8 @@
 #  define ADDITIONAL_INFO(info_name) .additional_info(#info_name)
 #  define TYPEDEF_SOURCE(filename) .typedef_source(filename)
 
+#  define SRT_DATA(srt_name) .additional_info(#srt_name)
+
 #  define MTL_MAX_TOTAL_THREADS_PER_THREADGROUP(value) \
     .mtl_max_total_threads_per_threadgroup(value)
 
@@ -308,6 +310,8 @@
     using namespace info_name; \
     using namespace info_name::gl_FragmentShader; \
     using namespace info_name::gl_VertexShader;
+
+#  define SRT_DATA(srt_name) srt_name srt_name;
 
 #  define TYPEDEF_SOURCE(filename)
 
