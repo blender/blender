@@ -7035,6 +7035,7 @@ class VIEW3D_PT_overlay_guides(Panel):
             row.active = shading.render_pass == 'COMBINED'
             row.prop(overlay, "show_look_dev")
 
+
 class VIEW3D_PT_overlay_text(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
@@ -7054,6 +7055,7 @@ class VIEW3D_PT_overlay_text(Panel):
 
         sub = split.column(align=True)
         sub.prop(overlay, "show_performance", text="Performance")
+
 
 class VIEW3D_PT_overlay_object(Panel):
     bl_space_type = 'VIEW_3D'
