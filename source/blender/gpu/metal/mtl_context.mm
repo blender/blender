@@ -1345,7 +1345,7 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
 }
 
 /* Encode latest depth-stencil state. */
-void MTLContext::ensure_depth_stencil_state(MTLPrimitiveType prim_type)
+void MTLContext::ensure_depth_stencil_state()
 {
   /* Check if we need to update state. */
   if (!(this->pipeline_state.dirty_flags & MTL_PIPELINE_STATE_DEPTHSTENCIL_FLAG)) {

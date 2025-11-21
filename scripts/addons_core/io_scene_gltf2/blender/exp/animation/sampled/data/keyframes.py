@@ -2,10 +2,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-import typing
 import math
 import numpy as np
-import bpy
 from .....com.conversion import PBR_WATTS_TO_LUMENS
 from ....cache import cached
 from ...keyframes import Keyframe
@@ -138,10 +136,19 @@ def gather_data_sampled_keyframes(
 
     if len(keyframes) == 0:
         # For example, option CROP negative frames, but all are negatives
-        return None
+        return None, None
 
     cst = fcurve_is_constant(keyframes)
-    return None if cst is True else keyframes
+    if cst is True:
+        # So every channel is constant, we can return None
+        return None, None
+    else:
+        # We need to check if the alpha channel is constant, for baseColorFactor
+        if export_settings['KHR_animation_pointer'][blender_type_data][blender_id]['paths'][channel]['path'] == "/materials/XXX/pbrMetallicRoughness/baseColorFactor":
+            # Check if alpha channel is constant
+            return keyframes, fcurve_channel_is_constant(keyframes, 3)
+        else:
+            return keyframes, None
 
 
 def fcurve_is_constant(keyframes):
@@ -150,3 +157,9 @@ def fcurve_is_constant(keyframes):
     else:
         return all([j < 0.0001 for j in np.ptp([[k.value[i]
                    for i in range(len(keyframes[0].value))] for k in keyframes], axis=0)])
+
+def fcurve_channel_is_constant(keyframes, channel=3):
+    # Same than fcurve, but for a specific channel
+    # Will return True if all values are the same for this channel
+    # Else, return False
+    return all([j < 0.0001 for j in np.ptp([[k.value[channel]] for k in keyframes], axis=0)])

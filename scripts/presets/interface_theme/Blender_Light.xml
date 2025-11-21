@@ -474,6 +474,7 @@
         wire="#000000"
         wire_edit="#000000"
         edge_width="1"
+        gp_wire_edit="#99999980"
         gp_vertex="#000000"
         gp_vertex_select="#ff8500"
         gp_vertex_size="3"

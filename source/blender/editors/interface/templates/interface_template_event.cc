@@ -41,6 +41,7 @@ static bool keymap_item_can_collapse(const wmKeyMapItem *kmi_a, const wmKeyMapIt
 }
 
 int uiTemplateStatusBarModalItem(uiLayout *layout,
+                                 wmOperator *op,
                                  const wmKeyMap *keymap,
                                  const EnumPropertyItem *item)
 {
@@ -106,12 +107,18 @@ int uiTemplateStatusBarModalItem(uiLayout *layout,
       layout->label("", icon);
       layout->separator(ui_event_icon_offset(icon));
 
+      if ((keymap->poll_modal_item == nullptr) ||
+          (keymap->poll_modal_item(op, item_z->value) != false))
+      {
+        /* Z item is included. */
 #ifndef WITH_HEADLESS
-      icon = UI_icon_from_keymap_item(kmi_z, icon_mod);
+        icon = UI_icon_from_keymap_item(kmi_z, icon_mod);
 #endif
-      layout->label("", icon);
-      layout->separator(ui_event_icon_offset(icon));
-      layout->separator(0.2f);
+        layout->label("", icon);
+        layout->separator(ui_event_icon_offset(icon));
+        layout->separator(0.2f);
+      }
+
       layout->label(xyz_label, ICON_NONE);
       layout->separator(0.6f);
       return 3;

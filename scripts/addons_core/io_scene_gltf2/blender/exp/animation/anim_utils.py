@@ -30,12 +30,12 @@ def link_samplers(animation: gltf2_io.Animation, export_settings):
     # TODO: move this to some util module and update gltf2 exporter also
     T = typing.TypeVar('T')
 
-    def __append_unique_and_get_index(l: typing.List[T], item: T):
-        if item in l:
-            return l.index(item)
+    def __append_unique_and_get_index(list_items: typing.List[T], item: T):
+        if item in list_items:
+            return list_items.index(item)
         else:
-            index = len(l)
-            l.append(item)
+            index = len(list_items)
+            list_items.append(item)
             return index
 
     for i, channel in enumerate(animation.channels):
@@ -174,7 +174,7 @@ def merge_tracks_perform(merged_tracks, animations, export_settings):
     for anim in new_animations:
         new_samplers = []
         for s in anim.samplers:
-            if type(s) == int:
+            if type(s) is int:
                 new_samplers.append(anim.samplers[s])
             else:
                 new_samplers.append(s)

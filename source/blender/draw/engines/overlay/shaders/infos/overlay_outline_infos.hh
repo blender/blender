@@ -8,13 +8,15 @@
 
 #  include "draw_object_infos_infos.hh"
 #  include "draw_view_infos.hh"
-#  include "gpu_shader_fullscreen_infos.hh"
 
 #  include "gpu_index_load_infos.hh"
 #  include "gpu_shader_create_info.hh"
 
+#  include "overlay_fullscreen_infos.hh"
 #  include "overlay_shader_shared.hh"
+#endif
 
+#ifdef GLSL_CPP_STUBS
 #  define CURVES_SHADER
 #  define DRW_HAIR_INFO
 
@@ -162,7 +164,7 @@ SAMPLER(2, sampler2DDepth, scene_depth_tx)
 FRAGMENT_OUT(0, float4, frag_color)
 FRAGMENT_OUT(1, float4, line_output)
 FRAGMENT_SOURCE("overlay_outline_detect_frag.glsl")
-ADDITIONAL_INFO(gpu_fullscreen)
+ADDITIONAL_INFO(overlay_fullscreen)
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()

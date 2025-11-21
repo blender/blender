@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/select_id_infos.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(select_debug_fullscreen)
+
 void main()
 {
   uint px = texture(image, screen_uv).r;

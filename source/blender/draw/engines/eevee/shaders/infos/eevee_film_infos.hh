@@ -9,8 +9,8 @@
 #  include "draw_view_infos.hh"
 #  include "eevee_common_infos.hh"
 #  include "eevee_film_shared.hh"
+#  include "eevee_fullscreen_infos.hh"
 #  include "eevee_velocity_infos.hh"
-#  include "gpu_shader_fullscreen_infos.hh"
 #endif
 
 #include "eevee_defines.hh"
@@ -55,7 +55,7 @@ GPU_SHADER_CREATE_INFO(eevee_film_frag)
 DO_STATIC_COMPILATION()
 FRAGMENT_OUT(0, float4, out_color)
 FRAGMENT_SOURCE("eevee_film_frag.glsl")
-ADDITIONAL_INFO(gpu_fullscreen)
+ADDITIONAL_INFO(eevee_fullscreen)
 ADDITIONAL_INFO(eevee_film)
 DEPTH_WRITE(DepthWrite::ANY)
 GPU_SHADER_CREATE_END()
@@ -89,7 +89,7 @@ DEPTH_WRITE(DepthWrite::ANY)
 FRAGMENT_OUT(0, float4, out_color)
 FRAGMENT_SOURCE("eevee_film_copy_frag.glsl")
 DEFINE("FILM_COPY")
-ADDITIONAL_INFO(gpu_fullscreen)
+ADDITIONAL_INFO(eevee_fullscreen)
 ADDITIONAL_INFO(eevee_film_base)
 GPU_SHADER_CREATE_END()
 

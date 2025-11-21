@@ -8,7 +8,9 @@
 
 #  include "draw_view_infos.hh"
 #  include "eevee_uniform_infos.hh"
+#endif
 
+#ifdef GLSL_CPP_STUBS
 #  define SPHERE_PROBE
 #endif
 

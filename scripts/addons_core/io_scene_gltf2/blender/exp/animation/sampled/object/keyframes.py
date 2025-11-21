@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import numpy as np
-from ....tree import VExportNode
 from ....cache import cached
 from ...keyframes import Keyframe
 from ..sampling_cache import get_cache_data

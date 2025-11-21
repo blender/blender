@@ -406,25 +406,6 @@ static bool object_in_any_scene(Main *bmain, Object *ob)
   return false;
 }
 
-static bool object_in_any_collection(Main *bmain, Object *ob)
-{
-  LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-    if (BKE_collection_has_object(collection, ob)) {
-      return true;
-    }
-  }
-
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    if (scene->master_collection != nullptr &&
-        BKE_collection_has_object(scene->master_collection, ob))
-    {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 static bool collection_instantiated_by_any_object(Main *bmain, Collection *collection)
 {
   LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
@@ -726,6 +707,35 @@ static void loose_data_instantiate_collection_process(
   }
 }
 
+static blender::Set<Object *> loose_data_gather_instanciated_objects(
+    LooseDataInstantiateContext &instantiate_context)
+{
+  BlendfileLinkAppendContext *lapp_context = instantiate_context.lapp_context;
+  const Scene *scene = lapp_context->params->context.scene;
+  ViewLayer *view_layer = lapp_context->params->context.view_layer;
+
+  blender::Set<Object *> instanciated_objects;
+  BKE_view_layer_synced_ensure(scene, view_layer);
+
+  /* Linked/appended objects only need to be instantiated if they are not already in the current
+   * view layer, either:
+   * - Directly instantiated there (i.e. in one of the view layer instantiated collections).
+   * - Indirectly instanciated (i.e. being in a collection that is object-instanciated).
+   */
+  FOREACH_OBJECT_BEGIN (scene, view_layer, ob_iter) {
+    instanciated_objects.add(ob_iter);
+    if (ob_iter->instance_collection) {
+      FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (ob_iter->instance_collection, ob_coll_iter) {
+        instanciated_objects.add(ob_iter);
+      }
+      FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+    }
+  }
+  FOREACH_OBJECT_END;
+
+  return instanciated_objects;
+}
+
 static void loose_data_instantiate_object_process(LooseDataInstantiateContext *instantiate_context)
 {
   BlendfileLinkAppendContext *lapp_context = instantiate_context->lapp_context;
@@ -742,6 +752,9 @@ static void loose_data_instantiate_object_process(LooseDataInstantiateContext *i
   bool object_set_active = false;
 
   const bool is_linking = (lapp_context->params->flag & FILE_LINK) != 0;
+
+  const blender::Set<Object *> instanciated_objects = loose_data_gather_instanciated_objects(
+      *instantiate_context);
 
   /* NOTE: For objects we only view_layer-instantiate duplicated objects that are not yet used
    * anywhere. */
@@ -764,7 +777,7 @@ static void loose_data_instantiate_object_process(LooseDataInstantiateContext *i
 
     Object *ob = (Object *)id;
 
-    if (object_in_any_collection(bmain, ob)) {
+    if (instanciated_objects.contains(ob)) {
       continue;
     }
 

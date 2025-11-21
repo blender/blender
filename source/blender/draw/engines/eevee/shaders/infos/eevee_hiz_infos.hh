@@ -8,7 +8,7 @@
 
 #  include "draw_view_infos.hh"
 #  include "eevee_common_infos.hh"
-#  include "gpu_shader_fullscreen_infos.hh"
+#  include "eevee_fullscreen_infos.hh"
 #endif
 
 #include "eevee_defines.hh"
@@ -49,5 +49,5 @@ FRAGMENT_OUT_DUAL(0, float4, out_debug_color_mul, SRC_1)
 FRAGMENT_SOURCE("eevee_hiz_debug_frag.glsl")
 TYPEDEF_SOURCE("eevee_defines.hh")
 ADDITIONAL_INFO(eevee_hiz_data)
-ADDITIONAL_INFO(gpu_fullscreen)
+ADDITIONAL_INFO(eevee_fullscreen)
 GPU_SHADER_CREATE_END()

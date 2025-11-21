@@ -471,17 +471,17 @@ static wmOperatorStatus select_random_exec(bContext *C, wmOperator *op)
 
 static void select_random_ui(bContext * /*C*/, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  ui::Layout &layout = *op->layout;
 
-  layout->prop(op->ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(op->ptr, "constant_per_curve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(op->ptr, "partial", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "constant_per_curve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "partial", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (RNA_boolean_get(op->ptr, "partial")) {
-    layout->prop(op->ptr, "min", UI_ITEM_R_SLIDER, IFACE_("Min"), ICON_NONE);
+    layout.prop(op->ptr, "min", UI_ITEM_R_SLIDER, IFACE_("Min"), ICON_NONE);
   }
   else {
-    layout->prop(op->ptr, "probability", UI_ITEM_R_SLIDER, IFACE_("Probability"), ICON_NONE);
+    layout.prop(op->ptr, "probability", UI_ITEM_R_SLIDER, IFACE_("Probability"), ICON_NONE);
   }
 }
 

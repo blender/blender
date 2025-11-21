@@ -538,6 +538,22 @@ void ShaderOperation::generate_code(void *thunk,
    * functions that writes the outputs are defined outside the evaluate function. */
   shader_create_info.compute_source("gpu_shader_compositor_main.glsl");
 
+  std::string generated_resource_header = shader_create_info.typedef_source_generated;
+  /* Insert resource declaration after types declaration. */
+  generated_resource_header += "#ifdef CREATE_INFO_RES_PASS_compositor_nodetrees\n";
+  generated_resource_header += "CREATE_INFO_RES_PASS_compositor_nodetrees\n";
+  generated_resource_header += "#endif\n";
+  generated_resource_header += "#ifdef CREATE_INFO_RES_BATCH_compositor_nodetrees\n";
+  generated_resource_header += "CREATE_INFO_RES_BATCH_compositor_nodetrees\n";
+  generated_resource_header += "#endif\n";
+  generated_resource_header += "#ifdef CREATE_INFO_RES_GEOMETRY_compositor_nodetrees\n";
+  generated_resource_header += "CREATE_INFO_RES_GEOMETRY_compositor_nodetrees\n";
+  generated_resource_header += "#endif\n";
+  generated_resource_header += "\n";
+
+  shader_create_info.generated_sources.append(
+      {"gpu_shader_compositor_nodetree_type.glsl", {}, generated_resource_header});
+
   std::string store_code = operation->generate_code_for_outputs(shader_create_info);
   shader_create_info.generated_sources.append(
       {"gpu_shader_compositor_store.glsl", {}, store_code});
@@ -551,9 +567,26 @@ void ShaderOperation::generate_code(void *thunk,
 
   eval_code += "}\n";
 
-  shader_create_info.generated_sources.append({"gpu_shader_compositor_eval.glsl",
-                                               code_generator_output->composite.dependencies,
-                                               eval_code});
+  /* Bit of a workaround. Make sure that the nodetree UBO is part of the compositor_nodetrees
+   * interface and not the interface with the shader name. */
+  for (auto &res : shader_create_info.batch_resources_) {
+    res.info_name = "compositor_nodetrees";
+  }
+  for (auto &res : shader_create_info.pass_resources_) {
+    res.info_name = "compositor_nodetrees";
+  }
+  for (auto &res : shader_create_info.geometry_resources_) {
+    res.info_name = "compositor_nodetrees";
+  }
+
+  blender::Vector<blender::StringRefNull> dependencies =
+      code_generator_output->composite.dependencies;
+  dependencies.prepend("compositor_node_tree_infos.hh");
+  dependencies.prepend("gpu_shader_compositor_texture_utilities.glsl");
+  dependencies.prepend("gpu_shader_compositor_code_generation.glsl");
+
+  shader_create_info.generated_sources.append(
+      {"gpu_shader_compositor_eval.glsl", dependencies, eval_code});
 }
 
 /* Texture storers in the shader always take a [i]vec4 as an argument, so encode each type in an

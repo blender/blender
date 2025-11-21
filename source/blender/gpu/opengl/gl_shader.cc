@@ -38,6 +38,7 @@
 
 #include <fmt/format.h>
 
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -514,61 +515,42 @@ static void print_resource(std::ostream &os,
     os << "layout(std140) ";
   }
 
-  int64_t array_offset;
-  StringRef name_no_array;
-
   switch (res.bind_type) {
     case ShaderCreateInfo::Resource::BindType::SAMPLER:
       os << "uniform ";
       print_image_type(os, res.sampler.type, res.bind_type);
-      os << res.sampler.name << ";\n";
+      os << res.sampler.name << ";";
       break;
     case ShaderCreateInfo::Resource::BindType::IMAGE:
       os << "uniform ";
       print_qualifier(os, res.image.qualifiers);
       print_image_type(os, res.image.type, res.bind_type);
-      os << res.image.name << ";\n";
+      os << res.image.name << ";";
       break;
     case ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
-      array_offset = res.uniformbuf.name.find_first_of("[");
-      name_no_array = (array_offset == -1) ? res.uniformbuf.name :
-                                             StringRef(res.uniformbuf.name.c_str(), array_offset);
-      os << "uniform " << name_no_array << " { " << res.uniformbuf.type_name << " _"
-         << res.uniformbuf.name << "; };\n";
+      os << "uniform _" << res.uniformbuf.name.str_no_array() << " { " << res.uniformbuf.type_name
+         << " " << res.uniformbuf.name << "; };";
       break;
     case ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
-      array_offset = res.storagebuf.name.find_first_of("[");
-      name_no_array = (array_offset == -1) ? res.storagebuf.name :
-                                             StringRef(res.storagebuf.name.c_str(), array_offset);
       print_qualifier(os, res.storagebuf.qualifiers);
-      os << "buffer ";
-      os << name_no_array << " { " << res.storagebuf.type_name << " _" << res.storagebuf.name
-         << "; };\n";
+      os << "buffer _";
+      os << res.storagebuf.name.str_no_array() << " { " << res.storagebuf.type_name << " "
+         << res.storagebuf.name << "; };";
       break;
   }
 }
 
-static void print_resource_alias(std::ostream &os, const ShaderCreateInfo::Resource &res)
+static void print_resource(std::ostream &os,
+                           const ShaderCreateInfo::Resource &res,
+                           bool auto_resource_location,
+                           StringRefNull res_frequency,
+                           StringRefNull &active_info_name)
 {
-  int64_t array_offset;
-  StringRef name_no_array;
-
-  switch (res.bind_type) {
-    case ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
-      array_offset = res.uniformbuf.name.find_first_of("[");
-      name_no_array = (array_offset == -1) ? res.uniformbuf.name :
-                                             StringRef(res.uniformbuf.name.c_str(), array_offset);
-      os << "#define " << name_no_array << " (_" << name_no_array << ")\n";
-      break;
-    case ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
-      array_offset = res.storagebuf.name.find_first_of("[");
-      name_no_array = (array_offset == -1) ? res.storagebuf.name :
-                                             StringRef(res.storagebuf.name.c_str(), array_offset);
-      os << "#define " << name_no_array << " (_" << name_no_array << ")\n";
-      break;
-    default:
-      break;
+  if (assign_if_different(active_info_name, res.info_name)) {
+    os << "\n#define CREATE_INFO_RES_" << res_frequency << "_" << res.info_name << " \\\n";
   }
+  print_resource(os, res, auto_resource_location);
+  os << " \\\n";
 }
 
 static void print_interface(std::ostream &os,
@@ -595,6 +577,8 @@ std::string GLShader::resources_declare(const ShaderCreateInfo &info) const
 {
   std::stringstream ss;
 
+  ss << "\n#line " << __LINE__ << " \"" << __FILE__ << "\"\n";
+
   ss << "\n/* Compilation Constants (pass-through). */\n";
   for (const CompilationConstant &sc : info.compilation_constants_) {
     ss << "const ";
@@ -613,33 +597,37 @@ std::string GLShader::resources_declare(const ShaderCreateInfo &info) const
         break;
     }
   }
-  ss << "\n/* Shared Variables. */\n";
-  for (const ShaderCreateInfo::SharedVariable &sv : info.shared_variables_) {
-    ss << "shared " << to_string(sv.type) << " " << sv.name << ";\n";
+  {
+    StringRefNull active_info = "";
+    for (const ShaderCreateInfo::SharedVariable &sv : info.shared_variables_) {
+      if (assign_if_different(active_info, sv.info_name)) {
+        ss << "\n#define CREATE_INFO_RES_SHARED_VARS_" << sv.info_name << " \\\n";
+      }
+      ss << "shared " << to_string(sv.type) << " " << sv.name << ";";
+      ss << " \\\n";
+    }
+    ss << "\n";
   }
-  /* NOTE: We define macros in GLSL to trigger compilation error if the resource names
-   * are reused for local variables. This is to match other backend behavior which needs accessors
-   * macros. */
-  ss << "\n/* Pass Resources. */\n";
-  for (const ShaderCreateInfo::Resource &res : info.pass_resources_) {
-    print_resource(ss, res, info.auto_resource_location_);
+  {
+    StringRefNull active_info = "";
+    for (const ShaderCreateInfo::Resource &res : info.pass_resources_) {
+      print_resource(ss, res, info.auto_resource_location_, "PASS", active_info);
+    }
+    ss << "\n";
   }
-  for (const ShaderCreateInfo::Resource &res : info.pass_resources_) {
-    print_resource_alias(ss, res);
+  {
+    StringRefNull active_info = "";
+    for (const ShaderCreateInfo::Resource &res : info.batch_resources_) {
+      print_resource(ss, res, info.auto_resource_location_, "BATCH", active_info);
+    }
+    ss << "\n";
   }
-  ss << "\n/* Batch Resources. */\n";
-  for (const ShaderCreateInfo::Resource &res : info.batch_resources_) {
-    print_resource(ss, res, info.auto_resource_location_);
-  }
-  for (const ShaderCreateInfo::Resource &res : info.batch_resources_) {
-    print_resource_alias(ss, res);
-  }
-  ss << "\n/* Geometry Resources. */\n";
-  for (const ShaderCreateInfo::Resource &res : info.geometry_resources_) {
-    print_resource(ss, res, info.auto_resource_location_);
-  }
-  for (const ShaderCreateInfo::Resource &res : info.geometry_resources_) {
-    print_resource_alias(ss, res);
+  {
+    StringRefNull active_info = "";
+    for (const ShaderCreateInfo::Resource &res : info.geometry_resources_) {
+      print_resource(ss, res, info.auto_resource_location_, "GEOMETRY", active_info);
+    }
+    ss << "\n";
   }
   ss << "\n/* Push Constants. */\n";
   int location = 0;
@@ -655,13 +643,6 @@ std::string GLShader::resources_declare(const ShaderCreateInfo &info) const
     }
     ss << ";\n";
   }
-#if 0 /* #95278: This is not be enough to prevent some compilers think it is recursive. */
-  for (const ShaderCreateInfo::PushConst &uniform : info.push_constants_) {
-    /* #95278: Double macro to avoid some compilers think it is recursive. */
-    ss << "#define " << uniform.name << "_ " << uniform.name << "\n";
-    ss << "#define " << uniform.name << " (" << uniform.name << "_)\n";
-  }
-#endif
   ss << "\n";
   return ss.str();
 }
@@ -859,7 +840,7 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
       using Resource = ShaderCreateInfo::Resource;
       /* NOTE(fclem): Using the attachment index as resource index might be problematic as it might
        * collide with other resources. */
-      Resource res(Resource::BindType::SAMPLER, input.index);
+      Resource res(info, Resource::BindType::SAMPLER, input.index);
       res.sampler.type = input.img_type;
       res.sampler.sampler = GPUSamplerState::default_sampler();
       res.sampler.name = image_name;
@@ -1710,11 +1691,19 @@ void GLShaderCompiler::specialize_shader(const ShaderSpecialization &specializat
 
 GLCompilerWorker::GLCompilerWorker()
 {
-  static size_t pipe_id = 0;
-  pipe_id++;
+  using namespace std::chrono;
+  /* This function has to be thread-safe. */
+  static std::atomic<size_t> g_pipe_id = 0;
+  size_t pipe_id = g_pipe_id++;
+
+  /* Use a timestamp on top of the PID.
+   * If a Blender session crashes without unlinking its shared memory, and the PID is reused, we
+   * may run into a name collision otherwise. */
+  static size_t time_id =
+      duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 
   std::string name = "BLENDER_SHADER_COMPILER_" + std::to_string(getpid()) + "_" +
-                     std::to_string(pipe_id);
+                     std::to_string(time_id) + "_" + std::to_string(pipe_id);
 
   shared_mem_ = std::make_unique<SharedMemory>(
       name, compilation_subprocess_shared_memory_size, true);

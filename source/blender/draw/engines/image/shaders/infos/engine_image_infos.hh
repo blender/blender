@@ -2,6 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+
+#  include "draw_view_infos.hh"
+#endif
+
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_INTERFACE_INFO(image_engine_color_iface)

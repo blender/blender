@@ -8,6 +8,8 @@
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_math_vector_compare_lib.glsl"
 
+#include "GPU_shader_shared.hh"
+
 /* clang-format off */
 #ifndef GPU_METAL
 bool is_integer(bool v) { return true; }

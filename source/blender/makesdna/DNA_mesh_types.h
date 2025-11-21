@@ -166,8 +166,8 @@ typedef struct Mesh {
   float remesh_voxel_adaptivity;
 
   int face_sets_color_seed;
-  /* Stores the initial Face Set to be rendered white. This way the overlay can be enabled by
-   * default and Face Sets can be used without affecting the color of the mesh. */
+  /* Stores the initial face set to be rendered white. This way the overlay can be enabled by
+   * default and face sets can be used without affecting the color of the mesh. */
   int face_sets_color_default;
 
   /** The color attribute currently selected in the list and edited by a user. */

@@ -399,8 +399,10 @@ typedef struct ThemeSpace {
   unsigned char camera_passepartout[4];
   unsigned char _pad1[2];
 
+  unsigned char gp_wire_edit[4];
   unsigned char gp_vertex_size;
   unsigned char gp_vertex[4], gp_vertex_select[4];
+  char _pad11[12];
 
   unsigned char preview_back[4];
   unsigned char preview_stitch_face[4];

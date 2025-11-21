@@ -11,7 +11,7 @@ from ...io.exp.user_extensions import export_user_extensions
 from ...io.com import constants as gltf2_io_constants
 from ..com import conversion as gltf2_blender_conversion
 from ..com.gltf2_blender_utils import fast_structured_np_unique
-from .material.materials import get_base_material, get_material_from_idx, get_active_uvmap_index, get_new_material_texture_shared
+from .material.materials import get_base_material, get_active_uvmap_index, get_new_material_texture_shared
 from .material.texture_info import gather_udim_texture_info
 from . import skins as gltf2_blender_gather_skins
 
@@ -389,7 +389,7 @@ class PrimitiveCreator:
             self.blender_mesh.calc_loop_triangles()
             loop_indices = np.empty(len(self.blender_mesh.loop_triangles) * 3, dtype=np.uint32)
             self.blender_mesh.loop_triangles.foreach_get('loops', loop_indices)
-        except:
+        except Exception as _e:
             # For some not valid meshes, we can't get loops without errors
             # We already displayed a Warning message after validate() check, so here
             # we can return without a new one

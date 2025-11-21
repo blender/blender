@@ -425,6 +425,7 @@ const bTheme U_theme_default = {
     .clipping_border_3d = RGBA(0x3f3f3fff),
     .bundle_solid = RGBA(0xc8c8c8ff),
     .camera_path = RGBA(0x000000ff),
+    .gp_wire_edit = RGBA(0x99999980),
     .gp_vertex_size = 3,
     .gp_vertex = RGBA(0x000000ff),
     .gp_vertex_select = RGBA(0xff8500ff),

@@ -13,7 +13,9 @@
 #  include "gpu_shader_compat.hh"
 
 #  include "GPU_shader_shared.hh"
+#endif
 
+#ifdef GLSL_CPP_STUBS
 #  define GPU_INDEX_LOAD
 #endif
 

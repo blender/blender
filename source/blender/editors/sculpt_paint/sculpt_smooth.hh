@@ -10,6 +10,7 @@
 
 #include "BLI_generic_span.hh"
 #include "BLI_offset_indices.hh"
+#include "BLI_ordered_edge.hh"
 #include "BLI_set.hh"
 
 #include "BKE_subdiv_ccg.hh"
@@ -41,6 +42,7 @@ void neighbor_color_average(OffsetIndices<int> faces,
 void neighbor_position_average_interior_grids(OffsetIndices<int> faces,
                                               Span<int> corner_verts,
                                               BitSpan boundary_verts,
+                                              const Set<OrderedEdge> &boundary_edges,
                                               const SubdivCCG &subdiv_ccg,
                                               Span<int> grids,
                                               Span<float> factors,
@@ -48,6 +50,7 @@ void neighbor_position_average_interior_grids(OffsetIndices<int> faces,
 void neighbor_position_average_interior_grids(OffsetIndices<int> faces,
                                               Span<int> corner_verts,
                                               BitSpan boundary_verts,
+                                              const Set<OrderedEdge> &boundary_edges,
                                               const SubdivCCG &subdiv_ccg,
                                               Span<int> grids,
                                               MutableSpan<float3> new_positions);
@@ -100,6 +103,7 @@ void calc_relaxed_translations_faces(Span<float3> vert_positions,
                                      Span<int> corner_verts,
                                      GroupedSpan<int> vert_to_face_map,
                                      BitSpan boundary_verts,
+                                     const Set<OrderedEdge> &boundary_edges,
                                      Span<int> face_sets,
                                      Span<bool> hide_poly,
                                      bool filter_boundary_face_sets,
@@ -112,6 +116,7 @@ void calc_relaxed_translations_grids(const SubdivCCG &subdiv_ccg,
                                      Span<int> face_sets,
                                      GroupedSpan<int> vert_to_face_map,
                                      BitSpan boundary_verts,
+                                     const Set<OrderedEdge> &boundary_edges,
                                      Span<int> grids,
                                      bool filter_boundary_face_sets,
                                      Span<float> factors,

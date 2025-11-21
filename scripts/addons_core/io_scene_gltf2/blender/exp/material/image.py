@@ -9,7 +9,6 @@ import os
 from ....io.com import gltf2_io
 from ....io.com.path import path_to_uri
 from ....io.exp import binary_data as gltf2_io_binary_data, image_data as gltf2_io_image_data
-from ....io.com import debug as gltf2_io_debug
 from ....io.exp.user_extensions import export_user_extensions
 from ..cache import cached
 from .encode_image import Channel, ExportImage, FillImage, FillImageTile, FillImageRGB2BW
@@ -272,7 +271,7 @@ def __get_image_data(sockets, use_tile, export_settings) -> ExportImage:
         anisotropy_rotation_socket = [s for s in sockets if s.socket.name == 'Anisotropic Rotation'][0]
         anisotropy_tangent_socket = [s for s in sockets if s.socket.name == 'Tangent'][0]
         need_to_check_anisotropy = True
-    except:
+    except Exception as _e:
         need_to_check_anisotropy = False
 
     if need_to_check_anisotropy is True:

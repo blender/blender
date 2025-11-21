@@ -7,7 +7,6 @@ import typing
 import numpy as np
 from ......blender.com.data_path import get_sk_exported
 from ....cache import cached
-from ....tree import VExportNode
 from ...keyframes import Keyframe
 from ...fcurves.channels import get_channel_groups
 from ...fcurves.keyframes import gather_non_keyed_values

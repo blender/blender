@@ -66,7 +66,7 @@ def get_driver_on_shapekey(blender_object_uuid, export_settings):
             if not sk_c.is_valid:
                 return None, None
             sk_name = child.data.shape_keys.path_resolve(get_target_object_path(sk_c.data_path)).name
-        except:
+        except Exception as _e:
             return None, None
         if skip_sk(child.data.shape_keys.key_blocks, child.data.shape_keys.key_blocks[sk_name]):
             return None, None

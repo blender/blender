@@ -15,6 +15,7 @@
 #include "BLI_math_bits.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
+#include "BLI_ordered_edge.hh"
 #include "BLI_set.hh"
 #include "BLI_task.hh"
 #include "BLI_vector_set.hh"
@@ -1506,11 +1507,13 @@ SubdivCCGAdjacencyType BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
   return SubdivCCGAdjacencyType::None;
 }
 
-bool BKE_subdiv_ccg_coord_is_mesh_boundary(const OffsetIndices<int> faces,
-                                           const Span<int> corner_verts,
-                                           const blender::BitSpan boundary_verts,
-                                           const SubdivCCG &subdiv_ccg,
-                                           const SubdivCCGCoord coord)
+bool BKE_subdiv_ccg_coord_is_mesh_boundary(
+    const OffsetIndices<int> faces,
+    const Span<int> corner_verts,
+    const blender::BitSpan boundary_verts,
+    const blender::Set<blender::OrderedEdge> &boundary_edges,
+    const SubdivCCG &subdiv_ccg,
+    const SubdivCCGCoord coord)
 {
   int v1, v2;
   const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
@@ -1519,7 +1522,7 @@ bool BKE_subdiv_ccg_coord_is_mesh_boundary(const OffsetIndices<int> faces,
     case SubdivCCGAdjacencyType::Vertex:
       return boundary_verts[v1];
     case SubdivCCGAdjacencyType::Edge:
-      return boundary_verts[v1] && boundary_verts[v2];
+      return boundary_edges.contains(blender::OrderedEdge(v1, v2));
     case SubdivCCGAdjacencyType::None:
       return false;
   }

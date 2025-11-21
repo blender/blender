@@ -779,6 +779,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = &btheme->common.curves.handle_vertex_size;
           break;
 
+        case TH_GP_WIRE_EDIT:
+          cp = ts->gp_wire_edit;
+          break;
         case TH_GP_VERTEX:
           cp = ts->gp_vertex;
           break;

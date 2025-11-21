@@ -7,6 +7,9 @@
 #  include "gpu_shader_compat.hh"
 
 #  include "draw_shader_shared.hh"
+#endif
+
+#ifdef GLSL_CPP_STUBS
 #  define DRW_DEBUG_DRAW
 #endif
 

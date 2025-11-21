@@ -1387,6 +1387,8 @@ static wmOperatorStatus object_origin_set_exec(bContext *C, wmOperator *op)
     }
   }
 
+  bool reported_empty = false;
+  std::array<bool, INDEX_ID_MAX> reported{false};
   for (Object *ob : objects) {
     if (ob->flag & OB_DONE) {
       continue;
@@ -1422,12 +1424,18 @@ static wmOperatorStatus object_origin_set_exec(bContext *C, wmOperator *op)
             invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
             mul_m4_v3(ob->world_to_object().ptr(), cent);
           }
-
           add_v3_v3(ob->instance_collection->instance_offset, cent);
 
           tot_change++;
           ob->instance_collection->id.tag |= ID_TAG_DOIT;
           do_inverse_offset = true;
+        }
+      }
+      else {
+        BLI_assert(ob->type == OB_EMPTY);
+        if (!reported_empty) {
+          reported_empty = true;
+          BKE_report(op->reports, RPT_INFO, "Set Origin not supported for Empty object(s)");
         }
       }
     }
@@ -1742,6 +1750,19 @@ static wmOperatorStatus object_origin_set_exec(bContext *C, wmOperator *op)
       pointcloud.tag_positions_changed();
       pointcloud.id.tag |= ID_TAG_DOIT;
       do_inverse_offset = true;
+    }
+    else {
+      const ID *obdata = static_cast<const ID *>(ob->data);
+      const short idcode = GS(obdata->name);
+      const int id_index = BKE_idtype_idcode_to_index(idcode);
+
+      if (!reported[id_index]) {
+        reported[id_index] = true;
+        BKE_reportf(op->reports,
+                    RPT_INFO,
+                    "Set Origin not supported for %s object(s)",
+                    BKE_idtype_idcode_to_name(idcode));
+      }
     }
 
     /* offset other selected objects */

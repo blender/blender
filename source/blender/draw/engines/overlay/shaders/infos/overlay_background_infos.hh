@@ -7,9 +7,9 @@
 #  include "gpu_shader_compat.hh"
 
 #  include "draw_view_infos.hh"
-#  include "gpu_shader_fullscreen_infos.hh"
 
 #  include "overlay_common_infos.hh"
+#  include "overlay_fullscreen_infos.hh"
 #  include "overlay_shader_shared.hh"
 #endif
 
@@ -27,7 +27,7 @@ PUSH_CONSTANT(float, vignette_falloff)
 PUSH_CONSTANT(bool, vignette_enabled)
 FRAGMENT_SOURCE("overlay_background_frag.glsl")
 FRAGMENT_OUT(0, float4, frag_color)
-ADDITIONAL_INFO(gpu_fullscreen)
+ADDITIONAL_INFO(overlay_fullscreen)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 

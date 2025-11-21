@@ -7,7 +7,6 @@
 #
 
 import bpy
-from mathutils import Vector, Matrix
 from io_scene_gltf2.blender.exp.cache import cached
 from ...com.material_helpers import get_gltf_node_name, get_gltf_node_old_name, get_gltf_old_group_node_name
 from ....blender.com.conversion import texture_transform_blender_to_gltf, inverted_trs_mapping_node
@@ -489,6 +488,7 @@ def gather_alpha_info(alpha_nav):
     info = {
         'alphaMode': None,
         'alphaCutoff': None,
+        'alphaCutoffPath': None,
         'alphaFactor': None,
         'alphaColorAttrib': None,
         'alphaColorAttribType': None,
@@ -501,13 +501,15 @@ def gather_alpha_info(alpha_nav):
     c, alpha_path = alpha_nav.get_constant()
     if c == 1:
         info['alphaMode'] = 'OPAQUE'
+        info['alphaPath'] = alpha_path # Maybe the alpha is animated, this will be managed later
         return info
 
     # Check for alpha clipping
-    cutoff = detect_alpha_clip(alpha_nav)
+    cutoff, cutoff_path = detect_alpha_clip(alpha_nav)
     if cutoff is not None:
         info['alphaMode'] = 'MASK'
         info['alphaCutoff'] = cutoff
+        info['alphaCutoffPath'] = cutoff_path
 
     # Reads the factor and color attribute by checking for variations on
     # -> [Multiply by Factor] -> [Multiply by Color Attrib Alpha] ->
@@ -549,6 +551,9 @@ def gather_alpha_info(alpha_nav):
         if info['alphaFactor'] == 0:
             info['alphaMode'] = 'MASK'
             info['alphaCutoff'] = 0.5
+            # In case alpha is animated, and started with zero, we need to overwrite it later...
+        elif info['alphaFactor'] == 1.0:
+            info['alphaMode'] = 'OPAQUE'
         else:
             info['alphaMode'] = 'BLEND'
 
@@ -569,13 +574,13 @@ def gather_alpha_info(alpha_nav):
 def detect_alpha_clip(alpha_nav):
     nav = alpha_nav.peek_back()
     if not nav.moved:
-        return None
+        return None, None
 
     # Detect [Math:Round]
     if nav.node.type == 'MATH' and nav.node.operation == 'ROUND':
         nav.select_input_socket(0)
         alpha_nav.assign(nav)
-        return 0.5
+        return 0.5, None # Round => can't be animated, so no path
 
     # Detect 1 - (X < cutoff)
     # (There is no >= node)
@@ -583,35 +588,35 @@ def detect_alpha_clip(alpha_nav):
         if nav.get_constant(0)[0] == 1.0:
             nav2 = nav.peek_back(1)
             if nav2.moved and nav2.node.type == 'MATH':
-                in0 = nav2.get_constant(0)[0]
-                in1 = nav2.get_constant(1)[0]
+                in0, in_path0 = nav2.get_constant(0)
+                in1, in_path1 = nav2.get_constant(1)
                 # X < cutoff
                 if nav2.node.operation == 'LESS_THAN' and in0 is None and in1 is not None:
                     nav2.select_input_socket(0)
                     alpha_nav.assign(nav2)
-                    return in1
+                    return in1, in_path1
                 # cutoff > X
                 elif nav2.node.operation == 'GREATER_THAN' and in0 is not None and in1 is None:
                     nav2.select_input_socket(1)
                     alpha_nav.assign(nav2)
-                    return in0
+                    return in0, in_path0
 
     # Detect (X > cutoff)
     # Wrong when X = cutoff, but backwards compatible with legacy
     # Alpha Clip setup
     if nav.node.type == 'MATH':
-        in0 = nav.get_constant(0)[0]
-        in1 = nav.get_constant(1)[0]
+        in0, in_path0 = nav.get_constant(0)
+        in1, in_path1 = nav.get_constant(1)
         if nav.node.operation == 'GREATER_THAN' and in1 is not None:
             nav.select_input_socket(0)
             alpha_nav.assign(nav)
-            return in1
+            return in1, in_path1
         elif nav.node.operation == 'LESS_THAN' and in0 is not None:
             nav.select_input_socket(1)
             alpha_nav.assign(nav)
-            return in0
+            return in0, in_path0
 
-    return None
+    return None, None
 
 
 # When nav connects to a multiply node (A*B), returns NodeNavs that

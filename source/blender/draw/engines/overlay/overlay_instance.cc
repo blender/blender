@@ -267,6 +267,7 @@ void Resources::update_theme_settings(const DRWContext *ctx, const State &state)
   UI_GetThemeColor4fv(TH_EDITMESH_ACTIVE, gb.colors.edit_mesh_active);
   UI_GetThemeColor4fv(TH_EDGE_SELECT, gb.colors.edge_select);
   UI_GetThemeColor4fv(TH_EDGE_MODE_SELECT, gb.colors.edge_mode_select);
+  UI_GetThemeColor4fv(TH_GP_WIRE_EDIT, gb.colors.gpencil_wire_edit);
   UI_GetThemeColor4fv(TH_GP_VERTEX, gb.colors.gpencil_vertex);
   UI_GetThemeColor4fv(TH_GP_VERTEX_SELECT, gb.colors.gpencil_vertex_select);
 

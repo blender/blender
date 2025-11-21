@@ -343,7 +343,7 @@ static void init_sculpt_mode_session(Main &bmain, Depsgraph &depsgraph, Scene &s
   Mesh &mesh = *static_cast<Mesh *>(ob.data);
   if (mesh.attributes().contains(".sculpt_face_set")) {
     /* Here we can detect geometry that was just added to Sculpt Mode as it has the
-     * SCULPT_FACE_SET_NONE assigned, so we can create a new Face Set for it. */
+     * SCULPT_FACE_SET_NONE assigned, so we can create a new face set for it. */
     /* In sculpt mode all geometry that is assigned to SCULPT_FACE_SET_NONE is considered as not
      * initialized, which is used is some operators that modify the mesh topology to perform
      * certain actions in the new faces. After these operations are finished, all faces should have
@@ -1271,12 +1271,12 @@ static wmOperatorStatus mask_from_cavity_exec(bContext *C, wmOperator *op)
 
 static void mask_from_cavity_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  ui::Layout &layout = *op->layout;
   Scene *scene = CTX_data_scene(C);
   Sculpt *sd = scene->toolsettings ? scene->toolsettings->sculpt : nullptr;
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
   MaskSettingsSource source = (MaskSettingsSource)RNA_enum_get(op->ptr, "settings_source");
 
   if (!sd) {
@@ -1285,16 +1285,16 @@ static void mask_from_cavity_ui(bContext *C, wmOperator *op)
 
   switch (source) {
     case MaskSettingsSource::Operator: {
-      layout->prop(op->ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout->prop(op->ptr, "mix_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout->prop(op->ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout->prop(op->ptr, "blur_steps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout->prop(op->ptr, "invert", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout->prop(op->ptr, "use_curve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(op->ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(op->ptr, "mix_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(op->ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(op->ptr, "blur_steps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(op->ptr, "invert", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(op->ptr, "use_curve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
       if (sd && RNA_boolean_get(op->ptr, "use_curve")) {
         PointerRNA sculpt_ptr = RNA_pointer_create_discrete(&scene->id, &RNA_Sculpt, sd);
-        uiTemplateCurveMapping(layout,
+        uiTemplateCurveMapping(&layout,
                                &sculpt_ptr,
                                "automasking_cavity_curve_op",
                                'v',
@@ -1308,8 +1308,8 @@ static void mask_from_cavity_ui(bContext *C, wmOperator *op)
     }
     case MaskSettingsSource::Brush:
     case MaskSettingsSource::Scene:
-      layout->prop(op->ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout->prop(op->ptr, "mix_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(op->ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(op->ptr, "mix_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
       break;
   }
@@ -1460,12 +1460,12 @@ static wmOperatorStatus mask_from_boundary_exec(bContext *C, wmOperator *op)
 
 static void mask_from_boundary_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  ui::Layout &layout = *op->layout;
   Scene *scene = CTX_data_scene(C);
   Sculpt *sd = scene->toolsettings ? scene->toolsettings->sculpt : nullptr;
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
   MaskSettingsSource source = (MaskSettingsSource)RNA_enum_get(op->ptr, "settings_source");
 
   if (!sd) {
@@ -1474,16 +1474,16 @@ static void mask_from_boundary_ui(bContext *C, wmOperator *op)
 
   switch (source) {
     case MaskSettingsSource::Operator: {
-      layout->prop(op->ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout->prop(op->ptr, "mix_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout->prop(op->ptr, "boundary_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout->prop(op->ptr, "propagation_steps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(op->ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(op->ptr, "mix_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(op->ptr, "boundary_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(op->ptr, "propagation_steps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
     }
     case MaskSettingsSource::Brush:
     case MaskSettingsSource::Scene:
-      layout->prop(op->ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout->prop(op->ptr, "mix_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(op->ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(op->ptr, "mix_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
   }
 }

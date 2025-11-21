@@ -18,7 +18,9 @@
 #  include "eevee_shadow_shared.hh"
 #  include "eevee_uniform_infos.hh"
 #  include "eevee_volume_infos.hh"
+#endif
 
+#ifdef GLSL_CPP_STUBS
 #  define CURVES_SHADER
 #  define DRW_HAIR_INFO
 
@@ -27,7 +29,6 @@
 
 #  define SHADOW_UPDATE_ATOMIC_RASTER
 #  define MAT_TRANSPARENT
-
 #endif
 
 #include "eevee_defines.hh"
@@ -71,7 +72,7 @@ GPU_SHADER_CREATE_END()
 GPU_SHADER_CREATE_INFO(eevee_renderpass_clear)
 FRAGMENT_OUT(0, float4, out_background)
 FRAGMENT_SOURCE("eevee_renderpass_clear_frag.glsl")
-ADDITIONAL_INFO(gpu_fullscreen)
+ADDITIONAL_INFO(eevee_fullscreen)
 ADDITIONAL_INFO(eevee_global_ubo)
 ADDITIONAL_INFO(eevee_render_pass_out)
 ADDITIONAL_INFO(eevee_cryptomatte_out)

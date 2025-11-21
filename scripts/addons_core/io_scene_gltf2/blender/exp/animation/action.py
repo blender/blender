@@ -251,7 +251,7 @@ def prepare_actions_range(export_settings):
                         fcurves = chanelbag.fcurves if chanelbag else []
                         start_frame = int(min([c.range()[0] for c in fcurves]))
                         end_frame = int(max([c.range()[1] for c in fcurves]))
-                    except:
+                    except Exception as _e:
                         pass
 
                 export_settings['ranges'][obj_uuid][blender_action.name] = {}
@@ -521,7 +521,7 @@ def gather_action_animations(obj_uuid: int,
                             slot,
                             track_name,
                             on_type)
-                    except:
+                    except Exception as _e:
                         error = "Action is readonly. Please check NLA editor"
                         export_settings['log'].warning(
                             "Animation '{}' could not be exported. Cause: {}".format(

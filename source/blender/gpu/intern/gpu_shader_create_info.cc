@@ -96,15 +96,20 @@ bool ShaderCreateInfo::is_vulkan_compatible() const
 
 /** \} */
 
+ShaderCreateInfo::ShaderCreateInfo(const char *name) : name_(name)
+{
+  /* Escape the shader name to be able to use it inside an identifier. */
+  for (char &c : name_) {
+    if (!std::isalnum(c)) {
+      c = '_';
+    }
+  }
+}
+
 std::string ShaderCreateInfo::resource_guard_defines() const
 {
   std::string defines;
-  if (name_.startswith("MA") || name_.startswith("WO")) {
-    defines += "#define CREATE_INFO_Material\n";
-  }
-  else {
-    defines += "#define CREATE_INFO_" + name_ + "\n";
-  }
+  defines += "#define CREATE_INFO_" + name_ + "\n";
   for (const auto &info_name : additional_infos_) {
     const ShaderCreateInfo &info = *reinterpret_cast<const ShaderCreateInfo *>(
         gpu_shader_create_info_get(info_name.c_str()));
@@ -580,7 +585,7 @@ void gpu_shader_create_info_init()
     }
 
 #if GPU_SHADER_PRINTF_ENABLE
-    const bool is_material_shader = info->name_.startswith("eevee_surf_");
+    const bool is_material_shader = blender::StringRefNull(info->name_).startswith("eevee_surf_");
     if (flag_is_set(info->builtins_, BuiltinBits::USE_PRINTF) ||
         (gpu_shader_dependency_force_gpu_print_injection() && is_material_shader))
     {
@@ -635,7 +640,7 @@ bool gpu_shader_create_info_compile_all(const char *name_starts_with_filter)
     info->finalize();
     if (info->do_static_compilation_) {
       if (name_starts_with_filter &&
-          !info->name_.startswith(blender::StringRefNull(name_starts_with_filter)))
+          !StringRefNull(info->name_).startswith(blender::StringRefNull(name_starts_with_filter)))
       {
         skipped_filter++;
         continue;

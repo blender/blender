@@ -2810,6 +2810,12 @@ static void rna_def_userdef_theme_spaces_gpencil(StructRNA *srna)
 {
   PropertyRNA *prop;
 
+  prop = RNA_def_property(srna, "gp_wire_edit", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_ui_text(
+      prop, "Grease Pencil Wire Edit", "Grease Pencil wireframe color when in edit mode");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
   prop = RNA_def_property(srna, "gp_vertex", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(prop, "Grease Pencil Vertex", "");
@@ -5204,6 +5210,14 @@ static void rna_def_userdef_view(BlenderRNA *brna)
                            "Only show brushes applicable for the currently active tool in the "
                            "asset shelf. Stored in the Preferences, which may have to be saved "
                            "manually if Auto-Save Preferences is disabled");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+  prop = RNA_def_property(srna, "show_online_assets", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "uiflag2", USER_UIFLAG2_SHOW_ONLINE_ASSETS);
+  RNA_def_property_ui_text(
+      prop,
+      "Show Online Assets",
+      "When internet access is enabled, load and display online assets in asset shelves");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   static const EnumPropertyItem header_align_items[] = {

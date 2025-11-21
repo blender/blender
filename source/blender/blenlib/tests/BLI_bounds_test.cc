@@ -187,4 +187,42 @@ TEST(bounds, Contains)
   }
 }
 
+TEST(bounds, IntersectSegment1D)
+{
+  Bounds<int> bounds1(-1, 6);
+  EXPECT_TRUE(bounds1.intersects_segment(8, 2));
+  EXPECT_FALSE(bounds1.intersects_segment(-2, -3));
+  EXPECT_TRUE(bounds1.intersects_segment(8, 6));
+  EXPECT_FALSE(bounds1.intersects_segment(8, 8));
+  EXPECT_TRUE(bounds1.intersects_segment(0, 0));
+
+  Bounds<float> bounds2(-1.0f, 6.0f);
+  EXPECT_TRUE(bounds2.intersects_segment(8.0f, 2.0f));
+  EXPECT_FALSE(bounds2.intersects_segment(-2.0f, -3.0f));
+  EXPECT_TRUE(bounds2.intersects_segment(8.0f, 6.0f));
+  EXPECT_FALSE(bounds2.intersects_segment(8.0f, 8.0f));
+  EXPECT_TRUE(bounds2.intersects_segment(0.0f, 0.0f));
+}
+
+TEST(bounds, IntersectSegment2D)
+{
+  Bounds<int2> bounds1(int2(-2, -1), int2(4, 5));
+  EXPECT_TRUE(bounds1.intersects_segment(int2(1, 2), int2(5, 3)));
+  EXPECT_FALSE(bounds1.intersects_segment(int2(-4, 7), int2(5, 6)));
+  EXPECT_TRUE(bounds1.intersects_segment(int2(-2, 2), int2(-4, 2)));
+  EXPECT_FALSE(bounds1.intersects_segment(int2(5, 5), int2(5, 5)));
+  EXPECT_TRUE(bounds1.intersects_segment(int2(1, 1), int2(1, 1)));
+  EXPECT_FALSE(bounds1.intersects_segment(int2(0, -3), int2(-4, 0)));
+  EXPECT_TRUE(bounds1.intersects_segment(int2(1, -2), int2(-3, 1)));
+
+  Bounds<float2> bounds2(float2(-2.0f, -1.0f), float2(4.0f, 5.0f));
+  EXPECT_TRUE(bounds2.intersects_segment(float2(1.0f, 2.0f), float2(5.0f, 3.0f)));
+  EXPECT_FALSE(bounds2.intersects_segment(float2(-4.0f, 7.0f), float2(5.0f, 6.0f)));
+  EXPECT_TRUE(bounds2.intersects_segment(float2(-2.0f, 2.0f), float2(-4.0f, 2.0f)));
+  EXPECT_FALSE(bounds2.intersects_segment(float2(5.0f, 5.0f), float2(5.0f, 5.0f)));
+  EXPECT_TRUE(bounds2.intersects_segment(float2(1.0f, 1.0f), float2(1.0f, 1.0f)));
+  EXPECT_FALSE(bounds2.intersects_segment(float2(0.0f, -3.0f), float2(-4.0f, 0.0f)));
+  EXPECT_TRUE(bounds2.intersects_segment(float2(1.0f, -2.0f), float2(-3.0f, 1.0f)));
+}
+
 }  // namespace blender::tests

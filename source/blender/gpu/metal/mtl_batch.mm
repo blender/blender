@@ -473,8 +473,8 @@ void MTLBatch::draw_advanced(int v_first, int v_count, int i_first, int i_count)
           BLI_assert(emulated_v_count % 2 == 0);
         }
 
-        /* Set depth stencil state (requires knowledge of primitive type). */
-        ctx->ensure_depth_stencil_state(emulated_mtl_prim_type);
+        /* Set depth stencil state (TODO: Move it back upstream, is legacy of depth bias). */
+        ctx->ensure_depth_stencil_state();
 
         [rec drawIndexedPrimitives:emulated_mtl_prim_type
                         indexCount:emulated_v_count
@@ -491,8 +491,8 @@ void MTLBatch::draw_advanced(int v_first, int v_count, int i_first, int i_count)
       }
     }
     else {
-      /* Set depth stencil state (requires knowledge of primitive type). */
-      ctx->ensure_depth_stencil_state(mtl_prim_type);
+      /* Set depth stencil state (TODO: Move it back upstream, is legacy of depth bias). */
+      ctx->ensure_depth_stencil_state();
 
       /* Issue draw call. */
       [rec drawPrimitives:mtl_prim_type
@@ -525,8 +525,8 @@ void MTLBatch::draw_advanced(int v_first, int v_count, int i_first, int i_count)
 
     if (index_buffer != nil) {
 
-      /* Set depth stencil state (requires knowledge of primitive type). */
-      ctx->ensure_depth_stencil_state(mtl_prim_type);
+      /* Set depth stencil state (TODO: Move it back upstream, is legacy of depth bias). */
+      ctx->ensure_depth_stencil_state();
 
       /* Issue draw call. */
       [rec drawIndexedPrimitives:mtl_prim_type
@@ -590,8 +590,8 @@ void MTLBatch::draw_advanced_indirect(StorageBuf *indirect_buf, intptr_t offset)
   }
 
   if (mtl_elem == nullptr) {
-    /* Set depth stencil state (requires knowledge of primitive type). */
-    ctx->ensure_depth_stencil_state(mtl_prim_type);
+    /* Set depth stencil state (TODO: Move it back upstream, is legacy of depth bias). */
+    ctx->ensure_depth_stencil_state();
 
     /* Issue draw call. */
     [rec drawPrimitives:mtl_prim_type indirectBuffer:mtl_indirect_buf indirectBufferOffset:offset];
@@ -614,8 +614,8 @@ void MTLBatch::draw_advanced_indirect(StorageBuf *indirect_buf, intptr_t offset)
 
     if (index_buffer != nil) {
 
-      /* Set depth stencil state (requires knowledge of primitive type). */
-      ctx->ensure_depth_stencil_state(mtl_prim_type);
+      /* Set depth stencil state (TODO: Move it back upstream, is legacy of depth bias). */
+      ctx->ensure_depth_stencil_state();
 
       /* Issue draw call. */
       [rec drawIndexedPrimitives:mtl_prim_type

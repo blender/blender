@@ -12,7 +12,9 @@
 
 #  include "draw_attribute_shader_shared.hh"
 #  include "draw_object_infos_infos.hh"
+#endif
 
+#ifdef GLSL_CPP_STUBS
 #  define DRW_HAIR_INFO
 #endif
 

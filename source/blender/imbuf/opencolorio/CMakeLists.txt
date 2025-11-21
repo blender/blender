@@ -94,6 +94,8 @@ target_include_directories(bf_imbuf_opencolorio PUBLIC .)
 set(GLSL_SRC
   shaders/gpu_shader_display_transform_vert.glsl
   shaders/gpu_shader_display_transform_frag.glsl
+  shaders/gpu_shader_display_transform_lib.glsl
+  shaders/gpu_shader_display_transform_fallback_lib.glsl
 
   intern/ocio_shader_shared.hh
 )

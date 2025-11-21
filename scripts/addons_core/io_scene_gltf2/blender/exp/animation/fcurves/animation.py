@@ -3,9 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import bpy
-from .....io.com import gltf2_io
 from .....io.exp.user_extensions import export_user_extensions
-from ....com.extras import generate_extras
 from .channels import gather_animation_fcurves_channels
 
 

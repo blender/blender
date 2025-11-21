@@ -124,7 +124,14 @@ static void uilist_draw_filter_default(uiList *ui_list, const bContext * /*C*/, 
   uiLayout *row = &layout->row(false);
 
   uiLayout *subrow = &row->row(true);
-  subrow->prop(&listptr, "filter_name", UI_ITEM_NONE, "", ICON_NONE);
+  subrow->prop(&listptr,
+               RNA_struct_find_property(&listptr, "filter_name"),
+               -1,
+               0,
+               UI_ITEM_NONE,
+               "",
+               ICON_VIEWZOOM,
+               IFACE_("Search"));
   subrow->prop(&listptr,
                "use_filter_invert",
                UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY,
