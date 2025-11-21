@@ -9,6 +9,8 @@
 
 #include "ocio_shader_shared.hh"
 
+#include "gpu_shader_display_transform_fallback_lib.glsl"
+
 /* Info is generated at runtime. */
 GPU_SHADER_CREATE_INFO(OCIO_Display)
 GPU_SHADER_CREATE_END()
