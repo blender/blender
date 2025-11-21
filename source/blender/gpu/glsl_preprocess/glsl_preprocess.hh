@@ -494,28 +494,32 @@ class Preprocessor {
       str = pragmas_mutation(str, report_error);
       str = swizzle_function_mutation(str, report_error);
       str = enum_macro_injection(str, language == CPP, report_error);
-      if (language == BLENDER_GLSL) {
+      {
         Parser parser(str, report_error);
         resource_table_parsing(parser, report_error);
         stage_interface_parsing(parser, report_error);
         fragment_out_parsing(parser, report_error);
         vertex_in_parsing(parser, report_error);
-        using_mutation(parser, report_error);
 
-        namespace_mutation(parser, report_error);
-        template_struct_mutation(parser, report_error);
-        struct_method_mutation(parser, report_error);
-        empty_struct_mutation(parser, report_error);
-        method_call_mutation(parser, report_error);
-        stage_function_mutation(parser, report_error);
-        resource_guard_mutation(parser, report_error);
-        loop_unroll(parser, report_error);
-        assert_processing(parser, filename, report_error);
-        static_strings_merging(parser, report_error);
-        static_strings_parsing_and_mutation(parser, report_error);
-        str = parser.result_get();
-        str = printf_processing(str, report_error);
-        quote_linting(str, report_error);
+        if (language == BLENDER_GLSL) {
+          srt_member_access_mutation(parser, report_error);
+          using_mutation(parser, report_error);
+
+          namespace_mutation(parser, report_error);
+          template_struct_mutation(parser, report_error);
+          struct_method_mutation(parser, report_error);
+          empty_struct_mutation(parser, report_error);
+          method_call_mutation(parser, report_error);
+          stage_function_mutation(parser, report_error);
+          resource_guard_mutation(parser, report_error);
+          loop_unroll(parser, report_error);
+          assert_processing(parser, filename, report_error);
+          static_strings_merging(parser, report_error);
+          static_strings_parsing_and_mutation(parser, report_error);
+          str = parser.result_get();
+          str = printf_processing(str, report_error);
+          quote_linting(str, report_error);
+        }
       }
       {
         Parser parser(str, report_error);
@@ -1992,17 +1996,17 @@ class Preprocessor {
         metadata::ResourceTable srt;
         srt.name = srt_name.str();
 
-        body.foreach_match("[[..]]mww;", [&](const std::vector<Token> &tokens) {
+        body.foreach_match("[[..]]ww;", [&](const std::vector<Token> &tokens) {
           auto res = parse_resource(
               tokens[1].scope(), tokens[6].is_valid(), tokens[6], tokens[7], Scope::invalid());
           srt.emplace_back(res);
         });
-        body.foreach_match("[[..]]mw&w;", [&](const std::vector<Token> &tokens) {
+        body.foreach_match("[[..]]w&w;", [&](const std::vector<Token> &tokens) {
           auto res = parse_resource(
               tokens[1].scope(), tokens[6].is_valid(), tokens[6], tokens[8], Scope::invalid());
           srt.emplace_back(res);
         });
-        body.foreach_match("[[..]]mw(&w)[..];", [&](const std::vector<Token> &tokens) {
+        body.foreach_match("[[..]]w(&w)[..];", [&](const std::vector<Token> &tokens) {
           auto res = parse_resource(
               tokens[1].scope(), tokens[6].is_valid(), tokens[6], tokens[9], tokens[11].scope());
           srt.emplace_back(res);
@@ -2422,7 +2426,7 @@ class Preprocessor {
         if (func_name != "specialization_constant_get" && func_name != "shared_variable_get" &&
             func_name != "push_constant_get" && func_name != "interface_get" &&
             func_name != "attribute_get" && func_name != "buffer_get" &&
-            func_name != "sampler_get" && func_name != "image_get")
+            func_name != "srt_access" && func_name != "sampler_get" && func_name != "image_get")
         {
           return;
         }
@@ -2712,6 +2716,62 @@ class Preprocessor {
     parser.apply_mutations();
   }
 
+  /* Need to run before local reference mutations. */
+  void srt_member_access_mutation(Parser &parser, report_callback report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    const string srt_attribute = "resource_table";
+
+    auto memher_access_mutation = [&](parser::Token type,
+                                      parser::Token var,
+                                      parser::Scope attribute,
+                                      parser::Scope body_scope) {
+      if (attribute[2].str() != srt_attribute) {
+        return;
+      }
+
+      parser.replace(attribute, "");
+      string srt_type = type.str();
+      string srt_var = var.str();
+
+      body_scope.foreach_match("w.w", [&](const vector<Token> toks) {
+        if (toks[0].str() != srt_var) {
+          return;
+        }
+        parser.replace(toks[0], toks[2], "srt_access(" + srt_type + ", " + toks[2].str() + ")");
+      });
+    };
+
+    parser.foreach_scope(ScopeType::FunctionArgs, [&](const Scope fn_args) {
+      Scope fn_body = fn_args.next();
+      if (fn_body.is_invalid()) {
+        return;
+      }
+      fn_args.foreach_match("w&w[[w]]", [&](const vector<Token> toks) {
+        memher_access_mutation(toks[0], toks[2], toks[3].scope(), fn_body);
+      });
+      fn_args.foreach_match("ww[[w]]", [&](const vector<Token> toks) {
+        if (toks[4].str() == srt_attribute) {
+          parser.erase(toks[2], toks[6]);
+          report_error(ERROR_TOK(toks[1]), "Shader Resource Table arguments must be references.");
+        }
+      });
+    });
+
+    parser.foreach_scope(ScopeType::Function, [&](const Scope fn_body) {
+      fn_body.foreach_match("w&w[[w]]", [&](const vector<Token> toks) {
+        memher_access_mutation(toks[0], toks[2], toks[3].scope(), toks[2].scope());
+      });
+      fn_body.foreach_match("ww[[w]]", [&](const vector<Token> toks) {
+        memher_access_mutation(toks[0], toks[1], toks[2].scope(), toks[1].scope());
+      });
+    });
+
+    parser.apply_mutations();
+  }
+
   /* To be run after `argument_reference_mutation()`. */
   std::string variable_reference_mutation(const std::string &str, report_callback report_error)
   {
@@ -2760,6 +2820,7 @@ class Preprocessor {
             value.find("interface_get(") == string::npos &&
             value.find("attribute_get(") == string::npos &&
             value.find("buffer_get(") == string::npos &&
+            value.find("srt_access(") == string::npos &&
             value.find("sampler_get(") == string::npos && value.find("image_get(") == string::npos)
         {
           report_error(line_number(match),
