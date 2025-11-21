@@ -65,7 +65,6 @@ void filelist_setfilter_options(FileList *filelist,
 void filelist_setindexer(FileList *filelist, const FileIndexerType *indexer);
 void filelist_remote_asset_library_refresh_online_assets_status(const FileList *filelist,
                                                                 blender::StringRef remote_url);
-
 void filelist_set_asset_include_online(FileList *filelist, const bool show_online_assets);
 /**
  * \param catalog_id: The catalog that should be filtered by if \a catalog_visibility is

@@ -124,6 +124,7 @@ static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
                                                bool *stop,
                                                bool *do_update,
                                                float *progress);
+
 /* helper, could probably go in BKE actually? */
 static int groupname_to_code(const char *group);
 
