@@ -1919,7 +1919,7 @@ static wmOperatorStatus sequencer_add_effect_strip_exec(bContext *C, wmOperator 
 
   seq::LoadData load_data;
   load_data_init_from_operator(&load_data, C, op);
-  load_data.effect.type = RNA_enum_get(op->ptr, "type");
+  load_data.effect.type = StripType(RNA_enum_get(op->ptr, "type"));
   const int num_inputs = seq::effect_get_num_inputs(load_data.effect.type);
 
   VectorSet<Strip *> inputs = strip_effect_get_new_inputs(scene, num_inputs);

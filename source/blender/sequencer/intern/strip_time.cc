@@ -118,7 +118,7 @@ static void strip_update_sound_bounds_recursive_impl(const Scene *scene,
                                                min_ii(end, metastrip_end_get(strip)));
     }
     else if (ELEM(strip->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SCENE)) {
-      if (strip->scene_sound) {
+      if (strip->runtime->scene_sound) {
         int startofs = strip->startofs;
         int endofs = strip->endofs;
         if (strip->startofs + strip->start < start) {
@@ -135,7 +135,7 @@ static void strip_update_sound_bounds_recursive_impl(const Scene *scene,
         }
 
         BKE_sound_move_scene_sound(scene,
-                                   strip->scene_sound,
+                                   strip->runtime->scene_sound,
                                    strip->start + startofs,
                                    strip->start + strip->len - endofs,
                                    startofs + strip->anim_startofs,
@@ -315,14 +315,11 @@ float time_strip_fps_get(Scene *scene, Strip *strip)
   switch (strip->type) {
     case STRIP_TYPE_MOVIE: {
       strip_open_anim_file(scene, strip, true);
-      if (BLI_listbase_is_empty(&strip->anims)) {
+      const MovieReader *anim = strip->runtime->movie_reader_get();
+      if (anim == nullptr) {
         return 0.0f;
       }
-      StripAnim *strip_anim = static_cast<StripAnim *>(strip->anims.first);
-      if (strip_anim->anim == nullptr) {
-        return 0.0f;
-      }
-      return MOV_get_fps(strip_anim->anim);
+      return MOV_get_fps(anim);
     }
     case STRIP_TYPE_MOVIECLIP:
       if (strip->clip != nullptr) {
