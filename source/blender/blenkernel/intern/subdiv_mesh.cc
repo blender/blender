@@ -762,6 +762,8 @@ static void subdiv_mesh_tls_free(void *tls_v)
   SubdivMeshTLS *tls = static_cast<SubdivMeshTLS *>(tls_v);
   delete tls->vert_interpolation;
   delete tls->loop_interpolation;
+  tls->vert_interpolation = nullptr;
+  tls->loop_interpolation = nullptr;
 }
 
 /** \} */
