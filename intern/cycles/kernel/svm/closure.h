@@ -64,9 +64,12 @@ ccl_device
   const uint4 data_node = read_node(kg, &offset);
 
   /* Only compute BSDF for surfaces, transparent variable is shared with volume extinction. */
+  if constexpr (shader_type != SHADER_TYPE_SURFACE) {
+    return svm_node_closure_bsdf_skip(kg, offset, type);
+  }
   IF_KERNEL_NODES_FEATURE(BSDF)
   {
-    if ((shader_type != SHADER_TYPE_SURFACE) || mix_weight == 0.0f) {
+    if (mix_weight == 0.0f) {
       return svm_node_closure_bsdf_skip(kg, offset, type);
     }
   }
