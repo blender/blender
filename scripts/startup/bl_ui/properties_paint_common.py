@@ -1894,11 +1894,14 @@ classes = (
     VIEW3D_MT_tools_projectpaint_clone,
 )
 
+
 def register():
     bpy.types.ASSETSHELF_PT_filter.append(brush_asset_shelf_filter_draw)
 
+
 def unregister():
     bpy.types.ASSETSHELF_PT_filter.remove(brush_asset_shelf_filter_draw)
+
 
 if __name__ == "__main__":  # only for live edit.
     from bpy.utils import register_class
