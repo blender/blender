@@ -289,6 +289,10 @@ typedef struct View3D_Runtime {
 
   /* Only used for overlay stats while in local-view. */
   struct SceneStats *local_stats;
+
+  /* Times recorded for performance overlay. */
+  float last_sync_time;
+  float last_submission_time;
 } View3D_Runtime;
 
 /** 3D ViewPort Struct. */
@@ -648,6 +652,7 @@ enum {
   V3D_OVERLAY_SCULPT_CURVES_CAGE = (1 << 16),
   V3D_OVERLAY_SHOW_LIGHT_COLORS = (1 << 17),
   V3D_OVERLAY_VIEWER_ATTRIBUTE_TEXT = (1 << 18),
+  V3D_OVERLAY_PERFORMANCE = (1 << 19),
 };
 
 /** #View3DOverlay.edit_flag */
