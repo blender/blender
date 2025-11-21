@@ -62,6 +62,8 @@ BLOCKLIST_OSL_ALL = BLOCKLIST_OSL_LIMITED + [
     # Tests that need investigating into why they're failing:
     # Noise differences due to Principled BSDF mixing/layering used in some of these scenes
     'render_passes_.*.blend',
+    # OSL can not specify parameters when reading attribute, which we need for stochastic sampling
+    'volume_tricubic_interpolation.blend',
 ]
 
 BLOCKLIST_OPTIX = [
