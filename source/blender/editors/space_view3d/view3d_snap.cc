@@ -103,7 +103,8 @@ static wmOperatorStatus snap_sel_to_grid_exec(bContext *C, wmOperator *op)
       }
 
       if (ED_transverts_check_obedit(obedit)) {
-        ED_transverts_create_from_obedit(&tvs, obedit, 0);
+        const Object *obedit_eval = DEG_get_evaluated(depsgraph, obedit);
+        ED_transverts_create_from_obedit(&tvs, obedit_eval, 0);
       }
 
       if (tvs.transverts_tot != 0) {
