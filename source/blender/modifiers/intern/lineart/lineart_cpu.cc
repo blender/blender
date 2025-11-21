@@ -5462,6 +5462,9 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
     };
 
     auto transfer_to_singular_group = [&](const int64_t source_index, const int target_index) {
+      if (target_defgroup < 0) {
+        return;
+      }
       float highest_weight = 0.0f;
       for (const int from_group : src_to_dst_defgroup.index_range()) {
         if (from_group < 0 || UNLIKELY(source_index >= src_dvert.size())) {
