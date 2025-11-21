@@ -95,12 +95,14 @@ void AssetRepresentation::ensure_previewable(bContext &C, ReportList *reports)
   /* Use the full path as preview name, it's the only unique identifier we have. */
   const std::string full_path = this->full_path();
 
-  if (extern_asset.online_info_ && extern_asset.online_info_->preview_url_) {
-    const std::string preview_path = remote_library_asset_preview_path(*this);
-    /* Doesn't do the actual reading, just allocates and attaches the derived load info. */
-    extern_asset.preview_ = BKE_previewimg_online_thumbnail_read(
-        full_path.c_str(), preview_path.c_str(), false);
-    remote_library_request_preview_download(C, *this, reports);
+  if (extern_asset.online_info_) {
+    if (extern_asset.online_info_->preview_url_) {
+      const std::string preview_path = remote_library_asset_preview_path(*this);
+      /* Doesn't do the actual reading, just allocates and attaches the derived load info. */
+      extern_asset.preview_ = BKE_previewimg_online_thumbnail_read(
+          full_path.c_str(), preview_path.c_str(), false);
+      remote_library_request_preview_download(C, *this, reports);
+    }
   }
   else {
     /* Doesn't do the actual reading, just allocates and attaches the derived load info. */

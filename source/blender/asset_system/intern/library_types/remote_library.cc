@@ -408,6 +408,9 @@ void remote_library_request_preview_download(bContext &C,
 
   const std::string dst_filepath = remote_library_asset_preview_path(asset);
 
+  /* Notify the preview loading UI that a download for this preview is pending. */
+  ED_preview_online_download_requested(dst_filepath);
+
   {
     std::string script =
         "import _bpy_internal.assets.remote_library_listing.asset_downloader as asset_dl\n"
@@ -427,9 +430,6 @@ void remote_library_request_preview_download(bContext &C,
     /* TODO: report errors in the UI somehow. */
     BPY_run_string_with_locals(&C, script, *locals);
   }
-
-  /* Notify the preview loading UI that a download for this preview is pending. */
-  ED_preview_online_download_requested(dst_filepath);
 
 #else
   UNUSED_VARS(C, asset);

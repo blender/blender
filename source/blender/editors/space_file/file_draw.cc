@@ -37,6 +37,7 @@
 #include "BKE_blendfile.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
+#include "BKE_icons.hh"
 #include "BKE_preferences.h"
 #include "BKE_report.hh"
 
@@ -707,14 +708,12 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
 
 static void file_draw_preview(const FileDirEntry *file,
                               const rcti *tile_draw_rect,
-                              const ImBuf *imb,
+                              const IconBuffer &preview,
                               FileLayout *layout,
                               const bool dimmed)
 {
-  BLI_assert(imb != nullptr);
-
   const auto [scaled_width, scaled_height, scale] = preview_image_scaled_dimensions_get(
-      imb->x, imb->y, *layout);
+      preview.width, preview.height, *layout);
 
   /* Additional offset to keep the scaled image centered. Difference between maximum
    * width/height and the actual width/height, divided by two for centering. */
@@ -748,11 +747,11 @@ static void file_draw_preview(const FileDirEntry *file,
   immDrawPixelsTexTiled_scaling(&state,
                                 float(xmin),
                                 float(ymin),
-                                imb->x,
-                                imb->y,
+                                preview.width,
+                                preview.height,
                                 blender::gpu::TextureFormat::UNORM_8_8_8_8,
                                 true,
-                                imb->byte_buffer.data,
+                                preview.buffer.data(),
                                 scale,
                                 scale,
                                 1.0f,
@@ -1435,8 +1434,21 @@ void file_draw_list(const bContext *C, ARegion *region)
     const bool is_hidden = (file->attributes & FILE_ATTR_HIDDEN);
 
     if (FILE_IMGDISPLAY == params->display) {
+      if (file->typeflag & FILE_TYPE_ASSET_ONLINE) {
+        filelist_online_asset_preview_request(const_cast<bContext *>(C), file);
+        /* Trigger the preview loader to wait until the download is done and load the preview from
+         * disk. */
+        if (!file->asset->is_local_id()) {
+          UI_icon_render_id_ex(
+              C, nullptr, nullptr, ICON_SIZE_PREVIEW, true, file->asset->get_preview());
+        }
+      }
+
       const int file_type_icon = filelist_geticon_file_type(files, i, false);
-      const ImBuf *preview_imb = filelist_get_preview_image(files, i);
+      std::optional<IconBuffer> preview_buf = file->preview_icon_id ?
+                                                  BKE_icon_get_buffer(file->preview_icon_id,
+                                                                      ICON_SIZE_PREVIEW) :
+                                                  std::nullopt;
 
       bool has_special_file_image = false;
 
@@ -1444,8 +1456,8 @@ void file_draw_list(const bContext *C, ARegion *region)
       if (is_loading) {
         file_draw_loading_icon(&tile_draw_rect, thumb_icon_aspect, layout);
       }
-      else if (preview_imb) {
-        file_draw_preview(file, &tile_draw_rect, preview_imb, layout, is_hidden);
+      else if (preview_buf) {
+        file_draw_preview(file, &tile_draw_rect, *preview_buf, layout, is_hidden);
       }
       else {
         /* Larger folder or document icon, with file/folder type icon in the middle (if any). */
@@ -1463,7 +1475,9 @@ void file_draw_list(const bContext *C, ARegion *region)
                                 has_special_file_image,
                                 file_selflag);
 
-      if (do_drag) {
+      /* TODO */
+      if (do_drag && false) {
+        const ImBuf *preview_imb = filelist_get_preview_image(files, i);
         file_add_preview_drag_but(
             sfile, block, layout, file, path, &tile_draw_rect, preview_imb, file_type_icon);
       }

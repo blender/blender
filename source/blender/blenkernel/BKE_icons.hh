@@ -15,8 +15,13 @@
  * different design need to be introduced.
  */
 
+#include <optional>
+
 #include "BLI_compiler_attrs.h"
+#include "BLI_span.hh"
 #include "BLI_sys_types.h"
+
+#include "DNA_ID_enums.h"
 
 typedef void (*DrawInfoFreeFP)(void *drawinfo);
 
@@ -97,6 +102,14 @@ int BKE_icon_preview_ensure(ID *id, PreviewImage *preview);
  */
 int BKE_icon_imbuf_create(ImBuf *ibuf) ATTR_WARN_UNUSED_RESULT;
 ImBuf *BKE_icon_imbuf_get_buffer(int icon_id) ATTR_WARN_UNUSED_RESULT;
+
+struct IconBuffer {
+  uint width;
+  uint height;
+  blender::Span<uint8_t> buffer;
+};
+
+std::optional<IconBuffer> BKE_icon_get_buffer(const int icon_id, eIconSizes size);
 
 /**
  * Retrieve icon for id.

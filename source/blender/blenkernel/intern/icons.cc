@@ -21,6 +21,7 @@
 #include "BLI_ghash.h"
 #include "BLI_linklist_lockfree.h"
 #include "BLI_mutex.hh"
+#include "BLI_span.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -395,6 +396,67 @@ ImBuf *BKE_icon_imbuf_get_buffer(int icon_id)
   }
 
   return (ImBuf *)icon->obj;
+}
+
+static IconBuffer construct_icon_buffer(const uint width,
+                                        const uint height,
+                                        const uint channels,
+                                        const uint8_t *buffer)
+{
+  BLI_assert(buffer != nullptr);
+
+  IconBuffer icon_buffer{};
+  icon_buffer.width = width;
+  icon_buffer.height = height;
+  icon_buffer.buffer = blender::Span(buffer, width * height * channels);
+
+  return icon_buffer;
+}
+
+static std::optional<IconBuffer> icon_buffer_from_preview(const PreviewImage *preview,
+                                                          eIconSizes size)
+{
+  if (!preview->rect[size]) {
+    return std::nullopt;
+  }
+  return construct_icon_buffer(
+      preview->w[size], preview->h[size], 4, reinterpret_cast<uint8_t *>(preview->rect[size]));
+}
+
+std::optional<IconBuffer> BKE_icon_get_buffer(const int icon_id, eIconSizes size)
+{
+  using blender::Span;
+
+  Icon *icon = icon_ghash_lookup(icon_id);
+  if (!icon) {
+    CLOG_ERROR(&LOG, "no icon for icon ID: %d", icon_id);
+    return std::nullopt;
+  }
+
+  switch (icon->obj_type) {
+    case ICON_DATA_IMBUF: {
+      const ImBuf *ibuf = static_cast<ImBuf *>(icon->obj);
+      return construct_icon_buffer(
+          uint(ibuf->x), uint(ibuf->y), uint(ibuf->channels), ibuf->byte_buffer.data);
+    }
+    case ICON_DATA_ID: {
+      const ID *id = static_cast<ID *>(icon->obj);
+      if (PreviewImage *preview = BKE_previewimg_id_get(id)) {
+        return icon_buffer_from_preview(preview, size);
+      }
+      break;
+    }
+    case ICON_DATA_PREVIEW: {
+      if (const PreviewImage *preview = static_cast<PreviewImage *>(icon->obj)) {
+        if (preview->flag[size] & PRV_RENDERING) {
+          return std::nullopt;
+        }
+        return icon_buffer_from_preview(preview, size);
+      }
+    }
+  }
+
+  return std::nullopt;
 }
 
 Icon *BKE_icon_get(const int icon_id)

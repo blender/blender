@@ -334,7 +334,15 @@ bool filelist_file_is_preview_pending(const FileList *filelist, const FileDirEnt
   /* Actual preview loading is only started after the filelist is loaded, so the file isn't flagged
    * with #FILE_ENTRY_PREVIEW_LOADING yet. */
   const bool filelist_ready = filelist_is_ready(filelist);
-  return !filelist_ready || file->flags & FILE_ENTRY_PREVIEW_LOADING;
+  if (!filelist_ready) {
+    return true;
+  }
+  const PreviewImage *asset_preview = file->asset ? file->asset->get_preview() : nullptr;
+  if (asset_preview && (asset_preview->flag[ICON_SIZE_PREVIEW] & PRV_RENDERING)) {
+    return true;
+  }
+
+  return file->flags & FILE_ENTRY_PREVIEW_LOADING;
 }
 
 static FileDirEntry *filelist_geticon_get_file(FileList *filelist, const int index)
@@ -608,7 +616,11 @@ static void filelist_entry_clear(FileDirEntry *entry)
   if (entry->redirection_path) {
     MEM_freeN(entry->redirection_path);
   }
-  if (entry->preview_icon_id) {
+  if (entry->preview_icon_id &&
+      /* Online assets previews are managed by the general UI preview system, not the file browser
+       * one. Don't mess with them. */
+      ((entry->typeflag & FILE_TYPE_ASSET_ONLINE) == 0))
+  {
     BKE_icon_delete(entry->preview_icon_id);
     entry->preview_icon_id = 0;
   }
@@ -707,6 +719,7 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
   BLI_assert(preview->flags & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT |
                                FILE_TYPE_BLENDER | FILE_TYPE_OBJECT_IO | FILE_TYPE_BLENDER_BACKUP |
                                FILE_TYPE_BLENDERLIB | FILE_TYPE_ASSET_ONLINE));
+  BLI_assert((preview->flags & FILE_TYPE_ASSET_ONLINE) == 0);
 
   if (preview->flags & FILE_TYPE_IMAGE) {
     source = THB_SOURCE_IMAGE;
@@ -786,6 +799,7 @@ static void filelist_cache_previews_clear(FileListEntryCache *cache)
     {
       // printf("%s: DONE %d - %s - %p\n", __func__, preview->index, preview->path,
       // preview->img);
+      BLI_assert((preview->flags & FILE_TYPE_ASSET_ONLINE) == 0);
       if (preview->icon_id) {
         BKE_icon_delete(preview->icon_id);
       }
@@ -851,7 +865,7 @@ static bool filelist_file_preview_load_poll(const FileDirEntry *entry)
   return true;
 }
 
-static void filelist_online_asset_preview_request(bContext *C, FileDirEntry *entry)
+void filelist_online_asset_preview_request(bContext *C, FileDirEntry *entry)
 {
   BLI_assert(entry->asset);
   BLI_assert(entry->asset->is_online());
@@ -860,16 +874,20 @@ static void filelist_online_asset_preview_request(bContext *C, FileDirEntry *ent
     return;
   }
 
+  /* Already requested. */
+  if (entry->flags & FILE_ENTRY_PREVIEW_ONLINE_REQUESTED) {
+    return;
+  }
+
   if (!filelist_file_preview_load_poll(entry)) {
     return;
   }
 
   /* Request online preview if needed. */
-  if ((entry->flags & FILE_ENTRY_PREVIEW_ONLINE_REQUESTED) == 0) {
-    if (std::optional preview_url = entry->asset->online_asset_preview_url()) {
-      asset_system::remote_library_request_preview_download(*C, *entry->asset, nullptr);
-      entry->flags |= (FILE_ENTRY_PREVIEW_ONLINE_REQUESTED | FILE_ENTRY_PREVIEW_LOADING);
-    }
+  if (entry->asset->is_online()) {
+    entry->asset->ensure_previewable(*C, CTX_wm_reports(C));
+    entry->preview_icon_id = entry->asset->get_preview()->runtime->icon_id;
+    entry->flags |= FILE_ENTRY_PREVIEW_ONLINE_REQUESTED;
   }
 }
 
@@ -918,6 +936,7 @@ static bool filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
   }
   else {
     if (entry->asset && entry->typeflag & FILE_TYPE_ASSET_ONLINE) {
+      BLI_assert(0);
       std::string preview_path = asset_system::remote_library_asset_preview_path(*entry->asset);
       BLI_strncpy(preview->filepath, preview_path.c_str(), FILE_MAXDIR);
     }
@@ -1805,10 +1824,9 @@ bool filelist_file_cache_block(bContext *C, FileList *filelist, const int index)
           int offs_block_idx = (block_index + offs) % int(cache_size);
           FileDirEntry *entry = cache->block_entries[offs_block_idx];
 
-          if ((entry->typeflag & FILE_TYPE_ASSET_ONLINE) &&
-              !(entry->flags & FILE_ENTRY_PREVIEW_ONLINE_REQUESTED))
-          {
-            filelist_online_asset_preview_request(C, entry);
+          if (entry->typeflag & FILE_TYPE_ASSET_ONLINE) {
+            /* Online assets use the UI system for async preview loading (see #PreviewLoadJob)
+             * instead of the file browser one. */
           }
           else {
             filelist_cache_previews_push(filelist, entry, offs_idx);
@@ -1876,6 +1894,9 @@ bool filelist_cache_previews_update(FileList *filelist)
     /* entry might have been removed from cache in the mean time,
      * we do not want to cache it again here. */
     entry = filelist_file_ex(filelist, preview->index, false);
+
+    BLI_assert_msg((entry->typeflag & FILE_TYPE_ASSET_ONLINE) == 0,
+                   "Online assets shouldn't use the file preview loading system");
 
     // printf("%s: %d - %s - %p\n", __func__, preview->index, preview->filepath, preview->img);
 

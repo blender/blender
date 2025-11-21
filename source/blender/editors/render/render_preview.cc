@@ -1902,6 +1902,11 @@ void PreviewLoadJob::on_download_completed(wmWindowManager *wm,
               load_job->todo_queue_, request->get(), BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
         }
       }
+      /* No pending request, but one might still be coming. Add to the "known" downloaded previews.
+       */
+      else {
+        PreviewLoadJob::known_downloaded_previews().add(preview_full_filepath);
+      }
     }
   }
 }
