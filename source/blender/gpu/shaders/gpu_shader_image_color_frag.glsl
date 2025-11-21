@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_2D_image_rect_color_infos.hh"
 #include "infos/gpu_shader_3D_image_infos.hh"
 
 FRAGMENT_SHADER_CREATE_INFO(gpu_shader_3D_image_color_scene_linear)

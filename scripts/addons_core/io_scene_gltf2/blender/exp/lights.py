@@ -6,7 +6,6 @@ import bpy
 import math
 from typing import Optional, List, Dict, Any
 from ...io.com import lights_punctual as gltf2_io_lights_punctual
-from ...io.com import debug as gltf2_io_debug
 from ..com.extras import generate_extras
 from ..com.conversion import PBR_WATTS_TO_LUMENS
 from ..com.blender_default import LIGHTS
@@ -64,15 +63,15 @@ def __gather_color(blender_lamp, export_settings) -> Optional[List[float]]:
     path_['path'] = "/extensions/KHR_lights_punctual/lights/XXX/color"
     export_settings['current_paths']['color'] = path_
 
-    color = blender_lamp.color
+    color = list(blender_lamp.color) # Convert to list to allow modification
 
     if blender_lamp.use_temperature:
-        temperature_color = blender_lamp.temperature_color
-        color[0] *= temperature_color
-        color[1] *= temperature_color
-        color[2] *= temperature_color
+        temperature_color = list(blender_lamp.temperature_color)
+        color[0] *= temperature_color[0]
+        color[1] *= temperature_color[1]
+        color[2] *= temperature_color[2]
 
-    return list(color)
+    return color
 
     # TODO, check if temperature is animated, for KHR_animation_pointer
 
@@ -90,7 +89,7 @@ def __gather_intensity(blender_lamp, blender_lamp_world_matrix, export_settings)
                 quadratic_falloff_node = result[0].shader_node
                 emission_strength = quadratic_falloff_node.inputs["Strength"].default_value / (math.pi * 4.0)
                 if not blender_lamp.normalize:
-                    emission_strength *= blender_lamp.area(world_matrix=blender_lamp_world_matrix)
+                    emission_strength *= blender_lamp.area(matrix_world=blender_lamp_world_matrix)
 
                 # Store data for KHR_animation_pointer
                 path_ = {}
@@ -112,7 +111,7 @@ def __gather_intensity(blender_lamp, blender_lamp_world_matrix, export_settings)
 
                 emission_strength = blender_lamp.energy
                 if not blender_lamp.normalize:
-                    emission_strength *= blender_lamp.area(world_matrix=blender_lamp_world_matrix)
+                    emission_strength *= blender_lamp.area(matrix_world=blender_lamp_world_matrix)
         else:
             emission_strength = emission_node.inputs["Strength"].default_value
 
@@ -127,7 +126,7 @@ def __gather_intensity(blender_lamp, blender_lamp_world_matrix, export_settings)
     else:
         emission_strength = blender_lamp.energy
         if not blender_lamp.normalize:
-            emission_strength *= blender_lamp.area(world_matrix=blender_lamp_world_matrix)
+            emission_strength *= blender_lamp.area(matrix_world=blender_lamp_world_matrix)
 
         path_ = {}
         path_['length'] = 1

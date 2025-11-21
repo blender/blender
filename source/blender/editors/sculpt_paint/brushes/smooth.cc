@@ -125,15 +125,17 @@ BLI_NOINLINE static void do_smooth_brush_mesh(const Depsgraph &depsgraph,
           node_factors,
           all_distances.as_mutable_span().slice(node_vert_offsets[pos]));
       scale_factors(node_factors, strength);
-      const GroupedSpan<int> neighbors = calc_vert_neighbors_interior(faces,
-                                                                      corner_verts,
-                                                                      vert_to_face_map,
-                                                                      ss.vertex_info.boundary,
-                                                                      attribute_data.hide_poly,
-                                                                      verts,
-                                                                      node_factors,
-                                                                      tls.neighbor_offsets,
-                                                                      tls.neighbor_data);
+      const GroupedSpan<int> neighbors = calc_vert_neighbors_interior(
+          faces,
+          corner_verts,
+          vert_to_face_map,
+          ss.boundary_info_cache->verts,
+          ss.boundary_info_cache->edges,
+          attribute_data.hide_poly,
+          verts,
+          node_factors,
+          tls.neighbor_offsets,
+          tls.neighbor_data);
       smooth::neighbor_data_average_mesh_check_loose(
           position_data.eval,
           verts,
@@ -159,6 +161,7 @@ static void calc_grids(const Depsgraph &depsgraph,
                        const OffsetIndices<int> faces,
                        const Span<int> corner_verts,
                        const BitSpan boundary_verts,
+                       const Set<OrderedEdge> &boundary_edges,
                        Object &object,
                        const Brush &brush,
                        const float strength,
@@ -177,8 +180,14 @@ static void calc_grids(const Depsgraph &depsgraph,
 
   tls.new_positions.resize(positions.size());
   const MutableSpan<float3> new_positions = tls.new_positions;
-  smooth::neighbor_position_average_interior_grids(
-      faces, corner_verts, boundary_verts, subdiv_ccg, grids, tls.factors, new_positions);
+  smooth::neighbor_position_average_interior_grids(faces,
+                                                   corner_verts,
+                                                   boundary_verts,
+                                                   boundary_edges,
+                                                   subdiv_ccg,
+                                                   grids,
+                                                   tls.factors,
+                                                   new_positions);
 
   tls.translations.resize(positions.size());
   const MutableSpan<float3> translations = tls.translations;
@@ -251,7 +260,8 @@ void do_smooth_brush(const Depsgraph &depsgraph,
                      sd,
                      faces,
                      corner_verts,
-                     ss.vertex_info.boundary,
+                     ss.boundary_info_cache->verts,
+                     ss.boundary_info_cache->edges,
                      object,
                      brush,
                      strength,

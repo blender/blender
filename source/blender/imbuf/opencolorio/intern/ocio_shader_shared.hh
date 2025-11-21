@@ -2,9 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#ifndef GPU_SHADER
-#  include "GPU_shader_shared_utils.hh"
-#endif
+#include "GPU_shader_shared_utils.hh"
 
 struct OCIO_GPUCurveMappingParameters {
   /* Curve mapping parameters

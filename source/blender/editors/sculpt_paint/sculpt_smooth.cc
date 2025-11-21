@@ -20,6 +20,7 @@
 
 #include "mesh_brush_common.hh"
 #include "sculpt_automask.hh"
+#include "sculpt_boundary.hh"
 #include "sculpt_color.hh"
 #include "sculpt_face_set.hh"
 #include "sculpt_hide.hh"
@@ -106,6 +107,7 @@ template<bool use_factors>
 static void neighbor_position_average_interior_grids_impl(const OffsetIndices<int> faces,
                                                           const Span<int> corner_verts,
                                                           const BitSpan boundary_verts,
+                                                          const Set<OrderedEdge> &boundary_edges,
                                                           const SubdivCCG &subdiv_ccg,
                                                           const Span<int> grids,
                                                           const Span<float> factors,
@@ -147,8 +149,8 @@ static void neighbor_position_average_interior_grids_impl(const OffsetIndices<in
         SubdivCCGNeighbors neighbors;
         BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, coord, false, neighbors);
 
-        if (BKE_subdiv_ccg_coord_is_mesh_boundary(
-                faces, corner_verts, boundary_verts, subdiv_ccg, coord))
+        if (boundary::vert_is_boundary(
+                faces, corner_verts, boundary_verts, boundary_edges, subdiv_ccg, coord))
         {
           if (neighbors.coords.size() == 2) {
             /* Do not include neighbors of corner vertices. */
@@ -157,8 +159,8 @@ static void neighbor_position_average_interior_grids_impl(const OffsetIndices<in
           else {
             /* Only include other boundary vertices as neighbors of boundary vertices. */
             neighbors.coords.remove_if([&](const SubdivCCGCoord coord) {
-              return !BKE_subdiv_ccg_coord_is_mesh_boundary(
-                  faces, corner_verts, boundary_verts, subdiv_ccg, coord);
+              return !boundary::vert_is_boundary(
+                  faces, corner_verts, boundary_verts, boundary_edges, subdiv_ccg, coord);
             });
           }
         }
@@ -177,24 +179,32 @@ static void neighbor_position_average_interior_grids_impl(const OffsetIndices<in
 void neighbor_position_average_interior_grids(const OffsetIndices<int> faces,
                                               const Span<int> corner_verts,
                                               const BitSpan boundary_verts,
+                                              const Set<OrderedEdge> &boundary_edges,
                                               const SubdivCCG &subdiv_ccg,
                                               const Span<int> grids,
                                               const MutableSpan<float3> new_positions)
 {
   neighbor_position_average_interior_grids_impl<false>(
-      faces, corner_verts, boundary_verts, subdiv_ccg, grids, {}, new_positions);
+      faces, corner_verts, boundary_verts, boundary_edges, subdiv_ccg, grids, {}, new_positions);
 }
 
 void neighbor_position_average_interior_grids(const OffsetIndices<int> faces,
                                               const Span<int> corner_verts,
                                               const BitSpan boundary_verts,
+                                              const Set<OrderedEdge> &boundary_edges,
                                               const SubdivCCG &subdiv_ccg,
                                               const Span<int> grids,
                                               const Span<float> factors,
                                               const MutableSpan<float3> new_positions)
 {
-  neighbor_position_average_interior_grids_impl<true>(
-      faces, corner_verts, boundary_verts, subdiv_ccg, grids, factors, new_positions);
+  neighbor_position_average_interior_grids_impl<true>(faces,
+                                                      corner_verts,
+                                                      boundary_verts,
+                                                      boundary_edges,
+                                                      subdiv_ccg,
+                                                      grids,
+                                                      factors,
+                                                      new_positions);
 }
 
 template<typename T>
@@ -496,6 +506,7 @@ void calc_relaxed_translations_faces(const Span<float3> vert_positions,
                                      const Span<int> corner_verts,
                                      const GroupedSpan<int> vert_to_face_map,
                                      const BitSpan boundary_verts,
+                                     const Set<OrderedEdge> &boundary_edges,
                                      const Span<int> face_sets,
                                      const Span<bool> hide_poly,
                                      const bool filter_boundary_face_sets,
@@ -524,7 +535,8 @@ void calc_relaxed_translations_faces(const Span<float3> vert_positions,
 
     const bool is_boundary = boundary_verts[verts[i]];
     if (is_boundary) {
-      neighbors.remove_if([&](const int vert) { return !boundary_verts[vert]; });
+      neighbors.remove_if(
+          [&](const int vert) { return !boundary_edges.contains(OrderedEdge(vert, verts[i])); });
     }
 
     if (filter_boundary_face_sets) {
@@ -566,6 +578,7 @@ void calc_relaxed_translations_grids(const SubdivCCG &subdiv_ccg,
                                      const Span<int> face_sets,
                                      const GroupedSpan<int> vert_to_face_map,
                                      const BitSpan boundary_verts,
+                                     const Set<OrderedEdge> &boundary_edges,
                                      const Span<int> grids,
                                      const bool filter_boundary_face_sets,
                                      const Span<float> factors,
@@ -603,13 +616,13 @@ void calc_relaxed_translations_grids(const SubdivCCG &subdiv_ccg,
           continue;
         }
 
-        const bool is_boundary = BKE_subdiv_ccg_coord_is_mesh_boundary(
-            faces, corner_verts, boundary_verts, subdiv_ccg, coord);
+        const bool is_boundary = boundary::vert_is_boundary(
+            faces, corner_verts, boundary_verts, boundary_edges, subdiv_ccg, coord);
 
         if (is_boundary) {
           neighbors.remove_if([&](const SubdivCCGCoord neighbor) {
-            return !BKE_subdiv_ccg_coord_is_mesh_boundary(
-                faces, corner_verts, boundary_verts, subdiv_ccg, neighbor);
+            return !boundary::vert_is_boundary(
+                faces, corner_verts, boundary_verts, boundary_edges, subdiv_ccg, neighbor);
           });
         }
 

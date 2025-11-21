@@ -8,7 +8,6 @@ from .search_node_tree import \
     NodeSocket, \
     previous_socket, \
     previous_node, \
-    get_factor_from_socket, \
     gather_alpha_info,  \
     gather_color_info
 

@@ -2,8 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-import bpy
-
 import numpy as np
 from .....io.com.gltf2_io_extensions import Extension
 from ....com.conversion import get_anisotropy_rotation_blender_to_gltf

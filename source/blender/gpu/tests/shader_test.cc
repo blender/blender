@@ -31,6 +31,50 @@ namespace blender::gpu::tests {
 
 using namespace blender::gpu::shader;
 
+/* This test should contain pure GLSL source as this is what we are expecting from the Python API.
+ * Make sure to keep it in sync with the Python API. */
+static void test_shader_python_compute()
+{
+  using namespace shader;
+
+  ShaderCreateInfo create_info("pyGPU_Shader");
+  create_info.image(0,
+                    TextureFormat::SFLOAT_16_16_16_16,
+                    Qualifier::write,
+                    ImageReadWriteType::image2D,
+                    "test_img");
+  create_info.local_group_size(16, 16, 1);
+  create_info.compute_source_generated =
+      R"(void main(){imageStore(test_img, ivec2(gl_GlobalInvocationID.xy), vec4(0));})";
+
+  gpu::Shader *shader = GPU_shader_create_from_info_python(
+      reinterpret_cast<GPUShaderCreateInfo *>(&create_info));
+  EXPECT_NE(shader, nullptr);
+
+  GPU_shader_free(shader);
+}
+GPU_TEST(shader_python_compute)
+
+/* This test should contain pure GLSL source as this is what we are expecting from the Python API.
+ * Make sure to keep it in sync with the Python API. */
+static void test_shader_python_graphic()
+{
+  using namespace shader;
+
+  ShaderCreateInfo create_info("pyGPU_Shader");
+  create_info.vertex_in(0, Type::float4_t, "vert_in");
+  create_info.fragment_out(0, Type::float4_t, "frag_out");
+  create_info.vertex_source_generated = R"(void main(){gl_Position = vert_in;})";
+  create_info.fragment_source_generated = R"(void main() { frag_out = gl_FragCoord; })";
+
+  gpu::Shader *shader = GPU_shader_create_from_info_python(
+      reinterpret_cast<GPUShaderCreateInfo *>(&create_info));
+  EXPECT_NE(shader, nullptr);
+
+  GPU_shader_free(shader);
+}
+GPU_TEST(shader_python_graphic)
+
 static void test_shader_compute_2d()
 {
 

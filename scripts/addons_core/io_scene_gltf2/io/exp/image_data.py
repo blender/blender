@@ -75,6 +75,3 @@ class ImageData:
         self._adjusted_name = name + self.file_extension
         return self._adjusted_name
 
-    @property
-    def adjusted_name(self):
-        return self._adjusted_name

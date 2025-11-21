@@ -165,7 +165,7 @@ static void buttons_main_region_init(wmWindowManager *wm, ARegion *region)
 /** \name Property Editor Layout
  * \{ */
 
-void ED_buttons_visible_tabs_menu(bContext *C, uiLayout *layout, void * /*arg*/)
+void ED_buttons_visible_tabs_menu(bContext *C, blender::ui::Layout *layout, void * /*arg*/)
 {
   PointerRNA ptr = RNA_pointer_create_discrete(
       reinterpret_cast<ID *>(CTX_wm_screen(C)), &RNA_SpaceProperties, CTX_wm_space_properties(C));

@@ -2523,7 +2523,7 @@ void SCULPT_OT_cloth_filter(wmOperatorType *ot)
                              "use_face_sets",
                              false,
                              "Use Face Sets",
-                             "Apply the filter only to the Face Set under the cursor");
+                             "Apply the filter only to the face set under the cursor");
   ot->prop = RNA_def_boolean(ot->srna,
                              "use_collisions",
                              false,

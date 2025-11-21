@@ -36,6 +36,7 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <cinttypes>
 #include <cstdio>
 #include <cstring>
 #include <iostream>
@@ -860,7 +861,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBufferAcquire()
   }
 
   CLOG_DEBUG(&LOG,
-             "Acquired swap-chain image (render_frame=%lu, image_index=%u)",
+             "Acquired swap-chain image (render_frame=%" PRIu64 ", image_index=%u)",
              render_frame_,
              image_index);
   acquired_swapchain_image_index_ = image_index;
@@ -1354,8 +1355,8 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
   }
   CLOG_DEBUG(&LOG,
              "Vulkan: recreating swapchain: width=%u, height=%u, format=%d, colorSpace=%d, "
-             "present_mode=%d, image_count_requested=%u, image_count_acquired=%u, swapchain=%lx, "
-             "old_swapchain=%lx",
+             "present_mode=%d, image_count_requested=%u, image_count_acquired=%u, "
+             "swapchain=%" PRIx64 ", old_swapchain=%" PRIx64 "",
              render_extent_.width,
              render_extent_.height,
              surface_format_.format,

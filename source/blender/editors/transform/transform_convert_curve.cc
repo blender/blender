@@ -425,6 +425,22 @@ static void recalcData_curve(TransInfo *t)
       /* Apply clipping after so we never project past the clip plane #25423. */
       transform_convert_clip_mirror_modifier_apply(tc);
 
+      if (t->mode == TFM_TRACKBALL) {
+        LISTBASE_FOREACH (Nurb *, nu, nurbs) {
+          if (nu->type == CU_BEZIER) {
+            BezTriple *bezt = nu->bezt;
+            for (int i = 0; i < nu->pntsu; i++, bezt++) {
+              if ((bezt->f1 & SELECT) && ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM)) {
+                bezt->h1 = HD_ALIGN;
+              }
+              if ((bezt->f3 & SELECT) && ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM)) {
+                bezt->h2 = HD_ALIGN;
+              }
+            }
+          }
+        }
+      }
+
       /* Normal updating. */
       BKE_curve_dimension_update(cu);
     }

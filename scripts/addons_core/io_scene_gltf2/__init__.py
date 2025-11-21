@@ -7,7 +7,7 @@ bl_info = {
     # This is now displayed as the maintainer, so show the foundation.
     # "author": "Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein", # Original Authors
     'author': "Blender Foundation, Khronos Group",
-    "version": (5, 1, 1),
+    "version": (5, 1, 7),
     'blender': (4, 4, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1084,7 +1084,6 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
     def execute(self, context):
         import os
         import datetime
-        import logging
         from .io.exp.user_extensions import export_user_extensions
         from .io.com.debug import Log
         from .blender.exp import export as gltf2_blender_export
@@ -1538,10 +1537,10 @@ def export_panel_data_material(layout, operator):
         if operator.export_image_format in ["AUTO", "JPEG", "WEBP"]:
             col.prop(operator, 'export_image_quality')
         col = body.column()
-        col.active = operator.export_image_format != "WEBP" and not operator.export_materials in ['PLACEHOLDER', 'NONE', 'VIEWPORT']
+        col.active = operator.export_image_format != "WEBP" and operator.export_materials not in ['PLACEHOLDER', 'NONE', 'VIEWPORT']
         col.prop(operator, "export_image_add_webp")
         col = body.column()
-        col.active = operator.export_image_format != "WEBP" and not operator.export_materials in ['PLACEHOLDER', 'NONE', 'VIEWPORT']
+        col.active = operator.export_image_format != "WEBP" and operator.export_materials not in ['PLACEHOLDER', 'NONE', 'VIEWPORT']
         col.prop(operator, "export_image_webp_fallback")
 
         header, sub_body = body.panel("GLTF_export_data_material_unused", default_closed=True)

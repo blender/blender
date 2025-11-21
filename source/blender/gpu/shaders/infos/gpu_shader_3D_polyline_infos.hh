@@ -13,6 +13,9 @@
 #  include "GPU_shader_shared.hh"
 #  include "gpu_index_load_infos.hh"
 #  include "gpu_srgb_to_framebuffer_space_infos.hh"
+#endif
+
+#ifdef GLSL_CPP_STUBS
 #  define SMOOTH_WIDTH 1.0f
 #endif
 

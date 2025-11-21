@@ -199,7 +199,6 @@ class SCENE_OT_gltf2_assign_to_variant(bpy.types.Operator):
             and bpy.context.object and bpy.context.object.type == "MESH"
 
     def execute(self, context):
-        gltf2_active_variant = bpy.data.scenes[0].gltf2_active_variant
         obj = bpy.context.object
 
         # loop on material slots ( primitives )
@@ -249,7 +248,6 @@ class SCENE_OT_gltf2_reset_to_original(bpy.types.Operator):
         # loop on material slots ( primitives )
         for mat_slot_idx, s in enumerate(obj.material_slots):
             # Check if there is a default material for this slot
-            found = False
             for i in obj.data.gltf2_variant_default_materials:
                 if i.material_slot_index == mat_slot_idx:
                     s.material = i.default_material

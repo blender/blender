@@ -4,9 +4,9 @@
 
 #pragma once
 
-#ifndef GPU_SHADER
-#  include "GPU_shader_shared_utils.hh"
+#include "GPU_shader_shared_utils.hh"
 
+#ifndef GPU_SHADER
 #  include "DNA_action_types.h"
 #  include "DNA_view3d_types.h"
 #endif
@@ -201,6 +201,7 @@ struct ThemeColors {
   float4 face_mode_select; /* Stands for face mode selection. */
   float4 face_retopology;
   float4 face_freestyle;
+  float4 gpencil_wire_edit;
   float4 gpencil_vertex;
   float4 gpencil_vertex_select;
   float4 normal;

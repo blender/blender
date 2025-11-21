@@ -394,8 +394,10 @@ static void add_verts_to_dgroups(ReportList *reports,
 
     /* set selected */
     if (wpmode) {
-      if (ANIM_bone_in_visible_collection(arm, bone) && (bone->flag & BONE_SELECTED)) {
-        selected[j] = true;
+      if (ANIM_bone_in_visible_collection(arm, bone)) {
+        if ((pchan = BKE_pose_channel_find_name(par->pose, bone->name))) {
+          selected[j] = pchan->flag & POSE_SELECTED;
+        }
       }
     }
     else {

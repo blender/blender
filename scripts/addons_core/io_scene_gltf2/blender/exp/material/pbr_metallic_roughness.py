@@ -21,7 +21,7 @@ from .search_node_tree import \
 @cached
 def gather_material_pbr_metallic_roughness(blender_material, orm_texture, export_settings):
     if not __filter_pbr_material(blender_material, export_settings):
-        return None, {}, {'color': None, 'alpha': None, 'color_type': None, 'alpha_type': None, 'alpha_mode': "OPAQUE"}, {}
+        return None, {}, {'color': None, 'alpha': None, 'color_type': None, 'alpha_type': None, 'alpha_mode': "OPAQUE"}, {}, {}, {}
 
     uvmap_infos = {}
     udim_infos = {}
@@ -34,7 +34,7 @@ def gather_material_pbr_metallic_roughness(blender_material, orm_texture, export
     uvmap_infos.update(uvmap_info)
     udim_infos.update(udim_info_mr)
 
-    base_color_factor, vc_info = __gather_base_color_factor(blender_material, export_settings)
+    base_color_factor, vc_info, alpha_info = __gather_base_color_factor(blender_material, export_settings)
 
     material = gltf2_io.MaterialPBRMetallicRoughness(
         base_color_factor=base_color_factor,
@@ -53,7 +53,7 @@ def gather_material_pbr_metallic_roughness(blender_material, orm_texture, export
         blender_material,
         orm_texture)
 
-    return material, uvmap_infos, vc_info, udim_infos
+    return material, uvmap_infos, vc_info, udim_infos, alpha_info
 
 
 def __filter_pbr_material(blender_material, export_settings):
@@ -61,6 +61,9 @@ def __filter_pbr_material(blender_material, export_settings):
 
 
 def __gather_base_color_factor(blender_material, export_settings):
+    if not blender_material.use_nodes:
+        return [*blender_material.diffuse_color[:3],
+                1.0], {"color": None, "alpha": None, "color_type": None, "alpha_type": None, "alpha_mode": "OPAQUE"}
 
     rgb, alpha = None, None
     vc_info = {"color": None, "alpha": None, "color_type": None, "alpha_type": None, "alpha_mode": "OPAQUE"}
@@ -75,6 +78,8 @@ def __gather_base_color_factor(blender_material, export_settings):
         vc_info['alpha_mode'] = alpha_info['alphaMode']
         alpha = alpha_info['alphaFactor']
         path_alpha = alpha_info['alphaPath']
+    else:
+        alpha_info = gather_alpha_info(None)
 
     base_color_socket = get_socket(blender_material.node_tree, "Base Color")
     if base_color_socket.socket is None:
@@ -119,8 +124,8 @@ def __gather_base_color_factor(blender_material, export_settings):
     rgba = [*rgb, alpha]
 
     if rgba == [1, 1, 1, 1]:
-        return None, vc_info
-    return rgba, vc_info
+        return None, vc_info, alpha_info
+    return rgba, vc_info, alpha_info
 
 
 def __gather_base_color_texture(blender_material, export_settings):

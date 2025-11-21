@@ -6,7 +6,6 @@ import bpy
 import typing
 from ......io.exp.user_extensions import export_user_extensions
 from ......io.com import gltf2_io
-from .....com.extras import generate_extras
 from ...fcurves.sampler import gather_animation_fcurves_sampler
 from .channels import gather_armature_sampled_channels
 
@@ -23,7 +22,7 @@ def gather_action_armature_sampled(armature_uuid: str,
         channels, extra_channels = __gather_channels(
             armature_uuid, blender_action.name if blender_action else cache_key, slot_identifier if blender_action else None, export_settings)
     except RuntimeError as error:
-        export_settings['log'].warning("Animation channels on action '{}' could not be exported. Cause: {}".format(name, error))
+        export_settings['log'].warning("Animation channels on action '{}' could not be exported. Cause: {}".format(blender_action.name if blender_action else cache_key, error))
         return None
 
     export_user_extensions('pre_gather_animation_hook', export_settings, channels, blender_action, slot_identifier, blender_object)

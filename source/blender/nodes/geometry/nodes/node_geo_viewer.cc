@@ -120,7 +120,7 @@ static bool draw_from_viewer_log_value(CustomSocketDrawParams &params,
 }
 static bool draw_generic_value_log(CustomSocketDrawParams &params, const GPointer &value)
 {
-  const CPPType &value_type = *params.socket.typeinfo->base_cpp_type;
+  const CPPType &value_type = *value.type();
   const CPPType &socket_base_cpp_type = *params.socket.typeinfo->base_cpp_type;
   const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
   if (value_type != socket_base_cpp_type) {

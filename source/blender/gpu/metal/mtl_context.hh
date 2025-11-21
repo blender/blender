@@ -796,7 +796,7 @@ class MTLContext : public Context {
    * `ensure_render_pipeline_state` will return false if the state is
    * invalid and cannot be applied. This should cancel a draw call. */
   bool ensure_render_pipeline_state(MTLPrimitiveType prim_type);
-  void ensure_depth_stencil_state(MTLPrimitiveType prim_type);
+  void ensure_depth_stencil_state();
 
   id<MTLBuffer> get_null_buffer();
   id<MTLBuffer> get_null_attribute_buffer();

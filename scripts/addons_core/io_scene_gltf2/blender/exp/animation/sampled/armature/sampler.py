@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import bpy
-import typing
 import mathutils
 from ......io.com import gltf2_io
 from ......io.exp.user_extensions import export_user_extensions

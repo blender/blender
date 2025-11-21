@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from ctypes import *
-from pathlib import Path
 
 from ...io.exp.binary_data import BinaryData
 from ...io.com.draco import dll_path

@@ -9,11 +9,10 @@ from ....io.exp.user_extensions import export_user_extensions
 from ....io.com.gltf2_io_extensions import Extension
 from ....io.exp.image_data import ImageData
 from ....io.exp.binary_data import BinaryData
-from ....io.com import debug as gltf2_io_debug
 from ....io.com import gltf2_io
 from ..sampler import gather_sampler
 from ..cache import cached
-from .search_node_tree import get_texture_node_from_socket, NodeSocket
+from .search_node_tree import get_texture_node_from_socket
 from . import image
 
 

@@ -51,9 +51,7 @@ def get_cache_data(path: str,
         # - For this case, on first call, we will cache active action for all objects
         # - On next calls, we will cache only the action of current object, so we can disable viewport for others
 
-    need_to_enable_again = False
     if export_settings['gltf_optimize_disable_viewport'] is True and len(obj_uuids) == 1:
-        need_to_enable_again = True
         # Before baking, disabling from viewport all meshes
         for obj in [n.blender_object for n in export_settings['vtree'].nodes.values() if n.blender_type in
                     [VExportNode.OBJECT, VExportNode.ARMATURE, VExportNode.COLLECTION]]:
@@ -726,7 +724,7 @@ def camera_caching(data, action_name, slot_identifier, frame, export_settings):
             data[key1][key2][key3] = {}
             data[key1][key2][key3][key4] = {}
             for path in export_settings['KHR_animation_pointer']['cameras'][cam]['paths'].keys():
-                data[key1][key2][key3][ley4][path] = {}
+                data[key1][key2][key3][key4][path] = {}
 
         for path in export_settings['KHR_animation_pointer']['cameras'][cam]['paths'].keys():
             _render = bpy.context.scene.render

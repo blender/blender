@@ -74,7 +74,7 @@ def get_channel_groups(obj_uuid: str, blender_action: bpy.types.Action, slot: bp
         try:
             # example of target_property : location, rotation_quaternion, value
             target_property = get_target_property_name(fcurve.data_path)
-        except:
+        except Exception as _e:
             export_settings['log'].warning(
                 "Invalid animation fcurve data path on action {}".format(
                     blender_action.name))
@@ -111,7 +111,7 @@ def get_channel_groups(obj_uuid: str, blender_action: bpy.types.Action, slot: bp
                         continue
                     target = blender_object.data.shape_keys
                     type_ = "SK"
-            except ValueError as e:
+            except ValueError as _e:
                 # if the object is a mesh and the action target path can not be resolved, we know that this is a morph
                 # animation.
                 if blender_object.type == "MESH":
@@ -121,7 +121,7 @@ def get_channel_groups(obj_uuid: str, blender_action: bpy.types.Action, slot: bp
                             continue
                         target = blender_object.data.shape_keys
                         type_ = "SK"
-                    except:
+                    except Exception as _e:
                         # Something is wrong, for example a bone animation is linked to an object mesh...
                         export_settings['log'].warning(
                             "Invalid animation fcurve data path on action {}".format(
@@ -250,9 +250,8 @@ def __get_channel_group_sorted(channels: typing.Tuple[bpy.types.FCurve], blender
             for sk_c in channels:
                 try:
                     sk_name = blender_object.data.shape_keys.path_resolve(get_target_object_path(sk_c.data_path)).name
-                    idx = shapekeys_idx[sk_name]
                     idx_channel_mapping.append((shapekeys_idx[sk_name], sk_c))
-                except:
+                except Exception as _e:
                     # Something is wrong. For example, an armature action linked to a mesh object
                     continue
 

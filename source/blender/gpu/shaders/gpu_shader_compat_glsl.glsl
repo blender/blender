@@ -154,6 +154,8 @@ RESHAPE(float3x3, mat3x3, mat3x4)
 #define METAL_CONSTRUCTOR_6(class_name, t1, m1, t2, m2, t3, m3, t4, m4, t5, m5, t6, m6)
 #define METAL_CONSTRUCTOR_7(class_name, t1, m1, t2, m2, t3, m3, t4, m4, t5, m5, t6, m6, t7, m7)
 
+#define ATTR_FALLTHROUGH
+
 #define _in_sta
 #define _in_end
 #define _out_sta

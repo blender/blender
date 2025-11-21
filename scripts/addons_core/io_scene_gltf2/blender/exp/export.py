@@ -305,7 +305,7 @@ def __postprocess_with_gltfpack(export_settings):
 
     try:
         subprocess.run([gltfpack_binary_file_path] + options + parameters, check=True)
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError as _e:
         export_settings['log'].error("Calling gltfpack was not successful")
 
 

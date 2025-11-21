@@ -9,7 +9,6 @@ from ..search_node_tree import \
     get_const_from_default_value_socket, \
     get_socket, \
     get_factor_from_socket, \
-    get_const_from_socket, \
     NodeSocket, \
     get_socket_from_gltf_material_node
 

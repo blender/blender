@@ -2,9 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "subdiv_lib.glsl"
+#include "subdiv_patch_eval_infos.hh"
 
 COMPUTE_SHADER_CREATE_INFO(subdiv_patch_evaluation_fdots_normals)
+
+#include "subdiv_lib.glsl"
 
 float2 read_vec2(int index)
 {

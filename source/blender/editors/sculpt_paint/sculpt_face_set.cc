@@ -564,7 +564,7 @@ void SCULPT_OT_face_sets_create(wmOperatorType *ot)
 {
   ot->name = "Create Face Set";
   ot->idname = "SCULPT_OT_face_sets_create";
-  ot->description = "Create a new Face Set";
+  ot->description = "Create a new face set";
 
   ot->exec = create_op_exec;
   ot->poll = SCULPT_mode_poll;
@@ -576,22 +576,22 @@ void SCULPT_OT_face_sets_create(wmOperatorType *ot)
        "MASKED",
        0,
        "Face Set from Masked",
-       "Create a new Face Set from the masked faces"},
+       "Create a new face set from the masked faces"},
       {int(CreateMode::Visible),
        "VISIBLE",
        0,
        "Face Set from Visible",
-       "Create a new Face Set from the visible vertices"},
+       "Create a new face set from the visible vertices"},
       {int(CreateMode::All),
        "ALL",
        0,
        "Face Set Full Mesh",
-       "Create an unique Face Set with all faces in the sculpt"},
+       "Create an unique face set with all faces in the sculpt"},
       {int(CreateMode::Selection),
        "SELECTION",
        0,
        "Face Set from Edit Mode Selection",
-       "Create an Face Set corresponding to the Edit Mode face selection"},
+       "Create an face set corresponding to the Edit Mode face selection"},
       {0, nullptr, 0, nullptr, nullptr},
   };
   RNA_def_enum(ot->srna, "mode", modes, int(CreateMode::Masked), "Mode", "");
@@ -827,7 +827,7 @@ void SCULPT_OT_face_sets_init(wmOperatorType *ot)
 {
   ot->name = "Init Face Sets";
   ot->idname = "SCULPT_OT_face_sets_init";
-  ot->description = "Initializes all Face Sets in the mesh";
+  ot->description = "Initializes all face sets in the mesh";
 
   ot->exec = init_op_exec;
   ot->poll = SCULPT_mode_poll;
@@ -839,42 +839,42 @@ void SCULPT_OT_face_sets_init(wmOperatorType *ot)
        "LOOSE_PARTS",
        0,
        "Face Sets from Loose Parts",
-       "Create a Face Set per loose part in the mesh"},
+       "Create a face set per loose part in the mesh"},
       {int(InitMode::Materials),
        "MATERIALS",
        0,
        "Face Sets from Material Slots",
-       "Create a Face Set per Material Slot"},
+       "Create a face set per material slot"},
       {int(InitMode::Normals),
        "NORMALS",
        0,
        "Face Sets from Mesh Normals",
-       "Create Face Sets for Faces that have similar normal"},
+       "Create face sets for faces that have similar normal"},
       {int(InitMode::UVSeams),
        "UV_SEAMS",
        0,
        "Face Sets from UV Seams",
-       "Create Face Sets using UV Seams as boundaries"},
+       "Create face sets using UV seams as boundaries"},
       {int(InitMode::Creases),
        "CREASES",
        0,
        "Face Sets from Edge Creases",
-       "Create Face Sets using Edge Creases as boundaries"},
+       "Create face sets using edge creases as boundaries"},
       {int(InitMode::BevelWeight),
        "BEVEL_WEIGHT",
        0,
        "Face Sets from Bevel Weight",
-       "Create Face Sets using Bevel Weights as boundaries"},
+       "Create face sets using bevel weights as boundaries"},
       {int(InitMode::SharpEdges),
        "SHARP_EDGES",
        0,
        "Face Sets from Sharp Edges",
-       "Create Face Sets using Sharp Edges as boundaries"},
+       "Create face sets using sharp edges as boundaries"},
       {int(InitMode::FaceSetBoundaries),
        "FACE_SET_BOUNDARIES",
        0,
        "Face Sets from Face Set Boundaries",
-       "Create a Face Set per isolated Face Set"},
+       "Create a face set per isolated face set"},
       {0, nullptr, 0, nullptr, nullptr},
   };
   RNA_def_enum(ot->srna, "mode", modes, int(InitMode::LooseParts), "Mode", "");
@@ -885,7 +885,7 @@ void SCULPT_OT_face_sets_init(wmOperatorType *ot)
       0.0f,
       1.0f,
       "Threshold",
-      "Minimum value to consider a certain attribute a boundary when creating the Face Sets",
+      "Minimum value to consider a certain attribute a boundary when creating the face sets",
       0.0f,
       1.0f);
 }
@@ -1100,7 +1100,7 @@ static wmOperatorStatus change_visibility_invoke(bContext *C, wmOperator *op, co
     return OPERATOR_CANCELLED;
   }
 
-  /* Update the active vertex and Face Set using the cursor position to avoid relying on the paint
+  /* Update the active vertex and face set using the cursor position to avoid relying on the paint
    * cursor updates. */
   CursorGeometryInfo cgi;
   const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
@@ -1114,7 +1114,7 @@ void SCULPT_OT_face_set_change_visibility(wmOperatorType *ot)
 {
   ot->name = "Face Sets Visibility";
   ot->idname = "SCULPT_OT_face_set_change_visibility";
-  ot->description = "Change the visibility of the Face Sets of the sculpt";
+  ot->description = "Change the visibility of the face sets of the sculpt";
 
   ot->exec = change_visibility_exec;
   ot->invoke = change_visibility_invoke;
@@ -1127,17 +1127,17 @@ void SCULPT_OT_face_set_change_visibility(wmOperatorType *ot)
        "TOGGLE",
        0,
        "Toggle Visibility",
-       "Hide all Face Sets except for the active one"},
+       "Hide all face sets except for the active one"},
       {int(VisibilityMode::ShowActive),
        "SHOW_ACTIVE",
        0,
        "Show Active Face Set",
-       "Show Active Face Set"},
+       "Show the active face set"},
       {int(VisibilityMode::HideActive),
        "HIDE_ACTIVE",
        0,
-       "Hide Active Face Sets",
-       "Hide Active Face Sets"},
+       "Hide Active Face Set",
+       "Hide the active face set"},
       {0, nullptr, 0, nullptr, nullptr},
   };
   RNA_def_enum(ot->srna, "mode", modes, int(VisibilityMode::Toggle), "Mode", "");
@@ -1188,7 +1188,7 @@ void SCULPT_OT_face_sets_randomize_colors(wmOperatorType *ot)
 {
   ot->name = "Randomize Face Sets Colors";
   ot->idname = "SCULPT_OT_face_sets_randomize_colors";
-  ot->description = "Generates a new set of random colors to render the Face Sets in the viewport";
+  ot->description = "Generates a new set of random colors to render the face sets in the viewport";
 
   ot->exec = randomize_colors_exec;
   ot->poll = SCULPT_mode_poll;
@@ -1362,7 +1362,7 @@ static void edit_fairing(const Depsgraph &depsgraph,
   const PositionDeformData position_data(depsgraph, ob);
   const Span<float3> positions = position_data.eval;
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
-  const BitSpan boundary_verts = ss.vertex_info.boundary;
+  const BitSpan boundary_verts = ss.boundary_info_cache->verts;
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArraySpan hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
@@ -1426,7 +1426,7 @@ static bool edit_is_operation_valid(const Object &object,
       return false;
     }
     if (check_single_face_set(object, !modify_hidden)) {
-      /* Cancel the operator if the mesh only contains one Face Set to avoid deleting the
+      /* Cancel the operator if the mesh only contains one face set to avoid deleting the
        * entire object. */
       return false;
     }
@@ -1565,12 +1565,12 @@ static wmOperatorStatus edit_op_invoke(bContext *C, wmOperator *op, const wmEven
 
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
-  /* Update the current active Face Set and Vertex as the operator can be used directly from the
+  /* Update the current active face set and Vertex as the operator can be used directly from the
    * tool without brush cursor. */
   CursorGeometryInfo cgi;
   const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   if (!cursor_geometry_info_update(C, &cgi, mval_fl, false)) {
-    /* The cursor is not over the mesh. Cancel to avoid editing the last updated Face Set ID. */
+    /* The cursor is not over the mesh. Cancel to avoid editing the last updated face set ID. */
     return OPERATOR_CANCELLED;
   }
   RNA_int_set(op->ptr, "active_face_set", active_face_set_get(ob));
@@ -1582,7 +1582,7 @@ void SCULPT_OT_face_sets_edit(wmOperatorType *ot)
 {
   ot->name = "Edit Face Set";
   ot->idname = "SCULPT_OT_face_set_edit";
-  ot->description = "Edits the current active Face Set";
+  ot->description = "Edits the current active face set";
 
   ot->invoke = edit_op_invoke;
   ot->exec = edit_op_exec;
@@ -1599,28 +1599,28 @@ void SCULPT_OT_face_sets_edit(wmOperatorType *ot)
        "GROW",
        0,
        "Grow Face Set",
-       "Grows the Face Sets boundary by one face based on mesh topology"},
+       "Grows the face set boundary by one face based on mesh topology"},
       {int(EditMode::Shrink),
        "SHRINK",
        0,
        "Shrink Face Set",
-       "Shrinks the Face Sets boundary by one face based on mesh topology"},
+       "Shrinks the face set boundary by one face based on mesh topology"},
       {int(EditMode::DeleteGeometry),
        "DELETE_GEOMETRY",
        0,
        "Delete Geometry",
-       "Deletes the faces that are assigned to the Face Set"},
+       "Deletes the faces that are assigned to the face set"},
       {int(EditMode::FairPositions),
        "FAIR_POSITIONS",
        0,
        "Fair Positions",
-       "Creates a smooth as possible geometry patch from the Face Set minimizing changes in "
+       "Creates a smooth as possible geometry patch from the face set minimizing changes in "
        "vertex positions"},
       {int(EditMode::FairTangency),
        "FAIR_TANGENCY",
        0,
        "Fair Tangency",
-       "Creates a smooth as possible geometry patch from the Face Set minimizing changes in "
+       "Creates a smooth as possible geometry patch from the face set minimizing changes in "
        "vertex tangents"},
       {0, nullptr, 0, nullptr, nullptr},
   };

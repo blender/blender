@@ -10,7 +10,7 @@
 
 #define WORKBENCH_SHADER_SHARED_H
 
-struct LightData {
+struct SolidLightData {
   float4 direction;
   float4 specular_color;
   float4 diffuse_color_wrap; /* rgb: diffuse col a: wrapped lighting factor */
@@ -26,7 +26,7 @@ struct WorldData {
   float shadow_mul;
   float shadow_add;
   /* - 16 bytes alignment - */
-  LightData lights[4];
+  SolidLightData lights[4];
   float4 ambient_color;
 
   int cavity_sample_start;

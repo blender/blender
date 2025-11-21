@@ -142,7 +142,7 @@ template struct MaxVelocity<float4>;
 template<typename T> struct MaxInRange {
   static T identity()
   {
-    return T(0);
+    return push_constant_get(compositor_maximum_float_in_range, lower_bound);
   }
 
   static T initialize(T value)
@@ -163,7 +163,7 @@ template struct MaxInRange<float>;
 template<typename T> struct MinInRange {
   static T identity()
   {
-    return T(0);
+    return push_constant_get(compositor_minimum_float_in_range, upper_bound);
   }
 
   static T initialize(T value)

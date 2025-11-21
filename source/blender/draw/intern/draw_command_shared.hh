@@ -6,9 +6,12 @@
  * \ingroup draw
  */
 
+#pragma once
+
+#include "GPU_shader_shared_utils.hh"
+
 #ifndef GPU_SHADER
 #  include "BLI_span.hh"
-#  include "GPU_shader_shared_utils.hh"
 
 namespace blender::draw::command {
 

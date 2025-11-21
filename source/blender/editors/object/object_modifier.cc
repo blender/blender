@@ -1626,7 +1626,10 @@ static bool edit_modifier_invoke_properties_with_hover(bContext *C,
 
   PointerRNA *panel_ptr = UI_region_panel_custom_data_under_cursor(C, event);
   if (panel_ptr == nullptr || RNA_pointer_is_null(panel_ptr)) {
-    *r_retval = OPERATOR_CANCELLED;
+    /* The operators using this function can typically be called from UIs that aren't related to
+     * the modifiers UI at all. So include #OPERATOR_PASS_THROUGH to not block events from reaching
+     * other operators/handlers. */
+    *r_retval = (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
     return false;
   }
 

@@ -171,10 +171,10 @@ static wmOperatorStatus select_random_exec(bContext *C, wmOperator *op)
 
 static void select_random_ui(bContext * /*C*/, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  ui::Layout &layout = *op->layout;
 
-  layout->prop(op->ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(op->ptr, "probability", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "probability", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 }
 
 static void POINTCLOUD_OT_select_random(wmOperatorType *ot)

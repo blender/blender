@@ -246,13 +246,11 @@ def gather_track_animations(obj_uuid: int,
                         tracks[track_data.name] = []
                     tracks[track_data.name].append(offset + len(animations) - 1)  # Store index of animation in animations
             elif export_settings['gltf_merge_animation'] == "ACTION":
-                if blender_action.name not in tracks.keys():
-                    tracks[blender_action.name] = []
-                tracks[blender_action.name].append(offset + len(animations) - 1)  # Store index of animation in animations
+                pass # This can't happen here, as we bake per NLA track
             elif export_settings['gltf_merge_animation'] == "NONE":
-                pass  # Nothing to store, we are not going to merge animations
+                pass # This can't happen here, as we bake per NLA track
             else:
-                pass  # This should not happen (or the developer added a new option, and forget to take it into account here)
+                pass # This can't happen here, as we bake per NLA track
 
         # Restoring muting
         if track_data.on_type == "OBJECT":
@@ -455,6 +453,11 @@ def prepare_tracks_range(obj_uuid, track_data, export_settings, with_driver=True
     track_name = track_data.name
 
     track_slide = {}
+
+    # initilize (avoid lint error)
+    frame_start = 0
+    frame_end = 0
+
 
     for idx, btrack in enumerate(tracks):
         frame_start = btrack.frame_start if idx == 0 else min(frame_start, btrack.frame_start)

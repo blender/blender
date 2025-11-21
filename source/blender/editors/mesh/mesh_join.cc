@@ -438,9 +438,9 @@ static VectorSet<Material *> join_materials(const Span<const Object *> objects_t
   return materials;
 }
 
-/* Face Sets IDs are a sparse sequence, so this function offsets all the IDs by face_set_offset and
+/* Face set IDs are a sparse sequence, so this function offsets all the IDs by face_set_offset and
  * updates face_set_offset with the maximum ID value. This way, when used in multiple meshes, all
- * of them will have different IDs for their Face Sets. */
+ * of them will have different IDs for their face sets. */
 static void join_face_sets(const Span<const Object *> objects_to_join,
                            const OffsetIndices<int> face_ranges,
                            Mesh &dst_mesh)

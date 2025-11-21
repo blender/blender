@@ -6,8 +6,7 @@
 #  pragma once
 #  include "gpu_shader_compat.hh"
 
-#  include "gpu_shader_fullscreen_infos.hh"
-
+#  include "overlay_fullscreen_infos.hh"
 #  include "overlay_shader_shared.hh"
 #endif
 
@@ -22,7 +21,7 @@ PUSH_CONSTANT(bool, do_smooth_lines)
 FRAGMENT_OUT(0, float4, frag_color)
 TYPEDEF_SOURCE("overlay_shader_shared.hh")
 FRAGMENT_SOURCE("overlay_antialiasing_frag.glsl")
-ADDITIONAL_INFO(gpu_fullscreen)
+ADDITIONAL_INFO(overlay_fullscreen)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
@@ -33,7 +32,7 @@ SAMPLER(1, sampler2DDepth, xray_depth_tx)
 PUSH_CONSTANT(float, opacity)
 FRAGMENT_OUT(0, float4, frag_color)
 FRAGMENT_SOURCE("overlay_xray_fade_frag.glsl")
-ADDITIONAL_INFO(gpu_fullscreen)
+ADDITIONAL_INFO(overlay_fullscreen)
 SAMPLER(2, sampler2DDepth, xray_depth_txInfront)
 SAMPLER(3, sampler2DDepth, depth_txInfront)
 GPU_SHADER_CREATE_END()

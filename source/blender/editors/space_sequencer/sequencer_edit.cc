@@ -334,8 +334,10 @@ bool is_scene_time_sync_needed(const bContext &C)
     return false;
   }
   SpaceSeq *sseq = CTX_wm_space_seq(&C);
-  if (!sseq) {
-    /* We only want to start syncing the time when we're in a sequence editor.
+  SpaceProperties *sprop = CTX_wm_space_properties(&C);
+  if (!sseq && !sprop) {
+    /* We only want to start syncing the time when we're in a sequence editor,
+     * or if updating strip properties.
      * Changing time in any other editor should just affect the active scene. */
     return false;
   }

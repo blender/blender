@@ -13,6 +13,9 @@
 #  include "draw_view_infos.hh"
 
 #  include "workbench_shader_shared.hh"
+#endif
+
+#ifdef GLSL_CPP_STUBS
 #  define WORKBENCH_COLOR_MATERIAL
 #  define WORKBENCH_COLOR_TEXTURE
 #  define WORKBENCH_TEXTURE_IMAGE_ARRAY

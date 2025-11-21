@@ -91,7 +91,7 @@ void ED_clip_buttons_register(ARegionType *art)
 
 /********************* MovieClip Template ************************/
 
-void uiTemplateMovieClip(uiLayout *layout,
+void uiTemplateMovieClip(blender::ui::Layout *layout,
                          bContext *C,
                          PointerRNA *ptr,
                          const blender::StringRefNull propname,
@@ -128,29 +128,26 @@ void uiTemplateMovieClip(uiLayout *layout,
   }
 
   if (clip) {
-    uiLayout *row = &layout->row(false);
-    uiBlock *block = row->block();
+    blender::ui::Layout &row = layout->row(false);
+    uiBlock *block = row.block();
     uiDefBut(block, ButType::Label, IFACE_("File Path:"), 0, 19, 145, 19, nullptr, 0, 0, "");
 
-    row = &layout->row(false);
-    uiLayout *split = &row->split(0.0f, false);
-    row = &split->row(true);
+    blender::ui::Layout &file_row = layout->row(true);
+    file_row.prop(&clipptr, "filepath", UI_ITEM_NONE, "", ICON_NONE);
+    file_row.op("clip.reload", "", ICON_FILE_REFRESH);
 
-    row->prop(&clipptr, "filepath", UI_ITEM_NONE, "", ICON_NONE);
-    row->op("clip.reload", "", ICON_FILE_REFRESH);
-
-    uiLayout *col = &layout->column(true);
-    col->separator();
-    col->prop(&clipptr, "frame_start", UI_ITEM_NONE, IFACE_("Start Frame"), ICON_NONE);
-    col->prop(&clipptr, "frame_offset", UI_ITEM_NONE, IFACE_("Frame Offset"), ICON_NONE);
-    col->separator();
-    uiTemplateColorspaceSettings(col, &clipptr, "colorspace_settings");
+    blender::ui::Layout &col = layout->column(true);
+    col.separator();
+    col.prop(&clipptr, "frame_start", UI_ITEM_NONE, IFACE_("Start Frame"), ICON_NONE);
+    col.prop(&clipptr, "frame_offset", UI_ITEM_NONE, IFACE_("Frame Offset"), ICON_NONE);
+    col.separator();
+    uiTemplateColorspaceSettings(&col, &clipptr, "colorspace_settings");
   }
 }
 
 /********************* Track Template ************************/
 
-void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const StringRefNull propname)
+void uiTemplateTrack(blender::ui::Layout *layout, PointerRNA *ptr, const StringRefNull propname)
 {
   if (!ptr->data) {
     return;
@@ -183,8 +180,8 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const StringRefNull prop
     scopes->track_preview_height = UI_UNIT_Y * 20;
   }
 
-  uiLayout *col = &layout->column(true);
-  uiBlock *block = col->block();
+  blender::ui::Layout &col = layout->column(true);
+  uiBlock *block = col.block();
 
   uiDefBut(block,
            ButType::TrackPreview,
@@ -377,7 +374,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
   }
 }
 
-void uiTemplateMarker(uiLayout *layout,
+void uiTemplateMarker(blender::ui::Layout *layout,
                       PointerRNA *ptr,
                       const StringRefNull propname,
                       PointerRNA *userptr,
@@ -519,10 +516,10 @@ void uiTemplateMarker(uiLayout *layout,
                               tip);
     UI_but_retval_set(but, B_MARKER_FLAG);
 
-    uiLayout *col = &layout->column(true);
-    col->active_set((cb->marker_flag & MARKER_DISABLED) == 0);
+    blender::ui::Layout &col = layout->column(true);
+    col.active_set((cb->marker_flag & MARKER_DISABLED) == 0);
 
-    block = col->absolute_block();
+    block = col.absolute_block();
     UI_block_align_begin(block);
 
     uiDefBut(block,
@@ -719,7 +716,7 @@ void uiTemplateMarker(uiLayout *layout,
 
 /********************* Footage Information Template ************************/
 
-void uiTemplateMovieclipInformation(uiLayout *layout,
+void uiTemplateMovieclipInformation(blender::ui::Layout *layout,
                                     PointerRNA *ptr,
                                     const StringRefNull propname,
                                     PointerRNA *userptr)
@@ -749,8 +746,8 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
   MovieClip *clip = static_cast<MovieClip *>(clipptr.data);
   MovieClipUser *user = static_cast<MovieClipUser *>(userptr->data);
 
-  uiLayout *col = &layout->column(false);
-  col->alignment_set(blender::ui::LayoutAlign::Right);
+  blender::ui::Layout &col = layout->column(false);
+  col.alignment_set(blender::ui::LayoutAlign::Right);
 
   /* NOTE: Put the frame to cache. If the panel is drawn, the display will also be shown, as well
    * as metadata panel. So if the cache is skipped here it is not really a memory saver, but
@@ -801,7 +798,7 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
   }
   UNUSED_VARS(ofs);
 
-  col->label(str, ICON_NONE);
+  col.label(str, ICON_NONE);
 
   /* Display current frame number. */
   int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
@@ -811,7 +808,7 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
   else {
     SNPRINTF_UTF8(str, RPT_("Frame: - / %d"), clip->len);
   }
-  col->label(str, ICON_NONE);
+  col.label(str, ICON_NONE);
 
   /* Display current file name if it's a sequence clip. */
   if (clip->source == MCLIP_SRC_SEQUENCE) {
@@ -828,7 +825,7 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
 
     SNPRINTF(str, RPT_("File: %s"), file);
 
-    col->label(str, ICON_NONE);
+    col.label(str, ICON_NONE);
   }
 
   IMB_freeImBuf(ibuf);

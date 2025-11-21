@@ -1336,38 +1336,37 @@ static wmOperatorStatus grease_pencil_interpolate_sequence_exec(bContext *C, wmO
 
 static void grease_pencil_interpolate_sequence_ui(bContext *C, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
-  uiLayout *col, *row;
+  ui::Layout &layout = *op->layout;
 
   const InterpolationType type = InterpolationType(RNA_enum_get(op->ptr, "type"));
 
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
-  row = &layout->row(true);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
+  ui::Layout *row = &layout.row(true);
   row->prop(op->ptr, "step", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = &layout->row(true);
+  row = &layout.row(true);
   row->prop(op->ptr, "layers", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (CTX_data_mode_enum(C) == CTX_MODE_EDIT_GPENCIL_LEGACY) {
-    row = &layout->row(true);
+    row = &layout.row(true);
     row->prop(op->ptr, "interpolate_selected_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  row = &layout->row(true);
+  row = &layout.row(true);
   row->prop(op->ptr, "exclude_breakdowns", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = &layout->row(true);
+  row = &layout.row(true);
   row->prop(op->ptr, "use_selection", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = &layout->row(true);
+  row = &layout.row(true);
   row->prop(op->ptr, "flip", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  col = &layout->column(true);
-  col->prop(op->ptr, "smooth_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col->prop(op->ptr, "smooth_steps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  ui::Layout &col = layout.column(true);
+  col.prop(op->ptr, "smooth_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(op->ptr, "smooth_steps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = &layout->row(true);
+  row = &layout.row(true);
   row->prop(op->ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (type == InterpolationType::CurveMap) {
@@ -1377,19 +1376,19 @@ static void grease_pencil_interpolate_sequence_ui(bContext *C, wmOperator *op)
     PointerRNA gpsettings_ptr = RNA_pointer_create_discrete(
         &scene->id, &RNA_GPencilInterpolateSettings, &ts->gp_interpolate);
     uiTemplateCurveMapping(
-        layout, &gpsettings_ptr, "interpolation_curve", 0, false, true, true, false, false);
+        &layout, &gpsettings_ptr, "interpolation_curve", 0, false, true, true, false, false);
   }
   else if (type != InterpolationType::Linear) {
-    row = &layout->row(false);
+    row = &layout.row(false);
     row->prop(op->ptr, "easing", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     if (type == InterpolationType::Back) {
-      row = &layout->row(false);
+      row = &layout.row(false);
       row->prop(op->ptr, "back", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
     else if (type == InterpolationType::Elastic) {
-      row = &layout->row(false);
+      row = &layout.row(false);
       row->prop(op->ptr, "amplitude", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      row = &layout->row(false);
+      row = &layout.row(false);
       row->prop(op->ptr, "period", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
   }

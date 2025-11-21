@@ -8,8 +8,9 @@ FRAGMENT_SHADER_CREATE_INFO(workbench_effect_outline)
 
 void main()
 {
+  float2 uv = gl_FragCoord.xy / float2(textureSize(object_id_buffer, 0));
+
   float3 offset = float3(world_data.viewport_size_inv, 0.0f) * world_data.ui_scale;
-  float2 uv = screen_uv;
 
   uint center_id = texture(object_id_buffer, uv).r;
   uint4 adjacent_ids = uint4(texture(object_id_buffer, uv + offset.zy).r,

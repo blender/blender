@@ -26,6 +26,7 @@
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_create_info_private.hh"
 #include "gpu_shader_dependency_private.hh"
+#include "gpu_shader_metadata_private.hh"
 #include "gpu_shader_private.hh"
 
 #include <filesystem>
@@ -110,6 +111,16 @@ using namespace blender::gpu;
 Shader::Shader(const char *sh_name)
 {
   STRNCPY(this->name, sh_name);
+
+  /* Escape the shader name to be able to use it inside an identifier. */
+  for (char &c : name) {
+    if (c == '\0') {
+      break;
+    }
+    if (!std::isalnum(c)) {
+      c = '_';
+    }
+  }
 }
 
 Shader::~Shader()
@@ -217,38 +228,62 @@ blender::gpu::Shader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_in
   return GPUBackend::get()->get_compiler()->compile(info, false);
 }
 
-std::string GPU_shader_preprocess_source(StringRefNull original)
+std::string GPU_shader_preprocess_source(StringRefNull original,
+                                         blender::gpu::shader::ShaderCreateInfo &info)
 {
   if (original.is_empty()) {
     return original;
   }
   gpu::shader::Preprocessor processor;
-  return processor.process(original);
+  gpu::shader::metadata::Source metadata;
+  std::string processed_str = processor.process(original, metadata);
+  for (auto builtin : metadata.builtins) {
+    info.builtins(gpu::shader::convert_builtin_bit(builtin));
+  }
+  return processed_str;
 };
 
 blender::gpu::Shader *GPU_shader_create_from_info_python(const GPUShaderCreateInfo *_info)
 {
   using namespace blender::gpu::shader;
-  ShaderCreateInfo &info = *const_cast<ShaderCreateInfo *>(
+  ShaderCreateInfo info = *const_cast<ShaderCreateInfo *>(
       reinterpret_cast<const ShaderCreateInfo *>(_info));
 
-  std::string vertex_source_original = info.vertex_source_generated;
-  std::string fragment_source_original = info.fragment_source_generated;
-  std::string geometry_source_original = info.geometry_source_generated;
-  std::string compute_source_original = info.compute_source_generated;
+  const bool is_compute = !info.compute_source_generated.empty();
 
-  info.vertex_source_generated = GPU_shader_preprocess_source(info.vertex_source_generated);
-  info.fragment_source_generated = GPU_shader_preprocess_source(info.fragment_source_generated);
-  info.geometry_source_generated = GPU_shader_preprocess_source(info.geometry_source_generated);
-  info.compute_source_generated = GPU_shader_preprocess_source(info.compute_source_generated);
+  std::array<StringRefNull, 2> includes = {
+      "draw_colormanagement_lib.glsl",
+      "gpu_shader_python_typedef_lib.glsl",
+  };
+
+  auto preprocess_source = [&](const std::string &input_src) {
+    std::string processed_str;
+    processed_str += "#ifdef CREATE_INFO_RES_PASS_pyGPU_Shader\n";
+    processed_str += "CREATE_INFO_RES_PASS_pyGPU_Shader\n";
+    processed_str += "#endif\n";
+    processed_str += GPU_shader_preprocess_source(input_src, info);
+    return processed_str;
+  };
+
+  if (is_compute) {
+    info.compute_source("gpu_shader_python_comp.glsl");
+    info.generated_sources.append({"gpu_shader_python_comp.glsl",
+                                   includes,
+                                   preprocess_source(info.compute_source_generated)});
+  }
+  else {
+    info.vertex_source("gpu_shader_python_vert.glsl");
+    info.generated_sources.append({"gpu_shader_python_vert.glsl",
+                                   includes,
+                                   preprocess_source(info.vertex_source_generated)});
+
+    info.fragment_source("gpu_shader_python_frag.glsl");
+    info.generated_sources.append({"gpu_shader_python_frag.glsl",
+                                   includes,
+                                   preprocess_source(info.fragment_source_generated)});
+  }
 
   blender::gpu::Shader *result = GPUBackend::get()->get_compiler()->compile(info, false);
-
-  info.vertex_source_generated = vertex_source_original;
-  info.fragment_source_generated = fragment_source_original;
-  info.geometry_source_generated = geometry_source_original;
-  info.compute_source_generated = compute_source_original;
-
   return result;
 }
 
@@ -773,18 +808,6 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
 
   defines += "#define USE_GPU_SHADER_CREATE_INFO\n";
 
-  Vector<StringRefNull> typedefs;
-  if (!info.typedef_sources_.is_empty() || !info.typedef_source_generated.empty()) {
-    typedefs.append(gpu_shader_dependency_get_source("GPU_shader_shared_utils.hh").c_str());
-  }
-  if (!info.typedef_source_generated.empty()) {
-    typedefs.append(info.typedef_source_generated);
-  }
-  for (auto filename : info.typedef_sources_) {
-    typedefs.extend_non_duplicates(
-        gpu_shader_dependency_get_resolved_source(filename, info.generated_sources, info.name_));
-  }
-
   if (!info.vertex_source_.is_empty()) {
     Vector<StringRefNull> code = gpu_shader_dependency_get_resolved_source(
         info.vertex_source_, info.generated_sources, info.name_);
@@ -797,11 +820,9 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
       sources.append("#define USE_GEOMETRY_SHADER\n");
     }
     sources.append(defines);
-    sources.extend(typedefs);
     sources.append(resources);
     sources.append(interface);
     sources.extend(code);
-    sources.append(info.vertex_source_generated);
 
     if (info.vertex_entry_fn_ != "main") {
       sources.append("void main() { ");
@@ -824,11 +845,9 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
       sources.append("#define USE_GEOMETRY_SHADER\n");
     }
     sources.append(defines);
-    sources.extend(typedefs);
     sources.append(resources);
     sources.append(interface);
     sources.extend(code);
-    sources.append(info.fragment_source_generated);
 
     if (info.fragment_entry_fn_ != "main") {
       sources.append("void main() { ");
@@ -849,11 +868,9 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
     standard_defines(sources);
     sources.append("#define GPU_GEOMETRY_SHADER\n");
     sources.append(defines);
-    sources.extend(typedefs);
     sources.append(resources);
     sources.append(layout);
     sources.append(interface);
-    sources.append(info.geometry_source_generated);
     sources.extend(code);
 
     if (info.geometry_entry_fn_ != "main") {
@@ -875,10 +892,8 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
     sources.append("#define GPU_COMPUTE_SHADER\n");
     sources.append(defines);
     sources.append(layout);
-    sources.extend(typedefs);
     sources.append(resources);
     sources.extend(code);
-    sources.append(info.compute_source_generated);
 
     if (info.compute_entry_fn_ != "main") {
       sources.append("void main() { ");

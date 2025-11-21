@@ -9,8 +9,9 @@
 #  include "workbench_shader_shared.hh"
 
 #  include "draw_view_infos.hh"
-#  include "gpu_shader_fullscreen_infos.hh"
+#endif
 
+#ifdef GLSL_CPP_STUBS
 #  define PREPARE
 #  define DOWNSAMPLE
 #  define BLUR1
@@ -37,7 +38,7 @@ PUSH_CONSTANT(float2, inverted_viewport_size)
 PUSH_CONSTANT(float2, near_far)
 PUSH_CONSTANT(float3, dof_params)
 PUSH_CONSTANT(float, noise_offset)
-ADDITIONAL_INFO(gpu_fullscreen)
+VERTEX_SOURCE("workbench_fullscreen_vert.glsl")
 ADDITIONAL_INFO(draw_view)
 GPU_SHADER_CREATE_END()
 
