@@ -425,7 +425,7 @@ static void action_channel_region_listener(const wmRegionListenerParams *params)
       }
       break;
     case NC_GPENCIL:
-      if (ELEM(wmn->action, NA_RENAME, NA_SELECTED)) {
+      if (ELEM(wmn->action, NA_RENAME, NA_SELECTED, NA_EDITED)) {
         ED_region_tag_redraw(region);
       }
       break;
