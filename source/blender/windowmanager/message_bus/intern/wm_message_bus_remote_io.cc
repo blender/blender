@@ -110,7 +110,7 @@ void WM_msg_publish_remote_io(wmMsgBus *mbus, const blender::StringRef remote_ur
   params.remote_url = BLI_strdupn(remote_url.data(), remote_url.size());
   WM_msg_publish_remote_io_params(mbus, &params);
 
-  /* Values were copied into the publish key. */
+  /* Value wase copied into the publish key. */
   MEM_freeN(params.remote_url);
 }
 
@@ -139,6 +139,6 @@ void WM_msg_subscribe_remote_io(wmMsgBus *mbus,
   params.remote_url = BLI_strdupn(remote_url.data(), remote_url.size());
   WM_msg_subscribe_remote_io_params(mbus, &params, msg_val_params, id_repr);
 
-  /* Values were copied into the subscribe key. */
+  /* Value was copied into the subscribe key. */
   MEM_freeN(params.remote_url);
 }

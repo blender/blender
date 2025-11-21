@@ -86,13 +86,8 @@ void IMB_thumb_delete(const char *file_or_lib_path, ThumbSize size);
  *
  * \param file_or_lib_path: File path or library-ID path (e.g. `/a/b.blend/Material/MyMaterial`) to
  *                          the thumbnail to be created/managed.
- * \param r_is_invalid: If non-null, this will be set to true whenever it's known that the
- *                      requested preview can't be loaded, and shouldn't be requeried for now.
  */
-ImBuf *IMB_thumb_manage(const char *file_or_lib_path,
-                        ThumbSize size,
-                        ThumbSource source,
-                        bool *r_is_invalid = nullptr);
+ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSource source);
 
 /**
  * Create the necessary directories to store the thumbnails.

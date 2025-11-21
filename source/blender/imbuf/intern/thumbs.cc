@@ -585,17 +585,8 @@ void IMB_thumb_delete(const char *file_or_lib_path, ThumbSize size)
   }
 }
 
-ImBuf *IMB_thumb_manage(const char *file_or_lib_path,
-                        ThumbSize size,
-                        ThumbSource source,
-                        bool *r_is_invalid)
+ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSource source)
 {
-  bool own_is_invalid = false;
-  /* Ensure it's set, so we don't have to null-check on every access. */
-  if (!r_is_invalid) {
-    r_is_invalid = &own_is_invalid;
-  }
-
   if (source == THB_SOURCE_DIRECT) {
     if (ImBuf *thumb = IMB_load_image_from_filepath(file_or_lib_path, IB_byte_data | IB_metadata))
     {
@@ -604,12 +595,8 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path,
       return thumb;
     }
 
-    *r_is_invalid = true;
     return nullptr;
   }
-
-  /* Set in case of early exit. */
-  *r_is_invalid = true;
 
   char path_buff[FILE_MAX_LIBEXTRA];
   char *blen_group = nullptr, *blen_id = nullptr;
@@ -644,7 +631,6 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path,
     char thumb_path[FILE_MAX];
     if (thumbpath_from_uri(uri, thumb_path, sizeof(thumb_path), size)) {
       if (ImBuf *img = IMB_load_image_from_filepath(thumb_path, IB_byte_data | IB_metadata)) {
-        *r_is_invalid = false;
         return img;
       }
     }
@@ -733,7 +719,6 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path,
   if (img) {
     IMB_byte_from_float(img);
     IMB_free_float_pixels(img);
-    *r_is_invalid = false;
   }
 
   return img;

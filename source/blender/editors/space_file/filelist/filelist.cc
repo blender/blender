@@ -124,7 +124,6 @@ static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
                                                bool *stop,
                                                bool *do_update,
                                                float *progress);
-static bool filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry, const int index);
 /* helper, could probably go in BKE actually? */
 static int groupname_to_code(const char *group);
 
@@ -166,45 +165,6 @@ void filelist_remote_asset_library_refresh_online_assets_status(
       (filelist->asset_library->remote_url() == remote_url))
   {
     remote_asset_library_refresh_online_assets_status(filelist);
-  }
-}
-
-void filelist_remote_asset_library_preview_loaded(FileList *filelist,
-                                                  const StringRef remote_url,
-                                                  const StringRef preview_filepath)
-{
-  if (!filelist->asset_library || !filelist->asset_library_ref) {
-    return;
-  }
-  if (remote_url.is_empty()) {
-    return;
-  }
-
-  if ((filelist->asset_library_ref->type != ASSET_LIBRARY_ALL) &&
-      (filelist->asset_library->remote_url() != remote_url))
-  {
-    return;
-  }
-
-  const int num_files_filtered = filelist_files_ensure(filelist);
-
-  for (int file_index = 0; file_index < num_files_filtered; file_index++) {
-    FileDirEntry *entry = filelist_file_ex(filelist, file_index, false);
-    if (!entry) {
-      continue;
-    }
-    if ((entry->typeflag & FILE_TYPE_ASSET_ONLINE) == 0) {
-      continue;
-    }
-    if ((entry->flags & FILE_ENTRY_PREVIEW_ONLINE_REQUESTED) == 0) {
-      continue;
-    }
-
-    /* The preview might be downloaded by now. Unset the loading flag so it gets re-requested for
-     * reading from disk. */
-    if (remote_library_asset_preview_path(*entry->asset) == preview_filepath) {
-      entry->flags &= ~FILE_ENTRY_PREVIEW_LOADING;
-    }
   }
 }
 
@@ -716,16 +676,13 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
   //  printf("%s: Start (%d)...\n", __func__, threadid);
 
   //  printf("%s: %d - %s - %p\n", __func__, preview->index, preview->path, preview->img);
-  BLI_assert(preview->flags & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT |
-                               FILE_TYPE_BLENDER | FILE_TYPE_OBJECT_IO | FILE_TYPE_BLENDER_BACKUP |
-                               FILE_TYPE_BLENDERLIB | FILE_TYPE_ASSET_ONLINE));
+  BLI_assert(preview->flags &
+             (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT | FILE_TYPE_BLENDER |
+              FILE_TYPE_OBJECT_IO | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB));
   BLI_assert((preview->flags & FILE_TYPE_ASSET_ONLINE) == 0);
 
   if (preview->flags & FILE_TYPE_IMAGE) {
     source = THB_SOURCE_IMAGE;
-  }
-  else if (preview->flags & FILE_TYPE_ASSET_ONLINE) {
-    source = THB_SOURCE_DIRECT;
   }
   else if (preview->flags & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB))
   {
@@ -744,11 +701,9 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
   IMB_thumb_path_lock(preview->filepath);
   /* Always generate biggest preview size for now, it's simpler and avoids having to re-generate
    * in case user switch to a bigger preview size. */
-  ImBuf *imbuf = IMB_thumb_manage(preview->filepath, THB_LARGE, source, &preview->is_invalid);
+  ImBuf *imbuf = IMB_thumb_manage(preview->filepath, THB_LARGE, source);
   IMB_thumb_path_unlock(preview->filepath);
   if (imbuf) {
-    /* TODO(Julian): Is this okay here? Should be a separate fix in main if so. */
-    IMB_premultiply_alpha(imbuf);
     preview->icon_id = BKE_icon_imbuf_create(imbuf);
   }
 
@@ -874,11 +829,6 @@ void filelist_online_asset_preview_request(bContext *C, FileDirEntry *entry)
     return;
   }
 
-  /* Already requested. */
-  if (entry->flags & FILE_ENTRY_PREVIEW_ONLINE_REQUESTED) {
-    return;
-  }
-
   if (!filelist_file_preview_load_poll(entry)) {
     return;
   }
@@ -887,7 +837,6 @@ void filelist_online_asset_preview_request(bContext *C, FileDirEntry *entry)
   if (entry->asset->is_online()) {
     entry->asset->ensure_previewable(*C, CTX_wm_reports(C));
     entry->preview_icon_id = entry->asset->get_preview()->runtime->icon_id;
-    entry->flags |= FILE_ENTRY_PREVIEW_ONLINE_REQUESTED;
   }
 }
 
@@ -902,6 +851,12 @@ static bool filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
   BLI_assert(cache->flags & FLC_PREVIEWS_ACTIVE);
 
   if (entry->preview_icon_id) {
+    return false;
+  }
+
+  if (entry->typeflag & FILE_TYPE_ASSET_ONLINE) {
+    /* Online assets use the UI system for async preview loading (see #PreviewLoadJob)
+     * instead of the file browser one. */
     return false;
   }
 
@@ -935,12 +890,7 @@ static bool filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
     BLI_thread_queue_push(cache->previews_done, preview, BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
   }
   else {
-    if (entry->asset && entry->typeflag & FILE_TYPE_ASSET_ONLINE) {
-      BLI_assert(0);
-      std::string preview_path = asset_system::remote_library_asset_preview_path(*entry->asset);
-      BLI_strncpy(preview->filepath, preview_path.c_str(), FILE_MAXDIR);
-    }
-    else if (entry->redirection_path) {
+    if (entry->redirection_path) {
       BLI_strncpy(preview->filepath, entry->redirection_path, FILE_MAXDIR);
     }
     else {
@@ -1619,7 +1569,7 @@ static void filelist_file_cache_block_release(FileList *filelist, const int size
   }
 }
 
-bool filelist_file_cache_block(bContext *C, FileList *filelist, const int index)
+bool filelist_file_cache_block(FileList *filelist, const int index)
 {
   FileListEntryCache *cache = filelist->filelist_cache;
   const size_t cache_size = cache->size;
@@ -1822,15 +1772,7 @@ bool filelist_file_cache_block(bContext *C, FileList *filelist, const int index)
         int offs_idx = index + offs;
         if (start_index <= offs_idx && offs_idx < end_index) {
           int offs_block_idx = (block_index + offs) % int(cache_size);
-          FileDirEntry *entry = cache->block_entries[offs_block_idx];
-
-          if (entry->typeflag & FILE_TYPE_ASSET_ONLINE) {
-            /* Online assets use the UI system for async preview loading (see #PreviewLoadJob)
-             * instead of the file browser one. */
-          }
-          else {
-            filelist_cache_previews_push(filelist, entry, offs_idx);
-          }
+          filelist_cache_previews_push(filelist, cache->block_entries[offs_block_idx], offs_idx);
         }
       } while ((offs = -offs) < 0); /* Switch between negative and positive offset. */
     }
@@ -1909,14 +1851,6 @@ bool filelist_cache_previews_update(FileList *filelist)
         /* Move ownership over icon. */
         entry->preview_icon_id = preview->icon_id;
         preview->icon_id = 0;
-      }
-      else if (entry->flags & FILE_ENTRY_PREVIEW_ONLINE_REQUESTED) {
-        /* Keep the loading tag if the preview is still downloading. Also important to tag as
-         * invalid, otherwise */
-        /* TODO probably needs to be done smarter, so invalid previews can be recognized still. */
-        MEM_freeN(preview);
-        cache->previews_todo_count--;
-        continue;
       }
       else {
         /* We want to avoid re-processing this entry continuously!

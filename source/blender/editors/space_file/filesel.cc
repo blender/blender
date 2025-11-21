@@ -499,17 +499,6 @@ ID *ED_fileselect_active_asset_get(const SpaceFile *sfile)
   return filelist_file_get_id(file);
 }
 
-void ED_fileselect_online_asset_preview_downloaded(const SpaceFile *sfile,
-                                                   const blender::StringRef remote_url,
-                                                   const blender::StringRef preview_filepath)
-{
-  if (!ED_fileselect_is_asset_browser(sfile)) {
-    return;
-  }
-
-  filelist_remote_asset_library_preview_loaded(sfile->files, remote_url, preview_filepath);
-}
-
 void ED_fileselect_activate_asset_catalog(const SpaceFile *sfile, const bUUID catalog_id)
 {
   if (!ED_fileselect_is_asset_browser(sfile)) {

@@ -144,23 +144,9 @@ void RemoteLibraryLoadingStatus::ping_new_pages(const StringRef url)
 }
 
 void RemoteLibraryLoadingStatus::ping_new_preview(const bContext &C,
-                                                  const StringRef library_url,
+                                                  const StringRef /*library_url*/,
                                                   const StringRef preview_full_filepath)
 {
-  wmWindowManager *wm = CTX_wm_manager(&C);
-
-  /* Tell all asset browsers that this preview can be loaded from disk now. */
-  LISTBASE_FOREACH (const wmWindow *, win, &wm->windows) {
-    const bScreen *screen = WM_window_get_active_screen(win);
-    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
-      /* Only needs to cover visible file/asset browsers, since others are already cleared through
-       * area exiting. */
-      if (area->spacetype == SPACE_FILE) {
-        SpaceFile *sfile = reinterpret_cast<SpaceFile *>(area->spacedata.first);
-        ED_fileselect_online_asset_preview_downloaded(sfile, library_url, preview_full_filepath);
-      }
-    }
-  }
   ED_preview_online_download_finished(CTX_wm_manager(&C), preview_full_filepath);
 }
 

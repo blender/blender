@@ -164,10 +164,6 @@ blender::asset_system::AssetLibrary *ED_fileselect_active_asset_library_get(
     const SpaceFile *sfile);
 ID *ED_fileselect_active_asset_get(const SpaceFile *sfile);
 
-void ED_fileselect_online_asset_preview_downloaded(const SpaceFile *sfile,
-                                                   const blender::StringRef remote_url,
-                                                   const blender::StringRef preview_filepath);
-
 void ED_fileselect_activate_asset_catalog(const SpaceFile *sfile, bUUID catalog_id);
 
 /**

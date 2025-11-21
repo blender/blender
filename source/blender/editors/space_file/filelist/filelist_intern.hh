@@ -165,7 +165,6 @@ struct FileListEntryPreview {
   uint flags;
   int index;
   int icon_id;
-  bool is_invalid;
 };
 
 /* Dummy wrapper around FileListEntryPreview to ensure we do not access freed memory when freeing
