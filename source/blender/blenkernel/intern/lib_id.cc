@@ -2072,8 +2072,7 @@ static void library_make_local_copying_check(ID *id,
     return; /* Already checked, nothing else to do. */
   }
 
-  MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(
-      BLI_ghash_lookup(id_relations->relations_from_pointers, id));
+  MainIDRelationsEntry *entry = id_relations->relations_from_pointers->lookup(id);
   loop_tags.add(id);
   for (MainIDRelationsEntryItem *from_id_entry = entry->from_ids; from_id_entry != nullptr;
        from_id_entry = from_id_entry->next)

@@ -347,8 +347,7 @@ static bool library_foreach_ID_link(Main *bmain,
        * but we might as well use it (Main->relations is always assumed valid,
        * it's responsibility of code creating it to free it,
        * especially if/when it starts modifying Main database). */
-      MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(
-          BLI_ghash_lookup(bmain->relations->relations_from_pointers, id));
+      MainIDRelationsEntry *entry = bmain->relations->relations_from_pointers->lookup(id);
       for (MainIDRelationsEntryItem *to_id_entry = entry->to_ids; to_id_entry != nullptr;
            to_id_entry = to_id_entry->next)
       {
@@ -794,8 +793,8 @@ static bool lib_query_unused_ids_has_exception_user(ID &id, UnusedIDsData &data)
       if (!ID_IS_LINKED(&id)) {
         return false;
       }
-      MainIDRelationsEntry *id_relations = static_cast<MainIDRelationsEntry *>(
-          BLI_ghash_lookup(data.bmain->relations->relations_from_pointers, &id));
+      MainIDRelationsEntry *id_relations = data.bmain->relations->relations_from_pointers->lookup(
+          &id);
       for (MainIDRelationsEntryItem *from = id_relations->from_ids; from; from = from->next) {
         if (!data.unused_ids.contains(from->id_pointer.from)) {
           return true;
@@ -826,8 +825,7 @@ static bool lib_query_unused_ids_tag_recurse(ID *id, UnusedIDsData &data)
   /* We should never deal with embedded, not-in-main IDs here. */
   BLI_assert((id->flag & ID_FLAG_EMBEDDED_DATA) == 0);
 
-  MainIDRelationsEntry *id_relations = static_cast<MainIDRelationsEntry *>(
-      BLI_ghash_lookup(data.bmain->relations->relations_from_pointers, id));
+  MainIDRelationsEntry *id_relations = data.bmain->relations->relations_from_pointers->lookup(id);
 
   if ((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) != 0) {
     return false;
@@ -997,8 +995,8 @@ static void lib_query_unused_ids_tag(UnusedIDsData &data)
        *
        * So the entry can be tagged as processed, and the ID tagged as unused. */
       if (!data.unused_ids.contains(id)) {
-        MainIDRelationsEntry *id_relations = static_cast<MainIDRelationsEntry *>(
-            BLI_ghash_lookup(data.bmain->relations->relations_from_pointers, id));
+        MainIDRelationsEntry *id_relations =
+            data.bmain->relations->relations_from_pointers->lookup(id);
         if ((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) == 0) {
           id_relations->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
           lib_query_unused_ids_tag_id(id, data);
@@ -1008,8 +1006,8 @@ static void lib_query_unused_ids_tag(UnusedIDsData &data)
 
 #ifndef NDEBUG
     /* Relation entry for the root processed ID should always be marked as processed now. */
-    MainIDRelationsEntry *id_relations = static_cast<MainIDRelationsEntry *>(
-        BLI_ghash_lookup(data.bmain->relations->relations_from_pointers, id));
+    MainIDRelationsEntry *id_relations = data.bmain->relations->relations_from_pointers->lookup(
+        id);
     BLI_assert((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) != 0);
     BLI_assert((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS) == 0);
 #endif
