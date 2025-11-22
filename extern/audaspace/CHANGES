@@ -1,3 +1,26 @@
+Audaspace 1.8
+
+- Time stretching and pitch scaling including animation and python API added (thanks Kacey La!).
+- Update API of AUD_readSound to fix interruption logic in Blender.
+- Minor other fixes including in the PulseAudio, CoreAudio and FFMPEG plugins.
+
+Detailed list of changes:
+
+9b1be5f Include stdbool.h
+2663809 Use boolean for interrupting AUD_readSound function
+83721b1 Fix broken doc-string function argument type definition
+05d35ba Some fixes for the just introduced better seeking of time stretching.
+301f874 AnimateableTimeStretchPitchScale Seek - Frame-Approach (#58)
+fa006ac FFMPEG: fix memory leak and remove deprecated AV_INPUT_BUFFER_MIN_SIZE.
+3be6dfd Python API for AnimateableProperty and AnimatedTimeScalePitchScale  (#54)
+ff127cf Minor fixes.
+5e09510 AnimatedTimeStretchPitchScale effect (#53)
+39caef7 Updating AUTHORS
+b1058e6 Porting PulseAudio and CoreAudio fixes from upstream Blender.
+d1b3c5b Rename StretcherQuality to just StretcherQualityOption.
+f00f081 Fixer for Rubberband.
+924a19b Add TimeStretchPitchScale effect (#52)
+
 Audaspace 1.7
 
 - Rewrite of the Synchronizer API.
