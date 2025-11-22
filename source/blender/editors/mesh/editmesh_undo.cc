@@ -327,9 +327,8 @@ static void um_arraystore_cd_create(CustomData *cdata,
         }
 #  endif
 
-        bcd->states[i] = {
-            BLI_array_store_state_add(bs, data_final, data_final_size, state_reference),
-        };
+        bcd->states[i] = BLI_array_store_state_add(
+            bs, data_final, data_final_size, state_reference);
 
 #  ifdef USE_ARRAY_STORE_RLE
         if (use_rle) {
