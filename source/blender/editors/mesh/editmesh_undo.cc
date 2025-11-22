@@ -290,59 +290,57 @@ static void um_arraystore_cd_create(CustomData *cdata,
 
     CustomDataLayer *layer = &cdata->layers[layer_start];
     for (int i = 0; i < layer_len; i++, layer++) {
-      if (layer->data) {
-        if (layer_type_is_dynamic) {
-          /* See comment on `layer_type_is_dynamic` above. */
-          const ImplicitSharingInfo *sharing_info = layer->sharing_info;
-          sharing_info->add_user();
-          bcd->states[i] = ImplicitSharingInfoAndData{sharing_info, layer->data};
-        }
-        else {
-          const BArrayState *state_reference = nullptr;
-          if (bcd_reference_current && i < bcd_reference_current->states.size()) {
-            state_reference = std::get<BArrayState *>(bcd_reference_current->states[i]);
-          }
+      if (!layer->data) {
+        bcd->states[i] = nullptr;
+        continue;
+      }
 
-          void *data_final = layer->data;
-          size_t data_final_size = size_t(data_len) * stride;
-
-#  ifdef USE_ARRAY_STORE_RLE
-          const bool use_rle = um_customdata_layer_use_rle(bcd);
-          uint8_t *data_enc = nullptr;
-          if (use_rle) {
-            /* Store the size in the encoded data (for convenience). */
-            size_t data_enc_extra_size = sizeof(size_t);
-            size_t data_enc_len;
-            data_enc = BLI_array_store_rle_encode(reinterpret_cast<const uint8_t *>(data_final),
-                                                  data_final_size,
-                                                  data_enc_extra_size,
-                                                  &data_enc_len);
-            memcpy(data_enc, &data_final_size, data_enc_extra_size);
-            data_final = data_enc;
-            data_final_size = data_enc_extra_size + data_enc_len;
-          }
-#  endif
-
-          bcd->states[i] = {
-              BLI_array_store_state_add(bs, data_final, data_final_size, state_reference),
-          };
-
-#  ifdef USE_ARRAY_STORE_RLE
-          if (use_rle) {
-            MEM_freeN(data_enc);
-          }
-#  endif
-        }
+      if (layer_type_is_dynamic) {
+        /* See comment on `layer_type_is_dynamic` above. */
+        const ImplicitSharingInfo *sharing_info = layer->sharing_info;
+        sharing_info->add_user();
+        bcd->states[i] = ImplicitSharingInfoAndData{sharing_info, layer->data};
       }
       else {
-        bcd->states[i] = nullptr;
+        const BArrayState *state_reference = nullptr;
+        if (bcd_reference_current && i < bcd_reference_current->states.size()) {
+          state_reference = std::get<BArrayState *>(bcd_reference_current->states[i]);
+        }
+
+        void *data_final = layer->data;
+        size_t data_final_size = size_t(data_len) * stride;
+
+#  ifdef USE_ARRAY_STORE_RLE
+        const bool use_rle = um_customdata_layer_use_rle(bcd);
+        uint8_t *data_enc = nullptr;
+        if (use_rle) {
+          /* Store the size in the encoded data (for convenience). */
+          size_t data_enc_extra_size = sizeof(size_t);
+          size_t data_enc_len;
+          data_enc = BLI_array_store_rle_encode(reinterpret_cast<const uint8_t *>(data_final),
+                                                data_final_size,
+                                                data_enc_extra_size,
+                                                &data_enc_len);
+          memcpy(data_enc, &data_final_size, data_enc_extra_size);
+          data_final = data_enc;
+          data_final_size = data_enc_extra_size + data_enc_len;
+        }
+#  endif
+
+        bcd->states[i] = {
+            BLI_array_store_state_add(bs, data_final, data_final_size, state_reference),
+        };
+
+#  ifdef USE_ARRAY_STORE_RLE
+        if (use_rle) {
+          MEM_freeN(data_enc);
+        }
+#  endif
       }
 
-      if (layer->data) {
-        layer->sharing_info->remove_user_and_delete_if_last();
-        layer->sharing_info = nullptr;
-        layer->data = nullptr;
-      }
+      layer->sharing_info->remove_user_and_delete_if_last();
+      layer->sharing_info = nullptr;
+      layer->data = nullptr;
     }
 
     if (bcd_reference_current) {
@@ -380,8 +378,7 @@ static void um_arraystore_cd_expand(const BArrayCustomData *bcd,
     for (int i = 0; i < bcd->states.size(); i++) {
       BLI_assert(bcd->type == layer->type);
       if (std::holds_alternative<BArrayState *>(bcd->states[i])) {
-        const BArrayState *state = std::get<BArrayState *>(bcd->states[i]);
-        if (state) {
+        if (const BArrayState *state = std::get<BArrayState *>(bcd->states[i])) {
           size_t state_len;
           void *data = BLI_array_store_state_data_get_alloc(state, &state_len);
 
