@@ -17,7 +17,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_base_safe.h"
 #include "BLI_math_matrix.h"
@@ -110,8 +109,8 @@ static VFontData *vfont_data_ensure_with_lock(VFont *vfont)
 
 static bool vfont_char_find(const VFontData *vfd, char32_t charcode, VChar **r_che)
 {
-  if (void **che_p = BLI_ghash_lookup_p(vfd->characters, POINTER_FROM_UINT(charcode))) {
-    *r_che = static_cast<VChar *>(*che_p);
+  if (VChar **che_p = vfd->characters->lookup_ptr(charcode)) {
+    *r_che = *che_p;
     return true;
   }
   *r_che = nullptr;
