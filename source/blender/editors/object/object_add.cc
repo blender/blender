@@ -2633,21 +2633,22 @@ static void copy_object_set_idnew(bContext *C)
  * In other words, we consider each group of objects from a same item as being
  * the 'local group' where to check for parents.
  */
-static uint dupliobject_hash(const void *ptr)
-{
-  const DupliObject *dob = static_cast<const DupliObject *>(ptr);
-  uint hash = BLI_ghashutil_ptrhash(dob->ob);
+struct DupliObjectHash {
+  uint64_t operator()(const DupliObject *dob) const
+  {
+    uint hash = BLI_ghashutil_ptrhash(dob->ob);
 
-  if (dob->type == OB_DUPLICOLLECTION) {
-    for (int i = 1; (i < MAX_DUPLI_RECUR) && dob->persistent_id[i] != INT_MAX; i++) {
-      hash ^= (dob->persistent_id[i] ^ i);
+    if (dob->type == OB_DUPLICOLLECTION) {
+      for (int i = 1; (i < MAX_DUPLI_RECUR) && dob->persistent_id[i] != INT_MAX; i++) {
+        hash ^= (dob->persistent_id[i] ^ i);
+      }
     }
+    else {
+      hash ^= (dob->persistent_id[0] ^ 0);
+    }
+    return hash;
   }
-  else {
-    hash ^= (dob->persistent_id[0] ^ 0);
-  }
-  return hash;
-}
+};
 
 /**
  * \note regarding hashing dupli-objects when using OB_DUPLICOLLECTION,
@@ -2655,70 +2656,69 @@ static uint dupliobject_hash(const void *ptr)
  * since its a unique index and we only want to know if the group objects are from the same
  * dupli-group instance.
  */
-static uint dupliobject_instancer_hash(const void *ptr)
-{
-  const DupliObject *dob = static_cast<const DupliObject *>(ptr);
-  uint hash = BLI_ghashutil_inthash(dob->persistent_id[0]);
-  for (int i = 1; (i < MAX_DUPLI_RECUR) && dob->persistent_id[i] != INT_MAX; i++) {
-    hash ^= (dob->persistent_id[i] ^ i);
+struct DupliObjectInstancerHash {
+  uint64_t operator()(const DupliObject *dob) const
+  {
+    uint hash = BLI_ghashutil_inthash(dob->persistent_id[0]);
+    for (int i = 1; (i < MAX_DUPLI_RECUR) && dob->persistent_id[i] != INT_MAX; i++) {
+      hash ^= (dob->persistent_id[i] ^ i);
+    }
+    return hash;
   }
-  return hash;
-}
+};
 
 /**
- * Compare function that matches #dupliobject_hash.
+ * Compare function that matches #DupliObjectHash.
  */
-static bool dupliobject_cmp(const void *a_, const void *b_)
-{
-  const DupliObject *a = static_cast<const DupliObject *>(a_);
-  const DupliObject *b = static_cast<const DupliObject *>(b_);
+struct DupliObjectEq {
+  bool operator()(const DupliObject *a, const DupliObject *b) const
+  {
+    if (a->ob != b->ob) {
+      return false;
+    }
 
-  if (a->ob != b->ob) {
+    if (a->type != b->type) {
+      return false;
+    }
+
+    if (a->type == OB_DUPLICOLLECTION) {
+      for (int i = 1; (i < MAX_DUPLI_RECUR); i++) {
+        if (a->persistent_id[i] != b->persistent_id[i]) {
+          return false;
+        }
+        if (a->persistent_id[i] == INT_MAX) {
+          break;
+        }
+      }
+    }
+    else {
+      if (a->persistent_id[0] != b->persistent_id[0]) {
+        return false;
+      }
+    }
+
+    /* matching */
     return true;
   }
+};
 
-  if (a->type != b->type) {
-    return true;
-  }
-
-  if (a->type == OB_DUPLICOLLECTION) {
-    for (int i = 1; (i < MAX_DUPLI_RECUR); i++) {
+/* Compare function that matches DupliObjectInstancerHash. */
+struct DupliObjectInstancerEq {
+  bool operator()(const DupliObject *a, const DupliObject *b) const
+  {
+    for (int i = 0; (i < MAX_DUPLI_RECUR); i++) {
       if (a->persistent_id[i] != b->persistent_id[i]) {
-        return true;
+        return false;
       }
       if (a->persistent_id[i] == INT_MAX) {
         break;
       }
     }
+
+    /* matching */
+    return true;
   }
-  else {
-    if (a->persistent_id[0] != b->persistent_id[0]) {
-      return true;
-    }
-  }
-
-  /* matching */
-  return false;
-}
-
-/* Compare function that matches dupliobject_instancer_hash. */
-static bool dupliobject_instancer_cmp(const void *a_, const void *b_)
-{
-  const DupliObject *a = static_cast<const DupliObject *>(a_);
-  const DupliObject *b = static_cast<const DupliObject *>(b_);
-
-  for (int i = 0; (i < MAX_DUPLI_RECUR); i++) {
-    if (a->persistent_id[i] != b->persistent_id[i]) {
-      return true;
-    }
-    if (a->persistent_id[i] == INT_MAX) {
-      break;
-    }
-  }
-
-  /* matching */
-  return false;
-}
+};
 
 static void make_object_duplilist_real(bContext *C,
                                        Depsgraph *depsgraph,
@@ -2729,7 +2729,16 @@ static void make_object_duplilist_real(bContext *C,
 {
   Main *bmain = CTX_data_main(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  GHash *parent_gh = nullptr, *instancer_gh = nullptr;
+  using ParentMap =
+      Map<DupliObject *, Object *, 4, DefaultProbingStrategy, DupliObjectHash, DupliObjectEq>;
+  using InstancerMap = Map<DupliObject *,
+                           Object *,
+                           4,
+                           DefaultProbingStrategy,
+                           DupliObjectInstancerHash,
+                           DupliObjectInstancerEq>;
+  ParentMap *parent_gh = nullptr;
+  InstancerMap *instancer_gh = nullptr;
 
   Object *object_eval = DEG_get_evaluated(depsgraph, base->object);
 
@@ -2748,11 +2757,10 @@ static void make_object_duplilist_real(bContext *C,
 
   blender::Map<const DupliObject *, Object *> dupli_map;
   if (use_hierarchy) {
-    parent_gh = BLI_ghash_new(dupliobject_hash, dupliobject_cmp, __func__);
+    parent_gh = MEM_new<ParentMap>(__func__);
 
     if (use_base_parent) {
-      instancer_gh = BLI_ghash_new(
-          dupliobject_instancer_hash, dupliobject_instancer_cmp, __func__);
+      instancer_gh = MEM_new<InstancerMap>(__func__);
     }
   }
 
@@ -2798,19 +2806,14 @@ static void make_object_duplilist_real(bContext *C,
     dupli_map.add(&dob, ob_dst);
 
     if (parent_gh) {
-      void **val;
       /* Due to nature of hash/comparison of this ghash, a lot of duplis may be considered as
        * 'the same', this avoids trying to insert same key several time and
        * raise asserts in debug builds... */
-      if (!BLI_ghash_ensure_p(parent_gh, &dob, &val)) {
-        *val = ob_dst;
-      }
+      parent_gh->add(&dob, ob_dst);
 
       if (is_dupli_instancer && instancer_gh) {
         /* Same as above, we may have several 'hits'. */
-        if (!BLI_ghash_ensure_p(instancer_gh, &dob, &val)) {
-          *val = ob_dst;
-        }
+        instancer_gh->add(&dob, ob_dst);
       }
     }
   }
@@ -2844,7 +2847,7 @@ static void make_object_duplilist_real(bContext *C,
         else {
           dob_key.persistent_id[0] = dob.persistent_id[0];
         }
-        ob_dst_par = static_cast<Object *>(BLI_ghash_lookup(parent_gh, &dob_key));
+        ob_dst_par = parent_gh->lookup_default(&dob_key, nullptr);
       }
 
       if (ob_dst_par) {
@@ -2873,7 +2876,7 @@ static void make_object_duplilist_real(bContext *C,
         memcpy(&dob_key.persistent_id[0],
                &dob.persistent_id[1],
                sizeof(dob_key.persistent_id[0]) * (MAX_DUPLI_RECUR - 1));
-        ob_dst_par = static_cast<Object *>(BLI_ghash_lookup(instancer_gh, &dob_key));
+        ob_dst_par = instancer_gh->lookup_default(&dob_key, nullptr);
       }
 
       if (ob_dst_par == nullptr) {
@@ -2903,12 +2906,8 @@ static void make_object_duplilist_real(bContext *C,
   base_select(base, BA_DESELECT);
   DEG_id_tag_update(&base->object->id, ID_RECALC_SELECT);
 
-  if (parent_gh) {
-    BLI_ghash_free(parent_gh, nullptr, nullptr);
-  }
-  if (instancer_gh) {
-    BLI_ghash_free(instancer_gh, nullptr, nullptr);
-  }
+  MEM_delete(parent_gh);
+  MEM_delete(instancer_gh);
 
   BKE_main_id_newptr_and_tag_clear(bmain);
 
