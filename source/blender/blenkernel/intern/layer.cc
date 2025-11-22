@@ -2582,6 +2582,8 @@ void BKE_view_layer_set_active_aov(ViewLayer *view_layer, ViewLayerAOV *aov)
   viewlayer_aov_active_set(view_layer, aov);
 }
 
+using ViewLayerAOVNameCountMap = blender::Map<std::string, int>;
+
 static void bke_view_layer_verify_aov_cb(void *userdata,
                                          Scene * /*scene*/,
                                          ViewLayer * /*view_layer*/,
@@ -2590,38 +2592,25 @@ static void bke_view_layer_verify_aov_cb(void *userdata,
                                          const char * /*chanid*/,
                                          eNodeSocketDatatype /*type*/)
 {
-  GHash *name_count = static_cast<GHash *>(userdata);
-  void **value_p;
-  void *key = BLI_strdup(name);
-
-  if (!BLI_ghash_ensure_p(name_count, key, &value_p)) {
-    *value_p = POINTER_FROM_INT(1);
-  }
-  else {
-    int value = POINTER_AS_INT(*value_p);
-    value++;
-    *value_p = POINTER_FROM_INT(value);
-    MEM_freeN(key);
-  }
+  auto *name_count = static_cast<ViewLayerAOVNameCountMap *>(userdata);
+  name_count->lookup_or_add(name, 0)++;
 }
 
 void BKE_view_layer_verify_aov(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)
 {
   viewlayer_aov_make_name_unique(view_layer);
 
-  GHash *name_count = BLI_ghash_str_new(__func__);
+  ViewLayerAOVNameCountMap name_count;
   LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
     /* Disable conflict flag, so that the AOV is included when iterating over all passes below. */
     aov->flag &= ~AOV_CONFLICT;
   }
   RE_engine_update_render_passes(
-      engine, scene, view_layer, bke_view_layer_verify_aov_cb, name_count);
+      engine, scene, view_layer, bke_view_layer_verify_aov_cb, &name_count);
   LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
-    void **value_p = static_cast<void **>(BLI_ghash_lookup(name_count, aov->name));
-    int count = POINTER_AS_INT(value_p);
+    const int count = name_count.lookup_default(aov->name, 0);
     SET_FLAG_FROM_TEST(aov->flag, count > 1, AOV_CONFLICT);
   }
-  BLI_ghash_free(name_count, MEM_freeN, nullptr);
 }
 
 bool BKE_view_layer_has_valid_aov(ViewLayer *view_layer)
