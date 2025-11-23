@@ -487,7 +487,7 @@ class SelectPaintSlotHelper:
                     layout.operator("paint.add_simple_uvs", icon='ADD', text="Add UVs")
                 else:
                     layout.menu("VIEW3D_MT_tools_projectpaint_uvlayer", text=uv_text, translate=False)
-                have_image = getattr(settings, self.canvas_image_attr_name) is not None
+                have_image = getattr(mode_settings, self.canvas_image_attr_name) is not None
 
                 self.draw_image_interpolation(layout=layout, mode_settings=mode_settings)
 
