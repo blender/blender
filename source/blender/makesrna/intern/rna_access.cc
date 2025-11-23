@@ -22,7 +22,6 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_dynstr.h"
-#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_mutex.hh"
@@ -90,7 +89,8 @@ void RNA_init()
 {
   StructRNA *srna;
 
-  BLENDER_RNA.structs_map = BLI_ghash_str_new_ex(__func__, 2048);
+  BLENDER_RNA.structs_map = MEM_new<BlenderRNA::StructsMap>(__func__);
+  BLENDER_RNA.structs_map->reserve(2048);
   BLENDER_RNA.structs_len = 0;
 
   for (srna = static_cast<StructRNA *>(BLENDER_RNA.structs.first); srna;
@@ -108,7 +108,7 @@ void RNA_init()
       }
     }
     BLI_assert(srna->flag & STRUCT_PUBLIC_NAMESPACE);
-    BLI_ghash_insert(BLENDER_RNA.structs_map, (void *)srna->identifier, srna);
+    BLENDER_RNA.structs_map->add(srna->identifier, srna);
     BLENDER_RNA.structs_len += 1;
   }
 }
@@ -704,7 +704,7 @@ static const char *rna_ensure_property_name(const PropertyRNA *prop)
 
 StructRNA *RNA_struct_find(const char *identifier)
 {
-  return static_cast<StructRNA *>(BLI_ghash_lookup(BLENDER_RNA.structs_map, identifier));
+  return BLENDER_RNA.structs_map->lookup_default(identifier, nullptr);
 }
 
 const char *RNA_struct_identifier(const StructRNA *type)

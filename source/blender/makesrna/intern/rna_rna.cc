@@ -1379,7 +1379,7 @@ static bool rna_BlenderRNA_structs_lookup_string(PointerRNA *ptr,
                                                  PointerRNA *r_ptr)
 {
   BlenderRNA *brna = static_cast<BlenderRNA *>(ptr->data);
-  StructRNA *srna = static_cast<StructRNA *>(BLI_ghash_lookup(brna->structs_map, (void *)key));
+  StructRNA *srna = brna->structs_map->lookup_default(key, nullptr);
   if (srna != nullptr) {
     *r_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Struct, srna);
     return true;
