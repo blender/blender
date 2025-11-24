@@ -204,9 +204,13 @@ static Image *create_placeholder_image(Main *bmain, const std::string &path)
   const float color[4] = {0, 0, 0, 1};
   const char *name = BLI_path_basename(path.c_str());
   Image *image = BKE_image_add_generated(
-      bmain, 32, 32, name, 24, false, IMA_GENTYPE_BLANK, color, false, false, false);
+      bmain, 1, 1, name, 24, false, IMA_GENTYPE_BLANK, color, false, false, false);
   STRNCPY(image->filepath, path.c_str());
+
+  /* Ensure that we are not marked as a generated image and clear any buffers created so far. */
   image->source = IMA_SRC_FILE;
+  image->type = IMA_TYPE_IMAGE;
+  BKE_image_free_buffers(image);
   return image;
 }
 
