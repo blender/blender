@@ -82,6 +82,33 @@ struct SequencerAddData {
   ImageFormatData im_format;
 };
 
+enum class ImageImport {
+  Detect,
+  Sequence,
+  Individual,
+};
+
+static const EnumPropertyItem rna_enum_image_import_type_items[] = {
+    {int(ImageImport::Detect),
+     "DETECT",
+     0,
+     "Auto Detect",
+     "Add images as individual strips, unless their filenames match Blender's numbered sequence "
+     "pattern, in which case they are grouped into a single image sequence"},
+    {int(ImageImport::Sequence),
+     "SEQUENCE",
+     0,
+     "Image Sequence",
+     "Import all selected images as a single image sequence. The sequence of images does not have "
+     "to match Blender's numbered sequence pattern, so placeholders cannot be inferred"},
+    {int(ImageImport::Individual),
+     "INDIVIDUAL",
+     0,
+     "Individual Images",
+     "Add each selected image as an individual strip"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 /* Avoid passing multiple args and be more verbose. */
 #define SEQPROP_STARTFRAME (1 << 0)
 /* For image and effect strips only. */
@@ -1393,9 +1420,9 @@ static bool sequencer_add_draw_check_fn(PointerRNA *ptr, PropertyRNA *prop, void
 {
   const char *prop_id = RNA_property_identifier(prop);
 
-  /* Only show placeholders option if sequence detection is enabled. */
+  /* Only show placeholders option if image sequence creation is not forced. */
   if (STREQ(prop_id, "use_placeholders")) {
-    return RNA_boolean_get(ptr, "use_sequence_detection");
+    return ImageImport(RNA_enum_get(ptr, "image_import_type")) == ImageImport::Detect;
   }
 
   return !STR_ELEM(prop_id,
@@ -1406,7 +1433,8 @@ static bool sequencer_add_draw_check_fn(PointerRNA *ptr, PropertyRNA *prop, void
                    "channel",
                    "length",
                    "move_strips",
-                   "replace_sel");
+                   "replace_sel",
+                   "use_sequence_detection");
 }
 
 static void sequencer_add_draw(bContext * /*C*/, wmOperator *op)
@@ -1423,11 +1451,7 @@ static void sequencer_add_draw(bContext * /*C*/, wmOperator *op)
   if (!RNA_boolean_get(op->ptr, "move_strips") || is_redo_panel) {
     uiLayout &col = layout->column(true);
     col.prop(op->ptr, "frame_start", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    if (RNA_struct_find_property(op->ptr, "length")) {
-      col.prop(op->ptr, "length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    }
     layout->prop(op->ptr, "channel", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    layout->separator();
     layout->prop(op->ptr, "replace_sel", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
@@ -1439,6 +1463,13 @@ static void sequencer_add_draw(bContext * /*C*/, wmOperator *op)
                    nullptr,
                    UI_BUT_LABEL_ALIGN_NONE,
                    false);
+
+  /* There is no effect strip add UI, so assume an image is being imported if "length" is found. */
+  if (RNA_struct_find_property(op->ptr, "length") &&
+      ImageImport(RNA_enum_get(op->ptr, "image_import_type")) != ImageImport::Sequence)
+  {
+    layout->prop(op->ptr, "length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  }
 
   layout->separator();
 
@@ -1743,36 +1774,65 @@ static void sequencer_add_image_strip_load_files(wmOperator *op,
   }
 }
 
-static wmOperatorStatus sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
+static bool sequencer_add_image_sequence_force(bContext *C,
+                                               wmOperator *op,
+                                               seq::LoadData &load_data)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_ensure(scene);
 
-  seq::LoadData load_data;
-  if (!load_data_init_from_operator(&load_data, C, op)) {
-    return OPERATOR_CANCELLED;
-  }
+  /* Note that forced image sequence creation does not consider `use_placeholders`, since their
+   * existence can only be determined if images follow the naming scheme (not guaranteed here).  */
+  load_data.image.count = RNA_property_collection_length(
+      op->ptr, RNA_struct_find_property(op->ptr, "files"));
 
-  const char *error_msg;
-  if (!have_free_channels(C, op, 1, &error_msg)) {
-    BKE_report(op->reports, RPT_ERROR, error_msg);
-    return OPERATOR_CANCELLED;
-  }
-
-  const char *blendfile_path = BKE_main_blendfile_path(bmain);
-  ListBase ranges = ED_image_filesel_detect_sequences(blendfile_path, blendfile_path, op, false);
-  if (BLI_listbase_is_empty(&ranges)) {
+  if (load_data.image.count == 0) {
     sequencer_add_free(C, op);
-    return OPERATOR_CANCELLED;
+    return false;
   }
 
   if (RNA_boolean_get(op->ptr, "replace_sel")) {
     deselect_all_strips(scene);
   }
 
-  char vt_old[64];
-  STRNCPY_UTF8(vt_old, scene->view_settings.view_transform);
+  Strip *strip = seq::add_image_strip(bmain, scene, ed->current_strips(), &load_data);
+  char dirpath[sizeof(strip->data->dirpath)];
+  BLI_path_split_dir_part(load_data.path, dirpath, sizeof(dirpath));
+  seq::add_image_set_directory(strip, dirpath);
+
+  int i = 0;
+  RNA_BEGIN (op->ptr, itemptr, "files") {
+    std::string filename = RNA_string_get(&itemptr, "name");
+    seq::add_image_load_file(scene, strip, i, filename.c_str());
+    i++;
+  }
+  RNA_END;
+
+  seq::add_image_init_alpha_mode(bmain, scene, strip);
+  if (load_data.image.count == 1) {
+    seq::time_right_handle_frame_set(scene, strip, load_data.start_frame + load_data.image.length);
+  }
+  seq_load_apply_generic_options(C, op, strip);
+  return true;
+}
+
+static bool sequencer_add_images(bContext *C, wmOperator *op, seq::LoadData &load_data)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
+  Editing *ed = seq::editing_ensure(scene);
+
+  const char *blendfile_path = BKE_main_blendfile_path(bmain);
+  ListBase ranges = ED_image_filesel_detect_sequences(blendfile_path, blendfile_path, op, false);
+  if (BLI_listbase_is_empty(&ranges)) {
+    sequencer_add_free(C, op);
+    return false;
+  }
+
+  if (RNA_boolean_get(op->ptr, "replace_sel")) {
+    deselect_all_strips(scene);
+  }
 
   const bool use_placeholders = RNA_boolean_get(op->ptr, "use_placeholders");
   LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
@@ -1807,6 +1867,41 @@ static wmOperatorStatus sequencer_add_image_strip_exec(bContext *C, wmOperator *
     BLI_freelistN(&range->frames);
   }
   BLI_freelistN(&ranges);
+  return true;
+}
+
+static wmOperatorStatus sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_sequencer_scene(C);
+
+  seq::LoadData load_data;
+  if (!load_data_init_from_operator(&load_data, C, op)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const char *error_msg;
+  if (!have_free_channels(C, op, 1, &error_msg)) {
+    BKE_report(op->reports, RPT_ERROR, error_msg);
+    return OPERATOR_CANCELLED;
+  }
+
+  char vt_old[64];
+  STRNCPY_UTF8(vt_old, scene->view_settings.view_transform);
+
+  const ImageImport import_type = ImageImport(RNA_enum_get(op->ptr, "image_import_type"));
+
+  if (import_type == ImageImport::Sequence) {
+    if (!sequencer_add_image_sequence_force(C, op, load_data)) {
+      return OPERATOR_CANCELLED;
+    }
+  }
+  else {
+    /* Note that `use_sequence_detection` is false for `ImageImport::Individual`.*/
+    RNA_boolean_set(op->ptr, "use_sequence_detection", import_type == ImageImport::Detect);
+    if (!sequencer_add_images(C, op, load_data)) {
+      return OPERATOR_CANCELLED;
+    }
+  }
 
   if (!STREQ(vt_old, scene->view_settings.view_transform)) {
     BKE_reportf(op->reports,
@@ -1891,6 +1986,15 @@ void SEQUENCER_OT_image_strip_add(wmOperatorType *ot)
                                     SEQPROP_STARTFRAME | SEQPROP_LENGTH | SEQPROP_FIT_METHOD |
                                         SEQPROP_VIEW_TRANSFORM | SEQPROP_MOVE);
 
+  RNA_def_enum(ot->srna,
+               "image_import_type",
+               rna_enum_image_import_type_items,
+               int(ImageImport::Detect),
+               "Import As",
+               "Mode for importing selected images");
+
+  /* Required for `ED_image_filesel_detect_sequences`, but not shown in UI.
+   * Set to true on ImageImport::Detect. */
   RNA_def_boolean(
       ot->srna,
       "use_sequence_detection",
