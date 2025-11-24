@@ -901,7 +901,7 @@ static int brush_num_effective_segments(const Brush &brush)
    * changes in the segment's length. It will also required a better weight distribution to avoid
    * artifacts in the areas affected by multiple segments. */
   if (ELEM(brush.pose_deform_type,
-           BRUSH_POSE_DEFORM_SCALE_TRASLATE,
+           BRUSH_POSE_DEFORM_SCALE_TRANSLATE,
            BRUSH_POSE_DEFORM_SQUASH_STRETCH))
   {
     return 1;
@@ -2080,7 +2080,7 @@ void do_pose_brush(const Depsgraph &depsgraph,
     case BRUSH_POSE_DEFORM_ROTATE_TWIST:
       calc_rotate_twist_deform(ss, brush);
       break;
-    case BRUSH_POSE_DEFORM_SCALE_TRASLATE:
+    case BRUSH_POSE_DEFORM_SCALE_TRANSLATE:
       calc_scale_translate_deform(ss, brush);
       break;
     case BRUSH_POSE_DEFORM_SQUASH_STRETCH:
