@@ -1492,16 +1492,11 @@ static wmOperatorStatus bake(const BakeAPIRender *bkr,
       }
       else {
         ob_cage_eval = DEG_get_evaluated(depsgraph, ob_cage);
-        if (ob_cage_eval->id.orig_id != &ob_cage->id) {
-          BKE_reportf(reports,
-                      RPT_ERROR,
-                      "Cage object \"%s\" not found in evaluated scene, it may be hidden",
-                      ob_cage->id.name + 2);
-          goto cleanup;
+        if (ob_cage_eval) {
+          ob_cage_eval->visibility_flag |= OB_HIDE_RENDER;
+          ob_cage_eval->base_flag &= ~(BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT |
+                                       BASE_ENABLED_RENDER);
         }
-        ob_cage_eval->visibility_flag |= OB_HIDE_RENDER;
-        ob_cage_eval->base_flag &= ~(BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT |
-                                     BASE_ENABLED_RENDER);
       }
     }
   }
@@ -1523,6 +1518,15 @@ static wmOperatorStatus bake(const BakeAPIRender *bkr,
 
   /* get the mesh as it arrives in the renderer */
   me_low_eval = bake_mesh_new_from_object(depsgraph, ob_low_eval, preserve_origindex);
+
+  /* Ensure cage object was evaluated by the depsgraph. */
+  if (ob_cage && (ob_cage_eval == nullptr || (ob_cage_eval->id.orig_id != &ob_cage->id))) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Cage object \"%s\" not found in evaluated scene, it may be hidden",
+                ob_cage->id.name + 2);
+    goto cleanup;
+  }
 
   /* Initialize bake targets. */
   if (!bake_targets_init(bkr, &targets, ob_low, ob_low_eval, reports)) {
