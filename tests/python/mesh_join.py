@@ -231,6 +231,20 @@ class TestMeshJoin(unittest.TestCase):
         self.assertEqual(len(joined.data.vertices), 16)
         self.assertEqual(len(joined.data.polygons), 0)
 
+    def test_params(self):
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete()
+
+        bpy.ops.mesh.primitive_cube_add()
+        bpy.ops.mesh.primitive_cube_add()
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.context.object.data.use_remesh_preserve_volume = False
+
+        bpy.ops.object.join()
+
+        joined = bpy.context.object
+        self.assertEqual(joined.data.use_remesh_preserve_volume, False)
+
 
 if __name__ == '__main__':
     import sys
