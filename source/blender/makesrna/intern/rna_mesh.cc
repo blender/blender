@@ -48,9 +48,12 @@ static const EnumPropertyItem rna_enum_mesh_remesh_mode_items[] = {
 
 #  include "BLI_math_geom.h"
 #  include "BLI_math_vector.h"
+#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 
 #  include "BKE_anonymous_attribute_id.hh"
 #  include "BKE_attribute.hh"
+#  include "BKE_attribute_legacy_convert.hh"
 #  include "BKE_customdata.hh"
 #  include "BKE_lib_id.hh"
 #  include "BKE_main.hh"
@@ -1466,27 +1469,65 @@ static std::optional<std::string> rna_VertCustomData_data_path(const PointerRNA 
   return std::nullopt;
 }
 
-static std::optional<std::string> rna_LoopCustomData_data_path(const PointerRNA *ptr,
-                                                               const char *collection,
-                                                               int type)
+struct AttrReverseLookup {
+  blender::StringRefNull name;
+  int index_in_group;
+  int elem_index;
+};
+static std::optional<AttrReverseLookup> find_attr_from_data_ptr(const PointerRNA *ptr,
+                                                                const AttrDomainMask domain_mask,
+                                                                const eCustomDataMask cd_type_mask)
 {
-  const CustomDataLayer *cdl;
+  using namespace blender;
   const Mesh *mesh = rna_mesh(ptr);
-  const CustomData *ldata = rna_mesh_ldata(ptr);
-  int a, b, totloop = (mesh->runtime->edit_mesh) ? 0 : mesh->corners_num;
+  const void *value = static_cast<const void *>(ptr->data);
 
-  for (cdl = ldata->layers, a = 0; a < ldata->totlayer; cdl++, a++) {
-    if (cdl->type == type) {
-      b = ((char *)ptr->data - ((char *)cdl->data)) / CustomData_sizeof(eCustomDataType(type));
-      if (b >= 0 && b < totloop) {
-        char name_esc[sizeof(cdl->name) * 2];
-        BLI_str_escape(name_esc, cdl->name, sizeof(name_esc));
-        return fmt::format("{}[\"{}\"].data[{}]", collection, name_esc, b);
-      }
+  std::optional<AttrReverseLookup> result;
+
+  int index_in_group = -1;
+  mesh->attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (!(ATTR_DOMAIN_AS_MASK(iter.domain) & domain_mask)) {
+      return;
     }
-  }
+    if (!(CD_TYPE_AS_MASK(*bke::attr_type_to_custom_data_type(iter.data_type)) & cd_type_mask)) {
+      return;
+    }
+    const GVArray data = *iter.get();
+    if (!data.is_span()) {
+      /* All these attributes should be spans currently. If not, this pointer comparison contains
+       * test needs to be updated. */
+      BLI_assert_unreachable();
+      return;
+    }
+    index_in_group++;
+    const GSpan span = data.get_internal_span();
+    int64_t index = reinterpret_cast<const std::byte *>(value) -
+                    reinterpret_cast<const std::byte *>(span.data());
+    if (index < 0) {
+      return;
+    }
+    index /= span.type().size;
+    if (index >= span.size()) {
+      return;
+    }
+    result = AttrReverseLookup{iter.name, index_in_group, int(index)};
+    iter.stop();
+  });
 
-  return std::nullopt;
+  return result;
+}
+
+static std::optional<std::string> rna_LoopCustomData_data_path(const PointerRNA *ptr,
+                                                               const StringRef collection,
+                                                               eCustomDataType type)
+{
+  const std::optional<AttrReverseLookup> lookup = find_attr_from_data_ptr(
+      ptr, ATTR_DOMAIN_MASK_CORNER, CD_TYPE_AS_MASK(type));
+  if (!lookup) {
+    return std::nullopt;
+  }
+  return fmt::format(
+      "{}[\"{}\"].data[{}]", collection, BLI_str_escape(lookup->name.c_str()), lookup->elem_index);
 }
 
 static void rna_Mesh_vertices_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -1701,6 +1742,7 @@ static std::optional<std::string> rna_MeshUVLoop_path(const PointerRNA *ptr)
 {
   return rna_LoopCustomData_data_path(ptr, "uv_layers", CD_PROP_FLOAT2);
 }
+
 /**
  * The `rna_MeshUVLoop_*_get/set()` functions get passed a pointer to
  * the (float2) uv attribute. This is for historical reasons because
@@ -1711,51 +1753,30 @@ static std::optional<std::string> rna_MeshUVLoop_path(const PointerRNA *ptr)
  * find the associated bool layers. So we scan the available #float2 layers
  * to find into which layer the pointer we got passed points.
  */
-static bool get_uv_index_and_layer(const PointerRNA *ptr,
-                                   int *r_uv_map_index,
-                                   int *r_index_in_attribute)
+static std::optional<AttrReverseLookup> find_uv_from_data_ptr(const PointerRNA *ptr)
 {
-  const Mesh *mesh = rna_mesh(ptr);
-  const blender::float2 *uv_coord = static_cast<const blender::float2 *>(ptr->data);
-
-  /* We don't know from which attribute the RNA pointer is from, so we need to scan them all. */
-  const int uv_layers_num = CustomData_number_of_layers(&mesh->corner_data, CD_PROP_FLOAT2);
-  for (int layer_i = 0; layer_i < uv_layers_num; layer_i++) {
-    const blender::float2 *layer_data = static_cast<const blender::float2 *>(
-        CustomData_get_layer_n(&mesh->corner_data, CD_PROP_FLOAT2, layer_i));
-    const ptrdiff_t index = uv_coord - layer_data;
-    if (index >= 0 && index < mesh->corners_num) {
-      *r_uv_map_index = layer_i;
-      *r_index_in_attribute = index;
-      return true;
-    }
-  }
-  /* This can happen if the Customdata arrays were re-allocated between obtaining the
-   * Python object and accessing it. */
-  return false;
+  return find_attr_from_data_ptr(ptr, ATTR_DOMAIN_MASK_CORNER, CD_MASK_PROP_FLOAT2);
 }
 
 static bool rna_MeshUVLoop_pin_uv_get(PointerRNA *ptr)
 {
+  using namespace blender;
   const Mesh *mesh = rna_mesh(ptr);
-  int uv_map_index;
-  int loop_index;
-  blender::VArray<bool> pin_uv;
-  if (get_uv_index_and_layer(ptr, &uv_map_index, &loop_index)) {
-    pin_uv = ED_mesh_uv_map_pin_layer_get(mesh, uv_map_index);
+  if (const std::optional<AttrReverseLookup> lookup = find_uv_from_data_ptr(ptr)) {
+    const VArray<bool> pin_uv = ED_mesh_uv_map_pin_layer_get(mesh, lookup->index_in_group);
+    return pin_uv[lookup->elem_index];
   }
-  return pin_uv ? pin_uv[loop_index] : false;
+  return false;
 }
 
 static void rna_MeshUVLoop_pin_uv_set(PointerRNA *ptr, const bool value)
 {
+  using namespace blender;
   Mesh *mesh = rna_mesh(ptr);
-  int uv_map_index;
-  int loop_index;
-  if (get_uv_index_and_layer(ptr, &uv_map_index, &loop_index)) {
-    blender::bke::AttributeWriter<bool> pin_uv = ED_mesh_uv_map_pin_layer_ensure(mesh,
-                                                                                 uv_map_index);
-    pin_uv.varray.set(loop_index, value);
+  if (const std::optional<AttrReverseLookup> lookup = find_uv_from_data_ptr(ptr)) {
+    bke::AttributeWriter<bool> pin_uv = ED_mesh_uv_map_pin_layer_ensure(mesh,
+                                                                        lookup->index_in_group);
+    pin_uv.varray.set(lookup->elem_index, value);
     pin_uv.finish();
   }
 }
