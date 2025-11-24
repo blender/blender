@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-10 09:45+0000\n"
+"POT-Creation-Date: 2025-11-24 08:35+0000\n"
 "PO-Revision-Date: 2025-07-31 16:24+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -695,10 +695,6 @@ msgid "Show only hotkeys that have this text in their name"
 msgstr "Vis kun genvejstaster, der har denne tekst i deres navn"
 
 
-msgid "Hide Mix nodes"
-msgstr "Skjul Mix-noder"
-
-
 msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify whether to collapse them or show the full node with options expanded"
 msgstr "Når du slår noder sammen med genvejstasten Ctrl+Numpad0 (og lignende), skal du angive, om de skal skjules eller vise hele noden med udvidede muligheder"
 
@@ -757,14 +753,6 @@ msgstr "Vis genvejsliste"
 
 msgid "Expand this box into a list of all the hotkeys for functions in this addon"
 msgstr "Udvid denne boks til en liste over alle genvejstaster til funktioner i denne tilføjelse"
-
-
-msgid "Show Principled naming tags"
-msgstr "Vis principielle navngivningsmærker"
-
-
-msgid "Expand this box into a list of all naming tags for principled texture setup"
-msgstr "Udvid denne boks til en liste over alle navngivningsmærker til principiel teksturopsætning"
 
 
 msgid "Fribidi Library"
@@ -1704,6 +1692,114 @@ msgid "Space Type"
 msgstr "område type"
 
 
+msgid "Actions"
+msgstr "Handlinger"
+
+
+msgid "Armatures"
+msgstr "Armaturer"
+
+
+msgid "Brushes"
+msgstr "Pensler"
+
+
+msgid "Cache Files"
+msgstr "Cache filer"
+
+
+msgid "Cameras"
+msgstr "Kameraer"
+
+
+msgid "Curves"
+msgstr "Kurver"
+
+
+msgid "Hair Curves"
+msgstr "Hårkurver"
+
+
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
+msgid "Collections"
+msgstr "Samlinger"
+
+
+msgid "Images"
+msgstr "Billeder"
+
+
+msgid "Lattices"
+msgstr "Gitter"
+
+
+msgid "Lights"
+msgstr "Lys"
+
+
+msgid "Light Probes"
+msgstr "Lyssonder"
+
+
+msgid "Masks"
+msgstr "Masker"
+
+
+msgid "Materials"
+msgstr "Materialer"
+
+
+msgid "Movie Clips"
+msgstr "Filmklip"
+
+
+msgid "Objects"
+msgstr "Objekter"
+
+
+msgid "Paint Curves"
+msgstr "Male kurver"
+
+
+msgid "Palettes"
+msgstr "Paletter"
+
+
+msgid "Point Clouds"
+msgstr "Punktskyer"
+
+
+msgid "Scenes"
+msgstr "Scener"
+
+
+msgid "Sounds"
+msgstr "Lyde"
+
+
+msgid "Speakers"
+msgstr "Højtalere"
+
+
+msgid "Texts"
+msgstr "Tekster"
+
+
+msgid "Textures"
+msgstr "Teksturer"
+
+
+msgid "Workspaces"
+msgstr "Arbejdsrum"
+
+
+msgid "Worlds"
+msgstr "Verdener"
+
+
 msgid "Preview Size"
 msgstr "Forhåndsvisningsstørrelse"
 
@@ -2520,10 +2616,6 @@ msgid "Main data structure representing a .blend file and all its data-blocks"
 msgstr "Hoveddatastruktur, der repræsenterer en .blend-fil og alle dens datablokke"
 
 
-msgid "Actions"
-msgstr "Handlinger"
-
-
 msgid "Action data-blocks"
 msgstr "Handlingsdatablokke"
 
@@ -2536,48 +2628,24 @@ msgid "Annotation data-blocks (legacy Grease Pencil)"
 msgstr "Annotationsdatablokke (legacy Grease Pencil)"
 
 
-msgid "Armatures"
-msgstr "Armaturer"
-
-
 msgid "Armature data-blocks"
 msgstr "Skelet data-bloke"
-
-
-msgid "Brushes"
-msgstr "Pensler"
 
 
 msgid "Brush data-blocks"
 msgstr "Pensler data-blokke"
 
 
-msgid "Cache Files"
-msgstr "Cache filer"
-
-
 msgid "Cache Files data-blocks"
 msgstr "Cache-filer data-blokke"
-
-
-msgid "Cameras"
-msgstr "Kameraer"
 
 
 msgid "Camera data-blocks"
 msgstr "Kamera data-blokke"
 
 
-msgid "Collections"
-msgstr "Samlinger"
-
-
 msgid "Collection data-blocks"
 msgstr "Indsamling af data-blokke"
-
-
-msgid "Curves"
-msgstr "Kurver"
 
 
 msgid "Curve data-blocks"
@@ -2600,24 +2668,12 @@ msgid "Vector font data-blocks"
 msgstr "Vektor skrifttyper"
 
 
-msgid "Grease Pencil"
-msgstr "Grease Pencil"
-
-
 msgid "Grease Pencil data-blocks"
 msgstr "Grease Pencil datablokke"
 
 
-msgid "Hair Curves"
-msgstr "Hårkurver"
-
-
 msgid "Hair curve data-blocks"
 msgstr "Hårkurve datablokke"
-
-
-msgid "Images"
-msgstr "Billeder"
 
 
 msgid "Image data-blocks"
@@ -2640,10 +2696,6 @@ msgid "Has the current session been saved to disk as a .blend file"
 msgstr "Er den aktuelle session blevet gemt på disken som en .blend-fil"
 
 
-msgid "Lattices"
-msgstr "Gitter"
-
-
 msgid "Lattice data-blocks"
 msgstr "Gitter data-blokke"
 
@@ -2656,16 +2708,8 @@ msgid "Library data-blocks"
 msgstr "Biblioteksdatablokke"
 
 
-msgid "Light Probes"
-msgstr "Lyssonder"
-
-
 msgid "Light Probe data-blocks"
 msgstr "Light Probe datablokke"
-
-
-msgid "Lights"
-msgstr "Lys"
 
 
 msgid "Light data-blocks"
@@ -2680,16 +2724,8 @@ msgid "Line Style data-blocks"
 msgstr "Line Stil data-blokke"
 
 
-msgid "Masks"
-msgstr "Masker"
-
-
 msgid "Masks data-blocks"
 msgstr "Maske datablokke"
-
-
-msgid "Materials"
-msgstr "Materialer"
 
 
 msgid "Material data-blocks"
@@ -2704,10 +2740,6 @@ msgid "Metaball data-blocks"
 msgstr "Metaball data-blokke"
 
 
-msgid "Movie Clips"
-msgstr "Filmklip"
-
-
 msgid "Movie Clip data-blocks"
 msgstr "Filmklip data-blokke"
 
@@ -2720,24 +2752,12 @@ msgid "Node group data-blocks"
 msgstr "Node gruppe data-blokke"
 
 
-msgid "Objects"
-msgstr "Objekter"
-
-
 msgid "Object data-blocks"
 msgstr "Objektdatablokke"
 
 
-msgid "Paint Curves"
-msgstr "Male kurver"
-
-
 msgid "Paint Curves data-blocks"
 msgstr "Paint Curves datablokke"
-
-
-msgid "Palettes"
-msgstr "Paletter"
 
 
 msgid "Palette data-blocks"
@@ -2752,16 +2772,8 @@ msgid "Particle data-blocks"
 msgstr "Partikeldatablokke"
 
 
-msgid "Point Clouds"
-msgstr "Punktskyer"
-
-
 msgid "Point cloud data-blocks"
 msgstr "Punktsky data-blokke"
-
-
-msgid "Scenes"
-msgstr "Scener"
 
 
 msgid "Scene data-blocks"
@@ -2784,32 +2796,16 @@ msgid "Shape Key data-blocks"
 msgstr "Shape Key data-blokke"
 
 
-msgid "Sounds"
-msgstr "Lyde"
-
-
 msgid "Sound data-blocks"
 msgstr "Lyde data-blokke"
-
-
-msgid "Speakers"
-msgstr "Højtalere"
 
 
 msgid "Speaker data-blocks"
 msgstr "Højttaler data-blokke"
 
 
-msgid "Texts"
-msgstr "Tekster"
-
-
 msgid "Text data-blocks"
 msgstr "Tekstdatablokke"
-
-
-msgid "Textures"
-msgstr "Teksturer"
 
 
 msgid "Texture data-blocks"
@@ -2844,16 +2840,8 @@ msgid "Window manager data-blocks"
 msgstr "Window manager datablokke"
 
 
-msgid "Workspaces"
-msgstr "Arbejdsrum"
-
-
 msgid "Workspace data-blocks"
 msgstr "Workspace data-blokke"
-
-
-msgid "Worlds"
-msgstr "Verdener"
 
 
 msgid "World data-blocks"

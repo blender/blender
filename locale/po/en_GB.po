@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-10 09:45+0000\n"
+"POT-Creation-Date: 2025-11-24 08:35+0000\n"
 "PO-Revision-Date: 2025-07-23 14:59+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -768,10 +768,6 @@ msgid "Show only hotkeys that have this text in their name"
 msgstr "Show only hotkeys that have this text in their name"
 
 
-msgid "Hide Mix nodes"
-msgstr "Hide Mix nodes"
-
-
 msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify whether to collapse them or show the full node with options expanded"
 msgstr "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify whether to collapse them or show the full node with options expanded"
 
@@ -830,14 +826,6 @@ msgstr "Show Hotkey List"
 
 msgid "Expand this box into a list of all the hotkeys for functions in this addon"
 msgstr "Expand this box into a list of all the hotkeys for functions in this addon"
-
-
-msgid "Show Principled naming tags"
-msgstr "Show Principled naming tags"
-
-
-msgid "Expand this box into a list of all naming tags for principled texture setup"
-msgstr "Expand this box into a list of all naming tags for principled texture setup"
 
 
 msgid "Fribidi Library"
@@ -2029,6 +2017,282 @@ msgid "Space Type"
 msgstr "Space Type"
 
 
+msgid "Actions"
+msgstr "Actions"
+
+
+msgid "Show Action data-blocks"
+msgstr "Show Action data-blocks"
+
+
+msgid "Annotations"
+msgstr "Annotations"
+
+
+msgid "Armatures"
+msgstr "Armatures"
+
+
+msgid "Show Armature data-blocks"
+msgstr "Show Armature data-blocks"
+
+
+msgid "Brushes"
+msgstr "Brushes"
+
+
+msgid "Show Brushes data-blocks"
+msgstr "Show Brushes data-blocks"
+
+
+msgid "Cache Files"
+msgstr "Cache Files"
+
+
+msgid "Show Cache File data-blocks"
+msgstr "Show Cache File data-blocks"
+
+
+msgid "Cameras"
+msgstr "Cameras"
+
+
+msgid "Show Camera data-blocks"
+msgstr "Show Camera data-blocks"
+
+
+msgid "Curves"
+msgstr "Curves"
+
+
+msgid "Show Curve data-blocks"
+msgstr "Show Curve data-blocks"
+
+
+msgid "Hair Curves"
+msgstr "Hair Curves"
+
+
+msgid "Show/hide Curves data-blocks"
+msgstr "Show/hide Curves data-blocks"
+
+
+msgid "Fonts"
+msgstr "Fonts"
+
+
+msgid "Show Font data-blocks"
+msgstr "Show Font data-blocks"
+
+
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
+msgid "Show Grease Pencil data-blocks"
+msgstr "Show Grease Pencil data-blocks"
+
+
+msgid "Collections"
+msgstr "Collections"
+
+
+msgid "Show Collection data-blocks"
+msgstr "Show Collection data-blocks"
+
+
+msgid "Images"
+msgstr "Images"
+
+
+msgid "Show Image data-blocks"
+msgstr "Show Image data-blocks"
+
+
+msgid "Lattices"
+msgstr "Lattices"
+
+
+msgid "Show Lattice data-blocks"
+msgstr "Show Lattice data-blocks"
+
+
+msgid "Lights"
+msgstr "Lights"
+
+
+msgid "Show Light data-blocks"
+msgstr "Show Light data-blocks"
+
+
+msgid "Light Probes"
+msgstr "Light Probes"
+
+
+msgid "Show Light Probe data-blocks"
+msgstr "Show Light Probe data-blocks"
+
+
+msgid "Freestyle Linestyles"
+msgstr "Freestyle Linestyles"
+
+
+msgid "Show Freestyle's Line Style data-blocks"
+msgstr "Show Freestyle's Line Style data-blocks"
+
+
+msgid "Masks"
+msgstr "Masks"
+
+
+msgid "Show Mask data-blocks"
+msgstr "Show Mask data-blocks"
+
+
+msgid "Materials"
+msgstr "Materials"
+
+
+msgid "Show Material data-blocks"
+msgstr "Show Material data-blocks"
+
+
+msgid "Meshes"
+msgstr "Meshes"
+
+
+msgid "Show Mesh data-blocks"
+msgstr "Show Mesh data-blocks"
+
+
+msgid "Metaballs"
+msgstr "Metaballs"
+
+
+msgid "Show Metaball data-blocks"
+msgstr "Show Metaball data-blocks"
+
+
+msgid "Movie Clips"
+msgstr "Movie Clips"
+
+
+msgid "Show Movie Clip data-blocks"
+msgstr "Show Movie Clip data-blocks"
+
+
+msgid "Node Trees"
+msgstr "Node Trees"
+
+
+msgid "Show Node Tree data-blocks"
+msgstr "Show Node Tree data-blocks"
+
+
+msgid "Objects"
+msgstr "Objects"
+
+
+msgid "Show Object data-blocks"
+msgstr "Show Object data-blocks"
+
+
+msgid "Paint Curves"
+msgstr "Paint Curves"
+
+
+msgid "Show Paint Curve data-blocks"
+msgstr "Show Paint Curve data-blocks"
+
+
+msgid "Palettes"
+msgstr "Palettes"
+
+
+msgid "Show Palette data-blocks"
+msgstr "Show Palette data-blocks"
+
+
+msgid "Particles Settings"
+msgstr "Particles Settings"
+
+
+msgid "Show Particle Settings data-blocks"
+msgstr "Show Particle Settings data-blocks"
+
+
+msgid "Point Clouds"
+msgstr "Point Clouds"
+
+
+msgid "Show/hide Point Cloud data-blocks"
+msgstr "Show/hide Point Cloud data-blocks"
+
+
+msgid "Scenes"
+msgstr "Scenes"
+
+
+msgid "Show Scene data-blocks"
+msgstr "Show Scene data-blocks"
+
+
+msgid "Sounds"
+msgstr "Sounds"
+
+
+msgid "Show Sound data-blocks"
+msgstr "Show Sound data-blocks"
+
+
+msgid "Speakers"
+msgstr "Speakers"
+
+
+msgid "Show Speaker data-blocks"
+msgstr "Show Speaker data-blocks"
+
+
+msgid "Texts"
+msgstr "Texts"
+
+
+msgid "Show Text data-blocks"
+msgstr "Show Text data-blocks"
+
+
+msgid "Textures"
+msgstr "Textures"
+
+
+msgid "Show Texture data-blocks"
+msgstr "Show Texture data-blocks"
+
+
+msgid "Volumes"
+msgstr "Volumes"
+
+
+msgid "Show/hide Volume data-blocks"
+msgstr "Show/hide Volume data-blocks"
+
+
+msgid "Workspaces"
+msgstr "Workspaces"
+
+
+msgid "Show workspace data-blocks"
+msgstr "Show workspace data-blocks"
+
+
+msgid "Worlds"
+msgstr "Worlds"
+
+
+msgid "Show World data-blocks"
+msgstr "Show World data-blocks"
+
+
 msgid "Preview Size"
 msgstr "Preview Size"
 
@@ -2917,10 +3181,6 @@ msgid "Main data structure representing a .blend file and all its data-blocks"
 msgstr "Main data structure representing a .blend file and all its data-blocks"
 
 
-msgid "Actions"
-msgstr "Actions"
-
-
 msgid "Action data-blocks"
 msgstr "Action data-blocks"
 
@@ -2933,40 +3193,20 @@ msgid "Annotation data-blocks (legacy Grease Pencil)"
 msgstr "Annotation data-blocks (legacy Grease Pencil)"
 
 
-msgid "Armatures"
-msgstr "Armatures"
-
-
 msgid "Armature data-blocks"
 msgstr "Armature data-blocks"
-
-
-msgid "Brushes"
-msgstr "Brushes"
 
 
 msgid "Brush data-blocks"
 msgstr "Brush data-blocks"
 
 
-msgid "Cache Files"
-msgstr "Cache Files"
-
-
 msgid "Cache Files data-blocks"
 msgstr "Cache Files data-blocks"
 
 
-msgid "Cameras"
-msgstr "Cameras"
-
-
 msgid "Camera data-blocks"
 msgstr "Camera data-blocks"
-
-
-msgid "Collections"
-msgstr "Collections"
 
 
 msgid "Collection data-blocks"
@@ -2975,10 +3215,6 @@ msgstr "Collection data-blocks"
 
 msgid "Color Space"
 msgstr "Colour Space"
-
-
-msgid "Curves"
-msgstr "Curves"
 
 
 msgid "Curve data-blocks"
@@ -3001,24 +3237,12 @@ msgid "Vector font data-blocks"
 msgstr "Vector font data-blocks"
 
 
-msgid "Grease Pencil"
-msgstr "Grease Pencil"
-
-
 msgid "Grease Pencil data-blocks"
 msgstr "Grease Pencil data-blocks"
 
 
-msgid "Hair Curves"
-msgstr "Hair Curves"
-
-
 msgid "Hair curve data-blocks"
 msgstr "Hair curve data-blocks"
-
-
-msgid "Images"
-msgstr "Images"
 
 
 msgid "Image data-blocks"
@@ -3041,10 +3265,6 @@ msgid "Has the current session been saved to disk as a .blend file"
 msgstr "Has the current session been saved to disk as a .blend file"
 
 
-msgid "Lattices"
-msgstr "Lattices"
-
-
 msgid "Lattice data-blocks"
 msgstr "Lattice data-blocks"
 
@@ -3057,16 +3277,8 @@ msgid "Library data-blocks"
 msgstr "Library data-blocks"
 
 
-msgid "Light Probes"
-msgstr "Light Probes"
-
-
 msgid "Light Probe data-blocks"
 msgstr "Light Probe data-blocks"
-
-
-msgid "Lights"
-msgstr "Lights"
 
 
 msgid "Light data-blocks"
@@ -3081,40 +3293,20 @@ msgid "Line Style data-blocks"
 msgstr "Line Style data-blocks"
 
 
-msgid "Masks"
-msgstr "Masks"
-
-
 msgid "Masks data-blocks"
 msgstr "Masks data-blocks"
-
-
-msgid "Materials"
-msgstr "Materials"
 
 
 msgid "Material data-blocks"
 msgstr "Material data-blocks"
 
 
-msgid "Meshes"
-msgstr "Meshes"
-
-
 msgid "Mesh data-blocks"
 msgstr "Mesh data-blocks"
 
 
-msgid "Metaballs"
-msgstr "Metaballs"
-
-
 msgid "Metaball data-blocks"
 msgstr "Metaball data-blocks"
-
-
-msgid "Movie Clips"
-msgstr "Movie Clips"
 
 
 msgid "Movie Clip data-blocks"
@@ -3129,24 +3321,12 @@ msgid "Node group data-blocks"
 msgstr "Node group data-blocks"
 
 
-msgid "Objects"
-msgstr "Objects"
-
-
 msgid "Object data-blocks"
 msgstr "Object data-blocks"
 
 
-msgid "Paint Curves"
-msgstr "Paint Curves"
-
-
 msgid "Paint Curves data-blocks"
 msgstr "Paint Curves data-blocks"
-
-
-msgid "Palettes"
-msgstr "Palettes"
 
 
 msgid "Palette data-blocks"
@@ -3161,16 +3341,8 @@ msgid "Particle data-blocks"
 msgstr "Particle data-blocks"
 
 
-msgid "Point Clouds"
-msgstr "Point Clouds"
-
-
 msgid "Point cloud data-blocks"
 msgstr "Point cloud data-blocks"
-
-
-msgid "Scenes"
-msgstr "Scenes"
 
 
 msgid "Scene data-blocks"
@@ -3193,32 +3365,16 @@ msgid "Shape Key data-blocks"
 msgstr "Shape Key data-blocks"
 
 
-msgid "Sounds"
-msgstr "Sounds"
-
-
 msgid "Sound data-blocks"
 msgstr "Sound data-blocks"
-
-
-msgid "Speakers"
-msgstr "Speakers"
 
 
 msgid "Speaker data-blocks"
 msgstr "Speaker data-blocks"
 
 
-msgid "Texts"
-msgstr "Texts"
-
-
 msgid "Text data-blocks"
 msgstr "Text data-blocks"
-
-
-msgid "Textures"
-msgstr "Textures"
 
 
 msgid "Texture data-blocks"
@@ -3241,10 +3397,6 @@ msgid "File format version the .blend file was saved with"
 msgstr "File format version the .blend file was saved with"
 
 
-msgid "Volumes"
-msgstr "Volumes"
-
-
 msgid "Volume data-blocks"
 msgstr "Volume data-blocks"
 
@@ -3257,16 +3409,8 @@ msgid "Window manager data-blocks"
 msgstr "Window manager data-blocks"
 
 
-msgid "Workspaces"
-msgstr "Workspaces"
-
-
 msgid "Workspace data-blocks"
 msgstr "Workspace data-blocks"
-
-
-msgid "Worlds"
-msgstr "Worlds"
 
 
 msgid "World data-blocks"
@@ -13906,162 +14050,6 @@ msgid "Which asset types to show/hide, when browsing an asset library"
 msgstr "Which asset types to show/hide, when browsing an asset library"
 
 
-msgid "Annotations"
-msgstr "Annotations"
-
-
-msgid "Show Armature data-blocks"
-msgstr "Show Armature data-blocks"
-
-
-msgid "Show Cache File data-blocks"
-msgstr "Show Cache File data-blocks"
-
-
-msgid "Show Camera data-blocks"
-msgstr "Show Camera data-blocks"
-
-
-msgid "Show Curve data-blocks"
-msgstr "Show Curve data-blocks"
-
-
-msgid "Show/hide Curves data-blocks"
-msgstr "Show/hide Curves data-blocks"
-
-
-msgid "Fonts"
-msgstr "Fonts"
-
-
-msgid "Show Font data-blocks"
-msgstr "Show Font data-blocks"
-
-
-msgid "Show Grease Pencil data-blocks"
-msgstr "Show Grease Pencil data-blocks"
-
-
-msgid "Show Image data-blocks"
-msgstr "Show Image data-blocks"
-
-
-msgid "Show Lattice data-blocks"
-msgstr "Show Lattice data-blocks"
-
-
-msgid "Show Light data-blocks"
-msgstr "Show Light data-blocks"
-
-
-msgid "Show Light Probe data-blocks"
-msgstr "Show Light Probe data-blocks"
-
-
-msgid "Freestyle Linestyles"
-msgstr "Freestyle Linestyles"
-
-
-msgid "Show Freestyle's Line Style data-blocks"
-msgstr "Show Freestyle's Line Style data-blocks"
-
-
-msgid "Show Mask data-blocks"
-msgstr "Show Mask data-blocks"
-
-
-msgid "Show Mesh data-blocks"
-msgstr "Show Mesh data-blocks"
-
-
-msgid "Show Metaball data-blocks"
-msgstr "Show Metaball data-blocks"
-
-
-msgid "Show Movie Clip data-blocks"
-msgstr "Show Movie Clip data-blocks"
-
-
-msgid "Show Paint Curve data-blocks"
-msgstr "Show Paint Curve data-blocks"
-
-
-msgid "Show Palette data-blocks"
-msgstr "Show Palette data-blocks"
-
-
-msgid "Particles Settings"
-msgstr "Particles Settings"
-
-
-msgid "Show Particle Settings data-blocks"
-msgstr "Show Particle Settings data-blocks"
-
-
-msgid "Show/hide Point Cloud data-blocks"
-msgstr "Show/hide Point Cloud data-blocks"
-
-
-msgid "Show Sound data-blocks"
-msgstr "Show Sound data-blocks"
-
-
-msgid "Show Speaker data-blocks"
-msgstr "Show Speaker data-blocks"
-
-
-msgid "Show Text data-blocks"
-msgstr "Show Text data-blocks"
-
-
-msgid "Show Texture data-blocks"
-msgstr "Show Texture data-blocks"
-
-
-msgid "Show/hide Volume data-blocks"
-msgstr "Show/hide Volume data-blocks"
-
-
-msgid "Show workspace data-blocks"
-msgstr "Show workspace data-blocks"
-
-
-msgid "Show Action data-blocks"
-msgstr "Show Action data-blocks"
-
-
-msgid "Show Brushes data-blocks"
-msgstr "Show Brushes data-blocks"
-
-
-msgid "Show Collection data-blocks"
-msgstr "Show Collection data-blocks"
-
-
-msgid "Show Material data-blocks"
-msgstr "Show Material data-blocks"
-
-
-msgid "Node Trees"
-msgstr "Node Trees"
-
-
-msgid "Show Node Tree data-blocks"
-msgstr "Show Node Tree data-blocks"
-
-
-msgid "Show Object data-blocks"
-msgstr "Show Object data-blocks"
-
-
-msgid "Show Scene data-blocks"
-msgstr "Show Scene data-blocks"
-
-
-msgid "Show World data-blocks"
-msgstr "Show World data-blocks"
-
-
 msgid "File Select Parameters"
 msgstr "File Select Parameters"
 
@@ -19600,16 +19588,8 @@ msgid "Face Sets"
 msgstr "Face Sets"
 
 
-msgid "Creates a pose segment per face sets, starting from the active face set"
-msgstr "Creates a pose segment per face sets, starting from the active face set"
-
-
 msgid "Face Sets FK"
 msgstr "Face Sets FK"
-
-
-msgid "Simulates an FK deformation using the Face Set under the cursor as control"
-msgstr "Simulates an FK deformation using the Face Set under the cursor as control"
 
 
 msgid "Smooth Iterations"
@@ -20059,10 +20039,6 @@ msgid "Face Sets Boundary Automasking"
 msgstr "Face Sets Boundary Automasking"
 
 
-msgid "Do not affect vertices that belong to a Face Set boundary"
-msgstr "Do not affect vertices that belong to a Face Set boundary"
-
-
 msgid "Cavity Mask"
 msgstr "Cavity Mask"
 
@@ -20085,10 +20061,6 @@ msgstr "Custom Cavity Curve"
 
 msgid "Use custom curve"
 msgstr "Use custom curve"
-
-
-msgid "Affect only vertices that share Face Sets with the active vertex"
-msgstr "Affect only vertices that share Face Sets with the active vertex"
 
 
 msgid "Area Normal"
@@ -32183,14 +32155,6 @@ msgid "Available"
 msgstr "Available"
 
 
-msgid "Insert a keyframe for each of the BBone shape properties"
-msgstr "Insert a keyframe for each of the BBone shape properties"
-
-
-msgid "BBone Shape"
-msgstr "BBone Shape"
-
-
 msgid "Insert keyframes for additional location offset"
 msgstr "Insert keyframes for additional location offset"
 
@@ -33995,12 +33959,24 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
+msgid "Align View"
+msgstr "Align View"
+
+
+msgid "Apply"
+msgstr "Apply"
+
+
 msgid "Track"
 msgstr "Track"
 
 
 msgid "Quick Effects"
 msgstr "Quick Effects"
+
+
+msgid "Navigation"
+msgstr "Navigation"
 
 
 msgid "Show/Hide"
@@ -34033,6 +34009,14 @@ msgstr "Hooks"
 
 msgid "Vertex Group Locks"
 msgstr "Vertex Group Locks"
+
+
+msgid "Viewpoint"
+msgstr "Viewpoint"
+
+
+msgid "Local View"
+msgstr "Local View"
 
 
 msgid "Trim/Add"
@@ -34071,10 +34055,6 @@ msgid "Names"
 msgstr "Names"
 
 
-msgid "Apply"
-msgstr "Apply"
-
-
 msgid "Toggle Bone Options"
 msgstr "Toggle Bone Options"
 
@@ -34107,12 +34087,12 @@ msgid "Set Face Strength"
 msgstr "Set Face Strength"
 
 
-msgid "Merge"
-msgstr "Merge"
-
-
 msgid "Adjust"
 msgstr "Adjust"
+
+
+msgid "Merge"
+msgstr "Merge"
 
 
 msgid "Keying"
@@ -34131,12 +34111,24 @@ msgid "Math"
 msgstr "Maths"
 
 
+msgid "UV Mapping"
+msgstr "UV Mapping"
+
+
 msgid "Special Characters"
 msgstr "Special Characters"
 
 
 msgid "Kerning"
 msgstr "Kerning"
+
+
+msgid "Snap"
+msgstr "Snap"
+
+
+msgid "Mirror"
+msgstr "Mirror"
 
 
 msgid "Text"
@@ -34153,10 +34145,6 @@ msgstr "Bone Roll"
 
 msgid "Pivot Point"
 msgstr "Pivot Point"
-
-
-msgid "Snap"
-msgstr "Snap"
 
 
 msgid "Proportional Editing Falloff"
@@ -34189,38 +34177,6 @@ msgstr "Write"
 
 msgid "Primitives"
 msgstr "Primitives"
-
-
-msgid "Mirror"
-msgstr "Mirror"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapping"
-
-
-msgid "Local View"
-msgstr "Local View"
-
-
-msgid "Viewpoint"
-msgstr "Viewpoint"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Align View"
-
-
-msgid "Align View to Active"
-msgstr "Align View to Active"
-
-
-msgid "View Regions"
-msgstr "View Regions"
 
 
 msgid "Select More/Less"
@@ -34275,6 +34231,10 @@ msgid "Light Probe"
 msgstr "Light Probe"
 
 
+msgid "View Regions"
+msgstr "View Regions"
+
+
 msgid "Add Image"
 msgstr "Add Image"
 
@@ -34285,6 +34245,10 @@ msgstr "Relations"
 
 msgid "Rigid Body"
 msgstr "Rigid Body"
+
+
+msgid "Align View to Active"
+msgstr "Align View to Active"
 
 
 msgid "Keyframe Insert Pie"
@@ -34569,10 +34533,6 @@ msgstr "To All Selected"
 
 msgid "Use Node Name/Label"
 msgstr "Use Node Name/Label"
-
-
-msgid "Use Outputs Names"
-msgstr "Use Outputs Names"
 
 
 msgid "Merge Selected Nodes using Geometry Nodes"
@@ -50143,6 +50103,10 @@ msgid "Diamond with inner dot"
 msgstr "Diamond with inner dot"
 
 
+msgid "Volume Grid"
+msgstr "Volume Grid"
+
+
 msgid "Enable the socket"
 msgstr "Enable the socket"
 
@@ -50193,10 +50157,6 @@ msgstr "Unavailable"
 
 msgid "True if the socket is unavailable"
 msgstr "True if the socket is unavailable"
-
-
-msgid "Custom dynamic defined socket label"
-msgstr "Custom dynamic defined socket label"
 
 
 msgid "Link Limit"
@@ -51953,6 +51913,19 @@ msgid "Unlink Panel Toggle"
 msgstr "Unlink Panel Toggle"
 
 
+msgid "Link from this output"
+msgstr "Link from this output"
+
+
+msgctxt "Operator"
+msgid "Make Link"
+msgstr "Make Link"
+
+
+msgid "Make a link from one socket to another"
+msgstr "Make a link from one socket to another"
+
+
 msgid "Create a new geometry node group and assign it to the active modifier"
 msgstr "Create a new geometry node group and assign it to the active modifier"
 
@@ -51994,12 +51967,8 @@ msgstr "Add an Attribute node with this name"
 
 
 msgctxt "Operator"
-msgid "Add UV map"
-msgstr "Add UV map"
-
-
-msgid "Add Reroute Nodes and link them to outputs of selected nodes"
-msgstr "Add Reroute Nodes and link them to outputs of selected nodes"
+msgid "Add Attribute"
+msgstr "Add Attribute"
 
 
 msgctxt "Operator"
@@ -52026,10 +51995,6 @@ msgid "Principled Texture Setup"
 msgstr "Principled Texture Setup"
 
 
-msgid "Align the selected nodes neatly in a row/column"
-msgstr "Align the selected nodes neatly in a row/column"
-
-
 msgctxt "Operator"
 msgid "Align Nodes"
 msgstr "Align Nodes"
@@ -52049,15 +52014,6 @@ msgid "Reset Backdrop"
 msgstr "Reset Backdrop"
 
 
-msgid "Link from this output"
-msgstr "Link from this output"
-
-
-msgctxt "Operator"
-msgid "Make Link"
-msgstr "Make Link"
-
-
 msgctxt "Operator"
 msgid "Clear Label"
 msgstr "Clear Label"
@@ -52071,10 +52027,6 @@ msgstr "Copy Label"
 msgctxt "Operator"
 msgid "Copy Settings"
 msgstr "Copy Settings"
-
-
-msgid "Delete all nodes whose output is not used"
-msgstr "Delete all nodes whose output is not used"
 
 
 msgctxt "Operator"
@@ -52119,14 +52071,6 @@ msgid "Link Active Node to Selected"
 msgstr "Link Active Node to Selected"
 
 
-msgid "Link to Composite node or Material Output node"
-msgstr "Link to Composite node or Material Output node"
-
-
-msgid "Make a link from one socket to another"
-msgstr "Make a link from one socket to another"
-
-
 msgctxt "Operator"
 msgid "Merge Nodes"
 msgstr "Merge Nodes"
@@ -52144,10 +52088,6 @@ msgstr "Modify Labels"
 msgctxt "Operator"
 msgid "Reload Images"
 msgstr "Reload Images"
-
-
-msgid "Reset Nodes in Selection"
-msgstr "Reset Nodes in Selection"
 
 
 msgctxt "Operator"
@@ -54579,10 +54519,6 @@ msgstr "New keys will be linear"
 
 msgid "New keys will be constant"
 msgstr "New keys will be constant"
-
-
-msgid "The range in which to create new keys"
-msgstr "The range in which to create new keys"
 
 
 msgid "Remove Outside Range"
@@ -61550,11 +61486,6 @@ msgstr "Unlink"
 
 msgid "Unlink active font data-block"
 msgstr "Unlink active font data-block"
-
-
-msgctxt "Operator"
-msgid "Add Attribute"
-msgstr "Add Attribute"
 
 
 msgid "Add attribute to geometry"
@@ -69973,10 +69904,6 @@ msgid "Copy color to all selected nodes"
 msgstr "Copy color to all selected nodes"
 
 
-msgid "Add Reroutes to outputs"
-msgstr "Add Reroutes to outputs"
-
-
 msgid "Option"
 msgstr "Option"
 
@@ -70009,20 +69936,12 @@ msgid "Set the file path relative to the blend file, when possible"
 msgstr "Set the file path relative to the blend file, when possible"
 
 
-msgid "Add texture node setup to selected shaders"
-msgstr "Add texture node setup to selected shaders"
-
-
 msgid "Add Mapping Nodes"
 msgstr "Add Mapping Nodes"
 
 
 msgid "Create coordinate and mapping nodes for the texture (ignored for selected texture nodes)"
 msgstr "Create coordinate and mapping nodes for the texture (ignored for selected texture nodes)"
-
-
-msgid "Add texture node setup for Principled BSDF"
-msgstr "Add texture node setup for Principled BSDF"
 
 
 msgid "Folder to search in for image files"
@@ -70333,10 +70252,6 @@ msgid "Delete Muted"
 msgstr "Delete Muted"
 
 
-msgid "Delete (but reconnect, like Ctrl-X) all muted nodes"
-msgstr "Delete (but reconnect, like Ctrl-X) all muted nodes"
-
-
 msgid "Change factors of Mix nodes and Mix Shader nodes"
 msgstr "Change factors of Mix nodes and Mix Shader nodes"
 
@@ -70357,10 +70272,6 @@ msgid "Automatic output type detection"
 msgstr "Automatic output type detection"
 
 
-msgid "Merge using ADD or MIX Shader"
-msgstr "Merge using ADD or MIX Shader"
-
-
 msgid "Merge using Mesh Boolean or Join Geometry nodes"
 msgstr "Merge using Mesh Boolean or Join Geometry nodes"
 
@@ -70379,14 +70290,6 @@ msgstr "Maths Node"
 
 msgid "Merge using Math nodes"
 msgstr "Merge using Maths nodes"
-
-
-msgid "Z-Combine Node"
-msgstr "Z-Combine Node"
-
-
-msgid "Merge using Z-Combine nodes"
-msgstr "Merge using Z-Combine nodes"
 
 
 msgid "Alpha Over Node"
@@ -70563,16 +70466,8 @@ msgid "TIFF"
 msgstr "TIFF"
 
 
-msgid "Select Parent Frame"
-msgstr "Select Parent Frame"
-
-
 msgid "Select Children"
 msgstr "Select Children"
-
-
-msgid "Select members of selected frame"
-msgstr "Select members of selected frame"
 
 
 msgctxt "Operator"
@@ -78087,6 +77982,10 @@ msgid "Move selected area edges"
 msgstr "Move selected area edges"
 
 
+msgid "Snapping"
+msgstr "Snapping"
+
+
 msgctxt "Operator"
 msgid "Area Options"
 msgstr "Area Options"
@@ -78638,10 +78537,6 @@ msgid "Use Face Sets"
 msgstr "Use Face Sets"
 
 
-msgid "Apply the filter only to the Face Set under the cursor"
-msgstr "Apply the filter only to the Face Set under the cursor"
-
-
 msgctxt "Operator"
 msgid "Filter Color"
 msgstr "Filter Color"
@@ -78815,10 +78710,6 @@ msgid "Modify Active"
 msgstr "Modify Active"
 
 
-msgid "Modify the active Face Set instead of creating a new one"
-msgstr "Modify the active Face Set instead of creating a new one"
-
-
 msgid "Reposition Pivot"
 msgstr "Reposition Pivot"
 
@@ -78841,24 +78732,12 @@ msgid "Face Sets Visibility"
 msgstr "Face Sets Visibility"
 
 
-msgid "Change the visibility of the Face Sets of the sculpt"
-msgstr "Change the visibility of the Face Sets of the sculpt"
-
-
 msgid "Toggle Visibility"
 msgstr "Toggle Visibility"
 
 
-msgid "Hide all Face Sets except for the active one"
-msgstr "Hide all Face Sets except for the active one"
-
-
 msgid "Show Active Face Set"
 msgstr "Show Active Face Set"
-
-
-msgid "Hide Active Face Sets"
-msgstr "Hide Active Face Sets"
 
 
 msgctxt "Operator"
@@ -78866,44 +78745,20 @@ msgid "Edit Face Set"
 msgstr "Edit Face Set"
 
 
-msgid "Edits the current active Face Set"
-msgstr "Edits the current active Face Set"
-
-
 msgid "Grow Face Set"
 msgstr "Grow Face Set"
-
-
-msgid "Grows the Face Sets boundary by one face based on mesh topology"
-msgstr "Grows the Face Sets boundary by one face based on mesh topology"
 
 
 msgid "Shrink Face Set"
 msgstr "Shrink Face Set"
 
 
-msgid "Shrinks the Face Sets boundary by one face based on mesh topology"
-msgstr "Shrinks the Face Sets boundary by one face based on mesh topology"
-
-
-msgid "Deletes the faces that are assigned to the Face Set"
-msgstr "Deletes the faces that are assigned to the Face Set"
-
-
 msgid "Fair Positions"
 msgstr "Fair Positions"
 
 
-msgid "Creates a smooth as possible geometry patch from the Face Set minimizing changes in vertex positions"
-msgstr "Creates a smooth as possible geometry patch from the Face Set minimizing changes in vertex positions"
-
-
 msgid "Fair Tangency"
 msgstr "Fair Tangency"
-
-
-msgid "Creates a smooth as possible geometry patch from the Face Set minimizing changes in vertex tangents"
-msgstr "Creates a smooth as possible geometry patch from the Face Set minimizing changes in vertex tangents"
 
 
 msgid "Modify Hidden"
@@ -78917,10 +78772,6 @@ msgstr "Apply the edit operation to hidden geometry"
 msgctxt "Operator"
 msgid "Face Set Extract"
 msgstr "Face Set Extract"
-
-
-msgid "Create a new mesh object from the selected Face Set"
-msgstr "Create a new mesh object from the selected Face Set"
 
 
 msgid "Add Boundary Loop"
@@ -78974,40 +78825,20 @@ msgid "Create Face Set"
 msgstr "Create Face Set"
 
 
-msgid "Create a new Face Set"
-msgstr "Create a new Face Set"
-
-
 msgid "Face Set from Masked"
 msgstr "Face Set from Masked"
-
-
-msgid "Create a new Face Set from the masked faces"
-msgstr "Create a new Face Set from the masked faces"
 
 
 msgid "Face Set from Visible"
 msgstr "Face Set from Visible"
 
 
-msgid "Create a new Face Set from the visible vertices"
-msgstr "Create a new Face Set from the visible vertices"
-
-
 msgid "Face Set Full Mesh"
 msgstr "Face Set Full Mesh"
 
 
-msgid "Create an unique Face Set with all faces in the sculpt"
-msgstr "Create an unique Face Set with all faces in the sculpt"
-
-
 msgid "Face Set from Edit Mode Selection"
 msgstr "Face Set from Edit Mode Selection"
-
-
-msgid "Create an Face Set corresponding to the Edit Mode face selection"
-msgstr "Create an Face Set corresponding to the Edit Mode face selection"
 
 
 msgctxt "Operator"
@@ -79015,85 +78846,41 @@ msgid "Init Face Sets"
 msgstr "Init Face Sets"
 
 
-msgid "Initializes all Face Sets in the mesh"
-msgstr "Initializes all Face Sets in the mesh"
-
-
 msgid "Face Sets from Loose Parts"
 msgstr "Face Sets from Loose Parts"
-
-
-msgid "Create a Face Set per loose part in the mesh"
-msgstr "Create a Face Set per loose part in the mesh"
 
 
 msgid "Face Sets from Material Slots"
 msgstr "Face Sets from Material Slots"
 
 
-msgid "Create a Face Set per Material Slot"
-msgstr "Create a Face Set per Material Slot"
-
-
 msgid "Face Sets from Mesh Normals"
 msgstr "Face Sets from Mesh Normals"
-
-
-msgid "Create Face Sets for Faces that have similar normal"
-msgstr "Create Face Sets for Faces that have similar normal"
 
 
 msgid "Face Sets from UV Seams"
 msgstr "Face Sets from UV Seams"
 
 
-msgid "Create Face Sets using UV Seams as boundaries"
-msgstr "Create Face Sets using UV Seams as boundaries"
-
-
 msgid "Face Sets from Edge Creases"
 msgstr "Face Sets from Edge Creases"
-
-
-msgid "Create Face Sets using Edge Creases as boundaries"
-msgstr "Create Face Sets using Edge Creases as boundaries"
 
 
 msgid "Face Sets from Bevel Weight"
 msgstr "Face Sets from Bevel Weight"
 
 
-msgid "Create Face Sets using Bevel Weights as boundaries"
-msgstr "Create Face Sets using Bevel Weights as boundaries"
-
-
 msgid "Face Sets from Sharp Edges"
 msgstr "Face Sets from Sharp Edges"
-
-
-msgid "Create Face Sets using Sharp Edges as boundaries"
-msgstr "Create Face Sets using Sharp Edges as boundaries"
 
 
 msgid "Face Sets from Face Set Boundaries"
 msgstr "Face Sets from Face Set Boundaries"
 
 
-msgid "Create a Face Set per isolated Face Set"
-msgstr "Create a Face Set per isolated Face Set"
-
-
-msgid "Minimum value to consider a certain attribute a boundary when creating the Face Sets"
-msgstr "Minimum value to consider a certain attribute a boundary when creating the Face Sets"
-
-
 msgctxt "Operator"
 msgid "Randomize Face Sets Colors"
 msgstr "Randomize Face Sets Colors"
-
-
-msgid "Generates a new set of random colors to render the Face Sets in the viewport"
-msgstr "Generates a new set of random colors to render the Face Sets in the viewport"
 
 
 msgctxt "Operator"
@@ -79356,10 +79143,6 @@ msgstr "Relax mesh"
 msgctxt "Operator"
 msgid "Relax Face Sets"
 msgstr "Relax Face Sets"
-
-
-msgid "Smooth the edges of all the Face Sets"
-msgstr "Smooth the edges of all the Face Sets"
 
 
 msgctxt "Operator"
@@ -88081,10 +87864,6 @@ msgid "Curves Edit Mode"
 msgstr "Curves Edit Mode"
 
 
-msgid "Snapping"
-msgstr "Snapping"
-
-
 msgid "Transform Orientations"
 msgstr "Transform Orientations"
 
@@ -95568,56 +95347,8 @@ msgid "Path to the pot template file"
 msgstr "Path to the pot template file"
 
 
-msgid "Naming Components for alpha maps"
-msgstr "Naming Components for alpha maps"
-
-
-msgid "Naming Components for AO maps"
-msgstr "Naming Components for AO maps"
-
-
-msgid "Naming Components for Base Color maps"
-msgstr "Naming Components for Base Color maps"
-
-
-msgid "Naming Components for bump maps"
-msgstr "Naming Components for bump maps"
-
-
-msgid "Naming Components for displacement maps"
-msgstr "Naming Components for displacement maps"
-
-
-msgid "Naming Components for emission maps"
-msgstr "Naming Components for emission maps"
-
-
 msgid "Gloss"
 msgstr "Gloss"
-
-
-msgid "Naming Components for glossy maps"
-msgstr "Naming Components for glossy maps"
-
-
-msgid "Naming Components for metallness maps"
-msgstr "Naming Components for metallness maps"
-
-
-msgid "Naming Components for Normal maps"
-msgstr "Naming Components for Normal maps"
-
-
-msgid "Naming Components for roughness maps"
-msgstr "Naming Components for roughness maps"
-
-
-msgid "Naming Components for Specular maps"
-msgstr "Naming Components for Specular maps"
-
-
-msgid "Naming Components for transmission maps"
-msgstr "Naming Components for transmission maps"
 
 
 msgid "Python expression to be evaluated as the initial node setting"
@@ -105355,14 +105086,6 @@ msgid "Theme settings for the Dope Sheet"
 msgstr "Theme settings for the Dope Sheet"
 
 
-msgid "Interpolation Line"
-msgstr "Interpolation Line"
-
-
-msgid "Color of lines showing non-Bézier interpolation modes"
-msgstr "Color of lines showing non-Bézier interpolation modes"
-
-
 msgid "Keyframe Border"
 msgstr "Keyframe Border"
 
@@ -109284,10 +109007,6 @@ msgstr "Display bounding boxes for nodes in the volume tree"
 
 msgid "Display points for nodes in the volume tree"
 msgstr "Display points for nodes in the volume tree"
-
-
-msgid "Volume Grid"
-msgstr "Volume Grid"
 
 
 msgid "3D volume grid"
@@ -113695,10 +113414,6 @@ msgid "Requires Intel GPU with Xe-HPG architecture"
 msgstr "Requires Intel GPU with Xe-HPG architecture"
 
 
-msgid "and AMD driver version %s or newer"
-msgstr "and AMD driver version %s or newer"
-
-
 msgid "and Windows driver version %s or newer"
 msgstr "and Windows driver version %s or newer"
 
@@ -114203,14 +113918,6 @@ msgid "Add Principled Setup"
 msgstr "Add Principled Setup"
 
 
-msgid "(Quick access: Shift+W)"
-msgstr "(Quick access: Shift+W)"
-
-
-msgid "To Socket"
-msgstr "To Socket"
-
-
 msgctxt "Operator"
 msgid "Settings from Active"
 msgstr "Settings from Active"
@@ -114224,16 +113931,6 @@ msgstr "Do Not Replace Links"
 msgctxt "Operator"
 msgid "Replace Links"
 msgstr "Replace Links"
-
-
-msgctxt "Operator"
-msgid "Select frame's members (children)"
-msgstr "Select frame's members (children)"
-
-
-msgctxt "Operator"
-msgid "Select parent frame"
-msgstr "Select parent frame"
 
 
 msgctxt "Operator"
@@ -114260,11 +113957,6 @@ msgstr "Use Maths Nodes"
 
 msgid "Use Mix Nodes"
 msgstr "Use Mix Nodes"
-
-
-msgctxt "Operator"
-msgid "Use Z-Combine Nodes"
-msgstr "Use Z-Combine Nodes"
 
 
 msgctxt "Operator"
@@ -114316,10 +114008,6 @@ msgstr "Node {} deleted"
 
 msgid "Nothing to delete"
 msgstr "Nothing to delete"
-
-
-msgid "Reloaded images"
-msgstr "Reloaded images"
 
 
 msgid "No images found to reload in this node tree"
@@ -114416,6 +114104,10 @@ msgstr "This node has no input connections to swap"
 
 msgid "Some connections have been lost due to differing numbers of output sockets"
 msgstr "Some connections have been lost due to differing numbers of output sockets"
+
+
+msgid "To Socket"
+msgstr "To Socket"
 
 
 msgid "Edit tags for auto texture detection in Principled BSDF setup"
@@ -115688,8 +115380,8 @@ msgid "No camera found"
 msgstr "No camera found"
 
 
-msgid "Other object is not a mesh"
-msgstr "Other object is not a mesh"
+msgid "Expected one other selected mesh object to copy from"
+msgstr "Expected one other selected mesh object to copy from"
 
 
 msgid "Other object has no shape key"
@@ -115710,10 +115402,6 @@ msgstr "Skipping '{:s}', not a mesh"
 
 msgid "Skipping '{:s}', vertex count differs"
 msgstr "Skipping '{:s}', vertex count differs"
-
-
-msgid "Expected one other selected mesh object to copy from"
-msgstr "Expected one other selected mesh object to copy from"
 
 
 msgid "No animation data to convert on object: {!r}"
@@ -119452,10 +119140,6 @@ msgstr "Face"
 msgctxt "Operator"
 msgid "Zoom 1:1"
 msgstr "Zoom 1:1"
-
-
-msgid "Image*"
-msgstr "Image*"
 
 
 msgid "Repeat Image"
@@ -130425,18 +130109,6 @@ msgid "multi-res modifier"
 msgstr "multi-res modifier"
 
 
-msgid "vertex data"
-msgstr "vertex data"
-
-
-msgid "edge data"
-msgstr "edge data"
-
-
-msgid "face data"
-msgstr "face data"
-
-
 msgid "constructive modifier"
 msgstr "constructive modifier"
 
@@ -133519,10 +133191,6 @@ msgstr "Rotation is not supported in the Dope Sheet Editor"
 
 msgid "Shear: %s %s"
 msgstr "Shear: %s %s"
-
-
-msgid "Shear: %.3f %s"
-msgstr "Shear: %.3f %s"
 
 
 msgid "Shear Axis"
@@ -138848,12 +138516,12 @@ msgid "Number of subdivisions on top of the basic icosahedron"
 msgstr "Number of subdivisions on top of the basic icosahedron"
 
 
-msgid "Start Location"
-msgstr "Start Location"
-
-
 msgid "End Location"
 msgstr "End Location"
+
+
+msgid "Start Location"
+msgstr "Start Location"
 
 
 msgid "Number of vertices on the line"

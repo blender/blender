@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-10 09:45+0000\n"
-"PO-Revision-Date: 2025-11-10 04:59+0000\n"
+"POT-Creation-Date: 2025-11-24 08:35+0000\n"
+"PO-Revision-Date: 2025-11-10 23:59+0000\n"
 "Last-Translator: golden dragon <trmhtk2@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
 "Language: he\n"
@@ -391,12 +391,16 @@ msgid "Heads"
 msgstr "םישאר"
 
 
+msgid "Calculate bone paths from heads"
+msgstr "םישארמ תומצע יביתנ בשח"
+
+
 msgid "Tails"
 msgstr "תובנז"
 
 
 msgid "Calculate bone paths from tails"
-msgstr "תובנזהמ תומצעה יביתנ תא בשח"
+msgstr "תובנזמ תומצע יביתנ בשח"
 
 
 msgid "After Current"
@@ -435,8 +439,56 @@ msgid "Width"
 msgstr "בחור"
 
 
+msgid "Active Bone"
+msgstr "הליעפ םצע"
+
+
 msgid "Options"
 msgstr "תויורשפא"
+
+
+msgid "Cameras"
+msgstr "תומלצמ"
+
+
+msgid "Curves"
+msgstr "םילוקיע"
+
+
+msgid "Hair Curves"
+msgstr "רעיש ילוקיע"
+
+
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
+msgid "Collections"
+msgstr "םיפסוא"
+
+
+msgid "Images"
+msgstr "תונומת"
+
+
+msgid "Meshes"
+msgstr "תורוצ"
+
+
+msgid "Scenes"
+msgstr "תונצס"
+
+
+msgid "Sounds"
+msgstr "םילילצ"
+
+
+msgid "Texts"
+msgstr "םיטסקט"
+
+
+msgid "Textures"
+msgstr "םימקרמ"
 
 
 msgid "Data Type"
@@ -538,40 +590,12 @@ msgid "Active Camera"
 msgstr "הליעפ המלצמ"
 
 
-msgid "Cameras"
-msgstr "תומלצמ"
-
-
-msgid "Collections"
-msgstr "םיפסוא"
-
-
-msgid "Curves"
-msgstr "םילוקיע"
-
-
-msgid "Grease Pencil"
-msgstr "Grease Pencil"
-
-
-msgid "Hair Curves"
-msgstr "רעיש ילוקיע"
-
-
-msgid "Images"
-msgstr "תונומת"
-
-
 msgid "Masks data-blocks"
 msgstr "תוכסמ ינותנ-יקולב"
 
 
 msgid "Material data-blocks"
 msgstr "םירמוח ינותנ-יקולב"
-
-
-msgid "Meshes"
-msgstr "תורוצ"
 
 
 msgid "Mesh data-blocks"
@@ -610,10 +634,6 @@ msgid "Point cloud data-blocks"
 msgstr "תודוקנ יננע ינותנ-יקולב"
 
 
-msgid "Scenes"
-msgstr "תונצס"
-
-
 msgid "Scene data-blocks"
 msgstr "תונצס ינותנ-יקולב"
 
@@ -628,18 +648,6 @@ msgstr "םיכסמ ינותנ-יקולב"
 
 msgid "Shape Keys"
 msgstr "הרוצ תוחתפמ"
-
-
-msgid "Sounds"
-msgstr "םילילצ"
-
-
-msgid "Texts"
-msgstr "םיטסקט"
-
-
-msgid "Textures"
-msgstr "םימקרמ"
 
 
 msgid "Main Cameras"
@@ -874,7 +882,7 @@ msgstr "תומכ התואב ולדגיש ךכ ,(ילנויצפוא קחרמ םע
 
 
 msgid "Limit Scale"
-msgstr "לדוג לבגה"
+msgstr "לדוג תלבגה"
 
 
 msgid "X Scale"
@@ -1361,12 +1369,12 @@ msgid "Mask"
 msgstr "הכסמ"
 
 
-msgid "Convert"
-msgstr "רמה"
-
-
 msgid "Apply"
 msgstr "לחה"
+
+
+msgid "Convert"
+msgstr "רמה"
 
 
 msgid "Layout"
@@ -1405,8 +1413,24 @@ msgid "Movie Strip"
 msgstr "ואידיו תעוצר"
 
 
+msgid "Retiming"
+msgstr "ןמז יוניש"
+
+
+msgid "Text to 3D Object"
+msgstr "ידממ תלת טקייבואל טסקט"
+
+
+msgid "Templates"
+msgstr "תוינבת"
+
+
 msgid "Python"
 msgstr "Python"
+
+
+msgid "Blender"
+msgstr "Blender"
 
 
 msgid "System"
@@ -1499,6 +1523,30 @@ msgstr "NLA תעוצר גוס"
 
 msgid "Combine Color"
 msgstr "עבצ בלש"
+
+
+msgid "Set Position"
+msgstr "םוקימ עבק"
+
+
+msgid "Set the location of each point"
+msgstr "הדוקנ לכ לש םוקימה תא עבק"
+
+
+msgid "Simulation Input"
+msgstr "היצלומיס טלק"
+
+
+msgid "Input data for the simulation zone"
+msgstr "היצלומיסה רוזאל טלק ינותנ"
+
+
+msgid "Simulation Output"
+msgstr "היצלומיס טלפ"
+
+
+msgid "Output data from the simulation zone"
+msgstr "היצלומיס רוזאמ טלק ינותנ"
 
 
 msgid "Background"
@@ -2093,18 +2141,6 @@ msgstr "ליפורפ תרוצ"
 
 msgid "Vertex select needs to be enabled in weight paint mode"
 msgstr "לקשמ תעיבצ בצמב תלעפומ תויהל הכירצ דוקדוק תריחב"
-
-
-msgid "vertex data"
-msgstr "דוקדוק ינותנ"
-
-
-msgid "edge data"
-msgstr "עלצ ינותנ"
-
-
-msgid "face data"
-msgstr "האפ ינותנ"
 
 
 msgid "Fields"

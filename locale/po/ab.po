@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2025-07-23 15:29+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
@@ -71,6 +71,10 @@ msgid "Empty"
 msgstr "Аҭацәы"
 
 
+msgid "Texts"
+msgstr "Аҳәоуқәа"
+
+
 msgid "Edge"
 msgstr "Акьыԥшь"
 
@@ -81,10 +85,6 @@ msgstr "Ахаҿы"
 
 msgid "Object"
 msgstr "Амаҭәар"
-
-
-msgid "Texts"
-msgstr "Аҳәоуқәа"
 
 
 msgid "Main Images"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-10 09:45+0000\n"
+"POT-Creation-Date: 2025-11-24 08:35+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -610,10 +610,6 @@ msgid "Show only hotkeys that have this text in their name"
 msgstr "Yalnızca adlarında bu metnin olduğu kısayol düğmelerini göster"
 
 
-msgid "Hide Mix nodes"
-msgstr "Mix düğümlerini gizle"
-
-
 msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify whether to collapse them or show the full node with options expanded"
 msgstr "Ctrl+Numpad0 kısayolu (ve benzeri) ile düğümleri birleştirirken, bunları daraltmayı mı yoksa seçenekleri genişletilmiş tam düğümü mü göstereceğinizi belirtin"
 
@@ -672,14 +668,6 @@ msgstr "Kısayol Listesini Göster"
 
 msgid "Expand this box into a list of all the hotkeys for functions in this addon"
 msgstr "Bu kutuyu, bu eklentideki tüm işlevler için kısayol düğmelerinin bir listesine genişlet"
-
-
-msgid "Show Principled naming tags"
-msgstr "İlkeli adlandırma etiketlerini göster"
-
-
-msgid "Expand this box into a list of all naming tags for principled texture setup"
-msgstr "Bu kutuyu, ilkeli doku kurulumu için tüm adlandırma etiketlerinin bir listesine genişletin"
 
 
 msgid "Fribidi Library"
@@ -1799,6 +1787,278 @@ msgid "Space Type"
 msgstr "Uzay Türü"
 
 
+msgid "Actions"
+msgstr "Eylemler"
+
+
+msgid "Show Action data-blocks"
+msgstr "Eylem veri bloklarını göster"
+
+
+msgid "Annotations"
+msgstr "Açıklamalar"
+
+
+msgid "Armatures"
+msgstr "Armatürler"
+
+
+msgid "Show Armature data-blocks"
+msgstr "Armatür veri bloklarını göster"
+
+
+msgid "Brushes"
+msgstr "Fırçalar"
+
+
+msgid "Show Brushes data-blocks"
+msgstr "Fırçalar veri bloklarını göster"
+
+
+msgid "Cache Files"
+msgstr "Önbellek Dosyaları"
+
+
+msgid "Show Cache File data-blocks"
+msgstr "Önbellek Dosyası veri bloklarını göster"
+
+
+msgid "Cameras"
+msgstr "Kameralar"
+
+
+msgid "Show Camera data-blocks"
+msgstr "Kamera veri bloklarını göster"
+
+
+msgid "Curves"
+msgstr "Eğriler"
+
+
+msgid "Show Curve data-blocks"
+msgstr "Eğri veri bloklarını göster"
+
+
+msgid "Hair Curves"
+msgstr "Kıl Eğrileri"
+
+
+msgid "Show/hide Curves data-blocks"
+msgstr "Eğriler veri bloklarını göster/gizle"
+
+
+msgid "Fonts"
+msgstr "Yazı tipleri"
+
+
+msgid "Show Font data-blocks"
+msgstr "Font veri bloklarını göster"
+
+
+msgid "Grease Pencil"
+msgstr "Gres Kalemi"
+
+
+msgid "Collections"
+msgstr "Koleksiyonlar"
+
+
+msgid "Show Collection data-blocks"
+msgstr "Koleksiyon veri bloklarını göster"
+
+
+msgid "Images"
+msgstr "Görseller"
+
+
+msgid "Show Image data-blocks"
+msgstr "Resim veri bloklarını göster"
+
+
+msgid "Lattices"
+msgstr "Dış Kafesler"
+
+
+msgid "Show Lattice data-blocks"
+msgstr "Dış kafes veri bloklarını göster"
+
+
+msgid "Lights"
+msgstr "Işıklar"
+
+
+msgid "Show Light data-blocks"
+msgstr "Işık veri bloklarını göster"
+
+
+msgid "Light Probes"
+msgstr "Işık Sondaları"
+
+
+msgid "Show Light Probe data-blocks"
+msgstr "Işık Probu veri bloklarını göster"
+
+
+msgid "Freestyle Linestyles"
+msgstr "Serbest Stil Çizgi Stilleri"
+
+
+msgid "Show Freestyle's Line Style data-blocks"
+msgstr "Freestyle'ın Çizgi Stili veri bloklarını göster"
+
+
+msgid "Masks"
+msgstr "Maskeler"
+
+
+msgid "Show Mask data-blocks"
+msgstr "Maske veri bloklarını göster"
+
+
+msgid "Materials"
+msgstr "Malzemeler"
+
+
+msgid "Show Material data-blocks"
+msgstr "Malzeme veri bloklarını göster"
+
+
+msgid "Meshes"
+msgstr "Örgüler"
+
+
+msgid "Show Mesh data-blocks"
+msgstr "Mesh veri bloklarını göster"
+
+
+msgid "Metaballs"
+msgstr "Üst Toplar"
+
+
+msgid "Show Metaball data-blocks"
+msgstr "Metaball veri bloklarını göster"
+
+
+msgid "Movie Clips"
+msgstr "Film Klipleri"
+
+
+msgid "Show Movie Clip data-blocks"
+msgstr "Film Klibi veri bloklarını göster"
+
+
+msgid "Node Trees"
+msgstr "Düğüm Ağaçları"
+
+
+msgid "Show Node Tree data-blocks"
+msgstr "Düğüm Ağacı veri bloklarını göster"
+
+
+msgid "Objects"
+msgstr "Nesneler"
+
+
+msgid "Show Object data-blocks"
+msgstr "Nesne veri bloklarını göster"
+
+
+msgid "Paint Curves"
+msgstr "Boya Eğrileri"
+
+
+msgid "Show Paint Curve data-blocks"
+msgstr "Boya Eğrisi veri bloklarını göster"
+
+
+msgid "Palettes"
+msgstr "Paletler"
+
+
+msgid "Show Palette data-blocks"
+msgstr "Palet veri bloklarını göster"
+
+
+msgid "Particles Settings"
+msgstr "Parçacık Ayarları"
+
+
+msgid "Show Particle Settings data-blocks"
+msgstr "Parçacık Ayarlarını Göster veri blokları"
+
+
+msgid "Point Clouds"
+msgstr "Nokta Bulutları"
+
+
+msgid "Show/hide Point Cloud data-blocks"
+msgstr "Nokta Bulutu veri bloklarını göster/gizle"
+
+
+msgid "Scenes"
+msgstr "Sahneler"
+
+
+msgid "Show Scene data-blocks"
+msgstr "Sahne veri bloklarını göster"
+
+
+msgid "Sounds"
+msgstr "Sesler"
+
+
+msgid "Show Sound data-blocks"
+msgstr "Ses veri bloklarını göster"
+
+
+msgid "Speakers"
+msgstr "Hoparlörler"
+
+
+msgid "Show Speaker data-blocks"
+msgstr "Konuşmacı veri bloklarını göster"
+
+
+msgid "Texts"
+msgstr "Metinler"
+
+
+msgid "Show Text data-blocks"
+msgstr "Metin veri bloklarını göster"
+
+
+msgid "Textures"
+msgstr "Dokular"
+
+
+msgid "Show Texture data-blocks"
+msgstr "Doku veri bloklarını göster"
+
+
+msgid "Volumes"
+msgstr "Hacimler"
+
+
+msgid "Show/hide Volume data-blocks"
+msgstr "Birim veri bloklarını göster/gizle"
+
+
+msgid "Workspaces"
+msgstr "Çalışma Alanları"
+
+
+msgid "Show workspace data-blocks"
+msgstr "Çalışma alanı veri bloklarını göster"
+
+
+msgid "Worlds"
+msgstr "Dünyalar"
+
+
+msgid "Show World data-blocks"
+msgstr "Dünya veri bloklarını göster"
+
+
 msgid "Preview Size"
 msgstr "Önizleme Boyutu"
 
@@ -2659,10 +2919,6 @@ msgid "Main data structure representing a .blend file and all its data-blocks"
 msgstr ".blend dosyasını ve tüm veri bloklarını temsil eden ana veri yapısı"
 
 
-msgid "Actions"
-msgstr "Eylemler"
-
-
 msgid "Action data-blocks"
 msgstr "Eylem veri blokları"
 
@@ -2675,40 +2931,20 @@ msgid "Annotation data-blocks (legacy Grease Pencil)"
 msgstr "Açıklama veri blokları (eski Grease Pencil)"
 
 
-msgid "Armatures"
-msgstr "Armatürler"
-
-
 msgid "Armature data-blocks"
 msgstr "Armatür veri blokları"
-
-
-msgid "Brushes"
-msgstr "Fırçalar"
 
 
 msgid "Brush data-blocks"
 msgstr "Fırça veri blokları"
 
 
-msgid "Cache Files"
-msgstr "Önbellek Dosyaları"
-
-
 msgid "Cache Files data-blocks"
 msgstr "Önbellek Dosyaları veri blokları"
 
 
-msgid "Cameras"
-msgstr "Kameralar"
-
-
 msgid "Camera data-blocks"
 msgstr "Kamera veri blokları"
-
-
-msgid "Collections"
-msgstr "Koleksiyonlar"
 
 
 msgid "Collection data-blocks"
@@ -2717,10 +2953,6 @@ msgstr "Koleksiyon veri blokları"
 
 msgid "Color Space"
 msgstr "Renk Uzayı"
-
-
-msgid "Curves"
-msgstr "Eğriler"
 
 
 msgid "Curve data-blocks"
@@ -2743,24 +2975,12 @@ msgid "Vector font data-blocks"
 msgstr "Vektör Yazıtipi veri blokları"
 
 
-msgid "Grease Pencil"
-msgstr "Gres Kalemi"
-
-
 msgid "Grease Pencil data-blocks"
 msgstr "Gres Kalemi veri blokları"
 
 
-msgid "Hair Curves"
-msgstr "Kıl Eğrileri"
-
-
 msgid "Hair curve data-blocks"
 msgstr "Kıl Eğrisi veri blokları"
-
-
-msgid "Images"
-msgstr "Görseller"
 
 
 msgid "Image data-blocks"
@@ -2783,10 +3003,6 @@ msgid "Has the current session been saved to disk as a .blend file"
 msgstr "Mevcut oturum .blend dosyası olarak diske kaydedildi mi"
 
 
-msgid "Lattices"
-msgstr "Dış Kafesler"
-
-
 msgid "Lattice data-blocks"
 msgstr "Dış kafes veri blokları"
 
@@ -2799,16 +3015,8 @@ msgid "Library data-blocks"
 msgstr "Kitaplık veri blokları"
 
 
-msgid "Light Probes"
-msgstr "Işık Sondaları"
-
-
 msgid "Light Probe data-blocks"
 msgstr "Işık Sondası veri blokları"
-
-
-msgid "Lights"
-msgstr "Işıklar"
 
 
 msgid "Light data-blocks"
@@ -2823,40 +3031,20 @@ msgid "Line Style data-blocks"
 msgstr "Çizgi Biçemi veri blokları"
 
 
-msgid "Masks"
-msgstr "Maskeler"
-
-
 msgid "Masks data-blocks"
 msgstr "Maske veri blokları"
-
-
-msgid "Materials"
-msgstr "Malzemeler"
 
 
 msgid "Material data-blocks"
 msgstr "Malzeme veri blokları"
 
 
-msgid "Meshes"
-msgstr "Örgüler"
-
-
 msgid "Mesh data-blocks"
 msgstr "Örgü veri blokları"
 
 
-msgid "Metaballs"
-msgstr "Üst Toplar"
-
-
 msgid "Metaball data-blocks"
 msgstr "Üst top veri blokları"
-
-
-msgid "Movie Clips"
-msgstr "Film Klipleri"
 
 
 msgid "Movie Clip data-blocks"
@@ -2871,24 +3059,12 @@ msgid "Node group data-blocks"
 msgstr "Düğüm Grubu veri blokları"
 
 
-msgid "Objects"
-msgstr "Nesneler"
-
-
 msgid "Object data-blocks"
 msgstr "Nesne veri blokları"
 
 
-msgid "Paint Curves"
-msgstr "Boya Eğrileri"
-
-
 msgid "Paint Curves data-blocks"
 msgstr "Boya Eğrisi veri blokları"
-
-
-msgid "Palettes"
-msgstr "Paletler"
 
 
 msgid "Palette data-blocks"
@@ -2903,16 +3079,8 @@ msgid "Particle data-blocks"
 msgstr "Parçacık veri blokları"
 
 
-msgid "Point Clouds"
-msgstr "Nokta Bulutları"
-
-
 msgid "Point cloud data-blocks"
 msgstr "Nokta bulutu veri blokları"
-
-
-msgid "Scenes"
-msgstr "Sahneler"
 
 
 msgid "Scene data-blocks"
@@ -2935,32 +3103,16 @@ msgid "Shape Key data-blocks"
 msgstr "Şekil Anahtarı veri blokları"
 
 
-msgid "Sounds"
-msgstr "Sesler"
-
-
 msgid "Sound data-blocks"
 msgstr "Ses veri blokları"
-
-
-msgid "Speakers"
-msgstr "Hoparlörler"
 
 
 msgid "Speaker data-blocks"
 msgstr "Hoparlör veri blokları"
 
 
-msgid "Texts"
-msgstr "Metinler"
-
-
 msgid "Text data-blocks"
 msgstr "Metin veri blokları"
-
-
-msgid "Textures"
-msgstr "Dokular"
 
 
 msgid "Texture data-blocks"
@@ -2983,10 +3135,6 @@ msgid "File format version the .blend file was saved with"
 msgstr ".blend dosyasının kaydedildiği dosya biçimi sürümü"
 
 
-msgid "Volumes"
-msgstr "Hacimler"
-
-
 msgid "Volume data-blocks"
 msgstr "Hacim veri blokları"
 
@@ -2999,16 +3147,8 @@ msgid "Window manager data-blocks"
 msgstr "Pencere Yöneticisi veri blokları"
 
 
-msgid "Workspaces"
-msgstr "Çalışma Alanları"
-
-
 msgid "Workspace data-blocks"
 msgstr "Çalışma Alanı veri blokları"
-
-
-msgid "Worlds"
-msgstr "Dünyalar"
 
 
 msgid "World data-blocks"
@@ -11625,158 +11765,6 @@ msgid "Which asset types to show/hide, when browsing an asset library"
 msgstr "Bir varlık kütüphanesine göz atarken hangi varlık türlerinin gösterileceği/gizleneceği"
 
 
-msgid "Annotations"
-msgstr "Açıklamalar"
-
-
-msgid "Show Armature data-blocks"
-msgstr "Armatür veri bloklarını göster"
-
-
-msgid "Show Cache File data-blocks"
-msgstr "Önbellek Dosyası veri bloklarını göster"
-
-
-msgid "Show Camera data-blocks"
-msgstr "Kamera veri bloklarını göster"
-
-
-msgid "Show Curve data-blocks"
-msgstr "Eğri veri bloklarını göster"
-
-
-msgid "Show/hide Curves data-blocks"
-msgstr "Eğriler veri bloklarını göster/gizle"
-
-
-msgid "Fonts"
-msgstr "Yazı tipleri"
-
-
-msgid "Show Font data-blocks"
-msgstr "Font veri bloklarını göster"
-
-
-msgid "Show Image data-blocks"
-msgstr "Resim veri bloklarını göster"
-
-
-msgid "Show Lattice data-blocks"
-msgstr "Dış kafes veri bloklarını göster"
-
-
-msgid "Show Light data-blocks"
-msgstr "Işık veri bloklarını göster"
-
-
-msgid "Show Light Probe data-blocks"
-msgstr "Işık Probu veri bloklarını göster"
-
-
-msgid "Freestyle Linestyles"
-msgstr "Serbest Stil Çizgi Stilleri"
-
-
-msgid "Show Freestyle's Line Style data-blocks"
-msgstr "Freestyle'ın Çizgi Stili veri bloklarını göster"
-
-
-msgid "Show Mask data-blocks"
-msgstr "Maske veri bloklarını göster"
-
-
-msgid "Show Mesh data-blocks"
-msgstr "Mesh veri bloklarını göster"
-
-
-msgid "Show Metaball data-blocks"
-msgstr "Metaball veri bloklarını göster"
-
-
-msgid "Show Movie Clip data-blocks"
-msgstr "Film Klibi veri bloklarını göster"
-
-
-msgid "Show Paint Curve data-blocks"
-msgstr "Boya Eğrisi veri bloklarını göster"
-
-
-msgid "Show Palette data-blocks"
-msgstr "Palet veri bloklarını göster"
-
-
-msgid "Particles Settings"
-msgstr "Parçacık Ayarları"
-
-
-msgid "Show Particle Settings data-blocks"
-msgstr "Parçacık Ayarlarını Göster veri blokları"
-
-
-msgid "Show/hide Point Cloud data-blocks"
-msgstr "Nokta Bulutu veri bloklarını göster/gizle"
-
-
-msgid "Show Sound data-blocks"
-msgstr "Ses veri bloklarını göster"
-
-
-msgid "Show Speaker data-blocks"
-msgstr "Konuşmacı veri bloklarını göster"
-
-
-msgid "Show Text data-blocks"
-msgstr "Metin veri bloklarını göster"
-
-
-msgid "Show Texture data-blocks"
-msgstr "Doku veri bloklarını göster"
-
-
-msgid "Show/hide Volume data-blocks"
-msgstr "Birim veri bloklarını göster/gizle"
-
-
-msgid "Show workspace data-blocks"
-msgstr "Çalışma alanı veri bloklarını göster"
-
-
-msgid "Show Action data-blocks"
-msgstr "Eylem veri bloklarını göster"
-
-
-msgid "Show Brushes data-blocks"
-msgstr "Fırçalar veri bloklarını göster"
-
-
-msgid "Show Collection data-blocks"
-msgstr "Koleksiyon veri bloklarını göster"
-
-
-msgid "Show Material data-blocks"
-msgstr "Malzeme veri bloklarını göster"
-
-
-msgid "Node Trees"
-msgstr "Düğüm Ağaçları"
-
-
-msgid "Show Node Tree data-blocks"
-msgstr "Düğüm Ağacı veri bloklarını göster"
-
-
-msgid "Show Object data-blocks"
-msgstr "Nesne veri bloklarını göster"
-
-
-msgid "Show Scene data-blocks"
-msgstr "Sahne veri bloklarını göster"
-
-
-msgid "Show World data-blocks"
-msgstr "Dünya veri bloklarını göster"
-
-
 msgid "File Select Parameters"
 msgstr "Dosya Seçim Parametreleri"
 
@@ -16670,10 +16658,6 @@ msgid "Face Sets Boundary Automasking"
 msgstr "Yüz Setleri Sınır Otomatik Maskeleme"
 
 
-msgid "Do not affect vertices that belong to a Face Set boundary"
-msgstr "Bir Yüz Kümesi sınırına ait olan köşeleri etkilemeyin"
-
-
 msgid "Cavity Mask"
 msgstr "Çürük Maskesi"
 
@@ -16696,10 +16680,6 @@ msgstr "Özel Boşluk Eğrisi"
 
 msgid "Use custom curve"
 msgstr "Özel eğriyi kullan"
-
-
-msgid "Affect only vertices that share Face Sets with the active vertex"
-msgstr "Yalnızca etkin tepe noktasıyla Yüz Kümelerini paylaşan tepe noktalarını etkiler"
 
 
 msgid "Area Normal"
@@ -27354,14 +27334,6 @@ msgid "Available"
 msgstr "Mevcut"
 
 
-msgid "Insert a keyframe for each of the BBone shape properties"
-msgstr "BBone şekil özelliklerinin her biri için bir anahtar kare ekleyin"
-
-
-msgid "BBone Shape"
-msgstr "Kemik Şekli"
-
-
 msgid "Insert keyframes for additional location offset"
 msgstr "Ek konum ofseti için anahtar kareler ekleyin"
 
@@ -28977,12 +28949,24 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
+msgid "Align View"
+msgstr "Görünümü hizala"
+
+
+msgid "Apply"
+msgstr "Uygula"
+
+
 msgid "Track"
 msgstr "İzlemek"
 
 
 msgid "Quick Effects"
 msgstr "Hızlı Etkiler"
+
+
+msgid "Navigation"
+msgstr "Navigasyon"
 
 
 msgid "Show/Hide"
@@ -29015,6 +28999,14 @@ msgstr "Kancalar"
 
 msgid "Vertex Group Locks"
 msgstr "Vertex Grup Kilitleri"
+
+
+msgid "Viewpoint"
+msgstr "Bakış açısı"
+
+
+msgid "Local View"
+msgstr "Yerel Görünüm"
 
 
 msgid "Trim/Add"
@@ -29053,10 +29045,6 @@ msgid "Names"
 msgstr "Adlar"
 
 
-msgid "Apply"
-msgstr "Uygula"
-
-
 msgid "Toggle Bone Options"
 msgstr "Kemik Seçeneklerini Değiştir"
 
@@ -29089,12 +29077,12 @@ msgid "Set Face Strength"
 msgstr "Yüz Gücünü Ayarla"
 
 
-msgid "Merge"
-msgstr "Birleştir"
-
-
 msgid "Adjust"
 msgstr "Ayarlamak"
+
+
+msgid "Merge"
+msgstr "Birleştir"
 
 
 msgid "Keying"
@@ -29113,12 +29101,24 @@ msgid "Math"
 msgstr "Matematik"
 
 
+msgid "UV Mapping"
+msgstr "UV Haritalama"
+
+
 msgid "Special Characters"
 msgstr "Özel Karakterler"
 
 
 msgid "Kerning"
 msgstr "Harf aralığı"
+
+
+msgid "Snap"
+msgstr "Yakala"
+
+
+msgid "Mirror"
+msgstr "Yansıtma"
 
 
 msgid "Text"
@@ -29135,10 +29135,6 @@ msgstr "Kemik Rulosu"
 
 msgid "Pivot Point"
 msgstr "Pivot Noktası"
-
-
-msgid "Snap"
-msgstr "Yakala"
 
 
 msgid "Proportional Editing Falloff"
@@ -29171,38 +29167,6 @@ msgstr "Yazmak"
 
 msgid "Primitives"
 msgstr "İlkel"
-
-
-msgid "Mirror"
-msgstr "Yansıtma"
-
-
-msgid "UV Mapping"
-msgstr "UV Haritalama"
-
-
-msgid "Local View"
-msgstr "Yerel Görünüm"
-
-
-msgid "Viewpoint"
-msgstr "Bakış açısı"
-
-
-msgid "Navigation"
-msgstr "Navigasyon"
-
-
-msgid "Align View"
-msgstr "Görünümü hizala"
-
-
-msgid "Align View to Active"
-msgstr "Görünümü Etkin Olarak Hizala"
-
-
-msgid "View Regions"
-msgstr "Bölgeleri Görüntüle"
 
 
 msgid "Select More/Less"
@@ -29253,6 +29217,10 @@ msgid "Light Probe"
 msgstr "Işık Sondası"
 
 
+msgid "View Regions"
+msgstr "Bölgeleri Görüntüle"
+
+
 msgid "Add Image"
 msgstr "Resim Ekle"
 
@@ -29263,6 +29231,10 @@ msgstr "İlişkiler"
 
 msgid "Rigid Body"
 msgstr "Sert Gövde"
+
+
+msgid "Align View to Active"
+msgstr "Görünümü Etkin Olarak Hizala"
 
 
 msgid "Keyframe Insert Pie"
@@ -29529,10 +29501,6 @@ msgstr "Tüm Seçilenlere"
 
 msgid "Use Node Name/Label"
 msgstr "Düğüm Adı/Etiketini Kullan"
-
-
-msgid "Use Outputs Names"
-msgstr "Çıktı Adlarını Kullan"
 
 
 msgid "Merge Selected Nodes using Geometry Nodes"
@@ -42814,6 +42782,10 @@ msgid "Diamond with inner dot"
 msgstr "İç noktalı elmas"
 
 
+msgid "Volume Grid"
+msgstr "Hacim Tablosu"
+
+
 msgid "Enable the socket"
 msgstr "Soketi etkinleştir"
 
@@ -42864,10 +42836,6 @@ msgstr "Mevcut değil"
 
 msgid "True if the socket is unavailable"
 msgstr "Soket kullanılamıyorsa doğru"
-
-
-msgid "Custom dynamic defined socket label"
-msgstr "Özel dinamik tanımlı soket etiketi"
 
 
 msgid "Link Limit"
@@ -44323,6 +44291,19 @@ msgid "Remove Item"
 msgstr "Öğeyi Kaldır"
 
 
+msgid "Link from this output"
+msgstr "Bu çıktıdan bağlantı"
+
+
+msgctxt "Operator"
+msgid "Make Link"
+msgstr "Bağlantı Yap"
+
+
+msgid "Make a link from one socket to another"
+msgstr "Bir soketten diğerine bağlantı yapın"
+
+
 msgctxt "Operator"
 msgid "Assign New Geometry Node Group"
 msgstr "Yeni Geometri Düğüm Grubu Ata"
@@ -44360,8 +44341,8 @@ msgstr "Bu adla bir Nitelik düğümü ekleyin"
 
 
 msgctxt "Operator"
-msgid "Add UV map"
-msgstr "UV haritası ekle"
+msgid "Add Attribute"
+msgstr "Öznitelik Ekle"
 
 
 msgctxt "Operator"
@@ -44388,10 +44369,6 @@ msgid "Principled Texture Setup"
 msgstr "İlkeli Doku Kurulumu"
 
 
-msgid "Align the selected nodes neatly in a row/column"
-msgstr "Seçili düğümleri bir satır/sütun halinde düzgün bir şekilde hizala"
-
-
 msgctxt "Operator"
 msgid "Align Nodes"
 msgstr "Düğümleri Hizala"
@@ -44411,15 +44388,6 @@ msgid "Reset Backdrop"
 msgstr "Arkaplanı Sıfırla"
 
 
-msgid "Link from this output"
-msgstr "Bu çıktıdan bağlantı"
-
-
-msgctxt "Operator"
-msgid "Make Link"
-msgstr "Bağlantı Yap"
-
-
 msgctxt "Operator"
 msgid "Clear Label"
 msgstr "Etiketi Temizle"
@@ -44428,10 +44396,6 @@ msgstr "Etiketi Temizle"
 msgctxt "Operator"
 msgid "Copy Label"
 msgstr "Etiketi Kopyala"
-
-
-msgid "Delete all nodes whose output is not used"
-msgstr "Çıktısı kullanılmayan tüm düğümleri sil"
 
 
 msgctxt "Operator"
@@ -44467,14 +44431,6 @@ msgid "Link Active Node to Selected"
 msgstr "Etkin Düğümü Seçili Düğüme Bağla"
 
 
-msgid "Link to Composite node or Material Output node"
-msgstr "Bileşik düğümüne veya Malzeme Çıktı düğümüne bağlantı"
-
-
-msgid "Make a link from one socket to another"
-msgstr "Bir soketten diğerine bağlantı yapın"
-
-
 msgctxt "Operator"
 msgid "Merge Nodes"
 msgstr "Düğümleri Birleştir"
@@ -44487,10 +44443,6 @@ msgstr "Tüm seçili düğümlerin etiketlerini değiştir"
 msgctxt "Operator"
 msgid "Modify Labels"
 msgstr "Etiketleri Değiştir"
-
-
-msgid "Reset Nodes in Selection"
-msgstr "Seçimdeki Düğümleri Sıfırla"
 
 
 msgid "Save the current viewer node to an image file"
@@ -46713,10 +46665,6 @@ msgstr "Yeni anahtarlar doğrusal olacak"
 
 msgid "New keys will be constant"
 msgstr "Yeni anahtarlar sabit olacak"
-
-
-msgid "The range in which to create new keys"
-msgstr "Yeni anahtarların oluşturulacağı aralık"
 
 
 msgid "Remove Outside Range"
@@ -52853,11 +52801,6 @@ msgstr "Bağlantıyı kaldır"
 
 msgid "Unlink active font data-block"
 msgstr "Etkin yazı tipi veri bloğunun bağlantısını kaldır"
-
-
-msgctxt "Operator"
-msgid "Add Attribute"
-msgstr "Öznitelik Ekle"
 
 
 msgid "Add attribute to geometry"
@@ -60444,10 +60387,6 @@ msgid "Copy color to all selected nodes"
 msgstr "Rengi seçili tüm düğümlere kopyala"
 
 
-msgid "Add Reroutes to outputs"
-msgstr "Çıktılara Yeniden Yönlendirmeler Ekle"
-
-
 msgid "Option"
 msgstr "Seçenek"
 
@@ -60476,16 +60415,8 @@ msgid "Add only to linked outputs"
 msgstr "Yalnızca bağlantılı çıktılara ekle"
 
 
-msgid "Add texture node setup to selected shaders"
-msgstr "Seçili gölgelendiricilere doku düğümü kurulumu ekleyin"
-
-
 msgid "Add Mapping Nodes"
 msgstr "Eşleme Düğümleri Ekle"
-
-
-msgid "Add texture node setup for Principled BSDF"
-msgstr "Principled BSDF için doku düğümü kurulumunu ekleyin"
 
 
 msgid "Folder to search in for image files"
@@ -60696,10 +60627,6 @@ msgid "Delete Muted"
 msgstr "Sessize Alınanları Sil"
 
 
-msgid "Delete (but reconnect, like Ctrl-X) all muted nodes"
-msgstr "Tüm sessize alınmış düğümleri sil (ancak Ctrl-X gibi yeniden bağla)"
-
-
 msgid "Change factors of Mix nodes and Mix Shader nodes"
 msgstr "Mix düğümlerinin ve Mix Shader düğümlerinin faktörlerini değiştirin"
 
@@ -60714,10 +60641,6 @@ msgstr "Kullanılacak Birleştirme Türü"
 
 msgid "Automatic output type detection"
 msgstr "Otomatik çıkış türü algılama"
-
-
-msgid "Merge using ADD or MIX Shader"
-msgstr "ADD veya MIX Shader kullanarak birleştirme"
 
 
 msgid "Merge using Mesh Boolean or Join Geometry nodes"
@@ -60738,14 +60661,6 @@ msgstr "Matematik Düğümü"
 
 msgid "Merge using Math nodes"
 msgstr "Matematik düğümlerini kullanarak birleştirme"
-
-
-msgid "Z-Combine Node"
-msgstr "Z-Kombine Düğümü"
-
-
-msgid "Merge using Z-Combine nodes"
-msgstr "Z-Combine düğümlerini kullanarak birleştirme"
 
 
 msgid "Alpha Over Node"
@@ -60794,10 +60709,6 @@ msgstr "Yüksek Çözünürlüklü (HDR)"
 
 msgid "TIFF"
 msgstr "TIFF"
-
-
-msgid "Select members of selected frame"
-msgstr "Seçili çerçevenin üyelerini seç"
 
 
 msgctxt "Operator"
@@ -67593,6 +67504,10 @@ msgid "Move selected area edges"
 msgstr "Seçili alan kenarlarını taşı"
 
 
+msgid "Snapping"
+msgstr "Çıtlama"
+
+
 msgctxt "Operator"
 msgid "Area Options"
 msgstr "Area Options"
@@ -68119,10 +68034,6 @@ msgid "Use Face Sets"
 msgstr "Yüz Setlerini Kullan"
 
 
-msgid "Apply the filter only to the Face Set under the cursor"
-msgstr "Filtreyi yalnızca imlecin altındaki Yüz Setine uygulayın"
-
-
 msgctxt "Operator"
 msgid "Filter Color"
 msgstr "Filter Color"
@@ -68292,10 +68203,6 @@ msgid "Modify Active"
 msgstr "Aktif'i Değiştir"
 
 
-msgid "Modify the active Face Set instead of creating a new one"
-msgstr "Yeni bir tane oluşturmak yerine etkin Yüz Setini değiştirin"
-
-
 msgid "Reposition Pivot"
 msgstr "Pivotu Yeniden Konumlandır"
 
@@ -68310,24 +68217,12 @@ msgid "Face Sets Visibility"
 msgstr "Yüz Setleri Görünürlüğü"
 
 
-msgid "Change the visibility of the Face Sets of the sculpt"
-msgstr "Heykelin Yüz Setlerinin görünürlüğünü değiştirin"
-
-
 msgid "Toggle Visibility"
 msgstr "Görünürlüğü Değiştir"
 
 
-msgid "Hide all Face Sets except for the active one"
-msgstr "Etkin olan hariç tüm Yüz Setlerini gizle"
-
-
 msgid "Show Active Face Set"
 msgstr "Aktif Yüz Setini Göster"
-
-
-msgid "Hide Active Face Sets"
-msgstr "Aktif Yüz Setlerini Gizle"
 
 
 msgctxt "Operator"
@@ -68335,28 +68230,12 @@ msgid "Edit Face Set"
 msgstr "Yüz Setini Düzenle"
 
 
-msgid "Edits the current active Face Set"
-msgstr "Mevcut etkin Yüz Setini düzenler"
-
-
 msgid "Grow Face Set"
 msgstr "Büyüyen Yüz Seti"
 
 
-msgid "Grows the Face Sets boundary by one face based on mesh topology"
-msgstr "Yüz Kümeleri sınırını, ağ topolojisine göre bir yüz kadar büyütür"
-
-
 msgid "Shrink Face Set"
 msgstr "Küçültülmüş Yüz Seti"
-
-
-msgid "Shrinks the Face Sets boundary by one face based on mesh topology"
-msgstr "Yüz Kümelerini, ağ topolojisine göre bir yüz kadar daraltır"
-
-
-msgid "Deletes the faces that are assigned to the Face Set"
-msgstr "Yüz Setine atanmış yüzleri siler"
 
 
 msgid "Fair Positions"
@@ -68378,10 +68257,6 @@ msgstr "Düzenleme işlemini gizli geometriye uygulayın"
 msgctxt "Operator"
 msgid "Face Set Extract"
 msgstr "Yüz Seti Özü"
-
-
-msgid "Create a new mesh object from the selected Face Set"
-msgstr "Seçili Yüz Setinden yeni bir ağ nesnesi oluşturun"
 
 
 msgid "Add Boundary Loop"
@@ -68423,40 +68298,20 @@ msgid "Create Face Set"
 msgstr "Yüz Seti Oluştur"
 
 
-msgid "Create a new Face Set"
-msgstr "Yeni bir Yüz Seti Oluştur"
-
-
 msgid "Face Set from Masked"
 msgstr "Maskeli Yüz Seti"
-
-
-msgid "Create a new Face Set from the masked faces"
-msgstr "Maskelenmiş yüzlerden yeni bir Yüz Seti oluşturun"
 
 
 msgid "Face Set from Visible"
 msgstr "Görünürden Yüz Ayarı"
 
 
-msgid "Create a new Face Set from the visible vertices"
-msgstr "Görünür köşelerden yeni bir Yüz Seti oluşturun"
-
-
 msgid "Face Set Full Mesh"
 msgstr "Yüz Seti Tam Örgü"
 
 
-msgid "Create an unique Face Set with all faces in the sculpt"
-msgstr "Heykeldeki tüm yüzleri içeren benzersiz bir Yüz Seti yaratın"
-
-
 msgid "Face Set from Edit Mode Selection"
 msgstr "Düzenleme Modu Seçiminden Yüz Ayarı"
-
-
-msgid "Create an Face Set corresponding to the Edit Mode face selection"
-msgstr "Düzenleme Modu yüz seçimine karşılık gelen bir Yüz Seti oluşturun"
 
 
 msgctxt "Operator"
@@ -68464,72 +68319,36 @@ msgid "Init Face Sets"
 msgstr "Init Yüz Setleri"
 
 
-msgid "Initializes all Face Sets in the mesh"
-msgstr "Ağdaki tüm Yüz Setlerini başlatır"
-
-
 msgid "Face Sets from Loose Parts"
 msgstr "Gevşek Parçalardan Yüz Setleri"
-
-
-msgid "Create a Face Set per loose part in the mesh"
-msgstr "Ağdaki her gevşek parça için bir Yüz Seti oluşturun"
 
 
 msgid "Face Sets from Material Slots"
 msgstr "Malzeme Yuvalarından Yüz Setleri"
 
 
-msgid "Create a Face Set per Material Slot"
-msgstr "Malzeme Yuvası başına bir Yüz Seti Oluşturun"
-
-
 msgid "Face Sets from Mesh Normals"
 msgstr "Mesh Normallerinden Yüz Setleri"
-
-
-msgid "Create Face Sets for Faces that have similar normal"
-msgstr "Benzer normal özelliklere sahip Yüzler için Yüz Setleri Oluşturun"
 
 
 msgid "Face Sets from UV Seams"
 msgstr "UV Dikişlerden Yüz Setleri"
 
 
-msgid "Create Face Sets using UV Seams as boundaries"
-msgstr "Sınır olarak UV Dikişlerini kullanarak Yüz Setleri Oluşturun"
-
-
 msgid "Face Sets from Edge Creases"
 msgstr "Kenar Kırışıklıklarından Yüz Setleri"
-
-
-msgid "Create Face Sets using Edge Creases as boundaries"
-msgstr "Sınır olarak Kenar Kırışıklıklarını kullanarak Yüz Setleri Oluşturun"
 
 
 msgid "Face Sets from Bevel Weight"
 msgstr "Bevel Weight'dan Yüz Setleri"
 
 
-msgid "Create Face Sets using Bevel Weights as boundaries"
-msgstr "Sınır olarak Eğim Ağırlıklarını kullanarak Yüz Setleri Oluşturun"
-
-
 msgid "Face Sets from Sharp Edges"
 msgstr "Sharp Edges'ten Yüz Setleri"
 
 
-msgid "Create Face Sets using Sharp Edges as boundaries"
-msgstr "Sınır olarak Keskin Kenarları kullanarak Yüz Setleri Oluşturun"
-
-
 msgid "Face Sets from Face Set Boundaries"
 msgstr "Yüz Kümesi Sınırlarından Yüz Kümeleri"
-
-
-msgid "Create a Face Set per isolated Face Set"
-msgstr "Yalıtılmış Yüz Seti başına bir Yüz Seti oluşturun"
 
 
 msgctxt "Operator"
@@ -68789,10 +68608,6 @@ msgstr "Rahatlatıcı ağ"
 msgctxt "Operator"
 msgid "Relax Face Sets"
 msgstr "Rahatlatıcı Yüz Setleri"
-
-
-msgid "Smooth the edges of all the Face Sets"
-msgstr "Tüm Yüz Setlerinin kenarlarını düzeltin"
 
 
 msgctxt "Operator"
@@ -76483,10 +76298,6 @@ msgid "Curve Edit Mode"
 msgstr "Eğri Düzenleme Modu"
 
 
-msgid "Snapping"
-msgstr "Çıtlama"
-
-
 msgid "Transform Orientations"
 msgstr "Dönüştürme Yönlendirmeleri"
 
@@ -82819,54 +82630,6 @@ msgstr "POT Dosya Yolu"
 
 msgid "Path to the pot template file"
 msgstr "Tencere şablon dosyasına giden yol"
-
-
-msgid "Naming Components for alpha maps"
-msgstr "Alfa haritaları için Bileşenleri Adlandırma"
-
-
-msgid "Naming Components for AO maps"
-msgstr "AO haritaları için Bileşenleri Adlandırma"
-
-
-msgid "Naming Components for Base Color maps"
-msgstr "Temel Renk haritaları için Bileşenleri Adlandırma"
-
-
-msgid "Naming Components for bump maps"
-msgstr "Çarpma haritaları için Bileşenleri Adlandırma"
-
-
-msgid "Naming Components for displacement maps"
-msgstr "Yer değiştirme haritaları için Bileşenleri Adlandırma"
-
-
-msgid "Naming Components for emission maps"
-msgstr "Emisyon haritaları için Bileşenlerin Adlandırılması"
-
-
-msgid "Naming Components for glossy maps"
-msgstr "Parlak haritalar için Bileşenleri Adlandırma"
-
-
-msgid "Naming Components for metallness maps"
-msgstr "Metallik haritaları için Bileşenlerin Adlandırılması"
-
-
-msgid "Naming Components for Normal maps"
-msgstr "Normal haritalar için Bileşenleri Adlandırma"
-
-
-msgid "Naming Components for roughness maps"
-msgstr "Pürüzlülük haritaları için Bileşenleri Adlandırma"
-
-
-msgid "Naming Components for Specular maps"
-msgstr "Specular haritalar için Bileşenleri Adlandırma"
-
-
-msgid "Naming Components for transmission maps"
-msgstr "İletim haritaları için Bileşenleri Adlandırma"
 
 
 msgid "Python expression to be evaluated as the initial node setting"
@@ -91627,14 +91390,6 @@ msgid "Theme settings for the Dope Sheet"
 msgstr "Döküm Kağıdı için tema ayarları"
 
 
-msgid "Interpolation Line"
-msgstr "İnterpolasyon Hattı"
-
-
-msgid "Color of lines showing non-Bézier interpolation modes"
-msgstr "Bézier dışı enterpolasyon modlarını gösteren çizgilerin rengi"
-
-
 msgid "Keyframe Border"
 msgstr "Anahtar kare kenarlığı"
 
@@ -95178,10 +94933,6 @@ msgstr "Birim ağacındaki düğümler için sınırlayıcı kutuları görünt�
 
 msgid "Display points for nodes in the volume tree"
 msgstr "Birim ağacındaki düğümler için noktaları görüntüle"
-
-
-msgid "Volume Grid"
-msgstr "Hacim Tablosu"
 
 
 msgid "3D volume grid"
@@ -99038,10 +98789,6 @@ msgid "Requires Intel GPU with Xe-HPG architecture"
 msgstr "Xe-HPG mimarisine sahip Intel GPU gerektirir"
 
 
-msgid "and AMD driver version %s or newer"
-msgstr "ve AMD sürücü sürümü %s veya daha yenisi"
-
-
 msgid "and Windows driver version %s or newer"
 msgstr "ve Windows sürücü sürümü %s veya daha yenisi"
 
@@ -99493,14 +99240,6 @@ msgid "Add Principled Setup"
 msgstr "İlkeli Kurulum Ekle"
 
 
-msgid "(Quick access: Shift+W)"
-msgstr "(Hızlı erişim: Shift+W)"
-
-
-msgid "To Socket"
-msgstr "Sokete takmak için"
-
-
 msgctxt "Operator"
 msgid "Settings from Active"
 msgstr "Ayarlar Aktif'ten"
@@ -99517,16 +99256,6 @@ msgstr "Bağlantıları Değiştir"
 
 
 msgctxt "Operator"
-msgid "Select frame's members (children)"
-msgstr "Çerçevenin üyelerini (çocuklarını) seçin"
-
-
-msgctxt "Operator"
-msgid "Select parent frame"
-msgstr "Üst çerçeveyi seçin"
-
-
-msgctxt "Operator"
 msgid "Reset Nodes in Frame"
 msgstr "Çerçevedeki Düğümleri Sıfırla"
 
@@ -99538,11 +99267,6 @@ msgstr "Düğümü Sıfırla"
 
 msgid "Use Shaders"
 msgstr "Gölgelendiricileri Kullanın"
-
-
-msgctxt "Operator"
-msgid "Use Z-Combine Nodes"
-msgstr "Z-Combine Düğümlerini Kullanın"
 
 
 msgctxt "Operator"
@@ -99686,6 +99410,10 @@ msgstr "Göz ardı edildi {}"
 
 msgid "This node has no input connections to swap"
 msgstr "Bu düğümün takas edilecek giriş bağlantısı yok"
+
+
+msgid "To Socket"
+msgstr "Sokete takmak için"
 
 
 msgid "Edit tags for auto texture detection in Principled BSDF setup"
@@ -100740,8 +100468,8 @@ msgid "No camera found"
 msgstr "Kamera bulunamadı"
 
 
-msgid "Other object is not a mesh"
-msgstr "Diğer nesne bir ağ değil"
+msgid "Expected one other selected mesh object to copy from"
+msgstr "Kopyalanacak başka bir seçili ağ nesnesi bekleniyordu"
 
 
 msgid "Other object has no shape key"
@@ -100762,10 +100490,6 @@ msgstr "'{:s}' atlanıyor, bir ağ değil"
 
 msgid "Skipping '{:s}', vertex count differs"
 msgstr "'{:s}' atlandığında, tepe noktası sayısı farklı olur"
-
-
-msgid "Expected one other selected mesh object to copy from"
-msgstr "Kopyalanacak başka bir seçili ağ nesnesi bekleniyordu"
 
 
 msgid "No animation data to convert on object: {!r}"
@@ -104218,10 +103942,6 @@ msgstr "Yüz"
 msgctxt "Operator"
 msgid "Zoom 1:1"
 msgstr "Yakınlaştırma 1:1"
-
-
-msgid "Image*"
-msgstr "Görsel*"
 
 
 msgid "Repeat Image"
@@ -113619,18 +113339,6 @@ msgid "multi-res modifier"
 msgstr "çoklu çözünürlük değiştirici"
 
 
-msgid "vertex data"
-msgstr "tepe noktası verileri"
-
-
-msgid "edge data"
-msgstr "kenar verisi"
-
-
-msgid "face data"
-msgstr "yüz verisi"
-
-
 msgid "constructive modifier"
 msgstr "yapıcı sıfat"
 
@@ -116098,10 +115806,6 @@ msgstr "Dope Sheet Editor'da döndürme desteklenmiyor"
 
 msgid "Shear: %s %s"
 msgstr "Kesme: %s %s"
-
-
-msgid "Shear: %.3f %s"
-msgstr "Kesme: %.3f %s"
 
 
 msgid "Shear Axis"
@@ -120362,12 +120066,12 @@ msgid "Number of subdivisions on top of the basic icosahedron"
 msgstr "Temel ikosahedron üzerindeki alt bölümlerin sayısı"
 
 
-msgid "Start Location"
-msgstr "Başlangıç Konumu"
-
-
 msgid "End Location"
 msgstr "Son Konum"
+
+
+msgid "Start Location"
+msgstr "Başlangıç Konumu"
 
 
 msgid "Number of vertices on the line"

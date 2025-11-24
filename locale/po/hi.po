@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-10 09:45+0000\n"
+"POT-Creation-Date: 2025-11-24 08:35+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -363,6 +363,50 @@ msgid "X Position"
 msgstr "स्थिति x"
 
 
+msgid "Brushes"
+msgstr "तूलिका"
+
+
+msgid "Fonts"
+msgstr "मुद्र्"
+
+
+msgid "Grease Pencil"
+msgstr "तैलीय पेंसिल"
+
+
+msgid "Images"
+msgstr "छवि"
+
+
+msgid "Lights"
+msgstr "प्रकाश"
+
+
+msgid "Masks"
+msgstr "आवरण"
+
+
+msgid "Materials"
+msgstr "पदार्थ"
+
+
+msgid "Objects"
+msgstr "वस्तु्ए"
+
+
+msgid "Scenes"
+msgstr "दृश्य"
+
+
+msgid "Sounds"
+msgstr "ध्वनि"
+
+
+msgid "Texts"
+msgstr "पाठ"
+
+
 msgid "Display Filter"
 msgstr "निस्पादक प्रदर्शित करें"
 
@@ -471,18 +515,6 @@ msgid "Weight"
 msgstr "भार"
 
 
-msgid "Brushes"
-msgstr "तूलिका"
-
-
-msgid "Grease Pencil"
-msgstr "तैलीय पेंसिल"
-
-
-msgid "Images"
-msgstr "छवि"
-
-
 msgid "File Has Unsaved Changes"
 msgstr "संचिका बिना सहेजे परिवर्तन हैं"
 
@@ -503,36 +535,8 @@ msgid "Libraries"
 msgstr "लायब्रेरीज़"
 
 
-msgid "Lights"
-msgstr "प्रकाश"
-
-
-msgid "Masks"
-msgstr "आवरण"
-
-
-msgid "Materials"
-msgstr "पदार्थ"
-
-
-msgid "Objects"
-msgstr "वस्तु्ए"
-
-
-msgid "Scenes"
-msgstr "दृश्य"
-
-
 msgid "Screens"
 msgstr "चित्रपट"
-
-
-msgid "Sounds"
-msgstr "ध्वनि"
-
-
-msgid "Texts"
-msgstr "पाठ"
 
 
 msgid "Window Managers"
@@ -1381,10 +1385,6 @@ msgstr "लट"
 
 msgid "2D"
 msgstr "द्वि-आयाम"
-
-
-msgid "Fonts"
-msgstr "मुद्र्"
 
 
 msgid "Save"
@@ -2572,6 +2572,10 @@ msgid "Mask"
 msgstr "आवरण"
 
 
+msgid "Apply"
+msgstr "लागू करें"
+
+
 msgid "Track"
 msgstr "ट्रैक"
 
@@ -2596,10 +2600,6 @@ msgid "Names"
 msgstr "नाम"
 
 
-msgid "Apply"
-msgstr "लागू करें"
-
-
 msgid "Toggle Bone Options"
 msgstr "हड्डी विकल्प बंद/बुझ"
 
@@ -2620,20 +2620,20 @@ msgid "Math"
 msgstr "गणित"
 
 
-msgid "Text"
-msgstr "पाठ"
-
-
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
-
-
 msgid "Snap"
 msgstr "स्नैप"
 
 
 msgid "Mirror"
 msgstr "दर्पण"
+
+
+msgid "Text"
+msgstr "पाठ"
+
+
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
 
 
 msgid "Import"
@@ -5399,10 +5399,6 @@ msgstr "किनारा"
 msgctxt "Operator"
 msgid "Face"
 msgstr "फलक"
-
-
-msgid "Image*"
-msgstr "छवि *"
 
 
 msgctxt "Operator"

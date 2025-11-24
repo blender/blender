@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-10 09:45+0000\n"
+"POT-Creation-Date: 2025-11-24 08:35+0000\n"
 "PO-Revision-Date: 2025-07-23 14:52+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -561,6 +561,82 @@ msgid "Options"
 msgstr "Opties"
 
 
+msgid "Actions"
+msgstr "Acties"
+
+
+msgid "Annotations"
+msgstr "Annotaties"
+
+
+msgid "Armatures"
+msgstr "Skeletten"
+
+
+msgid "Brushes"
+msgstr "Kwasten"
+
+
+msgid "Cameras"
+msgstr "Camera's"
+
+
+msgid "Curves"
+msgstr "Krommes"
+
+
+msgid "Fonts"
+msgstr "Lettertypen"
+
+
+msgid "Grease Pencil"
+msgstr "Vetkrijt"
+
+
+msgid "Collections"
+msgstr "Collecties"
+
+
+msgid "Images"
+msgstr "Afbeeldingen"
+
+
+msgid "Lights"
+msgstr "Lichten"
+
+
+msgid "Materials"
+msgstr "Materialen"
+
+
+msgid "Objects"
+msgstr "Objecten"
+
+
+msgid "Palettes"
+msgstr "Paletten"
+
+
+msgid "Particles Settings"
+msgstr "Deeltjes Instellingen"
+
+
+msgid "Sounds"
+msgstr "Geluiden"
+
+
+msgid "Speakers"
+msgstr "Luidsprekers"
+
+
+msgid "Texts"
+msgstr "Teksten"
+
+
+msgid "Worlds"
+msgstr "Werelden"
+
+
 msgid "Data Type"
 msgstr "Data Type"
 
@@ -669,44 +745,12 @@ msgid "Weight"
 msgstr "Invloed"
 
 
-msgid "Actions"
-msgstr "Acties"
-
-
 msgid "Annotation"
 msgstr "Annotatie"
 
 
-msgid "Armatures"
-msgstr "Skeletten"
-
-
-msgid "Brushes"
-msgstr "Kwasten"
-
-
-msgid "Cameras"
-msgstr "Camera's"
-
-
-msgid "Collections"
-msgstr "Collecties"
-
-
-msgid "Curves"
-msgstr "Krommes"
-
-
 msgid "Filename"
 msgstr "Bestandsnaam"
-
-
-msgid "Grease Pencil"
-msgstr "Vetkrijt"
-
-
-msgid "Images"
-msgstr "Afbeeldingen"
 
 
 msgid "File Has Unsaved Changes"
@@ -721,44 +765,12 @@ msgid "Libraries"
 msgstr "Bibliotheken"
 
 
-msgid "Lights"
-msgstr "Lichten"
-
-
-msgid "Materials"
-msgstr "Materialen"
-
-
-msgid "Objects"
-msgstr "Objecten"
-
-
-msgid "Palettes"
-msgstr "Paletten"
-
-
 msgid "Particles"
 msgstr "Deeltjes"
 
 
-msgid "Sounds"
-msgstr "Geluiden"
-
-
-msgid "Speakers"
-msgstr "Luidsprekers"
-
-
-msgid "Texts"
-msgstr "Teksten"
-
-
 msgid "Version"
 msgstr "Versie"
-
-
-msgid "Worlds"
-msgstr "Werelden"
 
 
 msgid "Collection of actions"
@@ -1582,18 +1594,6 @@ msgstr "Verloop"
 
 msgid "2D"
 msgstr "2D"
-
-
-msgid "Annotations"
-msgstr "Annotaties"
-
-
-msgid "Fonts"
-msgstr "Lettertypen"
-
-
-msgid "Particles Settings"
-msgstr "Deeltjes Instellingen"
 
 
 msgid "Save"
@@ -2686,6 +2686,10 @@ msgid "Quick Effects"
 msgstr "Snelle Effecten"
 
 
+msgid "Navigation"
+msgstr "Navigatie"
+
+
 msgid "Show/Hide"
 msgstr "Toon/Verberg"
 
@@ -2696,6 +2700,10 @@ msgstr "Converteer"
 
 msgid "Hooks"
 msgstr "Haken"
+
+
+msgid "Local View"
+msgstr "Lokale Scherm"
 
 
 msgid "Clear Transform"
@@ -2710,20 +2718,12 @@ msgid "Layout"
 msgstr "Indeling"
 
 
-msgid "Text"
-msgstr "Tekst"
-
-
 msgid "Mirror"
 msgstr "Spiegel"
 
 
-msgid "Local View"
-msgstr "Lokale Scherm"
-
-
-msgid "Navigation"
-msgstr "Navigatie"
+msgid "Text"
+msgstr "Tekst"
 
 
 msgid "Select Similar"

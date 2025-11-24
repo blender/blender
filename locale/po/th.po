@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-10 09:45+0000\n"
+"POT-Creation-Date: 2025-11-24 08:35+0000\n"
 "PO-Revision-Date: 2025-07-23 15:06+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -478,6 +478,42 @@ msgid "ID Name"
 msgstr "ชื่อ ID"
 
 
+msgid "Cameras"
+msgstr "กล้อง"
+
+
+msgid "Fonts"
+msgstr "ฟอนต์"
+
+
+msgid "Lights"
+msgstr "แสง"
+
+
+msgid "Materials"
+msgstr "วัสดุ"
+
+
+msgid "Sounds"
+msgstr "เสียง"
+
+
+msgid "Texts"
+msgstr "ข้อความ"
+
+
+msgid "Textures"
+msgstr "พื้นผิว"
+
+
+msgid "Workspaces"
+msgstr "พื้นที่ใช้งาน"
+
+
+msgid "Worlds"
+msgstr "โลก"
+
+
 msgid "Data Type"
 msgstr "ชนิดข้อมูล"
 
@@ -554,10 +590,6 @@ msgid "Weight"
 msgstr "น้ำหนัก"
 
 
-msgid "Cameras"
-msgstr "กล้อง"
-
-
 msgid "Filename"
 msgstr "ชื่อไฟล์"
 
@@ -572,34 +604,6 @@ msgstr "ไฟล์มีการเปลี่ยนแปลงที่ย
 
 msgid "File is Saved"
 msgstr "ไฟล์ถูกบันทึกแล้ว"
-
-
-msgid "Lights"
-msgstr "แสง"
-
-
-msgid "Materials"
-msgstr "วัสดุ"
-
-
-msgid "Sounds"
-msgstr "เสียง"
-
-
-msgid "Texts"
-msgstr "ข้อความ"
-
-
-msgid "Textures"
-msgstr "พื้นผิว"
-
-
-msgid "Workspaces"
-msgstr "พื้นที่ใช้งาน"
-
-
-msgid "Worlds"
-msgstr "โลก"
 
 
 msgid "Main Cameras"
@@ -1069,10 +1073,6 @@ msgstr "โหมดพื้นผิว"
 
 msgid "2D"
 msgstr "สองมิติ"
-
-
-msgid "Fonts"
-msgstr "ฟอนต์"
 
 
 msgid "Save"
@@ -1853,20 +1853,36 @@ msgid "Mask"
 msgstr "หน้ากาก"
 
 
+msgid "Align View"
+msgstr "จัดมุมมอง"
+
+
+msgid "Apply"
+msgstr "นำไปใช้"
+
+
 msgid "Track"
 msgstr "แทร็ค"
+
+
+msgid "Navigation"
+msgstr "การนำทาง"
 
 
 msgid "Hooks"
 msgstr "ตะขอ"
 
 
+msgid "Viewpoint"
+msgstr "จุดของมุมมอง"
+
+
+msgid "Local View"
+msgstr "มุมมองท้องถิ่น"
+
+
 msgid "Names"
 msgstr "ชื่อ"
-
-
-msgid "Apply"
-msgstr "นำไปใช้"
 
 
 msgid "Layout"
@@ -1889,6 +1905,14 @@ msgid "Math"
 msgstr "คณิตศาสตร์"
 
 
+msgid "Snap"
+msgstr "ยึดติด"
+
+
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
+
+
 msgid "Text"
 msgstr "ช้อความ"
 
@@ -1901,44 +1925,12 @@ msgid "Pivot Point"
 msgstr "จุดหมุน"
 
 
-msgid "Snap"
-msgstr "ยึดติด"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "แก้ไข"
 
 
 msgid "Mask Edit"
 msgstr "การแก้ไขหน้ากาก"
-
-
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
-
-
-msgid "Local View"
-msgstr "มุมมองท้องถิ่น"
-
-
-msgid "Viewpoint"
-msgstr "จุดของมุมมอง"
-
-
-msgid "Navigation"
-msgstr "การนำทาง"
-
-
-msgid "Align View"
-msgstr "จัดมุมมอง"
-
-
-msgid "Align View to Active"
-msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
-
-
-msgid "View Regions"
-msgstr "ขอบเขตมุมมอง"
 
 
 msgid "Import"
@@ -1953,8 +1945,16 @@ msgid "Light"
 msgstr "แสง"
 
 
+msgid "View Regions"
+msgstr "ขอบเขตมุมมอง"
+
+
 msgid "Add Image"
 msgstr "เพิ่มภาพ"
+
+
+msgid "Align View to Active"
+msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
 
 
 msgid "Zoom"
@@ -4083,10 +4083,6 @@ msgstr "ขอบ"
 msgctxt "Operator"
 msgid "Face"
 msgstr "แผ่นผิว"
-
-
-msgid "Image*"
-msgstr "ภาพ*"
 
 
 msgid "Repeat Image"

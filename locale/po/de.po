@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-10 09:45+0000\n"
+"POT-Creation-Date: 2025-11-24 08:35+0000\n"
 "PO-Revision-Date: 2025-10-28 00:59+0000\n"
 "Last-Translator: Cedric Steiert <cedricsteiert@gmail.com>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -1328,6 +1328,270 @@ msgid "Options"
 msgstr "Optionen"
 
 
+msgid "Actions"
+msgstr "Aktionen"
+
+
+msgid "Show Action data-blocks"
+msgstr "Aktionen-Datenblöcke anzeigen"
+
+
+msgid "Annotations"
+msgstr "Anmerkungen"
+
+
+msgid "Armatures"
+msgstr "Skelette"
+
+
+msgid "Show Armature data-blocks"
+msgstr "Anker-Datenblöcke anzeigen"
+
+
+msgid "Brushes"
+msgstr "Pinsel"
+
+
+msgid "Show Brushes data-blocks"
+msgstr "Pinsel Datenblöcke anzeigen"
+
+
+msgid "Cache Files"
+msgstr "Pufferdateien"
+
+
+msgid "Show Cache File data-blocks"
+msgstr "Pufferdatei-Datenblöcke anzeigen"
+
+
+msgid "Cameras"
+msgstr "Kameras"
+
+
+msgid "Show Camera data-blocks"
+msgstr "Kamera-Datenblöcke anzeigen"
+
+
+msgid "Curves"
+msgstr "Kurven"
+
+
+msgid "Show Curve data-blocks"
+msgstr "Kurven-Datenblöcke anzeigen"
+
+
+msgid "Fonts"
+msgstr "Schriftarten"
+
+
+msgid "Show Font data-blocks"
+msgstr "Schrift-Datenblöcke anzeigen"
+
+
+msgid "Grease Pencil"
+msgstr "Wachsstift"
+
+
+msgid "Collections"
+msgstr "Sammlungen"
+
+
+msgid "Show Collection data-blocks"
+msgstr "Sammlungs-Datenblöcke anzeigen"
+
+
+msgid "Images"
+msgstr "Bilder"
+
+
+msgid "Show Image data-blocks"
+msgstr "Bild-Datenblöcke anzeigen"
+
+
+msgid "Lattices"
+msgstr "Gitter"
+
+
+msgid "Show Lattice data-blocks"
+msgstr "Gitter-Datenblöcke anzeigen"
+
+
+msgid "Lights"
+msgstr "Beleuchtung"
+
+
+msgid "Show Light data-blocks"
+msgstr "Licht-Datenblöcke anzeigen"
+
+
+msgid "Light Probes"
+msgstr "Lichtsonde"
+
+
+msgid "Show Light Probe data-blocks"
+msgstr "Lichtproben-Datenblöcke anzeigen"
+
+
+msgid "Freestyle Linestyles"
+msgstr "Freestyle Linienstile"
+
+
+msgid "Show Freestyle's Line Style data-blocks"
+msgstr "Freizeichnung Linien Style Datenblöcke anzeigen"
+
+
+msgid "Masks"
+msgstr "Masken"
+
+
+msgid "Show Mask data-blocks"
+msgstr "Maschendatenblöcke anzeigen"
+
+
+msgid "Materials"
+msgstr "Materialien"
+
+
+msgid "Show Material data-blocks"
+msgstr "Material-Datenblöcke anzeigen"
+
+
+msgid "Meshes"
+msgstr "Maschen"
+
+
+msgid "Show Mesh data-blocks"
+msgstr "Maschen Datenblöcke anzeigen"
+
+
+msgid "Metaballs"
+msgstr "Metaball"
+
+
+msgid "Show Metaball data-blocks"
+msgstr "Metaball-Datenblöcke anzeigen"
+
+
+msgid "Movie Clips"
+msgstr "Filme"
+
+
+msgid "Show Movie Clip data-blocks"
+msgstr "Film-Datenblöcke anzeigen"
+
+
+msgid "Node Trees"
+msgstr "Knotenbäume"
+
+
+msgid "Show Node Tree data-blocks"
+msgstr "Knotenbaum-Datenblöcke anzeigen"
+
+
+msgid "Objects"
+msgstr "Objekte"
+
+
+msgid "Show Object data-blocks"
+msgstr "Objekt-Datenblöcke anzeigen"
+
+
+msgid "Paint Curves"
+msgstr "Farbkurve"
+
+
+msgid "Show Paint Curve data-blocks"
+msgstr "Farbkurven-Datenblöcke anzeigen"
+
+
+msgid "Palettes"
+msgstr "Paletten"
+
+
+msgid "Show Palette data-blocks"
+msgstr "Paletten-Datenblöcke anzeigen"
+
+
+msgid "Particles Settings"
+msgstr "Partikeleinstellungen"
+
+
+msgid "Show Particle Settings data-blocks"
+msgstr "Partikeleinstellungen Datenblöcke anzeigen"
+
+
+msgid "Point Clouds"
+msgstr "Punkt Wolken"
+
+
+msgid "Show/hide Point Cloud data-blocks"
+msgstr "Punkt Wolken-Datenblöcke anzeigen/verstecken"
+
+
+msgid "Scenes"
+msgstr "Szenen"
+
+
+msgid "Show Scene data-blocks"
+msgstr "Szenen-Datenblöcke anzeigen"
+
+
+msgid "Sounds"
+msgstr "Klänge"
+
+
+msgid "Show Sound data-blocks"
+msgstr "Klang-Datenblöcke anzeigen"
+
+
+msgid "Speakers"
+msgstr "Lautsprecher"
+
+
+msgid "Show Speaker data-blocks"
+msgstr "Lautsprecher-Datenblöcke anzeigen"
+
+
+msgid "Texts"
+msgstr "Texte"
+
+
+msgid "Show Text data-blocks"
+msgstr "Text-Datenblöcke anzeigen"
+
+
+msgid "Textures"
+msgstr "Texturen"
+
+
+msgid "Show Texture data-blocks"
+msgstr "Textur-Datenblöcke anzeigen"
+
+
+msgid "Volumes"
+msgstr "Volumen"
+
+
+msgid "Show/hide Volume data-blocks"
+msgstr "Volumen-Datenblöcke anzeigen/verstecken"
+
+
+msgid "Workspaces"
+msgstr "Arbeitsbereiche"
+
+
+msgid "Show workspace data-blocks"
+msgstr "Arbeitsplatz-Datenblöcke anzeigen"
+
+
+msgid "Worlds"
+msgstr "Welten"
+
+
+msgid "Show World data-blocks"
+msgstr "Welt-Datenblöcke anzeigen"
+
+
 msgid "Display Filter"
 msgstr "Anzeigefilter"
 
@@ -1960,48 +2224,24 @@ msgid "Main data structure representing a .blend file and all its data-blocks"
 msgstr "Hauptstruktur repräsentiert eine .blend Datei und all ihre Datenblöcke"
 
 
-msgid "Actions"
-msgstr "Aktionen"
-
-
 msgid "Action data-blocks"
 msgstr "Aktionen-Datenblöcke"
-
-
-msgid "Armatures"
-msgstr "Skelette"
 
 
 msgid "Armature data-blocks"
 msgstr "Skelett-Datenblöcke"
 
 
-msgid "Brushes"
-msgstr "Pinsel"
-
-
 msgid "Brush data-blocks"
 msgstr "Pinsel-Datenblöcke"
-
-
-msgid "Cache Files"
-msgstr "Pufferdateien"
 
 
 msgid "Cache Files data-blocks"
 msgstr "Spicherdateidatenblöcke"
 
 
-msgid "Cameras"
-msgstr "Kameras"
-
-
 msgid "Camera data-blocks"
 msgstr "Kameradatenblöcke"
-
-
-msgid "Collections"
-msgstr "Sammlungen"
 
 
 msgid "Collection data-blocks"
@@ -2010,10 +2250,6 @@ msgstr "Sammlung-Datenblöcke"
 
 msgid "Color Space"
 msgstr "Farbraum"
-
-
-msgid "Curves"
-msgstr "Kurven"
 
 
 msgid "Curve data-blocks"
@@ -2036,14 +2272,6 @@ msgid "Vector font data-blocks"
 msgstr "Vektorschrift-Datenblöcke"
 
 
-msgid "Grease Pencil"
-msgstr "Wachsstift"
-
-
-msgid "Images"
-msgstr "Bilder"
-
-
 msgid "Image data-blocks"
 msgstr "Bild-Datenblöcke"
 
@@ -2064,10 +2292,6 @@ msgid "Has the current session been saved to disk as a .blend file"
 msgstr "Aktuelle Sitzung wurde als .blend-Datei auf der Festplatte gespeichert"
 
 
-msgid "Lattices"
-msgstr "Gitter"
-
-
 msgid "Lattice data-blocks"
 msgstr "Gitterdatenblöcke"
 
@@ -2080,16 +2304,8 @@ msgid "Library data-blocks"
 msgstr "Bibliothekdatenblöcke"
 
 
-msgid "Light Probes"
-msgstr "Lichtsonde"
-
-
 msgid "Light Probe data-blocks"
 msgstr "Lichtsondendatenblöcke"
-
-
-msgid "Lights"
-msgstr "Beleuchtung"
 
 
 msgid "Light data-blocks"
@@ -2104,40 +2320,20 @@ msgid "Line Style data-blocks"
 msgstr "Linienstildatenblöcke"
 
 
-msgid "Masks"
-msgstr "Masken"
-
-
 msgid "Masks data-blocks"
 msgstr "Masken-Datenblöcke"
-
-
-msgid "Materials"
-msgstr "Materialien"
 
 
 msgid "Material data-blocks"
 msgstr "Material-Datenblöcke"
 
 
-msgid "Meshes"
-msgstr "Maschen"
-
-
 msgid "Mesh data-blocks"
 msgstr "Maschendatenblöcke"
 
 
-msgid "Metaballs"
-msgstr "Metaball"
-
-
 msgid "Metaball data-blocks"
 msgstr "Metaballdatenblöcke"
-
-
-msgid "Movie Clips"
-msgstr "Filme"
 
 
 msgid "Movie Clip data-blocks"
@@ -2152,24 +2348,12 @@ msgid "Node group data-blocks"
 msgstr "Knotengruppendatenblöcke"
 
 
-msgid "Objects"
-msgstr "Objekte"
-
-
 msgid "Object data-blocks"
 msgstr "Objektdatenblöcke"
 
 
-msgid "Paint Curves"
-msgstr "Farbkurve"
-
-
 msgid "Paint Curves data-blocks"
 msgstr "Farbkurvendatenblöcke"
-
-
-msgid "Palettes"
-msgstr "Paletten"
 
 
 msgid "Palette data-blocks"
@@ -2184,16 +2368,8 @@ msgid "Particle data-blocks"
 msgstr "Partikeldatenblöcke"
 
 
-msgid "Point Clouds"
-msgstr "Punkt Wolken"
-
-
 msgid "Point cloud data-blocks"
 msgstr "Punkt Wolken Datenblöcke"
-
-
-msgid "Scenes"
-msgstr "Szenen"
 
 
 msgid "Scene data-blocks"
@@ -2216,32 +2392,16 @@ msgid "Shape Key data-blocks"
 msgstr "Formschlüssel-Datenblöcke"
 
 
-msgid "Sounds"
-msgstr "Klänge"
-
-
 msgid "Sound data-blocks"
 msgstr "Klang-Datenblöcke"
-
-
-msgid "Speakers"
-msgstr "Lautsprecher"
 
 
 msgid "Speaker data-blocks"
 msgstr "Lautsprecher-Datenblöcke"
 
 
-msgid "Texts"
-msgstr "Texte"
-
-
 msgid "Text data-blocks"
 msgstr "Text-Datenblöcke"
-
-
-msgid "Textures"
-msgstr "Texturen"
 
 
 msgid "Texture data-blocks"
@@ -2264,10 +2424,6 @@ msgid "File format version the .blend file was saved with"
 msgstr "Dateiformatversion die .blend Datei wurde gespeichert mit"
 
 
-msgid "Volumes"
-msgstr "Volumen"
-
-
 msgid "Volume data-blocks"
 msgstr "Volumen Datenblöcke"
 
@@ -2280,16 +2436,8 @@ msgid "Window manager data-blocks"
 msgstr "Fenstermanager-Datenblöcke"
 
 
-msgid "Workspaces"
-msgstr "Arbeitsbereiche"
-
-
 msgid "Workspace data-blocks"
 msgstr "Arbeitsbereich-Datenblöcke"
-
-
-msgid "Worlds"
-msgstr "Welten"
 
 
 msgid "World data-blocks"
@@ -9489,154 +9637,6 @@ msgstr "Wirkung in voller oder nur positiver/negativer Z-Richtung"
 
 msgid "Both Z"
 msgstr "Beide Z"
-
-
-msgid "Annotations"
-msgstr "Anmerkungen"
-
-
-msgid "Show Armature data-blocks"
-msgstr "Anker-Datenblöcke anzeigen"
-
-
-msgid "Show Cache File data-blocks"
-msgstr "Pufferdatei-Datenblöcke anzeigen"
-
-
-msgid "Show Camera data-blocks"
-msgstr "Kamera-Datenblöcke anzeigen"
-
-
-msgid "Show Curve data-blocks"
-msgstr "Kurven-Datenblöcke anzeigen"
-
-
-msgid "Fonts"
-msgstr "Schriftarten"
-
-
-msgid "Show Font data-blocks"
-msgstr "Schrift-Datenblöcke anzeigen"
-
-
-msgid "Show Image data-blocks"
-msgstr "Bild-Datenblöcke anzeigen"
-
-
-msgid "Show Lattice data-blocks"
-msgstr "Gitter-Datenblöcke anzeigen"
-
-
-msgid "Show Light data-blocks"
-msgstr "Licht-Datenblöcke anzeigen"
-
-
-msgid "Show Light Probe data-blocks"
-msgstr "Lichtproben-Datenblöcke anzeigen"
-
-
-msgid "Freestyle Linestyles"
-msgstr "Freestyle Linienstile"
-
-
-msgid "Show Freestyle's Line Style data-blocks"
-msgstr "Freizeichnung Linien Style Datenblöcke anzeigen"
-
-
-msgid "Show Mask data-blocks"
-msgstr "Maschendatenblöcke anzeigen"
-
-
-msgid "Show Mesh data-blocks"
-msgstr "Maschen Datenblöcke anzeigen"
-
-
-msgid "Show Metaball data-blocks"
-msgstr "Metaball-Datenblöcke anzeigen"
-
-
-msgid "Show Movie Clip data-blocks"
-msgstr "Film-Datenblöcke anzeigen"
-
-
-msgid "Show Paint Curve data-blocks"
-msgstr "Farbkurven-Datenblöcke anzeigen"
-
-
-msgid "Show Palette data-blocks"
-msgstr "Paletten-Datenblöcke anzeigen"
-
-
-msgid "Particles Settings"
-msgstr "Partikeleinstellungen"
-
-
-msgid "Show Particle Settings data-blocks"
-msgstr "Partikeleinstellungen Datenblöcke anzeigen"
-
-
-msgid "Show/hide Point Cloud data-blocks"
-msgstr "Punkt Wolken-Datenblöcke anzeigen/verstecken"
-
-
-msgid "Show Sound data-blocks"
-msgstr "Klang-Datenblöcke anzeigen"
-
-
-msgid "Show Speaker data-blocks"
-msgstr "Lautsprecher-Datenblöcke anzeigen"
-
-
-msgid "Show Text data-blocks"
-msgstr "Text-Datenblöcke anzeigen"
-
-
-msgid "Show Texture data-blocks"
-msgstr "Textur-Datenblöcke anzeigen"
-
-
-msgid "Show/hide Volume data-blocks"
-msgstr "Volumen-Datenblöcke anzeigen/verstecken"
-
-
-msgid "Show workspace data-blocks"
-msgstr "Arbeitsplatz-Datenblöcke anzeigen"
-
-
-msgid "Show Action data-blocks"
-msgstr "Aktionen-Datenblöcke anzeigen"
-
-
-msgid "Show Brushes data-blocks"
-msgstr "Pinsel Datenblöcke anzeigen"
-
-
-msgid "Show Collection data-blocks"
-msgstr "Sammlungs-Datenblöcke anzeigen"
-
-
-msgid "Show Material data-blocks"
-msgstr "Material-Datenblöcke anzeigen"
-
-
-msgid "Node Trees"
-msgstr "Knotenbäume"
-
-
-msgid "Show Node Tree data-blocks"
-msgstr "Knotenbaum-Datenblöcke anzeigen"
-
-
-msgid "Show Object data-blocks"
-msgstr "Objekt-Datenblöcke anzeigen"
-
-
-msgid "Show Scene data-blocks"
-msgstr "Szenen-Datenblöcke anzeigen"
-
-
-msgid "Show World data-blocks"
-msgstr "Welt-Datenblöcke anzeigen"
 
 
 msgid "File Select Parameters"
@@ -18706,12 +18706,24 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
+msgid "Align View"
+msgstr "Ansicht ausrichten"
+
+
+msgid "Apply"
+msgstr "Anwenden"
+
+
 msgid "Track"
 msgstr "Spur"
 
 
 msgid "Quick Effects"
 msgstr "Schnelle Effekte"
+
+
+msgid "Navigation"
+msgstr "Navigation"
 
 
 msgid "Show/Hide"
@@ -18742,6 +18754,14 @@ msgid "Vertex Group Locks"
 msgstr "Punktgruppen sperren"
 
 
+msgid "Viewpoint"
+msgstr "Ansicht"
+
+
+msgid "Local View"
+msgstr "Lokale Ansicht"
+
+
 msgid "Random Mask"
 msgstr "Zufällige Maske"
 
@@ -18756,10 +18776,6 @@ msgstr "Dazwischen"
 
 msgid "Names"
 msgstr "Namen"
-
-
-msgid "Apply"
-msgstr "Anwenden"
 
 
 msgid "Toggle Bone Options"
@@ -18810,6 +18826,14 @@ msgid "Kerning"
 msgstr "Kerning"
 
 
+msgid "Snap"
+msgstr "Einrasten"
+
+
+msgid "Mirror"
+msgstr "Spiegeln"
+
+
 msgid "Text"
 msgstr "Text"
 
@@ -18820,10 +18844,6 @@ msgstr "Metaball"
 
 msgid "Pivot Point"
 msgstr "Drehpunkt"
-
-
-msgid "Snap"
-msgstr "Einrasten"
 
 
 msgid "Proportional Editing Falloff"
@@ -18848,34 +18868,6 @@ msgstr "Schreiben"
 
 msgid "Primitives"
 msgstr "Grundkörper"
-
-
-msgid "Mirror"
-msgstr "Spiegeln"
-
-
-msgid "Local View"
-msgstr "Lokale Ansicht"
-
-
-msgid "Viewpoint"
-msgstr "Ansicht"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Ansicht ausrichten"
-
-
-msgid "Align View to Active"
-msgstr "Ansicht auf Aktiv ausrichten"
-
-
-msgid "View Regions"
-msgstr "Vierfenster Ansicht"
 
 
 msgid "Select More/Less"
@@ -18922,6 +18914,10 @@ msgid "Light Probe"
 msgstr "Lichtsonde"
 
 
+msgid "View Regions"
+msgstr "Vierfenster Ansicht"
+
+
 msgid "Add Image"
 msgstr "Bild hinzufügen"
 
@@ -18932,6 +18928,10 @@ msgstr "Beziehungen"
 
 msgid "Rigid Body"
 msgstr "Rigid Body"
+
+
+msgid "Align View to Active"
+msgstr "Ansicht auf Aktiv ausrichten"
 
 
 msgid "Assets"
@@ -24937,6 +24937,11 @@ msgid "Add Node Color Preset"
 msgstr "Spieleigenschaft hinzufügen"
 
 
+msgctxt "Operator"
+msgid "Add Attribute"
+msgstr "Attribut hinzufügen"
+
+
 msgid "Go to parent node tree"
 msgstr "Zum Elternknoten springen"
 
@@ -28985,11 +28990,6 @@ msgstr "Verknüpfung aufheben"
 
 msgid "Unlink active font data-block"
 msgstr "Aufheben der Verknüpfung des aktiven Schriftdatenblocks"
-
-
-msgctxt "Operator"
-msgid "Add Attribute"
-msgstr "Attribut hinzufügen"
 
 
 msgctxt "Operator"
@@ -35369,6 +35369,10 @@ msgid "Move Area Edges"
 msgstr "Bereichkanten verschieben"
 
 
+msgid "Snapping"
+msgstr "Einrasten"
+
+
 msgctxt "Operator"
 msgid "Area Options"
 msgstr "Bereichoptionen"
@@ -38958,10 +38962,6 @@ msgstr "Messung"
 
 msgid "Curve Edit Mode"
 msgstr "Kurven-Bearbeitungsmodus"
-
-
-msgid "Snapping"
-msgstr "Einrasten"
 
 
 msgid "Transform Orientations"
@@ -46355,10 +46355,6 @@ msgid "Theme settings for the Dope Sheet"
 msgstr "Themeneinstellungen für das DopeSheet"
 
 
-msgid "Interpolation Line"
-msgstr "Interpolationslinie"
-
-
 msgid "Keyframe Border"
 msgstr "Schlüsselbildrand"
 
@@ -48984,10 +48980,6 @@ msgid "No camera found"
 msgstr "Keine Kamera gefunden"
 
 
-msgid "Other object is not a mesh"
-msgstr "Anderes Objekt ist keine Masche"
-
-
 msgid "Active camera is not in this scene"
 msgstr "Aktive Kamera ist nicht in dieser Szene"
 
@@ -51183,10 +51175,6 @@ msgstr "Fläche"
 msgctxt "Operator"
 msgid "Zoom 1:1"
 msgstr "Zoom 1:1"
-
-
-msgid "Image*"
-msgstr "Bild*"
 
 
 msgid "Repeat Image"
@@ -55871,10 +55859,6 @@ msgid "Multipaint group is locked, aborting"
 msgstr "Mulitfarben Gruppe ist gesperrt, abbrechen"
 
 
-msgid "vertex data"
-msgstr "Knotenpfad"
-
-
 msgid "Active F-Curve"
 msgstr "Aktive F-Kurve"
 
@@ -57691,12 +57675,12 @@ msgid "The height of the cylinder"
 msgstr "Die Höhe von dem Zylinder"
 
 
-msgid "Start Location"
-msgstr "Startposition"
-
-
 msgid "End Location"
 msgstr "Endposition"
+
+
+msgid "Start Location"
+msgstr "Startposition"
 
 
 msgid "As Instance"

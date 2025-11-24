@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-10 09:45+0000\n"
+"POT-Creation-Date: 2025-11-24 08:35+0000\n"
 "PO-Revision-Date: 2025-07-23 15:08+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -1359,6 +1359,270 @@ msgid "Space Type"
 msgstr "Тип простору"
 
 
+msgid "Actions"
+msgstr "Дії"
+
+
+msgid "Show Action data-blocks"
+msgstr "Показ блоків даних Дії"
+
+
+msgid "Annotations"
+msgstr "Анотації"
+
+
+msgid "Armatures"
+msgstr "Арматури"
+
+
+msgid "Show Armature data-blocks"
+msgstr "Показ блоків даних Арматури"
+
+
+msgid "Brushes"
+msgstr "Пензлі"
+
+
+msgid "Show Brushes data-blocks"
+msgstr "Показ блоків даних Пензлів"
+
+
+msgid "Cache Files"
+msgstr "Файли кешу"
+
+
+msgid "Show Cache File data-blocks"
+msgstr "Показ блоків даних Файлу Кешу"
+
+
+msgid "Cameras"
+msgstr "Камери"
+
+
+msgid "Show Camera data-blocks"
+msgstr "Показ блоків даних Камери"
+
+
+msgid "Curves"
+msgstr "Криві"
+
+
+msgid "Show Curve data-blocks"
+msgstr "Показ блоків даних Кривої"
+
+
+msgid "Fonts"
+msgstr "Шрифти"
+
+
+msgid "Show Font data-blocks"
+msgstr "Показ блоків даних Шрифту"
+
+
+msgid "Grease Pencil"
+msgstr "Нарисний олівець"
+
+
+msgid "Collections"
+msgstr "Колекції"
+
+
+msgid "Show Collection data-blocks"
+msgstr "Показ блоків даних Колекції"
+
+
+msgid "Images"
+msgstr "Зображення"
+
+
+msgid "Show Image data-blocks"
+msgstr "Показ блоків даних Зображення"
+
+
+msgid "Lattices"
+msgstr "Ґратки"
+
+
+msgid "Show Lattice data-blocks"
+msgstr "Показ блоків даних Решітки"
+
+
+msgid "Lights"
+msgstr "Світло"
+
+
+msgid "Show Light data-blocks"
+msgstr "Показ блоків даних Освітлювача"
+
+
+msgid "Light Probes"
+msgstr "Проби Освітлення"
+
+
+msgid "Show Light Probe data-blocks"
+msgstr "Показ блоків даних Проби Освітлення"
+
+
+msgid "Freestyle Linestyles"
+msgstr "Стилі ліній Freestyle"
+
+
+msgid "Show Freestyle's Line Style data-blocks"
+msgstr "Показ блоків даних Стилю Лінії Freestyle"
+
+
+msgid "Masks"
+msgstr "Маски"
+
+
+msgid "Show Mask data-blocks"
+msgstr "Показ блоків даних Маски"
+
+
+msgid "Materials"
+msgstr "Матеріали"
+
+
+msgid "Show Material data-blocks"
+msgstr "Показ блоків даних Матеріалу"
+
+
+msgid "Meshes"
+msgstr "Сіті"
+
+
+msgid "Show Mesh data-blocks"
+msgstr "Показ блоків даних Сіті"
+
+
+msgid "Metaballs"
+msgstr "Метакулі"
+
+
+msgid "Show Metaball data-blocks"
+msgstr "Показ блоків даних Метаболу"
+
+
+msgid "Movie Clips"
+msgstr "Відеокліпи"
+
+
+msgid "Show Movie Clip data-blocks"
+msgstr "Показ блоків даних Відеокліпу"
+
+
+msgid "Node Trees"
+msgstr "Дерева вузлів"
+
+
+msgid "Show Node Tree data-blocks"
+msgstr "Показ блоків даних Дерева Вузлів"
+
+
+msgid "Objects"
+msgstr "Об'єкти"
+
+
+msgid "Show Object data-blocks"
+msgstr "Показ блоків даних Об'єкта"
+
+
+msgid "Paint Curves"
+msgstr "Криві малювання"
+
+
+msgid "Show Paint Curve data-blocks"
+msgstr "Показ блоків даних Кривої Малювання"
+
+
+msgid "Palettes"
+msgstr "Палітри"
+
+
+msgid "Show Palette data-blocks"
+msgstr "Показ блоків даних Палітри"
+
+
+msgid "Particles Settings"
+msgstr "Параметри частинок"
+
+
+msgid "Show Particle Settings data-blocks"
+msgstr "Показ блоків даних Устав Частинок"
+
+
+msgid "Point Clouds"
+msgstr "Хмари Точок"
+
+
+msgid "Show/hide Point Cloud data-blocks"
+msgstr "Показати/сховати блоки даних Хмари Точок"
+
+
+msgid "Scenes"
+msgstr "Сцени"
+
+
+msgid "Show Scene data-blocks"
+msgstr "Показ блоків даних Сцени"
+
+
+msgid "Sounds"
+msgstr "Звуки"
+
+
+msgid "Show Sound data-blocks"
+msgstr "Показ блоків даних Звуку"
+
+
+msgid "Speakers"
+msgstr "Гучномовці"
+
+
+msgid "Show Speaker data-blocks"
+msgstr "Показ блоків даних Гучномовця"
+
+
+msgid "Texts"
+msgstr "Тексти"
+
+
+msgid "Show Text data-blocks"
+msgstr "Показ блоків даних Тексту"
+
+
+msgid "Textures"
+msgstr "Текстури"
+
+
+msgid "Show Texture data-blocks"
+msgstr "Показ блоків даних Текстури"
+
+
+msgid "Volumes"
+msgstr "Об'єми"
+
+
+msgid "Show/hide Volume data-blocks"
+msgstr "Показати/сховати блоки даних Об'єму"
+
+
+msgid "Workspaces"
+msgstr "Робочі простори"
+
+
+msgid "Show workspace data-blocks"
+msgstr "Показ блоків даних робпростору"
+
+
+msgid "Worlds"
+msgstr "Світи"
+
+
+msgid "Show World data-blocks"
+msgstr "Показ блоків даних Світу"
+
+
 msgid "Display Filter"
 msgstr "Показати фільтр"
 
@@ -1955,10 +2219,6 @@ msgid "Main data structure representing a .blend file and all its data-blocks"
 msgstr "Головна структура даних, що являє собою blend-файл та всі його блоки даних"
 
 
-msgid "Actions"
-msgstr "Дії"
-
-
 msgid "Action data-blocks"
 msgstr "Блоки даних дій"
 
@@ -1967,40 +2227,20 @@ msgid "Annotation"
 msgstr "Анотація"
 
 
-msgid "Armatures"
-msgstr "Арматури"
-
-
 msgid "Armature data-blocks"
 msgstr "Блоки даних арматур"
-
-
-msgid "Brushes"
-msgstr "Пензлі"
 
 
 msgid "Brush data-blocks"
 msgstr "Блоки даних пензлів"
 
 
-msgid "Cache Files"
-msgstr "Файли кешу"
-
-
 msgid "Cache Files data-blocks"
 msgstr "Блоки даних файлів кешу"
 
 
-msgid "Cameras"
-msgstr "Камери"
-
-
 msgid "Camera data-blocks"
 msgstr "Блоки даних камер"
-
-
-msgid "Collections"
-msgstr "Колекції"
 
 
 msgid "Collection data-blocks"
@@ -2009,10 +2249,6 @@ msgstr "Блоки даних колекцій"
 
 msgid "Color Space"
 msgstr "Колірний простір"
-
-
-msgid "Curves"
-msgstr "Криві"
 
 
 msgid "Curve data-blocks"
@@ -2035,14 +2271,6 @@ msgid "Vector font data-blocks"
 msgstr "Блоки даних векторних шрифтів"
 
 
-msgid "Grease Pencil"
-msgstr "Нарисний олівець"
-
-
-msgid "Images"
-msgstr "Зображення"
-
-
 msgid "Image data-blocks"
 msgstr "Блоки даних зображень"
 
@@ -2063,10 +2291,6 @@ msgid "Has the current session been saved to disk as a .blend file"
 msgstr "Є поточна сесія, що буде записана на диск як blend-файл"
 
 
-msgid "Lattices"
-msgstr "Ґратки"
-
-
 msgid "Lattice data-blocks"
 msgstr "Блоки даних ґраток"
 
@@ -2079,16 +2303,8 @@ msgid "Library data-blocks"
 msgstr "Блоки даних бібліотек"
 
 
-msgid "Light Probes"
-msgstr "Проби Освітлення"
-
-
 msgid "Light Probe data-blocks"
 msgstr "Блоки даних Проби Освітлення"
-
-
-msgid "Lights"
-msgstr "Світло"
 
 
 msgid "Light data-blocks"
@@ -2103,40 +2319,20 @@ msgid "Line Style data-blocks"
 msgstr "Блоки даних стилів ліній"
 
 
-msgid "Masks"
-msgstr "Маски"
-
-
 msgid "Masks data-blocks"
 msgstr "Блоки даних масок"
-
-
-msgid "Materials"
-msgstr "Матеріали"
 
 
 msgid "Material data-blocks"
 msgstr "Блоки даних матеріалів"
 
 
-msgid "Meshes"
-msgstr "Сіті"
-
-
 msgid "Mesh data-blocks"
 msgstr "Блоки даних сітей"
 
 
-msgid "Metaballs"
-msgstr "Метакулі"
-
-
 msgid "Metaball data-blocks"
 msgstr "Блоки даних метакуль"
-
-
-msgid "Movie Clips"
-msgstr "Відеокліпи"
 
 
 msgid "Movie Clip data-blocks"
@@ -2151,24 +2347,12 @@ msgid "Node group data-blocks"
 msgstr "Блоки даних груп вузлів"
 
 
-msgid "Objects"
-msgstr "Об'єкти"
-
-
 msgid "Object data-blocks"
 msgstr "Блоки даних об'єктів"
 
 
-msgid "Paint Curves"
-msgstr "Криві малювання"
-
-
 msgid "Paint Curves data-blocks"
 msgstr "Блоки даних кривих малювання"
-
-
-msgid "Palettes"
-msgstr "Палітри"
 
 
 msgid "Palette data-blocks"
@@ -2181,14 +2365,6 @@ msgstr "Частинки"
 
 msgid "Particle data-blocks"
 msgstr "Блоки даних частинок"
-
-
-msgid "Point Clouds"
-msgstr "Хмари Точок"
-
-
-msgid "Scenes"
-msgstr "Сцени"
 
 
 msgid "Scene data-blocks"
@@ -2211,32 +2387,16 @@ msgid "Shape Key data-blocks"
 msgstr "Блоки даних ключів форми"
 
 
-msgid "Sounds"
-msgstr "Звуки"
-
-
 msgid "Sound data-blocks"
 msgstr "Блоки даних звуків"
-
-
-msgid "Speakers"
-msgstr "Гучномовці"
 
 
 msgid "Speaker data-blocks"
 msgstr "Блоки даних гучномовців"
 
 
-msgid "Texts"
-msgstr "Тексти"
-
-
 msgid "Text data-blocks"
 msgstr "Блоки даних тексту"
-
-
-msgid "Textures"
-msgstr "Текстури"
 
 
 msgid "Texture data-blocks"
@@ -2259,10 +2419,6 @@ msgid "File format version the .blend file was saved with"
 msgstr "Версія формату файлу, в який було збережено цей .blend файл"
 
 
-msgid "Volumes"
-msgstr "Об'єми"
-
-
 msgid "Volume data-blocks"
 msgstr "Блоки даних об'єму"
 
@@ -2275,16 +2431,8 @@ msgid "Window manager data-blocks"
 msgstr "Блоки даних віконних менеджерів"
 
 
-msgid "Workspaces"
-msgstr "Робочі простори"
-
-
 msgid "Workspace data-blocks"
 msgstr "Блоки даних робочих просторів"
-
-
-msgid "Worlds"
-msgstr "Світи"
 
 
 msgid "World data-blocks"
@@ -11070,154 +11218,6 @@ msgid "Both Z"
 msgstr "Обидва Z"
 
 
-msgid "Annotations"
-msgstr "Анотації"
-
-
-msgid "Show Armature data-blocks"
-msgstr "Показ блоків даних Арматури"
-
-
-msgid "Show Cache File data-blocks"
-msgstr "Показ блоків даних Файлу Кешу"
-
-
-msgid "Show Camera data-blocks"
-msgstr "Показ блоків даних Камери"
-
-
-msgid "Show Curve data-blocks"
-msgstr "Показ блоків даних Кривої"
-
-
-msgid "Fonts"
-msgstr "Шрифти"
-
-
-msgid "Show Font data-blocks"
-msgstr "Показ блоків даних Шрифту"
-
-
-msgid "Show Image data-blocks"
-msgstr "Показ блоків даних Зображення"
-
-
-msgid "Show Lattice data-blocks"
-msgstr "Показ блоків даних Решітки"
-
-
-msgid "Show Light data-blocks"
-msgstr "Показ блоків даних Освітлювача"
-
-
-msgid "Show Light Probe data-blocks"
-msgstr "Показ блоків даних Проби Освітлення"
-
-
-msgid "Freestyle Linestyles"
-msgstr "Стилі ліній Freestyle"
-
-
-msgid "Show Freestyle's Line Style data-blocks"
-msgstr "Показ блоків даних Стилю Лінії Freestyle"
-
-
-msgid "Show Mask data-blocks"
-msgstr "Показ блоків даних Маски"
-
-
-msgid "Show Mesh data-blocks"
-msgstr "Показ блоків даних Сіті"
-
-
-msgid "Show Metaball data-blocks"
-msgstr "Показ блоків даних Метаболу"
-
-
-msgid "Show Movie Clip data-blocks"
-msgstr "Показ блоків даних Відеокліпу"
-
-
-msgid "Show Paint Curve data-blocks"
-msgstr "Показ блоків даних Кривої Малювання"
-
-
-msgid "Show Palette data-blocks"
-msgstr "Показ блоків даних Палітри"
-
-
-msgid "Particles Settings"
-msgstr "Параметри частинок"
-
-
-msgid "Show Particle Settings data-blocks"
-msgstr "Показ блоків даних Устав Частинок"
-
-
-msgid "Show/hide Point Cloud data-blocks"
-msgstr "Показати/сховати блоки даних Хмари Точок"
-
-
-msgid "Show Sound data-blocks"
-msgstr "Показ блоків даних Звуку"
-
-
-msgid "Show Speaker data-blocks"
-msgstr "Показ блоків даних Гучномовця"
-
-
-msgid "Show Text data-blocks"
-msgstr "Показ блоків даних Тексту"
-
-
-msgid "Show Texture data-blocks"
-msgstr "Показ блоків даних Текстури"
-
-
-msgid "Show/hide Volume data-blocks"
-msgstr "Показати/сховати блоки даних Об'єму"
-
-
-msgid "Show workspace data-blocks"
-msgstr "Показ блоків даних робпростору"
-
-
-msgid "Show Action data-blocks"
-msgstr "Показ блоків даних Дії"
-
-
-msgid "Show Brushes data-blocks"
-msgstr "Показ блоків даних Пензлів"
-
-
-msgid "Show Collection data-blocks"
-msgstr "Показ блоків даних Колекції"
-
-
-msgid "Show Material data-blocks"
-msgstr "Показ блоків даних Матеріалу"
-
-
-msgid "Node Trees"
-msgstr "Дерева вузлів"
-
-
-msgid "Show Node Tree data-blocks"
-msgstr "Показ блоків даних Дерева Вузлів"
-
-
-msgid "Show Object data-blocks"
-msgstr "Показ блоків даних Об'єкта"
-
-
-msgid "Show Scene data-blocks"
-msgstr "Показ блоків даних Сцени"
-
-
-msgid "Show World data-blocks"
-msgstr "Показ блоків даних Світу"
-
-
 msgid "File Select Parameters"
 msgstr "Параметри вибору файлу"
 
@@ -15224,16 +15224,8 @@ msgid "Face Sets"
 msgstr "Набори граней"
 
 
-msgid "Creates a pose segment per face sets, starting from the active face set"
-msgstr "Створює сегмент пози по наборах граней, починаючи з активного набору граней"
-
-
 msgid "Face Sets FK"
 msgstr "Набори Граней ФК"
-
-
-msgid "Simulates an FK deformation using the Face Set under the cursor as control"
-msgstr "Симулює деформацію ФК, використовуючи Набір Граней під курсором як керувальник"
 
 
 msgid "Smooth Iterations"
@@ -15500,16 +15492,8 @@ msgid "Face Sets Boundary Automasking"
 msgstr "Автомаскування Рубежу Наборів Граней"
 
 
-msgid "Do not affect vertices that belong to a Face Set boundary"
-msgstr "Не впливати на вершини, що належать рубежу Набору Граней"
-
-
 msgid "Cavity Mask"
 msgstr "Маска Порожнинності"
-
-
-msgid "Affect only vertices that share Face Sets with the active vertex"
-msgstr "Впливати лише на вершини, що спільно належать до Наборів Граней з активною вершиною"
 
 
 msgid "Affect only vertices connected to the active vertex under the brush"
@@ -24761,14 +24745,6 @@ msgid "Available"
 msgstr "Доступний"
 
 
-msgid "Insert a keyframe for each of the BBone shape properties"
-msgstr "Вставити ключкадр для кожної властивості форми Б-кістки"
-
-
-msgid "BBone Shape"
-msgstr "Форма Б-кістки"
-
-
 msgid "Insert keyframes for additional location offset"
 msgstr "Вставити ключові кадри для додаткового переміщення"
 
@@ -26378,12 +26354,24 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
+msgid "Align View"
+msgstr "Вирівняти Огляд"
+
+
+msgid "Apply"
+msgstr "Застосувати"
+
+
 msgid "Track"
 msgstr "Стеження"
 
 
 msgid "Quick Effects"
 msgstr "Швидкі ефекти"
+
+
+msgid "Navigation"
+msgstr "Навігація"
 
 
 msgid "Show/Hide"
@@ -26418,6 +26406,14 @@ msgid "Vertex Group Locks"
 msgstr "Блокування Груп Вершин"
 
 
+msgid "Viewpoint"
+msgstr "Точка зору"
+
+
+msgid "Local View"
+msgstr "Огляд Локально"
+
+
 msgid "Sculpt Set Pivot"
 msgstr "Ліплення Задати Опертя"
 
@@ -26440,10 +26436,6 @@ msgstr "Поширити"
 
 msgid "Names"
 msgstr "Назви"
-
-
-msgid "Apply"
-msgstr "Застосувати"
 
 
 msgid "Toggle Bone Options"
@@ -26498,12 +26490,24 @@ msgid "Math"
 msgstr "Математика"
 
 
+msgid "UV Mapping"
+msgstr "Розкладання UV"
+
+
 msgid "Special Characters"
 msgstr "Спеціальні символи"
 
 
 msgid "Kerning"
 msgstr "Кернінг"
+
+
+msgid "Snap"
+msgstr "Підхоп"
+
+
+msgid "Mirror"
+msgstr "Дзеркалення"
 
 
 msgid "Text"
@@ -26520,10 +26524,6 @@ msgstr "Прокручення Кістки"
 
 msgid "Pivot Point"
 msgstr "Точка Опертя"
-
-
-msgid "Snap"
-msgstr "Підхоп"
 
 
 msgid "Proportional Editing Falloff"
@@ -26548,38 +26548,6 @@ msgstr "Вибірка"
 
 msgid "Primitives"
 msgstr "Примітиви"
-
-
-msgid "Mirror"
-msgstr "Дзеркалення"
-
-
-msgid "UV Mapping"
-msgstr "Розкладання UV"
-
-
-msgid "Local View"
-msgstr "Огляд Локально"
-
-
-msgid "Viewpoint"
-msgstr "Точка зору"
-
-
-msgid "Navigation"
-msgstr "Навігація"
-
-
-msgid "Align View"
-msgstr "Вирівняти Огляд"
-
-
-msgid "Align View to Active"
-msgstr "Вирівняти Огляд за Активним"
-
-
-msgid "View Regions"
-msgstr "Регіони Огляду"
 
 
 msgid "Select More/Less"
@@ -26622,6 +26590,10 @@ msgid "Light Probe"
 msgstr "Проба Освітлення"
 
 
+msgid "View Regions"
+msgstr "Регіони Огляду"
+
+
 msgid "Add Image"
 msgstr "Додати Зображення"
 
@@ -26632,6 +26604,10 @@ msgstr "Зв'язки"
 
 msgid "Rigid Body"
 msgstr "Тверде тіло"
+
+
+msgid "Align View to Active"
+msgstr "Вирівняти Огляд за Активним"
 
 
 msgid "Basic"
@@ -35921,6 +35897,10 @@ msgid "Diamond with inner dot"
 msgstr "Діамант з внутрішньою точкою"
 
 
+msgid "Volume Grid"
+msgstr "Сітка Об'єму"
+
+
 msgid "Enable the socket"
 msgstr "Увімкнути роз'єм"
 
@@ -35955,10 +35935,6 @@ msgstr "Є виводом"
 
 msgid "True if the socket is an output, otherwise input"
 msgstr "Так, якщо роз'єм є виводом, інакше - вводом"
-
-
-msgid "Custom dynamic defined socket label"
-msgstr "Власний ярлик динамічно визначеного роз'єму"
 
 
 msgid "Link Limit"
@@ -54557,6 +54533,10 @@ msgid "Move selected area edges"
 msgstr "Пересунути межі вибраної області"
 
 
+msgid "Snapping"
+msgstr "Підхоплення"
+
+
 msgctxt "Operator"
 msgid "Area Options"
 msgstr "Опції області"
@@ -54983,10 +54963,6 @@ msgid "Use Face Sets"
 msgstr "Вжити Набори Граней"
 
 
-msgid "Apply the filter only to the Face Set under the cursor"
-msgstr "Застосувати фільтр лише до Набору Граней під курсором"
-
-
 msgctxt "Operator"
 msgid "Filter Color"
 msgstr "Фільтр Кольору"
@@ -55073,24 +55049,12 @@ msgid "Face Sets Visibility"
 msgstr "Видимість Наборів Граней"
 
 
-msgid "Change the visibility of the Face Sets of the sculpt"
-msgstr "Змінити видимість Набрів Граней ліплення"
-
-
 msgid "Toggle Visibility"
 msgstr "Перемкнути Видимість"
 
 
-msgid "Hide all Face Sets except for the active one"
-msgstr "Сховати всі Набори Граней, за винятком активного"
-
-
 msgid "Show Active Face Set"
 msgstr "Показ Активний Набір Граней"
-
-
-msgid "Hide Active Face Sets"
-msgstr "Сховати Активний Набір Граней"
 
 
 msgctxt "Operator"
@@ -55098,44 +55062,20 @@ msgid "Edit Face Set"
 msgstr "Редагувати Набір Граней"
 
 
-msgid "Edits the current active Face Set"
-msgstr "Редагує поточно активний Набір Граней"
-
-
 msgid "Grow Face Set"
 msgstr "Розростити Набір Граней "
-
-
-msgid "Grows the Face Sets boundary by one face based on mesh topology"
-msgstr "Розрощує рубіж Наборів Граней на одну грань на основі топології сіті"
 
 
 msgid "Shrink Face Set"
 msgstr "Стиснути Набір Граней"
 
 
-msgid "Shrinks the Face Sets boundary by one face based on mesh topology"
-msgstr "Стискає рубіж Наборів Граней на одну грань на основі топології сіті"
-
-
-msgid "Deletes the faces that are assigned to the Face Set"
-msgstr "Видаляє гарні, що призначені у Набір Граней"
-
-
 msgid "Fair Positions"
 msgstr "Пристойні Позиції"
 
 
-msgid "Creates a smooth as possible geometry patch from the Face Set minimizing changes in vertex positions"
-msgstr "Створює якомога згладжений клаптик геометрії з Набору Граней, мінімізуючи зміни у позиціях вершин"
-
-
 msgid "Fair Tangency"
 msgstr "Пристойна Тангенційність"
-
-
-msgid "Creates a smooth as possible geometry patch from the Face Set minimizing changes in vertex tangents"
-msgstr "Створює якомога згладжений клаптик геометрії з Набору Граней, мінімізуючи зміни у тангенсах вершин"
 
 
 msgid "Modify Hidden"
@@ -55145,10 +55085,6 @@ msgstr "Модифікувати Сховане"
 msgctxt "Operator"
 msgid "Face Set Extract"
 msgstr "Витягти Набір Граней"
-
-
-msgid "Create a new mesh object from the selected Face Set"
-msgstr "Створити новий об'єкт сіті з вибраного Набору Граней"
 
 
 msgid "Add Boundary Loop"
@@ -55189,40 +55125,20 @@ msgid "Create Face Set"
 msgstr "Створити Набір Граней"
 
 
-msgid "Create a new Face Set"
-msgstr "Створити новий Набір Граней"
-
-
 msgid "Face Set from Masked"
 msgstr "Набір Граней з Масковане"
-
-
-msgid "Create a new Face Set from the masked faces"
-msgstr "Створити новий Набір Граней з маскованих граней"
 
 
 msgid "Face Set from Visible"
 msgstr "Набір Граней з Видиме"
 
 
-msgid "Create a new Face Set from the visible vertices"
-msgstr "Створити новий Набір Граней з видимих вершин"
-
-
 msgid "Face Set Full Mesh"
 msgstr "Набір Граней Повністю Сіті"
 
 
-msgid "Create an unique Face Set with all faces in the sculpt"
-msgstr "Створити унікальний Набір Граней з усіх граней у ліпленні"
-
-
 msgid "Face Set from Edit Mode Selection"
 msgstr "Набір Граней з Вибрання Режиму Редагування"
-
-
-msgid "Create an Face Set corresponding to the Edit Mode face selection"
-msgstr "Створити Набір Граней, що відповідає вибранню граней у Режимі Редагування"
 
 
 msgctxt "Operator"
@@ -55230,77 +55146,37 @@ msgid "Init Face Sets"
 msgstr "Ініціювати Набори Граней"
 
 
-msgid "Initializes all Face Sets in the mesh"
-msgstr "Ініціалізує всі Набори Граней у сіті"
-
-
 msgid "Face Sets from Loose Parts"
 msgstr "Набори Граней з Незв'язаних Частин"
-
-
-msgid "Create a Face Set per loose part in the mesh"
-msgstr "Створити Набір Граней по незв'язаних частинах у сіті"
 
 
 msgid "Face Sets from Material Slots"
 msgstr "Набори Граней з Гнізд Матеріалів"
 
 
-msgid "Create a Face Set per Material Slot"
-msgstr "Створити Набір Граней по Гніздах Матеріалів"
-
-
 msgid "Face Sets from Mesh Normals"
 msgstr "Набори Граней з Нормалей Сіті"
-
-
-msgid "Create Face Sets for Faces that have similar normal"
-msgstr "Створити набори граней з граней, що мають подібні нормалі"
 
 
 msgid "Face Sets from UV Seams"
 msgstr "Набори Граней зі Швів UV"
 
 
-msgid "Create Face Sets using UV Seams as boundaries"
-msgstr "Створити Набори Граней, використовуючи Шви UV як рубежі"
-
-
 msgid "Face Sets from Edge Creases"
 msgstr "Набори Граней зі Складок на Ребрах"
-
-
-msgid "Create Face Sets using Edge Creases as boundaries"
-msgstr "Створити Набори Граней, використовуючи Складки на Ребрах як рубежі"
 
 
 msgid "Face Sets from Bevel Weight"
 msgstr "Набори Граней з Вагомості Скосу"
 
 
-msgid "Create Face Sets using Bevel Weights as boundaries"
-msgstr "Створити Набори Граней, використовуючи Вагомості Скосу як рубежі"
-
-
 msgid "Face Sets from Sharp Edges"
 msgstr "Набори Граней з Гострих Ребер"
-
-
-msgid "Create Face Sets using Sharp Edges as boundaries"
-msgstr "Створити Набори Граней, використовуючи Гострі Ребра як рубежі"
-
-
-msgid "Minimum value to consider a certain attribute a boundary when creating the Face Sets"
-msgstr "Мінімальне значення, щоб вважати певний атрибут рубежем при створюванні Наборів Граней"
 
 
 msgctxt "Operator"
 msgid "Randomize Face Sets Colors"
 msgstr "Рандомізувати Кольори Наборів Граней"
-
-
-msgid "Generates a new set of random colors to render the Face Sets in the viewport"
-msgstr "Генерує новий набір випадкових кольорів для рендерення Наборів Граней в оглядвікні"
 
 
 msgctxt "Operator"
@@ -55465,10 +55341,6 @@ msgstr "Розслаблення"
 
 msgid "Relax mesh"
 msgstr "Розслабити сіть"
-
-
-msgid "Smooth the edges of all the Face Sets"
-msgstr "Згладити краї всіх Наборів Граней"
 
 
 msgid "Smooth the surface of the mesh, preserving the volume"
@@ -61134,10 +61006,6 @@ msgstr "Вимірювання"
 
 msgid "Curve Edit Mode"
 msgstr "Режим Редагування Кривої"
-
-
-msgid "Snapping"
-msgstr "Підхоплення"
 
 
 msgid "Transform Orientations"
@@ -72931,10 +72799,6 @@ msgid "Theme settings for the Dope Sheet"
 msgstr "Параметри теми Аркуша експозицій"
 
 
-msgid "Interpolation Line"
-msgstr "Лінія Інтерполяції"
-
-
 msgid "Keyframe Border"
 msgstr "Контур ключового кадру"
 
@@ -75748,10 +75612,6 @@ msgid "Display points for nodes in the volume tree"
 msgstr "Показувати точки для вузлів у дереві об'єму"
 
 
-msgid "Volume Grid"
-msgstr "Сітка Об'єму"
-
-
 msgid "3D volume grid"
 msgstr "3D сітка об'єму"
 
@@ -77011,8 +76871,8 @@ msgid "No camera found"
 msgstr "Жодної камери не знайдено"
 
 
-msgid "Other object is not a mesh"
-msgstr "Інший об'єкт не є сіттю"
+msgid "Expected one other selected mesh object to copy from"
+msgstr "Очікується ще один вибраний об'єкт сіті, з якого буде копіювання"
 
 
 msgid "Other object has no shape key"
@@ -77021,10 +76881,6 @@ msgstr "Інший об'єкт не має жодного ключа форми"
 
 msgid "Active camera is not in this scene"
 msgstr "Активна камера не є у цій сцені"
-
-
-msgid "Expected one other selected mesh object to copy from"
-msgstr "Очікується ще один вибраний об'єкт сіті, з якого буде копіювання"
 
 
 msgid "No objects with bound-box selected"
@@ -79546,10 +79402,6 @@ msgstr "Ребро"
 msgctxt "Operator"
 msgid "Face"
 msgstr "Грань"
-
-
-msgid "Image*"
-msgstr "Зображення*"
 
 
 msgid "Repeat Image"
@@ -85715,18 +85567,6 @@ msgstr "не трикутна грань"
 
 msgid "multi-res modifier"
 msgstr "модифікатор багатороздільності"
-
-
-msgid "vertex data"
-msgstr "дані вершини"
-
-
-msgid "edge data"
-msgstr "дані ребра"
-
-
-msgid "face data"
-msgstr "дані грані"
 
 
 msgid "constructive modifier"
