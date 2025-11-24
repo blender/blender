@@ -311,20 +311,29 @@ static wmOperatorStatus geometry_attribute_add_exec(bContext *C, wmOperator *op)
   AttributeOwner owner = AttributeOwner::from_id(id);
 
   if (owner.type() == AttributeOwnerType::Mesh) {
-    const Mesh &mesh = *id_cast<Mesh *>(id);
+    Mesh &mesh = *id_cast<Mesh *>(id);
     CustomDataLayer *layer = BKE_attribute_new(owner, name, cd_type, domain, op->reports);
     if (layer == nullptr) {
       return OPERATOR_CANCELLED;
     }
-
-    BKE_attributes_active_set(owner, layer->name);
+    const StringRefNull new_name = layer->name;
+    BKE_attributes_active_set(owner, new_name);
 
     if (bke::mesh::is_color_attribute({domain, type})) {
       if (!BKE_id_attributes_color_find(id, mesh.active_color_attribute)) {
-        BKE_id_attributes_active_color_set(id, layer->name);
+        BKE_id_attributes_active_color_set(id, new_name);
       }
       if (!BKE_id_attributes_color_find(id, mesh.default_color_attribute)) {
-        BKE_id_attributes_default_color_set(id, layer->name);
+        BKE_id_attributes_default_color_set(id, new_name);
+      }
+    }
+    else if (bke::mesh::is_uv_map({domain, type})) {
+      const VectorSet<StringRefNull> uv_maps = mesh.uv_map_names();
+      if (!uv_maps.contains(mesh.active_uv_map_name())) {
+        mesh.uv_maps_active_set(new_name);
+      }
+      if (!uv_maps.contains(mesh.default_uv_map_name())) {
+        mesh.uv_maps_default_set(new_name);
       }
     }
 
