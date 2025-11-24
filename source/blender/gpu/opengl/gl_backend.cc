@@ -101,6 +101,8 @@ static bool is_bad_AMD_driver(const char *version_cstr)
   Vector<int> version;
 
   if (parse_version(version_str, " 00.00.00.00 ", version) ||
+      parse_version(version_str, " 00.00.0.000000 ", version) ||
+      parse_version(version_str, " 00.00.00.000000 ", version) ||
       parse_version(version_str, " 00.00.000000 ", version) ||
       parse_version(version_str, " 00.00.00 ", version) ||
       parse_version(version_str, " 00.00.0 ", version) ||
