@@ -598,24 +598,18 @@ static wmOperatorStatus geometry_attribute_convert_exec(bContext *C, wmOperator 
   Object *ob = object::context_object(C);
   ID *ob_data = static_cast<ID *>(ob->data);
   AttributeOwner owner = AttributeOwner::from_id(ob_data);
+  const ConvertAttributeMode mode = ConvertAttributeMode(RNA_enum_get(op->ptr, "mode"));
+  const eCustomDataType cd_type = eCustomDataType(RNA_enum_get(op->ptr, "data_type"));
+  const bke::AttrType type = *bke::custom_data_type_to_attr_type(cd_type);
+  const bke::AttrDomain domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
   const std::string name = *BKE_attributes_active_name_get(owner);
 
   if (ob->type == OB_MESH) {
-    const ConvertAttributeMode mode = ConvertAttributeMode(RNA_enum_get(op->ptr, "mode"));
-
     Mesh *mesh = reinterpret_cast<Mesh *>(ob_data);
     bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-
     switch (mode) {
       case ConvertAttributeMode::Generic: {
-        if (!convert_attribute(owner,
-                               attributes,
-                               name,
-                               bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
-                               *bke::custom_data_type_to_attr_type(
-                                   eCustomDataType(RNA_enum_get(op->ptr, "data_type"))),
-                               op->reports))
-        {
+        if (!convert_attribute(owner, attributes, name, domain, type, op->reports)) {
           return OPERATOR_CANCELLED;
         }
         BKE_attributes_active_set(owner, name);
@@ -648,40 +642,15 @@ static wmOperatorStatus geometry_attribute_convert_exec(bContext *C, wmOperator 
     }
     DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);
+    return OPERATOR_FINISHED;
   }
-  else if (ob->type == OB_CURVES) {
-    Curves *curves_id = static_cast<Curves *>(ob->data);
-    bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-    if (!convert_attribute(owner,
-                           curves.attributes_for_write(),
-                           name,
-                           bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
-                           *bke::custom_data_type_to_attr_type(
-                               eCustomDataType(RNA_enum_get(op->ptr, "data_type"))),
-                           op->reports))
-    {
-      return OPERATOR_CANCELLED;
-    }
-    BKE_attributes_active_set(owner, name);
-    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
-    WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id->id);
+
+  if (!convert_attribute(owner, *owner.get_accessor(), name, domain, type, op->reports)) {
+    return OPERATOR_CANCELLED;
   }
-  else if (ob->type == OB_POINTCLOUD) {
-    PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
-    if (!convert_attribute(owner,
-                           pointcloud.attributes_for_write(),
-                           name,
-                           bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
-                           *bke::custom_data_type_to_attr_type(
-                               eCustomDataType(RNA_enum_get(op->ptr, "data_type"))),
-                           op->reports))
-    {
-      return OPERATOR_CANCELLED;
-    }
-    BKE_attributes_active_set(owner, name);
-    DEG_id_tag_update(&pointcloud.id, ID_RECALC_GEOMETRY);
-    WM_main_add_notifier(NC_GEOM | ND_DATA, &pointcloud.id);
-  }
+  BKE_attributes_active_set(owner, name);
+  DEG_id_tag_update(ob_data, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, ob_data);
 
   return OPERATOR_FINISHED;
 }
