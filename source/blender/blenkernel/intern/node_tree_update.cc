@@ -491,13 +491,13 @@ class NodeTreeMainUpdater {
     relations_.ensure_group_node_users();
 
     Set<bNodeTree *> reachable_trees;
-    VectorSet<bNodeTree *> trees_to_check = root_ntrees;
+    Stack<bNodeTree *> trees_to_check = root_ntrees;
 
     while (!trees_to_check.is_empty()) {
       bNodeTree *ntree = trees_to_check.pop();
       if (reachable_trees.add(ntree)) {
         for (const TreeNodePair &pair : relations_.get_group_node_users(ntree)) {
-          trees_to_check.add(pair.first);
+          trees_to_check.push(pair.first);
         }
       }
     }
