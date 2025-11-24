@@ -85,8 +85,8 @@ static Image *create_placeholder_image(Main *bmain, const std::string &path)
 {
   const float color[4] = {0, 0, 0, 1};
   Image *image = BKE_image_add_generated(bmain,
-                                         32,
-                                         32,
+                                         1,
+                                         1,
                                          BLI_path_basename(path.c_str()),
                                          24,
                                          false,
@@ -96,7 +96,12 @@ static Image *create_placeholder_image(Main *bmain, const std::string &path)
                                          false,
                                          false);
   STRNCPY(image->filepath, path.c_str());
+
+  /* Ensure that we are not marked as a generated image and clear any buffers created so far. */
   image->source = IMA_SRC_FILE;
+  image->type = IMA_TYPE_IMAGE;
+  BKE_image_free_buffers(image);
+
   return image;
 }
 
