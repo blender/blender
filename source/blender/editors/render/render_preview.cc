@@ -1851,6 +1851,8 @@ void PreviewLoadJob::push_load_request(PreviewImage *preview, const eIconSizes i
     return;
   }
 
+  BLI_assert((preview->flag[icon_size] & PRV_RENDERING) == 0);
+
   preview->flag[icon_size] |= PRV_RENDERING;
   /* Warn main thread code that this preview is being rendered and cannot be freed. */
   preview->runtime->tag |= PRV_TAG_DEFFERED_RENDERING;
@@ -1858,24 +1860,38 @@ void PreviewLoadJob::push_load_request(PreviewImage *preview, const eIconSizes i
   const bool is_downloading = BKE_previewimg_is_online(preview) &&
                               !PreviewLoadJob::known_downloaded_previews().remove(*path);
 
-  RequestedPreview &request = [&]() -> RequestedPreview & {
-    const std::pair key = std::make_pair(*path, icon_size);
+  const std::pair key = std::make_pair(*path, icon_size);
 
+  RequestedPreview *request = nullptr;
+  {
     std::lock_guard lock(requested_previews_mutex_);
-    BLI_assert(!requested_previews_.contains(key));
 
-    std::unique_ptr<RequestedPreview> &request = requested_previews_.lookup_or_add_cb(
-        key, [&]() { return std::make_unique<RequestedPreview>(preview, icon_size); });
-    if (is_downloading) {
-      request->state = PreviewState::Downloading;
+    /* Typically shouldn't happen, since previews are flagged with #PRV_RENDERING when rendering.
+     * However, a #PreviewImage might be deleted and recreated while a request is still pending. In
+     * that case, update the preview pointer.
+     * This happens when reloading online asset libraries with running preview downloads. */
+    if (std::unique_ptr<RequestedPreview> *existing_request = requested_previews_.lookup_ptr(key))
+    {
+      request = existing_request->get();
+      BLI_assert(request->preview != preview);
+      request->preview = preview;
     }
     else {
-      request->state = PreviewState::LoadingFromDisk;
-    }
-    return *request;
-  }();
+      std::unique_ptr<RequestedPreview> new_request = std::make_unique<RequestedPreview>(
+          preview, icon_size);
+      request = new_request.get();
 
-  BLI_thread_queue_push(todo_queue_, &request, BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
+      if (is_downloading) {
+        request->state = PreviewState::Downloading;
+      }
+      else {
+        request->state = PreviewState::LoadingFromDisk;
+      }
+      requested_previews_.add(key, std::move(new_request));
+    }
+  }
+
+  BLI_thread_queue_push(todo_queue_, request, BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
 }
 
 void PreviewLoadJob::on_download_completed(wmWindowManager *wm,
@@ -2028,7 +2044,7 @@ void PreviewLoadJob::update_fn(void *customdata)
 
   {
     std::lock_guard lock(job_data->requested_previews_mutex_);
-    for (auto item : job_data->requested_previews_.items()) {
+    for (const auto item : job_data->requested_previews_.items()) {
       std::unique_ptr<RequestedPreview> &requested = item.value;
 
       /* Skip items that are not done loading yet. */
