@@ -174,7 +174,10 @@ struct Instance : public DrawEngine {
       select_face_flat = nullptr;
       if (e_data.context.select_mode & SCE_SELECT_FACE) {
         auto &sub = select_face_ps.sub("Face");
+        const float vertex_size = U.pixelsize *
+                                  blender::draw::overlay::Resources::vertex_size_get();
         sub.shader_set(sh->select_id_flat);
+        sub.push_constant("vertex_size", float(2 * vertex_size));
         sub.push_constant("retopology_offset", retopology_offset);
         select_face_flat = &sub;
       }
