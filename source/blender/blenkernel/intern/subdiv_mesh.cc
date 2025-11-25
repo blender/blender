@@ -135,24 +135,6 @@ static void subdiv_mesh_ctx_cache_uv_layers(SubdivMeshContext *ctx)
     }
     ctx->uv_maps.append(std::move(uv_map));
   }
-
-  /* Copy active & default UV map names. */
-  if (const char *name = CustomData_get_active_layer_name(&coarse_mesh.corner_data,
-                                                          CD_PROP_FLOAT2))
-  {
-    const int i = CustomData_get_named_layer(&subdiv_mesh->corner_data, CD_PROP_FLOAT2, name);
-    if (i >= 0) {
-      CustomData_set_layer_active(&subdiv_mesh->corner_data, CD_PROP_FLOAT2, i);
-    }
-  }
-  if (const char *name = CustomData_get_render_layer_name(&coarse_mesh.corner_data,
-                                                          CD_PROP_FLOAT2))
-  {
-    const int i = CustomData_get_named_layer(&subdiv_mesh->corner_data, CD_PROP_FLOAT2, name);
-    if (i >= 0) {
-      CustomData_set_layer_render(&subdiv_mesh->corner_data, CD_PROP_FLOAT2, i);
-    }
-  }
 }
 
 static void subdiv_mesh_ctx_cache_custom_data_layers(SubdivMeshContext *ctx)
@@ -780,6 +762,8 @@ static void subdiv_mesh_tls_free(void *tls_v)
   SubdivMeshTLS *tls = static_cast<SubdivMeshTLS *>(tls_v);
   delete tls->vert_interpolation;
   delete tls->loop_interpolation;
+  tls->vert_interpolation = nullptr;
+  tls->loop_interpolation = nullptr;
 }
 
 /** \} */

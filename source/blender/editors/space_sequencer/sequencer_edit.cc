@@ -599,7 +599,7 @@ static wmOperatorStatus sequencer_snap_exec(bContext *C, wmOperator *op)
   /* Test for effects and overlap. */
   LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
     if (strip->flag & SELECT && !seq::transform_is_locked(channels, strip)) {
-      strip->runtime.flag &= ~STRIP_OVERLAP;
+      strip->runtime->flag &= ~seq::StripRuntimeFlag::Overlap;
       if (seq::transform_test_overlap(scene, ed->current_strips(), strip)) {
         seq::transform_seqbase_shuffle(ed->current_strips(), strip, scene);
       }
@@ -827,7 +827,7 @@ static SlipData *slip_data_init(bContext *C, const wmOperator *op, const wmEvent
 
   data->clamp = true;
   for (Strip *strip : strips) {
-    strip->runtime.flag |= STRIP_SHOW_OFFSETS;
+    strip->runtime->flag |= seq::StripRuntimeFlag::ShowOffsets;
 
     /* If any strips start out with hold offsets visible, disable clamping on initialization. */
     if (strip->startofs < 0 || strip->endofs < 0) {
@@ -907,16 +907,16 @@ static void slip_strips_delta(
     seq::time_slip_strip(scene, strip, frame_delta, subframe_delta, slip_keyframes);
     seq::relations_invalidate_cache(scene, strip);
 
-    strip->runtime.flag &= ~(STRIP_CLAMPED_LH | STRIP_CLAMPED_RH);
+    strip->runtime->flag &= ~(seq::StripRuntimeFlag::ClampedLH | seq::StripRuntimeFlag::ClampedRH);
     /* Reconstruct handle clamp state from first principles. */
     if (data->clamp == true) {
       if (seq::time_left_handle_frame_get(scene, strip) == seq::time_start_frame_get(strip)) {
-        strip->runtime.flag |= STRIP_CLAMPED_LH;
+        strip->runtime->flag |= seq::StripRuntimeFlag::ClampedLH;
       }
       if (seq::time_right_handle_frame_get(scene, strip) ==
           seq::time_content_end_frame_get(scene, strip))
       {
-        strip->runtime.flag |= STRIP_CLAMPED_RH;
+        strip->runtime->flag |= seq::StripRuntimeFlag::ClampedRH;
       }
     }
   }
@@ -933,8 +933,8 @@ static void slip_cleanup(bContext *C, wmOperator *op, Scene *scene)
   SlipData *data = static_cast<SlipData *>(op->customdata);
 
   for (Strip *strip : data->strips) {
-    strip->runtime.flag &= ~(STRIP_CLAMPED_LH | STRIP_CLAMPED_RH);
-    strip->runtime.flag &= ~STRIP_SHOW_OFFSETS;
+    strip->runtime->flag &= ~(seq::StripRuntimeFlag::ClampedLH | seq::StripRuntimeFlag::ClampedRH);
+    strip->runtime->flag &= ~seq::StripRuntimeFlag::ShowOffsets;
   }
 
   MEM_SAFE_DELETE(data);
@@ -2111,7 +2111,7 @@ static wmOperatorStatus sequencer_add_duplicate_exec(bContext *C, wmOperator *op
       seq::select_active_set(scene, strip);
     }
     strip->flag &= ~(SEQ_LEFTSEL + SEQ_RIGHTSEL + SEQ_LOCK);
-    strip->runtime.flag |= STRIP_IGNORE_CHANNEL_LOCK;
+    strip->runtime->flag |= seq::StripRuntimeFlag::IgnoreChannelLock;
 
     seq::animation_duplicate_backup_to_scene(scene, strip, &animation_backup);
     seq::ensure_unique_name(strip, scene);
@@ -2124,7 +2124,7 @@ static wmOperatorStatus sequencer_add_duplicate_exec(bContext *C, wmOperator *op
       if (seq::transform_test_overlap(scene, ed->current_strips(), strip)) {
         seq::transform_seqbase_shuffle(ed->current_strips(), strip, scene);
       }
-      strip->runtime.flag &= ~STRIP_IGNORE_CHANNEL_LOCK;
+      strip->runtime->flag &= ~seq::StripRuntimeFlag::IgnoreChannelLock;
     }
   }
 
@@ -2331,7 +2331,6 @@ static wmOperatorStatus sequencer_separate_images_exec(bContext *C, wmOperator *
   ListBase *seqbase = seq::active_seqbase_get(ed);
 
   Strip *strip, *strip_new;
-  StripData *data_new;
   StripElem *se, *se_new;
   int start_ofs, timeline_frame, frame_end;
   int step = RNA_int_get(op->ptr, "length");
@@ -2364,8 +2363,7 @@ static wmOperatorStatus sequencer_separate_images_exec(bContext *C, wmOperator *
         strip_new->endofs = 1 - step;
 
         /* New strip. */
-        data_new = strip_new->data;
-        data_new->us = 1;
+        StripData *data_new = strip_new->data;
 
         /* New stripdata, only one element now. */
         /* Note this assume all elements (images) have the same dimension,
@@ -2375,7 +2373,7 @@ static wmOperatorStatus sequencer_separate_images_exec(bContext *C, wmOperator *
         data_new->stripdata = se_new;
 
         if (step > 1) {
-          strip_new->runtime.flag &= ~STRIP_OVERLAP;
+          strip_new->runtime->flag &= ~seq::StripRuntimeFlag::Overlap;
           if (seq::transform_test_overlap(scene, seqbase, strip_new)) {
             seq::transform_seqbase_shuffle(seqbase, strip_new, scene);
           }
@@ -2607,7 +2605,7 @@ static wmOperatorStatus sequencer_meta_separate_exec(bContext *C, wmOperator * /
   /* Test for effects and overlap. */
   LISTBASE_FOREACH (Strip *, strip, active_seqbase) {
     if (strip->flag & SELECT) {
-      strip->runtime.flag &= ~STRIP_OVERLAP;
+      strip->runtime->flag &= ~seq::StripRuntimeFlag::Overlap;
       if (seq::transform_test_overlap(scene, active_seqbase, strip)) {
         seq::transform_seqbase_shuffle(active_seqbase, strip, scene);
       }
@@ -3019,16 +3017,16 @@ static wmOperatorStatus sequencer_swap_data_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (strip_act->scene_sound) {
-    BKE_sound_remove_scene_sound(scene, strip_act->scene_sound);
+  if (strip_act->runtime->scene_sound) {
+    BKE_sound_remove_scene_sound(scene, strip_act->runtime->scene_sound);
   }
 
-  if (strip_other->scene_sound) {
-    BKE_sound_remove_scene_sound(scene, strip_other->scene_sound);
+  if (strip_other->runtime->scene_sound) {
+    BKE_sound_remove_scene_sound(scene, strip_other->runtime->scene_sound);
   }
 
-  strip_act->scene_sound = nullptr;
-  strip_other->scene_sound = nullptr;
+  strip_act->runtime->scene_sound = nullptr;
+  strip_other->runtime->scene_sound = nullptr;
 
   if (strip_act->sound) {
     BKE_sound_add_scene_sound_defaults(scene, strip_act);
@@ -3241,7 +3239,7 @@ static wmOperatorStatus sequencer_change_path_exec(bContext *C, wmOperator *op)
     prop = RNA_struct_find_property(&strip_ptr, "filepath");
     RNA_property_string_set(&strip_ptr, prop, filepath);
     RNA_property_update(C, &strip_ptr, prop);
-    seq::relations_strip_free_anim(strip);
+    seq::strip_free_movie_readers(strip);
   }
 
   seq::relations_invalidate_cache_raw(scene, strip);

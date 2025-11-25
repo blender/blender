@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-10 09:45+0000\n"
+"POT-Creation-Date: 2025-11-24 08:35+0000\n"
 "PO-Revision-Date: 2025-07-23 14:57+0000\n"
 "Last-Translator: Michael Tribayu Jatnika Natawiria <mike.natawiria@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -770,10 +770,6 @@ msgid "Show only hotkeys that have this text in their name"
 msgstr "Hanya menampilkan tombol pintas yang memiliki teks ini di namanya"
 
 
-msgid "Hide Mix nodes"
-msgstr "Menyembunyikan simpul Campur"
-
-
 msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify whether to collapse them or show the full node with options expanded"
 msgstr "Saat menggabungkan simpul dengan tombol pintas Ctrl+Numpad0 (dan yang serupa), tentukan apakah akan menciutkannya atau menampilkan simpul penuh dengan opsi yang diperluas"
 
@@ -832,14 +828,6 @@ msgstr "Tampilkan Daftar Tombol Pintas"
 
 msgid "Expand this box into a list of all the hotkeys for functions in this addon"
 msgstr "Ekspansi kotak ini menjadi daftar semua tombol pintas untuk fungsi-fungsi dalam addon ini"
-
-
-msgid "Show Principled naming tags"
-msgstr "Tampilkan Tag penamaan berprinsip"
-
-
-msgid "Expand this box into a list of all naming tags for principled texture setup"
-msgstr "Memperluas kotak ini ke sebuah daftar semua penanda penamaan untuk pengaturan tekstur yang berprinsip"
 
 
 msgid "Fribidi Library"
@@ -1899,6 +1887,250 @@ msgid "Space Type"
 msgstr "Tipe Spasi"
 
 
+msgid "Actions"
+msgstr "Aksi"
+
+
+msgid "Show Action data-blocks"
+msgstr "Tampilkan Aksi data-blok"
+
+
+msgid "Armatures"
+msgstr "Armatur"
+
+
+msgid "Show Armature data-blocks"
+msgstr "Tampilkan Armatur data-blok"
+
+
+msgid "Brushes"
+msgstr "Kuas"
+
+
+msgid "Show Brushes data-blocks"
+msgstr "Tampilkan Kuas data-blok"
+
+
+msgid "Cache Files"
+msgstr "Dokumen Cache"
+
+
+msgid "Show Cache File data-blocks"
+msgstr "Tampilkan Dokumen Cache data-blok"
+
+
+msgid "Cameras"
+msgstr "Kamera"
+
+
+msgid "Show Camera data-blocks"
+msgstr "Tampilkan Kamera data-blok"
+
+
+msgid "Curves"
+msgstr "Kurva"
+
+
+msgid "Show Curve data-blocks"
+msgstr "Tampilkan Kurva data-blok"
+
+
+msgid "Hair Curves"
+msgstr "Kurva Rambut"
+
+
+msgid "Fonts"
+msgstr "Font"
+
+
+msgid "Show Font data-blocks"
+msgstr "Tampilkan Font data-blok"
+
+
+msgid "Grease Pencil"
+msgstr "Pensil Grease"
+
+
+msgid "Collections"
+msgstr "Koleksi"
+
+
+msgid "Show Collection data-blocks"
+msgstr "Tampilkan Koleksi data-blok"
+
+
+msgid "Images"
+msgstr "Gambar"
+
+
+msgid "Show Image data-blocks"
+msgstr "Tampilkan Gambar data-blok"
+
+
+msgid "Lattices"
+msgstr "Kisi-kisi"
+
+
+msgid "Lights"
+msgstr "Cahaya"
+
+
+msgid "Show Light data-blocks"
+msgstr "Tampilkan Cahaya data-blok"
+
+
+msgid "Light Probes"
+msgstr "Probe Cahaya"
+
+
+msgid "Masks"
+msgstr "Masker"
+
+
+msgid "Materials"
+msgstr "Bahan"
+
+
+msgid "Show Material data-blocks"
+msgstr "Tampilkan Bahan data-blok"
+
+
+msgid "Meshes"
+msgstr "Mesh"
+
+
+msgid "Show Mesh data-blocks"
+msgstr "Tampilkan Mesh data-blok"
+
+
+msgid "Metaballs"
+msgstr "Metabola"
+
+
+msgid "Show Metaball data-blocks"
+msgstr "Tampilkan Metabola data-blok"
+
+
+msgid "Movie Clips"
+msgstr "Klip Film"
+
+
+msgid "Show Movie Clip data-blocks"
+msgstr "Tampilkan Klip Film data-blok"
+
+
+msgid "Node Trees"
+msgstr "Pohon Node"
+
+
+msgid "Show Node Tree data-blocks"
+msgstr "Tampilkan Pohon Node data-blok"
+
+
+msgid "Objects"
+msgstr "Objek"
+
+
+msgid "Show Object data-blocks"
+msgstr "Tampilkan Objek data-blok"
+
+
+msgid "Paint Curves"
+msgstr "Kurva Cat"
+
+
+msgid "Show Paint Curve data-blocks"
+msgstr "Tampilkan Kurva Cat data-blok"
+
+
+msgid "Palettes"
+msgstr "Palet"
+
+
+msgid "Show Palette data-blocks"
+msgstr "Tampilkan Palet data-blok"
+
+
+msgid "Particles Settings"
+msgstr "Pengaturan Partikel"
+
+
+msgid "Show Particle Settings data-blocks"
+msgstr "Tampilkan Pengaturan Partikel data-blok"
+
+
+msgid "Point Clouds"
+msgstr "Awan Titik"
+
+
+msgid "Show/hide Point Cloud data-blocks"
+msgstr "Tampilkan/sembunyikan Awan Titik data-blok"
+
+
+msgid "Scenes"
+msgstr "Adegan"
+
+
+msgid "Show Scene data-blocks"
+msgstr "Tampilkan Adegan data-blok"
+
+
+msgid "Sounds"
+msgstr "Suara"
+
+
+msgid "Show Sound data-blocks"
+msgstr "Tampilkan Suara data-blok"
+
+
+msgid "Speakers"
+msgstr "Pengeras Suara"
+
+
+msgid "Show Speaker data-blocks"
+msgstr "Tampilkan Pengeras Suara data-blok"
+
+
+msgid "Texts"
+msgstr "Teks"
+
+
+msgid "Show Text data-blocks"
+msgstr "Tampilkan Teks data-blok"
+
+
+msgid "Textures"
+msgstr "Tekstur"
+
+
+msgid "Show Texture data-blocks"
+msgstr "Tampilkan Tekstur data-blok"
+
+
+msgid "Volumes"
+msgstr "Volume"
+
+
+msgid "Show/hide Volume data-blocks"
+msgstr "Tampilkan/sembunyikan Volume data-blok"
+
+
+msgid "Workspaces"
+msgstr "Spasi Kerja"
+
+
+msgid "Show workspace data-blocks"
+msgstr "Tampilkan ruang kerja data-blok"
+
+
+msgid "Worlds"
+msgstr "Dunia"
+
+
+msgid "Show World data-blocks"
+msgstr "Tampilkan Dunia data-blok"
+
+
 msgid "Preview Size"
 msgstr "Ukuran Pratinjau"
 
@@ -2751,10 +2983,6 @@ msgid "Main data structure representing a .blend file and all its data-blocks"
 msgstr "Struktur data utama merepresentasikan dokumen .blend dan semua data-bloknya"
 
 
-msgid "Actions"
-msgstr "Aksi"
-
-
 msgid "Action data-blocks"
 msgstr "Aksi data-blok"
 
@@ -2767,40 +2995,20 @@ msgid "Annotation data-blocks (legacy Grease Pencil)"
 msgstr "Anotasi data-blok (Pencil Grease warisan)"
 
 
-msgid "Armatures"
-msgstr "Armatur"
-
-
 msgid "Armature data-blocks"
 msgstr "Armatur data-blok"
-
-
-msgid "Brushes"
-msgstr "Kuas"
 
 
 msgid "Brush data-blocks"
 msgstr "Kuas data-blok"
 
 
-msgid "Cache Files"
-msgstr "Dokumen Cache"
-
-
 msgid "Cache Files data-blocks"
 msgstr "Dokumen Cache data-blok"
 
 
-msgid "Cameras"
-msgstr "Kamera"
-
-
 msgid "Camera data-blocks"
 msgstr "Kamera data-blok"
-
-
-msgid "Collections"
-msgstr "Koleksi"
 
 
 msgid "Collection data-blocks"
@@ -2809,10 +3017,6 @@ msgstr "Koleksi data-blok"
 
 msgid "Color Space"
 msgstr "Ruang Warna"
-
-
-msgid "Curves"
-msgstr "Kurva"
 
 
 msgid "Curve data-blocks"
@@ -2835,24 +3039,12 @@ msgid "Vector font data-blocks"
 msgstr "Font vektor data-blok"
 
 
-msgid "Grease Pencil"
-msgstr "Pensil Grease"
-
-
 msgid "Grease Pencil data-blocks"
 msgstr "Data-blok Pensil Grease"
 
 
-msgid "Hair Curves"
-msgstr "Kurva Rambut"
-
-
 msgid "Hair curve data-blocks"
 msgstr "Data-blok kurva rambut"
-
-
-msgid "Images"
-msgstr "Gambar"
 
 
 msgid "Image data-blocks"
@@ -2875,10 +3067,6 @@ msgid "Has the current session been saved to disk as a .blend file"
 msgstr "Apakah sesi saat ini telah disimpan ke disk sebagai dokumen .blend"
 
 
-msgid "Lattices"
-msgstr "Kisi-kisi"
-
-
 msgid "Lattice data-blocks"
 msgstr "Data-blok kisi"
 
@@ -2891,16 +3079,8 @@ msgid "Library data-blocks"
 msgstr "Perpustakaan data-lbok"
 
 
-msgid "Light Probes"
-msgstr "Probe Cahaya"
-
-
 msgid "Light Probe data-blocks"
 msgstr "Probe Cahaya data-blok"
-
-
-msgid "Lights"
-msgstr "Cahaya"
 
 
 msgid "Light data-blocks"
@@ -2915,40 +3095,20 @@ msgid "Line Style data-blocks"
 msgstr "Gaya Garis data-blok"
 
 
-msgid "Masks"
-msgstr "Masker"
-
-
 msgid "Masks data-blocks"
 msgstr "Masker data-blok"
-
-
-msgid "Materials"
-msgstr "Bahan"
 
 
 msgid "Material data-blocks"
 msgstr "Bahan data-blok"
 
 
-msgid "Meshes"
-msgstr "Mesh"
-
-
 msgid "Mesh data-blocks"
 msgstr "Mesh data-blok"
 
 
-msgid "Metaballs"
-msgstr "Metabola"
-
-
 msgid "Metaball data-blocks"
 msgstr "Metabola data-blok"
-
-
-msgid "Movie Clips"
-msgstr "Klip Film"
 
 
 msgid "Movie Clip data-blocks"
@@ -2963,24 +3123,12 @@ msgid "Node group data-blocks"
 msgstr "Kelompok node data-blok"
 
 
-msgid "Objects"
-msgstr "Objek"
-
-
 msgid "Object data-blocks"
 msgstr "Objek data-blok"
 
 
-msgid "Paint Curves"
-msgstr "Kurva Cat"
-
-
 msgid "Paint Curves data-blocks"
 msgstr "Kurva Cat data-blok"
-
-
-msgid "Palettes"
-msgstr "Palet"
 
 
 msgid "Palette data-blocks"
@@ -2995,16 +3143,8 @@ msgid "Particle data-blocks"
 msgstr "Partikel data-blok"
 
 
-msgid "Point Clouds"
-msgstr "Awan Titik"
-
-
 msgid "Point cloud data-blocks"
 msgstr "Data-blok awan titik"
-
-
-msgid "Scenes"
-msgstr "Adegan"
 
 
 msgid "Scene data-blocks"
@@ -3027,32 +3167,16 @@ msgid "Shape Key data-blocks"
 msgstr "Kunci Bentuk data-blok"
 
 
-msgid "Sounds"
-msgstr "Suara"
-
-
 msgid "Sound data-blocks"
 msgstr "Suara data-blok"
-
-
-msgid "Speakers"
-msgstr "Pengeras Suara"
 
 
 msgid "Speaker data-blocks"
 msgstr "Objek data-blok"
 
 
-msgid "Texts"
-msgstr "Teks"
-
-
 msgid "Text data-blocks"
 msgstr "Teks data-blok"
-
-
-msgid "Textures"
-msgstr "Tekstur"
 
 
 msgid "Texture data-blocks"
@@ -3075,10 +3199,6 @@ msgid "File format version the .blend file was saved with"
 msgstr "Versi format dokumen .blend disimpan dengan"
 
 
-msgid "Volumes"
-msgstr "Volume"
-
-
 msgid "Volume data-blocks"
 msgstr "Volume data-blok"
 
@@ -3091,16 +3211,8 @@ msgid "Window manager data-blocks"
 msgstr "Pengelola jendela data-blok"
 
 
-msgid "Workspaces"
-msgstr "Spasi Kerja"
-
-
 msgid "Workspace data-blocks"
 msgstr "Spasi kerja data-blok"
-
-
-msgid "Worlds"
-msgstr "Dunia"
 
 
 msgid "World data-blocks"
@@ -9899,130 +10011,6 @@ msgid "Both Z"
 msgstr "Kedua Z"
 
 
-msgid "Show Armature data-blocks"
-msgstr "Tampilkan Armatur data-blok"
-
-
-msgid "Show Cache File data-blocks"
-msgstr "Tampilkan Dokumen Cache data-blok"
-
-
-msgid "Show Camera data-blocks"
-msgstr "Tampilkan Kamera data-blok"
-
-
-msgid "Show Curve data-blocks"
-msgstr "Tampilkan Kurva data-blok"
-
-
-msgid "Fonts"
-msgstr "Font"
-
-
-msgid "Show Font data-blocks"
-msgstr "Tampilkan Font data-blok"
-
-
-msgid "Show Image data-blocks"
-msgstr "Tampilkan Gambar data-blok"
-
-
-msgid "Show Light data-blocks"
-msgstr "Tampilkan Cahaya data-blok"
-
-
-msgid "Show Mesh data-blocks"
-msgstr "Tampilkan Mesh data-blok"
-
-
-msgid "Show Metaball data-blocks"
-msgstr "Tampilkan Metabola data-blok"
-
-
-msgid "Show Movie Clip data-blocks"
-msgstr "Tampilkan Klip Film data-blok"
-
-
-msgid "Show Paint Curve data-blocks"
-msgstr "Tampilkan Kurva Cat data-blok"
-
-
-msgid "Show Palette data-blocks"
-msgstr "Tampilkan Palet data-blok"
-
-
-msgid "Particles Settings"
-msgstr "Pengaturan Partikel"
-
-
-msgid "Show Particle Settings data-blocks"
-msgstr "Tampilkan Pengaturan Partikel data-blok"
-
-
-msgid "Show/hide Point Cloud data-blocks"
-msgstr "Tampilkan/sembunyikan Awan Titik data-blok"
-
-
-msgid "Show Sound data-blocks"
-msgstr "Tampilkan Suara data-blok"
-
-
-msgid "Show Speaker data-blocks"
-msgstr "Tampilkan Pengeras Suara data-blok"
-
-
-msgid "Show Text data-blocks"
-msgstr "Tampilkan Teks data-blok"
-
-
-msgid "Show Texture data-blocks"
-msgstr "Tampilkan Tekstur data-blok"
-
-
-msgid "Show/hide Volume data-blocks"
-msgstr "Tampilkan/sembunyikan Volume data-blok"
-
-
-msgid "Show workspace data-blocks"
-msgstr "Tampilkan ruang kerja data-blok"
-
-
-msgid "Show Action data-blocks"
-msgstr "Tampilkan Aksi data-blok"
-
-
-msgid "Show Brushes data-blocks"
-msgstr "Tampilkan Kuas data-blok"
-
-
-msgid "Show Collection data-blocks"
-msgstr "Tampilkan Koleksi data-blok"
-
-
-msgid "Show Material data-blocks"
-msgstr "Tampilkan Bahan data-blok"
-
-
-msgid "Node Trees"
-msgstr "Pohon Node"
-
-
-msgid "Show Node Tree data-blocks"
-msgstr "Tampilkan Pohon Node data-blok"
-
-
-msgid "Show Object data-blocks"
-msgstr "Tampilkan Objek data-blok"
-
-
-msgid "Show Scene data-blocks"
-msgstr "Tampilkan Adegan data-blok"
-
-
-msgid "Show World data-blocks"
-msgstr "Tampilkan Dunia data-blok"
-
-
 msgid "Save"
 msgstr "Simpan"
 
@@ -15246,8 +15234,16 @@ msgid "Mask"
 msgstr "Masker"
 
 
+msgid "Apply"
+msgstr "Tetapkan"
+
+
 msgid "Track"
 msgstr "Lacak"
+
+
+msgid "Navigation"
+msgstr "Navigasi"
 
 
 msgid "Asset"
@@ -15260,10 +15256,6 @@ msgstr "Kait"
 
 msgid "Names"
 msgstr "Nama"
-
-
-msgid "Apply"
-msgstr "Tetapkan"
 
 
 msgid "Layout"
@@ -15286,6 +15278,14 @@ msgid "Math"
 msgstr "Matematika"
 
 
+msgid "Snap"
+msgstr "Jepret"
+
+
+msgid "Mirror"
+msgstr "Cermin"
+
+
 msgid "Text"
 msgstr "Teks"
 
@@ -15294,20 +15294,8 @@ msgid "Metaball"
 msgstr "Metabola"
 
 
-msgid "Snap"
-msgstr "Jepret"
-
-
 msgid "Sample"
 msgstr "Sampel"
-
-
-msgid "Mirror"
-msgstr "Cermin"
-
-
-msgid "Navigation"
-msgstr "Navigasi"
 
 
 msgid "Gizmo"
@@ -22631,6 +22619,10 @@ msgid "Join selected areas into new window"
 msgstr "Gabungkan area yang dipilih ke jendela baru"
 
 
+msgid "Snapping"
+msgstr "Gertakan"
+
+
 msgctxt "Operator"
 msgid "Area Options"
 msgstr "Pilihan Area"
@@ -22821,10 +22813,6 @@ msgstr "Langkah-langkah pemburaman untuk kejatuhan normal"
 
 msgid "Data Target"
 msgstr "Target Data"
-
-
-msgid "Create a new Face Set"
-msgstr "Buat Set Wajah baru"
 
 
 msgctxt "Operator"
@@ -24675,10 +24663,6 @@ msgid "Restrict painting to vertices in the group"
 msgstr "Membatasi lukisan ke simpul di kelompok"
 
 
-msgid "Snapping"
-msgstr "Gertakan"
-
-
 msgid "Custom Shape"
 msgstr "Bentuk Kustom"
 
@@ -26229,10 +26213,6 @@ msgid "Theme Clip Editor"
 msgstr "Penyunting Teks"
 
 
-msgid "Interpolation Line"
-msgstr "Garis Interpolasi"
-
-
 msgid "Shadow type (0 none, 3, 5 blur, 6 outline)"
 msgstr "Tipe bayangan (0 kosong, 3, 5 buram, 6 garis luar)"
 
@@ -27210,10 +27190,6 @@ msgstr "Konteks salah, gambar tidak ditemukan"
 
 msgid "No camera found"
 msgstr "Tidak ada kamera yang ditemukan"
-
-
-msgid "Other object is not a mesh"
-msgstr "Objek lain bukan mesh"
 
 
 msgid "Other object has no shape key"
@@ -28594,10 +28570,6 @@ msgstr "Hapus"
 msgctxt "Operator"
 msgid "Vertex"
 msgstr "Warna Standar"
-
-
-msgid "Image*"
-msgstr "Gambar*"
 
 
 msgid "Repeat Image"
@@ -30508,18 +30480,6 @@ msgstr " Material,"
 
 msgid "No active camera set"
 msgstr "Hapus"
-
-
-msgid "vertex data"
-msgstr "data vertex"
-
-
-msgid "edge data"
-msgstr "data tepi"
-
-
-msgid "face data"
-msgstr "data wajah"
 
 
 msgid "Active F-Curve"

@@ -627,6 +627,12 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
   if (src.default_color_attribute) {
     BKE_id_attributes_default_color_set(&dst.id, src.default_color_attribute);
   }
+  if (!src.active_uv_map_name().is_empty()) {
+    dst.uv_maps_active_set(src.active_uv_map_name());
+  }
+  if (!src.default_uv_map_name().is_empty()) {
+    dst.uv_maps_default_set(src.default_uv_map_name());
+  }
 }
 
 }  // namespace blender::bke

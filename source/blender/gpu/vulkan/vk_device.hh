@@ -80,6 +80,11 @@ struct VKExtensions {
    */
   bool pageable_device_local_memory = false;
 
+  /**
+   * Does the device support VK_EXT_graphics_pipeline_library
+   */
+  bool graphics_pipeline_library = false;
+
   /** Log enabled features and extensions. */
   void log() const;
 };
@@ -188,6 +193,9 @@ class VKDevice : public NonCopyable {
   VkPhysicalDeviceMemoryProperties vk_physical_device_memory_properties_ = {};
   VkPhysicalDeviceMaintenance4Properties vk_physical_device_maintenance4_properties_ = {
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_PROPERTIES};
+  VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT
+      vk_physical_device_graphics_pipeline_library_properties_ = {
+          VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_PROPERTIES_EXT};
   /** Features support. */
   VkPhysicalDeviceFeatures vk_physical_device_features_ = {};
   VkPhysicalDeviceVulkan11Features vk_physical_device_vulkan_11_features_ = {};
@@ -269,6 +277,12 @@ class VKDevice : public NonCopyable {
   const VkPhysicalDeviceIDProperties &physical_device_id_properties_get() const
   {
     return vk_physical_device_id_properties_;
+  }
+
+  inline const VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT &
+  physical_device_graphics_pipeline_properties_get()
+  {
+    return vk_physical_device_graphics_pipeline_library_properties_;
   }
 
   const VkPhysicalDeviceFeatures &physical_device_features_get() const

@@ -317,6 +317,66 @@ static void transfer_default_color_string(Mesh *mesh_dst, const Mesh *mesh_src)
   }
 }
 
+static void transfer_active_uv_map_string(Mesh *mesh_dst, const Mesh *mesh_src)
+{
+  using namespace blender;
+  const StringRef name = mesh_src->active_uv_map_attribute;
+  if (!name.is_empty()) {
+    return;
+  }
+  const bke::AttributeAccessor attributes_src = mesh_src->attributes();
+  const bke::AttributeAccessor attributes_dst = mesh_dst->attributes();
+
+  if (!bke::mesh::is_uv_map(attributes_src.lookup_meta_data(name))) {
+    return;
+  }
+
+  if (bke::mesh::is_uv_map(attributes_dst.lookup_meta_data(name))) {
+    mesh_dst->uv_maps_active_set(name);
+  }
+  else {
+    mesh_dst->attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+      if (!mesh_dst->active_uv_map_name().is_empty()) {
+        return;
+      }
+      if (!bke::mesh::is_uv_map({iter.domain, iter.data_type})) {
+        return;
+      }
+      mesh_dst->uv_maps_active_set(iter.name);
+    });
+  }
+}
+
+static void transfer_default_uv_map_string(Mesh *mesh_dst, const Mesh *mesh_src)
+{
+  using namespace blender;
+  const StringRef name = mesh_src->default_uv_map_attribute;
+  if (!name.is_empty()) {
+    return;
+  }
+  const bke::AttributeAccessor attributes_src = mesh_src->attributes();
+  const bke::AttributeAccessor attributes_dst = mesh_dst->attributes();
+
+  if (!bke::mesh::is_uv_map(attributes_src.lookup_meta_data(name))) {
+    return;
+  }
+
+  if (bke::mesh::is_uv_map(attributes_dst.lookup_meta_data(name))) {
+    mesh_dst->uv_maps_default_set(name);
+  }
+  else {
+    mesh_dst->attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
+      if (!mesh_dst->default_uv_map_name().is_empty()) {
+        return;
+      }
+      if (!bke::mesh::is_uv_map({iter.domain, iter.data_type})) {
+        return;
+      }
+      mesh_dst->uv_maps_default_set(iter.name);
+    });
+  }
+}
+
 /* ********** */
 
 static void data_transfer_dtdata_type_postprocess(Mesh *me_dst,
@@ -1302,6 +1362,10 @@ void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
       if (ELEM(cddata_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
         transfer_active_color_string(me_dst, me_src);
         transfer_default_color_string(me_dst, me_src);
+      }
+      else if (ELEM(cddata_type, CD_PROP_FLOAT2)) {
+        transfer_active_uv_map_string(me_dst, me_src);
+        transfer_default_uv_map_string(me_dst, me_src);
       }
     }
     if (DT_DATATYPE_IS_FACE(dtdata_type)) {

@@ -18,6 +18,7 @@
 #include "BKE_sound.hh"
 
 #include "SEQ_iterator.hh"
+#include "SEQ_sequencer.hh"
 
 namespace blender::deg {
 
@@ -29,7 +30,7 @@ static bool strip_init_cb(Strip *strip, void *user_data)
   StripBackup strip_backup(sb->depsgraph);
   strip_backup.init_from_strip(strip);
   if (!strip_backup.isEmpty()) {
-    const SessionUID &session_uid = strip->runtime.session_uid;
+    const SessionUID &session_uid = strip->runtime->session_uid;
     BLI_assert(BLI_session_uid_is_generated(&session_uid));
     sb->strips_backup.add(session_uid, strip_backup);
   }
@@ -46,7 +47,7 @@ void SequencerBackup::init_from_scene(Scene *scene)
 static bool strip_restore_cb(Strip *strip, void *user_data)
 {
   SequencerBackup *sb = (SequencerBackup *)user_data;
-  const SessionUID &session_uid = strip->runtime.session_uid;
+  const SessionUID &session_uid = strip->runtime->session_uid;
   BLI_assert(BLI_session_uid_is_generated(&session_uid));
   StripBackup *strip_backup = sb->strips_backup.lookup_ptr(session_uid);
   if (strip_backup != nullptr) {

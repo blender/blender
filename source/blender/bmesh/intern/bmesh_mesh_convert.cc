@@ -85,6 +85,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_span.hh"
+#include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
@@ -301,6 +302,17 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
         &mesh_pdata, &bm->pdata, mask.pmask, CD_SET_DEFAULT, bm, BM_FACE);
     CustomData_bmesh_merge_layout(
         &mesh_ldata, &bm->ldata, mask.lmask, CD_SET_DEFAULT, bm, BM_LOOP);
+  }
+
+  {
+    const StringRef name = mesh->active_uv_map_name();
+    const int index = CustomData_get_named_layer_index(&bm->ldata, CD_PROP_FLOAT2, name);
+    CustomData_set_layer_active_index(&bm->ldata, CD_PROP_FLOAT2, std::max(index, 0));
+  }
+  {
+    const StringRef name = mesh->default_uv_map_name();
+    const int index = CustomData_get_named_layer_index(&bm->ldata, CD_PROP_FLOAT2, name);
+    CustomData_set_layer_render_index(&bm->ldata, CD_PROP_FLOAT2, std::max(index, 0));
   }
 
   /* -------------------------------------------------------------------- */
@@ -1487,6 +1499,15 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *mesh, const BMeshToMeshParam
         &bm->pdata, &mesh->face_data, mask.pmask, CD_CONSTRUCT, mesh->faces_num);
   }
 
+  if (const char *name = CustomData_get_active_layer_name(&bm->ldata, CD_PROP_FLOAT2)) {
+    MEM_SAFE_FREE(mesh->active_uv_map_attribute);
+    mesh->active_uv_map_attribute = BLI_strdup(name);
+  }
+  if (const char *name = CustomData_get_render_layer_name(&bm->ldata, CD_PROP_FLOAT2)) {
+    MEM_SAFE_FREE(mesh->default_uv_map_attribute);
+    mesh->default_uv_map_attribute = BLI_strdup(name);
+  }
+
   /* Add optional mesh attributes before parallel iteration. */
   assert_bmesh_has_no_mesh_only_attributes(*bm);
   bke::MutableAttributeAccessor attrs = mesh->attributes_for_write();
@@ -1728,6 +1749,23 @@ void BM_mesh_bm_to_me_compact(BMesh &bm,
     CustomData_merge_layout(
         &bm.ldata, &mesh.corner_data, mask->lmask, CD_CONSTRUCT, mesh.corners_num);
     CustomData_merge_layout(&bm.pdata, &mesh.face_data, mask->pmask, CD_CONSTRUCT, mesh.faces_num);
+  }
+
+  {
+    const StringRef name = mesh.active_uv_map_name();
+    int index = CustomData_get_named_layer_index(&bm.ldata, CD_PROP_FLOAT2, name);
+    if (index == -1) {
+      index = CustomData_get_layer_index(&bm.ldata, CD_PROP_FLOAT2);
+    }
+    CustomData_set_layer_active_index(&bm.ldata, CD_PROP_FLOAT2, index);
+  }
+  {
+    const StringRef name = mesh.default_uv_map_name();
+    int index = CustomData_get_named_layer_index(&bm.ldata, CD_PROP_FLOAT2, name);
+    if (index == -1) {
+      index = CustomData_get_layer_index(&bm.ldata, CD_PROP_FLOAT2);
+    }
+    CustomData_set_layer_render_index(&bm.ldata, CD_PROP_FLOAT2, index);
   }
 
   /* Add optional mesh attributes before parallel iteration. */

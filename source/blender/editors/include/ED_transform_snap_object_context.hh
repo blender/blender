@@ -71,6 +71,8 @@ struct SnapObjectParams {
   bool use_backface_culling : 1;
   /** Enable to force nearest face snapping to snap to target the source was initially near. */
   bool keep_on_same_target : 1;
+  /** Allow snapping to include all objects even when a mesh is in edit mode. */
+  bool ignore_editmode_filtering : 1;
 };
 
 struct SnapObjectContext;

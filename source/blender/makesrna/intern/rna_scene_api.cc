@@ -157,6 +157,7 @@ static void rna_Scene_ray_cast(Scene *scene,
 
   blender::ed::transform::SnapObjectParams snap_object_params{};
   snap_object_params.snap_target_select = SCE_SNAP_TARGET_ALL;
+  snap_object_params.ignore_editmode_filtering = true;
 
   bool ret = blender::ed::transform::snap_object_project_ray_ex(sctx,
                                                                 depsgraph,

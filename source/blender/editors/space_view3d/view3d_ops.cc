@@ -147,6 +147,7 @@ static wmOperatorStatus view3d_pastebuffer_exec(bContext *C, wmOperator *op)
   }
 
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
+  WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, nullptr);
   ED_outliner_select_sync_from_object_tag(C);
 
   BKE_reportf(op->reports, RPT_INFO, "%d object(s) pasted", num_pasted);

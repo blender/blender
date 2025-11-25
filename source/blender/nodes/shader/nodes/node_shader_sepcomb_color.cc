@@ -146,9 +146,52 @@ NODE_STORAGE_FUNCS(NodeCombSepColor)
 
 static void sh_node_combcolor_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>("Red").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Green").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Blue").default_value(0.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Red")
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .label_fn([](bNode node) {
+        switch (node_storage(node).mode) {
+          case NODE_COMBSEP_COLOR_RGB:
+          default:
+            return IFACE_("Red");
+          case NODE_COMBSEP_COLOR_HSL:
+          case NODE_COMBSEP_COLOR_HSV:
+            return IFACE_("Hue");
+        }
+      });
+  b.add_input<decl::Float>("Green")
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .label_fn([](bNode node) {
+        switch (node_storage(node).mode) {
+          case NODE_COMBSEP_COLOR_RGB:
+          default:
+            return IFACE_("Green");
+          case NODE_COMBSEP_COLOR_HSL:
+          case NODE_COMBSEP_COLOR_HSV:
+            return IFACE_("Saturation");
+        }
+      });
+  b.add_input<decl::Float>("Blue")
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .label_fn([](bNode node) {
+        switch (node_storage(node).mode) {
+          case NODE_COMBSEP_COLOR_RGB:
+          default:
+            return IFACE_("Blue");
+          case NODE_COMBSEP_COLOR_HSL:
+            return IFACE_("Lightness");
+          case NODE_COMBSEP_COLOR_HSV:
+            return CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "Value");
+        }
+      });
   b.add_output<decl::Color>("Color");
 }
 

@@ -485,8 +485,9 @@ def bake_action_iter(
                 continue
 
             if bake_options.do_constraint_clear:
-                while pbone.constraints:
-                    pbone.constraints.remove(pbone.constraints[0])
+                for con in pbone.constraints[:]:
+                    if not con.is_override_data:
+                        pbone.constraints.remove(con)
 
             # Create compatible euler & quaternion rotation values.
             euler_prev = None
@@ -573,8 +574,9 @@ def bake_action_iter(
     # object. TODO. multiple objects
     if bake_options.do_object:
         if bake_options.do_constraint_clear:
-            while obj.constraints:
-                obj.constraints.remove(obj.constraints[0])
+            for con in obj.constraints[:]:
+                if not con.is_override_data:
+                    obj.constraints.remove(con)
 
         # Create compatible euler & quaternion rotations.
         euler_prev = None

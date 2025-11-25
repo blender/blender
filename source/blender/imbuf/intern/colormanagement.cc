@@ -102,7 +102,6 @@ static char global_role_aces_interchange[MAX_COLORSPACE_NAME];
 
 /* Defaults from the config that never change with working space. */
 static char global_role_scene_linear_default[MAX_COLORSPACE_NAME];
-static char global_role_default_float_default[MAX_COLORSPACE_NAME];
 
 float3x3 global_scene_linear_to_xyz_default = float3x3::zero();
 
@@ -603,7 +602,6 @@ static bool colormanage_load_config(ocio::Config &config)
 
   /* Defaults that don't change with file working space. */
   STRNCPY(global_role_scene_linear_default, global_role_scene_linear);
-  STRNCPY(global_role_default_float_default, global_role_default_float);
   global_scene_linear_to_xyz_default = blender::colorspace::scene_linear_to_xyz;
 
   return ok;
@@ -3375,14 +3373,6 @@ bool IMB_colormanagement_working_space_set_from_name(const char *name)
   }
 
   CLOG_DEBUG(&LOG, "Setting blend file working color space to '%s'", name);
-
-  /* Change default float along with working space for convenience, if it was the same. */
-  if (STREQ(global_role_default_float_default, global_role_scene_linear_default)) {
-    STRNCPY(global_role_default_float, name);
-  }
-  else {
-    STRNCPY(global_role_default_float, global_role_default_float_default);
-  }
 
   STRNCPY(global_role_scene_linear, name);
   g_config->set_scene_linear_role(name);

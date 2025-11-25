@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-11-10 09:45+0000\n"
-"PO-Revision-Date: 2025-07-23 15:03+0000\n"
-"Last-Translator: Amy Lily <lillya.assist@gmail.com>\n"
+"POT-Creation-Date: 2025-11-24 08:35+0000\n"
+"PO-Revision-Date: 2025-11-11 12:13+0000\n"
+"Last-Translator: Rafael Teixeira de Avila Soares <rafaeltas@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
@@ -60,8 +60,12 @@ msgid "Collection of AOVs"
 msgstr "Coleção de AOVs"
 
 
+msgid "Animation Channel Bag"
+msgstr "Coleção de Canais de Animação"
+
+
 msgid "Collection of animation channels, typically associated with an action slot"
-msgstr "Coleção de canais de animação, tipicamente associado a um Espaço de Ação"
+msgstr "Coleção de canais de animação, tipicamente associados com um compartimento de ação"
 
 
 msgid "F-Curves"
@@ -89,7 +93,7 @@ msgstr "O Espaço para o qual os dados de animação da Bolsa do canal são"
 
 
 msgid "Collection of F-Curves for a specific action slot, on a specific strip"
-msgstr "Coleção de Curvas-F para um espaço específico, numa faixa específica"
+msgstr "Coleção de Curvas-F para um compartimento específico, numa faixa específica"
 
 
 msgid "Collection of f-curve groups"
@@ -101,7 +105,7 @@ msgstr "Canais de animação para espaços de ação"
 
 
 msgid "For each action slot, a list of animation channels that are meant for that slot"
-msgstr "A lista de canais de animação para cada espaço de ação"
+msgstr "Para cada compartimento de ações, uma lista de canais de animação destinados para esse compartimento"
 
 
 msgid "Action Group"
@@ -689,10 +693,6 @@ msgid "Show only hotkeys that have this text in their name"
 msgstr "Mostrar apenas atalhos de teclado que tenham este texto no nome"
 
 
-msgid "Hide Mix nodes"
-msgstr "Esconder os nós \"Misturar\""
-
-
 msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify whether to collapse them or show the full node with options expanded"
 msgstr "Durante a junção de nós com combinação de teclas Ctrl+Numpad0 (e similares) especificar se os nós devem ser colapsados ou expandidos mostrando todas as opções"
 
@@ -751,14 +751,6 @@ msgstr "Exibir lista de teclas de atalho"
 
 msgid "Expand this box into a list of all the hotkeys for functions in this addon"
 msgstr "Expanda essa caixa em uma lista de todas as teclas de atalho para funções neste addon"
-
-
-msgid "Show Principled naming tags"
-msgstr "Mostrar etiquetas de nomes Principled"
-
-
-msgid "Expand this box into a list of all naming tags for principled texture setup"
-msgstr "Expandir esta caixa numa lista de todas as etiquetas de nomes para configurações de texturas Principled"
 
 
 msgid "Fribidi Library"
@@ -1717,6 +1709,134 @@ msgid "Space Type"
 msgstr "Tipo de espaço"
 
 
+msgid "Actions"
+msgstr "Ações"
+
+
+msgid "Armatures"
+msgstr "Armações"
+
+
+msgid "Brushes"
+msgstr "Pincéis"
+
+
+msgid "Cache Files"
+msgstr "Arquivos de cache"
+
+
+msgid "Cameras"
+msgstr "Câmeras"
+
+
+msgid "Curves"
+msgstr "Curvas"
+
+
+msgid "Fonts"
+msgstr "Fontes"
+
+
+msgid "Grease Pencil"
+msgstr "Lápis de cera"
+
+
+msgid "Images"
+msgstr "Imagens"
+
+
+msgid "Lattices"
+msgstr "Treliças"
+
+
+msgid "Lights"
+msgstr "Luzes"
+
+
+msgid "Show Light Probe data-blocks"
+msgstr "Mostra blocos de dados das sondas de luz"
+
+
+msgid "Freestyle Linestyles"
+msgstr "Freestyle - Estilos de linhas"
+
+
+msgid "Masks"
+msgstr "Máscaras"
+
+
+msgid "Materials"
+msgstr "Materiais"
+
+
+msgid "Meshes"
+msgstr "Malhas"
+
+
+msgid "Metaballs"
+msgstr "Esferas-meta"
+
+
+msgid "Movie Clips"
+msgstr "Clipes de filme"
+
+
+msgid "Node Trees"
+msgstr "Árvores de nós"
+
+
+msgid "Objects"
+msgstr "Objetos"
+
+
+msgid "Paint Curves"
+msgstr "Curvas de pintura"
+
+
+msgid "Palettes"
+msgstr "Paletas"
+
+
+msgid "Particles Settings"
+msgstr "Configurações de partículas"
+
+
+msgid "Point Clouds"
+msgstr "Nuvem de pontos"
+
+
+msgid "Scenes"
+msgstr "Cenas"
+
+
+msgid "Sounds"
+msgstr "Sons"
+
+
+msgid "Speakers"
+msgstr "Alto-falantes"
+
+
+msgid "Texts"
+msgstr "Textos"
+
+
+msgid "Textures"
+msgstr "Texturas"
+
+
+msgid "Volumes"
+msgstr "Volumes"
+
+
+msgid "Workspaces"
+msgstr "Espaços de trabalho"
+
+
+msgid "Worlds"
+msgstr "Ambientes (mundos)"
+
+
 msgid "Preview Size"
 msgstr "Tamanho da visualização"
 
@@ -2485,40 +2605,20 @@ msgid "Main data structure representing a .blend file and all its data-blocks"
 msgstr "Estrutura principal de dados representando um arquivo Blender e todos os seus blocos de dados."
 
 
-msgid "Actions"
-msgstr "Ações"
-
-
 msgid "Action data-blocks"
 msgstr "Blocos de dados de ações."
-
-
-msgid "Armatures"
-msgstr "Armações"
 
 
 msgid "Armature data-blocks"
 msgstr "Blocos de dados de armações."
 
 
-msgid "Brushes"
-msgstr "Pincéis"
-
-
 msgid "Brush data-blocks"
 msgstr "Blocos de dados de pincéis."
 
 
-msgid "Cache Files"
-msgstr "Arquivos de cache"
-
-
 msgid "Cache Files data-blocks"
 msgstr "Blocos de dados de arquivos de cache."
-
-
-msgid "Cameras"
-msgstr "Câmeras"
 
 
 msgid "Camera data-blocks"
@@ -2527,10 +2627,6 @@ msgstr "Blocos de dados de câmeras."
 
 msgid "Color Space"
 msgstr "Espaço de cor"
-
-
-msgid "Curves"
-msgstr "Curvas"
 
 
 msgid "Curve data-blocks"
@@ -2553,14 +2649,6 @@ msgid "Vector font data-blocks"
 msgstr "Blocos de dados de fontes vetoriais."
 
 
-msgid "Grease Pencil"
-msgstr "Lápis de cera"
-
-
-msgid "Images"
-msgstr "Imagens"
-
-
 msgid "Image data-blocks"
 msgstr "Blocos de dados de imagens."
 
@@ -2581,10 +2669,6 @@ msgid "Has the current session been saved to disk as a .blend file"
 msgstr "Possui a sessão atual salva no disco como um arquivo Blender."
 
 
-msgid "Lattices"
-msgstr "Treliças"
-
-
 msgid "Lattice data-blocks"
 msgstr "Blocos de dados de treliças."
 
@@ -2601,10 +2685,6 @@ msgid "Light Probe data-blocks"
 msgstr "Blocos de dados das sondas de luz"
 
 
-msgid "Lights"
-msgstr "Luzes"
-
-
 msgid "Line Styles"
 msgstr "Estilos de linha"
 
@@ -2613,40 +2693,20 @@ msgid "Line Style data-blocks"
 msgstr "Blocos de dados de estilos de linha."
 
 
-msgid "Masks"
-msgstr "Máscaras"
-
-
 msgid "Masks data-blocks"
 msgstr "Blocos de dados de máscaras."
-
-
-msgid "Materials"
-msgstr "Materiais"
 
 
 msgid "Material data-blocks"
 msgstr "Blocos de dados de materiais."
 
 
-msgid "Meshes"
-msgstr "Malhas"
-
-
 msgid "Mesh data-blocks"
 msgstr "Blocos de dados de malha."
 
 
-msgid "Metaballs"
-msgstr "Esferas-meta"
-
-
 msgid "Metaball data-blocks"
 msgstr "Blocos de dados de esferas-meta."
-
-
-msgid "Movie Clips"
-msgstr "Clipes de filme"
 
 
 msgid "Movie Clip data-blocks"
@@ -2661,24 +2721,12 @@ msgid "Node group data-blocks"
 msgstr "Blocos de dados de grupos de nós"
 
 
-msgid "Objects"
-msgstr "Objetos"
-
-
 msgid "Object data-blocks"
 msgstr "Blocos de dados de objetos"
 
 
-msgid "Paint Curves"
-msgstr "Curvas de pintura"
-
-
 msgid "Paint Curves data-blocks"
 msgstr "Blocos de dados de curvas de pintura"
-
-
-msgid "Palettes"
-msgstr "Paletas"
 
 
 msgid "Palette data-blocks"
@@ -2693,16 +2741,8 @@ msgid "Particle data-blocks"
 msgstr "Blocos de dados de partículas"
 
 
-msgid "Point Clouds"
-msgstr "Nuvem de pontos"
-
-
 msgid "Point cloud data-blocks"
 msgstr "Blocos de dados na nuvem de pontos"
-
-
-msgid "Scenes"
-msgstr "Cenas"
 
 
 msgid "Scene data-blocks"
@@ -2725,32 +2765,16 @@ msgid "Shape Key data-blocks"
 msgstr "Blocos de dados de chaves de formato"
 
 
-msgid "Sounds"
-msgstr "Sons"
-
-
 msgid "Sound data-blocks"
 msgstr "Blocos de dados de sons"
-
-
-msgid "Speakers"
-msgstr "Alto-falantes"
 
 
 msgid "Speaker data-blocks"
 msgstr "Blocos de dados de alto-falantes"
 
 
-msgid "Texts"
-msgstr "Textos"
-
-
 msgid "Text data-blocks"
 msgstr "Blocos de dados de textos"
-
-
-msgid "Textures"
-msgstr "Texturas"
 
 
 msgid "Texture data-blocks"
@@ -2765,24 +2789,12 @@ msgid "Version"
 msgstr "Versão"
 
 
-msgid "Volumes"
-msgstr "Volumes"
-
-
 msgid "Window Managers"
 msgstr "Gerenciadores de janelas"
 
 
 msgid "Window manager data-blocks"
 msgstr "Blocos de dados de gerenciadores de janelas."
-
-
-msgid "Workspaces"
-msgstr "Espaços de trabalho"
-
-
-msgid "Worlds"
-msgstr "Ambientes (mundos)"
 
 
 msgid "World data-blocks"
@@ -9943,26 +9955,6 @@ msgstr "Efeito pleno ou apenas nas direções positivas ou negativas de Z."
 
 msgid "Both Z"
 msgstr "Ambos Z"
-
-
-msgid "Fonts"
-msgstr "Fontes"
-
-
-msgid "Show Light Probe data-blocks"
-msgstr "Mostra blocos de dados das sondas de luz"
-
-
-msgid "Freestyle Linestyles"
-msgstr "Freestyle - Estilos de linhas"
-
-
-msgid "Particles Settings"
-msgstr "Configurações de partículas"
-
-
-msgid "Node Trees"
-msgstr "Árvores de nós"
 
 
 msgid "File Select Parameters"
@@ -19894,14 +19886,6 @@ msgid "Available"
 msgstr "Disponível"
 
 
-msgid "Insert a keyframe for each of the BBone shape properties"
-msgstr "Insere um quadro-chave para cada uma das propriedades dos formatos dos ossos maleáveis."
-
-
-msgid "BBone Shape"
-msgstr "Formato do osso maleável"
-
-
 msgid "Insert keyframes for additional location offset"
 msgstr "Insere quadros-chave para deslocamento adicional de localização."
 
@@ -21243,12 +21227,24 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
 msgid "Track"
 msgstr "Rastrear"
 
 
 msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
+
+
+msgid "Navigation"
+msgstr "Navegação"
 
 
 msgid "Show/Hide"
@@ -21271,6 +21267,14 @@ msgid "Hooks"
 msgstr "Ganchos"
 
 
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
 msgid "Random Mask"
 msgstr "Máscara Aleatória"
 
@@ -21289,10 +21293,6 @@ msgstr "Propagar"
 
 msgid "Names"
 msgstr "Nomes"
-
-
-msgid "Apply"
-msgstr "Aplicar"
 
 
 msgid "Toggle Bone Options"
@@ -21335,8 +21335,20 @@ msgid "Math"
 msgstr "Matemática"
 
 
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
 msgid "Special Characters"
 msgstr "Caracteres especiais"
+
+
+msgid "Snap"
+msgstr "Atrair"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
 
 
 msgid "Text"
@@ -21355,44 +21367,8 @@ msgid "Pivot Point"
 msgstr "Pontos de pivô"
 
 
-msgid "Snap"
-msgstr "Atrair"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
 
 
 msgid "Select More/Less"
@@ -21435,6 +21411,10 @@ msgid "Light Probe"
 msgstr "Sonda de Luz"
 
 
+msgid "View Regions"
+msgstr "Visualizar Regiões"
+
+
 msgid "Add Image"
 msgstr "Adicionar Imagem"
 
@@ -21445,6 +21425,10 @@ msgstr "Relações"
 
 msgid "Rigid Body"
 msgstr "Corpo rígido"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
 
 
 msgid "Basic"
@@ -57376,10 +57360,6 @@ msgid "Theme settings for the Dope Sheet"
 msgstr "Configurações de tema para a tabela de animação."
 
 
-msgid "Interpolation Line"
-msgstr "Linha de Interpolação"
-
-
 msgid "Keyframe Border"
 msgstr "Margens dos quadros-chave"
 
@@ -60787,10 +60767,6 @@ msgstr "Faces"
 msgctxt "Operator"
 msgid "Zoom 1:1"
 msgstr "Ampliação 1:1"
-
-
-msgid "Image*"
-msgstr "Imagem*"
 
 
 msgctxt "Operator"
@@ -65381,18 +65357,6 @@ msgstr "faces não triangulares"
 
 msgid "multi-res modifier"
 msgstr "modificador para multirresolução"
-
-
-msgid "vertex data"
-msgstr "dados dos vértices"
-
-
-msgid "edge data"
-msgstr "dados das arestas"
-
-
-msgid "face data"
-msgstr "dados das faces"
 
 
 msgid "constructive modifier"

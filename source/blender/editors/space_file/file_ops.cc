@@ -1937,7 +1937,7 @@ void FILE_OT_external_operation(wmOperatorType *ot)
                "Operation to perform on the selected file or path");
 }
 
-static void file_os_operations_menu_item(uiLayout *layout,
+static void file_os_operations_menu_item(blender::ui::Layout &layout,
                                          wmOperatorType *ot,
                                          const char *path,
                                          FileExternalOperation operation)
@@ -1956,7 +1956,7 @@ static void file_os_operations_menu_item(uiLayout *layout,
   const char *title = "";
   RNA_enum_name(file_external_operation, operation, &title);
 
-  PointerRNA props_ptr = layout->op(
+  PointerRNA props_ptr = layout.op(
       ot, IFACE_(title), ICON_NONE, blender::wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
   RNA_enum_set(&props_ptr, "operation", operation);
 }
@@ -2000,8 +2000,8 @@ static void file_os_operations_menu_draw(const bContext *C_const, Menu *menu)
   filelist_file_get_full_path(sfile->files, fileentry, path);
   const char *root = filelist_dir(sfile->files);
 
-  uiLayout *layout = menu->layout;
-  layout->operator_context_set(blender::wm::OpCallContext::InvokeDefault);
+  blender::ui::Layout &layout = *menu->layout;
+  layout.operator_context_set(blender::wm::OpCallContext::InvokeDefault);
   wmOperatorType *ot = WM_operatortype_find("FILE_OT_external_operation", true);
 
   if (fileentry->typeflag & FILE_TYPE_DIR) {

@@ -198,6 +198,7 @@
 #define buffer_get(create_info, _res) create_info::_res
 #define sampler_get(create_info, _res) create_info::_res
 #define image_get(create_info, _res) create_info::_res
+#define srt_access(create_info, _res) create_info::_res
 
 #include "GPU_shader_shared_utils.hh"
 

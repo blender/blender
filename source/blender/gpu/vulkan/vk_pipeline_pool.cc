@@ -134,11 +134,10 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(const VKGraphicsInfo 
       graphics_info, vk_pipeline_cache, vk_pipeline_base, name, r_created);
 }
 
-template<>
-VkPipeline VKPipelineMap<VKGraphicsInfo>::create(const VKGraphicsInfo &graphics_info,
-                                                 VkPipelineCache vk_pipeline_cache,
-                                                 VkPipeline vk_pipeline_base,
-                                                 StringRefNull name)
+static VkPipeline create_graphics_pipeline_no_libs(const VKGraphicsInfo &graphics_info,
+                                                   VkPipelineCache vk_pipeline_cache,
+                                                   VkPipeline vk_pipeline_base,
+                                                   StringRefNull name)
 {
   VKDevice &device = VKBackend::get().device;
   const VKExtensions &extensions = device.extensions_get();
@@ -163,20 +162,223 @@ VkPipeline VKPipelineMap<VKGraphicsInfo>::create(const VKGraphicsInfo &graphics_
   return pipeline;
 }
 
+static VkPipeline create_graphics_pipeline_libs(const VKGraphicsInfo &graphics_info,
+                                                VkPipelineCache vk_pipeline_cache,
+                                                VkPipeline vk_pipeline_base,
+                                                StringRefNull name)
+{
+  double start_time = BLI_time_now_seconds();
+  VKDevice &device = VKBackend::get().device;
+
+  VkPipeline vertex_input_lib = device.pipelines.get_or_create_vertex_input_lib(
+      graphics_info.vertex_in);
+  VkPipeline shaders_lib = device.pipelines.get_or_create_shaders_lib(graphics_info.shaders);
+  VkPipeline fragment_output_lib = device.pipelines.get_or_create_fragment_output_lib(
+      graphics_info.fragment_out);
+
+  std::array<VkPipeline, 3> pipeline_libraries = {
+      vertex_input_lib, shaders_lib, fragment_output_lib};
+
+  /* Linking */
+  VkPipeline pipeline = VK_NULL_HANDLE;
+  VkPipelineLibraryCreateInfoKHR vk_pipeline_library_create_info = {
+      VK_STRUCTURE_TYPE_PIPELINE_LIBRARY_CREATE_INFO_KHR,
+      nullptr,
+      uint32_t(pipeline_libraries.size()),
+      pipeline_libraries.data()};
+  VkGraphicsPipelineCreateInfo linking_pipeline_create_info = {
+      VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+      &vk_pipeline_library_create_info,
+      VK_PIPELINE_CREATE_LINK_TIME_OPTIMIZATION_BIT_EXT,
+      0,
+      nullptr,
+      nullptr,
+      nullptr,
+      nullptr,
+      nullptr,
+      nullptr,
+      nullptr,
+      nullptr,
+      nullptr,
+      nullptr,
+      graphics_info.shaders.vk_pipeline_layout,
+      VK_NULL_HANDLE,
+      0,
+      vk_pipeline_base,
+      0};
+  double start_link_time = BLI_time_now_seconds();
+  vkCreateGraphicsPipelines(
+      device.vk_handle(), vk_pipeline_cache, 1, &linking_pipeline_create_info, nullptr, &pipeline);
+  double end_time = BLI_time_now_seconds();
+  debug::object_label(pipeline, name);
+  CLOG_TRACE(&LOG,
+             "Linking graphics pipeline %s in %fms ",
+             name.c_str(),
+             (end_time - start_link_time) * 1000.0);
+  CLOG_DEBUG(&LOG,
+             "Compiling graphics pipeline %s in %fms ",
+             name.c_str(),
+             (end_time - start_time) * 1000.0);
+  return pipeline;
+}
+
+template<>
+VkPipeline VKPipelineMap<VKGraphicsInfo>::create(const VKGraphicsInfo &graphics_info,
+                                                 VkPipelineCache vk_pipeline_cache,
+                                                 VkPipeline vk_pipeline_base,
+                                                 StringRefNull name)
+{
+  VKDevice &device = VKBackend::get().device;
+  const VKExtensions &extensions = device.extensions_get();
+  if (extensions.graphics_pipeline_library) {
+    return create_graphics_pipeline_libs(graphics_info, vk_pipeline_cache, vk_pipeline_base, name);
+  }
+  else {
+    return create_graphics_pipeline_no_libs(
+        graphics_info, vk_pipeline_cache, vk_pipeline_base, name);
+  }
+}
+
+/* \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Vertex input library
+ * \{ */
+
+VkPipeline VKPipelinePool::get_or_create_vertex_input_lib(
+    const VKGraphicsInfo::VertexIn &vertex_input_info)
+{
+  bool created = false;
+  return vertex_input_libs_.get_or_create(
+      vertex_input_info, vk_pipeline_cache_static_, VK_NULL_HANDLE, "VertexInLib", created);
+}
+
+template<>
+VkPipeline VKPipelineMap<VKGraphicsInfo::VertexIn>::create(
+    const VKGraphicsInfo::VertexIn &vertex_input_info,
+    VkPipelineCache vk_pipeline_cache,
+    VkPipeline vk_pipeline_base,
+    StringRefNull name)
+{
+  VKDevice &device = VKBackend::get().device;
+  VKGraphicsPipelineCreateInfoBuilder builder;
+  builder.build_vertex_input_lib(vertex_input_info, vk_pipeline_base);
+
+  /* Build pipeline. */
+  VkPipeline pipeline = VK_NULL_HANDLE;
+  double start_time = BLI_time_now_seconds();
+  vkCreateGraphicsPipelines(device.vk_handle(),
+                            vk_pipeline_cache,
+                            1,
+                            &builder.vk_graphics_pipeline_create_info,
+                            nullptr,
+                            &pipeline);
+  double end_time = BLI_time_now_seconds();
+  debug::object_label(pipeline, name);
+  CLOG_TRACE(&LOG, "Compiled vertex input library in %fms ", (end_time - start_time) * 1000.0);
+  return pipeline;
+}
+
+/* \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Shaders library
+ * \{ */
+
+VkPipeline VKPipelinePool::get_or_create_shaders_lib(const VKGraphicsInfo::Shaders &shaders_info)
+{
+  bool created = false;
+  return shaders_libs_.get_or_create(
+      shaders_info, vk_pipeline_cache_non_static_, VK_NULL_HANDLE, "ShadersLib", created);
+}
+
+template<>
+VkPipeline VKPipelineMap<VKGraphicsInfo::Shaders>::create(
+    const VKGraphicsInfo::Shaders &shaders_info,
+    VkPipelineCache vk_pipeline_cache,
+    VkPipeline vk_pipeline_base,
+    StringRefNull name)
+{
+  VKDevice &device = VKBackend::get().device;
+  VKGraphicsPipelineCreateInfoBuilder builder;
+  builder.build_shaders_lib(shaders_info, vk_pipeline_base);
+
+  /* Build pipeline. */
+  VkPipeline pipeline = VK_NULL_HANDLE;
+  double start_time = BLI_time_now_seconds();
+  vkCreateGraphicsPipelines(device.vk_handle(),
+                            vk_pipeline_cache,
+                            1,
+                            &builder.vk_graphics_pipeline_create_info,
+                            nullptr,
+                            &pipeline);
+  double end_time = BLI_time_now_seconds();
+  debug::object_label(pipeline, name);
+  CLOG_TRACE(&LOG, "Compiled shaders library in %fms ", (end_time - start_time) * 1000.0);
+  return pipeline;
+}
+
+/* \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Fragment output library
+ * \{ */
+
+VkPipeline VKPipelinePool::get_or_create_fragment_output_lib(
+    const VKGraphicsInfo::FragmentOut &fragment_output_info)
+{
+  bool created = false;
+  return fragment_output_libs_.get_or_create(
+      fragment_output_info, vk_pipeline_cache_static_, VK_NULL_HANDLE, "FragmentOutLib", created);
+}
+
+template<>
+VkPipeline VKPipelineMap<VKGraphicsInfo::FragmentOut>::create(
+    const VKGraphicsInfo::FragmentOut &fragment_output_info,
+    VkPipelineCache vk_pipeline_cache,
+    VkPipeline vk_pipeline_base,
+    StringRefNull name)
+{
+  VKDevice &device = VKBackend::get().device;
+  const VKExtensions &extensions = device.extensions_get();
+  VKGraphicsPipelineCreateInfoBuilder builder;
+  builder.build_fragment_output_lib(fragment_output_info, extensions, vk_pipeline_base);
+
+  /* Build pipeline. */
+  VkPipeline pipeline = VK_NULL_HANDLE;
+  double start_time = BLI_time_now_seconds();
+  vkCreateGraphicsPipelines(device.vk_handle(),
+                            vk_pipeline_cache,
+                            1,
+                            &builder.vk_graphics_pipeline_create_info,
+                            nullptr,
+                            &pipeline);
+  double end_time = BLI_time_now_seconds();
+  debug::object_label(pipeline, name);
+  CLOG_TRACE(&LOG, "Compiled fragment output library in %fms ", (end_time - start_time) * 1000.0);
+  return pipeline;
+}
+
 /* \} */
 
 void VKPipelinePool::discard(VKDiscardPool &discard_pool, VkPipelineLayout vk_pipeline_layout)
 {
   graphics_.discard(discard_pool, vk_pipeline_layout);
   compute_.discard(discard_pool, vk_pipeline_layout);
+  shaders_libs_.discard(discard_pool, vk_pipeline_layout);
+  /* vertex_input_libs_ and fragment_output_libs_ are NOT dependend on vk_pipeline_layout. */
 }
 
 void VKPipelinePool::free_data()
 {
-  VKDevice &device = VKBackend::get().device;
+  const VKDevice &device = VKBackend::get().device;
+  const VkDevice vk_device = device.vk_handle();
 
-  graphics_.free_data(device.vk_handle());
-  compute_.free_data(device.vk_handle());
+  graphics_.free_data(vk_device);
+  compute_.free_data(vk_device);
+  vertex_input_libs_.free_data(vk_device);
+  shaders_libs_.free_data(vk_device);
+  fragment_output_libs_.free_data(vk_device);
 
   vkDestroyPipelineCache(device.vk_handle(), vk_pipeline_cache_static_, nullptr);
   vkDestroyPipelineCache(device.vk_handle(), vk_pipeline_cache_non_static_, nullptr);

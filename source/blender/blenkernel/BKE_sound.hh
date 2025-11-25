@@ -102,13 +102,13 @@ void BKE_sound_update_fps(Main *bmain, Scene *scene);
 void BKE_sound_update_scene_listener(Scene *scene);
 
 void *BKE_sound_scene_add_scene_sound(
-    Scene *scene, Strip *sequence, int startframe, int endframe, int frameskip);
+    Scene *scene, Strip *strip, int startframe, int endframe, int frameskip);
 
-void *BKE_sound_scene_add_scene_sound_defaults(Scene *scene, Strip *sequence);
+void *BKE_sound_scene_add_scene_sound_defaults(Scene *scene, Strip *strip);
 
 void *BKE_sound_add_scene_sound(
-    Scene *scene, Strip *sequence, int startframe, int endframe, int frameskip);
-void *BKE_sound_add_scene_sound_defaults(Scene *scene, Strip *sequence);
+    Scene *scene, Strip *strip, int startframe, int endframe, int frameskip);
+void *BKE_sound_add_scene_sound_defaults(Scene *scene, Strip *strip);
 
 void BKE_sound_remove_scene_sound(Scene *scene, void *handle);
 
@@ -120,7 +120,7 @@ void BKE_sound_move_scene_sound(const Scene *scene,
                                 int endframe,
                                 int frameskip,
                                 double audio_offset);
-void BKE_sound_move_scene_sound_defaults(Scene *scene, Strip *sequence);
+void BKE_sound_move_scene_sound_defaults(Scene *scene, Strip *strip);
 
 /** Join the Sequence with the structure in Audaspace, the second parameter is a #bSound. */
 void BKE_sound_update_scene_sound(void *handle, bSound *sound);

@@ -2896,7 +2896,7 @@ static bool node_link_insert_offset_chain_cb(bNode *fromnode,
   return true;
 }
 
-static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
+static bool node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
                                           ARegion *region,
                                           const int mouse_xy[2],
                                           const bool right_alignment)
@@ -2920,6 +2920,12 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
    * so `totr_insert` is used to get the correct world-space coords. */
   rctf totr_insert;
   node_to_updated_rect(insert, totr_insert);
+
+  const float gap_left = totr_insert.xmin - prev->runtime->draw_bounds.xmax;
+  const float gap_right = next->runtime->draw_bounds.xmin - totr_insert.xmax;
+  if (gap_left >= min_margin && gap_right >= min_margin) {
+    return false;
+  }
 
   /* Frame attachment wasn't handled yet so we search the frame that the node will be attached to
    * later. */
@@ -2960,8 +2966,7 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
 
   /* *** ensure offset at the left (or right for right_alignment case) of insert_node *** */
 
-  float dist = right_alignment ? totr_insert.xmin - prev->runtime->draw_bounds.xmax :
-                                 next->runtime->draw_bounds.xmin - totr_insert.xmax;
+  float dist = right_alignment ? gap_left : gap_right;
   /* distance between insert_node and prev is smaller than min margin */
   if (dist < min_margin) {
     const float addval = (min_margin - dist) * (right_alignment ? 1.0f : -1.0f);
@@ -3006,6 +3011,7 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
   }
 
   insert.parent = init_parent;
+  return true;
 }
 
 /**
@@ -3080,10 +3086,16 @@ static wmOperatorStatus node_insert_offset_invoke(bContext *C,
   BLI_assert(U.uiflag & USER_NODE_AUTO_OFFSET);
 
   iofsd->ntree = snode->edittree;
-  iofsd->anim_timer = WM_event_timer_add(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.02);
 
-  node_link_insert_offset_ntree(
+  const bool offset_applied = node_link_insert_offset_ntree(
       iofsd, CTX_wm_region(C), event->mval, (snode->insert_ofs_dir == SNODE_INSERTOFS_DIR_RIGHT));
+  if (!offset_applied) {
+    MEM_freeN(iofsd);
+    op->customdata = nullptr;
+    return OPERATOR_CANCELLED;
+  }
+
+  iofsd->anim_timer = WM_event_timer_add(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.02);
 
   /* add temp handler */
   WM_event_add_modal_handler(C, op);

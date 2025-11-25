@@ -462,6 +462,8 @@ void VKBackend::detect_workarounds(VKDevice &device)
   extensions.memory_priority = device.supports_extension(VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME);
   extensions.pageable_device_local_memory = device.supports_extension(
       VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME);
+  extensions.graphics_pipeline_library = device.supports_extension(
+      VK_EXT_GRAPHICS_PIPELINE_LIBRARY_EXTENSION_NAME);
 #ifdef _WIN32
   extensions.external_memory = device.supports_extension(
       VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
@@ -476,6 +478,13 @@ void VKBackend::detect_workarounds(VKDevice &device)
       GPU_type_matches(GPU_DEVICE_APPLE, GPU_OS_MAC, GPU_DRIVER_ANY))
   {
     workarounds.not_aligned_pixel_formats = true;
+  }
+
+  /* During testing graphics pipeline library feature it was detected that it would crash on
+   * official AMD drivers.
+   */
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+    extensions.graphics_pipeline_library = false;
   }
 
   /* Only enable by default dynamic rendering local read on Qualcomm devices. NVIDIA, AMD and Intel

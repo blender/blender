@@ -1090,9 +1090,9 @@ void retiming_sound_animation_data_set(const Scene *scene, const Strip *strip)
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   if (correct_pitch) {
     sound_handle = BKE_sound_ensure_time_stretch_effect(
-        sound_handle, strip->scene_sound, scene_fps);
+        sound_handle, strip->runtime->scene_sound, scene_fps);
     BKE_sound_set_scene_sound_pitch_constant_range(
-        strip->scene_sound, 0, strip->start + strip->len, 1.0f);
+        strip->runtime->scene_sound, 0, strip->start + strip->len, 1.0f);
   }
 
   /* Content cut off by `anim_startofs` is as if it does not exist for sequencer. But Audaspace
@@ -1100,7 +1100,7 @@ void retiming_sound_animation_data_set(const Scene *scene, const Strip *strip)
   if (strip->anim_startofs > 0) {
     const int strip_start = time_start_frame_get(strip);
     BKE_sound_set_scene_sound_pitch_constant_range(
-        strip->scene_sound, strip_start - strip->anim_startofs, strip_start, 1.0f);
+        strip->runtime->scene_sound, strip_start - strip->anim_startofs, strip_start, 1.0f);
   }
 
   const int sound_offset = time_get_rounded_sound_offset(strip, scene_fps);
@@ -1117,7 +1117,7 @@ void retiming_sound_animation_data_set(const Scene *scene, const Strip *strip)
         }
         else {
           BKE_sound_set_scene_sound_pitch_at_frame(
-              strip->scene_sound, frame + sound_offset, range.speed_table[i], true);
+              strip->runtime->scene_sound, frame + sound_offset, range.speed_table[i], true);
         }
       }
     }
@@ -1128,14 +1128,16 @@ void retiming_sound_animation_data_set(const Scene *scene, const Strip *strip)
             sound_handle, range.start - strip->start, range.end - strip->start, speed);
       }
       else {
-        BKE_sound_set_scene_sound_pitch_constant_range(
-            strip->scene_sound, range.start + sound_offset, range.end + sound_offset, range.speed);
+        BKE_sound_set_scene_sound_pitch_constant_range(strip->runtime->scene_sound,
+                                                       range.start + sound_offset,
+                                                       range.end + sound_offset,
+                                                       range.speed);
       }
     }
   }
 
   if (correct_pitch) {
-    BKE_sound_update_sequence_handle(strip->scene_sound, sound_handle);
+    BKE_sound_update_sequence_handle(strip->runtime->scene_sound, sound_handle);
   }
 }
 

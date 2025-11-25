@@ -243,9 +243,7 @@ void BKE_vfont_data_free(VFont *vfont)
 {
   if (vfont->data) {
     if (vfont->data->characters) {
-      GHashIterator gh_iter;
-      GHASH_ITER (gh_iter, vfont->data->characters) {
-        VChar *che = static_cast<VChar *>(BLI_ghashIterator_getValue(&gh_iter));
+      for (VChar *che : vfont->data->characters->values()) {
         if (che == nullptr) {
           continue;
         }
@@ -261,7 +259,7 @@ void BKE_vfont_data_free(VFont *vfont)
         MEM_freeN(che);
       }
 
-      BLI_ghash_free(vfont->data->characters, nullptr, nullptr);
+      MEM_delete(vfont->data->characters);
     }
 
     MEM_freeN(vfont->data);

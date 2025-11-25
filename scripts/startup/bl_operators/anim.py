@@ -223,7 +223,7 @@ class NLA_OT_bake(Operator):
         default=False,
     )
     clear_constraints: BoolProperty(
-        name="Clear Constraints",
+        name="Clear Local Constraints",
         description=(
             "Remove all constraints from keyed object/bones. "
             "To get a correct bake with this setting Visual Keying should be enabled"

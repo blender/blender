@@ -159,6 +159,7 @@ static void node_geo_exec(GeoNodeExecParams params)
             if (component.type() == GeometryComponent::Type::Mesh) {
               Mesh &mesh = *geometry_set.get_mesh_for_write();
               bke::mesh_ensure_default_color_attribute_on_add(mesh, name, domain, data_type);
+              bke::mesh_ensure_default_uv_attribute_on_add(mesh, name, domain, data_type);
             }
           }
           else if (component.attribute_domain_size(domain) != 0) {

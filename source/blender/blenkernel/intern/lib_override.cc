@@ -968,8 +968,7 @@ static void lib_override_hierarchy_dependencies_recursive_tag_from(LibOverrideGr
     return;
   }
 
-  MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(
-      BLI_ghash_lookup(bmain->relations->relations_from_pointers, id));
+  MainIDRelationsEntry *entry = bmain->relations->relations_from_pointers->lookup(id);
   BLI_assert(entry != nullptr);
 
   if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_FROM) {
@@ -1011,8 +1010,7 @@ static bool lib_override_hierarchy_dependencies_recursive_tag(LibOverrideGroupTa
   const bool is_override = data->is_override;
   const bool is_resync = data->is_resync;
 
-  MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(
-      BLI_ghash_lookup(bmain->relations->relations_from_pointers, id));
+  MainIDRelationsEntry *entry = bmain->relations->relations_from_pointers->lookup(id);
   BLI_assert(entry != nullptr);
 
   if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_TO) {
@@ -1060,8 +1058,7 @@ static void lib_override_linked_group_tag_recursive(LibOverrideGroupTagData *dat
   BLI_assert(ID_IS_LINKED(id_owner));
   BLI_assert(!data->is_override);
 
-  MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(
-      BLI_ghash_lookup(bmain->relations->relations_from_pointers, id_owner));
+  MainIDRelationsEntry *entry = bmain->relations->relations_from_pointers->lookup(id_owner);
   BLI_assert(entry != nullptr);
 
   if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) {
@@ -1329,8 +1326,7 @@ static void lib_override_overrides_group_tag_recursive(LibOverrideGroupTagData *
     return;
   }
 
-  MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(
-      BLI_ghash_lookup(bmain->relations->relations_from_pointers, id_owner));
+  MainIDRelationsEntry *entry = bmain->relations->relations_from_pointers->lookup(id_owner);
   BLI_assert(entry != nullptr);
 
   if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) {
@@ -1732,8 +1728,7 @@ static ID *lib_override_root_find(Main *bmain, ID *id, const int curr_level, int
     return nullptr;
   }
 
-  MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(
-      BLI_ghash_lookup(bmain->relations->relations_from_pointers, id));
+  MainIDRelationsEntry *entry = bmain->relations->relations_from_pointers->lookup(id);
   BLI_assert(entry != nullptr);
 
   if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) {
@@ -1828,8 +1823,7 @@ static bool lib_override_root_is_valid(Main *bmain, ID *id)
   for (int64_t i = 0; i < ancestors.size(); i++) {
     ID *id_iter = ancestors[i];
 
-    MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(
-        BLI_ghash_lookup(bmain->relations->relations_from_pointers, id_iter));
+    MainIDRelationsEntry *entry = bmain->relations->relations_from_pointers->lookup(id_iter);
     BLI_assert(entry != nullptr);
 
     for (MainIDRelationsEntryItem *from_id_entry = entry->from_ids; from_id_entry != nullptr;
@@ -1890,8 +1884,8 @@ static void lib_override_root_hierarchy_set(
       }
 
       ID *id_from_ref = id_from->override_library->reference;
-      MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(BLI_ghash_lookup(
-          bmain->relations->relations_from_pointers, id->override_library->reference));
+      MainIDRelationsEntry *entry = bmain->relations->relations_from_pointers->lookup(
+          id->override_library->reference);
       BLI_assert(entry != nullptr);
 
       /* Enforce replacing hierarchy root if the current one is invalid. */
@@ -1944,8 +1938,7 @@ static void lib_override_root_hierarchy_set(
     id->override_library->hierarchy_root = id_root;
   }
 
-  MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(
-      BLI_ghash_lookup(bmain->relations->relations_from_pointers, id));
+  MainIDRelationsEntry *entry = bmain->relations->relations_from_pointers->lookup(id);
   BLI_assert(entry != nullptr);
 
   for (MainIDRelationsEntryItem *to_id_entry = entry->to_ids; to_id_entry != nullptr;
@@ -2988,8 +2981,7 @@ static void lib_override_resync_tagging_finalize_recurse(Main *bmain,
     return;
   }
 
-  MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(
-      BLI_ghash_lookup(bmain->relations->relations_from_pointers, id_root));
+  MainIDRelationsEntry *entry = bmain->relations->relations_from_pointers->lookup(id_root);
   BLI_assert(entry != nullptr);
 
   bool is_reprocessing_current_entry = false;
@@ -3201,8 +3193,7 @@ static bool lib_override_resync_tagging_finalize_recursive_check_from(
     return true;
   }
 
-  MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(
-      BLI_ghash_lookup(bmain->relations->relations_from_pointers, id));
+  MainIDRelationsEntry *entry = bmain->relations->relations_from_pointers->lookup(id);
   BLI_assert(entry != nullptr);
 
   if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_TO) {
@@ -3286,8 +3277,7 @@ static void lib_override_resync_tagging_finalize(Main *bmain,
       continue;
     }
 
-    MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(
-        BLI_ghash_lookup(bmain->relations->relations_from_pointers, id_iter));
+    MainIDRelationsEntry *entry = bmain->relations->relations_from_pointers->lookup(id_iter);
     BLI_assert(entry != nullptr);
     BLI_assert((entry->tags & MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS) == 0);
 
@@ -3360,8 +3350,7 @@ static void lib_override_resync_tagging_finalize(Main *bmain,
       continue;
     }
 
-    MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(
-        BLI_ghash_lookup(bmain->relations->relations_from_pointers, id_iter));
+    MainIDRelationsEntry *entry = bmain->relations->relations_from_pointers->lookup(id_iter);
     BLI_assert(entry != nullptr);
 
     if ((entry->tags & MAINIDRELATIONS_ENTRY_TAGS_DOIT) == 0) {
@@ -3470,8 +3459,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
       continue;
     }
 
-    MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(
-        BLI_ghash_lookup(bmain->relations->relations_from_pointers, id));
+    MainIDRelationsEntry *entry = bmain->relations->relations_from_pointers->lookup(id);
     BLI_assert(entry != nullptr);
 
     for (MainIDRelationsEntryItem *entry_item = entry->to_ids; entry_item != nullptr;
@@ -4995,14 +4983,14 @@ static void lib_override_library_id_hierarchy_recursive_reset(Main *bmain,
     return;
   }
 
-  void **entry_vp = BLI_ghash_lookup_p(bmain->relations->relations_from_pointers, id_root);
+  MainIDRelationsEntry **entry_vp = bmain->relations->relations_from_pointers->lookup_ptr(id_root);
   if (entry_vp == nullptr) {
     /* This ID is not used by nor using any other ID. */
     lib_override_library_id_reset_do(bmain, id_root, do_reset_system_override);
     return;
   }
 
-  MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(*entry_vp);
+  MainIDRelationsEntry *entry = *entry_vp;
   if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) {
     /* This ID has already been processed. */
     return;

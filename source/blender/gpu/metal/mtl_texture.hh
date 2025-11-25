@@ -422,9 +422,9 @@ class MTLTexture : public Texture {
    */
   struct TextureUpdateParams {
     int mip_index;
-    int extent[3];          /* Width, Height, Slice on 2D Array tex. */
-    int offset[3];          /* Width, Height, Slice on 2D Array tex. */
-    uint unpack_row_length; /* Number of pixels between bytes in input data. */
+    int extent[3];         /* Width, Height, Slice on 2D Array tex. */
+    int offset[3];         /* Width, Height, Slice on 2D Array tex. */
+    int unpack_row_length; /* Number of pixels between bytes in input data. */
   };
 
   id<MTLComputePipelineState> texture_update_1d_get_kernel(

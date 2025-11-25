@@ -1322,6 +1322,106 @@ void main()
 }
 GPU_TEST(preprocess_struct_methods);
 
+static void test_preprocess_srt_mutations()
+{
+  using namespace std;
+  using namespace shader::parser;
+
+  ParserData::report_callback no_err_report = [](int, int, string, const char *) {};
+
+  {
+    string input = R"(
+float fn(SRT &srt [[resource_table]]) {
+  return srt.member;
+}
+)";
+    string expect = R"(
+float fn(inout SRT _inout_sta srt _inout_end) {
+#if defined(CREATE_INFO_SRT)
+#line 3
+  return srt_access(SRT, member);
+#else
+#line 3
+  return float(0);
+#endif
+#line 4
+}
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+float fn(SRT srt [[resource_table]]) {
+  return srt.member;
+}
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(error, "Shader Resource Table arguments must be references.");
+  }
+  {
+    string input = R"(
+float fn(SRT &srt [[resource_table]]) {
+  OtherSRT &other_srt [[resource_table]] = srt.other_srt;
+  return other_srt.member;
+}
+)";
+    string expect = R"(
+float fn(inout SRT _inout_sta srt _inout_end) {
+#if defined(CREATE_INFO_SRT)
+#line 3
+#if defined(CREATE_INFO_OtherSRT)
+#line 3
+
+  return srt_access(OtherSRT, member);
+#else
+#line 3
+  return float(0);
+#endif
+#line 5
+#else
+#line 3
+  return float(0);
+#endif
+#line 5
+}
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+float fn() {
+  const SRT other_srt [[resource_table]] = srt_get(SRT);
+  return other_srt.member;
+}
+)";
+    string expect = R"(
+float fn() {
+#if defined(CREATE_INFO_SRT)
+#line 3
+  const SRT other_srt = srt_get(SRT);
+  return srt_access(SRT, member);
+#else
+#line 3
+  return float(0);
+#endif
+#line 5
+}
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+}
+GPU_TEST(preprocess_srt_mutations);
+
 static void test_preprocess_parser()
 {
   using namespace std;
