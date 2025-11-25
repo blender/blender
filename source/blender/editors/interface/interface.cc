@@ -4888,7 +4888,7 @@ static uiBut *ui_def_but_rna(uiBlock *block,
   }
 
   if (!tip && proptype != PROP_ENUM) {
-    tip = RNA_property_ui_description(prop);
+    tip = RNA_property_ui_description(prop, ptr);
   }
 
   float step = -1.0f;
@@ -6826,7 +6826,7 @@ std::string UI_but_string_get_tooltip_label(const uiBut &but)
 std::string UI_but_string_get_rna_label(uiBut &but)
 {
   if (but.rnaprop) {
-    return RNA_property_ui_name(but.rnaprop);
+    return RNA_property_ui_name(but.rnaprop, &but.rnapoin);
   }
   if (but.optype) {
     PointerRNA *opptr = UI_but_operator_ptr_ensure(&but);
@@ -6878,7 +6878,7 @@ std::string UI_but_string_get_tooltip(bContext &C, uiBut &but)
 std::string UI_but_string_get_rna_tooltip(bContext &C, uiBut &but)
 {
   if (but.rnaprop) {
-    const char *t = RNA_property_ui_description(but.rnaprop);
+    const char *t = RNA_property_ui_description(but.rnaprop, &but.rnapoin);
     if (t && t[0]) {
       return t;
     }

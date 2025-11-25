@@ -479,6 +479,21 @@ const char *node_socket_get_label(const bNodeSocket *socket, const char *panel_l
   return translated_socket_label;
 }
 
+const char *node_socket_get_description(const bNodeSocket *socket)
+{
+  if (socket->runtime->declaration == nullptr) {
+    if (socket->description[0]) {
+      return socket->description;
+    }
+    return nullptr;
+  }
+  const nodes::SocketDeclaration &socket_decl = *socket->runtime->declaration;
+  if (!socket_decl.description.empty()) {
+    return socket_decl.description.c_str();
+  }
+  return nullptr;
+}
+
 static void draw_socket_layout(TreeDrawContext &tree_draw_ctx,
                                const bContext &C,
                                uiLayout &layout,

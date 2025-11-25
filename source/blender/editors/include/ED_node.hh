@@ -151,4 +151,6 @@ void node_tree_interface_draw(bContext &C, ui::Layout &layout, bNodeTree &tree);
 
 const char *node_socket_get_label(const bNodeSocket *socket, const char *panel_label = nullptr);
 
+const char *node_socket_get_description(const bNodeSocket *socket);
+
 }  // namespace blender::ed::space_node
