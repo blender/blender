@@ -74,6 +74,7 @@ set(SRC_GLSL_FRAG
   eevee_surf_shadow_frag.glsl
   eevee_surf_volume_frag.glsl
   eevee_surf_world_frag.glsl
+  eevee_transparency_resolve_frag.glsl
   eevee_volume_resolve_frag.glsl
 )
 

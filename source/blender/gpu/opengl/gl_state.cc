@@ -416,6 +416,13 @@ void GLStateManager::set_blend(const GPUBlend value)
       dst_alpha = GL_ONE_MINUS_SRC_ALPHA;
       break;
     }
+    case GPU_BLEND_TRANSPARENCY: {
+      src_rgb = GL_ONE;
+      dst_rgb = GL_SRC_ALPHA;
+      src_alpha = GL_ZERO;
+      dst_alpha = GL_SRC_ALPHA;
+      break;
+    }
   }
 
   if (value == GPU_BLEND_MIN) {

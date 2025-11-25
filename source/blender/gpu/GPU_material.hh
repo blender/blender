@@ -88,9 +88,10 @@ enum eGPUMaterialFlag {
    * If this flag is not set, all closures are ensured to not be tinted. */
   GPU_MATFLAG_REFLECTION_MAYBE_COLORED = (1 << 21),
   GPU_MATFLAG_REFRACTION_MAYBE_COLORED = (1 << 22),
+  GPU_MATFLAG_TRANSPARENT_MAYBE_COLORED = (1 << 23),
 
   /* Set if the material uses the "Is Diffuse / Glossy Ray" output of the light path node. */
-  GPU_MATFLAG_IS_DIFFUSE_OR_GLOSSY_RAY_FLAG = (1 << 21),
+  GPU_MATFLAG_IS_DIFFUSE_OR_GLOSSY_RAY_FLAG = (1 << 24),
 
   /* Tells the render engine the material was just compiled or updated. */
   GPU_MATFLAG_UPDATED = (1 << 29),

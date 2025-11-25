@@ -158,13 +158,33 @@ class ForwardPipeline {
   PassSortable transparent_ps_ = {"Forward.Transparent"};
   float3 camera_forward_;
 
+  PassSimple resolve_ps_ = {"Forward.Resolve"};
+
   bool has_opaque_ = false;
   bool has_transparent_ = false;
+  bool has_colored_transparency_ = false;
+  bool has_holdout_ = false;
+
+  struct TransparencyBuffer {
+    /* Channels are packed separately for technical reason (see eevee_surf_forward_frag.glsl for
+     * explanation). In the case of monochromatic transparency, the #r_channel_tx actually
+     * contains the whole RGBA and the other textures are dummy texture not attached to the
+     * framebuffer. The #a_channel_tx is only allocated if holdout or film transparency is enabled.
+     */
+    TextureFromPool r_channel_tx;
+    TextureFromPool g_channel_tx;
+    TextureFromPool b_channel_tx;
+    TextureFromPool a_channel_tx;
+
+    void acquire(int2 extent, bool use_colored_transparency);
+    void release();
+  } transp_buffer_;
 
  public:
   ForwardPipeline(Instance &inst) : inst_(inst) {};
 
   void sync();
+  void end_sync();
 
   PassMain::Sub *prepass_opaque_add(::Material *blender_mat, GPUMaterial *gpumat, bool has_motion);
   PassMain::Sub *material_opaque_add(::Material *blender_mat, GPUMaterial *gpumat);
@@ -176,7 +196,14 @@ class ForwardPipeline {
                                           ::Material *blender_mat,
                                           GPUMaterial *gpumat);
 
-  void render(View &view, Framebuffer &prepass_fb, Framebuffer &combined_fb, int2 extent);
+  bool use_colored_transparency() const;
+
+  void render(View &view,
+              gpu::Texture *depth_tx,
+              Framebuffer &prepass_fb,
+              Framebuffer &transparent_fb,
+              Framebuffer &combined_fb,
+              int2 extent);
 };
 
 /** \} */
@@ -761,6 +788,7 @@ class PipelineModule {
     probe.end_sync();
     planar.end_sync();
     deferred.end_sync();
+    forward.end_sync();
   }
 
   PassMain::Sub *material_add(Object * /*ob*/ /* TODO remove. */,

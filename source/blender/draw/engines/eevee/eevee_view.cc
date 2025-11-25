@@ -146,11 +146,12 @@ void ShadingView::render()
 
   inst_.volume.draw_compute(main_view_, extent_);
 
+  inst_.volume.draw_resolve(main_view_);
+
   inst_.ambient_occlusion.render_pass(render_view_);
 
-  inst_.pipelines.forward.render(render_view_, prepass_fb_, combined_fb_, extent_);
-
-  render_transparent_pass(rbufs);
+  inst_.pipelines.forward.render(
+      render_view_, rbufs.depth_tx, prepass_fb_, transparent_fb_, combined_fb_, extent_);
 
   inst_.lights.debug_draw(render_view_, combined_fb_);
   inst_.hiz_buffer.debug_draw(render_view_, combined_fb_);
@@ -166,20 +167,6 @@ void ShadingView::render()
   postfx_tx_.release();
 
   GPU_debug_group_end();
-}
-
-void ShadingView::render_transparent_pass(RenderBuffers &rbufs)
-{
-  if (rbufs.data.transparent_id != -1) {
-    transparent_fb_.ensure(
-        GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
-        GPU_ATTACHMENT_TEXTURE_LAYER(rbufs.rp_color_tx, rbufs.data.transparent_id));
-    /* Alpha stores transmittance. So start at 1. */
-    float4 clear_color = {0.0f, 0.0f, 0.0f, 1.0f};
-    GPU_framebuffer_bind(transparent_fb_);
-    GPU_framebuffer_clear_color(transparent_fb_, clear_color);
-    inst_.pipelines.forward.render(render_view_, prepass_fb_, transparent_fb_, rbufs.extent_get());
-  }
 }
 
 gpu::Texture *ShadingView::render_postfx(gpu::Texture *input_tx)

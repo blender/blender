@@ -285,6 +285,8 @@ void ForwardPipeline::sync()
   camera_forward_ = inst_.camera.forward();
   has_opaque_ = false;
   has_transparent_ = false;
+  has_colored_transparency_ = false;
+  has_holdout_ = false;
 
   DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
                               inst_.film.depth.test_state;
@@ -356,6 +358,26 @@ void ForwardPipeline::sync()
     sub.bind_resources(inst_.volume_probes);
     sub.bind_resources(inst_.sphere_probes);
   }
+  {
+    gpu::Shader *sh = inst_.shaders.static_shader_get(TRANSPARENCY_RESOLVE);
+
+    resolve_ps_.init();
+    resolve_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
+    resolve_ps_.shader_set(sh);
+    resolve_ps_.bind_texture("transparency_r_tx", &transp_buffer_.r_channel_tx);
+    resolve_ps_.bind_texture("transparency_g_tx", &transp_buffer_.g_channel_tx);
+    resolve_ps_.bind_texture("transparency_b_tx", &transp_buffer_.b_channel_tx);
+    resolve_ps_.bind_texture("transparency_a_tx", &transp_buffer_.a_channel_tx);
+    resolve_ps_.bind_image("rp_color_img", &inst_.render_buffers.rp_color_tx);
+    resolve_ps_.bind_image("rp_value_img", &inst_.render_buffers.rp_value_tx);
+    resolve_ps_.bind_resources(inst_.uniform_data);
+    resolve_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+  }
+}
+
+void ForwardPipeline::end_sync()
+{
+  inst_.pipelines.data.use_monochromatic_transmittance = !use_colored_transparency();
 }
 
 PassMain::Sub *ForwardPipeline::prepass_opaque_add(::Material *blender_mat,
@@ -414,11 +436,14 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
                                                          ::Material *blender_mat,
                                                          GPUMaterial *gpumat)
 {
-  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM |
+  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_TRANSPARENCY |
                    DRW_STATE_CLIP_CONTROL_UNIT_RANGE | inst_.film.depth.test_state;
   if (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) {
     state |= DRW_STATE_CULL_BACK;
   }
+  has_colored_transparency_ |= GPU_material_flag_get(gpumat,
+                                                     GPU_MATFLAG_TRANSPARENT_MAYBE_COLORED) != 0;
+  has_holdout_ |= GPU_material_flag_get(gpumat, GPU_MATFLAG_HOLDOUT) != 0;
   has_transparent_ = true;
   float sorting_value = math::dot(float3(ob->object_to_world().location()), camera_forward_);
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
@@ -427,13 +452,47 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
   return pass;
 }
 
+void ForwardPipeline::TransparencyBuffer::acquire(int2 extent, bool use_colored_transparency)
+{
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
+
+  if (!use_colored_transparency) {
+    r_channel_tx.acquire(extent, gpu::TextureFormat::SFLOAT_16_16_16_16, usage);
+    /* Dummy texture for validation. Will not be sampled or attached. */
+    g_channel_tx.acquire(int2(1), gpu::TextureFormat::UNORM_8_8_8_8);
+    b_channel_tx.acquire(int2(1), gpu::TextureFormat::UNORM_8_8_8_8);
+    a_channel_tx.acquire(int2(1), gpu::TextureFormat::UNORM_8_8_8_8);
+  }
+  else {
+    r_channel_tx.acquire(extent, gpu::TextureFormat::SFLOAT_16_16, usage);
+    g_channel_tx.acquire(extent, gpu::TextureFormat::SFLOAT_16_16, usage);
+    b_channel_tx.acquire(extent, gpu::TextureFormat::SFLOAT_16_16, usage);
+    a_channel_tx.acquire(extent, gpu::TextureFormat::UNORM_8_8, usage);
+  }
+}
+
+void ForwardPipeline::TransparencyBuffer::release()
+{
+  r_channel_tx.release();
+  g_channel_tx.release();
+  b_channel_tx.release();
+  a_channel_tx.release();
+}
+
+bool ForwardPipeline::use_colored_transparency() const
+{
+  /* Holdout also enables transparency since it uses the 4th target. */
+  return has_colored_transparency_ || has_holdout_;
+}
+
 void ForwardPipeline::render(View &view,
+                             gpu::Texture *depth_tx,
                              Framebuffer &prepass_fb,
+                             Framebuffer &transparent_fb,
                              Framebuffer &combined_fb,
                              int2 extent)
 {
   if (!has_transparent_ && !has_opaque_) {
-    inst_.volume.draw_resolve(view);
     return;
   }
 
@@ -448,19 +507,44 @@ void ForwardPipeline::render(View &view,
   inst_.volume_probes.set_view(view);
   inst_.sphere_probes.set_view(view);
 
+  transp_buffer_.acquire(extent, use_colored_transparency());
+
+  if (!use_colored_transparency()) {
+    transparent_fb.ensure(GPU_ATTACHMENT_TEXTURE(depth_tx),
+                          GPU_ATTACHMENT_TEXTURE(transp_buffer_.r_channel_tx));
+  }
+  else {
+    transparent_fb.ensure(GPU_ATTACHMENT_TEXTURE(depth_tx),
+                          GPU_ATTACHMENT_TEXTURE(transp_buffer_.r_channel_tx),
+                          GPU_ATTACHMENT_TEXTURE(transp_buffer_.g_channel_tx),
+                          GPU_ATTACHMENT_TEXTURE(transp_buffer_.b_channel_tx),
+                          GPU_ATTACHMENT_TEXTURE(transp_buffer_.a_channel_tx));
+  }
+
+  transparent_fb.bind();
+
+  if (has_colored_transparency_) {
+    /* Split channel targets. Radiance in 1st channel, transmittance in 2nd channel. */
+    transparent_fb.clear_color(float4(0.0f, 1.0f, 0.0f, 0.0f));
+  }
+  else {
+    transparent_fb.clear_color(float4(0.0f, 0.0f, 0.0f, 1.0f));
+  }
+
   if (has_opaque_) {
-    combined_fb.bind();
     inst_.manager->submit(opaque_ps_, view);
   }
 
   GPU_debug_group_end();
 
-  inst_.volume.draw_resolve(view);
-
   if (has_transparent_) {
-    combined_fb.bind();
     inst_.manager->submit(transparent_ps_, view);
   }
+
+  combined_fb.bind();
+  inst_.manager->submit(resolve_ps_, view);
+
+  transp_buffer_.release();
 }
 
 /** \} */

@@ -593,6 +593,13 @@ struct VKGraphicsPipelineCreateInfoBuilder {
         attachment_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
         attachment_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
         break;
+
+      case GPU_BLEND_TRANSPARENCY:
+        attachment_state.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+        attachment_state.dstColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        attachment_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+        attachment_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        break;
     }
 
     if (fragment_output_info.state.blend == GPU_BLEND_MIN) {
