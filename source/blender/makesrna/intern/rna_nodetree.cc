@@ -31,6 +31,8 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
+#include "NOD_common.hh"
+
 #include "rna_internal.hh"
 #include "rna_internal_types.hh"
 
@@ -3035,6 +3037,7 @@ static StructRNA *rna_GeometryNodeCustomGroup_register(Main *bmain,
   }
 
   nt->type_legacy = NODE_CUSTOM_GROUP;
+  nt->ui_class = node_group_ui_class;
 
   register_node_type_geo_custom_group(nt);
 
@@ -3063,6 +3066,7 @@ static StructRNA *rna_ShaderNodeCustomGroup_register(Main *bmain,
   }
 
   nt->type_legacy = NODE_CUSTOM_GROUP;
+  nt->ui_class = node_group_ui_class;
 
   register_node_type_sh_custom_group(nt);
 
@@ -3088,6 +3092,7 @@ static StructRNA *rna_CompositorNodeCustomGroup_register(Main *bmain,
   }
 
   nt->type_legacy = NODE_CUSTOM_GROUP;
+  nt->ui_class = node_group_ui_class;
 
   register_node_type_cmp_custom_group(nt);
 
