@@ -55,7 +55,7 @@ struct TransDataSeq {
   /** Use this so we can have transform data at the strips start,
    * but apply correctly to the start frame. */
   int start_offset;
-  /** One of #SELECT, #SEQ_LEFTSEL and #SEQ_RIGHTSEL. */
+  /** One of #SEQ_SELECT, #SEQ_LEFTSEL and #SEQ_RIGHTSEL. */
   short sel_flag;
 };
 
@@ -102,13 +102,13 @@ static void SeqTransInfo(TransInfo *t, Strip *strip, int *r_count, int *r_flag)
     int left = seq::time_left_handle_frame_get(scene, strip);
     int right = seq::time_right_handle_frame_get(scene, strip);
 
-    if ((strip->flag & SELECT) == 0 || seq::transform_is_locked(channels, strip)) {
+    if ((strip->flag & SEQ_SELECT) == 0 || seq::transform_is_locked(channels, strip)) {
       *r_count = 0;
       *r_flag = 0;
     }
     else {
       *r_count = 1; /* Unless its set to 0, extend will never set 2 handles at once. */
-      *r_flag = (strip->flag | SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
+      *r_flag = (strip->flag | SEQ_SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
 
       if (t->frame_side == 'R') {
         if (right <= cfra) {
@@ -141,7 +141,7 @@ static void SeqTransInfo(TransInfo *t, Strip *strip, int *r_count, int *r_flag)
     /* Count. */
 
     /* Non nested strips (reset selection and handles). */
-    if ((strip->flag & SELECT) == 0 || seq::transform_is_locked(channels, strip)) {
+    if ((strip->flag & SEQ_SELECT) == 0 || seq::transform_is_locked(channels, strip)) {
       *r_count = 0;
       *r_flag = 0;
     }
@@ -181,7 +181,7 @@ static TransData *SeqToTransData(Scene *scene,
   int start_left;
 
   switch (sel_flag) {
-    case SELECT:
+    case SEQ_SELECT:
       /* Use seq_tx_get_final_left() and an offset here
        * so transform has the left hand location of the strip.
        * `tdsq->start_offset` is used when flushing the tx data back. */
@@ -246,7 +246,7 @@ static int SeqToTransData_build(
     SeqTransInfo(t, strip, &count, &flag);
 
     /* Use 'flag' which is derived from strip->flag but modified for special cases. */
-    if (flag & SELECT) {
+    if (flag & SEQ_SELECT) {
       if (flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) {
         if (flag & SEQ_LEFTSEL) {
           SeqToTransData(scene, td++, td2d++, tdsq++, strip, flag, SEQ_LEFTSEL);
@@ -258,7 +258,7 @@ static int SeqToTransData_build(
         }
       }
       else {
-        SeqToTransData(scene, td++, td2d++, tdsq++, strip, flag, SELECT);
+        SeqToTransData(scene, td++, td2d++, tdsq++, strip, flag, SEQ_SELECT);
         tot++;
       }
     }
@@ -368,7 +368,7 @@ static VectorSet<Strip *> query_selected_strips_no_handles(ListBase *seqbase)
 {
   VectorSet<Strip *> strips;
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if ((strip->flag & SELECT) != 0 && ((strip->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) == 0)) {
+    if ((strip->flag & SEQ_SELECT) != 0 && ((strip->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) == 0)) {
       strips.add(strip);
     }
   }
@@ -485,7 +485,9 @@ static void create_trans_seq_clamp_data(TransInfo *t, const Scene *scene)
     }
     /* If there is an effect strip with no inputs selected, prevent any x-direction movement,
      * since these strips are tied to their inputs and can only move up and down. */
-    if (!(strip->input1->flag & SELECT) && (!strip->input2 || !(strip->input2->flag & SELECT))) {
+    if (!(strip->input1->flag & SEQ_SELECT) &&
+        (!strip->input2 || !(strip->input2->flag & SEQ_SELECT)))
+    {
       ts->offset_clamp.xmin = 0;
       ts->offset_clamp.xmax = 0;
     }
@@ -720,7 +722,7 @@ static void flushTransSeq(TransInfo *t)
     }
 
     switch (tdsq->sel_flag) {
-      case SELECT: {
+      case SEQ_SELECT: {
         int offset = new_frame - tdsq->start_offset - strip->start;
         if (seq::transform_strip_can_be_translated(strip)) {
           seq::transform_translate_strip(scene, strip, offset);

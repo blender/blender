@@ -52,7 +52,8 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
   bool selected = false; /* Check for no selected strips */
 
   LISTBASE_FOREACH (Strip *, strip, seq::active_seqbase_get(ed)) {
-    if (!ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE) || (strip->flag & SELECT) == 0) {
+    if (!ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE) || (strip->flag & SEQ_SELECT) == 0)
+    {
       continue;
     }
 
@@ -111,7 +112,7 @@ static wmOperatorStatus sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /
   Set<std::string> processed_paths;
 
   LISTBASE_FOREACH (Strip *, strip, seq::active_seqbase_get(ed)) {
-    if (strip->flag & SELECT) {
+    if (strip->flag & SEQ_SELECT) {
       ListBase queue = {nullptr, nullptr};
 
       seq::proxy_rebuild_context(bmain, depsgraph, scene, strip, &processed_paths, &queue, false);
@@ -176,7 +177,7 @@ static wmOperatorStatus sequencer_enable_proxies_exec(bContext *C, wmOperator *o
   }
 
   LISTBASE_FOREACH (Strip *, strip, seq::active_seqbase_get(ed)) {
-    if (strip->flag & SELECT) {
+    if (strip->flag & SEQ_SELECT) {
       if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE)) {
         seq::proxy_set(strip, turnon);
         if (strip->data->proxy == nullptr) {

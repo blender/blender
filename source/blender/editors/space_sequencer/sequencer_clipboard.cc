@@ -324,8 +324,8 @@ wmOperatorStatus sequencer_clipboard_copy_exec(bContext *C, wmOperator *op)
 
   VectorSet<Strip *> expanded;
   for (Strip *strip : effect_chain) {
-    if (!(strip->flag & SELECT)) {
-      strip->flag |= SELECT;
+    if (!(strip->flag & SEQ_SELECT)) {
+      strip->flag |= SEQ_SELECT;
       expanded.add(strip);
     }
   }
@@ -336,7 +336,7 @@ wmOperatorStatus sequencer_clipboard_copy_exec(bContext *C, wmOperator *op)
   if (!success) {
     BKE_report(op->reports, RPT_ERROR, "Could not create the copy paste file!");
     for (Strip *strip : expanded) {
-      strip->flag &= ~SELECT;
+      strip->flag &= ~SEQ_SELECT;
     }
     return OPERATOR_CANCELLED;
   }

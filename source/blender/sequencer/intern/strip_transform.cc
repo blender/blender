@@ -290,7 +290,7 @@ static VectorSet<Strip *> query_right_side_strips(const Scene *scene,
       continue;
     }
 
-    if ((strip->flag & SELECT) == 0 && time_left_handle_frame_get(scene, strip) >= minframe) {
+    if ((strip->flag & SEQ_SELECT) == 0 && time_left_handle_frame_get(scene, strip) >= minframe) {
       right_side_strips.add(strip);
     }
   }

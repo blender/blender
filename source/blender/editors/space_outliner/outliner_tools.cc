@@ -2169,7 +2169,7 @@ static void sequence_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, 
       vse::select_strip_single(scene, strip, true);
     }
     else if (event == OL_DOP_DESELECT) {
-      strip->flag &= ~SELECT;
+      strip->flag &= ~SEQ_SELECT;
     }
     else if (event == OL_DOP_HIDE) {
       if (!(strip->flag & SEQ_MUTE)) {

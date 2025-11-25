@@ -591,7 +591,7 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
              * to be kept unchanged for the performance reasons. */
             MovieReader *anim = openanim(
                 filepath_view,
-                IB_byte_data | ((strip->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
+                IB_byte_data | ((strip->flag & SEQ_DEINTERLACE) ? IB_animdeinterlace : 0),
                 strip->streamindex,
                 true,
                 strip->data->colorspace_settings.name);
@@ -608,12 +608,12 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
       if (is_multiview_loaded == false) {
         /* Sequencer takes care of colorspace conversion of the result. The input is the best to be
          * kept unchanged for the performance reasons. */
-        MovieReader *anim = openanim(filepath,
-                                     IB_byte_data |
-                                         ((strip->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
-                                     strip->streamindex,
-                                     true,
-                                     strip->data->colorspace_settings.name);
+        MovieReader *anim = openanim(
+            filepath,
+            IB_byte_data | ((strip->flag & SEQ_DEINTERLACE) ? IB_animdeinterlace : 0),
+            strip->streamindex,
+            true,
+            strip->data->colorspace_settings.name);
         if (anim) {
           strip->runtime->movie_readers.append(anim);
         }

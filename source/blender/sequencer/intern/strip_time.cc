@@ -262,7 +262,7 @@ int time_find_next_prev_edit(Scene *scene,
       continue;
     }
 
-    if (do_unselected && (strip->flag & SELECT)) {
+    if (do_unselected && (strip->flag & SEQ_SELECT)) {
       continue;
     }
 

@@ -394,7 +394,7 @@ static bool seq_input_have_to_preprocess(const RenderData *context,
     return false;
   }
 
-  if ((strip->flag & (SEQ_FILTERY | SEQ_FLIPX | SEQ_FLIPY | SEQ_MAKE_FLOAT)) ||
+  if ((strip->flag & (SEQ_DEINTERLACE | SEQ_FLIPX | SEQ_FLIPY | SEQ_MAKE_FLOAT)) ||
       sequencer_use_crop(strip) || sequencer_use_transform(strip))
   {
     return true;
@@ -629,7 +629,9 @@ static ImBuf *input_preprocess(const RenderData *context,
   Scene *scene = context->scene;
 
   /* Deinterlace. */
-  if ((strip->flag & SEQ_FILTERY) && !ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_MOVIECLIP)) {
+  if ((strip->flag & SEQ_DEINTERLACE) &&
+      !ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_MOVIECLIP))
+  {
     ibuf = IMB_makeSingleUser(ibuf);
     IMB_filtery(ibuf);
   }

@@ -2777,7 +2777,7 @@ static void rna_def_filter_video(StructRNA *srna)
   };
 
   prop = RNA_def_property(srna, "use_deinterlace", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SEQ_FILTERY);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SEQ_DEINTERLACE);
   RNA_def_property_ui_text(prop, "Deinterlace", "Remove fields from video movies");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_reopen_files_update");
 

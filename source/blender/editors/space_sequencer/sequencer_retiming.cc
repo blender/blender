@@ -71,7 +71,7 @@ bool sequencer_retiming_mode_is_active(const bContext *C)
 static void sequencer_retiming_data_show_selection(ListBase *seqbase)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if ((strip->flag & SELECT) == 0) {
+    if ((strip->flag & SEQ_SELECT) == 0) {
       continue;
     }
     if (!seq::retiming_is_allowed(strip)) {
@@ -84,7 +84,7 @@ static void sequencer_retiming_data_show_selection(ListBase *seqbase)
 static void sequencer_retiming_data_hide_selection(ListBase *seqbase)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if ((strip->flag & SELECT) == 0) {
+    if ((strip->flag & SEQ_SELECT) == 0) {
       continue;
     }
     if (!seq::retiming_is_allowed(strip)) {

@@ -80,7 +80,7 @@ static VectorSet<Strip *> query_snap_sources_preview(const Scene *scene)
 
   snap_sources = seq::query_rendered_strips(
       scene, channels, ed->current_strips(), scene->r.cfra, 0);
-  snap_sources.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
+  snap_sources.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) == 0; });
 
   return snap_sources;
 }
@@ -219,7 +219,7 @@ static VectorSet<Strip *> query_snap_targets_timeline(Scene *scene,
 
   VectorSet<Strip *> snap_targets;
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (exclude_selected && strip->flag & SELECT) {
+    if (exclude_selected && strip->flag & SEQ_SELECT) {
       continue; /* Selected are being transformed if there is no drag and drop. */
     }
     if (seq::render_is_muted(channels, strip) && (snap_flag & SEQ_SNAP_IGNORE_MUTED)) {
@@ -258,7 +258,7 @@ static VectorSet<Strip *> query_snap_targets_preview(const TransInfo *t)
 
   /* Selected strips are only valid targets when snapping the cursor or origin. */
   if ((t->data_type == &TransConvertType_SequencerImage) && (t->flag & T_ORIGIN) == 0) {
-    snap_targets.remove_if([&](Strip *strip) { return (strip->flag & SELECT) != 0; });
+    snap_targets.remove_if([&](Strip *strip) { return (strip->flag & SEQ_SELECT) != 0; });
   }
 
   return snap_targets;
