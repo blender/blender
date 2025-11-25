@@ -259,7 +259,7 @@ class InpaintOperation : public NodeOperation {
 
       /* Mix the boundary color with the original color using its alpha because semi-transparent
        * areas are considered to be partially inpainted. */
-      float4 boundary_color = input.load_pixel<float4>(closest_boundary_texel);
+      float4 boundary_color = input.load_pixel_extended<float4>(closest_boundary_texel);
       filled_region.store_pixel(texel, math::interpolate(boundary_color, color, color.w));
     });
   }
