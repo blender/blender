@@ -12,6 +12,8 @@
 
 #include "DNA_listBase.h"
 
+#include "BLI_map.hh"
+
 struct GHash;
 struct PackedFile;
 struct VFont;
@@ -45,7 +47,7 @@ struct VFontData {
    * This is done to differentiate characters known not to exist from
    * characters that have not yet been loaded.
    */
-  GHash *characters;
+  blender::Map<uint, struct VChar *> *characters;
   char name[128];
 
   VFontData_Metrics metrics;

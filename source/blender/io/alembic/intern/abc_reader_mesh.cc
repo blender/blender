@@ -395,6 +395,8 @@ BLI_INLINE void read_uvs_params(CDStreamConfig &config,
 
   bke::MutableAttributeAccessor attributes = config.mesh->attributes_for_write();
   config.uv_map = attributes.lookup_or_add_for_write_span<float2>(name, bke::AttrDomain::Corner);
+  config.mesh->uv_maps_active_set(name);
+  config.mesh->uv_maps_default_set(name);
 }
 
 template<typename SampleType>

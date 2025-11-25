@@ -820,7 +820,7 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
         Strip *strip = cb_data.r_seq;
 
         if (strip) {
-          blender::seq::relations_strip_free_anim(strip);
+          blender::seq::strip_free_movie_readers(strip);
 
           if (strip->data->proxy && strip->data->proxy->anim) {
             MOV_close(strip->data->proxy->anim);

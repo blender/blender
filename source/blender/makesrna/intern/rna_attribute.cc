@@ -687,13 +687,21 @@ static PointerRNA rna_AttributeGroupID_new(
     }
 
     if ((GS(id->name) == ID_ME)) {
+      Mesh *mesh = (Mesh *)id;
       if (ELEM(layer->type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
-        Mesh *mesh = (Mesh *)id;
         if (!mesh->active_color_attribute) {
           mesh->active_color_attribute = BLI_strdup(layer->name);
         }
         if (!mesh->default_color_attribute) {
           mesh->default_color_attribute = BLI_strdup(layer->name);
+        }
+      }
+      if (ELEM(layer->type, CD_PROP_FLOAT2)) {
+        if (mesh->active_uv_map_name().is_empty()) {
+          mesh->uv_maps_active_set(layer->name);
+        }
+        if (mesh->default_uv_map_name().is_empty()) {
+          mesh->uv_maps_default_set(layer->name);
         }
       }
     }

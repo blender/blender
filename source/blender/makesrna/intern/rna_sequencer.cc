@@ -997,16 +997,16 @@ static bool rna_MovieStrip_reload_if_needed(ID *scene_id, Strip *strip, Main *bm
 
 static PointerRNA rna_MovieStrip_metadata_get(ID *scene_id, Strip *strip)
 {
-  if (strip == nullptr || strip->anims.first == nullptr) {
+  if (strip == nullptr || strip->runtime->movie_readers.is_empty()) {
     return PointerRNA_NULL;
   }
 
-  StripAnim *sanim = static_cast<StripAnim *>(strip->anims.first);
-  if (sanim->anim == nullptr) {
+  MovieReader *anim = strip->runtime->movie_readers.first();
+  if (anim == nullptr) {
     return PointerRNA_NULL;
   }
 
-  IDProperty *metadata = MOV_load_metadata(sanim->anim);
+  IDProperty *metadata = MOV_load_metadata(anim);
   if (metadata == nullptr) {
     return PointerRNA_NULL;
   }

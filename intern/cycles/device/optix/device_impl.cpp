@@ -633,45 +633,56 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
       context, group_descs, NUM_PROGRAM_GROUPS, &group_options, nullptr, nullptr, groups));
 
   /* Get program stack sizes. */
-  OptixStackSizes stack_size[NUM_PROGRAM_GROUPS] = {};
+  auto get_pipeline_stack_size = [&](OptixPipeline pipeline, unsigned int &trace_css) {
+    vector<OptixStackSizes> stack_size(NUM_PROGRAM_GROUPS);
+    for (int i = 0; i < NUM_PROGRAM_GROUPS; ++i) {
+      optix_assert(optixProgramGroupGetStackSize(groups[i], &stack_size[i], pipeline));
+    }
+
+    /* Calculate maximum trace continuation stack size. */
+    trace_css = stack_size[PG_HITD].cssCH;
+    /* This is based on the maximum of closest-hit and any-hit/intersection programs. */
+    trace_css = std::max(trace_css, stack_size[PG_HITD].cssIS + stack_size[PG_HITD].cssAH);
+    trace_css = std::max(trace_css, stack_size[PG_HITS].cssIS + stack_size[PG_HITS].cssAH);
+    trace_css = std::max(trace_css, stack_size[PG_HITL].cssIS + stack_size[PG_HITL].cssAH);
+    trace_css = std::max(trace_css, stack_size[PG_HITV].cssIS + stack_size[PG_HITV].cssAH);
+    trace_css = std::max(trace_css,
+                         stack_size[PG_HITD_MOTION].cssIS + stack_size[PG_HITD_MOTION].cssAH);
+    trace_css = std::max(trace_css,
+                         stack_size[PG_HITS_MOTION].cssIS + stack_size[PG_HITS_MOTION].cssAH);
+    trace_css = std::max(trace_css,
+                         stack_size[PG_HITD_CURVE_LINEAR].cssIS +
+                             stack_size[PG_HITD_CURVE_LINEAR].cssAH);
+    trace_css = std::max(trace_css,
+                         stack_size[PG_HITS_CURVE_LINEAR].cssIS +
+                             stack_size[PG_HITS_CURVE_LINEAR].cssAH);
+    trace_css = std::max(trace_css,
+                         stack_size[PG_HITD_CURVE_LINEAR_MOTION].cssIS +
+                             stack_size[PG_HITD_CURVE_LINEAR_MOTION].cssAH);
+    trace_css = std::max(trace_css,
+                         stack_size[PG_HITS_CURVE_LINEAR_MOTION].cssIS +
+                             stack_size[PG_HITS_CURVE_LINEAR_MOTION].cssAH);
+    trace_css = std::max(trace_css,
+                         stack_size[PG_HITD_CURVE_RIBBON].cssIS +
+                             stack_size[PG_HITD_CURVE_RIBBON].cssAH);
+    trace_css = std::max(trace_css,
+                         stack_size[PG_HITS_CURVE_RIBBON].cssIS +
+                             stack_size[PG_HITS_CURVE_RIBBON].cssAH);
+    trace_css = std::max(
+        trace_css, stack_size[PG_HITD_POINTCLOUD].cssIS + stack_size[PG_HITD_POINTCLOUD].cssAH);
+    trace_css = std::max(
+        trace_css, stack_size[PG_HITS_POINTCLOUD].cssIS + stack_size[PG_HITS_POINTCLOUD].cssAH);
+
+    return stack_size;
+  };
+
   /* Set up SBT, which in this case is used only to select between different programs. */
   sbt_data.alloc(NUM_PROGRAM_GROUPS);
   memset(sbt_data.host_pointer, 0, sizeof(SbtRecord) * NUM_PROGRAM_GROUPS);
   for (int i = 0; i < NUM_PROGRAM_GROUPS; ++i) {
     optix_assert(optixSbtRecordPackHeader(groups[i], &sbt_data[i]));
-    optix_assert(optixProgramGroupGetStackSize(groups[i], &stack_size[i], nullptr));
   }
   sbt_data.copy_to_device(); /* Upload SBT to device. */
-
-  /* Calculate maximum trace continuation stack size. */
-  unsigned int trace_css = stack_size[PG_HITD].cssCH;
-  /* This is based on the maximum of closest-hit and any-hit/intersection programs. */
-  trace_css = std::max(trace_css, stack_size[PG_HITD].cssIS + stack_size[PG_HITD].cssAH);
-  trace_css = std::max(trace_css, stack_size[PG_HITS].cssIS + stack_size[PG_HITS].cssAH);
-  trace_css = std::max(trace_css, stack_size[PG_HITL].cssIS + stack_size[PG_HITL].cssAH);
-  trace_css = std::max(trace_css, stack_size[PG_HITV].cssIS + stack_size[PG_HITV].cssAH);
-  trace_css = std::max(trace_css,
-                       stack_size[PG_HITD_MOTION].cssIS + stack_size[PG_HITD_MOTION].cssAH);
-  trace_css = std::max(trace_css,
-                       stack_size[PG_HITS_MOTION].cssIS + stack_size[PG_HITS_MOTION].cssAH);
-  trace_css = std::max(
-      trace_css, stack_size[PG_HITD_CURVE_LINEAR].cssIS + stack_size[PG_HITD_CURVE_LINEAR].cssAH);
-  trace_css = std::max(
-      trace_css, stack_size[PG_HITS_CURVE_LINEAR].cssIS + stack_size[PG_HITS_CURVE_LINEAR].cssAH);
-  trace_css = std::max(trace_css,
-                       stack_size[PG_HITD_CURVE_LINEAR_MOTION].cssIS +
-                           stack_size[PG_HITD_CURVE_LINEAR_MOTION].cssAH);
-  trace_css = std::max(trace_css,
-                       stack_size[PG_HITS_CURVE_LINEAR_MOTION].cssIS +
-                           stack_size[PG_HITS_CURVE_LINEAR_MOTION].cssAH);
-  trace_css = std::max(
-      trace_css, stack_size[PG_HITD_CURVE_RIBBON].cssIS + stack_size[PG_HITD_CURVE_RIBBON].cssAH);
-  trace_css = std::max(
-      trace_css, stack_size[PG_HITS_CURVE_RIBBON].cssIS + stack_size[PG_HITS_CURVE_RIBBON].cssAH);
-  trace_css = std::max(
-      trace_css, stack_size[PG_HITD_POINTCLOUD].cssIS + stack_size[PG_HITD_POINTCLOUD].cssAH);
-  trace_css = std::max(
-      trace_css, stack_size[PG_HITS_POINTCLOUD].cssIS + stack_size[PG_HITS_POINTCLOUD].cssAH);
 
   OptixPipelineLinkOptions link_options = {};
   link_options.maxTraceDepth = 1;
@@ -736,6 +747,9 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
                                      nullptr,
                                      &pipelines[PIP_SHADE]));
 
+    unsigned int trace_css;
+    vector<OptixStackSizes> stack_size = get_pipeline_stack_size(pipelines[PIP_SHADE], trace_css);
+
     /* Combine ray generation and trace continuation stack size. */
     const unsigned int css = std::max(stack_size[PG_RGEN_SHADE_SURFACE_RAYTRACE].cssRG,
                                       stack_size[PG_RGEN_SHADE_SURFACE_MNEE].cssRG) +
@@ -790,6 +804,10 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
                                      nullptr,
                                      nullptr,
                                      &pipelines[PIP_INTERSECT]));
+
+    unsigned int trace_css;
+    vector<OptixStackSizes> stack_size = get_pipeline_stack_size(pipelines[PIP_INTERSECT],
+                                                                 trace_css);
 
     /* Calculate continuation stack size based on the maximum of all ray generation stack sizes. */
     const unsigned int css =
@@ -1060,7 +1078,7 @@ bool OptiXDevice::load_osl_kernels()
     vector<OptixStackSizes> osl_stack_size(osl_groups.size());
 
     for (int i = 0; i < NUM_PROGRAM_GROUPS; ++i) {
-      optix_assert(optixProgramGroupGetStackSize(groups[i], &stack_size[i], nullptr));
+      optix_assert(optixProgramGroupGetStackSize(groups[i], &stack_size[i], pipelines[PIP_SHADE]));
     }
     for (size_t i = 0; i < osl_groups.size(); ++i) {
       if (osl_groups[i] != nullptr) {

@@ -978,6 +978,7 @@ if(TEST_SRC_DIR_EXISTS)
     texture
     utilities
     vector
+    group
 
     pixel_nodes
     multiple_node_setups
@@ -1014,6 +1015,7 @@ if(WITH_GPU_COMPOSITOR_TESTS AND TEST_SRC_DIR_EXISTS)
     texture
     utilities
     vector
+    group
 
     pixel_nodes
     multiple_node_setups

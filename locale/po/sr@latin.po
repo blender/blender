@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-10 09:45+0000\n"
+"POT-Creation-Date: 2025-11-24 08:35+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -639,6 +639,98 @@ msgid "Space Type"
 msgstr "Vrsta razmaka"
 
 
+msgid "Actions"
+msgstr "Akcije"
+
+
+msgid "Armatures"
+msgstr "Kosturi"
+
+
+msgid "Brushes"
+msgstr "Četkice"
+
+
+msgid "Cameras"
+msgstr "Kamere"
+
+
+msgid "Curves"
+msgstr "Krive"
+
+
+msgid "Fonts"
+msgstr "Fontovi"
+
+
+msgid "Grease Pencil"
+msgstr "Skiciranje"
+
+
+msgid "Images"
+msgstr "Slike"
+
+
+msgid "Lattices"
+msgstr "Kavezi"
+
+
+msgid "Lights"
+msgstr "Svetla"
+
+
+msgid "Masks"
+msgstr "Maske"
+
+
+msgid "Materials"
+msgstr "Materijali"
+
+
+msgid "Meshes"
+msgstr "Meševi"
+
+
+msgid "Metaballs"
+msgstr "Metalopte"
+
+
+msgid "Movie Clips"
+msgstr "Filmski isečak"
+
+
+msgid "Objects"
+msgstr "Objekti"
+
+
+msgid "Palettes"
+msgstr "Palete"
+
+
+msgid "Scenes"
+msgstr "Scene"
+
+
+msgid "Sounds"
+msgstr "Zvuci"
+
+
+msgid "Speakers"
+msgstr "Zvučnici"
+
+
+msgid "Texts"
+msgstr "Tekstovi"
+
+
+msgid "Textures"
+msgstr "Teksture"
+
+
+msgid "Worlds"
+msgstr "Svetovi"
+
+
 msgid "Display Filter"
 msgstr "Filter prikaza"
 
@@ -903,28 +995,8 @@ msgid "Softbody goal weight"
 msgstr "Ciljna težina mekog tela"
 
 
-msgid "Actions"
-msgstr "Akcije"
-
-
-msgid "Armatures"
-msgstr "Kosturi"
-
-
-msgid "Brushes"
-msgstr "Četkice"
-
-
-msgid "Cameras"
-msgstr "Kamere"
-
-
 msgid "Color Space"
 msgstr "Prostor boja"
-
-
-msgid "Curves"
-msgstr "Krive"
 
 
 msgid "Filename"
@@ -939,72 +1011,24 @@ msgid "Vector Fonts"
 msgstr "Fontovi"
 
 
-msgid "Grease Pencil"
-msgstr "Skiciranje"
-
-
-msgid "Images"
-msgstr "Slike"
-
-
 msgid "File is Saved"
 msgstr "Datoteka je sačuvana"
-
-
-msgid "Lattices"
-msgstr "Kavezi"
 
 
 msgid "Libraries"
 msgstr "Zbirke"
 
 
-msgid "Lights"
-msgstr "Svetla"
-
-
 msgid "Line Styles"
 msgstr "Vrste linija"
-
-
-msgid "Masks"
-msgstr "Maske"
-
-
-msgid "Materials"
-msgstr "Materijali"
-
-
-msgid "Meshes"
-msgstr "Meševi"
-
-
-msgid "Metaballs"
-msgstr "Metalopte"
-
-
-msgid "Movie Clips"
-msgstr "Filmski isečak"
 
 
 msgid "Node Groups"
 msgstr "Grupe čvorova"
 
 
-msgid "Objects"
-msgstr "Objekti"
-
-
-msgid "Palettes"
-msgstr "Palete"
-
-
 msgid "Particles"
 msgstr "Čestice"
-
-
-msgid "Scenes"
-msgstr "Scene"
 
 
 msgid "Screens"
@@ -1015,32 +1039,12 @@ msgid "Shape Keys"
 msgstr "Ključevi oblika"
 
 
-msgid "Sounds"
-msgstr "Zvuci"
-
-
-msgid "Speakers"
-msgstr "Zvučnici"
-
-
-msgid "Texts"
-msgstr "Tekstovi"
-
-
-msgid "Textures"
-msgstr "Teksture"
-
-
 msgid "Version"
 msgstr "Verzija"
 
 
 msgid "Window Managers"
 msgstr "Upravljači prozorima"
-
-
-msgid "Worlds"
-msgstr "Svetovi"
 
 
 msgid "Blender RNA"
@@ -4266,10 +4270,6 @@ msgstr "Z smer"
 
 msgid "Both Z"
 msgstr "Obe Z"
-
-
-msgid "Fonts"
-msgstr "Fontovi"
 
 
 msgid "File Select Parameters"
@@ -8497,6 +8497,14 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
+msgid "Align View"
+msgstr "Poravnaj pogled"
+
+
+msgid "Apply"
+msgstr "Primeni"
+
+
 msgid "Track"
 msgstr "Staza"
 
@@ -8505,12 +8513,20 @@ msgid "Quick Effects"
 msgstr "Brzi efekti"
 
 
+msgid "Navigation"
+msgstr "Navigacija"
+
+
 msgid "Show/Hide"
 msgstr "Prikaži/sakrij"
 
 
 msgid "Hooks"
 msgstr "Udice"
+
+
+msgid "Local View"
+msgstr "Lokalni pogled"
 
 
 msgid "Clear Transform"
@@ -8527,10 +8543,6 @@ msgstr "Prenesi"
 
 msgid "Names"
 msgstr "Imena"
-
-
-msgid "Apply"
-msgstr "Primeni"
 
 
 msgid "Toggle Bone Options"
@@ -8565,16 +8577,12 @@ msgid "Math"
 msgstr "Matematika"
 
 
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
+
+
 msgid "Special Characters"
 msgstr "Specijalni znaci"
-
-
-msgid "Metaball"
-msgstr "Meta lopta"
-
-
-msgid "Bone Roll"
-msgstr "Rolna kostiju"
 
 
 msgid "Snap"
@@ -8585,20 +8593,12 @@ msgid "Mirror"
 msgstr "Ogledalo"
 
 
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
+msgid "Metaball"
+msgstr "Meta lopta"
 
 
-msgid "Local View"
-msgstr "Lokalni pogled"
-
-
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "Align View"
-msgstr "Poravnaj pogled"
+msgid "Bone Roll"
+msgstr "Rolna kostiju"
 
 
 msgid "Select Linked"
@@ -23226,10 +23226,6 @@ msgstr "Ivica"
 msgctxt "Operator"
 msgid "Face"
 msgstr "Stranica"
-
-
-msgid "Image*"
-msgstr "Slika*"
 
 
 msgctxt "Operator"

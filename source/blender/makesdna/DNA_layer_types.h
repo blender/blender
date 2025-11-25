@@ -13,6 +13,17 @@
 
 #include "BLI_enum_flags.hh"
 
+struct Base;
+struct Object;
+
+#ifdef __cplusplus
+#  include "BLI_map.hh"
+
+using ObjectBasesMap = blender::Map<const Object *, Base *>;
+#else
+typedef struct ObjectBasesMap ObjectBasesMap;
+#endif
+
 /**
  * Render-passes for EEVEE.
  * #ViewLayerEEVEE.render_passes
@@ -194,7 +205,7 @@ typedef struct ViewLayer {
 
   /* Runtime data */
   struct Base **object_bases_array;
-  struct GHash *object_bases_hash;
+  ObjectBasesMap *object_bases_hash;
 } ViewLayer;
 
 /* Base->flag */

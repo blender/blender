@@ -64,6 +64,7 @@
 
 #include "BLO_read_write.hh"
 
+#include "SEQ_sequencer.hh"
 #include "SEQ_sound.hh"
 #include "SEQ_time.hh"
 
@@ -822,13 +823,13 @@ void BKE_sound_update_scene_listener(Scene *scene)
 }
 
 void *BKE_sound_scene_add_scene_sound(
-    Scene *scene, Strip *sequence, int startframe, int endframe, int frameskip)
+    Scene *scene, Strip *strip, int startframe, int endframe, int frameskip)
 {
   sound_verify_evaluated_id(&scene->id);
-  if (sequence->scene && scene != sequence->scene) {
+  if (strip->scene && scene != strip->scene) {
     const double fps = scene->frames_per_second();
     return AUD_Sequence_add(scene->runtime->audio.sound_scene,
-                            sequence->scene->runtime->audio.sound_scene,
+                            strip->scene->runtime->audio.sound_scene,
                             startframe / fps,
                             endframe / fps,
                             frameskip / fps);
@@ -836,49 +837,47 @@ void *BKE_sound_scene_add_scene_sound(
   return nullptr;
 }
 
-void *BKE_sound_scene_add_scene_sound_defaults(Scene *scene, Strip *sequence)
+void *BKE_sound_scene_add_scene_sound_defaults(Scene *scene, Strip *strip)
 {
-  return BKE_sound_scene_add_scene_sound(
-      scene,
-      sequence,
-      blender::seq::time_left_handle_frame_get(scene, sequence),
-      blender::seq::time_right_handle_frame_get(scene, sequence),
-      sequence->startofs + sequence->anim_startofs);
+  return BKE_sound_scene_add_scene_sound(scene,
+                                         strip,
+                                         blender::seq::time_left_handle_frame_get(scene, strip),
+                                         blender::seq::time_right_handle_frame_get(scene, strip),
+                                         strip->startofs + strip->anim_startofs);
 }
 
 void *BKE_sound_add_scene_sound(
-    Scene *scene, Strip *sequence, int startframe, int endframe, int frameskip)
+    Scene *scene, Strip *strip, int startframe, int endframe, int frameskip)
 {
   sound_verify_evaluated_id(&scene->id);
   /* Happens when sequence's sound data-block was removed. */
-  if (sequence->sound == nullptr) {
+  if (strip->sound == nullptr) {
     return nullptr;
   }
-  sound_verify_evaluated_id(&sequence->sound->id);
+  sound_verify_evaluated_id(&strip->sound->id);
   const double fps = scene->frames_per_second();
-  const double offset_time = sequence->sound->offset_time + sequence->sound_offset -
-                             frameskip / fps;
+  const double offset_time = strip->sound->offset_time + strip->sound_offset - frameskip / fps;
   if (offset_time >= 0.0f) {
     return AUD_Sequence_add(scene->runtime->audio.sound_scene,
-                            sequence->sound->runtime->playback_handle,
+                            strip->sound->runtime->playback_handle,
                             startframe / fps + offset_time,
                             endframe / fps,
                             0.0f);
   }
   return AUD_Sequence_add(scene->runtime->audio.sound_scene,
-                          sequence->sound->runtime->playback_handle,
+                          strip->sound->runtime->playback_handle,
                           startframe / fps,
                           endframe / fps,
                           -offset_time);
 }
 
-void *BKE_sound_add_scene_sound_defaults(Scene *scene, Strip *sequence)
+void *BKE_sound_add_scene_sound_defaults(Scene *scene, Strip *strip)
 {
   return BKE_sound_add_scene_sound(scene,
-                                   sequence,
-                                   blender::seq::time_left_handle_frame_get(scene, sequence),
-                                   blender::seq::time_right_handle_frame_get(scene, sequence),
-                                   sequence->startofs + sequence->anim_startofs);
+                                   strip,
+                                   blender::seq::time_left_handle_frame_get(scene, strip),
+                                   blender::seq::time_right_handle_frame_get(scene, strip),
+                                   strip->startofs + strip->anim_startofs);
 }
 
 void BKE_sound_remove_scene_sound(Scene *scene, void *handle)
@@ -909,19 +908,19 @@ void BKE_sound_move_scene_sound(const Scene *scene,
   }
 }
 
-void BKE_sound_move_scene_sound_defaults(Scene *scene, Strip *sequence)
+void BKE_sound_move_scene_sound_defaults(Scene *scene, Strip *strip)
 {
   sound_verify_evaluated_id(&scene->id);
-  if (sequence->scene_sound) {
+  if (strip->runtime->scene_sound) {
     double offset_time = 0.0f;
-    if (sequence->sound != nullptr) {
-      offset_time = sequence->sound->offset_time + sequence->sound_offset;
+    if (strip->sound != nullptr) {
+      offset_time = strip->sound->offset_time + strip->sound_offset;
     }
     BKE_sound_move_scene_sound(scene,
-                               sequence->scene_sound,
-                               blender::seq::time_left_handle_frame_get(scene, sequence),
-                               blender::seq::time_right_handle_frame_get(scene, sequence),
-                               sequence->startofs + sequence->anim_startofs,
+                               strip->runtime->scene_sound,
+                               blender::seq::time_left_handle_frame_get(scene, strip),
+                               blender::seq::time_right_handle_frame_get(scene, strip),
+                               strip->startofs + strip->anim_startofs,
                                offset_time);
   }
 }
@@ -1480,27 +1479,21 @@ void BKE_sound_unlock() {}
 void BKE_sound_refresh_callback_bmain(Main * /*bmain*/) {}
 void BKE_sound_reset_scene_specs(Scene * /*scene*/) {}
 void BKE_sound_mute_scene(Scene * /*scene*/, int /*muted*/) {}
-void *BKE_sound_scene_add_scene_sound(Scene * /*scene*/,
-                                      Strip * /*sequence*/,
-                                      int /*startframe*/,
-                                      int /*endframe*/,
-                                      int /*frameskip*/)
+void *BKE_sound_scene_add_scene_sound(
+    Scene * /*scene*/, Strip * /*strip*/, int /*startframe*/, int /*endframe*/, int /*frameskip*/)
 {
   return nullptr;
 }
-void *BKE_sound_scene_add_scene_sound_defaults(Scene * /*scene*/, Strip * /*sequence*/)
+void *BKE_sound_scene_add_scene_sound_defaults(Scene * /*scene*/, Strip * /*strip*/)
 {
   return nullptr;
 }
-void *BKE_sound_add_scene_sound(Scene * /*scene*/,
-                                Strip * /*sequence*/,
-                                int /*startframe*/,
-                                int /*endframe*/,
-                                int /*frameskip*/)
+void *BKE_sound_add_scene_sound(
+    Scene * /*scene*/, Strip * /*strip*/, int /*startframe*/, int /*endframe*/, int /*frameskip*/)
 {
   return nullptr;
 }
-void *BKE_sound_add_scene_sound_defaults(Scene * /*scene*/, Strip * /*sequence*/)
+void *BKE_sound_add_scene_sound_defaults(Scene * /*scene*/, Strip * /*strip*/)
 {
   return nullptr;
 }
@@ -1514,7 +1507,7 @@ void BKE_sound_move_scene_sound(const Scene * /*scene*/,
                                 double /*audio_offset*/)
 {
 }
-void BKE_sound_move_scene_sound_defaults(Scene * /*scene*/, Strip * /*sequence*/) {}
+void BKE_sound_move_scene_sound_defaults(Scene * /*scene*/, Strip * /*strip*/) {}
 void BKE_sound_play_scene(Scene * /*scene*/) {}
 void BKE_sound_stop_scene(Scene * /*scene*/) {}
 void BKE_sound_seek_scene(Main * /*bmain*/, Scene * /*scene*/) {}

@@ -244,7 +244,7 @@ static int hipewHipInit(void) {
   const char* hip_paths[] = { "libamdhip64.so",
                             "libamdhip64.so.6",
                             "/opt/rocm/lib/libamdhip64.so.6",
-                            "/opt/rocm/hip/lib/libamdhip64.so.6"
+                            "/opt/rocm/hip/lib/libamdhip64.so.6",
                             "libamdhip64.so.7",
                             "/opt/rocm/lib/libamdhip64.so.7",
                             "/opt/rocm/hip/lib/libamdhip64.so.7",

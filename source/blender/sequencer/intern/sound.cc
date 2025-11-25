@@ -114,12 +114,12 @@ void sound_update_bounds_all(Scene *scene)
 void sound_update_bounds(Scene *scene, Strip *strip)
 {
   if (strip->type == STRIP_TYPE_SCENE) {
-    if (strip->scene && strip->scene_sound) {
+    if (strip->scene && strip->runtime->scene_sound) {
       /* We have to take into account start frame of the sequence's scene! */
       int startofs = strip->startofs + strip->anim_startofs + strip->scene->r.sfra;
 
       BKE_sound_move_scene_sound(scene,
-                                 strip->scene_sound,
+                                 strip->runtime->scene_sound,
                                  time_left_handle_frame_get(scene, strip),
                                  time_right_handle_frame_get(scene, strip),
                                  startofs,
@@ -139,8 +139,8 @@ static void strip_update_sound_recursive(Scene *scene, ListBase *seqbasep, bSoun
       strip_update_sound_recursive(scene, &strip->seqbase, sound);
     }
     else if (strip->type == STRIP_TYPE_SOUND_RAM) {
-      if (strip->scene_sound && sound == strip->sound) {
-        BKE_sound_update_scene_sound(strip->scene_sound, sound);
+      if (strip->runtime->scene_sound && sound == strip->sound) {
+        BKE_sound_update_scene_sound(strip->runtime->scene_sound, sound);
       }
     }
   }

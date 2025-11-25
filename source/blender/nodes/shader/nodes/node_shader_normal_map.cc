@@ -73,29 +73,16 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
   if (in[0].link) {
     strength = in[0].link;
   }
-  else if (node->runtime->original) {
-    bNodeSocket *socket = static_cast<bNodeSocket *>(
-        BLI_findlink(&node->runtime->original->inputs, 0));
-    bNodeSocketValueFloat *socket_data = static_cast<bNodeSocketValueFloat *>(
-        socket->default_value);
-    strength = GPU_uniform(&socket_data->value);
-  }
   else {
-    strength = GPU_constant(in[0].vec);
+    strength = GPU_uniform(in[0].vec);
   }
 
   GPUNodeLink *newnormal;
   if (in[1].link) {
     newnormal = in[1].link;
   }
-  else if (node->runtime->original) {
-    bNodeSocket *socket = static_cast<bNodeSocket *>(
-        BLI_findlink(&node->runtime->original->inputs, 1));
-    bNodeSocketValueRGBA *socket_data = static_cast<bNodeSocketValueRGBA *>(socket->default_value);
-    newnormal = GPU_uniform(socket_data->value);
-  }
   else {
-    newnormal = GPU_constant(in[1].vec);
+    newnormal = GPU_uniform(in[1].vec);
   }
 
   const char *color_to_normal_fnc_name = "color_to_normal_new_shading";

@@ -792,6 +792,13 @@ struct Scope {
     return is_invalid() ? Scope::invalid() : start().prev().scope();
   }
 
+  /* Returns the next scope after this scope. Can be either the container scope or the next scope
+   * inside the same container. */
+  Scope next() const
+  {
+    return is_invalid() ? Scope::invalid() : end().next().scope();
+  }
+
   bool contains(const Scope sub) const
   {
     Scope parent = sub.scope();
@@ -983,6 +990,9 @@ struct Scope {
 
 inline Scope Token::scope() const
 {
+  if (this->is_invalid()) {
+    return Scope::invalid();
+  }
   return Scope::from_position(data, data->token_scope[index]);
 }
 

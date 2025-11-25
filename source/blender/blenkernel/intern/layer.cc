@@ -279,9 +279,7 @@ void BKE_view_layer_free_object_content(ViewLayer *view_layer)
 
   BLI_freelistN(&view_layer->object_bases);
 
-  if (view_layer->object_bases_hash) {
-    BLI_ghash_free(view_layer->object_bases_hash, nullptr, nullptr);
-  }
+  MEM_delete(view_layer->object_bases_hash);
 
   LISTBASE_FOREACH_MUTABLE (LayerCollection *, lc, &view_layer->layer_collections) {
     layer_collection_free(view_layer, lc);
@@ -349,30 +347,29 @@ static void view_layer_bases_hash_create(ViewLayer *view_layer, const bool do_ba
     std::scoped_lock lock(hash_lock);
 
     if (view_layer->object_bases_hash == nullptr) {
-      GHash *hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
+      ObjectBasesMap *hash = MEM_new<ObjectBasesMap>(__func__);
 
       LISTBASE_FOREACH_MUTABLE (Base *, base, &view_layer->object_bases) {
         if (base->object) {
-          void **val_pp;
-          if (!BLI_ghash_ensure_p(hash, base->object, &val_pp)) {
-            *val_pp = base;
-          }
-          /* The same object has several bases.
-           *
-           * In normal cases this is a serious bug, but this is a common situation when remapping
-           * an object into another one already present in the same View Layer. While ideally we
-           * would process this case separately, for performances reasons it makes more sense to
-           * tackle it here. */
-          else if (do_base_duplicates_fix) {
-            if (view_layer->basact == base) {
-              view_layer->basact = nullptr;
+          if (!hash->add(base->object, base)) {
+            /* The same object has several bases.
+             *
+             * In normal cases this is a serious bug, but this is a common situation when remapping
+             * an object into another one already present in the same View Layer. While ideally we
+             * would process this case separately, for performances reasons it makes more sense to
+             * tackle it here. */
+            if (do_base_duplicates_fix) {
+              if (view_layer->basact == base) {
+                view_layer->basact = nullptr;
+              }
+              BLI_freelinkN(&view_layer->object_bases, base);
             }
-            BLI_freelinkN(&view_layer->object_bases, base);
-          }
-          else {
-            CLOG_FATAL(&LOG,
-                       "Object '%s' has more than one entry in view layer's object bases listbase",
-                       base->object->id.name + 2);
+            else {
+              CLOG_FATAL(
+                  &LOG,
+                  "Object '%s' has more than one entry in view layer's object bases listbase",
+                  base->object->id.name + 2);
+            }
           }
         }
       }
@@ -391,7 +388,7 @@ Base *BKE_view_layer_base_find(ViewLayer *view_layer, Object *ob)
     view_layer_bases_hash_create(view_layer, false);
   }
 
-  return static_cast<Base *>(BLI_ghash_lookup(view_layer->object_bases_hash, ob));
+  return view_layer->object_bases_hash->lookup_default(ob, nullptr);
 }
 
 void BKE_view_layer_base_deselect_all(const Scene *scene, ViewLayer *view_layer)
@@ -1057,25 +1054,27 @@ static void layer_collection_objects_sync(ViewLayer *view_layer,
      * base pointer on file load and remember hidden state. */
     id_lib_indirect_weak_link(&cob->ob->id);
 
-    void **base_p;
-    Base *base;
-    if (BLI_ghash_ensure_p(view_layer->object_bases_hash, cob->ob, &base_p)) {
-      /* Move from old base list to new base list. Base might have already
-       * been moved to the new base list and the first/last test ensure that
-       * case also works. */
-      base = static_cast<Base *>(*base_p);
-      if (!ELEM(base, r_lb_new_object_bases->first, r_lb_new_object_bases->last)) {
-        BLI_remlink(&view_layer->object_bases, base);
-        BLI_addtail(r_lb_new_object_bases, base);
-      }
-    }
-    else {
-      /* Create new base. */
-      base = object_base_new(cob->ob);
-      base->local_collections_bits = local_collections_bits;
-      *base_p = base;
-      BLI_addtail(r_lb_new_object_bases, base);
-    }
+    Base *base = view_layer->object_bases_hash->add_or_modify(
+        cob->ob,
+        [&](Base **base_p) {
+          /* Create new base. */
+          Base *base = object_base_new(cob->ob);
+          base->local_collections_bits = local_collections_bits;
+          *base_p = base;
+          BLI_addtail(r_lb_new_object_bases, base);
+          return base;
+        },
+        [&](Base **base_p) {
+          /* Move from old base list to new base list. Base might have already
+           * been moved to the new base list and the first/last test ensure that
+           * case also works. */
+          Base *base = *base_p;
+          if (!ELEM(base, r_lb_new_object_bases->first, r_lb_new_object_bases->last)) {
+            BLI_remlink(&view_layer->object_bases, base);
+            BLI_addtail(r_lb_new_object_bases, base);
+          }
+          return base;
+        });
 
     if ((collection_restrict & COLLECTION_HIDE_VIEWPORT) == 0) {
       base->flag_from_collection |= (BASE_ENABLED_VIEWPORT |
@@ -1274,7 +1273,7 @@ static bool view_layer_objects_base_cache_validate(ViewLayer *view_layer, LayerC
       if (cob->ob == nullptr) {
         continue;
       }
-      if (BLI_ghash_lookup(view_layer->object_bases_hash, cob->ob) == nullptr) {
+      if (!view_layer->object_bases_hash->contains(cob->ob)) {
         CLOG_FATAL(
             &LOG,
             "Object '%s' from collection '%s' has no entry in view layer's object bases cache",
@@ -1411,7 +1410,7 @@ bool BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
       BLI_assert(BLI_findindex(&new_object_bases, base) == -1);
       BLI_assert(BLI_findptr(&new_object_bases, base->object, offsetof(Base, object)) == nullptr);
 #endif
-      BLI_ghash_remove(view_layer->object_bases_hash, base->object, nullptr, nullptr);
+      view_layer->object_bases_hash->remove(base->object);
     }
   }
 
@@ -1493,10 +1492,8 @@ bool BKE_main_collection_sync_remap(const Main *bmain)
     LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
       MEM_SAFE_FREE(view_layer->object_bases_array);
 
-      if (view_layer->object_bases_hash) {
-        BLI_ghash_free(view_layer->object_bases_hash, nullptr, nullptr);
-        view_layer->object_bases_hash = nullptr;
-      }
+      MEM_delete(view_layer->object_bases_hash);
+      view_layer->object_bases_hash = nullptr;
 
       /* Directly re-create the mapping here, so that we can also deal with duplicates in
        * `view_layer->object_bases` list of bases properly. This is the only place where such
@@ -2582,6 +2579,8 @@ void BKE_view_layer_set_active_aov(ViewLayer *view_layer, ViewLayerAOV *aov)
   viewlayer_aov_active_set(view_layer, aov);
 }
 
+using ViewLayerAOVNameCountMap = blender::Map<std::string, int>;
+
 static void bke_view_layer_verify_aov_cb(void *userdata,
                                          Scene * /*scene*/,
                                          ViewLayer * /*view_layer*/,
@@ -2590,38 +2589,25 @@ static void bke_view_layer_verify_aov_cb(void *userdata,
                                          const char * /*chanid*/,
                                          eNodeSocketDatatype /*type*/)
 {
-  GHash *name_count = static_cast<GHash *>(userdata);
-  void **value_p;
-  void *key = BLI_strdup(name);
-
-  if (!BLI_ghash_ensure_p(name_count, key, &value_p)) {
-    *value_p = POINTER_FROM_INT(1);
-  }
-  else {
-    int value = POINTER_AS_INT(*value_p);
-    value++;
-    *value_p = POINTER_FROM_INT(value);
-    MEM_freeN(key);
-  }
+  auto *name_count = static_cast<ViewLayerAOVNameCountMap *>(userdata);
+  name_count->lookup_or_add(name, 0)++;
 }
 
 void BKE_view_layer_verify_aov(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)
 {
   viewlayer_aov_make_name_unique(view_layer);
 
-  GHash *name_count = BLI_ghash_str_new(__func__);
+  ViewLayerAOVNameCountMap name_count;
   LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
     /* Disable conflict flag, so that the AOV is included when iterating over all passes below. */
     aov->flag &= ~AOV_CONFLICT;
   }
   RE_engine_update_render_passes(
-      engine, scene, view_layer, bke_view_layer_verify_aov_cb, name_count);
+      engine, scene, view_layer, bke_view_layer_verify_aov_cb, &name_count);
   LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
-    void **value_p = static_cast<void **>(BLI_ghash_lookup(name_count, aov->name));
-    int count = POINTER_AS_INT(value_p);
+    const int count = name_count.lookup_default(aov->name, 0);
     SET_FLAG_FROM_TEST(aov->flag, count > 1, AOV_CONFLICT);
   }
-  BLI_ghash_free(name_count, MEM_freeN, nullptr);
 }
 
 bool BKE_view_layer_has_valid_aov(ViewLayer *view_layer)

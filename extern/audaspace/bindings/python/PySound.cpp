@@ -60,6 +60,8 @@
 #include "sequence/PingPong.h"
 #include "sequence/Superpose.h"
 
+#include "fx/Echo.h"
+
 #ifdef WITH_CONVOLUTION
 #include "fx/BinauralSound.h"
 #include "fx/ConvolverSound.h"
@@ -1685,6 +1687,53 @@ Sound_list_addSound(Sound* self, PyObject* object)
 	}
 }
 
+PyDoc_STRVAR(M_aud_Sound_echo_doc, ".. method:: Echo(delay, feedback, mix)\n\n"
+                                                    "   Adds Echo effect to the sound.\n\n"
+                                                    "   :arg delay: The delay time in seconds.\n"
+                                                    "   :type delay: float\n"
+                                                    "   :arg feedback: The feedback amount (0.0 to 1.0).\n"
+                                                    "   :type feedback: float\n"
+                                                    "   :arg mix: The wet/dry mix (0.0 to 1.0).\n"
+                                                    "   :type mix: float\n"
+                                                    "   :arg reset_buffer: Whether to reset the delay buffer on seek.\n"
+                                                    "   :type reset_buffer: bool\n"
+                                                    "   :return: The created :class:`Sound` object.\n"
+                                                    "   :rtype: :class:`Sound`");
+static PyObject* Sound_echo(Sound* self, PyObject* args, PyObject* kwds)
+{
+	float delay = 0.5;
+	float feedback = 0.5;
+	float mix = 0.5;
+	bool reset_buffer = true;
+	static const char* kwlist[] = {"delay", "feedback", "mix", "reset_buffer", nullptr};
+
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "fff|b:echo", const_cast<char**>(kwlist), &delay, &feedback, &mix, &reset_buffer))
+	{
+		return nullptr;
+	}
+
+	PyTypeObject* type = Py_TYPE(self);
+	Sound* parent = (Sound*) type->tp_alloc(type, 0);
+
+	if(parent != nullptr)
+	{
+		try
+		{
+			auto input = *reinterpret_cast<std::shared_ptr<ISound>*>(self->sound);
+			auto echo = std::make_shared<Echo>(input, delay, feedback, mix, reset_buffer);
+			parent->sound = new std::shared_ptr<ISound>(echo);
+		}
+		catch(Exception& e)
+		{
+			Py_DECREF(parent);
+			PyErr_SetString(AUDError, e.what());
+			return nullptr;
+		}
+	}
+
+	return (PyObject*)parent;
+}
+
 #ifdef WITH_CONVOLUTION
 
 PyDoc_STRVAR(M_aud_Sound_convolver_doc,
@@ -2057,6 +2106,9 @@ static PyMethodDef Sound_methods[] = {
 	{ "addSound", (PyCFunction)Sound_list_addSound, METH_O,
 	M_aud_Sound_list_addSound_doc
 	},
+	{"echo", (PyCFunction)Sound_echo, METH_VARARGS | METH_KEYWORDS,
+	M_aud_Sound_echo_doc},
+
 #ifdef WITH_CONVOLUTION
 	{ "convolver", (PyCFunction)Sound_convolver, METH_VARARGS,
 	M_aud_Sound_convolver_doc

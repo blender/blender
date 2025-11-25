@@ -116,8 +116,8 @@ static void strip_update_muting_recursive(ListBase *channels,
       strip_update_muting_recursive(&strip->channels, &strip->seqbase, strip_meta, strip_mute);
     }
     else if (ELEM(strip->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SCENE)) {
-      if (strip->scene_sound) {
-        BKE_sound_mute_scene_sound(strip->scene_sound, strip_mute);
+      if (strip->runtime->scene_sound) {
+        BKE_sound_mute_scene_sound(strip->runtime->scene_sound, strip_mute);
       }
     }
   }
@@ -155,7 +155,7 @@ static void sequencer_flag_users_for_removal(Scene *scene, ListBase *seqbase, St
 
     /* Mark effects for removal that use the strip. */
     if (relation_is_effect_of_strip(user_strip, strip)) {
-      user_strip->runtime.flag |= STRIP_MARK_FOR_DELETE;
+      user_strip->runtime->flag |= StripRuntimeFlag::MarkForDelete;
       /* Strips can be used as mask even if not in same seqbase. */
       sequencer_flag_users_for_removal(scene, &scene->ed->seqbase, user_strip);
     }
@@ -164,7 +164,7 @@ static void sequencer_flag_users_for_removal(Scene *scene, ListBase *seqbase, St
 
 void edit_flag_for_removal(Scene *scene, ListBase *seqbase, Strip *strip)
 {
-  if (strip == nullptr || (strip->runtime.flag & STRIP_MARK_FOR_DELETE) != 0) {
+  if (strip == nullptr || flag_is_set(strip->runtime->flag, StripRuntimeFlag::MarkForDelete)) {
     return;
   }
 
@@ -175,14 +175,14 @@ void edit_flag_for_removal(Scene *scene, ListBase *seqbase, Strip *strip)
     }
   }
 
-  strip->runtime.flag |= STRIP_MARK_FOR_DELETE;
+  strip->runtime->flag |= StripRuntimeFlag::MarkForDelete;
   sequencer_flag_users_for_removal(scene, seqbase, strip);
 }
 
 void edit_remove_flagged_strips(Scene *scene, ListBase *seqbase)
 {
   LISTBASE_FOREACH_MUTABLE (Strip *, strip, seqbase) {
-    if (strip->runtime.flag & STRIP_MARK_FOR_DELETE) {
+    if (flag_is_set(strip->runtime->flag, StripRuntimeFlag::MarkForDelete)) {
       if (strip->type == STRIP_TYPE_META) {
         edit_remove_flagged_strips(scene, &strip->seqbase);
       }

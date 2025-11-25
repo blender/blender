@@ -233,10 +233,9 @@ ImBuf *seq_proxy_fetch(const RenderData *context, Strip *strip, int timeline_fra
     }
 
     strip_open_anim_file(context->scene, strip, true);
-    StripAnim *sanim = static_cast<StripAnim *>(strip->anims.first);
-
+    MovieReader *anim = strip->runtime->movie_reader_get();
     frameno = MOV_calc_frame_index_with_timecode(
-        sanim ? sanim->anim : nullptr, IMB_Timecode_Type(strip->data->proxy->tc), frameno);
+        anim, IMB_Timecode_Type(strip->data->proxy->tc), frameno);
 
     return MOV_decode_frame(proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
   }
@@ -391,7 +390,7 @@ static int seq_proxy_context_count(Strip *strip, Scene *scene)
 
   switch (strip->type) {
     case STRIP_TYPE_MOVIE: {
-      num_views = BLI_listbase_count(&strip->anims);
+      num_views = int(strip->runtime->movie_readers.size());
       break;
     }
     case STRIP_TYPE_IMAGE: {
@@ -453,12 +452,12 @@ bool proxy_rebuild_context(Main *bmain,
     /* Check if proxies are already built here, because actually opening anims takes a lot of
      * time. */
     strip_open_anim_file(scene, strip, false);
-    StripAnim *sanim = static_cast<StripAnim *>(BLI_findlink(&strip->anims, i));
-    if (sanim->anim && !seq_proxy_need_rebuild(strip, sanim->anim)) {
+    MovieReader *anim = strip->runtime->movie_reader_get(i);
+    if (anim && !seq_proxy_need_rebuild(strip, anim)) {
       continue;
     }
 
-    relations_strip_free_anim(strip);
+    strip_free_movie_readers(strip);
 
     IndexBuildContext *context = MEM_callocN<IndexBuildContext>("strip proxy rebuild context");
 
@@ -474,17 +473,16 @@ bool proxy_rebuild_context(Main *bmain,
     context->depsgraph = depsgraph;
     context->scene = scene;
     context->orig_seq = strip;
-    context->orig_seq_uid = strip->runtime.session_uid;
+    context->orig_seq_uid = strip->runtime->session_uid;
     context->strip = strip_new;
 
     context->view_id = i; /* only for images */
 
     if (strip_new->type == STRIP_TYPE_MOVIE) {
       strip_open_anim_file(scene, strip_new, true);
-      sanim = static_cast<StripAnim *>(BLI_findlink(&strip_new->anims, i));
-
-      if (sanim->anim) {
-        context->proxy_builder = MOV_proxy_builder_start(sanim->anim,
+      anim = strip_new->runtime->movie_reader_get(i);
+      if (anim) {
+        context->proxy_builder = MOV_proxy_builder_start(anim,
                                                          IMB_Timecode_Type(context->tc_flags),
                                                          context->size_flags,
                                                          context->quality,
@@ -589,10 +587,9 @@ void proxy_rebuild(IndexBuildContext *context, wmJobWorkerStatus *worker_status)
 void proxy_rebuild_finish(IndexBuildContext *context, bool stop)
 {
   if (context->proxy_builder) {
-    LISTBASE_FOREACH (StripAnim *, sanim, &context->strip->anims) {
-      MOV_close_proxies(sanim->anim);
+    for (MovieReader *anim : context->strip->runtime->movie_readers) {
+      MOV_close_proxies(anim);
     }
-
     MOV_proxy_builder_finish(context->proxy_builder, stop);
   }
 

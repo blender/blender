@@ -259,22 +259,6 @@ void mesh_convert_storage_to_customdata(Mesh &mesh)
                                  {AttrDomain::Edge, {mesh.edge_data, mesh.edges_num}},
                                  {AttrDomain::Face, {mesh.face_data, mesh.faces_num}},
                                  {AttrDomain::Corner, {mesh.corner_data, mesh.corners_num}}});
-  if (const char *name = mesh.active_uv_map_attribute) {
-    const int layer_n = CustomData_get_named_layer(&mesh.corner_data, CD_PROP_FLOAT2, name);
-    if (layer_n != -1) {
-      CustomData_set_layer_active(&mesh.corner_data, CD_PROP_FLOAT2, layer_n);
-    }
-    MEM_freeN(mesh.active_uv_map_attribute);
-    mesh.active_uv_map_attribute = nullptr;
-  }
-  if (const char *name = mesh.default_uv_map_attribute) {
-    const int layer_n = CustomData_get_named_layer(&mesh.corner_data, CD_PROP_FLOAT2, name);
-    if (layer_n != -1) {
-      CustomData_set_layer_render(&mesh.corner_data, CD_PROP_FLOAT2, layer_n);
-    }
-    MEM_freeN(mesh.default_uv_map_attribute);
-    mesh.default_uv_map_attribute = nullptr;
-  }
 }
 void mesh_convert_customdata_to_storage(Mesh &mesh)
 {

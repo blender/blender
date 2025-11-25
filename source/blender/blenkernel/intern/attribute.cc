@@ -441,6 +441,23 @@ static StringRef color_name_from_index(AttributeOwner &owner, int index)
       .value_or("");
 }
 
+static int uv_name_to_index(AttributeOwner &owner, const StringRef name)
+{
+  return BKE_attribute_to_index(owner, name, ATTR_DOMAIN_MASK_CORNER, CD_MASK_PROP_FLOAT2);
+}
+
+static int uv_clamp_index(AttributeOwner &owner, int index)
+{
+  const int length = BKE_attributes_length(owner, ATTR_DOMAIN_MASK_CORNER, CD_MASK_PROP_FLOAT2);
+  return min_ii(index, length - 1);
+}
+
+static StringRef uv_name_from_index(AttributeOwner &owner, int index)
+{
+  return BKE_attribute_from_index(owner, index, ATTR_DOMAIN_MASK_CORNER, CD_MASK_PROP_FLOAT2)
+      .value_or("");
+}
+
 bool BKE_attribute_remove(AttributeOwner &owner, const StringRef name, ReportList *reports)
 {
   using namespace blender;
@@ -467,6 +484,8 @@ bool BKE_attribute_remove(AttributeOwner &owner, const StringRef name, ReportLis
           }
 
           const eCustomDataType type = eCustomDataType(data->layers[layer_index].type);
+          const bool is_active_uv_attribute = name_copy == mesh->active_uv_map_name();
+          const bool is_default_uv_attribute = name_copy == mesh->default_uv_map_name();
           const bool is_active_color_attribute = name_copy.c_str() ==
                                                  StringRef(mesh->active_color_attribute);
           const bool is_default_color_attribute = name_copy.c_str() ==
@@ -474,6 +493,8 @@ bool BKE_attribute_remove(AttributeOwner &owner, const StringRef name, ReportLis
           const int active_color_index = color_name_to_index(owner, mesh->active_color_attribute);
           const int default_color_index = color_name_to_index(owner,
                                                               mesh->default_color_attribute);
+          const int active_uv_index = uv_name_to_index(owner, mesh->active_uv_map_name());
+          const int default_uv_index = uv_name_to_index(owner, mesh->default_uv_map_name());
 
           if (!BM_data_layer_free_named(em->bm, data, name_copy.c_str())) {
             BLI_assert_unreachable();
@@ -488,6 +509,14 @@ bool BKE_attribute_remove(AttributeOwner &owner, const StringRef name, ReportLis
             BKE_id_attributes_default_color_set(
                 &mesh->id,
                 color_name_from_index(owner, color_clamp_index(owner, default_color_index)));
+          }
+          if (is_active_uv_attribute) {
+            mesh->uv_maps_active_set(
+                uv_name_from_index(owner, uv_clamp_index(owner, active_uv_index)));
+          }
+          if (is_default_uv_attribute) {
+            mesh->uv_maps_default_set(
+                uv_name_from_index(owner, uv_clamp_index(owner, default_uv_index)));
           }
 
           if (type == CD_PROP_FLOAT2 && domain == int(AttrDomain::Corner)) {
@@ -517,8 +546,12 @@ bool BKE_attribute_remove(AttributeOwner &owner, const StringRef name, ReportLis
     Mesh *mesh = owner.get_mesh();
     const bool is_active_color_attribute = name_copy == StringRef(mesh->active_color_attribute);
     const bool is_default_color_attribute = name_copy == StringRef(mesh->default_color_attribute);
+    const bool is_active_uv_attribute = name_copy == mesh->active_uv_map_name();
+    const bool is_default_uv_attribute = name_copy == mesh->default_uv_map_name();
     const int active_color_index = color_name_to_index(owner, mesh->active_color_attribute);
     const int default_color_index = color_name_to_index(owner, mesh->default_color_attribute);
+    const int active_uv_index = uv_name_to_index(owner, mesh->active_uv_map_name());
+    const int default_uv_index = uv_name_to_index(owner, mesh->default_uv_map_name());
 
     if (!attributes->remove(name_copy)) {
       BLI_assert_unreachable();
@@ -531,6 +564,13 @@ bool BKE_attribute_remove(AttributeOwner &owner, const StringRef name, ReportLis
     if (is_default_color_attribute) {
       BKE_id_attributes_default_color_set(
           &mesh->id, color_name_from_index(owner, color_clamp_index(owner, default_color_index)));
+    }
+    if (is_active_uv_attribute) {
+      mesh->uv_maps_active_set(uv_name_from_index(owner, uv_clamp_index(owner, active_uv_index)));
+    }
+    if (is_default_uv_attribute) {
+      mesh->uv_maps_default_set(
+          uv_name_from_index(owner, uv_clamp_index(owner, default_uv_index)));
     }
 
     if (bke::mesh::is_uv_map(metadata)) {

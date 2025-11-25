@@ -8,11 +8,13 @@
  * \ingroup sequencer
  */
 
+#include "BLI_enum_flags.hh"
 #include "BLI_map.hh"
+#include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 #include "DNA_scene_types.h"
-
-#include "BLI_enum_flags.hh"
+#include "DNA_sequence_types.h"
+#include "DNA_session_uid_types.h"
 
 struct BlendDataReader;
 struct BlendWriter;
@@ -20,6 +22,7 @@ struct Depsgraph;
 struct Editing;
 struct Main;
 struct MetaStack;
+struct MovieReader;
 struct Scene;
 struct SeqTimelineChannel;
 struct Strip;
@@ -52,6 +55,32 @@ enum class StripDuplicate : uint8_t {
 };
 ENUM_OPERATORS(StripDuplicate);
 
+enum class StripRuntimeFlag {
+  None = 0,
+  ClampedLH = (1 << 0),
+  ClampedRH = (1 << 1),
+  Overlap = (1 << 2),
+  MarkForDelete = (1 << 4),
+  IgnoreChannelLock = (1 << 5), /* For #SEQUENCER_OT_duplicate_move macro. */
+  ShowOffsets = (1 << 6),       /* Set during #SEQUENCER_OT_slip. */
+};
+ENUM_OPERATORS(StripRuntimeFlag);
+
+struct StripRuntime {
+  SessionUID session_uid = {};
+  StripRuntimeFlag flag = StripRuntimeFlag::None;
+  void *scene_sound = nullptr; /* AUD_SequenceEntry */
+  Vector<MovieReader *, 1> movie_readers;
+
+  [[nodiscard]] MovieReader *movie_reader_get(int64_t index = 0) const
+  {
+    if (index < 0 || index >= movie_readers.size()) {
+      return nullptr;
+    }
+    return movie_readers[index];
+  }
+};
+
 SequencerToolSettings *tool_settings_init();
 SequencerToolSettings *tool_settings_ensure(Scene *scene);
 void tool_settings_free(SequencerToolSettings *tool_settings);
@@ -73,7 +102,7 @@ void editing_free(Scene *scene, bool do_id_user);
  * \return pointer to active seqbase. returns NULL if ed is NULL
  */
 ListBase *active_seqbase_get(const Editing *ed);
-Strip *strip_alloc(ListBase *lb, int timeline_frame, int channel, int type);
+Strip *strip_alloc(ListBase *lb, int timeline_frame, int channel, StripType type);
 void strip_free(Scene *scene, Strip *strip);
 /**
  * Get #MetaStack that corresponds to current level that is being viewed

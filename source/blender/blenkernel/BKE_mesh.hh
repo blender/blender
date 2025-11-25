@@ -444,6 +444,10 @@ void mesh_ensure_default_color_attribute_on_add(Mesh &mesh,
                                                 StringRef id,
                                                 AttrDomain domain,
                                                 bke::AttrType data_type);
+void mesh_ensure_default_uv_attribute_on_add(Mesh &mesh,
+                                             StringRef id,
+                                             AttrDomain domain,
+                                             bke::AttrType data_type);
 
 void mesh_data_update(Depsgraph &depsgraph,
                       const Scene &scene,

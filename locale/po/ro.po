@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Beta (b'd29f9f6118e5')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-10 09:45+0000\n"
+"POT-Creation-Date: 2025-11-24 08:35+0000\n"
 "PO-Revision-Date: 2025-09-04 22:59+0000\n"
 "Last-Translator: Dominic Iastrebschi <domjotebit@gmail.com>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -1058,6 +1058,94 @@ msgid "Options"
 msgstr "Opțiuni"
 
 
+msgid "Actions"
+msgstr "Acțiuni"
+
+
+msgid "Armatures"
+msgstr "Armături"
+
+
+msgid "Brushes"
+msgstr "Perii"
+
+
+msgid "Cache Files"
+msgstr "Fișiere Cache"
+
+
+msgid "Cameras"
+msgstr "Camere"
+
+
+msgid "Curves"
+msgstr "Curbe"
+
+
+msgid "Grease Pencil"
+msgstr "Creion de Grăsime"
+
+
+msgid "Collections"
+msgstr "Colecții"
+
+
+msgid "Images"
+msgstr "Imagini"
+
+
+msgid "Lattices"
+msgstr "Latici"
+
+
+msgid "Lights"
+msgstr "Lumini"
+
+
+msgid "Masks"
+msgstr "Măști"
+
+
+msgid "Materials"
+msgstr "Materiale"
+
+
+msgid "Meshes"
+msgstr "Plase"
+
+
+msgid "Metaballs"
+msgstr "Metaballs"
+
+
+msgid "Movie Clips"
+msgstr "Clipuri de film"
+
+
+msgid "Objects"
+msgstr "Obiecte"
+
+
+msgid "Paint Curves"
+msgstr "Pictați Curbele"
+
+
+msgid "Palettes"
+msgstr "Palete"
+
+
+msgid "Point Clouds"
+msgstr "Nori de Puncte"
+
+
+msgid "Scenes"
+msgstr "Scene"
+
+
+msgid "Textures"
+msgstr "Texturi"
+
+
 msgid "Geometry attribute"
 msgstr "Atributul geometriei"
 
@@ -1486,56 +1574,28 @@ msgid "Main data structure representing a .blend file and all its data-blocks"
 msgstr "Structura principală de date reprezentând un fișier .blend și toate blocurile sale de date"
 
 
-msgid "Actions"
-msgstr "Acțiuni"
-
-
 msgid "Action data-blocks"
 msgstr "Acțiunile blocurilor de date"
-
-
-msgid "Armatures"
-msgstr "Armături"
 
 
 msgid "Armature data-blocks"
 msgstr "Blocuri de date ale armăturilor"
 
 
-msgid "Brushes"
-msgstr "Perii"
-
-
 msgid "Brush data-blocks"
 msgstr "Blocurile de date ale periilor"
-
-
-msgid "Cache Files"
-msgstr "Fișiere Cache"
 
 
 msgid "Cache Files data-blocks"
 msgstr "Blocurile de date Fișierelor cache"
 
 
-msgid "Cameras"
-msgstr "Camere"
-
-
 msgid "Camera data-blocks"
 msgstr "Blocurile de date ale camerelor"
 
 
-msgid "Collections"
-msgstr "Colecții"
-
-
 msgid "Collection data-blocks"
 msgstr "Blocurile de date ale colecțiilor"
-
-
-msgid "Curves"
-msgstr "Curbe"
 
 
 msgid "Curve data-blocks"
@@ -1558,16 +1618,8 @@ msgid "Vector font data-blocks"
 msgstr "Blocurile de date ale fontului vector"
 
 
-msgid "Grease Pencil"
-msgstr "Creion de Grăsime"
-
-
 msgid "Grease Pencil data-blocks"
 msgstr "Blocurile de date ale Creionului de Grăsime"
-
-
-msgid "Images"
-msgstr "Imagini"
 
 
 msgid "Image data-blocks"
@@ -1590,10 +1642,6 @@ msgid "Has the current session been saved to disk as a .blend file"
 msgstr "A fost sesiunea curentă salvată pe disk ca un fișier .blend"
 
 
-msgid "Lattices"
-msgstr "Latici"
-
-
 msgid "Lattice data-blocks"
 msgstr "Blocuri de date ale laticii"
 
@@ -1604,10 +1652,6 @@ msgstr "Biblioteci"
 
 msgid "Library data-blocks"
 msgstr "Blocurile de date ale bibliotecilor"
-
-
-msgid "Lights"
-msgstr "Lumini"
 
 
 msgid "Light data-blocks"
@@ -1622,40 +1666,20 @@ msgid "Line Style data-blocks"
 msgstr "Blocurile de date ale Stilurilor de Linii"
 
 
-msgid "Masks"
-msgstr "Măști"
-
-
 msgid "Masks data-blocks"
 msgstr "Blocurile de date ale măștilor"
-
-
-msgid "Materials"
-msgstr "Materiale"
 
 
 msgid "Material data-blocks"
 msgstr "Blocurile de date ale materialelor"
 
 
-msgid "Meshes"
-msgstr "Plase"
-
-
 msgid "Mesh data-blocks"
 msgstr "Blocurile de date ale plaselor"
 
 
-msgid "Metaballs"
-msgstr "Metaballs"
-
-
 msgid "Metaball data-blocks"
 msgstr "Blocurile de date ale metaball-ului"
-
-
-msgid "Movie Clips"
-msgstr "Clipuri de film"
 
 
 msgid "Movie Clip data-blocks"
@@ -1670,24 +1694,12 @@ msgid "Node group data-blocks"
 msgstr "Blocurile de date ale nodurilor"
 
 
-msgid "Objects"
-msgstr "Obiecte"
-
-
 msgid "Object data-blocks"
 msgstr "Blocurile de date ale obiectelor"
 
 
-msgid "Paint Curves"
-msgstr "Pictați Curbele"
-
-
 msgid "Paint Curves data-blocks"
 msgstr "Blocurile de date ale Picturii Curbelor"
-
-
-msgid "Palettes"
-msgstr "Palete"
 
 
 msgid "Palette data-blocks"
@@ -1702,16 +1714,8 @@ msgid "Particle data-blocks"
 msgstr "Blocurile de date ale particulelor"
 
 
-msgid "Point Clouds"
-msgstr "Nori de Puncte"
-
-
 msgid "Point cloud data-blocks"
 msgstr "Blocurile de date ale norilor de puncte"
-
-
-msgid "Scenes"
-msgstr "Scene"
 
 
 msgid "Scene data-blocks"
@@ -1732,10 +1736,6 @@ msgstr "Chei de Formă"
 
 msgid "Shape Key data-blocks"
 msgstr "Blocurile de date ale Cheilor de Formă"
-
-
-msgid "Textures"
-msgstr "Texturi"
 
 
 msgid "Deflectors"
@@ -2132,12 +2132,12 @@ msgid "Sampling"
 msgstr "Eșantionare"
 
 
-msgid "Convert"
-msgstr "Convertire"
-
-
 msgid "Apply"
 msgstr "Aplicare"
+
+
+msgid "Convert"
+msgstr "Convertire"
 
 
 msgid "Layout"

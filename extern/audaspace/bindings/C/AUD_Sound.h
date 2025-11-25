@@ -394,6 +394,17 @@ extern AUD_API int AUD_SoundList_addSound(AUD_Sound* list, AUD_Sound* sound);
 */
 extern AUD_API AUD_Sound* AUD_Sound_mutable(AUD_Sound* sound);
 
+    /**
+     * Adds Echo effect to the sound.
+     * \param sound The handle of the sound.
+     * \param delay The delay time in seconds.
+     * \param feedback The feedback amount (0.0 to 1.0).
+     * \param mix The wet/dry mix (0.0 to 1.0).
+     * \param resetBuffer Whether to reset the delay buffer on seek.
+     * \return A handle of the time-stretched, pitch scaled sound.
+     */
+extern AUD_API AUD_Sound* AUD_Sound_Echo(AUD_Sound* sound, float delay, float feedback, float mix, bool resetBuffer);
+
 #ifdef WITH_CONVOLUTION
 	extern AUD_API AUD_Sound* AUD_Sound_Convolver(AUD_Sound* sound, AUD_ImpulseResponse* filter, AUD_ThreadPool* threadPool);
 	extern AUD_API AUD_Sound* AUD_Sound_Binaural(AUD_Sound* sound, AUD_HRTF* hrtfs, AUD_Source* source, AUD_ThreadPool* threadPool);

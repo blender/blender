@@ -36,14 +36,12 @@ Vector<Span<float3>> get_curves_positions(const bke::CurvesGeometry &curves)
   return positions_per_attribute;
 }
 
-void transverts_from_curves_positions_create(bke::CurvesGeometry &curves,
-                                             TransVertStore *tvs,
-                                             const bool skip_handles)
+static std::array<IndexMask, 3> transverts_curves_selection(const bke::CurvesGeometry &curves,
+                                                            const bool skip_handles,
+                                                            IndexMaskMemory &memory)
 {
-  const Span<StringRef> selection_names = ed::curves::get_curves_selection_attribute_names(curves);
-
-  IndexMaskMemory memory;
   std::array<IndexMask, 3> selection;
+  const Span<StringRef> selection_names = ed::curves::get_curves_selection_attribute_names(curves);
   if (selection_names.size() == 1) {
     selection[0] = ed::curves::retrieve_selected_points(curves, memory);
   }
@@ -63,11 +61,19 @@ void transverts_from_curves_positions_create(bke::CurvesGeometry &curves,
     selection[2] = IndexMask::from_difference(selection[2], selection[0], memory);
   }
 
+  return selection;
+}
+
+void transverts_from_curves_positions_create(bke::CurvesGeometry &curves,
+                                             TransVertStore *tvs,
+                                             const bool skip_handles)
+{
+  IndexMaskMemory memory;
+  std::array<IndexMask, 3> selection = transverts_curves_selection(curves, skip_handles, memory);
   const int size = selection[0].size() + selection[1].size() + selection[2].size();
   if (size == 0) {
     return;
   }
-
   tvs->transverts = MEM_calloc_arrayN<TransVert>(size, __func__);
   tvs->transverts_tot = size;
 
@@ -83,6 +89,35 @@ void transverts_from_curves_positions_create(bke::CurvesGeometry &curves,
 
     offset += selection[attribute_i].size();
   }
+}
+
+void transverts_update_curves(bke::CurvesGeometry &curves,
+                              const TransVertStore *tvs,
+                              const bool skip_handles)
+{
+  IndexMaskMemory memory;
+  std::array<IndexMask, 3> selection = transverts_curves_selection(curves, skip_handles, memory);
+  const int size = selection[0].size() + selection[1].size() + selection[2].size();
+  if (size == 0 || size != tvs->transverts_tot) {
+    return;
+  }
+
+  int offset = 0;
+  const Vector<MutableSpan<float3>> positions = ed::curves::get_curves_positions_for_write(curves);
+  const Span<TransVert> all_transverts = {tvs->transverts, tvs->transverts_tot};
+  for (const int attribute_i : positions.index_range()) {
+    const Span<TransVert> transverts = all_transverts.slice_safe(offset,
+                                                                 selection[attribute_i].size());
+    selection[attribute_i].foreach_index(GrainSize(1024), [&](const int64_t i, const int64_t pos) {
+      const TransVert &tv = transverts[pos];
+      positions[attribute_i][i] += float3(tv.loc) - float3(tv.oldloc);
+    });
+
+    offset += selection[attribute_i].size();
+  }
+
+  curves.tag_positions_changed();
+  curves.calculate_bezier_auto_handles();
 }
 
 float (*point_normals_array_create(const Curves *curves_id))[3]

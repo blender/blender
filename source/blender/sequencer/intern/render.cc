@@ -69,6 +69,7 @@
 #include "cache/intra_frame_cache.hh"
 #include "cache/source_image_cache.hh"
 #include "effects/effects.hh"
+#include "intern/movie_read.hh"
 #include "modifiers/modifier.hh"
 #include "multiview.hh"
 #include "prefetch.hh"
@@ -1076,7 +1077,7 @@ static IMB_Timecode_Type seq_render_movie_strip_timecode_get(Strip *strip)
 static ImBuf *seq_render_movie_strip_view(const RenderData *context,
                                           Strip *strip,
                                           float timeline_frame,
-                                          StripAnim *sanim,
+                                          MovieReader *reader,
                                           bool *r_is_proxy_image)
 {
   ImBuf *ibuf = nullptr;
@@ -1092,7 +1093,7 @@ static ImBuf *seq_render_movie_strip_view(const RenderData *context,
       ibuf = seq_render_movie_strip_custom_file_proxy(context, strip, timeline_frame);
     }
     else {
-      ibuf = MOV_decode_frame(sanim->anim,
+      ibuf = MOV_decode_frame(reader,
                               frame_index + strip->anim_startofs,
                               seq_render_movie_strip_timecode_get(strip),
                               psize);
@@ -1105,7 +1106,7 @@ static ImBuf *seq_render_movie_strip_view(const RenderData *context,
 
   /* Fetching for requested proxy size failed, try fetching the original instead. */
   if (ibuf == nullptr) {
-    ibuf = MOV_decode_frame(sanim->anim,
+    ibuf = MOV_decode_frame(reader,
                             frame_index + strip->anim_startofs,
                             seq_render_movie_strip_timecode_get(strip),
                             IMB_PROXY_NONE);
@@ -1134,25 +1135,24 @@ static ImBuf *seq_render_movie_strip(const RenderData *context,
   strip_open_anim_file(context->scene, strip, false);
 
   ImBuf *ibuf = nullptr;
-  StripAnim *sanim = static_cast<StripAnim *>(strip->anims.first);
+  MovieReader *first_reader = strip->runtime->movie_reader_get();
   const int totfiles = seq_num_files(context->scene, strip->views_format, true);
   bool is_multiview_render = (strip->flag & SEQ_USE_VIEWS) != 0 &&
                              (context->scene->r.scemode & R_MULTIVIEW) != 0 &&
-                             BLI_listbase_count_is_equal_to(&strip->anims, totfiles);
+                             totfiles == strip->runtime->movie_readers.size();
 
   if (is_multiview_render) {
     ImBuf **ibuf_arr;
     int totviews = BKE_scene_multiview_num_views_get(&context->scene->r);
     ibuf_arr = MEM_calloc_arrayN<ImBuf *>(totviews, "Sequence Image Views Imbufs");
-    int ibuf_view_id;
 
-    for (ibuf_view_id = 0, sanim = static_cast<StripAnim *>(strip->anims.first); sanim;
-         sanim = sanim->next, ibuf_view_id++)
-    {
-      if (sanim->anim) {
+    int ibuf_view_id = 0;
+    for (MovieReader *reader : strip->runtime->movie_readers) {
+      if (reader) {
         ibuf_arr[ibuf_view_id] = seq_render_movie_strip_view(
-            context, strip, timeline_frame, sanim, r_is_proxy_image);
+            context, strip, timeline_frame, reader, r_is_proxy_image);
       }
+      ibuf_view_id++;
     }
 
     if (strip->views_format == R_IMF_VIEWS_STEREO_3D) {
@@ -1188,7 +1188,8 @@ static ImBuf *seq_render_movie_strip(const RenderData *context,
     MEM_freeN(ibuf_arr);
   }
   else {
-    ibuf = seq_render_movie_strip_view(context, strip, timeline_frame, sanim, r_is_proxy_image);
+    ibuf = seq_render_movie_strip_view(
+        context, strip, timeline_frame, first_reader, r_is_proxy_image);
   }
 
   media_presence_set_missing(context->scene, strip, ibuf == nullptr);
@@ -1198,8 +1199,8 @@ static ImBuf *seq_render_movie_strip(const RenderData *context,
   }
 
   if (*r_is_proxy_image == false) {
-    if (sanim && sanim->anim) {
-      strip->data->stripdata->orig_fps = MOV_get_fps(sanim->anim);
+    if (first_reader) {
+      strip->data->stripdata->orig_fps = MOV_get_fps(first_reader);
     }
     strip->data->stripdata->orig_width = ibuf->x;
     strip->data->stripdata->orig_height = ibuf->y;

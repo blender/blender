@@ -7023,19 +7023,38 @@ class VIEW3D_PT_overlay_guides(Panel):
 
         split = col.split()
         sub = split.column()
-        sub.prop(overlay, "show_text", text="Text Info")
-        sub.prop(overlay, "show_stats", text="Statistics")
+        row = sub.row()
+        row.prop(overlay, "show_cursor", text="3D Cursor")
+        row.prop(overlay, "show_annotation", text="Annotations")
+
         if view.region_3d.view_perspective == 'CAMERA':
             sub.prop(overlay, "show_camera_guides", text="Camera Guides")
-
-        sub = split.column()
-        sub.prop(overlay, "show_cursor", text="3D Cursor")
-        sub.prop(overlay, "show_annotation", text="Annotations")
 
         if shading.type == 'MATERIAL':
             row = col.row()
             row.active = shading.render_pass == 'COMBINED'
             row.prop(overlay, "show_look_dev")
+
+
+class VIEW3D_PT_overlay_text(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_parent_id = "VIEW3D_PT_overlay"
+    bl_label = "Text"
+
+    def draw(self, context):
+        layout = self.layout
+
+        view = context.space_data
+        overlay = view.overlay
+
+        split = layout.split()
+        sub = split.column(align=True)
+        sub.prop(overlay, "show_text", text="General Info")
+        sub.prop(overlay, "show_stats", text="Statistics")
+
+        sub = split.column(align=True)
+        sub.prop(overlay, "show_performance", text="Performance")
 
 
 class VIEW3D_PT_overlay_object(Panel):
@@ -9357,6 +9376,7 @@ classes = (
     VIEW3D_PT_gizmo_display,
     VIEW3D_PT_overlay,
     VIEW3D_PT_overlay_guides,
+    VIEW3D_PT_overlay_text,
     VIEW3D_PT_overlay_object,
     VIEW3D_PT_overlay_geometry,
     VIEW3D_PT_overlay_viewer_node,

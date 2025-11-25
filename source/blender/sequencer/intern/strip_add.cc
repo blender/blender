@@ -20,7 +20,6 @@
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 
-#include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -319,7 +318,6 @@ Strip *add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
   Strip *strip = strip_alloc(
       seqbase, load_data->start_frame, load_data->channel, STRIP_TYPE_SOUND_RAM);
   strip->sound = sound;
-  strip->scene_sound = nullptr;
 
   /* We round the frame duration as the audio sample lengths usually does not
    * line up with the video frames. Therefore we round this number to the
@@ -481,9 +479,7 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
 
   for (i = 0; i < totfiles; i++) {
     if (anim_arr[i]) {
-      StripAnim *sanim = MEM_mallocN<StripAnim>("Strip Anim");
-      BLI_addtail(&strip->anims, sanim);
-      sanim->anim = anim_arr[i];
+      strip->runtime->movie_readers.append(anim_arr[i]);
     }
     else {
       break;
@@ -568,7 +564,6 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
     }
     case STRIP_TYPE_MOVIE: {
       char filepath[FILE_MAX];
-      StripAnim *sanim;
       bool is_multiview_loaded = false;
       const bool is_multiview = (strip->flag & SEQ_USE_VIEWS) != 0 &&
                                 (scene->r.scemode & R_MULTIVIEW) != 0;
@@ -577,7 +572,7 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
           filepath, sizeof(filepath), strip->data->dirpath, strip->data->stripdata->filename);
       BLI_path_abs(filepath, ID_BLEND_PATH(bmain, &scene->id));
 
-      relations_strip_free_anim(strip);
+      strip_free_movie_readers(strip);
 
       if (is_multiview && (strip->views_format == R_IMF_VIEWS_INDIVIDUAL)) {
         char prefix[FILE_MAX];
@@ -589,23 +584,21 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
 
         if (prefix[0] != '\0') {
           for (i = 0; i < totfiles; i++) {
-            MovieReader *anim;
             char filepath_view[FILE_MAX];
 
             seq_multiview_name(scene, i, prefix, ext, filepath_view, sizeof(filepath_view));
             /* Sequencer takes care of colorspace conversion of the result. The input is the best
              * to be kept unchanged for the performance reasons. */
-            anim = openanim(filepath_view,
-                            IB_byte_data | ((strip->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
-                            strip->streamindex,
-                            true,
-                            strip->data->colorspace_settings.name);
+            MovieReader *anim = openanim(
+                filepath_view,
+                IB_byte_data | ((strip->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
+                strip->streamindex,
+                true,
+                strip->data->colorspace_settings.name);
 
             if (anim) {
               seq_anim_add_suffix(scene, anim, i);
-              sanim = MEM_mallocN<StripAnim>("Strip Anim");
-              BLI_addtail(&strip->anims, sanim);
-              sanim->anim = anim;
+              strip->runtime->movie_readers.append(anim);
             }
           }
           is_multiview_loaded = true;
@@ -622,23 +615,20 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
                                      true,
                                      strip->data->colorspace_settings.name);
         if (anim) {
-          sanim = MEM_mallocN<StripAnim>("Strip Anim");
-          BLI_addtail(&strip->anims, sanim);
-          sanim->anim = anim;
+          strip->runtime->movie_readers.append(anim);
         }
       }
 
       /* use the first video as reference for everything */
-      sanim = static_cast<StripAnim *>(strip->anims.first);
-
-      if ((!sanim) || (!sanim->anim)) {
+      MovieReader *reader = strip->runtime->movie_reader_get();
+      if (reader == nullptr) {
         return;
       }
 
-      MOV_load_metadata(sanim->anim);
+      MOV_load_metadata(reader);
 
       strip->len = MOV_get_duration_frames(
-          sanim->anim,
+          reader,
           IMB_Timecode_Type(strip->data->proxy ? IMB_Timecode_Type(strip->data->proxy->tc) :
                                                  IMB_TC_RECORD_RUN));
 
@@ -707,27 +697,22 @@ void add_movie_reload_if_needed(
                  "This function is only implemented for movie strips.");
 
   bool must_reload = false;
-
-  /* The Sequence struct allows for multiple anim structs to be associated with one strip.
-   * This function will return true only if there is at least one 'anim' AND all anims can
-   * produce frames. */
-
-  if (BLI_listbase_is_empty(&strip->anims)) {
-    /* No anim present, so reloading is always necessary. */
+  if (strip->runtime->movie_readers.is_empty()) {
+    /* No movie readers open: reload is necessary. */
     must_reload = true;
   }
   else {
-    LISTBASE_FOREACH (StripAnim *, sanim, &strip->anims) {
-      if (!MOV_is_initialized_and_valid(sanim->anim)) {
-        /* Anim cannot produce frames, try reloading. */
+    for (const MovieReader *reader : strip->runtime->movie_readers) {
+      if (!MOV_is_initialized_and_valid(reader)) {
+        /* A movie reader cannot produce frames, try reloading. */
         must_reload = true;
         break;
       }
-    };
+    }
   }
 
   if (!must_reload) {
-    /* There are one or more anims, and all can produce frames. */
+    /* All good! */
     *r_was_reloaded = false;
     *r_can_produce_frames = true;
     return;
@@ -736,22 +721,21 @@ void add_movie_reload_if_needed(
   add_reload_new_file(bmain, scene, strip, true);
   *r_was_reloaded = true;
 
-  if (BLI_listbase_is_empty(&strip->anims)) {
-    /* No anims present after reloading => no frames can be produced. */
+  if (strip->runtime->movie_readers.is_empty()) {
+    /* No readers after reload -> can't produce frames. */
     *r_can_produce_frames = false;
     return;
   }
 
-  /* Check if there are still anims that cannot produce frames. */
-  LISTBASE_FOREACH (StripAnim *, sanim, &strip->anims) {
-    if (!MOV_is_initialized_and_valid(sanim->anim)) {
-      /* There still is an anim that cannot produce frames. */
+  for (const MovieReader *reader : strip->runtime->movie_readers) {
+    if (!MOV_is_initialized_and_valid(reader)) {
+      /* There is still a movie that cannot produce frames. */
       *r_can_produce_frames = false;
       return;
     }
-  };
+  }
 
-  /* There are one or more anims, and all can produce frames. */
+  /* All good after a reload. */
   *r_can_produce_frames = true;
 }
 

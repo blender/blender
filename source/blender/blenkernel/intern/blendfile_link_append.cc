@@ -726,7 +726,7 @@ static blender::Set<Object *> loose_data_gather_instanciated_objects(
     instanciated_objects.add(ob_iter);
     if (ob_iter->instance_collection) {
       FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (ob_iter->instance_collection, ob_coll_iter) {
-        instanciated_objects.add(ob_iter);
+        instanciated_objects.add(ob_coll_iter);
       }
       FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
     }
