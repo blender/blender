@@ -114,29 +114,69 @@ def _find_assets(
             id_type=api_models.AssetIDTypeV1(datablock.id_type.lower()),
             file=file.path,
             thumbnail_url=thumbnail_url,
+            meta=_get_asset_meta(asset_data),
         )
-
-        # Only set the fields that have a value. That way we can detect whether
-        # none of them are set, and prevent the empty metadata from being
-        # included.
-        meta = api_models.AssetMetadataV1()
-        if asset_data.catalog_id:
-            meta.catalog_id = asset_data.catalog_id
-        if asset_data.tags:
-            meta.tags = [tag.name for tag in asset_data.tags]
-        if asset_data.author:
-            meta.author = asset_data.author
-        if asset_data.description:
-            meta.description = asset_data.description
-        if asset_data.license:
-            meta.license = asset_data.license
-        if asset_data.copyright:
-            meta.copyright = asset_data.copyright
-        if meta != api_models.AssetMetadataV1():
-            asset.meta = meta
 
         assets.append(asset)
     return assets
+
+
+def _get_asset_meta(asset_data: bpy.types.AssetData) -> api_models.AssetMetadataV1 | None:
+    # Only set the fields that have a value. That way we can detect whether
+    # none of them are set, and prevent the empty metadata from being
+    # included.
+    meta = api_models.AssetMetadataV1()
+    if asset_data.catalog_id and asset_data.catalog_id != "00000000-0000-0000-0000-000000000000":
+        meta.catalog_id = asset_data.catalog_id
+    if asset_data.tags:
+        meta.tags = [tag.name for tag in asset_data.tags]
+    if asset_data.author:
+        meta.author = asset_data.author
+    if asset_data.description:
+        meta.description = asset_data.description
+    if asset_data.license:
+        meta.license = asset_data.license
+    if asset_data.copyright:
+        meta.copyright = asset_data.copyright
+
+    # Convert custom properties.
+    import rna_prop_ui
+
+    custom_props: api_models.CustomPropertiesV1 = {}
+    for prop_name, prop_value in asset_data.items():
+        is_array = isinstance(prop_value, rna_prop_ui.ARRAY_TYPES) and len(prop_value) > 0
+        item_value = prop_value[0] if is_array else prop_value
+
+        match item_value:
+            case bool():
+                value_type = api_models.CustomPropertyTypeV1.BOOLEAN
+            case int():
+                value_type = api_models.CustomPropertyTypeV1.INT
+            case str():
+                value_type = api_models.CustomPropertyTypeV1.STRING
+            case float():
+                value_type = api_models.CustomPropertyTypeV1.FLOAT
+            case _:
+                # Unsupported type, just ignore it.
+                continue
+
+        if is_array:
+            custom_prop = api_models.CustomPropertyV1(
+                type=api_models.CustomPropertyTypeV1.ARRAY,
+                value=list(prop_value),
+                itemtype=value_type,
+            )
+        else:
+            custom_prop = api_models.CustomPropertyV1(type=value_type, value=prop_value)
+
+        custom_props[prop_name] = custom_prop
+
+    if custom_props:
+        meta.custom = custom_props
+
+    if meta == api_models.AssetMetadataV1():
+        return None
+    return meta
 
 
 def _save_thumbnail(datablock: bpy.types.ID, thumbnail_path: Path) -> None:

@@ -8,12 +8,12 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import json
 import logging
 import sys
 from pathlib import Path
 from typing import Any
 
-import fastjsonschema
 import cattrs.preconf.json
 
 from . import asset_catalogs, asset_finder, listing_common, pagination, json_parsing
@@ -98,7 +98,7 @@ def _write_toplevel_meta(arguments: CLIArguments) -> None:
     meta_json_path = outdir_root / listing_common.ASSET_TOP_METADATA_FILENAME
     try:
         metadata = _toplevel_metadata(meta_json_path)
-    except fastjsonschema.JsonSchemaException as ex:
+    except (json.JSONDecodeError, cattrs.errors.ClassValidationError) as ex:
         msg = "Metadata file {} could not be parsed as JSON: {}"
         logger.error(msg.format(meta_json_path, ex))
         raise SystemExit(1) from None
@@ -175,7 +175,7 @@ def _toplevel_metadata(json_path: Path) -> api_models.AssetLibraryMeta:
         # Ignore any read errors, as this likely means the file simply doesn't exist.
         return DEFAULT_METADATA
 
-    parser = json_parsing.ValidatingParser(api_models.OPENAPI_SPEC)
+    parser = json_parsing.ValidatingParser()
     metadata = parser.parse_and_validate(api_models.AssetLibraryMeta, json_data)
 
     # Update the metadata to declare the API version for which we're going to
