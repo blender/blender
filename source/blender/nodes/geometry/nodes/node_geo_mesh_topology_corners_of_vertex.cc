@@ -19,9 +19,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Weights").supports_field().hide_value().description(
       "Values used to sort corners attached to the vertex. Uses indices by default");
   b.add_input<decl::Int>("Sort Index")
-      .min(0)
       .supports_field()
-      .description("Which of the sorted corners to output");
+      .description("Which of the sorted corners to output. Negative indexing is supported");
   b.add_output<decl::Int>("Corner Index")
       .field_source_reference_all()
       .description("A corner connected to the face, chosen by the sort index");
