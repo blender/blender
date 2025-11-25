@@ -2030,8 +2030,18 @@ static void calc_squash_stretch_deform(SculptSession &ss, const Brush & /*brush*
   float3 ik_target = ss.cache->location + ss.cache->grab_delta;
 
   float3 scale;
-  scale[2] = calc_scale_from_grab_delta(ss, ik_target);
-  scale[0] = scale[1] = sqrtf(1.0f / scale[2]);
+  scale.z = calc_scale_from_grab_delta(ss, ik_target);
+  if (math::abs(scale.z) < 1e-5f) {
+    scale = float3(0.0f);
+  }
+  else {
+    const float signed_scale = math::sqrt(1.0f / math::abs(scale.z)) * math::sign(scale.z);
+
+    scale.x = signed_scale;
+    scale.y = signed_scale;
+  }
+
+  BLI_assert(std::isfinite(scale.x) && std::isfinite(scale.y) && std::isfinite(scale.z));
 
   /* Write the scale into the segments. */
   solve_scale_chain(ik_chain, scale);
