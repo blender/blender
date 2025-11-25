@@ -102,6 +102,7 @@ int BKE_icon_preview_ensure(ID *id, PreviewImage *preview);
  */
 int BKE_icon_imbuf_create(ImBuf *ibuf) ATTR_WARN_UNUSED_RESULT;
 ImBuf *BKE_icon_imbuf_get_buffer(int icon_id) ATTR_WARN_UNUSED_RESULT;
+bool BKE_icon_is_imbuf(int icon_id) ATTR_WARN_UNUSED_RESULT;
 
 struct IconBuffer {
   uint width;

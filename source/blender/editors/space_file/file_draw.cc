@@ -676,7 +676,6 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
                                       const FileDirEntry *file,
                                       const char *path,
                                       const rcti *tile_draw_rect,
-                                      const ImBuf *preview_image,
                                       const int file_type_icon)
 {
   /* Invisible button for dragging. */
@@ -697,11 +696,14 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
                         0.0,
                         std::nullopt);
 
-  const ImBuf *drag_image = preview_image ? preview_image :
-                                            /* Larger directory or document icon. */
-                                            filelist_geticon_special_file_image_ex(file);
-  const float scale = (PREVIEW_DRAG_DRAW_SIZE * UI_SCALE_FAC) /
-                      std::max(drag_image->x, drag_image->y);
+  const ImBuf *preview_image = filelist_file_get_preview_image(file);
+  const ImBuf *drag_image = (preview_image || file->asset) ?
+                                preview_image :
+                                /* Larger directory or document icon. */
+                                filelist_geticon_special_file_image_ex(file);
+  const float scale = drag_image ? (PREVIEW_DRAG_DRAW_SIZE * UI_SCALE_FAC) /
+                                       std::max(drag_image->x, drag_image->y) :
+                                   1.0f;
   file_but_enable_drag(but, sfile, file, path, drag_image, file_type_icon, scale);
   file_but_tooltip_func_set(sfile, file, but);
 }
@@ -1437,7 +1439,7 @@ void file_draw_list(const bContext *C, ARegion *region)
       if (file->typeflag & FILE_TYPE_ASSET_ONLINE) {
         filelist_online_asset_preview_request(const_cast<bContext *>(C), file);
         /* Trigger the preview loader to wait until the download is done and load the preview from
-         * disk. */
+         * disk. Has to be done explicitly here because the preview isn't attached to a button. */
         if (!file->asset->is_local_id()) {
           UI_icon_render_id_ex(
               C, nullptr, nullptr, ICON_SIZE_PREVIEW, true, file->asset->get_preview());
@@ -1475,11 +1477,9 @@ void file_draw_list(const bContext *C, ARegion *region)
                                 has_special_file_image,
                                 file_selflag);
 
-      /* TODO */
-      if (do_drag && false) {
-        const ImBuf *preview_imb = filelist_get_preview_image(files, i);
+      if (do_drag) {
         file_add_preview_drag_but(
-            sfile, block, layout, file, path, &tile_draw_rect, preview_imb, file_type_icon);
+            sfile, block, layout, file, path, &tile_draw_rect, file_type_icon);
       }
     }
     else {

@@ -313,16 +313,11 @@ static FileDirEntry *filelist_geticon_get_file(FileList *filelist, const int ind
   return filelist_file(filelist, index);
 }
 
-ImBuf *filelist_get_preview_image(FileList *filelist, const int index)
-{
-  FileDirEntry *file = filelist_geticon_get_file(filelist, index);
-
-  return file->preview_icon_id ? BKE_icon_imbuf_get_buffer(file->preview_icon_id) : nullptr;
-}
-
 ImBuf *filelist_file_get_preview_image(const FileDirEntry *file)
 {
-  return file->preview_icon_id ? BKE_icon_imbuf_get_buffer(file->preview_icon_id) : nullptr;
+  return (file->preview_icon_id && BKE_icon_is_imbuf(file->preview_icon_id)) ?
+             BKE_icon_imbuf_get_buffer(file->preview_icon_id) :
+             nullptr;
 }
 
 static ImBuf *filelist_ensure_special_file_image(SpecialFileImages image, int icon)

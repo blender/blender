@@ -407,6 +407,16 @@ ImBuf *BKE_icon_imbuf_get_buffer(int icon_id)
   return (ImBuf *)icon->obj;
 }
 
+bool BKE_icon_is_imbuf(int icon_id)
+{
+  Icon *icon = icon_ghash_lookup(icon_id);
+  if (!icon) {
+    CLOG_ERROR(&LOG, "no icon for icon ID: %d", icon_id);
+    return false;
+  }
+  return icon->obj_type == ICON_DATA_IMBUF;
+}
+
 static IconBuffer construct_icon_buffer(const uint width,
                                         const uint height,
                                         const uint channels,
