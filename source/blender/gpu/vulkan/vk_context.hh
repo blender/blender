@@ -136,7 +136,8 @@ class VKContext : public Context, NonCopyable {
    * Update the give shader data with the current state of the context.
    */
   void update_pipeline_data(render_graph::VKPipelineData &r_pipeline_data);
-  void update_pipeline_data(GPUPrimType primitive,
+  void update_pipeline_data(const VKFrameBuffer &framebuffer,
+                            GPUPrimType primitive,
                             VKVertexAttributeObject &vao,
                             render_graph::VKPipelineDataGraphics &r_pipeline_data);
 

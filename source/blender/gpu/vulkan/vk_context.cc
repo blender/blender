@@ -284,16 +284,19 @@ void VKContext::rendering_end()
 /** \name Pipeline
  * \{ */
 
-void VKContext::update_pipeline_data(GPUPrimType primitive,
+void VKContext::update_pipeline_data(const VKFrameBuffer &framebuffer,
+                                     GPUPrimType primitive,
                                      VKVertexAttributeObject &vao,
                                      render_graph::VKPipelineDataGraphics &r_pipeline_data)
 {
   VKShader &vk_shader = unwrap(*shader);
-  VKFrameBuffer &framebuffer = *active_framebuffer_get();
-
   VKStateManager &state_manager = state_manager_get();
+
   /* Disable non-vulkan state flags to reduce unneeded pipeline compilation. */
   state_manager.state.clip_control = 0;
+
+  framebuffer.vk_viewports_append(r_pipeline_data.viewport.viewports);
+  framebuffer.vk_render_areas_append(r_pipeline_data.viewport.scissors);
 
   /* Override size of point shader when GPU_point size < 0 */
   const float point_size = state_manager.mutable_state.point_size;
@@ -316,6 +319,18 @@ void VKContext::update_pipeline_data(GPUPrimType primitive,
   }
   else {
     r_pipeline_data.line_width.reset();
+  }
+
+  /* Dynamic state stencil state */
+  if (framebuffer.stencil_attachment_format_get() != VK_FORMAT_UNDEFINED &&
+      state_manager.state.stencil_test != GPU_STENCIL_NONE)
+  {
+    r_pipeline_data.stencil_state = {state_manager.mutable_state.stencil_compare_mask,
+                                     state_manager.mutable_state.stencil_reference,
+                                     state_manager.mutable_state.stencil_write_mask};
+  }
+  else {
+    r_pipeline_data.stencil_state.reset();
   }
 
   update_pipeline_data(vk_shader,

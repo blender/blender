@@ -103,7 +103,7 @@ class VKShader : public Shader {
   VkPipeline ensure_and_get_graphics_pipeline(GPUPrimType primitive,
                                               VKVertexAttributeObject &vao,
                                               VKStateManager &state_manager,
-                                              VKFrameBuffer &framebuffer,
+                                              const VKFrameBuffer &framebuffer,
                                               shader::SpecializationConstants &constants_state);
 
   const VKShaderInterface &interface_get() const;
