@@ -1865,7 +1865,7 @@ static bool ui_but_icon_extra_is_visible_bone_eyedropper(uiBut *but)
   }
   const StructRNA *type = RNA_property_pointer_type(&search_but->rnasearchpoin,
                                                     search_but->rnasearchprop);
-  return type == &RNA_Bone || type == &RNA_EditBone;
+  return type == &RNA_Bone || type == &RNA_EditBone || type == &RNA_PoseBone;
 }
 
 static PredefinedExtraOpIconType ui_but_icon_extra_get(uiBut *but)
