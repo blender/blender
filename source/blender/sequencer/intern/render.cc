@@ -987,7 +987,7 @@ static ImBuf *seq_render_image_strip(const RenderData *context,
 
   if (is_multiview_render) {
     int totviews = BKE_scene_multiview_num_views_get(&context->scene->r);
-    ImBuf **ibufs_arr = MEM_calloc_arrayN<ImBuf *>(totviews, "Sequence Image Views Imbufs");
+    Array<ImBuf *> ibufs_arr(totviews, nullptr);
 
     for (int view_id = 0; view_id < totfiles; view_id++) {
       ibufs_arr[view_id] = seq_render_image_strip_view(
@@ -1012,17 +1012,13 @@ static ImBuf *seq_render_image_strip(const RenderData *context,
       }
     }
 
-    /* Return the original requested ImBuf. */
+    /* Return the requested image; release the others. */
     ibuf = ibufs_arr[context->view_id];
-
-    /* Remove the others (decrease their refcount). */
-    for (int view_id = 0; view_id < totviews; view_id++) {
-      if (ibufs_arr[view_id] != ibuf) {
-        IMB_freeImBuf(ibufs_arr[view_id]);
+    for (ImBuf *ib : ibufs_arr) {
+      if (ib != ibuf) {
+        IMB_freeImBuf(ib);
       }
     }
-
-    MEM_freeN(ibufs_arr);
   }
   else {
     ibuf = seq_render_image_strip_view(context, strip, filepath, prefix, ext, context->view_id);
@@ -1144,9 +1140,8 @@ static ImBuf *seq_render_movie_strip(const RenderData *context,
                              totfiles == strip->runtime->movie_readers.size();
 
   if (is_multiview_render) {
-    ImBuf **ibuf_arr;
     int totviews = BKE_scene_multiview_num_views_get(&context->scene->r);
-    ibuf_arr = MEM_calloc_arrayN<ImBuf *>(totviews, "Sequence Image Views Imbufs");
+    Array<ImBuf *> ibuf_arr(totviews, nullptr);
 
     int ibuf_view_id = 0;
     for (MovieReader *reader : strip->runtime->movie_readers) {
@@ -1160,7 +1155,6 @@ static ImBuf *seq_render_movie_strip(const RenderData *context,
     if (strip->views_format == R_IMF_VIEWS_STEREO_3D) {
       if (ibuf_arr[0] == nullptr) {
         /* Probably proxy hasn't been created yet. */
-        MEM_freeN(ibuf_arr);
         return nullptr;
       }
 
@@ -1177,17 +1171,13 @@ static ImBuf *seq_render_movie_strip(const RenderData *context,
       }
     }
 
-    /* Return the original requested ImBuf. */
+    /* Return the requested image; release the others. */
     ibuf = ibuf_arr[context->view_id];
-
-    /* Remove the others (decrease their refcount). */
-    for (int view_id = 0; view_id < totviews; view_id++) {
-      if (ibuf_arr[view_id] != ibuf) {
-        IMB_freeImBuf(ibuf_arr[view_id]);
+    for (ImBuf *ib : ibuf_arr) {
+      if (ib != ibuf) {
+        IMB_freeImBuf(ib);
       }
     }
-
-    MEM_freeN(ibuf_arr);
   }
   else {
     ibuf = seq_render_movie_strip_view(
@@ -1519,7 +1509,6 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
   else {
     Render *re = RE_GetSceneRender(scene);
     const int totviews = BKE_scene_multiview_num_views_get(&scene->r);
-    ImBuf **ibufs_arr;
 
     /*
      * XXX: this if can be removed when sequence preview rendering uses the job system
@@ -1535,7 +1524,7 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
       return ibuf;
     }
 
-    ibufs_arr = MEM_calloc_arrayN<ImBuf *>(totviews, "Sequence Image Views Imbufs");
+    Array<ImBuf *> ibufs_arr(totviews, nullptr);
 
     if (re == nullptr) {
       re = RE_NewSceneRender(scene);
@@ -1598,16 +1587,13 @@ static ImBuf *seq_render_scene_strip_ex(const RenderData *context,
       RE_ReleaseResultImage(re);
     }
 
-    /* return the original requested ImBuf */
+    /* Return the requested image; release the others. */
     ibuf = ibufs_arr[context->view_id];
-
-    /* "remove" the others (decrease their refcount) */
-    for (int view_id = 0; view_id < totviews; view_id++) {
-      if (ibufs_arr[view_id] != ibuf) {
-        IMB_freeImBuf(ibufs_arr[view_id]);
+    for (ImBuf *ib : ibufs_arr) {
+      if (ib != ibuf) {
+        IMB_freeImBuf(ib);
       }
     }
-    MEM_freeN(ibufs_arr);
   }
 
   return ibuf;
