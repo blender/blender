@@ -1407,6 +1407,8 @@ void file_draw_list(const bContext *C, ARegion *region)
 
   UI_GetThemeColor4ubv(TH_TEXT, text_col);
 
+  const bool filelist_loading = !filelist_is_ready(files);
+
   for (i = offset; (i < numfiles) && (i < offset + numfiles_layout); i++) {
     const int padx = 0.1f * UI_UNIT_X;
     int icon_ofs = 0;
@@ -1438,7 +1440,7 @@ void file_draw_list(const bContext *C, ARegion *region)
     const bool is_hidden = (file->attributes & FILE_ATTR_HIDDEN);
 
     if (FILE_IMGDISPLAY == params->display) {
-      if (file->typeflag & FILE_TYPE_ASSET_ONLINE) {
+      if ((file->typeflag & FILE_TYPE_ASSET_ONLINE) && !filelist_loading) {
         filelist_online_asset_preview_request(const_cast<bContext *>(C), file);
         /* Trigger the preview loader to wait until the download is done and load the preview from
          * disk. Has to be done explicitly here because the preview isn't attached to a button. */
@@ -1485,7 +1487,6 @@ void file_draw_list(const bContext *C, ARegion *region)
       }
     }
     else {
-      const bool filelist_loading = !filelist_is_ready(files);
       const BIFIconID icon = [&]() {
         if (file->asset) {
           file->asset->ensure_previewable(const_cast<bContext &>(*C));
