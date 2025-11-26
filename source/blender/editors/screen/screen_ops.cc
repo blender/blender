@@ -3421,6 +3421,11 @@ static wmOperatorStatus frame_jump_delta_exec(bContext *C, wmOperator *op)
 
   int step = int(delta);
   float fraction = delta - step;
+  if (!(scene->r.flag & SCER_SHOW_SUBFRAME)) {
+    step = round_fl_to_int(delta);
+    fraction = 0.0f;
+  }
+
   if (backward) {
     scene->r.cfra -= step;
     scene->r.subframe -= fraction;
@@ -3437,6 +3442,8 @@ static wmOperatorStatus frame_jump_delta_exec(bContext *C, wmOperator *op)
     scene->r.cfra += frame_offset;
     scene->r.subframe -= subframe_offset;
   }
+
+  FRAMENUMBER_MIN_CLAMP(scene->r.cfra);
 
   ED_areas_do_frame_follow(C, true);
   blender::ed::vse::sync_active_scene_and_time_with_scene_strip(*C);
