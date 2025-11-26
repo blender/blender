@@ -337,6 +337,14 @@ static wmOperatorStatus screen_render_exec(bContext *C, wmOperator *op)
   const bool use_sequencer_scene = RNA_boolean_get(op->ptr, "use_sequencer_scene");
 
   Scene *scene = use_sequencer_scene ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
+
+  if (scene == nullptr) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               use_sequencer_scene ? "No sequencer scene to render" : "No scene to render");
+    return OPERATOR_CANCELLED;
+  }
+
   ViewLayer *active_layer = use_sequencer_scene ? BKE_view_layer_default_render(scene) :
                                                   CTX_data_view_layer(C);
   RenderEngineType *re_type = RE_engines_find(scene->r.engine);
@@ -1027,6 +1035,14 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
 
   View3D *v3d = use_viewport ? CTX_wm_view3d(C) : nullptr;
   Scene *scene = use_sequencer_scene ? CTX_data_sequencer_scene(C) : CTX_data_scene(C);
+
+  if (scene == nullptr) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               use_sequencer_scene ? "No sequencer scene to render" : "No scene to render");
+    return OPERATOR_CANCELLED;
+  }
+
   ViewLayer *active_layer = use_sequencer_scene ? BKE_view_layer_default_render(scene) :
                                                   CTX_data_view_layer(C);
   RenderEngineType *re_type = RE_engines_find(scene->r.engine);
