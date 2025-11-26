@@ -369,6 +369,7 @@ void remote_library_request_asset_download(bContext &C,
 
 void remote_library_request_preview_download(bContext &C,
                                              const AssetRepresentation &asset,
+                                             const StringRef dst_filepath,
                                              ReportList *reports)
 {
   /* Ensure we don't attempt to download anything when online access is disabled. */
@@ -391,8 +392,6 @@ void remote_library_request_preview_download(bContext &C,
                 asset.get_name().c_str());
     return;
   }
-
-  const std::string dst_filepath = remote_library_asset_preview_path(asset);
 
   /* Notify the preview loading UI that a download for this preview is pending. */
   ED_preview_online_download_requested(dst_filepath);

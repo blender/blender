@@ -101,7 +101,7 @@ void AssetRepresentation::ensure_previewable(bContext &C, ReportList *reports)
       /* Doesn't do the actual reading, just allocates and attaches the derived load info. */
       extern_asset.preview_ = BKE_previewimg_online_thumbnail_read(
           full_path.c_str(), preview_path.c_str(), false);
-      remote_library_request_preview_download(C, *this, reports);
+      remote_library_request_preview_download(C, *this, preview_path, reports);
     }
   }
   else {

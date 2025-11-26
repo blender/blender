@@ -1845,13 +1845,11 @@ void PreviewLoadJob::push_load_request(PreviewImage *preview, const eIconSizes i
   BLI_assert(preview->runtime->deferred_loading_data);
   BLI_assert_msg(!(preview->flag[icon_size] & PRV_RENDERING),
                  "Preview was already requested and is being loaded");
-  std::optional path = BKE_previewimg_deferred_filepath_get(preview);
+  std::optional<StringRefNull> path = BKE_previewimg_deferred_filepath_get(preview);
   if (!path) {
     BLI_assert_unreachable();
     return;
   }
-
-  BLI_assert((preview->flag[icon_size] & PRV_RENDERING) == 0);
 
   preview->flag[icon_size] |= PRV_RENDERING;
   /* Warn main thread code that this preview is being rendered and cannot be freed. */
@@ -1873,7 +1871,6 @@ void PreviewLoadJob::push_load_request(PreviewImage *preview, const eIconSizes i
     if (std::unique_ptr<RequestedPreview> *existing_request = requested_previews_.lookup_ptr(key))
     {
       request = existing_request->get();
-      BLI_assert(request->preview != preview);
       request->preview = preview;
     }
     else {
@@ -1900,10 +1897,11 @@ void PreviewLoadJob::on_download_completed(wmWindowManager *wm,
   PreviewLoadJob *load_job = static_cast<PreviewLoadJob *>(
       WM_jobs_customdata_from_type(wm, nullptr, WM_JOB_TYPE_LOAD_PREVIEW));
   if (!load_job) {
-    PreviewLoadJob::known_downloaded_previews().add(preview_full_filepath);
+    PreviewLoadJob::known_downloaded_previews().add_as(preview_full_filepath);
     return;
   }
 
+  bool has_request = false;
   {
     std::lock_guard lock(load_job->requested_previews_mutex_);
     for (int size = 0; size < NUM_ICON_SIZES; size++) {
@@ -1917,21 +1915,24 @@ void PreviewLoadJob::on_download_completed(wmWindowManager *wm,
           BLI_thread_queue_push(
               load_job->todo_queue_, request->get(), BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
         }
-      }
-      /* No pending request, but one might still be coming. Add to the "known" downloaded previews.
-       */
-      else {
-        PreviewLoadJob::known_downloaded_previews().add(preview_full_filepath);
+        has_request = true;
       }
     }
+  }
+
+  if (!has_request) {
+    /* No pending request, but one might still be coming. Add it to the "known" downloaded
+     * previews. */
+    PreviewLoadJob::known_downloaded_previews().add_as(preview_full_filepath);
   }
 }
 
 void PreviewLoadJob::on_download_requested(const StringRef preview_full_filepath)
 {
   /* Preview was requested. Allow the system to detect it as being downloaded by removing it from
-   * the files known as "already downloaded". */
-  PreviewLoadJob::known_downloaded_previews().remove(preview_full_filepath);
+   * the files known as "already downloaded". This way once downloaded previews don't linger around
+   * as "already downloaded" forever, and their downloading state can be recognized correctly. */
+  PreviewLoadJob::known_downloaded_previews().remove_as(preview_full_filepath);
 }
 
 void PreviewLoadJob::run_fn(void *customdata, wmJobWorkerStatus *worker_status)
@@ -1952,7 +1953,7 @@ void PreviewLoadJob::run_fn(void *customdata, wmJobWorkerStatus *worker_status)
         for (std::unique_ptr<RequestedPreview> &check_request :
              job_data->requested_previews_.values())
         {
-          PreviewState state = check_request->state.load();
+          const PreviewState state = check_request->state.load();
           if (ELEM(state, PreviewState::Downloading, PreviewState::LoadingFromDisk)) {
             any_pending = true;
             break;

@@ -1383,7 +1383,9 @@ void file_draw_list(const bContext *C, ARegion *region)
 
     /* Handle preview timer here,
      * since it's filelist_file_cache_block() and filelist_cache_previews_update()
-     * which controls previews task. */
+     * which controls previews task.
+     * Note that online assets don't use this system.
+     */
     {
       const bool previews_running = filelist_cache_previews_running(files) &&
                                     !filelist_cache_previews_done(files);

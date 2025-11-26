@@ -35,6 +35,7 @@ void remote_library_request_asset_download(bContext &C,
                                            ReportList *reports);
 void remote_library_request_preview_download(bContext &C,
                                              const AssetRepresentation &asset,
+                                             const StringRef dst_filepath,
                                              ReportList *reports);
 
 /**
