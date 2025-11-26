@@ -1858,7 +1858,7 @@ void PreviewLoadJob::push_load_request(PreviewImage *preview, const eIconSizes i
   preview->runtime->tag |= PRV_TAG_DEFFERED_RENDERING;
 
   const bool is_downloading = BKE_previewimg_is_online(preview) &&
-                              !PreviewLoadJob::known_downloaded_previews().remove(*path);
+                              !PreviewLoadJob::known_downloaded_previews().contains_as(*path);
 
   const std::pair key = std::make_pair(*path, icon_size);
 
