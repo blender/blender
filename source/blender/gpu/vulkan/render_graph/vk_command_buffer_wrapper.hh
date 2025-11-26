@@ -129,10 +129,13 @@ class VKCommandBufferInterface {
   virtual void reset_query_pool(VkQueryPool vk_query_pool,
                                 uint32_t first_query,
                                 uint32_t query_count) = 0;
+  /* Dynamic states*/
   virtual void set_viewport(const Vector<VkViewport> viewports) = 0;
   virtual void set_scissor(const Vector<VkRect2D> scissors) = 0;
   virtual void set_line_width(const float line_width) = 0;
-
+  virtual void set_stencil_compare_mask(const uint32_t compare_mask) = 0;
+  virtual void set_stencil_write_mask(const uint32_t write_mask) = 0;
+  virtual void set_stencil_reference(const uint32_t reference) = 0;
   /* VK_KHR_dynamic_rendering */
   virtual void begin_rendering(const VkRenderingInfo *p_rendering_info) = 0;
   virtual void end_rendering() = 0;
@@ -249,6 +252,10 @@ class VKCommandBufferWrapper : public VKCommandBufferInterface {
   void set_viewport(const Vector<VkViewport> viewports) override;
   void set_scissor(const Vector<VkRect2D> scissors) override;
   void set_line_width(const float line_width) override;
+
+  void set_stencil_compare_mask(const uint32_t compare_mask) override;
+  void set_stencil_write_mask(const uint32_t write_mask) override;
+  void set_stencil_reference(const uint32_t reference) override;
   void begin_query(VkQueryPool vk_query_pool,
                    uint32_t query_index,
                    VkQueryControlFlags vk_query_control_flags) override;
@@ -259,5 +266,4 @@ class VKCommandBufferWrapper : public VKCommandBufferInterface {
   void begin_debug_utils_label(const VkDebugUtilsLabelEXT *vk_debug_utils_label) override;
   void end_debug_utils_label() override;
 };
-
 }  // namespace blender::gpu::render_graph

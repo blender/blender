@@ -402,8 +402,7 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
   char colorspace[/*MAX_COLORSPACE_NAME*/ 64] = "\0";
   bool is_multiview_loaded = false;
   const int totfiles = seq_num_files(scene, load_data->views_format, load_data->use_multiview);
-  MovieReader **anim_arr = MEM_calloc_arrayN<MovieReader *>(totfiles, "Video files");
-  int i;
+  Array<MovieReader *> anim_arr(totfiles, nullptr);
   int orig_width = 0;
   int orig_height = 0;
 
@@ -415,7 +414,7 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
     BKE_scene_multiview_view_prefix_get(scene, filepath, prefix, &ext);
 
     if (prefix[0] != '\0') {
-      for (i = 0; i < totfiles; i++) {
+      for (int i = 0; i < totfiles; i++) {
         char filepath_view[FILE_MAX];
 
         seq_multiview_name(scene, i, prefix, ext, filepath_view, sizeof(filepath_view));
@@ -439,7 +438,6 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
   }
 
   if (anim_arr[0] == nullptr && !load_data->allow_invalid_file) {
-    MEM_freeN(anim_arr);
     return nullptr;
   }
 
@@ -477,9 +475,9 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
     *strip->stereo3d_format = *load_data->stereo3d_format;
   }
 
-  for (i = 0; i < totfiles; i++) {
-    if (anim_arr[i]) {
-      strip->runtime->movie_readers.append(anim_arr[i]);
+  for (MovieReader *anim : anim_arr) {
+    if (anim) {
+      strip->runtime->movie_readers.append(anim);
     }
     else {
       break;
@@ -524,7 +522,6 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
   strip_add_set_name(scene, strip, load_data);
   strip_add_generic_update(scene, strip);
 
-  MEM_freeN(anim_arr);
   return strip;
 }
 
@@ -591,7 +588,7 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
              * to be kept unchanged for the performance reasons. */
             MovieReader *anim = openanim(
                 filepath_view,
-                IB_byte_data | ((strip->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
+                IB_byte_data | ((strip->flag & SEQ_DEINTERLACE) ? IB_animdeinterlace : 0),
                 strip->streamindex,
                 true,
                 strip->data->colorspace_settings.name);
@@ -608,12 +605,12 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
       if (is_multiview_loaded == false) {
         /* Sequencer takes care of colorspace conversion of the result. The input is the best to be
          * kept unchanged for the performance reasons. */
-        MovieReader *anim = openanim(filepath,
-                                     IB_byte_data |
-                                         ((strip->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
-                                     strip->streamindex,
-                                     true,
-                                     strip->data->colorspace_settings.name);
+        MovieReader *anim = openanim(
+            filepath,
+            IB_byte_data | ((strip->flag & SEQ_DEINTERLACE) ? IB_animdeinterlace : 0),
+            strip->streamindex,
+            true,
+            strip->data->colorspace_settings.name);
         if (anim) {
           strip->runtime->movie_readers.append(anim);
         }

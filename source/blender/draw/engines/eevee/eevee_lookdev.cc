@@ -359,6 +359,10 @@ void LookdevModule::draw(View &view)
   inst_.volume_probes.set_view(view);
   inst_.sphere_probes.set_view(view);
 
+  if (assign_if_different(inst_.pipelines.data.use_monochromatic_transmittance, bool32_t(true))) {
+    inst_.uniform_data.push_update();
+  }
+
   for (Sphere &sphere : spheres_) {
     sphere.framebuffer.bind();
     inst_.manager->submit(sphere.pass, view);

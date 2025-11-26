@@ -77,6 +77,11 @@ struct PipelineInfoData {
    * texture view (see #146132). So we always pass the correct layer index manually to avoid any
    * platform inconsistency. */
   int gbuffer_additional_data_layer_id;
+  /* Use monochromatic transmittance for the forward pipeline. */
+  bool32_t use_monochromatic_transmittance;
+  bool32_t _pad0;
+  bool32_t _pad1;
+  bool32_t _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(PipelineInfoData, 16)
 

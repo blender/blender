@@ -290,7 +290,7 @@ static VectorSet<Strip *> query_right_side_strips(const Scene *scene,
       continue;
     }
 
-    if ((strip->flag & SELECT) == 0 && time_left_handle_frame_get(scene, strip) >= minframe) {
+    if ((strip->flag & SEQ_SELECT) == 0 && time_left_handle_frame_get(scene, strip) >= minframe) {
       right_side_strips.add(strip);
     }
   }
@@ -628,6 +628,8 @@ float2 transform_image_raw_size_get(const Scene *scene, const Strip *strip)
     const TextVars *data = static_cast<TextVars *>(strip->effectdata);
     const FontFlags font_flags = ((data->flag & SEQ_TEXT_BOLD) ? BLF_BOLD : BLF_NONE) |
                                  ((data->flag & SEQ_TEXT_ITALIC) ? BLF_ITALIC : BLF_NONE);
+
+    std::unique_lock<Mutex> lock = text_runtime_scoped_lock_get();
     const int font = text_effect_font_init(nullptr, strip, font_flags);
     const TextVarsRuntime *runtime = text_effect_calc_runtime(
         strip, font, int2(scene_render_size));

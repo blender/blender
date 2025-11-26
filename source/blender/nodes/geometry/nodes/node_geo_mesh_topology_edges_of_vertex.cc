@@ -21,9 +21,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Weights").supports_field().hide_value().description(
       "Values used to sort the edges connected to the vertex. Uses indices by default");
   b.add_input<decl::Int>("Sort Index")
-      .min(0)
       .supports_field()
-      .description("Which of the sorted edges to output");
+      .description("Which of the sorted edges to output. Negative indexing is supported");
   b.add_output<decl::Int>("Edge Index")
       .field_source_reference_all()
       .description("An edge connected to the face, chosen by the sort index");

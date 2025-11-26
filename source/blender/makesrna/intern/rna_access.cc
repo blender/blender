@@ -2235,13 +2235,23 @@ const char *RNA_property_ui_name_raw(const PropertyRNA *prop, const PointerRNA *
   return rna_ensure_property_name(prop);
 }
 
-const char *RNA_property_ui_description(const PropertyRNA *prop)
+const char *RNA_property_ui_description(const PropertyRNA *prop, const PointerRNA *ptr)
 {
-  return TIP_(rna_ensure_property_description(prop));
+  if (ptr && prop->magic == RNA_MAGIC && prop->ui_description_func) {
+    if (const char *description = prop->ui_description_func(ptr, prop, true)) {
+      return description;
+    }
+  }
+  return CTX_IFACE_(RNA_property_translation_context(prop), rna_ensure_property_description(prop));
 }
 
-const char *RNA_property_ui_description_raw(const PropertyRNA *prop)
+const char *RNA_property_ui_description_raw(const PropertyRNA *prop, const PointerRNA *ptr)
 {
+  if (ptr && prop->magic == RNA_MAGIC && prop->ui_description_func) {
+    if (const char *description = prop->ui_description_func(ptr, prop, false)) {
+      return description;
+    }
+  }
   return rna_ensure_property_description(prop);
 }
 

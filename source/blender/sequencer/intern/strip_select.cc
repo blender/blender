@@ -53,7 +53,7 @@ bool select_active_get_pair(Scene *scene, Strip **r_strip_act, Strip **r_strip_o
   *r_strip_other = nullptr;
 
   LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
-    if (strip->flag & SELECT && (strip != (*r_strip_act))) {
+    if (strip->flag & SEQ_SELECT && (strip != (*r_strip_act))) {
       if (*r_strip_other) {
         return false;
       }

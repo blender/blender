@@ -22,6 +22,8 @@ bNodeSocket *node_group_find_output_socket(bNode *groupnode, blender::StringRef 
 bNodeSocket *node_group_input_find_socket(bNode *node, blender::StringRef identifier);
 bNodeSocket *node_group_output_find_socket(bNode *node, blender::StringRef identifier);
 
+int node_group_ui_class(const bNode *node);
+
 namespace blender::nodes {
 
 void node_group_declare(NodeDeclarationBuilder &b);

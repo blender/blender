@@ -15,6 +15,25 @@ class VKCommandBufferInterface;
 struct VKRenderGraphNodeLinks;
 class VKResourceStateTracker;
 
+/* Stencil dynamic data: op + compare/write masks + reference.
+   Moved here so it can be shared between pipeline code and command-buffer
+   wrappers. */
+struct StencilState {
+  uint8_t compare_mask;
+  uint8_t reference;
+  uint8_t write_mask;
+
+  bool operator==(const StencilState &other) const noexcept
+  {
+    return compare_mask == other.compare_mask && reference == other.reference &&
+           write_mask == other.write_mask;
+  }
+  bool operator!=(const StencilState &other) const noexcept
+  {
+    return !(*this == other);
+  }
+};
+
 /**
  * Container for storing shader descriptor set and push constants.
  *
@@ -66,6 +85,7 @@ struct VKPipelineDataGraphics {
   VKPipelineData pipeline_data;
   VKViewportData viewport;
   std::optional<float> line_width;
+  std::optional<StencilState> stencil_state;
 };
 
 /** Resources bound for a compute/graphics pipeline. */
@@ -121,6 +141,7 @@ struct VKBoundPipelines {
     VKVertexBufferBindings vertex_buffers;
     VKViewportData viewport_state;
     std::optional<float> line_width;
+    std::optional<StencilState> stencil_state;
   } graphics;
 };
 
@@ -144,10 +165,12 @@ static inline void vk_pipeline_data_copy(VKPipelineDataGraphics &dst,
  * - viewports
  * - scissors
  * - line width
+ * - stencil op + compare/write masks + reference
  */
 void vk_pipeline_dynamic_graphics_build_commands(VKCommandBufferInterface &command_buffer,
                                                  const VKViewportData &viewport,
                                                  const std::optional<float> line_width,
+                                                 const std::optional<StencilState> stencil_state,
                                                  VKBoundPipelines &r_bound_pipelines);
 
 /**

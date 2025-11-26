@@ -204,7 +204,7 @@ static void animchan_sync_fcurve_scene(bAnimListElem *ale)
   }
 
   /* update selection status */
-  if (strip->flag & SELECT) {
+  if (strip->flag & SEQ_SELECT) {
     fcu->flag |= FCURVE_SELECTED;
   }
   else {

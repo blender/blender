@@ -306,7 +306,8 @@ EvaluationResult evaluate_layer(PointerRNA &animated_id_ptr,
       continue;
     }
 
-    const EvaluationResult strip_result = evaluate_strip(
+    /* Cannot use const here because the std::move would not work otherwise. */
+    EvaluationResult strip_result = evaluate_strip(
         animated_id_ptr, owning_action, *strip, slot_handle, anim_eval_context);
     if (!strip_result) {
       continue;
@@ -315,7 +316,7 @@ EvaluationResult evaluate_layer(PointerRNA &animated_id_ptr,
     const bool is_weak_result = strip->is_last_frame(anim_eval_context.eval_time);
     if (is_weak_result) {
       /* Keep going until a strong result is found. */
-      last_weak_result = strip_result;
+      last_weak_result = std::move(strip_result);
       continue;
     }
 

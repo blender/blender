@@ -2482,6 +2482,89 @@ static void library_filedata_release(Library *lib)
   lib->runtime->is_filedata_owner = false;
 }
 
+/* Add a Main (and optionally create a matching Library ID), for the given filepath.
+ *
+ * - If `lib` is `nullptr`, create a new Library ID, otherwise only create a new Main for the given
+ * library.
+ * - `reference_lib` is the 'archive parent' of an archive (packed) library, can be null and will
+ * be ignored otherwise. */
+static Main *blo_add_main_for_library(FileData *fd,
+                                      Library *lib,
+                                      Library *reference_lib,
+                                      const char *lib_filepath,
+                                      char (&filepath_abs)[FILE_MAX],
+                                      const bool is_packed_library)
+{
+  Main *bmain = BKE_main_new();
+  fd->bmain->split_mains->add_new(bmain);
+  bmain->split_mains = fd->bmain->split_mains;
+
+  if (!lib) {
+    /* Add library data-block itself to 'main' Main, since libraries are **never** linked data.
+     * Fixes bug where you could end with all ID_LI data-blocks having the same name... */
+    lib = BKE_id_new<Library>(fd->bmain,
+                              reference_lib ? BKE_id_name(reference_lib->id) :
+                                              BLI_path_basename(lib_filepath));
+
+    /* Important, consistency with main ID reading code from read_libblock(). */
+    lib->id.us = ID_FAKE_USERS(lib);
+
+    /* Matches direct_link_library(). */
+    id_us_ensure_real(&lib->id);
+
+    STRNCPY(lib->filepath, lib_filepath);
+    STRNCPY(lib->runtime->filepath_abs, filepath_abs);
+
+    if (is_packed_library) {
+      /* FIXME: This logic is very similar to the code in BKE_library dealing with archived
+       * libraries (e.g. #add_archive_library). Might be good to try to factorize it. */
+      lib->archive_parent_library = reference_lib;
+      constexpr uint16_t copy_flag = ~LIBRARY_FLAG_IS_ARCHIVE;
+      lib->flag = (reference_lib->flag & copy_flag) | LIBRARY_FLAG_IS_ARCHIVE;
+
+      lib->runtime->parent = reference_lib->runtime->parent;
+      /* Only copy a subset of the reference library tags. E.g. an archive library should never be
+       * considered as writable, so never copy #LIBRARY_ASSET_FILE_WRITABLE. This may need further
+       * tweaking still. */
+      constexpr uint16_t copy_tag = (LIBRARY_TAG_RESYNC_REQUIRED | LIBRARY_ASSET_EDITABLE |
+                                     LIBRARY_IS_ASSET_EDIT_FILE);
+      lib->runtime->tag = reference_lib->runtime->tag & copy_tag;
+
+      /* The filedata of a packed archive library should always be the one of the blendfile which
+       * defines the library ID and packs its linked IDs. */
+      lib->runtime->filedata = fd;
+      lib->runtime->is_filedata_owner = false;
+
+      reference_lib->runtime->archived_libraries.append(lib);
+    }
+  }
+  else {
+    if (is_packed_library) {
+      BLI_assert(lib->flag & LIBRARY_FLAG_IS_ARCHIVE);
+      BLI_assert(lib->archive_parent_library == reference_lib);
+
+      /* If there is already an archive library in the new set of Mains, but not a 'libmain' for it
+       * yet, it is the first time that this archive library is effectively used to own a packed
+       * ID. Since regular libraries have their list of owned archive libs cleared when reused on
+       * undo, it means that this archive library should yet be listed in its regular owner one,
+       * and needs to be added there. See also #read_undo_move_libmain_data. */
+      BLI_assert(!reference_lib->runtime->archived_libraries.contains(lib));
+      reference_lib->runtime->archived_libraries.append(lib);
+
+      BLI_assert(lib->runtime->filedata == nullptr);
+      lib->runtime->filedata = fd;
+      lib->runtime->is_filedata_owner = false;
+    }
+    else {
+      /* Should never happen currently. */
+      BLI_assert_unreachable();
+    }
+  }
+
+  bmain->curlib = lib;
+  return bmain;
+}
+
 static void direct_link_library(FileData *fd, Library *lib, Main *main)
 {
   /* Make sure we have full path in lib->runtime->filepath_abs */
@@ -2532,12 +2615,38 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
     }
   }
 
+  /* There are currently some cases where archive libraries have no 'real library' parent on file
+   * opening (see e.g. #150275, #150147, #150375).
+   *
+   * This code detects such issues, reports them, and fixes them as best as possible by
+   * re-generating an empty real parent library. */
+  if (lib->flag & LIBRARY_FLAG_IS_ARCHIVE) {
+    Library *parent_lib = static_cast<Library *>(
+        newlibadr(fd, &lib->id, false, lib->archive_parent_library));
+
+    if (!parent_lib) {
+      BLO_reportf_wrap(fd->reports,
+                       RPT_ERROR,
+                       RPT_("Library '%s' ('%s') is an archive storage for packed data, but has "
+                            "no real library parent."),
+                       lib->filepath,
+                       lib->runtime->filepath_abs);
+
+      Main *parent_lib_bmain = blo_add_main_for_library(
+          fd, nullptr, nullptr, lib->filepath, lib->runtime->filepath_abs, false);
+      parent_lib = parent_lib_bmain->curlib;
+      BLI_assert(parent_lib);
+      oldnewmap_lib_insert(fd, lib->archive_parent_library, &parent_lib->id, ID_LI);
+    }
+  }
+
   //  printf("direct_link_library: filepath %s\n", lib->filepath);
   //  printf("direct_link_library: filepath_abs %s\n", lib->runtime->filepath_abs);
 
   BlendDataReader reader = {fd};
   BKE_packedfile_blend_read(&reader, &lib->packedfile, lib->filepath);
 
+  /* TODO: Replace most of this code by a call to #blo_add_main_for_library(). */
   /* new main */
   Main *newmain = BKE_main_new();
   fd->bmain->split_mains->add_new(newmain);
@@ -2727,89 +2836,6 @@ static BHead *read_data_into_datamap(FileData *fd,
   }
 
   return bhead;
-}
-
-/* Add a Main (and optionally create a matching Library ID), for the given filepath.
- *
- * - If `lib` is `nullptr`, create a new Library ID, otherwise only create a new Main for the given
- * library.
- * - `reference_lib` is the 'archive parent' of an archive (packed) library, can be null and will
- * be ignored otherwise. */
-static Main *blo_add_main_for_library(FileData *fd,
-                                      Library *lib,
-                                      Library *reference_lib,
-                                      const char *lib_filepath,
-                                      char (&filepath_abs)[FILE_MAX],
-                                      const bool is_packed_library)
-{
-  Main *bmain = BKE_main_new();
-  fd->bmain->split_mains->add_new(bmain);
-  bmain->split_mains = fd->bmain->split_mains;
-
-  if (!lib) {
-    /* Add library data-block itself to 'main' Main, since libraries are **never** linked data.
-     * Fixes bug where you could end with all ID_LI data-blocks having the same name... */
-    lib = BKE_id_new<Library>(fd->bmain,
-                              reference_lib ? BKE_id_name(reference_lib->id) :
-                                              BLI_path_basename(lib_filepath));
-
-    /* Important, consistency with main ID reading code from read_libblock(). */
-    lib->id.us = ID_FAKE_USERS(lib);
-
-    /* Matches direct_link_library(). */
-    id_us_ensure_real(&lib->id);
-
-    STRNCPY(lib->filepath, lib_filepath);
-    STRNCPY(lib->runtime->filepath_abs, filepath_abs);
-
-    if (is_packed_library) {
-      /* FIXME: This logic is very similar to the code in BKE_library dealing with archived
-       * libraries (e.g. #add_archive_library). Might be good to try to factorize it. */
-      lib->archive_parent_library = reference_lib;
-      constexpr uint16_t copy_flag = ~LIBRARY_FLAG_IS_ARCHIVE;
-      lib->flag = (reference_lib->flag & copy_flag) | LIBRARY_FLAG_IS_ARCHIVE;
-
-      lib->runtime->parent = reference_lib->runtime->parent;
-      /* Only copy a subset of the reference library tags. E.g. an archive library should never be
-       * considered as writable, so never copy #LIBRARY_ASSET_FILE_WRITABLE. This may need further
-       * tweaking still. */
-      constexpr uint16_t copy_tag = (LIBRARY_TAG_RESYNC_REQUIRED | LIBRARY_ASSET_EDITABLE |
-                                     LIBRARY_IS_ASSET_EDIT_FILE);
-      lib->runtime->tag = reference_lib->runtime->tag & copy_tag;
-
-      /* The filedata of a packed archive library should always be the one of the blendfile which
-       * defines the library ID and packs its linked IDs. */
-      lib->runtime->filedata = fd;
-      lib->runtime->is_filedata_owner = false;
-
-      reference_lib->runtime->archived_libraries.append(lib);
-    }
-  }
-  else {
-    if (is_packed_library) {
-      BLI_assert(lib->flag & LIBRARY_FLAG_IS_ARCHIVE);
-      BLI_assert(lib->archive_parent_library == reference_lib);
-
-      /* If there is already an archive library in the new set of Mains, but not a 'libmain' for it
-       * yet, it is the first time that this archive library is effectively used to own a packed
-       * ID. Since regular libraries have their list of owned archive libs cleared when reused on
-       * undo, it means that this archive library should yet be listed in its regular owner one,
-       * and needs to be added there. See also #read_undo_move_libmain_data. */
-      BLI_assert(!reference_lib->runtime->archived_libraries.contains(lib));
-      reference_lib->runtime->archived_libraries.append(lib);
-
-      BLI_assert(lib->runtime->filedata == nullptr);
-      lib->runtime->filedata = fd;
-      lib->runtime->is_filedata_owner = false;
-    }
-    else {
-      /* Should never happen currently. */
-      BLI_assert_unreachable();
-    }
-  }
-
-  bmain->curlib = lib;
-  return bmain;
 }
 
 /* Verify if the datablock and all associated data is identical. */

@@ -119,6 +119,9 @@ VKPushConstants::VKPushConstants() = default;
 VKPushConstants::VKPushConstants(const Layout *layout) : layout_(layout)
 {
   data_ = MEM_mallocN(layout->size_in_bytes(), __func__);
+  if (G.debug & G_DEBUG_GPU) {
+    memset(data_, 0xFD, layout->size_in_bytes());
+  }
 }
 
 VKPushConstants::VKPushConstants(VKPushConstants &&other) : layout_(other.layout_)

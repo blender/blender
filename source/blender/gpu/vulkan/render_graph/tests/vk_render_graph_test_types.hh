@@ -461,6 +461,30 @@ class CommandBufferLog : public VKCommandBufferInterface {
     log_.append(ss.str());
   }
 
+  void set_stencil_compare_mask(const uint32_t compare_mask) override
+  {
+    EXPECT_TRUE(is_recording_);
+    std::stringstream ss;
+    ss << "set_stencil_compare_mask(mask=" << compare_mask << ")";
+    log_.append(ss.str());
+  }
+
+  void set_stencil_write_mask(const uint32_t write_mask) override
+  {
+    EXPECT_TRUE(is_recording_);
+    std::stringstream ss;
+    ss << "set_stencil_write_mask(mask=" << write_mask << ")";
+    log_.append(ss.str());
+  }
+
+  void set_stencil_reference(const uint32_t reference) override
+  {
+    EXPECT_TRUE(is_recording_);
+    std::stringstream ss;
+    ss << "set_stencil_reference(reference=" << reference << ")";
+    log_.append(ss.str());
+  }
+
   void begin_debug_utils_label(const VkDebugUtilsLabelEXT * /*vk_debug_utils_label*/) override {}
   void end_debug_utils_label() override {}
 };

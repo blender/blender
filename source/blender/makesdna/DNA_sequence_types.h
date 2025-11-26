@@ -686,32 +686,29 @@ typedef enum eSeqRetimingKeyFlag {
   SEQ_KEY_SELECTED = (1 << 4),
 } eSeqRetimingKeyFlag;
 
-/* From: `DNA_object_types.h`, see it's doc-string there. */
-#define SELECT 1
-
 /** #Strip.flag */
 typedef enum eStripFlag {
-  /* `SELECT = (1 << 0)` */
+  SEQ_SELECT = (1 << 0),
   SEQ_LEFTSEL = (1 << 1),
   SEQ_RIGHTSEL = (1 << 2),
-  SEQ_FLAG_UNUSED_3 = (1 << 3), /* Cleared. */
-  SEQ_FILTERY = (1 << 4),
+  /* (1 << 3) unused, set to zero by versioning code. */
+  SEQ_DEINTERLACE = (1 << 4),
   SEQ_MUTE = (1 << 5),
   SEQ_FLAG_TEXT_EDITING_ACTIVE = (1 << 6),
   SEQ_REVERSE_FRAMES = (1 << 7),
-  SEQ_IPO_FRAME_LOCKED = (1 << 8),
-  SEQ_FLAG_UNUSED_9 = (1 << 9),   /* Cleared. */
-  SEQ_FLAG_UNUSED_10 = (1 << 10), /* Potentially dirty, see #84057. */
+  /* (1 << 8) unused, set to zero by versioning code. */
+  /* (1 << 9) unused, set to zero by versioning code. */
+  /* (1 << 10) unused, set to zero by versioning code. */
   SEQ_FLIPX = (1 << 11),
   SEQ_FLIPY = (1 << 12),
   SEQ_MAKE_FLOAT = (1 << 13),
   SEQ_LOCK = (1 << 14),
   SEQ_USE_PROXY = (1 << 15),
-  SEQ_FLAG_UNUSED_16 = (1 << 16), /* Cleared. */
+  /* (1 << 16) unused, set to zero by versioning code. */
   SEQ_AUTO_PLAYBACK_RATE = (1 << 17),
   SEQ_SINGLE_FRAME_CONTENT = (1 << 18),
   SEQ_SHOW_RETIMING = (1 << 19),
-  SEQ_FLAG_UNUSED_20 = (1 << 20),
+  /* (1 << 20) unused, set to zero by versioning code. */
   SEQ_MULTIPLY_ALPHA = (1 << 21),
 
   SEQ_USE_EFFECT_DEFAULT_FADE = (1 << 22),
@@ -740,7 +737,7 @@ typedef enum eStripProxyStorageFlag {
 } eStripProxyStorageFlag;
 
 /* Convenience define for all selection flags. */
-#define STRIP_ALLSEL (SELECT + SEQ_LEFTSEL + SEQ_RIGHTSEL)
+#define STRIP_ALLSEL (SEQ_SELECT + SEQ_LEFTSEL + SEQ_RIGHTSEL)
 
 typedef enum eModColorBalanceInverseFlag {
   SEQ_COLOR_BALANCE_INVERSE_GAIN = 1 << 0,

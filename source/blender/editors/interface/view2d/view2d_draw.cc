@@ -102,8 +102,10 @@ static int calculate_grid_step(const int base, const float pixel_width, const fl
     }
   }
   else {
-    /* Grow the distance, doubling every time. */
-    while (pixels_per_view_unit * distance < MIN_MAJOR_LINE_DISTANCE) {
+    /* Grow the distance, doubling every time. Break just before hitting an integer overflow. This
+     * creates a drawing issue after hitting the limit where the numbers will overlap but that is
+     * better than an endless loop. See #150543. */
+    while (pixels_per_view_unit * distance < MIN_MAJOR_LINE_DISTANCE && distance < (1 << 30)) {
       distance *= 2;
     }
   }

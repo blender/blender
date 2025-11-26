@@ -19,9 +19,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Weights").supports_field().hide_value().description(
       "Values used to sort the curve's points. Uses indices by default");
   b.add_input<decl::Int>("Sort Index")
-      .min(0)
       .supports_field()
-      .description("Which of the sorted points to output");
+      .description("Which of the sorted points to output. Negative indexing is supported");
   b.add_output<decl::Int>("Point Index")
       .field_source_reference_all()
       .description("A point of the curve, chosen by the sort index");
