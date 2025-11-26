@@ -18,7 +18,7 @@ def _run(args):
         f = scene.frame_current + 1
 
         if f >= scene.frame_end:
-           f = scene.frame_start
+            f = scene.frame_start
         scene.frame_set(f)
         num_frames += 1
         elapsed_time = time.time() - start_time
