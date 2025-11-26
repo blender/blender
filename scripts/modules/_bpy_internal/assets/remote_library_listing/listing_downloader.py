@@ -202,7 +202,7 @@ class RemoteAssetListingDownloader:
         self._status = DownloadStatus.LOADING
         self._error_message = ""
 
-        self._parser = json_parsing.ValidatingParser(api_models.OPENAPI_SPEC)
+        self._parser = json_parsing.ValidatingParser()
 
         # Work around a limitation of Blender, see bug report #139720 for details.
         self.on_timer_event = self.on_timer_event  # type: ignore[method-assign]

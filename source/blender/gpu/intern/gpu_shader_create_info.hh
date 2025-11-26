@@ -131,7 +131,7 @@
 #  define GEOMETRY_OUT(stage_interface) .geometry_out(stage_interface)
 
 #  define VERTEX_IN_SRT(srt) .additional_info(srt)
-#  define VERTEX_OUT_SRT(srt) .vertex_out(srt)
+#  define VERTEX_OUT_SRT(srt) .vertex_out(srt##_t)
 #  define FRAGMENT_OUT_SRT(srt) .additional_info(srt)
 #  define RESOURCE_SRT(srd) .additional_info(srt)
 
@@ -151,6 +151,8 @@
     .specialization_constant(Type::type##_t, #name, default_value)
 
 #  define COMPILATION_CONSTANT(type, name, value) \
+    .compilation_constant(Type::type##_t, #name, value)
+#  define COMPILATION_CONSTANT_SRT(type, name, value) \
     .compilation_constant(Type::type##_t, #name, value)
 
 #  define PUSH_CONSTANT(type, name) .push_constant(Type::type##_t, #name)
@@ -264,6 +266,7 @@
     constexpr type name = type(default_value);
 
 #  define COMPILATION_CONSTANT(type, name, value) constexpr type name = type(value);
+#  define COMPILATION_CONSTANT_SRT(type, name, value)
 
 #  define PUSH_CONSTANT(type, name) extern const type name;
 #  define PUSH_CONSTANT_ARRAY(type, name, array_size) extern const type name[array_size];

@@ -488,6 +488,13 @@ void MTLStateManager::set_blend(const GPUBlend value)
       dst_alpha = MTLBlendFactorOneMinusSourceAlpha;
       break;
     }
+    case GPU_BLEND_TRANSPARENCY: {
+      src_rgb = MTLBlendFactorOne;
+      dst_rgb = MTLBlendFactorSourceAlpha;
+      src_alpha = MTLBlendFactorZero;
+      dst_alpha = MTLBlendFactorSourceAlpha;
+      break;
+    }
   }
 
   /* Check Current Context. */

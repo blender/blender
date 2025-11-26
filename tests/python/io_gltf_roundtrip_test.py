@@ -29,7 +29,7 @@ class GLTFRoundtripTest(unittest.TestCase):
         cls.output_dir = args.outdir
 
     def test_roundtrip_gltf(self):
-        input_files = sorted(pathlib.Path(self.testdir).glob("*.gltf"))
+        input_files = sorted(pathlib.Path(self.testdir).rglob("*.gltf"))
         self.passed_tests = []
         self.failed_tests = []
         self.updated_tests = []

@@ -27,6 +27,17 @@
 #include "gpu_shader_dependency_private.hh"
 #include "gpu_testing.hh"
 
+/* GTest expects operator<< and Print to be defined in the same namespqce as the type itself. */
+static std::ostream &operator<<(std::ostream &os, const TestOutput &test_output)
+{
+  os << "expect: " << testing::PrintToString(test_output.expect) << "\n";
+  os << "result: " << testing::PrintToString(test_output.result) << "\n";
+  os << "status: " << test_output.status;
+  os << ", line: " << test_output.line;
+  os << ", type: " << test_output.type;
+  return os;
+}
+
 namespace blender::gpu::tests {
 
 using namespace blender::gpu::shader;
@@ -571,7 +582,7 @@ static void gpu_shader_lib_test(StringRefNull test_src_name, const char *additio
           << "Expected: " << print_test_data(test.result, TestType(test.type)) << "\n";
     }
     else {
-      BLI_assert_unreachable();
+      ADD_FAILURE() << "Unexpected test status " << test.status << ", test output:\n" << test;
     }
   }
 

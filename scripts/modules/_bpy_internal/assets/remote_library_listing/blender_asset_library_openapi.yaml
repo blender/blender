@@ -258,6 +258,42 @@ components:
         "description": { type: string }
         "license": { type: string }
         "copyright": { type: string }
+        "custom": { $ref: "#/components/schemas/CustomPropertiesV1" }
+
+    CustomPropertiesV1:
+      type: object
+      description: >
+        Arbitrary custom properties of the asset. Keys are the property names.
+      additionalProperties:
+        $ref: "#/components/schemas/CustomPropertyV1"
+
+
+    CustomPropertyV1:
+      type: object
+      description: >
+        Single 'custom property' value of the asset. The value should be
+        compatible with the given type; GROUP properties should be represented
+        as `CustomPropertiesV1` object again. Arrays should specify an
+        `itemtype`.
+      properties:
+        "type": { $ref: "#/components/schemas/CustomPropertyTypeV1" }
+        "itemtype": { $ref: "#/components/schemas/CustomPropertyTypeV1" }
+        "value":
+            oneOf:
+                - { $ref: "#/components/schemas/CustomPropertiesV1" }
+                - { type: array }
+                - { type: number }
+                - { type: integer }
+                - { type: string }
+                - { type: boolean }
+      required: [type, value]
+
+    CustomPropertyTypeV1:
+      type: string
+      description: >
+        Type of IDProperty without the `IDP_` prefix, see `eIDPropertyType` in `DNA_ID_enumms.h`.
+        For now, type `ID` and `IDPARRAY` are not supported.
+      enum: [ STRING, INT, FLOAT, ARRAY, GROUP, DOUBLE, BOOLEAN ]
 
     CatalogV1:
       type: object

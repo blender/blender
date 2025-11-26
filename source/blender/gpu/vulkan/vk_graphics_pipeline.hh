@@ -30,7 +30,7 @@ struct VKGraphicsPipelineCreateInfoBuilder {
   VkPipelineRasterizationStateCreateInfo vk_pipeline_rasterization_state_create_info;
   VkPipelineRasterizationProvokingVertexStateCreateInfoEXT
       vk_pipeline_rasterization_provoking_vertex_state_info;
-  Vector<VkDynamicState, 3> vk_dynamic_states;
+  Vector<VkDynamicState, 6> vk_dynamic_states;
   VkPipelineDynamicStateCreateInfo vk_pipeline_dynamic_state_create_info;
   VkPipelineViewportStateCreateInfo vk_pipeline_viewport_state_create_info;
   VkPipelineDepthStencilStateCreateInfo vk_pipeline_depth_stencil_state_create_info;
@@ -366,6 +366,11 @@ struct VKGraphicsPipelineCreateInfoBuilder {
     if (is_line_topology) {
       vk_dynamic_states.append(VK_DYNAMIC_STATE_LINE_WIDTH);
     }
+    if (shaders_info.has_stencil && shaders_info.state.stencil_test != GPU_STENCIL_NONE) {
+      vk_dynamic_states.append(VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK);
+      vk_dynamic_states.append(VK_DYNAMIC_STATE_STENCIL_REFERENCE);
+      vk_dynamic_states.append(VK_DYNAMIC_STATE_STENCIL_WRITE_MASK);
+    }
     vk_pipeline_dynamic_state_create_info = {VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
                                              nullptr,
                                              0,
@@ -433,13 +438,6 @@ struct VKGraphicsPipelineCreateInfoBuilder {
           vk_pipeline_depth_stencil_state_create_info.front.compareOp = VK_COMPARE_OP_ALWAYS;
           break;
       }
-
-      vk_pipeline_depth_stencil_state_create_info.front.compareMask =
-          shaders_info.mutable_state.stencil_compare_mask;
-      vk_pipeline_depth_stencil_state_create_info.front.reference =
-          shaders_info.mutable_state.stencil_reference;
-      vk_pipeline_depth_stencil_state_create_info.front.writeMask =
-          shaders_info.mutable_state.stencil_write_mask;
 
       switch (shaders_info.state.stencil_op) {
         case GPU_STENCIL_OP_REPLACE:
@@ -594,6 +592,13 @@ struct VKGraphicsPipelineCreateInfoBuilder {
         attachment_state.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
         attachment_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
         attachment_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        break;
+
+      case GPU_BLEND_TRANSPARENCY:
+        attachment_state.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+        attachment_state.dstColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        attachment_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+        attachment_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
         break;
     }
 

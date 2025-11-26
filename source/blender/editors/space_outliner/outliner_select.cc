@@ -748,11 +748,11 @@ static void tree_element_strip_activate(bContext *C,
     }
     vse::deselect_all_strips(sequencer_scene);
 
-    if ((set == OL_SETSEL_EXTEND) && strip->flag & SELECT) {
-      strip->flag &= ~SELECT;
+    if ((set == OL_SETSEL_EXTEND) && strip->flag & SEQ_SELECT) {
+      strip->flag &= ~SEQ_SELECT;
     }
     else {
-      strip->flag |= SELECT;
+      strip->flag |= SEQ_SELECT;
       seq::select_active_set(sequencer_scene, strip);
     }
   }
@@ -1032,7 +1032,7 @@ static eOLDrawState tree_element_strip_state_get(const WorkSpace *workspace, con
   const Strip *strip = &te_strip->get_strip();
   const Editing *ed = seq::editing_get(sequencer_scene);
 
-  if (ed && ed->act_strip == strip && strip->flag & SELECT) {
+  if (ed && ed->act_strip == strip && strip->flag & SEQ_SELECT) {
     return OL_DRAWSEL_NORMAL;
   }
   return OL_DRAWSEL_NONE;
@@ -1042,7 +1042,7 @@ static eOLDrawState tree_element_strip_dup_state_get(const TreeElement *te)
 {
   const TreeElementStripDuplicate *te_dup = tree_element_cast<TreeElementStripDuplicate>(te);
   const Strip *strip = &te_dup->get_strip();
-  if (strip->flag & SELECT) {
+  if (strip->flag & SEQ_SELECT) {
     return OL_DRAWSEL_NORMAL;
   }
   return OL_DRAWSEL_NONE;

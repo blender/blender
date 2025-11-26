@@ -30,7 +30,7 @@ class GLTFExportTest(unittest.TestCase):
         cls.output_dir = args.outdir
 
     def test_export_gltf(self):
-        input_files = sorted(pathlib.Path(self.testdir).glob("*.blend"))
+        input_files = sorted(pathlib.Path(self.testdir).rglob("*.blend"))
         self.passed_tests = []
         self.failed_tests = []
         self.updated_tests = []

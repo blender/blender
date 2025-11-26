@@ -72,8 +72,11 @@ class VKDrawNode : public VKNodeInfo<VKNodeType::DRAW,
                       Data &data,
                       VKBoundPipelines &r_bound_pipelines) override
   {
-    vk_pipeline_dynamic_graphics_build_commands(
-        command_buffer, data.graphics.viewport, data.graphics.line_width, r_bound_pipelines);
+    vk_pipeline_dynamic_graphics_build_commands(command_buffer,
+                                                data.graphics.viewport,
+                                                data.graphics.line_width,
+                                                data.graphics.stencil_state,
+                                                r_bound_pipelines);
     vk_pipeline_data_build_commands(command_buffer,
                                     data.graphics.pipeline_data,
                                     r_bound_pipelines.graphics.pipeline,

@@ -750,7 +750,6 @@ static void sequencer_draw_scopes(Scene *scene,
       immBindBuiltinProgram(GPU_SHADER_SEQUENCER_ZEBRA);
       immUniform1i("img_premultiplied", premultiplied ? 1 : 0);
       immUniform1f("zebra_limit", space_sequencer.zebra / 100.0f);
-      immUniformColor3f(1.0f, 1.0f, 1.0f);
 
       GPU_texture_bind(input_texture, 0);
       rctf uv;
@@ -974,7 +973,7 @@ static bool sequencer_draw_get_transform_preview(const SpaceSeq &sseq, const Sce
     return false;
   }
 
-  return (G.moving & G_TRANSFORM_SEQ) && (last_seq->flag & SELECT) &&
+  return (G.moving & G_TRANSFORM_SEQ) && (last_seq->flag & SEQ_SELECT) &&
          ((last_seq->flag & SEQ_LEFTSEL) || (last_seq->flag & SEQ_RIGHTSEL)) &&
          (sseq.draw_flag & SEQ_DRAW_TRANSFORM_PREVIEW);
 }
@@ -1005,7 +1004,7 @@ static void strip_draw_image_origin_and_outline(const bContext *C,
   if (region->regiontype == RGN_TYPE_PREVIEW && !sequencer_view_preview_only_poll(C)) {
     return;
   }
-  if ((strip->flag & SELECT) == 0) {
+  if ((strip->flag & SEQ_SELECT) == 0) {
     return;
   }
   if (ED_screen_animation_no_scrub(CTX_wm_manager(C))) {

@@ -1547,6 +1547,18 @@ static void id_override_library_resync_hierarchy_process(bContext *C,
   BlendFileReadReport report{};
   report.reports = reports;
 
+  /* In some cases, resync issues can be caused by missing hierarchy data (e.g. some liboverrides
+   * have lost their hierarchy root ID pointer). So always attempt to fix/rebuild invalid hierarchy
+   * info when this 'troubleshooting' tool is used.
+   *
+   * NOTE: Reproduction of this issue was never achieved simply so far, nor is it understood what
+   * can cause hierarchy info to get broken.
+   * Only known case so far, from Singularity Blender Studio production:
+   * `singularity/pro/shots/090_ignite/090_0040/090_0040-fx.blend`, rev. 1651 ,
+   * `FX-creature_blob` liboverride collection, several objects lost their hierarchy data,
+   * e.g. `RIG-creature_blob`, `GEO-creature_blob-curve`, and the three `WGT` riggin widgets. */
+  BKE_lib_override_library_main_hierarchy_root_ensure(bmain);
+
   for (auto &&id_hierarchy_root : data.id_hierarchy_roots.keys()) {
     BKE_lib_override_library_resync(bmain,
                                     scene,
@@ -2157,7 +2169,7 @@ static void sequence_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, 
       vse::select_strip_single(scene, strip, true);
     }
     else if (event == OL_DOP_DESELECT) {
-      strip->flag &= ~SELECT;
+      strip->flag &= ~SEQ_SELECT;
     }
     else if (event == OL_DOP_HIDE) {
       if (!(strip->flag & SEQ_MUTE)) {

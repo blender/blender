@@ -82,7 +82,8 @@ void VKImmediate::end()
     GPU_matrix_bind(context.shader);
     render_graph::VKResourceAccessInfo &resource_access_info = context.reset_and_get_access_info();
     vertex_attributes_.update_bindings(*this);
-    context.active_framebuffer_get()->rendering_ensure(context);
+    VKFrameBuffer &framebuffer = *context.active_framebuffer_get();
+    framebuffer.rendering_ensure(context);
 
     render_graph::VKDrawNode::CreateInfo draw(resource_access_info);
     draw.node_data.vertex_count = vertex_idx;
@@ -90,13 +91,9 @@ void VKImmediate::end()
     draw.node_data.first_vertex = 0;
     draw.node_data.first_instance = 0;
 
-    context.active_framebuffer_get()->vk_viewports_append(
-        draw.node_data.graphics.viewport.viewports);
-    context.active_framebuffer_get()->vk_render_areas_append(
-        draw.node_data.graphics.viewport.scissors);
-
     vertex_attributes_.bind(draw.node_data.vertex_buffers);
-    context.update_pipeline_data(prim_type, vertex_attributes_, draw.node_data.graphics);
+    context.update_pipeline_data(
+        framebuffer, prim_type, vertex_attributes_, draw.node_data.graphics);
 
     context.render_graph().add_node(draw);
   }

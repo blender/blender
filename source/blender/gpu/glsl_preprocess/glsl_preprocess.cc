@@ -88,7 +88,8 @@ int main(int argc, char **argv)
         error++;
       };
   std::string filename(output_file_name);
-  const bool is_info = filename.find("infos.hh") != std::string::npos;
+  const bool is_info = filename.find("infos.hh") != std::string::npos ||
+                       buffer.str().find("#pragma create_info") != std::string::npos;
   const bool is_glsl = filename.find(".glsl") != std::string::npos;
   const bool is_shared = filename.find("shared.h") != std::string::npos;
   const bool is_library = is_glsl &&

@@ -16,16 +16,23 @@
 
 #pragma once
 
+#include "BLI_math_vector_types.hh"
+
 struct ImBuf;
 struct Strip;
 struct Scene;
 
 namespace blender::seq {
 
-void final_image_cache_put(
-    Scene *scene, float timeline_frame, int view_id, int display_channel, ImBuf *image);
+void final_image_cache_put(Scene *scene,
+                           float timeline_frame,
+                           int view_id,
+                           int display_channel,
+                           int2 image_size,
+                           ImBuf *image);
 
-ImBuf *final_image_cache_get(Scene *scene, float timeline_frame, int view_id, int display_channel);
+ImBuf *final_image_cache_get(
+    Scene *scene, float timeline_frame, int view_id, int display_channel, int2 image_size);
 
 void final_image_cache_invalidate_frame_range(Scene *scene,
                                               const float timeline_frame_start,

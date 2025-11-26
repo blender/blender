@@ -47,8 +47,10 @@ enum class SampleResult {
 };
 
 struct BoneDropper {
+  /* The ptr.owner_id is the ID for which we are searching the property.*/
   PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
+  /* The property we are looking for. */
   PointerRNA search_ptr = {};
   PropertyRNA *search_prop = nullptr;
 
@@ -83,8 +85,17 @@ static bool is_bone_dropper_valid(BoneDropper *bone_dropper)
     return false;
   }
 
-  PointerRNA owner_ptr = RNA_id_pointer_create(bone_dropper->search_ptr.owner_id);
-  if (RNA_type_to_ID_code(owner_ptr.type) != ID_AR) {
+  ID *search_id = bone_dropper->search_ptr.owner_id;
+
+  if (GS(search_id->name) == ID_OB) {
+    Object *ob = reinterpret_cast<Object *>(search_id);
+    /* Allows for the eyedropper to work on pose bones. */
+    if (ob->type == OB_ARMATURE && ob->data) {
+      return true;
+    }
+  }
+
+  if (GS(search_id->name) != ID_AR) {
     return false;
   }
 
@@ -187,7 +198,12 @@ static BoneSampleData sample_data_from_3d_view(bContext *C,
       }
       Object *ob = base->object;
       bArmature *armature = (bArmature *)ob->data;
-      if (!armature || &armature->id != bdr.search_ptr.owner_id) {
+      if (bdr.search_ptr.type == &RNA_Pose && &ob->id != bdr.search_ptr.owner_id) {
+        return {SampleResult::WRONG_ARMATURE};
+      }
+      if (bdr.search_ptr.type == &RNA_Armature &&
+          (!armature || &armature->id != bdr.search_ptr.owner_id))
+      {
         return {SampleResult::WRONG_ARMATURE};
       }
 
@@ -535,7 +551,7 @@ static bool bonedropper_poll(bContext *C)
   const StructRNA *type = RNA_property_pointer_type(&search_but->rnasearchpoin,
                                                     search_but->rnasearchprop);
 
-  return type == &RNA_Bone || type == &RNA_EditBone;
+  return type == &RNA_Bone || type == &RNA_EditBone || type == &RNA_PoseBone;
 }
 
 void UI_OT_eyedropper_bone(wmOperatorType *ot)

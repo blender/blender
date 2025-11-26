@@ -528,7 +528,7 @@ static void retime_speed_text_draw(const TimelineDrawContext &ctx,
   }
 
   uchar col[4] = {255, 255, 255, 255};
-  if ((strip->flag & SELECT) == 0) {
+  if ((strip->flag & SEQ_SELECT) == 0) {
     memset(col, 0, sizeof(col));
     col[3] = 255;
   }

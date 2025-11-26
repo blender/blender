@@ -132,7 +132,7 @@ Strip *strip_alloc(ListBase *lb, int timeline_frame, int channel, StripType type
   *((short *)strip->name) = ID_SEQ;
   strip->name[2] = 0;
 
-  strip->flag = SELECT;
+  strip->flag = SEQ_SELECT;
   strip->start = timeline_frame;
   strip_channel_set(strip, channel);
   strip->sat = 1.0;
@@ -778,7 +778,7 @@ static void seqbase_duplicate_recursive_impl(StripDuplicateContext &ctx,
                                              const ListBase *seqbase_src)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbase_src) {
-    if ((strip->flag & SELECT) == 0 && !flag_is_set(ctx.dupe_flag, StripDuplicate::All)) {
+    if ((strip->flag & SEQ_SELECT) == 0 && !flag_is_set(ctx.dupe_flag, StripDuplicate::All)) {
       continue;
     }
 
