@@ -750,7 +750,6 @@ static void sequencer_draw_scopes(Scene *scene,
       immBindBuiltinProgram(GPU_SHADER_SEQUENCER_ZEBRA);
       immUniform1i("img_premultiplied", premultiplied ? 1 : 0);
       immUniform1f("zebra_limit", space_sequencer.zebra / 100.0f);
-      immUniformColor3f(1.0f, 1.0f, 1.0f);
 
       GPU_texture_bind(input_texture, 0);
       rctf uv;
