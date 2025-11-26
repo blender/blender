@@ -182,7 +182,7 @@ static bAction *find_related_action(Main &bmain, ID &id)
 
   for (ID *related_id : related_ids) {
     Action *action = get_action(*related_id);
-    if (action && action->is_action_layered()) {
+    if (action && action->is_action_layered() && BKE_id_is_editable(&bmain, &action->id)) {
       /* Returning the first action found means highest priority has the action closest in the
        * relationship graph. */
       return action;
