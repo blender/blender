@@ -78,7 +78,8 @@ void time_sleep(double t)
 
 uint64_t time_fast_tick(uint32_t * /*last_cpu*/)
 {
-#  if defined(ARCH_COMPILER_MSVC)
+  /* MSVC does not define __aarch64__, or support inline ASM */
+#  if !defined(__aarch64__)
   return _ReadStatusReg(ARM64_CNTVCT_EL0);
 #  else
   uint64_t counter;
@@ -88,7 +89,8 @@ uint64_t time_fast_tick(uint32_t * /*last_cpu*/)
 }
 uint64_t time_fast_frequency()
 {
-#  if defined(ARCH_COMPILER_MSVC)
+  /* MSVC does not define __aarch64__, or support inline ASM */
+#  if !defined(__aarch64__)
   return _ReadStatusReg(ARM64_CNTFRQ_EL0);
 #  else
   uint64_t freq;
