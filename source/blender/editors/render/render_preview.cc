@@ -1806,6 +1806,7 @@ PreviewLoadJob::~PreviewLoadJob()
 
 Set<std::string> &PreviewLoadJob::known_downloaded_previews()
 {
+  BLI_assert(BLI_thread_is_main());
   static Set<std::string> known_downloaded_previews;
   return known_downloaded_previews;
 }
@@ -1842,6 +1843,7 @@ void PreviewLoadJob::load_jobless(PreviewImage *preview, const eIconSizes icon_s
 
 void PreviewLoadJob::push_load_request(PreviewImage *preview, const eIconSizes icon_size)
 {
+  BLI_assert(BLI_thread_is_main());
   BLI_assert(preview->runtime->deferred_loading_data);
   BLI_assert_msg(!(preview->flag[icon_size] & PRV_RENDERING),
                  "Preview was already requested and is being loaded");
