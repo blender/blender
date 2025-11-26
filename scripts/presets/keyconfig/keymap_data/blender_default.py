@@ -337,7 +337,7 @@ def _template_space_region_type_toggle(
     items = []
 
     if params.use_region_toggle_pie:
-        pie_key = sidebar_key or sidebar_key or channels_key
+        pie_key = sidebar_key or toolbar_key or channels_key
         if pie_key is not None:
             items.append(op_menu_pie("WM_MT_region_toggle_pie", pie_key))
         return items
