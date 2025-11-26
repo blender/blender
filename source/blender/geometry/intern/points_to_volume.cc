@@ -43,9 +43,7 @@ class OpenVDBParticleList {
 
   void getPos(size_t n, openvdb::Vec3R &xyz) const
   {
-    float3 pos = positions_[n] * voxel_size_inv_;
-    /* Better align generated grid with source points. */
-    pos -= float3(0.5f);
+    const float3 pos = positions_[n] * voxel_size_inv_;
     xyz = &pos.x;
   }
 
