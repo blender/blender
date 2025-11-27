@@ -1313,19 +1313,15 @@ bool VKShader::ensure_graphics_pipelines(Span<shader::PipelineState> pipeline_st
          pipeline_state.vertex_inputs_)
     {
       const GPUVertAttr::Type attribute_type = {attribute_binding.type};
-      int location_len = ceil_division(attribute_type.comp_len(), 4);
-      for (const uint32_t location_offset : IndexRange(location_len)) {
-        graphics_info.vertex_in.attributes.append({
-            attribute_binding.location + location_offset,
-            binding,
-            to_vk_format(
-                attribute_type.comp_type(), attribute_type.size(), attribute_type.fetch_mode()),
-            attribute_binding.offset + location_offset * uint32_t(sizeof(float4)),
-        });
-        graphics_info.vertex_in.bindings.append(
-            {attribute_binding.binding, attribute_binding.stride, VK_VERTEX_INPUT_RATE_VERTEX});
-        binding++;
-      }
+      graphics_info.vertex_in.attributes.append({attribute_binding.location,
+                                                 binding,
+                                                 to_vk_format(attribute_type.comp_type(),
+                                                              attribute_type.size(),
+                                                              attribute_type.fetch_mode()),
+                                                 attribute_binding.offset});
+      graphics_info.vertex_in.bindings.append(
+          {attribute_binding.binding, attribute_binding.stride, VK_VERTEX_INPUT_RATE_VERTEX});
+      binding++;
     }
 
     graphics_info.shaders.vk_vertex_module = vertex_module.vk_shader_module;
