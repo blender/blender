@@ -535,13 +535,13 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
         return;
       }
       const lf::FunctionNode *lf_zone_node = lf_graph_info->mapping.zone_node_map.lookup_default(
-          simulation_zone, nullptr);
+          *simulation_zone->output_node_id, nullptr);
       if (lf_zone_node == nullptr) {
         return;
       }
       const lf::FunctionNode *lf_simulation_output_node =
           lf_graph_info->mapping.possible_side_effect_node_map.lookup_default(
-              simulation_zone->output_node(), nullptr);
+              *simulation_zone->output_node_id, nullptr);
       if (lf_simulation_output_node == nullptr) {
         return;
       }
@@ -565,7 +565,7 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
         return;
       }
       const lf::FunctionNode *lf_zone_node = lf_graph_info->mapping.zone_node_map.lookup_default(
-          repeat_zone, nullptr);
+          *repeat_zone->output_node_id, nullptr);
       if (lf_zone_node == nullptr) {
         return;
       }
@@ -588,7 +588,7 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
         return;
       }
       const lf::FunctionNode *lf_zone_node = lf_graph_info->mapping.zone_node_map.lookup_default(
-          foreach_zone, nullptr);
+          *foreach_zone->output_node_id, nullptr);
       if (lf_zone_node == nullptr) {
         return;
       }
@@ -615,7 +615,7 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
         return;
       }
       const lf::FunctionNode *lf_group_node = lf_graph_info->mapping.group_node_map.lookup_default(
-          group_node, nullptr);
+          group_node->identifier, nullptr);
       if (lf_group_node == nullptr) {
         return;
       }
@@ -645,8 +645,8 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
         return;
       }
       const lf::FunctionNode *lf_evaluate_node =
-          lf_graph_info->mapping.possible_side_effect_node_map.lookup_default(evaluate_node,
-                                                                              nullptr);
+          lf_graph_info->mapping.possible_side_effect_node_map.lookup_default(
+              evaluate_node->identifier, nullptr);
       if (!lf_evaluate_node) {
         return;
       }
@@ -686,7 +686,7 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
     return;
   }
   const lf::FunctionNode *lf_node =
-      lf_graph_info->mapping.possible_side_effect_node_map.lookup_default(final_node, nullptr);
+      lf_graph_info->mapping.possible_side_effect_node_map.lookup_default(final_node_id, nullptr);
   if (lf_node == nullptr) {
     return;
   }

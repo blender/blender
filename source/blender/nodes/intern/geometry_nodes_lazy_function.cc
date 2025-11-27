@@ -2713,7 +2713,7 @@ struct GeometryNodesLazyFunctionBuilder {
     ZoneBuildInfo &child_zone_info = zone_build_infos_[child_zone_i];
     lf::FunctionNode &child_zone_node = graph_params.lf_graph.add_function(
         *child_zone_info.lazy_function);
-    mapping_->zone_node_map.add_new(&child_zone, &child_zone_node);
+    mapping_->zone_node_map.add_new(*child_zone.output_node_id, &child_zone_node);
 
     {
       int valid_socket_i = 0;
@@ -3034,7 +3034,7 @@ struct GeometryNodesLazyFunctionBuilder {
       graph_params.lf_output_by_bsocket.add_new(&bsocket, &lf_socket);
       mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
     }
-    mapping_->group_node_map.add(&bnode, &lf_node);
+    mapping_->group_node_map.add(bnode.identifier, &lf_node);
     lf_graph_info_->num_inline_nodes_approximate +=
         group_lf_graph_info->num_inline_nodes_approximate;
     static const bool static_false = false;
@@ -3264,7 +3264,7 @@ struct GeometryNodesLazyFunctionBuilder {
       mapping_->bsockets_by_lf_socket_map.add(&lf_socket, bsocket);
     }
 
-    mapping_->possible_side_effect_node_map.add(&bnode, &lf_viewer_node);
+    mapping_->possible_side_effect_node_map.add(bnode.identifier, &lf_viewer_node);
 
     {
       auto &usage_lazy_function = scope_.construct<LazyFunctionForViewerInputUsage>(
@@ -3304,7 +3304,7 @@ struct GeometryNodesLazyFunctionBuilder {
 
     this->build_gizmo_node_socket_usage(bnode, graph_params, lf_gizmo_node);
 
-    mapping_->possible_side_effect_node_map.add(&bnode, &lf_gizmo_node);
+    mapping_->possible_side_effect_node_map.add(bnode.identifier, &lf_gizmo_node);
   }
 
   void build_gizmo_node_socket_usage(const bNode &bnode,
@@ -3373,7 +3373,7 @@ struct GeometryNodesLazyFunctionBuilder {
       mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
     }
 
-    mapping_->possible_side_effect_node_map.add(&bnode, &lf_node);
+    mapping_->possible_side_effect_node_map.add(bnode.identifier, &lf_node);
 
     return lf_node;
   }
@@ -3399,7 +3399,7 @@ struct GeometryNodesLazyFunctionBuilder {
       mapping_->bsockets_by_lf_socket_map.add(&lf_socket, &bsocket);
     }
 
-    mapping_->possible_side_effect_node_map.add(&bnode, &lf_node);
+    mapping_->possible_side_effect_node_map.add(bnode.identifier, &lf_node);
 
     this->build_bake_node_socket_usage(bnode, graph_params);
   }
@@ -3668,7 +3668,7 @@ struct GeometryNodesLazyFunctionBuilder {
     BLI_assert(outputs_num == function.indices.outputs.main.size());
     BLI_assert(outputs_num == function.indices.inputs.output_usages.size());
 
-    mapping_->possible_side_effect_node_map.add(&bnode, &lf_node);
+    mapping_->possible_side_effect_node_map.add(bnode.identifier, &lf_node);
 
     for (const int i : IndexRange(inputs_num)) {
       const bNodeSocket &bsocket = bnode.input_socket(i);
