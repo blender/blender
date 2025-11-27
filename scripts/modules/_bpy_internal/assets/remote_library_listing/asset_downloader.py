@@ -98,12 +98,10 @@ def download_preview(
         age_in_seconds = time.time() - stat.st_mtime
         if age_in_seconds < PREVIEW_DOWNLOAD_AGE_THRESHOLD_SEC:
             # The local file is still fresh, just pretend we just downloaded it.
-            # print(f"\033[90mFresh preview: {preview_url} Dst: {dst_filepath}\033[0m")
             wm = bpy.context.window_manager
             wm.asset_library_status_ping_loaded_new_preview(asset_library_url, str(dst_filepath))
             return
 
-    # print(f"\033[38;5;214mDownloading preview: {preview_url} Dst: {dst_filepath}\033[0m")
     try:
         downloader = _preview_downloaders[asset_library_url]
         assert downloader.local_path == asset_library_local_path, "This code assumes that remote asset libraries do not move on the local disk"
