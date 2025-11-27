@@ -159,9 +159,6 @@ def _preview_download_done(
 def downloader_status(asset_library_url: str) -> DownloadStatus:
     """Returns the asset downloader status.
 
-    This is either the actual status (if the downloader is still running), or
-    the last-known status (if it has shut down by now).
-
     Raises a KeyError if there never was a downloader for this URL.
     """
     return _asset_downloaders[asset_library_url].status
