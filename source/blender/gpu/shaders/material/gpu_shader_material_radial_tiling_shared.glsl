@@ -104,7 +104,7 @@
 /* Naming convention for the Radial Tiling node code:
  * Let x and y be 2D vectors.
  * The length of X is expressed as l_x, which is an abbreviation of length_x.
- * The counterclockwise unsinged angle in [0.0, M_TAU] from X to Y is expressed as x_A_y, which
+ * The counterclockwise unsigned angle in [0.0, M_TAU] from X to Y is expressed as x_A_y, which
  * is an abbreviation of x_Angle_y. The singed angle in [-M_PI, M_PI] from x to y is expressed
  * as x_SA_y, which is an abbreviation of x_SingedAngle_y. Counterclockwise angles are positive,
  * clockwise angles are negative. A signed angle from x to y of which the output is mirrored along
