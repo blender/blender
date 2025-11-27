@@ -51,13 +51,10 @@ struct BundleItemValue {
  */
 class Bundle : public ImplicitSharingMixin {
  public:
-  struct StoredItem {
-    std::string key;
-    BundleItemValue value;
-  };
+  using BundleItemMap = Map<std::string, BundleItemValue>;
 
  private:
-  Vector<StoredItem> items_;
+  BundleItemMap items_;
 
  public:
   static BundlePtr create();
@@ -87,7 +84,7 @@ class Bundle : public ImplicitSharingMixin {
   bool is_empty() const;
   int64_t size() const;
 
-  Span<StoredItem> items() const;
+  BundleItemMap::ItemIterator items() const;
 
   BundlePtr copy() const;
 
@@ -251,9 +248,9 @@ template<typename T> inline void Bundle::add_path_override(const StringRef path,
   });
 }
 
-inline Span<Bundle::StoredItem> Bundle::items() const
+inline Bundle::BundleItemMap::ItemIterator Bundle::items() const
 {
-  return items_;
+  return items_.items();
 }
 
 inline bool Bundle::is_empty() const

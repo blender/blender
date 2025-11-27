@@ -337,7 +337,7 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
     else if (value_variant.valid_for_socket(SOCK_BUNDLE)) {
       Vector<BundleValueLog::Item> items;
       if (const BundlePtr bundle = value_variant.extract<BundlePtr>()) {
-        for (const Bundle::StoredItem &item : bundle->items()) {
+        for (const auto &item : bundle->items()) {
           if (const BundleItemSocketValue *socket_value = std::get_if<BundleItemSocketValue>(
                   &item.value.value))
           {
