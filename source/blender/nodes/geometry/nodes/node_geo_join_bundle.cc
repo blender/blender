@@ -57,7 +57,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (!bundle) {
       continue;
     }
-    for (const Bundle::StoredItem &item : bundle->items()) {
+    for (const auto &item : bundle->items()) {
       if (!mutable_output_bundle.add(item.key, item.value)) {
         overridden_keys.add(item.key);
       }

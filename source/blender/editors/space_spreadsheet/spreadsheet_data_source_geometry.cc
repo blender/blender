@@ -872,8 +872,7 @@ int BundleDataSource::tot_rows() const
 
 void BundleDataSource::collect_flat_items(const nodes::Bundle &bundle, const StringRef parent_path)
 {
-  const Span<nodes::Bundle::StoredItem> items = bundle.items();
-  for (const nodes::Bundle::StoredItem &item : items) {
+  for (const auto &item : bundle.items()) {
     const std::string path = parent_path.is_empty() ?
                                  item.key :
                                  nodes::Bundle::combine_path({parent_path, item.key});

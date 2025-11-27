@@ -73,6 +73,8 @@ static float sincos_rotate_cw_y(const float2 &sincos, const float2 &p)
 
 /* -------------------------------------------------------------------- */
 /** \name Main Convex-Hull Calculation
+ *
+ * An implementation of: "Andrew's monotone chain 2D convex hull algorithm".
  * \{ */
 
 /* Copyright 2001, softSurfer (http://www.softsurfer.com)
@@ -109,7 +111,7 @@ static float is_left(const float2 &p0, const float2 &p1, const float2 &p2)
 }
 
 /**
- * Final pass on `r_points` & `r_points_range`,
+ * Final pass on `r_points` & `r_points_range`.
  */
 static void convexhull_2d_stack_finalize(const float2 *points,
                                          const int r_points[],
@@ -183,6 +185,7 @@ static inline void convexhull_2d_stack_push(const float2 *points,
 }
 
 /**
+ * \param points: Pre-sorted points by ascending Y with X as a tie breaker.
  * \return the number of points in `r_points` minus 1.
  */
 static int convexhull_2d_sorted_impl(const float2 *points, const int points_num, int r_points[])
@@ -323,7 +326,6 @@ int BLI_convexhull_2d(blender::Span<float2> points, int r_points[])
     points_map[i] = i;
   }
 
-  /* Sort the points by X, then by Y. */
   std::sort(points_map, points_map + points_num, [points](const int &a_index, const int &b_index) {
     const float *a = points[a_index];
     const float *b = points[b_index];

@@ -51,7 +51,7 @@ static void move_bundle_socket_value_to_bake_item(
     BundleBakeItem &bundle_bake_item,
     Vector<GeometryBakeItem *> &r_geometry_bake_items)
 {
-  for (const nodes::Bundle::StoredItem &bundle_item : bundle.items()) {
+  for (const auto &bundle_item : bundle.items()) {
     if (const auto *item_socket_value = std::get_if<nodes::BundleItemSocketValue>(
             &bundle_item.value.value))
     {

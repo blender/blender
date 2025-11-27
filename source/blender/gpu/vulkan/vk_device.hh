@@ -85,6 +85,11 @@ struct VKExtensions {
    */
   bool graphics_pipeline_library = false;
 
+  /**
+   * Does the device support VK_EXT_line_rasterization
+   */
+  bool line_rasterization = false;
+
   /** Log enabled features and extensions. */
   void log() const;
 };

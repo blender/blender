@@ -382,7 +382,7 @@ static PyObject *bpy_driver_secure_code_test(PyObject * /*self*/, PyObject *args
 {
   PyObject *py_code;
   PyObject *py_namespace = nullptr;
-  const bool verbose = false;
+  bool verbose = false;
   static const char *_keywords[] = {"code", "namespace", "verbose", nullptr};
   static _PyArg_Parser _parser = {
       PY_ARG_PARSER_HEAD_COMPAT()

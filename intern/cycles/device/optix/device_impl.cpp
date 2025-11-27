@@ -833,14 +833,23 @@ bool OptiXDevice::load_osl_kernels()
 
   struct OSLKernel {
     string ptx;
-    string fused_entry;
+    ustring fused_entry;
   };
 
   auto get_osl_kernel = [&](const OSL::ShaderGroupRef &group) {
     if (!group) {
       return OSLKernel{};
     }
-    string osl_ptx, fused_name;
+    /* Other attribute access crashes when there are no layers. */
+    int num_layers = 0;
+    osl_globals.ss->getattribute(group.get(), "num_layers", num_layers);
+    if (num_layers == 0) {
+      return OSLKernel{};
+    }
+
+    string osl_ptx;
+    ustring fused_name;
+
     osl_globals.ss->getattribute(group.get(), "group_fused_name", fused_name);
     osl_globals.ss->getattribute(
         group.get(), "ptx_compiled_version", OSL::TypeDesc::PTR, &osl_ptx);

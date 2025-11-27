@@ -147,7 +147,7 @@ static wmOperatorStatus edbm_intersect_exec(bContext *C, wmOperator *op)
   const bool exact = RNA_enum_get(op->ptr, "solver") == ISECT_SOLVER_EXACT;
 #else
   if (RNA_enum_get(op->ptr, "solver") == ISECT_SOLVER_EXACT) {
-    BKE_report(op->reports, RPT_WARNING, "Compiled without GMP, using fast solver");
+    BKE_report(op->reports, RPT_WARNING, "Compiled without GMP, using \"float\" solver");
   }
   const bool exact = false;
 #endif
@@ -346,7 +346,7 @@ static wmOperatorStatus edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
   const bool use_exact = RNA_enum_get(op->ptr, "solver") == ISECT_SOLVER_EXACT;
 #else
   if (RNA_enum_get(op->ptr, "solver") == ISECT_SOLVER_EXACT) {
-    BKE_report(op->reports, RPT_WARNING, "Compiled without GMP, using fast solver");
+    BKE_report(op->reports, RPT_WARNING, "Compiled without GMP, using \"float\" solver");
   }
   const bool use_exact = false;
 #endif

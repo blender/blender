@@ -114,7 +114,8 @@ class Shader : public Node {
   bool has_volume;
   bool has_displacement;
   bool has_surface_bssrdf;
-  bool has_bump;
+  bool has_bump_from_surface;
+  bool has_bump_from_displacement;
   bool has_bssrdf_bump;
   bool has_surface_spatial_varying;
   bool has_volume_spatial_varying;

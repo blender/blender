@@ -30,11 +30,13 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
         for km_name, _km_params, km_items_data in keyconfig_data:
             if km_name == "Transform Modal Map":
                 return km_items_data
+        return None
 
     def get_ui_keymap():
         for km_name, _km_params, km_items_data in keyconfig_data:
             if km_name == "User Interface":
                 return km_items_data
+        return None
 
     def remove_properties(op_prop_map):
         nonlocal keyconfig_data

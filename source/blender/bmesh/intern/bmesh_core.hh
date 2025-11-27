@@ -128,6 +128,10 @@ bool BM_edge_splice(BMesh *bm, BMEdge *e_dst, BMEdge *e_src);
  * \warning This doesn't work for collapsing edges,
  * where \a v and \a vtarget are connected by an edge
  * (assert checks for this case).
+ *
+ * \note To check if collapsing would create duplicate geometry, see:
+ * - #BM_vert_splice_check_double_edge.
+ * - #BM_vert_splice_check_double_face.
  */
 bool BM_vert_splice(BMesh *bm, BMVert *v_dst, BMVert *v_src);
 /**
@@ -135,7 +139,21 @@ bool BM_vert_splice(BMesh *bm, BMVert *v_dst, BMVert *v_src);
  *
  * \note assume caller will handle case where verts share an edge.
  */
-bool BM_vert_splice_check_double(BMVert *v_a, BMVert *v_b);
+bool BM_vert_splice_check_double_edge(BMVert *v_a, BMVert *v_b);
+/**
+ * Check if splicing vertices would create any double faces.
+ *
+ * \return true if calling #BM_vert_splice on the vertex pair would create a duplicate face.
+ */
+bool BM_vert_splice_check_double_face(BMVert *v_a, BMVert *v_b);
+/**
+ * Check if collapsing `v_collapse`.would create duplicate faces.
+ *
+ * \param v_collapse: A vertex with exactly two connected edges (see #BM_vert_is_edge_pair).
+ *
+ * \return true if calling #BM_vert_collapse on `v_collapse` would create a duplicate face.
+ */
+bool BM_vert_collapse_check_double_face(BMVert *v_collapse);
 
 /**
  * \brief Loop Reverse

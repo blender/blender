@@ -674,6 +674,15 @@ struct GHOST_InstanceVK {
       feature_struct_ptr.push_back(&graphics_pipeline_library);
     }
 
+    /* VK_EXT_line_rasterization */
+    VkPhysicalDeviceLineRasterizationFeaturesKHR line_rasterization_features = {};
+    line_rasterization_features.sType =
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT;
+    line_rasterization_features.bresenhamLines = VK_TRUE;
+    if (device.extensions.is_enabled(VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME)) {
+      feature_struct_ptr.push_back(&line_rasterization_features);
+    }
+
     /* Link all registered feature structs. */
     for (int i = 1; i < feature_struct_ptr.size(); i++) {
       ((VkBaseInStructure *)(feature_struct_ptr[i - 1]))->pNext =
@@ -1614,6 +1623,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     optional_device_extensions.append(VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME);
     optional_device_extensions.append(VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME);
     optional_device_extensions.append(VK_EXT_GRAPHICS_PIPELINE_LIBRARY_EXTENSION_NAME);
+    optional_device_extensions.append(VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME);
 
     if (!instance_vk.select_physical_device(preferred_device_, required_device_extensions)) {
       return GHOST_kFailure;
