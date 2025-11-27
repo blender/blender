@@ -1029,7 +1029,7 @@ class NODE_MT_node_tree_interface_new_item(Menu):
 
         active_item = context.space_data.edit_tree.interface.active
 
-        if active_item.item_type == 'PANEL':
+        if active_item and active_item.item_type == 'PANEL':
             layout.operator("node.interface_item_new_panel_toggle", text="Panel Toggle")
 
 
