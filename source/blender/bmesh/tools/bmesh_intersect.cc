@@ -1208,8 +1208,9 @@ bool BM_mesh_intersect(BMesh *bm,
           v_prev = BM_edge_split(bm, e, v_prev, &e_split, clamp_f(fac, 0.0f, 1.0f));
           BLI_assert(BM_vert_in_edge(e, v_end));
 
-          if (!BM_edge_exists(v_prev, vi) && !BM_vert_splice_check_double(v_prev, vi) &&
-              !BM_vert_pair_share_face_check(v_prev, vi))
+          if (!BM_edge_exists(v_prev, vi) && !BM_vert_pair_share_face_check(v_prev, vi) &&
+              !BM_vert_splice_check_double_edge(v_prev, vi) &&
+              !BM_vert_splice_check_double_face(v_prev, vi))
           {
             BM_vert_splice(bm, vi, v_prev);
           }
@@ -1428,7 +1429,8 @@ bool BM_mesh_intersect(BMesh *bm,
           if (!verts_invalid.contains(splice_ls[i][0]) && !verts_invalid.contains(splice_ls[i][1]))
           {
             if (!BM_edge_exists(UNPACK2(splice_ls[i])) &&
-                !BM_vert_splice_check_double(UNPACK2(splice_ls[i])))
+                !BM_vert_splice_check_double_edge(UNPACK2(splice_ls[i])) &&
+                !BM_vert_splice_check_double_face(UNPACK2(splice_ls[i])))
             {
               BM_vert_splice(bm, splice_ls[i][1], splice_ls[i][0]);
             }
@@ -1594,8 +1596,8 @@ bool BM_mesh_intersect(BMesh *bm,
           /* we won't create degenerate faces from this */
           bool ok = true;
 
-          /* would we create a 2-sided-face?
-           * if so, don't dissolve this since we may */
+          /* If dissolving would we create a 2-sided-face:
+           * don't dissolve this since we may want to access the geometry. */
           if (v->e->l) {
             BMLoop *l_iter = v->e->l;
             do {
@@ -1604,6 +1606,17 @@ bool BM_mesh_intersect(BMesh *bm,
                 break;
               }
             } while ((l_iter = l_iter->radial_next) != v->e->l);
+          }
+
+          /* If dissolving would we create a duplicate face:
+           * don't dissolve this otherwise it would be necessary to delete existing geometry.
+           * NOTE(@ideasman42) this should only happen with degenerate geometry
+           * (exactly overlapping geometry for e.g.).
+           * See the complex test file in #150360. */
+          if (ok) {
+            if (BM_vert_collapse_check_double_face(v)) {
+              ok = false;
+            }
           }
 
           if (ok) {
