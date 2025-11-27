@@ -489,17 +489,9 @@ bool NodePanelDropTarget::can_drop(const wmDrag &drag, const char ** /*r_disable
   if (drag.type != WM_DRAG_NODE_TREE_INTERFACE) {
     return false;
   }
-  bNodeTreeInterfaceItemReference *drag_data = get_drag_node_tree_declaration(drag);
-
-  /* Can't drop an item onto its children. */
-  if (const bNodeTreeInterfacePanel *panel = node_interface::get_item_as<bNodeTreeInterfacePanel>(
-          drag_data->item))
-  {
-    if (panel->contains(panel_.item)) {
-      return false;
-    }
+  if (is_dragging_parent_panel(drag, panel_.item)) {
+    return false;
   }
-
   return true;
 }
 
