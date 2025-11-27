@@ -205,7 +205,7 @@ ccl_device_inline void osl_eval_nodes(KernelGlobals kg,
   /* For surface shaders, we might have an automatic bump shader that needs to be executed before
    * the main shader to update globals.N. */
   if constexpr (type == SHADER_TYPE_SURFACE) {
-    if (sd->flag & SD_HAS_BUMP) {
+    if (sd->flag & SD_HAS_BUMP_FROM_DISPLACEMENT) {
       /* Save state. */
       const float3 P = sd->P;
       const float dP = sd->dP;

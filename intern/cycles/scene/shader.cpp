@@ -97,7 +97,8 @@ Shader::Shader() : Node(get_node_type())
   has_surface_bssrdf = false;
   has_volume = false;
   has_displacement = false;
-  has_bump = false;
+  has_bump_from_displacement = false;
+  has_bump_from_surface = false;
   has_bssrdf_bump = false;
   has_surface_spatial_varying = false;
   has_volume_spatial_varying = false;
@@ -539,12 +540,14 @@ void ShaderManager::device_update_pre(Device * /*device*/,
   for (Shader *shader : scene->shaders) {
     if (shader->is_modified()) {
       ShaderNode *output = shader->graph->output();
-      shader->has_bump = (shader->get_displacement_method() != DISPLACE_TRUE) &&
-                         output->input("Surface")->link && output->input("Displacement")->link;
-      shader->has_bssrdf_bump = shader->has_bump;
+      shader->has_bump_from_displacement = (shader->get_displacement_method() != DISPLACE_TRUE) &&
+                                           output->input("Surface")->link &&
+                                           output->input("Displacement")->link;
+      shader->has_bssrdf_bump = shader->has_bump_from_displacement;
 
-      shader->graph->finalize(
-          scene, shader->has_bump, shader->get_displacement_method() == DISPLACE_BOTH);
+      shader->graph->finalize(scene,
+                              shader->has_bump_from_displacement,
+                              shader->get_displacement_method() == DISPLACE_BOTH);
 
       shader->has_surface = output->input("Surface")->link != nullptr;
       shader->has_surface_transparent = false;
@@ -555,6 +558,7 @@ void ShaderManager::device_update_pre(Device * /*device*/,
       shader->has_volume_spatial_varying = false;
       shader->has_volume_attribute_dependency = false;
       shader->has_displacement = output->input("Displacement")->link != nullptr;
+      shader->has_bump_from_surface = false;
 
       shader->has_light_path_node = false;
       for (ShaderNode *node : shader->graph->nodes) {
@@ -656,8 +660,11 @@ void ShaderManager::device_update_common(Device * /*device*/,
     if (shader->get_volume_interpolation_method() == VOLUME_INTERPOLATION_CUBIC) {
       flag |= SD_VOLUME_CUBIC;
     }
-    if (shader->has_bump) {
-      flag |= SD_HAS_BUMP;
+    if (shader->has_bump_from_displacement) {
+      flag |= SD_HAS_BUMP_FROM_DISPLACEMENT;
+    }
+    if (shader->has_bump_from_surface) {
+      flag |= SD_HAS_BUMP_FROM_SURFACE;
     }
     if (shader->get_displacement_method() != DISPLACE_BUMP) {
       flag |= SD_HAS_DISPLACEMENT;
