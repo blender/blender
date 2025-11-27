@@ -864,98 +864,95 @@ static void key_evaluate_relative(const int start,
   /* Step 2: do it. */
   int keyblock_index = 0;
   LISTBASE_FOREACH_INDEX (KeyBlock *, kb, &key->block, keyblock_index) {
-    if (kb != key->refkey) {
-      float icuval = kb->curval;
+    if (kb == key->refkey) {
+      continue;
+    }
+    /* Only with value, and no difference allowed. */
+    if (kb->flag & KEYBLOCK_MUTE || kb->totelem != tot) {
+      continue;
+    }
+    const float icuval = kb->curval;
+    if (icuval == 0.0f) {
+      continue;
+    }
 
-      /* Only with value, and no difference allowed. */
-      if (!(kb->flag & KEYBLOCK_MUTE) && icuval != 0.0f && kb->totelem == tot) {
-        KeyBlock *refb;
-        float weight,
-            *weights = per_keyblock_weights ? per_keyblock_weights[keyblock_index] : nullptr;
-        char *freefrom = nullptr;
+    float weight, *weights = per_keyblock_weights ? per_keyblock_weights[keyblock_index] : nullptr;
+    char *freefrom = nullptr;
 
-        /* Reference can be any block. */
-        refb = static_cast<KeyBlock *>(BLI_findlink(&key->block, kb->relative));
-        if (refb == nullptr) {
-          continue;
-        }
+    /* Reference can be any block. */
+    KeyBlock *refb = static_cast<KeyBlock *>(BLI_findlink(&key->block, kb->relative));
+    if (refb == nullptr) {
+      continue;
+    }
 
-        char *poin = basispoin;
-        char *from = key_block_get_data(key, actkb, kb, &freefrom);
+    char *poin = basispoin;
+    char *from = key_block_get_data(key, actkb, kb, &freefrom);
 
-        /* For meshes, use the original values instead of the bmesh values to
-         * maintain a constant offset. */
-        char *reffrom = static_cast<char *>(refb->data);
+    /* For meshes, use the original values instead of the bmesh values to
+     * maintain a constant offset. */
+    char *reffrom = static_cast<char *>(refb->data);
 
-        poin += start * pointer_size;
-        reffrom += key->elemsize * start; /* Key elemsize yes! */
-        from += key->elemsize * start;
+    poin += start * pointer_size;
+    reffrom += key->elemsize * start; /* Key elemsize yes! */
+    from += key->elemsize * start;
 
-        char *cp;
-        int *ofsp;
+    char *cp;
+    int *ofsp;
 
-        for (int b = start; b < end; b += step) {
+    for (int b = start; b < end; b += step) {
 
-          weight = weights ? (*weights * icuval) : icuval;
+      weight = weights ? (*weights * icuval) : icuval;
 
-          cp = key->elemstr;
-          if (mode == KEY_MODE_BEZTRIPLE) {
-            cp = elemstr;
-          }
-
-          ofsp = ofs;
-
-          while (cp[0]) { /* (cp[0] == amount) */
-
-            switch (cp[1]) {
-              case IPO_FLOAT:
-                rel_flerp(KEYELEM_FLOAT_LEN_COORD,
-                          (float *)poin,
-                          (float *)reffrom,
-                          (float *)from,
-                          weight);
-                break;
-              case IPO_BPOINT:
-                rel_flerp(KEYELEM_FLOAT_LEN_BPOINT,
-                          (float *)poin,
-                          (float *)reffrom,
-                          (float *)from,
-                          weight);
-                break;
-              case IPO_BEZTRIPLE:
-                rel_flerp(KEYELEM_FLOAT_LEN_BEZTRIPLE,
-                          (float *)poin,
-                          (float *)reffrom,
-                          (float *)from,
-                          weight);
-                break;
-              default:
-                BLI_assert_unreachable();
-                if (freefrom) {
-                  MEM_freeN(freefrom);
-                }
-                BLI_assert_msg(0, "invalid 'cp[1]'");
-                return;
-            }
-
-            poin += *ofsp;
-
-            cp += 2;
-            ofsp++;
-          }
-
-          reffrom += elemsize;
-          from += elemsize;
-
-          if (weights) {
-            weights++;
-          }
-        }
-
-        if (freefrom) {
-          MEM_freeN(freefrom);
-        }
+      cp = key->elemstr;
+      if (mode == KEY_MODE_BEZTRIPLE) {
+        cp = elemstr;
       }
+
+      ofsp = ofs;
+
+      while (cp[0]) { /* (cp[0] == amount) */
+
+        switch (cp[1]) {
+          case IPO_FLOAT:
+            rel_flerp(
+                KEYELEM_FLOAT_LEN_COORD, (float *)poin, (float *)reffrom, (float *)from, weight);
+            break;
+          case IPO_BPOINT:
+            rel_flerp(
+                KEYELEM_FLOAT_LEN_BPOINT, (float *)poin, (float *)reffrom, (float *)from, weight);
+            break;
+          case IPO_BEZTRIPLE:
+            rel_flerp(KEYELEM_FLOAT_LEN_BEZTRIPLE,
+                      (float *)poin,
+                      (float *)reffrom,
+                      (float *)from,
+                      weight);
+            break;
+          default:
+            BLI_assert_unreachable();
+            if (freefrom) {
+              MEM_freeN(freefrom);
+            }
+            BLI_assert_msg(0, "invalid 'cp[1]'");
+            return;
+        }
+
+        poin += *ofsp;
+
+        cp += 2;
+        ofsp++;
+      }
+
+      reffrom += elemsize;
+      from += elemsize;
+
+      if (weights) {
+        weights++;
+      }
+    }
+
+    if (freefrom) {
+      MEM_freeN(freefrom);
     }
   }
 }
@@ -1353,7 +1350,7 @@ static void keyblock_free_per_block_weights(Key *key,
 
 static void do_mesh_key(Object *ob, Key *key, char *out, const int tot)
 {
-  KeyBlock *k[4], *actkb = BKE_keyblock_from_object(ob);
+  KeyBlock *actkb = BKE_keyblock_from_object(ob);
 
   if (key->type == KEY_RELATIVE) {
     WeightsArrayCache cache = {0, nullptr};
@@ -1363,6 +1360,7 @@ static void do_mesh_key(Object *ob, Key *key, char *out, const int tot)
     keyblock_free_per_block_weights(key, per_keyblock_weights, &cache);
   }
   else {
+    KeyBlock *k[4];
     const float ctime_scaled = key->ctime / 100.0f;
 
     float t[4];
@@ -1421,12 +1419,13 @@ static void do_rel_cu_key(Curve *cu, Key *key, KeyBlock *actkb, char *out, const
 static void do_curve_key(Object *ob, Key *key, char *out, const int tot)
 {
   Curve *cu = static_cast<Curve *>(ob->data);
-  KeyBlock *k[4], *actkb = BKE_keyblock_from_object(ob);
+  KeyBlock *actkb = BKE_keyblock_from_object(ob);
 
   if (key->type == KEY_RELATIVE) {
     do_rel_cu_key(cu, cu->key, actkb, out, tot);
   }
   else {
+    KeyBlock *k[4];
     const float ctime_scaled = key->ctime / 100.0f;
 
     float t[4];
@@ -1444,7 +1443,7 @@ static void do_curve_key(Object *ob, Key *key, char *out, const int tot)
 static void do_latt_key(Object *ob, Key *key, char *out, const int tot)
 {
   Lattice *lt = static_cast<Lattice *>(ob->data);
-  KeyBlock *k[4], *actkb = BKE_keyblock_from_object(ob);
+  KeyBlock *actkb = BKE_keyblock_from_object(ob);
 
   if (key->type == KEY_RELATIVE) {
     float **per_keyblock_weights;
@@ -1453,6 +1452,7 @@ static void do_latt_key(Object *ob, Key *key, char *out, const int tot)
     keyblock_free_per_block_weights(key, per_keyblock_weights, nullptr);
   }
   else {
+    KeyBlock *k[4];
     const float ctime_scaled = key->ctime / 100.0f;
 
     float t[4];
