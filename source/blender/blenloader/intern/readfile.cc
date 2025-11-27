@@ -4975,7 +4975,7 @@ static void expand_main(void *fdhandle, Main *mainvar, BLOExpandDoitCallback cal
   /* Note: Packed IDs are the only current case where IDs read/loaded from a library blendfile will
    * end up in another Main (outside of placeholders, which never need to be expanded). This is not
    * a problem for initialization of the 'to be expanded' queue though, as no packed ID can be
-   * directly linked currently, they are only brough in indirectly, i.e. during the expansion
+   * directly linked currently, they are only brought in indirectly, i.e. during the expansion
    * process itself.
    *
    * So just looping on the 'main'/root Main of the read library is fine here currently. */
@@ -5559,7 +5559,7 @@ static FileData *read_library_file_data(FileData *basefd, Main *bmain, Main *lib
   if (fd) {
     /* `mainptr` is sharing the same `split_mains`, so all libraries are added immediately in a
      * single vectorset. It used to be that all FileData's had their own list, but with indirectly
-     * linking this meant that not all duplicate libraries were catched properly. */
+     * linking this meant that not all duplicate libraries were caught properly. */
     fd->bmain = bmain;
     fd->fd_bmain = lib_bmain;
 

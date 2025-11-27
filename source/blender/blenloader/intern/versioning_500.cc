@@ -3175,7 +3175,7 @@ static void do_version_texture_gradient_clamp(bNodeTree *node_tree)
       node_remove_link(node_tree, *vector_input_link);
     }
     else {
-      /* Gradient texture's input in geometry nodes defaults to using Input Positon if it's not
+      /* Gradient texture's input in geometry nodes defaults to using Input Position if it's not
        * connected. */
       bNode &position = version_node_add_empty(*node_tree, "GeometryNodeInputPosition");
       bNodeSocket &position_output = version_node_add_socket(
