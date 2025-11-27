@@ -555,7 +555,7 @@ void SVMCompiler::generate_closure_node(ShaderNode *node, CompilerState *state)
       }
     }
     if (node->has_bump()) {
-      current_shader->has_bump = true;
+      current_shader->has_bump_from_surface = true;
     }
   }
 }
@@ -894,12 +894,12 @@ void SVMCompiler::compile(Shader *shader,
 
   const double time_start = time_dt();
 
-  const bool has_bump = shader->has_bump;
+  const bool has_bump_from_displacement = shader->has_bump_from_displacement;
 
   current_shader = shader;
 
   /* generate bump shader */
-  if (has_bump) {
+  if (has_bump_from_displacement) {
     const scoped_timer timer((summary != nullptr) ? &summary->time_generate_bump : nullptr);
     compile_type(shader, shader->graph.get(), SHADER_TYPE_BUMP);
     svm_nodes[index].y = svm_nodes.size();
@@ -912,7 +912,7 @@ void SVMCompiler::compile(Shader *shader,
     compile_type(shader, shader->graph.get(), SHADER_TYPE_SURFACE);
     /* only set jump offset if there's no bump shader, as the bump shader will fall thru to this
      * one if it exists */
-    if (!has_bump) {
+    if (!has_bump_from_displacement) {
       svm_nodes[index].y = svm_nodes.size();
     }
     svm_nodes.append(current_svm_nodes);
