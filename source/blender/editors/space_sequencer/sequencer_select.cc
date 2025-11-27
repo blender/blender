@@ -1217,33 +1217,38 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
   Strip *strip_key_owner = nullptr;
   SeqRetimingKey *key = retiming_mouseover_key_get(C, mouse_co.region, &strip_key_owner);
 
-  /* If no key was found, the mouse cursor may still intersect with a "fake key" that has not been
-   * realized yet. */
-  if (strip_key_owner != nullptr && key == nullptr &&
-      retiming_keys_can_be_displayed(CTX_wm_space_seq(C)) &&
+  if (strip_key_owner != nullptr && retiming_keys_can_be_displayed(CTX_wm_space_seq(C)) &&
       seq::retiming_data_is_editable(strip_key_owner))
   {
-    key = try_to_realize_fake_keys(C, strip_key_owner, mouse_co.region);
-  }
-
-  if (key != nullptr) {
-    if (!was_retiming) {
-      deselect_all_strips(scene);
-      sequencer_select_do_updates(C, scene);
+    /* If no key was found, the mouse cursor may still intersect with a "fake key" that has not
+     * been realized yet. */
+    if (key == nullptr) {
+      key = try_to_realize_fake_keys(C, strip_key_owner, mouse_co.region);
     }
-    /* Attempt to realize any other connected strips' fake keys. */
-    if (seq::is_strip_connected(strip_key_owner)) {
-      const int key_frame = seq::retiming_key_timeline_frame_get(scene, strip_key_owner, key);
-      blender::VectorSet<Strip *> connections = seq::connected_strips_get(strip_key_owner);
-      for (Strip *connection : connections) {
-        if (key_frame == left_fake_key_frame_get(C, connection) ||
-            key_frame == right_fake_key_frame_get(C, connection))
-        {
-          realize_fake_keys(scene, connection);
+    else {
+      /* There may be fake key on either side of strip. It must be realized. */
+      realize_fake_keys(scene, strip_key_owner);
+    }
+
+    if (key != nullptr) {
+      if (!was_retiming) {
+        deselect_all_strips(scene);
+        sequencer_select_do_updates(C, scene);
+      }
+      /* Attempt to realize any other connected strips' fake keys. */
+      if (seq::is_strip_connected(strip_key_owner)) {
+        const int key_frame = seq::retiming_key_timeline_frame_get(scene, strip_key_owner, key);
+        blender::VectorSet<Strip *> connections = seq::connected_strips_get(strip_key_owner);
+        for (Strip *connection : connections) {
+          if (key_frame == left_fake_key_frame_get(C, connection) ||
+              key_frame == right_fake_key_frame_get(C, connection))
+          {
+            realize_fake_keys(scene, connection);
+          }
         }
       }
+      return sequencer_retiming_key_select_exec(C, op, key, strip_key_owner);
     }
-    return sequencer_retiming_key_select_exec(C, op, key, strip_key_owner);
   }
 
   /* We should only reach here if no retiming selection is happening. */
