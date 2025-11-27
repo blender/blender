@@ -477,14 +477,6 @@ bool BM_mesh_boolean(BMesh * /*bm*/,
   return false;
 }
 
-/**
- * Perform a Knife Intersection operation on the mesh bm.
- * There are either one or two operands, the same as described above for #BM_mesh_boolean().
- * If use_separate_all is true, each edge that is created from the intersection should
- * be used to separate all its incident faces. TODO: implement that.
- * TODO: need to ensure that "selected/non-selected" flag of original faces gets propagated
- * to the intersection result faces.
- */
 bool BM_mesh_boolean_knife(BMesh * /*bm*/,
                            blender::Span<std::array<BMLoop *, 3>> looptris,
                            int (*test_fn)(BMFace *, void *),
