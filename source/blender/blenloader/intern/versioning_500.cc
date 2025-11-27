@@ -2491,6 +2491,9 @@ static void do_version_bokeh_blur_pixel_size(bNodeTree &node_tree, bNode &node)
 static bool window_has_sequence_editor_open(const wmWindow *win)
 {
   bScreen *screen = WM_window_get_active_screen(win);
+  if (!screen) {
+    return false;
+  }
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
       if (sl->spacetype == SPACE_SEQ) {
