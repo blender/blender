@@ -710,7 +710,7 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
 
 static void file_draw_preview(const FileDirEntry *file,
                               const rcti *tile_draw_rect,
-                              const IconBuffer &preview,
+                              const IconBufferRef &preview,
                               FileLayout *layout,
                               const bool dimmed)
 {
@@ -1451,7 +1451,7 @@ void file_draw_list(const bContext *C, ARegion *region)
       }
 
       const int file_type_icon = filelist_geticon_file_type(files, i, false);
-      std::optional<IconBuffer> preview_buf = file->preview_icon_id ?
+      std::optional<IconBufferRef> preview_buf = file->preview_icon_id ?
                                                   BKE_icon_get_buffer(file->preview_icon_id,
                                                                       ICON_SIZE_PREVIEW) :
                                                   std::nullopt;

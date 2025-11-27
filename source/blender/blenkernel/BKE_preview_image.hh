@@ -111,6 +111,14 @@ PreviewImage *BKE_previewimg_id_ensure(ID *id);
  */
 void BKE_previewimg_ensure(PreviewImage *prv, int size);
 
+/**
+ * Returns true if the preview image might need downloading before loading.
+ *
+ * This is the case if the preview was created with #BKE_previewimg_online_thumbnail_read().
+ *
+ * Note that the preview might be available on disk already. This is just a hint for the loading.
+ * Managing the downloading and loading is done externally, e.g. with #PreviewLoadJob.
+ */
 bool BKE_previewimg_is_online(const PreviewImage *prv);
 std::optional<blender::StringRefNull> BKE_previewimg_deferred_filepath_get(
     const PreviewImage *prv);

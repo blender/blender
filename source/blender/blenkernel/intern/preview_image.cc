@@ -51,6 +51,7 @@ namespace blender::bke {
 struct PreviewDeferredLoadingData {
   std::string filepath;
   ThumbSource source;
+  /** See #BKE_previewimg_is_online(). */
   bool is_online = false;
 };
 

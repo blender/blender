@@ -113,7 +113,11 @@ class AssetRepresentation : NonCopyable, NonMovable {
    * #PreviewImageRuntime::icon_id to a UI button (UI loads it asynchronously then) or call
    * #BKE_previewimg_ensure() (not asynchronous).
    *
-   * For online assets this triggers downloading.
+   * For online assets this triggers downloading of the preview.
+   *
+   * \param C: Context is needed because this may call into Python to do the downloading.
+   *     Annoyingly this is always non-const, so some callers may have to cast away const. The
+   *     downloader and the APIs it calls could be made to work without context.
    */
   void ensure_previewable(bContext &C, ReportList *reports = nullptr);
   /**

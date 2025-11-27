@@ -1766,8 +1766,14 @@ class PreviewLoadJob {
 
   /** The previews that are still to be loaded from disk. */
   ThreadQueue *todo_queue_; /* RequestedPreview * */
-  /** All unfinished preview requests, #update_fn() calls #finish_preview_request() on loaded
-   * previews and removes them from this map. Only access with the mutex below! */
+  /**
+   * Maps the file path identifying the preview, and the requested icon size to the preview
+   * request.
+   * Contains all unfinished preview requests. #update_fn() calls #finish_preview_request() on
+   * loaded previews and removes them from this map.
+   *
+   * Only access with the mutex below!
+   */
   Map<std::pair<std::string, eIconSizes>, std::unique_ptr<RequestedPreview>> requested_previews_;
   std::mutex requested_previews_mutex_;
 
@@ -1908,17 +1914,20 @@ void PreviewLoadJob::on_download_completed(wmWindowManager *wm,
     std::lock_guard lock(load_job->requested_previews_mutex_);
     for (int size = 0; size < NUM_ICON_SIZES; size++) {
       const std::pair key = std::make_pair(preview_full_filepath, eIconSizes(size));
-      if (std::unique_ptr<RequestedPreview> *request = load_job->requested_previews_.lookup_ptr(
-              key))
-      {
-        if ((*request)->state == PreviewState::Downloading) {
-          (*request)->state = PreviewState::LoadingFromDisk;
-
-          BLI_thread_queue_push(
-              load_job->todo_queue_, request->get(), BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
-        }
-        has_request = true;
+      std::unique_ptr<RequestedPreview> *request_uptr = load_job->requested_previews_.lookup_ptr(
+          key);
+      if (!request_uptr) {
+        continue;
       }
+      RequestedPreview *request = request_uptr->get();
+
+      if (request->state == PreviewState::Downloading) {
+        request->state = PreviewState::LoadingFromDisk;
+
+        BLI_thread_queue_push(
+            load_job->todo_queue_, request, BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
+      }
+      has_request = true;
     }
   }
 

@@ -407,9 +407,9 @@ ImBuf *BKE_icon_imbuf_get_buffer(int icon_id)
   return (ImBuf *)icon->obj;
 }
 
-bool BKE_icon_is_imbuf(int icon_id)
+bool BKE_icon_is_imbuf(const int icon_id)
 {
-  Icon *icon = icon_ghash_lookup(icon_id);
+  const Icon *icon = icon_ghash_lookup(icon_id);
   if (!icon) {
     CLOG_ERROR(&LOG, "no icon for icon ID: %d", icon_id);
     return false;
@@ -417,14 +417,17 @@ bool BKE_icon_is_imbuf(int icon_id)
   return icon->obj_type == ICON_DATA_IMBUF;
 }
 
-static IconBuffer construct_icon_buffer(const uint width,
-                                        const uint height,
-                                        const uint channels,
-                                        const uint8_t *buffer)
+static IconBufferRef construct_icon_buffer(const int width,
+                                           const int height,
+                                           const int channels,
+                                           const uint8_t *buffer)
 {
   BLI_assert(buffer != nullptr);
+  BLI_assert(width >= 0);
+  BLI_assert(height >= 0);
+  BLI_assert(channels >= 0);
 
-  IconBuffer icon_buffer{};
+  IconBufferRef icon_buffer{};
   icon_buffer.width = width;
   icon_buffer.height = height;
   icon_buffer.buffer = blender::Span(buffer, width * height * channels);
@@ -432,8 +435,8 @@ static IconBuffer construct_icon_buffer(const uint width,
   return icon_buffer;
 }
 
-static std::optional<IconBuffer> icon_buffer_from_preview(const PreviewImage *preview,
-                                                          eIconSizes size)
+static std::optional<IconBufferRef> icon_buffer_from_preview(const PreviewImage *preview,
+                                                             const eIconSizes size)
 {
   if (!preview->rect[size]) {
     return std::nullopt;
@@ -442,11 +445,11 @@ static std::optional<IconBuffer> icon_buffer_from_preview(const PreviewImage *pr
       preview->w[size], preview->h[size], 4, reinterpret_cast<uint8_t *>(preview->rect[size]));
 }
 
-std::optional<IconBuffer> BKE_icon_get_buffer(const int icon_id, eIconSizes size)
+std::optional<IconBufferRef> BKE_icon_get_buffer(const int icon_id, const eIconSizes size)
 {
   using blender::Span;
 
-  Icon *icon = icon_ghash_lookup(icon_id);
+  const Icon *icon = icon_ghash_lookup(icon_id);
   if (!icon) {
     CLOG_ERROR(&LOG, "no icon for icon ID: %d", icon_id);
     return std::nullopt;
@@ -455,8 +458,7 @@ std::optional<IconBuffer> BKE_icon_get_buffer(const int icon_id, eIconSizes size
   switch (icon->obj_type) {
     case ICON_DATA_IMBUF: {
       const ImBuf *ibuf = static_cast<ImBuf *>(icon->obj);
-      return construct_icon_buffer(
-          uint(ibuf->x), uint(ibuf->y), uint(ibuf->channels), ibuf->byte_buffer.data);
+      return construct_icon_buffer(ibuf->x, ibuf->y, ibuf->channels, ibuf->byte_buffer.data);
     }
     case ICON_DATA_ID: {
       const ID *id = static_cast<ID *>(icon->obj);
@@ -472,6 +474,7 @@ std::optional<IconBuffer> BKE_icon_get_buffer(const int icon_id, eIconSizes size
         }
         return icon_buffer_from_preview(preview, size);
       }
+      break;
     }
   }
 

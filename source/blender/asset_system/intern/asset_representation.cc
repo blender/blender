@@ -92,19 +92,21 @@ void AssetRepresentation::ensure_previewable(bContext &C, ReportList *reports)
     return;
   }
 
-  /* Use the full path as preview name, it's the only unique identifier we have. */
-  const std::string full_path = this->full_path();
-
   if (extern_asset.online_info_) {
-    if (extern_asset.online_info_->preview_url_) {
-      const std::string preview_path = remote_library_asset_preview_path(*this);
-      /* Doesn't do the actual reading, just allocates and attaches the derived load info. */
-      extern_asset.preview_ = BKE_previewimg_online_thumbnail_read(
-          full_path.c_str(), preview_path.c_str(), false);
-      remote_library_request_preview_download(C, *this, preview_path, reports);
+    if (!extern_asset.online_info_->preview_url_) {
+      return;
     }
+
+    const std::string preview_path = remote_library_asset_preview_path(*this);
+    /* Doesn't do the actual reading, just allocates and attaches the derived load info. */
+    extern_asset.preview_ = BKE_previewimg_online_thumbnail_read(
+        this->full_path().c_str(), preview_path.c_str(), false);
+    remote_library_request_preview_download(C, *this, preview_path, reports);
   }
   else {
+    /* Use the full path as preview name, it's the only unique identifier we have. */
+    const std::string full_path = this->full_path();
+
     /* Doesn't do the actual reading, just allocates and attaches the derived load info. */
     extern_asset.preview_ = BKE_previewimg_cached_thumbnail_read(
         full_path.c_str(), full_path.c_str(), THB_SOURCE_BLEND, false);
