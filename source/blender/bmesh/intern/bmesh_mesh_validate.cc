@@ -44,12 +44,12 @@
       (void)0
 #  endif
 
-template<> struct blender::DefaultHash<blender::Set<const BMVert *>> {
-  uint64_t operator()(const blender::Set<const BMVert *> &value) const
+template<> struct blender::DefaultHash<blender::Set<blender::Vector<int>>> {
+  uint64_t operator()(const blender::Vector<int> &value) const
   {
     uint64_t hash = 0;
-    for (const BMVert *vert : value) {
-      hash = get_default_hash(hash, vert);
+    for (const int v : value) {
+      hash = get_default_hash(hash, v);
     }
     return hash;
   }
@@ -138,29 +138,34 @@ bool BM_mesh_is_valid(BMesh *bm)
   }
 
   /* face structure */
-  blender::Map<blender::Set<const BMVert *>, int> face_map;
+  blender::Map<blender::Vector<int>, int> face_map;
   BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
+    BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
     BMLoop *l_iter;
-    BMLoop *l_first;
 
     if (BM_elem_flag_test(f, BM_ELEM_SELECT | BM_ELEM_HIDDEN) == (BM_ELEM_SELECT | BM_ELEM_HIDDEN))
     {
       ERRMSG("face %d: is hidden and selected", i);
     }
 
+    j = 0;
     l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-
     do {
       BM_elem_flag_disable(l_iter, BM_ELEM_INTERNAL_TAG);
       BM_elem_flag_disable(l_iter->v, BM_ELEM_INTERNAL_TAG);
       BM_elem_flag_disable(l_iter->e, BM_ELEM_INTERNAL_TAG);
+      j++;
     } while ((l_iter = l_iter->next) != l_first);
 
+    const int f_len = j;
+    if (f_len != f->len) {
+      ERRMSG("face %d: has length of %d but should be %d", i, f->len, f_len);
+    }
+
+    /* Store the loop with the minimum index to create a list of vertex indices. */
+    BMLoop *l_vert_min = l_first;
     j = 0;
-
-    blender::Set<const BMVert *> face_verts;
-
-    l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+    l_iter = l_first;
     do {
       if (BM_elem_flag_test(l_iter, BM_ELEM_INTERNAL_TAG)) {
         ERRMSG("face %d: has duplicate loop at corner: %d", i, j);
@@ -198,19 +203,33 @@ bool BM_mesh_is_valid(BMesh *bm)
       BM_elem_flag_enable(l_iter->v, BM_ELEM_INTERNAL_TAG);
       BM_elem_flag_enable(l_iter->e, BM_ELEM_INTERNAL_TAG);
 
-      face_verts.add(l_iter->v);
-
+      if (BM_elem_index_get(l_iter->v) < BM_elem_index_get(l_vert_min->v)) {
+        l_vert_min = l_iter;
+      }
       j++;
     } while ((l_iter = l_iter->next) != l_first);
+
+    /* Store ordered face verts, walking over the lowest index first
+     * so faces with flipped winding still match. */
+    blender::Vector<int> face_verts;
+    face_verts.reserve(f_len);
+    if (BM_elem_index_get(l_vert_min->next->v) < BM_elem_index_get(l_vert_min->prev->v)) {
+      l_iter = l_vert_min;
+      do {
+        face_verts.append_unchecked(BM_elem_index_get(l_iter->v));
+      } while ((l_iter = l_iter->next) != l_vert_min);
+    }
+    else {
+      l_iter = l_vert_min;
+      do {
+        face_verts.append_unchecked(BM_elem_index_get(l_iter->v));
+      } while ((l_iter = l_iter->prev) != l_vert_min);
+    }
 
     face_map.add_or_modify(
         std::move(face_verts),
         [&](int *value) { *value = i; },
         [&](const int *value) { ERRMSG("face %d: duplicate of %d", i, *value); });
-
-    if (j != f->len) {
-      ERRMSG("face %d: has length of %d but should be %d", i, f->len, j);
-    }
 
     /* leave elements un-tagged, not essential but nice to avoid unintended dirty tag use later. */
     do {
