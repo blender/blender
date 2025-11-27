@@ -439,6 +439,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
     extensions.dynamic_rendering_unused_attachments = false;
     extensions.pageable_device_local_memory = false;
     extensions.wide_lines = false;
+    extensions.line_rasterization = false;
     GCaps.stencil_export_support = false;
 
     device.workarounds_ = workarounds;
@@ -464,6 +465,8 @@ void VKBackend::detect_workarounds(VKDevice &device)
       VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME);
   extensions.graphics_pipeline_library = device.supports_extension(
       VK_EXT_GRAPHICS_PIPELINE_LIBRARY_EXTENSION_NAME);
+  extensions.line_rasterization = device.supports_extension(
+      VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME);
 #ifdef _WIN32
   extensions.external_memory = device.supports_extension(
       VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);

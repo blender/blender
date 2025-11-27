@@ -300,8 +300,9 @@ VkPipeline VKPipelineMap<VKGraphicsInfo::Shaders>::create(
     StringRefNull name)
 {
   VKDevice &device = VKBackend::get().device;
+  const VKExtensions &extensions = device.extensions_get();
   VKGraphicsPipelineCreateInfoBuilder builder;
-  builder.build_shaders_lib(shaders_info, vk_pipeline_base);
+  builder.build_shaders_lib(shaders_info, extensions, vk_pipeline_base);
 
   /* Build pipeline. */
   VkPipeline pipeline = VK_NULL_HANDLE;

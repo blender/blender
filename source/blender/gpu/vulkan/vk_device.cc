@@ -44,6 +44,7 @@ void VKExtensions::log() const
              " - [%c] dynamic rendering unused attachments\n"
              " - [%c] external memory\n"
              " - [%c] graphics pipeline library\n"
+             " - [%c] line rasterization\n"
              " - [%c] maintenance4\n"
              " - [%c] memory priority\n"
              " - [%c] pageable device local memory\n"
@@ -56,6 +57,7 @@ void VKExtensions::log() const
              dynamic_rendering_unused_attachments ? 'X' : ' ',
              external_memory ? 'X' : ' ',
              graphics_pipeline_library ? 'X' : ' ',
+             line_rasterization ? 'X' : ' ',
              maintenance4 ? 'X' : ' ',
              memory_priority ? 'X' : ' ',
              pageable_device_local_memory ? 'X' : ' ',
