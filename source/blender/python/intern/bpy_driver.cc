@@ -307,7 +307,7 @@ static void pydriver_error(ChannelDriver *driver, const PathResolvedRNA *anim_rn
 
 static bool is_opcode_secure(const int opcode)
 {
-  /* TODO(@ideasman42): Handle intrinsic opcodes (`CALL_INTRINSIC_1` & `CALL_INTRINSIC_2`).
+  /* TODO(@ideasman42): Handle intrinsic opcodes (`CALL_INTRINSIC_2`).
    * For Python 3.12. */
 
 #  define OK_OP(op) \
@@ -377,6 +377,11 @@ static bool is_opcode_secure(const int opcode)
     OK_OP(POP_JUMP_BACKWARD_IF_TRUE)
 #  endif
 
+#  if PY_VERSION_HEX >= 0x030c0000
+    OK_OP(RETURN_CONST)
+    OK_OP(POP_JUMP_IF_FALSE)
+    OK_OP(CALL_INTRINSIC_1)
+#  endif
     /* Special cases. */
     OK_OP(LOAD_CONST) /* Ok because constants are accepted. */
     OK_OP(LOAD_NAME)  /* Ok, because `PyCodeObject.names` is checked. */

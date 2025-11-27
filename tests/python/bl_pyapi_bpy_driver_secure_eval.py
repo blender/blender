@@ -164,7 +164,7 @@ class TestRejectLiteralFStrings(unittest.TestCase, TestExprMixIn_Reject):
     # F-String's are not supported as `BUILD_STRING` op-code is disabled,
     # while it may be safe to enable that needs to be double-checked.
     # Further it doesn't seem useful for typical math expressions used in drivers.
-    expressions = ("f''", "f'{1}'", "f'{\"_\"}'")
+    expressions = ("f'{1}'", "f'{\"_\"}'")
 
 
 class TestRejectModuleAccess(unittest.TestCase, TestExprMixIn_Reject):
