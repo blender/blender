@@ -1793,24 +1793,24 @@ static void blendfile_library_relocate_id_remap_prepare(
                old_id->us,
                new_id->us);
     remapper.add(old_id, new_id);
-  }
 
-  /* Usual special code for ShapeKeys snowflakes...
-   *
-   * NOTE: Unfortunately, actual reasons for why the old shapekeys needs to be removed from their
-   * old owner ID was not documented in the initial commit. Suspect it's related to the fact that
-   * the old ID should not end up using the new shapekeys? */
-  Key **old_key_p = BKE_key_from_id_p(old_id);
-  if (old_key_p == nullptr) {
-    return;
-  }
-  Key *old_key = *old_key_p;
-  Key *new_key = BKE_key_from_id(new_id);
-  if (old_key != nullptr) {
-    old_owner_id_to_shapekey.add(old_id, &old_key->id);
-    *old_key_p = nullptr;
-    id_us_min(&old_key->id);
-    remapper.add(&old_key->id, &new_key->id);
+    /* Usual special code for ShapeKeys snowflakes...
+     *
+     * NOTE: Unfortunately, actual reasons for why the old shapekeys needs to be removed from their
+     * old owner ID was not documented in the initial commit. Suspect it's related to the fact that
+     * the old ID should not end up using the new shapekeys? */
+    Key **old_key_p = BKE_key_from_id_p(old_id);
+    if (old_key_p == nullptr) {
+      return;
+    }
+    Key *old_key = *old_key_p;
+    Key *new_key = BKE_key_from_id(new_id);
+    if (old_key != nullptr) {
+      old_owner_id_to_shapekey.add(old_id, &old_key->id);
+      *old_key_p = nullptr;
+      id_us_min(&old_key->id);
+      remapper.add(&old_key->id, &new_key->id);
+    }
   }
 }
 
