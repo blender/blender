@@ -60,6 +60,7 @@ class NODE_MT_shader_node_input_base(node_add_menu.NodeMenu):
             context, layout, "ShaderNodeCameraData",
             ["View Vector", "View Z Depth", "View Distance"],
         )
+        self.node_operator(layout, "ShaderNodeRGB")
         self.node_operator(layout, "ShaderNodeVertexColor")
         self.node_operator_with_outputs(
             context, layout, "ShaderNodeHairInfo",
@@ -117,7 +118,6 @@ class NODE_MT_shader_node_input_base(node_add_menu.NodeMenu):
             context, layout, "ShaderNodePointInfo",
             ["Position", "Radius", "Random"],
         )
-        self.node_operator(layout, "ShaderNodeRGB")
         self.node_operator(layout, "ShaderNodeTangent")
         self.node_operator_with_outputs(
             context, layout, "ShaderNodeTexCoord",
