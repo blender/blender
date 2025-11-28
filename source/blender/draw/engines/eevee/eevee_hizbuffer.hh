@@ -14,9 +14,15 @@
 
 #include "DRW_render.hh"
 
+#include "DRW_gpu_wrapper.hh"
+
+#include "draw_pass.hh"
+#include "eevee_defines.hh"
 #include "eevee_hizbuffer_shared.hh"
 
 namespace blender::eevee {
+
+using namespace draw;
 
 class Instance;
 
@@ -32,6 +38,9 @@ class HiZBuffer {
   SwapChain<Texture, 2> hiz_tx_;
   /** References to the mip views of the current (front) HiZ texture. */
   std::array<gpu::Texture *, HIZ_MIP_COUNT> hiz_mip_ref_;
+
+  /** Dummy texture cleared to max depth to be used before the first hiz update. */
+  draw::Texture dummy_empty_hiz_tx_ = {"dummy_empty_hiz_tx_"};
 
   /**
    * Atomic counter counting the number of tile that have finished down-sampling.
@@ -57,6 +66,9 @@ class HiZBuffer {
   HiZBuffer(Instance &inst, HiZData &data) : inst_(inst), data_(data)
   {
     atomic_tile_counter_.clear_to_zero();
+    float value = 1.0f;
+    dummy_empty_hiz_tx_.ensure_2d(
+        gpu::TextureFormat::SFLOAT_32, int2(1), GPU_TEXTURE_USAGE_SHADER_READ, &value);
   };
 
   void sync();
@@ -71,6 +83,9 @@ class HiZBuffer {
     src_tx_ptr_ = texture;
     layer_id_ = layer;
     swap_layer();
+    /* Both layer becomes undefined. Replace by dummy texture. */
+    back.ref_tx_ = dummy_empty_hiz_tx_;
+    front.ref_tx_ = dummy_empty_hiz_tx_;
   }
 
   /**
@@ -82,7 +97,7 @@ class HiZBuffer {
   void swap_layer()
   {
     hiz_tx_.swap();
-    back.ref_tx_ = hiz_tx_.previous();
+    back.ref_tx_ = front.ref_tx_;
     front.ref_tx_ = hiz_tx_.current();
     set_dirty();
   }

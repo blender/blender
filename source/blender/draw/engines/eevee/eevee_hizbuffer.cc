@@ -92,6 +92,9 @@ void HiZBuffer::update()
     return;
   }
 
+  /* After this, the front buffer become valid. */
+  front.ref_tx_ = hiz_tx_.current();
+
   src_tx_ = *src_tx_ptr_;
   for (const int i : IndexRange(HIZ_MIP_COUNT)) {
     hiz_mip_ref_[i] = hiz_tx_.current().mip_view(i);

@@ -107,6 +107,8 @@ float4 texelFetch(samplerBuffer, int) RET;
 int4 texelFetch(isamplerBuffer, int) RET;
 uint4 texelFetch(usamplerBuffer, int) RET;
 
+float4 texelFetchExtend(sampler2D samp, int2 texel, int lvl) RET;
+
 /** \} */
 
 #undef RET

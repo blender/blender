@@ -16,6 +16,7 @@
 
 #include "DRW_render.hh"
 
+#include "eevee_defines.hh"
 #include "eevee_lut.hh"
 #include "eevee_material.hh"
 #include "eevee_raytrace.hh"
@@ -181,7 +182,7 @@ class ForwardPipeline {
   } transp_buffer_;
 
  public:
-  ForwardPipeline(Instance &inst) : inst_(inst) {};
+  ForwardPipeline(Instance &inst) : inst_(inst) {}
 
   void sync();
   void end_sync();
@@ -226,6 +227,8 @@ struct DeferredLayerBase {
   PassMain::Sub *gbuffer_double_sided_hybrid_ps_ = nullptr;
   PassMain::Sub *gbuffer_single_sided_ps_ = nullptr;
   PassMain::Sub *gbuffer_double_sided_ps_ = nullptr;
+
+  gpu::Texture *radiance_behind_tx_ = nullptr;
 
   /* Closures bits from the materials in this pass. */
   eClosureBits closure_bits_ = CLOSURE_NONE;
@@ -362,7 +365,8 @@ class DeferredLayer : DeferredLayerBase {
 
   bool has_transmission() const
   {
-    return closure_bits_ & CLOSURE_TRANSMISSION;
+    return (closure_bits_ & CLOSURE_TRANSMISSION) ||
+           ((closure_bits_ & CLOSURE_TRANSPARENCY) && (closure_bits_ & CLOSURE_SHADER_TO_RGBA));
   }
 
   /* Do we compute indirect lighting inside the light eval pass. */
@@ -392,8 +396,6 @@ class DeferredPipeline {
   DeferredLayer volumetric_layer_;
 
   PassSimple debug_draw_ps_ = {"debug_gbuffer"};
-
-  bool use_combined_lightprobe_eval;
 
  public:
   DeferredPipeline(Instance &inst)
@@ -572,8 +574,16 @@ class DeferredProbePipeline {
 
   PassSimple eval_light_ps_ = {"EvalLights"};
 
+  /* Used when there is no feedback radiance buffer. */
+  Texture dummy_black = {"dummy_black"};
+
  public:
-  DeferredProbePipeline(Instance &inst) : inst_(inst) {};
+  DeferredProbePipeline(Instance &inst) : inst_(inst)
+  {
+    float4 data(0.0f);
+    dummy_black.ensure_2d(
+        gpu::TextureFormat::SFLOAT_16_16_16_16, int2(1), GPU_TEXTURE_USAGE_SHADER_READ, data);
+  }
 
   void begin_sync();
   void end_sync();
