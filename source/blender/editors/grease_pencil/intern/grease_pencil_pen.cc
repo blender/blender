@@ -105,19 +105,24 @@ class GreasePencilPenToolOperation : public curves::pen_tool::PenToolOperation {
     info.drawing.opacities_for_write().last() = 1.0f;
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
-    bke::SpanAttributeWriter<float> aspect_ratios = attributes.lookup_or_add_for_write_span<float>(
-        "aspect_ratio",
-        bke::AttrDomain::Curve,
-        bke::AttributeInitVArray(VArray<float>::from_single(0.0f, curves.curves_num())));
-    aspect_ratios.span.last() = 1.0f;
-    aspect_ratios.finish();
+    if (bke::SpanAttributeWriter aspect_ratios = attributes.lookup_for_write_span<float>(
+            "aspect_ratio"))
+    {
+      aspect_ratios.span.last() = 1.0f;
+      aspect_ratios.finish();
+    }
 
-    bke::SpanAttributeWriter<float> u_scales = attributes.lookup_or_add_for_write_span<float>(
-        "u_scale",
-        bke::AttrDomain::Curve,
-        bke::AttributeInitVArray(VArray<float>::from_single(0.0f, curves.curves_num())));
-    u_scales.span.last() = 1.0f;
-    u_scales.finish();
+    if (bke::SpanAttributeWriter u_scales = attributes.lookup_for_write_span<float>("u_scale")) {
+      u_scales.span.last() = 1.0f;
+      u_scales.finish();
+    }
+
+    if (bke::SpanAttributeWriter fill_opacities = attributes.lookup_for_write_span<float>(
+            "fill_opacity"))
+    {
+      fill_opacities.span.last() = 1.0f;
+      fill_opacities.finish();
+    }
   }
 
   bool can_create_new_curve(wmOperator *op) const
