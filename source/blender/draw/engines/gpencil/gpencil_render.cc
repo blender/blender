@@ -84,8 +84,9 @@ static void render_init_buffers(const DRWContext *draw_ctx,
   float *pix_col = (rpass_col_src) ? rpass_col_src->ibuf->float_buffer.data : nullptr;
 
   if (!pix_z || !pix_col) {
-    RE_engine_set_error_message(
-        engine, "Warning: To render Grease Pencil, enable Combined and Depth passes.");
+    RE_engine_set_error_message(engine,
+                                "Warning: To correctly render occluded Grease Pencil objects, "
+                                "enable Combined and Depth passes.");
   }
 
   if (pix_z) {
