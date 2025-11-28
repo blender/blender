@@ -3319,7 +3319,8 @@ static void filelist_readjob_start_ex(FileList *filelist,
   wm_job = WM_jobs_get(CTX_wm_manager(C),
                        CTX_wm_window(C),
                        filelist,
-                       "Listing directories...",
+                       filelist->asset_library_ref ? "Loading Asset Library..." :
+                                                     "Listing directories...",
                        WM_JOB_PROGRESS,
                        filelist_jobtype_get(filelist));
   WM_jobs_customdata_set(wm_job, flrj, filelist_readjob_free);
