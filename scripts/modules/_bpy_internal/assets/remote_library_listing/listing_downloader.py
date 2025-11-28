@@ -7,13 +7,11 @@ from __future__ import annotations
 import copy
 import enum
 import functools
-import hashlib
 import logging
-import time
 import unicodedata
 import urllib.parse
 from pathlib import Path, PurePosixPath
-from typing import Callable, TypeAlias, TypeVar, Type
+from typing import Callable, TypeAlias, Type
 
 import bpy
 
@@ -26,27 +24,12 @@ from _bpy_internal.assets.remote_library_listing import json_parsing
 
 logger = logging.getLogger(__name__)
 
-# TODO: discuss & adjust this value, as this was just picked more or less randomly:
-THUMBNAIL_FRESH_DURATION_MINS = 60
-"""If a thumbnail was downloaded this many seconds ago, do not download it again.
-
-If the local timestamp of the thumbnail file indicates that it was downloaded
-less that this duration ago, do not attempt a re-download. Even though the
-downloader supports conditional downloads, and won't actually re-download when
-the server responds with a `304 Not Modified`, doing that request still takes
-time and requires resources on the server.
-"""
-
-# TODO: discuss & adjust this value, as this was just picked more or less randomly:
-THUMBNAIL_FAILED_REDOWNLOAD_MINS = 60 * 24  # 1 day
-"""Thumbnails that failed to download will only be re-downloaded after this."""
-
 
 class RemoteAssetListingLocator:
     """Construct paths for various components of a remote asset library.
 
-    Basically this determines where assets and their thumbnails are downloaded,
-    and what their filenames will be.
+    Basically this determines where assets are downloaded, what their filenames
+    will be, and where the HTTP metadata cache is located.
     """
 
     _remote_url: str
@@ -54,9 +37,6 @@ class RemoteAssetListingLocator:
 
     _remote_url_split: urllib.parse.SplitResult
     _remote_url_path: PurePosixPath
-
-    _thumbs_root: Path
-    _thumbs_subpath_large = "large"
 
     def __init__(
         self,
@@ -70,8 +50,6 @@ class RemoteAssetListingLocator:
         # happen once here, instead of every time when this info is necessary.
         self._remote_url_split = urllib.parse.urlsplit(self._remote_url)
         self._remote_url_path = _sanitize_path_from_url(self._remote_url_split.path)
-
-        self._thumbs_root = self._local_path / "_thumbs"
 
     @property
     def remote_url(self) -> str:
@@ -121,81 +99,6 @@ class RemoteAssetListingLocator:
 
         return self._local_path / relpath
 
-    # TODO: add lru_cache decorator here too, once we can measure its impact.
-    def thumbnail_download_path(self, asset: api_models.AssetV1, asset_file: api_models.FileV1) -> Path | None:
-        """Construct the download path suitable for this asset's thumbnail.
-
-        This assumes that the URL already ends in the correct extension. This is
-        not always the case, and using the content type in the HTTP response
-        headers is technically a possibility. Keeping this limitation makes the
-        code considerably simpler, as now the download filename is known
-        beforehand.
-        """
-        assert asset.thumbnail_url
-
-        try:
-            url_path, _ = self._path_from_url(asset.thumbnail_url)
-        except ValueError as ex:
-            logger.warning("thumbnail has invalid URL: %s", ex)
-            return None
-
-        url_suffix = url_path.suffix.lower()
-        if url_suffix not in {'.webp', '.png'}:
-            logger.warning(
-                "thumbnail url (%s) does not end in .webp or .png (but in %r), ignoring",
-                asset.thumbnail_url,
-                url_suffix)
-            return None
-
-        asset_download_path = self.asset_download_path(asset_file)
-        assert asset_download_path.is_absolute()
-
-        id_type = asset.id_type.value.title()  # turn 'object' into 'Object'.
-        hash = hashlib.md5(f"{asset_download_path}/{id_type}/{asset.name}".encode()).hexdigest()
-
-        relative_path = Path(hash[:2], hash[2:]).with_suffix(url_path.suffix)
-        return self._thumbs_root / self._thumbs_subpath_large / relative_path
-
-    def _path_from_url(self, url: str) -> tuple[PurePosixPath, urllib.parse.SplitResult]:
-        """Construct a PurePosixPath from the path component of this URL.
-
-        This function can throw a ValueError if the URL is not valid.
-        """
-        # An URL can only be correctly interpreted if it's a full URL, and not
-        # just a relative path.
-        abs_url = urllib.parse.urljoin(self._remote_url, url)
-        try:
-            split_url = urllib.parse.urlsplit(abs_url)
-        except ValueError as ex:
-            raise ValueError("invalid URL ({!s}): {!s}".format(abs_url, ' '.join(ex.args)))
-
-        return _sanitize_path_from_url(split_url.path), split_url
-
-    def thumbnail_failed_path(self, thumbnail_path: Path) -> Path:
-        """Return the 'failed' path for this thumbnail.
-
-        Raises a ValueError if `thumbnail_path` is not actually in the thumbnail
-        root directory.
-
-        >>> loc = RemoteAssetListingLocator("https://localhost:8000/", Path("/tmp"))
-        >>> loc.thumbnail_failed_path(Path("/tmp/_thumbs/large/01/020304.webp"))
-        PosixPath('/tmp/_thumbs/failed/01/020304.webp')
-        >>> loc.thumbnail_failed_path(Path("/somewhere/else/020304.webp"))
-        Traceback (most recent call last):
-            ...
-        ValueError: ...
-        """
-
-        # Big assumption #1: the thumbnail path was constructed with the
-        # thumbnail_download_path() function above, and thus is inside our
-        # _thumbs_root. If it is not, it'll raise a ValueError.
-        rel_path = thumbnail_path.relative_to(self._thumbs_root)
-
-        # Big assumption #2: for the same reason, it's sitting in the "large"
-        # subdirectory of the thumbs root.
-        assert rel_path.parts[0] == self._thumbs_subpath_large
-        return self._thumbs_root / "failed" / Path(*rel_path.parts[1:])
-
 
 class DownloadStatus(enum.Enum):
     LOADING = 'loading'
@@ -241,9 +144,6 @@ class RemoteAssetListingDownloader:
     """
 
     _library_meta: api_models.AssetLibraryMeta | None
-
-    _noncritical_downloads: set[Path]
-    """Failing downloads to any of these files will not cause a complete shutdown."""
 
     _parser: json_parsing.ValidatingParser
 
@@ -298,7 +198,6 @@ class RemoteAssetListingDownloader:
         self._num_asset_pages_pending = 0
         self._referenced_local_files = []
         self._library_meta = None
-        self._noncritical_downloads = set()
 
         self._status = DownloadStatus.LOADING
         self._error_message = ""
@@ -469,9 +368,7 @@ class RemoteAssetListingDownloader:
                                  http_req_descr: http_dl.RequestDescription,
                                  unsafe_local_file: Path,
                                  ) -> None:
-        asset_page, used_unsafe_file = self._parse_api_model(unsafe_local_file, api_models.AssetLibraryIndexPageV1)
-
-        self._queue_thumbnail_downloads(asset_page)
+        _, used_unsafe_file = self._parse_api_model(unsafe_local_file, api_models.AssetLibraryIndexPageV1)
 
         # The file passed validation, so can be marked safe.
         if used_unsafe_file:
@@ -506,56 +403,6 @@ class RemoteAssetListingDownloader:
 
         self.report({'INFO'}, "Asset library index downloaded")
         self._shutdown_if_done()
-
-    def on_thumbnail_downloaded(self,
-                                http_req_descr: http_dl.RequestDescription,
-                                local_file: Path,
-                                ) -> None:
-        try:
-            # Check whether the file was actually an image.
-            assert http_req_descr.response_headers
-            content_type = http_req_descr.response_headers.get('content-type', "")
-
-            # Only check the content type if the server sends it back. Otherwise
-            # just trust that it's valid. For example, when sending a `304 Not
-            # Modified`, the server may actually skip the Content-Type header.
-            if content_type and not content_type.startswith('image/'):
-                logger.warning("Thumbnail URL %r has content type %r, expected an image",
-                               http_req_descr.url, content_type)
-                # TODO: mark as 'failed' so that this file isn't repeatedly
-                # downloaded and rejected. For now I'll just keep the file
-                # around, so that at least the timestamping works to prevent
-                # hammering the server.
-
-            # Indicate to a future run that we just confirmed this file is still fresh.
-            local_file.touch()
-
-            # Poke Blender so it knows there's a thumbnail update.
-            wm: bpy.types.WindowManager = bpy.context.window_manager
-            wm.asset_library_status_ping_loaded_new_previews(self.remote_url)
-        finally:
-            self._shutdown_if_done()
-
-    def _on_thumbnail_failed(
-        self,
-        http_req_descr: http_dl.RequestDescription,
-        local_file: Path,
-        error: Exception,
-    ) -> None:
-        """Create a 'failure' marker file, to prevent re-downloading this over and over again."""
-        try:
-            failure_path = self._locator.thumbnail_failed_path(local_file)
-        except ValueError:
-            # Just log the error. There is no need to disrupt the download process any further.
-            logger.exception("constructing 'failure' path from thumbnail path")
-            return
-
-        # The failure path existing, with a timestamp newer than the local file
-        # (if that exists in the first place), should be enough to prevent
-        # further downloads. It should also prevent Blender from trying to
-        # render the thumbnail.
-        failure_path.parent.mkdir(parents=True, exist_ok=True)
-        failure_path.touch(exist_ok=True)
 
     def _shutdown_if_done(self) -> None:
         if self._num_asset_pages_pending == 0 and self._bg_downloader.all_downloads_done:
@@ -630,48 +477,6 @@ class RemoteAssetListingDownloader:
         self._bg_downloader.queue_download(remote_url, download_to_path, on_done)
 
         return download_to_path
-
-    def _queue_thumbnail_downloads(self, asset_page: api_models.AssetLibraryIndexPageV1) -> None:
-        """Queue the download of all the thumbnails of all the assets in this page."""
-
-        # TODO: after all thumbnails of all asset listing pages have been
-        # processed, delete the ones that are no longer referenced.
-
-        # Create a lookup table for the asset files.
-        file_map: dict[str, api_models.FileV1] = {file.path: file for file in asset_page.files}
-
-        num_queued_thumbs = 0
-        for asset in asset_page.assets:
-            if not asset.thumbnail_url:
-                # TODO: delete any existing thumbnail?
-                continue
-
-            asset_file = file_map[asset.file]
-
-            thumbnail_path = self._locator.thumbnail_download_path(asset, asset_file)
-            if not thumbnail_path:
-                continue
-
-            failure_path = self._locator.thumbnail_failed_path(thumbnail_path)
-
-            # See if this download should happen at all.
-            should_download = _compare_thumbnail_filepath_timestamps(thumbnail_path, failure_path)
-            if not should_download:
-                continue
-
-            # Queue the thumbnail download, and remember that this is a
-            # non-critical download (so that errors don't cancel the entire download
-            # queue).
-            download_path = self._queue_download(asset.thumbnail_url, thumbnail_path, self.on_thumbnail_downloaded)
-            self._noncritical_downloads.add(download_path)
-
-            num_queued_thumbs += 1
-
-            # Because there can be a _lot_ of thumbnails in one page, call the
-            # update function periodically. Without this, the pipe between
-            # processes can deadlock.
-            if num_queued_thumbs % 100 == 0:
-                self._bg_downloader.update()
 
     # TODO: implement this in a more useful way:
     def report(self, level: set[str], message: str) -> None:
@@ -762,17 +567,6 @@ class RemoteAssetListingDownloader:
             self.shutdown(DownloadStatus.FAILED)
             return
 
-        if local_file in self._noncritical_downloads:
-            logger.warning("Could not download non-critical file %s: %s", http_req_descr, error)
-            # TODO: distinguish between "thumbnail" and "other non-critical". For now
-            # the only non-critical downloads are the thumbnails, though.
-            self._on_thumbnail_failed(http_req_descr, local_file, error)
-
-            # This could have been the last to-be-downloaded file, so better
-            # check if there's anything left to do.
-            self._shutdown_if_done()
-            return
-
         self.report({'ERROR'}, "Error downloading {}: {}".format(http_req_descr.url, error))
         logger.error("Error downloading %s: %s", http_req_descr, error)
         self.shutdown(DownloadStatus.FAILED)
@@ -792,12 +586,8 @@ class RemoteAssetListingDownloader:
         http_req_descr: http_dl.RequestDescription,
         local_file: Path,
     ) -> None:
-        if local_file in self._noncritical_downloads:
-            # Don't spam the reports & logs with all the thumbnail download.
-            logger.debug("Download finished: %s", http_req_descr)
-        else:
-            self.report({'INFO'}, "Download finished: {}".format(http_req_descr.url))
-            logger.info("Download finished: %s", http_req_descr)
+        self.report({'INFO'}, "Download finished: {}".format(http_req_descr.url))
+        logger.info("Download finished: %s", http_req_descr)
 
 
 def _sanitize_path_from_url(urlpath: PurePosixPath | str) -> PurePosixPath:
@@ -863,51 +653,6 @@ def _sanitize_path_from_url(urlpath: PurePosixPath | str) -> PurePosixPath:
         i -= 1
 
     return PurePosixPath(*parts)
-
-
-def _compare_thumbnail_filepath_timestamps(thumbnail_path: Path, failure_path: Path) -> bool:
-    """Check the thumbnail and 'failure' file timestamps.
-
-    If the thumbnail already exists, and is relatively new, it won't be
-    re-downloaded. If the failure path exists, and it's newer than the
-    thumbnail, the thumbnail also shouldn't be downloaded.
-
-    :return: whether this thumbnail should be downloaded or not.
-    """
-
-    now = time.time()
-
-    # Timestamp that indicates 'file does not exist'. Having this a valid number
-    # but smaller than any actual timestamp makes the logic in this function a
-    # bit easier.
-    DOES_NOT_EXIST = 0
-    try:
-        failure_mtime = failure_path.stat().st_mtime
-        failure_age_mins = (now - failure_mtime) // 60
-    except FileNotFoundError:
-        failure_mtime = DOES_NOT_EXIST
-        failure_age_mins = DOES_NOT_EXIST
-
-    try:
-        thumbnail_mtime = thumbnail_path.stat().st_mtime
-    except FileNotFoundError:
-        # The thumbnail does not exist, so it should be downloaded unless the
-        # failure file tells us not to.
-        return failure_mtime == DOES_NOT_EXIST or failure_age_mins > THUMBNAIL_FAILED_REDOWNLOAD_MINS
-
-    # If the failure file newer than the thumbnail, its age determines whether
-    # another attempt at downloading is ok.
-    if failure_mtime > thumbnail_mtime:
-        return failure_age_mins > THUMBNAIL_FAILED_REDOWNLOAD_MINS
-
-    # Check the age of the existing thumbnail file. If it's too young, don't
-    # try a conditional download to avoid DOSsing the server.
-    #
-    # To illustrate an experiment on my (Sybren) computer: doing ~1700 requests
-    # via Blender's conditional downloader, and getting `304 Not Modified` in
-    # return from a fairly efficient web server, still took about 2 seconds.
-    thumbnail_age_mins = (now - thumbnail_mtime) / 60
-    return thumbnail_age_mins > THUMBNAIL_FRESH_DURATION_MINS
 
 
 if __name__ == '__main__':

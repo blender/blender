@@ -23,15 +23,12 @@ from _bpy_internal.assets.remote_library_listing.listing_downloader import Remot
 
 logger = logging.getLogger(__name__)
 
+# Preview images will NOT be downloaded if they already exist on disk AND their
+# timestamp is younger than this age.
+PREVIEW_DOWNLOAD_AGE_THRESHOLD_SEC = 7 * 24 * 3600  # 1 week
 
 _asset_downloaders: dict[str, AssetDownloader] = {}
-
-_asset_downloaders_last_status: dict[str, DownloadStatus] = {}
-"""Last-known downloader status, for those downloaders that have stopped already.
-
-_asset_downloaders contains only the running downloaders, so when they're
-finished, their status can be obtained here.
-"""
+_preview_downloaders: dict[str, AssetDownloader] = {}
 
 
 def download_asset(asset_library_url: str, asset_library_local_path: Path, asset_url: str, save_to: Path) -> None:
@@ -53,40 +50,118 @@ def download_asset(asset_library_url: str, asset_library_local_path: Path, asset
     """
     try:
         downloader = _asset_downloaders[asset_library_url]
+        assert downloader.local_path == asset_library_local_path, "This code assumes that remote asset libraries do not move on the local disk"
     except KeyError:
-        downloader = AssetDownloader(asset_library_url, asset_library_local_path,
-                                     lambda x: None,
-                                     _download_done,
-                                     _destroy_asset_downloader)
+        downloader = AssetDownloader(
+            asset_library_url,
+            asset_library_local_path,
+            lambda x: None,  # on-update callback.
+            _asset_download_done,
+            lambda x: None,  # on-queue-empty callback.
+        )
         downloader.start()
         _asset_downloaders[asset_library_url] = downloader
-        _asset_downloaders_last_status.pop(asset_library_url, None)
 
     downloader.download_asset(asset_url, save_to)
 
 
-def _download_done(downloader: AssetDownloader) -> None:
+def download_preview(
+        asset_library_url: str,
+        asset_library_local_path: Path,
+        preview_url: str,
+        dst_filepath: Path) -> None:
+    """Download an asset preview to a file on disk.
+
+    :param asset_library_url: Root URL of the remote asset library. Used as an
+        identifier of this library (to create a downloader per library), as well
+        as for resolving relative URLs.
+
+    :param asset_library_local_path: Root path of the local asset cache. Used to
+        resolve relative `save_to` paths, but also to find the HTTP metadata
+        cache for this asset library (for conditional downloads).
+
+    :param preview_url: the URL to download. Can be absolute or relative.
+
+    :param savedst_filepath_to: the path on disk where to download to. While the
+        download is pending, ".part" will be appended to the filename. When the
+        download finishes succesfully, it is renamed to the final path.
+    """
+    import time
+
+    # Check if the file exists and is new enough. If it is, don't bother the server.
+    try:
+        stat = dst_filepath.stat()
+    except FileNotFoundError:
+        pass  # Fine, something new to download.
+    else:
+        # File exists, let's see if it's young enough to use as-is.
+        age_in_seconds = time.time() - stat.st_mtime
+        if age_in_seconds < PREVIEW_DOWNLOAD_AGE_THRESHOLD_SEC:
+            # The local file is still fresh, just pretend we just downloaded it.
+            wm = bpy.context.window_manager
+            wm.asset_library_status_ping_loaded_new_preview(asset_library_url, str(dst_filepath))
+            return
+
+    try:
+        downloader = _preview_downloaders[asset_library_url]
+        assert downloader.local_path == asset_library_local_path, "This code assumes that remote asset libraries do not move on the local disk"
+    except KeyError:
+        downloader = AssetDownloader(
+            asset_library_url,
+            asset_library_local_path,
+            lambda x: None,  # on-update callback.
+            _preview_download_done,
+            lambda x: None,  # on-queue-empty callback.
+        )
+        downloader.start()
+        _preview_downloaders[asset_library_url] = downloader
+
+    downloader.download_asset(preview_url, dst_filepath)
+
+
+def _asset_download_done(
+    downloader: AssetDownloader,
+    _http_req_descr: http_dl.RequestDescription,
+    _preview_local_path: Path,
+) -> None:
     wm = bpy.context.window_manager
     wm.asset_library_status_ping_loaded_new_assets(downloader.remote_url)
 
 
-def _destroy_asset_downloader(downloader: AssetDownloader) -> None:
-    """Delete the reference to this downloader, as it has been shut down."""
-    _asset_downloaders_last_status[downloader.remote_url] = downloader.status
-    del _asset_downloaders[downloader.remote_url]
+def _preview_download_done(
+    downloader: AssetDownloader,
+    http_req_descr: http_dl.RequestDescription,
+    preview_local_path: Path,
+) -> None:
+    # Check whether the file was actually an image.
+    assert http_req_descr.response_headers
+    content_type = http_req_descr.response_headers.get('content-type', "")
+
+    # Only check the content type if the server sends it back. Otherwise
+    # just trust that it's valid. For example, when sending a `304 Not
+    # Modified`, the server may actually skip the Content-Type header.
+    if content_type and not content_type.startswith('image/'):
+        logger.warning("Thumbnail URL %r has content type %r, expected an image",
+                       http_req_descr.url, content_type)
+        # TODO: mark as 'failed' so that this file isn't repeatedly
+        # downloaded and rejected. For now I'll just keep the file
+        # around, so that at least the timestamping works to prevent
+        # hammering the server.
+
+    # Indicate to a future run that we just confirmed this file is still fresh.
+    preview_local_path.touch()
+
+    # Poke Blender so it knows there's a thumbnail update.
+    wm = bpy.context.window_manager
+    wm.asset_library_status_ping_loaded_new_preview(downloader.remote_url, str(preview_local_path))
 
 
 def downloader_status(asset_library_url: str) -> DownloadStatus:
-    """Returns the downloader status.
-
-    This is either the actual status (if the downloader is still running), or
-    the last-known status (if it has shut down by now).
+    """Returns the asset downloader status.
 
     Raises a KeyError if there never was a downloader for this URL.
     """
-    if asset_library_url in _asset_downloaders:
-        return _asset_downloaders[asset_library_url].status
-    return _asset_downloaders_last_status[asset_library_url]
+    return _asset_downloaders[asset_library_url].status
 
 
 class DownloadStatus(enum.Enum):
@@ -107,14 +182,19 @@ class DownloadStatus(enum.Enum):
 class AssetDownloader:
     _locator: RemoteAssetListingLocator
 
+    # Called for download progres
     OnUpdateCallback: TypeAlias = Callable[['AssetDownloader'], None]
     _on_update_callback: OnUpdateCallback
+
+    # Called when the entire queue is 'done':
     OnDoneCallback: TypeAlias = Callable[['AssetDownloader'], None]
     _on_done_callback: OnDoneCallback
-    OnAssetDoneCallback: TypeAlias = Callable[['AssetDownloader'], None]
+
+    # Called for each downloaded file being 'done':
+    OnAssetDoneCallback: TypeAlias = Callable[['AssetDownloader', http_dl.RequestDescription, Path], None]
     _on_asset_done_callback: OnAssetDoneCallback | None
 
-    _bgdownloader: http_dl.BackgroundDownloader
+    _bg_downloader: http_dl.BackgroundDownloader | None
     _num_assets_pending: int
 
     _status: DownloadStatus
@@ -181,9 +261,9 @@ class AssetDownloader:
             cache_location=self._locator.http_metadata_cache_location,
         )
 
-        # Create the background downloader object now, so that it
-        # (hypothetically in some future) can be adjusted before the actual
-        # downloading begins.
+        self._bg_downloader = None
+
+    def _create_bg_downloader(self) -> None:
         self._bg_downloader = http_dl.BackgroundDownloader(
             options=http_dl.DownloaderOptions(
                 metadata_provider=self._http_metadata_provider,
@@ -202,6 +282,9 @@ class AssetDownloader:
 
     def start(self) -> None:
         """Start the background process."""
+        if not self._bg_downloader:
+            self._create_bg_downloader()
+            assert self._bg_downloader
         self._bg_downloader.start()
 
         # Register the timer for periodic message passing between the main and
@@ -216,12 +299,17 @@ class AssetDownloader:
             assert bpy.app.timers.is_registered(self.on_timer_event)
 
     def download_asset(self, asset_url: str, save_to: Path) -> None:
-        """Download an asset to a local file."""
+        """Download an asset or preview to a local file."""
+
+        # If the downloader was shut down, start it up again.
+        if not self._bg_downloader:
+            self.start()
+
         self._status = DownloadStatus.DOWNLOADING
         self._queue_download(asset_url, save_to)
 
     def _shutdown_if_done(self) -> None:
-        if self._num_assets_pending == 0 and self._bg_downloader.all_downloads_done:
+        if self._num_assets_pending == 0 and (self._bg_downloader is None or self._bg_downloader.all_downloads_done):
             # Done downloading everything, let's shut down.
 
             # TODO: delay this for a few minutes, so that we don't need a new
@@ -236,7 +324,7 @@ class AssetDownloader:
         logger.exception(
             "exception while handling downloaded file ({!r}, saved to {!r})".format(
                 http_req_descr, local_file))
-        self.report({'ERROR'}, "Asset download had an issue, download aborted")
+        self.report({'ERROR'}, "Resource download had an issue, download aborted")
         self.shutdown(DownloadStatus.FAILED)
 
     def _queue_download(self, asset_url: str, download_to_path: Path | str) -> Path:
@@ -246,18 +334,20 @@ class AssetDownloader:
 
         logger.info("downloading %s to %s", remote_url, download_to_path)
 
+        assert self._bg_downloader, "downloads can only be queued when the bgdownloader is available"
         self._bg_downloader.queue_download(
             remote_url,
             download_to_path,
-            self._on_asset_done,)
+            self._on_asset_done,
+        )
         return download_to_path
 
     def _on_asset_done(self,
                        http_req_descr: http_dl.RequestDescription,
-                       unsafe_local_file: Path,
+                       local_file: Path,
                        ) -> None:
         if self._on_asset_done_callback:
-            self._on_asset_done_callback(self)
+            self._on_asset_done_callback(self, http_req_descr, local_file)
 
     # TODO: implement this in a more useful way:
     def report(self, level: set[str], message: str) -> None:
@@ -276,24 +366,28 @@ class AssetDownloader:
             bpy.app.timers.unregister(self.on_timer_event)
 
         try:
-            # Only report if this is actually triggering a shutdown. If that was
-            # already triggered somehow, don't bother.
-            if not self._bg_downloader.is_shutdown_requested:
-                # It may be tempting to call self.report(...) here, and report on the
-                # cancellation. However, this should be done by the caller, when they know
-                # of the reason of the cancellation and thus can provide more info.
-                num_pending = self._bg_downloader.num_pending_downloads
-                if num_pending:
-                    logger.warning("Shutting down background downloader, %d downloads pending", num_pending)
+            if self._bg_downloader:
+                # Only report if this is actually triggering a shutdown. If that was
+                # already triggered somehow, don't bother.
+                if not self._bg_downloader.is_shutdown_requested:
+                    # It may be tempting to call self.report(...) here, and report on the
+                    # cancellation. However, this should be done by the caller, when they know
+                    # of the reason of the cancellation and thus can provide more info.
+                    num_pending = self._bg_downloader.num_pending_downloads
+                    if num_pending:
+                        logger.warning("Shutting down background downloader, %d downloads pending", num_pending)
 
-            self._bg_downloader.shutdown()
+                self._bg_downloader.shutdown()
         finally:
             # Regardless of whether the shutdown had some issues, the timer has
             # been unregistered, so there will be no more message handling, and
             # so for all intents and purposes, the downloader is done.
+            self._bg_downloader = None
             self._on_done_callback(self)
 
     def on_timer_event(self) -> float:
+        assert self._bg_downloader, "timer events should only come in while the bgdownloader is available"
+
         try:
             self._bg_downloader.update()
         except http_dl.BackgroundProcessNotRunningError:
@@ -321,6 +415,10 @@ class AssetDownloader:
     @property
     def remote_url(self) -> str:
         return self._locator.remote_url
+
+    @property
+    def local_path(self) -> Path:
+        return self._locator.local_path
 
     @property
     def status(self) -> DownloadStatus:

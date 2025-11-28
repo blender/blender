@@ -31,9 +31,13 @@ struct wmWindow;
 struct wmWindowManager;
 struct View2D;
 struct rcti;
-namespace blender::asset_system {
+
+namespace blender {
+class StringRef;
+namespace asset_system {
 class AssetLibrary;
 }
+}  // namespace blender
 
 #define FILE_LAYOUT_HOR 1
 #define FILE_LAYOUT_VER 2

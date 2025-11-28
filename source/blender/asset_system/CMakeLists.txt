@@ -7,6 +7,7 @@ set(INC
   intern
   intern/library_types
   ../makesrna
+  ../editors/include
 
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna

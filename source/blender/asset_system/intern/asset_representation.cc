@@ -23,6 +23,7 @@
 
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
+#include "AS_remote_library.hh"
 
 namespace blender::asset_system {
 
@@ -42,7 +43,8 @@ AssetRepresentation::AssetRepresentation(StringRef relative_asset_path,
                                          const int id_type,
                                          std::unique_ptr<AssetMetaData> metadata,
                                          AssetLibrary &owner_asset_library,
-                                         StringRef download_dst_filepath)
+                                         StringRef download_dst_filepath,
+                                         std::optional<StringRef> preview_url)
     : owner_asset_library_(owner_asset_library),
       relative_identifier_(relative_asset_path),
       asset_(AssetRepresentation::ExternalAsset{
@@ -50,7 +52,7 @@ AssetRepresentation::AssetRepresentation(StringRef relative_asset_path,
           id_type,
           std::move(metadata),
           nullptr,
-          std::make_unique<OnlineAssetInfo>(OnlineAssetInfo{download_dst_filepath})})
+          std::make_unique<OnlineAssetInfo>(OnlineAssetInfo{download_dst_filepath, preview_url})})
 {
 }
 
@@ -76,7 +78,7 @@ AssetWeakReference AssetRepresentation::make_weak_reference() const
   return AssetWeakReference::make_reference(owner_asset_library_, library_relative_identifier());
 }
 
-void AssetRepresentation::ensure_previewable()
+void AssetRepresentation::ensure_previewable(bContext &C, ReportList *reports)
 {
   if (ID *id = this->local_id()) {
     PreviewImage *preview = BKE_previewimg_id_get(id);
@@ -86,13 +88,29 @@ void AssetRepresentation::ensure_previewable()
 
   ExternalAsset &extern_asset = std::get<ExternalAsset>(asset_);
 
-  /* Use the full path as preview name, it's the only unique identifier we have. */
-  const std::string full_path = this->full_path();
-  const ThumbSource source = extern_asset.online_info_ ? THB_SOURCE_ONLINE_ASSET :
-                                                         THB_SOURCE_BLEND;
-  /* Doesn't do the actual reading, just allocates and attaches the derived load info. */
-  extern_asset.preview_ = BKE_previewimg_cached_thumbnail_read(
-      full_path.c_str(), full_path.c_str(), source, false);
+  if (extern_asset.preview_ && extern_asset.preview_->runtime->icon_id) {
+    return;
+  }
+
+  if (extern_asset.online_info_) {
+    if (!extern_asset.online_info_->preview_url_) {
+      return;
+    }
+
+    const std::string preview_path = remote_library_asset_preview_path(*this);
+    /* Doesn't do the actual reading, just allocates and attaches the derived load info. */
+    extern_asset.preview_ = BKE_previewimg_online_thumbnail_read(
+        this->full_path().c_str(), preview_path.c_str(), false);
+    remote_library_request_preview_download(C, *this, preview_path, reports);
+  }
+  else {
+    /* Use the full path as preview name, it's the only unique identifier we have. */
+    const std::string full_path = this->full_path();
+
+    /* Doesn't do the actual reading, just allocates and attaches the derived load info. */
+    extern_asset.preview_ = BKE_previewimg_cached_thumbnail_read(
+        full_path.c_str(), full_path.c_str(), THB_SOURCE_BLEND, false);
+  }
 
   BKE_icon_preview_ensure(nullptr, extern_asset.preview_);
 }
@@ -165,12 +183,20 @@ std::string AssetRepresentation::full_library_path() const
   return blend_path;
 }
 
-std::optional<StringRef> AssetRepresentation::download_dst_filepath() const
+std::optional<StringRefNull> AssetRepresentation::download_dst_filepath() const
 {
   if (!this->is_online()) {
     return {};
   }
   return std::get<ExternalAsset>(asset_).online_info_->download_dst_filepath_;
+}
+
+std::optional<StringRefNull> AssetRepresentation::online_asset_preview_url() const
+{
+  if (!this->is_online()) {
+    return {};
+  }
+  return std::get<ExternalAsset>(asset_).online_info_->preview_url_;
 }
 
 void AssetRepresentation::online_asset_mark_downloaded()

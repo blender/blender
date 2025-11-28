@@ -15,8 +15,13 @@
  * different design need to be introduced.
  */
 
+#include <optional>
+
 #include "BLI_compiler_attrs.h"
+#include "BLI_span.hh"
 #include "BLI_sys_types.h"
+
+#include "DNA_ID_enums.h"
 
 typedef void (*DrawInfoFreeFP)(void *drawinfo);
 
@@ -97,6 +102,31 @@ int BKE_icon_preview_ensure(ID *id, PreviewImage *preview);
  */
 int BKE_icon_imbuf_create(ImBuf *ibuf) ATTR_WARN_UNUSED_RESULT;
 ImBuf *BKE_icon_imbuf_get_buffer(int icon_id) ATTR_WARN_UNUSED_RESULT;
+/** The icon identified by \a icon_id is of an image buffer type. It was created from, owns and
+ * draws an image buffer (created with #BKE_icon_imbuf_create()). */
+bool BKE_icon_is_imbuf(int icon_id) ATTR_WARN_UNUSED_RESULT;
+
+/**
+ * Simple wrapper to reference a drawable pixel buffer (non-owning).
+ * Useful for draw functions that don't care where that buffer comes from (e.g. an #ImBuf icon or a
+ * #PreviewImage icon).
+ */
+struct IconBufferRef {
+  /** Width in pixels. */
+  int width;
+  /** Height in pixels. */
+  int height;
+  /** Reference to the pixels to be drawn (size of width * height * channels). */
+  blender::Span<uint8_t> buffer;
+};
+
+/**
+ * Get a non-owning buffer for the draw data of this icon.
+ *
+ * \note Only works for icons created from an #ImBuf (#BKE_icon_imbuf_create()), #PreviewImage
+ * (#BKE_icon_preview_ensure()) or ID (#BKE_icon_id_ensure()).
+ */
+std::optional<IconBufferRef> BKE_icon_get_buffer(int icon_id, eIconSizes size);
 
 /**
  * Retrieve icon for id.
