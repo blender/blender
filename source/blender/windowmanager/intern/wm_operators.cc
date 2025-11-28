@@ -2643,10 +2643,12 @@ static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *e
   switch (rc->subtype) {
     case PROP_NONE:
     case PROP_DISTANCE:
-    case PROP_DISTANCE_DIAMETER:
     case PROP_PIXEL:
-    case PROP_PIXEL_DIAMETER:
       d[0] = rc->initial_value;
+      break;
+    case PROP_DISTANCE_DIAMETER:
+    case PROP_PIXEL_DIAMETER:
+      d[0] = rc->initial_value / 2.0f;
       break;
     case PROP_PERCENTAGE:
       d[0] = (rc->initial_value) / 100.0f * WM_RADIAL_CONTROL_DISPLAY_WIDTH +
@@ -3390,6 +3392,13 @@ static wmOperatorStatus radial_control_modal(bContext *C, wmOperator *op, const 
           else {
             dist = clamp_f(-delta[0], 0.0f, FLT_MAX);
           }
+        }
+
+        /* If modifying a "diameter" value (e.g. the paint mode radii), assume that we've
+         * moved twice as far as we actually have to make the radius change in size in
+         * sync with the cursor */
+        if (ELEM(rc->subtype, PROP_DISTANCE_DIAMETER, PROP_PIXEL_DIAMETER)) {
+          dist *= 2.0f;
         }
 
         /* Calculate new value and apply snapping. */
