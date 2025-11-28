@@ -2312,6 +2312,7 @@ bool BM_vert_collapse_check_double_face(BMVert *v_collapse)
   BMEdge *e_b = (l_collapse_a_first->v == v_collapse) ? l_collapse_a_first->prev->e :
                                                         l_collapse_a_first->next->e;
   BLI_assert(e_a != e_b && BM_vert_in_edge(e_b, v_collapse));
+  UNUSED_VARS_NDEBUG(e_a);
   BMVert *v_a = BM_edge_other_vert(v_collapse->e, v_collapse);
   BMVert *v_b = BM_edge_other_vert(e_b, v_collapse);
 
