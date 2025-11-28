@@ -1618,8 +1618,8 @@ static bool select_more_less_impl(Scene *scene, bool select_more)
   }
 
   Set<Strip *> neighbors;
-  const int neighbor_selection_filter = select_more ? 0 : SEQ_SELECT;
-  const int selection_filter = select_more ? SEQ_SELECT : 0;
+  const int neighbor_selection_filter = select_more ? 0 : 1;
+  const eStripFlag selection_filter = select_more ? SEQ_SELECT : eStripFlag(0);
 
   LISTBASE_FOREACH (Strip *, strip, seq::active_seqbase_get(ed)) {
     if ((strip->flag & SEQ_SELECT) != selection_filter) {
