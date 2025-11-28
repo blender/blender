@@ -224,6 +224,13 @@ static TreeElement *outliner_drop_insert_collection_find(bContext *C,
   if (!collection_te) {
     return nullptr;
   }
+
+  /* We can't insert before/after/into a collection that itself is selected/dragged. */
+  TreeStoreElem *collection_tselem = TREESTORE(collection_te);
+  if ((collection_tselem->flag & TSE_SELECTED) != 0) {
+    return nullptr;
+  }
+
   Collection *collection = outliner_collection_from_tree_element(collection_te);
 
   if (collection_te != te) {
