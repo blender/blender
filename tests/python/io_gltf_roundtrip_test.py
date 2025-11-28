@@ -16,10 +16,29 @@ args = None
 
 
 def do_gltf_roundtrip(filepath, output_filepath, params_import, params_export):
+
+    # First, check if we need to enable Variant UI
+    if params_import.get("use_variants", False):
+        bpy.context.preferences.addons['io_scene_gltf2'].preferences.KHR_materials_variants_ui = True
+        del params_import["use_variants"]
+
     bpy.ops.import_scene.gltf(filepath=filepath, **params_import)
+
+    args = {
+        # Settings from "Remember Export Settings"
+        **dict(bpy.context.scene.get('glTF2ExportSettings', {})),
+    }
+    if 'export_format' in args:
+        del args['export_format']
+    if 'filepath' in args:
+        del args['filepath']
+
+    args.update(params_export)
+
     bpy.ops.export_scene.gltf(
         filepath=output_filepath,
-        **params_export)
+        **args,
+        export_format='GLTF_SEPARATE')
 
 
 class GLTFRoundtripTest(unittest.TestCase):

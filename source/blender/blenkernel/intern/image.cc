@@ -1293,7 +1293,7 @@ static void image_colorspace_from_imbuf(Image *image, const ImBuf *ibuf)
       colorspace_name = IMB_colormanagement_colorspace_get_name(ibuf->float_buffer.colorspace);
     }
     else {
-      colorspace_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_FLOAT);
+      colorspace_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
     }
   }
 

@@ -43,19 +43,31 @@ void clear_aovs()
 void output_aov(float4 color, float value, uint hash)
 {
 #if defined(MAT_RENDER_PASS_SUPPORT) && defined(GPU_FRAGMENT_SHADER)
-  for (int i = 0; i < AOV_MAX && i < uniform_buf.render_pass.aovs.color_len; i++) {
-    if (uniform_buf.render_pass.aovs.hash_color[i].x == hash) {
-      imageStoreFast(
-          rp_color_img, int3(int2(gl_FragCoord.xy), uniform_buf.render_pass.color_len + i), color);
-      return;
+  uint total_len = uniform_buf.render_pass.aovs.color_len + uniform_buf.render_pass.aovs.value_len;
+
+  /* Search hashes in uint4 packs with 4 comparisons to find the index of a matching AOV hash. */
+  uint hash_index;
+  for (hash_index = 0u; hash_index < AOV_MAX && hash_index < total_len; hash_index += 4u) {
+    bool4 cmp_mask = equal(uniform_buf.render_pass.aovs.hash[hash_index >> 2u], uint4(hash));
+    if (any(cmp_mask)) {
+      /* Left-reduce `cmp_mask` to find the index of the matching AOV hash. */
+      hash_index += (cmp_mask[0] ? 0u : (cmp_mask[1] ? 1u : (cmp_mask[2] ? 2u : 3u)));
+      break;
     }
   }
-  for (int i = 0; i < AOV_MAX && i < uniform_buf.render_pass.aovs.value_len; i++) {
-    if (uniform_buf.render_pass.aovs.hash_value[i].x == hash) {
-      imageStoreFast(rp_value_img,
-                     int3(int2(gl_FragCoord.xy), uniform_buf.render_pass.value_len + i),
-                     float4(value));
-      return;
+
+  /* If a candidate was found by hash, output to texture array layer. */
+  if (hash_index < total_len) {
+    /* Value hashes are stored after color hashes, so the index tells us the AOV type. */
+    bool is_value = hash_index >= uniform_buf.render_pass.aovs.color_len;
+    uint aov_index = hash_index - (is_value ? uniform_buf.render_pass.aovs.color_len : 0u);
+    if (is_value) {
+      uint render_pass_index = uniform_buf.render_pass.value_len + aov_index;
+      imageStoreFast(rp_value_img, int3(int2(gl_FragCoord.xy), render_pass_index), float4(value));
+    }
+    else {
+      uint render_pass_index = uniform_buf.render_pass.color_len + aov_index;
+      imageStoreFast(rp_color_img, int3(int2(gl_FragCoord.xy), render_pass_index), color);
     }
   }
 #endif

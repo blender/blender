@@ -90,6 +90,11 @@ struct VKExtensions {
    */
   bool line_rasterization = false;
 
+  /**
+   * Does the device support VK_EXT_extended_dynamic_state
+   */
+  bool extended_dynamic_state = false;
+
   /** Log enabled features and extensions. */
   void log() const;
 };
@@ -245,6 +250,9 @@ class VKDevice : public NonCopyable {
     PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectName = nullptr;
     PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessenger = nullptr;
     PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessenger = nullptr;
+
+    /* Extension: VK_EXT_extended_dynamic_state */
+    PFN_vkCmdSetFrontFace vkCmdSetFrontFace = nullptr;
 
     /* Extension: VK_KHR_external_memory_fd */
     PFN_vkGetMemoryFdKHR vkGetMemoryFd = nullptr;

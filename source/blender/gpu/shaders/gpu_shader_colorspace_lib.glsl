@@ -17,7 +17,7 @@ SHADER_LIBRARY_CREATE_INFO(gpu_srgb_to_framebuffer_space)
 
 /**
  * Input is Rec.709 sRGB.
- * Output is Rec.709 linear if hardware will add a Linear to sRGB comversion, noop otherwise.
+ * Output is Rec.709 linear if hardware will add a Linear to sRGB conversion, noop otherwise.
  * NOTE: Old naming convention, but avoids breaking compatibility for python shaders.
  *
  * As per GPU API design, all framebuffers with SRGBA_8_8_8_8 attachments will always enable SRGB
@@ -53,7 +53,7 @@ float4 blender_srgb_to_framebuffer_space(float4 srgb_color)
 
 /**
  * Input is Rec.709 sRGB.
- * Output is Rec.709 linear if hardware will add a Linear to sRGB comversion, noop otherwise.
+ * Output is Rec.709 linear if hardware will add a Linear to sRGB conversion, noop otherwise.
  */
 float4 blender_rec709_srgb_to_output_space(float4 srgb_color)
 {

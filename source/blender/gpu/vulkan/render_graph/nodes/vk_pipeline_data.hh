@@ -86,6 +86,7 @@ struct VKPipelineDataGraphics {
   VKViewportData viewport;
   std::optional<float> line_width;
   std::optional<StencilState> stencil_state;
+  std::optional<VkFrontFace> front_face;
 };
 
 /** Resources bound for a compute/graphics pipeline. */
@@ -142,6 +143,7 @@ struct VKBoundPipelines {
     VKViewportData viewport_state;
     std::optional<float> line_width;
     std::optional<StencilState> stencil_state;
+    std::optional<VkFrontFace> front_face;
   } graphics;
 };
 
@@ -166,11 +168,10 @@ static inline void vk_pipeline_data_copy(VKPipelineDataGraphics &dst,
  * - scissors
  * - line width
  * - stencil op + compare/write masks + reference
+ * - front face (when VK_EXT_extended_dynamic_state is available)
  */
 void vk_pipeline_dynamic_graphics_build_commands(VKCommandBufferInterface &command_buffer,
-                                                 const VKViewportData &viewport,
-                                                 const std::optional<float> line_width,
-                                                 const std::optional<StencilState> stencil_state,
+                                                 const VKPipelineDataGraphics &graphics,
                                                  VKBoundPipelines &r_bound_pipelines);
 
 /**

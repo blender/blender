@@ -61,9 +61,6 @@ def __filter_pbr_material(blender_material, export_settings):
 
 
 def __gather_base_color_factor(blender_material, export_settings):
-    if not blender_material.use_nodes:
-        return [*blender_material.diffuse_color[:3],
-                1.0], {"color": None, "alpha": None, "color_type": None, "alpha_type": None, "alpha_mode": "OPAQUE"}
 
     rgb, alpha = None, None
     vc_info = {"color": None, "alpha": None, "color_type": None, "alpha_type": None, "alpha_mode": "OPAQUE"}

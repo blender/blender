@@ -2561,6 +2561,7 @@ struct RadialControl {
   int initial_radial_center[2] = {};
   int slow_mouse[2] = {};
   bool slow_mode = false;
+  bool snap = false;
   Dial *dial = nullptr;
   blender::gpu::Texture *texture = nullptr;
   ListBase orig_paintcursors = {};
@@ -2623,10 +2624,12 @@ static void radial_control_set_initial_mouse(RadialControl *rc, const wmEvent *e
   switch (rc->subtype) {
     case PROP_NONE:
     case PROP_DISTANCE:
-    case PROP_DISTANCE_DIAMETER:
     case PROP_PIXEL:
-    case PROP_PIXEL_DIAMETER:
       d[0] = rc->initial_value;
+      break;
+    case PROP_DISTANCE_DIAMETER:
+    case PROP_PIXEL_DIAMETER:
+      d[0] = rc->initial_value / 2.0f;
       break;
     case PROP_PERCENTAGE:
       d[0] = (rc->initial_value) / 100.0f * WM_RADIAL_CONTROL_DISPLAY_WIDTH +
@@ -3134,6 +3137,18 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
   return 1;
 }
 
+static void radial_control_status(bContext *C, const RadialControl *radial_control)
+{
+  const char *ui_name = RNA_property_ui_name(radial_control->prop);
+
+  WorkspaceStatus status(C);
+  status.item(IFACE_("Confirm"), ICON_EVENT_RETURN, ICON_MOUSE_LMB);
+  status.item(IFACE_("Cancel"), ICON_EVENT_ESC, ICON_MOUSE_RMB);
+  status.item(ui_name, ICON_MOUSE_MOVE);
+  status.item_bool(IFACE_("Snap"), radial_control->snap, ICON_EVENT_CTRL);
+  status.item_bool(IFACE_("Precision Mode"), radial_control->slow_mode, ICON_EVENT_SHIFT);
+}
+
 static wmOperatorStatus radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   op->customdata = MEM_new<RadialControl>(__func__);
@@ -3219,6 +3234,7 @@ static wmOperatorStatus radial_control_invoke(bContext *C, wmOperator *op, const
       SPACE_TYPE_ANY, RGN_TYPE_ANY, op->type->poll, radial_control_paint_cursor, rc);
 
   WM_event_add_modal_handler(C, op);
+  radial_control_status(C, rc);
 
   return OPERATOR_RUNNING_MODAL;
 }
@@ -3249,6 +3265,7 @@ static void radial_control_cancel(bContext *C, wmOperator *op)
   }
 
   ED_area_status_text(area, nullptr);
+  ED_workspace_status_text(C, nullptr);
 
   WM_paint_cursor_end(static_cast<wmPaintCursor *>(rc->cursor));
 
@@ -3278,8 +3295,6 @@ static wmOperatorStatus radial_control_modal(bContext *C, wmOperator *op, const 
   bool handled = false;
   float numValue;
   /* TODO: fix hard-coded events. */
-
-  bool snap = (event->modifier & KM_CTRL) != 0;
 
   /* Modal numinput active, try to handle numeric inputs first... */
   if (event->val == KM_PRESS && has_numInput && handleNumInput(C, &rc->num_input, event)) {
@@ -3372,6 +3387,13 @@ static wmOperatorStatus radial_control_modal(bContext *C, wmOperator *op, const 
           }
         }
 
+        /* If modifying a "diameter" value (e.g. the paint mode radii), assume that we've
+         * moved twice as far as we actually have to make the radius change in size in
+         * sync with the cursor */
+        if (ELEM(rc->subtype, PROP_DISTANCE_DIAMETER, PROP_PIXEL_DIAMETER)) {
+          dist *= 2.0f;
+        }
+
         /* Calculate new value and apply snapping. */
         switch (rc->subtype) {
           case PROP_NONE:
@@ -3380,7 +3402,7 @@ static wmOperatorStatus radial_control_modal(bContext *C, wmOperator *op, const 
           case PROP_PIXEL:
           case PROP_PIXEL_DIAMETER:
             new_value = dist;
-            if (snap) {
+            if (rc->snap) {
               new_value = (int(new_value) + 5) / 10 * 10;
             }
             break;
@@ -3388,13 +3410,13 @@ static wmOperatorStatus radial_control_modal(bContext *C, wmOperator *op, const 
             new_value = ((dist - WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE) /
                          WM_RADIAL_CONTROL_DISPLAY_WIDTH) *
                         100.0f;
-            if (snap) {
+            if (rc->snap) {
               new_value = int(new_value + 2.5f) / 5 * 5;
             }
             break;
           case PROP_FACTOR:
             new_value = (WM_RADIAL_CONTROL_DISPLAY_SIZE - dist) / WM_RADIAL_CONTROL_DISPLAY_WIDTH;
-            if (snap) {
+            if (rc->snap) {
               new_value = (int(ceil(new_value * 10.0f)) * 10.0f) / 100.0f;
             }
             /* Invert new value to increase the factor moving the mouse to the right. */
@@ -3406,7 +3428,7 @@ static wmOperatorStatus radial_control_modal(bContext *C, wmOperator *op, const 
             if (new_value < 0.0f) {
               new_value += 2.0f * float(M_PI);
             }
-            if (snap) {
+            if (rc->snap) {
               new_value = DEG2RADF((int(RAD2DEGF(new_value)) + 5) / 10 * 10);
             }
             break;
@@ -3449,6 +3471,18 @@ static wmOperatorStatus radial_control_modal(bContext *C, wmOperator *op, const 
         }
       }
       break;
+    }
+
+    case EVT_LEFTCTRLKEY:
+    case EVT_RIGHTCTRLKEY: {
+      if (event->val == KM_PRESS) {
+        rc->snap = true;
+        handled = true;
+      }
+      if (event->val == KM_RELEASE) {
+        rc->snap = false;
+        handled = true;
+      }
     }
     default: {
       break;
@@ -3502,6 +3536,9 @@ static wmOperatorStatus radial_control_modal(bContext *C, wmOperator *op, const 
     radial_control_cancel(C, op);
   }
 
+  if (ret == OPERATOR_RUNNING_MODAL) {
+    radial_control_status(C, rc);
+  }
   return ret;
 }
 

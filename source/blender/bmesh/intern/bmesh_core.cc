@@ -50,14 +50,15 @@ using blender::Vector;
  * Check loops have matching vertices over a partial span
  * over `l_a` -> `l_a_end` & `l_a` -> `l_a_end` (inclusive).
  */
-bool bm_face_pair_overlap_check_subset_same_winding(BMLoop *l_a,
-                                                    BMLoop *l_a_end,
-                                                    BMLoop *l_b,
-                                                    BMLoop *l_b_end)
+static bool bm_face_pair_overlap_check_subset_same_winding(BMLoop *l_a,
+                                                           BMLoop *l_a_end,
+                                                           BMLoop *l_b,
+                                                           BMLoop *l_b_end)
 {
   BLI_assert(l_a->f == l_a_end->f);
   BLI_assert(l_b->f == l_b_end->f);
   BLI_assert(l_a->f != l_b->f);
+  UNUSED_VARS_NDEBUG(l_b_end);
 #ifndef NDEBUG
   /* Ensure the loops have the same topological distance. */
   {
@@ -95,14 +96,15 @@ bool bm_face_pair_overlap_check_subset_same_winding(BMLoop *l_a,
  * A version of #bm_face_pair_overlap_check_subset_same_winding
  * that walks over `l_b` in the reverse direction.
  */
-bool bm_face_pair_overlap_check_subset_swap_winding(BMLoop *l_a,
-                                                    BMLoop *l_a_end,
-                                                    BMLoop *l_b,
-                                                    BMLoop *l_b_end)
+static bool bm_face_pair_overlap_check_subset_swap_winding(BMLoop *l_a,
+                                                           BMLoop *l_a_end,
+                                                           BMLoop *l_b,
+                                                           BMLoop *l_b_end)
 {
   BLI_assert(l_a->f == l_a_end->f);
   BLI_assert(l_b->f == l_b_end->f);
   BLI_assert(l_a->f != l_b->f);
+  UNUSED_VARS_NDEBUG(l_b_end);
 #ifndef NDEBUG
   /* Ensure the loops have the same topological distance. */
   {
@@ -2310,6 +2312,7 @@ bool BM_vert_collapse_check_double_face(BMVert *v_collapse)
   BMEdge *e_b = (l_collapse_a_first->v == v_collapse) ? l_collapse_a_first->prev->e :
                                                         l_collapse_a_first->next->e;
   BLI_assert(e_a != e_b && BM_vert_in_edge(e_b, v_collapse));
+  UNUSED_VARS_NDEBUG(e_a);
   BMVert *v_a = BM_edge_other_vert(v_collapse->e, v_collapse);
   BMVert *v_b = BM_edge_other_vert(e_b, v_collapse);
 

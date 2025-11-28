@@ -280,6 +280,12 @@ void VKCommandBufferWrapper::set_stencil_reference(const uint32_t reference)
 {
   vkCmdSetStencilReference(vk_command_buffer_, VK_STENCIL_FACE_FRONT_AND_BACK, reference);
 }
+void VKCommandBufferWrapper::set_front_face(const VkFrontFace front_face)
+{
+  const VKDevice &device = VKBackend::get().device;
+  BLI_assert(device.functions.vkCmdSetFrontFace);
+  device.functions.vkCmdSetFrontFace(vk_command_buffer_, front_face);
+}
 
 void VKCommandBufferWrapper::begin_rendering(const VkRenderingInfo *p_rendering_info)
 {

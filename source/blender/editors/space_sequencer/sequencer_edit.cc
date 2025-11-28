@@ -2678,6 +2678,8 @@ static wmOperatorStatus sequencer_strip_jump_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  sync_active_scene_and_time_with_scene_strip(*C);
+
   DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 

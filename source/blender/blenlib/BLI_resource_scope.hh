@@ -55,6 +55,12 @@ class ResourceScope : NonCopyable, NonMovable {
   template<typename T> T *add(std::unique_ptr<T> resource);
 
   /**
+   * Pass ownership of the resource to the #ResourceScope. The reference count will be decremented
+   * when the #ResourceScope is destructed.
+   */
+  template<typename T> T *add(std::shared_ptr<T> resource);
+
+  /**
    * Pass ownership of the resource to the #ResourceScope. It will be destructed when the
    * #ResourceScope is destructed.
    */
@@ -109,6 +115,16 @@ template<typename T> inline T *ResourceScope::add(std::unique_ptr<T> resource)
     T *typed_data = reinterpret_cast<T *>(data);
     delete typed_data;
   });
+  return ptr;
+}
+
+template<typename T> inline T *ResourceScope::add(std::shared_ptr<T> resource)
+{
+  if (!resource) {
+    return nullptr;
+  }
+  T *ptr = resource.get();
+  this->add_destruct_call([resource = std::move(resource)]() mutable { resource.reset(); });
   return ptr;
 }
 

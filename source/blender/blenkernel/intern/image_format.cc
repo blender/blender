@@ -62,13 +62,14 @@ void BKE_image_format_update_color_space_for_type(ImageFormatData *format)
   }
 
   const bool image_requires_linear = BKE_imtype_requires_linear_float(format->imtype);
+  /* TODO: This is wrong, there are more linear colorspaces than scene linear. */
   const bool is_linear = IMB_colormanagement_space_name_is_scene_linear(
       format->linear_colorspace_settings.name);
 
   /* The color space is either not set or is linear but the image requires non-linear or vice
    * versa. So set to the default for the image type. */
   if (format->linear_colorspace_settings.name[0] == '\0' || image_requires_linear != is_linear) {
-    const int role = image_requires_linear ? COLOR_ROLE_DEFAULT_FLOAT : COLOR_ROLE_DEFAULT_BYTE;
+    const int role = image_requires_linear ? COLOR_ROLE_SCENE_LINEAR : COLOR_ROLE_DEFAULT_BYTE;
     const char *default_color_space = IMB_colormanagement_role_colorspace_name_get(role);
     STRNCPY_UTF8(format->linear_colorspace_settings.name, default_color_space);
   }

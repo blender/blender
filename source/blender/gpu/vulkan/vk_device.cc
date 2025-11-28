@@ -42,6 +42,7 @@ void VKExtensions::log() const
              "Device extensions\n"
              " - [%c] dynamic rendering local read\n"
              " - [%c] dynamic rendering unused attachments\n"
+             " - [%c] extended dynamic state\n"
              " - [%c] external memory\n"
              " - [%c] graphics pipeline library\n"
              " - [%c] line rasterization\n"
@@ -55,6 +56,7 @@ void VKExtensions::log() const
              wide_lines ? 'X' : ' ',
              dynamic_rendering_local_read ? 'X' : ' ',
              dynamic_rendering_unused_attachments ? 'X' : ' ',
+             extended_dynamic_state ? 'X' : ' ',
              external_memory ? 'X' : ' ',
              graphics_pipeline_library ? 'X' : ' ',
              line_rasterization ? 'X' : ' ',
@@ -178,6 +180,11 @@ void VKDevice::init_functions()
   functions.vkSetDebugUtilsObjectName = LOAD_FUNCTION(vkSetDebugUtilsObjectNameEXT);
   functions.vkCreateDebugUtilsMessenger = LOAD_FUNCTION(vkCreateDebugUtilsMessengerEXT);
   functions.vkDestroyDebugUtilsMessenger = LOAD_FUNCTION(vkDestroyDebugUtilsMessengerEXT);
+
+  /* VK_EXT_extended_dynamic_state */
+  if (extensions_.extended_dynamic_state) {
+    functions.vkCmdSetFrontFace = LOAD_FUNCTION(vkCmdSetFrontFaceEXT);
+  }
 
   if (extensions_.external_memory) {
 #ifdef _WIN32

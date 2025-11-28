@@ -57,7 +57,7 @@ class NODE_OT_add_image_sequence(Operator, NWBase, ImportHelper):
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
-        directory = self.directory
+        directory = bpy.path.abspath(self.directory)
         filename = self.filename
         files = self.files
         tree = context.space_data.node_tree

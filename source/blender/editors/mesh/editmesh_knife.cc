@@ -2609,6 +2609,11 @@ static bool point_is_visible(KnifeTool_OpData *kcd,
 {
   BMFace *f_hit;
 
+  /* Reject points that lie behind the viewpoint (perspective views only). */
+  if (!kcd->is_ortho && mul_project_m4_v3_zfac(kcd->vc.rv3d->persmat, p) <= 0.0f) {
+    return false;
+  }
+
   /* If box clipping on, make sure p is not clipped. */
   if (RV3D_CLIPPING_ENABLED(kcd->vc.v3d, kcd->vc.rv3d) &&
       ED_view3d_clipping_test(kcd->vc.rv3d, p, false))

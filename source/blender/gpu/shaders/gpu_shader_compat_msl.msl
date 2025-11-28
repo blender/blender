@@ -103,6 +103,12 @@
 #define _shared_sta (&
 #define _shared_end )
 
+float4 texelFetchExtend(sampler2D samp, int2 texel, int lvl)
+{
+  texel = clamp(texel, int2(0), textureSize(samp, lvl).xy - 1);
+  return texelFetch(samp, texel, lvl);
+}
+
 /* Resource accessor. */
 #define specialization_constant_get(create_info, _res) _res
 #define shared_variable_get(create_info, _res) _res

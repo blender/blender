@@ -304,6 +304,9 @@ void VKContext::update_pipeline_data(const VKFrameBuffer &framebuffer,
     GPU_shader_uniform_1f(shader, "size", -point_size);
   }
 
+  VKDevice &device = VKBackend::get().device;
+  const VKExtensions &extensions = device.extensions_get();
+
   /* Dynamic state line width */
   const bool is_line_primitive = ELEM(primitive,
                                       GPU_PRIM_LINES,
@@ -311,11 +314,9 @@ void VKContext::update_pipeline_data(const VKFrameBuffer &framebuffer,
                                       GPU_PRIM_LINE_STRIP,
                                       GPU_PRIM_LINES_ADJ,
                                       GPU_PRIM_LINE_STRIP_ADJ);
-
   if (is_line_primitive) {
-    const bool supports_wide_lines = VKBackend::get().device.extensions_get().wide_lines;
-    r_pipeline_data.line_width = supports_wide_lines ? state_manager.mutable_state.line_width :
-                                                       1.0f;
+    r_pipeline_data.line_width = extensions.wide_lines ? state_manager.mutable_state.line_width :
+                                                         1.0f;
   }
   else {
     r_pipeline_data.line_width.reset();
@@ -331,6 +332,13 @@ void VKContext::update_pipeline_data(const VKFrameBuffer &framebuffer,
   }
   else {
     r_pipeline_data.stencil_state.reset();
+  }
+
+  /* VK_EXT_extended_dynamic_state */
+  if (extensions.extended_dynamic_state) {
+    r_pipeline_data.front_face = state_manager.state.invert_facing ?
+                                     VK_FRONT_FACE_COUNTER_CLOCKWISE :
+                                     VK_FRONT_FACE_CLOCKWISE;
   }
 
   update_pipeline_data(vk_shader,

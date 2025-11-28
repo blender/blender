@@ -857,6 +857,17 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
     info.additional_info("eevee_cryptomatte_out");
   }
 
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA)) {
+    info.define("MAT_SHADER_TO_RGBA");
+  }
+
+  if (ELEM(pipeline_type, MAT_PIPE_DEFERRED, MAT_PIPE_FORWARD) &&
+      GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA))
+  {
+    info.additional_info("eevee_hiz_prev_data");
+    info.additional_info("eevee_previous_layer_radiance");
+  }
+
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_DIFFUSE)) {
     info.define("MAT_DIFFUSE");
   }

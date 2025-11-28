@@ -692,7 +692,7 @@ static uint64_t get_stable_pointer_hint_for_id(const ID &id, const bool is_undo)
    * memory (memfile).
    *
    * For the blendfile on disk, the ID name is used, together with its library if linked, as this
-   * is effectively the 'unique identifer' of IDs in blendfiles and accross linking, so if these
+   * is effectively the 'unique identifer' of IDs in blendfiles and across linking, so if these
    * change, it's also fine to get a different 'stable pointer'.
    *
    * For the undo memfile however, things are different: It is possible that a same ID name is

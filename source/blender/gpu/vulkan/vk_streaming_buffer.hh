@@ -36,7 +36,7 @@ class VKStreamingBuffer {
   /**Current offset in the host buffer where new data will be stored. */
   VkDeviceSize offset_ = 0;
   /**
-   * Render graph node handle for the copy of the host bufer to vk_buffer_dst_. Used to update the
+   * Render graph node handle for the copy of the host buffer to vk_buffer_dst_. Used to update the
    * previous added copy buffer node.
    */
   render_graph::NodeHandle copy_buffer_handle_ = 0;

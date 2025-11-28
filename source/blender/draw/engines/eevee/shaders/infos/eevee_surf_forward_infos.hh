@@ -49,6 +49,8 @@ FRAGMENT_SOURCE("eevee_surf_forward_frag.glsl")
 /* Optionally added depending on the material. */
 //  ADDITIONAL_INFO(eevee_render_pass_out)
 //  ADDITIONAL_INFO(eevee_cryptomatte_out)
+//  ADDITIONAL_INFO(eevee_hiz_prev_data)
+//  ADDITIONAL_INFO(eevee_previous_layer_radiance)
 ADDITIONAL_INFO(eevee_global_ubo)
 ADDITIONAL_INFO(eevee_light_data)
 ADDITIONAL_INFO(eevee_lightprobe_data)

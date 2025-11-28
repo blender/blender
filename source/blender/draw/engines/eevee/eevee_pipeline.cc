@@ -320,6 +320,7 @@ void ForwardPipeline::sync()
     {
       /* Common resources. */
       opaque_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+      opaque_ps_.bind_texture(RADIANCE_PREVIOUS_LAYER_TEX_SLOT, &inst_.render_buffers.combined_tx);
       opaque_ps_.bind_resources(inst_.uniform_data);
       opaque_ps_.bind_resources(inst_.lights);
       opaque_ps_.bind_resources(inst_.shadows);
@@ -348,6 +349,7 @@ void ForwardPipeline::sync()
 
     /* Textures. */
     sub.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+    sub.bind_texture(RADIANCE_PREVIOUS_LAYER_TEX_SLOT, &inst_.render_buffers.combined_tx);
 
     sub.bind_resources(inst_.uniform_data);
     sub.bind_resources(inst_.lights);
@@ -429,6 +431,13 @@ PassMain::Sub *ForwardPipeline::prepass_transparent_add(const Object *ob,
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
   pass->state_set(state);
   pass->material_set(*inst_.manager, gpumat, true);
+
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA) &&
+      GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT))
+  {
+    pass->bind_texture(HIZ_PREVIOUS_LAYER_TEX_SLOT, &inst_.hiz_buffer.back.ref_tx_);
+    pass->bind_texture(RADIANCE_PREVIOUS_LAYER_TEX_SLOT, &inst_.render_buffers.combined_tx);
+  }
   return pass;
 }
 
@@ -449,6 +458,13 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
   pass->state_set(state);
   pass->material_set(*inst_.manager, gpumat, true);
+
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA) &&
+      GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT))
+  {
+    pass->bind_texture(HIZ_PREVIOUS_LAYER_TEX_SLOT, &inst_.hiz_buffer.back.ref_tx_);
+    pass->bind_texture(RADIANCE_PREVIOUS_LAYER_TEX_SLOT, &inst_.render_buffers.combined_tx);
+  }
   return pass;
 }
 
@@ -496,12 +512,15 @@ void ForwardPipeline::render(View &view,
     return;
   }
 
+  inst_.hiz_buffer.swap_layer();
+
   GPU_debug_group_begin("Forward.Opaque");
 
   prepass_fb.bind();
   inst_.manager->submit(prepass_ps_, view);
 
   inst_.hiz_buffer.set_dirty();
+  inst_.hiz_buffer.update();
 
   inst_.shadows.set_view(view, extent);
   inst_.volume_probes.set_view(view);
@@ -576,7 +595,11 @@ void DeferredLayerBase::gbuffer_pass_sync(Instance &inst)
   gbuffer_ps_.bind_resources(inst.uniform_data);
   gbuffer_ps_.bind_resources(inst.sampling);
   gbuffer_ps_.bind_resources(inst.hiz_buffer.front);
+  gbuffer_ps_.bind_resources(inst.hiz_buffer.front);
   gbuffer_ps_.bind_resources(inst.cryptomatte);
+
+  gbuffer_ps_.bind_texture(HIZ_PREVIOUS_LAYER_TEX_SLOT, &inst.hiz_buffer.back.ref_tx_);
+  gbuffer_ps_.bind_texture(RADIANCE_PREVIOUS_LAYER_TEX_SLOT, &radiance_behind_tx_);
 
   /* Bind light resources for the NPR materials that gets rendered first.
    * Non-NPR shaders will override these resource bindings. */
@@ -584,24 +607,32 @@ void DeferredLayerBase::gbuffer_pass_sync(Instance &inst)
   gbuffer_ps_.bind_resources(inst.shadows);
   gbuffer_ps_.bind_resources(inst.sphere_probes);
   gbuffer_ps_.bind_resources(inst.volume_probes);
+  gbuffer_ps_.bind_texture(RADIANCE_PREVIOUS_LAYER_TEX_SLOT, &radiance_behind_tx_);
 
   DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_WRITE_STENCIL |
                    DRW_STATE_CLIP_CONTROL_UNIT_RANGE | DRW_STATE_STENCIL_ALWAYS;
 
   gbuffer_single_sided_hybrid_ps_ = &gbuffer_ps_.sub("DoubleSided");
+  gbuffer_single_sided_hybrid_ps_->bind_texture(RADIANCE_PREVIOUS_LAYER_TEX_SLOT,
+                                                &radiance_behind_tx_);
   gbuffer_single_sided_hybrid_ps_->state_set(state | DRW_STATE_CULL_BACK);
 
   gbuffer_double_sided_hybrid_ps_ = &gbuffer_ps_.sub("SingleSided");
+  gbuffer_double_sided_hybrid_ps_->bind_texture(RADIANCE_PREVIOUS_LAYER_TEX_SLOT,
+                                                &radiance_behind_tx_);
   gbuffer_double_sided_hybrid_ps_->state_set(state);
 
   gbuffer_double_sided_ps_ = &gbuffer_ps_.sub("DoubleSided");
+  gbuffer_double_sided_ps_->bind_texture(RADIANCE_PREVIOUS_LAYER_TEX_SLOT, &radiance_behind_tx_);
   gbuffer_double_sided_ps_->state_set(state);
 
   gbuffer_single_sided_ps_ = &gbuffer_ps_.sub("SingleSided");
+  gbuffer_single_sided_ps_->bind_texture(RADIANCE_PREVIOUS_LAYER_TEX_SLOT, &radiance_behind_tx_);
   gbuffer_single_sided_ps_->state_set(state | DRW_STATE_CULL_BACK);
 
   closure_bits_ = CLOSURE_NONE;
   closure_count_ = 0;
+  radiance_behind_tx_ = nullptr;
 }
 
 void DeferredLayer::begin_sync()
@@ -666,6 +697,8 @@ void DeferredLayer::end_sync(bool is_first_pass,
   const bool is_layer_refracted = (next_layer_has_transmission && has_any_closure);
   const bool has_transmit_closure = (closure_bits_ & (CLOSURE_REFRACTION | CLOSURE_TRANSLUCENT));
   const bool has_reflect_closure = (closure_bits_ & (CLOSURE_REFLECTION | CLOSURE_DIFFUSE));
+  const bool has_transparent_shader_to_rgba = (closure_bits_ & CLOSURE_TRANSPARENCY) &&
+                                              (closure_bits_ & CLOSURE_SHADER_TO_RGBA);
   use_raytracing_ = (has_transmit_closure || has_reflect_closure) &&
                     inst_.raytracing.use_raytracing();
   use_clamp_direct_ = inst_.sampling.use_clamp_direct();
@@ -675,7 +708,9 @@ void DeferredLayer::end_sync(bool is_first_pass,
 
   /* The first pass will never have any surfaces behind it. Nothing is refracted except the
    * environment. So in this case, disable tracing and fallback to probe. */
-  use_screen_transmission_ = use_raytracing_ && has_transmit_closure && !is_first_pass;
+  use_screen_transmission_ = use_raytracing_ &&
+                             (has_transmit_closure || has_transparent_shader_to_rgba) &&
+                             !is_first_pass;
   use_screen_reflection_ = use_raytracing_ && has_reflect_closure;
 
   use_feedback_output_ = (use_raytracing_ || is_layer_refracted) &&
@@ -925,8 +960,10 @@ gpu::Texture *DeferredLayer::render(View &main_view,
                                     gpu::Texture *radiance_behind_tx)
 {
   if (closure_count_ == 0) {
-    return nullptr;
+    return radiance_behind_tx;
   }
+
+  radiance_behind_tx_ = radiance_behind_tx ? radiance_behind_tx : dummy_black;
 
   RenderBuffers &rb = inst_.render_buffers;
 
@@ -1013,11 +1050,6 @@ gpu::Texture *DeferredLayer::render(View &main_view,
 
 void DeferredPipeline::begin_sync()
 {
-  Instance &inst = opaque_layer_.inst_;
-
-  const bool use_raytracing = (inst.scene->eevee.flag & SCE_EEVEE_SSR_ENABLED) != 0;
-  use_combined_lightprobe_eval = !use_raytracing;
-
   opaque_layer_.begin_sync();
   refraction_layer_.begin_sync();
 }
@@ -1083,7 +1115,7 @@ PassMain::Sub *DeferredPipeline::prepass_add(::Material *blender_mat,
                                              GPUMaterial *gpumat,
                                              bool has_motion)
 {
-  if (!use_combined_lightprobe_eval && (blender_mat->blend_flag & MA_BL_SS_REFRACTION)) {
+  if (blender_mat->blend_flag & MA_BL_SS_REFRACTION) {
     return refraction_layer_.prepass_add(blender_mat, gpumat, has_motion);
   }
   return opaque_layer_.prepass_add(blender_mat, gpumat, has_motion);
@@ -1091,7 +1123,7 @@ PassMain::Sub *DeferredPipeline::prepass_add(::Material *blender_mat,
 
 PassMain::Sub *DeferredPipeline::material_add(::Material *blender_mat, GPUMaterial *gpumat)
 {
-  if (!use_combined_lightprobe_eval && (blender_mat->blend_flag & MA_BL_SS_REFRACTION)) {
+  if (blender_mat->blend_flag & MA_BL_SS_REFRACTION) {
     return refraction_layer_.material_add(blender_mat, gpumat);
   }
   return opaque_layer_.material_add(blender_mat, gpumat);
@@ -1444,6 +1476,8 @@ void DeferredProbePipeline::render(View &view,
                                    int2 extent)
 {
   GPU_debug_group_begin("Probe.Render");
+
+  opaque_layer_.radiance_behind_tx_ = dummy_black;
 
   GPU_framebuffer_bind(prepass_fb);
   inst_.manager->submit(opaque_layer_.prepass_ps_, view);

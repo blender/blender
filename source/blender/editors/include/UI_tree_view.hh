@@ -128,8 +128,10 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
    * The total number of items in the tree during the last redraw.
    */
   int last_tot_items_ = 0;
-
   bool scroll_active_into_view_on_draw_ = false;
+  /**
+   * Collapse/expand state of filter panel.
+   */
   std::shared_ptr<char> show_display_options_ = std::make_shared<char>(0);
   /* `char[UI_MAX_NAME_STR]` wrapped in shared pointer, to keep a stable pointer over
    * reconstruction that can be passed to buttons. */
@@ -150,7 +152,6 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
 
   bool is_fully_visible() const override;
   void scroll(ViewScrollDirection direction) override;
-  /* Scroll to the active element when state is changed. */
 
   /**
    * \param xy: The mouse coordinates in window space.
@@ -191,6 +192,9 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
                            int &visible_item_index) const;
 
   int count_visible_descendants(const AbstractTreeViewItem &parent) const;
+  /**
+   * Scroll the view so the active item is visible.
+   */
   void scroll_active_into_view();
 };
 

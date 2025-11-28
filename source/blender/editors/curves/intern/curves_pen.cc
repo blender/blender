@@ -1178,7 +1178,8 @@ wmOperatorStatus PenToolOperation::invoke(bContext *C, wmOperator *op, const wmE
   this->move_point = RNA_boolean_get(op->ptr, "move_point");
   this->cycle_handle_type = RNA_boolean_get(op->ptr, "cycle_handle_type");
   this->extrude_handle = RNA_enum_get(op->ptr, "extrude_handle");
-  this->radius = RNA_float_get(op->ptr, "radius");
+  /* Size is stored as the diameter. */
+  this->radius = RNA_float_get(op->ptr, "size") / 2.0f;
 
   this->move_entire = false;
   this->snap_angle = false;
@@ -1454,7 +1455,8 @@ void pen_tool_common_props(wmOperatorType *ot)
                   false,
                   "Cycle Handle Type",
                   "Cycle between all four handle types");
-  RNA_def_float_distance(ot->srna, "radius", 0.01f, 0.0f, FLT_MAX, "Radius", "", 0.0f, 10.0f);
+  RNA_def_float_distance(
+      ot->srna, "size", 0.01f, 0.0f, FLT_MAX, "Size", "Diameter of new points", 0.0f, 10.0f);
 }
 
 wmKeyMap *ensure_keymap(wmKeyConfig *keyconf)
