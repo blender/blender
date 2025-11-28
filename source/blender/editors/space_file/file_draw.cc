@@ -1452,9 +1452,9 @@ void file_draw_list(const bContext *C, ARegion *region)
 
       const int file_type_icon = filelist_geticon_file_type(files, i, false);
       std::optional<IconBufferRef> preview_buf = file->preview_icon_id ?
-                                                  BKE_icon_get_buffer(file->preview_icon_id,
-                                                                      ICON_SIZE_PREVIEW) :
-                                                  std::nullopt;
+                                                     BKE_icon_get_buffer(file->preview_icon_id,
+                                                                         ICON_SIZE_PREVIEW) :
+                                                     std::nullopt;
 
       bool has_special_file_image = false;
 
