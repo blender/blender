@@ -319,6 +319,9 @@ static bool is_opcode_secure(const int opcode)
     OK_OP(POP_TOP)
     OK_OP(PUSH_NULL)
     OK_OP(NOP)
+#  if PY_VERSION_HEX >= 0x030e0000
+    OK_OP(NOT_TAKEN)
+#  endif
 #  if PY_VERSION_HEX < 0x030c0000
     OK_OP(UNARY_POSITIVE)
 #  endif
@@ -378,14 +381,19 @@ static bool is_opcode_secure(const int opcode)
 #  endif
 
 #  if PY_VERSION_HEX >= 0x030c0000
+#    if PY_VERSION_HEX < 0x030e0000
     OK_OP(RETURN_CONST)
+#    endif
     OK_OP(POP_JUMP_IF_FALSE)
     OK_OP(CALL_INTRINSIC_1)
 #  endif
     /* Special cases. */
     OK_OP(LOAD_CONST) /* Ok because constants are accepted. */
     OK_OP(LOAD_NAME)  /* Ok, because `PyCodeObject.names` is checked. */
-    OK_OP(CALL)       /* Ok, because we check its "name" before calling. */
+#  if PY_VERSION_HEX >= 0x030e0000
+    OK_OP(LOAD_SMALL_INT)
+#  endif
+    OK_OP(CALL) /* Ok, because we check its "name" before calling. */
 #  if PY_VERSION_HEX >= 0x030d0000
     OK_OP(CALL_KW) /* Ok, because it's used for calling functions with keyword arguments. */
 
