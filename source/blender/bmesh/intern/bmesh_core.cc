@@ -58,6 +58,7 @@ static bool bm_face_pair_overlap_check_subset_same_winding(BMLoop *l_a,
   BLI_assert(l_a->f == l_a_end->f);
   BLI_assert(l_b->f == l_b_end->f);
   BLI_assert(l_a->f != l_b->f);
+  UNUSED_VARS_NDEBUG(l_b_end);
 #ifndef NDEBUG
   /* Ensure the loops have the same topological distance. */
   {
@@ -103,6 +104,7 @@ static bool bm_face_pair_overlap_check_subset_swap_winding(BMLoop *l_a,
   BLI_assert(l_a->f == l_a_end->f);
   BLI_assert(l_b->f == l_b_end->f);
   BLI_assert(l_a->f != l_b->f);
+  UNUSED_VARS_NDEBUG(l_b_end);
 #ifndef NDEBUG
   /* Ensure the loops have the same topological distance. */
   {
