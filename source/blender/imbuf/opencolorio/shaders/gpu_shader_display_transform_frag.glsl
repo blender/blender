@@ -244,7 +244,12 @@ float4 OCIO_ProcessColor(float4 col, float4 col_overlay)
 #endif
 
 #ifdef OUTPUT_PREMULTIPLIED
-  if (col.a > 0.0 && col.a < 1.0) {
+  /* Note: do not premultiply with a=0 when input image was already
+   * premultiplied; we want to preserve pure emissive colors (#141013).
+   * However for straight alpha images do premultiply; in some cases
+   * their fully transparent regions contain garbage RGB data
+   * (#150156) and they can't express "pure emissive" colors anyway. */
+  if (col.a < 1.0 && !(parameters.use_predivide && col.a <= 0.0)) {
     col.rgb *= col.a;
   }
 #endif
