@@ -370,7 +370,7 @@ struct VKGraphicsPipelineCreateInfoBuilder {
       vk_pipeline_rasterization_line_state_info.lineStippleFactor = 0u;
       vk_pipeline_rasterization_line_state_info.lineStipplePattern = 0u;
       vk_pipeline_rasterization_line_state_info.pNext =
-          &vk_pipeline_rasterization_state_create_info.pNext;
+          vk_pipeline_rasterization_state_create_info.pNext;
       vk_pipeline_rasterization_state_create_info.pNext =
           &vk_pipeline_rasterization_line_state_info;
     }
