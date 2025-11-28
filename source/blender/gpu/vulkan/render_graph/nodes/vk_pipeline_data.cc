@@ -24,26 +24,29 @@ void vk_pipeline_data_copy(VKPipelineData &dst, const VKPipelineData &src)
 }
 
 void vk_pipeline_dynamic_graphics_build_commands(VKCommandBufferInterface &command_buffer,
-                                                 const VKViewportData &viewport,
-                                                 const std::optional<float> line_width,
-                                                 const std::optional<StencilState> stencil_state,
+                                                 const VKPipelineDataGraphics &graphics,
                                                  VKBoundPipelines &r_bound_pipelines)
 {
-  if (assign_if_different(r_bound_pipelines.graphics.viewport_state, viewport)) {
-    command_buffer.set_viewport(viewport.viewports);
-    command_buffer.set_scissor(viewport.scissors);
+  if (assign_if_different(r_bound_pipelines.graphics.viewport_state, graphics.viewport)) {
+    command_buffer.set_viewport(graphics.viewport.viewports);
+    command_buffer.set_scissor(graphics.viewport.scissors);
   }
-  if (assign_if_different(r_bound_pipelines.graphics.line_width, line_width)) {
-    if (line_width.has_value()) {
-      command_buffer.set_line_width(*line_width);
+  if (assign_if_different(r_bound_pipelines.graphics.line_width, graphics.line_width)) {
+    if (graphics.line_width.has_value()) {
+      command_buffer.set_line_width(*graphics.line_width);
     }
   }
-  if (assign_if_different(r_bound_pipelines.graphics.stencil_state, stencil_state)) {
-    if (stencil_state.has_value()) {
-      const StencilState &s = *stencil_state;
-      command_buffer.set_stencil_compare_mask(s.compare_mask);
-      command_buffer.set_stencil_write_mask(s.write_mask);
-      command_buffer.set_stencil_reference(s.reference);
+  if (assign_if_different(r_bound_pipelines.graphics.stencil_state, graphics.stencil_state)) {
+    if (graphics.stencil_state.has_value()) {
+      const StencilState &stencil_state = *graphics.stencil_state;
+      command_buffer.set_stencil_compare_mask(stencil_state.compare_mask);
+      command_buffer.set_stencil_write_mask(stencil_state.write_mask);
+      command_buffer.set_stencil_reference(stencil_state.reference);
+    }
+  }
+  if (assign_if_different(r_bound_pipelines.graphics.front_face, graphics.front_face)) {
+    if (graphics.front_face.has_value()) {
+      command_buffer.set_front_face(*graphics.front_face);
     }
   }
 }
