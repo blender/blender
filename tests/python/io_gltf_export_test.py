@@ -17,10 +17,22 @@ args = None
 
 def do_gltf_export(filepath, output_filepath, params_import, params_export):
     bpy.ops.wm.open_mainfile(filepath=str(filepath))
+
+    args = {
+        # Settings from "Remember Export Settings"
+        **dict(bpy.context.scene.get('glTF2ExportSettings', {})),
+    }
+    if 'export_format' in args:
+        del args['export_format']
+    if 'filepath' in args:
+        del args['filepath']
+
+    args.update(params_export)
+
     bpy.ops.export_scene.gltf(
+        **args,
         filepath=output_filepath,
-        export_format='GLTF_SEPARATE',
-        **params_export)
+        export_format='GLTF_SEPARATE')
 
 
 class GLTFExportTest(unittest.TestCase):

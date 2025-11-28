@@ -37,6 +37,9 @@ None
       ]
     },
     {
+      "extras": {
+        "extras_float": 1.0
+      },
       "mesh": 0,
       "name": "Cube",
       "skin": 0
