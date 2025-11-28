@@ -877,13 +877,25 @@ static wmOperatorStatus lattice_add_to_selected_exec(bContext *C, wmOperator *op
       BLI_assert(ob != ob_lattice);
       BLI_assert(object_can_have_lattice_modifier(ob));
 
-      LatticeModifierData *lmd = (LatticeModifierData *)modifier_add(
-          op->reports, bmain, scene, ob, nullptr, eModifierType_Lattice);
-      if (UNLIKELY(lmd == nullptr)) {
-        continue;
-      }
+      if (ob->type == OB_GREASE_PENCIL) {
+        GreasePencilLatticeModifierData *lmd = reinterpret_cast<GreasePencilLatticeModifierData *>(
+            modifier_add(
+                op->reports, bmain, scene, ob, nullptr, eModifierType_GreasePencilLattice));
+        if (UNLIKELY(lmd == nullptr)) {
+          continue;
+        }
 
-      lmd->object = ob_lattice;
+        lmd->object = ob_lattice;
+      }
+      else {
+        LatticeModifierData *lmd = reinterpret_cast<LatticeModifierData *>(
+            modifier_add(op->reports, bmain, scene, ob, nullptr, eModifierType_Lattice));
+        if (UNLIKELY(lmd == nullptr)) {
+          continue;
+        }
+
+        lmd->object = ob_lattice;
+      }
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
     }
