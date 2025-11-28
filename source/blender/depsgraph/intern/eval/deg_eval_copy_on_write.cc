@@ -763,8 +763,6 @@ ID *deg_expand_eval_copy_datablock(const Depsgraph *depsgraph, const IDNode *id_
   BLI_assert(id_cow->runtime == nullptr);
 
   /* Copy data from original ID to a copied version. */
-  /* TODO(sergey): Avoid doing full ID copy somehow, make Mesh to reference
-   * original geometry arrays for until those are modified. */
   /* TODO(sergey): We do some trickery with temp bmain and extra ID pointer
    * just to be able to use existing API. Ideally we need to replace this with
    * in-place copy from existing datablock to a prepared memory.
