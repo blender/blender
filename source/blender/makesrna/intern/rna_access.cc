@@ -1247,7 +1247,10 @@ const char *RNA_property_description(PropertyRNA *prop)
 
 const DeprecatedRNA *RNA_property_deprecated(const PropertyRNA *prop)
 {
-  return prop->deprecated;
+  if (prop->magic == RNA_MAGIC) {
+    return prop->deprecated;
+  }
+  return nullptr;
 }
 
 PropertyType RNA_property_type(PropertyRNA *prop)
