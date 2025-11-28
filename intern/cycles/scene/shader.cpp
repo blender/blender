@@ -420,6 +420,7 @@ void Shader::tag_update(Scene *scene)
   if (has_volume != prev_has_volume || volume_step_rate != prev_volume_step_rate) {
     scene->geometry_manager->need_flags_update = true;
     scene->object_manager->need_flags_update = true;
+    scene->volume_manager->need_update_step_size = true;
     prev_volume_step_rate = volume_step_rate;
   }
 
