@@ -166,6 +166,8 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
   }
 
   /* Copy for detecting UI changes. */
+  opts->orig_imtype = opts->im_format.imtype;
+  STRNCPY(opts->orig_colorspace, opts->im_format.linear_colorspace_settings.name);
   opts->prev_save_as_render = opts->save_as_render;
   opts->prev_imtype = opts->im_format.imtype;
 
@@ -187,13 +189,20 @@ void BKE_image_save_options_update(ImageSaveOptions *opts, const Image *image)
       }
     }
   }
-  else {
-    if (opts->prev_save_as_render) {
-      /* Copy colorspace from image settings. */
-      BKE_color_managed_colorspace_settings_copy(&opts->im_format.linear_colorspace_settings,
-                                                 &image->colorspace_settings);
+  else if (opts->prev_save_as_render || BKE_imtype_requires_linear_float(opts->im_format.imtype) !=
+                                            BKE_imtype_requires_linear_float(opts->prev_imtype))
+  {
+    if (IMB_colormanagement_space_name_is_data(opts->im_format.linear_colorspace_settings.name)) {
+      /* Stays the same regardless of file format. */
     }
-    else if (opts->im_format.imtype != opts->prev_imtype) {
+    else if (BKE_imtype_requires_linear_float(opts->im_format.imtype) ==
+             BKE_imtype_requires_linear_float(opts->orig_imtype))
+    {
+      /* Same type of colorspace needed as original image, so preserve that. */
+      STRNCPY(opts->im_format.linear_colorspace_settings.name, opts->orig_colorspace);
+    }
+    else {
+      /* Update for different file format. */
       BKE_image_format_update_color_space_for_type(&opts->im_format);
     }
   }
