@@ -255,5 +255,26 @@ TEST(multi_function, IgnoredOutputs)
   }
 }
 
+TEST(multi_function, build_move_only)
+{
+  auto adder = std::make_unique<int>(10);
+  const auto fn = mf::build::SI1_SO<int, int>(
+      "add", [adder = std::move(adder)](const int a) { return a + *adder; });
+
+  const IndexMask mask(2);
+  ParamsBuilder params(fn, &mask);
+
+  Array<int> inputs = {3, 5};
+  Array<int> outputs(2);
+  params.add_readonly_single_input(inputs.as_span());
+  params.add_uninitialized_single_output(outputs.as_mutable_span());
+
+  ContextBuilder context;
+  fn.call(mask, params, context);
+
+  EXPECT_EQ(outputs[0], 13);
+  EXPECT_EQ(outputs[1], 15);
+}
+
 }  // namespace
 }  // namespace blender::fn::multi_function::tests
