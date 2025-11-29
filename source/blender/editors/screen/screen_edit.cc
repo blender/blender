@@ -1073,6 +1073,9 @@ static void screen_cursor_set(wmWindow *win, const int xy[2])
     else if (az->type == AZONE_REGION_SCROLL) {
       WM_cursor_set(win, WM_CURSOR_DEFAULT);
     }
+    else if (az->type == AZONE_REGION_QUAD) {
+      WM_cursor_set(win, WM_CURSOR_NSEW_SCROLL);
+    }
     else if (az->type == AZONE_REGION) {
       if (ELEM(az->edge, AE_LEFT_TO_TOPRIGHT, AE_RIGHT_TO_TOPLEFT)) {
         WM_cursor_set(win, WM_CURSOR_X_MOVE);
@@ -1672,6 +1675,8 @@ static bScreen *screen_state_to_nonnormal(bContext *C,
   if (toggle_area) {
     ED_area_data_swap(newa, toggle_area);
     newa->flag = toggle_area->flag; /* mostly for AREA_FLAG_WASFULLSCREEN */
+    newa->quadview_ratio[0] = toggle_area->quadview_ratio[0];
+    newa->quadview_ratio[1] = toggle_area->quadview_ratio[1];
   }
 
   if (state == SCREENFULL) {
@@ -1855,6 +1860,8 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
     if (fullsa) {
       ED_area_data_swap(fullsa, area);
       ED_area_tag_refresh(fullsa);
+      fullsa->quadview_ratio[0] = area->quadview_ratio[0];
+      fullsa->quadview_ratio[1] = area->quadview_ratio[1];
     }
 
     /* animtimer back */

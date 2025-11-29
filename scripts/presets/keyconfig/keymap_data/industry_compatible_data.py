@@ -281,6 +281,7 @@ def km_screen_editing(params):
         ("screen.area_dupli", {"type": 'ACTIONZONE_AREA', "value": 'ANY', "shift": True}, None),
         ("screen.area_swap", {"type": 'ACTIONZONE_AREA', "value": 'ANY', "ctrl": True}, None),
         ("screen.region_scale", {"type": 'ACTIONZONE_REGION', "value": 'ANY'}, None),
+        ("screen.quadview_size", {"type": 'ACTIONZONE_REGION_QUAD', "value": 'ANY'}, None),
         ("screen.screen_full_area", {"type": 'ACTIONZONE_FULLSCREEN', "value": 'ANY'},
          {"properties": [("use_hide_panels", True)]}),
         # Area move after action zones

@@ -489,6 +489,8 @@ typedef struct ScrArea {
   /** Non-NULL if this area is global. */
   ScrGlobalAreaData *global;
 
+  float quadview_ratio[2];
+
   /**
    * #SpaceLink.
    * A list of space links (editors) that were open in this area before. When
