@@ -143,16 +143,16 @@ enum {
 };
 
 struct MainColorspace {
-  /*
-   * File working colorspace for all scene linear colors.
+  /**
+   * File working color-space for all scene linear colors.
    * The name is only for the user interface and is not a unique identifier, the matrix is
-   * the XYZ colorspace is the source of truth.
+   * the XYZ color-space is the source of truth.
    * */
   char scene_linear_name[64 /*MAX_COLORSPACE_NAME*/] = "";
   blender::float3x3 scene_linear_to_xyz = blender::float3x3::zero();
 
-  /*
-   * A colorspace, view or display was not found, which likely means the OpenColorIO config
+  /**
+   * A color-space, view or display was not found, which likely means the OpenColorIO config
    * used to create this blend file is missing.
    */
   bool is_missing_opencolorio_config = false;
@@ -269,8 +269,8 @@ struct Main : blender::NonCopyable, blender::NonMovable {
    */
   Library *curlib = nullptr;
 
-  /*
-   * Colorspace information for this file.
+  /**
+   * Color-space information for this file.
    */
   MainColorspace colorspace;
 
@@ -668,9 +668,11 @@ MainListsArray BKE_main_lists_get(Main &bmain);
   ((main)->versionfile < (ver) || \
    ((main)->versionfile == (ver) && (main)->subversionfile <= (subver)))
 
-/* NOTE: in case versionfile is 0, this check is invalid, always return false then. This happens
+/**
+ * \note in case `versionfile` is 0, this check is invalid, always return false then. This happens
  * typically when a library is missing, by definition its data (placeholder IDs) does not need
- * versionning anyway then. */
+ * versioning anyway then.
+ */
 #define LIBRARY_VERSION_FILE_ATLEAST(lib, ver, subver) \
   ((lib)->runtime->versionfile == 0 || (lib)->runtime->versionfile > (ver) || \
    ((lib)->runtime->versionfile == (ver) && (lib)->runtime->subversionfile >= (subver)))

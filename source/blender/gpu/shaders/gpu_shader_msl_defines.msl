@@ -6,7 +6,7 @@
 
 #pragma runtime_generated
 
-/* Workgroup size as defines for compute shaders. */
+/* Work-group size as defines for compute shaders. */
 #define MTL_WORKGROUP_SIZE_X 16
 #define MTL_WORKGROUP_SIZE_Y 16
 #define MTL_WORKGROUP_SIZE_Z 16

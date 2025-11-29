@@ -27,7 +27,7 @@ static void blur_pass(const Result &input, const Result &weights, Result &output
    * information on the reasoning behind this. */
   const int2 size = int2(output.domain().data_size.y, output.domain().data_size.x);
   parallel_for(size, [&](const int2 texel) {
-    /* Use float4 for Color types since Color does not support arithmetics. */
+    /* Use float4 for Color types since Color does not support arithmetic. */
     using AccumulateT = std::conditional_t<std::is_same_v<T, Color>, float4, T>;
     AccumulateT accumulated_value = AccumulateT(0);
 

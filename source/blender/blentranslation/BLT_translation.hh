@@ -91,7 +91,7 @@ blender::StringRef BLT_translate_do_new_dataname(blender::StringRef msgctxt,
 #define BLT_I18NCONTEXT_PLURAL "Plural"
 
 /* Some words can be either countable or uncountable in English, but translate to different words
- * in other languages. An exemple is "Amount", which can refer to "a number of things", countable,
+ * in other languages. An example is "Amount", which can refer to "a number of things", countable,
  * or "a quantity or volume", uncountable. */
 #define BLT_I18NCONTEXT_COUNTABLE "Countable"
 

@@ -741,7 +741,7 @@ static void ui_item_array(Layout *layout,
     for (int a = 0; a < len; a++) {
       /* We are going over flat array indices (the way matrices are stored internally [also check
        * logic in #pyrna_py_from_array_index()]) -- and they are not ordered "row first" -- , so
-       * map these to rows/colums. */
+       * map these to rows/columns. */
       col = a % dim_size[1];
       row = a / dim_size[1];
 

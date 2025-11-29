@@ -484,7 +484,7 @@ bool AssetCatalogService::write_to_disk_ex(const CatalogFilePath &blend_file_pat
 
   /* - Already loaded a CDF from disk? -> Only write to that file when there were actual changes.
    * This prevents touching the file, which can cause issues when multiple Blender instances are
-   * accessing the same file (like on shared storage, Syncthing, etc.). See #111576.
+   * accessing the same file (like on shared storage, Sync-thing, etc.). See #111576.
    */
   if (catalog_collection_->catalog_definition_file_) {
     /* Always sync with what's on disk. */

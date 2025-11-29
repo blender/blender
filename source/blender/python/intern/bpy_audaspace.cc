@@ -50,7 +50,7 @@ PyObject *BPyInit_audaspace()
 {
   PyObject *module = PyInit_aud();
   if (module == nullptr) {
-    printf("Unable to initialise audio\n");
+    printf("Unable to initialize audio\n");
     return nullptr;
   }
 

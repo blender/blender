@@ -188,6 +188,7 @@ dict_custom = {
     "foveation",
     "generatrix",
     "glitchy",
+    "handlings",
     "haptics",
     "headerless",
     "highlightable",

@@ -1780,7 +1780,7 @@ static void draw_timeline_grid(const TimelineDrawContext &ctx)
 
   const Scene *scene = ctx.scene;
   if (scene == nullptr) {
-    /* If we don't have a scene available, pick what we defined as default for framerate to show
+    /* If we don't have a scene available, pick what we defined as default for frame-rate to show
      * *something*. */
     scene = DNA_struct_default_get(Scene);
   }

@@ -76,7 +76,7 @@ class VIEW3D_PT_copy_global_transform_fix_to_camera(GlobalTransformPanelMixin, P
             # the other operators as well. Fix to Camera is treated as a special
             # case because it also has options for selecting what to key. The
             # logical AND of the settings is used, so a property is only keyed
-            # when the keying set AND the above checkboxes say it's ok.
+            # when the keying set AND the above check-boxes say it's OK.
             props_box.label(text="Keying set is active, which may")
             props_box.label(text="reduce the effect of the above options")
 

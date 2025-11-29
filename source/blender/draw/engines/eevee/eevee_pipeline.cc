@@ -651,7 +651,7 @@ void DeferredLayer::begin_sync()
     prepass_ps_.bind_resources(inst_.velocity);
     prepass_ps_.bind_resources(inst_.sampling);
 
-    /* Clear stencil buffer so that prepass can tag it. Then draw a fullscreen triangle that will
+    /* Clear stencil buffer so that prepass can tag it. Then draw a full-screen triangle that will
      * clear AOVs for all the pixels touched by this layer. */
     prepass_ps_.clear_stencil(0xFFu);
     prepass_ps_.state_stencil(0xFFu, 0u, 0xFFu);

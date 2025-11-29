@@ -202,7 +202,7 @@ ListBakeItem::~ListBakeItem() = default;
 
 void ListBakeItem::count_memory(MemoryCounter & /*memory*/) const
 {
-  /* TODO this function seems unused atm. */
+  /* TODO this function seems unused at the moment. */
 }
 
 PrimitiveBakeItem::PrimitiveBakeItem(const CPPType &type, const void *value) : type_(type)

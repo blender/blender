@@ -231,7 +231,7 @@ struct FontBufInfoBLF {
   /** Buffer size, keep signed so comparisons with negative values work. */
   int dims[2];
 
-  /** Colorspace of the byte buffer (float is scene linear). */
+  /** Color-space of the byte buffer (float is scene linear). */
   const ColorSpace *colorspace;
 
   /** The color, the alphas is get from the glyph! (color is sRGB space). */

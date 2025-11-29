@@ -95,7 +95,7 @@ static void library_copy_data(Main *bmain,
     library_dst->packedfile = BKE_packedfile_duplicate(library_src->packedfile);
   }
 
-  /* Only explicitely copy a sub-set of the runtime data. */
+  /* Only explicitly copy a sub-set of the runtime data. */
   library_dst->runtime = MEM_new<LibraryRuntime>(__func__);
   BLI_strncpy(library_dst->runtime->filepath_abs,
               library_src->runtime->filepath_abs,

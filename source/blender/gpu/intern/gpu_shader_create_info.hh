@@ -1664,7 +1664,7 @@ struct ShaderCreateInfo {
   /**
    * \brief Create a new pipeline state.
    *
-   * On Metal and Vulkan pipelines states will be precompiled when creating the shader to reduce
+   * On Metal and Vulkan pipelines states will be pre-compiled when creating the shader to reduce
    * compilation stuttering when using the shader.
    *
    * \note returned pipeline state is only guaranteed to be valid until the next call to this

@@ -110,9 +110,11 @@ enum GPUBlend {
   /** Multiplies every channel (alpha included) by `1 - SRC.a`. Used for piercing a hole using an
    * image alpha channel. */
   GPU_BLEND_OVERLAY_MASK_FROM_ALPHA,
-  /** Alpha channel is interpreted as transmittance (aka transparency) and not alpha.
-   * To be used with a framebuffer with alpha cleared to 1 for full transparency.
-   * Equivalent to: `DST.rgba * SRC.a + float4(SRC.rgb, 0.0)`. */
+  /**
+   * Alpha channel is interpreted as transmittance (aka transparency) and not alpha.
+   * To be used with a frame-buffer with alpha cleared to 1 for full transparency.
+   * Equivalent to: `DST.rgba * SRC.a + float4(SRC.rgb, 0.0)`.
+   */
   GPU_BLEND_TRANSPARENCY,
 };
 

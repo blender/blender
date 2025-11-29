@@ -160,7 +160,7 @@ static bool asset_write_in_library(Main &bmain,
 
   ID &id = const_cast<ID &>(id_const);
 
-  /* This is not expected to ever happen currently from this codepath. */
+  /* This is not expected to ever happen currently from this code-path. */
   BLI_assert(!ID_IS_PACKED(&id));
 
   PartialWriteContext lib_write_ctx{bmain};

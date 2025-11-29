@@ -1492,7 +1492,7 @@ bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
     return true;
   }
   if (interop_id == "g24_rec2020_display") {
-    /* There is no gamma 2.4 trc, but BT.709 is close. */
+    /* There is no gamma 2.4 TRC, but BT.709 is close. */
     cicp[0] = CICP_PRI_REC2020;
     cicp[1] = CICP_TRC_BT709;
     cicp[2] = (rgb_matrix) ? CICP_MATRIX_RGB : CICP_MATRIX_REC2020_NCL;
@@ -1500,7 +1500,7 @@ bool IMB_colormanagement_space_to_cicp(const ColorSpace *colorspace,
     return true;
   }
   if (interop_id == "g24_rec709_display") {
-    /* There is no gamma 2.4 trc, but BT.709 is close. */
+    /* There is no gamma 2.4 TRC, but BT.709 is close. */
     cicp[0] = CICP_PRI_REC709;
     cicp[1] = CICP_TRC_BT709;
     cicp[2] = (rgb_matrix) ? CICP_MATRIX_RGB : CICP_MATRIX_BT709;

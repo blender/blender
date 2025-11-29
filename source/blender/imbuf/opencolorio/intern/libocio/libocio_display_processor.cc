@@ -462,7 +462,7 @@ OCIO_NAMESPACE::ConstProcessorRcPtr create_ocio_display_processor(
     }
   }
   else {
-    /* Untonemapped case, directly to extended sRGB. */
+    /* Un-tone-mapped case, directly to extended sRGB. */
     group->appendTransform(create_untonemapped_ocio_display_transform(
         config, display_parameters.display, from_colorspace, display_parameters.use_hdr_buffer));
   }

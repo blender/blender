@@ -1672,7 +1672,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 
         /* Set new cursor position. */
         if (x_mouse != warped_x_mouse || y_mouse != warped_y_mouse) {
-          /* After warping, we can still receive unwrapped mouse that occured slightly before or
+          /* After warping, we can still receive unwrapped mouse that occurred slightly before or
            * after the current event at close timestamps, causing the wrapping to be applied a
            * second time, leading to a visual jump. Ignore these events by returning early.
            * Using a small empirical future covering threshold, see PR #148158 for details. */

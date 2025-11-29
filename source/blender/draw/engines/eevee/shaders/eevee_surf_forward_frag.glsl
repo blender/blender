@@ -93,7 +93,7 @@ void main()
 
   radiance *= 1.0f - g_holdout;
 
-  /* There can be 2 framebuffer layout for forward transparency:
+  /* There can be 2 frame-buffer layout for forward transparency:
    * - Combined RGB radiance with Monochromatic transmittance.
    * - Channel split RGB radiance & RGB transmittance + Dedicated average alpha with holdout. */
   if (uniform_buf.pipeline.use_monochromatic_transmittance) {

@@ -1556,7 +1556,7 @@ static void id_override_library_resync_hierarchy_process(bContext *C,
    * Only known case so far, from Singularity Blender Studio production:
    * `singularity/pro/shots/090_ignite/090_0040/090_0040-fx.blend`, rev. 1651 ,
    * `FX-creature_blob` liboverride collection, several objects lost their hierarchy data,
-   * e.g. `RIG-creature_blob`, `GEO-creature_blob-curve`, and the three `WGT` riggin widgets. */
+   * e.g. `RIG-creature_blob`, `GEO-creature_blob-curve`, and the three `WGT` rigging widgets. */
   BKE_lib_override_library_main_hierarchy_root_ensure(bmain);
 
   for (auto &&id_hierarchy_root : data.id_hierarchy_roots.keys()) {

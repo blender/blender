@@ -1037,7 +1037,7 @@ bool BLI_str_utf32_char_is_terminal_punctuation(char32_t codepoint)
                0x002E,    /* Full stop. */
                0x2024,    /* One dot leader. */
                0xFE52,    /* Small full stop. */
-               0xFF0E,    /* Fullwidth full stop. */
+               0xFF0E,    /* Full-width full stop. */
                0x0021,    /* Exclamation mark. */
                0x003F,    /* Question mark. */
                0x0589,    /* Armenian full stop. */
@@ -1066,10 +1066,10 @@ bool BLI_str_utf32_char_is_terminal_punctuation(char32_t codepoint)
                0xFE16,    /* Presentation form for vertical question mark. */
                0xFE56,    /* Small question mark. */
                0xFE57,    /* Small exclamation mark. */
-               0xFF01) || /* Fullwidth exclamation mark. */
+               0xFF01) || /* Full-width exclamation mark. */
           ELEM(codepoint,
-               0xFF1F,   /* Fullwidth question mark. */
-               0xFF61)); /* Halfwidth ideographic full stop. */
+               0xFF1F,   /* Full-width question mark. */
+               0xFF61)); /* Half-width ideographic full stop. */
 }
 
 /** \} */ /* -------------------------------------------------------------------- */

@@ -199,7 +199,7 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
   }
 
   /* Similar to above early-out on `IDWALK_CB_EMBEDDED` calls on ID pointers to embedded data, the
-   * 'loopback' pointers of embedded IDs towards their owner ID should never be remapped here.
+   * 'loop-back' pointers of embedded IDs towards their owner ID should never be remapped here.
    *
    * This relation between owner ID and its embedded ID is not the responsibility of ID management,
    * and should never be affected by ID remapping.

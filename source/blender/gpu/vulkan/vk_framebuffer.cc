@@ -456,7 +456,7 @@ static void blit_aspect(VKContext &context,
   region.dstOffsets[1].z = 1;
 
   /* Early exit when no pixels needs to be blitted. This should never occur, but has happened
-   * during development as retina displays are not yet detected and the intermediate backbuffer
+   * during development as retina displays are not yet detected and the intermediate back-buffer
    * would be to small, resulting in cropping the full blit source image. */
   if (region.dstOffsets[0].x == region.dstOffsets[1].x ||
       region.dstOffsets[0].y == region.dstOffsets[1].y ||

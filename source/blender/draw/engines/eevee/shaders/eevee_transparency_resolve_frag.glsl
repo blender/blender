@@ -31,13 +31,13 @@ void main()
     float2 channel_b = texelFetch(transparency_b_tx, texel, 0).xy;
     float2 channel_a = texelFetch(transparency_a_tx, texel, 0).xy;
 
-    /* out_transmittance gets multiplied to the framebuffer color. */
+    /* out_transmittance gets multiplied to the frame-buffer color. */
     out_transmittance.r = channel_r.y;
     out_transmittance.g = channel_g.y;
     out_transmittance.b = channel_b.y;
     out_transmittance.a = channel_a.y;
 
-    /* out_radiance gets added to the framebuffer color after the transmittance multiplication. */
+    /* out_radiance gets added to the frame-buffer color after the transmittance multiplication. */
     out_radiance.r = channel_r.x;
     out_radiance.g = channel_g.x;
     out_radiance.b = channel_b.x;

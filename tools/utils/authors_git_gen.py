@@ -369,7 +369,7 @@ def argparse_create() -> argparse.ArgumentParser:
         default=False,
         help=(
             "Include all authors (don't skip based on paths or commit count/size). "
-            "This can be useful when when updating: "
+            "This can be useful when updating: "
             "'./tools/utils/git_data_canonical_authors.py' which is also used for credit generation."
         )
     )

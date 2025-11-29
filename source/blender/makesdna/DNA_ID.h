@@ -563,7 +563,7 @@ typedef struct Library {
   struct Library *archive_parent_library;
 
   /**
-   * Packed blendfile of the library, nullptr if not packed.
+   * Packed blend-file of the library, nullptr if not packed.
    *
    * \note Individual IDs may be packed even if the entire library is not packed.
    *
@@ -1043,7 +1043,7 @@ enum {
  *
  * Linked/local tags also need to be preserved, since the addition of more complex 'linked data'
  * modes & handlings (e.g. packed linked data are handled like local IDs when it comes to
- * read/write of blendfiles).
+ * read/write of blend-files).
  *
  * However a few of these need to be explicitly preserved across undo steps.
  */

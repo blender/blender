@@ -111,7 +111,7 @@ def add_closure_zone(layout, label):
 
 
 class NodeMenu(Menu):
-    """A baseclass defining the shared methods for AddNodeMenu and SwapNodeMenu."""
+    """A base-class defining the shared methods for AddNodeMenu and SwapNodeMenu."""
     draw_assets: bool
     use_transform: bool
 
@@ -281,7 +281,7 @@ class NodeMenu(Menu):
 
     @classmethod
     def new_empty_group(cls, layout):
-        """Group Node with a newly created empty group as its assigned nodetree."""
+        """Group Node with a newly created empty group as its assigned node-tree."""
         props = layout.operator(
             cls.new_empty_group_operator_id,
             text="New Group",

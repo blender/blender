@@ -921,7 +921,7 @@ int RenderScheduler::get_num_samples_to_path_trace() const
     if (path_tracing_time_limit != 0) {
       /* Use the per-sample time from the previously rendered batch of samples, so that the
        * correction is applied much quicker. Also use the predicted increase in performance from
-       * increased occupany. */
+       * increased occupancy. */
       const double predicted_render_time = num_samples_to_occupy *
                                            path_trace_time_.get_last_sample_time() /
                                            ratio_to_increase_occupancy;
