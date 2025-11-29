@@ -381,7 +381,7 @@ static bool seq_edit_split_operation_permitted_check(const Scene *scene,
                                                      const char **r_error)
 {
   for (Strip *strip : strips) {
-    ListBase *channels = channels_displayed_get(editing_get(scene));
+    const ListBase *channels = channels_displayed_get(editing_get(scene));
     if (transform_is_locked(channels, strip)) {
       *r_error = "Strip is locked.";
       return false;
