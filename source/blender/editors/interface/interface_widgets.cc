@@ -1175,11 +1175,11 @@ static void widgetbase_draw(uiWidgetBase *wtb, const uiWidgetColors *wcol)
     outline_col[1] = wcol->outline[1];
     outline_col[2] = wcol->outline[2];
     outline_col[3] = wcol->outline[3];
+  }
 
-    /* Emboss shadow if enabled, and inner and outline colors are not fully transparent. */
-    if ((wtb->draw_emboss) && (wcol->inner[3] != 0.0f || wcol->outline[3] != 0.0f)) {
-      UI_GetThemeColor4ubv(TH_WIDGET_EMBOSS, emboss_col);
-    }
+  /* Draw emboss only if the outline is not fully transparent, it looks like a gap otherwise. */
+  if (wtb->draw_emboss && wcol->outline[3] != 0.0f) {
+    UI_GetThemeColor4ubv(TH_WIDGET_EMBOSS, emboss_col);
   }
 
   if (wtb->tria1.type != ROUNDBOX_TRIA_NONE) {
