@@ -177,8 +177,8 @@ bool BKE_main_collection_sync_remap(const Main *bmain);
  * \warning Calling this function directly should almost never be necessary, and should be avoided
  * at all costs. It is utterly unsafe in multi-threaded context, among other risks. The typical
  * process is to tag view layers for updates with #BKE_view_layer_need_resync_tag (or the more
- * general #BKE_scene_collection_sync/#BKE_main_collection_sync), and only enure the layers are
- * up-to-date when actually needed, using #BKE_view_layer_synced_ensure and realted API.
+ * general #BKE_scene_collection_sync/#BKE_main_collection_sync), and only ensure the layers are
+ * up-to-date when actually needed, using #BKE_view_layer_synced_ensure and related API.
  *
  * \return `true` if the viewlayer was successfully resynced (or already in sync), `false` if a
  * resync was needed but could not be performed (e.g. because resync is locked by one or more calls

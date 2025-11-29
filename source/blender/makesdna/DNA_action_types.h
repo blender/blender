@@ -332,8 +332,10 @@ typedef struct bPoseChannel {
   short agrp_index;
   /** For quick detecting which constraints affect this channel. */
   char constflag;
-  /** This used to store the selectionflag for serialization but is not longer required since that
-   * is now natively stored on the `flag` property. */
+  /**
+   * This used to store the selection-flag for serialization but is not longer required
+   * since that is now natively stored on the `flag` property.
+   */
   char selectflag DNA_DEPRECATED;
   char drawflag;
   char bboneflag DNA_DEPRECATED;
@@ -474,13 +476,18 @@ typedef enum ePchan_Flag {
 
   /* has BBone deforms */
   POSE_BBONE_SHAPE = (1 << 3),
-  /* When set and bPoseChan.custom_tx is not a nullptr, the gizmo will be drawn at the location and
-     orientation of the custom_tx instead of this bone. */
+  /**
+   * When set and bPoseChan.custom_tx is not a nullptr,
+   * the gizmo will be drawn at the location and
+   * orientation of the custom_tx instead of this bone.
+   */
   POSE_TRANSFORM_AT_CUSTOM_TX = (1 << 4),
-  /* When set, transformations will modify the bone as if it was a child of the
-     bPoseChan.custom_tx. The flag only has an effect when `POSE_TRANSFORM_AT_CUSTOM_TX` and
-     `custom_tx` are set. This can be useful for rigs where the deformation is coming from
-     blendshapes in addition to the armature. */
+  /**
+   * When set, transformations will modify the bone as if it was a child of the
+   * #bPoseChan.custom_tx. The flag only has an effect when #POSE_TRANSFORM_AT_CUSTOM_TX and
+   * `custom_tx` are set. This can be useful for rigs where the deformation is coming from
+   * shape-keys in addition to the armature.
+   */
   POSE_TRANSFORM_AROUND_CUSTOM_TX = (1 << 5),
   POSE_SELECTED = (1 << 6),
 

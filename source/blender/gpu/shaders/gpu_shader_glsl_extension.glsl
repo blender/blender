@@ -22,7 +22,7 @@
 #  extension GL_ARB_shader_viewport_layer_array : enable
 /* Optional: Avoid geometry shader for barycentric coordinates. */
 #  extension GL_AMD_shader_explicit_vertex_parameter : enable
-/* Optional: For subpass input emulation. */
+/* Optional: For sub-pass input emulation. */
 #  extension GL_EXT_shader_framebuffer_fetch : enable
 /* Optional: For faster EEVEE GBuffer classification. */
 #  extension GL_ARB_shader_stencil_export : enable

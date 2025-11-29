@@ -780,7 +780,7 @@ struct ExrChannel {
   std::string part_name;
   int part_number = 0;
 
-  /** Full name of the chanel. */
+  /** Full name of the channel. */
   std::string name;
   /** Name as stored in the header. */
   std::string internal_name;

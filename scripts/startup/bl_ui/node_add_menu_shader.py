@@ -460,7 +460,7 @@ class NODE_MT_shader_node_all_base(node_add_menu.NodeMenu):
 
 
 add_menus = {
-    # menu bl_idname: baseclass
+    # menu `bl_idname`: base-class.
     "NODE_MT_category_shader_input": NODE_MT_shader_node_input_base,
     "NODE_MT_category_shader_output": NODE_MT_shader_node_output_base,
     "NODE_MT_category_shader_color": NODE_MT_shader_node_color_base,
@@ -480,7 +480,7 @@ add_menus = node_add_menu.generate_menus(
 
 
 swap_menus = {
-    # menu bl_idname: baseclass
+    # menu `bl_idname`: base-class.
     "NODE_MT_shader_node_input_swap": NODE_MT_shader_node_input_base,
     "NODE_MT_shader_node_output_swap": NODE_MT_shader_node_output_base,
     "NODE_MT_shader_node_color_swap": NODE_MT_shader_node_color_base,

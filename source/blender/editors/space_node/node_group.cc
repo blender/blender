@@ -231,7 +231,7 @@ static wmOperatorStatus node_group_enter_exit_invoke(bContext *C,
   SpaceNode &snode = *CTX_wm_space_node(C);
   ARegion &region = *CTX_wm_region(C);
 
-  /* Don't interfer when the mouse is interacting with some button. See #147282. */
+  /* Don't interfere when the mouse is interacting with some button. See #147282. */
   if (ISMOUSE_BUTTON(event->type) && UI_but_find_mouse_over(&region, event)) {
     return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;
   }

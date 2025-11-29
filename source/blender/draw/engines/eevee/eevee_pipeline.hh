@@ -170,8 +170,8 @@ class ForwardPipeline {
     /* Channels are packed separately for technical reason (see eevee_surf_forward_frag.glsl for
      * explanation). In the case of monochromatic transparency, the #r_channel_tx actually
      * contains the whole RGBA and the other textures are dummy texture not attached to the
-     * framebuffer. The #a_channel_tx is only allocated if holdout or film transparency is enabled.
-     */
+     * frame-buffer. The #a_channel_tx is only allocated if holdout or film transparency is
+     * enabled. */
     TextureFromPool r_channel_tx;
     TextureFromPool g_channel_tx;
     TextureFromPool b_channel_tx;

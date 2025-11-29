@@ -39,7 +39,7 @@ DEFINE("MAT_FORWARD")
 /* Early fragment test is needed for render passes support for forward surfaces. */
 /* NOTE: This removes the possibility of using gl_FragDepth. */
 EARLY_FRAGMENT_TEST(true)
-/* Spliting RGB components into different target to overcome the lack of dual source blending with
+/* Splitting RGB components into different target to overcome the lack of dual source blending with
  * multiple render targets. */
 FRAGMENT_OUT(0, float4, out_combined_r)
 FRAGMENT_OUT(1, float4, out_combined_g)

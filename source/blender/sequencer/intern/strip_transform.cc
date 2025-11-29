@@ -471,7 +471,7 @@ static void strip_transform_handle_overwrite(Scene *scene,
   VectorSet targets = query_overwrite_targets(scene, seqbasep, transformed_strips);
   VectorSet<Strip *> strips_to_delete;
 
-  ListBase *channels = channels_displayed_get(editing_get(scene));
+  const ListBase *channels = channels_displayed_get(editing_get(scene));
   for (Strip *target : targets) {
     for (Strip *transformed : transformed_strips) {
       if (transformed->channel != target->channel) {
@@ -587,7 +587,7 @@ void strip_channel_set(Strip *strip, int channel)
   strip->channel = math::clamp(channel, 1, MAX_CHANNELS);
 }
 
-bool transform_is_locked(ListBase *channels, const Strip *strip)
+bool transform_is_locked(const ListBase *channels, const Strip *strip)
 {
   const SeqTimelineChannel *channel = channel_get_by_index(channels, strip->channel);
   return strip->flag & SEQ_LOCK ||

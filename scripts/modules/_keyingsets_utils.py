@@ -67,7 +67,7 @@ def RKS_POLL_selected_bones(_ksi, context):
     # nothing selected
     return False
 
-# selected vse strip
+# Selected sequencer strip.
 
 
 def RKS_POLL_selected_strip(_ksi, context):
@@ -175,9 +175,9 @@ def get_transform_generators_base_info(data):
         # no path in this case
         path = ""
 
-        # transform data on ID-blocks directly should get grouped under a
-        # hardcoded label ("Object Transforms") so that they get grouped
-        # consistently when keyframed directly
+        # Transform data on ID-blocks directly should get grouped under a
+        # hard-coded label ("Object Transforms") so that they get grouped
+        # consistently when key-framed directly.
         grouping = "Object Transforms"
     else:
         # get the path to the ID-block

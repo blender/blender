@@ -13,8 +13,10 @@
 
 namespace blender {
 
-/* Used below, to represent a ~enum_value in a way that is enum type safe and
- * avoids ubsan warnings about invalid enum values in (a & ~b) constructs. */
+/**
+ * Used below, to represent a ~enum_value in a way that is enum type safe and
+ * avoids UBSAN warnings about invalid enum values in (a & ~b) constructs.
+ */
 template<typename T> struct BitwiseNotEnumValue {
   uint64_t value;
   operator uint64_t() const

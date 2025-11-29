@@ -995,7 +995,7 @@ bool can_select_handle(const Scene *scene, const Strip *strip, const View2D *v2d
   }
 
   Editing *ed = seq::editing_get(scene);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  const ListBase *channels = seq::channels_displayed_get(ed);
   if (seq::transform_is_locked(channels, strip)) {
     return false;
   }

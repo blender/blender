@@ -1762,8 +1762,8 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
           ts->proportional_mask = use_prop_edit;
         }
         else if (object_mode == OB_MODE_OBJECT) {
-          /* No active object means #TransConvertType_Object [see #convert_type_get()], so use
-           * toolsetting for *object*. */
+          /* No active object means #TransConvertType_Object [see #convert_type_get()],
+           * so use tool-setting for *object*. */
           ts->proportional_objects = use_prop_edit;
         }
         else {

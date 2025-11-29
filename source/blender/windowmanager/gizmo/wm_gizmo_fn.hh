@@ -68,8 +68,10 @@ using wmGizmoPropertyFnRangeGet = void (*)(const wmGizmo *,
                                            wmGizmoProperty *,
                                            /* Typically `float[2]`. */
                                            void *range);
-/* To inspect the RNA properties gizmos are manipulating (can be multiple). Used e.g. for
- * autokeying. */
+/**
+ * To inspect the RNA properties gizmos are manipulating (can be multiple).
+ * Used e.g. for auto-keying.
+ */
 using wmGizmoPropertyFnForeachRNAProp = void (*)(
     wmGizmoProperty *,
     const blender::FunctionRef<void(PointerRNA &ptr, PropertyRNA *prop, int index)> callback);

@@ -44,7 +44,7 @@ class OneapiDeviceGraphicsInterop : public DeviceGraphicsInterop {
   /* The destination was requested to be cleared. */
   bool need_zero_ = false;
 
-  /* Oneapi resources. */
+  /* OneAPI resources. */
   sycl::ext::oneapi::experimental::external_mem sycl_external_memory_{};
   void *sycl_memory_ptr_ = nullptr;
 

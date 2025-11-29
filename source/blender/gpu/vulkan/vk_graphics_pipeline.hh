@@ -518,7 +518,7 @@ struct VKGraphicsPipelineCreateInfoBuilder {
         fragment_output_info.stencil_attachment_format};
   }
 
-  /* Shaders lib only requires the viewmask to be set. */
+  /* Shaders lib only requires the view-mask to be set. */
   void build_dynamic_rendering_shaders_lib()
   {
     vk_pipeline_rendering_create_info = {VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO};

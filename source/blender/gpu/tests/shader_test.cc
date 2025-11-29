@@ -27,7 +27,7 @@
 #include "gpu_shader_dependency_private.hh"
 #include "gpu_testing.hh"
 
-/* GTest expects operator<< and Print to be defined in the same namespqce as the type itself. */
+/* GTest expects operator<< and Print to be defined in the same namespace as the type itself. */
 static std::ostream &operator<<(std::ostream &os, const TestOutput &test_output)
 {
   os << "expect: " << testing::PrintToString(test_output.expect) << "\n";

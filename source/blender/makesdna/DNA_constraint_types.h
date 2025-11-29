@@ -586,7 +586,7 @@ typedef struct bGeometryAttributeConstraint {
   char _pad0[7];
 } bGeometryAttributeConstraint;
 
-/* Atrtibute Domain */
+/** Attribute Domain */
 typedef enum Attribute_Domain {
   CON_ATTRIBUTE_DOMAIN_POINT = 0,
   CON_ATTRIBUTE_DOMAIN_EDGE = 1,
@@ -596,7 +596,7 @@ typedef enum Attribute_Domain {
   CON_ATTRIBUTE_DOMAIN_INSTANCE = 5,
 } Attribute_Domain;
 
-/* Atrtibute Data Type*/
+/** Attribute Data Type*/
 typedef enum Attribute_Data_Type {
   CON_ATTRIBUTE_VECTOR = 0,
   CON_ATTRIBUTE_QUATERNION = 1,

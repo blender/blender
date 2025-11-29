@@ -301,8 +301,8 @@ static void checker_board_text(
 
   BLF_size(mono, 54.0f); /* hard coded size! */
 
-  /* Using nullptr will assume the byte buffer has sRGB colorspace, which currently
-   * matches the default colorspace of new images. */
+  /* Using nullptr will assume the byte buffer has sRGB color-space, which currently
+   * matches the default color-space of new images. */
   BLF_buffer(mono, rect_float, rect, width, height, nullptr);
 
   const float text_color[4] = {0.0, 0.0, 0.0, 1.0};

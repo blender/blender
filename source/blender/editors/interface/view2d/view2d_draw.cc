@@ -37,12 +37,12 @@
 
 #define MIN_MAJOR_LINE_DISTANCE (U.v2d_min_gridsize * UI_SCALE_FAC)
 
-/* This number defines the smalles scale unit that will be displayed. For example 100 will give
+/* This number defines the smallest scale unit that will be displayed. For example 100 will give
  * 1/100 -> 0.01 as the smallest step. This is only relevant for editors that do display subframe
  * information, for example the Graph Editor. */
 constexpr int subframe_range = 100;
 
-/* This esentially performs a special prime factor decomposition where it can only use 2, 3 and 5
+/* This essentially performs a special prime factor decomposition where it can only use 2, 3 and 5
  * as prime factors. Divisions that result in 2 are preferred. */
 static int get_divisor(const int distance)
 {
@@ -532,7 +532,7 @@ void UI_view2d_draw_lines_x__discrete_frames_or_seconds(const View2D *v2d,
                                                         bool display_seconds,
                                                         bool display_minor_lines)
 {
-  /* Rounding fractional framerates for drawing. */
+  /* Rounding fractional frame-rates for drawing. */
   const int fps = round_db_to_int(scene->frames_per_second());
   if (display_seconds) {
     UI_view2d_draw_lines_x__discrete_time(v2d, fps, display_minor_lines);

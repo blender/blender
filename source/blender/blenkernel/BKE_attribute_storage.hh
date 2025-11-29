@@ -211,7 +211,7 @@ class AttributeStorage : public ::AttributeStorage {
   void blend_write(BlendWriter &writer, const BlendWriteData &write_data);
 
   /**
-   * Iterate over every color to change it to another colorspace.
+   * Iterate over every color to change it to another color-space.
    */
   void foreach_working_space_color(const IDTypeForeachColorFunctionCallback &fn);
 

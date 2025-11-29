@@ -73,10 +73,10 @@ def draw_texture_2d(texture, position, width, height, is_scene_linear_with_rec70
     :type height: float
     :arg is_scene_linear_with_rec709_srgb_target:
         True if the `texture` is stored in scene linear color space and
-        the destination framebuffer uses the Rec.709 sRGB color space
+        the destination frame-buffer uses the Rec.709 sRGB color space
         (which is true when drawing textures acquired from :class:`bpy.types.Image` inside a
         'PRE_VIEW', 'POST_VIEW' or 'POST_PIXEL' draw handler).
-        Otherwise the color space is assumed to match the one of the framebuffer. (default=False)
+        Otherwise the color space is assumed to match the one of the frame-buffer. (default=False)
     :type is_scene_linear_with_rec709_srgb_target: bool
     """
     import gpu

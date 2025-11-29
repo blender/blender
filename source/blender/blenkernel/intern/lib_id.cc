@@ -258,9 +258,9 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
     }
   }
 
-  /* Ensure that the deephash is reset when making an ID local (in case it was previously a packed
-   * linked ID), as this is by definition not a valid deephash anymore (that ID is now a fully
-   * independent copy living in another blendfile). */
+  /* Ensure that the deep-hash is reset when making an ID local (in case it was previously a packed
+   * linked ID), as this is by definition not a valid deep-hash anymore (that ID is now a fully
+   * independent copy living in another blend-file). */
   id->deep_hash = {};
 
   /* We need to tag this IDs and all of its users, conceptually new local ID and original linked
@@ -488,7 +488,7 @@ void lib_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id, const i
 {
   if (ID_IS_LINKED(old_id)) {
     /* For packed linked data copied into local IDs in Main, assume that they are no more related
-     * to their original library source, and clear their deephash.
+     * to their original library source, and clear their deep-hash.
      *
      * NOTE: In case more control is needed over that behavior in the future, a new flag can be
      * added instead. */

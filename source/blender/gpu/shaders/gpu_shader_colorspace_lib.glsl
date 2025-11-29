@@ -17,17 +17,17 @@ SHADER_LIBRARY_CREATE_INFO(gpu_srgb_to_framebuffer_space)
 
 /**
  * Input is Rec.709 sRGB.
- * Output is Rec.709 linear if hardware will add a Linear to sRGB conversion, noop otherwise.
+ * Output is Rec.709 linear if hardware will add a Linear to sRGB conversion, NOOP otherwise.
  * NOTE: Old naming convention, but avoids breaking compatibility for python shaders.
  *
- * As per GPU API design, all framebuffers with SRGBA_8_8_8_8 attachments will always enable SRGB
+ * As per GPU API design, all frame-buffers with SRGBA_8_8_8_8 attachments will always enable SRGB
  * rendering. In this mode the shader output is expected to be in a linear color space. This allows
  * to do the blending stage with linear values (more correct) and then store the result in 8bpc
  * keeping accurate colors.
  *
- * To ensure consistent result (blending excluded) between a framebuffer using SRGBA_8_8_8_8 and
+ * To ensure consistent result (blending excluded) between a frame-buffer using SRGBA_8_8_8_8 and
  * one using RGBA_8_8_8_8, we need to do the sRGB > linear conversion to counteract the hardware
- * encoding during framebuffer output.
+ * encoding during frame-buffer output.
  *
  * For reference:  https://wikis.khronos.org/opengl/framebuffer#Colorspace
  */
@@ -53,7 +53,7 @@ float4 blender_srgb_to_framebuffer_space(float4 srgb_color)
 
 /**
  * Input is Rec.709 sRGB.
- * Output is Rec.709 linear if hardware will add a Linear to sRGB conversion, noop otherwise.
+ * Output is Rec.709 linear if hardware will add a Linear to sRGB conversion, NOOP otherwise.
  */
 float4 blender_rec709_srgb_to_output_space(float4 srgb_color)
 {

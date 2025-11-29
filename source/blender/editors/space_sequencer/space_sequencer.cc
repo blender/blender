@@ -687,7 +687,7 @@ static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
     int mval[2] = {int(mouse_co_region[0]), int(mouse_co_region[1])};
     Strip *strip = strip_under_mouse_get(scene, v2d, mval);
     if (strip != nullptr) {
-      ListBase *channels = seq::channels_displayed_get(ed);
+      const ListBase *channels = seq::channels_displayed_get(ed);
       const bool locked = seq::transform_is_locked(channels, strip);
       const int frame = round_fl_to_int(mouse_co_view[0]);
       /* We cannot split the first and last frame, so blade cursor should not appear then. */

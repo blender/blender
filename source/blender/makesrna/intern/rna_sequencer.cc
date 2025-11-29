@@ -683,7 +683,7 @@ static bool rna_Strip_lock_get(PointerRNA *ptr)
   Scene *scene = reinterpret_cast<Scene *>(ptr->owner_id);
   Strip *strip = static_cast<Strip *>(ptr->data);
   Editing *ed = blender::seq::editing_get(scene);
-  ListBase *channels = blender::seq::get_channels_by_strip(ed, strip);
+  const ListBase *channels = blender::seq::get_channels_by_strip(ed, strip);
   return blender::seq::transform_is_locked(channels, strip);
 }
 

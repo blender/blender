@@ -1332,9 +1332,9 @@ static ImBuf *ffmpeg_fetchibuf(MovieReader *anim, int position, IMB_Timecode_Typ
     }
   }
   else {
-    /* Colorspace conversion is lossy for byte buffers, so only assign the colorspace.
+    /* Color-space conversion is lossy for byte buffers, so only assign the color-space.
      * It is up to artists to ensure operations on byte buffers do not involve mixing different
-     * colorspaces. */
+     * color-spaces. */
     cur_frame_final->byte_buffer.colorspace = colormanage_colorspace_get_named(anim->colorspace);
   }
 

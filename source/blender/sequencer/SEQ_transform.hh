@@ -76,7 +76,7 @@ void transform_offset_after_frame(Scene *scene, ListBase *seqbase, int delta, in
  * Check if `strip` can be moved.
  * This function also checks `SeqTimelineChannel` flag.
  */
-bool transform_is_locked(ListBase *channels, const Strip *strip);
+bool transform_is_locked(const ListBase *channels, const Strip *strip);
 
 /* Image transformation. */
 

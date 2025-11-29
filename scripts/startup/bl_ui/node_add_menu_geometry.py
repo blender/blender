@@ -1018,7 +1018,7 @@ class NODE_MT_gn_all_base(node_add_menu.NodeMenu):
 
 
 add_menus = {
-    # menu bl_idname: baseclass
+    # menu `bl_idname`: base-class.
     "NODE_MT_geometry_node_GEO_ATTRIBUTE": NODE_MT_gn_attribute_base,
     "NODE_MT_geometry_node_GEO_INPUT": NODE_MT_gn_input_base,
     "NODE_MT_geometry_node_GEO_INPUT_CONSTANT": NODE_MT_gn_input_constant_base,
@@ -1084,7 +1084,7 @@ add_menus = node_add_menu.generate_menus(
 
 
 swap_menus = {
-    # menu bl_idname: baseclass
+    # menu `bl_idname`: base-class.
     "NODE_MT_gn_attribute_swap": NODE_MT_gn_attribute_base,
     "NODE_MT_gn_input_swap": NODE_MT_gn_input_base,
     "NODE_MT_gn_input_constant_swap": NODE_MT_gn_input_constant_base,

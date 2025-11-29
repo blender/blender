@@ -503,7 +503,7 @@ static void outliner_foreach_id(SpaceLink *space_link, LibraryForeachIDData *dat
     /* Do not try to restore non-ID pointers (drivers/sequence/etc.). */
     if (TSE_IS_REAL_ID(tselem)) {
       /* NOTE: Outliner ID pointers are never `IDWALK_CB_DIRECT_WEAK_LINK`, they should never
-       * enforce keeping a reference to some linked data. They do need to be explicitely ignored by
+       * enforce keeping a reference to some linked data. They do need to be explicitly ignored by
        * writefile code though. */
       const LibraryForeachIDCallbackFlag cb_flag =
           IDWALK_CB_WRITEFILE_IGNORE | ((tselem->id != nullptr && allow_pointer_access &&

@@ -92,7 +92,7 @@ static void SeqTransInfo(TransInfo *t, Strip *strip, int *r_count, int *r_flag)
 {
   Scene *scene = CTX_data_sequencer_scene(t->context);
   Editing *ed = seq::editing_get(scene);
-  ListBase *channels = seq::channels_displayed_get(ed);
+  const ListBase *channels = seq::channels_displayed_get(ed);
 
   /* For extend we need to do some tricks. */
   if (t->mode == TFM_TIME_EXTEND) {

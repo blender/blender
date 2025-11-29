@@ -4771,10 +4771,10 @@ void BKE_lib_override_library_main_operations_create(Main *bmain,
   const bool resync_success = BKE_main_view_layers_synced_ensure(bmain);
   /* Layer resync should never fail here.
    *
-   * This call is fairly high-level and should never happen within a callpath which has already
+   * This call is fairly high-level and should never happen within a call-path which has already
    * forbidden resync (using #BKE_layer_collection_resync_forbid).
    *
-   * Other unlikely reasons for failure (like very old blendfile data before versioning, where
+   * Other unlikely reasons for failure (like very old blend-file data before versioning, where
    * scenes have no master collection yet) are also never expected to be met in this code.
    */
   BLI_assert_msg(resync_success,

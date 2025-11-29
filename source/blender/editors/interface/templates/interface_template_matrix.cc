@@ -44,7 +44,7 @@ static std::string format_unit_value(float value, PropertySubType subtype, uiLay
   return std::string(new_str);
 }
 
-/* Format unitless value as a string. */
+/** Format unit-less value as a string. */
 static std::string format_coefficient(float value)
 {
   /* Change negative zero to regular zero, without altering anything else. */
@@ -179,7 +179,7 @@ static void draw_matrix_template(uiLayout &layout, PointerRNA &ptr, PropertyRNA 
     row->label(format_unit_value(eul[2], PROP_ANGLE, layout_), ICON_NONE);
   }
 
-  /* Mirror RNA enum property dropdown UI - with menu triangle an dropdown items. */
+  /* Mirror RNA enum property drop-down UI - with menu triangle an drop-down items. */
   row = &layout_->row(true);
   uiItemL_respect_property_split(row, IFACE_("Mode"), ICON_NONE);
   uiBlock *block = row->block();
