@@ -759,19 +759,16 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
   /* Remap Verts */
   if (vert_idx) {
     BMVert **verts_pool, *verts_copy, **vep;
-    int i, totvert = bm->totvert;
+    const int totvert = bm->totvert;
+    int i;
     const uint *new_idx;
     /* Special case: Python uses custom data layers to hold PyObject references.
      * These have to be kept in place, else the PyObjects we point to, won't point back to us. */
     const int cd_vert_pyptr = CustomData_get_offset(&bm->vdata, CD_BM_ELEM_PYPTR);
 
-    /* Init the old-to-new vert pointers mapping */
-    vptr_map = MEM_new<blender::Map<BMVert *, BMVert *>>("BM_mesh_remap vert pointers mapping");
-    vptr_map->reserve(bm->totvert);
-
     /* Make a copy of all vertices. */
     verts_pool = bm->vtable;
-    verts_copy = MEM_malloc_arrayN<BMVert>(totvert, "BM_mesh_remap verts copy");
+    verts_copy = MEM_malloc_arrayN<BMVert>(totvert, __func__);
     void **pyptrs = (cd_vert_pyptr != -1) ? MEM_malloc_arrayN<void *>(totvert, __func__) : nullptr;
     for (i = totvert, ve = verts_copy + totvert - 1, vep = verts_pool + totvert - 1; i--;
          ve--, vep--)
@@ -783,6 +780,10 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
         pyptrs[i] = *pyptr;
       }
     }
+
+    /* Init the old-to-new vert pointers mapping. */
+    vptr_map = MEM_new<blender::Map<BMVert *, BMVert *>>(__func__);
+    vptr_map->reserve(bm->totvert);
 
     /* Copy back verts to their new place, and update old2new pointers mapping. */
     new_idx = vert_idx + totvert - 1;
@@ -814,19 +815,16 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
   /* Remap Edges */
   if (edge_idx) {
     BMEdge **edges_pool, *edges_copy, **edp;
-    int i, totedge = bm->totedge;
+    const int totedge = bm->totedge;
+    int i;
     const uint *new_idx;
     /* Special case: Python uses custom data layers to hold PyObject references.
      * These have to be kept in place, else the PyObjects we point to, won't point back to us. */
     const int cd_edge_pyptr = CustomData_get_offset(&bm->edata, CD_BM_ELEM_PYPTR);
 
-    /* Init the old-to-new vert pointers mapping */
-    eptr_map = MEM_new<blender::Map<BMEdge *, BMEdge *>>("BM_mesh_remap edge pointers mapping");
-    eptr_map->reserve(totedge);
-
     /* Make a copy of all vertices. */
     edges_pool = bm->etable;
-    edges_copy = MEM_malloc_arrayN<BMEdge>(totedge, "BM_mesh_remap edges copy");
+    edges_copy = MEM_malloc_arrayN<BMEdge>(totedge, __func__);
     void **pyptrs = (cd_edge_pyptr != -1) ? MEM_malloc_arrayN<void *>(totedge, __func__) : nullptr;
     for (i = totedge, ed = edges_copy + totedge - 1, edp = edges_pool + totedge - 1; i--;
          ed--, edp--)
@@ -837,6 +835,10 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
         pyptrs[i] = *pyptr;
       }
     }
+
+    /* Init the old-to-new vert pointers mapping. */
+    eptr_map = MEM_new<blender::Map<BMEdge *, BMEdge *>>(__func__);
+    eptr_map->reserve(totedge);
 
     /* Copy back verts to their new place, and update old2new pointers mapping. */
     new_idx = edge_idx + totedge - 1;
@@ -868,19 +870,16 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
   /* Remap Faces */
   if (face_idx) {
     BMFace **faces_pool, *faces_copy, **fap;
-    int i, totface = bm->totface;
+    const int totface = bm->totface;
+    int i;
     const uint *new_idx;
     /* Special case: Python uses custom data layers to hold PyObject references.
      * These have to be kept in place, else the PyObjects we point to, won't point back to us. */
     const int cd_poly_pyptr = CustomData_get_offset(&bm->pdata, CD_BM_ELEM_PYPTR);
 
-    /* Init the old-to-new vert pointers mapping */
-    fptr_map = MEM_new<blender::Map<BMFace *, BMFace *>>("BM_mesh_remap face pointers mapping");
-    fptr_map->reserve(totface);
-
     /* Make a copy of all vertices. */
     faces_pool = bm->ftable;
-    faces_copy = MEM_malloc_arrayN<BMFace>(totface, "BM_mesh_remap faces copy");
+    faces_copy = MEM_malloc_arrayN<BMFace>(totface, __func__);
     void **pyptrs = (cd_poly_pyptr != -1) ? MEM_malloc_arrayN<void *>(totface, __func__) : nullptr;
     for (i = totface, fa = faces_copy + totface - 1, fap = faces_pool + totface - 1; i--;
          fa--, fap--)
@@ -891,6 +890,10 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
         pyptrs[i] = *pyptr;
       }
     }
+
+    /* Init the old-to-new vert pointers mapping. */
+    fptr_map = MEM_new<blender::Map<BMFace *, BMFace *>>(__func__);
+    fptr_map->reserve(totface);
 
     /* Copy back verts to their new place, and update old2new pointers mapping. */
     new_idx = face_idx + totface - 1;
