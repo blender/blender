@@ -127,11 +127,21 @@ bool evict_caches_if_full(Scene *scene)
   return !(evicted_final || evicted_source);
 }
 
+static void update_range_with_effects(const Scene *scene, const Strip *strip, int2 &r_range)
+{
+  r_range.x = std::min(r_range.x, time_left_handle_frame_get(scene, strip));
+  r_range.y = std::max(r_range.y, time_right_handle_frame_get(scene, strip));
+  Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
+  for (Strip *effect : effects) {
+    update_range_with_effects(scene, effect, r_range);
+  }
+}
+
 static void invalidate_final_cache_strip_range(Scene *scene, const Strip *strip)
 {
-  const int strip_left = time_left_handle_frame_get(scene, strip);
-  const int strip_right = time_right_handle_frame_get(scene, strip);
-  final_image_cache_invalidate_frame_range(scene, strip_left, strip_right);
+  int2 range{MAXFRAME, -MAXFRAME};
+  update_range_with_effects(scene, strip, range);
+  final_image_cache_invalidate_frame_range(scene, range.x, range.y);
 }
 
 static void invalidate_raw_cache_of_parent_meta(Scene *scene, Strip *strip)
