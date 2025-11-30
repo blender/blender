@@ -3115,7 +3115,7 @@ def fbx_data_from_scene(scene, depsgraph, settings):
         if ob_obj.type in BLENDER_OBJECT_TYPES_MESHLIKE:
             _mesh_key, me, _free = data_meshes[ob_obj]
         # NOTE: If a mesh has multiple material slots with the same material, they are combined into one
-        # single connexion (slot).
+        # single connection (slot).
         # Even if duplicate materials were exported without combining them into one slot, keeping duplicate
         # materials separated does not appear to be common behavior of external software when importing FBX.
         # Also, None (empty slots, no material) are always skipped/ignored.

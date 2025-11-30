@@ -5009,7 +5009,7 @@ class subcmd_author:
                     return False
 
             # NOTE: this is arguably *not* manifest validation, the check could be refactored out.
-            # Currently we always want to check both and it's useful to do that while the informatio
+            # Currently we always want to check both and it's useful to do that while the information is loaded.
             expected_files = []
             if manifest.type == "add-on":
                 if archive_subdir:

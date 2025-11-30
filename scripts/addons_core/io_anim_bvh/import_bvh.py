@@ -645,7 +645,7 @@ def bvh_node_dict2armature(
 
     for cu in channelbag.fcurves:
         if IMPORT_LOOP:
-            pass  # 2.5 doenst have cyclic now?
+            pass  # 2.5 doesn't have cyclic now?
 
         for bez in cu.keyframe_points:
             bez.interpolation = 'LINEAR'
