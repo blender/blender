@@ -16,6 +16,9 @@
 #include "BLI_string.h"
 
 #include "BKE_instances.hh"
+#include "BKE_lib_id.hh"
+
+#include "ED_outliner.hh"
 
 #include "NOD_geometry_nodes_bundle.hh"
 
@@ -330,6 +333,35 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
         }
       }
       this->draw_undrawable(params);
+      return;
+    }
+    if (type.is<Object *>()) {
+      Object *object = *value_ptr.get<Object *>();
+      if (object) {
+        const int icon = ED_outliner_icon_from_id(object->id);
+        uiDefIconTextBut(params.block,
+                         ButType::Label,
+                         icon,
+                         BKE_id_name(object->id),
+                         params.xmin,
+                         params.ymin,
+                         params.width,
+                         params.height,
+                         nullptr,
+                         std::nullopt);
+      }
+      else {
+        uiDefIconTextBut(params.block,
+                         ButType::Label,
+                         ICON_OBJECT_DATA,
+                         "",
+                         params.xmin,
+                         params.ymin,
+                         params.width,
+                         params.height,
+                         nullptr,
+                         std::nullopt);
+      }
       return;
     }
     this->draw_undrawable(params);
