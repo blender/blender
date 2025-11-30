@@ -3254,7 +3254,7 @@ static wmOperatorStatus quadview_size_invoke(bContext *C, wmOperator *op, const 
   sActionzoneData *sad = static_cast<sActionzoneData *>(event->customdata);
 
   if (event->type != EVT_ACTIONZONE_REGION_QUAD) {
-    BKE_report(op->reports, RPT_ERROR, "Can only size quad view from an action zone");
+    BKE_report(op->reports, RPT_ERROR, "Can only size Quad View from an action zone");
     return OPERATOR_CANCELLED;
   }
 
