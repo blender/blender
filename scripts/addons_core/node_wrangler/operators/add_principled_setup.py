@@ -82,7 +82,7 @@ class NODE_OT_add_principled_setup(Operator, NWBase, ImportHelper):
         nodes, links = get_nodes_links(context)
         active_node = nodes.active
 
-        # Filter textures names for texturetypes in filenames
+        # Filter textures names for texture-types in filenames.
         # [Socket Name, [abbreviations and keyword list], Filename placeholder]
         tags = context.preferences.addons[__package__].preferences.principled_tags
         normal_abbr = tags.normal.split(' ')
@@ -226,7 +226,7 @@ class NODE_OT_add_principled_setup(Operator, NWBase, ImportHelper):
                     match_gloss = set(gloss_abbr).intersection(set(fname_components))
 
                     if match_rough:
-                        # If Roughness nothing to to
+                        # If Roughness nothing to do.
                         link = connect_sockets(active_node.inputs[sname[0]], texture_node.outputs[0])
 
                     elif match_gloss:

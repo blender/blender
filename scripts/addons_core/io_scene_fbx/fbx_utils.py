@@ -131,11 +131,11 @@ RIGHT_HAND_AXES = {
 }
 
 
-# NOTE: Not fully in enum value order, since when exporting the first entry matching the framerate value is used
-# (e.g. better have NTSC fullframe than NTSC drop frame for 29.97 framerate).
+# NOTE: Not fully in enum value order, since when exporting the first entry matching the frame-rate value is used
+# (e.g. better have NTSC full-frame than NTSC drop frame for 29.97 frame-rate).
 FBX_FRAMERATES = (
-    # (-1.0, 0),  # Default framerate.
-    (-1.0, 14),  # Custom framerate.
+    # (-1.0, 0),  # Default frame-rate.
+    (-1.0, 14),  # Custom frame-rate.
     (120.0, 1),
     (100.0, 2),
     (60.0, 3),
@@ -210,7 +210,7 @@ else:
 
 
 # Scale/unit mess. FBX can store the 'reference' unit of a file in its UnitScaleFactor property
-# (1.0 meaning centimeter, afaik). We use that to reflect user's default unit as set in Blender with scale_length.
+# (1.0 meaning centimeter, AFAIK). We use that to reflect user's default unit as set in Blender with scale_length.
 # However, we always get values in BU (i.e. meters), so we have to reverse-apply that scale in global matrix...
 # Note that when no default unit is available, we assume 'meters' (and hence scale by 100).
 def units_blender_to_fbx_factor(scene):
@@ -523,7 +523,7 @@ def fast_first_axis_flat(ar):
 
 
 def fast_first_axis_unique(ar, return_unique=True, return_index=False, return_inverse=False, return_counts=False):
-    """np.unique with axis=0 but optimised for when the input array has multiple elements per row, and the returned
+    """np.unique with axis=0 but optimized for when the input array has multiple elements per row, and the returned
     unique array doesn't need to be sorted.
 
     Arrays with more than one element per row are more costly to sort in np.unique due to being compared one
@@ -1299,8 +1299,8 @@ class AnimationCurveNodeWrapper:
 
     def add_group(self, elem_key, fbx_group, fbx_gname, fbx_props):
         """
-        Add another whole group stuff (curvenode, animated item/prop + curvnode/curve identifiers).
-        E.g. Shapes animations is written twice, houra!
+        Add another whole group stuff (curve-node, animated item/prop + curve-node/curve identifiers).
+        E.g. Shapes animations is written twice, horror!
         """
         assert(len(fbx_props) == len(self.fbx_props[0]))
         self.elem_keys.append(elem_key)
@@ -1342,7 +1342,7 @@ class AnimationCurveNodeWrapper:
         min_reldiff_fac = fac * 1.0e-3  # min relative value evolution: 0.1% of current 'order of magnitude'.
         min_absdiff_fac = 0.1  # A tenth of reldiff...
 
-        # Initialise to no values enabled for writing.
+        # Initialize to no values enabled for writing.
         self._frame_write_mask_array[:] = False
 
         # Values are enabled for writing if they differ enough from either of their adjacent values or if they differ
@@ -1586,7 +1586,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
     This class provides a same common interface for all (FBX-wise) object-like elements:
     * Blender Object
     * Blender Bone and PoseBone
-    * Blender DepsgraphObjectInstance (for dulis).
+    * Blender DepsgraphObjectInstance (for duplis).
     Note since a same Blender object might be 'mapped' to several FBX models (esp. with duplis),
     we need to use a key to identify each.
     """
@@ -1823,7 +1823,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         matrix = self.fbx_object_matrix(scene_data, rest=rest)
         loc, rot, scale = matrix.decompose()
         matrix_rot = rot.to_matrix()
-        # quat -> euler, we always use 'XYZ' order, use ref rotation if given.
+        # Quaternion -> euler, we always use 'XYZ' order, use ref rotation if given.
         if rot_euler_compat is not None:
             rot = rot.to_euler('XYZ', rot_euler_compat)
         else:

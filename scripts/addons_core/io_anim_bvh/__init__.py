@@ -74,7 +74,7 @@ class ImportBVH(bpy.types.Operator, ImportHelper):
     use_fps_scale: BoolProperty(
         name="Scale FPS",
         description=(
-            "Scale the framerate from the BVH to the current scenes, "
+            "Scale the frame-rate from the BVH to the current scenes, "
             "otherwise each BVH frame maps directly to a Blender frame"
         ),
         default=False,
@@ -82,7 +82,7 @@ class ImportBVH(bpy.types.Operator, ImportHelper):
     update_scene_fps: BoolProperty(
         name="Update Scene FPS",
         description=(
-            "Set the scene framerate to that of the BVH file (note that this "
+            "Set the scene frame-rate to that of the BVH file (note that this "
             "nullifies the 'Scale FPS' option, as the scale will be 1:1)"
         ),
         default=False,

@@ -158,7 +158,7 @@ class ASSETBROWSER_MT_asset(Menu):
         layout.operator("poselib.create_pose_asset")
 
 
-# Messagebus subscription to monitor asset library changes.
+# MessageBus subscription to monitor asset library changes.
 _msgbus_owner = object()
 
 

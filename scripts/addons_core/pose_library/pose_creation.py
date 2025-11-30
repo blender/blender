@@ -271,7 +271,7 @@ class PoseActionCreator:
         return bone
 
     def _has_key_on_frame(self, fcurve: FCurve) -> bool:
-        """Return True iff the FCurve has a key on the source frame."""
+        """Return True if the FCurve has a key on the source frame."""
 
         points = fcurve.keyframe_points
         if not points:

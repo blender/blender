@@ -240,8 +240,9 @@ class UI_OT_i18n_addon_translation_import(Operator):
         # Mapping po_uid: po_file.
         po_files = dict(utils_i18n.get_po_files_from_dir(self.directory))
 
-        # Note: uids in i18n_sett.langs and addon's py code should be the same (both taken from the locale's languages
-        #       file). So we just try to find the best match in po's for each enabled uid.
+        # Note: uids in `i18n_sett.langs` and add-on's py code should be the same
+        #       (both taken from the locale's languages file).
+        #       So we just try to find the best match in po's for each enabled uid.
         for lng in i18n_sett.langs:
             if lng.uid in self.settings.IMPORT_LANGUAGES_SKIP:
                 print("Skipping {} language ({}), edit settings if you want to enable it.".format(lng.name, lng.uid))

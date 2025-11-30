@@ -36,8 +36,8 @@ def write_armature(
     for bone in arm.bones:
         children[bone.name] = []
 
-    # keep bone order from armature, no sorting, not esspential but means
-    # we can maintain order from import -> export which secondlife incorrectly expects.
+    # Keep bone order from armature, no sorting, not essential but means
+    # we can maintain order from import -> export which second-life incorrectly expects.
     for bone in arm.bones:
         children[getattr(bone.parent, "name", None)].append(bone.name)
 

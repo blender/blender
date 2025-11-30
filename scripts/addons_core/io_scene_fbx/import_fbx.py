@@ -473,8 +473,8 @@ def blen_read_object_transform_do(transform_data):
     return (base_mat @ geom_mat, base_mat, geom_mat)
 
 
-# XXX This might be weak, now that we can add vgroups from both bones and shapes, name collisions become
-#     more likely, will have to make this more robust!!!
+# XXX This might be weak, now that we can add vertex-groups from both bones and shapes,
+#     name collisions become more likely, will have to make this more robust!!!
 def add_vgroup_to_objects(vg_indices, vg_weights, vg_name, objects):
     assert(len(vg_indices) == len(vg_weights))
     if vg_indices:
@@ -551,7 +551,7 @@ def _blen_read_object_transform_do_anim(transform_data, lcl_translation_mat, lcl
 
     # Rotation
     def to_rot_xyz(rot):
-        # All the rotations that can be precalculated have a fixed XYZ order.
+        # All the rotations that can be pre-calculated have a fixed XYZ order.
         return Euler(convert_deg_to_rad_iter(rot), 'XYZ').to_matrix().to_4x4()
     pre_rot = to_rot_xyz(transform_data.pre_rot)
     pst_rot_inv = to_rot_xyz(transform_data.pst_rot).inverted_safe()
@@ -1088,7 +1088,7 @@ def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, anim_o
                 if id_data is None:
                     continue
 
-                # Create new action if needed (should always be needed, except for keyblocks from shapekeys cases).
+                # Create new action if needed (should always be needed, except for key-blocks from shape-keys cases).
                 key = (as_uuid, al_uuid, id_data)
                 action = actions.get(key)
                 if action is None:
@@ -1699,7 +1699,7 @@ def blen_read_geom_layer_smooth(fbx_obj, mesh):
             fbx_layer_data, None,
             fbx_layer_mapping, fbx_layer_ref,
             1, fbx_item_size, layer_id,
-            xform=lambda s: (s == 0),  # smoothgroup bitflags, treat as booleans for now
+            xform=lambda s: (s == 0),  # smooth-group bit-flags, treat as booleans for now.
         )
         if not sharp_face_set_successfully:
             mesh.attributes.remove(sharp_face)
@@ -2306,7 +2306,7 @@ class FbxImportHelperNode:
         self.bone_child_matrix = None           # Objects attached to a bone end not the beginning, this matrix corrects for that
 
         # XXX Those two are to handle the fact that rigged meshes are not linked to their armature in FBX, which implies
-        #     that their animation is in global space (afaik...).
+        #     that their animation is in global space (AFAIK...).
         #     This is actually not really solvable currently, since anim_compensation_matrix is not valid if armature
         #     itself is animated (we'd have to recompute global-to-local anim_compensation_matrix for each frame,
         #     and for each armature action... beyond being an insane work).
@@ -3175,7 +3175,7 @@ def load(operator, context, filepath="",
                                                      to_up=primary_bone_axis,
                                                      ).to_4x4()
 
-    # Compute framerate settings.
+    # Compute frame-rate settings.
     custom_fps = elem_props_get_number(fbx_settings_props, b'CustomFrameRate', 25.0)
     time_mode = elem_props_get_enum(fbx_settings_props, b'TimeMode')
     real_fps = {eid: val for val, eid in FBX_FRAMERATES[1:]}.get(time_mode, custom_fps)
@@ -3615,7 +3615,7 @@ def load(operator, context, filepath="",
             if fbx_sdata is None or fbx_sdata.id != b'Geometry' or fbx_sdata.props[2] != b'Shape':
                 continue
 
-            # shape -> blendshapechannel -> blendshape -> mesh.
+            # shape -> blend-shape-channel -> blend-shape -> mesh.
             for bc_uuid, fbx_bcdata, _bl_bcdata in connections_gen(s_uuid, b'Deformer', b'BlendShapeChannel'):
                 # Track the Shapes connected to each BlendShapeChannel.
                 shapes_assigned_to_channel = blend_shape_channel_to_shapes.setdefault(bc_uuid, [])
@@ -3648,7 +3648,8 @@ def load(operator, context, filepath="",
         # Iterate through each mesh and create its shape keys
         for bl_mdata, (objects, shapes) in mesh_to_shapes.items():
             for bc_uuid, keyblocks in blen_read_shapes(fbx_tmpl, shapes, objects, bl_mdata, scene).items():
-                # keyblocks is a list of tuples (mesh, keyblock) matching that shape/blendshapechannel, for animation.
+                # keyblocks is a list of tuples (mesh, key-block)
+                # matching that shape/blend-shape-channel, for animation.
                 blend_shape_channels.setdefault(bc_uuid, []).extend(keyblocks)
     _()
     del _
@@ -3793,7 +3794,7 @@ def load(operator, context, filepath="",
                         _fbx_alitem, anim_items = stacks[as_uuid][1][al_uuid]
                         assert(_fbx_alitem == fbx_alitem)
                         for item, item_prop in items:
-                            # No need to keep curvenode FBX data here, contains nothing useful for us.
+                            # No need to keep curve-node FBX data here, contains nothing useful for us.
                             anim_items.setdefault(item, {})[acn_uuid] = (cnode, item_prop)
 
             # AnimationCurves (real animation data).

@@ -763,7 +763,7 @@ def pkg_manifest_dict_is_valid_or_error(
         from_repo: bool,
         strict: bool,
 ) -> str | None:
-    # Exception! In in general `cli` shouldn't be considered a Python module,
+    # Exception! In general `cli` shouldn't be considered a Python module,
     # it's validation function is handy to reuse.
     from .cli.blender_ext import pkg_manifest_from_dict_and_validate
     assert "id" in data
@@ -919,7 +919,7 @@ class CommandBatch:
     - Exit gracefully when: SIGINT signal is sent
       (``signal.CTRL_BREAK_EVENT`` on WIN32).
     - Errors must be caught and forwarded as JSON error messages.
-      Unhandled exceptions are not expected and and will produce ugly
+      Unhandled exceptions are not expected and will produce ugly
       messages from the STDERR output.
 
     The user of this class creates the class with all known jobs,
