@@ -249,12 +249,21 @@ class SubdivisionSet(Operator):
         relative = self.relative
         ensure_modifier = self.ensure_modifier
 
+        objs = context.selected_editable_objects
+        if not objs:
+            active = context.active_object
+            if active:
+                objs = [active]
+            else:
+                self.report({'WARNING'}, "No active object")
+                return {'CANCELLED'}
+
         if relative and level == 0:
             return {'CANCELLED'}  # nothing to do
 
         if not ensure_modifier:
             any_object_has_relevant_modifier = False
-            for obj in context.selected_editable_objects:
+            for obj in objs:
                 if obj.mode == 'SCULPT':
                     any_object_has_relevant_modifier |= any(mod.type == 'MULTIRES' for mod in obj.modifiers)
                 elif obj.mode == 'OBJECT':
@@ -322,7 +331,7 @@ class SubdivisionSet(Operator):
                 except Exception:
                     self.report({'WARNING'}, rpt_("Modifiers cannot be added to object: {:s}").format(obj.name))
 
-        for obj in context.selected_editable_objects:
+        for obj in objs:
             set_object_subd(obj)
 
         return {'FINISHED'}
