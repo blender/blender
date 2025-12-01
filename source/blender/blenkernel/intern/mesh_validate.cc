@@ -518,6 +518,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       else {
         /* Face itself is valid, for now. */
         int v1, v2; /* v1 is prev corner vert idx, v2 is current corner one. */
+        int corner_min = 0;
         sp->invalid = false;
         sp->verts = v = sort_face_verts.data() + sort_face_verts_offset;
         sort_face_verts_offset += face_size;
@@ -535,7 +536,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
         }
 
         /* Test all face's corners' vert idx. */
-        for (j = 0; j < face_size; j++, v++) {
+        for (j = 0; j < face_size; j++) {
           const int vert = corner_verts[sp->corner_start + j];
           if (vert >= verts_num) {
             /* Invalid vert idx. */
@@ -549,7 +550,10 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
           else {
             vert_tag[vert].set();
           }
-          *v = vert;
+
+          if (corner_verts[sp->corner_start + corner_min] < vert) {
+            corner_min = j;
+          }
         }
 
         if (sp->invalid) {
@@ -620,8 +624,21 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
         }
 
         if (!sp->invalid) {
-          /* Needed for checking faces using same verts below. */
-          std::sort(sp->verts, sp->verts + sp->numverts);
+          /* Order by the smallest index, then the smallest adjacent index this ensures:
+           * - Faces are only considered duplicates when they share vertices & edges.
+           * - Faces winding in opposite directions are considered duplicates.
+           * See: #150842. */
+          const int corner_min_for_modulo = corner_min + face_size;
+          const int corner_min_prev = (corner_min_for_modulo - 1) % face_size;
+          const int corner_min_next = (corner_min_for_modulo + 1) % face_size;
+          const int sign = (corner_verts[sp->corner_start + corner_min_next] <
+                            corner_verts[sp->corner_start + corner_min_prev]) ?
+                               1 :
+                               -1;
+          for (j = 0; j < face_size; j++, v++) {
+            *v = corner_verts[sp->corner_start +
+                              ((corner_min_for_modulo + (j * sign)) % face_size)];
+          }
         }
       }
       sp++;
