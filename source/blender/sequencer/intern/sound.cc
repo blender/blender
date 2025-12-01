@@ -426,6 +426,7 @@ void *echomodifier_recreator(Strip * /*strip*/,
                              void *sound_in,
                              bool &needs_update)
 {
+#if defined(WITH_AUDASPACE)
   if (!needs_update && smd->runtime.last_sound_in == sound_in) {
     return smd->runtime.last_sound_out;
   }
@@ -435,6 +436,10 @@ void *echomodifier_recreator(Strip * /*strip*/,
   smd->runtime.last_sound_in = sound_in;
   smd->runtime.last_sound_out = sound_out;
   return sound_out;
+#else
+  UNUSED_VARS(smd, sound_in, needs_update);
+  return nullptr;
+#endif
 }
 
 const SoundModifierWorkerInfo *sound_modifier_worker_info_get(int type)
