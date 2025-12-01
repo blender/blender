@@ -2201,6 +2201,8 @@ static wmOperatorStatus sequencer_delete_exec(bContext *C, wmOperator *op)
   }
   seq::edit_remove_flagged_strips(scene, seqbasep);
 
+  vse::sync_active_scene_and_time_with_scene_strip(*C);
+
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   if (scene->adt && scene->adt->action) {
     DEG_id_tag_update(&scene->adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);

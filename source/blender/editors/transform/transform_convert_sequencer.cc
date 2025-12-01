@@ -19,6 +19,7 @@
 #include "BKE_context.hh"
 
 #include "ED_markers.hh"
+#include "ED_sequencer.hh"
 
 #include "SEQ_animation.hh"
 #include "SEQ_channels.hh"
@@ -806,6 +807,7 @@ static void recalcData_sequencer(TransInfo *t)
     strip_prev = strip;
   }
 
+  vse::sync_active_scene_and_time_with_scene_strip(*t->context);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
 
   flushTransSeq(t);
