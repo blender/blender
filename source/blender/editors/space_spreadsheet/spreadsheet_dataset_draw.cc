@@ -145,7 +145,7 @@ class RootGeometryViewItem : public InstancesTreeViewItem {
     label_ = geometry.name.empty() ? IFACE_("(Geometry)") : geometry.name;
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     row.label(label_, ICON_GEOMETRY_SET);
   }
@@ -165,7 +165,7 @@ class InstanceReferenceViewItem : public InstancesTreeViewItem {
     user_count_ = instances.reference_user_counts()[reference_index];
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     const int icon = get_instance_reference_icon(reference_);
     StringRefNull name = reference_.name();
@@ -249,7 +249,7 @@ class MeshViewItem : public DataSetViewItem {
     label_ = IFACE_("Mesh");
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     if (!has_mesh_) {
       row.active_set(false);
@@ -274,7 +274,7 @@ class MeshDomainViewItem : public DataSetViewItem {
     return GeometryDataIdentifier{bke::GeometryComponent::Type::Mesh, std::nullopt, domain_};
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     const BIFIconID icon = mesh_domain_to_icon(domain_);
     row.label(label_, icon);
@@ -294,7 +294,7 @@ class CurvesViewItem : public DataSetViewItem {
     label_ = IFACE_("Curve");
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     if (!has_curves_) {
       row.active_set(false);
@@ -320,7 +320,7 @@ class CurvesDomainViewItem : public DataSetViewItem {
     return GeometryDataIdentifier{bke::GeometryComponent::Type::Curve, std::nullopt, domain_};
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     const BIFIconID icon = curves_domain_to_icon(domain_);
     row.label(label_, icon);
@@ -339,7 +339,7 @@ class GreasePencilViewItem : public DataSetViewItem {
     label_ = IFACE_("Grease Pencil");
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     if (!has_grease_pencil_) {
       row.active_set(false);
@@ -364,7 +364,7 @@ class GreasePencilLayersViewItem : public DataSetViewItem {
         bke::GeometryComponent::Type::GreasePencil, std::nullopt, bke::AttrDomain::Layer};
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     const int count = grease_pencil_ ? grease_pencil_->layers().size() : 0;
     row.label(label_, ICON_OUTLINER_DATA_GP_LAYER);
@@ -383,7 +383,7 @@ class GreasePencilLayerViewItem : public DataSetViewItem {
     label_ = std::to_string(layer_index);
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     StringRefNull name = layer_.name();
     if (name.is_empty()) {
@@ -414,7 +414,7 @@ class GreasePencilLayerCurvesDomainViewItem : public DataSetViewItem {
         bke::GeometryComponent::Type::GreasePencil, layer_index_, domain_};
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     const BIFIconID icon = curves_domain_to_icon(domain_);
     row.label(label_, icon);
@@ -436,7 +436,7 @@ class PointCloudViewItem : public DataSetViewItem {
     label_ = IFACE_("Point Cloud");
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     if (!has_pointcloud_) {
       row.active_set(false);
@@ -461,7 +461,7 @@ class PointsViewItem : public DataSetViewItem {
         bke::GeometryComponent::Type::PointCloud, std::nullopt, bke::AttrDomain::Point};
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     row.label(label_, ICON_POINTCLOUD_POINT);
     const int count = pointcloud_ ? pointcloud_->totpoint : 0;
@@ -485,7 +485,7 @@ class VolumeGridsViewItem : public DataSetViewItem {
         bke::GeometryComponent::Type::Volume, std::nullopt, std::nullopt};
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     if (!volume_) {
       row.active_set(false);
@@ -513,7 +513,7 @@ class InstancesViewItem : public DataSetViewItem {
         bke::GeometryComponent::Type::Instance, std::nullopt, bke::AttrDomain::Instance};
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     if (!instances_) {
       row.active_set(false);
@@ -781,7 +781,7 @@ class IDViewerPathItem : public ViewerPathTreeViewItem {
     label_ = id_elem.id ? id_elem.id->name + 2 : IFACE_("No Data-Block");
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     if (id_elem_.id) {
       const int icon = ED_outliner_icon_from_id(*id_elem_.id);
@@ -803,7 +803,7 @@ class ModifierViewerPathItem : public ViewerPathTreeViewItem {
     label_ = modifier_elem.base.ui_name;
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     row.label(modifier_elem_.base.ui_name, ICON_MODIFIER);
   }
@@ -820,7 +820,7 @@ class GroupNodeViewerPathItem : public ViewerPathTreeViewItem {
     label_ = group_node_elem.base.ui_name;
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     row.label(group_node_elem_.base.ui_name, ICON_NODE);
   }
@@ -837,7 +837,7 @@ class ViewerNodeViewerPathItem : public ViewerPathTreeViewItem {
     label_ = viewer_node_elem.base.ui_name;
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     row.label(viewer_node_elem_.base.ui_name, ICON_RESTRICT_VIEW_OFF);
   }
@@ -853,7 +853,7 @@ class SimulationViewerPathPathItem : public ViewerPathTreeViewItem {
     label_ = IFACE_("Simulation");
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     row.label(label_, ICON_BLANK1);
   }
@@ -870,7 +870,7 @@ class RepeatViewerPathItem : public ViewerPathTreeViewItem {
     label_ = IFACE_("Repeat");
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     row.label(label_, ICON_BLANK1);
     draw_row_suffix(*this, std::to_string(repeat_zone_.iteration));
@@ -890,7 +890,7 @@ class ForeachElementViewerPathItem : public ViewerPathTreeViewItem {
     label_ = IFACE_("For Each Element");
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     row.label(label_, ICON_BLANK1);
     draw_row_suffix(*this, std::to_string(foreach_geo_elem_zone_.index));
@@ -906,7 +906,7 @@ class EvaluteClosureViewerPathItem : public ViewerPathTreeViewItem {
     label_ = IFACE_("Evaluate Closure");
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     row.label(label_, ICON_BLANK1);
   }
@@ -1068,7 +1068,7 @@ class ViewerNodeItem : public ViewerDataTreeItem {
     label_ = std::to_string(item.identifier);
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     row.label(item_.name, ICON_NONE);
   }
@@ -1083,7 +1083,7 @@ class BundleItem : public ViewerDataTreeItem {
     label_ = key;
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     row.label(label_, ICON_NONE);
   }
@@ -1101,7 +1101,7 @@ class ClosureInputOutputItem : public ViewerDataTreeItem {
     label_ = in_out_ == SPREADSHEET_CLOSURE_INPUT ? IFACE_("Inputs") : IFACE_("Outputs");
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(ui::Layout &row) override
   {
     row.label(label_, ICON_NONE);
   }
@@ -1205,7 +1205,7 @@ std::optional<bool> ViewerDataTreeItem::should_be_active() const
   return ViewerDataPath(table_id) == ViewerDataPath(this->items_path());
 }
 
-static void draw_context_panel_without_context(uiLayout &layout)
+static void draw_context_panel_without_context(ui::Layout &layout)
 {
   layout.label(IFACE_("No Active Context"), ICON_NONE);
 }
@@ -1219,7 +1219,7 @@ static bool viewer_path_ends_with_viewer_node(const ViewerPath &viewer_path)
   return ViewerPathElemType(last_elem.type) == VIEWER_PATH_ELEM_TYPE_VIEWER_NODE;
 }
 
-static void draw_viewer_path_panel(const bContext &C, uiLayout &layout)
+static void draw_viewer_path_panel(const bContext &C, ui::Layout &layout)
 {
   uiBlock *block = layout.block();
   ui::AbstractTreeView *tree_view = UI_block_add_view(
@@ -1228,7 +1228,7 @@ static void draw_viewer_path_panel(const bContext &C, uiLayout &layout)
   ui::TreeViewBuilder::build_tree_view(C, *tree_view, layout, true);
 }
 
-static void draw_viewer_data_panel(const bContext &C, uiLayout &layout)
+static void draw_viewer_data_panel(const bContext &C, ui::Layout &layout)
 {
   uiBlock *block = layout.block();
   ui::AbstractTreeView *tree_view = UI_block_add_view(
@@ -1237,7 +1237,7 @@ static void draw_viewer_data_panel(const bContext &C, uiLayout &layout)
   ui::TreeViewBuilder::build_tree_view(C, *tree_view, layout, false);
 }
 
-static void draw_context_panel_content(const bContext &C, uiLayout &layout)
+static void draw_context_panel_content(const bContext &C, ui::Layout &layout)
 {
   bScreen &screen = *CTX_wm_screen(&C);
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(&C);
@@ -1261,16 +1261,16 @@ static void draw_context_panel_content(const bContext &C, uiLayout &layout)
   if (sspreadsheet->geometry_id.object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE &&
       viewer_path_ends_with_viewer_node(viewer_path))
   {
-    if (uiLayout *panel = layout.panel(&C, "viewer path", true, IFACE_("Viewer Path"))) {
+    if (ui::Layout *panel = layout.panel(&C, "viewer path", true, IFACE_("Viewer Path"))) {
       draw_viewer_path_panel(C, *panel);
     }
-    if (uiLayout *panel = layout.panel(&C, "viewer data", true, IFACE_("Viewer Data"))) {
+    if (ui::Layout *panel = layout.panel(&C, "viewer data", true, IFACE_("Viewer Data"))) {
       draw_viewer_data_panel(C, *panel);
     }
   }
 }
 
-static void draw_context_panel(const bContext &C, uiLayout &layout)
+static void draw_context_panel(const bContext &C, ui::Layout &layout)
 {
   SpaceSpreadsheet &sspreadsheet = *CTX_wm_space_spreadsheet(&C);
 
@@ -1309,11 +1309,11 @@ void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
 
-  uiLayout *layout = panel->layout;
-  uiBlock *block = layout->block();
-  ui::block_layout_set_current(block, layout);
+  ui::Layout &layout = *panel->layout;
+  uiBlock *block = layout.block();
+  ui::block_layout_set_current(block, &layout);
 
-  draw_context_panel(*C, *layout);
+  draw_context_panel(*C, layout);
 
   Object *object = spreadsheet_get_object_eval(sspreadsheet, CTX_data_depsgraph_pointer(C));
   if (!object) {
@@ -1323,7 +1323,7 @@ void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
   if (const std::optional<bke::GeometrySet> root_geometry = root_geometry_set_get(sspreadsheet,
                                                                                   object))
   {
-    if (uiLayout *panel = layout->panel(C, "instance tree", false, IFACE_("Geometry"))) {
+    if (ui::Layout *panel = layout.panel(C, "instance tree", false, IFACE_("Geometry"))) {
       ui::AbstractTreeView *tree_view = UI_block_add_view(
           *block,
           "Instances Tree View",
@@ -1331,7 +1331,8 @@ void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
       tree_view->set_context_menu_title("Instance");
       ui::TreeViewBuilder::build_tree_view(*C, *tree_view, *panel, false);
     }
-    if (uiLayout *panel = layout->panel(C, "geometry_domain_tree_view", false, IFACE_("Domain"))) {
+    if (ui::Layout *panel = layout.panel(C, "geometry_domain_tree_view", false, IFACE_("Domain")))
+    {
       bke::GeometrySet instance_geometry = get_geometry_set_for_instance_ids(
           *root_geometry,
           {sspreadsheet->geometry_id.instance_ids, sspreadsheet->geometry_id.instance_ids_num});

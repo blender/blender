@@ -373,17 +373,14 @@ void unpack_menu(bContext *C,
                  PackedFile *pf)
 {
   Main *bmain = CTX_data_main(C);
-  PointerRNA props_ptr;
-  uiPopupMenu *pup;
-  uiLayout *layout;
   char line[FILE_MAX + 100];
   wmOperatorType *ot = WM_operatortype_find(opname, true);
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
 
-  pup = UI_popup_menu_begin(C, IFACE_("Unpack File"), ICON_NONE);
-  layout = UI_popup_menu_layout(pup);
+  uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Unpack File"), ICON_NONE);
+  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
 
-  props_ptr = layout->op(
+  PointerRNA props_ptr = layout.op(
       ot, IFACE_("Remove Pack"), ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
   RNA_enum_set(&props_ptr, "method", PF_REMOVE);
   RNA_string_set(&props_ptr, "id", id_name);
@@ -397,7 +394,7 @@ void unpack_menu(bContext *C,
       switch (BKE_packedfile_compare_to_file(blendfile_path, local_name, pf)) {
         case PF_CMP_NOFILE:
           SNPRINTF_UTF8(line, IFACE_("Create %s"), local_name);
-          props_ptr = layout->op(
+          props_ptr = layout.op(
               ot, line, ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
           RNA_enum_set(&props_ptr, "method", PF_WRITE_LOCAL);
           RNA_string_set(&props_ptr, "id", id_name);
@@ -405,7 +402,7 @@ void unpack_menu(bContext *C,
           break;
         case PF_CMP_EQUAL:
           SNPRINTF_UTF8(line, IFACE_("Use %s (identical)"), local_name);
-          props_ptr = layout->op(
+          props_ptr = layout.op(
               ot, line, ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
           RNA_enum_set(&props_ptr, "method", PF_USE_LOCAL);
           RNA_string_set(&props_ptr, "id", id_name);
@@ -413,13 +410,13 @@ void unpack_menu(bContext *C,
           break;
         case PF_CMP_DIFFERS:
           SNPRINTF_UTF8(line, IFACE_("Use %s (differs)"), local_name);
-          props_ptr = layout->op(
+          props_ptr = layout.op(
               ot, line, ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
           RNA_enum_set(&props_ptr, "method", PF_USE_LOCAL);
           RNA_string_set(&props_ptr, "id", id_name);
 
           SNPRINTF_UTF8(line, IFACE_("Overwrite %s"), local_name);
-          props_ptr = layout->op(
+          props_ptr = layout.op(
               ot, line, ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
           RNA_enum_set(&props_ptr, "method", PF_WRITE_LOCAL);
           RNA_string_set(&props_ptr, "id", id_name);
@@ -431,27 +428,27 @@ void unpack_menu(bContext *C,
   switch (BKE_packedfile_compare_to_file(blendfile_path, abs_name, pf)) {
     case PF_CMP_NOFILE:
       SNPRINTF_UTF8(line, IFACE_("Create %s"), abs_name);
-      props_ptr = layout->op(
+      props_ptr = layout.op(
           ot, line, ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
       RNA_enum_set(&props_ptr, "method", PF_WRITE_ORIGINAL);
       RNA_string_set(&props_ptr, "id", id_name);
       break;
     case PF_CMP_EQUAL:
       SNPRINTF_UTF8(line, IFACE_("Use %s (identical)"), abs_name);
-      props_ptr = layout->op(
+      props_ptr = layout.op(
           ot, line, ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
       RNA_enum_set(&props_ptr, "method", PF_USE_ORIGINAL);
       RNA_string_set(&props_ptr, "id", id_name);
       break;
     case PF_CMP_DIFFERS:
       SNPRINTF_UTF8(line, IFACE_("Use %s (differs)"), abs_name);
-      props_ptr = layout->op(
+      props_ptr = layout.op(
           ot, line, ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
       RNA_enum_set(&props_ptr, "method", PF_USE_ORIGINAL);
       RNA_string_set(&props_ptr, "id", id_name);
 
       SNPRINTF_UTF8(line, IFACE_("Overwrite %s"), abs_name);
-      props_ptr = layout->op(
+      props_ptr = layout.op(
           ot, line, ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
       RNA_enum_set(&props_ptr, "method", PF_WRITE_ORIGINAL);
       RNA_string_set(&props_ptr, "id", id_name);

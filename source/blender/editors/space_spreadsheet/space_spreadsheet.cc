@@ -650,15 +650,15 @@ static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
 
   uiBlock *block = UI_block_begin(C, region, __func__, ui::EmbossType::Emboss);
   const uiStyle *style = UI_style_get_dpi();
-  uiLayout &layout = ui::block_layout(block,
-                                      ui::LayoutDirection::Horizontal,
-                                      ui::LayoutType::Header,
-                                      UI_HEADER_OFFSET,
-                                      region->winy - (region->winy - UI_UNIT_Y) / 2.0f,
-                                      region->winx,
-                                      1,
-                                      0,
-                                      style);
+  ui::Layout &layout = ui::block_layout(block,
+                                        ui::LayoutDirection::Horizontal,
+                                        ui::LayoutType::Header,
+                                        UI_HEADER_OFFSET,
+                                        region->winy - (region->winy - UI_UNIT_Y) / 2.0f,
+                                        region->winx,
+                                        1,
+                                        0,
+                                        style);
   layout.separator_spacer();
   layout.alignment_set(ui::LayoutAlign::Right);
   layout.label(stats_str, ICON_NONE);

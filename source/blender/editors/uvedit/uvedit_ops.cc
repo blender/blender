@@ -2469,21 +2469,18 @@ static wmOperatorStatus uv_mark_seam_exec(bContext *C, wmOperator *op)
 
 static wmOperatorStatus uv_mark_seam_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  uiPopupMenu *pup;
-  uiLayout *layout;
-
   if (RNA_struct_property_is_set(op->ptr, "clear")) {
     return uv_mark_seam_exec(C, op);
   }
 
-  pup = UI_popup_menu_begin(C, IFACE_("Edges"), ICON_NONE);
-  layout = UI_popup_menu_layout(pup);
+  uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Edges"), ICON_NONE);
+  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
 
-  layout->operator_context_set(blender::wm::OpCallContext::ExecDefault);
-  PointerRNA op_ptr = layout->op(
+  layout.operator_context_set(blender::wm::OpCallContext::ExecDefault);
+  PointerRNA op_ptr = layout.op(
       op->type->idname, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Mark Seam"), ICON_NONE);
   RNA_boolean_set(&op_ptr, "clear", false);
-  op_ptr = layout->op(
+  op_ptr = layout.op(
       op->type->idname, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Seam"), ICON_NONE);
   RNA_boolean_set(&op_ptr, "clear", true);
 
