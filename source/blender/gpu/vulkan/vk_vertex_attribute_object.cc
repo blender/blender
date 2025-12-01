@@ -22,8 +22,6 @@ VKVertexAttributeObject::VKVertexAttributeObject()
 
 void VKVertexAttributeObject::clear()
 {
-  is_valid = false;
-  info.pNext = nullptr;
   bindings.clear();
   attributes.clear();
   vbos.clear();
@@ -36,8 +34,6 @@ VKVertexAttributeObject &VKVertexAttributeObject::operator=(const VKVertexAttrib
     return *this;
   }
 
-  is_valid = other.is_valid;
-  info = other.info;
   bindings.clear();
   bindings.extend(other.bindings);
   attributes.clear();
@@ -102,7 +98,6 @@ void VKVertexAttributeObject::update_bindings(const VKContext &context, VKBatch 
   if (occupied_attributes != interface.enabled_attr_mask_) {
     fill_unused_bindings(interface, occupied_attributes);
   }
-  is_valid = true;
 }
 
 void VKVertexAttributeObject::fill_unused_bindings(const VKShaderInterface &interface,
@@ -150,7 +145,6 @@ void VKVertexAttributeObject::update_bindings(VKImmediate &immediate)
                   immediate.vertex_len,
                   interface,
                   occupied_attributes);
-  is_valid = true;
   BLI_assert(interface.enabled_attr_mask_ == occupied_attributes);
 }
 

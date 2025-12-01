@@ -30,10 +30,6 @@ using AttributeMask = uint16_t;
  * them. Building the bindings/attributes should be done inside #VKPipelinePool. */
 class VKVertexAttributeObject {
  public:
-  bool is_valid = false;
-  VkPipelineVertexInputStateCreateInfo info = {
-      VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO, NULL};
-
   Vector<VkVertexInputBindingDescription> bindings;
   Vector<VkVertexInputAttributeDescription> attributes;
   /* Used for batches. */
