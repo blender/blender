@@ -24,6 +24,7 @@
 #include "DNA_workspace_types.h"
 
 #include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
@@ -1747,7 +1748,7 @@ Depsgraph *CTX_data_ensure_evaluated_depsgraph(const bContext *C, bool rna_write
   if (rna_write_check && !CTX_member_rna_write_check(C)) {
     return depsgraph;
   }
-  BLI_assert(CTX_member_rna_write_check(C));
+  BLI_assert(CTX_member_rna_write_check(C) || DEG_is_fully_evaluated(depsgraph));
 
   Main *bmain = CTX_data_main(C);
   BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
