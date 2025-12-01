@@ -81,8 +81,9 @@ class ImageFieldsFunction : public mf::MultiFunction {
 
     if (image_buffer_->float_buffer.data == nullptr) {
       BLI_thread_lock(LOCK_IMAGE);
+      /* Isolate because we are holding a lock. */
       if (!image_buffer_->float_buffer.data) {
-        IMB_float_from_byte(image_buffer_);
+        threading::isolate_task([&]() { IMB_float_from_byte(image_buffer_); });
       }
       BLI_thread_unlock(LOCK_IMAGE);
     }
