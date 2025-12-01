@@ -273,9 +273,9 @@ static bool detect_knot_mode_bezier_clamped(const int8_t degree,
   }
 
   /* Allow patterns:
-    O d ..
-    1 d d ..
-  */
+   * `O d` ..
+   * `1 d d` ..
+   */
   if (multiplicity[0] < order && (multiplicity[0] != 1 || multiplicity[1] < degree)) {
     return false;
   }
@@ -283,8 +283,8 @@ static bool detect_knot_mode_bezier_clamped(const int8_t degree,
   Span<int> mdegree_span = multiplicity.drop_front(1);
   if (multiplicity.size() == 2) {
     /* Single segment, allow patterns:
-     * O a
-     * where a > 0
+     * `O a`
+     * where `a > 0`
      */
     if (multiplicity.first() != order) {
       return false;
@@ -292,9 +292,9 @@ static bool detect_knot_mode_bezier_clamped(const int8_t degree,
   }
   else {
     /* Allow patterns:
-      .. d O+
-      .. d d 1
-    */
+     * .. `d O+`
+     * .. `d d 1`
+     */
     if (multiplicity.last() != order &&
         (multiplicity.last() == 1 && multiplicity.last(1) != degree))
     {

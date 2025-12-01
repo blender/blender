@@ -277,7 +277,7 @@ ccl_device_inline
 
                   if (*r_num_recorded_hits >= max_record_hits) {
                     /* If the maximum number of hits is reached, find the furthest intersection to
-                     replace it with the next closer one. We want N closest intersections. */
+                     * replace it with the next closer one. We want N closest intersections. */
                     isect_index = 0;
                     tmax_hits = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, t);
                     for (uint i = 1; i < max_record_hits; ++i) {

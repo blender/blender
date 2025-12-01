@@ -10,8 +10,9 @@
  * create `VkGraphicsPipelineCreateInfo` and related structs are grouped and the different
  * configurations can be created.
  */
-// TODO: separate in the different configuration and add a main configuration that includes all.
-// Unure yet if how to organize this in structs to keep stack allocation small.
+
+/* TODO: separate in the different configuration and add a main configuration that includes all.
+ * Unsure yet if how to organize this in structs to keep stack allocation small. */
 
 #pragma once
 

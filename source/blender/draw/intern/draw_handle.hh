@@ -244,9 +244,10 @@ class ObjectRef {
   float random() const
   {
     if (duplis_) {
-      /* NOTE: The random property is only used by EEVEE, which currently doesn't support
-      instancing optimizations. However, ObjectInfos always call this function so the code is still
-      reachable even if its result won't be used. */
+      /* NOTE: The random property is only used by EEVEE,
+       * which currently doesn't support instancing optimizations.
+       * However, ObjectInfos always call this function so the code
+       * is still reachable even if its result won't be used. */
       // BLI_assert_unreachable();
       /* TODO: This should fill a span instead. */
       return 0.0;

@@ -441,10 +441,11 @@ enum PathRayFlag : uint32_t {
   PATH_RAY_SHADOW_CATCHER_BACKGROUND = (1U << 31U),
 
   /* TODO(weizhen): should add another flag to record only the primary scatter, but then we need to
-     change the flag to 64 bits or split path_flags in two. Right now we also write volume scatter
-     if the primary hit is surface, but that seems fine. */
+   * change the flag to 64 bits or split path_flags in two. Right now we also write volume scatter
+   * if the primary hit is surface, but that seems fine. */
+
   /* Volume scattering probability guiding. This flag is added to path where the primary ray passed
-     through the volume without scattering. */
+   * through the volume without scattering. */
   PATH_RAY_VOLUME_PRIMARY_TRANSMIT = (1U << 23U),
 };
 

@@ -254,7 +254,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const openvdb::Vec3SGrid &velocity_vdb_grid = velocity_grid.grid(velocity_token);
 
   /* OpenVDB's advection requires uniform voxel scale on the grid being advected
-  but not for the velocity grid being sampled */
+   * but not for the velocity grid being sampled. */
   if (!grid_base.hasUniformVoxels()) {
     params.error_message_add(
         NodeWarningType::Error,
