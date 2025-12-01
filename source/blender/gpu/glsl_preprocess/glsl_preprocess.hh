@@ -1920,63 +1920,6 @@ class Preprocessor {
       parser.replace(tokens.front(), tokens.back(), unrolled);
     });
     parser.apply_mutations();
-#if 0
-    std::string out_str = str;
-    {
-      /* Example: `printf(2, b, f(c, d));` > `printf(2@ b@ f(c@ d))$` */
-      size_t start, end = 0;
-      while ((start = out_str.find("printf(", end)) != std::string::npos) {
-        end = out_str.find(';', start);
-        if (end == std::string::npos) {
-          break;
-        }
-        out_str[end] = '$';
-        int bracket_depth = 0;
-        int arg_len = 0;
-        for (size_t i = start; i < end; ++i) {
-          if (out_str[i] == '(') {
-            bracket_depth++;
-          }
-          else if (out_str[i] == ')') {
-            bracket_depth--;
-          }
-          else if (bracket_depth == 1 && out_str[i] == ',') {
-            out_str[i] = '@';
-            arg_len++;
-          }
-        }
-        if (arg_len > 99) {
-          report_error(line_number(out_str, start),
-                       char_number(out_str, start),
-                       line_str(out_str, start),
-                       "Too many parameters in printf. Max is 99.");
-          break;
-        }
-        /* Encode number of arg in the `ntf` of `printf`. */
-        out_str[start + sizeof("printf") - 4] = '$';
-        out_str[start + sizeof("printf") - 3] = ((arg_len / 10) > 0) ? ('0' + arg_len / 10) : '$';
-        out_str[start + sizeof("printf") - 2] = '0' + arg_len % 10;
-      }
-      if (end == 0) {
-        /* No printf in source. */
-        return str;
-      }
-    }
-    /* Example: `pri$$1(2@ b)$` > `{int c_ = print_header(1, 2); c_ = print_data(c_, b); }` */
-    {
-      std::regex regex(R"(pri\$\$?(\d{1,2})\()");
-      out_str = std::regex_replace(out_str, regex, "{uint c_ = print_header($1u, ");
-    }
-    {
-      std::regex regex(R"(\@)");
-      out_str = std::regex_replace(out_str, regex, "); c_ = print_data(c_,");
-    }
-    {
-      std::regex regex(R"(\$)");
-      out_str = std::regex_replace(out_str, regex, "; }");
-    }
-        return out_str;
-#endif
   }
 
   void assert_processing(Parser &parser, const std::string &filepath, report_callback report_error)
