@@ -344,7 +344,7 @@ def _mat4_vec3_array_multiply(mat4, vec3_array, dtype=None, return_4d=False):
 
     # Multiplying a 4d mathutils.Matrix by a 3d mathutils.Vector implicitly extends the Vector to 4d during the
     # calculation by appending 1.0 to the Vector and then the 4d result is truncated back to 3d.
-    # Numpy does not do an implicit extension to 4d, so it would have to be done explicitly by extending the entire
+    # NumPy does not do an implicit extension to 4d, so it would have to be done explicitly by extending the entire
     # vec3_array to 4d.
     # However, since the w component of the vectors is always 1.0, the last column can be excluded from the
     # multiplication and then added to every multiplied vector afterwards, which avoids having to make a 4d copy of

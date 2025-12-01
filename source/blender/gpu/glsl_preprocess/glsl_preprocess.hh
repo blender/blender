@@ -2192,7 +2192,7 @@ class Preprocessor {
           decl_type = SrtType::fragment_output;
         }
         else {
-          report_error(ERROR_TOK(attributes[1]), "Unrecognize attribute");
+          report_error(ERROR_TOK(attributes[1]), "Unrecognized attribute");
           return;
         }
 
@@ -3013,7 +3013,7 @@ class Preprocessor {
     parser.apply_mutations();
   }
 
-  /* Successive mutations can introduce a lot of uneeded line directives. */
+  /* Successive mutations can introduce a lot of unneeded line directives. */
   void cleanup_line_directives(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
@@ -3038,7 +3038,7 @@ class Preprocessor {
     parser.apply_mutations();
   }
 
-  /* Successive mutations can introduce a lot of uneeded blank lines. */
+  /* Successive mutations can introduce a lot of unneeded blank lines. */
   void cleanup_empty_lines(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
