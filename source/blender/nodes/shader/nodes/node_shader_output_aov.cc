@@ -18,9 +18,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Value").default_value(0.0f).min(0.0f).max(1.0f);
 }
 
-static void node_shader_buts_output_aov(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_shader_buts_output_aov(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "aov_name", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "aov_name", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 static void node_shader_init_output_aov(bNodeTree * /*ntree*/, bNode *node)

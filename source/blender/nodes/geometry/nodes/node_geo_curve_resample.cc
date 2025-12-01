@@ -68,9 +68,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       .usage_by_single_menu(GEO_NODE_CURVE_RESAMPLE_LENGTH);
 }
 
-static void node_layout_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout_ex(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "keep_last_segment", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "keep_last_segment", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

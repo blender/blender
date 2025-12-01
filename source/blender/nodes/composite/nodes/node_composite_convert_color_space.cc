@@ -42,16 +42,16 @@ static void node_composit_init_convert_colorspace(bNodeTree * /*ntree*/, bNode *
   node->storage = ncs;
 }
 
-static void node_composit_buts_convert_colorspace(uiLayout *layout,
+static void node_composit_buts_convert_colorspace(ui::Layout &layout,
                                                   bContext * /*C*/,
                                                   PointerRNA *ptr)
 {
 #ifndef WITH_OPENCOLORIO
-  layout->label(RPT_("Disabled, built without OpenColorIO"), ICON_ERROR);
+  layout.label(RPT_("Disabled, built without OpenColorIO"), ICON_ERROR);
 #endif
 
-  layout->prop(ptr, "from_color_space", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "to_color_space", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "from_color_space", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "to_color_space", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;

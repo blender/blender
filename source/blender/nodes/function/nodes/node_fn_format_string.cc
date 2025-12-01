@@ -89,11 +89,11 @@ static void node_operators()
   socket_items::ops::make_common_operators<FormatStringItemsAccessor>();
 }
 
-static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_layout_ex(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
   bNodeTree &tree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNode &node = *ptr->data_as<bNode>();
-  if (uiLayout *panel = layout->panel(C, "format_string_items", false, IFACE_("Format Items"))) {
+  if (ui::Layout *panel = layout.panel(C, "format_string_items", false, IFACE_("Format Items"))) {
     socket_items::ui::draw_items_list_with_operators<FormatStringItemsAccessor>(
         C, panel, tree, node);
     socket_items::ui::draw_active_item_props<FormatStringItemsAccessor>(

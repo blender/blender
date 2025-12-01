@@ -16,7 +16,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Color>("Color").custom_draw([](CustomSocketDrawParams &params) {
     params.layout.alignment_set(ui::LayoutAlign::Expand);
-    uiLayout &col = params.layout.column(false);
+    ui::Layout &col = params.layout.column(false);
     uiTemplateColorPicker(&col, &params.node_ptr, "value", true, false, false, true);
     col.prop(&params.node_ptr, "value", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   });

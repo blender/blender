@@ -82,8 +82,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   /* Panel for Subsurface scattering settings. */
   PanelDeclarationBuilder &sss = b.add_panel("Subsurface").default_closed(true);
-  sss.add_layout([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
-    layout->prop(ptr, "subsurface_method", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  sss.add_layout([](ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr) {
+    layout.prop(ptr, "subsurface_method", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   });
   sss.add_input<decl::Float>("Subsurface Weight")
       .default_value(0.0f)
@@ -133,8 +133,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   /* Panel for Specular settings. */
   PanelDeclarationBuilder &spec = b.add_panel("Specular").default_closed(true);
-  spec.add_layout([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
-    layout->prop(ptr, "distribution", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  spec.add_layout([](ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr) {
+    layout.prop(ptr, "distribution", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   });
   spec.add_input<decl::Float>("Specular IOR Level")
       .default_value(0.5f)

@@ -35,36 +35,36 @@ namespace blender::nodes::node_geo_viewer_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryViewer)
 
-static void draw_float(uiLayout &layout, const float value)
+static void draw_float(ui::Layout &layout, const float value)
 {
   const std::string label = fmt::format("{:.5f}", value);
   layout.label(label, ICON_NONE);
 }
-static void draw_int(uiLayout &layout, const int value)
+static void draw_int(ui::Layout &layout, const int value)
 {
   const std::string label = fmt::format("{}", value);
   layout.label(label, ICON_NONE);
 }
-static void draw_bool(uiLayout &layout, const bool value)
+static void draw_bool(ui::Layout &layout, const bool value)
 {
   layout.label(value ? IFACE_("True") : IFACE_("False"), ICON_NONE);
 }
-static void draw_vector(uiLayout &layout, const float3 &value)
+static void draw_vector(ui::Layout &layout, const float3 &value)
 {
-  uiLayout &col = layout.column(true);
+  ui::Layout &col = layout.column(true);
   col.label(fmt::format("{}: {:.5f}", IFACE_("X"), value.x), ICON_NONE);
   col.label(fmt::format("{}: {:.5f}", IFACE_("Y"), value.y), ICON_NONE);
   col.label(fmt::format("{}: {:.5f}", IFACE_("Z"), value.z), ICON_NONE);
 }
-static void draw_color(uiLayout &layout, const ColorGeometry4f &value)
+static void draw_color(ui::Layout &layout, const ColorGeometry4f &value)
 {
-  uiLayout &col = layout.column(true);
+  ui::Layout &col = layout.column(true);
   col.label(fmt::format("{}: {:.5f}", CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "R"), value.r), ICON_NONE);
   col.label(fmt::format("{}: {:.5f}", CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "G"), value.g), ICON_NONE);
   col.label(fmt::format("{}: {:.5f}", CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "B"), value.b), ICON_NONE);
   col.label(fmt::format("{}: {:.5f}", CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "A"), value.a), ICON_NONE);
 }
-static void draw_string(uiLayout &layout, const StringRef value)
+static void draw_string(ui::Layout &layout, const StringRef value)
 {
   /* The node doesn't get wider than that anyway. */
   const int max_display_length = 200;
@@ -242,7 +242,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->storage = data;
 }
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
   const bNode &node = *ptr->data_as<bNode>();
   const NodeGeometryViewer &storage = node_storage(node);
@@ -261,16 +261,16 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
   }
 
   if (has_geometry_input && has_potential_field_input) {
-    layout->prop(ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
+    layout.prop(ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
   }
 }
 
-static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_layout_ex(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
   bNode &node = *ptr->data_as<bNode>();
   bNodeTree &ntree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
 
-  if (uiLayout *panel = layout->panel(C, "viewer_items", false, IFACE_("Viewer Items"))) {
+  if (ui::Layout *panel = layout.panel(C, "viewer_items", false, IFACE_("Viewer Items"))) {
     socket_items::ui::draw_items_list_with_operators<GeoViewerItemsAccessor>(
         C, panel, ntree, node);
     socket_items::ui::draw_active_item_props<GeoViewerItemsAccessor>(

@@ -15,7 +15,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Bool>("Boolean").custom_draw([](CustomSocketDrawParams &params) {
     params.layout.alignment_set(ui::LayoutAlign::Expand);
-    uiLayout &row = params.layout.row(true);
+    ui::Layout &row = params.layout.row(true);
     row.prop(
         &params.node_ptr, "boolean", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Boolean"), ICON_NONE);
     if (gizmos::value_node_has_gizmo(params.tree, params.node)) {

@@ -60,15 +60,15 @@ static void node_declare(NodeDeclarationBuilder &b)
   }
 }
 
-static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
-  uiTemplateID(layout, C, ptr, "font", nullptr, "FONT_OT_open", "FONT_OT_unlink");
-  layout->prop(ptr, "overflow", UI_ITEM_NONE, "", ICON_NONE);
-  layout->prop(ptr, "align_x", UI_ITEM_NONE, "", ICON_NONE);
-  layout->prop(ptr, "align_y", UI_ITEM_NONE, "", ICON_NONE);
-  layout->prop(ptr, "pivot_mode", UI_ITEM_NONE, IFACE_("Pivot Point"), ICON_NONE);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
+  uiTemplateID(&layout, C, ptr, "font", nullptr, "FONT_OT_open", "FONT_OT_unlink");
+  layout.prop(ptr, "overflow", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(ptr, "align_x", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(ptr, "align_y", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(ptr, "pivot_mode", UI_ITEM_NONE, IFACE_("Pivot Point"), ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

@@ -32,8 +32,8 @@ static void node_declare(NodeDeclarationBuilder &b)
           "traveled in the medium");
 #define SOCK_ABSORPTION_COEFFICIENTS_ID 1
   PanelDeclarationBuilder &sca = b.add_panel("Scatter").default_closed(false);
-  sca.add_layout([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
-    layout->prop(ptr, "phase", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  sca.add_layout([](ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr) {
+    layout.prop(ptr, "phase", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   });
   sca.add_input<decl::Vector>("Scatter Coefficients")
       .default_value({1.0f, 1.0f, 1.0f})

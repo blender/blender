@@ -128,7 +128,7 @@ static void draw_node_inputs_recursive(bContext *C,
     }
     else if (const auto *layout_decl = dynamic_cast<const LayoutDeclaration *>(item_decl)) {
       if (!layout_decl->is_default) {
-        layout_decl->draw(panel.body, C, node_ptr);
+        layout_decl->draw(*panel.body, C, node_ptr);
       }
     }
   }
@@ -147,10 +147,10 @@ void uiTemplateNodeInputs(uiLayout *layout, bContext *C, PointerRNA *ptr)
   BLI_assert(node.typeinfo != nullptr);
   /* Draw top-level node buttons. */
   if (node.typeinfo->draw_buttons_ex) {
-    node.typeinfo->draw_buttons_ex(layout, C, ptr);
+    node.typeinfo->draw_buttons_ex(*layout, C, ptr);
   }
   else if (node.typeinfo->draw_buttons) {
-    node.typeinfo->draw_buttons(layout, C, ptr);
+    node.typeinfo->draw_buttons(*layout, C, ptr);
   }
 
   if (node.declaration()) {
@@ -180,7 +180,7 @@ void uiTemplateNodeInputs(uiLayout *layout, bContext *C, PointerRNA *ptr)
       }
       else if (const auto *layout_decl = dynamic_cast<const LayoutDeclaration *>(item_decl)) {
         if (!layout_decl->is_default) {
-          layout_decl->draw(layout, C, ptr);
+          layout_decl->draw(*layout, C, ptr);
         }
       }
     }

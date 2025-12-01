@@ -56,9 +56,9 @@ static void sh_node_radial_tiling_declare(NodeDeclarationBuilder &b)
       .description("Roundness of the segment coordinates systems");
 }
 
-static void node_shader_buts_radial_tiling(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_shader_buts_radial_tiling(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "normalize", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "normalize", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 static void node_shader_init_radial_tiling(bNodeTree * /*ntree*/, bNode *node)

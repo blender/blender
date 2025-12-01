@@ -32,16 +32,16 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("The parts of the geometry to be deleted");
 }
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
   const bNode *node = static_cast<bNode *>(ptr->data);
   const NodeGeometryDeleteGeometry &storage = node_storage(*node);
   const AttrDomain domain = AttrDomain(storage.domain);
 
-  layout->prop(ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
   /* Only show the mode when it is relevant. */
   if (ELEM(domain, AttrDomain::Point, AttrDomain::Edge, AttrDomain::Face)) {
-    layout->prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
+    layout.prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
   }
 }
 

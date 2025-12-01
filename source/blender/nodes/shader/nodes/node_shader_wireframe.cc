@@ -19,9 +19,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Factor", "Fac");
 }
 
-static void node_shader_buts_wireframe(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_shader_buts_wireframe(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "use_pixel_size", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_pixel_size", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 static int node_shader_gpu_wireframe(GPUMaterial *mat,

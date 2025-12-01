@@ -228,7 +228,7 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
 void node_geometry_add_attribute_search_button(const bContext & /*C*/,
                                                const bNode &node,
                                                PointerRNA &socket_ptr,
-                                               uiLayout &layout,
+                                               ui::Layout &layout,
                                                const StringRef placeholder)
 {
   uiBlock *block = layout.block();

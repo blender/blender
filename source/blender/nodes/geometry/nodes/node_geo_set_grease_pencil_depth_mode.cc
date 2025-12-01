@@ -28,9 +28,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Grease Pencil").propagate_all().align_with_previous();
 }
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "depth_order", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(ptr, "depth_order", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

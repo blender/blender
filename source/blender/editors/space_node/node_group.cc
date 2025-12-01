@@ -732,7 +732,7 @@ static wmOperatorStatus node_group_separate_invoke(bContext *C,
 {
   uiPopupMenu *pup = UI_popup_menu_begin(
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Separate"), ICON_NONE);
-  uiLayout *layout = UI_popup_menu_layout(pup);
+  ui::Layout *layout = UI_popup_menu_layout(pup);
 
   layout->operator_context_set(wm::OpCallContext::ExecDefault);
   PointerRNA op_ptr = layout->op("NODE_OT_group_separate", IFACE_("Copy"), ICON_NONE);

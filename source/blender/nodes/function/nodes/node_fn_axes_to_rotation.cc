@@ -28,10 +28,10 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->custom2 = int(math::Axis::X);
 }
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "primary_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "secondary_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "primary_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "secondary_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 static float3 get_orthogonal_of_non_zero_vector(const float3 &v)
