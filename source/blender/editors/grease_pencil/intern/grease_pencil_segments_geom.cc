@@ -1014,15 +1014,11 @@ static bool check_line_segment_lasso_intersection(const int2 &pos_a,
                                                   const int2 &pos_b,
                                                   const Span<int2> mcoords)
 {
-  /* TODO: Use the new `Bounds<int2>` API. */
-  rcti bbox_ab;
-  BLI_rcti_init_minmax(&bbox_ab);
-  BLI_rcti_do_minmax_v(&bbox_ab, pos_a);
-  BLI_rcti_do_minmax_v(&bbox_ab, pos_b);
-  BLI_rcti_pad(&bbox_ab, BBOX_PADDING, BBOX_PADDING);
+  Bounds<int2> bbox_ab{math::min(pos_a, pos_b), math::max(pos_a, pos_b)};
+  bbox_ab.pad(BBOX_PADDING);
 
   /* Check the lasso bounding box first as an optimization. */
-  if (BLI_rcti_isect_segment(&bbox_ab, pos_a, pos_b) &&
+  if (bbox_ab.intersects_segment(pos_a, pos_b) &&
       BLI_lasso_is_edge_inside(mcoords, pos_a.x, pos_a.y, pos_b.x, pos_b.y, IS_CLIPPED))
   {
     return true;
