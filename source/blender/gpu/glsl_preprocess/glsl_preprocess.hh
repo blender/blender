@@ -3319,11 +3319,11 @@ class Preprocessor {
         }
       };
 
-      args.foreach_match("ww[[w]]", [&](const vector<Token> toks) {
-        process_argument(toks[0], toks[1], toks[4]);
+      args.foreach_match("[[w]]ww", [&](const vector<Token> toks) {
+        process_argument(toks[5], toks[6], toks[2]);
       });
-      args.foreach_match("w&w[[w]]", [&](const vector<Token> toks) {
-        process_argument(toks[0], toks[2], toks[5]);
+      args.foreach_match("[[w]]w&w", [&](const vector<Token> toks) {
+        process_argument(toks[5], toks[7], toks[2]);
       });
     });
 
