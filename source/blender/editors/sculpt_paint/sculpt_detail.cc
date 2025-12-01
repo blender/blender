@@ -256,7 +256,7 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2
   Object &ob = *vc->obact;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
-  SCULPT_stroke_modifiers_check(C, ob, brush);
+  SCULPT_stroke_modifiers_check(C, ob, &brush);
 
   const float2 mval_fl = {float(mval[0]), float(mval[1])};
   float3 ray_start;

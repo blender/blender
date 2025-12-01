@@ -4490,20 +4490,20 @@ static bool sculpt_needs_connectivity_info(const Sculpt &sd,
 
 }  // namespace blender::ed::sculpt_paint
 
-void SCULPT_stroke_modifiers_check(const bContext *C, Object &ob, const Brush &brush)
+void SCULPT_stroke_modifiers_check(const bContext *C, Object &ob, const Brush *brush)
 {
   using namespace blender::ed::sculpt_paint;
   SculptSession &ss = *ob.sculpt;
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
 
-  bool need_pmap = sculpt_needs_connectivity_info(sd, brush, ob, 0);
+  bool need_pmap = brush && sculpt_needs_connectivity_info(sd, *brush, ob, 0);
   if (ss.shapekey_active || ss.deform_modifiers_active ||
       (!BKE_sculptsession_use_pbvh_draw(&ob, rv3d) && need_pmap))
   {
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
     BKE_sculpt_update_object_for_edit(
-        depsgraph, &ob, brush_type_is_paint(brush.sculpt_brush_type));
+        depsgraph, &ob, brush_type_is_paint(brush->sculpt_brush_type));
   }
 }
 
@@ -4739,7 +4739,7 @@ bool cursor_geometry_info_update(bContext *C,
   float3 ray_end;
   float3 ray_normal;
   float depth = raycast_init(&vc, mval, ray_start, ray_end, ray_normal, original);
-  SCULPT_stroke_modifiers_check(C, ob, brush);
+  SCULPT_stroke_modifiers_check(C, ob, &brush);
 
   RaycastData srd{};
   srd.use_original = original;
@@ -4866,7 +4866,7 @@ static bool stroke_get_location_bvh_ex(bContext *C,
   StrokeCache *cache = ss.cache;
   const bool original = force_original || ((cache) ? !cache->accum : false);
   Paint *paint = BKE_paint_get_active_from_context(C);
-  const Brush &brush = *BKE_paint_brush(paint);
+  const Brush *brush = BKE_paint_brush(paint);
 
   SCULPT_stroke_modifiers_check(C, ob, brush);
 
@@ -4955,8 +4955,10 @@ static bool stroke_get_location_bvh_ex(bContext *C,
 
   float closest_radius_sq = std::numeric_limits<float>::max();
   if (limit_closest_radius) {
-    closest_radius_sq = object_space_radius_get(vc, *paint, brush, out);
-    closest_radius_sq *= closest_radius_sq;
+    if (brush) {
+      closest_radius_sq = object_space_radius_get(vc, *paint, *brush, out);
+      closest_radius_sq *= closest_radius_sq;
+    }
   }
 
   return hit && fntrd.dist_sq_to_ray < closest_radius_sq;
@@ -4968,7 +4970,7 @@ bool stroke_get_location_bvh(bContext *C,
                              const bool force_original)
 {
   const Brush *brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
-  const bool check_closest = brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE;
+  const bool check_closest = brush && brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE;
 
   float3 location;
   const bool result = stroke_get_location_bvh_ex(
@@ -5563,7 +5565,7 @@ static void stroke_update_step(bContext *C,
   StrokeCache *cache = ss.cache;
   cache->stroke_distance = paint_stroke_distance_get(stroke);
 
-  SCULPT_stroke_modifiers_check(C, ob, brush);
+  SCULPT_stroke_modifiers_check(C, ob, &brush);
   sculpt_update_cache_variants(C, sd, ob, itemptr);
   restore_from_undo_step_if_necessary(depsgraph, sd, ob);
 
@@ -5625,7 +5627,7 @@ static void stroke_done(const bContext *C, PaintStroke * /*stroke*/)
   BLI_assert(brush == ss.cache->brush); /* const, so we shouldn't change. */
   paint_runtime->draw_inverted = false;
 
-  SCULPT_stroke_modifiers_check(C, ob, *brush);
+  SCULPT_stroke_modifiers_check(C, ob, brush);
 
   /* Alt-Smooth. */
   if (ss.cache->alt_smooth) {
