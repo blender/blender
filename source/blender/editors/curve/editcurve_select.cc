@@ -1529,7 +1529,7 @@ static void nurb_bpoint_direction_worldspace_get(Object *ob, Nurb *nu, BPoint *b
 }
 
 static void curve_nurb_selected_type_get(
-    Object *ob, Nurb *nu, const int type, KDTree_1d *tree_1d, KDTree_3d *tree_3d)
+    Object *ob, Nurb *nu, const int type, blender::KDTree_1d *tree_1d, blender::KDTree_3d *tree_3d)
 {
   float tree_entry[3] = {0.0f, 0.0f, 0.0f};
 
@@ -1558,10 +1558,10 @@ static void curve_nurb_selected_type_get(
           }
         }
         if (tree_1d) {
-          BLI_kdtree_1d_insert(tree_1d, tree_index++, tree_entry);
+          blender::BLI_kdtree_1d_insert(tree_1d, tree_index++, tree_entry);
         }
         else {
-          BLI_kdtree_3d_insert(tree_3d, tree_index++, tree_entry);
+          blender::BLI_kdtree_3d_insert(tree_3d, tree_index++, tree_entry);
         }
       }
     }
@@ -1590,10 +1590,10 @@ static void curve_nurb_selected_type_get(
           }
         }
         if (tree_1d) {
-          BLI_kdtree_1d_insert(tree_1d, tree_index++, tree_entry);
+          blender::BLI_kdtree_1d_insert(tree_1d, tree_index++, tree_entry);
         }
         else {
-          BLI_kdtree_3d_insert(tree_3d, tree_index++, tree_entry);
+          blender::BLI_kdtree_3d_insert(tree_3d, tree_index++, tree_entry);
         }
       }
     }
@@ -1603,8 +1603,8 @@ static void curve_nurb_selected_type_get(
 static bool curve_nurb_select_similar_type(Object *ob,
                                            Nurb *nu,
                                            const int type,
-                                           const KDTree_1d *tree_1d,
-                                           const KDTree_3d *tree_3d,
+                                           const blender::KDTree_1d *tree_1d,
+                                           const blender::KDTree_3d *tree_3d,
                                            const float thresh,
                                            const int compare)
 {
@@ -1641,8 +1641,8 @@ static bool curve_nurb_select_similar_type(Object *ob,
           case SIMCURHAND_DIRECTION: {
             float dir[3];
             nurb_bezt_direction_worldspace_get(ob, nu, bezt, dir);
-            KDTreeNearest_3d nearest;
-            if (BLI_kdtree_3d_find_nearest(tree_3d, dir, &nearest) != -1) {
+            blender::KDTreeNearest_3d nearest;
+            if (blender::BLI_kdtree_3d_find_nearest(tree_3d, dir, &nearest) != -1) {
               float orient = angle_normalized_v3v3(dir, nearest.co);
               float delta = thresh_cos - fabsf(cosf(orient));
               if (ED_select_similar_compare_float(delta, thresh, eSimilarCmp(compare))) {
@@ -1690,8 +1690,8 @@ static bool curve_nurb_select_similar_type(Object *ob,
           case SIMCURHAND_DIRECTION: {
             float dir[3];
             nurb_bpoint_direction_worldspace_get(ob, nu, bp, dir);
-            KDTreeNearest_3d nearest;
-            if (BLI_kdtree_3d_find_nearest(tree_3d, dir, &nearest) != -1) {
+            blender::KDTreeNearest_3d nearest;
+            if (blender::BLI_kdtree_3d_find_nearest(tree_3d, dir, &nearest) != -1) {
               float orient = angle_normalized_v3v3(dir, nearest.co);
               float delta = fabsf(cosf(orient)) - thresh_cos;
               if (ED_select_similar_compare_float(delta, thresh, eSimilarCmp(compare))) {
@@ -1736,17 +1736,17 @@ static wmOperatorStatus curve_select_similar_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  KDTree_1d *tree_1d = nullptr;
-  KDTree_3d *tree_3d = nullptr;
+  blender::KDTree_1d *tree_1d = nullptr;
+  blender::KDTree_3d *tree_3d = nullptr;
   short type_ref = 0;
 
   switch (optype) {
     case SIMCURHAND_RADIUS:
     case SIMCURHAND_WEIGHT:
-      tree_1d = BLI_kdtree_1d_new(tot_nurbs_selected_all);
+      tree_1d = blender::BLI_kdtree_1d_new(tot_nurbs_selected_all);
       break;
     case SIMCURHAND_DIRECTION:
-      tree_3d = BLI_kdtree_3d_new(tot_nurbs_selected_all);
+      tree_3d = blender::BLI_kdtree_3d_new(tot_nurbs_selected_all);
       break;
   }
 
@@ -1774,12 +1774,12 @@ static wmOperatorStatus curve_select_similar_exec(bContext *C, wmOperator *op)
   }
 
   if (tree_1d != nullptr) {
-    BLI_kdtree_1d_deduplicate(tree_1d);
-    BLI_kdtree_1d_balance(tree_1d);
+    blender::BLI_kdtree_1d_deduplicate(tree_1d);
+    blender::BLI_kdtree_1d_balance(tree_1d);
   }
   if (tree_3d != nullptr) {
-    BLI_kdtree_3d_deduplicate(tree_3d);
-    BLI_kdtree_3d_balance(tree_3d);
+    blender::BLI_kdtree_3d_deduplicate(tree_3d);
+    blender::BLI_kdtree_3d_balance(tree_3d);
   }
 
   /* Select control points with desired type. */
@@ -1812,10 +1812,10 @@ static wmOperatorStatus curve_select_similar_exec(bContext *C, wmOperator *op)
   }
 
   if (tree_1d != nullptr) {
-    BLI_kdtree_1d_free(tree_1d);
+    blender::BLI_kdtree_1d_free(tree_1d);
   }
   if (tree_3d != nullptr) {
-    BLI_kdtree_3d_free(tree_3d);
+    blender::BLI_kdtree_3d_free(tree_3d);
   }
   return OPERATOR_FINISHED;
 }

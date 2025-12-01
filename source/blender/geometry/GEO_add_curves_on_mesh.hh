@@ -12,7 +12,9 @@
 #include "GEO_reverse_uv_sampler.hh"
 
 struct Mesh;
+namespace blender {
 struct KDTree_3d;
+}  // namespace blender
 
 namespace blender::geometry {
 

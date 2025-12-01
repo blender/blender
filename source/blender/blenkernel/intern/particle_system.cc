@@ -528,7 +528,7 @@ void psys_thread_context_free(ParticleThreadContext *ctx)
     MEM_freeN(ctx->seams);
   }
   // if (ctx->vertpart) MEM_freeN(ctx->vertpart);
-  BLI_kdtree_3d_free(ctx->tree);
+  blender::BLI_kdtree_3d_free(ctx->tree);
 
   if (ctx->clumpcurve != nullptr) {
     BKE_curvemapping_free(ctx->clumpcurve);
@@ -1368,17 +1368,17 @@ void psys_update_particle_tree(ParticleSystem *psys, float cfra)
         }
       }
 
-      BLI_kdtree_3d_free(psys->tree);
-      psys->tree = BLI_kdtree_3d_new(totpart);
+      blender::BLI_kdtree_3d_free(psys->tree);
+      psys->tree = blender::BLI_kdtree_3d_new(totpart);
 
       LOOP_SHOWN_PARTICLES
       {
         if (pa->alive == PARS_ALIVE) {
           const float *co = (pa->state.time == cfra) ? pa->prev_state.co : pa->state.co;
-          BLI_kdtree_3d_insert(psys->tree, p, co);
+          blender::BLI_kdtree_3d_insert(psys->tree, p, co);
         }
       }
-      BLI_kdtree_3d_balance(psys->tree);
+      blender::BLI_kdtree_3d_balance(psys->tree);
 
       psys->tree_frame = cfra;
     }

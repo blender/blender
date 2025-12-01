@@ -653,13 +653,14 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
       1024 < curve_op_data.selected_points.size() + curve_op_data.unselected_points.size(),
       [&]() {
         /* Build KD-tree for the selected points. */
-        KDTree_3d *kdtree = BLI_kdtree_3d_new(curve_op_data.selected_points.size());
-        BLI_SCOPED_DEFER([&]() { BLI_kdtree_3d_free(kdtree); });
+        blender::KDTree_3d *kdtree = blender::BLI_kdtree_3d_new(
+            curve_op_data.selected_points.size());
+        BLI_SCOPED_DEFER([&]() { blender::BLI_kdtree_3d_free(kdtree); });
         curve_op_data.selected_points.foreach_index([&](const int point_i) {
           const float3 &position = positions[point_i];
-          BLI_kdtree_3d_insert(kdtree, point_i, position);
+          blender::BLI_kdtree_3d_insert(kdtree, point_i, position);
         });
-        BLI_kdtree_3d_balance(kdtree);
+        blender::BLI_kdtree_3d_balance(kdtree);
 
         /* For each unselected point, compute the distance to the closest selected point. */
         curve_op_data.distances_to_selected.reinitialize(curve_op_data.unselected_points.size());
@@ -668,21 +669,22 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
               for (const int i : range) {
                 const int point_i = curve_op_data.unselected_points[i];
                 const float3 &position = positions[point_i];
-                KDTreeNearest_3d nearest;
-                BLI_kdtree_3d_find_nearest(kdtree, position, &nearest);
+                blender::KDTreeNearest_3d nearest;
+                blender::BLI_kdtree_3d_find_nearest(kdtree, position, &nearest);
                 curve_op_data.distances_to_selected[i] = nearest.dist;
               }
             });
       },
       [&]() {
         /* Build KD-tree for the unselected points. */
-        KDTree_3d *kdtree = BLI_kdtree_3d_new(curve_op_data.unselected_points.size());
-        BLI_SCOPED_DEFER([&]() { BLI_kdtree_3d_free(kdtree); });
+        blender::KDTree_3d *kdtree = blender::BLI_kdtree_3d_new(
+            curve_op_data.unselected_points.size());
+        BLI_SCOPED_DEFER([&]() { blender::BLI_kdtree_3d_free(kdtree); });
         curve_op_data.unselected_points.foreach_index([&](const int point_i) {
           const float3 &position = positions[point_i];
-          BLI_kdtree_3d_insert(kdtree, point_i, position);
+          blender::BLI_kdtree_3d_insert(kdtree, point_i, position);
         });
-        BLI_kdtree_3d_balance(kdtree);
+        blender::BLI_kdtree_3d_balance(kdtree);
 
         /* For each selected point, compute the distance to the closest unselected point. */
         curve_op_data.distances_to_unselected.reinitialize(curve_op_data.selected_points.size());
@@ -691,8 +693,8 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
               for (const int i : range) {
                 const int point_i = curve_op_data.selected_points[i];
                 const float3 &position = positions[point_i];
-                KDTreeNearest_3d nearest;
-                BLI_kdtree_3d_find_nearest(kdtree, position, &nearest);
+                blender::KDTreeNearest_3d nearest;
+                blender::BLI_kdtree_3d_find_nearest(kdtree, position, &nearest);
                 curve_op_data.distances_to_unselected[i] = nearest.dist;
               }
             });

@@ -1034,7 +1034,7 @@ void psys_free(Object *ob, ParticleSystem *psys)
     BLI_freelistN(&psys->targets);
 
     BLI_bvhtree_free(psys->bvhtree);
-    BLI_kdtree_3d_free(psys->tree);
+    blender::BLI_kdtree_3d_free(psys->tree);
 
     if (psys->fluid_springs) {
       MEM_freeN(psys->fluid_springs);
@@ -2606,7 +2606,7 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
 {
   ParticleSystem *psys = sim->psys;
   ParticleSettings *part = sim->psys->part;
-  KDTree_3d *tree;
+  blender::KDTree_3d *tree;
   ChildParticle *cpa;
   ParticleTexture ptex;
   int p, totparent, totchild = sim->psys->totchild;
@@ -2621,7 +2621,7 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
   /* hard limit, workaround for it being ignored above */
   totparent = std::min(sim->psys->totpart, totparent);
 
-  tree = BLI_kdtree_3d_new(totparent);
+  tree = blender::BLI_kdtree_3d_new(totparent);
 
   for (p = 0, cpa = sim->psys->child; p < totparent; p++, cpa++) {
     psys_particle_on_emitter(sim->psmd,
@@ -2651,11 +2651,11 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
                     psys->cfra);
 
     if (ptex.exist >= psys_frand(psys, p + 24)) {
-      BLI_kdtree_3d_insert(tree, p, orco);
+      blender::BLI_kdtree_3d_insert(tree, p, orco);
     }
   }
 
-  BLI_kdtree_3d_balance(tree);
+  blender::BLI_kdtree_3d_balance(tree);
 
   for (; p < totchild; p++, cpa++) {
     psys_particle_on_emitter(sim->psmd,
@@ -2669,10 +2669,10 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
                              nullptr,
                              nullptr,
                              orco);
-    cpa->parent = BLI_kdtree_3d_find_nearest(tree, orco, nullptr);
+    cpa->parent = blender::BLI_kdtree_3d_find_nearest(tree, orco, nullptr);
   }
 
-  BLI_kdtree_3d_free(tree);
+  blender::BLI_kdtree_3d_free(tree);
 }
 
 static bool psys_thread_context_init_path(ParticleThreadContext *ctx,

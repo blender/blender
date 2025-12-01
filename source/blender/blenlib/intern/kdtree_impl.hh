@@ -23,6 +23,8 @@
 #define _BLI_KDTREE_CONCAT(MACRO_ARG1, MACRO_ARG2) _BLI_KDTREE_CONCAT_AUX(MACRO_ARG1, MACRO_ARG2)
 #define BLI_kdtree_nd_(id) _BLI_KDTREE_CONCAT(KDTREE_PREFIX_ID, _##id)
 
+namespace blender {
+
 /* All these struct names are #defines with unique names, to avoid violating the one definition
  * rule. Otherwise `MEM_malloc_array<KDTreeNode>` can get defined once for multiple dimensions,
  * with different node sizes. */
@@ -1053,3 +1055,5 @@ int BLI_kdtree_nd_(deduplicate)(KDTree *tree)
 }
 
 /** \} */
+
+}  //  namespace blender

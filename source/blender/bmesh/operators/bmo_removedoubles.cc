@@ -662,9 +662,9 @@ static int *bmesh_find_doubles_by_distance_impl(BMesh *bm,
   bool found_duplicates = false;
   bool has_self_index = false;
 
-  KDTree_3d *tree = BLI_kdtree_3d_new(verts_len);
+  blender::KDTree_3d *tree = blender::BLI_kdtree_3d_new(verts_len);
   for (int i = 0; i < verts_len; i++) {
-    BLI_kdtree_3d_insert(tree, i, verts[i]->co);
+    blender::BLI_kdtree_3d_insert(tree, i, verts[i]->co);
     if (has_keep_vert && BMO_vert_flag_test(bm, verts[i], VERT_KEEP)) {
       duplicates[i] = i;
       has_self_index = true;
@@ -674,7 +674,7 @@ static int *bmesh_find_doubles_by_distance_impl(BMesh *bm,
     }
   }
 
-  BLI_kdtree_3d_balance(tree);
+  blender::BLI_kdtree_3d_balance(tree);
 
   /* Given a cluster of duplicates, pick the index to keep. */
   auto deduplicate_target_calc_fn = [&verts](const int *cluster, const int cluster_num) -> int {
@@ -714,10 +714,10 @@ static int *bmesh_find_doubles_by_distance_impl(BMesh *bm,
     return i_best;
   };
 
-  found_duplicates = BLI_kdtree_3d_calc_duplicates_cb_cpp(
+  found_duplicates = blender::BLI_kdtree_3d_calc_duplicates_cb_cpp(
                          tree, dist, duplicates, has_self_index, deduplicate_target_calc_fn) != 0;
 
-  BLI_kdtree_3d_free(tree);
+  blender::BLI_kdtree_3d_free(tree);
 
   if (!found_duplicates) {
     MEM_freeN(duplicates);

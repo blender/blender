@@ -241,7 +241,7 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
       MEM_mallocN(sizeof(*td_table) * td_table_len, __func__));
 
   /* Create and fill KD-tree of selected's positions - in global or proj_vec space. */
-  KDTree_3d *td_tree = BLI_kdtree_3d_new(td_table_len);
+  blender::KDTree_3d *td_tree = blender::BLI_kdtree_3d_new(td_table_len);
 
   int td_table_index = 0;
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -252,13 +252,13 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
 
       const float3 vec = prop_dist_loc_get(tc, td, use_island, proj_vec);
 
-      BLI_kdtree_3d_insert(td_tree, td_table_index, vec);
+      blender::BLI_kdtree_3d_insert(td_tree, td_table_index, vec);
       td_table[td_table_index++] = td;
     });
   }
   BLI_assert(td_table_index == td_table_len);
 
-  BLI_kdtree_3d_balance(td_tree);
+  blender::BLI_kdtree_3d_balance(td_tree);
 
   /* For each non-selected vertex, find distance to the nearest selected vertex. */
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -270,8 +270,8 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
 
       const float3 vec = prop_dist_loc_get(tc, td, use_island, proj_vec);
 
-      KDTreeNearest_3d nearest;
-      const int td_index = BLI_kdtree_3d_find_nearest(td_tree, vec, &nearest);
+      blender::KDTreeNearest_3d nearest;
+      const int td_index = blender::BLI_kdtree_3d_find_nearest(td_tree, vec, &nearest);
 
       td->rdist = -1.0f;
       if (td_index != -1) {
@@ -290,7 +290,7 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
     });
   }
 
-  BLI_kdtree_3d_free(td_tree);
+  blender::BLI_kdtree_3d_free(td_tree);
   MEM_freeN(td_table);
 }
 

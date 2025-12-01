@@ -29,7 +29,6 @@ struct Depsgraph;
 struct HookGpencilModifierData;
 struct HookModifierData;
 struct ID;
-struct KDTree_3d;
 struct KeyBlock;
 struct Lattice;
 struct LinkNode;
@@ -46,6 +45,10 @@ struct Scene;
 struct SubsurfModifierData;
 struct View3D;
 struct ViewLayer;
+
+namespace blender {
+struct KDTree_3d;
+}  // namespace blender
 
 void BKE_object_workob_clear(Object *workob);
 /**
@@ -649,7 +652,7 @@ void BKE_object_groups_clear(Main *bmain, Scene *scene, Object *object);
  * \param r_tot:
  * \return The KD-tree or nullptr if it can't be created.
  */
-KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot);
+blender::KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot);
 
 /**
  * The number of times to recurse parents for evaluation.

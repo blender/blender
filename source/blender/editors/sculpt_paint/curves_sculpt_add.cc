@@ -57,7 +57,7 @@ using bke::CurvesGeometry;
 class AddOperation : public CurvesSculptStrokeOperation {
  private:
   /** Used when some data should be interpolated from existing curves. */
-  KDTree_3d *curve_roots_kdtree_ = nullptr;
+  blender::KDTree_3d *curve_roots_kdtree_ = nullptr;
 
   friend struct AddOperationExecutor;
 
@@ -65,7 +65,7 @@ class AddOperation : public CurvesSculptStrokeOperation {
   ~AddOperation() override
   {
     if (curve_roots_kdtree_ != nullptr) {
-      BLI_kdtree_3d_free(curve_roots_kdtree_);
+      blender::BLI_kdtree_3d_free(curve_roots_kdtree_);
     }
   }
 
@@ -502,9 +502,10 @@ struct AddOperationExecutor {
       const Span<int> offsets = curves_orig_->offsets();
       const Span<float3> positions = curves_orig_->positions();
       for (const int curve_i : curves_orig_->curves_range()) {
-        BLI_kdtree_3d_insert(self_->curve_roots_kdtree_, curve_i, positions[offsets[curve_i]]);
+        blender::BLI_kdtree_3d_insert(
+            self_->curve_roots_kdtree_, curve_i, positions[offsets[curve_i]]);
       }
-      BLI_kdtree_3d_balance(self_->curve_roots_kdtree_);
+      blender::BLI_kdtree_3d_balance(self_->curve_roots_kdtree_);
     }
   }
 };
