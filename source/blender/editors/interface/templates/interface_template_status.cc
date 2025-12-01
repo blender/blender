@@ -169,6 +169,13 @@ static bool uiTemplateInputStatusAzone(uiLayout *layout, const AZone *az, const 
     return true;
   }
 
+  if (az->type == AZONE_REGION_QUAD) {
+    layout->label(nullptr, ICON_MOUSE_LMB_DRAG);
+    layout->separator(-0.2f);
+    layout->label(IFACE_("Resize Quadrants"), ICON_NONE);
+    return true;
+  }
+
   if (az->type == AZONE_REGION) {
     layout->label(nullptr, ICON_MOUSE_LMB_DRAG);
     layout->separator(-0.2f);

@@ -60,7 +60,7 @@ def read_float(text: str, start_index: int = 0):
 
     n = len(text)
 
-    # Skip leading whitespace characters and characters which we consider ignorable for float
+    # Skip leading white-space characters and characters which we consider ignorable for float
     # (like values separator).
     while start_index < n and (text[start_index].isspace() or text[start_index] == ','):
         start_index += 1

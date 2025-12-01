@@ -119,7 +119,7 @@ class NODE_OT_lazy_connect(Operator, NWBase):
         if node:
             context.scene.NWBusyDrawing = node.name
 
-        # the arguments we pass the the callback
+        # The arguments we pass the callback.
         mode = "LINK"
         if self.with_menu:
             mode = "LINKMENU"

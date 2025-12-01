@@ -11,6 +11,7 @@
 #include "BLI_function_ref.hh"
 
 #include "DNA_boid_types.h"       /* for #BoidData */
+#include "DNA_particle_types.h"   /* for KDTree3d */
 #include "DNA_pointcache_types.h" /* for #BPHYS_TOT_DATA */
 
 #include <stdio.h> /* for #FILE */
@@ -216,7 +217,7 @@ typedef struct PTCacheUndo {
 
   /* particles stuff */
   struct ParticleData *particles;
-  struct KDTree_3d *emitter_field;
+  KDTree3d *emitter_field;
   float *emitter_cosnos;
   int psys_flag;
 
@@ -247,7 +248,7 @@ typedef struct PTCacheEdit {
   struct ParticleSystem *psys_eval;
   struct ParticleSystemModifierData *psmd;
   struct ParticleSystemModifierData *psmd_eval;
-  struct KDTree_3d *emitter_field;
+  KDTree3d *emitter_field;
   /** Local-space face centers and normals (average of its verts), from the derived mesh. */
   float *emitter_cosnos;
   int *mirror_cache;

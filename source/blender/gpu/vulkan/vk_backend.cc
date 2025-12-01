@@ -515,6 +515,10 @@ void VKBackend::detect_workarounds(VKDevice &device)
   workarounds.vertex_formats.r8g8b8 = (format_properties.bufferFeatures &
                                        VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT) == 0;
 
+#ifdef __APPLE__
+  extensions.extended_dynamic_state = false;
+#endif
+
   device.workarounds_ = workarounds;
   device.extensions_ = extensions;
 }

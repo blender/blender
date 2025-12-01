@@ -628,8 +628,16 @@ class PlanarProbePipeline : DeferredLayerBase {
 
   PassSimple eval_light_ps_ = {"EvalLights"};
 
+  /* Used when there is no indirect radiance buffer. */
+  Texture dummy_black_ = {"dummy_black"};
+
  public:
-  PlanarProbePipeline(Instance &inst) : inst_(inst) {};
+  PlanarProbePipeline(Instance &inst) : inst_(inst)
+  {
+    float4 data(0.0f);
+    dummy_black_.ensure_2d(
+        gpu::TextureFormat::SFLOAT_16_16_16_16, int2(1), GPU_TEXTURE_USAGE_SHADER_READ, data);
+  };
 
   void begin_sync();
   void end_sync();

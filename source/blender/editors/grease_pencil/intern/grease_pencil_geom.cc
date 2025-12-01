@@ -182,17 +182,17 @@ int curve_merge_by_distance(const IndexRange points,
                             MutableSpan<int> r_merge_indices)
 {
   /* We use a KDTree_1d here, because we can only merge neighboring points in the curves. */
-  KDTree_1d *tree = BLI_kdtree_1d_new(selection.size());
+  blender::KDTree_1d *tree = blender::BLI_kdtree_1d_new(selection.size());
   /* The selection is an IndexMask of the points just in this curve. */
   selection.foreach_index_optimized<int64_t>([&](const int64_t i, const int64_t pos) {
-    BLI_kdtree_1d_insert(tree, pos, &distances[i - points.first()]);
+    blender::BLI_kdtree_1d_insert(tree, pos, &distances[i - points.first()]);
   });
-  BLI_kdtree_1d_balance(tree);
+  blender::BLI_kdtree_1d_balance(tree);
 
   Array<int> selection_merge_indices(selection.size(), -1);
-  const int duplicate_count = BLI_kdtree_1d_calc_duplicates_fast(
+  const int duplicate_count = blender::BLI_kdtree_1d_calc_duplicates_fast(
       tree, merge_distance, false, selection_merge_indices.data());
-  BLI_kdtree_1d_free(tree);
+  blender::BLI_kdtree_1d_free(tree);
 
   array_utils::fill_index_range<int>(r_merge_indices);
 
@@ -364,7 +364,7 @@ bke::CurvesGeometry curves_merge_endpoints_by_distance(
   const VArray<bool> cyclic = *src_curves.attributes().lookup_or_default<bool>(
       "cyclic", bke::AttrDomain::Curve, false);
   /* For comparing screen space positions use a 2D KDTree. Each curve adds 2 points. */
-  KDTree_2d *tree = BLI_kdtree_2d_new(2 * src_curves.curves_num());
+  blender::KDTree_2d *tree = blender::BLI_kdtree_2d_new(2 * src_curves.curves_num());
 
   threading::parallel_for(src_curves.curves_range(), 1024, [&](const IndexRange range) {
     for (const int src_i : range) {
@@ -385,10 +385,10 @@ bke::CurvesGeometry curves_merge_endpoints_by_distance(
     if (cyclic[src_i] == true) {
       continue;
     }
-    BLI_kdtree_2d_insert(tree, src_i * 2, screen_start_points[src_i]);
-    BLI_kdtree_2d_insert(tree, src_i * 2 + 1, screen_end_points[src_i]);
+    blender::BLI_kdtree_2d_insert(tree, src_i * 2, screen_start_points[src_i]);
+    blender::BLI_kdtree_2d_insert(tree, src_i * 2 + 1, screen_end_points[src_i]);
   }
-  BLI_kdtree_2d_balance(tree);
+  blender::BLI_kdtree_2d_balance(tree);
 
   Array<int> connect_to_curve(src_curves.curves_num(), -1);
   Array<bool> flip_direction(src_curves.curves_num(), false);
@@ -399,8 +399,8 @@ bke::CurvesGeometry curves_merge_endpoints_by_distance(
     const int start_index = src_i * 2;
     const int end_index = src_i * 2 + 1;
 
-    KDTreeNearest_2d nearest_start, nearest_end;
-    const bool is_start_ok = (BLI_kdtree_2d_find_nearest_cb_cpp(
+    blender::KDTreeNearest_2d nearest_start, nearest_end;
+    const bool is_start_ok = (blender::BLI_kdtree_2d_find_nearest_cb_cpp(
                                   tree,
                                   start_co,
                                   &nearest_start,
@@ -410,7 +410,7 @@ bke::CurvesGeometry curves_merge_endpoints_by_distance(
                                     }
                                     return 1;
                                   }) != -1);
-    const bool is_end_ok = (BLI_kdtree_2d_find_nearest_cb_cpp(
+    const bool is_end_ok = (blender::BLI_kdtree_2d_find_nearest_cb_cpp(
                                 tree,
                                 end_co,
                                 &nearest_end,
@@ -438,7 +438,7 @@ bke::CurvesGeometry curves_merge_endpoints_by_distance(
       }
     }
   });
-  BLI_kdtree_2d_free(tree);
+  blender::BLI_kdtree_2d_free(tree);
 
   return geometry::curves_merge_endpoints(
       src_curves, connect_to_curve, flip_direction, attribute_filter);

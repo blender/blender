@@ -1571,6 +1571,10 @@ static gpu::IndexBufPtr create_lines_index_grids(const CCGKey &key,
       &builder, GPU_PRIM_LINES, 2 * totgrid * display_gridsize * (display_gridsize - 1), INT_MAX);
 
   MutableSpan<uint2> data = GPU_indexbuf_get_data(&builder).cast<uint2>();
+  /* The buffer might contain hidden elements which are not initialized but still accounted. We
+   * don't count them to skip from allocation, so must fill that gaps by 0 to hide redundant edges.
+   */
+  data.fill(uint2(0));
 
   if (use_flat_layout) {
     create_lines_index_grids_flat_layout(

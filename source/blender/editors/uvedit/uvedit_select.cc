@@ -5937,7 +5937,7 @@ static wmOperatorStatus uv_select_similar_vert_exec(bContext *C, wmOperator *op)
   }
 
   int tree_index = 0;
-  KDTree_1d *tree_1d = BLI_kdtree_1d_new(max_verts_selected_all);
+  blender::KDTree_1d *tree_1d = blender::BLI_kdtree_1d_new(max_verts_selected_all);
 
   for (Object *ob : objects) {
     BMesh *bm = BKE_editmesh_from_object(ob)->bm;
@@ -5962,14 +5962,14 @@ static wmOperatorStatus uv_select_similar_vert_exec(bContext *C, wmOperator *op)
           continue;
         }
         float needle = get_uv_vert_needle(type, l->v, ob_m3, l, offsets);
-        BLI_kdtree_1d_insert(tree_1d, tree_index++, &needle);
+        blender::BLI_kdtree_1d_insert(tree_1d, tree_index++, &needle);
       }
     }
   }
 
   if (tree_1d != nullptr) {
-    BLI_kdtree_1d_deduplicate(tree_1d);
-    BLI_kdtree_1d_balance(tree_1d);
+    blender::BLI_kdtree_1d_deduplicate(tree_1d);
+    blender::BLI_kdtree_1d_balance(tree_1d);
   }
 
   for (Object *ob : objects) {
@@ -6028,7 +6028,7 @@ static wmOperatorStatus uv_select_similar_vert_exec(bContext *C, wmOperator *op)
     }
   }
 
-  BLI_kdtree_1d_free(tree_1d);
+  blender::BLI_kdtree_1d_free(tree_1d);
   return OPERATOR_FINISHED;
 }
 
@@ -6061,7 +6061,7 @@ static wmOperatorStatus uv_select_similar_edge_exec(bContext *C, wmOperator *op)
   }
 
   int tree_index = 0;
-  KDTree_1d *tree_1d = BLI_kdtree_1d_new(max_edges_selected_all);
+  blender::KDTree_1d *tree_1d = blender::BLI_kdtree_1d_new(max_edges_selected_all);
 
   for (Object *ob : objects) {
     BMesh *bm = BKE_editmesh_from_object(ob)->bm;
@@ -6088,15 +6088,15 @@ static wmOperatorStatus uv_select_similar_edge_exec(bContext *C, wmOperator *op)
 
         float needle = get_uv_edge_needle(type, l->e, ob_m3, l, l->next, offsets);
         if (tree_1d) {
-          BLI_kdtree_1d_insert(tree_1d, tree_index++, &needle);
+          blender::BLI_kdtree_1d_insert(tree_1d, tree_index++, &needle);
         }
       }
     }
   }
 
   if (tree_1d != nullptr) {
-    BLI_kdtree_1d_deduplicate(tree_1d);
-    BLI_kdtree_1d_balance(tree_1d);
+    blender::BLI_kdtree_1d_deduplicate(tree_1d);
+    blender::BLI_kdtree_1d_balance(tree_1d);
   }
 
   for (Object *ob : objects) {
@@ -6155,7 +6155,7 @@ static wmOperatorStatus uv_select_similar_edge_exec(bContext *C, wmOperator *op)
     }
   }
 
-  BLI_kdtree_1d_free(tree_1d);
+  blender::BLI_kdtree_1d_free(tree_1d);
   return OPERATOR_FINISHED;
 }
 
@@ -6181,7 +6181,7 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
   }
 
   int tree_index = 0;
-  KDTree_1d *tree_1d = BLI_kdtree_1d_new(max_faces_selected_all);
+  blender::KDTree_1d *tree_1d = blender::BLI_kdtree_1d_new(max_faces_selected_all);
 
   for (const int ob_index : objects.index_range()) {
     Object *ob = objects[ob_index];
@@ -6207,14 +6207,14 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
 
       float needle = get_uv_face_needle(type, face, ob_index, ob_m3, offsets);
       if (tree_1d) {
-        BLI_kdtree_1d_insert(tree_1d, tree_index++, &needle);
+        blender::BLI_kdtree_1d_insert(tree_1d, tree_index++, &needle);
       }
     }
   }
 
   if (tree_1d != nullptr) {
-    BLI_kdtree_1d_deduplicate(tree_1d);
-    BLI_kdtree_1d_balance(tree_1d);
+    blender::BLI_kdtree_1d_deduplicate(tree_1d);
+    blender::BLI_kdtree_1d_balance(tree_1d);
   }
 
   for (const int ob_index : objects.index_range()) {
@@ -6272,7 +6272,7 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
     }
   }
 
-  BLI_kdtree_1d_free(tree_1d);
+  blender::BLI_kdtree_1d_free(tree_1d);
   return OPERATOR_FINISHED;
 }
 
@@ -6314,7 +6314,7 @@ static wmOperatorStatus uv_select_similar_island_exec(bContext *C, wmOperator *o
       MEM_callocN(sizeof(*island_array) * island_list_len, __func__));
 
   int tree_index = 0;
-  KDTree_1d *tree_1d = BLI_kdtree_1d_new(island_list_len);
+  blender::KDTree_1d *tree_1d = blender::BLI_kdtree_1d_new(island_list_len);
 
   for (const int ob_index : objects.index_range()) {
     Object *obedit = objects[ob_index];
@@ -6331,14 +6331,14 @@ static wmOperatorStatus uv_select_similar_island_exec(bContext *C, wmOperator *o
       }
       float needle = get_uv_island_needle(type, island, ob_m3, island->offsets);
       if (tree_1d) {
-        BLI_kdtree_1d_insert(tree_1d, tree_index++, &needle);
+        blender::BLI_kdtree_1d_insert(tree_1d, tree_index++, &needle);
       }
     }
   }
 
   if (tree_1d != nullptr) {
-    BLI_kdtree_1d_deduplicate(tree_1d);
-    BLI_kdtree_1d_balance(tree_1d);
+    blender::BLI_kdtree_1d_deduplicate(tree_1d);
+    blender::BLI_kdtree_1d_balance(tree_1d);
   }
 
   int tot_island_index = 0;
@@ -6396,7 +6396,7 @@ static wmOperatorStatus uv_select_similar_island_exec(bContext *C, wmOperator *o
 
   MEM_SAFE_FREE(island_array);
   MEM_SAFE_FREE(island_list_ptr);
-  BLI_kdtree_1d_free(tree_1d);
+  blender::BLI_kdtree_1d_free(tree_1d);
 
   return OPERATOR_FINISHED;
 }

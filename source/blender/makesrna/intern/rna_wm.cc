@@ -458,6 +458,7 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
     /* Action Zones. */
     {EVT_ACTIONZONE_AREA, "ACTIONZONE_AREA", 0, "ActionZone Area", "AZone Area"},
     {EVT_ACTIONZONE_REGION, "ACTIONZONE_REGION", 0, "ActionZone Region", "AZone Region"},
+    {EVT_ACTIONZONE_REGION_QUAD, "ACTIONZONE_REGION_QUAD", 0, "ActionZone Quad", "AZone Quad"},
     {EVT_ACTIONZONE_FULLSCREEN,
      "ACTIONZONE_FULLSCREEN",
      0,

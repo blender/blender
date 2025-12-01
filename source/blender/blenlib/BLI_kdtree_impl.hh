@@ -19,6 +19,8 @@
 #  define KD_DIMS 0
 #endif
 
+namespace blender {
+
 struct KDTree;
 typedef struct KDTree KDTree;
 
@@ -217,6 +219,8 @@ inline int BLI_kdtree_nd_(calc_duplicates_cb_cpp)(const KDTree *tree,
       },
       const_cast<Fn *>(&fn));
 }
+
+}  // namespace blender
 
 #undef _BLI_CONCAT_AUX
 #undef _BLI_CONCAT

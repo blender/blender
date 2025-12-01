@@ -474,8 +474,8 @@ static void calc_edit_handles_ibo(const OffsetIndices<int> points_by_curve,
   BLI_assert(lines.size() == points_num + extra_bezier_segments);
   MutableSpan<uint2> curve_or_handle_segments = lines.take_front(points_num);
 
-#ifdef NDEBUG
-  lines.fill(uint2(std::numeric_limits<uint32_t>::min()));
+#ifndef NDEBUG
+  lines.fill(uint2(std::numeric_limits<uint32_t>::max()));
 #endif
 
   create_segments_with_cyclic(
@@ -507,7 +507,7 @@ static void calc_edit_handles_ibo(const OffsetIndices<int> points_by_curve,
     }
   });
 
-  BLI_assert(!lines.contains(uint2(std::numeric_limits<uint32_t>::min())));
+  BLI_assert(!lines.contains(uint2(std::numeric_limits<uint32_t>::max())));
 
   GPU_indexbuf_build_in_place_ex(
       &builder, 0, handles_and_points_num(points_num, bezier_offsets), false, &ibo);

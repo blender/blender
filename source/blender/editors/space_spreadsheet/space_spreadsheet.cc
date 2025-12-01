@@ -480,7 +480,9 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
     const ColumnValues *values = scope.add(std::move(values_ptr));
     const eSpreadsheetColumnValueType column_type = values->type();
 
-    if (column->width <= 0.0f || column_type != column->data_type) {
+    if (column->width <= 0.0f ||
+        !ELEM(column_type, column->data_type, SPREADSHEET_VALUE_TYPE_UNKNOWN))
+    {
       column->width = values->fit_column_width_px(100) / SPREADSHEET_WIDTH_UNIT;
     }
     const int width_in_pixels = column->width * SPREADSHEET_WIDTH_UNIT;

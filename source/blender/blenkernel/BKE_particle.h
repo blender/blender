@@ -32,7 +32,6 @@ struct BlendLibReader;
 struct BlendWriter;
 struct CustomData_MeshMasks;
 struct Depsgraph;
-struct KDTree_3d;
 struct LinkNode;
 struct MCol;
 struct MFace;
@@ -134,7 +133,7 @@ typedef struct ParticleThreadContext {
   struct Material *ma;
 
   /* distribution */
-  struct KDTree_3d *tree;
+  KDTree3d *tree;
 
   struct ParticleSeam *seams;
   int totseam;

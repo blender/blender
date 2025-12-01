@@ -67,7 +67,7 @@ def _local_module_reload():
 
 class StatusInfoUI:
     __slots__ = (
-        # The the title of the status/notification.
+        # The title of the status/notification.
         "title",
         # The result of an operation.
         "log",

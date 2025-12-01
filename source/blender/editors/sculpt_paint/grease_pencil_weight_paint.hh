@@ -68,7 +68,7 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
   };
 
   struct PointsTouchedByBrush {
-    KDTree_2d *kdtree;
+    blender::KDTree_2d *kdtree;
     Array<float> weights;
   };
 
@@ -334,20 +334,20 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
     }
 
     /* Create KDTree of stroke points touched by the brush. */
-    KDTree_2d *touched_points = BLI_kdtree_2d_new(point_num);
+    blender::KDTree_2d *touched_points = blender::BLI_kdtree_2d_new(point_num);
     Array<float> touched_points_weights(point_num);
     int kdtree_index = 0;
     for (const DrawingWeightData &drawing_weight : drawing_weights) {
       for (const int point_index : drawing_weight.point_positions.index_range()) {
         if (drawing_weight.points_touched_by_brush[point_index]) {
-          BLI_kdtree_2d_insert(
+          blender::BLI_kdtree_2d_insert(
               touched_points, kdtree_index, drawing_weight.point_positions[point_index]);
           touched_points_weights[kdtree_index] = drawing_weight.deform_weights[point_index];
           kdtree_index++;
         }
       }
     }
-    BLI_kdtree_2d_balance(touched_points);
+    blender::BLI_kdtree_2d_balance(touched_points);
 
     return {touched_points, touched_points_weights};
   }

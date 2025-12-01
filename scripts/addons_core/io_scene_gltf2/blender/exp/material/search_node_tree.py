@@ -929,7 +929,7 @@ def get_texture_transform_from_mapping_node(mapping_node, export_settings):
 
 def check_if_is_linked_to_active_output(shader_socket, group_path):
 
-    # Here, group_path must be copied, because if there are muliple links that enter/exit a group node
+    # Here, group_path must be copied, because if there are multiple links that enter/exit a group node
     # This will modify it, and we don't want to modify the original group_path (from the parameter) inside the loop
     for link in shader_socket.links:
 

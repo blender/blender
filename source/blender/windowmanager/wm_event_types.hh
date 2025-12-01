@@ -355,9 +355,10 @@ enum wmEventType : int16_t {
 
   /* Action-zones, tweak, gestures: 0x500x, 0x501x
    * Keep in sync with #IS_EVENT_ACTIONZONE(...). */
-  EVT_ACTIONZONE_AREA = 0x5000,       /* 20480 */
-  EVT_ACTIONZONE_REGION = 0x5001,     /* 20481 */
-  EVT_ACTIONZONE_FULLSCREEN = 0x5011, /* 20497 */
+  EVT_ACTIONZONE_AREA = 0x5000,        /* 20480 */
+  EVT_ACTIONZONE_REGION = 0x5001,      /* 20481 */
+  EVT_ACTIONZONE_REGION_QUAD = 0x5002, /* 20482 */
+  EVT_ACTIONZONE_FULLSCREEN = 0x5011,  /* 20497 */
 
   /* NOTE: these values are saved in key-map files, do not change them but just add new ones. */
 
@@ -440,7 +441,11 @@ enum wmEventType : int16_t {
   ((event_type) >= _NDOF_BUTTON_MIN && (event_type) <= _NDOF_BUTTON_MAX)
 
 #define IS_EVENT_ACTIONZONE(event_type) \
-  ELEM(event_type, EVT_ACTIONZONE_AREA, EVT_ACTIONZONE_REGION, EVT_ACTIONZONE_FULLSCREEN)
+  ELEM(event_type, \
+       EVT_ACTIONZONE_AREA, \
+       EVT_ACTIONZONE_REGION, \
+       EVT_ACTIONZONE_REGION_QUAD, \
+       EVT_ACTIONZONE_FULLSCREEN)
 
 /** Test whether event type is acceptable as hotkey (excluding modifiers). */
 #define ISHOTKEY(event_type) \

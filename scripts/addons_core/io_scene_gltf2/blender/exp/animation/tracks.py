@@ -454,7 +454,7 @@ def prepare_tracks_range(obj_uuid, track_data, export_settings, with_driver=True
 
     track_slide = {}
 
-    # initilize (avoid lint error)
+    # initialize (avoid lint error)
     frame_start = 0
     frame_end = 0
 

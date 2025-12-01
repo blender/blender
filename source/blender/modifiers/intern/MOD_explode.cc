@@ -90,7 +90,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   ParticleSystem *psys = psmd->psys;
   MFace *fa = nullptr, *mface = nullptr;
   ParticleData *pa;
-  KDTree_3d *tree;
+  blender::KDTree_3d *tree;
   RNG *rng;
   float center[3], co[3];
   int *facepa = nullptr, *vertpa = nullptr, totvert = 0, totface = 0, totpart = 0;
@@ -139,7 +139,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   }
 
   /* make tree of emitter locations */
-  tree = BLI_kdtree_3d_new(totpart);
+  tree = blender::BLI_kdtree_3d_new(totpart);
   for (p = 0, pa = psys->particles; p < totpart; p++, pa++) {
     psys_particle_on_emitter(psmd,
                              psys->part->from,
@@ -152,9 +152,9 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
                              nullptr,
                              nullptr,
                              nullptr);
-    BLI_kdtree_3d_insert(tree, p, co);
+    blender::BLI_kdtree_3d_insert(tree, p, co);
   }
-  BLI_kdtree_3d_balance(tree);
+  blender::BLI_kdtree_3d_balance(tree);
 
   /* set face-particle-indexes to nearest particle to face center */
   for (i = 0, fa = mface; i < totface; i++, fa++) {
@@ -168,7 +168,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
       mul_v3_fl(center, 1.0f / 3.0f);
     }
 
-    p = BLI_kdtree_3d_find_nearest(tree, center, nullptr);
+    p = blender::BLI_kdtree_3d_find_nearest(tree, center, nullptr);
 
     v1 = vertpa[fa->v1];
     v2 = vertpa[fa->v2];
@@ -198,7 +198,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
   if (vertpa) {
     MEM_freeN(vertpa);
   }
-  BLI_kdtree_3d_free(tree);
+  blender::BLI_kdtree_3d_free(tree);
 
   BLI_rng_free(rng);
 }

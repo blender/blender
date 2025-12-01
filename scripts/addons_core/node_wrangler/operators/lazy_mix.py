@@ -83,7 +83,7 @@ class NODE_OT_lazy_mix(Operator, NWBase):
             self.report({'WARNING'}, "Active editor should be a node editor for the operator to run")
             return {'CANCELLED'}
 
-        # the arguments we pass the the callback
+        # the arguments we pass the callback
         args = (self, context, 'MIX')
         # Add the region OpenGL drawing callback
         # draw in view space with 'POST_VIEW' and 'PRE_VIEW'

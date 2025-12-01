@@ -27,7 +27,7 @@
 #define KD_THRESH 0.00002f
 
 static struct {
-  KDTree_3d *tree;
+  blender::KDTree_3d *tree;
 } MirrKdStore = {nullptr};
 
 void ED_mesh_mirror_spatial_table_begin(Object *ob, BMEditMesh *em, Mesh *mesh_eval)
@@ -42,7 +42,7 @@ void ED_mesh_mirror_spatial_table_begin(Object *ob, BMEditMesh *em, Mesh *mesh_e
     ED_mesh_mirror_spatial_table_end(ob);
   }
 
-  MirrKdStore.tree = BLI_kdtree_3d_new(totvert);
+  MirrKdStore.tree = blender::BLI_kdtree_3d_new(totvert);
 
   if (use_em) {
     BMVert *eve;
@@ -53,18 +53,18 @@ void ED_mesh_mirror_spatial_table_begin(Object *ob, BMEditMesh *em, Mesh *mesh_e
     BM_mesh_elem_table_ensure(em->bm, BM_VERT);
 
     BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
-      BLI_kdtree_3d_insert(MirrKdStore.tree, i, eve->co);
+      blender::BLI_kdtree_3d_insert(MirrKdStore.tree, i, eve->co);
     }
   }
   else {
     const blender::Span<blender::float3> positions = mesh_eval ? mesh_eval->vert_positions() :
                                                                  mesh->vert_positions();
     for (int i = 0; i < totvert; i++) {
-      BLI_kdtree_3d_insert(MirrKdStore.tree, i, positions[i]);
+      blender::BLI_kdtree_3d_insert(MirrKdStore.tree, i, positions[i]);
     }
   }
 
-  BLI_kdtree_3d_balance(MirrKdStore.tree);
+  blender::BLI_kdtree_3d_balance(MirrKdStore.tree);
 }
 
 int ED_mesh_mirror_spatial_table_lookup(Object *ob,
@@ -77,8 +77,8 @@ int ED_mesh_mirror_spatial_table_lookup(Object *ob,
   }
 
   if (MirrKdStore.tree) {
-    KDTreeNearest_3d nearest;
-    const int i = BLI_kdtree_3d_find_nearest(MirrKdStore.tree, co, &nearest);
+    blender::KDTreeNearest_3d nearest;
+    const int i = blender::BLI_kdtree_3d_find_nearest(MirrKdStore.tree, co, &nearest);
 
     if (i != -1) {
       if (nearest.dist < KD_THRESH) {
@@ -93,7 +93,7 @@ void ED_mesh_mirror_spatial_table_end(Object * /*ob*/)
 {
   /* TODO: store this in object/object-data (keep unused argument for now). */
   if (MirrKdStore.tree) {
-    BLI_kdtree_3d_free(MirrKdStore.tree);
+    blender::BLI_kdtree_3d_free(MirrKdStore.tree);
     MirrKdStore.tree = nullptr;
   }
 }

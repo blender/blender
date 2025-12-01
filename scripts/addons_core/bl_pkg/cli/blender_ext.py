@@ -971,9 +971,9 @@ def pkg_server_repo_config_from_toml_and_validate(
         if not isinstance(item, dict):
             return "blocklist contains non dictionary item, found ({:s})".format(str(type(item)))
         if not isinstance(value := item.get("id"), str):
-            return "blocklist items must have have a string typed \"id\" entry, found {:s}".format(str(type(value)))
+            return "blocklist items must have a string typed \"id\" entry, found {:s}".format(str(type(value)))
         if not isinstance(value := item.get("reason"), str):
-            return "blocklist items must have have a string typed \"reason\" entry, found {:s}".format(str(type(value)))
+            return "blocklist items must have a string typed \"reason\" entry, found {:s}".format(str(type(value)))
 
     return PkgServerRepoConfig(
         schema_version=field_schema_version,
@@ -1126,7 +1126,7 @@ class PathPatternMatch:
     #   to delimit on `/` which is necessary for `gitignore` style matching.
     #   So `/` are replaced with newlines, then REGEX multi-line logic is used
     #   to delimit the separators.
-    # - This is used for building packages, so it doesn't have to to especially fast,
+    # - This is used for building packages, so it doesn't have to be especially fast,
     #   although it shouldn't cause noticeable delays at build time.
     # - The test is located in: `../cli/test_path_pattern_match.py`
 
@@ -2919,7 +2919,7 @@ def toml_from_filepath_or_error(filepath: str) -> dict[str, Any] | str:
 
 def repo_local_private_dir(*, local_dir: str) -> str:
     """
-    Ensure the repos hidden directory exists.
+    Ensure the repositories hidden directory exists.
     """
     return os.path.join(local_dir, REPO_LOCAL_PRIVATE_DIR)
 
@@ -2930,7 +2930,7 @@ def repo_local_private_dir_ensure(
         error_fn: Callable[[Exception], None],
 ) -> str | None:
     """
-    Ensure the repos hidden directory exists.
+    Ensure the repositories hidden directory exists.
     """
     local_private_dir = repo_local_private_dir(local_dir=local_dir)
     if not os.path.isdir(local_private_dir):
@@ -5009,7 +5009,7 @@ class subcmd_author:
                     return False
 
             # NOTE: this is arguably *not* manifest validation, the check could be refactored out.
-            # Currently we always want to check both and it's useful to do that while the informatio
+            # Currently we always want to check both and it's useful to do that while the information is loaded.
             expected_files = []
             if manifest.type == "add-on":
                 if archive_subdir:

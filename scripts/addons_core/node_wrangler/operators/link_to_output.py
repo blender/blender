@@ -83,6 +83,6 @@ class NODE_OT_link_to_output(Operator):
                     return {'CANCELLED'}
             connect_sockets(active.outputs[output_index], output_node.inputs[out_input_index])
 
-        force_update(context)  # viewport render does not update
+        force_update(context)  # View-port render does not update.
 
         return {'FINISHED'}

@@ -196,7 +196,7 @@ class FBXElem:
 
     def _add_array_helper(self, data, prop_type, length):
         self.props_type.append(prop_type)
-        # mimic behavior of fbxconverter (also common sense)
+        # Mimic behavior of `fbxconverter` (also common sense)
         # we could make this configurable.
         encoding = 0 if len(data) <= 128 else 1
         if encoding == 0:
@@ -288,7 +288,7 @@ class FBXElem:
         assert(self._end_offset == -1)
         assert(self._props_length == -1)
 
-        offset += _ELEM_META_SIZE  # 3 uints (or 3 ulonglongs for FBX 7500 and later)
+        offset += _ELEM_META_SIZE  # `uint[3]` (or `ulonglong[3]`  for FBX 7500 and later).
         offset += 1 + len(self.id)  # len + idname
 
         props_length = 0

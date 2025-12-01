@@ -12,19 +12,19 @@ from bpy_extras import anim_utils
 
 class BVH_Node:
     __slots__ = (
-        # Bvh joint name.
+        # BVH joint name.
         'name',
         # BVH_Node type or None for no parent.
         'parent',
         # A list of children of this type..
         'children',
-        # Worldspace rest location for the head of this node.
+        # World-space rest location for the head of this node.
         'rest_head_world',
-        # Localspace rest location for the head of this node.
+        # Local-space rest location for the head of this node.
         'rest_head_local',
-        # Worldspace rest location for the tail of this node.
+        # World-space rest location for the tail of this node.
         'rest_tail_world',
-        # Worldspace rest location for the tail of this node.
+        # World-space rest location for the tail of this node.
         'rest_tail_local',
         # List of 6 ints, -1 for an unused channel,
         # otherwise an index for the BVH motion data lines,
@@ -107,7 +107,7 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
     if len(file_lines) == 1:
         file_lines = file_lines[0].split('\r')
 
-    # Split by whitespace.
+    # Split by white-space.
     file_lines = [ll for ll in [l.split() for l in file_lines] if ll]
 
     # Create hierarchy as empties
@@ -454,7 +454,7 @@ def bvh_node_dict2armature(
     ZERO_AREA_BONES = []
     for bvh_node in bvh_nodes_list:
 
-        # New editbone
+        # New edit-bone.
         bone = bvh_node.temp = arm_data.edit_bones.new(bvh_node.name)
 
         bone.head = bvh_node.rest_head_world
@@ -476,7 +476,7 @@ def bvh_node_dict2armature(
 
     for bvh_node in bvh_nodes_list:
         if bvh_node.parent:
-            # bvh_node.temp is the Editbone
+            # bvh_node.temp is the Edit-bone.
 
             # Set the bone parent
             bvh_node.temp.parent = bvh_node.parent.temp
@@ -489,8 +489,8 @@ def bvh_node_dict2armature(
             ):
                 bvh_node.temp.use_connect = True
 
-    # Replace the editbone with the editbone name,
-    # to avoid memory errors accessing the editbone outside editmode
+    # Replace the edit-bone with the edit-bone name,
+    # to avoid memory errors accessing the edit-bone outside edit-mode.
     for bvh_node in bvh_nodes_list:
         bvh_node.temp = bvh_node.temp.name
 
@@ -512,7 +512,7 @@ def bvh_node_dict2armature(
         for pose_bone in pose_bones:
             pose_bone.rotation_mode = rotate_mode
     else:
-        # Quats default
+        # Quaternions default.
         pass
 
     context.view_layer.update()
@@ -531,7 +531,7 @@ def bvh_node_dict2armature(
     arm_ob_adt.action = action
     arm_ob_adt.action_slot = action_slot
 
-    # Replace the bvh_node.temp (currently an editbone)
+    # Replace the bvh_node.temp (currently an edit-bone)
     # With a tuple  (pose_bone, armature_bone, bone_rest_matrix, bone_rest_matrix_inv)
     num_frame = 0
     for bvh_node in bvh_nodes_list:
@@ -645,7 +645,7 @@ def bvh_node_dict2armature(
 
     for cu in channelbag.fcurves:
         if IMPORT_LOOP:
-            pass  # 2.5 doenst have cyclic now?
+            pass  # 2.5 doesn't have cyclic now?
 
         for bez in cu.keyframe_points:
             bez.interpolation = 'LINEAR'

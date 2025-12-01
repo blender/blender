@@ -414,7 +414,7 @@ class SVGPathData:
             elif c in ['-', '.'] or c.isdigit():
                 # Special case for 'a/A' commands.
                 # Arguments 4 and 5 are either 0 or 1 and might not
-                # be separated from the next argument with space or comma.
+                # be separated from the next argument with-space or comma.
                 if current_command.lower() == 'a':
                     if arg_index % 7 in [4, 5]:
                         token = d[i]
@@ -428,7 +428,7 @@ class SVGPathData:
                 tokens.append(token)
 
                 # in most cases len(token) and (last_char - i) are the same
-                # but with whitespace or ',' prefix they are not.
+                # but with white-space or ',' prefix they are not.
 
                 i += (last_char - i) - 1
 
@@ -496,14 +496,15 @@ class SVGPathParser:
     Parser of SVG path data
     """
 
-    __slots__ = ('_data',  # Path data supplird
-                 '_point',  # Current point coordinate
-                 '_handle',  # Last handle coordinate
-                 '_splines',  # List of all splies created during parsing
-                 '_spline',  # Currently handling spline
-                 '_commands',   # Hash of all supported path commands
-                 '_use_fill',  # Splines would be filled, so expected to be closed
-                 )
+    __slots__ = (
+        '_data',  # Path data supplied.
+        '_point',  # Current point coordinate.
+        '_handle',  # Last handle coordinate.
+        '_splines',  # List of all splines created during parsing.
+        '_spline',  # Currently handling spline.
+        '_commands',   # Hash of all supported path commands.
+        '_use_fill',  # Splines would be filled, so expected to be closed.
+    )
 
     def __init__(self, d, use_fill):
         """
@@ -1074,8 +1075,10 @@ class SVGGeometryContainer(SVGGeometry):
     Container of SVG geometries
     """
 
-    __slots__ = ('_geometries',  # List of chold geometries
-                 '_styles')  # Styles, used for displaying
+    __slots__ = (
+        '_geometries',  # List of child geometries.
+        '_styles',  # Styles, used for displaying.
+    )
 
     def __init__(self, node, context):
         """
@@ -1500,7 +1503,7 @@ class SVGGeometryELLIPSE(SVGGeometry):
         ry = SVGParseCoord(self._ry, crect[1])
 
         if not rx or not ry:
-            # Automaic handles will work incorrect in this case
+            # Automatic handles will work incorrectly in this case.
             return
 
         # Create circle
@@ -1620,7 +1623,7 @@ class SVGGeometryLINE(SVGGeometry):
         x2 = SVGParseCoord(self._x2, crect[0])
         y2 = SVGParseCoord(self._y2, crect[1])
 
-        # Create cline
+        # Create `cline`.
         ob = SVGCreateCurve(self._context)
         cu = ob.data
 

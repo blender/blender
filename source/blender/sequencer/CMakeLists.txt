@@ -77,6 +77,7 @@ set(SRC
   intern/modifiers/MOD_none.cc
   intern/modifiers/MOD_sound_equalizer.cc
   intern/modifiers/MOD_sound_pitch.cc
+  intern/modifiers/MOD_sound_echo.cc
   intern/modifiers/MOD_tonemap.cc
   intern/modifiers/MOD_white_balance.cc
   intern/modifiers/modifier.cc

@@ -253,7 +253,7 @@ parse_bin.__dict__.update(
 
 # ----------------------------------------------------------------------------
 # JSON Converter
-# from pyfbx import parse_bin, data_types
+# from PyFBX import parse_bin, data_types
 import json
 import array
 
