@@ -1108,7 +1108,7 @@ static void rasterize_subdivided_face(const MultiresBaker &baker,
 {
   const IndexRange &face = mesh_arrays.faces[face_index];
 
-  /* This code operates with mesh with at leats one subdivision level applied. Such mesh only has
+  /* This code operates with mesh with at least one subdivision level applied. Such mesh only has
    * quad faces as per how subdivision works. */
   BLI_assert(face.size() == 4);
 
