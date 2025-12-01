@@ -281,6 +281,9 @@ static void image_changed(Main *bmain, Image *ima)
       texture_changed(bmain, tex);
     }
   }
+
+  /* Ensure downstream editors are made aware of changes to the Image data. */
+  WM_main_add_notifier(NC_IMAGE | NA_EDITED, ima);
 }
 
 static void scene_changed(Main *bmain, Scene *scene)
