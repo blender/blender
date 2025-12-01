@@ -17,6 +17,7 @@
 #include "gpu_state_private.hh"
 
 #include "vk_resource_pool.hh"
+#include "vk_vertex_attribute_object.hh"
 
 namespace blender::gpu {
 class VKDevice;
@@ -60,27 +61,17 @@ struct VKComputeInfo {
 struct VKGraphicsInfo {
   struct VertexIn {
     VkPrimitiveTopology vk_topology;
-    Vector<VkVertexInputAttributeDescription> attributes;
-    Vector<VkVertexInputBindingDescription> bindings;
+    VKVertexInputDescriptionPool::Key vertex_input_key;
 
     bool operator==(const VertexIn &other) const
     {
-      /* TODO: use an exact implementation and remove the hash compare. */
-#if 0
-      return vk_topology == other.vk_topology && attributes.hash() == other.attributes.hash() &&
-             bindings.hash() == other.bindings.hash();
-#endif
-      return hash() == other.hash();
+      return vk_topology == other.vk_topology && vertex_input_key == other.vertex_input_key;
     }
 
     uint64_t hash() const
     {
       uint64_t hash = uint64_t(vk_topology);
-      hash = hash * 33 ^
-             XXH3_64bits(attributes.data(),
-                         attributes.size() * sizeof(VkVertexInputAttributeDescription));
-      hash = hash * 33 ^ XXH3_64bits(bindings.data(),
-                                     bindings.size() * sizeof(VkVertexInputBindingDescription));
+      hash = hash * 33 ^ vertex_input_key;
       return hash;
     }
   };

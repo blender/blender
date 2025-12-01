@@ -15,6 +15,13 @@
 #include "BLI_math_vector_types.hh"
 
 namespace blender::gpu {
+
+void VKVertexInputDescription::clear()
+{
+  bindings.clear();
+  attributes.clear();
+}
+
 VKVertexAttributeObject::VKVertexAttributeObject()
 {
   clear();
@@ -22,8 +29,7 @@ VKVertexAttributeObject::VKVertexAttributeObject()
 
 void VKVertexAttributeObject::clear()
 {
-  bindings.clear();
-  attributes.clear();
+  vertex_input.clear();
   vbos.clear();
   buffers.clear();
 }
@@ -34,10 +40,8 @@ VKVertexAttributeObject &VKVertexAttributeObject::operator=(const VKVertexAttrib
     return *this;
   }
 
-  bindings.clear();
-  bindings.extend(other.bindings);
-  attributes.clear();
-  attributes.extend(other.attributes);
+  vertex_input = other.vertex_input;
+
   vbos.clear();
   vbos.extend(other.vbos);
   buffers.clear();
@@ -52,10 +56,10 @@ VKVertexAttributeObject &VKVertexAttributeObject::operator=(const VKVertexAttrib
 void VKVertexAttributeObject::bind(
     render_graph::VKVertexBufferBindings &r_vertex_buffer_bindings) const
 {
-  BitVector visited_bindings(bindings.size());
+  BitVector visited_bindings(vertex_input.bindings.size());
 
   const VKBuffer &dummy = VKBackend::get().device.dummy_buffer;
-  for (VkVertexInputAttributeDescription attribute : attributes) {
+  for (VkVertexInputAttributeDescription attribute : vertex_input.attributes) {
     if (visited_bindings[attribute.binding]) {
       continue;
     }
@@ -116,19 +120,19 @@ void VKVertexAttributeObject::fill_unused_bindings(const VKShaderInterface &inte
 
     /* Use dummy binding. */
     shader::Type attribute_type = interface.get_attribute_type(location);
-    const uint32_t binding = bindings.size();
+    const uint32_t binding = vertex_input.bindings.size();
     VkVertexInputAttributeDescription attribute_description = {};
     attribute_description.binding = binding;
     attribute_description.location = location;
     attribute_description.offset = 0;
     attribute_description.format = to_vk_format(attribute_type);
-    attributes.append(attribute_description);
+    vertex_input.attributes.append(attribute_description);
 
     VkVertexInputBindingDescription vk_binding_descriptor = {};
     vk_binding_descriptor.binding = binding;
     vk_binding_descriptor.stride = 0;
     vk_binding_descriptor.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
-    bindings.append(vk_binding_descriptor);
+    vertex_input.bindings.append(vk_binding_descriptor);
   }
 }
 
@@ -197,20 +201,20 @@ void VKVertexAttributeObject::update_bindings(const GPUVertFormat &vertex_format
       }
 
       r_occupied_attributes |= attribute_mask;
-      const uint32_t binding = bindings.size();
+      const uint32_t binding = vertex_input.bindings.size();
       VkVertexInputAttributeDescription attribute_description = {};
       attribute_description.binding = binding;
       attribute_description.location = shader_input->location;
       attribute_description.offset = attribute_offset;
       attribute_description.format = to_vk_format(
           attribute.type.comp_type(), attribute.type.size(), attribute.type.fetch_mode());
-      attributes.append(attribute_description);
+      vertex_input.attributes.append(attribute_description);
 
       VkVertexInputBindingDescription vk_binding_descriptor = {};
       vk_binding_descriptor.binding = binding;
       vk_binding_descriptor.stride = stride;
       vk_binding_descriptor.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-      bindings.append(vk_binding_descriptor);
+      vertex_input.bindings.append(vk_binding_descriptor);
       if (vertex_buffer) {
         add_vbo = true;
         vertex_buffer->upload();
@@ -237,9 +241,9 @@ void VKVertexAttributeObject::update_bindings(const GPUVertFormat &vertex_format
 void VKVertexAttributeObject::debug_print() const
 {
   std::cout << __FILE__ << "::" << __func__ << "\n";
-  BitVector visited_bindings(bindings.size());
+  BitVector visited_bindings(vertex_input.bindings.size());
 
-  for (VkVertexInputAttributeDescription attribute : attributes) {
+  for (VkVertexInputAttributeDescription attribute : vertex_input.attributes) {
     std::cout << " - attribute(binding=" << attribute.binding
               << ", location=" << attribute.location << ")";
 

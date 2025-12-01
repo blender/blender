@@ -26,6 +26,7 @@
 #include "vk_pipeline_pool.hh"
 #include "vk_resource_pool.hh"
 #include "vk_samplers.hh"
+#include "vk_vertex_attribute_object.hh"
 
 namespace blender::gpu {
 class VKBackend;
@@ -233,6 +234,8 @@ class VKDevice : public NonCopyable {
   /** Discard pool for resources that could still be used during rendering. */
   VKDiscardPool orphaned_data_render;
   VKPipelinePool pipelines;
+  VKVertexInputDescriptionPool vertex_input_descriptions;
+
   /** Buffer to bind to unbound resource locations. */
   VKBuffer dummy_buffer;
 
