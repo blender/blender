@@ -1482,6 +1482,7 @@ class SEQUENCER_MT_modifier_add(Menu):
         if strip.type == 'SOUND':
             self.operator_modifier_add(layout, 'SOUND_EQUALIZER')
             self.operator_modifier_add(layout, 'PITCH')
+            self.operator_modifier_add(layout, 'ECHO')
 
         else:
             self.operator_modifier_add(layout, 'BRIGHT_CONTRAST')

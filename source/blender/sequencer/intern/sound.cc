@@ -46,6 +46,7 @@ namespace blender::seq {
 const SoundModifierWorkerInfo workersSoundModifiers[] = {
     {eSeqModifierType_SoundEqualizer, sound_equalizermodifier_recreator},
     {eSeqModifierType_Pitch, pitchmodifier_recreator},
+    {eSeqModifierType_Echo, echomodifier_recreator},
     {0, nullptr}};
 
 #ifdef WITH_CONVOLUTION
@@ -418,6 +419,22 @@ void *pitchmodifier_recreator(Strip * /*strip*/,
     return sound_in;
   }
 #endif
+}
+
+void *echomodifier_recreator(Strip * /*strip*/,
+                             StripModifierData *smd,
+                             void *sound_in,
+                             bool &needs_update)
+{
+  if (!needs_update && smd->runtime.last_sound_in == sound_in) {
+    return smd->runtime.last_sound_out;
+  }
+  EchoModifierData *emd = (EchoModifierData *)smd;
+  AUD_Sound *sound_out = AUD_Sound_Echo(sound_in, emd->delay, emd->feedback, emd->mix, true);
+  needs_update = true;
+  smd->runtime.last_sound_in = sound_in;
+  smd->runtime.last_sound_out = sound_out;
+  return sound_out;
 }
 
 const SoundModifierWorkerInfo *sound_modifier_worker_info_get(int type)
