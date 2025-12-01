@@ -272,7 +272,7 @@ static void recalcData_grease_pencil(TransInfo *t)
         curves.tag_positions_changed();
         curves.calculate_bezier_auto_handles();
         info.drawing.tag_positions_changed();
-        curves::calculate_aligned_handles(tc.custom.type, curves, i);
+        curves::calculate_single_aligned_handles(tc.custom.type, curves, i);
       }
     }
 

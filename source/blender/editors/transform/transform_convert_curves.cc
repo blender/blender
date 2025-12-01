@@ -411,9 +411,9 @@ static void createTransCurvesVerts(bContext *C, TransInfo *t)
   }
 }
 
-void calculate_aligned_handles(const TransCustomData &custom_data,
-                               bke::CurvesGeometry &curves,
-                               const int curve_index)
+void calculate_single_aligned_handles(const TransCustomData &custom_data,
+                                      bke::CurvesGeometry &curves,
+                                      const int curve_index)
 {
   if (ed::curves::get_curves_selection_attribute_names(curves).size() == 1) {
     return;
@@ -425,14 +425,16 @@ void calculate_aligned_handles(const TransCustomData &custom_data,
   MutableSpan<float3> handle_positions_left = curves.handle_positions_left_for_write();
   MutableSpan<float3> handle_positions_right = curves.handle_positions_right_for_write();
 
-  bke::curves::bezier::calculate_aligned_handles(transform_data.aligned_with_left[curve_index],
-                                                 positions,
-                                                 handle_positions_left,
-                                                 handle_positions_right);
-  bke::curves::bezier::calculate_aligned_handles(transform_data.aligned_with_right[curve_index],
-                                                 positions,
-                                                 handle_positions_right,
-                                                 handle_positions_left);
+  bke::curves::bezier::calculate_single_aligned_handles(
+      transform_data.aligned_with_left[curve_index],
+      positions,
+      handle_positions_left,
+      handle_positions_right);
+  bke::curves::bezier::calculate_single_aligned_handles(
+      transform_data.aligned_with_right[curve_index],
+      positions,
+      handle_positions_right,
+      handle_positions_left);
 }
 
 static void recalcData_curves(TransInfo *t)
@@ -460,7 +462,7 @@ static void recalcData_curves(TransInfo *t)
       }
       curves.tag_positions_changed();
       curves.calculate_bezier_auto_handles();
-      calculate_aligned_handles(tc.custom.type, curves, 0);
+      calculate_single_aligned_handles(tc.custom.type, curves, 0);
     }
     DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
   }
