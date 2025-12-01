@@ -3275,37 +3275,36 @@ class Preprocessor {
           }
           replace_word(srt_var, "gl_Position");
         }
-        else if (srt_attr == "vertex_in") {
-          if (!is_vertex_func) {
-            report_error(ERROR_TOK(attribute),
-                         "[[vertex_in]] is only supported in vertex functions.");
-          }
-          replace_word_and_accessor(srt_var, "");
-        }
-        else if (srt_attr == "fragment_out") {
-          if (!is_fragment_func) {
-            report_error(ERROR_TOK(attribute),
-                         "[[fragment_out]] is only supported in fragment functions.");
-          }
-          else if (is_vertex_func && is_const) {
-            report_error(ERROR_TOK(type),
-                         "[[fragment_out]] must be declared as non-const reference.");
-          }
-          replace_word_and_accessor(srt_var, srt_type + "_");
-        }
-        else if (srt_attr == "vertex_out") {
+        else if (srt_attr == "stage_in") {
           if (is_compute_func) {
             report_error(ERROR_TOK(attribute),
-                         "[[vertex_out]] is only supported in vertex or fragment functions.");
+                         "[[stage_in]] is only supported in vertex and fragment functions.");
           }
-          else if (is_vertex_func && is_const) {
+          else if (!is_const) {
+            report_error(ERROR_TOK(type), "[[stage_in]] must be declared as const reference.");
+          }
+          else if (is_vertex_func) {
+            replace_word_and_accessor(srt_var, "");
+          }
+          else if (is_fragment_func) {
+            replace_word_and_accessor(srt_var, srt_type + "_");
+          }
+        }
+        else if (srt_attr == "stage_out") {
+          if (is_compute_func) {
+            report_error(ERROR_TOK(attribute),
+                         "[[stage_out]] is only supported in vertex and fragment functions.");
+          }
+          else if (is_const) {
             report_error(ERROR_TOK(type),
-                         "[[vertex_out]] must be declared as non-const reference.");
+                         "[[stage_out]] must be declared as non-const reference.");
           }
-          else if (is_fragment_func && !is_const) {
-            report_error(ERROR_TOK(type), "[[vertex_out]] must be declared as const reference.");
+          else if (is_vertex_func) {
+            replace_word_and_accessor(srt_var, srt_type + "_");
           }
-          replace_word_and_accessor(srt_var, srt_type + "_");
+          else if (is_fragment_func) {
+            replace_word_and_accessor(srt_var, srt_type + "_");
+          }
         }
         else if (srt_attr == "resource_table") {
           if (is_entry_point) {
@@ -3319,11 +3318,11 @@ class Preprocessor {
         }
       };
 
-      args.foreach_match("[[w]]ww", [&](const vector<Token> toks) {
-        process_argument(toks[5], toks[6], toks[2]);
+      args.foreach_match("[[w]]c?ww", [&](const vector<Token> toks) {
+        process_argument(toks[7], toks[8], toks[2]);
       });
-      args.foreach_match("[[w]]w&w", [&](const vector<Token> toks) {
-        process_argument(toks[5], toks[7], toks[2]);
+      args.foreach_match("[[w]]c?w&w", [&](const vector<Token> toks) {
+        process_argument(toks[7], toks[9], toks[2]);
       });
     });
 
