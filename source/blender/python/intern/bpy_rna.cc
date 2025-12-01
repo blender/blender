@@ -467,6 +467,16 @@ void pyrna_write_set(bool val)
 
   rna_disallow_writes = !val;
 }
+
+void pyrna_context_init(bContext *C)
+{
+  CTX_rna_disallow_write_set_p(C, &rna_disallow_writes);
+}
+
+void pyrna_context_clear(bContext *C)
+{
+  CTX_rna_disallow_write_set_p(C, nullptr);
+}
 #else  /* USE_PEDANTIC_WRITE */
 bool pyrna_write_check()
 {
@@ -480,6 +490,8 @@ void pyrna_write_set(bool /*val*/)
 
   /* pass */
 }
+void pyrna_context_init(bContext * /*C*/) {}
+void pyrna_context_clear(bContext * /*C*/) {}
 #endif /* USE_PEDANTIC_WRITE */
 
 static Py_ssize_t pyrna_prop_collection_length(BPy_PropertyRNA *self);

@@ -175,6 +175,9 @@ std::optional<blender::StringRefNull> CTX_store_string_lookup(const bContextStor
                                                               blender::StringRef name);
 std::optional<int64_t> CTX_store_int_lookup(const bContextStore *store, blender::StringRef name);
 
+/* Set a temporary flag to indicate when writing via RNA is disallowed. */
+void CTX_rna_disallow_write_set_p(bContext *C, const bool *rna_disallow_writes);
+
 /** Needed to store if Python is initialized or not. */
 bool CTX_py_init_get(const bContext *C);
 void CTX_py_init_set(bContext *C, bool value);
@@ -464,8 +467,10 @@ Depsgraph *CTX_data_expect_evaluated_depsgraph(const bContext *C);
  * \note Will be expensive if there are relations or objects tagged for update.
  * \note If there are pending updates depsgraph hooks will be invoked.
  * \warning In many cases, runtime data on associated objects will be destroyed & recreated.
+ * \warning Returns null pointer if #rna_write_check is true and RNA writing is disallowed. If
+ * #rna_write_check is false then RNA writes must be allowed when calling this function.
  */
-Depsgraph *CTX_data_ensure_evaluated_depsgraph(const bContext *C);
+Depsgraph *CTX_data_ensure_evaluated_depsgraph(const bContext *C, bool rna_write_check = false);
 
 /* Will Return NULL if depsgraph is not allocated yet.
  * Only used by handful of operators which are run on file load.
@@ -481,3 +486,11 @@ void CTX_member_logging_set(bContext *C, bool enable);
  * Check if logging is enabled of context members.
  */
 bool CTX_member_logging_get(const bContext *C);
+
+/**
+ * Check if writing to RNA is allowed.
+ *
+ * RNA can use this to disable writes during callbacks, such as when accessing the evaluated
+ * depsgraph (#150024).
+ */
+bool CTX_member_rna_write_check(const bContext *C);

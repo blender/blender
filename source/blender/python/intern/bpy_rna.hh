@@ -286,6 +286,8 @@ void pyrna_alloc_types();
 
 [[nodiscard]] bool pyrna_write_check();
 void pyrna_write_set(bool val);
+void pyrna_context_init(bContext *C);
+void pyrna_context_clear(bContext *C);
 
 void pyrna_invalidate(BPy_DummyPointerRNA *self);
 
