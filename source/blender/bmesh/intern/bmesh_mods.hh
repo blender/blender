@@ -152,6 +152,9 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm,
  * Collapses a vertex onto another vertex it shares an edge with.
  *
  * \return The New Edge
+ *
+ * \note To check if collapsing would create duplicate geometry,
+ * see: #BM_vert_collapse_check_double_face.
  */
 BMEdge *BM_vert_collapse_edge(BMesh *bm,
                               BMEdge *e_kill,

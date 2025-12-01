@@ -38,6 +38,106 @@ using blender::Vector;
 
 #endif
 
+/* -------------------------------------------------------------------- */
+/** \name Face Partial Overlap Helpers
+ * \{ */
+
+/**
+ * Utilities to check two faces have overlapping vertices.
+ * Useful to check if collapsing or splicing would create a duplicate face.
+ *
+ * Check loops have matching vertices over a partial span
+ * over `l_a` -> `l_a_end` & `l_a` -> `l_a_end` (inclusive).
+ */
+static bool bm_face_pair_overlap_check_subset_same_winding(BMLoop *l_a,
+                                                           BMLoop *l_a_end,
+                                                           BMLoop *l_b,
+                                                           BMLoop *l_b_end)
+{
+  BLI_assert(l_a->f == l_a_end->f);
+  BLI_assert(l_b->f == l_b_end->f);
+  BLI_assert(l_a->f != l_b->f);
+  UNUSED_VARS_NDEBUG(l_b_end);
+#ifndef NDEBUG
+  /* Ensure the loops have the same topological distance. */
+  {
+    BMLoop *l_a_iter = l_a;
+    BMLoop *l_b_iter = l_b;
+    while (true) {
+      if (l_a_iter == l_a_end || l_b_iter == l_b_end) {
+        break;
+      }
+      l_a_iter = l_a_iter->next;
+      l_b_iter = l_b_iter->next;
+    }
+    BLI_assert(l_a_iter == l_a_end);
+    BLI_assert(l_b_iter == l_b_end);
+  }
+#endif
+  BMLoop *l_a_iter = l_a;
+  BMLoop *l_b_iter = l_b;
+  BLI_assert(l_a->f != l_b->f);
+  while (true) {
+    if (l_b_iter->v != l_a_iter->v) {
+      return false;
+    }
+    if (l_a_iter == l_a_end) {
+      BLI_assert(l_b_iter == l_b_end);
+      break;
+    }
+    l_a_iter = l_a_iter->next;
+    l_b_iter = l_b_iter->next;
+  }
+  return true;
+}
+
+/**
+ * A version of #bm_face_pair_overlap_check_subset_same_winding
+ * that walks over `l_b` in the reverse direction.
+ */
+static bool bm_face_pair_overlap_check_subset_swap_winding(BMLoop *l_a,
+                                                           BMLoop *l_a_end,
+                                                           BMLoop *l_b,
+                                                           BMLoop *l_b_end)
+{
+  BLI_assert(l_a->f == l_a_end->f);
+  BLI_assert(l_b->f == l_b_end->f);
+  BLI_assert(l_a->f != l_b->f);
+  UNUSED_VARS_NDEBUG(l_b_end);
+#ifndef NDEBUG
+  /* Ensure the loops have the same topological distance. */
+  {
+    BMLoop *l_a_iter = l_a;
+    BMLoop *l_b_iter = l_b;
+    while (true) {
+      if (l_a_iter == l_a_end || l_b_iter == l_b_end) {
+        break;
+      }
+      l_a_iter = l_a_iter->next;
+      l_b_iter = l_b_iter->prev;
+    }
+    BLI_assert(l_a_iter == l_a_end);
+    BLI_assert(l_b_iter == l_b_end);
+  }
+#endif
+  BMLoop *l_a_iter = l_a;
+  BMLoop *l_b_iter = l_b;
+  while (true) {
+    if (l_b_iter->v != l_a_iter->v) {
+      return false;
+    }
+    if (l_a_iter == l_a_end) {
+      BLI_assert(l_b_iter == l_b_end);
+      break;
+    }
+    l_a_iter = l_a_iter->next;
+    l_b_iter = l_b_iter->prev;
+  }
+  return true;
+}
+
+/** \} */
+
 BMVert *BM_vert_create(BMesh *bm,
                        const float co[3],
                        const BMVert *v_example,
@@ -2067,7 +2167,7 @@ BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEd
   return f1;
 }
 
-bool BM_vert_splice_check_double(BMVert *v_a, BMVert *v_b)
+bool BM_vert_splice_check_double_edge(BMVert *v_a, BMVert *v_b)
 {
   bool is_double = false;
 
@@ -2108,6 +2208,187 @@ bool BM_vert_splice_check_double(BMVert *v_a, BMVert *v_b)
   }
 
   return is_double;
+}
+
+bool BM_vert_splice_check_double_face(BMVert *v_a, BMVert *v_b)
+{
+  if (ELEM(nullptr, v_a->e, v_b->e)) {
+    return false;
+  }
+
+  BMVert *v_pair[2] = {v_a, v_b};
+  blender::Vector<BMLoop *, BM_DEFAULT_ITER_STACK_SIZE> loops_pair[2];
+
+  for (const int side : blender::IndexRange(2)) {
+    BMEdge *e_iter = v_pair[side]->e;
+    do {
+      if (BMLoop *l = e_iter->l) {
+        do {
+          if (l->v == v_pair[side]) {
+            loops_pair[side].append(l);
+          }
+        } while ((l = l->radial_next) != e_iter->l);
+      }
+    } while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v_pair[side])) != v_pair[side]->e);
+    if (loops_pair[side].is_empty()) {
+      return false;
+    }
+  }
+
+  for (const int side : blender::IndexRange(2)) {
+    if (loops_pair[side].size() > 1) {
+      std::sort(loops_pair[side].begin(), loops_pair[side].end(), [](BMLoop *a, BMLoop *b) {
+        return a->f->len < b->f->len;
+      });
+    }
+  }
+
+  int a_beg = 0;
+  int b_beg = 0;
+  while (a_beg < loops_pair[0].size() && b_beg < loops_pair[1].size()) {
+    const int a_len = loops_pair[0][a_beg]->f->len;
+    const int b_len = loops_pair[1][b_beg]->f->len;
+
+    if (a_len < b_len) {
+      a_beg++;
+      continue;
+    }
+    if (a_len > b_len) {
+      b_beg++;
+      continue;
+    }
+
+    /* `a_len == b_len`: find the range of elements with this length in both lists. */
+    const int f_len = a_len;
+    int a_end = a_beg + 1;
+    int b_end = b_beg + 1;
+    while (a_end < loops_pair[0].size() && loops_pair[0][a_end]->f->len == f_len) {
+      a_end++;
+    }
+    while (b_end < loops_pair[1].size() && loops_pair[1][b_end]->f->len == f_len) {
+      b_end++;
+    }
+
+    /* Compare all pairs within this matching length range. */
+    for (int a_index = a_beg; a_index < a_end; a_index++) {
+      BMLoop *l_a = loops_pair[0][a_index];
+      for (int b_index = b_beg; b_index < b_end; b_index++) {
+        BMLoop *l_b = loops_pair[1][b_index];
+        if ((l_a->next->v == l_b->next->v) && (l_a->prev->v == l_b->prev->v)) {
+          if (bm_face_pair_overlap_check_subset_same_winding(
+                  l_a->next->next, l_a->prev->prev, l_b->next->next, l_b->prev->prev))
+          {
+            return true;
+          }
+        }
+        else if ((l_a->next->v == l_b->prev->v) && (l_a->prev->v == l_b->next->v)) {
+          if (bm_face_pair_overlap_check_subset_swap_winding(
+                  l_a->next->next, l_a->prev->prev, l_b->prev->prev, l_b->next->next))
+          {
+            return true;
+          }
+        }
+      }
+    }
+
+    a_beg = a_end;
+    b_beg = b_end;
+  }
+  return false;
+}
+
+bool BM_vert_collapse_check_double_face(BMVert *v_collapse)
+{
+  /* Caller must ensure. */
+  BLI_assert(BM_vert_is_edge_pair(v_collapse));
+
+  BMLoop *l_collapse_a_first = v_collapse->e->l;
+  if (l_collapse_a_first == nullptr) {
+    return false;
+  }
+
+  BMEdge *e_a = v_collapse->e;
+  BMEdge *e_b = (l_collapse_a_first->v == v_collapse) ? l_collapse_a_first->prev->e :
+                                                        l_collapse_a_first->next->e;
+  BLI_assert(e_a != e_b && BM_vert_in_edge(e_b, v_collapse));
+  UNUSED_VARS_NDEBUG(e_a);
+  BMVert *v_a = BM_edge_other_vert(v_collapse->e, v_collapse);
+  BMVert *v_b = BM_edge_other_vert(e_b, v_collapse);
+
+  BMEdge *e_exists = BM_edge_exists(v_a, v_b);
+  if (e_exists == nullptr || e_exists->l == nullptr) {
+    return false;
+  }
+
+  BMLoop *l_collapse_a_iter = l_collapse_a_first;
+  do {
+    if (l_collapse_a_iter->f->len <= 3) {
+      continue;
+    }
+    BMLoop *l_collapse = nullptr;
+    if (l_collapse_a_iter->v == v_collapse) {
+      l_collapse = l_collapse_a_iter;
+    }
+    else if (l_collapse_a_iter->next->v == v_collapse) {
+      l_collapse = l_collapse_a_iter->next;
+    }
+    else if (l_collapse_a_iter->prev->v == v_collapse) {
+      l_collapse = l_collapse_a_iter->prev;
+    }
+    BLI_assert(l_collapse && l_collapse->v == v_collapse);
+
+    /* Check if `l_collapse_a_iter->f` could collapse into an existing face
+     *  attached to `e_exists`. */
+    BMLoop *l_exists_iter = e_exists->l;
+    do {
+      if (l_collapse_a_iter->f->len - 1 != l_exists_iter->f->len) {
+        continue;
+      }
+      /* Detect if these could be duplicates. */
+      BMLoop *l_collapse_beg = l_collapse->next;
+      BMLoop *l_collapse_end = l_collapse->prev;
+
+      const bool swap_winding = l_collapse_beg->v == l_exists_iter->v;
+      BMLoop *l_exists_beg;
+      BMLoop *l_exists_end;
+      if (swap_winding) {
+        l_exists_beg = l_exists_iter;
+        l_exists_end = l_exists_iter->next;
+      }
+      else {
+        l_exists_beg = l_exists_iter->next;
+        l_exists_end = l_exists_iter;
+      }
+
+      /* Walk around loops of both faces checking the vertices match. */
+      BLI_assert(l_collapse_beg->v == l_exists_beg->v);
+      BLI_assert(l_collapse_end->v == l_exists_end->v);
+      if (swap_winding) {
+        BLI_assert(l_collapse_beg->v == l_exists_end->prev->v);
+        BLI_assert(l_collapse_end->v == l_exists_beg->next->v);
+        if (bm_face_pair_overlap_check_subset_swap_winding(l_collapse_beg->next,
+                                                           l_collapse_end->prev,
+                                                           l_exists_beg->prev,
+                                                           l_exists_end->next))
+        {
+          return true;
+        }
+      }
+      else {
+        BLI_assert(l_collapse_beg->v == l_exists_end->next->v);
+        BLI_assert(l_collapse_end->v == l_exists_beg->prev->v);
+        if (bm_face_pair_overlap_check_subset_same_winding(l_collapse_beg->next,
+                                                           l_collapse_end->prev,
+                                                           l_exists_beg->next,
+                                                           l_exists_end->prev))
+        {
+          return true;
+        }
+      }
+    } while ((l_exists_iter = l_exists_iter->radial_next) != e_exists->l);
+  } while ((l_collapse_a_iter = l_collapse_a_iter->radial_next) != l_collapse_a_first);
+
+  return false;
 }
 
 bool BM_vert_splice(BMesh *bm, BMVert *v_dst, BMVert *v_src)
