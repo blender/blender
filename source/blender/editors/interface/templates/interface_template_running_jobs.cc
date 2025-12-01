@@ -106,7 +106,8 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
   ScrArea *area = CTX_wm_area(C);
 
   void *owner = nullptr;
-  int handle_event, icon = 0;
+  int handle_event = 0;
+  int icon = 0;
   std::function<void(bContext &)> cancel_fn = nullptr;
   const char *op_name = nullptr;
   const char *op_description = nullptr;
