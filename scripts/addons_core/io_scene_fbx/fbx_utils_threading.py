@@ -61,7 +61,7 @@ class MultiThreadedTaskConsumer:
         # It's recommended to use MultiThreadedTaskConsumer.new_cpu_bound_cm() instead of creating new instances
         # directly.
         # __init__ should only be called after checking _MULTITHREADING_ENABLED.
-        assert(_MULTITHREADING_ENABLED)
+        assert _MULTITHREADING_ENABLED
         # The function that will be called on separate threads to consume tasks.
         self._consumer_function = consumer_function
         # All the threads share a single queue. This is a simplistic approach, but it is unlikely to be problematic

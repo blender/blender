@@ -413,7 +413,7 @@ def create_circle_polygon(number_verts: int, axis: str, radius=1.0, head_tail=0.
     angle = 2 * math.pi / number_verts
     i = 0
 
-    assert(axis in 'XYZ')
+    assert axis in 'XYZ'
 
     while i < number_verts:
         a = math.cos(i * angle)

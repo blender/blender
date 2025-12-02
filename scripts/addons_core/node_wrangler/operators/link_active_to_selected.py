@@ -9,7 +9,7 @@ from bpy_extras.node_utils import connect_sockets
 
 from ..utils.constants import (
     rl_outputs,
- )
+)
 from ..utils.nodes import (
     NWBase,
     nw_check,

@@ -351,7 +351,8 @@ kmi_defs = (
     ("node.nw_reset_nodes", 'BACK_SPACE', 'PRESS', False, False,
      False, None, n_("Reset Nodes")),
     # MENUS
-    ('wm.call_menu', 'W', 'PRESS', False, True, False, (('name', interface.NodeWranglerMenu.bl_idname),), n_("Node Wrangler (Menu)")),
+    ('wm.call_menu', 'W', 'PRESS', False, True, False,
+     (('name', interface.NodeWranglerMenu.bl_idname),), n_("Node Wrangler (Menu)")),
     ('wm.call_menu', 'SLASH', 'PRESS', False, False, False,
      (('name', interface.NWAddReroutesMenu.bl_idname),), n_("Add Reroutes (Menu)")),
     ('wm.call_menu', 'NUMPAD_SLASH', 'PRESS', False, False, False,

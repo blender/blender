@@ -34,12 +34,12 @@ aggressive = 2
 # Exclude:
 # - `./extern/` because it's maintained separately.
 # - `./tools/svn_rev_map/` contains data-files which are slow to re-format and don't benefit from formatting.
-# - `./scripts/addons*` because it is an external repository.
+# - `./scripts/addons_core/io_scene_gltf2/*` because it is maintained externally.
 #   which can contain their own configuration and be handled separately.
 # - `./scripts/modules/rna_manual_reference.py` because it's a generated data-file.
 exclude = """
 extern/*,
-scripts/addons_core/*,
+scripts/addons_core/io_scene_gltf2/*,
 scripts/modules/rna_manual_reference.py,
 tools/svn_rev_map/sha1_to_rev.py,
 tools/svn_rev_map/rev_to_sha1.py,

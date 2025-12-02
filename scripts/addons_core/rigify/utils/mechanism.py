@@ -631,7 +631,7 @@ class MechanismUtilityMixin(object):
                         invert_xyz: Optional[Sequence[bool]] = None,
                         targets: Optional[list[Lazy[str | tuple | dict]]] = None,
                         **args):
-        assert(self.obj.mode == 'OBJECT')
+        assert self.obj.mode == 'OBJECT'
         return make_constraint(
             self.obj.pose.bones[bone], con_type, self.obj, subtarget,
             insert_index=insert_index, space=space, track_axis=track_axis,
@@ -645,7 +645,7 @@ class MechanismUtilityMixin(object):
                       description: Optional[str] = None, overridable=True,
                       subtype: Optional[str] = None,
                       **args):
-        assert(self.obj.mode == 'OBJECT')
+        assert self.obj.mode == 'OBJECT'
         return make_property(
             self.obj.pose.bones[bone], name, default,
             min=min, max=max, soft_min=soft_min, soft_max=soft_max,
@@ -659,7 +659,7 @@ class MechanismUtilityMixin(object):
                     expression: Optional[str] = None,
                     variables: Iterable | dict = (),
                     polynomial: Optional[list[float]] = None):
-        assert(self.obj.mode == 'OBJECT')
+        assert self.obj.mode == 'OBJECT'
         if isinstance(owner, str):
             owner = self.obj.pose.bones[owner]
         return make_driver(

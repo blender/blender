@@ -7,6 +7,7 @@ from bpy.types import (
     Panel,
 )
 
+
 class USERPREF_PT_vr_navigation(Panel):
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -45,21 +46,24 @@ class USERPREF_PT_vr_navigation(Panel):
         col.row().prop(nav, "vignette_intensity", text="Vignette Intensity")
 
         if nav.snap_turn:
-          col.row().prop(nav, "turn_amount", text="Turn Amount")
+            col.row().prop(nav, "turn_amount", text="Turn Amount")
         else:
-          col.row().prop(nav, "turn_speed", text="Turn Speed")
+            col.row().prop(nav, "turn_speed", text="Turn Speed")
 
         col.row().prop(nav, "snap_turn", text="Snap Turn")
         col.row().prop(nav, "invert_rotation", text="Invert Rotation")
+
 
 classes = (
     USERPREF_PT_vr_navigation,
 )
 
+
 def register():
     from bpy.utils import register_class
     for cls in classes:
         register_class(cls)
+
 
 def unregister():
     from bpy.utils import unregister_class

@@ -79,7 +79,7 @@ class NODE_OT_align_selected(Operator, NWBase):
             else:
                 # node.bl_height_min is the min size of a collapsed node, +6 for the outlines and margins
                 hide_offset = (node.dimensions.y - (node.bl_height_min + 6)) / 2 if node.hide else 0
-                node.location.y = current_pos - hide_offset # Hidden nodes center their sockets around the label instead of below
+                node.location.y = current_pos - hide_offset  # Hidden nodes center their sockets around the label instead of below
                 current_pos -= (current_margin * 0.3) + node.dimensions.y  # Use half-margin for vertical alignment
                 node.location.x = mid_x - (node.dimensions.x / 2)
 

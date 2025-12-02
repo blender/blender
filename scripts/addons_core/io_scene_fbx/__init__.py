@@ -277,11 +277,13 @@ def import_panel_transform_orientation(layout, operator):
         body.prop(operator, "axis_forward")
         body.prop(operator, "axis_up")
 
+
 def import_panel_materials(layout, operator):
     header, body = layout.panel("FBX_import_material", default_closed=True)
     header.label(text="Materials")
     if body:
         body.prop(operator, "mtl_name_collision_mode")
+
 
 def import_panel_animation(layout, operator):
     header, body = layout.panel("FBX_import_animation", default_closed=True)
@@ -304,6 +306,7 @@ def import_panel_armature(layout, operator):
         sub.enabled = not operator.automatic_bone_orientation
         sub.prop(operator, "primary_bone_axis")
         sub.prop(operator, "secondary_bone_axis")
+
 
 @orientation_helper(axis_forward='-Z', axis_up='Y')
 class ExportFBX(bpy.types.Operator, ExportHelper):
@@ -668,9 +671,9 @@ def export_panel_geometry(layout, operator):
         body.prop(operator, "mesh_smooth_type")
         body.prop(operator, "use_subsurf")
         body.prop(operator, "use_mesh_modifiers")
-        #sub = body.row()
+        # sub = body.row()
         # sub.enabled = operator.use_mesh_modifiers and False  # disabled in 2.8...
-        #sub.prop(operator, "use_mesh_modifiers_render")
+        # sub.prop(operator, "use_mesh_modifiers_render")
         body.prop(operator, "use_mesh_edges")
         body.prop(operator, "use_triangles")
         sub = body.row()
