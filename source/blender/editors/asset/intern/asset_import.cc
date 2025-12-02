@@ -18,9 +18,12 @@
 
 namespace blender::ed::asset {
 
-ID *asset_local_id_ensure_imported(Main &bmain,
-                                   const asset_system::AssetRepresentation &asset,
-                                   const std::optional<eAssetImportMethod> import_method)
+ID *asset_local_id_ensure_imported(
+    Main &bmain,
+    const asset_system::AssetRepresentation &asset,
+    const int flags, /* #eFileSel_Params_Flag + #eBLOLibLinkFlags */
+    const std::optional<eAssetImportMethod> import_method,
+    const std::optional<ImportInstantiateContext> instantiate_context)
 {
   if (ID *local_id = asset.local_id()) {
     return local_id;
@@ -44,46 +47,50 @@ ID *asset_local_id_ensure_imported(Main &bmain,
     return ASSET_IMPORT_APPEND_REUSE;
   }();
 
+  Scene *scene = instantiate_context ? instantiate_context->scene : nullptr;
+  ViewLayer *view_layer = instantiate_context ? instantiate_context->view_layer : nullptr;
+  View3D *view3d = instantiate_context ? instantiate_context->view3d : nullptr;
+
   switch (method) {
     case ASSET_IMPORT_LINK:
       return WM_file_link_datablock(&bmain,
-                                    nullptr,
-                                    nullptr,
-                                    nullptr,
+                                    scene,
+                                    view_layer,
+                                    view3d,
                                     blend_path.c_str(),
                                     asset.get_id_type(),
                                     asset.get_name().c_str(),
-                                    (asset.get_use_relative_path() ? FILE_RELPATH : 0));
+                                    flags | (asset.get_use_relative_path() ? FILE_RELPATH : 0));
     case ASSET_IMPORT_PACK:
       return WM_file_link_datablock(&bmain,
-                                    nullptr,
-                                    nullptr,
-                                    nullptr,
+                                    scene,
+                                    view_layer,
+                                    view3d,
                                     blend_path.c_str(),
                                     asset.get_id_type(),
                                     asset.get_name().c_str(),
-                                    BLO_LIBLINK_PACK |
+                                    flags | BLO_LIBLINK_PACK |
                                         (asset.get_use_relative_path() ? FILE_RELPATH : 0));
     case ASSET_IMPORT_APPEND:
       return WM_file_append_datablock(&bmain,
-                                      nullptr,
-                                      nullptr,
-                                      nullptr,
+                                      scene,
+                                      view_layer,
+                                      view3d,
                                       blend_path.c_str(),
                                       asset.get_id_type(),
                                       asset.get_name().c_str(),
-                                      BLO_LIBLINK_APPEND_RECURSIVE |
+                                      flags | BLO_LIBLINK_APPEND_RECURSIVE |
                                           BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR |
                                           (asset.get_use_relative_path() ? FILE_RELPATH : 0));
     case ASSET_IMPORT_APPEND_REUSE:
       return WM_file_append_datablock(&bmain,
-                                      nullptr,
-                                      nullptr,
-                                      nullptr,
+                                      scene,
+                                      view_layer,
+                                      view3d,
                                       blend_path.c_str(),
                                       asset.get_id_type(),
                                       asset.get_name().c_str(),
-                                      BLO_LIBLINK_APPEND_RECURSIVE |
+                                      flags | BLO_LIBLINK_APPEND_RECURSIVE |
                                           BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR |
                                           BLO_LIBLINK_APPEND_LOCAL_ID_REUSE |
                                           (asset.get_use_relative_path() ? FILE_RELPATH : 0));
