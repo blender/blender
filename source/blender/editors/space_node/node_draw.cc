@@ -208,46 +208,6 @@ static bNodeTree *node_tree_from_ID(ID *id)
   return nullptr;
 }
 
-void tag_update_id(ID *id)
-{
-  bNodeTree *ntree = node_tree_from_ID(id);
-  if (id == nullptr || ntree == nullptr) {
-    return;
-  }
-
-  /* TODO(sergey): With the new dependency graph it should be just enough to only tag ntree itself.
-   * All the users of this tree will have update flushed from the tree. */
-  DEG_id_tag_update(&ntree->id, 0);
-
-  if (ntree->type == NTREE_SHADER) {
-    DEG_id_tag_update(id, 0);
-
-    if (GS(id->name) == ID_MA) {
-      WM_main_add_notifier(NC_MATERIAL | ND_SHADING, id);
-    }
-    else if (GS(id->name) == ID_LA) {
-      WM_main_add_notifier(NC_LAMP | ND_LIGHTING, id);
-    }
-    else if (GS(id->name) == ID_WO) {
-      WM_main_add_notifier(NC_WORLD | ND_WORLD, id);
-    }
-  }
-  else if (ntree->type == NTREE_COMPOSIT) {
-    WM_main_add_notifier(NC_SCENE | ND_NODES, id);
-  }
-  else if (ntree->type == NTREE_TEXTURE) {
-    DEG_id_tag_update(id, 0);
-    WM_main_add_notifier(NC_TEXTURE | ND_NODES, id);
-  }
-  else if (ntree->type == NTREE_GEOMETRY) {
-    WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, id);
-  }
-  else if (id == &ntree->id) {
-    /* Node groups. */
-    DEG_id_tag_update(id, 0);
-  }
-}
-
 static void node_socket_add_tooltip_in_node_editor(const bNodeSocket &sock, ui::Layout &layout);
 
 /** Return true when \a a should be behind \a b and false otherwise. */

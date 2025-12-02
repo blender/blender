@@ -44,7 +44,6 @@ struct Layout;
 namespace blender::ed::space_node {
 
 void tree_update(const bContext *C);
-void tag_update_id(ID *id);
 
 float grid_size_get();
 
