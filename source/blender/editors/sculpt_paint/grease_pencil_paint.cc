@@ -317,7 +317,7 @@ struct PaintOperationExecutor {
     const ARegion *region = CTX_wm_region(&C);
 
     float3 start_location;
-    if (self.placement_.use_project_to_stroke()) {
+    if (self.placement_.use_project_to_stroke() || self.placement_.use_project_to_surface()) {
       const std::optional<float> depth = self.placement_.get_depth(start_coords);
       if (depth) {
         start_location = self.placement_.place(start_coords, *depth);
@@ -502,7 +502,7 @@ struct PaintOperationExecutor {
     curve_attributes_to_skip.add("curve_type");
     curves.update_curve_types();
 
-    if (self.placement_.use_project_to_stroke()) {
+    if (self.placement_.use_project_to_stroke() || self.placement_.use_project_to_surface()) {
       self.stroke_placement_depths_.append(self.stroke_placement_depths_.is_empty() ?
                                                std::nullopt :
                                                self.stroke_placement_depths_.last());
@@ -629,7 +629,7 @@ struct PaintOperationExecutor {
     MutableSpan<float2> final_coords = self.screen_space_final_coords_.as_mutable_span().slice(
         active_window);
     MutableSpan<float3> positions_slice = curve_positions.slice(active_window);
-    if (self.placement_.use_project_to_stroke()) {
+    if (self.placement_.use_project_to_stroke() || self.placement_.use_project_to_surface()) {
       BLI_assert(self.stroke_placement_depths_.size() == self.screen_space_coords_orig_.size());
       const Span<std::optional<float>> stroke_depths =
           self.stroke_placement_depths_.as_span().slice(active_window);
@@ -659,7 +659,7 @@ struct PaintOperationExecutor {
 
     const float2 coords = extension_sample.mouse_position;
     float3 position;
-    if (self.placement_.use_project_to_stroke()) {
+    if (self.placement_.use_project_to_stroke() || self.placement_.use_project_to_surface()) {
       const std::optional<float> depth = self.stroke_placement_depths_.is_empty() ?
                                              std::nullopt :
                                              self.stroke_placement_depths_.last();
@@ -890,7 +890,7 @@ struct PaintOperationExecutor {
     for (float2 new_position : new_screen_space_coords) {
       self.screen_space_curve_fitted_coords_.append(Vector<float2>({new_position}));
     }
-    if (self.placement_.use_project_to_stroke()) {
+    if (self.placement_.use_project_to_stroke() || self.placement_.use_project_to_surface()) {
       const std::optional<float> last_depth = self.stroke_placement_depths_.is_empty() ?
                                                   std::nullopt :
                                                   self.stroke_placement_depths_.last();
@@ -902,7 +902,7 @@ struct PaintOperationExecutor {
     const IndexRange smooth_window = self.screen_space_coords_orig_.index_range().drop_front(
         self.active_smooth_start_index_);
     if (smooth_window.size() < min_active_smoothing_points_num) {
-      if (self.placement_.use_project_to_stroke()) {
+      if (self.placement_.use_project_to_stroke() || self.placement_.use_project_to_surface()) {
         const Span<std::optional<float>> new_depths =
             self.stroke_placement_depths_.as_mutable_span().take_back(new_points_num);
         for (const int64_t i : new_positions.index_range()) {
@@ -944,7 +944,7 @@ struct PaintOperationExecutor {
       /* Not jitter, so we just copy the positions over. */
       final_coords.copy_from(smoothed_coords);
       MutableSpan<float3> curve_positions_slice = curve_positions.slice(smooth_window);
-      if (self.placement_.use_project_to_stroke()) {
+      if (self.placement_.use_project_to_stroke() || self.placement_.use_project_to_surface()) {
         BLI_assert(self.stroke_placement_depths_.size() == self.screen_space_coords_orig_.size());
         const Span<std::optional<float>> stroke_depths =
             self.stroke_placement_depths_.as_mutable_span().slice(smooth_window);
@@ -963,7 +963,7 @@ struct PaintOperationExecutor {
       }
     }
 
-    if (self.placement_.use_project_to_stroke()) {
+    if (self.placement_.use_project_to_stroke() || self.placement_.use_project_to_surface()) {
       /* Find a new snap point and apply projection to trailing points. */
       self.update_stroke_depth_placement(C, extension_sample);
     }
@@ -1016,7 +1016,7 @@ static StrokeSnapMode get_snap_mode(const bContext &C)
 
 bool PaintOperation::update_stroke_depth_placement(const bContext &C, const InputSample &sample)
 {
-  BLI_assert(placement_.use_project_to_stroke());
+  BLI_assert(placement_.use_project_to_stroke() || placement_.use_project_to_surface());
 
   const std::optional<float> new_stroke_placement_depth = placement_.get_depth(
       sample.mouse_position);
@@ -1181,10 +1181,7 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
   const bke::greasepencil::Layer &layer = *grease_pencil->get_active_layer();
   /* Initialize helper class for projecting screen space coordinates. */
   placement_ = ed::greasepencil::DrawingPlacement(*scene, *region, *view3d, *eval_object, &layer);
-  if (placement_.use_project_to_surface()) {
-    placement_.cache_viewport_depths(depsgraph, region, view3d);
-  }
-  else if (placement_.use_project_to_stroke()) {
+  if (placement_.use_project_to_surface() || placement_.use_project_to_stroke()) {
     placement_.cache_viewport_depths(depsgraph, region, view3d);
   }
 
