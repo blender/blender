@@ -463,11 +463,6 @@ static wmDropBox *dropbox_active(bContext *C,
                                  wmDrag *drag,
                                  const wmEvent *event)
 {
-  if (drag->drop_state.free_disabled_info) {
-    MEM_SAFE_FREE(drag->drop_state.disabled_info);
-  }
-  drag->drop_state.disabled_info = nullptr;
-
   LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
     if (handler_base->type == WM_HANDLER_TYPE_DROPBOX) {
       wmEventHandler_Dropbox *handler = (wmEventHandler_Dropbox *)handler_base;
@@ -515,6 +510,11 @@ static wmDropBox *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *ev
   bScreen *screen = WM_window_get_active_screen(win);
   ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->xy);
   wmDropBox *drop = nullptr;
+
+  if (drag->drop_state.free_disabled_info) {
+    MEM_SAFE_FREE(drag->drop_state.disabled_info);
+  }
+  drag->drop_state.disabled_info = nullptr;
 
   if (area) {
     ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_ANY, event->xy);
