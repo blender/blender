@@ -2714,46 +2714,67 @@ class Preprocessor {
     using namespace shader::parser;
     using namespace metadata;
 
-    auto process_graphic_pipeline =
-        [&](Token pipeline_type, Token pipeline_name, Token vertex_fn, Token fragment_fn) {
-          if (pipeline_type.str() != "PipelineGraphic") {
-            return;
-          }
-          /* For now, just emit good old create info macros. */
-          string create_info_decl;
-          create_info_decl += "GPU_SHADER_CREATE_INFO(" + pipeline_name.str() + ")\n";
-          create_info_decl += "VERTEX_FUNCTION(" + vertex_fn.str() + ")\n";
-          create_info_decl += "FRAGMENT_FUNCTION(" + fragment_fn.str() + ")\n";
-          create_info_decl += "ADDITIONAL_INFO(" + vertex_fn.str() + "_infos_)\n";
-          create_info_decl += "ADDITIONAL_INFO(" + fragment_fn.str() + "_infos_)\n";
-          create_info_decl += "GPU_SHADER_CREATE_END()\n";
+    auto process_compilation_constants = [&](Token tok) {
+      string create_info_decl;
 
-          metadata.create_infos_declarations.emplace_back(create_info_decl);
+      while (tok == ',') {
+        Scope scope = tok.next().next().scope();
+        auto process_constant = [&](const vector<Token> &toks) {
+          create_info_decl += "COMPILATION_CONSTANT(";
+          create_info_decl += (toks[3] == Number) ?
+                                  ((toks[3].str().back() == 'u') ? "uint" : "int") :
+                                  "bool";
+          create_info_decl += ", " + toks[1].str();
+          create_info_decl += ", " + toks[3].str();
+          create_info_decl += ")\n";
         };
+        scope.foreach_match(".w=w", process_constant);
+        scope.foreach_match(".w=0", process_constant);
+        tok = scope.end().next();
+      }
 
-    auto process_compute_pipeline =
-        [&](Token pipeline_type, Token pipeline_name, Token compute_fn) {
-          if (pipeline_type.str() != "PipelineCompute") {
-            return;
-          }
-          /* For now, just emit good old create info macros. */
-          string create_info_decl;
-          create_info_decl += "GPU_SHADER_CREATE_INFO(" + pipeline_name.str() + ")\n";
-          create_info_decl += "VERTEX_FUNCTION(" + compute_fn.str() + ")\n";
-          create_info_decl += "ADDITIONAL_INFO(" + compute_fn.str() + "_infos_)\n";
-          create_info_decl += "GPU_SHADER_CREATE_END()\n";
+      return create_info_decl;
+    };
 
-          metadata.create_infos_declarations.emplace_back(create_info_decl);
-        };
+    auto process_graphic_pipeline = [&](Token pipeline_name, Scope params) {
+      Token vertex_fn = params[1];
+      Token fragment_fn = params[3];
+      /* For now, just emit good old create info macros. */
+      string create_info_decl;
+      create_info_decl += "GPU_SHADER_CREATE_INFO(" + pipeline_name.str() + ")\n";
+      create_info_decl += "VERTEX_FUNCTION(" + vertex_fn.str() + ")\n";
+      create_info_decl += "FRAGMENT_FUNCTION(" + fragment_fn.str() + ")\n";
+      create_info_decl += "ADDITIONAL_INFO(" + vertex_fn.str() + "_infos_)\n";
+      create_info_decl += "ADDITIONAL_INFO(" + fragment_fn.str() + "_infos_)\n";
+      create_info_decl += process_compilation_constants(params[4]);
+      create_info_decl += "GPU_SHADER_CREATE_END()\n";
 
-    parser.foreach_match("ww(w,w);", [&](const std::vector<Token> &tokens) {
-      process_graphic_pipeline(tokens[0], tokens[1], tokens[3], tokens[5]);
-      parser.erase(tokens.front(), tokens.back());
-    });
+      metadata.create_infos_declarations.emplace_back(create_info_decl);
+    };
 
-    parser.foreach_match("ww(w);", [&](const std::vector<Token> &tokens) {
-      process_compute_pipeline(tokens[0], tokens[1], tokens[3]);
-      parser.erase(tokens.front(), tokens.back());
+    auto process_compute_pipeline = [&](Token pipeline_name, Scope params) {
+      Token compute_fn = params[1];
+      /* For now, just emit good old create info macros. */
+      string create_info_decl;
+      create_info_decl += "GPU_SHADER_CREATE_INFO(" + pipeline_name.str() + ")\n";
+      create_info_decl += "VERTEX_FUNCTION(" + compute_fn.str() + ")\n";
+      create_info_decl += "ADDITIONAL_INFO(" + compute_fn.str() + "_infos_)\n";
+      create_info_decl += process_compilation_constants(params[2]);
+      create_info_decl += "GPU_SHADER_CREATE_END()\n";
+
+      metadata.create_infos_declarations.emplace_back(create_info_decl);
+    };
+
+    parser.foreach_match("ww(w", [&](const std::vector<Token> &tokens) {
+      Scope parameters = tokens[2].scope();
+      if (tokens[0].str() == "PipelineGraphic") {
+        process_graphic_pipeline(tokens[1], parameters);
+        parser.erase(tokens.front(), parameters.end().next());
+      }
+      else if (tokens[0].str() == "PipelineCompute") {
+        process_compute_pipeline(tokens[1], parameters);
+        parser.erase(tokens.front(), parameters.end().next());
+      }
     });
   }
 

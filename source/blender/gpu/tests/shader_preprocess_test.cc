@@ -1596,6 +1596,69 @@ GPU_SHADER_CREATE_END()
 }
 GPU_TEST(preprocess_entry_point_resources);
 
+static void test_preprocess_pipeline_description()
+{
+  using namespace std;
+  using namespace shader::parser;
+
+  ParserData::report_callback no_err_report = [](int, int, string, const char *) {};
+
+  {
+    string input = R"(
+namespace ns {
+
+PipelineGraphic graphic_pipe(vertex_func, fragment_func, Type{.a = true, .b = 9, .c = 3u});
+PipelineCompute compute_pipe(compute_func, Type{.a = true, .b = 8, .c = 7u});
+
+}
+)";
+    string expect = R"(
+
+
+
+
+
+
+)";
+    string expect_infos = R"(#pragma once
+
+
+
+
+
+
+
+GPU_SHADER_CREATE_INFO(ns_graphic_pipe)
+VERTEX_FUNCTION(vertex_func)
+FRAGMENT_FUNCTION(fragment_func)
+ADDITIONAL_INFO(vertex_func_infos_)
+ADDITIONAL_INFO(fragment_func_infos_)
+COMPILATION_CONSTANT(bool, a, true)
+COMPILATION_CONSTANT(int, b, 9)
+COMPILATION_CONSTANT(uint, c, 3u)
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(ns_compute_pipe)
+VERTEX_FUNCTION(compute_func)
+ADDITIONAL_INFO(compute_func_infos_)
+COMPILATION_CONSTANT(bool, a, true)
+COMPILATION_CONSTANT(int, b, 8)
+COMPILATION_CONSTANT(uint, c, 7u)
+GPU_SHADER_CREATE_END()
+
+)";
+    string error;
+    shader::metadata::Source metadata;
+    string output = process_test_string(input, error, &metadata);
+    string infos = metadata.serialize_infos();
+
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(infos, expect_infos);
+    EXPECT_EQ(error, "");
+  }
+}
+GPU_TEST(preprocess_pipeline_description);
+
 static void test_preprocess_parser()
 {
   using namespace std;
