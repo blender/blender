@@ -33,7 +33,7 @@
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 #include "BKE_movieclip.h"
 #include "BKE_scene.hh"
 #include "BKE_scene_runtime.hh"

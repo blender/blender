@@ -12,7 +12,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"

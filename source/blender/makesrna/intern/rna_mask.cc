@@ -6,7 +6,6 @@
  * \ingroup RNA
  */
 
-#include <climits>
 #include <cstdlib>
 
 #include "DNA_mask_types.h"
@@ -32,7 +31,7 @@
 
 #  include "BLI_math_vector.h"
 
-#  include "BKE_mask.h"
+#  include "BKE_mask.hh"
 #  include "BKE_movieclip.h"
 #  include "BKE_tracking.h"
 

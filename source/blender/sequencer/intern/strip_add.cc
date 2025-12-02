@@ -27,7 +27,7 @@
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 #include "BKE_movieclip.h"
 #include "BKE_scene.hh"
 #include "BKE_sound.hh"

@@ -19,7 +19,7 @@
 #include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 
 #include "ED_keyframes_edit.hh"
 #include "ED_markers.hh"

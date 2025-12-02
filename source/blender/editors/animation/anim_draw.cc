@@ -27,7 +27,7 @@
 #include "BKE_curve.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_global.hh"
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 #include "BKE_nla.hh"
 
 #include "ED_anim_api.hh"

@@ -16,7 +16,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 
 #include "ED_clip.hh"
 #include "ED_image.hh"

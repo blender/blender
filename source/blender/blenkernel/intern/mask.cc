@@ -35,18 +35,15 @@
 #include "BKE_curve.hh"
 #include "BKE_idtype.hh"
 
-#include "BKE_anim_data.hh"
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
 #include "DEG_depsgraph_build.hh"
-
-#include "DRW_engine.hh"
 
 #include "BLO_read_write.hh"
 

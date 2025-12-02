@@ -22,7 +22,7 @@
 #include "DNA_mask_types.h"
 
 #include "BKE_curve.hh"
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

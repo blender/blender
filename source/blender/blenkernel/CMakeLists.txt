@@ -447,7 +447,7 @@ set(SRC
   BKE_main_idmap.hh
   BKE_main_invariants.hh
   BKE_main_namemap.hh
-  BKE_mask.h
+  BKE_mask.hh
   BKE_material.hh
   BKE_mball.hh
   BKE_mball_tessellate.hh

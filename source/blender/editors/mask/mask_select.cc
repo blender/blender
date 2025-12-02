@@ -13,7 +13,7 @@
 #include "BLI_rect.h"
 
 #include "BKE_context.hh"
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -23,7 +23,6 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_clip.hh"
 #include "ED_mask.hh" /* own include */
 #include "ED_select_utils.hh"
 

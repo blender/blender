@@ -69,7 +69,7 @@
 #include "BLI_rect.h"
 #include "BLI_task.h"
 
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 

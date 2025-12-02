@@ -16,7 +16,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
@@ -33,7 +33,6 @@
 #include "ED_mask.hh"
 
 #include "UI_resources.hh"
-#include "UI_view2d.hh"
 
 #include "clip_intern.hh" /* own include */
 

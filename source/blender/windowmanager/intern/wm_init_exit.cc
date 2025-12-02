@@ -53,7 +53,7 @@
 #include "BKE_addon.h"
 #include "BKE_appdir.hh"
 #include "BKE_blender_cli_command.hh"
-#include "BKE_mask.h"      /* Free mask clipboard. */
+#include "BKE_mask.hh"     /* Free mask clipboard. */
 #include "BKE_material.hh" /* #BKE_material_copybuf_clear. */
 #include "BKE_studiolight.h"
 #include "BKE_subdiv.hh"

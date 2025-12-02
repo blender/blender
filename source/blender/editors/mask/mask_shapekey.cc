@@ -11,7 +11,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_context.hh"
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 
 #include "DNA_mask_types.h"
 #include "DNA_scene_types.h"

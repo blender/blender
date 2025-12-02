@@ -2,14 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <cstdint>
 #include <memory>
 
-#include "BLI_hash.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "BKE_lib_id.hh"
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 
 #include "DNA_ID.h"
 #include "DNA_mask_types.h"

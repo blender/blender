@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 
 #include "ED_clip.hh"
 
