@@ -470,9 +470,11 @@ class Preprocessor {
       return "";
     }
     str = remove_comments(str, report_error);
-    str = remove_whitespace(str, report_error);
     if (language == BLENDER_GLSL || language == CPP) {
       str = disabled_code_mutation(str, report_error);
+    }
+    else {
+      str = remove_whitespace(str, report_error);
     }
     str = threadgroup_variables_parse_and_remove(str, report_error);
     parse_builtins(str, filename);
@@ -526,17 +528,17 @@ class Preprocessor {
         remove_quotes(parser, report_error);
         srt_guard_mutation(parser, report_error);
         argument_reference_mutation(parser, report_error);
+        remove_whitespace(parser, report_error);
         str = parser.result_get();
-        str = remove_whitespace(str, report_error);
       }
       str = variable_reference_mutation(str, report_error);
       if (language == BLENDER_GLSL) {
         str = namespace_separator_mutation(str);
       }
-      /* Do another whitespace pass to remove the one introduced by mutations. */
-      str = remove_whitespace(str, report_error);
       {
         Parser parser(str, report_error);
+        /* Do another whitespace pass to remove the one introduced by mutations. */
+        remove_whitespace(parser, report_error);
         cleanup_empty_lines(parser, report_error);
         cleanup_line_directives(parser, report_error);
         str = parser.result_get();
@@ -645,6 +647,26 @@ class Preprocessor {
     return out_str;
   }
 
+  /* Remove trailing white spaces. */
+  void remove_whitespace(Parser &parser, report_callback /*report_error*/)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    const string &str = parser.data_get().str;
+
+    size_t last_whitespace = -1;
+    while ((last_whitespace = str.find(" \n", last_whitespace + 1)) != string::npos) {
+      size_t first_not_whitespace = str.find_last_not_of(" ", last_whitespace);
+      if (first_not_whitespace == string::npos) {
+        return;
+      }
+      parser.replace(first_not_whitespace + 1, last_whitespace, "");
+    }
+    parser.apply_mutations();
+  }
+
+  /* Safer version without Parser. */
   std::string remove_whitespace(const std::string &str, const report_callback & /*report_error*/)
   {
     /* Remove trailing white space as they make the subsequent regex much slower. */
