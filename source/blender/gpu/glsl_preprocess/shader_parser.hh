@@ -1362,7 +1362,7 @@ struct Parser {
   }
 
   /* Run a callback for all existing scopes of a given type. */
-  void foreach_scope(ScopeType type, std::function<void(Scope)> callback)
+  void foreach_scope(ScopeType type, std::function<void(Scope)> callback) const
   {
     size_t pos = 0;
     while ((pos = data_.scope_types.find(char(type), pos)) != std::string::npos) {
@@ -1372,13 +1372,13 @@ struct Parser {
   }
 
   void foreach_match(const std::string &pattern,
-                     std::function<void(const std::vector<Token>)> callback)
+                     std::function<void(const std::vector<Token>)> callback) const
   {
     foreach_scope(ScopeType::Global,
                   [&](const Scope scope) { scope.foreach_match(pattern, callback); });
   }
 
-  void foreach_token(const TokenType token_type, std::function<void(const Token)> callback)
+  void foreach_token(const TokenType token_type, std::function<void(const Token)> callback) const
   {
     const char str[2] = {token_type, '\0'};
     foreach_match(str, [&](const std::vector<Token> &tokens) { callback(tokens[0]); });

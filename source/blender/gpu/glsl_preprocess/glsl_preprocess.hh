@@ -492,10 +492,8 @@ class Preprocessor {
       str = enum_macro_injection(str, language == CPP, report_error);
       {
         Parser parser(str, report_error);
-        resource_table_parsing(parser, report_error);
 
         if (language == BLENDER_GLSL) {
-          entry_point_mutation(parser, report_error);
           srt_member_access_mutation(parser, report_error);
           using_mutation(parser, report_error);
 
@@ -503,38 +501,37 @@ class Preprocessor {
           namespace_mutation(parser, report_error);
           template_struct_mutation(parser, report_error);
           struct_method_mutation(parser, report_error);
+          template_definition_mutation(parser, report_error);
           empty_struct_mutation(parser, report_error);
           method_call_mutation(parser, report_error);
+          template_call_mutation(parser, report_error);
+          entry_point_mutation(parser, report_error);
           stage_function_mutation(parser, report_error);
+          resource_table_parsing(parser, report_error);
           resource_guard_mutation(parser, report_error);
           loop_unroll(parser, report_error);
           assert_processing(parser, filename, report_error);
           static_strings_merging(parser, report_error);
           static_strings_parsing_and_mutation(parser, report_error);
           printf_processing(parser, report_error);
-          str = parser.result_get();
-          quote_linting(str, report_error);
+          quote_linting(parser, report_error);
         }
-      }
-      {
-        Parser parser(str, report_error);
+
+        default_argument_mutation(parser, report_error);
         global_scope_constant_linting(parser, report_error);
         if (do_small_type_linting) {
           small_type_linting(parser, report_error);
         }
         remove_quotes(parser, report_error);
-        default_argument_mutation(parser, report_error);
         srt_guard_mutation(parser, report_error);
         argument_reference_mutation(parser, report_error);
         str = parser.result_get();
         str = remove_whitespace(str, report_error);
       }
       str = variable_reference_mutation(str, report_error);
-      str = template_definition_mutation(str, report_error);
       if (language == BLENDER_GLSL) {
         str = namespace_separator_mutation(str);
       }
-      str = template_call_mutation(str, report_error);
       /* Do another whitespace pass to remove the one introduced by mutations. */
       str = remove_whitespace(str, report_error);
       {
@@ -788,18 +785,14 @@ class Preprocessor {
     }
   }
 
-  std::string template_definition_mutation(const std::string &str, report_callback &report_error)
+  void template_definition_mutation(Parser &parser, report_callback &report_error)
   {
-    if (str.find("template") == std::string::npos) {
-      return str;
+    if (parser.data_get().str.find("template") == std::string::npos) {
+      return;
     }
 
     using namespace std;
     using namespace shader::parser;
-
-    std::string out_str = str;
-
-    Parser parser(out_str, report_error);
 
     auto process_specialization = [&](const Token specialization_start,
                                       const Scope template_args) {
@@ -945,9 +938,10 @@ class Preprocessor {
       process_template(tokens[5], fn_name, tokens[10].scope(), tokens[1].scope(), tokens[19]);
     });
 
-    out_str = parser.result_get();
+    parser.apply_mutations();
 
     {
+      const string &out_str = parser.data_get().str;
       /* Check if there is no remaining declaration and instantiation that were not processed. */
       size_t error_pos;
       if ((error_pos = out_str.find("template<")) != std::string::npos) {
@@ -963,19 +957,17 @@ class Preprocessor {
                      "Template instantiation unsupported syntax");
       }
     }
-    return out_str;
   }
 
-  std::string template_call_mutation(const std::string &str, report_callback &report_error)
+  void template_call_mutation(Parser &parser, report_callback & /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
 
-    Parser parser(str, report_error);
     parser.foreach_match("w<..>", [&](const std::vector<Token> &tokens) {
       parser.replace(tokens[1].scope(), template_arguments_mangle(tokens[1].scope()), true);
     });
-    return parser.result_get();
+    parser.apply_mutations();
   }
 
   /* Remove remaining quotes that can be found in some unsupported C++ macros. */
@@ -3497,12 +3489,11 @@ class Preprocessor {
     });
   }
 
-  void quote_linting(const std::string &str, report_callback report_error)
+  void quote_linting(const Parser &parser, report_callback report_error)
   {
     using namespace std;
     using namespace shader::parser;
 
-    Parser parser(str, report_error);
     /* This only catches some invalid usage. For the rest, the CI will catch them. */
     parser.foreach_token(TokenType::String, [&](const Token token) {
       report_error(ERROR_TOK(token),
