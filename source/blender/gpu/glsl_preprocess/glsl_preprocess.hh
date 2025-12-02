@@ -507,6 +507,7 @@ class Preprocessor {
           template_call_mutation(parser, report_error);
           entry_point_mutation(parser, report_error);
           stage_function_mutation(parser, report_error);
+          pipeline_parse_and_remove(parser, report_error);
           resource_table_parsing(parser, report_error);
           resource_guard_mutation(parser, report_error);
           loop_unroll(parser, report_error);
@@ -1580,6 +1581,15 @@ class Preprocessor {
         process_symbol(fn_name);
       });
       scope.foreach_struct([&](Token, Token struct_name, Scope) { process_symbol(struct_name); });
+
+      /* Pipeline declarations. */
+      scope.foreach_match("ww(w", [&](vector<Token> toks) {
+        if (toks[0].scope().type() != ScopeType::Namespace || toks[0].str().find("Pipeline") != 0)
+        {
+          return;
+        }
+        process_symbol(toks[1]);
+      });
 
       Token namespace_tok = scope.start().prev().namespace_start().prev();
       if (namespace_tok == Namespace) {
@@ -2680,6 +2690,55 @@ class Preprocessor {
         });
       });
     } while (parser.apply_mutations());
+  }
+
+  void pipeline_parse_and_remove(Parser &parser, report_callback /*report_error*/)
+  {
+    using namespace std;
+    using namespace shader::parser;
+    using namespace metadata;
+
+    auto process_graphic_pipeline =
+        [&](Token pipeline_type, Token pipeline_name, Token vertex_fn, Token fragment_fn) {
+          if (pipeline_type.str() != "PipelineGraphic") {
+            return;
+          }
+          /* For now, just emit good old create info macros. */
+          string create_info_decl;
+          create_info_decl += "GPU_SHADER_CREATE_INFO(" + pipeline_name.str() + ")\n";
+          create_info_decl += "VERTEX_FUNCTION(" + vertex_fn.str() + ")\n";
+          create_info_decl += "FRAGMENT_FUNCTION(" + fragment_fn.str() + ")\n";
+          create_info_decl += "ADDITIONAL_INFO(" + vertex_fn.str() + "_infos_)\n";
+          create_info_decl += "ADDITIONAL_INFO(" + fragment_fn.str() + "_infos_)\n";
+          create_info_decl += "GPU_SHADER_CREATE_END()\n";
+
+          metadata.create_infos_declarations.emplace_back(create_info_decl);
+        };
+
+    auto process_compute_pipeline =
+        [&](Token pipeline_type, Token pipeline_name, Token compute_fn) {
+          if (pipeline_type.str() != "PipelineCompute") {
+            return;
+          }
+          /* For now, just emit good old create info macros. */
+          string create_info_decl;
+          create_info_decl += "GPU_SHADER_CREATE_INFO(" + pipeline_name.str() + ")\n";
+          create_info_decl += "VERTEX_FUNCTION(" + compute_fn.str() + ")\n";
+          create_info_decl += "ADDITIONAL_INFO(" + compute_fn.str() + "_infos_)\n";
+          create_info_decl += "GPU_SHADER_CREATE_END()\n";
+
+          metadata.create_infos_declarations.emplace_back(create_info_decl);
+        };
+
+    parser.foreach_match("ww(w,w);", [&](const std::vector<Token> &tokens) {
+      process_graphic_pipeline(tokens[0], tokens[1], tokens[3], tokens[5]);
+      parser.erase(tokens.front(), tokens.back());
+    });
+
+    parser.foreach_match("ww(w);", [&](const std::vector<Token> &tokens) {
+      process_compute_pipeline(tokens[0], tokens[1], tokens[3]);
+      parser.erase(tokens.front(), tokens.back());
+    });
   }
 
   void stage_function_mutation(Parser &parser, report_callback /*report_error*/)
