@@ -425,7 +425,7 @@ static bool rna_MaskSplinePoint_handle_single_select_get(PointerRNA *ptr)
 {
   MaskSplinePoint *point = (MaskSplinePoint *)ptr->data;
 
-  return MASKPOINT_ISSEL_HANDLE(point, MASK_WHICH_HANDLE_STICK);
+  return BKE_mask_point_is_handle_selected(point, MASK_WHICH_HANDLE_STICK);
 }
 
 static MaskSpline *rna_MaskLayer_spline_new(ID *id, MaskLayer *mask_layer)

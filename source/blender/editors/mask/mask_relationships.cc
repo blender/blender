@@ -40,7 +40,7 @@ static wmOperatorStatus mask_parent_clear_exec(bContext *C, wmOperator * /*op*/)
       for (int i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
 
-        if (MASKPOINT_ISSEL_ANY(point)) {
+        if (BKE_mask_point_selected(point)) {
           point->parent.id = nullptr;
         }
       }
@@ -130,7 +130,7 @@ static wmOperatorStatus mask_parent_set_exec(bContext *C, wmOperator * /*op*/)
       for (int i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
 
-        if (MASKPOINT_ISSEL_ANY(point)) {
+        if (BKE_mask_point_selected(point)) {
           point->parent.id_type = ID_MC;
           point->parent.id = &clip->id;
           point->parent.type = parent_type;

@@ -44,7 +44,7 @@ bool ED_mask_spline_select_check(const MaskSpline *spline)
   for (int i = 0; i < spline->tot_point; i++) {
     MaskSplinePoint *point = &spline->points[i];
 
-    if (MASKPOINT_ISSEL_ANY(point)) {
+    if (BKE_mask_point_selected(point)) {
       return true;
     }
   }
@@ -134,7 +134,7 @@ void ED_mask_select_toggle_all(Mask *mask, int action)
       LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
         for (int i = 0; i < spline->tot_point; i++) {
           MaskSplinePoint *point = &spline->points[i];
-          BKE_mask_point_select_set(point, !MASKPOINT_ISSEL_ANY(point));
+          BKE_mask_point_select_set(point, !BKE_mask_point_selected(point));
         }
       }
     }
@@ -159,7 +159,7 @@ void ED_mask_select_flush_all(Mask *mask)
       for (int i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *cur_point = &spline->points[i];
 
-        if (MASKPOINT_ISSEL_ANY(cur_point)) {
+        if (BKE_mask_point_selected(cur_point)) {
           spline->flag |= SELECT;
         }
         else {
@@ -278,7 +278,7 @@ static wmOperatorStatus select_exec(bContext *C, wmOperator *op)
         mask_layer->act_spline = spline;
         mask_layer->act_point = point;
 
-        if (!MASKPOINT_ISSEL_HANDLE(point, which_handle)) {
+        if (!BKE_mask_point_is_handle_selected(point, which_handle)) {
           BKE_mask_point_select_set_handle(point, which_handle, true);
         }
         else if (toggle) {
@@ -300,7 +300,7 @@ static wmOperatorStatus select_exec(bContext *C, wmOperator *op)
         mask_layer->act_spline = spline;
         mask_layer->act_point = point;
 
-        if (!MASKPOINT_ISSEL_ANY(point)) {
+        if (!BKE_mask_point_selected(point)) {
           BKE_mask_point_select_set(point, true);
         }
         else if (toggle) {
@@ -568,7 +568,7 @@ static bool do_lasso_select_mask(bContext *C, const Span<int2> mcoords, const eS
         /* TODO: handles? */
         /* TODO: uw? */
 
-        if (MASKPOINT_ISSEL_ANY(point) && select) {
+        if (BKE_mask_point_selected(point) && select) {
           continue;
         }
 
@@ -897,7 +897,7 @@ static wmOperatorStatus mask_select_more_less(bContext *C, bool more)
 
       /* Re-select point if any handle is selected to make the result more predictable. */
       for (int i = 0; i < spline->tot_point; i++) {
-        BKE_mask_point_select_set(spline->points + i, MASKPOINT_ISSEL_ANY(spline->points + i));
+        BKE_mask_point_select_set(spline->points + i, BKE_mask_point_selected(spline->points + i));
       }
 
       /* select more/less does not affect empty/single point splines */
@@ -906,8 +906,8 @@ static wmOperatorStatus mask_select_more_less(bContext *C, bool more)
       }
 
       if (cyclic) {
-        start_sel = !!MASKPOINT_ISSEL_KNOT(spline->points);
-        end_sel = !!MASKPOINT_ISSEL_KNOT(&spline->points[spline->tot_point - 1]);
+        start_sel = BKE_mask_point_selected_knot(spline->points);
+        end_sel = BKE_mask_point_selected_knot(&spline->points[spline->tot_point - 1]);
       }
       else {
         start_sel = false;
@@ -919,8 +919,8 @@ static wmOperatorStatus mask_select_more_less(bContext *C, bool more)
           continue;
         }
 
-        prev_sel = (i > 0) ? !!MASKPOINT_ISSEL_KNOT(&spline->points[i - 1]) : end_sel;
-        cur_sel = !!MASKPOINT_ISSEL_KNOT(&spline->points[i]);
+        prev_sel = (i > 0) ? BKE_mask_point_selected_knot(&spline->points[i - 1]) : end_sel;
+        cur_sel = BKE_mask_point_selected_knot(&spline->points[i]);
 
         if (cur_sel != more) {
           if (prev_sel == more) {
@@ -935,9 +935,10 @@ static wmOperatorStatus mask_select_more_less(bContext *C, bool more)
           continue;
         }
 
-        prev_sel = (i < spline->tot_point - 1) ? !!MASKPOINT_ISSEL_KNOT(&spline->points[i + 1]) :
-                                                 start_sel;
-        cur_sel = !!MASKPOINT_ISSEL_KNOT(&spline->points[i]);
+        prev_sel = (i < spline->tot_point - 1) ?
+                       BKE_mask_point_selected_knot(&spline->points[i + 1]) :
+                       start_sel;
+        cur_sel = BKE_mask_point_selected_knot(&spline->points[i]);
 
         if (cur_sel != more) {
           if (prev_sel == more) {
