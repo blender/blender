@@ -75,6 +75,9 @@ enum TokenType : char {
   Minus = '-',
   Divide = '/',
   Tilde = '~',
+  Caret = '^',
+  Pipe = '|',
+  Percent = '%',
   Backslash = '\\',
   /* Keywords */
   Break = 'b',
@@ -438,6 +441,12 @@ struct ParserData {
         return TokenType::Hash;
       case '&':
         return TokenType::Ampersand;
+      case '^':
+        return TokenType::Caret;
+      case '|':
+        return TokenType::Pipe;
+      case '%':
+        return TokenType::Percent;
       case '.':
         return TokenType::Dot;
       case '(':
