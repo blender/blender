@@ -105,6 +105,7 @@
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 
 #include "MEM_guardedalloc.h" /* MEM_freeN */
 
@@ -161,6 +162,7 @@
 #define ZSTD_COMPRESSION_LEVEL 3
 
 static CLG_LogRef LOG = {"blend.writefile"};
+static CLG_LogRef LOG_UNDO = {"undo"};
 
 /** Use if we want to store how many bytes have been written to the file. */
 // #define USE_WRITE_DATA_LEN
@@ -506,6 +508,11 @@ struct WriteData {
    * Will be nullptr for UNDO.
    */
   WriteWrap *ww;
+
+  /**
+   * Timestamp info defined when creating the new WriteData. Used for performance logging.
+   */
+  double timestamp_init;
 };
 
 struct BlendWriter {
@@ -515,6 +522,8 @@ struct BlendWriter {
 static WriteData *writedata_new(WriteWrap *ww)
 {
   WriteData *wd = MEM_new<WriteData>(__func__);
+
+  wd->timestamp_init = BLI_time_now_seconds();
 
   wd->sdna = DNA_sdna_current_get();
   wd->stable_address_ids.sdna_pointers = std::make_unique<blender::dna::pointers::PointersInDNA>(
@@ -677,6 +686,13 @@ static bool mywrite_end(WriteData *wd)
 
   if (wd->use_memfile) {
     BLO_memfile_write_finalize(&wd->mem);
+    CLOG_INFO(&LOG_UNDO,
+              "Memfile undo step written in %.3f seconds",
+              BLI_time_now_seconds() - wd->timestamp_init);
+  }
+  else {
+    CLOG_INFO(
+        &LOG, "lendfile written in %.3f seconds", BLI_time_now_seconds() - wd->timestamp_init);
   }
 
   const bool err = wd->validation_data.critical_error;
