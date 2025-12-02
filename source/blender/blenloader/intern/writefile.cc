@@ -692,7 +692,7 @@ static bool mywrite_end(WriteData *wd)
   }
   else {
     CLOG_INFO(
-        &LOG, "lendfile written in %.3f seconds", BLI_time_now_seconds() - wd->timestamp_init);
+        &LOG, "Blendfile written in %.3f seconds", BLI_time_now_seconds() - wd->timestamp_init);
   }
 
   const bool err = wd->validation_data.critical_error;
