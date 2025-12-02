@@ -606,6 +606,74 @@ void func()
 }
 GPU_TEST(preprocess_default_arguments);
 
+static void test_preprocess_srt_template_wrapper()
+{
+  using namespace shader;
+  using namespace std;
+
+  {
+    string input = R"(
+struct SRT {
+  [[resource_table]] srt_t<T> a;
+};
+)";
+    string expect = R"(
+struct SRT {
+                           T  a;
+
+static SRT new_()
+{
+  SRT result;
+  result.a = T_new_();
+  return result;
+#line 3
+}
+};
+#define access_SRT_a() T_new_()
+#line 5
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+struct SRT {
+  [[resource_table]] T a;
+};
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(error,
+              "Members declared with the [[resource_table]] attribute must wrap their type "
+              "with the srt_t<T> template.");
+  }
+  {
+    string input = R"(
+struct SRT {
+  srt_t<T> a;
+};
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(error,
+              "The srt_t<T> template is only to be used with members declared with the "
+              "[[resource_table]] attribute.");
+  }
+  {
+    string input = R"(
+struct SRT {
+  [[resource_table]] srt_t<T> a[4];
+};
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(error, "[[resource_table]] members cannot be arrays.");
+  }
+}
+GPU_TEST(preprocess_srt_template_wrapper);
+
 static void test_preprocess_static_branch()
 {
   using namespace shader;

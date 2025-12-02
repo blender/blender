@@ -496,6 +496,7 @@ class Preprocessor {
         enum_macro_injection(parser, language == CPP, report_error);
 
         if (language == BLENDER_GLSL) {
+          srt_template_linter_and_mutation(parser, report_error);
           srt_member_access_mutation(parser, report_error);
           using_mutation(parser, report_error);
 
@@ -3194,6 +3195,57 @@ class Preprocessor {
           "w&w", [&](const vector<Token> toks) { add_mutation(toks[0], toks[2], toks[2]); });
       scope.foreach_match(
           "w&T", [&](const vector<Token> toks) { add_mutation(toks[0], toks[2], toks[2]); });
+    });
+    parser.apply_mutations();
+  }
+
+  /**
+   * For safety reason, nested resource tables need to be declared with the srt_t template.
+   * This avoid chained member access which isn't well defined with the preprocessing we are doing.
+   *
+   * This linting phase make sure that [[resource_table]] members uses it and that no incorrect
+   * usage is made. We also remove this template because it has no real meaning.
+   *
+   * Need to run before resource_table_parsing.
+   */
+  void srt_template_linter_and_mutation(Parser &parser, report_callback report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    parser.foreach_struct([&](Token, Token, Scope body) {
+      body.foreach_declaration([&](Scope attributes,
+                                   Token,
+                                   Token type,
+                                   Scope template_scope,
+                                   Token name,
+                                   Scope array,
+                                   Token) {
+        if (attributes[1].str() != "resource_table") {
+          if (type.str() == "srt_t") {
+            report_error(ERROR_TOK(name),
+                         "The srt_t<T> template is only to be used with members declared with the "
+                         "[[resource_table]] attribute.");
+          }
+          return;
+        }
+
+        if (type.str() != "srt_t") {
+          report_error(
+              ERROR_TOK(type),
+              "Members declared with the [[resource_table]] attribute must wrap their type "
+              "with the srt_t<T> template.");
+        }
+
+        if (array.is_valid()) {
+          report_error(ERROR_TOK(name), "[[resource_table]] members cannot be arrays.");
+        }
+
+        /* Remove the template but not the wrapped type. */
+        parser.erase(type);
+        parser.erase(template_scope.start());
+        parser.erase(template_scope.end());
+      });
     });
     parser.apply_mutations();
   }
