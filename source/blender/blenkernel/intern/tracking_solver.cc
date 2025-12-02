@@ -28,7 +28,7 @@
 #include "RNA_prototypes.hh"
 
 #include "libmv-capi.h"
-#include "tracking_private.h"
+#include "tracking_private.hh"
 
 struct MovieReconstructContext {
   libmv_Tracks *tracks;

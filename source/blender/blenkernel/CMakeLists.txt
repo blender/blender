@@ -545,7 +545,6 @@ set(SRC
 
   nla_private.h
   particle_private.h
-  tracking_private.h
 
   intern/attribute_access_intern.hh
   intern/attribute_storage_access.hh
@@ -560,6 +559,7 @@ set(SRC
   intern/pbvh_uv_islands.hh
   intern/subdiv_converter.hh
   intern/subdiv_inline.hh
+  intern/tracking_private.hh
 )
 
 set(LIB

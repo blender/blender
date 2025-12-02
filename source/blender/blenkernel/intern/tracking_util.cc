@@ -31,7 +31,7 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "tracking_private.h"
+#include "tracking_private.hh"
 
 #include "libmv-capi.h"
 

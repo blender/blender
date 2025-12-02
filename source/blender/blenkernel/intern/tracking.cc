@@ -54,7 +54,7 @@
 #include "RNA_prototypes.hh"
 
 #include "libmv-capi.h"
-#include "tracking_private.h"
+#include "tracking_private.hh"
 
 using blender::Array;
 using blender::int2;

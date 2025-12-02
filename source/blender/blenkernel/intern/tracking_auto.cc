@@ -26,7 +26,7 @@
 #include "IMB_imbuf_types.hh"
 
 #include "libmv-capi.h"
-#include "tracking_private.h"
+#include "tracking_private.hh"
 
 struct AutoTrackClip {
   MovieClip *clip;

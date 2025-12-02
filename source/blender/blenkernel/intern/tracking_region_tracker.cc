@@ -21,7 +21,7 @@
 #include "IMB_imbuf_types.hh"
 
 #include "libmv-capi.h"
-#include "tracking_private.h"
+#include "tracking_private.hh"
 
 /* **** utility functions for tracking **** */
 
