@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
 "PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8497,10 +8497,6 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
-msgid "Align View"
-msgstr "Поравнај поглед"
-
-
 msgid "Apply"
 msgstr "Примени"
 
@@ -8513,20 +8509,12 @@ msgid "Quick Effects"
 msgstr "Брзи ефекти"
 
 
-msgid "Navigation"
-msgstr "Навигација"
-
-
 msgid "Show/Hide"
 msgstr "Прикажи/сакриј"
 
 
 msgid "Hooks"
 msgstr "Удице"
-
-
-msgid "Local View"
-msgstr "Локални поглед"
 
 
 msgid "Clear Transform"
@@ -8577,12 +8565,16 @@ msgid "Math"
 msgstr "Математика"
 
 
-msgid "UV Mapping"
-msgstr "UV Мапирање"
-
-
 msgid "Special Characters"
 msgstr "Специјални знаци"
+
+
+msgid "Metaball"
+msgstr "Мета лопта"
+
+
+msgid "Bone Roll"
+msgstr "Ролна костију"
 
 
 msgid "Snap"
@@ -8593,12 +8585,20 @@ msgid "Mirror"
 msgstr "Огледало"
 
 
-msgid "Metaball"
-msgstr "Мета лопта"
+msgid "UV Mapping"
+msgstr "UV Мапирање"
 
 
-msgid "Bone Roll"
-msgstr "Ролна костију"
+msgid "Local View"
+msgstr "Локални поглед"
+
+
+msgid "Navigation"
+msgstr "Навигација"
+
+
+msgid "Align View"
+msgstr "Поравнај поглед"
 
 
 msgid "Select Linked"
@@ -11117,12 +11117,12 @@ msgid "Data type"
 msgstr "Врста податка"
 
 
-msgid "Default Value"
-msgstr "Почетна вредност"
-
-
 msgid "Shader Node Socket"
 msgstr "Утичница чвора сенчења"
+
+
+msgid "Default Value"
+msgstr "Почетна вредност"
 
 
 msgid "Maximum value"
@@ -21554,6 +21554,10 @@ msgid "Meta Strip"
 msgstr "Мета трака"
 
 
+msgid "Playback volume of the sound"
+msgstr "Јачина звука при репродукцији"
+
+
 msgid "Stabilize 2D Clip"
 msgstr "Стабилизуј 2Д клип"
 
@@ -21564,10 +21568,6 @@ msgstr "Клип без изобличавања"
 
 msgid "Scene Strip"
 msgstr "Трака сцене"
-
-
-msgid "Playback volume of the sound"
-msgstr "Јачина звука при репродукцији"
 
 
 msgid "Inverse Gamma"
@@ -23276,11 +23276,6 @@ msgstr "Упутство на интернету"
 msgctxt "Operator"
 msgid "Make"
 msgstr "Направи"
-
-
-msgctxt "Operator"
-msgid "Movie"
-msgstr "Филм"
 
 
 msgctxt "Operator"

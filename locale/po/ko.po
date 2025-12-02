@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
 "PO-Revision-Date: 2025-07-23 15:30+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -23632,10 +23632,6 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
-msgid "Align View"
-msgstr "뷰를 정렬"
-
-
 msgid "Apply"
 msgstr "적용"
 
@@ -23646,10 +23642,6 @@ msgstr "트랙"
 
 msgid "Quick Effects"
 msgstr "빠른 이펙트"
-
-
-msgid "Navigation"
-msgstr "네비게이션"
 
 
 msgid "Show/Hide"
@@ -23670,14 +23662,6 @@ msgstr "싱글 유저를 만들기"
 
 msgid "Hooks"
 msgstr "후크"
-
-
-msgid "Viewpoint"
-msgstr "뷰포트"
-
-
-msgid "Local View"
-msgstr "로컬 뷰"
 
 
 msgid "Sculpt Set Pivot"
@@ -23748,24 +23732,12 @@ msgid "Math"
 msgstr "수학"
 
 
-msgid "UV Mapping"
-msgstr "UV 맵핑"
-
-
 msgid "Special Characters"
 msgstr "특수 문자"
 
 
 msgid "Kerning"
 msgstr "자간"
-
-
-msgid "Snap"
-msgstr "스냅"
-
-
-msgid "Mirror"
-msgstr "미러"
 
 
 msgid "Text"
@@ -23784,6 +23756,10 @@ msgid "Pivot Point"
 msgstr "피벗 포인트"
 
 
+msgid "Snap"
+msgstr "스냅"
+
+
 msgid "Proportional Editing Falloff"
 msgstr "비례 편집 감소"
 
@@ -23798,6 +23774,38 @@ msgstr "샘플"
 
 msgid "Primitives"
 msgstr "프리미티브"
+
+
+msgid "Mirror"
+msgstr "미러"
+
+
+msgid "UV Mapping"
+msgstr "UV 맵핑"
+
+
+msgid "Local View"
+msgstr "로컬 뷰"
+
+
+msgid "Viewpoint"
+msgstr "뷰포트"
+
+
+msgid "Navigation"
+msgstr "네비게이션"
+
+
+msgid "Align View"
+msgstr "뷰를 정렬"
+
+
+msgid "Align View to Active"
+msgstr "뷰를 활성에 정렬"
+
+
+msgid "View Regions"
+msgstr "뷰 지역"
 
 
 msgid "Select More/Less"
@@ -23840,10 +23848,6 @@ msgid "Light Probe"
 msgstr "라이트 프로브"
 
 
-msgid "View Regions"
-msgstr "뷰 지역"
-
-
 msgid "Add Image"
 msgstr "이미지를 추가"
 
@@ -23854,10 +23858,6 @@ msgstr "관계"
 
 msgid "Rigid Body"
 msgstr "리지드 바디"
-
-
-msgid "Align View to Active"
-msgstr "뷰를 활성에 정렬"
 
 
 msgid "Basic"
@@ -31747,10 +31747,6 @@ msgid "Boolean value socket of a node"
 msgstr "노드의 불리언 값 소켓"
 
 
-msgid "Default Value"
-msgstr "기본 값"
-
-
 msgid "Color Node Socket"
 msgstr "컬러 노드 소켓"
 
@@ -31801,6 +31797,10 @@ msgstr "가상 노드 소켓"
 
 msgid "Virtual socket of a node"
 msgstr "노드의 가상 소켓"
+
+
+msgid "Default Value"
+msgstr "기본 값"
 
 
 msgid "Boolean Node Socket Interface"
@@ -37204,10 +37204,6 @@ msgid "Other"
 msgstr "기타"
 
 
-msgid "Other geometry types, like curve, metaball, etc. (converted to meshes)"
-msgstr "다른 지오메터리 유형, 커브, 메타볼 등과 같이 (메쉬로 변환됨)"
-
-
 msgid "Method used to reference paths"
 msgstr "참조 경로에 사용된 메소드"
 
@@ -39533,20 +39529,12 @@ msgid "Update Scene FPS"
 msgstr "씬 FPS를 업데이트"
 
 
-msgid "Set the scene framerate to that of the BVH file (note that this nullifies the 'Scale FPS' option, as the scale will be 1:1)"
-msgstr "씬 프레임 속도를 BVH 파일의 프레임 속도로 설정 (참고: 축적이 1:1이되므로 'FPS 축적' 옵션이 무효화됩니다)"
-
-
 msgid "Loop the animation playback"
 msgstr "애니메이션 재생 루프"
 
 
 msgid "Scale FPS"
 msgstr "FPS 축적"
-
-
-msgid "Scale the framerate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
-msgstr "BVH에서 현재 씬으로 프레임 속도를 조절, 그렇지 않으면 각 BVH 프레임이 직접 Blender 프레임에 매핑됩니다"
 
 
 msgid "Animation Offset"
@@ -42476,10 +42464,6 @@ msgstr "본 변환을 베이크"
 
 msgid "Bake object transformations"
 msgstr "오브젝트 변환을 베이크"
-
-
-msgid "Clear Constraints"
-msgstr "제약을 지우기"
 
 
 msgid "Clear Parents"
@@ -62981,6 +62965,10 @@ msgid "Sequence strip to group other strips as a single sequence strip"
 msgstr "싱글 시퀀스 스트립으로 다른 스트립을 그룹하는 시퀀스 스트립"
 
 
+msgid "Playback volume of the sound"
+msgstr "소리의 재생 볼륨"
+
+
 msgid "Sequence strip to load a video from the clip editor"
 msgstr "클립 에디터에서 비디오를 가져오는 시퀀스 스트립"
 
@@ -63039,10 +63027,6 @@ msgstr "씬의 3D 카메라를 입력으로 사용"
 
 msgid "Use the Scene's Sequencer timeline as input"
 msgstr "씬의 시퀀서 타임 라인을 입력으로 사용"
-
-
-msgid "Playback volume of the sound"
-msgstr "소리의 재생 볼륨"
 
 
 msgid "Sequence strip defining a sound to be played over a period of time"
@@ -69501,16 +69485,6 @@ msgstr "다음 스트립(중심)으로 이동"
 
 
 msgctxt "Operator"
-msgid "Movie"
-msgstr "무비"
-
-
-msgctxt "Operator"
-msgid "Image/Sequence"
-msgstr "이미지/시퀀스"
-
-
-msgctxt "Operator"
 msgid "Fade"
 msgstr "페이드"
 
@@ -71358,10 +71332,6 @@ msgstr "RNA 경로가 지정된 ID에 유효하지 않으므로 키 프레임을
 
 msgid "No action to delete keyframes from for ID = %s"
 msgstr "ID = %s에서 키 프레임을 삭제하는 작업이 없습니다"
-
-
-msgid "Not deleting keyframe for locked F-Curve '%s' for %s '%s'"
-msgstr "잠긴 F-커브 '%s'에 대한 키 프레임을 삭제하지 않음, %s '%s'에 대해"
 
 
 msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"

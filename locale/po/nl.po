@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
 "PO-Revision-Date: 2025-07-23 14:52+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2686,10 +2686,6 @@ msgid "Quick Effects"
 msgstr "Snelle Effecten"
 
 
-msgid "Navigation"
-msgstr "Navigatie"
-
-
 msgid "Show/Hide"
 msgstr "Toon/Verberg"
 
@@ -2700,10 +2696,6 @@ msgstr "Converteer"
 
 msgid "Hooks"
 msgstr "Haken"
-
-
-msgid "Local View"
-msgstr "Lokale Scherm"
 
 
 msgid "Clear Transform"
@@ -2718,12 +2710,20 @@ msgid "Layout"
 msgstr "Indeling"
 
 
+msgid "Text"
+msgstr "Tekst"
+
+
 msgid "Mirror"
 msgstr "Spiegel"
 
 
-msgid "Text"
-msgstr "Tekst"
+msgid "Local View"
+msgstr "Lokale Scherm"
+
+
+msgid "Navigation"
+msgstr "Navigatie"
 
 
 msgid "Select Similar"
@@ -7672,11 +7672,6 @@ msgstr "Synchroniseer Selectie"
 msgctxt "Operator"
 msgid "Refresh All"
 msgstr "Ververs Alles"
-
-
-msgctxt "Operator"
-msgid "Movie"
-msgstr "Film"
 
 
 msgctxt "Operator"

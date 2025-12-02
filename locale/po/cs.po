@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
-"PO-Revision-Date: 2025-11-07 07:59+0000\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
 "Language: cs\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Weblate 5.12.1"
+"X-Generator: Weblate 5.14.3"
 
 
 msgid "Shader AOV"
@@ -13834,10 +13834,6 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Align View"
-msgstr "Zarovnat pohled"
-
-
 msgid "Apply"
 msgstr "Použít"
 
@@ -13848,10 +13844,6 @@ msgstr "Sledování"
 
 msgid "Quick Effects"
 msgstr "Rychlé Efekty"
-
-
-msgid "Navigation"
-msgstr "Navigace"
 
 
 msgid "Show/Hide"
@@ -13868,10 +13860,6 @@ msgstr "Přivlastnit"
 
 msgid "Hooks"
 msgstr "Háky"
-
-
-msgid "Local View"
-msgstr "Lokální pohled"
 
 
 msgid "Clear Transform"
@@ -13918,20 +13906,8 @@ msgid "Math"
 msgstr "Matematika"
 
 
-msgid "UV Mapping"
-msgstr "UV mapování"
-
-
 msgid "Special Characters"
 msgstr "Speciální Znaky"
-
-
-msgid "Snap"
-msgstr "Přichytit"
-
-
-msgid "Mirror"
-msgstr "Zrcadlit"
 
 
 msgid "Text"
@@ -13950,8 +13926,32 @@ msgid "Pivot Point"
 msgstr "Bod pro pivot"
 
 
+msgid "Snap"
+msgstr "Přichytit"
+
+
 msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
+
+
+msgid "Mirror"
+msgstr "Zrcadlit"
+
+
+msgid "UV Mapping"
+msgstr "UV mapování"
+
+
+msgid "Local View"
+msgstr "Lokální pohled"
+
+
+msgid "Navigation"
+msgstr "Navigace"
+
+
+msgid "Align View"
+msgstr "Zarovnat pohled"
 
 
 msgid "Instances"
@@ -17744,12 +17744,12 @@ msgid "Boolean Node Socket"
 msgstr "Kopírovat atributy"
 
 
-msgid "Default Value"
-msgstr "Výchozí hodnota"
-
-
 msgid "Geometry socket of a node"
 msgstr "Soket geometrického uzlu"
+
+
+msgid "Default Value"
+msgstr "Výchozí hodnota"
 
 
 msgid "Collection of Nodes"
@@ -24088,10 +24088,6 @@ msgstr "Bake transformace kostí"
 
 msgid "Bake object transformations"
 msgstr "Bake transformace objektu"
-
-
-msgid "Clear Constraints"
-msgstr "Zrušit vazby"
 
 
 msgid "Bake animation onto the object then clear parents (objects only)"
@@ -36445,6 +36441,14 @@ msgid "Snap to all geometry"
 msgstr "Přichytit ke každé geometrii"
 
 
+msgid "Snap to frame increments"
+msgstr "Přichytávání časové hlavy k jednotlivým framům"
+
+
+msgid "Snap to second increments"
+msgstr "Přichytávání časové hlavy k jednotlivým sekundám"
+
+
 msgid "Snap Target"
 msgstr "Přichytit k cíli"
 
@@ -38916,16 +38920,6 @@ msgstr "Obnovit Vše"
 msgctxt "Operator"
 msgid "Path/Files"
 msgstr "Cesta/soubory"
-
-
-msgctxt "Operator"
-msgid "Movie"
-msgstr "Film"
-
-
-msgctxt "Operator"
-msgid "Image/Sequence"
-msgstr "Obrázek/sekvence"
 
 
 msgid "No Items Available"

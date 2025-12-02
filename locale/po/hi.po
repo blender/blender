@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
 "PO-Revision-Date: 2025-07-23 15:34+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -2620,20 +2620,20 @@ msgid "Math"
 msgstr "गणित"
 
 
-msgid "Snap"
-msgstr "स्नैप"
-
-
-msgid "Mirror"
-msgstr "दर्पण"
-
-
 msgid "Text"
 msgstr "पाठ"
 
 
 msgid "Bone Roll"
 msgstr "हड्डी पंजी"
+
+
+msgid "Snap"
+msgstr "स्नैप"
+
+
+msgid "Mirror"
+msgstr "दर्पण"
 
 
 msgid "Import"
@@ -3838,10 +3838,6 @@ msgstr "प्रशंसक"
 
 msgid "Remove original faces"
 msgstr "मूल चेहरों को हटाएँ"
-
-
-msgid "Clear Constraints"
-msgstr "प्रतिबंधी को साफ़ करें"
 
 
 msgid "Add a reroute node"
@@ -5429,11 +5425,6 @@ msgstr "उचित"
 msgctxt "Operator"
 msgid "Make"
 msgstr "निर्माण"
-
-
-msgctxt "Operator"
-msgid "Movie"
-msgstr "चलचित्र"
 
 
 msgctxt "Operator"

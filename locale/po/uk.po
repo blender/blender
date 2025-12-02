@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
 "PO-Revision-Date: 2025-07-23 15:08+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -26354,10 +26354,6 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Align View"
-msgstr "Вирівняти Огляд"
-
-
 msgid "Apply"
 msgstr "Застосувати"
 
@@ -26368,10 +26364,6 @@ msgstr "Стеження"
 
 msgid "Quick Effects"
 msgstr "Швидкі ефекти"
-
-
-msgid "Navigation"
-msgstr "Навігація"
 
 
 msgid "Show/Hide"
@@ -26404,14 +26396,6 @@ msgstr "Гачки"
 
 msgid "Vertex Group Locks"
 msgstr "Блокування Груп Вершин"
-
-
-msgid "Viewpoint"
-msgstr "Точка зору"
-
-
-msgid "Local View"
-msgstr "Огляд Локально"
 
 
 msgid "Sculpt Set Pivot"
@@ -26490,24 +26474,12 @@ msgid "Math"
 msgstr "Математика"
 
 
-msgid "UV Mapping"
-msgstr "Розкладання UV"
-
-
 msgid "Special Characters"
 msgstr "Спеціальні символи"
 
 
 msgid "Kerning"
 msgstr "Кернінг"
-
-
-msgid "Snap"
-msgstr "Підхоп"
-
-
-msgid "Mirror"
-msgstr "Дзеркалення"
 
 
 msgid "Text"
@@ -26524,6 +26496,10 @@ msgstr "Прокручення Кістки"
 
 msgid "Pivot Point"
 msgstr "Точка Опертя"
+
+
+msgid "Snap"
+msgstr "Підхоп"
 
 
 msgid "Proportional Editing Falloff"
@@ -26548,6 +26524,38 @@ msgstr "Вибірка"
 
 msgid "Primitives"
 msgstr "Примітиви"
+
+
+msgid "Mirror"
+msgstr "Дзеркалення"
+
+
+msgid "UV Mapping"
+msgstr "Розкладання UV"
+
+
+msgid "Local View"
+msgstr "Огляд Локально"
+
+
+msgid "Viewpoint"
+msgstr "Точка зору"
+
+
+msgid "Navigation"
+msgstr "Навігація"
+
+
+msgid "Align View"
+msgstr "Вирівняти Огляд"
+
+
+msgid "Align View to Active"
+msgstr "Вирівняти Огляд за Активним"
+
+
+msgid "View Regions"
+msgstr "Регіони Огляду"
 
 
 msgid "Select More/Less"
@@ -26590,10 +26598,6 @@ msgid "Light Probe"
 msgstr "Проба Освітлення"
 
 
-msgid "View Regions"
-msgstr "Регіони Огляду"
-
-
 msgid "Add Image"
 msgstr "Додати Зображення"
 
@@ -26604,10 +26608,6 @@ msgstr "Зв'язки"
 
 msgid "Rigid Body"
 msgstr "Тверде тіло"
-
-
-msgid "Align View to Active"
-msgstr "Вирівняти Огляд за Активним"
 
 
 msgid "Basic"
@@ -35969,10 +35969,6 @@ msgid "Boolean value socket of a node"
 msgstr "Вузловий роз'єм логічного типу"
 
 
-msgid "Default Value"
-msgstr "Стандартне значення"
-
-
 msgid "Collection Node Socket"
 msgstr "Роз'єм Колекції для Вузла"
 
@@ -36059,6 +36055,10 @@ msgstr "Віртуальний роз'єм"
 
 msgid "Virtual socket of a node"
 msgstr "Віртуальний вузловий роз'єм"
+
+
+msgid "Default Value"
+msgstr "Стандартне значення"
 
 
 msgid "Hide the socket input value even when the socket is not connected"
@@ -42048,10 +42048,6 @@ msgid "Other"
 msgstr "Інше"
 
 
-msgid "Other geometry types, like curve, metaball, etc. (converted to meshes)"
-msgstr "Інші види геометрії, такі як криві, метакулі тощо. (конвертовані у сіті)"
-
-
 msgid "Method used to reference paths"
 msgstr "Метод посилання на шляхи"
 
@@ -44896,20 +44892,12 @@ msgid "Update Scene FPS"
 msgstr "Оновити Частоту кадрів за секунду для Сцени"
 
 
-msgid "Set the scene framerate to that of the BVH file (note that this nullifies the 'Scale FPS' option, as the scale will be 1:1)"
-msgstr "Установити частоту кадрів сцени відповідно до частоти у файлі BVH (зауважте, що це нівелює значення опції 'Масштаб FPS', ніби масштаб є 1:1)"
-
-
 msgid "Loop the animation playback"
 msgstr "Зациклити показ анімації"
 
 
 msgid "Scale FPS"
 msgstr "Масштабувати ЧК"
-
-
-msgid "Scale the framerate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
-msgstr "Масштабувати частоту кадрів з BVH за поточною сценою, інакше кадри BVH відповідатимуть кадрам Blender"
 
 
 msgid "Animation Offset"
@@ -48176,10 +48164,6 @@ msgstr "Очистити Криві"
 
 msgid "After baking curves, remove redundant keys"
 msgstr "Після запікання кривих вилучити зайві ключі"
-
-
-msgid "Clear Constraints"
-msgstr "Зчистити примуси"
 
 
 msgid "Clear Parents"
@@ -71627,6 +71611,10 @@ msgid "Sequence strip to group other strips as a single sequence strip"
 msgstr "Смужка послідовності для групування інших смужок в одну смужку послідовності"
 
 
+msgid "Playback volume of the sound"
+msgstr "Гучність відтворення звуку"
+
+
 msgid "Sequence strip to load a video from the clip editor"
 msgstr "Смужка відеоряду для завантаження відео з редактора кліпів"
 
@@ -71685,10 +71673,6 @@ msgstr "Вжити 3D камери Сцени як увід"
 
 msgid "Use the Scene's Sequencer timeline as input"
 msgstr "Вжити часолінію Секвенсера сцени як увід"
-
-
-msgid "Playback volume of the sound"
-msgstr "Гучність відтворення звуку"
 
 
 msgid "Sequence strip defining a sound to be played over a period of time"
@@ -79723,16 +79707,6 @@ msgstr "Стрибок на Наступну Смужку (Центр)"
 
 
 msgctxt "Operator"
-msgid "Movie"
-msgstr "Фільм"
-
-
-msgctxt "Operator"
-msgid "Image/Sequence"
-msgstr "Зображення/Послідовність"
-
-
-msgctxt "Operator"
 msgid "Fade"
 msgstr "Зникання"
 
@@ -82134,10 +82108,6 @@ msgid "No action to delete keyframes from for ID = %s"
 msgstr "Немає дії, з якої слід видалити ключові кадри для ID = %s"
 
 
-msgid "Not deleting keyframe for locked F-Curve '%s' for %s '%s'"
-msgstr "Ключовий кадр, який не вилучається, для заблокованої Ф-кривої '%s' для %s '%s'"
-
-
 msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
 msgstr "Неможливо зчистити ключовий кадр з властивості, неправильний RNA-шлях для даного ID (ID = %s, шлях = %s)"
 
@@ -84063,10 +84033,6 @@ msgstr "Хибна/незадана вісь"
 
 msgid "You have to select a string of connected vertices too"
 msgstr "Слід ще вибрати рядок з'єднаних вершин"
-
-
-msgid "Compiled without GMP, using fast solver"
-msgstr "Скомпільовано без GMP, використовується швидкий рішач"
 
 
 msgid "No intersections found"

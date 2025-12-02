@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6573,10 +6573,6 @@ msgid "Mask"
 msgstr "Maszk"
 
 
-msgid "Align View"
-msgstr "Nézet igazítása"
-
-
 msgid "Apply"
 msgstr "Elfogadás"
 
@@ -6585,20 +6581,12 @@ msgid "Track"
 msgstr "Nyom"
 
 
-msgid "Navigation"
-msgstr "Navigáció"
-
-
 msgid "Show/Hide"
 msgstr "Mutat/Rejt"
 
 
 msgid "Clean Up"
 msgstr "Tisztítás"
-
-
-msgid "Local View"
-msgstr "Helyi nézet"
 
 
 msgid "Merge"
@@ -6613,16 +6601,28 @@ msgid "Tracking"
 msgstr "Követés"
 
 
-msgid "Mirror"
-msgstr "Tükrözés"
-
-
 msgid "Text"
 msgstr "Szöveg"
 
 
 msgid "Metaball"
 msgstr "Meta test"
+
+
+msgid "Mirror"
+msgstr "Tükrözés"
+
+
+msgid "Local View"
+msgstr "Helyi nézet"
+
+
+msgid "Navigation"
+msgstr "Navigáció"
+
+
+msgid "Align View"
+msgstr "Nézet igazítása"
 
 
 msgid "Import"
@@ -10602,10 +10602,6 @@ msgstr "Az animáció visszajátszásának ciklikussá tétele"
 
 msgid "Scale FPS"
 msgstr "FPS skálázása"
-
-
-msgid "Scale the framerate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
-msgstr "A BVH képkockasebességnek a skálázása az aktuális jelenethez, másként minden BVH képkocka közvetlenül egy Blender képkockákra képeződik le"
 
 
 msgid "Image Search"
@@ -15628,11 +15624,6 @@ msgstr "Gyermek objektumok"
 msgctxt "Operator"
 msgid "Make"
 msgstr "Létrehozás"
-
-
-msgctxt "Operator"
-msgid "Movie"
-msgstr "Videó"
 
 
 msgctxt "Operator"

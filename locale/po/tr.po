@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -28949,10 +28949,6 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Align View"
-msgstr "Görünümü hizala"
-
-
 msgid "Apply"
 msgstr "Uygula"
 
@@ -28963,10 +28959,6 @@ msgstr "İzlemek"
 
 msgid "Quick Effects"
 msgstr "Hızlı Etkiler"
-
-
-msgid "Navigation"
-msgstr "Navigasyon"
 
 
 msgid "Show/Hide"
@@ -28999,14 +28991,6 @@ msgstr "Kancalar"
 
 msgid "Vertex Group Locks"
 msgstr "Vertex Grup Kilitleri"
-
-
-msgid "Viewpoint"
-msgstr "Bakış açısı"
-
-
-msgid "Local View"
-msgstr "Yerel Görünüm"
 
 
 msgid "Trim/Add"
@@ -29101,24 +29085,12 @@ msgid "Math"
 msgstr "Matematik"
 
 
-msgid "UV Mapping"
-msgstr "UV Haritalama"
-
-
 msgid "Special Characters"
 msgstr "Özel Karakterler"
 
 
 msgid "Kerning"
 msgstr "Harf aralığı"
-
-
-msgid "Snap"
-msgstr "Yakala"
-
-
-msgid "Mirror"
-msgstr "Yansıtma"
 
 
 msgid "Text"
@@ -29135,6 +29107,10 @@ msgstr "Kemik Rulosu"
 
 msgid "Pivot Point"
 msgstr "Pivot Noktası"
+
+
+msgid "Snap"
+msgstr "Yakala"
 
 
 msgid "Proportional Editing Falloff"
@@ -29167,6 +29143,38 @@ msgstr "Yazmak"
 
 msgid "Primitives"
 msgstr "İlkel"
+
+
+msgid "Mirror"
+msgstr "Yansıtma"
+
+
+msgid "UV Mapping"
+msgstr "UV Haritalama"
+
+
+msgid "Local View"
+msgstr "Yerel Görünüm"
+
+
+msgid "Viewpoint"
+msgstr "Bakış açısı"
+
+
+msgid "Navigation"
+msgstr "Navigasyon"
+
+
+msgid "Align View"
+msgstr "Görünümü hizala"
+
+
+msgid "Align View to Active"
+msgstr "Görünümü Etkin Olarak Hizala"
+
+
+msgid "View Regions"
+msgstr "Bölgeleri Görüntüle"
 
 
 msgid "Select More/Less"
@@ -29217,10 +29225,6 @@ msgid "Light Probe"
 msgstr "Işık Sondası"
 
 
-msgid "View Regions"
-msgstr "Bölgeleri Görüntüle"
-
-
 msgid "Add Image"
 msgstr "Resim Ekle"
 
@@ -29231,10 +29235,6 @@ msgstr "İlişkiler"
 
 msgid "Rigid Body"
 msgstr "Sert Gövde"
-
-
-msgid "Align View to Active"
-msgstr "Görünümü Etkin Olarak Hizala"
 
 
 msgid "Keyframe Insert Pie"
@@ -42878,10 +42878,6 @@ msgid "Boolean value socket of a node"
 msgstr "Bir düğümün Boolean değer soketi"
 
 
-msgid "Default Value"
-msgstr "Varsayılan Değer"
-
-
 msgid "Collection Node Socket"
 msgstr "Koleksiyon Düğüm Soketi"
 
@@ -43112,6 +43108,10 @@ msgstr "Varsayılan Nitelik"
 
 msgid "Default Input"
 msgstr "Varsayılan Giriş"
+
+
+msgid "Default Value"
+msgstr "Varsayılan Değer"
 
 
 msgid "The node socket's default value"
@@ -51106,10 +51106,6 @@ msgid "Other"
 msgstr "Diğer"
 
 
-msgid "Other geometry types, like curve, metaball, etc. (converted to meshes)"
-msgstr "Eğri, metaball vb. gibi diğer geometri türleri (ağlara dönüştürülür)"
-
-
 msgid "Method used to reference paths"
 msgstr "Yollara başvurmak için kullanılan yöntem"
 
@@ -55922,20 +55918,12 @@ msgid "Update Scene FPS"
 msgstr "Sahne FPS'sini güncelle"
 
 
-msgid "Set the scene framerate to that of the BVH file (note that this nullifies the 'Scale FPS' option, as the scale will be 1:1)"
-msgstr "Sahne kare hızını BVH dosyasının kare hızına ayarlayın (bunun 'FPS Ölçekle' seçeneğini geçersiz kıldığını unutmayın, çünkü ölçek 1:1 olacaktır)"
-
-
 msgid "Loop the animation playback"
 msgstr "Animasyon oynatmayı döngüye al"
 
 
 msgid "Scale FPS"
 msgstr "Ölçek FPS"
-
-
-msgid "Scale the framerate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
-msgstr "Kare hızını BVH'den geçerli sahnelere ölçeklendirin, aksi takdirde her BVH karesi doğrudan bir Blender karesine eşlenir"
 
 
 msgid "Animation Offset"
@@ -59518,10 +59506,6 @@ msgstr "Temiz Eğriler"
 
 msgid "After baking curves, remove redundant keys"
 msgstr "Eğrileri pişirdikten sonra gereksiz tuşları kaldırın"
-
-
-msgid "Clear Constraints"
-msgstr "Net Kısıtlamalar"
 
 
 msgid "Clear Parents"
@@ -79542,10 +79526,6 @@ msgid "Enable additional features for the new curves data block"
 msgstr "Yeni eğriler veri bloğu için ek özellikleri etkinleştirin"
 
 
-msgid "Recompute ID Usercount On Save"
-msgstr "Kaydetme Sırasında ID Usercount'u Yeniden Hesapla"
-
-
 msgid "Sculpt Texture Paint"
 msgstr "Heykel Doku Boyası"
 
@@ -90040,6 +90020,10 @@ msgid "Sequence strip to group other strips as a single sequence strip"
 msgstr "Diğer şeritleri tek bir dizi şeridi olarak gruplamak için dizi şeridi"
 
 
+msgid "Playback volume of the sound"
+msgstr "Sesin oynatım hacmi"
+
+
 msgid "Sequence strip to load a video from the clip editor"
 msgstr "Klip düzenleyiciden bir videoyu yüklemek için sıra şeridi"
 
@@ -90110,10 +90094,6 @@ msgstr "Açıklamaları Kullan"
 
 msgid "Show Annotations in OpenGL previews"
 msgstr "OpenGL önizlemelerinde Açıklamaları Göster"
-
-
-msgid "Playback volume of the sound"
-msgstr "Sesin oynatım hacmi"
 
 
 msgctxt "Sound"
@@ -104452,16 +104432,6 @@ msgstr "Sonraki Şeride Atla (Orta)"
 
 
 msgctxt "Operator"
-msgid "Movie"
-msgstr "Film"
-
-
-msgctxt "Operator"
-msgid "Image/Sequence"
-msgstr "Görüntü/Dizi"
-
-
-msgctxt "Operator"
 msgid "Fade"
 msgstr "Solmak"
 
@@ -107829,10 +107799,6 @@ msgid "No action to delete keyframes from for ID = %s"
 msgstr "ID = %s için anahtar kareleri silmek için hiçbir eylem yok"
 
 
-msgid "Not deleting keyframe for locked F-Curve '%s' for %s '%s'"
-msgstr "%s '%s' için kilitli F-Eğrisi '%s' için anahtar kare silinmiyor"
-
-
 msgid "Not clearing all keyframes from locked F-Curve '%s' for %s '%s'"
 msgstr "%s '%s' için kilitli F-Eğrisi '%s'den tüm anahtar kareler temizlenmiyor"
 
@@ -111143,10 +111109,6 @@ msgstr "Ayrıca, bağlı köşelerden oluşan bir diziyi de seçmelisiniz"
 
 msgid "Thickness: %s, Depth: %s"
 msgstr "Kalınlık: %s, Derinlik: %s"
-
-
-msgid "Compiled without GMP, using fast solver"
-msgstr "GMP olmadan, hızlı çözücü kullanılarak derlendi"
 
 
 msgid "No intersections found"
@@ -119402,10 +119364,6 @@ msgid "Values used to sort the curve's points. Uses indices by default"
 msgstr "Eğrinin noktalarını sıralamak için kullanılan değerler. Varsayılan olarak endeksleri kullanır"
 
 
-msgid "Which of the sorted points to output"
-msgstr "Sıralanan noktalardan hangisi çıktı olarak verilir"
-
-
 msgid "A point of the curve, chosen by the sort index"
 msgstr "Sıralama indeksi tarafından seçilen eğrinin bir noktası"
 
@@ -120134,10 +120092,6 @@ msgid "Values that sort the corners attached to the edge"
 msgstr "Kenara bağlı köşeleri sıralayan değerler"
 
 
-msgid "Which of the sorted corners to output"
-msgstr "Sıralanmış köşelerden hangisi çıktı olarak verilir"
-
-
 msgid "The number of faces or corners connected to each edge"
 msgstr "Her kenara bağlı yüz veya köşe sayısı"
 
@@ -120200,10 +120154,6 @@ msgstr "Köşe Sonraki Kenar"
 
 msgid "Corner Previous Edge"
 msgstr "Köşe Önceki Kenar"
-
-
-msgid "Which of the sorted edges to output"
-msgstr "Sıralanmış kenarlardan hangisi çıktı olarak verilir"
 
 
 msgid "An edge connected to the face, chosen by the sort index"

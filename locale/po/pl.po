@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11539,10 +11539,6 @@ msgid "Quick Effects"
 msgstr "Szybkie efekty"
 
 
-msgid "Navigation"
-msgstr "Nawigacja"
-
-
 msgid "Show/Hide"
 msgstr "Pokaż/Ukryj"
 
@@ -11557,14 +11553,6 @@ msgstr "Prefabrykat"
 
 msgid "Convert"
 msgstr "Konwertuj"
-
-
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
-
-
-msgid "Local View"
-msgstr "Widok lokalny"
 
 
 msgid "Bone Collections"
@@ -11595,20 +11583,16 @@ msgid "Math"
 msgstr "Matematyka"
 
 
-msgid "Snap"
-msgstr "Przyciągnij"
-
-
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
-
-
 msgid "Text"
 msgstr "Tekst"
 
 
 msgid "Metaball"
 msgstr "Metakula"
+
+
+msgid "Snap"
+msgstr "Przyciągnij"
 
 
 msgid "Proportional Editing Falloff"
@@ -11621,6 +11605,22 @@ msgstr "Odczyt"
 
 msgid "Write"
 msgstr "Zapis"
+
+
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
+
+
+msgid "Local View"
+msgstr "Widok lokalny"
+
+
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
+
+
+msgid "Navigation"
+msgstr "Nawigacja"
 
 
 msgid "Gizmo"
@@ -13078,16 +13078,16 @@ msgid "Bake Item"
 msgstr "Wypal przedmiot"
 
 
-msgid "Default Value"
-msgstr "Wartość domyślna"
-
-
 msgid "Geometry Node Socket"
 msgstr "Gniazdo węzła geometrii"
 
 
 msgid "Texture Node Socket"
 msgstr "Gniazdo węzła tekstury"
+
+
+msgid "Default Value"
+msgstr "Wartość domyślna"
 
 
 msgid "Hide in Modifier"
@@ -21572,11 +21572,6 @@ msgstr "Ścieżki/pliki"
 
 
 msgctxt "Operator"
-msgid "Movie"
-msgstr "Film"
-
-
-msgctxt "Operator"
 msgid "Delete Keyframes..."
 msgstr "Usuń klatki kluczowe..."
 
@@ -22842,10 +22837,6 @@ msgstr "Nie można było usunąć klatki kluczowej, ścieżka RNA jest nieprawid
 
 msgid "No action to delete keyframes from for ID = %s"
 msgstr "Brak akcji do usunięcia klatek kluczowych dla ID = %s"
-
-
-msgid "Not deleting keyframe for locked F-Curve '%s' for %s '%s'"
-msgstr "Nie można usunąć klatki kluczowej dla zablokowanej krzywej-F '%s' dla %s '%s'"
 
 
 msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
