@@ -2543,11 +2543,18 @@ static void uv_select_linked_multi(const Scene *scene,
             BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
               if (uvedit_uv_select_test(scene, bm, l, offsets)) {
                 bool add_to_stack = true;
-                if (uv_select_sync) {
-                  /* Special case, vertex/edge & sync select being enabled.
+                if (uv_select_sync && (ts->uv_sticky == UV_STICKY_VERT)) {
+                  /* Special case with the following options enabled:
+                   * - Vertex/edge & selection mode.
+                   * - Sticky vertex selection mode.
+                   * - Selection sync enabled.
                    *
-                   * Without this, a second linked select will 'grow' each time as each new
-                   * selection reaches the boundaries of islands that share vertices but not UVs.
+                   * With this combination of options selecting an island will (necessarily)
+                   * select the island *and* vertices on other islands.
+                   *
+                   * Without this check, a second call to linked select will *grow* the
+                   * selection each time as each new selection reaches the boundaries of
+                   * islands that share vertices but not UVs.
                    *
                    * Rules applied here:
                    * - This loops face isn't selected.
