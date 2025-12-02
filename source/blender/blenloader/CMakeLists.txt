@@ -50,7 +50,7 @@ set(SRC
   BLO_userdef_default.h
   BLO_writefile.hh
   intern/readfile.hh
-  intern/versioning_common.hh
+  versioning_common.hh
 )
 
 set(LIB
