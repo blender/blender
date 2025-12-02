@@ -251,7 +251,8 @@ static void copy_stable_id_curves(const bke::CurvesGeometry &src_curves,
       GrainSize(512), [&](const int64_t i_src_curve, const int64_t i_selection) {
         const Span<int> curve_src = src.slice(src_points_by_curve[i_src_curve]);
         const IndexRange duplicates_range = offsets[i_selection];
-        for (const int i_duplicate : IndexRange(offsets[i_selection].size()).drop_front(1)) {
+        dst.slice(dst_points_by_curve[duplicates_range.first()]).copy_from(curve_src);
+        for (const int i_duplicate : duplicates_range.index_range().drop_front(1)) {
           const int i_dst_curve = duplicates_range[i_duplicate];
           copy_hashed_ids(curve_src, i_duplicate, dst.slice(dst_points_by_curve[i_dst_curve]));
         }
