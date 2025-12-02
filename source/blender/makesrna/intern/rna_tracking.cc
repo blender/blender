@@ -11,6 +11,8 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_tracking.hh"
+
 #include "RNA_define.hh"
 
 #include "rna_internal.hh"
@@ -33,7 +35,6 @@
 #  include "BKE_movieclip.hh"
 #  include "BKE_node_tree_update.hh"
 #  include "BKE_report.hh"
-#  include "BKE_tracking.hh"
 
 #  include "DEG_depsgraph.hh"
 
@@ -914,9 +915,13 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem cleanup_items[] = {
-      {TRACKING_CLEAN_SELECT, "SELECT", 0, "Select", "Select unclean tracks"},
-      {TRACKING_CLEAN_DELETE_TRACK, "DELETE_TRACK", 0, "Delete Track", "Delete unclean tracks"},
-      {TRACKING_CLEAN_DELETE_SEGMENT,
+      {int(TrackingCleanAction::Select), "SELECT", 0, "Select", "Select unclean tracks"},
+      {int(TrackingCleanAction::DeleteTrack),
+       "DELETE_TRACK",
+       0,
+       "Delete Track",
+       "Delete unclean tracks"},
+      {int(TrackingCleanAction::DeleteSegment),
        "DELETE_SEGMENTS",
        0,
        "Delete Segments",

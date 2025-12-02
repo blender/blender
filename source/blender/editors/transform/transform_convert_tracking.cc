@@ -77,7 +77,7 @@ struct TransformInitContext {
 static void markerToTransDataInit(TransformInitContext *init_context,
                                   MovieTrackingTrack *track,
                                   MovieTrackingMarker *marker,
-                                  int area,
+                                  eTrackArea area,
                                   float loc[2],
                                   const float rel[2],
                                   const float off[2],

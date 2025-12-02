@@ -1206,11 +1206,12 @@ static ImBuf *seq_get_movieclip_ibuf(Strip *strip, MovieClipUser user)
   ImBuf *ibuf = nullptr;
   float tloc[2], tscale, tangle;
   if (strip->clip_flag & SEQ_MOVIECLIP_RENDER_STABILIZED) {
-    ibuf = BKE_movieclip_get_stable_ibuf(strip->clip, &user, 0, tloc, &tscale, &tangle);
+    ibuf = BKE_movieclip_get_stable_ibuf(
+        strip->clip, &user, MovieClipPostprocFlag::None, tloc, &tscale, &tangle);
   }
   else {
     ibuf = BKE_movieclip_get_ibuf_flag(
-        strip->clip, &user, strip->clip->flag, MOVIECLIP_CACHE_SKIP);
+        strip->clip, &user, MovieClipFlag(strip->clip->flag), MovieClipCacheFlag::SkipCache);
   }
   return ibuf;
 }

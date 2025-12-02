@@ -11,7 +11,6 @@
 
 #pragma once
 
-#include "DNA_ID.h"
 #include "DNA_movieclip_types.h"
 
 #include "BLI_map.hh"
@@ -24,7 +23,7 @@ struct libmv_CameraIntrinsicsOptions;
 
 /*********************** Tracks map *************************/
 
-typedef struct TracksMap {
+struct TracksMap {
   char object_name[MAX_NAME];
 
   int num_tracks;
@@ -36,19 +35,19 @@ typedef struct TracksMap {
 
   /* Spin lock is used to sync context during tracking. */
   SpinLock spin_lock;
-} TracksMap;
+};
 
-struct TracksMap *tracks_map_new(const char *object_name, int num_tracks);
-int tracks_map_get_size(struct TracksMap *map);
-void tracks_map_insert(struct TracksMap *map, struct MovieTrackingTrack *track);
-void tracks_map_free(struct TracksMap *map);
-void tracks_map_merge(struct TracksMap *map, struct MovieTracking *tracking);
+TracksMap *tracks_map_new(const char *object_name, int num_tracks);
+int tracks_map_get_size(TracksMap *map);
+void tracks_map_insert(TracksMap *map, MovieTrackingTrack *track);
+void tracks_map_free(TracksMap *map);
+void tracks_map_merge(TracksMap *map, MovieTracking *tracking);
 
 /*********************** Space transformation functions *************************/
 
 void tracking_get_search_origin_frame_pixel(int frame_width,
                                             int frame_height,
-                                            const struct MovieTrackingMarker *marker,
+                                            const MovieTrackingMarker *marker,
                                             float frame_pixel[2]);
 
 /**
@@ -59,7 +58,7 @@ void tracking_get_search_origin_frame_pixel(int frame_width,
  */
 void tracking_get_marker_coords_for_tracking(int frame_width,
                                              int frame_height,
-                                             const struct MovieTrackingMarker *marker,
+                                             const MovieTrackingMarker *marker,
                                              double search_pixel_x[5],
                                              double search_pixel_y[5]);
 
@@ -68,7 +67,7 @@ void tracking_get_marker_coords_for_tracking(int frame_width,
  */
 void tracking_set_marker_coords_from_tracking(int frame_width,
                                               int frame_height,
-                                              struct MovieTrackingMarker *marker,
+                                              MovieTrackingMarker *marker,
                                               const double search_pixel_x[5],
                                               const double search_pixel_y[5]);
 
@@ -103,8 +102,8 @@ void tracking_principal_point_pixel_to_normalized(const float principal_point_pi
  * If there's already a marker at the frame where disabled one is expected to be placed,
  * nothing will happen if overwrite is false.
  */
-void tracking_marker_insert_disabled(struct MovieTrackingTrack *track,
-                                     const struct MovieTrackingMarker *ref_marker,
+void tracking_marker_insert_disabled(MovieTrackingTrack *track,
+                                     const MovieTrackingMarker *ref_marker,
                                      bool before,
                                      bool overwrite);
 
@@ -112,14 +111,13 @@ void tracking_marker_insert_disabled(struct MovieTrackingTrack *track,
  * Fill in Libmv C-API camera intrinsics options from tracking structure.
  */
 void tracking_cameraIntrinscisOptionsFromTracking(
-    struct MovieTracking *tracking,
+    MovieTracking *tracking,
     int calibration_width,
     int calibration_height,
-    struct libmv_CameraIntrinsicsOptions *camera_intrinsics_options);
+    libmv_CameraIntrinsicsOptions *camera_intrinsics_options);
 
 void tracking_trackingCameraFromIntrinscisOptions(
-    struct MovieTracking *tracking,
-    const struct libmv_CameraIntrinsicsOptions *camera_intrinsics_options);
+    MovieTracking *tracking, const libmv_CameraIntrinsicsOptions *camera_intrinsics_options);
 
 struct libmv_TrackRegionOptions;
 
@@ -129,14 +127,14 @@ struct libmv_TrackRegionOptions;
 void tracking_configure_tracker(const MovieTrackingTrack *track,
                                 float *mask,
                                 bool is_backwards,
-                                struct libmv_TrackRegionOptions *options);
+                                libmv_TrackRegionOptions *options);
 
 /**
  * Get previous keyframed marker.
  */
-struct MovieTrackingMarker *tracking_get_keyframed_marker(struct MovieTrackingTrack *track,
-                                                          int current_frame,
-                                                          bool backwards);
+MovieTrackingMarker *tracking_get_keyframed_marker(MovieTrackingTrack *track,
+                                                   int current_frame,
+                                                   bool backwards);
 
 /*********************** Masking *************************/
 
@@ -154,19 +152,19 @@ float *tracking_track_get_mask_for_region(const int frame_width,
 struct libmv_FrameAccessor;
 
 #define MAX_ACCESSOR_CLIP 64
-typedef struct TrackingImageAccessor {
-  struct MovieClip *clips[MAX_ACCESSOR_CLIP];
+struct TrackingImageAccessor {
+  MovieClip *clips[MAX_ACCESSOR_CLIP];
   int num_clips;
 
   /* Array of tracks which are being tracked.
    * Points to actual track from the `MovieClip` (or multiple of them).
    * This accessor owns the array, but not the tracks themselves. */
-  struct MovieTrackingTrack **tracks;
+  MovieTrackingTrack **tracks;
   int num_tracks;
 
-  struct libmv_FrameAccessor *libmv_accessor;
+  libmv_FrameAccessor *libmv_accessor;
   SpinLock cache_lock;
-} TrackingImageAccessor;
+};
 
 /**
  * Clips are used to access images of an actual footage.

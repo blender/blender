@@ -9,8 +9,8 @@
 #pragma once
 
 #include "DNA_ID.h"
-#include "DNA_color_types.h"    /* for color management */
-#include "DNA_tracking_types.h" /* for #MovieTracking */
+#include "DNA_color_types.h"
+#include "DNA_tracking_types.h"
 
 struct AnimData;
 struct ImBuf;
@@ -74,8 +74,7 @@ typedef struct MovieClip {
 
   char filepath[/*FILE_MAX*/ 1024];
 
-  /** Sequence or movie. */
-  int source;
+  int source; /* MovieClipSource */
   int _pad;
   /** Size of last accessed frame. */
   int lastsize[2];
@@ -100,7 +99,7 @@ typedef struct MovieClip {
 
   /** Proxy to clip data. */
   struct MovieClipProxy proxy;
-  int flag;
+  int flag; /* MovieClipFlag */
 
   /** Length of movie. */
   int len;
@@ -174,21 +173,19 @@ enum {
   MCLIP_TC_RECORD_RUN_NO_GAPS = 8,
 };
 
-/** #MovieClip.source */
-enum {
+typedef enum MovieClipSource {
   MCLIP_SRC_SEQUENCE = 1,
   MCLIP_SRC_MOVIE = 2,
-};
+} MovieClipSource;
 
-/** #MovieClip.flag */
-enum {
+typedef enum MovieClipFlag {
   MCLIP_USE_PROXY = (1 << 0),
   MCLIP_USE_PROXY_CUSTOM_DIR = (1 << 1),
   /* MCLIP_CUSTOM_START_FRAME    = (1 << 2), */ /* UNUSED */
   MCLIP_DATA_EXPAND = (1 << 3),
 
   MCLIP_TIMECODE_FLAGS = (MCLIP_USE_PROXY | MCLIP_USE_PROXY_CUSTOM_DIR),
-};
+} MovieClipFlag;
 
 /** #MovieClip.render_size */
 enum {

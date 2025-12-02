@@ -599,7 +599,7 @@ static wmOperatorStatus select_exec(bContext *C, wmOperator *op)
     }
 
     MovieTrackingTrack *track = pick.point_track_pick.track;
-    int area = pick.point_track_pick.area;
+    eTrackArea area = pick.point_track_pick.area;
 
     if (!extend || !TRACK_VIEW_SELECTED(sc, track)) {
       area = TRACK_AREA_ALL;

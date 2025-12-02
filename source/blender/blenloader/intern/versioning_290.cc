@@ -1415,7 +1415,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
         MovieTracking *tracking = &clip->tracking;
         MovieTrackingSettings *settings = &tracking->settings;
-        int new_refine_camera_intrinsics = 0;
+        TrackingRefineCameraFlag new_refine_camera_intrinsics = REFINE_NO_INTRINSICS;
 
         if (settings->refine_camera_intrinsics & REFINE_FOCAL_LENGTH) {
           new_refine_camera_intrinsics |= REFINE_FOCAL_LENGTH;
