@@ -1474,6 +1474,128 @@ float fn(                   inout SRT _inout_sta srt _inout_end) {
 }
 GPU_TEST(preprocess_srt_mutations);
 
+static void test_preprocess_entry_point_resources()
+{
+  using namespace std;
+  using namespace shader::parser;
+
+  ParserData::report_callback no_err_report = [](int, int, string, const char *) {};
+
+  {
+    string input = R"(
+namespace ns {
+
+struct VertOut {
+  [[smooth]] float3 local_pos;
+};
+
+struct FragOut {
+  [[color(0)]] float4 color;
+};
+
+template<typename T>
+struct VertIn {
+  [[attribute(0)]] T pos;
+};
+template struct VertIn<float>;
+
+
+[[vertex]] void vertex_function([[resource_table]] Resources &srt,
+                                [[stage_in]] const VertIn<float> &v_in,
+                                [[stage_out, condition(cond)]] VertOut &v_out,
+                                [[position]] float4 &out_position)
+{
+}
+
+[[fragment]] void fragment_function([[resource_table]] Resources &srt,
+                                    [[stage_in, condition(cond)]] const VertOut &v_out,
+                                    [[stage_out]] FragOut &frag_out,
+                                    [[position]] const float4 out_position)
+{
+}
+
+}
+)";
+    string expect = R"(
+#line 4
+struct ns_VertOut {
+             float3 local_pos;
+};
+
+struct ns_FragOut {
+               float4 color;
+};
+#line 16
+#line 13
+struct ns_VertInTfloat {
+                   float pos;
+};
+#line 17
+#line 19
+                         void ns_vertex_function(
+#line 22
+                                                                 )
+{ Resources srt;
+#if defined(GPU_VERTEX_SHADER)
+#endif
+#line 24
+}
+
+                           void ns_fragment_function(
+#line 29
+                                                                          )
+{ Resources srt;
+#if defined(GPU_FRAGMENT_SHADER)
+#endif
+#line 31
+}
+
+
+)";
+    string expect_infos = R"(#pragma once
+
+
+GPU_SHADER_CREATE_INFO(ns_VertInTfloat)
+VERTEX_IN(0, float, pos)
+GPU_SHADER_CREATE_END()
+
+
+GPU_SHADER_CREATE_INFO(ns_FragOut)
+FRAGMENT_OUT(0, float4, ns_FragOut_color)
+GPU_SHADER_CREATE_END()
+
+
+GPU_SHADER_INTERFACE_INFO(ns_VertOut_t)
+SMOOTH(float3, ns_VertOut_local_pos)
+GPU_SHADER_INTERFACE_END()
+
+
+
+
+GPU_SHADER_CREATE_INFO(ns_vertex_function_infos_)
+ADDITIONAL_INFO(Resources)
+ADDITIONAL_INFO(ns_VertInTfloat)
+VERTEX_OUT(ns_VertOut)
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(ns_fragment_function_infos_)
+ADDITIONAL_INFO(Resources)
+ADDITIONAL_INFO(ns_FragOut)
+GPU_SHADER_CREATE_END()
+
+)";
+    string error;
+    shader::metadata::Source metadata;
+    string output = process_test_string(input, error, &metadata);
+    string infos = metadata.serialize_infos();
+
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(infos, expect_infos);
+    EXPECT_EQ(error, "");
+  }
+}
+GPU_TEST(preprocess_entry_point_resources);
+
 static void test_preprocess_parser()
 {
   using namespace std;
