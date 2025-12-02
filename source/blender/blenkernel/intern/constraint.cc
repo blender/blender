@@ -65,13 +65,12 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_library.hh"
-#include "BKE_mesh_runtime.hh"
-#include "BKE_movieclip.h"
+#include "BKE_movieclip.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_scene.hh"
 #include "BKE_shrinkwrap.hh"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "BIK_api.h"
 

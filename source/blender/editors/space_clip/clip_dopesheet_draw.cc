@@ -15,7 +15,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_movieclip.h"
+#include "BKE_movieclip.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_clip.hh"

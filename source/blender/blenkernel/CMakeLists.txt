@@ -467,7 +467,7 @@ set(SRC
   BKE_mesh_types.hh
   BKE_mesh_wrapper.hh
   BKE_modifier.hh
-  BKE_movieclip.h
+  BKE_movieclip.hh
   BKE_multires.hh
   BKE_nla.hh
   BKE_node.hh
@@ -520,7 +520,7 @@ set(SRC
   BKE_text.h
   BKE_text_suggestions.h
   BKE_texture.h
-  BKE_tracking.h
+  BKE_tracking.hh
   BKE_type_conversions.hh
   BKE_undo_system.hh
   BKE_unit.hh

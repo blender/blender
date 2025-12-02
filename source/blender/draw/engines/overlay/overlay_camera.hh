@@ -9,7 +9,7 @@
 #pragma once
 
 #include "BKE_camera.h"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 #include "BLI_math_rotation.h"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_camera_types.h"

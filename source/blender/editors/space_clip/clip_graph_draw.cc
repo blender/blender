@@ -12,8 +12,8 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
+#include "BKE_movieclip.hh"
+#include "BKE_tracking.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_clip.hh"

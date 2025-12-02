@@ -7,15 +7,14 @@
  */
 
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
 #include "BLI_listbase.h"
 
 #include "BKE_context.hh"
-#include "BKE_movieclip.h"
+#include "BKE_movieclip.hh"
 #include "BKE_report.hh"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

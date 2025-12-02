@@ -15,7 +15,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "libmv-capi.h"
 

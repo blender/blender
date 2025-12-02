@@ -149,9 +149,6 @@ const EnumPropertyItem rna_enum_pitch_quality_items[] = {
 
 #  include "BKE_anim_data.hh"
 #  include "BKE_global.hh"
-#  include "BKE_idprop.hh"
-#  include "BKE_lib_id.hh"
-#  include "BKE_movieclip.h"
 #  include "BKE_report.hh"
 
 #  include "WM_api.hh"
@@ -168,7 +165,6 @@ const EnumPropertyItem rna_enum_pitch_quality_items[] = {
 #  include "SEQ_add.hh"
 #  include "SEQ_channels.hh"
 #  include "SEQ_edit.hh"
-#  include "SEQ_effects.hh"
 #  include "SEQ_iterator.hh"
 #  include "SEQ_modifier.hh"
 #  include "SEQ_prefetch.hh"
@@ -176,9 +172,6 @@ const EnumPropertyItem rna_enum_pitch_quality_items[] = {
 #  include "SEQ_relations.hh"
 #  include "SEQ_retiming.hh"
 #  include "SEQ_select.hh"
-#  include "SEQ_sequencer.hh"
-#  include "SEQ_sound.hh"
-#  include "SEQ_thumbnail_cache.hh"
 #  include "SEQ_time.hh"
 #  include "SEQ_transform.hh"
 #  include "SEQ_utils.hh"

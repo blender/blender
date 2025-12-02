@@ -16,7 +16,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 
-#include "BKE_movieclip.h"
+#include "BKE_movieclip.hh"
 #include "BKE_sound.hh"
 
 #include "DNA_sound_types.h"

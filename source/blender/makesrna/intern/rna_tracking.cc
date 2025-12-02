@@ -30,15 +30,12 @@
 
 #  include "BKE_anim_data.hh"
 #  include "BKE_animsys.h"
-#  include "BKE_movieclip.h"
-#  include "BKE_node.hh"
+#  include "BKE_movieclip.hh"
 #  include "BKE_node_tree_update.hh"
 #  include "BKE_report.hh"
-#  include "BKE_tracking.h"
+#  include "BKE_tracking.hh"
 
 #  include "DEG_depsgraph.hh"
-
-#  include "IMB_imbuf.hh"
 
 #  include "WM_api.hh"
 

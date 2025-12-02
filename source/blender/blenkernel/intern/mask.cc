@@ -40,8 +40,8 @@
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_mask.hh"
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
+#include "BKE_movieclip.hh"
+#include "BKE_tracking.hh"
 
 #include "DEG_depsgraph_build.hh"
 

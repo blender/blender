@@ -22,8 +22,8 @@
 #include "BLT_translation.hh"
 
 #include "BKE_fcurve.hh"
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
+#include "BKE_movieclip.hh"
+#include "BKE_tracking.hh"
 
 #include "RNA_prototypes.hh"
 

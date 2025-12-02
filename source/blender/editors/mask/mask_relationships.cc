@@ -12,7 +12,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_mask.hh"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "DEG_depsgraph.hh"
 

@@ -28,7 +28,6 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_scene.hh"
-#include "BKE_tracking.h"
 
 #include "BLT_translation.hh"
 
@@ -36,7 +35,6 @@
 
 #include "GPU_batch.hh"
 #include "GPU_batch_presets.hh"
-#include "GPU_capabilities.hh"
 #include "GPU_framebuffer.hh"
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
@@ -63,11 +61,9 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "NOD_composite.hh"
 #include "NOD_geometry.hh"
 #include "NOD_geometry_nodes_gizmos.hh"
 #include "NOD_node_declaration.hh"
-#include "NOD_partial_eval.hh"
 #include "NOD_socket.hh"
 #include "NOD_socket_declarations.hh"
 #include "node_intern.hh" /* own include */

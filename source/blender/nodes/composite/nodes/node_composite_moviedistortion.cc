@@ -7,17 +7,14 @@
  */
 
 #include "BLI_math_vector_types.hh"
-#include "BLI_string_utf8.h"
 
 #include "DNA_movieclip_types.h"
 
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "UI_interface.hh"
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
 
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"

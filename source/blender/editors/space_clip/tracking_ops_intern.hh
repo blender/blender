@@ -10,7 +10,7 @@
 
 #include "BLI_compiler_compat.h"
 
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 struct ListBase;
 struct MovieClip;

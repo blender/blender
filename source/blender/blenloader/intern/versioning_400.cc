@@ -51,7 +51,7 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_texture.h"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "SEQ_iterator.hh"
 #include "SEQ_retiming.hh"
