@@ -463,7 +463,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
 static void segment_list_item_draw(uiList * /*ui_list*/,
                                    const bContext * /*C*/,
-                                   uiLayout *layout,
+                                   ui::Layout &layout,
                                    PointerRNA * /*idataptr*/,
                                    PointerRNA *itemptr,
                                    int /*icon*/,
@@ -472,8 +472,8 @@ static void segment_list_item_draw(uiList * /*ui_list*/,
                                    int /*index*/,
                                    int /*flt_flag*/)
 {
-  uiLayout *row = &layout->row(true);
-  row->prop(itemptr, "name", UI_ITEM_R_NO_BG, "", ICON_NONE);
+  ui::Layout &row = layout.row(true);
+  row.prop(itemptr, "name", UI_ITEM_R_NO_BG, "", ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

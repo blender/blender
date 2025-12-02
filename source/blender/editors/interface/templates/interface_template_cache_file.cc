@@ -73,7 +73,7 @@ void uiTemplateCacheFileTimeSettings(uiLayout *layout, PointerRNA *fileptr)
 
 static void cache_file_layer_item(uiList * /*ui_list*/,
                                   const bContext * /*C*/,
-                                  uiLayout *layout,
+                                  blender::ui::Layout &layout,
                                   PointerRNA * /*dataptr*/,
                                   PointerRNA *itemptr,
                                   int /*icon*/,
@@ -82,9 +82,9 @@ static void cache_file_layer_item(uiList * /*ui_list*/,
                                   int /*index*/,
                                   int /*flt_flag*/)
 {
-  uiLayout *row = &layout->row(true);
-  row->prop(itemptr, "hide_layer", UI_ITEM_R_NO_BG, "", ICON_NONE);
-  row->prop(itemptr, "filepath", UI_ITEM_R_NO_BG, "", ICON_NONE);
+  blender::ui::Layout &row = layout.row(true);
+  row.prop(itemptr, "hide_layer", UI_ITEM_R_NO_BG, "", ICON_NONE);
+  row.prop(itemptr, "filepath", UI_ITEM_R_NO_BG, "", ICON_NONE);
 }
 
 uiListType *UI_UL_cache_file_layers()

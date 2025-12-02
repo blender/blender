@@ -5,7 +5,7 @@
 /** \file
  * \ingroup pythonintern
  *
- * This adds helpers to #uiLayout which can't be added easily to RNA itself.
+ * This adds helpers to #blenderL::ui::Layout which can't be added easily to RNA itself.
  */
 
 #include <Python.h>
@@ -30,7 +30,7 @@ PyDoc_STRVAR(
 static PyObject *bpy_rna_uilayout_introspect(PyObject *self)
 {
   BPy_StructRNA *pyrna = (BPy_StructRNA *)self;
-  uiLayout *layout = static_cast<uiLayout *>(pyrna->ptr->data);
+  blender::ui::Layout *layout = pyrna->ptr->data_as<blender::ui::Layout>();
 
   const char *expr = UI_layout_introspect(layout);
   PyObject *main_mod = PyC_MainModule_Backup();

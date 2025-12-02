@@ -801,7 +801,7 @@ void draw_common_bake_settings(bContext *C, BakeDrawContext &ctx, ui::Layout &la
 
 static void draw_bake_data_block_list_item(uiList * /*ui_list*/,
                                            const bContext * /*C*/,
-                                           ui::Layout *layout,
+                                           ui::Layout &layout,
                                            PointerRNA * /*idataptr*/,
                                            PointerRNA *itemptr,
                                            int /*icon*/,
@@ -811,7 +811,7 @@ static void draw_bake_data_block_list_item(uiList * /*ui_list*/,
                                            int /*flt_flag*/)
 {
   auto &data_block = *static_cast<NodesModifierDataBlock *>(itemptr->data);
-  ui::Layout &row = layout->row(true);
+  ui::Layout &row = layout.row(true);
 
   std::string name;
   if (StringRef(data_block.lib_name).is_empty()) {

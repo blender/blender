@@ -278,7 +278,7 @@ void AssetViewItem::build_context_menu(bContext &C, ui::Layout &column) const
   const AssetView &asset_view = dynamic_cast<const AssetView &>(this->get_view());
   const AssetShelfType &shelf_type = *asset_view.shelf_.type;
   if (shelf_type.draw_context_menu) {
-    shelf_type.draw_context_menu(&C, &shelf_type, &asset_, &column);
+    shelf_type.draw_context_menu(&C, &shelf_type, &asset_, column);
   }
 }
 

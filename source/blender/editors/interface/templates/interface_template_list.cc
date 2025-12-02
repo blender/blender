@@ -91,7 +91,7 @@ struct TemplateListVisualInfo {
 
 static void uilist_draw_item_default(uiList *ui_list,
                                      const bContext * /*C*/,
-                                     uiLayout *layout,
+                                     blender::ui::Layout &layout,
                                      PointerRNA * /*dataptr*/,
                                      PointerRNA *itemptr,
                                      int icon,
@@ -108,22 +108,24 @@ static void uilist_draw_item_default(uiList *ui_list,
     case UILST_LAYOUT_COMPACT:
     default:
       if (nameprop) {
-        layout->prop(itemptr, nameprop, RNA_NO_INDEX, 0, UI_ITEM_R_NO_BG, "", icon);
+        layout.prop(itemptr, nameprop, RNA_NO_INDEX, 0, UI_ITEM_R_NO_BG, "", icon);
       }
       else {
-        layout->label("", icon);
+        layout.label("", icon);
       }
       break;
   }
 }
 
-static void uilist_draw_filter_default(uiList *ui_list, const bContext * /*C*/, uiLayout *layout)
+static void uilist_draw_filter_default(uiList *ui_list,
+                                       const bContext * /*C*/,
+                                       blender::ui::Layout &layout)
 {
   PointerRNA listptr = RNA_pointer_create_discrete(nullptr, &RNA_UIList, ui_list);
 
-  uiLayout *row = &layout->row(false);
+  blender::ui::Layout &row = layout.row(false);
 
-  uiLayout *subrow = &row->row(true);
+  blender::ui::Layout *subrow = &row.row(true);
   subrow->prop(&listptr,
                RNA_struct_find_property(&listptr, "filter_name"),
                -1,
@@ -139,7 +141,7 @@ static void uilist_draw_filter_default(uiList *ui_list, const bContext * /*C*/, 
                ICON_ARROW_LEFTRIGHT);
 
   if ((ui_list->filter_sort_flag & UILST_FLT_SORT_LOCK) == 0) {
-    subrow = &row->row(true);
+    subrow = &row.row(true);
     subrow->prop(
         &listptr, "use_filter_sort_alpha", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
     subrow->prop(&listptr,
@@ -787,7 +789,7 @@ static void ui_template_list_layout_draw(const bContext *C,
           }
           layout_data->draw_item(ui_list,
                                  C,
-                                 sub,
+                                 *sub,
                                  &input_data->dataptr,
                                  itemptr,
                                  icon,
@@ -849,7 +851,7 @@ static void ui_template_list_layout_draw(const bContext *C,
         }
         layout_data->draw_item(ui_list,
                                C,
-                               row,
+                               *row,
                                &input_data->dataptr,
                                itemptr,
                                icon,
@@ -935,7 +937,7 @@ static void ui_template_list_layout_draw(const bContext *C,
           icon = UI_icon_from_rnaptr(C, itemptr, rnaicon, false);
           layout_data->draw_item(ui_list,
                                  C,
-                                 col,
+                                 *col,
                                  &input_data->dataptr,
                                  itemptr,
                                  icon,
@@ -1037,7 +1039,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       uiDefBut(
           subblock, ButType::Sepr, "", 0, 0, UI_UNIT_X, UI_UNIT_Y * 0.05f, nullptr, 0.0, 0.0, "");
 
-      layout_data->draw_filter(ui_list, C, col);
+      layout_data->draw_filter(ui_list, C, *col);
     }
     else {
       but = uiDefIconButBitI(subblock,
