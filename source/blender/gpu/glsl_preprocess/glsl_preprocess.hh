@@ -482,18 +482,18 @@ class Preprocessor {
       if (do_parse_function) {
         parse_library_functions(str);
       }
-      if (language == BLENDER_GLSL) {
-        pragma_runtime_generated_parsing(str);
-        pragma_once_linting(str, filename, report_error);
-      }
-      parse_defines(str, report_error);
-      str = create_info_parse_and_remove(str, report_error);
-      str = include_parse_and_remove(str, report_error);
-      str = pragmas_mutation(str, report_error);
-      str = swizzle_function_mutation(str, report_error);
-      str = enum_macro_injection(str, language == CPP, report_error);
       {
         Parser parser(str, report_error);
+        if (language == BLENDER_GLSL) {
+          pragma_runtime_generated_parsing(parser);
+          pragma_once_linting(parser, filename, report_error);
+        }
+        parse_defines(parser, report_error);
+        create_info_parse_and_remove(parser, report_error);
+        include_parse_and_remove(parser, report_error);
+        pragmas_mutation(parser, report_error);
+        swizzle_function_mutation(parser, report_error);
+        enum_macro_injection(parser, language == CPP, report_error);
 
         if (language == BLENDER_GLSL) {
           srt_member_access_mutation(parser, report_error);
@@ -545,9 +545,11 @@ class Preprocessor {
       }
     }
     else if (language == MSL) {
-      pragma_runtime_generated_parsing(str);
-      str = include_parse_and_remove(str, report_error);
-      str = pragmas_mutation(str, report_error);
+      Parser parser(str, report_error);
+      pragma_runtime_generated_parsing(parser);
+      include_parse_and_remove(parser, report_error);
+      pragmas_mutation(parser, report_error);
+      str = parser.result_get();
     }
 #ifdef __APPLE__ /* Limiting to Apple hardware since GLSL compilers might have issues. */
     if (language == GLSL) {
@@ -1003,11 +1005,10 @@ class Preprocessor {
     parser.apply_mutations();
   }
 
-  void parse_defines(const std::string &str, report_callback report_error)
+  void parse_defines(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
-    Parser parser(str, report_error);
     parser.foreach_match("#w", [&](const std::vector<Token> &tokens) {
       if (tokens[1].str() == "define") {
         metadata.create_infos_defines.emplace_back(tokens[1].next().scope().str_with_whitespace());
@@ -1018,12 +1019,10 @@ class Preprocessor {
     });
   }
 
-  std::string create_info_parse_and_remove(const std::string &str, report_callback report_error)
+  void create_info_parse_and_remove(Parser &parser, report_callback report_error)
   {
     using namespace std;
     using namespace shader::parser;
-
-    Parser parser(str, report_error);
 
     auto get_placeholder = [](const string &name) {
       string placeholder;
@@ -1127,15 +1126,13 @@ class Preprocessor {
       }
     });
 
-    return parser.result_get();
+    parser.apply_mutations();
   }
 
-  std::string include_parse_and_remove(const std::string &str, report_callback report_error)
+  void include_parse_and_remove(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
-
-    Parser parser(str, report_error);
 
     parser.foreach_match("#w_", [&](const std::vector<Token> &tokens) {
       if (tokens[1].str() != "include") {
@@ -1173,24 +1170,24 @@ class Preprocessor {
       parser.erase(tokens.front(), tokens.back());
     });
 
-    return parser.result_get();
+    parser.apply_mutations();
   }
 
-  void pragma_runtime_generated_parsing(const std::string &str)
+  void pragma_runtime_generated_parsing(Parser &parser)
   {
-    if (str.find("\n#pragma runtime_generated") != std::string::npos) {
+    if (parser.data_get().str.find("\n#pragma runtime_generated") != std::string::npos) {
       metadata.builtins.emplace_back(metadata::Builtin::runtime_generated);
     }
   }
 
-  void pragma_once_linting(const std::string &str,
+  void pragma_once_linting(Parser &parser,
                            const std::string &filename,
                            report_callback report_error)
   {
     if (filename.find("_lib.") == std::string::npos && filename.find(".hh") == std::string::npos) {
       return;
     }
-    if (str.find("\n#pragma once") == std::string::npos) {
+    if (parser.data_get().str.find("\n#pragma once") == std::string::npos) {
       report_error(0, 0, "", "Header files must contain #pragma once directive.");
     }
   }
@@ -1776,13 +1773,12 @@ class Preprocessor {
     return parser.result_get();
   }
 
-  std::string pragmas_mutation(const std::string &str, report_callback &report_error)
+  void pragmas_mutation(Parser &parser, report_callback /*report_error*/)
   {
     /* Remove unsupported directives. */
     using namespace std;
     using namespace shader::parser;
 
-    Parser parser(str, report_error);
     parser.foreach_match("#ww", [&](const std::vector<Token> &tokens) {
       if (tokens[1].str() == "pragma") {
         if (tokens[2].str() == "once") {
@@ -1793,15 +1789,13 @@ class Preprocessor {
         }
       }
     });
-    return parser.result_get();
+    parser.apply_mutations();
   }
 
-  std::string swizzle_function_mutation(const std::string &str, report_callback &report_error)
+  void swizzle_function_mutation(Parser &parser, report_callback /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
-
-    Parser parser(str, report_error);
 
     parser.foreach_scope(ScopeType::Global, [&](Scope scope) {
       /* Change C++ swizzle functions into plain swizzle. */
@@ -1818,7 +1812,7 @@ class Preprocessor {
         }
       });
     });
-    return parser.result_get();
+    parser.apply_mutations();
   }
 
   std::string threadgroup_variables_parse_and_remove(const std::string &str,
@@ -2915,9 +2909,7 @@ class Preprocessor {
     return guarded_cope;
   }
 
-  std::string enum_macro_injection(const std::string &str,
-                                   bool is_shared_file,
-                                   report_callback &report_error)
+  void enum_macro_injection(Parser &parser, bool is_shared_file, report_callback report_error)
   {
     /**
      * Transform C,C++ enum declaration into GLSL compatible defines and constants:
@@ -2950,8 +2942,6 @@ class Preprocessor {
      */
     using namespace std;
     using namespace shader::parser;
-
-    Parser parser(str, report_error);
 
     auto missing_underlying_type = [&](vector<Token> tokens) {
       report_error(tokens[0].line_number(),
@@ -3014,7 +3004,6 @@ class Preprocessor {
                    tokens[0].line_str(),
                    "invalid enum declaration");
     });
-    return parser.result_get();
   }
 
   std::string strip_whitespace(const std::string &str) const
