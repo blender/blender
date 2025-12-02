@@ -517,7 +517,8 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
     if (current_zones == nullptr) {
       return;
     }
-    const auto *lf_graph_info = nodes::ensure_geometry_nodes_lazy_function_graph(*current_tree);
+    const nodes::GeometryNodesLazyFunctionGraphInfo *lf_graph_info =
+        nodes::ensure_geometry_nodes_lazy_function_graph(*current_tree).get();
     if (lf_graph_info == nullptr) {
       return;
     }
@@ -674,7 +675,8 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
   if (final_node == nullptr) {
     return;
   }
-  const auto *lf_graph_info = nodes::ensure_geometry_nodes_lazy_function_graph(*current_tree);
+  const nodes::GeometryNodesLazyFunctionGraphInfo *lf_graph_info =
+      nodes::ensure_geometry_nodes_lazy_function_graph(*current_tree).get();
   if (lf_graph_info == nullptr) {
     return;
   }
@@ -1851,7 +1853,7 @@ static void modifyGeometry(ModifierData *md,
   }
 
   const nodes::GeometryNodesLazyFunctionGraphInfo *lf_graph_info =
-      nodes::ensure_geometry_nodes_lazy_function_graph(tree);
+      nodes::ensure_geometry_nodes_lazy_function_graph(tree).get();
   if (lf_graph_info == nullptr) {
     BKE_modifier_set_error(ctx->object, md, "Cannot evaluate node group");
     geometry_set.clear();

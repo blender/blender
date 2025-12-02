@@ -186,13 +186,19 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   CacheMutex inferenced_input_socket_usage_mutex;
 
   /**
-   * For geometry nodes, a lazy function graph with some additional info is cached. This is used to
-   * evaluate the node group. Caching it here allows us to reuse the preprocessed node tree in case
-   * its used multiple times.
+   * Execution data for geometry nodes. The data is independent of the owner tree, so taking
+   * shared ownership of #geometry_nodes_lazy_function_graph_info allows the node tree to be
+   * evaluated even if the owner tree is freed already.
    */
   CacheMutex geometry_nodes_lazy_function_graph_info_mutex;
-  std::unique_ptr<nodes::GeometryNodesLazyFunctionGraphInfo>
+  std::shared_ptr<const nodes::GeometryNodesLazyFunctionGraphInfo>
       geometry_nodes_lazy_function_graph_info;
+
+  /**
+   * Back-pointer if this is a node tree owned by #geometry_nodes_lazy_function_graph_info.
+   */
+  const nodes::GeometryNodesLazyFunctionGraphInfo *self_geometry_nodes_lazy_function_graph_info =
+      nullptr;
 
   /**
    * Stores information about invalid links. This information is then displayed to the user. This

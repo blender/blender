@@ -260,11 +260,14 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   BKE_curvemapping_init(curve_mapping);
   BKE_curvemapping_premultiply(curve_mapping, false);
 
-  builder.construct_and_set_matching_fn_cb([=]() {
+  builder.construct_and_set_matching_fn_cb([&]() {
     return mf::build::SI4_SO<Color, float, Color, Color, Color>(
         "RGB Curves",
-        [=](const Color &color, const float factor, const Color &black, const Color &white)
-            -> Color {
+        /* Take ownership of the tree because it contains the curve mapping. */
+        [curve_mapping, tree = builder.shared_tree()](const Color &color,
+                                                      const float factor,
+                                                      const Color &black,
+                                                      const Color &white) -> Color {
           return Color(
               curves_rgba(curve_mapping, float4(color), factor, float4(black), float4(white)));
         },

@@ -80,10 +80,13 @@ static int gpu_shader_curve_vec(GPUMaterial *mat,
 
 class CurveVecFunction : public mf::MultiFunction {
  private:
+  /** Take ownership of the tree because it contains the curve mapping. */
+  std::shared_ptr<const bNodeTree> tree_;
   const CurveMapping &cumap_;
 
  public:
-  CurveVecFunction(const CurveMapping &cumap) : cumap_(cumap)
+  CurveVecFunction(const CurveMapping &cumap, std::shared_ptr<const bNodeTree> tree)
+      : tree_(std::move(tree)), cumap_(cumap)
   {
     static const mf::Signature signature = []() {
       mf::Signature signature;
@@ -116,7 +119,7 @@ static void sh_node_curve_vec_build_multi_function(NodeMultiFunctionBuilder &bui
   const bNode &bnode = builder.node();
   CurveMapping *cumap = (CurveMapping *)bnode.storage;
   BKE_curvemapping_init(cumap);
-  builder.construct_and_set_matching_fn<CurveVecFunction>(*cumap);
+  builder.construct_and_set_matching_fn<CurveVecFunction>(*cumap, builder.shared_tree());
 }
 
 NODE_SHADER_MATERIALX_BEGIN
@@ -243,10 +246,13 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat,
 
 class CurveRGBFunction : public mf::MultiFunction {
  private:
+  /** Take ownership of the tree because it contains the curve mapping. */
+  std::shared_ptr<const bNodeTree> tree_;
   const CurveMapping &cumap_;
 
  public:
-  CurveRGBFunction(const CurveMapping &cumap) : cumap_(cumap)
+  CurveRGBFunction(const CurveMapping &cumap, std::shared_ptr<const bNodeTree> tree)
+      : tree_(std::move(tree)), cumap_(cumap)
   {
     static const mf::Signature signature = []() {
       mf::Signature signature;
@@ -282,7 +288,7 @@ static void sh_node_curve_rgb_build_multi_function(NodeMultiFunctionBuilder &bui
   const bNode &bnode = builder.node();
   CurveMapping *cumap = (CurveMapping *)bnode.storage;
   BKE_curvemapping_init(cumap);
-  builder.construct_and_set_matching_fn<CurveRGBFunction>(*cumap);
+  builder.construct_and_set_matching_fn<CurveRGBFunction>(*cumap, builder.shared_tree());
 }
 
 NODE_SHADER_MATERIALX_BEGIN
@@ -382,10 +388,13 @@ static int gpu_shader_curve_float(GPUMaterial *mat,
 
 class CurveFloatFunction : public mf::MultiFunction {
  private:
+  /** Take ownership of the tree because it contains the curve mapping. */
+  std::shared_ptr<const bNodeTree> tree_;
   const CurveMapping &cumap_;
 
  public:
-  CurveFloatFunction(const CurveMapping &cumap) : cumap_(cumap)
+  CurveFloatFunction(const CurveMapping &cumap, std::shared_ptr<const bNodeTree> tree)
+      : tree_(std::move(tree)), cumap_(cumap)
   {
     static const mf::Signature signature = []() {
       mf::Signature signature;
@@ -418,7 +427,7 @@ static void sh_node_curve_float_build_multi_function(NodeMultiFunctionBuilder &b
   const bNode &bnode = builder.node();
   CurveMapping *cumap = (CurveMapping *)bnode.storage;
   BKE_curvemapping_init(cumap);
-  builder.construct_and_set_matching_fn<CurveFloatFunction>(*cumap);
+  builder.construct_and_set_matching_fn<CurveFloatFunction>(*cumap, builder.shared_tree());
 }
 
 NODE_SHADER_MATERIALX_BEGIN

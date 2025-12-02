@@ -700,12 +700,15 @@ static bool format_strings(const StringRef format,
 
 class FormatStringMultiFunction : public mf::MultiFunction {
  private:
+  /** Take ownership of the tree because it contains the node. */
+  std::shared_ptr<const bNodeTree> shared_tree_;
   const bNode &node_;
   VectorSet<std::string> input_names_;
   mf::Signature signature_;
 
  public:
-  FormatStringMultiFunction(const bNode &node) : node_(node)
+  FormatStringMultiFunction(const bNode &node, std::shared_ptr<const bNodeTree> shared_tree)
+      : shared_tree_(std::move(shared_tree)), node_(node)
   {
     const NodeFunctionFormatString &storage = node_storage(node);
 
@@ -763,7 +766,8 @@ class FormatStringMultiFunction : public mf::MultiFunction {
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  builder.construct_and_set_matching_fn<FormatStringMultiFunction>(builder.node());
+  builder.construct_and_set_matching_fn<FormatStringMultiFunction>(builder.node(),
+                                                                   builder.shared_tree());
 }
 
 static void node_register()
