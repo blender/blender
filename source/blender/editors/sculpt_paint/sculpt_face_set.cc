@@ -541,7 +541,7 @@ static wmOperatorStatus create_op_exec(bContext *C, wmOperator *op)
           depsgraph, object, node_mask, [&](const Span<int> indices, MutableSpan<int> face_sets) {
             for (const int i : indices.index_range()) {
               if (select_poly[indices[i]]) {
-                if (!hide_poly.is_empty() && hide_poly[i]) {
+                if (!hide_poly.is_empty() && hide_poly[indices[i]]) {
                   continue;
                 }
                 face_sets[i] = next_face_set;
