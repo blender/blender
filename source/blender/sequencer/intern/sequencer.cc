@@ -1084,10 +1084,15 @@ static void strip_update_mix_sounds(Scene *scene, Strip *strip)
 
 static void strip_update_sound_properties(const Scene *scene, const Strip *strip)
 {
+  const Strip *meta = lookup_meta_by_strip(editing_get(scene), strip);
+  float output_volume = strip->volume;
+  if (meta != nullptr) {
+    output_volume *= meta->volume;
+  }
   const int frame = BKE_scene_frame_get(scene);
   BKE_sound_set_scene_sound_volume_at_frame(strip->runtime->scene_sound,
                                             frame,
-                                            strip->volume,
+                                            output_volume,
                                             (strip->flag & SEQ_AUDIO_VOLUME_ANIMATED) != 0);
   retiming_sound_animation_data_set(scene, strip);
   BKE_sound_set_scene_sound_pan_at_frame(

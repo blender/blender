@@ -824,17 +824,17 @@ class STRIP_PT_adjust_sound(StripButtonsPanel, Panel):
         if not strip:
             return False
 
-        return strip.type == 'SOUND'
+        return strip.type in {'SOUND', 'META', }
 
     def draw(self, context):
         layout = self.layout
 
         strip = context.active_strip
-        sound = strip.sound
+        sound = getattr(strip, "sound", None)
 
         layout.active = not strip.mute
 
-        if sound is not None:
+        if sound is not None or strip.type == 'META':
             layout.use_property_split = True
             col = layout.column()
 
@@ -843,6 +843,7 @@ class STRIP_PT_adjust_sound(StripButtonsPanel, Panel):
             split.label(text="Volume", text_ctxt=i18n_contexts.id_sound)
             split.prop(strip, "volume", text="")
 
+        if sound is not None:
             layout.use_property_split = False
             col = layout.column()
 
