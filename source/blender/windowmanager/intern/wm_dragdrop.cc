@@ -427,9 +427,6 @@ void WM_drag_free(wmDrag *drag)
     WM_drag_data_free(drag->type, drag->poin);
   }
   drag->drop_state.ui_context.reset();
-  if (drag->drop_state.free_disabled_info) {
-    MEM_SAFE_FREE(drag->drop_state.disabled_info);
-  }
   BLI_freelistN(&drag->ids);
   LISTBASE_FOREACH_MUTABLE (wmDragAssetListItem *, asset_item, &drag->asset_items) {
     if (asset_item->is_external) {
@@ -493,7 +490,9 @@ static wmDropBox *dropbox_active(bContext *C,
           const char *disabled_hint = CTX_wm_operator_poll_msg_get(C, &free_disabled_info);
           if (disabled_hint) {
             drag->drop_state.disabled_info = disabled_hint;
-            drag->drop_state.free_disabled_info = free_disabled_info;
+            if (free_disabled_info) {
+              MEM_SAFE_FREE(disabled_hint);
+            }
           }
         }
       }
@@ -511,10 +510,7 @@ static wmDropBox *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *ev
   ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->xy);
   wmDropBox *drop = nullptr;
 
-  if (drag->drop_state.free_disabled_info) {
-    MEM_SAFE_FREE(drag->drop_state.disabled_info);
-  }
-  drag->drop_state.disabled_info = nullptr;
+  drag->drop_state.disabled_info = std::nullopt;
 
   if (area) {
     ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_ANY, event->xy);
@@ -1121,7 +1117,7 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
   int padding = 4 * UI_SCALE_FAC;
   blender::StringRef tooltip = drag->drop_state.tooltip;
   const bool has_disabled_info = drag->drop_state.disabled_info &&
-                                 drag->drop_state.disabled_info[0];
+                                 drag->drop_state.disabled_info.value()[0];
   if (tooltip.is_empty() && !has_disabled_info) {
     return;
   }
@@ -1178,7 +1174,7 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
     wm_drop_operator_draw(tooltip, x, y);
   }
   else if (has_disabled_info) {
-    wm_drop_redalert_draw(drag->drop_state.disabled_info, x, y);
+    wm_drop_redalert_draw(*drag->drop_state.disabled_info, x, y);
   }
 }
 

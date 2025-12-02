@@ -41,12 +41,12 @@ static bool ui_view_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
     return false;
   }
 
-  if (drag->drop_state.free_disabled_info) {
-    MEM_SAFE_FREE(drag->drop_state.disabled_info);
-  }
-  drag->drop_state.free_disabled_info = false;
+  const char *disabled_info = "";
+  const bool can_drop = drop_target->can_drop(*drag, &disabled_info);
 
-  return drop_target->can_drop(*drag, &drag->drop_state.disabled_info);
+  drag->drop_state.disabled_info = disabled_info;
+
+  return can_drop;
 }
 
 static std::string ui_view_drop_tooltip(bContext *C,
