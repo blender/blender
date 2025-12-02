@@ -279,7 +279,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
       UI_but_func_tooltip_set(but_progress, progress_tooltip_func, tip_arg, MEM_freeN);
     }
 
-    if (!wm->runtime->is_interface_locked) {
+    if (cancel_fn && !wm->runtime->is_interface_locked) {
       uiBut *but = uiDefIconTextBut(block,
                                     ButType::But,
                                     ICON_PANEL_CLOSE,
@@ -290,9 +290,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
                                     UI_UNIT_Y,
                                     nullptr,
                                     TIP_("Stop this job"));
-      if (cancel_fn) {
-        UI_but_func_set(but, std::move(cancel_fn));
-      }
+      UI_but_func_set(but, std::move(cancel_fn));
     }
   }
 
