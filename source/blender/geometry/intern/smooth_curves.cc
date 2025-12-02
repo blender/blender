@@ -353,6 +353,7 @@ void smooth_curve_positions(bke::CurvesGeometry &curves,
     }
 
     curves.calculate_bezier_auto_handles();
+    curves.calculate_bezier_aligned_handles();
   }
 
   curves.tag_positions_changed();

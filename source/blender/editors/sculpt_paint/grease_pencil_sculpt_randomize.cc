@@ -119,6 +119,7 @@ void RandomizeOperation::on_stroke_extended(const bContext &C, const InputSample
             });
 
             curves.calculate_bezier_auto_handles();
+            curves.calculate_bezier_aligned_handles();
           }
 
           params.drawing.tag_positions_changed();
