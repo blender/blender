@@ -1618,7 +1618,8 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         bdata might be an Object (deprecated), DepsgraphObjectInstance, Bone or PoseBone.
         If Bone or PoseBone, armature Object must be provided.
         """
-        # Note: DepsgraphObjectInstance are purely runtime data, they become invalid as soon as we step to the next item!
+        # Note: DepsgraphObjectInstance are purely runtime data,
+        #       they become invalid as soon as we step to the next item!
         #       Hence we have to immediately copy *all* needed data...
         if isinstance(bdata, Object):  # DEPRECATED
             self._tag = 'OB'

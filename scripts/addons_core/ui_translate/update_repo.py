@@ -181,7 +181,9 @@ class UI_OT_i18n_updatetranslation_blender_repo(Operator):
         print("Generating languages' menu...", flush=True)
         context.window_manager.progress_update(progress + 2)
         languages_menu_lines = utils_languages_menu.gen_menu_file(stats, self.settings)
-        with open(os.path.join(self.settings.BLENDER_I18N_ROOT, self.settings.LANGUAGES_FILE), 'w', encoding="utf8") as f:
+        with open(
+                os.path.join(self.settings.BLENDER_I18N_ROOT, self.settings.LANGUAGES_FILE), 'w', encoding="utf8",
+        ) as f:
             f.write("\n".join(languages_menu_lines))
         context.window_manager.progress_end()
 

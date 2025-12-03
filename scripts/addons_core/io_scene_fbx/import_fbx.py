@@ -2303,7 +2303,8 @@ class FbxImportHelperNode:
         else:
             self.matrix, self.matrix_as_parent, self.matrix_geom = (None, None, None)
         self.post_matrix = None                 # correction matrix that needs to be applied after the FBX transform
-        self.bone_child_matrix = None           # Objects attached to a bone end not the beginning, this matrix corrects for that
+        # Objects attached to a bone end not the beginning, this matrix corrects for that.
+        self.bone_child_matrix = None
 
         # XXX Those two are to handle the fact that rigged meshes are not linked to their armature in FBX, which implies
         #     that their animation is in global space (AFAIK...).

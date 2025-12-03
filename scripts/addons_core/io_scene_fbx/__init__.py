@@ -350,7 +350,10 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     )
     apply_unit_scale: BoolProperty(
         name="Apply Unit",
-        description="Take into account current Blender units settings (if unset, raw Blender Units values are used as-is)",
+        description=(
+            "Take into account current Blender units settings "
+            "(if unset, raw Blender Units values are used as-is)"
+        ),
         default=True,
     )
     apply_scale_options: EnumProperty(
