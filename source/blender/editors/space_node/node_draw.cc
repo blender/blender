@@ -196,7 +196,7 @@ void tree_update(const bContext *C)
 }
 
 /* id is supposed to contain a node tree */
-static bNodeTree *UNUSED_FUNCTION(node_tree_from_ID)(ID *id)
+[[maybe_unused]] static bNodeTree *node_tree_from_ID(ID *id)
 {
   if (id) {
     if (GS(id->name) == ID_NT) {
