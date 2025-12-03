@@ -95,7 +95,7 @@ void UI_but_func_operator_search(uiBut *but)
                          nullptr);
 }
 
-void uiTemplateOperatorSearch(uiLayout *layout)
+void uiTemplateOperatorSearch(blender::ui::Layout *layout)
 {
   uiBlock *block;
   uiBut *but;

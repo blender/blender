@@ -51,7 +51,7 @@
 
 struct uiPopover {
   uiBlock *block;
-  uiLayout *layout;
+  blender::ui::Layout *layout;
   uiBut *but;
   ARegion *butregion;
 
@@ -313,7 +313,7 @@ wmOperatorStatus UI_popover_panel_invoke(bContext *C,
                                          bool keep_open,
                                          ReportList *reports)
 {
-  uiLayout *layout;
+  blender::ui::Layout *layout;
   PanelType *pt = WM_paneltype_find(idname, true);
   if (pt == nullptr) {
     BKE_reportf(reports, RPT_ERROR, "Panel \"%s\" not found", idname);
@@ -433,7 +433,7 @@ void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
   UI_block_flag_disable(pup->block, UI_BLOCK_KEEP_OPEN);
 }
 
-uiLayout *UI_popover_layout(uiPopover *pup)
+blender::ui::Layout *UI_popover_layout(uiPopover *pup)
 {
   return pup->layout;
 }

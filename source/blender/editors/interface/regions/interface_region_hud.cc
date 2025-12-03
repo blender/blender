@@ -174,8 +174,8 @@ static void hud_panel_operator_redo_draw(const bContext *C, Panel *panel)
   if (!WM_operator_check_ui_enabled(C, op->type->name)) {
     panel->layout->enabled_set(false);
   }
-  uiLayout *col = &panel->layout->column(false);
-  uiTemplateOperatorRedoProperties(col, C);
+  blender::ui::Layout &col = panel->layout->column(false);
+  uiTemplateOperatorRedoProperties(&col, C);
 }
 
 static void hud_panels_register(ARegionType *art, int space_type, int region_type)

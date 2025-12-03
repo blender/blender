@@ -41,7 +41,7 @@ static void do_preview_buttons(bContext *C, void *arg, int event)
   }
 }
 
-void uiTemplatePreview(uiLayout *layout,
+void uiTemplatePreview(blender::ui::Layout *layout,
                        bContext *C,
                        ID *id,
                        bool show_buttons,
@@ -120,8 +120,8 @@ void uiTemplatePreview(uiLayout *layout,
 
   /* layout */
   uiBlock *block = layout->block();
-  uiLayout *row = &layout->row(false);
-  uiLayout *col = &row->column(false);
+  blender::ui::Layout *row = &layout->row(false);
+  blender::ui::Layout *col = &row->column(false);
 
   /* add preview */
   uiDefBut(block, ButType::Extra, "", 0, 0, UI_UNIT_X * 10, ui_preview->height, pid, 0.0, 0.0, "");

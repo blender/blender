@@ -23,15 +23,17 @@ static void keymap_item_modified(bContext * /*C*/, void *kmi_p, void * /*unused*
   U.runtime.is_dirty = true;
 }
 
-static void template_keymap_item_properties(uiLayout *layout, const char *title, PointerRNA *ptr)
+static void template_keymap_item_properties(blender::ui::Layout &layout,
+                                            const char *title,
+                                            PointerRNA *ptr)
 {
-  layout->separator();
+  layout.separator();
 
   if (title) {
-    layout->label(title, ICON_NONE);
+    layout.label(title, ICON_NONE);
   }
 
-  uiLayout *flow = &layout->column_flow(2, false);
+  blender::ui::Layout &flow = layout.column_flow(2, false);
 
   RNA_STRUCT_BEGIN_SKIP_RNA_TYPE (ptr, prop) {
     const bool is_set = RNA_property_is_set(ptr, prop);
@@ -48,16 +50,16 @@ static void template_keymap_item_properties(uiLayout *layout, const char *title,
       }
     }
 
-    uiLayout *box = &flow->box();
-    box->active_set(is_set);
-    uiLayout *row = &box->row(false);
+    blender::ui::Layout &box = flow.box();
+    box.active_set(is_set);
+    blender::ui::Layout &row = box.row(false);
 
     /* property value */
-    row->prop(ptr, prop, -1, 0, UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    row.prop(ptr, prop, -1, 0, UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     if (is_set) {
       /* unset operator */
-      uiBlock *block = row->block();
+      uiBlock *block = row.block();
       UI_block_emboss_set(block, blender::ui::EmbossType::None);
       but = uiDefIconButO(block,
                           ButType::But,
@@ -77,7 +79,7 @@ static void template_keymap_item_properties(uiLayout *layout, const char *title,
   RNA_STRUCT_END;
 }
 
-void uiTemplateKeymapItemProperties(uiLayout *layout, PointerRNA *ptr)
+void uiTemplateKeymapItemProperties(blender::ui::Layout *layout, PointerRNA *ptr)
 {
   PointerRNA propptr = RNA_pointer_get(ptr, "properties");
 
@@ -86,7 +88,7 @@ void uiTemplateKeymapItemProperties(uiLayout *layout, PointerRNA *ptr)
     int i = layout->block()->buttons.size() - 1;
 
     WM_operator_properties_sanitize(&propptr, false);
-    template_keymap_item_properties(layout, nullptr, &propptr);
+    template_keymap_item_properties(*layout, nullptr, &propptr);
     if (i < 0) {
       return;
     }

@@ -40,7 +40,7 @@ static bool keymap_item_can_collapse(const wmKeyMapItem *kmi_a, const wmKeyMapIt
           kmi_a->oskey == kmi_b->oskey && kmi_a->hyper == kmi_b->hyper);
 }
 
-int uiTemplateStatusBarModalItem(uiLayout *layout,
+int uiTemplateStatusBarModalItem(blender::ui::Layout *layout,
                                  wmOperator *op,
                                  const wmKeyMap *keymap,
                                  const EnumPropertyItem *item)
@@ -168,7 +168,7 @@ int uiTemplateStatusBarModalItem(uiLayout *layout,
   return uiTemplateEventFromKeymapItem(layout, item->name, kmi, false) ? 1 : 0;
 }
 
-bool uiTemplateEventFromKeymapItem(uiLayout *layout,
+bool uiTemplateEventFromKeymapItem(blender::ui::Layout *layout,
                                    const StringRefNull text,
                                    const wmKeyMapItem *kmi,
                                    bool text_fallback)

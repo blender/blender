@@ -189,15 +189,15 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *region, void *arg)
   UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT);
   UI_block_direction_set(block, UI_DIR_CENTER_Y);
 
-  uiLayout &layout = blender::ui::block_layout(block,
-                                               blender::ui::LayoutDirection::Vertical,
-                                               blender::ui::LayoutType::Panel,
-                                               0,
-                                               0,
-                                               U.widget_unit * 10,
-                                               U.widget_unit * 2,
-                                               0,
-                                               style);
+  blender::ui::Layout &layout = blender::ui::block_layout(block,
+                                                          blender::ui::LayoutDirection::Vertical,
+                                                          blender::ui::LayoutType::Panel,
+                                                          0,
+                                                          0,
+                                                          U.widget_unit * 10,
+                                                          U.widget_unit * 2,
+                                                          0,
+                                                          style);
 
   layout.label(CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Change Shortcut"), ICON_HAND);
   layout.prop(&ptr, "type", UI_ITEM_R_FULL_EVENT | UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
@@ -249,15 +249,15 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *region, void *arg)
   UI_block_func_handle_set(block, but_shortcut_name_func, but);
   UI_block_direction_set(block, UI_DIR_CENTER_Y);
 
-  uiLayout &layout = blender::ui::block_layout(block,
-                                               blender::ui::LayoutDirection::Vertical,
-                                               blender::ui::LayoutType::Panel,
-                                               0,
-                                               0,
-                                               U.widget_unit * 10,
-                                               U.widget_unit * 2,
-                                               0,
-                                               style);
+  blender::ui::Layout &layout = blender::ui::block_layout(block,
+                                                          blender::ui::LayoutDirection::Vertical,
+                                                          blender::ui::LayoutType::Panel,
+                                                          0,
+                                                          0,
+                                                          U.widget_unit * 10,
+                                                          U.widget_unit * 2,
+                                                          0,
+                                                          style);
 
   layout.label(CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Shortcut"), ICON_HAND);
   layout.prop(&ptr, "type", UI_ITEM_R_FULL_EVENT | UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
@@ -465,7 +465,9 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
   }
 }
 
-static bool ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop)
+static bool ui_but_menu_add_path_operators(blender::ui::Layout &layout,
+                                           PointerRNA *ptr,
+                                           PropertyRNA *prop)
 {
   const PropertySubType subtype = RNA_property_subtype(prop);
   wmOperatorType *ot = WM_operatortype_find("WM_OT_path_open", true);
@@ -485,11 +487,11 @@ static bool ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, Pr
 
   if (BLI_is_file(filepath)) {
     BLI_assert(subtype == PROP_FILEPATH);
-    props_ptr = layout->op(ot,
-                           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open File Externally"),
-                           ICON_NONE,
-                           blender::wm::OpCallContext::InvokeDefault,
-                           UI_ITEM_NONE);
+    props_ptr = layout.op(ot,
+                          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open File Externally"),
+                          ICON_NONE,
+                          blender::wm::OpCallContext::InvokeDefault,
+                          UI_ITEM_NONE);
     RNA_string_set(&props_ptr, "filepath", filepath);
   }
   else {
@@ -499,23 +501,23 @@ static bool ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, Pr
 
   BLI_path_split_dir_file(filepath, dir, sizeof(dir), file, sizeof(file));
 
-  props_ptr = layout->op(ot,
-                         CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open Location Externally"),
-                         ICON_NONE,
-                         blender::wm::OpCallContext::InvokeDefault,
-                         UI_ITEM_NONE);
+  props_ptr = layout.op(ot,
+                        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open Location Externally"),
+                        ICON_NONE,
+                        blender::wm::OpCallContext::InvokeDefault,
+                        UI_ITEM_NONE);
   RNA_string_set(&props_ptr, "filepath", dir);
 
   return true;
 }
 
-static void set_layout_context_from_button(bContext *C, uiLayout *layout, uiBut *but)
+static void set_layout_context_from_button(bContext *C, blender::ui::Layout &layout, uiBut *but)
 {
   if (!but->context) {
     return;
   }
-  layout->context_copy(but->context);
-  CTX_store_set(C, layout->context_store());
+  layout.context_copy(but->context);
+  CTX_store_set(C, layout.context_store());
 }
 
 bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *event)
@@ -527,16 +529,13 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     return false;
   }
 
-  uiPopupMenu *pup;
-  uiLayout *layout;
   const bContextStore *previous_ctx = CTX_store_get(C);
-  {
-    pup = UI_popup_menu_begin(C, UI_but_context_menu_title_from_button(*but).c_str(), ICON_NONE);
-    layout = UI_popup_menu_layout(pup);
+  uiPopupMenu *pup = UI_popup_menu_begin(
+      C, UI_but_context_menu_title_from_button(*but).c_str(), ICON_NONE);
+  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
 
-    set_layout_context_from_button(C, layout, but);
-    layout->operator_context_set(blender::wm::OpCallContext::InvokeDefault);
-  }
+  set_layout_context_from_button(C, layout, but);
+  layout.operator_context_set(blender::wm::OpCallContext::InvokeDefault);
 
   const bool is_disabled = but->flag & UI_BUT_DISABLED;
 
@@ -546,8 +545,8 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   else if (but->type == ButType::Tab) {
     uiButTab *tab = (uiButTab *)but;
     if (tab->menu) {
-      UI_menutype_draw(C, tab->menu, layout);
-      layout->separator();
+      UI_menutype_draw(C, tab->menu, &layout);
+      layout.separator();
     }
   }
   else if (but->rnapoin.data && but->rnaprop) {
@@ -575,63 +574,62 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
 
     /* Set the (button_pointer, button_prop)
      * and pointer data for Python access to the hovered UI element. */
-    layout->context_set_from_but(but);
+    layout.context_set_from_but(but);
 
     /* Keyframes */
     if (but->flag & UI_BUT_ANIMATED_KEY) {
       /* Replace/delete keyframes. */
       if (is_array_component) {
-        PointerRNA op_ptr = layout->op(
+        PointerRNA op_ptr = layout.op(
             "ANIM_OT_keyframe_insert_button",
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Replace Keyframes"),
             ICON_KEY_HLT);
         RNA_boolean_set(&op_ptr, "all", true);
-        op_ptr = layout->op(
-            "ANIM_OT_keyframe_insert_button",
-            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Replace Single Keyframe"),
-            ICON_NONE);
+        op_ptr = layout.op("ANIM_OT_keyframe_insert_button",
+                           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Replace Single Keyframe"),
+                           ICON_NONE);
         RNA_boolean_set(&op_ptr, "all", false);
-        op_ptr = layout->op("ANIM_OT_keyframe_delete_button",
-                            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Keyframes"),
-                            ICON_NONE);
+        op_ptr = layout.op("ANIM_OT_keyframe_delete_button",
+                           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Keyframes"),
+                           ICON_NONE);
         RNA_boolean_set(&op_ptr, "all", true);
-        op_ptr = layout->op("ANIM_OT_keyframe_delete_button",
-                            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Single Keyframe"),
-                            ICON_NONE);
+        op_ptr = layout.op("ANIM_OT_keyframe_delete_button",
+                           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Single Keyframe"),
+                           ICON_NONE);
         RNA_boolean_set(&op_ptr, "all", false);
       }
       else {
-        PointerRNA op_ptr = layout->op(
+        PointerRNA op_ptr = layout.op(
             "ANIM_OT_keyframe_insert_button",
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Replace Keyframe"),
             ICON_KEY_HLT);
         RNA_boolean_set(&op_ptr, "all", true);
-        op_ptr = layout->op("ANIM_OT_keyframe_delete_button",
-                            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Keyframe"),
-                            ICON_NONE);
+        op_ptr = layout.op("ANIM_OT_keyframe_delete_button",
+                           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Keyframe"),
+                           ICON_NONE);
         RNA_boolean_set(&op_ptr, "all", true);
       }
 
       /* keyframe settings */
-      layout->separator();
+      layout.separator();
     }
     else if (but->flag & UI_BUT_DRIVEN) {
       /* pass */
     }
     else if (is_anim) {
       if (is_array_component) {
-        PointerRNA op_ptr = layout->op(
+        PointerRNA op_ptr = layout.op(
             "ANIM_OT_keyframe_insert_button",
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Insert Keyframes"),
             ICON_KEY_HLT);
         RNA_boolean_set(&op_ptr, "all", true);
-        op_ptr = layout->op("ANIM_OT_keyframe_insert_button",
-                            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Insert Single Keyframe"),
-                            ICON_NONE);
+        op_ptr = layout.op("ANIM_OT_keyframe_insert_button",
+                           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Insert Single Keyframe"),
+                           ICON_NONE);
         RNA_boolean_set(&op_ptr, "all", false);
       }
       else {
-        PointerRNA op_ptr = layout->op(
+        PointerRNA op_ptr = layout.op(
             "ANIM_OT_keyframe_insert_button",
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Insert Keyframe"),
             ICON_KEY_HLT);
@@ -641,18 +639,18 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
 
     if ((but->flag & UI_BUT_ANIMATED) && (but->rnapoin.type != &RNA_NlaStrip)) {
       if (is_array_component) {
-        PointerRNA op_ptr = layout->op(
+        PointerRNA op_ptr = layout.op(
             "ANIM_OT_keyframe_clear_button",
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Keyframes"),
             ICON_KEY_DEHLT);
         RNA_boolean_set(&op_ptr, "all", true);
-        op_ptr = layout->op("ANIM_OT_keyframe_clear_button",
-                            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Single Keyframes"),
-                            ICON_NONE);
+        op_ptr = layout.op("ANIM_OT_keyframe_clear_button",
+                           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Single Keyframes"),
+                           ICON_NONE);
         RNA_boolean_set(&op_ptr, "all", false);
       }
       else {
-        PointerRNA op_ptr = layout->op(
+        PointerRNA op_ptr = layout.op(
             "ANIM_OT_keyframe_clear_button",
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Keyframes"),
             ICON_KEY_DEHLT);
@@ -661,12 +659,12 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     }
 
     if (but->flag & UI_BUT_ANIMATED) {
-      layout->separator();
+      layout.separator();
       if (is_array_component) {
         PointerRNA op_ptr;
         wmOperatorType *ot;
         ot = WM_operatortype_find("ANIM_OT_view_curve_in_graph_editor", false);
-        op_ptr = layout->op(
+        op_ptr = layout.op(
             ot,
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "View All in Graph Editor"),
             ICON_GRAPH,
@@ -674,7 +672,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
             UI_ITEM_NONE);
         RNA_boolean_set(&op_ptr, "all", true);
 
-        op_ptr = layout->op(
+        op_ptr = layout.op(
             ot,
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "View Single in Graph Editor"),
             ICON_NONE,
@@ -687,32 +685,32 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
         wmOperatorType *ot;
         ot = WM_operatortype_find("ANIM_OT_view_curve_in_graph_editor", false);
 
-        op_ptr = layout->op(ot,
-                            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "View in Graph Editor"),
-                            ICON_NONE,
-                            blender::wm::OpCallContext::InvokeDefault,
-                            UI_ITEM_NONE);
+        op_ptr = layout.op(ot,
+                           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "View in Graph Editor"),
+                           ICON_NONE,
+                           blender::wm::OpCallContext::InvokeDefault,
+                           UI_ITEM_NONE);
         RNA_boolean_set(&op_ptr, "all", false);
       }
     }
 
     /* Drivers */
     if (but->flag & UI_BUT_DRIVEN) {
-      layout->separator();
+      layout.separator();
 
       if (is_array_component) {
-        PointerRNA op_ptr = layout->op(
+        PointerRNA op_ptr = layout.op(
             "ANIM_OT_driver_button_remove",
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Drivers"),
             ICON_X);
         RNA_boolean_set(&op_ptr, "all", true);
-        op_ptr = layout->op("ANIM_OT_driver_button_remove",
-                            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Single Driver"),
-                            ICON_NONE);
+        op_ptr = layout.op("ANIM_OT_driver_button_remove",
+                           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Single Driver"),
+                           ICON_NONE);
         RNA_boolean_set(&op_ptr, "all", false);
       }
       else {
-        PointerRNA op_ptr = layout->op(
+        PointerRNA op_ptr = layout.op(
             "ANIM_OT_driver_button_remove",
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Driver"),
             ICON_X);
@@ -720,95 +718,95 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       }
 
       if (is_whole_array) {
-        PointerRNA op_ptr = layout->op(
+        PointerRNA op_ptr = layout.op(
             "UI_OT_copy_driver_to_selected_button",
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy Drivers to Selected"),
             ICON_NONE);
         RNA_boolean_set(&op_ptr, "all", true);
       }
       else {
-        layout->op("ANIM_OT_copy_driver_button",
-                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy Driver"),
-                   ICON_NONE);
+        layout.op("ANIM_OT_copy_driver_button",
+                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy Driver"),
+                  ICON_NONE);
         if (ANIM_driver_can_paste()) {
-          layout->op("ANIM_OT_paste_driver_button",
-                     CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Paste Driver"),
-                     ICON_NONE);
+          layout.op("ANIM_OT_paste_driver_button",
+                    CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Paste Driver"),
+                    ICON_NONE);
         }
-        PointerRNA op_ptr = layout->op(
+        PointerRNA op_ptr = layout.op(
             "UI_OT_copy_driver_to_selected_button",
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy Driver to Selected"),
             ICON_NONE);
         RNA_boolean_set(&op_ptr, "all", false);
         if (is_array_component) {
-          PointerRNA op_ptr = layout->op(
+          PointerRNA op_ptr = layout.op(
               "UI_OT_copy_driver_to_selected_button",
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy All Drivers to Selected"),
               ICON_NONE);
           RNA_boolean_set(&op_ptr, "all", true);
         }
 
-        layout->op("ANIM_OT_driver_button_edit",
-                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Edit Driver"),
-                   ICON_DRIVER);
+        layout.op("ANIM_OT_driver_button_edit",
+                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Edit Driver"),
+                  ICON_DRIVER);
       }
 
-      layout->op("SCREEN_OT_drivers_editor_show",
-                 CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open Drivers Editor"),
-                 ICON_NONE);
+      layout.op("SCREEN_OT_drivers_editor_show",
+                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open Drivers Editor"),
+                ICON_NONE);
     }
     else if (but->flag & (UI_BUT_ANIMATED_KEY | UI_BUT_ANIMATED)) {
       /* pass */
     }
     else if (is_anim) {
-      layout->separator();
+      layout.separator();
 
-      layout->op("ANIM_OT_driver_button_add",
-                 CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Driver"),
-                 ICON_DRIVER);
+      layout.op("ANIM_OT_driver_button_add",
+                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Driver"),
+                ICON_DRIVER);
 
       if (!is_whole_array) {
         if (ANIM_driver_can_paste()) {
-          layout->op("ANIM_OT_paste_driver_button",
-                     CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Paste Driver"),
-                     ICON_NONE);
+          layout.op("ANIM_OT_paste_driver_button",
+                    CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Paste Driver"),
+                    ICON_NONE);
         }
       }
 
-      layout->op("SCREEN_OT_drivers_editor_show",
-                 CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open Drivers Editor"),
-                 ICON_NONE);
+      layout.op("SCREEN_OT_drivers_editor_show",
+                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open Drivers Editor"),
+                ICON_NONE);
     }
 
     /* Keying Sets */
     /* TODO: check on modifiability of Keying Set when doing this. */
     if (is_anim) {
-      layout->separator();
+      layout.separator();
 
       if (is_array_component) {
-        PointerRNA op_ptr = layout->op(
+        PointerRNA op_ptr = layout.op(
             "ANIM_OT_keyingset_button_add",
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add All to Keying Set"),
             ICON_KEYINGSET);
         RNA_boolean_set(&op_ptr, "all", true);
-        op_ptr = layout->op(
+        op_ptr = layout.op(
             "ANIM_OT_keyingset_button_add",
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Single to Keying Set"),
             ICON_NONE);
         RNA_boolean_set(&op_ptr, "all", false);
-        layout->op("ANIM_OT_keyingset_button_remove",
-                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Keying Set"),
-                   ICON_NONE);
+        layout.op("ANIM_OT_keyingset_button_remove",
+                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Keying Set"),
+                  ICON_NONE);
       }
       else {
-        PointerRNA op_ptr = layout->op(
+        PointerRNA op_ptr = layout.op(
             "ANIM_OT_keyingset_button_add",
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add to Keying Set"),
             ICON_KEYINGSET);
         RNA_boolean_set(&op_ptr, "all", true);
-        layout->op("ANIM_OT_keyingset_button_remove",
-                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Keying Set"),
-                   ICON_NONE);
+        layout.op("ANIM_OT_keyingset_button_remove",
+                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Keying Set"),
+                  ICON_NONE);
       }
     }
 
@@ -816,23 +814,23 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       wmOperatorType *ot;
       PointerRNA op_ptr;
       /* Override Operators */
-      layout->separator();
+      layout.separator();
 
       if (but->flag & UI_BUT_OVERRIDDEN) {
         if (is_array_component) {
-          PointerRNA op_ptr = layout->op(
+          PointerRNA op_ptr = layout.op(
               "UI_OT_override_remove_button",
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove Overrides"),
               ICON_X);
           RNA_boolean_set(&op_ptr, "all", true);
-          op_ptr = layout->op(
+          op_ptr = layout.op(
               "UI_OT_override_remove_button",
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove Single Override"),
               ICON_X);
           RNA_boolean_set(&op_ptr, "all", false);
         }
         else {
-          PointerRNA op_ptr = layout->op(
+          PointerRNA op_ptr = layout.op(
               "UI_OT_override_remove_button",
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove Override"),
               ICON_X);
@@ -842,31 +840,31 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       else {
         ot = WM_operatortype_find("UI_OT_override_add_button", false);
         if (is_array_component) {
-          op_ptr = layout->op(ot,
-                              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Overrides"),
-                              ICON_NONE,
-                              blender::wm::OpCallContext::InvokeDefault,
-                              UI_ITEM_NONE);
+          op_ptr = layout.op(ot,
+                             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Overrides"),
+                             ICON_NONE,
+                             blender::wm::OpCallContext::InvokeDefault,
+                             UI_ITEM_NONE);
           RNA_boolean_set(&op_ptr, "all", true);
-          op_ptr = layout->op(ot,
-                              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Single Override"),
-                              ICON_NONE,
-                              blender::wm::OpCallContext::InvokeDefault,
-                              UI_ITEM_NONE);
+          op_ptr = layout.op(ot,
+                             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Single Override"),
+                             ICON_NONE,
+                             blender::wm::OpCallContext::InvokeDefault,
+                             UI_ITEM_NONE);
           RNA_boolean_set(&op_ptr, "all", false);
         }
         else {
-          op_ptr = layout->op(ot,
-                              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Override"),
-                              ICON_NONE,
-                              blender::wm::OpCallContext::InvokeDefault,
-                              UI_ITEM_NONE);
+          op_ptr = layout.op(ot,
+                             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Override"),
+                             ICON_NONE,
+                             blender::wm::OpCallContext::InvokeDefault,
+                             UI_ITEM_NONE);
           RNA_boolean_set(&op_ptr, "all", false);
         }
       }
     }
 
-    layout->separator();
+    layout.separator();
 
     /* Property Operators */
 
@@ -874,19 +872,19 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
      * Paste Property Value */
 
     if (is_array_component) {
-      PointerRNA op_ptr = layout->op(
+      PointerRNA op_ptr = layout.op(
           "UI_OT_reset_default_button",
           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Reset All to Default Values"),
           ICON_LOOP_BACK);
       RNA_boolean_set(&op_ptr, "all", true);
-      op_ptr = layout->op(
+      op_ptr = layout.op(
           "UI_OT_reset_default_button",
           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Reset Single to Default Value"),
           ICON_NONE);
       RNA_boolean_set(&op_ptr, "all", false);
     }
     else {
-      PointerRNA op_ptr = layout->op(
+      PointerRNA op_ptr = layout.op(
           "UI_OT_reset_default_button",
           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Reset to Default Value"),
           ICON_LOOP_BACK);
@@ -894,36 +892,36 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     }
 
     if (is_idprop && !is_array && ELEM(type, PROP_INT, PROP_FLOAT)) {
-      layout->op("UI_OT_assign_default_button",
-                 CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Value as Default"),
-                 ICON_NONE);
+      layout.op("UI_OT_assign_default_button",
+                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Value as Default"),
+                ICON_NONE);
 
-      layout->separator();
+      layout.separator();
     }
 
     if (is_array_component) {
-      PointerRNA op_ptr = layout->op(
+      PointerRNA op_ptr = layout.op(
           "UI_OT_copy_to_selected_button",
           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy All to Selected"),
           ICON_NONE);
       RNA_boolean_set(&op_ptr, "all", true);
-      op_ptr = layout->op("UI_OT_copy_to_selected_button",
-                          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy Single to Selected"),
-                          ICON_NONE);
+      op_ptr = layout.op("UI_OT_copy_to_selected_button",
+                         CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy Single to Selected"),
+                         ICON_NONE);
       RNA_boolean_set(&op_ptr, "all", false);
     }
     else {
-      PointerRNA op_ptr = layout->op(
+      PointerRNA op_ptr = layout.op(
           "UI_OT_copy_to_selected_button",
           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy to Selected"),
           ICON_NONE);
       RNA_boolean_set(&op_ptr, "all", true);
     }
 
-    layout->op("UI_OT_copy_data_path_button",
-               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy Data Path"),
-               ICON_NONE);
-    PointerRNA op_ptr = layout->op(
+    layout.op("UI_OT_copy_data_path_button",
+              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy Data Path"),
+              ICON_NONE);
+    PointerRNA op_ptr = layout.op(
         "UI_OT_copy_data_path_button",
         CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy Full Data Path"),
         ICON_NONE);
@@ -932,16 +930,16 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     if (ptr->owner_id && !is_whole_array &&
         ELEM(type, PROP_BOOLEAN, PROP_INT, PROP_FLOAT, PROP_ENUM))
     {
-      layout->op("UI_OT_copy_as_driver_button",
-                 CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy as New Driver"),
-                 ICON_NONE);
+      layout.op("UI_OT_copy_as_driver_button",
+                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy as New Driver"),
+                ICON_NONE);
     }
 
-    layout->separator();
+    layout.separator();
 
     if (type == PROP_STRING && ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {
       if (ui_but_menu_add_path_operators(layout, ptr, prop)) {
-        layout->separator();
+        layout.separator();
       }
     }
   }
@@ -960,13 +958,13 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
         PointerRNA props_ptr;
         char dir[FILE_MAXDIR];
         BLI_path_split_dir_part(filepath, dir, sizeof(dir));
-        props_ptr = layout->op(ot,
-                               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open File Location"),
-                               ICON_NONE,
-                               blender::wm::OpCallContext::InvokeDefault,
-                               UI_ITEM_NONE);
+        props_ptr = layout.op(ot,
+                              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open File Location"),
+                              ICON_NONE,
+                              blender::wm::OpCallContext::InvokeDefault,
+                              UI_ITEM_NONE);
         RNA_string_set(&props_ptr, "filepath", dir);
-        layout->separator();
+        layout.separator();
       }
     }
   }
@@ -982,14 +980,14 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
 
       const bContextStore *prev_ctx = CTX_store_get(C);
       /* Sub-layout for context override. */
-      uiLayout *sub = &layout->column(false);
+      blender::ui::Layout &sub = layout.column(false);
       set_layout_context_from_button(C, sub, view_item_but);
-      view_item_but->view_item->build_context_menu(*C, *sub);
+      view_item_but->view_item->build_context_menu(*C, sub);
 
       /* Reset context. */
       CTX_store_set(C, prev_ctx);
 
-      layout->separator();
+      layout.separator();
     }
   }
 
@@ -1005,24 +1003,24 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       /* Gray out items depending on if data-block is an asset. Preferably this could be done via
        * operator poll, but that doesn't work since the operator also works with "selected_ids",
        * which isn't cheap to check. */
-      uiLayout *sub = &layout->column(true);
+      blender::ui::Layout *sub = &layout.column(true);
       sub->enabled_set(!id->asset_data);
       sub->op("ASSET_OT_mark_single",
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Mark as Asset"),
               ICON_ASSET_MANAGER);
-      sub = &layout->column(true);
+      sub = &layout.column(true);
       sub->enabled_set(id->asset_data);
       sub->op("ASSET_OT_clear_single",
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Asset"),
               ICON_NONE);
-      layout->separator();
+      layout.separator();
     }
 
     MenuType *mt_idtemplate_liboverride = WM_menutype_find("UI_MT_idtemplate_liboverride", true);
     if (mt_idtemplate_liboverride && mt_idtemplate_liboverride->poll(C, mt_idtemplate_liboverride))
     {
-      layout->menu(mt_idtemplate_liboverride, IFACE_("Library Override"), ICON_NONE);
-      layout->separator();
+      layout.menu(mt_idtemplate_liboverride, IFACE_("Library Override"), ICON_NONE);
+      layout.separator();
     }
   }
 
@@ -1035,17 +1033,17 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           ((uiButSearch *)but)->items_update_fn == ui_rna_collection_search_update_fn)) &&
         ui_jump_to_target_button_poll(C))
     {
-      layout->op("UI_OT_jump_to_target_button",
-                 CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Jump to Target"),
-                 ICON_NONE);
-      layout->separator();
+      layout.op("UI_OT_jump_to_target_button",
+                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Jump to Target"),
+                ICON_NONE);
+      layout.separator();
     }
   }
 
   /* Favorites Menu */
   if (ui_but_is_user_menu_compatible(C, but)) {
-    uiBlock *block = layout->block();
-    const int w = layout->width();
+    uiBlock *block = layout.block();
+    const int w = layout.width();
     bool item_found = false;
 
     uint um_array_len;
@@ -1098,15 +1096,15 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       });
     }
 
-    layout->separator();
+    layout.separator();
   }
 
   /* Shortcut menu */
   IDProperty *prop;
   const char *idname = shortcut_get_operator_property(C, but, &prop);
   if (idname != nullptr) {
-    uiBlock *block = layout->block();
-    const int w = layout->width();
+    uiBlock *block = layout.block();
+    const int w = layout.width();
 
     /* We want to know if this op has a shortcut, be it hotkey or not. */
     wmKeyMap *km;
@@ -1123,7 +1121,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                       "Change Shortcut",
                       0,
                       0,
-                      layout->width(),
+                      layout.width(),
                       UI_UNIT_Y,
                       "");
 #endif
@@ -1192,20 +1190,20 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     shortcut_free_operator_property(prop);
 
     /* Set the operator pointer for python access */
-    layout->context_set_from_but(but);
+    layout.context_set_from_but(but);
 
-    layout->separator();
+    layout.separator();
   }
 
   { /* Docs */
     if (std::optional<std::string> manual_id = UI_but_online_manual_id(but)) {
       PointerRNA ptr_props;
-      layout->op("WM_OT_doc_view_manual_ui_context",
-                 CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Online Manual"),
-                 ICON_URL);
+      layout.op("WM_OT_doc_view_manual_ui_context",
+                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Online Manual"),
+                ICON_URL);
 
       if (U.flag & USER_DEVELOPER_UI) {
-        ptr_props = layout->op(
+        ptr_props = layout.op(
             "WM_OT_doc_view",
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Online Python Reference"),
             ICON_NONE,
@@ -1217,17 +1215,17 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   }
 
   if (but->optype && U.flag & USER_DEVELOPER_UI) {
-    layout->op("UI_OT_copy_python_command_button", std::nullopt, ICON_NONE);
+    layout.op("UI_OT_copy_python_command_button", std::nullopt, ICON_NONE);
   }
 
   /* perhaps we should move this into (G.debug & G_DEBUG) - campbell */
   if (U.flag & USER_DEVELOPER_UI) {
     if (ui_block_is_menu(but->block) == false) {
-      layout->op("UI_OT_editsource",
-                 std::nullopt,
-                 ICON_NONE,
-                 blender::wm::OpCallContext::InvokeDefault,
-                 UI_ITEM_NONE);
+      layout.op("UI_OT_editsource",
+                std::nullopt,
+                ICON_NONE,
+                blender::wm::OpCallContext::InvokeDefault,
+                UI_ITEM_NONE);
     }
   }
 
@@ -1239,17 +1237,17 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       /* skip */
     }
     else if (ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
-      layout->menu_fn(IFACE_("Header"), ICON_NONE, ED_screens_header_tools_menu_create, nullptr);
+      layout.menu_fn(IFACE_("Header"), ICON_NONE, ED_screens_header_tools_menu_create, nullptr);
     }
     else if (region->regiontype == RGN_TYPE_NAV_BAR) {
-      layout->menu_fn(IFACE_("Navigation Bar"), ICON_NONE, ED_buttons_navbar_menu, nullptr);
+      layout.menu_fn(IFACE_("Navigation Bar"), ICON_NONE, ED_buttons_navbar_menu, nullptr);
       const ScrArea *area = CTX_wm_area(C);
       if (area && area->spacetype == SPACE_PROPERTIES) {
-        layout->menu_fn(IFACE_("Visible Tabs"), ICON_NONE, ED_buttons_visible_tabs_menu, nullptr);
+        layout.menu_fn(IFACE_("Visible Tabs"), ICON_NONE, ED_buttons_visible_tabs_menu, nullptr);
       }
     }
     else if (region->regiontype == RGN_TYPE_FOOTER) {
-      layout->menu_fn(IFACE_("Footer"), ICON_NONE, ED_screens_footer_tools_menu_create, nullptr);
+      layout.menu_fn(IFACE_("Footer"), ICON_NONE, ED_screens_footer_tools_menu_create, nullptr);
     }
   }
 
@@ -1262,13 +1260,13 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   if (is_inside_listrow) {
     MenuType *mt = WM_menutype_find("UI_MT_list_item_context_menu", true);
     if (mt) {
-      UI_menutype_draw(C, mt, &layout->column(false));
+      UI_menutype_draw(C, mt, &layout.column(false));
     }
   }
 
   MenuType *mt = WM_menutype_find("UI_MT_button_context_menu", true);
   if (mt) {
-    UI_menutype_draw(C, mt, &layout->column(false));
+    UI_menutype_draw(C, mt, &layout.column(false));
   }
 
   if (but->context) {
@@ -1303,16 +1301,16 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
   PointerRNA ptr = RNA_pointer_create_discrete(&screen->id, &RNA_Panel, panel);
 
   uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Panel"), ICON_NONE);
-  uiLayout *layout = UI_popup_menu_layout(pup);
+  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
 
   if (has_panel_category) {
     char tmpstr[80];
     SNPRINTF_UTF8(tmpstr, "%s" UI_SEP_CHAR_S "%s", IFACE_("Pin"), IFACE_("Shift Left Mouse"));
-    layout->prop(&ptr, "use_pin", UI_ITEM_NONE, tmpstr, ICON_NONE);
+    layout.prop(&ptr, "use_pin", UI_ITEM_NONE, tmpstr, ICON_NONE);
 
     /* evil, force shortcut flag */
     {
-      uiBlock *block = layout->block();
+      uiBlock *block = layout.block();
       uiBut *but = block->buttons.last().get();
       but->flag |= UI_BUT_HAS_SEP_CHAR;
     }

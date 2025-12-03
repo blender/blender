@@ -1016,7 +1016,7 @@ static uiBut *template_id_def_new_but(uiBlock *block,
 }
 
 static void template_ID(const bContext *C,
-                        uiLayout *layout,
+                        blender::ui::Layout &layout,
                         TemplateID &template_ui,
                         StructRNA *type,
                         int flag,
@@ -1037,9 +1037,9 @@ static void template_ID(const bContext *C,
   // lb = template_ui->idlb;
 
   /* Allow operators to take the ID from context. */
-  layout->context_ptr_set("id", &idptr);
+  layout.context_ptr_set("id", &idptr);
 
-  uiBlock *block = layout->block();
+  uiBlock *block = layout.block();
   UI_block_align_begin(block);
 
   if (idptr.type) {
@@ -1048,7 +1048,7 @@ static void template_ID(const bContext *C,
 
   if (text && !text->is_empty()) {
     /* Add label respecting the separated layout property split state. */
-    uiItemL_respect_property_split(layout, *text, ICON_NONE);
+    uiItemL_respect_property_split(&layout, *text, ICON_NONE);
   }
 
   if (flag & UI_ID_BROWSE) {
@@ -1425,7 +1425,7 @@ static void template_ID(const bContext *C,
   }
 
   if (template_ui.idcode == ID_TE) {
-    uiTemplateTextureShow(layout, C, &template_ui.ptr, template_ui.prop);
+    uiTemplateTextureShow(&layout, C, &template_ui.ptr, template_ui.prop);
   }
   UI_block_align_end(block);
 }
@@ -1441,7 +1441,7 @@ ID *UI_context_active_but_get_tab_ID(bContext *C)
 }
 
 static void template_ID_tabs(const bContext *C,
-                             uiLayout *layout,
+                             blender::ui::Layout &layout,
                              TemplateID &template_id,
                              StructRNA *type,
                              int flag,
@@ -1460,7 +1460,7 @@ static void template_ID_tabs(const bContext *C,
 
   const int but_height = UI_UNIT_Y * 1.1;
 
-  uiBlock *block = layout->block();
+  uiBlock *block = layout.block();
   const uiStyle *style = UI_style_get_dpi();
 
   for (ID *id : BKE_id_ordered_list(template_id.idlb)) {
@@ -1514,7 +1514,7 @@ static void template_ID_tabs(const bContext *C,
   }
 }
 
-static void ui_template_id(uiLayout *layout,
+static void ui_template_id(blender::ui::Layout &layout,
                            const bContext *C,
                            PointerRNA *ptr,
                            const StringRefNull propname,
@@ -1572,27 +1572,18 @@ static void ui_template_id(uiLayout *layout,
    */
   if (template_ui.idlb) {
     if (use_tabs) {
-      layout = &layout->row(true);
-      template_ID_tabs(C, layout, template_ui, type, flag, newop, menu);
+      blender::ui::Layout &row = layout.row(true);
+      template_ID_tabs(C, row, template_ui, type, flag, newop, menu);
     }
     else {
-      layout = &layout->row(true);
-      template_ID(C,
-                  layout,
-                  template_ui,
-                  type,
-                  flag,
-                  newop,
-                  openop,
-                  unlinkop,
-                  text,
-                  live_icon,
-                  hide_buttons);
+      blender::ui::Layout &row = layout.row(true);
+      template_ID(
+          C, row, template_ui, type, flag, newop, openop, unlinkop, text, live_icon, hide_buttons);
     }
   }
 }
 
-void uiTemplateID(uiLayout *layout,
+void uiTemplateID(blender::ui::Layout *layout,
                   const bContext *C,
                   PointerRNA *ptr,
                   const StringRefNull propname,
@@ -1603,7 +1594,7 @@ void uiTemplateID(uiLayout *layout,
                   const bool live_icon,
                   const std::optional<StringRef> text)
 {
-  ui_template_id(layout,
+  ui_template_id(*layout,
                  C,
                  ptr,
                  propname,
@@ -1622,7 +1613,7 @@ void uiTemplateID(uiLayout *layout,
                  false);
 }
 
-void uiTemplateAction(uiLayout *layout,
+void uiTemplateAction(blender::ui::Layout *layout,
                       const bContext *C,
                       ID *id,
                       const char *newop,
@@ -1665,12 +1656,12 @@ void uiTemplateAction(uiLayout *layout,
   template_ui.idlb = which_libbase(CTX_data_main(C), ID_AC);
   BLI_assert(template_ui.idlb);
 
-  uiLayout *row = &layout->row(true);
+  blender::ui::Layout &row = layout->row(true);
   template_ID(
       C, row, template_ui, &RNA_Action, flag, newop, nullptr, unlinkop, text, false, false);
 }
 
-void uiTemplateIDBrowse(uiLayout *layout,
+void uiTemplateIDBrowse(blender::ui::Layout *layout,
                         bContext *C,
                         PointerRNA *ptr,
                         const StringRefNull propname,
@@ -1680,7 +1671,7 @@ void uiTemplateIDBrowse(uiLayout *layout,
                         int filter,
                         const char *text)
 {
-  ui_template_id(layout,
+  ui_template_id(*layout,
                  C,
                  ptr,
                  propname,
@@ -1699,7 +1690,7 @@ void uiTemplateIDBrowse(uiLayout *layout,
                  false);
 }
 
-void uiTemplateIDPreview(uiLayout *layout,
+void uiTemplateIDPreview(blender::ui::Layout *layout,
                          bContext *C,
                          PointerRNA *ptr,
                          const StringRefNull propname,
@@ -1711,7 +1702,7 @@ void uiTemplateIDPreview(uiLayout *layout,
                          int filter,
                          const bool hide_buttons)
 {
-  ui_template_id(layout,
+  ui_template_id(*layout,
                  C,
                  ptr,
                  propname,
@@ -1730,7 +1721,7 @@ void uiTemplateIDPreview(uiLayout *layout,
                  hide_buttons);
 }
 
-void uiTemplateGpencilColorPreview(uiLayout *layout,
+void uiTemplateGpencilColorPreview(blender::ui::Layout *layout,
                                    bContext *C,
                                    PointerRNA *ptr,
                                    const StringRefNull propname,
@@ -1739,7 +1730,7 @@ void uiTemplateGpencilColorPreview(uiLayout *layout,
                                    float scale,
                                    int filter)
 {
-  ui_template_id(layout,
+  ui_template_id(*layout,
                  C,
                  ptr,
                  propname,
@@ -1758,7 +1749,7 @@ void uiTemplateGpencilColorPreview(uiLayout *layout,
                  false);
 }
 
-void uiTemplateIDTabs(uiLayout *layout,
+void uiTemplateIDTabs(blender::ui::Layout *layout,
                       bContext *C,
                       PointerRNA *ptr,
                       const StringRefNull propname,
@@ -1766,7 +1757,7 @@ void uiTemplateIDTabs(uiLayout *layout,
                       const char *menu,
                       int filter)
 {
-  ui_template_id(layout,
+  ui_template_id(*layout,
                  C,
                  ptr,
                  propname,
@@ -1785,7 +1776,7 @@ void uiTemplateIDTabs(uiLayout *layout,
                  false);
 }
 
-void uiTemplateAnyID(uiLayout *layout,
+void uiTemplateAnyID(blender::ui::Layout *layout,
                      PointerRNA *ptr,
                      const StringRefNull propname,
                      const StringRefNull proptypename,
@@ -1810,10 +1801,10 @@ void uiTemplateAnyID(uiLayout *layout,
   /* Start drawing UI Elements using standard defines */
 
   /* NOTE: split amount here needs to be synced with normal labels */
-  uiLayout *split = &layout->split(0.33f, false);
+  blender::ui::Layout &split = layout->split(0.33f, false);
 
   /* FIRST PART ................................................ */
-  uiLayout *row = &split->row(false);
+  blender::ui::Layout *row = &split.row(false);
 
   /* Label - either use the provided text, or will become "ID-Block:" */
   if (text) {
@@ -1826,13 +1817,13 @@ void uiTemplateAnyID(uiLayout *layout,
   }
 
   /* SECOND PART ................................................ */
-  row = &split->row(true);
+  row = &split.row(true);
 
   /* ID-Type Selector - just have a menu of icons */
 
   /* HACK: special group just for the enum,
    * otherwise we get ugly layout with text included too... */
-  uiLayout *sub = &row->row(true);
+  blender::ui::Layout *sub = &row->row(true);
   sub->alignment_set(blender::ui::LayoutAlign::Left);
 
   sub->prop(ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY, "", ICON_NONE);

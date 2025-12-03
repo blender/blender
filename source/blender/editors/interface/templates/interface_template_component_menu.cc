@@ -29,16 +29,16 @@ static uiBlock *component_menu(bContext *C, ARegion *region, void *args_v)
   uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN);
 
-  uiLayout &layout = blender::ui::block_layout(block,
-                                               blender::ui::LayoutDirection::Vertical,
-                                               blender::ui::LayoutType::Panel,
-                                               0,
-                                               0,
-                                               UI_UNIT_X * 6,
-                                               UI_UNIT_Y,
-                                               0,
-                                               UI_style_get())
-                         .column(false);
+  blender::ui::Layout &layout = blender::ui::block_layout(block,
+                                                          blender::ui::LayoutDirection::Vertical,
+                                                          blender::ui::LayoutType::Panel,
+                                                          0,
+                                                          0,
+                                                          UI_UNIT_X * 6,
+                                                          UI_UNIT_Y,
+                                                          0,
+                                                          UI_style_get())
+                                    .column(false);
 
   layout.prop(&args->ptr, args->propname, UI_ITEM_R_EXPAND, "", ICON_NONE);
 
@@ -47,7 +47,7 @@ static uiBlock *component_menu(bContext *C, ARegion *region, void *args_v)
 
   return block;
 }
-void uiTemplateComponentMenu(uiLayout *layout,
+void uiTemplateComponentMenu(blender::ui::Layout *layout,
                              PointerRNA *ptr,
                              const StringRefNull propname,
                              const StringRef name)

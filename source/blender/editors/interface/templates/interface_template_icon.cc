@@ -80,7 +80,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_lit
   return block;
 }
 
-void uiTemplateIcon(uiLayout *layout, int icon_value, float icon_scale)
+void uiTemplateIcon(blender::ui::Layout *layout, int icon_value, float icon_scale)
 {
   uiBlock *block = layout->absolute_block();
   uiBut *but = uiDefIconBut(block,
@@ -97,7 +97,7 @@ void uiTemplateIcon(uiLayout *layout, int icon_value, float icon_scale)
   ui_def_but_icon(but, icon_value, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
 }
 
-void uiTemplateIconView(uiLayout *layout,
+void uiTemplateIconView(blender::ui::Layout *layout,
                         PointerRNA *ptr,
                         const StringRefNull propname,
                         bool show_labels,

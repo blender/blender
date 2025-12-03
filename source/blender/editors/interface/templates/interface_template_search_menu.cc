@@ -663,15 +663,16 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
       }
 
       uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
-      uiLayout &layout = blender::ui::block_layout(block,
-                                                   blender::ui::LayoutDirection::Vertical,
-                                                   blender::ui::LayoutType::Menu,
-                                                   0,
-                                                   0,
-                                                   200,
-                                                   0,
-                                                   UI_MENU_PADDING,
-                                                   style);
+      blender::ui::Layout &layout = blender::ui::block_layout(
+          block,
+          blender::ui::LayoutDirection::Vertical,
+          blender::ui::LayoutType::Menu,
+          0,
+          0,
+          200,
+          0,
+          UI_MENU_PADDING,
+          style);
 
       UI_block_flag_enable(block, UI_BLOCK_SHOW_SHORTCUT_ALWAYS);
 
@@ -770,15 +771,16 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
           /* +1 to avoid overlap with the current 'block'. */
           uiBlock *sub_block = UI_block_begin(
               C, region, __func__ + 1, blender::ui::EmbossType::Emboss);
-          uiLayout &sub_layout = blender::ui::block_layout(sub_block,
-                                                           blender::ui::LayoutDirection::Vertical,
-                                                           blender::ui::LayoutType::Menu,
-                                                           0,
-                                                           0,
-                                                           200,
-                                                           0,
-                                                           UI_MENU_PADDING,
-                                                           style);
+          blender::ui::Layout &sub_layout = blender::ui::block_layout(
+              sub_block,
+              blender::ui::LayoutDirection::Vertical,
+              blender::ui::LayoutType::Menu,
+              0,
+              0,
+              200,
+              0,
+              UI_MENU_PADDING,
+              style);
 
           UI_block_flag_enable(sub_block, UI_BLOCK_SHOW_SHORTCUT_ALWAYS);
 
@@ -1142,7 +1144,7 @@ void UI_but_func_menu_search(uiBut *but, const char *single_menu_idname)
   UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
 }
 
-void uiTemplateMenuSearch(uiLayout *layout)
+void uiTemplateMenuSearch(blender::ui::Layout *layout)
 {
   uiBlock *block;
   uiBut *but;

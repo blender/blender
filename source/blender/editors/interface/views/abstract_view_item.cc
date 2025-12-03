@@ -269,7 +269,7 @@ void AbstractViewItem::on_filter()
 /** \name Context Menu
  * \{ */
 
-void AbstractViewItem::build_context_menu(bContext & /*C*/, uiLayout & /*column*/) const
+void AbstractViewItem::build_context_menu(bContext & /*C*/, Layout & /*column*/) const
 {
   /* No context menu by default. */
 }

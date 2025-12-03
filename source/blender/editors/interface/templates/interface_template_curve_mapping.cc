@@ -340,7 +340,7 @@ static void add_preset_button(uiBlock *block,
  *
  * \param labeltype: Used for defining which curve-channels to show.
  */
-static void curvemap_buttons_layout(uiLayout *layout,
+static void curvemap_buttons_layout(blender::ui::Layout *layout,
                                     PointerRNA *ptr,
                                     char labeltype,
                                     bool levels,
@@ -361,17 +361,17 @@ static void curvemap_buttons_layout(uiLayout *layout,
   UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
   if (tone) {
-    uiLayout *split = &layout->split(0.0f, false);
-    split->row(false).prop(ptr, "tone", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    blender::ui::Layout &split = layout->split(0.0f, false);
+    split.row(false).prop(ptr, "tone", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   }
 
   /* curve chooser */
-  uiLayout *row = &layout->row(false);
+  blender::ui::Layout *row = &layout->row(false);
 
   if (labeltype == 'v') {
     /* vector */
-    uiLayout *sub = &row->row(true);
-    sub->alignment_set(blender::ui::LayoutAlign::Left);
+    blender::ui::Layout &sub = row->row(true);
+    sub.alignment_set(blender::ui::LayoutAlign::Left);
 
     if (cumap->cm[0].curve) {
       bt = uiDefButI(block, ButType::Row, "X", 0, 0, dx, dx, &cumap->cur, 0.0, 0.0, "");
@@ -388,8 +388,8 @@ static void curvemap_buttons_layout(uiLayout *layout,
   }
   else if (labeltype == 'c' && cumap->tone != CURVE_TONE_FILMLIKE) {
     /* color */
-    uiLayout *sub = &row->row(true);
-    sub->alignment_set(blender::ui::LayoutAlign::Left);
+    blender::ui::Layout &sub = row->row(true);
+    sub.alignment_set(blender::ui::LayoutAlign::Left);
 
     if (cumap->cm[3].curve) {
       bt = uiDefButI(block,
@@ -450,8 +450,8 @@ static void curvemap_buttons_layout(uiLayout *layout,
   }
   else if (labeltype == 'h') {
     /* HSV */
-    uiLayout *sub = &row->row(true);
-    sub->alignment_set(blender::ui::LayoutAlign::Left);
+    blender::ui::Layout &sub = row->row(true);
+    sub.alignment_set(blender::ui::LayoutAlign::Left);
 
     if (cumap->cm[0].curve) {
       bt = uiDefButI(block,
@@ -506,8 +506,8 @@ static void curvemap_buttons_layout(uiLayout *layout,
 
   /* operation buttons */
   /* (Right aligned) */
-  uiLayout *sub = &row->row(true);
-  sub->alignment_set(blender::ui::LayoutAlign::Right);
+  blender::ui::Layout &sub = row->row(true);
+  sub.alignment_set(blender::ui::LayoutAlign::Right);
 
   if (!(cumap->flag & CUMA_USE_WRAPPING)) {
     /* Zoom in */
@@ -742,9 +742,9 @@ static void curvemap_buttons_layout(uiLayout *layout,
 
   /* black/white levels */
   if (levels) {
-    uiLayout *split = &layout->split(0.0f, false);
-    split->column(false).prop(ptr, "black_level", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-    split->column(false).prop(ptr, "white_level", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    blender::ui::Layout &split = layout->split(0.0f, false);
+    split.column(false).prop(ptr, "black_level", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    split.column(false).prop(ptr, "white_level", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
     layout->row(false);
     bt = uiDefBut(block,
@@ -776,7 +776,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
 
   if (presets) {
     row = &layout->row(true);
-    sub->alignment_set(blender::ui::LayoutAlign::Left);
+    sub.alignment_set(blender::ui::LayoutAlign::Left);
     add_preset_button(block,
                       dx,
                       ICON_SMOOTHCURVE,
@@ -812,7 +812,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
   UI_block_funcN_set(block, nullptr, nullptr, nullptr);
 }
 
-void uiTemplateCurveMapping(uiLayout *layout,
+void uiTemplateCurveMapping(blender::ui::Layout *layout,
                             PointerRNA *ptr,
                             const StringRefNull propname,
                             int type,

@@ -131,7 +131,7 @@ static void uiTemplateRecentFiles_tooltip_func(bContext & /*C*/,
   }
 }
 
-int uiTemplateRecentFiles(uiLayout *layout, int rows)
+int uiTemplateRecentFiles(blender::ui::Layout *layout, int rows)
 {
   int i = 0;
   LISTBASE_FOREACH_INDEX (RecentFile *, recent, &G.recent_files, i) {

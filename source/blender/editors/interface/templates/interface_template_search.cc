@@ -62,7 +62,7 @@ static uiBlock *template_search_menu(bContext *C, ARegion *region, void *arg_tem
 }
 
 static void template_search_add_button_searchmenu(const bContext *C,
-                                                  uiLayout *layout,
+                                                  blender::ui::Layout *layout,
                                                   uiBlock *block,
                                                   TemplateSearch &template_search,
                                                   const bool editable,
@@ -72,7 +72,7 @@ static void template_search_add_button_searchmenu(const bContext *C,
       template_search.search_data.target_prop);
 
   template_add_button_search_menu(C,
-                                  layout,
+                                  *layout,
                                   block,
                                   &template_search.search_data.target_ptr,
                                   template_search.search_data.target_prop,
@@ -162,13 +162,13 @@ static void template_search_add_button_operator(
 }
 
 static void template_search_buttons(const bContext *C,
-                                    uiLayout *layout,
+                                    blender::ui::Layout &layout,
                                     TemplateSearch &template_search,
                                     const char *newop,
                                     const char *unlinkop,
                                     const std::optional<StringRef> text)
 {
-  uiBlock *block = layout->block();
+  uiBlock *block = layout.block();
   uiRNACollectionSearch *search_data = &template_search.search_data;
   const StructRNA *type = RNA_property_pointer_type(&search_data->target_ptr,
                                                     search_data->target_prop);
@@ -181,16 +181,16 @@ static void template_search_buttons(const bContext *C,
     type = active_ptr.type;
   }
 
-  uiLayout *row = &layout->row(true);
+  blender::ui::Layout &row = layout.row(true);
   UI_block_align_begin(block);
 
-  uiLayout *decorator_layout = nullptr;
+  blender::ui::Layout *decorator_layout = nullptr;
   if (text && !text->is_empty()) {
     /* Add label respecting the separated layout property split state. */
-    decorator_layout = uiItemL_respect_property_split(row, *text, ICON_NONE);
+    decorator_layout = uiItemL_respect_property_split(&row, *text, ICON_NONE);
   }
 
-  template_search_add_button_searchmenu(C, row, block, template_search, editable, false);
+  template_search_add_button_searchmenu(C, &row, block, template_search, editable, false);
   template_search_add_button_name(block, &active_ptr, type);
 
   /* For Blender 4.4, the "New" button is only shown on Action Slot selectors.
@@ -290,7 +290,7 @@ static bool template_search_setup(TemplateSearch &template_search,
   return true;
 }
 
-void uiTemplateSearch(uiLayout *layout,
+void uiTemplateSearch(blender::ui::Layout *layout,
                       const bContext *C,
                       PointerRNA *ptr,
                       const StringRefNull propname,
@@ -302,11 +302,11 @@ void uiTemplateSearch(uiLayout *layout,
 {
   TemplateSearch template_search;
   if (template_search_setup(template_search, ptr, propname, searchptr, searchpropname)) {
-    template_search_buttons(C, layout, template_search, newop, unlinkop, text);
+    template_search_buttons(C, *layout, template_search, newop, unlinkop, text);
   }
 }
 
-void uiTemplateSearchPreview(uiLayout *layout,
+void uiTemplateSearchPreview(blender::ui::Layout *layout,
                              bContext *C,
                              PointerRNA *ptr,
                              const StringRefNull propname,
@@ -324,6 +324,6 @@ void uiTemplateSearchPreview(uiLayout *layout,
     template_search.preview_rows = rows;
     template_search.preview_cols = cols;
 
-    template_search_buttons(C, layout, template_search, newop, unlinkop, text);
+    template_search_buttons(C, *layout, template_search, newop, unlinkop, text);
   }
 }
