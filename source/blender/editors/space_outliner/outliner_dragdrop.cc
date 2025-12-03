@@ -1333,6 +1333,10 @@ static wmOperatorStatus collection_drop_invoke(bContext *C,
     TREESTORE(data.te)->flag &= ~TSE_CLOSED;
   }
 
+  if (relative_after) {
+    BLI_listbase_reverse(&drag->ids);
+  }
+
   LISTBASE_FOREACH (wmDragID *, drag_id, &drag->ids) {
     /* Ctrl enables linking, so we don't need a from collection then. */
     Collection *from = (event->modifier & KM_CTRL) ?
