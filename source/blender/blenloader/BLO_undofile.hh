@@ -16,6 +16,8 @@
 
 struct Main;
 struct Scene;
+struct WriteData;
+struct WriteDataStableAddressIDs;
 
 struct MemFileSharedStorage {
   /**
@@ -50,6 +52,12 @@ struct MemFile {
    * without making a copy. This is faster and requires less memory.
    */
   MemFileSharedStorage *shared_storage;
+
+  /**
+   * Partial storage of the WriteData's generated stable pointers data, to be re-used when writing
+   * the next undo step.
+   */
+  WriteDataStableAddressIDs *stable_address_ids;
 };
 
 struct MemFileWriteData {
@@ -81,10 +89,11 @@ struct UndoReader {
 
 /* Actually only used `writefile.cc`. */
 
-void BLO_memfile_write_init(MemFileWriteData *mem_data,
+void BLO_memfile_write_init(WriteData *wd,
+                            MemFileWriteData *mem_data,
                             MemFile *written_memfile,
                             MemFile *reference_memfile);
-void BLO_memfile_write_finalize(MemFileWriteData *mem_data);
+void BLO_memfile_write_finalize(WriteData *wd, MemFileWriteData *mem_data);
 
 void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t size);
 
