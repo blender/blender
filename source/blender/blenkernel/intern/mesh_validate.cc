@@ -479,8 +479,6 @@ static void remove_invalid_edges(Mesh &mesh, const IndexMask &valid_edges)
     }
   }
 
-  mesh.edges_num = valid_edges.size();
-
   Array<int> all_edges_to_valid_edges(mesh.edges_num);
   index_mask::build_reverse_map(valid_edges, all_edges_to_valid_edges.as_mutable_span());
   MutableSpan<int> corner_edges = mesh.corner_edges_for_write();
@@ -489,6 +487,8 @@ static void remove_invalid_edges(Mesh &mesh, const IndexMask &valid_edges)
       corner_edges[i] = all_edges_to_valid_edges[corner_edges[i]];
     }
   });
+
+  mesh.edges_num = valid_edges.size();
 
   mesh.tag_topology_changed();
 }
