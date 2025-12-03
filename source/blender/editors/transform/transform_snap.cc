@@ -729,15 +729,8 @@ static eSnapMode snap_mode_from_spacetype(TransInfo *t)
     if (t->options & (CTX_CAMERA | CTX_EDGE_DATA | CTX_PAINT_CURVE)) {
       return SCE_SNAP_TO_INCREMENT;
     }
-    eSnapMode snap_mode = eSnapMode(ts->snap_mode);
-    if (t->mode == TFM_TRANSLATION) {
-      /* Use grid-snap for absolute snap while translating, see: #147246. */
-      if ((snap_mode & SCE_SNAP_TO_INCREMENT) && (ts->snap_flag & SCE_SNAP_ABS_GRID)) {
-        snap_mode &= ~SCE_SNAP_TO_INCREMENT;
-        snap_mode |= SCE_SNAP_TO_GRID;
-      }
-    }
-    return snap_mode;
+
+    return eSnapMode(ts->snap_mode);
   }
 
   if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA)) {
