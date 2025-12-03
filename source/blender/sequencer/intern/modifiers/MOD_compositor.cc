@@ -6,6 +6,8 @@
  * \ingroup sequencer
  */
 
+#include "BKE_context.hh"
+
 #include "BLI_math_base.h"
 #include "BLI_rect.h"
 
@@ -24,6 +26,7 @@
 #include "SEQ_modifier.hh"
 #include "SEQ_modifiertypes.hh"
 #include "SEQ_render.hh"
+#include "SEQ_select.hh"
 #include "SEQ_transform.hh"
 
 #include "UI_interface.hh"
@@ -256,13 +259,36 @@ static void compositor_modifier_panel_draw(const bContext *C, Panel *panel)
 
   layout->use_property_split_set(true);
 
-  uiTemplateID(layout,
-               C,
-               ptr,
-               "node_group",
-               "NODE_OT_new_compositor_sequencer_node_group",
-               nullptr,
-               nullptr);
+  Scene *scene = CTX_data_sequencer_scene(C);
+  Strip *strip = seq::select_active_get(scene);
+  bool has_existing_group = false;
+  if (strip != nullptr) {
+    StripModifierData *smd = seq::modifier_get_active(strip);
+
+    if (smd && smd->type == eSeqModifierType_Compositor) {
+      SequencerCompositorModifierData *nmd = (SequencerCompositorModifierData *)smd;
+      if (nmd->node_group != nullptr) {
+        uiTemplateID(layout,
+                     C,
+                     ptr,
+                     "node_group",
+                     "NODE_OT_duplicate_compositing_modifier_node_group",
+                     nullptr,
+                     nullptr);
+        has_existing_group = true;
+      }
+    }
+  }
+
+  if (!has_existing_group) {
+    uiTemplateID(layout,
+                 C,
+                 ptr,
+                 "node_group",
+                 "NODE_OT_new_compositor_sequencer_node_group",
+                 nullptr,
+                 nullptr);
+  }
 
   if (uiLayout *mask_input_layout = layout->panel_prop(
           C, ptr, "open_mask_input_panel", IFACE_("Mask Input")))
