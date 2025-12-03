@@ -314,7 +314,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   if (limit_method == MOD_BEVEL_ANGLE) {
     blender::ui::Layout &sub = col->column(false);
     sub.active_set(edge_bevel);
-    col->prop(ptr, "angle_limit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    sub.prop(ptr, "angle_limit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (limit_method == MOD_BEVEL_WEIGHT) {
     const char *prop_name = edge_bevel ? "edge_weight" : "vertex_weight";
