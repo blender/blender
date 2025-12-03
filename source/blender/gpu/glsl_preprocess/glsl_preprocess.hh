@@ -507,7 +507,7 @@ class Preprocessor {
           template_call_mutation(parser, report_error);
           entry_point_parsing_and_mutation(parser, report_error);
           stage_function_mutation(parser, report_error);
-          pipeline_parse_and_remove(parser, report_error);
+          pipeline_parse_and_remove(parser, filename, report_error);
           resource_table_parsing(parser, report_error);
           resource_guard_mutation(parser, report_error);
           struct_method_mutation(parser, report_error);
@@ -2684,11 +2684,15 @@ class Preprocessor {
     } while (parser.apply_mutations());
   }
 
-  void pipeline_parse_and_remove(Parser &parser, report_callback /*report_error*/)
+  void pipeline_parse_and_remove(Parser &parser,
+                                 const std::string &filepath,
+                                 report_callback /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
     using namespace metadata;
+
+    const std::string filename = std::regex_replace(filepath, std::regex(R"((?:.*)\/(.*))"), "$1");
 
     auto process_compilation_constants = [&](Token tok) {
       string create_info_decl;
@@ -2718,8 +2722,9 @@ class Preprocessor {
       /* For now, just emit good old create info macros. */
       string create_info_decl;
       create_info_decl += "GPU_SHADER_CREATE_INFO(" + pipeline_name.str() + ")\n";
-      create_info_decl += "VERTEX_FUNCTION(" + vertex_fn.str() + ")\n";
-      create_info_decl += "FRAGMENT_FUNCTION(" + fragment_fn.str() + ")\n";
+      create_info_decl += "GRAPHIC_SOURCE(\"" + filename + "\")\n";
+      create_info_decl += "VERTEX_FUNCTION(\"" + vertex_fn.str() + "\")\n";
+      create_info_decl += "FRAGMENT_FUNCTION(\"" + fragment_fn.str() + "\")\n";
       create_info_decl += "ADDITIONAL_INFO(" + vertex_fn.str() + "_infos_)\n";
       create_info_decl += "ADDITIONAL_INFO(" + fragment_fn.str() + "_infos_)\n";
       create_info_decl += process_compilation_constants(params[4]);
@@ -2733,7 +2738,8 @@ class Preprocessor {
       /* For now, just emit good old create info macros. */
       string create_info_decl;
       create_info_decl += "GPU_SHADER_CREATE_INFO(" + pipeline_name.str() + ")\n";
-      create_info_decl += "VERTEX_FUNCTION(" + compute_fn.str() + ")\n";
+      create_info_decl += "COMPUTE_SOURCE(\"" + filename + "\")\n";
+      create_info_decl += "COMPUTE_FUNCTION(\"" + compute_fn.str() + "\")\n";
       create_info_decl += "ADDITIONAL_INFO(" + compute_fn.str() + "_infos_)\n";
       create_info_decl += process_compilation_constants(params[2]);
       create_info_decl += "GPU_SHADER_CREATE_END()\n";

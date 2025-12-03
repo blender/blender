@@ -1700,8 +1700,9 @@ PipelineCompute compute_pipe(compute_func, Type{.a = true, .b = 8, .c = 7u});
 
 
 GPU_SHADER_CREATE_INFO(ns_graphic_pipe)
-VERTEX_FUNCTION(vertex_func)
-FRAGMENT_FUNCTION(fragment_func)
+GRAPHIC_SOURCE("test.glsl")
+VERTEX_FUNCTION("vertex_func")
+FRAGMENT_FUNCTION("fragment_func")
 ADDITIONAL_INFO(vertex_func_infos_)
 ADDITIONAL_INFO(fragment_func_infos_)
 COMPILATION_CONSTANT(bool, a, true)
@@ -1710,7 +1711,8 @@ COMPILATION_CONSTANT(uint, c, 3u)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(ns_compute_pipe)
-VERTEX_FUNCTION(compute_func)
+COMPUTE_SOURCE("test.glsl")
+COMPUTE_FUNCTION("compute_func")
 ADDITIONAL_INFO(compute_func_infos_)
 COMPILATION_CONSTANT(bool, a, true)
 COMPILATION_CONSTANT(int, b, 8)
