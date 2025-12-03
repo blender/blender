@@ -328,6 +328,10 @@ static std::unique_ptr<PaintOperation> texture_paint_init(bContext *C,
   settings->imapaint.flag |= IMAGEPAINT_DRAWING;
   ED_image_undo_push_begin(op->type->name, PaintMode::Texture2D);
 
+  BKE_curvemapping_init(brush->curve_rand_hue);
+  BKE_curvemapping_init(brush->curve_rand_saturation);
+  BKE_curvemapping_init(brush->curve_rand_value);
+
   return pop;
 }
 
