@@ -198,8 +198,11 @@ IDTypeInfo IDType_ID_PT = {
 
 Span<float3> PointCloud::positions() const
 {
-  return *blender::bke::get_span_attribute<float3>(
-      this->attribute_storage.wrap(), blender::bke::AttrDomain::Point, "position", this->totpoint);
+  return blender::bke::get_span_attribute<float3>(this->attribute_storage.wrap(),
+                                                  blender::bke::AttrDomain::Point,
+                                                  "position",
+                                                  this->totpoint)
+      .value_or(Span<float3>());
 }
 MutableSpan<float3> PointCloud::positions_for_write()
 {
