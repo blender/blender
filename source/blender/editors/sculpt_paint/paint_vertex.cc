@@ -1077,6 +1077,10 @@ static bool vpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 
   paint_stroke_set_mode_data(stroke, std::move(vpd));
 
+  BKE_curvemapping_init(brush.curve_rand_hue);
+  BKE_curvemapping_init(brush.curve_rand_saturation);
+  BKE_curvemapping_init(brush.curve_rand_value);
+
   /* If not previously created, create vertex/weight paint mode session data */
   vertex_paint_init_stroke(depsgraph, ob);
   vwpaint::update_cache_invariants(C, vp, ss, op, mouse);

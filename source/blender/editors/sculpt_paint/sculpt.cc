@@ -5514,6 +5514,11 @@ static bool stroke_test_start(bContext *C, wmOperator *op, const float mval[2])
     ED_view3d_init_mats_rv3d(&ob, CTX_wm_region_view3d(C));
 
     sculpt_update_cache_invariants(C, sd, ss, *op, mval);
+    if (brush && brush_type_is_paint(brush->sculpt_brush_type)) {
+      BKE_curvemapping_init(brush->curve_rand_hue);
+      BKE_curvemapping_init(brush->curve_rand_saturation);
+      BKE_curvemapping_init(brush->curve_rand_value);
+    }
 
     CursorGeometryInfo cgi;
     cursor_geometry_info_update(C, &cgi, mval, false);
