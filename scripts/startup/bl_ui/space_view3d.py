@@ -8750,11 +8750,14 @@ class VIEW3D_PT_paint_weight_context_menu(Panel):
         layout = self.layout
 
         brush = context.tool_settings.weight_paint.brush
+
+        # Use unified_paint_settings_override to allow 'brush-like' tools (e.g. Gradient).
         UnifiedPaintPanel.prop_unified(
             layout,
             context,
             brush,
             "weight",
+            unified_paint_settings_override=context.tool_settings.weight_paint.unified_paint_settings,
             unified_name="use_unified_weight",
             slider=True,
         )
@@ -8763,6 +8766,7 @@ class VIEW3D_PT_paint_weight_context_menu(Panel):
             context,
             brush,
             "size",
+            unified_paint_settings_override=context.tool_settings.weight_paint.unified_paint_settings,
             unified_name="use_unified_size",
             pressure_name="use_pressure_size",
             slider=True,
@@ -8772,6 +8776,7 @@ class VIEW3D_PT_paint_weight_context_menu(Panel):
             context,
             brush,
             "strength",
+            unified_paint_settings_override=context.tool_settings.weight_paint.unified_paint_settings,
             unified_name="use_unified_strength",
             pressure_name="use_pressure_strength",
             slider=True,
