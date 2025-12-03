@@ -195,19 +195,6 @@ void tree_update(const bContext *C)
   }
 }
 
-/* id is supposed to contain a node tree */
-[[maybe_unused]] static bNodeTree *node_tree_from_ID(ID *id)
-{
-  if (id) {
-    if (GS(id->name) == ID_NT) {
-      return (bNodeTree *)id;
-    }
-    return bke::node_tree_from_id(id);
-  }
-
-  return nullptr;
-}
-
 static void node_socket_add_tooltip_in_node_editor(const bNodeSocket &sock, ui::Layout &layout);
 
 /** Return true when \a a should be behind \a b and false otherwise. */
