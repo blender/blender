@@ -3512,6 +3512,10 @@ static eHandlerActionFlag wm_handlers_do_intern(bContext *C,
             if (event->custom == EVT_DATA_DRAGDROP) {
               ListBase *lb = (ListBase *)event->customdata;
               LISTBASE_FOREACH_MUTABLE (wmDrag *, drag, lb) {
+                if (!wm_drag_asset_path_exists(drag).value_or(true)) {
+                  continue;
+                }
+
                 if (drop->poll(C, drag, event)) {
                   wm_drop_prepare(C, drag, drop);
 

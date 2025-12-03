@@ -12,6 +12,7 @@
 
 #include "BLI_math_vector_types.hh"
 
+struct wmDrag;
 struct wmOperator;
 struct wmTimer;
 struct wmWindow;
@@ -69,6 +70,13 @@ void wm_operatortype_free();
  */
 void wm_window_keymap(wmKeyConfig *keyconf);
 void wm_operatortypes_register();
+
+/**
+ * Check if any of the dragged assets points to an existing file on disk.
+ *
+ * Checks the file system, so don't call too often.
+ */
+std::optional<bool> wm_drag_asset_path_exists(const wmDrag *drag);
 
 /* `wm_gesture.cc` */
 
