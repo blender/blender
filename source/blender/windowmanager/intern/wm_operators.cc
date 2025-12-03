@@ -1119,14 +1119,14 @@ wmOperatorStatus WM_menu_invoke_ex(bContext *C,
   else {
     uiPopupMenu *pup = UI_popup_menu_begin(
         C, WM_operatortype_name(op->type, op->ptr).c_str(), ICON_NONE);
-    uiLayout *layout = UI_popup_menu_layout(pup);
+    blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
     /* Set this so the default execution context is the same as submenus. */
-    layout->operator_context_set(opcontext);
-    layout->op_enum(op->type->idname,
-                    RNA_property_identifier(prop),
-                    static_cast<IDProperty *>(op->ptr->data),
-                    opcontext,
-                    UI_ITEM_NONE);
+    layout.operator_context_set(opcontext);
+    layout.op_enum(op->type->idname,
+                   RNA_property_identifier(prop),
+                   static_cast<IDProperty *>(op->ptr->data),
+                   opcontext,
+                   UI_ITEM_NONE);
     UI_popup_menu_end(C, pup);
     return OPERATOR_INTERFACE;
   }
@@ -1431,15 +1431,15 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
 
   UI_block_func_handle_set(block, wm_block_redo_cb, arg_op);
   UI_popup_dummy_panel_set(region, block);
-  uiLayout &layout = blender::ui::block_layout(block,
-                                               blender::ui::LayoutDirection::Vertical,
-                                               blender::ui::LayoutType::Panel,
-                                               0,
-                                               0,
-                                               width,
-                                               UI_UNIT_Y,
-                                               0,
-                                               style);
+  blender::ui::Layout &layout = blender::ui::block_layout(block,
+                                                          blender::ui::LayoutDirection::Vertical,
+                                                          blender::ui::LayoutType::Panel,
+                                                          0,
+                                                          0,
+                                                          width,
+                                                          UI_UNIT_Y,
+                                                          0,
+                                                          style);
 
   if (op == WM_operator_last_redo(C)) {
     if (!WM_operator_check_ui_enabled(C, op->type->name)) {
@@ -1451,8 +1451,8 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
   layout.separator(0.2f, LayoutSeparatorType::Line);
   layout.separator(0.5f);
 
-  uiLayout *col = &layout.column(false);
-  uiTemplateOperatorPropertyButs(C, col, op, UI_BUT_LABEL_ALIGN_NONE, 0);
+  blender::ui::Layout &col = layout.column(false);
+  uiTemplateOperatorPropertyButs(C, &col, op, UI_BUT_LABEL_ALIGN_NONE, 0);
 
   UI_block_bounds_set_popup(block, 7 * UI_SCALE_FAC, nullptr);
 
@@ -1562,48 +1562,47 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
       BLF_width(style->widget.uifont_id, IFACE_("Cancel"), BLF_DRAW_STR_DUMMY_MAX));
   dialog_width = std::max(dialog_width, 3 * longest_button_text);
 
-  uiLayout *layout;
-  if (data->icon != blender::ui::AlertIcon::None) {
-    layout = uiItemsAlertBox(block, style, dialog_width + icon_size, data->icon, icon_size);
-  }
-  else {
-    layout = &blender::ui::block_layout(block,
-                                        blender::ui::LayoutDirection::Vertical,
-                                        blender::ui::LayoutType::Panel,
-                                        0,
-                                        0,
-                                        dialog_width,
-                                        0,
-                                        0,
-                                        style);
-  }
+  blender::ui::Layout &layout = [&]() -> blender::ui::Layout & {
+    if (data->icon != blender::ui::AlertIcon::None) {
+      return *uiItemsAlertBox(block, style, dialog_width + icon_size, data->icon, icon_size);
+    }
+    return blender::ui::block_layout(block,
+                                     blender::ui::LayoutDirection::Vertical,
+                                     blender::ui::LayoutType::Panel,
+                                     0,
+                                     0,
+                                     dialog_width,
+                                     0,
+                                     0,
+                                     style);
+  }();
 
   /* Title. */
   if (!data->title.empty()) {
-    uiItemL_ex(layout, data->title, ICON_NONE, true, false);
+    uiItemL_ex(&layout, data->title, ICON_NONE, true, false);
 
     /* Line under the title if there are properties but no message body. */
     if (data->include_properties && message_lines.size() == 0) {
-      layout->separator(0.2f, LayoutSeparatorType::Line);
+      layout.separator(0.2f, LayoutSeparatorType::Line);
     };
   }
 
   /* Message lines. */
   if (message_lines.size() > 0) {
-    uiLayout *lines = &layout->column(false);
-    lines->scale_y_set(0.65f);
-    lines->separator(0.1f);
+    blender::ui::Layout &lines = layout.column(false);
+    lines.scale_y_set(0.65f);
+    lines.separator(0.1f);
     for (auto &st : message_lines) {
-      lines->label(st, ICON_NONE);
+      lines.label(st, ICON_NONE);
     }
   }
 
   if (data->include_properties) {
-    layout->separator(0.5f);
-    uiTemplateOperatorPropertyButs(C, layout, op, UI_BUT_LABEL_ALIGN_SPLIT_COLUMN, 0);
+    layout.separator(0.5f);
+    uiTemplateOperatorPropertyButs(C, &layout, op, UI_BUT_LABEL_ALIGN_SPLIT_COLUMN, 0);
   }
 
-  layout->separator(small ? 0.1f : 1.8f);
+  layout.separator(small ? 0.1f : 1.8f);
 
   /* Clear so the OK button is left alone. */
   UI_block_func_set(block, nullptr, nullptr, nullptr);
@@ -1616,15 +1615,15 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
 
   /* Check there are no active default buttons, allowing a dialog to define its own
    * confirmation buttons which are shown instead of these, see: #124098. */
-  if (!UI_block_has_active_default_button(layout->block())) {
+  if (!UI_block_has_active_default_button(layout.block())) {
     /* New column so as not to interfere with custom layouts, see: #26436. */
-    uiLayout *col = &layout->column(false);
-    uiBlock *col_block = col->block();
+    blender::ui::Layout &col = layout.column(false);
+    uiBlock *col_block = col.block();
     uiBut *confirm_but;
     uiBut *cancel_but;
 
-    col = &col->split(0.0f, true);
-    col->scale_y_set(small ? 1.0f : 1.2f);
+    blender::ui::Layout &split = col.split(0.0f, true);
+    split.scale_y_set(small ? 1.0f : 1.2f);
 
     if (windows_layout) {
       confirm_but = uiDefBut(col_block,
@@ -1638,14 +1637,14 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
                              0,
                              0,
                              "");
-      col->column(false);
+      split.column(false);
     }
 
     cancel_but = uiDefBut(
         col_block, ButType::But, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, "");
 
     if (!windows_layout) {
-      col->column(false);
+      split.column(false);
       confirm_but = uiDefBut(col_block,
                              ButType::But,
                              data->confirm_text.c_str(),
@@ -1669,7 +1668,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
   if (data->position == WM_POPUP_POSITION_MOUSE) {
     const float button_center_x = windows_layout ? -0.4f : -0.90f;
     const float button_center_y = small ? 2.0f : 3.1f;
-    const int bounds_offset[2] = {int(button_center_x * layout->width()),
+    const int bounds_offset[2] = {int(button_center_x * layout.width()),
                                   int(button_center_y * UI_UNIT_X)};
     UI_block_bounds_set_popup(block, padding, bounds_offset);
   }
@@ -1693,15 +1692,15 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *region, void *user_d
 
   UI_popup_dummy_panel_set(region, block);
 
-  uiLayout &layout = blender::ui::block_layout(block,
-                                               blender::ui::LayoutDirection::Vertical,
-                                               blender::ui::LayoutType::Panel,
-                                               0,
-                                               0,
-                                               data->width,
-                                               0,
-                                               0,
-                                               style);
+  blender::ui::Layout &layout = blender::ui::block_layout(block,
+                                                          blender::ui::LayoutDirection::Vertical,
+                                                          blender::ui::LayoutType::Panel,
+                                                          0,
+                                                          0,
+                                                          data->width,
+                                                          0,
+                                                          0,
+                                                          style);
 
   /* Since UI is defined the auto-layout args are not used. */
   uiTemplateOperatorPropertyButs(C, &layout, op, UI_BUT_LABEL_ALIGN_COLUMN, 0);

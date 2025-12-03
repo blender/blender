@@ -44,31 +44,31 @@ static void copy_data(const ShaderFxData *md, ShaderFxData *target)
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   int mode = RNA_enum_get(ptr, "mode");
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->prop(ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (mode == eShaderFxGlowMode_Color) {
-    layout->prop(ptr, "select_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "select_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  layout->prop(ptr, "glow_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "glow_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->separator();
+  layout.separator();
 
-  layout->prop(ptr, "blend_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "opacity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "samples", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "use_glow_under", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "blend_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "opacity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "samples", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_glow_under", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }

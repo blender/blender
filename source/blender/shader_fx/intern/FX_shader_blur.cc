@@ -38,20 +38,19 @@ static void copy_data(const ShaderFxData *md, ShaderFxData *target)
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *col;
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "samples", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "samples", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->prop(ptr, "use_dof_mode", UI_ITEM_NONE, IFACE_("Use Depth of Field"), ICON_NONE);
-  col = &layout->column(false);
-  col->active_set(!RNA_boolean_get(ptr, "use_dof_mode"));
-  col->prop(ptr, "size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col->prop(ptr, "rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_dof_mode", UI_ITEM_NONE, IFACE_("Use Depth of Field"), ICON_NONE);
+  blender::ui::Layout &col = layout.column(false);
+  col.active_set(!RNA_boolean_get(ptr, "use_dof_mode"));
+  col.prop(ptr, "size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(ptr, "rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }

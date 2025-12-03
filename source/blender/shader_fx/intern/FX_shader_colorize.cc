@@ -41,26 +41,26 @@ static void copy_data(const ShaderFxData *md, ShaderFxData *target)
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   int mode = RNA_enum_get(ptr, "mode");
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (ELEM(mode, eShaderFxColorizeMode_Custom, eShaderFxColorizeMode_Duotone)) {
     const char *text = (mode == eShaderFxColorizeMode_Duotone) ? IFACE_("Low Color") :
                                                                  IFACE_("Color");
-    layout->prop(ptr, "low_color", UI_ITEM_NONE, text, ICON_NONE);
+    layout.prop(ptr, "low_color", UI_ITEM_NONE, text, ICON_NONE);
   }
   if (mode == eShaderFxColorizeMode_Duotone) {
-    layout->prop(ptr, "high_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "high_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  layout->prop(ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }
