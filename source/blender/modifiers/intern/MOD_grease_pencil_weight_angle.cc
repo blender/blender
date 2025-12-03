@@ -222,36 +222,35 @@ static void modify_geometry_set(ModifierData *md,
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *row, *sub;
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  row = &layout->row(true);
-  row->prop_search(ptr, "target_vertex_group", &ob_ptr, "vertex_groups", std::nullopt, ICON_NONE);
+  ui::Layout &row = layout.row(true);
+  row.prop_search(ptr, "target_vertex_group", &ob_ptr, "vertex_groups", std::nullopt, ICON_NONE);
 
-  sub = &row->row(true);
+  ui::Layout &sub = row.row(true);
   bool has_output = RNA_string_length(ptr, "target_vertex_group") != 0;
-  sub->use_property_decorate_set(false);
-  sub->active_set(has_output);
-  sub->prop(ptr, "use_invert_output", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+  sub.use_property_decorate_set(false);
+  sub.active_set(has_output);
+  sub.prop(ptr, "use_invert_output", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
-  layout->prop(ptr, "angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "space", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "space", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->prop(ptr, "minimum_weight", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "use_multiply", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "minimum_weight", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_multiply", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  if (uiLayout *influence_panel = layout->panel_prop(
+  if (ui::Layout *influence_panel = layout.panel_prop(
           C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
-    modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_vertex_group_settings(C, influence_panel, ptr);
+    modifier::greasepencil::draw_layer_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_material_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_vertex_group_settings(C, *influence_panel, ptr);
   }
 
   modifier_error_message_draw(layout, ptr);

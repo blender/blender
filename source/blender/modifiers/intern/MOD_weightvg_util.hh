@@ -106,4 +106,4 @@ void weightvg_update_vg(MDeformVert *dvert,
 void weightvg_ui_common(const bContext *C,
                         PointerRNA *ob_ptr,
                         PointerRNA *ptr,
-                        blender::ui::Layout *layout);
+                        blender::ui::Layout &layout);

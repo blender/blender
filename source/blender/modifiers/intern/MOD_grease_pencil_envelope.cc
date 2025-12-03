@@ -678,37 +678,37 @@ static void modify_geometry_set(ModifierData *md,
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
   const GreasePencilEnvelopeModifierMode mode = GreasePencilEnvelopeModifierMode(
       RNA_enum_get(ptr, "mode"));
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->prop(ptr, "spread", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "thickness", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "spread", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "thickness", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   switch (mode) {
     case MOD_GREASE_PENCIL_ENVELOPE_DEFORM:
       break;
     case MOD_GREASE_PENCIL_ENVELOPE_FILLS:
     case MOD_GREASE_PENCIL_ENVELOPE_SEGMENTS:
-      layout->prop(ptr, "strength", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout->prop(ptr, "mat_nr", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      layout->prop(ptr, "skip", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(ptr, "strength", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(ptr, "mat_nr", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout.prop(ptr, "skip", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
   }
 
-  if (uiLayout *influence_panel = layout->panel_prop(
+  if (ui::Layout *influence_panel = layout.panel_prop(
           C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
-    modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_vertex_group_settings(C, influence_panel, ptr);
+    modifier::greasepencil::draw_layer_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_material_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_vertex_group_settings(C, *influence_panel, ptr);
   }
 
   modifier_error_message_draw(layout, ptr);

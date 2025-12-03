@@ -202,23 +202,22 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *sub, *row;
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  row = &layout->row(true);
+  blender::ui::Layout *row = &layout.row(true);
   row->prop(ptr, "object", UI_ITEM_NONE, IFACE_("Source"), ICON_NONE);
-  sub = &row->row(true);
-  sub->use_property_decorate_set(false);
-  sub->prop(ptr, "use_object_transform", UI_ITEM_NONE, "", ICON_ORIENTATION_GLOBAL);
+  blender::ui::Layout &sub = row->row(true);
+  sub.use_property_decorate_set(false);
+  sub.prop(ptr, "use_object_transform", UI_ITEM_NONE, "", ICON_ORIENTATION_GLOBAL);
 
-  layout->prop(ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = &layout->row(false);
+  row = &layout.row(false);
   row->active_set(!ELEM(RNA_enum_get(ptr, "mix_mode"),
                         CDT_MIX_NOMIX,
                         CDT_MIX_REPLACE_ABOVE_THRESHOLD,
@@ -227,7 +226,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
-  layout->op("OBJECT_OT_datalayout_transfer", IFACE_("Generate Data Layers"), ICON_NONE);
+  layout.op("OBJECT_OT_datalayout_transfer", IFACE_("Generate Data Layers"), ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }
@@ -235,179 +234,177 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 static void vertex_panel_draw_header(const bContext * /*C*/, Panel *panel)
 {
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
-  layout->prop(ptr, "use_vert_data", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_vert_data", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void vertex_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   bool use_vert_data = RNA_boolean_get(ptr, "use_vert_data");
-  layout->active_set(use_vert_data);
+  layout.active_set(use_vert_data);
 
-  layout->prop(ptr, "data_types_verts", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "data_types_verts", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "vert_mapping", UI_ITEM_NONE, IFACE_("Mapping"), ICON_NONE);
+  layout.prop(ptr, "vert_mapping", UI_ITEM_NONE, IFACE_("Mapping"), ICON_NONE);
 }
 
 static void vertex_vgroup_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->active_set(RNA_enum_get(ptr, "data_types_verts") & DT_TYPE_MDEFORMVERT);
+  layout.active_set(RNA_enum_get(ptr, "data_types_verts") & DT_TYPE_MDEFORMVERT);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(
-      ptr, "layers_vgroup_select_src", UI_ITEM_NONE, IFACE_("Layer Selection"), ICON_NONE);
-  layout->prop(ptr, "layers_vgroup_select_dst", UI_ITEM_NONE, IFACE_("Layer Mapping"), ICON_NONE);
+  layout.prop(ptr, "layers_vgroup_select_src", UI_ITEM_NONE, IFACE_("Layer Selection"), ICON_NONE);
+  layout.prop(ptr, "layers_vgroup_select_dst", UI_ITEM_NONE, IFACE_("Layer Mapping"), ICON_NONE);
 }
 
 static void edge_panel_draw_header(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->prop(ptr, "use_edge_data", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_edge_data", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void edge_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->active_set(RNA_boolean_get(ptr, "use_edge_data"));
+  layout.active_set(RNA_boolean_get(ptr, "use_edge_data"));
 
-  layout->prop(ptr, "data_types_edges", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "data_types_edges", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "edge_mapping", UI_ITEM_NONE, IFACE_("Mapping"), ICON_NONE);
+  layout.prop(ptr, "edge_mapping", UI_ITEM_NONE, IFACE_("Mapping"), ICON_NONE);
 }
 
 static void face_corner_panel_draw_header(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->prop(ptr, "use_loop_data", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_loop_data", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void face_corner_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->active_set(RNA_boolean_get(ptr, "use_loop_data"));
+  layout.active_set(RNA_boolean_get(ptr, "use_loop_data"));
 
-  layout->prop(ptr, "data_types_loops", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "data_types_loops", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "loop_mapping", UI_ITEM_NONE, IFACE_("Mapping"), ICON_NONE);
+  layout.prop(ptr, "loop_mapping", UI_ITEM_NONE, IFACE_("Mapping"), ICON_NONE);
 }
 
 static void vert_vcol_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->active_set(RNA_enum_get(ptr, "data_types_verts") &
-                     (DT_TYPE_MPROPCOL_VERT | DT_TYPE_MLOOPCOL_VERT));
+  layout.active_set(RNA_enum_get(ptr, "data_types_verts") &
+                    (DT_TYPE_MPROPCOL_VERT | DT_TYPE_MLOOPCOL_VERT));
 
-  layout->prop(
+  layout.prop(
       ptr, "layers_vcol_vert_select_src", UI_ITEM_NONE, IFACE_("Layer Selection"), ICON_NONE);
-  layout->prop(
+  layout.prop(
       ptr, "layers_vcol_vert_select_dst", UI_ITEM_NONE, IFACE_("Layer Mapping"), ICON_NONE);
 }
 
 static void face_corner_vcol_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->active_set(RNA_enum_get(ptr, "data_types_loops") &
-                     (DT_TYPE_MPROPCOL_LOOP | DT_TYPE_MLOOPCOL_LOOP));
+  layout.active_set(RNA_enum_get(ptr, "data_types_loops") &
+                    (DT_TYPE_MPROPCOL_LOOP | DT_TYPE_MLOOPCOL_LOOP));
 
-  layout->prop(
+  layout.prop(
       ptr, "layers_vcol_loop_select_src", UI_ITEM_NONE, IFACE_("Layer Selection"), ICON_NONE);
-  layout->prop(
+  layout.prop(
       ptr, "layers_vcol_loop_select_dst", UI_ITEM_NONE, IFACE_("Layer Mapping"), ICON_NONE);
 }
 
 static void face_corner_uv_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->active_set(RNA_enum_get(ptr, "data_types_loops") & DT_TYPE_UV);
+  layout.active_set(RNA_enum_get(ptr, "data_types_loops") & DT_TYPE_UV);
 
-  layout->prop(ptr, "layers_uv_select_src", UI_ITEM_NONE, IFACE_("Layer Selection"), ICON_NONE);
-  layout->prop(ptr, "layers_uv_select_dst", UI_ITEM_NONE, IFACE_("Layer Mapping"), ICON_NONE);
-  layout->prop(ptr, "islands_precision", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "layers_uv_select_src", UI_ITEM_NONE, IFACE_("Layer Selection"), ICON_NONE);
+  layout.prop(ptr, "layers_uv_select_dst", UI_ITEM_NONE, IFACE_("Layer Mapping"), ICON_NONE);
+  layout.prop(ptr, "islands_precision", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void face_panel_draw_header(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->prop(ptr, "use_poly_data", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_poly_data", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void face_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->active_set(RNA_boolean_get(ptr, "use_poly_data"));
+  layout.active_set(RNA_boolean_get(ptr, "use_poly_data"));
 
-  layout->prop(ptr, "data_types_polys", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "data_types_polys", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "poly_mapping", UI_ITEM_NONE, IFACE_("Mapping"), ICON_NONE);
+  layout.prop(ptr, "poly_mapping", UI_ITEM_NONE, IFACE_("Mapping"), ICON_NONE);
 }
 
 static void advanced_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *row, *sub;
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  row = &layout->row(true, IFACE_("Max Distance"));
-  row->prop(ptr, "use_max_distance", UI_ITEM_NONE, "", ICON_NONE);
-  sub = &row->row(true);
-  sub->active_set(RNA_boolean_get(ptr, "use_max_distance"));
-  sub->prop(ptr, "max_distance", UI_ITEM_NONE, "", ICON_NONE);
+  blender::ui::Layout &row = layout.row(true, IFACE_("Max Distance"));
+  row.prop(ptr, "use_max_distance", UI_ITEM_NONE, "", ICON_NONE);
+  blender::ui::Layout &sub = row.row(true);
+  sub.active_set(RNA_boolean_get(ptr, "use_max_distance"));
+  sub.prop(ptr, "max_distance", UI_ITEM_NONE, "", ICON_NONE);
 
-  layout->prop(ptr, "ray_radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "ray_radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

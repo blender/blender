@@ -1032,7 +1032,7 @@ void draw_geometry_nodes_modifier_ui(const bContext &C,
     draw_interface_panel_content(ctx, layout, nmd.node_group->tree_interface.root_panel);
   }
 
-  modifier_error_message_draw(&layout, modifier_ptr);
+  modifier_error_message_draw(layout, modifier_ptr);
 
   draw_warnings(&C, nmd, layout, modifier_ptr);
 

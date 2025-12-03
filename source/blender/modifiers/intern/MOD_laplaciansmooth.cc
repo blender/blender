@@ -517,27 +517,26 @@ static void deform_verts(ModifierData *md,
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *row;
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
   const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "iterations", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "iterations", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = &layout->row(true, IFACE_("Axis"));
-  row->prop(ptr, "use_x", toggles_flag, std::nullopt, ICON_NONE);
-  row->prop(ptr, "use_y", toggles_flag, std::nullopt, ICON_NONE);
-  row->prop(ptr, "use_z", toggles_flag, std::nullopt, ICON_NONE);
+  blender::ui::Layout &row = layout.row(true, IFACE_("Axis"));
+  row.prop(ptr, "use_x", toggles_flag, std::nullopt, ICON_NONE);
+  row.prop(ptr, "use_y", toggles_flag, std::nullopt, ICON_NONE);
+  row.prop(ptr, "use_z", toggles_flag, std::nullopt, ICON_NONE);
 
-  layout->prop(ptr, "lambda_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "lambda_border", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "lambda_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "lambda_border", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->prop(ptr, "use_volume_preserve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "use_normalized", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_volume_preserve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_normalized", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 

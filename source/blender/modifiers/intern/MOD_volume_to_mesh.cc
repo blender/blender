@@ -75,35 +75,35 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
   VolumeToMeshModifierData *vmmd = static_cast<VolumeToMeshModifierData *>(ptr->data);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
   {
-    uiLayout *col = &layout->column(false);
-    col->prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "grid_name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    blender::ui::Layout &col = layout.column(false);
+    col.prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "grid_name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   {
-    uiLayout *col = &layout->column(false);
-    col->prop(ptr, "resolution_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    blender::ui::Layout &col = layout.column(false);
+    col.prop(ptr, "resolution_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     if (vmmd->resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT) {
-      col->prop(ptr, "voxel_amount", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      col.prop(ptr, "voxel_amount", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
     else if (vmmd->resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE) {
-      col->prop(ptr, "voxel_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      col.prop(ptr, "voxel_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
   }
 
   {
-    uiLayout *col = &layout->column(false);
-    col->prop(ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "adaptivity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "use_smooth_shade", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    blender::ui::Layout &col = layout.column(false);
+    col.prop(ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "adaptivity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "use_smooth_shade", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   modifier_error_message_draw(layout, ptr);

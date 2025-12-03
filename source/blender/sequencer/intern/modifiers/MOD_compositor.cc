@@ -254,10 +254,10 @@ static void compositor_modifier_apply(ModifierApplyContext &context,
 
 static void compositor_modifier_panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
   PointerRNA *ptr = UI_panel_custom_data_get(panel);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
   Scene *scene = CTX_data_sequencer_scene(C);
   Strip *strip = seq::select_active_get(scene);
@@ -268,7 +268,7 @@ static void compositor_modifier_panel_draw(const bContext *C, Panel *panel)
     if (smd && smd->type == eSeqModifierType_Compositor) {
       SequencerCompositorModifierData *nmd = (SequencerCompositorModifierData *)smd;
       if (nmd->node_group != nullptr) {
-        uiTemplateID(layout,
+        uiTemplateID(&layout,
                      C,
                      ptr,
                      "node_group",
@@ -281,7 +281,7 @@ static void compositor_modifier_panel_draw(const bContext *C, Panel *panel)
   }
 
   if (!has_existing_group) {
-    uiTemplateID(layout,
+    uiTemplateID(&layout,
                  C,
                  ptr,
                  "node_group",
@@ -290,10 +290,10 @@ static void compositor_modifier_panel_draw(const bContext *C, Panel *panel)
                  nullptr);
   }
 
-  if (uiLayout *mask_input_layout = layout->panel_prop(
+  if (ui::Layout *mask_input_layout = layout.panel_prop(
           C, ptr, "open_mask_input_panel", IFACE_("Mask Input")))
   {
-    draw_mask_input_type_settings(C, mask_input_layout, ptr);
+    draw_mask_input_type_settings(C, *mask_input_layout, ptr);
   }
 }
 

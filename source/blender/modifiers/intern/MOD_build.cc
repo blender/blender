@@ -240,38 +240,38 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "frame_start", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "frame_duration", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "use_reverse", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "frame_start", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "frame_duration", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_reverse", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }
 
 static void random_panel_header_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->prop(ptr, "use_random_order", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_random_order", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void random_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->active_set(RNA_boolean_get(ptr, "use_random_order"));
-  layout->prop(ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.active_set(RNA_boolean_get(ptr, "use_random_order"));
+  layout.prop(ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

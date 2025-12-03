@@ -35,12 +35,12 @@ static void pitchmodifier_init_data(StripModifierData *smd)
 
 static void pitchmodifier_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
   PointerRNA *ptr = UI_panel_custom_data_get(panel);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  uiLayout &col = layout->column(false);
+  ui::Layout &col = layout.column(false);
 
   col.prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

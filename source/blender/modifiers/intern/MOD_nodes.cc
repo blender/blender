@@ -2015,9 +2015,9 @@ void NodesModifierUsageInferenceCache::reset()
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
   PointerRNA *modifier_ptr = modifier_panel_get_property_pointers(panel, nullptr);
-  nodes::draw_geometry_nodes_modifier_ui(*C, modifier_ptr, *layout);
+  nodes::draw_geometry_nodes_modifier_ui(*C, modifier_ptr, layout);
 }
 
 static void panel_register(ARegionType *region_type)

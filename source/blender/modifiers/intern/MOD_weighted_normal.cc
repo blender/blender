@@ -571,22 +571,21 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *col;
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->prop(ptr, "weight", UI_ITEM_NONE, IFACE_("Weight"), ICON_NONE);
-  layout->prop(ptr, "thresh", UI_ITEM_NONE, IFACE_("Threshold"), ICON_NONE);
+  layout.prop(ptr, "weight", UI_ITEM_NONE, IFACE_("Weight"), ICON_NONE);
+  layout.prop(ptr, "thresh", UI_ITEM_NONE, IFACE_("Threshold"), ICON_NONE);
 
-  col = &layout->column(false);
-  col->prop(ptr, "keep_sharp", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col->prop(ptr, "use_face_influence", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  blender::ui::Layout &col = layout.column(false);
+  col.prop(ptr, "keep_sharp", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(ptr, "use_face_influence", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 

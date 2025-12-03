@@ -90,15 +90,15 @@ static void curves_apply(ModifierApplyContext &context, StripModifierData *smd, 
 
 static void curves_panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
   PointerRNA *ptr = UI_panel_custom_data_get(panel);
 
-  uiTemplateCurveMapping(layout, ptr, "curve_mapping", 'c', false, false, false, true, false);
+  uiTemplateCurveMapping(&layout, ptr, "curve_mapping", 'c', false, false, false, true, false);
 
-  if (uiLayout *mask_input_layout = layout->panel_prop(
+  if (ui::Layout *mask_input_layout = layout.panel_prop(
           C, ptr, "open_mask_input_panel", IFACE_("Mask Input")))
   {
-    draw_mask_input_type_settings(C, mask_input_layout, ptr);
+    draw_mask_input_type_settings(C, *mask_input_layout, ptr);
   }
 }
 

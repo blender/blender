@@ -627,57 +627,55 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *col;
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop_search(
+  layout.prop_search(
       ptr, "vertex_group", &ob_ptr, "vertex_groups", std::nullopt, ICON_GROUP_VERTEX);
 
-  layout->prop(ptr, "target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->separator();
+  layout.separator();
 
-  layout->prop(ptr, "proximity_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "proximity_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (RNA_enum_get(ptr, "proximity_mode") == MOD_WVG_PROXIMITY_GEOMETRY) {
-    layout->prop(ptr, "proximity_geometry", UI_ITEM_R_EXPAND, IFACE_("Geometry"), ICON_NONE);
+    layout.prop(ptr, "proximity_geometry", UI_ITEM_R_EXPAND, IFACE_("Geometry"), ICON_NONE);
   }
 
-  col = &layout->column(true);
-  col->prop(ptr, "min_dist", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col->prop(ptr, "max_dist", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  blender::ui::Layout &col = layout.column(true);
+  col.prop(ptr, "min_dist", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(ptr, "max_dist", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->prop(ptr, "normalize", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "normalize", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *row, *sub;
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  row = &layout->row(true);
-  row->prop(ptr, "falloff_type", UI_ITEM_NONE, IFACE_("Type"), ICON_NONE);
-  sub = &row->row(true);
-  sub->use_property_split_set(false);
-  row->prop(ptr, "invert_falloff", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+  blender::ui::Layout &row = layout.row(true);
+  row.prop(ptr, "falloff_type", UI_ITEM_NONE, IFACE_("Type"), ICON_NONE);
+  blender::ui::Layout &sub = row.row(true);
+  sub.use_property_split_set(false);
+  row.prop(ptr, "invert_falloff", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   if (RNA_enum_get(ptr, "falloff_type") == MOD_WVG_MAPPING_CURVE) {
-    uiTemplateCurveMapping(layout, ptr, "map_curve", 0, false, false, false, false, false);
+    uiTemplateCurveMapping(&layout, ptr, "map_curve", 0, false, false, false, false, false);
   }
   modifier_error_message_draw(layout, ptr);
 }
 
 static void influence_panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);

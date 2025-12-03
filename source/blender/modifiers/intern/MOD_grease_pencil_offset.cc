@@ -383,14 +383,14 @@ static void modify_geometry_set(ModifierData *md,
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
   const auto offset_mode = GreasePencilOffsetModifierMode(RNA_enum_get(ptr, "offset_mode"));
 
-  layout->use_property_split_set(true);
-  if (uiLayout *general_panel = layout->panel_prop(
+  layout.use_property_split_set(true);
+  if (ui::Layout *general_panel = layout.panel_prop(
           C, ptr, "open_general_panel", IFACE_("General")))
   {
     general_panel->use_property_split_set(true);
@@ -403,7 +403,7 @@ static void panel_draw(const bContext *C, Panel *panel)
       panel, "advanced", true);
   PointerRNA advanced_state_ptr = RNA_pointer_create_discrete(
       nullptr, &RNA_LayoutPanelState, advanced_panel_state);
-  if (uiLayout *advanced_panel = layout->panel_prop(
+  if (ui::Layout *advanced_panel = layout.panel_prop(
           C, &advanced_state_ptr, "is_open", IFACE_("Advanced")))
   {
     advanced_panel->prop(ptr, "offset_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -412,7 +412,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     advanced_panel->prop(ptr, "stroke_rotation", UI_ITEM_NONE, IFACE_("Rotation"), ICON_NONE);
     advanced_panel->prop(ptr, "stroke_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
 
-    uiLayout *col = &advanced_panel->column(true);
+    ui::Layout &col = advanced_panel->column(true);
     switch (offset_mode) {
       case MOD_GREASE_PENCIL_OFFSET_RANDOM:
         advanced_panel->prop(
@@ -420,26 +420,26 @@ static void panel_draw(const bContext *C, Panel *panel)
         advanced_panel->prop(ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
         break;
       case MOD_GREASE_PENCIL_OFFSET_STROKE:
-        col->prop(ptr, "stroke_step", UI_ITEM_NONE, IFACE_("Stroke Step"), ICON_NONE);
-        col->prop(ptr, "stroke_start_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
+        col.prop(ptr, "stroke_step", UI_ITEM_NONE, IFACE_("Stroke Step"), ICON_NONE);
+        col.prop(ptr, "stroke_start_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
         break;
       case MOD_GREASE_PENCIL_OFFSET_MATERIAL:
-        col->prop(ptr, "stroke_step", UI_ITEM_NONE, IFACE_("Material Step"), ICON_NONE);
-        col->prop(ptr, "stroke_start_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
+        col.prop(ptr, "stroke_step", UI_ITEM_NONE, IFACE_("Material Step"), ICON_NONE);
+        col.prop(ptr, "stroke_start_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
         break;
       case MOD_GREASE_PENCIL_OFFSET_LAYER:
-        col->prop(ptr, "stroke_step", UI_ITEM_NONE, IFACE_("Layer Step"), ICON_NONE);
-        col->prop(ptr, "stroke_start_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
+        col.prop(ptr, "stroke_step", UI_ITEM_NONE, IFACE_("Layer Step"), ICON_NONE);
+        col.prop(ptr, "stroke_start_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
         break;
     }
   }
 
-  if (uiLayout *influence_panel = layout->panel_prop(
+  if (ui::Layout *influence_panel = layout.panel_prop(
           C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
-    modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_vertex_group_settings(C, influence_panel, ptr);
+    modifier::greasepencil::draw_layer_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_material_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_vertex_group_settings(C, *influence_panel, ptr);
   }
 
   modifier_error_message_draw(layout, ptr);

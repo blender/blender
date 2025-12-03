@@ -533,8 +533,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *row;
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
   const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA ob_ptr;
@@ -542,44 +541,44 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA particle_obj_ptr = RNA_pointer_get(ptr, "object");
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (!RNA_pointer_is_null(&particle_obj_ptr)) {
-    layout->prop_search(ptr,
-                        "particle_system",
-                        &particle_obj_ptr,
-                        "particle_systems",
-                        IFACE_("Particle System"),
-                        ICON_NONE);
+    layout.prop_search(ptr,
+                       "particle_system",
+                       &particle_obj_ptr,
+                       "particle_systems",
+                       IFACE_("Particle System"),
+                       ICON_NONE);
   }
   else {
-    layout->prop(ptr, "particle_system_index", UI_ITEM_NONE, IFACE_("Particle System"), ICON_NONE);
+    layout.prop(ptr, "particle_system_index", UI_ITEM_NONE, IFACE_("Particle System"), ICON_NONE);
   }
 
-  layout->separator();
+  layout.separator();
 
-  row = &layout->row(true, IFACE_("Create Instances"));
+  blender::ui::Layout *row = &layout.row(true, IFACE_("Create Instances"));
   row->prop(ptr, "use_normal", toggles_flag, std::nullopt, ICON_NONE);
   row->prop(ptr, "use_children", toggles_flag, std::nullopt, ICON_NONE);
   row->prop(ptr, "use_size", toggles_flag, std::nullopt, ICON_NONE);
 
-  row = &layout->row(true, IFACE_("Show"));
+  row = &layout.row(true, IFACE_("Show"));
   row->prop(ptr, "show_alive", toggles_flag, std::nullopt, ICON_NONE);
   row->prop(ptr, "show_dead", toggles_flag, std::nullopt, ICON_NONE);
   row->prop(ptr, "show_unborn", toggles_flag, std::nullopt, ICON_NONE);
 
-  layout->prop(ptr,
-               "particle_amount",
-               UI_ITEM_NONE,
-               CTX_IFACE_(BLT_I18NCONTEXT_COUNTABLE, "Amount"),
-               ICON_NONE);
-  layout->prop(ptr, "particle_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
+  layout.prop(ptr,
+              "particle_amount",
+              UI_ITEM_NONE,
+              CTX_IFACE_(BLT_I18NCONTEXT_COUNTABLE, "Amount"),
+              ICON_NONE);
+  layout.prop(ptr, "particle_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
 
-  layout->separator();
+  layout.separator();
 
-  layout->prop(ptr, "space", UI_ITEM_NONE, IFACE_("Coordinate Space"), ICON_NONE);
-  row = &layout->row(true);
+  layout.prop(ptr, "space", UI_ITEM_NONE, IFACE_("Coordinate Space"), ICON_NONE);
+  row = &layout.row(true);
   row->prop(ptr, "axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
@@ -587,51 +586,49 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void path_panel_draw_header(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->prop(ptr, "use_path", UI_ITEM_NONE, IFACE_("Create Along Paths"), ICON_NONE);
+  layout.prop(ptr, "use_path", UI_ITEM_NONE, IFACE_("Create Along Paths"), ICON_NONE);
 }
 
 static void path_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *col;
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->active_set(RNA_boolean_get(ptr, "use_path"));
+  layout.active_set(RNA_boolean_get(ptr, "use_path"));
 
-  col = &layout->column(true);
+  blender::ui::Layout *col = &layout.column(true);
   col->prop(ptr, "position", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
   col->prop(ptr, "random_position", UI_ITEM_R_SLIDER, IFACE_("Random"), ICON_NONE);
-  col = &layout->column(true);
+  col = &layout.column(true);
   col->prop(ptr, "rotation", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
   col->prop(ptr, "random_rotation", UI_ITEM_R_SLIDER, IFACE_("Random"), ICON_NONE);
 
-  layout->prop(ptr, "use_preserve_shape", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "use_preserve_shape", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void layers_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *col;
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  col = &layout->column(false);
-  col->prop_search(
+  blender::ui::Layout &col = layout.column(false);
+  col.prop_search(
       ptr, "index_layer_name", &obj_data_ptr, "vertex_colors", IFACE_("Index"), ICON_NONE);
-  col->prop_search(
+  col.prop_search(
       ptr, "value_layer_name", &obj_data_ptr, "vertex_colors", IFACE_("Value"), ICON_NONE);
 }
 

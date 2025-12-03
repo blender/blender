@@ -82,18 +82,18 @@ static void brightcontrast_apply(ModifierApplyContext &context,
 
 static void brightcontrast_panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
   PointerRNA *ptr = UI_panel_custom_data_get(panel);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "bright", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "contrast", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "bright", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "contrast", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  if (uiLayout *mask_input_layout = layout->panel_prop(
+  if (ui::Layout *mask_input_layout = layout.panel_prop(
           C, ptr, "open_mask_input_panel", IFACE_("Mask Input")))
   {
-    draw_mask_input_type_settings(C, mask_input_layout, ptr);
+    draw_mask_input_type_settings(C, *mask_input_layout, ptr);
   }
 }
 

@@ -225,45 +225,45 @@ static void modify_geometry_set(ModifierData *md,
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
   const GreasePencilModifierColorMode color_mode = GreasePencilModifierColorMode(
       RNA_enum_get(ptr, "color_mode"));
 
-  layout->prop(ptr, "color_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "color_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (color_mode == MOD_GREASE_PENCIL_COLOR_HARDNESS) {
-    layout->prop(ptr, "hardness_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "hardness_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else {
     const bool use_uniform_opacity = RNA_boolean_get(ptr, "use_uniform_opacity");
     const bool use_weight_as_factor = RNA_boolean_get(ptr, "use_weight_as_factor");
 
-    layout->prop(ptr, "use_uniform_opacity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "use_uniform_opacity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     const char *text = (use_uniform_opacity) ? IFACE_("Opacity") : IFACE_("Opacity Factor");
 
-    uiLayout *row = &layout->row(true);
-    row->active_set(!use_weight_as_factor || use_uniform_opacity);
-    row->prop(ptr, "color_factor", UI_ITEM_NONE, text, ICON_NONE);
+    ui::Layout &row = layout.row(true);
+    row.active_set(!use_weight_as_factor || use_uniform_opacity);
+    row.prop(ptr, "color_factor", UI_ITEM_NONE, text, ICON_NONE);
     if (!use_uniform_opacity) {
-      uiLayout *sub = &row->row(true);
-      sub->active_set(true);
-      row->prop(ptr, "use_weight_as_factor", UI_ITEM_NONE, "", ICON_MOD_VERTEX_WEIGHT);
+      ui::Layout &sub = row.row(true);
+      sub.active_set(true);
+      row.prop(ptr, "use_weight_as_factor", UI_ITEM_NONE, "", ICON_MOD_VERTEX_WEIGHT);
     }
   }
 
-  if (uiLayout *influence_panel = layout->panel_prop(
+  if (ui::Layout *influence_panel = layout.panel_prop(
           C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
-    modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_vertex_group_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_custom_curve_settings(C, influence_panel, ptr);
+    modifier::greasepencil::draw_layer_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_material_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_vertex_group_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_custom_curve_settings(C, *influence_panel, ptr);
   }
 
   modifier_error_message_draw(layout, ptr);

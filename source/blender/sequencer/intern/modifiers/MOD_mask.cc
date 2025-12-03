@@ -70,7 +70,7 @@ static void maskmodifier_apply(ModifierApplyContext &context,
 
 static void maskmodifier_panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
   PointerRNA *ptr = UI_panel_custom_data_get(panel);
 
   draw_mask_input_type_settings(C, layout, ptr);

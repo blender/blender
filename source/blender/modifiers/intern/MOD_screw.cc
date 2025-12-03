@@ -1044,17 +1044,17 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *sub, *row, *col;
-  uiLayout *layout = panel->layout;
+  ui::Layout *sub, *row, *col;
+  ui::Layout &layout = *panel->layout;
   const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   PointerRNA screw_obj_ptr = RNA_pointer_get(ptr, "object");
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  col = &layout->column(false);
+  col = &layout.column(false);
   col->prop(ptr, "angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   row = &col->row(false);
   row->active_set(RNA_pointer_is_null(&screw_obj_ptr) ||
@@ -1062,8 +1062,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   row->prop(ptr, "screw_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col->prop(ptr, "iterations", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->separator();
-  col = &layout->column(false);
+  layout.separator();
+  col = &layout.column(false);
   row = &col->row(false);
   row->prop(ptr, "axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   col->prop(ptr, "object", UI_ITEM_NONE, IFACE_("Axis Object"), ICON_NONE);
@@ -1071,23 +1071,23 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   sub->active_set(!RNA_pointer_is_null(&screw_obj_ptr));
   sub->prop(ptr, "use_object_screw_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->separator();
+  layout.separator();
 
-  col = &layout->column(true);
+  col = &layout.column(true);
   col->prop(ptr, "steps", UI_ITEM_NONE, IFACE_("Steps Viewport"), ICON_NONE);
   col->prop(ptr, "render_steps", UI_ITEM_NONE, IFACE_("Render"), ICON_NONE);
 
-  layout->separator();
+  layout.separator();
 
-  row = &layout->row(true, IFACE_("Merge"));
+  row = &layout.row(true, IFACE_("Merge"));
   row->prop(ptr, "use_merge_vertices", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->row(true);
   sub->active_set(RNA_boolean_get(ptr, "use_merge_vertices"));
   sub->prop(ptr, "merge_threshold", UI_ITEM_NONE, "", ICON_NONE);
 
-  layout->separator();
+  layout.separator();
 
-  row = &layout->row(true, IFACE_("Stretch UVs"));
+  row = &layout.row(true, IFACE_("Stretch UVs"));
   row->prop(ptr, "use_stretch_u", toggles_flag, IFACE_("U"), ICON_NONE);
   row->prop(ptr, "use_stretch_v", toggles_flag, IFACE_("V"), ICON_NONE);
 
@@ -1096,17 +1096,16 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void normals_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *col;
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  col = &layout->column(false);
-  col->prop(ptr, "use_smooth_shade", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col->prop(ptr, "use_normal_calculate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col->prop(ptr, "use_normal_flip", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  ui::Layout &col = layout.column(false);
+  col.prop(ptr, "use_smooth_shade", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(ptr, "use_normal_calculate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(ptr, "use_normal_flip", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

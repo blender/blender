@@ -131,8 +131,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *row, *col, *sub;
-  uiLayout *layout = panel->layout;
+  ui::Layout *row, *sub;
+  ui::Layout &layout = *panel->layout;
   const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
   PropertyRNA *prop;
@@ -142,42 +142,42 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   bool has_bisect = (mmd->flag &
                      (MOD_MIR_BISECT_AXIS_X | MOD_MIR_BISECT_AXIS_Y | MOD_MIR_BISECT_AXIS_Z));
 
-  col = &layout->column(false);
-  col->use_property_split_set(true);
+  ui::Layout &col = layout.column(false);
+  col.use_property_split_set(true);
 
   prop = RNA_struct_find_property(ptr, "use_axis");
-  row = &col->row(true, IFACE_("Axis"));
+  row = &col.row(true, IFACE_("Axis"));
   row->prop(ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
   row->prop(ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
   row->prop(ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
 
   prop = RNA_struct_find_property(ptr, "use_bisect_axis");
-  row = &col->row(true, IFACE_("Bisect"));
+  row = &col.row(true, IFACE_("Bisect"));
   row->prop(ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
   row->prop(ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
   row->prop(ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
 
   prop = RNA_struct_find_property(ptr, "use_bisect_flip_axis");
-  row = &col->row(true, IFACE_("Flip"));
+  row = &col.row(true, IFACE_("Flip"));
   row->active_set(has_bisect);
   row->prop(ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
   row->prop(ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
   row->prop(ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
 
-  col->separator();
+  col.separator();
 
-  col->prop(ptr, "mirror_object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(ptr, "mirror_object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  col->prop(
+  col.prop(
       ptr, "use_clip", UI_ITEM_NONE, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Clipping"), ICON_NONE);
 
-  row = &col->row(true, IFACE_("Merge"));
+  row = &col.row(true, IFACE_("Merge"));
   row->prop(ptr, "use_mirror_merge", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->row(true);
   sub->active_set(RNA_boolean_get(ptr, "use_mirror_merge"));
   sub->prop(ptr, "merge_threshold", UI_ITEM_NONE, "", ICON_NONE);
 
-  sub = &col->row(true);
+  sub = &col.row(true);
   sub->active_set(has_bisect);
   sub->prop(ptr, "bisect_threshold", UI_ITEM_NONE, IFACE_("Bisect Distance"), ICON_NONE);
 
@@ -186,14 +186,14 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void data_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *col, *row, *sub;
-  uiLayout *layout = panel->layout;
+  ui::Layout *col, *row, *sub;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  col = &layout->column(true);
+  col = &layout.column(true);
   row = &col->row(true, IFACE_("Mirror U"));
   row->use_property_decorate_set(false);
   sub = &row->row(true);
@@ -212,12 +212,12 @@ static void data_panel_draw(const bContext * /*C*/, Panel *panel)
   sub->prop(ptr, "mirror_offset_v", UI_ITEM_R_SLIDER, "", ICON_NONE);
   row->decorator(ptr, "mirror_offset_v", 0);
 
-  col = &layout->column(true);
+  col = &layout.column(true);
   col->prop(ptr, "offset_u", UI_ITEM_R_SLIDER, IFACE_("Offset U"), ICON_NONE);
   col->prop(ptr, "offset_v", UI_ITEM_R_SLIDER, IFACE_("V"), ICON_NONE);
 
-  layout->prop(ptr, "use_mirror_vertex_groups", UI_ITEM_NONE, IFACE_("Vertex Groups"), ICON_NONE);
-  layout->prop(ptr, "use_mirror_udim", UI_ITEM_NONE, IFACE_("Flip UDIM"), ICON_NONE);
+  layout.prop(ptr, "use_mirror_vertex_groups", UI_ITEM_NONE, IFACE_("Vertex Groups"), ICON_NONE);
+  layout.prop(ptr, "use_mirror_udim", UI_ITEM_NONE, IFACE_("Flip UDIM"), ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

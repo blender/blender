@@ -1165,8 +1165,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *row, *col;
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
   const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA ob_ptr;
@@ -1175,29 +1174,28 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
   bool has_vertex_group = RNA_string_length(ptr, "vertex_group") != 0;
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop_search(
-      ptr, "particle_uv", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
+  layout.prop_search(ptr, "particle_uv", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
 
-  row = &layout->row(true, IFACE_("Show"));
+  blender::ui::Layout *row = &layout.row(true, IFACE_("Show"));
   row->prop(ptr, "show_alive", toggles_flag, std::nullopt, ICON_NONE);
   row->prop(ptr, "show_dead", toggles_flag, std::nullopt, ICON_NONE);
   row->prop(ptr, "show_unborn", toggles_flag, std::nullopt, ICON_NONE);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  col = &layout->column(false);
-  col->prop(ptr, "use_edge_cut", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col->prop(ptr, "use_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  blender::ui::Layout &col = layout.column(false);
+  col.prop(ptr, "use_edge_cut", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(ptr, "use_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
-  row = &layout->row(false);
+  row = &layout.row(false);
   row->active_set(has_vertex_group);
   row->prop(ptr, "protect", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->op("OBJECT_OT_explode_refresh", IFACE_("Refresh"), ICON_NONE);
+  layout.op("OBJECT_OT_explode_refresh", IFACE_("Refresh"), ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }

@@ -437,36 +437,34 @@ static void deform_verts(ModifierData *md,
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *row;
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   int deform_method = RNA_enum_get(ptr, "deform_method");
 
-  row = &layout->row(false);
-  row->prop(ptr, "deform_method", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  blender::ui::Layout &row = layout.row(false);
+  row.prop(ptr, "deform_method", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
   if (ELEM(deform_method, MOD_SIMPLEDEFORM_MODE_TAPER, MOD_SIMPLEDEFORM_MODE_STRETCH)) {
-    layout->prop(ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else {
-    layout->prop(ptr, "angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  layout->prop(ptr, "origin", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "deform_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "origin", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "deform_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }
 
 static void restrictions_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *row;
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
   const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA ob_ptr;
@@ -474,9 +472,9 @@ static void restrictions_panel_draw(const bContext * /*C*/, Panel *panel)
 
   int deform_method = RNA_enum_get(ptr, "deform_method");
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "limits", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "limits", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   if (ELEM(deform_method,
            MOD_SIMPLEDEFORM_MODE_TAPER,
@@ -485,15 +483,15 @@ static void restrictions_panel_draw(const bContext * /*C*/, Panel *panel)
   {
     int deform_axis = RNA_enum_get(ptr, "deform_axis");
 
-    row = &layout->row(true, IFACE_("Lock"));
+    blender::ui::Layout &row = layout.row(true, IFACE_("Lock"));
     if (deform_axis != 0) {
-      row->prop(ptr, "lock_x", toggles_flag, std::nullopt, ICON_NONE);
+      row.prop(ptr, "lock_x", toggles_flag, std::nullopt, ICON_NONE);
     }
     if (deform_axis != 1) {
-      row->prop(ptr, "lock_y", toggles_flag, std::nullopt, ICON_NONE);
+      row.prop(ptr, "lock_y", toggles_flag, std::nullopt, ICON_NONE);
     }
     if (deform_axis != 2) {
-      row->prop(ptr, "lock_z", toggles_flag, std::nullopt, ICON_NONE);
+      row.prop(ptr, "lock_z", toggles_flag, std::nullopt, ICON_NONE);
     }
   }
 

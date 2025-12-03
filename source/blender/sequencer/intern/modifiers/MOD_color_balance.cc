@@ -264,24 +264,24 @@ static void colorBalance_apply(ModifierApplyContext &context, StripModifierData 
 
 static void colorBalance_panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
   PointerRNA *ptr = UI_panel_custom_data_get(panel);
 
   PointerRNA color_balance = RNA_pointer_get(ptr, "color_balance");
   const int correction_method = RNA_enum_get(&color_balance, "correction_method");
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "color_multiply", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(&color_balance, "correction_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "color_multiply", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(&color_balance, "correction_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiLayout &flow = layout->grid_flow(true, 0, true, false, false);
+  ui::Layout &flow = layout.grid_flow(true, 0, true, false, false);
   flow.use_property_split_set(false);
   if (correction_method == SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN) {
     /* Split into separate scopes to be able to reuse "split" and "col" variable names. */
     {
-      uiLayout &split = flow.column(false).split(0.35f, false);
-      uiLayout &col = split.column(true);
+      ui::Layout &split = flow.column(false).split(0.35f, false);
+      ui::Layout &col = split.column(true);
       col.label(IFACE_("Lift"), ICON_NONE);
       col.separator();
       col.separator();
@@ -292,8 +292,8 @@ static void colorBalance_panel_draw(const bContext *C, Panel *panel)
       col.separator();
     }
     {
-      uiLayout &split = flow.column(false).split(0.35f, false);
-      uiLayout &col = split.column(true);
+      ui::Layout &split = flow.column(false).split(0.35f, false);
+      ui::Layout &col = split.column(true);
       col.label(IFACE_("Gamma"), ICON_NONE);
       col.separator();
       col.separator();
@@ -304,8 +304,8 @@ static void colorBalance_panel_draw(const bContext *C, Panel *panel)
       col.separator();
     }
     {
-      uiLayout &split = flow.column(false).split(0.35f, false);
-      uiLayout &col = split.column(true);
+      ui::Layout &split = flow.column(false).split(0.35f, false);
+      ui::Layout &col = split.column(true);
       col.label(IFACE_("Gain"), ICON_NONE);
       col.separator();
       col.separator();
@@ -317,8 +317,8 @@ static void colorBalance_panel_draw(const bContext *C, Panel *panel)
   }
   else if (correction_method == SEQ_COLOR_BALANCE_METHOD_SLOPEOFFSETPOWER) {
     {
-      uiLayout &split = flow.column(false).split(0.35f, false);
-      uiLayout &col = split.column(true);
+      ui::Layout &split = flow.column(false).split(0.35f, false);
+      ui::Layout &col = split.column(true);
       col.label(IFACE_("Offset"), ICON_NONE);
       col.separator();
       col.separator();
@@ -329,8 +329,8 @@ static void colorBalance_panel_draw(const bContext *C, Panel *panel)
       col.separator();
     }
     {
-      uiLayout &split = flow.column(false).split(0.35f, false);
-      uiLayout &col = split.column(true);
+      ui::Layout &split = flow.column(false).split(0.35f, false);
+      ui::Layout &col = split.column(true);
       col.label(IFACE_("Power"), ICON_NONE);
       col.separator();
       col.separator();
@@ -341,8 +341,8 @@ static void colorBalance_panel_draw(const bContext *C, Panel *panel)
       col.separator();
     }
     {
-      uiLayout &split = flow.column(false).split(0.35f, false);
-      uiLayout &col = split.column(true);
+      ui::Layout &split = flow.column(false).split(0.35f, false);
+      ui::Layout &col = split.column(true);
       col.label(IFACE_("Slope"), ICON_NONE);
       col.separator();
       col.separator();
@@ -356,10 +356,10 @@ static void colorBalance_panel_draw(const bContext *C, Panel *panel)
     BLI_assert_unreachable();
   }
 
-  if (uiLayout *mask_input_layout = layout->panel_prop(
+  if (ui::Layout *mask_input_layout = layout.panel_prop(
           C, ptr, "open_mask_input_panel", IFACE_("Mask Input")))
   {
-    draw_mask_input_type_settings(C, mask_input_layout, ptr);
+    draw_mask_input_type_settings(C, *mask_input_layout, ptr);
   }
 }
 
