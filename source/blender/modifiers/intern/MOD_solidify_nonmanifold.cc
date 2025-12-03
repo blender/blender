@@ -2093,8 +2093,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   }
 
   /* DEBUG CODE FOR BUG-FIXING (can not be removed because every bug-fix needs this badly!). */
-#if 0
-  {
+  if (false) {
     /* this code will output the content of orig_vert_groups_arr.
      * in orig_vert_groups_arr these conditions must be met for every vertex:
      * - new_edge value should have no duplicates
@@ -2117,18 +2116,18 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
       EdgeGroup *gs = *gs_ptr;
       /* check if the vertex is present (may be dissolved because of proximity) */
       if (gs) {
-        printf("%d:\n", i);
+        printf("%u:\n", i);
         for (EdgeGroup *g = gs; g->valid; g++) {
           NewEdgeRef **e = g->edges;
           for (uint j = 0; j < g->edges_len; j++, e++) {
-            printf("%u/%d, ", (*e)->old_edge, int(*e)->new_edge);
+            printf("%u/%d, ", (*e)->old_edge, int((*e)->new_edge));
           }
           printf("(tg:%u)(s:%u,c:%d)\n", g->topo_group, g->split, g->is_orig_closed);
         }
       }
     }
   }
-#endif
+
   const VArraySpan src_material_index = *orig_attributes.lookup<int>("material_index",
                                                                      bke::AttrDomain::Face);
   bke::SpanAttributeWriter dst_material_index =
