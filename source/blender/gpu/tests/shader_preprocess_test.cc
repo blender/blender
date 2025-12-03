@@ -620,17 +620,18 @@ struct SRT {
     string expect = R"(
 struct SRT {
                            T  a;
-
-static SRT new_()
+#line 12
+};
+#line 5
+       SRT SRT_new_()
 {
   SRT result;
   result.a = T_new_();
   return result;
 #line 3
 }
-};
-#define access_SRT_a() T_new_()
 #line 5
+#define access_SRT_a() T_new_()
 )";
     string error;
     string output = process_test_string(input, error);
@@ -1077,6 +1078,7 @@ struct S {
     return S(0);
   }
   S other_method(int s) {
+    this->some_method();
     return S(0);
   }
 };
@@ -1086,16 +1088,17 @@ struct S {
     string expect = R"(
 
 struct NS_S {
-#line 10
+#line 11
 int _pad;};
 #line 4
          NS_S NS_S_static_method(NS_S s) {
     return NS_S(0);
   }
   NS_S other_method(inout NS_S _inout_sta this_ _inout_end, int s) {
+    some_method(this_);
     return NS_S(0);
   }
-#line 11
+#line 12
 
 )";
     string error;
