@@ -14,6 +14,8 @@
 #include <string>
 #include <string_view>
 
+#include "BLI_string.h"
+
 #include "GHOST_Types.h"
 #include "GHOST_XrException.hh"
 #include "GHOST_XrSession.hh"
@@ -101,8 +103,8 @@ void GHOST_XrContext::createOpenXRInstance(
 {
   XrInstanceCreateInfo create_info = {XR_TYPE_INSTANCE_CREATE_INFO};
 
-  std::string("Blender").copy(create_info.applicationInfo.applicationName,
-                              XR_MAX_APPLICATION_NAME_SIZE);
+  BLI_strncpy(
+      create_info.applicationInfo.applicationName, "Blender", XR_MAX_APPLICATION_NAME_SIZE);
   create_info.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
 
   getAPILayersToEnable(enabled_layers_);
@@ -116,7 +118,7 @@ void GHOST_XrContext::createOpenXRInstance(
   }
 
   CHECK_XR(xrCreateInstance(&create_info, &oxr_->instance),
-           "Failed to connect to an OpenXR runtime.");
+           "Failed to create OpenXR instance, check OpenXR runtime.");
 }
 
 void GHOST_XrContext::storeInstanceProperties()
