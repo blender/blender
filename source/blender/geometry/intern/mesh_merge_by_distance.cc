@@ -1649,8 +1649,10 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
 
   int r_i = 0;
   int loop_cur = 0;
-  Array<bool> dst_face_unaffected(result_nfaces - weld_mesh.wpoly_new_len);
-  Array<int> dst_to_src_faces(result_nfaces - weld_mesh.wpoly_new_len);
+  Vector<bool> dst_face_unaffected;
+  dst_face_unaffected.reserve(result_nfaces);
+  Vector<int> dst_to_src_faces;
+  dst_to_src_faces.reserve(result_nfaces);
   Array<int, 64> group_buffer(weld_mesh.max_face_len);
   for (const int i : src_faces.index_range()) {
     const int loop_start = loop_cur;
@@ -1661,7 +1663,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
         corner_src_index_data.append(loop_orig);
         loop_cur++;
       }
-      dst_face_unaffected[r_i] = true;
+      dst_face_unaffected.append_unchecked(true);
     }
     else {
       const WeldPoly &wp = weld_mesh.wpoly[poly_ctx];
@@ -1680,7 +1682,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
       if (wp.poly_dst != OUT_OF_CONTEXT) {
         continue;
       }
-      dst_face_unaffected[r_i] = false;
+      dst_face_unaffected.append_unchecked(false);
       do {
         corner_src_index_offset_data.append_unchecked(corner_src_index_data.size());
         corner_src_index_data.extend(Span(group_buffer.data(), iter.group_len));
@@ -1690,12 +1692,13 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
       } while (weld_iter_loop_of_poly_next(iter));
     }
 
-    dst_to_src_faces[r_i] = i;
+    dst_to_src_faces.append_unchecked(i);
     dst_face_offsets[r_i] = loop_start;
     r_i++;
   }
 
-  /* New Polygons. */
+  /* New Polygons.
+   * NOTE: The number of "src" and "new" faces might not match `wpoly_new_len`. */
   for (const int i : weld_mesh.wpoly.index_range().take_back(weld_mesh.wpoly_new_len)) {
     const WeldPoly &wp = weld_mesh.wpoly[i];
     const int loop_start = loop_cur;
@@ -1726,6 +1729,9 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     r_i++;
   }
 
+  BLI_assert(int(r_i) == result_nfaces);
+  BLI_assert(loop_cur == result_nloops);
+
   corner_src_index_offset_data.append_unchecked(corner_src_index_data.size());
 
   const GroupedSpan<int> dst_to_src_corners(OffsetIndices<int>(corner_src_index_offset_data),
@@ -1742,10 +1748,9 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     bke::GSpanAttributeWriter dst_attr = dst_attributes.lookup_or_add_for_write_only_span(
         iter.name, iter.domain, iter.data_type);
     bke::attribute_math::gather(
-        src_attr, dst_to_src_faces, dst_attr.span.drop_back(weld_mesh.wpoly_new_len));
-    type.fill_assign_n(type.default_value(),
-                       dst_attr.span.take_back(weld_mesh.wpoly_new_len).data(),
-                       weld_mesh.wpoly_new_len);
+        src_attr, dst_to_src_faces, dst_attr.span.take_front(dst_to_src_faces.size()));
+    GMutableSpan default_data = dst_attr.span.drop_front(dst_to_src_faces.size());
+    type.fill_assign_n(type.default_value(), default_data.data(), default_data.size());
     dst_attr.finish();
   });
 
@@ -1755,8 +1760,8 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     MutableSpan dst(static_cast<int *>(CustomData_add_layer(
                         &result->face_data, CD_ORIGINDEX, CD_CONSTRUCT, result->faces_num)),
                     result->faces_num);
-    bke::attribute_math::gather(src, dst_to_src_faces, dst.drop_back(weld_mesh.wpoly_new_len));
-    dst.take_back(weld_mesh.wpoly_new_len).fill(ORIGINDEX_NONE);
+    bke::attribute_math::gather(src, dst_to_src_faces, dst.take_front(dst_to_src_faces.size()));
+    dst.drop_front(dst_to_src_faces.size()).fill(ORIGINDEX_NONE);
   }
 
   IndexMaskMemory memory;
@@ -1776,9 +1781,6 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
                  bke::AttrDomain::Corner,
                  {".corner_vert", ".corner_edge"},
                  dst_attributes);
-
-  BLI_assert(int(r_i) == result_nfaces);
-  BLI_assert(loop_cur == result_nloops);
 
   debug_randomize_mesh_order(result);
 
