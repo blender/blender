@@ -337,17 +337,17 @@ static void region_draw_status_text(ScrArea * /*area*/, ARegion *region)
   const float width = BLF_width(fontid, region->runtime->headerstr, BLF_DRAW_STR_DUMMY_MAX);
   GPU_blend(GPU_BLEND_ALPHA);
 
-  /* Draw a background behind the text for extra contrast. */
+  /* Center the text horizontally. */
+  x = (region->winx - width) / 2.0f;
+  const float pad = 5.0f * UI_SCALE_FAC;
+  const float x1 = x - pad;
+  const float x2 = x + width + pad;
+  const float y1 = 3.0f * UI_SCALE_FAC;
+  const float y2 = region->winy - (4.0f * UI_SCALE_FAC);
+  /* Ensure header_color is not too transparent. */
+  header_color[3] = std::max(header_color[3], 0.6f);
   if (region->overlap) {
-    /* Center the text horizontally. */
-    x = (region->winx - width) / 2.0f;
-    const float pad = 5.0f * UI_SCALE_FAC;
-    const float x1 = x - pad;
-    const float x2 = x + width + pad;
-    const float y1 = 3.0f * UI_SCALE_FAC;
-    const float y2 = region->winy - (4.0f * UI_SCALE_FAC);
-    /* Ensure header_color is not too transparent. */
-    header_color[3] = std::max(header_color[3], 0.6f);
+    /* Draw a background behind the text for extra contrast. */
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
     const rctf rect = {x1, x2, y1, y2};
     UI_draw_roundbox_4fv(&rect, true, 4.0f * UI_SCALE_FAC, header_color);
