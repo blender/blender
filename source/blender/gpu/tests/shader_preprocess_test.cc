@@ -675,6 +675,54 @@ struct SRT {
 }
 GPU_TEST(preprocess_srt_template_wrapper);
 
+static void test_preprocess_srt_method()
+{
+  using namespace shader;
+  using namespace std;
+
+  {
+    string input = R"(
+struct SRT {
+  [[resource_table]] srt_t<T> a;
+
+  void method(int t) {
+    this->a;
+  }
+};
+)";
+    string expect = R"(
+struct SRT {
+                           T  a;
+#line 16
+};
+#line 5
+
+#if defined(CREATE_INFO_SRT)
+#line 5
+  void method(                   inout SRT _inout_sta this_ _inout_end, int t) {
+    srt_access(SRT, a);
+  }
+
+#endif
+#line 9
+       SRT SRT_new_()
+{
+  SRT result;
+  result.a = T_new_();
+  return result;
+#line 7
+}
+#line 9
+#define access_SRT_a() T_new_()
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+}
+GPU_TEST(preprocess_srt_method);
+
 static void test_preprocess_static_branch()
 {
   using namespace shader;

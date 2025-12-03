@@ -497,10 +497,7 @@ class Preprocessor {
 
         if (language == BLENDER_GLSL) {
           srt_template_linter_and_mutation(parser, report_error);
-          srt_member_access_mutation(parser, report_error);
           using_mutation(parser, report_error);
-
-          static_branch_mutation(parser, report_error);
           namespace_mutation(parser, report_error);
           template_struct_mutation(parser, report_error);
           template_definition_mutation(parser, report_error);
@@ -512,6 +509,8 @@ class Preprocessor {
           resource_guard_mutation(parser, report_error);
           struct_method_mutation(parser, report_error);
           method_call_mutation(parser, report_error);
+          srt_member_access_mutation(parser, report_error);
+          static_branch_mutation(parser, report_error);
           empty_struct_mutation(parser, report_error);
           loop_unroll(parser, report_error);
           assert_processing(parser, filename, report_error);
@@ -2174,7 +2173,7 @@ class Preprocessor {
       return (type == "color" || type == "depth" || type == "stencil");
     };
 
-    parser.foreach_struct([&](Token, Token struct_name, Scope body) {
+    parser.foreach_struct([&](Token struct_tok, Token struct_name, Scope body) {
       SrtType srt_type = SrtType::undefined;
       bool has_srt_members = false;
 
@@ -2351,6 +2350,9 @@ class Preprocessor {
 
         parser.insert_line_number(end_of_srt.next().line_end() + 1,
                                   end_of_srt.next().line_number() + 2);
+
+        /* Insert attribute so that method mutations know that this struct is an SRT. */
+        parser.insert_before(struct_tok, "[[resource_table]] ");
       }
     });
     parser.apply_mutations();
@@ -2565,7 +2567,17 @@ class Preprocessor {
     });
 
     /* Add `this` parameter and fold static keywords into function name. */
-    parser.foreach_struct([&](Token, const Token struct_name, const Scope struct_scope) {
+    parser.foreach_struct([&](Token struct_tok,
+                              const Token struct_name,
+                              const Scope struct_scope) {
+      const Scope attributes = struct_tok.prev().scope();
+      const bool is_resource_table = (attributes.type() == ScopeType::Subscript) &&
+                                     (attributes.str() == "[[resource_table]]");
+
+      if (is_resource_table) {
+        parser.replace(attributes, "");
+      }
+
       struct_scope.foreach_function(
           [&](bool is_static, Token fn_type, Token fn_name, Scope fn_args, bool is_const, Scope) {
             const Token static_tok = is_static ? fn_type.prev() : Token::invalid();
@@ -2581,14 +2593,16 @@ class Preprocessor {
             else {
               const bool has_no_args = fn_args.token_count() == 2;
               const char *suffix = (has_no_args ? "" : ", ");
+              const string prefix = (is_resource_table ? "[[resource_table]] " : "");
 
-              if (is_const) {
+              if (is_const && !is_resource_table) {
                 parser.erase(const_tok);
                 parser.insert_after(fn_args.start(),
-                                    "const " + struct_name.str() + " this_" + suffix);
+                                    prefix + "const " + struct_name.str() + " this_" + suffix);
               }
               else {
-                parser.insert_after(fn_args.start(), struct_name.str() + " &this_" + suffix);
+                parser.insert_after(fn_args.start(),
+                                    prefix + struct_name.str() + " &this_" + suffix);
               }
             }
           });
@@ -3268,23 +3282,23 @@ class Preprocessor {
       if (fn_body.is_invalid()) {
         return;
       }
-      fn_args.foreach_match("[[w]]w&w", [&](const vector<Token> toks) {
-        memher_access_mutation(toks[0].scope(), toks[5], toks[7], fn_body);
+      fn_args.foreach_match("[[w]]c?w&w", [&](const vector<Token> toks) {
+        memher_access_mutation(toks[0].scope(), toks[7], toks[9], fn_body);
       });
-      fn_args.foreach_match("[[w]]ww", [&](const vector<Token> toks) {
+      fn_args.foreach_match("[[w]]c?ww", [&](const vector<Token> toks) {
         if (toks[2].str() == srt_attribute) {
           parser.erase(toks[0].scope());
-          report_error(ERROR_TOK(toks[1]), "Shader Resource Table arguments must be references.");
+          report_error(ERROR_TOK(toks[8]), "Shader Resource Table arguments must be references.");
         }
       });
     });
 
     parser.foreach_scope(ScopeType::Function, [&](const Scope fn_body) {
-      fn_body.foreach_match("[[w]]w&w", [&](const vector<Token> toks) {
-        memher_access_mutation(toks[0].scope(), toks[5], toks[7], toks[7].scope());
+      fn_body.foreach_match("[[w]]c?w&w", [&](const vector<Token> toks) {
+        memher_access_mutation(toks[0].scope(), toks[7], toks[9], toks[9].scope());
       });
-      fn_body.foreach_match("[[w]]ww", [&](const vector<Token> toks) {
-        memher_access_mutation(toks[0].scope(), toks[5], toks[6], toks[6].scope());
+      fn_body.foreach_match("[[w]]c?ww", [&](const vector<Token> toks) {
+        memher_access_mutation(toks[0].scope(), toks[7], toks[8], toks[8].scope());
       });
     });
 
