@@ -532,7 +532,7 @@ void modifier_list_copy(Strip *strip_new, Strip *strip)
 
 int sequence_supports_modifiers(Strip *strip)
 {
-  return (strip->type != STRIP_TYPE_SOUND_RAM);
+  return (strip->type != STRIP_TYPE_SOUND);
 }
 
 bool modifier_move_to_index(Strip *strip, StripModifierData *smd, const int new_index)

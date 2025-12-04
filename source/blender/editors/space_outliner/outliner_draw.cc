@@ -2755,7 +2755,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
           case STRIP_TYPE_MOVIE:
             data.icon = ICON_FILE_MOVIE;
             break;
-          case STRIP_TYPE_SOUND_RAM:
+          case STRIP_TYPE_SOUND:
             data.icon = ICON_SOUND;
             break;
           case STRIP_TYPE_IMAGE:

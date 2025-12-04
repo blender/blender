@@ -524,7 +524,7 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
      * adding strips to seqbase, for lookup cache to work correctly. */
     seq::ensure_unique_name(istrip, scene_dst);
 
-    if (region->regiontype == RGN_TYPE_PREVIEW && istrip->type != STRIP_TYPE_SOUND_RAM &&
+    if (region->regiontype == RGN_TYPE_PREVIEW && istrip->type != STRIP_TYPE_SOUND &&
         seq::must_render_strip(seq::query_all_strips(&nseqbase), istrip))
     {
       strip_mean_pos += static_cast<int2>(
@@ -540,7 +540,7 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   LISTBASE_FOREACH (Strip *, istrip, &nseqbase) {
     /* Place strips that generate an image at the mouse cursor. */
     if (region->regiontype == RGN_TYPE_PREVIEW && !RNA_boolean_get(op->ptr, "keep_offset") &&
-        istrip->type != STRIP_TYPE_SOUND_RAM &&
+        istrip->type != STRIP_TYPE_SOUND &&
         seq::must_render_strip(seq::query_all_strips(&nseqbase), istrip))
     {
       StripTransform *transform = istrip->data->transform;

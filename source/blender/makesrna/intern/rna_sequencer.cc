@@ -493,7 +493,7 @@ static void do_strip_frame_change_update(Scene *scene, Strip *strip)
     blender::seq::transform_seqbase_shuffle(seqbase, strip, scene);
   }
 
-  if (strip->type == STRIP_TYPE_SOUND_RAM) {
+  if (strip->type == STRIP_TYPE_SOUND) {
     DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   }
 }
@@ -905,7 +905,7 @@ static StructRNA *rna_Strip_refine(PointerRNA *ptr)
       return &RNA_MovieClipStrip;
     case STRIP_TYPE_MASK:
       return &RNA_MaskStrip;
-    case STRIP_TYPE_SOUND_RAM:
+    case STRIP_TYPE_SOUND:
       return &RNA_SoundStrip;
     case STRIP_TYPE_CROSS:
       return &RNA_CrossStrip;
@@ -1547,7 +1547,7 @@ static void rna_StripModifier_update(Main *bmain, Scene * /*scene*/, PointerRNA 
   Editing *ed = blender::seq::editing_get(scene);
   Strip *strip = strip_get_by_modifier(ed, static_cast<StripModifierData *>(ptr->data));
 
-  if (ELEM(strip->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SOUND_HD)) {
+  if (ELEM(strip->type, STRIP_TYPE_SOUND, STRIP_TYPE_SOUND_HD)) {
     DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS | ID_RECALC_AUDIO);
     DEG_relations_tag_update(bmain);
   }
@@ -1614,7 +1614,7 @@ static bool rna_StripModifier_otherStrip_poll(PointerRNA *ptr, PointerRNA value)
   Strip *strip = strip_get_by_modifier(ed, static_cast<StripModifierData *>(ptr->data));
   Strip *cur = (Strip *)value.data;
 
-  if ((strip == cur) || (cur->type == STRIP_TYPE_SOUND_RAM)) {
+  if ((strip == cur) || (cur->type == STRIP_TYPE_SOUND)) {
     return false;
   }
 
@@ -2324,7 +2324,7 @@ static void rna_def_strip(BlenderRNA *brna)
       {STRIP_TYPE_MOVIE, "MOVIE", 0, "Movie", ""},
       {STRIP_TYPE_MOVIECLIP, "MOVIECLIP", 0, "Clip", ""},
       {STRIP_TYPE_MASK, "MASK", 0, "Mask", ""},
-      {STRIP_TYPE_SOUND_RAM, "SOUND", 0, "Sound", ""},
+      {STRIP_TYPE_SOUND, "SOUND", 0, "Sound", ""},
       {STRIP_TYPE_CROSS, "CROSS", 0, "Crossfade", ""},
       {STRIP_TYPE_ADD, "ADD", 0, "Add", ""},
       {STRIP_TYPE_SUB, "SUBTRACT", 0, "Subtract", ""},

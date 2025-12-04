@@ -301,7 +301,7 @@ static bool versioning_convert_strip_speed_factor(Strip *strip, void *user_data)
 
   last_key->strip_frame_index = (strip->len) / speed_factor;
 
-  if (strip->type == STRIP_TYPE_SOUND_RAM) {
+  if (strip->type == STRIP_TYPE_SOUND) {
     const int prev_length = strip->len - strip->startofs - strip->endofs;
     const float left_handle = blender::seq::time_left_handle_frame_get(scene, strip);
     blender::seq::time_right_handle_frame_set(scene, strip, left_handle + prev_length);

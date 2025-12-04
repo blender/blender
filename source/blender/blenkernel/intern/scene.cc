@@ -964,7 +964,7 @@ static bool strip_foreach_path_callback(Strip *strip, void *user_data)
     StripElem *se = strip->data->stripdata;
     BPathForeachPathData *bpath_data = (BPathForeachPathData *)user_data;
 
-    if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_SOUND_RAM) && se) {
+    if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_SOUND) && se) {
       BKE_bpath_foreach_path_dirfile_fixed_process(bpath_data,
                                                    strip->data->dirpath,
                                                    sizeof(strip->data->dirpath),

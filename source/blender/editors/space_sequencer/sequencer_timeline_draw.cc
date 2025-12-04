@@ -139,7 +139,7 @@ static TimelineDrawContext timeline_draw_context_get(const bContext *C, SeqQuads
 
 static bool seq_draw_waveforms_poll(const SpaceSeq *sseq, const Strip *strip)
 {
-  const bool strip_is_valid = strip->type == STRIP_TYPE_SOUND_RAM && strip->sound != nullptr;
+  const bool strip_is_valid = strip->type == STRIP_TYPE_SOUND && strip->sound != nullptr;
   const bool overlays_enabled = (sseq->flag & SEQ_SHOW_OVERLAY) != 0;
   const bool overlay_option = ((sseq->timeline_overlay.flag & SEQ_TIMELINE_ALL_WAVEFORMS) != 0 ||
                                (strip->flag & SEQ_AUDIO_DRAW_WAVEFORM));
@@ -218,7 +218,7 @@ static StripDrawContext strip_draw_context_get(const TimelineDrawContext &ctx, S
   strip_ctx.content_start = time_start_frame_get(strip);
   strip_ctx.content_end = time_content_end_frame_get(scene, strip);
 
-  if (strip->type == STRIP_TYPE_SOUND_RAM && strip->sound != nullptr) {
+  if (strip->type == STRIP_TYPE_SOUND && strip->sound != nullptr) {
     /* Visualize sub-frame sound offsets. */
     const double sound_offset = (strip->sound->offset_time + strip->sound_offset) *
                                 scene->frames_per_second();
@@ -279,12 +279,11 @@ static void strip_draw_context_curve_get(const TimelineDrawContext &ctx,
                                      (ctx.sseq->flag & SEQ_SHOW_OVERLAY) != 0 &&
                                      (ctx.sseq->timeline_overlay.flag &
                                       SEQ_TIMELINE_SHOW_FCURVES) != 0;
-  const bool showing_waveform = (strip_ctx.strip->type == STRIP_TYPE_SOUND_RAM) &&
+  const bool showing_waveform = (strip_ctx.strip->type == STRIP_TYPE_SOUND) &&
                                 !strip_ctx.strip_is_too_small &&
                                 seq_draw_waveforms_poll(ctx.sseq, strip_ctx.strip);
   if (showing_curve_overlay || showing_waveform) {
-    const char *prop_name = strip_ctx.strip->type == STRIP_TYPE_SOUND_RAM ? "volume" :
-                                                                            "blend_alpha";
+    const char *prop_name = strip_ctx.strip->type == STRIP_TYPE_SOUND ? "volume" : "blend_alpha";
     strip_ctx.curve = id_data_find_fcurve(
         &ctx.scene->id, strip_ctx.strip, &RNA_Strip, prop_name, 0, nullptr);
     if (strip_ctx.curve && BKE_fcurve_is_empty(strip_ctx.curve)) {
@@ -414,7 +413,7 @@ static void color3ubv_from_seq(const Scene *curscene,
       UI_GetThemeColor3ubv(TH_SEQ_COLOR, r_col);
       break;
 
-    case STRIP_TYPE_SOUND_RAM:
+    case STRIP_TYPE_SOUND:
       UI_GetThemeColor3ubv(TH_SEQ_AUDIO, r_col);
       blendcol[0] = blendcol[1] = blendcol[2] = 128;
       if (is_muted) {
@@ -778,7 +777,7 @@ static void draw_seq_text_get_source(const Strip *strip, char *r_source, size_t 
           r_source, source_maxncpy, strip->data->dirpath, strip->data->stripdata->filename);
       break;
     }
-    case STRIP_TYPE_SOUND_RAM: {
+    case STRIP_TYPE_SOUND: {
       if (strip->sound != nullptr) {
         BLI_strncpy_utf8(r_source, strip->sound->filepath, source_maxncpy);
       }
@@ -1697,7 +1696,7 @@ static void draw_cache_background(const bContext *C, const CacheDrawData *draw_d
   }
 
   Vector<Strip *> strips = sequencer_visible_strips_get(C);
-  strips.remove_if([&](const Strip *strip) { return strip->type == STRIP_TYPE_SOUND_RAM; });
+  strips.remove_if([&](const Strip *strip) { return strip->type == STRIP_TYPE_SOUND; });
 
   for (const Strip *strip : strips) {
     stripe_bot = strip->channel + STRIP_OFSBOTTOM + draw_data->stripe_ofs_y;

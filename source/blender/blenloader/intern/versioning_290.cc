@@ -269,7 +269,7 @@ static void strip_convert_transform_crop_lb(const Scene *scene,
 {
 
   LISTBASE_FOREACH (Strip *, strip, lb) {
-    if (!ELEM(strip->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SOUND_HD)) {
+    if (!ELEM(strip->type, STRIP_TYPE_SOUND, STRIP_TYPE_SOUND_HD)) {
       strip_convert_transform_crop(scene, strip, render_size);
     }
     if (strip->type == STRIP_TYPE_META) {
@@ -355,7 +355,7 @@ static void strip_convert_transform_crop_lb_2(const Scene *scene,
 {
 
   LISTBASE_FOREACH (Strip *, strip, lb) {
-    if (!ELEM(strip->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SOUND_HD)) {
+    if (!ELEM(strip->type, STRIP_TYPE_SOUND, STRIP_TYPE_SOUND_HD)) {
       strip_convert_transform_crop_2(scene, strip, render_size);
     }
     if (strip->type == STRIP_TYPE_META) {
