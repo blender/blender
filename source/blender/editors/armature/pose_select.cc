@@ -64,18 +64,18 @@ static void pose_do_bone_select(bPoseChannel *pchan, const int select_mode)
   switch (select_mode) {
     case SEL_SELECT:
       if (!(pchan->bone->flag & BONE_UNSELECTABLE)) {
-        pchan->flag |= POSE_SELECTED;
+        pchan->flag |= POSE_SELECTED_ALL;
       }
       break;
     case SEL_DESELECT:
-      pchan->flag &= ~POSE_SELECTED;
+      pchan->flag &= ~POSE_SELECTED_ALL;
       break;
     case SEL_INVERT:
       if (pchan->flag & POSE_SELECTED) {
-        pchan->flag &= ~POSE_SELECTED;
+        pchan->flag &= ~POSE_SELECTED_ALL;
       }
       else if (!(pchan->bone->flag & BONE_UNSELECTABLE)) {
-        pchan->flag |= POSE_SELECTED;
+        pchan->flag |= POSE_SELECTED_ALL;
       }
       break;
   }
@@ -112,13 +112,13 @@ void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select, bool chan
   if (blender::animrig::bone_is_selectable(arm, pchan)) {
     /* change selection state - activate too if selected */
     if (select) {
-      pchan->flag |= POSE_SELECTED;
+      pchan->flag |= POSE_SELECTED_ALL;
       if (change_active) {
         arm->act_bone = pchan->bone;
       }
     }
     else {
-      pchan->flag &= ~POSE_SELECTED;
+      pchan->flag &= ~POSE_SELECTED_ALL;
       if (change_active) {
         arm->act_bone = nullptr;
       }
@@ -185,18 +185,18 @@ bool ED_armature_pose_select_pick_bone(const Scene *scene,
        * from another active object - always select the bone. */
       if (params.sel_op == SEL_OP_SET) {
         /* Re-select the bone again later in this function. */
-        pchan->flag &= ~POSE_SELECTED;
+        pchan->flag &= ~POSE_SELECTED_ALL;
       }
     }
 
     switch (params.sel_op) {
       case SEL_OP_ADD: {
-        pchan->flag |= POSE_SELECTED;
+        pchan->flag |= POSE_SELECTED_ALL;
         arm->act_bone = pchan->bone;
         break;
       }
       case SEL_OP_SUB: {
-        pchan->flag &= ~POSE_SELECTED;
+        pchan->flag &= ~POSE_SELECTED_ALL;
         break;
       }
       case SEL_OP_XOR: {
@@ -206,17 +206,17 @@ bool ED_armature_pose_select_pick_bone(const Scene *scene,
             arm->act_bone = pchan->bone;
           }
           else {
-            pchan->flag &= ~POSE_SELECTED;
+            pchan->flag &= ~POSE_SELECTED_ALL;
           }
         }
         else {
-          pchan->flag |= POSE_SELECTED;
+          pchan->flag |= POSE_SELECTED_ALL;
           arm->act_bone = pchan->bone;
         }
         break;
       }
       case SEL_OP_SET: {
-        pchan->flag |= POSE_SELECTED;
+        pchan->flag |= POSE_SELECTED_ALL;
         arm->act_bone = pchan->bone;
         break;
       }
@@ -413,10 +413,10 @@ static void selectconnected_posebonechildren(Object &ob,
         }
 
         if (extend) {
-          child.flag &= ~POSE_SELECTED;
+          child.flag &= ~POSE_SELECTED_ALL;
         }
         else {
-          child.flag |= POSE_SELECTED;
+          child.flag |= POSE_SELECTED_ALL;
         }
         return true;
       });
@@ -445,10 +445,10 @@ static wmOperatorStatus pose_select_connected_invoke(bContext *C,
     /* ignore bone if cannot be selected */
     if ((curBone->flag & BONE_UNSELECTABLE) == 0) {
       if (extend) {
-        curBone->flag &= ~POSE_SELECTED;
+        curBone->flag &= ~POSE_SELECTED_ALL;
       }
       else {
-        curBone->flag |= POSE_SELECTED;
+        curBone->flag |= POSE_SELECTED_ALL;
       }
 
       if (curBone->bone->flag & BONE_CONNECTED) {
@@ -518,7 +518,7 @@ static wmOperatorStatus pose_select_linked_exec(bContext *C, wmOperator * /*op*/
     /* Select parents */
     for (curBone = pchan; curBone; curBone = next) {
       if (blender::animrig::bone_is_selectable(arm, curBone)) {
-        curBone->flag |= POSE_SELECTED;
+        curBone->flag |= POSE_SELECTED_ALL;
 
         if (curBone->bone->flag & BONE_CONNECTED) {
           next = curBone->parent;
@@ -629,7 +629,7 @@ static wmOperatorStatus pose_select_parent_exec(bContext *C, wmOperator * /*op*/
     if ((parent) && !(parent->drawflag & PCHAN_DRAW_HIDDEN) &&
         !(parent->bone->flag & BONE_UNSELECTABLE))
     {
-      parent->flag |= POSE_SELECTED;
+      parent->flag |= POSE_SELECTED_ALL;
       arm->act_bone = parent->bone;
     }
     else {
@@ -681,7 +681,7 @@ static wmOperatorStatus pose_select_constraint_target_exec(bContext *C, wmOperat
             {
               bPoseChannel *pchanc = BKE_pose_channel_find_name(ob->pose, ct->subtarget);
               if ((pchanc) && !(pchanc->bone->flag & BONE_UNSELECTABLE)) {
-                pchanc->flag |= POSE_SELECTED;
+                pchanc->flag |= POSE_SELECTED_ALL;
                 ED_pose_bone_select_tag_update(ob);
                 found = true;
               }
@@ -744,9 +744,9 @@ static wmOperatorStatus pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 
       if (blender::animrig::bone_is_selectable(arm, bone_parent)) {
         if (!add_to_sel) {
-          pchan_act->flag &= ~POSE_SELECTED;
+          pchan_act->flag &= ~POSE_SELECTED_ALL;
         }
-        pchan_act->parent->flag |= POSE_SELECTED;
+        pchan_act->parent->flag |= POSE_SELECTED_ALL;
         arm->act_bone = bone_parent;
 
         changed = true;
@@ -776,9 +776,9 @@ static wmOperatorStatus pose_select_hierarchy_exec(bContext *C, wmOperator *op)
       arm->act_bone = bone_child->bone;
 
       if (!add_to_sel) {
-        pchan_act->flag &= ~POSE_SELECTED;
+        pchan_act->flag &= ~POSE_SELECTED_ALL;
       }
-      bone_child->flag |= POSE_SELECTED;
+      bone_child->flag |= POSE_SELECTED_ALL;
 
       changed = true;
     }
@@ -853,7 +853,7 @@ static bool pose_select_same_color(bContext *C, const bool extend)
    */
   if (!extend) {
     CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob) {
-      pchan->flag &= ~POSE_SELECTED;
+      pchan->flag &= ~POSE_SELECTED_ALL;
       updated_objects.add(ob);
       changed_any_selection = true;
     }
@@ -878,7 +878,7 @@ static bool pose_select_same_color(bContext *C, const bool extend)
       continue;
     }
 
-    pchan->flag |= POSE_SELECTED;
+    pchan->flag |= POSE_SELECTED_ALL;
     changed_any_selection = true;
     updated_objects.add(ob);
   }
@@ -908,7 +908,7 @@ static bool pose_select_same_collection(bContext *C, const bool extend)
   if (!extend) {
     /* Deselect all the bones. */
     CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob) {
-      pchan->flag &= ~POSE_SELECTED;
+      pchan->flag &= ~POSE_SELECTED_ALL;
       updated_objects.add(ob);
       changed_any_selection = true;
     }
@@ -934,7 +934,7 @@ static bool pose_select_same_collection(bContext *C, const bool extend)
         continue;
       }
 
-      pchan->flag |= POSE_SELECTED;
+      pchan->flag |= POSE_SELECTED_ALL;
       changed_any_selection = true;
       updated_objects.add(ob);
     }
@@ -981,7 +981,7 @@ static void deselect_pose_bones(const blender::Set<bPoseChannel *> &pose_bones)
       /* There may be a nullptr in the set if selecting siblings of root bones. */
       continue;
     }
-    pose_bone->flag &= ~POSE_SELECTED;
+    pose_bone->flag &= ~POSE_SELECTED_ALL;
   }
 }
 
@@ -1121,7 +1121,7 @@ static bool pose_select_same_keyingset(bContext *C, ReportList *reports, bool ex
   if (extend == false) {
     CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones) {
       if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
-        pchan->flag &= ~POSE_SELECTED;
+        pchan->flag &= ~POSE_SELECTED_ALL;
       }
     }
     CTX_DATA_END;
@@ -1156,7 +1156,7 @@ static bool pose_select_same_keyingset(bContext *C, ReportList *reports, bool ex
         if (pchan) {
           /* select if bone is visible and can be affected */
           if (blender::animrig::bone_is_selectable(arm, pchan)) {
-            pchan->flag |= POSE_SELECTED;
+            pchan->flag |= POSE_SELECTED_ALL;
             changed = true;
           }
         }

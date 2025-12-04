@@ -231,12 +231,12 @@ static void outliner_select_sync_to_pose_bone(TreeElement *te,
 
   if (blender::animrig::bone_is_selectable(arm, pchan)) {
     if (tselem->flag & TSE_SELECTED) {
-      pchan->flag |= POSE_SELECTED;
+      pchan->flag |= POSE_SELECTED_ALL;
 
       selected_pbones.add(pchan);
     }
     else if (!selected_pbones.contains(pchan)) {
-      pchan->flag &= ~POSE_SELECTED;
+      pchan->flag &= ~POSE_SELECTED_ALL;
     }
   }
 

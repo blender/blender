@@ -685,7 +685,7 @@ static wmOperatorStatus pose_hide_exec(bContext *C, wmOperator *op)
         continue;
       }
       pchan->drawflag |= PCHAN_DRAW_HIDDEN;
-      pchan->flag &= ~POSE_SELECTED;
+      pchan->flag &= ~POSE_SELECTED_ALL;
       changed = true;
     }
 

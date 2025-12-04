@@ -564,7 +564,7 @@ static void tree_element_posechannel_activate(bContext *C,
       }
 
       LISTBASE_FOREACH (bPoseChannel *, pchannel, &ob_iter->pose->chanbase) {
-        pchannel->flag &= ~POSE_SELECTED;
+        pchannel->flag &= ~POSE_SELECTED_ALL;
       }
 
       if (ob != ob_iter) {
@@ -574,11 +574,11 @@ static void tree_element_posechannel_activate(bContext *C,
   }
 
   if ((set == OL_SETSEL_EXTEND) && (pchan->flag & POSE_SELECTED)) {
-    pchan->flag &= ~POSE_SELECTED;
+    pchan->flag &= ~POSE_SELECTED_ALL;
   }
   else {
     if (blender::animrig::bone_is_visible(arm, pchan)) {
-      pchan->flag |= POSE_SELECTED;
+      pchan->flag |= POSE_SELECTED_ALL;
     }
     arm->act_bone = pchan->bone;
   }

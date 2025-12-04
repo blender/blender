@@ -807,10 +807,10 @@ static void bone_collection_select(bContext *C,
       }
 
       if (select) {
-        pose_bone->flag |= POSE_SELECTED;
+        pose_bone->flag |= POSE_SELECTED_ALL;
       }
       else {
-        pose_bone->flag &= ~POSE_SELECTED;
+        pose_bone->flag &= ~POSE_SELECTED_ALL;
       }
     }
     DEG_id_tag_update(&active_object->id, ID_RECALC_SELECT);
