@@ -104,22 +104,28 @@ static void sima_zoom_set(
 
   sima->zoom = zoom;
 
-  if (sima->zoom < 0.1f || sima->zoom > 4.0f) {
-    /* check zoom limits */
-    ED_space_image_get_size(sima, &width, &height);
+  ED_space_image_get_size(sima, &width, &height);
 
-    width *= sima->zoom;
-    height *= sima->zoom;
-
-    if ((width < 4) && (height < 4) && sima->zoom < oldzoom) {
-      sima->zoom = oldzoom;
-    }
-    else if (BLI_rcti_size_x(&region->winrct) <= sima->zoom) {
-      sima->zoom = oldzoom;
-    }
-    else if (BLI_rcti_size_y(&region->winrct) <= sima->zoom) {
-      sima->zoom = oldzoom;
-    }
+  /* Preset zoom limits.
+   *   Zoom `min` is based on ratio of apparent image size to largest screen dimension.
+   *   Zoom `max` is based on ratio of apparent pixel size to largest screen dimension.
+   *      (The reason being so the user can still zoom in on very large images.)
+   */
+  const float sima_minzoom_image_over_screen = 1.0f / 100.0f;
+  const float sima_maxzoom_pixel_over_screen = 10.0f / 1.0f;
+  /* Check zoom limits. */
+  /* Get largest dimensions for image and workspace for comparison. */
+  float comp_image = std::max(width, height);
+  float comp_screen = std::max(BLI_rcti_size_x(&region->winrct), BLI_rcti_size_y(&region->winrct));
+  /* Stop when image size is less than minzoom ratio compared to screen size. */
+  if (comp_image * sima->zoom < comp_screen * sima_minzoom_image_over_screen &&
+      sima->zoom < oldzoom)
+  {
+    sima->zoom = oldzoom;
+  }
+  /* Stop when max relative screen bounds is smaller than apparent pixel size. */
+  else if (comp_screen * sima_maxzoom_pixel_over_screen <= sima->zoom && sima->zoom > oldzoom) {
+    sima->zoom = oldzoom;
   }
 
   if (zoom_to_pos && location) {
