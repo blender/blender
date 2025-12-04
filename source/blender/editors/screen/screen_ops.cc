@@ -7305,8 +7305,9 @@ static bool screen_drop_scene_poll(bContext *C, wmDrag *drag, const wmEvent * /*
 static void screen_drop_scene_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, ID_SCE);
-  BLI_assert(id);
-  RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
+  if (id) {
+    RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
+  }
 }
 
 static std::string screen_drop_scene_tooltip(bContext * /*C*/,

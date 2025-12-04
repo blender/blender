@@ -1664,6 +1664,9 @@ ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid);
 /* ID drag and drop. */
 
 /**
+ * \note This can return null! Importing can fail if the asset was deleted or moved since the asset
+ * library was loaded.
+ *
  * \param flag_extra: Additional linking flags (from #eFileSel_Params_Flag).
  */
 ID *WM_drag_asset_id_import(const bContext *C, wmDragAsset *asset_drag, int flag_extra);

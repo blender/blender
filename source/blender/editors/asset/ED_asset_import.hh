@@ -31,6 +31,9 @@ struct ImportInstantiateContext {
  * If the asset already has a corresponding local #ID, return it. Otherwise, link or append the
  * asset's data-block, using "Append & Reuse" if the method is unspecified.
  *
+ * \note This can return null! Importing can fail if the asset was deleted or moved since the asset
+ * library was loaded.
+ *
  * \param import_method: Overrides library's default importing method.
  * If not set and the library has no default, #ASSET_IMPORT_APPEND_REUSE will be used.
  */

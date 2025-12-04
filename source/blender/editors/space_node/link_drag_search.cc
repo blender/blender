@@ -203,10 +203,12 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
          [&asset, socket_property, in_out](nodes::LinkSearchOpParams &params) {
            Main &bmain = *CTX_data_main(&params.C);
 
-           bNode &node = params.add_node(params.node_tree.typeinfo->group_idname);
-
            bNodeTree *group = reinterpret_cast<bNodeTree *>(
                asset::asset_local_id_ensure_imported(bmain, asset));
+           if (!group) {
+             return;
+           }
+           bNode &node = params.add_node(params.node_tree.typeinfo->group_idname);
            node.id = &group->id;
            id_us_plus(node.id);
            BKE_ntree_update_tag_node_property(&params.node_tree, &node);

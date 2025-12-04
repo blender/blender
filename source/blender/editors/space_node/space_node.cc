@@ -1127,8 +1127,9 @@ static bool node_panel_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
 static void node_group_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
-
-  RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
+  if (id) {
+    RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
+  }
 
   RNA_boolean_set(drop->ptr, "show_datablock_in_node", (drag->type != WM_DRAG_ASSET));
 }
@@ -1136,8 +1137,9 @@ static void node_group_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 static void node_id_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
-
-  RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
+  if (id) {
+    RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
+  }
 }
 
 static void node_id_im_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)

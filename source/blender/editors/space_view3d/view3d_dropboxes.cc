@@ -472,6 +472,9 @@ static void view3d_ob_drop_copy_external_asset(bContext *C, wmDrag *drag, wmDrop
   BKE_view_layer_base_deselect_all(scene, view_layer);
 
   ID *id = WM_drag_asset_id_import(C, asset_drag, FILE_AUTOSELECT);
+  if (!id) {
+    return;
+  }
 
   /* TODO(sergey): Only update relations for the current scene. */
   DEG_relations_tag_update(bmain);
@@ -573,6 +576,9 @@ static void view3d_collection_drop_copy_external_asset(bContext *C, wmDrag *drag
   asset_drag->import_settings.use_instance_collections = false;
 
   ID *id = WM_drag_asset_id_import(C, asset_drag, FILE_AUTOSELECT);
+  if (!id) {
+    return;
+  }
   Collection *collection = (Collection *)id;
 
   /* Reset temporary override. */
@@ -624,8 +630,9 @@ static void view3d_collection_drop_copy_external_asset(bContext *C, wmDrag *drag
 static void view3d_id_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
-
-  WM_operator_properties_id_lookup_set_from_id(drop->ptr, id);
+  if (id) {
+    WM_operator_properties_id_lookup_set_from_id(drop->ptr, id);
+  }
 }
 
 static void view3d_geometry_nodes_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
@@ -637,9 +644,22 @@ static void view3d_geometry_nodes_drop_copy(bContext *C, wmDrag *drag, wmDropBox
 static void view3d_id_drop_copy_with_type(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
+  wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
 
-  RNA_enum_set(drop->ptr, "type", GS(id->name));
-  WM_operator_properties_id_lookup_set_from_id(drop->ptr, id);
+  std::optional<ID_Type> idtype = std::nullopt;
+  if (asset_drag) {
+    idtype = asset_drag->asset->get_id_type();
+  }
+  else if (id) {
+    idtype = GS(id->name);
+  }
+
+  if (idtype) {
+    RNA_enum_set(drop->ptr, "type", *idtype);
+  }
+  if (id) {
+    WM_operator_properties_id_lookup_set_from_id(drop->ptr, id);
+  }
 }
 
 static void view3d_id_path_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)

@@ -894,7 +894,7 @@ static Scene *sequencer_add_scene_asset(const bContext &C,
   Scene *scene_asset = reinterpret_cast<Scene *>(
       asset::asset_local_id_ensure_imported(bmain, asset, ASSET_IMPORT_APPEND));
 
-  if (asset.is_local_id()) {
+  if (scene_asset && asset.is_local_id()) {
     /* Local scene that needs to be duplicated. */
     Scene *scene_copy = BKE_scene_duplicate(
         &bmain,
