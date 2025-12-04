@@ -118,7 +118,7 @@ void GHOST_XrContext::createOpenXRInstance(
   }
 
   CHECK_XR(xrCreateInstance(&create_info, &oxr_->instance),
-           "Failed to create OpenXR instance, check OpenXR runtime.");
+           "Failed to create OpenXR instance, check active OpenXR runtime.");
 }
 
 void GHOST_XrContext::storeInstanceProperties()
