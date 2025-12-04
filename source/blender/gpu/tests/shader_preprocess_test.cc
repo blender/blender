@@ -430,7 +430,7 @@ static void test_preprocess_reference()
 
   {
     string input = R"(void func() { auto &a = b; a.a = 0; c = a(a); a_c_a = a; })";
-    string expect = R"(void func() { b.a = 0; c = a(b); a_c_a = b; })";
+    string expect = R"(void func() {              b.a = 0; c = a(b); a_c_a = b; })";
     string error;
     string output = process_test_string(input, error);
     EXPECT_EQ(output, expect);
@@ -438,7 +438,7 @@ static void test_preprocess_reference()
   }
   {
     string input = R"(void func() { const int &a = b; a.a = 0; c = a(a); })";
-    string expect = R"(void func() { b.a = 0; c = a(b); })";
+    string expect = R"(void func() {                   b.a = 0; c = a(b); })";
     string error;
     string output = process_test_string(input, error);
     EXPECT_EQ(output, expect);
@@ -446,7 +446,7 @@ static void test_preprocess_reference()
   }
   {
     string input = R"(void func() { const int i = 0; auto &a = b[i]; a.a = 0; })";
-    string expect = R"(void func() { const int i = 0; b[i].a = 0; })";
+    string expect = R"(void func() { const int i = 0;                 b[i].a = 0; })";
     string error;
     string output = process_test_string(input, error);
     EXPECT_EQ(output, expect);

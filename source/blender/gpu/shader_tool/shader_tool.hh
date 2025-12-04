@@ -530,9 +530,9 @@ class Preprocessor {
         srt_guard_mutation(parser, report_error);
         argument_reference_mutation(parser, report_error);
         remove_whitespace(parser, report_error);
+        variable_reference_mutation(parser, report_error);
         str = parser.result_get();
       }
-      str = variable_reference_mutation(str, report_error);
       if (language == BLENDER_GLSL) {
         str = namespace_separator_mutation(str);
       }
@@ -3467,140 +3467,113 @@ class Preprocessor {
   }
 
   /* To be run after `argument_reference_mutation()`. */
-  std::string variable_reference_mutation(const std::string &str, report_callback report_error)
+  void variable_reference_mutation(Parser &parser, report_callback report_error)
   {
     using namespace std;
-    /* Processing regex and logic is expensive. Check if they are needed at all. */
-    bool valid_match = false;
-    string next_str = str;
-    reference_search(next_str, [&](int parenthesis_depth, int /*bracket_depth*/, char &c) {
-      /* Check if inside a function body. */
-      if (parenthesis_depth == 0) {
-        valid_match = true;
-        /* Modify the & into @ to make sure we only match these references in the regex
-         * below. @ being forbidden in the shader language, it is safe to use a temp
-         * character. */
-        c = '@';
-      }
-    });
-    if (!valid_match) {
-      return str;
-    }
-    string out_str;
-    /* Example: `const float &var = value;` */
-    regex regex_ref(R"(\ ?(?:const)?\s*\w+\s+\@(\w+) =\s*([^;]+);)");
+    using namespace shader::parser;
 
-    smatch match;
-    while (regex_search(next_str, match, regex_ref)) {
-      const string definition = match[0].str();
-      const string name = match[1].str();
-      const string value = match[2].str();
-      const string prefix = match.prefix().str();
-      const string suffix = match.suffix().str();
+    parser().foreach_function([&](bool, Token, Token, Scope fn_args, bool, Scope fn_scope) {
+      fn_scope.foreach_match("c?w&w=", [&](const vector<Token> &tokens) {
+        const Token name = tokens[4];
+        const Scope assignment = tokens[5].scope();
 
-      out_str += prefix;
+        Token decl_start = tokens[0].is_valid() ? tokens[0] : tokens[2];
+        /* Take attribute into account. */
+        decl_start = (decl_start.prev() == ']') ? decl_start.prev().scope().start() : decl_start;
+        /* Take ending ; into account. */
+        const Token decl_end = assignment.end().next();
 
-      /* Assert definition doesn't contain any side effect. */
-      if (value.find("++") != string::npos || value.find("--") != string::npos) {
-        report_error(line_number(match),
-                     char_number(match),
-                     line_str(match),
-                     "Reference definitions cannot have side effects.");
-        return str;
-      }
-      if (value.find("(") != string::npos) {
-        if (value.find("specialization_constant_get(") == string::npos &&
-            value.find("push_constant_get(") == string::npos &&
-            value.find("interface_get(") == string::npos &&
-            value.find("attribute_get(") == string::npos &&
-            value.find("buffer_get(") == string::npos &&
-            value.find("srt_access(") == string::npos &&
-            value.find("sampler_get(") == string::npos && value.find("image_get(") == string::npos)
-        {
-          report_error(line_number(match),
-                       char_number(match),
-                       line_str(match),
-                       "Reference definitions cannot contain function calls.");
-          return str;
-        }
-      }
-      if (value.find("[") != string::npos) {
-        const string index_var = get_content_between_balanced_pair(value, '[', ']');
-
-        if (index_var.find(' ') != string::npos) {
-          report_error(line_number(match),
-                       char_number(match),
-                       line_str(match),
-                       "Array subscript inside reference declaration must be a single variable or "
-                       "a constant, not an expression.");
-          return str;
-        }
-
-        /* Add a space to avoid empty scope breaking the loop. */
-        string scope_depth = " }";
-        bool found_var = false;
-        while (!found_var) {
-          string scope = get_content_between_balanced_pair(out_str + scope_depth, '{', '}', true);
-          scope_depth += '}';
-
-          if (scope.empty()) {
-            break;
+        /* Assert definition doesn't contain any side effect. */
+        assignment.foreach_token(Increment, [&](const Token token) {
+          report_error(ERROR_TOK(token), "Reference definitions cannot have side effects.");
+        });
+        assignment.foreach_token(Decrement, [&](const Token token) {
+          report_error(ERROR_TOK(token), "Reference definitions cannot have side effects.");
+        });
+        assignment.foreach_token(ParOpen, [&](const Token token) {
+          string fn_name = token.prev().str();
+          if ((fn_name != "specialization_constant_get") && (fn_name != "push_constant_get") &&
+              (fn_name != "interface_get") && (fn_name != "attribute_get") &&
+              (fn_name != "buffer_get") && (fn_name != "srt_access") &&
+              (fn_name != "sampler_get") && (fn_name != "image_get"))
+          {
+            report_error(ERROR_TOK(token), "Reference definitions cannot contain function calls.");
           }
-          /* Remove nested scopes. Avoid variable shadowing to mess with the detection. */
-          scope = regex_replace(scope, regex(R"(\{[^\}]*\})"), "{}");
+        });
+        assignment.foreach_scope(ScopeType::Subscript, [&](const Scope subscript) {
+          if (subscript.token_count() != 3) {
+            report_error(
+                ERROR_TOK(subscript.start()),
+                "Array subscript inside reference declaration must be a single variable or "
+                "a constant, not an expression.");
+            return;
+          }
+
+          const Token index_var = subscript[1];
+
+          if (index_var == Number) {
+            /* Literals are fine. */
+            return;
+          }
+
           /* Search if index variable definition qualifies it as `const`. */
-          regex regex_definition(R"((const)? \w+ )" + index_var + " =");
-          smatch match_definition;
-          if (regex_search(scope, match_definition, regex_definition)) {
-            found_var = true;
-            if (match_definition[1].matched == false) {
-              report_error(line_number(match),
-                           char_number(match),
-                           line_str(match),
-                           "Array subscript variable must be declared as const qualified.");
-              return str;
+          bool is_const = false;
+          bool is_ref = false;
+          bool is_found = false;
+
+          auto process_decl = [&](const vector<Token> &tokens) {
+            if (tokens[5].str_index_start() < index_var.str_index_start() &&
+                tokens[5].str() == index_var.str())
+            {
+              is_const = tokens[0].is_valid();
+              is_ref = tokens[3].is_valid();
+              is_found = true;
             }
+          };
+          fn_args.foreach_match("c?w&?w", [&](const vector<Token> &toks) { process_decl(toks); });
+          fn_scope.foreach_match("c?w&?w", [&](const vector<Token> &toks) { process_decl(toks); });
+
+          if (!is_found) {
+            report_error(ERROR_TOK(index_var),
+                         "Cannot locate array subscript variable declaration. "
+                         "If it is a global variable, assign it to a temporary const variable for "
+                         "indexing inside the reference.");
+            return;
           }
-        }
-        if (!found_var) {
-          report_error(line_number(match),
-                       char_number(match),
-                       line_str(match),
-                       "Cannot locate array subscript variable declaration. "
-                       "If it is a global variable, assign it to a temporary const variable for "
-                       "indexing inside the reference.");
-          return str;
-        }
-      }
+          if (!is_const) {
+            report_error(ERROR_TOK(index_var),
+                         "Array subscript variable must be declared as const qualified.");
+            return;
+          }
+          if (is_ref) {
+            report_error(ERROR_TOK(index_var),
+                         "Array subscript variable must not be declared as reference.");
+            return;
+          }
+        });
 
-      /* Find scope this definition is active in. */
-      const string scope = get_content_between_balanced_pair('{' + suffix, '{', '}');
-      if (scope.empty()) {
-        report_error(line_number(match),
-                     char_number(match),
-                     line_str(match),
-                     "Reference is defined inside a global or unterminated scope.");
-        return str;
-      }
-      string original = definition + scope;
-      string modified = original;
+        string definition = parser.substr_range_inclusive(assignment[1], assignment.end());
 
-      /* Replace definition by nothing. Keep number of lines. */
-      string newlines(line_count(definition), '\n');
-      replace_all(modified, definition, newlines);
-      /* Replace every occurrence of the reference. Avoid matching other symbols like class members
-       * and functions with the same name. */
-      modified = regex_replace(
-          modified, regex(R"(([^\.])\b)" + name + R"(\b([^(]))"), "$1" + value + "$2");
+        /* Replace declaration. */
+        parser.erase(decl_start, decl_end);
+        /* Replace all occurrences with definition. */
+        name.scope().foreach_token(Word, [&](const Token token) {
+          /* Do not match member access or function calls. */
+          if (token.prev() == '.' || token.next() == '(') {
+            return;
+          }
+          if (token.str_index_start() > decl_end.str_index_last() && token.str() == name.str()) {
+            parser.replace(token, definition);
+          }
+        });
+      });
+    });
+    parser.apply_mutations();
 
-      /** IMPORTANT: `match` is invalid after the assignment. */
-      next_str = definition + suffix;
-
-      /* Replace whole modified scope in output string. */
-      replace_all(next_str, original, modified);
-    }
-    out_str += next_str;
-    return out_str;
+    parser().foreach_match("c?w&w=", [&](const vector<Token> &tokens) {
+      report_error(ERROR_TOK(tokens[4]),
+                   "Reference is defined inside a global or unterminated scope.");
+    });
   }
 
   std::string argument_decorator_macro_injection(const std::string &str)
