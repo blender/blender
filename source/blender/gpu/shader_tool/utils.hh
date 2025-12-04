@@ -23,7 +23,7 @@ namespace blender::gpu::shader::parser {
 using report_callback = std::function<void(
     int error_line, int error_char, std::string error_line_string, const char *error_str)>;
 
-/* Poor man's IndexRange. */
+/** Poor man's IndexRange. */
 struct IndexRange {
   int64_t start;
   int64_t size;
@@ -42,7 +42,7 @@ struct IndexRange {
   }
 };
 
-/* Poor man's OffsetIndices. */
+/** Poor man's OffsetIndices. */
 struct OffsetIndices {
   std::vector<size_t> offsets;
 
@@ -74,11 +74,11 @@ struct TimeIt {
   }
 };
 
-/* Return the line number this token is found at. Take into account the #line directives. */
+/** Return the line number this token is found at. Take into account the #line directives. */
 size_t line_number(const std::string &str, size_t pos);
-/* Return the offset to the start of the line. */
+/** Return the offset to the start of the line. */
 size_t char_number(const std::string &str, size_t pos);
-/* Returns a string of tje line containing the character at the given position. */
+/** Returns a string of the line containing the character at the given position. */
 std::string line_str(const std::string &str, size_t pos);
 
 }  // namespace blender::gpu::shader::parser

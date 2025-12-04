@@ -259,9 +259,9 @@ static void fsmenu_add_windows_folder(FSMenu *fsmenu,
 
 static int fsmenu_external_drive_icon(char drive_letter)
 {
-  bool is_removable = false; /* zip, jaz, cdrom, mo, etc. vs hdd */
-  bool is_hotplug = false;   /* 1394, USB, etc */
-  bool is_usb = false;       /* USB bus */
+  bool is_removable = false; /* ZIP, JAZ, CDROM, MO, etc. instead of a HDD. */
+  bool is_hotplug = false;   /* 1394, USB, etc. */
+  bool is_usb = false;       /* USB bus. */
   char volumeName[8] = "";
   SNPRINTF(volumeName, "\\\\.\\%c:", drive_letter);
   HANDLE volume = ::CreateFile(volumeName, 0, 0, NULL, OPEN_EXISTING, 0, NULL);

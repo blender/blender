@@ -2192,7 +2192,7 @@ static int filelist_add_userfonts_regpath(HKEY hKeyParent, LPCSTR subkeyName, Li
     index++;
   }
 
-  /* Enumerate subkeys and recurse into them. */
+  /* Enumerate sub-keys and recurse into them. */
   index = 0;
   while (RegEnumKeyExA(key, index, (LPSTR)&KeyName, &KeyNameLen, NULL, NULL, NULL, NULL) ==
          ERROR_SUCCESS)

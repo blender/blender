@@ -170,8 +170,8 @@ struct FileData {
   /**
    * The main for the (local) data loaded from this filedata.
    *
-   * This is the same as #bmain when opening a blendfile, but not when reading/loading from
-   * libraries blendfiles.
+   * This is the same as #bmain when opening a blend-file, but not when reading/loading from
+   * libraries blend-files.
    */
   Main *fd_bmain = nullptr;
 
@@ -341,6 +341,8 @@ void do_versions_after_setup(Main *new_bmain,
  */
 void *blo_read_get_new_globaldata_address(FileData *fd, const void *adr) ATTR_NONNULL(1);
 
-/* Mark the Main data as invalid (.blend file reading should be aborted ASAP, and the already read
- * data should be discarded). Also add an error report to `fd` including given `message`. */
+/**
+ * Mark the Main data as invalid (.blend file reading should be aborted ASAP, and the already read
+ * data should be discarded). Also add an error report to `fd` including given `message`.
+ */
 void blo_readfile_invalidate(FileData *fd, Main *bmain, const char *message) ATTR_NONNULL(1, 2, 3);

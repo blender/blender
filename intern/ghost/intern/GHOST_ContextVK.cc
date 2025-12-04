@@ -528,9 +528,9 @@ struct GHOST_InstanceVK {
      * that are also happening when enabling the extension, but not using it at all. This needs
      * more investigation as it could be related to development workflows.
      *
-     * This seems to affect the pro drivers more than the adrenalin ones. But as both share the
-     * same codebase it is better to disable them until it is clear what causes the crashes and
-     * when these were fixed.
+     * This seems to affect the pro drivers more than the `Adrenalin` ones.
+     * But as both share the same code-base it is better to disable them until
+     * it is clear what causes the crashes and when these were fixed.
      *
      * Ref #151103
      */

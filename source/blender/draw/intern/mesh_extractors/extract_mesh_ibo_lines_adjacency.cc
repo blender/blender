@@ -29,7 +29,7 @@ namespace blender::draw {
  *
  * \note this isn't ideal as the winding checks may match
  * or not depending on the order triangles are handled.
- * Typically we try to avoid differencing behavior based on the order of data
+ * Typically we try to avoid different behavior based on the order of data
  * however enforcing exactly matching behavior seems fairly involved without
  * much benefit, so accept this shortcoming.
  */

@@ -120,8 +120,8 @@ struct WriteData {
   bool use_memfile;
 
   /**
-   * Wrap writing, so we can use zstd or
-   * other compression types later, see: G_FILE_COMPRESS
+   * Wrap writing, so we can use ZSTD or
+   * other compression types later, see: #G_FILE_COMPRESS.
    * Will be nullptr for UNDO.
    */
   WriteWrap *ww;

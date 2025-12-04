@@ -56,7 +56,7 @@ Scope Token::scope() const
   return Scope::from_position(data, data->token_scope[index]);
 }
 
-/* If keep_whitespace is false, whitespaces are merged with the previous token. */
+/** If `keep_whitespace` is false, white-spaces are merged with the previous token. */
 void Parser::tokenize(const bool keep_whitespace)
 {
   if (str.empty()) {
@@ -72,7 +72,7 @@ void Parser::tokenize(const bool keep_whitespace)
     token_types += char(to_type(str[0]));
     token_offsets.offsets.emplace_back(0);
 
-    /* When doing whitespace merging, keep knowledge about whether previous char was whitespace.
+    /* When doing white-space merging, keep knowledge about whether previous char was white-space.
      * This allows to still split words on spaces. */
     bool prev_was_whitespace = (token_types[0] == NewLine || token_types[0] == Space);
     bool inside_preprocessor_directive = token_types[0] == Hash;
@@ -196,7 +196,7 @@ void Parser::tokenize(const bool keep_whitespace)
       if (type != Word && type != NewLine && type != Space && type != Number) {
         prev = Word;
       }
-      /* Split words on whitespaces even when merging. */
+      /* Split words on white-spaces even when merging. */
       if (!keep_whitespace && type == Word && prev_was_whitespace) {
         prev = Space;
         prev_was_whitespace = false;

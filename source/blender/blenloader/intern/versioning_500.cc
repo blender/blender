@@ -145,9 +145,11 @@ void version_system_idprops_generate(Main *bmain)
     }
   }
 }
-/* Separate callback for nodes, because they had the split implemented later. */
 void version_system_idprops_nodes_generate(Main *bmain)
 {
+  /* Separate callback for nodes,
+   * because they had the split implemented later. */
+
   FOREACH_NODETREE_BEGIN (bmain, node_tree, id_owner) {
     LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
       idprops_process(node->prop, &node->system_properties);
@@ -155,9 +157,11 @@ void version_system_idprops_nodes_generate(Main *bmain)
   }
   FOREACH_NODETREE_END;
 }
-/* Separate callback for non-root bones, because they were missed in the initial implementation. */
 void version_system_idprops_children_bones_generate(Main *bmain)
 {
+  /* Separate callback for non-root bones,
+   * because they were missed in the initial implementation. */
+
   LISTBASE_FOREACH (bArmature *, armature, &bmain->armatures) {
     /* There is no way to iterate directly over all bones of an armature currently, use a recursive
      * approach instead. */

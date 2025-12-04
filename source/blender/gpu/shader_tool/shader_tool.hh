@@ -112,7 +112,7 @@ struct SharedVariable {
 };
 
 struct ParsedResource {
-  /* Line this resource was defined. */
+  /** Line this resource was defined. */
   size_t line;
 
   std::string var_type;
@@ -120,17 +120,17 @@ struct ParsedResource {
   std::string var_array;
 
   std::string res_type;
-  /* For images, storages, uniforms and samplers. */
+  /** For images, storage, uniforms and samplers. */
   std::string res_frequency;
-  /* For images, storages, uniforms and samplers. */
+  /** For images, storage, uniforms and samplers. */
   std::string res_slot;
-  /* For images & storages. */
+  /** For images & storage. */
   std::string res_qualifier;
-  /* For specialization & compilation constants. */
+  /** For specialization & compilation constants. */
   std::string res_value;
-  /* For images. */
+  /** For images. */
   std::string res_format;
-  /* Optional condition to enable this resource. */
+  /** Optional condition to enable this resource. */
   std::string res_condition;
 
   std::string serialize() const
@@ -802,7 +802,7 @@ class Preprocessor {
       parser.apply_mutations();
     }
     {
-      /* This rely on our codestyle that do not put spaces between template name and the opening
+      /* This rely on our code-style that do not put spaces between template name and the opening
        * angle bracket. */
       parser().foreach_match("sw<..>", [&](const std::vector<Token> &tokens) {
         parser.replace(tokens[2].scope(), template_arguments_mangle(tokens[2].scope()), true);
@@ -867,7 +867,7 @@ class Preprocessor {
         if (type_str == "typename") {
           arg_pattern += ",w";
           bool found = false;
-          /* Search argument list for typenames. If typename matches, the template argument is
+          /* Search argument list for type-names. If type-name matches, the template argument is
            * present inside the function signature. */
           fn_args.foreach_match("ww", [&](const std::vector<Token> &tokens) {
             if (tokens[0].str() == name_str) {
