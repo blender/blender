@@ -38,6 +38,7 @@
 #include "token.hh"
 #include "utils.hh"
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 
