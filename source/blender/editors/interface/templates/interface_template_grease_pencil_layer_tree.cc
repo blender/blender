@@ -212,14 +212,14 @@ class LayerViewItem : public AbstractTreeViewItem {
     this->label_ = layer.name();
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(Layout &row) override
   {
     build_layer_name(row);
 
-    uiLayout *sub = &row.row(true);
-    sub->use_property_decorate_set(false);
+    Layout &sub = row.row(true);
+    sub.use_property_decorate_set(false);
 
-    build_layer_buttons(*sub);
+    build_layer_buttons(sub);
   }
 
   bool supports_collapsing() const override
@@ -307,7 +307,7 @@ class LayerViewItem : public AbstractTreeViewItem {
   GreasePencil &grease_pencil_;
   Layer &layer_;
 
-  void build_layer_name(uiLayout &row)
+  void build_layer_name(Layout &row)
   {
     uiBut *but = uiItemL_ex(
         &row, layer_.name().c_str(), ICON_OUTLINER_DATA_GP_LAYER, false, false);
@@ -320,13 +320,12 @@ class LayerViewItem : public AbstractTreeViewItem {
     }
   }
 
-  void build_layer_buttons(uiLayout &row)
+  void build_layer_buttons(Layout &row)
   {
-    uiLayout *sub;
     PointerRNA layer_ptr = RNA_pointer_create_discrete(
         &grease_pencil_.id, &RNA_GreasePencilLayer, &layer_);
 
-    sub = &row.row(true);
+    Layout *sub = &row.row(true);
     sub->active_set(layer_.parent_group().use_masks());
     sub->prop(&layer_ptr, "use_masks", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
 
@@ -381,14 +380,14 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
     RNA_property_update(&C, &group_ptr, prop);
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(Layout &row) override
   {
     build_layer_group_name(row);
 
-    uiLayout *sub = &row.row(true);
-    sub->use_property_decorate_set(false);
+    Layout &sub = row.row(true);
+    sub.use_property_decorate_set(false);
 
-    build_layer_group_buttons(*sub);
+    build_layer_group_buttons(sub);
   }
 
   std::optional<bool> should_be_active() const override
@@ -399,7 +398,7 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
     return {};
   }
 
-  void build_context_menu(bContext &C, uiLayout &layout) const override
+  void build_context_menu(bContext &C, Layout &layout) const override
   {
     MenuType *mt = WM_menutype_find("GREASE_PENCIL_MT_group_context_menu", true);
     if (!mt) {
@@ -478,7 +477,7 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
   GreasePencil &grease_pencil_;
   LayerGroup &group_;
 
-  void build_layer_group_name(uiLayout &row)
+  void build_layer_group_name(Layout &row)
   {
     short icon = ICON_GREASEPENCIL_LAYER_GROUP;
     if (group_.color_tag != LAYERGROUP_COLOR_NONE) {
@@ -494,13 +493,12 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
     }
   }
 
-  void build_layer_group_buttons(uiLayout &row)
+  void build_layer_group_buttons(Layout &row)
   {
-    uiLayout *sub;
     PointerRNA group_ptr = RNA_pointer_create_discrete(
         &grease_pencil_.id, &RNA_GreasePencilLayerGroup, &group_);
 
-    sub = &row.row(true);
+    Layout *sub = &row.row(true);
     if (group_.as_node().parent_group()) {
       sub->active_set(group_.as_node().parent_group()->use_masks());
     }
@@ -553,7 +551,7 @@ void LayerTreeView::build_tree()
 
 }  // namespace blender::ui::greasepencil
 
-void uiTemplateGreasePencilLayerTree(uiLayout *layout, bContext *C)
+void uiTemplateGreasePencilLayerTree(blender::ui::Layout *layout, bContext *C)
 {
   using namespace blender;
 

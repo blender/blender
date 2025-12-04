@@ -46,16 +46,16 @@ static bool node_tree_interface_panel_poll(const bContext *C, PanelType * /*pt*/
   return true;
 }
 
-void node_tree_interface_draw(bContext &C, uiLayout &layout, bNodeTree &tree)
+void node_tree_interface_draw(bContext &C, ui::Layout &layout, bNodeTree &tree)
 {
   PointerRNA tree_ptr = RNA_pointer_create_discrete(&tree.id, &RNA_NodeTree, &tree);
   PointerRNA interface_ptr = RNA_pointer_get(&tree_ptr, "interface");
 
   {
-    uiLayout &row = layout.row(false);
+    ui::Layout &row = layout.row(false);
     uiTemplateNodeTreeInterface(&row, &C, &interface_ptr);
 
-    uiLayout &col = row.column(true);
+    ui::Layout &col = row.column(true);
     col.enabled_set(ID_IS_EDITABLE(&tree.id));
     col.menu("NODE_MT_node_tree_interface_new_item", "", ICON_ADD);
     col.op("node.interface_item_remove", "", ICON_REMOVE);
@@ -97,12 +97,12 @@ void node_tree_interface_draw(bContext &C, uiLayout &layout, bNodeTree &tree)
         &active_item_ptr, "default_closed", UI_ITEM_NONE, IFACE_("Closed by Default"), ICON_NONE);
 
     if (bNodeTreeInterfaceSocket *panel_toggle_socket = panel_item->header_toggle_socket()) {
-      if (uiLayout *panel = layout.panel(&C, "panel_toggle", false, IFACE_("Panel Toggle"))) {
+      if (ui::Layout *panel = layout.panel(&C, "panel_toggle", false, IFACE_("Panel Toggle"))) {
         PointerRNA panel_toggle_socket_ptr = RNA_pointer_create_discrete(
             &tree.id, &RNA_NodeTreeInterfaceSocket, panel_toggle_socket);
         panel->prop(
             &panel_toggle_socket_ptr, "default_value", UI_ITEM_NONE, IFACE_("Default"), ICON_NONE);
-        uiLayout &col = panel->column(false);
+        ui::Layout &col = panel->column(false);
         col.prop(
             &panel_toggle_socket_ptr, "hide_in_modifier", UI_ITEM_NONE, std::nullopt, ICON_NONE);
         col.prop(
@@ -116,7 +116,7 @@ static void node_tree_interface_panel_draw(const bContext *C, Panel *panel)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &tree = *snode.edittree;
-  uiLayout &layout = *panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   node_tree_interface_draw(const_cast<bContext &>(*C), layout, tree);
 }

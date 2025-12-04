@@ -433,20 +433,19 @@ static void cmp_node_rlayers_update(bNodeTree *ntree, bNode *node)
   cmp_node_update_default(ntree, node);
 }
 
-static void node_composit_buts_viewlayers(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_composit_buts_viewlayers(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
-  uiLayout *col, *row;
 
-  uiTemplateID(layout, C, ptr, "scene", nullptr, nullptr, nullptr);
+  uiTemplateID(&layout, C, ptr, "scene", nullptr, nullptr, nullptr);
 
   if (!node->id) {
     return;
   }
 
-  col = &layout->column(false);
-  row = &col->row(true);
-  row->prop(ptr, "layer", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  ui::Layout &col = layout.column(false);
+  ui::Layout &row = col.row(true);
+  row.prop(ptr, "layer", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
   PropertyRNA *prop = RNA_struct_find_property(ptr, "layer");
   const char *layer_name;
@@ -459,7 +458,7 @@ static void node_composit_buts_viewlayers(uiLayout *layout, bContext *C, Pointer
   scn_ptr = RNA_pointer_get(ptr, "scene");
   RNA_string_get(&scn_ptr, "name", scene_name);
 
-  PointerRNA op_ptr = row->op(
+  PointerRNA op_ptr = row.op(
       "RENDER_OT_render", "", ICON_RENDER_STILL, wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
   RNA_string_set(&op_ptr, "layer", layer_name);
   RNA_string_set(&op_ptr, "scene", scene_name);

@@ -79,14 +79,13 @@
 #include "BKE_layer.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 #include "BKE_material.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
 #include "ED_anim_api.hh"
-#include "ED_markers.hh"
 
 #include "SEQ_iterator.hh"
 #include "SEQ_modifier.hh"
@@ -95,7 +94,6 @@
 
 #include "ANIM_action.hh"
 #include "ANIM_armature.hh"
-#include "ANIM_bone_collections.hh"
 
 #include "anim_intern.hh"
 

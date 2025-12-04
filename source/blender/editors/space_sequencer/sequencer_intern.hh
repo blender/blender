@@ -280,13 +280,13 @@ bool strip_point_image_isect(const Scene *scene, const Strip *strip, float point
 void sequencer_select_do_updates(const bContext *C, Scene *scene);
 /**
  * Returns the strip that intersects with the mouse cursor in the timeline, if applicable.
-
+ *
  * This check is more robust than simply comparing the timeline frame and channel, since strips do
  * not take up the full height of their channels (see #STRIP_OFSBOTTOM, #STRIP_OFSTOP).
  * Does not consider padded handles.
  *
- * \param mval: Mouse cursor location in regionspace
- * \return `Strip` that intersects with the cursor, or `nullptr` if not found
+ * \param mval: Mouse cursor location in region-space.
+ * \return `Strip` that intersects with the cursor, or `nullptr` if not found.
  */
 Strip *strip_under_mouse_get(const Scene *scene, const View2D *v2d, const int mval[2]);
 

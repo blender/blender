@@ -245,7 +245,7 @@ def units_convertor_iter(u_from, u_to):
 
     def convertor(it):
         for v in it:
-            yield(conv(v))
+            yield conv(v)
 
     return convertor
 
@@ -291,7 +291,7 @@ def shape_difference_exclude_similar(sv_cos_nors, ref_cos_nors, e=1e-6):
         and the indices of the vertices that are not nearly the same"""
     sv_cos, sv_nors = sv_cos_nors
     ref_cos, ref_nors = ref_cos_nors
-    assert(sv_cos.size == ref_cos.size == sv_nors.size == ref_nors.size)
+    assert sv_cos.size == ref_cos.size == sv_nors.size == ref_nors.size
 
     # Create views of 1 co per row of the arrays, only making copies if needed.
     sv_cos = sv_cos.reshape(-1, 3)
@@ -344,7 +344,7 @@ def _mat4_vec3_array_multiply(mat4, vec3_array, dtype=None, return_4d=False):
 
     # Multiplying a 4d mathutils.Matrix by a 3d mathutils.Vector implicitly extends the Vector to 4d during the
     # calculation by appending 1.0 to the Vector and then the 4d result is truncated back to 3d.
-    # Numpy does not do an implicit extension to 4d, so it would have to be done explicitly by extending the entire
+    # NumPy does not do an implicit extension to 4d, so it would have to be done explicitly by extending the entire
     # vec3_array to 4d.
     # However, since the w component of the vectors is always 1.0, the last column can be excluded from the
     # multiplication and then added to every multiplied vector afterwards, which avoids having to make a 4d copy of
@@ -540,10 +540,10 @@ def fast_first_axis_unique(ar, return_unique=True, return_index=False, return_in
     NaN values can have lots of different byte representations (e.g. signaling/quiet and custom payloads). Only the
     duplicates of each unique byte representation will be collapsed into one."""
     # At least something should always be returned.
-    assert(return_unique or return_index or return_inverse or return_counts)
+    assert return_unique or return_index or return_inverse or return_counts
     # Only signed integer, unsigned integer and floating-point kinds of data are allowed. Other kinds of data have not
     # been tested.
-    assert(ar.dtype.kind in "iuf")
+    assert ar.dtype.kind in "iuf"
 
     # Floating-point types have different byte representations for -0.0 and 0.0. Collapse them together by replacing all
     # -0.0 in the input array with 0.0.
@@ -869,7 +869,7 @@ def get_key_from_fbx_uuid(uuid):
     """
     Return the key which generated this uid.
     """
-    assert(uuid.__class__ == UUID)
+    assert uuid.__class__ == UUID
     return _uuids_to_keys.get(uuid, None)
 
 
@@ -1278,7 +1278,7 @@ class AnimationCurveNodeWrapper:
 
     def __init__(self, elem_key, kind, force_keying, force_startend_keying, default_values=...):
         self.elem_keys = [elem_key]
-        assert(kind in self.kinds)
+        assert kind in self.kinds
         self.fbx_group = [self.kinds[kind][0]]
         self.fbx_gname = [self.kinds[kind][1]]
         self.fbx_props = [self.kinds[kind][2]]
@@ -1288,7 +1288,7 @@ class AnimationCurveNodeWrapper:
         self._frame_values_array = None
         self._frame_write_mask_array = None
         if default_values is not ...:
-            assert(len(default_values) == len(self.fbx_props[0]))
+            assert len(default_values) == len(self.fbx_props[0])
             self.default_values = default_values
         else:
             self.default_values = (0.0) * len(self.fbx_props[0])
@@ -1302,7 +1302,7 @@ class AnimationCurveNodeWrapper:
         Add another whole group stuff (curve-node, animated item/prop + curve-node/curve identifiers).
         E.g. Shapes animations is written twice, horror!
         """
-        assert(len(fbx_props) == len(self.fbx_props[0]))
+        assert len(fbx_props) == len(self.fbx_props[0])
         self.elem_keys.append(elem_key)
         self.fbx_group.append(fbx_group)
         self.fbx_gname.append(fbx_gname)
@@ -1318,9 +1318,9 @@ class AnimationCurveNodeWrapper:
         if len(keyframe_values.shape) == 1:
             keyframe_values = keyframe_values[np.newaxis]
         # There must be a time for each column of values.
-        assert(len(keyframe_times) == keyframe_values.shape[1])
+        assert len(keyframe_times) == keyframe_values.shape[1]
         # There must be as many rows of values as there are properties.
-        assert(len(self.fbx_props[0]) == len(keyframe_values))
+        assert len(self.fbx_props[0]) == len(keyframe_values)
         write_mask = np.full_like(keyframe_values, True, dtype=bool)  # write everything by default
         self._frame_times_array = keyframe_times
         self._frame_values_array = keyframe_values
@@ -1618,7 +1618,8 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         bdata might be an Object (deprecated), DepsgraphObjectInstance, Bone or PoseBone.
         If Bone or PoseBone, armature Object must be provided.
         """
-        # Note: DepsgraphObjectInstance are purely runtime data, they become invalid as soon as we step to the next item!
+        # Note: DepsgraphObjectInstance are purely runtime data,
+        #       they become invalid as soon as we step to the next item!
         #       Hence we have to immediately copy *all* needed data...
         if isinstance(bdata, Object):  # DEPRECATED
             self._tag = 'OB'

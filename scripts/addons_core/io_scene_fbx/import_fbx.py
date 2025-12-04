@@ -68,7 +68,7 @@ MAT_CONVERT_CAMERA = fbx_utils.MAT_CONVERT_CAMERA.inverted()
 
 
 def validate_blend_names(name):
-    assert(type(name) == bytes)
+    assert type(name) == bytes
     # Blender typically does not accept names over 63 bytes...
     if len(name) > 63:
         import hashlib
@@ -100,8 +100,8 @@ def elem_find_iter(elem, id_search):
 def elem_find_first_string(elem, id_search):
     fbx_item = elem_find_first(elem, id_search)
     if fbx_item is not None and fbx_item.props:  # Do not error on complete empty properties (see T45291).
-        assert(len(fbx_item.props) == 1)
-        assert(fbx_item.props_type[0] == data_types.STRING)
+        assert len(fbx_item.props) == 1
+        assert fbx_item.props_type[0] == data_types.STRING
         return fbx_item.props[0].decode('utf-8', 'replace')
     return None
 
@@ -109,8 +109,8 @@ def elem_find_first_string(elem, id_search):
 def elem_find_first_string_as_bytes(elem, id_search):
     fbx_item = elem_find_first(elem, id_search)
     if fbx_item is not None and fbx_item.props:  # Do not error on complete empty properties (see T45291).
-        assert(len(fbx_item.props) == 1)
-        assert(fbx_item.props_type[0] == data_types.STRING)
+        assert len(fbx_item.props) == 1
+        assert fbx_item.props_type[0] == data_types.STRING
         return fbx_item.props[0]  # Keep it as bytes as requested...
     return None
 
@@ -118,8 +118,8 @@ def elem_find_first_string_as_bytes(elem, id_search):
 def elem_find_first_bytes(elem, id_search, decode=True):
     fbx_item = elem_find_first(elem, id_search)
     if fbx_item is not None and fbx_item.props:  # Do not error on complete empty properties (see T45291).
-        assert(len(fbx_item.props) == 1)
-        assert(fbx_item.props_type[0] == data_types.BYTES)
+        assert len(fbx_item.props) == 1
+        assert fbx_item.props_type[0] == data_types.BYTES
         return fbx_item.props[0]
     return None
 
@@ -135,7 +135,7 @@ def elem_repr(elem):
 
 
 def elem_split_name_class(elem):
-    assert(elem.props_type[-2] == data_types.STRING)
+    assert elem.props_type[-2] == data_types.STRING
     elem_name, elem_class = elem.props[-2].split(b'\x00\x01')
     return elem_name, elem_class
 
@@ -143,28 +143,28 @@ def elem_split_name_class(elem):
 def elem_name_ensure_class(elem, clss=...):
     elem_name, elem_class = elem_split_name_class(elem)
     if clss is not ...:
-        assert(elem_class == clss)
+        assert elem_class == clss
     return validate_blend_names(elem_name)
 
 
 def elem_name_ensure_classes(elem, clss=...):
     elem_name, elem_class = elem_split_name_class(elem)
     if clss is not ...:
-        assert(elem_class in clss)
+        assert elem_class in clss
     return validate_blend_names(elem_name)
 
 
 def elem_split_name_class_nodeattr(elem):
-    assert(elem.props_type[-2] == data_types.STRING)
+    assert elem.props_type[-2] == data_types.STRING
     elem_name, elem_class = elem.props[-2].split(b'\x00\x01')
-    assert(elem_class == b'NodeAttribute')
-    assert(elem.props_type[-1] == data_types.STRING)
+    assert elem_class == b'NodeAttribute'
+    assert elem.props_type[-1] == data_types.STRING
     elem_class = elem.props[-1]
     return elem_name, elem_class
 
 
 def elem_uuid(elem):
-    assert(elem.props_type[0] == data_types.INT64)
+    assert elem.props_type[0] == data_types.INT64
     return elem.props[0]
 
 
@@ -182,16 +182,16 @@ def elem_props_find_first(elem, elem_prop_id):
         return None
     # support for templates (tuple of elems)
     if type(elem) is not FBXElem:
-        assert(type(elem) is tuple)
+        assert type(elem) is tuple
         for e in elem:
             result = elem_props_find_first(e, elem_prop_id)
             if result is not None:
                 return result
-        assert(len(elem) > 0)
+        assert len(elem) > 0
         return None
 
     for subelem in elem.elems:
-        assert(subelem.id == b'P')
+        assert subelem.id == b'P'
         # 'U' flag indicates that the property has been defined by the user.
         if subelem.props[0] == elem_prop_id and b'U' not in subelem.props[3]:
             return subelem
@@ -201,15 +201,15 @@ def elem_props_find_first(elem, elem_prop_id):
 def elem_props_get_color_rgb(elem, elem_prop_id, default=None):
     elem_prop = elem_props_find_first(elem, elem_prop_id)
     if elem_prop is not None:
-        assert(elem_prop.props[0] == elem_prop_id)
+        assert elem_prop.props[0] == elem_prop_id
         if elem_prop.props[1] == b'Color':
             # FBX version 7300
-            assert(elem_prop.props[1] == b'Color')
-            assert(elem_prop.props[2] == b'')
+            assert elem_prop.props[1] == b'Color'
+            assert elem_prop.props[2] == b''
         else:
-            assert(elem_prop.props[1] == b'ColorRGB')
-            assert(elem_prop.props[2] == b'Color')
-        assert(elem_prop.props_type[4:7] == bytes((data_types.FLOAT64,)) * 3)
+            assert elem_prop.props[1] == b'ColorRGB'
+            assert elem_prop.props[2] == b'Color'
+        assert elem_prop.props_type[4:7] == bytes((data_types.FLOAT64,)) * 3
         return elem_prop.props[4:7]
     return default
 
@@ -217,7 +217,7 @@ def elem_props_get_color_rgb(elem, elem_prop_id, default=None):
 def elem_props_get_vector_3d(elem, elem_prop_id, default=None):
     elem_prop = elem_props_find_first(elem, elem_prop_id)
     if elem_prop is not None:
-        assert(elem_prop.props_type[4:7] == bytes((data_types.FLOAT64,)) * 3)
+        assert elem_prop.props_type[4:7] == bytes((data_types.FLOAT64,)) * 3
         return elem_prop.props[4:7]
     return default
 
@@ -225,16 +225,16 @@ def elem_props_get_vector_3d(elem, elem_prop_id, default=None):
 def elem_props_get_number(elem, elem_prop_id, default=None):
     elem_prop = elem_props_find_first(elem, elem_prop_id)
     if elem_prop is not None:
-        assert(elem_prop.props[0] == elem_prop_id)
+        assert elem_prop.props[0] == elem_prop_id
         if elem_prop.props[1] == b'double':
-            assert(elem_prop.props[1] == b'double')
-            assert(elem_prop.props[2] == b'Number')
+            assert elem_prop.props[1] == b'double'
+            assert elem_prop.props[2] == b'Number'
         else:
-            assert(elem_prop.props[1] == b'Number')
-            assert(elem_prop.props[2] == b'')
+            assert elem_prop.props[1] == b'Number'
+            assert elem_prop.props[2] == b''
 
         # we could allow other number types
-        assert(elem_prop.props_type[4] == data_types.FLOAT64)
+        assert elem_prop.props_type[4] == data_types.FLOAT64
 
         return elem_prop.props[4]
     return default
@@ -243,16 +243,16 @@ def elem_props_get_number(elem, elem_prop_id, default=None):
 def elem_props_get_integer(elem, elem_prop_id, default=None):
     elem_prop = elem_props_find_first(elem, elem_prop_id)
     if elem_prop is not None:
-        assert(elem_prop.props[0] == elem_prop_id)
+        assert elem_prop.props[0] == elem_prop_id
         if elem_prop.props[1] == b'int':
-            assert(elem_prop.props[1] == b'int')
-            assert(elem_prop.props[2] == b'Integer')
+            assert elem_prop.props[1] == b'int'
+            assert elem_prop.props[2] == b'Integer'
         elif elem_prop.props[1] == b'ULongLong':
-            assert(elem_prop.props[1] == b'ULongLong')
-            assert(elem_prop.props[2] == b'')
+            assert elem_prop.props[1] == b'ULongLong'
+            assert elem_prop.props[2] == b''
 
         # we could allow other number types
-        assert(elem_prop.props_type[4] in {data_types.INT32, data_types.INT64})
+        assert elem_prop.props_type[4] in {data_types.INT32, data_types.INT64}
 
         return elem_prop.props[4]
     return default
@@ -261,14 +261,14 @@ def elem_props_get_integer(elem, elem_prop_id, default=None):
 def elem_props_get_bool(elem, elem_prop_id, default=None):
     elem_prop = elem_props_find_first(elem, elem_prop_id)
     if elem_prop is not None:
-        assert(elem_prop.props[0] == elem_prop_id)
+        assert elem_prop.props[0] == elem_prop_id
         # b'Bool' with a capital seems to be used for animated property... go figure...
-        assert(elem_prop.props[1] in {b'bool', b'Bool'})
-        assert(elem_prop.props[2] == b'')
+        assert elem_prop.props[1] in {b'bool', b'Bool'}
+        assert elem_prop.props[2] == b''
 
         # we could allow other number types
-        assert(elem_prop.props_type[4] == data_types.INT32)
-        assert(elem_prop.props[4] in {0, 1})
+        assert elem_prop.props_type[4] == data_types.INT32
+        assert elem_prop.props[4] in {0, 1}
 
         return bool(elem_prop.props[4])
     return default
@@ -277,13 +277,13 @@ def elem_props_get_bool(elem, elem_prop_id, default=None):
 def elem_props_get_enum(elem, elem_prop_id, default=None):
     elem_prop = elem_props_find_first(elem, elem_prop_id)
     if elem_prop is not None:
-        assert(elem_prop.props[0] == elem_prop_id)
-        assert(elem_prop.props[1] == b'enum')
-        assert(elem_prop.props[2] == b'')
-        assert(elem_prop.props[3] == b'')
+        assert elem_prop.props[0] == elem_prop_id
+        assert elem_prop.props[1] == b'enum'
+        assert elem_prop.props[2] == b''
+        assert elem_prop.props[3] == b''
 
         # we could allow other number types
-        assert(elem_prop.props_type[4] == data_types.INT32)
+        assert elem_prop.props_type[4] == data_types.INT32
 
         return elem_prop.props[4]
     return default
@@ -292,12 +292,12 @@ def elem_props_get_enum(elem, elem_prop_id, default=None):
 def elem_props_get_visibility(elem, elem_prop_id, default=None):
     elem_prop = elem_props_find_first(elem, elem_prop_id)
     if elem_prop is not None:
-        assert(elem_prop.props[0] == elem_prop_id)
-        assert(elem_prop.props[1] == b'Visibility')
-        assert(elem_prop.props[2] == b'')
+        assert elem_prop.props[0] == elem_prop_id
+        assert elem_prop.props[1] == b'Visibility'
+        assert elem_prop.props[2] == b''
 
         # we could allow other number types
-        assert(elem_prop.props_type[4] == data_types.FLOAT64)
+        assert elem_prop.props_type[4] == data_types.FLOAT64
 
         return elem_prop.props[4]
     return default
@@ -323,16 +323,16 @@ def blen_read_custom_properties(fbx_obj, blen_obj, settings):
     fbx_obj_props = elem_find_first(fbx_obj, b'Properties70')
     if fbx_obj_props:
         for fbx_prop in fbx_obj_props.elems:
-            assert(fbx_prop.id == b'P')
+            assert fbx_prop.id == b'P'
 
             if b'U' in fbx_prop.props[3]:
                 if fbx_prop.props[0] == b'UDP3DSMAX':
                     # Special case for 3DS Max user properties:
                     try:
-                        assert(fbx_prop.props[1] == b'KString')
+                        assert fbx_prop.props[1] == b'KString'
                     except AssertionError as exc:
                         print(exc)
-                    assert(fbx_prop.props_type[4] == data_types.STRING)
+                    assert fbx_prop.props_type[4] == data_types.STRING
                     items = fbx_prop.props[4].decode('utf-8', 'replace')
                     for item in items.split('\r\n'):
                         if item:
@@ -349,31 +349,31 @@ def blen_read_custom_properties(fbx_obj, blen_obj, settings):
                     prop_name = validate_blend_names(fbx_prop.props[0])
                     prop_type = fbx_prop.props[1]
                     if prop_type in {b'Vector', b'Vector3D', b'Color', b'ColorRGB'}:
-                        assert(fbx_prop.props_type[4:7] == bytes((data_types.FLOAT64,)) * 3)
+                        assert fbx_prop.props_type[4:7] == bytes((data_types.FLOAT64,)) * 3
                         blen_obj[prop_name] = fbx_prop.props[4:7]
                     elif prop_type in {b'Vector4', b'ColorRGBA'}:
-                        assert(fbx_prop.props_type[4:8] == bytes((data_types.FLOAT64,)) * 4)
+                        assert fbx_prop.props_type[4:8] == bytes((data_types.FLOAT64,)) * 4
                         blen_obj[prop_name] = fbx_prop.props[4:8]
                     elif prop_type == b'Vector2D':
-                        assert(fbx_prop.props_type[4:6] == bytes((data_types.FLOAT64,)) * 2)
+                        assert fbx_prop.props_type[4:6] == bytes((data_types.FLOAT64,)) * 2
                         blen_obj[prop_name] = fbx_prop.props[4:6]
                     elif prop_type in {b'Integer', b'int'}:
-                        assert(fbx_prop.props_type[4] == data_types.INT32)
+                        assert fbx_prop.props_type[4] == data_types.INT32
                         blen_obj[prop_name] = fbx_prop.props[4]
                     elif prop_type == b'KString':
-                        assert(fbx_prop.props_type[4] == data_types.STRING)
+                        assert fbx_prop.props_type[4] == data_types.STRING
                         blen_obj[prop_name] = fbx_prop.props[4].decode('utf-8', 'replace')
                     elif prop_type in {b'Number', b'double', b'Double'}:
-                        assert(fbx_prop.props_type[4] == data_types.FLOAT64)
+                        assert fbx_prop.props_type[4] == data_types.FLOAT64
                         blen_obj[prop_name] = fbx_prop.props[4]
                     elif prop_type in {b'Float', b'float'}:
-                        assert(fbx_prop.props_type[4] == data_types.FLOAT32)
+                        assert fbx_prop.props_type[4] == data_types.FLOAT32
                         blen_obj[prop_name] = fbx_prop.props[4]
                     elif prop_type in {b'Bool', b'bool'}:
-                        assert(fbx_prop.props_type[4] == data_types.INT32)
+                        assert fbx_prop.props_type[4] == data_types.INT32
                         blen_obj[prop_name] = fbx_prop.props[4] != 0
                     elif prop_type in {b'Enum', b'enum'}:
-                        assert(fbx_prop.props_type[4:6] == bytes((data_types.INT32, data_types.STRING)))
+                        assert fbx_prop.props_type[4:6] == bytes((data_types.INT32, data_types.STRING))
                         val = fbx_prop.props[4]
                         if settings.use_custom_props_enum_as_string and fbx_prop.props[5]:
                             enum_items = fbx_prop.props[5].decode('utf-8', 'replace').split('~')
@@ -476,7 +476,7 @@ def blen_read_object_transform_do(transform_data):
 # XXX This might be weak, now that we can add vertex-groups from both bones and shapes,
 #     name collisions become more likely, will have to make this more robust!!!
 def add_vgroup_to_objects(vg_indices, vg_weights, vg_name, objects):
-    assert(len(vg_indices) == len(vg_weights))
+    assert len(vg_indices) == len(vg_weights)
     if vg_indices:
         for obj in objects:
             # We replace/override here...
@@ -657,7 +657,7 @@ def _transformation_curves_gen(item, values_arrays, channel_keys):
             # lcl_rotation_eul[channel] = value
             setter = partial(setitem, lcl_rotation_eul, channel)
         else:
-            assert(fbx_prop == b'Lcl Scaling')
+            assert fbx_prop == b'Lcl Scaling'
             # lcl_scaling_mat[channel][channel] = value
             setter = partial(setitem, lcl_scaling_mat[channel], channel)
         lcl_setters.append(setter)
@@ -834,7 +834,7 @@ def blen_read_animation_curve(fbx_curve):
     key_times = parray_as_ndarray(elem_prop_first(elem_find_first(fbx_curve, b'KeyTime')))
     key_values = parray_as_ndarray(elem_prop_first(elem_find_first(fbx_curve, b'KeyValueFloat')))
 
-    assert(len(key_values) == len(key_times))
+    assert len(key_values) == len(key_times)
 
     # The FBX SDK specifies that only one key per time is allowed and that the keys are sorted in time order.
     # https://help.autodesk.com/view/FBX/2020/ENU/?guid=FBX_Developer_Help_cpp_ref_class_fbx_anim_curve_html
@@ -880,7 +880,7 @@ def blen_store_keyframes_multi(fbx_key_times, fcurve_and_key_values_pairs, blen_
 
     for blen_fcurve, key_values in fcurve_and_key_values_pairs:
         # The fcurve must be newly created and thus have no keyframe_points.
-        assert(len(blen_fcurve.keyframe_points) == 0)
+        assert len(blen_fcurve.keyframe_points) == 0
 
         # Odd indices are values.
         keyframe_points_co[1::2] = key_values
@@ -954,18 +954,18 @@ def blen_read_animations_action_item(channelbag, item, cnodes, fps, anim_offset,
 
     if isinstance(item, Material):
         for fbxprop, channel_to_curve in fbx_curves.items():
-            assert(fbxprop == b'DiffuseColor')
+            assert fbxprop == b'DiffuseColor'
             for channel, curve in channel_to_curve.items():
-                assert(channel in {0, 1, 2})
+                assert channel in {0, 1, 2}
                 blen_curve = blen_curves[channel]
                 fbx_key_times, values = blen_read_animation_curve(curve)
                 blen_store_keyframes(fbx_key_times, blen_curve, values, anim_offset, fps, fbx_ktime)
 
     elif isinstance(item, ShapeKey):
         for fbxprop, channel_to_curve in fbx_curves.items():
-            assert(fbxprop == b'DeformPercent')
+            assert fbxprop == b'DeformPercent'
             for channel, curve in channel_to_curve.items():
-                assert(channel == 0)
+                assert channel == 0
                 blen_curve = blen_curves[channel]
 
                 fbx_key_times, values = blen_read_animation_curve(curve)
@@ -983,9 +983,9 @@ def blen_read_animations_action_item(channelbag, item, cnodes, fps, anim_offset,
     elif isinstance(item, Camera):
         for fbxprop, channel_to_curve in fbx_curves.items():
             is_focus_distance = fbxprop == b'FocusDistance'
-            assert(fbxprop == b'FocalLength' or is_focus_distance)
+            assert fbxprop == b'FocalLength' or is_focus_distance
             for channel, curve in channel_to_curve.items():
-                assert(channel == 0)
+                assert channel == 0
                 # The indices are determined by the creation of the `props` list above.
                 blen_curve = blen_curves[1 if is_focus_distance else 0]
 
@@ -1015,7 +1015,7 @@ def blen_read_animations_action_item(channelbag, item, cnodes, fps, anim_offset,
                 # Currently, we only care about transformation curves.
                 continue
             for channel, curve in channel_to_curve.items():
-                assert(channel in {0, 1, 2})
+                assert channel in {0, 1, 2}
                 fbx_key_times, values = blen_read_animation_curve(curve)
 
                 channel_keys.append((fbxprop, channel))
@@ -1152,9 +1152,9 @@ def blen_read_geom_validate_blen_data(blen_data, blen_dtype, item_size):
     blen_data_is_collection = isinstance(blen_data, bpy.types.bpy_prop_collection)
     if not blen_data_is_collection:
         if item_size > 1:
-            assert(len(blen_data.shape) == 2)
-            assert(blen_data.shape[1] == item_size)
-        assert(blen_data.dtype == blen_dtype)
+            assert len(blen_data.shape) == 2
+            assert blen_data.shape[1] == item_size
+        assert blen_data.dtype == blen_dtype
     return blen_data_is_collection
 
 
@@ -1163,7 +1163,7 @@ def blen_read_geom_parse_fbx_data(fbx_data, stride, item_size):
     item"""
     # Technically stride < item_size could be supported, but there's probably not a use case for it since it would
     # result in a view of the data with self-overlapping memory.
-    assert(stride >= item_size)
+    assert stride >= item_size
     # View the array.array as an np.ndarray.
     fbx_data_np = parray_as_ndarray(fbx_data)
 
@@ -1199,7 +1199,7 @@ def blen_read_geom_parse_fbx_data(fbx_data, stride, item_size):
                 from numpy.lib import stride_tricks
 
                 # fbx_data_np should always start off as flat and C-contiguous.
-                assert(fbx_data_np.strides == (fbx_data_np.itemsize,))
+                assert fbx_data_np.strides == (fbx_data_np.itemsize,)
 
                 num_whole_strides = len(fbx_data_np) // stride
                 # Plus the one partial stride that is enough elements for a complete item.
@@ -1258,7 +1258,7 @@ def blen_read_geom_xform(fbx_data_np, xform):
         fbx_total_data = fbx_data_np.size
         fbx_data_np = xform(fbx_data_np)
         # The amount of data should not be changed by xform
-        assert(fbx_data_np.size == fbx_total_data)
+        assert fbx_data_np.size == fbx_total_data
         # Ensure fbx_data_np is still item_size elements per row
         if len(fbx_data_np.shape) != 2 or fbx_data_np.shape[1] != item_size:
             fbx_data_np = fbx_data_np.reshape(-1, item_size)
@@ -1295,7 +1295,7 @@ def blen_read_geom_array_foreach_set_direct(blen_data, blen_attr, blen_dtype, fb
         # Set blen_attr of blen_data. The buffer must be flat and C-contiguous, which ravel() ensures
         blen_data.foreach_set(blen_attr, buffer.ravel())
     else:
-        assert(blen_data.size % item_size == 0)
+        assert blen_data.size % item_size == 0
         blen_data = blen_data.view()
         blen_data.shape = (-1, item_size)
         blen_data[:len(fbx_data_np)] = fbx_data_np
@@ -1421,7 +1421,7 @@ def blen_read_geom_array_mapped_vert(
         if fbx_layer_ref == b'IndexToDirect':
             # XXX Looks like we often get no fbx_layer_index in this case, shall not happen but happens...
             #     We fallback to 'Direct' mapping in this case.
-            # ~ assert(fbx_layer_index is not None)
+            # ~ assert fbx_layer_index is not None
             if fbx_layer_index is None:
                 blen_read_geom_array_foreach_set_direct(blen_data, blen_attr, blen_dtype, fbx_layer_data, stride,
                                                         item_size, descr, xform)
@@ -1430,14 +1430,14 @@ def blen_read_geom_array_mapped_vert(
                                                          fbx_layer_index, stride, item_size, descr, xform)
             return True
         elif fbx_layer_ref == b'Direct':
-            assert(fbx_layer_index is None)
+            assert fbx_layer_index is None
             blen_read_geom_array_foreach_set_direct(blen_data, blen_attr, blen_dtype, fbx_layer_data, stride, item_size,
                                                     descr, xform)
             return True
         blen_read_geom_array_error_ref(descr, fbx_layer_ref, quiet)
     elif fbx_layer_mapping == b'AllSame':
         if fbx_layer_ref == b'IndexToDirect':
-            assert(fbx_layer_index is None)
+            assert fbx_layer_index is None
             blen_read_geom_array_foreach_set_allsame(blen_data, blen_attr, blen_dtype, fbx_layer_data, stride,
                                                      item_size, descr, xform)
             return True
@@ -1463,7 +1463,7 @@ def blen_read_geom_array_mapped_edge(
         blen_read_geom_array_error_ref(descr, fbx_layer_ref, quiet)
     elif fbx_layer_mapping == b'AllSame':
         if fbx_layer_ref == b'IndexToDirect':
-            assert(fbx_layer_index is None)
+            assert fbx_layer_index is None
             blen_read_geom_array_foreach_set_allsame(blen_data, blen_attr, blen_dtype, fbx_layer_data, stride,
                                                      item_size, descr, xform)
             return True
@@ -1485,7 +1485,7 @@ def blen_read_geom_array_mapped_polygon(
         if fbx_layer_ref == b'IndexToDirect':
             # XXX Looks like we often get no fbx_layer_index in this case, shall not happen but happens...
             #     We fallback to 'Direct' mapping in this case.
-            # ~ assert(fbx_layer_index is not None)
+            # ~ assert fbx_layer_index is not None
             if fbx_layer_index is None:
                 blen_read_geom_array_foreach_set_direct(blen_data, blen_attr, blen_dtype, fbx_layer_data, stride,
                                                         item_size, descr, xform)
@@ -1500,7 +1500,7 @@ def blen_read_geom_array_mapped_polygon(
         blen_read_geom_array_error_ref(descr, fbx_layer_ref, quiet)
     elif fbx_layer_mapping == b'AllSame':
         if fbx_layer_ref == b'IndexToDirect':
-            assert(fbx_layer_index is None)
+            assert fbx_layer_index is None
             blen_read_geom_array_foreach_set_allsame(blen_data, blen_attr, blen_dtype, fbx_layer_data, stride,
                                                      item_size, descr, xform)
             return True
@@ -1522,7 +1522,7 @@ def blen_read_geom_array_mapped_polyloop(
         if fbx_layer_ref == b'IndexToDirect':
             # XXX Looks like we often get no fbx_layer_index in this case, shall not happen but happens...
             #     We fallback to 'Direct' mapping in this case.
-            # ~ assert(fbx_layer_index is not None)
+            # ~ assert fbx_layer_index is not None
             if fbx_layer_index is None:
                 blen_read_geom_array_foreach_set_direct(blen_data, blen_attr, blen_dtype, fbx_layer_data, stride,
                                                         item_size, descr, xform)
@@ -1537,14 +1537,14 @@ def blen_read_geom_array_mapped_polyloop(
         blen_read_geom_array_error_ref(descr, fbx_layer_ref, quiet)
     elif fbx_layer_mapping == b'ByVertice':
         if fbx_layer_ref == b'Direct':
-            assert(fbx_layer_index is None)
+            assert fbx_layer_index is None
             blen_read_geom_array_foreach_set_looptovert(mesh, blen_data, blen_attr, blen_dtype, fbx_layer_data, stride,
                                                         item_size, descr, xform)
             return True
         blen_read_geom_array_error_ref(descr, fbx_layer_ref, quiet)
     elif fbx_layer_mapping == b'AllSame':
         if fbx_layer_ref == b'IndexToDirect':
-            assert(fbx_layer_index is None)
+            assert fbx_layer_index is None
             blen_read_geom_array_foreach_set_allsame(blen_data, blen_attr, blen_dtype, fbx_layer_data, stride,
                                                      item_size, descr, xform)
             return True
@@ -1571,7 +1571,7 @@ def blen_read_geom_layer_material(fbx_obj, mesh):
 
     blen_data = MESH_ATTRIBUTE_MATERIAL_INDEX.ensure(mesh.attributes).data
     fbx_item_size = 1
-    assert(fbx_item_size == MESH_ATTRIBUTE_MATERIAL_INDEX.item_size)
+    assert fbx_item_size == MESH_ATTRIBUTE_MATERIAL_INDEX.item_size
     blen_read_geom_array_mapped_polygon(
         mesh, blen_data, MESH_ATTRIBUTE_MATERIAL_INDEX.foreach_attribute, MESH_ATTRIBUTE_MATERIAL_INDEX.dtype,
         fbx_layer_data, None,
@@ -1681,7 +1681,7 @@ def blen_read_geom_layer_smooth(fbx_obj, mesh):
 
         blen_data = MESH_ATTRIBUTE_SHARP_EDGE.ensure(mesh.attributes).data
         fbx_item_size = 1
-        assert(fbx_item_size == MESH_ATTRIBUTE_SHARP_EDGE.item_size)
+        assert fbx_item_size == MESH_ATTRIBUTE_SHARP_EDGE.item_size
         blen_read_geom_array_mapped_edge(
             mesh, blen_data, MESH_ATTRIBUTE_SHARP_EDGE.foreach_attribute, MESH_ATTRIBUTE_SHARP_EDGE.dtype,
             fbx_layer_data, None,
@@ -1693,7 +1693,7 @@ def blen_read_geom_layer_smooth(fbx_obj, mesh):
         sharp_face = MESH_ATTRIBUTE_SHARP_FACE.ensure(mesh.attributes)
         blen_data = sharp_face.data
         fbx_item_size = 1
-        assert(fbx_item_size == MESH_ATTRIBUTE_SHARP_FACE.item_size)
+        assert fbx_item_size == MESH_ATTRIBUTE_SHARP_FACE.item_size
         sharp_face_set_successfully = blen_read_geom_array_mapped_polygon(
             mesh, blen_data, MESH_ATTRIBUTE_SHARP_FACE.foreach_attribute, MESH_ATTRIBUTE_SHARP_FACE.dtype,
             fbx_layer_data, None,
@@ -1949,7 +1949,7 @@ def blen_read_shapes(fbx_tmpl, fbx_data, objects, me, scene):
     me_vcos_vector_view = me_vcos.reshape(-1, 3)
 
     objects = list({node.bl_obj for node in objects})
-    assert(objects)
+    assert objects
 
     # Blender has a hard minimum and maximum shape key Value. If an imported shape key has a value outside this range it
     # will be clamped, and we'll print a warning message to the console.
@@ -1975,7 +1975,7 @@ def blen_read_shapes(fbx_tmpl, fbx_data, objects, me, scene):
         dvcos = dvcos.reshape(-1, 3)
 
         # There must be the same number of indices as vertex coordinate differences.
-        assert(len(indices) == len(dvcos))
+        assert len(indices) == len(dvcos)
 
         # We completely ignore normals here!
         weight = elem_prop_first(elem_find_first(fbx_bcdata, b'DeformPercent'), default=100.0) / 100.0
@@ -2011,7 +2011,7 @@ def blen_read_shapes(fbx_tmpl, fbx_data, objects, me, scene):
         else:
             vgweights = None
             # There must be a FullWeight for each Shape. Any extra FullWeights are ignored.
-            assert(len(full_weights) >= num_shapes_assigned_to_channel)
+            assert len(full_weights) >= num_shapes_assigned_to_channel
 
         # To add shape keys to the mesh, an Object using the mesh is needed.
         if me.shape_keys is None:
@@ -2303,7 +2303,8 @@ class FbxImportHelperNode:
         else:
             self.matrix, self.matrix_as_parent, self.matrix_geom = (None, None, None)
         self.post_matrix = None                 # correction matrix that needs to be applied after the FBX transform
-        self.bone_child_matrix = None           # Objects attached to a bone end not the beginning, this matrix corrects for that
+        # Objects attached to a bone end not the beginning, this matrix corrects for that.
+        self.bone_child_matrix = None
 
         # XXX Those two are to handle the fact that rigged meshes are not linked to their armature in FBX, which implies
         #     that their animation is in global space (AFAIK...).
@@ -3227,8 +3228,8 @@ def load(operator, context, filepath="",
                 if fbx_def.id == b'ObjectType':
                     for fbx_subdef in fbx_def.elems:
                         if fbx_subdef.id == b'PropertyTemplate':
-                            assert(fbx_def.props_type == b'S')
-                            assert(fbx_subdef.props_type == b'S')
+                            assert fbx_def.props_type == b'S'
+                            assert fbx_subdef.props_type == b'S'
                             # (b'Texture', b'KFbxFileTexture') - eg.
                             key = fbx_def.props[0], fbx_subdef.props[0]
                             fbx_templates[key] = fbx_subdef
@@ -3250,7 +3251,7 @@ def load(operator, context, filepath="",
     def _():
         for fbx_obj in fbx_nodes.elems:
             # TODO, investigate what other items after first 3 may be
-            assert(fbx_obj.props_type[:3] == b'LSS')
+            assert fbx_obj.props_type[:3] == b'LSS'
             fbx_uuid = elem_uuid(fbx_obj)
             fbx_table_nodes[fbx_uuid] = [fbx_obj, None]
     _()
@@ -3288,7 +3289,7 @@ def load(operator, context, filepath="",
             if fbx_obj.id != b'Geometry':
                 continue
             if fbx_obj.props[-1] == b'Mesh':
-                assert(blen_data is None)
+                assert blen_data is None
                 fbx_item[1] = blen_read_geom(fbx_tmpl, fbx_obj, settings)
     _()
     del _
@@ -3305,7 +3306,7 @@ def load(operator, context, filepath="",
             fbx_obj, blen_data = fbx_item
             if fbx_obj.id != b'Material':
                 continue
-            assert(blen_data is None)
+            assert blen_data is None
             fbx_item[1] = blen_read_material(fbx_tmpl, fbx_obj, settings)
     _()
     del _
@@ -3344,7 +3345,7 @@ def load(operator, context, filepath="",
             if fbx_obj.id != b'NodeAttribute':
                 continue
             if fbx_obj.props[-1] == b'Camera':
-                assert(blen_data is None)
+                assert blen_data is None
                 fbx_item[1] = blen_read_camera(fbx_tmpl, fbx_obj, settings)
     _()
     del _
@@ -3359,7 +3360,7 @@ def load(operator, context, filepath="",
             if fbx_obj.id != b'NodeAttribute':
                 continue
             if fbx_obj.props[-1] == b'Light':
-                assert(blen_data is None)
+                assert blen_data is None
                 fbx_item[1] = blen_read_light(fbx_tmpl, fbx_obj, settings)
     _()
     del _
@@ -3623,7 +3624,7 @@ def load(operator, context, filepath="",
                 for bs_uuid, _fbx_bsdata, _bl_bsdata in connections_gen(bc_uuid, b'Deformer', b'BlendShape'):
                     for m_uuid, _fbx_mdata, bl_mdata in connections_gen(bs_uuid, b'Geometry', b'Mesh'):
                         # Blenmeshes are assumed already created at that time!
-                        assert(isinstance(bl_mdata, bpy.types.Mesh))
+                        assert isinstance(bl_mdata, bpy.types.Mesh)
                         # Group shapes by mesh so that each mesh only needs to be processed once for all of its shape
                         # keys.
                         if bl_mdata not in mesh_to_shapes:
@@ -3792,7 +3793,7 @@ def load(operator, context, filepath="",
                         continue
                     for as_uuid in get_astacks_from_alayer(al_uuid):
                         _fbx_alitem, anim_items = stacks[as_uuid][1][al_uuid]
-                        assert(_fbx_alitem == fbx_alitem)
+                        assert _fbx_alitem == fbx_alitem
                         for item, item_prop in items:
                             # No need to keep curve-node FBX data here, contains nothing useful for us.
                             anim_items.setdefault(item, {})[acn_uuid] = (cnode, item_prop)
@@ -3904,7 +3905,7 @@ def load(operator, context, filepath="",
         # b'KFbxSurfaceLambert'
 
         def texture_mapping_set(fbx_obj, node_texture):
-            assert(fbx_obj.id == b'Texture')
+            assert fbx_obj.id == b'Texture'
 
             fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
                          elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))

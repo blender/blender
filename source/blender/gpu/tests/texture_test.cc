@@ -1096,12 +1096,16 @@ static void test_texture_update_sub_unpack_row_length()
     }
   }
 
-  GPU_unpack_row_length_set(size.x);
   float4 *texture_data_offset = &texture_data[sub_offset.x + sub_offset.y * size.x];
-  GPU_texture_update_sub(
-      texture, GPU_DATA_FLOAT, texture_data_offset, UNPACK2(sub_offset), 0, UNPACK2(sub_size), 1);
+  GPU_texture_update_sub(texture,
+                         GPU_DATA_FLOAT,
+                         texture_data_offset,
+                         UNPACK2(sub_offset),
+                         0,
+                         UNPACK2(sub_size),
+                         1,
+                         size.x);
   float4 *texture_data_read = static_cast<float4 *>(GPU_texture_read(texture, GPU_DATA_FLOAT, 0));
-  GPU_unpack_row_length_set(0);
 
   for (int x = 0; x < size.x; x++) {
     for (int y = 0; y < sub_offset.y; y++) {

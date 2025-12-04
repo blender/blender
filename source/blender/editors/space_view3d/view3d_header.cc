@@ -73,7 +73,7 @@ void VIEW3D_OT_toggle_matcap_flip(wmOperatorType *ot)
 /** \name UI Templates
  * \{ */
 
-void uiTemplateEditModeSelection(uiLayout *layout, bContext *C)
+void uiTemplateEditModeSelection(blender::ui::Layout *layout, bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
   if (!obedit || obedit->type != OB_MESH) {
@@ -81,31 +81,31 @@ void uiTemplateEditModeSelection(uiLayout *layout, bContext *C)
   }
 
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
-  uiLayout *row = &layout->row(true);
+  blender::ui::Layout &row = layout->row(true);
 
-  PointerRNA op_ptr;
   wmOperatorType *ot = WM_operatortype_find("MESH_OT_select_mode", true);
-  op_ptr = row->op(ot,
-                   "",
-                   ICON_VERTEXSEL,
-                   blender::wm::OpCallContext::InvokeDefault,
-                   (em->selectmode & SCE_SELECT_VERTEX) ? UI_ITEM_O_DEPRESS : UI_ITEM_NONE);
+  PointerRNA op_ptr = row.op(ot,
+                             "",
+                             ICON_VERTEXSEL,
+                             blender::wm::OpCallContext::InvokeDefault,
+                             (em->selectmode & SCE_SELECT_VERTEX) ? UI_ITEM_O_DEPRESS :
+                                                                    UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "type", SCE_SELECT_VERTEX);
-  op_ptr = row->op(ot,
-                   "",
-                   ICON_EDGESEL,
-                   blender::wm::OpCallContext::InvokeDefault,
-                   (em->selectmode & SCE_SELECT_EDGE) ? UI_ITEM_O_DEPRESS : UI_ITEM_NONE);
+  op_ptr = row.op(ot,
+                  "",
+                  ICON_EDGESEL,
+                  blender::wm::OpCallContext::InvokeDefault,
+                  (em->selectmode & SCE_SELECT_EDGE) ? UI_ITEM_O_DEPRESS : UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "type", SCE_SELECT_EDGE);
-  op_ptr = row->op(ot,
-                   "",
-                   ICON_FACESEL,
-                   blender::wm::OpCallContext::InvokeDefault,
-                   (em->selectmode & SCE_SELECT_FACE) ? UI_ITEM_O_DEPRESS : UI_ITEM_NONE);
+  op_ptr = row.op(ot,
+                  "",
+                  ICON_FACESEL,
+                  blender::wm::OpCallContext::InvokeDefault,
+                  (em->selectmode & SCE_SELECT_FACE) ? UI_ITEM_O_DEPRESS : UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "type", SCE_SELECT_FACE);
 }
 
-static void uiTemplatePaintModeSelection(uiLayout *layout, bContext *C)
+static void uiTemplatePaintModeSelection(blender::ui::Layout *layout, bContext *C)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -121,20 +121,20 @@ static void uiTemplatePaintModeSelection(uiLayout *layout, bContext *C)
       layout->prop(&meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
     }
     else {
-      uiLayout *row = &layout->row(true);
-      row->prop(&meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
-      row->prop(&meshptr, "use_paint_mask_vertex", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+      blender::ui::Layout &row = layout->row(true);
+      row.prop(&meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+      row.prop(&meshptr, "use_paint_mask_vertex", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
       /* Show the bone selection mode icon only if there is a pose mode armature */
       Object *ob_armature = BKE_object_pose_armature_get(ob);
       if (ob_armature) {
-        row->prop(&meshptr, "use_paint_bone_selection", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+        row.prop(&meshptr, "use_paint_bone_selection", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
       }
     }
   }
 }
 
-void uiTemplateHeader3D_mode(uiLayout *layout, bContext *C)
+void uiTemplateHeader3D_mode(blender::ui::Layout *layout, bContext *C)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);

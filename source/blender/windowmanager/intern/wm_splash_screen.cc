@@ -332,15 +332,15 @@ static uiBlock *wm_block_splash_create(bContext *C, ARegion *region, void * /*ar
   }
 
   const int layout_margin_x = UI_SCALE_FAC * 26;
-  uiLayout &layout = blender::ui::block_layout(block,
-                                               blender::ui::LayoutDirection::Vertical,
-                                               blender::ui::LayoutType::Panel,
-                                               layout_margin_x,
-                                               0,
-                                               splash_width - (layout_margin_x * 2),
-                                               UI_SCALE_FAC * 110,
-                                               0,
-                                               style);
+  blender::ui::Layout &layout = blender::ui::block_layout(block,
+                                                          blender::ui::LayoutDirection::Vertical,
+                                                          blender::ui::LayoutType::Panel,
+                                                          layout_margin_x,
+                                                          0,
+                                                          splash_width - (layout_margin_x * 2),
+                                                          UI_SCALE_FAC * 110,
+                                                          0,
+                                                          style);
 
   MenuType *mt;
 
@@ -373,17 +373,17 @@ static uiBlock *wm_block_splash_create(bContext *C, ARegion *region, void * /*ar
   {
     layout.separator(2.0f, LayoutSeparatorType::Line);
 
-    uiLayout *split = &layout.split(0.725, true);
-    uiLayout *row1 = &split->row(true);
-    uiLayout *row2 = &split->row(true);
+    blender::ui::Layout &split = layout.split(0.725, true);
+    blender::ui::Layout &row1 = split.row(true);
+    blender::ui::Layout &row2 = split.row(true);
 
-    row1->label(RPT_("Intel binary detected. Expect reduced performance."), ICON_ERROR);
+    row1.label(RPT_("Intel binary detected. Expect reduced performance."), ICON_ERROR);
 
-    PointerRNA op_ptr = row2->op("WM_OT_url_open",
-                                 CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Learn More"),
-                                 ICON_URL,
-                                 blender::wm::OpCallContext::InvokeDefault,
-                                 UI_ITEM_NONE);
+    PointerRNA op_ptr = row2.op("WM_OT_url_open",
+                                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Learn More"),
+                                ICON_URL,
+                                blender::wm::OpCallContext::InvokeDefault,
+                                UI_ITEM_NONE);
 #  if defined(__APPLE__)
     RNA_string_set(
         &op_ptr,
@@ -440,15 +440,15 @@ static uiBlock *wm_block_about_create(bContext *C, ARegion *region, void * /*arg
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
-  uiLayout &layout = blender::ui::block_layout(block,
-                                               blender::ui::LayoutDirection::Vertical,
-                                               blender::ui::LayoutType::Panel,
-                                               0,
-                                               0,
-                                               dialog_width,
-                                               0,
-                                               0,
-                                               style);
+  blender::ui::Layout &layout = blender::ui::block_layout(block,
+                                                          blender::ui::LayoutDirection::Vertical,
+                                                          blender::ui::LayoutType::Panel,
+                                                          0,
+                                                          0,
+                                                          dialog_width,
+                                                          0,
+                                                          0,
+                                                          style);
 
 /* Blender logo. */
 #ifndef WITH_HEADLESS
@@ -462,27 +462,24 @@ static uiBlock *wm_block_about_create(bContext *C, ARegion *region, void * /*arg
     const uchar *color = btheme->tui.wcol_menu_back.text_sel;
 
     /* The top margin. */
-    uiLayout *row = &layout.row(false);
-    row->separator(0.2f);
+    layout.row(false).separator(0.2f);
 
     /* The logo image. */
-    row = &layout.row(false);
-    row->alignment_set(blender::ui::LayoutAlign::Left);
+    layout.row(false).alignment_set(blender::ui::LayoutAlign::Left);
     uiDefButImage(block, ibuf, 0, U.widget_unit, ibuf->x, ibuf->y, show_color ? nullptr : color);
 
     /* Padding below the logo. */
-    row = &layout.row(false);
-    row->separator(2.7f);
+    layout.row(false).separator(2.7f);
   }
 #endif /* !WITH_HEADLESS */
 
-  uiLayout *col = &layout.column(true);
+  blender::ui::Layout &col = layout.column(true);
 
-  uiItemL_ex(col, IFACE_("Blender"), ICON_NONE, true, false);
+  uiItemL_ex(&col, IFACE_("Blender"), ICON_NONE, true, false);
 
   MenuType *mt = WM_menutype_find("WM_MT_splash_about", true);
   if (mt) {
-    UI_menutype_draw(C, mt, col);
+    UI_menutype_draw(C, mt, &col);
   }
 
   UI_block_bounds_set_centered(block, 22 * UI_SCALE_FAC);

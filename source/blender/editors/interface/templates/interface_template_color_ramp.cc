@@ -77,15 +77,15 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
 
   uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Pulldown);
 
-  uiLayout &layout = blender::ui::block_layout(block,
-                                               blender::ui::LayoutDirection::Vertical,
-                                               blender::ui::LayoutType::Menu,
-                                               0,
-                                               0,
-                                               UI_MENU_WIDTH_MIN,
-                                               0,
-                                               UI_MENU_PADDING,
-                                               style);
+  blender::ui::Layout &layout = blender::ui::block_layout(block,
+                                                          blender::ui::LayoutDirection::Vertical,
+                                                          blender::ui::LayoutType::Menu,
+                                                          0,
+                                                          0,
+                                                          UI_MENU_WIDTH_MIN,
+                                                          0,
+                                                          UI_MENU_PADDING,
+                                                          style);
   blender::ui::block_layout_set_current(block, &layout);
   {
     layout.context_ptr_set("color_ramp", &coba_ptr);
@@ -210,7 +210,7 @@ static void colorband_update_cb(bContext * /*C*/, void *bt_v, void *coba_v)
   bt->rnapoin.data = coba->data + coba->cur;
 }
 
-static void colorband_buttons_layout(uiLayout *layout,
+static void colorband_buttons_layout(blender::ui::Layout &layout,
                                      uiBlock *block,
                                      ColorBand *coba,
                                      const rctf *butr,
@@ -224,11 +224,11 @@ static void colorband_buttons_layout(uiLayout *layout,
 
   PointerRNA ptr = RNA_pointer_create_discrete(cb.ptr.owner_id, &RNA_ColorRamp, coba);
 
-  uiLayout *split = &layout->split(0.4f, false);
+  blender::ui::Layout *split = &layout.split(0.4f, false);
 
   UI_block_emboss_set(block, blender::ui::EmbossType::None);
   UI_block_align_begin(block);
-  uiLayout *row = &split->row(false);
+  blender::ui::Layout *row = &split->row(false);
 
   bt = uiDefIconTextBut(block,
                         ButType::But,
@@ -293,7 +293,7 @@ static void colorband_buttons_layout(uiLayout *layout,
   }
   UI_block_align_end(block);
 
-  row = &layout->row(false);
+  row = &layout.row(false);
 
   bt = uiDefBut(
       block, ButType::ColorBand, "", xs, ys, BLI_rctf_size_x(butr), UI_UNIT_Y, coba, 0, 0, "");
@@ -301,7 +301,7 @@ static void colorband_buttons_layout(uiLayout *layout,
   bt->rnaprop = cb.prop;
   UI_but_func_set(bt, [cb](bContext &C) { rna_update_cb(C, cb); });
 
-  row = &layout->row(false);
+  row = &layout.row(false);
 
   if (coba->tot) {
     CBData *cbd = coba->data + coba->cur;
@@ -309,7 +309,7 @@ static void colorband_buttons_layout(uiLayout *layout,
     ptr = RNA_pointer_create_discrete(cb.ptr.owner_id, &RNA_ColorRampElement, cbd);
 
     if (!expand) {
-      split = &layout->split(0.3f, false);
+      split = &layout.split(0.3f, false);
 
       row = &split->row(false);
       bt = uiDefButS(block,
@@ -328,14 +328,14 @@ static void colorband_buttons_layout(uiLayout *layout,
       row = &split->row(false);
       row->prop(&ptr, "position", UI_ITEM_NONE, IFACE_("Pos"), ICON_NONE);
 
-      row = &layout->row(false);
+      row = &layout.row(false);
       row->prop(&ptr, "color", UI_ITEM_NONE, "", ICON_NONE);
     }
     else {
-      split = &layout->split(0.5f, false);
-      uiLayout *subsplit = &split->split(0.35f, false);
+      split = &layout.split(0.5f, false);
+      blender::ui::Layout &subsplit = split->split(0.35f, false);
 
-      row = &subsplit->row(false);
+      row = &subsplit.row(false);
       bt = uiDefButS(block,
                      ButType::Num,
                      "",
@@ -349,7 +349,7 @@ static void colorband_buttons_layout(uiLayout *layout,
                      TIP_("Choose active color stop"));
       UI_but_number_step_size_set(bt, 1);
 
-      row = &subsplit->row(false);
+      row = &subsplit.row(false);
       row->prop(&ptr, "position", UI_ITEM_R_SLIDER, IFACE_("Pos"), ICON_NONE);
 
       row = &split->row(false);
@@ -378,7 +378,7 @@ static void colorband_buttons_layout(uiLayout *layout,
   }
 }
 
-void uiTemplateColorRamp(uiLayout *layout,
+void uiTemplateColorRamp(blender::ui::Layout *layout,
                          PointerRNA *ptr,
                          const StringRefNull propname,
                          bool expand)
@@ -400,13 +400,13 @@ void uiTemplateColorRamp(uiLayout *layout,
   rect.ymin = 0;
   rect.ymax = 19.5f * UI_UNIT_X;
 
-  uiBlock *block = layout->absolute_block();
+  uiBlock *block = layout->absolute().block();
 
   ID *id = cptr.owner_id;
   UI_block_lock_set(block, (id && !ID_IS_EDITABLE(id)), ERROR_LIBDATA_MESSAGE);
 
   colorband_buttons_layout(
-      layout, block, static_cast<ColorBand *>(cptr.data), &rect, RNAUpdateCb{*ptr, prop}, expand);
+      *layout, block, static_cast<ColorBand *>(cptr.data), &rect, RNAUpdateCb{*ptr, prop}, expand);
 
   UI_block_lock_clear(block);
 }

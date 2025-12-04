@@ -31,7 +31,7 @@ static void strip_modifier_panel_id(void *smd_link, char *r_name)
   blender::seq::modifier_type_panel_id(eStripModifierType(smd->type), r_name);
 }
 
-void uiTemplateStripModifiers(uiLayout * /*layout*/, bContext *C)
+void uiTemplateStripModifiers(blender::ui::Layout * /*layout*/, bContext *C)
 {
   using namespace blender;
   ARegion *region = CTX_wm_region(C);

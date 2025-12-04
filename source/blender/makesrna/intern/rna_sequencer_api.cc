@@ -22,29 +22,17 @@
 
 #ifdef RNA_RUNTIME
 
-// #include "DNA_anim_types.h"
-#  include "DNA_image_types.h"
 #  include "DNA_mask_types.h"
-#  include "DNA_sound_types.h"
 
 #  include "BLI_path_utils.hh" /* #BLI_path_split_dir_file */
 
-#  include "BKE_image.hh"
-#  include "BKE_mask.h"
-#  include "BKE_movieclip.h"
-
 #  include "BKE_report.hh"
 
-#  include "IMB_imbuf.hh"
-#  include "IMB_imbuf_types.hh"
-
 #  include "SEQ_add.hh"
-#  include "SEQ_edit.hh"
 #  include "SEQ_effects.hh"
 #  include "SEQ_relations.hh"
 #  include "SEQ_render.hh"
 #  include "SEQ_retiming.hh"
-#  include "SEQ_time.hh"
 
 #  include "WM_api.hh"
 

@@ -15,34 +15,34 @@
 
 namespace blender::nodes::node_shader_script_cc {
 
-static void node_shader_buts_script(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_shader_buts_script(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiLayout *row;
-
-  row = &layout->row(false);
-  row->prop(ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-
-  row = &layout->row(true);
-
-  if (RNA_enum_get(ptr, "mode") == NODE_SCRIPT_INTERNAL) {
-    row->prop(ptr, "script", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  }
-  else {
-    row->prop(ptr, "filepath", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  {
+    ui::Layout &row = layout.row(false);
+    row.prop(ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   }
 
-  row->op("node.shader_script_update", "", ICON_FILE_REFRESH);
+  {
+    ui::Layout &row = layout.row(true);
+    if (RNA_enum_get(ptr, "mode") == NODE_SCRIPT_INTERNAL) {
+      row.prop(ptr, "script", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    }
+    else {
+      row.prop(ptr, "filepath", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    }
+    row.op("node.shader_script_update", "", ICON_FILE_REFRESH);
+  }
 }
 
-static void node_shader_buts_script_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_shader_buts_script_ex(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
-  layout->separator();
+  layout.separator();
 
   node_shader_buts_script(layout, C, ptr);
 
 #if 0 /* not implemented yet */
   if (RNA_enum_get(ptr, "mode") == NODE_SCRIPT_EXTERNAL) {
-    layout->prop(ptr, "use_auto_update", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "use_auto_update", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 #endif
 }

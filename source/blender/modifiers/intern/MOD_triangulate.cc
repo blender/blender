@@ -100,17 +100,17 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "quad_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "ngon_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "min_vertices", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "keep_custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "quad_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "ngon_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "min_vertices", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "keep_custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }

@@ -53,8 +53,6 @@ class MTLStateManager : public StateManager {
   void image_unbind(Texture *tex) override;
   void image_unbind_all() override;
 
-  void texture_unpack_row_length_set(uint len) override;
-
   /* Global pipeline descriptors. */
   MTLRenderPipelineStateDescriptor &get_pipeline_descriptor()
   {

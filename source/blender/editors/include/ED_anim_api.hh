@@ -498,7 +498,6 @@ ENUM_OPERATORS(eAnimFilter_Flags);
 #define SEL_GPL(gpl) (gpl->flag & GP_LAYER_SELECT)
 
 /* Mask Only */
-/** Grease Pencil data-block settings. */
 #define EXPANDED_MASK(mask) (mask->flag & MASK_ANIMF_EXPAND)
 /** Grease Pencil Layer settings. */
 #define EDITABLE_MASK(masklay) ((masklay->flag & MASK_LAYERFLAG_LOCKED) == 0)

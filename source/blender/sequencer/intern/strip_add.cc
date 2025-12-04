@@ -27,8 +27,8 @@
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_mask.h"
-#include "BKE_movieclip.h"
+#include "BKE_mask.hh"
+#include "BKE_movieclip.hh"
 #include "BKE_scene.hh"
 #include "BKE_sound.hh"
 
@@ -316,7 +316,7 @@ Strip *add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
   }
 
   Strip *strip = strip_alloc(
-      seqbase, load_data->start_frame, load_data->channel, STRIP_TYPE_SOUND_RAM);
+      seqbase, load_data->start_frame, load_data->channel, STRIP_TYPE_SOUND);
   strip->sound = sound;
 
   /* We round the frame duration as the audio sample lengths usually does not
@@ -533,7 +533,7 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
   if (ELEM(strip->type,
            STRIP_TYPE_MOVIE,
            STRIP_TYPE_IMAGE,
-           STRIP_TYPE_SOUND_RAM,
+           STRIP_TYPE_SOUND,
            STRIP_TYPE_SCENE,
            STRIP_TYPE_META,
            STRIP_TYPE_MOVIECLIP,
@@ -654,7 +654,7 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
       strip->len -= strip->anim_endofs;
       strip->len = std::max(strip->len, 0);
       break;
-    case STRIP_TYPE_SOUND_RAM:
+    case STRIP_TYPE_SOUND:
 #ifdef WITH_AUDASPACE
       if (!strip->sound) {
         return;

@@ -66,7 +66,7 @@ void modifier_apply_stack(ModifierApplyContext &context, int timeline_frame);
 
 bool modifier_persistent_uids_are_valid(const Strip &strip);
 
-void draw_mask_input_type_settings(const bContext *C, ui::Layout *layout, PointerRNA *ptr);
+void draw_mask_input_type_settings(const bContext *C, ui::Layout &layout, PointerRNA *ptr);
 
 bool modifier_ui_poll(const bContext *C, PanelType *pt);
 

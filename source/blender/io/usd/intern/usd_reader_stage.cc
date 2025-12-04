@@ -70,10 +70,6 @@ namespace blender::io::usd {
 
 static void decref(USDPrimReader *reader)
 {
-  if (!reader) {
-    return;
-  }
-
   reader->decref();
 
   if (reader->refcount() == 0) {
@@ -748,9 +744,7 @@ void USDStageReader::sort_readers()
 {
   blender::parallel_sort(
       readers_.begin(), readers_.end(), [](const USDPrimReader *a, const USDPrimReader *b) {
-        const char *na = a ? a->name().c_str() : "";
-        const char *nb = b ? b->name().c_str() : "";
-        return BLI_strcasecmp(na, nb) < 0;
+        return BLI_strcasecmp(a->name().c_str(), b->name().c_str()) < 0;
       });
 }
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
 "PO-Revision-Date: 2025-11-11 12:13+0000\n"
 "Last-Translator: Rafael Teixeira de Avila Soares <rafaeltas@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21227,10 +21227,6 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
 msgid "Apply"
 msgstr "Aplicar"
 
@@ -21241,10 +21237,6 @@ msgstr "Rastrear"
 
 msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
-
-
-msgid "Navigation"
-msgstr "Navegação"
 
 
 msgid "Show/Hide"
@@ -21265,14 +21257,6 @@ msgstr "Converter"
 
 msgid "Hooks"
 msgstr "Ganchos"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
-
-
-msgid "Local View"
-msgstr "Visão local"
 
 
 msgid "Random Mask"
@@ -21335,20 +21319,8 @@ msgid "Math"
 msgstr "Matemática"
 
 
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
 msgid "Special Characters"
 msgstr "Caracteres especiais"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
 
 
 msgid "Text"
@@ -21367,8 +21339,44 @@ msgid "Pivot Point"
 msgstr "Pontos de pivô"
 
 
+msgid "Snap"
+msgstr "Atrair"
+
+
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
+msgid "View Regions"
+msgstr "Visualizar Regiões"
 
 
 msgid "Select More/Less"
@@ -21411,10 +21419,6 @@ msgid "Light Probe"
 msgstr "Sonda de Luz"
 
 
-msgid "View Regions"
-msgstr "Visualizar Regiões"
-
-
 msgid "Add Image"
 msgstr "Adicionar Imagem"
 
@@ -21425,10 +21429,6 @@ msgstr "Relações"
 
 msgid "Rigid Body"
 msgstr "Corpo rígido"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
 
 
 msgid "Basic"
@@ -28223,10 +28223,6 @@ msgid "Boolean value socket of a node"
 msgstr "Conector de valor booleano de um nó."
 
 
-msgid "Default Value"
-msgstr "Valor padrão"
-
-
 msgid "Color Node Socket"
 msgstr "Conector de nó de cor"
 
@@ -28277,6 +28273,10 @@ msgstr "Conector de nó virtual"
 
 msgid "Virtual socket of a node"
 msgstr "O conector virtual de um nó."
+
+
+msgid "Default Value"
+msgstr "Valor padrão"
 
 
 msgid "Boolean Node Socket Interface"
@@ -33550,10 +33550,6 @@ msgid "Other"
 msgstr "Outros"
 
 
-msgid "Other geometry types, like curve, metaball, etc. (converted to meshes)"
-msgstr "Outros tipos de geometria, como curvas, esferas-meta, etc (convertida em malhas)."
-
-
 msgid "Method used to reference paths"
 msgstr "Define o método usado para referenciar os caminhos de exportação."
 
@@ -35682,20 +35678,12 @@ msgid "Update Scene FPS"
 msgstr "Atualizar a taxa de quadros da cena"
 
 
-msgid "Set the scene framerate to that of the BVH file (note that this nullifies the 'Scale FPS' option, as the scale will be 1:1)"
-msgstr "Define a taxa de quadros da cena (em quadros por segundo) para a presente no arquivo de hierarquias de volume circundante (note que isto tornará o efeito da opção de \"Escalonar a taxa de quadros\" nula, pois a escala será de 1:1)."
-
-
 msgid "Loop the animation playback"
 msgstr "Torna a reprodução da animação, um ciclo contínuo."
 
 
 msgid "Scale FPS"
 msgstr "Escalonar quadros por segundo"
-
-
-msgid "Scale the framerate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
-msgstr "Escalona a taxa de quadros a partir da hierarquia de volume circundante para as cenas atuais, caso contrário, cada quadro mapeará diretamente para um quadro Blender."
 
 
 msgid "Animation Offset"
@@ -38277,10 +38265,6 @@ msgstr "Gera e grava as transformações dos ossos."
 
 msgid "Bake object transformations"
 msgstr "Gera e grava as transformações dos objetos."
-
-
-msgid "Clear Constraints"
-msgstr "Limpar restrições"
 
 
 msgid "Clear Parents"
@@ -56336,6 +56320,10 @@ msgid "Sequence strip to group other strips as a single sequence strip"
 msgstr "Faixa de sequência para agrupar outras faixas como uma única faixa de sequência."
 
 
+msgid "Playback volume of the sound"
+msgstr "Volume para reproduzir o som."
+
+
 msgid "Sequence strip to load a video from the clip editor"
 msgstr "Faixa de sequência para carregar um vídeo a partir do editor de clipes."
 
@@ -56378,10 +56366,6 @@ msgstr "Faixa de cena"
 
 msgid "Camera Override"
 msgstr "Sobrepor câmera"
-
-
-msgid "Playback volume of the sound"
-msgstr "Volume para reproduzir o som."
 
 
 msgid "Sequence strip defining a sound to be played over a period of time"
@@ -61012,11 +60996,6 @@ msgstr "Saltar para a faixa posterior (centralizando-a)"
 
 
 msgctxt "Operator"
-msgid "Movie"
-msgstr "Filme"
-
-
-msgctxt "Operator"
 msgid "Fade"
 msgstr "Esmaecer"
 
@@ -62674,10 +62653,6 @@ msgstr "Não é possível apagar o quadro-chave, pois o caminho RNA é inválido
 
 msgid "No action to delete keyframes from for ID = %s"
 msgstr "Sem ação a partir da qual apagar os quadros-chave no identificador = %s"
-
-
-msgid "Not deleting keyframe for locked F-Curve '%s' for %s '%s'"
-msgstr "Sem exclusão do quadro-chave para a curva-f bloqueada '%s' para %s '%s'"
 
 
 msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"

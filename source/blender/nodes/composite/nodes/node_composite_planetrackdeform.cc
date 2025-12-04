@@ -17,8 +17,8 @@
 
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
+#include "BKE_movieclip.hh"
+#include "BKE_tracking.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
@@ -53,10 +53,10 @@ static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
   b.add_output<decl::Float>("Plane").structure_type(StructureType::Dynamic);
 
-  b.add_layout([](uiLayout *layout, bContext *C, PointerRNA *ptr) {
+  b.add_layout([](ui::Layout &layout, bContext *C, PointerRNA *ptr) {
     bNode *node = ptr->data_as<bNode>();
 
-    uiTemplateID(layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
+    uiTemplateID(&layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
 
     if (node->id) {
       MovieClip *clip = reinterpret_cast<MovieClip *>(node->id);
@@ -65,8 +65,8 @@ static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
       PointerRNA tracking_ptr = RNA_pointer_create_discrete(
           &clip->id, &RNA_MovieTracking, tracking);
 
-      uiLayout *col = &layout->column(false);
-      col->prop_search(ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
+      ui::Layout &col = layout.column(false);
+      col.prop_search(ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
 
       tracking_object = BKE_tracking_object_get_named(tracking,
                                                       node_storage(*node).tracking_object);
@@ -74,10 +74,10 @@ static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
         PointerRNA object_ptr = RNA_pointer_create_discrete(
             &clip->id, &RNA_MovieTrackingObject, tracking_object);
 
-        col->prop_search(ptr, "plane_track_name", &object_ptr, "plane_tracks", "", ICON_ANIM_DATA);
+        col.prop_search(ptr, "plane_track_name", &object_ptr, "plane_tracks", "", ICON_ANIM_DATA);
       }
       else {
-        layout->prop(ptr, "plane_track_name", UI_ITEM_NONE, "", ICON_ANIM_DATA);
+        layout.prop(ptr, "plane_track_name", UI_ITEM_NONE, "", ICON_ANIM_DATA);
       }
     }
   });

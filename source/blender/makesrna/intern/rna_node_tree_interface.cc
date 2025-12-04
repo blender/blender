@@ -208,7 +208,7 @@ static bool rna_NodeTreeInterfaceSocket_unregister(Main * /*bmain*/, StructRNA *
 static void rna_NodeTreeInterfaceSocket_draw_builtin(ID *id,
                                                      bNodeTreeInterfaceSocket *interface_socket,
                                                      bContext *C,
-                                                     uiLayout *layout)
+                                                     blender::ui::Layout *layout)
 {
   blender::bke::bNodeSocketType *typeinfo = interface_socket->socket_typeinfo();
   if (typeinfo && typeinfo->interface_draw) {
@@ -219,7 +219,7 @@ static void rna_NodeTreeInterfaceSocket_draw_builtin(ID *id,
 static void rna_NodeTreeInterfaceSocket_draw_custom(ID *id,
                                                     bNodeTreeInterfaceSocket *interface_socket,
                                                     bContext *C,
-                                                    uiLayout *layout)
+                                                    blender::ui::Layout *layout)
 {
   blender::bke::bNodeSocketType *typeinfo = blender::bke::node_socket_type_find(
       interface_socket->socket_type);

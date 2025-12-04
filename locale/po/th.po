@@ -1,30 +1,70 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
-"PO-Revision-Date: 2025-07-23 15:06+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"PO-Revision-Date: 2025-12-02 09:58+0000\n"
+"Last-Translator: Tan <nazapizzaemail.com@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
 "Language: th\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.12.1"
+"X-Generator: Weblate 5.14.3"
+
+
+msgid "Shader AOV"
+msgstr "เชดเดอร์ AOV"
+
+
+msgid "Valid"
+msgstr "พร้อมใช้งาน"
+
+
+msgid "Is the name of the AOV conflicting"
+msgstr "ชื่อของ AOV ขัดแย้งกันหรือไม่?"
 
 
 msgid "Name"
 msgstr "ชื่อ"
 
 
+msgid "Name of the AOV"
+msgstr "ชื่อของเอโอวี"
+
+
 msgid "Type"
 msgstr "ชนิด"
 
 
+msgid "Data type of the AOV"
+msgstr "ชนิดข้อมูลของเอโอวี"
+
+
 msgid "Color"
 msgstr "สี"
+
+
+msgid "Value"
+msgstr "ค่า"
+
+
+msgid "List of AOVs"
+msgstr "รายการเอโอวี"
+
+
+msgid "Collection of AOVs"
+msgstr "ชุดสะสมเอโอวี"
+
+
+msgid "Animation Channel Bag"
+msgstr "ถุงช่องภาพเคลื่อนไหว"
+
+
+msgid "Collection of animation channels, typically associated with an action slot"
+msgstr "ชุดสะสมของช่องภาพเคลื่อนไหว ตามแบบอย่างแล้วเกี่ยวข้องกับช่องรูการกระทำ"
 
 
 msgid "Action Group"
@@ -518,6 +558,10 @@ msgid "Data Type"
 msgstr "ชนิดข้อมูล"
 
 
+msgid "Quaternion"
+msgstr "ควอเทอร์เนียน"
+
+
 msgid "Point"
 msgstr "กระจาย"
 
@@ -841,10 +885,6 @@ msgstr "กลับค่า Y"
 
 msgid "Invert Z"
 msgstr "กลับค่า Z"
-
-
-msgid "Camera"
-msgstr "กล้อง"
 
 
 msgctxt "MovieClip"
@@ -1216,6 +1256,10 @@ msgid "Type"
 msgstr "ชนิด"
 
 
+msgid "Library Override"
+msgstr "ควบคุมคลังโปรแกรมด้วยมือ"
+
+
 msgid "Users"
 msgstr "ผู้ใช้"
 
@@ -1493,7 +1537,11 @@ msgstr "แก้ไข"
 
 
 msgid "Sculpt"
-msgstr "แกะสลัก"
+msgstr "สลัก"
+
+
+msgid "Tool"
+msgstr "เครื่องมือ"
 
 
 msgid "Mesh"
@@ -1714,6 +1762,10 @@ msgid "Animation"
 msgstr "แอนิเมชัน"
 
 
+msgid "Simulation"
+msgstr "การจำลอง"
+
+
 msgid "Video"
 msgstr "วิดีโอ"
 
@@ -1853,10 +1905,6 @@ msgid "Mask"
 msgstr "หน้ากาก"
 
 
-msgid "Align View"
-msgstr "จัดมุมมอง"
-
-
 msgid "Apply"
 msgstr "นำไปใช้"
 
@@ -1865,20 +1913,8 @@ msgid "Track"
 msgstr "แทร็ค"
 
 
-msgid "Navigation"
-msgstr "การนำทาง"
-
-
 msgid "Hooks"
 msgstr "ตะขอ"
-
-
-msgid "Viewpoint"
-msgstr "จุดของมุมมอง"
-
-
-msgid "Local View"
-msgstr "มุมมองท้องถิ่น"
 
 
 msgid "Names"
@@ -1905,14 +1941,6 @@ msgid "Math"
 msgstr "คณิตศาสตร์"
 
 
-msgid "Snap"
-msgstr "ยึดติด"
-
-
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
-
-
 msgid "Text"
 msgstr "ช้อความ"
 
@@ -1925,12 +1953,44 @@ msgid "Pivot Point"
 msgstr "จุดหมุน"
 
 
+msgid "Snap"
+msgstr "ยึดติด"
+
+
 msgid "Proportional Editing Falloff"
 msgstr "แก้ไข"
 
 
 msgid "Mask Edit"
 msgstr "การแก้ไขหน้ากาก"
+
+
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
+
+
+msgid "Local View"
+msgstr "มุมมองท้องถิ่น"
+
+
+msgid "Viewpoint"
+msgstr "จุดของมุมมอง"
+
+
+msgid "Navigation"
+msgstr "การนำทาง"
+
+
+msgid "Align View"
+msgstr "จัดมุมมอง"
+
+
+msgid "Align View to Active"
+msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
+
+
+msgid "View Regions"
+msgstr "ขอบเขตมุมมอง"
 
 
 msgid "Import"
@@ -1945,16 +2005,8 @@ msgid "Light"
 msgstr "แสง"
 
 
-msgid "View Regions"
-msgstr "ขอบเขตมุมมอง"
-
-
 msgid "Add Image"
 msgstr "เพิ่มภาพ"
-
-
-msgid "Align View to Active"
-msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
 
 
 msgid "Zoom"
@@ -1975,7 +2027,7 @@ msgstr "กระจกสะท้อน"
 
 
 msgid "Node"
-msgstr "โนด"
+msgstr "โหนด"
 
 
 msgid "Add Modifier"
@@ -2425,6 +2477,10 @@ msgstr "เข้าสู่โหมดแก้ไข"
 msgctxt "Operator"
 msgid "Add Circle"
 msgstr "เพิ่มวงกลม"
+
+
+msgid "Handles"
+msgstr "จัดกระทำ"
 
 
 msgid "Duplicate"
@@ -3445,6 +3501,10 @@ msgid "Resolution Scale"
 msgstr "ขนาดความละเอียด"
 
 
+msgid "Antialiasing"
+msgstr "การเกลี่ยเลือนขอบหยัก"
+
+
 msgid "Text Color"
 msgstr "สีข้อความ"
 
@@ -4135,11 +4195,6 @@ msgstr "แสดง"
 
 
 msgctxt "Operator"
-msgid "Movie"
-msgstr "ภาพยนตร์"
-
-
-msgctxt "Operator"
 msgid "Fade"
 msgstr "จาง"
 
@@ -4721,6 +4776,10 @@ msgstr "บันทึก \"%s\" แล้ว"
 
 msgid "Scene Collection"
 msgstr "คอลเลกชันฉาก"
+
+
+msgid "ShapeKey"
+msgstr "เชพคีย์"
 
 
 msgctxt "Brush"

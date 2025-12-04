@@ -12,7 +12,7 @@
 
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_types.hh"
 #include "BKE_paint.hh"
@@ -524,7 +524,7 @@ class MeshUVs : Overlay {
   /** Paint Mask overlay. */
   /* TODO(fclem): Maybe should be its own Overlay?. */
   bool show_mask_ = false;
-  eMaskOverlayMode mask_mode_ = MASK_OVERLAY_ALPHACHANNEL;
+  MaskOverlayMode mask_mode_ = MASK_OVERLAY_ALPHACHANNEL;
   Mask *mask_id_ = nullptr;
   Texture mask_texture_ = {"mask_texture_"};
 
@@ -572,7 +572,7 @@ class MeshUVs : Overlay {
       show_mask_ = space_mode_is_mask && space_image->mask_info.mask &&
                    space_image->mask_info.draw_flag & MASK_DRAWFLAG_OVERLAY;
       if (show_mask_) {
-        mask_mode_ = eMaskOverlayMode(space_image->mask_info.overlay_mode);
+        mask_mode_ = MaskOverlayMode(space_image->mask_info.overlay_mode);
         mask_id_ = DEG_get_evaluated(state.depsgraph, space_image->mask_info.mask);
       }
       else {

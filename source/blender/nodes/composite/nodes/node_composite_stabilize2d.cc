@@ -21,8 +21,8 @@
 
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
+#include "BKE_movieclip.hh"
+#include "BKE_tracking.hh"
 
 #include "COM_node_operation.hh"
 
@@ -42,8 +42,8 @@ static void cmp_node_stabilize2d_declare(NodeDeclarationBuilder &b)
       .structure_type(StructureType::Dynamic);
   b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
 
-  b.add_layout([](uiLayout *layout, bContext *context, PointerRNA *node_pointer) {
-    uiTemplateID(layout, context, node_pointer, "clip", nullptr, "CLIP_OT_open", nullptr);
+  b.add_layout([](ui::Layout &layout, bContext *context, PointerRNA *node_pointer) {
+    uiTemplateID(&layout, context, node_pointer, "clip", nullptr, "CLIP_OT_open", nullptr);
   });
 
   b.add_input<decl::Bool>("Invert").default_value(false).description(

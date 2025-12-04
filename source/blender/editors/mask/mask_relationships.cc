@@ -11,8 +11,8 @@
 #include "BLI_string_utf8.h"
 
 #include "BKE_context.hh"
-#include "BKE_mask.h"
-#include "BKE_tracking.h"
+#include "BKE_mask.hh"
+#include "BKE_tracking.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -40,7 +40,7 @@ static wmOperatorStatus mask_parent_clear_exec(bContext *C, wmOperator * /*op*/)
       for (int i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
 
-        if (MASKPOINT_ISSEL_ANY(point)) {
+        if (BKE_mask_point_selected(point)) {
           point->parent.id = nullptr;
         }
       }
@@ -130,7 +130,7 @@ static wmOperatorStatus mask_parent_set_exec(bContext *C, wmOperator * /*op*/)
       for (int i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
 
-        if (MASKPOINT_ISSEL_ANY(point)) {
+        if (BKE_mask_point_selected(point)) {
           point->parent.id_type = ID_MC;
           point->parent.id = &clip->id;
           point->parent.type = parent_type;

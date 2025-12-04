@@ -61,7 +61,7 @@ def parse_json_rec(fbx_root, json_node):
     name, data, data_types, children = json_node
     ver = 0
 
-    assert(len(data_types) == len(data))
+    assert len(data_types) == len(data)
 
     e = elem_empty(fbx_root, name.encode())
     for d, dt in zip(data, data_types):
@@ -102,7 +102,7 @@ def parse_json_rec(fbx_root, json_node):
             e.add_byte_array(d)
 
     if name == "FBXVersion":
-        assert(data_types == "I")
+        assert data_types == "I"
         ver = int(data[0])
 
     for child in children:

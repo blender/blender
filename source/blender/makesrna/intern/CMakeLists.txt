@@ -494,11 +494,13 @@ blender_add_lib(bf_rna "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 if(WITH_GTESTS)
   set(TEST_SRC
-    makesrna_utils.cc
     makesrna_test.cc
   )
   set(TEST_LIB
     ${LIB}
   )
-  blender_add_test_suite_lib(bf_makesrna "${TEST_SRC}" "${INC}" "${INC_SYS}" "${TEST_LIB}")
+  set(TEST_COMMON_SRC
+    makesrna_utils.cc
+  )
+  blender_add_test_suite_lib(bf_makesrna "${TEST_SRC}" "${INC}" "${INC_SYS}" "${TEST_LIB}" "${TEST_COMMON_SRC}")
 endif()

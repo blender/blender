@@ -27,9 +27,9 @@
 #include "BKE_context.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
-#include "BKE_movieclip.h"
+#include "BKE_movieclip.hh"
 #include "BKE_screen.hh"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "IMB_imbuf_types.hh"
 
@@ -735,9 +735,9 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
                           mask,
                           region,
                           sc->overlay.flag & SC_SHOW_OVERLAYS,
-                          sc->mask_info.draw_flag,
-                          sc->mask_info.draw_type,
-                          eMaskOverlayMode(sc->mask_info.overlay_mode),
+                          MaskDrawFlag(sc->mask_info.draw_flag),
+                          MaskDrawType(sc->mask_info.draw_type),
+                          MaskOverlayMode(sc->mask_info.overlay_mode),
                           sc->mask_info.blend_factor,
                           mask_width,
                           mask_height,

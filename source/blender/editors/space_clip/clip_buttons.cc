@@ -25,9 +25,9 @@
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"
-#include "BKE_movieclip.h"
+#include "BKE_movieclip.hh"
 #include "BKE_screen.hh"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -452,7 +452,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
 
     if (track->flag & TRACK_LOCKED) {
       layout->active_set(false);
-      uiBlock *block = layout->absolute_block();
+      uiBlock *block = layout->absolute().block();
       uiDefBut(block,
                ButType::Label,
                IFACE_("Track is locked"),
@@ -487,7 +487,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
 
     cb->marker_flag = marker->flag;
 
-    uiBlock *block = layout->absolute_block();
+    uiBlock *block = layout->absolute().block();
     UI_block_func_handle_set(block, marker_block_handler, cb);
     UI_block_funcN_set(block, marker_update_cb, cb, nullptr);
 
@@ -519,7 +519,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
     blender::ui::Layout &col = layout->column(true);
     col.active_set((cb->marker_flag & MARKER_DISABLED) == 0);
 
-    block = col.absolute_block();
+    block = col.absolute().block();
     UI_block_align_begin(block);
 
     uiDefBut(block,
@@ -754,7 +754,7 @@ void uiTemplateMovieclipInformation(blender::ui::Layout *layout,
    * skipping the cache could lead to a performance impact depending on the order in which panels
    * and the main area is drawn. Basically, if it is this template drawn first and then the main
    * area it will lead to frame read and processing happening twice. */
-  ImBuf *ibuf = BKE_movieclip_get_ibuf_flag(clip, user, clip->flag, 0);
+  ImBuf *ibuf = BKE_movieclip_get_ibuf(clip, user);
 
   int width, height;
   /* Display frame dimensions, channels number and buffer type. */

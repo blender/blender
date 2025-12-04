@@ -81,9 +81,9 @@ static void sh_node_vector_math_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Value");
 }
 
-static void node_shader_buts_vect_math(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_shader_buts_vect_math(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "operation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "operation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 class SocketSearchOp {

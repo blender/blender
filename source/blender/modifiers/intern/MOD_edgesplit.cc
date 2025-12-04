@@ -132,20 +132,19 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *row, *sub;
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  row = &layout->row(true, IFACE_("Edge Angle"));
-  row->prop(ptr, "use_edge_angle", UI_ITEM_NONE, "", ICON_NONE);
-  sub = &row->row(true);
-  sub->active_set(RNA_boolean_get(ptr, "use_edge_angle"));
-  sub->prop(ptr, "split_angle", UI_ITEM_NONE, "", ICON_NONE);
+  blender::ui::Layout &row = layout.row(true, IFACE_("Edge Angle"));
+  row.prop(ptr, "use_edge_angle", UI_ITEM_NONE, "", ICON_NONE);
+  blender::ui::Layout &sub = row.row(true);
+  sub.active_set(RNA_boolean_get(ptr, "use_edge_angle"));
+  sub.prop(ptr, "split_angle", UI_ITEM_NONE, "", ICON_NONE);
 
-  layout->prop(ptr, "use_edge_sharp", UI_ITEM_NONE, IFACE_("Sharp Edges"), ICON_NONE);
+  layout.prop(ptr, "use_edge_sharp", UI_ITEM_NONE, IFACE_("Sharp Edges"), ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }

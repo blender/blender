@@ -395,20 +395,20 @@ static void modify_geometry_set(ModifierData *md,
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
   auto *dmd = static_cast<GreasePencilDashModifierData *>(ptr->data);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "dash_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "dash_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiLayout *row = &layout->row(false);
-  row->use_property_split_set(false);
+  ui::Layout &row = layout.row(false);
+  row.use_property_split_set(false);
 
-  uiTemplateList(row,
+  uiTemplateList(&row,
                  (bContext *)C,
                  "MOD_UL_grease_pencil_dash_modifier_segments",
                  "",
@@ -423,12 +423,12 @@ static void panel_draw(const bContext *C, Panel *panel)
                  1,
                  UI_TEMPLATE_LIST_FLAG_NONE);
 
-  uiLayout *col = &row->column(false);
-  uiLayout *sub = &col->column(true);
+  ui::Layout &col = row.column(false);
+  ui::Layout *sub = &col.column(true);
   sub->op("OBJECT_OT_grease_pencil_dash_modifier_segment_add", "", ICON_ADD);
   sub->op("OBJECT_OT_grease_pencil_dash_modifier_segment_remove", "", ICON_REMOVE);
-  col->separator();
-  sub = &col->column(true);
+  col.separator();
+  sub = &col.column(true);
   PointerRNA op_ptr = sub->op(
       "OBJECT_OT_grease_pencil_dash_modifier_segment_move", "", ICON_TRIA_UP);
   RNA_enum_set(&op_ptr, "type", /* blender::ed::object::DashSegmentMoveDirection::Up */ -1);
@@ -440,22 +440,22 @@ static void panel_draw(const bContext *C, Panel *panel)
                                                     &RNA_GreasePencilDashModifierSegment,
                                                     &dmd->segments()[dmd->segment_active_index]);
 
-    sub = &layout->column(true);
+    sub = &layout.column(true);
     sub->prop(&ds_ptr, "dash", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     sub->prop(&ds_ptr, "gap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    sub = &layout->column(false);
+    sub = &layout.column(false);
     sub->prop(&ds_ptr, "radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     sub->prop(&ds_ptr, "opacity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     sub->prop(&ds_ptr, "material_index", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     sub->prop(&ds_ptr, "use_cyclic", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *influence_panel = layout->panel_prop(
+  if (ui::Layout *influence_panel = layout.panel_prop(
           C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
-    modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
+    modifier::greasepencil::draw_layer_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_material_filter_settings(C, *influence_panel, ptr);
   }
 
   modifier_error_message_draw(layout, ptr);
@@ -463,7 +463,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
 static void segment_list_item_draw(uiList * /*ui_list*/,
                                    const bContext * /*C*/,
-                                   uiLayout *layout,
+                                   ui::Layout &layout,
                                    PointerRNA * /*idataptr*/,
                                    PointerRNA *itemptr,
                                    int /*icon*/,
@@ -472,8 +472,8 @@ static void segment_list_item_draw(uiList * /*ui_list*/,
                                    int /*index*/,
                                    int /*flt_flag*/)
 {
-  uiLayout *row = &layout->row(true);
-  row->prop(itemptr, "name", UI_ITEM_R_NO_BG, "", ICON_NONE);
+  ui::Layout &row = layout.row(true);
+  row.prop(itemptr, "name", UI_ITEM_R_NO_BG, "", ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

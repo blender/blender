@@ -158,10 +158,9 @@ struct ForeachContext {
  *
  * Returns true if the whole topology was traversed, without any early exits.
  *
- * TODO(sergey): Need to either get rid of subdiv or of coarse_mesh.
+ * TODO(@sergey): Need to either get rid of subdiv or of coarse_mesh.
  * The main point here is to be able to get base level topology, which can be
  * done with either of those. Having both of them is kind of redundant.
-
  */
 bool foreach_subdiv_geometry(Subdiv *subdiv,
                              const ForeachContext *context,

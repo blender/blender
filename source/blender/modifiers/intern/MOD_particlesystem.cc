@@ -213,7 +213,7 @@ static void deform_verts(ModifierData *md,
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -222,18 +222,18 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   ModifierData *md = (ModifierData *)ptr->data;
   ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
 
-  layout->label(RPT_("Settings are inside the Particles tab"), ICON_NONE);
+  layout.label(RPT_("Settings are inside the Particles tab"), ICON_NONE);
 
   if (!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
     if (ELEM(psys->part->ren_as, PART_DRAW_GR, PART_DRAW_OB)) {
-      layout->op("OBJECT_OT_duplicates_make_real",
-                 CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Make Instances Real"),
-                 ICON_NONE);
+      layout.op("OBJECT_OT_duplicates_make_real",
+                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Make Instances Real"),
+                ICON_NONE);
     }
     else if (psys->part->ren_as == PART_DRAW_PATH) {
-      layout->op("OBJECT_OT_modifier_convert",
-                 CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Convert to Mesh"),
-                 ICON_NONE);
+      layout.op("OBJECT_OT_modifier_convert",
+                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Convert to Mesh"),
+                ICON_NONE);
     }
   }
 

@@ -48,11 +48,10 @@
 #include "BKE_image.hh" /* openanim */
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_library.hh"
 #include "BKE_main.hh"
-#include "BKE_movieclip.h"
+#include "BKE_movieclip.hh"
 #include "BKE_node_tree_update.hh"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
@@ -64,8 +63,6 @@
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
-
-#include "DRW_engine.hh"
 
 #include "GPU_texture.hh"
 
@@ -674,7 +671,7 @@ struct MovieClipCache {
   struct {
     ImBuf *ibuf;
     int framenr;
-    int flag;
+    MovieClipPostprocFlag flag;
 
     /* cache for undistorted shot */
     float focal_length;
@@ -698,7 +695,7 @@ struct MovieClipCache {
 
     ImBuf *ibuf;
     int framenr;
-    int postprocess_flag;
+    MovieClipPostprocFlag postprocess_flag;
 
     float loc[2], scale, angle, aspect;
     int proxy, filter;
@@ -1079,9 +1076,9 @@ static bool need_undistortion_postprocess(const MovieClipUser *user, int clip_fl
 
 static bool need_postprocessed_frame(const MovieClipUser *user,
                                      int clip_flag,
-                                     int postprocess_flag)
+                                     MovieClipPostprocFlag postprocess_flag)
 {
-  bool result = (postprocess_flag != 0);
+  bool result = (postprocess_flag != MovieClipPostprocFlag::None);
   result |= need_undistortion_postprocess(user, clip_flag);
   return result;
 }
@@ -1132,7 +1129,7 @@ static bool check_undistortion_cache_flags(const MovieClip *clip)
 static ImBuf *get_postprocessed_cached_frame(const MovieClip *clip,
                                              const MovieClipUser *user,
                                              int flag,
-                                             int postprocess_flag)
+                                             MovieClipPostprocFlag postprocess_flag)
 {
   const MovieClipCache *cache = clip->cache;
   int framenr = user->framenr;
@@ -1177,8 +1174,11 @@ static ImBuf *get_postprocessed_cached_frame(const MovieClip *clip,
   return cache->postprocessed.ibuf;
 }
 
-static ImBuf *postprocess_frame(
-    MovieClip *clip, const MovieClipUser *user, ImBuf *ibuf, int flag, int postprocess_flag)
+static ImBuf *postprocess_frame(MovieClip *clip,
+                                const MovieClipUser *user,
+                                ImBuf *ibuf,
+                                int flag,
+                                MovieClipPostprocFlag postprocess_flag)
 {
   ImBuf *postproc_ibuf = nullptr;
 
@@ -1189,11 +1189,11 @@ static ImBuf *postprocess_frame(
     postproc_ibuf = IMB_dupImBuf(ibuf);
   }
 
-  if (postprocess_flag) {
-    bool disable_red = (postprocess_flag & MOVIECLIP_DISABLE_RED) != 0;
-    bool disable_green = (postprocess_flag & MOVIECLIP_DISABLE_GREEN) != 0;
-    bool disable_blue = (postprocess_flag & MOVIECLIP_DISABLE_BLUE) != 0;
-    bool grayscale = (postprocess_flag & MOVIECLIP_PREVIEW_GRAYSCALE) != 0;
+  if (postprocess_flag != MovieClipPostprocFlag::None) {
+    bool disable_red = flag_is_set(postprocess_flag, MovieClipPostprocFlag::DisableRed);
+    bool disable_green = flag_is_set(postprocess_flag, MovieClipPostprocFlag::DisableGreen);
+    bool disable_blue = flag_is_set(postprocess_flag, MovieClipPostprocFlag::DisableBlue);
+    bool grayscale = flag_is_set(postprocess_flag, MovieClipPostprocFlag::PreviewGray);
 
     if (disable_red || disable_green || disable_blue || grayscale) {
       BKE_tracking_disable_channels(postproc_ibuf, disable_red, disable_green, disable_blue, true);
@@ -1203,8 +1203,11 @@ static ImBuf *postprocess_frame(
   return postproc_ibuf;
 }
 
-static void put_postprocessed_frame_to_cache(
-    MovieClip *clip, const MovieClipUser *user, ImBuf *ibuf, int flag, int postprocess_flag)
+static void put_postprocessed_frame_to_cache(MovieClip *clip,
+                                             const MovieClipUser *user,
+                                             ImBuf *ibuf,
+                                             int flag,
+                                             MovieClipPostprocFlag postprocess_flag)
 {
   MovieClipCache *cache = clip->cache;
   MovieTrackingCamera *camera = &clip->tracking.camera;
@@ -1246,8 +1249,11 @@ static void put_postprocessed_frame_to_cache(
   cache->postprocessed.ibuf = ibuf;
 }
 
-static ImBuf *movieclip_get_postprocessed_ibuf(
-    MovieClip *clip, const MovieClipUser *user, int flag, int postprocess_flag, int cache_flag)
+static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip,
+                                               const MovieClipUser *user,
+                                               int flag,
+                                               MovieClipPostprocFlag postprocess_flag,
+                                               MovieClipCacheFlag cache_flag)
 {
   ImBuf *ibuf = nullptr;
   int framenr = user->framenr;
@@ -1284,7 +1290,7 @@ static ImBuf *movieclip_get_postprocessed_ibuf(
       ibuf = movieclip_load_movie_file(clip, user, framenr, flag);
     }
 
-    if (ibuf && (cache_flag & MOVIECLIP_CACHE_SKIP) == 0) {
+    if (ibuf && !flag_is_set(cache_flag, MovieClipCacheFlag::SkipCache)) {
       put_imbuf_cache(clip, user, ibuf, flag, true);
     }
   }
@@ -1297,7 +1303,7 @@ static ImBuf *movieclip_get_postprocessed_ibuf(
       ImBuf *tmpibuf = ibuf;
       ibuf = postprocess_frame(clip, user, tmpibuf, flag, postprocess_flag);
       IMB_freeImBuf(tmpibuf);
-      if (ibuf && (cache_flag & MOVIECLIP_CACHE_SKIP) == 0) {
+      if (ibuf && !flag_is_set(cache_flag, MovieClipCacheFlag::SkipCache)) {
         put_postprocessed_frame_to_cache(clip, user, ibuf, flag, postprocess_flag);
       }
     }
@@ -1321,29 +1327,32 @@ static ImBuf *movieclip_get_postprocessed_ibuf(
 
 ImBuf *BKE_movieclip_get_ibuf(MovieClip *clip, const MovieClipUser *user)
 {
-  return BKE_movieclip_get_ibuf_flag(clip, user, clip->flag, 0);
+  return BKE_movieclip_get_ibuf_flag(
+      clip, user, MovieClipFlag(clip->flag), MovieClipCacheFlag::None);
 }
 
 ImBuf *BKE_movieclip_get_ibuf_flag(MovieClip *clip,
                                    const MovieClipUser *user,
-                                   const int flag,
-                                   const int cache_flag)
+                                   const MovieClipFlag flag,
+                                   const MovieClipCacheFlag cache_flag)
 {
-  return movieclip_get_postprocessed_ibuf(clip, user, flag, 0, cache_flag);
+  return movieclip_get_postprocessed_ibuf(
+      clip, user, flag, MovieClipPostprocFlag::None, cache_flag);
 }
 
 ImBuf *BKE_movieclip_get_postprocessed_ibuf(MovieClip *clip,
                                             const MovieClipUser *user,
-                                            const int postprocess_flag)
+                                            const MovieClipPostprocFlag postprocess_flag)
 {
-  return movieclip_get_postprocessed_ibuf(clip, user, clip->flag, postprocess_flag, 0);
+  return movieclip_get_postprocessed_ibuf(
+      clip, user, clip->flag, postprocess_flag, MovieClipCacheFlag::None);
 }
 
 static ImBuf *get_stable_cached_frame(MovieClip *clip,
                                       const MovieClipUser *user,
                                       ImBuf *reference_ibuf,
                                       const int framenr,
-                                      const int postprocess_flag)
+                                      const MovieClipPostprocFlag postprocess_flag)
 {
   MovieClipCache *cache = clip->cache;
   MovieTracking *tracking = &clip->tracking;
@@ -1406,7 +1415,7 @@ static ImBuf *put_stabilized_frame_to_cache(MovieClip *clip,
                                             const MovieClipUser *user,
                                             ImBuf *ibuf,
                                             const int framenr,
-                                            const int postprocess_flag)
+                                            const MovieClipPostprocFlag postprocess_flag)
 {
   MovieClipCache *cache = clip->cache;
   MovieTracking *tracking = &clip->tracking;
@@ -1449,7 +1458,7 @@ static ImBuf *put_stabilized_frame_to_cache(MovieClip *clip,
 
 ImBuf *BKE_movieclip_get_stable_ibuf(MovieClip *clip,
                                      const MovieClipUser *user,
-                                     const int postprocess_flag,
+                                     const MovieClipPostprocFlag postprocess_flag,
                                      float r_loc[2],
                                      float *r_scale,
                                      float *r_angle)
@@ -1814,7 +1823,7 @@ static void movieclip_build_proxy_ibuf(const MovieClip *clip,
 }
 
 void BKE_movieclip_build_proxy_frame(MovieClip *clip,
-                                     int clip_flag,
+                                     MovieClipFlag clip_flag,
                                      MovieDistortion *distortion,
                                      int cfra,
                                      const int *build_sizes,
@@ -1832,7 +1841,7 @@ void BKE_movieclip_build_proxy_frame(MovieClip *clip,
   user.render_flag = 0;
   user.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
 
-  ibuf = BKE_movieclip_get_ibuf_flag(clip, &user, clip_flag, MOVIECLIP_CACHE_SKIP);
+  ibuf = BKE_movieclip_get_ibuf_flag(clip, &user, clip_flag, MovieClipCacheFlag::SkipCache);
 
   if (ibuf) {
     ImBuf *tmpibuf = ibuf;

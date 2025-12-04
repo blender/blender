@@ -28,7 +28,6 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_scene.hh"
-#include "BKE_tracking.h"
 
 #include "BLT_translation.hh"
 
@@ -36,7 +35,6 @@
 
 #include "GPU_batch.hh"
 #include "GPU_batch_presets.hh"
-#include "GPU_capabilities.hh"
 #include "GPU_framebuffer.hh"
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
@@ -63,24 +61,22 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "NOD_composite.hh"
 #include "NOD_geometry.hh"
 #include "NOD_geometry_nodes_gizmos.hh"
 #include "NOD_node_declaration.hh"
-#include "NOD_partial_eval.hh"
 #include "NOD_socket.hh"
 #include "NOD_socket_declarations.hh"
 #include "node_intern.hh" /* own include */
 
 namespace blender::ed::space_node {
 
-/* Default flags for uiLayout::prop(). Name is kept short since this is used a lot in this file. */
+/* Default flags for Layout::prop(). Name is kept short since this is used a lot in this file. */
 #define DEFAULT_FLAGS UI_ITEM_R_SPLIT_EMPTY_NAME
 
 /* ****************** SOCKET BUTTON DRAW FUNCTIONS ***************** */
 
 static void node_socket_button_label(bContext * /*C*/,
-                                     uiLayout *layout,
+                                     ui::Layout *layout,
                                      PointerRNA * /*ptr*/,
                                      PointerRNA * /*node_ptr*/,
                                      const StringRef text)
@@ -90,38 +86,38 @@ static void node_socket_button_label(bContext * /*C*/,
 
 /* ****************** BUTTON CALLBACKS FOR ALL TREES ***************** */
 
-static void node_buts_mix_rgb(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_buts_mix_rgb(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
 
-  uiLayout *col = &layout->column(false);
-  uiLayout *row = &col->row(true);
-  row->prop(ptr, "blend_type", DEFAULT_FLAGS, "", ICON_NONE);
+  ui::Layout &col = layout.column(false);
+  ui::Layout &row = col.row(true);
+  row.prop(ptr, "blend_type", DEFAULT_FLAGS, "", ICON_NONE);
   if (ELEM(ntree->type, NTREE_COMPOSIT, NTREE_TEXTURE)) {
-    row->prop(ptr, "use_alpha", DEFAULT_FLAGS, "", ICON_IMAGE_RGB_ALPHA);
+    row.prop(ptr, "use_alpha", DEFAULT_FLAGS, "", ICON_IMAGE_RGB_ALPHA);
   }
 
-  col->prop(ptr, "use_clamp", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
+  col.prop(ptr, "use_clamp", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
 }
 
-static void node_buts_time(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_buts_time(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiTemplateCurveMapping(layout, ptr, "curve", 's', false, false, false, false, false);
+  uiTemplateCurveMapping(&layout, ptr, "curve", 's', false, false, false, false, false);
 }
 
-static void node_buts_colorramp(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_buts_colorramp(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiTemplateColorRamp(layout, ptr, "color_ramp", false);
+  uiTemplateColorRamp(&layout, ptr, "color_ramp", false);
 }
 
-static void node_buts_curvevec(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_buts_curvevec(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiTemplateCurveMapping(layout, ptr, "mapping", 'v', false, false, false, false, false);
+  uiTemplateCurveMapping(&layout, ptr, "mapping", 'v', false, false, false, false, false);
 }
 
-static void node_buts_curvefloat(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_buts_curvefloat(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiTemplateCurveMapping(layout, ptr, "mapping", 0, false, false, false, false, false);
+  uiTemplateCurveMapping(&layout, ptr, "mapping", 0, false, false, false, false, false);
 }
 
 }  // namespace blender::ed::space_node
@@ -141,7 +137,7 @@ void ED_node_sample_set(const float col[4])
 
 namespace blender::ed::space_node {
 
-static void node_buts_curvecol(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_buts_curvecol(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
   CurveMapping *cumap = (CurveMapping *)node->storage;
@@ -157,43 +153,43 @@ static void node_buts_curvecol(uiLayout *layout, bContext * /*C*/, PointerRNA *p
   /* "Tone" (Standard/Film-like) only used in the Compositor. */
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
   uiTemplateCurveMapping(
-      layout, ptr, "mapping", 'c', false, false, false, (ntree->type == NTREE_COMPOSIT), false);
+      &layout, ptr, "mapping", 'c', false, false, false, (ntree->type == NTREE_COMPOSIT), false);
 }
 
-static void node_buts_normal(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_buts_normal(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
   /* first output stores normal */
   bNodeSocket *output = (bNodeSocket *)node->outputs.first;
   PointerRNA sockptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_NodeSocket, output);
 
-  layout->prop(&sockptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
+  layout.prop(&sockptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
-static void node_buts_texture(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_buts_texture(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
 
   short multi = (node->id && ((Tex *)node->id)->use_nodes &&
                  (node->type_legacy != TEX_NODE_TEXTURE));
 
-  uiTemplateID(layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
+  uiTemplateID(&layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
 
   if (multi) {
     /* Number Drawing not optimal here, better have a list. */
-    layout->prop(ptr, "node_output", DEFAULT_FLAGS, "", ICON_NONE);
+    layout.prop(ptr, "node_output", DEFAULT_FLAGS, "", ICON_NONE);
   }
 }
 
-static void node_buts_math(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_buts_math(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "operation", DEFAULT_FLAGS, "", ICON_NONE);
-  layout->prop(ptr, "use_clamp", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "operation", DEFAULT_FLAGS, "", ICON_NONE);
+  layout.prop(ptr, "use_clamp", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
 }
 
-static void node_buts_combsep_color(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_buts_combsep_color(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "mode", DEFAULT_FLAGS, "", ICON_NONE);
+  layout.prop(ptr, "mode", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
 NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
@@ -256,16 +252,16 @@ NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
 
 /* ****************** BUTTON CALLBACKS FOR COMMON NODES ***************** */
 
-static void node_draw_buttons_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_draw_buttons_group(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
-  uiTemplateIDBrowse(layout, C, ptr, "node_tree", nullptr, nullptr, nullptr);
+  uiTemplateIDBrowse(&layout, C, ptr, "node_tree", nullptr, nullptr, nullptr);
 }
 
-static void node_buts_frame_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_buts_frame_ex(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "label_size", DEFAULT_FLAGS, IFACE_("Label Size"), ICON_NONE);
-  layout->prop(ptr, "shrink", DEFAULT_FLAGS, IFACE_("Shrink"), ICON_NONE);
-  layout->prop(ptr, "text", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "label_size", DEFAULT_FLAGS, IFACE_("Label Size"), ICON_NONE);
+  layout.prop(ptr, "shrink", DEFAULT_FLAGS, IFACE_("Shrink"), ICON_NONE);
+  layout.prop(ptr, "text", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
 }
 
 static void node_common_set_butfunc(blender::bke::bNodeType *ntype)
@@ -282,7 +278,7 @@ static void node_common_set_butfunc(blender::bke::bNodeType *ntype)
 
 /* ****************** BUTTON CALLBACKS FOR SHADER NODES ***************** */
 
-static void node_buts_image_user(uiLayout *layout,
+static void node_buts_image_user(ui::Layout &layout,
                                  bContext *C,
                                  PointerRNA *ptr,
                                  PointerRNA *imaptr,
@@ -296,9 +292,9 @@ static void node_buts_image_user(uiLayout *layout,
   }
   ImageUser *iuser = (ImageUser *)iuserptr->data;
 
-  uiLayout *col = &layout->column(false);
+  ui::Layout &source_col = layout.column(false);
 
-  col->prop(imaptr, "source", DEFAULT_FLAGS, "", ICON_NONE);
+  source_col.prop(imaptr, "source", DEFAULT_FLAGS, "", ICON_NONE);
 
   const int source = RNA_enum_get(imaptr, "source");
 
@@ -310,62 +306,62 @@ static void node_buts_image_user(uiLayout *layout,
     char numstr[32];
     const int framenr = BKE_image_user_frame_get(iuser, scene->r.cfra, nullptr);
     SNPRINTF_UTF8(numstr, IFACE_("Frame: %d"), framenr);
-    layout->label(numstr, ICON_NONE);
+    layout.label(numstr, ICON_NONE);
   }
 
   if (ELEM(source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
-    col = &layout->column(true);
-    col->prop(ptr, "frame_duration", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
-    col->prop(ptr, "frame_start", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
-    col->prop(ptr, "frame_offset", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
-    col->prop(ptr, "use_cyclic", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
-    col->prop(ptr, "use_auto_refresh", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
+    ui::Layout &col = layout.column(true);
+    col.prop(ptr, "frame_duration", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
+    col.prop(ptr, "frame_start", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
+    col.prop(ptr, "frame_offset", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
+    col.prop(ptr, "use_cyclic", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
+    col.prop(ptr, "use_auto_refresh", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
   }
 
   if (show_layer_selection && RNA_enum_get(imaptr, "type") == IMA_TYPE_MULTILAYER &&
       RNA_boolean_get(ptr, "has_layers"))
   {
-    col = &layout->column(false);
-    col->prop(ptr, "layer", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
+    ui::Layout &col = layout.column(false);
+    col.prop(ptr, "layer", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
   }
 
   if (show_color_management) {
-    uiLayout *split = &layout->split(0.33f, true);
+    ui::Layout &split = layout.split(0.33f, true);
     PointerRNA colorspace_settings_ptr = RNA_pointer_get(imaptr, "colorspace_settings");
-    split->label(IFACE_("Color Space"), ICON_NONE);
-    split->prop(&colorspace_settings_ptr, "name", DEFAULT_FLAGS, "", ICON_NONE);
+    split.label(IFACE_("Color Space"), ICON_NONE);
+    split.prop(&colorspace_settings_ptr, "name", DEFAULT_FLAGS, "", ICON_NONE);
 
     if (image->source != IMA_SRC_GENERATED) {
-      split = &layout->split(0.33f, true);
-      split->label(IFACE_("Alpha"), ICON_NONE);
-      split->prop(imaptr, "alpha_mode", DEFAULT_FLAGS, "", ICON_NONE);
+      ui::Layout &split_2 = layout.split(0.33f, true);
+      split_2.label(IFACE_("Alpha"), ICON_NONE);
+      split_2.prop(imaptr, "alpha_mode", DEFAULT_FLAGS, "", ICON_NONE);
 
       bool is_data = IMB_colormanagement_space_name_is_data(image->colorspace_settings.name);
-      split->active_set(!is_data);
+      split_2.active_set(!is_data);
     }
 
     /* Avoid losing changes image is painted. */
     if (BKE_image_is_dirty((Image *)imaptr->data)) {
-      split->enabled_set(false);
+      split.enabled_set(false);
     }
   }
 }
 
-static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_shader_buts_tex_image(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
   PointerRNA imaptr = RNA_pointer_get(ptr, "image");
   PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
 
-  layout->context_ptr_set("image_user", &iuserptr);
-  uiTemplateID(layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
-  layout->prop(ptr, "interpolation", DEFAULT_FLAGS, "", ICON_NONE);
-  layout->prop(ptr, "projection", DEFAULT_FLAGS, "", ICON_NONE);
+  layout.context_ptr_set("image_user", &iuserptr);
+  uiTemplateID(&layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
+  layout.prop(ptr, "interpolation", DEFAULT_FLAGS, "", ICON_NONE);
+  layout.prop(ptr, "projection", DEFAULT_FLAGS, "", ICON_NONE);
 
   if (RNA_enum_get(ptr, "projection") == SHD_PROJ_BOX) {
-    layout->prop(ptr, "projection_blend", DEFAULT_FLAGS, IFACE_("Blend"), ICON_NONE);
+    layout.prop(ptr, "projection_blend", DEFAULT_FLAGS, IFACE_("Blend"), ICON_NONE);
   }
 
-  layout->prop(ptr, "extension", DEFAULT_FLAGS, "", ICON_NONE);
+  layout.prop(ptr, "extension", DEFAULT_FLAGS, "", ICON_NONE);
 
   /* NOTE: image user properties used directly here, unlike compositor image node,
    * which redefines them in the node struct RNA to get proper updates.
@@ -373,53 +369,53 @@ static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA
   node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr, false, true);
 }
 
-static void node_shader_buts_tex_image_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_shader_buts_tex_image_ex(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
   PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
-  uiTemplateImage(layout, C, ptr, "image", &iuserptr, false, false);
+  uiTemplateImage(&layout, C, ptr, "image", &iuserptr, false, false);
 }
 
-static void node_shader_buts_tex_environment(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_shader_buts_tex_environment(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
   PointerRNA imaptr = RNA_pointer_get(ptr, "image");
   PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
 
-  layout->context_ptr_set("image_user", &iuserptr);
-  uiTemplateID(layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
+  layout.context_ptr_set("image_user", &iuserptr);
+  uiTemplateID(&layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
 
-  layout->prop(ptr, "interpolation", DEFAULT_FLAGS, "", ICON_NONE);
-  layout->prop(ptr, "projection", DEFAULT_FLAGS, "", ICON_NONE);
+  layout.prop(ptr, "interpolation", DEFAULT_FLAGS, "", ICON_NONE);
+  layout.prop(ptr, "projection", DEFAULT_FLAGS, "", ICON_NONE);
 
   node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr, false, true);
 }
 
-static void node_shader_buts_tex_environment_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_shader_buts_tex_environment_ex(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
   PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
-  uiTemplateImage(layout, C, ptr, "image", &iuserptr, false, false);
+  uiTemplateImage(&layout, C, ptr, "image", &iuserptr, false, false);
 
-  layout->prop(ptr, "interpolation", DEFAULT_FLAGS, IFACE_("Interpolation"), ICON_NONE);
-  layout->prop(ptr, "projection", DEFAULT_FLAGS, IFACE_("Projection"), ICON_NONE);
+  layout.prop(ptr, "interpolation", DEFAULT_FLAGS, IFACE_("Interpolation"), ICON_NONE);
+  layout.prop(ptr, "projection", DEFAULT_FLAGS, IFACE_("Projection"), ICON_NONE);
 }
 
-static void node_shader_buts_displacement(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_shader_buts_displacement(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "space", DEFAULT_FLAGS, "", ICON_NONE);
+  layout.prop(ptr, "space", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
-static void node_shader_buts_glossy(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_shader_buts_glossy(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "distribution", DEFAULT_FLAGS, "", ICON_NONE);
+  layout.prop(ptr, "distribution", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
-static void node_buts_output_shader(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_buts_output_shader(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "target", DEFAULT_FLAGS, "", ICON_NONE);
+  layout.prop(ptr, "target", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
-static void node_shader_buts_scatter(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_shader_buts_scatter(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "phase", DEFAULT_FLAGS, "", ICON_NONE);
+  layout.prop(ptr, "phase", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
 /* only once called */
@@ -479,36 +475,34 @@ static void node_shader_set_butfunc(blender::bke::bNodeType *ntype)
 
 /* ****************** BUTTON CALLBACKS FOR COMPOSITE NODES ***************** */
 
-static void node_buts_image_views(uiLayout *layout,
+static void node_buts_image_views(ui::Layout &layout,
                                   bContext * /*C*/,
                                   PointerRNA *ptr,
                                   PointerRNA *imaptr)
 {
-  uiLayout *col;
-
   if (!imaptr->data) {
     return;
   }
 
-  col = &layout->column(false);
+  ui::Layout &col = layout.column(false);
 
   if (RNA_boolean_get(ptr, "has_views")) {
     if (RNA_enum_get(ptr, "view") == 0) {
-      col->prop(ptr, "view", DEFAULT_FLAGS, std::nullopt, ICON_CAMERA_STEREO);
+      col.prop(ptr, "view", DEFAULT_FLAGS, std::nullopt, ICON_CAMERA_STEREO);
     }
     else {
-      col->prop(ptr, "view", DEFAULT_FLAGS, std::nullopt, ICON_SCENE);
+      col.prop(ptr, "view", DEFAULT_FLAGS, std::nullopt, ICON_SCENE);
     }
   }
 }
 
-static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_composit_buts_image(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
 
   PointerRNA iuserptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_ImageUser, node->storage);
-  layout->context_ptr_set("image_user", &iuserptr);
-  uiTemplateID(layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
+  layout.context_ptr_set("image_user", &iuserptr);
+  uiTemplateID(&layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
   if (!node->id) {
     return;
   }
@@ -520,16 +514,16 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
   node_buts_image_views(layout, C, ptr, &imaptr);
 }
 
-static void node_composit_buts_image_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_composit_buts_image_ex(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
 
   PointerRNA iuserptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_ImageUser, node->storage);
-  layout->context_ptr_set("image_user", &iuserptr);
-  uiTemplateImage(layout, C, ptr, "image", &iuserptr, false, true);
+  layout.context_ptr_set("image_user", &iuserptr);
+  uiTemplateImage(&layout, C, ptr, "image", &iuserptr, false, true);
 }
 
-static void node_composit_buts_huecorrect(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_composit_buts_huecorrect(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
   CurveMapping *cumap = (CurveMapping *)node->storage;
@@ -542,75 +536,75 @@ static void node_composit_buts_huecorrect(uiLayout *layout, bContext * /*C*/, Po
     cumap->flag &= ~CUMA_DRAW_SAMPLE;
   }
 
-  uiTemplateCurveMapping(layout, ptr, "mapping", 'h', false, false, false, false, false);
+  uiTemplateCurveMapping(&layout, ptr, "mapping", 'h', false, false, false, false, false);
 }
 
-static void node_composit_buts_combsep_color(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_composit_buts_combsep_color(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
   NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)node->storage;
 
-  layout->prop(ptr, "mode", DEFAULT_FLAGS, "", ICON_NONE);
+  layout.prop(ptr, "mode", DEFAULT_FLAGS, "", ICON_NONE);
   if (storage->mode == CMP_NODE_COMBSEP_COLOR_YCC) {
-    layout->prop(ptr, "ycc_mode", DEFAULT_FLAGS, "", ICON_NONE);
+    layout.prop(ptr, "ycc_mode", DEFAULT_FLAGS, "", ICON_NONE);
   }
 }
 
-static void node_composit_buts_cryptomatte_legacy(uiLayout *layout,
+static void node_composit_buts_cryptomatte_legacy(ui::Layout &layout,
                                                   bContext * /*C*/,
                                                   PointerRNA *ptr)
 {
-  uiLayout *col = &layout->column(true);
+  ui::Layout &col = layout.column(true);
 
-  col->label(IFACE_("Matte Objects:"), ICON_NONE);
+  col.label(IFACE_("Matte Objects:"), ICON_NONE);
 
-  uiLayout *row = &col->row(true);
-  uiTemplateCryptoPicker(row, ptr, "add", ICON_ADD);
-  uiTemplateCryptoPicker(row, ptr, "remove", ICON_REMOVE);
+  ui::Layout &row = col.row(true);
+  uiTemplateCryptoPicker(&row, ptr, "add", ICON_ADD);
+  uiTemplateCryptoPicker(&row, ptr, "remove", ICON_REMOVE);
 
-  col->prop(ptr, "matte_id", DEFAULT_FLAGS, "", ICON_NONE);
+  col.prop(ptr, "matte_id", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
-static void node_composit_buts_cryptomatte_legacy_ex(uiLayout *layout,
+static void node_composit_buts_cryptomatte_legacy_ex(ui::Layout &layout,
                                                      bContext * /*C*/,
                                                      PointerRNA * /*ptr*/)
 {
-  layout->op("NODE_OT_cryptomatte_layer_add", IFACE_("Add Crypto Layer"), ICON_ADD);
-  layout->op("NODE_OT_cryptomatte_layer_remove", IFACE_("Remove Crypto Layer"), ICON_REMOVE);
+  layout.op("NODE_OT_cryptomatte_layer_add", IFACE_("Add Crypto Layer"), ICON_ADD);
+  layout.op("NODE_OT_cryptomatte_layer_remove", IFACE_("Remove Crypto Layer"), ICON_REMOVE);
 }
 
-static void node_composit_buts_cryptomatte(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_composit_buts_cryptomatte(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
 
-  uiLayout *row = &layout->row(true);
-  row->prop(ptr, "source", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  ui::Layout &row = layout.row(true);
+  row.prop(ptr, "source", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  uiLayout *col = &layout->column(false);
+  ui::Layout &col = layout.column(false);
   if (node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER) {
-    uiTemplateID(col, C, ptr, "scene", nullptr, nullptr, nullptr);
+    uiTemplateID(&col, C, ptr, "scene", nullptr, nullptr, nullptr);
   }
   else {
-    uiTemplateID(col, C, ptr, "image", nullptr, "IMAGE_OT_open", nullptr);
+    uiTemplateID(&col, C, ptr, "image", nullptr, "IMAGE_OT_open", nullptr);
 
     NodeCryptomatte *crypto = (NodeCryptomatte *)node->storage;
     PointerRNA imaptr = RNA_pointer_get(ptr, "image");
     PointerRNA iuserptr = RNA_pointer_create_discrete(
         ptr->owner_id, &RNA_ImageUser, &crypto->iuser);
-    layout->context_ptr_set("image_user", &iuserptr);
+    layout.context_ptr_set("image_user", &iuserptr);
 
     node_buts_image_user(col, C, ptr, &imaptr, &iuserptr, false, false);
     node_buts_image_views(col, C, ptr, &imaptr);
   }
 
-  col = &layout->column(true);
-  col->prop(ptr, "layer_name", UI_ITEM_NONE, "", ICON_NONE);
-  col->label(IFACE_("Matte ID:"), ICON_NONE);
+  ui::Layout &col_2 = layout.column(true);
+  col_2.prop(ptr, "layer_name", UI_ITEM_NONE, "", ICON_NONE);
+  col_2.label(IFACE_("Matte ID:"), ICON_NONE);
 
-  row = &col->row(true);
-  row->prop(ptr, "matte_id", DEFAULT_FLAGS, "", ICON_NONE);
-  uiTemplateCryptoPicker(row, ptr, "add", ICON_ADD);
-  uiTemplateCryptoPicker(row, ptr, "remove", ICON_REMOVE);
+  ui::Layout &row_2 = col_2.row(true);
+  row_2.prop(ptr, "matte_id", DEFAULT_FLAGS, "", ICON_NONE);
+  uiTemplateCryptoPicker(&row_2, ptr, "add", ICON_ADD);
+  uiTemplateCryptoPicker(&row_2, ptr, "remove", ICON_REMOVE);
 }
 
 /* only once called */
@@ -649,124 +643,151 @@ static void node_composit_set_butfunc(blender::bke::bNodeType *ntype)
 
 /* ****************** BUTTON CALLBACKS FOR TEXTURE NODES ***************** */
 
-static void node_texture_buts_bricks(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_texture_buts_bricks(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiLayout *col;
-
-  col = &layout->column(true);
-  col->prop(ptr, "offset", DEFAULT_FLAGS | UI_ITEM_R_SLIDER, IFACE_("Offset"), ICON_NONE);
-  col->prop(ptr, "offset_frequency", DEFAULT_FLAGS, IFACE_("Frequency"), ICON_NONE);
-
-  col = &layout->column(true);
-  col->prop(ptr, "squash", DEFAULT_FLAGS, IFACE_("Squash"), ICON_NONE);
-  col->prop(ptr, "squash_frequency", DEFAULT_FLAGS, IFACE_("Frequency"), ICON_NONE);
+  {
+    ui::Layout &col = layout.column(true);
+    col.prop(ptr, "offset", DEFAULT_FLAGS | UI_ITEM_R_SLIDER, IFACE_("Offset"), ICON_NONE);
+    col.prop(ptr, "offset_frequency", DEFAULT_FLAGS, IFACE_("Frequency"), ICON_NONE);
+  }
+  {
+    ui::Layout &col = layout.column(true);
+    col.prop(ptr, "squash", DEFAULT_FLAGS, IFACE_("Squash"), ICON_NONE);
+    col.prop(ptr, "squash_frequency", DEFAULT_FLAGS, IFACE_("Frequency"), ICON_NONE);
+  }
 }
 
-static void node_texture_buts_proc(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_texture_buts_proc(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
   ID *id = ptr->owner_id;
   Tex *tex = (Tex *)node->storage;
-  uiLayout *col, *row;
 
   PointerRNA tex_ptr = RNA_pointer_create_discrete(id, &RNA_Texture, tex);
 
-  col = &layout->column(false);
+  ui::Layout &col = layout.column(false);
 
   switch (tex->type) {
-    case TEX_BLEND:
-      col->prop(&tex_ptr, "progression", DEFAULT_FLAGS, "", ICON_NONE);
-      row = &col->row(false);
-      row->prop(
+    case TEX_BLEND: {
+      col.prop(&tex_ptr, "progression", DEFAULT_FLAGS, "", ICON_NONE);
+      ui::Layout &row = col.row(false);
+      row.prop(
           &tex_ptr, "use_flip_axis", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
       break;
-
-    case TEX_MARBLE:
-      row = &col->row(false);
-      row->prop(
-          &tex_ptr, "marble_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-      row = &col->row(false);
-      row->prop(&tex_ptr, "noise_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-      row = &col->row(false);
-      row->prop(&tex_ptr, "noise_basis", DEFAULT_FLAGS, "", ICON_NONE);
-      row = &col->row(false);
-      row->prop(
-          &tex_ptr, "noise_basis_2", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-      break;
-
-    case TEX_MAGIC:
-      col->prop(&tex_ptr, "noise_depth", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
-      break;
-
-    case TEX_STUCCI:
-      row = &col->row(false);
-      row->prop(
-          &tex_ptr, "stucci_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-      row = &col->row(false);
-      row->prop(&tex_ptr, "noise_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-      col->prop(&tex_ptr, "noise_basis", DEFAULT_FLAGS, "", ICON_NONE);
-      break;
-
-    case TEX_WOOD:
-      col->prop(&tex_ptr, "noise_basis", DEFAULT_FLAGS, "", ICON_NONE);
-      col->prop(&tex_ptr, "wood_type", DEFAULT_FLAGS, "", ICON_NONE);
-      row = &col->row(false);
-      row->prop(
-          &tex_ptr, "noise_basis_2", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-      row = &col->row(false);
-      row->active_set(!ELEM(tex->stype, TEX_BAND, TEX_RING));
-      row->prop(&tex_ptr, "noise_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-      break;
-
-    case TEX_CLOUDS:
-      col->prop(&tex_ptr, "noise_basis", DEFAULT_FLAGS, "", ICON_NONE);
-      row = &col->row(false);
-      row->prop(&tex_ptr, "cloud_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-      row = &col->row(false);
-      row->prop(&tex_ptr, "noise_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-      col->prop(
-          &tex_ptr, "noise_depth", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, IFACE_("Depth"), ICON_NONE);
-      break;
-
-    case TEX_DISTNOISE:
-      col->prop(&tex_ptr, "noise_basis", DEFAULT_FLAGS, "", ICON_NONE);
-      col->prop(&tex_ptr, "noise_distortion", DEFAULT_FLAGS, "", ICON_NONE);
-      break;
-
-    case TEX_MUSGRAVE:
-      col->prop(&tex_ptr, "musgrave_type", DEFAULT_FLAGS, "", ICON_NONE);
-      col->prop(&tex_ptr, "noise_basis", DEFAULT_FLAGS, "", ICON_NONE);
-      break;
-    case TEX_VORONOI:
-      col->prop(&tex_ptr, "distance_metric", DEFAULT_FLAGS, "", ICON_NONE);
-      if (tex->vn_distm == TEX_MINKOVSKY) {
-        col->prop(&tex_ptr, "minkovsky_exponent", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
+    }
+    case TEX_MARBLE: {
+      {
+        ui::Layout &row = col.row(false);
+        row.prop(
+            &tex_ptr, "marble_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
       }
-      col->prop(&tex_ptr, "color_mode", DEFAULT_FLAGS, "", ICON_NONE);
+      {
+        ui::Layout &row = col.row(false);
+        row.prop(
+            &tex_ptr, "noise_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+      }
+      {
+        ui::Layout &row = col.row(false);
+        row.prop(&tex_ptr, "noise_basis", DEFAULT_FLAGS, "", ICON_NONE);
+      }
+      {
+        ui::Layout &row = col.row(false);
+        row.prop(
+            &tex_ptr, "noise_basis_2", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+      }
       break;
+    }
+    case TEX_MAGIC: {
+      col.prop(&tex_ptr, "noise_depth", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
+      break;
+    }
+    case TEX_STUCCI: {
+      {
+        ui::Layout &row = col.row(false);
+        row.prop(
+            &tex_ptr, "stucci_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+      }
+      {
+        ui::Layout &row = col.row(false);
+        row.prop(
+            &tex_ptr, "noise_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+        col.prop(&tex_ptr, "noise_basis", DEFAULT_FLAGS, "", ICON_NONE);
+      }
+      break;
+    }
+    case TEX_WOOD: {
+      col.prop(&tex_ptr, "noise_basis", DEFAULT_FLAGS, "", ICON_NONE);
+      col.prop(&tex_ptr, "wood_type", DEFAULT_FLAGS, "", ICON_NONE);
+      {
+        ui::Layout &row = col.row(false);
+        row.prop(
+            &tex_ptr, "noise_basis_2", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+      }
+      {
+        ui::Layout &row = col.row(false);
+        row.active_set(!ELEM(tex->stype, TEX_BAND, TEX_RING));
+        row.prop(
+            &tex_ptr, "noise_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+      }
+      break;
+    }
+    case TEX_CLOUDS: {
+      col.prop(&tex_ptr, "noise_basis", DEFAULT_FLAGS, "", ICON_NONE);
+      {
+        ui::Layout &row = col.row(false);
+        row.prop(
+            &tex_ptr, "cloud_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+      }
+      {
+        ui::Layout &row = col.row(false);
+        row.prop(
+            &tex_ptr, "noise_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+        col.prop(
+            &tex_ptr, "noise_depth", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, IFACE_("Depth"), ICON_NONE);
+      }
+      break;
+    }
+    case TEX_DISTNOISE: {
+      col.prop(&tex_ptr, "noise_basis", DEFAULT_FLAGS, "", ICON_NONE);
+      col.prop(&tex_ptr, "noise_distortion", DEFAULT_FLAGS, "", ICON_NONE);
+      break;
+    }
+    case TEX_MUSGRAVE: {
+      col.prop(&tex_ptr, "musgrave_type", DEFAULT_FLAGS, "", ICON_NONE);
+      col.prop(&tex_ptr, "noise_basis", DEFAULT_FLAGS, "", ICON_NONE);
+      break;
+    }
+    case TEX_VORONOI: {
+      col.prop(&tex_ptr, "distance_metric", DEFAULT_FLAGS, "", ICON_NONE);
+      if (tex->vn_distm == TEX_MINKOVSKY) {
+        col.prop(&tex_ptr, "minkovsky_exponent", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
+      }
+      col.prop(&tex_ptr, "color_mode", DEFAULT_FLAGS, "", ICON_NONE);
+      break;
+    }
   }
 }
 
-static void node_texture_buts_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_texture_buts_image(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
-  uiTemplateID(layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
+  uiTemplateID(&layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
 }
 
-static void node_texture_buts_image_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_texture_buts_image_ex(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
   PointerRNA iuserptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_ImageUser, node->storage);
-  uiTemplateImage(layout, C, ptr, "image", &iuserptr, false, false);
+  uiTemplateImage(&layout, C, ptr, "image", &iuserptr, false, false);
 }
 
-static void node_texture_buts_output(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_texture_buts_output(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "filepath", DEFAULT_FLAGS, "", ICON_NONE);
+  layout.prop(ptr, "filepath", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
-static void node_texture_buts_combsep_color(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_texture_buts_combsep_color(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "mode", DEFAULT_FLAGS, "", ICON_NONE);
+  layout.prop(ptr, "mode", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
 /* only once called */
@@ -865,7 +886,7 @@ static void node_template_properties_update(blender::bke::bNodeType *ntype)
 }
 
 static void node_socket_undefined_draw(bContext * /*C*/,
-                                       uiLayout *layout,
+                                       ui::Layout *layout,
                                        PointerRNA * /*ptr*/,
                                        PointerRNA * /*node_ptr*/,
                                        StringRef /*text*/)
@@ -896,7 +917,7 @@ static void node_socket_undefined_draw_color_simple(const bke::bNodeSocketType *
 static void node_socket_undefined_interface_draw(ID * /*id*/,
                                                  bNodeTreeInterfaceSocket * /*interface_socket*/,
                                                  bContext * /*C*/,
-                                                 uiLayout *layout)
+                                                 ui::Layout *layout)
 {
   layout->label(IFACE_("Undefined Socket Type"), ICON_ERROR);
 }
@@ -1053,12 +1074,12 @@ static bool socket_needs_volume_grid_search(const bNode &node, const bNodeSocket
   return socket.runtime->declaration->is_volume_grid_name;
 }
 
-static void draw_gizmo_pin_icon(uiLayout *layout, PointerRNA *socket_ptr)
+static void draw_gizmo_pin_icon(ui::Layout *layout, PointerRNA *socket_ptr)
 {
   layout->prop(socket_ptr, "pin_gizmo", UI_ITEM_NONE, "", ICON_GIZMO);
 }
 
-static void draw_node_socket_name_editable(uiLayout *layout,
+static void draw_node_socket_name_editable(ui::Layout *layout,
                                            bNodeSocket *sock,
                                            const StringRef text)
 {
@@ -1077,7 +1098,7 @@ static void draw_node_socket_name_editable(uiLayout *layout,
   layout->label(text, ICON_NONE);
 }
 
-static void draw_node_socket_without_value(uiLayout *layout,
+static void draw_node_socket_without_value(ui::Layout *layout,
                                            bNodeSocket *sock,
                                            const StringRef text)
 {
@@ -1085,7 +1106,7 @@ static void draw_node_socket_without_value(uiLayout *layout,
 }
 
 static void std_node_socket_draw(
-    bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, StringRef label)
+    bContext *C, ui::Layout *layout, PointerRNA *ptr, PointerRNA *node_ptr, StringRef label)
 {
   bNode *node = (bNode *)node_ptr->data;
   bNodeSocket *sock = (bNodeSocket *)ptr->data;
@@ -1109,16 +1130,16 @@ static void std_node_socket_draw(
 
   if (has_gizmo) {
     if (sock->in_out == SOCK_OUT && node->is_group_input()) {
-      uiLayout *row = &layout->row(false);
-      row->alignment_set(ui::LayoutAlign::Right);
-      node_socket_button_label(C, row, ptr, node_ptr, label);
-      row->label("", ICON_GIZMO);
+      ui::Layout &row = layout->row(false);
+      row.alignment_set(ui::LayoutAlign::Right);
+      node_socket_button_label(C, &row, ptr, node_ptr, label);
+      row.label("", ICON_GIZMO);
       return;
     }
     if (sock->in_out == SOCK_IN && sock->index() == 0 &&
         nodes::gizmos::is_builtin_gizmo_node(*node))
     {
-      uiLayout *row = &layout->row(false);
+      ui::Layout *row = &layout->row(false);
       node_socket_button_label(C, row, ptr, node_ptr, label);
       draw_gizmo_pin_icon(row, ptr);
       return;
@@ -1156,9 +1177,9 @@ static void std_node_socket_draw(
           layout->prop(ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
         }
         else {
-          uiLayout *column = &layout->column(false);
+          ui::Layout *column = &layout->column(false);
           {
-            uiLayout *row = &column->row(true);
+            ui::Layout *row = &column->row(true);
             draw_node_socket_name_editable(row, sock, label_or_empty);
             if (has_gizmo) {
               draw_gizmo_pin_icon(row, ptr);
@@ -1170,9 +1191,9 @@ static void std_node_socket_draw(
       }
       break;
     case SOCK_ROTATION: {
-      uiLayout *column = &layout->column(false);
+      ui::Layout *column = &layout->column(false);
       {
-        uiLayout *row = &column->row(true);
+        ui::Layout *row = &column->row(true);
         draw_node_socket_name_editable(row, sock, label_or_empty);
         if (has_gizmo) {
           draw_gizmo_pin_icon(row, ptr);
@@ -1191,10 +1212,10 @@ static void std_node_socket_draw(
         layout->prop(ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
       }
       else {
-        uiLayout *row = &layout->split(0.4f, false);
-        uiLayout *label_layout = &row->column(true);
+        ui::Layout *row = &layout->split(0.4f, false);
+        ui::Layout *label_layout = &row->column(true);
         label_layout->label(label, ICON_NONE);
-        uiLayout *color_layout = &row->column(true);
+        ui::Layout *color_layout = &row->column(true);
         color_layout->prop(ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
         /* Keep color layout active to avoid darkened color appearance when inactive. */
         if (sock->is_inactive()) {
@@ -1211,7 +1232,7 @@ static void std_node_socket_draw(
           node_geometry_add_attribute_search_button(*C, *node, *ptr, *layout, label);
         }
         else {
-          uiLayout *row = &layout->split(0.4f, false);
+          ui::Layout *row = &layout->split(0.4f, false);
           row->label(label, ICON_NONE);
           node_geometry_add_attribute_search_button(*C, *node, *ptr, *row);
         }
@@ -1221,7 +1242,7 @@ static void std_node_socket_draw(
           node_geometry_add_layer_search_button(*C, *node, *ptr, *layout, label);
         }
         else {
-          uiLayout *row = &layout->split(0.4f, false);
+          ui::Layout *row = &layout->split(0.4f, false);
           row->label(label, ICON_NONE);
           node_geometry_add_layer_search_button(*C, *node, *ptr, *row);
         }
@@ -1231,7 +1252,7 @@ static void std_node_socket_draw(
           node_geometry_add_volume_grid_search_button(*C, *node, *ptr, *layout, label);
         }
         else {
-          uiLayout *row = &layout->split(0.4f, false);
+          ui::Layout *row = &layout->split(0.4f, false);
           row->label(label, ICON_NONE);
           node_geometry_add_volume_grid_search_button(*C, *node, *ptr, *row);
         }
@@ -1248,7 +1269,7 @@ static void std_node_socket_draw(
                        label);
         }
         else {
-          uiLayout *row = &layout->split(0.4f, false);
+          ui::Layout *row = &layout->split(0.4f, false);
           row->label(label, ICON_NONE);
           row->prop(ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
         }
@@ -1260,7 +1281,7 @@ static void std_node_socket_draw(
           sock->default_value_typed<bNodeSocketValueMenu>();
       if (default_value->enum_items) {
         if (default_value->enum_items->items.is_empty()) {
-          uiLayout *row = &layout->split(0.4f, false);
+          ui::Layout *row = &layout->split(0.4f, false);
           row->label(label, ICON_NONE);
           row->label(IFACE_("No Items"), ICON_NONE);
         }
@@ -1280,7 +1301,7 @@ static void std_node_socket_draw(
             }
           }
           else {
-            uiLayout &row = layout->split(0.4f, false);
+            ui::Layout &row = layout->split(0.4f, false);
             row.label(label, ICON_NONE);
             if (expanded) {
               /* Use a single space for the name to work around a bug. Also see
@@ -1334,7 +1355,7 @@ static void std_node_socket_draw(
         }
         else {
           /* 0.3 split ratio is inconsistent, but use it here because the "New" button is large. */
-          uiLayout *row = &layout->split(0.3f, false);
+          ui::Layout *row = &layout->split(0.3f, false);
           row->label(label, ICON_NONE);
           uiTemplateID(row, C, ptr, "default_value", "image.new", "image.open", nullptr);
         }
@@ -1350,7 +1371,7 @@ static void std_node_socket_draw(
       }
       else {
         /* 0.3 split ratio is inconsistent, but use it here because the "New" button is large. */
-        uiLayout *row = &layout->split(0.3f, false);
+        ui::Layout *row = &layout->split(0.3f, false);
         row->label(label, ICON_NONE);
         uiTemplateID(row, C, ptr, "default_value", "texture.new", nullptr, nullptr);
       }
@@ -1370,7 +1391,7 @@ static void std_node_socket_draw(
 static void std_node_socket_interface_draw(ID *id,
                                            bNodeTreeInterfaceSocket *interface_socket,
                                            bContext * /*C*/,
-                                           uiLayout *layout)
+                                           ui::Layout *layout)
 {
   PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_NodeTreeInterfaceSocket, interface_socket);
 
@@ -1378,13 +1399,13 @@ static void std_node_socket_interface_draw(ID *id,
   BLI_assert(typeinfo != nullptr);
   eNodeSocketDatatype type = eNodeSocketDatatype(typeinfo->type);
 
-  uiLayout *col = &layout->column(false);
+  ui::Layout *col = &layout->column(false);
 
   switch (type) {
     case SOCK_FLOAT: {
       col->prop(&ptr, "subtype", DEFAULT_FLAGS, IFACE_("Subtype"), ICON_NONE);
       col->prop(&ptr, "default_value", DEFAULT_FLAGS, IFACE_("Default"), ICON_NONE);
-      uiLayout *sub = &col->column(true);
+      ui::Layout *sub = &col->column(true);
       sub->prop(&ptr, "min_value", DEFAULT_FLAGS, IFACE_("Min"), ICON_NONE);
       sub->prop(&ptr, "max_value", DEFAULT_FLAGS, IFACE_("Max"), ICON_NONE);
       break;
@@ -1392,7 +1413,7 @@ static void std_node_socket_interface_draw(ID *id,
     case SOCK_INT: {
       col->prop(&ptr, "subtype", DEFAULT_FLAGS, IFACE_("Subtype"), ICON_NONE);
       col->prop(&ptr, "default_value", DEFAULT_FLAGS, IFACE_("Default"), ICON_NONE);
-      uiLayout *sub = &col->column(true);
+      ui::Layout *sub = &col->column(true);
       sub->prop(&ptr, "min_value", DEFAULT_FLAGS, IFACE_("Min"), ICON_NONE);
       sub->prop(&ptr, "max_value", DEFAULT_FLAGS, IFACE_("Max"), ICON_NONE);
       break;
@@ -1405,7 +1426,7 @@ static void std_node_socket_interface_draw(ID *id,
                 CTX_IFACE_(BLT_I18NCONTEXT_ID_TEXTURE, "Dimensions"),
                 ICON_NONE);
       col->prop(&ptr, "default_value", UI_ITEM_R_EXPAND, IFACE_("Default"), ICON_NONE);
-      uiLayout *sub = &col->column(true);
+      ui::Layout *sub = &col->column(true);
       sub->prop(&ptr, "min_value", DEFAULT_FLAGS, IFACE_("Min"), ICON_NONE);
       sub->prop(&ptr, "max_value", DEFAULT_FLAGS, IFACE_("Max"), ICON_NONE);
       break;
@@ -1456,7 +1477,7 @@ static void std_node_socket_interface_draw(ID *id,
     col->prop(&ptr, "optional_label", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
   }
   {
-    uiLayout *sub = &col->column(false);
+    ui::Layout *sub = &col->column(false);
     sub->active_set(interface_socket->default_input == NODE_DEFAULT_INPUT_VALUE);
     sub->prop(&ptr, "hide_value", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
   }
@@ -1465,7 +1486,7 @@ static void std_node_socket_interface_draw(ID *id,
     if (type == SOCK_BOOLEAN) {
       col->prop(&ptr, "layer_selection_field", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
     }
-    uiLayout *sub = &col->column(false);
+    ui::Layout *sub = &col->column(false);
     sub->active_set(!is_layer_selection_field(*interface_socket));
     sub->prop(&ptr, "hide_in_modifier", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
     if (nodes::socket_type_supports_fields(type) || nodes::socket_type_supports_grids(type)) {

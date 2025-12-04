@@ -31,10 +31,10 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Alpha").no_muted_links().dependent_field().reference_pass_all();
 }
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  layout->prop(ptr, "extension", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "extension", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -81,8 +81,9 @@ class ImageFieldsFunction : public mf::MultiFunction {
 
     if (image_buffer_->float_buffer.data == nullptr) {
       BLI_thread_lock(LOCK_IMAGE);
+      /* Isolate because we are holding a lock. */
       if (!image_buffer_->float_buffer.data) {
-        IMB_float_from_byte(image_buffer_);
+        threading::isolate_task([&]() { IMB_float_from_byte(image_buffer_); });
       }
       BLI_thread_unlock(LOCK_IMAGE);
     }

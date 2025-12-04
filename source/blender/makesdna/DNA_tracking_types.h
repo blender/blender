@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "BLI_enum_flags.hh"
+
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
@@ -33,7 +35,7 @@ typedef struct MovieTrackingCamera {
   /** Intrinsics handle. */
   void *intrinsics;
 
-  short distortion_model;
+  short distortion_model; /* TrackingDistortionModel */
   char _pad[2];
 
   /** Width of CCD sensor. */
@@ -42,7 +44,7 @@ typedef struct MovieTrackingCamera {
   float pixel_aspect;
   /** Focal length. */
   float focal;
-  /** Units of focal length user is working with. */
+  /** Units of focal length user is working with (#TrackingCameraUnits). */
   short units;
   char _pad1[2];
 
@@ -103,7 +105,7 @@ typedef struct MovieTrackingMarker {
 
   /** Number of frame marker is associated with. */
   int framenr;
-  /** Marker's flag (alive, ...). */
+  /** Marker's flag (alive, ...), #TrackingMarkerFlag. */
   int flag;
 } MovieTrackingMarker;
 
@@ -144,7 +146,7 @@ typedef struct MovieTrackingTrack {
   float error;
 
   /* ** UI editing ** */
-  /** Flags (selection, ...). */
+  /** Flags (selection, ...), #TrackingTrackFlag. */
   int flag, pat_flag, search_flag;
   /** Custom color for track. */
   float color[3];
@@ -157,14 +159,14 @@ typedef struct MovieTrackingTrack {
   short frames_limit;
   /** Margin from frame boundaries. */
   short margin;
-  /** Denotes which frame is used for the reference during tracking.
-   * An enumerator of `eTrackFrameMatch`. */
+  /** Denotes which frame is used for the reference during tracking, #eTrackFrameMatch. */
   short pattern_match;
 
   /* tracking parameters */
-  /** Model of the motion for this track. */
+  /** Model of the motion for this track, #TrackingMotionModel. */
   short motion_model;
-  /** Flags for the tracking algorithm (use brute, use ESM, use pyramid, etc. */
+  /** Flags for the tracking algorithm (use brute, use ESM, use pyramid, etc),
+   * #TrackingAlgorithmFlag. */
   int algorithm_flag;
   /** Minimal correlation which is still treated as successful tracking. */
   float minimum_correlation;
@@ -205,7 +207,7 @@ typedef struct MovieTrackingPlaneMarker {
 
   /** Number of frame plane marker is associated with. */
   int framenr;
-  /** Marker's flag (alive, ...). */
+  /** Marker's flag (alive, ...), #TrackingPlaneMarkerFlag. */
   int flag;
 } MovieTrackingPlaneMarker;
 
@@ -228,7 +230,7 @@ typedef struct MovieTrackingPlaneTrack {
   /** Count of markers in track (size of markers array). */
   int markersnr;
 
-  /** Flags (selection, ...). */
+  /** Flags (selection, ...), #TrackingPlaneTrackFlag. */
   int flag;
 
   /** Image displaying during editing. */
@@ -243,9 +245,10 @@ typedef struct MovieTrackingPlaneTrack {
 
 typedef struct MovieTrackingSettings {
   /* ** default tracker settings */
-  /** Model of the motion for this track. */
+  /** Model of the motion for this track, #TrackingMotionModel. */
   short default_motion_model;
-  /** Flags for the tracking algorithm (use brute, use ESM, use pyramid, etc. */
+  /** Flags for the tracking algorithm (use brute, use ESM, use pyramid, etc.),
+   * #TrackingAlgorithmFlag. */
   short default_algorithm_flag;
   /** Minimal correlation which is still treated as successful tracking. */
   float default_minimum_correlation;
@@ -258,19 +261,18 @@ typedef struct MovieTrackingSettings {
   short default_frames_limit;
   /** Margin from frame boundaries. */
   short default_margin;
-  /** Denotes which frame is used for the reference during tracking.
-   * An enumerator of `eTrackFrameMatch`. */
+  /** Denotes which frame is used for the reference during tracking, #eTrackFrameMatch. */
   short default_pattern_match;
   /** Default flags like color channels used by default. */
   short default_flag;
   /** Default weight of the track. */
   float default_weight;
 
-  /** Flags describes motion type. */
+  /** Flags describes motion type, #TrackingMotionFlag. */
   short motion_flag;
 
   /* ** common tracker settings ** */
-  /** Speed of tracking. */
+  /** Speed of tracking, #TrackingSpeed. */
   short speed;
 
   /* ** reconstruction settings ** */
@@ -280,9 +282,9 @@ typedef struct MovieTrackingSettings {
   int keyframe1_legacy;
   int keyframe2_legacy;
 
-  int reconstruction_flag;
+  int reconstruction_flag; /* TrackingSettingsReconstructionFlag */
 
-  /* which camera intrinsics to refine. uses on the REFINE_* flags */
+  /* Which camera intrinsics to refine, #TrackingRefineCameraFlag. */
   int refine_camera_intrinsics;
 
   /* ** tool settings ** */
@@ -301,7 +303,7 @@ typedef struct MovieTrackingSettings {
 } MovieTrackingSettings;
 
 typedef struct MovieTrackingStabilization {
-  int flag;
+  int flag; /* TrackingStabilizationFlag */
   /** Total number of translation tracks and index of active track in list. */
   int tot_track, act_track;
   /** Total number of rotation tracks and index of active track in list. */
@@ -325,14 +327,14 @@ typedef struct MovieTrackingStabilization {
   /** Influence on location, scale and rotation. */
   float locinf, scaleinf, rotinf;
 
-  /** Filter used for pixel interpolation. */
+  /** Filter used for pixel interpolation, #TrackingStabilizationFilter. */
   int filter;
 
   int _pad;
 } MovieTrackingStabilization;
 
 typedef struct MovieTrackingReconstruction {
-  int flag;
+  int flag; /* TrackingReconstructionFlag */
 
   /** Average error of reconstruction. */
   float error;
@@ -350,7 +352,7 @@ typedef struct MovieTrackingObject {
 
   /** Name of tracking object. */
   char name[/*MAX_NAME*/ 64];
-  int flag;
+  int flag; /* TrackingObjectFlag */
   /** Scale of object solution in camera space. */
   float scale;
 
@@ -397,7 +399,7 @@ typedef struct MovieTrackingDopesheetChannel {
 typedef struct MovieTrackingDopesheetCoverageSegment {
   struct MovieTrackingDopesheetCoverageSegment *next, *prev;
 
-  int coverage;
+  int coverage; /* TrackingCoverage */
   int start_frame;
   int end_frame;
 
@@ -408,9 +410,9 @@ typedef struct MovieTrackingDopesheet {
   /** Flag if dopesheet information is still relevant. */
   int ok;
 
-  /** Method to be used to sort tracks. */
+  /** Method to be used to sort tracks, #TrackingDopesheetSort. */
   short sort_method;
-  /** Dope-sheet building flag such as inverted order of sort. */
+  /** Dope-sheet building flag such as inverted order of sort, #TrackingDopesheetFlag. */
   short flag;
 
   /* ** runtime stuff ** */
@@ -458,31 +460,27 @@ typedef struct MovieTracking {
   MovieTrackingDopesheet dopesheet;
 } MovieTracking;
 
-/** #MovieTrackingCamera.distortion_model */
-enum {
+typedef enum TrackingDistortionModel {
   TRACKING_DISTORTION_MODEL_POLYNOMIAL = 0,
   TRACKING_DISTORTION_MODEL_DIVISION = 1,
   TRACKING_DISTORTION_MODEL_NUKE = 2,
   TRACKING_DISTORTION_MODEL_BROWN = 3,
-};
+} TrackingDistortionModel;
 
-/** #MovieTrackingCamera.units */
-enum {
+typedef enum TrackingCameraUnits {
   CAMERA_UNITS_PX = 0,
   CAMERA_UNITS_MM = 1,
-};
+} TrackingCameraUnits;
 
-/** #MovieTrackingMarker.flag */
-enum {
+typedef enum TrackingMarkerFlag {
   MARKER_DISABLED = (1 << 0),
   MARKER_TRACKED = (1 << 1),
   MARKER_GRAPH_SEL_X = (1 << 2),
   MARKER_GRAPH_SEL_Y = (1 << 3),
   MARKER_GRAPH_SEL = (MARKER_GRAPH_SEL_X | MARKER_GRAPH_SEL_Y),
-};
+} TrackingMarkerFlag;
 
-/** #MovieTrackingTrack.flag */
-enum {
+typedef enum TrackingTrackFlag {
   TRACK_HAS_BUNDLE = (1 << 1),
   TRACK_DISABLE_RED = (1 << 2),
   TRACK_DISABLE_GREEN = (1 << 3),
@@ -495,128 +493,106 @@ enum {
   TRACK_DOPE_SEL = (1 << 10),
   TRACK_PREVIEW_ALPHA = (1 << 11),
   TRACK_USE_2D_STAB_ROT = (1 << 12),
-};
+} TrackingTrackFlag;
 
-/** #MovieTrackingTrack.motion_model */
-enum {
+typedef enum TrackingMotionModel {
   TRACK_MOTION_MODEL_TRANSLATION = 0,
   TRACK_MOTION_MODEL_TRANSLATION_ROTATION = 1,
   TRACK_MOTION_MODEL_TRANSLATION_SCALE = 2,
   TRACK_MOTION_MODEL_TRANSLATION_ROTATION_SCALE = 3,
   TRACK_MOTION_MODEL_AFFINE = 4,
   TRACK_MOTION_MODEL_HOMOGRAPHY = 5,
-};
+} TrackingMotionModel;
 
-/** #MovieTrackingTrack.algorithm_flag */
-enum {
+typedef enum TrackingAlgorithmFlag {
   TRACK_ALGORITHM_FLAG_USE_BRUTE = (1 << 0),
   TRACK_ALGORITHM_FLAG_USE_NORMALIZATION = (1 << 2),
   TRACK_ALGORITHM_FLAG_USE_MASK = (1 << 3),
-};
+} TrackingAlgorithmFlag;
 
-/** #MovieTrackingTrack.pattern_match */
 typedef enum eTrackFrameMatch {
   TRACK_MATCH_KEYFRAME = 0,
   TRACK_MATCH_PREVIOUS_FRAME = 1,
 } eTrackFrameMatch;
 
-/** #MovieTrackingSettings.motion_flag */
-enum {
+typedef enum TrackingMotionFlag {
   TRACKING_MOTION_TRIPOD = (1 << 0),
-
   TRACKING_MOTION_MODAL = (TRACKING_MOTION_TRIPOD),
-};
+} TrackingMotionFlag;
 
-/** #MovieTrackingSettings.speed */
-enum {
+typedef enum TrackingSpeed {
   TRACKING_SPEED_FASTEST = 0,
   TRACKING_SPEED_REALTIME = 1,
   TRACKING_SPEED_HALF = 2,
   TRACKING_SPEED_QUARTER = 4,
   TRACKING_SPEED_DOUBLE = 5,
-};
+} TrackingSpeed;
 
-/** #MovieTrackingSettings.reconstruction_flag */
-enum {
+typedef enum TrackingSettingsReconstructionFlag {
   /* TRACKING_USE_FALLBACK_RECONSTRUCTION = (1 << 0), */ /* DEPRECATED */
   TRACKING_USE_KEYFRAME_SELECTION = (1 << 1),
-};
+} TrackingSettingsReconstructionFlag;
 
-/** #MovieTrackingSettings.refine_camera_intrinsics */
-enum {
+typedef enum TrackingRefineCameraFlag {
   REFINE_NO_INTRINSICS = (0),
 
   REFINE_FOCAL_LENGTH = (1 << 0),
   REFINE_PRINCIPAL_POINT = (1 << 1),
   REFINE_RADIAL_DISTORTION = (1 << 2),
   REFINE_TANGENTIAL_DISTORTION = (1 << 3),
-};
+} TrackingRefineCameraFlag;
+ENUM_OPERATORS(TrackingRefineCameraFlag);
 
-/** #MovieTrackingStabilization.flag */
-enum {
+typedef enum TrackingStabilizationFlag {
   TRACKING_2D_STABILIZATION = (1 << 0),
   TRACKING_AUTOSCALE = (1 << 1),
   TRACKING_STABILIZE_ROTATION = (1 << 2),
   TRACKING_STABILIZE_SCALE = (1 << 3),
   TRACKING_SHOW_STAB_TRACKS = (1 << 5),
-};
+} TrackingStabilizationFlag;
 
-/** #MovieTrackingStabilization.filter */
-enum {
+typedef enum TrackingStabilizationFilter {
   TRACKING_FILTER_NEAREST = 0,
   TRACKING_FILTER_BILINEAR = 1,
   TRACKING_FILTER_BICUBIC = 2,
-};
+} TrackingStabilizationFilter;
 
-/** #MovieTrackingReconstruction.flag */
-enum {
+typedef enum TrackingReconstructionFlag {
   TRACKING_RECONSTRUCTED = (1 << 0),
-};
+} TrackingReconstructionFlag;
 
-/** #MovieTrackingObject.flag */
-enum {
+typedef enum TrackingObjectFlag {
   TRACKING_OBJECT_CAMERA = (1 << 0),
-};
+} TrackingObjectFlag;
 
-enum {
-  TRACKING_CLEAN_SELECT = 0,
-  TRACKING_CLEAN_DELETE_TRACK = 1,
-  TRACKING_CLEAN_DELETE_SEGMENT = 2,
-};
-
-/** #MovieTrackingDopesheet.sort_method */
-enum {
+typedef enum TrackingDopesheetSort {
   TRACKING_DOPE_SORT_NAME = 0,
   TRACKING_DOPE_SORT_LONGEST = 1,
   TRACKING_DOPE_SORT_TOTAL = 2,
   TRACKING_DOPE_SORT_AVERAGE_ERROR = 3,
   TRACKING_DOPE_SORT_START = 4,
   TRACKING_DOPE_SORT_END = 5,
-};
+} TrackingDopesheetSort;
 
-/** #MovieTrackingDopesheet.flag */
-enum {
+typedef enum TrackingDopesheetFlag {
   TRACKING_DOPE_SORT_INVERSE = (1 << 0),
   TRACKING_DOPE_SELECTED_ONLY = (1 << 1),
   TRACKING_DOPE_SHOW_HIDDEN = (1 << 2),
-};
+} TrackingDopesheetFlag;
 
-/** #MovieTrackingDopesheetCoverageSegment.trackness */
-enum {
+typedef enum TrackingCoverage {
   TRACKING_COVERAGE_BAD = 0,
   TRACKING_COVERAGE_ACCEPTABLE = 1,
   TRACKING_COVERAGE_OK = 2,
-};
+} TrackingCoverage;
 
-/** #MovieTrackingPlaneMarker.flag */
-enum {
+typedef enum TrackingPlaneMarkerFlag {
   PLANE_MARKER_DISABLED = (1 << 0),
   PLANE_MARKER_TRACKED = (1 << 1),
-};
+} TrackingPlaneMarkerFlag;
 
-/** #MovieTrackingPlaneTrack.flag */
-enum {
+typedef enum TrackingPlaneTrackFlag {
   PLANE_TRACK_HIDDEN = (1 << 1),
   PLANE_TRACK_LOCKED = (1 << 2),
   PLANE_TRACK_AUTOKEY = (1 << 3),
-};
+} TrackingPlaneTrackFlag;

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
 "PO-Revision-Date: 2025-11-10 04:59+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -35410,10 +35410,6 @@ msgid "Editor menu containing buttons"
 msgstr "ボタンを含むエディターメニュー"
 
 
-msgid "Align View"
-msgstr "視点を揃える"
-
-
 msgid "Apply"
 msgstr "適用"
 
@@ -35424,10 +35420,6 @@ msgstr "トラック"
 
 msgid "Quick Effects"
 msgstr "クイックエフェクト"
-
-
-msgid "Navigation"
-msgstr "視点の操作"
 
 
 msgid "Show/Hide"
@@ -35460,14 +35452,6 @@ msgstr "フック"
 
 msgid "Vertex Group Locks"
 msgstr "頂点グループのロック"
-
-
-msgid "Viewpoint"
-msgstr "視点"
-
-
-msgid "Local View"
-msgstr "ローカルビュー"
 
 
 msgid "Trim/Add"
@@ -35566,24 +35550,12 @@ msgid "Creative"
 msgstr "クリエイティブ"
 
 
-msgid "UV Mapping"
-msgstr "UVマッピング"
-
-
 msgid "Special Characters"
 msgstr "特殊文字"
 
 
 msgid "Kerning"
 msgstr "カーニング"
-
-
-msgid "Snap"
-msgstr "スナップ"
-
-
-msgid "Mirror"
-msgstr "ミラー"
 
 
 msgid "Text"
@@ -35604,6 +35576,10 @@ msgstr "レンダープレビュー"
 
 msgid "Pivot Point"
 msgstr "ピボットポイント"
+
+
+msgid "Snap"
+msgstr "スナップ"
 
 
 msgid "Proportional Editing Falloff"
@@ -35636,6 +35612,38 @@ msgstr "書込"
 
 msgid "Primitives"
 msgstr "プリミティブ"
+
+
+msgid "Mirror"
+msgstr "ミラー"
+
+
+msgid "UV Mapping"
+msgstr "UVマッピング"
+
+
+msgid "Local View"
+msgstr "ローカルビュー"
+
+
+msgid "Viewpoint"
+msgstr "視点"
+
+
+msgid "Navigation"
+msgstr "視点の操作"
+
+
+msgid "Align View"
+msgstr "視点を揃える"
+
+
+msgid "Align View to Active"
+msgstr "アクティブに視点を揃える"
+
+
+msgid "View Regions"
+msgstr "ビュー領域設定"
 
 
 msgid "Select More/Less"
@@ -35694,10 +35702,6 @@ msgid "Light Probe"
 msgstr "ライトプローブ"
 
 
-msgid "View Regions"
-msgstr "ビュー領域設定"
-
-
 msgid "Add Image"
 msgstr "画像を追加"
 
@@ -35708,10 +35712,6 @@ msgstr "関係"
 
 msgid "Rigid Body"
 msgstr "リジッドボディ"
-
-
-msgid "Align View to Active"
-msgstr "アクティブに視点を揃える"
 
 
 msgid "Keyframe Insert Pie"
@@ -52861,10 +52861,6 @@ msgid "Boolean value socket of a node"
 msgstr "ノードのブーリアン値のソケット"
 
 
-msgid "Default Value"
-msgstr "デフォルト値"
-
-
 msgid "Bundle Node Socket"
 msgstr "バンドルノードソケット"
 
@@ -53123,6 +53119,10 @@ msgstr "デフォルト入力"
 
 msgid "Input to use when the socket is unconnected. Requires \"Hide Value\"."
 msgstr "ソケット未接続時に使用する入力．「値を非表示」が必要."
+
+
+msgid "Default Value"
+msgstr "デフォルト値"
 
 
 msgid "The node socket's default value"
@@ -62404,10 +62404,6 @@ msgid "Other"
 msgstr "その他"
 
 
-msgid "Other geometry types, like curve, metaball, etc. (converted to meshes)"
-msgstr "カーブやメタボールなどの他の形状タイプ（メッシュに変換されます）"
-
-
 msgctxt "File browser"
 msgid "Path Mode"
 msgstr "パスモード"
@@ -68403,22 +68399,12 @@ msgid "Update Scene FPS"
 msgstr "シーンFPSを更新"
 
 
-msgid "Set the scene framerate to that of the BVH file (note that this nullifies the 'Scale FPS' option, as the scale will be 1:1)"
-msgstr ""
-"シーンのフレームレートをBVHファイルの物に設定します．\n"
-"（注：これは「FPSのスケーリング」オプションを無視し，1:1とみなします）"
-
-
 msgid "Loop the animation playback"
 msgstr "アニメーション再生をループ"
 
 
 msgid "Scale FPS"
 msgstr "FPSのスケーリング"
-
-
-msgid "Scale the framerate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
-msgstr "フレームレートをBVHから現在のシーンにスケーリングします．行わない場合，各BVHフレームは直接Blenderフレームにマッピングされます"
 
 
 msgid "Animation Offset"
@@ -72281,10 +72267,6 @@ msgstr "カーブを掃除"
 
 msgid "After baking curves, remove redundant keys"
 msgstr "カーブのベイク後に不要なキーを削除します"
-
-
-msgid "Clear Constraints"
-msgstr "コンストレイントをクリア"
 
 
 msgid "Remove all constraints from keyed object/bones. To get a correct bake with this setting Visual Keying should be enabled"
@@ -96281,17 +96263,6 @@ msgid "Enable additional features for the new curves data block"
 msgstr "新しいカーブデータブロック用の追加の機能を有効にします"
 
 
-msgid "Recompute ID Usercount On Save"
-msgstr "IDユーザー数を保存時に再計算"
-
-
-msgid "Recompute all ID usercounts before saving to a blendfile. Allows to work around invalid usercount handling in code that may lead to loss of data due to wrongly detected unused data-blocks"
-msgstr ""
-"すべての ID ユーザー数を blend ファイル保存前に再計算します．\n"
-"未使用データブロックの誤探知によるデータのロスにつながる，\n"
-"コード内の異常なユーザー数処理への応急処置が可能になります"
-
-
 msgid "Sculpt Texture Paint"
 msgstr "スカルプトテクスチャペイント"
 
@@ -97961,16 +97932,8 @@ msgid "Catalan - Català"
 msgstr "カタロニア語 - Català"
 
 
-msgid "Locale code: ca_AD. Translation progress: 100%"
-msgstr "ロケールコード：ca_AD．翻訳の進行状況: 100％"
-
-
 msgid "Chinese (Simplified) - 简体中文"
 msgstr "簡体字中国語 - 简体中文"
-
-
-msgid "Locale code: zh_HANS. Translation progress: 100%"
-msgstr "ロケールコード：zh_HANS．翻訳の進行状況: 100％"
 
 
 msgid "Chinese (Traditional) - 繁體中文"
@@ -98037,10 +98000,6 @@ msgid "French - Français"
 msgstr "フランス語 - Français"
 
 
-msgid "Locale code: fr_FR. Translation progress: 100%"
-msgstr "ロケールコード：fr_FR．翻訳の進行状況: 100％"
-
-
 msgid "Georgian - ქართული"
 msgstr "ジョージア語 - ქართული"
 
@@ -98103,10 +98062,6 @@ msgstr "ロケールコード：id_ID．翻訳の進行状況: 20％"
 
 msgid "Italian - Italiano"
 msgstr "イタリア語 - Italiano"
-
-
-msgid "Locale code: it_IT. Translation progress: 44%"
-msgstr "ロケールコード：it_IT．翻訳の進行状況: 44％"
 
 
 msgid "Japanese - 日本語"
@@ -98201,10 +98156,6 @@ msgid "Russian - Русский"
 msgstr "ロシア語 - Русский"
 
 
-msgid "Locale code: ru_RU. Translation progress: 100%"
-msgstr "ロケールコード：ru_RU．翻訳の進行状況: 100％"
-
-
 msgid "Serbian (Cyrillic) - Српски"
 msgstr "セルビア語（キリル文字）- Српски"
 
@@ -98225,20 +98176,12 @@ msgid "Slovak - Slovenčina"
 msgstr "スロバキア語 - Slovenčina"
 
 
-msgid "Locale code: sk_SK. Translation progress: 100%"
-msgstr "ロケールコード：sk_SK．翻訳の進行状況: 100％"
-
-
 msgid "Slovenian - Slovenščina"
 msgstr "スロべニア語 - Slovenščina"
 
 
 msgid "Spanish - Español"
 msgstr "スペイン語 - Español"
-
-
-msgid "Locale code: es. Translation progress: 100%"
-msgstr "ロケールコード：es．翻訳の進行状況: 100％"
 
 
 msgid "Swahili - Kiswahili"
@@ -98257,10 +98200,6 @@ msgid "Tamil - தமிழ்"
 msgstr "タミル語 - தமிழ்"
 
 
-msgid "Locale code: ta. Translation progress: 95%"
-msgstr "ロケールコード：ta．翻訳の進行状況: 95％"
-
-
 msgid "Thai - ภาษาไทย"
 msgstr "タイ語 - ภาษาไทย"
 
@@ -98273,24 +98212,12 @@ msgid "Turkish - Türkçe"
 msgstr "トルコ語 - Türkçe"
 
 
-msgid "Locale code: tr_TR. Translation progress: 80%"
-msgstr "ロケールコード：tr_TR．翻訳の進行状況: 80％"
-
-
 msgid "Ukrainian - Українська"
 msgstr "ウクライナ語 - Українська"
 
 
-msgid "Locale code: uk_UA. Translation progress: 58%"
-msgstr "ロケールコード：uk_UA．翻訳の進行状況: 58％"
-
-
 msgid "Urdu - وُدرُا"
 msgstr "ウルドゥー語 - وُدرُا"
-
-
-msgid "Locale code: ur. Translation progress: 88%"
-msgstr "ロケールコード：ur．翻訳の進行状況: 88％"
 
 
 msgid "Vietnamese - Tiếng Việt"
@@ -110077,6 +110004,10 @@ msgid "Strips nested in meta strip"
 msgstr "メタストリップ内の入れ子のストリップ"
 
 
+msgid "Playback volume of the sound"
+msgstr "音声の再生ボリューム"
+
+
 msgid "MovieClip Strip"
 msgstr "動画クリップストリップ"
 
@@ -110163,10 +110094,6 @@ msgstr "アノテーションを使用"
 
 msgid "Show Annotations in OpenGL previews"
 msgstr "OpenGL プレビューでアノテーションを表示します"
-
-
-msgid "Playback volume of the sound"
-msgstr "音声の再生ボリューム"
 
 
 msgid "Sound Strip"
@@ -127377,16 +127304,6 @@ msgstr "次のストリップにジャンプ（中心）"
 
 
 msgctxt "Operator"
-msgid "Movie"
-msgstr "動画"
-
-
-msgctxt "Operator"
-msgid "Image/Sequence"
-msgstr "画像/連番画像"
-
-
-msgctxt "Operator"
 msgid "Fade"
 msgstr "フェード"
 
@@ -131218,10 +131135,6 @@ msgstr "キーフレームを削除できませんでした．このIDのRNAパ�
 
 msgid "No action to delete keyframes from for ID = %s"
 msgstr "キーフレームを削除するアクションがありません：ID＝%s"
-
-
-msgid "Not deleting keyframe for locked F-Curve '%s' for %s '%s'"
-msgstr "ロック中のFカーブ「%s」(%s「%s」)のキーフレームは削除しません"
 
 
 msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
@@ -136125,10 +136038,6 @@ msgid "Thickness: %s, Depth: %s"
 msgstr "厚さ: %s，深度: %s"
 
 
-msgid "Compiled without GMP, using fast solver"
-msgstr "GMP なしでコンパイルされているため，高速なソルバーを使用します"
-
-
 msgid "No intersections found"
 msgstr "交点が見つかりません"
 
@@ -139647,10 +139556,6 @@ msgstr "ファイル名"
 
 msgid "Asset Catalogs"
 msgstr "アセットカタログ"
-
-
-msgid "Listing directories..."
-msgstr "フォルダをリストアップ中..."
 
 
 msgid "Date Modified"
@@ -149178,10 +149083,6 @@ msgid "Values used to sort the curve's points. Uses indices by default"
 msgstr "カーブの制御点のソートに使用する値．デフォルトではインデックスを使用します"
 
 
-msgid "Which of the sorted points to output"
-msgstr "どのソート済みのポイントを出力するか"
-
-
 msgid "A point of the curve, chosen by the sort index"
 msgstr "ソートインデックスで選択されたカーブのポイント"
 
@@ -150479,10 +150380,6 @@ msgid "Values that sort the corners attached to the edge"
 msgstr "辺に帰属するコーナーをソートする値"
 
 
-msgid "Which of the sorted corners to output"
-msgstr "どのソート後のコーナーを出力するか"
-
-
 msgid "A corner of the input edge in its face's winding order, chosen by the sort index"
 msgstr "ソートインデックスで選ばれた，面の向き順の入力辺のコーナー"
 
@@ -150577,10 +150474,6 @@ msgstr "前の辺のコーナー"
 
 msgid "Values used to sort the edges connected to the vertex. Uses indices by default"
 msgstr "頂点につながる辺をソートするのに使用する値．デフォルトはインデックス"
-
-
-msgid "Which of the sorted edges to output"
-msgstr "どのソート済みの辺を出力するのか"
 
 
 msgid "An edge connected to the face, chosen by the sort index"

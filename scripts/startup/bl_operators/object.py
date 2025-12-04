@@ -239,22 +239,31 @@ class SubdivisionSet(Operator):
         options={'HIDDEN'}
     )
 
-    @classmethod
-    def poll(cls, context):
-        obs = context.selected_editable_objects
-        return (obs is not None)
-
     def execute(self, context):
         level = self.level
         relative = self.relative
         ensure_modifier = self.ensure_modifier
+
+        active_object = context.active_object
+
+        # For paint modes, defer to the active object, not the selected objects.
+        if active_object and active_object.mode in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT'}:
+            objs = [active_object]
+        else:
+            objs = context.selected_editable_objects
+
+        if not objs:
+            # Note that this will never be true for the paint cases, hence the following report only mentions
+            # the selected & editable objects.
+            self.report({'WARNING'}, "No selected editable objects to operate on")
+            return {'CANCELLED'}
 
         if relative and level == 0:
             return {'CANCELLED'}  # nothing to do
 
         if not ensure_modifier:
             any_object_has_relevant_modifier = False
-            for obj in context.selected_editable_objects:
+            for obj in objs:
                 if obj.mode == 'SCULPT':
                     any_object_has_relevant_modifier |= any(mod.type == 'MULTIRES' for mod in obj.modifiers)
                 elif obj.mode == 'OBJECT':
@@ -322,7 +331,7 @@ class SubdivisionSet(Operator):
                 except Exception:
                     self.report({'WARNING'}, rpt_("Modifiers cannot be added to object: {:s}").format(obj.name))
 
-        for obj in context.selected_editable_objects:
+        for obj in objs:
             set_object_subd(obj)
 
         return {'FINISHED'}

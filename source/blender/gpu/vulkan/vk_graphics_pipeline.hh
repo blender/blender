@@ -10,13 +10,16 @@
  * create `VkGraphicsPipelineCreateInfo` and related structs are grouped and the different
  * configurations can be created.
  */
-// TODO: separate in the different configuration and add a main configuration that includes all.
-// Unure yet if how to organize this in structs to keep stack allocation small.
+
+/* TODO: separate in the different configuration and add a main configuration that includes all.
+ * Unsure yet if how to organize this in structs to keep stack allocation small. */
 
 #pragma once
 
 #include "vk_common.hh"
+#include "vk_device.hh"
 #include "vk_pipeline_pool.hh"
+#include "vk_vertex_attribute_object.hh"
 
 namespace blender::gpu {
 
@@ -44,14 +47,15 @@ struct VKGraphicsPipelineCreateInfoBuilder {
   /**
    * Initialize graphics pipeline create info and related structs for a full pipeline build.
    */
-  void build_full(const VKGraphicsInfo &graphics_info,
-                  const VKExtensions &extensions,
+  void build_full(VKDevice &device,
+                  const VKGraphicsInfo &graphics_info,
                   VkPipeline vk_pipeline_base)
   {
+    const VKExtensions &extensions = device.extensions_get();
     build_graphics_pipeline(graphics_info, vk_pipeline_base);
 
     build_input_assembly_state(graphics_info.vertex_in);
-    build_vertex_input_state(graphics_info.vertex_in);
+    build_vertex_input_state(device, graphics_info.vertex_in);
 
     build_shader_stages(graphics_info.shaders);
     const bool do_specialization_constants =
@@ -73,13 +77,14 @@ struct VKGraphicsPipelineCreateInfoBuilder {
   /**
    * Initialize graphics pipeline create info and related structs for a vertex input library build.
    */
-  void build_vertex_input_lib(const VKGraphicsInfo::VertexIn &vertex_input_info,
+  void build_vertex_input_lib(VKDevice &device,
+                              const VKGraphicsInfo::VertexIn &vertex_input_info,
                               VkPipeline vk_pipeline_base)
   {
     build_graphics_pipeline_library(VK_GRAPHICS_PIPELINE_LIBRARY_VERTEX_INPUT_INTERFACE_BIT_EXT);
     build_graphics_pipeline_vertex_input_lib(vk_pipeline_base);
     build_input_assembly_state(vertex_input_info);
-    build_vertex_input_state(vertex_input_info);
+    build_vertex_input_state(device, vertex_input_info);
   }
 
   /**
@@ -318,18 +323,21 @@ struct VKGraphicsPipelineCreateInfoBuilder {
             VK_TRUE;
   }
 
-  void build_vertex_input_state(const VKGraphicsInfo::VertexIn &vertex_input_info)
+  void build_vertex_input_state(VKDevice &device,
+                                const VKGraphicsInfo::VertexIn &vertex_input_info)
   {
+    const VKVertexInputDescription &description = device.vertex_input_descriptions.get(
+        vertex_input_info.vertex_input_key);
     vk_pipeline_vertex_input_state_create_info = {
         VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
     vk_pipeline_vertex_input_state_create_info.pVertexAttributeDescriptions =
-        vertex_input_info.attributes.data();
+        description.attributes.data();
     vk_pipeline_vertex_input_state_create_info.vertexAttributeDescriptionCount =
-        vertex_input_info.attributes.size();
+        description.attributes.size();
     vk_pipeline_vertex_input_state_create_info.pVertexBindingDescriptions =
-        vertex_input_info.bindings.data();
+        description.bindings.data();
     vk_pipeline_vertex_input_state_create_info.vertexBindingDescriptionCount =
-        vertex_input_info.bindings.size();
+        description.bindings.size();
   }
 
   void build_rasterization_state(const VKGraphicsInfo::Shaders &shaders_info,

@@ -12,7 +12,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -161,7 +161,7 @@ static void setup_vertex_point(Mask *mask,
   }
 
   /* select new point */
-  MASKPOINT_SEL_ALL(new_point);
+  BKE_mask_point_select_handles(new_point);
   ED_mask_select_flush_all(mask);
 }
 
@@ -184,7 +184,7 @@ static void finSelectedSplinePoint(MaskLayer *mask_layer,
   if (check_active) {
     /* TODO: having an active point but no active spline is possible, why? */
     if (mask_layer->act_spline && mask_layer->act_point &&
-        MASKPOINT_ISSEL_ANY(mask_layer->act_point))
+        BKE_mask_point_selected(mask_layer->act_point))
     {
       *spline = mask_layer->act_spline;
       *point = mask_layer->act_point;
@@ -196,7 +196,7 @@ static void finSelectedSplinePoint(MaskLayer *mask_layer,
     for (int i = 0; i < cur_spline->tot_point; i++) {
       MaskSplinePoint *cur_point = &cur_spline->points[i];
 
-      if (MASKPOINT_ISSEL_ANY(cur_point)) {
+      if (BKE_mask_point_selected(cur_point)) {
         if (!ELEM(*spline, nullptr, cur_spline)) {
           *spline = nullptr;
           *point = nullptr;
@@ -322,7 +322,7 @@ static bool add_vertex_extrude(const bContext *C,
 
   point_index = (point - spline->points);
 
-  MASKPOINT_DESEL_ALL(point);
+  BKE_mask_point_deselect_handles(point);
 
   if ((spline->flag & MASK_SPLINE_CYCLIC) ||
       (point_index > 0 && point_index != spline->tot_point - 1))
@@ -536,7 +536,7 @@ static wmOperatorStatus add_vertex_exec(bContext *C, wmOperator *op)
 
   /* TODO: having an active point but no active spline is possible, why? */
   if (mask_layer && mask_layer->act_spline && mask_layer->act_point &&
-      MASKPOINT_ISSEL_ANY(mask_layer->act_point))
+      BKE_mask_point_selected(mask_layer->act_point))
   {
     MaskSpline *spline = mask_layer->act_spline;
     MaskSplinePoint *active_point = mask_layer->act_point;

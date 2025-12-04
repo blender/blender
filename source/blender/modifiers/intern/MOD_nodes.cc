@@ -517,7 +517,8 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
     if (current_zones == nullptr) {
       return;
     }
-    const auto *lf_graph_info = nodes::ensure_geometry_nodes_lazy_function_graph(*current_tree);
+    const nodes::GeometryNodesLazyFunctionGraphInfo *lf_graph_info =
+        nodes::ensure_geometry_nodes_lazy_function_graph(*current_tree).get();
     if (lf_graph_info == nullptr) {
       return;
     }
@@ -674,7 +675,8 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
   if (final_node == nullptr) {
     return;
   }
-  const auto *lf_graph_info = nodes::ensure_geometry_nodes_lazy_function_graph(*current_tree);
+  const nodes::GeometryNodesLazyFunctionGraphInfo *lf_graph_info =
+      nodes::ensure_geometry_nodes_lazy_function_graph(*current_tree).get();
   if (lf_graph_info == nullptr) {
     return;
   }
@@ -1851,7 +1853,7 @@ static void modifyGeometry(ModifierData *md,
   }
 
   const nodes::GeometryNodesLazyFunctionGraphInfo *lf_graph_info =
-      nodes::ensure_geometry_nodes_lazy_function_graph(tree);
+      nodes::ensure_geometry_nodes_lazy_function_graph(tree).get();
   if (lf_graph_info == nullptr) {
     BKE_modifier_set_error(ctx->object, md, "Cannot evaluate node group");
     geometry_set.clear();
@@ -2013,9 +2015,9 @@ void NodesModifierUsageInferenceCache::reset()
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
   PointerRNA *modifier_ptr = modifier_panel_get_property_pointers(panel, nullptr);
-  nodes::draw_geometry_nodes_modifier_ui(*C, modifier_ptr, *layout);
+  nodes::draw_geometry_nodes_modifier_ui(*C, modifier_ptr, layout);
 }
 
 static void panel_register(ARegionType *region_type)

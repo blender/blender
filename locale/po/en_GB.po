@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
 "PO-Revision-Date: 2025-07-23 14:59+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -33959,10 +33959,6 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
-msgid "Align View"
-msgstr "Align View"
-
-
 msgid "Apply"
 msgstr "Apply"
 
@@ -33973,10 +33969,6 @@ msgstr "Track"
 
 msgid "Quick Effects"
 msgstr "Quick Effects"
-
-
-msgid "Navigation"
-msgstr "Navigation"
 
 
 msgid "Show/Hide"
@@ -34009,14 +34001,6 @@ msgstr "Hooks"
 
 msgid "Vertex Group Locks"
 msgstr "Vertex Group Locks"
-
-
-msgid "Viewpoint"
-msgstr "Viewpoint"
-
-
-msgid "Local View"
-msgstr "Local View"
 
 
 msgid "Trim/Add"
@@ -34111,24 +34095,12 @@ msgid "Math"
 msgstr "Maths"
 
 
-msgid "UV Mapping"
-msgstr "UV Mapping"
-
-
 msgid "Special Characters"
 msgstr "Special Characters"
 
 
 msgid "Kerning"
 msgstr "Kerning"
-
-
-msgid "Snap"
-msgstr "Snap"
-
-
-msgid "Mirror"
-msgstr "Mirror"
 
 
 msgid "Text"
@@ -34145,6 +34117,10 @@ msgstr "Bone Roll"
 
 msgid "Pivot Point"
 msgstr "Pivot Point"
+
+
+msgid "Snap"
+msgstr "Snap"
 
 
 msgid "Proportional Editing Falloff"
@@ -34177,6 +34153,38 @@ msgstr "Write"
 
 msgid "Primitives"
 msgstr "Primitives"
+
+
+msgid "Mirror"
+msgstr "Mirror"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapping"
+
+
+msgid "Local View"
+msgstr "Local View"
+
+
+msgid "Viewpoint"
+msgstr "Viewpoint"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Align View"
+
+
+msgid "Align View to Active"
+msgstr "Align View to Active"
+
+
+msgid "View Regions"
+msgstr "View Regions"
 
 
 msgid "Select More/Less"
@@ -34231,10 +34239,6 @@ msgid "Light Probe"
 msgstr "Light Probe"
 
 
-msgid "View Regions"
-msgstr "View Regions"
-
-
 msgid "Add Image"
 msgstr "Add Image"
 
@@ -34245,10 +34249,6 @@ msgstr "Relations"
 
 msgid "Rigid Body"
 msgstr "Rigid Body"
-
-
-msgid "Align View to Active"
-msgstr "Align View to Active"
 
 
 msgid "Keyframe Insert Pie"
@@ -50199,10 +50199,6 @@ msgid "Boolean value socket of a node"
 msgstr "Boolean value socket of a node"
 
 
-msgid "Default Value"
-msgstr "Default Value"
-
-
 msgid "Bundle Node Socket"
 msgstr "Bundle Node Socket"
 
@@ -50461,6 +50457,10 @@ msgstr "Default Input"
 
 msgid "Input to use when the socket is unconnected. Requires \"Hide Value\"."
 msgstr "Input to use when the socket is unconnected. Requires \"Hide Value\"."
+
+
+msgid "Default Value"
+msgstr "Default Value"
 
 
 msgid "The node socket's default value"
@@ -59409,10 +59409,6 @@ msgid "Other"
 msgstr "Other"
 
 
-msgid "Other geometry types, like curve, metaball, etc. (converted to meshes)"
-msgstr "Other geometry types, like curve, metaball, etc. (converted to meshes)"
-
-
 msgid "Method used to reference paths"
 msgstr "Method used to reference paths"
 
@@ -65166,20 +65162,12 @@ msgid "Update Scene FPS"
 msgstr "Update Scene FPS"
 
 
-msgid "Set the scene framerate to that of the BVH file (note that this nullifies the 'Scale FPS' option, as the scale will be 1:1)"
-msgstr "Set the scene framerate to that of the BVH file (note that this nullifies the 'Scale FPS' option, as the scale will be 1:1)"
-
-
 msgid "Loop the animation playback"
 msgstr "Loop the animation playback"
 
 
 msgid "Scale FPS"
 msgstr "Scale FPS"
-
-
-msgid "Scale the framerate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
-msgstr "Scale the framerate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
 
 
 msgid "Animation Offset"
@@ -68926,10 +68914,6 @@ msgstr "Clean Curves"
 
 msgid "After baking curves, remove redundant keys"
 msgstr "After baking curves, remove redundant keys"
-
-
-msgid "Clear Constraints"
-msgstr "Clear Constraints"
 
 
 msgid "Remove all constraints from keyed object/bones. To get a correct bake with this setting Visual Keying should be enabled"
@@ -91391,14 +91375,6 @@ msgid "Enable additional features for the new curves data block"
 msgstr "Enable additional features for the new curves data block"
 
 
-msgid "Recompute ID Usercount On Save"
-msgstr "Recompute ID Usercount On Save"
-
-
-msgid "Recompute all ID usercounts before saving to a blendfile. Allows to work around invalid usercount handling in code that may lead to loss of data due to wrongly detected unused data-blocks"
-msgstr "Recompute all ID usercounts before saving to a blendfile. Allows to work around invalid usercount handling in code that may lead to loss of data due to wrongly detected unused data-blocks"
-
-
 msgid "Sculpt Texture Paint"
 msgstr "Sculpt Texture Paint"
 
@@ -103624,6 +103600,10 @@ msgid "Strips nested in meta strip"
 msgstr "Strips nested in meta strip"
 
 
+msgid "Playback volume of the sound"
+msgstr "Playback volume of the sound"
+
+
 msgid "MovieClip Strip"
 msgstr "MovieClip Strip"
 
@@ -103702,10 +103682,6 @@ msgstr "Use Annotations"
 
 msgid "Show Annotations in OpenGL previews"
 msgstr "Show Annotations in OpenGL previews"
-
-
-msgid "Playback volume of the sound"
-msgstr "Playback volume of the sound"
 
 
 msgid "Sound Strip"
@@ -119678,16 +119654,6 @@ msgstr "Jump to Next Strip (Center)"
 
 
 msgctxt "Operator"
-msgid "Movie"
-msgstr "Movie"
-
-
-msgctxt "Operator"
-msgid "Image/Sequence"
-msgstr "Image/Sequence"
-
-
-msgctxt "Operator"
 msgid "Fade"
 msgstr "Fade"
 
@@ -123325,10 +123291,6 @@ msgstr "Could not delete keyframe, as RNA path is invalid for the given ID (ID =
 
 msgid "No action to delete keyframes from for ID = %s"
 msgstr "No action to delete keyframes from for ID = %s"
-
-
-msgid "Not deleting keyframe for locked F-Curve '%s' for %s '%s'"
-msgstr "Not deleting keyframe for locked F-Curve '%s' for %s '%s'"
 
 
 msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
@@ -127581,10 +127543,6 @@ msgstr "You have to select a string of connected vertices too"
 
 msgid "Thickness: %s, Depth: %s"
 msgstr "Thickness: %s, Depth: %s"
-
-
-msgid "Compiled without GMP, using fast solver"
-msgstr "Compiled without GMP, using fast solver"
 
 
 msgid "No intersections found"
@@ -137651,10 +137609,6 @@ msgid "Values used to sort the curve's points. Uses indices by default"
 msgstr "Values used to sort the curve's points. Uses indices by default"
 
 
-msgid "Which of the sorted points to output"
-msgstr "Which of the sorted points to output"
-
-
 msgid "A point of the curve, chosen by the sort index"
 msgstr "A point of the curve, chosen by the sort index"
 
@@ -138592,10 +138546,6 @@ msgid "Values that sort the corners attached to the edge"
 msgstr "Values that sort the corners attached to the edge"
 
 
-msgid "Which of the sorted corners to output"
-msgstr "Which of the sorted corners to output"
-
-
 msgid "A corner of the input edge in its face's winding order, chosen by the sort index"
 msgstr "A corner of the input edge in its face's winding order, chosen by the sort index"
 
@@ -138690,10 +138640,6 @@ msgstr "Corner Previous Edge"
 
 msgid "Values used to sort the edges connected to the vertex. Uses indices by default"
 msgstr "Values used to sort the edges connected to the vertex. Uses indices by default"
-
-
-msgid "Which of the sorted edges to output"
-msgstr "Which of the sorted edges to output"
 
 
 msgid "An edge connected to the face, chosen by the sort index"

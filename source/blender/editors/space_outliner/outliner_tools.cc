@@ -3636,18 +3636,18 @@ static wmOperatorStatus outliner_operator_menu(bContext *C, const char *opname)
 {
   wmOperatorType *ot = WM_operatortype_find(opname, false);
   uiPopupMenu *pup = UI_popup_menu_begin(C, WM_operatortype_name(ot, nullptr).c_str(), ICON_NONE);
-  uiLayout *layout = UI_popup_menu_layout(pup);
+  ui::Layout &layout = *UI_popup_menu_layout(pup);
 
   /* Set this so the default execution context is the same as sub-menus. */
-  layout->operator_context_set(wm::OpCallContext::InvokeRegionWin);
+  layout.operator_context_set(wm::OpCallContext::InvokeRegionWin);
 
   if (WM_operator_poll(C, ot)) {
-    layout->op_enum(ot->idname, RNA_property_identifier(ot->prop));
+    layout.op_enum(ot->idname, RNA_property_identifier(ot->prop));
 
-    layout->separator();
+    layout.separator();
   }
 
-  layout->menu_contents("OUTLINER_MT_context_menu");
+  layout.menu_contents("OUTLINER_MT_context_menu");
 
   UI_popup_menu_end(C, pup);
 

@@ -6,7 +6,7 @@
 
 #include "DNA_tracking_types.h"
 
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 

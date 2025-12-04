@@ -29,7 +29,7 @@ typedef struct Mask {
 
   ID id;
   struct AnimData *adt;
-  /** Mask layers. */
+  /** Mask layers (#MaskLayer). */
   ListBase masklayers;
   /** Index of active mask layer (-1 == None). */
   int masklay_act;
@@ -39,7 +39,7 @@ typedef struct Mask {
   /** Frames, used by the sequencer. */
   int sfra, efra;
 
-  /** For anim info. */
+  /** For anim info, #MaskAnimFlag. */
   int flag;
   char _pad[4];
 
@@ -47,25 +47,23 @@ typedef struct Mask {
 } Mask;
 
 typedef struct MaskParent {
-  //* /* Parenting flags */ /* not used. */
-  // int flag;
   /** Type of parenting. */
   int id_type;
-  /** Type of parenting. */
+  /** Type of parenting (#MaskParentType). */
   int type;
   /**
-   * ID block of entity to which mask/spline is parented to
-   * in case of parenting to movie tracking data set to MovieClip datablock.
+   * ID block of entity to which mask/spline is parented to.
+   * In case of parenting to movie tracking data set to MovieClip datablock.
    */
   ID *id;
   /**
-   * Entity of parent to which parenting happened
-   * in case of parenting to movie tracking data contains name of layer.
+   * Entity of parent to which parenting happened.
+   * In case of parenting to movie tracking data contains name of layer.
    */
   char parent[64];
   /**
-   * Sub-entity of parent to which parenting happened
-   * in case of parenting to movie tracking data contains name of track.
+   * Sub-entity of parent to which parenting happened.
+   * In case of parenting to movie tracking data contains name of track.
    */
   char sub_parent[64];
   /**
@@ -100,11 +98,11 @@ typedef struct MaskSplinePoint {
 typedef struct MaskSpline {
   struct MaskSpline *next, *prev;
 
-  /** Different spline flag (closed, ...). */
+  /** Spline flags (#MaskSplineFlag). */
   short flag;
-  /** Feather offset method. */
+  /** Feather offset method (#MaskSplineOffset). */
   char offset_mode;
-  /** Weight interpolation. */
+  /** Weight interpolation (#MaskSplineInterp). */
   char weight_interp;
 
   /** Total number of points. */
@@ -126,20 +124,15 @@ typedef struct MaskLayerShape {
   float *data;
   /** To ensure no buffer overrun's: alloc size is `(tot_vert * MASK_OBJECT_SHAPE_ELEM_SIZE)`. */
   int tot_vert;
-  /** Different flags of this point. */
   int frame;
-  /** Animation flag. */
-  char flag;
+  char flag; /* MaskLayerShapeFlag */
   char _pad[7];
 } MaskLayerShape;
 
-/* cast to this for convenience, not saved */
 #define MASK_OBJECT_SHAPE_ELEM_SIZE 8 /* 3x 2D points + weight + radius == 8 */
 
-#
-#
 typedef struct MaskLayerShapeElem {
-  float value[MASK_OBJECT_SHAPE_ELEM_SIZE];
+  float value[/*MASK_OBJECT_SHAPE_ELEM_SIZE*/ 8];
 } MaskLayerShapeElem;
 
 typedef struct MaskLayer {
@@ -164,79 +157,67 @@ typedef struct MaskLayer {
 
   /* blending options */
   float alpha;
-  char blend;
-  char blend_flag;
+  char blend;      /* MaskLayerBlend */
+  char blend_flag; /* MaskLayerBlendFlag */
   char falloff;
   char _pad[7];
 
-  /** For animation. */
-  char flag;
-  /** Matching 'Object' flag of the same name - eventually use in the outliner. */
+  char flag; /* MaskLayerFlag */
+  /** Matching 'Object' flag of the same name - eventually use in the outliner
+   * (#MaskLayerVisibility). */
   char visibility_flag;
 } MaskLayer;
 
-// /** #MaskParent::flag */
-// enum {
-//   MASK_PARENT_ACTIVE = 1 << 0, /* UNUSED. */
-// };
-
-/* MaskParent->type */
-enum {
+typedef enum MaskParentType {
   MASK_PARENT_POINT_TRACK = 0, /* parenting happens to point track */
   MASK_PARENT_PLANE_TRACK = 1, /* parenting happens to plane track */
-};
+} MaskParentType;
 
-/* MaskSpline->flag */
-/* reserve (1 << 0) for SELECT */
-enum {
+typedef enum MaskSplineFlag {
+  /* reserve (1 << 0) for SELECT */
   MASK_SPLINE_CYCLIC = (1 << 1),
   MASK_SPLINE_NOFILL = (1 << 2),
   MASK_SPLINE_NOINTERSECT = (1 << 3),
-};
+} MaskSplineFlag;
 
-/* MaskSpline->weight_interp */
-enum {
+typedef enum MaskSplineInterp {
   MASK_SPLINE_INTERP_LINEAR = 1,
   MASK_SPLINE_INTERP_EASE = 2,
-};
+} MaskSplineInterp;
 
-/* MaskSpline->offset_mode */
-enum {
+typedef enum MaskSplineOffset {
   MASK_SPLINE_OFFSET_EVEN = 0,
   MASK_SPLINE_OFFSET_SMOOTH = 1,
-};
+} MaskSplineOffset;
 
-/* MaskLayer->visibility_flag */
-enum {
-  MASK_HIDE_VIEW = 1 << 0,
-  MASK_HIDE_SELECT = 1 << 1,
-  MASK_HIDE_RENDER = 1 << 2,
-};
+typedef enum MaskLayerVisibility {
+  MASK_HIDE_VIEW = 1 << 0,   /* Note: match #OB_HIDE_VIEWPORT value. */
+  MASK_HIDE_SELECT = 1 << 1, /* Note: match #OB_HIDE_SELECT value. */
+  MASK_HIDE_RENDER = 1 << 2, /* Note: match #OB_HIDE_RENDER value. */
+} MaskLayerVisibility;
 
-/* SpaceClip->mask_draw_flag */
-enum {
+/* #MaskSpaceInfo.draw_flag */
+typedef enum MaskDrawFlag {
   MASK_DRAWFLAG_SMOOTH_DEPRECATED = 1 << 0, /* Deprecated. */
   MASK_DRAWFLAG_OVERLAY = 1 << 1,
   MASK_DRAWFLAG_SPLINE = 1 << 2,
-};
+} MaskDrawFlag;
 
-/* copy of eSpaceImage_UVDT */
-/* SpaceClip->mask_draw_type */
-enum {
+/* #MaskSpaceInfo.draw_type. Note: match values of #eSpaceImage_UVDT. */
+typedef enum MaskDrawType {
   MASK_DT_OUTLINE = 0,
   MASK_DT_DASH = 1,
   MASK_DT_BLACK = 2,
   MASK_DT_WHITE = 3,
-};
+} MaskDrawType;
 
-/* MaskSpaceInfo->overlay_mode */
-typedef enum eMaskOverlayMode {
+/* #MaskSpaceInfo.overlay_mode */
+typedef enum MaskOverlayMode {
   MASK_OVERLAY_ALPHACHANNEL = 0,
   MASK_OVERLAY_COMBINED = 1,
-} eMaskOverlayMode;
+} MaskOverlayMode;
 
-/* masklay->blend */
-enum {
+typedef enum MaskLayerBlend {
   MASK_BLEND_ADD = 0,
   MASK_BLEND_SUBTRACT = 1,
   MASK_BLEND_LIGHTEN = 2,
@@ -246,29 +227,26 @@ enum {
   MASK_BLEND_DIFFERENCE = 6,
   MASK_BLEND_MERGE_ADD = 7,
   MASK_BLEND_MERGE_SUBTRACT = 8,
-};
+} MaskLayerBlend;
 
-/* masklay->blend_flag */
-enum {
+typedef enum MaskLayerBlendFlag {
   MASK_BLENDFLAG_INVERT = (1 << 0),
-};
+} MaskLayerBlendFlag;
 
-/* masklay->flag */
-enum {
+typedef enum MaskLayerFlag {
   MASK_LAYERFLAG_LOCKED = (1 << 4),
   MASK_LAYERFLAG_SELECT = (1 << 5),
 
   /* no holes */
   MASK_LAYERFLAG_FILL_DISCRETE = (1 << 6),
   MASK_LAYERFLAG_FILL_OVERLAP = (1 << 7),
-};
+} MaskLayerFlag;
 
 /* masklay_shape->flag */
-enum {
+typedef enum MaskLayerShapeFlag {
   MASK_SHAPE_SELECT = (1 << 0),
-};
+} MaskLayerShapeFlag;
 
-/* mask->flag */
-enum {
+typedef enum MaskAnimFlag {
   MASK_ANIMF_EXPAND = (1 << 4),
-};
+} MaskAnimFlag;

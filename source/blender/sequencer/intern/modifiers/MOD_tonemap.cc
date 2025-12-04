@@ -312,14 +312,14 @@ static void tonemapmodifier_apply(ModifierApplyContext &context,
 
 static void tonemapmodifier_panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
   PointerRNA *ptr = UI_panel_custom_data_get(panel);
 
   const int tonemap_type = RNA_enum_get(ptr, "tonemap_type");
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  uiLayout &col = layout->column(false);
+  ui::Layout &col = layout.column(false);
   col.prop(ptr, "tonemap_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (tonemap_type == SEQ_TONEMAP_RD_PHOTORECEPTOR) {
     col.prop(ptr, "intensity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -336,10 +336,10 @@ static void tonemapmodifier_panel_draw(const bContext *C, Panel *panel)
     BLI_assert_unreachable();
   }
 
-  if (uiLayout *mask_input_layout = layout->panel_prop(
+  if (ui::Layout *mask_input_layout = layout.panel_prop(
           C, ptr, "open_mask_input_panel", IFACE_("Mask Input")))
   {
-    draw_mask_input_type_settings(C, mask_input_layout, ptr);
+    draw_mask_input_type_settings(C, *mask_input_layout, ptr);
   }
 }
 

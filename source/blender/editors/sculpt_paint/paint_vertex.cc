@@ -1078,6 +1078,10 @@ static bool vpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 
   paint_stroke_set_mode_data(stroke, std::move(vpd));
 
+  BKE_curvemapping_init(brush.curve_rand_hue);
+  BKE_curvemapping_init(brush.curve_rand_saturation);
+  BKE_curvemapping_init(brush.curve_rand_value);
+
   /* If not previously created, create vertex/weight paint mode session data */
   vertex_paint_init_stroke(depsgraph, ob);
   vwpaint::update_cache_invariants(C, vp, ss, op, mouse);
@@ -2089,7 +2093,7 @@ static void vpaint_stroke_update_step(bContext *C,
   DEG_id_tag_update((ID *)ob.data, ID_RECALC_GEOMETRY);
 }
 
-static void vpaint_stroke_done(const bContext *C, PaintStroke *stroke)
+static void vpaint_stroke_done(const bContext *C, PaintStroke *stroke, bool /*is_cancel*/)
 {
   VPaintData *vpd = static_cast<VPaintData *>(paint_stroke_mode_data(stroke));
   Object &ob = *vpd->vc.obact;
@@ -2115,6 +2119,7 @@ static wmOperatorStatus vpaint_invoke(bContext *C, wmOperator *op, const wmEvent
                                     stroke_get_location_bvh,
                                     vpaint_stroke_test_start,
                                     vpaint_stroke_update_step,
+                                    nullptr,
                                     nullptr,
                                     vpaint_stroke_done,
                                     event->type);
@@ -2142,21 +2147,13 @@ static wmOperatorStatus vpaint_exec(bContext *C, wmOperator *op)
                                     vpaint_stroke_test_start,
                                     vpaint_stroke_update_step,
                                     nullptr,
+                                    nullptr,
                                     vpaint_stroke_done,
                                     0);
 
   paint_stroke_exec(C, op, (PaintStroke *)op->customdata);
 
   return OPERATOR_FINISHED;
-}
-
-static void vpaint_cancel(bContext *C, wmOperator *op)
-{
-  Object &ob = *CTX_data_active_object(C);
-  MEM_delete(ob.sculpt->cache);
-  ob.sculpt->cache = nullptr;
-
-  paint_stroke_cancel(C, op, (PaintStroke *)op->customdata);
 }
 
 static wmOperatorStatus vpaint_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -2174,7 +2171,6 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
   ot->modal = vpaint_modal;
   ot->exec = vpaint_exec;
   ot->poll = vertex_paint_poll;
-  ot->cancel = vpaint_cancel;
 
   ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
 

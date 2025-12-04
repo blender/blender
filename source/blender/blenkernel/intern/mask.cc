@@ -35,18 +35,15 @@
 #include "BKE_curve.hh"
 #include "BKE_idtype.hh"
 
-#include "BKE_anim_data.hh"
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
-#include "BKE_mask.h"
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
+#include "BKE_mask.hh"
+#include "BKE_movieclip.hh"
+#include "BKE_tracking.hh"
 
 #include "DEG_depsgraph_build.hh"
-
-#include "DRW_engine.hh"
 
 #include "BLO_read_write.hh"
 
@@ -905,10 +902,10 @@ void BKE_mask_point_add_uw(MaskSplinePoint *point, float u, float w)
 void BKE_mask_point_select_set(MaskSplinePoint *point, const bool do_select)
 {
   if (do_select) {
-    MASKPOINT_SEL_ALL(point);
+    BKE_mask_point_select_handles(point);
   }
   else {
-    MASKPOINT_DESEL_ALL(point);
+    BKE_mask_point_deselect_handles(point);
   }
 
   for (int i = 0; i < point->tot_uw; i++) {
@@ -1439,7 +1436,7 @@ void BKE_mask_calc_handle_point_auto(MaskSpline *spline,
                                      const bool do_recalc_length)
 {
   MaskSplinePoint *point_prev, *point_next;
-  const char h_back[2] = {point->bezt.h1, point->bezt.h2};
+  const uint8_t h_back[2] = {point->bezt.h1, point->bezt.h2};
   const float length_average = (do_recalc_length) ?
                                    0.0f /* dummy value */ :
                                    (len_v3v3(point->bezt.vec[0], point->bezt.vec[1]) +

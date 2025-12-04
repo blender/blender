@@ -80,17 +80,25 @@ class LazyFunctionForClosureZone : public LazyFunction {
   const ZoneBuildInfo &zone_info_;
   const ZoneBodyFunction &body_fn_;
   std::shared_ptr<ClosureSignature> closure_signature_;
+  /**
+   * This is a weak_ptr because otherwise there is a cyclic dependency between the zone and the
+   * node tree that contains it. The actual reference count is increased when the zone creates a
+   * closure to be evaluated elsewhere.
+   */
+  std::weak_ptr<const GeometryNodesLazyFunctionGraphInfo> lf_graph_info_;
 
  public:
   LazyFunctionForClosureZone(const bNodeTree &btree,
                              const bke::bNodeTreeZone &zone,
                              ZoneBuildInfo &zone_info,
-                             const ZoneBodyFunction &body_fn)
+                             const ZoneBodyFunction &body_fn,
+                             std::shared_ptr<GeometryNodesLazyFunctionGraphInfo> &lf_graph_info)
       : btree_(btree),
         zone_(zone),
         output_bnode_(*zone.output_node()),
         zone_info_(zone_info),
-        body_fn_(body_fn)
+        body_fn_(body_fn),
+        lf_graph_info_(lf_graph_info)
   {
     debug_name_ = "Closure Zone";
 
@@ -232,6 +240,13 @@ class LazyFunctionForClosureZone : public LazyFunction {
     }
 
     lf_graph.update_node_indices();
+
+    /* This is expected to work when the closure is created. */
+    std::shared_ptr<const GeometryNodesLazyFunctionGraphInfo> lf_graph_info =
+        lf_graph_info_.lock();
+    BLI_assert(lf_graph_info);
+    /* The closure has to take ownership of its execution information. */
+    closure_scope->add(std::move(lf_graph_info));
 
     const auto &side_effect_provider =
         closure_scope->construct<ClosureIntermediateGraphSideEffectProvider>(lf_body_node);
@@ -866,13 +881,16 @@ void evaluate_closure_eagerly(const Closure &closure, ClosureEagerEvalParams &pa
   }
 }
 
-LazyFunction &build_closure_zone_lazy_function(ResourceScope &scope,
-                                               const bNodeTree &btree,
-                                               const bke::bNodeTreeZone &zone,
-                                               ZoneBuildInfo &zone_info,
-                                               const ZoneBodyFunction &body_fn)
+LazyFunction &build_closure_zone_lazy_function(
+    ResourceScope &scope,
+    const bNodeTree &btree,
+    const bke::bNodeTreeZone &zone,
+    ZoneBuildInfo &zone_info,
+    const ZoneBodyFunction &body_fn,
+    std::shared_ptr<GeometryNodesLazyFunctionGraphInfo> &lf_graph_info)
 {
-  return scope.construct<LazyFunctionForClosureZone>(btree, zone, zone_info, body_fn);
+  return scope.construct<LazyFunctionForClosureZone>(
+      btree, zone, zone_info, body_fn, lf_graph_info);
 }
 
 EvaluateClosureFunction build_evaluate_closure_node_lazy_function(ResourceScope &scope,

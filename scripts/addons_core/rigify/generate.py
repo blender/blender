@@ -10,20 +10,49 @@ from typing import Optional, TYPE_CHECKING
 
 from .utils.errors import MetarigError
 from .utils.bones import new_bone
-from .utils.layers import (ORG_COLLECTION, MCH_COLLECTION, DEF_COLLECTION, ROOT_COLLECTION, set_bone_layers,
-                           validate_collection_references)
-from .utils.naming import (ORG_PREFIX, MCH_PREFIX, DEF_PREFIX, ROOT_NAME, make_original_name,
-                           change_name_side, get_name_side, Side)
+from .utils.layers import (
+    ORG_COLLECTION,
+    MCH_COLLECTION,
+    DEF_COLLECTION,
+    ROOT_COLLECTION,
+    set_bone_layers,
+    validate_collection_references,
+)
+from .utils.naming import (
+    ORG_PREFIX,
+    MCH_PREFIX,
+    DEF_PREFIX,
+    ROOT_NAME,
+    make_original_name,
+    change_name_side,
+    get_name_side,
+    Side,
+)
 from .utils.widgets import WGT_PREFIX, WGT_GROUP_PREFIX
 from .utils.widgets_special import create_root_widget
 from .utils.mechanism import refresh_all_drivers
-from .utils.misc import select_object, ArmatureObject, verify_armature_obj, choose_next_uid, flatten_children,\
-    flatten_parents
-from .utils.collections import (ensure_collection, list_layer_collections,
-                                filter_layer_collections_by_object)
-from .utils.rig import get_rigify_type, get_rigify_target_rig,\
-    get_rigify_rig_basename, get_rigify_force_widget_update, get_rigify_finalize_script,\
-    get_rigify_mirror_widgets, get_rigify_colors
+from .utils.misc import (
+    ArmatureObject,
+    select_object,
+    verify_armature_obj,
+    choose_next_uid,
+    flatten_children,
+    flatten_parents,
+)
+from .utils.collections import (
+    ensure_collection,
+    list_layer_collections,
+    filter_layer_collections_by_object,
+)
+from .utils.rig import (
+    get_rigify_colors,
+    get_rigify_finalize_script,
+    get_rigify_force_widget_update,
+    get_rigify_mirror_widgets,
+    get_rigify_rig_basename,
+    get_rigify_target_rig,
+    get_rigify_type,
+)
 from .utils.action_layers import ActionLayerBuilder
 from .utils.objects import ArtifactManager
 

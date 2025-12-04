@@ -465,6 +465,8 @@ void *SocketValueVariant::allocate_single(const eNodeSocketDatatype socket_type)
       return value_.allocate<Image *>();
     case SOCK_MATERIAL:
       return value_.allocate<Material *>();
+    case SOCK_GEOMETRY:
+      return value_.allocate<bke::GeometrySet>();
     default: {
       BLI_assert_unreachable();
       return nullptr;

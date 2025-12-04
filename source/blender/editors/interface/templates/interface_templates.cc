@@ -55,7 +55,7 @@ int template_search_textbut_height()
 }
 
 void template_add_button_search_menu(const bContext *C,
-                                     uiLayout *layout,
+                                     blender::ui::Layout &layout,
                                      uiBlock *block,
                                      PointerRNA *ptr,
                                      PropertyRNA *prop,
@@ -85,12 +85,12 @@ void template_add_button_search_menu(const bContext *C,
     const bool use_preview_icon = use_big_size || (id && (GS(id->name) != ID_SCR));
     const short width = UI_UNIT_X * (use_big_size ? 6 : 1.6f);
     const short height = UI_UNIT_Y * (use_big_size ? 6 : 1);
-    uiLayout *col = nullptr;
+    blender::ui::Layout *col = nullptr;
 
     if (use_big_size) {
       /* Assume column layout here. To be more correct, we should check if the layout passed to
        * template_id is a column one, but this should work well in practice. */
-      col = &layout->column(true);
+      col = &layout.column(true);
     }
 
     but = uiDefBlockButN(block,
@@ -117,7 +117,7 @@ void template_add_button_search_menu(const bContext *C,
       UI_but_flag_enable(but, UI_BUT_DISABLED);
     }
     if (use_big_size) {
-      (col ? col : layout)->row(true);
+      (col ? col : &layout)->row(true);
     }
   }
   else {
@@ -241,9 +241,9 @@ uiBlock *template_common_search_menu(const bContext *C,
 /** \name Header Template
  * \{ */
 
-void uiTemplateHeader(uiLayout *layout, bContext *C)
+void uiTemplateHeader(blender::ui::Layout *layout, bContext *C)
 {
-  uiBlock *block = layout->absolute_block();
+  uiBlock *block = layout->absolute().block();
   ED_area_header_switchbutton(C, block, 0);
 }
 
@@ -253,7 +253,7 @@ void uiTemplateHeader(uiLayout *layout, bContext *C)
 /** \name RNA Path Builder Template
  * \{ */
 
-void uiTemplatePathBuilder(uiLayout *layout,
+void uiTemplatePathBuilder(blender::ui::Layout *layout,
                            PointerRNA *ptr,
                            const StringRefNull propname,
                            PointerRNA * /*root_ptr*/,
@@ -268,10 +268,10 @@ void uiTemplatePathBuilder(uiLayout *layout,
   }
 
   /* Start drawing UI Elements using standard defines */
-  uiLayout *row = &layout->row(true);
+  blender::ui::Layout &row = layout->row(true);
 
   /* Path (existing string) Widget */
-  row->prop(ptr, propname, UI_ITEM_NONE, text, ICON_RNA);
+  row.prop(ptr, propname, UI_ITEM_NONE, text, ICON_RNA);
 
   /* TODO: attach something to this to make allow
    * searching of nested properties to 'build' the path */
@@ -283,7 +283,7 @@ void uiTemplatePathBuilder(uiLayout *layout,
 /** \name Node Socket Icon Template
  * \{ */
 
-void uiTemplateNodeSocket(uiLayout *layout, bContext * /*C*/, const float color[4])
+void uiTemplateNodeSocket(blender::ui::Layout *layout, bContext * /*C*/, const float color[4])
 {
   uiBlock *block = layout->block();
   UI_block_align_begin(block);
@@ -302,7 +302,7 @@ void uiTemplateNodeSocket(uiLayout *layout, bContext * /*C*/, const float color[
 /** \name FileSelectParams Path Button Template
  * \{ */
 
-void uiTemplateFileSelectPath(uiLayout *layout, bContext *C, FileSelectParams *params)
+void uiTemplateFileSelectPath(blender::ui::Layout *layout, bContext *C, FileSelectParams *params)
 {
   bScreen *screen = CTX_wm_screen(C);
   SpaceFile *sfile = CTX_wm_space_file(C);

@@ -19,14 +19,14 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
+#include "BKE_movieclip.hh"
+#include "BKE_tracking.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "libmv-capi.h"
-#include "tracking_private.h"
+#include "tracking_private.hh"
 
 struct AutoTrackClip {
   MovieClip *clip;

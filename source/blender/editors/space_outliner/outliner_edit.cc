@@ -2617,7 +2617,7 @@ static void outliner_orphans_purge_cancel(bContext *C, wmOperator *op)
 
 static void outliner_orphans_purge_ui(bContext * /*C*/, wmOperator *op)
 {
-  uiLayout *layout = op->layout;
+  ui::Layout &layout = *op->layout;
   PointerRNA *ptr = op->ptr;
   if (!op->customdata) {
     /* This should only happen on 'adjust last operation' case, since `invoke` will not have been
@@ -2633,21 +2633,22 @@ static void outliner_orphans_purge_ui(bContext * /*C*/, wmOperator *op)
 
   std::string unused_message;
   unused_message_gen(unused_message, data.num_local);
-  uiLayout *column = &layout->column(true);
-  column->prop(ptr, "do_local_ids", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiLayout *row = &column->row(true);
-  row->separator(2.67f);
-  row->label(unused_message, ICON_NONE);
+
+  ui::Layout &local_col = layout.column(true);
+  local_col.prop(ptr, "do_local_ids", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  ui::Layout &local_sub = local_col.row(true);
+  local_sub.separator(2.67f);
+  local_sub.label(unused_message, ICON_NONE);
 
   unused_message = "";
   unused_message_gen(unused_message, data.num_linked);
-  column = &layout->column(true);
-  column->prop(ptr, "do_linked_ids", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  row = &column->row(true);
-  row->separator(2.67f);
-  row->label(unused_message, ICON_NONE);
+  ui::Layout &linked_col = layout.column(true);
+  linked_col.prop(ptr, "do_linked_ids", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  ui::Layout &linked_sub = linked_col.row(true);
+  linked_sub.separator(2.67f);
+  linked_sub.label(unused_message, ICON_NONE);
 
-  layout->prop(ptr, "do_recursive", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "do_recursive", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 void OUTLINER_OT_orphans_purge(wmOperatorType *ot)

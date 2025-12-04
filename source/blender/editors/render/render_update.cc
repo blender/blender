@@ -241,14 +241,6 @@ static void texture_changed(Main *bmain, Tex *tex)
     LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
       BKE_paint_invalidate_overlay_tex(scene, view_layer, tex);
     }
-    /* find compositing nodes */
-    if (scene->compositing_node_group) {
-      for (bNode *node : scene->compositing_node_group->all_nodes()) {
-        if (node->id == &tex->id) {
-          blender::ed::space_node::tag_update_id(&scene->id);
-        }
-      }
-    }
   }
 
   LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
@@ -281,6 +273,9 @@ static void image_changed(Main *bmain, Image *ima)
       texture_changed(bmain, tex);
     }
   }
+
+  /* Ensure downstream editors are made aware of changes to the Image data. */
+  WM_main_add_notifier(NC_IMAGE | NA_EDITED, ima);
 }
 
 static void scene_changed(Main *bmain, Scene *scene)

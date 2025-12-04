@@ -173,7 +173,7 @@ bool retiming_is_allowed(const Strip *strip)
   }
 
   return ELEM(strip->type,
-              STRIP_TYPE_SOUND_RAM,
+              STRIP_TYPE_SOUND,
               STRIP_TYPE_IMAGE,
               STRIP_TYPE_META,
               STRIP_TYPE_SCENE,

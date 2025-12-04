@@ -91,7 +91,7 @@ struct TemplateListVisualInfo {
 
 static void uilist_draw_item_default(uiList *ui_list,
                                      const bContext * /*C*/,
-                                     uiLayout *layout,
+                                     ui::Layout &layout,
                                      PointerRNA * /*dataptr*/,
                                      PointerRNA *itemptr,
                                      int icon,
@@ -108,22 +108,22 @@ static void uilist_draw_item_default(uiList *ui_list,
     case UILST_LAYOUT_COMPACT:
     default:
       if (nameprop) {
-        layout->prop(itemptr, nameprop, RNA_NO_INDEX, 0, UI_ITEM_R_NO_BG, "", icon);
+        layout.prop(itemptr, nameprop, RNA_NO_INDEX, 0, UI_ITEM_R_NO_BG, "", icon);
       }
       else {
-        layout->label("", icon);
+        layout.label("", icon);
       }
       break;
   }
 }
 
-static void uilist_draw_filter_default(uiList *ui_list, const bContext * /*C*/, uiLayout *layout)
+static void uilist_draw_filter_default(uiList *ui_list, const bContext * /*C*/, ui::Layout &layout)
 {
   PointerRNA listptr = RNA_pointer_create_discrete(nullptr, &RNA_UIList, ui_list);
 
-  uiLayout *row = &layout->row(false);
+  ui::Layout &row = layout.row(false);
 
-  uiLayout *subrow = &row->row(true);
+  ui::Layout *subrow = &row.row(true);
   subrow->prop(&listptr,
                RNA_struct_find_property(&listptr, "filter_name"),
                -1,
@@ -139,7 +139,7 @@ static void uilist_draw_filter_default(uiList *ui_list, const bContext * /*C*/, 
                ICON_ARROW_LEFTRIGHT);
 
   if ((ui_list->filter_sort_flag & UILST_FLT_SORT_LOCK) == 0) {
-    subrow = &row->row(true);
+    subrow = &row.row(true);
     subrow->prop(
         &listptr, "use_filter_sort_alpha", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
     subrow->prop(&listptr,
@@ -698,7 +698,7 @@ static uiList *ui_list_ensure(const bContext *C,
 
 static void ui_template_list_layout_draw(const bContext *C,
                                          uiList *ui_list,
-                                         uiLayout *layout,
+                                         ui::Layout &layout,
                                          TemplateListInputData *input_data,
                                          TemplateListItems *items,
                                          const TemplateListLayoutDrawData *layout_data,
@@ -707,12 +707,12 @@ static void ui_template_list_layout_draw(const bContext *C,
   uiListDyn *dyn_data = ui_list->dyn_data;
   const char *active_propname = RNA_property_identifier(input_data->activeprop);
 
-  uiLayout *glob = nullptr, *box, *row, *col, *sub, *overlap;
+  ui::Layout *glob = nullptr, *box, *row, *col, *sub, *overlap;
   char numstr[32];
   int rnaicon = ICON_NONE, icon = ICON_NONE;
   uiBut *but;
 
-  uiBlock *block = layout->block();
+  uiBlock *block = layout.block();
 
   /* get icon */
   if (input_data->dataptr.data && input_data->prop) {
@@ -724,7 +724,7 @@ static void ui_template_list_layout_draw(const bContext *C,
   switch (ui_list->layout_type) {
     case UILST_LAYOUT_DEFAULT: {
       /* layout */
-      box = &layout->list_box(ui_list, &input_data->active_dataptr, input_data->activeprop);
+      box = &layout.list_box(ui_list, &input_data->active_dataptr, input_data->activeprop);
       glob = &box->column(true);
       row = &glob->row(false);
       col = &row->column(true);
@@ -776,18 +776,18 @@ static void ui_template_list_layout_draw(const bContext *C,
             UI_but_func_tooltip_set(but, uilist_item_tooltip_func, dyntip_data, MEM_freeN);
           }
 
-          uiLayout *item_row = &overlap->row(true);
+          ui::Layout &item_row = overlap->row(true);
 
-          uiLayoutListItemAddPadding(item_row);
+          uiLayoutListItemAddPadding(&item_row);
 
-          sub = &item_row->row(false);
+          sub = &item_row.row(false);
           icon = UI_icon_from_rnaptr(C, itemptr, rnaicon, false);
           if (icon == ICON_DOT) {
             icon = ICON_NONE;
           }
           layout_data->draw_item(ui_list,
                                  C,
-                                 sub,
+                                 *sub,
                                  &input_data->dataptr,
                                  itemptr,
                                  icon,
@@ -805,7 +805,7 @@ static void ui_template_list_layout_draw(const bContext *C,
             ui_layout_list_set_labels_active(sub);
           }
 
-          uiLayoutListItemAddPadding(item_row);
+          uiLayoutListItemAddPadding(&item_row);
           UI_block_flag_disable(subblock, UI_BLOCK_LIST_ITEM);
         }
       }
@@ -835,7 +835,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       break;
     }
     case UILST_LAYOUT_COMPACT:
-      row = &layout->row(true);
+      row = &layout.row(true);
 
       if ((input_data->dataptr.data && input_data->prop) && (dyn_data->items_shown > 0) &&
           (items->active_item_idx >= 0) && (items->active_item_idx < dyn_data->items_shown))
@@ -849,7 +849,7 @@ static void ui_template_list_layout_draw(const bContext *C,
         }
         layout_data->draw_item(ui_list,
                                C,
-                               row,
+                               *row,
                                &input_data->dataptr,
                                itemptr,
                                icon,
@@ -884,7 +884,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       }
       break;
     case UILST_LAYOUT_BIG_PREVIEW_GRID:
-      box = &layout->list_box(ui_list, &input_data->active_dataptr, input_data->activeprop);
+      box = &layout.list_box(ui_list, &input_data->active_dataptr, input_data->activeprop);
       /* For grip button. */
       glob = &box->column(true);
       /* For scroll-bar. */
@@ -896,7 +896,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       const int size_y = show_names ? UI_preview_tile_size_y() : UI_preview_tile_size_y_no_label();
 
       const int cols_per_row = std::max(int((box->width() - V2D_SCROLL_WIDTH) / size_x), 1);
-      uiLayout *grid = &row->grid_flow(true, cols_per_row, true, true, true);
+      ui::Layout &grid = row->grid_flow(true, cols_per_row, true, true, true);
 
       TemplateListLayoutDrawData adjusted_layout_data = *layout_data;
       adjusted_layout_data.columns = cols_per_row;
@@ -909,7 +909,7 @@ static void ui_template_list_layout_draw(const bContext *C,
           const int org_i = items->item_vec[i].org_idx;
           const int flt_flag = items->item_vec[i].flt_flag;
 
-          overlap = &grid->overlap();
+          overlap = &grid.overlap();
           col = &overlap->column(false);
 
           uiBlock *subblock = col->block();
@@ -935,7 +935,7 @@ static void ui_template_list_layout_draw(const bContext *C,
           icon = UI_icon_from_rnaptr(C, itemptr, rnaicon, false);
           layout_data->draw_item(ui_list,
                                  C,
-                                 col,
+                                 *col,
                                  &input_data->dataptr,
                                  itemptr,
                                  icon,
@@ -1037,7 +1037,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       uiDefBut(
           subblock, ButType::Sepr, "", 0, 0, UI_UNIT_X, UI_UNIT_Y * 0.05f, nullptr, 0.0, 0.0, "");
 
-      layout_data->draw_filter(ui_list, C, col);
+      layout_data->draw_filter(ui_list, C, *col);
     }
     else {
       but = uiDefIconButBitI(subblock,
@@ -1074,7 +1074,7 @@ static void ui_template_list_layout_draw(const bContext *C,
   }
 }
 
-uiList *uiTemplateList_ex(uiLayout *layout,
+uiList *uiTemplateList_ex(ui::Layout *layout,
                           const bContext *C,
                           const char *listtype_name,
                           const char *list_id,
@@ -1139,12 +1139,12 @@ uiList *uiTemplateList_ex(uiLayout *layout,
   layout_data.maxrows = maxrows;
   layout_data.columns = columns;
 
-  ui_template_list_layout_draw(C, ui_list, layout, &input_data, &items, &layout_data, flags);
+  ui_template_list_layout_draw(C, ui_list, *layout, &input_data, &items, &layout_data, flags);
 
   return ui_list;
 }
 
-void uiTemplateList(uiLayout *layout,
+void uiTemplateList(ui::Layout *layout,
                     const bContext *C,
                     const char *listtype_name,
                     const char *list_id,

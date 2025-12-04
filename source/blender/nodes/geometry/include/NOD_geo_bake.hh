@@ -121,9 +121,9 @@ struct BakeDrawContext {
 std::string get_baked_string(const BakeDrawContext &ctx);
 
 std::optional<std::string> get_bake_state_string(const BakeDrawContext &ctx);
-void draw_common_bake_settings(bContext *C, BakeDrawContext &ctx, ui::Layout *layout);
+void draw_common_bake_settings(bContext *C, BakeDrawContext &ctx, ui::Layout &layout);
 void draw_bake_button_row(const BakeDrawContext &ctx,
-                          ui::Layout *layout,
+                          ui::Layout &layout,
                           bool is_in_sidebar = false);
 
 }  // namespace blender::nodes

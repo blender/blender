@@ -1307,25 +1307,11 @@ bool VKShader::ensure_graphics_pipelines(Span<shader::PipelineState> pipeline_st
     VKDevice &device = VKBackend::get().device;
     const VKExtensions &extensions = device.extensions_get();
 
+    VKVertexInputDescription vertex_input_description(pipeline_state);
     VKGraphicsInfo graphics_info = {};
     graphics_info.vertex_in.vk_topology = vk_topology;
-    graphics_info.vertex_in.attributes.reserve(pipeline_state.vertex_inputs_.size());
-    graphics_info.vertex_in.bindings.reserve(pipeline_state.vertex_inputs_.size());
-    uint32_t binding = 0;
-    for (const shader::PipelineState::AttributeBinding &attribute_binding :
-         pipeline_state.vertex_inputs_)
-    {
-      const GPUVertAttr::Type attribute_type = {attribute_binding.type};
-      graphics_info.vertex_in.attributes.append({attribute_binding.location,
-                                                 binding,
-                                                 to_vk_format(attribute_type.comp_type(),
-                                                              attribute_type.size(),
-                                                              attribute_type.fetch_mode()),
-                                                 attribute_binding.offset});
-      graphics_info.vertex_in.bindings.append(
-          {attribute_binding.binding, attribute_binding.stride, VK_VERTEX_INPUT_RATE_VERTEX});
-      binding++;
-    }
+    graphics_info.vertex_in.vertex_input_key = device.vertex_input_descriptions.get_or_insert(
+        vertex_input_description);
 
     graphics_info.shaders.vk_vertex_module = vertex_module.vk_shader_module;
     graphics_info.shaders.vk_geometry_module = geometry_module.vk_shader_module;
@@ -1369,11 +1355,12 @@ bool VKShader::ensure_graphics_pipelines(Span<shader::PipelineState> pipeline_st
   return true;
 }
 
-VkPipeline VKShader::ensure_and_get_graphics_pipeline(GPUPrimType primitive,
-                                                      VKVertexAttributeObject &vao,
-                                                      VKStateManager &state_manager,
-                                                      const VKFrameBuffer &framebuffer,
-                                                      SpecializationConstants &constants_state)
+VkPipeline VKShader::ensure_and_get_graphics_pipeline(
+    GPUPrimType primitive,
+    VKVertexInputDescriptionPool::Key vertex_input_description_key,
+    VKStateManager &state_manager,
+    const VKFrameBuffer &framebuffer,
+    SpecializationConstants &constants_state)
 {
   VKDevice &device = VKBackend::get().device;
   const VKExtensions &extensions = device.extensions_get();
@@ -1391,8 +1378,7 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(GPUPrimType primitive,
 
   VKGraphicsInfo graphics_info = {};
   graphics_info.vertex_in.vk_topology = vk_topology;
-  graphics_info.vertex_in.attributes = vao.attributes;
-  graphics_info.vertex_in.bindings = vao.bindings;
+  graphics_info.vertex_in.vertex_input_key = vertex_input_description_key;
 
   graphics_info.shaders.vk_vertex_module = vertex_module.vk_shader_module;
   graphics_info.shaders.vk_geometry_module = geometry_module.vk_shader_module;

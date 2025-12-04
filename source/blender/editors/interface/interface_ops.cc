@@ -941,10 +941,10 @@ static bool override_idtemplate_menu_poll(const bContext *C_const, MenuType * /*
 
 static void override_idtemplate_menu_draw(const bContext * /*C*/, Menu *menu)
 {
-  uiLayout *layout = menu->layout;
-  layout->op("UI_OT_override_idtemplate_make", IFACE_("Make"), ICON_NONE);
-  layout->op("UI_OT_override_idtemplate_reset", IFACE_("Reset"), ICON_NONE);
-  layout->op("UI_OT_override_idtemplate_clear", IFACE_("Clear"), ICON_NONE);
+  Layout &layout = *menu->layout;
+  layout.op("UI_OT_override_idtemplate_make", IFACE_("Make"), ICON_NONE);
+  layout.op("UI_OT_override_idtemplate_reset", IFACE_("Reset"), ICON_NONE);
+  layout.op("UI_OT_override_idtemplate_clear", IFACE_("Clear"), ICON_NONE);
 }
 
 static void override_idtemplate_menu()

@@ -16,6 +16,7 @@ from ..utils.nodes import (
 
 #### ------------------------------ OPERATORS ------------------------------ ####
 
+
 class NODE_OT_swap_links(Operator, NWBase):
     """Swap the output connections of the two selected nodes, or two similar inputs of a single node"""
     bl_idname = 'node.nw_swap_links'

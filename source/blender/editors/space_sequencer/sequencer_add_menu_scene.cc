@@ -82,28 +82,28 @@ static void sequencer_add_catalog_assets_draw(const bContext *C, Menu *menu)
     return;
   }
 
-  uiLayout *layout = menu->layout;
+  ui::Layout &layout = *menu->layout;
   bool add_separator = true;
 
   for (const asset_system::AssetRepresentation *asset : assets) {
     if (add_separator) {
-      layout->separator();
+      layout.separator();
       add_separator = false;
     }
-    PointerRNA op_ptr = layout->op("SEQUENCER_OT_add_scene_strip_from_scene_asset",
-                                   IFACE_(asset->get_name()),
-                                   ICON_NONE,
-                                   wm::OpCallContext::InvokeRegionWin,
-                                   UI_ITEM_NONE);
+    PointerRNA op_ptr = layout.op("SEQUENCER_OT_add_scene_strip_from_scene_asset",
+                                  IFACE_(asset->get_name()),
+                                  ICON_NONE,
+                                  wm::OpCallContext::InvokeRegionWin,
+                                  UI_ITEM_NONE);
     asset::operator_asset_reference_props_set(*asset, op_ptr);
   }
 
   catalog_item->foreach_child([&](const asset_system::AssetCatalogTreeItem &item) {
     if (add_separator) {
-      layout->separator();
+      layout.separator();
       add_separator = false;
     }
-    asset::draw_menu_for_catalog(item, "SEQUENCER_MT_scene_add_catalog_assets", *layout);
+    asset::draw_menu_for_catalog(item, "SEQUENCER_MT_scene_add_catalog_assets", layout);
   });
 }
 
@@ -137,12 +137,12 @@ static void sequencer_add_scene_draw(const bContext *C, Menu *menu)
     return;
   }
 
-  uiLayout *layout = menu->layout;
-  layout->operator_context_set(wm::OpCallContext::InvokeRegionWin);
+  ui::Layout &layout = *menu->layout;
+  layout.operator_context_set(wm::OpCallContext::InvokeRegionWin);
 
   /* New scene. */
   {
-    PointerRNA op_ptr = layout->op(
+    PointerRNA op_ptr = layout.op(
         "SEQUENCER_OT_scene_strip_add_new", IFACE_("Empty Scene"), ICON_ADD);
     RNA_enum_set(&op_ptr, "type", SCE_COPY_NEW);
   }
@@ -155,41 +155,41 @@ static void sequencer_add_scene_draw(const bContext *C, Menu *menu)
   const bool show_assets = !(tree.catalogs.is_empty() && loading_finished &&
                              tree.unassigned_assets.is_empty());
 
-  layout->separator();
+  layout.separator();
 
-  layout->label(IFACE_("Assets"), ICON_ASSET_MANAGER);
+  layout.label(IFACE_("Assets"), ICON_ASSET_MANAGER);
 
   if (show_assets) {
     if (!loading_finished) {
-      layout->label(IFACE_("Loading Asset Libraries"), ICON_INFO);
+      layout.label(IFACE_("Loading Asset Libraries"), ICON_INFO);
     }
 
     tree.catalogs.foreach_root_item([&](const asset_system::AssetCatalogTreeItem &item) {
-      asset::draw_menu_for_catalog(item, "SEQUENCER_MT_scene_add_catalog_assets", *layout);
+      asset::draw_menu_for_catalog(item, "SEQUENCER_MT_scene_add_catalog_assets", layout);
     });
 
     if (!tree.unassigned_assets.is_empty()) {
-      layout->menu_contents("SEQUENCER_MT_scene_add_unassigned_assets");
+      layout.menu_contents("SEQUENCER_MT_scene_add_unassigned_assets");
     }
   }
   else {
-    layout->label(IFACE_("No scene assets."), ICON_NONE);
+    layout.label(IFACE_("No scene assets."), ICON_NONE);
   }
 
-  layout->separator();
+  layout.separator();
 
   /* Show existing scenes. */
   Main *bmain = CTX_data_main(C);
   const int scenes_len = BLI_listbase_count(&bmain->scenes);
   if (scenes_len > 10) {
-    layout->op("SEQUENCER_OT_scene_strip_add",
-               IFACE_("Scene Strip..."),
-               ICON_SCENE_DATA,
-               wm::OpCallContext::InvokeDefault,
-               UI_ITEM_NONE);
+    layout.op("SEQUENCER_OT_scene_strip_add",
+              IFACE_("Scene Strip..."),
+              ICON_SCENE_DATA,
+              wm::OpCallContext::InvokeDefault,
+              UI_ITEM_NONE);
   }
   else {
-    layout->label(IFACE_("Scene Strip"), ICON_SCENE_DATA);
+    layout.label(IFACE_("Scene Strip"), ICON_SCENE_DATA);
     const Scene *active_scene = CTX_data_sequencer_scene(C);
     int i = 0;
     LISTBASE_FOREACH_INDEX (Scene *, scene, &bmain->scenes, i) {
@@ -199,11 +199,11 @@ static void sequencer_add_scene_draw(const bContext *C, Menu *menu)
       if (scene->id.asset_data) {
         continue;
       }
-      PointerRNA op_ptr = layout->op("SEQUENCER_OT_scene_strip_add",
-                                     scene->id.name + 2,
-                                     ICON_NONE,
-                                     wm::OpCallContext::InvokeRegionWin,
-                                     UI_ITEM_NONE);
+      PointerRNA op_ptr = layout.op("SEQUENCER_OT_scene_strip_add",
+                                    scene->id.name + 2,
+                                    ICON_NONE,
+                                    wm::OpCallContext::InvokeRegionWin,
+                                    UI_ITEM_NONE);
       RNA_enum_set(&op_ptr, "scene", i);
     }
   }

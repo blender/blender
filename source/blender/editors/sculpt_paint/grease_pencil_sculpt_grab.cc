@@ -42,8 +42,12 @@ class GrabOperation : public GreasePencilStrokeOperationCommon {
     float4x4 layer_to_win;
     /* Points that are grabbed at the beginning of the stroke. */
     IndexMask point_mask;
+    IndexMask point_mask_left;
+    IndexMask point_mask_right;
     /* Influence weights for grabbed points. */
     Vector<float> weights;
+    Vector<float> weights_left;
+    Vector<float> weights_right;
 
     IndexMaskMemory memory;
   };
@@ -54,7 +58,11 @@ class GrabOperation : public GreasePencilStrokeOperationCommon {
                                FunctionRef<bool(const GreasePencilStrokeParams &params,
                                                 const DeltaProjectionFunc &projection_fn,
                                                 const IndexMask &mask,
-                                                Span<float> weights)> fn) const;
+                                                const IndexMask &mask_left,
+                                                const IndexMask &mask_right,
+                                                Span<float> weights,
+                                                Span<float> weights_left,
+                                                Span<float> weights_right)> fn) const;
 
   void on_stroke_begin(const bContext &C, const InputSample &start_sample) override;
   void on_stroke_extended(const bContext &C, const InputSample &extension_sample) override;
@@ -66,7 +74,11 @@ void GrabOperation::foreach_grabbed_drawing(
     FunctionRef<bool(const GreasePencilStrokeParams &params,
                      const DeltaProjectionFunc &projection_fn,
                      const IndexMask &mask,
-                     Span<float> weights)> fn) const
+                     const IndexMask &mask_left,
+                     const IndexMask &mask_right,
+                     Span<float> weights,
+                     Span<float> weights_left,
+                     Span<float> weights_right)> fn) const
 {
   using bke::greasepencil::Drawing;
   using bke::greasepencil::Layer;
@@ -103,7 +115,15 @@ void GrabOperation::foreach_grabbed_drawing(
         data.multi_frame_falloff,
         *drawing);
     DeltaProjectionFunc projection_fn = get_screen_projection_fn(params, object_eval, layer);
-    if (fn(params, projection_fn, data.point_mask, data.weights)) {
+    if (fn(params,
+           projection_fn,
+           data.point_mask,
+           data.point_mask_left,
+           data.point_mask_right,
+           data.weights,
+           data.weights_left,
+           data.weights_right))
+    {
       changed = true;
     }
   });
@@ -156,9 +176,15 @@ void GrabOperation::on_stroke_begin(const bContext &C, const InputSample &start_
 
     const Array<float2> view_positions = view_positions_from_point_mask(params,
                                                                         auto_mask_info.point_mask);
+    const Array<float2> view_positions_left = view_positions_left_from_point_mask(
+        params, auto_mask_info.point_mask);
+    const Array<float2> view_positions_right = view_positions_right_from_point_mask(
+        params, auto_mask_info.point_mask);
 
     /* Cache points under brush influence. */
     Vector<float> weights;
+    Vector<float> weights_left;
+    Vector<float> weights_right;
     IndexMask point_mask = brush_point_influence_mask(paint,
                                                       brush,
                                                       start_sample.mouse_position,
@@ -168,6 +194,24 @@ void GrabOperation::on_stroke_begin(const bContext &C, const InputSample &start_
                                                       view_positions,
                                                       weights,
                                                       data.memory);
+    IndexMask point_mask_left = brush_point_influence_mask(paint,
+                                                           brush,
+                                                           start_sample.mouse_position,
+                                                           1.0f,
+                                                           info.multi_frame_falloff,
+                                                           auto_mask_info.point_mask,
+                                                           view_positions_left,
+                                                           weights_left,
+                                                           data.memory);
+    IndexMask point_mask_right = brush_point_influence_mask(paint,
+                                                            brush,
+                                                            start_sample.mouse_position,
+                                                            1.0f,
+                                                            info.multi_frame_falloff,
+                                                            auto_mask_info.point_mask,
+                                                            view_positions_right,
+                                                            weights_right,
+                                                            data.memory);
 
     if (point_mask.is_empty()) {
       /* Set empty point mask to skip. */
@@ -180,7 +224,11 @@ void GrabOperation::on_stroke_begin(const bContext &C, const InputSample &start_
     data.layer_to_win = ED_view3d_ob_project_mat_get(&rv3d, &ob_eval) *
                         layer.to_object_space(ob_eval);
     data.point_mask = std::move(point_mask);
+    data.point_mask_left = std::move(point_mask_left);
+    data.point_mask_right = std::move(point_mask_right);
     data.weights = std::move(weights);
+    data.weights_left = std::move(weights_left);
+    data.weights_right = std::move(weights_right);
   });
 }
 
@@ -191,7 +239,11 @@ void GrabOperation::on_stroke_extended(const bContext &C, const InputSample &ext
       [&](const GreasePencilStrokeParams &params,
           const DeltaProjectionFunc &projection_fn,
           const IndexMask &mask,
-          const Span<float> weights) {
+          const IndexMask &mask_left,
+          const IndexMask &mask_right,
+          const Span<float> weights,
+          const Span<float> weights_left,
+          const Span<float> weights_right) {
         /* Transform mouse delta into layer space. */
         const float2 mouse_delta_win = this->mouse_delta(extension_sample);
 
@@ -203,6 +255,23 @@ void GrabOperation::on_stroke_extended(const bContext &C, const InputSample &ext
           positions[point_i] += compute_orig_delta(
               projection_fn, deformation, point_i, mouse_delta_win * weights[index]);
         });
+
+        MutableSpan<float3> handle_positions_left = curves.handle_positions_left_for_write();
+        MutableSpan<float3> handle_positions_right = curves.handle_positions_right_for_write();
+
+        if (!handle_positions_left.is_empty()) {
+          mask_left.foreach_index(GrainSize(4096), [&](const int64_t point_i, const int index) {
+            handle_positions_left[point_i] += compute_orig_delta(
+                projection_fn, deformation, point_i, mouse_delta_win * weights_left[index]);
+          });
+          mask_right.foreach_index(GrainSize(4096), [&](const int64_t point_i, const int index) {
+            handle_positions_right[point_i] += compute_orig_delta(
+                projection_fn, deformation, point_i, mouse_delta_win * weights_right[index]);
+          });
+
+          curves.calculate_bezier_auto_handles();
+          curves.calculate_bezier_aligned_handles();
+        }
 
         params.drawing.tag_positions_changed();
         return true;

@@ -15,7 +15,7 @@
 
 #include "rna_internal.hh"
 
-#include "BKE_movieclip.h"
+#include "BKE_movieclip.hh"
 
 #include "WM_types.hh"
 

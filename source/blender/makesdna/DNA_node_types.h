@@ -3360,6 +3360,7 @@ typedef enum GeometryNodeMergeByDistanceMode {
 typedef enum GeometryNodeUVUnwrapMethod {
   GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED = 0,
   GEO_NODE_UV_UNWRAP_METHOD_CONFORMAL = 1,
+  GEO_NODE_UV_UNWRAP_METHOD_MINIMUM_STRETCH = 2,
 } GeometryNodeUVUnwrapMethod;
 
 typedef enum GeometryNodeRealizeInstanceFlag {

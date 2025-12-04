@@ -16,8 +16,8 @@
 
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
+#include "BKE_movieclip.hh"
+#include "BKE_tracking.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
@@ -70,20 +70,19 @@ static void node_composit_init_keyingscreen(const bContext *C, PointerRNA *ptr)
   }
 }
 
-static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_composit_buts_keyingscreen(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
 
-  uiTemplateID(layout, C, ptr, "clip", nullptr, nullptr, nullptr);
+  uiTemplateID(&layout, C, ptr, "clip", nullptr, nullptr, nullptr);
 
   if (node->id) {
     MovieClip *clip = (MovieClip *)node->id;
-    uiLayout *col;
     PointerRNA tracking_ptr = RNA_pointer_create_discrete(
         &clip->id, &RNA_MovieTracking, &clip->tracking);
 
-    col = &layout->column(true);
-    col->prop_search(ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
+    ui::Layout &col = layout.column(true);
+    col.prop_search(ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
   }
 }
 

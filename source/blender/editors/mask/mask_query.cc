@@ -9,13 +9,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.hh"
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 
-#include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
 #include "DNA_mask_types.h"
@@ -639,7 +638,7 @@ bool ED_mask_selected_minmax(const bContext *C,
         const MaskSplinePoint *deform_point = &points_array[i];
         const BezTriple *bezt = &point->bezt;
         float handle[2];
-        if (!MASKPOINT_ISSEL_ANY(point)) {
+        if (!BKE_mask_point_selected(point)) {
           continue;
         }
         if (bezt->f2 & SELECT) {

@@ -15,7 +15,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h" /* SELECT */
@@ -149,7 +149,7 @@ static void draw_single_handle(const MaskLayer *mask_layer,
   immUniform1f("outlineWidth", 1.5f);
 
   float point_color[4] = {1.0f, 1.0f, 1.0f, 1.0f}; /* active color by default */
-  if (MASKPOINT_ISSEL_HANDLE(point, which_handle)) {
+  if (BKE_mask_point_is_handle_selected(point, which_handle)) {
     if (point != mask_layer->act_point) {
       UI_GetThemeColor3fv(TH_HANDLE_VERTEX_SELECT, point_color);
     }
@@ -172,7 +172,7 @@ static void draw_single_handle(const MaskLayer *mask_layer,
 static void draw_spline_points(const bContext *C,
                                MaskLayer *mask_layer,
                                MaskSpline *spline,
-                               const char draw_type)
+                               const MaskDrawType draw_type)
 {
   const bool is_spline_sel = (spline->flag & SELECT) &&
                              (mask_layer->visibility_flag & MASK_HIDE_SELECT) == 0;
@@ -223,7 +223,7 @@ static void draw_spline_points(const bContext *C,
       }
 
       if (j == 0) {
-        sel = MASKPOINT_ISSEL_ANY(point);
+        sel = BKE_mask_point_selected(point);
       }
       else {
         sel = (point->uw[j - 1].flag & SELECT) != 0;
@@ -299,7 +299,7 @@ static void draw_spline_points(const bContext *C,
     immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
 
     /* draw CV point */
-    if (MASKPOINT_ISSEL_KNOT(point)) {
+    if (BKE_mask_point_selected_knot(point)) {
       if (point == mask_layer->act_point) {
         immUniformColor3f(1.0f, 1.0f, 1.0f);
       }
@@ -379,7 +379,7 @@ static void mask_draw_curve_type(const bContext *C,
                                  const bool is_feather,
                                  const bool is_active,
                                  const uchar rgb_spline[4],
-                                 const char draw_type)
+                                 const MaskDrawType draw_type)
 {
   const GPUPrimType draw_method = (spline->flag & MASK_SPLINE_CYCLIC) ? GPU_PRIM_LINE_LOOP :
                                                                         GPU_PRIM_LINE_STRIP;
@@ -498,7 +498,7 @@ static void mask_draw_curve_type(const bContext *C,
 static void draw_spline_curve(const bContext *C,
                               MaskLayer *mask_layer,
                               MaskSpline *spline,
-                              const char draw_type,
+                              const MaskDrawType draw_type,
                               const bool is_active,
                               const int width,
                               const int height)
@@ -564,7 +564,7 @@ static void draw_spline_curve(const bContext *C,
 
 static void draw_layer_splines(const bContext *C,
                                MaskLayer *layer,
-                               const char draw_type,
+                               const MaskDrawType draw_type,
                                const int width,
                                const int height,
                                const bool is_active)
@@ -591,7 +591,7 @@ static void draw_layer_splines(const bContext *C,
 }
 
 static void draw_mask_layers(
-    const bContext *C, Mask *mask, const char draw_type, const int width, const int height)
+    const bContext *C, Mask *mask, const MaskDrawType draw_type, const int width, const int height)
 {
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_program_point_size(true);
@@ -643,9 +643,9 @@ void ED_mask_draw_region(
     Mask *mask_,
     ARegion *region,
     const bool show_overlays,
-    const char draw_flag,
-    const char draw_type,
-    const eMaskOverlayMode overlay_mode,
+    const MaskDrawFlag draw_flag,
+    const MaskDrawType draw_type,
+    const MaskOverlayMode overlay_mode,
     const float blend_factor,
     /* convert directly into aspect corrected vars */
     const int width_i,

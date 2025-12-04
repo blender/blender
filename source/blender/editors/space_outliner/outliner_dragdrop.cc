@@ -1333,6 +1333,10 @@ static wmOperatorStatus collection_drop_invoke(bContext *C,
     TREESTORE(data.te)->flag &= ~TSE_CLOSED;
   }
 
+  if (relative_after) {
+    BLI_listbase_reverse(&drag->ids);
+  }
+
   LISTBASE_FOREACH (wmDragID *, drag_id, &drag->ids) {
     /* Ctrl enables linking, so we don't need a from collection then. */
     Collection *from = (event->modifier & KM_CTRL) ?
@@ -1368,7 +1372,10 @@ static wmOperatorStatus collection_drop_invoke(bContext *C,
   /* Update dependency graph. */
   DEG_id_tag_update(&data.to->id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_HIERARCHY);
   DEG_relations_tag_update(bmain);
-  WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
+  /* NOTE: It is possible to drag'n'drop between different windows, which means that the source
+   * window/Outliner may also need to be updated. So do not pass the current window in this
+   * notifier (unless there is a way to get the drag source window as well?). */
+  WM_event_add_notifier_ex(CTX_wm_manager(C), nullptr, NC_SCENE | ND_LAYER, nullptr);
 
   return OPERATOR_FINISHED;
 }

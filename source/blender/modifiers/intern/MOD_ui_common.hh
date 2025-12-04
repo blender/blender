@@ -32,7 +32,7 @@ using PanelDrawFn = void (*)(const bContext *, Panel *);
 /**
  * Helper function for modifier layouts to draw vertex group settings.
  */
-void modifier_vgroup_ui(blender::ui::Layout *layout,
+void modifier_vgroup_ui(blender::ui::Layout &layout,
                         PointerRNA *ptr,
                         PointerRNA *ob_ptr,
                         blender::StringRefNull vgroup_prop,
@@ -45,7 +45,7 @@ void modifier_grease_pencil_curve_panel_draw(const bContext * /*C*/, Panel *pane
 /**
  * Draw modifier error message.
  */
-void modifier_error_message_draw(blender::ui::Layout *layout, PointerRNA *ptr);
+void modifier_error_message_draw(blender::ui::Layout &layout, PointerRNA *ptr);
 
 PointerRNA *modifier_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_ptr);
 

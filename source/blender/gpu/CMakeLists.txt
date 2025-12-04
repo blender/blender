@@ -346,6 +346,7 @@ set(VULKAN_SRC
   vulkan/vk_uniform_buffer.hh
   vulkan/vk_vertex_attribute_object.hh
   vulkan/vk_vertex_buffer.hh
+  vulkan/vk_vertex_input_description.hh
 )
 
 set(METAL_SRC

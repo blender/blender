@@ -19,9 +19,9 @@
 
 #include "BKE_context.hh"
 #include "BKE_image.hh"
-#include "BKE_movieclip.h"
+#include "BKE_movieclip.hh"
 #include "BKE_report.hh"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -411,7 +411,7 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc,
                                                  MovieTrackingTrack *track,
                                                  MovieTrackingMarker *marker,
                                                  const wmEvent *event,
-                                                 int area,
+                                                 eTrackArea area,
                                                  int corner,
                                                  eSlideAction action,
                                                  int width,
@@ -497,7 +497,7 @@ static bool slide_check_corners(float (*corners)[2])
 }
 
 static MovieTrackingTrack *tracking_marker_check_slide(
-    bContext *C, const float co[2], int *r_area, eSlideAction *r_action, int *r_corner)
+    bContext *C, const float co[2], eTrackArea *r_area, eSlideAction *r_action, int *r_corner)
 {
   SpaceClip *space_clip = CTX_wm_space_clip(C);
 
@@ -584,7 +584,8 @@ static SlideMarkerData *slide_marker_customdata(bContext *C, const wmEvent *even
   SlideMarkerData *customdata = nullptr;
   int framenr = ED_space_clip_get_clip_frame_number(sc);
   eSlideAction action;
-  int area, corner;
+  eTrackArea area;
+  int corner;
 
   ED_space_clip_get_size(sc, &width, &height);
 
@@ -1705,25 +1706,25 @@ static wmOperatorStatus clean_tracks_exec(bContext *C, wmOperator *op)
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
   int frames = RNA_int_get(op->ptr, "frames");
-  int action = RNA_enum_get(op->ptr, "action");
+  TrackingCleanAction action = TrackingCleanAction(RNA_enum_get(op->ptr, "action"));
   float error = RNA_float_get(op->ptr, "error");
 
-  if (error && action == TRACKING_CLEAN_DELETE_SEGMENT) {
-    action = TRACKING_CLEAN_DELETE_TRACK;
+  if (error && action == TrackingCleanAction::DeleteSegment) {
+    action = TrackingCleanAction::DeleteTrack;
   }
 
   LISTBASE_FOREACH_MUTABLE (MovieTrackingTrack *, track, &tracking_object->tracks) {
     if ((track->flag & TRACK_HIDDEN) == 0 && (track->flag & TRACK_LOCKED) == 0) {
       bool ok;
 
-      ok = is_track_clean(track, frames, action == TRACKING_CLEAN_DELETE_SEGMENT) &&
+      ok = is_track_clean(track, frames, action == TrackingCleanAction::DeleteSegment) &&
            ((error == 0.0f) || (track->flag & TRACK_HAS_BUNDLE) == 0 || (track->error < error));
 
       if (!ok) {
-        if (action == TRACKING_CLEAN_SELECT) {
+        if (action == TrackingCleanAction::Select) {
           BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
         }
-        else if (action == TRACKING_CLEAN_DELETE_TRACK) {
+        else if (action == TrackingCleanAction::DeleteTrack) {
           if (track == tracking_object->active_track) {
             tracking_object->active_track = nullptr;
           }
@@ -1775,9 +1776,13 @@ static wmOperatorStatus clean_tracks_invoke(bContext *C, wmOperator *op, const w
 void CLIP_OT_clean_tracks(wmOperatorType *ot)
 {
   static const EnumPropertyItem actions_items[] = {
-      {TRACKING_CLEAN_SELECT, "SELECT", 0, "Select", "Select unclean tracks"},
-      {TRACKING_CLEAN_DELETE_TRACK, "DELETE_TRACK", 0, "Delete Track", "Delete unclean tracks"},
-      {TRACKING_CLEAN_DELETE_SEGMENT,
+      {int(TrackingCleanAction::Select), "SELECT", 0, "Select", "Select unclean tracks"},
+      {int(TrackingCleanAction::DeleteTrack),
+       "DELETE_TRACK",
+       0,
+       "Delete Track",
+       "Delete unclean tracks"},
+      {int(TrackingCleanAction::DeleteSegment),
        "DELETE_SEGMENTS",
        0,
        "Delete Segments",

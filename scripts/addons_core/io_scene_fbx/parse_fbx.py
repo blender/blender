@@ -64,7 +64,7 @@ def _create_array(data, length, array_type, array_stride, array_byteswap):
     """Create an array from FBX data."""
     # If size of the data does not match the expected size of the array, then something is wrong with the code or the
     # FBX file.
-    assert(length * array_stride == len(data))
+    assert length * array_stride == len(data)
 
     data_array = array.array(array_type, data)
     if array_byteswap and _IS_BIG_ENDIAN:

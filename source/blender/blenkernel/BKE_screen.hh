@@ -526,7 +526,7 @@ struct ARegionRuntime {
 /** Draw an item in the `ui_list`. */
 using uiListDrawItemFunc = void (*)(uiList *ui_list,
                                     const bContext *C,
-                                    blender::ui::Layout *layout,
+                                    blender::ui::Layout &layout,
                                     PointerRNA *dataptr,
                                     PointerRNA *itemptr,
                                     int icon,
@@ -538,7 +538,7 @@ using uiListDrawItemFunc = void (*)(uiList *ui_list,
 /** Draw the filtering part of an uiList. */
 using uiListDrawFilterFunc = void (*)(uiList *ui_list,
                                       const bContext *C,
-                                      blender::ui::Layout *layout);
+                                      blender::ui::Layout &layout);
 
 /** Filter items of an uiList. */
 using uiListFilterItemsFunc = void (*)(uiList *ui_list,
@@ -699,7 +699,7 @@ struct AssetShelfType {
   void (*draw_context_menu)(const bContext *C,
                             const AssetShelfType *shelf_type,
                             const blender::asset_system::AssetRepresentation *asset,
-                            blender::ui::Layout *layout);
+                            blender::ui::Layout &layout);
 
   const AssetWeakReference *(*get_active_asset)(const AssetShelfType *shelf_type);
 

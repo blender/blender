@@ -200,29 +200,29 @@ static Vector<path_templates::Error> compute_image_path(const StringRefNull dire
                                       BKE_scene_multiview_view_suffix_get(&scene.r, view));
 }
 
-static void node_layout(uiLayout *layout, bContext * /*context*/, PointerRNA *node_pointer)
+static void node_layout(ui::Layout &layout, bContext * /*context*/, PointerRNA *node_pointer)
 {
-  layout->prop(node_pointer, "directory", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  layout->prop(node_pointer, "file_name", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(node_pointer, "directory", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(node_pointer, "file_name", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-static void format_layout(uiLayout *layout,
+static void format_layout(ui::Layout *layout,
                           bContext *context,
                           PointerRNA *format_pointer,
                           PointerRNA *node_or_item_pointer)
 {
-  uiLayout *column = &layout->column(true);
-  column->use_property_split_set(true);
-  column->use_property_decorate_set(false);
-  column->prop(
+  ui::Layout &col = layout->column(true);
+  col.use_property_split_set(true);
+  col.use_property_decorate_set(false);
+  col.prop(
       node_or_item_pointer, "save_as_render", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   const bool save_as_render = RNA_boolean_get(node_or_item_pointer, "save_as_render");
   uiTemplateImageSettings(layout, context, format_pointer, save_as_render);
 
   if (!save_as_render) {
-    uiLayout *column = &layout->column(true);
-    column->use_property_split_set(true);
-    column->use_property_decorate_set(false);
+    ui::Layout *column = &layout->column(true);
+    col.use_property_split_set(true);
+    col.use_property_decorate_set(false);
 
     PointerRNA linear_settings_ptr = RNA_pointer_get(format_pointer, "linear_colorspace_settings");
     column->prop(&linear_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
@@ -235,7 +235,7 @@ static void format_layout(uiLayout *layout,
   }
 }
 
-static void output_path_layout(uiLayout *layout,
+static void output_path_layout(ui::Layout &layout,
                                const StringRefNull directory,
                                const StringRefNull file_name,
                                const StringRefNull file_name_suffix,
@@ -258,16 +258,16 @@ static void output_path_layout(uiLayout *layout,
                                                                        image_path);
 
   if (path_errors.is_empty()) {
-    layout->label(image_path, ICON_FILE_IMAGE);
+    layout.label(image_path, ICON_FILE_IMAGE);
   }
   else {
     for (const path_templates::Error &error : path_errors) {
-      layout->label(BKE_path_template_error_to_string(error, image_path).c_str(), ICON_ERROR);
+      layout.label(BKE_path_template_error_to_string(error, image_path).c_str(), ICON_ERROR);
     }
   }
 }
 
-static void output_paths_layout(uiLayout *layout,
+static void output_paths_layout(ui::Layout &layout,
                                 bContext *context,
                                 const StringRefNull file_name_suffix,
                                 const bNode &node,
@@ -293,24 +293,24 @@ static void output_paths_layout(uiLayout *layout,
   }
 }
 
-static void item_layout(uiLayout *layout,
+static void item_layout(ui::Layout &layout,
                         bContext *context,
                         PointerRNA *node_pointer,
                         PointerRNA *item_pointer,
                         const bool is_multi_layer)
 {
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
-  layout->prop(item_pointer, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.use_property_split_set(true);
+  layout.use_property_decorate_set(false);
+  layout.prop(item_pointer, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (RNA_enum_get(item_pointer, "socket_type") == SOCK_VECTOR) {
-    layout->prop(item_pointer, "vector_socket_dimensions", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(item_pointer, "vector_socket_dimensions", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   if (is_multi_layer) {
     return;
   }
 
-  layout->prop(
+  layout.prop(
       item_pointer, "override_node_format", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   const bool override_node_format = RNA_boolean_get(item_pointer, "override_node_format");
 
@@ -319,49 +319,49 @@ static void item_layout(uiLayout *layout,
   PointerRNA *format_pointer = override_node_format ? &item_format_pointer : &node_format_pointer;
 
   if (override_node_format) {
-    if (uiLayout *panel = layout->panel(context, "item_format", false, IFACE_("Item Format"))) {
+    if (ui::Layout *panel = layout.panel(context, "item_format", false, IFACE_("Item Format"))) {
       format_layout(panel, context, format_pointer, item_pointer);
     }
   }
 }
 
-static void node_layout_ex(uiLayout *layout, bContext *context, PointerRNA *node_pointer)
+static void node_layout_ex(ui::Layout &layout, bContext *context, PointerRNA *node_pointer)
 {
   node_layout(layout, context, node_pointer);
 
   PointerRNA format_pointer = RNA_pointer_get(node_pointer, "format");
   const bool is_multi_layer = RNA_enum_get(&format_pointer, "file_format") ==
                               R_IMF_IMTYPE_MULTILAYER;
-  layout->prop(&format_pointer, "media_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  if (uiLayout *panel = layout->panel(context, "node_format", false, IFACE_("Node Format"))) {
+  layout.prop(&format_pointer, "media_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  if (ui::Layout *panel = layout.panel(context, "node_format", false, IFACE_("Node Format"))) {
     format_layout(panel, context, &format_pointer, node_pointer);
   }
 
   const char *panel_name = is_multi_layer ? IFACE_("Layers") : IFACE_("Images");
-  if (uiLayout *panel = layout->panel(context, "file_output_items", false, panel_name)) {
+  if (ui::Layout *panel = layout.panel(context, "file_output_items", false, panel_name)) {
     bNodeTree &tree = *reinterpret_cast<bNodeTree *>(node_pointer->owner_id);
     bNode &node = *node_pointer->data_as<bNode>();
     socket_items::ui::draw_items_list_with_operators<FileOutputItemsAccessor>(
         context, panel, tree, node);
     socket_items::ui::draw_active_item_props<FileOutputItemsAccessor>(
         tree, node, [&](PointerRNA *item_pointer) {
-          item_layout(panel, context, node_pointer, item_pointer, is_multi_layer);
+          item_layout(*panel, context, node_pointer, item_pointer, is_multi_layer);
         });
   }
 
-  if (uiLayout *panel = layout->panel(context, "output_paths", true, IFACE_("Output Paths"))) {
+  if (ui::Layout *panel = layout.panel(context, "output_paths", true, IFACE_("Output Paths"))) {
     const bNode &node = *node_pointer->data_as<bNode>();
     const ImageFormatData &node_format = *format_pointer.data_as<ImageFormatData>();
 
     if (is_multi_layer) {
-      output_paths_layout(panel, context, "", node, node_format);
+      output_paths_layout(*panel, context, "", node, node_format);
     }
     else {
       const NodeCompositorFileOutput &storage = node_storage(node);
       for (const int i : IndexRange(storage.items_count)) {
         const NodeCompositorFileOutputItem &item = storage.items[i];
         const auto &format = item.override_node_format ? item.format : storage.format;
-        output_paths_layout(panel, context, item.name, node, format);
+        output_paths_layout(*panel, context, item.name, node, format);
       }
     }
   }

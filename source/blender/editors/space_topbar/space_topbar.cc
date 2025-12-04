@@ -188,23 +188,23 @@ static void topbar_header_region_message_subscribe(const wmRegionMessageSubscrib
 
 static void recent_files_menu_draw(const bContext *C, Menu *menu)
 {
-  uiLayout *layout = menu->layout;
-  layout->operator_context_set(blender::wm::OpCallContext::InvokeDefault);
+  blender::ui::Layout &layout = *menu->layout;
+  layout.operator_context_set(blender::wm::OpCallContext::InvokeDefault);
   const bool is_menu_search = CTX_data_int_get(C, "is_menu_search").value_or(false);
   if (is_menu_search) {
-    uiTemplateRecentFiles(layout, U.recent_files);
+    uiTemplateRecentFiles(&layout, U.recent_files);
   }
   else {
     const int limit = std::min<int>(U.recent_files, 20);
-    if (uiTemplateRecentFiles(layout, limit) != 0) {
-      layout->separator();
-      PointerRNA search_props = layout->op(
+    if (uiTemplateRecentFiles(&layout, limit) != 0) {
+      layout.separator();
+      PointerRNA search_props = layout.op(
           "WM_OT_search_single_menu", IFACE_("More..."), ICON_VIEWZOOM);
       RNA_string_set(&search_props, "menu_idname", "TOPBAR_MT_file_open_recent");
-      layout->op("WM_OT_clear_recent_files", IFACE_("Clear Recent Files List..."), ICON_TRASH);
+      layout.op("WM_OT_clear_recent_files", IFACE_("Clear Recent Files List..."), ICON_TRASH);
     }
     else {
-      layout->label(IFACE_("No Recent Files"), ICON_NONE);
+      layout.label(IFACE_("No Recent Files"), ICON_NONE);
     }
   }
 }
@@ -238,8 +238,8 @@ static void undo_history_draw_menu(const bContext *C, Menu *menu)
     undo_step_count += 1;
   }
 
-  uiLayout *split = &menu->layout->split(0.0f, false);
-  uiLayout *column = nullptr;
+  blender::ui::Layout &split = menu->layout->split(0.0f, false);
+  blender::ui::Layout *column = nullptr;
 
   const int col_size = 20 + (undo_step_count / 12);
 
@@ -254,14 +254,14 @@ static void undo_history_draw_menu(const bContext *C, Menu *menu)
       continue;
     }
     if (!(undo_step_count % col_size)) {
-      column = &split->column(false);
+      column = &split.column(false);
     }
     const bool is_active = (us == wm->runtime->undo_stack->step_active);
-    uiLayout *row = &column->row(false);
-    row->enabled_set(!is_active);
-    PointerRNA op_ptr = row->op("ED_OT_undo_history",
-                                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, us->name),
-                                is_active ? ICON_LAYER_ACTIVE : ICON_NONE);
+    blender::ui::Layout &row = column->row(false);
+    row.enabled_set(!is_active);
+    PointerRNA op_ptr = row.op("ED_OT_undo_history",
+                               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, us->name),
+                               is_active ? ICON_LAYER_ACTIVE : ICON_NONE);
     RNA_int_set(&op_ptr, "item", i);
     undo_step_count += 1;
   }

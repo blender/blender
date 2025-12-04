@@ -255,8 +255,6 @@ static wmOperatorStatus unpack_all_exec(bContext *C, wmOperator *op)
 static wmOperatorStatus unpack_all_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   Main *bmain = CTX_data_main(C);
-  uiPopupMenu *pup;
-  uiLayout *layout;
 
   const PackedFileCount count = BKE_packedfile_count_all(bmain);
 
@@ -269,11 +267,11 @@ static wmOperatorStatus unpack_all_invoke(bContext *C, wmOperator *op, const wmE
   const std::string title = fmt::format(
       fmt::runtime(IFACE_("Unpack - Files: {}, Bakes: {}")), count.individual_files, count.bakes);
 
-  pup = UI_popup_menu_begin(C, title.c_str(), ICON_NONE);
-  layout = UI_popup_menu_layout(pup);
+  uiPopupMenu *pup = UI_popup_menu_begin(C, title.c_str(), ICON_NONE);
+  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
 
-  layout->operator_context_set(blender::wm::OpCallContext::ExecDefault);
-  layout->op_enum("FILE_OT_unpack_all", "method");
+  layout.operator_context_set(blender::wm::OpCallContext::ExecDefault);
+  layout.op_enum("FILE_OT_unpack_all", "method");
 
   UI_popup_menu_end(C, pup);
 
@@ -360,18 +358,15 @@ static wmOperatorStatus unpack_item_exec(bContext *C, wmOperator *op)
 
 static wmOperatorStatus unpack_item_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  uiPopupMenu *pup;
-  uiLayout *layout;
+  uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Unpack"), ICON_NONE);
+  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
 
-  pup = UI_popup_menu_begin(C, IFACE_("Unpack"), ICON_NONE);
-  layout = UI_popup_menu_layout(pup);
-
-  layout->operator_context_set(blender::wm::OpCallContext::ExecDefault);
-  layout->op_enum(op->type->idname,
-                  "method",
-                  static_cast<IDProperty *>(op->ptr->data),
-                  blender::wm::OpCallContext::ExecRegionWin,
-                  UI_ITEM_NONE);
+  layout.operator_context_set(blender::wm::OpCallContext::ExecDefault);
+  layout.op_enum(op->type->idname,
+                 "method",
+                 static_cast<IDProperty *>(op->ptr->data),
+                 blender::wm::OpCallContext::ExecRegionWin,
+                 UI_ITEM_NONE);
 
   UI_popup_menu_end(C, pup);
 

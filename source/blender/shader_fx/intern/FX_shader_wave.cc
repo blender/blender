@@ -37,16 +37,16 @@ static void copy_data(const ShaderFxData *md, ShaderFxData *target)
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "orientation", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "amplitude", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "period", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "phase", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "orientation", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "amplitude", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "period", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "phase", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }

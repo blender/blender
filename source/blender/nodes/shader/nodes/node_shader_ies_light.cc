@@ -24,20 +24,21 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Factor", "Fac");
 }
 
-static void node_shader_buts_ies(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_shader_buts_ies(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiLayout *row;
-
-  row = &layout->row(false);
-  row->prop(ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-
-  row = &layout->row(true);
-
-  if (RNA_enum_get(ptr, "mode") == NODE_IES_INTERNAL) {
-    row->prop(ptr, "ies", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  {
+    ui::Layout &row = layout.row(false);
+    row.prop(ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   }
-  else {
-    row->prop(ptr, "filepath", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+
+  {
+    ui::Layout &row = layout.row(true);
+    if (RNA_enum_get(ptr, "mode") == NODE_IES_INTERNAL) {
+      row.prop(ptr, "ies", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    }
+    else {
+      row.prop(ptr, "filepath", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    }
   }
 }
 

@@ -115,6 +115,29 @@ blender::StringRef legacy_socket_idname_to_socket_type(blender::StringRef idname
 bNode &version_node_add_empty(bNodeTree &ntree, const char *idname);
 
 /**
+ * Similar to #version_node_add_empty but doesn't require a valid #idname. This is typically
+ * needed to write a node in a blend file for forward compatibility reasons, where the node was
+ * removed and has no RNA definition anymore.
+ *
+ * The same rules defined in #version_node_add_empty apply here as well (node placement, separate
+ * socket and storage definition etc..).
+ *
+ * The parameters are needed to create a valid #bNodeType to set it as node->typeinfo.
+ * See also #bNodeType for more details.
+ */
+bNode &version_node_add_unknown(bNodeTree &ntree,
+                                blender::bke::bNodeType &node_type,
+                                const char *idname,
+                                const int16_t legacy_type,
+                                const std::string &ui_name,
+                                const std::string &ui_description,
+                                const std::string &enum_name_legacy,
+                                const short nclass,
+                                const float width = 140.0f,
+                                const float height = 100.0f,
+                                const bool no_muting = false);
+
+/**
  * Removes a node for versioning purposes:
  * - Animation data (#AnimData) are not removed, because they might be using #bAction.id which
  *   is not be available before linking.

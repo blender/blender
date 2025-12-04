@@ -23,8 +23,8 @@
 #include "BLI_task.h"
 
 #include "BKE_fcurve.hh"
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
+#include "BKE_movieclip.hh"
+#include "BKE_tracking.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
@@ -1292,7 +1292,7 @@ struct TrackingStabilizeFrameInterpolationData {
   ImBuf *ibuf;
   ImBuf *tmpibuf;
   float (*mat)[4];
-  int tracking_filter;
+  TrackingStabilizationFilter tracking_filter;
 };
 
 static void tracking_stabilize_frame_interpolation_cb(void *__restrict userdata,
@@ -1427,7 +1427,7 @@ ImBuf *BKE_tracking_stabilize_frame(
   data.ibuf = ibuf;
   data.tmpibuf = tmpibuf;
   data.mat = mat;
-  data.tracking_filter = tracking->stabilization.filter;
+  data.tracking_filter = TrackingStabilizationFilter(tracking->stabilization.filter);
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);

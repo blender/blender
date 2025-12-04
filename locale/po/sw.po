@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28417,10 +28417,6 @@ msgid "Apply"
 msgstr "Tumia"
 
 
-msgid "Navigation"
-msgstr "Urambazaji"
-
-
 msgid "Show/Hide"
 msgstr "Onyesha/Ficha"
 
@@ -28465,14 +28461,6 @@ msgid "Math"
 msgstr "Hisabati"
 
 
-msgid "Snap"
-msgstr "Picha"
-
-
-msgid "Mirror"
-msgstr "Kioo"
-
-
 msgid "Text"
 msgstr "Maandishi"
 
@@ -28483,6 +28471,10 @@ msgstr "Mpira wa miguu"
 
 msgid "Pivot Point"
 msgstr "Egemeo"
+
+
+msgid "Snap"
+msgstr "Picha"
 
 
 msgid "Read"
@@ -28499,6 +28491,14 @@ msgstr "Andika"
 
 msgid "Primitives"
 msgstr "Watu wa kwanza"
+
+
+msgid "Mirror"
+msgstr "Kioo"
+
+
+msgid "Navigation"
+msgstr "Urambazaji"
 
 
 msgid "Instances"
@@ -41811,10 +41811,6 @@ msgid "Boolean value socket of a node"
 msgstr "Soketi ya thamani ya Boolean ya nodi"
 
 
-msgid "Default Value"
-msgstr "Thamani Chaguomsingi"
-
-
 msgid "Collection Node Socket"
 msgstr "Soketi ya Nodi ya Mkusanyiko"
 
@@ -42037,6 +42033,10 @@ msgstr "Jina la sifa linalotumiwa na chaguo-msingi wakati kikundi cha nodi kinat
 
 msgid "Default Input"
 msgstr "Ingizo Chaguomsingi"
+
+
+msgid "Default Value"
+msgstr "Thamani Chaguomsingi"
 
 
 msgid "The node socket's default value"
@@ -49434,10 +49434,6 @@ msgid "Other"
 msgstr "Nyingine"
 
 
-msgid "Other geometry types, like curve, metaball, etc. (converted to meshes)"
-msgstr "Aina zingine za jiometri, kama vile curve, metaball, n.k. (zimebadilishwa kuwa meshes)"
-
-
 msgid "Method used to reference paths"
 msgstr "Njia inayotumika kurejelea njia"
 
@@ -54043,20 +54039,12 @@ msgid "Update Scene FPS"
 msgstr "Sasisha FPS ya Onyesho"
 
 
-msgid "Set the scene framerate to that of the BVH file (note that this nullifies the 'Scale FPS' option, as the scale will be 1:1)"
-msgstr "Weka kasi ya tukio kuwa ile ya faili ya BVH (kumbuka kuwa hii inabatilisha chaguo la 'Scale FPS', kwani kipimo kitakuwa 1:1)"
-
-
 msgid "Loop the animation playback"
 msgstr "Tanzisha uchezaji wa uhuishaji"
 
 
 msgid "Scale FPS"
 msgstr "Piga FPS"
-
-
-msgid "Scale the framerate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
-msgstr "Pima kasi ya fremu kutoka kwa BVH hadi matukio ya sasa, vinginevyo kila fremu ya BVH inaelekeza moja kwa moja kwenye fremu ya Blender"
 
 
 msgid "Animation Offset"
@@ -57568,10 +57556,6 @@ msgstr "Mikunjo Safi"
 
 msgid "After baking curves, remove redundant keys"
 msgstr "Baada ya curves kuoka, ondoa funguo redundant"
-
-
-msgid "Clear Constraints"
-msgstr "Vikwazo Wazi"
 
 
 msgid "Clear Parents"
@@ -84992,6 +84976,10 @@ msgid "Sequence strip to group other strips as a single sequence strip"
 msgstr "Panda ukanda ili kuweka vipande vingine kama ukanda mmoja wa mfuatano"
 
 
+msgid "Playback volume of the sound"
+msgstr "Kiasi cha uchezaji wa sauti"
+
+
 msgid "Sequence strip to load a video from the clip editor"
 msgstr "Panda ukanda wa kupakia video kutoka kwa kihariri cha klipu"
 
@@ -85062,10 +85050,6 @@ msgstr "Tumia Maelezo"
 
 msgid "Show Annotations in OpenGL previews"
 msgstr "Onyesha Maelezo katika muhtasari wa OpenGL"
-
-
-msgid "Playback volume of the sound"
-msgstr "Kiasi cha uchezaji wa sauti"
 
 
 msgid "Sequence strip defining a sound to be played over a period of time"
@@ -97038,16 +97022,6 @@ msgstr "Rukia Ukanda Unaofuata (Katikati)"
 
 
 msgctxt "Operator"
-msgid "Movie"
-msgstr "Filamu"
-
-
-msgctxt "Operator"
-msgid "Image/Sequence"
-msgstr "Taswira/Mfuatano"
-
-
-msgctxt "Operator"
 msgid "Fade"
 msgstr "Fifisha"
 
@@ -99655,10 +99629,6 @@ msgstr "Haikuweza kufuta fremu muhimu, kwa kuwa njia ya RNA si sahihi kwa kitamb
 
 msgid "No action to delete keyframes from for ID = %s"
 msgstr "Hakuna hatua ya kufuta fremu muhimu kutoka kwa ID = %s"
-
-
-msgid "Not deleting keyframe for locked F-Curve '%s' for %s '%s'"
-msgstr "Kutofuta fremu muhimu ya F-Curve '%s' iliyofungwa kwa %s '%s'"
 
 
 msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
@@ -102664,10 +102634,6 @@ msgstr "Mhimili batili/usiowekwa"
 
 msgid "You have to select a string of connected vertices too"
 msgstr "Lazima uchague mfuatano wa vipeo vilivyounganishwa pia"
-
-
-msgid "Compiled without GMP, using fast solver"
-msgstr "Imekusanywa bila GMP, kwa kutumia kisuluhishi cha haraka"
 
 
 msgid "No intersections found"
@@ -110302,10 +110268,6 @@ msgid "Values used to sort the curve's points. Uses indices by default"
 msgstr "Thamani zinazotumika kupanga pointi za curve."
 
 
-msgid "Which of the sorted points to output"
-msgstr "Ni ipi kati ya pointi zilizopangwa ili kutoa"
-
-
 msgid "A point of the curve, chosen by the sort index"
 msgstr "Njia ya mkunjo, iliyochaguliwa na faharasa ya kupanga"
 
@@ -110977,10 +110939,6 @@ msgid "Values that sort the corners attached to the edge"
 msgstr "Thamani zinazopanga pembe zilizoambatishwa kwenye ukingo"
 
 
-msgid "Which of the sorted corners to output"
-msgstr "Ni pembe gani zilizopangwa za kutoa"
-
-
 msgid "A corner of the input edge in its face's winding order, chosen by the sort index"
 msgstr "Kona ya ukingo wa pembejeo katika mpangilio wa vilima wa uso wake, iliyochaguliwa na faharasa ya kupanga"
 
@@ -111071,10 +111029,6 @@ msgstr "Kona Ukingo wa awali"
 
 msgid "Values used to sort the edges connected to the vertex. Uses indices by default"
 msgstr "Thamani zinazotumika kupanga kingo zilizounganishwa kwenye kipeo."
-
-
-msgid "Which of the sorted edges to output"
-msgstr "Ni kingo zipi zilizopangwa ili kutoa"
 
 
 msgid "An edge connected to the face, chosen by the sort index"

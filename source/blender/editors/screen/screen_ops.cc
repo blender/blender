@@ -42,7 +42,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
@@ -1939,6 +1939,50 @@ static bool area_move_init(bContext *C, wmOperator *op)
   return true;
 }
 
+static bool area_has_scrubbing_snap(ScrArea *area)
+{
+  if (area == nullptr) {
+    return false;
+  }
+
+  if (ELEM(area->spacetype, SPACE_ACTION, SPACE_GRAPH, SPACE_NLA)) {
+    return true;
+  }
+
+  if (area->spacetype == SPACE_SEQ) {
+    ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+    if (region && region->runtime->visible) {
+      return true;
+    }
+  }
+
+  if (area->spacetype == SPACE_CLIP) {
+    ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_PREVIEW);
+    if (region && region->runtime->visible) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+static bool area_has_playback_snap(ScrArea *area)
+{
+  if (area == nullptr) {
+    return false;
+  }
+
+  if (ELEM(area->spacetype, SPACE_ACTION, SPACE_GRAPH, SPACE_NLA, SPACE_SEQ)) {
+    ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_FOOTER);
+    const bool anim_footer = (region && region->runtime->visible);
+    region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
+    const bool anim_header = (region && region->runtime->visible);
+    return anim_footer && anim_header;
+  }
+
+  return false;
+}
+
 static int area_snap_calc_location(sAreaMoveData *md, const int delta)
 {
   BLI_assert(md->snap_type != SNAP_NONE);
@@ -1958,11 +2002,55 @@ static int area_snap_calc_location(sAreaMoveData *md, const int delta)
 
       /* Slight snap to vertical minimum and maximum. */
       const int snap_threshold = int(float(ED_area_headersize()) * 0.6f);
-      if (m_cursor_final < (m_min + snap_threshold)) {
-        m_cursor_final = m_min;
+
+      blender::Vector<int> snaps;
+      /* Minimum. */
+      snaps.append(m_min);
+
+      if (md->dir_axis == SCREEN_AXIS_H) {
+        /* Minimal snaps for editors below the cursor with time scrub areas. */
+        int snap_pos = m_min;
+        if (area_has_scrubbing_snap(md->area2)) {
+          snap_pos += UI_TIME_SCRUB_MARGIN_Y;
+          snaps.append(snap_pos);
+        }
+        if (area_has_playback_snap(md->area2)) {
+          snap_pos += ED_area_footersize();
+          snaps.append(snap_pos);
+        }
+
+        /* Maximal snaps for editors above the cursor with time scrub areas. */
+        snap_pos = md->origval + md->bigger;
+        if (area_has_playback_snap(md->area2)) {
+          snap_pos -= ED_area_footersize();
+          snaps.append(snap_pos);
+        }
+        if (area_has_scrubbing_snap(md->area1)) {
+          snap_pos -= UI_TIME_SCRUB_MARGIN_Y;
+          snaps.append(snap_pos);
+        }
+
+        if (md->area2 && md->area2->spacetype == SPACE_CONSOLE) {
+          /* Minimal snap for Console below. */
+          SpaceConsole *console = static_cast<SpaceConsole *>(md->area2->spacedata.first);
+          snaps.append(m_min + int(float(console->lheight) * UI_SCALE_FAC * 1.5f));
+        }
+        if (md->area1 && md->area1->spacetype == SPACE_CONSOLE) {
+          /* Maximal snap for Console above. */
+          SpaceConsole *console = static_cast<SpaceConsole *>(md->area1->spacedata.first);
+          snaps.append(md->origval + md->bigger -
+                       int(float(console->lheight) * UI_SCALE_FAC * 1.5f));
+        }
       }
-      else if (m_cursor_final > (md->origval + md->bigger - snap_threshold)) {
-        m_cursor_final = md->origval + md->bigger;
+
+      /* Maximum. */
+      snaps.append(md->origval + md->bigger);
+
+      for (int i = 0; i < snaps.size(); i++) {
+        if (abs(m_cursor_final - snaps[i]) < snap_threshold) {
+          m_cursor_final = snaps[i];
+          break;
+        }
       }
     } break;
 

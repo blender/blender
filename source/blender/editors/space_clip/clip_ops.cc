@@ -38,9 +38,9 @@
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_movieclip.h"
+#include "BKE_movieclip.hh"
 #include "BKE_report.hh"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -1190,7 +1190,7 @@ struct ProxyJob {
   Scene *scene;
   Main *main;
   MovieClip *clip;
-  int clip_flag;
+  MovieClipFlag clip_flag;
   bool stop;
   MovieProxyBuilder *proxy_builder;
 };
@@ -1545,7 +1545,7 @@ static wmOperatorStatus clip_rebuild_proxy_exec(bContext *C, wmOperator * /*op*/
   pj->scene = scene;
   pj->main = CTX_data_main(C);
   pj->clip = clip;
-  pj->clip_flag = clip->flag & MCLIP_TIMECODE_FLAGS;
+  pj->clip_flag = MovieClipFlag(clip->flag & MCLIP_TIMECODE_FLAGS);
 
   if (clip->anim) {
     pj->proxy_builder = MOV_proxy_builder_start(clip->anim,

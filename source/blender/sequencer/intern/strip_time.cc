@@ -16,7 +16,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 
-#include "BKE_movieclip.h"
+#include "BKE_movieclip.hh"
 #include "BKE_sound.hh"
 
 #include "DNA_sound_types.h"
@@ -117,7 +117,7 @@ static void strip_update_sound_bounds_recursive_impl(const Scene *scene,
                                                max_ii(start, metastrip_start_get(strip)),
                                                min_ii(end, metastrip_end_get(strip)));
     }
-    else if (ELEM(strip->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SCENE)) {
+    else if (ELEM(strip->type, STRIP_TYPE_SOUND, STRIP_TYPE_SCENE)) {
       if (strip->runtime->scene_sound) {
         int startofs = strip->startofs;
         int endofs = strip->endofs;
@@ -562,7 +562,7 @@ static void strip_time_slip_strip_ex(const Scene *scene,
                                      bool slip_keyframes,
                                      bool recursed)
 {
-  if (strip->type == STRIP_TYPE_SOUND_RAM && subframe_delta != 0.0f) {
+  if (strip->type == STRIP_TYPE_SOUND && subframe_delta != 0.0f) {
     strip->sound_offset += subframe_delta / scene->frames_per_second();
   }
 
@@ -599,7 +599,7 @@ static void strip_time_slip_strip_ex(const Scene *scene,
 
   if (slip_keyframes) {
     float anim_offset = delta;
-    if (strip->type == STRIP_TYPE_SOUND_RAM) {
+    if (strip->type == STRIP_TYPE_SOUND) {
       anim_offset += subframe_delta;
     }
     offset_animdata(scene, strip, anim_offset);
@@ -626,7 +626,7 @@ void time_slip_strip(
 
 int time_get_rounded_sound_offset(const Strip *strip, const float frames_per_second)
 {
-  if (strip->type == STRIP_TYPE_SOUND_RAM && strip->sound != nullptr) {
+  if (strip->type == STRIP_TYPE_SOUND && strip->sound != nullptr) {
     return round_fl_to_int((strip->sound->offset_time + strip->sound_offset) * frames_per_second);
   }
   return 0;

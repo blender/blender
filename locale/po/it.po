@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
 "PO-Revision-Date: 2025-11-12 16:04+0000\n"
 "Last-Translator: blend-it <blend-it@users.noreply.translate.blender.org>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -24578,10 +24578,6 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Align View"
-msgstr "Allinea Vista"
-
-
 msgid "Apply"
 msgstr "Applica"
 
@@ -24592,10 +24588,6 @@ msgstr "Traccia"
 
 msgid "Quick Effects"
 msgstr "Effetti Veloci"
-
-
-msgid "Navigation"
-msgstr "Navigazione"
 
 
 msgid "Show/Hide"
@@ -24628,14 +24620,6 @@ msgstr "Ganci"
 
 msgid "Vertex Group Locks"
 msgstr "Blocchi del Gruppo di Vertici"
-
-
-msgid "Viewpoint"
-msgstr "Punto di vista"
-
-
-msgid "Local View"
-msgstr "Vista Locale"
 
 
 msgid "Face Sets Init"
@@ -24722,24 +24706,12 @@ msgid "Math"
 msgstr "Matematica"
 
 
-msgid "UV Mapping"
-msgstr "Mappatura UV"
-
-
 msgid "Special Characters"
 msgstr "Caratteri Speciali"
 
 
 msgid "Kerning"
 msgstr "Crenatura"
-
-
-msgid "Snap"
-msgstr "Aggancia"
-
-
-msgid "Mirror"
-msgstr "Specchia"
 
 
 msgid "Text"
@@ -24756,6 +24728,10 @@ msgstr "Rollio Osso"
 
 msgid "Pivot Point"
 msgstr "Punto di Perno"
+
+
+msgid "Snap"
+msgstr "Aggancia"
 
 
 msgid "Proportional Editing Falloff"
@@ -24788,6 +24764,38 @@ msgstr "Scrittura"
 
 msgid "Primitives"
 msgstr "Primitive"
+
+
+msgid "Mirror"
+msgstr "Specchia"
+
+
+msgid "UV Mapping"
+msgstr "Mappatura UV"
+
+
+msgid "Local View"
+msgstr "Vista Locale"
+
+
+msgid "Viewpoint"
+msgstr "Punto di vista"
+
+
+msgid "Navigation"
+msgstr "Navigazione"
+
+
+msgid "Align View"
+msgstr "Allinea Vista"
+
+
+msgid "Align View to Active"
+msgstr "Allinea Vista a Attivo"
+
+
+msgid "View Regions"
+msgstr "Regione Vista"
 
 
 msgid "Select More/Less"
@@ -24834,10 +24842,6 @@ msgid "Light Probe"
 msgstr "Sensore di Luce"
 
 
-msgid "View Regions"
-msgstr "Regione Vista"
-
-
 msgid "Add Image"
 msgstr "Aggiungi Immagine"
 
@@ -24848,10 +24852,6 @@ msgstr "Relazioni"
 
 msgid "Rigid Body"
 msgstr "Corpo Rigido"
-
-
-msgid "Align View to Active"
-msgstr "Allinea Vista a Attivo"
 
 
 msgid "Keyframe Insert Pie"
@@ -32897,10 +32897,6 @@ msgid "Boolean Node Socket"
 msgstr "Connettore Nodo Boolean"
 
 
-msgid "Default Value"
-msgstr "Valore Predefinito"
-
-
 msgid "Color Node Socket"
 msgstr "Connettore Nodo Colore"
 
@@ -32927,6 +32923,10 @@ msgstr "Connettore Nodo Vettore"
 
 msgid "Virtual Node Socket"
 msgstr "Connettore Nodo Virtuale"
+
+
+msgid "Default Value"
+msgstr "Valore Predefinito"
 
 
 msgid "Maximum value"
@@ -41519,10 +41519,6 @@ msgstr "Precalcola trasformazioni ossa"
 
 msgid "Bake object transformations"
 msgstr "Precalcola trasformazioni oggetto"
-
-
-msgid "Clear Constraints"
-msgstr "Cancella Vincoli"
 
 
 msgid "Clear Parents"
@@ -57353,6 +57349,10 @@ msgid "Meta Strip"
 msgstr "Meta Spezzone"
 
 
+msgid "Playback volume of the sound"
+msgstr "Volume di riproduzione del suono"
+
+
 msgid "Sequence strip to load a video from the clip editor"
 msgstr "Spezzone di sequenza per caricare un video dall'editor di clip"
 
@@ -57391,10 +57391,6 @@ msgstr "Spezzone Scena"
 
 msgid "Camera Override"
 msgstr "Sovrascrivi Camera"
-
-
-msgid "Playback volume of the sound"
-msgstr "Volume di riproduzione del suono"
 
 
 msgctxt "Sound"
@@ -62668,16 +62664,6 @@ msgstr "Salta a Spezzone Precedente (Centro)"
 msgctxt "Operator"
 msgid "Jump to Next Strip (Center)"
 msgstr "Salta a Spezzone Successivo (Centro)"
-
-
-msgctxt "Operator"
-msgid "Movie"
-msgstr "Video"
-
-
-msgctxt "Operator"
-msgid "Image/Sequence"
-msgstr "Immagine/Sequenza"
 
 
 msgctxt "Operator"

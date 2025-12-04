@@ -27,7 +27,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   /* The fillet method was only introduced in OpenVDB 12. Since we don't presently require 12,
-     disable this node when building against older versions. */
+   * disable this node when building against older versions. */
 #ifdef WITH_OPENVDB
 #  if OPENVDB_ABI_VERSION_NUMBER >= 12
   auto grid = params.extract_input<bke::VolumeGrid<float>>("Grid");

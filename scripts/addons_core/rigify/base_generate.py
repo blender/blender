@@ -295,8 +295,8 @@ class BaseGenerator:
 
     def __run_object_stage(self, method_name: str):
         """Run a generation stage in Object mode."""
-        assert(self.context.active_object == self.obj)
-        assert(self.obj.mode == 'OBJECT')
+        assert self.context.active_object == self.obj
+        assert self.obj.mode == 'OBJECT'
         num_bones = len(self.obj.data.bones)
 
         self.stage = method_name
@@ -304,9 +304,9 @@ class BaseGenerator:
         for rig in self.rig_list:
             rig.rigify_invoke_stage(method_name)
 
-            assert(self.context.active_object == self.obj)
-            assert(self.obj.mode == 'OBJECT')
-            assert(num_bones == len(self.obj.data.bones))
+            assert self.context.active_object == self.obj
+            assert self.obj.mode == 'OBJECT'
+            assert num_bones == len(self.obj.data.bones)
 
         # Allow plugins to be added to the end of the list on the fly
         for i in count(0):
@@ -315,14 +315,14 @@ class BaseGenerator:
 
             self.plugin_list[i].rigify_invoke_stage(method_name)
 
-            assert(self.context.active_object == self.obj)
-            assert(self.obj.mode == 'OBJECT')
-            assert(num_bones == len(self.obj.data.bones))
+            assert self.context.active_object == self.obj
+            assert self.obj.mode == 'OBJECT'
+            assert num_bones == len(self.obj.data.bones)
 
     def __run_edit_stage(self, method_name: str):
         """Run a generation stage in Edit mode."""
-        assert(self.context.active_object == self.obj)
-        assert(self.obj.mode == 'EDIT')
+        assert self.context.active_object == self.obj
+        assert self.obj.mode == 'EDIT'
         num_bones = len(self.obj.data.edit_bones)
 
         self.stage = method_name
@@ -330,9 +330,9 @@ class BaseGenerator:
         for rig in self.rig_list:
             rig.rigify_invoke_stage(method_name)
 
-            assert(self.context.active_object == self.obj)
-            assert(self.obj.mode == 'EDIT')
-            assert(num_bones == len(self.obj.data.edit_bones))
+            assert self.context.active_object == self.obj
+            assert self.obj.mode == 'EDIT'
+            assert num_bones == len(self.obj.data.edit_bones)
 
         # Allow plugins to be added to the end of the list on the fly
         for i in count(0):
@@ -341,9 +341,9 @@ class BaseGenerator:
 
             self.plugin_list[i].rigify_invoke_stage(method_name)
 
-            assert(self.context.active_object == self.obj)
-            assert(self.obj.mode == 'EDIT')
-            assert(num_bones == len(self.obj.data.edit_bones))
+            assert self.context.active_object == self.obj
+            assert self.obj.mode == 'EDIT'
+            assert num_bones == len(self.obj.data.edit_bones)
 
     def invoke_initialize(self):
         self.__run_object_stage('initialize')
@@ -367,16 +367,16 @@ class BaseGenerator:
                     print(f"WARNING: plugin {plugin} didn't register bone {name}\n")
 
     def invoke_generate_bones(self):
-        assert(self.context.active_object == self.obj)
-        assert(self.obj.mode == 'EDIT')
+        assert self.context.active_object == self.obj
+        assert self.obj.mode == 'EDIT'
 
         self.stage = 'generate_bones'
 
         for rig in self.rig_list:
             rig.rigify_invoke_stage('generate_bones')
 
-            assert(self.context.active_object == self.obj)
-            assert(self.obj.mode == 'EDIT')
+            assert self.context.active_object == self.obj
+            assert self.obj.mode == 'EDIT'
 
             self.__auto_register_bones(self.obj.data.edit_bones, rig)
 
@@ -387,8 +387,8 @@ class BaseGenerator:
 
             self.plugin_list[i].rigify_invoke_stage('generate_bones')
 
-            assert(self.context.active_object == self.obj)
-            assert(self.obj.mode == 'EDIT')
+            assert self.context.active_object == self.obj
+            assert self.obj.mode == 'EDIT'
 
             self.__auto_register_bones(self.obj.data.edit_bones, None, plugin=self.plugin_list[i])
 
@@ -452,8 +452,8 @@ class BaseGenerator:
                 else:
                     rigs = [self.instantiate_rig(rig_class, pose_bone)]
 
-                assert(self.context.active_object == self.obj)
-                assert(self.obj.mode == 'OBJECT')
+                assert self.context.active_object == self.obj
+                assert self.obj.mode == 'OBJECT'
 
                 for rig in rigs:
                     self.rig_list.append(rig)
@@ -468,8 +468,8 @@ class BaseGenerator:
                         self.bone_owners[org_name] = rig
 
             except ImportError:
-                message = f"Rig Type Missing: python module for type '{rig_type}' "\
-                          f"not found (bone: {bone_name})"
+                message = (f"Rig Type Missing: python module for type '{rig_type}' "
+                           f"not found (bone: {bone_name})")
                 if halt_on_missing:
                     raise MetarigError(message)
                 else:
@@ -514,8 +514,8 @@ class BaseGenerator:
     def instantiate_rig_tree(self, halt_on_missing=False):
         """Create rig instances and connect them into a tree."""
 
-        assert(self.context.active_object == self.obj)
-        assert(self.obj.mode == 'OBJECT')
+        assert self.context.active_object == self.obj
+        assert self.obj.mode == 'OBJECT'
 
         self.stage = 'instantiate'
 

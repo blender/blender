@@ -1615,6 +1615,9 @@ void wm_draw_update(bContext *C)
 {
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
+  const bool rna_disallow_writes = true;
+
+  CTX_rna_disallow_write_set_p(C, &rna_disallow_writes);
 
   GPU_context_main_lock();
 
@@ -1666,6 +1669,8 @@ void wm_draw_update(bContext *C)
 
   GPU_render_end();
   GPU_context_main_unlock();
+
+  CTX_rna_disallow_write_set_p(C, nullptr);
 }
 
 void wm_draw_region_clear(wmWindow *win, ARegion * /*region*/)

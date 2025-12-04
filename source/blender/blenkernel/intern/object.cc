@@ -1486,24 +1486,21 @@ void BKE_object_link_modifiers(Object *ob_dst, const Object *ob_src)
 /**
  * Copy CCG related data. Used to sync copy of mesh with reshaped original mesh.
  */
-static void copy_ccg_data(Mesh *mesh_destination,
-                          Mesh *mesh_source,
-                          const eCustomDataType layer_type)
+static void copy_ccg_data(Mesh *mesh_dst, Mesh *mesh_src, const eCustomDataType layer_type)
 {
-  BLI_assert(mesh_destination->corners_num == mesh_source->corners_num);
-  CustomData *data_destination = &mesh_destination->corner_data;
-  CustomData *data_source = &mesh_source->corner_data;
-  const int num_elements = mesh_source->corners_num;
-  if (!CustomData_has_layer(data_source, layer_type)) {
+  BLI_assert(mesh_dst->corners_num == mesh_src->corners_num);
+  CustomData *data_dst = &mesh_dst->corner_data;
+  CustomData *data_src = &mesh_src->corner_data;
+  const int num_elements = mesh_src->corners_num;
+  if (!CustomData_has_layer(data_src, layer_type)) {
     return;
   }
-  const int layer_index = CustomData_get_layer_index(data_destination, layer_type);
-  CustomData_free_layer(data_destination, layer_type, layer_index);
-  BLI_assert(!CustomData_has_layer(data_destination, layer_type));
-  CustomData_add_layer(
-      data_destination, eCustomDataType(layer_type), CD_SET_DEFAULT, num_elements);
-  BLI_assert(CustomData_has_layer(data_destination, layer_type));
-  CustomData_copy_layer_type_data(data_source, data_destination, layer_type, 0, 0, num_elements);
+  const int layer_index = CustomData_get_layer_index(data_dst, layer_type);
+  CustomData_free_layer(data_dst, layer_type, layer_index);
+  BLI_assert(!CustomData_has_layer(data_dst, layer_type));
+  CustomData_add_layer(data_dst, eCustomDataType(layer_type), CD_SET_DEFAULT, num_elements);
+  BLI_assert(CustomData_has_layer(data_dst, layer_type));
+  CustomData_copy_layer_type_data(data_src, data_dst, layer_type, 0, 0, num_elements);
 }
 
 static void object_update_from_subsurf_ccg(Object *object)

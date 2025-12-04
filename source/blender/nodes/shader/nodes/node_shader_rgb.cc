@@ -20,7 +20,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value({0.5f, 0.5f, 0.5f, 1.0f})
       .custom_draw([](CustomSocketDrawParams &params) {
         params.layout.alignment_set(ui::LayoutAlign::Expand);
-        uiLayout &col = params.layout.column(false);
+        ui::Layout &col = params.layout.column(false);
         uiTemplateColorPicker(
             &col, &params.socket_ptr, "default_value", true, false, false, false);
         col.prop(&params.socket_ptr, "default_value", UI_ITEM_R_SLIDER, "", ICON_NONE);

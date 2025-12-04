@@ -544,16 +544,6 @@ void GLStateManager::texture_bind_apply()
   }
 }
 
-void GLStateManager::texture_unpack_row_length_set(uint len)
-{
-  texture_unpack_row_length_ = len;
-}
-
-uint GLStateManager::texture_unpack_row_length_get() const
-{
-  return texture_unpack_row_length_;
-}
-
 uint64_t GLStateManager::bound_texture_slots()
 {
   uint64_t bound_slots = 0;

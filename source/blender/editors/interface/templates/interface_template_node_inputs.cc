@@ -38,10 +38,7 @@ using ItemIterator = blender::Vector<blender::nodes::ItemDeclarationPtr>::const_
 
 namespace blender::ui::nodes {
 
-static void draw_node_input(bContext *C,
-                            uiLayout *layout,
-                            PointerRNA *node_ptr,
-                            bNodeSocket &socket)
+static void draw_node_input(bContext *C, Layout &layout, PointerRNA *node_ptr, bNodeSocket &socket)
 {
   BLI_assert(socket.typeinfo != nullptr);
   /* Ignore disabled sockets and linked sockets and sockets without a `draw` callback. */
@@ -72,8 +69,8 @@ static void draw_node_input(bContext *C,
       node_ptr->owner_id, &RNA_NodeSocket, &socket);
   const StringRef text = CTX_IFACE_(bke::node_socket_translation_context(socket),
                                     bke::node_socket_label(socket));
-  uiLayout *row = &layout->row(true);
-  socket.typeinfo->draw(C, row, &socket_ptr, node_ptr, text);
+  Layout &row = layout.row(true);
+  socket.typeinfo->draw(C, &row, &socket_ptr, node_ptr, text);
 }
 
 static bool panel_has_used_inputs(const bNode &node,
@@ -99,14 +96,14 @@ static bool panel_has_used_inputs(const bNode &node,
 }
 
 static void draw_node_inputs_recursive(bContext *C,
-                                       uiLayout *layout,
+                                       Layout &layout,
                                        bNode &node,
                                        PointerRNA *node_ptr,
                                        const blender::nodes::PanelDeclaration &panel_decl)
 {
   /* TODO: Use flag on the panel state instead which is better for dynamic panel amounts. */
   const std::string panel_idname = "NodePanel" + std::to_string(panel_decl.identifier);
-  PanelLayout panel = layout->panel(C, panel_idname, panel_decl.default_collapsed);
+  PanelLayout panel = layout.panel(C, panel_idname, panel_decl.default_collapsed);
   const bool has_used_inputs = panel_has_used_inputs(node, panel_decl);
   panel.header->active_set(has_used_inputs);
 
@@ -120,15 +117,15 @@ static void draw_node_inputs_recursive(bContext *C,
   for (const ItemDeclaration *item_decl : panel_decl.items) {
     if (const auto *socket_decl = dynamic_cast<const SocketDeclaration *>(item_decl)) {
       if (socket_decl->in_out == SOCK_IN) {
-        draw_node_input(C, panel.body, node_ptr, node.socket_by_decl(*socket_decl));
+        draw_node_input(C, *panel.body, node_ptr, node.socket_by_decl(*socket_decl));
       }
     }
     else if (const auto *sub_panel_decl = dynamic_cast<const PanelDeclaration *>(item_decl)) {
-      draw_node_inputs_recursive(C, panel.body, node, node_ptr, *sub_panel_decl);
+      draw_node_inputs_recursive(C, *panel.body, node, node_ptr, *sub_panel_decl);
     }
     else if (const auto *layout_decl = dynamic_cast<const LayoutDeclaration *>(item_decl)) {
       if (!layout_decl->is_default) {
-        layout_decl->draw(panel.body, C, node_ptr);
+        layout_decl->draw(*panel.body, C, node_ptr);
       }
     }
   }
@@ -136,7 +133,7 @@ static void draw_node_inputs_recursive(bContext *C,
 
 }  // namespace blender::ui::nodes
 
-void uiTemplateNodeInputs(uiLayout *layout, bContext *C, PointerRNA *ptr)
+void uiTemplateNodeInputs(blender::ui::Layout *layout, bContext *C, PointerRNA *ptr)
 {
   using namespace blender::nodes;
   bNodeTree &tree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
@@ -147,10 +144,10 @@ void uiTemplateNodeInputs(uiLayout *layout, bContext *C, PointerRNA *ptr)
   BLI_assert(node.typeinfo != nullptr);
   /* Draw top-level node buttons. */
   if (node.typeinfo->draw_buttons_ex) {
-    node.typeinfo->draw_buttons_ex(layout, C, ptr);
+    node.typeinfo->draw_buttons_ex(*layout, C, ptr);
   }
   else if (node.typeinfo->draw_buttons) {
-    node.typeinfo->draw_buttons(layout, C, ptr);
+    node.typeinfo->draw_buttons(*layout, C, ptr);
   }
 
   if (node.declaration()) {
@@ -158,12 +155,12 @@ void uiTemplateNodeInputs(uiLayout *layout, bContext *C, PointerRNA *ptr)
     const NodeDeclaration &node_decl = *node.declaration();
     for (const ItemDeclaration *item_decl : node_decl.root_items) {
       if (const auto *panel_decl = dynamic_cast<const PanelDeclaration *>(item_decl)) {
-        blender::ui::nodes::draw_node_inputs_recursive(C, layout, node, ptr, *panel_decl);
+        blender::ui::nodes::draw_node_inputs_recursive(C, *layout, node, ptr, *panel_decl);
       }
       else if (const auto *socket_decl = dynamic_cast<const SocketDeclaration *>(item_decl)) {
         bNodeSocket &socket = node.socket_by_decl(*socket_decl);
         if (socket_decl->custom_draw_fn) {
-          uiLayout &row = layout->row(false);
+          blender::ui::Layout &row = layout->row(false);
           CustomSocketDrawParams params{
               *C,
               row,
@@ -175,12 +172,12 @@ void uiTemplateNodeInputs(uiLayout *layout, bContext *C, PointerRNA *ptr)
           (*socket_decl->custom_draw_fn)(params);
         }
         else if (socket_decl->in_out == SOCK_IN) {
-          blender::ui::nodes::draw_node_input(C, layout, ptr, socket);
+          blender::ui::nodes::draw_node_input(C, *layout, ptr, socket);
         }
       }
       else if (const auto *layout_decl = dynamic_cast<const LayoutDeclaration *>(item_decl)) {
         if (!layout_decl->is_default) {
-          layout_decl->draw(layout, C, ptr);
+          layout_decl->draw(*layout, C, ptr);
         }
       }
     }
@@ -188,7 +185,7 @@ void uiTemplateNodeInputs(uiLayout *layout, bContext *C, PointerRNA *ptr)
   else {
     /* Draw socket values using the flat inputs list. */
     for (bNodeSocket *input : node.runtime->inputs) {
-      blender::ui::nodes::draw_node_input(C, layout, ptr, *input);
+      blender::ui::nodes::draw_node_input(C, *layout, ptr, *input);
     }
   }
 }

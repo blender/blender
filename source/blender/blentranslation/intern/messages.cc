@@ -375,7 +375,7 @@ class MOFile {
       return;
     }
 
-    // Read all format sizes
+    /* Read all format sizes. */
     size_ = get(8);
     keys_offset_ = get(12);
     translations_offset_ = get(16);

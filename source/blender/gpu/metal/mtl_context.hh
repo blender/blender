@@ -434,9 +434,6 @@ struct MTLContextGlobalShaderPipelineState {
   int scissor_width;
   int scissor_height;
 
-  /* Image data access state. */
-  uint unpack_row_length;
-
   /* Render parameters. */
   float point_size = 1.0f;
   float line_width = 1.0f;

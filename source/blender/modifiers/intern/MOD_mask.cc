@@ -755,31 +755,30 @@ static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_re
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *sub, *row;
-  uiLayout *layout = panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   int mode = RNA_enum_get(ptr, "mode");
 
-  layout->prop(ptr, "mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
   if (mode == MOD_MASK_MODE_ARM) {
-    row = &layout->row(true);
-    row->prop(ptr, "armature", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    sub = &row->row(true);
-    sub->use_property_decorate_set(false);
-    sub->prop(ptr, "invert_vertex_group", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+    blender::ui::Layout &row = layout.row(true);
+    row.prop(ptr, "armature", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    blender::ui::Layout &sub = row.row(true);
+    sub.use_property_decorate_set(false);
+    sub.prop(ptr, "invert_vertex_group", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   }
   else if (mode == MOD_MASK_MODE_VGROUP) {
     modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
-    layout->prop(ptr, "use_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "use_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  layout->prop(ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }

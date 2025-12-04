@@ -628,10 +628,6 @@ void call_import_hooks(USDStageReader *archive, ReportList *reports)
   prim_map.reserve((readers.size() * 2) + settings.usd_path_to_mat.size());
 
   for (const USDPrimReader *reader : readers) {
-    if (!reader) {
-      continue;
-    }
-
     Object *ob = reader->object();
 
     prim_map.lookup_or_add_default(reader->object_prim_path())

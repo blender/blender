@@ -243,62 +243,61 @@ static void panel_draw(const bContext *C, Panel *panel)
 {
   static const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
   int wrap_method = RNA_enum_get(ptr, "wrap_method");
-  uiLayout *col, *row;
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "wrap_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "wrap_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (ELEM(wrap_method,
            MOD_SHRINKWRAP_PROJECT,
            MOD_SHRINKWRAP_NEAREST_SURFACE,
            MOD_SHRINKWRAP_TARGET_PROJECT))
   {
-    layout->prop(ptr, "wrap_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "wrap_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   if (wrap_method == MOD_SHRINKWRAP_PROJECT) {
-    layout->prop(ptr, "project_limit", UI_ITEM_NONE, IFACE_("Limit"), ICON_NONE);
-    layout->prop(ptr, "subsurf_levels", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "project_limit", UI_ITEM_NONE, IFACE_("Limit"), ICON_NONE);
+    layout.prop(ptr, "subsurf_levels", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    col = &layout->column(false);
-    row = &col->row(true, IFACE_("Axis"));
-    row->prop(ptr, "use_project_x", toggles_flag, std::nullopt, ICON_NONE);
-    row->prop(ptr, "use_project_y", toggles_flag, std::nullopt, ICON_NONE);
-    row->prop(ptr, "use_project_z", toggles_flag, std::nullopt, ICON_NONE);
+    ui::Layout *col = &layout.column(false);
+    ui::Layout &row = col->row(true, IFACE_("Axis"));
+    row.prop(ptr, "use_project_x", toggles_flag, std::nullopt, ICON_NONE);
+    row.prop(ptr, "use_project_y", toggles_flag, std::nullopt, ICON_NONE);
+    row.prop(ptr, "use_project_z", toggles_flag, std::nullopt, ICON_NONE);
 
     col->prop(ptr, "use_negative_direction", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col->prop(ptr, "use_positive_direction", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    layout->prop(ptr, "cull_face", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-    col = &layout->column(false);
+    layout.prop(ptr, "cull_face", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    col = &layout.column(false);
     col->active_set(RNA_boolean_get(ptr, "use_negative_direction") &&
                     RNA_enum_get(ptr, "cull_face") != 0);
     col->prop(ptr, "use_invert_cull", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  layout->prop(ptr, "target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (wrap_method == MOD_SHRINKWRAP_PROJECT) {
-    layout->prop(ptr, "auxiliary_target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "auxiliary_target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
-  layout->prop(ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "smooth_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "smooth_step", UI_ITEM_NONE, IFACE_("Repeat"), ICON_NONE);
+  layout.prop(ptr, "smooth_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "smooth_step", UI_ITEM_NONE, IFACE_("Repeat"), ICON_NONE);
 
-  if (uiLayout *influence_panel = layout->panel_prop(
+  if (ui::Layout *influence_panel = layout.panel_prop(
           C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
-    modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_vertex_group_settings(C, influence_panel, ptr);
+    modifier::greasepencil::draw_layer_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_material_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_vertex_group_settings(C, *influence_panel, ptr);
   }
 
   modifier_error_message_draw(layout, ptr);

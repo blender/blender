@@ -69,7 +69,7 @@ extern FunctionRNA rna_NodeSocket_draw_color_simple_func;
 /* ******** Node Socket ******** */
 
 static void rna_NodeSocket_draw(bContext *C,
-                                uiLayout *layout,
+                                blender::ui::Layout *layout,
                                 PointerRNA *ptr,
                                 PointerRNA *node_ptr,
                                 const blender::StringRef text)
@@ -457,7 +457,7 @@ static void rna_NodeSocket_hide_set(PointerRNA *ptr, bool value)
 static void rna_NodeSocketStandard_draw(ID *id,
                                         bNodeSocket *sock,
                                         bContext *C,
-                                        uiLayout *layout,
+                                        blender::ui::Layout *layout,
                                         PointerRNA *nodeptr,
                                         const char *text)
 {

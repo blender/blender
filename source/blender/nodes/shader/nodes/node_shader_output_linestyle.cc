@@ -25,14 +25,12 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR);
 }
 
-static void node_buts_output_linestyle(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_buts_output_linestyle(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiLayout *row, *col;
-
-  col = &layout->column(false);
-  row = &col->row(true);
-  row->prop(ptr, "blend_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  col->prop(ptr, "use_clamp", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  ui::Layout &col = layout.column(false);
+  ui::Layout &row = col.row(true);
+  row.prop(ptr, "blend_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  col.prop(ptr, "use_clamp", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 }  // namespace blender::nodes::node_shader_output_linestyle_cc

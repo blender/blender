@@ -107,7 +107,7 @@ static void context_path_add_node_tree_and_node_groups(const SpaceNode &snode,
     }
 
     if (path_item != snode.treepath.last) {
-      // We don't need to add handle function to last nodetree
+      /* We don't need to add handle function to last node-tree. */
       ui::context_path_add_generic(
           path, RNA_NodeTree, path_item->nodetree, icon, tree_path_handle_func(i));
     }

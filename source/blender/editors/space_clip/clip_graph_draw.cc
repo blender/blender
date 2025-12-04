@@ -12,8 +12,8 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
+#include "BKE_movieclip.hh"
+#include "BKE_tracking.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_clip.hh"
@@ -131,8 +131,9 @@ static void tracking_segment_knot_cb(void *userdata,
     return;
   }
 
-  const int sel_flag = value_source == CLIP_VALUE_SOURCE_SPEED_X ? MARKER_GRAPH_SEL_X :
-                                                                   MARKER_GRAPH_SEL_Y;
+  const TrackingMarkerFlag sel_flag = value_source == CLIP_VALUE_SOURCE_SPEED_X ?
+                                          MARKER_GRAPH_SEL_X :
+                                          MARKER_GRAPH_SEL_Y;
   const bool sel = (marker->flag & sel_flag) != 0;
 
   if (sel == data->sel) {

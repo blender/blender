@@ -163,8 +163,7 @@ struct SubdivCCG : blender::NonCopyable {
    * indexed by OpenSubdiv base mesh edge.
    *
    * Used for faster grid stitching, at the cost of extra memory.
-
-     */
+   */
   blender::Array<SubdivCCGAdjacentEdge> adjacent_edges;
 
   /**
@@ -173,8 +172,7 @@ struct SubdivCCG : blender::NonCopyable {
    * Maps from coarse vertex to `SubdivCCGCoord`, indexed by OpenSubdiv base mesh vertex.
    *
    * Used for faster grid stitching, at the cost of extra memory.
-
-     */
+   */
   blender::Array<SubdivCCGAdjacentVertex> adjacent_verts;
 
   /** Store the visibility of the items in each grid. If empty, everything is visible. */

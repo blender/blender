@@ -15,9 +15,9 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
-#include "BKE_movieclip.h"
+#include "BKE_movieclip.hh"
 #include "BKE_node_tree_update.hh"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "ED_clip.hh"
 
@@ -77,7 +77,7 @@ struct TransformInitContext {
 static void markerToTransDataInit(TransformInitContext *init_context,
                                   MovieTrackingTrack *track,
                                   MovieTrackingMarker *marker,
-                                  int area,
+                                  eTrackArea area,
                                   float loc[2],
                                   const float rel[2],
                                   const float off[2],

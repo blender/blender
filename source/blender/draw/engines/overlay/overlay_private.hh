@@ -9,7 +9,7 @@
 #pragma once
 
 #include "BKE_context.hh"
-#include "BKE_movieclip.h"
+#include "BKE_movieclip.hh"
 #include "BKE_object.hh"
 
 #include "BLI_function_ref.hh"

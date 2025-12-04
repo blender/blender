@@ -1029,10 +1029,11 @@ struct GWL_SeatIME {
    */
   wl_surface *surface_window = nullptr;
   GHOST_TEventImeData event_ime_data = {
-      /** Storage for #GHOST_TEventImeData::result (the result of the `commit_string` callback). */
+      /* Storage for #GHOST_TEventImeData::result
+       * (the result of the `commit_string` callback). */
       /*result*/ "",
-      /** Storage for #GHOST_TEventImeData::composite (the result of the `preedit_string`
-         callback). */
+      /* Storage for #GHOST_TEventImeData::composite
+       * (the result of the `preedit_string` callback). */
       /*composite*/ "",
       /*cursor_position*/ -1,
       /*target_start*/ -1,

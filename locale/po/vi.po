@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
 "PO-Revision-Date: 2025-10-14 21:59+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -34293,10 +34293,6 @@ msgid "Editor menu containing buttons"
 msgstr "Trình đơn của trình biên soạn có chứa các nút"
 
 
-msgid "Align View"
-msgstr "Căn Chỉnh Góc Nhìn"
-
-
 msgid "Apply"
 msgstr "Áp Dụng"
 
@@ -34307,10 +34303,6 @@ msgstr "Giám Sát"
 
 msgid "Quick Effects"
 msgstr "Hiệu Ứng Nhanh"
-
-
-msgid "Navigation"
-msgstr "Điều Hướng"
 
 
 msgid "Show/Hide"
@@ -34343,14 +34335,6 @@ msgstr "Móc"
 
 msgid "Vertex Group Locks"
 msgstr "Khóa của Nhóm Điểm Đỉnh"
-
-
-msgid "Viewpoint"
-msgstr "Điểm Nhìn"
-
-
-msgid "Local View"
-msgstr "Góc Nhìn Cục Bộ"
 
 
 msgid "Trim/Add"
@@ -34449,24 +34433,12 @@ msgid "Creative"
 msgstr "Kiến Tạo"
 
 
-msgid "UV Mapping"
-msgstr "Ánh Xạ UV"
-
-
 msgid "Special Characters"
 msgstr "Các Ký Tự Đặc Biệt"
 
 
 msgid "Kerning"
 msgstr "Tinh Chỉnh Khoảng Cách Ký Tự"
-
-
-msgid "Snap"
-msgstr "Bám Dính"
-
-
-msgid "Mirror"
-msgstr "Phản Chiếu Đối Xứng"
 
 
 msgid "Text"
@@ -34487,6 +34459,10 @@ msgstr "Góc Nhìn Kết Xuất"
 
 msgid "Pivot Point"
 msgstr "Điểm Tựa"
+
+
+msgid "Snap"
+msgstr "Bám Dính"
 
 
 msgid "Proportional Editing Falloff"
@@ -34519,6 +34495,38 @@ msgstr "Viết"
 
 msgid "Primitives"
 msgstr "Hình Cơ Bản"
+
+
+msgid "Mirror"
+msgstr "Phản Chiếu Đối Xứng"
+
+
+msgid "UV Mapping"
+msgstr "Ánh Xạ UV"
+
+
+msgid "Local View"
+msgstr "Góc Nhìn Cục Bộ"
+
+
+msgid "Viewpoint"
+msgstr "Điểm Nhìn"
+
+
+msgid "Navigation"
+msgstr "Điều Hướng"
+
+
+msgid "Align View"
+msgstr "Căn Chỉnh Góc Nhìn"
+
+
+msgid "Align View to Active"
+msgstr "Căn Chỉnh Góc Nhìn vào cái đang Hoạt Động"
+
+
+msgid "View Regions"
+msgstr "Vùng Góc Nhìn"
 
 
 msgid "Select More/Less"
@@ -34577,10 +34585,6 @@ msgid "Light Probe"
 msgstr "Đầu Dò Ánh Sáng"
 
 
-msgid "View Regions"
-msgstr "Vùng Góc Nhìn"
-
-
 msgid "Add Image"
 msgstr "Thêm Hình Ảnh"
 
@@ -34591,10 +34595,6 @@ msgstr "Mối Quan Hệ"
 
 msgid "Rigid Body"
 msgstr "Thân Cứng"
-
-
-msgid "Align View to Active"
-msgstr "Căn Chỉnh Góc Nhìn vào cái đang Hoạt Động"
 
 
 msgid "Keyframe Insert Pie"
@@ -50870,10 +50870,6 @@ msgid "Boolean value socket of a node"
 msgstr "Ổ cắm giá trị bool của nút"
 
 
-msgid "Default Value"
-msgstr "Giá Trị Mặc Định"
-
-
 msgid "Bundle Node Socket"
 msgstr "Ổ Cắm Nút Bó"
 
@@ -51132,6 +51128,10 @@ msgstr "Đầu Vào Mặc Định"
 
 msgid "Input to use when the socket is unconnected. Requires \"Hide Value\"."
 msgstr "Đầu vào để sử dụng khi ổ cắm không kết nối. Đòi hỏi \"Ẩn Giấu Giá Trị”."
+
+
+msgid "Default Value"
+msgstr "Giá Trị Mặc Định"
 
 
 msgid "The node socket's default value"
@@ -60199,10 +60199,6 @@ msgid "Other"
 msgstr "Cái Khác"
 
 
-msgid "Other geometry types, like curve, metaball, etc. (converted to meshes)"
-msgstr "Các thể loại hình học khác, như đường cong, siêu cầu v.v. (được chuyển đổi thành các khung lưới)"
-
-
 msgctxt "File browser"
 msgid "Path Mode"
 msgstr "Chế Độ Đường Dẫn"
@@ -66056,20 +66052,12 @@ msgid "Update Scene FPS"
 msgstr "Cập Nhật Tần Số Khung Hình của Cảnh"
 
 
-msgid "Set the scene framerate to that of the BVH file (note that this nullifies the 'Scale FPS' option, as the scale will be 1:1)"
-msgstr "Đặt tần số khung hình của cảnh bằng tốc độ của tập tin BVH (lưu ý: điều này sẽ vô hiệu hóa tùy chọn về 'Tỷ Lệ Tần Số Khung Hình', vì tỷ lệ sẽ trở thành 1:1)"
-
-
 msgid "Loop the animation playback"
 msgstr "Tuần hoàn quá trình chơi lại hoạt họa"
 
 
 msgid "Scale FPS"
 msgstr "Đổi Tỷ Lệ Tần Số Khung Hình"
-
-
-msgid "Scale the framerate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
-msgstr "Đổi tỷ lệ tần số khung hình từ BVH sang các cảnh hiện tại, nếu không, mỗi khung hình BVH sẽ được ánh xạ trực tiếp sang một khung hình Blender"
 
 
 msgid "Animation Offset"
@@ -69867,10 +69855,6 @@ msgstr "Dọn Dẹp các Đường Cong"
 
 msgid "After baking curves, remove redundant keys"
 msgstr "Sau khi nướng các đường cong thì xóa các khóa không sử dụng nữa đi"
-
-
-msgid "Clear Constraints"
-msgstr "Xóa Ràng Buộc"
 
 
 msgid "Remove all constraints from keyed object/bones. To get a correct bake with this setting Visual Keying should be enabled"
@@ -92964,14 +92948,6 @@ msgid "Enable additional features for the new curves data block"
 msgstr "Bật các tính năng bổ sung cho khối dữ liệu đường cong mới"
 
 
-msgid "Recompute ID Usercount On Save"
-msgstr "Tính Toán lại ID Số Lượng Người Dùng Khi Lưu"
-
-
-msgid "Recompute all ID usercounts before saving to a blendfile. Allows to work around invalid usercount handling in code that may lead to loss of data due to wrongly detected unused data-blocks"
-msgstr "Tính toán lại toàn bộ ID số lượng người dùng trước khi lưu vào tập tin blend. Cho phép giải quyết việc xử lý số lượng người dùng không hợp lệ trong mã có thể dẫn đến mất mát dữ liệu, do phát hiện sai các khối dữ liệu không sử dụng đến"
-
-
 msgid "Sculpt Texture Paint"
 msgstr "Sơn Chất Liệu trong Điêu Khắc"
 
@@ -105717,6 +105693,10 @@ msgid "Strips nested in meta strip"
 msgstr "Các dải lồng nhau trong meta strip (siêu dải)"
 
 
+msgid "Playback volume of the sound"
+msgstr "Âm lượng chơi lại"
+
+
 msgid "MovieClip Strip"
 msgstr "Dải MovieClip"
 
@@ -105803,10 +105783,6 @@ msgstr "Sử dụng Chú thích"
 
 msgid "Show Annotations in OpenGL previews"
 msgstr "Hiển thị Chú Thích trong các xem trước OpenGL"
-
-
-msgid "Playback volume of the sound"
-msgstr "Âm lượng chơi lại"
 
 
 msgid "Sound Strip"
@@ -122359,16 +122335,6 @@ msgstr "Nhảy đến Dải Tiếp Tới (Trung Tâm)"
 
 
 msgctxt "Operator"
-msgid "Movie"
-msgstr "Phim"
-
-
-msgctxt "Operator"
-msgid "Image/Sequence"
-msgstr "Hình Ảnh/Trình Tự"
-
-
-msgctxt "Operator"
 msgid "Fade"
 msgstr "Phai Mờ Dần"
 
@@ -126127,10 +126093,6 @@ msgstr "Không thể xóa khung khóa được, vì đường dẫn RNA là khô
 
 msgid "No action to delete keyframes from for ID = %s"
 msgstr "Không có hành động nào để xóa khung khóa khỏi nó đối với ID = %s"
-
-
-msgid "Not deleting keyframe for locked F-Curve '%s' for %s '%s'"
-msgstr "Không xóa khung khóa vì Đường Cong-F đang bị khóa '%s' đối với %s '%s'"
 
 
 msgid "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
@@ -130666,10 +130628,6 @@ msgstr "Bạn cần phải lựa chọn một trình tự các điểm đỉnh k
 
 msgid "Thickness: %s, Depth: %s"
 msgstr "Độ Dày: %s, Độ Sâu: %s"
-
-
-msgid "Compiled without GMP, using fast solver"
-msgstr "Được biên dịch không có sự hỗ trợ của GMP (GNU Multiple Precision Arithmetic Library: Thư viện đa độ chính xác số học), sử dụng bộ giải nghiệm tốc hành"
 
 
 msgid "No intersections found"
@@ -142304,10 +142262,6 @@ msgid "Values used to sort the curve's points. Uses indices by default"
 msgstr "Các giá trị sử dụng để sắp xếp các điểm của đường cong. Theo mặc định thì dùng các chỉ số"
 
 
-msgid "Which of the sorted points to output"
-msgstr "Điểm đã sắp xếp nào sẽ xuất ra"
-
-
 msgid "A point of the curve, chosen by the sort index"
 msgstr "Một điểm của đường cong, được chọn theo chỉ số sắp xếp"
 
@@ -143306,10 +143260,6 @@ msgid "Values that sort the corners attached to the edge"
 msgstr "Các giá trị sắp xếp thứ tự các góc gắn vào cạnh"
 
 
-msgid "Which of the sorted corners to output"
-msgstr "Xuất góc nào vốn được sắp xếp thứ tự đây"
-
-
 msgid "A corner of the input edge in its face's winding order, chosen by the sort index"
 msgstr "Một góc của cạnh đầu vào theo thứ tự xoay vòng mặt của nó, được chọn theo thứ tự chỉ số sắp xếp"
 
@@ -143404,10 +143354,6 @@ msgstr "Góc Cạnh Trước"
 
 msgid "Values used to sort the edges connected to the vertex. Uses indices by default"
 msgstr "Các giá trị sử dụng để sắp xếp các cạnh kết nối với điểm đỉnh. Theo mặc định, sử dụng chỉ số"
-
-
-msgid "Which of the sorted edges to output"
-msgstr "Xuất những cạnh nào đã được sắp xếp theo thứ tự đây"
 
 
 msgid "An edge connected to the face, chosen by the sort index"

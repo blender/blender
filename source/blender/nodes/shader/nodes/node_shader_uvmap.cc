@@ -23,9 +23,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>("UV");
 }
 
-static void node_shader_buts_uvmap(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_shader_buts_uvmap(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
-  layout->prop(ptr, "from_instancer", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "from_instancer", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   if (!RNA_boolean_get(ptr, "from_instancer")) {
     PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
@@ -37,12 +37,12 @@ static void node_shader_buts_uvmap(uiLayout *layout, bContext *C, PointerRNA *pt
       if (depsgraph) {
         Object *object_eval = DEG_get_evaluated(depsgraph, object);
         PointerRNA dataptr = RNA_id_pointer_create(static_cast<ID *>(object_eval->data));
-        layout->prop_search(ptr, "uv_map", &dataptr, "uv_layers", "", ICON_GROUP_UVS);
+        layout.prop_search(ptr, "uv_map", &dataptr, "uv_layers", "", ICON_GROUP_UVS);
         return;
       }
     }
 
-    layout->prop(ptr, "uv_map", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_GROUP_UVS);
+    layout.prop(ptr, "uv_map", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_GROUP_UVS);
   }
 }
 

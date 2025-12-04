@@ -140,9 +140,8 @@ static VkPipeline create_graphics_pipeline_no_libs(const VKGraphicsInfo &graphic
                                                    StringRefNull name)
 {
   VKDevice &device = VKBackend::get().device;
-  const VKExtensions &extensions = device.extensions_get();
   VKGraphicsPipelineCreateInfoBuilder builder;
-  builder.build_full(graphics_info, extensions, vk_pipeline_base);
+  builder.build_full(device, graphics_info, vk_pipeline_base);
 
   /* Build pipeline. */
   VkPipeline pipeline = VK_NULL_HANDLE;
@@ -262,7 +261,7 @@ VkPipeline VKPipelineMap<VKGraphicsInfo::VertexIn>::create(
 {
   VKDevice &device = VKBackend::get().device;
   VKGraphicsPipelineCreateInfoBuilder builder;
-  builder.build_vertex_input_lib(vertex_input_info, vk_pipeline_base);
+  builder.build_vertex_input_lib(device, vertex_input_info, vk_pipeline_base);
 
   /* Build pipeline. */
   VkPipeline pipeline = VK_NULL_HANDLE;

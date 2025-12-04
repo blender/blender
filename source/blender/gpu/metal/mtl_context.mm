@@ -991,9 +991,6 @@ void MTLContext::pipeline_state_init()
   this->pipeline_state.cull_mode = GPU_CULL_NONE;
   this->pipeline_state.front_face = GPU_COUNTERCLOCKWISE;
 
-  /* DATA and IMAGE access state. */
-  this->pipeline_state.unpack_row_length = 0;
-
   /* Depth State. */
   this->pipeline_state.depth_stencil_state.depth_write_enable = false;
   this->pipeline_state.depth_stencil_state.depth_test_enabled = false;

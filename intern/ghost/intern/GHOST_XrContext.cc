@@ -14,6 +14,8 @@
 #include <string>
 #include <string_view>
 
+#include "BLI_string.h"
+
 #include "GHOST_Types.h"
 #include "GHOST_XrException.hh"
 #include "GHOST_XrSession.hh"
@@ -101,8 +103,8 @@ void GHOST_XrContext::createOpenXRInstance(
 {
   XrInstanceCreateInfo create_info = {XR_TYPE_INSTANCE_CREATE_INFO};
 
-  std::string("Blender").copy(create_info.applicationInfo.applicationName,
-                              XR_MAX_APPLICATION_NAME_SIZE);
+  BLI_strncpy(
+      create_info.applicationInfo.applicationName, "Blender", XR_MAX_APPLICATION_NAME_SIZE);
   create_info.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
 
   getAPILayersToEnable(enabled_layers_);
@@ -116,7 +118,7 @@ void GHOST_XrContext::createOpenXRInstance(
   }
 
   CHECK_XR(xrCreateInstance(&create_info, &oxr_->instance),
-           "Failed to connect to an OpenXR runtime.");
+           "Failed to create OpenXR instance, check active OpenXR runtime.");
 }
 
 void GHOST_XrContext::storeInstanceProperties()
@@ -252,15 +254,26 @@ void GHOST_XrContext::dispatchErrorMessage(const GHOST_XrException *exception) c
   error.user_message = exception->msg_.data();
   error.customdata = s_error_handler_customdata;
 
-  char error_string_buf[XR_MAX_RESULT_STRING_SIZE];
-  xrResultToString(getInstance(), static_cast<XrResult>(exception->result_), error_string_buf);
-
   if (isDebugMode()) {
-    fprintf(stderr,
-            "Error: \t%s\n\tOpenXR error: %s (error value: %i)\n",
-            error.user_message,
-            error_string_buf,
-            exception->result_);
+    XrInstance instance = getInstance();
+    if (instance) {
+      /* Display both error enum string and raw value. */
+      char error_string_buf[XR_MAX_RESULT_STRING_SIZE];
+      xrResultToString(instance, static_cast<XrResult>(exception->result_), error_string_buf);
+      fprintf(stderr,
+              "Error: \t%s\n\tOpenXR error: %s (error value: %i)\n",
+              error.user_message,
+              error_string_buf,
+              exception->result_);
+    }
+    else {
+      /* OpenXR instance may have failed to initialize, only display error value in this case. */
+      fprintf(stderr,
+              "Error: \t%s\n\tOpenXR error value: %i - "
+              "Refer to the 'Return Codes' section of the OpenXR Specification for meaning.\n",
+              error.user_message,
+              exception->result_);
+    };
   }
 
   /* Potentially destroys GHOST_XrContext */

@@ -17,7 +17,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Rotation>("Rotation").custom_draw([](CustomSocketDrawParams &params) {
     params.layout.alignment_set(ui::LayoutAlign::Expand);
-    uiLayout &row = params.layout.row(true);
+    ui::Layout &row = params.layout.row(true);
     row.column(true).prop(
         &params.node_ptr, "rotation_euler", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
     if (gizmos::value_node_has_gizmo(params.tree, params.node)) {

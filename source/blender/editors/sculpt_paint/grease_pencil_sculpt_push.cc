@@ -63,6 +63,33 @@ void PushOperation::on_stroke_extended(const bContext &C, const InputSample &ext
               projection_fn, deformation, point_i, mouse_delta * influence);
         });
 
+        MutableSpan<float3> handle_positions_left = curves.handle_positions_left_for_write();
+        MutableSpan<float3> handle_positions_right = curves.handle_positions_right_for_write();
+
+        if (!handle_positions_left.is_empty()) {
+          const Array<float2> view_positions_left = view_positions_left_from_point_mask(
+              params, point_mask);
+          const Array<float2> view_positions_right = view_positions_right_from_point_mask(
+              params, point_mask);
+
+          point_mask.foreach_index(GrainSize(4096), [&](const int64_t point_i) {
+            const float2 co_left = view_positions_left[point_i];
+            const float2 co_right = view_positions_right[point_i];
+            const float influence_left = brush_point_influence(
+                paint, brush, co_left, extension_sample, params.multi_frame_falloff);
+            const float influence_right = brush_point_influence(
+                paint, brush, co_right, extension_sample, params.multi_frame_falloff);
+
+            handle_positions_left[point_i] += compute_orig_delta(
+                projection_fn, deformation, point_i, mouse_delta * influence_left);
+            handle_positions_right[point_i] += compute_orig_delta(
+                projection_fn, deformation, point_i, mouse_delta * influence_right);
+          });
+
+          curves.calculate_bezier_auto_handles();
+          curves.calculate_bezier_aligned_handles();
+        }
+
         params.drawing.tag_positions_changed();
         return true;
       });

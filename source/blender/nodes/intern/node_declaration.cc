@@ -434,7 +434,7 @@ void DeclarationListBuilder::add_separator()
 void DeclarationListBuilder::add_default_layout()
 {
   BLI_assert(this->node_decl_builder.typeinfo_.draw_buttons);
-  this->add_layout([](ui::Layout *layout, bContext *C, PointerRNA *ptr) {
+  this->add_layout([](ui::Layout &layout, bContext *C, PointerRNA *ptr) {
     const bNode &node = *static_cast<bNode *>(ptr->data);
     node.typeinfo->draw_buttons(layout, C, ptr);
   });
@@ -442,7 +442,7 @@ void DeclarationListBuilder::add_default_layout()
 }
 
 void DeclarationListBuilder::add_layout(
-    std::function<void(ui::Layout *, bContext *, PointerRNA *)> draw)
+    std::function<void(ui::Layout &, bContext *, PointerRNA *)> draw)
 {
   auto decl_ptr = std::make_unique<LayoutDeclaration>();
   LayoutDeclaration &decl = *decl_ptr;

@@ -661,7 +661,7 @@ static bool version_fix_seq_meta_range(Strip *strip, void *user_data)
 static bool strip_speed_factor_set(Strip *strip, void *user_data)
 {
   const Scene *scene = static_cast<const Scene *>(user_data);
-  if (strip->type == STRIP_TYPE_SOUND_RAM) {
+  if (strip->type == STRIP_TYPE_SOUND) {
     /* Move `pitch` animation to `speed_factor` */
     if (scene->adt && scene->adt->action) {
       strip_speed_factor_fix_rna_path(strip, &scene->adt->action->curves);
@@ -1769,7 +1769,7 @@ static bool version_set_seq_single_frame_content(Strip *strip, void * /*user_dat
 
 static bool version_seq_fix_broken_sound_strips(Strip *strip, void * /*user_data*/)
 {
-  if (strip->type != STRIP_TYPE_SOUND_RAM || strip->speed_factor != 0.0f) {
+  if (strip->type != STRIP_TYPE_SOUND || strip->speed_factor != 0.0f) {
     return true;
   }
 

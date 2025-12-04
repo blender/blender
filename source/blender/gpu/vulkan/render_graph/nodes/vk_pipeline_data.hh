@@ -15,9 +15,10 @@ class VKCommandBufferInterface;
 struct VKRenderGraphNodeLinks;
 class VKResourceStateTracker;
 
-/* Stencil dynamic data: op + compare/write masks + reference.
-   Moved here so it can be shared between pipeline code and command-buffer
-   wrappers. */
+/**
+ * Stencil dynamic data: op + compare/write masks + reference.
+ * Moved here so it can be shared between pipeline code and command-buffer wrappers.
+ */
 struct StencilState {
   uint8_t compare_mask;
   uint8_t reference;

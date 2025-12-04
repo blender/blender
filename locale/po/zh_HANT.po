@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
-"PO-Revision-Date: 2025-11-17 08:59+0000\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"PO-Revision-Date: 2025-11-29 13:12+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.12.1"
+"X-Generator: Weblate 5.14.3"
 
 
 msgid "Shader AOV"
@@ -680,6 +680,10 @@ msgstr "        依名稱篩選"
 
 msgid "Show only hotkeys that have this text in their name"
 msgstr "只顯示名稱中包含此段文字的快速鍵"
+
+
+msgid "Hide Mix Nodes"
+msgstr "隱藏混合節點"
 
 
 msgid "Always"
@@ -23866,10 +23870,6 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Align View"
-msgstr "對齊檢視"
-
-
 msgid "Apply"
 msgstr "套用"
 
@@ -23880,10 +23880,6 @@ msgstr "追蹤"
 
 msgid "Quick Effects"
 msgstr "快速效果"
-
-
-msgid "Navigation"
-msgstr "導覽"
 
 
 msgid "Show/Hide"
@@ -23912,14 +23908,6 @@ msgstr "連結/傳輸資料"
 
 msgid "Hooks"
 msgstr "鉤"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Local View"
-msgstr "區域檢視"
 
 
 msgid "Face Sets Init"
@@ -23998,24 +23986,12 @@ msgid "Math"
 msgstr "數學公式"
 
 
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
 msgid "Special Characters"
 msgstr "特殊字元"
 
 
 msgid "Kerning"
 msgstr "字間微調"
-
-
-msgid "Snap"
-msgstr "吸附"
-
-
-msgid "Mirror"
-msgstr "鏡像"
 
 
 msgid "Text"
@@ -24036,6 +24012,10 @@ msgstr "算繪預覽"
 
 msgid "Pivot Point"
 msgstr "樞紐點"
+
+
+msgid "Snap"
+msgstr "吸附"
 
 
 msgid "Proportional Editing Falloff"
@@ -24070,6 +24050,38 @@ msgid "Primitives"
 msgstr "原形"
 
 
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Local View"
+msgstr "區域檢視"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Align View"
+msgstr "對齊檢視"
+
+
+msgid "Align View to Active"
+msgstr "對齊檢視至作用項"
+
+
+msgid "View Regions"
+msgstr "檢視範圍"
+
+
 msgid "Select More/Less"
 msgstr "選取更多/更少"
 
@@ -24102,10 +24114,6 @@ msgid "Light Probe"
 msgstr "燈光採樣器"
 
 
-msgid "View Regions"
-msgstr "檢視範圍"
-
-
 msgid "Add Image"
 msgstr "新增影像"
 
@@ -24116,10 +24124,6 @@ msgstr "關係"
 
 msgid "Rigid Body"
 msgstr "剛體"
-
-
-msgid "Align View to Active"
-msgstr "對齊檢視至作用項"
 
 
 msgid "Basic"
@@ -32087,10 +32091,6 @@ msgid "Boolean value socket of a node"
 msgstr "節點的布林值接口"
 
 
-msgid "Default Value"
-msgstr "預設值"
-
-
 msgid "Collection Node Socket"
 msgstr "集盒節點接口"
 
@@ -32213,6 +32213,10 @@ msgstr "接口類型名稱"
 
 msgid "Default Attribute"
 msgstr "預設特性"
+
+
+msgid "Default Value"
+msgstr "預設值"
 
 
 msgid "Socket description"
@@ -37508,10 +37512,6 @@ msgid "Other"
 msgstr "其他"
 
 
-msgid "Other geometry types, like curve, metaball, etc. (converted to meshes)"
-msgstr "其他幾何類型，例如曲線、變幻球等。(轉換成網格)"
-
-
 msgctxt "File browser"
 msgid "Path Mode"
 msgstr "路徑模式"
@@ -39843,10 +39843,6 @@ msgstr "讓動畫迴圈播放"
 
 msgid "Scale FPS"
 msgstr "縮放 FPS"
-
-
-msgid "Scale the framerate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
-msgstr "將幀率從 BVH 縮放成目前場景，否則每個 BVH 影格會直接映射成 Blender 影格"
 
 
 msgid "Import vertex color attributes"
@@ -42316,10 +42312,6 @@ msgstr "清理曲線"
 
 msgid "After baking curves, remove redundant keys"
 msgstr "烘焙曲線後移除不需要的鍵"
-
-
-msgid "Clear Constraints"
-msgstr "清除約束"
 
 
 msgid "Clear Parents"
@@ -48066,6 +48058,10 @@ msgid "Falloff Type"
 msgstr "衰減類型"
 
 
+msgid "Geodesic"
+msgstr "測地線"
+
+
 msgid "Boundary Topology"
 msgstr "邊界拓樸"
 
@@ -48096,8 +48092,16 @@ msgid "Grow Face Set"
 msgstr "擴張面集"
 
 
+msgid "Grows the face set boundary by one face based on mesh topology"
+msgstr "依照網格拓撲將面集邊界向外擴張"
+
+
 msgid "Shrink Face Set"
 msgstr "收縮面集"
+
+
+msgid "Shrinks the face set boundary by one face based on mesh topology"
+msgstr "依照網格拓撲將面集邊界向內收縮"
 
 
 msgctxt "Operator"
@@ -48122,6 +48126,10 @@ msgid "Face Set from Visible"
 msgstr "依目前可見建立面集"
 
 
+msgid "Create a new face set from the visible vertices"
+msgstr "使用目前顯示可見的點建立面集"
+
+
 msgid "Face Set Full Mesh"
 msgstr "全部網格轉面集"
 
@@ -48133,6 +48141,10 @@ msgstr "依編輯模式所選取建立面集"
 msgctxt "Operator"
 msgid "Init Face Sets"
 msgstr "初始化面集"
+
+
+msgid "Initializes all face sets in the mesh"
+msgstr "初始化網格上所有的面集"
 
 
 msgctxt "Operator"
@@ -48214,6 +48226,10 @@ msgstr "隨機"
 msgctxt "Operator"
 msgid "Relax"
 msgstr "鬆開"
+
+
+msgid "Smooth the edges of all the face sets"
+msgstr "對所有的面集邊緣進行平滑"
 
 
 msgctxt "Operator"
@@ -48583,6 +48599,10 @@ msgstr "新增影像片段"
 
 msgid "Add an image or image sequence to the sequencer"
 msgstr "將一張影像或影像序列加入序段編輯器"
+
+
+msgid "Auto Detect"
+msgstr "自動偵測"
 
 
 msgctxt "Operator"
@@ -62301,6 +62321,10 @@ msgid "Sequence strip to group other strips as a single sequence strip"
 msgstr "將其他不同片段群集為單一序段片段的序段片段"
 
 
+msgid "Playback volume of the sound"
+msgstr "聲音的播放控制音量"
+
+
 msgid "MovieClip Strip"
 msgstr "影片剪輯片段"
 
@@ -62347,10 +62371,6 @@ msgstr "攝影機凌駕"
 
 msgid "Show Annotations in OpenGL previews"
 msgstr "在 OpenGL 預覽顯示註記"
-
-
-msgid "Playback volume of the sound"
-msgstr "聲音的播放控制音量"
 
 
 msgid "Sound Strip"
@@ -67192,6 +67212,26 @@ msgid "To Socket"
 msgstr "到接口"
 
 
+msgid "Clear Node Labels"
+msgstr "清除節點標籤"
+
+
+msgid "Modify Node Labels"
+msgstr "修改節點標籤"
+
+
+msgid "Delete Unused Nodes"
+msgstr "刪除未使用的節點"
+
+
+msgid "Reload Images"
+msgstr "重新載入影像"
+
+
+msgid "Align Nodes"
+msgstr "對齊節點"
+
+
 msgctxt "UI_Events_KeyMaps"
 msgid "Shift"
 msgstr "Shift"
@@ -69629,6 +69669,10 @@ msgid "Face"
 msgstr "面"
 
 
+msgid "* Image"
+msgstr "* 影像"
+
+
 msgid "Fixed Subdivisions"
 msgstr "固定細分"
 
@@ -69932,16 +69976,6 @@ msgstr "全部重新整理"
 msgctxt "Operator"
 msgid "Path/Files"
 msgstr "路徑/檔案"
-
-
-msgctxt "Operator"
-msgid "Movie"
-msgstr "影片"
-
-
-msgctxt "Operator"
-msgid "Image/Sequence"
-msgstr "影像/序段"
 
 
 msgctxt "Operator"

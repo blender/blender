@@ -52,7 +52,7 @@ bool edit_strip_swap(Scene *scene, Strip *strip_a, Strip *strip_b, const char **
 
   /* type checking, could be more advanced but disallow sound vs non-sound copy */
   if (strip_a->type != strip_b->type) {
-    if (strip_a->type == STRIP_TYPE_SOUND_RAM || strip_b->type == STRIP_TYPE_SOUND_RAM) {
+    if (strip_a->type == STRIP_TYPE_SOUND || strip_b->type == STRIP_TYPE_SOUND) {
       *r_error_str = N_("Strips were not compatible");
       return false;
     }
@@ -115,7 +115,7 @@ static void strip_update_muting_recursive(ListBase *channels,
 
       strip_update_muting_recursive(&strip->channels, &strip->seqbase, strip_meta, strip_mute);
     }
-    else if (ELEM(strip->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SCENE)) {
+    else if (ELEM(strip->type, STRIP_TYPE_SOUND, STRIP_TYPE_SCENE)) {
       if (strip->runtime->scene_sound) {
         BKE_sound_mute_scene_sound(strip->runtime->scene_sound, strip_mute);
       }

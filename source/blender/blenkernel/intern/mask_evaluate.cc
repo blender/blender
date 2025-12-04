@@ -22,10 +22,12 @@
 #include "DNA_mask_types.h"
 
 #include "BKE_curve.hh"
-#include "BKE_mask.h"
+#include "BKE_mask.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
+
+static constexpr int MASK_RESOL_MAX = 128;
 
 int BKE_mask_spline_resolution(MaskSpline *spline, int width, int height)
 {

@@ -302,42 +302,41 @@ static void modify_geometry_set(ModifierData *md,
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
   const auto &tmd = *static_cast<GreasePencilTextureModifierData *>(ptr->data);
   const auto mode = GreasePencilTextureModifierMode(tmd.mode);
-  uiLayout *col;
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (ELEM(mode, MOD_GREASE_PENCIL_TEXTURE_STROKE, MOD_GREASE_PENCIL_TEXTURE_STROKE_AND_FILL)) {
-    col = &layout->column(false);
-    col->prop(ptr, "fit_method", UI_ITEM_NONE, IFACE_("Stroke Fit Method"), ICON_NONE);
-    col->prop(ptr, "uv_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "alignment_rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "uv_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
+    ui::Layout &col = layout.column(false);
+    col.prop(ptr, "fit_method", UI_ITEM_NONE, IFACE_("Stroke Fit Method"), ICON_NONE);
+    col.prop(ptr, "uv_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "alignment_rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "uv_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
   }
 
   if (mode == MOD_GREASE_PENCIL_TEXTURE_STROKE_AND_FILL) {
-    layout->separator();
+    layout.separator();
   }
 
   if (ELEM(mode, MOD_GREASE_PENCIL_TEXTURE_FILL, MOD_GREASE_PENCIL_TEXTURE_STROKE_AND_FILL)) {
-    col = &layout->column(false);
-    col->prop(ptr, "fill_rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "fill_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
-    col->prop(ptr, "fill_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
+    ui::Layout &col = layout.column(false);
+    col.prop(ptr, "fill_rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col.prop(ptr, "fill_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
+    col.prop(ptr, "fill_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
   }
 
-  if (uiLayout *influence_panel = layout->panel_prop(
+  if (ui::Layout *influence_panel = layout.panel_prop(
           C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
-    modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
+    modifier::greasepencil::draw_layer_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_material_filter_settings(C, *influence_panel, ptr);
   }
 
   modifier_error_message_draw(layout, ptr);

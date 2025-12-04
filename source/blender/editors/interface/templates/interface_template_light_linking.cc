@@ -213,14 +213,14 @@ class ItemDragController : public AbstractViewItemDragController {
 };
 
 class CollectionViewItem : public BasicTreeViewItem {
-  uiLayout &context_layout_;
+  Layout &context_layout_;
   Collection &collection_;
 
   ID &id_;
   CollectionLightLinking &collection_light_linking_;
 
  public:
-  CollectionViewItem(uiLayout &context_layout,
+  CollectionViewItem(Layout &context_layout,
                      Collection &collection,
                      ID &id,
                      CollectionLightLinking &collection_light_linking,
@@ -233,7 +233,7 @@ class CollectionViewItem : public BasicTreeViewItem {
   {
   }
 
-  void build_row(uiLayout &row) override
+  void build_row(Layout &row) override
   {
     if (is_active()) {
       PointerRNA id_ptr = RNA_id_pointer_create(&id_);
@@ -245,10 +245,10 @@ class CollectionViewItem : public BasicTreeViewItem {
 
     add_label(row);
 
-    uiLayout *sub = &row.row(true);
-    sub->use_property_decorate_set(false);
+    Layout &sub = row.row(true);
+    sub.use_property_decorate_set(false);
 
-    build_state_button(*sub);
+    build_state_button(sub);
   }
 
   std::unique_ptr<AbstractViewItemDragController> create_drag_controller() const override
@@ -288,7 +288,7 @@ class CollectionViewItem : public BasicTreeViewItem {
     BLI_assert_unreachable();
   }
 
-  void build_state_button(uiLayout &row)
+  void build_state_button(Layout &row)
   {
     uiBlock *block = row.block();
     const int icon = get_state_icon();
@@ -317,11 +317,11 @@ class CollectionViewItem : public BasicTreeViewItem {
 };
 
 class CollectionView : public AbstractTreeView {
-  uiLayout &context_layout_;
+  Layout &context_layout_;
   Collection &collection_;
 
  public:
-  CollectionView(uiLayout &context_layout, Collection &collection)
+  CollectionView(Layout &context_layout, Collection &collection)
       : context_layout_(context_layout), collection_(collection)
   {
   }
@@ -357,9 +357,9 @@ class CollectionView : public AbstractTreeView {
 
 }  // namespace blender::ui::light_linking
 
-void uiTemplateLightLinkingCollection(uiLayout *layout,
+void uiTemplateLightLinkingCollection(blender::ui::Layout *layout,
                                       bContext *C,
-                                      uiLayout *context_layout,
+                                      blender::ui::Layout *context_layout,
                                       PointerRNA *ptr,
                                       const StringRefNull propname)
 {

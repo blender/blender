@@ -47,7 +47,7 @@ using blender::StringRefNull;
 
 struct uiPieMenu {
   uiBlock *pie_block; /* radial block of the pie menu (more could be added later) */
-  uiLayout *layout;
+  blender::ui::Layout *layout;
   int mx, my;
 };
 
@@ -185,15 +185,13 @@ void UI_pie_menu_end(bContext *C, uiPieMenu *pie)
   MEM_freeN(pie);
 }
 
-uiLayout *UI_pie_menu_layout(uiPieMenu *pie)
+blender::ui::Layout *UI_pie_menu_layout(uiPieMenu *pie)
 {
   return pie->layout;
 }
 
 wmOperatorStatus UI_pie_menu_invoke(bContext *C, const char *idname, const wmEvent *event)
 {
-  uiPieMenu *pie;
-  uiLayout *layout;
   MenuType *mt = WM_menutype_find(idname, true);
 
   if (mt == nullptr) {
@@ -206,8 +204,9 @@ wmOperatorStatus UI_pie_menu_invoke(bContext *C, const char *idname, const wmEve
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
-  pie = UI_pie_menu_begin(C, CTX_IFACE_(mt->translation_context, mt->label), ICON_NONE, event);
-  layout = UI_pie_menu_layout(pie);
+  uiPieMenu *pie = UI_pie_menu_begin(
+      C, CTX_IFACE_(mt->translation_context, mt->label), ICON_NONE, event);
+  blender::ui::Layout *layout = UI_pie_menu_layout(pie);
 
   UI_menutype_draw(C, mt, layout);
 
@@ -222,7 +221,7 @@ wmOperatorStatus UI_pie_menu_invoke(bContext *C, const char *idname, const wmEve
 /** \name Pie Menu Levels
  *
  * Pie menus can't contain more than 8 items (yet).
- * When using ##uiLayout::operator_enum, a "More" button is created that calls
+ * When using ##blender::ui::Layout::operator_enum, a "More" button is created that calls
  * a new pie menu if the enum has too many items. We call this a new "level".
  * Indirect recursion is used, so that a theoretically unlimited number of items is supported.
  *
@@ -238,7 +237,7 @@ struct PieMenuLevelData {
   int icon;                    /* parent pie icon, copied for level */
   int totitem;                 /* total count of *remaining* items */
 
-  /* needed for calling #uiLayout::operator_enum_items again for new level */
+  /* needed for calling #blender::ui::Layout::operator_enum_items again for new level */
   wmOperatorType *ot;
   blender::StringRefNull propname;
   IDProperty *properties;
@@ -256,9 +255,7 @@ static void ui_pie_menu_level_invoke(bContext *C, void *argN, void *arg2)
   wmWindow *win = CTX_wm_window(C);
 
   uiPieMenu *pie = UI_pie_menu_begin(C, IFACE_(lvl->title), lvl->icon, win->eventstate);
-  uiLayout *layout = UI_pie_menu_layout(pie);
-
-  layout = &layout->menu_pie();
+  blender::ui::Layout &layout = UI_pie_menu_layout(pie)->menu_pie();
 
   PointerRNA ptr;
 
@@ -268,7 +265,7 @@ static void ui_pie_menu_level_invoke(bContext *C, void *argN, void *arg2)
   PropertyRNA *prop = RNA_struct_find_property(&ptr, lvl->propname.c_str());
 
   if (prop) {
-    layout->op_enum_items(
+    layout.op_enum_items(
         lvl->ot, ptr, prop, lvl->properties, lvl->context, lvl->flag, item_array, lvl->totitem);
   }
   else {

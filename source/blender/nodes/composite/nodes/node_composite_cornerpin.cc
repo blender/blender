@@ -18,7 +18,7 @@
 #include "GPU_texture.hh"
 
 #include "BKE_node.hh"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "MEM_guardedalloc.h"
 

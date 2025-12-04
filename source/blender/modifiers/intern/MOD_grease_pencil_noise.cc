@@ -273,45 +273,44 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *col;
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  col = &layout->column(false);
-  col->prop(ptr, "factor", UI_ITEM_NONE, IFACE_("Position"), ICON_NONE);
-  col->prop(ptr,
-            "factor_strength",
-            UI_ITEM_NONE,
-            CTX_IFACE_(BLT_I18NCONTEXT_ID_GPENCIL, "Strength"),
-            ICON_NONE);
-  col->prop(ptr, "factor_thickness", UI_ITEM_NONE, IFACE_("Thickness"), ICON_NONE);
-  col->prop(ptr, "factor_uvs", UI_ITEM_NONE, IFACE_("UV"), ICON_NONE);
-  col->prop(ptr, "noise_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col->prop(ptr, "noise_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col->prop(ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  PanelLayout random_panel_layout = layout->panel_prop_with_bool_header(
+  ui::Layout &col = layout.column(false);
+  col.prop(ptr, "factor", UI_ITEM_NONE, IFACE_("Position"), ICON_NONE);
+  col.prop(ptr,
+           "factor_strength",
+           UI_ITEM_NONE,
+           CTX_IFACE_(BLT_I18NCONTEXT_ID_GPENCIL, "Strength"),
+           ICON_NONE);
+  col.prop(ptr, "factor_thickness", UI_ITEM_NONE, IFACE_("Thickness"), ICON_NONE);
+  col.prop(ptr, "factor_uvs", UI_ITEM_NONE, IFACE_("UV"), ICON_NONE);
+  col.prop(ptr, "noise_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(ptr, "noise_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  PanelLayout random_panel_layout = layout.panel_prop_with_bool_header(
       C, ptr, "open_random_panel", ptr, "use_random", IFACE_("Random"));
-  if (uiLayout *random_layout = random_panel_layout.body) {
-    uiLayout *random_col = &random_layout->column(false);
-    random_col->active_set(RNA_boolean_get(ptr, "use_random"));
+  if (ui::Layout *random_layout = random_panel_layout.body) {
+    ui::Layout &random_col = random_layout->column(false);
+    random_col.active_set(RNA_boolean_get(ptr, "use_random"));
 
-    random_col->prop(ptr, "random_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    random_col.prop(ptr, "random_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     const int mode = RNA_enum_get(ptr, "random_mode");
     if (mode != GP_NOISE_RANDOM_KEYFRAME) {
-      random_col->prop(ptr, "step", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      random_col.prop(ptr, "step", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
   }
 
-  if (uiLayout *influence_panel = layout->panel_prop(
+  if (ui::Layout *influence_panel = layout.panel_prop(
           C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
-    modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_vertex_group_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_custom_curve_settings(C, influence_panel, ptr);
+    modifier::greasepencil::draw_layer_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_material_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_vertex_group_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_custom_curve_settings(C, *influence_panel, ptr);
   }
 
   modifier_error_message_draw(layout, ptr);

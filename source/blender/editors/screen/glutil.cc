@@ -209,8 +209,6 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
     immUniformColor4fv((color) ? color : white);
   }
 
-  GPU_unpack_row_length_set(img_w);
-
   for (subpart_y = 0; subpart_y < nsubparts_y; subpart_y++) {
     for (subpart_x = 0; subpart_x < nsubparts_x; subpart_x++) {
       int remainder_x = img_w - subpart_x * offset_x;
@@ -251,7 +249,7 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
 #define DATA(_y, _x) (static_cast<const char *>(rect) + stride * (size_t(_y) * img_w + (_x)))
         {
           const void *data = DATA(src_y, src_x);
-          GPU_texture_update_sub(tex, gpu_data, data, 0, 0, 0, subpart_w, subpart_h, 0);
+          GPU_texture_update_sub(tex, gpu_data, data, 0, 0, 0, subpart_w, subpart_h, 0, img_w);
         }
         /* Add an extra border of pixels so linear interpolation looks ok
          * at edges of full image. */
@@ -259,20 +257,23 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
           const void *data = DATA(src_y, src_x + subpart_w - 1);
           const int offset[2] = {subpart_w, 0};
           const int extent[2] = {1, subpart_h};
-          GPU_texture_update_sub(tex, gpu_data, data, UNPACK2(offset), 0, UNPACK2(extent), 0);
+          GPU_texture_update_sub(
+              tex, gpu_data, data, UNPACK2(offset), 0, UNPACK2(extent), 0, img_w);
         }
         if (subpart_h < tex_h) {
           const void *data = DATA(src_y + subpart_h - 1, src_x);
           const int offset[2] = {0, subpart_h};
           const int extent[2] = {subpart_w, 1};
-          GPU_texture_update_sub(tex, gpu_data, data, UNPACK2(offset), 0, UNPACK2(extent), 0);
+          GPU_texture_update_sub(
+              tex, gpu_data, data, UNPACK2(offset), 0, UNPACK2(extent), 0, img_w);
         }
 
         if (subpart_w < tex_w && subpart_h < tex_h) {
           const void *data = DATA(src_y + subpart_h - 1, src_x + subpart_w - 1);
           const int offset[2] = {subpart_w, subpart_h};
           const int extent[2] = {1, 1};
-          GPU_texture_update_sub(tex, gpu_data, data, UNPACK2(offset), 0, UNPACK2(extent), 0);
+          GPU_texture_update_sub(
+              tex, gpu_data, data, UNPACK2(offset), 0, UNPACK2(extent), 0, img_w);
         }
 #undef DATA
       }
@@ -301,9 +302,6 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
 
   GPU_texture_unbind(tex);
   GPU_texture_free(tex);
-
-  /* Restore default. */
-  GPU_unpack_row_length_set(0);
 }
 
 void immDrawPixelsTexTiled_scaling(IMMDrawPixelsTexState *state,

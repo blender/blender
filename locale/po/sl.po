@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
 "PO-Revision-Date: 2025-10-17 15:15+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
@@ -25520,10 +25520,6 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Align View"
-msgstr "Poravnava pogleda"
-
-
 msgid "Apply"
 msgstr "Uveljavi"
 
@@ -25534,10 +25530,6 @@ msgstr "Obriši"
 
 msgid "Quick Effects"
 msgstr "Učinki na hitro"
-
-
-msgid "Navigation"
-msgstr "Navigacija"
 
 
 msgid "Show/Hide"
@@ -25566,14 +25558,6 @@ msgstr "Poveži / prenesi podatke"
 
 msgid "Hooks"
 msgstr "Kavlji"
-
-
-msgid "Viewpoint"
-msgstr "Gledišče"
-
-
-msgid "Local View"
-msgstr "Krajevni pogled"
 
 
 msgid "Trim/Add"
@@ -25648,24 +25632,12 @@ msgid "Creative"
 msgstr "Ustvarjanje"
 
 
-msgid "UV Mapping"
-msgstr "Preslikanje UV"
-
-
 msgid "Special Characters"
 msgstr "Posebni znaki"
 
 
 msgid "Kerning"
 msgstr "Spodsekavanje"
-
-
-msgid "Snap"
-msgstr "Pritrdi"
-
-
-msgid "Mirror"
-msgstr "Zrcali"
 
 
 msgid "Text"
@@ -25686,6 +25658,10 @@ msgstr "Predogled upodobitve"
 
 msgid "Pivot Point"
 msgstr "Osišče"
+
+
+msgid "Snap"
+msgstr "Pritrdi"
 
 
 msgid "Proportional Editing Falloff"
@@ -25714,6 +25690,38 @@ msgstr "Zapiši"
 
 msgid "Primitives"
 msgstr "Primitivi"
+
+
+msgid "Mirror"
+msgstr "Zrcali"
+
+
+msgid "UV Mapping"
+msgstr "Preslikanje UV"
+
+
+msgid "Local View"
+msgstr "Krajevni pogled"
+
+
+msgid "Viewpoint"
+msgstr "Gledišče"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
+
+
+msgid "Align View"
+msgstr "Poravnava pogleda"
+
+
+msgid "Align View to Active"
+msgstr "Poravnaj pogled na aktivno"
+
+
+msgid "View Regions"
+msgstr "Področja pogleda"
 
 
 msgid "Select More/Less"
@@ -25772,10 +25780,6 @@ msgid "Light Probe"
 msgstr "Svetlobna sonda"
 
 
-msgid "View Regions"
-msgstr "Področja pogleda"
-
-
 msgid "Add Image"
 msgstr "Dodaj sliko"
 
@@ -25786,10 +25790,6 @@ msgstr "Razmerja"
 
 msgid "Rigid Body"
 msgstr "Togo telo"
-
-
-msgid "Align View to Active"
-msgstr "Poravnaj pogled na aktivno"
 
 
 msgid "Animals"
@@ -33226,10 +33226,6 @@ msgid "Data type"
 msgstr "Tip podatkov"
 
 
-msgid "Default Value"
-msgstr "Privzeta vrednost"
-
-
 msgid "Bundle Node Socket"
 msgstr "Vtičnica vozlišča svežnja"
 
@@ -33264,6 +33260,10 @@ msgstr "Privzeti atribut"
 
 msgid "Default Input"
 msgstr "Privzeti vhod"
+
+
+msgid "Default Value"
+msgstr "Privzeta vrednost"
 
 
 msgid "Socket description"
@@ -41027,10 +41027,6 @@ msgstr "Očisti krivulje"
 
 msgid "After baking curves, remove redundant keys"
 msgstr "Po peki krivulj odstrani odvečne ključe"
-
-
-msgid "Clear Constraints"
-msgstr "Počisti omejevalnike"
 
 
 msgid "Remove all constraints from keyed object/bones. To get a correct bake with this setting Visual Keying should be enabled"
@@ -65875,16 +65871,6 @@ msgstr "Skoči na naslednji trak (v sredino)"
 
 
 msgctxt "Operator"
-msgid "Movie"
-msgstr "Posnetek"
-
-
-msgctxt "Operator"
-msgid "Image/Sequence"
-msgstr "Slika/sekvenca"
-
-
-msgctxt "Operator"
 msgid "Fade"
 msgstr "Postopni prikaz"
 
@@ -72703,10 +72689,6 @@ msgstr "Neveljavna/nenastavljena os"
 
 msgid "Thickness: %s, Depth: %s"
 msgstr "Debelina: %s, globina: %s"
-
-
-msgid "Compiled without GMP, using fast solver"
-msgstr "Program ne vsebuje GMP-ja, uporabljam hitri reševalnik"
 
 
 msgid "No intersections found"

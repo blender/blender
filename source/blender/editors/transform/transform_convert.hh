@@ -221,9 +221,9 @@ void create_aligned_handles_masks(const bke::CurvesGeometry &curves,
                                   Span<IndexMask> points_to_transform_per_attr,
                                   int curve_index,
                                   TransCustomData &custom_data);
-void calculate_aligned_handles(const TransCustomData &custom_data,
-                               bke::CurvesGeometry &curves,
-                               int curve_index);
+void calculate_single_aligned_handles(const TransCustomData &custom_data,
+                                      bke::CurvesGeometry &curves,
+                                      int curve_index);
 bool update_handle_types_for_transform(eTfmMode mode,
                                        const std::array<IndexMask, 3> &selection_per_attribute,
                                        const IndexMask &bezier_points,

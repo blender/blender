@@ -367,7 +367,7 @@ struct BMesh {
    *   to store a separate UV selection to avoid unnecessary overhead.
    * - Clear using #BM_mesh_uvselect_clear (instead of setting directly).
    *
-   - See `bmesh_uvselect.hh` for a more comprehensive explanation.
+   * - See `bmesh_uvselect.hh` for a more comprehensive explanation.
    */
   bool uv_select_sync_valid;
 

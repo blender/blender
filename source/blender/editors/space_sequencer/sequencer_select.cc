@@ -2685,7 +2685,7 @@ static const EnumPropertyItem sequencer_prop_select_grouped_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-#define STRIP_IS_SOUND(_strip) (_strip->type == STRIP_TYPE_SOUND_RAM)
+#define STRIP_IS_SOUND(_strip) (_strip->type == STRIP_TYPE_SOUND)
 
 #define STRIP_USE_DATA(_strip) \
   (ELEM(_strip->type, STRIP_TYPE_SCENE, STRIP_TYPE_MOVIECLIP, STRIP_TYPE_MASK) || \

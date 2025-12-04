@@ -33,6 +33,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+#include "writefile.hh"
+
 /* **************** support for memory-write, for undo buffers *************** */
 
 void BLO_memfile_free(MemFile *memfile)
@@ -43,8 +45,8 @@ void BLO_memfile_free(MemFile *memfile)
     }
     MEM_freeN(chunk);
   }
-  MEM_delete(memfile->shared_storage);
-  memfile->shared_storage = nullptr;
+  MEM_SAFE_DELETE(memfile->shared_storage);
+  MEM_SAFE_DELETE(memfile->stable_address_ids);
   memfile->size = 0;
 }
 
@@ -94,10 +96,18 @@ void BLO_memfile_clear_future(MemFile *memfile)
   }
 }
 
-void BLO_memfile_write_init(MemFileWriteData *mem_data,
+void BLO_memfile_write_init(WriteData *wd,
+                            MemFileWriteData *mem_data,
                             MemFile *written_memfile,
                             MemFile *reference_memfile)
 {
+  wd->use_memfile = true;
+  /* Re-use mapping data between real memory addresses and fake, stable generated values from the
+   * previous undo step. */
+  if (reference_memfile && reference_memfile->stable_address_ids) {
+    wd->stable_address_ids = *reference_memfile->stable_address_ids;
+  }
+
   mem_data->written_memfile = written_memfile;
   mem_data->reference_memfile = reference_memfile;
   mem_data->reference_current_chunk = reference_memfile ? static_cast<MemFileChunk *>(
@@ -120,9 +130,12 @@ void BLO_memfile_write_init(MemFileWriteData *mem_data,
   }
 }
 
-void BLO_memfile_write_finalize(MemFileWriteData *mem_data)
+void BLO_memfile_write_finalize(WriteData *wd, MemFileWriteData *mem_data)
 {
   mem_data->id_session_uid_mapping.clear();
+  /* Move current stable pointers data from the WriteData to the written MemFile. */
+  mem_data->written_memfile->stable_address_ids = MEM_new<WriteDataStableAddressIDs>(
+      __func__, std::move(wd->stable_address_ids));
 }
 
 void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t size)

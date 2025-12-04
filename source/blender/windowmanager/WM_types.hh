@@ -1329,8 +1329,7 @@ struct wmDragActiveDropState {
    * operator poll fails. Typically the message the operator set with
    * #CTX_wm_operator_poll_msg_set().
    */
-  const char *disabled_info;
-  bool free_disabled_info;
+  std::optional<std::string> disabled_info;
 
   std::string tooltip;
 };

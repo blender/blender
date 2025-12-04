@@ -16,9 +16,9 @@
 
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
-#include "BKE_mask.h"
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
+#include "BKE_mask.hh"
+#include "BKE_movieclip.hh"
+#include "BKE_tracking.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -33,7 +33,6 @@
 #include "ED_mask.hh"
 
 #include "UI_resources.hh"
-#include "UI_view2d.hh"
 
 #include "clip_intern.hh" /* own include */
 
@@ -477,7 +476,7 @@ static bool mask_has_selection(const bContext *C)
       for (int i = 0; i < spline->tot_point; i++) {
         const MaskSplinePoint *point = &spline->points[i];
         const BezTriple *bezt = &point->bezt;
-        if (!MASKPOINT_ISSEL_ANY(point)) {
+        if (!BKE_mask_point_selected(point)) {
           continue;
         }
         if (bezt->f2 & SELECT) {

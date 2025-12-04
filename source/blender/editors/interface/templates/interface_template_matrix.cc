@@ -24,9 +24,11 @@ using blender::StringRef;
 using blender::StringRefNull;
 
 /* Format translation/rotation value as a string based on Blender unit settings. */
-static std::string format_unit_value(float value, PropertySubType subtype, uiLayout *layout)
+static std::string format_unit_value(float value,
+                                     PropertySubType subtype,
+                                     blender::ui::Layout &layout)
 {
-  const UnitSettings *unit = layout->block()->unit;
+  const UnitSettings *unit = layout.block()->unit;
   const int unit_type = RNA_SUBTYPE_UNIT(subtype);
 
   /* Change negative zero to regular zero, without altering anything else. */
@@ -58,7 +60,7 @@ static std::string format_coefficient(float value)
  * Defaults to XYZ Euler. */
 static int rotation_mode_index = ROT_MODE_EUL;
 
-static void rotation_mode_menu_callback(bContext *, uiLayout *layout, void *)
+static void rotation_mode_menu_callback(bContext *, blender::ui::Layout *layout, void *)
 {
   for (size_t i = 0; i < RNA_enum_items_count(rna_enum_object_rotation_mode_items); i++) {
     const EnumPropertyItem &mode_info = rna_enum_object_rotation_mode_items[i];
@@ -82,11 +84,11 @@ static void rotation_mode_menu_callback(bContext *, uiLayout *layout, void *)
   }
 }
 
-static void draw_matrix_template(uiLayout &layout, PointerRNA &ptr, PropertyRNA &prop)
+static void draw_matrix_template(blender::ui::Layout &layout, PointerRNA &ptr, PropertyRNA &prop)
 {
   /* Matrix template UI is mirroring Object's Transform UI for better UX. */
-  uiLayout *row, *col;
-  uiLayout *layout_ = &layout.box();
+  blender::ui::Layout *row, *col;
+  blender::ui::Layout &layout_ = layout.box();
 
   float m4[4][4];
   RNA_property_float_get_array(&ptr, &prop, &m4[0][0]);
@@ -98,14 +100,14 @@ static void draw_matrix_template(uiLayout &layout, PointerRNA &ptr, PropertyRNA 
   float m3[3][3];
   copy_m3_m4(m3, m4);
   if (!is_orthogonal_m3(m3)) {
-    layout_->label(RPT_("Matrix has a shear"), ICON_ERROR);
+    layout_.label(RPT_("Matrix has a shear"), ICON_ERROR);
   }
 
   float loc[3], quat[4], size[3];
   mat4_decompose(loc, quat, size, m4);
 
   /* Translation. */
-  col = &layout_->column(true);
+  col = &layout_.column(true);
   col->use_property_split_set(true);
 
   row = &col->row(true);
@@ -124,7 +126,7 @@ static void draw_matrix_template(uiLayout &layout, PointerRNA &ptr, PropertyRNA 
   float eul[3], axis[3];
   float angle;
   const EnumPropertyItem &mode_info = rna_enum_object_rotation_mode_items[rotation_mode_index];
-  col = &layout_->column(true);
+  col = &layout_.column(true);
   col->use_property_split_set(true);
 
   if (mode_info.value == ROT_MODE_QUAT) {
@@ -180,7 +182,7 @@ static void draw_matrix_template(uiLayout &layout, PointerRNA &ptr, PropertyRNA 
   }
 
   /* Mirror RNA enum property drop-down UI - with menu triangle an drop-down items. */
-  row = &layout_->row(true);
+  row = &layout_.row(true);
   uiItemL_respect_property_split(row, IFACE_("Mode"), ICON_NONE);
   uiBlock *block = row->block();
   uiBut *but = uiDefMenuBut(block,
@@ -196,7 +198,7 @@ static void draw_matrix_template(uiLayout &layout, PointerRNA &ptr, PropertyRNA 
   UI_but_type_set_menu_from_pulldown(but);
 
   /* Scale. */
-  col = &layout_->column(true);
+  col = &layout_.column(true);
   col->use_property_split_set(true);
 
   row = &col->row(true);
@@ -212,7 +214,7 @@ static void draw_matrix_template(uiLayout &layout, PointerRNA &ptr, PropertyRNA 
   row->label(format_coefficient(size[2]), ICON_NONE);
 }
 
-void uiTemplateMatrix(uiLayout *layout, PointerRNA *ptr, const StringRefNull propname)
+void uiTemplateMatrix(blender::ui::Layout *layout, PointerRNA *ptr, const StringRefNull propname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 

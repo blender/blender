@@ -97,6 +97,52 @@ static float3 calculate_aligned_handle(const float3 &position,
   return position - dir * length;
 }
 
+/* Align handles to each other, length will be preserved (unless zero). The new handles will be on
+ * the same plane as the old ones.*/
+static std::pair<float3, float3> calculate_align_both_handles(const float3 &position,
+                                                              const float3 &left_handle,
+                                                              const float3 &right_handle)
+{
+  const float3 left_dir = left_handle - position;
+  const float3 right_dir = right_handle - position;
+
+  /* Keep track of the lengths of both handles. */
+  const float left_length = math::length(left_dir);
+  const float right_length = math::length(right_dir);
+
+  if (left_length == 0.0f && right_length == 0.0f) {
+    /* All three points are the same, no clear way to fixed it. */
+    return {left_handle, right_handle};
+  }
+  /* If one handle has zero length, use the other as the length and direction. */
+  if (left_length == 0.0f) {
+    return {position - right_dir, right_handle};
+  }
+  if (right_length == 0.0f) {
+    return {left_handle, position - left_dir};
+  }
+
+  /* Use the direction halfway between the two directions. */
+  float3 align_dir = math::normalize(left_dir) + math::normalize(right_dir);
+
+  const float align_length = math::length(align_dir);
+  if (align_length <= 0.0001f * (left_length + right_length)) {
+    /* The handles are already aligned. */
+    return {left_handle, right_handle};
+  }
+
+  /* Normalize. */
+  align_dir = align_dir / align_length;
+
+  /* Project the directions onto the plane formed by `align_dir`. */
+  const float3 new_left_dir = left_dir - math::dot(left_dir, align_dir) * align_dir;
+  const float3 new_right_dir = right_dir - math::dot(right_dir, align_dir) * align_dir;
+
+  /* Use the new directions with the old lengths. */
+  return {position + left_length * math::normalize(new_left_dir),
+          position + right_length * math::normalize(new_right_dir)};
+}
+
 static void calculate_point_handles(const HandleType type_left,
                                     const HandleType type_right,
                                     const float3 position,
@@ -184,14 +230,29 @@ void set_handle_position(const float3 &position,
   }
 }
 
-void calculate_aligned_handles(const IndexMask &selection,
-                               const Span<float3> positions,
-                               const Span<float3> align_with,
-                               MutableSpan<float3> align_handles)
+void calculate_single_aligned_handles(const IndexMask &selection,
+                                      const Span<float3> positions,
+                                      const Span<float3> align_with,
+                                      MutableSpan<float3> align_handles)
 {
   selection.foreach_index_optimized<int>(GrainSize(4096), [&](const int point) {
     align_handles[point] = calculate_aligned_handle(
         positions[point], align_with[point], align_handles[point]);
+  });
+}
+
+void calculate_aligned_handles(const IndexMask &selection,
+                               const Span<float3> positions,
+                               const Span<float3> handles_left,
+                               const Span<float3> handles_right,
+                               MutableSpan<float3> align_handles_left,
+                               MutableSpan<float3> align_handles_right)
+{
+  selection.foreach_index_optimized<int>(GrainSize(4096), [&](const int point) {
+    const auto [new_left, new_right] = calculate_align_both_handles(
+        positions[point], handles_left[point], handles_right[point]);
+    align_handles_left[point] = new_left;
+    align_handles_right[point] = new_right;
   });
 }
 

@@ -43,10 +43,10 @@
 
 #include "BKE_fcurve.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_movieclip.h"
+#include "BKE_movieclip.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.hh"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
@@ -54,7 +54,7 @@
 #include "RNA_prototypes.hh"
 
 #include "libmv-capi.h"
-#include "tracking_private.h"
+#include "tracking_private.hh"
 
 using blender::Array;
 using blender::int2;
@@ -674,7 +674,7 @@ MovieTrackingTrack **BKE_tracking_selected_tracks_in_active_object(MovieTracking
   return source_tracks;
 }
 
-void BKE_tracking_track_flag_set(MovieTrackingTrack *track, int area, int flag)
+void BKE_tracking_track_flag_set(MovieTrackingTrack *track, eTrackArea area, int flag)
 {
   if (area == TRACK_AREA_NONE) {
     return;
@@ -691,7 +691,7 @@ void BKE_tracking_track_flag_set(MovieTrackingTrack *track, int area, int flag)
   }
 }
 
-void BKE_tracking_track_flag_clear(MovieTrackingTrack *track, int area, int flag)
+void BKE_tracking_track_flag_clear(MovieTrackingTrack *track, eTrackArea area, int flag)
 {
   if (area == TRACK_AREA_NONE) {
     return;
@@ -1191,7 +1191,7 @@ float BKE_tracking_track_get_weight_for_marker(MovieClip *clip,
 
 void BKE_tracking_track_select(ListBase *tracksbase,
                                MovieTrackingTrack *track,
-                               int area,
+                               eTrackArea area,
                                bool extend)
 {
   if (extend) {
@@ -1216,7 +1216,7 @@ void BKE_tracking_track_select(ListBase *tracksbase,
   }
 }
 
-void BKE_tracking_track_deselect(MovieTrackingTrack *track, int area)
+void BKE_tracking_track_deselect(MovieTrackingTrack *track, eTrackArea area)
 {
   BKE_tracking_track_flag_clear(track, area, SELECT);
 }
@@ -3300,7 +3300,7 @@ static void tracking_dopesheet_channels_calc(MovieTracking *tracking)
  * longest tracked segment) and could also inverse the list if it's enabled.
  */
 static void tracking_dopesheet_channels_sort(MovieTracking *tracking,
-                                             int sort_method,
+                                             TrackingDopesheetSort sort_method,
                                              bool inverse)
 {
   MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
@@ -3347,7 +3347,7 @@ static void tracking_dopesheet_channels_sort(MovieTracking *tracking,
   }
 }
 
-static int coverage_from_count(int count)
+static TrackingCoverage coverage_from_count(int count)
 {
   /* Values are actually arbitrary here, probably need to be tweaked. */
   if (count < 8) {
@@ -3369,7 +3369,8 @@ static void tracking_dopesheet_calc_coverage(MovieTracking *tracking)
   MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
   int frames, start_frame = INT_MAX, end_frame = -INT_MAX;
   int *per_frame_counter;
-  int prev_coverage, last_segment_frame;
+  TrackingCoverage prev_coverage;
+  int last_segment_frame;
 
   /* find frame boundaries */
   LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
@@ -3409,7 +3410,7 @@ static void tracking_dopesheet_calc_coverage(MovieTracking *tracking)
   }
 
   for (int i = 1; i < frames; i++) {
-    int coverage = coverage_from_count(per_frame_counter[i]);
+    TrackingCoverage coverage = coverage_from_count(per_frame_counter[i]);
 
     /* means only disabled tracks in the end, could be ignored */
     if (i == frames - 1 && !per_frame_counter[i]) {
@@ -3452,7 +3453,7 @@ void BKE_tracking_dopesheet_update(MovieTracking *tracking)
 {
   MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
 
-  short sort_method = dopesheet->sort_method;
+  TrackingDopesheetSort sort_method = TrackingDopesheetSort(dopesheet->sort_method);
   bool inverse = (dopesheet->flag & TRACKING_DOPE_SORT_INVERSE) != 0;
 
   if (dopesheet->ok) {

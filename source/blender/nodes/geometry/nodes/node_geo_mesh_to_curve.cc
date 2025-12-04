@@ -30,9 +30,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Curve").propagate_all();
 }
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "mode", UI_ITEM_R_EXPAND, std::nullopt, 0);
+  layout.prop(ptr, "mode", UI_ITEM_R_EXPAND, std::nullopt, 0);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

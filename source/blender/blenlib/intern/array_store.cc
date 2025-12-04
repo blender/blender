@@ -1032,11 +1032,11 @@ static hash_key key_from_chunk_ref(const BArrayInfo *info, const BChunkRef *cref
 static const BChunkRef *table_lookup(const BArrayInfo *info,
                                      BTableRef **table,
                                      const size_t table_len,
-                                     const uint UNUSED(i_table_start),
+                                     const uint /*i_table_start*/,
                                      const uchar *data,
                                      const size_t data_len,
                                      const size_t offset,
-                                     const hash_key *UNUSED(table_hash_array))
+                                     const hash_key * /*table_hash_array*/)
 {
   const size_t data_hash_len = BCHUNK_HASH_LEN * info->chunk_stride; /* TODO: cache. */
 
@@ -1532,7 +1532,7 @@ BArrayStore *BLI_array_store_create(uint stride, uint chunk_count)
 
   bs->info.accum_read_ahead_bytes = bs->info.accum_read_ahead_len * stride;
 #else
-  bs->info.accum_read_ahead_bytes = std::min(size_t(BCHUNK_HASH_LEN), chunk_count) * stride;
+  bs->info.accum_read_ahead_bytes = size_t(std::min(uint(BCHUNK_HASH_LEN), chunk_count)) * stride;
 #endif
 
   bs->memory.chunk_list = BLI_mempool_create(sizeof(BChunkList), 0, 512, BLI_MEMPOOL_NOP);

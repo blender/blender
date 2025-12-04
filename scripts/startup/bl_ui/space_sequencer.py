@@ -662,8 +662,13 @@ class SEQUENCER_MT_add(Menu):
     bl_options = {'SEARCH_ON_KEY_PRESS'}
 
     def draw(self, context):
-
         layout = self.layout
+
+        if layout.operator_context == 'EXEC_REGION_WIN':
+            layout.operator_context = 'INVOKE_REGION_WIN'
+            layout.operator("WM_OT_search_single_menu", text="Search...",
+                            icon='VIEWZOOM').menu_idname = "SEQUENCER_MT_add"
+            layout.separator()
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.menu("SEQUENCER_MT_add_scene", text="Scene", icon='SCENE_DATA')
@@ -690,9 +695,9 @@ class SEQUENCER_MT_add(Menu):
 
         layout.separator()
 
-        layout.operator("sequencer.movie_strip_add", text="Movie", icon='FILE_MOVIE')
-        layout.operator("sequencer.sound_strip_add", text="Sound", icon='FILE_SOUND')
-        layout.operator("sequencer.image_strip_add", text="Image/Sequence", icon='FILE_IMAGE')
+        layout.operator("sequencer.movie_strip_add", text="Movie...", icon='FILE_MOVIE')
+        layout.operator("sequencer.sound_strip_add", text="Sound...", icon='FILE_SOUND')
+        layout.operator("sequencer.image_strip_add", text="Image/Sequence...", icon='FILE_IMAGE')
 
         layout.separator()
 

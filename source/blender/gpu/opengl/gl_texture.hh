@@ -58,8 +58,12 @@ class GLTexture : public Texture {
   GLTexture(const char *name);
   ~GLTexture();
 
-  void update_sub(
-      int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data) override;
+  void update_sub(int mip,
+                  int offset[3],
+                  int extent[3],
+                  eGPUDataFormat type,
+                  const void *data,
+                  const uint unpack_row_length = 0) override;
   void update_sub(int offset[3],
                   int extent[3],
                   eGPUDataFormat format,

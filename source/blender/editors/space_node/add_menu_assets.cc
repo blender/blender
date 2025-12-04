@@ -192,7 +192,7 @@ static void node_catalog_assets_draw(const bContext *C, Menu *menu)
     return;
   }
 
-  uiLayout *layout = menu->layout;
+  ui::Layout *layout = menu->layout;
   bool add_separator = true;
 
   for (const asset_system::AssetRepresentation *asset : assets) {
@@ -254,7 +254,7 @@ static void node_unassigned_assets_draw(const bContext *C, Menu *menu)
 static void root_catalogs_draw(const bContext *C, Menu *menu, const StringRefNull operator_id)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
-  uiLayout *layout = menu->layout;
+  ui::Layout *layout = menu->layout;
   const bNodeTree *edit_tree = snode.edittree;
   if (!edit_tree) {
     return;
@@ -351,7 +351,7 @@ MenuType swap_root_catalogs_menu_type()
   return type;
 }
 
-void ui_template_node_asset_menu_items(uiLayout &layout,
+void ui_template_node_asset_menu_items(ui::Layout &layout,
                                        const bContext &C,
                                        const StringRef catalog_path,
                                        const NodeAssetMenuOperatorType operator_type)
@@ -376,7 +376,7 @@ void ui_template_node_asset_menu_items(uiLayout &layout,
       operator_id = "NODE_OT_add_group_asset";
   }
 
-  uiLayout *col = &layout.column(false);
+  ui::Layout *col = &layout.column(false);
   col->context_string_set("asset_catalog_path", item->catalog_path().str());
   col->context_string_set("operator_id", operator_id);
   col->menu_contents("NODE_MT_node_catalog_assets");

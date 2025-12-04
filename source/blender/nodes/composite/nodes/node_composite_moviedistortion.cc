@@ -7,17 +7,14 @@
  */
 
 #include "BLI_math_vector_types.hh"
-#include "BLI_string_utf8.h"
 
 #include "DNA_movieclip_types.h"
 
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "UI_interface.hh"
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
 
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
@@ -74,9 +71,9 @@ static void storage_copy(bNodeTree * /*dst_ntree*/, bNode *dest_node, const bNod
   }
 }
 
-static void node_composit_buts_moviedistortion(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_composit_buts_moviedistortion(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
-  uiTemplateID(layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
+  uiTemplateID(&layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
 }
 
 using namespace blender::compositor;

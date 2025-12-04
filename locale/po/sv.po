@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
 "PO-Revision-Date: 2025-11-18 20:05+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -9335,10 +9335,6 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Align View"
-msgstr "Justera vy"
-
-
 msgid "Apply"
 msgstr "Applicera"
 
@@ -9349,10 +9345,6 @@ msgstr "Spår"
 
 msgid "Quick Effects"
 msgstr "Snabbeffekter"
-
-
-msgid "Navigation"
-msgstr "Navigering"
 
 
 msgid "Show/Hide"
@@ -9373,14 +9365,6 @@ msgstr "Konvertera"
 
 msgid "Link/Transfer Data"
 msgstr "Länka/överför data"
-
-
-msgid "Viewpoint"
-msgstr "Visningspunkt"
-
-
-msgid "Local View"
-msgstr "Lokal vy"
 
 
 msgid "Propagate"
@@ -9415,14 +9399,6 @@ msgid "Special Characters"
 msgstr "Specialtecken"
 
 
-msgid "Snap"
-msgstr "Snäpp"
-
-
-msgid "Mirror"
-msgstr "Spegla"
-
-
 msgid "Text"
 msgstr "Text"
 
@@ -9435,6 +9411,10 @@ msgid "Pivot Point"
 msgstr "Fast punkt"
 
 
+msgid "Snap"
+msgstr "Snäpp"
+
+
 msgid "Read"
 msgstr "Läs"
 
@@ -9445,6 +9425,30 @@ msgstr "Skriv"
 
 msgid "Primitives"
 msgstr "Primitiver"
+
+
+msgid "Mirror"
+msgstr "Spegla"
+
+
+msgid "Local View"
+msgstr "Lokal vy"
+
+
+msgid "Viewpoint"
+msgstr "Visningspunkt"
+
+
+msgid "Navigation"
+msgstr "Navigering"
+
+
+msgid "Align View"
+msgstr "Justera vy"
+
+
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
 
 
 msgid "Select More/Less"
@@ -9489,10 +9493,6 @@ msgstr "Relationer"
 
 msgid "Rigid Body"
 msgstr "Rigid kropp"
-
-
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
 
 
 msgid "Animals"
@@ -12620,10 +12620,6 @@ msgid "Boolean value socket of a node"
 msgstr "Booleskt värdeuttag av en nod"
 
 
-msgid "Default Value"
-msgstr "Standardvärde"
-
-
 msgid "Collection Node Socket"
 msgstr "Samling noduttag"
 
@@ -12782,6 +12778,10 @@ msgstr "Standardattribut"
 
 msgid "Default Input"
 msgstr "Standardinmatning"
+
+
+msgid "Default Value"
+msgstr "Standardvärde"
 
 
 msgid "Socket description"
@@ -28513,16 +28513,6 @@ msgstr "Sökväg/Filer"
 
 
 msgctxt "Operator"
-msgid "Movie"
-msgstr "Film"
-
-
-msgctxt "Operator"
-msgid "Image/Sequence"
-msgstr "Bild/sekvens"
-
-
-msgctxt "Operator"
 msgid "Fade"
 msgstr "Tona"
 
@@ -31917,10 +31907,6 @@ msgstr "Filnamn"
 
 msgid "Asset Catalogs"
 msgstr "Tillgångskataloger"
-
-
-msgid "Listing directories..."
-msgstr "Listar kataloger..."
 
 
 msgid "Home"

@@ -99,9 +99,18 @@ using StrokeUpdateStep = void (*)(bContext *C,
 using StrokeRedraw = void (*)(const bContext *C, PaintStroke *stroke, bool final);
 
 /**
- * Callback function for cleaning up and finalizing data after a stroke has finished.
+ * Callback function for dynamically determining if a stroke can be cancelled. If not present,
+ * cancelling is dependent on whether the operator has a `cancel` callback defined.
  */
-using StrokeDone = void (*)(const bContext *C, PaintStroke *stroke);
+using StrokeTestCancel = bool (*)(const bContext *C, PaintStroke *stroke);
+
+/**
+ * Callback function for cleaning up and finalizing data after a stroke has finished.
+ *
+ * \param is_cancel: Some paint modes support cancelling a stroke and returning to the initial
+ * state. This parameter indicates this case so that appropriate cleanup actions can be taken.
+ */
+using StrokeDone = void (*)(const bContext *C, PaintStroke *stroke, bool is_cancel);
 
 PaintStroke *paint_stroke_new(bContext *C,
                               wmOperator *op,
@@ -109,6 +118,7 @@ PaintStroke *paint_stroke_new(bContext *C,
                               StrokeTestStart test_start,
                               StrokeUpdateStep update_step,
                               StrokeRedraw redraw,
+                              StrokeTestCancel test_cancel,
                               StrokeDone done,
                               int event_type);
 void paint_stroke_free(bContext *C, wmOperator *op, PaintStroke *stroke);
@@ -151,6 +161,7 @@ wmOperatorStatus paint_stroke_modal(bContext *C,
                                     const wmEvent *event,
                                     PaintStroke **stroke_p);
 wmOperatorStatus paint_stroke_exec(bContext *C, wmOperator *op, PaintStroke *stroke);
+/** Cancel a stroke and return to the initial state. */
 void paint_stroke_cancel(bContext *C, wmOperator *op, PaintStroke *stroke);
 bool paint_stroke_flipped(PaintStroke *stroke);
 bool paint_stroke_inverted(PaintStroke *stroke);

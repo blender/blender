@@ -196,35 +196,35 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   int mode = RNA_enum_get(ptr, "mode");
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  layout->prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (mode == MOD_GREASE_PENCIL_SIMPLIFY_FIXED) {
-    layout->prop(ptr, "step", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "step", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (mode == MOD_GREASE_PENCIL_SIMPLIFY_ADAPTIVE) {
-    layout->prop(ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (mode == MOD_GREASE_PENCIL_SIMPLIFY_SAMPLE) {
-    layout->prop(ptr, "length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    layout->prop(ptr, "sharp_threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "sharp_threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (mode == MOD_GREASE_PENCIL_SIMPLIFY_MERGE) {
-    layout->prop(ptr, "distance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "distance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *influence_panel = layout->panel_prop(
+  if (ui::Layout *influence_panel = layout.panel_prop(
           C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
-    modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
+    modifier::greasepencil::draw_layer_filter_settings(C, *influence_panel, ptr);
+    modifier::greasepencil::draw_material_filter_settings(C, *influence_panel, ptr);
   }
 
   modifier_error_message_draw(layout, ptr);

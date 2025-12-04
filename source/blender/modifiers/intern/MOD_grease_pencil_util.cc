@@ -93,18 +93,17 @@ void read_influence_data(BlendDataReader *reader,
   }
 }
 
-void draw_layer_filter_settings(const bContext * /*C*/, uiLayout *layout, PointerRNA *ptr)
+void draw_layer_filter_settings(const bContext * /*C*/, ui::Layout &layout, PointerRNA *ptr)
 {
   PointerRNA ob_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Object, ptr->owner_id);
   PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
   const bool use_layer_pass = RNA_boolean_get(ptr, "use_layer_pass_filter");
   const bool use_layer_group_filter = RNA_boolean_get(ptr, "use_layer_group_filter");
-  uiLayout *row, *col, *sub, *subsub;
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  col = &layout->column(true);
-  row = &col->row(true);
+  ui::Layout &col = layout.column(true);
+  ui::Layout *row = &col.row(true);
   row->use_property_decorate_set(false);
   if (use_layer_group_filter) {
     row->prop_search(ptr,
@@ -122,76 +121,73 @@ void draw_layer_filter_settings(const bContext * /*C*/, uiLayout *layout, Pointe
                      std::nullopt,
                      ICON_OUTLINER_DATA_GP_LAYER);
   }
-  sub = &row->row(true);
+  ui::Layout *sub = &row->row(true);
   sub->prop(ptr, "use_layer_group_filter", UI_ITEM_NONE, "", ICON_GREASEPENCIL_LAYER_GROUP);
   sub->prop(ptr, "invert_layer_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
-  row = &col->row(true, IFACE_("Layer Pass"));
+  row = &col.row(true, IFACE_("Layer Pass"));
   row->use_property_decorate_set(false);
   sub = &row->row(true);
   sub->prop(ptr, "use_layer_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
-  subsub = &sub->row(true);
-  subsub->active_set(use_layer_pass);
-  subsub->prop(ptr, "layer_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
-  subsub->prop(ptr, "invert_layer_pass_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+  ui::Layout &subsub = sub->row(true);
+  subsub.active_set(use_layer_pass);
+  subsub.prop(ptr, "layer_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
+  subsub.prop(ptr, "invert_layer_pass_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 }
 
-void draw_material_filter_settings(const bContext * /*C*/, uiLayout *layout, PointerRNA *ptr)
+void draw_material_filter_settings(const bContext * /*C*/, ui::Layout &layout, PointerRNA *ptr)
 {
   PointerRNA ob_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Object, ptr->owner_id);
   PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
   const bool use_material_pass = RNA_boolean_get(ptr, "use_material_pass_filter");
-  uiLayout *row, *col, *sub, *subsub;
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  col = &layout->column(true);
-  row = &col->row(true);
+  ui::Layout &col = layout.column(true);
+  ui::Layout *row = &col.row(true);
   row->use_property_decorate_set(false);
   row->prop_search(
       ptr, "material_filter", &obj_data_ptr, "materials", std::nullopt, ICON_SHADING_TEXTURE);
-  sub = &row->row(true);
+  ui::Layout *sub = &row->row(true);
   sub->prop(ptr, "invert_material_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
-  row = &col->row(true, IFACE_("Material Pass"));
+  row = &col.row(true, IFACE_("Material Pass"));
   row->use_property_decorate_set(false);
   sub = &row->row(true);
   sub->prop(ptr, "use_material_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
-  subsub = &sub->row(true);
-  subsub->active_set(use_material_pass);
-  subsub->prop(ptr, "material_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
-  subsub->prop(ptr, "invert_material_pass_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+  ui::Layout &subsub = sub->row(true);
+  subsub.active_set(use_material_pass);
+  subsub.prop(ptr, "material_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
+  subsub.prop(ptr, "invert_material_pass_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 }
 
-void draw_vertex_group_settings(const bContext * /*C*/, uiLayout *layout, PointerRNA *ptr)
+void draw_vertex_group_settings(const bContext * /*C*/, ui::Layout &layout, PointerRNA *ptr)
 {
   PointerRNA ob_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Object, ptr->owner_id);
   bool has_vertex_group = RNA_string_length(ptr, "vertex_group_name") != 0;
-  uiLayout *row, *col, *sub;
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  col = &layout->column(true);
-  row = &col->row(true);
-  row->use_property_decorate_set(false);
-  row->prop_search(ptr, "vertex_group_name", &ob_ptr, "vertex_groups", std::nullopt, ICON_NONE);
-  sub = &row->row(true);
-  sub->active_set(has_vertex_group);
-  sub->use_property_decorate_set(false);
-  sub->prop(ptr, "invert_vertex_group", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+  ui::Layout &col = layout.column(true);
+  ui::Layout &row = col.row(true);
+  row.use_property_decorate_set(false);
+  row.prop_search(ptr, "vertex_group_name", &ob_ptr, "vertex_groups", std::nullopt, ICON_NONE);
+  ui::Layout &sub = row.row(true);
+  sub.active_set(has_vertex_group);
+  sub.use_property_decorate_set(false);
+  sub.prop(ptr, "invert_vertex_group", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 }
 
-void draw_custom_curve_settings(const bContext * /*C*/, uiLayout *layout, PointerRNA *ptr)
+void draw_custom_curve_settings(const bContext * /*C*/, ui::Layout &layout, PointerRNA *ptr)
 {
   bool use_custom_curve = RNA_boolean_get(ptr, "use_custom_curve");
-  uiLayout *row;
 
-  layout->use_property_split_set(true);
-  row = &layout->row(true);
-  row->use_property_decorate_set(false);
-  row->prop(ptr, "use_custom_curve", UI_ITEM_NONE, IFACE_("Custom Curve"), ICON_NONE);
+  layout.use_property_split_set(true);
+  ui::Layout &row = layout.row(true);
+  row.use_property_decorate_set(false);
+  row.prop(ptr, "use_custom_curve", UI_ITEM_NONE, IFACE_("Custom Curve"), ICON_NONE);
   if (use_custom_curve) {
-    uiTemplateCurveMapping(layout, ptr, "custom_curve", 0, false, false, false, false, false);
+    uiTemplateCurveMapping(&layout, ptr, "custom_curve", 0, false, false, false, false, false);
   }
 }
 

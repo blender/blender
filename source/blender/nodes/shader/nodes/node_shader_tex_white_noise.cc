@@ -32,9 +32,9 @@ static void sh_node_tex_white_noise_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Color");
 }
 
-static void node_shader_buts_white_noise(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_shader_buts_white_noise(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "noise_dimensions", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "noise_dimensions", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static void node_shader_init_tex_white_noise(bNodeTree * /*ntree*/, bNode *node)

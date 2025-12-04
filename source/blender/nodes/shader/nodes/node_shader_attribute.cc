@@ -21,17 +21,17 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Alpha");
 }
 
-static void node_shader_buts_attribute(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_shader_buts_attribute(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "attribute_type", UI_ITEM_NONE, "", ICON_NONE);
-  layout->prop(ptr,
-               RNA_struct_find_property(ptr, "attribute_name"),
-               -1,
-               0,
-               UI_ITEM_NONE,
-               "",
-               ICON_NONE,
-               IFACE_("Name"));
+  layout.prop(ptr, "attribute_type", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(ptr,
+              RNA_struct_find_property(ptr, "attribute_name"),
+              -1,
+              0,
+              UI_ITEM_NONE,
+              "",
+              ICON_NONE,
+              IFACE_("Name"));
 }
 
 static void node_shader_init_attribute(bNodeTree * /*ntree*/, bNode *node)

@@ -30,7 +30,7 @@ static void shaderfx_panel_id(void *fx_v, char *r_idname)
   BKE_shaderfxType_panel_id(ShaderFxType(fx->type), r_idname);
 }
 
-void uiTemplateShaderFx(uiLayout * /*layout*/, bContext *C)
+void uiTemplateShaderFx(blender::ui::Layout * /*layout*/, bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
   Object *ob = blender::ed::object::context_active_object(C);

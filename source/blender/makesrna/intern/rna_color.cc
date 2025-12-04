@@ -52,23 +52,17 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
 #  include "BKE_image.hh"
 #  include "BKE_linestyle.h"
 #  include "BKE_main_invariants.hh"
-#  include "BKE_movieclip.h"
-#  include "BKE_node.hh"
 #  include "BKE_node_legacy_types.hh"
 #  include "BKE_node_tree_update.hh"
 
 #  include "DEG_depsgraph.hh"
 
-#  include "ED_node.hh"
-
 #  include "IMB_colormanagement.hh"
-#  include "IMB_imbuf.hh"
 
 #  include "MOV_read.hh"
 
 #  include "SEQ_iterator.hh"
 #  include "SEQ_relations.hh"
-#  include "SEQ_thumbnail_cache.hh"
 
 struct SeqCurveMappingUpdateData {
   Scene *scene;

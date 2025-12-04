@@ -39,9 +39,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       "Number of levels of nested instances to realize for each top-level instance");
 }
 
-static void node_layout_ex(ui::Layout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_layout_ex(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "realize_to_point_domain", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "realize_to_point_domain", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

@@ -1764,28 +1764,31 @@ void NODE_OT_new_compositing_node_group(wmOperatorType *ot)
   RNA_def_string(ot->srna, "name", nullptr, MAX_ID_NAME - 2, "Name", "");
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Duplicate Compositing Node Tree Operator
  * \{ */
-
-static wmOperatorStatus duplicate_compositing_node_group_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus duplicate_and_assign_node_tree(bContext *C, bNodeTree *source_node_tree)
 {
   Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
-  PointerRNA ptr;
-
-  if (scene->compositing_node_group == nullptr) {
+  if (source_node_tree == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  bNodeTree *node_tree = bke::node_tree_copy_tree(bmain, *scene->compositing_node_group);
-
+  bNodeTree *node_tree = bke::node_tree_copy_tree(bmain, *source_node_tree);
   node_templateID_assign(C, node_tree);
 
   WM_event_add_notifier(C, NC_NODE | NA_ADDED, nullptr);
   BKE_ntree_update_after_single_tree_change(*bmain, *node_tree);
 
   return OPERATOR_FINISHED;
+}
+
+static wmOperatorStatus duplicate_compositing_node_group_exec(bContext *C, wmOperator * /*op*/)
+{
+  Scene *scene = CTX_data_scene(C);
+  return duplicate_and_assign_node_tree(C, scene->compositing_node_group);
 }
 
 void NODE_OT_duplicate_compositing_node_group(wmOperatorType *ot)
@@ -1795,6 +1798,42 @@ void NODE_OT_duplicate_compositing_node_group(wmOperatorType *ot)
   ot->description = "Duplicate the currently assigned compositing node group.";
 
   ot->exec = duplicate_compositing_node_group_exec;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Duplicate Compositing Modifier Node Tree Operator
+ * \{ */
+static wmOperatorStatus duplicate_compositing_modifier_node_group_exec(bContext *C,
+                                                                       wmOperator * /*op*/)
+{
+  Scene *scene = CTX_data_sequencer_scene(C);
+  Strip *strip = seq::select_active_get(scene);
+
+  if (strip == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  StripModifierData *smd = seq::modifier_get_active(strip);
+
+  if (!(smd && smd->type == eSeqModifierType_Compositor)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  SequencerCompositorModifierData *nmd = reinterpret_cast<SequencerCompositorModifierData *>(smd);
+  return duplicate_and_assign_node_tree(C, nmd->node_group);
+}
+
+void NODE_OT_duplicate_compositing_modifier_node_group(wmOperatorType *ot)
+{
+  ot->name = "New Compositing Node Group";
+  ot->idname = "NODE_OT_duplicate_compositing_modifier_node_group";
+  ot->description = "Duplicate the currently assigned compositing node group.";
+
+  ot->exec = duplicate_compositing_modifier_node_group_exec;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -1857,17 +1896,19 @@ static void initialize_compositor_sequencer_node_group(const bContext *C, bNodeT
 
 static wmOperatorStatus new_compositor_sequencer_node_group_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
+
   char tree_name[MAX_ID_NAME - 2];
   RNA_string_get(op->ptr, "name", tree_name);
 
   bNodeTree *ntree = new_node_tree_impl(C, tree_name, "CompositorNodeTree");
   initialize_compositor_sequencer_node_group(C, *ntree);
 
-  Scene *scene = CTX_data_sequencer_scene(C);
   Strip *strip = seq::select_active_get(scene);
 
   /* Add modifier and assign node tree when the strip has no active compositor modifier. */
-  if (strip != nullptr && strip->type != STRIP_TYPE_SOUND_RAM) {
+  if (strip != nullptr && strip->type != STRIP_TYPE_SOUND) {
     StripModifierData *active_smd = seq::modifier_get_active(strip);
     if (!active_smd || active_smd->type != eSeqModifierType_Compositor) {
       StripModifierData *smd = seq::modifier_new(strip, nullptr, eSeqModifierType_Compositor);
@@ -1880,7 +1921,6 @@ static wmOperatorStatus new_compositor_sequencer_node_group_exec(bContext *C, wm
 
       /* Tag depsgraph relations for an update since the modifier should now be referencing a
        * different node tree. */
-      Main *bmain = CTX_data_main(C);
       DEG_relations_tag_update(bmain);
       WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
     }

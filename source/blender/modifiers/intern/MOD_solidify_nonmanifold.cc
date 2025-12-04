@@ -383,14 +383,41 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                 for (uint j = 0; j < edge_adj_faces[k]->faces_len && can_merge; j++) {
                   const blender::IndexRange face = orig_faces[edge_adj_faces[k]->faces[j]];
                   uint changes = 0;
+                  /* Ensure there are at least 3 unique vertices in this face.
+                   * Without this check a duplicate edge would be created
+                   * (although this seems only to happen rarely, see: #150854).
+                   *
+                   * Logically this could be handled with a `set` created from the
+                   * unique vertices that would make up this face (after collapsing),
+                   * however it is simpler to check for at least two other unique vertices.
+                   *
+                   * NOTE(@ideasman42): we *could* remove this check, then perform
+                   * the merge and remove the face (as is done for `is_singularity`)
+                   * however in that case there is still the extra edge to de-duplicate.
+                   * Updating the topology is more involved but it's possible.
+                   * We might be better to use more generic mesh "weld" logic,
+                   * operating on tagged edges (for examples), which has the benefit
+                   * of avoiding nested (potentially inefficient) loops like this. */
+                  bool has_multiple_unique_others = false;
+                  uint unique_other_vert = MOD_SOLIDIFY_EMPTY_TAG;
+
                   int cur = face.size() - 1;
                   for (int next = 0; next < face.size() && changes <= 2; next++) {
                     uint cur_v = vm[orig_corner_verts[face[cur]]];
                     uint next_v = vm[orig_corner_verts[face[next]]];
                     changes += (ELEM(cur_v, v1, v2) != ELEM(next_v, v1, v2));
+                    if (!ELEM(cur_v, v1, v2)) {
+                      if (unique_other_vert == MOD_SOLIDIFY_EMPTY_TAG) {
+                        unique_other_vert = cur_v;
+                      }
+                      else if (unique_other_vert != cur_v) {
+                        has_multiple_unique_others = true;
+                      }
+                    }
                     cur = next;
                   }
-                  can_merge = can_merge && changes <= 2;
+                  can_merge = can_merge && changes <= 2 &&
+                              !(changes == 2 && has_multiple_unique_others == false);
                 }
               }
             }
@@ -2093,8 +2120,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   }
 
   /* DEBUG CODE FOR BUG-FIXING (can not be removed because every bug-fix needs this badly!). */
-#if 0
-  {
+  if (false) {
     /* this code will output the content of orig_vert_groups_arr.
      * in orig_vert_groups_arr these conditions must be met for every vertex:
      * - new_edge value should have no duplicates
@@ -2117,18 +2143,18 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
       EdgeGroup *gs = *gs_ptr;
       /* check if the vertex is present (may be dissolved because of proximity) */
       if (gs) {
-        printf("%d:\n", i);
+        printf("%u:\n", i);
         for (EdgeGroup *g = gs; g->valid; g++) {
           NewEdgeRef **e = g->edges;
           for (uint j = 0; j < g->edges_len; j++, e++) {
-            printf("%u/%d, ", (*e)->old_edge, int(*e)->new_edge);
+            printf("%u/%d, ", (*e)->old_edge, int((*e)->new_edge));
           }
           printf("(tg:%u)(s:%u,c:%d)\n", g->topo_group, g->split, g->is_orig_closed);
         }
       }
     }
   }
-#endif
+
   const VArraySpan src_material_index = *orig_attributes.lookup<int>("material_index",
                                                                      bke::AttrDomain::Face);
   bke::SpanAttributeWriter dst_material_index =

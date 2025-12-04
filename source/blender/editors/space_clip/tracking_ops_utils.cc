@@ -11,7 +11,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_context.hh"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -20,7 +20,7 @@
 
 void clip_tracking_clear_invisible_track_selection(SpaceClip *sc, MovieClip *clip)
 {
-  int hidden = 0;
+  eTrackArea hidden = TRACK_AREA_NONE;
   if ((sc->flag & SC_SHOW_MARKER_PATTERN) == 0) {
     hidden |= TRACK_AREA_PAT;
   }

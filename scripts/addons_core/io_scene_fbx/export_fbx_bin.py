@@ -204,7 +204,7 @@ def fbx_template_def_light(scene, settings, override_defaults=None, nbr_users=0)
         b"CastLight": (True, "p_bool", False),
         b"Color": ((1.0, 1.0, 1.0), "p_color", True),
         b"Intensity": (100.0, "p_number", True),  # Times 100 compared to Blender values...
-        b"Exposure" : (0.0, "p_number", True ),
+        b"Exposure": (0.0, "p_number", True),
         b"DecayType": (2, "p_enum", False),  # Quadratic.
         b"DecayStart": (30.0 * gscale, "p_double", False),
         b"CastShadows": (True, "p_bool", False),
@@ -1360,7 +1360,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
         # Fast view for sort-based uniqueness of pairs.
         t_luv_fast_pair_view = fast_first_axis_flat(t_luv.reshape(-1, 2))
         # It must be a view of t_luv otherwise it won't update when t_luv is updated.
-        assert(t_luv_fast_pair_view.base is t_luv)
+        assert t_luv_fast_pair_view.base is t_luv
 
         # Looks like this mapping is also expected to convey UV islands (arg..... :((((( ).
         # So we need to generate unique triplets (uv, vertex_idx) here, not only just based on UV values.
@@ -1656,6 +1656,7 @@ def fbx_data_material_elements(root, ma, scene_data):
     if scene_data.settings.use_custom_props:
         fbx_data_element_custom_properties(props, ma)
 
+
 def _get_image_filepath(img):
     if len(img.filepath) > 0:
         return img.filepath
@@ -1666,6 +1667,7 @@ def _get_image_filepath(img):
     if img.library:
         filepath = os.path.join(filepath, bpy.path.clean_name(img.library.name))
     return "//" + os.path.join(filepath, bpy.path.clean_name(img.name))
+
 
 def _gen_vid_path(img, scene_data):
     msetts = scene_data.settings.media_settings
@@ -1797,7 +1799,7 @@ def fbx_data_video_elements(root, vid, scene_data):
     # Looks like we'd rather not write any 'Content' element in this case (see T44442).
     # Sounds suspect, but let's try it!
     # ~ else:
-        #~ elem_data_single_bytes(fbx_vid, b"Content", b"")
+        # ~ elem_data_single_bytes(fbx_vid, b"Content", b"")
 
     # Blender currently has no UI for editing custom properties on Images, but the importer will import Image custom
     # properties from either a Video Node or a Texture Node, preferring a Video node if one exists. We'll propagate
@@ -1842,7 +1844,9 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
         # Store Blender bone length - XXX Not much useful actually :/
         # (LimbLength can't be used because it is a scale factor 0-1 for the parent-child distance:
         # http://docs.autodesk.com/FBX/2014/ENU/FBX-SDK-Documentation/cpp_ref/class_fbx_skeleton.html#a9bbe2a70f4ed82cd162620259e649f0f )
-        # elem_props_set(props, "p_double", "BlenderBoneLength".encode(), (bo.tail_local - bo.head_local).length, custom=True)
+        # elem_props_set(
+        #     props, "p_double", "BlenderBoneLength".encode(), (bo.tail_local - bo.head_local).length, custom=True,
+        # )
 
     # Skin deformers and BindPoses.
     # Note: we might also use Deformers for our "parent to vertex" stuff???
@@ -2998,7 +3002,7 @@ def fbx_data_from_scene(scene, depsgraph, settings):
         if data_deformers_shape:
             nbr += len(data_deformers_shape)
             nbr += sum(len(shapes[2]) for shapes in data_deformers_shape.values())
-        assert(nbr != 0)
+        assert nbr != 0
         templates[b"Deformers"] = fbx_template_def_deformer(scene, settings, nbr_users=nbr)
 
     # No world support in FBX...
@@ -3100,7 +3104,7 @@ def fbx_data_from_scene(scene, depsgraph, settings):
         for me, (skin_key, ob_obj, clusters) in deformed_meshes.items():
             # skin -> geometry
             mesh_key, _me, _free = data_meshes[ob_obj]
-            assert(me == _me)
+            assert me == _me
             connections.append((b"OO", get_fbx_uuid_from_key(skin_key), get_fbx_uuid_from_key(mesh_key), None))
             for bo_obj, clstr_key in clusters.items():
                 # cluster -> skin

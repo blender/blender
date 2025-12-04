@@ -721,7 +721,7 @@ static wmOperatorStatus run_node_group_exec(bContext *C, wmOperator *op)
   }
 
   const nodes::GeometryNodesLazyFunctionGraphInfo *lf_graph_info =
-      nodes::ensure_geometry_nodes_lazy_function_graph(*node_tree);
+      nodes::ensure_geometry_nodes_lazy_function_graph(*node_tree).get();
   if (lf_graph_info == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Cannot evaluate node group");
     return OPERATOR_CANCELLED;

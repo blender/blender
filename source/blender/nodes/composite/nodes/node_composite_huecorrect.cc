@@ -129,12 +129,12 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   CurveMapping *curve_mapping = get_curve_mapping(builder.node());
   BKE_curvemapping_init(curve_mapping);
 
-  builder.construct_and_set_matching_fn_cb([=]() {
+  builder.construct_and_set_matching_fn_cb([&]() {
     return mf::build::SI2_SO<Color, float, Color>(
         "Hue Correct",
-        [=](const Color &color, const float factor) -> Color {
-          return Color(hue_correct(float4(color), factor, curve_mapping));
-        },
+        /* Take ownership of the tree because it contains the curve mapping. */
+        [curve_mapping, tree = builder.shared_tree()](const Color &color, const float factor)
+            -> Color { return Color(hue_correct(float4(color), factor, curve_mapping)); },
         mf::build::exec_presets::SomeSpanOrSingle<0>());
   });
 }

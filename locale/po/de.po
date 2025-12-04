@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'ef4e8fa75057')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 08:35+0000\n"
+"POT-Creation-Date: 2025-12-02 11:29+0000\n"
 "PO-Revision-Date: 2025-10-28 00:59+0000\n"
 "Last-Translator: Cedric Steiert <cedricsteiert@gmail.com>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -18706,10 +18706,6 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Align View"
-msgstr "Ansicht ausrichten"
-
-
 msgid "Apply"
 msgstr "Anwenden"
 
@@ -18720,10 +18716,6 @@ msgstr "Spur"
 
 msgid "Quick Effects"
 msgstr "Schnelle Effekte"
-
-
-msgid "Navigation"
-msgstr "Navigation"
 
 
 msgid "Show/Hide"
@@ -18752,14 +18744,6 @@ msgstr "Haken"
 
 msgid "Vertex Group Locks"
 msgstr "Punktgruppen sperren"
-
-
-msgid "Viewpoint"
-msgstr "Ansicht"
-
-
-msgid "Local View"
-msgstr "Lokale Ansicht"
 
 
 msgid "Random Mask"
@@ -18826,14 +18810,6 @@ msgid "Kerning"
 msgstr "Kerning"
 
 
-msgid "Snap"
-msgstr "Einrasten"
-
-
-msgid "Mirror"
-msgstr "Spiegeln"
-
-
 msgid "Text"
 msgstr "Text"
 
@@ -18844,6 +18820,10 @@ msgstr "Metaball"
 
 msgid "Pivot Point"
 msgstr "Drehpunkt"
+
+
+msgid "Snap"
+msgstr "Einrasten"
 
 
 msgid "Proportional Editing Falloff"
@@ -18868,6 +18848,34 @@ msgstr "Schreiben"
 
 msgid "Primitives"
 msgstr "Grundkörper"
+
+
+msgid "Mirror"
+msgstr "Spiegeln"
+
+
+msgid "Local View"
+msgstr "Lokale Ansicht"
+
+
+msgid "Viewpoint"
+msgstr "Ansicht"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Ansicht ausrichten"
+
+
+msgid "Align View to Active"
+msgstr "Ansicht auf Aktiv ausrichten"
+
+
+msgid "View Regions"
+msgstr "Vierfenster Ansicht"
 
 
 msgid "Select More/Less"
@@ -18914,10 +18922,6 @@ msgid "Light Probe"
 msgstr "Lichtsonde"
 
 
-msgid "View Regions"
-msgstr "Vierfenster Ansicht"
-
-
 msgid "Add Image"
 msgstr "Bild hinzufügen"
 
@@ -18928,10 +18932,6 @@ msgstr "Beziehungen"
 
 msgid "Rigid Body"
 msgstr "Rigid Body"
-
-
-msgid "Align View to Active"
-msgstr "Ansicht auf Aktiv ausrichten"
 
 
 msgid "Assets"
@@ -24502,10 +24502,6 @@ msgid "Data type"
 msgstr "Datentyp"
 
 
-msgid "Default Value"
-msgstr "Vorgabewert"
-
-
 msgid "Collection Node Socket"
 msgstr "Sammlungsknotenbuchse"
 
@@ -24556,6 +24552,10 @@ msgstr "Vektor-Knotenbuchse"
 
 msgid "Default Attribute"
 msgstr "Standardattribut"
+
+
+msgid "Default Value"
+msgstr "Vorgabewert"
 
 
 msgid "Layer Selection"
@@ -51464,16 +51464,6 @@ msgstr "Springe zum nächsten Streifen (Zentrum)"
 
 
 msgctxt "Operator"
-msgid "Movie"
-msgstr "Film"
-
-
-msgctxt "Operator"
-msgid "Image/Sequence"
-msgstr "Bild/Sequenz"
-
-
-msgctxt "Operator"
 msgid "Fade"
 msgstr "Fading"
 
@@ -55036,10 +55026,6 @@ msgstr "Nähte"
 
 msgid "Intersection Type"
 msgstr "Schnittflächentyp"
-
-
-msgid "Compiled without GMP, using fast solver"
-msgstr "Kompiliert ohne GMP, mit schnellem Löser"
 
 
 msgid "Close"

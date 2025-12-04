@@ -23,8 +23,8 @@
 #include "GPU_shader.hh"
 #include "GPU_storage_buffer.hh"
 
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
+#include "BKE_movieclip.hh"
+#include "BKE_tracking.hh"
 
 #include "COM_context.hh"
 #include "COM_keying_screen.hh"

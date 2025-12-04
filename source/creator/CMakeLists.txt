@@ -1119,33 +1119,33 @@ elseif(WIN32)
 
   if(WITH_WINDOWS_RELEASE_PDB)
     if(MSVC_CLANG AND WITH_WINDOWS_RELEASE_STRIPPED_PDB)
-      # clang-cl doesn't support stripped pdbs yet, it takes the /PDBSTRIPPED argument 
-      # without errors, but will just proceed to not do anything with it. So for now 
-      # just call pdbcopy manually to create the stripped pdb. 
+      # clang-cl doesn't support stripped pdbs yet, it takes the /PDBSTRIPPED argument
+      # without errors, but will just proceed to not do anything with it. So for now
+      # just call pdbcopy manually to create the stripped pdb.
       if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
         set(SDK_SEARCH_DIR $ENV{WindowsSdkDir}/Debuggers/arm64)
       else()
         set(SDK_SEARCH_DIR $ENV{WindowsSdkDir}/Debuggers/x64)
       endif()
-      find_program(PDBCOPY_EXECUTABLE 
-        NAMES 
+      find_program(PDBCOPY_EXECUTABLE
+        NAMES
           pdbcopy
         HINTS
           ${SDK_SEARCH_DIR}
-      )  
+      )
       if(PDBCOPY_EXECUTABLE)
         add_custom_command(
           TARGET blender POST_BUILD
           COMMAND ${CMAKE_COMMAND} -E rm -f ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/blender_public.pdb
           COMMAND ${PDBCOPY_EXECUTABLE} $<TARGET_PDB_FILE:blender> ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/blender_public.pdb -p
-          COMMENT "Stripping PDB file..."        
+          COMMENT "Stripping PDB file..."
         )
       else()
         message(WARNING "pdbcopy not found in ${SDK_SEARCH_DIR}. PDB stripping will be skipped.")
         set(WITH_WINDOWS_RELEASE_STRIPPED_PDB off)
       endif()
     endif()
-      
+
     if(WITH_WINDOWS_RELEASE_STRIPPED_PDB)
       # Icky hack for older CMAKE from https://stackoverflow.com/a/21198501
       # `$<CONFIG>` will work in newer CMAKE but the version currently (3.12)

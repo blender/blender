@@ -589,10 +589,10 @@ static CurvesSelectionStatus init_curves_selection_status(
 
 /* is used for both read and write... */
 static void v3d_editvertex_buts(
-    const bContext *C, uiLayout *layout, View3D *v3d, Object *ob, float lim)
+    const bContext *C, blender::ui::Layout *layout, View3D *v3d, Object *ob, float lim)
 {
   using namespace blender;
-  uiBlock *block = (layout) ? layout->absolute_block() : nullptr;
+  uiBlock *block = (layout) ? layout->absolute().block() : nullptr;
   TransformProperties *tfp = v3d_transform_props_ensure(v3d);
   TransformMedian median_basis, ve_median_basis;
   int tot, totedgedata, totcurvedata, totlattdata, totcurvebweight;
@@ -1577,10 +1577,13 @@ static void v3d_editvertex_buts(
 
 #undef TRANSFORM_MEDIAN_ARRAY_LEN
 
-static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d, Object *ob)
+static void v3d_object_dimension_buts(bContext *C,
+                                      blender::ui::Layout *layout,
+                                      View3D *v3d,
+                                      Object *ob)
 {
   uiBlock *block = (layout) ? layout->block() : nullptr;
-  uiLayout *sub_layout = layout ? &layout->absolute(false) : nullptr;
+  blender::ui::Layout *sub_layout = layout ? &layout->absolute(false) : nullptr;
   TransformProperties *tfp = v3d_transform_props_ensure(v3d);
   const bool is_editable = ID_IS_EDITABLE(&ob->id);
 
@@ -1691,7 +1694,7 @@ static void update_active_vertex_weight(bContext *C, void *arg1, void * /*arg2*/
 
 static void view3d_panel_vgroup(const bContext *C, Panel *panel)
 {
-  uiBlock *block = panel->layout->absolute_block();
+  uiBlock *block = panel->layout->absolute().block();
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
@@ -1710,8 +1713,8 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
     PointerRNA op_ptr;
     PointerRNA *but_ptr;
 
-    uiLayout *col, *bcol;
-    uiLayout *row;
+    blender::ui::Layout *col, *bcol;
+    blender::ui::Layout *row;
     uiBut *but;
     bDeformGroup *dg;
     uint i;
@@ -1744,8 +1747,8 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
         if (dw) {
           int x, xco = 0;
           int icon;
-          uiLayout *split = &col->split(0.45, true);
-          row = &split->row(true);
+          blender::ui::Layout &split = col->split(0.45, true);
+          row = &split.row(true);
 
           /* The Weight Group Name */
 
@@ -1768,7 +1771,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
           }
           xco += x;
 
-          row = &split->row(true);
+          row = &split.row(true);
           row->enabled_set(!locked);
 
           /* The weight group value */
@@ -1856,11 +1859,9 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
   }
 }
 
-static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
+static void v3d_transform_butsR(blender::ui::Layout &layout, PointerRNA *ptr)
 {
-  uiLayout *split, *colsub;
-
-  split = &layout->split(0.8f, false);
+  blender::ui::Layout *split = &layout.split(0.8f, false);
 
   if (ptr->type == &RNA_PoseBone) {
     PointerRNA boneptr;
@@ -1870,7 +1871,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
     bone = static_cast<Bone *>(boneptr.data);
     split->active_set(!(bone->parent && bone->flag & BONE_CONNECTED));
   }
-  colsub = &split->column(true);
+  blender::ui::Layout *colsub = &split->column(true);
   colsub->prop(ptr, "location", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   colsub = &split->column(true);
   colsub->emboss_set(blender::ui::EmbossType::NoneOrStatus);
@@ -1878,7 +1879,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
   colsub->prop(
       ptr, "lock_location", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "", ICON_DECORATE_UNLOCKED);
 
-  split = &layout->split(0.8f, false);
+  split = &layout.split(0.8f, false);
 
   switch (RNA_enum_get(ptr, "rotation_mode")) {
     case ROT_MODE_QUAT: /* quaternion */
@@ -1938,9 +1939,9 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
                    ICON_DECORATE_UNLOCKED);
       break;
   }
-  layout->prop(ptr, "rotation_mode", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(ptr, "rotation_mode", UI_ITEM_NONE, "", ICON_NONE);
 
-  split = &layout->split(0.8f, false);
+  split = &layout.split(0.8f, false);
   colsub = &split->column(true);
   colsub->prop(ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   colsub = &split->column(true);
@@ -1950,21 +1951,18 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
       ptr, "lock_scale", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "", ICON_DECORATE_UNLOCKED);
 }
 
-static void v3d_posearmature_buts(uiLayout *layout, Object *ob)
+static void v3d_posearmature_buts(blender::ui::Layout &layout, Object *ob)
 {
-  bPoseChannel *pchan;
-  uiLayout *col;
-
-  pchan = BKE_pose_channel_active_if_bonecoll_visible(ob);
+  bPoseChannel *pchan = BKE_pose_channel_active_if_bonecoll_visible(ob);
 
   if (!pchan) {
-    layout->label(IFACE_("No Bone Active"), ICON_NONE);
+    layout.label(IFACE_("No Bone Active"), ICON_NONE);
     return;
   }
 
   PointerRNA pchanptr = RNA_pointer_create_discrete(&ob->id, &RNA_PoseBone, pchan);
 
-  col = &layout->column(false);
+  blender::ui::Layout &col = layout.column(false);
 
   /* XXX: RNA buts show data in native types (i.e. quaternion, 4-component axis/angle, etc.)
    * but old-school UI shows in eulers always. Do we want to be able to still display in Eulers?
@@ -1972,52 +1970,48 @@ static void v3d_posearmature_buts(uiLayout *layout, Object *ob)
   v3d_transform_butsR(col, &pchanptr);
 }
 
-static void v3d_editarmature_buts(uiLayout *layout, Object *ob)
+static void v3d_editarmature_buts(blender::ui::Layout &layout, Object *ob)
 {
   bArmature *arm = static_cast<bArmature *>(ob->data);
-  EditBone *ebone;
-  uiLayout *col;
-
-  ebone = arm->act_edbone;
+  EditBone *ebone = arm->act_edbone;
 
   if (!ebone || !ANIM_bonecoll_is_visible_editbone(arm, ebone)) {
-    layout->label(IFACE_("Nothing selected"), ICON_NONE);
+    layout.label(IFACE_("Nothing selected"), ICON_NONE);
     return;
   }
 
   PointerRNA eboneptr = RNA_pointer_create_discrete(&arm->id, &RNA_EditBone, ebone);
 
-  col = &layout->column(false);
-  col->prop(&eboneptr, "head", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  blender::ui::Layout &col = layout.column(false);
+  col.prop(&eboneptr, "head", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (ebone->parent && ebone->flag & BONE_CONNECTED) {
     PointerRNA parptr = RNA_pointer_get(&eboneptr, "parent");
-    col->prop(&parptr, "tail_radius", UI_ITEM_NONE, IFACE_("Radius (Parent)"), ICON_NONE);
+    col.prop(&parptr, "tail_radius", UI_ITEM_NONE, IFACE_("Radius (Parent)"), ICON_NONE);
   }
   else {
-    col->prop(&eboneptr, "head_radius", UI_ITEM_NONE, IFACE_("Radius"), ICON_NONE);
+    col.prop(&eboneptr, "head_radius", UI_ITEM_NONE, IFACE_("Radius"), ICON_NONE);
   }
 
-  col->prop(&eboneptr, "tail", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col->prop(&eboneptr, "tail_radius", UI_ITEM_NONE, IFACE_("Radius"), ICON_NONE);
+  col.prop(&eboneptr, "tail", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(&eboneptr, "tail_radius", UI_ITEM_NONE, IFACE_("Radius"), ICON_NONE);
 
-  col->prop(&eboneptr, "roll", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col->prop(&eboneptr, "length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col->prop(&eboneptr, "envelope_distance", UI_ITEM_NONE, IFACE_("Envelope"), ICON_NONE);
+  col.prop(&eboneptr, "roll", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(&eboneptr, "length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col.prop(&eboneptr, "envelope_distance", UI_ITEM_NONE, IFACE_("Envelope"), ICON_NONE);
 }
 
-static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
+static void v3d_editmetaball_buts(blender::ui::Layout &layout, Object *ob)
 {
   MetaBall *mball = static_cast<MetaBall *>(ob->data);
-  uiLayout *col;
 
   if (!mball || !(mball->lastelem)) {
-    layout->label(IFACE_("Nothing selected"), ICON_NONE);
+    layout.label(IFACE_("Nothing selected"), ICON_NONE);
     return;
   }
 
   PointerRNA ptr = RNA_pointer_create_discrete(&mball->id, &RNA_MetaElement, mball->lastelem);
 
-  col = &layout->column(false);
+  blender::ui::Layout *col = &layout.column(false);
   col->prop(&ptr, "co", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   col->prop(&ptr, "radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -2025,7 +2019,7 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
 
   col->prop(&ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  col = &layout->column(true);
+  col = &layout.column(true);
   switch (RNA_enum_get(&ptr, "type")) {
     case MB_BALL:
       break;
@@ -2100,12 +2094,11 @@ static void view3d_panel_transform(const bContext *C, Panel *panel)
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
-  uiLayout *col;
 
   block = panel->layout->block();
   UI_block_func_handle_set(block, do_view3d_region_buttons, nullptr);
 
-  col = &panel->layout->column(false);
+  blender::ui::Layout &col = panel->layout->column(false);
 
   if (ob == obedit) {
     if (ob->type == OB_ARMATURE) {
@@ -2116,7 +2109,7 @@ static void view3d_panel_transform(const bContext *C, Panel *panel)
     }
     else {
       View3D *v3d = CTX_wm_view3d(C);
-      v3d_editvertex_buts(C, col, v3d, ob, FLT_MAX);
+      v3d_editvertex_buts(C, &col, v3d, ob, FLT_MAX);
     }
   }
   else if (ob->mode & OB_MODE_POSE) {
@@ -2130,7 +2123,7 @@ static void view3d_panel_transform(const bContext *C, Panel *panel)
     if (OB_TYPE_SUPPORT_EDITMODE(ob->type) || ELEM(ob->type, OB_VOLUME, OB_CURVES, OB_POINTCLOUD))
     {
       View3D *v3d = CTX_wm_view3d(C);
-      v3d_object_dimension_buts(nullptr, col, v3d, ob);
+      v3d_object_dimension_buts(nullptr, &col, v3d, ob);
     }
   }
 }
@@ -2356,7 +2349,7 @@ constexpr std::array<EnumPropertyItem, 5> enum_curve_knot_mode_items{{
     {NURBS_KNOT_MODE_CUSTOM, "CUSTOM", ICON_NONE, "Custom", ""},
 }};
 
-static void knot_modes_menu(bContext * /*C*/, uiLayout *layout, void *knot_mode_p)
+static void knot_modes_menu(bContext * /*C*/, blender::ui::Layout *layout, void *knot_mode_p)
 {
   uiBlock *block = layout->block();
   blender::ui::block_layout_set_current(block, layout);
@@ -2435,13 +2428,13 @@ static void view3d_panel_curve_data(const bContext *C, Panel *panel)
   modified = current;
 
   panel->layout->use_property_split_set(true);
-  uiLayout &bcol = panel->layout->column(false);
+  blender::ui::Layout &bcol = panel->layout->column(false);
 
   auto add_labeled_field =
       [&](const StringRef label, const bool active, FunctionRef<uiBut *()> add_button) {
-        uiLayout &row = bcol.row(true);
-        uiLayout &split = row.split(0.4, true);
-        uiLayout &col = split.column(true);
+        blender::ui::Layout &row = bcol.row(true);
+        blender::ui::Layout &split = row.split(0.4, true);
+        blender::ui::Layout &col = split.column(true);
         col.alignment_set(ui::LayoutAlign::Right);
         col.label(label, ICON_NONE);
         split.column(false);

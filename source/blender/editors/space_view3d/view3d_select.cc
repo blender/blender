@@ -46,7 +46,6 @@
 #include "BKE_curve.hh"
 #include "BKE_curves.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_global.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
@@ -54,8 +53,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_scene.hh"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 #include "BKE_workspace.hh"
 
 #include "WM_api.hh"
@@ -69,7 +67,6 @@
 #include "ED_armature.hh"
 #include "ED_curve.hh"
 #include "ED_curves.hh"
-#include "ED_gpencil_legacy.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_lattice.hh"
 #include "ED_mball.hh"
@@ -79,7 +76,6 @@
 #include "ED_particle.hh"
 #include "ED_pointcloud.hh"
 #include "ED_screen.hh"
-#include "ED_sculpt.hh"
 #include "ED_select_utils.hh"
 #include "ED_uvedit.hh"
 
@@ -92,11 +88,9 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "DRW_engine.hh"
 #include "DRW_select_buffer.hh"
 
 #include "ANIM_armature.hh"
-#include "ANIM_bone_collections.hh"
 
 #include "view3d_intern.hh" /* own include */
 

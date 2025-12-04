@@ -95,8 +95,7 @@ bool modifier_persistent_uids_are_valid(const Strip &strip)
 
 static void modifier_panel_header(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *row, *sub, *name_row;
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   /* Don't use #modifier_panel_get_property_pointers, we don't want to lock the header. */
   PointerRNA *ptr = UI_panel_custom_data_get(panel);
@@ -105,25 +104,25 @@ static void modifier_panel_header(const bContext * /*C*/, Panel *panel)
   UI_panel_context_pointer_set(panel, "modifier", ptr);
 
   /* Modifier Icon. */
-  sub = &layout->row(true);
+  ui::Layout *sub = &layout.row(true);
   sub->emboss_set(ui::EmbossType::None);
   PointerRNA active_op_ptr = sub->op(
       "SEQUENCER_OT_strip_modifier_set_active", "", RNA_struct_ui_icon(ptr->type));
   RNA_string_set(&active_op_ptr, "modifier", smd->name);
 
-  row = &layout->row(true);
+  ui::Layout &row = layout.row(true);
 
   /* Modifier Name.
    * Count how many buttons are added to the header to check if there is enough space. */
   int buttons_number = 0;
-  name_row = &row->row(true);
+  ui::Layout &name_row = row.row(true);
 
-  sub = &row->row(true);
+  sub = &row.row(true);
   sub->prop(ptr, "enable", UI_ITEM_NONE, "", ICON_NONE);
   buttons_number++;
 
   /* Delete button. */
-  sub = &row->row(false);
+  sub = &row.row(false);
   sub->emboss_set(ui::EmbossType::None);
   PointerRNA remove_op_ptr = sub->op("SEQUENCER_OT_strip_modifier_remove", "", ICON_X);
   RNA_string_set(&remove_op_ptr, "name", smd->name);
@@ -131,39 +130,38 @@ static void modifier_panel_header(const bContext * /*C*/, Panel *panel)
 
   bool display_name = (panel->sizex / UI_UNIT_X - buttons_number > 5) || (panel->sizex == 0);
   if (display_name) {
-    name_row->prop(ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
+    name_row.prop(ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
   }
   else {
-    row->alignment_set(ui::LayoutAlign::Right);
+    row.alignment_set(ui::LayoutAlign::Right);
   }
 
   /* Extra padding for delete button. */
-  layout->separator();
+  layout.separator();
 }
 
-void draw_mask_input_type_settings(const bContext *C, uiLayout *layout, PointerRNA *ptr)
+void draw_mask_input_type_settings(const bContext *C, ui::Layout &layout, PointerRNA *ptr)
 {
   Scene *sequencer_scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(sequencer_scene);
-  uiLayout *row, *col;
 
   const int input_mask_type = RNA_enum_get(ptr, "input_mask_type");
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  col = &layout->column(false);
-  row = &col->row(true);
+  ui::Layout &col = layout.column(false);
+  ui::Layout *row = &col.row(true);
   row->prop(ptr, "input_mask_type", UI_ITEM_R_EXPAND, IFACE_("Type"), ICON_NONE);
 
   if (input_mask_type == STRIP_MASK_INPUT_STRIP) {
     PointerRNA sequences_object = RNA_pointer_create_discrete(
         &sequencer_scene->id, &RNA_SequenceEditor, ed);
-    col->prop_search(
+    col.prop_search(
         ptr, "input_mask_strip", &sequences_object, "strips_all", IFACE_("Mask"), ICON_NONE);
   }
   else {
-    col->prop(ptr, "input_mask_id", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    row = &col->row(true);
+    col.prop(ptr, "input_mask_id", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    row = &col.row(true);
     row->prop(ptr, "mask_time", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   }
 }
@@ -534,7 +532,7 @@ void modifier_list_copy(Strip *strip_new, Strip *strip)
 
 int sequence_supports_modifiers(Strip *strip)
 {
-  return (strip->type != STRIP_TYPE_SOUND_RAM);
+  return (strip->type != STRIP_TYPE_SOUND);
 }
 
 bool modifier_move_to_index(Strip *strip, StripModifierData *smd, const int new_index)

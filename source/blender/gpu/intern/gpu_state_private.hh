@@ -156,8 +156,6 @@ class StateManager {
   virtual void image_bind(Texture *tex, int unit) = 0;
   virtual void image_unbind(Texture *tex) = 0;
   virtual void image_unbind_all() = 0;
-
-  virtual void texture_unpack_row_length_set(uint len) = 0;
 };
 
 /**

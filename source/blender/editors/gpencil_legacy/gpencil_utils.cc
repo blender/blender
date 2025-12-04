@@ -12,7 +12,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_gpencil_legacy_types.h"
@@ -21,26 +20,21 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_view3d_types.h"
 
 #include "BKE_context.hh"
 #include "BKE_paint.hh"
-#include "BKE_tracking.h"
+#include "BKE_tracking.hh"
 
 #include "WM_api.hh"
-#include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
 #include "RNA_access.hh"
-#include "RNA_enum_types.hh"
 #include "RNA_prototypes.hh"
 
 #include "UI_view2d.hh"
 
 #include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"
-#include "ED_object.hh"
-#include "ED_select_utils.hh"
 #include "ED_view3d.hh"
 
 #include "DEG_depsgraph_query.hh"

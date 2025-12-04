@@ -146,14 +146,4 @@ void VKStateManager::storage_buffer_unbind_all()
   is_dirty = true;
 }
 
-void VKStateManager::texture_unpack_row_length_set(uint len)
-{
-  texture_unpack_row_length_ = len;
-}
-
-uint VKStateManager::texture_unpack_row_length_get() const
-{
-  return texture_unpack_row_length_;
-}
-
 }  // namespace blender::gpu

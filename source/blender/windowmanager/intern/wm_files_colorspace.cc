@@ -15,7 +15,7 @@
 #include "BKE_context.hh"
 #include "BKE_image.hh"
 #include "BKE_main.hh"
-#include "BKE_movieclip.h"
+#include "BKE_movieclip.hh"
 #include "BKE_report.hh"
 
 #include "DNA_windowmanager_enums.h"
@@ -29,8 +29,6 @@
 #include "DEG_depsgraph.hh"
 
 #include "UI_interface_c.hh"
-#include "UI_interface_icons.hh"
-#include "UI_interface_layout.hh"
 
 #include "BLT_translation.hh"
 

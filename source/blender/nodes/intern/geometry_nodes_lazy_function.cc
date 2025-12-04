@@ -41,6 +41,7 @@
 #include "BKE_geometry_nodes_gizmos_transforms.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
@@ -401,7 +402,7 @@ void set_default_remaining_node_outputs(lf::Params &params, const bNode &node)
 {
   const bNodeTree &ntree = node.owner_tree();
   const Span<int> lf_index_by_bsocket =
-      ntree.runtime->geometry_nodes_lazy_function_graph_info->mapping.lf_index_by_bsocket;
+      ntree.runtime->self_geometry_nodes_lazy_function_graph_info->mapping.lf_index_by_bsocket;
   for (const bNodeSocket *bsocket : node.output_sockets()) {
     const int lf_index = lf_index_by_bsocket[bsocket->index_in_tree()];
     if (lf_index == -1) {
@@ -1876,7 +1877,7 @@ struct GeometryNodesLazyFunctionBuilder {
   const ReferenceLifetimesInfo &reference_lifetimes_;
   ResourceScope &scope_;
   NodeMultiFunctions &node_multi_functions_;
-  GeometryNodesLazyFunctionGraphInfo *lf_graph_info_;
+  std::shared_ptr<GeometryNodesLazyFunctionGraphInfo> lf_graph_info_;
   GeometryNodeLazyFunctionGraphMapping *mapping_;
   const bke::DataTypeConversions *conversions_;
 
@@ -1919,13 +1920,14 @@ struct GeometryNodesLazyFunctionBuilder {
   friend class UsedSocketVisualizeOptions;
 
  public:
-  GeometryNodesLazyFunctionBuilder(const bNodeTree &btree,
-                                   GeometryNodesLazyFunctionGraphInfo &lf_graph_info)
-      : btree_(btree),
-        reference_lifetimes_(*btree.runtime->reference_lifetimes_info),
-        scope_(lf_graph_info.scope),
-        node_multi_functions_(lf_graph_info.scope.construct<NodeMultiFunctions>(btree)),
-        lf_graph_info_(&lf_graph_info)
+  GeometryNodesLazyFunctionBuilder(
+      std::shared_ptr<GeometryNodesLazyFunctionGraphInfo> &lf_graph_info)
+      : btree_(*lf_graph_info->tree),
+        reference_lifetimes_(*lf_graph_info->tree->runtime->reference_lifetimes_info),
+        scope_(lf_graph_info->scope),
+        node_multi_functions_(
+            lf_graph_info->scope.construct<NodeMultiFunctions>(btree_, lf_graph_info->tree)),
+        lf_graph_info_(lf_graph_info)
   {
   }
 
@@ -2168,7 +2170,8 @@ struct GeometryNodesLazyFunctionBuilder {
     /* Build a function for the closure body. */
     ZoneBodyFunction &body_fn = this->build_zone_body_function(
         zone, "Closure Body", &scope_.construct<GeometryNodesLazyFunctionSideEffectProvider>());
-    auto &zone_fn = build_closure_zone_lazy_function(scope_, btree_, zone, zone_info, body_fn);
+    auto &zone_fn = build_closure_zone_lazy_function(
+        scope_, btree_, zone, zone_info, body_fn, lf_graph_info_);
     zone_info.lazy_function = &zone_fn;
   }
 
@@ -2999,11 +3002,13 @@ struct GeometryNodesLazyFunctionBuilder {
     if (group_btree == nullptr) {
       return;
     }
-    const GeometryNodesLazyFunctionGraphInfo *group_lf_graph_info =
+    const std::shared_ptr<const GeometryNodesLazyFunctionGraphInfo> &group_lf_graph_info =
         ensure_geometry_nodes_lazy_function_graph(*group_btree);
-    if (group_lf_graph_info == nullptr) {
+    if (!group_lf_graph_info) {
       return;
     }
+    /* Take ownership of the nested group. */
+    scope_.add(group_lf_graph_info);
 
     auto &lazy_function = scope_.construct<LazyFunctionForGroupNode>(
         bnode, *group_lf_graph_info, *lf_graph_info_);
@@ -4130,7 +4135,7 @@ struct GeometryNodesLazyFunctionBuilder {
   }
 };
 
-static std::unique_ptr<GeometryNodesLazyFunctionGraphInfo>
+static std::shared_ptr<GeometryNodesLazyFunctionGraphInfo>
 ensure_geometry_nodes_lazy_function_graph_impl(const bNodeTree &btree)
 {
   btree.ensure_topology_cache();
@@ -4172,20 +4177,36 @@ ensure_geometry_nodes_lazy_function_graph_impl(const bNodeTree &btree)
     }
   }
 
-  auto lf_graph_info = std::make_unique<GeometryNodesLazyFunctionGraphInfo>();
-  GeometryNodesLazyFunctionBuilder builder{btree, *lf_graph_info};
+  auto lf_graph_info = std::make_shared<GeometryNodesLazyFunctionGraphInfo>();
+  if (const bNodeTree *original_tree = DEG_get_original(&btree)) {
+    lf_graph_info->original_tree_session_uid = original_tree->id.session_uid;
+  }
+  else {
+    lf_graph_info->original_tree_session_uid = btree.id.session_uid;
+  }
+
+  /* Make a copy of the node tree so that the execution graph can be independent of the original
+   * tree. */
+  std::shared_ptr<bNodeTree> btree_copy{
+      bke::node_tree_copy_tree_ex(btree, nullptr, false),
+      [](bNodeTree *btree) { BKE_id_free(nullptr, &btree->id); }};
+  lf_graph_info->tree = btree_copy;
+
+  btree_copy->runtime->self_geometry_nodes_lazy_function_graph_info = lf_graph_info.get();
+
+  GeometryNodesLazyFunctionBuilder builder{lf_graph_info};
   builder.build();
   return lf_graph_info;
 }
 
-const GeometryNodesLazyFunctionGraphInfo *ensure_geometry_nodes_lazy_function_graph(
-    const bNodeTree &btree)
+const std::shared_ptr<const GeometryNodesLazyFunctionGraphInfo> &
+ensure_geometry_nodes_lazy_function_graph(const bNodeTree &btree)
 {
   btree.runtime->geometry_nodes_lazy_function_graph_info_mutex.ensure([&]() {
     btree.runtime->geometry_nodes_lazy_function_graph_info =
         ensure_geometry_nodes_lazy_function_graph_impl(btree);
   });
-  return btree.runtime->geometry_nodes_lazy_function_graph_info.get();
+  return btree.runtime->geometry_nodes_lazy_function_graph_info;
 }
 
 destruct_ptr<fn::LocalUserData> GeoNodesUserData::get_local(LinearAllocator<> &allocator)

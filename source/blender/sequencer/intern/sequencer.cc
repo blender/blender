@@ -87,7 +87,7 @@ static StripData *strip_data_alloc(StripType type)
 {
   StripData *data = MEM_callocN<StripData>("strip");
 
-  if (type != STRIP_TYPE_SOUND_RAM) {
+  if (type != STRIP_TYPE_SOUND) {
     data->transform = MEM_callocN<StripTransform>("StripTransform");
     data->transform->scale_x = 1;
     data->transform->scale_y = 1;
@@ -206,7 +206,7 @@ static void seq_strip_free_ex(Scene *scene,
       ed->act_strip = nullptr;
     }
 
-    if (strip->runtime->scene_sound && ELEM(strip->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SCENE)) {
+    if (strip->runtime->scene_sound && ELEM(strip->type, STRIP_TYPE_SOUND, STRIP_TYPE_SCENE)) {
       BKE_sound_remove_scene_sound(scene, strip->runtime->scene_sound);
     }
   }
@@ -696,7 +696,7 @@ static Strip *strip_duplicate(StripDuplicateContext &ctx, ListBase *seqbase_dst,
   else if (strip->type == STRIP_TYPE_MOVIE) {
     strip_new->data->stripdata = static_cast<StripElem *>(MEM_dupallocN(strip->data->stripdata));
   }
-  else if (strip->type == STRIP_TYPE_SOUND_RAM) {
+  else if (strip->type == STRIP_TYPE_SOUND) {
     strip_new->data->stripdata = static_cast<StripElem *>(MEM_dupallocN(strip->data->stripdata));
     strip_new->runtime->scene_sound = nullptr;
     if ((ctx.copy_flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
@@ -880,7 +880,7 @@ static bool strip_write_data_cb(Strip *strip, void *userdata)
       BLO_write_struct_array(
           writer, StripElem, MEM_allocN_len(data->stripdata) / sizeof(StripElem), data->stripdata);
     }
-    else if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_SOUND_RAM)) {
+    else if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_SOUND)) {
       BLO_write_struct(writer, StripElem, data->stripdata);
     }
   }
@@ -979,7 +979,7 @@ static bool strip_read_data_cb(Strip *strip, void *user_data)
     if (ELEM(strip->type,
              STRIP_TYPE_IMAGE,
              STRIP_TYPE_MOVIE,
-             STRIP_TYPE_SOUND_RAM,
+             STRIP_TYPE_SOUND,
              STRIP_TYPE_SOUND_HD))
     {
       /* FIXME In #STRIP_TYPE_IMAGE case, there is currently no available information about the
@@ -1042,7 +1042,7 @@ static bool strip_doversion_250_sound_proxy_update_cb(Strip *strip, void *user_d
                   strip->data->stripdata->filename);
     BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
     strip->sound = BKE_sound_new_file(bmain, filepath_abs);
-    strip->type = STRIP_TYPE_SOUND_RAM;
+    strip->type = STRIP_TYPE_SOUND;
   }
   return true;
 }
@@ -1084,10 +1084,15 @@ static void strip_update_mix_sounds(Scene *scene, Strip *strip)
 
 static void strip_update_sound_properties(const Scene *scene, const Strip *strip)
 {
+  const Strip *meta = lookup_meta_by_strip(editing_get(scene), strip);
+  float output_volume = strip->volume;
+  if (meta != nullptr) {
+    output_volume *= meta->volume;
+  }
   const int frame = BKE_scene_frame_get(scene);
   BKE_sound_set_scene_sound_volume_at_frame(strip->runtime->scene_sound,
                                             frame,
-                                            strip->volume,
+                                            output_volume,
                                             (strip->flag & SEQ_AUDIO_VOLUME_ANIMATED) != 0);
   retiming_sound_animation_data_set(scene, strip);
   BKE_sound_set_scene_sound_pan_at_frame(

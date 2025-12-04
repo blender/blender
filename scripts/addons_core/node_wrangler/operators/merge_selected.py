@@ -35,7 +35,11 @@ class NODE_OT_merge_selected(Operator, NWBase):
         name="Mode",
         translation_context=i18n_contexts.id_nodetree,
         description="All possible blend types, boolean operations and math operations",
-        items=blend_types + [op for op in geo_combine_operations if op not in blend_types] + [op for op in operations if op not in blend_types],
+        items=(
+            blend_types +
+            [op for op in geo_combine_operations if op not in blend_types] +
+            [op for op in operations if op not in blend_types]
+        ),
     )
     merge_type: EnumProperty(
         name="Merge Type",
@@ -171,8 +175,8 @@ class NODE_OT_merge_selected(Operator, NWBase):
         selected_vector = []  # entry = [index, loc]
         selected_z = []  # entry = [index, loc]
         selected_alphaover = []  # entry = [index, loc]
-        selected_boolean = [] # entry = [index, loc]
-        selected_string = [] # entry = [index, loc]
+        selected_boolean = []  # entry = [index, loc]
+        selected_string = []  # entry = [index, loc]
 
         for i, node in enumerate(nodes):
             if node.select and node.outputs:
@@ -374,7 +378,7 @@ class NODE_OT_merge_selected(Operator, NWBase):
                     add = self.merge_with_multi_input(
                         nodes_list, merge_position, do_hide, loc_x, links, nodes, add_type, [1])
                     was_multi = True
-                    break # this line is here in case more types get added in the future
+                    break  # this line is here in case more types get added in the future
                 add.location = loc_x, loc_y
                 loc_y += offset_y
                 add.select = True

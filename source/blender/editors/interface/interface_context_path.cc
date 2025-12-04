@@ -54,26 +54,26 @@ void context_path_add_generic(Vector<ContextPathItem> &path,
 /** \name Breadcrumb Template
  * \{ */
 
-void template_breadcrumbs(uiLayout &layout, Span<ContextPathItem> context_path)
+void template_breadcrumbs(Layout &layout, Span<ContextPathItem> context_path)
 {
-  uiLayout *row = &layout.row(true);
+  Layout &row = layout.row(true);
   layout.alignment_set(LayoutAlign::Left);
 
   for (const int i : context_path.index_range()) {
-    uiLayout *sub_row = &row->row(true);
-    sub_row->alignment_set(LayoutAlign::Left);
+    Layout &sub_row = row.row(true);
+    sub_row.alignment_set(LayoutAlign::Left);
 
     if (i > 0) {
-      sub_row->label("", ICON_RIGHTARROW_THIN);
+      sub_row.label("", ICON_RIGHTARROW_THIN);
     }
     uiBut *but;
     int icon = context_path[i].icon;
     std::string name = context_path[i].name;
     if (context_path[i].handle_func) {
-      but = sub_row->button(name.c_str(), icon, context_path[i].handle_func);
+      but = sub_row.button(name.c_str(), icon, context_path[i].handle_func);
     }
     else {
-      but = uiItemL_ex(sub_row, name.c_str(), icon, false, false);
+      but = uiItemL_ex(&sub_row, name.c_str(), icon, false, false);
     }
     UI_but_icon_indicator_number_set(but, context_path[i].icon_indicator_number);
   }

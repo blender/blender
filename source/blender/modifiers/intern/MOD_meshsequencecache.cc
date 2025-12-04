@@ -331,7 +331,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -339,21 +339,21 @@ static void panel_draw(const bContext *C, Panel *panel)
   PointerRNA cache_file_ptr = RNA_pointer_get(ptr, "cache_file");
   bool has_cache_file = !RNA_pointer_is_null(&cache_file_ptr);
 
-  layout->use_property_split_set(true);
+  layout.use_property_split_set(true);
 
-  uiTemplateCacheFile(layout, C, ptr, "cache_file");
+  uiTemplateCacheFile(&layout, C, ptr, "cache_file");
 
   if (has_cache_file) {
-    layout->prop_search(
+    layout.prop_search(
         ptr, "object_path", &cache_file_ptr, "object_paths", std::nullopt, ICON_NONE);
   }
 
   if (RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
-    layout->prop(ptr, "read_data", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-    layout->prop(ptr, "use_vertex_interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "read_data", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "use_vertex_interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (RNA_enum_get(&ob_ptr, "type") == OB_CURVES) {
-    layout->prop(ptr, "use_vertex_interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "use_vertex_interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   modifier_error_message_draw(layout, ptr);
@@ -361,7 +361,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
 static void velocity_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -371,14 +371,14 @@ static void velocity_panel_draw(const bContext * /*C*/, Panel *panel)
     return;
   }
 
-  layout->use_property_split_set(true);
-  uiTemplateCacheFileVelocity(layout, &fileptr);
-  layout->prop(ptr, "velocity_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout.use_property_split_set(true);
+  uiTemplateCacheFileVelocity(&layout, &fileptr);
+  layout.prop(ptr, "velocity_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void time_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -388,13 +388,13 @@ static void time_panel_draw(const bContext * /*C*/, Panel *panel)
     return;
   }
 
-  layout->use_property_split_set(true);
-  uiTemplateCacheFileTimeSettings(layout, &fileptr);
+  layout.use_property_split_set(true);
+  uiTemplateCacheFileTimeSettings(&layout, &fileptr);
 }
 
 static void override_layers_panel_draw(const bContext *C, Panel *panel)
 {
-  uiLayout *layout = panel->layout;
+  ui::Layout &layout = *panel->layout;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -404,8 +404,8 @@ static void override_layers_panel_draw(const bContext *C, Panel *panel)
     return;
   }
 
-  layout->use_property_split_set(true);
-  uiTemplateCacheFileLayers(layout, C, &fileptr);
+  layout.use_property_split_set(true);
+  uiTemplateCacheFileLayers(&layout, C, &fileptr);
 }
 
 static void panel_register(ARegionType *region_type)

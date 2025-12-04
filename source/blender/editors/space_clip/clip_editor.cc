@@ -33,8 +33,8 @@
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_movieclip.h"
-#include "BKE_tracking.h"
+#include "BKE_movieclip.hh"
+#include "BKE_tracking.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
@@ -242,7 +242,8 @@ ImBuf *ED_space_clip_get_buffer(const SpaceClip *sc)
   if (sc->clip) {
     ImBuf *ibuf;
 
-    ibuf = BKE_movieclip_get_postprocessed_ibuf(sc->clip, &sc->user, sc->postproc_flag);
+    ibuf = BKE_movieclip_get_postprocessed_ibuf(
+        sc->clip, &sc->user, MovieClipPostprocFlag(sc->postproc_flag));
 
     if (ibuf && (ibuf->byte_buffer.data || ibuf->float_buffer.data)) {
       return ibuf;
@@ -265,7 +266,7 @@ ImBuf *ED_space_clip_get_stable_buffer(const SpaceClip *sc,
     ImBuf *ibuf;
 
     ibuf = BKE_movieclip_get_stable_ibuf(
-        sc->clip, &sc->user, sc->postproc_flag, loc, scale, angle);
+        sc->clip, &sc->user, MovieClipPostprocFlag(sc->postproc_flag), loc, scale, angle);
 
     if (ibuf && (ibuf->byte_buffer.data || ibuf->float_buffer.data)) {
       return ibuf;
