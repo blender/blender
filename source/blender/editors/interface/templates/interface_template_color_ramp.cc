@@ -400,7 +400,7 @@ void uiTemplateColorRamp(blender::ui::Layout *layout,
   rect.ymin = 0;
   rect.ymax = 19.5f * UI_UNIT_X;
 
-  uiBlock *block = layout->absolute_block();
+  uiBlock *block = layout->absolute().block();
 
   ID *id = cptr.owner_id;
   UI_block_lock_set(block, (id && !ID_IS_EDITABLE(id)), ERROR_LIBDATA_MESSAGE);

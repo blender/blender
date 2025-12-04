@@ -5001,14 +5001,6 @@ Layout &Layout::absolute(bool align)
   return *litem;
 }
 
-uiBlock *Layout::absolute_block()
-{
-  uiBlock *block = this->block();
-  absolute(false);
-
-  return block;
-}
-
 Layout &Layout::overlap()
 {
   Layout *litem = MEM_new<LayoutOverlap>(__func__);

@@ -82,7 +82,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_lit
 
 void uiTemplateIcon(blender::ui::Layout *layout, int icon_value, float icon_scale)
 {
-  uiBlock *block = layout->absolute_block();
+  uiBlock *block = layout->absolute().block();
   uiBut *but = uiDefIconBut(block,
                             ButType::Label,
                             ICON_X,
@@ -113,7 +113,7 @@ void uiTemplateIconView(blender::ui::Layout *layout,
     return;
   }
 
-  uiBlock *block = layout->absolute_block();
+  uiBlock *block = layout->absolute().block();
 
   int tot_items;
   bool free_items;

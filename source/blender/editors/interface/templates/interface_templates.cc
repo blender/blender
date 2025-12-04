@@ -243,7 +243,7 @@ uiBlock *template_common_search_menu(const bContext *C,
 
 void uiTemplateHeader(blender::ui::Layout *layout, bContext *C)
 {
-  uiBlock *block = layout->absolute_block();
+  uiBlock *block = layout->absolute().block();
   ED_area_header_switchbutton(C, block, 0);
 }
 

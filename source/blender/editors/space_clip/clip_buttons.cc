@@ -452,7 +452,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
 
     if (track->flag & TRACK_LOCKED) {
       layout->active_set(false);
-      uiBlock *block = layout->absolute_block();
+      uiBlock *block = layout->absolute().block();
       uiDefBut(block,
                ButType::Label,
                IFACE_("Track is locked"),
@@ -487,7 +487,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
 
     cb->marker_flag = marker->flag;
 
-    uiBlock *block = layout->absolute_block();
+    uiBlock *block = layout->absolute().block();
     UI_block_func_handle_set(block, marker_block_handler, cb);
     UI_block_funcN_set(block, marker_update_cb, cb, nullptr);
 
@@ -519,7 +519,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
     blender::ui::Layout &col = layout->column(true);
     col.active_set((cb->marker_flag & MARKER_DISABLED) == 0);
 
-    block = col.absolute_block();
+    block = col.absolute().block();
     UI_block_align_begin(block);
 
     uiDefBut(block,

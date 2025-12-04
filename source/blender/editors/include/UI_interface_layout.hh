@@ -241,8 +241,7 @@ struct Layout : public uiItem, NonCopyable, NonMovable {
 
   /** Sub-layout items. */
 
-  Layout &absolute(bool align);
-  uiBlock *absolute_block();
+  Layout &absolute(bool align = false);
 
   /**
    * Add a new box sub-layout, items placed in this sub-layout are added vertically one under
