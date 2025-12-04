@@ -62,11 +62,16 @@ void Parser::tokenize(const bool keep_whitespace)
     bool next_character_is_escape = false;
     bool inside_string = false;
 
+    char curr_c = str[0];
+    char prev_c = str[0];
     int offset = 0;
-    for (const char &c : str.substr(1)) {
+    for (const char c : str.substr(1)) {
       offset++;
       TokenType type = to_type(c);
       TokenType prev = TokenType(token_types.back());
+
+      std::swap(curr_c, prev_c);
+      curr_c = c;
 
       /* Merge string literal. */
       if (inside_string) {
@@ -157,7 +162,7 @@ void Parser::tokenize(const bool keep_whitespace)
         continue;
       }
       /* If sign is part of float literal after exponent. */
-      if ((c == '+' || c == '-') && prev == Number) {
+      if ((c == '+' || c == '-') && prev_c == 'e') {
         continue;
       }
       /* Detect increment. */

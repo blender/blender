@@ -1799,9 +1799,10 @@ static void test_preprocess_parser()
 2.0e-1f;
 0xFF;
 0xFFu;
+0+8;
 )";
     string expect = R"(
-0;0;0;0;0;0;0;0;0;0;)";
+0;0;0;0;0;0;0;0;0;0;0+0;)";
     EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().token_types, expect);
   }
   {
