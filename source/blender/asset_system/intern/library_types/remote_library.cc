@@ -42,8 +42,10 @@
 
 namespace blender::asset_system {
 
-RemoteAssetLibrary::RemoteAssetLibrary(const StringRef remote_url, StringRef cache_root_path)
-    : AssetLibrary(ASSET_LIBRARY_CUSTOM, "", cache_root_path)
+RemoteAssetLibrary::RemoteAssetLibrary(const StringRef remote_url,
+                                       const StringRef name,
+                                       const StringRef cache_root_path)
+    : AssetLibrary(ASSET_LIBRARY_CUSTOM, name, cache_root_path)
 {
   import_method_ = ASSET_IMPORT_APPEND_REUSE;
   may_override_import_method_ = false;

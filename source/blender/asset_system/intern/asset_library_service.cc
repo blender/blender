@@ -140,6 +140,7 @@ AssetLibrary *AssetLibraryService::get_remote_asset_library(
 
   std::unique_ptr<RemoteAssetLibrary> lib_uptr = std::make_unique<RemoteAssetLibrary>(
       remote_url,
+      custom_library->name,
       /* Constructor normalizes the path. */
       custom_library->dirpath);
   AssetLibrary *lib = lib_uptr.get();

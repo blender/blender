@@ -98,6 +98,10 @@ AssetWeakReference AssetWeakReference::make_reference(const asset_system::AssetL
 {
   AssetWeakReference weak_ref{};
 
+  BLI_assert_msg(
+      !(library.library_type() == ASSET_LIBRARY_CUSTOM && library.name().is_empty()),
+      "Custom asset libraries should have a name set, otherwise weak references will not work");
+
   weak_ref.asset_library_type = library.library_type();
   StringRefNull name = library.name();
   if (!name.is_empty()) {
