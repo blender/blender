@@ -20,8 +20,6 @@ class Batch;
 
 namespace blender::draw {
 
-#define SCULPT_DEBUG_DRAW (G.debug_value == 889)
-
 struct SculptBatch {
   gpu::Batch *batch;
   int material_slot;

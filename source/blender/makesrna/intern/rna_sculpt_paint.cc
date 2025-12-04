@@ -320,6 +320,19 @@ static void rna_Sculpt_update(bContext *C, PointerRNA * /*ptr*/)
   }
 }
 
+static void rna_Paint_update(bContext *C, PointerRNA * /*ptr*/)
+{
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
+
+  if (ob) {
+    DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
+    WM_main_add_notifier(NC_OBJECT | ND_OB_SHADING, ob);
+  }
+}
+
 static std::optional<std::string> rna_Sculpt_path(const PointerRNA * /*ptr*/)
 {
   return "tool_settings.sculpt";
@@ -714,6 +727,13 @@ static void rna_def_paint(BlenderRNA *brna)
       "Delay Viewport Updates",
       "Update the geometry when it enters the view, providing faster view navigation");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
+
+  prop = RNA_def_property(srna, "show_bvh_nodes", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "debug_flags", PAINT_DEBUG_SHOW_BVH_NODES);
+  RNA_def_property_ui_text(
+      prop, "Show BVH Nodes", "Show the underlying BVH nodes as differently colored faces");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Paint_update");
 
   prop = RNA_def_property(srna, "use_symmetry_x", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "symmetry_flags", PAINT_SYMM_X);

@@ -356,7 +356,7 @@ class Instance : public DrawEngine {
     if (object_state.use_per_material_batches) {
       for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, features)) {
         Material mat = this->get_material(ob_ref, object_state.color_type, batch.material_slot);
-        if (SCULPT_DEBUG_DRAW) {
+        if (scene_state_.show_paint_bvh_debug) {
           mat.base_color = batch.debug_color();
         }
 
@@ -372,7 +372,7 @@ class Instance : public DrawEngine {
     else {
       Material mat = this->get_material(ob_ref, object_state.color_type);
       for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, features)) {
-        if (SCULPT_DEBUG_DRAW) {
+        if (scene_state_.show_paint_bvh_debug) {
           mat.base_color = batch.debug_color();
         }
 

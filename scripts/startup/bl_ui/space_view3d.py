@@ -7502,8 +7502,10 @@ class VIEW3D_PT_overlay_sculpt(Panel):
         return context.mode == 'SCULPT'
 
     def draw(self, context):
+        prefs = context.preferences
         layout = self.layout
 
+        sculpt = context.scene.tool_settings.sculpt
         view = context.space_data
         overlay = view.overlay
 
@@ -7520,6 +7522,11 @@ class VIEW3D_PT_overlay_sculpt(Panel):
         sub = row.row()
         sub.active = overlay.show_sculpt_face_sets
         row.prop(overlay, "sculpt_mode_face_sets_opacity", text="Face Sets")
+
+        use_debug = prefs.experimental.use_paint_debug and prefs.view.show_developer_ui
+        if use_debug:
+            row = layout.row(align=True)
+            row.prop(sculpt, "show_bvh_nodes")
 
 
 class VIEW3D_PT_overlay_sculpt_curves(Panel):

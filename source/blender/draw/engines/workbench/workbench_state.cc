@@ -247,6 +247,11 @@ void SceneState::init(const DRWContext *context,
              shading.flag & V3D_SHADING_DEPTH_OF_FIELD;
 
   draw_object_id = (draw_outline || draw_curvature);
+
+  show_paint_bvh_debug = scene->toolsettings->sculpt ?
+                             scene->toolsettings->sculpt->paint.debug_flags &
+                                 PAINT_DEBUG_SHOW_BVH_NODES :
+                             false;
 };
 
 static bool mesh_has_color_attribute(const Mesh &mesh)

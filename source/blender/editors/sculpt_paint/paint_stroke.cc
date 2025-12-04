@@ -907,7 +907,7 @@ static int paint_space_stroke(bContext *C,
 
 static bool print_pressure_status_enabled()
 {
-  return (G.debug_value == 887);
+  return U.tablet_flag & USER_TABLET_SHOW_DEBUG_VALUES;
 }
 
 /**** Public API ****/
