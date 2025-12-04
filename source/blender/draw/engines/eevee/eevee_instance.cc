@@ -43,6 +43,7 @@ namespace blender::eevee {
 
 CLG_LogRef Instance::log = {"eevee"};
 
+void *Instance::debug_scope_render_frame = nullptr;
 void *Instance::debug_scope_render_sample = nullptr;
 void *Instance::debug_scope_irradiance_setup = nullptr;
 void *Instance::debug_scope_irradiance_sample = nullptr;
@@ -651,6 +652,9 @@ void Instance::render_frame(RenderEngine *engine, RenderLayer *render_layer, con
     }
     return;
   }
+
+  DebugScope debug_scope(debug_scope_render_frame, "EEVEE.render_frame");
+
   /* TODO: Break on RE_engine_test_break(engine) */
   while (!sampling.finished()) {
     this->render_sample();

@@ -82,6 +82,7 @@ class Instance : public DrawEngine {
   friend MotionBlurModule;
 
   /** Debug scopes. */
+  static void *debug_scope_render_frame;
   static void *debug_scope_render_sample;
   static void *debug_scope_irradiance_setup;
   static void *debug_scope_irradiance_sample;
