@@ -603,13 +603,6 @@ void MTLFence::wait()
 /** \name Texture State Management
  * \{ */
 
-void MTLStateManager::texture_unpack_row_length_set(uint len)
-{
-  /* Set source image row data stride when uploading image data to the GPU. */
-  MTLContext *ctx = MTLContext::get();
-  ctx->pipeline_state.unpack_row_length = len;
-}
-
 void MTLStateManager::texture_bind(Texture *tex_, GPUSamplerState sampler_type, int unit)
 {
   BLI_assert(tex_);

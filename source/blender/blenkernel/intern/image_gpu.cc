@@ -747,11 +747,9 @@ static void gpu_texture_update_unscaled(blender::gpu::Texture *tex,
 
   /* Partial update without scaling. Stride and offset are used to copy only a
    * subset of a possible larger buffer than what we are updating. */
-  GPU_unpack_row_length_set(tex_stride);
 
-  GPU_texture_update_sub(tex, data_format, data, x, y, blender::math::max(layer, 0), w, h, 1);
-  /* Restore default. */
-  GPU_unpack_row_length_set(0);
+  GPU_texture_update_sub(
+      tex, data_format, data, x, y, blender::math::max(layer, 0), w, h, 1, tex_stride);
 }
 
 static void gpu_texture_update_from_ibuf(blender::gpu::Texture *tex,

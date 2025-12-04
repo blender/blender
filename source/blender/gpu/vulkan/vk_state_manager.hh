@@ -217,8 +217,6 @@ class BindSpaceTextures {
 class VKStateManager : public StateManager {
   friend class VKDescriptorSetUpdator;
 
-  uint texture_unpack_row_length_ = 0;
-
   BindSpaceTextures textures_;
   BindSpaceImages<BIND_SPACE_IMAGE_OFFSET> images_;
   BindSpaceUniformBuffers uniform_buffers_;
@@ -259,14 +257,5 @@ class VKStateManager : public StateManager {
                            VkDeviceSize offset);
   void storage_buffer_unbind(void *resource);
   void storage_buffer_unbind_all();
-
-  void texture_unpack_row_length_set(uint len) override;
-
-  /**
-   * Row length for unpacking host data when uploading texture data.
-   *
-   * When set to zero (0) host data can be assumed to be stored sequentially.
-   */
-  uint texture_unpack_row_length_get() const;
 };
 }  // namespace blender::gpu
