@@ -1636,7 +1636,7 @@ static void bpy_prop_float_array_from_callback_or_error(PropertyRNA *prop,
     }
     else {
       /* Only for float types. */
-      /* TODO: Clear and comnplete explanations about this matrix swap? */
+      /* TODO: Clear and complete explanations about this matrix swap? */
       if (do_matrix_row_col_swap && bpy_prop_array_is_matrix_compatible(prop, &array_len_info)) {
         bpy_prop_array_matrix_swap_row_column_vn(r_values, &array_len_info);
       }
