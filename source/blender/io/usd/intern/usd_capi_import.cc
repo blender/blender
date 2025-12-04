@@ -260,9 +260,6 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
   /* Create blender objects. */
   for (USDPrimReader *reader : archive->readers()) {
-    if (!reader) {
-      continue;
-    }
     reader->create_object(data->bmain);
     if ((++i & 1023) == 0) {
       *data->do_update = true;
@@ -273,10 +270,6 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   /* Setup parenthood and read actual object data. */
   i = 0;
   for (USDPrimReader *reader : archive->readers()) {
-    if (!reader) {
-      continue;
-    }
-
     Object *ob = reader->object();
     reader->read_object_data(data->bmain, 0.0);
 
@@ -315,11 +308,6 @@ static void import_endjob(void *customdata)
   if (data->was_canceled && data->archive) {
 
     for (const USDPrimReader *reader : data->archive->readers()) {
-
-      if (!reader) {
-        continue;
-      }
-
       /* It's possible that cancellation occurred between the creation of
        * the reader and the creation of the Blender object. */
       if (Object *ob = reader->object()) {
@@ -342,9 +330,6 @@ static void import_endjob(void *customdata)
 
     /* Add all objects to the collection. */
     for (const USDPrimReader *reader : data->archive->readers()) {
-      if (!reader) {
-        continue;
-      }
       if (reader->is_in_proto()) {
         /* Skip prototype prims, as these are added to prototype collections. */
         continue;
@@ -359,10 +344,6 @@ static void import_endjob(void *customdata)
     /* Sync and do the view layer operations. */
     BKE_view_layer_synced_ensure(scene, view_layer);
     for (const USDPrimReader *reader : data->archive->readers()) {
-      if (!reader) {
-        continue;
-      }
-
       Object *ob = reader->object();
       if (!ob) {
         continue;
