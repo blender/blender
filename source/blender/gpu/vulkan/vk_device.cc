@@ -70,10 +70,8 @@ void VKWorkarounds::log() const
 {
   CLOG_DEBUG(&LOG,
              "Activated workarounds\n"
-             " - [%c] Not 16/32 bit aligned image formats\n"
-             " - [%c] rgb8 vertex format\n",
-             not_aligned_pixel_formats ? 'X' : ' ',
-             vertex_formats.r8g8b8 ? 'X' : ' ');
+             " - [%c] Not 16/32 bit aligned image formats",
+             not_aligned_pixel_formats ? 'X' : ' ');
 }
 
 void VKDevice::reinit()

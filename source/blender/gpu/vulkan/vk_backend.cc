@@ -431,7 +431,6 @@ void VKBackend::detect_workarounds(VKDevice &device)
     printf("    Driver: %s\n", device.driver_version().c_str());
     /* Force workarounds and disable extensions. */
     workarounds.not_aligned_pixel_formats = true;
-    workarounds.vertex_formats.r8g8b8 = true;
     extensions.shader_output_layer = false;
     extensions.shader_output_viewport_index = false;
     extensions.fragment_shader_barycentric = false;
@@ -508,12 +507,6 @@ void VKBackend::detect_workarounds(VKDevice &device)
   {
     extensions.dynamic_rendering_local_read = false;
   }
-
-  VkFormatProperties format_properties = {};
-  vkGetPhysicalDeviceFormatProperties(
-      device.physical_device_get(), VK_FORMAT_R8G8B8_UNORM, &format_properties);
-  workarounds.vertex_formats.r8g8b8 = (format_properties.bufferFeatures &
-                                       VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT) == 0;
 
 #ifdef __APPLE__
   extensions.extended_dynamic_state = false;
