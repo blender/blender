@@ -119,7 +119,7 @@ static std::pair<float3, float3> calculate_align_both_handles(const float3 &posi
     return {position - right_dir, right_handle};
   }
   if (right_length == 0.0f) {
-    return {left_handle, position - left_handle};
+    return {left_handle, position - left_dir};
   }
 
   /* Use the direction halfway between the two directions. */
