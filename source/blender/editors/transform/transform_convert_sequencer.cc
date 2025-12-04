@@ -288,8 +288,11 @@ static void seq_transform_cancel(TransInfo *t, Span<Strip *> transformed_strips)
       seq::edit_flag_for_removal(scene, seqbase, strip);
     }
     seq::edit_remove_flagged_strips(scene, seqbase);
+    vse::sync_active_scene_and_time_with_scene_strip(*t->context);
     return;
   }
+
+  vse::sync_active_scene_and_time_with_scene_strip(*t->context);
 
   for (Strip *strip : transformed_strips) {
     /* Handle pre-existing overlapping strips even when operator is canceled.
