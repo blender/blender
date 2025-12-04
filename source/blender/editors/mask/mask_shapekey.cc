@@ -162,8 +162,7 @@ static wmOperatorStatus mask_shape_key_feather_reset_exec(bContext *C, wmOperato
               MaskSplinePoint *point = &spline->points[i];
 
               if (BKE_mask_point_selected(point)) {
-                /* TODO: nicer access here. */
-                shape_ele_dst->value[6] = shape_ele_src->value[6];
+                shape_ele_dst->weight = shape_ele_src->weight;
               }
 
               shape_ele_src++;
@@ -325,10 +324,11 @@ static wmOperatorStatus mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
 
                 if (BKE_mask_point_selected(point)) {
                   if (do_location) {
-                    memcpy(shape_ele_dst->value, shape_ele_src->value, sizeof(float[6]));
+                    memcpy(
+                        shape_ele_dst->point, shape_ele_src->point, sizeof(shape_ele_src->point));
                   }
                   if (do_feather) {
-                    shape_ele_dst->value[6] = shape_ele_src->value[6];
+                    shape_ele_dst->weight = shape_ele_src->weight;
                   }
                 }
 

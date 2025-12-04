@@ -68,6 +68,15 @@ void BKE_mask_layer_rename(Mask *mask,
 MaskLayer *BKE_mask_layer_copy(const MaskLayer *masklay);
 void BKE_mask_layer_copy_list(ListBase *masklayers_new, const ListBase *masklayers);
 
+struct MaskLayerShapeElem {
+  float point[3][2];
+  float weight;
+  float radius;
+};
+/* MaskLayerShapeElem is serialized as 8 floats in DNA data. */
+static_assert(sizeof(MaskLayerShapeElem) == 8 * sizeof(float),
+              "MaskLayerShapeElem expected size mismatch");
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

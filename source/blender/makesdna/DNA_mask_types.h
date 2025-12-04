@@ -16,6 +16,8 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
+struct MaskLayerShapeElem;
+
 typedef struct Mask_Runtime {
   /* The Depsgraph::update_count when this ID was last updated. Covers any IDRecalcFlag. */
   uint64_t last_update;
@@ -120,20 +122,23 @@ typedef struct MaskSpline {
 typedef struct MaskLayerShape {
   struct MaskLayerShape *next, *prev;
 
-  /** U coordinate along spline segment and weight of this point. */
-  float *data;
-  /** To ensure no buffer overrun's: alloc size is `(tot_vert * MASK_OBJECT_SHAPE_ELEM_SIZE)`. */
+  float *data; /* Internally a #MaskLayerShapeElem struct for each vertex. */
   int tot_vert;
   int frame;
   char flag; /* MaskLayerShapeFlag */
   char _pad[7];
+
+#ifdef __cplusplus
+  const MaskLayerShapeElem *vertices() const
+  {
+    return (const MaskLayerShapeElem *)this->data;
+  }
+  MaskLayerShapeElem *vertices()
+  {
+    return (MaskLayerShapeElem *)this->data;
+  }
+#endif
 } MaskLayerShape;
-
-#define MASK_OBJECT_SHAPE_ELEM_SIZE 8 /* 3x 2D points + weight + radius == 8 */
-
-typedef struct MaskLayerShapeElem {
-  float value[/*MASK_OBJECT_SHAPE_ELEM_SIZE*/ 8];
-} MaskLayerShapeElem;
 
 typedef struct MaskLayer {
   struct MaskLayer *next, *prev;
