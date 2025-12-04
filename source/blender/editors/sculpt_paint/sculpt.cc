@@ -5791,6 +5791,7 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
   BLI_assert(!dyntopo::stroke_is_dyntopo(ob, brush));
+  UNUSED_VARS_NDEBUG(brush);
 
   undo::restore_from_undo_step(depsgraph, sd, ob);
   paint_stroke_cancel(C, op, static_cast<PaintStroke *>(op->customdata));
