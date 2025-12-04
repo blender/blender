@@ -873,7 +873,7 @@ class ASSETBROWSER_MT_context_menu(AssetBrowserMenu, Menu):
         sub.operator("asset.clear", text="Clear Asset").set_fake_user = False
         sub.operator("asset.clear", text="Clear Asset (Set Fake User)").set_fake_user = True
 
-        if context.asset.is_online:
+        if asset and asset.is_online:
             layout.separator()
 
             layout.operator("asset.assets_download")
