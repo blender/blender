@@ -78,12 +78,17 @@ struct SeqDropCoords {
  */
 static SeqDropCoords g_drop_coords{};
 
-static void generic_poll_operations(const wmEvent *event, uint8_t type)
+static void generic_poll_operations(const bContext *C, const wmEvent *event, uint8_t type)
 {
+  const Scene *scene = CTX_data_scene(C);
+  const ToolSettings *ts = scene->toolsettings;
+
   g_drop_coords.type = type;
-  /* We purposely ignore the snapping tool setting here as currently other drag&drop operators only
-   * snaps when holding down Ctrl. */
-  g_drop_coords.use_snapping = event->modifier & KM_CTRL;
+  /* Ideally we would reuse the transform modal keymap for snapping, but drag and drop doesn't have
+   * access to transform engine, so just hard-code the invert key to a sane default. */
+  const bool do_invert = event->modifier & KM_CTRL;
+  g_drop_coords.use_snapping = do_invert ? !(ts->snap_flag_seq & SCE_SNAP) :
+                                           (ts->snap_flag_seq & SCE_SNAP);
 }
 
 /* While drag-and-drop in the sequencer, the internal drop-box implementation allows to have a drop
@@ -105,13 +110,13 @@ static bool image_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
     if (file_type == FILE_TYPE_IMAGE &&
         test_single_file_handler_poll(C, drag, "SEQUENCER_FH_image_strip"))
     {
-      generic_poll_operations(event, TH_SEQ_IMAGE);
+      generic_poll_operations(C, event, TH_SEQ_IMAGE);
       return true;
     }
   }
 
   if (WM_drag_is_ID_type(drag, ID_IM)) {
-    generic_poll_operations(event, TH_SEQ_IMAGE);
+    generic_poll_operations(C, event, TH_SEQ_IMAGE);
     return true;
   }
 
@@ -137,7 +142,7 @@ static bool movie_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
   if (is_movie(drag) && (drag->type != WM_DRAG_PATH ||
                          test_single_file_handler_poll(C, drag, "SEQUENCER_FH_movie_strip")))
   {
-    generic_poll_operations(event, TH_SEQ_MOVIE);
+    generic_poll_operations(C, event, TH_SEQ_MOVIE);
     return true;
   }
 
@@ -163,7 +168,7 @@ static bool sound_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
   if (is_sound(drag) && (drag->type != WM_DRAG_PATH ||
                          test_single_file_handler_poll(C, drag, "SEQUENCER_FH_sound_strip")))
   {
-    generic_poll_operations(event, TH_SEQ_AUDIO);
+    generic_poll_operations(C, event, TH_SEQ_AUDIO);
     return true;
   }
 
