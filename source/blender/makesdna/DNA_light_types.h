@@ -18,80 +18,6 @@
 struct AnimData;
 struct bNodeTree;
 
-typedef struct Light {
-#ifdef __cplusplus
-  DNA_DEFINE_CXX_METHODS(Light)
-  /** See #ID_Type comment for why this is here. */
-  static constexpr ID_Type id_type = ID_LA;
-#endif
-
-  ID id;
-  /** Animation data (must be immediately after id for utilities to use it). */
-  struct AnimData *adt;
-
-  /* Type and flags. */
-  short type, flag;
-  int mode;
-
-  /* Color, temperature and energy. */
-  float r, g, b;
-  float temperature;
-  float energy;
-  float exposure;
-
-  /* Point light. */
-  float radius;
-
-  /* Spot Light. */
-  float spotsize;
-  float spotblend;
-
-  /* Area light. */
-  short area_shape;
-  short _pad1;
-  float area_size;
-  float area_sizey;
-  float area_sizez;
-  float area_spread;
-
-  /* Sun light. */
-  float sun_angle;
-
-  /* Nodes. */
-  short pr_texture, use_nodes DNA_DEPRECATED;
-
-  /* Eevee */
-  float clipsta;
-  float clipend_deprecated;
-
-  float cascade_max_dist;
-  float cascade_exponent;
-  float cascade_fade;
-  int cascade_count;
-
-  float diff_fac;
-  float spec_fac;
-  float transmission_fac;
-  float volume_fac;
-
-  float att_dist;
-  float shadow_filter_radius;
-  float shadow_maximum_resolution;
-  float shadow_jitter_overblur;
-
-  /* Preview */
-  struct PreviewImage *preview;
-
-  /* Nodes */
-  struct bNodeTree *nodetree;
-
-  /* Deprecated. */
-  float energy_deprecated DNA_DEPRECATED;
-  float _pad2;
-} Light;
-
-/* **************** LIGHT ********************* */
-
 /** #Light::flag */
 enum {
   LA_DS_EXPAND = 1 << 0,
@@ -165,3 +91,75 @@ enum {
   LA_AREA_DISK = 4,
   LA_AREA_ELLIPSE = 5,
 };
+
+typedef struct Light {
+#ifdef __cplusplus
+  DNA_DEFINE_CXX_METHODS(Light)
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_LA;
+#endif
+
+  ID id;
+  /** Animation data (must be immediately after id for utilities to use it). */
+  struct AnimData *adt;
+
+  /* Type and flags. */
+  short type, flag;
+  int mode;
+
+  /* Color, temperature and energy. */
+  float r, g, b;
+  float temperature;
+  float energy;
+  float exposure;
+
+  /* Point light. */
+  float radius;
+
+  /* Spot Light. */
+  float spotsize;
+  float spotblend;
+
+  /* Area light. */
+  short area_shape;
+  short _pad1;
+  float area_size;
+  float area_sizey;
+  float area_sizez;
+  float area_spread;
+
+  /* Sun light. */
+  float sun_angle;
+
+  /* Nodes. */
+  short pr_texture, use_nodes DNA_DEPRECATED;
+
+  /* Eevee */
+  float clipsta;
+  float clipend_deprecated;
+
+  float cascade_max_dist;
+  float cascade_exponent;
+  float cascade_fade;
+  int cascade_count;
+
+  float diff_fac;
+  float spec_fac;
+  float transmission_fac;
+  float volume_fac;
+
+  float att_dist;
+  float shadow_filter_radius;
+  float shadow_maximum_resolution;
+  float shadow_jitter_overblur;
+
+  /* Preview */
+  struct PreviewImage *preview;
+
+  /* Nodes */
+  struct bNodeTree *nodetree;
+
+  /* Deprecated. */
+  float energy_deprecated DNA_DEPRECATED;
+  float _pad2;
+} Light;

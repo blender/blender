@@ -37,17 +37,63 @@ struct ARegionRuntime;
 struct FileHandlerType;
 }  // namespace blender::bke
 using ARegionRuntimeHandle = blender::bke::ARegionRuntime;
+
 using FileHandlerTypeHandle = blender::bke::FileHandlerType;
 
 namespace blender::ui {
+
 struct Layout;
 }  // namespace blender::ui
 using uiLayoutHandle = blender::ui::Layout;
 #else
-typedef struct ARegionRuntimeHandle ARegionRuntimeHandle;
-typedef struct FileHandlerTypeHandle FileHandlerTypeHandle;
-typedef struct uiLayoutHandle uiLayoutHandle;
+struct ARegionRuntimeHandle;
+struct FileHandlerTypeHandle;
+struct uiLayoutHandle;
 #endif
+
+/** #bScreen.flag */
+enum {
+  SCREEN_DEPRECATED = 1,
+  SCREEN_COLLAPSE_STATUSBAR = 2,
+};
+
+/** #bScreen.state */
+enum {
+  SCREENNORMAL = 0,
+  /** One editor taking over the screen. */
+  SCREENMAXIMIZED = 1,
+  /**
+   * One editor taking over the screen with no bare-minimum UI elements.
+   *
+   * Besides making the area full-screen this disables navigation & statistics because
+   * this is part of a stereo 3D pipeline where these elements would interfere, see: !142418.
+   */
+  SCREENFULL = 2,
+};
+
+/** #bScreen.fullscreen_flag */
+enum eScreen_Fullscreen_Flag {
+  FULLSCREEN_RESTORE_GIZMO_NAVIGATE = (1 << 0),
+  FULLSCREEN_RESTORE_TEXT = (1 << 1),
+  FULLSCREEN_RESTORE_STATS = (1 << 2),
+};
+
+/** #bScreen.redraws_flag */
+enum eScreen_Redraws_Flag {
+  TIME_REGION = (1 << 0),
+  TIME_ALL_3D_WIN = (1 << 1),
+  TIME_ALL_ANIM_WIN = (1 << 2),
+  TIME_ALL_BUTS_WIN = (1 << 3),
+  // TIME_WITH_SEQ_AUDIO    = (1 << 4), /* DEPRECATED */
+  TIME_SEQ = (1 << 5),
+  TIME_ALL_IMAGE_WIN = (1 << 6),
+  // TIME_CONTINUE_PHYSICS  = (1 << 7), /* UNUSED */
+  TIME_NODES = (1 << 8),
+  TIME_CLIPS = (1 << 9),
+  TIME_SPREADSHEETS = (1 << 10),
+
+  TIME_FOLLOW = (1 << 15),
+};
 
 /* TODO: Doing this is quite ugly :)
  * Once the top-bar is merged bScreen should be refactored to use ScrAreaMap. */
@@ -146,6 +192,54 @@ typedef struct ScrAreaMap {
   ListBase areabase;
 } ScrAreaMap;
 
+enum LayoutPanelStateFlag {
+  /** If set, the panel is currently open. Otherwise it is collapsed. */
+  LAYOUT_PANEL_STATE_FLAG_OPEN = (1 << 0),
+};
+
+/**
+ * Used for passing expansion between instanced panel data and the panels themselves.
+ * There are 16 defines because the expansion data is typically stored in a short.
+ *
+ * \note Expansion for instanced panels is stored in depth first order. For example, the value of
+ * UI_SUBPANEL_DATA_EXPAND_2 correspond to mean the expansion of the second sub-panel or the first
+ * sub-panel's first sub-panel.
+ */
+enum uiPanelDataExpansion {
+  UI_PANEL_DATA_EXPAND_ROOT = (1 << 0),
+  UI_SUBPANEL_DATA_EXPAND_1 = (1 << 1),
+  UI_SUBPANEL_DATA_EXPAND_2 = (1 << 2),
+  UI_SUBPANEL_DATA_EXPAND_3 = (1 << 3),
+  UI_SUBPANEL_DATA_EXPAND_4 = (1 << 4),
+  UI_SUBPANEL_DATA_EXPAND_5 = (1 << 5),
+  UI_SUBPANEL_DATA_EXPAND_6 = (1 << 6),
+  UI_SUBPANEL_DATA_EXPAND_7 = (1 << 7),
+  UI_SUBPANEL_DATA_EXPAND_8 = (1 << 8),
+  UI_SUBPANEL_DATA_EXPAND_9 = (1 << 9),
+  UI_SUBPANEL_DATA_EXPAND_10 = (1 << 10),
+  UI_SUBPANEL_DATA_EXPAND_11 = (1 << 11),
+  UI_SUBPANEL_DATA_EXPAND_12 = (1 << 12),
+  UI_SUBPANEL_DATA_EXPAND_13 = (1 << 13),
+  UI_SUBPANEL_DATA_EXPAND_14 = (1 << 14),
+  UI_SUBPANEL_DATA_EXPAND_15 = (1 << 15),
+};
+
+/** #Panel.flag */
+enum {
+  PNL_SELECT = (1 << 0),
+  PNL_UNUSED_1 = (1 << 1), /* Cleared */
+  PNL_CLOSED = (1 << 2),
+  // PNL_TABBED = (1 << 3),  /* UNUSED */
+  // PNL_OVERLAP = (1 << 4), /* UNUSED */
+  PNL_PIN = (1 << 5),
+  PNL_POPOVER = (1 << 6),
+  /** The panel has been drag-drop reordered and the instanced panel list needs to be rebuilt. */
+  PNL_INSTANCED_LIST_ORDER_CHANGED = (1 << 7),
+};
+
+/** Fallback panel category (only for old scripts which need updating). */
+#define PNL_CATEGORY_FALLBACK "Misc"
+
 typedef struct LayoutPanelState {
   struct LayoutPanelState *next, *prev;
   /** Identifier of the panel. */
@@ -158,11 +252,6 @@ typedef struct LayoutPanelState {
    */
   uint32_t last_used;
 } LayoutPanelState;
-
-enum LayoutPanelStateFlag {
-  /** If set, the panel is currently open. Otherwise it is collapsed. */
-  LAYOUT_PANEL_STATE_FLAG_OPEN = (1 << 0),
-};
 
 typedef struct Panel {
   struct Panel *next, *prev;
@@ -209,33 +298,6 @@ typedef struct Panel {
 } Panel;
 
 /**
- * Used for passing expansion between instanced panel data and the panels themselves.
- * There are 16 defines because the expansion data is typically stored in a short.
- *
- * \note Expansion for instanced panels is stored in depth first order. For example, the value of
- * UI_SUBPANEL_DATA_EXPAND_2 correspond to mean the expansion of the second sub-panel or the first
- * sub-panel's first sub-panel.
- */
-typedef enum uiPanelDataExpansion {
-  UI_PANEL_DATA_EXPAND_ROOT = (1 << 0),
-  UI_SUBPANEL_DATA_EXPAND_1 = (1 << 1),
-  UI_SUBPANEL_DATA_EXPAND_2 = (1 << 2),
-  UI_SUBPANEL_DATA_EXPAND_3 = (1 << 3),
-  UI_SUBPANEL_DATA_EXPAND_4 = (1 << 4),
-  UI_SUBPANEL_DATA_EXPAND_5 = (1 << 5),
-  UI_SUBPANEL_DATA_EXPAND_6 = (1 << 6),
-  UI_SUBPANEL_DATA_EXPAND_7 = (1 << 7),
-  UI_SUBPANEL_DATA_EXPAND_8 = (1 << 8),
-  UI_SUBPANEL_DATA_EXPAND_9 = (1 << 9),
-  UI_SUBPANEL_DATA_EXPAND_10 = (1 << 10),
-  UI_SUBPANEL_DATA_EXPAND_11 = (1 << 11),
-  UI_SUBPANEL_DATA_EXPAND_12 = (1 << 12),
-  UI_SUBPANEL_DATA_EXPAND_13 = (1 << 13),
-  UI_SUBPANEL_DATA_EXPAND_14 = (1 << 14),
-  UI_SUBPANEL_DATA_EXPAND_15 = (1 << 15),
-} uiPanelDataExpansion;
-
-/**
  * Notes on Panel Categories:
  *
  * - #ARegion.panels_category (#PanelCategoryDyn)
@@ -265,6 +327,58 @@ typedef struct PanelCategoryStack {
   struct PanelCategoryStack *next, *prev;
   char idname[64];
 } PanelCategoryStack;
+
+/** #uiList.layout_type */
+enum {
+  UILST_LAYOUT_DEFAULT = 0,
+  UILST_LAYOUT_COMPACT = 1,
+};
+
+/** #uiList.flag */
+enum {
+  /** Scroll list to make active item visible. */
+  UILST_SCROLL_TO_ACTIVE_ITEM = 1 << 0,
+};
+
+/** Value (in number of items) we have to go below minimum shown items to enable auto size. */
+#define UI_LIST_AUTO_SIZE_THRESHOLD 1
+
+/** uiList filter flags (dyn_data)
+ *
+ * \warning Lower 16 bits are meant for custom use in Python, don't use them here! Only use the
+ *          higher 16 bits.
+ * \warning Those values are used by integer RNA too, which does not handle well values > INT_MAX.
+ *          So please do not use 32nd bit here.
+ */
+enum {
+  /* Don't use (1 << 0) to (1 << 15) here! See warning above. */
+
+  /* Filtering returned #UI_LIST_ITEM_NEVER_SHOW. */
+  UILST_FLT_ITEM_NEVER_SHOW = (1 << 16),
+  UILST_FLT_ITEM = 1 << 30, /* This item has passed the filter process successfully. */
+};
+
+/** #uiList.filter_flag */
+enum {
+  UILST_FLT_SHOW = 1 << 0,            /* Show filtering UI. */
+  UILST_FLT_EXCLUDE = UILST_FLT_ITEM, /* Exclude filtered items, *must* use this same value. */
+};
+
+/** #uiList.filter_sort_flag */
+enum {
+  /* Plain values (only one is valid at a time, once masked with UILST_FLT_SORT_MASK. */
+  /** Just for sake of consistency. */
+  /* UILST_FLT_SORT_INDEX = 0, */ /* UNUSED */
+  UILST_FLT_SORT_ALPHA = 1,
+
+  /* Bitflags affecting behavior of any kind of sorting. */
+  /** Special flag to indicate that order is locked (not user-changeable). */
+  UILST_FLT_SORT_LOCK = 1u << 30,
+  /** Special value, bit-flag used to reverse order! */
+  UILST_FLT_SORT_REVERSE = 1u << 31,
+};
+
+#define UILST_FLT_SORT_MASK (((unsigned int)(UILST_FLT_SORT_REVERSE | UILST_FLT_SORT_LOCK)) - 1)
 
 typedef void (*uiListFreeRuntimeDataFunc)(struct uiList *ui_list);
 
@@ -339,9 +453,9 @@ typedef struct uiList { /* some list UI data need to be saved in file */
   uiListDyn *dyn_data;
 } uiList;
 
-typedef enum uiViewStateFlag {
+enum uiViewStateFlag {
   UI_VIEW_SHOW_FILTER_OPTIONS = (1 << 0),
-} uiViewStateFlag;
+};
 
 /** See #uiViewStateLink. */
 typedef struct uiViewState {
@@ -384,6 +498,11 @@ typedef struct TransformOrientation {
   char _pad[4];
 } TransformOrientation;
 
+enum uiPreviewTag {
+  /** Preview needs re-rendering, handled in #ED_preview_draw(). */
+  UI_PREVIEW_TAG_DIRTY = (1 << 0),
+};
+
 /** Some preview UI data need to be saved in file. */
 typedef struct uiPreview {
   struct uiPreview *next, *prev;
@@ -398,10 +517,14 @@ typedef struct uiPreview {
   unsigned int id_session_uid;
 } uiPreview;
 
-typedef enum uiPreviewTag {
-  /** Preview needs re-rendering, handled in #ED_preview_draw(). */
-  UI_PREVIEW_TAG_DIRTY = (1 << 0),
-} uiPreviewTag;
+enum GlobalAreaFlag {
+  GLOBAL_AREA_IS_HIDDEN = (1 << 0),
+};
+
+enum GlobalAreaAlign {
+  GLOBAL_AREA_ALIGN_TOP = 0,
+  GLOBAL_AREA_ALIGN_BOTTOM = 1,
+};
 
 typedef struct ScrGlobalAreaData {
   /**
@@ -423,14 +546,36 @@ typedef struct ScrGlobalAreaData {
   char _pad[2];
 } ScrGlobalAreaData;
 
-enum GlobalAreaFlag {
-  GLOBAL_AREA_IS_HIDDEN = (1 << 0),
+/** #ScrArea.flag */
+enum {
+  HEADER_NO_PULLDOWN = (1 << 0),
+//  AREA_FLAG_UNUSED_1           = (1 << 1),
+//  AREA_FLAG_UNUSED_2           = (1 << 2),
+#ifdef DNA_DEPRECATED_ALLOW
+  AREA_TEMP_INFO = (1 << 3), /* versioned to make slot reusable */
+#endif
+  /** Update size of regions within the area. */
+  AREA_FLAG_REGION_SIZE_UPDATE = (1 << 3),
+  AREA_FLAG_ACTIVE_TOOL_UPDATE = (1 << 4),
+  // AREA_FLAG_UNUSED_5 = (1 << 5),
+
+  AREA_FLAG_UNUSED_6 = (1 << 6), /* cleared */
+
+  /**
+   * For temporary full-screens (file browser, image editor render)
+   * that are opened above user set full-screens.
+   */
+  AREA_FLAG_STACKED_FULLSCREEN = (1 << 7),
+  /** Update action zones (even if the mouse is not intersecting them). */
+  AREA_FLAG_ACTIONZONES_UPDATE = (1 << 8),
+  /** For off-screen areas. */
+  AREA_FLAG_OFFSCREEN = (1 << 9),
 };
 
-typedef enum GlobalAreaAlign {
-  GLOBAL_AREA_ALIGN_TOP = 0,
-  GLOBAL_AREA_ALIGN_BOTTOM = 1,
-} GlobalAreaAlign;
+#define AREAGRID 1
+#define AREAMINX 29
+#define HEADER_PADDING_Y 6
+#define HEADERY (20 + HEADER_PADDING_Y)
 
 typedef struct ScrArea_Runtime {
   struct bToolRef *tool;
@@ -508,209 +653,11 @@ typedef struct ScrArea {
   ScrArea_Runtime runtime;
 } ScrArea;
 
-typedef struct ARegion {
-  struct ARegion *next, *prev;
-
-  /** 2D-View scrolling/zoom info (most regions are 2d anyways). */
-  View2D v2d;
-  /** Coordinates of region. */
-  rcti winrct;
-  /** Size. */
-  short winx, winy;
-  /**
-   * This is a Y offset on the panel tabs that represents pixels,
-   * where zero represents no scroll - the first category always shows first at the top.
-   */
-  int category_scroll;
-
-  /** Window, header, etc. identifier for drawing. */
-  short regiontype;
-  /** How it should split. */
-  short alignment;
-  /** Hide, .... */
-  short flag;
-
-  /** Current split size in unscaled pixels (if zero it uses regiontype).
-   * To convert to pixels use: `UI_SCALE_FAC * region->sizex + 0.5f`.
-   * However to get the current region size, you should usually use winx/winy from above, not this!
-   */
-  short sizex, sizey;
-
-  /** Private, set for indicate drawing overlapped. */
-  short overlap;
-  /** Temporary copy of flag settings for clean full-screen. */
-  short flagfullscreen;
-
-  char _pad[2];
-
-  /** Panel. */
-  ListBase panels;
-  /** Stack of panel categories. */
-  ListBase panels_category_active;
-  /** #uiList. */
-  ListBase ui_lists;
-  /** #uiPreview. */
-  ListBase ui_previews;
-  /**
-   * Permanent state storage of #ui::AbstractView instances, so hiding regions with views or
-   * loading files remembers the view state.
-   */
-  ListBase view_states; /* #uiViewStateLink */
-
-  /** XXX 2.50, need spacedata equivalent? */
-  void *regiondata;
-
-  ARegionRuntimeHandle *runtime;
-} ARegion;
-
-/** #ScrArea.flag */
-enum {
-  HEADER_NO_PULLDOWN = (1 << 0),
-//  AREA_FLAG_UNUSED_1           = (1 << 1),
-//  AREA_FLAG_UNUSED_2           = (1 << 2),
-#ifdef DNA_DEPRECATED_ALLOW
-  AREA_TEMP_INFO = (1 << 3), /* versioned to make slot reusable */
-#endif
-  /** Update size of regions within the area. */
-  AREA_FLAG_REGION_SIZE_UPDATE = (1 << 3),
-  AREA_FLAG_ACTIVE_TOOL_UPDATE = (1 << 4),
-  // AREA_FLAG_UNUSED_5 = (1 << 5),
-
-  AREA_FLAG_UNUSED_6 = (1 << 6), /* cleared */
-
-  /**
-   * For temporary full-screens (file browser, image editor render)
-   * that are opened above user set full-screens.
-   */
-  AREA_FLAG_STACKED_FULLSCREEN = (1 << 7),
-  /** Update action zones (even if the mouse is not intersecting them). */
-  AREA_FLAG_ACTIONZONES_UPDATE = (1 << 8),
-  /** For off-screen areas. */
-  AREA_FLAG_OFFSCREEN = (1 << 9),
-};
-
-#define AREAGRID 1
-#define AREAMINX 29
-#define HEADER_PADDING_Y 6
-#define HEADERY (20 + HEADER_PADDING_Y)
-
-/** #bScreen.flag */
-enum {
-  SCREEN_DEPRECATED = 1,
-  SCREEN_COLLAPSE_STATUSBAR = 2,
-};
-
-/** #bScreen.state */
-enum {
-  SCREENNORMAL = 0,
-  /** One editor taking over the screen. */
-  SCREENMAXIMIZED = 1,
-  /**
-   * One editor taking over the screen with no bare-minimum UI elements.
-   *
-   * Besides making the area full-screen this disables navigation & statistics because
-   * this is part of a stereo 3D pipeline where these elements would interfere, see: !142418.
-   */
-  SCREENFULL = 2,
-};
-
-/** #bScreen.fullscreen_flag */
-typedef enum eScreen_Fullscreen_Flag {
-  FULLSCREEN_RESTORE_GIZMO_NAVIGATE = (1 << 0),
-  FULLSCREEN_RESTORE_TEXT = (1 << 1),
-  FULLSCREEN_RESTORE_STATS = (1 << 2),
-} eScreen_Fullscreen_Flag;
-
-/** #bScreen.redraws_flag */
-typedef enum eScreen_Redraws_Flag {
-  TIME_REGION = (1 << 0),
-  TIME_ALL_3D_WIN = (1 << 1),
-  TIME_ALL_ANIM_WIN = (1 << 2),
-  TIME_ALL_BUTS_WIN = (1 << 3),
-  // TIME_WITH_SEQ_AUDIO    = (1 << 4), /* DEPRECATED */
-  TIME_SEQ = (1 << 5),
-  TIME_ALL_IMAGE_WIN = (1 << 6),
-  // TIME_CONTINUE_PHYSICS  = (1 << 7), /* UNUSED */
-  TIME_NODES = (1 << 8),
-  TIME_CLIPS = (1 << 9),
-  TIME_SPREADSHEETS = (1 << 10),
-
-  TIME_FOLLOW = (1 << 15),
-} eScreen_Redraws_Flag;
-
-/** #Panel.flag */
-enum {
-  PNL_SELECT = (1 << 0),
-  PNL_UNUSED_1 = (1 << 1), /* Cleared */
-  PNL_CLOSED = (1 << 2),
-  // PNL_TABBED = (1 << 3),  /* UNUSED */
-  // PNL_OVERLAP = (1 << 4), /* UNUSED */
-  PNL_PIN = (1 << 5),
-  PNL_POPOVER = (1 << 6),
-  /** The panel has been drag-drop reordered and the instanced panel list needs to be rebuilt. */
-  PNL_INSTANCED_LIST_ORDER_CHANGED = (1 << 7),
-};
-
-/** Fallback panel category (only for old scripts which need updating). */
-#define PNL_CATEGORY_FALLBACK "Misc"
-
-/** #uiList.layout_type */
-enum {
-  UILST_LAYOUT_DEFAULT = 0,
-  UILST_LAYOUT_COMPACT = 1,
-};
-
-/** #uiList.flag */
-enum {
-  /** Scroll list to make active item visible. */
-  UILST_SCROLL_TO_ACTIVE_ITEM = 1 << 0,
-};
-
-/** Value (in number of items) we have to go below minimum shown items to enable auto size. */
-#define UI_LIST_AUTO_SIZE_THRESHOLD 1
-
-/** uiList filter flags (dyn_data)
- *
- * \warning Lower 16 bits are meant for custom use in Python, don't use them here! Only use the
- *          higher 16 bits.
- * \warning Those values are used by integer RNA too, which does not handle well values > INT_MAX.
- *          So please do not use 32nd bit here.
- */
-enum {
-  /* Don't use (1 << 0) to (1 << 15) here! See warning above. */
-
-  /* Filtering returned #UI_LIST_ITEM_NEVER_SHOW. */
-  UILST_FLT_ITEM_NEVER_SHOW = (1 << 16),
-  UILST_FLT_ITEM = 1 << 30, /* This item has passed the filter process successfully. */
-};
-
-/** #uiList.filter_flag */
-enum {
-  UILST_FLT_SHOW = 1 << 0,            /* Show filtering UI. */
-  UILST_FLT_EXCLUDE = UILST_FLT_ITEM, /* Exclude filtered items, *must* use this same value. */
-};
-
-/** #uiList.filter_sort_flag */
-enum {
-  /* Plain values (only one is valid at a time, once masked with UILST_FLT_SORT_MASK. */
-  /** Just for sake of consistency. */
-  /* UILST_FLT_SORT_INDEX = 0, */ /* UNUSED */
-  UILST_FLT_SORT_ALPHA = 1,
-
-  /* Bitflags affecting behavior of any kind of sorting. */
-  /** Special flag to indicate that order is locked (not user-changeable). */
-  UILST_FLT_SORT_LOCK = 1u << 30,
-  /** Special value, bit-flag used to reverse order! */
-  UILST_FLT_SORT_REVERSE = 1u << 31,
-};
-
-#define UILST_FLT_SORT_MASK (((unsigned int)(UILST_FLT_SORT_REVERSE | UILST_FLT_SORT_LOCK)) - 1)
-
 /**
  * regiontype, first two are the default set.
  * \warning Do NOT change order, append on end. Types are hard-coded needed.
  */
-typedef enum eRegion_Type {
+enum eRegion_Type {
   RGN_TYPE_WINDOW = 0,
   RGN_TYPE_HEADER = 1,
   RGN_TYPE_CHANNELS = 2,
@@ -733,7 +680,7 @@ typedef enum eRegion_Type {
   RGN_TYPE_ASSET_SHELF_HEADER = 15,
 
 #define RGN_TYPE_NUM (RGN_TYPE_ASSET_SHELF_HEADER + 1)
-} eRegion_Type;
+};
 
 /** Use for function args. */
 #define RGN_TYPE_ANY -1
@@ -830,6 +777,78 @@ enum {
   RGN_DRAW_EDITOR_OVERLAYS = 32,
 };
 
+typedef struct ARegion {
+  struct ARegion *next, *prev;
+
+  /** 2D-View scrolling/zoom info (most regions are 2d anyways). */
+  View2D v2d;
+  /** Coordinates of region. */
+  rcti winrct;
+  /** Size. */
+  short winx, winy;
+  /**
+   * This is a Y offset on the panel tabs that represents pixels,
+   * where zero represents no scroll - the first category always shows first at the top.
+   */
+  int category_scroll;
+
+  /** Window, header, etc. identifier for drawing. */
+  short regiontype;
+  /** How it should split. */
+  short alignment;
+  /** Hide, .... */
+  short flag;
+
+  /** Current split size in unscaled pixels (if zero it uses regiontype).
+   * To convert to pixels use: `UI_SCALE_FAC * region->sizex + 0.5f`.
+   * However to get the current region size, you should usually use winx/winy from above, not this!
+   */
+  short sizex, sizey;
+
+  /** Private, set for indicate drawing overlapped. */
+  short overlap;
+  /** Temporary copy of flag settings for clean full-screen. */
+  short flagfullscreen;
+
+  char _pad[2];
+
+  /** Panel. */
+  ListBase panels;
+  /** Stack of panel categories. */
+  ListBase panels_category_active;
+  /** #uiList. */
+  ListBase ui_lists;
+  /** #uiPreview. */
+  ListBase ui_previews;
+  /**
+   * Permanent state storage of #ui::AbstractView instances, so hiding regions with views or
+   * loading files remembers the view state.
+   */
+  ListBase view_states; /* #uiViewStateLink */
+
+  /** XXX 2.50, need spacedata equivalent? */
+  void *regiondata;
+
+  ARegionRuntimeHandle *runtime;
+} ARegion;
+
+/* #AssetShelfSettings.display_flag */
+enum AssetShelfSettings_DisplayFlag {
+  ASSETSHELF_SHOW_NAMES = (1 << 0),
+};
+ENUM_OPERATORS(AssetShelfSettings_DisplayFlag);
+
+/* #AssetShelfSettings.instance_flag */
+enum AssetShelf_InstanceFlag {
+  /**
+   * Remember the last known region visibility state or this shelf, so it can be restored if the
+   * shelf is reactivated. Practically this makes the shelf visibility be remembered per mode.
+   * Continuously updated for the visible region.
+   */
+  ASSETSHELF_REGION_IS_HIDDEN = (1 << 0),
+};
+ENUM_OPERATORS(AssetShelf_InstanceFlag);
+
 typedef struct AssetShelfSettings {
   AssetLibraryReference asset_library_reference;
 
@@ -895,23 +914,6 @@ typedef struct RegionAssetShelf {
   static RegionAssetShelf *ensure_from_asset_shelf_region(ARegion &region);
 #endif
 } RegionAssetShelf;
-
-/* #AssetShelfSettings.display_flag */
-typedef enum AssetShelfSettings_DisplayFlag {
-  ASSETSHELF_SHOW_NAMES = (1 << 0),
-} AssetShelfSettings_DisplayFlag;
-ENUM_OPERATORS(AssetShelfSettings_DisplayFlag);
-
-/* #AssetShelfSettings.instance_flag */
-typedef enum AssetShelf_InstanceFlag {
-  /**
-   * Remember the last known region visibility state or this shelf, so it can be restored if the
-   * shelf is reactivated. Practically this makes the shelf visibility be remembered per mode.
-   * Continuously updated for the visible region.
-   */
-  ASSETSHELF_REGION_IS_HIDDEN = (1 << 0),
-} AssetShelf_InstanceFlag;
-ENUM_OPERATORS(AssetShelf_InstanceFlag);
 
 typedef struct FileHandler {
   DNA_DEFINE_CXX_METHODS(FileHandler)

@@ -17,6 +17,47 @@
 
 struct AnimData;
 
+/* Key::type: KeyBlocks are interpreted as... */
+enum ShapekeyContainerType {
+  /* Sequential positions over time (using KeyBlock::pos and Key::ctime) */
+  KEY_NORMAL = 0,
+
+  /* States to blend between (default) */
+  KEY_RELATIVE = 1,
+};
+
+/* Key::flag */
+enum ShapekeyContainerFlag {
+  KEY_DS_EXPAND = 1,
+};
+
+/* The obvious name would be `KeyBlockType` but this enum is actually used in places outside of
+ * Shape Keys (NURBS, particles, etc.). */
+enum KeyInterpolationType {
+  KEY_LINEAR = 0,
+  KEY_CARDINAL = 1,
+  KEY_BSPLINE = 2,
+  KEY_CATMULL_ROM = 3,
+};
+
+enum KeyBlockFlag {
+  KEYBLOCK_MUTE = (1 << 0),
+  KEYBLOCK_SEL = (1 << 1),
+  KEYBLOCK_LOCKED = (1 << 2),
+  KEYBLOCK_LOCKED_SHAPE = (1 << 3),
+};
+
+#define KEYELEM_FLOAT_LEN_COORD 3
+
+/* Curve key data layout constants */
+#define KEYELEM_ELEM_SIZE_CURVE 3
+
+#define KEYELEM_ELEM_LEN_BPOINT 2
+#define KEYELEM_FLOAT_LEN_BPOINT (KEYELEM_ELEM_LEN_BPOINT * KEYELEM_ELEM_SIZE_CURVE)
+
+#define KEYELEM_ELEM_LEN_BEZTRIPLE 4
+#define KEYELEM_FLOAT_LEN_BEZTRIPLE (KEYELEM_ELEM_LEN_BEZTRIPLE * KEYELEM_ELEM_SIZE_CURVE)
+
 /**
  * The struct that holds the data for an individual Shape Key. Depending on which object owns the
  * `Key`, the contained data type can vary (see `void *data;`).
@@ -110,46 +151,3 @@ typedef struct Key {
    */
   int uidgen;
 } Key;
-
-/* **************** KEY ********************* */
-
-/* Key::type: KeyBlocks are interpreted as... */
-typedef enum ShapekeyContainerType {
-  /* Sequential positions over time (using KeyBlock::pos and Key::ctime) */
-  KEY_NORMAL = 0,
-
-  /* States to blend between (default) */
-  KEY_RELATIVE = 1,
-} ShapekeyContainerType;
-
-/* Key::flag */
-typedef enum ShapekeyContainerFlag {
-  KEY_DS_EXPAND = 1,
-} ShapekeyContainerFlag;
-
-/* The obvious name would be `KeyBlockType` but this enum is actually used in places outside of
- * Shape Keys (NURBS, particles, etc.). */
-typedef enum KeyInterpolationType {
-  KEY_LINEAR = 0,
-  KEY_CARDINAL = 1,
-  KEY_BSPLINE = 2,
-  KEY_CATMULL_ROM = 3,
-} KeyInterpolationType;
-
-typedef enum KeyBlockFlag {
-  KEYBLOCK_MUTE = (1 << 0),
-  KEYBLOCK_SEL = (1 << 1),
-  KEYBLOCK_LOCKED = (1 << 2),
-  KEYBLOCK_LOCKED_SHAPE = (1 << 3),
-} KeyBlockFlag;
-
-#define KEYELEM_FLOAT_LEN_COORD 3
-
-/* Curve key data layout constants */
-#define KEYELEM_ELEM_SIZE_CURVE 3
-
-#define KEYELEM_ELEM_LEN_BPOINT 2
-#define KEYELEM_FLOAT_LEN_BPOINT (KEYELEM_ELEM_LEN_BPOINT * KEYELEM_ELEM_SIZE_CURVE)
-
-#define KEYELEM_ELEM_LEN_BEZTRIPLE 4
-#define KEYELEM_FLOAT_LEN_BEZTRIPLE (KEYELEM_ELEM_LEN_BEZTRIPLE * KEYELEM_ELEM_SIZE_CURVE)

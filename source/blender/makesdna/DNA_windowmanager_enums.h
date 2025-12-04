@@ -27,6 +27,8 @@ enum wmOperatorStatus {
    */
   OPERATOR_INTERFACE = (1 << 5),
 };
+ENUM_OPERATORS(wmOperatorStatus);
+
 #define OPERATOR_FLAGS_ALL \
   (OPERATOR_RUNNING_MODAL | OPERATOR_CANCELLED | OPERATOR_FINISHED | OPERATOR_PASS_THROUGH | \
    OPERATOR_HANDLED | OPERATOR_INTERFACE | 0)
@@ -38,8 +40,6 @@ enum wmOperatorStatus {
     BLI_assert(ret != 0 && (ret & OPERATOR_FLAGS_ALL) == ret); \
   } \
   ((void)0)
-
-ENUM_OPERATORS(wmOperatorStatus);
 
 /** #wmOperator.flag */
 enum {

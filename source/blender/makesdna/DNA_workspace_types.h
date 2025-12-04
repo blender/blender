@@ -140,6 +140,13 @@ typedef struct wmOwnerID {
   char name[128];
 } wmOwnerID;
 
+enum eWorkSpaceFlags {
+  WORKSPACE_USE_FILTER_BY_ORIGIN = (1 << 1),
+  WORKSPACE_USE_PIN_SCENE = (1 << 2),
+  /* Used for syncing time between sequencer scene strips and the active scene. */
+  WORKSPACE_SYNC_SCENE_TIME = (1 << 3),
+};
+
 typedef struct WorkSpace {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
@@ -247,10 +254,3 @@ typedef struct WorkSpaceInstanceHook {
   WorkSpace *temp_workspace_store;
   struct WorkSpaceLayout *temp_layout_store;
 } WorkSpaceInstanceHook;
-
-typedef enum eWorkSpaceFlags {
-  WORKSPACE_USE_FILTER_BY_ORIGIN = (1 << 1),
-  WORKSPACE_USE_PIN_SCENE = (1 << 2),
-  /* Used for syncing time between sequencer scene strips and the active scene. */
-  WORKSPACE_SYNC_SCENE_TIME = (1 << 3),
-} eWorkSpaceFlags;

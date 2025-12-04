@@ -19,7 +19,7 @@
  * Types of F-Curve modifier
  * WARNING: order here is important!
  */
-typedef enum eFModifier_Types {
+enum eFModifier_Types {
   FMODIFIER_TYPE_NULL = 0,
   FMODIFIER_TYPE_GENERATOR = 1,
   FMODIFIER_TYPE_FN_GENERATOR = 2,
@@ -33,10 +33,10 @@ typedef enum eFModifier_Types {
 
   /* NOTE: all new modifiers must be added above this line */
   FMODIFIER_NUM_TYPES,
-} eFModifier_Types;
+};
 
 /** F-Curve Modifier Settings. */
-typedef enum eFModifier_Flags {
+enum eFModifier_Flags {
   /** Modifier is not able to be evaluated for some reason, and should be skipped (internal). */
   FMODIFIER_FLAG_DISABLED = (1 << 0),
 #ifdef DNA_DEPRECATED_ALLOW
@@ -51,36 +51,36 @@ typedef enum eFModifier_Flags {
   FMODIFIER_FLAG_RANGERESTRICT = (1 << 4),
   /** Use influence control. */
   FMODIFIER_FLAG_USEINFLUENCE = (1 << 5),
-} eFModifier_Flags;
+};
 
 /* --- */
 
 /* generator modes */
-typedef enum eFMod_Generator_Modes {
+enum eFMod_Generator_Modes {
   FCM_GENERATOR_POLYNOMIAL = 0,
   FCM_GENERATOR_POLYNOMIAL_FACTORISED = 1,
-} eFMod_Generator_Modes;
+};
 
 /* generator flags
  * - shared by Generator and Function Generator
  */
-typedef enum eFMod_Generator_Flags {
+enum eFMod_Generator_Flags {
   /* generator works in conjunction with other modifiers (i.e. doesn't replace those before it) */
   FCM_GENERATOR_ADDITIVE = (1 << 0),
-} eFMod_Generator_Flags;
+};
 
 /* 'function' generator types */
-typedef enum eFMod_Generator_Functions {
+enum eFMod_Generator_Functions {
   FCM_GENERATOR_FN_SIN = 0,
   FCM_GENERATOR_FN_COS = 1,
   FCM_GENERATOR_FN_TAN = 2,
   FCM_GENERATOR_FN_SQRT = 3,
   FCM_GENERATOR_FN_LN = 4,
   FCM_GENERATOR_FN_SINC = 5,
-} eFMod_Generator_Functions;
+};
 
 /* cycling modes */
-typedef enum eFMod_Cycling_Modes {
+enum eFMod_Cycling_Modes {
   /** don't do anything */
   FCM_EXTRAPOLATE_NONE = 0,
   /** repeat keyframe range as-is */
@@ -89,18 +89,18 @@ typedef enum eFMod_Cycling_Modes {
   FCM_EXTRAPOLATE_CYCLIC_OFFSET,
   /** alternate between forward and reverse playback of keyframe range */
   FCM_EXTRAPOLATE_MIRROR,
-} eFMod_Cycling_Modes;
+};
 
 /* limiting flags */
-typedef enum eFMod_Limit_Flags {
+enum eFMod_Limit_Flags {
   FCM_LIMIT_XMIN = (1 << 0),
   FCM_LIMIT_XMAX = (1 << 1),
   FCM_LIMIT_YMIN = (1 << 2),
   FCM_LIMIT_YMAX = (1 << 3),
-} eFMod_Limit_Flags;
+};
 
 /* modification modes */
-typedef enum eFMod_Noise_Modifications {
+enum eFMod_Noise_Modifications {
   /** Modify existing curve, matching its shape. */
   FCM_NOISE_MODIF_REPLACE = 0,
   /** Add noise to the curve. */
@@ -109,26 +109,26 @@ typedef enum eFMod_Noise_Modifications {
   FCM_NOISE_MODIF_SUBTRACT,
   /** Multiply the curve by noise. */
   FCM_NOISE_MODIF_MULTIPLY,
-} eFMod_Noise_Modifications;
+};
 
 /* stepped modifier range flags */
-typedef enum eFMod_Stepped_Flags {
+enum eFMod_Stepped_Flags {
   /** Don't affect frames before the start frame. */
   FCM_STEPPED_NO_BEFORE = (1 << 0),
   /** Don't affect frames after the end frame. */
   FCM_STEPPED_NO_AFTER = (1 << 1),
-} eFMod_Stepped_Flags;
+};
 
 /* Drivers -------------------------------------- */
 
 /** Driver Target options. */
-typedef enum eDriverTarget_Options {
+enum eDriverTarget_Options {
   /** Use the fallback value when the target is invalid (rna_path cannot be resolved). */
   DTAR_OPTION_USE_FALLBACK = (1 << 0),
-} eDriverTarget_Options;
+};
 
 /** Driver Target flags. */
-typedef enum eDriverTarget_Flag {
+enum eDriverTarget_Flag {
   /** used for targets that use the pchan_name instead of RNA path
    * (i.e. rotation difference) */
   DTAR_FLAG_STRUCT_REF = (1 << 0),
@@ -146,10 +146,10 @@ typedef enum eDriverTarget_Flag {
 
   /** the fallback value was actually used */
   DTAR_FLAG_FALLBACK_USED = (1 << 5),
-} eDriverTarget_Flag;
+};
 
 /* Transform Channels for Driver Targets */
-typedef enum eDriverTarget_TransformChannels {
+enum eDriverTarget_TransformChannels {
   DTAR_TRANSCHAN_LOCX = 0,
   DTAR_TRANSCHAN_LOCY,
   DTAR_TRANSCHAN_LOCZ,
@@ -163,10 +163,10 @@ typedef enum eDriverTarget_TransformChannels {
   DTAR_TRANSCHAN_ROTW,
 
   MAX_DTAR_TRANSCHAN_TYPES,
-} eDriverTarget_TransformChannels;
+};
 
 /* Rotation channel mode for Driver Targets */
-typedef enum eDriverTarget_RotationMode {
+enum eDriverTarget_RotationMode {
   /** Automatic euler mode. */
   DTAR_ROTMODE_AUTO = 0,
 
@@ -190,12 +190,12 @@ typedef enum eDriverTarget_RotationMode {
 
   DTAR_ROTMODE_EULER_MIN = DTAR_ROTMODE_EULER_XYZ,
   DTAR_ROTMODE_EULER_MAX = DTAR_ROTMODE_EULER_ZYX,
-} eDriverTarget_RotationMode;
+};
 
-typedef enum eDriverTarget_ContextProperty {
+enum eDriverTarget_ContextProperty {
   DTAR_CONTEXT_PROPERTY_ACTIVE_SCENE = 0,
   DTAR_CONTEXT_PROPERTY_ACTIVE_VIEW_LAYER = 1,
-} eDriverTarget_ContextProperty;
+};
 
 /* --- */
 
@@ -203,7 +203,7 @@ typedef enum eDriverTarget_ContextProperty {
 #define MAX_DRIVER_TARGETS 8
 
 /** Driver Variable Types.* */
-typedef enum eDriverVar_Types {
+enum eDriverVar_Types {
   /** single RNA property */
   DVAR_TYPE_SINGLE_PROP = 0,
   /** rotation difference (between 2 bones) */
@@ -222,10 +222,10 @@ typedef enum eDriverVar_Types {
    * so add new types above this line.
    */
   MAX_DVAR_TYPES,
-} eDriverVar_Types;
+};
 
 /* Driver Variable Flags */
-typedef enum eDriverVar_Flags {
+enum eDriverVar_Flags {
   /* variable is not set up correctly */
   DVAR_FLAG_ERROR = (1 << 0),
 
@@ -245,7 +245,7 @@ typedef enum eDriverVar_Flags {
   DVAR_FLAG_INVALID_PY_KEYWORD = (1 << 7),
   /* name is zero-length */
   DVAR_FLAG_INVALID_EMPTY = (1 << 8),
-} eDriverVar_Flags;
+};
 
 /** All invalid `dvar` name flags. */
 #define DVAR_ALL_INVALID_FLAGS \
@@ -256,7 +256,7 @@ typedef enum eDriverVar_Flags {
 /* --- */
 
 /** Driver type. */
-typedef enum eDriver_Types {
+enum eDriver_Types {
   /** target values are averaged together. */
   DRIVER_TYPE_AVERAGE = 0,
   /** python expression/function relates targets. */
@@ -267,10 +267,10 @@ typedef enum eDriver_Types {
   DRIVER_TYPE_MIN,
   /** largest value. */
   DRIVER_TYPE_MAX,
-} eDriver_Types;
+};
 
 /** Driver flags. */
-typedef enum eDriver_Flags {
+enum eDriver_Flags {
   /** Driver has invalid settings (internal flag). */
   DRIVER_FLAG_INVALID = (1 << 0),
   DRIVER_FLAG_DEPRECATED = (1 << 1),
@@ -285,7 +285,7 @@ typedef enum eDriver_Flags {
   DRIVER_FLAG_PYTHON_BLOCKED = (1 << 5),
   /** Include 'self' in the drivers namespace. */
   DRIVER_FLAG_USE_SELF = (1 << 6),
-} eDriver_Flags;
+};
 
 /* F-Curves -------------------------------------- */
 
@@ -293,7 +293,7 @@ typedef enum eDriver_Flags {
 #define FCURVE_ACTIVE_KEYFRAME_NONE -1
 
 /* user-editable flags/settings */
-typedef enum eFCurve_Flags {
+enum eFCurve_Flags {
   /** Curve/keyframes are visible in editor */
   FCURVE_VISIBLE = (1 << 0),
   /** Curve is selected for editing. */
@@ -321,19 +321,19 @@ typedef enum eFCurve_Flags {
 
   /** temporary tag for editing */
   FCURVE_TAGGED = (1 << 15),
-} eFCurve_Flags;
+};
 ENUM_OPERATORS(eFCurve_Flags);
 
 /* extrapolation modes (only simple value 'extending') */
-typedef enum eFCurve_Extend {
+enum eFCurve_Extend {
   /** Just extend min/max keyframe value. */
   FCURVE_EXTRAPOLATE_CONSTANT = 0,
   /** Just extend gradient of segment between first segment keyframes. */
   FCURVE_EXTRAPOLATE_LINEAR,
-} eFCurve_Extend;
+};
 
 /* curve coloring modes */
-typedef enum eFCurve_Coloring {
+enum eFCurve_Coloring {
   /** Automatically determine color using rainbow (calculated at draw-time). */
   FCURVE_COLOR_AUTO_RAINBOW = 0,
   /** Automatically determine color using XYZ (array index) <-> RGB. */
@@ -342,15 +342,15 @@ typedef enum eFCurve_Coloring {
   FCURVE_COLOR_AUTO_YRGB = 3,
   /** Custom color. */
   FCURVE_COLOR_CUSTOM = 2,
-} eFCurve_Coloring;
+};
 
 /* curve smoothing modes */
-typedef enum eFCurve_Smoothing {
+enum eFCurve_Smoothing {
   /** legacy mode: auto handles only consider adjacent points */
   FCURVE_SMOOTH_NONE = 0,
   /** maintain continuity of the acceleration */
   FCURVE_SMOOTH_CONT_ACCEL = 1,
-} eFCurve_Smoothing;
+};
 
 /* ************************************************ */
 /* 'Action' Data-types */
@@ -364,16 +364,16 @@ typedef enum eFCurve_Smoothing {
 /* NLA Strips ------------------------------------- */
 
 /* NLA Strip Blending Mode */
-typedef enum eNlaStrip_Blend_Mode {
+enum eNlaStrip_Blend_Mode {
   NLASTRIP_MODE_REPLACE = 0,
   NLASTRIP_MODE_ADD,
   NLASTRIP_MODE_SUBTRACT,
   NLASTRIP_MODE_MULTIPLY,
   NLASTRIP_MODE_COMBINE,
-} eNlaStrip_Blend_Mode;
+};
 
 /** NLA Strip Extrapolation Mode. */
-typedef enum eNlaStrip_Extrapolate_Mode {
+enum eNlaStrip_Extrapolate_Mode {
   /* extend before first frame if no previous strips in track,
    * and always hold+extend last frame */
   NLASTRIP_EXTEND_HOLD = 0,
@@ -381,10 +381,10 @@ typedef enum eNlaStrip_Extrapolate_Mode {
   NLASTRIP_EXTEND_HOLD_FORWARD = 1,
   /* don't contribute at all */
   NLASTRIP_EXTEND_NOTHING = 2,
-} eNlaStrip_Extrapolate_Mode;
+};
 
 /** NLA Strip Settings. */
-typedef enum eNlaStrip_Flag {
+enum eNlaStrip_Flag {
   /* UI selection flags */
   /** NLA strip is the active one in the track (also indicates if strip is being tweaked) */
   NLASTRIP_FLAG_ACTIVE = (1 << 0),
@@ -431,10 +431,10 @@ typedef enum eNlaStrip_Flag {
   /** NLA-Strip is really just a temporary meta used to facilitate easier transform code */
   NLASTRIP_FLAG_TEMP_META = (1 << 30),
   NLASTRIP_FLAG_EDIT_TOUCHED = (1u << 31),
-} eNlaStrip_Flag;
+};
 
 /* NLA Strip Type */
-typedef enum eNlaStrip_Type {
+enum eNlaStrip_Type {
   /* 'clip' - references an Action */
   NLASTRIP_TYPE_CLIP = 0,
   /* 'transition' - blends between the adjacent strips */
@@ -444,12 +444,12 @@ typedef enum eNlaStrip_Type {
 
   /* 'emit sound' - a strip which is used for timing when speaker emits sounds */
   NLASTRIP_TYPE_SOUND,
-} eNlaStrip_Type;
+};
 
 /* NLA Tracks ------------------------------------- */
 
 /* settings for track */
-typedef enum eNlaTrack_Flag {
+enum eNlaTrack_Flag {
   /** track is the one that settings can be modified on,
    * also indicates if track is being 'tweaked' */
   NLATRACK_ACTIVE = (1 << 0),
@@ -473,22 +473,22 @@ typedef enum eNlaTrack_Flag {
   /** This NLA track is added to an override ID, which means it is fully editable.
    * Irrelevant in case the owner ID is not an override. */
   NLATRACK_OVERRIDELIBRARY_LOCAL = 1 << 16,
-} eNlaTrack_Flag;
+};
 
 /* ************************************ */
 /* KeyingSet Data-types */
 
 /* KeyingSet settings */
-typedef enum eKS_Settings {
+enum eKS_Settings {
   /** Keyingset cannot be removed (and doesn't need to be freed). */
   /* KEYINGSET_BUILTIN = (1 << 0), */ /* UNUSED */
   /** Keyingset does not depend on context info (i.e. paths are absolute). */
   KEYINGSET_ABSOLUTE = (1 << 1),
-} eKS_Settings;
+};
 ENUM_OPERATORS(eKS_Settings)
 
 /* Flags for use by keyframe creation/deletion calls */
-typedef enum eInsertKeyFlags {
+enum eInsertKeyFlags {
   INSERTKEY_NOFLAGS = 0,
   /** Only insert keyframes where they're needed. */
   INSERTKEY_NEEDED = (1 << 0),
@@ -512,17 +512,17 @@ typedef enum eInsertKeyFlags {
   INSERTKEY_CYCLE_AWARE = (1 << 9),
   /** Don't create new F-Curves (implied by #INSERTKEY_REPLACE). */
   INSERTKEY_AVAILABLE = (1 << 10),
-} eInsertKeyFlags;
+};
 ENUM_OPERATORS(eInsertKeyFlags);
 
 /* KS_Path->flag */
-typedef enum eKSP_Settings {
+enum eKSP_Settings {
   /* entire array (not just the specified index) gets keyframed */
   KSP_FLAG_WHOLE_ARRAY = (1 << 0),
-} eKSP_Settings;
+};
 
 /* KS_Path->groupmode */
-typedef enum eKSP_Grouping {
+enum eKSP_Grouping {
   /** Path should be grouped using group name stored in path. */
   KSP_GROUP_NAMED = 0,
   /** Path should not be grouped at all. */
@@ -532,7 +532,7 @@ typedef enum eKSP_Grouping {
   /** Path should be grouped using name of inner-most context item from templates
    * - this is most useful for relative KeyingSets only. */
   /* KSP_GROUP_TEMPLATE_ITEM, */ /* UNUSED */
-} eKSP_Grouping;
+};
 
 /* ************************************************ */
 /* Animation Data */
@@ -540,7 +540,7 @@ typedef enum eKSP_Grouping {
 /* AnimData ------------------------------------- */
 
 /* Animation Data settings (mostly for NLA) */
-typedef enum eAnimData_Flag {
+enum eAnimData_Flag {
   /** Only evaluate a single track in the NLA. */
   ADT_NLA_SOLO_TRACK = (1 << 0),
   /** Don't use NLA */
@@ -573,7 +573,7 @@ typedef enum eAnimData_Flag {
   /** Animation pointer to by this AnimData block is expanded in UI. This is stored on the AnimData
    * so that each user of the Animation can have its own expansion/contraction state. */
   ADT_UI_EXPANDED = (1 << 18),
-} eAnimData_Flag;
+};
 
 /* From: `DNA_object_types.h`, see its doc-string there. */
 #define SELECT 1

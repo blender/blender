@@ -16,6 +16,89 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
+enum MaskParentType {
+  MASK_PARENT_POINT_TRACK = 0, /* parenting happens to point track */
+  MASK_PARENT_PLANE_TRACK = 1, /* parenting happens to plane track */
+};
+
+enum MaskSplineFlag {
+  /* reserve (1 << 0) for SELECT */
+  MASK_SPLINE_CYCLIC = (1 << 1),
+  MASK_SPLINE_NOFILL = (1 << 2),
+  MASK_SPLINE_NOINTERSECT = (1 << 3),
+};
+
+enum MaskSplineInterp {
+  MASK_SPLINE_INTERP_LINEAR = 1,
+  MASK_SPLINE_INTERP_EASE = 2,
+};
+
+enum MaskSplineOffset {
+  MASK_SPLINE_OFFSET_EVEN = 0,
+  MASK_SPLINE_OFFSET_SMOOTH = 1,
+};
+
+enum MaskLayerVisibility {
+  MASK_HIDE_VIEW = 1 << 0,   /* Note: match #OB_HIDE_VIEWPORT value. */
+  MASK_HIDE_SELECT = 1 << 1, /* Note: match #OB_HIDE_SELECT value. */
+  MASK_HIDE_RENDER = 1 << 2, /* Note: match #OB_HIDE_RENDER value. */
+};
+
+/* #MaskSpaceInfo.draw_flag */
+enum MaskDrawFlag {
+  MASK_DRAWFLAG_SMOOTH_DEPRECATED = 1 << 0, /* Deprecated. */
+  MASK_DRAWFLAG_OVERLAY = 1 << 1,
+  MASK_DRAWFLAG_SPLINE = 1 << 2,
+};
+
+/* #MaskSpaceInfo.draw_type. Note: match values of #eSpaceImage_UVDT. */
+enum MaskDrawType {
+  MASK_DT_OUTLINE = 0,
+  MASK_DT_DASH = 1,
+  MASK_DT_BLACK = 2,
+  MASK_DT_WHITE = 3,
+};
+
+/* #MaskSpaceInfo.overlay_mode */
+enum MaskOverlayMode {
+  MASK_OVERLAY_ALPHACHANNEL = 0,
+  MASK_OVERLAY_COMBINED = 1,
+};
+
+enum MaskLayerBlend {
+  MASK_BLEND_ADD = 0,
+  MASK_BLEND_SUBTRACT = 1,
+  MASK_BLEND_LIGHTEN = 2,
+  MASK_BLEND_DARKEN = 3,
+  MASK_BLEND_MUL = 4,
+  MASK_BLEND_REPLACE = 5,
+  MASK_BLEND_DIFFERENCE = 6,
+  MASK_BLEND_MERGE_ADD = 7,
+  MASK_BLEND_MERGE_SUBTRACT = 8,
+};
+
+enum MaskLayerBlendFlag {
+  MASK_BLENDFLAG_INVERT = (1 << 0),
+};
+
+enum MaskLayerFlag {
+  MASK_LAYERFLAG_LOCKED = (1 << 4),
+  MASK_LAYERFLAG_SELECT = (1 << 5),
+
+  /* no holes */
+  MASK_LAYERFLAG_FILL_DISCRETE = (1 << 6),
+  MASK_LAYERFLAG_FILL_OVERLAP = (1 << 7),
+};
+
+/* masklay_shape->flag */
+enum MaskLayerShapeFlag {
+  MASK_SHAPE_SELECT = (1 << 0),
+};
+
+enum MaskAnimFlag {
+  MASK_ANIMF_EXPAND = (1 << 4),
+};
+
 struct MaskLayerShapeElem;
 
 typedef struct Mask_Runtime {
@@ -172,86 +255,3 @@ typedef struct MaskLayer {
    * (#MaskLayerVisibility). */
   char visibility_flag;
 } MaskLayer;
-
-typedef enum MaskParentType {
-  MASK_PARENT_POINT_TRACK = 0, /* parenting happens to point track */
-  MASK_PARENT_PLANE_TRACK = 1, /* parenting happens to plane track */
-} MaskParentType;
-
-typedef enum MaskSplineFlag {
-  /* reserve (1 << 0) for SELECT */
-  MASK_SPLINE_CYCLIC = (1 << 1),
-  MASK_SPLINE_NOFILL = (1 << 2),
-  MASK_SPLINE_NOINTERSECT = (1 << 3),
-} MaskSplineFlag;
-
-typedef enum MaskSplineInterp {
-  MASK_SPLINE_INTERP_LINEAR = 1,
-  MASK_SPLINE_INTERP_EASE = 2,
-} MaskSplineInterp;
-
-typedef enum MaskSplineOffset {
-  MASK_SPLINE_OFFSET_EVEN = 0,
-  MASK_SPLINE_OFFSET_SMOOTH = 1,
-} MaskSplineOffset;
-
-typedef enum MaskLayerVisibility {
-  MASK_HIDE_VIEW = 1 << 0,   /* Note: match #OB_HIDE_VIEWPORT value. */
-  MASK_HIDE_SELECT = 1 << 1, /* Note: match #OB_HIDE_SELECT value. */
-  MASK_HIDE_RENDER = 1 << 2, /* Note: match #OB_HIDE_RENDER value. */
-} MaskLayerVisibility;
-
-/* #MaskSpaceInfo.draw_flag */
-typedef enum MaskDrawFlag {
-  MASK_DRAWFLAG_SMOOTH_DEPRECATED = 1 << 0, /* Deprecated. */
-  MASK_DRAWFLAG_OVERLAY = 1 << 1,
-  MASK_DRAWFLAG_SPLINE = 1 << 2,
-} MaskDrawFlag;
-
-/* #MaskSpaceInfo.draw_type. Note: match values of #eSpaceImage_UVDT. */
-typedef enum MaskDrawType {
-  MASK_DT_OUTLINE = 0,
-  MASK_DT_DASH = 1,
-  MASK_DT_BLACK = 2,
-  MASK_DT_WHITE = 3,
-} MaskDrawType;
-
-/* #MaskSpaceInfo.overlay_mode */
-typedef enum MaskOverlayMode {
-  MASK_OVERLAY_ALPHACHANNEL = 0,
-  MASK_OVERLAY_COMBINED = 1,
-} MaskOverlayMode;
-
-typedef enum MaskLayerBlend {
-  MASK_BLEND_ADD = 0,
-  MASK_BLEND_SUBTRACT = 1,
-  MASK_BLEND_LIGHTEN = 2,
-  MASK_BLEND_DARKEN = 3,
-  MASK_BLEND_MUL = 4,
-  MASK_BLEND_REPLACE = 5,
-  MASK_BLEND_DIFFERENCE = 6,
-  MASK_BLEND_MERGE_ADD = 7,
-  MASK_BLEND_MERGE_SUBTRACT = 8,
-} MaskLayerBlend;
-
-typedef enum MaskLayerBlendFlag {
-  MASK_BLENDFLAG_INVERT = (1 << 0),
-} MaskLayerBlendFlag;
-
-typedef enum MaskLayerFlag {
-  MASK_LAYERFLAG_LOCKED = (1 << 4),
-  MASK_LAYERFLAG_SELECT = (1 << 5),
-
-  /* no holes */
-  MASK_LAYERFLAG_FILL_DISCRETE = (1 << 6),
-  MASK_LAYERFLAG_FILL_OVERLAP = (1 << 7),
-} MaskLayerFlag;
-
-/* masklay_shape->flag */
-typedef enum MaskLayerShapeFlag {
-  MASK_SHAPE_SELECT = (1 << 0),
-} MaskLayerShapeFlag;
-
-typedef enum MaskAnimFlag {
-  MASK_ANIMF_EXPAND = (1 << 4),
-} MaskAnimFlag;

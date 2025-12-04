@@ -11,7 +11,7 @@
 struct ID;
 struct bNodeTree;
 
-typedef enum ViewerPathElemType {
+enum ViewerPathElemType {
   VIEWER_PATH_ELEM_TYPE_ID = 0,
   VIEWER_PATH_ELEM_TYPE_MODIFIER = 1,
   VIEWER_PATH_ELEM_TYPE_GROUP_NODE = 2,
@@ -20,7 +20,7 @@ typedef enum ViewerPathElemType {
   VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE = 5,
   VIEWER_PATH_ELEM_TYPE_FOREACH_GEOMETRY_ELEMENT_ZONE = 6,
   VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE = 7,
-} ViewerPathElemType;
+};
 
 typedef struct ViewerPathElem {
   struct ViewerPathElem *next, *prev;

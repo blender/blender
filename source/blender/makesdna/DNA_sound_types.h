@@ -21,6 +21,16 @@ typedef struct SoundRuntimeHandle SoundRuntimeHandle;
 
 struct PackedFile;
 
+/** #bSound.flags */
+enum {
+#ifdef DNA_DEPRECATED_ALLOW
+  /* deprecated! used for sound actuator loading */
+  SOUND_FLAGS_3D = (1 << 3),
+#endif
+  SOUND_FLAGS_CACHING = (1 << 4),
+  SOUND_FLAGS_MONO = (1 << 5),
+};
+
 typedef struct bSound {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
@@ -61,13 +71,3 @@ typedef struct bSound {
   SoundRuntimeHandle *runtime;
   void *_pad2;
 } bSound;
-
-/** #bSound.flags */
-enum {
-#ifdef DNA_DEPRECATED_ALLOW
-  /* deprecated! used for sound actuator loading */
-  SOUND_FLAGS_3D = (1 << 3),
-#endif
-  SOUND_FLAGS_CACHING = (1 << 4),
-  SOUND_FLAGS_MONO = (1 << 5),
-};

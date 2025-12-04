@@ -10,15 +10,6 @@
 
 #include "DNA_listBase.h"
 
-struct PaintSurfaceData;
-
-/* surface format */
-enum {
-  MOD_DPAINT_SURFACE_F_PTEX = 0,
-  MOD_DPAINT_SURFACE_F_VERTEX = 1,
-  MOD_DPAINT_SURFACE_F_IMAGESEQ = 2,
-};
-
 /* surface type */
 enum {
   MOD_DPAINT_SURFACE_T_PAINT = 0,
@@ -72,78 +63,11 @@ enum {
   MOD_DPAINT_INITIAL_VERTEXCOLOR = 3,
 };
 
-typedef struct DynamicPaintSurface {
-
-  struct DynamicPaintSurface *next, *prev;
-  /** For fast RNA access. */
-  struct DynamicPaintCanvasSettings *canvas;
-  struct PaintSurfaceData *data;
-
-  struct Collection *brush_group;
-  struct EffectorWeights *effector_weights;
-
-  /* cache */
-  struct PointCache *pointcache;
-  struct ListBase ptcaches;
-  int current_frame;
-
-  /* surface */
-  char name[64];
-  short format, type;
-  short disp_type, image_fileformat;
-  /** Ui selection box. */
-  short effect_ui;
-  short init_color_type;
-  int flags, effect;
-
-  int image_resolution, substeps;
-  int start_frame, end_frame;
-
-  /* initial color */
-  float init_color[4];
-  struct Tex *init_texture;
-  char init_layername[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
-
-  int dry_speed, diss_speed;
-  float color_dry_threshold;
-  float depth_clamp, disp_factor;
-
-  float spread_speed, color_spread_speed, shrink_speed;
-  float drip_vel, drip_acc;
-
-  /* per surface brush settings */
-  float influence_scale, radius_scale;
-
-  /* wave settings */
-  float wave_damping, wave_speed, wave_timescale, wave_spring, wave_smoothness;
-  char _pad2[4];
-
-  char uvlayer_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
-  char image_output_path[/*FILE_MAX*/ 1024];
-  char output_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
-  char output_name2[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
-
-} DynamicPaintSurface;
-
 /* canvas flags */
 enum {
   /** surface is already baking, so it won't get updated (loop) */
   MOD_DPAINT_BAKING = 1 << 1,
 };
-
-/* Canvas settings */
-typedef struct DynamicPaintCanvasSettings {
-  /** For fast RNA access. */
-  struct DynamicPaintModifierData *pmd;
-
-  struct ListBase surfaces;
-  short active_sur, flags;
-  char _pad[4];
-
-  /** Bake error description. */
-  char error[64];
-
-} DynamicPaintCanvasSettings;
 
 /* flags */
 enum {
@@ -207,6 +131,82 @@ enum {
   MOD_DPAINT_RAY_BRUSH_AVG = 1,
   MOD_DPAINT_RAY_ZPLUS = 2,
 };
+
+struct PaintSurfaceData;
+
+/* surface format */
+enum {
+  MOD_DPAINT_SURFACE_F_PTEX = 0,
+  MOD_DPAINT_SURFACE_F_VERTEX = 1,
+  MOD_DPAINT_SURFACE_F_IMAGESEQ = 2,
+};
+
+typedef struct DynamicPaintSurface {
+
+  struct DynamicPaintSurface *next, *prev;
+  /** For fast RNA access. */
+  struct DynamicPaintCanvasSettings *canvas;
+  struct PaintSurfaceData *data;
+
+  struct Collection *brush_group;
+  struct EffectorWeights *effector_weights;
+
+  /* cache */
+  struct PointCache *pointcache;
+  struct ListBase ptcaches;
+  int current_frame;
+
+  /* surface */
+  char name[64];
+  short format, type;
+  short disp_type, image_fileformat;
+  /** Ui selection box. */
+  short effect_ui;
+  short init_color_type;
+  int flags, effect;
+
+  int image_resolution, substeps;
+  int start_frame, end_frame;
+
+  /* initial color */
+  float init_color[4];
+  struct Tex *init_texture;
+  char init_layername[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
+
+  int dry_speed, diss_speed;
+  float color_dry_threshold;
+  float depth_clamp, disp_factor;
+
+  float spread_speed, color_spread_speed, shrink_speed;
+  float drip_vel, drip_acc;
+
+  /* per surface brush settings */
+  float influence_scale, radius_scale;
+
+  /* wave settings */
+  float wave_damping, wave_speed, wave_timescale, wave_spring, wave_smoothness;
+  char _pad2[4];
+
+  char uvlayer_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
+  char image_output_path[/*FILE_MAX*/ 1024];
+  char output_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
+  char output_name2[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
+
+} DynamicPaintSurface;
+
+/* Canvas settings */
+typedef struct DynamicPaintCanvasSettings {
+  /** For fast RNA access. */
+  struct DynamicPaintModifierData *pmd;
+
+  struct ListBase surfaces;
+  short active_sur, flags;
+  char _pad[4];
+
+  /** Bake error description. */
+  char error[64];
+
+} DynamicPaintCanvasSettings;
 
 /* Brush settings */
 typedef struct DynamicPaintBrushSettings {

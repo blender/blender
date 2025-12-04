@@ -15,6 +15,268 @@
 struct AnimData;
 struct MDeformVert;
 
+/** #bGPDspoint.flag */
+enum eGPDspoint_Flag {
+  /* stroke point is selected (for editing) */
+  GP_SPOINT_SELECT = (1 << 0),
+
+  /* stroke point is tagged (for some editing operation) */
+  GP_SPOINT_TAG = (1 << 1),
+};
+
+/** #bGPDpalettecolor.flag */
+enum eGPDpalettecolor_Flag {
+  /* color is active */
+  /* PC_COLOR_ACTIVE = (1 << 0), */ /* UNUSED */
+  /* don't display color */
+  PC_COLOR_HIDE = (1 << 1),
+  /* protected from further editing */
+  PC_COLOR_LOCKED = (1 << 2),
+  /* do onion skinning */
+  PC_COLOR_ONIONSKIN = (1 << 3),
+  /* "volumetric" strokes */
+  PC_COLOR_VOLUMETRIC = (1 << 4),
+};
+
+/** #bGPDpalette.flag */
+enum eGPDpalette_Flag {
+  /* palette is active */
+  PL_PALETTE_ACTIVE = (1 << 0),
+};
+
+/* bGPDcurve_point->flag */
+enum eGPDcurve_point_Flag {
+  GP_CURVE_POINT_SELECT = (1 << 0),
+};
+
+/* bGPDcurve_Flag->flag */
+enum bGPDcurve_Flag {
+  /* Flag to indicated that the stroke data has been changed and the curve needs to be refitted */
+  GP_CURVE_NEEDS_STROKE_UPDATE = (1 << 0),
+  /* Curve is selected */
+  GP_CURVE_SELECT = (1 << 1),
+};
+
+/** #bGPDstroke.flag */
+enum eGPDstroke_Flag {
+  /* stroke is in 3d-space */
+  GP_STROKE_3DSPACE = (1 << 0),
+  /* stroke is in 2d-space */
+  GP_STROKE_2DSPACE = (1 << 1),
+  /* stroke is in 2d-space (but with special 'image' scaling) */
+  GP_STROKE_2DIMAGE = (1 << 2),
+  /* stroke is selected */
+  GP_STROKE_SELECT = (1 << 3),
+  /* Flag used to indicate that stroke is closed and draw edge between last and first point */
+  GP_STROKE_CYCLIC = (1 << 7),
+  /* Flag used to indicate that stroke is used for fill close and must use
+   * fill color for stroke and no fill area */
+  GP_STROKE_NOFILL = (1 << 8),
+  /* Flag to indicated that the editcurve has been changed and the stroke needs to be updated with
+   * the curve data */
+  GP_STROKE_NEEDS_CURVE_UPDATE = (1 << 9),
+  /* Flag to indicate that a stroke is used only for help, and will not affect rendering or fill */
+  GP_STROKE_HELP = (1 << 10),
+  /* Flag to indicate that a extend stroke collide (fill tool). */
+  GP_STROKE_COLLIDE = (1 << 11),
+  /* only for use with stroke-buffer (while drawing arrows) */
+  GP_STROKE_USE_ARROW_START = (1 << 12),
+  /* only for use with stroke-buffer (while drawing arrows) */
+  GP_STROKE_USE_ARROW_END = (1 << 13),
+  /* Tag for update geometry */
+  GP_STROKE_TAG = (1 << 14),
+  /* only for use with stroke-buffer (while drawing eraser) */
+  GP_STROKE_ERASER = (1 << 15),
+};
+
+/** #bGPDstroke.caps */
+enum eGPDstroke_Caps {
+  /* type of extreme */
+  GP_STROKE_CAP_ROUND = 0,
+  GP_STROKE_CAP_FLAT = 1,
+
+  /* Keep last. */
+  GP_STROKE_CAP_MAX,
+};
+
+/** #bGPDataRuntime.arrowstyle */
+enum eGPDstroke_Arrowstyle {
+  GP_STROKE_ARROWSTYLE_NONE = 0,
+  GP_STROKE_ARROWSTYLE_SEGMENT = 2,
+  GP_STROKE_ARROWSTYLE_OPEN = 3,
+  GP_STROKE_ARROWSTYLE_CLOSED = 4,
+  GP_STROKE_ARROWSTYLE_SQUARE = 6,
+};
+
+/* bGPDframe->flag */
+enum eGPDframe_Flag {
+  /* frame is being painted on */
+  GP_FRAME_PAINT = (1 << 0),
+  /* for editing in Action Editor */
+  GP_FRAME_SELECT = (1 << 1),
+  /* Line Art generation */
+  GP_FRAME_LRT_CLEARED = (1 << 2),
+};
+
+/* bGPDlayer_Mask->flag */
+enum ebGPDlayer_Mask_Flag {
+  /* Mask is hidden. */
+  GP_MASK_HIDE = (1 << 0),
+  /* Mask is inverted. */
+  GP_MASK_INVERT = (1 << 1),
+};
+
+/* bGPDlayer->flag */
+enum eGPDlayer_Flag {
+  /* don't display layer */
+  GP_LAYER_HIDE = (1 << 0),
+  /* protected from further editing */
+  GP_LAYER_LOCKED = (1 << 1),
+  /* layer is 'active' layer being edited */
+  GP_LAYER_ACTIVE = (1 << 2),
+  /* draw points of stroke for debugging purposes */
+  GP_LAYER_DRAWDEBUG = (1 << 3),
+  /* Flag used to display in Paint mode only layers with keyframe */
+  GP_LAYER_SOLO_MODE = (1 << 4),
+  /* for editing in Action Editor */
+  GP_LAYER_SELECT = (1 << 5),
+  /* current frame for layer can't be changed */
+  GP_LAYER_FRAMELOCK = (1 << 6),
+  /* Don't render X-ray (which is default). */
+  GP_LAYER_NO_XRAY = (1 << 7),
+  /* "volumetric" strokes */
+  GP_LAYER_VOLUMETRIC = (1 << 10),
+  /* Use Scene lights */
+  GP_LAYER_USE_LIGHTS = (1 << 11),
+  /* Unlock color */
+  GP_LAYER_UNLOCK_COLOR = (1 << 12),
+  /* Mask Layer */
+  GP_LAYER_USE_MASK = (1 << 13), /* TODO: DEPRECATED */
+  /* Ruler Layer */
+  GP_LAYER_IS_RULER = (1 << 14),
+  /* Disable masks in view-layer render */
+  GP_LAYER_DISABLE_MASKS_IN_VIEWLAYER = (1 << 15),
+};
+
+/** #bGPDlayer.onion_flag */
+enum eGPDlayer_OnionFlag {
+  /* do onion skinning */
+  GP_LAYER_ONIONSKIN = (1 << 0),
+  GP_LAYER_ONIONSKIN_CUSTOM_COLOR = (1 << 1),
+};
+
+/** #bGPDlayer.blend_mode */
+enum eGPLayerBlendModes {
+  eGplBlendMode_Regular = 0,
+  eGplBlendMode_HardLight = 1,
+  eGplBlendMode_Add = 2,
+  eGplBlendMode_Subtract = 3,
+  eGplBlendMode_Multiply = 4,
+  eGplBlendMode_Divide = 5,
+};
+
+/**
+ * #bGPdata.flag
+ *
+ * NOTE: A few flags have been deprecated since early 2.5,
+ *       since they have been made redundant by interaction
+ *       changes made during the porting process.
+ */
+enum eGPdata_Flag {
+  /* data-block is used for "annotations"
+   * NOTE: This flag used to be used in 2.4x, but should hardly ever have been set.
+   *       We can use this freely now, as all GP data-blocks from pre-2.8 will get
+   *       set on file load (as many old use cases are for "annotations" only)
+   */
+  GP_DATA_ANNOTATIONS = (1 << 0),
+
+  /* show debugging info in viewport (i.e. status print) */
+  GP_DATA_DISPINFO = (1 << 1),
+  /* in Action Editor, show as expanded channel */
+  GP_DATA_EXPAND = (1 << 2),
+
+  /* is the block overriding all clicks? */
+  /* GP_DATA_EDITPAINT = (1 << 3), */
+
+  /* ------------------------------------------------ DEPRECATED */
+  /* new strokes are added in viewport space */
+  GP_DATA_VIEWALIGN = (1 << 4),
+
+  /* Project into the screen's Z values */
+  GP_DATA_DEPTH_VIEW = (1 << 5),
+  GP_DATA_DEPTH_STROKE = (1 << 6),
+
+  GP_DATA_DEPTH_STROKE_ENDPOINTS = (1 << 7),
+  /* ------------------------------------------------ DEPRECATED */
+
+  /* Stroke Editing Mode - Toggle to enable alternative keymap
+   * for easier editing of stroke points */
+  GP_DATA_STROKE_EDITMODE = (1 << 8),
+
+  /* Main flag to switch onion skinning on/off */
+  GP_DATA_SHOW_ONIONSKINS = (1 << 9),
+
+  /* Batch drawing cache need to be recalculated */
+  GP_DATA_CACHE_IS_DIRTY = (1 << 11),
+
+  /* Stroke Paint Mode - Toggle paint mode */
+  GP_DATA_STROKE_PAINTMODE = (1 << 12),
+  /* Stroke Editing Mode - Toggle sculpt mode */
+  GP_DATA_STROKE_SCULPTMODE = (1 << 13),
+  /* Stroke Editing Mode - Toggle weight paint mode */
+  GP_DATA_STROKE_WEIGHTMODE = (1 << 14),
+
+  /* keep stroke thickness unchanged when zoom change */
+  GP_DATA_STROKE_KEEPTHICKNESS = (1 << 15),
+
+  /* Allow edit several frames at the same time */
+  GP_DATA_STROKE_MULTIEDIT = (1 << 16),
+
+  /* Vertex Paint Mode - Toggle paint mode */
+  GP_DATA_STROKE_VERTEXMODE = (1 << 18),
+
+  /* Auto-lock not active layers. */
+  GP_DATA_AUTOLOCK_LAYERS = (1 << 20),
+
+  /* Enable Bezier Editing Curve (a sub-mode of Edit mode). */
+  GP_DATA_CURVE_EDIT_MODE = (1 << 21),
+  /* Use adaptive curve resolution */
+  GP_DATA_CURVE_ADAPTIVE_RESOLUTION = (1 << 22),
+};
+
+/* gpd->onion_flag */
+enum eGPD_OnionFlag {
+  /* use custom color for ghosts before current frame */
+  GP_ONION_GHOST_PREVCOL = (1 << 0),
+  /* use custom color for ghosts after current frame */
+  GP_ONION_GHOST_NEXTCOL = (1 << 1),
+  /* always show onion skins (i.e. even during renders/animation playback) */
+  GP_ONION_GHOST_ALWAYS = (1 << 2),
+  /* use fade color in onion skin */
+  GP_ONION_FADE = (1 << 3),
+  /* Loop showing first frame after last frame */
+  GP_ONION_LOOP = (1 << 4),
+};
+
+/* gpd->onion_mode */
+enum eGP_OnionModes {
+  GP_ONION_MODE_ABSOLUTE = 0,
+  GP_ONION_MODE_RELATIVE = 1,
+  GP_ONION_MODE_SELECTED = 2,
+};
+
+/* X-ray modes (Depth Ordering). */
+enum eGP_DepthOrdering {
+  GP_XRAY_FRONT = 0,
+  GP_XRAY_3DSPACE = 1,
+};
+
+/* draw modes (Use 2D or 3D position) */
+enum eGP_DrawMode {
+  GP_DRAWMODE_2D = 0,
+  GP_DRAWMODE_3D = 1,
+};
+
 #define GP_DEFAULT_PIX_FACTOR 1.0f
 #define GP_DEFAULT_GRID_LINES 4
 #define GP_MAX_INPUT_SAMPLES 10
@@ -60,15 +322,6 @@ typedef struct bGPDspoint {
   char _pad2[4];
 } bGPDspoint;
 
-/** #bGPDspoint.flag */
-typedef enum eGPDspoint_Flag {
-  /* stroke point is selected (for editing) */
-  GP_SPOINT_SELECT = (1 << 0),
-
-  /* stroke point is tagged (for some editing operation) */
-  GP_SPOINT_TAG = (1 << 1),
-} eGPSPoint_Flag;
-
 /* ***************************************** */
 /* GP Fill - Triangle Tessellation Data */
 
@@ -102,20 +355,6 @@ typedef struct bGPDpalettecolor {
   char _pad[6];
 } bGPDpalettecolor;
 
-/** #bGPDpalettecolor.flag */
-typedef enum eGPDpalettecolor_Flag {
-  /* color is active */
-  /* PC_COLOR_ACTIVE = (1 << 0), */ /* UNUSED */
-  /* don't display color */
-  PC_COLOR_HIDE = (1 << 1),
-  /* protected from further editing */
-  PC_COLOR_LOCKED = (1 << 2),
-  /* do onion skinning */
-  PC_COLOR_ONIONSKIN = (1 << 3),
-  /* "volumetric" strokes */
-  PC_COLOR_VOLUMETRIC = (1 << 4),
-} eGPDpalettecolor_Flag;
-
 /* palette of colors */
 typedef struct bGPDpalette {
   DNA_DEFINE_CXX_METHODS(bGPDpalette)
@@ -130,12 +369,6 @@ typedef struct bGPDpalette {
   short flag;
   char _pad[6];
 } bGPDpalette;
-
-/** #bGPDpalette.flag */
-typedef enum eGPDpalette_Flag {
-  /* palette is active */
-  PL_PALETTE_ACTIVE = (1 << 0),
-} eGPDpalette_Flag;
 
 /* ***************************************** */
 /* GP Curve Point */
@@ -165,11 +398,6 @@ typedef struct bGPDcurve_point {
   char _pad[4];
 } bGPDcurve_point;
 
-/* bGPDcurve_point->flag */
-typedef enum eGPDcurve_point_Flag {
-  GP_CURVE_POINT_SELECT = (1 << 0),
-} eGPDcurve_point_Flag;
-
 /* ***************************************** */
 /* GP Curve */
 
@@ -185,14 +413,6 @@ typedef struct bGPDcurve {
   short flag;
   char _pad[2];
 } bGPDcurve;
-
-/* bGPDcurve_Flag->flag */
-typedef enum bGPDcurve_Flag {
-  /* Flag to indicated that the stroke data has been changed and the curve needs to be refitted */
-  GP_CURVE_NEEDS_STROKE_UPDATE = (1 << 0),
-  /* Curve is selected */
-  GP_CURVE_SELECT = (1 << 1),
-} bGPDcurve_Flag;
 
 /* ***************************************** */
 /* GP Strokes */
@@ -289,58 +509,7 @@ typedef struct bGPDstroke {
   void *_pad5;
 } bGPDstroke;
 
-/** #bGPDstroke.flag */
-typedef enum eGPDstroke_Flag {
-  /* stroke is in 3d-space */
-  GP_STROKE_3DSPACE = (1 << 0),
-  /* stroke is in 2d-space */
-  GP_STROKE_2DSPACE = (1 << 1),
-  /* stroke is in 2d-space (but with special 'image' scaling) */
-  GP_STROKE_2DIMAGE = (1 << 2),
-  /* stroke is selected */
-  GP_STROKE_SELECT = (1 << 3),
-  /* Flag used to indicate that stroke is closed and draw edge between last and first point */
-  GP_STROKE_CYCLIC = (1 << 7),
-  /* Flag used to indicate that stroke is used for fill close and must use
-   * fill color for stroke and no fill area */
-  GP_STROKE_NOFILL = (1 << 8),
-  /* Flag to indicated that the editcurve has been changed and the stroke needs to be updated with
-   * the curve data */
-  GP_STROKE_NEEDS_CURVE_UPDATE = (1 << 9),
-  /* Flag to indicate that a stroke is used only for help, and will not affect rendering or fill */
-  GP_STROKE_HELP = (1 << 10),
-  /* Flag to indicate that a extend stroke collide (fill tool). */
-  GP_STROKE_COLLIDE = (1 << 11),
-  /* only for use with stroke-buffer (while drawing arrows) */
-  GP_STROKE_USE_ARROW_START = (1 << 12),
-  /* only for use with stroke-buffer (while drawing arrows) */
-  GP_STROKE_USE_ARROW_END = (1 << 13),
-  /* Tag for update geometry */
-  GP_STROKE_TAG = (1 << 14),
-  /* only for use with stroke-buffer (while drawing eraser) */
-  GP_STROKE_ERASER = (1 << 15),
-} eGPDstroke_Flag;
-
-/** #bGPDstroke.caps */
-typedef enum eGPDstroke_Caps {
-  /* type of extreme */
-  GP_STROKE_CAP_ROUND = 0,
-  GP_STROKE_CAP_FLAT = 1,
-
-  /* Keep last. */
-  GP_STROKE_CAP_MAX,
-} GPDstroke_Caps;
-
 /* Arrows ----------------------- */
-
-/** #bGPDataRuntime.arrowstyle */
-typedef enum eGPDstroke_Arrowstyle {
-  GP_STROKE_ARROWSTYLE_NONE = 0,
-  GP_STROKE_ARROWSTYLE_SEGMENT = 2,
-  GP_STROKE_ARROWSTYLE_OPEN = 3,
-  GP_STROKE_ARROWSTYLE_CLOSED = 4,
-  GP_STROKE_ARROWSTYLE_SQUARE = 6,
-} eGPDstroke_Arrowstyle;
 
 /* ***************************************** */
 /* GP Frame */
@@ -378,16 +547,6 @@ typedef struct bGPDframe {
   bGPDframe_Runtime runtime;
 } bGPDframe;
 
-/* bGPDframe->flag */
-typedef enum eGPDframe_Flag {
-  /* frame is being painted on */
-  GP_FRAME_PAINT = (1 << 0),
-  /* for editing in Action Editor */
-  GP_FRAME_SELECT = (1 << 1),
-  /* Line Art generation */
-  GP_FRAME_LRT_CLEARED = (1 << 2),
-} eGPDframe_Flag;
-
 /* ***************************************** */
 /* GP Layer */
 
@@ -402,14 +561,6 @@ typedef struct bGPDlayer_Mask {
   short sort_index;
   char _pad[4];
 } bGPDlayer_Mask;
-
-/* bGPDlayer_Mask->flag */
-typedef enum ebGPDlayer_Mask_Flag {
-  /* Mask is hidden. */
-  GP_MASK_HIDE = (1 << 0),
-  /* Mask is inverted. */
-  GP_MASK_INVERT = (1 << 1),
-} ebGPDlayer_Mask_Flag;
 
 /** Runtime temp data for #bGPDlayer. */
 typedef struct bGPDlayer_Runtime {
@@ -504,55 +655,6 @@ typedef struct bGPDlayer {
 
   bGPDlayer_Runtime runtime;
 } bGPDlayer;
-
-/* bGPDlayer->flag */
-typedef enum eGPDlayer_Flag {
-  /* don't display layer */
-  GP_LAYER_HIDE = (1 << 0),
-  /* protected from further editing */
-  GP_LAYER_LOCKED = (1 << 1),
-  /* layer is 'active' layer being edited */
-  GP_LAYER_ACTIVE = (1 << 2),
-  /* draw points of stroke for debugging purposes */
-  GP_LAYER_DRAWDEBUG = (1 << 3),
-  /* Flag used to display in Paint mode only layers with keyframe */
-  GP_LAYER_SOLO_MODE = (1 << 4),
-  /* for editing in Action Editor */
-  GP_LAYER_SELECT = (1 << 5),
-  /* current frame for layer can't be changed */
-  GP_LAYER_FRAMELOCK = (1 << 6),
-  /* Don't render X-ray (which is default). */
-  GP_LAYER_NO_XRAY = (1 << 7),
-  /* "volumetric" strokes */
-  GP_LAYER_VOLUMETRIC = (1 << 10),
-  /* Use Scene lights */
-  GP_LAYER_USE_LIGHTS = (1 << 11),
-  /* Unlock color */
-  GP_LAYER_UNLOCK_COLOR = (1 << 12),
-  /* Mask Layer */
-  GP_LAYER_USE_MASK = (1 << 13), /* TODO: DEPRECATED */
-  /* Ruler Layer */
-  GP_LAYER_IS_RULER = (1 << 14),
-  /* Disable masks in view-layer render */
-  GP_LAYER_DISABLE_MASKS_IN_VIEWLAYER = (1 << 15),
-} eGPDlayer_Flag;
-
-/** #bGPDlayer.onion_flag */
-typedef enum eGPDlayer_OnionFlag {
-  /* do onion skinning */
-  GP_LAYER_ONIONSKIN = (1 << 0),
-  GP_LAYER_ONIONSKIN_CUSTOM_COLOR = (1 << 1),
-} eGPDlayer_OnionFlag;
-
-/** #bGPDlayer.blend_mode */
-typedef enum eGPLayerBlendModes {
-  eGplBlendMode_Regular = 0,
-  eGplBlendMode_HardLight = 1,
-  eGplBlendMode_Add = 2,
-  eGplBlendMode_Subtract = 3,
-  eGplBlendMode_Multiply = 4,
-  eGplBlendMode_Divide = 5,
-} eGPLayerBlendModes;
 
 /* ***************************************** */
 /* GP Datablock */
@@ -698,105 +800,3 @@ typedef struct bGPdata {
 
   bGPdata_Runtime runtime;
 } bGPdata;
-
-/**
- * #bGPdata.flag
- *
- * NOTE: A few flags have been deprecated since early 2.5,
- *       since they have been made redundant by interaction
- *       changes made during the porting process.
- */
-typedef enum eGPdata_Flag {
-  /* data-block is used for "annotations"
-   * NOTE: This flag used to be used in 2.4x, but should hardly ever have been set.
-   *       We can use this freely now, as all GP data-blocks from pre-2.8 will get
-   *       set on file load (as many old use cases are for "annotations" only)
-   */
-  GP_DATA_ANNOTATIONS = (1 << 0),
-
-  /* show debugging info in viewport (i.e. status print) */
-  GP_DATA_DISPINFO = (1 << 1),
-  /* in Action Editor, show as expanded channel */
-  GP_DATA_EXPAND = (1 << 2),
-
-  /* is the block overriding all clicks? */
-  /* GP_DATA_EDITPAINT = (1 << 3), */
-
-  /* ------------------------------------------------ DEPRECATED */
-  /* new strokes are added in viewport space */
-  GP_DATA_VIEWALIGN = (1 << 4),
-
-  /* Project into the screen's Z values */
-  GP_DATA_DEPTH_VIEW = (1 << 5),
-  GP_DATA_DEPTH_STROKE = (1 << 6),
-
-  GP_DATA_DEPTH_STROKE_ENDPOINTS = (1 << 7),
-  /* ------------------------------------------------ DEPRECATED */
-
-  /* Stroke Editing Mode - Toggle to enable alternative keymap
-   * for easier editing of stroke points */
-  GP_DATA_STROKE_EDITMODE = (1 << 8),
-
-  /* Main flag to switch onion skinning on/off */
-  GP_DATA_SHOW_ONIONSKINS = (1 << 9),
-
-  /* Batch drawing cache need to be recalculated */
-  GP_DATA_CACHE_IS_DIRTY = (1 << 11),
-
-  /* Stroke Paint Mode - Toggle paint mode */
-  GP_DATA_STROKE_PAINTMODE = (1 << 12),
-  /* Stroke Editing Mode - Toggle sculpt mode */
-  GP_DATA_STROKE_SCULPTMODE = (1 << 13),
-  /* Stroke Editing Mode - Toggle weight paint mode */
-  GP_DATA_STROKE_WEIGHTMODE = (1 << 14),
-
-  /* keep stroke thickness unchanged when zoom change */
-  GP_DATA_STROKE_KEEPTHICKNESS = (1 << 15),
-
-  /* Allow edit several frames at the same time */
-  GP_DATA_STROKE_MULTIEDIT = (1 << 16),
-
-  /* Vertex Paint Mode - Toggle paint mode */
-  GP_DATA_STROKE_VERTEXMODE = (1 << 18),
-
-  /* Auto-lock not active layers. */
-  GP_DATA_AUTOLOCK_LAYERS = (1 << 20),
-
-  /* Enable Bezier Editing Curve (a sub-mode of Edit mode). */
-  GP_DATA_CURVE_EDIT_MODE = (1 << 21),
-  /* Use adaptive curve resolution */
-  GP_DATA_CURVE_ADAPTIVE_RESOLUTION = (1 << 22),
-} eGPdata_Flag;
-
-/* gpd->onion_flag */
-typedef enum eGPD_OnionFlag {
-  /* use custom color for ghosts before current frame */
-  GP_ONION_GHOST_PREVCOL = (1 << 0),
-  /* use custom color for ghosts after current frame */
-  GP_ONION_GHOST_NEXTCOL = (1 << 1),
-  /* always show onion skins (i.e. even during renders/animation playback) */
-  GP_ONION_GHOST_ALWAYS = (1 << 2),
-  /* use fade color in onion skin */
-  GP_ONION_FADE = (1 << 3),
-  /* Loop showing first frame after last frame */
-  GP_ONION_LOOP = (1 << 4),
-} eGPD_OnionFlag;
-
-/* gpd->onion_mode */
-typedef enum eGP_OnionModes {
-  GP_ONION_MODE_ABSOLUTE = 0,
-  GP_ONION_MODE_RELATIVE = 1,
-  GP_ONION_MODE_SELECTED = 2,
-} eGP_OnionModes;
-
-/* X-ray modes (Depth Ordering). */
-typedef enum eGP_DepthOrdering {
-  GP_XRAY_FRONT = 0,
-  GP_XRAY_3DSPACE = 1,
-} eGP_DepthOrdering;
-
-/* draw modes (Use 2D or 3D position) */
-typedef enum eGP_DrawMode {
-  GP_DRAWMODE_2D = 0,
-  GP_DRAWMODE_3D = 1,
-} eGP_DrawMode;

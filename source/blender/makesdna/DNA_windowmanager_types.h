@@ -31,6 +31,7 @@ struct Layout;
 using uiLayoutHandle = blender::ui::Layout;
 
 #else   // __cplusplus
+
 typedef struct WindowManagerRuntimeHandle WindowManagerRuntimeHandle;
 typedef struct WindowRuntimeHandle WindowRuntimeHandle;
 typedef struct uiLayoutHandle uiLayoutHandle;
@@ -76,6 +77,8 @@ typedef struct ReportTimerInfo {
   float flash_progress;
 } ReportTimerInfo;
 
+/* reports need to be before wmWindowManager */
+
 // #ifdef WITH_XR_OPENXR
 typedef struct wmXrData {
   /** Runtime information for managing Blender specific behaviors. */
@@ -86,7 +89,29 @@ typedef struct wmXrData {
 } wmXrData;
 // #endif
 
-/* reports need to be before wmWindowManager */
+/** #wmWindowManager.extensions_updates */
+enum {
+  WM_EXTENSIONS_UPDATE_UNSET = -2,
+  WM_EXTENSIONS_UPDATE_CHECKING = -1,
+};
+
+/** #wmWindowManager.init_flag */
+enum {
+  WM_INIT_FLAG_WINDOW = (1 << 0),
+  WM_INIT_FLAG_KEYCONFIG = (1 << 1),
+};
+
+/** #wmWindowManager.outliner_sync_select_dirty */
+enum {
+  WM_OUTLINER_SYNC_SELECT_FROM_OBJECT = (1 << 0),
+  WM_OUTLINER_SYNC_SELECT_FROM_EDIT_BONE = (1 << 1),
+  WM_OUTLINER_SYNC_SELECT_FROM_POSE_BONE = (1 << 2),
+  WM_OUTLINER_SYNC_SELECT_FROM_SEQUENCE = (1 << 3),
+};
+
+#define WM_OUTLINER_SYNC_SELECT_FROM_ALL \
+  (WM_OUTLINER_SYNC_SELECT_FROM_OBJECT | WM_OUTLINER_SYNC_SELECT_FROM_EDIT_BONE | \
+   WM_OUTLINER_SYNC_SELECT_FROM_POSE_BONE | WM_OUTLINER_SYNC_SELECT_FROM_SEQUENCE)
 
 /** Window-manager is saved, tag WMAN. */
 typedef struct wmWindowManager {
@@ -130,30 +155,6 @@ typedef struct wmWindowManager {
 
 #define WM_KEYCONFIG_ARRAY_P(wm) \
   &(wm)->runtime->defaultconf, &(wm)->runtime->addonconf, &(wm)->runtime->userconf
-
-/** #wmWindowManager.extensions_updates */
-enum {
-  WM_EXTENSIONS_UPDATE_UNSET = -2,
-  WM_EXTENSIONS_UPDATE_CHECKING = -1,
-};
-
-/** #wmWindowManager.init_flag */
-enum {
-  WM_INIT_FLAG_WINDOW = (1 << 0),
-  WM_INIT_FLAG_KEYCONFIG = (1 << 1),
-};
-
-/** #wmWindowManager.outliner_sync_select_dirty */
-enum {
-  WM_OUTLINER_SYNC_SELECT_FROM_OBJECT = (1 << 0),
-  WM_OUTLINER_SYNC_SELECT_FROM_EDIT_BONE = (1 << 1),
-  WM_OUTLINER_SYNC_SELECT_FROM_POSE_BONE = (1 << 2),
-  WM_OUTLINER_SYNC_SELECT_FROM_SEQUENCE = (1 << 3),
-};
-
-#define WM_OUTLINER_SYNC_SELECT_FROM_ALL \
-  (WM_OUTLINER_SYNC_SELECT_FROM_OBJECT | WM_OUTLINER_SYNC_SELECT_FROM_EDIT_BONE | \
-   WM_OUTLINER_SYNC_SELECT_FROM_POSE_BONE | WM_OUTLINER_SYNC_SELECT_FROM_SEQUENCE)
 
 #define WM_KEYCONFIG_STR_DEFAULT "Blender"
 
@@ -398,6 +399,23 @@ enum {
   KMI_TYPE_NDOF = 5,
 };
 
+/** #wmKeyMap.flag */
+enum {
+  /** Modal map, not using operator-names. */
+  KEYMAP_MODAL = (1 << 0),
+  /** User key-map. */
+  KEYMAP_USER = (1 << 1),
+  KEYMAP_EXPANDED = (1 << 2),
+  KEYMAP_CHILDREN_EXPANDED = (1 << 3),
+  /** Diff key-map for user preferences. */
+  KEYMAP_DIFF = (1 << 4),
+  /** Key-map has user modifications. */
+  KEYMAP_USER_MODIFIED = (1 << 5),
+  KEYMAP_UPDATE = (1 << 6),
+  /** key-map for active tool system. */
+  KEYMAP_TOOL = (1 << 7),
+};
+
 /**
  * Stored in WM, the actively used key-maps.
  */
@@ -430,23 +448,6 @@ typedef struct wmKeyMap {
   const void *modal_items;
 } wmKeyMap;
 
-/** #wmKeyMap.flag */
-enum {
-  /** Modal map, not using operator-names. */
-  KEYMAP_MODAL = (1 << 0),
-  /** User key-map. */
-  KEYMAP_USER = (1 << 1),
-  KEYMAP_EXPANDED = (1 << 2),
-  KEYMAP_CHILDREN_EXPANDED = (1 << 3),
-  /** Diff key-map for user preferences. */
-  KEYMAP_DIFF = (1 << 4),
-  /** Key-map has user modifications. */
-  KEYMAP_USER_MODIFIED = (1 << 5),
-  KEYMAP_UPDATE = (1 << 6),
-  /** key-map for active tool system. */
-  KEYMAP_TOOL = (1 << 7),
-};
-
 /**
  * This is similar to addon-preferences,
  * however unlike add-ons key-configurations aren't saved to disk.
@@ -461,6 +462,12 @@ typedef struct wmKeyConfigPref {
   IDProperty *prop;
 } wmKeyConfigPref;
 
+/** #wmKeyConfig.flag */
+enum {
+  KEYCONF_USER = (1 << 1),         /* And what about (1 << 0)? */
+  KEYCONF_INIT_DEFAULT = (1 << 2), /* Has default keymap been initialized? */
+};
+
 typedef struct wmKeyConfig {
   struct wmKeyConfig *next, *prev;
 
@@ -474,12 +481,6 @@ typedef struct wmKeyConfig {
   short flag;
   char _pad0[2];
 } wmKeyConfig;
-
-/** #wmKeyConfig.flag */
-enum {
-  KEYCONF_USER = (1 << 1),         /* And what about (1 << 0)? */
-  KEYCONF_INIT_DEFAULT = (1 << 2), /* Has default keymap been initialized? */
-};
 
 /**
  * This one is the operator itself, stored in files for macros etc.

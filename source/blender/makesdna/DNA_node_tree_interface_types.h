@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_enum_flags.hh"
+#include "BLI_sys_types.h"
 
 #ifdef __cplusplus
 #  include "BLI_color_types.hh"
@@ -42,10 +43,10 @@ struct BlendWriter;
 struct BlendDataReader;
 
 /** Type of interface item. */
-typedef enum NodeTreeInterfaceItemType {
+enum eNodeTreeInterfaceItemType {
   NODE_INTERFACE_PANEL = 0,
   NODE_INTERFACE_SOCKET = 1,
-} eNodeTreeInterfaceItemType;
+};
 
 /** Describes a socket and all necessary details for a node declaration. */
 typedef struct bNodeTreeInterfaceItem {
@@ -55,7 +56,7 @@ typedef struct bNodeTreeInterfaceItem {
 } bNodeTreeInterfaceItem;
 
 /* Socket interface flags */
-typedef enum NodeTreeInterfaceSocketFlag {
+enum NodeTreeInterfaceSocketFlag {
   NODE_INTERFACE_SOCKET_INPUT = 1 << 0,
   NODE_INTERFACE_SOCKET_OUTPUT = 1 << 1,
   NODE_INTERFACE_SOCKET_HIDE_VALUE = 1 << 2,
@@ -75,17 +76,17 @@ typedef enum NodeTreeInterfaceSocketFlag {
    * cleaner UI.
    */
   NODE_INTERFACE_SOCKET_OPTIONAL_LABEL = 1 << 10,
-} NodeTreeInterfaceSocketFlag;
+};
 ENUM_OPERATORS(NodeTreeInterfaceSocketFlag);
 
-typedef enum NodeSocketInterfaceStructureType {
+enum NodeSocketInterfaceStructureType {
   NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO = 0,
   NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_SINGLE = 1,
   NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_DYNAMIC = 2,
   NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_FIELD = 3,
   NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_GRID = 4,
   NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_LIST = 5,
-} NodeSocketInterfaceStructureType;
+};
 
 // TODO: Move out of DNA.
 #ifdef __cplusplus
@@ -99,6 +100,30 @@ enum class StructureType : int8_t {
 };
 }
 #endif
+
+/* Panel interface flags */
+enum NodeTreeInterfacePanelFlag {
+  /* Panel starts closed on new node instances. */
+  NODE_INTERFACE_PANEL_DEFAULT_CLOSED = 1 << 0,
+  /* In the past, not all panels allowed child panels. Now all allow them. */
+  NODE_INTERFACE_PANEL_ALLOW_CHILD_PANELS_LEGACY = 1 << 1,
+  /* Allow adding sockets after panels. */
+  NODE_INTERFACE_PANEL_ALLOW_SOCKETS_AFTER_PANELS = 1 << 2,
+  /* Whether the panel is collapsed in the node group interface tree view. */
+  NODE_INTERFACE_PANEL_IS_COLLAPSED = 1 << 3,
+};
+ENUM_OPERATORS(NodeTreeInterfacePanelFlag);
+
+enum NodeDefaultInputType {
+  NODE_DEFAULT_INPUT_VALUE = 0,
+  NODE_DEFAULT_INPUT_INDEX_FIELD = 1,
+  NODE_DEFAULT_INPUT_ID_INDEX_FIELD = 2,
+  NODE_DEFAULT_INPUT_NORMAL_FIELD = 3,
+  NODE_DEFAULT_INPUT_POSITION_FIELD = 4,
+  NODE_DEFAULT_INPUT_INSTANCE_TRANSFORM_FIELD = 5,
+  NODE_DEFAULT_INPUT_HANDLE_LEFT_FIELD = 6,
+  NODE_DEFAULT_INPUT_HANDLE_RIGHT_FIELD = 7,
+};
 
 typedef struct bNodeTreeInterfaceSocket {
   bNodeTreeInterfaceItem item;
@@ -154,30 +179,6 @@ typedef struct bNodeTreeInterfaceSocket {
   void init_from_socket_instance(const bNodeSocket *socket);
 #endif
 } bNodeTreeInterfaceSocket;
-
-/* Panel interface flags */
-typedef enum NodeTreeInterfacePanelFlag {
-  /* Panel starts closed on new node instances. */
-  NODE_INTERFACE_PANEL_DEFAULT_CLOSED = 1 << 0,
-  /* In the past, not all panels allowed child panels. Now all allow them. */
-  NODE_INTERFACE_PANEL_ALLOW_CHILD_PANELS_LEGACY = 1 << 1,
-  /* Allow adding sockets after panels. */
-  NODE_INTERFACE_PANEL_ALLOW_SOCKETS_AFTER_PANELS = 1 << 2,
-  /* Whether the panel is collapsed in the node group interface tree view. */
-  NODE_INTERFACE_PANEL_IS_COLLAPSED = 1 << 3,
-} NodeTreeInterfacePanelFlag;
-ENUM_OPERATORS(NodeTreeInterfacePanelFlag);
-
-typedef enum NodeDefaultInputType {
-  NODE_DEFAULT_INPUT_VALUE = 0,
-  NODE_DEFAULT_INPUT_INDEX_FIELD = 1,
-  NODE_DEFAULT_INPUT_ID_INDEX_FIELD = 2,
-  NODE_DEFAULT_INPUT_NORMAL_FIELD = 3,
-  NODE_DEFAULT_INPUT_POSITION_FIELD = 4,
-  NODE_DEFAULT_INPUT_INSTANCE_TRANSFORM_FIELD = 5,
-  NODE_DEFAULT_INPUT_HANDLE_LEFT_FIELD = 6,
-  NODE_DEFAULT_INPUT_HANDLE_RIGHT_FIELD = 7,
-} NodeDefaultInputType;
 
 typedef struct bNodeTreeInterfacePanel {
   bNodeTreeInterfaceItem item;

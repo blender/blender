@@ -10,6 +10,84 @@
 
 #include "DNA_view3d_types.h"
 
+enum eXrSessionFlag {
+  XR_SESSION_USE_POSITION_TRACKING = (1 << 0),
+  XR_SESSION_USE_ABSOLUTE_TRACKING = (1 << 1),
+};
+
+enum eXRSessionBasePoseType {
+  XR_BASE_POSE_SCENE_CAMERA = 0,
+  XR_BASE_POSE_OBJECT = 1,
+  XR_BASE_POSE_CUSTOM = 2,
+};
+
+enum eXrSessionControllerDrawStyle {
+  XR_CONTROLLER_DRAW_DARK = 0,
+  XR_CONTROLLER_DRAW_LIGHT = 1,
+  XR_CONTROLLER_DRAW_DARK_RAY = 2,
+  XR_CONTROLLER_DRAW_LIGHT_RAY = 3,
+};
+
+/** XR action type. Enum values match those in GHOST_XrActionType enum for consistency. */
+enum eXrActionType {
+  XR_BOOLEAN_INPUT = 1,
+  XR_FLOAT_INPUT = 2,
+  XR_VECTOR2F_INPUT = 3,
+  XR_POSE_INPUT = 4,
+  XR_VIBRATION_OUTPUT = 100,
+};
+
+/** Determines how XR action operators are executed. */
+enum eXrOpFlag {
+  XR_OP_PRESS = 0,
+  XR_OP_RELEASE = 1,
+  XR_OP_MODAL = 2,
+};
+
+enum eXrActionFlag {
+  /** Action depends on two sub-action paths (i.e. two-handed/bi-manual action). */
+  XR_ACTION_BIMANUAL = (1 << 0),
+};
+
+enum eXrHapticFlag {
+  /** Whether to apply haptics to corresponding user paths for an action and its haptic action. */
+  XR_HAPTIC_MATCHUSERPATHS = (1 << 0),
+  /**
+   * Determines how haptics will be applied
+   * ("repeat" is mutually exclusive with "press"/"release").
+   */
+  XR_HAPTIC_PRESS = (1 << 1),
+  XR_HAPTIC_RELEASE = (1 << 2),
+  XR_HAPTIC_REPEAT = (1 << 3),
+};
+
+/**
+ * For axis-based inputs (thumbstick/trackpad/etc).
+ * Determines the region for action execution (mutually exclusive per axis).
+ */
+enum eXrAxisFlag {
+  XR_AXIS0_POS = (1 << 0),
+  XR_AXIS0_NEG = (1 << 1),
+  XR_AXIS1_POS = (1 << 2),
+  XR_AXIS1_NEG = (1 << 3),
+};
+
+enum eXrPoseFlag {
+  /* Pose represents controller grip/aim. */
+  XR_POSE_GRIP = (1 << 0),
+  XR_POSE_AIM = (1 << 1),
+};
+
+/**
+ * The following user and component path lengths are dependent on OpenXR's XR_MAX_PATH_LENGTH
+ * (256). A user path will be combined with a component path to identify an action binding, and
+ * that combined path should also have a max of XR_MAX_PATH_LENGTH (e.g. user_path =
+ * /user/hand/left, component_path = /input/trigger/value, full_path =
+ * /user/hand/left/input/trigger/value).
+ */
+#define XR_MAX_USER_PATH_LENGTH 64
+#define XR_MAX_COMPONENT_PATH_LENGTH 192
+
 /* -------------------------------------------------------------------- */
 
 typedef struct XrSessionSettings {
@@ -45,84 +123,6 @@ typedef struct XrSessionSettings {
   /** View scale. */
   float view_scale;
 } XrSessionSettings;
-
-typedef enum eXrSessionFlag {
-  XR_SESSION_USE_POSITION_TRACKING = (1 << 0),
-  XR_SESSION_USE_ABSOLUTE_TRACKING = (1 << 1),
-} eXrSessionFlag;
-
-typedef enum eXRSessionBasePoseType {
-  XR_BASE_POSE_SCENE_CAMERA = 0,
-  XR_BASE_POSE_OBJECT = 1,
-  XR_BASE_POSE_CUSTOM = 2,
-} eXRSessionBasePoseType;
-
-typedef enum eXrSessionControllerDrawStyle {
-  XR_CONTROLLER_DRAW_DARK = 0,
-  XR_CONTROLLER_DRAW_LIGHT = 1,
-  XR_CONTROLLER_DRAW_DARK_RAY = 2,
-  XR_CONTROLLER_DRAW_LIGHT_RAY = 3,
-} eXrSessionControllerDrawStyle;
-
-/** XR action type. Enum values match those in GHOST_XrActionType enum for consistency. */
-typedef enum eXrActionType {
-  XR_BOOLEAN_INPUT = 1,
-  XR_FLOAT_INPUT = 2,
-  XR_VECTOR2F_INPUT = 3,
-  XR_POSE_INPUT = 4,
-  XR_VIBRATION_OUTPUT = 100,
-} eXrActionType;
-
-/** Determines how XR action operators are executed. */
-typedef enum eXrOpFlag {
-  XR_OP_PRESS = 0,
-  XR_OP_RELEASE = 1,
-  XR_OP_MODAL = 2,
-} eXrOpFlag;
-
-typedef enum eXrActionFlag {
-  /** Action depends on two sub-action paths (i.e. two-handed/bi-manual action). */
-  XR_ACTION_BIMANUAL = (1 << 0),
-} eXrActionFlag;
-
-typedef enum eXrHapticFlag {
-  /** Whether to apply haptics to corresponding user paths for an action and its haptic action. */
-  XR_HAPTIC_MATCHUSERPATHS = (1 << 0),
-  /**
-   * Determines how haptics will be applied
-   * ("repeat" is mutually exclusive with "press"/"release").
-   */
-  XR_HAPTIC_PRESS = (1 << 1),
-  XR_HAPTIC_RELEASE = (1 << 2),
-  XR_HAPTIC_REPEAT = (1 << 3),
-} eXrHapticFlag;
-
-/**
- * For axis-based inputs (thumbstick/trackpad/etc).
- * Determines the region for action execution (mutually exclusive per axis).
- */
-typedef enum eXrAxisFlag {
-  XR_AXIS0_POS = (1 << 0),
-  XR_AXIS0_NEG = (1 << 1),
-  XR_AXIS1_POS = (1 << 2),
-  XR_AXIS1_NEG = (1 << 3),
-} eXrAxisFlag;
-
-typedef enum eXrPoseFlag {
-  /* Pose represents controller grip/aim. */
-  XR_POSE_GRIP = (1 << 0),
-  XR_POSE_AIM = (1 << 1),
-} eXrPoseFlag;
-
-/**
- * The following user and component path lengths are dependent on OpenXR's XR_MAX_PATH_LENGTH
- * (256). A user path will be combined with a component path to identify an action binding, and
- * that combined path should also have a max of XR_MAX_PATH_LENGTH (e.g. user_path =
- * /user/hand/left, component_path = /input/trigger/value, full_path =
- * /user/hand/left/input/trigger/value).
- */
-#define XR_MAX_USER_PATH_LENGTH 64
-#define XR_MAX_COMPONENT_PATH_LENGTH 192
 
 /* -------------------------------------------------------------------- */
 

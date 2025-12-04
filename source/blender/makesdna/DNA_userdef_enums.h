@@ -18,7 +18,7 @@
  * #U.dupflag should be used for default operations or you can construct a flag as Python does.
  * If #eDupli_ID_Flags is 0 then no data will be copied (linked duplicate).
  */
-typedef enum eDupli_ID_Flags {
+enum eDupli_ID_Flags {
   USER_DUP_MESH = (1 << 0),
   USER_DUP_CURVE = (1 << 1),
   USER_DUP_SURF = (1 << 2),
@@ -49,5 +49,5 @@ typedef enum eDupli_ID_Flags {
 
   /* Duplicate (and hence make local) linked data. */
   USER_DUP_LINKED_ID = (1 << 30),
-} eDupli_ID_Flags;
+};
 ENUM_OPERATORS(eDupli_ID_Flags)

@@ -25,7 +25,7 @@ using CurvesGeometryRuntimeHandle = blender::bke::CurvesGeometryRuntime;
 typedef struct CurvesGeometryRuntimeHandle CurvesGeometryRuntimeHandle;
 #endif
 
-typedef enum CurveType {
+enum CurveType {
   /**
    * Catmull Rom curves provide automatic smoothness, like Bezier curves with automatic handle
    * positions. This is the default type for the hair system because of the simplicity of
@@ -54,11 +54,11 @@ typedef enum CurveType {
    * supported in the long term.
    */
   CURVE_TYPE_NURBS = 3,
-} CurveType;
+};
 /* The number of supported curve types. */
 #define CURVE_TYPES_NUM 4
 
-typedef enum HandleType {
+enum HandleType {
   /** The handle can be moved anywhere, and doesn't influence the point's other handle. */
   BEZIER_HANDLE_FREE = 0,
   /** The location is automatically calculated to be smooth. */
@@ -67,20 +67,20 @@ typedef enum HandleType {
   BEZIER_HANDLE_VECTOR = 2,
   /** The location is constrained to point in the opposite direction as the other handle. */
   BEZIER_HANDLE_ALIGN = 3,
-} HandleType;
+};
 #define BEZIER_HANDLES_NUM 4
 
 /** Method used to calculate a NURBS curve's knot vector. */
-typedef enum KnotsMode {
+enum KnotsMode {
   NURBS_KNOT_MODE_NORMAL = 0,
   NURBS_KNOT_MODE_ENDPOINT = 1,
   NURBS_KNOT_MODE_BEZIER = 2,
   NURBS_KNOT_MODE_ENDPOINT_BEZIER = 3,
   NURBS_KNOT_MODE_CUSTOM = 4,
-} KnotsMode;
+};
 
 /** Method used to calculate the normals of a curve's evaluated points. */
-typedef enum NormalMode {
+enum NormalMode {
   /** Calculate normals with the smallest twist around the curve tangent across the whole curve. */
   NORMAL_MODE_MINIMUM_TWIST = 0,
   /**
@@ -90,7 +90,21 @@ typedef enum NormalMode {
   NORMAL_MODE_Z_UP = 1,
   /** Interpolate the stored "custom_normal" attribute for the final normals. */
   NORMAL_MODE_FREE = 2,
-} NormalMode;
+};
+
+/** #Curves.flag */
+enum {
+  HA_DS_EXPAND = (1 << 0),
+  CV_SCULPT_COLLISION_ENABLED = (1 << 1),
+};
+
+/** #Curves.symmetry */
+enum eCurvesSymmetryType {
+  CURVES_SYMMETRY_X = 1 << 0,
+  CURVES_SYMMETRY_Y = 1 << 1,
+  CURVES_SYMMETRY_Z = 1 << 2,
+};
+ENUM_OPERATORS(eCurvesSymmetryType)
 
 /**
  * A reusable data structure for geometry consisting of many curves. All control point data is
@@ -231,20 +245,6 @@ typedef struct Curves {
   /* Draw cache to store data used for viewport drawing. */
   void *batch_cache;
 } Curves;
-
-/** #Curves.flag */
-enum {
-  HA_DS_EXPAND = (1 << 0),
-  CV_SCULPT_COLLISION_ENABLED = (1 << 1),
-};
-
-/** #Curves.symmetry */
-typedef enum eCurvesSymmetryType {
-  CURVES_SYMMETRY_X = 1 << 0,
-  CURVES_SYMMETRY_Y = 1 << 1,
-  CURVES_SYMMETRY_Z = 1 << 2,
-} eCurvesSymmetryType;
-ENUM_OPERATORS(eCurvesSymmetryType)
 
 /* Only one material supported currently. */
 #define CURVES_MATERIAL_NR 1

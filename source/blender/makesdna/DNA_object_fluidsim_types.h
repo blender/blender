@@ -11,6 +11,25 @@
 #include "DNA_ID.h"
 #include "DNA_defs.h"
 
+/** #Object::fluidsimSettings */
+enum {
+  OB_FLUIDSIM_ENABLE = 1,
+  OB_FLUIDSIM_DOMAIN = 1 << 1,
+  OB_FLUIDSIM_FLUID = 1 << 2,
+  OB_FLUIDSIM_OBSTACLE = 1 << 3,
+  OB_FLUIDSIM_INFLOW = 1 << 4,
+  OB_FLUIDSIM_OUTFLOW = 1 << 5,
+  OB_FLUIDSIM_PARTICLE = 1 << 6,
+  OB_FLUIDSIM_CONTROL = 1 << 7,
+};
+
+/** #FluidsimSettings::flags. */
+enum {
+  OB_FLUIDSIM_REVERSE = 1 << 0,
+  OB_FLUIDSIM_ACTIVE = 1 << 1,
+  OB_FLUIDSIM_OVERRIDE_TIME = 1 << 2,
+};
+
 typedef struct FluidVertexVelocity {
   float vel[3];
 } FluidVertexVelocity;
@@ -115,22 +134,3 @@ typedef struct FluidsimSettings {
   /** Simulation/flow rate control. */
   float animRate;
 } FluidsimSettings;
-
-/** #Object::fluidsimSettings */
-enum {
-  OB_FLUIDSIM_ENABLE = 1,
-  OB_FLUIDSIM_DOMAIN = 1 << 1,
-  OB_FLUIDSIM_FLUID = 1 << 2,
-  OB_FLUIDSIM_OBSTACLE = 1 << 3,
-  OB_FLUIDSIM_INFLOW = 1 << 4,
-  OB_FLUIDSIM_OUTFLOW = 1 << 5,
-  OB_FLUIDSIM_PARTICLE = 1 << 6,
-  OB_FLUIDSIM_CONTROL = 1 << 7,
-};
-
-/** #FluidsimSettings::flags. */
-enum {
-  OB_FLUIDSIM_REVERSE = 1 << 0,
-  OB_FLUIDSIM_ACTIVE = 1 << 1,
-  OB_FLUIDSIM_OVERRIDE_TIME = 1 << 2,
-};

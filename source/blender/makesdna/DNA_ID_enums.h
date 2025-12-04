@@ -21,7 +21,7 @@ enum eIconSizes {
 };
 
 /** #IDProperty.type */
-typedef enum eIDPropertyType {
+enum eIDPropertyType {
   IDP_STRING = 0,
   IDP_INT = 1,
   IDP_FLOAT = 2,
@@ -36,7 +36,7 @@ typedef enum eIDPropertyType {
    * be 0 or 1.
    */
   IDP_BOOLEAN = 10,
-} eIDPropertyType;
+};
 #define IDP_NUMTYPES 11
 
 /** Used by some IDP utils, keep values in sync with type enum above. */
@@ -53,13 +53,13 @@ enum {
 };
 
 /** #IDProperty.subtype for #IDP_STRING properties. */
-typedef enum eIDPropertySubType {
+enum eIDPropertySubType {
   IDP_STRING_SUB_UTF8 = 0, /* default */
   IDP_STRING_SUB_BYTE = 1, /* arbitrary byte array, _not_ null terminated */
-} eIDPropertySubType;
+};
 
 /** #IDProperty.flag. */
-typedef enum eIDPropertyFlag {
+enum eIDPropertyFlag {
   /**
    * This #IDProperty may be library-overridden.
    * Should only be used/be relevant for custom properties.
@@ -89,7 +89,7 @@ typedef enum eIDPropertyFlag {
    * #RNA_property_is_set, currently this is a runtime flag.
    */
   IDP_FLAG_GHOST = 1 << 7,
-} eIDPropertyFlag;
+};
 
 /**
  * Defines for working with IDs.
@@ -113,7 +113,7 @@ typedef enum eIDPropertyFlag {
  *
  * Update #ID_TYPE_IS_DEPRECATED() when deprecating types.
  */
-typedef enum ID_Type {
+enum ID_Type {
   ID_SCE = MAKE_ID2('S', 'C'),       /* Scene */
   ID_LI = MAKE_ID2('L', 'I'),        /* Library */
   ID_OB = MAKE_ID2('O', 'B'),        /* Object */
@@ -153,7 +153,7 @@ typedef enum ID_Type {
   ID_PT = MAKE_ID2('P', 'T'),        /* PointCloud */
   ID_VO = MAKE_ID2('V', 'O'),        /* Volume */
   ID_GP = MAKE_ID2('G', 'P'),        /* Grease Pencil */
-} ID_Type;
+};
 
 /* Only used as 'placeholder' in .blend files for directly linked data-blocks. */
 #define ID_LINK_PLACEHOLDER MAKE_ID2('I', 'D') /* (internal use only) */

@@ -25,6 +25,234 @@ class BoneColor;
 struct AnimData;
 struct BoneCollection;
 
+/* armature->flag */
+/* don't use bit 7, was saved in files to disable stuff */
+enum eArmature_Flag {
+  ARM_RESTPOS = (1 << 0),
+  /** XRAY is here only for backwards converting */
+  ARM_FLAG_UNUSED_1 = (1 << 1), /* cleared */
+  ARM_DRAWAXES = (1 << 2),
+  ARM_DRAWNAMES = (1 << 3),
+  /* ARM_POSEMODE = (1 << 4), Deprecated. */
+  /** Position of the parent-child relation lines on the bone (cleared = drawn
+   * from the tail, set = drawn from the head). Only controls the parent side of
+   * the line; the child side is always drawn to the head of the bone. */
+  ARM_DRAW_RELATION_FROM_HEAD = (1 << 5), /* Cleared in versioning of pre-2.80 files. */
+  /**
+   * Whether any bone collection is marked with the 'solo' flag.
+   * When this is the case, bone collection visibility flags don't matter any more, and only ones
+   * that have their 'solo' flag set will be visible.
+   *
+   * \see eBoneCollection_Flag::BONE_COLLECTION_SOLO */
+  ARM_BCOLL_SOLO_ACTIVE = (1 << 6), /* Cleared in versioning of pre-2.80 files. */
+  ARM_FLAG_UNUSED_7 = (1 << 7),     /* cleared */
+  ARM_MIRROR_EDIT = (1 << 8),
+  ARM_FLAG_UNUSED_9 = (1 << 9),
+  /** Made option negative, for backwards compatibility. */
+  ARM_NO_CUSTOM = (1 << 10),
+  /** Draw custom colors. */
+  ARM_COL_CUSTOM = (1 << 11),
+  /** When ghosting, only show selected bones (this should belong to ghostflag instead). */
+  ARM_FLAG_UNUSED_12 = (1 << 12), /* cleared */
+  /** Dope-sheet channel is expanded */
+  ARM_DS_EXPAND = (1 << 13),
+  /** Other objects are used for visualizing various states (hack for efficient updates). */
+  ARM_HAS_VIZ_DEPS = (1 << 14),
+};
+
+/* armature->drawtype */
+enum eArmature_Drawtype {
+  ARM_DRAW_TYPE_ARMATURE_DEFINED = -1, /* Use draw type from Armature (only used on Bones). */
+  ARM_DRAW_TYPE_OCTA = 0,
+  ARM_DRAW_TYPE_STICK = 1,
+  ARM_DRAW_TYPE_B_BONE = 2,
+  ARM_DRAW_TYPE_ENVELOPE = 3,
+  ARM_DRAW_TYPE_WIRE = 4,
+};
+
+/* armature->deformflag */
+enum eArmature_DeformFlag {
+  ARM_DEF_VGROUP = (1 << 0),
+  ARM_DEF_ENVELOPE = (1 << 1),
+  ARM_DEF_QUATERNION = (1 << 2),
+#ifdef DNA_DEPRECATED_ALLOW
+  ARM_DEF_B_BONE_REST = (1 << 3), /* deprecated */
+#endif
+  ARM_DEF_INVERT_VGROUP = (1 << 4),
+};
+
+#ifdef DNA_DEPRECATED_ALLOW /* Old animation system (armature only viz). */
+/** #bArmature.pathflag */
+enum eArmature_PathFlag {
+  ARM_PATH_FNUMS = (1 << 0),
+  ARM_PATH_KFRAS = (1 << 1),
+  ARM_PATH_HEADS = (1 << 2),
+  ARM_PATH_ACFRA = (1 << 3),
+  ARM_PATH_KFNOS = (1 << 4),
+};
+#endif
+
+/* bone->flag */
+enum eBone_Flag {
+  /**
+   * Bone selection, must only be set when the bone is not hidden
+   * (#BONE_HIDDEN_A / #BONE_HIDDEN_P flags must not be enabled as well).
+   *
+   * However the bone may not be visible to the user since the bones collection
+   * may be hidden.
+   * In most cases `blender::animrig::bone_is_visible` or
+   * `blender::animrig::bone_is_visible` should be used to check if the bone is visible to
+   * the user before operating on them.
+   */
+  BONE_SELECTED = (1 << 0),
+  BONE_ROOTSEL = (1 << 1),
+  BONE_TIPSEL = (1 << 2),
+  /** Used instead of BONE_SELECTED during transform (clear before use) */
+  BONE_TRANSFORM = (1 << 3),
+  /** When bone has a parent, connect head of bone to parent's tail. */
+  BONE_CONNECTED = (1 << 4),
+  /* 32 used to be quatrot, was always set in files, do not reuse unless you clear it always */
+  /**
+   * Hidden Bones when drawing PoseChannels.
+   * When set #BONE_SELECTED must be cleared.
+   */
+  BONE_HIDDEN_P = (1 << 6),
+  /** For detecting cyclic dependencies */
+  BONE_DONE = (1 << 7),
+  /** active is on mouse clicks only - deprecated, ONLY USE FOR DRAWING */
+  BONE_DRAW_ACTIVE = (1 << 8),
+  /** No parent rotation or scale */
+  BONE_HINGE = (1 << 9),
+  /**
+   * Hidden Bones when drawing Armature edit-mode.
+   * When set, selection flags (#BONE_SELECTED, #BONE_ROOTSEL & BONE_TIPSEL) must be cleared.
+   */
+  BONE_HIDDEN_A = (1 << 10),
+  /** multiplies vgroup with envelope */
+  BONE_MULT_VG_ENV = (1 << 11),
+  /** bone doesn't deform geometry */
+  BONE_NO_DEFORM = (1 << 12),
+#ifdef DNA_DEPRECATED_ALLOW
+  /** set to prevent destruction of its unkeyframed pose (after transform) */
+  BONE_UNKEYED = (1 << 13),
+  /** set to prevent hinge child bones from influencing the transform center */
+  BONE_HINGE_CHILD_TRANSFORM = (1 << 14),
+  /** No parent scale */
+  BONE_NO_SCALE = (1 << 15),
+#endif
+  /** bone should be drawn as OB_WIRE, regardless of draw-types of view+armature */
+  BONE_DRAWWIRE = (1 << 17),
+  /** when no parent, bone will not get cyclic offset */
+  BONE_NO_CYCLICOFFSET = (1 << 18),
+  /** bone transforms are locked in EditMode */
+  BONE_EDITMODE_LOCKED = (1 << 19),
+#ifdef DNA_DEPRECATED_ALLOW
+  /** Indicates that a parent is also being transformed */
+  BONE_TRANSFORM_CHILD = (1 << 20),
+#endif
+  /** bone cannot be selected */
+  BONE_UNSELECTABLE = (1 << 21),
+  /** bone location is in armature space */
+  BONE_NO_LOCAL_LOCATION = (1 << 22),
+  /** object child will use relative transform (like deform) */
+  BONE_RELATIVE_PARENTING = (1 << 23),
+#ifdef DNA_DEPRECATED_ALLOW
+  /** it will add the parent end roll to the inroll */
+  BONE_ADD_PARENT_END_ROLL = (1 << 24),
+#endif
+  /** this bone was transformed by the mirror function */
+  BONE_TRANSFORM_MIRROR = (1 << 25),
+  /** this bone is associated with a locked vertex group, ONLY USE FOR DRAWING */
+  BONE_DRAW_LOCKED_WEIGHT = (1 << 26),
+};
+ENUM_OPERATORS(eBone_Flag)
+
+/* bone->inherit_scale_mode */
+enum eBone_InheritScaleMode {
+  /* Inherit all scale and shear. */
+  BONE_INHERIT_SCALE_FULL = 0,
+  /* Inherit scale, but remove final shear. */
+  BONE_INHERIT_SCALE_FIX_SHEAR = 1,
+  /* Inherit average scale. */
+  BONE_INHERIT_SCALE_AVERAGE = 2,
+  /* Inherit no scale or shear. */
+  BONE_INHERIT_SCALE_NONE = 3,
+  /* Inherit effects of shear on parent (same as old disabled Inherit Scale). */
+  BONE_INHERIT_SCALE_NONE_LEGACY = 4,
+  /* Inherit parent X scale as child X scale etc. */
+  BONE_INHERIT_SCALE_ALIGNED = 5,
+};
+
+/* bone->bbone_prev_type, bbone_next_type */
+enum eBone_BBoneHandleType {
+  BBONE_HANDLE_AUTO = 0,     /* Default mode based on parents & children. */
+  BBONE_HANDLE_ABSOLUTE = 1, /* Custom handle in absolute position mode. */
+  BBONE_HANDLE_RELATIVE = 2, /* Custom handle in relative position mode. */
+  BBONE_HANDLE_TANGENT = 3,  /* Custom handle in tangent mode (use direction, not location). */
+};
+
+/* bone->bbone_mapping_mode */
+enum eBone_BBoneMappingMode {
+  BBONE_MAPPING_STRAIGHT = 0, /* Default mode that ignores the rest pose curvature. */
+  BBONE_MAPPING_CURVED = 1,   /* Mode that takes the rest pose curvature into account. */
+};
+
+/* bone->bbone_flag */
+enum eBone_BBoneFlag {
+  /** Add the parent Out roll to the In roll. */
+  BBONE_ADD_PARENT_END_ROLL = (1 << 0),
+  /** Multiply B-Bone easing values with Scale Length. */
+  BBONE_SCALE_EASING = (1 << 1),
+};
+
+/* bone->bbone_prev/next_flag */
+enum eBone_BBoneHandleFlag {
+  /** Use handle bone scaling for scale X. */
+  BBONE_HANDLE_SCALE_X = (1 << 0),
+  /** Use handle bone scaling for scale Y (length). */
+  BBONE_HANDLE_SCALE_Y = (1 << 1),
+  /** Use handle bone scaling for scale Z. */
+  BBONE_HANDLE_SCALE_Z = (1 << 2),
+  /** Use handle bone scaling for easing. */
+  BBONE_HANDLE_SCALE_EASE = (1 << 3),
+  /** Is handle scale required? */
+  BBONE_HANDLE_SCALE_ANY = BBONE_HANDLE_SCALE_X | BBONE_HANDLE_SCALE_Y | BBONE_HANDLE_SCALE_Z |
+                           BBONE_HANDLE_SCALE_EASE,
+};
+
+#define MAXBONENAME 64
+
+/** #BoneCollection.flag */
+enum eBoneCollection_Flag {
+  BONE_COLLECTION_VISIBLE = (1 << 0),    /* Visibility flag of this particular collection. */
+  BONE_COLLECTION_SELECTABLE = (1 << 1), /* Intended to be implemented in the not-so-far future. */
+  BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL = (1 << 2), /* Added by a local library override. */
+
+  /**
+   * Set when all ancestors are visible.
+   *
+   * This would actually be a runtime flag, but bone collections don't have a
+   * runtime struct yet, and the addition of one more flag doesn't seem worth
+   * the effort. */
+  BONE_COLLECTION_ANCESTORS_VISIBLE = (1 << 3),
+
+  /**
+   * Whether this bone collection is marked as 'solo'.
+   *
+   * If no bone collections have this flag set, visibility is determined by
+   * BONE_COLLECTION_VISIBLE.
+   *
+   * If there is any bone collection with the BONE_COLLECTION_SOLO flag enabled, all bone
+   * collections are effectively hidden, except other collections with this flag enabled.
+   *
+   * \see eArmature_Flag::ARM_BCOLL_SOLO_ACTIVE
+   */
+  BONE_COLLECTION_SOLO = (1 << 4),
+
+  BONE_COLLECTION_EXPANDED = (1 << 5), /* Expanded in the tree view. */
+};
+ENUM_OPERATORS(eBoneCollection_Flag)
+
 /* The Armature system works on different transformation space levels:
  *
  * 1) Bone Space:     In the orientation of the parent bone, position relative
@@ -353,234 +581,6 @@ typedef struct BoneCollectionReference {
   struct BoneCollectionReference *next, *prev;
   struct BoneCollection *bcoll;
 } BoneCollectionReference;
-
-/* armature->flag */
-/* don't use bit 7, was saved in files to disable stuff */
-typedef enum eArmature_Flag {
-  ARM_RESTPOS = (1 << 0),
-  /** XRAY is here only for backwards converting */
-  ARM_FLAG_UNUSED_1 = (1 << 1), /* cleared */
-  ARM_DRAWAXES = (1 << 2),
-  ARM_DRAWNAMES = (1 << 3),
-  /* ARM_POSEMODE = (1 << 4), Deprecated. */
-  /** Position of the parent-child relation lines on the bone (cleared = drawn
-   * from the tail, set = drawn from the head). Only controls the parent side of
-   * the line; the child side is always drawn to the head of the bone. */
-  ARM_DRAW_RELATION_FROM_HEAD = (1 << 5), /* Cleared in versioning of pre-2.80 files. */
-  /**
-   * Whether any bone collection is marked with the 'solo' flag.
-   * When this is the case, bone collection visibility flags don't matter any more, and only ones
-   * that have their 'solo' flag set will be visible.
-   *
-   * \see eBoneCollection_Flag::BONE_COLLECTION_SOLO */
-  ARM_BCOLL_SOLO_ACTIVE = (1 << 6), /* Cleared in versioning of pre-2.80 files. */
-  ARM_FLAG_UNUSED_7 = (1 << 7),     /* cleared */
-  ARM_MIRROR_EDIT = (1 << 8),
-  ARM_FLAG_UNUSED_9 = (1 << 9),
-  /** Made option negative, for backwards compatibility. */
-  ARM_NO_CUSTOM = (1 << 10),
-  /** Draw custom colors. */
-  ARM_COL_CUSTOM = (1 << 11),
-  /** When ghosting, only show selected bones (this should belong to ghostflag instead). */
-  ARM_FLAG_UNUSED_12 = (1 << 12), /* cleared */
-  /** Dope-sheet channel is expanded */
-  ARM_DS_EXPAND = (1 << 13),
-  /** Other objects are used for visualizing various states (hack for efficient updates). */
-  ARM_HAS_VIZ_DEPS = (1 << 14),
-} eArmature_Flag;
-
-/* armature->drawtype */
-typedef enum eArmature_Drawtype {
-  ARM_DRAW_TYPE_ARMATURE_DEFINED = -1, /* Use draw type from Armature (only used on Bones). */
-  ARM_DRAW_TYPE_OCTA = 0,
-  ARM_DRAW_TYPE_STICK = 1,
-  ARM_DRAW_TYPE_B_BONE = 2,
-  ARM_DRAW_TYPE_ENVELOPE = 3,
-  ARM_DRAW_TYPE_WIRE = 4,
-} eArmature_Drawtype;
-
-/* armature->deformflag */
-typedef enum eArmature_DeformFlag {
-  ARM_DEF_VGROUP = (1 << 0),
-  ARM_DEF_ENVELOPE = (1 << 1),
-  ARM_DEF_QUATERNION = (1 << 2),
-#ifdef DNA_DEPRECATED_ALLOW
-  ARM_DEF_B_BONE_REST = (1 << 3), /* deprecated */
-#endif
-  ARM_DEF_INVERT_VGROUP = (1 << 4),
-} eArmature_DeformFlag;
-
-#ifdef DNA_DEPRECATED_ALLOW /* Old animation system (armature only viz). */
-/** #bArmature.pathflag */
-typedef enum eArmature_PathFlag {
-  ARM_PATH_FNUMS = (1 << 0),
-  ARM_PATH_KFRAS = (1 << 1),
-  ARM_PATH_HEADS = (1 << 2),
-  ARM_PATH_ACFRA = (1 << 3),
-  ARM_PATH_KFNOS = (1 << 4),
-} eArmature_PathFlag;
-#endif
-
-/* bone->flag */
-typedef enum eBone_Flag {
-  /**
-   * Bone selection, must only be set when the bone is not hidden
-   * (#BONE_HIDDEN_A / #BONE_HIDDEN_P flags must not be enabled as well).
-   *
-   * However the bone may not be visible to the user since the bones collection
-   * may be hidden.
-   * In most cases `blender::animrig::bone_is_visible` or
-   * `blender::animrig::bone_is_visible` should be used to check if the bone is visible to
-   * the user before operating on them.
-   */
-  BONE_SELECTED = (1 << 0),
-  BONE_ROOTSEL = (1 << 1),
-  BONE_TIPSEL = (1 << 2),
-  /** Used instead of BONE_SELECTED during transform (clear before use) */
-  BONE_TRANSFORM = (1 << 3),
-  /** When bone has a parent, connect head of bone to parent's tail. */
-  BONE_CONNECTED = (1 << 4),
-  /* 32 used to be quatrot, was always set in files, do not reuse unless you clear it always */
-  /**
-   * Hidden Bones when drawing PoseChannels.
-   * When set #BONE_SELECTED must be cleared.
-   */
-  BONE_HIDDEN_P = (1 << 6),
-  /** For detecting cyclic dependencies */
-  BONE_DONE = (1 << 7),
-  /** active is on mouse clicks only - deprecated, ONLY USE FOR DRAWING */
-  BONE_DRAW_ACTIVE = (1 << 8),
-  /** No parent rotation or scale */
-  BONE_HINGE = (1 << 9),
-  /**
-   * Hidden Bones when drawing Armature edit-mode.
-   * When set, selection flags (#BONE_SELECTED, #BONE_ROOTSEL & BONE_TIPSEL) must be cleared.
-   */
-  BONE_HIDDEN_A = (1 << 10),
-  /** multiplies vgroup with envelope */
-  BONE_MULT_VG_ENV = (1 << 11),
-  /** bone doesn't deform geometry */
-  BONE_NO_DEFORM = (1 << 12),
-#ifdef DNA_DEPRECATED_ALLOW
-  /** set to prevent destruction of its unkeyframed pose (after transform) */
-  BONE_UNKEYED = (1 << 13),
-  /** set to prevent hinge child bones from influencing the transform center */
-  BONE_HINGE_CHILD_TRANSFORM = (1 << 14),
-  /** No parent scale */
-  BONE_NO_SCALE = (1 << 15),
-#endif
-  /** bone should be drawn as OB_WIRE, regardless of draw-types of view+armature */
-  BONE_DRAWWIRE = (1 << 17),
-  /** when no parent, bone will not get cyclic offset */
-  BONE_NO_CYCLICOFFSET = (1 << 18),
-  /** bone transforms are locked in EditMode */
-  BONE_EDITMODE_LOCKED = (1 << 19),
-#ifdef DNA_DEPRECATED_ALLOW
-  /** Indicates that a parent is also being transformed */
-  BONE_TRANSFORM_CHILD = (1 << 20),
-#endif
-  /** bone cannot be selected */
-  BONE_UNSELECTABLE = (1 << 21),
-  /** bone location is in armature space */
-  BONE_NO_LOCAL_LOCATION = (1 << 22),
-  /** object child will use relative transform (like deform) */
-  BONE_RELATIVE_PARENTING = (1 << 23),
-#ifdef DNA_DEPRECATED_ALLOW
-  /** it will add the parent end roll to the inroll */
-  BONE_ADD_PARENT_END_ROLL = (1 << 24),
-#endif
-  /** this bone was transformed by the mirror function */
-  BONE_TRANSFORM_MIRROR = (1 << 25),
-  /** this bone is associated with a locked vertex group, ONLY USE FOR DRAWING */
-  BONE_DRAW_LOCKED_WEIGHT = (1 << 26),
-} eBone_Flag;
-ENUM_OPERATORS(eBone_Flag)
-
-/* bone->inherit_scale_mode */
-typedef enum eBone_InheritScaleMode {
-  /* Inherit all scale and shear. */
-  BONE_INHERIT_SCALE_FULL = 0,
-  /* Inherit scale, but remove final shear. */
-  BONE_INHERIT_SCALE_FIX_SHEAR = 1,
-  /* Inherit average scale. */
-  BONE_INHERIT_SCALE_AVERAGE = 2,
-  /* Inherit no scale or shear. */
-  BONE_INHERIT_SCALE_NONE = 3,
-  /* Inherit effects of shear on parent (same as old disabled Inherit Scale). */
-  BONE_INHERIT_SCALE_NONE_LEGACY = 4,
-  /* Inherit parent X scale as child X scale etc. */
-  BONE_INHERIT_SCALE_ALIGNED = 5,
-} eBone_InheritScaleMode;
-
-/* bone->bbone_prev_type, bbone_next_type */
-typedef enum eBone_BBoneHandleType {
-  BBONE_HANDLE_AUTO = 0,     /* Default mode based on parents & children. */
-  BBONE_HANDLE_ABSOLUTE = 1, /* Custom handle in absolute position mode. */
-  BBONE_HANDLE_RELATIVE = 2, /* Custom handle in relative position mode. */
-  BBONE_HANDLE_TANGENT = 3,  /* Custom handle in tangent mode (use direction, not location). */
-} eBone_BBoneHandleType;
-
-/* bone->bbone_mapping_mode */
-typedef enum eBone_BBoneMappingMode {
-  BBONE_MAPPING_STRAIGHT = 0, /* Default mode that ignores the rest pose curvature. */
-  BBONE_MAPPING_CURVED = 1,   /* Mode that takes the rest pose curvature into account. */
-} eBone_BBoneMappingMode;
-
-/* bone->bbone_flag */
-typedef enum eBone_BBoneFlag {
-  /** Add the parent Out roll to the In roll. */
-  BBONE_ADD_PARENT_END_ROLL = (1 << 0),
-  /** Multiply B-Bone easing values with Scale Length. */
-  BBONE_SCALE_EASING = (1 << 1),
-} eBone_BBoneFlag;
-
-/* bone->bbone_prev/next_flag */
-typedef enum eBone_BBoneHandleFlag {
-  /** Use handle bone scaling for scale X. */
-  BBONE_HANDLE_SCALE_X = (1 << 0),
-  /** Use handle bone scaling for scale Y (length). */
-  BBONE_HANDLE_SCALE_Y = (1 << 1),
-  /** Use handle bone scaling for scale Z. */
-  BBONE_HANDLE_SCALE_Z = (1 << 2),
-  /** Use handle bone scaling for easing. */
-  BBONE_HANDLE_SCALE_EASE = (1 << 3),
-  /** Is handle scale required? */
-  BBONE_HANDLE_SCALE_ANY = BBONE_HANDLE_SCALE_X | BBONE_HANDLE_SCALE_Y | BBONE_HANDLE_SCALE_Z |
-                           BBONE_HANDLE_SCALE_EASE,
-} eBone_BBoneHandleFlag;
-
-#define MAXBONENAME 64
-
-/** #BoneCollection.flag */
-typedef enum eBoneCollection_Flag {
-  BONE_COLLECTION_VISIBLE = (1 << 0),    /* Visibility flag of this particular collection. */
-  BONE_COLLECTION_SELECTABLE = (1 << 1), /* Intended to be implemented in the not-so-far future. */
-  BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL = (1 << 2), /* Added by a local library override. */
-
-  /**
-   * Set when all ancestors are visible.
-   *
-   * This would actually be a runtime flag, but bone collections don't have a
-   * runtime struct yet, and the addition of one more flag doesn't seem worth
-   * the effort. */
-  BONE_COLLECTION_ANCESTORS_VISIBLE = (1 << 3),
-
-  /**
-   * Whether this bone collection is marked as 'solo'.
-   *
-   * If no bone collections have this flag set, visibility is determined by
-   * BONE_COLLECTION_VISIBLE.
-   *
-   * If there is any bone collection with the BONE_COLLECTION_SOLO flag enabled, all bone
-   * collections are effectively hidden, except other collections with this flag enabled.
-   *
-   * \see eArmature_Flag::ARM_BCOLL_SOLO_ACTIVE
-   */
-  BONE_COLLECTION_SOLO = (1 << 4),
-
-  BONE_COLLECTION_EXPANDED = (1 << 5), /* Expanded in the tree view. */
-} eBoneCollection_Flag;
-ENUM_OPERATORS(eBoneCollection_Flag)
 
 #ifdef __cplusplus
 

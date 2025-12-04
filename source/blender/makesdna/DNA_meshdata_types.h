@@ -14,6 +14,36 @@
 /** \name Ordered Selection Storage
  * \{ */
 
+/** #MSelect.type */
+enum {
+  ME_VSEL = 0,
+  ME_ESEL = 1,
+  ME_FSEL = 2,
+};
+
+enum eMVertSkinFlag {
+  /**
+   * Marks a vertex as the edge-graph root, used for calculating rotations for all connected
+   * edges (recursively). Also used to choose a root when generating an armature.
+   */
+  MVERT_SKIN_ROOT = 1,
+
+  /**
+   * Marks a branch vertex (vertex with more than two connected edges), so that its neighbors
+   * are directly hulled together, rather than the default of generating intermediate frames.
+   */
+  MVERT_SKIN_LOOSE = 2,
+};
+
+/** #MFace.edcode */
+enum {
+  ME_V1V2 = (1 << 0),
+  ME_V2V3 = (1 << 1),
+  ME_V3V1 = (1 << 2),
+  ME_V3V4 = ME_V3V1,
+  ME_V4V1 = (1 << 3),
+};
+
 /**
  * Optionally store the order of selected elements.
  * This won't always be set since only some selection operations have an order.
@@ -26,13 +56,6 @@ typedef struct MSelect {
   /** #ME_VSEL, #ME_ESEL, #ME_FSEL. */
   int type;
 } MSelect;
-
-/** #MSelect.type */
-enum {
-  ME_VSEL = 0,
-  ME_ESEL = 1,
-  ME_FSEL = 2,
-};
 
 /** \} */
 
@@ -101,16 +124,20 @@ enum {
 typedef struct MFloatProperty {
   float f;
 } MFloatProperty;
+
 typedef struct MIntProperty {
   int i;
 } MIntProperty;
+
 /** Byte string, no encoding implied. May not be null terminated. */
 typedef struct MStringProperty {
   char s[255], s_len;
 } MStringProperty;
+
 typedef struct MBoolProperty {
   uint8_t b;
 } MBoolProperty;
+
 typedef struct MInt8Property {
   int8_t i;
 } MInt8Property;
@@ -162,20 +189,6 @@ typedef struct MVertSkin {
   /** #eMVertSkinFlag */
   int flag;
 } MVertSkin;
-
-typedef enum eMVertSkinFlag {
-  /**
-   * Marks a vertex as the edge-graph root, used for calculating rotations for all connected
-   * edges (recursively). Also used to choose a root when generating an armature.
-   */
-  MVERT_SKIN_ROOT = 1,
-
-  /**
-   * Marks a branch vertex (vertex with more than two connected edges), so that its neighbors
-   * are directly hulled together, rather than the default of generating intermediate frames.
-   */
-  MVERT_SKIN_LOOSE = 2,
-} eMVertSkinFlag;
 
 /** \} */
 
@@ -405,15 +418,6 @@ typedef struct MFace {
   /** We keep edcode, for conversion to edges draw flags in old files. */
   char edcode, flag;
 } MFace;
-
-/** #MFace.edcode */
-enum {
-  ME_V1V2 = (1 << 0),
-  ME_V2V3 = (1 << 1),
-  ME_V3V1 = (1 << 2),
-  ME_V3V4 = ME_V3V1,
-  ME_V4V1 = (1 << 3),
-};
 
 /** Tessellation uv face data. */
 typedef struct MTFace {

@@ -66,6 +66,510 @@ using ActionSlotRuntimeHandle = blender::animrig::SlotRuntime;
 typedef struct ActionSlotRuntimeHandle ActionSlotRuntimeHandle;
 #endif
 
+/* The last_slot_handle is set to a high value to disambiguate slot handles from
+ * array indices.
+ *
+ * This particular value was obtained by taking the 31 most-significant bits of
+ * the TentHash value (Nathan's hash function) for the string "Quercus&Laksa"
+ * (Sybren's cats). */
+#define DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE 0x37627bf5
+
+/** #bMotionPathVert::flag */
+enum eMotionPathVert_Flag {
+  /* vert is selected */
+  MOTIONPATH_VERT_SEL = (1 << 0),
+  MOTIONPATH_VERT_KEY = (1 << 1),
+};
+
+/* bMotionPath->flag */
+enum eMotionPath_Flag {
+  /* (for bones) path represents the head of the bone */
+  MOTIONPATH_FLAG_BHEAD = (1 << 0),
+  /* motion path is being edited */
+  MOTIONPATH_FLAG_EDIT = (1 << 1),
+  /* Custom colors */
+  MOTIONPATH_FLAG_CUSTOM = (1 << 2),
+  /* Draw lines or only points */
+  MOTIONPATH_FLAG_LINES = (1 << 3),
+  /* Bake to scene camera. */
+  MOTIONPATH_FLAG_BAKE_CAMERA = (1 << 4),
+};
+
+/* bAnimVizSettings->recalc */
+enum eAnimViz_RecalcFlags {
+  /* Motion-paths need recalculating. */
+  ANIMVIZ_RECALC_PATHS = (1 << 0),
+};
+
+/* bAnimVizSettings->path_type */
+enum eMotionPaths_Types {
+  /* show the paths along their entire ranges */
+  MOTIONPATH_TYPE_RANGE = 0,
+  /* only show the parts of the paths around the current frame */
+  MOTIONPATH_TYPE_ACFRA = 1,
+};
+
+/* bAnimVizSettings->path_range */
+enum eMotionPath_Ranges {
+  /* Default is scene */
+  MOTIONPATH_RANGE_SCENE = 0,
+  MOTIONPATH_RANGE_KEYS_SELECTED = 1,
+  MOTIONPATH_RANGE_KEYS_ALL = 2,
+  MOTIONPATH_RANGE_MANUAL = 3,
+};
+
+/* bAnimVizSettings->path_viewflag */
+enum eMotionPaths_ViewFlag {
+  /* show frames on path */
+  MOTIONPATH_VIEW_FNUMS = (1 << 0),
+  /* show keyframes on path */
+  MOTIONPATH_VIEW_KFRAS = (1 << 1),
+  /* show keyframe/frame numbers */
+  MOTIONPATH_VIEW_KFNOS = (1 << 2),
+  /* find keyframes in whole action (instead of just in matching group name) */
+  MOTIONPATH_VIEW_KFACT = (1 << 3),
+  /* draw lines on path */
+  /* MOTIONPATH_VIEW_LINES = (1 << 4), */ /* UNUSED */
+};
+
+/* bAnimVizSettings->path_bakeflag */
+enum eMotionPath_BakeFlag {
+  /** motion paths directly associated with this block of settings needs updating */
+  /* MOTIONPATH_BAKE_NEEDS_RECALC = (1 << 0), */ /* UNUSED */
+  /** for bones - calculate head-points for curves instead of tips */
+  MOTIONPATH_BAKE_HEADS = (1 << 1),
+  /** motion paths exist for AnimVizSettings instance - set when calc for first time,
+   * and unset when clearing */
+  MOTIONPATH_BAKE_HAS_PATHS = (1 << 2),
+  /* Bake the path in camera space. */
+  MOTIONPATH_BAKE_CAMERA_SPACE = (1 << 3),
+};
+
+/**
+ * Runtime flags on pose bones. Those are only used internally and are not exposed to the user.
+ */
+enum bPoseChannelRuntimeFlag {
+  /**
+   * Used during transform. Not every selected bone is transformed. For example in a chain of
+   * bones, only the first selected may be transformed.
+   */
+  POSE_RUNTIME_TRANSFORM = (1 << 0),
+  /** Set to prevent hinge child bones from influencing the transform center. */
+  POSE_RUNTIME_HINGE_CHILD_TRANSFORM = (1 << 1),
+  /** Indicates that a parent is also being transformed. */
+  POSE_RUNTIME_TRANSFORM_CHILD = (1 << 2),
+  /** Set on bones during selection to tell following code that this bone should be operated on. */
+  POSE_RUNTIME_IN_SELECTION_AREA = (1 << 3),
+};
+
+/* PoseChannel (transform) flags */
+enum ePchan_Flag {
+  /* has transforms */
+  POSE_LOC = (1 << 0),
+  POSE_ROT = (1 << 1),
+  POSE_SCALE = (1 << 2),
+
+  /* old IK/cache stuff
+   * - used to be here from (1 << 3) to (1 << 8)
+   *   but has been repurposed since 2.77.2
+   *   as they haven't been used in over 10 years
+   */
+
+  /* has BBone deforms */
+  POSE_BBONE_SHAPE = (1 << 3),
+  /**
+   * When set and bPoseChan.custom_tx is not a nullptr,
+   * the gizmo will be drawn at the location and
+   * orientation of the custom_tx instead of this bone.
+   */
+  POSE_TRANSFORM_AT_CUSTOM_TX = (1 << 4),
+  /**
+   * When set, transformations will modify the bone as if it was a child of the
+   * #bPoseChan.custom_tx. The flag only has an effect when #POSE_TRANSFORM_AT_CUSTOM_TX and
+   * `custom_tx` are set. This can be useful for rigs where the deformation is coming from
+   * shape-keys in addition to the armature.
+   */
+  POSE_TRANSFORM_AROUND_CUSTOM_TX = (1 << 5),
+  /**
+   * Marks the pose bone as selected. Do not set directly, use
+   * blender::animrig::bone_select and blender::animrig::bone_deselect instead.
+   */
+  POSE_SELECTED = (1 << 6),
+  /**
+   * Even though root and tip selection is not used in pose mode, we still have to store that
+   * state in order to retain selection when switching back and forth between pose and edit mode.
+   */
+  POSE_SELECTED_ROOT = (1 << 7),
+  POSE_SELECTED_TIP = (1 << 8),
+  /**
+   * selection state should only be against `POSE_SELECTED`. Do not set directly, use
+   * blender::animrig::bone_select and blender::animrig::bone_deselect instead.
+   */
+  POSE_SELECTED_ALL = (POSE_SELECTED | POSE_SELECTED_ROOT | POSE_SELECTED_TIP),
+
+  /* IK/Pose solving */
+  POSE_CHAIN = (1 << 9),
+  POSE_DONE = (1 << 10),
+  /* POSE_KEY = (1 << 11) */     /* UNUSED */
+  /* POSE_STRIDE = (1 << 12), */ /* UNUSED */
+  /* standard IK solving */
+  POSE_IKTREE = (1 << 13),
+#if 0
+  /* has Spline IK */
+  POSE_HAS_IKS = (1 << 14),
+#endif
+  /* spline IK solving */
+  POSE_IKSPLINE = (1 << 15),
+};
+
+/* PoseChannel constflag (constraint detection) */
+enum ePchan_ConstFlag {
+  PCHAN_HAS_IK = (1 << 0),           /* Has IK constraint. */
+  PCHAN_HAS_CONST = (1 << 1),        /* Has any constraint. */
+  /* PCHAN_HAS_ACTION = (1 << 2), */ /* UNUSED */
+  PCHAN_HAS_NO_TARGET = (1 << 3),    /* Has (spline) IK constraint but no target is set. */
+  /* PCHAN_HAS_STRIDE = (1 << 4), */ /* UNUSED */
+  PCHAN_HAS_SPLINEIK = (1 << 5),     /* Has Spline IK constraint. */
+  PCHAN_INFLUENCED_BY_IK = (1 << 6), /* Is part of a (non-spline) IK chain. */
+};
+ENUM_OPERATORS(ePchan_ConstFlag);
+
+/* PoseChannel->ikflag */
+enum ePchan_IkFlag {
+  BONE_IK_NO_XDOF = (1 << 0),
+  BONE_IK_NO_YDOF = (1 << 1),
+  BONE_IK_NO_ZDOF = (1 << 2),
+
+  BONE_IK_XLIMIT = (1 << 3),
+  BONE_IK_YLIMIT = (1 << 4),
+  BONE_IK_ZLIMIT = (1 << 5),
+
+  BONE_IK_ROTCTL = (1 << 6),
+  BONE_IK_LINCTL = (1 << 7),
+
+  BONE_IK_NO_XDOF_TEMP = (1 << 10),
+  BONE_IK_NO_YDOF_TEMP = (1 << 11),
+  BONE_IK_NO_ZDOF_TEMP = (1 << 12),
+};
+
+/* PoseChannel->drawflag */
+enum ePchan_DrawFlag {
+  PCHAN_DRAW_NO_CUSTOM_BONE_SIZE = (1 << 0),
+  PCHAN_DRAW_HIDDEN = (1 << 1),
+};
+
+/* NOTE: It doesn't take custom_scale_xyz into account. */
+#define PCHAN_CUSTOM_BONE_LENGTH(pchan) \
+  (((pchan)->drawflag & PCHAN_DRAW_NO_CUSTOM_BONE_SIZE) ? 1.0f : (pchan)->bone->length)
+
+#ifdef DNA_DEPRECATED_ALLOW
+/* PoseChannel->bboneflag */
+enum ePchan_BBoneFlag {
+  /* Use custom reference bones (for roll and handle alignment), instead of immediate neighbors */
+  PCHAN_BBONE_CUSTOM_HANDLES = (1 << 1),
+  /* Evaluate start handle as being "relative" */
+  PCHAN_BBONE_CUSTOM_START_REL = (1 << 2),
+  /* Evaluate end handle as being "relative" */
+  PCHAN_BBONE_CUSTOM_END_REL = (1 << 3),
+};
+#endif
+
+/* PoseChannel->rotmode and Object->rotmode */
+enum eRotationModes {
+  /* quaternion rotations (default, and for older Blender versions) */
+  ROT_MODE_QUAT = 0,
+  /* euler rotations - keep in sync with enum in BLI_math_rotation.h */
+  /** Blender 'default' (classic) - must be as 1 to sync with BLI_math_rotation.h defines */
+  ROT_MODE_EUL = 1,
+  ROT_MODE_XYZ = 1,
+  ROT_MODE_XZY = 2,
+  ROT_MODE_YXZ = 3,
+  ROT_MODE_YZX = 4,
+  ROT_MODE_ZXY = 5,
+  ROT_MODE_ZYX = 6,
+  /* NOTE: space is reserved here for 18 other possible
+   * euler rotation orders not implemented
+   */
+  /* axis angle rotations */
+  ROT_MODE_AXISANGLE = -1,
+
+  ROT_MODE_MIN = ROT_MODE_AXISANGLE, /* sentinel for Py API */
+  ROT_MODE_MAX = ROT_MODE_ZYX,
+};
+
+/* Pose->flag */
+enum ePose_Flags {
+  /* results in BKE_pose_rebuild being called */
+  POSE_RECALC = (1 << 0),
+  /* prevents any channel from getting overridden by anim from IPO */
+  POSE_LOCKED = (1 << 1),
+  /* clears the POSE_LOCKED flag for the next time the pose is evaluated */
+  POSE_DO_UNLOCK = (1 << 2),
+  /* pose has constraints which depend on time (used when depsgraph updates for a new frame) */
+  POSE_CONSTRAINTS_TIMEDEPEND = (1 << 3),
+  /* recalculate bone paths */
+  /* POSE_RECALCPATHS = (1 << 4), */ /* UNUSED */
+  /* set by BKE_pose_rebuild to give a chance to the IK solver to rebuild IK tree */
+  POSE_WAS_REBUILT = (1 << 5),
+  POSE_FLAG_DEPRECATED = (1 << 6), /* deprecated. */
+  /* pose constraint flags needs to be updated */
+  POSE_CONSTRAINTS_NEED_UPDATE_FLAGS = (1 << 7),
+  /* Use auto IK in pose mode */
+  POSE_AUTO_IK = (1 << 8),
+  /* Use x-axis mirror in pose mode */
+  POSE_MIRROR_EDIT = (1 << 9),
+  /* Use relative mirroring in mirror mode */
+  POSE_MIRROR_RELATIVE = (1 << 10),
+};
+
+/* bPose->iksolver and bPose->ikparam->iksolver */
+enum ePose_IKSolverType {
+  IKSOLVER_STANDARD = 0,
+  IKSOLVER_ITASC = 1,
+};
+
+/* bItasc->flag */
+enum eItasc_Flags {
+  ITASC_AUTO_STEP = (1 << 0),
+  ITASC_INITIAL_REITERATION = (1 << 1),
+  ITASC_REITERATION = (1 << 2),
+  ITASC_SIMULATION = (1 << 3),
+  /**
+   * Set this flag to always translate root bones (i.e. bones without a parent) to (0, 0, 0).
+   * This was the pre-3.6 behavior, and this flag was introduced for backward compatibility.
+   */
+  ITASC_TRANSLATE_ROOT_BONES = (1 << 4),
+};
+
+/* bItasc->solver */
+enum eItasc_Solver {
+  ITASC_SOLVER_SDLS = 0, /* selective damped least square, suitable for CopyPose constraint */
+  ITASC_SOLVER_DLS = 1,  /* damped least square with numerical filtering of damping */
+};
+
+/* Action Group flags */
+enum eActionGroup_Flag {
+  /* group is selected */
+  AGRP_SELECTED = (1 << 0),
+  /* group is 'active' / last selected one */
+  AGRP_ACTIVE = (1 << 1),
+  /* keyframes/channels belonging to it cannot be edited */
+  AGRP_PROTECTED = (1 << 2),
+  /* for UI (DopeSheet), sub-channels are shown */
+  AGRP_EXPANDED = (1 << 3),
+  /* sub-channels are not evaluated */
+  AGRP_MUTED = (1 << 4),
+  /* sub-channels are not visible in Graph Editor */
+  AGRP_NOTVISIBLE = (1 << 5),
+  /* for UI (Graph Editor), sub-channels are shown */
+  AGRP_EXPANDED_G = (1 << 6),
+
+  /* sub channel modifiers off */
+  AGRP_MODIFIERS_OFF = (1 << 7),
+
+  AGRP_TEMP = (1 << 30),
+  AGRP_MOVED = (1u << 31),
+};
+
+/** Flags for the action. */
+enum eAction_Flags {
+  /* flags for displaying in UI */
+  ACT_COLLAPSED = (1 << 0),
+  ACT_SELECTED = (1 << 1),
+
+  /* flags for evaluation/editing */
+  ACT_MUTED = (1 << 9),
+  /* ACT_PROTECTED = (1 << 10), */ /* UNUSED */
+  /* ACT_DISABLED = (1 << 11), */  /* UNUSED */
+  /** The action has a manually set intended playback frame range. */
+  ACT_FRAME_RANGE = (1 << 12),
+  /** The action is intended to be a cycle (requires ACT_FRAME_RANGE). */
+  ACT_CYCLIC = (1 << 13),
+};
+
+/** DopeSheet filter-flag. */
+enum eDopeSheet_FilterFlag {
+  /* general filtering */
+  /** only include channels relating to selected data */
+  ADS_FILTER_ONLYSEL = (1 << 0),
+
+  /* temporary filters */
+  /** for 'Drivers' editor - only include Driver data from AnimData */
+  ADS_FILTER_ONLYDRIVERS = (1 << 1),
+  /** for 'NLA' editor - only include NLA data from AnimData */
+  ADS_FILTER_ONLYNLA = (1 << 2),
+  /** for Graph Editor - used to indicate whether to include a filtering flag or not */
+  ADS_FILTER_SELEDIT = (1 << 3),
+
+  /* general filtering */
+  /** for 'DopeSheet' Editors - include 'summary' line */
+  ADS_FILTER_SUMMARY = (1 << 4),
+
+  /**
+   * Show all Action slots; if not set, only show the Slot of the
+   * data-block that's being animated by the Action.
+   */
+  ADS_FILTER_ONLY_SLOTS_OF_ACTIVE = (1 << 5),
+
+  /* datatype-based filtering */
+  ADS_FILTER_NOSHAPEKEYS = (1 << 6),
+  ADS_FILTER_NOMESH = (1 << 7),
+  /** For animation-data on object level, if we only want to concentrate on materials/etc. */
+  ADS_FILTER_NOOBJ = (1 << 8),
+  ADS_FILTER_NOLAT = (1 << 9),
+  ADS_FILTER_NOCAM = (1 << 10),
+  ADS_FILTER_NOMAT = (1 << 11),
+  ADS_FILTER_NOLAM = (1 << 12),
+  ADS_FILTER_NOCUR = (1 << 13),
+  ADS_FILTER_NOWOR = (1 << 14),
+  ADS_FILTER_NOSCE = (1 << 15),
+  ADS_FILTER_NOPART = (1 << 16),
+  ADS_FILTER_NOMBA = (1 << 17),
+  ADS_FILTER_NOARM = (1 << 18),
+  ADS_FILTER_NONTREE = (1 << 19),
+  ADS_FILTER_NOTEX = (1 << 20),
+  ADS_FILTER_NOSPK = (1 << 21),
+  ADS_FILTER_NOLINESTYLE = (1 << 22),
+  ADS_FILTER_NOMODIFIERS = (1 << 23),
+  ADS_FILTER_NOGPENCIL = (1 << 24),
+  /* NOTE: all new datablock filters will have to go in filterflag2 (see below) */
+
+  /* NLA-specific filters */
+  /** if the AnimData block has no NLA data, don't include to just show Action-line */
+  ADS_FILTER_NLA_NOACT = (1 << 25),
+
+  /* general filtering 3 */
+  /** include 'hidden' channels too (i.e. those from hidden Objects/Bones) */
+  ADS_FILTER_INCL_HIDDEN = (1 << 26),
+  /** show only F-Curves which are disabled/have errors - for debugging drivers */
+  ADS_FILTER_ONLY_ERRORS = (1 << 28),
+
+#if 0
+  /** combination filters (some only used at runtime) */
+  ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM | ADS_FILTER_NOMAT | ADS_FILTER_NOLAM |
+                         ADS_FILTER_NOCUR | ADS_FILTER_NOPART | ADS_FILTER_NOARM |
+                         ADS_FILTER_NOSPK | ADS_FILTER_NOMODIFIERS),
+#endif
+};
+ENUM_OPERATORS(eDopeSheet_FilterFlag);
+
+/* DopeSheet filter-flags - Overflow (filterflag2) */
+enum eDopeSheet_FilterFlag2 {
+  ADS_FILTER_NOCACHEFILES = (1 << 1),
+  ADS_FILTER_NOMOVIECLIPS = (1 << 2),
+  ADS_FILTER_NOHAIR = (1 << 3),
+  ADS_FILTER_NOPOINTCLOUD = (1 << 4),
+  ADS_FILTER_NOVOLUME = (1 << 5),
+
+  /** Include working drivers with variables using their fallback values into Only Show Errors. */
+  ADS_FILTER_DRIVER_FALLBACK_AS_ERROR = (1 << 6),
+
+  ADS_FILTER_NOLIGHTPROBE = (1 << 7),
+};
+ENUM_OPERATORS(eDopeSheet_FilterFlag2);
+
+/* DopeSheet general flags */
+enum eDopeSheet_Flag {
+  /** when summary is shown, it is collapsed, so all other channels get hidden */
+  ADS_FLAG_SUMMARY_COLLAPSED = (1 << 0),
+  /** show filters for datablocks */
+  ADS_FLAG_SHOW_DBFILTERS = (1 << 1),
+
+  /** use fuzzy/partial string matches when ADS_FILTER_BY_FCU_NAME is enabled
+   * (WARNING: expensive operation) */
+  ADS_FLAG_FUZZY_NAMES = (1 << 2),
+  /** do not sort datablocks (mostly objects) by name (NOTE: potentially expensive operation) */
+  ADS_FLAG_NO_DB_SORT = (1 << 3),
+  /** Invert the search filter */
+  ADS_FLAG_INVERT_FILTER = (1 << 4),
+};
+
+enum SpaceActionOverlays_Flag {
+  ADS_OVERLAY_SHOW_OVERLAYS = (1 << 0),
+  ADS_SHOW_SCENE_STRIP_FRAME_RANGE = (1 << 1)
+};
+
+/* SpaceAction flag */
+enum eSAction_Flag {
+  /* during transform (only set for TimeSlide) */
+  SACTION_MOVING = (1 << 0),
+  /* show sliders */
+  SACTION_SLIDERS = (1 << 1),
+  /* draw time in seconds instead of time in frames */
+  SACTION_DRAWTIME = (1 << 2),
+  /* don't filter action channels according to visibility */
+  // SACTION_NOHIDE = (1 << 3), /* Deprecated, old animation systems. */
+  /* don't kill overlapping keyframes after transform */
+  SACTION_NOTRANSKEYCULL = (1 << 4),
+  /* don't include keyframes that are out of view */
+  // SACTION_HORIZOPTIMISEON = (1 << 5), /* Deprecated, old irrelevant trick. */
+  /* show pose-markers (local to action) in Action Editor mode. */
+  SACTION_POSEMARKERS_SHOW = (1 << 6),
+  /* don't draw action channels using group colors (where applicable) */
+  /* SACTION_NODRAWGCOLORS = (1 << 7), DEPRECATED */
+  /* SACTION_NODRAWCFRANUM = (1 << 8), DEPRECATED */
+  /* don't perform realtime updates */
+  SACTION_NOREALTIMEUPDATES = (1 << 10),
+  /* move markers as well as keyframes */
+  SACTION_MARKERS_MOVE = (1 << 11),
+  /* show interpolation type */
+  SACTION_SHOW_INTERPOLATION = (1 << 12),
+  /* show extremes */
+  SACTION_SHOW_EXTREMES = (1 << 13),
+  /* show markers region */
+  SACTION_SHOW_MARKERS = (1 << 14),
+};
+
+/** #SpaceAction_Runtime.flag */
+enum eSAction_Runtime_Flag {
+  /** Temporary flag to force channel selections to be synced with main */
+  SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC = (1 << 0),
+};
+
+/** #SpaceAction.mode */
+enum eAnimEdit_Context {
+  /** Action on the active object. */
+  SACTCONT_ACTION = 0,
+  /** List of all shape-keys on the active object, linked with their F-Curves. */
+  SACTCONT_SHAPEKEY = 1,
+  /** Editing of grease-pencil data. */
+  SACTCONT_GPENCIL = 2,
+  /** Dope-sheet (default). */
+  SACTCONT_DOPESHEET = 3,
+  /** Mask. */
+  SACTCONT_MASK = 4,
+  /** Cache file */
+  SACTCONT_CACHEFILE = 5,
+  /** Timeline. */
+  SACTCONT_TIMELINE = 6,
+};
+
+/* Old snapping enum that is only needed because of the versioning code. */
+enum DNA_DEPRECATED eAnimEdit_AutoSnap {
+  /* snap to 1.0 frame/second intervals */
+  SACTSNAP_STEP = 1,
+  /* snap to actual frames/seconds (nla-action time) */
+  SACTSNAP_FRAME = 2,
+  /* snap to nearest marker */
+  SACTSNAP_MARKER = 3,
+  /* snap to actual seconds (nla-action time) */
+  SACTSNAP_SECOND = 4,
+  /* snap to 1.0 second increments */
+  SACTSNAP_TSTEP = 5,
+};
+
+/* SAction->cache_display */
+enum eTimeline_Cache_Flag {
+  TIME_CACHE_DISPLAY = (1 << 0),
+  TIME_CACHE_SOFTBODY = (1 << 1),
+  TIME_CACHE_PARTICLES = (1 << 2),
+  TIME_CACHE_CLOTH = (1 << 3),
+  TIME_CACHE_SMOKE = (1 << 4),
+  TIME_CACHE_DYNAMICPAINT = (1 << 5),
+  TIME_CACHE_RIGIDBODY = (1 << 6),
+  TIME_CACHE_SIMULATION_NODES = (1 << 7),
+};
+
 /* ************************************************ */
 /* Visualization */
 
@@ -79,13 +583,6 @@ typedef struct bMotionPathVert {
   /** Quick settings. */
   int flag;
 } bMotionPathVert;
-
-/** #bMotionPathVert::flag */
-typedef enum eMotionPathVert_Flag {
-  /* vert is selected */
-  MOTIONPATH_VERT_SEL = (1 << 0),
-  MOTIONPATH_VERT_KEY = (1 << 1),
-} eMotionPathVert_Flag;
 
 /* ........ */
 
@@ -119,20 +616,6 @@ typedef struct bMotionPath {
   void *_pad;
 } bMotionPath;
 
-/* bMotionPath->flag */
-typedef enum eMotionPath_Flag {
-  /* (for bones) path represents the head of the bone */
-  MOTIONPATH_FLAG_BHEAD = (1 << 0),
-  /* motion path is being edited */
-  MOTIONPATH_FLAG_EDIT = (1 << 1),
-  /* Custom colors */
-  MOTIONPATH_FLAG_CUSTOM = (1 << 2),
-  /* Draw lines or only points */
-  MOTIONPATH_FLAG_LINES = (1 << 3),
-  /* Bake to scene camera. */
-  MOTIONPATH_FLAG_BAKE_CAMERA = (1 << 4),
-} eMotionPath_Flag;
-
 /* Visualization General --------------------------- */
 /* for Objects or Poses (but NOT PoseChannels) */
 
@@ -161,56 +644,6 @@ typedef struct bAnimVizSettings {
   /** Number of frames before/after current frame to show. */
   int path_bc, path_ac;
 } bAnimVizSettings;
-
-/* bAnimVizSettings->recalc */
-typedef enum eAnimViz_RecalcFlags {
-  /* Motion-paths need recalculating. */
-  ANIMVIZ_RECALC_PATHS = (1 << 0),
-} eAnimViz_RecalcFlags;
-
-/* bAnimVizSettings->path_type */
-typedef enum eMotionPaths_Types {
-  /* show the paths along their entire ranges */
-  MOTIONPATH_TYPE_RANGE = 0,
-  /* only show the parts of the paths around the current frame */
-  MOTIONPATH_TYPE_ACFRA = 1,
-} eMotionPath_Types;
-
-/* bAnimVizSettings->path_range */
-typedef enum eMotionPath_Ranges {
-  /* Default is scene */
-  MOTIONPATH_RANGE_SCENE = 0,
-  MOTIONPATH_RANGE_KEYS_SELECTED = 1,
-  MOTIONPATH_RANGE_KEYS_ALL = 2,
-  MOTIONPATH_RANGE_MANUAL = 3,
-} eMotionPath_Ranges;
-
-/* bAnimVizSettings->path_viewflag */
-typedef enum eMotionPaths_ViewFlag {
-  /* show frames on path */
-  MOTIONPATH_VIEW_FNUMS = (1 << 0),
-  /* show keyframes on path */
-  MOTIONPATH_VIEW_KFRAS = (1 << 1),
-  /* show keyframe/frame numbers */
-  MOTIONPATH_VIEW_KFNOS = (1 << 2),
-  /* find keyframes in whole action (instead of just in matching group name) */
-  MOTIONPATH_VIEW_KFACT = (1 << 3),
-  /* draw lines on path */
-  /* MOTIONPATH_VIEW_LINES = (1 << 4), */ /* UNUSED */
-} eMotionPath_ViewFlag;
-
-/* bAnimVizSettings->path_bakeflag */
-typedef enum eMotionPaths_BakeFlag {
-  /** motion paths directly associated with this block of settings needs updating */
-  /* MOTIONPATH_BAKE_NEEDS_RECALC = (1 << 0), */ /* UNUSED */
-  /** for bones - calculate head-points for curves instead of tips */
-  MOTIONPATH_BAKE_HEADS = (1 << 1),
-  /** motion paths exist for AnimVizSettings instance - set when calc for first time,
-   * and unset when clearing */
-  MOTIONPATH_BAKE_HAS_PATHS = (1 << 2),
-  /* Bake the path in camera space. */
-  MOTIONPATH_BAKE_CAMERA_SPACE = (1 << 3),
-} eMotionPath_BakeFlag;
 
 /* runtime */
 #
@@ -242,23 +675,6 @@ typedef struct bPoseChannel_BBoneSegmentBoundary {
    */
   float depth_scale;
 } bPoseChannel_BBoneSegmentBoundary;
-
-/**
- * Runtime flags on pose bones. Those are only used internally and are not exposed to the user.
- */
-typedef enum bPoseChannelRuntimeFlag {
-  /**
-   * Used during transform. Not every selected bone is transformed. For example in a chain of
-   * bones, only the first selected may be transformed.
-   */
-  POSE_RUNTIME_TRANSFORM = (1 << 0),
-  /** Set to prevent hinge child bones from influencing the transform center. */
-  POSE_RUNTIME_HINGE_CHILD_TRANSFORM = (1 << 1),
-  /** Indicates that a parent is also being transformed. */
-  POSE_RUNTIME_TRANSFORM_CHILD = (1 << 2),
-  /** Set on bones during selection to tell following code that this bone should be operated on. */
-  POSE_RUNTIME_IN_SELECTION_AREA = (1 << 3),
-} bPoseChannelRuntimeFlag;
 
 typedef struct bPoseChannel_Runtime {
   SessionUID session_uid;
@@ -462,142 +878,6 @@ typedef struct bPoseChannel {
   struct bPoseChannel_Runtime runtime;
 } bPoseChannel;
 
-/* PoseChannel (transform) flags */
-typedef enum ePchan_Flag {
-  /* has transforms */
-  POSE_LOC = (1 << 0),
-  POSE_ROT = (1 << 1),
-  POSE_SCALE = (1 << 2),
-
-  /* old IK/cache stuff
-   * - used to be here from (1 << 3) to (1 << 8)
-   *   but has been repurposed since 2.77.2
-   *   as they haven't been used in over 10 years
-   */
-
-  /* has BBone deforms */
-  POSE_BBONE_SHAPE = (1 << 3),
-  /**
-   * When set and bPoseChan.custom_tx is not a nullptr,
-   * the gizmo will be drawn at the location and
-   * orientation of the custom_tx instead of this bone.
-   */
-  POSE_TRANSFORM_AT_CUSTOM_TX = (1 << 4),
-  /**
-   * When set, transformations will modify the bone as if it was a child of the
-   * #bPoseChan.custom_tx. The flag only has an effect when #POSE_TRANSFORM_AT_CUSTOM_TX and
-   * `custom_tx` are set. This can be useful for rigs where the deformation is coming from
-   * shape-keys in addition to the armature.
-   */
-  POSE_TRANSFORM_AROUND_CUSTOM_TX = (1 << 5),
-  /**
-   * Marks the pose bone as selected. Do not set directly, use
-   * blender::animrig::bone_select and blender::animrig::bone_deselect instead.
-   */
-  POSE_SELECTED = (1 << 6),
-  /**
-   * Even though root and tip selection is not used in pose mode, we still have to store that
-   * state in order to retain selection when switching back and forth between pose and edit mode.
-   */
-  POSE_SELECTED_ROOT = (1 << 7),
-  POSE_SELECTED_TIP = (1 << 8),
-  /**
-   * When setting pose bone selection, all flags have to be set/cleared. However checking of
-   * selection state should only be against `POSE_SELECTED`. Do not set directly, use
-   * blender::animrig::bone_select and blender::animrig::bone_deselect instead.
-   */
-  POSE_SELECTED_ALL = (POSE_SELECTED | POSE_SELECTED_ROOT | POSE_SELECTED_TIP),
-
-  /* IK/Pose solving */
-  POSE_CHAIN = (1 << 9),
-  POSE_DONE = (1 << 10),
-  /* POSE_KEY = (1 << 11) */     /* UNUSED */
-  /* POSE_STRIDE = (1 << 12), */ /* UNUSED */
-  /* standard IK solving */
-  POSE_IKTREE = (1 << 13),
-#if 0
-  /* has Spline IK */
-  POSE_HAS_IKS = (1 << 14),
-#endif
-  /* spline IK solving */
-  POSE_IKSPLINE = (1 << 15),
-} ePchan_Flag;
-
-/* PoseChannel constflag (constraint detection) */
-typedef enum ePchan_ConstFlag {
-  PCHAN_HAS_IK = (1 << 0),           /* Has IK constraint. */
-  PCHAN_HAS_CONST = (1 << 1),        /* Has any constraint. */
-  /* PCHAN_HAS_ACTION = (1 << 2), */ /* UNUSED */
-  PCHAN_HAS_NO_TARGET = (1 << 3),    /* Has (spline) IK constraint but no target is set. */
-  /* PCHAN_HAS_STRIDE = (1 << 4), */ /* UNUSED */
-  PCHAN_HAS_SPLINEIK = (1 << 5),     /* Has Spline IK constraint. */
-  PCHAN_INFLUENCED_BY_IK = (1 << 6), /* Is part of a (non-spline) IK chain. */
-} ePchan_ConstFlag;
-ENUM_OPERATORS(ePchan_ConstFlag);
-
-/* PoseChannel->ikflag */
-typedef enum ePchan_IkFlag {
-  BONE_IK_NO_XDOF = (1 << 0),
-  BONE_IK_NO_YDOF = (1 << 1),
-  BONE_IK_NO_ZDOF = (1 << 2),
-
-  BONE_IK_XLIMIT = (1 << 3),
-  BONE_IK_YLIMIT = (1 << 4),
-  BONE_IK_ZLIMIT = (1 << 5),
-
-  BONE_IK_ROTCTL = (1 << 6),
-  BONE_IK_LINCTL = (1 << 7),
-
-  BONE_IK_NO_XDOF_TEMP = (1 << 10),
-  BONE_IK_NO_YDOF_TEMP = (1 << 11),
-  BONE_IK_NO_ZDOF_TEMP = (1 << 12),
-} ePchan_IkFlag;
-
-/* PoseChannel->drawflag */
-typedef enum ePchan_DrawFlag {
-  PCHAN_DRAW_NO_CUSTOM_BONE_SIZE = (1 << 0),
-  PCHAN_DRAW_HIDDEN = (1 << 1),
-} ePchan_DrawFlag;
-
-/* NOTE: It doesn't take custom_scale_xyz into account. */
-#define PCHAN_CUSTOM_BONE_LENGTH(pchan) \
-  (((pchan)->drawflag & PCHAN_DRAW_NO_CUSTOM_BONE_SIZE) ? 1.0f : (pchan)->bone->length)
-
-#ifdef DNA_DEPRECATED_ALLOW
-/* PoseChannel->bboneflag */
-typedef enum ePchan_BBoneFlag {
-  /* Use custom reference bones (for roll and handle alignment), instead of immediate neighbors */
-  PCHAN_BBONE_CUSTOM_HANDLES = (1 << 1),
-  /* Evaluate start handle as being "relative" */
-  PCHAN_BBONE_CUSTOM_START_REL = (1 << 2),
-  /* Evaluate end handle as being "relative" */
-  PCHAN_BBONE_CUSTOM_END_REL = (1 << 3),
-} ePchan_BBoneFlag;
-#endif
-
-/* PoseChannel->rotmode and Object->rotmode */
-typedef enum eRotationModes {
-  /* quaternion rotations (default, and for older Blender versions) */
-  ROT_MODE_QUAT = 0,
-  /* euler rotations - keep in sync with enum in BLI_math_rotation.h */
-  /** Blender 'default' (classic) - must be as 1 to sync with BLI_math_rotation.h defines */
-  ROT_MODE_EUL = 1,
-  ROT_MODE_XYZ = 1,
-  ROT_MODE_XZY = 2,
-  ROT_MODE_YXZ = 3,
-  ROT_MODE_YZX = 4,
-  ROT_MODE_ZXY = 5,
-  ROT_MODE_ZYX = 6,
-  /* NOTE: space is reserved here for 18 other possible
-   * euler rotation orders not implemented
-   */
-  /* axis angle rotations */
-  ROT_MODE_AXISANGLE = -1,
-
-  ROT_MODE_MIN = ROT_MODE_AXISANGLE, /* sentinel for Py API */
-  ROT_MODE_MAX = ROT_MODE_ZYX,
-} eRotationModes;
-
 /* Pose ------------------------------------ */
 
 /* Pose-Object.
@@ -642,38 +922,7 @@ typedef struct bPose {
   bAnimVizSettings avs;
 } bPose;
 
-/* Pose->flag */
-typedef enum ePose_Flags {
-  /* results in BKE_pose_rebuild being called */
-  POSE_RECALC = (1 << 0),
-  /* prevents any channel from getting overridden by anim from IPO */
-  POSE_LOCKED = (1 << 1),
-  /* clears the POSE_LOCKED flag for the next time the pose is evaluated */
-  POSE_DO_UNLOCK = (1 << 2),
-  /* pose has constraints which depend on time (used when depsgraph updates for a new frame) */
-  POSE_CONSTRAINTS_TIMEDEPEND = (1 << 3),
-  /* recalculate bone paths */
-  /* POSE_RECALCPATHS = (1 << 4), */ /* UNUSED */
-  /* set by BKE_pose_rebuild to give a chance to the IK solver to rebuild IK tree */
-  POSE_WAS_REBUILT = (1 << 5),
-  POSE_FLAG_DEPRECATED = (1 << 6), /* deprecated. */
-  /* pose constraint flags needs to be updated */
-  POSE_CONSTRAINTS_NEED_UPDATE_FLAGS = (1 << 7),
-  /* Use auto IK in pose mode */
-  POSE_AUTO_IK = (1 << 8),
-  /* Use x-axis mirror in pose mode */
-  POSE_MIRROR_EDIT = (1 << 9),
-  /* Use relative mirroring in mirror mode */
-  POSE_MIRROR_RELATIVE = (1 << 10),
-} ePose_Flags;
-
 /* IK Solvers ------------------------------------ */
-
-/* bPose->iksolver and bPose->ikparam->iksolver */
-typedef enum ePose_IKSolverType {
-  IKSOLVER_STANDARD = 0,
-  IKSOLVER_ITASC = 1,
-} ePose_IKSolverType;
 
 /* header for all bPose->ikparam structures */
 typedef struct bIKParam {
@@ -698,25 +947,6 @@ typedef struct bItasc {
   /** Threshold of singular value from which the damping start progressively. */
   float dampeps;
 } bItasc;
-
-/* bItasc->flag */
-typedef enum eItasc_Flags {
-  ITASC_AUTO_STEP = (1 << 0),
-  ITASC_INITIAL_REITERATION = (1 << 1),
-  ITASC_REITERATION = (1 << 2),
-  ITASC_SIMULATION = (1 << 3),
-  /**
-   * Set this flag to always translate root bones (i.e. bones without a parent) to (0, 0, 0).
-   * This was the pre-3.6 behavior, and this flag was introduced for backward compatibility.
-   */
-  ITASC_TRANSLATE_ROOT_BONES = (1 << 4),
-} eItasc_Flags;
-
-/* bItasc->solver */
-typedef enum eItasc_Solver {
-  ITASC_SOLVER_SDLS = 0, /* selective damped least square, suitable for CopyPose constraint */
-  ITASC_SOLVER_DLS = 1,  /* damped least square with numerical filtering of damping */
-} eItasc_Solver;
 
 /* ************************************************ */
 /* Action */
@@ -791,30 +1021,6 @@ typedef struct bActionGroup {
   const blender::animrig::ChannelGroup &wrap() const;
 #endif
 } bActionGroup;
-
-/* Action Group flags */
-typedef enum eActionGroup_Flag {
-  /* group is selected */
-  AGRP_SELECTED = (1 << 0),
-  /* group is 'active' / last selected one */
-  AGRP_ACTIVE = (1 << 1),
-  /* keyframes/channels belonging to it cannot be edited */
-  AGRP_PROTECTED = (1 << 2),
-  /* for UI (DopeSheet), sub-channels are shown */
-  AGRP_EXPANDED = (1 << 3),
-  /* sub-channels are not evaluated */
-  AGRP_MUTED = (1 << 4),
-  /* sub-channels are not visible in Graph Editor */
-  AGRP_NOTVISIBLE = (1 << 5),
-  /* for UI (Graph Editor), sub-channels are shown */
-  AGRP_EXPANDED_G = (1 << 6),
-
-  /* sub channel modifiers off */
-  AGRP_MODIFIERS_OFF = (1 << 7),
-
-  AGRP_TEMP = (1 << 30),
-  AGRP_MOVED = (1u << 31),
-} eActionGroup_Flag;
 
 /* Actions -------------------------------------- */
 
@@ -898,22 +1104,6 @@ typedef struct bAction {
 #endif
 } bAction;
 
-/** Flags for the action. */
-typedef enum eAction_Flags {
-  /* flags for displaying in UI */
-  ACT_COLLAPSED = (1 << 0),
-  ACT_SELECTED = (1 << 1),
-
-  /* flags for evaluation/editing */
-  ACT_MUTED = (1 << 9),
-  /* ACT_PROTECTED = (1 << 10), */ /* UNUSED */
-  /* ACT_DISABLED = (1 << 11), */  /* UNUSED */
-  /** The action has a manually set intended playback frame range. */
-  ACT_FRAME_RANGE = (1 << 12),
-  /** The action is intended to be a cycle (requires ACT_FRAME_RANGE). */
-  ACT_CYCLIC = (1 << 13),
-} eAction_Flags;
-
 /* ************************************************ */
 /* Action/Dope-sheet Editor */
 
@@ -940,112 +1130,10 @@ typedef struct bDopeSheet {
   int renameIndex;
 } bDopeSheet;
 
-/** DopeSheet filter-flag. */
-typedef enum eDopeSheet_FilterFlag {
-  /* general filtering */
-  /** only include channels relating to selected data */
-  ADS_FILTER_ONLYSEL = (1 << 0),
-
-  /* temporary filters */
-  /** for 'Drivers' editor - only include Driver data from AnimData */
-  ADS_FILTER_ONLYDRIVERS = (1 << 1),
-  /** for 'NLA' editor - only include NLA data from AnimData */
-  ADS_FILTER_ONLYNLA = (1 << 2),
-  /** for Graph Editor - used to indicate whether to include a filtering flag or not */
-  ADS_FILTER_SELEDIT = (1 << 3),
-
-  /* general filtering */
-  /** for 'DopeSheet' Editors - include 'summary' line */
-  ADS_FILTER_SUMMARY = (1 << 4),
-
-  /**
-   * Show all Action slots; if not set, only show the Slot of the
-   * data-block that's being animated by the Action.
-   */
-  ADS_FILTER_ONLY_SLOTS_OF_ACTIVE = (1 << 5),
-
-  /* datatype-based filtering */
-  ADS_FILTER_NOSHAPEKEYS = (1 << 6),
-  ADS_FILTER_NOMESH = (1 << 7),
-  /** For animation-data on object level, if we only want to concentrate on materials/etc. */
-  ADS_FILTER_NOOBJ = (1 << 8),
-  ADS_FILTER_NOLAT = (1 << 9),
-  ADS_FILTER_NOCAM = (1 << 10),
-  ADS_FILTER_NOMAT = (1 << 11),
-  ADS_FILTER_NOLAM = (1 << 12),
-  ADS_FILTER_NOCUR = (1 << 13),
-  ADS_FILTER_NOWOR = (1 << 14),
-  ADS_FILTER_NOSCE = (1 << 15),
-  ADS_FILTER_NOPART = (1 << 16),
-  ADS_FILTER_NOMBA = (1 << 17),
-  ADS_FILTER_NOARM = (1 << 18),
-  ADS_FILTER_NONTREE = (1 << 19),
-  ADS_FILTER_NOTEX = (1 << 20),
-  ADS_FILTER_NOSPK = (1 << 21),
-  ADS_FILTER_NOLINESTYLE = (1 << 22),
-  ADS_FILTER_NOMODIFIERS = (1 << 23),
-  ADS_FILTER_NOGPENCIL = (1 << 24),
-  /* NOTE: all new datablock filters will have to go in filterflag2 (see below) */
-
-  /* NLA-specific filters */
-  /** if the AnimData block has no NLA data, don't include to just show Action-line */
-  ADS_FILTER_NLA_NOACT = (1 << 25),
-
-  /* general filtering 3 */
-  /** include 'hidden' channels too (i.e. those from hidden Objects/Bones) */
-  ADS_FILTER_INCL_HIDDEN = (1 << 26),
-  /** show only F-Curves which are disabled/have errors - for debugging drivers */
-  ADS_FILTER_ONLY_ERRORS = (1 << 28),
-
-#if 0
-  /** combination filters (some only used at runtime) */
-  ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM | ADS_FILTER_NOMAT | ADS_FILTER_NOLAM |
-                         ADS_FILTER_NOCUR | ADS_FILTER_NOPART | ADS_FILTER_NOARM |
-                         ADS_FILTER_NOSPK | ADS_FILTER_NOMODIFIERS),
-#endif
-} eDopeSheet_FilterFlag;
-ENUM_OPERATORS(eDopeSheet_FilterFlag);
-
-/* DopeSheet filter-flags - Overflow (filterflag2) */
-typedef enum eDopeSheet_FilterFlag2 {
-  ADS_FILTER_NOCACHEFILES = (1 << 1),
-  ADS_FILTER_NOMOVIECLIPS = (1 << 2),
-  ADS_FILTER_NOHAIR = (1 << 3),
-  ADS_FILTER_NOPOINTCLOUD = (1 << 4),
-  ADS_FILTER_NOVOLUME = (1 << 5),
-
-  /** Include working drivers with variables using their fallback values into Only Show Errors. */
-  ADS_FILTER_DRIVER_FALLBACK_AS_ERROR = (1 << 6),
-
-  ADS_FILTER_NOLIGHTPROBE = (1 << 7),
-} eDopeSheet_FilterFlag2;
-ENUM_OPERATORS(eDopeSheet_FilterFlag2);
-
-/* DopeSheet general flags */
-typedef enum eDopeSheet_Flag {
-  /** when summary is shown, it is collapsed, so all other channels get hidden */
-  ADS_FLAG_SUMMARY_COLLAPSED = (1 << 0),
-  /** show filters for datablocks */
-  ADS_FLAG_SHOW_DBFILTERS = (1 << 1),
-
-  /** use fuzzy/partial string matches when ADS_FILTER_BY_FCU_NAME is enabled
-   * (WARNING: expensive operation) */
-  ADS_FLAG_FUZZY_NAMES = (1 << 2),
-  /** do not sort datablocks (mostly objects) by name (NOTE: potentially expensive operation) */
-  ADS_FLAG_NO_DB_SORT = (1 << 3),
-  /** Invert the search filter */
-  ADS_FLAG_INVERT_FILTER = (1 << 4),
-} eDopeSheet_Flag;
-
 typedef struct SpaceAction_Runtime {
   char flag;
   char _pad0[7];
 } SpaceAction_Runtime;
-
-typedef enum SpaceActionOverlays_Flag {
-  ADS_OVERLAY_SHOW_OVERLAYS = (1 << 0),
-  ADS_SHOW_SCENE_STRIP_FRAME_RANGE = (1 << 1)
-} SpaceActionOverlays_Flag;
 
 typedef struct SpaceActionOverlays {
   /** #SpaceActionOverlays_Flag */
@@ -1090,87 +1178,6 @@ typedef struct SpaceAction {
 
   SpaceAction_Runtime runtime;
 } SpaceAction;
-
-/* SpaceAction flag */
-typedef enum eSAction_Flag {
-  /* during transform (only set for TimeSlide) */
-  SACTION_MOVING = (1 << 0),
-  /* show sliders */
-  SACTION_SLIDERS = (1 << 1),
-  /* draw time in seconds instead of time in frames */
-  SACTION_DRAWTIME = (1 << 2),
-  /* don't filter action channels according to visibility */
-  // SACTION_NOHIDE = (1 << 3), /* Deprecated, old animation systems. */
-  /* don't kill overlapping keyframes after transform */
-  SACTION_NOTRANSKEYCULL = (1 << 4),
-  /* don't include keyframes that are out of view */
-  // SACTION_HORIZOPTIMISEON = (1 << 5), /* Deprecated, old irrelevant trick. */
-  /* show pose-markers (local to action) in Action Editor mode. */
-  SACTION_POSEMARKERS_SHOW = (1 << 6),
-  /* don't draw action channels using group colors (where applicable) */
-  /* SACTION_NODRAWGCOLORS = (1 << 7), DEPRECATED */
-  /* SACTION_NODRAWCFRANUM = (1 << 8), DEPRECATED */
-  /* don't perform realtime updates */
-  SACTION_NOREALTIMEUPDATES = (1 << 10),
-  /* move markers as well as keyframes */
-  SACTION_MARKERS_MOVE = (1 << 11),
-  /* show interpolation type */
-  SACTION_SHOW_INTERPOLATION = (1 << 12),
-  /* show extremes */
-  SACTION_SHOW_EXTREMES = (1 << 13),
-  /* show markers region */
-  SACTION_SHOW_MARKERS = (1 << 14),
-} eSAction_Flag;
-
-/** #SpaceAction_Runtime.flag */
-typedef enum eSAction_Runtime_Flag {
-  /** Temporary flag to force channel selections to be synced with main */
-  SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC = (1 << 0),
-} eSAction_Runtime_Flag;
-
-/** #SpaceAction.mode */
-typedef enum eAnimEdit_Context {
-  /** Action on the active object. */
-  SACTCONT_ACTION = 0,
-  /** List of all shape-keys on the active object, linked with their F-Curves. */
-  SACTCONT_SHAPEKEY = 1,
-  /** Editing of grease-pencil data. */
-  SACTCONT_GPENCIL = 2,
-  /** Dope-sheet (default). */
-  SACTCONT_DOPESHEET = 3,
-  /** Mask. */
-  SACTCONT_MASK = 4,
-  /** Cache file */
-  SACTCONT_CACHEFILE = 5,
-  /** Timeline. */
-  SACTCONT_TIMELINE = 6,
-} eAnimEdit_Context;
-
-/* Old snapping enum that is only needed because of the versioning code. */
-typedef enum eAnimEdit_AutoSnap {
-  /* snap to 1.0 frame/second intervals */
-  SACTSNAP_STEP = 1,
-  /* snap to actual frames/seconds (nla-action time) */
-  SACTSNAP_FRAME = 2,
-  /* snap to nearest marker */
-  SACTSNAP_MARKER = 3,
-  /* snap to actual seconds (nla-action time) */
-  SACTSNAP_SECOND = 4,
-  /* snap to 1.0 second increments */
-  SACTSNAP_TSTEP = 5,
-} eAnimEdit_AutoSnap DNA_DEPRECATED;
-
-/* SAction->cache_display */
-typedef enum eTimeline_Cache_Flag {
-  TIME_CACHE_DISPLAY = (1 << 0),
-  TIME_CACHE_SOFTBODY = (1 << 1),
-  TIME_CACHE_PARTICLES = (1 << 2),
-  TIME_CACHE_CLOTH = (1 << 3),
-  TIME_CACHE_SMOKE = (1 << 4),
-  TIME_CACHE_DYNAMICPAINT = (1 << 5),
-  TIME_CACHE_RIGIDBODY = (1 << 6),
-  TIME_CACHE_SIMULATION_NODES = (1 << 7),
-} eTimeline_Cache_Flag;
 
 /* ************************************************ */
 /* Layered Animation data-types. */

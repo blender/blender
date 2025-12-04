@@ -17,6 +17,142 @@ struct Collection;
 struct EffectorWeights;
 struct RigidBodyWorld_Runtime;
 
+/** RigidBodyWorld.flag */
+enum eRigidBodyWorld_Flag {
+  /* should sim world be skipped when evaluating (user setting) */
+  RBW_FLAG_MUTED = (1 << 0),
+  /* sim data needs to be rebuilt */
+  /* RBW_FLAG_NEEDS_REBUILD = (1 << 1), */ /* UNUSED */
+  /** Use split impulse when stepping the simulation. */
+  RBW_FLAG_USE_SPLIT_IMPULSE = (1 << 2),
+};
+
+/** #RigidBodyOb.type */
+enum eRigidBodyOb_Type {
+  /* active geometry participant in simulation. is directly controlled by sim */
+  RBO_TYPE_ACTIVE = 0,
+  /* passive geometry participant in simulation. is directly controlled by animsys */
+  RBO_TYPE_PASSIVE = 1,
+};
+
+/** #RigidBodyOb.flag */
+enum eRigidBodyOb_Flag {
+  /* rigidbody is kinematic (controlled by the animation system) */
+  RBO_FLAG_KINEMATIC = (1 << 0),
+  /* rigidbody needs to be validated (usually set after duplicating and not hooked up yet) */
+  RBO_FLAG_NEEDS_VALIDATE = (1 << 1),
+  /* rigidbody shape needs refreshing (usually after exiting editmode) */
+  RBO_FLAG_NEEDS_RESHAPE = (1 << 2),
+  /* rigidbody can be deactivated */
+  RBO_FLAG_USE_DEACTIVATION = (1 << 3),
+  /* rigidbody is deactivated at the beginning of simulation */
+  RBO_FLAG_START_DEACTIVATED = (1 << 4),
+  /* rigidbody is not dynamically simulated */
+  RBO_FLAG_DISABLED = (1 << 5),
+  /* collision margin is not embedded (only used by convex hull shapes for now) */
+  RBO_FLAG_USE_MARGIN = (1 << 6),
+  /* collision shape deforms during simulation (only for passive triangle mesh shapes) */
+  RBO_FLAG_USE_DEFORM = (1 << 7),
+};
+
+/** Rigid Body Collision Shape. */
+enum eRigidBody_Shape {
+  /** Simple box (i.e. bounding box). */
+  RB_SHAPE_BOX = 0,
+  /** Sphere. */
+  RB_SHAPE_SPHERE = 1,
+  /** Rounded "pill" shape (i.e. calcium tablets). */
+  RB_SHAPE_CAPSULE = 2,
+  /** Cylinder (i.e. tin of beans). */
+  RB_SHAPE_CYLINDER = 3,
+  /** Cone (i.e. party hat). */
+  RB_SHAPE_CONE = 4,
+
+  /** Convex hull (minimal shrink-wrap encompassing all verts). */
+  RB_SHAPE_CONVEXH = 5,
+  /** Triangulated mesh. */
+  RB_SHAPE_TRIMESH = 6,
+
+  /* concave mesh approximated using primitives */
+  RB_SHAPE_COMPOUND = 7,
+};
+
+enum eRigidBody_MeshSource {
+  /** Base mesh. */
+  RBO_MESH_BASE = 0,
+  /** Only deformations. */
+  RBO_MESH_DEFORM = 1,
+  /** Final evaluated mesh. */
+  RBO_MESH_FINAL = 2,
+};
+
+/** Participation types for #RigidBodyOb.type */
+enum eRigidBodyCon_Type {
+  /** lets bodies rotate around a specified point */
+  RBC_TYPE_POINT = 0,
+  /** lets bodies rotate around a specified axis */
+  RBC_TYPE_HINGE = 1,
+  /** simulates wheel suspension */
+  /* RBC_TYPE_HINGE2 = 2, */ /* UNUSED */
+  /** Restricts moment to a specified axis. */
+  RBC_TYPE_SLIDER = 3,
+  /** lets object rotate within a specified cone */
+  /* RBC_TYPE_CONE_TWIST = 4, */ /* UNUSED */
+  /** allows user to specify constraint axes */
+  RBC_TYPE_6DOF = 5,
+  /** like 6DOF but has springs */
+  RBC_TYPE_6DOF_SPRING = 6,
+  /** simulates a universal joint */
+  /* RBC_TYPE_UNIVERSAL = 7, */ /* UNUSED */
+  /** glues two bodies together */
+  RBC_TYPE_FIXED = 8,
+  /** similar to slider but also allows rotation around slider axis */
+  RBC_TYPE_PISTON = 9,
+  /** Simplified spring constraint with only once axis that's
+   * automatically placed between the connected bodies */
+  /* RBC_TYPE_SPRING = 10, */ /* UNUSED */
+  /** Drives bodies by applying linear and angular forces. */
+  RBC_TYPE_MOTOR = 11,
+};
+
+/** Spring implementation type for RigidBodyOb. */
+enum eRigidBodyCon_SpringType {
+  RBC_SPRING_TYPE1 = 0, /* btGeneric6DofSpringConstraint */
+  RBC_SPRING_TYPE2 = 1, /* btGeneric6DofSpring2Constraint */
+};
+
+/** #RigidBodyCon.flag */
+enum eRigidBodyCon_Flag {
+  /* constraint influences rigid body motion */
+  RBC_FLAG_ENABLED = (1 << 0),
+  /* constraint needs to be validated */
+  RBC_FLAG_NEEDS_VALIDATE = (1 << 1),
+  /* allow constrained bodies to collide */
+  RBC_FLAG_DISABLE_COLLISIONS = (1 << 2),
+  /* constraint can break */
+  RBC_FLAG_USE_BREAKING = (1 << 3),
+  /* constraint use custom number of constraint solver iterations */
+  RBC_FLAG_OVERRIDE_SOLVER_ITERATIONS = (1 << 4),
+  /* limits */
+  RBC_FLAG_USE_LIMIT_LIN_X = (1 << 5),
+  RBC_FLAG_USE_LIMIT_LIN_Y = (1 << 6),
+  RBC_FLAG_USE_LIMIT_LIN_Z = (1 << 7),
+  RBC_FLAG_USE_LIMIT_ANG_X = (1 << 8),
+  RBC_FLAG_USE_LIMIT_ANG_Y = (1 << 9),
+  RBC_FLAG_USE_LIMIT_ANG_Z = (1 << 10),
+  /* springs */
+  RBC_FLAG_USE_SPRING_X = (1 << 11),
+  RBC_FLAG_USE_SPRING_Y = (1 << 12),
+  RBC_FLAG_USE_SPRING_Z = (1 << 13),
+  /* motors */
+  RBC_FLAG_USE_MOTOR_LIN = (1 << 14),
+  RBC_FLAG_USE_MOTOR_ANG = (1 << 15),
+  /* angular springs */
+  RBC_FLAG_USE_SPRING_ANG_X = (1 << 16),
+  RBC_FLAG_USE_SPRING_ANG_Y = (1 << 17),
+  RBC_FLAG_USE_SPRING_ANG_Z = (1 << 18),
+};
+
 /* ******************************** */
 /* RigidBody World */
 
@@ -70,16 +206,6 @@ typedef struct RigidBodyWorld {
   /** Used to speed up or slow down the simulation. */
   float time_scale;
 } RigidBodyWorld;
-
-/** RigidBodyWorld.flag */
-typedef enum eRigidBodyWorld_Flag {
-  /* should sim world be skipped when evaluating (user setting) */
-  RBW_FLAG_MUTED = (1 << 0),
-  /* sim data needs to be rebuilt */
-  /* RBW_FLAG_NEEDS_REBUILD = (1 << 1), */ /* UNUSED */
-  /** Use split impulse when stepping the simulation. */
-  RBW_FLAG_USE_SPLIT_IMPULSE = (1 << 2),
-} eRigidBodyWorld_Flag;
 
 /* ******************************** */
 /* RigidBody Object */
@@ -150,65 +276,6 @@ typedef struct RigidBodyOb {
   /** This pointer is shared between all evaluated copies. */
   struct RigidBodyOb_Shared *shared;
 } RigidBodyOb;
-
-/** #RigidBodyOb.type */
-typedef enum eRigidBodyOb_Type {
-  /* active geometry participant in simulation. is directly controlled by sim */
-  RBO_TYPE_ACTIVE = 0,
-  /* passive geometry participant in simulation. is directly controlled by animsys */
-  RBO_TYPE_PASSIVE = 1,
-} eRigidBodyOb_Type;
-
-/** #RigidBodyOb.flag */
-typedef enum eRigidBodyOb_Flag {
-  /* rigidbody is kinematic (controlled by the animation system) */
-  RBO_FLAG_KINEMATIC = (1 << 0),
-  /* rigidbody needs to be validated (usually set after duplicating and not hooked up yet) */
-  RBO_FLAG_NEEDS_VALIDATE = (1 << 1),
-  /* rigidbody shape needs refreshing (usually after exiting editmode) */
-  RBO_FLAG_NEEDS_RESHAPE = (1 << 2),
-  /* rigidbody can be deactivated */
-  RBO_FLAG_USE_DEACTIVATION = (1 << 3),
-  /* rigidbody is deactivated at the beginning of simulation */
-  RBO_FLAG_START_DEACTIVATED = (1 << 4),
-  /* rigidbody is not dynamically simulated */
-  RBO_FLAG_DISABLED = (1 << 5),
-  /* collision margin is not embedded (only used by convex hull shapes for now) */
-  RBO_FLAG_USE_MARGIN = (1 << 6),
-  /* collision shape deforms during simulation (only for passive triangle mesh shapes) */
-  RBO_FLAG_USE_DEFORM = (1 << 7),
-} eRigidBodyOb_Flag;
-
-/** Rigid Body Collision Shape. */
-typedef enum eRigidBody_Shape {
-  /** Simple box (i.e. bounding box). */
-  RB_SHAPE_BOX = 0,
-  /** Sphere. */
-  RB_SHAPE_SPHERE = 1,
-  /** Rounded "pill" shape (i.e. calcium tablets). */
-  RB_SHAPE_CAPSULE = 2,
-  /** Cylinder (i.e. tin of beans). */
-  RB_SHAPE_CYLINDER = 3,
-  /** Cone (i.e. party hat). */
-  RB_SHAPE_CONE = 4,
-
-  /** Convex hull (minimal shrink-wrap encompassing all verts). */
-  RB_SHAPE_CONVEXH = 5,
-  /** Triangulated mesh. */
-  RB_SHAPE_TRIMESH = 6,
-
-  /* concave mesh approximated using primitives */
-  RB_SHAPE_COMPOUND = 7,
-} eRigidBody_Shape;
-
-typedef enum eRigidBody_MeshSource {
-  /** Base mesh. */
-  RBO_MESH_BASE = 0,
-  /** Only deformations. */
-  RBO_MESH_DEFORM = 1,
-  /** Final evaluated mesh. */
-  RBO_MESH_FINAL = 2,
-} eRigidBody_MeshSource;
 
 /* ******************************** */
 /* RigidBody Constraint */
@@ -284,72 +351,5 @@ typedef struct RigidBodyCon {
   /** Physics object representation (i.e. btTypedConstraint). */
   void *physics_constraint;
 } RigidBodyCon;
-
-/** Participation types for #RigidBodyOb.type */
-typedef enum eRigidBodyCon_Type {
-  /** lets bodies rotate around a specified point */
-  RBC_TYPE_POINT = 0,
-  /** lets bodies rotate around a specified axis */
-  RBC_TYPE_HINGE = 1,
-  /** simulates wheel suspension */
-  /* RBC_TYPE_HINGE2 = 2, */ /* UNUSED */
-  /** Restricts moment to a specified axis. */
-  RBC_TYPE_SLIDER = 3,
-  /** lets object rotate within a specified cone */
-  /* RBC_TYPE_CONE_TWIST = 4, */ /* UNUSED */
-  /** allows user to specify constraint axes */
-  RBC_TYPE_6DOF = 5,
-  /** like 6DOF but has springs */
-  RBC_TYPE_6DOF_SPRING = 6,
-  /** simulates a universal joint */
-  /* RBC_TYPE_UNIVERSAL = 7, */ /* UNUSED */
-  /** glues two bodies together */
-  RBC_TYPE_FIXED = 8,
-  /** similar to slider but also allows rotation around slider axis */
-  RBC_TYPE_PISTON = 9,
-  /** Simplified spring constraint with only once axis that's
-   * automatically placed between the connected bodies */
-  /* RBC_TYPE_SPRING = 10, */ /* UNUSED */
-  /** Drives bodies by applying linear and angular forces. */
-  RBC_TYPE_MOTOR = 11,
-} eRigidBodyCon_Type;
-
-/** Spring implementation type for RigidBodyOb. */
-typedef enum eRigidBodyCon_SpringType {
-  RBC_SPRING_TYPE1 = 0, /* btGeneric6DofSpringConstraint */
-  RBC_SPRING_TYPE2 = 1, /* btGeneric6DofSpring2Constraint */
-} eRigidBodyCon_SpringType;
-
-/** #RigidBodyCon.flag */
-typedef enum eRigidBodyCon_Flag {
-  /* constraint influences rigid body motion */
-  RBC_FLAG_ENABLED = (1 << 0),
-  /* constraint needs to be validated */
-  RBC_FLAG_NEEDS_VALIDATE = (1 << 1),
-  /* allow constrained bodies to collide */
-  RBC_FLAG_DISABLE_COLLISIONS = (1 << 2),
-  /* constraint can break */
-  RBC_FLAG_USE_BREAKING = (1 << 3),
-  /* constraint use custom number of constraint solver iterations */
-  RBC_FLAG_OVERRIDE_SOLVER_ITERATIONS = (1 << 4),
-  /* limits */
-  RBC_FLAG_USE_LIMIT_LIN_X = (1 << 5),
-  RBC_FLAG_USE_LIMIT_LIN_Y = (1 << 6),
-  RBC_FLAG_USE_LIMIT_LIN_Z = (1 << 7),
-  RBC_FLAG_USE_LIMIT_ANG_X = (1 << 8),
-  RBC_FLAG_USE_LIMIT_ANG_Y = (1 << 9),
-  RBC_FLAG_USE_LIMIT_ANG_Z = (1 << 10),
-  /* springs */
-  RBC_FLAG_USE_SPRING_X = (1 << 11),
-  RBC_FLAG_USE_SPRING_Y = (1 << 12),
-  RBC_FLAG_USE_SPRING_Z = (1 << 13),
-  /* motors */
-  RBC_FLAG_USE_MOTOR_LIN = (1 << 14),
-  RBC_FLAG_USE_MOTOR_ANG = (1 << 15),
-  /* angular springs */
-  RBC_FLAG_USE_SPRING_ANG_X = (1 << 16),
-  RBC_FLAG_USE_SPRING_ANG_Y = (1 << 17),
-  RBC_FLAG_USE_SPRING_ANG_Z = (1 << 18),
-} eRigidBodyCon_Flag;
 
 /* ******************************** */

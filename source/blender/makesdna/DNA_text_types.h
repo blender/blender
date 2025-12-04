@@ -13,6 +13,24 @@
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
 
+/** #Text.flags */
+enum {
+  /** Set if the file in run-time differs from the file on disk, or if there is no file on disk. */
+  TXT_ISDIRTY = 1 << 0,
+  /** When the text hasn't been written to a file. #Text.filepath may be NULL or invalid. */
+  TXT_ISMEM = 1 << 2,
+  /** Should always be set if the Text is not to be written into the `.blend`. */
+  TXT_ISEXT = 1 << 3,
+  /** Load the script as a Python module when loading the `.blend` file. */
+  TXT_ISSCRIPT = 1 << 4,
+
+  TXT_FLAG_UNUSED_8 = 1 << 8, /* cleared */
+  TXT_FLAG_UNUSED_9 = 1 << 9, /* cleared */
+
+  /** Use space instead of tabs. */
+  TXT_TABSTOSPACES = 1 << 10,
+};
+
 typedef struct TextLine {
   struct TextLine *next, *prev;
 
@@ -57,21 +75,3 @@ typedef struct Text {
 } Text;
 
 #define TXT_TABSIZE 4
-
-/** #Text.flags */
-enum {
-  /** Set if the file in run-time differs from the file on disk, or if there is no file on disk. */
-  TXT_ISDIRTY = 1 << 0,
-  /** When the text hasn't been written to a file. #Text.filepath may be NULL or invalid. */
-  TXT_ISMEM = 1 << 2,
-  /** Should always be set if the Text is not to be written into the `.blend`. */
-  TXT_ISEXT = 1 << 3,
-  /** Load the script as a Python module when loading the `.blend` file. */
-  TXT_ISSCRIPT = 1 << 4,
-
-  TXT_FLAG_UNUSED_8 = 1 << 8, /* cleared */
-  TXT_FLAG_UNUSED_9 = 1 << 9, /* cleared */
-
-  /** Use space instead of tabs. */
-  TXT_TABSTOSPACES = 1 << 10,
-};

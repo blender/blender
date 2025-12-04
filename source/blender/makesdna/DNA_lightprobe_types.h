@@ -22,8 +22,95 @@ class Texture;
 }  // namespace blender::gpu
 using GPUTexture = blender::gpu::Texture;
 #else
-typedef struct GPUTexture GPUTexture;
+struct GPUTexture;
 #endif
+
+/* Bump the version number for lightcache data structure changes. */
+#define LIGHTCACHE_STATIC_VERSION 2
+
+/* Probe->type */
+enum {
+  LIGHTPROBE_TYPE_SPHERE = 0,
+  LIGHTPROBE_TYPE_PLANE = 1,
+  LIGHTPROBE_TYPE_VOLUME = 2,
+};
+
+/* Probe->flag */
+enum {
+  LIGHTPROBE_FLAG_CUSTOM_PARALLAX = (1 << 0),
+  LIGHTPROBE_FLAG_SHOW_INFLUENCE = (1 << 1),
+  LIGHTPROBE_FLAG_SHOW_PARALLAX = (1 << 2),
+  LIGHTPROBE_FLAG_SHOW_CLIP_DIST = (1 << 3),
+  LIGHTPROBE_FLAG_SHOW_DATA = (1 << 4),
+  LIGHTPROBE_FLAG_INVERT_GROUP = (1 << 5),
+  LIGHTPROBE_DS_EXPAND = (1 << 6),
+};
+
+/* Probe->grid_flag */
+enum {
+  LIGHTPROBE_GRID_CAPTURE_WORLD = (1 << 0),
+  LIGHTPROBE_GRID_CAPTURE_INDIRECT = (1 << 1),
+  LIGHTPROBE_GRID_CAPTURE_EMISSION = (1 << 2),
+};
+
+/* Probe->display */
+enum {
+  LIGHTPROBE_DISP_WIRE = 0,
+  LIGHTPROBE_DISP_SHADED = 1,
+  LIGHTPROBE_DISP_DIFFUSE = 2,
+  LIGHTPROBE_DISP_REFLECTIVE = 3,
+};
+
+/* Probe->parallax && Probe->attenuation_type. */
+enum {
+  LIGHTPROBE_SHAPE_ELIPSOID = 0,
+  LIGHTPROBE_SHAPE_BOX = 1,
+};
+
+/* LightCache->type */
+enum {
+  LIGHTCACHE_TYPE_STATIC = 0,
+};
+
+/* LightCache->flag */
+enum {
+  LIGHTCACHE_BAKED = (1 << 0),
+  LIGHTCACHE_BAKING = (1 << 1),
+  LIGHTCACHE_CUBE_READY = (1 << 2),
+  LIGHTCACHE_GRID_READY = (1 << 3),
+  /* Update tagging */
+  LIGHTCACHE_UPDATE_CUBE = (1 << 4),
+  LIGHTCACHE_UPDATE_GRID = (1 << 5),
+  LIGHTCACHE_UPDATE_WORLD = (1 << 6),
+  LIGHTCACHE_UPDATE_AUTO = (1 << 7),
+  /** Invalid means we tried to alloc it but failed. */
+  LIGHTCACHE_INVALID = (1 << 8),
+  /** The data present in the cache is valid but unusable on this GPU. */
+  LIGHTCACHE_NOT_USABLE = (1 << 9),
+};
+
+/* EEVEE_LightCacheTexture->data_type */
+enum {
+  LIGHTCACHETEX_BYTE = (1 << 0),
+  LIGHTCACHETEX_FLOAT = (1 << 1),
+  LIGHTCACHETEX_UINT = (1 << 2),
+};
+
+/** #LightProbeGridCacheFrame.data_layout (int) */
+enum {
+  /** Simple uniform grid. Raw output from GPU. Used during the baking process. */
+  LIGHTPROBE_CACHE_UNIFORM_GRID = 0,
+  /** Fills the space with different level of resolution. More efficient storage. */
+  LIGHTPROBE_CACHE_ADAPTIVE_RESOLUTION = 1,
+};
+
+/** #LightProbeObjectCache.type (int) */
+enum {
+  /** Light cache was just created and is not yet baked. Keep as 0 for default value. */
+  LIGHTPROBE_CACHE_TYPE_NONE = 0,
+  /** Light cache is baked for one specific frame and capture all indirect lighting. */
+  LIGHTPROBE_CACHE_TYPE_STATIC = 1,
+};
 
 typedef struct LightProbe {
 #ifdef __cplusplus
@@ -96,45 +183,6 @@ typedef struct LightProbe {
   char _pad1[4];
 } LightProbe;
 
-/* Probe->type */
-enum {
-  LIGHTPROBE_TYPE_SPHERE = 0,
-  LIGHTPROBE_TYPE_PLANE = 1,
-  LIGHTPROBE_TYPE_VOLUME = 2,
-};
-
-/* Probe->flag */
-enum {
-  LIGHTPROBE_FLAG_CUSTOM_PARALLAX = (1 << 0),
-  LIGHTPROBE_FLAG_SHOW_INFLUENCE = (1 << 1),
-  LIGHTPROBE_FLAG_SHOW_PARALLAX = (1 << 2),
-  LIGHTPROBE_FLAG_SHOW_CLIP_DIST = (1 << 3),
-  LIGHTPROBE_FLAG_SHOW_DATA = (1 << 4),
-  LIGHTPROBE_FLAG_INVERT_GROUP = (1 << 5),
-  LIGHTPROBE_DS_EXPAND = (1 << 6),
-};
-
-/* Probe->grid_flag */
-enum {
-  LIGHTPROBE_GRID_CAPTURE_WORLD = (1 << 0),
-  LIGHTPROBE_GRID_CAPTURE_INDIRECT = (1 << 1),
-  LIGHTPROBE_GRID_CAPTURE_EMISSION = (1 << 2),
-};
-
-/* Probe->display */
-enum {
-  LIGHTPROBE_DISP_WIRE = 0,
-  LIGHTPROBE_DISP_SHADED = 1,
-  LIGHTPROBE_DISP_DIFFUSE = 2,
-  LIGHTPROBE_DISP_REFLECTIVE = 3,
-};
-
-/* Probe->parallax && Probe->attenuation_type. */
-enum {
-  LIGHTPROBE_SHAPE_ELIPSOID = 0,
-  LIGHTPROBE_SHAPE_BOX = 1,
-};
-
 /* ------- Eevee LightProbes ------- */
 /* Needs to be there because written to file with the light-cache. */
 
@@ -206,38 +254,6 @@ typedef struct LightCache {
   LightProbeCache *cube_data;
   LightGridCache *grid_data;
 } LightCache;
-
-/* Bump the version number for lightcache data structure changes. */
-#define LIGHTCACHE_STATIC_VERSION 2
-
-/* LightCache->type */
-enum {
-  LIGHTCACHE_TYPE_STATIC = 0,
-};
-
-/* LightCache->flag */
-enum {
-  LIGHTCACHE_BAKED = (1 << 0),
-  LIGHTCACHE_BAKING = (1 << 1),
-  LIGHTCACHE_CUBE_READY = (1 << 2),
-  LIGHTCACHE_GRID_READY = (1 << 3),
-  /* Update tagging */
-  LIGHTCACHE_UPDATE_CUBE = (1 << 4),
-  LIGHTCACHE_UPDATE_GRID = (1 << 5),
-  LIGHTCACHE_UPDATE_WORLD = (1 << 6),
-  LIGHTCACHE_UPDATE_AUTO = (1 << 7),
-  /** Invalid means we tried to alloc it but failed. */
-  LIGHTCACHE_INVALID = (1 << 8),
-  /** The data present in the cache is valid but unusable on this GPU. */
-  LIGHTCACHE_NOT_USABLE = (1 << 9),
-};
-
-/* EEVEE_LightCacheTexture->data_type */
-enum {
-  LIGHTCACHETEX_BYTE = (1 << 0),
-  LIGHTCACHETEX_FLOAT = (1 << 1),
-  LIGHTCACHETEX_UINT = (1 << 2),
-};
 
 /* -------------------------------------------------------------------- */
 /** \name Irradiance grid data storage
@@ -338,14 +354,6 @@ typedef struct LightProbeGridCacheFrame {
   void *surfels;
 } LightProbeGridCacheFrame;
 
-/** #LightProbeGridCacheFrame.data_layout (int) */
-enum {
-  /** Simple uniform grid. Raw output from GPU. Used during the baking process. */
-  LIGHTPROBE_CACHE_UNIFORM_GRID = 0,
-  /** Fills the space with different level of resolution. More efficient storage. */
-  LIGHTPROBE_CACHE_ADAPTIVE_RESOLUTION = 1,
-};
-
 /**
  * Per object container of baked data.
  * Should be called #LightProbeCache but name is already taken.
@@ -362,13 +370,5 @@ typedef struct LightProbeObjectCache {
 
   struct LightProbeGridCacheFrame *grid_static_cache;
 } LightProbeObjectCache;
-
-/** #LightProbeObjectCache.type (int) */
-enum {
-  /** Light cache was just created and is not yet baked. Keep as 0 for default value. */
-  LIGHTPROBE_CACHE_TYPE_NONE = 0,
-  /** Light cache is baked for one specific frame and capture all indirect lighting. */
-  LIGHTPROBE_CACHE_TYPE_STATIC = 1,
-};
 
 /** \} */

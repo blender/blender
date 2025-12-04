@@ -13,6 +13,15 @@
 struct AnimData;
 struct bSound;
 
+/* **************** SPEAKER ********************* */
+
+/** #Speaker::flag */
+enum {
+  SPK_DS_EXPAND = 1 << 0,
+  SPK_MUTED = 1 << 1,
+  // SPK_RELATIVE = 1 << 2, /* UNUSED */
+};
+
 typedef struct Speaker {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
@@ -43,12 +52,3 @@ typedef struct Speaker {
   short flag;
   char _pad1[6];
 } Speaker;
-
-/* **************** SPEAKER ********************* */
-
-/** #Speaker::flag */
-enum {
-  SPK_DS_EXPAND = 1 << 0,
-  SPK_MUTED = 1 << 1,
-  // SPK_RELATIVE = 1 << 2, /* UNUSED */
-};

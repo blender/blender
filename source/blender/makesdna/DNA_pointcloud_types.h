@@ -37,6 +37,11 @@ using PointCloudRuntimeHandle = blender::bke::PointCloudRuntime;
 typedef struct PointCloudRuntimeHandle PointCloudRuntimeHandle;
 #endif
 
+/** #PointCloud.flag */
+enum {
+  PT_DS_EXPAND = (1 << 0),
+};
+
 typedef struct PointCloud {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
@@ -93,11 +98,6 @@ typedef struct PointCloud {
   /* Draw Cache */
   void *batch_cache;
 } PointCloud;
-
-/** #PointCloud.flag */
-enum {
-  PT_DS_EXPAND = (1 << 0),
-};
 
 /* Only one material supported currently. */
 #define POINTCLOUD_MATERIAL_NR 1

@@ -25,6 +25,143 @@ struct MovieTrackingMarker;
 struct MovieTrackingTrack;
 struct bGPdata;
 
+enum TrackingDistortionModel {
+  TRACKING_DISTORTION_MODEL_POLYNOMIAL = 0,
+  TRACKING_DISTORTION_MODEL_DIVISION = 1,
+  TRACKING_DISTORTION_MODEL_NUKE = 2,
+  TRACKING_DISTORTION_MODEL_BROWN = 3,
+};
+
+enum TrackingCameraUnits {
+  CAMERA_UNITS_PX = 0,
+  CAMERA_UNITS_MM = 1,
+};
+
+enum TrackingMarkerFlag {
+  MARKER_DISABLED = (1 << 0),
+  MARKER_TRACKED = (1 << 1),
+  MARKER_GRAPH_SEL_X = (1 << 2),
+  MARKER_GRAPH_SEL_Y = (1 << 3),
+  MARKER_GRAPH_SEL = (MARKER_GRAPH_SEL_X | MARKER_GRAPH_SEL_Y),
+};
+
+enum TrackingTrackFlag {
+  TRACK_HAS_BUNDLE = (1 << 1),
+  TRACK_DISABLE_RED = (1 << 2),
+  TRACK_DISABLE_GREEN = (1 << 3),
+  TRACK_DISABLE_BLUE = (1 << 4),
+  TRACK_HIDDEN = (1 << 5),
+  TRACK_LOCKED = (1 << 6),
+  TRACK_CUSTOMCOLOR = (1 << 7),
+  TRACK_USE_2D_STAB = (1 << 8),
+  TRACK_PREVIEW_GRAYSCALE = (1 << 9),
+  TRACK_DOPE_SEL = (1 << 10),
+  TRACK_PREVIEW_ALPHA = (1 << 11),
+  TRACK_USE_2D_STAB_ROT = (1 << 12),
+};
+
+enum TrackingMotionModel {
+  TRACK_MOTION_MODEL_TRANSLATION = 0,
+  TRACK_MOTION_MODEL_TRANSLATION_ROTATION = 1,
+  TRACK_MOTION_MODEL_TRANSLATION_SCALE = 2,
+  TRACK_MOTION_MODEL_TRANSLATION_ROTATION_SCALE = 3,
+  TRACK_MOTION_MODEL_AFFINE = 4,
+  TRACK_MOTION_MODEL_HOMOGRAPHY = 5,
+};
+
+enum TrackingAlgorithmFlag {
+  TRACK_ALGORITHM_FLAG_USE_BRUTE = (1 << 0),
+  TRACK_ALGORITHM_FLAG_USE_NORMALIZATION = (1 << 2),
+  TRACK_ALGORITHM_FLAG_USE_MASK = (1 << 3),
+};
+
+enum eTrackFrameMatch {
+  TRACK_MATCH_KEYFRAME = 0,
+  TRACK_MATCH_PREVIOUS_FRAME = 1,
+};
+
+enum TrackingMotionFlag {
+  TRACKING_MOTION_TRIPOD = (1 << 0),
+  TRACKING_MOTION_MODAL = (TRACKING_MOTION_TRIPOD),
+};
+
+enum TrackingSpeed {
+  TRACKING_SPEED_FASTEST = 0,
+  TRACKING_SPEED_REALTIME = 1,
+  TRACKING_SPEED_HALF = 2,
+  TRACKING_SPEED_QUARTER = 4,
+  TRACKING_SPEED_DOUBLE = 5,
+};
+
+enum TrackingSettingsReconstructionFlag {
+  /* TRACKING_USE_FALLBACK_RECONSTRUCTION = (1 << 0), */ /* DEPRECATED */
+  TRACKING_USE_KEYFRAME_SELECTION = (1 << 1),
+};
+
+enum TrackingRefineCameraFlag {
+  REFINE_NO_INTRINSICS = (0),
+
+  REFINE_FOCAL_LENGTH = (1 << 0),
+  REFINE_PRINCIPAL_POINT = (1 << 1),
+  REFINE_RADIAL_DISTORTION = (1 << 2),
+  REFINE_TANGENTIAL_DISTORTION = (1 << 3),
+};
+ENUM_OPERATORS(TrackingRefineCameraFlag);
+
+enum TrackingStabilizationFlag {
+  TRACKING_2D_STABILIZATION = (1 << 0),
+  TRACKING_AUTOSCALE = (1 << 1),
+  TRACKING_STABILIZE_ROTATION = (1 << 2),
+  TRACKING_STABILIZE_SCALE = (1 << 3),
+  TRACKING_SHOW_STAB_TRACKS = (1 << 5),
+};
+
+enum TrackingStabilizationFilter {
+  TRACKING_FILTER_NEAREST = 0,
+  TRACKING_FILTER_BILINEAR = 1,
+  TRACKING_FILTER_BICUBIC = 2,
+};
+
+enum TrackingReconstructionFlag {
+  TRACKING_RECONSTRUCTED = (1 << 0),
+};
+
+enum TrackingObjectFlag {
+  TRACKING_OBJECT_CAMERA = (1 << 0),
+};
+
+enum TrackingDopesheetSort {
+  TRACKING_DOPE_SORT_NAME = 0,
+  TRACKING_DOPE_SORT_LONGEST = 1,
+  TRACKING_DOPE_SORT_TOTAL = 2,
+  TRACKING_DOPE_SORT_AVERAGE_ERROR = 3,
+  TRACKING_DOPE_SORT_START = 4,
+  TRACKING_DOPE_SORT_END = 5,
+};
+
+enum TrackingDopesheetFlag {
+  TRACKING_DOPE_SORT_INVERSE = (1 << 0),
+  TRACKING_DOPE_SELECTED_ONLY = (1 << 1),
+  TRACKING_DOPE_SHOW_HIDDEN = (1 << 2),
+};
+
+enum TrackingCoverage {
+  TRACKING_COVERAGE_BAD = 0,
+  TRACKING_COVERAGE_ACCEPTABLE = 1,
+  TRACKING_COVERAGE_OK = 2,
+};
+
+enum TrackingPlaneMarkerFlag {
+  PLANE_MARKER_DISABLED = (1 << 0),
+  PLANE_MARKER_TRACKED = (1 << 1),
+};
+
+enum TrackingPlaneTrackFlag {
+  PLANE_TRACK_HIDDEN = (1 << 1),
+  PLANE_TRACK_LOCKED = (1 << 2),
+  PLANE_TRACK_AUTOKEY = (1 << 3),
+};
+
 typedef struct MovieReconstructedCamera {
   int framenr;
   float error;
@@ -459,140 +596,3 @@ typedef struct MovieTracking {
   /** Dope-sheet data. */
   MovieTrackingDopesheet dopesheet;
 } MovieTracking;
-
-typedef enum TrackingDistortionModel {
-  TRACKING_DISTORTION_MODEL_POLYNOMIAL = 0,
-  TRACKING_DISTORTION_MODEL_DIVISION = 1,
-  TRACKING_DISTORTION_MODEL_NUKE = 2,
-  TRACKING_DISTORTION_MODEL_BROWN = 3,
-} TrackingDistortionModel;
-
-typedef enum TrackingCameraUnits {
-  CAMERA_UNITS_PX = 0,
-  CAMERA_UNITS_MM = 1,
-} TrackingCameraUnits;
-
-typedef enum TrackingMarkerFlag {
-  MARKER_DISABLED = (1 << 0),
-  MARKER_TRACKED = (1 << 1),
-  MARKER_GRAPH_SEL_X = (1 << 2),
-  MARKER_GRAPH_SEL_Y = (1 << 3),
-  MARKER_GRAPH_SEL = (MARKER_GRAPH_SEL_X | MARKER_GRAPH_SEL_Y),
-} TrackingMarkerFlag;
-
-typedef enum TrackingTrackFlag {
-  TRACK_HAS_BUNDLE = (1 << 1),
-  TRACK_DISABLE_RED = (1 << 2),
-  TRACK_DISABLE_GREEN = (1 << 3),
-  TRACK_DISABLE_BLUE = (1 << 4),
-  TRACK_HIDDEN = (1 << 5),
-  TRACK_LOCKED = (1 << 6),
-  TRACK_CUSTOMCOLOR = (1 << 7),
-  TRACK_USE_2D_STAB = (1 << 8),
-  TRACK_PREVIEW_GRAYSCALE = (1 << 9),
-  TRACK_DOPE_SEL = (1 << 10),
-  TRACK_PREVIEW_ALPHA = (1 << 11),
-  TRACK_USE_2D_STAB_ROT = (1 << 12),
-} TrackingTrackFlag;
-
-typedef enum TrackingMotionModel {
-  TRACK_MOTION_MODEL_TRANSLATION = 0,
-  TRACK_MOTION_MODEL_TRANSLATION_ROTATION = 1,
-  TRACK_MOTION_MODEL_TRANSLATION_SCALE = 2,
-  TRACK_MOTION_MODEL_TRANSLATION_ROTATION_SCALE = 3,
-  TRACK_MOTION_MODEL_AFFINE = 4,
-  TRACK_MOTION_MODEL_HOMOGRAPHY = 5,
-} TrackingMotionModel;
-
-typedef enum TrackingAlgorithmFlag {
-  TRACK_ALGORITHM_FLAG_USE_BRUTE = (1 << 0),
-  TRACK_ALGORITHM_FLAG_USE_NORMALIZATION = (1 << 2),
-  TRACK_ALGORITHM_FLAG_USE_MASK = (1 << 3),
-} TrackingAlgorithmFlag;
-
-typedef enum eTrackFrameMatch {
-  TRACK_MATCH_KEYFRAME = 0,
-  TRACK_MATCH_PREVIOUS_FRAME = 1,
-} eTrackFrameMatch;
-
-typedef enum TrackingMotionFlag {
-  TRACKING_MOTION_TRIPOD = (1 << 0),
-  TRACKING_MOTION_MODAL = (TRACKING_MOTION_TRIPOD),
-} TrackingMotionFlag;
-
-typedef enum TrackingSpeed {
-  TRACKING_SPEED_FASTEST = 0,
-  TRACKING_SPEED_REALTIME = 1,
-  TRACKING_SPEED_HALF = 2,
-  TRACKING_SPEED_QUARTER = 4,
-  TRACKING_SPEED_DOUBLE = 5,
-} TrackingSpeed;
-
-typedef enum TrackingSettingsReconstructionFlag {
-  /* TRACKING_USE_FALLBACK_RECONSTRUCTION = (1 << 0), */ /* DEPRECATED */
-  TRACKING_USE_KEYFRAME_SELECTION = (1 << 1),
-} TrackingSettingsReconstructionFlag;
-
-typedef enum TrackingRefineCameraFlag {
-  REFINE_NO_INTRINSICS = (0),
-
-  REFINE_FOCAL_LENGTH = (1 << 0),
-  REFINE_PRINCIPAL_POINT = (1 << 1),
-  REFINE_RADIAL_DISTORTION = (1 << 2),
-  REFINE_TANGENTIAL_DISTORTION = (1 << 3),
-} TrackingRefineCameraFlag;
-ENUM_OPERATORS(TrackingRefineCameraFlag);
-
-typedef enum TrackingStabilizationFlag {
-  TRACKING_2D_STABILIZATION = (1 << 0),
-  TRACKING_AUTOSCALE = (1 << 1),
-  TRACKING_STABILIZE_ROTATION = (1 << 2),
-  TRACKING_STABILIZE_SCALE = (1 << 3),
-  TRACKING_SHOW_STAB_TRACKS = (1 << 5),
-} TrackingStabilizationFlag;
-
-typedef enum TrackingStabilizationFilter {
-  TRACKING_FILTER_NEAREST = 0,
-  TRACKING_FILTER_BILINEAR = 1,
-  TRACKING_FILTER_BICUBIC = 2,
-} TrackingStabilizationFilter;
-
-typedef enum TrackingReconstructionFlag {
-  TRACKING_RECONSTRUCTED = (1 << 0),
-} TrackingReconstructionFlag;
-
-typedef enum TrackingObjectFlag {
-  TRACKING_OBJECT_CAMERA = (1 << 0),
-} TrackingObjectFlag;
-
-typedef enum TrackingDopesheetSort {
-  TRACKING_DOPE_SORT_NAME = 0,
-  TRACKING_DOPE_SORT_LONGEST = 1,
-  TRACKING_DOPE_SORT_TOTAL = 2,
-  TRACKING_DOPE_SORT_AVERAGE_ERROR = 3,
-  TRACKING_DOPE_SORT_START = 4,
-  TRACKING_DOPE_SORT_END = 5,
-} TrackingDopesheetSort;
-
-typedef enum TrackingDopesheetFlag {
-  TRACKING_DOPE_SORT_INVERSE = (1 << 0),
-  TRACKING_DOPE_SELECTED_ONLY = (1 << 1),
-  TRACKING_DOPE_SHOW_HIDDEN = (1 << 2),
-} TrackingDopesheetFlag;
-
-typedef enum TrackingCoverage {
-  TRACKING_COVERAGE_BAD = 0,
-  TRACKING_COVERAGE_ACCEPTABLE = 1,
-  TRACKING_COVERAGE_OK = 2,
-} TrackingCoverage;
-
-typedef enum TrackingPlaneMarkerFlag {
-  PLANE_MARKER_DISABLED = (1 << 0),
-  PLANE_MARKER_TRACKED = (1 << 1),
-} TrackingPlaneMarkerFlag;
-
-typedef enum TrackingPlaneTrackFlag {
-  PLANE_TRACK_HIDDEN = (1 << 1),
-  PLANE_TRACK_LOCKED = (1 << 2),
-  PLANE_TRACK_AUTOKEY = (1 << 3),
-} TrackingPlaneTrackFlag;

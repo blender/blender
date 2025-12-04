@@ -25,18 +25,6 @@ struct MTex;
 struct Object;
 struct bNodeTree;
 
-typedef struct LineStyleModifier {
-  DNA_DEFINE_CXX_METHODS(LineStyleModifier)
-
-  struct LineStyleModifier *next, *prev;
-
-  char name[/*MAX_NAME*/ 64];
-  int type;
-  float influence;
-  int flags;
-  int blend;
-} LineStyleModifier;
-
 /** #LineStyleModifier::type */
 enum {
   LS_MODIFIER_ALONG_STROKE = 1,
@@ -98,6 +86,128 @@ enum {
   LS_VALUE_MIN = 6,
   LS_VALUE_MAX = 7,
 };
+
+/* mat_attr */
+enum {
+  LS_MODIFIER_MATERIAL_DIFF = 1,
+  LS_MODIFIER_MATERIAL_DIFF_R = 2,
+  LS_MODIFIER_MATERIAL_DIFF_G = 3,
+  LS_MODIFIER_MATERIAL_DIFF_B = 4,
+  LS_MODIFIER_MATERIAL_SPEC = 5,
+  LS_MODIFIER_MATERIAL_SPEC_R = 6,
+  LS_MODIFIER_MATERIAL_SPEC_G = 7,
+  LS_MODIFIER_MATERIAL_SPEC_B = 8,
+  LS_MODIFIER_MATERIAL_SPEC_HARD = 9,
+  LS_MODIFIER_MATERIAL_ALPHA = 10,
+  LS_MODIFIER_MATERIAL_LINE = 11,
+  LS_MODIFIER_MATERIAL_LINE_R = 12,
+  LS_MODIFIER_MATERIAL_LINE_G = 13,
+  LS_MODIFIER_MATERIAL_LINE_B = 14,
+  LS_MODIFIER_MATERIAL_LINE_A = 15,
+};
+
+/** #LineStyleGeometryModifier_SpatialNoise::flags */
+enum {
+  LS_MODIFIER_SPATIAL_NOISE_SMOOTH = 1,
+  LS_MODIFIER_SPATIAL_NOISE_PURERANDOM = 2,
+};
+
+/** #LineStyleGeometryModifier_BluePrintLines::shape */
+enum {
+  LS_MODIFIER_BLUEPRINT_CIRCLES = 1,
+  LS_MODIFIER_BLUEPRINT_ELLIPSES = 2,
+  LS_MODIFIER_BLUEPRINT_SQUARES = 4,
+};
+
+/** #LineStyleGeometryModifier_2DTransform::pivot */
+enum {
+  LS_MODIFIER_2D_TRANSFORM_PIVOT_CENTER = 1,
+  LS_MODIFIER_2D_TRANSFORM_PIVOT_START = 2,
+  LS_MODIFIER_2D_TRANSFORM_PIVOT_END = 3,
+  LS_MODIFIER_2D_TRANSFORM_PIVOT_PARAM = 4,
+  LS_MODIFIER_2D_TRANSFORM_PIVOT_ABSOLUTE = 5,
+};
+
+/** #FreestyleLineStyle::panel */
+enum {
+  LS_PANEL_STROKES = 1,
+  LS_PANEL_COLOR = 2,
+  LS_PANEL_ALPHA = 3,
+  LS_PANEL_THICKNESS = 4,
+  LS_PANEL_GEOMETRY = 5,
+  LS_PANEL_TEXTURE = 6,
+  LS_PANEL_MISC = 7,
+};
+
+/** #FreestyleLineStyle::flag */
+enum {
+  LS_DS_EXPAND = 1 << 0, /* for animation editors */
+  LS_SAME_OBJECT = 1 << 1,
+  LS_DASHED_LINE = 1 << 2,
+  LS_MATERIAL_BOUNDARY = 1 << 3,
+  LS_MIN_2D_LENGTH = 1 << 4,
+  LS_MAX_2D_LENGTH = 1 << 5,
+  LS_NO_CHAINING = 1 << 6,
+  LS_MIN_2D_ANGLE = 1 << 7,
+  LS_MAX_2D_ANGLE = 1 << 8,
+  LS_SPLIT_LENGTH = 1 << 9,
+  LS_SPLIT_PATTERN = 1 << 10,
+  LS_NO_SORTING = 1 << 11,
+  LS_REVERSE_ORDER = 1 << 12, /* for sorting */
+  LS_TEXTURE = 1 << 13,
+  LS_CHAIN_COUNT = 1 << 14,
+};
+
+/** #FreestyleLineStyle::chaining */
+enum {
+  LS_CHAINING_PLAIN = 1,
+  LS_CHAINING_SKETCHY = 2,
+};
+
+/** #FreestyleLineStyle::caps */
+enum {
+  LS_CAPS_BUTT = 1,
+  LS_CAPS_ROUND = 2,
+  LS_CAPS_SQUARE = 3,
+};
+
+/** #FreestyleLineStyle::thickness_position */
+enum {
+  LS_THICKNESS_CENTER = 1,
+  LS_THICKNESS_INSIDE = 2,
+  LS_THICKNESS_OUTSIDE = 3,
+  /** Thickness_ratio is used. */
+  LS_THICKNESS_RELATIVE = 4,
+};
+
+/** #FreestyleLineStyle::sort_key */
+enum {
+  LS_SORT_KEY_DISTANCE_FROM_CAMERA = 1,
+  LS_SORT_KEY_2D_LENGTH = 2,
+  LS_SORT_KEY_PROJECTED_X = 3,
+  LS_SORT_KEY_PROJECTED_Y = 4,
+};
+
+/** #FreestyleLineStyle::integration_type */
+enum {
+  LS_INTEGRATION_MEAN = 1,
+  LS_INTEGRATION_MIN = 2,
+  LS_INTEGRATION_MAX = 3,
+  LS_INTEGRATION_FIRST = 4,
+  LS_INTEGRATION_LAST = 5,
+};
+
+typedef struct LineStyleModifier {
+  DNA_DEFINE_CXX_METHODS(LineStyleModifier)
+
+  struct LineStyleModifier *next, *prev;
+
+  char name[/*MAX_NAME*/ 64];
+  int type;
+  float influence;
+  int flags;
+  int blend;
+} LineStyleModifier;
 
 /* Along Stroke modifiers */
 
@@ -337,25 +447,6 @@ typedef struct LineStyleThicknessModifier_Tangent {
 
 /* Material modifiers */
 
-/* mat_attr */
-enum {
-  LS_MODIFIER_MATERIAL_DIFF = 1,
-  LS_MODIFIER_MATERIAL_DIFF_R = 2,
-  LS_MODIFIER_MATERIAL_DIFF_G = 3,
-  LS_MODIFIER_MATERIAL_DIFF_B = 4,
-  LS_MODIFIER_MATERIAL_SPEC = 5,
-  LS_MODIFIER_MATERIAL_SPEC_R = 6,
-  LS_MODIFIER_MATERIAL_SPEC_G = 7,
-  LS_MODIFIER_MATERIAL_SPEC_B = 8,
-  LS_MODIFIER_MATERIAL_SPEC_HARD = 9,
-  LS_MODIFIER_MATERIAL_ALPHA = 10,
-  LS_MODIFIER_MATERIAL_LINE = 11,
-  LS_MODIFIER_MATERIAL_LINE_R = 12,
-  LS_MODIFIER_MATERIAL_LINE_G = 13,
-  LS_MODIFIER_MATERIAL_LINE_B = 14,
-  LS_MODIFIER_MATERIAL_LINE_A = 15,
-};
-
 typedef struct LineStyleColorModifier_Material {
   DNA_DEFINE_CXX_METHODS(LineStyleColorModifier_Material)
 
@@ -415,12 +506,6 @@ typedef struct LineStyleGeometryModifier_SinusDisplacement {
   float wavelength, amplitude, phase;
   char _pad[4];
 } LineStyleGeometryModifier_SinusDisplacement;
-
-/** #LineStyleGeometryModifier_SpatialNoise::flags */
-enum {
-  LS_MODIFIER_SPATIAL_NOISE_SMOOTH = 1,
-  LS_MODIFIER_SPATIAL_NOISE_PURERANDOM = 2,
-};
 
 typedef struct LineStyleGeometryModifier_SpatialNoise {
   DNA_DEFINE_CXX_METHODS(LineStyleGeometryModifier_SpatialNoise)
@@ -494,13 +579,6 @@ typedef struct LineStyleGeometryModifier_GuidingLines {
   char _pad[4];
 } LineStyleGeometryModifier_GuidingLines;
 
-/** #LineStyleGeometryModifier_BluePrintLines::shape */
-enum {
-  LS_MODIFIER_BLUEPRINT_CIRCLES = 1,
-  LS_MODIFIER_BLUEPRINT_ELLIPSES = 2,
-  LS_MODIFIER_BLUEPRINT_SQUARES = 4,
-};
-
 typedef struct LineStyleGeometryModifier_Blueprint {
   DNA_DEFINE_CXX_METHODS(LineStyleGeometryModifier_Blueprint)
 
@@ -522,15 +600,6 @@ typedef struct LineStyleGeometryModifier_2DOffset {
   float start, end;
   float x, y;
 } LineStyleGeometryModifier_2DOffset;
-
-/** #LineStyleGeometryModifier_2DTransform::pivot */
-enum {
-  LS_MODIFIER_2D_TRANSFORM_PIVOT_CENTER = 1,
-  LS_MODIFIER_2D_TRANSFORM_PIVOT_START = 2,
-  LS_MODIFIER_2D_TRANSFORM_PIVOT_END = 3,
-  LS_MODIFIER_2D_TRANSFORM_PIVOT_PARAM = 4,
-  LS_MODIFIER_2D_TRANSFORM_PIVOT_ABSOLUTE = 5,
-};
 
 typedef struct LineStyleGeometryModifier_2DTransform {
   DNA_DEFINE_CXX_METHODS(LineStyleGeometryModifier_2DTransform)
@@ -567,75 +636,6 @@ typedef struct LineStyleThicknessModifier_Calligraphy {
   float orientation;
   char _pad[4];
 } LineStyleThicknessModifier_Calligraphy;
-
-/** #FreestyleLineStyle::panel */
-enum {
-  LS_PANEL_STROKES = 1,
-  LS_PANEL_COLOR = 2,
-  LS_PANEL_ALPHA = 3,
-  LS_PANEL_THICKNESS = 4,
-  LS_PANEL_GEOMETRY = 5,
-  LS_PANEL_TEXTURE = 6,
-  LS_PANEL_MISC = 7,
-};
-
-/** #FreestyleLineStyle::flag */
-enum {
-  LS_DS_EXPAND = 1 << 0, /* for animation editors */
-  LS_SAME_OBJECT = 1 << 1,
-  LS_DASHED_LINE = 1 << 2,
-  LS_MATERIAL_BOUNDARY = 1 << 3,
-  LS_MIN_2D_LENGTH = 1 << 4,
-  LS_MAX_2D_LENGTH = 1 << 5,
-  LS_NO_CHAINING = 1 << 6,
-  LS_MIN_2D_ANGLE = 1 << 7,
-  LS_MAX_2D_ANGLE = 1 << 8,
-  LS_SPLIT_LENGTH = 1 << 9,
-  LS_SPLIT_PATTERN = 1 << 10,
-  LS_NO_SORTING = 1 << 11,
-  LS_REVERSE_ORDER = 1 << 12, /* for sorting */
-  LS_TEXTURE = 1 << 13,
-  LS_CHAIN_COUNT = 1 << 14,
-};
-
-/** #FreestyleLineStyle::chaining */
-enum {
-  LS_CHAINING_PLAIN = 1,
-  LS_CHAINING_SKETCHY = 2,
-};
-
-/** #FreestyleLineStyle::caps */
-enum {
-  LS_CAPS_BUTT = 1,
-  LS_CAPS_ROUND = 2,
-  LS_CAPS_SQUARE = 3,
-};
-
-/** #FreestyleLineStyle::thickness_position */
-enum {
-  LS_THICKNESS_CENTER = 1,
-  LS_THICKNESS_INSIDE = 2,
-  LS_THICKNESS_OUTSIDE = 3,
-  /** Thickness_ratio is used. */
-  LS_THICKNESS_RELATIVE = 4,
-};
-
-/** #FreestyleLineStyle::sort_key */
-enum {
-  LS_SORT_KEY_DISTANCE_FROM_CAMERA = 1,
-  LS_SORT_KEY_2D_LENGTH = 2,
-  LS_SORT_KEY_PROJECTED_X = 3,
-  LS_SORT_KEY_PROJECTED_Y = 4,
-};
-
-/** #FreestyleLineStyle::integration_type */
-enum {
-  LS_INTEGRATION_MEAN = 1,
-  LS_INTEGRATION_MIN = 2,
-  LS_INTEGRATION_MAX = 3,
-  LS_INTEGRATION_FIRST = 4,
-  LS_INTEGRATION_LAST = 5,
-};
 
 typedef struct FreestyleLineStyle {
 #ifdef __cplusplus

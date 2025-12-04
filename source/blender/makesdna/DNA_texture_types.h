@@ -22,152 +22,6 @@ struct PreviewImage;
 struct Tex;
 
 /* -------------------------------------------------------------------- */
-/** \name #MTex
- * \{ */
-
-typedef struct MTex {
-  DNA_DEFINE_CXX_METHODS(MTex)
-
-  short texco, mapto, blendtype;
-  char _pad2[2];
-  struct Object *object;
-  struct Tex *tex;
-  char uvname[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
-
-  char projx, projy, projz, mapping;
-  char brush_map_mode, brush_angle_mode;
-
-  /**
-   * Match against the texture node (#TEX_NODE_OUTPUT, #bNode::custom1 value).
-   * otherwise zero when unspecified (default).
-   */
-  short which_output;
-
-  float ofs[3], size[3], rot, random_angle;
-
-  float r, g, b, k;
-  float def_var;
-
-  /* common */
-  float colfac;
-  float alphafac;
-
-  /* particles */
-  float timefac, lengthfac, clumpfac, dampfac;
-  float kinkfac, kinkampfac, roughfac, padensfac, gravityfac;
-  float lifefac, sizefac, ivelfac, fieldfac;
-  float twistfac;
-} MTex;
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name #Tex
- * \{ */
-
-typedef struct Tex_Runtime {
-  /* The Depsgraph::update_count when this ID was last updated. Covers any IDRecalcFlag. */
-  uint64_t last_update;
-} Tex_Runtime;
-
-typedef struct Tex {
-#ifdef __cplusplus
-  DNA_DEFINE_CXX_METHODS(Tex)
-  /** See #ID_Type comment for why this is here. */
-  static constexpr ID_Type id_type = ID_TE;
-#endif
-
-  ID id;
-  /** Animation data (must be immediately after id for utilities to use it). */
-  struct AnimData *adt;
-
-  void *_pad3;
-
-  float noisesize, turbul;
-  float bright, contrast, saturation, rfac, gfac, bfac;
-  float filtersize;
-
-  /* newnoise: musgrave parameters */
-  float mg_H, mg_lacunarity, mg_octaves, mg_offset, mg_gain;
-
-  /* newnoise: distorted noise amount, musgrave & voronoi output scale */
-  float dist_amount, ns_outscale;
-
-  /* newnoise: voronoi nearest neighbor weights, minkovsky exponent,
-   * distance metric & color type */
-  float vn_w1;
-  float vn_w2;
-  float vn_w3;
-  float vn_w4;
-  float vn_mexp;
-  short vn_distm, vn_coltype;
-
-  /* noisedepth MUST be <= 30 else we get floating point exceptions */
-  short noisedepth, noisetype;
-
-  /* newnoise: noisebasis type for clouds/marble/etc, noisebasis2 only used for distorted noise */
-  short noisebasis, noisebasis2;
-
-  short imaflag, flag;
-  short type, stype;
-
-  float cropxmin, cropymin, cropxmax, cropymax;
-  short xrepeat, yrepeat;
-  short extend;
-
-  /* Variables only used for versioning, moved to struct member `iuser`. */
-  short _pad0;
-  int len DNA_DEPRECATED;
-  int frames DNA_DEPRECATED;
-  int offset DNA_DEPRECATED;
-  int sfra DNA_DEPRECATED;
-
-  float checkerdist, nabla;
-
-  struct ImageUser iuser;
-
-  struct bNodeTree *nodetree;
-  struct Image *ima;
-  struct ColorBand *coba;
-  struct PreviewImage *preview;
-
-  char use_nodes;
-  char _pad[7];
-
-  Tex_Runtime runtime;
-} Tex;
-
-/** Used for mapping and texture nodes. */
-typedef struct TexMapping {
-  float loc[3];
-  /** Rotation in radians. */
-  float rot[3];
-  float size[3];
-  int flag;
-  char projx, projy, projz, mapping;
-  int type;
-
-  float mat[4][4];
-  float min[3], max[3];
-  struct Object *ob;
-
-} TexMapping;
-
-typedef struct ColorMapping {
-  struct ColorBand coba;
-
-  float bright, contrast, saturation;
-  int flag;
-
-  float blend_color[3];
-  float blend_factor;
-  int blend_type;
-  char _pad[4];
-} ColorMapping;
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name #TexMapping Types
  * \{ */
 
@@ -337,6 +191,12 @@ enum {
   TEX_WALLOUT = 2,
 };
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #TexMapping Types
+ * \{ */
+
 /** #Tex::vn_coltype voronoi color types. */
 enum {
   TEX_INTENSITY = 0,
@@ -362,12 +222,6 @@ enum {
   TEX_PR_OTHER = 1,
   TEX_PR_BOTH = 2,
 };
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name #TexMapping Types
- * \{ */
 
 /**
  * #TexMapping::projx
@@ -430,5 +284,151 @@ enum {
   MTEX_ANGLE_RANDOM = 1,
   MTEX_ANGLE_RAKE = 2,
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #MTex
+ * \{ */
+
+typedef struct MTex {
+  DNA_DEFINE_CXX_METHODS(MTex)
+
+  short texco, mapto, blendtype;
+  char _pad2[2];
+  struct Object *object;
+  struct Tex *tex;
+  char uvname[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
+
+  char projx, projy, projz, mapping;
+  char brush_map_mode, brush_angle_mode;
+
+  /**
+   * Match against the texture node (#TEX_NODE_OUTPUT, #bNode::custom1 value).
+   * otherwise zero when unspecified (default).
+   */
+  short which_output;
+
+  float ofs[3], size[3], rot, random_angle;
+
+  float r, g, b, k;
+  float def_var;
+
+  /* common */
+  float colfac;
+  float alphafac;
+
+  /* particles */
+  float timefac, lengthfac, clumpfac, dampfac;
+  float kinkfac, kinkampfac, roughfac, padensfac, gravityfac;
+  float lifefac, sizefac, ivelfac, fieldfac;
+  float twistfac;
+} MTex;
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #Tex
+ * \{ */
+
+typedef struct Tex_Runtime {
+  /* The Depsgraph::update_count when this ID was last updated. Covers any IDRecalcFlag. */
+  uint64_t last_update;
+} Tex_Runtime;
+
+typedef struct Tex {
+#ifdef __cplusplus
+  DNA_DEFINE_CXX_METHODS(Tex)
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_TE;
+#endif
+
+  ID id;
+  /** Animation data (must be immediately after id for utilities to use it). */
+  struct AnimData *adt;
+
+  void *_pad3;
+
+  float noisesize, turbul;
+  float bright, contrast, saturation, rfac, gfac, bfac;
+  float filtersize;
+
+  /* newnoise: musgrave parameters */
+  float mg_H, mg_lacunarity, mg_octaves, mg_offset, mg_gain;
+
+  /* newnoise: distorted noise amount, musgrave & voronoi output scale */
+  float dist_amount, ns_outscale;
+
+  /* newnoise: voronoi nearest neighbor weights, minkovsky exponent,
+   * distance metric & color type */
+  float vn_w1;
+  float vn_w2;
+  float vn_w3;
+  float vn_w4;
+  float vn_mexp;
+  short vn_distm, vn_coltype;
+
+  /* noisedepth MUST be <= 30 else we get floating point exceptions */
+  short noisedepth, noisetype;
+
+  /* newnoise: noisebasis type for clouds/marble/etc, noisebasis2 only used for distorted noise */
+  short noisebasis, noisebasis2;
+
+  short imaflag, flag;
+  short type, stype;
+
+  float cropxmin, cropymin, cropxmax, cropymax;
+  short xrepeat, yrepeat;
+  short extend;
+
+  /* Variables only used for versioning, moved to struct member `iuser`. */
+  short _pad0;
+  int len DNA_DEPRECATED;
+  int frames DNA_DEPRECATED;
+  int offset DNA_DEPRECATED;
+  int sfra DNA_DEPRECATED;
+
+  float checkerdist, nabla;
+
+  struct ImageUser iuser;
+
+  struct bNodeTree *nodetree;
+  struct Image *ima;
+  struct ColorBand *coba;
+  struct PreviewImage *preview;
+
+  char use_nodes;
+  char _pad[7];
+
+  Tex_Runtime runtime;
+} Tex;
+
+/** Used for mapping and texture nodes. */
+typedef struct TexMapping {
+  float loc[3];
+  /** Rotation in radians. */
+  float rot[3];
+  float size[3];
+  int flag;
+  char projx, projy, projz, mapping;
+  int type;
+
+  float mat[4][4];
+  float min[3], max[3];
+  struct Object *ob;
+
+} TexMapping;
+
+typedef struct ColorMapping {
+  struct ColorBand coba;
+
+  float bright, contrast, saturation;
+  int flag;
+
+  float blend_color[3];
+  float blend_factor;
+  int blend_type;
+  char _pad[4];
+} ColorMapping;
 
 /** \} */

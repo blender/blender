@@ -47,7 +47,9 @@ namespace blender::asset_system {
 class AssetRepresentation;
 }
 using AssetRepresentationHandle = blender::asset_system::AssetRepresentation;
+
 #else
+
 typedef struct AssetRepresentationHandle AssetRepresentationHandle;
 #endif
 
@@ -61,6 +63,7 @@ struct SpaceNode_Runtime;
 using SpaceNode_Runtime = blender::ed::space_node::SpaceNode_Runtime;
 
 namespace blender::ed::outliner {
+
 struct SpaceOutliner_Runtime;
 }  // namespace blender::ed::outliner
 using SpaceOutliner_Runtime = blender::ed::outliner::SpaceOutliner_Runtime;
@@ -71,6 +74,7 @@ struct SpaceSeq_Runtime;
 using SpaceSeq_Runtime = blender::ed::vse::SpaceSeq_Runtime;
 
 namespace blender::ed::text {
+
 struct SpaceText_Runtime;
 }  // namespace blender::ed::text
 using SpaceText_Runtime = blender::ed::text::SpaceText_Runtime;
@@ -80,8 +84,10 @@ struct SpaceSpreadsheet_Runtime;
 struct SpreadsheetColumnRuntime;
 }  // namespace blender::ed::spreadsheet
 using SpaceSpreadsheet_Runtime = blender::ed::spreadsheet::SpaceSpreadsheet_Runtime;
+
 using SpreadsheetColumnRuntime = blender::ed::spreadsheet::SpreadsheetColumnRuntime;
 #else
+
 typedef struct SpaceNode_Runtime SpaceNode_Runtime;
 typedef struct SpaceOutliner_Runtime SpaceOutliner_Runtime;
 typedef struct SpaceSeq_Runtime SpaceSeq_Runtime;
@@ -774,7 +780,7 @@ typedef struct Script {
 } Script;
 #define SCRIPT_SET_NULL(_script) \
   _script->py_draw = _script->py_event = _script->py_button = _script->py_browsercallback = \
-      _script->py_globaldict = NULL; \
+      _script->py_globaldict = nullptr; \
   _script->flags = 0
 
 /** Script View - Obsolete (pre 2.5). */
@@ -1084,6 +1090,12 @@ typedef struct SpaceStatusBar {
 /** \name Spreadsheet
  * \{ */
 
+enum SpreadsheetClosureInputOutput {
+  SPREADSHEET_CLOSURE_NONE = 0,
+  SPREADSHEET_CLOSURE_INPUT = 1,
+  SPREADSHEET_CLOSURE_OUTPUT = 2,
+};
+
 typedef struct SpreadsheetColumnID {
   char *name;
 } SpreadsheetColumnID;
@@ -1151,12 +1163,6 @@ typedef struct SpreadsheetBundlePathElem {
   friend bool operator!=(const SpreadsheetBundlePathElem &a, const SpreadsheetBundlePathElem &b);
 #endif
 } SpreadsheetBundlePathElem;
-
-typedef enum SpreadsheetClosureInputOutput {
-  SPREADSHEET_CLOSURE_NONE = 0,
-  SPREADSHEET_CLOSURE_INPUT = 1,
-  SPREADSHEET_CLOSURE_OUTPUT = 2,
-} SpreadsheetClosureInputOutput;
 
 typedef struct SpreadsheetTableIDGeometry {
   SpreadsheetTableID base;

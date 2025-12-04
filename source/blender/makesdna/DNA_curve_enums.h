@@ -141,35 +141,35 @@ enum {
 /* *************** BEZTRIPLE **************** */
 
 /** #BezTriple.f1, #BezTriple.f2, #BezTriple.f3. */
-typedef enum eBezTriple_Flag {
+enum eBezTriple_Flag {
   /* `SELECT = (1 << 0)` */
   BEZT_FLAG_TEMP_TAG = (1 << 1), /* always clear. */
   /* Can be used to ignore keyframe points for certain operations. */
   BEZT_FLAG_IGNORE_TAG = (1 << 2),
-} eBezTriple_Flag;
+};
 
 /* h1 h2 (beztriple) */
-typedef enum eBezTriple_Handle {
+enum eBezTriple_Handle {
   HD_FREE = 0,
   HD_AUTO = 1,
   HD_VECT = 2,
   HD_ALIGN = 3,
   HD_AUTO_ANIM = 4,        /* auto-clamped handles for animation */
   HD_ALIGN_DOUBLESIDE = 5, /* align handles, displayed both of them. used for masks */
-} eBezTriple_Handle;
+};
 
 /* auto_handle_type (beztriple) */
-typedef enum eBezTriple_Auto_Type {
+enum eBezTriple_Auto_Type {
   /* Normal automatic handle that can be refined further. */
   HD_AUTOTYPE_NORMAL = 0,
   /* Handle locked horizontal due to being an Auto Clamped local
    * extreme or a curve endpoint with Constant extrapolation.
    * Further smoothing is disabled. */
   HD_AUTOTYPE_LOCKED_FINAL = 1,
-} eBezTriple_Auto_Type;
+};
 
 /* interpolation modes (used only for BezTriple->ipo) */
-typedef enum eBezTriple_Interpolation {
+enum eBezTriple_Interpolation {
   /* traditional interpolation */
   BEZT_IPO_CONST = 0, /* constant interpolation */
   BEZT_IPO_LIN = 1,   /* linear interpolation */
@@ -186,19 +186,19 @@ typedef enum eBezTriple_Interpolation {
   BEZT_IPO_QUART = 10,
   BEZT_IPO_QUINT = 11,
   BEZT_IPO_SINE = 12,
-} eBezTriple_Interpolation;
+};
 
 /* easing modes (used only for Keyframes - BezTriple->easing) */
-typedef enum eBezTriple_Easing {
+enum eBezTriple_Easing {
   BEZT_IPO_EASE_AUTO = 0,
 
   BEZT_IPO_EASE_IN = 1,
   BEZT_IPO_EASE_OUT = 2,
   BEZT_IPO_EASE_IN_OUT = 3,
-} eBezTriple_Easing;
+};
 
 /* types of keyframe (used only for BezTriple->hide when BezTriple is used in F-Curves) */
-typedef enum eBezTriple_KeyframeType {
+enum eBezTriple_KeyframeType {
   BEZT_KEYTYPE_KEYFRAME = 0,  /* default - 'proper' Keyframe */
   BEZT_KEYTYPE_EXTREME = 1,   /* 'extreme' keyframe */
   BEZT_KEYTYPE_BREAKDOWN = 2, /* 'breakdown' keyframe */
@@ -209,7 +209,7 @@ typedef enum eBezTriple_KeyframeType {
    * and the tool re-run.
    */
   BEZT_KEYTYPE_GENERATED = 5,
-} eBezTriple_KeyframeType;
+};
 
 /* *************** CHARINFO **************** */
 

@@ -51,6 +51,7 @@ namespace blender::bke {
 struct RuntimeNodeEnumItems;
 }  // namespace blender::bke
 using bNodeTreeRuntimeHandle = blender::bke::bNodeTreeRuntime;
+
 using bNodeRuntimeHandle = blender::bke::bNodeRuntime;
 using bNodeSocketRuntimeHandle = blender::bke::bNodeSocketRuntime;
 using RuntimeNodeEnumItemsHandle = blender::bke::RuntimeNodeEnumItems;
@@ -58,6 +59,7 @@ using bNodeTreeTypeHandle = blender::bke::bNodeTreeType;
 using bNodeTypeHandle = blender::bke::bNodeType;
 using bNodeSocketTypeHandle = blender::bke::bNodeSocketType;
 #else
+
 typedef struct bNodeTreeRuntimeHandle bNodeTreeRuntimeHandle;
 typedef struct bNodeRuntimeHandle bNodeRuntimeHandle;
 typedef struct bNodeSocketRuntimeHandle bNodeSocketRuntimeHandle;
@@ -85,6 +87,1273 @@ struct NodeEnumDefinition;
 
 #define NODE_MAXSTR 64
 
+/** #bNodeStack.datatype (shade-tree only). */
+enum {
+  NS_OSA_VECTORS = 1,
+  NS_OSA_VALUES = 2,
+};
+
+/* node socket/node socket type -b conversion rules */
+enum {
+  NS_CR_CENTER = 0,
+  NS_CR_NONE = 1,
+  NS_CR_FIT_WIDTH = 2,
+  NS_CR_FIT_HEIGHT = 3,
+  NS_CR_FIT = 4,
+  NS_CR_STRETCH = 5,
+};
+
+/** #bNodeSocket.type & #bNodeSocketType.type */
+enum eNodeSocketDatatype {
+  SOCK_CUSTOM = -1, /* socket has no integer type */
+  SOCK_FLOAT = 0,
+  SOCK_VECTOR = 1,
+  SOCK_RGBA = 2,
+  SOCK_SHADER = 3,
+  SOCK_BOOLEAN = 4,
+  SOCK_INT = 6,
+  SOCK_STRING = 7,
+  SOCK_OBJECT = 8,
+  SOCK_IMAGE = 9,
+  SOCK_GEOMETRY = 10,
+  SOCK_COLLECTION = 11,
+  SOCK_TEXTURE = 12,
+  SOCK_MATERIAL = 13,
+  SOCK_ROTATION = 14,
+  SOCK_MENU = 15,
+  SOCK_MATRIX = 16,
+  SOCK_BUNDLE = 17,
+  SOCK_CLOSURE = 18,
+  SOCK_FONT = 19,
+  SOCK_SCENE = 20,
+  /** Has _ID suffix to avoid using it instead of SOCK_STRING accidentally. */
+  SOCK_TEXT_ID = 21,
+  SOCK_MASK = 22,
+  SOCK_SOUND = 23,
+};
+
+/** Socket shape. */
+enum eNodeSocketDisplayShape {
+  SOCK_DISPLAY_SHAPE_CIRCLE = 0,
+  SOCK_DISPLAY_SHAPE_SQUARE = 1,
+  SOCK_DISPLAY_SHAPE_DIAMOND = 2,
+  SOCK_DISPLAY_SHAPE_CIRCLE_DOT = 3,
+  SOCK_DISPLAY_SHAPE_SQUARE_DOT = 4,
+  SOCK_DISPLAY_SHAPE_DIAMOND_DOT = 5,
+  SOCK_DISPLAY_SHAPE_LINE = 6,
+  SOCK_DISPLAY_SHAPE_VOLUME_GRID = 7,
+  SOCK_DISPLAY_SHAPE_LIST = 8,
+};
+
+/** Socket side (input/output). */
+enum eNodeSocketInOut {
+  SOCK_IN = 1 << 0,
+  SOCK_OUT = 1 << 1,
+};
+ENUM_OPERATORS(eNodeSocketInOut);
+
+/** #bNodeSocket.flag, first bit is selection. */
+enum eNodeSocketFlag {
+  /** Hidden is user defined, to hide unused sockets. */
+  SOCK_HIDDEN = (1 << 1),
+  /** For quick check if socket is linked. */
+  SOCK_IS_LINKED = (1 << 2),
+  /** Unavailable is for dynamic sockets. */
+  SOCK_UNAVAIL = (1 << 3),
+  SOCK_GIZMO_PIN = (1 << 4),
+  // /** DEPRECATED  group socket should not be exposed */
+  // SOCK_INTERNAL = (1 << 5),
+  /** Socket collapsed in UI. */
+  SOCK_COLLAPSED = (1 << 6),
+  /** Hide socket value, if it gets auto default. */
+  SOCK_HIDE_VALUE = (1 << 7),
+  /** Socket hidden automatically, to distinguish from manually hidden. */
+  SOCK_AUTO_HIDDEN__DEPRECATED = (1 << 8),
+  /** Not used anymore but may still be set in files. */
+  SOCK_NO_INTERNAL_LINK_LEGACY = (1 << 9),
+  /** Not used anymore but may still be set in files. */
+  SOCK_COMPACT_LEGACY = (1 << 10),
+  /** Make the input socket accept multiple incoming links in the UI. */
+  SOCK_MULTI_INPUT = (1 << 11),
+  /** Not used anymore but may still be set in files. */
+  SOCK_HIDE_LABEL_LEGACY = (1 << 12),
+  /**
+   * Only used for geometry nodes. Don't show the socket value in the modifier interface.
+   */
+  SOCK_HIDE_IN_MODIFIER = (1 << 13),
+  /** The panel containing the socket is collapsed. */
+  SOCK_PANEL_COLLAPSED = (1 << 14),
+};
+
+enum eNodePanelFlag {
+  /* Panel is collapsed (user setting). */
+  NODE_PANEL_COLLAPSED = (1 << 0),
+  /* The parent panel is collapsed. */
+  NODE_PANEL_PARENT_COLLAPSED = (1 << 1),
+  /* The panel has visible content. */
+  NODE_PANEL_CONTENT_VISIBLE = (1 << 2),
+};
+
+enum eViewerNodeShortcut {
+  NODE_VIEWER_SHORTCUT_NONE = 0,
+  /* Users can set custom keys to shortcuts,
+   * but shortcuts should always be referred to as enums. */
+  NODE_VIEWER_SHORCTUT_SLOT_1 = 1,
+  NODE_VIEWER_SHORCTUT_SLOT_2 = 2,
+  NODE_VIEWER_SHORCTUT_SLOT_3 = 3,
+  NODE_VIEWER_SHORCTUT_SLOT_4 = 4,
+  NODE_VIEWER_SHORCTUT_SLOT_5 = 5,
+  NODE_VIEWER_SHORCTUT_SLOT_6 = 6,
+  NODE_VIEWER_SHORCTUT_SLOT_7 = 7,
+  NODE_VIEWER_SHORCTUT_SLOT_8 = 8,
+  NODE_VIEWER_SHORCTUT_SLOT_9 = 9
+};
+
+enum NodeWarningPropagation {
+  NODE_WARNING_PROPAGATION_ALL = 0,
+  NODE_WARNING_PROPAGATION_NONE = 1,
+  NODE_WARNING_PROPAGATION_ONLY_ERRORS = 2,
+  NODE_WARNING_PROPAGATION_ONLY_ERRORS_AND_WARNINGS = 3,
+};
+
+/** #bNode::flag */
+enum {
+  NODE_SELECT = 1 << 0,
+  NODE_OPTIONS = 1 << 1,
+  NODE_PREVIEW = 1 << 2,
+  NODE_COLLAPSED = 1 << 3,
+  NODE_ACTIVE = 1 << 4,
+  // NODE_ACTIVE_ID = 1 << 5, /* Deprecated. */
+  /** Used to indicate which group output node is used and which viewer node is active. */
+  NODE_DO_OUTPUT = 1 << 6,
+  // NODE_GROUP_EDIT = 1 << 7, /* Deprecated, dirty. */
+  NODE_TEST = 1 << 8,
+  /** Node is disabled. */
+  NODE_MUTED = 1 << 9,
+  // NODE_CUSTOM_NAME = 1 << 10, /* Deprecated, dirty. */
+  // NODE_CONST_OUTPUT = 1 << 11, /* Deprecated, dirty. */
+  /** Node is always behind others. */
+  NODE_BACKGROUND = 1 << 12,
+  /** Automatic flag for nodes included in transforms */
+  // NODE_TRANSFORM = 1 << 13, /* Deprecated, dirty. */
+
+  /**
+   * Node is active texture.
+   *
+   * NOTE(@ideasman42): take care with this flag since its possible it gets `stuck`
+   * inside/outside the active group - which makes buttons window texture not update,
+   * we try to avoid it by clearing the flag when toggling group editing.
+   */
+  NODE_ACTIVE_TEXTURE = 1 << 14,
+  /** Use a custom color for the node. */
+  NODE_CUSTOM_COLOR = 1 << 15,
+  /**
+   * Node has been initialized
+   * This flag indicates the `node->typeinfo->init` function has been called.
+   * In case of undefined type at creation time this can be delayed until
+   * until the node type is registered.
+   */
+  NODE_INIT = 1 << 16,
+  /** A preview for the data in this node can be displayed in the spreadsheet editor. */
+  // NODE_ACTIVE_PREVIEW = 1 << 18, /* deprecated */
+  /** Active node that is used to paint on. */
+  NODE_ACTIVE_PAINT_CANVAS = 1 << 19,
+};
+
+/** bNode::update */
+enum {
+  /** Associated id data block has changed. */
+  NODE_UPDATE_ID = 1,
+};
+
+/** #bNodeLink::flag */
+enum {
+  /** Node should be inserted on this link on drop. */
+  NODE_LINK_INSERT_TARGET = 1 << 0,
+  /** Link has been successfully validated. */
+  NODE_LINK_VALID = 1 << 1,
+  /** Free test flag, undefined. */
+  NODE_LINK_TEST = 1 << 2,
+  /** Link is highlighted for picking. */
+  NODE_LINK_TEMP_HIGHLIGHT = 1 << 3,
+  /** Link is muted. */
+  NODE_LINK_MUTED = 1 << 4,
+  /**
+   * The dragged node would be inserted here, but this link is ignored because it's not compatible
+   * with the node.
+   */
+  NODE_LINK_INSERT_TARGET_INVALID = 1 << 5,
+};
+
+/** #NodeTree.type, index */
+
+enum {
+  /** Represents #NodeTreeTypeUndefined type. */
+  NTREE_UNDEFINED = -2,
+  /** For dynamically registered custom types. */
+  NTREE_CUSTOM = -1,
+  NTREE_SHADER = 0,
+  NTREE_COMPOSIT = 1,
+  NTREE_TEXTURE = 2,
+  NTREE_GEOMETRY = 3,
+};
+
+/** #NodeTree.flag */
+enum {
+  /** For animation editors. */
+  NTREE_DS_EXPAND = 1 << 0,
+  /** Two pass. */
+  NTREE_UNUSED_2 = 1 << 2, /* cleared */
+  /** Use a border for viewer nodes. */
+  NTREE_VIEWER_BORDER = 1 << 4,
+  /**
+   * Tree is localized copy, free when deleting node groups.
+   * NOTE: DEPRECATED, use (id->tag & ID_TAG_LOCALIZED) instead.
+   */
+  // NTREE_IS_LOCALIZED = 1 << 5,
+};
+
+enum eNodeTreeRuntimeFlag {
+  /** There is a node that references an image with animation. */
+  NTREE_RUNTIME_FLAG_HAS_IMAGE_ANIMATION = 1 << 0,
+  /** There is a material output node in the group. */
+  NTREE_RUNTIME_FLAG_HAS_MATERIAL_OUTPUT = 1 << 1,
+  /** There is a simulation zone in the group. */
+  NTREE_RUNTIME_FLAG_HAS_SIMULATION_ZONE = 1 << 2,
+};
+
+enum GeometryNodeAssetTraitFlag {
+  GEO_NODE_ASSET_TOOL = (1 << 0),
+  GEO_NODE_ASSET_EDIT = (1 << 1),
+  GEO_NODE_ASSET_SCULPT = (1 << 2),
+  GEO_NODE_ASSET_MESH = (1 << 3),
+  GEO_NODE_ASSET_CURVE = (1 << 4),
+  GEO_NODE_ASSET_POINTCLOUD = (1 << 5),
+  GEO_NODE_ASSET_MODIFIER = (1 << 6),
+  GEO_NODE_ASSET_OBJECT = (1 << 7),
+  GEO_NODE_ASSET_WAIT_FOR_CURSOR = (1 << 8),
+  GEO_NODE_ASSET_GREASE_PENCIL = (1 << 9),
+  /* Only used by Grease Pencil for now. */
+  GEO_NODE_ASSET_PAINT = (1 << 10),
+  GEO_NODE_ASSET_HIDE_MODIFIER_MANAGE_PANEL = (1 << 11),
+};
+ENUM_OPERATORS(GeometryNodeAssetTraitFlag);
+
+/* Data structs, for `node->storage`. */
+
+enum CMPNodeMaskType {
+  CMP_NODE_MASKTYPE_ADD = 0,
+  CMP_NODE_MASKTYPE_SUBTRACT = 1,
+  CMP_NODE_MASKTYPE_MULTIPLY = 2,
+  CMP_NODE_MASKTYPE_NOT = 3,
+};
+
+enum CMPNodeDilateErodeMethod {
+  CMP_NODE_DILATE_ERODE_STEP = 0,
+  CMP_NODE_DILATE_ERODE_DISTANCE_THRESHOLD = 1,
+  CMP_NODE_DILATE_ERODE_DISTANCE = 2,
+  CMP_NODE_DILATE_ERODE_DISTANCE_FEATHER = 3,
+};
+
+enum {
+  CMP_NODE_INPAINT_SIMPLE = 0,
+};
+
+enum CMPNodeMaskFlags {
+  /* CMP_NODEFLAG_MASK_AA          = (1 << 0), */ /* DEPRECATED */
+  CMP_NODE_MASK_FLAG_NO_FEATHER = (1 << 1),
+  CMP_NODE_MASK_FLAG_MOTION_BLUR = (1 << 2),
+
+  /** We may want multiple aspect options, exposed as an rna enum. */
+  CMP_NODE_MASK_FLAG_SIZE_FIXED = (1 << 8),
+  CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE = (1 << 9),
+};
+
+/* Glare Node. Stored in NodeGlare.quality. */
+enum CMPNodeGlareQuality {
+  CMP_NODE_GLARE_QUALITY_HIGH = 0,
+  CMP_NODE_GLARE_QUALITY_MEDIUM = 1,
+  CMP_NODE_GLARE_QUALITY_LOW = 2,
+};
+
+enum NodeGeometryViewerItemFlag {
+  /**
+   * Automatically remove the viewer item when there is no link connected to it. This simplifies
+   * working with viewers when one adds and removes values to view all the time.
+   *
+   * This is a flag instead of always being used, because sometimes the user or some script sets up
+   * multiple inputs which shouldn't be deleted immediately. This flag is automatically set when
+   * viewer items are added interactively in the node editor.
+   */
+  NODE_GEO_VIEWER_ITEM_FLAG_AUTO_REMOVE = (1 << 0),
+};
+
+enum NodeClosureFlag {
+  NODE_CLOSURE_FLAG_DEFINE_SIGNATURE = (1 << 0),
+};
+
+enum NodeEvaluateClosureFlag {
+  NODE_EVALUATE_CLOSURE_FLAG_DEFINE_SIGNATURE = (1 << 0),
+};
+
+enum NodeGeometryTransformGizmoFlag {
+  GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_X = 1 << 0,
+  GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_Y = 1 << 1,
+  GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_Z = 1 << 2,
+  GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_X = 1 << 3,
+  GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_Y = 1 << 4,
+  GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_Z = 1 << 5,
+  GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_X = 1 << 6,
+  GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_Y = 1 << 7,
+  GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_Z = 1 << 8,
+};
+
+#define GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_ALL \
+  (GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_X | GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_Y | \
+   GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_Z)
+
+#define GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_ALL \
+  (GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_X | GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_Y | \
+   GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_Z)
+
+#define GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_ALL \
+  (GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_X | GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_Y | \
+   GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_Z)
+
+enum NodeGeometryBakeItemFlag {
+  GEO_NODE_BAKE_ITEM_IS_ATTRIBUTE = (1 << 0),
+};
+
+enum NodeCombineBundleFlag {
+  NODE_COMBINE_BUNDLE_FLAG_DEFINE_SIGNATURE = (1 << 0),
+};
+
+enum NodeSeparateBundleFlag {
+  NODE_SEPARATE_BUNDLE_FLAG_DEFINE_SIGNATURE = (1 << 0),
+};
+
+/* script node mode */
+enum {
+  NODE_SCRIPT_INTERNAL = 0,
+  NODE_SCRIPT_EXTERNAL = 1,
+};
+
+/* script node flag */
+enum {
+  NODE_SCRIPT_AUTO_UPDATE = 1,
+};
+
+/* IES node mode. */
+enum {
+  NODE_IES_INTERNAL = 0,
+  NODE_IES_EXTERNAL = 1,
+};
+
+/* Frame node flags. */
+
+enum {
+  /** Keep the bounding box minimal. */
+  NODE_FRAME_SHRINK = 1,
+  /** Test flag, if frame can be resized by user. */
+  NODE_FRAME_RESIZEABLE = 2,
+};
+
+/* Proxy node flags. */
+
+enum {
+  /** Automatically change output type based on link. */
+  NODE_PROXY_AUTOTYPE = 1,
+};
+
+/* Conductive fresnel types */
+enum {
+  SHD_PHYSICAL_CONDUCTOR = 0,
+  SHD_CONDUCTOR_F82 = 1,
+};
+
+/* glossy distributions */
+enum {
+  SHD_GLOSSY_BECKMANN = 0,
+  SHD_GLOSSY_SHARP_DEPRECATED = 1, /* deprecated */
+  SHD_GLOSSY_GGX = 2,
+  SHD_GLOSSY_ASHIKHMIN_SHIRLEY = 3,
+  SHD_GLOSSY_MULTI_GGX = 4,
+};
+
+/* sheen distributions */
+#define SHD_SHEEN_ASHIKHMIN 0
+#define SHD_SHEEN_MICROFIBER 1
+
+/* vector transform */
+enum {
+  SHD_VECT_TRANSFORM_TYPE_VECTOR = 0,
+  SHD_VECT_TRANSFORM_TYPE_POINT = 1,
+  SHD_VECT_TRANSFORM_TYPE_NORMAL = 2,
+};
+
+enum {
+  SHD_VECT_TRANSFORM_SPACE_WORLD = 0,
+  SHD_VECT_TRANSFORM_SPACE_OBJECT = 1,
+  SHD_VECT_TRANSFORM_SPACE_CAMERA = 2,
+};
+
+/** #NodeShaderAttribute.type */
+enum {
+  SHD_ATTRIBUTE_GEOMETRY = 0,
+  SHD_ATTRIBUTE_OBJECT = 1,
+  SHD_ATTRIBUTE_INSTANCER = 2,
+  SHD_ATTRIBUTE_VIEW_LAYER = 3,
+};
+
+/* toon modes */
+enum {
+  SHD_TOON_DIFFUSE = 0,
+  SHD_TOON_GLOSSY = 1,
+};
+
+/* hair components */
+enum {
+  SHD_HAIR_REFLECTION = 0,
+  SHD_HAIR_TRANSMISSION = 1,
+};
+
+/* principled hair models */
+enum {
+  SHD_PRINCIPLED_HAIR_CHIANG = 0,
+  SHD_PRINCIPLED_HAIR_HUANG = 1,
+};
+
+/* principled hair color parametrization */
+enum {
+  SHD_PRINCIPLED_HAIR_REFLECTANCE = 0,
+  SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION = 1,
+  SHD_PRINCIPLED_HAIR_DIRECT_ABSORPTION = 2,
+};
+
+/* blend texture */
+enum {
+  SHD_BLEND_LINEAR = 0,
+  SHD_BLEND_QUADRATIC = 1,
+  SHD_BLEND_EASING = 2,
+  SHD_BLEND_DIAGONAL = 3,
+  SHD_BLEND_RADIAL = 4,
+  SHD_BLEND_QUADRATIC_SPHERE = 5,
+  SHD_BLEND_SPHERICAL = 6,
+};
+
+/* noise basis for textures */
+enum {
+  SHD_NOISE_PERLIN = 0,
+  SHD_NOISE_VORONOI_F1 = 1,
+  SHD_NOISE_VORONOI_F2 = 2,
+  SHD_NOISE_VORONOI_F3 = 3,
+  SHD_NOISE_VORONOI_F4 = 4,
+  SHD_NOISE_VORONOI_F2_F1 = 5,
+  SHD_NOISE_VORONOI_CRACKLE = 6,
+  SHD_NOISE_CELL_NOISE = 7,
+};
+
+enum {
+  SHD_NOISE_SOFT = 0,
+  SHD_NOISE_HARD = 1,
+};
+
+/* Voronoi Texture */
+
+enum {
+  SHD_VORONOI_EUCLIDEAN = 0,
+  SHD_VORONOI_MANHATTAN = 1,
+  SHD_VORONOI_CHEBYCHEV = 2,
+  SHD_VORONOI_MINKOWSKI = 3,
+};
+
+enum {
+  SHD_VORONOI_F1 = 0,
+  SHD_VORONOI_F2 = 1,
+  SHD_VORONOI_SMOOTH_F1 = 2,
+  SHD_VORONOI_DISTANCE_TO_EDGE = 3,
+  SHD_VORONOI_N_SPHERE_RADIUS = 4,
+};
+
+/* Deprecated Musgrave Texture. Keep for Versioning */
+enum {
+  SHD_MUSGRAVE_MULTIFRACTAL = 0,
+  SHD_MUSGRAVE_FBM = 1,
+  SHD_MUSGRAVE_HYBRID_MULTIFRACTAL = 2,
+  SHD_MUSGRAVE_RIDGED_MULTIFRACTAL = 3,
+  SHD_MUSGRAVE_HETERO_TERRAIN = 4,
+};
+
+/* Noise Texture */
+enum {
+  SHD_NOISE_MULTIFRACTAL = 0,
+  SHD_NOISE_FBM = 1,
+  SHD_NOISE_HYBRID_MULTIFRACTAL = 2,
+  SHD_NOISE_RIDGED_MULTIFRACTAL = 3,
+  SHD_NOISE_HETERO_TERRAIN = 4,
+};
+
+/* wave texture */
+enum {
+  SHD_WAVE_BANDS = 0,
+  SHD_WAVE_RINGS = 1,
+};
+
+enum {
+  SHD_WAVE_BANDS_DIRECTION_X = 0,
+  SHD_WAVE_BANDS_DIRECTION_Y = 1,
+  SHD_WAVE_BANDS_DIRECTION_Z = 2,
+  SHD_WAVE_BANDS_DIRECTION_DIAGONAL = 3,
+};
+
+enum {
+  SHD_WAVE_RINGS_DIRECTION_X = 0,
+  SHD_WAVE_RINGS_DIRECTION_Y = 1,
+  SHD_WAVE_RINGS_DIRECTION_Z = 2,
+  SHD_WAVE_RINGS_DIRECTION_SPHERICAL = 3,
+};
+
+enum {
+  SHD_WAVE_PROFILE_SIN = 0,
+  SHD_WAVE_PROFILE_SAW = 1,
+  SHD_WAVE_PROFILE_TRI = 2,
+};
+
+/* sky texture */
+enum {
+  SHD_SKY_PREETHAM = 0,
+  SHD_SKY_HOSEK = 1,
+  SHD_SKY_SINGLE_SCATTERING = 2,
+  SHD_SKY_MULTIPLE_SCATTERING = 3,
+};
+
+/* environment texture */
+enum {
+  SHD_PROJ_EQUIRECTANGULAR = 0,
+  SHD_PROJ_MIRROR_BALL = 1,
+};
+
+enum NodeGaborType {
+  SHD_GABOR_TYPE_2D = 0,
+  SHD_GABOR_TYPE_3D = 1,
+};
+
+enum {
+  SHD_IMAGE_EXTENSION_REPEAT = 0,
+  SHD_IMAGE_EXTENSION_EXTEND = 1,
+  SHD_IMAGE_EXTENSION_CLIP = 2,
+  SHD_IMAGE_EXTENSION_MIRROR = 3,
+};
+
+/* image texture */
+enum {
+  SHD_PROJ_FLAT = 0,
+  SHD_PROJ_BOX = 1,
+  SHD_PROJ_SPHERE = 2,
+  SHD_PROJ_TUBE = 3,
+};
+
+/* image texture interpolation */
+enum {
+  SHD_INTERP_LINEAR = 0,
+  SHD_INTERP_CLOSEST = 1,
+  SHD_INTERP_CUBIC = 2,
+  SHD_INTERP_SMART = 3,
+};
+
+/* tangent */
+enum {
+  SHD_TANGENT_RADIAL = 0,
+  SHD_TANGENT_UVMAP = 1,
+};
+
+/* tangent */
+enum {
+  SHD_TANGENT_AXIS_X = 0,
+  SHD_TANGENT_AXIS_Y = 1,
+  SHD_TANGENT_AXIS_Z = 2,
+};
+
+/* normal map, displacement space */
+enum {
+  SHD_SPACE_TANGENT = 0,
+  SHD_SPACE_OBJECT = 1,
+  SHD_SPACE_WORLD = 2,
+  SHD_SPACE_BLENDER_OBJECT = 3,
+  SHD_SPACE_BLENDER_WORLD = 4,
+};
+
+enum {
+  SHD_AO_INSIDE = 1,
+  SHD_AO_LOCAL = 2,
+};
+
+/** Mapping node vector types. */
+enum {
+  NODE_MAPPING_TYPE_POINT = 0,
+  NODE_MAPPING_TYPE_TEXTURE = 1,
+  NODE_MAPPING_TYPE_VECTOR = 2,
+  NODE_MAPPING_TYPE_NORMAL = 3,
+};
+
+/** Rotation node vector types. */
+enum {
+  NODE_VECTOR_ROTATE_TYPE_AXIS = 0,
+  NODE_VECTOR_ROTATE_TYPE_AXIS_X = 1,
+  NODE_VECTOR_ROTATE_TYPE_AXIS_Y = 2,
+  NODE_VECTOR_ROTATE_TYPE_AXIS_Z = 3,
+  NODE_VECTOR_ROTATE_TYPE_EULER_XYZ = 4,
+};
+
+/* math node clamp */
+enum {
+  SHD_MATH_CLAMP = 1,
+};
+
+enum NodeMathOperation {
+  NODE_MATH_ADD = 0,
+  NODE_MATH_SUBTRACT = 1,
+  NODE_MATH_MULTIPLY = 2,
+  NODE_MATH_DIVIDE = 3,
+  NODE_MATH_SINE = 4,
+  NODE_MATH_COSINE = 5,
+  NODE_MATH_TANGENT = 6,
+  NODE_MATH_ARCSINE = 7,
+  NODE_MATH_ARCCOSINE = 8,
+  NODE_MATH_ARCTANGENT = 9,
+  NODE_MATH_POWER = 10,
+  NODE_MATH_LOGARITHM = 11,
+  NODE_MATH_MINIMUM = 12,
+  NODE_MATH_MAXIMUM = 13,
+  NODE_MATH_ROUND = 14,
+  NODE_MATH_LESS_THAN = 15,
+  NODE_MATH_GREATER_THAN = 16,
+  NODE_MATH_MODULO = 17,
+  NODE_MATH_ABSOLUTE = 18,
+  NODE_MATH_ARCTAN2 = 19,
+  NODE_MATH_FLOOR = 20,
+  NODE_MATH_CEIL = 21,
+  NODE_MATH_FRACTION = 22,
+  NODE_MATH_SQRT = 23,
+  NODE_MATH_INV_SQRT = 24,
+  NODE_MATH_SIGN = 25,
+  NODE_MATH_EXPONENT = 26,
+  NODE_MATH_RADIANS = 27,
+  NODE_MATH_DEGREES = 28,
+  NODE_MATH_SINH = 29,
+  NODE_MATH_COSH = 30,
+  NODE_MATH_TANH = 31,
+  NODE_MATH_TRUNC = 32,
+  NODE_MATH_SNAP = 33,
+  NODE_MATH_WRAP = 34,
+  NODE_MATH_COMPARE = 35,
+  NODE_MATH_MULTIPLY_ADD = 36,
+  NODE_MATH_PINGPONG = 37,
+  NODE_MATH_SMOOTH_MIN = 38,
+  NODE_MATH_SMOOTH_MAX = 39,
+  NODE_MATH_FLOORED_MODULO = 40,
+};
+
+enum NodeVectorMathOperation {
+  NODE_VECTOR_MATH_ADD = 0,
+  NODE_VECTOR_MATH_SUBTRACT = 1,
+  NODE_VECTOR_MATH_MULTIPLY = 2,
+  NODE_VECTOR_MATH_DIVIDE = 3,
+
+  NODE_VECTOR_MATH_CROSS_PRODUCT = 4,
+  NODE_VECTOR_MATH_PROJECT = 5,
+  NODE_VECTOR_MATH_REFLECT = 6,
+  NODE_VECTOR_MATH_DOT_PRODUCT = 7,
+
+  NODE_VECTOR_MATH_DISTANCE = 8,
+  NODE_VECTOR_MATH_LENGTH = 9,
+  NODE_VECTOR_MATH_SCALE = 10,
+  NODE_VECTOR_MATH_NORMALIZE = 11,
+
+  NODE_VECTOR_MATH_SNAP = 12,
+  NODE_VECTOR_MATH_FLOOR = 13,
+  NODE_VECTOR_MATH_CEIL = 14,
+  NODE_VECTOR_MATH_MODULO = 15,
+  NODE_VECTOR_MATH_FRACTION = 16,
+  NODE_VECTOR_MATH_ABSOLUTE = 17,
+  NODE_VECTOR_MATH_MINIMUM = 18,
+  NODE_VECTOR_MATH_MAXIMUM = 19,
+  NODE_VECTOR_MATH_WRAP = 20,
+  NODE_VECTOR_MATH_SINE = 21,
+  NODE_VECTOR_MATH_COSINE = 22,
+  NODE_VECTOR_MATH_TANGENT = 23,
+  NODE_VECTOR_MATH_REFRACT = 24,
+  NODE_VECTOR_MATH_FACEFORWARD = 25,
+  NODE_VECTOR_MATH_MULTIPLY_ADD = 26,
+  NODE_VECTOR_MATH_POWER = 27,
+  NODE_VECTOR_MATH_SIGN = 28,
+};
+
+enum NodeBooleanMathOperation {
+  NODE_BOOLEAN_MATH_AND = 0,
+  NODE_BOOLEAN_MATH_OR = 1,
+  NODE_BOOLEAN_MATH_NOT = 2,
+
+  NODE_BOOLEAN_MATH_NAND = 3,
+  NODE_BOOLEAN_MATH_NOR = 4,
+  NODE_BOOLEAN_MATH_XNOR = 5,
+  NODE_BOOLEAN_MATH_XOR = 6,
+
+  NODE_BOOLEAN_MATH_IMPLY = 7,
+  NODE_BOOLEAN_MATH_NIMPLY = 8,
+};
+
+enum NodeShaderMixMode {
+  NODE_MIX_MODE_UNIFORM = 0,
+  NODE_MIX_MODE_NON_UNIFORM = 1,
+};
+
+enum NodeCompareMode {
+  NODE_COMPARE_MODE_ELEMENT = 0,
+  NODE_COMPARE_MODE_LENGTH = 1,
+  NODE_COMPARE_MODE_AVERAGE = 2,
+  NODE_COMPARE_MODE_DOT_PRODUCT = 3,
+  NODE_COMPARE_MODE_DIRECTION = 4
+};
+
+enum NodeCompareOperation {
+  NODE_COMPARE_LESS_THAN = 0,
+  NODE_COMPARE_LESS_EQUAL = 1,
+  NODE_COMPARE_GREATER_THAN = 2,
+  NODE_COMPARE_GREATER_EQUAL = 3,
+  NODE_COMPARE_EQUAL = 4,
+  NODE_COMPARE_NOT_EQUAL = 5,
+  NODE_COMPARE_COLOR_BRIGHTER = 6,
+  NODE_COMPARE_COLOR_DARKER = 7,
+};
+
+enum NodeIntegerMathOperation {
+  NODE_INTEGER_MATH_ADD = 0,
+  NODE_INTEGER_MATH_SUBTRACT = 1,
+  NODE_INTEGER_MATH_MULTIPLY = 2,
+  NODE_INTEGER_MATH_DIVIDE = 3,
+  NODE_INTEGER_MATH_MULTIPLY_ADD = 4,
+  NODE_INTEGER_MATH_POWER = 5,
+  NODE_INTEGER_MATH_FLOORED_MODULO = 6,
+  NODE_INTEGER_MATH_ABSOLUTE = 7,
+  NODE_INTEGER_MATH_MINIMUM = 8,
+  NODE_INTEGER_MATH_MAXIMUM = 9,
+  NODE_INTEGER_MATH_GCD = 10,
+  NODE_INTEGER_MATH_LCM = 11,
+  NODE_INTEGER_MATH_NEGATE = 12,
+  NODE_INTEGER_MATH_SIGN = 13,
+  NODE_INTEGER_MATH_DIVIDE_FLOOR = 14,
+  NODE_INTEGER_MATH_DIVIDE_CEIL = 15,
+  NODE_INTEGER_MATH_DIVIDE_ROUND = 16,
+  NODE_INTEGER_MATH_MODULO = 17,
+};
+
+enum FloatToIntRoundingMode {
+  FN_NODE_FLOAT_TO_INT_ROUND = 0,
+  FN_NODE_FLOAT_TO_INT_FLOOR = 1,
+  FN_NODE_FLOAT_TO_INT_CEIL = 2,
+  FN_NODE_FLOAT_TO_INT_TRUNCATE = 3,
+};
+
+/** Clamp node types. */
+enum {
+  NODE_CLAMP_MINMAX = 0,
+  NODE_CLAMP_RANGE = 1,
+};
+
+/** Map range node types. */
+enum {
+  NODE_MAP_RANGE_LINEAR = 0,
+  NODE_MAP_RANGE_STEPPED = 1,
+  NODE_MAP_RANGE_SMOOTHSTEP = 2,
+  NODE_MAP_RANGE_SMOOTHERSTEP = 3,
+};
+
+/* mix rgb node flags */
+enum {
+  SHD_MIXRGB_USE_ALPHA = 1,
+  SHD_MIXRGB_CLAMP = 2,
+};
+
+/* Subsurface. */
+
+enum {
+#ifdef DNA_DEPRECATED_ALLOW
+  SHD_SUBSURFACE_COMPATIBLE = 0, /* Deprecated */
+  SHD_SUBSURFACE_CUBIC = 1,
+  SHD_SUBSURFACE_GAUSSIAN = 2,
+#endif
+  SHD_SUBSURFACE_BURLEY = 3,
+  SHD_SUBSURFACE_RANDOM_WALK = 4,
+  SHD_SUBSURFACE_RANDOM_WALK_SKIN = 5,
+};
+
+/* blur node */
+enum {
+  CMP_NODE_BLUR_ASPECT_NONE = 0,
+  CMP_NODE_BLUR_ASPECT_Y = 1,
+  CMP_NODE_BLUR_ASPECT_X = 2,
+};
+
+enum CMPNodeTranslateRepeatAxis {
+  CMP_NODE_TRANSLATE_REPEAT_AXIS_NONE = 0,
+  CMP_NODE_TRANSLATE_REPEAT_AXIS_X = 1,
+  CMP_NODE_TRANSLATE_REPEAT_AXIS_Y = 2,
+  CMP_NODE_TRANSLATE_REPEAT_AXIS_XY = 3,
+};
+
+enum CMPExtensionMode {
+  CMP_NODE_EXTENSION_MODE_CLIP = 0,
+  CMP_NODE_EXTENSION_MODE_EXTEND = 1,
+  CMP_NODE_EXTENSION_MODE_REPEAT = 2,
+};
+
+#define CMP_NODE_MASK_MBLUR_SAMPLES_MAX 64
+
+/* viewer and composite output. */
+enum {
+  CMP_NODE_OUTPUT_IGNORE_ALPHA = 1,
+};
+
+/** Color Balance Node. Stored in `custom1`. */
+enum CMPNodeColorBalanceMethod {
+  CMP_NODE_COLOR_BALANCE_LGG = 0,
+  CMP_NODE_COLOR_BALANCE_ASC_CDL = 1,
+  CMP_NODE_COLOR_BALANCE_WHITEPOINT = 2,
+};
+
+/** Alpha Convert Node. Stored in `custom1`. */
+enum CMPNodeAlphaConvertMode {
+  CMP_NODE_ALPHA_CONVERT_PREMULTIPLY = 0,
+  CMP_NODE_ALPHA_CONVERT_UNPREMULTIPLY = 1,
+};
+
+/** Distance Matte Node. Stored in #NodeChroma.channel. */
+enum CMPNodeDistanceMatteColorSpace {
+  CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA = 0,
+  CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_YCCA = 1,
+};
+
+/** Color Spill Node. Stored in `custom2`. */
+enum CMPNodeColorSpillLimitAlgorithm {
+  CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_SINGLE = 0,
+  CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_AVERAGE = 1,
+};
+
+/** Channel Matte Node. Stored in #NodeChroma.algorithm. */
+enum CMPNodeChannelMatteLimitAlgorithm {
+  CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_SINGLE = 0,
+  CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_MAX = 1,
+};
+
+/* Flip Node. Stored in custom1. */
+enum CMPNodeFlipMode {
+  CMP_NODE_FLIP_X = 0,
+  CMP_NODE_FLIP_Y = 1,
+  CMP_NODE_FLIP_X_Y = 2,
+};
+
+/* Scale Node. Stored in custom1. */
+enum CMPNodeScaleMethod {
+  CMP_NODE_SCALE_RELATIVE = 0,
+  CMP_NODE_SCALE_ABSOLUTE = 1,
+  CMP_NODE_SCALE_RENDER_PERCENT = 2,
+  CMP_NODE_SCALE_RENDER_SIZE = 3,
+};
+
+/* Scale Node. Stored in custom2. */
+enum CMPNodeScaleRenderSizeMethod {
+  CMP_NODE_SCALE_RENDER_SIZE_STRETCH = 0,
+  CMP_NODE_SCALE_RENDER_SIZE_FIT = 1,
+  CMP_NODE_SCALE_RENDER_SIZE_CROP = 2,
+};
+
+/* Filter Node. Stored in custom1. */
+enum CMPNodeFilterMethod {
+  CMP_NODE_FILTER_SOFT = 0,
+  CMP_NODE_FILTER_SHARP_BOX = 1,
+  CMP_NODE_FILTER_LAPLACE = 2,
+  CMP_NODE_FILTER_SOBEL = 3,
+  CMP_NODE_FILTER_PREWITT = 4,
+  CMP_NODE_FILTER_KIRSCH = 5,
+  CMP_NODE_FILTER_SHADOW = 6,
+  CMP_NODE_FILTER_SHARP_DIAMOND = 7,
+};
+
+/* Levels Node. Stored in custom1. */
+enum CMPNodeLevelsChannel {
+  CMP_NODE_LEVLES_LUMINANCE = 1,
+  CMP_NODE_LEVLES_RED = 2,
+  CMP_NODE_LEVLES_GREEN = 3,
+  CMP_NODE_LEVLES_BLUE = 4,
+  CMP_NODE_LEVLES_LUMINANCE_BT709 = 5,
+};
+
+/* Tone Map Node. Stored in NodeTonemap.type. */
+enum CMPNodeToneMapType {
+  CMP_NODE_TONE_MAP_SIMPLE = 0,
+  CMP_NODE_TONE_MAP_PHOTORECEPTOR = 1,
+};
+
+/* Track Position Node. Stored in custom1. */
+enum CMPNodeTrackPositionMode {
+  CMP_NODE_TRACK_POSITION_ABSOLUTE = 0,
+  CMP_NODE_TRACK_POSITION_RELATIVE_START = 1,
+  CMP_NODE_TRACK_POSITION_RELATIVE_FRAME = 2,
+  CMP_NODE_TRACK_POSITION_ABSOLUTE_FRAME = 3,
+};
+
+/* Glare Node. Stored in NodeGlare.type. */
+enum CMPNodeGlareType {
+  CMP_NODE_GLARE_SIMPLE_STAR = 0,
+  CMP_NODE_GLARE_FOG_GLOW = 1,
+  CMP_NODE_GLARE_STREAKS = 2,
+  CMP_NODE_GLARE_GHOST = 3,
+  CMP_NODE_GLARE_BLOOM = 4,
+  CMP_NODE_GLARE_SUN_BEAMS = 5,
+  CMP_NODE_GLARE_KERNEL = 6,
+};
+
+/* Kuwahara Node. Stored in variation */
+enum CMPNodeKuwahara {
+  CMP_NODE_KUWAHARA_CLASSIC = 0,
+  CMP_NODE_KUWAHARA_ANISOTROPIC = 1,
+};
+
+/* Shared between nodes with interpolation option. */
+enum CMPNodeInterpolation {
+  CMP_NODE_INTERPOLATION_NEAREST = 0,
+  CMP_NODE_INTERPOLATION_BILINEAR = 1,
+  CMP_NODE_INTERPOLATION_BICUBIC = 2,
+  CMP_NODE_INTERPOLATION_ANISOTROPIC = 3,
+};
+
+/** #NodeSetAlpha.mode */
+enum CMPNodeSetAlphaMode {
+  CMP_NODE_SETALPHA_MODE_APPLY = 0,
+  CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA = 1,
+};
+
+/** #NodeDenoise.prefilter */
+enum CMPNodeDenoisePrefilter {
+  CMP_NODE_DENOISE_PREFILTER_FAST = 0,
+  CMP_NODE_DENOISE_PREFILTER_NONE = 1,
+  CMP_NODE_DENOISE_PREFILTER_ACCURATE = 2
+};
+
+/** #NodeDenoise.quality */
+enum CMPNodeDenoiseQuality {
+  CMP_NODE_DENOISE_QUALITY_SCENE = 0,
+  CMP_NODE_DENOISE_QUALITY_HIGH = 1,
+  CMP_NODE_DENOISE_QUALITY_BALANCED = 2,
+  CMP_NODE_DENOISE_QUALITY_FAST = 3,
+};
+
+/* Color combine/separate modes */
+
+enum CMPNodeCombSepColorMode {
+  CMP_NODE_COMBSEP_COLOR_RGB = 0,
+  CMP_NODE_COMBSEP_COLOR_HSV = 1,
+  CMP_NODE_COMBSEP_COLOR_HSL = 2,
+  CMP_NODE_COMBSEP_COLOR_YCC = 3,
+  CMP_NODE_COMBSEP_COLOR_YUV = 4,
+};
+
+/* Cryptomatte node source. */
+enum CMPNodeCryptomatteSource {
+  CMP_NODE_CRYPTOMATTE_SOURCE_RENDER = 0,
+  CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE = 1,
+};
+
+/* Channel Matte node, stored in custom1. */
+enum CMPNodeChannelMatteColorSpace {
+  CMP_NODE_CHANNEL_MATTE_CS_RGB = 0,
+  CMP_NODE_CHANNEL_MATTE_CS_HSV = 1,
+  CMP_NODE_CHANNEL_MATTE_CS_YUV = 2,
+  CMP_NODE_CHANNEL_MATTE_CS_YCC = 3,
+};
+
+/* NodeLensDist.distortion_type. */
+enum CMPNodeLensDistortionType {
+  CMP_NODE_LENS_DISTORTION_RADIAL = 0,
+  CMP_NODE_LENS_DISTORTION_HORIZONTAL = 1,
+};
+
+/* Alpha Over node. Stored in custom1. */
+enum CMPNodeAlphaOverOperationType {
+  CMP_NODE_ALPHA_OVER_OPERATION_TYPE_OVER = 0,
+  CMP_NODE_ALPHA_OVER_OPERATION_TYPE_DISJOINT_OVER = 1,
+  CMP_NODE_ALPHA_OVER_OPERATION_TYPE_CONJOINT_OVER = 2,
+};
+
+/* Relative To Pixel node. Stored in custom1. */
+enum CMPNodeRelativeToPixelDataType {
+  CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_FLOAT = 0,
+  CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_VECTOR = 1,
+};
+
+/* Relative To Pixel node. Stored in custom2. */
+enum CMPNodeRelativeToPixelReferenceDimension {
+  CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_PER_DIMENSION = 0,
+  CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_X = 1,
+  CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_Y = 2,
+  CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_GREATER = 3,
+  CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_SMALLER = 4,
+  CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_DIAGONAL = 5,
+};
+
+/* Scattering phase functions */
+enum {
+  SHD_PHASE_HENYEY_GREENSTEIN = 0,
+  SHD_PHASE_FOURNIER_FORAND = 1,
+  SHD_PHASE_DRAINE = 2,
+  SHD_PHASE_RAYLEIGH = 3,
+  SHD_PHASE_MIE = 4,
+};
+
+/* Output shader node */
+
+enum NodeShaderOutputTarget {
+  SHD_OUTPUT_ALL = 0,
+  SHD_OUTPUT_EEVEE = 1,
+  SHD_OUTPUT_CYCLES = 2,
+};
+
+/* Geometry Nodes */
+
+enum GeometryNodeProximityTargetType {
+  GEO_NODE_PROX_TARGET_POINTS = 0,
+  GEO_NODE_PROX_TARGET_EDGES = 1,
+  GEO_NODE_PROX_TARGET_FACES = 2,
+};
+
+enum GeometryNodeCurvePrimitiveCircleMode {
+  GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS = 0,
+  GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_RADIUS = 1
+};
+
+enum GeometryNodeCurveHandleType {
+  GEO_NODE_CURVE_HANDLE_FREE = 0,
+  GEO_NODE_CURVE_HANDLE_AUTO = 1,
+  GEO_NODE_CURVE_HANDLE_VECTOR = 2,
+  GEO_NODE_CURVE_HANDLE_ALIGN = 3
+};
+
+enum GeometryNodeCurveHandleMode {
+  GEO_NODE_CURVE_HANDLE_LEFT = (1 << 0),
+  GEO_NODE_CURVE_HANDLE_RIGHT = (1 << 1)
+};
+
+enum GeometryNodeDistributePointsInVolumeMode {
+  GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM = 0,
+  GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID = 1,
+};
+
+enum GeometryNodeDistributePointsOnFacesMode {
+  GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_RANDOM = 0,
+  GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON = 1,
+};
+
+enum GeometryNodeExtrudeMeshMode {
+  GEO_NODE_EXTRUDE_MESH_VERTICES = 0,
+  GEO_NODE_EXTRUDE_MESH_EDGES = 1,
+  GEO_NODE_EXTRUDE_MESH_FACES = 2,
+};
+
+enum FunctionNodeRotateEulerType {
+  FN_NODE_ROTATE_EULER_TYPE_EULER = 0,
+  FN_NODE_ROTATE_EULER_TYPE_AXIS_ANGLE = 1,
+};
+
+enum FunctionNodeRotateEulerSpace {
+  FN_NODE_ROTATE_EULER_SPACE_OBJECT = 0,
+  FN_NODE_ROTATE_EULER_SPACE_LOCAL = 1,
+};
+
+enum NodeAlignEulerToVectorAxis {
+  FN_NODE_ALIGN_EULER_TO_VECTOR_AXIS_X = 0,
+  FN_NODE_ALIGN_EULER_TO_VECTOR_AXIS_Y = 1,
+  FN_NODE_ALIGN_EULER_TO_VECTOR_AXIS_Z = 2,
+};
+
+enum NodeAlignEulerToVectorPivotAxis {
+  FN_NODE_ALIGN_EULER_TO_VECTOR_PIVOT_AXIS_AUTO = 0,
+  FN_NODE_ALIGN_EULER_TO_VECTOR_PIVOT_AXIS_X = 1,
+  FN_NODE_ALIGN_EULER_TO_VECTOR_PIVOT_AXIS_Y = 2,
+  FN_NODE_ALIGN_EULER_TO_VECTOR_PIVOT_AXIS_Z = 3,
+};
+
+enum GeometryNodeTransformSpace {
+  GEO_NODE_TRANSFORM_SPACE_ORIGINAL = 0,
+  GEO_NODE_TRANSFORM_SPACE_RELATIVE = 1,
+};
+
+enum GeometryNodePointsToVolumeResolutionMode {
+  GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT = 0,
+  GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE = 1,
+};
+
+enum GeometryNodeMeshCircleFillType {
+  GEO_NODE_MESH_CIRCLE_FILL_NONE = 0,
+  GEO_NODE_MESH_CIRCLE_FILL_NGON = 1,
+  GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN = 2,
+};
+
+enum GeometryNodeMergeByDistanceMode {
+  GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL = 0,
+  GEO_NODE_MERGE_BY_DISTANCE_MODE_CONNECTED = 1,
+};
+
+enum GeometryNodeUVUnwrapMethod {
+  GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED = 0,
+  GEO_NODE_UV_UNWRAP_METHOD_CONFORMAL = 1,
+  GEO_NODE_UV_UNWRAP_METHOD_MINIMUM_STRETCH = 2,
+};
+
+enum GeometryNodeRealizeInstanceFlag {
+  GEO_NODE_REALIZE_TO_POINT_DOMAIN = (1 << 0),
+};
+
+enum GeometryNodeMeshLineMode {
+  GEO_NODE_MESH_LINE_MODE_END_POINTS = 0,
+  GEO_NODE_MESH_LINE_MODE_OFFSET = 1,
+};
+
+enum GeometryNodeMeshLineCountMode {
+  GEO_NODE_MESH_LINE_COUNT_TOTAL = 0,
+  GEO_NODE_MESH_LINE_COUNT_RESOLUTION = 1,
+};
+
+enum GeometryNodeCurvePrimitiveArcMode {
+  GEO_NODE_CURVE_PRIMITIVE_ARC_TYPE_POINTS = 0,
+  GEO_NODE_CURVE_PRIMITIVE_ARC_TYPE_RADIUS = 1,
+};
+
+enum GeometryNodeCurvePrimitiveLineMode {
+  GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS = 0,
+  GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION = 1
+};
+
+enum GeometryNodeCurvePrimitiveQuadMode {
+  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_RECTANGLE = 0,
+  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_PARALLELOGRAM = 1,
+  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_TRAPEZOID = 2,
+  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_KITE = 3,
+  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_POINTS = 4,
+};
+
+enum GeometryNodeCurvePrimitiveBezierSegmentMode {
+  GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT_POSITION = 0,
+  GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT_OFFSET = 1,
+};
+
+enum GeometryNodeCurveResampleMode {
+  GEO_NODE_CURVE_RESAMPLE_COUNT = 0,
+  GEO_NODE_CURVE_RESAMPLE_LENGTH = 1,
+  GEO_NODE_CURVE_RESAMPLE_EVALUATED = 2,
+};
+
+enum GeometryNodeCurveSampleMode {
+  GEO_NODE_CURVE_SAMPLE_FACTOR = 0,
+  GEO_NODE_CURVE_SAMPLE_LENGTH = 1,
+};
+
+enum GeometryNodeCurveFilletMode {
+  GEO_NODE_CURVE_FILLET_BEZIER = 0,
+  GEO_NODE_CURVE_FILLET_POLY = 1,
+};
+
+enum GeometryNodeAttributeTransferMode {
+  GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED = 0,
+  GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST = 1,
+  GEO_NODE_ATTRIBUTE_TRANSFER_INDEX = 2,
+};
+
+enum GeometryNodeRaycastMapMode {
+  GEO_NODE_RAYCAST_INTERPOLATED = 0,
+  GEO_NODE_RAYCAST_NEAREST = 1,
+};
+
+enum GeometryNodeCurveFillMode {
+  GEO_NODE_CURVE_FILL_MODE_TRIANGULATED = 0,
+  GEO_NODE_CURVE_FILL_MODE_NGONS = 1,
+};
+
+enum GeometryNodeMeshToPointsMode {
+  GEO_NODE_MESH_TO_POINTS_VERTICES = 0,
+  GEO_NODE_MESH_TO_POINTS_EDGES = 1,
+  GEO_NODE_MESH_TO_POINTS_FACES = 2,
+  GEO_NODE_MESH_TO_POINTS_CORNERS = 3,
+};
+
+enum GeometryNodeStringToCurvesOverflowMode {
+  GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW = 0,
+  GEO_NODE_STRING_TO_CURVES_MODE_SCALE_TO_FIT = 1,
+  GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE = 2,
+};
+
+enum GeometryNodeStringToCurvesAlignXMode {
+  GEO_NODE_STRING_TO_CURVES_ALIGN_X_LEFT = 0,
+  GEO_NODE_STRING_TO_CURVES_ALIGN_X_CENTER = 1,
+  GEO_NODE_STRING_TO_CURVES_ALIGN_X_RIGHT = 2,
+  GEO_NODE_STRING_TO_CURVES_ALIGN_X_JUSTIFY = 3,
+  GEO_NODE_STRING_TO_CURVES_ALIGN_X_FLUSH = 4,
+};
+
+enum GeometryNodeStringToCurvesAlignYMode {
+  GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP_BASELINE = 0,
+  GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP = 1,
+  GEO_NODE_STRING_TO_CURVES_ALIGN_Y_MIDDLE = 2,
+  GEO_NODE_STRING_TO_CURVES_ALIGN_Y_BOTTOM_BASELINE = 3,
+  GEO_NODE_STRING_TO_CURVES_ALIGN_Y_BOTTOM = 4,
+};
+
+enum GeometryNodeStringToCurvesPivotMode {
+  GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_MIDPOINT = 0,
+  GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_LEFT = 1,
+  GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_CENTER = 2,
+  GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_RIGHT = 3,
+  GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_LEFT = 4,
+  GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_CENTER = 5,
+  GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_RIGHT = 6,
+};
+
+enum GeometryNodeDeleteGeometryMode {
+  GEO_NODE_DELETE_GEOMETRY_MODE_ALL = 0,
+  GEO_NODE_DELETE_GEOMETRY_MODE_EDGE_FACE = 1,
+  GEO_NODE_DELETE_GEOMETRY_MODE_ONLY_FACE = 2,
+};
+
+enum GeometryNodeScaleElementsMode {
+  GEO_NODE_SCALE_ELEMENTS_UNIFORM = 0,
+  GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS = 1,
+};
+
+enum NodeCombSepColorMode {
+  NODE_COMBSEP_COLOR_RGB = 0,
+  NODE_COMBSEP_COLOR_HSV = 1,
+  NODE_COMBSEP_COLOR_HSL = 2,
+};
+
+enum GeometryNodeGizmoColor {
+  GEO_NODE_GIZMO_COLOR_PRIMARY = 0,
+  GEO_NODE_GIZMO_COLOR_SECONDARY = 1,
+  GEO_NODE_GIZMO_COLOR_X = 2,
+  GEO_NODE_GIZMO_COLOR_Y = 3,
+  GEO_NODE_GIZMO_COLOR_Z = 4,
+};
+
+enum GeometryNodeLinearGizmoDrawStyle {
+  GEO_NODE_LINEAR_GIZMO_DRAW_STYLE_ARROW = 0,
+  GEO_NODE_LINEAR_GIZMO_DRAW_STYLE_CROSS = 1,
+  GEO_NODE_LINEAR_GIZMO_DRAW_STYLE_BOX = 2,
+};
+
+enum NodeGeometryTransformMode {
+  GEO_NODE_TRANSFORM_MODE_COMPONENTS = 0,
+  GEO_NODE_TRANSFORM_MODE_MATRIX = 1,
+};
+
 typedef struct bNodeStack {
   float vec[4];
   float min, max;
@@ -103,22 +1372,6 @@ typedef struct bNodeStack {
   short external;
   char _pad[4];
 } bNodeStack;
-
-/** #bNodeStack.datatype (shade-tree only). */
-enum {
-  NS_OSA_VECTORS = 1,
-  NS_OSA_VALUES = 2,
-};
-
-/* node socket/node socket type -b conversion rules */
-enum {
-  NS_CR_CENTER = 0,
-  NS_CR_NONE = 1,
-  NS_CR_FIT_WIDTH = 2,
-  NS_CR_FIT_HEIGHT = 3,
-  NS_CR_FIT = 4,
-  NS_CR_STRETCH = 5,
-};
 
 typedef struct bNodeSocket {
   struct bNodeSocket *next, *prev;
@@ -299,97 +1552,6 @@ typedef struct bNodeSocket {
 #endif
 } bNodeSocket;
 
-/** #bNodeSocket.type & #bNodeSocketType.type */
-typedef enum eNodeSocketDatatype {
-  SOCK_CUSTOM = -1, /* socket has no integer type */
-  SOCK_FLOAT = 0,
-  SOCK_VECTOR = 1,
-  SOCK_RGBA = 2,
-  SOCK_SHADER = 3,
-  SOCK_BOOLEAN = 4,
-  SOCK_INT = 6,
-  SOCK_STRING = 7,
-  SOCK_OBJECT = 8,
-  SOCK_IMAGE = 9,
-  SOCK_GEOMETRY = 10,
-  SOCK_COLLECTION = 11,
-  SOCK_TEXTURE = 12,
-  SOCK_MATERIAL = 13,
-  SOCK_ROTATION = 14,
-  SOCK_MENU = 15,
-  SOCK_MATRIX = 16,
-  SOCK_BUNDLE = 17,
-  SOCK_CLOSURE = 18,
-  SOCK_FONT = 19,
-  SOCK_SCENE = 20,
-  /** Has _ID suffix to avoid using it instead of SOCK_STRING accidentally. */
-  SOCK_TEXT_ID = 21,
-  SOCK_MASK = 22,
-  SOCK_SOUND = 23,
-} eNodeSocketDatatype;
-
-/** Socket shape. */
-typedef enum eNodeSocketDisplayShape {
-  SOCK_DISPLAY_SHAPE_CIRCLE = 0,
-  SOCK_DISPLAY_SHAPE_SQUARE = 1,
-  SOCK_DISPLAY_SHAPE_DIAMOND = 2,
-  SOCK_DISPLAY_SHAPE_CIRCLE_DOT = 3,
-  SOCK_DISPLAY_SHAPE_SQUARE_DOT = 4,
-  SOCK_DISPLAY_SHAPE_DIAMOND_DOT = 5,
-  SOCK_DISPLAY_SHAPE_LINE = 6,
-  SOCK_DISPLAY_SHAPE_VOLUME_GRID = 7,
-  SOCK_DISPLAY_SHAPE_LIST = 8,
-} eNodeSocketDisplayShape;
-
-/** Socket side (input/output). */
-typedef enum eNodeSocketInOut {
-  SOCK_IN = 1 << 0,
-  SOCK_OUT = 1 << 1,
-} eNodeSocketInOut;
-ENUM_OPERATORS(eNodeSocketInOut);
-
-/** #bNodeSocket.flag, first bit is selection. */
-typedef enum eNodeSocketFlag {
-  /** Hidden is user defined, to hide unused sockets. */
-  SOCK_HIDDEN = (1 << 1),
-  /** For quick check if socket is linked. */
-  SOCK_IS_LINKED = (1 << 2),
-  /** Unavailable is for dynamic sockets. */
-  SOCK_UNAVAIL = (1 << 3),
-  SOCK_GIZMO_PIN = (1 << 4),
-  // /** DEPRECATED  group socket should not be exposed */
-  // SOCK_INTERNAL = (1 << 5),
-  /** Socket collapsed in UI. */
-  SOCK_COLLAPSED = (1 << 6),
-  /** Hide socket value, if it gets auto default. */
-  SOCK_HIDE_VALUE = (1 << 7),
-  /** Socket hidden automatically, to distinguish from manually hidden. */
-  SOCK_AUTO_HIDDEN__DEPRECATED = (1 << 8),
-  /** Not used anymore but may still be set in files. */
-  SOCK_NO_INTERNAL_LINK_LEGACY = (1 << 9),
-  /** Not used anymore but may still be set in files. */
-  SOCK_COMPACT_LEGACY = (1 << 10),
-  /** Make the input socket accept multiple incoming links in the UI. */
-  SOCK_MULTI_INPUT = (1 << 11),
-  /** Not used anymore but may still be set in files. */
-  SOCK_HIDE_LABEL_LEGACY = (1 << 12),
-  /**
-   * Only used for geometry nodes. Don't show the socket value in the modifier interface.
-   */
-  SOCK_HIDE_IN_MODIFIER = (1 << 13),
-  /** The panel containing the socket is collapsed. */
-  SOCK_PANEL_COLLAPSED = (1 << 14),
-} eNodeSocketFlag;
-
-typedef enum eNodePanelFlag {
-  /* Panel is collapsed (user setting). */
-  NODE_PANEL_COLLAPSED = (1 << 0),
-  /* The parent panel is collapsed. */
-  NODE_PANEL_PARENT_COLLAPSED = (1 << 1),
-  /* The panel has visible content. */
-  NODE_PANEL_CONTENT_VISIBLE = (1 << 2),
-} eNodePanelFlag;
-
 typedef struct bNodePanelState {
   /* Unique identifier for validating state against panels in node declaration. */
   int identifier;
@@ -403,28 +1565,6 @@ typedef struct bNodePanelState {
   bool has_visible_content() const;
 #endif
 } bNodePanelState;
-
-typedef enum eViewerNodeShortcut {
-  NODE_VIEWER_SHORTCUT_NONE = 0,
-  /* Users can set custom keys to shortcuts,
-   * but shortcuts should always be referred to as enums. */
-  NODE_VIEWER_SHORCTUT_SLOT_1 = 1,
-  NODE_VIEWER_SHORCTUT_SLOT_2 = 2,
-  NODE_VIEWER_SHORCTUT_SLOT_3 = 3,
-  NODE_VIEWER_SHORCTUT_SLOT_4 = 4,
-  NODE_VIEWER_SHORCTUT_SLOT_5 = 5,
-  NODE_VIEWER_SHORCTUT_SLOT_6 = 6,
-  NODE_VIEWER_SHORCTUT_SLOT_7 = 7,
-  NODE_VIEWER_SHORCTUT_SLOT_8 = 8,
-  NODE_VIEWER_SHORCTUT_SLOT_9 = 9
-} eViewerNodeShortcut;
-
-typedef enum NodeWarningPropagation {
-  NODE_WARNING_PROPAGATION_ALL = 0,
-  NODE_WARNING_PROPAGATION_NONE = 1,
-  NODE_WARNING_PROPAGATION_ONLY_ERRORS = 2,
-  NODE_WARNING_PROPAGATION_ONLY_ERRORS_AND_WARNINGS = 3,
-} NodeWarningPropagation;
 
 typedef struct bNode {
   struct bNode *next, *prev;
@@ -604,56 +1744,6 @@ typedef struct bNode {
 #endif
 } bNode;
 
-/** #bNode::flag */
-enum {
-  NODE_SELECT = 1 << 0,
-  NODE_OPTIONS = 1 << 1,
-  NODE_PREVIEW = 1 << 2,
-  NODE_COLLAPSED = 1 << 3,
-  NODE_ACTIVE = 1 << 4,
-  // NODE_ACTIVE_ID = 1 << 5, /* Deprecated. */
-  /** Used to indicate which group output node is used and which viewer node is active. */
-  NODE_DO_OUTPUT = 1 << 6,
-  // NODE_GROUP_EDIT = 1 << 7, /* Deprecated, dirty. */
-  NODE_TEST = 1 << 8,
-  /** Node is disabled. */
-  NODE_MUTED = 1 << 9,
-  // NODE_CUSTOM_NAME = 1 << 10, /* Deprecated, dirty. */
-  // NODE_CONST_OUTPUT = 1 << 11, /* Deprecated, dirty. */
-  /** Node is always behind others. */
-  NODE_BACKGROUND = 1 << 12,
-  /** Automatic flag for nodes included in transforms */
-  // NODE_TRANSFORM = 1 << 13, /* Deprecated, dirty. */
-
-  /**
-   * Node is active texture.
-   *
-   * NOTE(@ideasman42): take care with this flag since its possible it gets `stuck`
-   * inside/outside the active group - which makes buttons window texture not update,
-   * we try to avoid it by clearing the flag when toggling group editing.
-   */
-  NODE_ACTIVE_TEXTURE = 1 << 14,
-  /** Use a custom color for the node. */
-  NODE_CUSTOM_COLOR = 1 << 15,
-  /**
-   * Node has been initialized
-   * This flag indicates the `node->typeinfo->init` function has been called.
-   * In case of undefined type at creation time this can be delayed until
-   * until the node type is registered.
-   */
-  NODE_INIT = 1 << 16,
-  /** A preview for the data in this node can be displayed in the spreadsheet editor. */
-  // NODE_ACTIVE_PREVIEW = 1 << 18, /* deprecated */
-  /** Active node that is used to paint on. */
-  NODE_ACTIVE_PAINT_CANVAS = 1 << 19,
-};
-
-/** bNode::update */
-enum {
-  /** Associated id data block has changed. */
-  NODE_UPDATE_ID = 1,
-};
-
 /**
  * Unique hash key for identifying node instances
  * Defined as a struct because DNA does not support other typedefs.
@@ -716,25 +1806,6 @@ typedef struct bNodeLink {
 #endif
 
 } bNodeLink;
-
-/** #bNodeLink::flag */
-enum {
-  /** Node should be inserted on this link on drop. */
-  NODE_LINK_INSERT_TARGET = 1 << 0,
-  /** Link has been successfully validated. */
-  NODE_LINK_VALID = 1 << 1,
-  /** Free test flag, undefined. */
-  NODE_LINK_TEST = 1 << 2,
-  /** Link is highlighted for picking. */
-  NODE_LINK_TEMP_HIGHLIGHT = 1 << 3,
-  /** Link is muted. */
-  NODE_LINK_MUTED = 1 << 4,
-  /**
-   * The dragged node would be inserted here, but this link is ignored because it's not compatible
-   * with the node.
-   */
-  NODE_LINK_INSERT_TARGET_INVALID = 1 << 5,
-};
 
 typedef struct bNestedNodePath {
   /** ID of the node that is or contains the nested node. */
@@ -942,43 +2013,6 @@ typedef struct bNodeTree {
 #endif
 } bNodeTree;
 
-/** #NodeTree.type, index */
-
-enum {
-  /** Represents #NodeTreeTypeUndefined type. */
-  NTREE_UNDEFINED = -2,
-  /** For dynamically registered custom types. */
-  NTREE_CUSTOM = -1,
-  NTREE_SHADER = 0,
-  NTREE_COMPOSIT = 1,
-  NTREE_TEXTURE = 2,
-  NTREE_GEOMETRY = 3,
-};
-
-/** #NodeTree.flag */
-enum {
-  /** For animation editors. */
-  NTREE_DS_EXPAND = 1 << 0,
-  /** Two pass. */
-  NTREE_UNUSED_2 = 1 << 2, /* cleared */
-  /** Use a border for viewer nodes. */
-  NTREE_VIEWER_BORDER = 1 << 4,
-  /**
-   * Tree is localized copy, free when deleting node groups.
-   * NOTE: DEPRECATED, use (id->tag & ID_TAG_LOCALIZED) instead.
-   */
-  // NTREE_IS_LOCALIZED = 1 << 5,
-};
-
-typedef enum eNodeTreeRuntimeFlag {
-  /** There is a node that references an image with animation. */
-  NTREE_RUNTIME_FLAG_HAS_IMAGE_ANIMATION = 1 << 0,
-  /** There is a material output node in the group. */
-  NTREE_RUNTIME_FLAG_HAS_MATERIAL_OUTPUT = 1 << 1,
-  /** There is a simulation zone in the group. */
-  NTREE_RUNTIME_FLAG_HAS_SIMULATION_ZONE = 1 << 2,
-} eNodeTreeRuntimeFlag;
-
 /* socket value structs for input buttons
  * DEPRECATED now using ID properties
  */
@@ -1083,53 +2117,6 @@ typedef struct GeometryNodeAssetTraits {
   char _pad[4];
   char *node_tool_idname;
 } GeometryNodeAssetTraits;
-
-typedef enum GeometryNodeAssetTraitFlag {
-  GEO_NODE_ASSET_TOOL = (1 << 0),
-  GEO_NODE_ASSET_EDIT = (1 << 1),
-  GEO_NODE_ASSET_SCULPT = (1 << 2),
-  GEO_NODE_ASSET_MESH = (1 << 3),
-  GEO_NODE_ASSET_CURVE = (1 << 4),
-  GEO_NODE_ASSET_POINTCLOUD = (1 << 5),
-  GEO_NODE_ASSET_MODIFIER = (1 << 6),
-  GEO_NODE_ASSET_OBJECT = (1 << 7),
-  GEO_NODE_ASSET_WAIT_FOR_CURSOR = (1 << 8),
-  GEO_NODE_ASSET_GREASE_PENCIL = (1 << 9),
-  /* Only used by Grease Pencil for now. */
-  GEO_NODE_ASSET_PAINT = (1 << 10),
-  GEO_NODE_ASSET_HIDE_MODIFIER_MANAGE_PANEL = (1 << 11),
-} GeometryNodeAssetTraitFlag;
-ENUM_OPERATORS(GeometryNodeAssetTraitFlag);
-
-/* Data structs, for `node->storage`. */
-
-typedef enum CMPNodeMaskType {
-  CMP_NODE_MASKTYPE_ADD = 0,
-  CMP_NODE_MASKTYPE_SUBTRACT = 1,
-  CMP_NODE_MASKTYPE_MULTIPLY = 2,
-  CMP_NODE_MASKTYPE_NOT = 3,
-} CMPNodeMaskType;
-
-typedef enum CMPNodeDilateErodeMethod {
-  CMP_NODE_DILATE_ERODE_STEP = 0,
-  CMP_NODE_DILATE_ERODE_DISTANCE_THRESHOLD = 1,
-  CMP_NODE_DILATE_ERODE_DISTANCE = 2,
-  CMP_NODE_DILATE_ERODE_DISTANCE_FEATHER = 3,
-} CMPNodeDilateErodeMethod;
-
-enum {
-  CMP_NODE_INPAINT_SIMPLE = 0,
-};
-
-typedef enum CMPNodeMaskFlags {
-  /* CMP_NODEFLAG_MASK_AA          = (1 << 0), */ /* DEPRECATED */
-  CMP_NODE_MASK_FLAG_NO_FEATHER = (1 << 1),
-  CMP_NODE_MASK_FLAG_MOTION_BLUR = (1 << 2),
-
-  /** We may want multiple aspect options, exposed as an rna enum. */
-  CMP_NODE_MASK_FLAG_SIZE_FIXED = (1 << 8),
-  CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE = (1 << 9),
-} CMPNodeMaskFlags;
 
 typedef struct NodeFrame {
   short flag;
@@ -1401,13 +2388,6 @@ typedef struct NodeGlare {
   float angle_ofs DNA_DEPRECATED;
   char _pad1[4];
 } NodeGlare;
-
-/* Glare Node. Stored in NodeGlare.quality. */
-typedef enum CMPNodeGlareQuality {
-  CMP_NODE_GLARE_QUALITY_HIGH = 0,
-  CMP_NODE_GLARE_QUALITY_MEDIUM = 1,
-  CMP_NODE_GLARE_QUALITY_LOW = 2,
-} CMPNodeGlareQuality;
 
 /** Tone-map node. */
 typedef struct NodeTonemap {
@@ -2134,18 +3114,6 @@ typedef struct NodeGeometryImageTexture {
   int8_t extension;
 } NodeGeometryImageTexture;
 
-typedef enum NodeGeometryViewerItemFlag {
-  /**
-   * Automatically remove the viewer item when there is no link connected to it. This simplifies
-   * working with viewers when one adds and removes values to view all the time.
-   *
-   * This is a flag instead of always being used, because sometimes the user or some script sets up
-   * multiple inputs which shouldn't be deleted immediately. This flag is automatically set when
-   * viewer items are added interactively in the node editor.
-   */
-  NODE_GEO_VIEWER_ITEM_FLAG_AUTO_REMOVE = (1 << 0),
-} NodeGeometryViewerItemFlag;
-
 typedef struct NodeGeometryViewerItem {
   char *name;
   /** #eNodeSocketDatatype. */
@@ -2356,10 +3324,6 @@ typedef struct NodeClosureOutputItems {
   char _pad[4];
 } NodeClosureOutputItems;
 
-typedef enum NodeClosureFlag {
-  NODE_CLOSURE_FLAG_DEFINE_SIGNATURE = (1 << 0),
-} NodeClosureFlag;
-
 typedef struct NodeClosureOutput {
   NodeClosureInputItems input_items;
   NodeClosureOutputItems output_items;
@@ -2387,10 +3351,6 @@ typedef struct NodeEvaluateClosureOutputItem {
   char _pad[1];
   int identifier;
 } NodeEvaluateClosureOutputItem;
-
-typedef enum NodeEvaluateClosureFlag {
-  NODE_EVALUATE_CLOSURE_FLAG_DEFINE_SIGNATURE = (1 << 0),
-} NodeEvaluateClosureFlag;
 
 typedef struct NodeEvaluateClosureInputItems {
   NodeEvaluateClosureInputItem *items;
@@ -2503,30 +3463,6 @@ typedef struct NodeGeometryTransformGizmo {
   uint32_t flag;
 } NodeGeometryTransformGizmo;
 
-typedef enum NodeGeometryTransformGizmoFlag {
-  GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_X = 1 << 0,
-  GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_Y = 1 << 1,
-  GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_Z = 1 << 2,
-  GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_X = 1 << 3,
-  GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_Y = 1 << 4,
-  GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_Z = 1 << 5,
-  GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_X = 1 << 6,
-  GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_Y = 1 << 7,
-  GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_Z = 1 << 8,
-} NodeGeometryTransformGizmoFlag;
-
-#define GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_ALL \
-  (GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_X | GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_Y | \
-   GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_Z)
-
-#define GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_ALL \
-  (GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_X | GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_Y | \
-   GEO_NODE_TRANSFORM_GIZMO_USE_ROTATION_Z)
-
-#define GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_ALL \
-  (GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_X | GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_Y | \
-   GEO_NODE_TRANSFORM_GIZMO_USE_SCALE_Z)
-
 typedef struct NodeGeometryBakeItem {
   char *name;
   int16_t socket_type;
@@ -2535,10 +3471,6 @@ typedef struct NodeGeometryBakeItem {
   int32_t flag;
   char _pad[4];
 } NodeGeometryBakeItem;
-
-typedef enum NodeGeometryBakeItemFlag {
-  GEO_NODE_BAKE_ITEM_IS_ATTRIBUTE = (1 << 0),
-} NodeGeometryBakeItemFlag;
 
 typedef struct NodeGeometryBake {
   NodeGeometryBakeItem *items;
@@ -2556,10 +3488,6 @@ typedef struct NodeCombineBundleItem {
   int8_t structure_type;
   char _pad[1];
 } NodeCombineBundleItem;
-
-typedef enum NodeCombineBundleFlag {
-  NODE_COMBINE_BUNDLE_FLAG_DEFINE_SIGNATURE = (1 << 0),
-} NodeCombineBundleFlag;
 
 typedef struct NodeCombineBundle {
   NodeCombineBundleItem *items;
@@ -2579,10 +3507,6 @@ typedef struct NodeSeparateBundleItem {
   int8_t structure_type;
   char _pad[1];
 } NodeSeparateBundleItem;
-
-typedef enum NodeSeparateBundleFlag {
-  NODE_SEPARATE_BUNDLE_FLAG_DEFINE_SIGNATURE = (1 << 0),
-} NodeSeparateBundleFlag;
 
 typedef struct NodeSeparateBundle {
   NodeSeparateBundleItem *items;
@@ -2608,929 +3532,3 @@ typedef struct NodeFunctionFormatString {
   int active_index;
   char _pad[4];
 } NodeFunctionFormatString;
-
-/* script node mode */
-enum {
-  NODE_SCRIPT_INTERNAL = 0,
-  NODE_SCRIPT_EXTERNAL = 1,
-};
-
-/* script node flag */
-enum {
-  NODE_SCRIPT_AUTO_UPDATE = 1,
-};
-
-/* IES node mode. */
-enum {
-  NODE_IES_INTERNAL = 0,
-  NODE_IES_EXTERNAL = 1,
-};
-
-/* Frame node flags. */
-
-enum {
-  /** Keep the bounding box minimal. */
-  NODE_FRAME_SHRINK = 1,
-  /** Test flag, if frame can be resized by user. */
-  NODE_FRAME_RESIZEABLE = 2,
-};
-
-/* Proxy node flags. */
-
-enum {
-  /** Automatically change output type based on link. */
-  NODE_PROXY_AUTOTYPE = 1,
-};
-
-/* Conductive fresnel types */
-enum {
-  SHD_PHYSICAL_CONDUCTOR = 0,
-  SHD_CONDUCTOR_F82 = 1,
-};
-
-/* glossy distributions */
-enum {
-  SHD_GLOSSY_BECKMANN = 0,
-  SHD_GLOSSY_SHARP_DEPRECATED = 1, /* deprecated */
-  SHD_GLOSSY_GGX = 2,
-  SHD_GLOSSY_ASHIKHMIN_SHIRLEY = 3,
-  SHD_GLOSSY_MULTI_GGX = 4,
-};
-
-/* sheen distributions */
-#define SHD_SHEEN_ASHIKHMIN 0
-#define SHD_SHEEN_MICROFIBER 1
-
-/* vector transform */
-enum {
-  SHD_VECT_TRANSFORM_TYPE_VECTOR = 0,
-  SHD_VECT_TRANSFORM_TYPE_POINT = 1,
-  SHD_VECT_TRANSFORM_TYPE_NORMAL = 2,
-};
-
-enum {
-  SHD_VECT_TRANSFORM_SPACE_WORLD = 0,
-  SHD_VECT_TRANSFORM_SPACE_OBJECT = 1,
-  SHD_VECT_TRANSFORM_SPACE_CAMERA = 2,
-};
-
-/** #NodeShaderAttribute.type */
-enum {
-  SHD_ATTRIBUTE_GEOMETRY = 0,
-  SHD_ATTRIBUTE_OBJECT = 1,
-  SHD_ATTRIBUTE_INSTANCER = 2,
-  SHD_ATTRIBUTE_VIEW_LAYER = 3,
-};
-
-/* toon modes */
-enum {
-  SHD_TOON_DIFFUSE = 0,
-  SHD_TOON_GLOSSY = 1,
-};
-
-/* hair components */
-enum {
-  SHD_HAIR_REFLECTION = 0,
-  SHD_HAIR_TRANSMISSION = 1,
-};
-
-/* principled hair models */
-enum {
-  SHD_PRINCIPLED_HAIR_CHIANG = 0,
-  SHD_PRINCIPLED_HAIR_HUANG = 1,
-};
-
-/* principled hair color parametrization */
-enum {
-  SHD_PRINCIPLED_HAIR_REFLECTANCE = 0,
-  SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION = 1,
-  SHD_PRINCIPLED_HAIR_DIRECT_ABSORPTION = 2,
-};
-
-/* blend texture */
-enum {
-  SHD_BLEND_LINEAR = 0,
-  SHD_BLEND_QUADRATIC = 1,
-  SHD_BLEND_EASING = 2,
-  SHD_BLEND_DIAGONAL = 3,
-  SHD_BLEND_RADIAL = 4,
-  SHD_BLEND_QUADRATIC_SPHERE = 5,
-  SHD_BLEND_SPHERICAL = 6,
-};
-
-/* noise basis for textures */
-enum {
-  SHD_NOISE_PERLIN = 0,
-  SHD_NOISE_VORONOI_F1 = 1,
-  SHD_NOISE_VORONOI_F2 = 2,
-  SHD_NOISE_VORONOI_F3 = 3,
-  SHD_NOISE_VORONOI_F4 = 4,
-  SHD_NOISE_VORONOI_F2_F1 = 5,
-  SHD_NOISE_VORONOI_CRACKLE = 6,
-  SHD_NOISE_CELL_NOISE = 7,
-};
-
-enum {
-  SHD_NOISE_SOFT = 0,
-  SHD_NOISE_HARD = 1,
-};
-
-/* Voronoi Texture */
-
-enum {
-  SHD_VORONOI_EUCLIDEAN = 0,
-  SHD_VORONOI_MANHATTAN = 1,
-  SHD_VORONOI_CHEBYCHEV = 2,
-  SHD_VORONOI_MINKOWSKI = 3,
-};
-
-enum {
-  SHD_VORONOI_F1 = 0,
-  SHD_VORONOI_F2 = 1,
-  SHD_VORONOI_SMOOTH_F1 = 2,
-  SHD_VORONOI_DISTANCE_TO_EDGE = 3,
-  SHD_VORONOI_N_SPHERE_RADIUS = 4,
-};
-
-/* Deprecated Musgrave Texture. Keep for Versioning */
-enum {
-  SHD_MUSGRAVE_MULTIFRACTAL = 0,
-  SHD_MUSGRAVE_FBM = 1,
-  SHD_MUSGRAVE_HYBRID_MULTIFRACTAL = 2,
-  SHD_MUSGRAVE_RIDGED_MULTIFRACTAL = 3,
-  SHD_MUSGRAVE_HETERO_TERRAIN = 4,
-};
-
-/* Noise Texture */
-enum {
-  SHD_NOISE_MULTIFRACTAL = 0,
-  SHD_NOISE_FBM = 1,
-  SHD_NOISE_HYBRID_MULTIFRACTAL = 2,
-  SHD_NOISE_RIDGED_MULTIFRACTAL = 3,
-  SHD_NOISE_HETERO_TERRAIN = 4,
-};
-
-/* wave texture */
-enum {
-  SHD_WAVE_BANDS = 0,
-  SHD_WAVE_RINGS = 1,
-};
-
-enum {
-  SHD_WAVE_BANDS_DIRECTION_X = 0,
-  SHD_WAVE_BANDS_DIRECTION_Y = 1,
-  SHD_WAVE_BANDS_DIRECTION_Z = 2,
-  SHD_WAVE_BANDS_DIRECTION_DIAGONAL = 3,
-};
-
-enum {
-  SHD_WAVE_RINGS_DIRECTION_X = 0,
-  SHD_WAVE_RINGS_DIRECTION_Y = 1,
-  SHD_WAVE_RINGS_DIRECTION_Z = 2,
-  SHD_WAVE_RINGS_DIRECTION_SPHERICAL = 3,
-};
-
-enum {
-  SHD_WAVE_PROFILE_SIN = 0,
-  SHD_WAVE_PROFILE_SAW = 1,
-  SHD_WAVE_PROFILE_TRI = 2,
-};
-
-/* sky texture */
-enum {
-  SHD_SKY_PREETHAM = 0,
-  SHD_SKY_HOSEK = 1,
-  SHD_SKY_SINGLE_SCATTERING = 2,
-  SHD_SKY_MULTIPLE_SCATTERING = 3,
-};
-
-/* environment texture */
-enum {
-  SHD_PROJ_EQUIRECTANGULAR = 0,
-  SHD_PROJ_MIRROR_BALL = 1,
-};
-
-typedef enum NodeGaborType {
-  SHD_GABOR_TYPE_2D = 0,
-  SHD_GABOR_TYPE_3D = 1,
-} NodeGaborType;
-
-enum {
-  SHD_IMAGE_EXTENSION_REPEAT = 0,
-  SHD_IMAGE_EXTENSION_EXTEND = 1,
-  SHD_IMAGE_EXTENSION_CLIP = 2,
-  SHD_IMAGE_EXTENSION_MIRROR = 3,
-};
-
-/* image texture */
-enum {
-  SHD_PROJ_FLAT = 0,
-  SHD_PROJ_BOX = 1,
-  SHD_PROJ_SPHERE = 2,
-  SHD_PROJ_TUBE = 3,
-};
-
-/* image texture interpolation */
-enum {
-  SHD_INTERP_LINEAR = 0,
-  SHD_INTERP_CLOSEST = 1,
-  SHD_INTERP_CUBIC = 2,
-  SHD_INTERP_SMART = 3,
-};
-
-/* tangent */
-enum {
-  SHD_TANGENT_RADIAL = 0,
-  SHD_TANGENT_UVMAP = 1,
-};
-
-/* tangent */
-enum {
-  SHD_TANGENT_AXIS_X = 0,
-  SHD_TANGENT_AXIS_Y = 1,
-  SHD_TANGENT_AXIS_Z = 2,
-};
-
-/* normal map, displacement space */
-enum {
-  SHD_SPACE_TANGENT = 0,
-  SHD_SPACE_OBJECT = 1,
-  SHD_SPACE_WORLD = 2,
-  SHD_SPACE_BLENDER_OBJECT = 3,
-  SHD_SPACE_BLENDER_WORLD = 4,
-};
-
-enum {
-  SHD_AO_INSIDE = 1,
-  SHD_AO_LOCAL = 2,
-};
-
-/** Mapping node vector types. */
-enum {
-  NODE_MAPPING_TYPE_POINT = 0,
-  NODE_MAPPING_TYPE_TEXTURE = 1,
-  NODE_MAPPING_TYPE_VECTOR = 2,
-  NODE_MAPPING_TYPE_NORMAL = 3,
-};
-
-/** Rotation node vector types. */
-enum {
-  NODE_VECTOR_ROTATE_TYPE_AXIS = 0,
-  NODE_VECTOR_ROTATE_TYPE_AXIS_X = 1,
-  NODE_VECTOR_ROTATE_TYPE_AXIS_Y = 2,
-  NODE_VECTOR_ROTATE_TYPE_AXIS_Z = 3,
-  NODE_VECTOR_ROTATE_TYPE_EULER_XYZ = 4,
-};
-
-/* math node clamp */
-enum {
-  SHD_MATH_CLAMP = 1,
-};
-
-typedef enum NodeMathOperation {
-  NODE_MATH_ADD = 0,
-  NODE_MATH_SUBTRACT = 1,
-  NODE_MATH_MULTIPLY = 2,
-  NODE_MATH_DIVIDE = 3,
-  NODE_MATH_SINE = 4,
-  NODE_MATH_COSINE = 5,
-  NODE_MATH_TANGENT = 6,
-  NODE_MATH_ARCSINE = 7,
-  NODE_MATH_ARCCOSINE = 8,
-  NODE_MATH_ARCTANGENT = 9,
-  NODE_MATH_POWER = 10,
-  NODE_MATH_LOGARITHM = 11,
-  NODE_MATH_MINIMUM = 12,
-  NODE_MATH_MAXIMUM = 13,
-  NODE_MATH_ROUND = 14,
-  NODE_MATH_LESS_THAN = 15,
-  NODE_MATH_GREATER_THAN = 16,
-  NODE_MATH_MODULO = 17,
-  NODE_MATH_ABSOLUTE = 18,
-  NODE_MATH_ARCTAN2 = 19,
-  NODE_MATH_FLOOR = 20,
-  NODE_MATH_CEIL = 21,
-  NODE_MATH_FRACTION = 22,
-  NODE_MATH_SQRT = 23,
-  NODE_MATH_INV_SQRT = 24,
-  NODE_MATH_SIGN = 25,
-  NODE_MATH_EXPONENT = 26,
-  NODE_MATH_RADIANS = 27,
-  NODE_MATH_DEGREES = 28,
-  NODE_MATH_SINH = 29,
-  NODE_MATH_COSH = 30,
-  NODE_MATH_TANH = 31,
-  NODE_MATH_TRUNC = 32,
-  NODE_MATH_SNAP = 33,
-  NODE_MATH_WRAP = 34,
-  NODE_MATH_COMPARE = 35,
-  NODE_MATH_MULTIPLY_ADD = 36,
-  NODE_MATH_PINGPONG = 37,
-  NODE_MATH_SMOOTH_MIN = 38,
-  NODE_MATH_SMOOTH_MAX = 39,
-  NODE_MATH_FLOORED_MODULO = 40,
-} NodeMathOperation;
-
-typedef enum NodeVectorMathOperation {
-  NODE_VECTOR_MATH_ADD = 0,
-  NODE_VECTOR_MATH_SUBTRACT = 1,
-  NODE_VECTOR_MATH_MULTIPLY = 2,
-  NODE_VECTOR_MATH_DIVIDE = 3,
-
-  NODE_VECTOR_MATH_CROSS_PRODUCT = 4,
-  NODE_VECTOR_MATH_PROJECT = 5,
-  NODE_VECTOR_MATH_REFLECT = 6,
-  NODE_VECTOR_MATH_DOT_PRODUCT = 7,
-
-  NODE_VECTOR_MATH_DISTANCE = 8,
-  NODE_VECTOR_MATH_LENGTH = 9,
-  NODE_VECTOR_MATH_SCALE = 10,
-  NODE_VECTOR_MATH_NORMALIZE = 11,
-
-  NODE_VECTOR_MATH_SNAP = 12,
-  NODE_VECTOR_MATH_FLOOR = 13,
-  NODE_VECTOR_MATH_CEIL = 14,
-  NODE_VECTOR_MATH_MODULO = 15,
-  NODE_VECTOR_MATH_FRACTION = 16,
-  NODE_VECTOR_MATH_ABSOLUTE = 17,
-  NODE_VECTOR_MATH_MINIMUM = 18,
-  NODE_VECTOR_MATH_MAXIMUM = 19,
-  NODE_VECTOR_MATH_WRAP = 20,
-  NODE_VECTOR_MATH_SINE = 21,
-  NODE_VECTOR_MATH_COSINE = 22,
-  NODE_VECTOR_MATH_TANGENT = 23,
-  NODE_VECTOR_MATH_REFRACT = 24,
-  NODE_VECTOR_MATH_FACEFORWARD = 25,
-  NODE_VECTOR_MATH_MULTIPLY_ADD = 26,
-  NODE_VECTOR_MATH_POWER = 27,
-  NODE_VECTOR_MATH_SIGN = 28,
-} NodeVectorMathOperation;
-
-typedef enum NodeBooleanMathOperation {
-  NODE_BOOLEAN_MATH_AND = 0,
-  NODE_BOOLEAN_MATH_OR = 1,
-  NODE_BOOLEAN_MATH_NOT = 2,
-
-  NODE_BOOLEAN_MATH_NAND = 3,
-  NODE_BOOLEAN_MATH_NOR = 4,
-  NODE_BOOLEAN_MATH_XNOR = 5,
-  NODE_BOOLEAN_MATH_XOR = 6,
-
-  NODE_BOOLEAN_MATH_IMPLY = 7,
-  NODE_BOOLEAN_MATH_NIMPLY = 8,
-} NodeBooleanMathOperation;
-
-typedef enum NodeShaderMixMode {
-  NODE_MIX_MODE_UNIFORM = 0,
-  NODE_MIX_MODE_NON_UNIFORM = 1,
-} NodeShaderMixMode;
-
-typedef enum NodeCompareMode {
-  NODE_COMPARE_MODE_ELEMENT = 0,
-  NODE_COMPARE_MODE_LENGTH = 1,
-  NODE_COMPARE_MODE_AVERAGE = 2,
-  NODE_COMPARE_MODE_DOT_PRODUCT = 3,
-  NODE_COMPARE_MODE_DIRECTION = 4
-} NodeCompareMode;
-
-typedef enum NodeCompareOperation {
-  NODE_COMPARE_LESS_THAN = 0,
-  NODE_COMPARE_LESS_EQUAL = 1,
-  NODE_COMPARE_GREATER_THAN = 2,
-  NODE_COMPARE_GREATER_EQUAL = 3,
-  NODE_COMPARE_EQUAL = 4,
-  NODE_COMPARE_NOT_EQUAL = 5,
-  NODE_COMPARE_COLOR_BRIGHTER = 6,
-  NODE_COMPARE_COLOR_DARKER = 7,
-} NodeCompareOperation;
-
-typedef enum NodeIntegerMathOperation {
-  NODE_INTEGER_MATH_ADD = 0,
-  NODE_INTEGER_MATH_SUBTRACT = 1,
-  NODE_INTEGER_MATH_MULTIPLY = 2,
-  NODE_INTEGER_MATH_DIVIDE = 3,
-  NODE_INTEGER_MATH_MULTIPLY_ADD = 4,
-  NODE_INTEGER_MATH_POWER = 5,
-  NODE_INTEGER_MATH_FLOORED_MODULO = 6,
-  NODE_INTEGER_MATH_ABSOLUTE = 7,
-  NODE_INTEGER_MATH_MINIMUM = 8,
-  NODE_INTEGER_MATH_MAXIMUM = 9,
-  NODE_INTEGER_MATH_GCD = 10,
-  NODE_INTEGER_MATH_LCM = 11,
-  NODE_INTEGER_MATH_NEGATE = 12,
-  NODE_INTEGER_MATH_SIGN = 13,
-  NODE_INTEGER_MATH_DIVIDE_FLOOR = 14,
-  NODE_INTEGER_MATH_DIVIDE_CEIL = 15,
-  NODE_INTEGER_MATH_DIVIDE_ROUND = 16,
-  NODE_INTEGER_MATH_MODULO = 17,
-} NodeIntegerMathOperation;
-
-typedef enum FloatToIntRoundingMode {
-  FN_NODE_FLOAT_TO_INT_ROUND = 0,
-  FN_NODE_FLOAT_TO_INT_FLOOR = 1,
-  FN_NODE_FLOAT_TO_INT_CEIL = 2,
-  FN_NODE_FLOAT_TO_INT_TRUNCATE = 3,
-} FloatToIntRoundingMode;
-
-/** Clamp node types. */
-enum {
-  NODE_CLAMP_MINMAX = 0,
-  NODE_CLAMP_RANGE = 1,
-};
-
-/** Map range node types. */
-enum {
-  NODE_MAP_RANGE_LINEAR = 0,
-  NODE_MAP_RANGE_STEPPED = 1,
-  NODE_MAP_RANGE_SMOOTHSTEP = 2,
-  NODE_MAP_RANGE_SMOOTHERSTEP = 3,
-};
-
-/* mix rgb node flags */
-enum {
-  SHD_MIXRGB_USE_ALPHA = 1,
-  SHD_MIXRGB_CLAMP = 2,
-};
-
-/* Subsurface. */
-
-enum {
-#ifdef DNA_DEPRECATED_ALLOW
-  SHD_SUBSURFACE_COMPATIBLE = 0, /* Deprecated */
-  SHD_SUBSURFACE_CUBIC = 1,
-  SHD_SUBSURFACE_GAUSSIAN = 2,
-#endif
-  SHD_SUBSURFACE_BURLEY = 3,
-  SHD_SUBSURFACE_RANDOM_WALK = 4,
-  SHD_SUBSURFACE_RANDOM_WALK_SKIN = 5,
-};
-
-/* blur node */
-enum {
-  CMP_NODE_BLUR_ASPECT_NONE = 0,
-  CMP_NODE_BLUR_ASPECT_Y = 1,
-  CMP_NODE_BLUR_ASPECT_X = 2,
-};
-
-typedef enum CMPNodeTranslateRepeatAxis {
-  CMP_NODE_TRANSLATE_REPEAT_AXIS_NONE = 0,
-  CMP_NODE_TRANSLATE_REPEAT_AXIS_X = 1,
-  CMP_NODE_TRANSLATE_REPEAT_AXIS_Y = 2,
-  CMP_NODE_TRANSLATE_REPEAT_AXIS_XY = 3,
-} CMPNodeTranslateRepeatAxis;
-
-typedef enum CMPExtensionMode {
-  CMP_NODE_EXTENSION_MODE_CLIP = 0,
-  CMP_NODE_EXTENSION_MODE_EXTEND = 1,
-  CMP_NODE_EXTENSION_MODE_REPEAT = 2,
-} CMPNodeBorderCondition;
-
-#define CMP_NODE_MASK_MBLUR_SAMPLES_MAX 64
-
-/* viewer and composite output. */
-enum {
-  CMP_NODE_OUTPUT_IGNORE_ALPHA = 1,
-};
-
-/** Color Balance Node. Stored in `custom1`. */
-typedef enum CMPNodeColorBalanceMethod {
-  CMP_NODE_COLOR_BALANCE_LGG = 0,
-  CMP_NODE_COLOR_BALANCE_ASC_CDL = 1,
-  CMP_NODE_COLOR_BALANCE_WHITEPOINT = 2,
-} CMPNodeColorBalanceMethod;
-
-/** Alpha Convert Node. Stored in `custom1`. */
-typedef enum CMPNodeAlphaConvertMode {
-  CMP_NODE_ALPHA_CONVERT_PREMULTIPLY = 0,
-  CMP_NODE_ALPHA_CONVERT_UNPREMULTIPLY = 1,
-} CMPNodeAlphaConvertMode;
-
-/** Distance Matte Node. Stored in #NodeChroma.channel. */
-typedef enum CMPNodeDistanceMatteColorSpace {
-  CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_RGBA = 0,
-  CMP_NODE_DISTANCE_MATTE_COLOR_SPACE_YCCA = 1,
-} CMPNodeDistanceMatteColorSpace;
-
-/** Color Spill Node. Stored in `custom2`. */
-typedef enum CMPNodeColorSpillLimitAlgorithm {
-  CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_SINGLE = 0,
-  CMP_NODE_COLOR_SPILL_LIMIT_ALGORITHM_AVERAGE = 1,
-} CMPNodeColorSpillLimitAlgorithm;
-
-/** Channel Matte Node. Stored in #NodeChroma.algorithm. */
-typedef enum CMPNodeChannelMatteLimitAlgorithm {
-  CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_SINGLE = 0,
-  CMP_NODE_CHANNEL_MATTE_LIMIT_ALGORITHM_MAX = 1,
-} CMPNodeChannelMatteLimitAlgorithm;
-
-/* Flip Node. Stored in custom1. */
-typedef enum CMPNodeFlipMode {
-  CMP_NODE_FLIP_X = 0,
-  CMP_NODE_FLIP_Y = 1,
-  CMP_NODE_FLIP_X_Y = 2,
-} CMPNodeFlipMode;
-
-/* Scale Node. Stored in custom1. */
-typedef enum CMPNodeScaleMethod {
-  CMP_NODE_SCALE_RELATIVE = 0,
-  CMP_NODE_SCALE_ABSOLUTE = 1,
-  CMP_NODE_SCALE_RENDER_PERCENT = 2,
-  CMP_NODE_SCALE_RENDER_SIZE = 3,
-} CMPNodeScaleMethod;
-
-/* Scale Node. Stored in custom2. */
-typedef enum CMPNodeScaleRenderSizeMethod {
-  CMP_NODE_SCALE_RENDER_SIZE_STRETCH = 0,
-  CMP_NODE_SCALE_RENDER_SIZE_FIT = 1,
-  CMP_NODE_SCALE_RENDER_SIZE_CROP = 2,
-} CMPNodeScaleRenderSizeMethod;
-
-/* Filter Node. Stored in custom1. */
-typedef enum CMPNodeFilterMethod {
-  CMP_NODE_FILTER_SOFT = 0,
-  CMP_NODE_FILTER_SHARP_BOX = 1,
-  CMP_NODE_FILTER_LAPLACE = 2,
-  CMP_NODE_FILTER_SOBEL = 3,
-  CMP_NODE_FILTER_PREWITT = 4,
-  CMP_NODE_FILTER_KIRSCH = 5,
-  CMP_NODE_FILTER_SHADOW = 6,
-  CMP_NODE_FILTER_SHARP_DIAMOND = 7,
-} CMPNodeFilterMethod;
-
-/* Levels Node. Stored in custom1. */
-typedef enum CMPNodeLevelsChannel {
-  CMP_NODE_LEVLES_LUMINANCE = 1,
-  CMP_NODE_LEVLES_RED = 2,
-  CMP_NODE_LEVLES_GREEN = 3,
-  CMP_NODE_LEVLES_BLUE = 4,
-  CMP_NODE_LEVLES_LUMINANCE_BT709 = 5,
-} CMPNodeLevelsChannel;
-
-/* Tone Map Node. Stored in NodeTonemap.type. */
-typedef enum CMPNodeToneMapType {
-  CMP_NODE_TONE_MAP_SIMPLE = 0,
-  CMP_NODE_TONE_MAP_PHOTORECEPTOR = 1,
-} CMPNodeToneMapType;
-
-/* Track Position Node. Stored in custom1. */
-typedef enum CMPNodeTrackPositionMode {
-  CMP_NODE_TRACK_POSITION_ABSOLUTE = 0,
-  CMP_NODE_TRACK_POSITION_RELATIVE_START = 1,
-  CMP_NODE_TRACK_POSITION_RELATIVE_FRAME = 2,
-  CMP_NODE_TRACK_POSITION_ABSOLUTE_FRAME = 3,
-} CMPNodeTrackPositionMode;
-
-/* Glare Node. Stored in NodeGlare.type. */
-typedef enum CMPNodeGlareType {
-  CMP_NODE_GLARE_SIMPLE_STAR = 0,
-  CMP_NODE_GLARE_FOG_GLOW = 1,
-  CMP_NODE_GLARE_STREAKS = 2,
-  CMP_NODE_GLARE_GHOST = 3,
-  CMP_NODE_GLARE_BLOOM = 4,
-  CMP_NODE_GLARE_SUN_BEAMS = 5,
-  CMP_NODE_GLARE_KERNEL = 6,
-} CMPNodeGlareType;
-
-/* Kuwahara Node. Stored in variation */
-typedef enum CMPNodeKuwahara {
-  CMP_NODE_KUWAHARA_CLASSIC = 0,
-  CMP_NODE_KUWAHARA_ANISOTROPIC = 1,
-} CMPNodeKuwahara;
-
-/* Shared between nodes with interpolation option. */
-typedef enum CMPNodeInterpolation {
-  CMP_NODE_INTERPOLATION_NEAREST = 0,
-  CMP_NODE_INTERPOLATION_BILINEAR = 1,
-  CMP_NODE_INTERPOLATION_BICUBIC = 2,
-  CMP_NODE_INTERPOLATION_ANISOTROPIC = 3,
-} CMPNodeInterpolation;
-
-/* Set Alpha Node. */
-
-/** #NodeSetAlpha.mode */
-typedef enum CMPNodeSetAlphaMode {
-  CMP_NODE_SETALPHA_MODE_APPLY = 0,
-  CMP_NODE_SETALPHA_MODE_REPLACE_ALPHA = 1,
-} CMPNodeSetAlphaMode;
-
-/* Denoise Node. */
-
-/** #NodeDenoise.prefilter */
-typedef enum CMPNodeDenoisePrefilter {
-  CMP_NODE_DENOISE_PREFILTER_FAST = 0,
-  CMP_NODE_DENOISE_PREFILTER_NONE = 1,
-  CMP_NODE_DENOISE_PREFILTER_ACCURATE = 2
-} CMPNodeDenoisePrefilter;
-
-/** #NodeDenoise.quality */
-typedef enum CMPNodeDenoiseQuality {
-  CMP_NODE_DENOISE_QUALITY_SCENE = 0,
-  CMP_NODE_DENOISE_QUALITY_HIGH = 1,
-  CMP_NODE_DENOISE_QUALITY_BALANCED = 2,
-  CMP_NODE_DENOISE_QUALITY_FAST = 3,
-} CMPNodeDenoiseQuality;
-
-/* Color combine/separate modes */
-
-typedef enum CMPNodeCombSepColorMode {
-  CMP_NODE_COMBSEP_COLOR_RGB = 0,
-  CMP_NODE_COMBSEP_COLOR_HSV = 1,
-  CMP_NODE_COMBSEP_COLOR_HSL = 2,
-  CMP_NODE_COMBSEP_COLOR_YCC = 3,
-  CMP_NODE_COMBSEP_COLOR_YUV = 4,
-} CMPNodeCombSepColorMode;
-
-/* Cryptomatte node source. */
-typedef enum CMPNodeCryptomatteSource {
-  CMP_NODE_CRYPTOMATTE_SOURCE_RENDER = 0,
-  CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE = 1,
-} CMPNodeCryptomatteSource;
-
-/* Channel Matte node, stored in custom1. */
-typedef enum CMPNodeChannelMatteColorSpace {
-  CMP_NODE_CHANNEL_MATTE_CS_RGB = 0,
-  CMP_NODE_CHANNEL_MATTE_CS_HSV = 1,
-  CMP_NODE_CHANNEL_MATTE_CS_YUV = 2,
-  CMP_NODE_CHANNEL_MATTE_CS_YCC = 3,
-} CMPNodeChannelMatteColorSpace;
-
-/* NodeLensDist.distortion_type. */
-typedef enum CMPNodeLensDistortionType {
-  CMP_NODE_LENS_DISTORTION_RADIAL = 0,
-  CMP_NODE_LENS_DISTORTION_HORIZONTAL = 1,
-} CMPNodeLensDistortionType;
-
-/* Alpha Over node. Stored in custom1. */
-typedef enum CMPNodeAlphaOverOperationType {
-  CMP_NODE_ALPHA_OVER_OPERATION_TYPE_OVER = 0,
-  CMP_NODE_ALPHA_OVER_OPERATION_TYPE_DISJOINT_OVER = 1,
-  CMP_NODE_ALPHA_OVER_OPERATION_TYPE_CONJOINT_OVER = 2,
-} CMPNodeAlphaOverOperationType;
-
-/* Relative To Pixel node. Stored in custom1. */
-typedef enum CMPNodeRelativeToPixelDataType {
-  CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_FLOAT = 0,
-  CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_VECTOR = 1,
-} CMPNodeRelativeToPixelDataType;
-
-/* Relative To Pixel node. Stored in custom2. */
-typedef enum CMPNodeRelativeToPixelReferenceDimension {
-  CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_PER_DIMENSION = 0,
-  CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_X = 1,
-  CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_Y = 2,
-  CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_GREATER = 3,
-  CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_SMALLER = 4,
-  CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_DIAGONAL = 5,
-} CMPNodeRelativeToPixelReferenceDimension;
-
-/* Scattering phase functions */
-enum {
-  SHD_PHASE_HENYEY_GREENSTEIN = 0,
-  SHD_PHASE_FOURNIER_FORAND = 1,
-  SHD_PHASE_DRAINE = 2,
-  SHD_PHASE_RAYLEIGH = 3,
-  SHD_PHASE_MIE = 4,
-};
-
-/* Output shader node */
-
-typedef enum NodeShaderOutputTarget {
-  SHD_OUTPUT_ALL = 0,
-  SHD_OUTPUT_EEVEE = 1,
-  SHD_OUTPUT_CYCLES = 2,
-} NodeShaderOutputTarget;
-
-/* Geometry Nodes */
-
-typedef enum GeometryNodeProximityTargetType {
-  GEO_NODE_PROX_TARGET_POINTS = 0,
-  GEO_NODE_PROX_TARGET_EDGES = 1,
-  GEO_NODE_PROX_TARGET_FACES = 2,
-} GeometryNodeProximityTargetType;
-
-typedef enum GeometryNodeCurvePrimitiveCircleMode {
-  GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS = 0,
-  GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_RADIUS = 1
-} GeometryNodeCurvePrimitiveCircleMode;
-
-typedef enum GeometryNodeCurveHandleType {
-  GEO_NODE_CURVE_HANDLE_FREE = 0,
-  GEO_NODE_CURVE_HANDLE_AUTO = 1,
-  GEO_NODE_CURVE_HANDLE_VECTOR = 2,
-  GEO_NODE_CURVE_HANDLE_ALIGN = 3
-} GeometryNodeCurveHandleType;
-
-typedef enum GeometryNodeCurveHandleMode {
-  GEO_NODE_CURVE_HANDLE_LEFT = (1 << 0),
-  GEO_NODE_CURVE_HANDLE_RIGHT = (1 << 1)
-} GeometryNodeCurveHandleMode;
-
-typedef enum GeometryNodeDistributePointsInVolumeMode {
-  GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM = 0,
-  GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID = 1,
-} GeometryNodeDistributePointsInVolumeMode;
-
-typedef enum GeometryNodeDistributePointsOnFacesMode {
-  GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_RANDOM = 0,
-  GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON = 1,
-} GeometryNodeDistributePointsOnFacesMode;
-
-typedef enum GeometryNodeExtrudeMeshMode {
-  GEO_NODE_EXTRUDE_MESH_VERTICES = 0,
-  GEO_NODE_EXTRUDE_MESH_EDGES = 1,
-  GEO_NODE_EXTRUDE_MESH_FACES = 2,
-} GeometryNodeExtrudeMeshMode;
-
-typedef enum FunctionNodeRotateEulerType {
-  FN_NODE_ROTATE_EULER_TYPE_EULER = 0,
-  FN_NODE_ROTATE_EULER_TYPE_AXIS_ANGLE = 1,
-} FunctionNodeRotateEulerType;
-
-typedef enum FunctionNodeRotateEulerSpace {
-  FN_NODE_ROTATE_EULER_SPACE_OBJECT = 0,
-  FN_NODE_ROTATE_EULER_SPACE_LOCAL = 1,
-} FunctionNodeRotateEulerSpace;
-
-typedef enum NodeAlignEulerToVectorAxis {
-  FN_NODE_ALIGN_EULER_TO_VECTOR_AXIS_X = 0,
-  FN_NODE_ALIGN_EULER_TO_VECTOR_AXIS_Y = 1,
-  FN_NODE_ALIGN_EULER_TO_VECTOR_AXIS_Z = 2,
-} NodeAlignEulerToVectorAxis;
-
-typedef enum NodeAlignEulerToVectorPivotAxis {
-  FN_NODE_ALIGN_EULER_TO_VECTOR_PIVOT_AXIS_AUTO = 0,
-  FN_NODE_ALIGN_EULER_TO_VECTOR_PIVOT_AXIS_X = 1,
-  FN_NODE_ALIGN_EULER_TO_VECTOR_PIVOT_AXIS_Y = 2,
-  FN_NODE_ALIGN_EULER_TO_VECTOR_PIVOT_AXIS_Z = 3,
-} NodeAlignEulerToVectorPivotAxis;
-
-typedef enum GeometryNodeTransformSpace {
-  GEO_NODE_TRANSFORM_SPACE_ORIGINAL = 0,
-  GEO_NODE_TRANSFORM_SPACE_RELATIVE = 1,
-} GeometryNodeTransformSpace;
-
-typedef enum GeometryNodePointsToVolumeResolutionMode {
-  GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT = 0,
-  GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE = 1,
-} GeometryNodePointsToVolumeResolutionMode;
-
-typedef enum GeometryNodeMeshCircleFillType {
-  GEO_NODE_MESH_CIRCLE_FILL_NONE = 0,
-  GEO_NODE_MESH_CIRCLE_FILL_NGON = 1,
-  GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN = 2,
-} GeometryNodeMeshCircleFillType;
-
-typedef enum GeometryNodeMergeByDistanceMode {
-  GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL = 0,
-  GEO_NODE_MERGE_BY_DISTANCE_MODE_CONNECTED = 1,
-} GeometryNodeMergeByDistanceMode;
-
-typedef enum GeometryNodeUVUnwrapMethod {
-  GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED = 0,
-  GEO_NODE_UV_UNWRAP_METHOD_CONFORMAL = 1,
-  GEO_NODE_UV_UNWRAP_METHOD_MINIMUM_STRETCH = 2,
-} GeometryNodeUVUnwrapMethod;
-
-typedef enum GeometryNodeRealizeInstanceFlag {
-  GEO_NODE_REALIZE_TO_POINT_DOMAIN = (1 << 0),
-} GeometryNodeRealizeInstanceFlag;
-
-typedef enum GeometryNodeMeshLineMode {
-  GEO_NODE_MESH_LINE_MODE_END_POINTS = 0,
-  GEO_NODE_MESH_LINE_MODE_OFFSET = 1,
-} GeometryNodeMeshLineMode;
-
-typedef enum GeometryNodeMeshLineCountMode {
-  GEO_NODE_MESH_LINE_COUNT_TOTAL = 0,
-  GEO_NODE_MESH_LINE_COUNT_RESOLUTION = 1,
-} GeometryNodeMeshLineCountMode;
-
-typedef enum GeometryNodeCurvePrimitiveArcMode {
-  GEO_NODE_CURVE_PRIMITIVE_ARC_TYPE_POINTS = 0,
-  GEO_NODE_CURVE_PRIMITIVE_ARC_TYPE_RADIUS = 1,
-} GeometryNodeCurvePrimitiveArcMode;
-
-typedef enum GeometryNodeCurvePrimitiveLineMode {
-  GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS = 0,
-  GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION = 1
-} GeometryNodeCurvePrimitiveLineMode;
-
-typedef enum GeometryNodeCurvePrimitiveQuadMode {
-  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_RECTANGLE = 0,
-  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_PARALLELOGRAM = 1,
-  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_TRAPEZOID = 2,
-  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_KITE = 3,
-  GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_POINTS = 4,
-} GeometryNodeCurvePrimitiveQuadMode;
-
-typedef enum GeometryNodeCurvePrimitiveBezierSegmentMode {
-  GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT_POSITION = 0,
-  GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT_OFFSET = 1,
-} GeometryNodeCurvePrimitiveBezierSegmentMode;
-
-typedef enum GeometryNodeCurveResampleMode {
-  GEO_NODE_CURVE_RESAMPLE_COUNT = 0,
-  GEO_NODE_CURVE_RESAMPLE_LENGTH = 1,
-  GEO_NODE_CURVE_RESAMPLE_EVALUATED = 2,
-} GeometryNodeCurveResampleMode;
-
-typedef enum GeometryNodeCurveSampleMode {
-  GEO_NODE_CURVE_SAMPLE_FACTOR = 0,
-  GEO_NODE_CURVE_SAMPLE_LENGTH = 1,
-} GeometryNodeCurveSampleMode;
-
-typedef enum GeometryNodeCurveFilletMode {
-  GEO_NODE_CURVE_FILLET_BEZIER = 0,
-  GEO_NODE_CURVE_FILLET_POLY = 1,
-} GeometryNodeCurveFilletMode;
-
-typedef enum GeometryNodeAttributeTransferMode {
-  GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED = 0,
-  GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST = 1,
-  GEO_NODE_ATTRIBUTE_TRANSFER_INDEX = 2,
-} GeometryNodeAttributeTransferMode;
-
-typedef enum GeometryNodeRaycastMapMode {
-  GEO_NODE_RAYCAST_INTERPOLATED = 0,
-  GEO_NODE_RAYCAST_NEAREST = 1,
-} GeometryNodeRaycastMapMode;
-
-typedef enum GeometryNodeCurveFillMode {
-  GEO_NODE_CURVE_FILL_MODE_TRIANGULATED = 0,
-  GEO_NODE_CURVE_FILL_MODE_NGONS = 1,
-} GeometryNodeCurveFillMode;
-
-typedef enum GeometryNodeMeshToPointsMode {
-  GEO_NODE_MESH_TO_POINTS_VERTICES = 0,
-  GEO_NODE_MESH_TO_POINTS_EDGES = 1,
-  GEO_NODE_MESH_TO_POINTS_FACES = 2,
-  GEO_NODE_MESH_TO_POINTS_CORNERS = 3,
-} GeometryNodeMeshToPointsMode;
-
-typedef enum GeometryNodeStringToCurvesOverflowMode {
-  GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW = 0,
-  GEO_NODE_STRING_TO_CURVES_MODE_SCALE_TO_FIT = 1,
-  GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE = 2,
-} GeometryNodeStringToCurvesOverflowMode;
-
-typedef enum GeometryNodeStringToCurvesAlignXMode {
-  GEO_NODE_STRING_TO_CURVES_ALIGN_X_LEFT = 0,
-  GEO_NODE_STRING_TO_CURVES_ALIGN_X_CENTER = 1,
-  GEO_NODE_STRING_TO_CURVES_ALIGN_X_RIGHT = 2,
-  GEO_NODE_STRING_TO_CURVES_ALIGN_X_JUSTIFY = 3,
-  GEO_NODE_STRING_TO_CURVES_ALIGN_X_FLUSH = 4,
-} GeometryNodeStringToCurvesAlignXMode;
-
-typedef enum GeometryNodeStringToCurvesAlignYMode {
-  GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP_BASELINE = 0,
-  GEO_NODE_STRING_TO_CURVES_ALIGN_Y_TOP = 1,
-  GEO_NODE_STRING_TO_CURVES_ALIGN_Y_MIDDLE = 2,
-  GEO_NODE_STRING_TO_CURVES_ALIGN_Y_BOTTOM_BASELINE = 3,
-  GEO_NODE_STRING_TO_CURVES_ALIGN_Y_BOTTOM = 4,
-} GeometryNodeStringToCurvesAlignYMode;
-
-typedef enum GeometryNodeStringToCurvesPivotMode {
-  GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_MIDPOINT = 0,
-  GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_LEFT = 1,
-  GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_CENTER = 2,
-  GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_TOP_RIGHT = 3,
-  GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_LEFT = 4,
-  GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_CENTER = 5,
-  GEO_NODE_STRING_TO_CURVES_PIVOT_MODE_BOTTOM_RIGHT = 6,
-} GeometryNodeStringToCurvesPivotMode;
-
-typedef enum GeometryNodeDeleteGeometryMode {
-  GEO_NODE_DELETE_GEOMETRY_MODE_ALL = 0,
-  GEO_NODE_DELETE_GEOMETRY_MODE_EDGE_FACE = 1,
-  GEO_NODE_DELETE_GEOMETRY_MODE_ONLY_FACE = 2,
-} GeometryNodeDeleteGeometryMode;
-
-typedef enum GeometryNodeScaleElementsMode {
-  GEO_NODE_SCALE_ELEMENTS_UNIFORM = 0,
-  GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS = 1,
-} GeometryNodeScaleElementsMode;
-
-typedef enum NodeCombSepColorMode {
-  NODE_COMBSEP_COLOR_RGB = 0,
-  NODE_COMBSEP_COLOR_HSV = 1,
-  NODE_COMBSEP_COLOR_HSL = 2,
-} NodeCombSepColorMode;
-
-typedef enum GeometryNodeGizmoColor {
-  GEO_NODE_GIZMO_COLOR_PRIMARY = 0,
-  GEO_NODE_GIZMO_COLOR_SECONDARY = 1,
-  GEO_NODE_GIZMO_COLOR_X = 2,
-  GEO_NODE_GIZMO_COLOR_Y = 3,
-  GEO_NODE_GIZMO_COLOR_Z = 4,
-} GeometryNodeGizmoColor;
-
-typedef enum GeometryNodeLinearGizmoDrawStyle {
-  GEO_NODE_LINEAR_GIZMO_DRAW_STYLE_ARROW = 0,
-  GEO_NODE_LINEAR_GIZMO_DRAW_STYLE_CROSS = 1,
-  GEO_NODE_LINEAR_GIZMO_DRAW_STYLE_BOX = 2,
-} GeometryNodeLinearGizmoDrawStyle;
-
-typedef enum NodeGeometryTransformMode {
-  GEO_NODE_TRANSFORM_MODE_COMPONENTS = 0,
-  GEO_NODE_TRANSFORM_MODE_MATRIX = 1,
-} NodeGeometryTransformMode;

@@ -53,12 +53,12 @@ struct Main;
 struct GreasePencil;
 struct Object;
 
-typedef enum GreasePencilStrokeCapType {
+enum GreasePencilStrokeCapType {
   GP_STROKE_CAP_TYPE_ROUND = 0,
   GP_STROKE_CAP_TYPE_FLAT = 1,
   /* Keep last. */
   GP_STROKE_CAP_TYPE_MAX,
-} GreasePencilStrokeCapType;
+};
 
 #define GP_STROKE_MITER_ANGLE_ROUND 0.0f
 #define GP_STROKE_MITER_ANGLE_BEVEL DEG2RADF(180.0f)
@@ -68,18 +68,135 @@ typedef enum GreasePencilStrokeCapType {
  * If `GP_DRAWING` the node is a `GreasePencilDrawing`,
  * if `GP_DRAWING_REFERENCE` the node is a `GreasePencilDrawingReference`.
  */
-typedef enum GreasePencilDrawingType {
+enum GreasePencilDrawingType {
   GP_DRAWING = 0,
   GP_DRAWING_REFERENCE = 1,
-} GreasePencilDrawingType;
+};
 
 /**
  * Flag for drawings and drawing references. #GreasePencilDrawingBase.flag
  */
-typedef enum GreasePencilDrawingBaseFlag {
+enum GreasePencilDrawingBaseFlag {
   /* TODO */
   GreasePencilDrawingBaseFlag_TODO
-} GreasePencilDrawingBaseFlag;
+};
+
+/**
+ * Flag for grease pencil frames. #GreasePencilFrame.flag
+ */
+enum GreasePencilFrameFlag {
+  GP_FRAME_SELECTED = (1 << 0),
+  /* When set, the frame is implicitly held until the next frame. E.g. it doesn't have a fixed
+   * duration. */
+  GP_FRAME_IMPLICIT_HOLD = (1 << 1),
+};
+
+enum GreasePencilLayerFramesMapStorageFlag {
+  GP_LAYER_FRAMES_STORAGE_DIRTY = (1 << 0),
+};
+
+/**
+ * Flag for layer masks. #GreasePencilLayerMask.flag
+ */
+enum GreasePencilLayerMaskFlag {
+  GP_LAYER_MASK_HIDE = (1 << 0),
+  GP_LAYER_MASK_INVERT = (1 << 1),
+};
+
+/**
+ * Layer blending modes. #GreasePencilLayer.blend_mode
+ */
+enum GreasePencilLayerBlendMode {
+  GP_LAYER_BLEND_NONE = 0,
+  GP_LAYER_BLEND_HARDLIGHT = 1,
+  GP_LAYER_BLEND_ADD = 2,
+  GP_LAYER_BLEND_SUBTRACT = 3,
+  GP_LAYER_BLEND_MULTIPLY = 4,
+  GP_LAYER_BLEND_DIVIDE = 5,
+};
+
+/**
+ * Type of layer node.
+ * If `GP_LAYER_TREE_LEAF` the node is a `GreasePencilLayerTreeLeaf`,
+ * if `GP_LAYER_TREE_GROUP` the node is a `GreasePencilLayerTreeGroup`.
+ */
+enum GreasePencilLayerTreeNodeType {
+  GP_LAYER_TREE_LEAF = 0,
+  GP_LAYER_TREE_GROUP = 1,
+};
+
+/**
+ * Flags for layer tree nodes. #GreasePencilLayerTreeNode.flag
+ */
+enum GreasePencilLayerTreeNodeFlag {
+  GP_LAYER_TREE_NODE_HIDE = (1 << 0),
+  GP_LAYER_TREE_NODE_LOCKED = (1 << 1),
+  GP_LAYER_TREE_NODE_SELECT = (1 << 2),
+  GP_LAYER_TREE_NODE_MUTE = (1 << 3),
+  GP_LAYER_TREE_NODE_USE_LIGHTS = (1 << 4),
+  GP_LAYER_TREE_NODE_HIDE_ONION_SKINNING = (1 << 5),
+  GP_LAYER_TREE_NODE_EXPANDED = (1 << 6),
+  GP_LAYER_TREE_NODE_HIDE_MASKS = (1 << 7),
+  GP_LAYER_TREE_NODE_DISABLE_MASKS_IN_VIEWLAYER = (1 << 8),
+  GP_LAYER_TREE_NODE_IGNORE_LOCKED_MATERIALS = (1 << 9),
+};
+
+enum GroupColorTag {
+  LAYERGROUP_COLOR_NONE = -1,
+  LAYERGROUP_COLOR_01,
+  LAYERGROUP_COLOR_02,
+  LAYERGROUP_COLOR_03,
+  LAYERGROUP_COLOR_04,
+  LAYERGROUP_COLOR_05,
+  LAYERGROUP_COLOR_06,
+  LAYERGROUP_COLOR_07,
+  LAYERGROUP_COLOR_08,
+};
+
+/**
+ * Flag for the grease pencil data-block. #GreasePencil.flag
+ */
+enum GreasePencilFlag {
+  GREASE_PENCIL_ANIM_CHANNEL_EXPANDED = (1 << 0),
+  GREASE_PENCIL_AUTOLOCK_LAYERS = (1 << 1),
+  GREASE_PENCIL_STROKE_ORDER_3D = (1 << 2),
+};
+
+/**
+ * Onion skinning mode. #GreasePencilOnionSkinningSettings.mode
+ */
+enum GreasePencilOnionSkinningMode {
+  GP_ONION_SKINNING_MODE_ABSOLUTE = 0,
+  GP_ONION_SKINNING_MODE_RELATIVE = 1,
+  GP_ONION_SKINNING_MODE_SELECTED = 2,
+};
+
+enum GreasePencilOnionSkinningFlag {
+  /* Use custom colors (per object-data) for onion skinning. */
+  GP_ONION_SKINNING_USE_CUSTOM_COLORS = (1 << 0),
+  /* Fade the opacity of ghost frames further away from the current frame. */
+  GP_ONION_SKINNING_USE_FADE = (1 << 1),
+  /* Show looping frames in onion skinning. */
+  GP_ONION_SKINNING_SHOW_LOOP = (1 << 2),
+};
+
+/**
+ * Flag for filtering the onion skinning per keyframe type.
+ * #GreasePencilOnionSkinningSettings.filter
+ * \note needs to match order of `eBezTriple_KeyframeType`.
+ */
+enum GreasePencilOnionSkinningFilter {
+  GP_ONION_SKINNING_FILTER_KEYTYPE_KEYFRAME = (1 << 0),
+  GP_ONION_SKINNING_FILTER_KEYTYPE_EXTREME = (1 << 1),
+  GP_ONION_SKINNING_FILTER_KEYTYPE_BREAKDOWN = (1 << 2),
+  GP_ONION_SKINNING_FILTER_KEYTYPE_JITTER = (1 << 3),
+  GP_ONION_SKINNING_FILTER_KEYTYPE_MOVEHOLD = (1 << 4),
+};
+
+#define GREASE_PENCIL_ONION_SKINNING_FILTER_ALL \
+  (GP_ONION_SKINNING_FILTER_KEYTYPE_KEYFRAME | GP_ONION_SKINNING_FILTER_KEYTYPE_EXTREME | \
+   GP_ONION_SKINNING_FILTER_KEYTYPE_BREAKDOWN | GP_ONION_SKINNING_FILTER_KEYTYPE_JITTER | \
+   GP_ONION_SKINNING_FILTER_KEYTYPE_MOVEHOLD)
 
 /**
  * Base class for drawings and drawing references (drawings from other objects).
@@ -132,16 +249,6 @@ typedef struct GreasePencilDrawingReference {
 } GreasePencilDrawingReference;
 
 /**
- * Flag for grease pencil frames. #GreasePencilFrame.flag
- */
-typedef enum GreasePencilFrameFlag {
-  GP_FRAME_SELECTED = (1 << 0),
-  /* When set, the frame is implicitly held until the next frame. E.g. it doesn't have a fixed
-   * duration. */
-  GP_FRAME_IMPLICIT_HOLD = (1 << 1),
-} GreasePencilFrameFlag;
-
-/**
  * A GreasePencilFrame is a single keyframe in the timeline.
  * It references a drawing by index into the drawing array.
  */
@@ -167,10 +274,6 @@ typedef struct GreasePencilFrame {
 #endif
 } GreasePencilFrame;
 
-typedef enum GreasePencilLayerFramesMapStorageFlag {
-  GP_LAYER_FRAMES_STORAGE_DIRTY = (1 << 0),
-} GreasePencilLayerFramesMapStorageFlag;
-
 /**
  * Storage for the Map in `blender::bke::greasepencil::Layer`.
  * See the description there for more detail.
@@ -187,14 +290,6 @@ typedef struct GreasePencilLayerFramesMapStorage {
 } GreasePencilLayerFramesMapStorage;
 
 /**
- * Flag for layer masks. #GreasePencilLayerMask.flag
- */
-typedef enum GreasePencilLayerMaskFlag {
-  GP_LAYER_MASK_HIDE = (1 << 0),
-  GP_LAYER_MASK_INVERT = (1 << 1),
-} GreasePencilLayerMaskFlag;
-
-/**
  * A grease pencil layer mask stores the name of a layer that is the mask.
  */
 typedef struct GreasePencilLayerMask {
@@ -209,44 +304,6 @@ typedef struct GreasePencilLayerMask {
   uint16_t flag;
   char _pad[6];
 } GreasePencilLayerMask;
-
-/**
- * Layer blending modes. #GreasePencilLayer.blend_mode
- */
-typedef enum GreasePencilLayerBlendMode {
-  GP_LAYER_BLEND_NONE = 0,
-  GP_LAYER_BLEND_HARDLIGHT = 1,
-  GP_LAYER_BLEND_ADD = 2,
-  GP_LAYER_BLEND_SUBTRACT = 3,
-  GP_LAYER_BLEND_MULTIPLY = 4,
-  GP_LAYER_BLEND_DIVIDE = 5,
-} GreasePencilLayerBlendMode;
-
-/**
- * Type of layer node.
- * If `GP_LAYER_TREE_LEAF` the node is a `GreasePencilLayerTreeLeaf`,
- * if `GP_LAYER_TREE_GROUP` the node is a `GreasePencilLayerTreeGroup`.
- */
-typedef enum GreasePencilLayerTreeNodeType {
-  GP_LAYER_TREE_LEAF = 0,
-  GP_LAYER_TREE_GROUP = 1,
-} GreasePencilLayerTreeNodeType;
-
-/**
- * Flags for layer tree nodes. #GreasePencilLayerTreeNode.flag
- */
-typedef enum GreasePencilLayerTreeNodeFlag {
-  GP_LAYER_TREE_NODE_HIDE = (1 << 0),
-  GP_LAYER_TREE_NODE_LOCKED = (1 << 1),
-  GP_LAYER_TREE_NODE_SELECT = (1 << 2),
-  GP_LAYER_TREE_NODE_MUTE = (1 << 3),
-  GP_LAYER_TREE_NODE_USE_LIGHTS = (1 << 4),
-  GP_LAYER_TREE_NODE_HIDE_ONION_SKINNING = (1 << 5),
-  GP_LAYER_TREE_NODE_EXPANDED = (1 << 6),
-  GP_LAYER_TREE_NODE_HIDE_MASKS = (1 << 7),
-  GP_LAYER_TREE_NODE_DISABLE_MASKS_IN_VIEWLAYER = (1 << 8),
-  GP_LAYER_TREE_NODE_IGNORE_LOCKED_MATERIALS = (1 << 9),
-} GreasePencilLayerTreeNodeFlag;
 
 struct GreasePencilLayerTreeGroup;
 typedef struct GreasePencilLayerTreeNode {
@@ -329,18 +386,6 @@ typedef struct GreasePencilLayer {
 #endif
 } GreasePencilLayer;
 
-typedef enum GroupColorTag {
-  LAYERGROUP_COLOR_NONE = -1,
-  LAYERGROUP_COLOR_01,
-  LAYERGROUP_COLOR_02,
-  LAYERGROUP_COLOR_03,
-  LAYERGROUP_COLOR_04,
-  LAYERGROUP_COLOR_05,
-  LAYERGROUP_COLOR_06,
-  LAYERGROUP_COLOR_07,
-  LAYERGROUP_COLOR_08,
-} GroupColorTag;
-
 typedef struct GreasePencilLayerTreeGroup {
   GreasePencilLayerTreeNode base;
   /**
@@ -361,51 +406,6 @@ typedef struct GreasePencilLayerTreeGroup {
   const blender::bke::greasepencil::LayerGroup &wrap() const;
 #endif
 } GreasePencilLayerTreeGroup;
-
-/**
- * Flag for the grease pencil data-block. #GreasePencil.flag
- */
-typedef enum GreasePencilFlag {
-  GREASE_PENCIL_ANIM_CHANNEL_EXPANDED = (1 << 0),
-  GREASE_PENCIL_AUTOLOCK_LAYERS = (1 << 1),
-  GREASE_PENCIL_STROKE_ORDER_3D = (1 << 2),
-} GreasePencilFlag;
-
-/**
- * Onion skinning mode. #GreasePencilOnionSkinningSettings.mode
- */
-typedef enum GreasePencilOnionSkinningMode {
-  GP_ONION_SKINNING_MODE_ABSOLUTE = 0,
-  GP_ONION_SKINNING_MODE_RELATIVE = 1,
-  GP_ONION_SKINNING_MODE_SELECTED = 2,
-} GreasePencilOnionSkinningMode;
-
-typedef enum GreasePencilOnionSkinningFlag {
-  /* Use custom colors (per object-data) for onion skinning. */
-  GP_ONION_SKINNING_USE_CUSTOM_COLORS = (1 << 0),
-  /* Fade the opacity of ghost frames further away from the current frame. */
-  GP_ONION_SKINNING_USE_FADE = (1 << 1),
-  /* Show looping frames in onion skinning. */
-  GP_ONION_SKINNING_SHOW_LOOP = (1 << 2),
-} GreasePencilOnionSkinningFlag;
-
-/**
- * Flag for filtering the onion skinning per keyframe type.
- * #GreasePencilOnionSkinningSettings.filter
- * \note needs to match order of `eBezTriple_KeyframeType`.
- */
-typedef enum GreasePencilOnionSkinningFilter {
-  GP_ONION_SKINNING_FILTER_KEYTYPE_KEYFRAME = (1 << 0),
-  GP_ONION_SKINNING_FILTER_KEYTYPE_EXTREME = (1 << 1),
-  GP_ONION_SKINNING_FILTER_KEYTYPE_BREAKDOWN = (1 << 2),
-  GP_ONION_SKINNING_FILTER_KEYTYPE_JITTER = (1 << 3),
-  GP_ONION_SKINNING_FILTER_KEYTYPE_MOVEHOLD = (1 << 4),
-} GreasePencilOnionSkinningFilter;
-
-#define GREASE_PENCIL_ONION_SKINNING_FILTER_ALL \
-  (GP_ONION_SKINNING_FILTER_KEYTYPE_KEYFRAME | GP_ONION_SKINNING_FILTER_KEYTYPE_EXTREME | \
-   GP_ONION_SKINNING_FILTER_KEYTYPE_BREAKDOWN | GP_ONION_SKINNING_FILTER_KEYTYPE_JITTER | \
-   GP_ONION_SKINNING_FILTER_KEYTYPE_MOVEHOLD)
 
 /**
  * Per data-block Grease Pencil onion skinning settings.

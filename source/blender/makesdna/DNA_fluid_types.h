@@ -91,11 +91,11 @@ enum {
  * #FluidDomainSettings.interp_method
  * Display interpolation method.
  */
-typedef enum FLUID_DisplayInterpolationMethod {
+enum FLUID_DisplayInterpolationMethod {
   FLUID_DISPLAY_INTERP_LINEAR = 0,
   FLUID_DISPLAY_INTERP_CUBIC = 1,
   FLUID_DISPLAY_INTERP_CLOSEST = 2,
-} FLUID_DisplayInterpolationMethod;
+};
 
 /** #FluidDomainSettings.vector_draw_type */
 enum {
@@ -115,11 +115,11 @@ enum {
  * #FluidDomainSettings.vector_field
  * Fluid domain vector fields.
  */
-typedef enum FLUID_DisplayVectorField {
+enum FLUID_DisplayVectorField {
   FLUID_DOMAIN_VECTOR_FIELD_VELOCITY = 0,
   FLUID_DOMAIN_VECTOR_FIELD_GUIDE_VELOCITY = 1,
   FLUID_DOMAIN_VECTOR_FIELD_FORCE = 2,
-} FLUID_DisplayVectorField;
+};
 
 /** #FluidDomainSettings.sndparticle_boundary */
 enum {
@@ -471,6 +471,75 @@ enum {
   SM_HRES_FULLSAMPLE = 2,
 };
 
+/* Flow types. */
+enum {
+  FLUID_FLOW_TYPE_SMOKE = 1,
+  FLUID_FLOW_TYPE_FIRE = 2,
+  FLUID_FLOW_TYPE_SMOKEFIRE = 3,
+  FLUID_FLOW_TYPE_LIQUID = 4,
+};
+
+/* Flow behavior types. */
+enum {
+  FLUID_FLOW_BEHAVIOR_INFLOW = 0,
+  FLUID_FLOW_BEHAVIOR_OUTFLOW = 1,
+  FLUID_FLOW_BEHAVIOR_GEOMETRY = 2,
+};
+
+/* Flow source types. */
+enum {
+  FLUID_FLOW_SOURCE_PARTICLES = 0,
+  FLUID_FLOW_SOURCE_MESH = 1,
+};
+
+/* Flow texture types. */
+enum {
+  FLUID_FLOW_TEXTURE_MAP_AUTO = 0,
+  FLUID_FLOW_TEXTURE_MAP_UV = 1,
+};
+
+/* Flow flags. */
+enum {
+  /* Old style emission. */
+  FLUID_FLOW_ABSOLUTE = (1 << 1),
+  /* Passes particles speed to the smoke. */
+  FLUID_FLOW_INITVELOCITY = (1 << 2),
+  /* Use texture to control emission speed. */
+  FLUID_FLOW_TEXTUREEMIT = (1 << 3),
+  /* Use specific size for particles instead of closest cell. */
+  FLUID_FLOW_USE_PART_SIZE = (1 << 4),
+  /* Control when to apply inflow. */
+  FLUID_FLOW_USE_INFLOW = (1 << 5),
+  /* Control how to initialize flow objects. */
+  FLUID_FLOW_USE_PLANE_INIT = (1 << 6),
+  /* Notify domain objects about state change (invalidate cache). */
+  FLUID_FLOW_NEEDS_UPDATE = (1 << 7),
+};
+
+/* Effector types. */
+enum {
+  FLUID_EFFECTOR_TYPE_COLLISION = 0,
+  FLUID_EFFECTOR_TYPE_GUIDE = 1,
+};
+
+/* Guiding velocity modes. */
+enum {
+  FLUID_EFFECTOR_GUIDE_MAX = 0,
+  FLUID_EFFECTOR_GUIDE_MIN = 1,
+  FLUID_EFFECTOR_GUIDE_OVERRIDE = 2,
+  FLUID_EFFECTOR_GUIDE_AVERAGED = 3,
+};
+
+/* Effector flags. */
+enum {
+  /* Control when to apply inflow. */
+  FLUID_EFFECTOR_USE_EFFEC = (1 << 1),
+  /* Control how to initialize flow objects. */
+  FLUID_EFFECTOR_USE_PLANE_INIT = (1 << 2),
+  /* Notify domain objects about state change (invalidate cache). */
+  FLUID_EFFECTOR_NEEDS_UPDATE = (1 << 3),
+};
+
 typedef struct FluidDomainSettings {
 
   /* -- Runtime-only fields (from here on). -- */
@@ -708,51 +777,6 @@ typedef struct FluidDomainSettings {
 
 } FluidDomainSettings;
 
-/* Flow types. */
-enum {
-  FLUID_FLOW_TYPE_SMOKE = 1,
-  FLUID_FLOW_TYPE_FIRE = 2,
-  FLUID_FLOW_TYPE_SMOKEFIRE = 3,
-  FLUID_FLOW_TYPE_LIQUID = 4,
-};
-
-/* Flow behavior types. */
-enum {
-  FLUID_FLOW_BEHAVIOR_INFLOW = 0,
-  FLUID_FLOW_BEHAVIOR_OUTFLOW = 1,
-  FLUID_FLOW_BEHAVIOR_GEOMETRY = 2,
-};
-
-/* Flow source types. */
-enum {
-  FLUID_FLOW_SOURCE_PARTICLES = 0,
-  FLUID_FLOW_SOURCE_MESH = 1,
-};
-
-/* Flow texture types. */
-enum {
-  FLUID_FLOW_TEXTURE_MAP_AUTO = 0,
-  FLUID_FLOW_TEXTURE_MAP_UV = 1,
-};
-
-/* Flow flags. */
-enum {
-  /* Old style emission. */
-  FLUID_FLOW_ABSOLUTE = (1 << 1),
-  /* Passes particles speed to the smoke. */
-  FLUID_FLOW_INITVELOCITY = (1 << 2),
-  /* Use texture to control emission speed. */
-  FLUID_FLOW_TEXTUREEMIT = (1 << 3),
-  /* Use specific size for particles instead of closest cell. */
-  FLUID_FLOW_USE_PART_SIZE = (1 << 4),
-  /* Control when to apply inflow. */
-  FLUID_FLOW_USE_INFLOW = (1 << 5),
-  /* Control how to initialize flow objects. */
-  FLUID_FLOW_USE_PLANE_INIT = (1 << 6),
-  /* Notify domain objects about state change (invalidate cache). */
-  FLUID_FLOW_NEEDS_UPDATE = (1 << 7),
-};
-
 typedef struct FluidFlowSettings {
 
   /* -- Runtime-only fields (from here on). -- */
@@ -803,30 +827,6 @@ typedef struct FluidFlowSettings {
   short _pad4[3];
   int flags; /* Absolute emission etc. */
 } FluidFlowSettings;
-
-/* Effector types. */
-enum {
-  FLUID_EFFECTOR_TYPE_COLLISION = 0,
-  FLUID_EFFECTOR_TYPE_GUIDE = 1,
-};
-
-/* Guiding velocity modes. */
-enum {
-  FLUID_EFFECTOR_GUIDE_MAX = 0,
-  FLUID_EFFECTOR_GUIDE_MIN = 1,
-  FLUID_EFFECTOR_GUIDE_OVERRIDE = 2,
-  FLUID_EFFECTOR_GUIDE_AVERAGED = 3,
-};
-
-/* Effector flags. */
-enum {
-  /* Control when to apply inflow. */
-  FLUID_EFFECTOR_USE_EFFEC = (1 << 1),
-  /* Control how to initialize flow objects. */
-  FLUID_EFFECTOR_USE_PLANE_INIT = (1 << 2),
-  /* Notify domain objects about state change (invalidate cache). */
-  FLUID_EFFECTOR_NEEDS_UPDATE = (1 << 3),
-};
 
 /* Collision objects (filled with smoke). */
 typedef struct FluidEffectorSettings {

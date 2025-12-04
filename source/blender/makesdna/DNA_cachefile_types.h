@@ -15,11 +15,11 @@
 #endif
 
 /* CacheFile::type */
-typedef enum {
+enum eCacheFileType {
   CACHEFILE_TYPE_ALEMBIC = 1,
   CACHEFILE_TYPE_USD = 2,
   CACHE_FILE_TYPE_INVALID = 0,
-} eCacheFileType;
+};
 
 /* CacheFile::flag */
 enum {
@@ -34,6 +34,16 @@ enum {
 };
 #endif
 
+/* CacheFileLayer::flag */
+enum { CACHEFILE_LAYER_HIDDEN = (1 << 0) };
+
+/* CacheFile::velocity_unit
+ * Determines what temporal unit is used to interpret velocity vectors for motion blur effects. */
+enum {
+  CACHEFILE_VELOCITY_UNIT_FRAME,
+  CACHEFILE_VELOCITY_UNIT_SECOND,
+};
+
 /* Representation of an object's path inside the archive.
  * Note that this is not a file path. */
 typedef struct CacheObjectPath {
@@ -41,9 +51,6 @@ typedef struct CacheObjectPath {
 
   char path[4096];
 } CacheObjectPath;
-
-/* CacheFileLayer::flag */
-enum { CACHEFILE_LAYER_HIDDEN = (1 << 0) };
 
 typedef struct CacheFileLayer {
   struct CacheFileLayer *next, *prev;
@@ -53,14 +60,8 @@ typedef struct CacheFileLayer {
   int _pad;
 } CacheFileLayer;
 
-/* CacheFile::velocity_unit
- * Determines what temporal unit is used to interpret velocity vectors for motion blur effects. */
-enum {
-  CACHEFILE_VELOCITY_UNIT_FRAME,
-  CACHEFILE_VELOCITY_UNIT_SECOND,
-};
-
 #ifdef __cplusplus
+
 struct CacheReader;
 using CacheFileHandleReaderSet = blender::Set<CacheReader **>;
 #else

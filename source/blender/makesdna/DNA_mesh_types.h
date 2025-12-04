@@ -55,6 +55,92 @@ struct MEdge;
 struct MFace;
 struct Material;
 
+/** #Mesh.texspace_flag */
+enum {
+  ME_TEXSPACE_FLAG_AUTO = 1 << 0,
+  ME_TEXSPACE_FLAG_AUTO_EVALUATED = 1 << 1,
+};
+
+/** #Mesh.editflag */
+enum {
+  ME_EDIT_MIRROR_VERTEX_GROUPS = 1 << 0,
+  ME_EDIT_MIRROR_Y = 1 << 1, /* unused so far */
+  ME_EDIT_MIRROR_Z = 1 << 2, /* unused so far */
+
+  ME_EDIT_PAINT_FACE_SEL = 1 << 3,
+  ME_EDIT_MIRROR_TOPO = 1 << 4,
+  ME_EDIT_PAINT_VERT_SEL = 1 << 5,
+};
+
+/* Helper macro to see if vertex group X mirror is on. */
+#define ME_USING_MIRROR_X_VERTEX_GROUPS(_me) \
+  (((_me)->editflag & ME_EDIT_MIRROR_VERTEX_GROUPS) && ((_me)->symmetry & ME_SYMMETRY_X))
+
+/* We can't have both flags enabled at once,
+ * flags defined in DNA_scene_types.h */
+#define ME_EDIT_PAINT_SEL_MODE(_me) \
+  (((_me)->editflag & ME_EDIT_PAINT_FACE_SEL) ? SCE_SELECT_FACE : \
+   ((_me)->editflag & ME_EDIT_PAINT_VERT_SEL) ? SCE_SELECT_VERTEX : \
+                                                0)
+
+/** #Mesh.flag */
+enum {
+  ME_FLAG_UNUSED_0 = 1 << 0,     /* cleared */
+  ME_FLAG_UNUSED_1 = 1 << 1,     /* cleared */
+  ME_FLAG_DEPRECATED_2 = 1 << 2, /* deprecated */
+  /**
+   * The UV selection is marked as synchronized.
+   * See #BMesh::uv_select_sync_valid for details.
+   */
+  ME_FLAG_UV_SELECT_SYNC_VALID = 1 << 3,
+  ME_FLAG_UNUSED_4 = 1 << 4,     /* cleared */
+  ME_AUTOSMOOTH_LEGACY = 1 << 5, /* deprecated */
+  ME_FLAG_UNUSED_6 = 1 << 6,     /* cleared */
+  ME_FLAG_UNUSED_7 = 1 << 7,     /* cleared */
+  ME_REMESH_REPROJECT_ATTRIBUTES = 1 << 8,
+  ME_DS_EXPAND = 1 << 9,
+  ME_SCULPT_DYNAMIC_TOPOLOGY = 1 << 10,
+  /**
+   * Used to tag that the mesh has no overlapping topology (see #Mesh::no_overlapping_topology()).
+   * Theoretically this is runtime data that could always be recalculated, but since the intent is
+   * to improve performance and it only takes one bit, it is stored in the mesh instead.
+   */
+  ME_NO_OVERLAPPING_TOPOLOGY = 1 << 11,
+  ME_FLAG_UNUSED_8 = 1 << 12, /* deprecated */
+  ME_REMESH_FIX_POLES = 1 << 13,
+  ME_REMESH_REPROJECT_VOLUME = 1 << 14,
+  ME_FLAG_UNUSED_9 = 1 << 15, /* deprecated */
+};
+
+#ifdef DNA_DEPRECATED_ALLOW
+/** #Mesh.cd_flag */
+enum {
+  ME_CDFLAG_VERT_BWEIGHT = 1 << 0,
+  ME_CDFLAG_EDGE_BWEIGHT = 1 << 1,
+  ME_CDFLAG_EDGE_CREASE = 1 << 2,
+  ME_CDFLAG_VERT_CREASE = 1 << 3,
+};
+#endif
+
+/** #Mesh.remesh_mode */
+enum {
+  REMESH_VOXEL = 0,
+  REMESH_QUAD = 1,
+};
+
+/** #SubsurfModifierData.subdivType */
+enum MeshSubdivType {
+  ME_CC_SUBSURF = 0,
+  ME_SIMPLE_SUBSURF = 1,
+};
+
+/** #Mesh.symmetry */
+enum eMeshSymmetryType {
+  ME_SYMMETRY_X = 1 << 0,
+  ME_SYMMETRY_Y = 1 << 1,
+  ME_SYMMETRY_Z = 1 << 2,
+};
+
 typedef struct Mesh {
 #ifdef __cplusplus
   DNA_DEFINE_CXX_METHODS(Mesh)
@@ -488,6 +574,7 @@ typedef struct Mesh {
 } Mesh;
 
 /* deprecated by MTFace, only here for file reading */
+
 #ifdef DNA_DEPRECATED_ALLOW
 typedef struct TFace {
   DNA_DEFINE_CXX_METHODS(TFace)
@@ -500,93 +587,5 @@ typedef struct TFace {
   short mode, tile, unwrap;
 } TFace;
 #endif
-
-/* **************** MESH ********************* */
-
-/** #Mesh.texspace_flag */
-enum {
-  ME_TEXSPACE_FLAG_AUTO = 1 << 0,
-  ME_TEXSPACE_FLAG_AUTO_EVALUATED = 1 << 1,
-};
-
-/** #Mesh.editflag */
-enum {
-  ME_EDIT_MIRROR_VERTEX_GROUPS = 1 << 0,
-  ME_EDIT_MIRROR_Y = 1 << 1, /* unused so far */
-  ME_EDIT_MIRROR_Z = 1 << 2, /* unused so far */
-
-  ME_EDIT_PAINT_FACE_SEL = 1 << 3,
-  ME_EDIT_MIRROR_TOPO = 1 << 4,
-  ME_EDIT_PAINT_VERT_SEL = 1 << 5,
-};
-
-/* Helper macro to see if vertex group X mirror is on. */
-#define ME_USING_MIRROR_X_VERTEX_GROUPS(_me) \
-  (((_me)->editflag & ME_EDIT_MIRROR_VERTEX_GROUPS) && ((_me)->symmetry & ME_SYMMETRY_X))
-
-/* We can't have both flags enabled at once,
- * flags defined in DNA_scene_types.h */
-#define ME_EDIT_PAINT_SEL_MODE(_me) \
-  (((_me)->editflag & ME_EDIT_PAINT_FACE_SEL) ? SCE_SELECT_FACE : \
-   ((_me)->editflag & ME_EDIT_PAINT_VERT_SEL) ? SCE_SELECT_VERTEX : \
-                                                0)
-
-/** #Mesh.flag */
-enum {
-  ME_FLAG_UNUSED_0 = 1 << 0,     /* cleared */
-  ME_FLAG_UNUSED_1 = 1 << 1,     /* cleared */
-  ME_FLAG_DEPRECATED_2 = 1 << 2, /* deprecated */
-  /**
-   * The UV selection is marked as synchronized.
-   * See #BMesh::uv_select_sync_valid for details.
-   */
-  ME_FLAG_UV_SELECT_SYNC_VALID = 1 << 3,
-  ME_FLAG_UNUSED_4 = 1 << 4,     /* cleared */
-  ME_AUTOSMOOTH_LEGACY = 1 << 5, /* deprecated */
-  ME_FLAG_UNUSED_6 = 1 << 6,     /* cleared */
-  ME_FLAG_UNUSED_7 = 1 << 7,     /* cleared */
-  ME_REMESH_REPROJECT_ATTRIBUTES = 1 << 8,
-  ME_DS_EXPAND = 1 << 9,
-  ME_SCULPT_DYNAMIC_TOPOLOGY = 1 << 10,
-  /**
-   * Used to tag that the mesh has no overlapping topology (see #Mesh::no_overlapping_topology()).
-   * Theoretically this is runtime data that could always be recalculated, but since the intent is
-   * to improve performance and it only takes one bit, it is stored in the mesh instead.
-   */
-  ME_NO_OVERLAPPING_TOPOLOGY = 1 << 11,
-  ME_FLAG_UNUSED_8 = 1 << 12, /* deprecated */
-  ME_REMESH_FIX_POLES = 1 << 13,
-  ME_REMESH_REPROJECT_VOLUME = 1 << 14,
-  ME_FLAG_UNUSED_9 = 1 << 15, /* deprecated */
-};
-
-#ifdef DNA_DEPRECATED_ALLOW
-/** #Mesh.cd_flag */
-enum {
-  ME_CDFLAG_VERT_BWEIGHT = 1 << 0,
-  ME_CDFLAG_EDGE_BWEIGHT = 1 << 1,
-  ME_CDFLAG_EDGE_CREASE = 1 << 2,
-  ME_CDFLAG_VERT_CREASE = 1 << 3,
-};
-#endif
-
-/** #Mesh.remesh_mode */
-enum {
-  REMESH_VOXEL = 0,
-  REMESH_QUAD = 1,
-};
-
-/** #SubsurfModifierData.subdivType */
-typedef enum MeshSubdivType {
-  ME_CC_SUBSURF = 0,
-  ME_SIMPLE_SUBSURF = 1,
-} MeshSubdivType;
-
-/** #Mesh.symmetry */
-typedef enum eMeshSymmetryType {
-  ME_SYMMETRY_X = 1 << 0,
-  ME_SYMMETRY_Y = 1 << 1,
-  ME_SYMMETRY_Z = 1 << 2,
-} eMeshSymmetryType;
 
 #define MESH_MAX_VERTS 2000000000L

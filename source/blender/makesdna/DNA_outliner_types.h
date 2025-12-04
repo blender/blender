@@ -12,27 +12,6 @@
 
 struct ID;
 
-typedef struct TreeStoreElem {
-  short type, nr, flag, used;
-
-  /* XXX We actually also store non-ID data in this pointer for identifying
-   * the #TreeStoreElem for a #TreeElement when rebuilding the tree. Ugly! */
-  struct ID *id;
-} TreeStoreElem;
-
-/** Used only to store data in blend files. */
-typedef struct TreeStore {
-  /** Was previously used for memory pre-allocation. */
-  int totelem DNA_DEPRECATED;
-  /** Number of elements in data array. */
-  int usedelem;
-  /**
-   * Elements to be packed from mempool in `writefile.cc`
-   * or extracted to mempool in `readfile.cc`.
-   */
-  TreeStoreElem *data;
-} TreeStore;
-
 /** #TreeStoreElem.flag */
 enum {
   TSE_CLOSED = (1 << 0),
@@ -53,7 +32,7 @@ enum {
 };
 
 /** #TreeStoreElem.types */
-typedef enum eTreeStoreElemType {
+enum eTreeStoreElemType {
   /**
    * If an element is of this type, `TreeStoreElem.id` points to a valid ID and the ID-type can be
    * received through `TreeElement.idcode` (or `GS(TreeStoreElem.id->name)`). Note however that the
@@ -116,7 +95,7 @@ typedef enum eTreeStoreElemType {
   TSE_GREASE_PENCIL_NODE = 48,
   TSE_LINKED_NODE_TREE = 49,
   TSE_ACTION_SLOT = 50,
-} eTreeStoreElemType;
+};
 
 /** Check whether given #TreeStoreElem should have a real ID in #TreeStoreElem.id member. */
 #define TSE_IS_REAL_ID(_tse) \
@@ -133,3 +112,24 @@ typedef enum eTreeStoreElemType {
          TSE_ID_BASE, \
          TSE_GP_LAYER, \
          TSE_GENERIC_LABEL))
+
+typedef struct TreeStoreElem {
+  short type, nr, flag, used;
+
+  /* XXX We actually also store non-ID data in this pointer for identifying
+   * the #TreeStoreElem for a #TreeElement when rebuilding the tree. Ugly! */
+  struct ID *id;
+} TreeStoreElem;
+
+/** Used only to store data in blend files. */
+typedef struct TreeStore {
+  /** Was previously used for memory pre-allocation. */
+  int totelem DNA_DEPRECATED;
+  /** Number of elements in data array. */
+  int usedelem;
+  /**
+   * Elements to be packed from mempool in `writefile.cc`
+   * or extracted to mempool in `readfile.cc`.
+   */
+  TreeStoreElem *data;
+} TreeStore;

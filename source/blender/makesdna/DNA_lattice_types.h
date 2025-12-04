@@ -16,6 +16,16 @@ struct BPoint;
 struct Key;
 struct MDeformVert;
 
+/** #Lattice::flag */
+enum {
+  LT_GRID = 1 << 0,
+  LT_OUTSIDE = 1 << 1,
+
+  LT_DS_EXPAND = 1 << 2,
+};
+
+#define LT_ACTBP_NONE -1
+
 #
 #
 typedef struct EditLatt {
@@ -68,15 +78,3 @@ typedef struct Lattice {
   struct EditLatt *editlatt;
   void *batch_cache;
 } Lattice;
-
-/* ***************** LATTICE ********************* */
-
-/** #Lattice::flag */
-enum {
-  LT_GRID = 1 << 0,
-  LT_OUTSIDE = 1 << 1,
-
-  LT_DS_EXPAND = 1 << 2,
-};
-
-#define LT_ACTBP_NONE -1

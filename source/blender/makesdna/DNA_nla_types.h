@@ -13,6 +13,27 @@
 struct Object;
 struct bAction;
 
+/** #Strip::mode (these defines aren't really used, but are here for reference) */
+enum {
+  ACTSTRIPMODE_BLEND = 0,
+  ACTSTRIPMODE_ADD = 1,
+};
+
+/** #bActionStrip.flag */
+enum eActStrip_Flag {
+  ACTSTRIP_SELECT = (1 << 0),
+  ACTSTRIP_USESTRIDE = (1 << 1),
+  /* Not implemented. Is not used anywhere */
+  /* ACTSTRIP_BLENDTONEXT = (1 << 2), */ /* UNUSED */
+  ACTSTRIP_HOLDLASTFRAME = (1 << 3),
+  ACTSTRIP_ACTIVE = (1 << 4),
+  ACTSTRIP_LOCK_ACTION = (1 << 5),
+  ACTSTRIP_MUTE = (1 << 6),
+  /* This has yet to be implemented. To indicate that a strip should be played backwards */
+  ACTSTRIP_REVERSE = (1 << 7),
+  ACTSTRIP_AUTO_BLENDS = (1 << 11),
+};
+
 /** Simple uniform modifier structure, assumed it can hold all type info. */
 typedef struct bActionModifier {
   struct bActionModifier *next, *prev;
@@ -70,24 +91,3 @@ typedef struct bActionStrip {
   /** Modifier stack. */
   ListBase modifiers;
 } bActionStrip;
-
-/** #Strip::mode (these defines aren't really used, but are here for reference) */
-enum {
-  ACTSTRIPMODE_BLEND = 0,
-  ACTSTRIPMODE_ADD = 1,
-};
-
-/** #bActionStrip.flag */
-typedef enum eActStrip_Flag {
-  ACTSTRIP_SELECT = (1 << 0),
-  ACTSTRIP_USESTRIDE = (1 << 1),
-  /* Not implemented. Is not used anywhere */
-  /* ACTSTRIP_BLENDTONEXT = (1 << 2), */ /* UNUSED */
-  ACTSTRIP_HOLDLASTFRAME = (1 << 3),
-  ACTSTRIP_ACTIVE = (1 << 4),
-  ACTSTRIP_LOCK_ACTION = (1 << 5),
-  ACTSTRIP_MUTE = (1 << 6),
-  /* This has yet to be implemented. To indicate that a strip should be played backwards */
-  ACTSTRIP_REVERSE = (1 << 7),
-  ACTSTRIP_AUTO_BLENDS = (1 << 11),
-} eActStrip_Flag;

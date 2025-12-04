@@ -21,11 +21,9 @@
 #define GPU_SKY_WIDTH 512
 #define GPU_SKY_HEIGHT 256
 
-typedef struct CurveMapPoint {
-  float x, y;
-  /** Shorty for result lookup. */
-  short flag, shorty;
-} CurveMapPoint;
+/* Multiplier to map YUV U,V range (+-0.436, +-0.615) to +-0.5 on both axes. */
+#define SCOPES_VEC_U_SCALE float(0.5f / 0.436f)
+#define SCOPES_VEC_V_SCALE float(0.5f / 0.615f)
 
 /** #CurveMapPoint.flag */
 enum {
@@ -35,6 +33,91 @@ enum {
   /** Temporary tag for point deletion. */
   CUMA_REMOVE = (1 << 3),
 };
+
+/** #CurveMapping.flag */
+enum eCurveMappingFlags {
+  CUMA_DO_CLIP = (1 << 0),
+  CUMA_PREMULLED = (1 << 1),
+  CUMA_DRAW_CFRA = (1 << 2),
+  CUMA_DRAW_SAMPLE = (1 << 3),
+
+  /** The curve is extended by extrapolation. When not set the curve is extended horizontally. */
+  CUMA_EXTEND_EXTRAPOLATE = (1 << 4),
+  CUMA_USE_WRAPPING = (1 << 5),
+};
+
+/** #CurveMapping.preset */
+enum eCurveMappingPreset {
+  CURVE_PRESET_LINE = 0,
+  CURVE_PRESET_SHARP = 1,
+  CURVE_PRESET_SMOOTH = 2,
+  CURVE_PRESET_MAX = 3,
+  CURVE_PRESET_MID8 = 4,
+  CURVE_PRESET_ROUND = 5,
+  CURVE_PRESET_ROOT = 6,
+  CURVE_PRESET_GAUSS = 7,
+  CURVE_PRESET_BELL = 8,
+  CURVE_PRESET_CONSTANT_MEDIAN = 9,
+};
+
+/** #CurveMapping.tone */
+enum eCurveMappingTone {
+  CURVE_TONE_STANDARD = 0,
+  CURVE_TONE_FILMLIKE = 2,
+};
+
+/** #Histogram.mode */
+enum {
+  HISTO_MODE_LUMA = 0,
+  HISTO_MODE_RGB = 1,
+  HISTO_MODE_R = 2,
+  HISTO_MODE_G = 3,
+  HISTO_MODE_B = 4,
+  HISTO_MODE_ALPHA = 5,
+};
+
+enum {
+  HISTO_FLAG_LINE = (1 << 0),
+  HISTO_FLAG_SAMPLELINE = (1 << 1),
+};
+
+/** #Scopes.wavefrm_mode */
+enum {
+  SCOPES_WAVEFRM_LUMA = 0,
+  SCOPES_WAVEFRM_RGB_PARADE = 1,
+  SCOPES_WAVEFRM_YCC_601 = 2,
+  SCOPES_WAVEFRM_YCC_709 = 3,
+  SCOPES_WAVEFRM_YCC_JPEG = 4,
+  SCOPES_WAVEFRM_RGB = 5,
+};
+
+/** #Scopes.vecscope_mode */
+enum {
+  SCOPES_VECSCOPE_RGB = 0,
+  SCOPES_VECSCOPE_LUMA = 1,
+};
+
+/** #ColorManagedDisplaySettings.emulation */
+enum {
+  COLORMANAGE_DISPLAY_EMULATION_AUTO = 0,
+  COLORMANAGE_DISPLAY_EMULATION_OFF = 1,
+};
+
+/** #ColorManagedViewSettings.flag */
+enum {
+  COLORMANAGE_VIEW_USE_CURVES = (1 << 0),
+  COLORMANAGE_VIEW_USE_DEPRECATED = (1 << 1),
+  COLORMANAGE_VIEW_USE_WHITE_BALANCE = (1 << 2),
+  /* Only work as pure view transform and look, no other settings.
+   * Not user editable, but fixed depending on where settings are stored. */
+  COLORMANAGE_VIEW_ONLY_VIEW_LOOK = (1 << 3)
+};
+
+typedef struct CurveMapPoint {
+  float x, y;
+  /** Shorty for result lookup. */
+  short flag, shorty;
+} CurveMapPoint;
 
 typedef struct CurveMap {
   short totpoint;
@@ -83,53 +166,6 @@ typedef struct CurveMapping {
   char _pad[6];
 } CurveMapping;
 
-/** #CurveMapping.flag */
-typedef enum eCurveMappingFlags {
-  CUMA_DO_CLIP = (1 << 0),
-  CUMA_PREMULLED = (1 << 1),
-  CUMA_DRAW_CFRA = (1 << 2),
-  CUMA_DRAW_SAMPLE = (1 << 3),
-
-  /** The curve is extended by extrapolation. When not set the curve is extended horizontally. */
-  CUMA_EXTEND_EXTRAPOLATE = (1 << 4),
-  CUMA_USE_WRAPPING = (1 << 5),
-} eCurveMappingFlags;
-
-/** #CurveMapping.preset */
-typedef enum eCurveMappingPreset {
-  CURVE_PRESET_LINE = 0,
-  CURVE_PRESET_SHARP = 1,
-  CURVE_PRESET_SMOOTH = 2,
-  CURVE_PRESET_MAX = 3,
-  CURVE_PRESET_MID8 = 4,
-  CURVE_PRESET_ROUND = 5,
-  CURVE_PRESET_ROOT = 6,
-  CURVE_PRESET_GAUSS = 7,
-  CURVE_PRESET_BELL = 8,
-  CURVE_PRESET_CONSTANT_MEDIAN = 9,
-} eCurveMappingPreset;
-
-/** #CurveMapping.tone */
-typedef enum eCurveMappingTone {
-  CURVE_TONE_STANDARD = 0,
-  CURVE_TONE_FILMLIKE = 2,
-} eCurveMappingTone;
-
-/** #Histogram.mode */
-enum {
-  HISTO_MODE_LUMA = 0,
-  HISTO_MODE_RGB = 1,
-  HISTO_MODE_R = 2,
-  HISTO_MODE_G = 3,
-  HISTO_MODE_B = 4,
-  HISTO_MODE_ALPHA = 5,
-};
-
-enum {
-  HISTO_FLAG_LINE = (1 << 0),
-  HISTO_FLAG_SAMPLELINE = (1 << 1),
-};
-
 typedef struct Histogram {
   int channels;
   int x_resolution;
@@ -146,10 +182,6 @@ typedef struct Histogram {
   /** Sample line only (image coords: source -> destination). */
   float co[2][2];
 } Histogram;
-
-/* Multiplier to map YUV U,V range (+-0.436, +-0.615) to +-0.5 on both axes. */
-#define SCOPES_VEC_U_SCALE float(0.5f / 0.436f)
-#define SCOPES_VEC_V_SCALE float(0.5f / 0.615f)
 
 typedef struct Scopes {
   int ok;
@@ -172,22 +204,6 @@ typedef struct Scopes {
   float *vecscope;
   float *vecscope_rgb;
 } Scopes;
-
-/** #Scopes.wavefrm_mode */
-enum {
-  SCOPES_WAVEFRM_LUMA = 0,
-  SCOPES_WAVEFRM_RGB_PARADE = 1,
-  SCOPES_WAVEFRM_YCC_601 = 2,
-  SCOPES_WAVEFRM_YCC_709 = 3,
-  SCOPES_WAVEFRM_YCC_JPEG = 4,
-  SCOPES_WAVEFRM_RGB = 5,
-};
-
-/** #Scopes.vecscope_mode */
-enum {
-  SCOPES_VECSCOPE_RGB = 0,
-  SCOPES_VECSCOPE_LUMA = 1,
-};
 
 typedef struct ColorManagedViewSettings {
   int flag;
@@ -218,19 +234,3 @@ typedef struct ColorManagedDisplaySettings {
 typedef struct ColorManagedColorspaceSettings {
   char name[/*MAX_COLORSPACE_NAME*/ 64];
 } ColorManagedColorspaceSettings;
-
-/** #ColorManagedDisplaySettings.emulation */
-enum {
-  COLORMANAGE_DISPLAY_EMULATION_AUTO = 0,
-  COLORMANAGE_DISPLAY_EMULATION_OFF = 1,
-};
-
-/** #ColorManagedViewSettings.flag */
-enum {
-  COLORMANAGE_VIEW_USE_CURVES = (1 << 0),
-  COLORMANAGE_VIEW_USE_DEPRECATED = (1 << 1),
-  COLORMANAGE_VIEW_USE_WHITE_BALANCE = (1 << 2),
-  /* Only work as pure view transform and look, no other settings.
-   * Not user editable, but fixed depending on where settings are stored. */
-  COLORMANAGE_VIEW_ONLY_VIEW_LOOK = (1 << 3)
-};

@@ -47,6 +47,275 @@ struct SculptSession;
 struct SoftBody;
 struct bGPdata;
 
+#define MAX_VGROUP_NAME 64
+
+/** #bDeformGroup::flag */
+enum {
+  DG_LOCK_WEIGHT = 1,
+};
+
+/* **************** BASE ********************* */
+
+/** #Base::flag_legacy (also used for #Object::flag). */
+enum {
+  BA_WAS_SEL = (1 << 1),
+  /* NOTE: BA_HAS_RECALC_DATA can be re-used later if freed in `readfile.cc`. */
+  // BA_HAS_RECALC_OB = 1 << 2, /* DEPRECATED */
+  // BA_HAS_RECALC_DATA = 1 << 3, /* DEPRECATED */
+  /** DEPRECATED, was runtime only, but was reusing an older flag. */
+  BA_SNAP_FIX_DEPS_FIASCO = (1 << 2),
+
+  /** NOTE: this was used as a proper setting in past, so nullify before using */
+  BA_TEMP_TAG = 1 << 5,
+  /**
+   * Even if this is tagged for transform, this flag means it's being locked in place.
+   * Use for #SCE_XFORM_SKIP_CHILDREN.
+   */
+  BA_TRANSFORM_LOCKED_IN_PLACE = 1 << 7,
+
+  /** Child of a transformed object. */
+  BA_TRANSFORM_CHILD = 1 << 8,
+  /** Parent of a transformed object. */
+  BA_TRANSFORM_PARENT = 1 << 13,
+
+  OB_FROMDUPLI = 1 << 9,
+  /** Unknown state, clear before use. */
+  OB_DONE = 1 << 10,
+  OB_FLAG_USE_SIMULATION_CACHE = 1 << 11,
+  /** Used for the clipboard to mark the active object. */
+  OB_FLAG_ACTIVE_CLIPBOARD = 1 << 12,
+};
+
+/* **************** OBJECT ********************* */
+
+/** #Object.type */
+enum ObjectType {
+  OB_EMPTY = 0,
+  OB_MESH = 1,
+  /** Curve object is still used but replaced by "Curves" for the future (see #95355). */
+  OB_CURVES_LEGACY = 2,
+  OB_SURF = 3,
+  OB_FONT = 4,
+  OB_MBALL = 5,
+
+  OB_LAMP = 10,
+  OB_CAMERA = 11,
+
+  OB_SPEAKER = 12,
+  OB_LIGHTPROBE = 13,
+
+  OB_LATTICE = 22,
+
+  OB_ARMATURE = 25,
+
+  OB_GPENCIL_LEGACY = 26,
+
+  OB_CURVES = 27,
+
+  OB_POINTCLOUD = 28,
+
+  OB_VOLUME = 29,
+
+  OB_GREASE_PENCIL = 30,
+
+  /* Keep last. */
+  OB_TYPE_MAX,
+};
+
+/** #Object.partype: first 4 bits: type. */
+enum {
+  PARTYPE = (1 << 4) - 1,
+  PAROBJECT = 0,
+  PARSKEL = 4,
+  PARVERT1 = 5,
+  PARVERT3 = 6,
+  PARBONE = 7,
+
+};
+
+/** #Object.transflag (short) */
+enum {
+  OB_TRANSFORM_ADJUST_ROOT_PARENT_FOR_VIEW_LOCK = 1 << 0,
+  OB_TRANSFLAG_UNUSED_1 = 1 << 1, /* cleared */
+  OB_NEG_SCALE = 1 << 2,
+  OB_TRANSFLAG_UNUSED_3 = 1 << 3, /* cleared */
+  OB_DUPLIVERTS = 1 << 4,
+  OB_DUPLIROT = 1 << 5,
+  OB_TRANSFLAG_UNUSED_6 = 1 << 6, /* cleared */
+  /* runtime, calculate derivedmesh for dupli before it's used */
+  OB_TRANSFLAG_UNUSED_7 = 1 << 7, /* dirty */
+  OB_DUPLICOLLECTION = 1 << 8,
+  OB_DUPLIFACES = 1 << 9,
+  OB_DUPLIFACES_SCALE = 1 << 10,
+  OB_DUPLIPARTS = 1 << 11,
+  OB_TRANSFLAG_UNUSED_12 = 1 << 12, /* cleared */
+  /* runtime constraints disable */
+  OB_NO_CONSTRAINTS = 1 << 13,
+  /* when calculating vertex parent position, ignore CD_ORIGINDEX layer */
+  OB_PARENT_USE_FINAL_INDICES = 1 << 14,
+
+  OB_DUPLI = OB_DUPLIVERTS | OB_DUPLICOLLECTION | OB_DUPLIFACES | OB_DUPLIPARTS,
+};
+
+/** #Object.trackflag / #Object.upflag (short) */
+enum {
+  OB_POSX = 0,
+  OB_POSY = 1,
+  OB_POSZ = 2,
+  OB_NEGX = 3,
+  OB_NEGY = 4,
+  OB_NEGZ = 5,
+};
+
+/** #Object.dtx draw type extra flags (short) */
+enum {
+  OB_DRAWBOUNDOX = 1 << 0,
+  OB_AXIS = 1 << 1,
+  OB_TEXSPACE = 1 << 2,
+  OB_DRAWNAME = 1 << 3,
+  /* OB_DRAWIMAGE = 1 << 4, */ /* UNUSED */
+  /* for solid+wire display */
+  OB_DRAWWIRE = 1 << 5,
+  /* For overdrawing. */
+  OB_DRAW_IN_FRONT = 1 << 6,
+  /* Enable transparent draw. */
+  OB_DRAWTRANSP = 1 << 7,
+  OB_DRAW_ALL_EDGES = 1 << 8, /* only for meshes currently */
+  OB_DRAW_NO_SHADOW_CAST = 1 << 9,
+  /* Enable lights for grease pencil. */
+  OB_USE_GPENCIL_LIGHTS = 1 << 10,
+};
+
+/** #Object.empty_drawtype: no flags */
+enum {
+  OB_ARROWS = 1,
+  OB_PLAINAXES = 2,
+  OB_CIRCLE = 3,
+  OB_SINGLE_ARROW = 4,
+  OB_CUBE = 5,
+  OB_EMPTY_SPHERE = 6,
+  OB_EMPTY_CONE = 7,
+  OB_EMPTY_IMAGE = 8,
+};
+
+/**
+ * Grease-pencil add types.
+ * TODO: doesn't need to be DNA, local to `OBJECT_OT_gpencil_add`.
+ */
+enum {
+  GP_EMPTY = 0,
+  GP_STROKE = 1,
+  GP_MONKEY = 2,
+  GREASE_PENCIL_LINEART_SCENE = 3,
+  GREASE_PENCIL_LINEART_OBJECT = 4,
+  GREASE_PENCIL_LINEART_COLLECTION = 5,
+};
+
+/** #Object.boundtype */
+enum {
+  OB_BOUND_BOX = 0,
+  OB_BOUND_SPHERE = 1,
+  OB_BOUND_CYLINDER = 2,
+  OB_BOUND_CONE = 3,
+  // OB_BOUND_TRIANGLE_MESH = 4, /* UNUSED */
+  // OB_BOUND_CONVEX_HULL = 5,   /* UNUSED */
+  // OB_BOUND_DYN_MESH = 6,      /* UNUSED */
+  OB_BOUND_CAPSULE = 7,
+};
+
+/** #Object.visibility_flag */
+enum {
+  OB_HIDE_VIEWPORT = 1 << 0,
+  OB_HIDE_SELECT = 1 << 1,
+  OB_HIDE_RENDER = 1 << 2,
+  OB_HIDE_CAMERA = 1 << 3,
+  OB_HIDE_DIFFUSE = 1 << 4,
+  OB_HIDE_GLOSSY = 1 << 5,
+  OB_HIDE_TRANSMISSION = 1 << 6,
+  OB_HIDE_VOLUME_SCATTER = 1 << 7,
+  OB_HIDE_SHADOW = 1 << 8,
+  OB_HOLDOUT = 1 << 9,
+  OB_SHADOW_CATCHER = 1 << 10,
+  OB_HIDE_PROBE_VOLUME = 1 << 11,
+  OB_HIDE_PROBE_CUBEMAP = 1 << 12,
+  OB_HIDE_PROBE_PLANAR = 1 << 13,
+  OB_HIDE_SURFACE_PICK = 1 << 14,
+};
+
+/** #Object.shapeflag */
+enum {
+  OB_SHAPE_LOCK = 1 << 0,
+#ifdef DNA_DEPRECATED_ALLOW
+  OB_SHAPE_FLAG_UNUSED_1 = 1 << 1, /* cleared */
+#endif
+  OB_SHAPE_EDIT_MODE = 1 << 2,
+};
+
+/** #Object.nlaflag */
+enum {
+  OB_ADS_UNUSED_1 = 1 << 0, /* cleared */
+  OB_ADS_UNUSED_2 = 1 << 1, /* cleared */
+  /* object-channel expanded status */
+  OB_ADS_COLLAPSED = 1 << 10,
+  /* object's ipo-block */
+  /* OB_ADS_SHOWIPO = 1 << 11, */ /* UNUSED */
+  /* object's constraint channels */
+  /* OB_ADS_SHOWCONS = 1 << 12, */ /* UNUSED */
+  /* object's material channels */
+  /* OB_ADS_SHOWMATS = 1 << 13, */ /* UNUSED */
+  /* object's particle channels */
+  /* OB_ADS_SHOWPARTS = 1 << 14, */ /* UNUSED */
+};
+
+/** #Object.protectflag */
+enum {
+  OB_LOCK_LOCX = 1 << 0,
+  OB_LOCK_LOCY = 1 << 1,
+  OB_LOCK_LOCZ = 1 << 2,
+  OB_LOCK_LOC = OB_LOCK_LOCX | OB_LOCK_LOCY | OB_LOCK_LOCZ,
+  OB_LOCK_ROTX = 1 << 3,
+  OB_LOCK_ROTY = 1 << 4,
+  OB_LOCK_ROTZ = 1 << 5,
+  OB_LOCK_ROT = OB_LOCK_ROTX | OB_LOCK_ROTY | OB_LOCK_ROTZ,
+  OB_LOCK_SCALEX = 1 << 6,
+  OB_LOCK_SCALEY = 1 << 7,
+  OB_LOCK_SCALEZ = 1 << 8,
+  OB_LOCK_SCALE = OB_LOCK_SCALEX | OB_LOCK_SCALEY | OB_LOCK_SCALEZ,
+  OB_LOCK_ROTW = 1 << 9,
+  OB_LOCK_ROT4D = 1 << 10,
+};
+
+/** #Object.duplicator_visibility_flag */
+enum {
+  OB_DUPLI_FLAG_VIEWPORT = 1 << 0,
+  OB_DUPLI_FLAG_RENDER = 1 << 1,
+};
+
+/** #Object.empty_image_depth */
+enum {
+  OB_EMPTY_IMAGE_DEPTH_DEFAULT = 0,
+  OB_EMPTY_IMAGE_DEPTH_FRONT = 1,
+  OB_EMPTY_IMAGE_DEPTH_BACK = 2,
+};
+
+/** #Object.empty_image_visibility_flag */
+enum {
+  OB_EMPTY_IMAGE_HIDE_PERSPECTIVE = 1 << 0,
+  OB_EMPTY_IMAGE_HIDE_ORTHOGRAPHIC = 1 << 1,
+  OB_EMPTY_IMAGE_HIDE_BACK = 1 << 2,
+  OB_EMPTY_IMAGE_HIDE_FRONT = 1 << 3,
+  OB_EMPTY_IMAGE_HIDE_NON_AXIS_ALIGNED = 1 << 4,
+};
+
+/** #Object.empty_image_flag */
+enum {
+  OB_EMPTY_IMAGE_USE_ALPHA_BLEND = 1 << 0,
+};
+
+enum ObjectModifierFlag {
+  OB_MODIFIER_FLAG_ADD_REST_POSITION = 1 << 0,
+};
+
 /** Vertex Groups - Name Info */
 typedef struct bDeformGroup {
   struct bDeformGroup *next, *prev;
@@ -63,13 +332,6 @@ typedef struct bFaceMap {
   char _pad0[7];
 } bFaceMap;
 #endif
-
-#define MAX_VGROUP_NAME 64
-
-/** #bDeformGroup::flag */
-enum {
-  DG_LOCK_WEIGHT = 1,
-};
 
 /**
  * The following illustrates the orientation of the
@@ -96,18 +358,6 @@ typedef struct BoundBox {
   float vec[8][3];
 } BoundBox;
 
-typedef struct ObjectLineArt {
-  short usage;
-  short flags;
-
-  /** if OBJECT_LRT_OWN_CREASE is set */
-  float crease_threshold;
-
-  unsigned char intersection_priority;
-
-  char _pad[7];
-} ObjectLineArt;
-
 /**
  * \warning while the values seem to be flags, they aren't treated as flags.
  */
@@ -126,6 +376,18 @@ enum eObjectLineArt_Flags {
   OBJECT_LRT_OWN_CREASE = (1 << 0),
   OBJECT_LRT_OWN_INTERSECTION_PRIORITY = (1 << 1),
 };
+
+typedef struct ObjectLineArt {
+  short usage;
+  short flags;
+
+  /** if OBJECT_LRT_OWN_CREASE is set */
+  float crease_threshold;
+
+  unsigned char intersection_priority;
+
+  char _pad[7];
+} ObjectLineArt;
 
 /* Evaluated light linking state needed for the render engines integration. */
 typedef struct LightLinkingRuntime {
@@ -417,8 +679,6 @@ typedef struct ObHook {
   float force;
 } ObHook;
 
-/* **************** OBJECT ********************* */
-
 /**
  * This is used as a flag for many kinds of data that use selections, examples include:
  * - #BezTriple.f1, #BezTriple.f2, #BezTriple.f3
@@ -428,44 +688,11 @@ typedef struct ObHook {
  */
 #define SELECT 1
 
-/** #Object.type */
-typedef enum ObjectType {
-  OB_EMPTY = 0,
-  OB_MESH = 1,
-  /** Curve object is still used but replaced by "Curves" for the future (see #95355). */
-  OB_CURVES_LEGACY = 2,
-  OB_SURF = 3,
-  OB_FONT = 4,
-  OB_MBALL = 5,
-
-  OB_LAMP = 10,
-  OB_CAMERA = 11,
-
-  OB_SPEAKER = 12,
-  OB_LIGHTPROBE = 13,
-
-  OB_LATTICE = 22,
-
-  OB_ARMATURE = 25,
-
-  OB_GPENCIL_LEGACY = 26,
-
-  OB_CURVES = 27,
-
-  OB_POINTCLOUD = 28,
-
-  OB_VOLUME = 29,
-
-  OB_GREASE_PENCIL = 30,
-
-  /* Keep last. */
-  OB_TYPE_MAX,
-} ObjectType;
-
 /* check if the object type supports materials */
 #define OB_TYPE_SUPPORT_MATERIAL(_type) \
   (((_type) >= OB_MESH && (_type) <= OB_MBALL) || \
    ((_type) >= OB_CURVES && (_type) <= OB_GREASE_PENCIL))
+
 /**
  * Does the object have some render-able geometry (unlike empties, cameras, etc.). True for
  * #OB_CURVES_LEGACY, since these often evaluate to objects with geometry.
@@ -481,7 +708,9 @@ typedef enum ObjectType {
         OB_POINTCLOUD, \
         OB_VOLUME, \
         OB_GREASE_PENCIL))
+
 #define OB_TYPE_SUPPORT_VGROUP(_type) (ELEM(_type, OB_MESH, OB_LATTICE, OB_GREASE_PENCIL))
+
 #define OB_TYPE_SUPPORT_EDITMODE(_type) \
   (ELEM(_type, \
         OB_MESH, \
@@ -494,6 +723,7 @@ typedef enum ObjectType {
         OB_CURVES, \
         OB_POINTCLOUD, \
         OB_GREASE_PENCIL))
+
 #define OB_TYPE_SUPPORT_PARVERT(_type) \
   (ELEM(_type, OB_MESH, OB_SURF, OB_CURVES_LEGACY, OB_LATTICE))
 
@@ -534,229 +764,3 @@ typedef enum ObjectType {
   case ID_PT: \
   case ID_VO: \
   case ID_GP
-
-/** #Object.partype: first 4 bits: type. */
-enum {
-  PARTYPE = (1 << 4) - 1,
-  PAROBJECT = 0,
-  PARSKEL = 4,
-  PARVERT1 = 5,
-  PARVERT3 = 6,
-  PARBONE = 7,
-
-};
-
-/** #Object.transflag (short) */
-enum {
-  OB_TRANSFORM_ADJUST_ROOT_PARENT_FOR_VIEW_LOCK = 1 << 0,
-  OB_TRANSFLAG_UNUSED_1 = 1 << 1, /* cleared */
-  OB_NEG_SCALE = 1 << 2,
-  OB_TRANSFLAG_UNUSED_3 = 1 << 3, /* cleared */
-  OB_DUPLIVERTS = 1 << 4,
-  OB_DUPLIROT = 1 << 5,
-  OB_TRANSFLAG_UNUSED_6 = 1 << 6, /* cleared */
-  /* runtime, calculate derivedmesh for dupli before it's used */
-  OB_TRANSFLAG_UNUSED_7 = 1 << 7, /* dirty */
-  OB_DUPLICOLLECTION = 1 << 8,
-  OB_DUPLIFACES = 1 << 9,
-  OB_DUPLIFACES_SCALE = 1 << 10,
-  OB_DUPLIPARTS = 1 << 11,
-  OB_TRANSFLAG_UNUSED_12 = 1 << 12, /* cleared */
-  /* runtime constraints disable */
-  OB_NO_CONSTRAINTS = 1 << 13,
-  /* when calculating vertex parent position, ignore CD_ORIGINDEX layer */
-  OB_PARENT_USE_FINAL_INDICES = 1 << 14,
-
-  OB_DUPLI = OB_DUPLIVERTS | OB_DUPLICOLLECTION | OB_DUPLIFACES | OB_DUPLIPARTS,
-};
-
-/** #Object.trackflag / #Object.upflag (short) */
-enum {
-  OB_POSX = 0,
-  OB_POSY = 1,
-  OB_POSZ = 2,
-  OB_NEGX = 3,
-  OB_NEGY = 4,
-  OB_NEGZ = 5,
-};
-
-/** #Object.dtx draw type extra flags (short) */
-enum {
-  OB_DRAWBOUNDOX = 1 << 0,
-  OB_AXIS = 1 << 1,
-  OB_TEXSPACE = 1 << 2,
-  OB_DRAWNAME = 1 << 3,
-  /* OB_DRAWIMAGE = 1 << 4, */ /* UNUSED */
-  /* for solid+wire display */
-  OB_DRAWWIRE = 1 << 5,
-  /* For overdrawing. */
-  OB_DRAW_IN_FRONT = 1 << 6,
-  /* Enable transparent draw. */
-  OB_DRAWTRANSP = 1 << 7,
-  OB_DRAW_ALL_EDGES = 1 << 8, /* only for meshes currently */
-  OB_DRAW_NO_SHADOW_CAST = 1 << 9,
-  /* Enable lights for grease pencil. */
-  OB_USE_GPENCIL_LIGHTS = 1 << 10,
-};
-
-/** #Object.empty_drawtype: no flags */
-enum {
-  OB_ARROWS = 1,
-  OB_PLAINAXES = 2,
-  OB_CIRCLE = 3,
-  OB_SINGLE_ARROW = 4,
-  OB_CUBE = 5,
-  OB_EMPTY_SPHERE = 6,
-  OB_EMPTY_CONE = 7,
-  OB_EMPTY_IMAGE = 8,
-};
-
-/**
- * Grease-pencil add types.
- * TODO: doesn't need to be DNA, local to `OBJECT_OT_gpencil_add`.
- */
-enum {
-  GP_EMPTY = 0,
-  GP_STROKE = 1,
-  GP_MONKEY = 2,
-  GREASE_PENCIL_LINEART_SCENE = 3,
-  GREASE_PENCIL_LINEART_OBJECT = 4,
-  GREASE_PENCIL_LINEART_COLLECTION = 5,
-};
-
-/** #Object.boundtype */
-enum {
-  OB_BOUND_BOX = 0,
-  OB_BOUND_SPHERE = 1,
-  OB_BOUND_CYLINDER = 2,
-  OB_BOUND_CONE = 3,
-  // OB_BOUND_TRIANGLE_MESH = 4, /* UNUSED */
-  // OB_BOUND_CONVEX_HULL = 5,   /* UNUSED */
-  // OB_BOUND_DYN_MESH = 6,      /* UNUSED */
-  OB_BOUND_CAPSULE = 7,
-};
-
-/* **************** BASE ********************* */
-
-/** #Base::flag_legacy (also used for #Object::flag). */
-enum {
-  BA_WAS_SEL = (1 << 1),
-  /* NOTE: BA_HAS_RECALC_DATA can be re-used later if freed in `readfile.cc`. */
-  // BA_HAS_RECALC_OB = 1 << 2, /* DEPRECATED */
-  // BA_HAS_RECALC_DATA = 1 << 3, /* DEPRECATED */
-  /** DEPRECATED, was runtime only, but was reusing an older flag. */
-  BA_SNAP_FIX_DEPS_FIASCO = (1 << 2),
-
-  /** NOTE: this was used as a proper setting in past, so nullify before using */
-  BA_TEMP_TAG = 1 << 5,
-  /**
-   * Even if this is tagged for transform, this flag means it's being locked in place.
-   * Use for #SCE_XFORM_SKIP_CHILDREN.
-   */
-  BA_TRANSFORM_LOCKED_IN_PLACE = 1 << 7,
-
-  /** Child of a transformed object. */
-  BA_TRANSFORM_CHILD = 1 << 8,
-  /** Parent of a transformed object. */
-  BA_TRANSFORM_PARENT = 1 << 13,
-
-  OB_FROMDUPLI = 1 << 9,
-  /** Unknown state, clear before use. */
-  OB_DONE = 1 << 10,
-  OB_FLAG_USE_SIMULATION_CACHE = 1 << 11,
-  /** Used for the clipboard to mark the active object. */
-  OB_FLAG_ACTIVE_CLIPBOARD = 1 << 12,
-};
-
-/** #Object.visibility_flag */
-enum {
-  OB_HIDE_VIEWPORT = 1 << 0,
-  OB_HIDE_SELECT = 1 << 1,
-  OB_HIDE_RENDER = 1 << 2,
-  OB_HIDE_CAMERA = 1 << 3,
-  OB_HIDE_DIFFUSE = 1 << 4,
-  OB_HIDE_GLOSSY = 1 << 5,
-  OB_HIDE_TRANSMISSION = 1 << 6,
-  OB_HIDE_VOLUME_SCATTER = 1 << 7,
-  OB_HIDE_SHADOW = 1 << 8,
-  OB_HOLDOUT = 1 << 9,
-  OB_SHADOW_CATCHER = 1 << 10,
-  OB_HIDE_PROBE_VOLUME = 1 << 11,
-  OB_HIDE_PROBE_CUBEMAP = 1 << 12,
-  OB_HIDE_PROBE_PLANAR = 1 << 13,
-  OB_HIDE_SURFACE_PICK = 1 << 14,
-};
-
-/** #Object.shapeflag */
-enum {
-  OB_SHAPE_LOCK = 1 << 0,
-#ifdef DNA_DEPRECATED_ALLOW
-  OB_SHAPE_FLAG_UNUSED_1 = 1 << 1, /* cleared */
-#endif
-  OB_SHAPE_EDIT_MODE = 1 << 2,
-};
-
-/** #Object.nlaflag */
-enum {
-  OB_ADS_UNUSED_1 = 1 << 0, /* cleared */
-  OB_ADS_UNUSED_2 = 1 << 1, /* cleared */
-  /* object-channel expanded status */
-  OB_ADS_COLLAPSED = 1 << 10,
-  /* object's ipo-block */
-  /* OB_ADS_SHOWIPO = 1 << 11, */ /* UNUSED */
-  /* object's constraint channels */
-  /* OB_ADS_SHOWCONS = 1 << 12, */ /* UNUSED */
-  /* object's material channels */
-  /* OB_ADS_SHOWMATS = 1 << 13, */ /* UNUSED */
-  /* object's particle channels */
-  /* OB_ADS_SHOWPARTS = 1 << 14, */ /* UNUSED */
-};
-
-/** #Object.protectflag */
-enum {
-  OB_LOCK_LOCX = 1 << 0,
-  OB_LOCK_LOCY = 1 << 1,
-  OB_LOCK_LOCZ = 1 << 2,
-  OB_LOCK_LOC = OB_LOCK_LOCX | OB_LOCK_LOCY | OB_LOCK_LOCZ,
-  OB_LOCK_ROTX = 1 << 3,
-  OB_LOCK_ROTY = 1 << 4,
-  OB_LOCK_ROTZ = 1 << 5,
-  OB_LOCK_ROT = OB_LOCK_ROTX | OB_LOCK_ROTY | OB_LOCK_ROTZ,
-  OB_LOCK_SCALEX = 1 << 6,
-  OB_LOCK_SCALEY = 1 << 7,
-  OB_LOCK_SCALEZ = 1 << 8,
-  OB_LOCK_SCALE = OB_LOCK_SCALEX | OB_LOCK_SCALEY | OB_LOCK_SCALEZ,
-  OB_LOCK_ROTW = 1 << 9,
-  OB_LOCK_ROT4D = 1 << 10,
-};
-
-/** #Object.duplicator_visibility_flag */
-enum {
-  OB_DUPLI_FLAG_VIEWPORT = 1 << 0,
-  OB_DUPLI_FLAG_RENDER = 1 << 1,
-};
-
-/** #Object.empty_image_depth */
-enum {
-  OB_EMPTY_IMAGE_DEPTH_DEFAULT = 0,
-  OB_EMPTY_IMAGE_DEPTH_FRONT = 1,
-  OB_EMPTY_IMAGE_DEPTH_BACK = 2,
-};
-
-/** #Object.empty_image_visibility_flag */
-enum {
-  OB_EMPTY_IMAGE_HIDE_PERSPECTIVE = 1 << 0,
-  OB_EMPTY_IMAGE_HIDE_ORTHOGRAPHIC = 1 << 1,
-  OB_EMPTY_IMAGE_HIDE_BACK = 1 << 2,
-  OB_EMPTY_IMAGE_HIDE_FRONT = 1 << 3,
-  OB_EMPTY_IMAGE_HIDE_NON_AXIS_ALIGNED = 1 << 4,
-};
-
-/** #Object.empty_image_flag */
-enum {
-  OB_EMPTY_IMAGE_USE_ALPHA_BLEND = 1 << 0,
-};
-
-typedef enum ObjectModifierFlag {
-  OB_MODIFIER_FLAG_ADD_REST_POSITION = 1 << 0,
-} ObjectModifierFlag;

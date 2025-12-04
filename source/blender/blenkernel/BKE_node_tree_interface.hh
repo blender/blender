@@ -53,7 +53,7 @@ namespace detail {
 template<typename T> static bool item_is_type(const bNodeTreeInterfaceItem &item)
 {
   bool match = false;
-  switch (NodeTreeInterfaceItemType(item.item_type)) {
+  switch (eNodeTreeInterfaceItemType(item.item_type)) {
     case NODE_INTERFACE_SOCKET: {
       match |= std::is_same_v<T, bNodeTreeInterfaceSocket>;
       break;

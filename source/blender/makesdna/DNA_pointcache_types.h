@@ -39,6 +39,49 @@ enum {
   BPHYS_EXTRA_CLOTH_ACCELERATION = 2,
 };
 
+/** #PointCache.flag */
+enum {
+  PTCACHE_BAKED = 1 << 0,
+  PTCACHE_OUTDATED = 1 << 1,
+  PTCACHE_SIMULATION_VALID = 1 << 2,
+  PTCACHE_BAKING = 1 << 3,
+  //  PTCACHE_BAKE_EDIT = 1 << 4,
+  //  PTCACHE_BAKE_EDIT_ACTIVE = 1 << 5,
+  PTCACHE_DISK_CACHE = 1 << 6,
+  /* removed since 2.64 - #30974, could be added back in a more useful way */
+  //  PTCACHE_QUICK_CACHE = 1 << 7,
+  PTCACHE_FRAMES_SKIPPED = 1 << 8,
+  PTCACHE_EXTERNAL = 1 << 9,
+  PTCACHE_READ_INFO = 1 << 10,
+  /** Don't use the file-path of the blend-file the data is linked from (write a local cache). */
+  PTCACHE_IGNORE_LIBPATH = 1 << 11,
+  /**
+   * High resolution cache is saved for smoke for backwards compatibility,
+   * so set this flag to know it's a "fake" cache.
+   */
+  PTCACHE_FAKE_SMOKE = 1 << 12,
+  PTCACHE_IGNORE_CLEAR = 1 << 13,
+
+  PTCACHE_FLAG_INFO_DIRTY = 1 << 14,
+
+  PTCACHE_REDO_NEEDED = PTCACHE_OUTDATED | PTCACHE_FRAMES_SKIPPED,
+  PTCACHE_FLAGS_COPY = PTCACHE_DISK_CACHE | PTCACHE_EXTERNAL | PTCACHE_IGNORE_LIBPATH,
+};
+
+/**
+ * Cache files baked before 5.0 could have used LZO or LZMA.
+ * During 5.0 alpha ZSTD compression had two settings.
+ * Now only the ZSTD+filtering option is used.
+ */
+enum PointCacheCompression {
+  PTCACHE_COMPRESS_NO = 0,
+  PTCACHE_COMPRESS_LZO_DEPRECATED = 1,  /* Removed in 5.0. */
+  PTCACHE_COMPRESS_LZMA_DEPRECATED = 2, /* Removed in 5.0. */
+  PTCACHE_COMPRESS_ZSTD_FILTERED = 3,
+  PTCACHE_COMPRESS_ZSTD_FAST_DEPRECATED = 4, /* Used only during 5.0 alpha. */
+  PTCACHE_COMPRESS_ZSTD_SLOW_DEPRECATED = 8, /* Used only during 5.0 alpha. */
+};
+
 typedef struct PTCacheExtra {
   struct PTCacheExtra *next, *prev;
   unsigned int type, totdata;
@@ -119,46 +162,3 @@ typedef struct PointCache {
   /** Free callback. */
   void (*free_edit)(struct PTCacheEdit *edit);
 } PointCache;
-
-/** #PointCache.flag */
-enum {
-  PTCACHE_BAKED = 1 << 0,
-  PTCACHE_OUTDATED = 1 << 1,
-  PTCACHE_SIMULATION_VALID = 1 << 2,
-  PTCACHE_BAKING = 1 << 3,
-  //  PTCACHE_BAKE_EDIT = 1 << 4,
-  //  PTCACHE_BAKE_EDIT_ACTIVE = 1 << 5,
-  PTCACHE_DISK_CACHE = 1 << 6,
-  /* removed since 2.64 - #30974, could be added back in a more useful way */
-  //  PTCACHE_QUICK_CACHE = 1 << 7,
-  PTCACHE_FRAMES_SKIPPED = 1 << 8,
-  PTCACHE_EXTERNAL = 1 << 9,
-  PTCACHE_READ_INFO = 1 << 10,
-  /** Don't use the file-path of the blend-file the data is linked from (write a local cache). */
-  PTCACHE_IGNORE_LIBPATH = 1 << 11,
-  /**
-   * High resolution cache is saved for smoke for backwards compatibility,
-   * so set this flag to know it's a "fake" cache.
-   */
-  PTCACHE_FAKE_SMOKE = 1 << 12,
-  PTCACHE_IGNORE_CLEAR = 1 << 13,
-
-  PTCACHE_FLAG_INFO_DIRTY = 1 << 14,
-
-  PTCACHE_REDO_NEEDED = PTCACHE_OUTDATED | PTCACHE_FRAMES_SKIPPED,
-  PTCACHE_FLAGS_COPY = PTCACHE_DISK_CACHE | PTCACHE_EXTERNAL | PTCACHE_IGNORE_LIBPATH,
-};
-
-/**
- * Cache files baked before 5.0 could have used LZO or LZMA.
- * During 5.0 alpha ZSTD compression had two settings.
- * Now only the ZSTD+filtering option is used.
- */
-typedef enum PointCacheCompression {
-  PTCACHE_COMPRESS_NO = 0,
-  PTCACHE_COMPRESS_LZO_DEPRECATED = 1,  /* Removed in 5.0. */
-  PTCACHE_COMPRESS_LZMA_DEPRECATED = 2, /* Removed in 5.0. */
-  PTCACHE_COMPRESS_ZSTD_FILTERED = 3,
-  PTCACHE_COMPRESS_ZSTD_FAST_DEPRECATED = 4, /* Used only during 5.0 alpha. */
-  PTCACHE_COMPRESS_ZSTD_SLOW_DEPRECATED = 8, /* Used only during 5.0 alpha. */
-} PointCacheCompression;

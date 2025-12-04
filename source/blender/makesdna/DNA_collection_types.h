@@ -27,6 +27,66 @@ struct Collection;
 struct Object;
 struct GHash;
 
+enum IOHandlerPanelFlag {
+  IO_HANDLER_PANEL_OPEN = 1 << 0,
+};
+
+/* Light linking state of object or collection: defines how they react to the emitters in the
+ * scene. See the comment for the link_state in the CollectionLightLinking for the details. */
+enum eCollectionLightLinkingState {
+  COLLECTION_LIGHT_LINKING_STATE_INCLUDE = 0,
+  COLLECTION_LIGHT_LINKING_STATE_EXCLUDE = 1,
+};
+
+enum eCollectionLineArt_Usage {
+  COLLECTION_LRT_INCLUDE = 0,
+  COLLECTION_LRT_OCCLUSION_ONLY = (1 << 0),
+  COLLECTION_LRT_EXCLUDE = (1 << 1),
+  COLLECTION_LRT_INTERSECTION_ONLY = (1 << 2),
+  COLLECTION_LRT_NO_INTERSECTION = (1 << 3),
+  COLLECTION_LRT_FORCE_INTERSECTION = (1 << 4),
+};
+
+enum eCollectionLineArt_Flags {
+  COLLECTION_LRT_USE_INTERSECTION_MASK = (1 << 0),
+  COLLECTION_LRT_USE_INTERSECTION_PRIORITY = (1 << 1),
+};
+
+/** #Collection.flag */
+enum {
+  /** Disable in viewports. */
+  COLLECTION_HIDE_VIEWPORT = (1 << 0),
+  /** Not selectable in viewport. */
+  COLLECTION_HIDE_SELECT = (1 << 1),
+  // COLLECTION_DISABLED_DEPRECATED = (1 << 2), /* DIRTY */
+  /** Disable in renders. */
+  COLLECTION_HIDE_RENDER = (1 << 3),
+  /** Runtime: object_cache is populated. */
+  COLLECTION_HAS_OBJECT_CACHE = (1 << 4),
+  /** Is master collection embedded in the scene. */
+  COLLECTION_IS_MASTER = (1 << 5),
+  /** for object_cache_instanced. */
+  COLLECTION_HAS_OBJECT_CACHE_INSTANCED = (1 << 6),
+};
+
+#define COLLECTION_FLAG_ALL_RUNTIME \
+  (COLLECTION_HAS_OBJECT_CACHE | COLLECTION_HAS_OBJECT_CACHE_INSTANCED)
+
+/** #Collection.color_tag */
+enum CollectionColorTag {
+  COLLECTION_COLOR_NONE = -1,
+  COLLECTION_COLOR_01,
+  COLLECTION_COLOR_02,
+  COLLECTION_COLOR_03,
+  COLLECTION_COLOR_04,
+  COLLECTION_COLOR_05,
+  COLLECTION_COLOR_06,
+  COLLECTION_COLOR_07,
+  COLLECTION_COLOR_08,
+
+  COLLECTION_COLOR_TOT,
+};
+
 /* Light linking relation of a collection or an object. */
 typedef struct CollectionLightLinking {
   /* Light and shadow linking configuration, an enumerator of eCollectionLightLinkingState.
@@ -85,31 +145,6 @@ typedef struct CollectionExport {
   uint32_t _pad0;
 } CollectionExport;
 
-typedef enum IOHandlerPanelFlag {
-  IO_HANDLER_PANEL_OPEN = 1 << 0,
-} IOHandlerPanelFlag;
-
-/* Light linking state of object or collection: defines how they react to the emitters in the
- * scene. See the comment for the link_state in the CollectionLightLinking for the details. */
-typedef enum eCollectionLightLinkingState {
-  COLLECTION_LIGHT_LINKING_STATE_INCLUDE = 0,
-  COLLECTION_LIGHT_LINKING_STATE_EXCLUDE = 1,
-} eCollectionLightLinkingState;
-
-enum eCollectionLineArt_Usage {
-  COLLECTION_LRT_INCLUDE = 0,
-  COLLECTION_LRT_OCCLUSION_ONLY = (1 << 0),
-  COLLECTION_LRT_EXCLUDE = (1 << 1),
-  COLLECTION_LRT_INTERSECTION_ONLY = (1 << 2),
-  COLLECTION_LRT_NO_INTERSECTION = (1 << 3),
-  COLLECTION_LRT_FORCE_INTERSECTION = (1 << 4),
-};
-
-enum eCollectionLineArt_Flags {
-  COLLECTION_LRT_USE_INTERSECTION_MASK = (1 << 0),
-  COLLECTION_LRT_USE_INTERSECTION_PRIORITY = (1 << 1),
-};
-
 typedef struct Collection {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
@@ -151,38 +186,3 @@ typedef struct Collection {
   /* Keep last. */
   CollectionRuntimeHandle *runtime;
 } Collection;
-
-/** #Collection.flag */
-enum {
-  /** Disable in viewports. */
-  COLLECTION_HIDE_VIEWPORT = (1 << 0),
-  /** Not selectable in viewport. */
-  COLLECTION_HIDE_SELECT = (1 << 1),
-  // COLLECTION_DISABLED_DEPRECATED = (1 << 2), /* DIRTY */
-  /** Disable in renders. */
-  COLLECTION_HIDE_RENDER = (1 << 3),
-  /** Runtime: object_cache is populated. */
-  COLLECTION_HAS_OBJECT_CACHE = (1 << 4),
-  /** Is master collection embedded in the scene. */
-  COLLECTION_IS_MASTER = (1 << 5),
-  /** for object_cache_instanced. */
-  COLLECTION_HAS_OBJECT_CACHE_INSTANCED = (1 << 6),
-};
-
-#define COLLECTION_FLAG_ALL_RUNTIME \
-  (COLLECTION_HAS_OBJECT_CACHE | COLLECTION_HAS_OBJECT_CACHE_INSTANCED)
-
-/** #Collection.color_tag */
-typedef enum CollectionColorTag {
-  COLLECTION_COLOR_NONE = -1,
-  COLLECTION_COLOR_01,
-  COLLECTION_COLOR_02,
-  COLLECTION_COLOR_03,
-  COLLECTION_COLOR_04,
-  COLLECTION_COLOR_05,
-  COLLECTION_COLOR_06,
-  COLLECTION_COLOR_07,
-  COLLECTION_COLOR_08,
-
-  COLLECTION_COLOR_TOT,
-} CollectionColorTag;

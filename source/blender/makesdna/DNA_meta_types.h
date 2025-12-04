@@ -16,6 +16,45 @@ struct AnimData;
 struct BoundBox;
 struct Material;
 
+/** #MetaBall::texspace_flag */
+enum {
+  MB_TEXSPACE_FLAG_AUTO = 1 << 0,
+};
+
+/** #MetaBall::flag */
+enum {
+  MB_UPDATE_ALWAYS = 0,
+  MB_UPDATE_HALFRES = 1,
+  MB_UPDATE_FAST = 2,
+  MB_UPDATE_NEVER = 3,
+};
+
+/** #MetaBall::flag2 */
+enum {
+  MB_DS_EXPAND = 1 << 0,
+};
+
+/** #MetaElem::type */
+enum {
+  MB_BALL = 0,
+  MB_TUBEX = 1, /* Deprecated. */
+  MB_TUBEY = 2, /* Deprecated. */
+  MB_TUBEZ = 3, /* Deprecated. */
+  MB_TUBE = 4,
+  MB_PLANE = 5,
+  MB_ELIPSOID = 6,
+  MB_CUBE = 7,
+};
+
+#define MB_TYPE_SIZE_SQUARED(type) ((type) == MB_ELIPSOID)
+
+/** #MetaElem::flag */
+enum {
+  MB_NEGATIVE = 1 << 1,
+  MB_HIDE = 1 << 3,
+  MB_SCALE_RAD = 1 << 4,
+};
+
 typedef struct MetaElem {
   struct MetaElem *next, *prev;
 
@@ -91,44 +130,3 @@ typedef struct MetaBall {
   MetaElem *lastelem;
 
 } MetaBall;
-
-/* **************** METABALL ********************* */
-
-/** #MetaBall::texspace_flag */
-enum {
-  MB_TEXSPACE_FLAG_AUTO = 1 << 0,
-};
-
-/** #MetaBall::flag */
-enum {
-  MB_UPDATE_ALWAYS = 0,
-  MB_UPDATE_HALFRES = 1,
-  MB_UPDATE_FAST = 2,
-  MB_UPDATE_NEVER = 3,
-};
-
-/** #MetaBall::flag2 */
-enum {
-  MB_DS_EXPAND = 1 << 0,
-};
-
-/** #MetaElem::type */
-enum {
-  MB_BALL = 0,
-  MB_TUBEX = 1, /* Deprecated. */
-  MB_TUBEY = 2, /* Deprecated. */
-  MB_TUBEZ = 3, /* Deprecated. */
-  MB_TUBE = 4,
-  MB_PLANE = 5,
-  MB_ELIPSOID = 6,
-  MB_CUBE = 7,
-};
-
-#define MB_TYPE_SIZE_SQUARED(type) ((type) == MB_ELIPSOID)
-
-/** #MetaElem::flag */
-enum {
-  MB_NEGATIVE = 1 << 1,
-  MB_HIDE = 1 << 3,
-  MB_SCALE_RAD = 1 << 4,
-};

@@ -21,6 +21,67 @@ using VolumeRuntimeHandle = blender::bke::VolumeRuntime;
 typedef struct VolumeRuntimeHandle VolumeRuntimeHandle;
 #endif
 
+/** #Volume.flag */
+enum {
+  VO_DS_EXPAND = (1 << 0),
+};
+
+/** #Volume.sequence_mode */
+enum VolumeSequenceMode {
+  VOLUME_SEQUENCE_CLIP = 0,
+  VOLUME_SEQUENCE_EXTEND = 1,
+  VOLUME_SEQUENCE_REPEAT = 2,
+  VOLUME_SEQUENCE_PING_PONG = 3,
+};
+
+/** #VolumeDisplay.wireframe_type */
+enum VolumeWireframeType {
+  VOLUME_WIREFRAME_NONE = 0,
+  VOLUME_WIREFRAME_BOUNDS = 1,
+  VOLUME_WIREFRAME_BOXES = 2,
+  VOLUME_WIREFRAME_POINTS = 3,
+};
+
+/** #VolumeDisplay.wireframe_detail */
+enum VolumeWireframeDetail {
+  VOLUME_WIREFRAME_COARSE = 0,
+  VOLUME_WIREFRAME_FINE = 1,
+};
+
+/** #VolumeRender.precision */
+enum VolumeRenderPrecision {
+  VOLUME_PRECISION_HALF = 0,
+  VOLUME_PRECISION_FULL = 1,
+  VOLUME_PRECISION_VARIABLE = 2,
+};
+
+/** #VolumeRender.space */
+enum VolumeRenderSpace {
+  VOLUME_SPACE_OBJECT = 0,
+  VOLUME_SPACE_WORLD = 1,
+};
+
+/** #VolumeDisplay.interpolation_method */
+enum VolumeDisplayInterpMethod {
+  VOLUME_DISPLAY_INTERP_LINEAR = 0,
+  VOLUME_DISPLAY_INTERP_CUBIC = 1,
+  VOLUME_DISPLAY_INTERP_CLOSEST = 2,
+};
+
+/** #VolumeDisplay.axis_slice_method */
+enum AxisAlignedSlicingMethod {
+  VOLUME_AXIS_SLICE_FULL = 0,
+  VOLUME_AXIS_SLICE_SINGLE = 1,
+};
+
+/** #VolumeDisplay.slice_axis */
+enum SliceAxis {
+  VOLUME_SLICE_AXIS_AUTO = 0,
+  VOLUME_SLICE_AXIS_X = 1,
+  VOLUME_SLICE_AXIS_Y = 2,
+  VOLUME_SLICE_AXIS_Z = 3,
+};
+
 typedef struct VolumeDisplay {
   float density;
   int wireframe_type;
@@ -93,67 +154,6 @@ typedef struct Volume {
   /* Runtime Data */
   VolumeRuntimeHandle *runtime;
 } Volume;
-
-/** #Volume.flag */
-enum {
-  VO_DS_EXPAND = (1 << 0),
-};
-
-/** #Volume.sequence_mode */
-typedef enum VolumeSequenceMode {
-  VOLUME_SEQUENCE_CLIP = 0,
-  VOLUME_SEQUENCE_EXTEND = 1,
-  VOLUME_SEQUENCE_REPEAT = 2,
-  VOLUME_SEQUENCE_PING_PONG = 3,
-} VolumeSequenceMode;
-
-/** #VolumeDisplay.wireframe_type */
-typedef enum VolumeWireframeType {
-  VOLUME_WIREFRAME_NONE = 0,
-  VOLUME_WIREFRAME_BOUNDS = 1,
-  VOLUME_WIREFRAME_BOXES = 2,
-  VOLUME_WIREFRAME_POINTS = 3,
-} VolumeWireframeType;
-
-/** #VolumeDisplay.wireframe_detail */
-typedef enum VolumeWireframeDetail {
-  VOLUME_WIREFRAME_COARSE = 0,
-  VOLUME_WIREFRAME_FINE = 1,
-} VolumeWireframeDetail;
-
-/** #VolumeRender.precision */
-typedef enum VolumeRenderPrecision {
-  VOLUME_PRECISION_HALF = 0,
-  VOLUME_PRECISION_FULL = 1,
-  VOLUME_PRECISION_VARIABLE = 2,
-} VolumeRenderPrecision;
-
-/** #VolumeRender.space */
-typedef enum VolumeRenderSpace {
-  VOLUME_SPACE_OBJECT = 0,
-  VOLUME_SPACE_WORLD = 1,
-} VolumeRenderSpace;
-
-/** #VolumeDisplay.interpolation_method */
-typedef enum VolumeDisplayInterpMethod {
-  VOLUME_DISPLAY_INTERP_LINEAR = 0,
-  VOLUME_DISPLAY_INTERP_CUBIC = 1,
-  VOLUME_DISPLAY_INTERP_CLOSEST = 2,
-} VolumeDisplayInterpMethod;
-
-/** #VolumeDisplay.axis_slice_method */
-typedef enum AxisAlignedSlicingMethod {
-  VOLUME_AXIS_SLICE_FULL = 0,
-  VOLUME_AXIS_SLICE_SINGLE = 1,
-} AxisAlignedSlicingMethod;
-
-/** #VolumeDisplay.slice_axis */
-typedef enum SliceAxis {
-  VOLUME_SLICE_AXIS_AUTO = 0,
-  VOLUME_SLICE_AXIS_X = 1,
-  VOLUME_SLICE_AXIS_Y = 2,
-  VOLUME_SLICE_AXIS_Z = 3,
-} SliceAxis;
 
 /* Only one material supported currently. */
 #define VOLUME_MATERIAL_NR 1

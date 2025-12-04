@@ -136,7 +136,7 @@ static StructRNA *rna_NodeTreeInterfaceItem_refine(PointerRNA *ptr)
 {
   bNodeTreeInterfaceItem *item = static_cast<bNodeTreeInterfaceItem *>(ptr->data);
 
-  switch (NodeTreeInterfaceItemType(item->item_type)) {
+  switch (eNodeTreeInterfaceItemType(item->item_type)) {
     case NODE_INTERFACE_SOCKET: {
       bNodeTreeInterfaceSocket &socket = node_interface::get_item_as<bNodeTreeInterfaceSocket>(
           *item);
@@ -986,7 +986,7 @@ static bool rna_NodeTreeInterface_items_lookup_string(PointerRNA *ptr,
 
   ntree->ensure_interface_cache();
   for (bNodeTreeInterfaceItem *item : ntree->interface_items()) {
-    switch (NodeTreeInterfaceItemType(item->item_type)) {
+    switch (eNodeTreeInterfaceItemType(item->item_type)) {
       case NODE_INTERFACE_SOCKET: {
         bNodeTreeInterfaceSocket *socket = reinterpret_cast<bNodeTreeInterfaceSocket *>(item);
         if (STREQ(socket->identifier, key)) {
@@ -1000,7 +1000,7 @@ static bool rna_NodeTreeInterface_items_lookup_string(PointerRNA *ptr,
     }
   }
   for (bNodeTreeInterfaceItem *item : ntree->interface_items()) {
-    switch (NodeTreeInterfaceItemType(item->item_type)) {
+    switch (eNodeTreeInterfaceItemType(item->item_type)) {
       case NODE_INTERFACE_SOCKET: {
         bNodeTreeInterfaceSocket *socket = reinterpret_cast<bNodeTreeInterfaceSocket *>(item);
         if (STREQ(socket->name, key)) {
