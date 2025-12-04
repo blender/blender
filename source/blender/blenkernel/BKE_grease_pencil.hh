@@ -38,8 +38,8 @@ struct AttributeAccessorFunctions;
 
 namespace greasepencil {
 
-/* Previously, Grease Pencil used a radius convention where 1 `px` = 0.001 units. This `px`
- * was the brush size which would be stored in the stroke thickness and then scaled by the
+/* Prior to Blender 4.3, Grease Pencil used a radius convention where 1 `px` = 0.001 units. This
+ * `px` was the brush size which would be stored in the stroke thickness and then scaled by the
  * point pressure factor. Finally, the render engine would divide this thickness value by
  * 2000 (we're going from a thickness to a radius, hence the factor of two) to convert back
  * into blender units. With Grease Pencil 3, the radius is no longer stored in `px` space,
