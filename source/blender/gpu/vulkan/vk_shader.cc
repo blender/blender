@@ -1310,8 +1310,13 @@ bool VKShader::ensure_graphics_pipelines(Span<shader::PipelineState> pipeline_st
     VKVertexInputDescription vertex_input_description(pipeline_state);
     VKGraphicsInfo graphics_info = {};
     graphics_info.vertex_in.vk_topology = vk_topology;
-    graphics_info.vertex_in.vertex_input_key = device.vertex_input_descriptions.get_or_insert(
-        vertex_input_description);
+    /* When vertex input dynamic state is enabled the actual vertex input doesn't matter. We use an
+     * invalid key to ensure that same hash-keys are constructed for compatible graphics infos and
+     * incorrect usages would still assert.*/
+    graphics_info.vertex_in.vertex_input_key = extensions.vertex_input_dynamic_state ?
+                                                   VKVertexInputDescriptionPool::invalid_key :
+                                                   device.vertex_input_descriptions.get_or_insert(
+                                                       vertex_input_description);
 
     graphics_info.shaders.vk_vertex_module = vertex_module.vk_shader_module;
     graphics_info.shaders.vk_geometry_module = geometry_module.vk_shader_module;
@@ -1378,7 +1383,12 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(
 
   VKGraphicsInfo graphics_info = {};
   graphics_info.vertex_in.vk_topology = vk_topology;
-  graphics_info.vertex_in.vertex_input_key = vertex_input_description_key;
+  /* When vertex input dynamic state is enabled the actual vertex input doesn't matter. We use an
+   * invalid key to ensure that same hash-keys are constructed for compatible graphics infos and
+   * incorrect usages would still assert.*/
+  graphics_info.vertex_in.vertex_input_key = extensions.vertex_input_dynamic_state ?
+                                                 VKVertexInputDescriptionPool::invalid_key :
+                                                 vertex_input_description_key;
 
   graphics_info.shaders.vk_vertex_module = vertex_module.vk_shader_module;
   graphics_info.shaders.vk_geometry_module = geometry_module.vk_shader_module;

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "vk_common.hh"
+#include "vk_vertex_input_description.hh"
 
 namespace blender::gpu::render_graph {
 class VKCommandBufferInterface;
@@ -85,6 +85,7 @@ struct VKViewportData {
 struct VKPipelineDataGraphics {
   VKPipelineData pipeline_data;
   VKViewportData viewport;
+  std::optional<VKVertexInputDescriptionPool::Key> vertex_input_description;
   std::optional<float> line_width;
   std::optional<StencilState> stencil_state;
   std::optional<VkFrontFace> front_face;
@@ -145,6 +146,7 @@ struct VKBoundPipelines {
     std::optional<float> line_width;
     std::optional<StencilState> stencil_state;
     std::optional<VkFrontFace> front_face;
+    std::optional<VKVertexInputDescriptionPool::Key> vertex_input_description;
   } graphics;
 };
 
@@ -170,6 +172,7 @@ static inline void vk_pipeline_data_copy(VKPipelineDataGraphics &dst,
  * - line width
  * - stencil op + compare/write masks + reference
  * - front face (when VK_EXT_extended_dynamic_state is available)
+ * - vertex input (when VK_EXT_vertex_input_dynamic_state is available)
  */
 void vk_pipeline_dynamic_graphics_build_commands(VKCommandBufferInterface &command_buffer,
                                                  const VKPipelineDataGraphics &graphics,

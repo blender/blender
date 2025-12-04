@@ -96,6 +96,11 @@ struct VKExtensions {
    */
   bool extended_dynamic_state = false;
 
+  /**
+   * Does the device support VK_EXT_vertex_input_dynamic_state
+   */
+  bool vertex_input_dynamic_state = false;
+
   /** Log enabled features and extensions. */
   void log() const;
 };
@@ -246,6 +251,9 @@ class VKDevice : public NonCopyable {
 
     /* Extension: VK_EXT_extended_dynamic_state */
     PFN_vkCmdSetFrontFace vkCmdSetFrontFace = nullptr;
+
+    /* Extension: VK_EXT_vertex_input_dynamic_state */
+    PFN_vkCmdSetVertexInputEXT vkCmdSetVertexInput = nullptr;
 
     /* Extension: VK_KHR_external_memory_fd */
     PFN_vkGetMemoryFdKHR vkGetMemoryFd = nullptr;

@@ -344,6 +344,9 @@ void VKContext::update_pipeline_data(const VKFrameBuffer &framebuffer,
 
   VKVertexInputDescriptionPool::Key vertex_input_description_key =
       device.vertex_input_descriptions.get_or_insert(vao.vertex_input);
+  if (extensions.vertex_input_dynamic_state) {
+    r_pipeline_data.vertex_input_description = vertex_input_description_key;
+  }
 
   update_pipeline_data(
       vk_shader,
