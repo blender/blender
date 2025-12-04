@@ -136,10 +136,10 @@ eV3DShadingColorType ED_paint_shading_color_override(bContext *C,
  *
  * When #tref isn't given the active tool from the context is used.
  */
-bool ED_image_paint_brush_type_use_canvas(bContext *C, bToolRef *tref);
+bool ED_paint_brush_type_use_canvas(bContext *C, bToolRef *tref);
 
 /** Store the last used tool in the sculpt session. */
-void ED_image_paint_brush_type_update_sticky_shading_color(bContext *C, Object *ob);
+void ED_paint_brush_type_update_sticky_shading_color(bContext *C, Object *ob);
 
 void ED_object_vpaintmode_enter_ex(Main &bmain, Depsgraph &depsgraph, Scene &scene, Object &ob);
 void ED_object_vpaintmode_enter(bContext *C, Depsgraph &depsgraph);

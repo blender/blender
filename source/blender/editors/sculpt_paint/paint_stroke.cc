@@ -233,7 +233,7 @@ static void paint_draw_line_cursor(bContext * /*C*/,
   GPU_line_smooth(false);
 }
 
-static bool image_paint_brush_type_require_location(const Brush &brush, const PaintMode mode)
+static bool paint_brush_type_require_location(const Brush &brush, const PaintMode mode)
 {
   switch (mode) {
     case PaintMode::Sculpt:
@@ -272,13 +272,13 @@ static bool paint_stroke_use_scene_spacing(const Brush &brush, const PaintMode m
   return false;
 }
 
-static bool image_paint_brush_type_raycast_original(const Brush &brush, PaintMode /*mode*/)
+static bool paint_brush_type_raycast_original(const Brush &brush, PaintMode /*mode*/)
 {
   return brush.flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT);
 }
 
-static bool image_paint_brush_type_require_inbetween_mouse_events(const Brush &brush,
-                                                                  const PaintMode mode)
+static bool paint_brush_type_require_inbetween_mouse_events(const Brush &brush,
+                                                            const PaintMode mode)
 {
   if (brush.flag & BRUSH_ANCHORED) {
     return false;
@@ -424,7 +424,7 @@ bool paint_brush_update(bContext *C,
           location_success = true;
           *r_location_is_set = true;
         }
-        else if (!image_paint_brush_type_require_location(brush, mode)) {
+        else if (!paint_brush_type_require_location(brush, mode)) {
           hit = true;
         }
       }
@@ -489,7 +489,7 @@ bool paint_brush_update(bContext *C,
         location_success = true;
         *r_location_is_set = true;
       }
-      else if (!image_paint_brush_type_require_location(brush, mode)) {
+      else if (!paint_brush_type_require_location(brush, mode)) {
         location_success = true;
       }
     }
@@ -943,8 +943,8 @@ PaintStroke *paint_stroke_new(bContext *C,
   stroke->ups = ups;
   stroke->stroke_mode = RNA_enum_get(op->ptr, "mode");
 
-  stroke->original = image_paint_brush_type_raycast_original(
-      *br, BKE_paintmode_get_active_from_context(C));
+  stroke->original = paint_brush_type_raycast_original(*br,
+                                                       BKE_paintmode_get_active_from_context(C));
 
   float zoomx;
   float zoomy;
@@ -1504,7 +1504,7 @@ wmOperatorStatus paint_stroke_modal(bContext *C,
   bool redraw = false;
 
   if (event->type == INBETWEEN_MOUSEMOVE &&
-      !image_paint_brush_type_require_inbetween_mouse_events(*br, mode))
+      !paint_brush_type_require_inbetween_mouse_events(*br, mode))
   {
     return OPERATOR_RUNNING_MODAL;
   }

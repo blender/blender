@@ -5025,7 +5025,7 @@ static void brush_stroke_init(bContext *C)
   BKE_sculpt_update_object_for_edit(
       depsgraph, &ob, blender::ed::sculpt_paint::brush_type_is_paint(brush->sculpt_brush_type));
 
-  ED_image_paint_brush_type_update_sticky_shading_color(C, &ob);
+  ED_paint_brush_type_update_sticky_shading_color(C, &ob);
 }
 
 static void restore_from_undo_step_if_necessary(const Depsgraph &depsgraph,
