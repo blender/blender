@@ -17,6 +17,20 @@
 
 namespace blender::gpu::shader::parser {
 
+size_t line_number(const std::string &prefix_string)
+{
+  std::string directive = "#line ";
+  /* String to count the number of line. */
+  std::string sub_str = prefix_string;
+  size_t nearest_line_directive = sub_str.rfind(directive);
+  size_t line_count = 1;
+  if (nearest_line_directive != std::string::npos) {
+    sub_str = sub_str.substr(nearest_line_directive + directive.size());
+    line_count = std::stoll(sub_str) - 1;
+  }
+  return line_count + std::count(sub_str.begin(), sub_str.end(), '\n');
+}
+
 Scope Token::scope() const
 {
   if (this->is_invalid()) {
