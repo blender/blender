@@ -283,7 +283,7 @@ static void file_draw_tooltip_custom_func(bContext & /*C*/,
       float color[4];
       bTheme *btheme = UI_GetTheme();
       rgba_uchar_to_float(color, btheme->tui.wcol_tooltip.text);
-      thumb = IMB_font_preview(full_path,
+      thumb = IMB_font_preview(file->redirection_path ? file->redirection_path : full_path,
                                512 * UI_SCALE_FAC,
                                color,
                                TIP_("The five boxing wizards jump quickly! 0123456789"));

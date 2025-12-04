@@ -45,6 +45,7 @@
 #include "BLI_threads.h"
 
 #ifdef WIN32
+#  include "BKE_appdir.hh"
 #  include "BLI_winstuff.h"
 #endif
 
@@ -1056,9 +1057,14 @@ static const char *fileentry_uiname(const char *root, FileListInternEntry *entry
   char *name = nullptr;
 
   if (typeflag & FILE_TYPE_FTFONT && !(typeflag & FILE_TYPE_BLENDERLIB)) {
-    char abspath[FILE_MAX_LIBEXTRA];
-    BLI_path_join(abspath, sizeof(abspath), root, relpath);
-    name = BLF_display_name_from_file(abspath);
+    if (entry->redirection_path) {
+      name = BLF_display_name_from_file(entry->redirection_path);
+    }
+    else {
+      char abspath[FILE_MAX_LIBEXTRA];
+      BLI_path_join(abspath, sizeof(abspath), root, relpath);
+      name = BLF_display_name_from_file(abspath);
+    }
     if (name) {
       /* Allocated string, so no need to #BLI_strdup. */
       return name;
@@ -2134,6 +2140,80 @@ static char *current_relpath_append(const FileListReadJob *job_params, const cha
   return BLI_strdup(relpath);
 }
 
+#ifdef WIN32
+static int filelist_add_userfonts_regpath(HKEY hKeyParent, LPCSTR subkeyName, ListBase *entries)
+{
+  int font_num = 0;
+  HKEY key = 0;
+  /* Try to open the requested key. */
+  if (RegOpenKeyExA(hKeyParent, subkeyName, 0, KEY_ALL_ACCESS, &key) != ERROR_SUCCESS) {
+    return 0;
+  }
+
+  DWORD index = 0;
+  /* Value name and data buffers (ANSI). */
+  TCHAR KeyName[255];
+  DWORD KeyNameLen = sizeof(KeyName);
+  TCHAR KeyValue[FILE_MAX];
+  DWORD KeyValueLen = sizeof(KeyValue);
+  DWORD valueType;
+
+  /* Enumerate values. */
+  while (RegEnumValueA(key,
+                       index,
+                       (LPSTR)&KeyName,
+                       &KeyNameLen,
+                       NULL,
+                       &valueType,
+                       (LPBYTE)&KeyValue,
+                       &KeyValueLen) == ERROR_SUCCESS)
+  {
+    /* Only consider string values (paths). */
+    if (valueType == REG_SZ || valueType == REG_EXPAND_SZ) {
+      FileListInternEntry *entry = MEM_new<FileListInternEntry>(__func__);
+      /* Find last slash to determine basename/relpath portion. */
+      const char *val_str = (const char *)KeyValue;
+      const char *lslash_str = BLI_path_slash_rfind(val_str);
+      const size_t lslash = lslash_str ? (size_t)(lslash_str - val_str) + 1 : 0;
+
+      BLI_stat(val_str, &entry->st);
+      entry->relpath = BLI_strdup(val_str + lslash);
+      entry->name = BLF_display_name_from_file(val_str);
+      entry->free_name = true;
+      entry->attributes = FILE_ATTR_READONLY & FILE_ATTR_ALIAS;
+      entry->typeflag = FILE_TYPE_FTFONT;
+      entry->redirection_path = BLI_strdup(val_str);
+      BLI_addtail(entries, entry);
+      font_num++;
+    }
+
+    KeyNameLen = sizeof(KeyName);
+    KeyValueLen = sizeof(KeyValue);
+    index++;
+  }
+
+  /* Enumerate subkeys and recurse into them. */
+  index = 0;
+  while (RegEnumKeyExA(key, index, (LPSTR)&KeyName, &KeyNameLen, NULL, NULL, NULL, NULL) ==
+         ERROR_SUCCESS)
+  {
+    font_num += filelist_add_userfonts_regpath(key, KeyName, entries);
+    KeyNameLen = sizeof(KeyName);
+    index++;
+  }
+
+  RegCloseKey(key);
+  return font_num;
+}
+
+static int filelist_add_userfonts(ListBase *entries)
+{
+  return filelist_add_userfonts_regpath(
+      HKEY_CURRENT_USER, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts", entries);
+}
+
+#endif
+
 static int filelist_readjob_list_dir(FileListReadJob *job_params,
                                      const char *root,
                                      ListBase *entries,
@@ -2146,6 +2226,15 @@ static int filelist_readjob_list_dir(FileListReadJob *job_params,
   int entries_num = 0;
   /* Full path of the item. */
   char full_path[FILE_MAX];
+
+#ifdef WIN32
+  char fonts_path[FILE_MAXDIR] = {0};
+  BKE_appdir_font_folder_default(fonts_path, sizeof(fonts_path));
+  BLI_path_slash_ensure(fonts_path, sizeof(fonts_path));
+  if (STREQ(root, fonts_path)) {
+    entries_num += filelist_add_userfonts(entries);
+  }
+#endif
 
   const int files_num = BLI_filelist_dir_contents(root, &files);
   if (files) {
@@ -2830,7 +2919,9 @@ static void filelist_readjob_recursive_dir_add_items(const bool do_lib,
 
     LISTBASE_FOREACH (FileListInternEntry *, entry, &entries) {
       entry->uid = filelist_uid_generate(filelist);
-      entry->name = fileentry_uiname(root, entry, dir);
+      if (!entry->name) {
+        entry->name = fileentry_uiname(root, entry, dir);
+      }
       entry->free_name = true;
 
       if (filelist_readjob_should_recurse_into_entry(
