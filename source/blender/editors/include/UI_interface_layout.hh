@@ -892,7 +892,6 @@ enum eUI_Item_Flag : uint16_t {
 ENUM_OPERATORS(eUI_Item_Flag)
 #define UI_ITEM_NONE eUI_Item_Flag(0)
 
-using uiLayout = blender::ui::Layout;
 /**
  * Apply property search behavior, setting panel flags and deactivating buttons that don't match.
  *

@@ -2981,7 +2981,10 @@ static void rna_NodeInternal_update(ID *id, bNode *node, Main *bmain)
   BKE_main_ensure_invariants(*bmain, ntree->id);
 }
 
-static void rna_NodeInternal_draw_buttons(ID *id, bNode *node, bContext *C, uiLayout *layout)
+static void rna_NodeInternal_draw_buttons(ID *id,
+                                          bNode *node,
+                                          bContext *C,
+                                          blender::ui::Layout *layout)
 {
   if (node->typeinfo->draw_buttons) {
     PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_Node, node);
@@ -2989,7 +2992,10 @@ static void rna_NodeInternal_draw_buttons(ID *id, bNode *node, bContext *C, uiLa
   }
 }
 
-static void rna_NodeInternal_draw_buttons_ext(ID *id, bNode *node, bContext *C, uiLayout *layout)
+static void rna_NodeInternal_draw_buttons_ext(ID *id,
+                                              bNode *node,
+                                              bContext *C,
+                                              blender::ui::Layout *layout)
 {
   if (node->typeinfo->draw_buttons_ex) {
     PointerRNA ptr = RNA_pointer_create_discrete(id, &RNA_Node, node);
