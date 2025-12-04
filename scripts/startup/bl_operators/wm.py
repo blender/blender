@@ -2212,7 +2212,7 @@ class WM_OT_sysinfo(Operator):
     """Generate system information, saved into a text file"""
 
     bl_idname = "wm.sysinfo"
-    bl_label = "Save System Info"
+    bl_label = "Save System Info..."
 
     filepath: StringProperty(
         subtype='FILE_PATH',

@@ -391,7 +391,7 @@ class NLA_MT_channel_context_menu(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator_menu_enum("anim.channels_move", "direction", text="Track Ordering...")
+        layout.operator_menu_enum("anim.channels_move", "direction", text="Track Ordering")
 
         layout.separator()
 

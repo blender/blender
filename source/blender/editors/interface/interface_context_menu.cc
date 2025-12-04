@@ -199,7 +199,7 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *region, void *arg)
                                                           0,
                                                           style);
 
-  layout.label(CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Change Shortcut"), ICON_HAND);
+  layout.label(CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Change Shortcut..."), ICON_HAND);
   layout.prop(&ptr, "type", UI_ITEM_R_FULL_EVENT | UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
 
   const int bounds_offset[2] = {int(-100 * UI_SCALE_FAC), int(36 * UI_SCALE_FAC)};
@@ -259,7 +259,7 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *region, void *arg)
                                                           0,
                                                           style);
 
-  layout.label(CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Shortcut"), ICON_HAND);
+  layout.label(CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Shortcut..."), ICON_HAND);
   layout.prop(&ptr, "type", UI_ITEM_R_FULL_EVENT | UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
 
   const int bounds_offset[2] = {int(-100 * UI_SCALE_FAC), int(36 * UI_SCALE_FAC)};
@@ -747,7 +747,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
         }
 
         layout.op("ANIM_OT_driver_button_edit",
-                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Edit Driver"),
+                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Edit Driver..."),
                   ICON_DRIVER);
       }
 
@@ -762,7 +762,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       layout.separator();
 
       layout.op("ANIM_OT_driver_button_add",
-                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Driver"),
+                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Driver..."),
                 ICON_DRIVER);
 
       if (!is_whole_array) {
@@ -1118,7 +1118,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
         uiDefBlockBut(block,
                       menu_change_shortcut,
                       but,
-                      "Change Shortcut",
+                      "Change Shortcut...",
                       0,
                       0,
                       layout.width(),
@@ -1130,7 +1130,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
             block,
             ButType::But,
             ICON_HAND,
-            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Change Shortcut"),
+            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Change Shortcut..."),
             0,
             0,
             w,
@@ -1175,7 +1175,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           block,
           ButType::But,
           ICON_HAND,
-          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Shortcut"),
+          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Shortcut..."),
           0,
           0,
           w,

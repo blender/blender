@@ -566,7 +566,7 @@ class SEQUENCER_MT_select(Menu):
             col.separator()
 
         if has_sequencer:
-            col.operator_menu_enum("sequencer.select_side_of_frame", "side", text="Side of Frame...")
+            col.operator_menu_enum("sequencer.select_side_of_frame", "side", text="Side of Frame")
             col.menu("SEQUENCER_MT_select_handle", text="Handle")
             col.menu("SEQUENCER_MT_select_channel", text="Channel")
 
@@ -695,9 +695,9 @@ class SEQUENCER_MT_add(Menu):
 
         layout.separator()
 
-        layout.operator("sequencer.movie_strip_add", text="Movie...", icon='FILE_MOVIE')
-        layout.operator("sequencer.sound_strip_add", text="Sound...", icon='FILE_SOUND')
-        layout.operator("sequencer.image_strip_add", text="Image/Sequence...", icon='FILE_IMAGE')
+        layout.operator("sequencer.movie_strip_add", text="Movie", icon='FILE_MOVIE')
+        layout.operator("sequencer.sound_strip_add", text="Sound", icon='FILE_SOUND')
+        layout.operator("sequencer.image_strip_add", text="Image/Sequence", icon='FILE_IMAGE')
 
         layout.separator()
 
@@ -895,7 +895,7 @@ class SEQUENCER_MT_strip_animation(Menu):
 
         col = layout.column()
         col.operator("anim.keyframe_insert", text="Insert Keyframe")
-        col.operator("anim.keyframe_insert_menu", text="Insert Keyframe with Keying Set").always_prompt = True
+        col.operator("anim.keyframe_insert_menu", text="Insert Keyframe with Keying Set...").always_prompt = True
         col.operator("anim.keying_set_active_set", text="Change Keying Set...")
         col.operator("anim.keyframe_delete_vse", text="Delete Keyframes...")
         col.operator("anim.keyframe_clear_vse", text="Clear Keyframes...")

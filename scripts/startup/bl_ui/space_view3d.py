@@ -2743,9 +2743,9 @@ class VIEW3D_MT_image_add(Menu):
         layout = self.layout
         # Explicitly set background mode on/off as operator will try to
         # auto detect which mode to use otherwise.
-        layout.operator("object.empty_image_add", text="Reference", icon='IMAGE_REFERENCE').background = False
-        layout.operator("object.empty_image_add", text="Background", icon='IMAGE_BACKGROUND').background = True
-        layout.operator("image.import_as_mesh_planes", text="Mesh Plane", icon='MESH_PLANE')
+        layout.operator("object.empty_image_add", text="Reference...", icon='IMAGE_REFERENCE').background = False
+        layout.operator("object.empty_image_add", text="Background...", icon='IMAGE_BACKGROUND').background = True
+        layout.operator("image.import_as_mesh_planes", text="Mesh Plane...", icon='MESH_PLANE')
         layout.operator("object.empty_add", text="Empty Image", icon='FILE_IMAGE').type = 'IMAGE'
 
 
@@ -2759,7 +2759,7 @@ class VIEW3D_MT_object_relations(Menu):
 
         layout.separator()
 
-        layout.operator_menu_enum("object.make_local", "type", text="Make Local...")
+        layout.operator_menu_enum("object.make_local", "type", text="Make Local")
         layout.menu("VIEW3D_MT_make_single_user")
 
 
@@ -2857,7 +2857,7 @@ class VIEW3D_MT_object_animation(Menu):
         layout = self.layout
 
         layout.operator("anim.keyframe_insert", text="Insert Keyframe")
-        layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe with Keying Set").always_prompt = True
+        layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe with Keying Set...").always_prompt = True
         layout.operator("anim.keyframe_delete_v3d", text="Delete Keyframes...")
         layout.operator("anim.keyframe_clear_v3d", text="Clear Keyframes...")
         layout.operator("anim.keying_set_active_set", text="Change Keying Set...")
@@ -3131,7 +3131,7 @@ class VIEW3D_MT_object_context_menu(Menu):
         layout.separator()
 
         layout.operator("anim.keyframe_insert", text="Insert Keyframe")
-        layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe with Keying Set").always_prompt = True
+        layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe with Keying Set...").always_prompt = True
 
         layout.separator()
 
@@ -4341,7 +4341,7 @@ class VIEW3D_MT_pose_context_menu(Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("anim.keyframe_insert", text="Insert Keyframe")
-        layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe with Keying Set").always_prompt = True
+        layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe with Keying Set...").always_prompt = True
 
         layout.separator()
 
@@ -4474,7 +4474,7 @@ class VIEW3D_MT_edit_mesh(Menu):
         layout.menu("VIEW3D_MT_edit_mesh_shading")
         layout.menu("VIEW3D_MT_edit_mesh_weights")
         layout.operator("mesh.attribute_set")
-        layout.operator_menu_enum("mesh.sort_elements", "type", text="Sort Elements...")
+        layout.operator_menu_enum("mesh.sort_elements", "type", text="Sort Elements")
 
         layout.separator()
 
@@ -5744,13 +5744,13 @@ class VIEW3D_MT_edit_greasepencil_cleanup(Menu):
 
         layout = self.layout
 
-        layout.operator("grease_pencil.clean_loose")
+        layout.operator("grease_pencil.clean_loose", text="Clean Loose Points...")
         layout.operator("grease_pencil.frame_clean_duplicate")
 
         if ob.mode != 'PAINT_GREASE_PENCIL':
             layout.operator("grease_pencil.stroke_merge_by_distance", text="Merge by Distance")
 
-        layout.operator("grease_pencil.reproject")
+        layout.operator("grease_pencil.reproject", text="Reproject Strokes...")
         layout.operator("grease_pencil.remove_fill_guides")
 
 
