@@ -312,26 +312,19 @@ struct Token {
   /* Return the line number this token is found at. Take into account the #line directives. */
   size_t line_number() const
   {
-    return parser::line_number(data->str.substr(0, str_index_start()));
+    return parser::line_number(data->str, str_index_start());
   }
 
   /* Return the offset to the start of the line. */
   size_t char_number() const
   {
-    std::string sub_str = data->str.substr(0, str_index_start());
-    size_t nearest_line_directive = sub_str.rfind('\n');
-    return (nearest_line_directive == std::string::npos) ?
-               (sub_str.size()) :
-               (sub_str.size() - nearest_line_directive - 1);
+    return parser::char_number(data->str, str_index_start());
   }
 
   /* Return the line the token is at. */
   std::string line_str() const
   {
-    size_t start = data->str.rfind('\n', str_index_start());
-    size_t end = data->str.find('\n', str_index_start());
-    start = (start != std::string::npos) ? start + 1 : 0;
-    return data->str.substr(start, end - start);
+    return parser::line_str(data->str, str_index_start());
   }
 
   TokenType type() const

@@ -8,48 +8,6 @@
 
 namespace blender::gpu::tests {
 
-static void test_preprocess_utilities()
-{
-  using namespace shader;
-  using namespace std;
-
-  string input = "test (u, u(s,(s,s)), u) {t{{}},t,{};(,)} {u{}} end";
-  EXPECT_EQ(Preprocessor::get_content_between_balanced_pair(input, '{', '}'), "t{{}},t,{};(,)");
-  EXPECT_EQ(Preprocessor::get_content_between_balanced_pair(input, '{', '}', true), "u{}");
-
-  EXPECT_EQ(Preprocessor::replace_char_between_balanced_pair(input, '(', ')', ',', '!'),
-            "test (u! u(s!(s!s))! u) {t{{}},t,{};(!)} {u{}} end");
-
-  vector<string> split_expect{"test (u, u(s,(s,s", "", ", u", " {t{{}},t,{};(,", "} {u{}} end"};
-  vector<string> split_result = Preprocessor::split_string(input, ')');
-  EXPECT_EQ_VECTOR(split_expect, split_result);
-
-  string input2 = "u, u(s,(s,s)), u";
-  vector<string> split_expect2{"u", " u(s,(s,s))", " u"};
-  vector<string> split_result2 = Preprocessor::split_string_not_between_balanced_pair(
-      input2, ',', '(', ')');
-  EXPECT_EQ_VECTOR(split_expect2, split_result2);
-
-  string input_reference = "void func(int &a, int (&c)[2]) {{ int &b = a; }} int &b = a;";
-  int fn_ref_count = 0, arg_ref_count = 0, global_ref_count = 0;
-  Preprocessor::reference_search(
-      input_reference, [&](int parenthesis_depth, int bracket_depth, char & /*c*/) {
-        if ((parenthesis_depth == 1 || parenthesis_depth == 2) && bracket_depth == 0) {
-          arg_ref_count += 1;
-        }
-        else if (bracket_depth > 0) {
-          fn_ref_count += 1;
-        }
-        else if (bracket_depth == 0 && parenthesis_depth == 0) {
-          global_ref_count += 1;
-        }
-      });
-  EXPECT_EQ(arg_ref_count, 2);
-  EXPECT_EQ(fn_ref_count, 1);
-  EXPECT_EQ(global_ref_count, 1);
-}
-GPU_TEST(preprocess_utilities);
-
 static std::string process_test_string(std::string str,
                                        std::string &first_error,
                                        shader::metadata::Source *r_metadata = nullptr,

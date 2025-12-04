@@ -619,9 +619,9 @@ class Preprocessor {
       }
 
       if (end == std::string::npos) {
-        report_error(line_number(out_str, start),
-                     char_number(out_str, start),
-                     line_str(out_str, start),
+        report_error(parser::line_number(out_str, start),
+                     parser::char_number(out_str, start),
+                     parser::line_str(out_str, start),
                      "Malformed multi-line comment.");
         return out_str;
       }
@@ -640,9 +640,9 @@ class Preprocessor {
       }
 
       if (end == std::string::npos) {
-        report_error(line_number(out_str, start),
-                     char_number(out_str, start),
-                     line_str(out_str, start),
+        report_error(parser::line_number(out_str, start),
+                     parser::char_number(out_str, start),
+                     parser::line_str(out_str, start),
                      "Malformed single line comment, missing newline.");
         return out_str;
       }
@@ -3128,7 +3128,7 @@ class Preprocessor {
         if (sequence_end == string::npos) {
           break;
         }
-        size_t line = parser::line_number(str.substr(0, sequence_end));
+        size_t line = parser::line_number(str, sequence_end);
         parser.replace(sequence_start + 2, sequence_end - 1, "#line " + to_string(line) + "\n");
       }
       parser.apply_mutations();
@@ -3650,96 +3650,6 @@ class Preprocessor {
 
   /* Made public for unit testing purpose. */
  public:
-  static std::string get_content_between_balanced_pair(const std::string &input,
-                                                       char start_delimiter,
-                                                       char end_delimiter,
-                                                       const bool backwards = false)
-  {
-    int balance = 0;
-    size_t start = std::string::npos;
-    size_t end = std::string::npos;
-
-    if (backwards) {
-      std::swap(start_delimiter, end_delimiter);
-    }
-
-    for (size_t i = 0; i < input.length(); ++i) {
-      size_t idx = backwards ? (input.length() - 1) - i : i;
-      if (input[idx] == start_delimiter) {
-        if (balance == 0) {
-          start = idx;
-        }
-        balance++;
-      }
-      else if (input[idx] == end_delimiter) {
-        balance--;
-        if (balance == 0 && start != std::string::npos) {
-          end = idx;
-          if (backwards) {
-            std::swap(start, end);
-          }
-          return input.substr(start + 1, end - start - 1);
-        }
-      }
-    }
-    return "";
-  }
-
-  /* Replaces all occurrences of `from` by `to` between `start_delimiter`
-   * and `end_delimiter` even inside nested delimiters pair. */
-  static std::string replace_char_between_balanced_pair(const std::string &input,
-                                                        const char start_delimiter,
-                                                        const char end_delimiter,
-                                                        const char from,
-                                                        const char to)
-  {
-    int depth = 0;
-
-    std::string str = input;
-    for (char &string_char : str) {
-      if (string_char == start_delimiter) {
-        depth++;
-      }
-      else if (string_char == end_delimiter) {
-        depth--;
-      }
-      else if (depth > 0 && string_char == from) {
-        string_char = to;
-      }
-    }
-    return str;
-  }
-
-  /* Function to split a string by a delimiter and return a vector of substrings. */
-  static std::vector<std::string> split_string(const std::string &str, const char delimiter)
-  {
-    std::vector<std::string> substrings;
-    std::stringstream ss(str);
-    std::string item;
-
-    while (std::getline(ss, item, delimiter)) {
-      substrings.push_back(item);
-    }
-    return substrings;
-  }
-
-  /* Similar to split_string but only split if the delimiter is not between any pair_start and
-   * pair_end. */
-  static std::vector<std::string> split_string_not_between_balanced_pair(const std::string &str,
-                                                                         const char delimiter,
-                                                                         const char pair_start,
-                                                                         const char pair_end)
-  {
-    const char safe_char = '@';
-    const std::string safe_str = replace_char_between_balanced_pair(
-        str, pair_start, pair_end, delimiter, safe_char);
-    std::vector<std::string> split = split_string(safe_str, delimiter);
-    for (std::string &str : split) {
-      replace_all(str, safe_char, delimiter);
-    }
-    return split;
-  }
-
   static void replace_all(std::string &str, const std::string &from, const std::string &to)
   {
     if (from.empty()) {
@@ -3769,128 +3679,6 @@ class Preprocessor {
   static int64_t line_count(const std::string &str)
   {
     return char_count(str, '\n');
-  }
-
-  /* Match any reference definition (e.g. `int &a = b`).
-   * Call the callback function for each `&` character that matches a reference definition.
-   * Expects the input `str` to be formatted with balanced parenthesis and curly brackets. */
-  static void reference_search(std::string &str, std::function<void(int, int, char &)> callback)
-  {
-    scopes_scan_for_char(
-        str, '&', [&](size_t pos, int parenthesis_depth, int bracket_depth, char &c) {
-          if (pos > 0 && pos <= str.length() - 2) {
-            /* This is made safe by the previous check. */
-            char prev_char = str[pos - 1];
-            char next_char = str[pos + 1];
-            /* Validate it is not an operator (`&`, `&&`, `&=`). */
-            if (prev_char == ' ' || prev_char == '(') {
-              if (next_char != ' ' && next_char != '\n' && next_char != '&' && next_char != '=') {
-                callback(parenthesis_depth, bracket_depth, c);
-              }
-            }
-          }
-        });
-  }
-
-  /* Match any default argument definition (e.g. `void func(int a = 0)`).
-   * Call the callback function for each `=` character inside a function argument list.
-   * Expects the input `str` to be formatted with balanced parenthesis and curly brackets. */
-  static void default_argument_search(std::string &str,
-                                      std::function<void(int, int, char &)> callback)
-  {
-    scopes_scan_for_char(
-        str, '=', [&](size_t pos, int parenthesis_depth, int bracket_depth, char &c) {
-          if (pos > 0 && pos <= str.length() - 2) {
-            /* This is made safe by the previous check. */
-            char prev_char = str[pos - 1];
-            char next_char = str[pos + 1];
-            /* Validate it is not an operator (`==`, `<=`, `>=`). Expects formatted input. */
-            if (prev_char == ' ' && next_char == ' ') {
-              if (parenthesis_depth == 1 && bracket_depth == 0) {
-                callback(parenthesis_depth, bracket_depth, c);
-              }
-            }
-          }
-        });
-  }
-
-  /* Scan through a string matching for every occurrence of a character.
-   * Calls the callback with the context in which the match occurs. */
-  static void scopes_scan_for_char(std::string &str,
-                                   char search_char,
-                                   std::function<void(size_t, int, int, char &)> callback)
-  {
-    size_t pos = 0;
-    int parenthesis_depth = 0;
-    int bracket_depth = 0;
-    for (char &c : str) {
-      if (c == search_char) {
-        callback(pos, parenthesis_depth, bracket_depth, c);
-      }
-      else if (c == '(') {
-        parenthesis_depth++;
-      }
-      else if (c == ')') {
-        parenthesis_depth--;
-      }
-      else if (c == '{') {
-        bracket_depth++;
-      }
-      else if (c == '}') {
-        bracket_depth--;
-      }
-      pos++;
-    }
-  }
-
-  /* Return the line number this token is found at. Take into account the #line directives. */
-  static size_t line_number(const std::string &file_str, size_t pos)
-  {
-    std::string sub_str = file_str.substr(0, pos);
-    std::string directive = "#line ";
-    size_t nearest_line_directive = sub_str.rfind(directive);
-    size_t line_count = 1;
-    if (nearest_line_directive != std::string::npos) {
-      sub_str = sub_str.substr(nearest_line_directive + directive.size());
-      line_count = std::stoll(sub_str) - 1;
-    }
-    return line_count + std::count(sub_str.begin(), sub_str.end(), '\n');
-  }
-  static size_t line_number(const std::smatch &smatch)
-  {
-    std::string whole_file = smatch.prefix().str() + smatch[0].str() + smatch.suffix().str();
-    return line_number(whole_file, smatch.prefix().str().size());
-  }
-
-  /* Return the offset to the start of the line. */
-  static size_t char_number(const std::string &file_str, size_t pos)
-  {
-    std::string sub_str = file_str.substr(0, pos);
-    size_t nearest_line_directive = sub_str.find_last_of("\n");
-    return (nearest_line_directive == std::string::npos) ?
-               (sub_str.size() - 1) :
-               (sub_str.size() - nearest_line_directive);
-  }
-  static size_t char_number(const std::smatch &smatch)
-  {
-    std::string whole_file = smatch.prefix().str() + smatch[0].str() + smatch.suffix().str();
-    return char_number(whole_file, smatch.prefix().str().size());
-  }
-
-  /* Return the line the token is at. */
-  static std::string line_str(const std::string &file_str, size_t pos)
-  {
-    size_t start = file_str.rfind('\n', pos);
-    size_t end = file_str.find('\n', pos);
-    if (start == std::string::npos) {
-      start = 0;
-    }
-    return file_str.substr(start, end - start);
-  }
-  static std::string line_str(const std::smatch &smatch)
-  {
-    std::string whole_file = smatch.prefix().str() + smatch[0].str() + smatch.suffix().str();
-    return line_str(whole_file, smatch.prefix().str().size());
   }
 };
 

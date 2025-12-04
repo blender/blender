@@ -74,6 +74,11 @@ struct TimeIt {
   }
 };
 
-size_t line_number(const std::string &prefix_string);
+/* Return the line number this token is found at. Take into account the #line directives. */
+size_t line_number(const std::string &str, size_t pos);
+/* Return the offset to the start of the line. */
+size_t char_number(const std::string &str, size_t pos);
+/* Returns a string of tje line containing the character at the given position. */
+std::string line_str(const std::string &str, size_t pos);
 
 }  // namespace blender::gpu::shader::parser
