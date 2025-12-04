@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "glsl_preprocess/glsl_preprocess.hh"
+#include "shader_tool/shader_tool.hh"
 
 #include "gpu_testing.hh"
 
@@ -1532,7 +1532,7 @@ static void test_preprocess_srt_mutations()
   using namespace std;
   using namespace shader::parser;
 
-  ParserData::report_callback no_err_report = [](int, int, string, const char *) {};
+  report_callback no_err_report = [](int, int, string, const char *) {};
 
   {
     string input = R"(
@@ -1598,7 +1598,7 @@ static void test_preprocess_entry_point_resources()
   using namespace std;
   using namespace shader::parser;
 
-  ParserData::report_callback no_err_report = [](int, int, string, const char *) {};
+  report_callback no_err_report = [](int, int, string, const char *) {};
 
   {
     string input = R"(
@@ -1651,7 +1651,7 @@ struct ns_VertInTfloat {
 };
 #line 17
 #line 19
-                         void ns_vertex_function(
+           void ns_vertex_function(
 #line 22
                                                                  )
 { Resources srt;
@@ -1660,7 +1660,7 @@ struct ns_VertInTfloat {
 #line 24
 }
 
-                           void ns_fragment_function(
+             void ns_fragment_function(
 #line 29
                                                                           )
 { Resources srt;
@@ -1720,7 +1720,7 @@ static void test_preprocess_pipeline_description()
   using namespace std;
   using namespace shader::parser;
 
-  ParserData::report_callback no_err_report = [](int, int, string, const char *) {};
+  report_callback no_err_report = [](int, int, string, const char *) {};
 
   {
     string input = R"(
@@ -1785,7 +1785,7 @@ static void test_preprocess_parser()
   using namespace std;
   using namespace shader::parser;
 
-  ParserData::report_callback no_err_report = [](int, int, string, const char *) {};
+  report_callback no_err_report = [](int, int, string, const char *) {};
 
   {
     string input = R"(
@@ -1802,7 +1802,7 @@ static void test_preprocess_parser()
 )";
     string expect = R"(
 0;0;0;0;0;0;0;0;0;0;)";
-    EXPECT_EQ(Parser(input, no_err_report).data_get().token_types, expect);
+    EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().token_types, expect);
   }
   {
     string input = R"(
@@ -1815,7 +1815,7 @@ class B {
 )";
     string expect = R"(
 sw{ww=0;};Sw{ww;};)";
-    EXPECT_EQ(Parser(input, no_err_report).data_get().token_types, expect);
+    EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().token_types, expect);
   }
   {
     string input = R"(
@@ -1825,8 +1825,8 @@ namespace T::U::V {}
     string expect = R"(
 nw{}nw::w::w{})";
     string expect_scopes = R"(GNN)";
-    EXPECT_EQ(Parser(input, no_err_report).data_get().token_types, expect);
-    EXPECT_EQ(Parser(input, no_err_report).data_get().scope_types, expect_scopes);
+    EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().token_types, expect);
+    EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().scope_types, expect_scopes);
   }
   {
     string input = R"(
@@ -1842,10 +1842,10 @@ void f(int t = 0) {
 )";
     string expect = R"(
 ww(ww=0){ww=0,w=0,w={0};{w=w=w,wP;i(wEw){r;}}})";
-    EXPECT_EQ(Parser(input, no_err_report).data_get().token_types, expect);
+    EXPECT_EQ(IntermediateForm(input, no_err_report).data_get().token_types, expect);
   }
   {
-    Parser parser("float i;", no_err_report);
+    IntermediateForm parser("float i;", no_err_report);
     parser.insert_after(Token::from_position(&parser.data_get(), 0), "A ");
     parser.insert_after(Token::from_position(&parser.data_get(), 0), "B  ");
     EXPECT_EQ(parser.result_get(), "float A B  i;");
@@ -1856,7 +1856,7 @@ A
 #line 100
 B
 )";
-    Parser parser(input, no_err_report);
+    IntermediateForm parser(input, no_err_report);
     string expect = R"(
 w#w0
 w)";
@@ -1881,16 +1881,16 @@ match(, const, bool, , foo, , ;)
 match([a], , int, , bar, [0], ;)
 )";
 
-    Parser parser(input, no_err_report);
+    IntermediateForm parser(input, no_err_report);
 
     string result = "\n";
-    parser.foreach_declaration([&](Scope attributes,
-                                   Token const_tok,
-                                   Token type,
-                                   Scope template_scope,
-                                   Token name,
-                                   Scope array,
-                                   Token decl_end) {
+    parser().foreach_declaration([&](Scope attributes,
+                                     Token const_tok,
+                                     Token type,
+                                     Scope template_scope,
+                                     Token name,
+                                     Scope array,
+                                     Token decl_end) {
       result += "match(";
       result += attributes.str() + ", ";
       result += const_tok.str() + ", ";

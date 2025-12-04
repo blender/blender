@@ -32,7 +32,7 @@
 #  include "opensubdiv_evaluator_capi.hh"
 #endif
 
-#include "../glsl_preprocess/glsl_preprocess.hh"
+#include "../shader_tool/shader_tool.hh"
 
 extern "C" {
 #define SHADER_SOURCE(filename_underscore, filename, filepath) \

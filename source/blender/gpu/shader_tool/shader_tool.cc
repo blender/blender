@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup glsl_preprocess
+ * \ingroup shader_tool
  */
 
 #include <filesystem>
@@ -12,12 +12,12 @@
 #include <regex>
 #include <string>
 
-#include "glsl_preprocess.hh"
+#include "shader_tool.hh"
 
 int main(int argc, char **argv)
 {
   if (argc != 5) {
-    std::cerr << "Usage: glsl_preprocess <data_file_from> <data_file_to> <metadata_file_to> "
+    std::cerr << "Usage: shader_tool <data_file_from> <data_file_to> <metadata_file_to> "
                  "<infos_file_to>"
               << std::endl;
     exit(1);
