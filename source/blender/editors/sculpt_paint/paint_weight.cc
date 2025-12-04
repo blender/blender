@@ -1861,7 +1861,7 @@ static void wpaint_stroke_update_step(bContext *C,
   ED_region_tag_redraw(vc->region);
 }
 
-static void wpaint_stroke_done(const bContext *C, PaintStroke * /*stroke*/)
+static void wpaint_stroke_done(const bContext *C, PaintStroke * /*stroke*/, bool /*is_cancel*/)
 {
   Object &ob = *CTX_data_active_object(C);
 
@@ -1900,6 +1900,7 @@ static wmOperatorStatus wpaint_invoke(bContext *C, wmOperator *op, const wmEvent
                                     wpaint_stroke_test_start,
                                     wpaint_stroke_update_step,
                                     nullptr,
+                                    nullptr,
                                     wpaint_stroke_done,
                                     event->type);
 
@@ -1925,21 +1926,13 @@ static wmOperatorStatus wpaint_exec(bContext *C, wmOperator *op)
                                     wpaint_stroke_test_start,
                                     wpaint_stroke_update_step,
                                     nullptr,
+                                    nullptr,
                                     wpaint_stroke_done,
                                     0);
 
   paint_stroke_exec(C, op, (PaintStroke *)op->customdata);
 
   return OPERATOR_FINISHED;
-}
-
-static void wpaint_cancel(bContext *C, wmOperator *op)
-{
-  Object &ob = *CTX_data_active_object(C);
-  MEM_delete(ob.sculpt->cache);
-  ob.sculpt->cache = nullptr;
-
-  paint_stroke_cancel(C, op, (PaintStroke *)op->customdata);
 }
 
 static wmOperatorStatus wpaint_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1957,7 +1950,6 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
   ot->modal = wpaint_modal;
   ot->exec = wpaint_exec;
   ot->poll = weight_paint_poll;
-  ot->cancel = wpaint_cancel;
 
   ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
 

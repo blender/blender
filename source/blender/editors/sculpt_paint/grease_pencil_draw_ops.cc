@@ -211,7 +211,7 @@ static void stroke_redraw(const bContext *C, PaintStroke * /*stroke*/, bool /*fi
   ED_region_tag_redraw(CTX_wm_region(C));
 }
 
-static void stroke_done(const bContext *C, PaintStroke *stroke)
+static void stroke_done(const bContext *C, PaintStroke *stroke, bool /*is_cancel*/)
 {
   GreasePencilStrokeOperation *operation = static_cast<GreasePencilStrokeOperation *>(
       paint_stroke_mode_data(stroke));
@@ -281,6 +281,7 @@ static wmOperatorStatus grease_pencil_brush_stroke_invoke(bContext *C,
                                     stroke_test_start,
                                     stroke_update_step,
                                     stroke_redraw,
+                                    nullptr,
                                     stroke_done,
                                     event->type);
 
@@ -387,6 +388,7 @@ static wmOperatorStatus grease_pencil_sculpt_paint_invoke(bContext *C,
                                     stroke_test_start,
                                     stroke_update_step,
                                     stroke_redraw,
+                                    nullptr,
                                     stroke_done,
                                     event->type);
 
@@ -482,6 +484,7 @@ static wmOperatorStatus grease_pencil_weight_brush_stroke_invoke(bContext *C,
                                     stroke_test_start,
                                     stroke_update_step,
                                     stroke_redraw,
+                                    nullptr,
                                     stroke_done,
                                     event->type);
 
@@ -588,6 +591,7 @@ static wmOperatorStatus grease_pencil_vertex_brush_stroke_invoke(bContext *C,
                                     stroke_test_start,
                                     stroke_update_step,
                                     stroke_redraw,
+                                    nullptr,
                                     stroke_done,
                                     event->type);
 

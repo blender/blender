@@ -133,6 +133,7 @@ struct PaintStroke {
   StrokeTestStart test_start;
   StrokeUpdateStep update_step;
   StrokeRedraw redraw;
+  StrokeTestCancel test_cancel;
   StrokeDone done;
 
   bool original; /* Ray-cast original mesh at start of stroke. */
@@ -917,6 +918,7 @@ PaintStroke *paint_stroke_new(bContext *C,
                               const StrokeTestStart test_start,
                               const StrokeUpdateStep update_step,
                               const StrokeRedraw redraw,
+                              const StrokeTestCancel test_cancel,
                               const StrokeDone done,
                               const int event_type)
 {
@@ -935,6 +937,7 @@ PaintStroke *paint_stroke_new(bContext *C,
   stroke->test_start = test_start;
   stroke->update_step = update_step;
   stroke->redraw = redraw;
+  stroke->test_cancel = test_cancel;
   stroke->done = done;
   stroke->event_type = event_type; /* for modal, return event */
   stroke->ups = ups;
@@ -1025,7 +1028,7 @@ void paint_stroke_free(bContext *C, wmOperator * /*op*/, PaintStroke *stroke)
   MEM_delete(stroke);
 }
 
-static void stroke_done(bContext *C, wmOperator *op, PaintStroke *stroke)
+static void stroke_done(bContext *C, wmOperator *op, PaintStroke *stroke, const bool is_cancel)
 {
   if (print_pressure_status_enabled()) {
     ED_workspace_status_text(C, nullptr);
@@ -1049,7 +1052,7 @@ static void stroke_done(bContext *C, wmOperator *op, PaintStroke *stroke)
     }
 
     if (stroke->done) {
-      stroke->done(C, stroke);
+      stroke->done(C, stroke, is_cancel);
     }
   }
 
@@ -1445,7 +1448,7 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
     }
   }
 
-  stroke_done(C, op, stroke);
+  stroke_done(C, op, stroke, false);
 
 #ifdef DEBUG_TIME
   TIMEIT_END_AVERAGED(whole_stroke);
@@ -1491,7 +1494,7 @@ wmOperatorStatus paint_stroke_modal(bContext *C,
   if (paint == nullptr || br == nullptr) {
     /* In some circumstances, the context may change during modal execution. In this case,
      * we need to cancel the operator. See #147544 and related issues for further information. */
-    stroke_done(C, op, stroke);
+    stroke_done(C, op, stroke, true);
     return OPERATOR_CANCELLED;
   }
   const PaintMode mode = BKE_paintmode_get_active_from_context(C);
@@ -1605,12 +1608,12 @@ wmOperatorStatus paint_stroke_modal(bContext *C,
   /* Cancel */
   if (event->type == EVT_MODAL_MAP && event->val == PAINT_STROKE_MODAL_CANCEL) {
     if (op->type->cancel) {
-      op->type->cancel(C, op);
+      if (!stroke->test_cancel || stroke->test_cancel(C, stroke)) {
+        op->type->cancel(C, op);
+        return OPERATOR_CANCELLED;
+      }
     }
-    else {
-      paint_stroke_cancel(C, op, stroke);
-    }
-    return OPERATOR_CANCELLED;
+    BKE_report(op->reports, RPT_WARNING, "Cancelling this stroke is unsupported");
   }
 
   /* Handles shift-key active smooth toggling during a grease pencil stroke. */
@@ -1640,14 +1643,14 @@ wmOperatorStatus paint_stroke_modal(bContext *C,
       mouse = {float(event->mval[0]), float(event->mval[1])};
       paint_stroke_line_constrain(stroke, mouse);
       paint_stroke_line_end(C, op, stroke, mouse);
-      stroke_done(C, op, stroke);
+      stroke_done(C, op, stroke, false);
       *stroke_p = nullptr;
       return OPERATOR_FINISHED;
     }
   }
   else if (ELEM(event->type, EVT_RETKEY, EVT_SPACEKEY)) {
     paint_stroke_line_end(C, op, stroke, sample_average.mouse);
-    stroke_done(C, op, stroke);
+    stroke_done(C, op, stroke, false);
     *stroke_p = nullptr;
     return OPERATOR_FINISHED;
   }
@@ -1779,14 +1782,14 @@ wmOperatorStatus paint_stroke_exec(bContext *C, wmOperator *op, PaintStroke *str
 
   const bool ok = stroke->stroke_started;
 
-  stroke_done(C, op, stroke);
+  stroke_done(C, op, stroke, !ok);
 
   return ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void paint_stroke_cancel(bContext *C, wmOperator *op, PaintStroke *stroke)
 {
-  stroke_done(C, op, stroke);
+  stroke_done(C, op, stroke, true);
 }
 
 ViewContext *paint_stroke_view_context(PaintStroke *stroke)

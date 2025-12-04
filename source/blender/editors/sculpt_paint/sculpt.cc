@@ -5615,7 +5615,7 @@ static void brush_exit_tex(Sculpt &sd)
   }
 }
 
-static void stroke_done(const bContext *C, PaintStroke * /*stroke*/)
+static void stroke_done(const bContext *C, PaintStroke * /*stroke*/, bool is_cancel)
 {
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.sculpt;
@@ -5644,7 +5644,9 @@ static void stroke_done(const bContext *C, PaintStroke * /*stroke*/)
   MEM_delete(ss.cache);
   ss.cache = nullptr;
 
-  stroke_undo_end(C, brush);
+  if (!is_cancel) {
+    stroke_undo_end(C, brush);
+  }
 
   if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_MASK) {
     flush_update_done(C, ob, UpdateType::Mask);
@@ -5663,6 +5665,18 @@ static void stroke_done(const bContext *C, PaintStroke * /*stroke*/)
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &ob);
   brush_exit_tex(sd);
+}
+
+static bool stroke_test_cancel(const bContext *C, PaintStroke * /*stroke*/)
+{
+  const Object &ob = *CTX_data_active_object(C);
+  const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
+  const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
+
+  /* XXX Canceling strokes that way does not work with dynamic topology,
+   *     user will have to do real undo for now. See #46456. */
+  bool ret_val = !dyntopo::stroke_is_dyntopo(ob, brush);
+  return ret_val;
 }
 
 static wmOperatorStatus sculpt_brush_stroke_invoke(bContext *C,
@@ -5719,6 +5733,7 @@ static wmOperatorStatus sculpt_brush_stroke_invoke(bContext *C,
                             stroke_test_start,
                             stroke_update_step,
                             nullptr,
+                            stroke_test_cancel,
                             stroke_done,
                             event->type);
 
@@ -5757,6 +5772,7 @@ static wmOperatorStatus sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
                                     stroke_test_start,
                                     stroke_update_step,
                                     nullptr,
+                                    stroke_test_cancel,
                                     stroke_done,
                                     0);
 
@@ -5771,22 +5787,13 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
   using namespace blender::ed::sculpt_paint;
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   Object &ob = *CTX_data_active_object(C);
-  SculptSession &ss = *ob.sculpt;
   Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
 
-  /* XXX Canceling strokes that way does not work with dynamic topology,
-   *     user will have to do real undo for now. See #46456. */
-  if (ss.cache && !dyntopo::stroke_is_dyntopo(ob, brush)) {
-    undo::restore_from_undo_step(depsgraph, sd, ob);
-  }
+  BLI_assert(!dyntopo::stroke_is_dyntopo(ob, brush));
 
+  undo::restore_from_undo_step(depsgraph, sd, ob);
   paint_stroke_cancel(C, op, static_cast<PaintStroke *>(op->customdata));
-
-  MEM_delete(ss.cache);
-  ss.cache = nullptr;
-
-  brush_exit_tex(sd);
 }
 
 static wmOperatorStatus brush_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
