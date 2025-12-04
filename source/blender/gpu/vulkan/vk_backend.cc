@@ -424,11 +424,8 @@ void VKBackend::detect_workarounds(VKDevice &device)
   VKExtensions extensions;
 
   if (G.debug & G_DEBUG_GPU_FORCE_WORKAROUNDS) {
-    printf("\n");
-    printf("VK: Forcing workaround usage and disabling features and extensions.\n");
-    printf("    Vendor: %s\n", device.vendor_name().c_str());
-    printf("    Device: %s\n", device.physical_device_properties_get().deviceName);
-    printf("    Driver: %s\n", device.driver_version().c_str());
+    CLOG_WARN(&LOG, "Forcing workarounds and disabling features and extensions");
+
     /* Force workarounds and disable extensions. */
     workarounds.not_aligned_pixel_formats = true;
     extensions.shader_output_layer = false;
