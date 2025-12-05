@@ -251,7 +251,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
             # Heuristic: A lot of operator's HIDDEN properties have no UI label/description.
             # While this is not ideal (for API doc purposes, description should always be provided),
             # for now skip those properties.
-            # NOTE: keep in sync with C code in ui_searchbox_region_draw_cb__operator().
+            # NOTE: keep in sync with C code in searchbox_region_draw_cb__operator().
             if issubclass(cls, bpy.types.OperatorProperties) and "_OT_" in cls.__name__:
                 return False
             # Heuristic: If UI label is not capitalized, it is likely a private (undocumented) property,

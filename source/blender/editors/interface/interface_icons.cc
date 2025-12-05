@@ -1182,7 +1182,7 @@ static void ui_studiolight_icon_job_end(void *customdata)
   BKE_studiolight_set_free_function(sl, &ui_studiolight_free_function, nullptr);
 }
 
-void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool big)
+void icon_ensure_deferred(const bContext *C, const int icon_id, const bool big)
 {
   Icon *icon = BKE_icon_get(icon_id);
 
@@ -1249,7 +1249,7 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
   }
 }
 
-bool ui_icon_is_preview_deferred_loading(const int icon_id, const bool big)
+bool icon_is_preview_deferred_loading(const int icon_id, const bool big)
 {
   const Icon *icon = BKE_icon_get(icon_id);
   if (icon == nullptr) {
@@ -1897,7 +1897,7 @@ static int ui_id_screen_get_icon(const bContext *C, ID *id)
   return id->icon_id;
 }
 
-int ui_id_icon_get(const bContext *C, ID *id, const bool big)
+int id_icon_get(const bContext *C, ID *id, const bool big)
 {
   int iconid = 0;
 
@@ -2006,7 +2006,7 @@ int icon_from_rnaptr(const bContext *C, PointerRNA *ptr, int rnaicon, const bool
 
   /* get icon from ID */
   if (id) {
-    const int icon = ui_id_icon_get(C, id, big);
+    const int icon = id_icon_get(C, id, big);
 
     return icon ? icon : rnaicon;
   }

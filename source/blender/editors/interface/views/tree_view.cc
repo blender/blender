@@ -304,7 +304,7 @@ void AbstractTreeView::draw_hierarchy_lines(const ARegion &region, const Block &
   GPU_blend(GPU_BLEND_ALPHA);
 
   rcti first_item_but_pixel_rect;
-  ui_but_to_pixelrect(&first_item_but_pixel_rect, &region, &block, first_item_but);
+  button_to_pixelrect(&first_item_but_pixel_rect, &region, &block, first_item_but);
   int2 top_left{first_item_but_pixel_rect.xmin, first_item_but_pixel_rect.ymax};
 
   for (const auto &line : lines) {
@@ -653,7 +653,7 @@ std::optional<rctf> AbstractTreeViewItem::get_win_rect(const ARegion &region) co
   }
 
   rctf win_rect;
-  ui_block_to_window_rctf(&region, item_but->block, &win_rect, &item_but->rect);
+  block_to_window_rctf(&region, item_but->block, &win_rect, &item_but->rect);
 
   return win_rect;
 }
@@ -687,7 +687,7 @@ bool AbstractTreeViewItem::is_hovered() const
 
   /* The new layout hasn't finished construction yet, so the final state of the button is unknown.
    * Get the matching button from the previous redraw instead. */
-  ButtonViewItem *old_item_but = ui_block_view_find_matching_view_item_but_in_old_block(
+  ButtonViewItem *old_item_but = block_view_find_matching_view_item_but_in_old_block(
       *view_item_but_->block, *this);
   return old_item_but && (old_item_but->flag & UI_HOVER);
 }
@@ -961,7 +961,7 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
       button_retval_set(but, 1);
       button_flag_enable(but, BUT_TEXTEDIT_UPDATE | BUT_VALUE_CLEAR);
       button_flag_disable(but, BUT_UNDO);
-      ui_def_but_icon(but, ICON_VIEWZOOM, UI_HAS_ICON);
+      def_but_icon(but, ICON_VIEWZOOM, UI_HAS_ICON);
       button_placeholder_set(but, IFACE_("Search"));
     }
   }
@@ -1015,7 +1015,7 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
   else {
     item.build_row(*row);
     if (item.is_active_) {
-      ui_layout_list_set_labels_active(row);
+      layout_list_set_labels_active(row);
     }
   }
 
@@ -1068,7 +1068,7 @@ void TreeViewBuilder::build_tree_view(const bContext &C,
 
   const ARegion *region = CTX_wm_region_popup(&C) ? CTX_wm_region_popup(&C) : CTX_wm_region(&C);
   if (region) {
-    ui_block_view_persistent_state_restore(*region, block, tree_view);
+    block_view_persistent_state_restore(*region, block, tree_view);
   }
 
   tree_view.build_tree();

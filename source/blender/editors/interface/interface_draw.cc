@@ -76,7 +76,7 @@ void draw_roundbox_4fv_ex(const rctf *rect,
 {
   /* WATCH: This is assuming the ModelViewProjectionMatrix is area pixel space.
    * If it has been scaled, then it's no longer valid. */
-  uiWidgetBaseParameters widget_params{};
+  WidgetBaseParameters widget_params{};
   widget_params.recti.xmin = rect->xmin + outline_width;
   widget_params.recti.ymin = rect->ymin + outline_width;
   widget_params.recti.xmax = rect->xmax - outline_width;
@@ -103,7 +103,7 @@ void draw_roundbox_4fv_ex(const rctf *rect,
   widget_params.shade_dir = shade_dir;
   widget_params.alpha_discard = 1.0f;
 
-  gpu::Batch *batch = ui_batch_roundbox_widget_get();
+  gpu::Batch *batch = batch_roundbox_widget_get();
   GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
   GPU_batch_uniform_4fv_array(batch, "parameters", 11, (const float (*)[4]) & widget_params);
   const GPUBlend old_blend = GPU_blend_get();
@@ -149,7 +149,7 @@ void draw_roundbox_4fv(const rctf *rect, bool filled, float rad, const float col
   draw_roundbox_4fv_ex(rect, (filled) ? col : nullptr, nullptr, 1.0f, col, U.pixelsize, rad);
 }
 
-void ui_draw_rounded_corners_inverted(const rcti &rect, const float rad, const float4 color)
+void draw_rounded_corners_inverted(const rcti &rect, const float rad, const float4 color)
 {
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
@@ -230,10 +230,7 @@ void draw_text_underline(int pos_x, int pos_y, int len, int height, const float 
 
 /* ************** SPECIAL BUTTON DRAWING FUNCTIONS ************* */
 
-void ui_draw_but_TAB_outline(const rcti *rect,
-                             float rad,
-                             uchar highlight[3],
-                             uchar highlight_fade[3])
+void draw_but_TAB_outline(const rcti *rect, float rad, uchar highlight[3], uchar highlight_fade[3])
 {
   /* NOTE: based on `UI_draw_roundbox` functions
    * check on making a version which allows us to skip some sides. */
@@ -321,10 +318,10 @@ void ui_draw_but_TAB_outline(const rcti *rect,
   immUnbindProgram();
 }
 
-void ui_draw_but_IMAGE(ARegion * /*region*/,
-                       Button *but,
-                       const uiWidgetColors * /*wcol*/,
-                       const rcti *rect)
+void draw_but_IMAGE(ARegion * /*region*/,
+                    Button *but,
+                    const uiWidgetColors * /*wcol*/,
+                    const rcti *rect)
 {
 #ifdef WITH_HEADLESS
   (void)rect;
@@ -492,10 +489,10 @@ static void histogram_draw_one(float r,
 
 #define HISTOGRAM_TOT_GRID_LINES 4
 
-void ui_draw_but_HISTOGRAM(ARegion *region,
-                           Button *but,
-                           const uiWidgetColors * /*wcol*/,
-                           const rcti *recti)
+void draw_but_HISTOGRAM(ARegion *region,
+                        Button *but,
+                        const uiWidgetColors * /*wcol*/,
+                        const rcti *recti)
 {
   Histogram *hist = (Histogram *)but->poin;
   const int res = hist->x_resolution;
@@ -679,10 +676,10 @@ static void circle_draw_rgb(float *points, int tot_points, const float *col, GPU
   GPU_batch_discard(batch);
 }
 
-void ui_draw_but_WAVEFORM(ARegion *region,
-                          Button *but,
-                          const uiWidgetColors * /*wcol*/,
-                          const rcti *recti)
+void draw_but_WAVEFORM(ARegion *region,
+                       Button *but,
+                       const uiWidgetColors * /*wcol*/,
+                       const rcti *recti)
 {
   Scopes *scopes = (Scopes *)but->poin;
   int scissor[4];
@@ -997,10 +994,10 @@ static void vectorscope_draw_target(
   immEnd();
 }
 
-void ui_draw_but_VECTORSCOPE(ARegion *region,
-                             Button *but,
-                             const uiWidgetColors * /*wcol*/,
-                             const rcti *recti)
+void draw_but_VECTORSCOPE(ARegion *region,
+                          Button *but,
+                          const uiWidgetColors * /*wcol*/,
+                          const rcti *recti)
 {
   const float skin_rad = DEG2RADF(123.0f); /* angle in radians of the skin tone line */
   const Scopes *scopes = (const Scopes *)but->poin;
@@ -1356,9 +1353,9 @@ static void ui_draw_colorband_handle(uint shdr_pos,
   GPU_blend(GPU_BLEND_NONE);
 }
 
-void ui_draw_but_COLORBAND(Button *but, const uiWidgetColors *wcol, const rcti *rect)
+void draw_but_COLORBAND(Button *but, const uiWidgetColors *wcol, const rcti *rect)
 {
-  const ColorManagedDisplay *display = ui_block_cm_display_get(but->block);
+  const ColorManagedDisplay *display = block_cm_display_get(but->block);
   uint pos_id, col_id;
 
   ButtonColorBand *but_coba = (ButtonColorBand *)but;
@@ -1477,10 +1474,10 @@ void ui_draw_but_COLORBAND(Button *but, const uiWidgetColors *wcol, const rcti *
   }
 }
 
-void ui_draw_but_UNITVEC(Button *but,
-                         const uiWidgetColors *wcol,
-                         const rcti *rect,
-                         const float radius)
+void draw_but_UNITVEC(Button *but,
+                      const uiWidgetColors *wcol,
+                      const rcti *rect,
+                      const float radius)
 {
   /* sphere color */
   const float diffuse[3] = {1.0f, 1.0f, 1.0f};
@@ -1499,7 +1496,7 @@ void ui_draw_but_UNITVEC(Button *but,
   GPU_face_culling(GPU_CULL_BACK);
 
   /* setup lights */
-  ui_but_v3_get(but, light);
+  button_v3_get(but, light);
 
   /* transform to button */
   GPU_matrix_push();
@@ -1583,7 +1580,7 @@ static void ui_draw_but_curve_grid(const uint pos,
   immEnd();
 }
 
-void ui_draw_but_CURVE(ARegion *region, Button *but, const uiWidgetColors *wcol, const rcti *rect)
+void draw_but_CURVE(ARegion *region, Button *but, const uiWidgetColors *wcol, const rcti *rect)
 {
   ButtonCurveMapping *but_cumap = (ButtonCurveMapping *)but;
   CurveMapping *cumap = (but_cumap->edit_cumap == nullptr) ? (CurveMapping *)but->poin :
@@ -1640,8 +1637,8 @@ void ui_draw_but_CURVE(ARegion *region, Button *but, const uiWidgetColors *wcol,
     grid.ymin = rect->ymin + zoomy * (-offsy);
     grid.ymax = grid.ymin + zoomy;
 
-    const ColorManagedDisplay *display = ui_block_cm_display_get(but->block);
-    ui_draw_gradient(&grid, col, UI_GRAD_H, 1.0f, display);
+    const ColorManagedDisplay *display = block_cm_display_get(but->block);
+    draw_gradient(&grid, col, UI_GRAD_H, 1.0f, display);
   }
 
   GPU_line_width(1.0f);
@@ -1938,10 +1935,10 @@ static bool point_draw_handles(CurveProfilePoint *point)
          ELEM(point->flag, PROF_H1_SELECT, PROF_H2_SELECT);
 }
 
-void ui_draw_but_CURVEPROFILE(ARegion *region,
-                              Button *but,
-                              const uiWidgetColors *wcol,
-                              const rcti *rect)
+void draw_but_CURVEPROFILE(ARegion *region,
+                           Button *but,
+                           const uiWidgetColors *wcol,
+                           const rcti *rect)
 {
   float fx, fy;
 
@@ -2281,10 +2278,10 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   GPU_blend(GPU_BLEND_NONE);
 }
 
-void ui_draw_but_TRACKPREVIEW(ARegion *region,
-                              Button *but,
-                              const uiWidgetColors * /*wcol*/,
-                              const rcti *recti)
+void draw_but_TRACKPREVIEW(ARegion *region,
+                           Button *but,
+                           const uiWidgetColors * /*wcol*/,
+                           const rcti *recti)
 {
   bool ok = false;
   MovieClipScopes *scopes = (MovieClipScopes *)but->poin;
@@ -2475,7 +2472,7 @@ void draw_dropshadow(
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  uiWidgetBaseParameters widget_params{};
+  WidgetBaseParameters widget_params{};
   widget_params.recti.xmin = rct->xmin;
   widget_params.recti.ymin = rct->ymin;
   widget_params.recti.xmax = rct->xmax;
@@ -2492,7 +2489,7 @@ void draw_dropshadow(
   widget_params.round_corners[3] = (roundboxtype & CNR_TOP_LEFT) ? 1.0f : 0.0f;
   widget_params.alpha_discard = 1.0f;
 
-  gpu::Batch *batch = ui_batch_roundbox_shadow_get();
+  gpu::Batch *batch = batch_roundbox_shadow_get();
   GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_SHADOW);
   GPU_batch_uniform_4fv_array(batch, "parameters", 4, (const float (*)[4]) & widget_params);
   GPU_batch_uniform_1f(batch, "alpha", alpha);

@@ -168,7 +168,7 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
   TooltipData *data = static_cast<TooltipData *>(region->regiondata);
   const float pad_x = data->lineh * TIP_PADDING_X;
   const float pad_y = data->lineh * TIP_PADDING_Y;
-  const uiWidgetColors *theme = ui_tooltip_get_theme();
+  const uiWidgetColors *theme = tooltip_get_theme();
   rcti bbox = data->bbox;
   float tip_colors[TIP_LC_MAX][3];
   uchar drawcol[4] = {0, 0, 0, 255}; /* to store color in while drawing (alpha is always 255) */
@@ -186,7 +186,7 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
   wmOrtho2_region_pixelspace(region);
 
   /* Draw background. */
-  ui_draw_tooltip_background(style_get(), nullptr, &bbox);
+  draw_tooltip_background(style_get(), nullptr, &bbox);
 
   /* set background_color */
   rgb_uchar_to_float(background_color, theme->inner);
@@ -987,7 +987,7 @@ static std::unique_ptr<TooltipData> ui_tooltip_data_from_button_or_extra_icon(
   std::unique_ptr<TooltipData> data = std::make_unique<TooltipData>();
 
   /* Menus already show shortcuts, don't show them in the tool-tips. */
-  const bool is_menu = ui_block_is_menu(but->block) && !ui_block_is_pie_menu(but->block);
+  const bool is_menu = block_is_menu(but->block) && !block_is_pie_menu(but->block);
 
   std::string but_label;
   std::string but_tip;
@@ -1121,7 +1121,7 @@ static std::unique_ptr<TooltipData> ui_tooltip_data_from_button_or_extra_icon(
     /* Better not show the value of a password. */
     if ((rnaprop && (RNA_property_subtype(rnaprop) == PROP_PASSWORD)) == 0) {
       /* Full string. */
-      ui_but_string_get(but, buf, sizeof(buf));
+      button_string_get(but, buf, sizeof(buf));
       if (buf[0]) {
         UI_tooltip_text_field_add(*data,
                                   fmt::format(fmt::runtime(TIP_("Value: {}")), buf),
@@ -1150,7 +1150,7 @@ static std::unique_ptr<TooltipData> ui_tooltip_data_from_button_or_extra_icon(
     }
 
     if (but->flag & BUT_DRIVEN) {
-      if (ui_but_anim_expression_get(but, buf, sizeof(buf))) {
+      if (button_anim_expression_get(but, buf, sizeof(buf))) {
         UI_tooltip_text_field_add(*data,
                                   fmt::format(fmt::runtime(TIP_("Expression: {}")), buf),
                                   {},
@@ -1238,7 +1238,7 @@ static std::unique_ptr<TooltipData> ui_tooltip_data_from_button_or_extra_icon(
       call_params.optype = optype;
       call_params.opcontext = opcontext;
       CTX_wm_operator_poll_msg_clear(C);
-      ui_but_context_poll_operator_ex(C, but, &call_params);
+      button_context_poll_operator_ex(C, but, &call_params);
       disabled_msg_orig = CTX_wm_operator_poll_msg_get(C, &disabled_msg_free);
       disabled_msg = TIP_(disabled_msg_orig);
     }
@@ -1267,7 +1267,7 @@ static std::unique_ptr<TooltipData> ui_tooltip_data_from_button_or_extra_icon(
     const ColorManagedDisplay *display = button_cm_display_get(*but);
 
     float color[4];
-    ui_but_v3_get(but, color);
+    button_v3_get(but, color);
     color[3] = 1.0f;
     bool has_alpha = false;
 
@@ -1280,7 +1280,7 @@ static std::unique_ptr<TooltipData> ui_tooltip_data_from_button_or_extra_icon(
     }
 
     UI_tooltip_color_field_add(
-        *data, color, has_alpha, ui_but_is_color_gamma(but), display, TIP_LC_NORMAL);
+        *data, color, has_alpha, button_is_color_gamma(but), display, TIP_LC_NORMAL);
   }
 
   /* If the last field is a spacer, remove it. */
@@ -1387,7 +1387,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
   FontFlags font_flag = BLF_NONE;
 
   /* Create area region. */
-  ARegion *region = ui_region_temp_add(CTX_wm_screen(C));
+  ARegion *region = region_temp_add(CTX_wm_screen(C));
 
   static ARegionType type;
   memset(&type, 0, sizeof(ARegionType));
@@ -1670,8 +1670,8 @@ ARegion *tooltip_create_from_button_or_extra_icon(
     init_position[0] = BLI_rctf_cent_x(&but->rect);
     init_position[1] = BLI_rctf_cent_y(&but->rect);
     if (butregion) {
-      ui_block_to_window_fl(butregion, but->block, &init_position[0], &init_position[1]);
-      ui_block_to_window_rctf(butregion, but->block, &overlap_rect_fl, &but->rect);
+      block_to_window_fl(butregion, but->block, &init_position[0], &init_position[1]);
+      block_to_window_rctf(butregion, but->block, &overlap_rect_fl, &but->rect);
     }
     else {
       overlap_rect_fl = but->rect;
@@ -1686,7 +1686,7 @@ ARegion *tooltip_create_from_button_or_extra_icon(
     init_position[0] = BLI_rctf_cent_x(&but->rect);
     init_position[1] = but->rect.ymin;
     if (butregion) {
-      ui_block_to_window_fl(butregion, but->block, &init_position[0], &init_position[1]);
+      block_to_window_fl(butregion, but->block, &init_position[0], &init_position[1]);
       init_position[0] = win->eventstate->xy[0];
     }
     init_position[1] -= (UI_POPUP_MARGIN / 2);
@@ -1883,7 +1883,7 @@ static void ui_tooltip_from_vfont(const VFont &font, TooltipData &data)
   }
 
   float color[4];
-  const uiWidgetColors *theme = ui_tooltip_get_theme();
+  const uiWidgetColors *theme = tooltip_get_theme();
   rgba_uchar_to_float(color, theme->text);
   ImBuf *ibuf = IMB_font_preview(filepath_abs, 256 * UI_SCALE_FAC, color, "ABCDabefg&0123");
   if (ibuf) {
@@ -1960,7 +1960,7 @@ ARegion *tooltip_create_from_search_item_generic(bContext *C,
 
 void tooltip_free(bContext *C, bScreen *screen, ARegion *region)
 {
-  ui_region_temp_remove(C, screen, region);
+  region_temp_remove(C, screen, region);
 }
 
 /** \} */

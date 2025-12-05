@@ -34,7 +34,7 @@ void template_color_picker(Layout *layout,
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
   Block *block = layout->block();
-  ColorPicker *cpicker = ui_block_colorpicker_create(block);
+  ColorPicker *cpicker = block_colorpicker_create(block);
 
   if (!prop) {
     RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname.c_str());

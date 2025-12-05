@@ -156,17 +156,17 @@ extern const short ui_radial_dir_to_angle[8];
 /** #PieMenuData.flags */
 enum {
   /** Use initial center of pie menu to calculate direction. */
-  UI_PIE_INITIAL_DIRECTION = (1 << 1),
+  PIE_INITIAL_DIRECTION = (1 << 1),
   /** Pie menu is drag style. */
-  UI_PIE_DRAG_STYLE = (1 << 2),
+  PIE_DRAG_STYLE = (1 << 2),
   /** Mouse not far enough from center position. */
-  UI_PIE_INVALID_DIR = (1 << 3),
+  PIE_INVALID_DIR = (1 << 3),
   /** Pie menu changed to click style, click to confirm. */
-  UI_PIE_CLICK_STYLE = (1 << 4),
+  PIE_CLICK_STYLE = (1 << 4),
   /** Pie animation finished, do not calculate any more motion. */
-  UI_PIE_ANIMATION_FINISHED = (1 << 5),
+  PIE_ANIMATION_FINISHED = (1 << 5),
   /** Pie gesture selection has been done, now wait for mouse motion to end. */
-  UI_PIE_GESTURE_END_WAIT = (1 << 6),
+  PIE_GESTURE_END_WAIT = (1 << 6),
 };
 
 #define PIE_CLICK_THRESHOLD_SQ 50.0f
@@ -562,14 +562,14 @@ enum eBlockContentHints {
   BLOCK_CONTAINS_SUBMENU_BUT = (1 << 0),
 };
 
-/* #uiButtonGroup.flag. */
-enum uiButtonGroupFlag {
+/* #ButtonGroup.flag. */
+enum ButtonGroupFlag {
   /** While this flag is set, don't create new button groups for layout item calls. */
   UI_BUTTON_GROUP_LOCK = (1 << 0),
   /** The buttons in this group are inside a panel header. */
   UI_BUTTON_GROUP_PANEL_HEADER = (1 << 1),
 };
-ENUM_OPERATORS(uiButtonGroupFlag);
+ENUM_OPERATORS(ButtonGroupFlag);
 
 /**
  * A group of button references, used by property search to keep track of sets of buttons that
@@ -577,9 +577,9 @@ ENUM_OPERATORS(uiButtonGroupFlag);
  * labels (and even their decorators) are separate buttons, but they must be searched and
  * highlighted together.
  */
-struct uiButtonGroup {
+struct ButtonGroup {
   Vector<Button *> buttons;
-  uiButtonGroupFlag flag;
+  ButtonGroupFlag flag;
 };
 
 struct BlockDynamicListener {
@@ -600,7 +600,7 @@ struct Block {
   /** Used for `UI_butstore_*` runtime function. */
   ListBase butstore;
 
-  Vector<uiButtonGroup> button_groups;
+  Vector<ButtonGroup> button_groups;
 
   ListBase layouts;
   Layout *curlayout;
@@ -682,7 +682,7 @@ struct Block {
 
   /** Pull-downs, to detect outside, can differ per case how it is created. */
   rctf safety;
-  /** #uiSafetyRct list */
+  /** #SafetyRect list */
   ListBase saferct;
 
   PopupBlockHandle *handle;
@@ -720,55 +720,55 @@ struct Block {
   [[nodiscard]] Button *prev_but(const Button *but) const;
 };
 
-struct uiSafetyRct {
-  uiSafetyRct *next, *prev;
+struct SafetyRect {
+  SafetyRect *next, *prev;
   rctf parent;
   rctf safety;
 };
 /* `interface.cc` */
 
-void ui_fontscale(float *points, float aspect);
+void fontscale(float *points, float aspect);
 
 /** Project button or block (but==nullptr) to pixels in region-space. */
-void ui_but_to_pixelrect(rcti *rect, const ARegion *region, const Block *block, const Button *but);
+void button_to_pixelrect(rcti *rect, const ARegion *region, const Block *block, const Button *but);
 rcti ui_to_pixelrect(const ARegion *region, const Block *block, const rctf *src_rect);
 
-void ui_block_to_region_fl(const ARegion *region, const Block *block, float *x, float *y);
-void ui_block_to_window_fl(const ARegion *region, const Block *block, float *x, float *y);
-void ui_block_to_window(const ARegion *region, const Block *block, int *x, int *y);
-void ui_block_to_region_rctf(const ARegion *region,
-                             const Block *block,
-                             rctf *rct_dst,
-                             const rctf *rct_src);
-void ui_block_to_window_rctf(const ARegion *region,
-                             const Block *block,
-                             rctf *rct_dst,
-                             const rctf *rct_src);
-float ui_block_to_window_scale(const ARegion *region, const Block *block);
+void block_to_region_fl(const ARegion *region, const Block *block, float *x, float *y);
+void block_to_window_fl(const ARegion *region, const Block *block, float *x, float *y);
+void block_to_window(const ARegion *region, const Block *block, int *x, int *y);
+void block_to_region_rctf(const ARegion *region,
+                          const Block *block,
+                          rctf *rct_dst,
+                          const rctf *rct_src);
+void block_to_window_rctf(const ARegion *region,
+                          const Block *block,
+                          rctf *rct_dst,
+                          const rctf *rct_src);
+float block_to_window_scale(const ARegion *region, const Block *block);
 /**
  * For mouse cursor.
  */
-void ui_window_to_block_fl(const ARegion *region, const Block *block, float *x, float *y);
-void ui_window_to_block(const ARegion *region, const Block *block, int *x, int *y);
-void ui_window_to_block_rctf(const ARegion *region,
-                             const Block *block,
-                             rctf *rct_dst,
-                             const rctf *rct_src);
-void ui_window_to_region(const ARegion *region, int *x, int *y);
-void ui_window_to_region_rcti(const ARegion *region, rcti *rect_dst, const rcti *rct_src);
-void ui_window_to_region_rctf(const ARegion *region, rctf *rect_dst, const rctf *rct_src);
-void ui_region_to_window(const ARegion *region, int *x, int *y);
-void ui_region_to_window(
+void window_to_block_fl(const ARegion *region, const Block *block, float *x, float *y);
+void window_to_block(const ARegion *region, const Block *block, int *x, int *y);
+void window_to_block_rctf(const ARegion *region,
+                          const Block *block,
+                          rctf *rct_dst,
+                          const rctf *rct_src);
+void window_to_region(const ARegion *region, int *x, int *y);
+void window_to_region_rcti(const ARegion *region, rcti *rect_dst, const rcti *rct_src);
+void window_to_region_rctf(const ARegion *region, rctf *rect_dst, const rctf *rct_src);
+void region_to_window(const ARegion *region, int *x, int *y);
+void region_to_window(
     const ARegion *region, int region_x, int region_y, int *r_window_x, int *r_window_y);
 /**
  * Popups will add a margin to #ARegion.winrct for shadow,
  * for interactivity (point-inside tests for eg), we want the winrct without the margin added.
  */
-void ui_region_winrct_get_no_margin(const ARegion *region, rcti *r_rect);
+void region_winrct_get_no_margin(const ARegion *region, rcti *r_rect);
 
 /** Register a listener callback to this block to tag the area/region for redraw. */
-void ui_block_add_dynamic_listener(Block *block,
-                                   void (*listener_func)(const wmRegionListenerParams *params));
+void block_add_dynamic_listener(Block *block,
+                                void (*listener_func)(const wmRegionListenerParams *params));
 
 /**
  * Reallocate the button (new address is returned) for a new button type.
@@ -777,30 +777,30 @@ void ui_block_add_dynamic_listener(Block *block,
  * \note Only the #Button data can be kept. If the old button used a derived type (e.g.
  * #ButtonTab), the data that is not inside #Button will be lost.
  */
-Button *ui_but_change_type(Button *but, ButType new_type);
+Button *button_change_type(Button *but, ButType new_type);
 
-double ui_but_value_get(Button *but);
-void ui_but_value_set(Button *but, double value);
+double button_value_get(Button *but);
+void button_value_set(Button *but, double value);
 /**
  * For picker, while editing HSV.
  */
-void ui_but_hsv_set(Button *but);
+void button_hsv_set(Button *but);
 /**
  * For buttons pointing to color for example.
  */
-void ui_but_v3_get(Button *but, float vec[3]);
-void ui_but_v3_set(Button *but, const float vec[3]);
-void ui_but_v4_get(Button *but, float vec[4]);
-void ui_but_v4_set(Button *but, const float vec[4]);
+void button_v3_get(Button *but, float vec[3]);
+void button_v3_set(Button *but, const float vec[3]);
+void button_v4_get(Button *but, float vec[4]);
+void button_v4_set(Button *but, const float vec[4]);
 
-void ui_hsvcircle_vals_from_pos(
+void hsvcircle_vals_from_pos(
     const rcti *rect, float mx, float my, float *r_val_rad, float *r_val_dist);
 /**
  * Cursor in HSV circle, in float units -1 to 1, to map on radius.
  */
-void ui_hsvcircle_pos_from_vals(
+void hsvcircle_pos_from_vals(
     const ColorPicker *cpicker, const rcti *rect, const float *hsv, float *r_xpos, float *r_ypos);
-void ui_hsvcube_pos_from_vals(
+void hsvcube_pos_from_vals(
     const ButtonHSVCube *hsv_but, const rcti *rect, const float *hsv, float *r_xp, float *r_yp);
 
 /**
@@ -809,104 +809,104 @@ void ui_hsvcube_pos_from_vals(
  * \param use_exp_float: Use exponent representation of floats
  * when out of reasonable range (outside of 1e3/1e-3).
  */
-void ui_but_string_get_ex(Button *but,
+void button_string_get_ex(Button *but,
                           char *str,
                           size_t str_maxncpy,
                           int float_precision,
                           bool use_exp_float,
                           bool *r_use_exp_float) ATTR_NONNULL(1, 2);
-void ui_but_string_get(Button *but, char *str, size_t str_maxncpy) ATTR_NONNULL();
+void button_string_get(Button *but, char *str, size_t str_maxncpy) ATTR_NONNULL();
 /**
- * A version of #ui_but_string_get_ex for dynamic buffer sizes
- * (where #ui_but_string_get_maxncpy returns 0).
+ * A version of #button_string_get_ex for dynamic buffer sizes
+ * (where #button_string_get_maxncpy returns 0).
  *
  * \param r_str_size: size of the returned string (including terminator).
  */
-char *ui_but_string_get_dynamic(Button *but, int *r_str_size);
+char *button_string_get_dynamic(Button *but, int *r_str_size);
 /**
  * \param str: will be overwritten.
  */
-void ui_but_convert_to_unit_alt_name(Button *but, char *str, size_t str_maxncpy) ATTR_NONNULL();
-bool ui_but_string_set(bContext *C, Button *but, const char *str) ATTR_NONNULL();
-bool ui_but_string_eval_number(bContext *C, const Button *but, const char *str, double *r_value)
+void button_convert_to_unit_alt_name(Button *but, char *str, size_t str_maxncpy) ATTR_NONNULL();
+bool button_string_set(bContext *C, Button *but, const char *str) ATTR_NONNULL();
+bool button_string_eval_number(bContext *C, const Button *but, const char *str, double *r_value)
     ATTR_NONNULL();
-int ui_but_string_get_maxncpy(Button *but);
+int button_string_get_maxncpy(Button *but);
 /**
  * Clear & exit the active button's string..
  */
-void ui_but_active_string_clear_and_exit(bContext *C, Button *but) ATTR_NONNULL();
+void button_active_string_clear_and_exit(bContext *C, Button *but) ATTR_NONNULL();
 /**
  * Use handling code to set a string for the button. Handles the case where the string is set for a
  * search button while the search menu is open, so the results are updated accordingly.
  * This is basically the same as pasting the string into the button.
  */
-void ui_but_set_string_interactive(bContext *C, Button *but, const char *value);
-Button *ui_but_drag_multi_edit_get(Button *but);
+void button_set_string_interactive(bContext *C, Button *but, const char *value);
+Button *button_drag_multi_edit_get(Button *but);
 
 /**
  * Get the hint that describes the expected value when empty.
  */
-const char *ui_but_placeholder_get(Button *but);
+const char *button_placeholder_get(Button *but);
 
-void ui_def_but_icon(Button *but, int icon, int flag);
+void def_but_icon(Button *but, int icon, int flag);
 /**
  * Avoid using this where possible since it's better not to ask for an icon in the first place.
  */
-void ui_def_but_icon_clear(Button *but);
+void def_but_icon_clear(Button *but);
 
-void ui_but_extra_operator_icons_free(Button *but);
+void button_extra_operator_icons_free(Button *but);
 
-void ui_but_rna_menu_convert_to_panel_type(Button *but, const char *panel_type);
-void ui_but_rna_menu_convert_to_menu_type(Button *but, const char *menu_type);
-bool ui_but_menu_draw_as_popover(const Button *but);
+void button_rna_menu_convert_to_panel_type(Button *but, const char *panel_type);
+void button_rna_menu_convert_to_menu_type(Button *but, const char *menu_type);
+bool button_menu_draw_as_popover(const Button *but);
 
-void ui_but_range_set_hard(Button *but);
-void ui_but_range_set_soft(Button *but);
+void button_range_set_hard(Button *but);
+void button_range_set_soft(Button *but);
 
-bool ui_but_context_poll_operator(bContext *C, wmOperatorType *ot, const Button *but);
+bool button_context_poll_operator(bContext *C, wmOperatorType *ot, const Button *but);
 /**
  * Check if the operator \a ot poll is successful with the context given by \a but (optionally).
  * \param but: The button that might store context. Can be NULL for convenience (e.g. if there is
  *             no button to take context from, but we still want to poll the operator).
  */
-bool ui_but_context_poll_operator_ex(bContext *C,
+bool button_context_poll_operator_ex(bContext *C,
                                      const Button *but,
                                      const wmOperatorCallParams *optype_params);
 
-void ui_but_update(Button *but);
-void ui_but_update_edited(Button *but);
-PropertyScaleType ui_but_scale_type(const Button *but) ATTR_WARN_UNUSED_RESULT;
-bool ui_but_is_float(const Button *but) ATTR_WARN_UNUSED_RESULT;
-bool ui_but_is_bool(const Button *but) ATTR_WARN_UNUSED_RESULT;
-bool ui_but_is_unit(const Button *but) ATTR_WARN_UNUSED_RESULT;
+void button_update(Button *but);
+void button_update_edited(Button *but);
+PropertyScaleType button_scale_type(const Button *but) ATTR_WARN_UNUSED_RESULT;
+bool button_is_float(const Button *but) ATTR_WARN_UNUSED_RESULT;
+bool button_is_bool(const Button *but) ATTR_WARN_UNUSED_RESULT;
+bool button_is_unit(const Button *but) ATTR_WARN_UNUSED_RESULT;
 /**
  * Check if this button is similar enough to be grouped with another.
  */
-bool ui_but_is_compatible(const Button *but_a, const Button *but_b) ATTR_WARN_UNUSED_RESULT;
-bool ui_but_is_rna_valid(Button *but) ATTR_WARN_UNUSED_RESULT;
+bool button_is_compatible(const Button *but_a, const Button *but_b) ATTR_WARN_UNUSED_RESULT;
+bool button_is_rna_valid(Button *but) ATTR_WARN_UNUSED_RESULT;
 /**
  * Checks if the button supports cycling next/previous menu items (ctrl+mouse-wheel).
  */
-bool ui_but_supports_cycling(const Button *but) ATTR_WARN_UNUSED_RESULT;
+bool button_supports_cycling(const Button *but) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Check if the button is pushed, this is only meaningful for some button types.
  *
  * \return (0 == UNSELECT), (1 == SELECT), (-1 == DO-NOTHING)
  */
-int ui_but_is_pushed_ex(Button *but, double *value) ATTR_WARN_UNUSED_RESULT;
-int ui_but_is_pushed(Button *but) ATTR_WARN_UNUSED_RESULT;
+int button_is_pushed_ex(Button *but, double *value) ATTR_WARN_UNUSED_RESULT;
+int button_is_pushed(Button *but) ATTR_WARN_UNUSED_RESULT;
 
-void ui_but_override_flag(Main *bmain, Button *but);
+void button_override_flag(Main *bmain, Button *but);
 
-void ui_block_bounds_calc(Block *block);
+void block_bounds_calc(Block *block);
 
-const ColorManagedDisplay *ui_block_cm_display_get(Block *block);
-void ui_block_cm_to_display_space_v3(Block *block, float pixel[3]);
+const ColorManagedDisplay *block_cm_display_get(Block *block);
+void block_cm_to_display_space_v3(Block *block, float pixel[3]);
 
 /* `interface_regions.cc` */
 
-struct uiKeyNavLock {
+struct KeyNavLock {
   /** Set when we're using keyboard-input. */
   bool is_keynav = false;
   /** Only used to check if we've moved the cursor. */
@@ -915,7 +915,7 @@ struct uiKeyNavLock {
 
 using BlockHandleCreateFunc = Block *(*)(bContext * C, PopupBlockHandle *handle, void *arg1);
 
-struct uiPopupBlockCreate {
+struct PopupBlockCreate {
   uiBlockCreateFunc create_func = nullptr;
   BlockHandleCreateFunc handle_create_func = nullptr;
   void *arg = nullptr;
@@ -943,7 +943,7 @@ struct PopupBlockHandle {
   void *popup_arg = nullptr;
 
   /** Store data for refreshing popups. */
-  uiPopupBlockCreate popup_create_vars;
+  PopupBlockCreate popup_create_vars;
   /**
    * True if we can re-create the popup using #PopupBlockHandle.popup_create_vars.
    *
@@ -956,7 +956,7 @@ struct PopupBlockHandle {
   wmTimer *scrolltimer = nullptr;
   float scrolloffset = 0.0f;
 
-  uiKeyNavLock keynav_state;
+  KeyNavLock keynav_state;
 
   /* for operator popups */
   wmOperator *popup_op = nullptr;
@@ -1003,116 +1003,113 @@ struct PopupBlockHandle {
 
 /* `interface_region_color_picker.cc` */
 
-void ui_color_picker_rgb_to_hsv_compat(const float rgb[3], float r_cp[3]);
-void ui_color_picker_rgb_to_hsv(const float rgb[3], float r_cp[3]);
-void ui_color_picker_hsv_to_rgb(const float r_cp[3], float rgb[3]);
+void color_picker_rgb_to_hsv_compat(const float rgb[3], float r_cp[3]);
+void color_picker_rgb_to_hsv(const float rgb[3], float r_cp[3]);
+void color_picker_hsv_to_rgb(const float r_cp[3], float rgb[3]);
 
 /**
  * Returns true if the button is for a color with gamma baked in,
  * or if it's a color picker for such a button.
  */
-bool ui_but_is_color_gamma(Button *but);
+bool button_is_color_gamma(Button *but);
 
 /**
  * Returns true if the button represents a color with an Alpha component.
  */
-bool ui_but_color_has_alpha(Button *but);
+bool button_color_has_alpha(Button *but);
 
-void ui_scene_linear_to_perceptual_space(Button *but, float rgb[3]);
-void ui_perceptual_to_scene_linear_space(Button *but, float rgb[3]);
+void scene_linear_to_perceptual_space(Button *but, float rgb[3]);
+void perceptual_to_scene_linear_space(Button *but, float rgb[3]);
 
-Block *ui_block_func_COLOR(bContext *C, PopupBlockHandle *handle, void *arg_but);
-ColorPicker *ui_block_colorpicker_create(Block *block);
+Block *block_func_COLOR(bContext *C, PopupBlockHandle *handle, void *arg_but);
+ColorPicker *block_colorpicker_create(Block *block);
 
 /* `interface_region_search.cc` */
 
 /**
  * Search-box for string button.
  */
-ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, ButtonSearch *search_but);
-ARegion *ui_searchbox_create_operator(bContext *C, ARegion *butregion, ButtonSearch *search_but);
-ARegion *ui_searchbox_create_menu(bContext *C, ARegion *butregion, ButtonSearch *search_but);
+ARegion *searchbox_create_generic(bContext *C, ARegion *butregion, ButtonSearch *search_but);
+ARegion *searchbox_create_operator(bContext *C, ARegion *butregion, ButtonSearch *search_but);
+ARegion *searchbox_create_menu(bContext *C, ARegion *butregion, ButtonSearch *search_but);
 
 /**
  * x and y in screen-coords.
  */
-bool ui_searchbox_inside(ARegion *region, const int xy[2]) ATTR_NONNULL(1, 2);
-int ui_searchbox_find_index(ARegion *region, const char *name);
+bool searchbox_inside(ARegion *region, const int xy[2]) ATTR_NONNULL(1, 2);
+int searchbox_find_index(ARegion *region, const char *name);
 /**
  * Region is the search box itself.
  */
-void ui_searchbox_update(bContext *C, ARegion *region, Button *but, bool reset);
-int ui_searchbox_autocomplete(bContext *C, ARegion *region, Button *but, char *str);
-bool ui_searchbox_event(
+void searchbox_update(bContext *C, ARegion *region, Button *but, bool reset);
+int searchbox_autocomplete(bContext *C, ARegion *region, Button *but, char *str);
+bool searchbox_event(
     bContext *C, ARegion *region, Button *but, ARegion *butregion, const wmEvent *event);
 /**
  * String validated to be of correct length (but->hardmax).
  */
-bool ui_searchbox_apply(Button *but, ARegion *region);
-void ui_searchbox_free(bContext *C, ARegion *region);
+bool searchbox_apply(Button *but, ARegion *region);
+void searchbox_free(bContext *C, ARegion *region);
 /**
  * XXX weak: search_func adds all partial matches.
  */
-void ui_but_search_refresh(ButtonSearch *but);
+void button_search_refresh(ButtonSearch *but);
 
 /* `interface_region_menu_popup.cc` */
 
-int ui_but_menu_step(Button *but, int direction);
-bool ui_but_menu_step_poll(const Button *but);
-Button *ui_popup_menu_memory_get(Block *block);
-void ui_popup_menu_memory_set(Block *block, Button *but);
+int button_menu_step(Button *but, int direction);
+bool button_menu_step_poll(const Button *but);
+Button *popup_menu_memory_get(Block *block);
+void popup_menu_memory_set(Block *block, Button *but);
 
 /**
  * Called for creating new popups and refreshing existing ones.
  */
-Block *ui_popup_block_refresh(bContext *C,
-                              PopupBlockHandle *handle,
-                              ARegion *butregion,
-                              Button *but);
+Block *popup_block_refresh(bContext *C, PopupBlockHandle *handle, ARegion *butregion, Button *but);
 
-PopupBlockHandle *ui_popup_block_create(bContext *C,
-                                        ARegion *butregion,
-                                        Button *but,
-                                        uiBlockCreateFunc create_func,
-                                        BlockHandleCreateFunc handle_create_func,
-                                        void *arg,
-                                        uiFreeArgFunc arg_free,
-                                        bool can_refresh);
-PopupBlockHandle *ui_popup_menu_create(
+PopupBlockHandle *popup_block_create(bContext *C,
+                                     ARegion *butregion,
+                                     Button *but,
+                                     uiBlockCreateFunc create_func,
+                                     BlockHandleCreateFunc handle_create_func,
+                                     void *arg,
+                                     uiFreeArgFunc arg_free,
+                                     bool can_refresh);
+PopupBlockHandle *popup_menu_create(
     bContext *C, ARegion *butregion, Button *but, uiMenuCreateFunc menu_func, void *arg);
 
 /* `interface_region_popover.cc` */
 
-using uiPopoverCreateFunc = std::function<void(bContext *, Layout *, PanelType *)>;
+using PopoverCreateFunc = std::function<void(bContext *, Layout *, PanelType *)>;
 
-PopupBlockHandle *ui_popover_panel_create(bContext *C,
-                                          ARegion *butregion,
-                                          Button *but,
-                                          uiPopoverCreateFunc popover_func,
-                                          const PanelType *panel_type);
+PopupBlockHandle *popover_panel_create(bContext *C,
+                                       ARegion *butregion,
+                                       Button *but,
+                                       PopoverCreateFunc popover_func,
+                                       const PanelType *panel_type);
 
 /* `interface_region_menu_pie.cc` */
 
 /**
  * Set up data for defining a new pie menu level and add button that invokes it.
  */
-void ui_pie_menu_level_create(Block *block,
-                              wmOperatorType *ot,
-                              StringRefNull propname,
-                              IDProperty *properties,
-                              const EnumPropertyItem *items,
-                              int totitem,
-                              wm::OpCallContext context,
-                              eUI_Item_Flag flag);
+void pie_menu_level_create(Block *block,
+                           wmOperatorType *ot,
+                           StringRefNull propname,
+                           IDProperty *properties,
+                           const EnumPropertyItem *items,
+                           int totitem,
+                           wm::OpCallContext context,
+                           eUI_Item_Flag flag);
 
 /* `interface_region_popup.cc` */
 
 /**
  * Translate any popup regions (so we can drag them).
  */
-void ui_popup_translate(ARegion *region, const int mdiff[2]);
-void ui_popup_block_free(bContext *C, PopupBlockHandle *handle);
-void ui_popup_block_scrolltest(Block *block);
+void popup_translate(ARegion *region, const int mdiff[2]);
+void popup_block_free(bContext *C, PopupBlockHandle *handle);
+void popup_block_scrolltest(Block *block);
 
 /** \} */
 
@@ -1123,40 +1120,40 @@ void ui_popup_block_scrolltest(Block *block);
  *
  * \note Could become a modal key-map.
  */
-int ui_handler_panel_region(bContext *C,
-                            const wmEvent *event,
-                            ARegion *region,
-                            const Button *active_but);
+int handler_panel_region(bContext *C,
+                         const wmEvent *event,
+                         ARegion *region,
+                         const Button *active_but);
 /**
  * Draw a panel integrated in buttons-window, tool/property lists etc.
  */
-void ui_draw_aligned_panel(const ARegion *region,
-                           const uiStyle *style,
-                           const Block *block,
-                           const rcti *rect,
-                           bool show_pin,
-                           bool show_background,
-                           bool region_search_filter_active);
-void ui_draw_layout_panels_backdrop(const ARegion *region,
-                                    const Panel *panel,
-                                    const float radius,
-                                    float subpanel_backcolor[4]);
-void ui_panel_drag_collapse_handler_add(const bContext *C, const bool was_open);
-void ui_panel_tag_search_filter_match(Panel *panel);
+void draw_aligned_panel(const ARegion *region,
+                        const uiStyle *style,
+                        const Block *block,
+                        const rcti *rect,
+                        bool show_pin,
+                        bool show_background,
+                        bool region_search_filter_active);
+void draw_layout_panels_backdrop(const ARegion *region,
+                                 const Panel *panel,
+                                 const float radius,
+                                 float subpanel_backcolor[4]);
+void panel_drag_collapse_handler_add(const bContext *C, const bool was_open);
+void panel_tag_search_filter_match(Panel *panel);
 /** Toggles layout panel open state and returns the new state. */
 bool ui_layout_panel_toggle_open(const bContext *C, LayoutPanelHeader *header);
-LayoutPanelHeader *ui_layout_panel_header_under_mouse(const Panel &panel, const int my);
+LayoutPanelHeader *layout_panel_header_under_mouse(const Panel &panel, const int my);
 /** Apply scroll to layout panels when the main panel is used in popups. */
-void ui_layout_panel_popup_scroll_apply(Panel *panel, const float dy);
+void layout_panel_popup_scroll_apply(Panel *panel, const float dy);
 
 /**
  * Draws in resolution of 48x4 colors.
  */
-void ui_draw_gradient(const rcti *rect,
-                      const float hsv[3],
-                      eButGradientType type,
-                      float alpha,
-                      const ColorManagedDisplay *display);
+void draw_gradient(const rcti *rect,
+                   const float hsv[3],
+                   eButGradientType type,
+                   float alpha,
+                   const ColorManagedDisplay *display);
 
 /**
  * Draws rounded corner segments but inverted. Imagine each corner like a filled right triangle,
@@ -1164,39 +1161,39 @@ void ui_draw_gradient(const rcti *rect,
  *
  * Useful for connecting orthogonal shapes with a rounded corner, which can look quite nice.
  */
-void ui_draw_rounded_corners_inverted(const rcti &rect, const float rad, const float4 color);
+void draw_rounded_corners_inverted(const rcti &rect, const float rad, const float4 color);
 
-void ui_draw_but_TAB_outline(const rcti *rect,
-                             float rad,
-                             uchar highlight[3],
-                             uchar highlight_fade[3]);
-void ui_draw_but_HISTOGRAM(ARegion *region,
-                           Button *but,
-                           const uiWidgetColors *wcol,
-                           const rcti *recti);
-void ui_draw_but_WAVEFORM(ARegion *region,
+void draw_but_TAB_outline(const rcti *rect,
+                          float rad,
+                          uchar highlight[3],
+                          uchar highlight_fade[3]);
+void draw_but_HISTOGRAM(ARegion *region,
+                        Button *but,
+                        const uiWidgetColors *wcol,
+                        const rcti *recti);
+void draw_but_WAVEFORM(ARegion *region,
+                       Button *but,
+                       const uiWidgetColors *wcol,
+                       const rcti *recti);
+void draw_but_VECTORSCOPE(ARegion *region,
                           Button *but,
                           const uiWidgetColors *wcol,
                           const rcti *recti);
-void ui_draw_but_VECTORSCOPE(ARegion *region,
-                             Button *but,
-                             const uiWidgetColors *wcol,
-                             const rcti *recti);
-void ui_draw_but_COLORBAND(Button *but, const uiWidgetColors *wcol, const rcti *rect);
-void ui_draw_but_UNITVEC(Button *but, const uiWidgetColors *wcol, const rcti *rect, float radius);
-void ui_draw_but_CURVE(ARegion *region, Button *but, const uiWidgetColors *wcol, const rcti *rect);
+void draw_but_COLORBAND(Button *but, const uiWidgetColors *wcol, const rcti *rect);
+void draw_but_UNITVEC(Button *but, const uiWidgetColors *wcol, const rcti *rect, float radius);
+void draw_but_CURVE(ARegion *region, Button *but, const uiWidgetColors *wcol, const rcti *rect);
 /**
  * Draws the curve profile widget. Somewhat similar to ui_draw_but_CURVE.
  */
-void ui_draw_but_CURVEPROFILE(ARegion *region,
-                              Button *but,
-                              const uiWidgetColors *wcol,
-                              const rcti *rect);
-void ui_draw_but_IMAGE(ARegion *region, Button *but, const uiWidgetColors *wcol, const rcti *rect);
-void ui_draw_but_TRACKPREVIEW(ARegion *region,
-                              Button *but,
-                              const uiWidgetColors *wcol,
-                              const rcti *recti);
+void draw_but_CURVEPROFILE(ARegion *region,
+                           Button *but,
+                           const uiWidgetColors *wcol,
+                           const rcti *rect);
+void draw_but_IMAGE(ARegion *region, Button *but, const uiWidgetColors *wcol, const rcti *rect);
+void draw_but_TRACKPREVIEW(ARegion *region,
+                           Button *but,
+                           const uiWidgetColors *wcol,
+                           const rcti *recti);
 
 /* `interface_undo.cc` */
 
@@ -1205,80 +1202,80 @@ void ui_draw_but_TRACKPREVIEW(ARegion *region,
  *
  * \note The current state should be pushed immediately after calling this.
  */
-uiUndoStack_Text *ui_textedit_undo_stack_create();
-void ui_textedit_undo_stack_destroy(uiUndoStack_Text *stack);
+uiUndoStack_Text *textedit_undo_stack_create();
+void textedit_undo_stack_destroy(uiUndoStack_Text *stack);
 /**
  * Push the information in the arguments to a new state in the undo stack.
  *
  * \note Currently the total length of the undo stack is not limited.
  */
-void ui_textedit_undo_push(uiUndoStack_Text *stack, const char *text, int cursor_index);
-const char *ui_textedit_undo(uiUndoStack_Text *stack, int direction, int *r_cursor_index);
+void textedit_undo_push(uiUndoStack_Text *stack, const char *text, int cursor_index);
+const char *textedit_undo(uiUndoStack_Text *stack, int direction, int *r_cursor_index);
 
 /* `interface_handlers.cc` */
 
-void ui_but_handle_data_free(HandleButtonData **data);
+void but_handle_data_free(HandleButtonData **data);
 
-void ui_handle_afterfunc_add_operator(wmOperatorType *ot, wm::OpCallContext opcontext);
+void handle_afterfunc_add_operator(wmOperatorType *ot, wm::OpCallContext opcontext);
 /**
  * Assumes event type is MOUSEPAN.
  */
-void ui_pan_to_scroll(const wmEvent *event, int *type, int *val);
+void pan_to_scroll(const wmEvent *event, int *type, int *val);
 /**
  * Exported to `interface.cc`: #button_active_only()
  * \note The region is only for the button.
  * The context needs to be set by the caller.
  */
-void ui_but_activate_event(bContext *C, ARegion *region, Button *but);
+void button_activate_event(bContext *C, ARegion *region, Button *but);
 /**
  * Simulate moving the mouse over a button (or navigating to it with arrow keys).
  *
  * exported so menus can start with a highlighted button,
  * even if the mouse isn't over it
  */
-void ui_but_activate_over(bContext *C, ARegion *region, Button *but);
-void ui_but_execute_begin(bContext *C, ARegion *region, Button *but, void **active_back);
-void ui_but_execute_end(bContext *C, ARegion *region, Button *but, void *active_back);
-void ui_but_active_free(const bContext *C, Button *but);
-void ui_but_semi_modal_state_free(const bContext *C, Button *but);
+void button_activate_over(bContext *C, ARegion *region, Button *but);
+void button_execute_begin(bContext *C, ARegion *region, Button *but, void **active_back);
+void button_execute_end(bContext *C, ARegion *region, Button *but, void *active_back);
+void button_active_free(const bContext *C, Button *but);
+void button_semi_modal_state_free(const bContext *C, Button *but);
 /**
  * In some cases we may want to update the view (#View2D) in-between layout definition and drawing.
  * E.g. to make sure a button is visible while editing.
  */
-void ui_but_update_view_for_active(const bContext *C, const Block *block);
-int ui_but_menu_direction(Button *but);
-void ui_but_text_password_hide(char password_str[128], Button *but, bool restore);
+void button_update_view_for_active(const bContext *C, const Block *block);
+int button_menu_direction(Button *but);
+void button_text_password_hide(char password_str[128], Button *but, bool restore);
 /**
  * Finds the pressed button in an aligned row (typically an expanded enum).
  *
  * \param direction: Use when there may be multiple buttons pressed.
  */
-Button *ui_but_find_select_in_enum(Button *but, int direction);
-bool ui_but_is_editing(const Button *but);
-float ui_block_calc_pie_segment(Block *block, const float event_xy[2]);
+Button *button_find_select_in_enum(Button *but, int direction);
+bool button_is_editing(const Button *but);
+float block_calc_pie_segment(Block *block, const float event_xy[2]);
 
 /* XXX, this code will shorten any allocated string to 'UI_MAX_NAME_STR'
  * since this is really long its unlikely to be an issue,
  * but this could be supported */
-void ui_but_add_shortcut(Button *but, const char *shortcut_str, bool do_strip);
-void ui_but_clipboard_free();
-bool ui_but_rna_equals(const Button *a, const Button *b);
-bool ui_but_rna_equals_ex(const Button *but,
+void button_add_shortcut(Button *but, const char *shortcut_str, bool do_strip);
+void button_clipboard_free();
+bool button_rna_equals(const Button *a, const Button *b);
+bool button_rna_equals_ex(const Button *but,
                           const PointerRNA *ptr,
                           const PropertyRNA *prop,
                           int index);
-Button *ui_but_find_old(Block *block_old, const Button *but_new);
-Button *ui_but_find_new(Block *block_new, const Button *but_old);
+Button *button_find_old(Block *block_old, const Button *but_new);
+Button *button_find_new(Block *block_new, const Button *but_old);
 
 #ifdef WITH_INPUT_IME
-void ui_but_ime_reposition(Button *but, int x, int y, bool complete);
-const wmIMEData *ui_but_ime_data_get(Button *but);
+void button_ime_reposition(Button *but, int x, int y, bool complete);
+const wmIMEData *button_ime_data_get(Button *but);
 #endif
 
 /* `interface_widgets.cc` */
 
 /** Widget shader parameters, must match the shader layout. */
-struct uiWidgetBaseParameters {
+struct WidgetBaseParameters {
   rctf recti, rect;
   float radi, rad;
   float facxi, facyi;
@@ -1310,22 +1307,22 @@ enum {
   ROUNDBOX_TRIA_MAX, /* don't use */
 };
 
-gpu::Batch *ui_batch_roundbox_widget_get();
-gpu::Batch *ui_batch_roundbox_shadow_get();
+gpu::Batch *batch_roundbox_widget_get();
+gpu::Batch *batch_roundbox_shadow_get();
 
-void ui_draw_menu_back(uiStyle *style, Block *block, const rcti *rect);
-void ui_draw_popover_back(ARegion *region, uiStyle *style, Block *block, const rcti *rect);
-void ui_draw_pie_center(Block *block);
-const uiWidgetColors *ui_tooltip_get_theme();
+void draw_menu_back(uiStyle *style, Block *block, const rcti *rect);
+void draw_popover_back(ARegion *region, uiStyle *style, Block *block, const rcti *rect);
+void draw_pie_center(Block *block);
+const uiWidgetColors *tooltip_get_theme();
 
-void ui_draw_widget_menu_back_color(const rcti *rect, bool use_shadow, const float color[4]);
-void ui_draw_widget_menu_back(const rcti *rect, bool use_shadow);
-void ui_draw_tooltip_background(const uiStyle *style, Block *block, const rcti *rect);
+void draw_widget_menu_back_color(const rcti *rect, bool use_shadow, const float color[4]);
+void draw_widget_menu_back(const rcti *rect, bool use_shadow);
+void draw_tooltip_background(const uiStyle *style, Block *block, const rcti *rect);
 
 /**
  * Conversion from old to new buttons, so still messy.
  */
-void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, Button *but, rcti *rect);
+void draw_button(const bContext *C, ARegion *region, uiStyle *style, Button *but, rcti *rect);
 
 /**
  * Info about what the separator character separates, used to decide between different drawing
@@ -1352,23 +1349,23 @@ enum uiMenuItemSeparatorType {
  * \param r_xmax: The right hand position of the text, this takes into the icon, padding and text
  *                clipping when there is not enough room to display the full text.
  */
-void ui_draw_menu_item(const uiFontStyle *fstyle,
+void draw_menu_item(const uiFontStyle *fstyle,
+                    rcti *rect,
+                    rcti *back_rect,
+                    float zoom,
+                    bool use_unpadded,
+                    const char *name,
+                    int iconid,
+                    int but_flag,
+                    uiMenuItemSeparatorType separator_type,
+                    int *r_xmax);
+void draw_preview_item(const uiFontStyle *fstyle,
                        rcti *rect,
-                       rcti *back_rect,
                        float zoom,
-                       bool use_unpadded,
                        const char *name,
                        int iconid,
                        int but_flag,
-                       uiMenuItemSeparatorType separator_type,
-                       int *r_xmax);
-void ui_draw_preview_item(const uiFontStyle *fstyle,
-                          rcti *rect,
-                          float zoom,
-                          const char *name,
-                          int iconid,
-                          int but_flag,
-                          eFontStyle_Align text_align);
+                       eFontStyle_Align text_align);
 /**
  * Version of #ui_draw_preview_item() that does not draw the menu background and item text based on
  * state. It just draws the preview and text directly.
@@ -1377,13 +1374,13 @@ void ui_draw_preview_item(const uiFontStyle *fstyle,
  *                      it at the standard icon size. Mono-icons will draw with \a text_col or the
  *                      corresponding theme override for this type of icon.
  */
-void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
-                                    rcti *rect,
-                                    StringRef name,
-                                    int iconid,
-                                    const uchar text_col[4],
-                                    eFontStyle_Align text_align,
-                                    const bool add_padding);
+void draw_preview_item_stateless(const uiFontStyle *fstyle,
+                                 rcti *rect,
+                                 StringRef name,
+                                 int iconid,
+                                 const uchar text_col[4],
+                                 eFontStyle_Align text_align,
+                                 const bool add_padding);
 
 #define UI_TEXT_MARGIN_X 0.4f
 #define UI_POPUP_MARGIN (UI_SCALE_FAC * 12)
@@ -1402,55 +1399,55 @@ extern const float ui_pixel_jitter[UI_PIXEL_AA_JITTER][2];
  * Called on each startup.blend read,
  * reading without #uiFont will create one.
  */
-void uiStyleInit();
+void style_init();
 
 /* `interface_icons.cc` */
 
-void ui_icon_ensure_deferred(const bContext *C, int icon_id, bool big);
+void icon_ensure_deferred(const bContext *C, int icon_id, bool big);
 /** Is \a icon_id a preview icon that is being loaded/rendered? */
-bool ui_icon_is_preview_deferred_loading(int icon_id, bool big);
-int ui_id_icon_get(const bContext *C, ID *id, bool big);
+bool icon_is_preview_deferred_loading(int icon_id, bool big);
+int id_icon_get(const bContext *C, ID *id, bool big);
 
 /* `interface_icons_event.cc` */
 
-float ui_event_icon_offset(int icon_id);
+float event_icon_offset(int icon_id);
 
 void icon_draw_rect_input(
     float x, float y, int w, int h, int icon_id, float aspect, float alpha, bool inverted);
 
 /* `resources.cc` */
 
-void ui_resources_init();
-void ui_resources_free();
+void resources_init();
+void resources_free();
 
 /* `interface_layout.cc` */
 
-void ui_layout_add_but(Layout *layout, Button *but);
-void ui_layout_remove_but(Layout *layout, const Button *but);
+void layout_add_but(Layout *layout, Button *but);
+void layout_remove_but(Layout *layout, const Button *but);
 /**
  * \return true if the button was successfully replaced.
  */
-bool ui_layout_replace_but_ptr(Layout *layout, const void *old_but_ptr, Button *new_but);
+bool layout_replace_but_ptr(Layout *layout, const void *old_but_ptr, Button *new_but);
 /**
  * \note May reallocate \a but, so the possibly new address is returned. May also override the
  *       #BUT_DISABLED flag depending on if a search pointer-property pair was provided/found.
  */
-Button *ui_but_add_search(Button *but,
-                          PointerRNA *ptr,
-                          PropertyRNA *prop,
-                          PointerRNA *searchptr,
-                          PropertyRNA *searchprop,
-                          PropertyRNA *item_searchprop,
-                          bool results_are_suggestions);
+Button *but_add_search(Button *but,
+                       PointerRNA *ptr,
+                       PropertyRNA *prop,
+                       PointerRNA *searchptr,
+                       PropertyRNA *searchprop,
+                       PropertyRNA *item_searchprop,
+                       bool results_are_suggestions);
 /**
  * Check all buttons defined in this layout,
  * and set any button flagged as BUT_LIST_ITEM as active/selected.
  * Needed to handle correctly text colors of active (selected) list item.
  */
-void ui_layout_list_set_labels_active(Layout *layout);
+void layout_list_set_labels_active(Layout *layout);
 /* menu callback */
-void ui_item_menutype_func(bContext *C, Layout *layout, void *arg_mt);
-void ui_item_paneltype_func(bContext *C, Layout *layout, void *arg_pt);
+void item_menutype_func(bContext *C, Layout *layout, void *arg_mt);
+void item_paneltype_func(bContext *C, Layout *layout, void *arg_pt);
 
 /* `interface_button_group.cc` */
 
@@ -1458,20 +1455,20 @@ void ui_item_paneltype_func(bContext *C, Layout *layout, void *arg_pt);
  * Every function that adds a set of buttons must create another group,
  * then #ui_def_but adds buttons to the current group (the last).
  */
-void ui_block_new_button_group(Block *block, uiButtonGroupFlag flag);
-void ui_button_group_add_but(Block *block, Button *but);
-void ui_button_group_replace_but_ptr(Block *block, const Button *old_but_ptr, Button *new_but);
+void block_new_button_group(Block *block, ButtonGroupFlag flag);
+void button_group_add_but(Block *block, Button *but);
+void button_group_replace_but_ptr(Block *block, const Button *old_but_ptr, Button *new_but);
 
 /* `interface_drag.cc` */
 
-void ui_but_drag_free(Button *but);
-bool ui_but_drag_is_draggable(const Button *but);
-void ui_but_drag_start(bContext *C, Button *but);
+void button_drag_free(Button *but);
+bool button_drag_is_draggable(const Button *but);
+void button_drag_start(bContext *C, Button *but);
 
 /* `interface_align.cc` */
 
-bool ui_but_can_align(const Button *but) ATTR_WARN_UNUSED_RESULT;
-int ui_but_align_opposite_to_area_align_get(const ARegion *region) ATTR_WARN_UNUSED_RESULT;
+bool button_can_align(const Button *but) ATTR_WARN_UNUSED_RESULT;
+int button_align_opposite_to_area_align_get(const ARegion *region) ATTR_WARN_UNUSED_RESULT;
 /**
  * Compute the alignment of all 'align groups' of buttons in given block.
  *
@@ -1479,122 +1476,122 @@ int ui_but_align_opposite_to_area_align_get(const ARegion *region) ATTR_WARN_UNU
  * i.e. alignment of buttons should be OK regardless of order in which
  * they are added to the block.
  */
-void ui_block_align_calc(Block *block, const ARegion *region);
+void block_align_calc(Block *block, const ARegion *region);
 
 /* `interface_anim.cc` */
 
-void ui_but_anim_flag(Button *but, const AnimationEvalContext *anim_eval_context);
-void ui_but_anim_copy_driver(bContext *C);
-void ui_but_anim_paste_driver(bContext *C);
+void button_anim_flag(Button *but, const AnimationEvalContext *anim_eval_context);
+void button_anim_copy_driver(bContext *C);
+void button_anim_paste_driver(bContext *C);
 /**
  * \a str can be NULL to only perform check if \a but has an expression at all.
  * \return if button has an expression.
  */
-bool ui_but_anim_expression_get(Button *but, char *str, size_t str_maxncpy);
-bool ui_but_anim_expression_set(Button *but, const char *str);
+bool button_anim_expression_get(Button *but, char *str, size_t str_maxncpy);
+bool button_anim_expression_set(Button *but, const char *str);
 /**
  * Create new expression for button (i.e. a "scripted driver"), if it can be created.
  */
-bool ui_but_anim_expression_create(Button *but, const char *str);
-void ui_but_anim_autokey(bContext *C, Button *but, Scene *scene, float cfra);
+bool button_anim_expression_create(Button *but, const char *str);
+void button_anim_autokey(bContext *C, Button *but, Scene *scene, float cfra);
 
-void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *arg_dummy);
-void ui_but_anim_decorate_update_from_flag(ButtonDecorator *but);
+void button_anim_decorate_cb(bContext *C, void *arg_but, void *arg_dummy);
+void button_anim_decorate_update_from_flag(ButtonDecorator *but);
 
 /* `interface_query.cc` */
 
-bool ui_but_is_editable(const Button *but) ATTR_WARN_UNUSED_RESULT;
-bool ui_but_is_editable_as_text(const Button *but) ATTR_WARN_UNUSED_RESULT;
-bool ui_but_is_toggle(const Button *but) ATTR_WARN_UNUSED_RESULT;
+bool button_is_editable(const Button *but) ATTR_WARN_UNUSED_RESULT;
+bool button_is_editable_as_text(const Button *but) ATTR_WARN_UNUSED_RESULT;
+bool button_is_toggle(const Button *but) ATTR_WARN_UNUSED_RESULT;
 /**
  * Can we mouse over the button or is it hidden/disabled/layout.
  * \note ctrl is kind of a hack currently,
  * so that non-embossed ButType::Text button behaves as a label when ctrl is not pressed.
  */
-bool ui_but_is_interactive_ex(const Button *but, const bool labeledit, const bool for_tooltip);
-bool ui_but_is_interactive(const Button *but, bool labeledit) ATTR_WARN_UNUSED_RESULT;
-bool ui_but_is_popover_once_compat(const Button *but) ATTR_WARN_UNUSED_RESULT;
-bool ui_but_has_array_value(const Button *but) ATTR_WARN_UNUSED_RESULT;
-int ui_but_icon(const Button *but);
-void ui_but_pie_dir(RadialDirection dir, float vec[2]);
+bool button_is_interactive_ex(const Button *but, const bool labeledit, const bool for_tooltip);
+bool button_is_interactive(const Button *but, bool labeledit) ATTR_WARN_UNUSED_RESULT;
+bool button_is_popover_once_compat(const Button *but) ATTR_WARN_UNUSED_RESULT;
+bool button_has_array_value(const Button *but) ATTR_WARN_UNUSED_RESULT;
+int button_icon(const Button *but);
+void button_pie_dir(RadialDirection dir, float vec[2]);
 
-bool ui_but_is_cursor_warp(const Button *but) ATTR_WARN_UNUSED_RESULT;
+bool button_is_cursor_warp(const Button *but) ATTR_WARN_UNUSED_RESULT;
 
-bool ui_but_contains_pt(const Button *but, float mx, float my) ATTR_WARN_UNUSED_RESULT;
-bool ui_but_contains_rect(const Button *but, const rctf *rect);
+bool button_contains_pt(const Button *but, float mx, float my) ATTR_WARN_UNUSED_RESULT;
+bool button_contains_rect(const Button *but, const rctf *rect);
 bool ui_but_contains_point_px_icon(const Button *but,
                                    ARegion *region,
                                    const wmEvent *event) ATTR_WARN_UNUSED_RESULT;
-bool ui_but_contains_point_px(const Button *but, const ARegion *region, const int xy[2])
+bool button_contains_point_px(const Button *but, const ARegion *region, const int xy[2])
     ATTR_NONNULL(1, 2, 3) ATTR_WARN_UNUSED_RESULT;
 
 Button *ui_list_find_mouse_over(const ARegion *region,
                                 const wmEvent *event) ATTR_WARN_UNUSED_RESULT;
-Button *ui_list_row_find_mouse_over(const ARegion *region, const int xy[2])
+Button *list_row_find_mouse_over(const ARegion *region, const int xy[2])
     ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
-Button *ui_list_row_find_index(const ARegion *region,
-                               int index,
-                               Button *listbox) ATTR_WARN_UNUSED_RESULT;
-Button *ui_view_item_find_mouse_over(const ARegion *region, const int xy[2]) ATTR_NONNULL(1, 2);
-Button *ui_view_item_find_active(const ARegion *region);
-Button *ui_view_item_find_search_highlight(const ARegion *region);
+Button *list_row_find_index(const ARegion *region,
+                            int index,
+                            Button *listbox) ATTR_WARN_UNUSED_RESULT;
+Button *view_item_find_mouse_over(const ARegion *region, const int xy[2]) ATTR_NONNULL(1, 2);
+Button *view_item_find_active(const ARegion *region);
+Button *view_item_find_search_highlight(const ARegion *region);
 
-using uiButFindPollFn = bool (*)(const Button *but, const void *customdata);
+using ButtonFindPollFn = bool (*)(const Button *but, const void *customdata);
 /**
  * x and y are only used in case event is NULL.
  */
-Button *ui_but_find_mouse_over_ex(const ARegion *region,
+Button *button_find_mouse_over_ex(const ARegion *region,
                                   const int xy[2],
                                   bool labeledit,
                                   bool for_tooltip,
-                                  const uiButFindPollFn find_poll,
+                                  const ButtonFindPollFn find_poll,
                                   const void *find_custom_data)
     ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
-Button *ui_but_find_rect_over(const ARegion *region, const rcti *rect_px) ATTR_WARN_UNUSED_RESULT;
+Button *button_find_rect_over(const ARegion *region, const rcti *rect_px) ATTR_WARN_UNUSED_RESULT;
 
-Button *ui_list_find_mouse_over_ex(const ARegion *region, const int xy[2])
+Button *list_find_mouse_over_ex(const ARegion *region, const int xy[2])
     ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 
-bool ui_but_contains_password(const Button *but) ATTR_WARN_UNUSED_RESULT;
+bool but_contains_password(const Button *but) ATTR_WARN_UNUSED_RESULT;
 
-StringRef ui_but_drawstr_without_sep_char(const Button *but) ATTR_NONNULL();
-size_t ui_but_drawstr_len_without_sep_char(const Button *but);
-size_t ui_but_tip_len_only_first_line(const Button *but);
+StringRef button_drawstr_without_sep_char(const Button *but) ATTR_NONNULL();
+size_t button_drawstr_len_without_sep_char(const Button *but);
+size_t button_tip_len_only_first_line(const Button *but);
 
-Button *ui_but_prev(Button *but) ATTR_WARN_UNUSED_RESULT;
-Button *ui_but_next(Button *but) ATTR_WARN_UNUSED_RESULT;
-Button *ui_but_first(Block *block) ATTR_WARN_UNUSED_RESULT;
-Button *ui_but_last(Block *block) ATTR_WARN_UNUSED_RESULT;
+Button *button_prev(Button *but) ATTR_WARN_UNUSED_RESULT;
+Button *button_next(Button *but) ATTR_WARN_UNUSED_RESULT;
+Button *button_first(Block *block) ATTR_WARN_UNUSED_RESULT;
+Button *button_last(Block *block) ATTR_WARN_UNUSED_RESULT;
 
-Button *ui_block_active_but_get(const Block *block);
-bool ui_block_is_menu(const Block *block) ATTR_WARN_UNUSED_RESULT;
-bool ui_block_is_popover(const Block *block) ATTR_WARN_UNUSED_RESULT;
-bool ui_block_is_pie_menu(const Block *block) ATTR_WARN_UNUSED_RESULT;
-bool ui_block_is_popup_any(const Block *block) ATTR_WARN_UNUSED_RESULT;
+Button *block_active_but_get(const Block *block);
+bool block_is_menu(const Block *block) ATTR_WARN_UNUSED_RESULT;
+bool block_is_popover(const Block *block) ATTR_WARN_UNUSED_RESULT;
+bool block_is_pie_menu(const Block *block) ATTR_WARN_UNUSED_RESULT;
+bool block_is_popup_any(const Block *block) ATTR_WARN_UNUSED_RESULT;
 
-Block *ui_block_find_mouse_over_ex(const ARegion *region, const int xy[2], bool only_clip)
+Block *block_find_mouse_over_ex(const ARegion *region, const int xy[2], bool only_clip)
     ATTR_NONNULL(1, 2);
-Block *ui_block_find_mouse_over(const ARegion *region, const wmEvent *event, bool only_clip);
+Block *block_find_mouse_over(const ARegion *region, const wmEvent *event, bool only_clip);
 
-Button *ui_region_find_first_but_test_flag(ARegion *region, int flag_include, int flag_exclude);
-Button *ui_region_find_active_but(ARegion *region) ATTR_WARN_UNUSED_RESULT;
-bool ui_region_contains_point_px(const ARegion *region, const int xy[2])
+Button *region_find_first_but_test_flag(ARegion *region, int flag_include, int flag_exclude);
+Button *region_find_active_but(ARegion *region) ATTR_WARN_UNUSED_RESULT;
+bool region_contains_point_px(const ARegion *region, const int xy[2])
     ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
-bool ui_region_contains_rect_px(const ARegion *region, const rcti *rect_px);
+bool region_contains_rect_px(const ARegion *region, const rcti *rect_px);
 
 /**
  * Check if the cursor is over any popups.
  */
-ARegion *ui_screen_region_find_mouse_over_ex(bScreen *screen, const int xy[2]) ATTR_NONNULL(1, 2);
-ARegion *ui_screen_region_find_mouse_over(bScreen *screen, const wmEvent *event);
+ARegion *screen_region_find_mouse_over_ex(bScreen *screen, const int xy[2]) ATTR_NONNULL(1, 2);
+ARegion *screen_region_find_mouse_over(bScreen *screen, const wmEvent *event);
 
 /* `interface_context_menu.cc` */
 
-bool ui_popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *event);
+bool popup_context_menu_for_button(bContext *C, Button *but, const wmEvent *event);
 /**
  * menu to show when right clicking on the panel header
  */
-void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel);
+void popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel);
 
 /* `eyedroppers/interface_eyedropper.cc` */
 
@@ -1629,7 +1626,7 @@ void UI_OT_eyedropper_driver(wmOperatorType *ot);
 void UI_OT_eyedropper_grease_pencil_color(wmOperatorType *ot);
 
 /* `templates/interface_template_asset_shelf_popover.cc` */
-std::optional<StringRefNull> UI_asset_shelf_idname_from_button_context(const Button *but);
+std::optional<StringRefNull> asset_shelf_idname_from_button_context(const Button *but);
 
 /**
  * For use with #ui_rna_collection_search_update_fn.
@@ -1648,41 +1645,41 @@ struct uiRNACollectionSearch {
   /** Block has to be stored for freeing but-store (#Button::block doesn't work with undo). */
   Block *butstore_block;
 };
-void ui_rna_collection_search_update_fn(
+void rna_collection_search_update_fn(
     const bContext *C, void *arg, const char *str, SearchItems *items, bool is_first);
 
 /* `interface_ops.cc` */
 
-bool ui_jump_to_target_button_poll(bContext *C);
+bool jump_to_target_button_poll(bContext *C);
 
 /* `interface_query.cc` */
 
-void ui_interface_tag_script_reload_queries();
+void interface_tag_script_reload_queries();
 
 /* `views/interface_view.cc` */
 
-void ui_block_free_views(Block *block);
-void ui_block_views_end(ARegion *region, const Block *block);
-void ui_block_view_persistent_state_restore(const ARegion &region,
-                                            const Block &block,
-                                            AbstractView &view);
-void ui_block_views_listen(const Block *block, const wmRegionListenerParams *listener_params);
-void ui_block_views_draw_overlays(const ARegion *region, const Block *block);
-AbstractView *ui_block_view_find_matching_in_old_block(const Block &new_block,
-                                                       const AbstractView &new_view);
+void block_free_views(Block *block);
+void block_views_end(ARegion *region, const Block *block);
+void block_view_persistent_state_restore(const ARegion &region,
+                                         const Block &block,
+                                         AbstractView &view);
+void block_views_listen(const Block *block, const wmRegionListenerParams *listener_params);
+void block_views_draw_overlays(const ARegion *region, const Block *block);
+AbstractView *block_view_find_matching_in_old_block(const Block &new_block,
+                                                    const AbstractView &new_view);
 
-ButtonViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
+ButtonViewItem *block_view_find_matching_view_item_but_in_old_block(
     const Block &new_block, const AbstractViewItem &new_item);
 
 /* `views/abstract_view_item.cc` */
 
-void ui_view_item_swap_button_pointers(AbstractViewItem &a, AbstractViewItem &b);
+void view_item_swap_button_pointers(AbstractViewItem &a, AbstractViewItem &b);
 
 /* `views/interface_templates.cc` */
 
 uiListType *UI_UL_cache_file_layers();
 
-ID *ui_template_id_liboverride_hierarchy_make(
+ID *template_id_liboverride_hierarchy_make(
     bContext *C, Main *bmain, ID *owner_id, ID *id, const char **r_undo_push_label);
 
 /**

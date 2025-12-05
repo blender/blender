@@ -428,7 +428,7 @@ bool view_item_matches(const AbstractViewItem &a, const AbstractViewItem &b)
   return ViewItemAPIWrapper::matches(a, b);
 }
 
-void ui_view_item_swap_button_pointers(AbstractViewItem &a, AbstractViewItem &b)
+void view_item_swap_button_pointers(AbstractViewItem &a, AbstractViewItem &b)
 {
   ViewItemAPIWrapper::swap_button_pointers(a, b);
 }

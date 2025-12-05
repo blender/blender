@@ -148,7 +148,7 @@ static void button2d_draw_intern(const bContext *C,
     }
     else if (RNA_property_is_set(gz->ptr, icon_value_prop)) {
       button->icon = RNA_property_int_get(gz->ptr, icon_value_prop);
-      blender::ui::ui_icon_ensure_deferred(C, button->icon, false);
+      blender::ui::icon_ensure_deferred(C, button->icon, false);
     }
     else if (RNA_property_is_set(gz->ptr, shape_prop)) {
       const uint polys_len = RNA_property_string_length(gz->ptr, shape_prop);

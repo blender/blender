@@ -50,7 +50,7 @@ static Block *template_search_menu(bContext *C, ARegion *region, void *arg_templ
 
   return template_common_search_menu(C,
                                      region,
-                                     ui_rna_collection_search_update_fn,
+                                     rna_collection_search_update_fn,
                                      &template_search,
                                      template_search_exec_fn,
                                      active_ptr.data,

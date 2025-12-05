@@ -93,7 +93,7 @@ enum {
 /* Max distance between to buttons for them to be 'mergeable'. */
 #define MAX_DELTA 0.45f * max_ii(UI_UNIT_Y, UI_UNIT_X)
 
-bool ui_but_can_align(const Button *but)
+bool button_can_align(const Button *but)
 {
   const bool btype_can_align = !ELEM(but->type,
                                      ButType::Label,
@@ -120,8 +120,8 @@ static void block_align_proximity_compute(ButAlign *butal, ButAlign *butal_other
   float delta, delta_side_opp;
   int side, side_opp;
 
-  const bool butal_can_align = ui_but_can_align(butal->but);
-  const bool butal_other_can_align = ui_but_can_align(butal_other->but);
+  const bool butal_can_align = button_can_align(butal->but);
+  const bool butal_other_can_align = button_can_align(butal_other->but);
 
   const bool buts_share[2] = {
       /* Sharing same line? */
@@ -300,7 +300,7 @@ static void block_align_stitch_neighbors(ButAlign *butal,
  *   - Their vertical position in descending order.
  *   - Their horizontal position.
  */
-static bool ui_block_align_butal_cmp(const ButAlign &butal, const ButAlign &butal_other)
+static bool block_align_butal_cmp(const ButAlign &butal, const ButAlign &butal_other)
 {
   /* Sort by align group. */
   if (butal.but->alignnr != butal_other.but->alignnr) {
@@ -322,7 +322,7 @@ static bool ui_block_align_butal_cmp(const ButAlign &butal, const ButAlign &buta
   return false;
 }
 
-static void ui_block_align_but_to_region(Button *but, const ARegion *region)
+static void block_align_but_to_region(Button *but, const ARegion *region)
 {
   rctf *rect = &but->rect;
   const float but_width = BLI_rctf_size_x(rect);
@@ -354,7 +354,7 @@ static void ui_block_align_but_to_region(Button *but, const ARegion *region)
   }
 }
 
-void ui_block_align_calc(Block *block, const ARegion *region)
+void block_align_calc(Block *block, const ARegion *region)
 {
 
   const int sides_to_ui_but_align_flags[4] = SIDE_TO_BUT_ALIGN;
@@ -367,7 +367,7 @@ void ui_block_align_calc(Block *block, const ARegion *region)
   for (const std::unique_ptr<Button> &but : block->buttons) {
     /* special case: tabs need to be aligned to a region border, drawflag tells which one */
     if (but->type == ButType::Tab) {
-      ui_block_align_but_to_region(but.get(), region);
+      block_align_but_to_region(but.get(), region);
     }
     else {
       /* Clear old align flags. */
@@ -396,7 +396,7 @@ void ui_block_align_calc(Block *block, const ARegion *region)
   /* This will give us ButAlign items regrouped by align group, vertical and horizontal location.
    * Note that, given how buttons are defined in UI code,
    * butal_array shall already be "nearly sorted"... */
-  std::sort(butal_array.begin(), butal_array.end(), ui_block_align_butal_cmp);
+  std::sort(butal_array.begin(), butal_array.end(), block_align_butal_cmp);
 
   /* Second loop: for each pair of buttons in the same align group,
    * we compute their potential proximity. Note that each pair is checked only once, and that we
@@ -486,7 +486,7 @@ void ui_block_align_calc(Block *block, const ARegion *region)
 #undef STITCH
 #undef MAX_DELTA
 
-int ui_but_align_opposite_to_area_align_get(const ARegion *region)
+int button_align_opposite_to_area_align_get(const ARegion *region)
 {
   const ARegion *align_region = (region->alignment & RGN_SPLIT_PREV && region->prev) ?
                                     region->prev :

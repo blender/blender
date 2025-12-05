@@ -2852,7 +2852,7 @@ bool editsource_enable_check();
 void editsource_active_but_test(Button *but);
 /**
  * Remove the editsource data for \a old_but and reinsert it for \a new_but. Use when the button
- * was reallocated, e.g. to have a new type (#ui_but_change_type()).
+ * was reallocated, e.g. to have a new type (#button_change_type()).
  */
 void editsource_but_replace(const Button *old_but, Button *new_but);
 
@@ -2914,7 +2914,7 @@ void tooltip_free(bContext *C, bScreen *screen, ARegion *region);
  * Create a tooltip from search-item tooltip data \a item_tooltip data.
  * To be called from a callback set with #button_func_search_set_tooltip().
  *
- * \param item_rect: Rectangle of the search item in search region space (#ui_searchbox_butrect())
+ * \param item_rect: Rectangle of the search item in search region space (#searchbox_butrect())
  *                   which is passed to the tooltip callback.
  */
 ARegion *tooltip_create_from_search_item_generic(bContext *C,

@@ -23,7 +23,7 @@
 
 namespace blender::ui {
 
-ARegion *ui_region_temp_add(bScreen *screen)
+ARegion *region_temp_add(bScreen *screen)
 {
   ARegion *region = BKE_area_region_new();
   BLI_addtail(&screen->regionbase, region);
@@ -34,7 +34,7 @@ ARegion *ui_region_temp_add(bScreen *screen)
   return region;
 }
 
-void ui_region_temp_remove(bContext *C, bScreen *screen, ARegion *region)
+void region_temp_remove(bContext *C, bScreen *screen, ARegion *region)
 {
   wmWindow *win = CTX_wm_window(C);
 

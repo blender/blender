@@ -89,7 +89,7 @@ static Vector<rcti> button_section_bounds_calc(const ARegion *region, const bool
         }
 
         rcti but_pixelrect;
-        ui_but_to_pixelrect(&but_pixelrect, region, block, but.get());
+        button_to_pixelrect(&but_pixelrect, region, block, but.get());
         BLI_rcti_do_minmax_rcti(&cur_section_bounds, &but_pixelrect);
         has_section_content = true;
       }
@@ -207,7 +207,7 @@ static void ui_draw_button_sections_alignment_separator(const ARegion *region,
       draw_roundbox_corner_set(align == uiButtonSectionsAlign::Top ?
                                    (CNR_TOP_LEFT | CNR_TOP_RIGHT) :
                                    (CNR_BOTTOM_LEFT | CNR_BOTTOM_RIGHT));
-      ui_draw_rounded_corners_inverted(rounded_corner_rect, corner_radius, bg_color);
+      draw_rounded_corners_inverted(rounded_corner_rect, corner_radius, bg_color);
     }
 
     prev_xmax = bounds.xmax;

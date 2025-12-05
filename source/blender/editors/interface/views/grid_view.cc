@@ -434,7 +434,7 @@ void GridViewBuilder::build_grid_view(const bContext &C,
   Block &block = *layout.block();
 
   const ARegion *region = CTX_wm_region_popup(&C) ? CTX_wm_region_popup(&C) : CTX_wm_region(&C);
-  ui_block_view_persistent_state_restore(*region, block, grid_view);
+  block_view_persistent_state_restore(*region, block, grid_view);
 
   grid_view.build_items();
   grid_view.update_from_old(block);
@@ -478,10 +478,10 @@ void PreviewGridItem::build_grid_tile_button(Layout &layout,
 
   const BIFIconID icon_id = override_preview_icon_id ? override_preview_icon_id : preview_icon_id;
 
-  ui_def_but_icon(but,
-                  icon_id,
-                  /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
-                  UI_HAS_ICON | BUT_ICON_PREVIEW);
+  def_but_icon(but,
+               icon_id,
+               /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
+               UI_HAS_ICON | BUT_ICON_PREVIEW);
   but->emboss = EmbossType::None;
 }
 

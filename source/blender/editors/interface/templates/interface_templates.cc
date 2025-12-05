@@ -105,11 +105,11 @@ void template_add_button_search_menu(const bContext *C,
                          func_argN_free_fn,
                          func_argN_copy_fn);
     if (use_preview_icon) {
-      const int icon = id ? ui_id_icon_get(C, id, use_big_size) : RNA_struct_ui_icon(type);
-      ui_def_but_icon(but, icon, UI_HAS_ICON | BUT_ICON_PREVIEW);
+      const int icon = id ? id_icon_get(C, id, use_big_size) : RNA_struct_ui_icon(type);
+      def_but_icon(but, icon, UI_HAS_ICON | BUT_ICON_PREVIEW);
     }
     else {
-      ui_def_but_icon(but, RNA_struct_ui_icon(type), UI_HAS_ICON);
+      def_but_icon(but, RNA_struct_ui_icon(type), UI_HAS_ICON);
       button_drawflag_enable(but, BUT_ICON_LEFT);
     }
 
@@ -134,11 +134,11 @@ void template_add_button_search_menu(const bContext *C,
                          func_argN_copy_fn);
 
     if (live_icon) {
-      const int icon = id ? ui_id_icon_get(C, id, false) : RNA_struct_ui_icon(type);
-      ui_def_but_icon(but, icon, UI_HAS_ICON | BUT_ICON_PREVIEW);
+      const int icon = id ? id_icon_get(C, id, false) : RNA_struct_ui_icon(type);
+      def_but_icon(but, icon, UI_HAS_ICON | BUT_ICON_PREVIEW);
     }
     else {
-      ui_def_but_icon(but, RNA_struct_ui_icon(type), UI_HAS_ICON);
+      def_but_icon(but, RNA_struct_ui_icon(type), UI_HAS_ICON);
     }
     if (id) {
       /* default dragging of icon for id browse buttons */
@@ -215,7 +215,7 @@ Block *template_common_search_menu(const bContext *C,
                          "");
   }
   button_func_search_set(but,
-                         ui_searchbox_create_generic,
+                         searchbox_create_generic,
                          search_update_fn,
                          search_arg,
                          false,

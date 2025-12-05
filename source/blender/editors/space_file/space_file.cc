@@ -659,7 +659,7 @@ static void file_keymap(wmKeyConfig *keyconf)
   WM_keymap_ensure(keyconf, "File Browser Buttons", SPACE_FILE, RGN_TYPE_WINDOW);
 }
 
-static bool file_ui_region_poll(const RegionPollParams *params)
+static bool file_region_poll(const RegionPollParams *params)
 {
   const SpaceFile *sfile = (SpaceFile *)params->area->spacedata.first;
   /* Always visible except when browsing assets. */
@@ -746,7 +746,7 @@ static void file_header_region_draw(const bContext *C, ARegion *region)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void file_ui_region_init(wmWindowManager *wm, ARegion *region)
+static void file_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
@@ -762,7 +762,7 @@ static void file_ui_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 }
 
-static void file_ui_region_draw(const bContext *C, ARegion *region)
+static void file_region_draw(const bContext *C, ARegion *region)
 {
   ED_region_panels(C, region);
 }
@@ -784,7 +784,7 @@ static void file_execution_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-static void file_ui_region_listener(const wmRegionListenerParams *listener_params)
+static void file_region_listener(const wmRegionListenerParams *listener_params)
 {
   ARegion *region = listener_params->region;
   const wmNotifier *wmn = listener_params->notifier;
@@ -1003,10 +1003,10 @@ void ED_spacetype_file()
   art = MEM_callocN<ARegionType>("spacetype file region");
   art->regionid = RGN_TYPE_UI;
   art->keymapflag = ED_KEYMAP_UI;
-  art->poll = file_ui_region_poll;
-  art->listener = file_ui_region_listener;
-  art->init = file_ui_region_init;
-  art->draw = file_ui_region_draw;
+  art->poll = file_region_poll;
+  art->listener = file_region_listener;
+  art->init = file_region_init;
+  art->draw = file_region_draw;
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: execution */
@@ -1014,7 +1014,7 @@ void ED_spacetype_file()
   art->regionid = RGN_TYPE_EXECUTE;
   art->keymapflag = ED_KEYMAP_UI;
   art->poll = file_execution_region_poll;
-  art->listener = file_ui_region_listener;
+  art->listener = file_region_listener;
   art->init = file_execution_region_init;
   art->draw = file_execution_region_draw;
   BLI_addhead(&st->regiontypes, art);

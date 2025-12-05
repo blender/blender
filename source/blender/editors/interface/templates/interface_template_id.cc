@@ -106,7 +106,7 @@ static bool id_search_add(const bContext *C, TemplateID *template_ui, SearchItem
    * followed by ID_NAME-2 characters from id->name
    */
   char name_ui[MAX_ID_FULL_NAME_UI];
-  int iconid = ui_id_icon_get(C, id, template_ui->preview);
+  int iconid = id_icon_get(C, id, template_ui->preview);
   const bool use_lib_prefix = template_ui->preview || iconid;
   const bool has_sep_char = ID_IS_LINKED(id);
 
@@ -352,7 +352,7 @@ static void template_id_liboverride_hierarchy_collections_tag_recursive(
   }
 }
 
-ID *ui_template_id_liboverride_hierarchy_make(
+ID *template_id_liboverride_hierarchy_make(
     bContext *C, Main *bmain, ID *owner_id, ID *id, const char **r_undo_push_label)
 {
   const char *undo_push_label;
@@ -641,7 +641,7 @@ static void template_id_liboverride_hierarchy_make(bContext *C,
   ID *id = static_cast<ID *>(idptr->data);
   ID *owner_id = template_ui->ptr.owner_id;
 
-  ID *id_override = ui_template_id_liboverride_hierarchy_make(
+  ID *id_override = template_id_liboverride_hierarchy_make(
       C, bmain, owner_id, id, r_undo_push_label);
 
   if (id_override != nullptr) {
@@ -1454,7 +1454,7 @@ static void template_ID_tabs(const bContext *C,
   const bool horizontal =
       (region->regiontype == RGN_TYPE_HEADER &&
        ELEM(RGN_ALIGN_ENUM_FROM_MASK(region->alignment), RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM));
-  const int but_align = horizontal ? 0 : ui_but_align_opposite_to_area_align_get(region);
+  const int but_align = horizontal ? 0 : button_align_opposite_to_area_align_get(region);
 
   const int but_height = UI_UNIT_Y * 1.1;
 

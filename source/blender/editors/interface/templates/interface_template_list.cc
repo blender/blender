@@ -799,7 +799,7 @@ static void ui_template_list_layout_draw(const bContext *C,
 
           /* If we are "drawing" active item, set all labels as active. */
           if (i == items->active_item_idx) {
-            ui_layout_list_set_labels_active(sub);
+            layout_list_set_labels_active(sub);
           }
 
           uiLayoutListItemAddPadding(&item_row);
@@ -947,7 +947,7 @@ static void ui_template_list_layout_draw(const bContext *C,
 
           /* If we are "drawing" active item, set all labels as active. */
           if (i == items->active_item_idx) {
-            ui_layout_list_set_labels_active(col);
+            layout_list_set_labels_active(col);
           }
 
           block_flag_disable(subblock, BLOCK_LIST_ITEM);

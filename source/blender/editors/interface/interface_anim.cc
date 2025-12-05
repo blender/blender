@@ -59,7 +59,7 @@ static FCurve *ui_but_get_fcurve(
                                            r_special);
 }
 
-void ui_but_anim_flag(Button *but, const AnimationEvalContext *anim_eval_context)
+void button_anim_flag(Button *but, const AnimationEvalContext *anim_eval_context)
 {
   /* Clear the flags that this function might set. */
   but->flag &= ~(BUT_ANIMATED | BUT_ANIMATED_KEY | BUT_DRIVEN);
@@ -138,7 +138,7 @@ static Button *ui_but_anim_decorate_find_attached_button(ButtonDecorator *but)
   do {
     but_iter = but->block->buttons[i].get();
     if (but_iter != but &&
-        ui_but_rna_equals_ex(
+        button_rna_equals_ex(
             but_iter, &but->decorated_rnapoin, but->decorated_rnaprop, but->decorated_rnaindex))
     {
       return but_iter;
@@ -149,7 +149,7 @@ static Button *ui_but_anim_decorate_find_attached_button(ButtonDecorator *but)
   return nullptr;
 }
 
-void ui_but_anim_decorate_update_from_flag(ButtonDecorator *but)
+void button_anim_decorate_update_from_flag(ButtonDecorator *but)
 {
   if (!but->decorated_rnapoin.data || !but->decorated_rnaprop) {
     /* Nothing to do. */
@@ -192,7 +192,7 @@ void ui_but_anim_decorate_update_from_flag(ButtonDecorator *but)
   but->flag = (but->flag & ~flag_copy) | (flag & flag_copy);
 }
 
-bool ui_but_anim_expression_get(Button *but, char *str, size_t str_maxncpy)
+bool button_anim_expression_get(Button *but, char *str, size_t str_maxncpy)
 {
   FCurve *fcu;
   ChannelDriver *driver;
@@ -214,7 +214,7 @@ bool ui_but_anim_expression_get(Button *but, char *str, size_t str_maxncpy)
   return false;
 }
 
-bool ui_but_anim_expression_set(Button *but, const char *str)
+bool button_anim_expression_set(Button *but, const char *str)
 {
   FCurve *fcu;
   ChannelDriver *driver;
@@ -249,7 +249,7 @@ bool ui_but_anim_expression_set(Button *but, const char *str)
   return false;
 }
 
-bool ui_but_anim_expression_create(Button *but, const char *str)
+bool button_anim_expression_create(Button *but, const char *str)
 {
   bContext *C = static_cast<bContext *>(but->block->evil_C);
   ID *id;
@@ -315,26 +315,26 @@ bool ui_but_anim_expression_create(Button *but, const char *str)
   return ok;
 }
 
-void ui_but_anim_autokey(bContext *C, Button *but, Scene *scene, float cfra)
+void button_anim_autokey(bContext *C, Button *but, Scene *scene, float cfra)
 {
   animrig::autokeyframe_property(C, scene, &but->rnapoin, but->rnaprop, but->rnaindex, cfra, true);
 }
 
-void ui_but_anim_copy_driver(bContext *C)
+void button_anim_copy_driver(bContext *C)
 {
   /* this operator calls context_active_but_prop_get */
   WM_operator_name_call(
       C, "ANIM_OT_copy_driver_button", wm::OpCallContext::InvokeDefault, nullptr, nullptr);
 }
 
-void ui_but_anim_paste_driver(bContext *C)
+void button_anim_paste_driver(bContext *C)
 {
   /* this operator calls context_active_but_prop_get */
   WM_operator_name_call(
       C, "ANIM_OT_paste_driver_button", wm::OpCallContext::InvokeDefault, nullptr, nullptr);
 }
 
-void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void * /*arg_dummy*/)
+void button_anim_decorate_cb(bContext *C, void *arg_but, void * /*arg_dummy*/)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   auto *but_decorate = static_cast<ButtonDecorator *>(arg_but);

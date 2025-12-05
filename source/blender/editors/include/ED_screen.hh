@@ -58,7 +58,7 @@ void ED_region_do_draw(bContext *C, ARegion *region);
 void ED_region_exit(bContext *C, ARegion *region);
 /**
  * Utility to exit and free an area-region. Screen level regions (menus/popups) need to be treated
- * slightly differently, see #ui_region_temp_remove().
+ * slightly differently, see #ui::region_temp_remove().
  */
 void ED_region_remove(bContext *C, ScrArea *area, ARegion *region);
 void ED_region_pixelspace(const ARegion *region);

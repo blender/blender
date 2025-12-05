@@ -14,11 +14,11 @@ namespace blender::ui {
 /** \name Button Groups
  * \{ */
 
-void ui_block_new_button_group(Block *block, uiButtonGroupFlag flag)
+void block_new_button_group(Block *block, ButtonGroupFlag flag)
 {
   /* Don't create a new group if there is a "lock" on new groups. */
   if (!block->button_groups.is_empty()) {
-    uiButtonGroup &last_group = block->button_groups.last();
+    ButtonGroup &last_group = block->button_groups.last();
     if (last_group.flag & UI_BUTTON_GROUP_LOCK) {
       return;
     }
@@ -28,19 +28,19 @@ void ui_block_new_button_group(Block *block, uiButtonGroupFlag flag)
   block->button_groups.last().flag = flag;
 }
 
-void ui_button_group_add_but(Block *block, Button *but)
+void button_group_add_but(Block *block, Button *but)
 {
   if (block->button_groups.is_empty()) {
-    ui_block_new_button_group(block, uiButtonGroupFlag(0));
+    block_new_button_group(block, ButtonGroupFlag(0));
   }
 
-  uiButtonGroup &current_group = block->button_groups.last();
+  ButtonGroup &current_group = block->button_groups.last();
   current_group.buttons.append(but);
 }
 
-void ui_button_group_replace_but_ptr(Block *block, const Button *old_but_ptr, Button *new_but)
+void button_group_replace_but_ptr(Block *block, const Button *old_but_ptr, Button *new_but)
 {
-  for (uiButtonGroup &group : block->button_groups) {
+  for (ButtonGroup &group : block->button_groups) {
     std::replace_if(
         group.buttons.begin(),
         group.buttons.end(),

@@ -503,7 +503,7 @@ static void ui_item_position(uiItem *item, const int x, const int y, const int w
     bitem->but->rect.xmax = x + w;
     bitem->but->rect.ymax = y + h;
 
-    ui_but_update(bitem->but); /* For `strlen`. */
+    button_update(bitem->but); /* For `strlen`. */
   }
   else {
     LayoutInternal::layout_offset_size_set(static_cast<Layout *>(item), x, y + h, w, h);
@@ -526,7 +526,7 @@ static void ui_item_move(uiItem *item, const int delta_xmin, const int delta_xma
     bitem->but->rect.xmin += delta_xmin;
     bitem->but->rect.xmax += delta_xmax;
 
-    ui_but_update(bitem->but); /* For `strlen`. */
+    button_update(bitem->but); /* For `strlen`. */
   }
   else {
     LayoutInternal::layout_move(static_cast<Layout *>(item), delta_xmin, delta_xmax);
@@ -609,7 +609,7 @@ static void ui_layer_but_cb(bContext *C, void *arg_but, void *arg_index)
     RNA_property_update(C, ptr, prop);
 
     for (const std::unique_ptr<Button> &cbut : but->block->buttons) {
-      ui_but_update(cbut.get());
+      button_update(cbut.get());
     }
   }
 }
@@ -748,7 +748,7 @@ static void ui_item_array(Layout *layout,
         ButtonNumber *number_but = (ButtonNumber *)but;
         const float step_size = number_but->step_size;
         const float precision = number_but->precision;
-        but = ui_but_change_type(but, ButType::NumSlider);
+        but = button_change_type(but, ButType::NumSlider);
         auto *slider_but = reinterpret_cast<ButtonNumberSlider *>(but);
         slider_but->step_size = step_size;
         slider_but->precision = precision;
@@ -818,7 +818,7 @@ static void ui_item_array(Layout *layout,
           ButtonNumber *number_but = (ButtonNumber *)but;
           const float step_size = number_but->step_size;
           const float precision = number_but->precision;
-          but = ui_but_change_type(but, ButType::NumSlider);
+          but = button_change_type(but, ButType::NumSlider);
           auto *slider_but = reinterpret_cast<ButtonNumberSlider *>(but);
           slider_but->step_size = step_size;
           slider_but->precision = precision;
@@ -1039,7 +1039,7 @@ static void ui_item_enum_expand_tabs(Layout *layout,
 
   for (int i = start_size; i < block->buttons.size(); i++) {
     Button *tab = block->buttons[i].get();
-    button_drawflag_enable(tab, ui_but_align_opposite_to_area_align_get(CTX_wm_region(C)));
+    button_drawflag_enable(tab, button_align_opposite_to_area_align_get(CTX_wm_region(C)));
     if (icon_only) {
       button_drawflag_enable(tab, BUT_HAS_QUICK_TOOLTIP);
     }
@@ -1366,7 +1366,7 @@ static Button *uiItemFullO_ptr_ex(Layout *layout,
   }
 
   block_layout_set_current(block, layout);
-  ui_block_new_button_group(block, uiButtonGroupFlag(0));
+  block_new_button_group(block, ButtonGroupFlag(0));
 
   const int w = ui_text_icon_width(layout, *name, icon, false);
 
@@ -1568,7 +1568,7 @@ void Layout::op_enum_items(wmOperatorType *ot,
         }
 
         if (tmp->identifier) { /* only true if loop above found item and did early-exit */
-          ui_pie_menu_level_create(
+          pie_menu_level_create(
               block, ot, propname, properties, item_array, totitem, context, flag);
           /* break since rest of items is handled in new pie level */
           break;
@@ -1946,7 +1946,7 @@ void Layout::prop(PointerRNA *ptr,
 #endif /* UI_PROP_DECORATE */
 
   block_layout_set_current(block, this);
-  ui_block_new_button_group(block, uiButtonGroupFlag(0));
+  block_new_button_group(block, ButtonGroupFlag(0));
 
   /* retrieve info */
   const PropertyType type = RNA_property_type(prop);
@@ -2245,7 +2245,7 @@ void Layout::prop(PointerRNA *ptr,
         results_are_suggestions = true;
       }
     }
-    but = ui_but_add_search(but, ptr, prop, nullptr, nullptr, nullptr, results_are_suggestions);
+    but = but_add_search(but, ptr, prop, nullptr, nullptr, nullptr, results_are_suggestions);
 
     if (layout->red_alert()) {
       button_flag_enable(but, BUT_REDALERT);
@@ -2263,7 +2263,7 @@ void Layout::prop(PointerRNA *ptr,
       ButtonNumber *number_but = (ButtonNumber *)but;
       const float step_size = number_but->step_size;
       const float precision = number_but->precision;
-      but = ui_but_change_type(but, ButType::NumSlider);
+      but = button_change_type(but, ButType::NumSlider);
       auto *slider_but = reinterpret_cast<ButtonNumberSlider *>(but);
       slider_but->step_size = step_size;
       slider_but->precision = precision;
@@ -2301,7 +2301,7 @@ void Layout::prop(PointerRNA *ptr,
    * the functionality is needed. */
   if (but && no_icon) {
     if ((icon == ICON_NONE) && (but->icon != ICON_NONE)) {
-      ui_def_but_icon_clear(but);
+      def_but_icon_clear(but);
     }
   }
 
@@ -2404,7 +2404,7 @@ void Layout::prop_with_popover(PointerRNA *ptr,
   for (; i < block->buttons.size(); i++) {
     Button *but = block->buttons[i].get();
     if (but->rnaprop == prop && ELEM(but->type, ButType::Menu, ButType::Color)) {
-      ui_but_rna_menu_convert_to_panel_type(but, panel_type);
+      button_rna_menu_convert_to_panel_type(but, panel_type);
       break;
     }
   }
@@ -2433,7 +2433,7 @@ void Layout::prop_with_menu(PointerRNA *ptr,
   while (i < block->buttons.size()) {
     Button *but = block->buttons[i].get();
     if (but->rnaprop == prop && but->type == ButType::Menu) {
-      ui_but_rna_menu_convert_to_menu_type(but, menu_type);
+      button_rna_menu_convert_to_menu_type(but, menu_type);
       break;
     }
     i++;
@@ -2615,13 +2615,13 @@ static void ui_rna_collection_search_arg_free_fn(void *ptr)
   MEM_delete(coll_search);
 }
 
-Button *ui_but_add_search(Button *but,
-                          PointerRNA *ptr,
-                          PropertyRNA *prop,
-                          PointerRNA *searchptr,
-                          PropertyRNA *searchprop,
-                          PropertyRNA *item_searchprop,
-                          const bool results_are_suggestions)
+Button *but_add_search(Button *but,
+                       PointerRNA *ptr,
+                       PropertyRNA *prop,
+                       PointerRNA *searchptr,
+                       PropertyRNA *searchprop,
+                       PropertyRNA *item_searchprop,
+                       const bool results_are_suggestions)
 {
   /* for ID's we do automatic lookup */
   bool has_search_fn = false;
@@ -2643,7 +2643,7 @@ Button *ui_but_add_search(Button *but,
     uiRNACollectionSearch *coll_search = MEM_new<uiRNACollectionSearch>(__func__);
     ButtonSearch *search_but;
 
-    but = ui_but_change_type(but, ButType::SearchMenu);
+    but = button_change_type(but, ButType::SearchMenu);
     search_but = (ButtonSearch *)but;
 
     if (searchptr) {
@@ -2686,8 +2686,8 @@ Button *ui_but_add_search(Button *but,
     button_func_search_set_results_are_suggestions(but, results_are_suggestions);
 
     button_func_search_set(but,
-                           ui_searchbox_create_generic,
-                           ui_rna_collection_search_update_fn,
+                           searchbox_create_generic,
+                           rna_collection_search_update_fn,
                            coll_search,
                            false,
                            ui_rna_collection_search_arg_free_fn,
@@ -2718,7 +2718,7 @@ void Layout::prop_search(PointerRNA *ptr,
 {
   const bool use_prop_sep = this->use_property_split();
   Block *block = this->block();
-  ui_block_new_button_group(block, uiButtonGroupFlag(0));
+  block_new_button_group(block, ButtonGroupFlag(0));
 
   const PropertyType type = RNA_property_type(prop);
   if (!ELEM(type, PROP_POINTER, PROP_STRING, PROP_ENUM)) {
@@ -2766,7 +2766,7 @@ void Layout::prop_search(PointerRNA *ptr,
   w += UI_UNIT_X; /* X icon needs more space */
   Button *but = ui_item_with_label(this, block, name, icon, ptr, prop, 0, 0, 0, w, h, 0);
 
-  but = ui_but_add_search(
+  but = but_add_search(
       but, ptr, prop, searchptr, searchprop, item_searchprop, results_are_suggestions);
 }
 
@@ -2794,13 +2794,13 @@ void Layout::prop_search(PointerRNA *ptr,
   this->prop_search(ptr, prop, searchptr, searchprop, nullptr, name, icon, false);
 }
 
-void ui_item_menutype_func(bContext *C, Layout *layout, void *arg_mt)
+void item_menutype_func(bContext *C, Layout *layout, void *arg_mt)
 {
   MenuType *mt = (MenuType *)arg_mt;
   menutype_draw(C, mt, layout);
 }
 
-void ui_item_paneltype_func(bContext *C, Layout *layout, void *arg_pt)
+void item_paneltype_func(bContext *C, Layout *layout, void *arg_pt)
 {
   PanelType *pt = (PanelType *)arg_pt;
   UI_paneltype_draw(C, pt, layout);
@@ -2821,7 +2821,7 @@ static Button *ui_item_menu(Layout *layout,
   Layout *heading_layout = ui_layout_heading_find(layout);
 
   block_layout_set_current(block, layout);
-  ui_block_new_button_group(block, uiButtonGroupFlag(0));
+  block_new_button_group(block, ButtonGroupFlag(0));
 
   if (layout->root()->type == LayoutType::Menu && !icon) {
     icon = ICON_BLANK1;
@@ -2899,7 +2899,7 @@ void Layout::menu(MenuType *mt, const std::optional<StringRef> name_opt, int ico
   ui_item_menu(this,
                name,
                icon,
-               ui_item_menutype_func,
+               item_menutype_func,
                mt,
                nullptr,
                mt->description ? TIP_(mt->description) : "",
@@ -2966,7 +2966,7 @@ void Layout::decorator(PointerRNA *ptr, PropertyRNA *prop, int index)
                                                            0.0,
                                                            TIP_("Animate property"));
 
-    button_func_set(but, ui_but_anim_decorate_cb, but, nullptr);
+    button_func_set(but, button_anim_decorate_cb, but, nullptr);
     but->flag |= BUT_UNDO | BUT_DRAG_LOCK;
     /* Decorators have their own RNA data, using the normal #Button RNA members has many
      * side-effects. */
@@ -3027,7 +3027,7 @@ void Layout::popover(const bContext *C,
   CTX_store_set(const_cast<bContext *>(C), previous_ctx);
 
   Button *but = ui_item_menu(
-      layout, name, icon, ui_item_paneltype_func, pt, nullptr, TIP_(pt->description), true);
+      layout, name, icon, item_paneltype_func, pt, nullptr, TIP_(pt->description), true);
   but->type = ButType::Popover;
 
   /* Override button size when there is no icon or label. */
@@ -3094,7 +3094,7 @@ static Button *uiItem_simple(Layout *layout,
   Block *block = layout->block();
 
   block_layout_set_current(block, layout);
-  ui_block_new_button_group(block, uiButtonGroupFlag(0));
+  block_new_button_group(block, ButtonGroupFlag(0));
 
   if (layout->root()->type == LayoutType::Menu && !icon) {
     icon = ICON_BLANK1;
@@ -3216,8 +3216,8 @@ Button *Layout::button(const StringRef name,
 void Layout::separator(float factor, const LayoutSeparatorType type)
 {
   Block *block = this->block();
-  const bool is_menu = ui_block_is_menu(block);
-  const bool is_pie = ui_block_is_pie_menu(block);
+  const bool is_menu = block_is_menu(block);
+  const bool is_pie = block_is_pie_menu(block);
   if (is_menu && !block_can_add_separator(block)) {
     return;
   }
@@ -3304,7 +3304,7 @@ void Layout::progress_indicator(const char *text,
 void Layout::separator_spacer()
 {
   Block *block = this->block();
-  const bool is_popup = ui_block_is_popup_any(block);
+  const bool is_popup = block_is_popup_any(block);
 
   if (is_popup) {
     printf("Error: separator_spacer() not supported in popups.\n");
@@ -3446,7 +3446,7 @@ PointerRNA Layout::op_menu_enum(const bContext *C,
     if (std::optional<std::string> shortcut_str = WM_key_event_operator_string(
             C, ot->idname, root_->opcontext, nullptr, false))
     {
-      ui_but_add_shortcut(but, shortcut_str->c_str(), false);
+      button_add_shortcut(but, shortcut_str->c_str(), false);
     }
   }
   return *but->opptr;
@@ -3843,7 +3843,7 @@ static RadialDirection ui_get_radialbut_vec(float vec[2], short itemnum)
   }
 
   const RadialDirection dir = RadialDirection(ui_radial_dir_order[itemnum]);
-  ui_but_pie_dir(dir, vec);
+  button_pie_dir(dir, vec);
 
   return dir;
 }
@@ -4941,11 +4941,11 @@ Layout &Layout::box()
   return *ui_layout_box(this, ButType::Roundbox);
 }
 
-void ui_layout_list_set_labels_active(Layout *layout)
+void layout_list_set_labels_active(Layout *layout)
 {
   for (uiItem *item : layout->items()) {
     if (item->type() != uiItemType::Button) {
-      ui_layout_list_set_labels_active(static_cast<Layout *>(item));
+      layout_list_set_labels_active(static_cast<Layout *>(item));
     }
     else {
       uiButtonItem *bitem = static_cast<uiButtonItem *>(item);
@@ -5148,7 +5148,7 @@ static bool button_matches_search_filter(Button *but, const char *search_filter)
 /**
  * Test for a search result within a specific button group.
  */
-static bool button_group_has_search_match(const uiButtonGroup &group, const char *search_filter)
+static bool button_group_has_search_match(const ButtonGroup &group, const char *search_filter)
 {
   for (Button *but : group.buttons) {
     if (button_matches_search_filter(but, search_filter)) {
@@ -5171,7 +5171,7 @@ static bool button_group_has_search_match(const uiButtonGroup &group, const char
 static bool block_search_filter_tag_buttons(Block *block, const char *search_filter)
 {
   bool has_result = false;
-  for (const uiButtonGroup &group : block->button_groups) {
+  for (const ButtonGroup &group : block->button_groups) {
     if (button_group_has_search_match(group, search_filter)) {
       has_result = true;
     }
@@ -5208,7 +5208,7 @@ bool block_apply_search_filter(Block *block, const char *search_filter)
 
   if (panel != nullptr) {
     if (has_result) {
-      ui_panel_tag_search_filter_match(block->panel);
+      panel_tag_search_filter_match(block->panel);
     }
   }
 
@@ -5500,10 +5500,10 @@ void LayoutInternal::layout_add_but(Layout *layout, Button *but)
     but->emboss = layout->emboss_;
   }
 
-  ui_button_group_add_but(layout->block(), but);
+  button_group_add_but(layout->block(), but);
 }
 
-void ui_layout_add_but(Layout *layout, Button *but)
+void layout_add_but(Layout *layout, Button *but)
 {
   LayoutInternal::layout_add_but(layout, but);
 };
@@ -5551,12 +5551,12 @@ void LayoutInternal::layout_remove_but(Layout *layout, const Button *but)
   UNUSED_VARS_NDEBUG(removed_num);
 }
 
-void ui_layout_remove_but(Layout *layout, const Button *but)
+void layout_remove_but(Layout *layout, const Button *but)
 {
   LayoutInternal::layout_remove_but(layout, but);
 }
 
-bool ui_layout_replace_but_ptr(Layout *layout, const void *old_but_ptr, Button *new_but)
+bool layout_replace_but_ptr(Layout *layout, const void *old_but_ptr, Button *new_but)
 {
   uiButtonItem *bitem = LayoutInternal::ui_layout_find_button_item(
       layout, static_cast<const Button *>(old_but_ptr));
@@ -5775,7 +5775,7 @@ wmOperatorType *button_operatortype_get_from_enum_menu(Button *but, PropertyRNA 
 
 MenuType *button_menutype_get(const Button *but)
 {
-  if (but->menu_create_func == ui_item_menutype_func) {
+  if (but->menu_create_func == item_menutype_func) {
     return (MenuType *)but->poin;
   }
   return nullptr;
@@ -5783,7 +5783,7 @@ MenuType *button_menutype_get(const Button *but)
 
 PanelType *button_paneltype_get(const Button *but)
 {
-  if (but->menu_create_func == ui_item_paneltype_func) {
+  if (but->menu_create_func == item_paneltype_func) {
     return (PanelType *)but->poin;
   }
   return nullptr;
@@ -5791,7 +5791,7 @@ PanelType *button_paneltype_get(const Button *but)
 
 std::optional<StringRefNull> button_asset_shelf_type_idname_get(const Button *but)
 {
-  return UI_asset_shelf_idname_from_button_context(but);
+  return asset_shelf_idname_from_button_context(but);
 }
 
 void menutype_draw(bContext *C, MenuType *mt, Layout *layout)
@@ -5810,7 +5810,7 @@ void menutype_draw(bContext *C, MenuType *mt, Layout *layout)
   }
   if (mt->listener) {
     /* Forward the menu type listener to the block we're drawing in. */
-    ui_block_add_dynamic_listener(block, mt->listener);
+    block_add_dynamic_listener(block, mt->listener);
   }
 
   bContextStore context_store;
@@ -5857,7 +5857,7 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, Layout *layout, b
   panel->flag = PNL_POPOVER;
 
   if (pt->listener) {
-    ui_block_add_dynamic_listener(block, pt->listener);
+    block_add_dynamic_listener(block, pt->listener);
   }
 
   /* This check may be paranoid, this function might run outside the context of a popup or can run

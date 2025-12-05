@@ -238,7 +238,7 @@ Button *uiDefAutoButR(Block *block,
                                    0,
                                    0,
                                    std::nullopt);
-      ui_but_add_search(but, ptr, prop, nullptr, nullptr, nullptr, false);
+      but_add_search(but, ptr, prop, nullptr, nullptr, nullptr, false);
       break;
     }
     case PROP_COLLECTION: {
@@ -398,7 +398,7 @@ static bool add_collection_search_item(CollItemSearch &cis,
                          name_prefix_offset);
 }
 
-void ui_rna_collection_search_update_fn(
+void rna_collection_search_update_fn(
     const bContext *C, void *arg, const char *str, SearchItems *items, const bool is_first)
 {
   uiRNACollectionSearch *data = static_cast<uiRNACollectionSearch *>(arg);
@@ -438,7 +438,7 @@ void ui_rna_collection_search_update_fn(
 
       char *name;
       if (is_id) {
-        iconid = ui_id_icon_get(C, static_cast<ID *>(itemptr.data), false);
+        iconid = id_icon_get(C, static_cast<ID *>(itemptr.data), false);
         if (!ELEM(iconid, 0, ICON_BLANK1)) {
           has_id_icon = true;
         }
@@ -739,7 +739,7 @@ std::optional<std::string> button_online_manual_id_from_active(const bContext *C
 static rctf ui_but_rect_to_view(const Button *but, const ARegion *region, const View2D *v2d)
 {
   rctf region_rect;
-  ui_block_to_region_rctf(region, but->block, &region_rect, &but->rect);
+  block_to_region_rctf(region, but->block, &region_rect, &but->rect);
 
   rctf view_rect;
   view2d_region_to_view_rctf(v2d, &region_rect, &view_rect);
@@ -959,7 +959,7 @@ void butstore_update(Block *block)
 
       LISTBASE_FOREACH (uiButStoreElem *, bs_elem, &bs_handle->items) {
         if (*bs_elem->but_p) {
-          Button *but_new = ui_but_find_new(block, *bs_elem->but_p);
+          Button *but_new = button_find_new(block, *bs_elem->but_p);
 
           /* can be nullptr if the buttons removed,
            * NOTE: we could allow passing in a callback when buttons are removed

@@ -762,7 +762,7 @@ void panel_header_buttons_begin(Panel *panel)
 {
   Block *block = panel->runtime->block;
 
-  ui_block_new_button_group(block, UI_BUTTON_GROUP_LOCK | UI_BUTTON_GROUP_PANEL_HEADER);
+  block_new_button_group(block, UI_BUTTON_GROUP_LOCK | UI_BUTTON_GROUP_PANEL_HEADER);
 }
 
 void panel_header_buttons_end(Panel *panel)
@@ -772,7 +772,7 @@ void panel_header_buttons_end(Panel *panel)
   /* A button group should always be created in #panel_header_buttons_begin. */
   BLI_assert(!block->button_groups.is_empty());
 
-  uiButtonGroup &button_group = block->button_groups.last();
+  ButtonGroup &button_group = block->button_groups.last();
   button_group.flag &= ~UI_BUTTON_GROUP_LOCK;
 
   /* Repurpose the first header button group if it is empty, in case the first button added to
@@ -783,9 +783,9 @@ void panel_header_buttons_end(Panel *panel)
   }
   else {
     /* Always add a new button group. Although this may result in many empty groups, without it,
-     * new buttons in the panel body not protected with a #ui_block_new_button_group call would
+     * new buttons in the panel body not protected with a #block_new_button_group call would
      * end up in the panel header group. */
-    ui_block_new_button_group(block, (uiButtonGroupFlag)0);
+    block_new_button_group(block, (ButtonGroupFlag)0);
   }
 }
 
@@ -867,7 +867,7 @@ static void ui_offset_panel_block(Block *block)
   const uiStyle *style = style_get_dpi();
 
   /* Compute bounds and offset. */
-  ui_block_bounds_calc(block);
+  block_bounds_calc(block);
 
   const int ofsy = block->panel->sizey - style->panelspace;
 
@@ -881,7 +881,7 @@ static void ui_offset_panel_block(Block *block)
   block->rect.xmin = block->rect.ymin = 0.0;
 }
 
-void ui_panel_tag_search_filter_match(Panel *panel)
+void panel_tag_search_filter_match(Panel *panel)
 {
   panel->runtime_flag |= PANEL_SEARCH_FILTER_MATCH;
 }
@@ -960,7 +960,7 @@ static void panel_remove_invisible_layouts_recursive(Panel *panel, const Panel *
     /* If sub-panels have no search results but the parent panel does, then the parent panel open
      * and the sub-panels will close. In that case there must be a way to hide the buttons in the
      * panel but keep the header buttons. */
-    for (const uiButtonGroup &button_group : block->button_groups) {
+    for (const ButtonGroup &button_group : block->button_groups) {
       if (button_group.flag & UI_BUTTON_GROUP_PANEL_HEADER) {
         continue;
       }
@@ -1196,15 +1196,14 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
   }
 }
 
-void ui_draw_layout_panels_backdrop(const ARegion *region,
-                                    const Panel *panel,
-                                    const float radius,
-                                    float subpanel_backcolor[4])
+void draw_layout_panels_backdrop(const ARegion *region,
+                                 const Panel *panel,
+                                 const float radius,
+                                 float subpanel_backcolor[4])
 {
   /* Draw backdrops for layout panels. */
-  const float aspect = ui_block_is_popup_any(panel->runtime->block) ?
-                           panel->runtime->block->aspect :
-                           1.0f;
+  const float aspect = block_is_popup_any(panel->runtime->block) ? panel->runtime->block->aspect :
+                                                                   1.0f;
 
   for (const LayoutPanelBody &body : panel->runtime->layout_panels.bodies) {
 
@@ -1312,7 +1311,7 @@ static void panel_draw_aligned_backdrop(const ARegion *region,
 
     float subpanel_backcolor[4];
     GetThemeColor4fv(TH_PANEL_SUB_BACK, subpanel_backcolor);
-    ui_draw_layout_panels_backdrop(region, panel, radius, subpanel_backcolor);
+    draw_layout_panels_backdrop(region, panel, radius, subpanel_backcolor);
   }
 
   /* Panel header backdrops for non sub-panels. */
@@ -1335,13 +1334,13 @@ static void panel_draw_aligned_backdrop(const ARegion *region,
   immUnbindProgram();
 }
 
-void ui_draw_aligned_panel(const ARegion *region,
-                           const uiStyle *style,
-                           const Block *block,
-                           const rcti *rect,
-                           const bool show_pin,
-                           const bool show_background,
-                           const bool region_search_filter_active)
+void draw_aligned_panel(const ARegion *region,
+                        const uiStyle *style,
+                        const Block *block,
+                        const rcti *rect,
+                        const bool show_pin,
+                        const bool show_background,
+                        const bool region_search_filter_active)
 {
   const Panel *panel = block->panel;
 
@@ -1468,7 +1467,7 @@ void panel_category_draw_all(ARegion *region, const char *category_id_active)
 
   BLF_enable(fontid, BLF_ROTATION);
   BLF_rotation(fontid, is_left ? M_PI_2 : -M_PI_2);
-  ui_fontscale(&fstyle_points, aspect);
+  fontscale(&fstyle_points, aspect);
   BLF_size(fontid, fstyle_points * UI_SCALE_FAC);
 
   /* Check the region type supports categories to avoid an assert
@@ -2030,7 +2029,7 @@ void panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
 
       /* Update bounds for all "views" in this block. Usually this is done in #block_end(), but
        * that wouldn't work because of the offset applied above. */
-      ui_block_views_end(region, block);
+      block_views_end(region, block);
     }
   }
 
@@ -2086,7 +2085,7 @@ static void ui_do_drag(const bContext *C, const wmEvent *event, Panel *panel)
 /** \name Region Level Panel Interaction
  * \{ */
 
-LayoutPanelHeader *ui_layout_panel_header_under_mouse(const Panel &panel, const int my)
+LayoutPanelHeader *layout_panel_header_under_mouse(const Panel &panel, const int my)
 {
   for (LayoutPanelHeader &header : panel.runtime->layout_panels.headers) {
     if (IN_RANGE(float(my - panel.runtime->block->rect.ymax), header.start_y, header.end_y)) {
@@ -2108,7 +2107,7 @@ static uiPanelMouseState ui_panel_mouse_state_get(const Block *block,
   if (IN_RANGE(float(my), block->rect.ymax, block->rect.ymax + PNL_HEADER)) {
     return PANEL_MOUSE_INSIDE_HEADER;
   }
-  if (ui_layout_panel_header_under_mouse(*panel, my) != nullptr) {
+  if (layout_panel_header_under_mouse(*panel, my) != nullptr) {
     return PANEL_MOUSE_INSIDE_LAYOUT_PANEL_HEADER;
   }
 
@@ -2153,8 +2152,8 @@ static void ui_panel_drag_collapse(const bContext *C,
     xy_b_block[0] = dragcol_data->xy_init[0];
 
     /* Use cursor coords in block space. */
-    ui_window_to_block_fl(region, block, &xy_a_block[0], &xy_a_block[1]);
-    ui_window_to_block_fl(region, block, &xy_b_block[0], &xy_b_block[1]);
+    window_to_block_fl(region, block, &xy_a_block[0], &xy_a_block[1]);
+    window_to_block_fl(region, block, &xy_b_block[0], &xy_b_block[1]);
 
     for (LayoutPanelHeader &header : panel->runtime->layout_panels.headers) {
       rctf rect = block->rect;
@@ -2238,7 +2237,7 @@ static int ui_panel_drag_collapse_handler(bContext *C, const wmEvent *event, voi
   return retval;
 }
 
-void ui_panel_drag_collapse_handler_add(const bContext *C, const bool was_open)
+void panel_drag_collapse_handler_add(const bContext *C, const bool was_open)
 {
   wmWindow *win = CTX_wm_window(C);
   const wmEvent *event = win->eventstate;
@@ -2272,7 +2271,7 @@ static void ui_handle_layout_panel_header(
   Panel *panel = block->panel;
   BLI_assert(panel->type != nullptr);
 
-  LayoutPanelHeader *header = ui_layout_panel_header_under_mouse(*panel, my);
+  LayoutPanelHeader *header = layout_panel_header_under_mouse(*panel, my);
   if (header == nullptr) {
     return;
   }
@@ -2281,7 +2280,7 @@ static void ui_handle_layout_panel_header(
   WM_tooltip_clear(C, CTX_wm_window(C));
 
   if (event_type == LEFTMOUSE) {
-    ui_panel_drag_collapse_handler_add(C, !new_state);
+    panel_drag_collapse_handler_add(C, !new_state);
   }
 }
 
@@ -2347,7 +2346,7 @@ static void ui_handle_panel_header(const bContext *C,
     SET_FLAG_FROM_TEST(panel->flag, !panel_is_closed(panel), PNL_CLOSED);
 
     if (event_type == LEFTMOUSE) {
-      ui_panel_drag_collapse_handler_add(C, panel_is_closed(panel));
+      panel_drag_collapse_handler_add(C, panel_is_closed(panel));
     }
 
     /* Set panel custom data (modifier) active when expanding sub-panels, but not top-level
@@ -2538,7 +2537,7 @@ static int ui_handle_panel_category_cycling(const wmEvent *event,
     return WM_UI_HANDLER_CONTINUE;
   }
 
-  if (active_but && ui_but_supports_cycling(active_but)) {
+  if (active_but && button_supports_cycling(active_but)) {
     /* Skip - exception to make cycling buttons using ctrl+mousewheel work in tabbed regions. */
   }
   else {
@@ -2596,10 +2595,10 @@ static void ui_panel_region_width_set(ARegion *region, const float aspect, int u
   view2d_curRect_validate(&region->v2d);
 }
 
-int ui_handler_panel_region(bContext *C,
-                            const wmEvent *event,
-                            ARegion *region,
-                            const Button *active_but)
+int handler_panel_region(bContext *C,
+                         const wmEvent *event,
+                         ARegion *region,
+                         const Button *active_but)
 {
   /* Mouse-move events are handled by separate handlers for dragging and drag collapsing. */
   if (ISMOUSE_MOTION(event->type)) {
@@ -2666,7 +2665,7 @@ int ui_handler_panel_region(bContext *C,
     return retval;
   }
 
-  const Button *region_active_but = ui_region_find_active_but(region);
+  const Button *region_active_but = region_find_active_but(region);
   const bool region_has_active_button = region_active_but &&
                                         region_active_but->type != ButType::Label;
 
@@ -2681,7 +2680,7 @@ int ui_handler_panel_region(bContext *C,
 
     int mx = event->xy[0];
     int my = event->xy[1];
-    ui_window_to_block(region, block, &mx, &my);
+    window_to_block(region, block, &mx, &my);
 
     const uiPanelMouseState mouse_state = ui_panel_mouse_state_get(block, panel, mx, my);
 
@@ -2715,7 +2714,7 @@ int ui_handler_panel_region(bContext *C,
       }
       else if (event->type == RIGHTMOUSE) {
         retval = WM_UI_HANDLER_BREAK;
-        ui_popup_context_menu_for_panel(C, region, block->panel);
+        popup_context_menu_for_panel(C, region, block->panel);
       }
       break;
     }
@@ -2774,7 +2773,7 @@ PointerRNA *region_panel_custom_data_under_cursor(const bContext *C, const wmEve
 
       int mx = event->xy[0];
       int my = event->xy[1];
-      ui_window_to_block(region, block, &mx, &my);
+      window_to_block(region, block, &mx, &my);
       const int mouse_state = ui_panel_mouse_state_get(block, panel, mx, my);
       if (ELEM(mouse_state, PANEL_MOUSE_INSIDE_CONTENT, PANEL_MOUSE_INSIDE_HEADER)) {
         return panel_custom_data_get(panel);
@@ -2896,7 +2895,7 @@ static void panel_activate_state(const bContext *C, Panel *panel, const uiHandle
 
     /* Initiate edge panning during drags for scrolling beyond the initial region view. */
     wmOperatorType *ot = WM_operatortype_find("VIEW2D_OT_edge_pan", true);
-    ui_handle_afterfunc_add_operator(ot, wm::OpCallContext::InvokeDefault);
+    handle_afterfunc_add_operator(ot, wm::OpCallContext::InvokeDefault);
   }
   else if (state == PANEL_STATE_ANIMATION) {
     panel_set_flag_recursive(panel, PNL_SELECT, false);

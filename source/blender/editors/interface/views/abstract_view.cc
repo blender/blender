@@ -48,7 +48,7 @@ void AbstractView::update_from_old(Block &new_block)
     return;
   }
 
-  AbstractView *old_view = ui_block_view_find_matching_in_old_block(new_block, *this);
+  AbstractView *old_view = block_view_find_matching_in_old_block(new_block, *this);
   if (old_view == nullptr) {
     /* Initial construction, nothing to update. */
     is_reconstructed_ = true;

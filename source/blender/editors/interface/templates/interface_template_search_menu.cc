@@ -229,7 +229,7 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
       item->drawstr = scope.allocator().copy_string(but->drawstr);
     }
 
-    item->icon = ui_but_icon(but);
+    item->icon = button_icon(but);
     item->state = (but->flag & (BUT_DISABLED | BUT_INACTIVE | BUT_REDALERT | BUT_HAS_SEP_CHAR));
     item->mt = mt;
 
@@ -1038,7 +1038,7 @@ static bool ui_search_menu_create_context_menu(bContext *C,
       CTX_wm_region_set(C, item->wm_context->region);
     }
 
-    if (ui_popup_context_menu_for_button(C, but, event)) {
+    if (popup_context_menu_for_button(C, but, event)) {
       has_menu = true;
     }
 
@@ -1077,7 +1077,7 @@ static ARegion *ui_search_menu_create_tooltip(
   const wmEvent *event = CTX_wm_window(C)->eventstate;
   tip_init[0] = event->xy[0];
   tip_init[1] = event->xy[1] - (UI_UNIT_Y / 2);
-  ui_window_to_block_fl(region, block, &tip_init[0], &tip_init[1]);
+  window_to_block_fl(region, block, &tip_init[0], &tip_init[1]);
 
   but->rect.xmin = tip_init[0];
   but->rect.xmax = tip_init[0];
@@ -1124,7 +1124,7 @@ void button_func_menu_search(Button *but, const char *single_menu_idname)
       C, win, area, region, include_all_areas, single_menu_idname);
   button_func_search_set(but,
                          /* Generic callback. */
-                         ui_searchbox_create_menu,
+                         searchbox_create_menu,
                          menu_search_update_fn,
                          data,
                          false,

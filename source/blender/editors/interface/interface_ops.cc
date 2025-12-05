@@ -94,7 +94,7 @@ namespace blender::ui {
  *
  * \{ */
 
-static void ui_region_redraw_immediately(bContext *C, ARegion *region)
+static void region_redraw_immediately(bContext *C, ARegion *region)
 {
   ED_region_do_layout(C, region);
   WM_draw_region_viewport_bind(region);
@@ -750,7 +750,7 @@ static wmOperatorStatus override_idtemplate_make_exec(bContext *C, wmOperator * 
     return OPERATOR_CANCELLED;
   }
 
-  ID *id_override = ui_template_id_liboverride_hierarchy_make(
+  ID *id_override = template_id_liboverride_hierarchy_make(
       C, CTX_data_main(C), owner_id, id, nullptr);
 
   if (id_override == nullptr) {
@@ -1947,7 +1947,7 @@ static bool jump_to_target_button(bContext *C, bool poll)
       const ButtonSearch *search_but = (but->type == ButType::SearchMenu) ? (ButtonSearch *)but :
                                                                             nullptr;
 
-      if (search_but && search_but->items_update_fn == ui_rna_collection_search_update_fn) {
+      if (search_but && search_but->items_update_fn == rna_collection_search_update_fn) {
         uiRNACollectionSearch *coll_search = static_cast<uiRNACollectionSearch *>(search_but->arg);
 
         char str_buf[MAXBONENAME];
@@ -1976,7 +1976,7 @@ static bool jump_to_target_button(bContext *C, bool poll)
   return false;
 }
 
-bool ui_jump_to_target_button_poll(bContext *C)
+bool jump_to_target_button_poll(bContext *C)
 {
   return jump_to_target_button(C, true);
 }
@@ -1996,7 +1996,7 @@ static void UI_OT_jump_to_target_button(wmOperatorType *ot)
   ot->description = "Switch to the target object or bone";
 
   /* callbacks */
-  ot->poll = ui_jump_to_target_button_poll;
+  ot->poll = jump_to_target_button_poll;
   ot->exec = jump_to_target_button_exec;
 
   /* flags */
@@ -2135,7 +2135,7 @@ static wmOperatorStatus editsource_exec(bContext *C, wmOperator *op)
     ui_editsource_active_but_set(but);
 
     /* redraw and get active button python info */
-    ui_region_redraw_immediately(C, region);
+    region_redraw_immediately(C, region);
 
     /* It's possible the key button referenced in `ui_editsource_info` has been freed.
      * This typically happens with popovers but could happen in other situations, see: #140439. */
@@ -2300,7 +2300,7 @@ static wmOperatorStatus button_string_clear_exec(bContext *C, wmOperator * /*op*
   Button *but = context_active_but_get_respect_popup(C);
 
   if (but) {
-    ui_but_active_string_clear_and_exit(C, but);
+    button_active_string_clear_and_exit(C, but);
   }
 
   return OPERATOR_FINISHED;
@@ -2367,7 +2367,7 @@ static wmOperatorStatus drop_color_invoke(bContext *C, wmOperator *op, const wmE
 
   /* find button under mouse, check if it has RNA color property and
    * if it does copy the data */
-  but = ui_region_find_active_but(region);
+  but = region_find_active_but(region);
 
   if (but && but->type == ButType::Color && but->rnaprop) {
     if (!has_alpha) {
@@ -2454,7 +2454,7 @@ static wmOperatorStatus drop_name_invoke(bContext *C, wmOperator *op, const wmEv
   Button *but = button_active_drop_name_button(C);
   std::string str = RNA_string_get(op->ptr, "string");
 
-  ui_but_set_string_interactive(C, but, str.c_str());
+  button_set_string_interactive(C, but, str.c_str());
 
   return OPERATOR_FINISHED;
 }
@@ -2516,7 +2516,7 @@ static wmOperatorStatus ui_list_start_filter_invoke(bContext *C,
   BLI_assert(list != nullptr);
 
   if (ui_list_unhide_filter_options(list)) {
-    ui_region_redraw_immediately(C, region);
+    region_redraw_immediately(C, region);
   }
 
   if (!textbutton_activate_rna(C, region, list, "filter_name")) {
@@ -2665,7 +2665,7 @@ static wmOperatorStatus ui_view_scroll_invoke(bContext *C,
 
   if (type == MOUSEPAN) {
     int dummy_val;
-    ui_pan_to_scroll(event, &type, &dummy_val);
+    pan_to_scroll(event, &type, &dummy_val);
 
     /* 'ui_pan_to_scroll' gives the absolute direction. */
     if (event->flag & WM_EVENT_SCROLL_INVERT) {
@@ -2815,7 +2815,7 @@ static std::pair<AbstractView *, AbstractViewItem *> select_operator_view_and_it
     int region_xy[2];
     region_xy[0] = RNA_int_get(op.ptr, "mouse_x");
     region_xy[1] = RNA_int_get(op.ptr, "mouse_y");
-    ui_region_to_window(&region, region_xy[0], region_xy[1], &window_xy[0], &window_xy[1]);
+    region_to_window(&region, region_xy[0], region_xy[1], &window_xy[0], &window_xy[1]);
   }
 
   AbstractView *view = region_view_find_at(&region, window_xy, 0);

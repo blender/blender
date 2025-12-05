@@ -164,7 +164,7 @@ static bool uiTemplateInputStatusAzone(Layout *layout, const AZone *az, const AR
     layout->label(IFACE_("Duplicate into Window"), ICON_NONE);
     layout->separator(0.6f);
     layout->label("", ICON_EVENT_CTRL);
-    layout->separator(ui_event_icon_offset(ICON_EVENT_CTRL));
+    layout->separator(event_icon_offset(ICON_EVENT_CTRL));
     layout->label(nullptr, ICON_MOUSE_LMB_DRAG);
     layout->separator(-0.2f);
     layout->label(IFACE_("Swap Areas"), ICON_NONE);
@@ -281,7 +281,7 @@ void uiTemplateInputStatus(Layout *layout, bContext *C)
         if (item.inverted) {
           but->drawflag |= BUT_ICON_INVERT;
         }
-        const float offset = ui_event_icon_offset(item.icon);
+        const float offset = event_icon_offset(item.icon);
         if (offset != 0.0f) {
           row.separator(offset);
         }

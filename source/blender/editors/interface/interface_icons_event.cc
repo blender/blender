@@ -131,7 +131,7 @@ static void icon_draw_rect_input_icon(const rctf *rect,
   icon_draw_icon(rect, icon, aspect, alpha, false);
 }
 
-float ui_event_icon_offset(const int icon_id)
+float event_icon_offset(const int icon_id)
 {
   const enum {
     UNIX,
@@ -211,7 +211,7 @@ void icon_draw_rect_input(const float x,
 #endif
       ;
 
-  const float offset = ui_event_icon_offset(icon_id);
+  const float offset = event_icon_offset(icon_id);
   if (offset >= 2.0f) {
     rect.xmax = rect.xmin + BLI_rctf_size_x(&rect) * 2.0f;
   }

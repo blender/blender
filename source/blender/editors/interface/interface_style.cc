@@ -469,7 +469,7 @@ int fontstyle_height_max(const uiFontStyle *fs)
 
 /* ************** init exit ************************ */
 
-void uiStyleInit()
+void style_init()
 {
   const uiStyle *style = static_cast<uiStyle *>(U.uistyles.first);
 

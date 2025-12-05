@@ -5494,7 +5494,7 @@ static void achannel_setting_widget_cb(bContext *C, void *ale_npoin, void *setti
   }
 
   /* When the button in the UI changes the setting, it does NOT call `ANIM_channel_setting_set()`,
-   * but actually manipulates the data directly via a pointer (see `ui_but_value_set()` in
+   * but actually manipulates the data directly via a pointer (see `button_value_set()` in
    * `source/blender/editors/interface/interface.cc`).
    *
    * As a result, `setting_post_update()` was not called yet and we need to call it here. */

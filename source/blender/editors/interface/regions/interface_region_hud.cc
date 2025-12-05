@@ -274,7 +274,7 @@ static void hud_region_draw(const bContext *C, ARegion *region)
     rcti reset_rect = {};
     reset_rect.xmax = region->winx;
     reset_rect.ymax = region->winy;
-    ui_draw_menu_back(nullptr, nullptr, &reset_rect);
+    draw_menu_back(nullptr, nullptr, &reset_rect);
     ED_region_panels_draw(C, region);
   }
 }

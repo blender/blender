@@ -69,7 +69,7 @@ static const char *ui_textedit_redo_impl(uiUndoStack_Text *stack, int *r_cursor_
   return nullptr;
 }
 
-const char *ui_textedit_undo(uiUndoStack_Text *stack, int direction, int *r_cursor_index)
+const char *textedit_undo(uiUndoStack_Text *stack, int direction, int *r_cursor_index)
 {
   BLI_assert(ELEM(direction, -1, 1));
   if (direction < 0) {
@@ -78,7 +78,7 @@ const char *ui_textedit_undo(uiUndoStack_Text *stack, int direction, int *r_curs
   return ui_textedit_redo_impl(stack, r_cursor_index);
 }
 
-void ui_textedit_undo_push(uiUndoStack_Text *stack, const char *text, int cursor_index)
+void textedit_undo_push(uiUndoStack_Text *stack, const char *text, int cursor_index)
 {
   /* Clear all redo actions from the current state. */
   if (stack->current != nullptr) {
@@ -98,7 +98,7 @@ void ui_textedit_undo_push(uiUndoStack_Text *stack, const char *text, int cursor
   BLI_addtail(&stack->states, stack->current);
 }
 
-uiUndoStack_Text *ui_textedit_undo_stack_create()
+uiUndoStack_Text *textedit_undo_stack_create()
 {
   uiUndoStack_Text *stack = MEM_callocN<uiUndoStack_Text>(__func__);
   stack->current = nullptr;
@@ -107,7 +107,7 @@ uiUndoStack_Text *ui_textedit_undo_stack_create()
   return stack;
 }
 
-void ui_textedit_undo_stack_destroy(uiUndoStack_Text *stack)
+void textedit_undo_stack_destroy(uiUndoStack_Text *stack)
 {
   BLI_freelistN(&stack->states);
   MEM_freeN(stack);

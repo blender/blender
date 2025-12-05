@@ -86,7 +86,7 @@ const UserDef U_default = {
     /** Initialized by #theme_init_default. */
     .themes = {NULL},
 
-    /** Initialized by #uiStyleInit. */
+    /** Initialized by #style_init. */
     .uifonts = {NULL},
     .uistyles = {NULL},
 

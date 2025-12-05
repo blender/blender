@@ -93,19 +93,19 @@ int template_status_bar_modal_item(Layout *layout,
 #endif
       for (int j = 0; j < ARRAY_SIZE(icon_mod) && icon_mod[j]; j++) {
         layout->label("", icon_mod[j]);
-        const float offset = ui_event_icon_offset(icon_mod[j]);
+        const float offset = event_icon_offset(icon_mod[j]);
         if (offset != 0.0f) {
           layout->separator(offset);
         }
       }
       layout->label("", icon);
-      layout->separator(ui_event_icon_offset(icon));
+      layout->separator(event_icon_offset(icon));
 
 #ifndef WITH_HEADLESS
       icon = icon_from_keymap_item(kmi_y, icon_mod);
 #endif
       layout->label("", icon);
-      layout->separator(ui_event_icon_offset(icon));
+      layout->separator(event_icon_offset(icon));
 
       if ((keymap->poll_modal_item == nullptr) ||
           (keymap->poll_modal_item(op, item_z->value) != false))
@@ -115,7 +115,7 @@ int template_status_bar_modal_item(Layout *layout,
         icon = icon_from_keymap_item(kmi_z, icon_mod);
 #endif
         layout->label("", icon);
-        layout->separator(ui_event_icon_offset(icon));
+        layout->separator(event_icon_offset(icon));
         layout->separator(0.2f);
       }
 
@@ -144,19 +144,19 @@ int template_status_bar_modal_item(Layout *layout,
 #endif
       for (int j = 0; j < ARRAY_SIZE(icon_mod) && icon_mod[j]; j++) {
         layout->label("", icon_mod[j]);
-        const float offset = ui_event_icon_offset(icon_mod[j]);
+        const float offset = event_icon_offset(icon_mod[j]);
         if (offset != 0.0f) {
           layout->separator(offset);
         }
       }
       layout->label("", icon);
-      layout->separator(ui_event_icon_offset(icon));
+      layout->separator(event_icon_offset(icon));
 
 #ifndef WITH_HEADLESS
       icon = icon_from_keymap_item(kmi_y, icon_mod);
 #endif
       layout->label("", icon);
-      layout->separator(ui_event_icon_offset(icon));
+      layout->separator(event_icon_offset(icon));
       layout->separator(0.2f);
       layout->label(ab_label, ICON_NONE);
       layout->separator(0.6f);
@@ -184,7 +184,7 @@ bool template_event_from_keymap_item(Layout *layout,
   if (icon != 0) {
     for (int j = 0; j < ARRAY_SIZE(icon_mod) && icon_mod[j]; j++) {
       layout->label("", icon_mod[j]);
-      const float offset = ui_event_icon_offset(icon_mod[j]);
+      const float offset = event_icon_offset(icon_mod[j]);
       if (offset != 0.0f) {
         layout->separator(offset);
       }
@@ -198,7 +198,7 @@ bool template_event_from_keymap_item(Layout *layout,
       layout->separator(-0.68f);
     }
 
-    const float offset = ui_event_icon_offset(icon);
+    const float offset = event_icon_offset(icon);
     if (offset != 0.0f) {
       layout->separator(offset);
     }

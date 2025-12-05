@@ -88,7 +88,7 @@ static void operator_search_update_fn(const bContext *C,
 void button_func_operator_search(Button *but)
 {
   button_func_search_set(but,
-                         ui_searchbox_create_operator,
+                         searchbox_create_operator,
                          operator_search_update_fn,
                          nullptr,
                          false,

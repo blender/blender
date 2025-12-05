@@ -48,9 +48,7 @@ struct ViewLink : public Link {
 };
 
 template<class T>
-static T *ui_block_add_view_impl(Block &block,
-                                 StringRef idname,
-                                 std::unique_ptr<AbstractView> view)
+static T *block_add_view_impl(Block &block, StringRef idname, std::unique_ptr<AbstractView> view)
 {
   BLI_assert(idname.size() < int64_t(sizeof(uiViewStateLink::idname)));
 
@@ -67,17 +65,17 @@ AbstractGridView *block_add_view(Block &block,
                                  StringRef idname,
                                  std::unique_ptr<AbstractGridView> grid_view)
 {
-  return ui_block_add_view_impl<AbstractGridView>(block, idname, std::move(grid_view));
+  return block_add_view_impl<AbstractGridView>(block, idname, std::move(grid_view));
 }
 
 AbstractTreeView *block_add_view(Block &block,
                                  StringRef idname,
                                  std::unique_ptr<AbstractTreeView> tree_view)
 {
-  return ui_block_add_view_impl<AbstractTreeView>(block, idname, std::move(tree_view));
+  return block_add_view_impl<AbstractTreeView>(block, idname, std::move(tree_view));
 }
 
-void ui_block_free_views(Block *block)
+void block_free_views(Block *block)
 {
   LISTBASE_FOREACH_MUTABLE (ViewLink *, link, &block->views) {
     MEM_delete(link);
@@ -124,9 +122,9 @@ void ViewLink::views_bounds_calc(const Block &block)
   }
 }
 
-void ui_block_view_persistent_state_restore(const ARegion &region,
-                                            const Block &block,
-                                            AbstractView &view)
+void block_view_persistent_state_restore(const ARegion &region,
+                                         const Block &block,
+                                         AbstractView &view)
 {
   StringRef idname = [&]() -> StringRef {
     LISTBASE_FOREACH (ViewLink *, link, &block.views) {
@@ -163,7 +161,7 @@ static uiViewStateLink *ensure_view_state(ARegion &region, const ViewLink &link)
   return new_state;
 }
 
-void ui_block_views_end(ARegion *region, const Block *block)
+void block_views_end(ARegion *region, const Block *block)
 {
   ViewLink::views_bounds_calc(*block);
 
@@ -178,7 +176,7 @@ void ui_block_views_end(ARegion *region, const Block *block)
   }
 }
 
-void ui_block_views_listen(const Block *block, const wmRegionListenerParams *listener_params)
+void block_views_listen(const Block *block, const wmRegionListenerParams *listener_params)
 {
   ARegion *region = listener_params->region;
 
@@ -189,7 +187,7 @@ void ui_block_views_listen(const Block *block, const wmRegionListenerParams *lis
   }
 }
 
-void ui_block_views_draw_overlays(const ARegion *region, const Block *block)
+void block_views_draw_overlays(const ARegion *region, const Block *block)
 {
   LISTBASE_FOREACH (ViewLink *, view_link, &block->views) {
     view_link->view->draw_overlays(*region, *block);
@@ -200,12 +198,12 @@ AbstractView *region_view_find_at(const ARegion *region, const int xy[2], const 
 {
   /* NOTE: Similar to #ui_but_find_mouse_over_ex(). */
 
-  if (!ui_region_contains_point_px(region, xy)) {
+  if (!region_contains_point_px(region, xy)) {
     return nullptr;
   }
   LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
     float mx = xy[0], my = xy[1];
-    ui_window_to_block_fl(region, block, &mx, &my);
+    window_to_block_fl(region, block, &mx, &my);
 
     LISTBASE_FOREACH (ViewLink *, view_link, &block->views) {
       std::optional<rcti> bounds = view_link->view->get_bounds();
@@ -228,7 +226,7 @@ AbstractView *region_view_find_at(const ARegion *region, const int xy[2], const 
 
 AbstractViewItem *region_views_find_item_at(const ARegion &region, const int xy[2])
 {
-  auto *item_but = (ButtonViewItem *)ui_view_item_find_mouse_over(&region, xy);
+  auto *item_but = (ButtonViewItem *)view_item_find_mouse_over(&region, xy);
   if (!item_but) {
     return nullptr;
   }
@@ -238,7 +236,7 @@ AbstractViewItem *region_views_find_item_at(const ARegion &region, const int xy[
 
 AbstractViewItem *region_views_find_active_item(const ARegion *region)
 {
-  auto *item_but = (ButtonViewItem *)ui_view_item_find_active(region);
+  auto *item_but = (ButtonViewItem *)view_item_find_active(region);
   if (!item_but) {
     return nullptr;
   }
@@ -248,7 +246,7 @@ AbstractViewItem *region_views_find_active_item(const ARegion *region)
 
 Button *region_views_find_active_item_but(const ARegion *region)
 {
-  return ui_view_item_find_active(region);
+  return view_item_find_active(region);
 }
 
 void region_views_clear_search_highlight(const ARegion *region)
@@ -298,7 +296,7 @@ std::unique_ptr<DropTargetInterface> region_views_find_drop_target_at(const AReg
   return nullptr;
 }
 
-static StringRef ui_block_view_find_idname(const Block &block, const AbstractView &view)
+static StringRef block_view_find_idname(const Block &block, const AbstractView &view)
 {
   /* First get the `idname` of the view we're looking for. */
   LISTBASE_FOREACH (ViewLink *, view_link, &block.views) {
@@ -311,14 +309,14 @@ static StringRef ui_block_view_find_idname(const Block &block, const AbstractVie
 }
 
 template<class T>
-static T *ui_block_view_find_matching_in_old_block_impl(const Block &new_block, const T &new_view)
+static T *block_view_find_matching_in_old_block_impl(const Block &new_block, const T &new_view)
 {
   Block *old_block = new_block.oldblock;
   if (!old_block) {
     return nullptr;
   }
 
-  StringRef idname = ui_block_view_find_idname(new_block, new_view);
+  StringRef idname = block_view_find_idname(new_block, new_view);
   if (idname.is_empty()) {
     return nullptr;
   }
@@ -332,13 +330,13 @@ static T *ui_block_view_find_matching_in_old_block_impl(const Block &new_block, 
   return nullptr;
 }
 
-AbstractView *ui_block_view_find_matching_in_old_block(const Block &new_block,
-                                                       const AbstractView &new_view)
+AbstractView *block_view_find_matching_in_old_block(const Block &new_block,
+                                                    const AbstractView &new_view)
 {
-  return ui_block_view_find_matching_in_old_block_impl(new_block, new_view);
+  return block_view_find_matching_in_old_block_impl(new_block, new_view);
 }
 
-ButtonViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
+ButtonViewItem *block_view_find_matching_view_item_but_in_old_block(
     const Block &new_block, const AbstractViewItem &new_item)
 {
   Block *old_block = new_block.oldblock;
@@ -346,8 +344,8 @@ ButtonViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
     return nullptr;
   }
 
-  const AbstractView *old_view = ui_block_view_find_matching_in_old_block_impl(
-      new_block, new_item.get_view());
+  const AbstractView *old_view = block_view_find_matching_in_old_block_impl(new_block,
+                                                                            new_item.get_view());
   if (!old_view) {
     return nullptr;
   }
