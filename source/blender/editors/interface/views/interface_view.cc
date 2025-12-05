@@ -99,7 +99,7 @@ void ViewLink::views_bounds_calc(const uiBlock &block)
     if (but->type != ButType::ViewItem) {
       continue;
     }
-    uiButViewItem *view_item_but = static_cast<uiButViewItem *>(but.get());
+    auto *view_item_but = static_cast<blender::ui::ButtonViewItem *>(but.get());
     if (!view_item_but->view_item) {
       continue;
     }
@@ -231,7 +231,7 @@ blender::ui::AbstractView *UI_region_view_find_at(const ARegion *region,
 
 ui::AbstractViewItem *UI_region_views_find_item_at(const ARegion &region, const int xy[2])
 {
-  uiButViewItem *item_but = (uiButViewItem *)ui_view_item_find_mouse_over(&region, xy);
+  auto *item_but = (blender::ui::ButtonViewItem *)ui_view_item_find_mouse_over(&region, xy);
   if (!item_but) {
     return nullptr;
   }
@@ -241,7 +241,7 @@ ui::AbstractViewItem *UI_region_views_find_item_at(const ARegion &region, const 
 
 ui::AbstractViewItem *UI_region_views_find_active_item(const ARegion *region)
 {
-  uiButViewItem *item_but = (uiButViewItem *)ui_view_item_find_active(region);
+  auto *item_but = (blender::ui::ButtonViewItem *)ui_view_item_find_active(region);
   if (!item_but) {
     return nullptr;
   }
@@ -346,7 +346,7 @@ blender::ui::AbstractView *ui_block_view_find_matching_in_old_block(
   return ui_block_view_find_matching_in_old_block_impl(new_block, new_view);
 }
 
-uiButViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
+blender::ui::ButtonViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
     const uiBlock &new_block, const ui::AbstractViewItem &new_item)
 {
   uiBlock *old_block = new_block.oldblock;
@@ -364,7 +364,7 @@ uiButViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
     if (old_but->type != ButType::ViewItem) {
       continue;
     }
-    uiButViewItem *old_item_but = (uiButViewItem *)old_but.get();
+    blender::ui::ButtonViewItem *old_item_but = (blender::ui::ButtonViewItem *)old_but.get();
     if (!old_item_but->view_item) {
       continue;
     }

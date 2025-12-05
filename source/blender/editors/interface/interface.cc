@@ -694,10 +694,10 @@ void UI_block_bounds_set_explicit(uiBlock *block, int minx, int miny, int maxx, 
 static float ui_but_get_float_precision(uiBut *but)
 {
   if (but->type == ButType::Num) {
-    return ((uiButNumber *)but)->precision;
+    return ((blender::ui::ButtonNumber *)but)->precision;
   }
   if (but->type == ButType::NumSlider) {
-    return ((uiButNumberSlider *)but)->precision;
+    return ((blender::ui::ButtonNumberSlider *)but)->precision;
   }
   BLI_assert_unreachable();
   return 1.0f;
@@ -706,10 +706,10 @@ static float ui_but_get_float_precision(uiBut *but)
 static float ui_but_get_float_step_size(uiBut *but)
 {
   if (but->type == ButType::Num) {
-    return ((uiButNumber *)but)->step_size;
+    return ((blender::ui::ButtonNumber *)but)->step_size;
   }
   if (but->type == ButType::NumSlider) {
-    return ((uiButNumberSlider *)but)->step_size;
+    return ((blender::ui::ButtonNumberSlider *)but)->step_size;
   }
   BLI_assert_unreachable();
   return 1.0f;
@@ -846,8 +846,8 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
   }
 
   if (but->type == ButType::ViewItem) {
-    uiButViewItem *but_item = (uiButViewItem *)but;
-    uiButViewItem *oldbut_item = (uiButViewItem *)oldbut;
+    blender::ui::ButtonViewItem *but_item = (blender::ui::ButtonViewItem *)but;
+    blender::ui::ButtonViewItem *oldbut_item = (blender::ui::ButtonViewItem *)oldbut;
     if (!but_item->view_item || !oldbut_item->view_item ||
         !UI_view_item_matches(*but_item->view_item, *oldbut_item->view_item))
     {
@@ -900,17 +900,17 @@ uiBut *ui_but_find_new(uiBlock *block_new, const uiBut *but_old)
   return nullptr;
 }
 
-static bool ui_but_extra_icons_equals_old(const uiButExtraOpIcon *new_extra_icon,
-                                          const uiButExtraOpIcon *old_extra_icon)
+static bool ui_but_extra_icons_equals_old(const blender::ui::ButtonExtraOpIcon *new_extra_icon,
+                                          const blender::ui::ButtonExtraOpIcon *old_extra_icon)
 {
   return (new_extra_icon->optype_params->optype == old_extra_icon->optype_params->optype) &&
          (new_extra_icon->icon == old_extra_icon->icon);
 }
 
-static uiButExtraOpIcon *ui_but_extra_icon_find_old(const uiButExtraOpIcon *new_extra_icon,
-                                                    const uiBut *old_but)
+static blender::ui::ButtonExtraOpIcon *ui_but_extra_icon_find_old(
+    const blender::ui::ButtonExtraOpIcon *new_extra_icon, const uiBut *old_but)
 {
-  LISTBASE_FOREACH (uiButExtraOpIcon *, op_icon, &old_but->extra_op_icons) {
+  LISTBASE_FOREACH (blender::ui::ButtonExtraOpIcon *, op_icon, &old_but->extra_op_icons) {
     if (ui_but_extra_icons_equals_old(new_extra_icon, op_icon)) {
       return op_icon;
     }
@@ -923,8 +923,9 @@ static void ui_but_extra_icons_update_from_old_but(const uiBut *new_but, const u
   /* Specifically for keeping some state info for the active button. */
   BLI_assert(old_but->active || old_but->semi_modal_state);
 
-  LISTBASE_FOREACH (uiButExtraOpIcon *, new_extra_icon, &new_but->extra_op_icons) {
-    uiButExtraOpIcon *old_extra_icon = ui_but_extra_icon_find_old(new_extra_icon, old_but);
+  LISTBASE_FOREACH (blender::ui::ButtonExtraOpIcon *, new_extra_icon, &new_but->extra_op_icons) {
+    blender::ui::ButtonExtraOpIcon *old_extra_icon = ui_but_extra_icon_find_old(new_extra_icon,
+                                                                                old_but);
     /* Keep the highlighting state, and let handling update it later. */
     if (old_extra_icon) {
       new_extra_icon->highlighted = old_extra_icon->highlighted;
@@ -983,7 +984,8 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
   std::swap(but->extra_op_icons, oldbut->extra_op_icons);
 
   if (oldbut->type == ButType::SearchMenu) {
-    uiButSearch *search_oldbut = (uiButSearch *)oldbut, *search_but = (uiButSearch *)but;
+    blender::ui::ButtonSearch *search_oldbut = (blender::ui::ButtonSearch *)oldbut,
+                              *search_but = (blender::ui::ButtonSearch *)but;
 
     std::swap(search_oldbut->arg_free_fn, search_but->arg_free_fn);
     std::swap(search_oldbut->arg, search_but->arg);
@@ -997,32 +999,32 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
 
   switch (oldbut->type) {
     case ButType::Progress: {
-      uiButProgress *progress_oldbut = (uiButProgress *)oldbut;
-      uiButProgress *progress_but = (uiButProgress *)but;
+      blender::ui::ButtonProgress *progress_oldbut = (blender::ui::ButtonProgress *)oldbut;
+      blender::ui::ButtonProgress *progress_but = (blender::ui::ButtonProgress *)but;
       progress_oldbut->progress_factor = progress_but->progress_factor;
       break;
     }
     case ButType::SeprLine: {
-      uiButSeparatorLine *line_oldbut = (uiButSeparatorLine *)oldbut;
-      uiButSeparatorLine *line_but = (uiButSeparatorLine *)but;
+      blender::ui::ButtonSeparatorLine *line_oldbut = (blender::ui::ButtonSeparatorLine *)oldbut;
+      blender::ui::ButtonSeparatorLine *line_but = (blender::ui::ButtonSeparatorLine *)but;
       line_oldbut->is_vertical = line_but->is_vertical;
       break;
     }
     case ButType::Label: {
-      uiButLabel *label_oldbut = (uiButLabel *)oldbut;
-      uiButLabel *label_but = (uiButLabel *)but;
+      blender::ui::ButtonLabel *label_oldbut = (blender::ui::ButtonLabel *)oldbut;
+      blender::ui::ButtonLabel *label_but = (blender::ui::ButtonLabel *)but;
       label_oldbut->alpha_factor = label_but->alpha_factor;
       break;
     }
     case ButType::Scroll: {
-      uiButScrollBar *scroll_oldbut = (uiButScrollBar *)oldbut;
-      uiButScrollBar *scroll_but = (uiButScrollBar *)but;
+      blender::ui::ButtonScrollBar *scroll_oldbut = (blender::ui::ButtonScrollBar *)oldbut;
+      blender::ui::ButtonScrollBar *scroll_but = (blender::ui::ButtonScrollBar *)but;
       scroll_oldbut->visual_height = scroll_but->visual_height;
       break;
     }
     case ButType::ViewItem: {
-      uiButViewItem *view_item_oldbut = (uiButViewItem *)oldbut;
-      uiButViewItem *view_item_newbut = (uiButViewItem *)but;
+      blender::ui::ButtonViewItem *view_item_oldbut = (blender::ui::ButtonViewItem *)oldbut;
+      blender::ui::ButtonViewItem *view_item_newbut = (blender::ui::ButtonViewItem *)but;
       ui_view_item_swap_button_pointers(*view_item_newbut->view_item,
                                         *view_item_oldbut->view_item);
       std::swap(view_item_newbut->view_item, view_item_oldbut->view_item);
@@ -1450,7 +1452,7 @@ static std::optional<std::string> ui_but_event_operator_string(const bContext *C
 }
 
 static std::optional<std::string> ui_but_extra_icon_event_operator_string(
-    const bContext *C, const uiButExtraOpIcon *extra_icon)
+    const bContext *C, const blender::ui::ButtonExtraOpIcon *extra_icon)
 {
   wmOperatorType *extra_icon_optype = UI_but_extra_operator_icon_optype_get(extra_icon);
 
@@ -1750,7 +1752,7 @@ void ui_but_override_flag(Main *bmain, uiBut *but)
  * \{ */
 
 /**
- * Predefined types for generic extra operator icons (uiButExtraOpIcon).
+ * Predefined types for generic extra operator icons (blender::ui::ButtonExtraOpIcon).
  */
 enum PredefinedExtraOpIconType {
   PREDEFINED_EXTRA_OP_ICON_NONE = 1,
@@ -1764,7 +1766,7 @@ static PointerRNA *ui_but_extra_operator_icon_add_ptr(uiBut *but,
                                                       blender::wm::OpCallContext opcontext,
                                                       int icon)
 {
-  uiButExtraOpIcon *extra_op_icon = MEM_callocN<uiButExtraOpIcon>(__func__);
+  auto *extra_op_icon = MEM_callocN<blender::ui::ButtonExtraOpIcon>(__func__);
 
   extra_op_icon->icon = icon;
   extra_op_icon->optype_params = MEM_callocN<wmOperatorCallParams>(__func__);
@@ -1781,7 +1783,7 @@ static PointerRNA *ui_but_extra_operator_icon_add_ptr(uiBut *but,
   return extra_op_icon->optype_params->opptr;
 }
 
-static void ui_but_extra_operator_icon_free(uiButExtraOpIcon *extra_icon)
+static void ui_but_extra_operator_icon_free(blender::ui::ButtonExtraOpIcon *extra_icon)
 {
   WM_operator_properties_free(extra_icon->optype_params->opptr);
   MEM_delete(extra_icon->optype_params->opptr);
@@ -1791,7 +1793,7 @@ static void ui_but_extra_operator_icon_free(uiButExtraOpIcon *extra_icon)
 
 void ui_but_extra_operator_icons_free(uiBut *but)
 {
-  LISTBASE_FOREACH_MUTABLE (uiButExtraOpIcon *, op_icon, &but->extra_op_icons) {
+  LISTBASE_FOREACH_MUTABLE (blender::ui::ButtonExtraOpIcon *, op_icon, &but->extra_op_icons) {
     ui_but_extra_operator_icon_free(op_icon);
   }
   BLI_listbase_clear(&but->extra_op_icons);
@@ -1811,12 +1813,13 @@ PointerRNA *UI_but_extra_operator_icon_add(uiBut *but,
   return nullptr;
 }
 
-wmOperatorType *UI_but_extra_operator_icon_optype_get(const uiButExtraOpIcon *extra_icon)
+wmOperatorType *UI_but_extra_operator_icon_optype_get(
+    const blender::ui::ButtonExtraOpIcon *extra_icon)
 {
   return extra_icon ? extra_icon->optype_params->optype : nullptr;
 }
 
-PointerRNA *UI_but_extra_operator_icon_opptr_get(const uiButExtraOpIcon *extra_icon)
+PointerRNA *UI_but_extra_operator_icon_opptr_get(const blender::ui::ButtonExtraOpIcon *extra_icon)
 {
   return extra_icon->optype_params->opptr;
 }
@@ -1859,7 +1862,7 @@ static bool ui_but_icon_extra_is_visible_bone_eyedropper(uiBut *but)
   if (!ELEM(RNA_property_type(but->rnaprop), PROP_STRING, PROP_POINTER)) {
     return false;
   }
-  uiButSearch *search_but = (uiButSearch *)but;
+  blender::ui::ButtonSearch *search_but = (blender::ui::ButtonSearch *)but;
   if (!search_but->rnasearchprop) {
     return false;
   }
@@ -1949,7 +1952,7 @@ static void ui_but_predefined_extra_operator_icons_add(uiBut *but)
   }
 
   if (optype) {
-    LISTBASE_FOREACH (uiButExtraOpIcon *, op_icon, &but->extra_op_icons) {
+    LISTBASE_FOREACH (blender::ui::ButtonExtraOpIcon *, op_icon, &but->extra_op_icons) {
       if ((op_icon->optype_params->optype == optype) && (op_icon->icon == icon)) {
         /* Don't add the same operator icon twice (happens if button is kept alive while active).
          */
@@ -2009,7 +2012,7 @@ static void ui_but_validate(const uiBut *but)
   /* Number buttons must have a click-step,
    * assert instead of correcting the value to ensure the caller knows what they're doing. */
   if (but->type == ButType::Num) {
-    uiButNumber *number_but = (uiButNumber *)but;
+    blender::ui::ButtonNumber *number_but = (blender::ui::ButtonNumber *)but;
 
     if (ELEM(but->pointype, ButPointerType::Char, ButPointerType::Short, ButPointerType::Int)) {
       BLI_assert(int(number_but->step_size) > 0);
@@ -2098,7 +2101,7 @@ void UI_block_end_ex(const bContext *C,
       }
     }
 
-    LISTBASE_FOREACH (uiButExtraOpIcon *, op_icon, &but->extra_op_icons) {
+    LISTBASE_FOREACH (blender::ui::ButtonExtraOpIcon *, op_icon, &but->extra_op_icons) {
       if (!ui_but_context_poll_operator_ex((bContext *)C, but.get(), op_icon->optype_params)) {
         op_icon->disabled = true;
       }
@@ -2109,7 +2112,7 @@ void UI_block_end_ex(const bContext *C,
     ui_but_anim_flag(but.get(), &anim_eval_context);
     ui_but_override_flag(bmain, but.get());
     if (UI_but_is_decorator(but)) {
-      ui_but_anim_decorate_update_from_flag((uiButDecorator *)but.get());
+      ui_but_anim_decorate_update_from_flag((blender::ui::ButtonDecorator *)but.get());
     }
 
 #ifndef NDEBUG
@@ -2429,7 +2432,7 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
         }
         break;
       case ButType::ViewItem: {
-        const uiButViewItem *view_item_but = (const uiButViewItem *)but;
+        const auto *view_item_but = (const blender::ui::ButtonViewItem *)but;
 
         is_push = -1;
         if (view_item_but->view_item) {
@@ -2730,7 +2733,7 @@ bool ui_but_supports_cycling(const uiBut *but)
 {
   return (ELEM(but->type, ButType::Row, ButType::Num, ButType::NumSlider, ButType::ListBox) ||
           (but->type == ButType::Menu && ui_but_menu_step_poll(but)) ||
-          (but->type == ButType::Color && ((uiButColor *)but)->is_pallete_color) ||
+          (but->type == ButType::Color && ((blender::ui::ButtonColor *)but)->is_pallete_color) ||
           (but->menu_step_func != nullptr));
 }
 
@@ -3343,8 +3346,9 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
           return true;
         }
 
-        uiButSearch *search_but = (but->type == ButType::SearchMenu) ? (uiButSearch *)but :
-                                                                       nullptr;
+        blender::ui::ButtonSearch *search_but = (but->type == ButType::SearchMenu) ?
+                                                    (blender::ui::ButtonSearch *)but :
+                                                    nullptr;
         /* RNA pointer */
         PointerRNA rptr;
 
@@ -3625,7 +3629,7 @@ static void ui_but_free_type_specific(uiBut *but)
 {
   switch (but->type) {
     case ButType::SearchMenu: {
-      uiButSearch *search_but = (uiButSearch *)but;
+      blender::ui::ButtonSearch *search_but = (blender::ui::ButtonSearch *)but;
       MEM_SAFE_FREE(search_but->item_active_str);
 
       if (search_but->arg_free_fn) {
@@ -4132,7 +4136,7 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
     }
     case ButType::HotkeyEvent:
       if (but->flag & UI_SELECT) {
-        const uiButHotkeyEvent *hotkey_but = (uiButHotkeyEvent *)but;
+        const blender::ui::ButtonHotkeyEvent *hotkey_but = (blender::ui::ButtonHotkeyEvent *)but;
 
         if (hotkey_but->modifier_key) {
           /* Rely on #KM_NOTHING being zero for `type`, `val` ... etc. */
@@ -4220,52 +4224,52 @@ static std::unique_ptr<uiBut> ui_but_new(const ButType type)
 
   switch (type) {
     case ButType::Num:
-      but = std::make_unique<uiButNumber>();
+      but = std::make_unique<blender::ui::ButtonNumber>();
       break;
     case ButType::NumSlider:
-      but = std::make_unique<uiButNumberSlider>();
+      but = std::make_unique<blender::ui::ButtonNumberSlider>();
       break;
     case ButType::Color:
-      but = std::make_unique<uiButColor>();
+      but = std::make_unique<blender::ui::ButtonColor>();
       break;
     case ButType::Decorator:
-      but = std::make_unique<uiButDecorator>();
+      but = std::make_unique<blender::ui::ButtonDecorator>();
       break;
     case ButType::Tab:
-      but = std::make_unique<uiButTab>();
+      but = std::make_unique<blender::ui::ButtonTab>();
       break;
     case ButType::SearchMenu:
-      but = std::make_unique<uiButSearch>();
+      but = std::make_unique<blender::ui::ButtonSearch>();
       break;
     case ButType::Progress:
-      but = std::make_unique<uiButProgress>();
+      but = std::make_unique<blender::ui::ButtonProgress>();
       break;
     case ButType::SeprLine:
-      but = std::make_unique<uiButSeparatorLine>();
+      but = std::make_unique<blender::ui::ButtonSeparatorLine>();
       break;
     case ButType::HsvCube:
-      but = std::make_unique<uiButHSVCube>();
+      but = std::make_unique<blender::ui::ButtonHSVCube>();
       break;
     case ButType::ColorBand:
-      but = std::make_unique<uiButColorBand>();
+      but = std::make_unique<blender::ui::ButtonColorBand>();
       break;
     case ButType::Curve:
-      but = std::make_unique<uiButCurveMapping>();
+      but = std::make_unique<blender::ui::ButtonCurveMapping>();
       break;
     case ButType::CurveProfile:
-      but = std::make_unique<uiButCurveProfile>();
+      but = std::make_unique<blender::ui::ButtonCurveProfile>();
       break;
     case ButType::HotkeyEvent:
-      but = std::make_unique<uiButHotkeyEvent>();
+      but = std::make_unique<blender::ui::ButtonHotkeyEvent>();
       break;
     case ButType::ViewItem:
-      but = std::make_unique<uiButViewItem>();
+      but = std::make_unique<blender::ui::ButtonViewItem>();
       break;
     case ButType::Label:
-      but = std::make_unique<uiButLabel>();
+      but = std::make_unique<blender::ui::ButtonLabel>();
       break;
     case ButType::Scroll:
-      but = std::make_unique<uiButScrollBar>();
+      but = std::make_unique<blender::ui::ButtonScrollBar>();
       break;
     default:
       but = std::make_unique<uiBut>();
@@ -4984,11 +4988,11 @@ static uiBut *ui_def_but_rna(uiBlock *block,
   /* If this button uses units, calculate the step from this */
   if ((proptype == PROP_FLOAT) && ui_but_is_unit(but)) {
     if (type == ButType::Num) {
-      uiButNumber *number_but = (uiButNumber *)but;
+      blender::ui::ButtonNumber *number_but = (blender::ui::ButtonNumber *)but;
       number_but->step_size = ui_get_but_step_unit(but, number_but->step_size);
     }
     if (type == ButType::NumSlider) {
-      uiButNumberSlider *number_but = (uiButNumberSlider *)but;
+      blender::ui::ButtonNumberSlider *number_but = (blender::ui::ButtonNumberSlider *)but;
       number_but->step_size = ui_get_but_step_unit(but, number_but->step_size);
     }
   }
@@ -6417,7 +6421,7 @@ void UI_but_func_search_set(uiBut *but,
                             uiButHandleFunc search_exec_fn,
                             void *active)
 {
-  uiButSearch *search_but = (uiButSearch *)but;
+  blender::ui::ButtonSearch *search_but = (blender::ui::ButtonSearch *)but;
 
   BLI_assert(but->type == ButType::SearchMenu);
 
@@ -6468,7 +6472,7 @@ void UI_but_func_search_set(uiBut *but,
 
 void UI_but_func_search_set_context_menu(uiBut *but, uiButSearchContextMenuFn context_menu_fn)
 {
-  uiButSearch *but_search = (uiButSearch *)but;
+  blender::ui::ButtonSearch *but_search = (blender::ui::ButtonSearch *)but;
   BLI_assert(but->type == ButType::SearchMenu);
 
   but_search->item_context_menu_fn = context_menu_fn;
@@ -6476,7 +6480,7 @@ void UI_but_func_search_set_context_menu(uiBut *but, uiButSearchContextMenuFn co
 
 void UI_but_func_search_set_sep_string(uiBut *but, const char *search_sep_string)
 {
-  uiButSearch *but_search = (uiButSearch *)but;
+  blender::ui::ButtonSearch *but_search = (blender::ui::ButtonSearch *)but;
   BLI_assert(but->type == ButType::SearchMenu);
 
   but_search->item_sep_string = search_sep_string;
@@ -6484,7 +6488,7 @@ void UI_but_func_search_set_sep_string(uiBut *but, const char *search_sep_string
 
 void UI_but_func_search_set_tooltip(uiBut *but, uiButSearchTooltipFn tooltip_fn)
 {
-  uiButSearch *but_search = (uiButSearch *)but;
+  blender::ui::ButtonSearch *but_search = (blender::ui::ButtonSearch *)but;
   BLI_assert(but->type == ButType::SearchMenu);
 
   but_search->item_tooltip_fn = tooltip_fn;
@@ -6492,14 +6496,14 @@ void UI_but_func_search_set_tooltip(uiBut *but, uiButSearchTooltipFn tooltip_fn)
 
 void UI_but_func_search_set_listen(uiBut *but, uiButSearchListenFn listen_fn)
 {
-  uiButSearch *but_search = (uiButSearch *)but;
+  blender::ui::ButtonSearch *but_search = (blender::ui::ButtonSearch *)but;
   BLI_assert(but->type == ButType::SearchMenu);
   but_search->listen_fn = listen_fn;
 }
 
 void UI_but_func_search_set_results_are_suggestions(uiBut *but, const bool value)
 {
-  uiButSearch *but_search = (uiButSearch *)but;
+  blender::ui::ButtonSearch *but_search = (blender::ui::ButtonSearch *)but;
   BLI_assert(but->type == ButType::SearchMenu);
 
   but_search->results_are_suggestions = value;
@@ -6634,7 +6638,7 @@ void UI_but_node_link_set(uiBut *but, bNodeSocket *socket, const float draw_colo
 
 void UI_but_number_step_size_set(uiBut *but, float step_size)
 {
-  uiButNumber *but_number = (uiButNumber *)but;
+  blender::ui::ButtonNumber *but_number = (blender::ui::ButtonNumber *)but;
   BLI_assert(but->type == ButType::Num);
 
   but_number->step_size = step_size;
@@ -6643,7 +6647,7 @@ void UI_but_number_step_size_set(uiBut *but, float step_size)
 
 void UI_but_number_precision_set(uiBut *but, float precision)
 {
-  uiButNumber *but_number = (uiButNumber *)but;
+  blender::ui::ButtonNumber *but_number = (blender::ui::ButtonNumber *)but;
   BLI_assert(but->type == ButType::Num);
 
   but_number->precision = precision;
@@ -6653,7 +6657,7 @@ void UI_but_number_precision_set(uiBut *but, float precision)
 
 void UI_but_number_slider_step_size_set(uiBut *but, float step_size)
 {
-  uiButNumberSlider *but_number = (uiButNumberSlider *)but;
+  blender::ui::ButtonNumberSlider *but_number = (blender::ui::ButtonNumberSlider *)but;
   BLI_assert(but->type == ButType::NumSlider);
 
   but_number->step_size = step_size;
@@ -6662,7 +6666,7 @@ void UI_but_number_slider_step_size_set(uiBut *but, float step_size)
 
 void UI_but_number_slider_precision_set(uiBut *but, float precision)
 {
-  uiButNumberSlider *but_number = (uiButNumberSlider *)but;
+  blender::ui::ButtonNumberSlider *but_number = (blender::ui::ButtonNumberSlider *)but;
   BLI_assert(but->type == ButType::NumSlider);
 
   but_number->precision = precision;
@@ -6672,7 +6676,7 @@ void UI_but_number_slider_precision_set(uiBut *but, float precision)
 
 void UI_but_label_alpha_factor_set(uiBut *but, const float alpha_factor)
 {
-  uiButLabel *but_label = reinterpret_cast<uiButLabel *>(but);
+  blender::ui::ButtonLabel *but_label = reinterpret_cast<blender::ui::ButtonLabel *>(but);
   BLI_assert(but->type == ButType::Label);
   but_label->alpha_factor = alpha_factor;
 }
@@ -6680,7 +6684,7 @@ void UI_but_label_alpha_factor_set(uiBut *but, const float alpha_factor)
 void UI_but_search_preview_grid_size_set(uiBut *but, int rows, int cols)
 {
   BLI_assert(but->type == ButType::SearchMenu);
-  uiButSearch *but_search = reinterpret_cast<uiButSearch *>(but);
+  blender::ui::ButtonSearch *but_search = reinterpret_cast<blender::ui::ButtonSearch *>(but);
   but_search->preview_rows = rows;
   but_search->preview_cols = cols;
 }
@@ -6690,7 +6694,8 @@ void UI_but_view_item_draw_size_set(uiBut *but,
                                     const std::optional<int> draw_height)
 {
   BLI_assert(but->type == ButType::ViewItem);
-  uiButViewItem *but_view_item = reinterpret_cast<uiButViewItem *>(but);
+  blender::ui::ButtonViewItem *but_view_item = reinterpret_cast<blender::ui::ButtonViewItem *>(
+      but);
   but_view_item->draw_width = draw_width.value_or(0);
   but_view_item->draw_height = draw_height.value_or(0);
 }
@@ -6805,7 +6810,7 @@ std::string UI_but_string_get_label(uiBut &but)
 std::string UI_but_context_menu_title_from_button(uiBut &but)
 {
   if (but.type == ButType::ViewItem) {
-    const uiButViewItem &view_item_but = static_cast<const uiButViewItem &>(but);
+    const auto &view_item_but = static_cast<const blender::ui::ButtonViewItem &>(but);
     if (view_item_but.view_item == nullptr) {
       return "";
     }
@@ -6920,22 +6925,23 @@ std::string UI_but_string_get_property_keymap(bContext &C, uiBut &but)
   return ui_but_event_property_operator_string(&C, &but).value_or("");
 }
 
-std::string UI_but_extra_icon_string_get_label(const uiButExtraOpIcon &extra_icon)
+std::string UI_but_extra_icon_string_get_label(const blender::ui::ButtonExtraOpIcon &extra_icon)
 {
   wmOperatorType *optype = UI_but_extra_operator_icon_optype_get(&extra_icon);
   PointerRNA *opptr = UI_but_extra_operator_icon_opptr_get(&extra_icon);
   return WM_operatortype_name(optype, opptr);
 }
 
-std::string UI_but_extra_icon_string_get_tooltip(bContext &C, const uiButExtraOpIcon &extra_icon)
+std::string UI_but_extra_icon_string_get_tooltip(bContext &C,
+                                                 const blender::ui::ButtonExtraOpIcon &extra_icon)
 {
   wmOperatorType *optype = UI_but_extra_operator_icon_optype_get(&extra_icon);
   PointerRNA *opptr = UI_but_extra_operator_icon_opptr_get(&extra_icon);
   return WM_operatortype_description(&C, optype, opptr);
 }
 
-std::string UI_but_extra_icon_string_get_operator_keymap(const bContext &C,
-                                                         const uiButExtraOpIcon &extra_icon)
+std::string UI_but_extra_icon_string_get_operator_keymap(
+    const bContext &C, const blender::ui::ButtonExtraOpIcon &extra_icon)
 {
   return ui_but_extra_icon_event_operator_string(&C, &extra_icon).value_or("");
 }

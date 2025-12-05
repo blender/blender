@@ -829,7 +829,7 @@ static void ui_template_list_layout_draw(const bContext *C,
                         0,
                         dyn_data->height - dyn_data->visual_height,
                         "");
-        uiButScrollBar *but_scroll = reinterpret_cast<uiButScrollBar *>(but);
+        auto *but_scroll = reinterpret_cast<blender::ui::ButtonScrollBar *>(but);
         but_scroll->visual_height = dyn_data->visual_height;
       }
       break;
@@ -970,7 +970,7 @@ static void ui_template_list_layout_draw(const bContext *C,
                         0,
                         dyn_data->height - dyn_data->visual_height,
                         "");
-        uiButScrollBar *but_scroll = reinterpret_cast<uiButScrollBar *>(but);
+        auto *but_scroll = reinterpret_cast<blender::ui::ButtonScrollBar *>(but);
         but_scroll->visual_height = dyn_data->visual_height;
       }
       break;

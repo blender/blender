@@ -173,10 +173,12 @@ enum {
 /** The maximum number of items a radial menu (pie menu) can contain. */
 #define PIE_MAX_ITEMS 8
 
-struct uiBut {
+namespace blender::ui {
+
+struct Button {
 
   /** Pointer back to the layout item holding this button. */
-  blender::ui::Layout *layout = nullptr;
+  Layout *layout = nullptr;
   int flag = 0;
   int drawflag = 0;
   char flag2 = 0;
@@ -264,7 +266,7 @@ struct uiBut {
   IconTextOverlay icon_overlay_text = {};
 
   /** Copied from the #uiBlock.emboss */
-  blender::ui::EmbossType emboss = blender::ui::EmbossType::Emboss;
+  EmbossType emboss = EmbossType::Emboss;
   /** direction in a pie menu, used for collision detection. */
   RadialDirection pie_dir = UI_RADIAL_NONE;
   /** could be made into a single flag */
@@ -312,7 +314,7 @@ struct uiBut {
   wmOperatorType *optype = nullptr;
   PointerRNA *opptr = nullptr;
 
-  ListBase extra_op_icons = {nullptr, nullptr}; /** #uiButExtraOpIcon */
+  ListBase extra_op_icons = {nullptr, nullptr}; /** #blender::ui::ButtonExtraOpIcon */
 
   /**
    * Active button data, set when the user is hovering or interacting with a button (#UI_HOVER and
@@ -339,45 +341,45 @@ struct uiBut {
   double *editval = nullptr;
   float *editvec = nullptr;
 
-  std::function<bool(const uiBut &)> pushed_state_func;
+  std::function<bool(const Button &)> pushed_state_func;
 
   /* pointer back */
   uiBlock *block = nullptr;
 
-  uiBut() = default;
+  Button() = default;
   /** Performs a mostly shallow copy for now. Only contained C++ types are deep copied. */
-  uiBut(const uiBut &other) = default;
+  Button(const Button &other) = default;
   /** Mostly shallow copy, just like copy constructor above. */
-  uiBut &operator=(const uiBut &other) = default;
+  Button &operator=(const Button &other) = default;
 
-  virtual ~uiBut() = default;
+  virtual ~Button() = default;
 };
 
 /** Derived struct for #ButType::Num */
-struct uiButNumber : public uiBut {
+struct ButtonNumber : public Button {
   float step_size = 0.0f;
   float precision = 0.0f;
 };
 
 /** Derived struct for #ButType::NumSlider */
-struct uiButNumberSlider : public uiBut {
+struct ButtonNumberSlider : public Button {
   float step_size = 0.0f;
   float precision = 0.0f;
 };
 
 /** Derived struct for #ButType::Color */
-struct uiButColor : public uiBut {
+struct ButtonColor : public Button {
   bool is_pallete_color = false;
   int palette_color_index = -1;
 };
 
 /** Derived struct for #ButType::Tab */
-struct uiButTab : public uiBut {
+struct ButtonTab : public Button {
   MenuType *menu = nullptr;
 };
 
 /** Derived struct for #ButType::SearchMenu */
-struct uiButSearch : public uiBut {
+struct ButtonSearch : public Button {
   uiButSearchCreateFn popup_create_fn = nullptr;
   uiButSearchUpdateFn items_update_fn = nullptr;
   uiButSearchListenFn listen_fn = nullptr;
@@ -408,9 +410,9 @@ struct uiButSearch : public uiBut {
 
 /**
  * Derived struct for #ButType::Decorator
- * Decorators have their own RNA data, using the normal #uiBut RNA members has many side-effects.
+ * Decorators have their own RNA data, using the normal #Button RNA members has many side-effects.
  */
-struct uiButDecorator : public uiBut {
+struct ButtonDecorator : public Button {
   PointerRNA decorated_rnapoin = {};
   PropertyRNA *decorated_rnaprop = nullptr;
   int decorated_rnaindex = -1;
@@ -421,7 +423,7 @@ struct uiButDecorator : public uiBut {
 };
 
 /** Derived struct for #ButType::Progress. */
-struct uiButProgress : public uiBut {
+struct ButtonProgress : public Button {
   /** Progress in 0..1 range. */
   float progress_factor = 0.0f;
   /** The display style (bar, pie... etc). */
@@ -429,22 +431,22 @@ struct uiButProgress : public uiBut {
 };
 
 /** Derived struct for #ButType::SeprLine. */
-struct uiButSeparatorLine : public uiBut {
+struct ButtonSeparatorLine : public Button {
   bool is_vertical;
 };
 
 /** Derived struct for #ButType::Label. */
-struct uiButLabel : public uiBut {
+struct ButtonLabel : public Button {
   float alpha_factor = 1.0f;
 };
 
 /** Derived struct for #ButType::Scroll. */
-struct uiButScrollBar : public uiBut {
+struct ButtonScrollBar : public Button {
   /** Actual visual height of UI list (in rows). */
   float visual_height = -1.0f;
 };
 
-struct uiButViewItem : public uiBut {
+struct ButtonViewItem : public Button {
   /** The view item this button was created for. */
   blender::ui::AbstractViewItem *view_item = nullptr;
   /**
@@ -456,36 +458,36 @@ struct uiButViewItem : public uiBut {
 };
 
 /** Derived struct for #ButType::HsvCube. */
-struct uiButHSVCube : public uiBut {
+struct ButtonHSVCube : public Button {
   eButGradientType gradient_type = UI_GRAD_SV;
 };
 
 /** Derived struct for #ButType::ColorBand. */
-struct uiButColorBand : public uiBut {
+struct ButtonColorBand : public Button {
   ColorBand *edit_coba = nullptr;
 };
 
 /** Derived struct for #ButType::CurveProfile. */
-struct uiButCurveProfile : public uiBut {
+struct ButtonCurveProfile : public Button {
   CurveProfile *edit_profile = nullptr;
 };
 
 /** Derived struct for #ButType::Curve. */
-struct uiButCurveMapping : public uiBut {
+struct ButtonCurveMapping : public Button {
   CurveMapping *edit_cumap = nullptr;
   eButGradientType gradient_type = UI_GRAD_SV;
 };
 
 /** Derived struct for #ButType::HotkeyEvent. */
-struct uiButHotkeyEvent : public uiBut {
+struct ButtonHotkeyEvent : public Button {
   wmEventModifierFlag modifier_key = wmEventModifierFlag(0);
 };
 
 /**
  * Additional, superimposed icon for a button, invoking an operator.
  */
-struct uiButExtraOpIcon {
-  uiButExtraOpIcon *next, *prev;
+struct ButtonExtraOpIcon {
+  blender::ui::ButtonExtraOpIcon *next, *prev;
 
   BIFIconID icon;
   wmOperatorCallParams *optype_params;
@@ -493,6 +495,8 @@ struct uiButExtraOpIcon {
   bool highlighted;
   bool disabled;
 };
+
+}  // namespace blender::ui
 
 struct ColorPicker {
   ColorPicker *next, *prev;
@@ -776,8 +780,8 @@ void ui_block_add_dynamic_listener(uiBlock *block,
  * Reallocate the button (new address is returned) for a new button type.
  * This should generally be avoided and instead the correct type be created right away.
  *
- * \note Only the #uiBut data can be kept. If the old button used a derived type (e.g. #uiButTab),
- *       the data that is not inside #uiBut will be lost.
+ * \note Only the #uiBut data can be kept. If the old button used a derived type (e.g.
+ * #blender::ui::ButtonTab), the data that is not inside #uiBut will be lost.
  */
 uiBut *ui_but_change_type(uiBut *but, ButType new_type);
 
@@ -802,8 +806,11 @@ void ui_hsvcircle_vals_from_pos(
  */
 void ui_hsvcircle_pos_from_vals(
     const ColorPicker *cpicker, const rcti *rect, const float *hsv, float *r_xpos, float *r_ypos);
-void ui_hsvcube_pos_from_vals(
-    const uiButHSVCube *hsv_but, const rcti *rect, const float *hsv, float *r_xp, float *r_yp);
+void ui_hsvcube_pos_from_vals(const blender::ui::ButtonHSVCube *hsv_but,
+                              const rcti *rect,
+                              const float *hsv,
+                              float *r_xp,
+                              float *r_yp);
 
 /**
  * \param float_precision: For number buttons the precision
@@ -1031,9 +1038,15 @@ ColorPicker *ui_block_colorpicker_create(uiBlock *block);
 /**
  * Search-box for string button.
  */
-ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiButSearch *search_but);
-ARegion *ui_searchbox_create_operator(bContext *C, ARegion *butregion, uiButSearch *search_but);
-ARegion *ui_searchbox_create_menu(bContext *C, ARegion *butregion, uiButSearch *search_but);
+ARegion *ui_searchbox_create_generic(bContext *C,
+                                     ARegion *butregion,
+                                     blender::ui::ButtonSearch *search_but);
+ARegion *ui_searchbox_create_operator(bContext *C,
+                                      ARegion *butregion,
+                                      blender::ui::ButtonSearch *search_but);
+ARegion *ui_searchbox_create_menu(bContext *C,
+                                  ARegion *butregion,
+                                  blender::ui::ButtonSearch *search_but);
 
 /**
  * x and y in screen-coords.
@@ -1055,7 +1068,7 @@ void ui_searchbox_free(bContext *C, ARegion *region);
 /**
  * XXX weak: search_func adds all partial matches.
  */
-void ui_but_search_refresh(uiButSearch *but);
+void ui_but_search_refresh(blender::ui::ButtonSearch *but);
 
 /* `interface_region_menu_popup.cc` */
 
@@ -1505,7 +1518,7 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str);
 void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra);
 
 void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *arg_dummy);
-void ui_but_anim_decorate_update_from_flag(uiButDecorator *but);
+void ui_but_anim_decorate_update_from_flag(blender::ui::ButtonDecorator *but);
 
 /* `interface_query.cc` */
 
@@ -1680,7 +1693,7 @@ void ui_block_views_draw_overlays(const ARegion *region, const uiBlock *block);
 blender::ui::AbstractView *ui_block_view_find_matching_in_old_block(
     const uiBlock &new_block, const blender::ui::AbstractView &new_view);
 
-uiButViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
+blender::ui::ButtonViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
     const uiBlock &new_block, const blender::ui::AbstractViewItem &new_item);
 
 /* `views/abstract_view_item.cc` */

@@ -1944,8 +1944,9 @@ static bool jump_to_target_button(bContext *C, bool poll)
     }
     /* For string properties with prop_search, look up the search collection item. */
     if (type == PROP_STRING) {
-      const uiButSearch *search_but = (but->type == ButType::SearchMenu) ? (uiButSearch *)but :
-                                                                           nullptr;
+      const blender::ui::ButtonSearch *search_but = (but->type == ButType::SearchMenu) ?
+                                                        (blender::ui::ButtonSearch *)but :
+                                                        nullptr;
 
       if (search_but && search_but->items_update_fn == ui_rna_collection_search_update_fn) {
         uiRNACollectionSearch *coll_search = static_cast<uiRNACollectionSearch *>(search_but->arg);

@@ -28,7 +28,6 @@ struct bContext;
 struct PointerRNA;
 struct StructRNA;
 struct uiBlock;
-struct uiBut;
 struct uiList;
 struct uiSearchItems;
 struct wmDrag;

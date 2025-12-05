@@ -20,7 +20,6 @@ struct bContextStore;
 struct EnumPropertyItem;
 struct IDProperty;
 struct uiBlock;
-struct uiBut;
 struct uiLayoutRoot;
 struct uiList;
 struct uiStyle;

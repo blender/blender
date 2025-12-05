@@ -264,16 +264,17 @@ void uiTemplateRunningJobs(blender::ui::Layout *layout, bContext *C)
           MEM_mallocN(sizeof(*tip_arg), __func__));
       tip_arg->wm = wm;
       tip_arg->owner = owner;
-      uiButProgress *but_progress = (uiButProgress *)uiDefIconTextBut(block,
-                                                                      ButType::Progress,
-                                                                      ICON_NONE,
-                                                                      text,
-                                                                      UI_UNIT_X,
-                                                                      0,
-                                                                      UI_UNIT_X * 6.0f,
-                                                                      UI_UNIT_Y,
-                                                                      nullptr,
-                                                                      nullptr);
+      blender::ui::ButtonProgress *but_progress = (blender::ui::ButtonProgress *)uiDefIconTextBut(
+          block,
+          ButType::Progress,
+          ICON_NONE,
+          text,
+          UI_UNIT_X,
+          0,
+          UI_UNIT_X * 6.0f,
+          UI_UNIT_Y,
+          nullptr,
+          nullptr);
 
       but_progress->progress_factor = progress;
       UI_but_func_tooltip_set(but_progress, progress_tooltip_func, tip_arg, MEM_freeN);

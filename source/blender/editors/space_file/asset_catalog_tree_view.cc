@@ -288,7 +288,7 @@ void AssetCatalogTreeViewItem::build_row(ui::Layout &row)
     return;
   }
 
-  uiButViewItem *view_item_but = view_item_button();
+  blender::ui::ButtonViewItem *view_item_but = view_item_button();
   PointerRNA *props;
 
   props = UI_but_extra_operator_icon_add(

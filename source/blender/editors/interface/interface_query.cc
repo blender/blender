@@ -104,7 +104,7 @@ bool ui_but_is_interactive_ex(const uiBut *but, const bool labeledit, const bool
     return false;
   }
   if (but->type == ButType::ViewItem) {
-    const uiButViewItem *but_item = static_cast<const uiButViewItem *>(but);
+    const auto *but_item = static_cast<const blender::ui::ButtonViewItem *>(but);
     return but_item->view_item->is_interactive();
   }
 
@@ -506,7 +506,7 @@ static bool ui_but_is_active_view_item(const uiBut *but, const void * /*customda
     return false;
   }
 
-  const uiButViewItem *view_item_but = (const uiButViewItem *)but;
+  const auto *view_item_but = (const blender::ui::ButtonViewItem *)but;
   return view_item_but->view_item->is_active();
 }
 
@@ -524,7 +524,7 @@ uiBut *ui_view_item_find_search_highlight(const ARegion *region)
           return false;
         }
 
-        const uiButViewItem *view_item_but = static_cast<const uiButViewItem *>(but);
+        const auto *view_item_but = static_cast<const blender::ui::ButtonViewItem *>(but);
         return view_item_but->view_item->is_search_highlight();
       },
       nullptr);

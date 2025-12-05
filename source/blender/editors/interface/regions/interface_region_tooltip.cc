@@ -929,7 +929,7 @@ void UI_tooltip_color_field_add(uiTooltipData &data,
 void UI_tooltip_uibut_python_add(uiTooltipData &data,
                                  bContext &C,
                                  uiBut &but,
-                                 uiButExtraOpIcon *extra_icon)
+                                 blender::ui::ButtonExtraOpIcon *extra_icon)
 {
   wmOperatorType *optype = extra_icon ? UI_but_extra_operator_icon_optype_get(extra_icon) :
                                         but.optype;
@@ -979,7 +979,7 @@ void UI_tooltip_uibut_python_add(uiTooltipData &data,
 }
 
 static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
-    bContext *C, uiBut *but, uiButExtraOpIcon *extra_icon, const bool is_quick_tip)
+    bContext *C, uiBut *but, blender::ui::ButtonExtraOpIcon *extra_icon, const bool is_quick_tip)
 {
   char buf[512];
 
@@ -1643,8 +1643,11 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
 /** \name ToolTip Public API
  * \{ */
 
-ARegion *UI_tooltip_create_from_button_or_extra_icon(
-    bContext *C, ARegion *butregion, uiBut *but, uiButExtraOpIcon *extra_icon, bool is_quick_tip)
+ARegion *UI_tooltip_create_from_button_or_extra_icon(bContext *C,
+                                                     ARegion *butregion,
+                                                     uiBut *but,
+                                                     blender::ui::ButtonExtraOpIcon *extra_icon,
+                                                     bool is_quick_tip)
 {
   wmWindow *win = CTX_wm_window(C);
   float init_position[2];

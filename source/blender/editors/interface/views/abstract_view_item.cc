@@ -203,7 +203,7 @@ static AbstractViewItem *find_item_from_rename_button(const uiBut &rename_but)
       continue;
     }
 
-    uiButViewItem *view_item_but = (uiButViewItem *)but.get();
+    blender::ui::ButtonViewItem *view_item_but = (blender::ui::ButtonViewItem *)but.get();
     AbstractViewItem *item = reinterpret_cast<AbstractViewItem *>(view_item_but->view_item);
     const AbstractView &view = item->get_view();
 
@@ -337,7 +337,7 @@ AbstractView &AbstractViewItem::get_view() const
   return *view_;
 }
 
-uiButViewItem *AbstractViewItem::view_item_button() const
+blender::ui::ButtonViewItem *AbstractViewItem::view_item_button() const
 {
   return view_item_but_;
 }

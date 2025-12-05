@@ -756,11 +756,11 @@ static void ui_item_array(Layout *layout,
                                  w,
                                  UI_UNIT_Y);
       if (slider && but->type == ButType::Num) {
-        uiButNumber *number_but = (uiButNumber *)but;
+        blender::ui::ButtonNumber *number_but = (blender::ui::ButtonNumber *)but;
         const float step_size = number_but->step_size;
         const float precision = number_but->precision;
         but = ui_but_change_type(but, ButType::NumSlider);
-        uiButNumberSlider *slider_but = reinterpret_cast<uiButNumberSlider *>(but);
+        auto *slider_but = reinterpret_cast<blender::ui::ButtonNumberSlider *>(but);
         slider_but->step_size = step_size;
         slider_but->precision = precision;
       }
@@ -827,11 +827,11 @@ static void ui_item_array(Layout *layout,
         uiBut *but = uiDefAutoButR(
             block, ptr, prop, a, str_buf, icon, 0, 0, width_item, UI_UNIT_Y);
         if (slider && but->type == ButType::Num) {
-          uiButNumber *number_but = (uiButNumber *)but;
+          blender::ui::ButtonNumber *number_but = (blender::ui::ButtonNumber *)but;
           const float step_size = number_but->step_size;
           const float precision = number_but->precision;
           but = ui_but_change_type(but, ButType::NumSlider);
-          uiButNumberSlider *slider_but = reinterpret_cast<uiButNumberSlider *>(but);
+          auto *slider_but = reinterpret_cast<blender::ui::ButtonNumberSlider *>(but);
           slider_but->step_size = step_size;
           slider_but->precision = precision;
         }
@@ -1076,7 +1076,7 @@ static void ui_keymap_but_cb(bContext * /*C*/, void *but_v, void * /*key_v*/)
 {
   uiBut *but = static_cast<uiBut *>(but_v);
   BLI_assert(but->type == ButType::HotkeyEvent);
-  const uiButHotkeyEvent *hotkey_but = (uiButHotkeyEvent *)but;
+  const blender::ui::ButtonHotkeyEvent *hotkey_but = (blender::ui::ButtonHotkeyEvent *)but;
 
   RNA_int_set(
       &but->rnapoin, "shift", (hotkey_but->modifier_key & KM_SHIFT) ? KM_MOD_HELD : KM_NOTHING);
@@ -2274,11 +2274,11 @@ void Layout::prop(PointerRNA *ptr,
     but = uiDefAutoButR(block, ptr, prop, index, name, icon, 0, 0, w, h);
 
     if (slider && but->type == ButType::Num) {
-      uiButNumber *number_but = (uiButNumber *)but;
+      blender::ui::ButtonNumber *number_but = (blender::ui::ButtonNumber *)but;
       const float step_size = number_but->step_size;
       const float precision = number_but->precision;
       but = ui_but_change_type(but, ButType::NumSlider);
-      uiButNumberSlider *slider_but = reinterpret_cast<uiButNumberSlider *>(but);
+      auto *slider_but = reinterpret_cast<blender::ui::ButtonNumberSlider *>(but);
       slider_but->step_size = step_size;
       slider_but->precision = precision;
     }
@@ -2655,10 +2655,10 @@ uiBut *ui_but_add_search(uiBut *but,
   /* turn button into search button */
   if (has_search_fn || searchprop) {
     uiRNACollectionSearch *coll_search = MEM_new<uiRNACollectionSearch>(__func__);
-    uiButSearch *search_but;
+    blender::ui::ButtonSearch *search_but;
 
     but = ui_but_change_type(but, ButType::SearchMenu);
-    search_but = (uiButSearch *)but;
+    search_but = (blender::ui::ButtonSearch *)but;
 
     if (searchptr) {
       search_but->rnasearchpoin = *searchptr;
@@ -2970,17 +2970,18 @@ void Layout::decorator(PointerRNA *ptr, PropertyRNA *prop, int index)
 
   /* Loop for the array-case, but only do in case of an expanded array. */
   for (int i = 0; i < (is_expand ? RNA_property_array_length(ptr, prop) : 1); i++) {
-    uiButDecorator *but = (uiButDecorator *)uiDefIconBut(block,
-                                                         ButType::Decorator,
-                                                         ICON_DOT,
-                                                         0,
-                                                         0,
-                                                         UI_UNIT_X,
-                                                         UI_UNIT_Y,
-                                                         nullptr,
-                                                         0.0,
-                                                         0.0,
-                                                         TIP_("Animate property"));
+    blender::ui::ButtonDecorator *but = (blender::ui::ButtonDecorator *)uiDefIconBut(
+        block,
+        ButType::Decorator,
+        ICON_DOT,
+        0,
+        0,
+        UI_UNIT_X,
+        UI_UNIT_Y,
+        nullptr,
+        0.0,
+        0.0,
+        TIP_("Animate property"));
 
     UI_but_func_set(but, ui_but_anim_decorate_cb, but, nullptr);
     but->flag |= UI_BUT_UNDO | UI_BUT_DRAG_LOCK;
@@ -3271,7 +3272,7 @@ void Layout::separator(float factor, const LayoutSeparatorType type)
                         "");
 
   if (but_type == ButType::SeprLine) {
-    uiButSeparatorLine *but_line = static_cast<uiButSeparatorLine *>(but);
+    auto *but_line = static_cast<blender::ui::ButtonSeparatorLine *>(but);
     but_line->is_vertical = is_vertical_bar;
   }
 }
@@ -3312,7 +3313,7 @@ void Layout::progress_indicator(const char *text,
     but->drawflag |= UI_BUT_TEXT_LEFT;
   }
 
-  uiButProgress *progress_bar = static_cast<uiButProgress *>(but);
+  blender::ui::ButtonProgress *progress_bar = static_cast<blender::ui::ButtonProgress *>(but);
   progress_bar->progress_type = progress_type;
   progress_bar->progress_factor = factor;
 }

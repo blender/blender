@@ -577,17 +577,18 @@ static void curvemap_buttons_layout(blender::ui::Layout *layout,
   /* Curve itself. */
   const int size = max_ii(layout->width(), UI_UNIT_X);
   row = &layout->row(false);
-  uiButCurveMapping *curve_but = (uiButCurveMapping *)uiDefBut(block,
-                                                               ButType::Curve,
-                                                               IFACE_("Edit Curve Map"),
-                                                               0,
-                                                               0,
-                                                               size,
-                                                               8.0f * UI_UNIT_X,
-                                                               cumap,
-                                                               0.0f,
-                                                               1.0f,
-                                                               "");
+  blender::ui::ButtonCurveMapping *curve_but = (blender::ui::ButtonCurveMapping *)uiDefBut(
+      block,
+      ButType::Curve,
+      IFACE_("Edit Curve Map"),
+      0,
+      0,
+      size,
+      8.0f * UI_UNIT_X,
+      cumap,
+      0.0f,
+      1.0f,
+      "");
   curve_but->gradient_type = bg;
   if (!layout->active()) {
     UI_but_flag_enable(curve_but, UI_BUT_INACTIVE);

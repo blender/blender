@@ -262,13 +262,14 @@ void AbstractTreeView::get_hierarchy_lines(const ARegion &region,
   }
 }
 
-static uiButViewItem *find_first_view_item_but(const uiBlock &block, const AbstractTreeView &view)
+static blender::ui::ButtonViewItem *find_first_view_item_but(const uiBlock &block,
+                                                             const AbstractTreeView &view)
 {
   for (const std::unique_ptr<uiBut> &but : block.buttons) {
     if (but->type != ButType::ViewItem) {
       continue;
     }
-    uiButViewItem *view_item_but = static_cast<uiButViewItem *>(but.get());
+    auto *view_item_but = static_cast<blender::ui::ButtonViewItem *>(but.get());
     if (&view_item_but->view_item->get_view() == &view) {
       return view_item_but;
     }
@@ -283,7 +284,7 @@ void AbstractTreeView::draw_hierarchy_lines(const ARegion &region, const uiBlock
                                (BLI_rcti_size_y(&region.v2d.mask) + 1) :
                            1.0f;
 
-  uiButViewItem *first_item_but = find_first_view_item_but(block, *this);
+  blender::ui::ButtonViewItem *first_item_but = find_first_view_item_but(block, *this);
   if (!first_item_but) {
     return;
   }
@@ -490,17 +491,17 @@ std::optional<DropLocation> TreeViewItemDropTarget::choose_drop_location(
 void AbstractTreeViewItem::add_treerow_button(uiBlock &block)
 {
   /* For some reason a width > (UI_UNIT_X * 2) make the layout system use all available width. */
-  view_item_but_ = reinterpret_cast<uiButViewItem *>(uiDefBut(&block,
-                                                              ButType::ViewItem,
-                                                              "",
-                                                              0,
-                                                              0,
-                                                              UI_UNIT_X * 10,
-                                                              padded_item_height(),
-                                                              nullptr,
-                                                              0,
-                                                              0,
-                                                              ""));
+  view_item_but_ = reinterpret_cast<blender::ui::ButtonViewItem *>(uiDefBut(&block,
+                                                                            ButType::ViewItem,
+                                                                            "",
+                                                                            0,
+                                                                            0,
+                                                                            UI_UNIT_X * 10,
+                                                                            padded_item_height(),
+                                                                            nullptr,
+                                                                            0,
+                                                                            0,
+                                                                            ""));
 
   view_item_but_->view_item = this;
   view_item_but_->draw_height = unpadded_item_height();
@@ -647,7 +648,7 @@ AbstractTreeView &AbstractTreeViewItem::get_tree_view() const
 
 std::optional<rctf> AbstractTreeViewItem::get_win_rect(const ARegion &region) const
 {
-  uiButViewItem *item_but = view_item_button();
+  blender::ui::ButtonViewItem *item_but = view_item_button();
   if (!item_but) {
     return std::nullopt;
   }
@@ -687,8 +688,8 @@ bool AbstractTreeViewItem::is_hovered() const
 
   /* The new layout hasn't finished construction yet, so the final state of the button is unknown.
    * Get the matching button from the previous redraw instead. */
-  uiButViewItem *old_item_but = ui_block_view_find_matching_view_item_but_in_old_block(
-      *view_item_but_->block, *this);
+  blender::ui::ButtonViewItem *old_item_but =
+      ui_block_view_find_matching_view_item_but_in_old_block(*view_item_but_->block, *this);
   return old_item_but && (old_item_but->flag & UI_HOVER);
 }
 
@@ -908,7 +909,7 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
                              0,
                              tot_items - *visible_row_count,
                              "");
-      uiButScrollBar *but_scroll = reinterpret_cast<uiButScrollBar *>(but);
+      auto *but_scroll = reinterpret_cast<blender::ui::ButtonScrollBar *>(but);
       but_scroll->visual_height = *visible_row_count;
     }
 

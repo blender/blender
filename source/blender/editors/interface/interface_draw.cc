@@ -1372,7 +1372,7 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *wcol, const rcti *r
   const ColorManagedDisplay *display = ui_block_cm_display_get(but->block);
   uint pos_id, col_id;
 
-  uiButColorBand *but_coba = (uiButColorBand *)but;
+  blender::ui::ButtonColorBand *but_coba = (blender::ui::ButtonColorBand *)but;
   ColorBand *coba = (but_coba->edit_coba == nullptr) ? (ColorBand *)but->poin :
                                                        but_coba->edit_coba;
 
@@ -1598,7 +1598,7 @@ static void ui_draw_but_curve_grid(const uint pos,
 
 void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, const rcti *rect)
 {
-  uiButCurveMapping *but_cumap = (uiButCurveMapping *)but;
+  blender::ui::ButtonCurveMapping *but_cumap = (blender::ui::ButtonCurveMapping *)but;
   CurveMapping *cumap = (but_cumap->edit_cumap == nullptr) ? (CurveMapping *)but->poin :
                                                              but_cumap->edit_cumap;
 
@@ -1958,7 +1958,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
 {
   float fx, fy;
 
-  uiButCurveProfile *but_profile = (uiButCurveProfile *)but;
+  blender::ui::ButtonCurveProfile *but_profile = (blender::ui::ButtonCurveProfile *)but;
   CurveProfile *profile = (but_profile->edit_profile == nullptr) ? (CurveProfile *)but->poin :
                                                                    but_profile->edit_profile;
 

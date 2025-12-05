@@ -121,7 +121,7 @@ void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
   }
 }
 
-static uiBut *ui_but_anim_decorate_find_attached_button(uiButDecorator *but)
+static uiBut *ui_but_anim_decorate_find_attached_button(blender::ui::ButtonDecorator *but)
 {
   uiBut *but_iter = nullptr;
 
@@ -147,7 +147,7 @@ static uiBut *ui_but_anim_decorate_find_attached_button(uiButDecorator *but)
   return nullptr;
 }
 
-void ui_but_anim_decorate_update_from_flag(uiButDecorator *but)
+void ui_but_anim_decorate_update_from_flag(blender::ui::ButtonDecorator *but)
 {
   if (!but->decorated_rnapoin.data || !but->decorated_rnaprop) {
     /* Nothing to do. */
@@ -342,7 +342,7 @@ void ui_but_anim_paste_driver(bContext *C)
 void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void * /*arg_dummy*/)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  uiButDecorator *but_decorate = static_cast<uiButDecorator *>(arg_but);
+  auto *but_decorate = static_cast<blender::ui::ButtonDecorator *>(arg_but);
   if (!but_decorate->toggle_keyframe_on_click) {
     return;
   }

@@ -58,7 +58,6 @@ struct bScreen;
 struct MenuType;
 struct rctf;
 struct rcti;
-struct uiButSearch;
 struct uiFontStyle;
 struct uiList;
 struct uiStyle;
@@ -82,11 +81,12 @@ namespace blender::ui {
 class AbstractView;
 class AbstractViewItem;
 struct Layout;
+struct Button;
+struct ButtonSearch;
+struct ButtonExtraOpIcon;
 }  // namespace blender::ui
 
 struct uiBlock;
-struct uiBut;
-struct uiButExtraOpIcon;
 struct uiPopupBlockHandle;
 struct uiTooltipData;
 
@@ -612,7 +612,7 @@ blender::Vector<blender::StringRef> UI_text_clip_multiline_middle(
  *
  * - #UI_but_func_complete_set is for tab completion.
  *
- * - #uiButSearchFunc is for name buttons, showing a popup with matches
+ * - #blender::ui::ButtonSearchFunc is for name buttons, showing a popup with matches
  *
  * - #UI_block_func_set and UI_but_func_set are callbacks run when a button is used,
  *   in case events, operators or RNA are not sufficient to handle the button.
@@ -643,7 +643,7 @@ using uiButIdentityCompareFunc = bool (*)(const uiBut *a, const uiBut *b);
 /* Search types. */
 using uiButSearchCreateFn = ARegion *(*)(bContext * C,
                                          ARegion *butregion,
-                                         uiButSearch *search_but);
+                                         blender::ui::ButtonSearch *search_but);
 /**
  * `is_first` is typically used to ignore search filtering when the menu is first opened in order
  * to display the full list of options. The value will be false after the button's text is edited
@@ -1519,10 +1519,11 @@ std::string UI_but_string_get_operator_keymap(bContext &C, uiBut &but);
 /** Use for properties that are bound to one of the context cycle, etc. keys. */
 std::string UI_but_string_get_property_keymap(bContext &C, uiBut &but);
 
-std::string UI_but_extra_icon_string_get_label(const uiButExtraOpIcon &extra_icon);
-std::string UI_but_extra_icon_string_get_tooltip(bContext &C, const uiButExtraOpIcon &extra_icon);
-std::string UI_but_extra_icon_string_get_operator_keymap(const bContext &C,
-                                                         const uiButExtraOpIcon &extra_icon);
+std::string UI_but_extra_icon_string_get_label(const blender::ui::ButtonExtraOpIcon &extra_icon);
+std::string UI_but_extra_icon_string_get_tooltip(bContext &C,
+                                                 const blender::ui::ButtonExtraOpIcon &extra_icon);
+std::string UI_but_extra_icon_string_get_operator_keymap(
+    const bContext &C, const blender::ui::ButtonExtraOpIcon &extra_icon);
 
 /**
  * Special Buttons
@@ -1943,7 +1944,7 @@ void UI_tooltip_color_field_add(uiTooltipData &data,
 void UI_tooltip_uibut_python_add(uiTooltipData &data,
                                  bContext &C,
                                  uiBut &but,
-                                 uiButExtraOpIcon *extra_icon);
+                                 blender::ui::ButtonExtraOpIcon *extra_icon);
 
 /**
  * Recreate tool-tip (use to update dynamic tips)
@@ -1973,8 +1974,9 @@ PointerRNA *UI_but_extra_operator_icon_add(uiBut *but,
                                            blender::StringRefNull opname,
                                            blender::wm::OpCallContext opcontext,
                                            int icon);
-wmOperatorType *UI_but_extra_operator_icon_optype_get(const uiButExtraOpIcon *extra_icon);
-PointerRNA *UI_but_extra_operator_icon_opptr_get(const uiButExtraOpIcon *extra_icon);
+wmOperatorType *UI_but_extra_operator_icon_optype_get(
+    const blender::ui::ButtonExtraOpIcon *extra_icon);
+PointerRNA *UI_but_extra_operator_icon_opptr_get(const blender::ui::ButtonExtraOpIcon *extra_icon);
 
 /**
  * Get the scaled size for a preview button (typically #UI_BTyPE_PREVIEW_TILE) based on \a
@@ -2940,8 +2942,11 @@ ARegion *UI_tooltip_create_from_button(bContext *C,
                                        ARegion *butregion,
                                        uiBut *but,
                                        bool is_quick_tip);
-ARegion *UI_tooltip_create_from_button_or_extra_icon(
-    bContext *C, ARegion *butregion, uiBut *but, uiButExtraOpIcon *extra_icon, bool is_quick_tip);
+ARegion *UI_tooltip_create_from_button_or_extra_icon(bContext *C,
+                                                     ARegion *butregion,
+                                                     uiBut *but,
+                                                     blender::ui::ButtonExtraOpIcon *extra_icon,
+                                                     bool is_quick_tip);
 ARegion *UI_tooltip_create_from_gizmo(bContext *C, wmGizmo *gz);
 void UI_tooltip_free(bContext *C, bScreen *screen, ARegion *region);
 

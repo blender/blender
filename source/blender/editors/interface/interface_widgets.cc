@@ -1364,7 +1364,7 @@ static void widget_draw_icon(
   }
   else if (but->type == ButType::Label) {
     /* extra feature allows more alpha blending */
-    const uiButLabel *but_label = reinterpret_cast<const uiButLabel *>(but);
+    const auto *but_label = reinterpret_cast<const blender::ui::ButtonLabel *>(but);
     alpha *= but_label->alpha_factor;
   }
   else if (ELEM(but->type, ButType::But, ButType::Decorator)) {
@@ -2331,7 +2331,7 @@ static void widget_draw_extra_icons(const uiWidgetColors *wcol,
   }
 
   /* Inverse order, from right to left. */
-  LISTBASE_FOREACH_BACKWARD (uiButExtraOpIcon *, op_icon, &but->extra_op_icons) {
+  LISTBASE_FOREACH_BACKWARD (blender::ui::ButtonExtraOpIcon *, op_icon, &but->extra_op_icons) {
     rcti temp = *rect;
     float alpha_this = alpha;
 
@@ -3351,8 +3351,11 @@ void ui_draw_gradient(const rcti *rect,
   immUnbindProgram();
 }
 
-void ui_hsvcube_pos_from_vals(
-    const uiButHSVCube *hsv_but, const rcti *rect, const float *hsv, float *r_xp, float *r_yp)
+void ui_hsvcube_pos_from_vals(const blender::ui::ButtonHSVCube *hsv_but,
+                              const rcti *rect,
+                              const float *hsv,
+                              float *r_xp,
+                              float *r_yp)
 {
   float x = 0.0f, y = 0.0f;
 
@@ -3402,7 +3405,7 @@ void ui_hsvcube_pos_from_vals(
 
 static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 {
-  const uiButHSVCube *hsv_but = (uiButHSVCube *)but;
+  const blender::ui::ButtonHSVCube *hsv_but = (blender::ui::ButtonHSVCube *)but;
   float rgb[3], rgb_perceptual[3];
   float x = 0.0f, y = 0.0f;
   const ColorManagedDisplay *display = ui_block_cm_display_get(but->block);
@@ -3480,7 +3483,7 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 /* vertical 'value' slider, using new widget code */
 static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 {
-  const uiButHSVCube *hsv_but = (uiButHSVCube *)but;
+  const blender::ui::ButtonHSVCube *hsv_but = (blender::ui::ButtonHSVCube *)but;
   float rgb[3], hsv[3], v;
 
   ui_but_v3_get(but, rgb);
@@ -3537,7 +3540,8 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 /** Separator line. */
 static void ui_draw_separator(const uiWidgetColors *wcol, uiBut *but, const rcti *rect)
 {
-  const uiButSeparatorLine *but_line = static_cast<uiButSeparatorLine *>(but);
+  const blender::ui::ButtonSeparatorLine *but_line =
+      static_cast<blender::ui::ButtonSeparatorLine *>(but);
   const bool vertical = but_line->is_vertical;
   const int mid = vertical ? BLI_rcti_cent_x(rect) : BLI_rcti_cent_y(rect);
   const uchar col[4] = {
@@ -3860,7 +3864,8 @@ static void widget_scroll(uiBut *but,
                           int /*roundboxalign*/,
                           const float /*zoom*/)
 {
-  const uiButScrollBar *but_scroll = reinterpret_cast<const uiButScrollBar *>(but);
+  const blender::ui::ButtonScrollBar *but_scroll =
+      reinterpret_cast<const blender::ui::ButtonScrollBar *>(but);
   const float height = but_scroll->visual_height;
 
   /* calculate slider part */
@@ -3912,7 +3917,7 @@ static void widget_scroll(uiBut *but,
   UI_draw_widget_scroll(wcol, rect, &rect1, (state->but_flag & UI_SELECT) ? UI_SCROLL_PRESSED : 0);
 }
 
-static void widget_progress_type_bar(uiButProgress *but_progress,
+static void widget_progress_type_bar(blender::ui::ButtonProgress *but_progress,
                                      uiWidgetColors *wcol,
                                      rcti *rect,
                                      int roundboxalign,
@@ -3948,7 +3953,7 @@ static void widget_progress_type_bar(uiButProgress *but_progress,
 /**
  * Used for both ring & pie types.
  */
-static void widget_progress_type_ring(uiButProgress *but_progress,
+static void widget_progress_type_ring(blender::ui::ButtonProgress *but_progress,
                                       uiWidgetColors *wcol,
                                       rcti *rect)
 {
@@ -3990,7 +3995,7 @@ static void widget_progress_indicator(uiBut *but,
                                       int roundboxalign,
                                       const float zoom)
 {
-  uiButProgress *but_progress = static_cast<uiButProgress *>(but);
+  blender::ui::ButtonProgress *but_progress = static_cast<blender::ui::ButtonProgress *>(but);
   switch (but_progress->progress_type) {
     case blender::ui::ButProgressType::Bar: {
       widget_progress_type_bar(but_progress, wcol, rect, roundboxalign, zoom);
@@ -4164,7 +4169,7 @@ static void widget_swatch(uiBut *but,
                           const float zoom)
 {
   BLI_assert(but->type == ButType::Color);
-  uiButColor *color_but = (uiButColor *)but;
+  blender::ui::ButtonColor *color_but = (blender::ui::ButtonColor *)but;
   float col[4];
 
   col[3] = 1.0f;
@@ -4435,7 +4440,7 @@ static void widget_list_itembut(uiBut *but,
   bool is_selected = state->but_flag & UI_SELECT;
 
   if (but->type == ButType::ViewItem) {
-    uiButViewItem *item_but = static_cast<uiButViewItem *>(but);
+    blender::ui::ButtonViewItem *item_but = static_cast<blender::ui::ButtonViewItem *>(but);
     blender::ui::AbstractViewItem &view_item = *item_but->view_item;
 
     if (!view_item.is_active() && view_item.is_selected()) {
@@ -5247,7 +5252,7 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
         break;
 
       case ButType::HsvCube: {
-        const uiButHSVCube *hsv_but = (uiButHSVCube *)but;
+        const blender::ui::ButtonHSVCube *hsv_but = (blender::ui::ButtonHSVCube *)but;
 
         if (ELEM(hsv_but->gradient_type, UI_GRAD_V_ALT, UI_GRAD_L_ALT)) {
           /* vertical V slider, uses new widget draw now */

@@ -9,12 +9,14 @@
 #include "BLI_string_ref.hh"
 
 struct bContext;
-struct uiBut;
 struct uiTooltipData;
 
 namespace blender::ui {
+struct Button;
 struct Layout;
 }  // namespace blender::ui
+
+using uiBut = blender::ui::Button;
 
 /* names */
 #define UI_MAX_DRAW_STR 550
