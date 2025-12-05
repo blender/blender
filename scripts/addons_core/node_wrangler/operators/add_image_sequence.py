@@ -4,7 +4,7 @@
 
 import bpy
 from bpy.types import Operator
-from bpy.props import BoolProperty, CollectionProperty, StringProperty
+from bpy.props import BoolProperty, CollectionProperty, StringProperty, IntProperty
 from bpy_extras.io_utils import ImportHelper
 from bpy.app.translations import pgettext_rpt as rpt_
 
@@ -43,6 +43,11 @@ class NODE_OT_add_image_sequence(Operator, NWBase, ImportHelper):
         description='Set the file path relative to the blend file, when possible',
         default=True
     )
+    frame_start: IntProperty(
+        name='Start Frame',
+        description='Global starting frame of the movie/sequence, assuming first picture has a #1',
+        default=1
+    )
 
     @classmethod
     def poll(cls, context):
@@ -54,12 +59,14 @@ class NODE_OT_add_image_sequence(Operator, NWBase, ImportHelper):
         layout.alignment = 'LEFT'
 
         layout.prop(self, 'relative_path')
+        layout.prop(self, 'frame_start')
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
         directory = bpy.path.abspath(self.directory)
         filename = self.filename
         files = self.files
+        frame_start = self.frame_start
         tree = context.space_data.node_tree
 
         # DEBUG
@@ -144,5 +151,6 @@ class NODE_OT_add_image_sequence(Operator, NWBase, ImportHelper):
         # separate the number from the file name of the first  file
         image_user.frame_offset = int(files[0][len(without_num) + len(directory):-1 * (len(extension) + 1)]) - 1
         image_user.frame_duration = num_frames
+        image_user.frame_start = frame_start
 
         return {'FINISHED'}
