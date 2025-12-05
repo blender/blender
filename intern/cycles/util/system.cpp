@@ -86,6 +86,7 @@ string system_cpu_brand_string()
 
     /* Make it a bit more presentable. */
     brand = string_remove_trademark(brand);
+    brand = string_remove_gpu_from_cpu_name(brand);
 
     return brand;
   }
