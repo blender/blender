@@ -46,6 +46,10 @@ else:
     _RemoteAssetListingDownloader: TypeAlias = object
 
 
+# Auto-refresh remote asset libraries once every 7 days.
+REMOTE_ASSET_LIBS_AUTOSYNC_PERIOD_SEC = 3600 * 24 * 7
+
+
 # -----------------------------------------------------------------------------
 # Local Module Reload
 
@@ -422,7 +426,11 @@ _downloaders: list[_RemoteAssetListingDownloader] = []
 
 
 @bpy.app.handlers.persistent
-def remote_asset_libraries_sync(library: bpy.types.UserAssetLibrary, *args) -> None:
+def remote_asset_libraries_sync(
+    library: bpy.types.UserAssetLibrary,
+    *args,
+    only_if_older_than_sec=0,
+) -> None:
     """Download the remote asset library listing."""
 
     # Ignore in background mode, as that should trigger these updates explicitly.
@@ -430,7 +438,7 @@ def remote_asset_libraries_sync(library: bpy.types.UserAssetLibrary, *args) -> N
         return
 
     # Only download remote libraries.
-    if not library.use_remote_url:
+    if not library.use_remote_url or not library.remote_url:
         return
 
     # Only download over HTTP.
@@ -444,14 +452,26 @@ def remote_asset_libraries_sync(library: bpy.types.UserAssetLibrary, *args) -> N
         print("  skipping {!r}, online access is not allowed,".format(library.remote_url))
         return
 
-    # Create the downloader and start downloading.
     from _bpy_internal.assets.remote_library_listing import listing_downloader
+
+    # Check if the download should happen at all.
+    if only_if_older_than_sec and listing_downloader.is_more_recent_than(library, only_if_older_than_sec):
+        return
+
+    # Only actually start downloading if no other Blender is already syncing
+    # this asset library.
+    from pathlib import Path
+    from _bpy_internal.assets.remote_library_listing import sync_mutex
+    if not sync_mutex.mutex_lock(Path(library.path)):
+        print("  skipping {!r}, another Blender is already syncing this asset library,".format(library.remote_url))
+        return
 
     # Communicate to the asset system that we started loading a library. It will let asset browsers
     # and other UIs displaying this library indicate that loading is ongoing then, until finished.
     wm = bpy.context.window_manager
     wm.asset_library_status_begin_loading(library.remote_url)
 
+    # Create the downloader and start downloading.
     downloader = listing_downloader.RemoteAssetListingDownloader(
         library.remote_url,
         library.path,
@@ -473,18 +493,22 @@ def _remote_asset_libraries_sync_done(downloader: _RemoteAssetListingDownloader)
     or other issues can cause things to abort. In that case, this function is
     still called.
     """
+    from _bpy_internal.assets.remote_library_listing import sync_mutex
     from _bpy_internal.assets.remote_library_listing.listing_downloader import DownloadStatus
 
-    _downloaders.remove(downloader)
+    try:
+        _downloaders.remove(downloader)
 
-    wm = bpy.context.window_manager
-    match downloader.status:
-        case DownloadStatus.LOADING:
-            print("Unexpected: `on_done_callback` called while downloader status is loading")
-        case DownloadStatus.FINISHED_SUCCESSFULLY:
-            wm.asset_library_status_finished_loading(downloader.remote_url)
-        case DownloadStatus.FAILED:
-            wm.asset_library_status_failed_loading(downloader.remote_url, message=downloader.error_message)
+        wm = bpy.context.window_manager
+        match downloader.status:
+            case DownloadStatus.LOADING:
+                print("Unexpected: `on_done_callback` called while downloader status is loading")
+            case DownloadStatus.FINISHED_SUCCESSFULLY:
+                wm.asset_library_status_finished_loading(downloader.remote_url)
+            case DownloadStatus.FAILED:
+                wm.asset_library_status_failed_loading(downloader.remote_url, message=downloader.error_message)
+    finally:
+        sync_mutex.mutex_unlock(downloader.local_path)
 
 
 def _remote_asset_libraries_sync_update(downloader: _RemoteAssetListingDownloader) -> None:
@@ -504,6 +528,15 @@ def _remote_asset_libraries_sync_metafiles_done(downloader: _RemoteAssetListingD
 def _remote_asset_libraries_sync_new_page_done(downloader: _RemoteAssetListingDownloader) -> None:
     wm = bpy.context.window_manager
     wm.asset_library_status_ping_loaded_new_pages(downloader.remote_url)
+
+
+def _remote_asset_libraries_sync_all_periodic():
+    """Periodically download remote asset library listings."""
+    if not bpy.app.online_access:
+        return
+
+    for asset_lib in bpy.context.preferences.filepaths.asset_libraries:
+        remote_asset_libraries_sync(asset_lib, only_if_older_than_sec=REMOTE_ASSET_LIBS_AUTOSYNC_PERIOD_SEC)
 
 
 @bpy.app.handlers.persistent
@@ -882,6 +915,7 @@ def register():
         if prefs.view.show_extensions_updates:
             from . import bl_extension_notify
             bl_extension_notify.update_non_blocking(repos_fn=repos_to_notify)
+        _remote_asset_libraries_sync_all_periodic()
 
 
 def unregister():

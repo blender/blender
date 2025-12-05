@@ -4,6 +4,13 @@
 
 from __future__ import annotations
 
+__all__ = (
+    'RemoteAssetListingLocator',
+    'DownloadStatus',
+    'RemoteAssetListingDownloader',
+    'is_more_recent_than',
+)
+
 import copy
 import enum
 import functools
@@ -107,6 +114,20 @@ class DownloadStatus(enum.Enum):
 
 
 class RemoteAssetListingDownloader:
+    """Download a remote asset listing.
+
+    Calling `downloader.download_and_process()` performs the following steps:
+
+    - Download the top metadata file, and validate+parse it.
+    - Download the top asset listing index file, and validate+parse it.
+    - For each page in that file, download the page, and validate+parse it.
+    - Once the last page is downloaded and considered valid, touch the
+      downloaded top metadata file. That is then an indicator of the last time
+      the remote listing was downloaded.
+
+    The above steps always happen, even when the HTTP server returns a '304 Not
+    Modified'.
+    """
     _locator: RemoteAssetListingLocator
 
     OnUpdateCallback: TypeAlias = Callable[['RemoteAssetListingDownloader'], None]
@@ -402,6 +423,16 @@ class RemoteAssetListingDownloader:
             abs_path.unlink()
 
         self.report({'INFO'}, "Asset library index downloaded")
+
+        # Update the mtime of the top metadata file, so that that can be used as
+        # an indicator of how new the files are. This is only done after the
+        # last page has been downloaded.
+        #
+        # See is_more_recent_than() below.
+        top_metadata = self._locator.local_path / listing_common.ASSET_TOP_METADATA_FILENAME
+        assert top_metadata.exists(), "Expecting top metadata file to exist after downloading"
+        top_metadata.touch()
+
         self._shutdown_if_done()
 
     def _shutdown_if_done(self) -> None:
@@ -534,6 +565,10 @@ class RemoteAssetListingDownloader:
         return self._locator.remote_url
 
     @property
+    def local_path(self) -> Path:
+        return self._locator.local_path
+
+    @property
     def status(self) -> DownloadStatus:
         return self._status
 
@@ -653,6 +688,34 @@ def _sanitize_path_from_url(urlpath: PurePosixPath | str) -> PurePosixPath:
         i -= 1
 
     return PurePosixPath(*parts)
+
+
+def is_more_recent_than(library: bpy.types.UserAssetLibrary, max_age_sec: float | int) -> bool:
+    """Return whether the remote asset library listing is more recent than the given age.
+
+    If the listing hasn't been downloaded, return False.
+    """
+    import time
+
+    top_metadata_path = Path(library.path) / listing_common.ASSET_TOP_METADATA_FILENAME
+
+    if not top_metadata_path.exists():
+        # If the metadata does not exist, it's certainly not new enough.
+        return False
+
+    try:
+        stat = top_metadata_path.stat()
+    except OSError as ex:
+        print("Could not stat {!s}: {!s}".format(top_metadata_path, ex))
+        return False
+
+    file_age_sec = time.time() - stat.st_mtime
+
+    # Note that the age can be negative, when the local clock changed. Since
+    # that's usually measured in the order of minutes/hours, and the refresh
+    # period of remote asset libraries is measured in days, we can consider it
+    # "fresh" in those cases.
+    return file_age_sec < max_age_sec
 
 
 if __name__ == '__main__':
