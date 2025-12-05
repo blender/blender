@@ -1469,7 +1469,7 @@ static void node_socket_tooltip_set(ui::Block &block,
 
   button_func_tooltip_custom_set(
       but,
-      [](bContext &C, uiTooltipData &tip, ui::Button *but, void *argN) {
+      [](bContext &C, ui::TooltipData &tip, ui::Button *but, void *argN) {
         const SpaceNode &snode = *CTX_wm_space_node(&C);
         const bNodeTree &ntree = *snode.edittree;
         const int index_in_tree = POINTER_AS_INT(argN);
@@ -1531,7 +1531,7 @@ static void node_socket_add_tooltip_in_node_editor(const bNodeSocket &sock, ui::
 {
   uiLayoutSetTooltipCustomFunc(
       &layout,
-      [](bContext &C, uiTooltipData &tip, ui::Button *but, void *argN) {
+      [](bContext &C, ui::TooltipData &tip, ui::Button *but, void *argN) {
         const SpaceNode &snode = *CTX_wm_space_node(&C);
         const bNodeTree &ntree = *snode.edittree;
         const int index_in_tree = POINTER_AS_INT(argN);
@@ -1557,7 +1557,7 @@ void node_socket_add_tooltip(const bNodeTree &ntree, const bNodeSocket &sock, ui
 
   uiLayoutSetTooltipCustomFunc(
       &layout,
-      [](bContext &C, uiTooltipData &tip, ui::Button *but, void *argN) {
+      [](bContext &C, ui::TooltipData &tip, ui::Button *but, void *argN) {
         SocketTooltipData *data = static_cast<SocketTooltipData *>(argN);
         build_socket_tooltip(tip, C, but, *data->ntree, *data->socket);
       },
@@ -2067,7 +2067,7 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, ui::Block &blo
       button_retval_set(panel_toggle_but, -1);
       button_func_tooltip_custom_set(
           panel_toggle_but,
-          [](bContext &C, uiTooltipData &tip, ui::Button *but, void *argN) {
+          [](bContext &C, ui::TooltipData &tip, ui::Button *but, void *argN) {
             const SpaceNode &snode = *CTX_wm_space_node(&C);
             const bNodeTree &ntree = *snode.edittree;
             const int index_in_tree = POINTER_AS_INT(argN);
@@ -2880,7 +2880,7 @@ static void node_header_custom_tooltip(const bNode &node, ui::Button &but)
 {
   button_func_tooltip_custom_set(
       &but,
-      [](bContext & /*C*/, uiTooltipData &data, ui::Button * /*but*/, void *argN) {
+      [](bContext & /*C*/, ui::TooltipData &data, ui::Button * /*but*/, void *argN) {
         const bNode &node = *static_cast<const bNode *>(argN);
         const std::string description = node.typeinfo->ui_description_fn ?
                                             TIP_(node.typeinfo->ui_description_fn(node)) :

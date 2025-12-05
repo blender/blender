@@ -538,7 +538,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
     button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
     button_func_tooltip_custom_set(
         but,
-        [](bContext & /*C*/, uiTooltipData &tip, ui::Button * /*but*/, void *argN) {
+        [](bContext & /*C*/, ui::TooltipData &tip, ui::Button * /*but*/, void *argN) {
           const float4x4 matrix = *static_cast<const float4x4 *>(argN);
           UI_tooltip_text_field_add(
               tip, format_matrix_to_grid(matrix), {}, ui::TIP_STYLE_MONO, ui::TIP_LC_VALUE);

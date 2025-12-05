@@ -31,7 +31,7 @@
 namespace blender::ed::asset {
 
 void asset_tooltip(const asset_system::AssetRepresentation &asset,
-                   uiTooltipData &tip,
+                   ui::TooltipData &tip,
                    const bool include_name)
 {
   if (include_name) {

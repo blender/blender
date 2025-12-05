@@ -121,7 +121,7 @@ struct TooltipData {
 
 BLI_STATIC_ASSERT(int(TIP_LC_MAX) == int(TIP_LC_ALERT) + 1, "invalid lc-max");
 
-void UI_tooltip_text_field_add(uiTooltipData &data,
+void UI_tooltip_text_field_add(TooltipData &data,
                                std::string text,
                                std::string suffix,
                                const uiTooltipStyle style,
@@ -141,7 +141,7 @@ void UI_tooltip_text_field_add(uiTooltipData &data,
   data.fields.append(std::move(field));
 }
 
-void UI_tooltip_image_field_add(uiTooltipData &data, const uiTooltipImage &image_data)
+void UI_tooltip_image_field_add(TooltipData &data, const uiTooltipImage &image_data)
 {
   uiTooltipField field{};
   field.format.style = TIP_STYLE_IMAGE;
@@ -165,7 +165,7 @@ static void color_blend_f3_f3(float dest[3], const float source[3], const float 
 
 static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
 {
-  uiTooltipData *data = static_cast<uiTooltipData *>(region->regiondata);
+  TooltipData *data = static_cast<TooltipData *>(region->regiondata);
   const float pad_x = data->lineh * TIP_PADDING_X;
   const float pad_y = data->lineh * TIP_PADDING_Y;
   const uiWidgetColors *theme = ui_tooltip_get_theme();
@@ -368,7 +368,7 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
 static void ui_tooltip_region_free_cb(ARegion *region)
 {
   /* Put ownership back into a unique pointer. */
-  std::unique_ptr<uiTooltipData> data{static_cast<uiTooltipData *>(region->regiondata)};
+  std::unique_ptr<TooltipData> data{static_cast<TooltipData *>(region->regiondata)};
   for (uiTooltipField &field : data->fields) {
     if (field.image && field.image->ibuf) {
       IMB_freeImBuf(field.image->ibuf);
@@ -401,7 +401,7 @@ static std::string ui_tooltip_text_python_from_op(bContext *C,
 
 #ifdef WITH_PYTHON
 
-static bool ui_tooltip_data_append_from_keymap(bContext *C, uiTooltipData &data, wmKeyMap *keymap)
+static bool ui_tooltip_data_append_from_keymap(bContext *C, TooltipData &data, wmKeyMap *keymap)
 {
   const int fields_len_init = data.fields.size();
 
@@ -466,9 +466,9 @@ static std::string ui_tooltip_with_period(StringRef tip)
 /**
  * Special tool-system exception.
  */
-static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_tool(bContext *C,
-                                                                Button *but,
-                                                                bool is_quick_tip)
+static std::unique_ptr<TooltipData> ui_tooltip_data_from_tool(bContext *C,
+                                                              Button *but,
+                                                              bool is_quick_tip)
 {
   if (but->optype == nullptr) {
     return nullptr;
@@ -515,7 +515,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_tool(bContext *C,
   }
 
   /* We have a tool, now extract the info. */
-  std::unique_ptr<uiTooltipData> data = std::make_unique<uiTooltipData>();
+  std::unique_ptr<TooltipData> data = std::make_unique<TooltipData>();
 
 #ifdef WITH_PYTHON
   /* It turns out to be most simple to do this via Python since C
@@ -835,7 +835,7 @@ static std::string ui_tooltip_color_string(const float4 &color,
       "{}:{: <{}} {:.3f}  {:.3f}  {:.3f}", title, "", align, color[0], color[1], color[2]);
 };
 
-void UI_tooltip_color_field_add(uiTooltipData &data,
+void UI_tooltip_color_field_add(TooltipData &data,
                                 const float4 &original_color,
                                 const bool has_alpha,
                                 const bool is_gamma,
@@ -923,7 +923,7 @@ void UI_tooltip_color_field_add(uiTooltipData &data,
   IMB_freeImBuf(image_data.ibuf);
 }
 
-void UI_tooltip_uibut_python_add(uiTooltipData &data,
+void UI_tooltip_uibut_python_add(TooltipData &data,
                                  bContext &C,
                                  Button &but,
                                  ButtonExtraOpIcon *extra_icon)
@@ -975,7 +975,7 @@ void UI_tooltip_uibut_python_add(uiTooltipData &data,
   }
 }
 
-static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
+static std::unique_ptr<TooltipData> ui_tooltip_data_from_button_or_extra_icon(
     bContext *C, Button *but, ButtonExtraOpIcon *extra_icon, const bool is_quick_tip)
 {
   char buf[512];
@@ -984,7 +984,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
                                         but->optype;
   PropertyRNA *rnaprop = extra_icon ? nullptr : but->rnaprop;
 
-  std::unique_ptr<uiTooltipData> data = std::make_unique<uiTooltipData>();
+  std::unique_ptr<TooltipData> data = std::make_unique<TooltipData>();
 
   /* Menus already show shortcuts, don't show them in the tool-tips. */
   const bool is_menu = ui_block_is_menu(but->block) && !ui_block_is_pie_menu(but->block);
@@ -1291,9 +1291,9 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
   return data->fields.is_empty() ? nullptr : std::move(data);
 }
 
-static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
+static std::unique_ptr<TooltipData> ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
 {
-  std::unique_ptr<uiTooltipData> data = std::make_unique<uiTooltipData>();
+  std::unique_ptr<TooltipData> data = std::make_unique<TooltipData>();
 
   /* TODO(@ideasman42): a way for gizmos to have their own descriptions (low priority). */
 
@@ -1365,10 +1365,10 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_gizmo(bContext *C, wm
   return data->fields.is_empty() ? nullptr : std::move(data);
 }
 
-static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_custom_func(bContext *C, Button *but)
+static std::unique_ptr<TooltipData> ui_tooltip_data_from_custom_func(bContext *C, Button *but)
 {
   /* Create tooltip data. */
-  std::unique_ptr<uiTooltipData> data = std::make_unique<uiTooltipData>();
+  std::unique_ptr<TooltipData> data = std::make_unique<TooltipData>();
 
   /* Create fields from custom callback. */
   but->tip_custom_func(*C, *data, but, but->tip_arg);
@@ -1377,7 +1377,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_custom_func(bContext 
 }
 
 static ARegion *ui_tooltip_create_with_data(bContext *C,
-                                            std::unique_ptr<uiTooltipData> data_uptr,
+                                            std::unique_ptr<TooltipData> data_uptr,
                                             const float init_position[2],
                                             const rcti *init_rect_overlap)
 {
@@ -1399,7 +1399,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
    * pointer for save freeing. */
   region->regiondata = data_uptr.release();
 
-  uiTooltipData *data = static_cast<uiTooltipData *>(region->regiondata);
+  TooltipData *data = static_cast<TooltipData *>(region->regiondata);
 
   /* Set font, get bounding-box. */
   const uiStyle *style = style_get();
@@ -1641,7 +1641,7 @@ ARegion *tooltip_create_from_button_or_extra_icon(
   if (but->drawflag & BUT_NO_TOOLTIP) {
     return nullptr;
   }
-  std::unique_ptr<uiTooltipData> data = nullptr;
+  std::unique_ptr<TooltipData> data = nullptr;
 
   if (!is_quick_tip && but->tip_custom_func) {
     data = ui_tooltip_data_from_custom_func(C, but);
@@ -1711,7 +1711,7 @@ ARegion *tooltip_create_from_gizmo(bContext *C, wmGizmo *gz)
   wmWindow *win = CTX_wm_window(C);
   float init_position[2] = {float(win->eventstate->xy[0]), float(win->eventstate->xy[1])};
 
-  std::unique_ptr<uiTooltipData> data = ui_tooltip_data_from_gizmo(C, gz);
+  std::unique_ptr<TooltipData> data = ui_tooltip_data_from_gizmo(C, gz);
   if (data == nullptr) {
     return nullptr;
   }
@@ -1729,7 +1729,7 @@ ARegion *tooltip_create_from_gizmo(bContext *C, wmGizmo *gz)
   return ui_tooltip_create_with_data(C, std::move(data), init_position, nullptr);
 }
 
-static void ui_tooltip_from_image(Image &ima, uiTooltipData &data)
+static void ui_tooltip_from_image(Image &ima, TooltipData &data)
 {
   if (ima.filepath[0]) {
     char root[FILE_MAX];
@@ -1802,7 +1802,7 @@ static void ui_tooltip_from_image(Image &ima, uiTooltipData &data)
   }
 }
 
-static void ui_tooltip_from_clip(MovieClip &clip, uiTooltipData &data)
+static void ui_tooltip_from_clip(MovieClip &clip, TooltipData &data)
 {
   if (clip.filepath[0]) {
     char root[FILE_MAX];
@@ -1861,7 +1861,7 @@ static void ui_tooltip_from_clip(MovieClip &clip, uiTooltipData &data)
   }
 }
 
-static void ui_tooltip_from_vfont(const VFont &font, uiTooltipData &data)
+static void ui_tooltip_from_vfont(const VFont &font, TooltipData &data)
 {
   if (BKE_vfont_is_builtin(&font)) {
     /* In memory font previews are currently not supported,
@@ -1900,9 +1900,9 @@ static void ui_tooltip_from_vfont(const VFont &font, uiTooltipData &data)
   }
 }
 
-static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_search_item_tooltip_data(ID *id)
+static std::unique_ptr<TooltipData> ui_tooltip_data_from_search_item_tooltip_data(ID *id)
 {
-  std::unique_ptr<uiTooltipData> data = std::make_unique<uiTooltipData>();
+  std::unique_ptr<TooltipData> data = std::make_unique<TooltipData>();
   const ID_Type type_id = GS(id->name);
 
   UI_tooltip_text_field_add(*data, id->name + 2, {}, TIP_STYLE_HEADER, TIP_LC_MAIN);
@@ -1945,7 +1945,7 @@ ARegion *tooltip_create_from_search_item_generic(bContext *C,
                                                  const rcti *item_rect,
                                                  ID *id)
 {
-  std::unique_ptr<uiTooltipData> data = ui_tooltip_data_from_search_item_tooltip_data(id);
+  std::unique_ptr<TooltipData> data = ui_tooltip_data_from_search_item_tooltip_data(id);
   if (data == nullptr) {
     return nullptr;
   }

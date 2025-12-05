@@ -469,7 +469,7 @@ void NODE_OT_sockets_sync(wmOperatorType *ot);
 
 /* node_socket_tooltip.cc */
 
-void build_socket_tooltip(uiTooltipData &tip_data,
+void build_socket_tooltip(ui::TooltipData &tip_data,
                           bContext &C,
                           ui::Button *but,
                           const bNodeTree &tree,

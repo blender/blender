@@ -1904,7 +1904,7 @@ void button_func_tooltip_custom_set(Button *but,
  * \param text: Allocated text (transfer ownership to `data`) or null.
  * \param suffix: Allocated text (transfer ownership to `data`) or null.
  */
-void UI_tooltip_text_field_add(uiTooltipData &data,
+void UI_tooltip_text_field_add(TooltipData &data,
                                std::string text,
                                std::string suffix,
                                const uiTooltipStyle style,
@@ -1915,9 +1915,9 @@ void UI_tooltip_text_field_add(uiTooltipData &data,
  * \param image: Image buffer (duplicated, ownership is *not* transferred to `data`).
  * \param image_size: Display size for the image (pixels without UI scale applied).
  */
-void UI_tooltip_image_field_add(uiTooltipData &data, const uiTooltipImage &image_data);
+void UI_tooltip_image_field_add(TooltipData &data, const uiTooltipImage &image_data);
 
-void UI_tooltip_color_field_add(uiTooltipData &data,
+void UI_tooltip_color_field_add(TooltipData &data,
                                 const float4 &color,
                                 bool has_alpha,
                                 bool is_gamma,
@@ -1928,7 +1928,7 @@ void UI_tooltip_color_field_add(uiTooltipData &data,
  * Add Python-related information to the tooltip. The caller is responsible for checking
  * #USER_TOOLTIPS_PYTHON.
  */
-void UI_tooltip_uibut_python_add(uiTooltipData &data,
+void UI_tooltip_uibut_python_add(TooltipData &data,
                                  bContext &C,
                                  Button &but,
                                  ButtonExtraOpIcon *extra_icon);

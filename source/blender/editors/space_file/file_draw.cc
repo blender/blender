@@ -135,7 +135,7 @@ static FileTooltipData *file_tooltip_data_create(const SpaceFile *sfile, const F
 }
 
 static void file_draw_tooltip_custom_func(bContext & /*C*/,
-                                          uiTooltipData &tip,
+                                          blender::ui::TooltipData &tip,
                                           blender::ui::Button * /*but*/,
                                           void *argN)
 {
@@ -383,7 +383,7 @@ static void file_draw_tooltip_custom_func(bContext & /*C*/,
 }
 
 static void file_draw_asset_tooltip_custom_func(bContext & /*C*/,
-                                                uiTooltipData &tip,
+                                                blender::ui::TooltipData &tip,
                                                 blender::ui::Button * /*but*/,
                                                 void *argN)
 {

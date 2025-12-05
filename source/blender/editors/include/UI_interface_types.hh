@@ -17,8 +17,6 @@ struct Layout;
 struct TooltipData;
 }  // namespace blender::ui
 
-using uiTooltipData = blender::ui::TooltipData;
-
 /* names */
 #define UI_MAX_DRAW_STR 550
 #define UI_MAX_NAME_STR 256
@@ -50,7 +48,7 @@ using uiButToolTipFunc = std::string (*)(bContext *C, void *argN, blender::Strin
  *   Mostly useful when using #uiLayoutSetTooltipCustomFunc.
  */
 using uiButToolTipCustomFunc = void (*)(bContext &C,
-                                        uiTooltipData &data,
+                                        blender::ui::TooltipData &data,
                                         blender::ui::Button *but,
                                         void *argN);
 

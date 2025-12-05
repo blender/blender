@@ -34,7 +34,7 @@
 namespace blender::ui {
 
 static void template_recent_files_tooltip_func(bContext & /*C*/,
-                                               uiTooltipData &tip,
+                                               TooltipData &tip,
                                                Button * /*but*/,
                                                void *argN)
 {

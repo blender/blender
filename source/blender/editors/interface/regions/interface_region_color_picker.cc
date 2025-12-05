@@ -674,7 +674,7 @@ static void ui_block_colorpicker(const bContext * /*C*/,
   int yco = -0.5f * UI_UNIT_Y;
 
   if (!block->is_color_gamma_picker) {
-    auto colorspace_tip_func = [](bContext & /*C*/, uiTooltipData &tip, Button *but, void *space) {
+    auto colorspace_tip_func = [](bContext & /*C*/, TooltipData &tip, Button *but, void *space) {
       UI_tooltip_text_field_add(tip, but->tip, {}, TIP_STYLE_HEADER, TIP_LC_NORMAL, false);
       UI_tooltip_text_field_add(tip,
                                 IFACE_("Color Space: ") +
@@ -978,7 +978,7 @@ static void ui_block_colorpicker(const bContext * /*C*/,
                 cpicker->has_alpha ? 10 : 8,
                 std::nullopt);
   const auto bt_tooltip_func = [](bContext & /*C*/,
-                                  uiTooltipData &tip,
+                                  TooltipData &tip,
                                   Button * /*but*/,
                                   void *has_alpha_ptr) {
     const bool *has_alpha = static_cast<bool *>(has_alpha_ptr);
