@@ -96,13 +96,13 @@ enum {
 bool button_can_align(const Button *but)
 {
   const bool btype_can_align = !ELEM(but->type,
-                                     ButType::Label,
-                                     ButType::Checkbox,
-                                     ButType::CheckboxN,
-                                     ButType::Tab,
-                                     ButType::Sepr,
-                                     ButType::SeprLine,
-                                     ButType::SeprSpacer);
+                                     ButtonType::Label,
+                                     ButtonType::Checkbox,
+                                     ButtonType::CheckboxN,
+                                     ButtonType::Tab,
+                                     ButtonType::Sepr,
+                                     ButtonType::SeprLine,
+                                     ButtonType::SeprSpacer);
   return (btype_can_align && !BLI_rctf_is_empty(&but->rect));
 }
 
@@ -366,7 +366,7 @@ void block_align_calc(Block *block, const ARegion *region)
    * Tabs get some special treatment here, they get aligned to region border. */
   for (const std::unique_ptr<Button> &but : block->buttons) {
     /* special case: tabs need to be aligned to a region border, drawflag tells which one */
-    if (but->type == ButType::Tab) {
+    if (but->type == ButtonType::Tab) {
       block_align_but_to_region(but.get(), region);
     }
     else {

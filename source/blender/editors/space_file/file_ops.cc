@@ -3050,7 +3050,7 @@ void file_filename_enter_handle(bContext *C, void * /*arg_unused*/, void *arg_bu
         STRNCPY(params->dir, filepath);
         params->file[0] = '\0';
         ED_file_change_dir(C);
-        UI_textbutton_activate_but(C, but);
+        textbutton_activate_but(C, but);
         WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, nullptr);
       }
     }

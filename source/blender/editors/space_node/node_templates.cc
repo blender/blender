@@ -554,7 +554,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
           /* XXX Do not use ui::Layout::label here,
            * it would add an empty icon as we are in a menu! */
           uiDefBut(block,
-                   ui::ButType::Label,
+                   ui::ButtonType::Label,
                    IFACE_(cur_node_name),
                    0,
                    0,
@@ -575,7 +575,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
       }
 
       but = uiDefIconTextBut(block,
-                             ui::ButType::But,
+                             ui::ButtonType::But,
                              icon,
                              name,
                              0,
@@ -632,7 +632,7 @@ static void ui_template_node_link_menu(bContext *C, ui::Layout *layout, void *bu
     but->drawflag = ui::BUT_TEXT_LEFT;
 
     but = uiDefBut(block,
-                   ui::ButType::But,
+                   ui::ButtonType::But,
                    CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove"),
                    0,
                    0,
@@ -645,7 +645,7 @@ static void ui_template_node_link_menu(bContext *C, ui::Layout *layout, void *bu
     button_funcN_set(but, ui_node_link, MEM_dupallocN(arg), POINTER_FROM_INT(UI_NODE_LINK_REMOVE));
 
     but = uiDefBut(block,
-                   ui::ButType::But,
+                   ui::ButtonType::But,
                    IFACE_("Disconnect"),
                    0,
                    0,
@@ -878,7 +878,7 @@ static void ui_node_draw_input(ui::Layout &layout,
 
   row = &layout.row(true);
 
-  ui::uiPropertySplitWrapper split_wrapper = uiItemPropertySplitWrapperCreate(row);
+  ui::PropertySplitWrapper split_wrapper = uiItemPropertySplitWrapperCreate(row);
   /* Decorations are added manually here. */
   row->use_property_decorate_set(false);
   /* Empty decorator item for alignment. */

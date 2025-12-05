@@ -651,7 +651,7 @@ void header_region_init(wmWindowManager * /*wm*/, ARegion *region)
 
 void header_region(const bContext *C, ARegion *region)
 {
-  ED_region_header_with_button_sections(C, region, ui::uiButtonSectionsAlign::Bottom);
+  ED_region_header_with_button_sections(C, region, ui::ButtonSectionsAlign::Bottom);
 }
 
 int header_region_size()
@@ -801,7 +801,7 @@ static ui::Button *add_tab_button(ui::Block &block, StringRefNull name)
 
   ui::Button *but = uiDefBut(
       &block,
-      ui::ButType::Tab,
+      ui::ButtonType::Tab,
       name,
       0,
       0,

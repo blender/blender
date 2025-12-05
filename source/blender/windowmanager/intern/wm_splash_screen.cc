@@ -68,8 +68,17 @@ static void wm_block_splash_add_label(blender::ui::Block *block, const char *lab
 
   block_emboss_set(block, blender::ui::EmbossType::None);
 
-  blender::ui::Button *but = uiDefBut(
-      block, blender::ui::ButType::Label, label, 0, y, x, UI_UNIT_Y, nullptr, 0, 0, std::nullopt);
+  blender::ui::Button *but = uiDefBut(block,
+                                      blender::ui::ButtonType::Label,
+                                      label,
+                                      0,
+                                      y,
+                                      x,
+                                      UI_UNIT_Y,
+                                      nullptr,
+                                      0,
+                                      0,
+                                      std::nullopt);
   button_drawflag_disable(but, blender::ui::BUT_TEXT_LEFT);
   button_drawflag_enable(but, blender::ui::BUT_TEXT_RIGHT);
 
@@ -459,7 +468,7 @@ static blender::ui::Block *wm_block_about_create(bContext *C, ARegion *region, v
   constexpr bool show_color = false;
   const float size = 0.2f * dialog_width;
 
-  ImBuf *ibuf = blender::ui::UI_svg_icon_bitmap(ICON_BLENDER_LOGO_LARGE, size, show_color);
+  ImBuf *ibuf = blender::ui::svg_icon_bitmap(ICON_BLENDER_LOGO_LARGE, size, show_color);
 
   if (ibuf) {
     bTheme *btheme = blender::ui::GetTheme();

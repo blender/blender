@@ -326,7 +326,7 @@ static void fmodifier_panel_header(const bContext *C, Panel *panel)
 
   /* Delete button. */
   blender::ui::Button *but = uiDefIconBut(block,
-                                          blender::ui::ButType::But,
+                                          blender::ui::ButtonType::But,
                                           ICON_X,
                                           0,
                                           0,
@@ -684,7 +684,7 @@ static void envelope_panel_draw(const bContext *C, Panel *panel)
 
   blender::ui::Button *but = uiDefBut(
       block,
-      blender::ui::ButType::But,
+      blender::ui::ButtonType::But,
       IFACE_("Add Control Point"),
       0,
       0,
@@ -714,7 +714,7 @@ static void envelope_panel_draw(const bContext *C, Panel *panel)
     row->prop(&ctrl_ptr, "max", UI_ITEM_NONE, IFACE_("Max"), ICON_NONE);
 
     but = uiDefIconBut(block,
-                       blender::ui::ButType::But,
+                       blender::ui::ButtonType::But,
                        ICON_X,
                        0,
                        0,

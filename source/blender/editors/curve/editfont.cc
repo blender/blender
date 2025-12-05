@@ -724,7 +724,7 @@ static blender::ui::Block *wm_block_insert_unicode_create(bContext *C,
   layout.label(RPT_("Enter a Unicode codepoint hex value"), ICON_NONE);
 
   blender::ui::Button *text_but = uiDefBut(block,
-                                           blender::ui::ButType::Text,
+                                           blender::ui::ButtonType::Text,
                                            "",
                                            0,
                                            0,
@@ -755,7 +755,7 @@ static blender::ui::Block *wm_block_insert_unicode_create(bContext *C,
 
   if (windows_layout) {
     confirm = uiDefIconTextBut(block,
-                               blender::ui::ButType::But,
+                               blender::ui::ButtonType::But,
                                0,
                                IFACE_("Insert"),
                                0,
@@ -768,7 +768,7 @@ static blender::ui::Block *wm_block_insert_unicode_create(bContext *C,
   }
 
   cancel = uiDefIconTextBut(block,
-                            blender::ui::ButType::But,
+                            blender::ui::ButtonType::But,
                             0,
                             IFACE_("Cancel"),
                             0,
@@ -781,7 +781,7 @@ static blender::ui::Block *wm_block_insert_unicode_create(bContext *C,
   if (!windows_layout) {
     split.column(false);
     confirm = uiDefIconTextBut(block,
-                               blender::ui::ButType::But,
+                               blender::ui::ButtonType::But,
                                0,
                                IFACE_("Insert"),
                                0,

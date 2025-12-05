@@ -44,7 +44,7 @@ namespace blender::ui {
 /** \name Pie Menu
  * \{ */
 
-struct uiPieMenu {
+struct PieMenu {
   Block *pie_block; /* radial block of the pie menu (more could be added later) */
   Layout *layout;
   int mx, my;
@@ -53,7 +53,7 @@ struct uiPieMenu {
 static Block *block_func_PIE(bContext * /*C*/, PopupBlockHandle *handle, void *arg_pie)
 {
   Block *block;
-  uiPieMenu *pie = static_cast<uiPieMenu *>(arg_pie);
+  PieMenu *pie = static_cast<PieMenu *>(arg_pie);
   int minwidth;
 
   minwidth = UI_MENU_WIDTH_MIN;
@@ -88,14 +88,14 @@ static float ui_pie_menu_title_width(const char *name, int icon)
   return (fontstyle_string_width(fstyle, name) + (UI_UNIT_X * (1.50f + (icon ? 0.25f : 0.0f))));
 }
 
-uiPieMenu *pie_menu_begin(bContext *C, const char *title, int icon, const wmEvent *event)
+PieMenu *pie_menu_begin(bContext *C, const char *title, int icon, const wmEvent *event)
 {
   const uiStyle *style = style_get_dpi();
   short event_type;
 
   wmWindow *win = CTX_wm_window(C);
 
-  uiPieMenu *pie = MEM_callocN<uiPieMenu>(__func__);
+  PieMenu *pie = MEM_callocN<PieMenu>(__func__);
 
   pie->pie_block = block_begin(C, nullptr, __func__, EmbossType::Emboss);
   /* may be useful later to allow spawning pies
@@ -146,12 +146,12 @@ uiPieMenu *pie_menu_begin(bContext *C, const char *title, int icon, const wmEven
       SNPRINTF_UTF8(titlestr, " %s", title);
       w = ui_pie_menu_title_width(titlestr, icon);
       but = uiDefIconTextBut(
-          pie->pie_block, ButType::Label, icon, titlestr, 0, 0, w, UI_UNIT_Y, nullptr, "");
+          pie->pie_block, ButtonType::Label, icon, titlestr, 0, 0, w, UI_UNIT_Y, nullptr, "");
     }
     else {
       w = ui_pie_menu_title_width(title, 0);
       but = uiDefBut(
-          pie->pie_block, ButType::Label, title, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
+          pie->pie_block, ButtonType::Label, title, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
     }
     /* do not align left */
     but->drawflag &= ~BUT_TEXT_LEFT;
@@ -162,7 +162,7 @@ uiPieMenu *pie_menu_begin(bContext *C, const char *title, int icon, const wmEven
   return pie;
 }
 
-void pie_menu_end(bContext *C, uiPieMenu *pie)
+void pie_menu_end(bContext *C, PieMenu *pie)
 {
   wmWindow *window = CTX_wm_window(C);
 
@@ -177,7 +177,7 @@ void pie_menu_end(bContext *C, uiPieMenu *pie)
   MEM_freeN(pie);
 }
 
-Layout *pie_menu_layout(uiPieMenu *pie)
+Layout *pie_menu_layout(PieMenu *pie)
 {
   return pie->layout;
 }
@@ -196,7 +196,7 @@ wmOperatorStatus pie_menu_invoke(bContext *C, const char *idname, const wmEvent 
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
-  uiPieMenu *pie = pie_menu_begin(
+  PieMenu *pie = pie_menu_begin(
       C, CTX_IFACE_(mt->translation_context, mt->label), ICON_NONE, event);
   Layout *layout = pie_menu_layout(pie);
 
@@ -246,7 +246,7 @@ static void ui_pie_menu_level_invoke(bContext *C, void *argN, void *arg2)
   PieMenuLevelData *lvl = (PieMenuLevelData *)arg2;
   wmWindow *win = CTX_wm_window(C);
 
-  uiPieMenu *pie = pie_menu_begin(C, IFACE_(lvl->title), lvl->icon, win->eventstate);
+  PieMenu *pie = pie_menu_begin(C, IFACE_(lvl->title), lvl->icon, win->eventstate);
   Layout &layout = pie_menu_layout(pie)->menu_pie();
 
   PointerRNA ptr;
@@ -299,7 +299,7 @@ void pie_menu_level_create(Block *block,
 
   /* add a 'more' menu entry */
   Button *but = uiDefIconTextBut(block,
-                                 ButType::But,
+                                 ButtonType::But,
                                  ICON_PLUS,
                                  "More",
                                  0,

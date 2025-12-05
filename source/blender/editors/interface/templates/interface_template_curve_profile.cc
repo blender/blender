@@ -49,7 +49,7 @@ static Block *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_v)
                                                    PROF_PRESET_STEPS)})
   {
     Button *but = uiDefIconTextBut(block,
-                                   ButType::ButMenu,
+                                   ButtonType::ButMenu,
                                    ICON_BLANK1,
                                    item.first,
                                    0,
@@ -87,7 +87,7 @@ static Block *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
 
   {
     Button *but = uiDefIconTextBut(block,
-                                   ButType::ButMenu,
+                                   ButtonType::ButMenu,
                                    ICON_BLANK1,
                                    IFACE_("Reset View"),
                                    0,
@@ -104,7 +104,7 @@ static Block *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
   }
   {
     Button *but = uiDefIconTextBut(block,
-                                   ButType::ButMenu,
+                                   ButtonType::ButMenu,
                                    ICON_BLANK1,
                                    IFACE_("Reset Curve"),
                                    0,
@@ -235,7 +235,7 @@ static void CurveProfile_buttons_layout(Layout &layout, PointerRNA *ptr, const R
     /* Only for dynamic presets. */
     if (ELEM(profile->preset, PROF_PRESET_STEPS, PROF_PRESET_SUPPORTS)) {
       bt = uiDefIconTextBut(block,
-                            ButType::But,
+                            ButtonType::But,
                             ICON_NONE,
                             IFACE_("Apply Preset"),
                             0,
@@ -260,7 +260,7 @@ static void CurveProfile_buttons_layout(Layout &layout, PointerRNA *ptr, const R
 
   /* Zoom in */
   bt = uiDefIconBut(block,
-                    ButType::But,
+                    ButtonType::But,
                     ICON_ZOOM_IN,
                     0,
                     0,
@@ -277,7 +277,7 @@ static void CurveProfile_buttons_layout(Layout &layout, PointerRNA *ptr, const R
 
   /* Zoom out */
   bt = uiDefIconBut(block,
-                    ButType::But,
+                    ButtonType::But,
                     ICON_ZOOM_OUT,
                     0,
                     0,
@@ -298,7 +298,7 @@ static void CurveProfile_buttons_layout(Layout &layout, PointerRNA *ptr, const R
 
   /* Flip path */
   bt = uiDefIconBut(block,
-                    ButType::But,
+                    ButtonType::But,
                     ICON_ARROW_LEFTRIGHT,
                     0,
                     0,
@@ -317,7 +317,7 @@ static void CurveProfile_buttons_layout(Layout &layout, PointerRNA *ptr, const R
   /* Clipping toggle */
   const int icon = (profile->flag & PROF_USE_CLIP) ? ICON_CLIPUV_HLT : ICON_CLIPUV_DEHLT;
   bt = uiDefIconBut(block,
-                    ButType::But,
+                    ButtonType::But,
                     icon,
                     0,
                     0,
@@ -366,7 +366,7 @@ static void CurveProfile_buttons_layout(Layout &layout, PointerRNA *ptr, const R
   const int path_height = path_width;
   layout.row(false);
   uiDefBut(block,
-           ButType::CurveProfile,
+           ButtonType::CurveProfile,
            "",
            0,
            0,
@@ -430,7 +430,7 @@ static void CurveProfile_buttons_layout(Layout &layout, PointerRNA *ptr, const R
 
     /* Position */
     bt = uiDefButF(block,
-                   ButType::Num,
+                   ButtonType::Num,
                    "X:",
                    0,
                    2 * UI_UNIT_Y,
@@ -450,7 +450,7 @@ static void CurveProfile_buttons_layout(Layout &layout, PointerRNA *ptr, const R
       button_flag_enable(bt, BUT_DISABLED);
     }
     bt = uiDefButF(block,
-                   ButType::Num,
+                   ButtonType::Num,
                    "Y:",
                    0,
                    1 * UI_UNIT_Y,
@@ -472,7 +472,7 @@ static void CurveProfile_buttons_layout(Layout &layout, PointerRNA *ptr, const R
 
     /* Delete points */
     bt = uiDefIconBut(block,
-                      ButType::But,
+                      ButtonType::But,
                       ICON_X,
                       0,
                       0,

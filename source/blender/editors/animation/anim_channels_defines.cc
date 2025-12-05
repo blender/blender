@@ -5875,21 +5875,21 @@ static void draw_setting_widget(bAnimContext *ac,
   }
 
   /* type of button */
-  blender::ui::ButType butType;
+  blender::ui::ButtonType butType;
   if (usetoggle) {
     if (negflag) {
-      butType = blender::ui::ButType::IconToggleN;
+      butType = blender::ui::ButtonType::IconToggleN;
     }
     else {
-      butType = blender::ui::ButType::IconToggle;
+      butType = blender::ui::ButtonType::IconToggle;
     }
   }
   else {
     if (negflag) {
-      butType = blender::ui::ButType::ToggleN;
+      butType = blender::ui::ButtonType::ToggleN;
     }
     else {
-      butType = blender::ui::ButType::Toggle;
+      butType = blender::ui::ButtonType::Toggle;
     }
   }
 
@@ -5947,7 +5947,7 @@ static void draw_setting_widget(bAnimContext *ac,
 
   /* Set callback to send relevant notifiers and/or perform type-specific updates */
   {
-    blender::ui::uiButHandleNFunc button_callback;
+    blender::ui::ButtonHandleNFunc button_callback;
     switch (setting) {
       /* Settings needing flushing up/down hierarchy. */
       case ACHANNEL_SETTING_VISIBLE: /* Graph Editor - "visibility" toggles. */
@@ -6174,7 +6174,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
       block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
       but = uiDefButR(block,
-                      blender::ui::ButType::Text,
+                      blender::ui::ButtonType::Text,
                       "",
                       offset + margin_x,
                       rect->ymin,
@@ -6325,7 +6325,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
 
         offset -= UI_UNIT_X;
         but = uiDefIconButO(block,
-                            blender::ui::ButType::But,
+                            blender::ui::ButtonType::But,
                             "NLA_OT_action_pushdown",
                             blender::wm::OpCallContext::InvokeDefault,
                             ICON_NLA_PUSHDOWN,

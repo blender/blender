@@ -246,7 +246,7 @@ static ImBuf *filelist_ensure_special_file_image(SpecialFileImages image, int ic
   if (ibuf) {
     return ibuf;
   }
-  return gSpecialFileImages[int(image)] = blender::ui::UI_svg_icon_bitmap(icon, 256.0f, false);
+  return gSpecialFileImages[int(image)] = blender::ui::svg_icon_bitmap(icon, 256.0f, false);
 }
 
 ImBuf *filelist_geticon_special_file_image_ex(const FileDirEntry *file)

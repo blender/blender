@@ -1944,11 +1944,12 @@ static bool jump_to_target_button(bContext *C, bool poll)
     }
     /* For string properties with prop_search, look up the search collection item. */
     if (type == PROP_STRING) {
-      const ButtonSearch *search_but = (but->type == ButType::SearchMenu) ? (ButtonSearch *)but :
-                                                                            nullptr;
+      const ButtonSearch *search_but = (but->type == ButtonType::SearchMenu) ?
+                                           (ButtonSearch *)but :
+                                           nullptr;
 
       if (search_but && search_but->items_update_fn == rna_collection_search_update_fn) {
-        uiRNACollectionSearch *coll_search = static_cast<uiRNACollectionSearch *>(search_but->arg);
+        RNACollectionSearch *coll_search = static_cast<RNACollectionSearch *>(search_but->arg);
 
         char str_buf[MAXBONENAME];
         char *str_ptr = RNA_property_string_get_alloc(
@@ -2015,18 +2016,18 @@ static void UI_OT_jump_to_target_button(wmOperatorType *ot)
 /* EditSource Utility functions and operator,
  * NOTE: this includes utility functions and button matching checks. */
 
-struct uiEditSourceButStore {
+struct EditSourceButStore {
   char py_dbg_fn[FILE_MAX] = {};
   int py_dbg_line_number = 0;
 };
 
-struct uiEditSourceStore {
+struct EditSourceStore {
   Button but_orig;
-  Map<const Button *, std::unique_ptr<uiEditSourceButStore>> hash;
+  Map<const Button *, std::unique_ptr<EditSourceButStore>> hash;
 };
 
 /* should only ever be set while the edit source operator is running */
-static uiEditSourceStore *ui_editsource_info = nullptr;
+static EditSourceStore *ui_editsource_info = nullptr;
 
 bool editsource_enable_check()
 {
@@ -2037,7 +2038,7 @@ static void ui_editsource_active_but_set(Button *but)
 {
   BLI_assert(ui_editsource_info == nullptr);
 
-  ui_editsource_info = MEM_new<uiEditSourceStore>(__func__);
+  ui_editsource_info = MEM_new<EditSourceStore>(__func__);
   ui_editsource_info->but_orig = *but;
 }
 
@@ -2067,7 +2068,7 @@ static bool ui_editsource_uibut_match(const Button *but_a, const Button *but_b)
 
 void editsource_active_but_test(Button *but)
 {
-  auto but_store = std::make_unique<uiEditSourceButStore>();
+  auto but_store = std::make_unique<EditSourceButStore>();
 
   const char *fn;
   int line_number = -1;
@@ -2092,8 +2093,8 @@ void editsource_active_but_test(Button *but)
 
 void editsource_but_replace(const Button *old_but, Button *new_but)
 {
-  std::unique_ptr<uiEditSourceButStore> but_store = ui_editsource_info->hash.pop_default(old_but,
-                                                                                         nullptr);
+  std::unique_ptr<EditSourceButStore> but_store = ui_editsource_info->hash.pop_default(old_but,
+                                                                                       nullptr);
   if (but_store) {
     ui_editsource_info->hash.add(new_but, std::move(but_store));
   }
@@ -2150,7 +2151,7 @@ static wmOperatorStatus editsource_exec(bContext *C, wmOperator *op)
       }
     }
 
-    uiEditSourceButStore *but_store = nullptr;
+    EditSourceButStore *but_store = nullptr;
     for (const auto &item : ui_editsource_info->hash.items()) {
       const Button *but_key = item.key;
       if (but_key == nullptr) {
@@ -2347,7 +2348,7 @@ bool drop_color_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 
 void drop_color_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
-  uiDragColorHandle *drag_info = static_cast<uiDragColorHandle *>(drag->poin);
+  DragColorHandle *drag_info = static_cast<DragColorHandle *>(drag->poin);
 
   RNA_float_set_array(drop->ptr, "color", drag_info->color);
   RNA_boolean_set(drop->ptr, "gamma", drag_info->gamma_corrected);
@@ -2369,7 +2370,7 @@ static wmOperatorStatus drop_color_invoke(bContext *C, wmOperator *op, const wmE
    * if it does copy the data */
   but = region_find_active_but(region);
 
-  if (but && but->type == ButType::Color && but->rnaprop) {
+  if (but && but->type == ButtonType::Color && but->rnaprop) {
     if (!has_alpha) {
       color[3] = 1.0f;
     }

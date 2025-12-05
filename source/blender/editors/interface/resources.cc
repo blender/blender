@@ -50,12 +50,12 @@ static bThemeState g_theme_state = {
 
 void resources_init()
 {
-  UI_icons_init();
+  icons_init();
 }
 
 void resources_free()
 {
-  UI_icons_free();
+  icons_free();
 }
 
 /** \} */

@@ -44,7 +44,7 @@ struct Scene;
 namespace blender::ui {
 struct HandleButtonData;
 struct Layout;
-struct uiUndoStack_Text;
+struct UndoStack_Text;
 }  // namespace blender::ui
 struct uiListType;
 struct uiStyle;
@@ -182,7 +182,7 @@ struct Button {
   int drawflag = 0;
   char flag2 = 0;
 
-  ButType type = ButType(0);
+  ButtonType type = ButtonType(0);
   ButPointerType pointype = ButPointerType::None;
   bool bit = 0;
   /* 0-31 bit index. */
@@ -213,9 +213,9 @@ struct Button {
   float hardmin = 0, hardmax = 0, softmin = 0, softmax = 0;
 
   /** See \ref button_func_identity_compare_set(). */
-  uiButIdentityCompareFunc identity_cmp_func = nullptr;
+  ButtonIdentityCompareFunc identity_cmp_func = nullptr;
 
-  uiButHandleFunc func = nullptr;
+  ButtonHandleFunc func = nullptr;
   void *func_arg1 = nullptr;
   void *func_arg2 = nullptr;
   /**
@@ -224,17 +224,17 @@ struct Button {
    */
   std::function<void(bContext &)> apply_func;
 
-  uiButHandleNFunc funcN = nullptr;
+  ButtonHandleNFunc funcN = nullptr;
   void *func_argN = nullptr;
-  uiButArgNFree func_argN_free_fn;
-  uiButArgNCopy func_argN_copy_fn;
+  ButtonArgNFree func_argN_free_fn;
+  ButtonArgNCopy func_argN_copy_fn;
 
   const bContextStore *context = nullptr;
 
-  uiButCompleteFunc autocomplete_func = nullptr;
+  ButtonCompleteFunc autocomplete_func = nullptr;
   void *autofunc_arg = nullptr;
 
-  uiButHandleRenameFunc rename_func = nullptr;
+  ButtonHandleRenameFunc rename_func = nullptr;
   void *rename_arg1 = nullptr;
   void *rename_orig = nullptr;
 
@@ -246,17 +246,17 @@ struct Button {
   std::string rename_full_new;
 
   /** Run an action when holding the button down. */
-  uiButHandleHoldFunc hold_func = nullptr;
+  ButtonHandleHoldFunc hold_func = nullptr;
   void *hold_argN = nullptr;
 
   StringRef tip;
-  uiButToolTipFunc tip_func = nullptr;
+  ButtonToolTipFunc tip_func = nullptr;
   void *tip_arg = nullptr;
-  uiFreeArgFunc tip_arg_free = nullptr;
+  FreeArgFunc tip_arg_free = nullptr;
   /** Function to override the label to be displayed in the tooltip. */
   std::function<std::string(const Button *)> tip_quick_func;
 
-  uiButToolTipCustomFunc tip_custom_func = nullptr;
+  ButtonToolTipCustomFunc tip_custom_func = nullptr;
 
   /** info on why button is disabled, displayed in tooltip */
   const char *disabled_info = nullptr;
@@ -283,13 +283,13 @@ struct Button {
   /** See #button_menu_disable_hover_open(). */
   bool menu_no_hover_open = false;
 
-  /** #ButType::Block data */
-  uiBlockCreateFunc block_create_func = nullptr;
+  /** #ButtonType::Block data */
+  BlockCreateFunc block_create_func = nullptr;
 
-  /** #ButType::Pulldown / #ButType::Menu data */
-  uiMenuCreateFunc menu_create_func = nullptr;
+  /** #ButtonType::Pulldown / #ButtonType::Menu data */
+  MenuCreateFunc menu_create_func = nullptr;
 
-  uiMenuStepFunc menu_step_func = nullptr;
+  MenuStepFunc menu_step_func = nullptr;
 
   /* RNA data */
   PointerRNA rnapoin = {};
@@ -354,43 +354,43 @@ struct Button {
   virtual ~Button() = default;
 };
 
-/** Derived struct for #ButType::Num */
+/** Derived struct for #ButtonType::Num */
 struct ButtonNumber : public Button {
   float step_size = 0.0f;
   float precision = 0.0f;
 };
 
-/** Derived struct for #ButType::NumSlider */
+/** Derived struct for #ButtonType::NumSlider */
 struct ButtonNumberSlider : public Button {
   float step_size = 0.0f;
   float precision = 0.0f;
 };
 
-/** Derived struct for #ButType::Color */
+/** Derived struct for #ButtonType::Color */
 struct ButtonColor : public Button {
   bool is_pallete_color = false;
   int palette_color_index = -1;
 };
 
-/** Derived struct for #ButType::Tab */
+/** Derived struct for #ButtonType::Tab */
 struct ButtonTab : public Button {
   MenuType *menu = nullptr;
 };
 
-/** Derived struct for #ButType::SearchMenu */
+/** Derived struct for #ButtonType::SearchMenu */
 struct ButtonSearch : public Button {
-  uiButSearchCreateFn popup_create_fn = nullptr;
-  uiButSearchUpdateFn items_update_fn = nullptr;
-  uiButSearchListenFn listen_fn = nullptr;
+  ButtonSearchCreateFn popup_create_fn = nullptr;
+  ButtonSearchUpdateFn items_update_fn = nullptr;
+  ButtonSearchListenFn listen_fn = nullptr;
 
   void *item_active = nullptr;
   char *item_active_str;
 
   void *arg = nullptr;
-  uiFreeArgFunc arg_free_fn = nullptr;
+  FreeArgFunc arg_free_fn = nullptr;
 
-  uiButSearchContextMenuFn item_context_menu_fn = nullptr;
-  uiButSearchTooltipFn item_tooltip_fn = nullptr;
+  ButtonSearchContextMenuFn item_context_menu_fn = nullptr;
+  ButtonSearchTooltipFn item_tooltip_fn = nullptr;
 
   const char *item_sep_string = nullptr;
 
@@ -408,7 +408,7 @@ struct ButtonSearch : public Button {
 };
 
 /**
- * Derived struct for #ButType::Decorator
+ * Derived struct for #ButtonType::Decorator
  * Decorators have their own RNA data, using the normal #Button RNA members has many side-effects.
  */
 struct ButtonDecorator : public Button {
@@ -421,7 +421,7 @@ struct ButtonDecorator : public Button {
   bool toggle_keyframe_on_click = false;
 };
 
-/** Derived struct for #ButType::Progress. */
+/** Derived struct for #ButtonType::Progress. */
 struct ButtonProgress : public Button {
   /** Progress in 0..1 range. */
   float progress_factor = 0.0f;
@@ -429,17 +429,17 @@ struct ButtonProgress : public Button {
   ButProgressType progress_type = ButProgressType::Bar;
 };
 
-/** Derived struct for #ButType::SeprLine. */
+/** Derived struct for #ButtonType::SeprLine. */
 struct ButtonSeparatorLine : public Button {
   bool is_vertical;
 };
 
-/** Derived struct for #ButType::Label. */
+/** Derived struct for #ButtonType::Label. */
 struct ButtonLabel : public Button {
   float alpha_factor = 1.0f;
 };
 
-/** Derived struct for #ButType::Scroll. */
+/** Derived struct for #ButtonType::Scroll. */
 struct ButtonScrollBar : public Button {
   /** Actual visual height of UI list (in rows). */
   float visual_height = -1.0f;
@@ -456,28 +456,28 @@ struct ButtonViewItem : public Button {
   int draw_height = 0;
 };
 
-/** Derived struct for #ButType::HsvCube. */
+/** Derived struct for #ButtonType::HsvCube. */
 struct ButtonHSVCube : public Button {
-  eButGradientType gradient_type = UI_GRAD_SV;
+  eButGradientType gradient_type = GRAD_SV;
 };
 
-/** Derived struct for #ButType::ColorBand. */
+/** Derived struct for #ButtonType::ColorBand. */
 struct ButtonColorBand : public Button {
   ColorBand *edit_coba = nullptr;
 };
 
-/** Derived struct for #ButType::CurveProfile. */
+/** Derived struct for #ButtonType::CurveProfile. */
 struct ButtonCurveProfile : public Button {
   CurveProfile *edit_profile = nullptr;
 };
 
-/** Derived struct for #ButType::Curve. */
+/** Derived struct for #ButtonType::Curve. */
 struct ButtonCurveMapping : public Button {
   CurveMapping *edit_cumap = nullptr;
-  eButGradientType gradient_type = UI_GRAD_SV;
+  eButGradientType gradient_type = GRAD_SV;
 };
 
-/** Derived struct for #ButType::HotkeyEvent. */
+/** Derived struct for #ButtonType::HotkeyEvent. */
 struct ButtonHotkeyEvent : public Button {
   wmEventModifierFlag modifier_key = wmEventModifierFlag(0);
 };
@@ -626,20 +626,20 @@ struct Block {
   /** Unique hash used to implement popup menu memory. */
   uint puphash;
 
-  uiButHandleFunc func;
+  ButtonHandleFunc func;
   void *func_arg1;
   void *func_arg2;
 
-  uiButHandleNFunc funcN;
+  ButtonHandleNFunc funcN;
   void *func_argN;
-  uiButArgNFree func_argN_free_fn;
-  uiButArgNCopy func_argN_copy_fn;
+  ButtonArgNFree func_argN_free_fn;
+  ButtonArgNCopy func_argN_copy_fn;
 
-  uiBlockHandleFunc handle_func;
+  BlockHandleFunc handle_func;
   void *handle_func_arg;
 
   /** Custom interaction data. */
-  uiBlockInteraction_CallbackData custom_interaction_callbacks;
+  BlockInteraction_CallbackData custom_interaction_callbacks;
 
   /** Custom extra event handling. */
   int (*block_event_func)(const bContext *C, Block *, const wmEvent *);
@@ -674,7 +674,7 @@ struct Block {
   bool endblock;
 
   /** for doing delayed */
-  eBlockBoundsCalc bounds_type;
+  BlockBoundsCalc bounds_type;
   /** Offset to use when calculating bounds (in pixels). */
   int bounds_offset[2];
   /** for doing delayed */
@@ -777,7 +777,7 @@ void block_add_dynamic_listener(Block *block,
  * \note Only the #Button data can be kept. If the old button used a derived type (e.g.
  * #ButtonTab), the data that is not inside #Button will be lost.
  */
-Button *button_change_type(Button *but, ButType new_type);
+Button *button_change_type(Button *but, ButtonType new_type);
 
 double button_value_get(Button *but);
 void button_value_set(Button *but, double value);
@@ -916,10 +916,10 @@ struct KeyNavLock {
 using BlockHandleCreateFunc = Block *(*)(bContext * C, PopupBlockHandle *handle, void *arg1);
 
 struct PopupBlockCreate {
-  uiBlockCreateFunc create_func = nullptr;
+  BlockCreateFunc create_func = nullptr;
   BlockHandleCreateFunc handle_create_func = nullptr;
   void *arg = nullptr;
-  uiFreeArgFunc arg_free = nullptr;
+  FreeArgFunc arg_free = nullptr;
 
   int2 event_xy = int2(0);
 
@@ -1070,13 +1070,13 @@ Block *popup_block_refresh(bContext *C, PopupBlockHandle *handle, ARegion *butre
 PopupBlockHandle *popup_block_create(bContext *C,
                                      ARegion *butregion,
                                      Button *but,
-                                     uiBlockCreateFunc create_func,
+                                     BlockCreateFunc create_func,
                                      BlockHandleCreateFunc handle_create_func,
                                      void *arg,
-                                     uiFreeArgFunc arg_free,
+                                     FreeArgFunc arg_free,
                                      bool can_refresh);
 PopupBlockHandle *popup_menu_create(
-    bContext *C, ARegion *butregion, Button *but, uiMenuCreateFunc menu_func, void *arg);
+    bContext *C, ARegion *butregion, Button *but, MenuCreateFunc menu_func, void *arg);
 
 /* `interface_region_popover.cc` */
 
@@ -1202,15 +1202,15 @@ void draw_but_TRACKPREVIEW(ARegion *region,
  *
  * \note The current state should be pushed immediately after calling this.
  */
-uiUndoStack_Text *textedit_undo_stack_create();
-void textedit_undo_stack_destroy(uiUndoStack_Text *stack);
+UndoStack_Text *textedit_undo_stack_create();
+void textedit_undo_stack_destroy(UndoStack_Text *stack);
 /**
  * Push the information in the arguments to a new state in the undo stack.
  *
  * \note Currently the total length of the undo stack is not limited.
  */
-void textedit_undo_push(uiUndoStack_Text *stack, const char *text, int cursor_index);
-const char *textedit_undo(uiUndoStack_Text *stack, int direction, int *r_cursor_index);
+void textedit_undo_push(UndoStack_Text *stack, const char *text, int cursor_index);
+const char *textedit_undo(UndoStack_Text *stack, int direction, int *r_cursor_index);
 
 /* `interface_handlers.cc` */
 
@@ -1329,7 +1329,7 @@ void draw_button(const bContext *C, ARegion *region, uiStyle *style, Button *but
  * styles. E.g. we never want a shortcut string to be clipped, but other hint strings can be
  * clipped.
  */
-enum uiMenuItemSeparatorType {
+enum MenuItemSeparatorType {
   UI_MENU_ITEM_SEPARATOR_NONE,
   /** Separator is used to indicate shortcut string of this item. Shortcut string will not get
    * clipped. */
@@ -1357,7 +1357,7 @@ void draw_menu_item(const uiFontStyle *fstyle,
                     const char *name,
                     int iconid,
                     int but_flag,
-                    uiMenuItemSeparatorType separator_type,
+                    MenuItemSeparatorType separator_type,
                     int *r_xmax);
 void draw_preview_item(const uiFontStyle *fstyle,
                        rcti *rect,
@@ -1365,7 +1365,7 @@ void draw_preview_item(const uiFontStyle *fstyle,
                        const char *name,
                        int iconid,
                        int but_flag,
-                       eFontStyle_Align text_align);
+                       FontStyleAlign text_align);
 /**
  * Version of #ui_draw_preview_item() that does not draw the menu background and item text based on
  * state. It just draws the preview and text directly.
@@ -1379,7 +1379,7 @@ void draw_preview_item_stateless(const uiFontStyle *fstyle,
                                  StringRef name,
                                  int iconid,
                                  const uchar text_col[4],
-                                 eFontStyle_Align text_align,
+                                 FontStyleAlign text_align,
                                  const bool add_padding);
 
 #define UI_TEXT_MARGIN_X 0.4f
@@ -1506,7 +1506,7 @@ bool button_is_toggle(const Button *but) ATTR_WARN_UNUSED_RESULT;
 /**
  * Can we mouse over the button or is it hidden/disabled/layout.
  * \note ctrl is kind of a hack currently,
- * so that non-embossed ButType::Text button behaves as a label when ctrl is not pressed.
+ * so that non-embossed ButtonType::Text button behaves as a label when ctrl is not pressed.
  */
 bool button_is_interactive_ex(const Button *but, const bool labeledit, const bool for_tooltip);
 bool button_is_interactive(const Button *but, bool labeledit) ATTR_WARN_UNUSED_RESULT;
@@ -1631,7 +1631,7 @@ std::optional<StringRefNull> asset_shelf_idname_from_button_context(const Button
 /**
  * For use with #ui_rna_collection_search_update_fn.
  */
-struct uiRNACollectionSearch {
+struct RNACollectionSearch {
   PointerRNA target_ptr;
   PropertyRNA *target_prop;
 
@@ -1641,7 +1641,7 @@ struct uiRNACollectionSearch {
 
   Button *search_but;
   /** Let `UI_butstore_*` API update search_but pointer above over redraws. */
-  uiButStore *butstore;
+  ButStore *butstore;
   /** Block has to be stored for freeing but-store (#Button::block doesn't work with undo). */
   Block *butstore_block;
 };

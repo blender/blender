@@ -76,7 +76,7 @@ static Vector<rcti> button_section_bounds_calc(const ARegion *region, const bool
       }
 
       for (const std::unique_ptr<Button> &but : block->buttons) {
-        if (but->type == ButType::SeprSpacer) {
+        if (but->type == ButtonType::SeprSpacer) {
           /* Start a new section. */
           if (has_section_content) {
             finish_section_fn(cur_section_bounds);
@@ -124,7 +124,7 @@ static Vector<rcti> button_section_bounds_calc(const ARegion *region, const bool
 static void ui_draw_button_sections_background(const ARegion *region,
                                                const Span<rcti> section_bounds,
                                                const ThemeColorID colorid,
-                                               const uiButtonSectionsAlign align,
+                                               const ButtonSectionsAlign align,
                                                const float corner_radius)
 {
   float bg_color[4];
@@ -133,11 +133,11 @@ static void ui_draw_button_sections_background(const ARegion *region,
   for (const rcti &bounds : section_bounds) {
     int roundbox_corners = [align]() -> int {
       switch (align) {
-        case uiButtonSectionsAlign::Top:
+        case ButtonSectionsAlign::Top:
           return CNR_BOTTOM_LEFT | CNR_BOTTOM_RIGHT;
-        case uiButtonSectionsAlign::Bottom:
+        case ButtonSectionsAlign::Bottom:
           return CNR_TOP_LEFT | CNR_TOP_RIGHT;
-        case uiButtonSectionsAlign::None:
+        case ButtonSectionsAlign::None:
           return CNR_ALL;
       }
       return CNR_ALL;
@@ -154,10 +154,10 @@ static void ui_draw_button_sections_background(const ARegion *region,
     rctf bounds_float;
     BLI_rctf_rcti_copy(&bounds_float, &bounds);
     /* Make space for the separator line. */
-    if (align == uiButtonSectionsAlign::Top) {
+    if (align == ButtonSectionsAlign::Top) {
       bounds_float.ymax -= UI_BUTTON_SECTION_SEPERATOR_LINE_WITH;
     }
-    else if (align == uiButtonSectionsAlign::Bottom) {
+    else if (align == ButtonSectionsAlign::Bottom) {
       bounds_float.ymin += UI_BUTTON_SECTION_SEPERATOR_LINE_WITH;
     }
 
@@ -169,7 +169,7 @@ static void ui_draw_button_sections_background(const ARegion *region,
 static void ui_draw_button_sections_alignment_separator(const ARegion *region,
                                                         const Span<rcti> section_bounds,
                                                         const ThemeColorID colorid,
-                                                        const uiButtonSectionsAlign align,
+                                                        const ButtonSectionsAlign align,
                                                         const float corner_radius)
 {
   const int separator_line_width = UI_BUTTON_SECTION_SEPERATOR_LINE_WITH;
@@ -186,10 +186,10 @@ static void ui_draw_button_sections_alignment_separator(const ARegion *region,
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor4fv(bg_color);
 
-    if (align == uiButtonSectionsAlign::Top) {
+    if (align == ButtonSectionsAlign::Top) {
       immRectf(pos, 0, region->winy - separator_line_width, region->winx, region->winy);
     }
-    else if (align == uiButtonSectionsAlign::Bottom) {
+    else if (align == ButtonSectionsAlign::Bottom) {
       immRectf(pos, 0, 0, region->winx, separator_line_width);
     }
     else {
@@ -204,7 +204,7 @@ static void ui_draw_button_sections_alignment_separator(const ARegion *region,
       const rcti rounded_corner_rect = {
           prev_xmax, bounds.xmin, separator_line_width, region->winy - separator_line_width};
 
-      draw_roundbox_corner_set(align == uiButtonSectionsAlign::Top ?
+      draw_roundbox_corner_set(align == ButtonSectionsAlign::Top ?
                                    (CNR_TOP_LEFT | CNR_TOP_RIGHT) :
                                    (CNR_BOTTOM_LEFT | CNR_BOTTOM_RIGHT));
       draw_rounded_corners_inverted(rounded_corner_rect, corner_radius, bg_color);
@@ -218,7 +218,7 @@ static void ui_draw_button_sections_alignment_separator(const ARegion *region,
 
 void region_button_sections_draw(const ARegion *region,
                                  const int /*ThemeColorID*/ colorid,
-                                 const uiButtonSectionsAlign align)
+                                 const ButtonSectionsAlign align)
 {
   const float aspect = BLI_rctf_size_x(&region->v2d.cur) /
                        (BLI_rcti_size_x(&region->v2d.mask) + 1);
@@ -228,7 +228,7 @@ void region_button_sections_draw(const ARegion *region,
 
   ui_draw_button_sections_background(
       region, section_bounds, ThemeColorID(colorid), align, corner_radius);
-  if (align != uiButtonSectionsAlign::None) {
+  if (align != ButtonSectionsAlign::None) {
     ui_draw_button_sections_alignment_separator(region,
                                                 section_bounds,
                                                 ThemeColorID(colorid),

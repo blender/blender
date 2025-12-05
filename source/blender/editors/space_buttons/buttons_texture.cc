@@ -517,7 +517,7 @@ static void template_texture_user_menu(bContext *C, blender::ui::Layout *layout,
     }
 
     but = uiDefIconTextBut(block,
-                           blender::ui::ButType::But,
+                           blender::ui::ButtonType::But,
                            user->icon,
                            name,
                            0,
@@ -692,7 +692,7 @@ void uiTemplateTextureShow(blender::ui::Layout *layout,
   blender::ui::Block *block = layout->block();
   blender::ui::Button *but;
   but = uiDefIconBut(block,
-                     blender::ui::ButType::But,
+                     blender::ui::ButtonType::But,
                      ICON_PROPERTIES,
                      0,
                      0,

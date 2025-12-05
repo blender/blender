@@ -1180,7 +1180,7 @@ static blender::ui::Block *wm_enum_search_menu(bContext *C, ARegion *region, voi
 
   /* Fake button, it holds space for search items. */
   uiDefBut(block,
-           blender::ui::ButType::Label,
+           blender::ui::ButtonType::Label,
            "",
            0,
            -height,
@@ -1505,10 +1505,10 @@ static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
   }
 
   blender::ui::Block *block = static_cast<blender::ui::Block *>(arg2);
-  /* Explicitly set UI_RETURN_OK flag, otherwise the menu might be canceled
+  /* Explicitly set RETURN_OK flag, otherwise the menu might be canceled
    * in case WM_operator_call_ex exits/reloads the current file (#49199). */
 
-  popup_menu_retval_set(block, blender::ui::UI_RETURN_OK, true);
+  popup_menu_retval_set(block, blender::ui::RETURN_OK, true);
 
   /* Get context data *after* WM_operator_call_ex
    * which might have closed the current file and changed context. */
@@ -1525,7 +1525,7 @@ static void dialog_cancel_cb(bContext *C, void *arg1, void *arg2)
 {
   wm_operator_ui_popup_cancel(C, arg1);
   blender::ui::Block *block = static_cast<blender::ui::Block *>(arg2);
-  popup_menu_retval_set(block, blender::ui::UI_RETURN_CANCEL, true);
+  popup_menu_retval_set(block, blender::ui::RETURN_CANCEL, true);
   wmWindow *win = CTX_wm_window(C);
   popup_block_close(C, win, block);
 }
@@ -1645,7 +1645,7 @@ static blender::ui::Block *wm_block_dialog_create(bContext *C, ARegion *region, 
 
     if (windows_layout) {
       confirm_but = uiDefBut(col_block,
-                             blender::ui::ButType::But,
+                             blender::ui::ButtonType::But,
                              data->confirm_text.c_str(),
                              0,
                              0,
@@ -1659,7 +1659,7 @@ static blender::ui::Block *wm_block_dialog_create(bContext *C, ARegion *region, 
     }
 
     cancel_but = uiDefBut(col_block,
-                          blender::ui::ButType::But,
+                          blender::ui::ButtonType::But,
                           IFACE_("Cancel"),
                           0,
                           0,
@@ -1673,7 +1673,7 @@ static blender::ui::Block *wm_block_dialog_create(bContext *C, ARegion *region, 
     if (!windows_layout) {
       split.column(false);
       confirm_but = uiDefBut(col_block,
-                             blender::ui::ButType::But,
+                             blender::ui::ButtonType::But,
                              data->confirm_text.c_str(),
                              0,
                              0,
@@ -2064,7 +2064,7 @@ static blender::ui::Block *wm_block_search_menu(bContext *C, ARegion *region, vo
   }
   else if (init_data->search_type == SEARCH_TYPE_SINGLE_MENU) {
     button_func_menu_search(but, init_data->single_menu_idname.c_str());
-    button_flag2_enable(but, blender::ui::UI_BUT2_ACTIVATE_ON_INIT_NO_SELECT);
+    button_flag2_enable(but, blender::ui::BUT2_ACTIVATE_ON_INIT_NO_SELECT);
   }
   else {
     BLI_assert_unreachable();
@@ -2075,7 +2075,7 @@ static blender::ui::Block *wm_block_search_menu(bContext *C, ARegion *region, vo
   /* Fake button, it holds space for search items. */
   const int height = init_data->size[1] - UI_SEARCHBOX_BOUNDS;
   uiDefBut(block,
-           blender::ui::ButType::Label,
+           blender::ui::ButtonType::Label,
            "",
            0,
            -height,

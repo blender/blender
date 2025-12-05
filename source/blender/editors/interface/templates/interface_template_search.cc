@@ -22,7 +22,7 @@
 namespace blender::ui {
 
 struct TemplateSearch {
-  uiRNACollectionSearch search_data;
+  RNACollectionSearch search_data;
 
   bool use_previews;
   int preview_rows, preview_cols;
@@ -31,7 +31,7 @@ struct TemplateSearch {
 static void template_search_exec_fn(bContext *C, void *arg_template, void *item)
 {
   TemplateSearch *template_search = static_cast<TemplateSearch *>(arg_template);
-  uiRNACollectionSearch *coll_search = &template_search->search_data;
+  RNACollectionSearch *coll_search = &template_search->search_data;
   StructRNA *type = RNA_property_pointer_type(&coll_search->target_ptr, coll_search->target_prop);
 
   PointerRNA item_ptr = RNA_pointer_create_discrete(nullptr, type, item);
@@ -131,7 +131,7 @@ static void template_search_add_button_operator(
         UI_UNIT_X * 5);
 
     but = uiDefIconTextButO(block,
-                            ButType::But,
+                            ButtonType::But,
                             operator_name,
                             opcontext,
                             icon,
@@ -144,7 +144,7 @@ static void template_search_add_button_operator(
   }
   else {
     but = uiDefIconButO(block,
-                        ButType::But,
+                        ButtonType::But,
                         operator_name,
                         opcontext,
                         icon,
@@ -168,7 +168,7 @@ static void template_search_buttons(const bContext *C,
                                     const std::optional<StringRef> text)
 {
   Block *block = layout.block();
-  uiRNACollectionSearch *search_data = &template_search.search_data;
+  RNACollectionSearch *search_data = &template_search.search_data;
   const StructRNA *type = RNA_property_pointer_type(&search_data->target_ptr,
                                                     search_data->target_prop);
   const bool editable = RNA_property_editable(&search_data->target_ptr, search_data->target_prop);

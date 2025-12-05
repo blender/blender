@@ -358,7 +358,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
       blender::ui::Block *block = sub->block();
       static int apply_on_spline_always_off_hack = 0;
       blender::ui::Button *but = uiDefIconButBitI(block,
-                                                  blender::ui::ButType::Toggle,
+                                                  blender::ui::ButtonType::Toggle,
                                                   eModifierMode_ApplyOnSpline,
                                                   ICON_SURFACE_DATA,
                                                   0,
@@ -381,7 +381,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
       blender::ui::Block *block = sub->block();
       static int apply_on_spline_always_on_hack = eModifierMode_ApplyOnSpline;
       blender::ui::Button *but = uiDefIconButBitI(block,
-                                                  blender::ui::ButType::Toggle,
+                                                  blender::ui::ButtonType::Toggle,
                                                   eModifierMode_ApplyOnSpline,
                                                   ICON_SURFACE_DATA,
                                                   0,

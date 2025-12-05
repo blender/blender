@@ -149,7 +149,7 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
       ui::block_layout_set_current(block, &row);
 
       ui::Button *toggle_but = uiDefButC(block,
-                                         blender::ui::ButType::Checkbox,
+                                         blender::ui::ButtonType::Checkbox,
                                          "",
                                          0,
                                          0,

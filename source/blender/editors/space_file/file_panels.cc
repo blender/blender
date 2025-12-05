@@ -156,7 +156,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
   block_func_set(block, file_draw_check_cb, nullptr, nullptr);
 
   blender::ui::Button *but = uiDefButR(block,
-                                       blender::ui::ButType::Text,
+                                       blender::ui::ButtonType::Text,
                                        "",
                                        0,
                                        0,

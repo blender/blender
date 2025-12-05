@@ -184,7 +184,7 @@ void node_geometry_add_layer_search_button(const bContext & /*C*/,
 {
   ui::Block *block = layout.block();
   ui::Button *but = uiDefIconTextButR(block,
-                                      ui::ButType::SearchMenu,
+                                      ui::ButtonType::SearchMenu,
                                       ICON_OUTLINER_DATA_GP_LAYER,
                                       "",
                                       0,

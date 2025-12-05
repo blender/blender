@@ -265,7 +265,7 @@ void AbstractTreeView::get_hierarchy_lines(const ARegion &region,
 static ButtonViewItem *find_first_view_item_but(const Block &block, const AbstractTreeView &view)
 {
   for (const std::unique_ptr<Button> &but : block.buttons) {
-    if (but->type != ButType::ViewItem) {
+    if (but->type != ButtonType::ViewItem) {
       continue;
     }
     auto *view_item_but = static_cast<ButtonViewItem *>(but.get());
@@ -491,7 +491,7 @@ void AbstractTreeViewItem::add_treerow_button(Block &block)
 {
   /* For some reason a width > (UI_UNIT_X * 2) make the layout system use all available width. */
   view_item_but_ = reinterpret_cast<ButtonViewItem *>(uiDefBut(&block,
-                                                               ButType::ViewItem,
+                                                               ButtonType::ViewItem,
                                                                "",
                                                                0,
                                                                0,
@@ -517,13 +517,13 @@ void AbstractTreeViewItem::add_indent(Layout &row) const
   Layout &subrow = row.row(true);
   subrow.fixed_size_set(true);
 
-  uiDefBut(block, ButType::Sepr, "", 0, 0, this->indent_width(), 0, nullptr, 0.0, 0.0, "");
+  uiDefBut(block, ButtonType::Sepr, "", 0, 0, this->indent_width(), 0, nullptr, 0.0, 0.0, "");
 
   const bool is_flat_list = root_ && root_->is_flat_;
   if (!is_flat_list && !this->is_collapsible()) {
     /* Indent items without collapsing icon some more within their parent. Makes it clear that they
      * are actually nested and not just a row at the same level without a chevron. */
-    uiDefBut(block, ButType::Sepr, "", 0, 0, UI_TREEVIEW_INDENT, 0, nullptr, 0.0, 0.0, "");
+    uiDefBut(block, ButtonType::Sepr, "", 0, 0, UI_TREEVIEW_INDENT, 0, nullptr, 0.0, 0.0, "");
   }
 
   /* Restore. */
@@ -562,7 +562,7 @@ void AbstractTreeViewItem::add_collapse_chevron(Block &block) const
 
   const BIFIconID icon = this->is_collapsed() ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT;
   Button *but = uiDefIconBut(
-      &block, ButType::ButToggle, icon, 0, 0, UI_TREEVIEW_INDENT, UI_UNIT_Y, nullptr, 0, 0, "");
+      &block, ButtonType::ButToggle, icon, 0, 0, UI_TREEVIEW_INDENT, UI_UNIT_Y, nullptr, 0, 0, "");
   button_func_set(but, collapse_chevron_click_fn, nullptr, nullptr);
   button_flag_disable(but, BUT_UNDO);
 }
@@ -898,7 +898,7 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
     if (visible_row_count && (tot_items > *visible_row_count)) {
       row.column(false);
       Button *but = uiDefButI(block,
-                              ButType::Scroll,
+                              ButtonType::Scroll,
                               "",
                               0,
                               0,
@@ -918,7 +918,7 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
     Layout &bottom = col.row(false);
     block_emboss_set(block, EmbossType::None);
     Button *but = uiDefIconButBitC(block,
-                                   ButType::IconToggleN,
+                                   ButtonType::IconToggleN,
                                    1,
                                    ICON_DISCLOSURE_TRI_DOWN,
                                    0,
@@ -934,7 +934,7 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
     bottom.column(false);
 
     uiDefIconButI(block,
-                  ButType::Grip,
+                  ButtonType::Grip,
                   ICON_GRIP,
                   0,
                   0,
@@ -948,7 +948,7 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
     if (*tree_view.show_display_options_) {
       block_layout_set_current(block, &col);
       Button *but = uiDefBut(block,
-                             ButType::Text,
+                             ButtonType::Text,
                              "",
                              0,
                              0,
@@ -1001,7 +1001,7 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
   Layout &content_col = overlap.column(true);
   const int margin_top = (padded_item_height() - unpadded_item_height()) / 2;
   if (margin_top > 0) {
-    uiDefBut(&block_, ButType::Label, "", 0, 0, UI_UNIT_X, margin_top, nullptr, 0, 0, "");
+    uiDefBut(&block_, ButtonType::Label, "", 0, 0, UI_UNIT_X, margin_top, nullptr, 0, 0, "");
   }
   row = &content_col.row(true);
 

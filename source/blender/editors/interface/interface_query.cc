@@ -39,36 +39,37 @@ namespace blender::ui {
 bool button_is_editable(const Button *but)
 {
   return !ELEM(but->type,
-               ButType::Label,
-               ButType::Sepr,
-               ButType::SeprLine,
-               ButType::Roundbox,
-               ButType::ListBox,
-               ButType::Progress);
+               ButtonType::Label,
+               ButtonType::Sepr,
+               ButtonType::SeprLine,
+               ButtonType::Roundbox,
+               ButtonType::ListBox,
+               ButtonType::Progress);
 }
 
 bool button_is_editable_as_text(const Button *but)
 {
-  return ELEM(but->type, ButType::Text, ButType::Num, ButType::NumSlider, ButType::SearchMenu);
+  return ELEM(
+      but->type, ButtonType::Text, ButtonType::Num, ButtonType::NumSlider, ButtonType::SearchMenu);
 }
 
 bool button_is_toggle(const Button *but)
 {
   return ELEM(but->type,
-              ButType::ButToggle,
-              ButType::Toggle,
-              ButType::IconToggle,
-              ButType::IconToggleN,
-              ButType::ToggleN,
-              ButType::Checkbox,
-              ButType::CheckboxN,
-              ButType::Row);
+              ButtonType::ButToggle,
+              ButtonType::Toggle,
+              ButtonType::IconToggle,
+              ButtonType::IconToggleN,
+              ButtonType::ToggleN,
+              ButtonType::Checkbox,
+              ButtonType::CheckboxN,
+              ButtonType::Row);
 }
 
 bool button_is_interactive_ex(const Button *but, const bool labeledit, const bool for_tooltip)
 {
-  /* NOTE: #ButType::Label is included for highlights, this allows drags. */
-  if (ELEM(but->type, ButType::Label, ButType::PreviewTile)) {
+  /* NOTE: #ButtonType::Label is included for highlights, this allows drags. */
+  if (ELEM(but->type, ButtonType::Label, ButtonType::PreviewTile)) {
     if (for_tooltip) {
       /* It's important labels are considered interactive for the purpose of showing tooltip. */
       if (!button_drag_is_draggable(but) && but->tip_func == nullptr &&
@@ -85,7 +86,12 @@ bool button_is_interactive_ex(const Button *but, const bool labeledit, const boo
     }
   }
 
-  if (ELEM(but->type, ButType::Roundbox, ButType::Sepr, ButType::SeprLine, ButType::ListBox)) {
+  if (ELEM(but->type,
+           ButtonType::Roundbox,
+           ButtonType::Sepr,
+           ButtonType::SeprLine,
+           ButtonType::ListBox))
+  {
     return false;
   }
   if (but->flag & UI_HIDDEN) {
@@ -94,15 +100,15 @@ bool button_is_interactive_ex(const Button *but, const bool labeledit, const boo
   if (but->flag & UI_SCROLLED) {
     return false;
   }
-  if ((but->type == ButType::Text) &&
+  if ((but->type == ButtonType::Text) &&
       ELEM(but->emboss, EmbossType::None, EmbossType::NoneOrStatus) && !labeledit)
   {
     return false;
   }
-  if ((but->type == ButType::ListRow) && labeledit) {
+  if ((but->type == ButtonType::ListRow) && labeledit) {
     return false;
   }
-  if (but->type == ButType::ViewItem) {
+  if (but->type == ButtonType::ViewItem) {
     const auto *but_item = static_cast<const ButtonViewItem *>(but);
     return but_item->view_item->is_interactive();
   }
@@ -126,7 +132,7 @@ bool but_is_utf8(const Button *but)
 #ifdef USE_UI_POPOVER_ONCE
 bool button_is_popover_once_compat(const Button *but)
 {
-  return (ELEM(but->type, ButType::But, ButType::Decorator) || button_is_toggle(but));
+  return (ELEM(but->type, ButtonType::But, ButtonType::Decorator) || button_is_toggle(but));
 }
 #endif
 
@@ -421,7 +427,7 @@ Button *list_find_mouse_over_ex(const ARegion *region, const int xy[2])
     window_to_block_fl(region, block, &mx, &my);
     for (int i = block->buttons.size() - 1; i >= 0; i--) {
       Button *but = block->buttons[i].get();
-      if (but->type == ButType::ListBox && button_contains_pt(but, mx, my)) {
+      if (but->type == ButtonType::ListBox && button_contains_pt(but, mx, my)) {
         return but;
       }
     }
@@ -451,15 +457,15 @@ uiList *list_find_mouse_over(const ARegion *region, const wmEvent *event)
 
 static bool ui_list_contains_row(const Button *listbox_but, const Button *listrow_but)
 {
-  BLI_assert(listbox_but->type == ButType::ListBox);
-  BLI_assert(listrow_but->type == ButType::ListRow);
+  BLI_assert(listbox_but->type == ButtonType::ListBox);
+  BLI_assert(listrow_but->type == ButtonType::ListRow);
   /* The list box and its rows have the same RNA data (active data pointer/prop). */
   return button_rna_equals(listbox_but, listrow_but);
 }
 
 static bool ui_but_is_listrow(const Button *but, const void * /*customdata*/)
 {
-  return but->type == ButType::ListRow;
+  return but->type == ButtonType::ListRow;
 }
 
 Button *list_row_find_mouse_over(const ARegion *region, const int xy[2])
@@ -482,7 +488,7 @@ static bool ui_but_is_listrow_at_index(const Button *but, const void *customdata
 
 Button *list_row_find_index(const ARegion *region, const int index, Button *listbox)
 {
-  BLI_assert(listbox->type == ButType::ListBox);
+  BLI_assert(listbox->type == ButtonType::ListBox);
   ListRowFindIndexData data = {};
   data.index = index;
   data.listbox = listbox;
@@ -491,7 +497,7 @@ Button *list_row_find_index(const ARegion *region, const int index, Button *list
 
 static bool ui_but_is_view_item_fn(const Button *but, const void * /*customdata*/)
 {
-  return but->type == ButType::ViewItem;
+  return but->type == ButtonType::ViewItem;
 }
 
 Button *view_item_find_mouse_over(const ARegion *region, const int xy[2])
@@ -501,7 +507,7 @@ Button *view_item_find_mouse_over(const ARegion *region, const int xy[2])
 
 static bool ui_but_is_active_view_item(const Button *but, const void * /*customdata*/)
 {
-  if (but->type != ButType::ViewItem) {
+  if (but->type != ButtonType::ViewItem) {
     return false;
   }
 
@@ -519,7 +525,7 @@ Button *view_item_find_search_highlight(const ARegion *region)
   return ui_but_find(
       region,
       [](const Button *but, const void * /*find_custom_data*/) {
-        if (but->type != ButType::ViewItem) {
+        if (but->type != ButtonType::ViewItem) {
           return false;
         }
 
@@ -582,13 +588,13 @@ bool button_is_cursor_warp(const Button *but)
 {
   if (U.uiflag & USER_CONTINUOUS_MOUSE) {
     if (ELEM(but->type,
-             ButType::Num,
-             ButType::NumSlider,
-             ButType::TrackPreview,
-             ButType::HsvCube,
-             ButType::HsvCircle,
-             ButType::Curve,
-             ButType::CurveProfile))
+             ButtonType::Num,
+             ButtonType::NumSlider,
+             ButtonType::TrackPreview,
+             ButtonType::HsvCube,
+             ButtonType::HsvCircle,
+             ButtonType::Curve,
+             ButtonType::CurveProfile))
     {
       return true;
     }
@@ -683,7 +689,7 @@ static const Button *ui_but_next_non_separator(const Button *but)
   }
   for (int i = but->block->but_index(but); i < but->block->buttons.size(); i++) {
     but = but->block->buttons[i].get();
-    if (!ELEM(but->type, ButType::Sepr, ButType::SeprLine)) {
+    if (!ELEM(but->type, ButtonType::Sepr, ButtonType::SeprLine)) {
       return but;
     }
   }
@@ -697,7 +703,7 @@ bool block_is_empty_ex(const Block *block, const bool skip_title)
     /* Skip the first label, since popups often have a title,
      * we may want to consider the block empty in this case. */
     but = ui_but_next_non_separator(but);
-    if (but && but->type == ButType::Label) {
+    if (but && but->type == ButtonType::Label) {
       but = block->next_but(but);
     }
   }
@@ -713,7 +719,7 @@ bool block_can_add_separator(const Block *block)
 {
   if (block_is_menu(block) && !block_is_pie_menu(block)) {
     const Button *but = block->last_but();
-    return (but && !ELEM(but->type, ButType::SeprLine, ButType::Sepr));
+    return (but && !ELEM(but->type, ButtonType::SeprLine, ButtonType::Sepr));
   }
   return true;
 }

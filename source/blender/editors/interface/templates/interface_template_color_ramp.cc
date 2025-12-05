@@ -95,7 +95,7 @@ static Block *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
    * although this isn't important unless we want to assign key shortcuts to them. */
   {
     Button *but = uiDefIconTextBut(block,
-                                   ButType::ButMenu,
+                                   ButtonType::ButMenu,
                                    ICON_ARROW_LEFTRIGHT,
                                    IFACE_("Flip Color Ramp"),
                                    0,
@@ -113,7 +113,7 @@ static Block *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
   }
   {
     Button *but = uiDefIconTextBut(block,
-                                   ButType::ButMenu,
+                                   ButtonType::ButMenu,
                                    ICON_BLANK1,
                                    IFACE_("Distribute Stops from Left"),
                                    0,
@@ -131,7 +131,7 @@ static Block *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
   }
   {
     Button *but = uiDefIconTextBut(block,
-                                   ButType::ButMenu,
+                                   ButtonType::ButMenu,
                                    ICON_BLANK1,
                                    IFACE_("Distribute Stops Evenly"),
                                    0,
@@ -156,7 +156,7 @@ static Block *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
 
   {
     Button *but = uiDefIconTextBut(block,
-                                   ButType::ButMenu,
+                                   ButtonType::ButMenu,
                                    ICON_LOOP_BACK,
                                    IFACE_("Reset Color Ramp"),
                                    0,
@@ -231,7 +231,7 @@ static void colorband_buttons_layout(Layout &layout,
   Layout *row = &split->row(false);
 
   bt = uiDefIconTextBut(block,
-                        ButType::But,
+                        ButtonType::But,
                         ICON_ADD,
                         "",
                         0,
@@ -243,7 +243,7 @@ static void colorband_buttons_layout(Layout &layout,
   button_func_set(bt, [coba, cb](bContext &C) { colorband_add(C, cb, *coba); });
 
   bt = uiDefIconTextBut(block,
-                        ButType::But,
+                        ButtonType::But,
                         ICON_REMOVE,
                         "",
                         xs + 2.0f * unit,
@@ -296,7 +296,7 @@ static void colorband_buttons_layout(Layout &layout,
   row = &layout.row(false);
 
   bt = uiDefBut(
-      block, ButType::ColorBand, "", xs, ys, BLI_rctf_size_x(butr), UI_UNIT_Y, coba, 0, 0, "");
+      block, ButtonType::ColorBand, "", xs, ys, BLI_rctf_size_x(butr), UI_UNIT_Y, coba, 0, 0, "");
   bt->rnapoin = cb.ptr;
   bt->rnaprop = cb.prop;
   button_func_set(bt, [cb](bContext &C) { rna_update_cb(C, cb); });
@@ -313,7 +313,7 @@ static void colorband_buttons_layout(Layout &layout,
 
       row = &split->row(false);
       bt = uiDefButS(block,
-                     ButType::Num,
+                     ButtonType::Num,
                      "",
                      0,
                      0,
@@ -337,7 +337,7 @@ static void colorband_buttons_layout(Layout &layout,
 
       row = &subsplit.row(false);
       bt = uiDefButS(block,
-                     ButType::Num,
+                     ButtonType::Num,
                      "",
                      0,
                      0,

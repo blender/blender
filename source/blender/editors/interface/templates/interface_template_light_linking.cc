@@ -296,7 +296,7 @@ class CollectionViewItem : public BasicTreeViewItem {
         &collection_.id, &RNA_CollectionLightLinking, &collection_light_linking_);
 
     Button *button = uiDefIconButR(block,
-                                   ButType::But,
+                                   ButtonType::But,
                                    icon,
                                    0,
                                    0,

@@ -429,7 +429,7 @@ class SocketTooltipBuilder {
       is_gamma = button_is_color_gamma(*but_);
       display = button_cm_display_get(*but_);
     }
-    UI_tooltip_color_field_add(
+    ui::tooltip_color_field_add(
         tip_data_, float4(value), true, is_gamma, display, ui::TIP_LC_VALUE);
   }
 
@@ -857,7 +857,7 @@ class SocketTooltipBuilder {
     if (!but_) {
       return;
     }
-    UI_tooltip_uibut_python_add(tip_data_, C_, *but_, nullptr);
+    ui::tooltip_uibut_python_add(tip_data_, C_, *but_, nullptr);
   }
 
   void start_block(const TooltipBlockType new_block_type)
@@ -870,25 +870,24 @@ class SocketTooltipBuilder {
 
   void add_text_field_header(std::string text)
   {
-    UI_tooltip_text_field_add(
+    ui::tooltip_text_field_add(
         tip_data_, this->indent(text), {}, ui::TIP_STYLE_HEADER, ui::TIP_LC_MAIN);
   }
 
-  void add_text_field(std::string text, const ui::uiTooltipColorID color_id = ui::TIP_LC_NORMAL)
+  void add_text_field(std::string text, const ui::TooltipColorID color_id = ui::TIP_LC_NORMAL)
   {
-    UI_tooltip_text_field_add(tip_data_, this->indent(text), {}, ui::TIP_STYLE_NORMAL, color_id);
+    ui::tooltip_text_field_add(tip_data_, this->indent(text), {}, ui::TIP_STYLE_NORMAL, color_id);
   }
 
-  void add_text_field_mono(std::string text,
-                           const ui::uiTooltipColorID color_id = ui::TIP_LC_VALUE)
+  void add_text_field_mono(std::string text, const ui::TooltipColorID color_id = ui::TIP_LC_VALUE)
   {
-    UI_tooltip_text_field_add(tip_data_, this->indent(text), {}, ui::TIP_STYLE_MONO, color_id);
+    ui::tooltip_text_field_add(tip_data_, this->indent(text), {}, ui::TIP_STYLE_MONO, color_id);
   }
 
   void add_space(const int amount = 1)
   {
     for ([[maybe_unused]] const int i : IndexRange(amount)) {
-      UI_tooltip_text_field_add(tip_data_, {}, {}, ui::TIP_STYLE_SPACER, ui::TIP_LC_NORMAL);
+      ui::tooltip_text_field_add(tip_data_, {}, {}, ui::TIP_STYLE_SPACER, ui::TIP_LC_NORMAL);
     }
   }
 

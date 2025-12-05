@@ -2019,7 +2019,7 @@ wmOperatorStatus WM_operator_call_py(bContext *C,
  * See: #OPTYPE_DEPENDS_ON_CURSOR doc-string for more information.
  * \{ */
 
-struct uiOperatorWaitForInput {
+struct OperatorWaitForInput {
   ScrArea *area;
   wmOperatorCallParams optype_params;
   std::optional<bContextStore> context;
@@ -2027,7 +2027,7 @@ struct uiOperatorWaitForInput {
 
 static void ui_handler_wait_for_input_remove(bContext *C, void *userdata)
 {
-  uiOperatorWaitForInput *opwait = static_cast<uiOperatorWaitForInput *>(userdata);
+  OperatorWaitForInput *opwait = static_cast<OperatorWaitForInput *>(userdata);
   if (opwait->optype_params.opptr) {
     if (opwait->optype_params.opptr->data) {
       IDP_FreeProperty(static_cast<IDProperty *>(opwait->optype_params.opptr->data));
@@ -2047,7 +2047,7 @@ static void ui_handler_wait_for_input_remove(bContext *C, void *userdata)
 
 static int ui_handler_wait_for_input(bContext *C, const wmEvent *event, void *userdata)
 {
-  uiOperatorWaitForInput *opwait = static_cast<uiOperatorWaitForInput *>(userdata);
+  OperatorWaitForInput *opwait = static_cast<OperatorWaitForInput *>(userdata);
   enum { CONTINUE = 0, EXECUTE, CANCEL } state = CONTINUE;
   state = CONTINUE;
 
@@ -2155,7 +2155,7 @@ void WM_operator_name_call_ptr_with_depends_on_cursor(bContext *C,
 
   WM_cursor_modal_set(win, ot->cursor_pending);
 
-  uiOperatorWaitForInput *opwait = MEM_new<uiOperatorWaitForInput>(__func__);
+  OperatorWaitForInput *opwait = MEM_new<OperatorWaitForInput>(__func__);
   opwait->optype_params.optype = ot;
   opwait->optype_params.opcontext = opcontext;
   opwait->optype_params.opptr = properties;

@@ -96,7 +96,7 @@ struct uiSearchboxData {
 
   /* Owned by ButtonSearch */
   void *search_arg;
-  uiButSearchListenFn search_listener;
+  ButtonSearchListenFn search_listener;
 };
 
 #define SEARCH_ITEMS 10
@@ -204,7 +204,7 @@ static int searchbox_size_x_from_items(const SearchItems &items)
   return box_width;
 }
 
-int searchbox_size_x_guess(const bContext *C, const uiButSearchUpdateFn update_fn, void *arg)
+int searchbox_size_x_guess(const bContext *C, const ButtonSearchUpdateFn update_fn, void *arg)
 {
   SearchItems items{};
   /* Upper bound on the number of item names that are checked. */
@@ -230,7 +230,7 @@ int searchbox_size_x_guess(const bContext *C, const uiButSearchUpdateFn update_f
   return searchbox_size_x_from_items(items);
 }
 
-int UI_search_items_find_index(const SearchItems *items, const char *name)
+int search_items_find_index(const SearchItems *items, const char *name)
 {
   if (items->name_prefix_offsets != nullptr) {
     for (int i = 0; i < items->totitem; i++) {
@@ -323,7 +323,7 @@ static void searchbox_butrect(rcti *r_rect, uiSearchboxData *data, int itemnr)
 int searchbox_find_index(ARegion *region, const char *name)
 {
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
-  return UI_search_items_find_index(&data->items, name);
+  return search_items_find_index(&data->items, name);
 }
 
 bool searchbox_inside(ARegion *region, const int xy[2])
@@ -338,7 +338,7 @@ bool searchbox_apply(Button *but, ARegion *region)
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
   ButtonSearch *search_but = (ButtonSearch *)but;
 
-  BLI_assert(but->type == ButType::SearchMenu);
+  BLI_assert(but->type == ButtonType::SearchMenu);
 
   search_but->item_active = nullptr;
 
@@ -373,7 +373,7 @@ static ARegion *wm_searchbox_tooltip_init(
 
   LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
     for (const std::unique_ptr<Button> &but : block->buttons) {
-      if (but->type != ButType::SearchMenu) {
+      if (but->type != ButtonType::SearchMenu) {
         continue;
       }
 
@@ -406,7 +406,7 @@ bool searchbox_event(
   bool handled = false;
   bool tooltip_timer_started = false;
 
-  BLI_assert(but->type == ButType::SearchMenu);
+  BLI_assert(but->type == ButtonType::SearchMenu);
 
   if (type == MOUSEPAN) {
     pan_to_scroll(event, &type, &val);
@@ -498,7 +498,7 @@ bool searchbox_event(
   return handled;
 }
 
-/** Wrap #uiButSearchUpdateFn callback. */
+/** Wrap #ButSearchUpdateFn callback. */
 static void searchbox_update_fn(bContext *C,
                                 ButtonSearch *but,
                                 const char *str,
@@ -518,7 +518,7 @@ void searchbox_update(bContext *C, ARegion *region, Button *but, const bool rese
   ButtonSearch *search_but = (ButtonSearch *)but;
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
 
-  BLI_assert(but->type == ButType::SearchMenu);
+  BLI_assert(but->type == ButtonType::SearchMenu);
 
   /* reset vars */
   data->items.totitem = 0;
@@ -597,7 +597,7 @@ int searchbox_autocomplete(bContext *C, ARegion *region, Button *but, char *str)
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
   int match = AUTOCOMPLETE_NO_MATCH;
 
-  BLI_assert(but->type == ButType::SearchMenu);
+  BLI_assert(but->type == ButtonType::SearchMenu);
 
   if (str[0]) {
     int maxncpy = button_string_get_maxncpy(but);
@@ -711,7 +711,7 @@ static void searchbox_region_draw_fn(const bContext *C, ARegion *region)
         int icon = data->items.icons[a];
         char *name_sep_test = nullptr;
 
-        uiMenuItemSeparatorType separator_type = UI_MENU_ITEM_SEPARATOR_NONE;
+        MenuItemSeparatorType separator_type = UI_MENU_ITEM_SEPARATOR_NONE;
         if (data->use_shortcut_sep) {
           separator_type = UI_MENU_ITEM_SEPARATOR_SHORTCUT;
         }
@@ -1223,7 +1223,7 @@ void button_search_refresh(ButtonSearch *but)
       button_flag_enable(but, BUT_REDALERT);
     }
     else if (items->more == 0) {
-      if (UI_search_items_find_index(items, but->drawstr.c_str()) == -1) {
+      if (search_items_find_index(items, but->drawstr.c_str()) == -1) {
         button_flag_enable(but, BUT_REDALERT);
       }
     }

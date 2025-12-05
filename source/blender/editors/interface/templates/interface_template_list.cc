@@ -699,7 +699,7 @@ static void ui_template_list_layout_draw(const bContext *C,
                                          TemplateListInputData *input_data,
                                          TemplateListItems *items,
                                          const TemplateListLayoutDrawData *layout_data,
-                                         const enum uiTemplateListFlags flags)
+                                         const TemplateListFlags flags)
 {
   uiListDyn *dyn_data = ui_list->dyn_data;
   const char *active_propname = RNA_property_identifier(input_data->activeprop);
@@ -752,7 +752,7 @@ static void ui_template_list_layout_draw(const bContext *C,
           overlap->row(false);
 
           but = uiDefButR_prop(subblock,
-                               ButType::ListRow,
+                               ButtonType::ListRow,
                                "",
                                0,
                                0,
@@ -816,7 +816,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       if (items->item_vec.size() > visual_info.visual_items) {
         row->column(false);
         but = uiDefButI(block,
-                        ButType::Scroll,
+                        ButtonType::Scroll,
                         "",
                         0,
                         0,
@@ -863,7 +863,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       /* next/prev button */
       SNPRINTF_UTF8(numstr, "%d :", dyn_data->items_shown);
       but = uiDefIconTextButR_prop(block,
-                                   ButType::Num,
+                                   ButtonType::Num,
                                    ICON_NONE,
                                    numstr,
                                    0,
@@ -913,7 +913,7 @@ static void ui_template_list_layout_draw(const bContext *C,
           block_flag_enable(subblock, BLOCK_LIST_ITEM);
 
           but = uiDefButR_prop(subblock,
-                               ButType::ListRow,
+                               ButtonType::ListRow,
                                "",
                                0,
                                0,
@@ -957,7 +957,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       if (items->item_vec.size() > visual_info.visual_items) {
         /* col = */ row->column(false);
         but = uiDefButI(block,
-                        ButType::Scroll,
+                        ButtonType::Scroll,
                         "",
                         0,
                         0,
@@ -977,7 +977,7 @@ static void ui_template_list_layout_draw(const bContext *C,
   if (glob && add_filters_but) {
     const bool add_grip_but = (flags & TEMPLATE_LIST_NO_GRIP) == 0;
 
-    /* About #ButType::Grip drag-resize:
+    /* About #ButtonType::Grip drag-resize:
      * We can't directly use results from a grip button, since we have a
      * rather complex behavior here (sizing by discrete steps and, overall, auto-size feature).
      * Since we *never* know whether we are grip-resizing or not
@@ -999,7 +999,7 @@ static void ui_template_list_layout_draw(const bContext *C,
 
     if (ui_list->filter_flag & UILST_FLT_SHOW) {
       but = uiDefIconButBitI(subblock,
-                             ButType::Toggle,
+                             ButtonType::Toggle,
                              UILST_FLT_SHOW,
                              ICON_DISCLOSURE_TRI_DOWN,
                              0,
@@ -1014,7 +1014,7 @@ static void ui_template_list_layout_draw(const bContext *C,
 
       if (add_grip_but) {
         but = uiDefIconButI(subblock,
-                            ButType::Grip,
+                            ButtonType::Grip,
                             ICON_GRIP,
                             0,
                             0,
@@ -1031,14 +1031,23 @@ static void ui_template_list_layout_draw(const bContext *C,
 
       col = &glob->column(false);
       subblock = col->block();
-      uiDefBut(
-          subblock, ButType::Sepr, "", 0, 0, UI_UNIT_X, UI_UNIT_Y * 0.05f, nullptr, 0.0, 0.0, "");
+      uiDefBut(subblock,
+               ButtonType::Sepr,
+               "",
+               0,
+               0,
+               UI_UNIT_X,
+               UI_UNIT_Y * 0.05f,
+               nullptr,
+               0.0,
+               0.0,
+               "");
 
       layout_data->draw_filter(ui_list, C, *col);
     }
     else {
       but = uiDefIconButBitI(subblock,
-                             ButType::Toggle,
+                             ButtonType::Toggle,
                              UILST_FLT_SHOW,
                              ICON_DISCLOSURE_TRI_RIGHT,
                              0,
@@ -1053,7 +1062,7 @@ static void ui_template_list_layout_draw(const bContext *C,
 
       if (add_grip_but) {
         but = uiDefIconButI(subblock,
-                            ButType::Grip,
+                            ButtonType::Grip,
                             ICON_GRIP,
                             0,
                             0,
@@ -1084,7 +1093,7 @@ uiList *template_list_ex(Layout *layout,
                          int maxrows,
                          int layout_type,
                          int columns,
-                         enum uiTemplateListFlags flags,
+                         enum TemplateListFlags flags,
                          void *customdata)
 {
   TemplateListInputData input_data = {};
@@ -1154,7 +1163,7 @@ void template_list(Layout *layout,
                    int maxrows,
                    int layout_type,
                    int columns,
-                   enum uiTemplateListFlags flags)
+                   enum TemplateListFlags flags)
 {
   template_list_ex(layout,
                    C,

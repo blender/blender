@@ -57,7 +57,7 @@ ImBuf *icon_alert_imbuf_get(AlertIcon icon, float size);
 /**
  * Resizable Icons for Blender
  */
-void UI_icons_init();
+void icons_init();
 
 bool icon_get_theme_color(int icon_id, unsigned char color[4]);
 
@@ -101,10 +101,10 @@ void icon_draw_ex(float x,
                   const IconTextOverlay *text_overlay,
                   const bool inverted = false);
 
-ImBuf *UI_svg_icon_bitmap(uint icon_id, float size, bool multicolor = false);
+ImBuf *svg_icon_bitmap(uint icon_id, float size, bool multicolor = false);
 
-void UI_icons_free();
-void UI_icons_free_drawinfo(void *drawinfo);
+void icons_free();
+void icons_free_drawinfo(void *drawinfo);
 
 PreviewImage *icon_to_preview(int icon_id);
 

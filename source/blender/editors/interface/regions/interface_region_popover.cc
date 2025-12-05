@@ -51,7 +51,7 @@ namespace blender::ui {
 /** \name Popup Menu with Callback or String
  * \{ */
 
-struct uiPopover {
+struct Popover {
   Block *block;
   Layout *layout;
   Button *but;
@@ -79,7 +79,7 @@ struct uiPopover {
  */
 static void ui_popover_create_block(bContext *C,
                                     ARegion *region,
-                                    uiPopover *pup,
+                                    Popover *pup,
                                     wm::OpCallContext opcontext)
 {
   BLI_assert(pup->ui_size_x != 0);
@@ -109,7 +109,7 @@ static void ui_popover_create_block(bContext *C,
 
 static Block *block_func_POPOVER(bContext *C, PopupBlockHandle *handle, void *arg_pup)
 {
-  uiPopover *pup = static_cast<uiPopover *>(arg_pup);
+  Popover *pup = static_cast<Popover *>(arg_pup);
 
   /* Create UI block and layout now if it wasn't done between begin/end. */
   if (!pup->layout) {
@@ -242,7 +242,7 @@ static Block *block_func_POPOVER(bContext *C, PopupBlockHandle *handle, void *ar
 
 static void block_free_func_POPOVER(void *arg_pup)
 {
-  uiPopover *pup = static_cast<uiPopover *>(arg_pup);
+  Popover *pup = static_cast<Popover *>(arg_pup);
   if (pup->keymap != nullptr) {
     wmWindow *window = pup->window;
     WM_event_remove_keymap_handler(&window->modalhandlers, pup->keymap);
@@ -260,7 +260,7 @@ PopupBlockHandle *popover_panel_create(bContext *C,
   const uiStyle *style = style_get_dpi();
 
   /* Create popover, buttons are created from callback. */
-  uiPopover *pup = MEM_new<uiPopover>(__func__);
+  Popover *pup = MEM_new<Popover>(__func__);
   pup->but = but;
 
   /* FIXME: maybe one day we want non panel popovers? */
@@ -323,11 +323,11 @@ wmOperatorStatus popover_panel_invoke(bContext *C,
   Block *block = nullptr;
   if (keep_open) {
     PopupBlockHandle *handle = popover_panel_create(C, nullptr, nullptr, item_paneltype_func, pt);
-    uiPopover *pup = static_cast<uiPopover *>(handle->popup_create_vars.arg);
+    Popover *pup = static_cast<Popover *>(handle->popup_create_vars.arg);
     block = pup->block;
   }
   else {
-    uiPopover *pup = popover_begin(C, U.widget_unit * pt->ui_units_x, false);
+    Popover *pup = popover_begin(C, U.widget_unit * pt->ui_units_x, false);
     layout = popover_layout(pup);
     blender::ui::UI_paneltype_draw(C, pt, layout);
     blender::ui::popover_end(C, pup, nullptr);
@@ -347,9 +347,9 @@ wmOperatorStatus popover_panel_invoke(bContext *C,
 /** \name Popup Menu API with begin & end
  * \{ */
 
-uiPopover *popover_begin(bContext *C, int ui_menu_width, bool from_active_button)
+Popover *popover_begin(bContext *C, int ui_menu_width, bool from_active_button)
 {
-  uiPopover *pup = MEM_new<uiPopover>(__func__);
+  Popover *pup = MEM_new<Popover>(__func__);
   if (ui_menu_width == 0) {
     ui_menu_width = U.widget_unit * UI_POPOVER_WIDTH_UNITS;
   }
@@ -381,11 +381,11 @@ uiPopover *popover_begin(bContext *C, int ui_menu_width, bool from_active_button
 
 static void popover_keymap_fn(wmKeyMap * /*keymap*/, wmKeyMapItem * /*kmi*/, void *user_data)
 {
-  uiPopover *pup = static_cast<uiPopover *>(user_data);
-  pup->block->handle->menuretval = UI_RETURN_OK;
+  Popover *pup = static_cast<Popover *>(user_data);
+  pup->block->handle->menuretval = RETURN_OK;
 }
 
-void popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
+void popover_end(bContext *C, Popover *pup, wmKeyMap *keymap)
 {
   wmWindow *window = CTX_wm_window(C);
 
@@ -427,13 +427,13 @@ void popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
   block_flag_disable(pup->block, BLOCK_KEEP_OPEN);
 }
 
-Layout *popover_layout(uiPopover *pup)
+Layout *popover_layout(Popover *pup)
 {
   return pup->layout;
 }
 
 #ifdef USE_UI_POPOVER_ONCE
-void popover_once_clear(uiPopover *pup)
+void popover_once_clear(Popover *pup)
 {
   pup->is_once = false;
 }

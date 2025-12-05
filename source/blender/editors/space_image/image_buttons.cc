@@ -102,7 +102,7 @@ static void ui_imageuser_slot_menu(bContext *C, blender::ui::Layout *layout, voi
       icon = ICON_DOT;
     }
     blender::ui::Button *but = uiDefIconTextBut(block,
-                                                blender::ui::ButType::ButMenu,
+                                                blender::ui::ButtonType::ButMenu,
                                                 icon,
                                                 str,
                                                 0,
@@ -117,7 +117,7 @@ static void ui_imageuser_slot_menu(bContext *C, blender::ui::Layout *layout, voi
 
   layout->separator();
   uiDefBut(block,
-           blender::ui::ButType::Label,
+           blender::ui::ButtonType::Label,
            IFACE_("Slot"),
            0,
            0,
@@ -191,7 +191,7 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, blender::ui::Layout *layou
   const char *fake_name = ui_imageuser_layer_fake_name(rr);
   if (fake_name) {
     blender::ui::Button *but = uiDefButS(block,
-                                         blender::ui::ButType::ButMenu,
+                                         blender::ui::ButtonType::ButMenu,
                                          fake_name,
                                          0,
                                          0,
@@ -207,7 +207,7 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, blender::ui::Layout *layou
   int nr = fake_name ? 1 : 0;
   for (RenderLayer *rl = static_cast<RenderLayer *>(rr->layers.first); rl; rl = rl->next, nr++) {
     blender::ui::Button *but = uiDefButS(block,
-                                         blender::ui::ButType::ButMenu,
+                                         blender::ui::ButtonType::ButMenu,
                                          rl->name,
                                          0,
                                          0,
@@ -222,7 +222,7 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, blender::ui::Layout *layou
 
   layout->separator();
   uiDefBut(block,
-           blender::ui::ButType::Label,
+           blender::ui::ButtonType::Label,
            IFACE_("Layer"),
            0,
            0,
@@ -278,7 +278,7 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, blender::ui::Layout *layout
     BLI_addtail(&added_passes, BLI_genericNodeN(rpass->name));
 
     blender::ui::Button *but = uiDefButS(block,
-                                         blender::ui::ButType::ButMenu,
+                                         blender::ui::ButtonType::ButMenu,
                                          IFACE_(rpass->name),
                                          0,
                                          0,
@@ -293,7 +293,7 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, blender::ui::Layout *layout
 
   layout->separator();
   uiDefBut(block,
-           blender::ui::ButType::Label,
+           blender::ui::ButtonType::Label,
            IFACE_("Pass"),
            0,
            0,
@@ -331,7 +331,7 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, blender::ui::Layout *lay
   layout->column(false);
 
   uiDefBut(block,
-           blender::ui::ButType::Label,
+           blender::ui::ButtonType::Label,
            IFACE_("View"),
            0,
            0,
@@ -349,7 +349,7 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, blender::ui::Layout *lay
        rview = rview->prev, nr--)
   {
     blender::ui::Button *but = uiDefButS(block,
-                                         blender::ui::ButType::ButMenu,
+                                         blender::ui::ButtonType::ButMenu,
                                          IFACE_(rview->name),
                                          0,
                                          0,
@@ -379,7 +379,7 @@ static void ui_imageuser_view_menu_multiview(bContext * /*C*/,
   layout->column(false);
 
   uiDefBut(block,
-           blender::ui::ButType::Label,
+           blender::ui::ButtonType::Label,
            IFACE_("View"),
            0,
            0,
@@ -395,7 +395,7 @@ static void ui_imageuser_view_menu_multiview(bContext * /*C*/,
   nr = BLI_listbase_count(&image->views) - 1;
   for (iv = static_cast<ImageView *>(image->views.last); iv; iv = iv->prev, nr--) {
     blender::ui::Button *but = uiDefButS(block,
-                                         blender::ui::ButType::ButMenu,
+                                         blender::ui::ButtonType::ButMenu,
                                          IFACE_(iv->name),
                                          0,
                                          0,

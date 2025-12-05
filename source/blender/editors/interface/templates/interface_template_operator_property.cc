@@ -61,7 +61,7 @@ static bool ui_layout_operator_buts_poll_property(PointerRNA * /*ptr*/,
   return params->op->type->poll_property(params->C, params->op, prop);
 }
 
-static eAutoPropButsReturn template_operator_property_buts_draw_single(
+static AutoPropButsReturn template_operator_property_buts_draw_single(
     const bContext *C,
     wmOperator *op,
     Layout &layout,
@@ -69,7 +69,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
     int layout_flags)
 {
   Block *block = layout.block();
-  eAutoPropButsReturn return_info = eAutoPropButsReturn(0);
+  AutoPropButsReturn return_info = AutoPropButsReturn(0);
 
   if (!op->properties) {
     op->properties = bke::idprop::create_group("wmOperatorProperties").release();
@@ -140,7 +140,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
         label_align,
         (layout_flags & TEMPLATE_OP_PROPS_COMPACT));
 
-    if ((return_info & UI_PROP_BUTS_NONE_ADDED) && (layout_flags & TEMPLATE_OP_PROPS_SHOW_EMPTY)) {
+    if ((return_info & PROP_BUTS_NONE_ADDED) && (layout_flags & TEMPLATE_OP_PROPS_SHOW_EMPTY)) {
       layout.label(IFACE_("No Properties"), ICON_NONE);
     }
   }
@@ -156,7 +156,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
     Layout &col = layout.column(false);
     block = col.block();
     but = uiDefIconTextBut(block,
-                           ButType::But,
+                           ButtonType::But,
                            ICON_FILE_REFRESH,
                            IFACE_("Reset"),
                            0,
@@ -189,7 +189,8 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
        * - this is used for allowing operators with popups to rename stuff with fewer clicks
        */
       if (is_popup) {
-        if ((but->rnaprop == op->type->prop) && ELEM(but->type, ButType::Text, ButType::Num)) {
+        if ((but->rnaprop == op->type->prop) && ELEM(but->type, ButtonType::Text, ButtonType::Num))
+        {
           button_focus_on_enter_event(CTX_wm_window(C), but.get());
         }
       }
@@ -214,9 +215,9 @@ static void template_operator_property_buts_draw_recursive(const bContext *C,
   }
   else {
     /* Might want to make label_align adjustable somehow. */
-    eAutoPropButsReturn return_info = template_operator_property_buts_draw_single(
+    AutoPropButsReturn return_info = template_operator_property_buts_draw_single(
         C, op, layout, label_align, layout_flags);
-    if (return_info & UI_PROP_BUTS_ANY_FAILED_CHECK) {
+    if (return_info & PROP_BUTS_ANY_FAILED_CHECK) {
       if (r_has_advanced) {
         *r_has_advanced = true;
       }

@@ -49,7 +49,7 @@ static Block *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_litem
     Button *but;
     if (args.show_labels) {
       but = uiDefIconTextButR_prop(block,
-                                   ButType::Row,
+                                   ButtonType::Row,
                                    icon,
                                    item[a].name,
                                    x,
@@ -64,8 +64,19 @@ static Block *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_litem
                                    std::nullopt);
     }
     else {
-      but = uiDefIconButR_prop(
-          block, ButType::Row, icon, x, y, w, h, &args.ptr, args.prop, -1, 0, value, std::nullopt);
+      but = uiDefIconButR_prop(block,
+                               ButtonType::Row,
+                               icon,
+                               x,
+                               y,
+                               w,
+                               h,
+                               &args.ptr,
+                               args.prop,
+                               -1,
+                               0,
+                               value,
+                               std::nullopt);
     }
     def_but_icon(but, icon, UI_HAS_ICON | BUT_ICON_PREVIEW);
   }
@@ -84,7 +95,7 @@ void template_icon(Layout *layout, int icon_value, float icon_scale)
 {
   Block *block = layout->absolute().block();
   Button *but = uiDefIconBut(block,
-                             ButType::Label,
+                             ButtonType::Label,
                              ICON_X,
                              0,
                              0,
@@ -146,7 +157,7 @@ void template_icon_view(Layout *layout,
   }
   else {
     but = uiDefIconBut(block,
-                       ButType::Label,
+                       ButtonType::Label,
                        ICON_X,
                        0,
                        0,

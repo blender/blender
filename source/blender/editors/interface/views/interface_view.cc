@@ -93,7 +93,7 @@ void ViewLink::views_bounds_calc(const Block &block)
   }
 
   for (const std::unique_ptr<Button> &but : block.buttons) {
-    if (but->type != ButType::ViewItem) {
+    if (but->type != ButtonType::ViewItem) {
       continue;
     }
     auto *view_item_but = static_cast<ButtonViewItem *>(but.get());
@@ -351,7 +351,7 @@ ButtonViewItem *block_view_find_matching_view_item_but_in_old_block(
   }
 
   for (const std::unique_ptr<Button> &old_but : old_block->buttons) {
-    if (old_but->type != ButType::ViewItem) {
+    if (old_but->type != ButtonType::ViewItem) {
       continue;
     }
     ButtonViewItem *old_item_but = (ButtonViewItem *)old_but.get();

@@ -107,7 +107,7 @@ void template_layers(Layout *layout,
         Button *but = uiDefAutoButR(
             block, ptr, prop, layer, "", icon, 0, 0, UI_UNIT_X / 2, UI_UNIT_Y / 2);
         button_func_set(but, handle_layer_buttons, but, POINTER_FROM_INT(layer));
-        but->type = ButType::Toggle;
+        but->type = ButtonType::Toggle;
       }
     }
   }

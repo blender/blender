@@ -4143,7 +4143,7 @@ static blender::ui::Block *block_create_autorun_warning(bContext *C,
    * Otherwise just enable scripts and reset the depsgraphs. */
   if ((blendfile_path[0] != '\0') && wm->file_saved) {
     but = uiDefIconTextBut(block,
-                           blender::ui::ButType::But,
+                           blender::ui::ButtonType::But,
                            ICON_NONE,
                            IFACE_("Allow Execution"),
                            0,
@@ -4157,7 +4157,7 @@ static blender::ui::Block *block_create_autorun_warning(bContext *C,
   }
   else {
     but = uiDefIconTextBut(block,
-                           blender::ui::ButType::But,
+                           blender::ui::ButtonType::But,
                            ICON_NONE,
                            IFACE_("Allow Execution"),
                            0,
@@ -4173,7 +4173,7 @@ static blender::ui::Block *block_create_autorun_warning(bContext *C,
 
   split.column(false);
   but = uiDefIconTextBut(block,
-                         blender::ui::ButType::But,
+                         blender::ui::ButtonType::But,
                          ICON_NONE,
                          IFACE_("Ignore"),
                          0,
@@ -4384,7 +4384,7 @@ static void save_file_overwrite_cancel_button(blender::ui::Block *block,
                                               wmGenericCallback *post_action)
 {
   blender::ui::Button *but = uiDefIconTextBut(block,
-                                              blender::ui::ButType::But,
+                                              blender::ui::ButtonType::But,
                                               ICON_NONE,
                                               IFACE_("Cancel"),
                                               0,
@@ -4428,7 +4428,7 @@ static void save_file_overwrite_confirm_button(blender::ui::Block *block,
                                                wmGenericCallback *post_action)
 {
   blender::ui::Button *but = uiDefIconTextBut(block,
-                                              blender::ui::ButType::But,
+                                              blender::ui::ButtonType::But,
                                               ICON_NONE,
                                               IFACE_("Overwrite"),
                                               0,
@@ -4455,7 +4455,7 @@ static void save_file_overwrite_saveas_button(blender::ui::Block *block,
                                               wmGenericCallback *post_action)
 {
   blender::ui::Button *but = uiDefIconTextBut(block,
-                                              blender::ui::ButType::But,
+                                              blender::ui::ButtonType::But,
                                               ICON_NONE,
                                               IFACE_("Save As..."),
                                               0,
@@ -4671,7 +4671,7 @@ static void wm_block_file_close_cancel_button(blender::ui::Block *block,
                                               wmGenericCallback *post_action)
 {
   blender::ui::Button *but = uiDefIconTextBut(block,
-                                              blender::ui::ButType::But,
+                                              blender::ui::ButtonType::But,
                                               ICON_NONE,
                                               IFACE_("Cancel"),
                                               0,
@@ -4688,7 +4688,7 @@ static void wm_block_file_close_discard_button(blender::ui::Block *block,
                                                wmGenericCallback *post_action)
 {
   blender::ui::Button *but = uiDefIconTextBut(block,
-                                              blender::ui::ButType::But,
+                                              blender::ui::ButtonType::But,
                                               ICON_NONE,
                                               IFACE_("Don't Save"),
                                               0,
@@ -4707,7 +4707,7 @@ static void wm_block_file_close_save_button(blender::ui::Block *block,
 {
   blender::ui::Button *but = uiDefIconTextBut(
       block,
-      blender::ui::ButType::But,
+      blender::ui::ButtonType::But,
       ICON_NONE,
       /* Forward compatibility issues force using 'save as' operator instead of 'save' one. */
       needs_overwrite_confirm ? IFACE_("Save As...") : IFACE_("Save"),
@@ -4811,7 +4811,7 @@ static blender::ui::Block *block_create__close_file_dialog(bContext *C,
       layout.separator();
     }
     uiDefButBitC(block,
-                 blender::ui::ButType::Checkbox,
+                 blender::ui::ButtonType::Checkbox,
                  1,
                  message,
                  0,
@@ -4835,7 +4835,7 @@ static blender::ui::Block *block_create__close_file_dialog(bContext *C,
       layout.separator();
     }
     blender::ui::Button *but = uiDefButBitC(block,
-                                            blender::ui::ButType::Checkbox,
+                                            blender::ui::ButtonType::Checkbox,
                                             1,
                                             "Save modified asset catalogs",
                                             0,

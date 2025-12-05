@@ -51,7 +51,7 @@ enum class AlertIcon : int8_t;
 struct ItemInternal;
 struct LayoutInternal;
 struct Layout;
-struct uiLayoutRoot;
+struct LayoutRoot;
 }  // namespace blender::ui
 
 namespace blender::wm {
@@ -65,11 +65,11 @@ struct PanelLayout {
   Layout *body;
 };
 
-struct uiItem {
+struct Item {
 
-  uiItem(ItemType type);
-  uiItem(const uiItem &) = default;
-  virtual ~uiItem() = default;
+  Item(ItemType type);
+  Item(const Item &) = default;
+  virtual ~Item() = default;
 
   [[nodiscard]] bool fixed_size() const;
   void fixed_size_set(bool fixed_size);
@@ -99,14 +99,14 @@ enum class NodeAssetMenuOperatorType : int8_t {
   Swap,
 };
 
-struct Layout : public uiItem, NonCopyable, NonMovable {
+struct Layout : public Item, NonCopyable, NonMovable {
  protected:
-  uiLayoutRoot *root_ = nullptr;
+  LayoutRoot *root_ = nullptr;
   bContextStore *context_ = nullptr;
   Layout *parent_ = nullptr;
   std::string heading_;
 
-  Vector<uiItem *> items_;
+  Vector<Item *> items_;
 
   /** Sub layout to add child items, if not the layout itself. */
   Layout *child_items_layout_ = nullptr;
@@ -132,7 +132,7 @@ struct Layout : public uiItem, NonCopyable, NonMovable {
   float search_weight_ = 0.0f;
 
  public:
-  Layout(ItemType type, uiLayoutRoot *root);
+  Layout(ItemType type, LayoutRoot *root);
 
   [[nodiscard]] bool active() const;
   /**
@@ -411,7 +411,7 @@ struct Layout : public uiItem, NonCopyable, NonMovable {
    * \param func: Function that generates the menu layout.
    * \param arg: Pointer to data used as last argument in \a func.
    */
-  void menu_fn(StringRefNull name, int icon, uiMenuCreateFunc func, void *arg);
+  void menu_fn(StringRefNull name, int icon, MenuCreateFunc func, void *arg);
   /**
    * Adds a menu item, which is a button that when active will display a menu.
    * \param name: Label to show in the menu button.
@@ -419,7 +419,7 @@ struct Layout : public uiItem, NonCopyable, NonMovable {
    * \param argN: Pointer to data used as last argument in \a func, it will be
    * freed with the menu button.
    */
-  void menu_fn_argN_free(StringRefNull name, int icon, uiMenuCreateFunc func, void *argN);
+  void menu_fn_argN_free(StringRefNull name, int icon, MenuCreateFunc func, void *argN);
   /**
    * Adds a operator item, places a button in the layout to call the operator.
    * \param ot: Operator to add.
@@ -675,12 +675,12 @@ struct Layout : public uiItem, NonCopyable, NonMovable {
 
   friend struct LayoutInternal;
 
-  [[nodiscard]] uiLayoutRoot *root() const;
+  [[nodiscard]] LayoutRoot *root() const;
   [[nodiscard]] const bContextStore *context() const;
   [[nodiscard]] Layout *parent() const;
   [[nodiscard]] StringRef heading() const;
   void heading_reset();
-  [[nodiscard]] Span<uiItem *> items() const;
+  [[nodiscard]] Span<Item *> items() const;
   [[nodiscard]] bool align() const;
   [[nodiscard]] bool variable_size() const;
   [[nodiscard]] EmbossType emboss_or_undefined() const;
@@ -895,7 +895,7 @@ ENUM_OPERATORS(eUI_Item_Flag)
  */
 bool block_apply_search_filter(Block *block, const char *search_filter);
 
-void uiLayoutSetFunc(Layout *layout, uiMenuHandleFunc handlefunc, void *argv);
+void uiLayoutSetFunc(Layout *layout, MenuHandleFunc handlefunc, void *argv);
 
 /**
  * Set tooltip function for all buttons in the layout.
@@ -908,21 +908,18 @@ void uiLayoutSetFunc(Layout *layout, uiMenuHandleFunc handlefunc, void *argv);
  * is being called on multiple buttons (can be set to e.g. MEM_dupallocN). If set to NULL, arg will
  * be passed as-is to all buttons.
  */
-void uiLayoutSetTooltipFunc(Layout *layout,
-                            uiButToolTipFunc func,
-                            void *arg,
-                            uiCopyArgFunc copy_arg,
-                            uiFreeArgFunc free_arg);
+void uiLayoutSetTooltipFunc(
+    Layout *layout, ButtonToolTipFunc func, void *arg, CopyArgFunc copy_arg, FreeArgFunc free_arg);
 
 /**
  * Same as above but should be used when building a fully custom tooltip instead of just
  * generating a description.
  */
 void uiLayoutSetTooltipCustomFunc(Layout *layout,
-                                  uiButToolTipCustomFunc func,
+                                  ButtonToolTipCustomFunc func,
                                   void *arg,
-                                  uiCopyArgFunc copy_arg,
-                                  uiFreeArgFunc free_arg);
+                                  CopyArgFunc copy_arg,
+                                  FreeArgFunc free_arg);
 
 void menutype_draw(bContext *C, MenuType *mt, Layout *layout);
 
@@ -938,7 +935,7 @@ void uiLayoutListItemAddPadding(Layout *layout);
 
 bool uiLayoutEndsWithPanelHeader(const Layout &layout);
 
-struct uiPropertySplitWrapper {
+struct PropertySplitWrapper {
   Layout *label_column;
   Layout *property_row;
   /**
@@ -955,7 +952,7 @@ struct uiPropertySplitWrapper {
  * The returned #uiPropertySplitWrapper.decorator_column may be null when decorators are disabled
  * (#uiLayoutGetPropDecorate() returns false).
  */
-uiPropertySplitWrapper uiItemPropertySplitWrapperCreate(Layout *parent_layout);
+PropertySplitWrapper uiItemPropertySplitWrapperCreate(Layout *parent_layout);
 
 Button *uiItemL_ex(
     Layout *layout, blender::StringRef name, int icon, bool highlight, bool redalert);

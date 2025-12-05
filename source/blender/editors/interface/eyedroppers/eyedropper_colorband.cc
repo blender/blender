@@ -71,7 +71,7 @@ static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
     /* pass */
   }
   else {
-    if (but->type == ButType::ColorBand) {
+    if (but->type == ButtonType::ColorBand) {
       /* When invoked with a hotkey, we can find the band in 'but->poin'. */
       band = (ColorBand *)but->poin;
     }
@@ -309,7 +309,7 @@ static wmOperatorStatus eyedropper_colorband_exec(bContext *C, wmOperator *op)
 static bool eyedropper_colorband_poll(bContext *C)
 {
   Button *but = context_active_but_get(C);
-  if (but && but->type == ButType::ColorBand) {
+  if (but && but->type == ButtonType::ColorBand) {
     return true;
   }
   const PointerRNA ptr = CTX_data_pointer_get_type(C, "color_ramp", &RNA_ColorRamp);

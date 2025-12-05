@@ -424,7 +424,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
       blender::ui::Layout &col = layout.column(true);
       uiItemL_respect_property_split(&col, IFACE_("Key Frame"), ICON_NONE);
       but = uiDefButR(block,
-                      blender::ui::ButType::Num,
+                      blender::ui::ButtonType::Num,
                       "",
                       0,
                       0,
@@ -441,7 +441,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(&col, IFACE_("Value"), ICON_NONE);
       but = uiDefButR(block,
-                      blender::ui::ButType::Num,
+                      blender::ui::ButtonType::Num,
                       "",
                       0,
                       0,
@@ -464,7 +464,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
       blender::ui::Layout &col = layout.column(true);
       uiItemL_respect_property_split(&col, IFACE_("Left Handle Type"), ICON_NONE);
       but = uiDefButR(block,
-                      blender::ui::ButType::Menu,
+                      blender::ui::ButtonType::Menu,
                       std::nullopt,
                       0,
                       0,
@@ -481,7 +481,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(&col, IFACE_("Frame"), ICON_NONE);
       but = uiDefButR(block,
-                      blender::ui::ButType::Num,
+                      blender::ui::ButtonType::Num,
                       "",
                       0,
                       0,
@@ -498,7 +498,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(&col, IFACE_("Value"), ICON_NONE);
       but = uiDefButR(block,
-                      blender::ui::ButType::Num,
+                      blender::ui::ButtonType::Num,
                       "",
                       0,
                       0,
@@ -522,7 +522,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
       blender::ui::Layout &col = layout.column(true);
       uiItemL_respect_property_split(&col, IFACE_("Right Handle Type"), ICON_NONE);
       but = uiDefButR(block,
-                      blender::ui::ButType::Menu,
+                      blender::ui::ButtonType::Menu,
                       std::nullopt,
                       0,
                       0,
@@ -539,7 +539,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(&col, IFACE_("Frame"), ICON_NONE);
       but = uiDefButR(block,
-                      blender::ui::ButType::Num,
+                      blender::ui::ButtonType::Num,
                       "",
                       0,
                       0,
@@ -556,7 +556,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(&col, IFACE_("Value"), ICON_NONE);
       but = uiDefButR(block,
-                      blender::ui::ButType::Num,
+                      blender::ui::ButtonType::Num,
                       "",
                       0,
                       0,
@@ -899,7 +899,7 @@ static void graph_draw_driven_property_enabled_btn(blender::ui::Layout &layout,
 
   blender::ui::Block *block = layout.block();
   uiDefButR(block,
-            blender::ui::ButType::CheckboxN,
+            blender::ui::ButtonType::CheckboxN,
             label,
             0,
             0,
@@ -1063,7 +1063,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
     blender::ui::Layout &sub = row.row(true);
     but = uiDefIconTextBut(
         block,
-        blender::ui::ButType::But,
+        blender::ui::ButtonType::But,
         ICON_ADD,
         IFACE_("Add Input Variable"),
         0,
@@ -1128,7 +1128,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
 
     if (dvar->flag & DVAR_FLAG_INVALID_NAME) {
       but = uiDefIconBut(block,
-                         blender::ui::ButType::But,
+                         blender::ui::ButtonType::But,
                          ICON_ERROR,
                          290,
                          0,
@@ -1144,7 +1144,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
 
     /* 1.3) remove button */
     but = uiDefIconBut(block,
-                       blender::ui::ButType::But,
+                       blender::ui::ButtonType::But,
                        ICON_X,
                        290,
                        0,
@@ -1215,7 +1215,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
    * so keep this around for a while longer as a "last resort" */
   layout.row(true);
   but = uiDefIconTextBut(block,
-                         blender::ui::ButType::But,
+                         blender::ui::ButtonType::But,
                          ICON_FILE_REFRESH,
                          IFACE_("Update Dependencies"),
                          0,

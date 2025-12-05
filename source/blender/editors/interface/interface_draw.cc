@@ -1627,7 +1627,7 @@ void draw_but_CURVE(ARegion *region, Button *but, const uiWidgetColors *wcol, co
               BLI_rcti_size_y(&scissor_new));
 
   /* Do this first to not mess imm context */
-  if (but_cumap->gradient_type == UI_GRAD_H) {
+  if (but_cumap->gradient_type == GRAD_H) {
     /* magic trigger for curve backgrounds */
     const float col[3] = {0.0f, 0.0f, 0.0f}; /* dummy arg */
 
@@ -1638,7 +1638,7 @@ void draw_but_CURVE(ARegion *region, Button *but, const uiWidgetColors *wcol, co
     grid.ymax = grid.ymin + zoomy;
 
     const ColorManagedDisplay *display = block_cm_display_get(but->block);
-    draw_gradient(&grid, col, UI_GRAD_H, 1.0f, display);
+    draw_gradient(&grid, col, GRAD_H, 1.0f, display);
   }
 
   GPU_line_width(1.0f);
@@ -1651,7 +1651,7 @@ void draw_but_CURVE(ARegion *region, Button *but, const uiWidgetColors *wcol, co
   float color_backdrop[4] = {0, 0, 0, 1};
 
   GPU_blend(GPU_BLEND_ALPHA);
-  if (but_cumap->gradient_type == UI_GRAD_H) {
+  if (but_cumap->gradient_type == GRAD_H) {
     /* grid, hsv uses different grid */
     ARRAY_SET_ITEMS(color_backdrop, 0, 0, 0, 48.0 / 255.0);
     immUniformColor4fv(color_backdrop);
@@ -1717,7 +1717,7 @@ void draw_but_CURVE(ARegion *region, Button *but, const uiWidgetColors *wcol, co
 
   if (cumap->flag & CUMA_DRAW_SAMPLE) {
     immBegin(GPU_PRIM_LINES, 2); /* will draw one of the following 3 lines */
-    if (but_cumap->gradient_type == UI_GRAD_H) {
+    if (but_cumap->gradient_type == GRAD_H) {
       float tsample[3];
       float hsv[3];
       linearrgb_to_srgb_v3_v3(tsample, cumap->sample);
@@ -1844,7 +1844,7 @@ void draw_but_CURVE(ARegion *region, Button *but, const uiWidgetColors *wcol, co
 
   /* Curve widgets using a gradient background (such as Hue Correct), draw
    * an additional point in the back, forming an outline so they stand out. */
-  if (but_cumap->gradient_type == UI_GRAD_H) {
+  if (but_cumap->gradient_type == GRAD_H) {
     if ((cuma->totpoint - selected) > 0) {
       /* Background (outline) for unselected points. */
       immUniform4fv("color", color_point_outline);

@@ -1533,7 +1533,7 @@ void view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
     slider.ymin = hor.ymin;
     slider.ymax = hor.ymax;
 
-    state = (v2d->scroll_ui & V2D_SCROLL_H_ACTIVE) ? UI_SCROLL_PRESSED : 0;
+    state = (v2d->scroll_ui & V2D_SCROLL_H_ACTIVE) ? SCROLL_PRESSED : 0;
 
     /* In the case that scroll-bar track is invisible, range from 0 ->`final_alpha` instead to
      * avoid errors with users trying to click into the underlying view. */
@@ -1558,7 +1558,7 @@ void view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
     if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0 && (v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES) &&
         (BLI_rcti_size_x(&slider) > V2D_SCROLL_HANDLE_SIZE_HOTSPOT))
     {
-      state |= UI_SCROLL_ARROWS;
+      state |= SCROLL_ARROWS;
     }
 
     draw_widget_scroll(&wcol, &hor, &slider, state);
@@ -1577,7 +1577,7 @@ void view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
     slider.ymin = scrollers.vert_min;
     slider.ymax = scrollers.vert_max;
 
-    state = (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE) ? UI_SCROLL_PRESSED : 0;
+    state = (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE) ? SCROLL_PRESSED : 0;
 
     /* In the case that scroll-bar track is invisible, range from 0 ->`final_alpha` instead to
      * avoid errors with users trying to click into the underlying view. */
@@ -1602,7 +1602,7 @@ void view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
     if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0 && (v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES) &&
         (BLI_rcti_size_y(&slider) > V2D_SCROLL_HANDLE_SIZE_HOTSPOT))
     {
-      state |= UI_SCROLL_ARROWS;
+      state |= SCROLL_ARROWS;
     }
 
     draw_widget_scroll(&wcol, &vert, &slider, state);

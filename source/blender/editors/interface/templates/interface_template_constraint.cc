@@ -273,8 +273,8 @@ void template_constraints(Layout * /*layout*/, bContext *C, bool use_bone_constr
   }
 
   /* Switch between the bone panel ID function and the object panel ID function. */
-  uiListPanelIDFromDataFunc panel_id_func = use_bone_constraints ? bone_constraint_panel_id :
-                                                                   object_constraint_panel_id;
+  ListPanelIDFromDataFunc panel_id_func = use_bone_constraints ? bone_constraint_panel_id :
+                                                                 object_constraint_panel_id;
 
   const bool panels_match = panel_list_matches_data(region, constraints, panel_id_func);
 

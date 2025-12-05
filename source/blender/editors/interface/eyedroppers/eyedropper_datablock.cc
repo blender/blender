@@ -336,7 +336,7 @@ static bool datadropper_poll(bContext *C)
   /* data dropper only supports object data */
   if ((CTX_wm_window(C) != nullptr) &&
       (but = context_active_but_prop_get(C, &ptr, &prop, &index_dummy)) &&
-      (but->type == ButType::SearchMenu) && (but->flag & BUT_VALUE_CLEAR))
+      (but->type == ButtonType::SearchMenu) && (but->flag & BUT_VALUE_CLEAR))
   {
     if (prop && RNA_property_type(prop) == PROP_POINTER) {
       StructRNA *type = RNA_property_pointer_type(&ptr, prop);

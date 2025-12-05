@@ -230,7 +230,7 @@ void template_running_jobs(Layout *layout, bContext *C)
     /* job icon as a button */
     if (op_name) {
       uiDefIconButO(block,
-                    ButType::But,
+                    ButtonType::But,
                     op_name,
                     wm::OpCallContext::InvokeDefault,
                     icon,
@@ -244,7 +244,7 @@ void template_running_jobs(Layout *layout, bContext *C)
     /* job name and icon if not previously set */
     const int textwidth = fontstyle_string_width(fstyle, name);
     uiDefIconTextBut(block,
-                     ButType::Label,
+                     ButtonType::Label,
                      op_name ? 0 : icon,
                      name,
                      0,
@@ -265,7 +265,7 @@ void template_running_jobs(Layout *layout, bContext *C)
       tip_arg->wm = wm;
       tip_arg->owner = owner;
       ButtonProgress *but_progress = (ButtonProgress *)uiDefIconTextBut(block,
-                                                                        ButType::Progress,
+                                                                        ButtonType::Progress,
                                                                         ICON_NONE,
                                                                         text,
                                                                         UI_UNIT_X,
@@ -281,7 +281,7 @@ void template_running_jobs(Layout *layout, bContext *C)
 
     if (cancel_fn && !wm->runtime->is_interface_locked) {
       Button *but = uiDefIconTextBut(block,
-                                     ButType::But,
+                                     ButtonType::But,
                                      ICON_PANEL_CLOSE,
                                      "",
                                      0,
@@ -296,7 +296,7 @@ void template_running_jobs(Layout *layout, bContext *C)
 
   if (ED_screen_animation_no_scrub(wm)) {
     Button *but = uiDefIconTextBut(block,
-                                   ButType::But,
+                                   ButtonType::But,
                                    ICON_CANCEL,
                                    IFACE_("Anim Player"),
                                    0,

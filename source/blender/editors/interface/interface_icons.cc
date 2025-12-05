@@ -179,7 +179,7 @@ static DrawInfo *def_internal_icon(
     di->data.buffer.image = iimg;
   }
 
-  new_icon->drawinfo_free = UI_icons_free_drawinfo;
+  new_icon->drawinfo_free = icons_free_drawinfo;
   new_icon->drawinfo = di;
 
   BKE_icon_set(icon_id, new_icon);
@@ -1004,13 +1004,13 @@ static void init_internal_icons()
 
 #endif /* WITH_HEADLESS */
 
-void UI_icons_free()
+void icons_free()
 {
   BKE_icons_free();
   BKE_preview_images_free();
 }
 
-void UI_icons_free_drawinfo(void *drawinfo)
+void icons_free_drawinfo(void *drawinfo)
 {
   DrawInfo *di = static_cast<DrawInfo *>(drawinfo);
 
@@ -1073,7 +1073,7 @@ static DrawInfo *icon_ensure_drawinfo(Icon *icon)
   }
   DrawInfo *di = icon_create_drawinfo(icon);
   icon->drawinfo = di;
-  icon->drawinfo_free = UI_icons_free_drawinfo;
+  icon->drawinfo_free = icons_free_drawinfo;
   return di;
 }
 
@@ -1088,7 +1088,7 @@ bool icon_get_theme_color(int icon_id, uchar color[4])
   return GetIconThemeColor4ubv(di->data.texture.theme_color, color);
 }
 
-void UI_icons_init()
+void icons_init()
 {
 #ifndef WITH_HEADLESS
   init_internal_icons();
@@ -1770,7 +1770,7 @@ static void icon_draw_size(float x,
       fstyle_small.shadx = 0;
       fstyle_small.shady = 0;
       rcti text_rect = {int(x), int(x + UI_UNIT_X * zoom_factor), int(y), int(y)};
-      uiFontStyleDraw_Params params = {UI_STYLE_TEXT_RIGHT, 0};
+      FontStyleDrawParams params = {UI_STYLE_TEXT_RIGHT, 0};
       fontstyle_draw(&fstyle_small,
                      &text_rect,
                      text_overlay->text,
@@ -2243,7 +2243,7 @@ void icon_draw_ex(float x,
                  inverted);
 }
 
-ImBuf *UI_svg_icon_bitmap(uint icon_id, float size, bool multicolor)
+ImBuf *svg_icon_bitmap(uint icon_id, float size, bool multicolor)
 {
   if (icon_id >= ICON_BLANK_LAST_SVG_ITEM) {
     return nullptr;
@@ -2317,7 +2317,7 @@ ImBuf *icon_alert_imbuf_get(AlertIcon icon, float size)
     return nullptr;
   }
 
-  return UI_svg_icon_bitmap(icon_id, size, false);
+  return svg_icon_bitmap(icon_id, size, false);
 #endif
 }
 

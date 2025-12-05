@@ -670,7 +670,7 @@ static Scene *preview_prepare_scene(
 }
 
 /* new UI convention: draw is in pixel space already. */
-/* uses ButType::Roundbox button in block to get the rect */
+/* uses ButtonType::Roundbox button in block to get the rect */
 static bool ed_preview_draw_rect(
     Scene *scene, const void *owner, int split, int first, const rcti *rect, rcti *newrect)
 {

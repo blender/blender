@@ -53,17 +53,28 @@ void template_color_picker(Layout *layout,
     case USER_CP_SQUARE_SV:
     case USER_CP_SQUARE_HS:
     case USER_CP_SQUARE_HV:
-      hsv_but = (ButtonHSVCube *)uiDefButR_prop(
-          block, ButType::HsvCube, "", 0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop, -1, 0.0, 0.0, "");
+      hsv_but = (ButtonHSVCube *)uiDefButR_prop(block,
+                                                ButtonType::HsvCube,
+                                                "",
+                                                0,
+                                                0,
+                                                WHEEL_SIZE,
+                                                WHEEL_SIZE,
+                                                ptr,
+                                                prop,
+                                                -1,
+                                                0.0,
+                                                0.0,
+                                                "");
       switch (U.color_picker_type) {
         case USER_CP_SQUARE_SV:
-          hsv_but->gradient_type = UI_GRAD_SV;
+          hsv_but->gradient_type = GRAD_SV;
           break;
         case USER_CP_SQUARE_HS:
-          hsv_but->gradient_type = UI_GRAD_HS;
+          hsv_but->gradient_type = GRAD_HS;
           break;
         case USER_CP_SQUARE_HV:
-          hsv_but->gradient_type = UI_GRAD_HV;
+          hsv_but->gradient_type = GRAD_HV;
           break;
       }
       but = hsv_but;
@@ -74,7 +85,7 @@ void template_color_picker(Layout *layout,
     case USER_CP_CIRCLE_HSL:
     default:
       but = uiDefButR_prop(block,
-                           ButType::HsvCircle,
+                           ButtonType::HsvCircle,
                            "",
                            0,
                            0,
@@ -106,7 +117,7 @@ void template_color_picker(Layout *layout,
       case USER_CP_CIRCLE_HSL:
         row.separator();
         hsv_but = (ButtonHSVCube *)uiDefButR_prop(block,
-                                                  ButType::HsvCube,
+                                                  ButtonType::HsvCube,
                                                   "",
                                                   WHEEL_SIZE + 6,
                                                   0,
@@ -118,12 +129,12 @@ void template_color_picker(Layout *layout,
                                                   softmin,
                                                   softmax,
                                                   "");
-        hsv_but->gradient_type = UI_GRAD_L_ALT;
+        hsv_but->gradient_type = GRAD_L_ALT;
         break;
       case USER_CP_SQUARE_SV:
         col.separator();
         hsv_but = (ButtonHSVCube *)uiDefButR_prop(block,
-                                                  ButType::HsvCube,
+                                                  ButtonType::HsvCube,
                                                   "",
                                                   0,
                                                   4,
@@ -135,12 +146,12 @@ void template_color_picker(Layout *layout,
                                                   softmin,
                                                   softmax,
                                                   "");
-        hsv_but->gradient_type = eButGradientType(UI_GRAD_SV + 3);
+        hsv_but->gradient_type = eButGradientType(GRAD_SV + 3);
         break;
       case USER_CP_SQUARE_HS:
         col.separator();
         hsv_but = (ButtonHSVCube *)uiDefButR_prop(block,
-                                                  ButType::HsvCube,
+                                                  ButtonType::HsvCube,
                                                   "",
                                                   0,
                                                   4,
@@ -152,12 +163,12 @@ void template_color_picker(Layout *layout,
                                                   softmin,
                                                   softmax,
                                                   "");
-        hsv_but->gradient_type = eButGradientType(UI_GRAD_HS + 3);
+        hsv_but->gradient_type = eButGradientType(GRAD_HS + 3);
         break;
       case USER_CP_SQUARE_HV:
         col.separator();
         hsv_but = (ButtonHSVCube *)uiDefButR_prop(block,
-                                                  ButType::HsvCube,
+                                                  ButtonType::HsvCube,
                                                   "",
                                                   0,
                                                   4,
@@ -169,7 +180,7 @@ void template_color_picker(Layout *layout,
                                                   softmin,
                                                   softmax,
                                                   "");
-        hsv_but->gradient_type = eButGradientType(UI_GRAD_HV + 3);
+        hsv_but->gradient_type = eButGradientType(GRAD_HV + 3);
         break;
 
         /* user default */
@@ -177,7 +188,7 @@ void template_color_picker(Layout *layout,
       default:
         row.separator();
         hsv_but = (ButtonHSVCube *)uiDefButR_prop(block,
-                                                  ButType::HsvCube,
+                                                  ButtonType::HsvCube,
                                                   "",
                                                   WHEEL_SIZE + 6,
                                                   0,
@@ -189,7 +200,7 @@ void template_color_picker(Layout *layout,
                                                   softmin,
                                                   softmax,
                                                   "");
-        hsv_but->gradient_type = UI_GRAD_V_ALT;
+        hsv_but->gradient_type = GRAD_V_ALT;
         break;
     }
 
@@ -242,7 +253,7 @@ void template_palette(Layout *layout,
   Layout *col = &layout->column(true);
   col->row(true);
   uiDefIconButO(block,
-                ButType::But,
+                ButtonType::But,
                 "PALETTE_OT_color_add",
                 wm::OpCallContext::InvokeDefault,
                 ICON_ADD,
@@ -252,7 +263,7 @@ void template_palette(Layout *layout,
                 UI_UNIT_Y,
                 std::nullopt);
   uiDefIconButO(block,
-                ButType::But,
+                ButtonType::But,
                 "PALETTE_OT_color_delete",
                 wm::OpCallContext::InvokeDefault,
                 ICON_REMOVE,
@@ -263,7 +274,7 @@ void template_palette(Layout *layout,
                 std::nullopt);
   if (palette->colors.first != nullptr) {
     but = uiDefIconButO(block,
-                        ButType::But,
+                        ButtonType::But,
                         "PALETTE_OT_color_move",
                         wm::OpCallContext::InvokeDefault,
                         ICON_TRIA_UP,
@@ -276,7 +287,7 @@ void template_palette(Layout *layout,
     RNA_enum_set(but->opptr, "type", -1);
 
     but = uiDefIconButO(block,
-                        ButType::But,
+                        ButtonType::But,
                         "PALETTE_OT_color_move",
                         wm::OpCallContext::InvokeDefault,
                         ICON_TRIA_DOWN,
@@ -305,7 +316,7 @@ void template_palette(Layout *layout,
 
     PointerRNA color_ptr = RNA_pointer_create_discrete(&palette->id, &RNA_PaletteColor, color);
     ButtonColor *color_but = (ButtonColor *)uiDefButR(block,
-                                                      ButType::Color,
+                                                      ButtonType::Color,
                                                       "",
                                                       0,
                                                       0,
@@ -339,7 +350,7 @@ void template_crypto_picker(Layout *layout,
   Block *block = layout->block();
 
   Button *but = uiDefIconButO(block,
-                              ButType::But,
+                              ButtonType::But,
                               "UI_OT_eyedropper_color",
                               wm::OpCallContext::InvokeDefault,
                               icon,

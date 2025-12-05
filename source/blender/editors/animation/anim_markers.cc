@@ -478,7 +478,7 @@ static void draw_marker_name(const uchar *text_color,
   }
 
   const int icon_half_width = UI_ICON_SIZE * 0.6;
-  blender::ui::uiFontStyleDraw_Params fs_params{};
+  blender::ui::FontStyleDrawParams fs_params{};
   fs_params.align = blender::ui::UI_STYLE_TEXT_LEFT;
   fs_params.word_wrap = 0;
 

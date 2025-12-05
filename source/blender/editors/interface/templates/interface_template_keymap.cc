@@ -62,7 +62,7 @@ static void template_keymap_item_properties(Layout &layout, const char *title, P
       Block *block = row.block();
       block_emboss_set(block, EmbossType::None);
       but = uiDefIconButO(block,
-                          ButType::But,
+                          ButtonType::But,
                           "UI_OT_unset_property_button",
                           wm::OpCallContext::ExecDefault,
                           ICON_X,

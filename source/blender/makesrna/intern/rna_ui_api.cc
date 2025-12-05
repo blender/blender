@@ -713,7 +713,7 @@ void rna_template_list(Layout *layout,
                        const bool sort_reverse,
                        const bool sort_lock)
 {
-  blender::ui::uiTemplateListFlags flags = blender::ui::TEMPLATE_LIST_FLAG_NONE;
+  blender::ui::TemplateListFlags flags = blender::ui::TEMPLATE_LIST_FLAG_NONE;
   if (sort_reverse) {
     flags |= blender::ui::TEMPLATE_LIST_SORT_REVERSE;
   }

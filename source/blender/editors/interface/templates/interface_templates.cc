@@ -59,14 +59,14 @@ void template_add_button_search_menu(const bContext *C,
                                      Block *block,
                                      PointerRNA *ptr,
                                      PropertyRNA *prop,
-                                     uiBlockCreateFunc block_func,
+                                     BlockCreateFunc block_func,
                                      void *block_argN,
                                      const std::optional<StringRef> tip,
                                      const bool use_previews,
                                      const bool editable,
                                      const bool live_icon,
-                                     uiButArgNFree func_argN_free_fn,
-                                     uiButArgNCopy func_argN_copy_fn)
+                                     ButtonArgNFree func_argN_free_fn,
+                                     ButtonArgNCopy func_argN_copy_fn)
 {
   const PointerRNA active_ptr = RNA_property_pointer_get(ptr, prop);
   ID *id = (active_ptr.data && RNA_struct_is_ID(active_ptr.type)) ?
@@ -154,11 +154,11 @@ void template_add_button_search_menu(const bContext *C,
 
 Block *template_common_search_menu(const bContext *C,
                                    ARegion *region,
-                                   uiButSearchUpdateFn search_update_fn,
+                                   ButtonSearchUpdateFn search_update_fn,
                                    void *search_arg,
-                                   uiButHandleFunc search_exec_fn,
+                                   ButtonHandleFunc search_exec_fn,
                                    void *active_item,
-                                   uiButSearchTooltipFn item_tooltip_fn,
+                                   ButtonSearchTooltipFn item_tooltip_fn,
                                    const int preview_rows,
                                    const int preview_cols,
                                    float scale)
@@ -181,7 +181,7 @@ Block *template_common_search_menu(const bContext *C,
                   UI_SEARCHBOX_BOUNDS;
 
     /* fake button, it holds space for search items */
-    uiDefBut(block, ButType::Label, "", 0, UI_UNIT_Y, w, h, nullptr, 0, 0, std::nullopt);
+    uiDefBut(block, ButtonType::Label, "", 0, UI_UNIT_Y, w, h, nullptr, 0, 0, std::nullopt);
     but = uiDefSearchBut(block, search, ICON_VIEWZOOM, sizeof(search), 0, 0, w, UI_UNIT_Y, "");
     button_search_preview_grid_size_set(but, preview_rows, preview_cols);
   }
@@ -193,7 +193,7 @@ Block *template_common_search_menu(const bContext *C,
 
     /* fake button, it holds space for search items */
     uiDefBut(block,
-             ButType::Label,
+             ButtonType::Label,
              "",
              0,
              search_but_height,
@@ -292,7 +292,7 @@ void template_node_socket(Layout *layout, bContext * /*C*/, const float color[4]
    * Eventually it should be possible to use theme colors for this purpose,
    * but this requires a better design for extendable color palettes in user preferences. */
   Button *but = uiDefBut(
-      block, ButType::NodeSocket, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0, 0, "");
+      block, ButtonType::NodeSocket, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0, 0, "");
   rgba_float_to_uchar(but->col, color);
 
   block_align_end(block);

@@ -77,7 +77,7 @@ static void ui_popup_block_position(wmWindow *window,
     block_to_window_rctf(butregion, but->block, &butrct, &but->rect);
 
     /* widget_roundbox_set has this correction too, keep in sync */
-    if (but->type != ButType::Pulldown) {
+    if (but->type != ButtonType::Pulldown) {
       if (but->drawflag & BUT_ALIGN_TOP) {
         butrct.ymax += U.pixelsize;
       }
@@ -271,7 +271,7 @@ static void ui_popup_block_position(wmWindow *window,
   else if (dir1 == UI_DIR_UP) {
     offset_y = (butrct.ymax - block->rect.ymin) - offset_overlap;
 
-    if (but->type == ButType::Color &&
+    if (but->type == ButtonType::Color &&
         block->rect.ymax + offset_y > win_size[1] - UI_POPUP_MENU_TOP)
     {
       /* Shift this down, aligning the top edge close to the window top. */
@@ -291,7 +291,7 @@ static void ui_popup_block_position(wmWindow *window,
   else if (dir1 == UI_DIR_DOWN) {
     offset_y = (butrct.ymin - block->rect.ymax) + offset_overlap;
 
-    if (but->type == ButType::Color && block->rect.ymin + offset_y < UI_SCREEN_MARGIN) {
+    if (but->type == ButtonType::Color && block->rect.ymin + offset_y < UI_SCREEN_MARGIN) {
       /* Shift this up, aligning the bottom edge close to the window bottom. */
       offset_y = -block->rect.ymin + UI_SCREEN_MARGIN;
       /* All four corners should be rounded since this no longer button-aligned. */
@@ -390,7 +390,8 @@ static void ui_popup_block_position(wmWindow *window,
 
     /* Popovers don't need secondary direction. Pull-downs to
      * the left or right are currently not supported. */
-    const bool no_2nd_dir = (but->type == ButType::Popover || button_menu_draw_as_popover(but) ||
+    const bool no_2nd_dir = (but->type == ButtonType::Popover ||
+                             button_menu_draw_as_popover(but) ||
                              dir1 & (UI_DIR_RIGHT | UI_DIR_LEFT));
     block->direction = no_2nd_dir ? dir1 : (dir1 | dir2);
   }
@@ -630,7 +631,7 @@ Block *popup_block_refresh(bContext *C, PopupBlockHandle *handle, ARegion *butre
   wmWindow *window = CTX_wm_window(C);
   ARegion *region = handle->region;
 
-  const uiBlockCreateFunc create_func = handle->popup_create_vars.create_func;
+  const BlockCreateFunc create_func = handle->popup_create_vars.create_func;
   const BlockHandleCreateFunc handle_create_func = handle->popup_create_vars.handle_create_func;
   void *arg = handle->popup_create_vars.arg;
 
@@ -872,10 +873,10 @@ Block *popup_block_refresh(bContext *C, PopupBlockHandle *handle, ARegion *butre
 PopupBlockHandle *popup_block_create(bContext *C,
                                      ARegion *butregion,
                                      Button *but,
-                                     uiBlockCreateFunc create_func,
+                                     BlockCreateFunc create_func,
                                      BlockHandleCreateFunc handle_create_func,
                                      void *arg,
-                                     uiFreeArgFunc arg_free,
+                                     FreeArgFunc arg_free,
                                      const bool can_refresh)
 {
   wmWindow *window = CTX_wm_window(C);
@@ -972,7 +973,7 @@ void popup_block_free(bContext *C, PopupBlockHandle *handle)
     LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
       if (block->handle && (block->flag & BLOCK_POPOVER) && (block->flag & BLOCK_KEEP_OPEN) == 0) {
         PopupBlockHandle *menu = block->handle;
-        menu->menuretval = UI_RETURN_OK;
+        menu->menuretval = RETURN_OK;
       }
 
       if (block_is_menu(block)) {
@@ -999,7 +1000,7 @@ void popup_block_free(bContext *C, PopupBlockHandle *handle)
   MEM_delete(handle);
 }
 
-struct uiAlertData {
+struct AlertData {
   AlertIcon icon;
   std::string title;
   std::string message;
@@ -1010,29 +1011,29 @@ struct uiAlertData {
 
 static void ui_alert_ok_cb(bContext *C, void *arg1, void *arg2)
 {
-  uiAlertData *data = static_cast<uiAlertData *>(arg1);
+  AlertData *data = static_cast<AlertData *>(arg1);
   MEM_delete(data);
   Block *block = static_cast<Block *>(arg2);
-  popup_menu_retval_set(block, UI_RETURN_OK, true);
+  popup_menu_retval_set(block, RETURN_OK, true);
   wmWindow *win = CTX_wm_window(C);
   popup_block_close(C, win, block);
 }
 
 static void ui_alert_ok(bContext * /*C*/, void *arg, int /*retval*/)
 {
-  uiAlertData *data = static_cast<uiAlertData *>(arg);
+  AlertData *data = static_cast<AlertData *>(arg);
   MEM_delete(data);
 }
 
 static void ui_alert_cancel(bContext * /*C*/, void *user_data)
 {
-  uiAlertData *data = static_cast<uiAlertData *>(user_data);
+  AlertData *data = static_cast<AlertData *>(user_data);
   MEM_delete(data);
 }
 
 static Block *ui_alert_create(bContext *C, ARegion *region, void *user_data)
 {
-  uiAlertData *data = static_cast<uiAlertData *>(user_data);
+  AlertData *data = static_cast<AlertData *>(user_data);
 
   const uiStyle *style = style_get_dpi();
   const short icon_size = (data->compact ? 32 : 40) * UI_SCALE_FAC;
@@ -1098,7 +1099,7 @@ static Block *ui_alert_create(bContext *C, ARegion *region, void *user_data)
 
     Block *buttons_block = layout.block();
     Button *okay_but = uiDefBut(
-        buttons_block, ButType::But, "OK", 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, "");
+        buttons_block, ButtonType::But, "OK", 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, "");
     button_func_set(okay_but, ui_alert_ok_cb, user_data, block);
     button_flag_enable(okay_but, BUT_ACTIVE_DEFAULT);
   }
@@ -1125,7 +1126,7 @@ void alert(bContext *C,
            const AlertIcon icon,
            const bool compact)
 {
-  uiAlertData *data = MEM_new<uiAlertData>(__func__);
+  AlertData *data = MEM_new<AlertData>(__func__);
   data->title = title;
   data->message = message;
   data->icon = icon;

@@ -684,11 +684,11 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
         MenuType *mt_from_but = nullptr;
         /* Support menu titles with dynamic from initial labels
          * (used by edit-mesh context menu). */
-        if (but->type == ButType::Label) {
+        if (but->type == ButtonType::Label) {
 
           /* Check if the label is the title. */
           const std::unique_ptr<Button> *but_test = block->buttons.begin() + i - 1;
-          while (but_test >= block->buttons.begin() && (*but_test)->type == ButType::Sepr) {
+          while (but_test >= block->buttons.begin() && (*but_test)->type == ButtonType::Sepr) {
             but_test--;
           }
 

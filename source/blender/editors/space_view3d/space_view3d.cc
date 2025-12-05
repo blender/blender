@@ -1410,8 +1410,8 @@ static void view3d_tools_header_region_draw(const bContext *C, ARegion *region)
       C,
       region,
       (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_TOP) ?
-          blender::ui::uiButtonSectionsAlign::Top :
-          blender::ui::uiButtonSectionsAlign::Bottom);
+          blender::ui::ButtonSectionsAlign::Top :
+          blender::ui::ButtonSectionsAlign::Bottom);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */

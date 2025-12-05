@@ -131,7 +131,7 @@ void fontstyle_draw_ex(const uiFontStyle *fs,
                        const char *str,
                        const size_t str_len,
                        const uchar col[4],
-                       const uiFontStyleDraw_Params *fs_params,
+                       const FontStyleDrawParams *fs_params,
                        int *r_xofs,
                        int *r_yofs,
                        ResultBLF *r_info)
@@ -202,7 +202,7 @@ void fontstyle_draw(const uiFontStyle *fs,
                     const char *str,
                     const size_t str_len,
                     const uchar col[4],
-                    const uiFontStyleDraw_Params *fs_params)
+                    const FontStyleDrawParams *fs_params)
 {
   fontstyle_draw_ex(fs, rect, str, str_len, col, fs_params, nullptr, nullptr, nullptr);
 }
@@ -211,7 +211,7 @@ void fontstyle_draw_multiline_clipped_ex(const uiFontStyle *fs,
                                          const rcti *rect,
                                          const char *str,
                                          const uchar col[4],
-                                         const eFontStyle_Align align,
+                                         const FontStyleAlign align,
                                          int *r_xofs,
                                          int *r_yofs,
                                          ResultBLF *r_info)
@@ -302,7 +302,7 @@ void fontstyle_draw_multiline_clipped(const uiFontStyle *fs,
                                       const rcti *rect,
                                       const char *str,
                                       const uchar col[4],
-                                      const eFontStyle_Align align)
+                                      const FontStyleAlign align)
 {
   fontstyle_draw_multiline_clipped_ex(fs, rect, str, col, align, nullptr, nullptr, nullptr);
 }

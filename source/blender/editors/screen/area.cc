@@ -2930,7 +2930,7 @@ int ED_area_header_switchbutton(const bContext *C, blender::ui::Block *block, in
   PointerRNA areaptr = RNA_pointer_create_discrete(&(screen->id), &RNA_Area, area);
 
   uiDefButR(block,
-            blender::ui::ButType::Menu,
+            blender::ui::ButtonType::Menu,
             "",
             xco,
             yco,
@@ -3954,7 +3954,7 @@ void ED_region_header_draw(const bContext *C, ARegion *region)
 
 void ED_region_header_draw_with_button_sections(const bContext *C,
                                                 const ARegion *region,
-                                                const blender::ui::uiButtonSectionsAlign align)
+                                                const blender::ui::ButtonSectionsAlign align)
 {
   const ThemeColorID bgcolorid = region_background_color_id(C, region);
 
@@ -3979,7 +3979,7 @@ void ED_region_header(const bContext *C, ARegion *region)
 
 void ED_region_header_with_button_sections(const bContext *C,
                                            ARegion *region,
-                                           const blender::ui::uiButtonSectionsAlign align)
+                                           const blender::ui::ButtonSectionsAlign align)
 {
   ED_region_header_layout(C, region);
   ED_region_header_draw_with_button_sections(C, region, align);

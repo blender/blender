@@ -1029,7 +1029,7 @@ static void draw_textscroll(const SpaceText *st, const rcti *scroll, const rcti 
   blender::ui::draw_widget_scroll(&wcol,
                                   scroll,
                                   &st->runtime->scroll_region_handle,
-                                  (st->flags & ST_SCROLL_SELECT) ? blender::ui::UI_SCROLL_PRESSED :
+                                  (st->flags & ST_SCROLL_SELECT) ? blender::ui::SCROLL_PRESSED :
                                                                    0);
 
   draw_roundbox_corner_set(blender::ui::CNR_ALL);

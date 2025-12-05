@@ -138,8 +138,17 @@ bool AbstractGridViewItem::matches(const AbstractViewItem &other) const
 void AbstractGridViewItem::add_grid_tile_button(Block &block)
 {
   const GridViewStyle &style = this->get_view().get_style();
-  view_item_but_ = (ButtonViewItem *)uiDefBut(
-      &block, ButType::ViewItem, "", 0, 0, style.tile_width, style.tile_height, nullptr, 0, 0, "");
+  view_item_but_ = (ButtonViewItem *)uiDefBut(&block,
+                                              ButtonType::ViewItem,
+                                              "",
+                                              0,
+                                              0,
+                                              style.tile_width,
+                                              style.tile_height,
+                                              nullptr,
+                                              0,
+                                              0,
+                                              "");
 
   view_item_but_->view_item = this;
 }
@@ -322,7 +331,7 @@ void BuildOnlyVisibleButtonsHelper::add_spacer_button(Block &block, const int ro
         std::numeric_limits<short>::max() / style_.tile_height, remaining_rows);
 
     uiDefBut(&block,
-             ButType::Label,
+             ButtonType::Label,
              "",
              0,
              0,
@@ -465,7 +474,7 @@ void PreviewGridItem::build_grid_tile_button(Layout &layout,
                                 [this](const Button * /*but*/) { return label; });
 
   Button *but = uiDefBut(block,
-                         ButType::PreviewTile,
+                         ButtonType::PreviewTile,
                          hide_label_ ? "" : label,
                          0,
                          0,

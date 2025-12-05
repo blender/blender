@@ -227,7 +227,7 @@ void node_geometry_add_volume_grid_search_button(const bContext & /*C*/,
 {
   ui::Block *block = layout.block();
   ui::Button *but = uiDefIconTextButR(block,
-                                      ui::ButType::SearchMenu,
+                                      ui::ButtonType::SearchMenu,
                                       ICON_NONE,
                                       "",
                                       0,

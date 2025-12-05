@@ -131,7 +131,7 @@ void uiTemplateMovieClip(blender::ui::Layout *layout,
     blender::ui::Layout &row = layout->row(false);
     blender::ui::Block *block = row.block();
     uiDefBut(block,
-             blender::ui::ButType::Label,
+             blender::ui::ButtonType::Label,
              IFACE_("File Path:"),
              0,
              19,
@@ -194,7 +194,7 @@ void uiTemplateTrack(blender::ui::Layout *layout, PointerRNA *ptr, const StringR
   blender::ui::Block *block = col.block();
 
   uiDefBut(block,
-           blender::ui::ButType::TrackPreview,
+           blender::ui::ButtonType::TrackPreview,
            "",
            0,
            0,
@@ -207,7 +207,7 @@ void uiTemplateTrack(blender::ui::Layout *layout, PointerRNA *ptr, const StringR
 
   /* Resize grip. */
   uiDefIconButI(block,
-                blender::ui::ButType::Grip,
+                blender::ui::ButtonType::Grip,
                 ICON_GRIP,
                 0,
                 0,
@@ -441,7 +441,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
     }
 
     blender::ui::Button *bt = uiDefIconButBitI(block,
-                                               blender::ui::ButType::ToggleN,
+                                               blender::ui::ButtonType::ToggleN,
                                                MARKER_DISABLED,
                                                ICON_HIDE_OFF,
                                                0,
@@ -464,7 +464,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
       layout->active_set(false);
       blender::ui::Block *block = layout->absolute().block();
       uiDefBut(block,
-               blender::ui::ButType::Label,
+               blender::ui::ButtonType::Label,
                IFACE_("Track is locked"),
                0,
                0,
@@ -513,7 +513,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
     }
 
     blender::ui::Button *but = uiDefButBitI(block,
-                                            blender::ui::ButType::CheckboxN,
+                                            blender::ui::ButtonType::CheckboxN,
                                             MARKER_DISABLED,
                                             IFACE_("Enabled"),
                                             0.5 * UI_UNIT_X,
@@ -533,7 +533,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
     block_align_begin(block);
 
     uiDefBut(block,
-             blender::ui::ButType::Label,
+             blender::ui::ButtonType::Label,
              IFACE_("Position:"),
              0,
              10 * UI_UNIT_Y,
@@ -545,7 +545,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
              "");
     blender::ui::Button *bt = uiDefButF(
         block,
-        blender::ui::ButType::Num,
+        blender::ui::ButtonType::Num,
         IFACE_("X:"),
         0.5 * UI_UNIT_X,
         9 * UI_UNIT_Y,
@@ -559,7 +559,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
     button_number_step_size_set(bt, step);
     button_number_precision_set(bt, digits);
     bt = uiDefButF(block,
-                   blender::ui::ButType::Num,
+                   blender::ui::ButtonType::Num,
                    IFACE_("Y:"),
                    8.25 * UI_UNIT_X,
                    9 * UI_UNIT_Y,
@@ -574,7 +574,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
     button_number_precision_set(bt, digits);
 
     uiDefBut(block,
-             blender::ui::ButType::Label,
+             blender::ui::ButtonType::Label,
              IFACE_("Offset:"),
              0,
              8 * UI_UNIT_Y,
@@ -585,7 +585,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
              0,
              "");
     bt = uiDefButF(block,
-                   blender::ui::ButType::Num,
+                   blender::ui::ButtonType::Num,
                    IFACE_("X:"),
                    0.5 * UI_UNIT_X,
                    7 * UI_UNIT_Y,
@@ -599,7 +599,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
     button_number_step_size_set(bt, step);
     button_number_precision_set(bt, digits);
     bt = uiDefButF(block,
-                   blender::ui::ButType::Num,
+                   blender::ui::ButtonType::Num,
                    IFACE_("Y:"),
                    8.25 * UI_UNIT_X,
                    7 * UI_UNIT_Y,
@@ -614,7 +614,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
     button_number_precision_set(bt, digits);
 
     uiDefBut(block,
-             blender::ui::ButType::Label,
+             blender::ui::ButtonType::Label,
              IFACE_("Pattern Area:"),
              0,
              6 * UI_UNIT_Y,
@@ -625,7 +625,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
              0,
              "");
     bt = uiDefButF(block,
-                   blender::ui::ButType::Num,
+                   blender::ui::ButtonType::Num,
                    IFACE_("Width:"),
                    0.5 * UI_UNIT_X,
                    5 * UI_UNIT_Y,
@@ -639,7 +639,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
     button_number_step_size_set(bt, step);
     button_number_precision_set(bt, digits);
     bt = uiDefButF(block,
-                   blender::ui::ButType::Num,
+                   blender::ui::ButtonType::Num,
                    IFACE_("Height:"),
                    0.5 * UI_UNIT_X,
                    4 * UI_UNIT_Y,
@@ -654,7 +654,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
     button_number_precision_set(bt, digits);
 
     uiDefBut(block,
-             blender::ui::ButType::Label,
+             blender::ui::ButtonType::Label,
              IFACE_("Search Area:"),
              0,
              3 * UI_UNIT_Y,
@@ -665,7 +665,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
              0,
              "");
     bt = uiDefButF(block,
-                   blender::ui::ButType::Num,
+                   blender::ui::ButtonType::Num,
                    IFACE_("X:"),
                    0.5 * UI_UNIT_X,
                    2 * UI_UNIT_Y,
@@ -679,7 +679,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
     button_number_step_size_set(bt, step);
     button_number_precision_set(bt, digits);
     bt = uiDefButF(block,
-                   blender::ui::ButType::Num,
+                   blender::ui::ButtonType::Num,
                    IFACE_("Y:"),
                    8.25 * UI_UNIT_X,
                    2 * UI_UNIT_Y,
@@ -693,7 +693,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
     button_number_step_size_set(bt, step);
     button_number_precision_set(bt, digits);
     bt = uiDefButF(block,
-                   blender::ui::ButType::Num,
+                   blender::ui::ButtonType::Num,
                    IFACE_("Width:"),
                    0.5 * UI_UNIT_X,
                    1 * UI_UNIT_Y,
@@ -707,7 +707,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
     button_number_step_size_set(bt, step);
     button_number_precision_set(bt, digits);
     bt = uiDefButF(block,
-                   blender::ui::ButType::Num,
+                   blender::ui::ButtonType::Num,
                    IFACE_("Height:"),
                    0.5 * UI_UNIT_X,
                    0 * UI_UNIT_Y,

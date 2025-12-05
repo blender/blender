@@ -803,7 +803,7 @@ static void merged_element_search_fn_recursive(
         iconid = tree_element_get_icon(tselem, te).icon;
 
         /* Don't allow duplicate named items */
-        if (UI_search_items_find_index(items, name) == -1) {
+        if (search_items_find_index(items, name) == -1) {
           if (!search_item_add(items, name, te, iconid, 0, 0)) {
             break;
           }
@@ -874,8 +874,17 @@ static ui::Block *merged_element_search_menu(bContext *C, ARegion *region, void 
 
   /* Fake button to hold space for search items */
   const int height = ui::searchbox_size_y() - UI_SEARCHBOX_BOUNDS;
-  uiDefBut(
-      block, ui::ButType::Label, "", 0, -height, menu_width, height, nullptr, 0, 0, std::nullopt);
+  uiDefBut(block,
+           ui::ButtonType::Label,
+           "",
+           0,
+           -height,
+           menu_width,
+           height,
+           nullptr,
+           0,
+           0,
+           std::nullopt);
 
   /* Center the menu on the cursor */
   const int offset[2] = {-(menu_width / 2), 0};

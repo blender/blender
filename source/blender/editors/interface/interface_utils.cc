@@ -73,7 +73,7 @@ Button *uiDefAutoButR(Block *block,
 
       if (icon && name && name->is_empty()) {
         but = uiDefIconButR_prop(block,
-                                 ButType::IconToggle,
+                                 ButtonType::IconToggle,
                                  icon,
                                  x,
                                  y,
@@ -88,7 +88,7 @@ Button *uiDefAutoButR(Block *block,
       }
       else if (icon) {
         but = uiDefIconTextButR_prop(block,
-                                     ButType::IconToggle,
+                                     ButtonType::IconToggle,
                                      icon,
                                      name,
                                      x,
@@ -104,7 +104,7 @@ Button *uiDefAutoButR(Block *block,
       }
       else {
         but = uiDefButR_prop(block,
-                             ButType::Checkbox,
+                             ButtonType::Checkbox,
                              name,
                              x,
                              y,
@@ -123,8 +123,19 @@ Button *uiDefAutoButR(Block *block,
     case PROP_FLOAT: {
       if (RNA_property_array_check(prop) && index == -1) {
         if (ELEM(RNA_property_subtype(prop), PROP_COLOR, PROP_COLOR_GAMMA)) {
-          but = uiDefButR_prop(
-              block, ButType::Color, name, x, y, width, height, ptr, prop, -1, 0, 0, std::nullopt);
+          but = uiDefButR_prop(block,
+                               ButtonType::Color,
+                               name,
+                               x,
+                               y,
+                               width,
+                               height,
+                               ptr,
+                               prop,
+                               -1,
+                               0,
+                               0,
+                               std::nullopt);
         }
         else {
           return nullptr;
@@ -134,7 +145,7 @@ Button *uiDefAutoButR(Block *block,
                RNA_property_subtype(prop) == PROP_FACTOR)
       {
         but = uiDefButR_prop(block,
-                             ButType::NumSlider,
+                             ButtonType::NumSlider,
                              name,
                              x,
                              y,
@@ -148,8 +159,19 @@ Button *uiDefAutoButR(Block *block,
                              std::nullopt);
       }
       else {
-        but = uiDefButR_prop(
-            block, ButType::Num, name, x, y, width, height, ptr, prop, index, 0, 0, std::nullopt);
+        but = uiDefButR_prop(block,
+                             ButtonType::Num,
+                             name,
+                             x,
+                             y,
+                             width,
+                             height,
+                             ptr,
+                             prop,
+                             index,
+                             0,
+                             0,
+                             std::nullopt);
       }
 
       if (RNA_property_flag(prop) & PROP_TEXTEDIT_UPDATE) {
@@ -159,12 +181,23 @@ Button *uiDefAutoButR(Block *block,
     }
     case PROP_ENUM:
       if (icon && name && name->is_empty()) {
-        but = uiDefIconButR_prop(
-            block, ButType::Menu, icon, x, y, width, height, ptr, prop, index, 0, 0, std::nullopt);
+        but = uiDefIconButR_prop(block,
+                                 ButtonType::Menu,
+                                 icon,
+                                 x,
+                                 y,
+                                 width,
+                                 height,
+                                 ptr,
+                                 prop,
+                                 index,
+                                 0,
+                                 0,
+                                 std::nullopt);
       }
       else if (icon) {
         but = uiDefIconTextButR_prop(block,
-                                     ButType::Menu,
+                                     ButtonType::Menu,
                                      icon,
                                      std::nullopt,
                                      x,
@@ -179,18 +212,40 @@ Button *uiDefAutoButR(Block *block,
                                      std::nullopt);
       }
       else {
-        but = uiDefButR_prop(
-            block, ButType::Menu, name, x, y, width, height, ptr, prop, index, 0, 0, std::nullopt);
+        but = uiDefButR_prop(block,
+                             ButtonType::Menu,
+                             name,
+                             x,
+                             y,
+                             width,
+                             height,
+                             ptr,
+                             prop,
+                             index,
+                             0,
+                             0,
+                             std::nullopt);
       }
       break;
     case PROP_STRING:
       if (icon && name && name->is_empty()) {
-        but = uiDefIconButR_prop(
-            block, ButType::Text, icon, x, y, width, height, ptr, prop, index, 0, 0, std::nullopt);
+        but = uiDefIconButR_prop(block,
+                                 ButtonType::Text,
+                                 icon,
+                                 x,
+                                 y,
+                                 width,
+                                 height,
+                                 ptr,
+                                 prop,
+                                 index,
+                                 0,
+                                 0,
+                                 std::nullopt);
       }
       else if (icon) {
         but = uiDefIconTextButR_prop(block,
-                                     ButType::Text,
+                                     ButtonType::Text,
                                      icon,
                                      name,
                                      x,
@@ -205,8 +260,19 @@ Button *uiDefAutoButR(Block *block,
                                      std::nullopt);
       }
       else {
-        but = uiDefButR_prop(
-            block, ButType::Text, name, x, y, width, height, ptr, prop, index, 0, 0, std::nullopt);
+        but = uiDefButR_prop(block,
+                             ButtonType::Text,
+                             name,
+                             x,
+                             y,
+                             width,
+                             height,
+                             ptr,
+                             prop,
+                             index,
+                             0,
+                             0,
+                             std::nullopt);
       }
 
       if (RNA_property_flag(prop) & PROP_TEXTEDIT_UPDATE) {
@@ -225,7 +291,7 @@ Button *uiDefAutoButR(Block *block,
       }
 
       but = uiDefIconTextButR_prop(block,
-                                   ButType::SearchMenu,
+                                   ButtonType::SearchMenu,
                                    icon,
                                    name,
                                    x,
@@ -245,7 +311,7 @@ Button *uiDefAutoButR(Block *block,
       char text[256];
       SNPRINTF_UTF8(text, IFACE_("%d items"), RNA_property_collection_length(ptr, prop));
       but = uiDefBut(
-          block, ButType::Label, text, x, y, width, height, nullptr, 0, 0, std::nullopt);
+          block, ButtonType::Label, text, x, y, width, height, nullptr, 0, 0, std::nullopt);
       button_flag_enable(but, BUT_DISABLED);
       break;
     }
@@ -280,17 +346,17 @@ void uiDefAutoButsArrayR(Block *block,
   block_align_end(block);
 }
 
-eAutoPropButsReturn uiDefAutoButsRNA(Layout *layout,
-                                     PointerRNA *ptr,
-                                     bool (*check_prop)(PointerRNA *ptr,
-                                                        PropertyRNA *prop,
-                                                        void *user_data),
-                                     void *user_data,
-                                     PropertyRNA *prop_activate_init,
-                                     const eButLabelAlign label_align,
-                                     const bool compact)
+AutoPropButsReturn uiDefAutoButsRNA(Layout *layout,
+                                    PointerRNA *ptr,
+                                    bool (*check_prop)(PointerRNA *ptr,
+                                                       PropertyRNA *prop,
+                                                       void *user_data),
+                                    void *user_data,
+                                    PropertyRNA *prop_activate_init,
+                                    const eButLabelAlign label_align,
+                                    const bool compact)
 {
-  eAutoPropButsReturn return_info = UI_PROP_BUTS_NONE_ADDED;
+  AutoPropButsReturn return_info = PROP_BUTS_NONE_ADDED;
   Layout *col;
   std::optional<StringRefNull> name;
 
@@ -301,7 +367,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(Layout *layout,
       continue;
     }
     if (check_prop && check_prop(ptr, prop, user_data) == 0) {
-      return_info |= UI_PROP_BUTS_ANY_FAILED_CHECK;
+      return_info |= PROP_BUTS_ANY_FAILED_CHECK;
       continue;
     }
 
@@ -345,7 +411,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(Layout *layout,
     }
 
     col->prop(ptr, prop, -1, 0, compact ? ITEM_R_COMPACT : UI_ITEM_NONE, name, ICON_NONE);
-    return_info &= ~UI_PROP_BUTS_NONE_ADDED;
+    return_info &= ~PROP_BUTS_NONE_ADDED;
 
     if (use_activate_init) {
       col->activate_init_set(false);
@@ -356,7 +422,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(Layout *layout,
   return return_info;
 }
 
-void button_func_identity_compare_set(Button *but, uiButIdentityCompareFunc cmp_fn)
+void button_func_identity_compare_set(Button *but, ButtonIdentityCompareFunc cmp_fn)
 {
   but->identity_cmp_func = cmp_fn;
 }
@@ -401,7 +467,7 @@ static bool add_collection_search_item(CollItemSearch &cis,
 void rna_collection_search_update_fn(
     const bContext *C, void *arg, const char *str, SearchItems *items, const bool is_first)
 {
-  uiRNACollectionSearch *data = static_cast<uiRNACollectionSearch *>(arg);
+  RNACollectionSearch *data = static_cast<RNACollectionSearch *>(arg);
   const int flag = RNA_property_flag(data->target_prop);
   const bool is_ptr_target = (RNA_property_type(data->target_prop) == PROP_POINTER);
   /* For non-pointer properties, UI code acts entirely based on the item's name. So the name has to
@@ -828,20 +894,20 @@ void but_ensure_in_view(const bContext *C, ARegion *region, const Button *but)
  *
  * \{ */
 
-struct uiButStore {
-  uiButStore *next, *prev;
+struct ButStore {
+  ButStore *next, *prev;
   Block *block;
   ListBase items;
 };
 
-struct uiButStoreElem {
-  uiButStoreElem *next, *prev;
+struct ButStoreElem {
+  ButStoreElem *next, *prev;
   Button **but_p;
 };
 
-uiButStore *butstore_create(Block *block)
+ButStore *butstore_create(Block *block)
 {
-  uiButStore *bs_handle = MEM_callocN<uiButStore>(__func__);
+  ButStore *bs_handle = MEM_callocN<ButStore>(__func__);
 
   bs_handle->block = block;
   BLI_addtail(&block->butstore, bs_handle);
@@ -849,7 +915,7 @@ uiButStore *butstore_create(Block *block)
   return bs_handle;
 }
 
-void butstore_free(Block *block, uiButStore *bs_handle)
+void butstore_free(Block *block, ButStore *bs_handle)
 {
   /* NOTE(@ideasman42): Workaround for button store being moved into new block,
    * which then can't use the previous buttons state
@@ -857,7 +923,7 @@ void butstore_free(Block *block, uiButStore *bs_handle)
    * keeping the active button in the old block holding a reference
    * to the button-state in the new block: see #49034.
    *
-   * Ideally we would manage moving the 'uiButStore', keeping a correct state.
+   * Ideally we would manage moving the 'ButStore', keeping a correct state.
    * All things considered this is the most straightforward fix. */
   if (block != bs_handle->block && bs_handle->block != nullptr) {
     block = bs_handle->block;
@@ -870,15 +936,15 @@ void butstore_free(Block *block, uiButStore *bs_handle)
   MEM_freeN(bs_handle);
 }
 
-bool butstore_is_valid(uiButStore *bs_handle)
+bool butstore_is_valid(ButStore *bs_handle)
 {
   return (bs_handle->block != nullptr);
 }
 
 bool butstore_is_registered(Block *block, Button *but)
 {
-  LISTBASE_FOREACH (uiButStore *, bs_handle, &block->butstore) {
-    LISTBASE_FOREACH (uiButStoreElem *, bs_elem, &bs_handle->items) {
+  LISTBASE_FOREACH (ButStore *, bs_handle, &block->butstore) {
+    LISTBASE_FOREACH (ButStoreElem *, bs_elem, &bs_handle->items) {
       if (*bs_elem->but_p == but) {
         return true;
       }
@@ -888,18 +954,18 @@ bool butstore_is_registered(Block *block, Button *but)
   return false;
 }
 
-void butstore_register(uiButStore *bs_handle, Button **but_p)
+void butstore_register(ButStore *bs_handle, Button **but_p)
 {
-  uiButStoreElem *bs_elem = MEM_callocN<uiButStoreElem>(__func__);
+  ButStoreElem *bs_elem = MEM_callocN<ButStoreElem>(__func__);
   BLI_assert(*but_p);
   bs_elem->but_p = but_p;
 
   BLI_addtail(&bs_handle->items, bs_elem);
 }
 
-void butstore_unregister(uiButStore *bs_handle, Button **but_p)
+void butstore_unregister(ButStore *bs_handle, Button **but_p)
 {
-  LISTBASE_FOREACH_MUTABLE (uiButStoreElem *, bs_elem, &bs_handle->items) {
+  LISTBASE_FOREACH_MUTABLE (ButStoreElem *, bs_elem, &bs_handle->items) {
     if (bs_elem->but_p == but_p) {
       BLI_remlink(&bs_handle->items, bs_elem);
       MEM_freeN(bs_elem);
@@ -913,8 +979,8 @@ bool butstore_register_update(Block *block, Button *but_dst, const Button *but_s
 {
   bool found = false;
 
-  LISTBASE_FOREACH (uiButStore *, bs_handle, &block->butstore) {
-    LISTBASE_FOREACH (uiButStoreElem *, bs_elem, &bs_handle->items) {
+  LISTBASE_FOREACH (ButStore *, bs_handle, &block->butstore) {
+    LISTBASE_FOREACH (ButStoreElem *, bs_elem, &bs_handle->items) {
       if (*bs_elem->but_p == but_src) {
         *bs_elem->but_p = but_dst;
         found = true;
@@ -927,9 +993,9 @@ bool butstore_register_update(Block *block, Button *but_dst, const Button *but_s
 
 void butstore_clear(Block *block)
 {
-  LISTBASE_FOREACH (uiButStore *, bs_handle, &block->butstore) {
+  LISTBASE_FOREACH (ButStore *, bs_handle, &block->butstore) {
     bs_handle->block = nullptr;
-    LISTBASE_FOREACH (uiButStoreElem *, bs_elem, &bs_handle->items) {
+    LISTBASE_FOREACH (ButStoreElem *, bs_elem, &bs_handle->items) {
       *bs_elem->but_p = nullptr;
     }
   }
@@ -950,14 +1016,14 @@ void butstore_update(Block *block)
 
   /* warning, loop-in-loop, in practice we only store <10 buttons at a time,
    * so this isn't going to be a problem, if that changes old-new mapping can be cached first */
-  LISTBASE_FOREACH (uiButStore *, bs_handle, &block->butstore) {
+  LISTBASE_FOREACH (ButStore *, bs_handle, &block->butstore) {
     BLI_assert(ELEM(bs_handle->block, nullptr, block) ||
                (block->oldblock && block->oldblock == bs_handle->block));
 
     if (bs_handle->block == block->oldblock) {
       bs_handle->block = block;
 
-      LISTBASE_FOREACH (uiButStoreElem *, bs_elem, &bs_handle->items) {
+      LISTBASE_FOREACH (ButStoreElem *, bs_elem, &bs_handle->items) {
         if (*bs_elem->but_p) {
           Button *but_new = button_find_new(block, *bs_elem->but_p);
 
