@@ -25,10 +25,6 @@
 #include "BKE_colortools.hh"
 #include "BKE_sound.hh"
 
-#ifdef WITH_CONVOLUTION
-#  include "AUD_Sound.h"
-#endif
-
 #include "SEQ_sequencer.hh"
 #include "SEQ_sound.hh"
 #include "SEQ_time.hh"
@@ -36,6 +32,7 @@
 #include "strip_time.hh"
 
 #ifdef WITH_AUDASPACE
+#  include "AUD_Sound.h"
 #  include "AUD_Types.h"
 #endif
 
