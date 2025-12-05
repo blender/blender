@@ -748,7 +748,8 @@ ID *WM_drag_asset_id_import(const bContext *C, wmDragAsset *asset_drag, const in
                                                *asset_drag->asset,
                                                flag,
                                                asset_drag->import_settings.method,
-                                               instantiate_context);
+                                               instantiate_context,
+                                               CTX_wm_reports(C));
 }
 
 bool WM_drag_asset_will_import_linked(const wmDrag *drag)
