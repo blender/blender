@@ -9,7 +9,6 @@
 #include "BLI_array_utils.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_listbase.h"
-#include "BLI_path_utils.hh"
 #include "BLI_rect.h"
 #include "BLI_string_utf8.h"
 
@@ -74,13 +73,14 @@
 #include "NOD_geometry_nodes_dependencies.hh"
 #include "NOD_geometry_nodes_execute.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
-#include "NOD_socket_usage_inference.hh"
 
 #include "AS_asset_catalog.hh"
 #include "AS_asset_catalog_path.hh"
 #include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
+
+#include <xxhash.h>
 
 #include "geometry_intern.hh"
 
@@ -90,32 +90,234 @@ namespace geo_log = blender::nodes::geo_eval_log;
 
 namespace blender::ed::geometry {
 
+using asset_system::AssetRepresentation;
+
+struct ErrorsForType {
+  int duplicate_count = 0;
+  bool is_builtin_operator = false;
+  Vector<std::string> idname_validation_errors;
+  BLI_STRUCT_EQUALITY_OPERATORS_3(ErrorsForType,
+                                  duplicate_count,
+                                  is_builtin_operator,
+                                  idname_validation_errors);
+};
+using OperatorRegisterErrors = Map<std::string, ErrorsForType>;
+
+static OperatorRegisterErrors &get_registration_errors()
+{
+  static Map<std::string, ErrorsForType> errors_by_idname;
+  return errors_by_idname;
+}
+
+/**
+ * Abstraction layer over local node groups and assets, so operators can be registered and
+ * referenced regardless of that distinction.
+ */
+struct OperatorTypeData : public wmOperatorType::TypeData {
+  std::string name;
+  std::string idname;
+  StringRefNull custom_idname;
+  std::string description;
+  GeometryNodeAssetTraitFlag flag;
+
+  struct LocalRef {
+    uint32_t session_uid;
+  };
+  std::variant<AssetWeakReference, LocalRef> group_ref;
+
+  std::array<int64_t, 2> hash;
+
+  static std::optional<OperatorTypeData> from_asset(const AssetRepresentation &asset,
+                                                    OperatorRegisterErrors &errors);
+  static std::optional<OperatorTypeData> from_group(const bNodeTree &group,
+                                                    OperatorRegisterErrors &errors);
+
+ private:
+  /** Should be called after any data changes. */
+  void ensure_hash();
+};
+
+void OperatorTypeData::ensure_hash()
+{
+  XXH3_state_t *hash_state = XXH3_createState();
+  BLI_SCOPED_DEFER([&hash_state]() -> void { XXH3_freeState(hash_state); })
+  XXH3_128bits_reset(hash_state);
+  XXH3_128bits_update(hash_state, this->name.data(), this->name.size());
+  XXH3_128bits_update(hash_state, this->description.data(), this->description.size());
+  XXH3_128bits_update(hash_state, &this->flag, sizeof(this->flag));
+  std::visit(
+      [&](const auto &value) {
+        using T = std::decay_t<decltype(value)>;
+        if constexpr (std::is_same_v<T, AssetWeakReference>) {
+          XXH3_128bits_update(
+              hash_state, &value.asset_library_type, sizeof(value.asset_library_type));
+          if (value.asset_library_identifier) {
+            XXH3_128bits_update(hash_state,
+                                value.asset_library_identifier,
+                                strlen(value.asset_library_identifier));
+          }
+          if (value.relative_asset_identifier) {
+            XXH3_128bits_update(hash_state,
+                                value.relative_asset_identifier,
+                                strlen(value.relative_asset_identifier));
+          }
+        }
+        else if constexpr (std::is_same_v<T, LocalRef>) {
+          XXH3_128bits_update(hash_state, &value.session_uid, sizeof(value.session_uid));
+        }
+      },
+      this->group_ref);
+  static_assert(sizeof(this->hash) == sizeof(XXH128_hash_t));
+  const XXH128_hash_t xxh3_hash = XXH3_128bits_digest(hash_state);
+  this->hash[0] = xxh3_hash.low64;
+  this->hash[1] = xxh3_hash.high64;
+}
+
+static std::optional<std::string> operator_idname_get(const StringRefNull custom_idname,
+                                                      OperatorRegisterErrors *errors)
+{
+  ReportList reports;
+  BKE_reports_init(&reports, RPT_STORE | RPT_PRINT_HANDLED_BY_OWNER);
+  BLI_SCOPED_DEFER([&]() { BKE_reports_free(&reports); });
+  if (!WM_operator_idname_ok_or_report(&reports, custom_idname.c_str())) {
+    if (errors) {
+      ErrorsForType &errors_for_type = errors->lookup_or_add_default_as(custom_idname);
+      LISTBASE_FOREACH (Report *, report, &reports.list) {
+        errors_for_type.idname_validation_errors.append_as(report->message);
+      }
+    }
+    return std::nullopt;
+  }
+  char idname_buf[OP_MAX_TYPENAME];
+  WM_operator_bl_idname(idname_buf, custom_idname.c_str());
+  return idname_buf;
+}
+
+static std::optional<StringRefNull> custom_idname_for_asset(const AssetRepresentation &asset)
+{
+  const AssetMetaData &metadata = asset.get_metadata();
+  const IDProperty *id_property = BKE_asset_metadata_idprop_find(&metadata, "node_tool_idname");
+  if (!id_property || id_property->type != IDP_STRING) {
+    return std::nullopt;
+  }
+  return IDP_string_get(id_property);
+}
+
+static std::optional<std::string> operator_idname_for_asset(const AssetRepresentation &asset)
+{
+  const std::optional<StringRefNull> custom_idname = custom_idname_for_asset(asset);
+  if (!custom_idname) {
+    return std::nullopt;
+  }
+  return operator_idname_get(*custom_idname, nullptr);
+}
+
+std::optional<OperatorTypeData> OperatorTypeData::from_asset(
+    const asset_system::AssetRepresentation &asset, OperatorRegisterErrors &errors)
+{
+  const std::optional<StringRefNull> custom_idname = custom_idname_for_asset(asset);
+  if (!custom_idname) {
+    return std::nullopt;
+  }
+  std::optional<std::string> idname = operator_idname_get(*custom_idname, &errors);
+  if (!idname) {
+    return std::nullopt;
+  }
+
+  const AssetMetaData &metadata = asset.get_metadata();
+  OperatorTypeData type_data;
+  type_data.name = asset.get_name();
+  type_data.idname = std::move(*idname);
+  type_data.custom_idname = *custom_idname;
+  type_data.description = metadata.description ? metadata.description : "";
+  const IDProperty *traits_flag = BKE_asset_metadata_idprop_find(
+      &metadata, "geometry_node_asset_traits_flag");
+  if (!traits_flag || traits_flag->type != IDP_INT) {
+    return std::nullopt;
+  }
+  type_data.flag = GeometryNodeAssetTraitFlag(IDP_int_get(traits_flag));
+  type_data.group_ref = asset.make_weak_reference();
+  type_data.ensure_hash();
+  return type_data;
+}
+
+static std::optional<StringRefNull> custom_idname_for_group(const bNodeTree &group)
+{
+  const char *idname = group.geometry_node_asset_traits->node_tool_idname;
+  if (!idname) {
+    return std::nullopt;
+  }
+  return StringRefNull(idname);
+}
+
+static std::optional<std::string> operator_idname_for_group(const bNodeTree &group)
+{
+  const char *idname = group.geometry_node_asset_traits->node_tool_idname;
+  if (!idname) {
+    return std::nullopt;
+  }
+  return operator_idname_get(idname, nullptr);
+}
+
+std::optional<OperatorTypeData> OperatorTypeData::from_group(const bNodeTree &group,
+                                                             OperatorRegisterErrors &errors)
+{
+  const std::optional<StringRefNull> custom_idname = custom_idname_for_group(group);
+  if (!custom_idname) {
+    return std::nullopt;
+  }
+  std::optional<std::string> idname = operator_idname_get(*custom_idname, &errors);
+  if (!idname) {
+    return std::nullopt;
+  }
+  OperatorTypeData type_data;
+  type_data.name = BKE_id_name(group.id);
+  type_data.idname = std::move(*idname);
+  type_data.custom_idname = *custom_idname;
+  type_data.description = group.description ? group.description : "";
+  type_data.flag = GeometryNodeAssetTraitFlag(group.geometry_node_asset_traits->flag);
+  type_data.group_ref = OperatorTypeData::LocalRef{group.id.session_uid};
+  type_data.ensure_hash();
+  return type_data;
+}
+
+GeometryNodeAssetTraitFlag asset_flag_for_context(const Object &active_object);
+
 /* -------------------------------------------------------------------- */
 /** \name Operator
  * \{ */
 
 static const bNodeTree *get_asset_or_local_node_group(const bContext &C,
-                                                      PointerRNA &ptr,
+                                                      const wmOperatorType &ot,
                                                       ReportList *reports)
 {
   Main &bmain = *CTX_data_main(&C);
-  if (bNodeTree *group = reinterpret_cast<bNodeTree *>(
-          WM_operator_properties_id_lookup_from_name_or_session_uid(&bmain, &ptr, ID_NT)))
-  {
-    return group;
-  }
-
-  const asset_system::AssetRepresentation *asset =
-      asset::operator_asset_reference_props_get_asset_from_all_library(C, ptr, reports);
-  if (!asset) {
-    return nullptr;
-  }
-  return reinterpret_cast<bNodeTree *>(asset::asset_local_id_ensure_imported(bmain, *asset));
+  const auto &type_data = static_cast<const OperatorTypeData &>(*ot.custom_data);
+  return std::visit(
+      [&](const auto &value) -> const bNodeTree * {
+        using T = std::decay_t<decltype(value)>;
+        if constexpr (std::is_same_v<T, OperatorTypeData::LocalRef>) {
+          return id_cast<const bNodeTree *>(
+              BKE_libblock_find_session_uid(&bmain, ID_NT, value.session_uid));
+        }
+        else if constexpr (std::is_same_v<T, AssetWeakReference>) {
+          const asset_system::AssetRepresentation *asset = ed::asset::find_asset_from_weak_ref(
+              C, value, reports);
+          if (!asset) {
+            return nullptr;
+          }
+          return id_cast<const bNodeTree *>(asset::asset_local_id_ensure_imported(bmain, *asset));
+        }
+        return nullptr;
+      },
+      type_data.group_ref);
 }
 
-static const bNodeTree *get_node_group(const bContext &C, PointerRNA &ptr, ReportList *reports)
+static const bNodeTree *get_node_group(const bContext &C,
+                                       const wmOperatorType &ot,
+                                       ReportList *reports)
 {
-  const bNodeTree *group = get_asset_or_local_node_group(C, ptr, reports);
+  const bNodeTree *group = get_asset_or_local_node_group(C, ot, reports);
   if (!group) {
     return nullptr;
   }
@@ -683,7 +885,7 @@ static wmOperatorStatus run_node_group_exec(bContext *C, wmOperator *op)
   }
   const eObjectMode mode = eObjectMode(active_object->mode);
 
-  const bNodeTree *node_tree_orig = get_node_group(*C, *op->ptr, op->reports);
+  const bNodeTree *node_tree_orig = get_node_group(*C, *op->type, op->reports);
   if (!node_tree_orig) {
     return OPERATOR_CANCELLED;
   }
@@ -844,33 +1046,17 @@ static void store_input_node_values_rna_props(const bContext &C,
 
 static wmOperatorStatus run_node_group_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const bNodeTree *node_tree = get_node_group(*C, *op->ptr, op->reports);
+  const bNodeTree *node_tree = get_node_group(*C, *op->type, op->reports);
   if (!node_tree) {
     return OPERATOR_CANCELLED;
   }
 
   store_input_node_values_rna_props(*C, *op, *event);
 
-  nodes ::update_input_properties_from_node_tree(
-      *node_tree, op->properties, *op->properties, true);
+  nodes::update_input_properties_from_node_tree(*node_tree, op->properties, *op->properties, true);
   nodes::update_output_properties_from_node_tree(*node_tree, op->properties, *op->properties);
 
   return run_node_group_exec(C, op);
-}
-
-static std::string run_node_group_get_description(bContext *C,
-                                                  wmOperatorType * /*ot*/,
-                                                  PointerRNA *ptr)
-{
-  const asset_system::AssetRepresentation *asset =
-      asset::operator_asset_reference_props_get_asset_from_all_library(*C, *ptr, nullptr);
-  if (!asset) {
-    return "";
-  }
-  if (!asset->get_metadata().description) {
-    return "";
-  }
-  return asset->get_metadata().description;
 }
 
 static void run_node_group_ui(bContext *C, wmOperator *op)
@@ -881,7 +1067,7 @@ static void run_node_group_ui(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   PointerRNA bmain_ptr = RNA_main_pointer_create(bmain);
 
-  const bNodeTree *node_tree = get_node_group(*C, *op->ptr, nullptr);
+  const bNodeTree *node_tree = get_node_group(*C, *op->type, nullptr);
   if (!node_tree) {
     return;
   }
@@ -910,63 +1096,41 @@ static bool run_node_ui_poll(wmOperatorType * /*ot*/, PointerRNA *ptr)
   return result;
 }
 
-static std::string run_node_group_get_name(wmOperatorType * /*ot*/, PointerRNA *ptr)
+static bool run_node_group_poll(bContext *C, wmOperatorType *ot)
 {
-  std::string local_name = RNA_string_get(ptr, "name");
-  if (!local_name.empty()) {
-    return local_name;
-  }
-  std::string library_asset_identifier = RNA_string_get(ptr, "relative_asset_identifier");
-  StringRef ref(library_asset_identifier);
-  return ref.drop_prefix(ref.find_last_of(SEP_STR) + 1);
-}
-
-static bool run_node_group_depends_on_cursor(bContext &C, wmOperatorType & /*ot*/, PointerRNA *ptr)
-{
-  if (!ptr) {
+  const auto &type_data = *static_cast<const OperatorTypeData *>(ot->custom_data.get());
+  const Object *active_object = CTX_data_active_object(C);
+  if (!active_object) {
     return false;
   }
-  Main &bmain = *CTX_data_main(&C);
-  if (bNodeTree *group = reinterpret_cast<bNodeTree *>(
-          WM_operator_properties_id_lookup_from_name_or_session_uid(&bmain, ptr, ID_NT)))
-  {
-    return group->geometry_node_asset_traits &&
-           (group->geometry_node_asset_traits->flag & GEO_NODE_ASSET_WAIT_FOR_CURSOR) != 0;
-  }
-
-  const asset_system::AssetRepresentation *asset =
-      asset::operator_asset_reference_props_get_asset_from_all_library(C, *ptr, nullptr);
-  if (!asset) {
-    return false;
-  }
-  const IDProperty *traits_flag = BKE_asset_metadata_idprop_find(
-      &asset->get_metadata(), "geometry_node_asset_traits_flag");
-  if (traits_flag == nullptr || !(IDP_int_get(traits_flag) & GEO_NODE_ASSET_WAIT_FOR_CURSOR)) {
+  const GeometryNodeAssetTraitFlag flag = asset_flag_for_context(*active_object);
+  if ((type_data.flag & flag) != flag) {
     return false;
   }
   return true;
 }
 
-void GEOMETRY_OT_execute_node_group(wmOperatorType *ot)
+static void register_node_tool(wmOperatorType *ot,
+                               std::unique_ptr<OperatorTypeData> &type_data_ptr)
 {
-  PropertyRNA *prop;
-  ot->name = "Run Node Group";
-  ot->idname = __func__;
-  ot->description = "Execute a node group on geometry";
+  OperatorTypeData &type_data = *type_data_ptr;
+  ot->custom_data = std::move(type_data_ptr);
 
-  /* A proper poll is not possible, since it doesn't have access to the operator's properties. */
+  PropertyRNA *prop;
+  ot->name = type_data.name.c_str();
+  ot->idname = type_data.idname.c_str();
+  ot->description = type_data.description.empty() ? nullptr : type_data.description.c_str();
+
+  ot->pyop_poll = run_node_group_poll;
   ot->invoke = run_node_group_invoke;
   ot->exec = run_node_group_exec;
-  ot->get_description = run_node_group_get_description;
   ot->ui = run_node_group_ui;
   ot->ui_poll = run_node_ui_poll;
-  ot->get_name = run_node_group_get_name;
-  ot->depends_on_cursor = run_node_group_depends_on_cursor;
 
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  asset::operator_asset_reference_props_register(*ot->srna);
-  WM_operator_properties_id_lookup(ot, true);
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_NODE_TOOL;
+  if (type_data.flag & GEO_NODE_ASSET_WAIT_FOR_CURSOR) {
+    ot->flag |= OPTYPE_DEPENDS_ON_CURSOR;
+  }
 
   /* See comment for #store_input_node_values_rna_props. */
   prop = RNA_def_int_array(ot->srna,
@@ -1030,6 +1194,177 @@ void GEOMETRY_OT_execute_node_group(wmOperatorType *ot)
   prop = RNA_def_boolean(
       ot->srna, "viewport_is_perspective", false, "Viewport Is Perspective", "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
+}
+
+void ui_template_node_operator_registration_errors(ui::Layout &layout,
+                                                   const StringRefNull idname_py)
+{
+  const OperatorRegisterErrors &errors = get_registration_errors();
+  const ErrorsForType *errors_for_type = errors.lookup_ptr(idname_py);
+  if (!errors_for_type) {
+    return;
+  }
+  ui::Layout &col = layout.column(false);
+  if (errors_for_type->is_builtin_operator) {
+    col.label(TIP_("Operator is already registered"), ICON_ERROR);
+  }
+  if (errors_for_type->duplicate_count != 0) {
+    col.label(fmt::format(fmt::runtime(TIP_("Duplicates: {}")), errors_for_type->duplicate_count),
+              ICON_ERROR);
+  }
+  for (const std::string &error : errors_for_type->idname_validation_errors) {
+    col.label(error, ICON_ERROR);
+  }
+}
+
+static Vector<std::unique_ptr<OperatorTypeData>> get_node_tools_type_data(
+    const bContext &C, Main &bmain, OperatorRegisterErrors &errors)
+{
+  Vector<std::unique_ptr<OperatorTypeData>> all_types;
+  LISTBASE_FOREACH (bNodeTree *, ntree, &bmain.nodetrees) {
+    if (ID_IS_ASSET(&ntree->id)) {
+      continue;
+    }
+    if (!ntree->geometry_node_asset_traits) {
+      continue;
+    }
+    if ((ntree->geometry_node_asset_traits->flag & GEO_NODE_ASSET_TOOL) == 0) {
+      continue;
+    }
+    std::optional<OperatorTypeData> type_data = OperatorTypeData::from_group(*ntree, errors);
+    if (!type_data) {
+      continue;
+    }
+    all_types.append(std::make_unique<OperatorTypeData>(std::move(*type_data)));
+  }
+
+  const AssetLibraryReference library_ref = asset_system::all_library_reference();
+  ed::asset::list::storage_fetch(&library_ref, &C);
+  if (ed::asset::list::library_get_once_available(library_ref)) {
+    ed::asset::list::iterate(library_ref, [&](AssetRepresentation &asset) {
+      if (asset.get_id_type() != ID_NT) {
+        return true;
+      }
+      const AssetMetaData &meta_data = asset.get_metadata();
+      const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&meta_data, "type");
+      if (tree_type == nullptr) {
+        return true;
+      }
+      if (IDP_int_get(tree_type) != NTREE_GEOMETRY) {
+        return true;
+      }
+      const IDProperty *traits_flag = BKE_asset_metadata_idprop_find(
+          &meta_data, "geometry_node_asset_traits_flag");
+      if (!traits_flag) {
+        return true;
+      }
+      if (traits_flag->type != IDP_INT) {
+        return true;
+      }
+      if ((IDP_int_get(traits_flag) & GEO_NODE_ASSET_TOOL) == 0) {
+        return true;
+      }
+      std::optional<OperatorTypeData> type_data = OperatorTypeData::from_asset(asset, errors);
+      if (!type_data) {
+        return true;
+      }
+      all_types.append(std::make_unique<OperatorTypeData>(std::move(*type_data)));
+      return true;
+    });
+  }
+
+  return all_types;
+}
+
+void register_node_group_operators(const bContext &C)
+{
+  wmWindowManager &wm = *CTX_wm_manager(&C);
+  Main &bmain = *CTX_data_main(&C);
+
+  OperatorRegisterErrors &errors = get_registration_errors();
+  OperatorRegisterErrors last_errors = errors;
+  errors.clear();
+
+  Vector<std::unique_ptr<OperatorTypeData>> node_tool_types = get_node_tools_type_data(
+      C, bmain, errors);
+
+  Vector<std::unique_ptr<OperatorTypeData>> types_to_register;
+  Set<StringRefNull> handled_types;
+  Set<wmOperatorType *> types_to_remove;
+  for (std::unique_ptr<OperatorTypeData> &type : node_tool_types) {
+    if (!handled_types.add_as(type->idname)) {
+      errors.lookup_or_add_default_as(type->custom_idname).duplicate_count++;
+      continue;
+    }
+    if (wmOperatorType *ot = WM_operatortype_find(type->idname.c_str(), true)) {
+      if ((ot->flag & OPTYPE_NODE_TOOL) == 0) {
+        errors.lookup_or_add_default(type->custom_idname).is_builtin_operator = true;
+        continue;
+      }
+      const OperatorTypeData &type_data = static_cast<const OperatorTypeData &>(*ot->custom_data);
+      if (type_data.hash == type->hash) {
+        continue;
+      }
+      types_to_remove.add(ot);
+    }
+    types_to_register.append(std::move(type));
+  }
+
+  /* Also remove old operators for now-unused idnames. */
+  for (wmOperatorType *ot : WM_operatortypes_registered_get()) {
+    if ((ot->flag & OPTYPE_NODE_TOOL) == 0) {
+      continue;
+    }
+    if (handled_types.contains(ot->idname)) {
+      continue;
+    }
+    types_to_remove.add(ot);
+  }
+
+  if (!types_to_remove.is_empty()) {
+    WM_operator_stack_clear(&wm, types_to_remove);
+    WM_operator_handlers_clear(&wm, types_to_remove);
+    for (wmOperatorType *ot : types_to_remove) {
+      WM_operatortype_remove_ptr(ot);
+    }
+  }
+
+  for (std::unique_ptr<OperatorTypeData> &type : types_to_register) {
+    WM_operatortype_append_ptr(
+        [](wmOperatorType *ot, void *user_data) {
+          register_node_tool(ot, *static_cast<std::unique_ptr<OperatorTypeData> *>(user_data));
+        },
+        &type);
+  }
+
+  /* Don't display the same errors twice. That can be very noisy since this operator registration
+   * process runs so often. */
+  if (last_errors != errors) {
+    ReportList *reports = CTX_wm_reports(&C);
+    for (const OperatorRegisterErrors::Item &item : errors.items()) {
+      if (item.value.is_builtin_operator) {
+        BKE_reportf(reports,
+                    RPT_ERROR,
+                    "Error registering node tool \"%s\", operator is already registered",
+                    item.key.c_str());
+      }
+      if (item.value.duplicate_count != 0) {
+        BKE_reportf(reports,
+                    RPT_ERROR,
+                    "Error registering node tool \"%s\", %d duplicate(s)",
+                    item.key.c_str(),
+                    item.value.duplicate_count);
+      }
+      for (const std::string &error : item.value.idname_validation_errors) {
+        BKE_reportf(reports,
+                    RPT_ERROR,
+                    "Error registering node tool \"%s\", %s",
+                    item.key.c_str(),
+                    error.c_str());
+      }
+    }
+    WM_report_banner_show(&wm, nullptr);
+  }
 }
 
 /** \} */
@@ -1105,7 +1440,7 @@ static GeometryNodeAssetTraitFlag asset_flag_for_context(const ObjectType type,
   return GeometryNodeAssetTraitFlag(0);
 }
 
-static GeometryNodeAssetTraitFlag asset_flag_for_context(const Object &active_object)
+GeometryNodeAssetTraitFlag asset_flag_for_context(const Object &active_object)
 {
   return asset_flag_for_context(ObjectType(active_object.type), eObjectMode(active_object.mode));
 }
@@ -1337,6 +1672,12 @@ static Set<std::string> get_builtin_menus(const ObjectType object_type, const eO
   return menus;
 }
 
+static void missing_tool_idname_error(ui::Layout &layout, const StringRef name)
+{
+  layout.label(fmt::format(fmt::runtime(TIP_("Missing node tool identifier ({})")), name),
+               ICON_NONE);
+}
+
 static void catalog_assets_draw(const bContext *C, Menu *menu)
 {
   const Object *active_object = CTX_data_active_object(C);
@@ -1360,18 +1701,21 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
   ui::Layout &layout = *menu->layout;
   bool add_separator = true;
 
-  wmOperatorType *ot = WM_operatortype_find("GEOMETRY_OT_execute_node_group", true);
   for (const asset_system::AssetRepresentation *asset : assets) {
+    const std::optional<std::string> operator_idname = operator_idname_for_asset(*asset);
+    if (!operator_idname) {
+      missing_tool_idname_error(layout, asset->get_name());
+      continue;
+    }
     if (add_separator) {
       layout.separator();
       add_separator = false;
     }
-    PointerRNA props_ptr = layout.op(ot,
+    PointerRNA props_ptr = layout.op(*operator_idname,
                                      IFACE_(asset->get_name()),
                                      ICON_NONE,
                                      wm::OpCallContext::InvokeRegionWin,
                                      UI_ITEM_NONE);
-    asset::operator_asset_reference_props_set(*asset, props_ptr);
   }
 
   const Set<std::string> builtin_menus = get_builtin_menus(ObjectType(active_object->type),
@@ -1440,14 +1784,17 @@ static void catalog_assets_draw_unassigned(const bContext *C, Menu *menu)
     return;
   }
   ui::Layout &layout = *menu->layout;
-  wmOperatorType *ot = WM_operatortype_find("GEOMETRY_OT_execute_node_group", true);
   for (const asset_system::AssetRepresentation *asset : tree->unassigned_assets) {
-    PointerRNA props_ptr = layout.op(ot,
-                                     IFACE_(asset->get_name()),
-                                     ICON_NONE,
-                                     wm::OpCallContext::InvokeRegionWin,
-                                     UI_ITEM_NONE);
-    asset::operator_asset_reference_props_set(*asset, props_ptr);
+    const std::optional<std::string> operator_idname = operator_idname_for_asset(*asset);
+    if (!operator_idname) {
+      missing_tool_idname_error(layout, asset->get_name());
+      continue;
+    }
+    layout.op(*operator_idname,
+              IFACE_(asset->get_name()),
+              ICON_NONE,
+              wm::OpCallContext::InvokeRegionWin,
+              UI_ITEM_NONE);
   }
 
   const GeometryNodeAssetTraitFlag flag = asset_flag_for_context(*active_object);
@@ -1465,7 +1812,11 @@ static void catalog_assets_draw_unassigned(const bContext *C, Menu *menu)
     {
       continue;
     }
-
+    const std::optional<std::string> operator_idname = operator_idname_for_group(*group);
+    if (!operator_idname) {
+      missing_tool_idname_error(layout, BKE_id_name(group->id));
+      continue;
+    }
     if (add_separator) {
       layout.separator();
       add_separator = false;
@@ -1474,12 +1825,11 @@ static void catalog_assets_draw_unassigned(const bContext *C, Menu *menu)
       layout.label(IFACE_("Non-Assets"), ICON_NONE);
       first = false;
     }
-
-    PointerRNA props_ptr = layout.op(
-        ot, group->id.name + 2, ICON_NONE, wm::OpCallContext::InvokeRegionWin, UI_ITEM_NONE);
-    WM_operator_properties_id_lookup_set_from_id(&props_ptr, &group->id);
-    /* Also set the name so it can be used for #run_node_group_get_name. */
-    RNA_string_set(&props_ptr, "name", group->id.name + 2);
+    layout.op(*operator_idname,
+              BKE_id_name(group->id),
+              ICON_NONE,
+              wm::OpCallContext::InvokeRegionWin,
+              UI_ITEM_NONE);
   }
 }
 

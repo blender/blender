@@ -603,15 +603,21 @@ class NODE_PT_geometry_node_tool_options(Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'HEADER'
     bl_label = "Options"
-    bl_ui_units_x = 8
+    bl_ui_units_x = 12
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
         snode = context.space_data
         group = snode.node_tree
 
         layout.prop(group, "use_wait_for_click")
+        layout.prop(group, "node_tool_idname", text="Identifier")
+        layout.template_node_operator_registration_errors(idname=group.node_tool_idname)
+        if len(group.node_tool_idname) == 0:
+            layout.label(icon='ERROR', text="Missing operator identifier")
 
 
 class NODE_PT_node_color_presets(PresetPanel, Panel):

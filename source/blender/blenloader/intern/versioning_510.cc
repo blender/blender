@@ -20,7 +20,10 @@
 #include "BLI_string.h"
 #include "BLI_sys_types.h"
 
+#include "BKE_asset.hh"
 #include "BKE_customdata.hh"
+#include "BKE_idprop.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
@@ -227,6 +230,42 @@ static void do_version_mix_node_mix_mode_geometry(bNodeTree &node_tree, bNode &n
   }
 }
 
+static void init_node_tool_operator_idnames(Main &bmain)
+{
+  using namespace blender;
+  LISTBASE_FOREACH (bNodeTree *, group, &bmain.nodetrees) {
+    if (group->type != NTREE_GEOMETRY) {
+      continue;
+    }
+    if (!group->geometry_node_asset_traits) {
+      continue;
+    }
+    if (group->geometry_node_asset_traits->node_tool_idname) {
+      continue;
+    }
+    std::string name_str = "geometry.";
+    for (char c : StringRef(BKE_id_name(group->id))) {
+      c = tolower(c);
+      if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_') {
+        name_str.push_back(c);
+      }
+      else {
+        const bool last_is_underscore = name_str[name_str.size() - 1] == '_';
+        if (!last_is_underscore) {
+          name_str.push_back('_');
+        }
+      }
+    }
+    group->geometry_node_asset_traits->node_tool_idname = BLI_strdupn(name_str.c_str(),
+                                                                      name_str.size());
+    if (group->id.asset_data) {
+      auto property = bke::idprop::create(
+          "node_tool_idname", StringRefNull(group->geometry_node_asset_traits->node_tool_idname));
+      BKE_asset_metadata_idprop_ensure(group->id.asset_data, property.release());
+    }
+  }
+}
+
 static void version_realize_instances_to_curve_domain(Main &bmain)
 {
   LISTBASE_FOREACH (bNodeTree *, node_tree, &bmain.nodetrees) {
@@ -354,6 +393,10 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         pose_bone->flag &= ~(POSE_SELECTED_ROOT | POSE_SELECTED_TIP);
       }
     }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 9)) {
+    init_node_tool_operator_idnames(*bmain);
   }
 
   /**

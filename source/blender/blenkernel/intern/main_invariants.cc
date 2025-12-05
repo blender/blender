@@ -36,6 +36,12 @@ static void send_notifiers_after_node_tree_change(ID *id, bNodeTree *ntree)
   }
   else if (ntree->type == NTREE_GEOMETRY) {
     WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, id);
+    if (ntree->geometry_node_asset_traits) {
+      if (ntree->geometry_node_asset_traits->flag & GEO_NODE_ASSET_TOOL) {
+        /* Notifier to re-register node group operators. */
+        WM_main_add_notifier(NC_NODE | ND_NODE_ASSET_DATA, id);
+      }
+    }
   }
 }
 

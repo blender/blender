@@ -51,6 +51,13 @@ bool attribute_set_poll(bContext &C, const ID &object_data);
 void operatortypes_geometry();
 
 /**
+ * Re-register all operator types for node tool assets and local node groups. This process
+ * unregisters old operators.
+ */
+void register_node_group_operators(const bContext &C);
+void ui_template_node_operator_registration_errors(ui::Layout &layout, StringRefNull idname_py);
+
+/**
  * Convert an attribute with the given name to a new type and domain.
  * The attribute must already exist.
  *

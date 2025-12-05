@@ -195,9 +195,9 @@ bool WM_operator_bl_idname_is_valid(const char *idname)
   return true;
 }
 
-bool WM_operator_py_idname_ok_or_report(ReportList *reports,
-                                        const char *classname,
-                                        const char *idname)
+static bool operator_idname_ok_or_report_impl(ReportList *reports,
+                                              const char *idname,
+                                              blender::FunctionRef<std::string()> error_prefix_fn)
 {
   const char *ch = idname;
   int dot = 0;
@@ -208,48 +208,52 @@ bool WM_operator_py_idname_ok_or_report(ReportList *reports,
     }
     else if (*ch == '.') {
       if (ch == idname || (*(ch + 1) == '\0')) {
-        BKE_reportf(reports,
-                    RPT_ERROR,
-                    "Registering operator class: '%s', invalid bl_idname '%s', at position %d",
-                    classname,
-                    idname,
-                    i);
+        std::string error_prefix = error_prefix_fn();
+        BKE_reportf(
+            reports, RPT_ERROR, "%sInvalid character at position %d", error_prefix.c_str(), i);
         return false;
       }
       dot++;
     }
     else {
-      BKE_reportf(reports,
-                  RPT_ERROR,
-                  "Registering operator class: '%s', invalid bl_idname '%s', at position %d",
-                  classname,
-                  idname,
-                  i);
+      std::string error_prefix = error_prefix_fn();
+      BKE_reportf(
+          reports, RPT_ERROR, "%sInvalid character at position %d", error_prefix.c_str(), i);
       return false;
     }
   }
 
   if (i > OP_MAX_PY_IDNAME) {
+    std::string error_prefix = error_prefix_fn();
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Registering operator class: '%s', invalid bl_idname '%s', "
-                "is too long, maximum length is %d",
-                classname,
-                idname,
+                "%sIdentifier too long, maximum length is %d",
+                error_prefix.c_str(),
                 OP_MAX_PY_IDNAME);
     return false;
   }
 
   if (dot != 1) {
-    BKE_reportf(
-        reports,
-        RPT_ERROR,
-        "Registering operator class: '%s', invalid bl_idname '%s', must contain 1 '.' character",
-        classname,
-        idname);
+    std::string error_prefix = error_prefix_fn();
+    BKE_reportf(reports, RPT_ERROR, "%sMust contain 1 '.' character", error_prefix.c_str());
     return false;
   }
   return true;
+}
+
+bool WM_operator_py_idname_ok_or_report(ReportList *reports,
+                                        const char *classname,
+                                        const char *idname)
+{
+  return operator_idname_ok_or_report_impl(reports, idname, [&]() {
+    return fmt::format(
+        "Registering operator class '{}', invalid bl_idname '{}', ", classname, idname);
+  });
+}
+
+bool WM_operator_idname_ok_or_report(ReportList *reports, const char *idname)
+{
+  return operator_idname_ok_or_report_impl(reports, idname, [&]() { return ""; });
 }
 
 std::string WM_operator_pystring_ex(bContext *C,

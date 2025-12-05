@@ -904,6 +904,16 @@ void rna_uiLayoutPanel(Layout *layout,
   *r_layout_body = panel_layout.body;
 }
 
+static void rna_uiLayout_template_node_operator_registration_errors(Layout *layout,
+                                                                    const char *idname)
+{
+  using namespace blender;
+  if (!idname) {
+    return;
+  }
+  ed::geometry::ui_template_node_operator_registration_errors(*layout, idname);
+}
+
 static void rna_uiLayout_template_node_asset_menu_items(Layout *layout,
                                                         bContext *C,
                                                         const char *catalog_path,
@@ -2161,6 +2171,11 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "socket", "NodeSocket", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+
+  func = RNA_def_function(srna,
+                          "template_node_operator_registration_errors",
+                          "rna_uiLayout_template_node_operator_registration_errors");
+  parm = RNA_def_string(func, "idname", nullptr, 0, "", "");
 
   func = RNA_def_function(
       srna, "template_node_asset_menu_items", "rna_uiLayout_template_node_asset_menu_items");

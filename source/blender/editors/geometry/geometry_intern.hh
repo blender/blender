@@ -23,6 +23,4 @@ void GEOMETRY_OT_attribute_convert(wmOperatorType *ot);
 void GEOMETRY_OT_color_attribute_convert(wmOperatorType *ot);
 void GEOMETRY_OT_geometry_randomization(wmOperatorType *ot);
 
-void GEOMETRY_OT_execute_node_group(wmOperatorType *ot);
-
 }  // namespace blender::ed::geometry

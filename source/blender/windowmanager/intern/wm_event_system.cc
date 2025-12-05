@@ -54,6 +54,7 @@
 
 #include "ED_asset.hh"
 #include "ED_fileselect.hh"
+#include "ED_geometry.hh"
 #include "ED_info.hh"
 #include "ED_markers.hh"
 #include "ED_render.hh"
@@ -568,6 +569,21 @@ static void wm_event_timers_execute(bContext *C)
   CTX_wm_window_set(C, nullptr);
 }
 
+static bool notifier_refreshes_node_group_operators(const wmNotifier &note)
+{
+  if (note.category == NC_ASSET) {
+    if (ELEM(note.data, ND_ASSET_LIST, ND_ASSET_LIST_READING)) {
+      return true;
+    }
+  }
+  else if (note.category == NC_NODE) {
+    if (ELEM(note.data, ND_NODE_ASSET_DATA)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void wm_event_do_notifiers(bContext *C)
 {
   /* Ensure inside render boundary. */
@@ -619,6 +635,11 @@ void wm_event_do_notifiers(bContext *C)
           ED_preview_restart_queue_work(C);
         }
       }
+
+      if (notifier_refreshes_node_group_operators(*note)) {
+        blender::ed::geometry::register_node_group_operators(*C);
+      }
+
       if (note->window == win) {
         if (note->category == NC_SCREEN) {
           if (note->data == ND_WORKSPACE_SET) {

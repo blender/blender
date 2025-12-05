@@ -85,7 +85,7 @@ void BPY_RNA_operator_wrapper(wmOperatorType *ot, void *userdata)
   /* take care not to overwrite anything set in
    * WM_operatortype_append_ptr before opfunc() is called */
   StructRNA *srna = ot->srna;
-  *ot = *((wmOperatorType *)userdata);
+  *ot = std::move(*((wmOperatorType *)userdata));
   ot->srna = srna; /* restore */
 
   /* Use i18n context from rna_ext.srna if possible (py operators). */
