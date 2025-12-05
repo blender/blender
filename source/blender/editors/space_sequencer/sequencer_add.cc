@@ -1649,6 +1649,7 @@ void SEQUENCER_OT_sound_strip_add(wmOperatorType *ot)
   ot->invoke = sequencer_add_sound_strip_invoke;
   ot->exec = sequencer_add_sound_strip_exec;
   ot->poll = ED_operator_sequencer_active_editable;
+  ot->cancel = sequencer_add_free;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
