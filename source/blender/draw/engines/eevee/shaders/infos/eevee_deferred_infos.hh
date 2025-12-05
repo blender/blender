@@ -170,7 +170,7 @@ EARLY_FRAGMENT_TEST(true)
 /* Inputs. */
 FRAGMENT_OUT(0, float4, out_radiance)
 DEFINE("SPHERE_PROBE")
-DEFINE_VALUE("LIGHT_CLOSURE_EVAL_COUNT", "1")
+DEFINE_VALUE("LIGHT_CLOSURE_EVAL_COUNT", "2")
 TYPEDEF_SOURCE("eevee_defines.hh")
 ADDITIONAL_INFO(eevee_gbuffer_data)
 ADDITIONAL_INFO(eevee_utility_texture)
