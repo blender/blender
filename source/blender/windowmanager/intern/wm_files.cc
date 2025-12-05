@@ -49,7 +49,10 @@
 #include "BLI_utildefines.h"
 #include BLI_SYSTEM_PID_H
 
+#include "BLO_core_blend_header.hh"
+#include "BLO_core_file_reader.hh"
 #include "BLO_readfile.hh"
+
 #include "BLT_translation.hh"
 
 #include "BLF_api.hh"
@@ -583,52 +586,15 @@ static int wm_read_exotic(const char *filepath)
   if (filedes == -1) {
     return BKE_READ_EXOTIC_FAIL_OPEN;
   }
-
-  FileReader *rawfile = BLI_filereader_new_file(filedes);
-  if (rawfile == nullptr) {
-    return BKE_READ_EXOTIC_FAIL_OPEN;
-  }
-
-  /* Read the header (7 bytes are enough to identify all known types). */
-  char header[7];
-  if (rawfile->read(rawfile, header, sizeof(header)) != sizeof(header)) {
-    rawfile->close(rawfile);
+  FileReader *file = BLO_file_reader_uncompressed_from_descriptor(filedes);
+  if (!file) {
     return BKE_READ_EXOTIC_FAIL_FORMAT;
   }
-  rawfile->seek(rawfile, 0, SEEK_SET);
-
-  /* Check for uncompressed `.blend`. */
-  if (STREQLEN(header, "BLENDER", 7)) {
-    rawfile->close(rawfile);
+  BLI_SCOPED_DEFER([&]() { file->close(file); });
+  const BlenderHeaderVariant header_variant = BLO_readfile_blender_header_decode(file);
+  if (std::holds_alternative<BlenderHeader>(header_variant)) {
     return BKE_READ_EXOTIC_OK_BLEND;
   }
-
-  /* Check for compressed `.blend`. */
-  FileReader *compressed_file = nullptr;
-  if (BLI_file_magic_is_gzip(header)) {
-    /* In earlier versions of Blender (before 3.0), compressed files used `Gzip` instead of `Zstd`.
-     * While these files will no longer be written, there still needs to be reading support. */
-    compressed_file = BLI_filereader_new_gzip(rawfile);
-  }
-  else if (BLI_file_magic_is_zstd(header)) {
-    compressed_file = BLI_filereader_new_zstd(rawfile);
-  }
-
-  /* If a compression signature matches,
-   * try decompressing the start and check if it's a `.blend`. */
-  if (compressed_file != nullptr) {
-    size_t len = compressed_file->read(compressed_file, header, sizeof(header));
-    compressed_file->close(compressed_file);
-    if (len == sizeof(header) && STREQLEN(header, "BLENDER", 7)) {
-      return BKE_READ_EXOTIC_OK_BLEND;
-    }
-  }
-  else {
-    rawfile->close(rawfile);
-  }
-
-  /* Add check for future file formats here. */
-
   return BKE_READ_EXOTIC_FAIL_FORMAT;
 }
 

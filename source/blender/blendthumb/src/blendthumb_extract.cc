@@ -20,6 +20,7 @@
 
 #include "BLO_core_bhead.hh"
 #include "BLO_core_blend_header.hh"
+#include "BLO_core_file_reader.hh"
 
 #include "blendthumb.hh"
 
@@ -138,39 +139,7 @@ static eThumbStatus blendthumb_extract_from_file_impl(FileReader *file,
 
 eThumbStatus blendthumb_create_thumb_from_file(FileReader *rawfile, Thumbnail *thumb)
 {
-  /* Read header in order to identify file type. */
-  char magic_bytes[12];
-  if (rawfile->read(rawfile, magic_bytes, sizeof(magic_bytes)) != sizeof(magic_bytes)) {
-    rawfile->close(rawfile);
-    return BT_ERROR;
-  }
-
-  /* Rewind the file after reading the header. */
-  rawfile->seek(rawfile, 0, SEEK_SET);
-
-  /* Try to identify the file type from the header. */
-  FileReader *file = nullptr;
-  if (BLI_str_startswith(magic_bytes, "BLENDER")) {
-    file = rawfile;
-    rawfile = nullptr;
-  }
-  else if (BLI_file_magic_is_gzip(magic_bytes)) {
-    file = BLI_filereader_new_gzip(rawfile);
-    if (file != nullptr) {
-      rawfile = nullptr; /* The GZIP #FileReader takes ownership of raw-file. */
-    }
-  }
-  else if (BLI_file_magic_is_zstd(magic_bytes)) {
-    file = BLI_filereader_new_zstd(rawfile);
-    if (file != nullptr) {
-      rawfile = nullptr; /* The ZSTD #FileReader takes ownership of raw-file. */
-    }
-  }
-
-  /* Clean up rawfile if it wasn't taken over. */
-  if (rawfile != nullptr) {
-    rawfile->close(rawfile);
-  }
+  FileReader *file = BLO_file_reader_uncompressed(rawfile);
 
   if (file == nullptr) {
     return BT_ERROR;

@@ -12,9 +12,11 @@ set(INC_SYS
 set(SRC
   intern/blo_core_bhead.cc
   intern/blo_core_blend_header.cc
+  intern/blo_core_file_reader.cc
 
   BLO_core_bhead.hh
   BLO_core_blend_header.hh
+  BLO_core_file_reader.hh
 )
 
 set(LIB
