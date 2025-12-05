@@ -999,28 +999,8 @@ static void strip_draw_image_origin_and_outline(const bContext *C,
                                                 Strip *strip,
                                                 bool is_active_seq)
 {
-  SpaceSeq *sseq = CTX_wm_space_seq(C);
-  const ARegion *region = CTX_wm_region(C);
-  if (region->regiontype == RGN_TYPE_PREVIEW && !sequencer_view_preview_only_poll(C)) {
-    return;
-  }
+
   if ((strip->flag & SEQ_SELECT) == 0) {
-    return;
-  }
-  if (ED_screen_animation_no_scrub(CTX_wm_manager(C))) {
-    return;
-  }
-  if ((sseq->flag & SEQ_SHOW_OVERLAY) == 0 ||
-      (sseq->preview_overlay.flag & SEQ_PREVIEW_SHOW_OUTLINE_SELECTED) == 0)
-  {
-    return;
-  }
-  if (ELEM(sseq->mainb,
-           SEQ_DRAW_IMG_WAVEFORM,
-           SEQ_DRAW_IMG_RGBPARADE,
-           SEQ_DRAW_IMG_VECTORSCOPE,
-           SEQ_DRAW_IMG_HISTOGRAM))
-  {
     return;
   }
 
@@ -1358,15 +1338,38 @@ static void preview_draw_all_image_overlays(const bContext *C,
                                             const Editing &editing,
                                             const int timeline_frame)
 {
+  /* do strip independent checks only once */
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+  const ARegion *region = CTX_wm_region(C);
+  if (region->regiontype == RGN_TYPE_PREVIEW && !sequencer_view_preview_only_poll(C)) {
+    return;
+  }
+  if (ED_screen_animation_no_scrub(CTX_wm_manager(C))) {
+    return;
+  }
+  if ((sseq->flag & SEQ_SHOW_OVERLAY) == 0 ||
+      (sseq->preview_overlay.flag & SEQ_PREVIEW_SHOW_OUTLINE_SELECTED) == 0)
+  {
+    return;
+  }
+  if (ELEM(sseq->mainb,
+           SEQ_DRAW_IMG_WAVEFORM,
+           SEQ_DRAW_IMG_RGBPARADE,
+           SEQ_DRAW_IMG_VECTORSCOPE,
+           SEQ_DRAW_IMG_HISTOGRAM))
+  {
+    return;
+  }
+
   ListBase *channels = seq::channels_displayed_get(&editing);
   VectorSet strips = seq::query_rendered_strips(
       scene, channels, editing.current_strips(), timeline_frame, 0);
   Strip *active_seq = seq::select_active_get(scene);
+
   for (Strip *strip : strips) {
-    /* TODO(sergey): Avoid having per-strip strip-independent checks. */
     strip_draw_image_origin_and_outline(C, strip, strip == active_seq);
-    text_edit_draw(C);
   }
+  text_edit_draw(C);
 }
 
 static bool is_cursor_visible(const SpaceSeq &sseq)
