@@ -355,7 +355,7 @@ static wmOperatorStatus text_new_exec(bContext *C, wmOperator * /*op*/)
   text = BKE_text_add(bmain, DATA_("Text"));
 
   /* Hook into UI. */
-  UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
+  blender::ui::UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
 
   if (prop) {
     PointerRNA idptr = RNA_id_pointer_create(&text->id);
@@ -402,7 +402,7 @@ static void text_open_init(bContext *C, wmOperator *op)
   PropertyPointerRNA *pprop = MEM_new<PropertyPointerRNA>(__func__);
 
   op->customdata = pprop;
-  UI_context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
+  blender::ui::UI_context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
 }
 
 static void text_open_cancel(bContext * /*C*/, wmOperator *op)
@@ -4227,7 +4227,7 @@ static wmOperatorStatus text_resolve_conflict_invoke(bContext *C,
     case 1:
       if (text->flags & TXT_ISDIRTY) {
         /* Modified locally and externally, ah. offer more possibilities. */
-        uiPopupMenu *pup = UI_popup_menu_begin(
+        blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(
             C, IFACE_("File Modified Outside and Inside Blender"), ICON_NONE);
         blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
         PointerRNA op_ptr = layout.op(
@@ -4240,7 +4240,7 @@ static wmOperatorStatus text_resolve_conflict_invoke(bContext *C,
         UI_popup_menu_end(C, pup);
       }
       else {
-        uiPopupMenu *pup = UI_popup_menu_begin(
+        blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(
             C, IFACE_("File Modified Outside Blender"), ICON_NONE);
         blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
         PointerRNA op_ptr = layout.op(op->type, IFACE_("Reload from disk"), ICON_NONE);
@@ -4253,7 +4253,8 @@ static wmOperatorStatus text_resolve_conflict_invoke(bContext *C,
       }
       break;
     case 2:
-      uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("File Deleted Outside Blender"), ICON_NONE);
+      blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(
+          C, IFACE_("File Deleted Outside Blender"), ICON_NONE);
       blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
       PointerRNA op_ptr = layout.op(op->type, IFACE_("Make text internal"), ICON_NONE);
       RNA_enum_set(&op_ptr, "resolution", RESOLVE_MAKE_INTERNAL);

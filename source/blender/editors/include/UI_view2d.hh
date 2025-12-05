@@ -14,6 +14,29 @@
 #include "BLI_rect.h"
 
 /* -------------------------------------------------------------------- */
+/** \name Forward Declarations
+ * \{ */
+
+struct View2D;
+
+struct ARegion;
+struct Scene;
+struct ScrArea;
+struct bContext;
+struct bScreen;
+struct rctf;
+struct rcti;
+struct wmEvent;
+struct wmGizmoGroupType;
+struct wmKeyConfig;
+struct wmOperator;
+struct wmOperatorType;
+
+/** \} */
+
+namespace blender::ui {
+
+/* -------------------------------------------------------------------- */
 /** \name General Defines
  * \{ */
 
@@ -96,27 +119,6 @@ enum eView2D_CommonViewTypes {
 
 #define IN_2D_VERT_SCROLL_RECT(v2d, rct) (BLI_rcti_isect(&v2d->vert, rct, NULL))
 #define IN_2D_HORIZ_SCROLL_RECT(v2d, rct) (BLI_rcti_isect(&v2d->hor, rct, NULL))
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Forward Declarations
- * \{ */
-
-struct View2D;
-
-struct ARegion;
-struct Scene;
-struct ScrArea;
-struct bContext;
-struct bScreen;
-struct rctf;
-struct rcti;
-struct wmEvent;
-struct wmGizmoGroupType;
-struct wmKeyConfig;
-struct wmOperator;
-struct wmOperatorType;
 
 /** \} */
 
@@ -595,3 +597,5 @@ void UI_view2d_edge_pan_operator_properties_ex(wmOperatorType *ot,
 void UI_view2d_edge_pan_operator_init(bContext *C, View2DEdgePanData *vpd, wmOperator *op);
 
 /** \} */
+
+}  // namespace blender::ui

@@ -1257,7 +1257,7 @@ ARegion *WM_gizmomap_tooltip_init(
         /* On screen area of 3D gizmos may be large, exit on cursor motion. */
         *r_exit_on_event = true;
       }
-      return UI_tooltip_create_from_gizmo(C, gz);
+      return blender::ui::UI_tooltip_create_from_gizmo(C, gz);
     }
   }
   return nullptr;

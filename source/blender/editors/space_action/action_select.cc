@@ -63,15 +63,15 @@ static bAnimListElem *actkeys_find_list_element_at_position(bAnimContext *ac,
 
   float view_x, view_y;
   int channel_index;
-  UI_view2d_region_to_view(v2d, region_x, region_y, &view_x, &view_y);
-  UI_view2d_listview_view_to_cell(0,
-                                  ANIM_UI_get_channel_step(),
-                                  0,
-                                  ANIM_UI_get_first_channel_top(v2d),
-                                  view_x,
-                                  view_y,
-                                  nullptr,
-                                  &channel_index);
+  blender::ui::UI_view2d_region_to_view(v2d, region_x, region_y, &view_x, &view_y);
+  blender::ui::UI_view2d_listview_view_to_cell(0,
+                                               ANIM_UI_get_channel_step(),
+                                               0,
+                                               ANIM_UI_get_first_channel_top(v2d),
+                                               view_x,
+                                               view_y,
+                                               nullptr,
+                                               &channel_index);
 
   ListBase anim_data = {nullptr, nullptr};
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
@@ -214,8 +214,8 @@ static void actkeys_find_key_in_list_element(bAnimContext *ac,
   key_hsize = roundf(key_hsize / 2.0f);
 
   const Bounds<float> range = {
-      UI_view2d_region_to_view_x(v2d, region_x - int(key_hsize)),
-      UI_view2d_region_to_view_x(v2d, region_x + int(key_hsize)),
+      blender::ui::UI_view2d_region_to_view_x(v2d, region_x - int(key_hsize)),
+      blender::ui::UI_view2d_region_to_view_x(v2d, region_x + int(key_hsize)),
   };
   const ActKeyColumn *ak = ED_keylist_find_any_between(keylist, range);
   if (ak) {
@@ -542,8 +542,8 @@ static void box_select_action(bAnimContext *ac,
 
   /* Convert mouse coordinates to frame ranges and channel
    * coordinates corrected for view pan/zoom. */
-  UI_view2d_region_to_view(v2d, rect.xmin, rect.ymin + 2, &rectf.xmin, &rectf.ymin);
-  UI_view2d_region_to_view(v2d, rect.xmax, rect.ymax - 2, &rectf.xmax, &rectf.ymax);
+  blender::ui::UI_view2d_region_to_view(v2d, rect.xmin, rect.ymin + 2, &rectf.xmin, &rectf.ymin);
+  blender::ui::UI_view2d_region_to_view(v2d, rect.xmax, rect.ymax - 2, &rectf.xmax, &rectf.ymax);
 
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
@@ -822,7 +822,7 @@ static void region_select_action_keys(bAnimContext *ac,
 
   /* Convert mouse coordinates to frame ranges and channel
    * coordinates corrected for view pan/zoom. */
-  UI_view2d_region_to_view_rctf(v2d, rectf_view, &rectf);
+  blender::ui::UI_view2d_region_to_view_rctf(v2d, rectf_view, &rectf);
 
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
@@ -1641,7 +1641,7 @@ static wmOperatorStatus actkeys_select_leftright_invoke(bContext *C,
     float x;
 
     /* determine which side of the current frame mouse is on */
-    x = UI_view2d_region_to_view_x(v2d, event->mval[0]);
+    x = blender::ui::UI_view2d_region_to_view_x(v2d, event->mval[0]);
     if (x < scene->r.cfra) {
       RNA_enum_set(op->ptr, "mode", ACTKEYS_LRSEL_LEFT);
     }

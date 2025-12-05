@@ -383,7 +383,7 @@ void region_init(wmWindowManager *wm, ARegion *region)
 
   AssetShelf *active_shelf = shelf_regiondata->active_shelf;
 
-  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_PANELS_UI, region->winx, region->winy);
+  UI_view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_PANELS_UI, region->winx, region->winy);
 
   wmKeyMap *keymap = WM_keymap_ensure(
       wm->runtime->defaultconf, "View2D Buttons List", SPACE_EMPTY, RGN_TYPE_WINDOW);
@@ -399,12 +399,12 @@ void region_init(wmWindowManager *wm, ARegion *region)
                                            asset_shelf_default_tile_height();
 
   /* Ensure the view is snapped to a page still, especially for DPI changes. */
-  UI_view2d_offset_y_snap_to_closest_page(&region->v2d);
+  ui::UI_view2d_offset_y_snap_to_closest_page(&region->v2d);
 }
 
 static int main_region_padding_y()
 {
-  const uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = ui::UI_style_get_dpi();
   return style->buttonspacey / 2;
 }
 
@@ -509,19 +509,19 @@ void region_on_user_resize(const ARegion *region)
 
 int tile_width(const AssetShelfSettings &settings)
 {
-  return UI_preview_tile_size_x(settings.preview_size);
+  return ui::UI_preview_tile_size_x(settings.preview_size);
 }
 
 int tile_height(const AssetShelfSettings &settings)
 {
   return (settings.display_flag & ASSETSHELF_SHOW_NAMES) ?
-             UI_preview_tile_size_y(settings.preview_size) :
-             UI_preview_tile_size_y_no_label(settings.preview_size);
+             ui::UI_preview_tile_size_y(settings.preview_size) :
+             ui::UI_preview_tile_size_y_no_label(settings.preview_size);
 }
 
 static int asset_shelf_default_tile_height()
 {
-  return UI_preview_tile_size_x(ASSET_SHELF_PREVIEW_SIZE_DEFAULT);
+  return ui::UI_preview_tile_size_x(ASSET_SHELF_PREVIEW_SIZE_DEFAULT);
 }
 
 int region_prefsizey()
@@ -544,7 +544,7 @@ void region_layout(const bContext *C, ARegion *region)
 
   uiBlock *block = UI_block_begin(C, region, __func__, ui::EmbossType::Emboss);
 
-  const uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = ui::UI_style_get_dpi();
   const int padding_y = main_region_padding_y();
   const int padding_x = main_region_padding_x();
   ui::Layout &layout = ui::block_layout(block,
@@ -561,8 +561,8 @@ void region_layout(const bContext *C, ARegion *region)
 
   int layout_height = ui::block_layout_resolve(block).y;
   BLI_assert(layout_height <= 0);
-  UI_view2d_totRect_set(&region->v2d, region->winx - 1, layout_height - padding_y);
-  UI_view2d_curRect_validate(&region->v2d);
+  ui::UI_view2d_totRect_set(&region->v2d, region->winx - 1, layout_height - padding_y);
+  ui::UI_view2d_curRect_validate(&region->v2d);
 
   region_resize_to_preferred(CTX_wm_area(C), region);
 
@@ -570,8 +570,8 @@ void region_layout(const bContext *C, ARegion *region)
    * Without this, tooltips jump around, see #129347. Reason is that #UI_but_tooltip_refresh() is
    * called as part of #UI_block_end(), so the block's window matrix needs to be up-to-date. */
   {
-    UI_view2d_view_ortho(&region->v2d);
-    UI_blocklist_update_window_matrix(C, &region->runtime->uiblocks);
+    ui::UI_view2d_view_ortho(&region->v2d);
+    ui::UI_blocklist_update_window_matrix(C, &region->runtime->uiblocks);
   }
 
   UI_block_end(C, block);
@@ -582,17 +582,17 @@ void region_draw(const bContext *C, ARegion *region)
   ED_region_clear(C, region, TH_BACK);
 
   /* Set view2d view matrix for scrolling. */
-  UI_view2d_view_ortho(&region->v2d);
+  ui::UI_view2d_view_ortho(&region->v2d);
 
   /* View2D matrix might have changed due to dynamic sized regions. */
-  UI_blocklist_update_window_matrix(C, &region->runtime->uiblocks);
+  ui::UI_blocklist_update_window_matrix(C, &region->runtime->uiblocks);
 
-  UI_blocklist_draw(C, &region->runtime->uiblocks);
+  ui::UI_blocklist_draw(C, &region->runtime->uiblocks);
 
   /* Restore view matrix. */
-  UI_view2d_view_restore(C);
+  ui::UI_view2d_view_restore(C);
 
-  UI_view2d_scrollers_draw(&region->v2d, nullptr);
+  ui::UI_view2d_scrollers_draw(&region->v2d, nullptr);
 }
 
 void region_on_poll_success(const bContext *C, ARegion *region)
@@ -651,7 +651,7 @@ void header_region_init(wmWindowManager * /*wm*/, ARegion *region)
 
 void header_region(const bContext *C, ARegion *region)
 {
-  ED_region_header_with_button_sections(C, region, uiButtonSectionsAlign::Bottom);
+  ED_region_header_with_button_sections(C, region, ui::uiButtonSectionsAlign::Bottom);
 }
 
 int header_region_size()
@@ -752,7 +752,7 @@ int context(const bContext *C, const char *member, bContextDataResult *result)
 
   if (CTX_data_equals(member, "asset")) {
     const ARegion *region = CTX_wm_region(C);
-    const uiBut *but = UI_region_views_find_active_item_but(region);
+    const uiBut *but = ui::UI_region_views_find_active_item_but(region);
     if (!but) {
       return CTX_RESULT_NO_DATA;
     }
@@ -794,14 +794,14 @@ AssetShelf *active_shelf_from_context(const bContext *C)
 
 static uiBut *add_tab_button(uiBlock &block, StringRefNull name)
 {
-  const uiStyle *style = UI_style_get_dpi();
-  const int string_width = UI_fontstyle_string_width(&style->widget, name.c_str());
+  const uiStyle *style = ui::UI_style_get_dpi();
+  const int string_width = ui::UI_fontstyle_string_width(&style->widget, name.c_str());
   const int pad_x = UI_UNIT_X * 0.3f;
   const int but_width = std::min(string_width + 2 * pad_x, UI_UNIT_X * 8);
 
   uiBut *but = uiDefBut(
       &block,
-      ButType::Tab,
+      ui::ButType::Tab,
       name,
       0,
       0,
@@ -812,8 +812,8 @@ static uiBut *add_tab_button(uiBlock &block, StringRefNull name)
       0,
       TIP_("Enable catalog, making contained assets visible in the asset shelf"));
 
-  UI_but_drawflag_enable(but, UI_BUT_ALIGN_DOWN);
-  UI_but_flag_disable(but, UI_BUT_UNDO);
+  UI_but_drawflag_enable(but, ui::UI_BUT_ALIGN_DOWN);
+  UI_but_flag_disable(but, ui::UI_BUT_UNDO);
 
   return but;
 }

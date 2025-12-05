@@ -549,20 +549,20 @@ static void panel_draw(const bContext *C, Panel *panel)
     row = &layout.row(false);
     row->use_property_split_set(false);
 
-    uiTemplateList(row,
-                   (bContext *)C,
-                   "MOD_UL_grease_pencil_time_modifier_segments",
-                   "",
-                   ptr,
-                   "segments",
-                   ptr,
-                   "segment_active_index",
-                   nullptr,
-                   3,
-                   10,
-                   0,
-                   1,
-                   UI_TEMPLATE_LIST_FLAG_NONE);
+    ui::uiTemplateList(row,
+                       (bContext *)C,
+                       "MOD_UL_grease_pencil_time_modifier_segments",
+                       "",
+                       ptr,
+                       "segments",
+                       ptr,
+                       "segment_active_index",
+                       nullptr,
+                       3,
+                       10,
+                       0,
+                       1,
+                       ui::UI_TEMPLATE_LIST_FLAG_NONE);
 
     col = &row->column(false);
 
@@ -592,7 +592,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     }
   }
 
-  PanelLayout custom_range_panel_layout = layout.panel_prop(C, ptr, "open_custom_range_panel");
+  ui::PanelLayout custom_range_panel_layout = layout.panel_prop(C, ptr, "open_custom_range_panel");
   if (ui::Layout *header = custom_range_panel_layout.header) {
     header->use_property_split_set(false);
     header->active_set(use_custom_range);
@@ -628,7 +628,7 @@ static void segment_list_item_draw(uiList * /*ui_list*/,
                                    int /*flt_flag*/)
 {
   ui::Layout &row = layout.row(true);
-  row.prop(itemptr, "name", UI_ITEM_R_NO_BG, "", ICON_NONE);
+  row.prop(itemptr, "name", ui::UI_ITEM_R_NO_BG, "", ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

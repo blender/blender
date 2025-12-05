@@ -24,6 +24,8 @@
 
 #include "UI_view2d.hh"
 
+namespace blender::ui {
+
 /* -------------------------------------------------------------------- */
 /** \name View2D Navigation Gizmo Group
  *
@@ -271,3 +273,5 @@ void VIEW2D_GGT_navigate_impl(wmGizmoGroupType *gzgt, const char *idname)
 }
 
 /** \} */
+
+}  // namespace blender::ui

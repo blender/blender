@@ -24,7 +24,6 @@
 #include "UI_resources.hh"
 
 struct bContext;
-struct uiBlock;
 
 namespace blender::ui {
 

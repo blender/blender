@@ -819,7 +819,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
   layout.separator();
   layout.prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  PanelLayout restrict_frame_range_layout = layout.panel_prop_with_bool_header(
+  ui::PanelLayout restrict_frame_range_layout = layout.panel_prop_with_bool_header(
       C,
       ptr,
       "open_frame_range_panel",
@@ -833,7 +833,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     col.prop(ptr, "frame_start", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
     col.prop(ptr, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }
-  PanelLayout fading_layout = layout.panel_prop_with_bool_header(
+  ui::PanelLayout fading_layout = layout.panel_prop_with_bool_header(
       C, ptr, "open_fading_panel", ptr, "use_fading", IFACE_("Fading"));
   if (ui::Layout *panel = fading_layout.body) {
     const bool active = RNA_boolean_get(ptr, "use_fading");

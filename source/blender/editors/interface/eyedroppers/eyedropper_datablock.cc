@@ -40,6 +40,8 @@
 #include "eyedropper_intern.hh"
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
 /**
  * \note #DataDropper is only internal name to avoid confusion with other kinds of eye-droppers.
  */
@@ -367,3 +369,5 @@ void UI_OT_eyedropper_id(wmOperatorType *ot)
 
   /* properties */
 }
+
+}  // namespace blender::ui

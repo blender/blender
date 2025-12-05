@@ -267,9 +267,9 @@ static void update_view2d_tot_rect(const SpreadsheetDrawer &drawer,
    * elements like its border or the icon to open the sidebar. */
   const int right_padding = UI_UNIT_X * 0.5f;
 
-  UI_view2d_totRect_set(&region->v2d,
-                        column_width_sum + drawer.left_column_width + right_padding,
-                        row_amount * drawer.row_height + drawer.top_row_height);
+  ui::UI_view2d_totRect_set(&region->v2d,
+                            column_width_sum + drawer.left_column_width + right_padding,
+                            row_amount * drawer.row_height + drawer.top_row_height);
 }
 
 static void draw_column_reorder_source(const uint pos,
@@ -308,7 +308,7 @@ static void draw_column_reorder_destination(const ARegion &region,
   {
     /* Draw column that is moved. */
     ColorTheme4f color;
-    UI_GetThemeColorShade4fv(TH_BACK, -20, color);
+    ui::UI_GetThemeColorShade4fv(TH_BACK, -20, color);
     color.a = 0.3f;
     rctf offset_column_rect;
     offset_column_rect.xmin = moving_column.runtime->left_x + data.current_offset_x_px -
@@ -317,12 +317,12 @@ static void draw_column_reorder_destination(const ARegion &region,
                               moving_column.width * SPREADSHEET_WIDTH_UNIT;
     offset_column_rect.ymin = 0;
     offset_column_rect.ymax = region.winy;
-    UI_draw_roundbox_4fv(&offset_column_rect, true, 0, color);
+    ui::UI_draw_roundbox_4fv(&offset_column_rect, true, 0, color);
   }
   {
     /* Draw indicator where the column is inserted. */
     ColorTheme4f color;
-    UI_GetThemeColorShade4fv(TH_TEXT, 20, color);
+    ui::UI_GetThemeColorShade4fv(TH_TEXT, 20, color);
     color.a = 0.6f;
     const int insert_column_x = data.new_index <= data.old_index ? insert_column.runtime->left_x :
                                                                    insert_column.runtime->right_x;
@@ -338,7 +338,7 @@ static void draw_column_reorder_destination(const ARegion &region,
     insert_rect.xmin = std::max<float>(insert_rect.xmin, left_bound);
     insert_rect.xmax = std::max<float>(insert_rect.xmax, left_bound);
 
-    UI_draw_roundbox_4fv(&insert_rect, true, 0, color);
+    ui::UI_draw_roundbox_4fv(&insert_rect, true, 0, color);
   }
 }
 
@@ -350,7 +350,7 @@ void draw_spreadsheet_in_region(const bContext *C,
 
   update_view2d_tot_rect(drawer, region, drawer.tot_rows);
 
-  UI_ThemeClearColor(TH_BACK);
+  ui::UI_ThemeClearColor(TH_BACK);
 
   View2D *v2d = &region->v2d;
   const int scroll_offset_y = v2d->cur.ymax;
@@ -385,7 +385,7 @@ void draw_spreadsheet_in_region(const bContext *C,
                 region->winx,
                 0,
                 region->winy - drawer.top_row_height);
-  UI_view2d_scrollers_draw(v2d, &scroller_mask);
+  ui::UI_view2d_scrollers_draw(v2d, &scroller_mask);
 }
 
 }  // namespace blender::ed::spreadsheet

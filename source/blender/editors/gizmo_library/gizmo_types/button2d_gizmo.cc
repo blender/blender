@@ -148,7 +148,7 @@ static void button2d_draw_intern(const bContext *C,
     }
     else if (RNA_property_is_set(gz->ptr, icon_value_prop)) {
       button->icon = RNA_property_int_get(gz->ptr, icon_value_prop);
-      ui_icon_ensure_deferred(C, button->icon, false);
+      blender::ui::ui_icon_ensure_deferred(C, button->icon, false);
     }
     else if (RNA_property_is_set(gz->ptr, shape_prop)) {
       const uint polys_len = RNA_property_string_length(gz->ptr, shape_prop);
@@ -280,7 +280,7 @@ static void button2d_draw_intern(const bContext *C,
 
       float alpha = (highlight) ? 1.0f : 0.8f;
       GPU_polygon_smooth(false);
-      UI_icon_draw_alpha(pos[0], pos[1], button->icon, alpha);
+      blender::ui::UI_icon_draw_alpha(pos[0], pos[1], button->icon, alpha);
       GPU_polygon_smooth(true);
     }
     GPU_blend(GPU_BLEND_NONE);

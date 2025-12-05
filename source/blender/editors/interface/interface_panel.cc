@@ -53,6 +53,8 @@
 
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
 /* -------------------------------------------------------------------- */
 /** \name Defines & Structs
  * \{ */
@@ -854,7 +856,7 @@ void UI_panel_end(Panel *panel, int width, int height)
   panel->blocksizey = height;
 }
 
-void UI_panel_drawname_set(Panel *panel, blender::StringRef name)
+void UI_panel_drawname_set(Panel *panel, StringRef name)
 {
   MEM_SAFE_FREE(panel->drawname);
   panel->drawname = BLI_strdupn(name.data(), name.size());
@@ -1504,8 +1506,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
   /* Begin drawing. */
   GPU_line_smooth(true);
 
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* Draw the background. */
@@ -1559,8 +1560,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 #ifdef USE_FLAT_INACTIVE
     /* Draw line between inactive tabs. */
     if (is_active == false && is_active_prev == false && pc_dyn->prev) {
-      pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+      pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       immUniformColor3fvAlpha(theme_col_tab_outline, 0.3f);
       immRectf(pos,
@@ -1597,8 +1597,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 
       /* Disguise the outline on one side to join the tab to the panel. */
       if (!region->overlap) {
-        pos = GPU_vertformat_attr_add(
-            immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+        pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
         immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
         immUniformColor4fv(is_active ? theme_col_tab_active : theme_col_tab_inactive);
@@ -2897,7 +2896,7 @@ static void panel_activate_state(const bContext *C, Panel *panel, const uiHandle
 
     /* Initiate edge panning during drags for scrolling beyond the initial region view. */
     wmOperatorType *ot = WM_operatortype_find("VIEW2D_OT_edge_pan", true);
-    ui_handle_afterfunc_add_operator(ot, blender::wm::OpCallContext::InvokeDefault);
+    ui_handle_afterfunc_add_operator(ot, wm::OpCallContext::InvokeDefault);
   }
   else if (state == PANEL_STATE_ANIMATION) {
     panel_set_flag_recursive(panel, PNL_SELECT, false);
@@ -2932,3 +2931,5 @@ void UI_panel_stop_animation(const bContext *C, Panel *panel)
 }
 
 /** \} */
+
+}  // namespace blender::ui

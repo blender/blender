@@ -922,7 +922,7 @@ FileAttributeColumnType file_attribute_column_type_find_isect(const View2D *v2d,
   float mx, my;
   int offset_tile;
 
-  UI_view2d_region_to_view(v2d, x, v2d->mask.ymax - layout->offset_top - 1, &mx, &my);
+  blender::ui::UI_view2d_region_to_view(v2d, x, v2d->mask.ymax - layout->offset_top - 1, &mx, &my);
   offset_tile = ED_fileselect_layout_offset(
       layout, int(v2d->tot.xmin + mx), int(v2d->tot.ymax - my));
   if (offset_tile > -1) {
@@ -956,15 +956,15 @@ FileAttributeColumnType file_attribute_column_type_find_isect(const View2D *v2d,
 
 float file_string_width(const char *str)
 {
-  const uiStyle *style = UI_style_get();
-  UI_fontstyle_set(&style->widget);
+  const uiStyle *style = blender::ui::UI_style_get();
+  blender::ui::UI_fontstyle_set(&style->widget);
   return BLF_width(style->widget.uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
 }
 
 float file_font_pointsize()
 {
-  const uiStyle *style = UI_style_get();
-  return UI_fontstyle_height_max(&style->widget);
+  const uiStyle *style = blender::ui::UI_style_get();
+  return blender::ui::UI_fontstyle_height_max(&style->widget);
 }
 
 static void file_attribute_columns_widths(const FileSelectParams *params, FileLayout *layout)
@@ -1015,16 +1015,16 @@ static void file_attribute_columns_init(const FileSelectParams *params, FileLayo
 
   layout->attribute_columns[COLUMN_NAME].name = N_("Name");
   layout->attribute_columns[COLUMN_NAME].sort_type = FILE_SORT_ALPHA;
-  layout->attribute_columns[COLUMN_NAME].text_align = UI_STYLE_TEXT_LEFT;
+  layout->attribute_columns[COLUMN_NAME].text_align = blender::ui::UI_STYLE_TEXT_LEFT;
 
   const bool compact = FILE_LAYOUT_COMPACT(layout);
   layout->attribute_columns[COLUMN_DATETIME].name = compact ? N_("Date") : N_("Date Modified");
 
   layout->attribute_columns[COLUMN_DATETIME].sort_type = FILE_SORT_TIME;
-  layout->attribute_columns[COLUMN_DATETIME].text_align = UI_STYLE_TEXT_LEFT;
+  layout->attribute_columns[COLUMN_DATETIME].text_align = blender::ui::UI_STYLE_TEXT_LEFT;
   layout->attribute_columns[COLUMN_SIZE].name = N_("Size");
   layout->attribute_columns[COLUMN_SIZE].sort_type = FILE_SORT_SIZE;
-  layout->attribute_columns[COLUMN_SIZE].text_align = UI_STYLE_TEXT_RIGHT;
+  layout->attribute_columns[COLUMN_SIZE].text_align = blender::ui::UI_STYLE_TEXT_RIGHT;
 }
 
 void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
@@ -1237,7 +1237,7 @@ int autocomplete_directory(bContext *C, char *str, void * /*arg_v*/)
     dir = opendir(dirname);
 
     if (dir) {
-      AutoComplete *autocpl = UI_autocomplete_begin(str, FILE_MAX);
+      blender::ui::AutoComplete *autocpl = blender::ui::UI_autocomplete_begin(str, FILE_MAX);
 
       while ((de = readdir(dir)) != nullptr) {
         if (FILENAME_IS_CURRPAR(de->d_name)) {
@@ -1275,7 +1275,7 @@ int autocomplete_file(bContext *C, char *str, void * /*arg_v*/)
 
   /* search if str matches the beginning of name */
   if (str[0] && sfile->files) {
-    AutoComplete *autocpl = UI_autocomplete_begin(str, FILE_MAX);
+    blender::ui::AutoComplete *autocpl = blender::ui::UI_autocomplete_begin(str, FILE_MAX);
     int nentries = filelist_files_ensure(sfile->files);
 
     for (int i = 0; i < nentries; i++) {

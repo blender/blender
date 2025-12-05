@@ -112,17 +112,17 @@ static StringRef grid_data_type_string(const VolumeGridType type)
   return IFACE_(StringRef(name));
 }
 
-static bool grid_search_item_add(uiSearchItems &items, const VolumeGridInfo &item)
+static bool grid_search_item_add(ui::SearchItems &items, const VolumeGridInfo &item)
 {
   std::string text = fmt::format(
       "{}" UI_SEP_CHAR_S "{}", item.name, grid_data_type_string(item.grid_type));
-  return UI_search_item_add(&items, text, (void *)&item, ICON_NONE, UI_BUT_HAS_SEP_CHAR, 0);
+  return UI_search_item_add(&items, text, (void *)&item, ICON_NONE, ui::UI_BUT_HAS_SEP_CHAR, 0);
 }
 
 static void volume_grid_search_add_items(const StringRef str,
                                          const bool can_create_grid,
                                          const Span<const VolumeGridInfo *> grids,
-                                         uiSearchItems &seach_items,
+                                         ui::SearchItems &seach_items,
                                          const bool is_first)
 {
   static std::string dummy_str;
@@ -167,7 +167,7 @@ static void volume_grid_search_add_items(const StringRef str,
 }
 
 static void grid_search_update_fn(
-    const bContext *C, void *arg, const char *str, uiSearchItems *items, const bool is_first)
+    const bContext *C, void *arg, const char *str, ui::SearchItems *items, const bool is_first)
 {
   if (ED_screen_animation_playing(CTX_wm_manager(C))) {
     return;
@@ -228,7 +228,7 @@ void node_geometry_add_volume_grid_search_button(const bContext & /*C*/,
 {
   uiBlock *block = layout.block();
   uiBut *but = uiDefIconTextButR(block,
-                                 ButType::SearchMenu,
+                                 ui::ButType::SearchMenu,
                                  ICON_NONE,
                                  "",
                                  0,

@@ -410,9 +410,9 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   BlendFileData *bfd = BKE_blendfile_read(filepath, &params, &bf_reports);
   const int mval[2] = {RNA_int_get(op->ptr, "x"), RNA_int_get(op->ptr, "y")};
   float2 view_mval;
-  View2D *v2d = UI_view2d_fromcontext(C);
+  View2D *v2d = ui::UI_view2d_fromcontext(C);
   Scene *scene = CTX_data_sequencer_scene(C);
-  UI_view2d_region_to_view(v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
+  ui::UI_view2d_region_to_view(v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
 
   /* For checking if region type is Preview. */
   ARegion *region = CTX_wm_region(C);

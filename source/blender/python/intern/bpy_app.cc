@@ -474,7 +474,7 @@ PyDoc_STRVAR(
 static PyObject *bpy_app_preview_render_size_get(PyObject * /*self*/, void *closure)
 {
   return PyLong_FromLong(
-      long(UI_icon_preview_to_render_size(eIconSizes(POINTER_AS_INT(closure)))));
+      long(blender::ui::UI_icon_preview_to_render_size(eIconSizes(POINTER_AS_INT(closure)))));
 }
 
 PyDoc_STRVAR(

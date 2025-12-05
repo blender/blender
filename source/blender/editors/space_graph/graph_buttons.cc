@@ -424,7 +424,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
       blender::ui::Layout &col = layout.column(true);
       uiItemL_respect_property_split(&col, IFACE_("Key Frame"), ICON_NONE);
       but = uiDefButR(block,
-                      ButType::Num,
+                      blender::ui::ButType::Num,
                       "",
                       0,
                       0,
@@ -441,7 +441,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(&col, IFACE_("Value"), ICON_NONE);
       but = uiDefButR(block,
-                      ButType::Num,
+                      blender::ui::ButType::Num,
                       "",
                       0,
                       0,
@@ -464,7 +464,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
       blender::ui::Layout &col = layout.column(true);
       uiItemL_respect_property_split(&col, IFACE_("Left Handle Type"), ICON_NONE);
       but = uiDefButR(block,
-                      ButType::Menu,
+                      blender::ui::ButType::Menu,
                       std::nullopt,
                       0,
                       0,
@@ -481,7 +481,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(&col, IFACE_("Frame"), ICON_NONE);
       but = uiDefButR(block,
-                      ButType::Num,
+                      blender::ui::ButType::Num,
                       "",
                       0,
                       0,
@@ -498,7 +498,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(&col, IFACE_("Value"), ICON_NONE);
       but = uiDefButR(block,
-                      ButType::Num,
+                      blender::ui::ButType::Num,
                       "",
                       0,
                       0,
@@ -522,7 +522,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
       blender::ui::Layout &col = layout.column(true);
       uiItemL_respect_property_split(&col, IFACE_("Right Handle Type"), ICON_NONE);
       but = uiDefButR(block,
-                      ButType::Menu,
+                      blender::ui::ButType::Menu,
                       std::nullopt,
                       0,
                       0,
@@ -539,7 +539,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(&col, IFACE_("Frame"), ICON_NONE);
       but = uiDefButR(block,
-                      ButType::Num,
+                      blender::ui::ButType::Num,
                       "",
                       0,
                       0,
@@ -556,7 +556,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(&col, IFACE_("Value"), ICON_NONE);
       but = uiDefButR(block,
-                      ButType::Num,
+                      blender::ui::ButType::Num,
                       "",
                       0,
                       0,
@@ -667,7 +667,7 @@ static void driver_delete_var_cb(bContext *C, void *driver_v, void *dvar_v)
 /* callback to report why a driver variable is invalid */
 static void driver_dvar_invalid_name_query_cb(bContext *C, void *dvar_v, void * /*arg*/)
 {
-  uiPopupMenu *pup = UI_popup_menu_begin(
+  blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Invalid Variable Name"), ICON_NONE);
   blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
 
@@ -899,7 +899,7 @@ static void graph_draw_driven_property_enabled_btn(blender::ui::Layout &layout,
 
   uiBlock *block = layout.block();
   uiDefButR(block,
-            ButType::CheckboxN,
+            blender::ui::ButType::CheckboxN,
             label,
             0,
             0,
@@ -1063,7 +1063,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
     blender::ui::Layout &sub = row.row(true);
     but = uiDefIconTextBut(
         block,
-        ButType::But,
+        blender::ui::ButType::But,
         ICON_ADD,
         IFACE_("Add Input Variable"),
         0,
@@ -1111,7 +1111,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
 
     type_sub.alignment_set(blender::ui::LayoutAlign::Left);
 
-    type_sub.prop(&dvar_ptr, "type", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+    type_sub.prop(&dvar_ptr, "type", blender::ui::UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
     /* 1.1.2) variable name */
 
@@ -1128,7 +1128,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
 
     if (dvar->flag & DVAR_FLAG_INVALID_NAME) {
       but = uiDefIconBut(block,
-                         ButType::But,
+                         blender::ui::ButType::But,
                          ICON_ERROR,
                          290,
                          0,
@@ -1144,7 +1144,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
 
     /* 1.3) remove button */
     but = uiDefIconBut(block,
-                       ButType::But,
+                       blender::ui::ButType::But,
                        ICON_X,
                        290,
                        0,
@@ -1215,7 +1215,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
    * so keep this around for a while longer as a "last resort" */
   layout.row(true);
   but = uiDefIconTextBut(block,
-                         ButType::But,
+                         blender::ui::ButType::But,
                          ICON_FILE_REFRESH,
                          IFACE_("Update Dependencies"),
                          0,
@@ -1285,7 +1285,7 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *panel)
   uiBut *but = nullptr;
 
   /* Get active property to show driver properties for */
-  but = UI_region_active_but_prop_get(CTX_wm_region(C), &ptr, &prop, &index);
+  but = blender::ui::UI_region_active_but_prop_get(CTX_wm_region(C), &ptr, &prop, &index);
   if (but) {
     FCurve *fcu;
     bool driven, special;

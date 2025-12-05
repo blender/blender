@@ -191,9 +191,10 @@ void EDBM_preselect_edgering_draw(EditMesh_PreSelEdgeRing *psel, const float mat
     immUniformThemeColor3(TH_GIZMO_PRIMARY);
 
     /* Same size as an edit mode vertex */
-    immUniform1f("size",
-                 2.0 * U.pixelsize *
-                     max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * float(M_SQRT2) / 2.0f));
+    immUniform1f(
+        "size",
+        2.0 * U.pixelsize *
+            max_ff(1.0f, blender::ui::UI_GetThemeValuef(TH_VERTEX_SIZE) * float(M_SQRT2) / 2.0f));
 
     immBegin(GPU_PRIM_POINTS, psel->verts_len);
 

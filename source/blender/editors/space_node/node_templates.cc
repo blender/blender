@@ -554,7 +554,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
           /* XXX Do not use ui::Layout::label here,
            * it would add an empty icon as we are in a menu! */
           uiDefBut(block,
-                   ButType::Label,
+                   ui::ButType::Label,
                    IFACE_(cur_node_name),
                    0,
                    0,
@@ -575,7 +575,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
       }
 
       but = uiDefIconTextBut(block,
-                             ButType::But,
+                             ui::ButType::But,
                              icon,
                              name,
                              0,
@@ -629,10 +629,10 @@ static void ui_template_node_link_menu(bContext *C, ui::Layout *layout, void *bu
   if (sock->link) {
     column->label(IFACE_("Link"), ICON_NONE);
     but = block->buttons.last().get();
-    but->drawflag = UI_BUT_TEXT_LEFT;
+    but->drawflag = ui::UI_BUT_TEXT_LEFT;
 
     but = uiDefBut(block,
-                   ButType::But,
+                   ui::ButType::But,
                    CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove"),
                    0,
                    0,
@@ -645,7 +645,7 @@ static void ui_template_node_link_menu(bContext *C, ui::Layout *layout, void *bu
     UI_but_funcN_set(but, ui_node_link, MEM_dupallocN(arg), POINTER_FROM_INT(UI_NODE_LINK_REMOVE));
 
     but = uiDefBut(block,
-                   ButType::But,
+                   ui::ButType::But,
                    IFACE_("Disconnect"),
                    0,
                    0,
@@ -698,7 +698,7 @@ void uiTemplateNodeLink(
 
   UI_but_type_set_menu_from_pulldown(but);
   UI_but_node_link_set(but, input, socket_col);
-  UI_but_drawflag_enable(but, UI_BUT_ICON_LEFT);
+  UI_but_drawflag_enable(but, blender::ui::UI_BUT_ICON_LEFT);
 
   but->poin = (char *)but;
   but->func_argN = arg;
@@ -707,7 +707,7 @@ void uiTemplateNodeLink(
 
   if (input->link && input->link->fromnode) {
     if (input->link->fromnode->flag & NODE_ACTIVE_TEXTURE) {
-      but->flag |= UI_BUT_NODE_ACTIVE;
+      but->flag |= blender::ui::UI_BUT_NODE_ACTIVE;
     }
   }
 
@@ -741,7 +741,7 @@ static void ui_node_draw_recursive(ui::Layout &layout,
   const StringRef panel_translation_context = panel_decl.translation_context.has_value() ?
                                                   *panel_decl.translation_context :
                                                   "";
-  PanelLayout panel_layout = layout.panel(&C, panel_id.c_str(), panel_decl.default_collapsed);
+  ui::PanelLayout panel_layout = layout.panel(&C, panel_id.c_str(), panel_decl.default_collapsed);
   if (panel_toggle_decl) {
     panel_layout.header->use_property_split_set(false);
     panel_layout.header->use_property_decorate_set(false);
@@ -878,7 +878,7 @@ static void ui_node_draw_input(ui::Layout &layout,
 
   row = &layout.row(true);
 
-  uiPropertySplitWrapper split_wrapper = uiItemPropertySplitWrapperCreate(row);
+  ui::uiPropertySplitWrapper split_wrapper = uiItemPropertySplitWrapperCreate(row);
   /* Decorations are added manually here. */
   row->use_property_decorate_set(false);
   /* Empty decorator item for alignment. */
@@ -915,7 +915,7 @@ static void ui_node_draw_input(ui::Layout &layout,
         }
         if (can_expand) {
           int icon = (input.flag & SOCK_COLLAPSED) ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT;
-          sub->prop(&inputptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", icon);
+          sub->prop(&inputptr, "show_expanded", ui::UI_ITEM_R_ICON_ONLY, "", icon);
         }
       }
 

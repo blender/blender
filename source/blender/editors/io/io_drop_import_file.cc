@@ -147,7 +147,7 @@ static wmOperatorStatus wm_drop_import_file_invoke(bContext *C,
    * Create a menu with all file handler import operators that can support any files in paths and
    * let user decide which to use.
    */
-  uiPopupMenu *pup = UI_popup_menu_begin(C, "", ICON_NONE);
+  blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(C, "", ICON_NONE);
   blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
   layout.operator_context_set(blender::wm::OpCallContext::InvokeDefault);
 

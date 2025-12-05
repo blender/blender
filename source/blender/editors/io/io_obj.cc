@@ -192,7 +192,7 @@ static void ui_obj_export_settings(const bContext *C, blender::ui::Layout &layou
   }
 
   /* Material options. */
-  PanelLayout panel = layout.panel(C, "OBJ_export_materials", false);
+  blender::ui::PanelLayout panel = layout.panel(C, "OBJ_export_materials", false);
   panel.header->use_property_split_set(false);
   panel.header->prop(ptr, "export_materials", UI_ITEM_NONE, "", ICON_NONE);
   panel.header->label(IFACE_("Materials"), ICON_NONE);

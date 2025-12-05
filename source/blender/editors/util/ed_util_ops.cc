@@ -272,7 +272,7 @@ static wmOperatorStatus lib_id_generate_preview_exec(bContext *C, wmOperator * /
         BKE_previewimg_clear(preview);
       }
 
-      UI_icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, true);
+      blender::ui::UI_icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, true);
     }
   });
 
@@ -331,7 +331,7 @@ static wmOperatorStatus lib_id_generate_preview_from_object_exec(bContext *C, wm
     BKE_previewimg_id_free(id);
 
     PreviewImage *preview_image = BKE_previewimg_id_ensure(id);
-    UI_icon_render_id_ex(
+    blender::ui::UI_icon_render_id_ex(
         C, nullptr, &object_to_render->id, ICON_SIZE_PREVIEW, true, preview_image);
   });
 
@@ -411,7 +411,7 @@ static wmOperatorStatus lib_id_fake_user_toggle_exec(bContext *C, wmOperator *op
   PropertyPointerRNA pprop;
   PointerRNA idptr = PointerRNA_NULL;
 
-  UI_context_active_but_prop_get_templateID(C, &pprop.ptr, &pprop.prop);
+  blender::ui::UI_context_active_but_prop_get_templateID(C, &pprop.ptr, &pprop.prop);
 
   if (pprop.prop) {
     idptr = RNA_property_pointer_get(&pprop.ptr, pprop.prop);
@@ -461,7 +461,7 @@ static wmOperatorStatus lib_id_unlink_exec(bContext *C, wmOperator *op)
   PropertyPointerRNA pprop;
   PointerRNA idptr;
 
-  UI_context_active_but_prop_get_templateID(C, &pprop.ptr, &pprop.prop);
+  blender::ui::UI_context_active_but_prop_get_templateID(C, &pprop.ptr, &pprop.prop);
 
   if (pprop.prop) {
     idptr = RNA_property_pointer_get(&pprop.ptr, pprop.prop);

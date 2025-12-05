@@ -643,7 +643,8 @@ bool ED_undo_operator_repeat(bContext *C, wmOperator *op)
     /* If the redo is called from a HUD, this knows about the region type the operator was
      * initially called in, so attempt to restore that. */
     ARegion *redo_region_from_hud = (region_orig->regiontype == RGN_TYPE_HUD) ?
-                                        ED_area_type_hud_redo_region_find(area, region_orig) :
+                                        blender::ui::ED_area_type_hud_redo_region_find(
+                                            area, region_orig) :
                                         nullptr;
     ARegion *region_repeat = redo_region_from_hud ? redo_region_from_hud :
                                                     BKE_area_find_region_active_win(area);

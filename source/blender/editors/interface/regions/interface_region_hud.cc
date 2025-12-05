@@ -36,6 +36,8 @@
 #include "GPU_framebuffer.hh"
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
 /* -------------------------------------------------------------------- */
 /** \name Utilities
  * \{ */
@@ -174,7 +176,7 @@ static void hud_panel_operator_redo_draw(const bContext *C, Panel *panel)
   if (!WM_operator_check_ui_enabled(C, op->type->name)) {
     panel->layout->enabled_set(false);
   }
-  blender::ui::Layout &col = panel->layout->column(false);
+  Layout &col = panel->layout->column(false);
   uiTemplateOperatorRedoProperties(&col, C);
 }
 
@@ -477,3 +479,5 @@ ARegion *ED_area_type_hud_redo_region_find(const ScrArea *area, const ARegion *h
 }
 
 /** \} */
+
+}  // namespace blender::ui

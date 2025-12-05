@@ -21,6 +21,8 @@
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"
 
+namespace blender::ui {
+
 /**
  * Function with void * argument for #uiListPanelIDFromDataFunc.
  */
@@ -30,7 +32,7 @@ static void shaderfx_panel_id(void *fx_v, char *r_idname)
   BKE_shaderfxType_panel_id(ShaderFxType(fx->type), r_idname);
 }
 
-void uiTemplateShaderFx(blender::ui::Layout * /*layout*/, bContext *C)
+void uiTemplateShaderFx(Layout * /*layout*/, bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
   Object *ob = blender::ed::object::context_active_object(C);
@@ -75,3 +77,5 @@ void uiTemplateShaderFx(blender::ui::Layout * /*layout*/, bContext *C)
     }
   }
 }
+
+}  // namespace blender::ui

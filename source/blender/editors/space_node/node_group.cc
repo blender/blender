@@ -232,12 +232,12 @@ static wmOperatorStatus node_group_enter_exit_invoke(bContext *C,
   ARegion &region = *CTX_wm_region(C);
 
   /* Don't interfere when the mouse is interacting with some button. See #147282. */
-  if (ISMOUSE_BUTTON(event->type) && UI_but_find_mouse_over(&region, event)) {
+  if (ISMOUSE_BUTTON(event->type) && ui::UI_but_find_mouse_over(&region, event)) {
     return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;
   }
 
   float2 cursor;
-  UI_view2d_region_to_view(&region.v2d, event->mval[0], event->mval[1], &cursor.x, &cursor.y);
+  ui::UI_view2d_region_to_view(&region.v2d, event->mval[0], event->mval[1], &cursor.x, &cursor.y);
   bNode *node = node_under_mouse_get(snode, cursor);
 
   if (!node || node->is_frame()) {
@@ -730,7 +730,7 @@ static wmOperatorStatus node_group_separate_invoke(bContext *C,
                                                    wmOperator * /*op*/,
                                                    const wmEvent * /*event*/)
 {
-  uiPopupMenu *pup = UI_popup_menu_begin(
+  ui::PopupMenu *pup = ui::UI_popup_menu_begin(
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Separate"), ICON_NONE);
   ui::Layout *layout = UI_popup_menu_layout(pup);
 

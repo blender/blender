@@ -24,6 +24,8 @@
 
 #include "view2d_intern.hh"
 
+namespace blender::ui {
+
 /* -------------------------------------------------------------------- */
 /** \name Edge Pan Operator Utilities
  * \{ */
@@ -391,3 +393,5 @@ void UI_view2d_edge_pan_operator_init(bContext *C, View2DEdgePanData *vpd, wmOpe
 }
 
 /** \} */
+
+}  // namespace blender::ui

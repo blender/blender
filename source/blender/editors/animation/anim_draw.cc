@@ -231,7 +231,7 @@ void ANIM_draw_action_framerange(
   immBindBuiltinProgram(GPU_SHADER_2D_DIAG_STRIPES);
 
   float color[4];
-  UI_GetThemeColorShadeAlpha4fv(TH_BACK, -40, -50, color);
+  blender::ui::UI_GetThemeColorShadeAlpha4fv(TH_BACK, -40, -50, color);
 
   immUniform4f("color1", color[0], color[1], color[2], color[3]);
   immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
@@ -809,7 +809,7 @@ void ANIM_center_frame(bContext *C, int smooth_viewtx)
       break;
   }
 
-  UI_view2d_smooth_view(C, region, &newrct, smooth_viewtx);
+  blender::ui::UI_view2d_smooth_view(C, region, &newrct, smooth_viewtx);
 }
 /* *************************************************** */
 

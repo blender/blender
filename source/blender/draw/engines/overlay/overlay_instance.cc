@@ -248,51 +248,51 @@ void Resources::update_theme_settings(const DRWContext *ctx, const State &state)
     return float4(r, g, b, a) / 255.0f;
   };
 
-  UI_GetThemeColor4fv(TH_WIRE, gb.colors.wire);
-  UI_GetThemeColor4fv(TH_WIRE_EDIT, gb.colors.wire_edit);
-  UI_GetThemeColor4fv(TH_ACTIVE, gb.colors.active_object);
-  UI_GetThemeColor4fv(TH_SELECT, gb.colors.object_select);
+  ui::UI_GetThemeColor4fv(TH_WIRE, gb.colors.wire);
+  ui::UI_GetThemeColor4fv(TH_WIRE_EDIT, gb.colors.wire_edit);
+  ui::UI_GetThemeColor4fv(TH_ACTIVE, gb.colors.active_object);
+  ui::UI_GetThemeColor4fv(TH_SELECT, gb.colors.object_select);
   gb.colors.library_select = rgba_uchar_to_float(0x88, 0xFF, 0xFF, 155);
   gb.colors.library = rgba_uchar_to_float(0x55, 0xCC, 0xCC, 155);
-  UI_GetThemeColor4fv(TH_TRANSFORM, gb.colors.transform);
-  UI_GetThemeColor4fv(TH_LIGHT, gb.colors.light);
-  UI_GetThemeColor4fv(TH_SPEAKER, gb.colors.speaker);
-  UI_GetThemeColor4fv(TH_CAMERA, gb.colors.camera);
-  UI_GetThemeColor4fv(TH_CAMERA_PATH, gb.colors.camera_path);
-  UI_GetThemeColor4fv(TH_EMPTY, gb.colors.empty);
-  UI_GetThemeColor4fv(TH_VERTEX, gb.colors.vert);
-  UI_GetThemeColor4fv(TH_VERTEX_SELECT, gb.colors.vert_select);
-  UI_GetThemeColor4fv(TH_VERTEX_UNREFERENCED, gb.colors.vert_unreferenced);
+  ui::UI_GetThemeColor4fv(TH_TRANSFORM, gb.colors.transform);
+  ui::UI_GetThemeColor4fv(TH_LIGHT, gb.colors.light);
+  ui::UI_GetThemeColor4fv(TH_SPEAKER, gb.colors.speaker);
+  ui::UI_GetThemeColor4fv(TH_CAMERA, gb.colors.camera);
+  ui::UI_GetThemeColor4fv(TH_CAMERA_PATH, gb.colors.camera_path);
+  ui::UI_GetThemeColor4fv(TH_EMPTY, gb.colors.empty);
+  ui::UI_GetThemeColor4fv(TH_VERTEX, gb.colors.vert);
+  ui::UI_GetThemeColor4fv(TH_VERTEX_SELECT, gb.colors.vert_select);
+  ui::UI_GetThemeColor4fv(TH_VERTEX_UNREFERENCED, gb.colors.vert_unreferenced);
   gb.colors.vert_missing_data = rgba_uchar_to_float(0xB0, 0x00, 0xB0, 0xFF);
-  UI_GetThemeColor4fv(TH_EDITMESH_ACTIVE, gb.colors.edit_mesh_active);
-  UI_GetThemeColor4fv(TH_EDGE_SELECT, gb.colors.edge_select);
-  UI_GetThemeColor4fv(TH_EDGE_MODE_SELECT, gb.colors.edge_mode_select);
-  UI_GetThemeColor4fv(TH_GP_WIRE_EDIT, gb.colors.gpencil_wire_edit);
-  UI_GetThemeColor4fv(TH_GP_VERTEX, gb.colors.gpencil_vertex);
-  UI_GetThemeColor4fv(TH_GP_VERTEX_SELECT, gb.colors.gpencil_vertex_select);
+  ui::UI_GetThemeColor4fv(TH_EDITMESH_ACTIVE, gb.colors.edit_mesh_active);
+  ui::UI_GetThemeColor4fv(TH_EDGE_SELECT, gb.colors.edge_select);
+  ui::UI_GetThemeColor4fv(TH_EDGE_MODE_SELECT, gb.colors.edge_mode_select);
+  ui::UI_GetThemeColor4fv(TH_GP_WIRE_EDIT, gb.colors.gpencil_wire_edit);
+  ui::UI_GetThemeColor4fv(TH_GP_VERTEX, gb.colors.gpencil_vertex);
+  ui::UI_GetThemeColor4fv(TH_GP_VERTEX_SELECT, gb.colors.gpencil_vertex_select);
 
-  UI_GetThemeColor4fv(TH_SEAM, gb.colors.edge_seam);
-  UI_GetThemeColor4fv(TH_SHARP, gb.colors.edge_sharp);
-  UI_GetThemeColor4fv(TH_CREASE, gb.colors.edge_crease);
-  UI_GetThemeColor4fv(TH_BEVEL, gb.colors.edge_bweight);
-  UI_GetThemeColor4fv(TH_FACE, gb.colors.face);
-  UI_GetThemeColor4fv(TH_FACE_SELECT, gb.colors.face_select);
-  UI_GetThemeColor4fv(TH_FACE_MODE_SELECT, gb.colors.face_mode_select);
-  UI_GetThemeColor4fv(TH_FACE_RETOPOLOGY, gb.colors.face_retopology);
-  UI_GetThemeColor4fv(TH_FACE_BACK, gb.colors.face_back);
-  UI_GetThemeColor4fv(TH_FACE_FRONT, gb.colors.face_front);
-  UI_GetThemeColor4fv(TH_NORMAL, gb.colors.normal);
-  UI_GetThemeColor4fv(TH_VNORMAL, gb.colors.vnormal);
-  UI_GetThemeColor4fv(TH_LNORMAL, gb.colors.lnormal);
-  UI_GetThemeColor4fv(TH_FACE_SELECT, gb.colors.facedot), gb.colors.facedot[3] = 1.0f;
-  UI_GetThemeColor4fv(TH_SKIN_ROOT, gb.colors.skinroot);
-  UI_GetThemeColor4fv(TH_BACK, gb.colors.background);
-  UI_GetThemeColor4fv(TH_BACK_GRAD, gb.colors.background_gradient);
-  UI_GetThemeColor4fv(TH_TRANSPARENT_CHECKER_PRIMARY, gb.colors.checker_primary);
-  UI_GetThemeColor4fv(TH_TRANSPARENT_CHECKER_SECONDARY, gb.colors.checker_secondary);
-  gb.sizes.checker = UI_GetThemeValuef(TH_TRANSPARENT_CHECKER_SIZE);
+  ui::UI_GetThemeColor4fv(TH_SEAM, gb.colors.edge_seam);
+  ui::UI_GetThemeColor4fv(TH_SHARP, gb.colors.edge_sharp);
+  ui::UI_GetThemeColor4fv(TH_CREASE, gb.colors.edge_crease);
+  ui::UI_GetThemeColor4fv(TH_BEVEL, gb.colors.edge_bweight);
+  ui::UI_GetThemeColor4fv(TH_FACE, gb.colors.face);
+  ui::UI_GetThemeColor4fv(TH_FACE_SELECT, gb.colors.face_select);
+  ui::UI_GetThemeColor4fv(TH_FACE_MODE_SELECT, gb.colors.face_mode_select);
+  ui::UI_GetThemeColor4fv(TH_FACE_RETOPOLOGY, gb.colors.face_retopology);
+  ui::UI_GetThemeColor4fv(TH_FACE_BACK, gb.colors.face_back);
+  ui::UI_GetThemeColor4fv(TH_FACE_FRONT, gb.colors.face_front);
+  ui::UI_GetThemeColor4fv(TH_NORMAL, gb.colors.normal);
+  ui::UI_GetThemeColor4fv(TH_VNORMAL, gb.colors.vnormal);
+  ui::UI_GetThemeColor4fv(TH_LNORMAL, gb.colors.lnormal);
+  ui::UI_GetThemeColor4fv(TH_FACE_SELECT, gb.colors.facedot), gb.colors.facedot[3] = 1.0f;
+  ui::UI_GetThemeColor4fv(TH_SKIN_ROOT, gb.colors.skinroot);
+  ui::UI_GetThemeColor4fv(TH_BACK, gb.colors.background);
+  ui::UI_GetThemeColor4fv(TH_BACK_GRAD, gb.colors.background_gradient);
+  ui::UI_GetThemeColor4fv(TH_TRANSPARENT_CHECKER_PRIMARY, gb.colors.checker_primary);
+  ui::UI_GetThemeColor4fv(TH_TRANSPARENT_CHECKER_SECONDARY, gb.colors.checker_secondary);
+  gb.sizes.checker = ui::UI_GetThemeValuef(TH_TRANSPARENT_CHECKER_SIZE);
   gb.fresnel_mix_edit = ((U.gpu_flag & USER_GPU_FLAG_FRESNEL_EDIT) == 0) ? 0.0f : 1.0f;
-  UI_GetThemeColor4fv(TH_V3D_CLIPPING_BORDER, gb.colors.clipping_border);
+  ui::UI_GetThemeColor4fv(TH_V3D_CLIPPING_BORDER, gb.colors.clipping_border);
 
   /* Custom median color to slightly affect the edit mesh colors. */
   gb.colors.edit_mesh_middle = interpolate(gb.colors.vert_select, gb.colors.wire_edit, 0.35f);
@@ -302,53 +302,55 @@ void Resources::update_theme_settings(const DRWContext *ctx, const State &state)
       gb.colors.edit_mesh_middle.w);
 
 #ifdef WITH_FREESTYLE
-  UI_GetThemeColor4fv(TH_FREESTYLE, gb.colors.edge_freestyle), gb.colors.edge_freestyle[3] = 1.0f;
-  UI_GetThemeColor4fv(TH_FREESTYLE, gb.colors.face_freestyle);
+  ui::UI_GetThemeColor4fv(TH_FREESTYLE, gb.colors.edge_freestyle),
+      gb.colors.edge_freestyle[3] = 1.0f;
+  ui::UI_GetThemeColor4fv(TH_FREESTYLE, gb.colors.face_freestyle);
 #else
   gb.colors.edge_freestyle = float4(0.0f);
   gb.colors.face_freestyle = float4(0.0f);
 #endif
 
-  UI_GetThemeColor4fv(TH_TEXT, gb.colors.text);
-  UI_GetThemeColor4fv(TH_TEXT_HI, gb.colors.text_hi);
+  ui::UI_GetThemeColor4fv(TH_TEXT, gb.colors.text);
+  ui::UI_GetThemeColor4fv(TH_TEXT_HI, gb.colors.text_hi);
 
   /* Bone colors */
-  UI_GetThemeColor4fv(TH_BONE_POSE, gb.colors.bone_pose);
-  UI_GetThemeColor4fv(TH_BONE_POSE_ACTIVE, gb.colors.bone_pose_active);
-  UI_GetThemeColorShade4fv(TH_EDGE_SELECT, 60, gb.colors.bone_active);
-  UI_GetThemeColorShade4fv(TH_EDGE_SELECT, -20, gb.colors.bone_select);
-  UI_GetThemeColorBlendShade4fv(TH_WIRE, TH_BONE_POSE, 0.15f, 0, gb.colors.bone_pose_active_unsel);
-  UI_GetThemeColorBlendShade3fv(
+  ui::UI_GetThemeColor4fv(TH_BONE_POSE, gb.colors.bone_pose);
+  ui::UI_GetThemeColor4fv(TH_BONE_POSE_ACTIVE, gb.colors.bone_pose_active);
+  ui::UI_GetThemeColorShade4fv(TH_EDGE_SELECT, 60, gb.colors.bone_active);
+  ui::UI_GetThemeColorShade4fv(TH_EDGE_SELECT, -20, gb.colors.bone_select);
+  ui::UI_GetThemeColorBlendShade4fv(
+      TH_WIRE, TH_BONE_POSE, 0.15f, 0, gb.colors.bone_pose_active_unsel);
+  ui::UI_GetThemeColorBlendShade3fv(
       TH_WIRE_EDIT, TH_EDGE_SELECT, 0.15f, 0, gb.colors.bone_active_unsel);
   gb.colors.bone_pose_no_target = rgba_uchar_to_float(255, 150, 0, 80);
   gb.colors.bone_pose_ik = rgba_uchar_to_float(255, 255, 0, 80);
   gb.colors.bone_pose_spline_ik = rgba_uchar_to_float(200, 255, 0, 80);
   gb.colors.bone_pose_constraint = rgba_uchar_to_float(0, 255, 120, 80);
-  UI_GetThemeColor4fv(TH_BONE_SOLID, gb.colors.bone_solid);
-  UI_GetThemeColor4fv(TH_BONE_LOCKED_WEIGHT, gb.colors.bone_locked);
+  ui::UI_GetThemeColor4fv(TH_BONE_SOLID, gb.colors.bone_solid);
+  ui::UI_GetThemeColor4fv(TH_BONE_LOCKED_WEIGHT, gb.colors.bone_locked);
   gb.colors.bone_ik_line = float4(0.8f, 0.8f, 0.0f, 1.0f);
   gb.colors.bone_ik_line_no_target = float4(0.8f, 0.5f, 0.2f, 1.0f);
   gb.colors.bone_ik_line_spline = float4(0.8f, 0.8f, 0.2f, 1.0f);
 
   /* Curve */
-  UI_GetThemeColor4fv(TH_HANDLE_FREE, gb.colors.handle_free);
-  UI_GetThemeColor4fv(TH_HANDLE_AUTO, gb.colors.handle_auto);
-  UI_GetThemeColor4fv(TH_HANDLE_VECT, gb.colors.handle_vect);
-  UI_GetThemeColor4fv(TH_HANDLE_ALIGN, gb.colors.handle_align);
-  UI_GetThemeColor4fv(TH_HANDLE_AUTOCLAMP, gb.colors.handle_autoclamp);
-  UI_GetThemeColor4fv(TH_HANDLE_SEL_FREE, gb.colors.handle_sel_free);
-  UI_GetThemeColor4fv(TH_HANDLE_SEL_AUTO, gb.colors.handle_sel_auto);
-  UI_GetThemeColor4fv(TH_HANDLE_SEL_VECT, gb.colors.handle_sel_vect);
-  UI_GetThemeColor4fv(TH_HANDLE_SEL_ALIGN, gb.colors.handle_sel_align);
-  UI_GetThemeColor4fv(TH_HANDLE_SEL_AUTOCLAMP, gb.colors.handle_sel_autoclamp);
-  UI_GetThemeColor4fv(TH_NURB_ULINE, gb.colors.nurb_uline);
-  UI_GetThemeColor4fv(TH_NURB_VLINE, gb.colors.nurb_vline);
-  UI_GetThemeColor4fv(TH_NURB_SEL_ULINE, gb.colors.nurb_sel_uline);
-  UI_GetThemeColor4fv(TH_NURB_SEL_VLINE, gb.colors.nurb_sel_vline);
+  ui::UI_GetThemeColor4fv(TH_HANDLE_FREE, gb.colors.handle_free);
+  ui::UI_GetThemeColor4fv(TH_HANDLE_AUTO, gb.colors.handle_auto);
+  ui::UI_GetThemeColor4fv(TH_HANDLE_VECT, gb.colors.handle_vect);
+  ui::UI_GetThemeColor4fv(TH_HANDLE_ALIGN, gb.colors.handle_align);
+  ui::UI_GetThemeColor4fv(TH_HANDLE_AUTOCLAMP, gb.colors.handle_autoclamp);
+  ui::UI_GetThemeColor4fv(TH_HANDLE_SEL_FREE, gb.colors.handle_sel_free);
+  ui::UI_GetThemeColor4fv(TH_HANDLE_SEL_AUTO, gb.colors.handle_sel_auto);
+  ui::UI_GetThemeColor4fv(TH_HANDLE_SEL_VECT, gb.colors.handle_sel_vect);
+  ui::UI_GetThemeColor4fv(TH_HANDLE_SEL_ALIGN, gb.colors.handle_sel_align);
+  ui::UI_GetThemeColor4fv(TH_HANDLE_SEL_AUTOCLAMP, gb.colors.handle_sel_autoclamp);
+  ui::UI_GetThemeColor4fv(TH_NURB_ULINE, gb.colors.nurb_uline);
+  ui::UI_GetThemeColor4fv(TH_NURB_VLINE, gb.colors.nurb_vline);
+  ui::UI_GetThemeColor4fv(TH_NURB_SEL_ULINE, gb.colors.nurb_sel_uline);
+  ui::UI_GetThemeColor4fv(TH_NURB_SEL_VLINE, gb.colors.nurb_sel_vline);
 
-  UI_GetThemeColor4fv(TH_CFRAME, gb.colors.current_frame);
-  UI_GetThemeColor4fv(TH_FRAME_BEFORE, gb.colors.before_frame);
-  UI_GetThemeColor4fv(TH_FRAME_AFTER, gb.colors.after_frame);
+  ui::UI_GetThemeColor4fv(TH_CFRAME, gb.colors.current_frame);
+  ui::UI_GetThemeColor4fv(TH_FRAME_BEFORE, gb.colors.before_frame);
+  ui::UI_GetThemeColor4fv(TH_FRAME_AFTER, gb.colors.after_frame);
 
   /* Meta-ball. */
   gb.colors.mball_radius = rgba_uchar_to_float(0xA0, 0x30, 0x30, 0xFF);
@@ -357,22 +359,22 @@ void Resources::update_theme_settings(const DRWContext *ctx, const State &state)
   gb.colors.mball_stiffness_select = rgba_uchar_to_float(0xA0, 0xF0, 0xA0, 0xFF);
 
   /* Grid */
-  UI_GetThemeColorShade4fv(TH_GRID, 10, gb.colors.grid);
+  ui::UI_GetThemeColorShade4fv(TH_GRID, 10, gb.colors.grid);
   /* Emphasize division lines lighter instead of darker, if background is darker than grid. */
   const bool is_bg_darker = reduce_add(gb.colors.grid.xyz()) + 0.12f >
                             reduce_add(gb.colors.background.xyz());
-  UI_GetThemeColorShade4fv(TH_GRID, (is_bg_darker) ? 20 : -10, gb.colors.grid_emphasis);
+  ui::UI_GetThemeColorShade4fv(TH_GRID, (is_bg_darker) ? 20 : -10, gb.colors.grid_emphasis);
   /* Grid Axis */
-  UI_GetThemeColorBlendShade4fv(TH_GRID, TH_AXIS_X, 0.5f, -10, gb.colors.grid_axis_x);
-  UI_GetThemeColorBlendShade4fv(TH_GRID, TH_AXIS_Y, 0.5f, -10, gb.colors.grid_axis_y);
-  UI_GetThemeColorBlendShade4fv(TH_GRID, TH_AXIS_Z, 0.5f, -10, gb.colors.grid_axis_z);
+  ui::UI_GetThemeColorBlendShade4fv(TH_GRID, TH_AXIS_X, 0.5f, -10, gb.colors.grid_axis_x);
+  ui::UI_GetThemeColorBlendShade4fv(TH_GRID, TH_AXIS_Y, 0.5f, -10, gb.colors.grid_axis_y);
+  ui::UI_GetThemeColorBlendShade4fv(TH_GRID, TH_AXIS_Z, 0.5f, -10, gb.colors.grid_axis_z);
 
-  UI_GetThemeColorShadeAlpha4fv(TH_TRANSFORM, 0, -80, gb.colors.deselect);
-  UI_GetThemeColorShadeAlpha4fv(TH_WIRE, 0, -30, gb.colors.outline);
-  UI_GetThemeColorShadeAlpha4fv(TH_LIGHT, 0, 255, gb.colors.light_no_alpha);
+  ui::UI_GetThemeColorShadeAlpha4fv(TH_TRANSFORM, 0, -80, gb.colors.deselect);
+  ui::UI_GetThemeColorShadeAlpha4fv(TH_WIRE, 0, -30, gb.colors.outline);
+  ui::UI_GetThemeColorShadeAlpha4fv(TH_LIGHT, 0, 255, gb.colors.light_no_alpha);
 
   /* UV colors */
-  UI_GetThemeColor4fv(TH_UV_SHADOW, gb.colors.uv_shadow);
+  ui::UI_GetThemeColor4fv(TH_UV_SHADOW, gb.colors.uv_shadow);
 
   /* Color management. */
   {
@@ -385,16 +387,16 @@ void Resources::update_theme_settings(const DRWContext *ctx, const State &state)
   }
 
   gb.sizes.pixel = 1.0f;
-  gb.sizes.object_center = UI_GetThemeValuef(TH_OBCENTER_DIA) + 1.0f;
-  gb.sizes.light_center = UI_GetThemeValuef(TH_OBCENTER_DIA) + 1.5f;
+  gb.sizes.object_center = ui::UI_GetThemeValuef(TH_OBCENTER_DIA) + 1.0f;
+  gb.sizes.light_center = ui::UI_GetThemeValuef(TH_OBCENTER_DIA) + 1.5f;
   gb.sizes.light_circle = 9.0f;
   gb.sizes.light_circle_shadow = (gb.sizes.light_circle + 3.0f);
 
   /* M_SQRT2 to be at least the same size of the old square */
   gb.sizes.vert = vertex_size_get();
-  gb.sizes.vertex_gpencil = UI_GetThemeValuef(TH_GP_VERTEX_SIZE);
-  gb.sizes.face_dot = UI_GetThemeValuef(TH_FACEDOT_SIZE);
-  gb.sizes.edge = max_ff(1.0f, UI_GetThemeValuef(TH_EDGE_WIDTH)) / 2.0f;
+  gb.sizes.vertex_gpencil = ui::UI_GetThemeValuef(TH_GP_VERTEX_SIZE);
+  gb.sizes.face_dot = ui::UI_GetThemeValuef(TH_FACEDOT_SIZE);
+  gb.sizes.edge = max_ff(1.0f, ui::UI_GetThemeValuef(TH_EDGE_WIDTH)) / 2.0f;
 
   /* Pixel size. */
   {

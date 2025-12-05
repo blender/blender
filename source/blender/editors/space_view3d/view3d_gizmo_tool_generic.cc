@@ -67,8 +67,8 @@ static wmGizmo *tool_generic_create_gizmo(const bContext *C, wmGizmoGroup *gzgro
   wmGizmo *gz = WM_gizmo_new("GIZMO_GT_button_2d", gzgroup, nullptr);
   gz->flag |= WM_GIZMO_OPERATOR_TOOL_INIT;
 
-  UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
-  UI_GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
+  blender::ui::UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
+  blender::ui::UI_GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
 
   unit_m4(gz->matrix_offset);
 

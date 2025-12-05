@@ -59,6 +59,8 @@
 
 static CLG_LogRef LOG = {"ui.icon"};
 
+namespace blender::ui {
+
 struct IconImage {
   int w;
   int h;
@@ -279,16 +281,13 @@ static void vicon_keytype_draw_wrapper(const float x,
 
   GPUVertFormat *format = immVertexFormat();
   KeyframeShaderBindings sh_bindings;
-  sh_bindings.pos_id = GPU_vertformat_attr_add(
-      format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
-  sh_bindings.size_id = GPU_vertformat_attr_add(
-      format, "size", blender::gpu::VertAttrType::SFLOAT_32);
+  sh_bindings.pos_id = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
+  sh_bindings.size_id = GPU_vertformat_attr_add(format, "size", gpu::VertAttrType::SFLOAT_32);
   sh_bindings.color_id = GPU_vertformat_attr_add(
-      format, "color", blender::gpu::VertAttrType::UNORM_8_8_8_8);
+      format, "color", gpu::VertAttrType::UNORM_8_8_8_8);
   sh_bindings.outline_color_id = GPU_vertformat_attr_add(
-      format, "outlineColor", blender::gpu::VertAttrType::UNORM_8_8_8_8);
-  sh_bindings.flags_id = GPU_vertformat_attr_add(
-      format, "flags", blender::gpu::VertAttrType::UINT_32);
+      format, "outlineColor", gpu::VertAttrType::UNORM_8_8_8_8);
+  sh_bindings.flags_id = GPU_vertformat_attr_add(format, "flags", gpu::VertAttrType::UINT_32);
 
   GPU_program_point_size(true);
   immBindBuiltinProgram(GPU_SHADER_KEYFRAME_SHAPE);
@@ -395,7 +394,7 @@ static void icon_node_socket_draw(
   constexpr float size_factor = 10.0f / float(ICON_DEFAULT_WIDTH);
 
   const float socket_radius = w * 0.5f * size_factor;
-  const blender::float2 center = {x + 0.5f * w, y + 0.5f * h};
+  const float2 center = {x + 0.5f * w, y + 0.5f * h};
   const rctf rect = {
       center.x - socket_radius,
       center.x + socket_radius,
@@ -428,8 +427,7 @@ static void vicon_colorset_draw(int index, int x, int y, int w, int h, float /*a
   const int b = x + w / 3 * 2;
   const int c = x + w;
 
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* XXX: Include alpha into this... */
@@ -625,8 +623,7 @@ static void vicon_gplayer_color_draw(Icon *icon, int x, int y, int w, int h)
   /* TODO: Make this have rounded corners, and maybe be a bit smaller.
    * However, UI_draw_roundbox_aa() draws the colors too dark, so can't be used.
    */
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformColor3fv(gpl->color);
@@ -1429,7 +1426,7 @@ static void icon_draw_rect(float x,
                                  draw_y,
                                  rw,
                                  rh,
-                                 blender::gpu::TextureFormat::UNORM_8_8_8_8,
+                                 gpu::TextureFormat::UNORM_8_8_8_8,
                                  true,
                                  rect,
                                  scale_x,
@@ -1549,7 +1546,7 @@ static void svg_replace_color_attributes(std::string &svg,
 
     size_t att_start = start;
     while (true) {
-      constexpr static blender::StringRef key = "fill=\"";
+      constexpr static StringRef key = "fill=\"";
       att_start = svg.find(key, att_start);
       if (att_start == std::string::npos || att_start > end) {
         break;
@@ -1558,12 +1555,12 @@ static void svg_replace_color_attributes(std::string &svg,
       if (att_end != std::string::npos && att_end < end) {
         svg.replace(att_start, att_end - att_start, key + "#" + hexcolor);
       }
-      att_start += blender::StringRef(key + "#rrggbbaa\"").size();
+      att_start += StringRef(key + "#rrggbbaa\"").size();
     }
 
     att_start = start;
     while (true) {
-      constexpr static blender::StringRef key = "fill:";
+      constexpr static StringRef key = "fill:";
       att_start = svg.find(key, att_start);
       if (att_start == std::string::npos || att_start > end) {
         break;
@@ -1572,7 +1569,7 @@ static void svg_replace_color_attributes(std::string &svg,
       if (att_end != std::string::npos && att_end - att_start < end) {
         svg.replace(att_start, att_end - att_start, key + "#" + hexcolor);
       }
-      att_start += blender::StringRef(key + "#rrggbbaa").size();
+      att_start += StringRef(key + "#rrggbbaa").size();
     }
   }
 }
@@ -1585,7 +1582,7 @@ static void icon_source_edit_cb(std::string &svg)
 
   while (true) {
     /* Look for a blender id, quick exit if not found. */
-    constexpr static blender::StringRef key = "id=\"";
+    constexpr static StringRef key = "id=\"";
     const size_t id_start = svg.find(key + "blender_", g_start);
     if (id_start == std::string::npos) {
       return;
@@ -2255,7 +2252,7 @@ ImBuf *UI_svg_icon_bitmap(uint icon_id, float size, bool multicolor)
   ImBuf *ibuf = nullptr;
   int width;
   int height;
-  blender::Array<uchar> bitmap;
+  Array<uchar> bitmap;
 
   if (multicolor) {
     bitmap = BLF_svg_icon_bitmap(icon_id, size, &width, &height, true, icon_source_edit_cb);
@@ -2291,7 +2288,7 @@ void UI_icon_text_overlay_init_from_count(IconTextOverlay *text_overlay,
 
 /* ********** Alert Icons ********** */
 
-ImBuf *UI_icon_alert_imbuf_get(blender::ui::AlertIcon icon, float size)
+ImBuf *UI_icon_alert_imbuf_get(AlertIcon icon, float size)
 {
 #ifdef WITH_HEADLESS
   UNUSED_VARS(icon, size);
@@ -2300,16 +2297,16 @@ ImBuf *UI_icon_alert_imbuf_get(blender::ui::AlertIcon icon, float size)
 
   int icon_id = ICON_NONE;
   switch (icon) {
-    case blender::ui::AlertIcon::Warning:
+    case AlertIcon::Warning:
       icon_id = ICON_WARNING_LARGE;
       break;
-    case blender::ui::AlertIcon::Question:
+    case AlertIcon::Question:
       icon_id = ICON_QUESTION_LARGE;
       break;
-    case blender::ui::AlertIcon::Error:
+    case AlertIcon::Error:
       icon_id = ICON_CANCEL_LARGE;
       break;
-    case blender::ui::AlertIcon::Info:
+    case AlertIcon::Info:
       icon_id = ICON_INFO_LARGE;
       break;
     default:
@@ -2323,3 +2320,5 @@ ImBuf *UI_icon_alert_imbuf_get(blender::ui::AlertIcon icon, float size)
   return UI_svg_icon_bitmap(icon_id, size, false);
 #endif
 }
+
+}  // namespace blender::ui

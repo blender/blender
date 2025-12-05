@@ -45,13 +45,15 @@
 
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
 /* -------------------------------------------------------------------- */
 /** \name Popup Menu with Callback or String
  * \{ */
 
 struct uiPopover {
   uiBlock *block;
-  blender::ui::Layout *layout;
+  Layout *layout;
   uiBut *but;
   ARegion *butregion;
 
@@ -78,13 +80,13 @@ struct uiPopover {
 static void ui_popover_create_block(bContext *C,
                                     ARegion *region,
                                     uiPopover *pup,
-                                    blender::wm::OpCallContext opcontext)
+                                    wm::OpCallContext opcontext)
 {
   BLI_assert(pup->ui_size_x != 0);
 
   const uiStyle *style = UI_style_get_dpi();
 
-  pup->block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  pup->block = UI_block_begin(C, region, __func__, EmbossType::Emboss);
 
   UI_block_flag_enable(pup->block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_POPOVER);
 #ifdef USE_UI_POPOVER_ONCE
@@ -93,15 +95,8 @@ static void ui_popover_create_block(bContext *C,
   }
 #endif
 
-  pup->layout = &blender::ui::block_layout(pup->block,
-                                           blender::ui::LayoutDirection::Vertical,
-                                           blender::ui::LayoutType::Panel,
-                                           0,
-                                           0,
-                                           pup->ui_size_x,
-                                           0,
-                                           0,
-                                           style);
+  pup->layout = &block_layout(
+      pup->block, LayoutDirection::Vertical, LayoutType::Panel, 0, 0, pup->ui_size_x, 0, 0, style);
 
   pup->layout->operator_context_set(opcontext);
 
@@ -118,7 +113,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 
   /* Create UI block and layout now if it wasn't done between begin/end. */
   if (!pup->layout) {
-    ui_popover_create_block(C, handle->region, pup, blender::wm::OpCallContext::InvokeRegionWin);
+    ui_popover_create_block(C, handle->region, pup, wm::OpCallContext::InvokeRegionWin);
 
     if (pup->popover_func) {
       pup->block->handle = handle;
@@ -138,7 +133,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
     UI_block_region_set(block, handle->region);
   }
 
-  blender::ui::block_layout_resolve(block);
+  block_layout_resolve(block);
   UI_block_direction_set(block, UI_DIR_DOWN | UI_DIR_CENTER_X);
 
   const int block_margin = U.widget_unit / 2;
@@ -313,7 +308,7 @@ wmOperatorStatus UI_popover_panel_invoke(bContext *C,
                                          bool keep_open,
                                          ReportList *reports)
 {
-  blender::ui::Layout *layout;
+  Layout *layout;
   PanelType *pt = WM_paneltype_find(idname, true);
   if (pt == nullptr) {
     BKE_reportf(reports, RPT_ERROR, "Panel \"%s\" not found", idname);
@@ -335,8 +330,8 @@ wmOperatorStatus UI_popover_panel_invoke(bContext *C,
   else {
     uiPopover *pup = UI_popover_begin(C, U.widget_unit * pt->ui_units_x, false);
     layout = UI_popover_layout(pup);
-    UI_paneltype_draw(C, pt, layout);
-    UI_popover_end(C, pup, nullptr);
+    blender::ui::UI_paneltype_draw(C, pt, layout);
+    blender::ui::UI_popover_end(C, pup, nullptr);
     block = pup->block;
   }
 
@@ -376,7 +371,7 @@ uiPopover *UI_popover_begin(bContext *C, int ui_menu_width, bool from_active_but
   pup->butregion = butregion;
 
   /* Operator context default same as menus, change if needed. */
-  ui_popover_create_block(C, nullptr, pup, blender::wm::OpCallContext::ExecRegionWin);
+  ui_popover_create_block(C, nullptr, pup, wm::OpCallContext::ExecRegionWin);
 
   /* Create in advance so we can let buttons point to #uiPopupBlockHandle::retvalue
    * (and other return values) already. */
@@ -433,7 +428,7 @@ void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
   UI_block_flag_disable(pup->block, UI_BLOCK_KEEP_OPEN);
 }
 
-blender::ui::Layout *UI_popover_layout(uiPopover *pup)
+Layout *UI_popover_layout(uiPopover *pup)
 {
   return pup->layout;
 }
@@ -446,3 +441,5 @@ void UI_popover_once_clear(uiPopover *pup)
 #endif
 
 /** \} */
+
+}  // namespace blender::ui

@@ -58,7 +58,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_bump(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "invert", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "invert", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 static int gpu_shader_bump(GPUMaterial *mat,

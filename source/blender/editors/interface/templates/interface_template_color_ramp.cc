@@ -28,7 +28,7 @@
 #include "interface_intern.hh"
 #include "interface_templates_intern.hh"
 
-using blender::StringRefNull;
+namespace blender::ui {
 
 static void colorband_flip(bContext *C, ColorBand *coba)
 {
@@ -75,18 +75,18 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
   short yco = 0;
   const short menuwidth = 10 * UI_UNIT_X;
 
-  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Pulldown);
+  uiBlock *block = UI_block_begin(C, region, __func__, EmbossType::Pulldown);
 
-  blender::ui::Layout &layout = blender::ui::block_layout(block,
-                                                          blender::ui::LayoutDirection::Vertical,
-                                                          blender::ui::LayoutType::Menu,
-                                                          0,
-                                                          0,
-                                                          UI_MENU_WIDTH_MIN,
-                                                          0,
-                                                          UI_MENU_PADDING,
-                                                          style);
-  blender::ui::block_layout_set_current(block, &layout);
+  Layout &layout = block_layout(block,
+                                LayoutDirection::Vertical,
+                                LayoutType::Menu,
+                                0,
+                                0,
+                                UI_MENU_WIDTH_MIN,
+                                0,
+                                UI_MENU_PADDING,
+                                style);
+  block_layout_set_current(block, &layout);
   {
     layout.context_ptr_set("color_ramp", &coba_ptr);
   }
@@ -210,7 +210,7 @@ static void colorband_update_cb(bContext * /*C*/, void *bt_v, void *coba_v)
   bt->rnapoin.data = coba->data + coba->cur;
 }
 
-static void colorband_buttons_layout(blender::ui::Layout &layout,
+static void colorband_buttons_layout(Layout &layout,
                                      uiBlock *block,
                                      ColorBand *coba,
                                      const rctf *butr,
@@ -224,11 +224,11 @@ static void colorband_buttons_layout(blender::ui::Layout &layout,
 
   PointerRNA ptr = RNA_pointer_create_discrete(cb.ptr.owner_id, &RNA_ColorRamp, coba);
 
-  blender::ui::Layout *split = &layout.split(0.4f, false);
+  Layout *split = &layout.split(0.4f, false);
 
-  UI_block_emboss_set(block, blender::ui::EmbossType::None);
+  UI_block_emboss_set(block, EmbossType::None);
   UI_block_align_begin(block);
-  blender::ui::Layout *row = &split->row(false);
+  Layout *row = &split->row(false);
 
   bt = uiDefIconTextBut(block,
                         ButType::But,
@@ -279,7 +279,7 @@ static void colorband_buttons_layout(blender::ui::Layout &layout,
       but_func_argN_copy<RNAUpdateCb>);
 
   UI_block_align_end(block);
-  UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
+  UI_block_emboss_set(block, EmbossType::Emboss);
 
   row = &split->row(false);
 
@@ -333,7 +333,7 @@ static void colorband_buttons_layout(blender::ui::Layout &layout,
     }
     else {
       split = &layout.split(0.5f, false);
-      blender::ui::Layout &subsplit = split->split(0.35f, false);
+      Layout &subsplit = split->split(0.35f, false);
 
       row = &subsplit.row(false);
       bt = uiDefButS(block,
@@ -378,7 +378,7 @@ static void colorband_buttons_layout(blender::ui::Layout &layout,
   }
 }
 
-void uiTemplateColorRamp(blender::ui::Layout *layout,
+void uiTemplateColorRamp(Layout *layout,
                          PointerRNA *ptr,
                          const StringRefNull propname,
                          bool expand)
@@ -410,3 +410,5 @@ void uiTemplateColorRamp(blender::ui::Layout *layout,
 
   UI_block_lock_clear(block);
 }
+
+}  // namespace blender::ui

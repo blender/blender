@@ -226,7 +226,7 @@ static void screenshot_draw(bContext *C, wmOperator *op)
                    screenshot_draw_check_prop,
                    nullptr,
                    nullptr,
-                   UI_BUT_LABEL_ALIGN_NONE,
+                   blender::ui::UI_BUT_LABEL_ALIGN_NONE,
                    false);
 }
 

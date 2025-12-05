@@ -8,6 +8,8 @@
 
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
 /* -------------------------------------------------------------------- */
 /** \name Button Groups
  * \{ */
@@ -48,3 +50,5 @@ void ui_button_group_replace_but_ptr(uiBlock *block, const uiBut *old_but_ptr, u
 }
 
 /** \} */
+
+}  // namespace blender::ui

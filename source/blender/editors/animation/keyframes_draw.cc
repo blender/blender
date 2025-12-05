@@ -93,22 +93,24 @@ void draw_keyframe_shape(const float x,
     /* get interior colors from theme (for selected and unselected only) */
     switch (key_type) {
       case BEZT_KEYTYPE_BREAKDOWN:
-        UI_GetThemeColor3ubv(sel ? TH_KEYTYPE_BREAKDOWN_SELECT : TH_KEYTYPE_BREAKDOWN, fill_col);
+        ui::UI_GetThemeColor3ubv(sel ? TH_KEYTYPE_BREAKDOWN_SELECT : TH_KEYTYPE_BREAKDOWN,
+                                 fill_col);
         break;
       case BEZT_KEYTYPE_EXTREME:
-        UI_GetThemeColor3ubv(sel ? TH_KEYTYPE_EXTREME_SELECT : TH_KEYTYPE_EXTREME, fill_col);
+        ui::UI_GetThemeColor3ubv(sel ? TH_KEYTYPE_EXTREME_SELECT : TH_KEYTYPE_EXTREME, fill_col);
         break;
       case BEZT_KEYTYPE_JITTER:
-        UI_GetThemeColor3ubv(sel ? TH_KEYTYPE_JITTER_SELECT : TH_KEYTYPE_JITTER, fill_col);
+        ui::UI_GetThemeColor3ubv(sel ? TH_KEYTYPE_JITTER_SELECT : TH_KEYTYPE_JITTER, fill_col);
         break;
       case BEZT_KEYTYPE_MOVEHOLD:
-        UI_GetThemeColor3ubv(sel ? TH_KEYTYPE_MOVEHOLD_SELECT : TH_KEYTYPE_MOVEHOLD, fill_col);
+        ui::UI_GetThemeColor3ubv(sel ? TH_KEYTYPE_MOVEHOLD_SELECT : TH_KEYTYPE_MOVEHOLD, fill_col);
         break;
       case BEZT_KEYTYPE_KEYFRAME:
-        UI_GetThemeColor3ubv(sel ? TH_KEYTYPE_KEYFRAME_SELECT : TH_KEYTYPE_KEYFRAME, fill_col);
+        ui::UI_GetThemeColor3ubv(sel ? TH_KEYTYPE_KEYFRAME_SELECT : TH_KEYTYPE_KEYFRAME, fill_col);
         break;
       case BEZT_KEYTYPE_GENERATED:
-        UI_GetThemeColor3ubv(sel ? TH_KEYTYPE_GENERATED_SELECT : TH_KEYTYPE_GENERATED, fill_col);
+        ui::UI_GetThemeColor3ubv(sel ? TH_KEYTYPE_GENERATED_SELECT : TH_KEYTYPE_GENERATED,
+                                 fill_col);
         break;
     }
 
@@ -127,7 +129,7 @@ void draw_keyframe_shape(const float x,
 
   if (draw_outline) {
     /* exterior - black frame */
-    UI_GetThemeColor4ubv(sel ? TH_KEYBORDER_SELECT : TH_KEYBORDER, outline_col);
+    ui::UI_GetThemeColor4ubv(sel ? TH_KEYBORDER_SELECT : TH_KEYBORDER, outline_col);
     outline_col[3] *= alpha;
 
     if (!draw_fill) {
@@ -215,16 +217,16 @@ static void channel_ui_data_init(DrawKeylistUIData *ctx,
   ctx->smaller_size = 0.35f * ctx->icon_size;
   ctx->ipo_size = 0.1f * ctx->icon_size;
   ctx->gpencil_size = ctx->smaller_size * 0.8f;
-  ctx->screenspace_margin = (0.35f * float(UI_UNIT_X)) / UI_view2d_scale_get_x(v2d);
+  ctx->screenspace_margin = (0.35f * float(UI_UNIT_X)) / ui::UI_view2d_scale_get_x(v2d);
 
   ctx->show_ipo = (saction_flag & SACTION_SHOW_INTERPOLATION) != 0;
 
-  UI_GetThemeColor4fv(TH_LONGKEY_SELECT, ctx->sel_color);
-  UI_GetThemeColor4fv(TH_LONGKEY, ctx->unsel_color);
-  UI_GetThemeColor4fv(TH_DOPESHEET_IPOLINE, ctx->ipo_color_linear);
-  UI_GetThemeColor4fv(TH_DOPESHEET_IPOCONST, ctx->ipo_color_constant);
-  UI_GetThemeColor4fv(TH_DOPESHEET_IPOOTHER, ctx->ipo_color_other);
-  UI_GetThemeColor4fv(TH_KEYTYPE_KEYFRAME, ctx->ipo_color_mix);
+  ui::UI_GetThemeColor4fv(TH_LONGKEY_SELECT, ctx->sel_color);
+  ui::UI_GetThemeColor4fv(TH_LONGKEY, ctx->unsel_color);
+  ui::UI_GetThemeColor4fv(TH_DOPESHEET_IPOLINE, ctx->ipo_color_linear);
+  ui::UI_GetThemeColor4fv(TH_DOPESHEET_IPOCONST, ctx->ipo_color_constant);
+  ui::UI_GetThemeColor4fv(TH_DOPESHEET_IPOOTHER, ctx->ipo_color_other);
+  ui::UI_GetThemeColor4fv(TH_KEYTYPE_KEYFRAME, ctx->ipo_color_mix);
 
   ctx->sel_color[3] *= ctx->alpha;
   ctx->unsel_color[3] *= ctx->alpha;
@@ -243,7 +245,7 @@ static void draw_keylist_block_gpencil(const DrawKeylistUIData *ctx,
                                        const ActKeyColumn *ab,
                                        float ypos)
 {
-  UI_draw_roundbox_corner_set(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT);
+  ui::UI_draw_roundbox_corner_set(ui::UI_CNR_TOP_RIGHT | ui::UI_CNR_BOTTOM_RIGHT);
   float size = 1.0f;
   switch (ab->next->key_type) {
     case BEZT_KEYTYPE_BREAKDOWN:
@@ -265,7 +267,7 @@ static void draw_keylist_block_gpencil(const DrawKeylistUIData *ctx,
   box.ymin = ypos - ctx->gpencil_size;
   box.ymax = ypos + ctx->gpencil_size;
 
-  UI_draw_roundbox_4fv(
+  ui::UI_draw_roundbox_4fv(
       &box, true, 0.25f * float(UI_UNIT_X), (ab->block.sel) ? ctx->sel_mhcol : ctx->unsel_mhcol);
 }
 
@@ -279,7 +281,7 @@ static void draw_keylist_block_moving_hold(const DrawKeylistUIData *ctx,
   box.ymin = ypos - ctx->smaller_size;
   box.ymax = ypos + ctx->smaller_size;
 
-  UI_draw_roundbox_4fv(&box, true, 3.0f, (ab->block.sel) ? ctx->sel_mhcol : ctx->unsel_mhcol);
+  ui::UI_draw_roundbox_4fv(&box, true, 3.0f, (ab->block.sel) ? ctx->sel_mhcol : ctx->unsel_mhcol);
 }
 
 static void draw_keylist_block_standard(const DrawKeylistUIData *ctx,
@@ -292,7 +294,7 @@ static void draw_keylist_block_standard(const DrawKeylistUIData *ctx,
   box.ymin = ypos - ctx->half_icon_size;
   box.ymax = ypos + ctx->half_icon_size;
 
-  UI_draw_roundbox_4fv(&box, true, 3.0f, (ab->block.sel) ? ctx->sel_color : ctx->unsel_color);
+  ui::UI_draw_roundbox_4fv(&box, true, 3.0f, (ab->block.sel) ? ctx->sel_color : ctx->unsel_color);
 }
 
 static void draw_keylist_block_interpolation_line(const DrawKeylistUIData *ctx,
@@ -328,7 +330,7 @@ static void draw_keylist_block_interpolation_line(const DrawKeylistUIData *ctx,
     return;
   }
 
-  UI_draw_roundbox_4fv(&box, true, 3.0f, color);
+  ui::UI_draw_roundbox_4fv(&box, true, 3.0f, color);
 }
 
 static void draw_keylist_block(const DrawKeylistUIData *ctx, const ActKeyColumn *ab, float ypos)
@@ -339,7 +341,7 @@ static void draw_keylist_block(const DrawKeylistUIData *ctx, const ActKeyColumn 
   }
   else {
     /* Draw other types. */
-    UI_draw_roundbox_corner_set(UI_CNR_NONE);
+    UI_draw_roundbox_corner_set(ui::UI_CNR_NONE);
 
     int valid_hold = actkeyblock_get_valid_hold(ab);
     if (valid_hold != 0) {

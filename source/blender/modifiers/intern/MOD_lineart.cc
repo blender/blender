@@ -255,8 +255,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
       ptr, "target_material", &obj_data_ptr, "materials", std::nullopt, ICON_MATERIAL);
 
   col = &layout.column(false);
-  col->prop(ptr, "radius", UI_ITEM_R_SLIDER, IFACE_("Line Radius"), ICON_NONE);
-  col->prop(ptr, "opacity", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  col->prop(ptr, "radius", ui::UI_ITEM_R_SLIDER, IFACE_("Line Radius"), ICON_NONE);
+  col->prop(ptr, "opacity", ui::UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }
@@ -304,7 +304,7 @@ static void edge_types_panel_draw(const bContext * /*C*/, Panel *panel)
     sub->prop(ptr, "use_crease", UI_ITEM_NONE, "", ICON_NONE);
     sub->prop(ptr,
               "crease_threshold",
-              UI_ITEM_R_SLIDER | UI_ITEM_R_FORCE_BLANK_DECORATE,
+              ui::UI_ITEM_R_SLIDER | blender::ui::UI_ITEM_R_FORCE_BLANK_DECORATE,
               std::nullopt,
               ICON_NONE);
   }
@@ -488,7 +488,7 @@ static void material_mask_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PropertyRNA *prop = RNA_struct_find_property(ptr, "use_material_mask_bits");
   for (int i = 0; i < 8; i++) {
-    sub->prop(ptr, prop, i, 0, UI_ITEM_R_TOGGLE, " ", ICON_NONE);
+    sub->prop(ptr, prop, i, 0, ui::UI_ITEM_R_TOGGLE, " ", ICON_NONE);
     if (i == 3) {
       sub = &col.row(true);
     }
@@ -514,7 +514,7 @@ static void intersection_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PropertyRNA *prop = RNA_struct_find_property(ptr, "use_intersection_mask");
   for (int i = 0; i < 8; i++) {
-    sub->prop(ptr, prop, i, 0, UI_ITEM_R_TOGGLE, " ", ICON_NONE);
+    sub->prop(ptr, prop, i, 0, ui::UI_ITEM_R_TOGGLE, " ", ICON_NONE);
     if (i == 3) {
       sub = &col.row(true);
     }
@@ -607,8 +607,8 @@ static void chaining_panel_draw(const bContext * /*C*/, Panel *panel)
                         std::nullopt,
               ICON_NONE);
 
-  layout.prop(ptr, "smooth_tolerance", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-  layout.prop(ptr, "split_angle", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "smooth_tolerance", ui::UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "split_angle", ui::UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 }
 
 static void vgroup_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -636,7 +636,7 @@ static void vgroup_panel_draw(const bContext * /*C*/, Panel *panel)
   ui::Layout &row = col.row(true);
 
   row.prop(ptr, "source_vertex_group", UI_ITEM_NONE, IFACE_("Filter Source"), ICON_GROUP_VERTEX);
-  row.prop(ptr, "invert_source_vertex_group", UI_ITEM_R_TOGGLE, "", ICON_ARROW_LEFTRIGHT);
+  row.prop(ptr, "invert_source_vertex_group", ui::UI_ITEM_R_TOGGLE, "", ICON_ARROW_LEFTRIGHT);
 
   col.prop(ptr, "use_output_vertex_group_match_by_name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -657,7 +657,8 @@ static void bake_panel_draw(const bContext * /*C*/, Panel *panel)
     ui::Layout &col = layout.column(false);
     col.use_property_split_set(false);
     col.label(TIP_("Modifier has baked data"), ICON_NONE);
-    col.prop(ptr, "is_baked", UI_ITEM_R_TOGGLE, IFACE_("Continue Without Clearing"), ICON_NONE);
+    col.prop(
+        ptr, "is_baked", ui::UI_ITEM_R_TOGGLE, IFACE_("Continue Without Clearing"), ICON_NONE);
   }
 
   ui::Layout *col = &layout.column(false);
@@ -693,7 +694,7 @@ static void composition_panel_draw(const bContext * /*C*/, Panel *panel)
   ui::Layout &col = layout.column(false);
   col.active_set(!show_in_front);
 
-  col.prop(ptr, "stroke_depth_offset", UI_ITEM_R_SLIDER, IFACE_("Depth Offset"), ICON_NONE);
+  col.prop(ptr, "stroke_depth_offset", ui::UI_ITEM_R_SLIDER, IFACE_("Depth Offset"), ICON_NONE);
   col.prop(ptr,
            "use_offset_towards_custom_camera",
            UI_ITEM_NONE,

@@ -30,7 +30,7 @@ namespace blender::seq {
 static void sound_equalizermodifier_draw(const bContext * /*C*/, Panel *panel)
 {
   ui::Layout &layout = *panel->layout;
-  PointerRNA *ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *ptr = blender::ui::UI_panel_custom_data_get(panel);
 
   layout.use_property_split_set(true);
 

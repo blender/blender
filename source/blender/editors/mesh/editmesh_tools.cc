@@ -5828,7 +5828,7 @@ static void edbm_decimate_ui(bContext * /*C*/, wmOperator *op)
   row.prop(op->ptr, "use_symmetry", UI_ITEM_NONE, "", ICON_NONE);
   blender::ui::Layout &sub = row.row(true);
   sub.active_set(RNA_boolean_get(op->ptr, "use_symmetry"));
-  sub.prop(op->ptr, "symmetry_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  sub.prop(op->ptr, "symmetry_axis", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 void MESH_OT_decimate(wmOperatorType *ot)
@@ -8770,7 +8770,7 @@ static void edbm_point_normals_ui(bContext *C, wmOperator *op)
                    point_normals_draw_check_prop,
                    nullptr,
                    nullptr,
-                   UI_BUT_LABEL_ALIGN_NONE,
+                   blender::ui::UI_BUT_LABEL_ALIGN_NONE,
                    false);
 }
 
@@ -9262,7 +9262,7 @@ static void edbm_average_normals_ui(bContext *C, wmOperator *op)
                    average_normals_draw_check_prop,
                    nullptr,
                    nullptr,
-                   UI_BUT_LABEL_ALIGN_NONE,
+                   blender::ui::UI_BUT_LABEL_ALIGN_NONE,
                    false);
 }
 
@@ -9514,7 +9514,7 @@ static void edbm_normals_tools_ui(bContext *C, wmOperator *op)
                    normals_tools_draw_check_prop,
                    nullptr,
                    nullptr,
-                   UI_BUT_LABEL_ALIGN_NONE,
+                   blender::ui::UI_BUT_LABEL_ALIGN_NONE,
                    false);
 }
 

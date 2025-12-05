@@ -133,7 +133,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   ui::Layout *row, *sub;
   ui::Layout &layout = *panel->layout;
-  const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+  const ui::eUI_Item_Flag toggles_flag = ui::UI_ITEM_R_TOGGLE | ui::UI_ITEM_R_FORCE_BLANK_DECORATE;
 
   PropertyRNA *prop;
   PointerRNA ob_ptr;
@@ -200,7 +200,7 @@ static void data_panel_draw(const bContext * /*C*/, Panel *panel)
   sub->prop(ptr, "use_mirror_u", UI_ITEM_NONE, "", ICON_NONE);
   sub = &sub->row(true);
   sub->active_set(RNA_boolean_get(ptr, "use_mirror_u"));
-  sub->prop(ptr, "mirror_offset_u", UI_ITEM_R_SLIDER, "", ICON_NONE);
+  sub->prop(ptr, "mirror_offset_u", ui::UI_ITEM_R_SLIDER, "", ICON_NONE);
   row->decorator(ptr, "mirror_offset_u", 0);
 
   row = &col->row(true, IFACE_("V"));
@@ -209,12 +209,12 @@ static void data_panel_draw(const bContext * /*C*/, Panel *panel)
   sub->prop(ptr, "use_mirror_v", UI_ITEM_NONE, "", ICON_NONE);
   sub = &sub->row(true);
   sub->active_set(RNA_boolean_get(ptr, "use_mirror_v"));
-  sub->prop(ptr, "mirror_offset_v", UI_ITEM_R_SLIDER, "", ICON_NONE);
+  sub->prop(ptr, "mirror_offset_v", ui::UI_ITEM_R_SLIDER, "", ICON_NONE);
   row->decorator(ptr, "mirror_offset_v", 0);
 
   col = &layout.column(true);
-  col->prop(ptr, "offset_u", UI_ITEM_R_SLIDER, IFACE_("Offset U"), ICON_NONE);
-  col->prop(ptr, "offset_v", UI_ITEM_R_SLIDER, IFACE_("V"), ICON_NONE);
+  col->prop(ptr, "offset_u", ui::UI_ITEM_R_SLIDER, IFACE_("Offset U"), ICON_NONE);
+  col->prop(ptr, "offset_v", ui::UI_ITEM_R_SLIDER, IFACE_("V"), ICON_NONE);
 
   layout.prop(ptr, "use_mirror_vertex_groups", UI_ITEM_NONE, IFACE_("Vertex Groups"), ICON_NONE);
   layout.prop(ptr, "use_mirror_udim", UI_ITEM_NONE, IFACE_("Flip UDIM"), ICON_NONE);

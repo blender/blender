@@ -94,11 +94,9 @@ bool asset_shelf_popover_invoke(bContext &C, StringRef asset_shelf_idname, Repor
   return true;
 }
 
-}  // namespace blender::ui
-
-using namespace blender;
-
 std::optional<StringRefNull> UI_asset_shelf_idname_from_button_context(const uiBut *but)
 {
   return UI_but_context_string_get(but, "asset_shelf_idname");
 }
+
+}  // namespace blender::ui

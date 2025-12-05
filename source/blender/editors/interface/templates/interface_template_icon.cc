@@ -13,7 +13,7 @@
 #include "UI_interface_layout.hh"
 #include "interface_intern.hh"
 
-using blender::StringRefNull;
+namespace blender::ui {
 
 struct IconViewMenuArgs {
   PointerRNA ptr;
@@ -32,7 +32,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_lit
   const int w = UI_UNIT_X * (args.icon_scale);
   const int h = UI_UNIT_X * (args.icon_scale + args.show_labels);
 
-  uiBlock *block = UI_block_begin(C, region, "_popup", blender::ui::EmbossType::Pulldown);
+  uiBlock *block = UI_block_begin(C, region, "_popup", EmbossType::Pulldown);
   UI_block_flag_enable(block, UI_BLOCK_LOOP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
@@ -80,7 +80,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_lit
   return block;
 }
 
-void uiTemplateIcon(blender::ui::Layout *layout, int icon_value, float icon_scale)
+void uiTemplateIcon(Layout *layout, int icon_value, float icon_scale)
 {
   uiBlock *block = layout->absolute().block();
   uiBut *but = uiDefIconBut(block,
@@ -97,7 +97,7 @@ void uiTemplateIcon(blender::ui::Layout *layout, int icon_value, float icon_scal
   ui_def_but_icon(but, icon_value, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
 }
 
-void uiTemplateIconView(blender::ui::Layout *layout,
+void uiTemplateIconView(Layout *layout,
                         PointerRNA *ptr,
                         const StringRefNull propname,
                         bool show_labels,
@@ -164,3 +164,5 @@ void uiTemplateIconView(blender::ui::Layout *layout,
     MEM_freeN(items);
   }
 }
+
+}  // namespace blender::ui

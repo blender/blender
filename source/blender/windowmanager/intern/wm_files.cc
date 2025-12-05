@@ -519,7 +519,7 @@ static void wm_init_userdef(Main *bmain)
   BKE_addon_remove_safe(&U.addons, "cycles");
 #endif
 
-  UI_init_userdef();
+  blender::ui::UI_init_userdef();
 
   /* Needed so loading a file from the command line respects user-pref #26156. */
   SET_FLAG_FROM_TEST(G.fileflags, U.flag & USER_FILENOUI, G_FILE_NO_UI);
@@ -659,7 +659,7 @@ static void wm_file_read_pre(bool use_data, bool /*use_userdef*/)
 
   /* Always do this as both startup and preferences may have loaded in many font's
    * at a different zoom level to the file being loaded. */
-  UI_view2d_zoom_cache_reset();
+  blender::ui::UI_view2d_zoom_cache_reset();
 
   ED_preview_restart_queue_free();
 }
@@ -4004,7 +4004,7 @@ static void wm_clear_recent_files_ui(bContext * /*C*/, wmOperator *op)
   layout.use_property_decorate_set(false);
 
   layout.separator();
-  layout.prop(op->ptr, "remove", UI_ITEM_R_TOGGLE, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "remove", blender::ui::UI_ITEM_R_TOGGLE, std::nullopt, ICON_NONE);
   layout.separator();
 }
 
@@ -4085,9 +4085,10 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
 
   uiBlock *block = UI_block_begin(
       C, region, "autorun_warning_popup", blender::ui::EmbossType::Emboss);
-  UI_block_flag_enable(
-      block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
-  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  UI_block_flag_enable(block,
+                       blender::ui::UI_BLOCK_KEEP_OPEN | blender::ui::UI_BLOCK_LOOP |
+                           blender::ui::UI_BLOCK_NO_WIN_CLIP | blender::ui::UI_BLOCK_NUMSELECT);
+  UI_block_theme_style_set(block, blender::ui::UI_BLOCK_THEME_STYLE_POPUP);
   UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
   const char *title = RPT_(
@@ -4097,8 +4098,8 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
   const char *checkbox_text = RPT_("Permanently allow execution of scripts");
 
   /* Measure strings to find the longest. */
-  const uiStyle *style = UI_style_get_dpi();
-  UI_fontstyle_set(&style->widget);
+  const uiStyle *style = blender::ui::UI_style_get_dpi();
+  blender::ui::UI_fontstyle_set(&style->widget);
   int text_width = int(BLF_width(style->widget.uifont_id, title, BLF_DRAW_STR_DUMMY_MAX));
   text_width = std::max(text_width,
                         int(BLF_width(style->widget.uifont_id, message, BLF_DRAW_STR_DUMMY_MAX)));
@@ -4140,7 +4141,7 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
    * Otherwise just enable scripts and reset the depsgraphs. */
   if ((blendfile_path[0] != '\0') && wm->file_saved) {
     but = uiDefIconTextBut(block,
-                           ButType::But,
+                           blender::ui::ButType::But,
                            ICON_NONE,
                            IFACE_("Allow Execution"),
                            0,
@@ -4154,7 +4155,7 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
   }
   else {
     but = uiDefIconTextBut(block,
-                           ButType::But,
+                           blender::ui::ButType::But,
                            ICON_NONE,
                            IFACE_("Allow Execution"),
                            0,
@@ -4166,11 +4167,11 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
     UI_but_func_set(but,
                     [block](bContext &C) { wm_block_autorun_warning_enable_scripts(&C, block); });
   }
-  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
+  UI_but_drawflag_disable(but, blender::ui::UI_BUT_TEXT_LEFT);
 
   split.column(false);
   but = uiDefIconTextBut(block,
-                         ButType::But,
+                         blender::ui::ButType::But,
                          ICON_NONE,
                          IFACE_("Ignore"),
                          0,
@@ -4180,8 +4181,8 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
                          nullptr,
                          TIP_("Continue using file without Python scripts"));
   UI_but_func_set(but, wm_block_autorun_warning_ignore, block, nullptr);
-  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
-  UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
+  UI_but_drawflag_disable(but, blender::ui::UI_BUT_TEXT_LEFT);
+  UI_but_flag_enable(but, blender::ui::UI_BUT_ACTIVE_DEFAULT);
 
   UI_block_bounds_set_centered(block, 14 * UI_SCALE_FAC);
 
@@ -4259,7 +4260,7 @@ void wm_test_autorun_warning(bContext *C)
 
     wmWindow *prevwin = CTX_wm_window(C);
     CTX_wm_window_set(C, win);
-    UI_popup_block_invoke(C, block_create_autorun_warning, nullptr, nullptr);
+    blender::ui::UI_popup_block_invoke(C, block_create_autorun_warning, nullptr, nullptr);
     CTX_wm_window_set(C, prevwin);
   }
 }
@@ -4379,10 +4380,18 @@ static void save_file_overwrite_cancel(bContext *C, void *arg_block, void * /*ar
 
 static void save_file_overwrite_cancel_button(uiBlock *block, wmGenericCallback *post_action)
 {
-  uiBut *but = uiDefIconTextBut(
-      block, ButType::But, ICON_NONE, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, "");
+  uiBut *but = uiDefIconTextBut(block,
+                                blender::ui::ButType::But,
+                                ICON_NONE,
+                                IFACE_("Cancel"),
+                                0,
+                                0,
+                                0,
+                                UI_UNIT_Y,
+                                nullptr,
+                                "");
   UI_but_func_set(but, save_file_overwrite_cancel, block, post_action);
-  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
+  UI_but_drawflag_disable(but, blender::ui::UI_BUT_TEXT_LEFT);
 }
 
 static void save_file_overwrite_confirm(bContext *C, void *arg_block, void *arg_data)
@@ -4414,11 +4423,19 @@ static void save_file_overwrite_confirm(bContext *C, void *arg_block, void *arg_
 
 static void save_file_overwrite_confirm_button(uiBlock *block, wmGenericCallback *post_action)
 {
-  uiBut *but = uiDefIconTextBut(
-      block, ButType::But, ICON_NONE, IFACE_("Overwrite"), 0, 0, 0, UI_UNIT_Y, nullptr, "");
+  uiBut *but = uiDefIconTextBut(block,
+                                blender::ui::ButType::But,
+                                ICON_NONE,
+                                IFACE_("Overwrite"),
+                                0,
+                                0,
+                                0,
+                                UI_UNIT_Y,
+                                nullptr,
+                                "");
   UI_but_func_set(but, save_file_overwrite_confirm, block, post_action);
-  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
-  UI_but_flag_enable(but, UI_BUT_REDALERT);
+  UI_but_drawflag_disable(but, blender::ui::UI_BUT_TEXT_LEFT);
+  UI_but_flag_enable(but, blender::ui::UI_BUT_REDALERT);
 }
 
 static void save_file_overwrite_saveas(bContext *C, void *arg_block, void * /*arg_data*/)
@@ -4432,11 +4449,19 @@ static void save_file_overwrite_saveas(bContext *C, void *arg_block, void * /*ar
 
 static void save_file_overwrite_saveas_button(uiBlock *block, wmGenericCallback *post_action)
 {
-  uiBut *but = uiDefIconTextBut(
-      block, ButType::But, ICON_NONE, IFACE_("Save As..."), 0, 0, 0, UI_UNIT_Y, nullptr, "");
+  uiBut *but = uiDefIconTextBut(block,
+                                blender::ui::ButType::But,
+                                ICON_NONE,
+                                IFACE_("Save As..."),
+                                0,
+                                0,
+                                0,
+                                UI_UNIT_Y,
+                                nullptr,
+                                "");
   UI_but_func_set(but, save_file_overwrite_saveas, block, post_action);
-  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
-  UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
+  UI_but_drawflag_disable(but, blender::ui::UI_BUT_TEXT_LEFT);
+  UI_but_flag_enable(but, blender::ui::UI_BUT_ACTIVE_DEFAULT);
 }
 
 static uiBlock *block_create_save_file_overwrite_dialog(bContext *C, ARegion *region, void *arg1)
@@ -4446,9 +4471,10 @@ static uiBlock *block_create_save_file_overwrite_dialog(bContext *C, ARegion *re
 
   uiBlock *block = UI_block_begin(
       C, region, save_file_overwrite_dialog_name, blender::ui::EmbossType::Emboss);
-  UI_block_flag_enable(
-      block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
-  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  UI_block_flag_enable(block,
+                       blender::ui::UI_BLOCK_KEEP_OPEN | blender::ui::UI_BLOCK_LOOP |
+                           blender::ui::UI_BLOCK_NO_WIN_CLIP | blender::ui::UI_BLOCK_NUMSELECT);
+  UI_block_theme_style_set(block, blender::ui::UI_BLOCK_THEME_STYLE_POPUP);
 
   blender::ui::Layout &layout = *uiItemsAlertBox(block, 44, blender::ui::AlertIcon::Warning);
 
@@ -4535,13 +4561,14 @@ static uiBlock *block_create_save_file_overwrite_dialog(bContext *C, ARegion *re
 
 void wm_save_file_overwrite_dialog(bContext *C, wmOperator *op)
 {
-  if (!UI_popup_block_name_exists(CTX_wm_screen(C), save_file_overwrite_dialog_name)) {
+  if (!blender::ui::UI_popup_block_name_exists(CTX_wm_screen(C), save_file_overwrite_dialog_name))
+  {
     wmGenericCallback *callback = MEM_callocN<wmGenericCallback>(__func__);
     callback->exec = nullptr;
     callback->user_data = IDP_CopyProperty(op->properties);
     callback->free_user_data = wm_free_operator_properties_callback;
 
-    UI_popup_block_invoke(
+    blender::ui::UI_popup_block_invoke(
         C, block_create_save_file_overwrite_dialog, callback, free_post_file_close_action);
   }
 }
@@ -4636,18 +4663,34 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
 
 static void wm_block_file_close_cancel_button(uiBlock *block, wmGenericCallback *post_action)
 {
-  uiBut *but = uiDefIconTextBut(
-      block, ButType::But, ICON_NONE, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, "");
+  uiBut *but = uiDefIconTextBut(block,
+                                blender::ui::ButType::But,
+                                ICON_NONE,
+                                IFACE_("Cancel"),
+                                0,
+                                0,
+                                0,
+                                UI_UNIT_Y,
+                                nullptr,
+                                "");
   UI_but_func_set(but, wm_block_file_close_cancel, block, post_action);
-  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
+  UI_but_drawflag_disable(but, blender::ui::UI_BUT_TEXT_LEFT);
 }
 
 static void wm_block_file_close_discard_button(uiBlock *block, wmGenericCallback *post_action)
 {
-  uiBut *but = uiDefIconTextBut(
-      block, ButType::But, ICON_NONE, IFACE_("Don't Save"), 0, 0, 0, UI_UNIT_Y, nullptr, "");
+  uiBut *but = uiDefIconTextBut(block,
+                                blender::ui::ButType::But,
+                                ICON_NONE,
+                                IFACE_("Don't Save"),
+                                0,
+                                0,
+                                0,
+                                UI_UNIT_Y,
+                                nullptr,
+                                "");
   UI_but_func_set(but, wm_block_file_close_discard, block, post_action);
-  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
+  UI_but_drawflag_disable(but, blender::ui::UI_BUT_TEXT_LEFT);
 }
 
 static void wm_block_file_close_save_button(uiBlock *block,
@@ -4656,7 +4699,7 @@ static void wm_block_file_close_save_button(uiBlock *block,
 {
   uiBut *but = uiDefIconTextBut(
       block,
-      ButType::But,
+      blender::ui::ButType::But,
       ICON_NONE,
       /* Forward compatibility issues force using 'save as' operator instead of 'save' one. */
       needs_overwrite_confirm ? IFACE_("Save As...") : IFACE_("Save"),
@@ -4667,8 +4710,8 @@ static void wm_block_file_close_save_button(uiBlock *block,
       nullptr,
       "");
   UI_but_func_set(but, wm_block_file_close_save, block, post_action);
-  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
-  UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
+  UI_but_drawflag_disable(but, blender::ui::UI_BUT_TEXT_LEFT);
+  UI_but_flag_enable(but, blender::ui::UI_BUT_ACTIVE_DEFAULT);
 }
 
 static const char *close_file_dialog_name = "file_close_popup";
@@ -4688,9 +4731,10 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
 
   uiBlock *block = UI_block_begin(
       C, region, close_file_dialog_name, blender::ui::EmbossType::Emboss);
-  UI_block_flag_enable(
-      block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
-  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  UI_block_flag_enable(block,
+                       blender::ui::UI_BLOCK_KEEP_OPEN | blender::ui::UI_BLOCK_LOOP |
+                           blender::ui::UI_BLOCK_NO_WIN_CLIP | blender::ui::UI_BLOCK_NUMSELECT);
+  UI_block_theme_style_set(block, blender::ui::UI_BLOCK_THEME_STYLE_POPUP);
 
   ui::Layout &layout = *uiItemsAlertBox(
       block, (bmain->colorspace.is_missing_opencolorio_config) ? 44 : 34, ui::AlertIcon::Question);
@@ -4757,7 +4801,7 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
       layout.separator();
     }
     uiDefButBitC(block,
-                 ButType::Checkbox,
+                 blender::ui::ButType::Checkbox,
                  1,
                  message,
                  0,
@@ -4781,7 +4825,7 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
       layout.separator();
     }
     uiBut *but = uiDefButBitC(block,
-                              ButType::Checkbox,
+                              blender::ui::ButType::Checkbox,
                               1,
                               "Save modified asset catalogs",
                               0,
@@ -4852,8 +4896,8 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
 
 void wm_close_file_dialog(bContext *C, wmGenericCallback *post_action)
 {
-  if (!UI_popup_block_name_exists(CTX_wm_screen(C), close_file_dialog_name)) {
-    UI_popup_block_invoke(
+  if (!blender::ui::UI_popup_block_name_exists(CTX_wm_screen(C), close_file_dialog_name)) {
+    blender::ui::UI_popup_block_invoke(
         C, block_create__close_file_dialog, post_action, free_post_file_close_action);
   }
   else {

@@ -33,9 +33,8 @@
 
 #include "ED_undo.hh"
 
-using blender::StringRefNull;
-
-namespace blender::ui::light_linking {
+namespace blender::ui {
+namespace light_linking {
 
 namespace {
 
@@ -354,12 +353,11 @@ class CollectionView : public AbstractTreeView {
 };
 
 }  // namespace
+}  // namespace light_linking
 
-}  // namespace blender::ui::light_linking
-
-void uiTemplateLightLinkingCollection(blender::ui::Layout *layout,
+void uiTemplateLightLinkingCollection(Layout *layout,
                                       bContext *C,
-                                      blender::ui::Layout *context_layout,
+                                      Layout *context_layout,
                                       PointerRNA *ptr,
                                       const StringRefNull propname)
 {
@@ -400,12 +398,14 @@ void uiTemplateLightLinkingCollection(blender::ui::Layout *layout,
 
   uiBlock *block = layout->block();
 
-  blender::ui::AbstractTreeView *tree_view = UI_block_add_view(
+  AbstractTreeView *tree_view = UI_block_add_view(
       *block,
       "Light Linking Collection Tree View",
-      std::make_unique<blender::ui::light_linking::CollectionView>(*context_layout, *collection));
+      std::make_unique<light_linking::CollectionView>(*context_layout, *collection));
   tree_view->set_context_menu_title("Light Linking");
   tree_view->set_default_rows(5);
 
-  blender::ui::TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
+  TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
 }
+
+}  // namespace blender::ui

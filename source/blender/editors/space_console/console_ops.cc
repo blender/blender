@@ -150,7 +150,7 @@ void console_textview_update_rect(SpaceConsole *sc, ARegion *region)
 {
   View2D *v2d = &region->v2d;
 
-  UI_view2d_totRect_set(v2d, region->winx - 1, console_textview_height(sc, region));
+  blender::ui::UI_view2d_totRect_set(v2d, region->winx - 1, console_textview_height(sc, region));
 }
 
 static void console_select_offset(SpaceConsole *sc, const int offset)

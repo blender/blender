@@ -90,7 +90,8 @@ void ED_node_tree_start(ARegion *region, SpaceNode *snode, bNodeTree *ntree, ID 
     /* Set initial view center from node tree. */
     copy_v2_v2(path->view_center, ntree->view_center);
     if (region) {
-      UI_view2d_center_set(&region->v2d, ntree->view_center[0], ntree->view_center[1]);
+      blender::ui::UI_view2d_center_set(
+          &region->v2d, ntree->view_center[0], ntree->view_center[1]);
     }
 
     if (id) {
@@ -142,7 +143,7 @@ void ED_node_tree_push(ARegion *region, SpaceNode *snode, bNodeTree *ntree, bNod
   /* Set initial view center from node tree. */
   copy_v2_v2(path->view_center, ntree->view_center);
   if (region) {
-    UI_view2d_center_set(&region->v2d, ntree->view_center[0], ntree->view_center[1]);
+    blender::ui::UI_view2d_center_set(&region->v2d, ntree->view_center[0], ntree->view_center[1]);
   }
 
   BLI_addtail(&snode->treepath, path);
@@ -176,7 +177,7 @@ void ED_node_tree_pop(ARegion *region, SpaceNode *snode)
 
   /* Set view center from node tree path. */
   if (region) {
-    UI_view2d_center_set(&region->v2d, path->view_center[0], path->view_center[1]);
+    blender::ui::UI_view2d_center_set(&region->v2d, path->view_center[0], path->view_center[1]);
   }
 
   ED_node_set_active_viewer_key(snode);
@@ -904,11 +905,11 @@ static void node_cursor(wmWindow *win, ScrArea *area, ARegion *region)
   SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
 
   /* convert mouse coordinates to v2d space */
-  UI_view2d_region_to_view(&region->v2d,
-                           win->eventstate->xy[0] - region->winrct.xmin,
-                           win->eventstate->xy[1] - region->winrct.ymin,
-                           &snode->runtime->cursor[0],
-                           &snode->runtime->cursor[1]);
+  ui::UI_view2d_region_to_view(&region->v2d,
+                               win->eventstate->xy[0] - region->winrct.xmin,
+                               win->eventstate->xy[1] - region->winrct.ymin,
+                               &snode->runtime->cursor[0],
+                               &snode->runtime->cursor[1]);
 
   /* here snode->runtime->cursor is used to detect the node edge for sizing */
   node_set_cursor(*win, *region, *snode, snode->runtime->cursor);
@@ -924,7 +925,7 @@ static void node_main_region_init(wmWindowManager *wm, ARegion *region)
   wmKeyMap *keymap;
   ListBase *lb;
 
-  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
+  UI_view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
   /* own keymaps */
   keymap = WM_keymap_ensure(wm->runtime->defaultconf, "Node Generic", SPACE_NODE, RGN_TYPE_WINDOW);
@@ -992,12 +993,12 @@ static bool node_group_drop_poll(bContext *C, wmDrag *drag, const wmEvent * /*ev
 
 static bool node_object_drop_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
-  return WM_drag_is_ID_type(drag, ID_OB) && !UI_but_active_drop_name(C);
+  return WM_drag_is_ID_type(drag, ID_OB) && !ui::UI_but_active_drop_name(C);
 }
 
 static bool node_collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
-  return WM_drag_is_ID_type(drag, ID_GR) && !UI_but_active_drop_name(C);
+  return WM_drag_is_ID_type(drag, ID_GR) && !ui::UI_but_active_drop_name(C);
 }
 
 static bool node_id_im_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
@@ -1012,12 +1013,12 @@ static bool node_mask_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * 
 
 static bool node_material_drop_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
-  return WM_drag_is_ID_type(drag, ID_MA) && !UI_but_active_drop_name(C);
+  return WM_drag_is_ID_type(drag, ID_MA) && !ui::UI_but_active_drop_name(C);
 }
 
 static bool node_color_drop_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
-  return (drag->type == WM_DRAG_COLOR) && !UI_but_active_drop_color(C);
+  return (drag->type == WM_DRAG_COLOR) && !ui::UI_but_active_drop_color(C);
 }
 
 static bool node_import_file_drop_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
@@ -1279,7 +1280,7 @@ static void node_dropboxes()
                  WM_drag_free_imported_drag_ID,
                  nullptr);
   WM_dropbox_add(
-      lb, "NODE_OT_add_color", node_color_drop_poll, UI_drop_color_copy, nullptr, nullptr);
+      lb, "NODE_OT_add_color", node_color_drop_poll, ui::UI_drop_color_copy, nullptr, nullptr);
   WM_dropbox_add(lb,
                  "NODE_OT_add_import_node",
                  node_import_file_drop_poll,

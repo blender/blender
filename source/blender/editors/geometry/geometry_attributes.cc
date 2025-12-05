@@ -671,8 +671,8 @@ static void geometry_color_attribute_add_ui(bContext * /*C*/, wmOperator *op)
   layout.use_property_decorate_set(false);
 
   layout.prop(op->ptr, "name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout.prop(op->ptr, "domain", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout.prop(op->ptr, "data_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "domain", ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "data_type", ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   layout.prop(op->ptr, "color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
@@ -1047,8 +1047,8 @@ static void geometry_color_attribute_convert_ui(bContext * /*C*/, wmOperator *op
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
 
-  layout.prop(op->ptr, "domain", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout.prop(op->ptr, "data_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "domain", ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(op->ptr, "data_type", ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 void GEOMETRY_OT_color_attribute_convert(wmOperatorType *ot)

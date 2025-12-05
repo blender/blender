@@ -16,7 +16,6 @@ struct wmEvent;
 struct wmWindow;
 namespace blender::ui {
 struct Button;
-}
 
 /* `interface_eyedropper.cc` */
 void eyedropper_draw_cursor_text_region(const int xy[2], const char *name);
@@ -29,7 +28,7 @@ void eyedropper_draw_cursor_text_region(const int xy[2], const char *name);
  *
  * \return A button under the mouse which relates to some RNA Property, or NULL
  */
-blender::ui::Button *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *event);
+Button *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *event);
 void eyedropper_win_area_find(const bContext *C,
                               const int event_xy[2],
                               int r_event_xy[2],
@@ -69,3 +68,5 @@ enum {
   EYE_MODAL_POINT_RESET,
   EYE_MODAL_POINT_REMOVE_LAST,
 };
+
+}  // namespace blender::ui

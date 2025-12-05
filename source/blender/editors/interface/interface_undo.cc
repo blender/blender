@@ -18,6 +18,8 @@
 
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
 /* -------------------------------------------------------------------- */
 /** \name Text Field Undo Stack
  * \{ */
@@ -112,3 +114,5 @@ void ui_textedit_undo_stack_destroy(uiUndoStack_Text *stack)
 }
 
 /** \} */
+
+}  // namespace blender::ui

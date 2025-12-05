@@ -25,7 +25,9 @@ struct ScrArea;
 struct SpaceFile;
 struct bContext;
 struct bScreen;
-struct uiBlock;
+namespace blender::ui {
+struct Block;
+}
 struct wmOperator;
 struct wmWindow;
 struct wmWindowManager;
@@ -225,7 +227,7 @@ void ED_file_change_dir(bContext *C);
 void ED_file_path_button(bScreen *screen,
                          const SpaceFile *sfile,
                          FileSelectParams *params,
-                         uiBlock *block);
+                         blender::ui::Block *block);
 
 /* File menu stuff */
 

@@ -2244,7 +2244,7 @@ void ED_preview_restart_queue_work(const bContext *C)
     }
 
     BKE_previewimg_clear_single(preview, queue_entry->size);
-    UI_icon_render_id(C, nullptr, queue_entry->id, queue_entry->size, true);
+    blender::ui::UI_icon_render_id(C, nullptr, queue_entry->id, queue_entry->size, true);
 
     BLI_freelinkN(&G_restart_previews_queue, queue_entry);
   }

@@ -25,15 +25,16 @@
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"
 
+namespace blender::ui {
+
 static void strip_modifier_panel_id(void *smd_link, char *r_name)
 {
   StripModifierData *smd = reinterpret_cast<StripModifierData *>(smd_link);
-  blender::seq::modifier_type_panel_id(eStripModifierType(smd->type), r_name);
+  seq::modifier_type_panel_id(eStripModifierType(smd->type), r_name);
 }
 
-void uiTemplateStripModifiers(blender::ui::Layout * /*layout*/, bContext *C)
+void uiTemplateStripModifiers(Layout * /*layout*/, bContext *C)
 {
-  using namespace blender;
   ARegion *region = CTX_wm_region(C);
 
   Scene *sequencer_scene = CTX_data_sequencer_scene(C);
@@ -88,3 +89,5 @@ void uiTemplateStripModifiers(blender::ui::Layout * /*layout*/, bContext *C)
     }
   }
 }
+
+}  // namespace blender::ui

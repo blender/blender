@@ -44,7 +44,8 @@
 #include "eyedropper_intern.hh"
 #include "interface_intern.hh"
 
-namespace blender::ui::greasepencil {
+namespace blender::ui {
+namespace greasepencil {
 
 enum class EyeMode : int8_t {
   Material = 0,
@@ -443,23 +444,21 @@ static bool eyedropper_grease_pencil_poll(bContext *C)
   /* Test we have a window below. */
   return (CTX_wm_window(C) != nullptr);
 }
-
-}  // namespace blender::ui::greasepencil
+}  // namespace greasepencil
 
 void UI_OT_eyedropper_grease_pencil_color(wmOperatorType *ot)
 {
-  using namespace blender::ui::greasepencil;
   static const EnumPropertyItem items_mode[] = {
-      {int(EyeMode::Material), "MATERIAL", 0, "Material", ""},
-      {int(EyeMode::Palette), "PALETTE", 0, "Palette", ""},
-      {int(EyeMode::Brush), "BRUSH", 0, "Brush", ""},
+      {int(greasepencil::EyeMode::Material), "MATERIAL", 0, "Material", ""},
+      {int(greasepencil::EyeMode::Palette), "PALETTE", 0, "Palette", ""},
+      {int(greasepencil::EyeMode::Brush), "BRUSH", 0, "Brush", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const EnumPropertyItem items_material_mode[] = {
-      {int(MaterialMode::Stroke), "STROKE", 0, "Stroke", ""},
-      {int(MaterialMode::Fill), "FILL", 0, "Fill", ""},
-      {int(MaterialMode::Both), "BOTH", 0, "Both", ""},
+      {int(greasepencil::MaterialMode::Stroke), "STROKE", 0, "Stroke", ""},
+      {int(greasepencil::MaterialMode::Fill), "FILL", 0, "Fill", ""},
+      {int(greasepencil::MaterialMode::Both), "BOTH", 0, "Both", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -469,21 +468,24 @@ void UI_OT_eyedropper_grease_pencil_color(wmOperatorType *ot)
   ot->description = "Sample a color from the Blender Window and create Grease Pencil material";
 
   /* API callbacks. */
-  ot->invoke = eyedropper_grease_pencil_invoke;
-  ot->modal = eyedropper_grease_pencil_modal;
-  ot->cancel = eyedropper_grease_pencil_cancel;
-  ot->exec = eyedropper_grease_pencil_exec;
-  ot->poll = eyedropper_grease_pencil_poll;
+  ot->invoke = greasepencil::eyedropper_grease_pencil_invoke;
+  ot->modal = greasepencil::eyedropper_grease_pencil_modal;
+  ot->cancel = greasepencil::eyedropper_grease_pencil_cancel;
+  ot->exec = greasepencil::eyedropper_grease_pencil_exec;
+  ot->poll = greasepencil::eyedropper_grease_pencil_poll;
 
   /* Flags. */
   ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
 
   /* Properties. */
-  ot->prop = RNA_def_enum(ot->srna, "mode", items_mode, int(EyeMode::Material), "Mode", "");
+  ot->prop = RNA_def_enum(
+      ot->srna, "mode", items_mode, int(greasepencil::EyeMode::Material), "Mode", "");
   ot->prop = RNA_def_enum(ot->srna,
                           "material_mode",
                           items_material_mode,
-                          int(MaterialMode::Stroke),
+                          int(greasepencil::MaterialMode::Stroke),
                           "Material Mode",
                           "");
 }
+
+}  // namespace blender::ui

@@ -528,7 +528,7 @@ static void IMAGE_GGT_gizmo2d_rotate(wmGizmoGroupType *gzgt)
 
 static void IMAGE_GGT_navigate(wmGizmoGroupType *gzgt)
 {
-  VIEW2D_GGT_navigate_impl(gzgt, "IMAGE_GGT_navigate");
+  blender::ui::VIEW2D_GGT_navigate_impl(gzgt, "IMAGE_GGT_navigate");
 }
 
 static void image_widgets()
@@ -696,7 +696,7 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
     rcti render_region;
     BLI_rcti_init(
         &render_region, center_x, render_size_x + center_x, center_y, render_size_y + center_y);
-    UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
+    blender::ui::UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
 
     ED_region_image_render_region_draw(
         x, y, &render_region, zoomx, zoomy, sima->overlay.passepartout_alpha);
@@ -717,7 +717,7 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
       int x, y;
       rctf frame;
       BLI_rctf_init(&frame, 0.0f, ibuf->x, 0.0f, ibuf->y);
-      UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
+      blender::ui::UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
       ED_region_image_metadata_draw(x, y, ibuf, &frame, zoomx, zoomy);
     }
     ED_space_image_release_buffer(sima, ibuf, lock);
@@ -741,9 +741,9 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* sample line */
-  UI_view2d_view_ortho(v2d);
+  blender::ui::UI_view2d_view_ortho(v2d);
   draw_image_sample_line(sima);
-  UI_view2d_view_restore(C);
+  blender::ui::UI_view2d_view_restore(C);
 
   if (mask) {
     int width, height;
@@ -894,7 +894,7 @@ static void image_buttons_region_draw(const bContext *C, ARegion *region)
   /* TODO(lukas): Support tiles in scopes? */
   ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
   /* XXX performance regression if name of scopes category changes! */
-  PanelCategoryStack *category = UI_panel_category_active_find(region, "Scopes");
+  PanelCategoryStack *category = blender::ui::UI_panel_category_active_find(region, "Scopes");
 
   /* only update scopes if scope category is active */
   if (category) {
@@ -1031,8 +1031,8 @@ static void image_tools_header_region_draw(const bContext *C, ARegion *region)
       C,
       region,
       (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_TOP) ?
-          uiButtonSectionsAlign::Top :
-          uiButtonSectionsAlign::Bottom);
+          blender::ui::uiButtonSectionsAlign::Top :
+          blender::ui::uiButtonSectionsAlign::Bottom);
 }
 
 /************************* header region **************************/
@@ -1342,7 +1342,7 @@ void ED_spacetype_image()
   asset::shelf::types_register(art, SPACE_IMAGE);
 
   /* regions: hud */
-  art = ED_area_type_hud(st->spaceid);
+  art = blender::ui::ED_area_type_hud(st->spaceid);
   BLI_addhead(&st->regiontypes, art);
 
   BKE_spacetype_register(std::move(st));

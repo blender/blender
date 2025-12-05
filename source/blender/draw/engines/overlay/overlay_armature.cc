@@ -677,7 +677,8 @@ static void set_ctx_bcolor(Armatures::DrawContext *ctx, const UnifiedBonePtr bon
   ctx->bcolor = bone_color.effective_color();
 }
 
-/* This function is for brightening/darkening a given color (like UI_GetThemeColorShade3ubv()) */
+/* This function is for brightening/darkening a given color (like ui::UI_GetThemeColorShade3ubv())
+ */
 static void cp_shade_color3ub(uchar cp[3], const int offset)
 {
   int r, g, b;
@@ -1843,7 +1844,7 @@ static void draw_bone_name(const Armatures::DrawContext *ctx, const UnifiedBoneP
                    (!is_pose && (eBone->flag & BONE_SELECTED));
 
   /* Color Management: Exception here as texts are drawn in sRGB space directly. */
-  UI_GetThemeColor4ubv(highlight ? TH_TEXT_HI : TH_TEXT, color);
+  ui::UI_GetThemeColor4ubv(highlight ? TH_TEXT_HI : TH_TEXT, color);
 
   const float *head = is_pose ? pchan->pose_head : eBone->head;
   const float *tail = is_pose ? pchan->pose_tail : eBone->tail;

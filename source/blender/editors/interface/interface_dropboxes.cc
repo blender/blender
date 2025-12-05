@@ -25,7 +25,7 @@
 
 #include "UI_interface.hh"
 
-using namespace blender::ui;
+namespace blender::ui {
 
 /* -------------------------------------------------------------------- */
 /** \name View Drag/Drop Callbacks
@@ -178,3 +178,5 @@ void ED_dropboxes_ui()
 }
 
 /** \} */
+
+}  // namespace blender::ui

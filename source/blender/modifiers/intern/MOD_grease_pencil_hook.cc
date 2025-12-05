@@ -280,7 +280,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     col.prop_search(ptr, "subtarget", &hook_object_data_ptr, "bones", IFACE_("Bone"), ICON_NONE);
   }
 
-  layout.prop(ptr, "strength", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "strength", ui::UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   if (ui::Layout *sub = layout.panel_prop(C, ptr, "open_falloff_panel", IFACE_("Falloff"))) {
     sub->use_property_split_set(true);

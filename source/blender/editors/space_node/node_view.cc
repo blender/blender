@@ -129,7 +129,7 @@ bool space_node_view_flag(
     BLI_rctf_scale(&cur_new, 1.1f);
   }
 
-  UI_view2d_smooth_view(&C, &region, &cur_new, smooth_viewtx);
+  ui::UI_view2d_smooth_view(&C, &region, &cur_new, smooth_viewtx);
 
   return true;
 }

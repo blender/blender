@@ -36,12 +36,11 @@
 #include "WM_types.hh"
 
 struct bContext;
-struct uiBlock;
-struct ViewLink;
 struct wmNotifier;
 
 namespace blender::ui {
 
+struct ViewLink;
 struct ButtonViewItem;
 class AbstractViewItem;
 class AbstractViewItemDragController;
@@ -55,7 +54,7 @@ struct Layout;
 
 class AbstractView {
   friend class AbstractViewItem;
-  friend struct ::ViewLink;
+  friend struct ViewLink;
 
   bool is_reconstructed_ = false;
   /**

@@ -15,6 +15,8 @@
 struct bContext;
 struct View2D;
 
+namespace blender::ui {
+
 struct View2DScrollers {
   /* focus bubbles */
   int vert_min, vert_max; /* vertical scroll-bar */
@@ -41,3 +43,5 @@ bool view2d_edge_pan_poll(bContext *C);
  * (#View2D.page_size_y) but defaults to the #View2D.mask height.
  */
 float view2d_page_size_y(const View2D &v2d);
+
+}  // namespace blender::ui

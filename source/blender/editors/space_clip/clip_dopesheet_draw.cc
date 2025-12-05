@@ -41,16 +41,16 @@ static void track_channel_color(MovieTrackingTrack *track, bool default_color, f
 {
   if (track->flag & TRACK_CUSTOMCOLOR) {
     float bg[3];
-    UI_GetThemeColor3fv(TH_HEADER, bg);
+    blender::ui::UI_GetThemeColor3fv(TH_HEADER, bg);
 
     interp_v3_v3v3(color, track->color, bg, 0.5);
   }
   else {
     if (default_color) {
-      UI_GetThemeColor4fv(TH_CHANNEL_SELECT, color);
+      blender::ui::UI_GetThemeColor4fv(TH_CHANNEL_SELECT, color);
     }
     else {
-      UI_GetThemeColor3fv(TH_CHANNEL, color);
+      blender::ui::UI_GetThemeColor3fv(TH_CHANNEL, color);
     }
   }
 }
@@ -60,10 +60,10 @@ static void draw_keyframe_shape(
 {
   float color[4];
   if (sel) {
-    UI_GetThemeColor4fv(TH_KEYTYPE_KEYFRAME_SELECT, color);
+    blender::ui::UI_GetThemeColor4fv(TH_KEYTYPE_KEYFRAME_SELECT, color);
   }
   else {
-    UI_GetThemeColor4fv(TH_KEYTYPE_KEYFRAME, color);
+    blender::ui::UI_GetThemeColor4fv(TH_KEYTYPE_KEYFRAME, color);
   }
   color[3] = alpha;
 
@@ -103,7 +103,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
   View2D *v2d = &region->v2d;
 
   /* Frame and preview range. */
-  UI_view2d_view_ortho(v2d);
+  blender::ui::UI_view2d_view_ortho(v2d);
   ANIM_draw_framerange(scene, v2d);
   ANIM_draw_previewrange(scene, v2d, 0);
 
@@ -127,8 +127,8 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
     float y = (CHANNEL_FIRST);
 
     /* setup colors for regular and selected strips */
-    UI_GetThemeColor4fv(TH_LONGKEY, strip);
-    UI_GetThemeColor4fv(TH_LONGKEY_SELECT, selected_strip);
+    blender::ui::UI_GetThemeColor4fv(TH_LONGKEY, strip);
+    blender::ui::UI_GetThemeColor4fv(TH_LONGKEY_SELECT, selected_strip);
 
     GPU_blend(GPU_BLEND_ALPHA);
 
@@ -286,7 +286,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
   SpaceClip *sc = CTX_wm_space_clip(C);
   View2D *v2d = &region->v2d;
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  const uiStyle *style = UI_style_get();
+  const uiStyle *style = blender::ui::UI_style_get();
   int fontid = style->widget.uifont_id;
 
   if (!clip) {
@@ -306,7 +306,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
 
   /* need to do a view-sync here, so that the keys area doesn't jump around
    * (it must copy this) */
-  UI_view2d_sync(nullptr, area, v2d, V2D_LOCK_COPY);
+  blender::ui::UI_view2d_sync(nullptr, area, v2d, V2D_LOCK_COPY);
 
   /* loop through channels, and set up drawing depending on their type
    * first pass: just the standard GL-drawing for backdrop + text
@@ -359,7 +359,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
       MovieTrackingTrack *track = channel->track;
       bool sel = (track->flag & TRACK_DOPE_SEL) != 0;
 
-      UI_FontThemeColor(fontid, sel ? TH_TEXT_HI : TH_TEXT);
+      blender::ui::UI_FontThemeColor(fontid, sel ? TH_TEXT_HI : TH_TEXT);
 
       float font_height = BLF_height(fontid, channel->name, sizeof(channel->name));
       BLF_position(fontid, v2d->cur.xmin + CHANNEL_PAD, y - font_height / 2.0f, 0.0f);
@@ -393,7 +393,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
 
       UI_block_emboss_set(block, blender::ui::EmbossType::None);
       uiBut *but = uiDefIconButR_prop(block,
-                                      ButType::IconToggle,
+                                      blender::ui::ButType::IconToggle,
                                       icon,
                                       v2d->cur.xmax - UI_UNIT_X - CHANNEL_PAD,
                                       y - UI_UNIT_Y / 2.0f,

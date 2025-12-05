@@ -57,7 +57,7 @@ static bool modifier_ui_poll(const bContext *C, PanelType * /*pt*/)
  */
 static void modifier_reorder(bContext *C, Panel *panel, int new_index)
 {
-  PointerRNA *md_ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *md_ptr = blender::ui::UI_panel_custom_data_get(panel);
   ModifierData *md = (ModifierData *)md_ptr->data;
 
   PointerRNA props_ptr;
@@ -71,14 +71,14 @@ static void modifier_reorder(bContext *C, Panel *panel, int new_index)
 
 static short get_modifier_expand_flag(const bContext * /*C*/, Panel *panel)
 {
-  PointerRNA *md_ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *md_ptr = blender::ui::UI_panel_custom_data_get(panel);
   ModifierData *md = (ModifierData *)md_ptr->data;
   return md->ui_expand_flag;
 }
 
 static void set_modifier_expand_flag(const bContext * /*C*/, Panel *panel, short expand_flag)
 {
-  PointerRNA *md_ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *md_ptr = blender::ui::UI_panel_custom_data_get(panel);
   ModifierData *md = (ModifierData *)md_ptr->data;
   md->ui_expand_flag = expand_flag;
 }
@@ -106,7 +106,7 @@ void modifier_error_message_draw(blender::ui::Layout &layout, PointerRNA *ptr)
 #define ERROR_LIBDATA_MESSAGE N_("External library data")
 PointerRNA *modifier_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_ptr)
 {
-  PointerRNA *ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *ptr = blender::ui::UI_panel_custom_data_get(panel);
   BLI_assert(!RNA_pointer_is_null(ptr));
   BLI_assert(RNA_struct_is_a(ptr->type, &RNA_Modifier));
 
@@ -117,7 +117,7 @@ PointerRNA *modifier_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_
   uiBlock *block = panel->layout->block();
   UI_block_lock_set(block, !ID_IS_EDITABLE((Object *)ptr->owner_id), ERROR_LIBDATA_MESSAGE);
 
-  UI_panel_context_pointer_set(panel, "modifier", ptr);
+  blender::ui::UI_panel_context_pointer_set(panel, "modifier", ptr);
 
   return ptr;
 }
@@ -311,11 +311,11 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
   blender::ui::Layout &layout = *panel->layout;
 
   /* Don't use #modifier_panel_get_property_pointers, we don't want to lock the header. */
-  PointerRNA *ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *ptr = blender::ui::UI_panel_custom_data_get(panel);
   ModifierData *md = (ModifierData *)ptr->data;
   Object *ob = (Object *)ptr->owner_id;
 
-  UI_panel_context_pointer_set(panel, "modifier", ptr);
+  blender::ui::UI_panel_context_pointer_set(panel, "modifier", ptr);
 
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
   Scene *scene = CTX_data_scene(C);
@@ -358,7 +358,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
       uiBlock *block = sub->block();
       static int apply_on_spline_always_off_hack = 0;
       uiBut *but = uiDefIconButBitI(block,
-                                    ButType::Toggle,
+                                    blender::ui::ButType::Toggle,
                                     eModifierMode_ApplyOnSpline,
                                     ICON_SURFACE_DATA,
                                     0,
@@ -381,7 +381,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
       uiBlock *block = sub->block();
       static int apply_on_spline_always_on_hack = eModifierMode_ApplyOnSpline;
       uiBut *but = uiDefIconButBitI(block,
-                                    ButType::Toggle,
+                                    blender::ui::ButType::Toggle,
                                     eModifierMode_ApplyOnSpline,
                                     ICON_SURFACE_DATA,
                                     0,

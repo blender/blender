@@ -51,13 +51,14 @@
  * re-reference keymap items once added: #42944 */
 #define USE_KEYMAP_ADD_HACK
 
+namespace blender::ui {
+
 /* -------------------------------------------------------------------- */
 /** \name Button Context Menu
  * \{ */
 
 static IDProperty *shortcut_property_from_rna(bContext *C, uiBut *but)
 {
-  using namespace blender;
   /* Compute data path from context to property. */
 
   /* If this returns null, we won't be able to bind shortcuts to these RNA properties.
@@ -76,7 +77,6 @@ static IDProperty *shortcut_property_from_rna(bContext *C, uiBut *but)
 
 static const char *shortcut_get_operator_property(bContext *C, uiBut *but, IDProperty **r_prop)
 {
-  using namespace blender;
   if (but->optype) {
     /* Operator */
     *r_prop = (but->opptr && but->opptr->data) ?
@@ -114,14 +114,14 @@ static const char *shortcut_get_operator_property(bContext *C, uiBut *but, IDPro
   }
 
   if (std::optional asset_shelf_idname = UI_but_asset_shelf_type_idname_get(but)) {
-    IDProperty *prop = blender::bke::idprop::create_group(__func__).release();
+    IDProperty *prop = bke::idprop::create_group(__func__).release();
     IDP_AddToGroup(prop, bke::idprop::create("name", *asset_shelf_idname).release());
     *r_prop = prop;
     return "WM_OT_call_asset_shelf_popover";
   }
 
   if (PanelType *pt = UI_but_paneltype_get(but)) {
-    IDProperty *prop = blender::bke::idprop::create_group(__func__).release();
+    IDProperty *prop = bke::idprop::create_group(__func__).release();
     IDP_AddToGroup(prop, bke::idprop::create("name", pt->idname).release());
     *r_prop = prop;
     return "WM_OT_call_panel";
@@ -184,20 +184,20 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *region, void *arg)
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, &RNA_KeyMapItem, kmi);
 
-  uiBlock *block = UI_block_begin(C, region, "_popup", blender::ui::EmbossType::Emboss);
+  uiBlock *block = UI_block_begin(C, region, "_popup", EmbossType::Emboss);
   UI_block_func_handle_set(block, but_shortcut_name_func, but);
   UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT);
   UI_block_direction_set(block, UI_DIR_CENTER_Y);
 
-  blender::ui::Layout &layout = blender::ui::block_layout(block,
-                                                          blender::ui::LayoutDirection::Vertical,
-                                                          blender::ui::LayoutType::Panel,
-                                                          0,
-                                                          0,
-                                                          U.widget_unit * 10,
-                                                          U.widget_unit * 2,
-                                                          0,
-                                                          style);
+  Layout &layout = block_layout(block,
+                                LayoutDirection::Vertical,
+                                LayoutType::Panel,
+                                0,
+                                0,
+                                U.widget_unit * 10,
+                                U.widget_unit * 2,
+                                0,
+                                style);
 
   layout.label(CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Change Shortcut..."), ICON_HAND);
   layout.prop(&ptr, "type", UI_ITEM_R_FULL_EVENT | UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
@@ -245,19 +245,19 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *region, void *arg)
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, &RNA_KeyMapItem, kmi);
 
-  uiBlock *block = UI_block_begin(C, region, "_popup", blender::ui::EmbossType::Emboss);
+  uiBlock *block = UI_block_begin(C, region, "_popup", EmbossType::Emboss);
   UI_block_func_handle_set(block, but_shortcut_name_func, but);
   UI_block_direction_set(block, UI_DIR_CENTER_Y);
 
-  blender::ui::Layout &layout = blender::ui::block_layout(block,
-                                                          blender::ui::LayoutDirection::Vertical,
-                                                          blender::ui::LayoutType::Panel,
-                                                          0,
-                                                          0,
-                                                          U.widget_unit * 10,
-                                                          U.widget_unit * 2,
-                                                          0,
-                                                          style);
+  Layout &layout = block_layout(block,
+                                LayoutDirection::Vertical,
+                                LayoutType::Panel,
+                                0,
+                                0,
+                                U.widget_unit * 10,
+                                U.widget_unit * 2,
+                                0,
+                                style);
 
   layout.label(CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Shortcut..."), ICON_HAND);
   layout.prop(&ptr, "type", UI_ITEM_R_FULL_EVENT | UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
@@ -465,9 +465,7 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
   }
 }
 
-static bool ui_but_menu_add_path_operators(blender::ui::Layout &layout,
-                                           PointerRNA *ptr,
-                                           PropertyRNA *prop)
+static bool ui_but_menu_add_path_operators(Layout &layout, PointerRNA *ptr, PropertyRNA *prop)
 {
   const PropertySubType subtype = RNA_property_subtype(prop);
   wmOperatorType *ot = WM_operatortype_find("WM_OT_path_open", true);
@@ -490,7 +488,7 @@ static bool ui_but_menu_add_path_operators(blender::ui::Layout &layout,
     props_ptr = layout.op(ot,
                           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open File Externally"),
                           ICON_NONE,
-                          blender::wm::OpCallContext::InvokeDefault,
+                          wm::OpCallContext::InvokeDefault,
                           UI_ITEM_NONE);
     RNA_string_set(&props_ptr, "filepath", filepath);
   }
@@ -504,14 +502,14 @@ static bool ui_but_menu_add_path_operators(blender::ui::Layout &layout,
   props_ptr = layout.op(ot,
                         CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open Location Externally"),
                         ICON_NONE,
-                        blender::wm::OpCallContext::InvokeDefault,
+                        wm::OpCallContext::InvokeDefault,
                         UI_ITEM_NONE);
   RNA_string_set(&props_ptr, "filepath", dir);
 
   return true;
 }
 
-static void set_layout_context_from_button(bContext *C, blender::ui::Layout &layout, uiBut *but)
+static void set_layout_context_from_button(bContext *C, Layout &layout, uiBut *but)
 {
   if (!but->context) {
     return;
@@ -522,7 +520,6 @@ static void set_layout_context_from_button(bContext *C, blender::ui::Layout &lay
 
 bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *event)
 {
-  using namespace blender::ed;
   /* ui_but_is_interactive() may let some buttons through that should not get a context menu - it
    * doesn't make sense for them. */
   if (ELEM(but->type, ButType::Label, ButType::Image)) {
@@ -530,12 +527,12 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   }
 
   const bContextStore *previous_ctx = CTX_store_get(C);
-  uiPopupMenu *pup = UI_popup_menu_begin(
+  PopupMenu *pup = UI_popup_menu_begin(
       C, UI_but_context_menu_title_from_button(*but).c_str(), ICON_NONE);
-  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
+  Layout &layout = *UI_popup_menu_layout(pup);
 
   set_layout_context_from_button(C, layout, but);
-  layout.operator_context_set(blender::wm::OpCallContext::InvokeDefault);
+  layout.operator_context_set(wm::OpCallContext::InvokeDefault);
 
   const bool is_disabled = but->flag & UI_BUT_DISABLED;
 
@@ -543,7 +540,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     /* Suppress editing commands. */
   }
   else if (but->type == ButType::Tab) {
-    blender::ui::ButtonTab *tab = (blender::ui::ButtonTab *)but;
+    ButtonTab *tab = (ButtonTab *)but;
     if (tab->menu) {
       UI_menutype_draw(C, tab->menu, &layout);
       layout.separator();
@@ -668,7 +665,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
             ot,
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "View All in Graph Editor"),
             ICON_GRAPH,
-            blender::wm::OpCallContext::InvokeDefault,
+            wm::OpCallContext::InvokeDefault,
             UI_ITEM_NONE);
         RNA_boolean_set(&op_ptr, "all", true);
 
@@ -676,7 +673,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
             ot,
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "View Single in Graph Editor"),
             ICON_NONE,
-            blender::wm::OpCallContext::InvokeDefault,
+            wm::OpCallContext::InvokeDefault,
             UI_ITEM_NONE);
         RNA_boolean_set(&op_ptr, "all", false);
       }
@@ -688,7 +685,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
         op_ptr = layout.op(ot,
                            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "View in Graph Editor"),
                            ICON_NONE,
-                           blender::wm::OpCallContext::InvokeDefault,
+                           wm::OpCallContext::InvokeDefault,
                            UI_ITEM_NONE);
         RNA_boolean_set(&op_ptr, "all", false);
       }
@@ -843,13 +840,13 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           op_ptr = layout.op(ot,
                              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Overrides"),
                              ICON_NONE,
-                             blender::wm::OpCallContext::InvokeDefault,
+                             wm::OpCallContext::InvokeDefault,
                              UI_ITEM_NONE);
           RNA_boolean_set(&op_ptr, "all", true);
           op_ptr = layout.op(ot,
                              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Single Override"),
                              ICON_NONE,
-                             blender::wm::OpCallContext::InvokeDefault,
+                             wm::OpCallContext::InvokeDefault,
                              UI_ITEM_NONE);
           RNA_boolean_set(&op_ptr, "all", false);
         }
@@ -857,7 +854,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           op_ptr = layout.op(ot,
                              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Override"),
                              ICON_NONE,
-                             blender::wm::OpCallContext::InvokeDefault,
+                             wm::OpCallContext::InvokeDefault,
                              UI_ITEM_NONE);
           RNA_boolean_set(&op_ptr, "all", false);
         }
@@ -961,7 +958,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
         props_ptr = layout.op(ot,
                               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open File Location"),
                               ICON_NONE,
-                              blender::wm::OpCallContext::InvokeDefault,
+                              wm::OpCallContext::InvokeDefault,
                               UI_ITEM_NONE);
         RNA_string_set(&props_ptr, "filepath", dir);
         layout.separator();
@@ -971,16 +968,16 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
 
   {
     const ARegion *region = CTX_wm_region_popup(C) ? CTX_wm_region_popup(C) : CTX_wm_region(C);
-    blender::ui::ButtonViewItem *view_item_but =
-        (but->type == ButType::ViewItem) ? static_cast<blender::ui::ButtonViewItem *>(but) :
-                                           static_cast<blender::ui::ButtonViewItem *>(
-                                               ui_view_item_find_mouse_over(region, event->xy));
+    ButtonViewItem *view_item_but = (but->type == ButType::ViewItem) ?
+                                        static_cast<ButtonViewItem *>(but) :
+                                        static_cast<ButtonViewItem *>(
+                                            ui_view_item_find_mouse_over(region, event->xy));
     if (view_item_but) {
       BLI_assert(view_item_but->type == ButType::ViewItem);
 
       const bContextStore *prev_ctx = CTX_store_get(C);
       /* Sub-layout for context override. */
-      blender::ui::Layout &sub = layout.column(false);
+      Layout &sub = layout.column(false);
       set_layout_context_from_button(C, sub, view_item_but);
       view_item_but->view_item->build_context_menu(*C, sub);
 
@@ -997,13 +994,13 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       (but->menu_create_func == nullptr))
   {
     /* If the button represents an id, it can set the "id" context pointer. */
-    if (asset::can_mark_single_from_context(C)) {
+    if (blender::ed::asset::can_mark_single_from_context(C)) {
       const ID *id = static_cast<const ID *>(CTX_data_pointer_get_type(C, "id", &RNA_ID).data);
 
       /* Gray out items depending on if data-block is an asset. Preferably this could be done via
        * operator poll, but that doesn't work since the operator also works with "selected_ids",
        * which isn't cheap to check. */
-      blender::ui::Layout *sub = &layout.column(true);
+      Layout *sub = &layout.column(true);
       sub->enabled_set(!id->asset_data);
       sub->op("ASSET_OT_mark_single",
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Mark as Asset"),
@@ -1030,8 +1027,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     const PropertyType prop_type = RNA_property_type(but->rnaprop);
     if (((prop_type == PROP_POINTER) ||
          (prop_type == PROP_STRING && but->type == ButType::SearchMenu &&
-          ((blender::ui::ButtonSearch *)but)->items_update_fn ==
-              ui_rna_collection_search_update_fn)) &&
+          ((ButtonSearch *)but)->items_update_fn == ui_rna_collection_search_update_fn)) &&
         ui_jump_to_target_button_poll(C))
     {
       layout.op("UI_OT_jump_to_target_button",
@@ -1208,7 +1204,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
             "WM_OT_doc_view",
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Online Python Reference"),
             ICON_NONE,
-            blender::wm::OpCallContext::ExecDefault,
+            wm::OpCallContext::ExecDefault,
             UI_ITEM_NONE);
         RNA_string_set(&ptr_props, "doc_id", manual_id.value().c_str());
       }
@@ -1225,7 +1221,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       layout.op("UI_OT_editsource",
                 std::nullopt,
                 ICON_NONE,
-                blender::wm::OpCallContext::InvokeDefault,
+                wm::OpCallContext::InvokeDefault,
                 UI_ITEM_NONE);
     }
   }
@@ -1301,8 +1297,8 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
 
   PointerRNA ptr = RNA_pointer_create_discrete(&screen->id, &RNA_Panel, panel);
 
-  uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Panel"), ICON_NONE);
-  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
+  PopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Panel"), ICON_NONE);
+  Layout &layout = *UI_popup_menu_layout(pup);
 
   if (has_panel_category) {
     char tmpstr[80];
@@ -1320,3 +1316,5 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
 }
 
 /** \} */
+
+}  // namespace blender::ui

@@ -831,7 +831,7 @@ static bool select_grouped_collection(bContext *C, Object *ob)
   }
 
   /* build the menu. */
-  uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Select Collection"), ICON_NONE);
+  ui::PopupMenu *pup = ui::UI_popup_menu_begin(C, IFACE_("Select Collection"), ICON_NONE);
   ui::Layout &layout = *UI_popup_menu_layout(pup);
 
   for (i = 0; i < collection_count; i++) {

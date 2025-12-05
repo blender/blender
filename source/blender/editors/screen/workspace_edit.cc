@@ -305,7 +305,7 @@ void ED_workspace_scene_data_sync(WorkSpaceInstanceHook *hook, Scene *scene)
 
 static WorkSpace *workspace_context_get(bContext *C)
 {
-  ID *id = UI_context_active_but_get_tab_ID(C);
+  ID *id = blender::ui::UI_context_active_but_get_tab_ID(C);
   if (id && GS(id->name) == ID_WS) {
     return (WorkSpace *)id;
   }
@@ -585,9 +585,9 @@ static wmOperatorStatus workspace_add_invoke(bContext *C,
                                              wmOperator *op,
                                              const wmEvent * /*event*/)
 {
-  uiPopupMenu *pup = UI_popup_menu_begin(
+  blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, op->type->name), ICON_ADD);
-  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
+  blender::ui::Layout &layout = *blender::ui::UI_popup_menu_layout(pup);
 
   layout.menu_fn(IFACE_("General"), ICON_NONE, workspace_add_menu, nullptr);
 

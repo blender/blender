@@ -148,7 +148,7 @@ bool AssetView::begin_filtering(const bContext &C) const
 {
   const ScrArea *area = CTX_wm_area(&C);
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (UI_textbutton_activate_rna(&C, region, &shelf_, "search_filter")) {
+    if (ui::UI_textbutton_activate_rna(&C, region, &shelf_, "search_filter")) {
       return true;
     }
   }

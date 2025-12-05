@@ -57,7 +57,7 @@ static void file_panel_operator_header(const bContext *C, Panel *panel)
   wmOperator *op = sfile->op;
 
   const std::string opname = WM_operatortype_name(op->type, op->ptr);
-  UI_panel_drawname_set(panel, opname);
+  blender::ui::UI_panel_drawname_set(panel, opname);
 }
 
 static void file_panel_operator(const bContext *C, Panel *panel)
@@ -79,8 +79,11 @@ static void file_panel_operator(const bContext *C, Panel *panel)
     }
   }
 
-  uiTemplateOperatorPropertyButs(
-      C, panel->layout, op, UI_BUT_LABEL_ALIGN_NONE, UI_TEMPLATE_OP_PROPS_SHOW_EMPTY);
+  uiTemplateOperatorPropertyButs(C,
+                                 panel->layout,
+                                 op,
+                                 blender::ui::UI_BUT_LABEL_ALIGN_NONE,
+                                 blender::ui::UI_TEMPLATE_OP_PROPS_SHOW_EMPTY);
 
   /* Hack: temporary hide. */
   for (int i = 0; i < ARRAY_SIZE(hide); i++) {
@@ -153,7 +156,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
   UI_block_func_set(block, file_draw_check_cb, nullptr, nullptr);
 
   uiBut *but = uiDefButR(block,
-                         ButType::Text,
+                         blender::ui::ButType::Text,
                          "",
                          0,
                          0,
@@ -168,7 +171,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
                                            TIP_("File name"));
   UI_but_retval_set(but, -1);
 
-  BLI_assert(!UI_but_flag_is_set(but, UI_BUT_UNDO));
+  BLI_assert(!UI_but_flag_is_set(but, blender::ui::UI_BUT_UNDO));
   BLI_assert(!UI_but_is_utf8(but));
 
   UI_but_func_complete_set(but, autocomplete_file, nullptr);
@@ -187,7 +190,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
 
   /* check if this overrides a file and if the operator option is used */
   if (overwrite_alert) {
-    UI_but_flag_enable(but, UI_BUT_REDALERT);
+    UI_but_flag_enable(but, blender::ui::UI_BUT_REDALERT);
   }
   UI_block_func_set(block, nullptr, nullptr, nullptr);
 

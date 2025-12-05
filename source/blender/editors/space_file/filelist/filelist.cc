@@ -246,7 +246,7 @@ static ImBuf *filelist_ensure_special_file_image(SpecialFileImages image, int ic
   if (ibuf) {
     return ibuf;
   }
-  return gSpecialFileImages[int(image)] = UI_svg_icon_bitmap(icon, 256.0f, false);
+  return gSpecialFileImages[int(image)] = blender::ui::UI_svg_icon_bitmap(icon, 256.0f, false);
 }
 
 ImBuf *filelist_geticon_special_file_image_ex(const FileDirEntry *file)
@@ -380,7 +380,7 @@ static int filelist_geticon_file_type_ex(const FileList *filelist,
     return ICON_FILE_ARCHIVE;
   }
   if (typeflag & FILE_TYPE_BLENDERLIB) {
-    const int ret = UI_icon_from_idcode(file->blentype);
+    const int ret = blender::ui::UI_icon_from_idcode(file->blentype);
     if (ret != ICON_NONE) {
       return ret;
     }

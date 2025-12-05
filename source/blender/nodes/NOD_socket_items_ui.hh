@@ -81,7 +81,7 @@ static void draw_items_list_with_operators(const bContext *C,
                  5,
                  UILST_LAYOUT_DEFAULT,
                  0,
-                 UI_TEMPLATE_LIST_FLAG_NONE);
+                 blender::ui::UI_TEMPLATE_LIST_FLAG_NONE);
 
   blender::ui::Layout *ops_col = &row->column(false);
   {

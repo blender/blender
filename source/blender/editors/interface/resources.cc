@@ -35,6 +35,8 @@
 #include "GPU_framebuffer.hh"
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
 /* be sure to keep 'bThemeState' in sync */
 static bThemeState g_theme_state = {
     nullptr,
@@ -1597,3 +1599,5 @@ void UI_make_axis_color(const uchar col[3], const char axis, uchar r_col[3])
 }
 
 /** \} */
+
+}  // namespace blender::ui

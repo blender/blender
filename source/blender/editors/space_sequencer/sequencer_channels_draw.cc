@@ -45,15 +45,15 @@ static float draw_offset_get(const View2D *timeline_region_v2d)
 
 static float channel_height_pixelspace_get(const View2D *timeline_region_v2d)
 {
-  return UI_view2d_view_to_region_y(timeline_region_v2d, 1.0f) -
-         UI_view2d_view_to_region_y(timeline_region_v2d, 0.0f);
+  return ui::UI_view2d_view_to_region_y(timeline_region_v2d, 1.0f) -
+         ui::UI_view2d_view_to_region_y(timeline_region_v2d, 0.0f);
 }
 
 static float frame_width_pixelspace_get(const View2D *timeline_region_v2d)
 {
 
-  return UI_view2d_view_to_region_x(timeline_region_v2d, 1.0f) -
-         UI_view2d_view_to_region_x(timeline_region_v2d, 0.0f);
+  return ui::UI_view2d_view_to_region_x(timeline_region_v2d, 1.0f) -
+         ui::UI_view2d_view_to_region_x(timeline_region_v2d, 0.0f);
 }
 
 static float icon_width_get(const SeqChannelDrawContext *context)
@@ -112,7 +112,7 @@ static float draw_channel_widget_mute(const SeqChannelDrawContext *context,
 
   UI_block_emboss_set(block, ui::EmbossType::None);
   uiBut *but = uiDefIconButR_prop(block,
-                                  ButType::Toggle,
+                                  ui::ButType::Toggle,
                                   icon,
                                   context->v2d->cur.xmax / context->scale - offset,
                                   y,
@@ -151,7 +151,7 @@ static float draw_channel_widget_lock(const SeqChannelDrawContext *context,
 
   UI_block_emboss_set(block, ui::EmbossType::None);
   uiBut *but = uiDefIconButR_prop(block,
-                                  ButType::Toggle,
+                                  ui::ButType::Toggle,
                                   icon,
                                   context->v2d->cur.xmax / context->scale - offset,
                                   y,
@@ -179,8 +179,8 @@ static bool channel_is_being_renamed(const SpaceSeq *sseq, const int channel_ind
 
 static float text_size_get(const SeqChannelDrawContext *context)
 {
-  const uiStyle *style = UI_style_get_dpi();
-  return UI_fontstyle_height_max(&style->widget) * 1.5f * context->scale;
+  const uiStyle *style = ui::UI_style_get_dpi();
+  return ui::UI_fontstyle_height_max(&style->widget) * 1.5f * context->scale;
 }
 
 /* TODO: decide what gets priority - label or buttons. */
@@ -228,7 +228,7 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
 
     UI_block_emboss_set(block, ui::EmbossType::Emboss);
     uiBut *but = uiDefButR(block,
-                           ButType::Text,
+                           ui::ButType::Text,
                            "",
                            rect.xmin,
                            rect.ymin,
@@ -252,7 +252,7 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
   else {
     const char *label = seq::channel_name_get(context->channels, channel_index);
     uiDefBut(block,
-             ButType::Label,
+             ui::ButType::Label,
              label,
              rect.xmin,
              rect.ymin,
@@ -297,7 +297,7 @@ static void draw_channel_headers(const SeqChannelDrawContext *context)
 
 static void draw_background()
 {
-  UI_ThemeClearColor(TH_BACK);
+  ui::UI_ThemeClearColor(TH_BACK);
 }
 
 void channel_draw_context_init(const bContext *C,
@@ -343,11 +343,11 @@ void draw_channels(const bContext *C, ARegion *region)
     return;
   }
 
-  UI_view2d_view_ortho(context.v2d);
+  ui::UI_view2d_view_ortho(context.v2d);
 
   draw_channel_headers(&context);
 
-  UI_view2d_view_restore(C);
+  ui::UI_view2d_view_restore(C);
 }
 
 }  // namespace blender::ed::vse

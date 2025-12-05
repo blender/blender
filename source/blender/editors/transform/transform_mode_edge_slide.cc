@@ -70,7 +70,7 @@ struct EdgeSlideData {
     }
     else {
       const View2D *v2d = static_cast<View2D *>(t->view);
-      UI_view2d_view_to_region_m4(v2d, this->proj_mat.ptr());
+      ui::UI_view2d_view_to_region_m4(v2d, this->proj_mat.ptr());
       this->proj_mat.location()[0] -= this->win_half[0];
       this->proj_mat.location()[1] -= this->win_half[1];
     }
@@ -460,7 +460,7 @@ static void drawEdgeSlide(TransInfo *t)
   const EdgeSlideParams *slp = static_cast<const EdgeSlideParams *>(t->custom.mode.data);
   const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
 
-  const float line_size = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
+  const float line_size = ui::UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
 
   GPU_depth_test(GPU_DEPTH_NONE);
 
@@ -483,7 +483,7 @@ static void drawEdgeSlide(TransInfo *t)
     /* Even mode. */
     float co_a[3], co_b[3], co_mark[3];
     const float fac = (slp->perc + 1.0f) / 2.0f;
-    const float ctrl_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) + 1.5f;
+    const float ctrl_size = ui::UI_GetThemeValuef(TH_FACEDOT_SIZE) + 1.5f;
     const float guide_size = ctrl_size - 0.5f;
     const int alpha_shade = -30;
 

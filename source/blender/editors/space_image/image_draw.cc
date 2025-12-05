@@ -79,7 +79,7 @@ static void draw_render_info(
     if (total_tiles) {
       /* find window pixel coordinates of origin */
       int x, y;
-      UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
+      blender::ui::UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
 
       GPU_matrix_push();
       GPU_matrix_translate_2f(x, y);
@@ -635,7 +635,7 @@ void draw_image_uv_custom_region(const ARegion *region, const rctf &custom_regio
   immUniform1f("udash_factor", 0.5f);
   rcti region_rect;
 
-  UI_view2d_view_to_region_rcti(&region->v2d, &custom_region, &region_rect);
+  blender::ui::UI_view2d_view_to_region_rcti(&region->v2d, &custom_region, &region_rect);
 
   imm_draw_box_wire_2d(
       shdr_pos, region_rect.xmin, region_rect.ymin, region_rect.xmax, region_rect.ymax);

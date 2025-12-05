@@ -81,7 +81,7 @@ static ListBase *fmodifier_list_space_specific(const bContext *C)
  */
 static PointerRNA *fmodifier_get_pointers(const bContext *C, const Panel *panel, ID **r_owner_id)
 {
-  PointerRNA *ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *ptr = blender::ui::UI_panel_custom_data_get(panel);
 
   if (r_owner_id != nullptr) {
     *r_owner_id = ptr->owner_id;
@@ -307,7 +307,7 @@ static void fmodifier_panel_header(const bContext *C, Panel *panel)
   blender::ui::Layout *sub = &layout.row(true);
 
   /* Checkbox for 'active' status (for now). */
-  sub->prop(ptr, "active", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+  sub->prop(ptr, "active", blender::ui::UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
   /* Name. */
   if (fmi) {
@@ -322,11 +322,11 @@ static void fmodifier_panel_header(const bContext *C, Panel *panel)
   sub->emboss_set(blender::ui::EmbossType::None);
 
   /* 'Mute' button. */
-  sub->prop(ptr, "mute", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+  sub->prop(ptr, "mute", blender::ui::UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
   /* Delete button. */
   uiBut *but = uiDefIconBut(block,
-                            ButType::But,
+                            blender::ui::ButType::But,
                             ICON_X,
                             0,
                             0,
@@ -683,7 +683,7 @@ static void envelope_panel_draw(const bContext *C, Panel *panel)
   uiBlock *block = row->block();
 
   uiBut *but = uiDefBut(block,
-                        ButType::But,
+                        blender::ui::ButType::But,
                         IFACE_("Add Control Point"),
                         0,
                         0,
@@ -713,7 +713,7 @@ static void envelope_panel_draw(const bContext *C, Panel *panel)
     row->prop(&ctrl_ptr, "max", UI_ITEM_NONE, IFACE_("Max"), ICON_NONE);
 
     but = uiDefIconBut(block,
-                       ButType::But,
+                       blender::ui::ButType::But,
                        ICON_X,
                        0,
                        0,
@@ -872,10 +872,10 @@ void ANIM_fmodifier_panels(const bContext *C,
 {
   ARegion *region = CTX_wm_region(C);
 
-  bool panels_match = UI_panel_list_matches_data(region, fmodifiers, panel_id_fn);
+  bool panels_match = blender::ui::UI_panel_list_matches_data(region, fmodifiers, panel_id_fn);
 
   if (!panels_match) {
-    UI_panels_free_instanced(C, region);
+    blender::ui::UI_panels_free_instanced(C, region);
     LISTBASE_FOREACH (FModifier *, fcm, fmodifiers) {
       char panel_idname[MAX_NAME];
       panel_id_fn(fcm, panel_idname);
@@ -883,7 +883,7 @@ void ANIM_fmodifier_panels(const bContext *C,
       PointerRNA *fcm_ptr = MEM_new<PointerRNA>("panel customdata");
       *fcm_ptr = RNA_pointer_create_discrete(owner_id, &RNA_FModifier, fcm);
 
-      UI_panel_add_instanced(C, region, &region->panels, panel_idname, fcm_ptr);
+      blender::ui::UI_panel_add_instanced(C, region, &region->panels, panel_idname, fcm_ptr);
     }
   }
   else {
@@ -900,7 +900,7 @@ void ANIM_fmodifier_panels(const bContext *C,
 
       PointerRNA *fcm_ptr = MEM_new<PointerRNA>("panel customdata");
       *fcm_ptr = RNA_pointer_create_discrete(owner_id, &RNA_FModifier, fcm);
-      UI_panel_custom_data_set(panel, fcm_ptr);
+      blender::ui::UI_panel_custom_data_set(panel, fcm_ptr);
 
       panel = panel->next;
     }

@@ -21,7 +21,6 @@
 #include "UI_resources.hh"
 
 struct bContext;
-struct uiBlock;
 struct View2D;
 
 namespace blender::ui {

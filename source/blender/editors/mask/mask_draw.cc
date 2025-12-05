@@ -151,11 +151,11 @@ static void draw_single_handle(const MaskLayer *mask_layer,
   float point_color[4] = {1.0f, 1.0f, 1.0f, 1.0f}; /* active color by default */
   if (BKE_mask_point_is_handle_selected(point, which_handle)) {
     if (point != mask_layer->act_point) {
-      UI_GetThemeColor3fv(TH_HANDLE_VERTEX_SELECT, point_color);
+      blender::ui::UI_GetThemeColor3fv(TH_HANDLE_VERTEX_SELECT, point_color);
     }
   }
   else {
-    UI_GetThemeColor3fv(TH_HANDLE_VERTEX, point_color);
+    blender::ui::UI_GetThemeColor3fv(TH_HANDLE_VERTEX, point_color);
   }
 
   immUniform4fv("outlineColor", point_color);
@@ -195,7 +195,7 @@ static void draw_spline_points(const bContext *C,
   }
 
   /* TODO: add this to sequence editor. */
-  float handle_size = 2.0f * UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE) * U.pixelsize;
+  float handle_size = 2.0f * blender::ui::UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE) * U.pixelsize;
 
   mask_spline_color_get(mask_layer, spline, is_spline_sel, rgb_spline);
 
@@ -674,7 +674,7 @@ void ED_mask_draw_region(
   float xofs, yofs;
 
   /* find window pixel coordinates of origin */
-  UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
+  blender::ui::UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
 
   // w = BLI_rctf_size_x(&v2d->tot);
   // h = BLI_rctf_size_y(&v2d->tot);

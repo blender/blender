@@ -703,9 +703,12 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
   uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
   char *edit_string = static_cast<char *>(arg_string);
 
-  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
-  UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
-  const uiStyle *style = UI_style_get_dpi();
+  blender::ui::UI_block_theme_style_set(block, blender::ui::UI_BLOCK_THEME_STYLE_POPUP);
+  blender::ui::UI_block_flag_enable(block,
+                                    blender::ui::UI_BLOCK_KEEP_OPEN |
+                                        blender::ui::UI_BLOCK_NO_WIN_CLIP |
+                                        blender::ui::UI_BLOCK_NUMSELECT);
+  const uiStyle *style = blender::ui::UI_style_get_dpi();
   blender::ui::Layout &layout = blender::ui::block_layout(block,
                                                           blender::ui::LayoutDirection::Vertical,
                                                           blender::ui::LayoutType::Panel,
@@ -720,7 +723,7 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
   layout.label(RPT_("Enter a Unicode codepoint hex value"), ICON_NONE);
 
   uiBut *text_but = uiDefBut(block,
-                             ButType::Text,
+                             blender::ui::ButType::Text,
                              "",
                              0,
                              0,
@@ -730,7 +733,7 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
                              0,
                              7,
                              TIP_("Unicode codepoint hex value"));
-  UI_but_flag_enable(text_but, UI_BUT_ACTIVATE_ON_INIT);
+  UI_but_flag_enable(text_but, blender::ui::UI_BUT_ACTIVATE_ON_INIT);
   /* Hitting Enter in the text input is treated the same as clicking the Confirm button. */
   UI_but_func_set(text_but, text_insert_unicode_confirm, block, edit_string);
 
@@ -750,26 +753,50 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
   split.column(false);
 
   if (windows_layout) {
-    confirm = uiDefIconTextBut(
-        block, ButType::But, 0, IFACE_("Insert"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
+    confirm = uiDefIconTextBut(block,
+                               blender::ui::ButType::But,
+                               0,
+                               IFACE_("Insert"),
+                               0,
+                               0,
+                               0,
+                               UI_UNIT_Y,
+                               nullptr,
+                               std::nullopt);
     split.column(false);
   }
 
-  cancel = uiDefIconTextBut(
-      block, ButType::But, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
+  cancel = uiDefIconTextBut(block,
+                            blender::ui::ButType::But,
+                            0,
+                            IFACE_("Cancel"),
+                            0,
+                            0,
+                            0,
+                            UI_UNIT_Y,
+                            nullptr,
+                            std::nullopt);
 
   if (!windows_layout) {
     split.column(false);
-    confirm = uiDefIconTextBut(
-        block, ButType::But, 0, IFACE_("Insert"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
+    confirm = uiDefIconTextBut(block,
+                               blender::ui::ButType::But,
+                               0,
+                               IFACE_("Insert"),
+                               0,
+                               0,
+                               0,
+                               UI_UNIT_Y,
+                               nullptr,
+                               std::nullopt);
   }
 
   UI_block_func_set(block, nullptr, nullptr, nullptr);
   UI_but_func_set(confirm, text_insert_unicode_confirm, block, edit_string);
   UI_but_func_set(cancel, text_insert_unicode_cancel, block, nullptr);
-  UI_but_drawflag_disable(confirm, UI_BUT_TEXT_LEFT);
-  UI_but_drawflag_disable(cancel, UI_BUT_TEXT_LEFT);
-  UI_but_flag_enable(confirm, UI_BUT_ACTIVE_DEFAULT);
+  UI_but_drawflag_disable(confirm, blender::ui::UI_BUT_TEXT_LEFT);
+  UI_but_drawflag_disable(cancel, blender::ui::UI_BUT_TEXT_LEFT);
+  UI_but_flag_enable(confirm, blender::ui::UI_BUT_ACTIVE_DEFAULT);
 
   int bounds_offset[2];
   bounds_offset[0] = layout.width() * -0.2f;
@@ -2415,7 +2442,7 @@ static void font_ui_template_init(bContext *C, wmOperator *op)
   PropertyPointerRNA *pprop;
 
   op->customdata = pprop = MEM_new<PropertyPointerRNA>("OpenPropertyPointerRNA");
-  UI_context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
+  blender::ui::UI_context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
 }
 
 static void font_open_cancel(bContext * /*C*/, wmOperator *op)
@@ -2539,7 +2566,7 @@ static wmOperatorStatus font_unlink_exec(bContext *C, wmOperator *op)
 
   PropertyPointerRNA pprop;
 
-  UI_context_active_but_prop_get_templateID(C, &pprop.ptr, &pprop.prop);
+  blender::ui::UI_context_active_but_prop_get_templateID(C, &pprop.ptr, &pprop.prop);
 
   if (pprop.prop == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Incorrect context for running font unlink");

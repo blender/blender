@@ -27,14 +27,14 @@
 #include "UI_interface_layout.hh"
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
 struct ProgressTooltip_Store {
   wmWindowManager *wm;
   void *owner;
 };
 
-static std::string progress_tooltip_func(bContext * /*C*/,
-                                         void *argN,
-                                         const blender::StringRef /*tip*/)
+static std::string progress_tooltip_func(bContext * /*C*/, void *argN, const StringRef /*tip*/)
 {
   ProgressTooltip_Store *arg = static_cast<ProgressTooltip_Store *>(argN);
   wmWindowManager *wm = arg->wm;
@@ -70,7 +70,7 @@ static void set_global_break(bContext &C)
   WM_jobs_stop_all_from_owner(CTX_wm_manager(&C), CTX_data_scene(&C));
 }
 
-void uiTemplateRunningJobs(blender::ui::Layout *layout, bContext *C)
+void uiTemplateRunningJobs(Layout *layout, bContext *C)
 {
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -83,7 +83,7 @@ void uiTemplateRunningJobs(blender::ui::Layout *layout, bContext *C)
   const char *op_description = nullptr;
 
   uiBlock *block = layout->block();
-  blender::ui::block_layout_set_current(block, layout);
+  block_layout_set_current(block, layout);
 
   /* another scene can be rendering too, for example via compositor */
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
@@ -217,7 +217,7 @@ void uiTemplateRunningJobs(blender::ui::Layout *layout, bContext *C)
     const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
     const bool active = !(G.is_break || WM_jobs_is_stopped(wm, owner));
 
-    blender::ui::Layout *row = &layout->row(false);
+    Layout *row = &layout->row(false);
     block = row->block();
 
     /* get percentage done and set it as the UI text */
@@ -232,7 +232,7 @@ void uiTemplateRunningJobs(blender::ui::Layout *layout, bContext *C)
       uiDefIconButO(block,
                     ButType::But,
                     op_name,
-                    blender::wm::OpCallContext::InvokeDefault,
+                    wm::OpCallContext::InvokeDefault,
                     icon,
                     0,
                     0,
@@ -264,17 +264,16 @@ void uiTemplateRunningJobs(blender::ui::Layout *layout, bContext *C)
           MEM_mallocN(sizeof(*tip_arg), __func__));
       tip_arg->wm = wm;
       tip_arg->owner = owner;
-      blender::ui::ButtonProgress *but_progress = (blender::ui::ButtonProgress *)uiDefIconTextBut(
-          block,
-          ButType::Progress,
-          ICON_NONE,
-          text,
-          UI_UNIT_X,
-          0,
-          UI_UNIT_X * 6.0f,
-          UI_UNIT_Y,
-          nullptr,
-          nullptr);
+      ButtonProgress *but_progress = (ButtonProgress *)uiDefIconTextBut(block,
+                                                                        ButType::Progress,
+                                                                        ICON_NONE,
+                                                                        text,
+                                                                        UI_UNIT_X,
+                                                                        0,
+                                                                        UI_UNIT_X * 6.0f,
+                                                                        UI_UNIT_Y,
+                                                                        nullptr,
+                                                                        nullptr);
 
       but_progress->progress_factor = progress;
       UI_but_func_tooltip_set(but_progress, progress_tooltip_func, tip_arg, MEM_freeN);
@@ -307,11 +306,10 @@ void uiTemplateRunningJobs(blender::ui::Layout *layout, bContext *C)
                                   nullptr,
                                   TIP_("Stop animation playback"));
     UI_but_func_set(but, [](bContext &C) {
-      WM_operator_name_call(&C,
-                            "SCREEN_OT_animation_play",
-                            blender::wm::OpCallContext::InvokeScreen,
-                            nullptr,
-                            nullptr);
+      WM_operator_name_call(
+          &C, "SCREEN_OT_animation_play", wm::OpCallContext::InvokeScreen, nullptr, nullptr);
     });
   }
 }
+
+}  // namespace blender::ui

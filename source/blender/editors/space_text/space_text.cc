@@ -253,7 +253,8 @@ static void text_main_region_init(wmWindowManager *wm, ARegion *region)
   wmKeyMap *keymap;
   ListBase *lb;
 
-  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_STANDARD, region->winx, region->winy);
+  UI_view2d_region_reinit(
+      &region->v2d, blender::ui::V2D_COMMONVIEW_STANDARD, region->winx, region->winy);
 
   /* Own keymap. */
   keymap = WM_keymap_ensure(wm->runtime->defaultconf, "Text Generic", SPACE_TEXT, RGN_TYPE_WINDOW);
@@ -274,7 +275,7 @@ static void text_main_region_draw(const bContext *C, ARegion *region)
   // View2D *v2d = &region->v2d;
 
   /* Clear and setup matrix. */
-  UI_ThemeClearColor(TH_BACK);
+  blender::ui::UI_ThemeClearColor(TH_BACK);
 
   // UI_view2d_view_ortho(v2d);
 

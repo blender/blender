@@ -98,10 +98,10 @@ static void modifier_panel_header(const bContext * /*C*/, Panel *panel)
   ui::Layout &layout = *panel->layout;
 
   /* Don't use #modifier_panel_get_property_pointers, we don't want to lock the header. */
-  PointerRNA *ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *ptr = ui::UI_panel_custom_data_get(panel);
   StripModifierData *smd = static_cast<StripModifierData *>(ptr->data);
 
-  UI_panel_context_pointer_set(panel, "modifier", ptr);
+  ui::UI_panel_context_pointer_set(panel, "modifier", ptr);
 
   /* Modifier Icon. */
   ui::Layout *sub = &layout.row(true);
@@ -151,7 +151,7 @@ void draw_mask_input_type_settings(const bContext *C, ui::Layout &layout, Pointe
 
   ui::Layout &col = layout.column(false);
   ui::Layout *row = &col.row(true);
-  row->prop(ptr, "input_mask_type", UI_ITEM_R_EXPAND, IFACE_("Type"), ICON_NONE);
+  row->prop(ptr, "input_mask_type", ui::UI_ITEM_R_EXPAND, IFACE_("Type"), ICON_NONE);
 
   if (input_mask_type == STRIP_MASK_INPUT_STRIP) {
     PointerRNA sequences_object = RNA_pointer_create_discrete(
@@ -162,7 +162,7 @@ void draw_mask_input_type_settings(const bContext *C, ui::Layout &layout, Pointe
   else {
     col.prop(ptr, "input_mask_id", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     row = &col.row(true);
-    row->prop(ptr, "mask_time", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    row->prop(ptr, "mask_time", ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   }
 }
 
@@ -181,7 +181,7 @@ bool modifier_ui_poll(const bContext *C, PanelType * /*pt*/)
  */
 static void modifier_reorder(bContext *C, Panel *panel, const int new_index)
 {
-  PointerRNA *smd_ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *smd_ptr = blender::ui::UI_panel_custom_data_get(panel);
   StripModifierData *smd = static_cast<StripModifierData *>(smd_ptr->data);
 
   PointerRNA props_ptr;
@@ -195,14 +195,14 @@ static void modifier_reorder(bContext *C, Panel *panel, const int new_index)
 
 static short get_strip_modifier_expand_flag(const bContext * /*C*/, Panel *panel)
 {
-  PointerRNA *smd_ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *smd_ptr = blender::ui::UI_panel_custom_data_get(panel);
   StripModifierData *smd = static_cast<StripModifierData *>(smd_ptr->data);
   return smd->ui_expand_flag;
 }
 
 static void set_strip_modifier_expand_flag(const bContext * /*C*/, Panel *panel, short expand_flag)
 {
-  PointerRNA *smd_ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *smd_ptr = blender::ui::UI_panel_custom_data_get(panel);
   StripModifierData *smd = static_cast<StripModifierData *>(smd_ptr->data);
   smd->ui_expand_flag = expand_flag;
 }

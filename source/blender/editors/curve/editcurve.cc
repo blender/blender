@@ -5965,7 +5965,8 @@ static wmOperatorStatus toggle_cyclic_invoke(bContext *C,
     LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       if (nu->pntsu > 1 || nu->pntsv > 1) {
         if (nu->type == CU_NURBS) {
-          uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Direction"), ICON_NONE);
+          blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(
+              C, IFACE_("Direction"), ICON_NONE);
           blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
           layout.op_enum(op->type->idname, "direction");
           UI_popup_menu_end(C, pup);

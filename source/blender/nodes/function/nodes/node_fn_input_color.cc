@@ -18,7 +18,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     params.layout.alignment_set(ui::LayoutAlign::Expand);
     ui::Layout &col = params.layout.column(false);
     uiTemplateColorPicker(&col, &params.node_ptr, "value", true, false, false, true);
-    col.prop(&params.node_ptr, "value", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    col.prop(&params.node_ptr, "value", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   });
 }
 

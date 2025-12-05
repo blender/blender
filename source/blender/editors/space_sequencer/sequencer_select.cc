@@ -71,7 +71,7 @@ class MouseCoords {
   {
     region[0] = x;
     region[1] = y;
-    UI_view2d_region_to_view(v2d, x, y, &view[0], &view[1]);
+    ui::UI_view2d_region_to_view(v2d, x, y, &view[0], &view[1]);
   }
 };
 
@@ -97,7 +97,7 @@ bool deselect_all_strips(const Scene *scene)
 Strip *strip_under_mouse_get(const Scene *scene, const View2D *v2d, const int mval[2])
 {
   float mouse_co[2];
-  UI_view2d_region_to_view(v2d, mval[0], mval[1], &mouse_co[0], &mouse_co[1]);
+  ui::UI_view2d_region_to_view(v2d, mval[0], mval[1], &mouse_co[0], &mouse_co[1]);
 
   Vector<Strip *> visible = sequencer_visible_strips_get(scene, v2d);
   int mouse_channel = int(mouse_co[1]);
@@ -560,7 +560,7 @@ static void sequencer_select_side_of_frame(const bContext *C,
 {
   Editing *ed = seq::editing_get(scene);
 
-  const float x = UI_view2d_region_to_view_x(v2d, mval[0]);
+  const float x = ui::UI_view2d_region_to_view_x(v2d, mval[0]);
   LISTBASE_FOREACH (Strip *, strip_iter, seq::active_seqbase_get(ed)) {
     if (((x < scene->r.cfra) &&
          (seq::time_right_handle_frame_get(scene, strip_iter) <= scene->r.cfra)) ||
@@ -717,10 +717,10 @@ static Strip *strip_select_from_preview(
   ListBase *seqbase = seq::active_seqbase_get(ed);
   ListBase *channels = seq::channels_displayed_get(ed);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
-  View2D *v2d = UI_view2d_fromcontext(C);
+  View2D *v2d = ui::UI_view2d_fromcontext(C);
 
   float mouseco_view[2];
-  UI_view2d_region_to_view(v2d, mval[0], mval[1], &mouseco_view[0], &mouseco_view[1]);
+  ui::UI_view2d_region_to_view(v2d, mval[0], mval[1], &mouseco_view[0], &mouseco_view[1]);
 
   /* Always update the coordinates (check extended after). */
   const bool use_cycle = (!WM_cursor_test_motion_and_update(mval) || extend || toggle);
@@ -730,8 +730,8 @@ static Strip *strip_select_from_preview(
    * to overlapping from the users perspective. */
   const float center_dist_sq_max = square_f(75.0f * U.pixelsize);
   const float center_scale_px[2] = {
-      UI_view2d_scale_get_x(v2d),
-      UI_view2d_scale_get_y(v2d),
+      ui::UI_view2d_scale_get_x(v2d),
+      ui::UI_view2d_scale_get_y(v2d),
   };
 
   VectorSet strips = seq::query_rendered_strips(
@@ -982,7 +982,7 @@ static float inner_clickable_handle_size_get(const Scene *scene,
                                              const Strip *strip,
                                              const View2D *v2d)
 {
-  const float pixelx = 1 / UI_view2d_scale_get_x(v2d);
+  const float pixelx = 1 / ui::UI_view2d_scale_get_x(v2d);
   const float strip_len = seq::time_right_handle_frame_get(scene, strip) -
                           seq::time_left_handle_frame_get(scene, strip);
   return min_ff(15.0f * pixelx * U.pixelsize, strip_len / 4);
@@ -1005,14 +1005,14 @@ bool can_select_handle(const Scene *scene, const Strip *strip, const View2D *v2d
    * `inner_clickable_handle_size_get`), this means handles cannot be smaller than 25/3 = 8px. */
   int min_len = 25 * U.pixelsize;
 
-  const float pixelx = 1 / UI_view2d_scale_get_x(v2d);
+  const float pixelx = 1 / ui::UI_view2d_scale_get_x(v2d);
   const int strip_len = seq::time_right_handle_frame_get(scene, strip) -
                         seq::time_left_handle_frame_get(scene, strip);
   if (strip_len / pixelx < min_len) {
     return false;
   }
 
-  if (UI_view2d_scale_get_y(v2d) < 16 * U.pixelsize) {
+  if (ui::UI_view2d_scale_get_y(v2d) < 16 * U.pixelsize) {
     return false;
   }
 
@@ -1159,7 +1159,7 @@ StripSelection pick_strip_and_handle(const Scene *scene, const View2D *v2d, floa
 {
   StripSelection selection;
   /* Do not pick strips when clicking inside time scrub region. */
-  float time_scrub_y = v2d->cur.ymax - UI_TIME_SCRUB_MARGIN_Y / UI_view2d_scale_get_y(v2d);
+  float time_scrub_y = v2d->cur.ymax - UI_TIME_SCRUB_MARGIN_Y / ui::UI_view2d_scale_get_y(v2d);
   if (mouse_co[1] > time_scrub_y) {
     return selection;
   }
@@ -1184,7 +1184,7 @@ StripSelection pick_strip_and_handle(const Scene *scene, const View2D *v2d, floa
 
 wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
 {
-  const View2D *v2d = UI_view2d_fromcontext(C);
+  const View2D *v2d = ui::UI_view2d_fromcontext(C);
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
   ARegion *region = CTX_wm_region(C);
@@ -1475,7 +1475,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 /** This operator is only used in the RCS keymap by default and is not exposed in any menus. */
 static wmOperatorStatus sequencer_select_handle_exec(bContext *C, wmOperator *op)
 {
-  const View2D *v2d = UI_view2d_fromcontext(C);
+  const View2D *v2d = ui::UI_view2d_fromcontext(C);
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
 
@@ -1727,12 +1727,12 @@ static wmOperatorStatus sequencer_select_linked_pick_invoke(bContext *C,
                                                             const wmEvent *event)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
-  const View2D *v2d = UI_view2d_fromcontext(C);
+  const View2D *v2d = ui::UI_view2d_fromcontext(C);
 
   bool extend = RNA_boolean_get(op->ptr, "extend");
 
   float mouse_co[2];
-  UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &mouse_co[0], &mouse_co[1]);
+  ui::UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &mouse_co[0], &mouse_co[1]);
 
   /* This works like UV, not mesh. */
   StripSelection mouse_selection = pick_strip_and_handle(scene, v2d, mouse_co);
@@ -2138,7 +2138,7 @@ static void seq_box_select_strip_from_preview(const bContext *C,
 static wmOperatorStatus sequencer_box_select_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
-  View2D *v2d = UI_view2d_fromcontext(C);
+  View2D *v2d = ui::UI_view2d_fromcontext(C);
   Editing *ed = seq::editing_get(scene);
 
   if (ed == nullptr) {
@@ -2162,7 +2162,7 @@ static wmOperatorStatus sequencer_box_select_exec(bContext *C, wmOperator *op)
 
   rctf rectf;
   WM_operator_properties_border_to_rctf(op, &rectf);
-  UI_view2d_region_to_view_rctf(v2d, &rectf, &rectf);
+  ui::UI_view2d_region_to_view_rctf(v2d, &rectf, &rectf);
 
   ARegion *region = CTX_wm_region(C);
   if (region->regiontype == RGN_TYPE_PREVIEW) {
@@ -2245,7 +2245,7 @@ static wmOperatorStatus sequencer_box_select_invoke(bContext *C,
                                                     const wmEvent *event)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
-  const View2D *v2d = UI_view2d_fromcontext(C);
+  const View2D *v2d = ui::UI_view2d_fromcontext(C);
   ARegion *region = CTX_wm_region(C);
 
   if (region->regiontype == RGN_TYPE_PREVIEW && !sequencer_view_preview_only_poll(C)) {
@@ -2258,7 +2258,7 @@ static wmOperatorStatus sequencer_box_select_invoke(bContext *C,
     int mval[2];
     float mouse_co[2];
     WM_event_drag_start_mval(event, region, mval);
-    UI_view2d_region_to_view(v2d, mval[0], mval[1], &mouse_co[0], &mouse_co[1]);
+    ui::UI_view2d_region_to_view(v2d, mval[0], mval[1], &mouse_co[0], &mouse_co[1]);
 
     StripSelection selection = pick_strip_and_handle(scene, v2d, mouse_co);
 
@@ -2324,7 +2324,7 @@ static bool do_lasso_select_is_origin_inside(const ARegion *region,
                                              const float co_test[2])
 {
   int co_screen[2];
-  if (UI_view2d_view_to_region_clip(
+  if (ui::UI_view2d_view_to_region_clip(
           &region->v2d, co_test[0], co_test[1], &co_screen[0], &co_screen[1]) &&
       BLI_rcti_isect_pt_v(clip_rect, co_screen) &&
       BLI_lasso_is_point_inside(mcoords, co_screen[0], co_screen[1], V2D_IS_CLIPPED))
@@ -2373,9 +2373,9 @@ static bool do_lasso_select_timeline(bContext *C,
     rctf strip_rct;
     rcti region_rct;
     strip_rectf(scene, strip, &strip_rct);
-    UI_view2d_view_to_region_clip(
+    ui::UI_view2d_view_to_region_clip(
         &region->v2d, strip_rct.xmin, strip_rct.ymin, &region_rct.xmin, &region_rct.ymin);
-    UI_view2d_view_to_region_clip(
+    ui::UI_view2d_view_to_region_clip(
         &region->v2d, strip_rct.xmax, strip_rct.ymax, &region_rct.xmax, &region_rct.ymax);
 
     if (rcti_in_lasso(region_rct, mcoords)) {
@@ -2556,7 +2556,7 @@ static wmOperatorStatus vse_circle_select_exec(bContext *C, wmOperator *op)
   const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
 
   Scene *scene = CTX_data_scene(C);
-  View2D *v2d = UI_view2d_fromcontext(C);
+  View2D *v2d = ui::UI_view2d_fromcontext(C);
   Editing *ed = seq::editing_get(scene);
   ARegion *region = CTX_wm_region(C);
 
@@ -2572,8 +2572,8 @@ static wmOperatorStatus vse_circle_select_exec(bContext *C, wmOperator *op)
   }
 
   float2 view_mval;
-  UI_view2d_region_to_view(v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
-  float pixel_radius = radius / UI_view2d_scale_get_x(v2d);
+  ui::UI_view2d_region_to_view(v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
+  float pixel_radius = radius / ui::UI_view2d_scale_get_x(v2d);
 
   if (region->regiontype == RGN_TYPE_PREVIEW) {
     seq_circle_select_strip_from_preview(C, pixel_radius, view_mval, sel_op);
@@ -2581,8 +2581,8 @@ static wmOperatorStatus vse_circle_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  float x_radius = radius / UI_view2d_scale_get_x(v2d);
-  float y_radius = radius / UI_view2d_scale_get_y(v2d);
+  float x_radius = radius / ui::UI_view2d_scale_get_x(v2d);
+  float y_radius = radius / ui::UI_view2d_scale_get_y(v2d);
   bool changed = false;
   LISTBASE_FOREACH (Strip *, strip, ed->current_strips()) {
     rctf rq;

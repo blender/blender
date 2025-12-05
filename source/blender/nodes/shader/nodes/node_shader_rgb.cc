@@ -23,7 +23,7 @@ static void node_declare(NodeDeclarationBuilder &b)
         ui::Layout &col = params.layout.column(false);
         uiTemplateColorPicker(
             &col, &params.socket_ptr, "default_value", true, false, false, false);
-        col.prop(&params.socket_ptr, "default_value", UI_ITEM_R_SLIDER, "", ICON_NONE);
+        col.prop(&params.socket_ptr, "default_value", ui::UI_ITEM_R_SLIDER, "", ICON_NONE);
       });
 }
 

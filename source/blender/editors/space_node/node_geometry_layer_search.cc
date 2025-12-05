@@ -123,7 +123,7 @@ static Vector<const std::string *> get_layer_names_from_context(const bContext &
 }
 
 static void layer_search_update_fn(
-    const bContext *C, void *arg, const char *str, uiSearchItems *items, const bool is_first)
+    const bContext *C, void *arg, const char *str, ui::SearchItems *items, const bool is_first)
 {
   if (ED_screen_animation_playing(CTX_wm_manager(C))) {
     return;
@@ -184,7 +184,7 @@ void node_geometry_add_layer_search_button(const bContext & /*C*/,
 {
   uiBlock *block = layout.block();
   uiBut *but = uiDefIconTextButR(block,
-                                 ButType::SearchMenu,
+                                 ui::ButType::SearchMenu,
                                  ICON_OUTLINER_DATA_GP_LAYER,
                                  "",
                                  0,

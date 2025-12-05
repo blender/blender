@@ -78,7 +78,7 @@ static FileSelection find_file_mouse_rect(SpaceFile *sfile,
   /* Okay, manipulating v2d rects here is hacky... */
   v2d->mask.ymax -= sfile->layout->offset_top;
   v2d->cur.ymax -= sfile->layout->offset_top;
-  UI_view2d_region_to_view_rctf(v2d, &rect_region_fl, &rect_view_fl);
+  blender::ui::UI_view2d_region_to_view_rctf(v2d, &rect_region_fl, &rect_view_fl);
   v2d->mask.ymax += sfile->layout->offset_top;
   v2d->cur.ymax += sfile->layout->offset_top;
 
@@ -308,7 +308,7 @@ static void file_ensure_inside_viewbounds(ARegion *region, SpaceFile *sfile, con
   }
 
   if (changed) {
-    UI_view2d_curRect_validate(&region->v2d);
+    blender::ui::UI_view2d_curRect_validate(&region->v2d);
   }
 }
 
@@ -421,7 +421,8 @@ static int file_box_select_find_last_selected(SpaceFile *sfile,
   int dist_first, dist_last;
   float mouseco_view[2];
 
-  UI_view2d_region_to_view(&region->v2d, UNPACK2(mouse_xy), &mouseco_view[0], &mouseco_view[1]);
+  blender::ui::UI_view2d_region_to_view(
+      &region->v2d, UNPACK2(mouse_xy), &mouseco_view[0], &mouseco_view[1]);
 
   file_tile_boundbox(region, layout, sel->first, &bounds_first);
   file_tile_boundbox(region, layout, sel->last, &bounds_last);
@@ -1440,7 +1441,7 @@ int file_highlight_set(SpaceFile *sfile, ARegion *region, int mx, int my)
     float fx, fy;
     int highlight_file;
 
-    UI_view2d_region_to_view(v2d, mx, my, &fx, &fy);
+    blender::ui::UI_view2d_region_to_view(v2d, mx, my, &fx, &fy);
 
     highlight_file = ED_fileselect_layout_offset(
         sfile->layout, int(v2d->tot.xmin + fx), int(v2d->tot.ymax - fy));
@@ -3349,7 +3350,7 @@ static wmOperatorStatus file_start_filter_exec(bContext *C, wmOperator * /*op*/)
 
   if (area) {
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-      if (UI_textbutton_activate_rna(C, region, params, "filter_search")) {
+      if (blender::ui::UI_textbutton_activate_rna(C, region, params, "filter_search")) {
         break;
       }
     }
@@ -3385,7 +3386,7 @@ static wmOperatorStatus file_edit_directory_path_exec(bContext *C, wmOperator * 
 
   if (area) {
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-      if (UI_textbutton_activate_rna(C, region, params, "directory")) {
+      if (blender::ui::UI_textbutton_activate_rna(C, region, params, "directory")) {
         break;
       }
     }

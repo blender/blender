@@ -21,7 +21,7 @@
 #include "interface_intern.hh"
 #include "interface_templates_intern.hh"
 
-using blender::StringRefNull;
+namespace blender::ui {
 
 /* -------------------------------------------------------------------- */
 /** \name Search Menu Helpers
@@ -55,13 +55,13 @@ int template_search_textbut_height()
 }
 
 void template_add_button_search_menu(const bContext *C,
-                                     blender::ui::Layout &layout,
+                                     Layout &layout,
                                      uiBlock *block,
                                      PointerRNA *ptr,
                                      PropertyRNA *prop,
                                      uiBlockCreateFunc block_func,
                                      void *block_argN,
-                                     const std::optional<blender::StringRef> tip,
+                                     const std::optional<StringRef> tip,
                                      const bool use_previews,
                                      const bool editable,
                                      const bool live_icon,
@@ -85,7 +85,7 @@ void template_add_button_search_menu(const bContext *C,
     const bool use_preview_icon = use_big_size || (id && (GS(id->name) != ID_SCR));
     const short width = UI_UNIT_X * (use_big_size ? 6 : 1.6f);
     const short height = UI_UNIT_Y * (use_big_size ? 6 : 1);
-    blender::ui::Layout *col = nullptr;
+    Layout *col = nullptr;
 
     if (use_big_size) {
       /* Assume column layout here. To be more correct, we should check if the layout passed to
@@ -170,7 +170,7 @@ uiBlock *template_common_search_menu(const bContext *C,
   /* clear initial search string, then all items show */
   search[0] = 0;
 
-  uiBlock *block = UI_block_begin(C, region, "_popup", blender::ui::EmbossType::Emboss);
+  uiBlock *block = UI_block_begin(C, region, "_popup", EmbossType::Emboss);
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_SEARCH_MENU);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
@@ -241,7 +241,7 @@ uiBlock *template_common_search_menu(const bContext *C,
 /** \name Header Template
  * \{ */
 
-void uiTemplateHeader(blender::ui::Layout *layout, bContext *C)
+void uiTemplateHeader(Layout *layout, bContext *C)
 {
   uiBlock *block = layout->absolute().block();
   ED_area_header_switchbutton(C, block, 0);
@@ -253,7 +253,7 @@ void uiTemplateHeader(blender::ui::Layout *layout, bContext *C)
 /** \name RNA Path Builder Template
  * \{ */
 
-void uiTemplatePathBuilder(blender::ui::Layout *layout,
+void uiTemplatePathBuilder(Layout *layout,
                            PointerRNA *ptr,
                            const StringRefNull propname,
                            PointerRNA * /*root_ptr*/,
@@ -268,7 +268,7 @@ void uiTemplatePathBuilder(blender::ui::Layout *layout,
   }
 
   /* Start drawing UI Elements using standard defines */
-  blender::ui::Layout &row = layout->row(true);
+  Layout &row = layout->row(true);
 
   /* Path (existing string) Widget */
   row.prop(ptr, propname, UI_ITEM_NONE, text, ICON_RNA);
@@ -283,7 +283,7 @@ void uiTemplatePathBuilder(blender::ui::Layout *layout,
 /** \name Node Socket Icon Template
  * \{ */
 
-void uiTemplateNodeSocket(blender::ui::Layout *layout, bContext * /*C*/, const float color[4])
+void uiTemplateNodeSocket(Layout *layout, bContext * /*C*/, const float color[4])
 {
   uiBlock *block = layout->block();
   UI_block_align_begin(block);
@@ -302,7 +302,7 @@ void uiTemplateNodeSocket(blender::ui::Layout *layout, bContext * /*C*/, const f
 /** \name FileSelectParams Path Button Template
  * \{ */
 
-void uiTemplateFileSelectPath(blender::ui::Layout *layout, bContext *C, FileSelectParams *params)
+void uiTemplateFileSelectPath(Layout *layout, bContext *C, FileSelectParams *params)
 {
   bScreen *screen = CTX_wm_screen(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
@@ -311,3 +311,5 @@ void uiTemplateFileSelectPath(blender::ui::Layout *layout, bContext *C, FileSele
 }
 
 /** \} */
+
+}  // namespace blender::ui

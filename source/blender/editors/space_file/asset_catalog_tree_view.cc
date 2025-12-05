@@ -288,7 +288,7 @@ void AssetCatalogTreeViewItem::build_row(ui::Layout &row)
     return;
   }
 
-  blender::ui::ButtonViewItem *view_item_but = view_item_button();
+  ui::ButtonViewItem *view_item_but = view_item_button();
   PointerRNA *props;
 
   props = UI_but_extra_operator_icon_add(
@@ -322,7 +322,7 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, ui::Layout &colum
   if (!mt) {
     return;
   }
-  UI_menutype_draw(&C, mt, &column);
+  ui::UI_menutype_draw(&C, mt, &column);
 }
 
 bool AssetCatalogTreeViewItem::supports_renaming() const

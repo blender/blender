@@ -928,7 +928,7 @@ struct Resources : public select::SelectMap {
   float4 background_blend_color(ThemeColorID theme_id) const
   {
     float4 color;
-    UI_GetThemeColorBlendShade4fv(theme_id, TH_BACK, 0.5, 0, color);
+    ui::UI_GetThemeColorBlendShade4fv(theme_id, TH_BACK, 0.5, 0, color);
     return color;
   }
 
@@ -949,7 +949,7 @@ struct Resources : public select::SelectMap {
       return state.v3d->shading.background_color;
     }
     float4 color;
-    UI_GetThemeColor3fv(TH_BACK, color);
+    ui::UI_GetThemeColor3fv(TH_BACK, color);
     return color;
   }
 
@@ -965,7 +965,7 @@ struct Resources : public select::SelectMap {
   static float vertex_size_get()
   {
     /* M_SQRT2 to be at least the same size of the old square */
-    return max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * float(M_SQRT2) / 2.0f);
+    return max_ff(1.0f, ui::UI_GetThemeValuef(TH_VERTEX_SIZE) * float(M_SQRT2) / 2.0f);
   }
 
   /** Convenience functions. */

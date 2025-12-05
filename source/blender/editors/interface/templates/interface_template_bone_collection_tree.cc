@@ -26,7 +26,8 @@
 
 #include <fmt/format.h>
 
-namespace blender::ui::bonecollections {
+namespace blender::ui {
+namespace bonecollections {
 
 using namespace blender::animrig;
 
@@ -460,12 +461,10 @@ void BoneCollectionDragController::on_drag_start(bContext & /*C*/)
   ANIM_armature_bonecoll_active_index_set(drag_arm_bcoll_.armature, drag_arm_bcoll_.bcoll_index);
 }
 
-}  // namespace blender::ui::bonecollections
+}  // namespace bonecollections
 
-void uiTemplateBoneCollectionTree(blender::ui::Layout *layout, bContext *C)
+void uiTemplateBoneCollectionTree(Layout *layout, bContext *C)
 {
-  using namespace blender;
-
   bArmature *armature = ED_armature_context(C);
   if (armature == nullptr) {
     return;
@@ -474,12 +473,14 @@ void uiTemplateBoneCollectionTree(blender::ui::Layout *layout, bContext *C)
 
   uiBlock *block = layout->block();
 
-  ui::AbstractTreeView *tree_view = UI_block_add_view(
+  AbstractTreeView *tree_view = UI_block_add_view(
       *block,
       "Bone Collection Tree View",
-      std::make_unique<blender::ui::bonecollections::BoneCollectionTreeView>(*armature));
+      std::make_unique<bonecollections::BoneCollectionTreeView>(*armature));
   tree_view->set_context_menu_title("Bone Collection");
   tree_view->set_default_rows(5);
 
-  ui::TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
+  TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
 }
+
+}  // namespace blender::ui

@@ -1210,8 +1210,8 @@ UvNearestHit uv_nearest_hit_init_dist_px(const View2D *v2d, const float dist_px)
 {
   UvNearestHit hit = {nullptr};
   hit.dist_sq = square_f(U.pixelsize * dist_px);
-  hit.scale[0] = UI_view2d_scale_get_x(v2d);
-  hit.scale[1] = UI_view2d_scale_get_y(v2d);
+  hit.scale[0] = blender::ui::UI_view2d_scale_get_x(v2d);
+  hit.scale[1] = blender::ui::UI_view2d_scale_get_y(v2d);
   return hit;
 }
 
@@ -1219,8 +1219,8 @@ UvNearestHit uv_nearest_hit_init_max(const View2D *v2d)
 {
   UvNearestHit hit = {nullptr};
   hit.dist_sq = FLT_MAX;
-  hit.scale[0] = UI_view2d_scale_get_x(v2d);
-  hit.scale[1] = UI_view2d_scale_get_y(v2d);
+  hit.scale[0] = blender::ui::UI_view2d_scale_get_x(v2d);
+  hit.scale[1] = blender::ui::UI_view2d_scale_get_y(v2d);
   return hit;
 }
 
@@ -1511,8 +1511,8 @@ bool ED_uvedit_nearest_uv_multi(const View2D *v2d,
   bool found = false;
 
   float scale[2], offset[2];
-  UI_view2d_scale_get(v2d, &scale[0], &scale[1]);
-  UI_view2d_view_to_region_fl(v2d, 0.0f, 0.0f, &offset[0], &offset[1]);
+  blender::ui::UI_view2d_scale_get(v2d, &scale[0], &scale[1]);
+  blender::ui::UI_view2d_view_to_region_fl(v2d, 0.0f, 0.0f, &offset[0], &offset[1]);
 
   float co[2];
   sub_v2_v2v2(co, mval_fl, offset);
@@ -3636,7 +3636,8 @@ static wmOperatorStatus uv_select_invoke(bContext *C, wmOperator *op, const wmEv
   const ARegion *region = CTX_wm_region(C);
   float co[2];
 
-  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  blender::ui::UI_view2d_region_to_view(
+      &region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
   RNA_float_set_array(op->ptr, "location", co);
 
   const wmOperatorStatus retval = uv_select_exec(C, op);
@@ -3789,7 +3790,8 @@ static wmOperatorStatus uv_select_loop_invoke(bContext *C, wmOperator *op, const
   const ARegion *region = CTX_wm_region(C);
   float co[2];
 
-  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  blender::ui::UI_view2d_region_to_view(
+      &region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
   RNA_float_set_array(op->ptr, "location", co);
 
   const wmOperatorStatus retval = uv_select_loop_exec(C, op);
@@ -3853,7 +3855,8 @@ static wmOperatorStatus uv_select_edge_ring_invoke(bContext *C,
   const ARegion *region = CTX_wm_region(C);
   float co[2];
 
-  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  blender::ui::UI_view2d_region_to_view(
+      &region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
   RNA_float_set_array(op->ptr, "location", co);
 
   const wmOperatorStatus retval = uv_select_edge_ring_exec(C, op);
@@ -3932,7 +3935,8 @@ static wmOperatorStatus uv_select_linked_internal(bContext *C,
 
     if (event) {
       /* invoke */
-      UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+      blender::ui::UI_view2d_region_to_view(
+          &region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
       RNA_float_set_array(op->ptr, "location", co);
     }
     else {
@@ -4630,7 +4634,7 @@ static wmOperatorStatus uv_box_select_exec(bContext *C, wmOperator *op)
 
   /* get rectangle from operator */
   WM_operator_properties_border_to_rctf(op, &rectf);
-  UI_view2d_region_to_view_rctf(&region->v2d, &rectf, &rectf);
+  blender::ui::UI_view2d_region_to_view_rctf(&region->v2d, &rectf, &rectf);
 
   const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
   const bool select = (sel_op != SEL_OP_SUB);
@@ -4900,7 +4904,7 @@ static wmOperatorStatus uv_circle_select_exec(bContext *C, wmOperator *op)
   ellipse[0] = width * zoomx / radius;
   ellipse[1] = height * zoomy / radius;
 
-  UI_view2d_region_to_view(&region->v2d, x, y, &offset[0], &offset[1]);
+  blender::ui::UI_view2d_region_to_view(&region->v2d, x, y, &offset[0], &offset[1]);
 
   bool changed_multi = false;
 
@@ -5079,7 +5083,7 @@ static bool do_lasso_select_mesh_uv_is_point_inside(const ARegion *region,
                                                     const float co_test[2])
 {
   int co_screen[2];
-  if (UI_view2d_view_to_region_clip(
+  if (blender::ui::UI_view2d_view_to_region_clip(
           &region->v2d, co_test[0], co_test[1], &co_screen[0], &co_screen[1]) &&
       BLI_rcti_isect_pt_v(clip_rect, co_screen) &&
       BLI_lasso_is_point_inside(mcoords, co_screen[0], co_screen[1], V2D_IS_CLIPPED))
@@ -5096,7 +5100,7 @@ static bool do_lasso_select_mesh_uv_is_edge_inside(const ARegion *region,
                                                    const float co_test_b[2])
 {
   int co_screen_a[2], co_screen_b[2];
-  if (UI_view2d_view_to_region_segment_clip(
+  if (blender::ui::UI_view2d_view_to_region_segment_clip(
           &region->v2d, co_test_a, co_test_b, co_screen_a, co_screen_b) &&
       BLI_rcti_isect_segment(clip_rect, co_screen_a, co_screen_b) &&
       BLI_lasso_is_edge_inside(
@@ -6905,7 +6909,8 @@ static wmOperatorStatus uv_custom_region_set_exec(bContext *C, wmOperator *op)
   ToolSettings *ts = scene->toolsettings;
 
   WM_operator_properties_border_to_rctf(op, &ts->uv_custom_region);
-  UI_view2d_region_to_view_rctf(&region->v2d, &ts->uv_custom_region, &ts->uv_custom_region);
+  blender::ui::UI_view2d_region_to_view_rctf(
+      &region->v2d, &ts->uv_custom_region, &ts->uv_custom_region);
   ts->uv_flag |= UV_FLAG_CUSTOM_REGION;
 
   return OPERATOR_FINISHED;

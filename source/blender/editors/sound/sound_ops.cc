@@ -70,7 +70,7 @@ static void sound_open_init(bContext *C, wmOperator *op)
   PropertyPointerRNA *pprop;
 
   op->customdata = pprop = MEM_new<PropertyPointerRNA>(__func__);
-  UI_context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
+  blender::ui::UI_context_active_but_prop_get_templateID(C, &pprop->ptr, &pprop->prop);
 }
 
 #ifdef WITH_AUDASPACE
@@ -669,7 +669,7 @@ static void sound_mixdown_draw(bContext *C, wmOperator *op)
                    sound_mixdown_draw_check_prop,
                    nullptr,
                    nullptr,
-                   UI_BUT_LABEL_ALIGN_NONE,
+                   blender::ui::UI_BUT_LABEL_ALIGN_NONE,
                    false);
 }
 #endif /* WITH_AUDASPACE */

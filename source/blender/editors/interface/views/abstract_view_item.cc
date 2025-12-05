@@ -203,7 +203,7 @@ static AbstractViewItem *find_item_from_rename_button(const uiBut &rename_but)
       continue;
     }
 
-    blender::ui::ButtonViewItem *view_item_but = (blender::ui::ButtonViewItem *)but.get();
+    ButtonViewItem *view_item_but = (ButtonViewItem *)but.get();
     AbstractViewItem *item = reinterpret_cast<AbstractViewItem *>(view_item_but->view_item);
     const AbstractView &view = item->get_view();
 
@@ -337,7 +337,7 @@ AbstractView &AbstractViewItem::get_view() const
   return *view_;
 }
 
-blender::ui::ButtonViewItem *AbstractViewItem::view_item_button() const
+ButtonViewItem *AbstractViewItem::view_item_button() const
 {
   return view_item_but_;
 }
@@ -398,13 +398,9 @@ bool AbstractViewItem::is_search_highlight() const
 
 /** \} */
 
-}  // namespace blender::ui
-
 /* ---------------------------------------------------------------------- */
 /** \name C-API
  * \{ */
-
-namespace blender::ui {
 
 /**
  * Helper class to provide a higher level public (C-)API. Has access to private/protected view item
@@ -426,10 +422,6 @@ class ViewItemAPIWrapper {
     std::swap(a.view_item_but_, b.view_item_but_);
   }
 };
-
-}  // namespace blender::ui
-
-using namespace blender::ui;
 
 bool UI_view_item_matches(const AbstractViewItem &a, const AbstractViewItem &b)
 {
@@ -484,3 +476,5 @@ bool UI_view_item_drag_start(bContext &C, AbstractViewItem &item)
 }
 
 /** \} */
+
+}  // namespace blender::ui

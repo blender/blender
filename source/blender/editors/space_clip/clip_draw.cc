@@ -294,7 +294,7 @@ static void draw_movieclip_muted(ARegion *region, int width, int height, float z
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* find window pixel coordinates of origin */
-  UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
+  blender::ui::UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
 
   immUniformColor3f(0.0f, 0.0f, 0.0f);
   immRectf(pos, x, y, x + zoomx * width, y + zoomy * height);
@@ -316,7 +316,7 @@ static void draw_movieclip_buffer(const bContext *C,
   int x, y;
 
   /* find window pixel coordinates of origin */
-  UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
+  blender::ui::UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
 
   /* checkerboard for case alpha */
   if (ibuf->planes == 32) {
@@ -353,7 +353,7 @@ static void draw_stabilization_border(
   MovieClip *clip = ED_space_clip_get_clip(sc);
 
   /* find window pixel coordinates of origin */
-  UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
+  blender::ui::UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
 
   /* draw boundary border for frame if stabilization is enabled */
   if (sc->flag & SC_SHOW_STABLE && clip->tracking.stabilization.flag & TRACKING_2D_STABILIZATION) {
@@ -682,7 +682,7 @@ static void track_colors(const MovieTrackingTrack *track, int act, float r_col[3
 {
   if (track->flag & TRACK_CUSTOMCOLOR) {
     if (act) {
-      UI_GetThemeColor3fv(TH_ACT_MARKER, r_scol);
+      blender::ui::UI_GetThemeColor3fv(TH_ACT_MARKER, r_scol);
     }
     else {
       copy_v3_v3(r_scol, track->color);
@@ -691,13 +691,13 @@ static void track_colors(const MovieTrackingTrack *track, int act, float r_col[3
     mul_v3_v3fl(r_col, track->color, 0.5f);
   }
   else {
-    UI_GetThemeColor3fv(TH_MARKER, r_col);
+    blender::ui::UI_GetThemeColor3fv(TH_MARKER, r_col);
 
     if (act) {
-      UI_GetThemeColor3fv(TH_ACT_MARKER, r_scol);
+      blender::ui::UI_GetThemeColor3fv(TH_ACT_MARKER, r_scol);
     }
     else {
-      UI_GetThemeColor3fv(TH_SEL_MARKER, r_scol);
+      blender::ui::UI_GetThemeColor3fv(TH_SEL_MARKER, r_scol);
     }
   }
 }
@@ -766,13 +766,13 @@ static void draw_marker_areas(SpaceClip *sc,
 
     if (track->flag & TRACK_LOCKED) {
       if (act) {
-        UI_GetThemeColor4fv(TH_ACT_MARKER, color);
+        blender::ui::UI_GetThemeColor4fv(TH_ACT_MARKER, color);
       }
       else if (track->flag & SELECT) {
-        UI_GetThemeColorShade4fv(TH_LOCK_MARKER, 64, color);
+        blender::ui::UI_GetThemeColorShade4fv(TH_LOCK_MARKER, 64, color);
       }
       else {
-        UI_GetThemeColor4fv(TH_LOCK_MARKER, color);
+        blender::ui::UI_GetThemeColor4fv(TH_LOCK_MARKER, color);
       }
     }
     else {
@@ -1065,16 +1065,16 @@ static void draw_marker_texts(SpaceClip *sc,
 
   if (marker->flag & MARKER_DISABLED) {
     if (act) {
-      UI_FontThemeColor(fontid, TH_ACT_MARKER);
+      blender::ui::UI_FontThemeColor(fontid, TH_ACT_MARKER);
     }
     else {
       uchar color[4];
-      UI_GetThemeColorShade4ubv(TH_DIS_MARKER, 128, color);
+      blender::ui::UI_GetThemeColorShade4ubv(TH_DIS_MARKER, 128, color);
       BLF_color4ubv(fontid, color);
     }
   }
   else {
-    UI_FontThemeColor(fontid, act ? TH_ACT_MARKER : TH_SEL_MARKER);
+    blender::ui::UI_FontThemeColor(fontid, act ? TH_ACT_MARKER : TH_SEL_MARKER);
   }
 
   if ((sc->flag & SC_SHOW_MARKER_SEARCH) &&
@@ -1139,9 +1139,9 @@ static void draw_marker_texts(SpaceClip *sc,
 
 static void plane_track_colors(bool is_active, float r_color[3], float r_selected_color[3])
 {
-  UI_GetThemeColor3fv(TH_MARKER, r_color);
+  blender::ui::UI_GetThemeColor3fv(TH_MARKER, r_color);
 
-  UI_GetThemeColor3fv(is_active ? TH_ACT_MARKER : TH_SEL_MARKER, r_selected_color);
+  blender::ui::UI_GetThemeColor3fv(is_active ? TH_ACT_MARKER : TH_SEL_MARKER, r_selected_color);
 }
 
 static void getArrowEndPoint(const int width,
@@ -1475,12 +1475,12 @@ static void draw_tracking_tracks(SpaceClip *sc,
 
   /* ** find window pixel coordinates of origin ** */
 
-  /* UI_view2d_view_to_region_no_clip return integer values, this could
+  /*blender::ui:: UI_view2d_view_to_region_no_clip return integer values, this could
    * lead to 1px flickering when view is locked to selection during playback.
    * to avoid this flickering, calculate base point in the same way as it happens
-   * in UI_view2d_view_to_region_no_clip, but do it in floats here */
+   * inblender::ui:: UI_view2d_view_to_region_no_clip, but do it in floats here */
 
-  UI_view2d_view_to_region_fl(&region->v2d, 0.0f, 0.0f, &x, &y);
+  blender::ui::UI_view2d_view_to_region_fl(&region->v2d, 0.0f, 0.0f, &x, &y);
 
   GPU_matrix_push();
   GPU_matrix_translate_2f(x, y);
@@ -1719,7 +1719,7 @@ static void draw_distortion(SpaceClip *sc,
     return;
   }
 
-  UI_view2d_view_to_region_fl(&region->v2d, 0.0f, 0.0f, &x, &y);
+  blender::ui::UI_view2d_view_to_region_fl(&region->v2d, 0.0f, 0.0f, &x, &y);
 
   GPU_matrix_push();
   GPU_matrix_translate_2f(x, y);

@@ -37,10 +37,12 @@
 #include "UI_interface_layout.hh"
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
 /* Maximum width for a Status Bar report */
 #define REPORT_BANNER_MAX_WIDTH (800.0f * UI_SCALE_FAC)
 
-void uiTemplateReportsBanner(blender::ui::Layout *layout, bContext *C)
+void uiTemplateReportsBanner(Layout *layout, bContext *C)
 {
   ReportList *reports = CTX_wm_reports(C);
   Report *report = BKE_reports_last_displayable(reports);
@@ -59,9 +61,9 @@ void uiTemplateReportsBanner(blender::ui::Layout *layout, bContext *C)
     return;
   }
 
-  blender::ui::Layout &ui_abs = layout->absolute(false);
+  Layout &ui_abs = layout->absolute(false);
   uiBlock *block = ui_abs.block();
-  blender::ui::EmbossType previous_emboss = UI_block_emboss_get(block);
+  EmbossType previous_emboss = UI_block_emboss_get(block);
 
   uchar report_icon_color[4];
   uchar report_text_color[4];
@@ -118,7 +120,7 @@ void uiTemplateReportsBanner(blender::ui::Layout *layout, bContext *C)
   but->col[3] = 64;
 
   UI_block_align_end(block);
-  UI_block_emboss_set(block, blender::ui::EmbossType::None);
+  UI_block_emboss_set(block, EmbossType::None);
 
   /* The report icon itself. */
   but = uiDefIconButO(block,
@@ -148,9 +150,7 @@ void uiTemplateReportsBanner(blender::ui::Layout *layout, bContext *C)
   UI_block_emboss_set(block, previous_emboss);
 }
 
-static bool uiTemplateInputStatusAzone(blender::ui::Layout *layout,
-                                       const AZone *az,
-                                       const ARegion *region)
+static bool uiTemplateInputStatusAzone(Layout *layout, const AZone *az, const ARegion *region)
 {
   if (az->type == AZONE_AREA) {
     layout->label(nullptr, ICON_MOUSE_LMB_DRAG);
@@ -190,7 +190,7 @@ static bool uiTemplateInputStatusAzone(blender::ui::Layout *layout,
   return false;
 }
 
-static bool uiTemplateInputStatusBorder(wmWindow *win, blender::ui::Layout *row)
+static bool uiTemplateInputStatusBorder(wmWindow *win, Layout *row)
 {
   /* On a gap between editors. */
   rcti win_rect;
@@ -215,7 +215,7 @@ static bool uiTemplateInputStatusBorder(wmWindow *win, blender::ui::Layout *row)
   return false;
 }
 
-static bool uiTemplateInputStatusHeader(ARegion *region, blender::ui::Layout *row)
+static bool uiTemplateInputStatusHeader(ARegion *region, Layout *row)
 {
   if (region->regiontype != RGN_TYPE_HEADER) {
     return false;
@@ -231,7 +231,7 @@ static bool uiTemplateInputStatusHeader(ARegion *region, blender::ui::Layout *ro
   return true;
 }
 
-static bool uiTemplateInputStatus3DView(bContext *C, blender::ui::Layout *row)
+static bool uiTemplateInputStatus3DView(bContext *C, Layout *row)
 {
   const Object *ob = CTX_data_active_object(C);
   if (!ob) {
@@ -264,15 +264,15 @@ static bool uiTemplateInputStatus3DView(bContext *C, blender::ui::Layout *row)
   return false;
 }
 
-void uiTemplateInputStatus(blender::ui::Layout *layout, bContext *C)
+void uiTemplateInputStatus(Layout *layout, bContext *C)
 {
   wmWindow *win = CTX_wm_window(C);
   WorkSpace *workspace = CTX_wm_workspace(C);
 
   /* Workspace status text has priority. */
   if (!workspace->runtime->status.is_empty()) {
-    blender::ui::Layout &row = layout->row(true);
-    for (const blender::bke::WorkSpaceStatusItem &item : workspace->runtime->status) {
+    Layout &row = layout->row(true);
+    for (const bke::WorkSpaceStatusItem &item : workspace->runtime->status) {
       if (item.space_factor != 0.0f) {
         row.separator(item.space_factor);
       }
@@ -296,7 +296,7 @@ void uiTemplateInputStatus(blender::ui::Layout *layout, bContext *C)
 
   bScreen *screen = CTX_wm_screen(C);
   ARegion *region = screen->active_region;
-  blender::ui::Layout &row = layout->row(true);
+  Layout &row = layout->row(true);
 
   if (region == nullptr) {
     /* Check if over an action zone. */
@@ -351,7 +351,7 @@ void uiTemplateInputStatus(blender::ui::Layout *layout, bContext *C)
 
   /* Otherwise should cursor keymap status. */
   for (int i = 0; i < 3; i++) {
-    row.alignment_set(blender::ui::LayoutAlign::Left);
+    row.alignment_set(LayoutAlign::Left);
 
     const char *msg = CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT,
                                  WM_window_cursor_keymap_status_get(win, i, 0));
@@ -376,7 +376,7 @@ void uiTemplateInputStatus(blender::ui::Layout *layout, bContext *C)
 
 static std::string ui_template_status_tooltip(bContext *C,
                                               void * /*argN*/,
-                                              const blender::StringRef /*tip*/)
+                                              const StringRef /*tip*/)
 {
   Main *bmain = CTX_data_main(C);
   std::string tooltip_message;
@@ -407,12 +407,12 @@ static std::string ui_template_status_tooltip(bContext *C,
   return tooltip_message;
 }
 
-void uiTemplateStatusInfo(blender::ui::Layout *layout, bContext *C)
+void uiTemplateStatusInfo(Layout *layout, bContext *C)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  blender::ui::Layout &row = layout->row(true);
+  Layout &row = layout->row(true);
 
   const char *status_info_txt = ED_info_statusbar_string_ex(
       bmain, scene, view_layer, (U.statusbar_flag & ~STATUSBAR_SHOW_VERSION));
@@ -434,7 +434,7 @@ void uiTemplateStatusInfo(blender::ui::Layout *layout, bContext *C)
         row.label("|", ICON_NONE);
         row.separator(-0.5f);
       }
-      row.emboss_set(blender::ui::EmbossType::None);
+      row.emboss_set(EmbossType::None);
       /* This operator also works fine for blocked extensions. */
       row.op("EXTENSIONS_OT_userpref_show_for_update", "", ICON_ERROR);
       uiBut *but = layout->block()->buttons.last().get();
@@ -460,7 +460,7 @@ void uiTemplateStatusInfo(blender::ui::Layout *layout, bContext *C)
         row.label("", ICON_INTERNET_OFFLINE);
       }
       else {
-        row.emboss_set(blender::ui::EmbossType::None);
+        row.emboss_set(EmbossType::None);
         row.op("EXTENSIONS_OT_userpref_show_online", "", ICON_INTERNET_OFFLINE);
         uiBut *but = layout->block()->buttons.last().get();
         uchar color[4];
@@ -484,7 +484,7 @@ void uiTemplateStatusInfo(blender::ui::Layout *layout, bContext *C)
         row.label("|", ICON_NONE);
         row.separator(-0.5f);
       }
-      row.emboss_set(blender::ui::EmbossType::None);
+      row.emboss_set(EmbossType::None);
       row.op("EXTENSIONS_OT_userpref_show_for_update", "", icon);
       uiBut *but = layout->block()->buttons.last().get();
       uchar color[4];
@@ -515,7 +515,7 @@ void uiTemplateStatusInfo(blender::ui::Layout *layout, bContext *C)
     return;
   }
 
-  blender::StringRefNull version_string = ED_info_statusbar_string_ex(
+  StringRefNull version_string = ED_info_statusbar_string_ex(
       bmain, scene, view_layer, STATUSBAR_SHOW_VERSION);
   std::string warning_message;
 
@@ -540,9 +540,9 @@ void uiTemplateStatusInfo(blender::ui::Layout *layout, bContext *C)
   }
 
   const uiStyle *style = UI_style_get();
-  blender::ui::Layout &ui_abs = layout->absolute(false);
+  Layout &ui_abs = layout->absolute(false);
   uiBlock *block = ui_abs.block();
-  blender::ui::EmbossType previous_emboss = UI_block_emboss_get(block);
+  EmbossType previous_emboss = UI_block_emboss_get(block);
 
   UI_fontstyle_set(&style->widget);
   const int width = max_ii(
@@ -586,7 +586,7 @@ void uiTemplateStatusInfo(blender::ui::Layout *layout, bContext *C)
   }
 
   UI_block_align_end(block);
-  UI_block_emboss_set(block, blender::ui::EmbossType::None);
+  UI_block_emboss_set(block, EmbossType::None);
 
   /* The warning icon itself. */
   but = uiDefIconBut(block,
@@ -622,3 +622,5 @@ void uiTemplateStatusInfo(blender::ui::Layout *layout, bContext *C)
 
   UI_block_emboss_set(block, previous_emboss);
 }
+
+}  // namespace blender::ui

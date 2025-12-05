@@ -867,7 +867,7 @@ static wmOperatorStatus bake_simulation_invoke(bContext *C,
   }
 
   if (has_path_conflict) {
-    UI_popup_menu_reports(C, op->reports);
+    ui::UI_popup_menu_reports(C, op->reports);
     return OPERATOR_CANCELLED;
   }
   if (has_existing_bake_data) {
@@ -1103,7 +1103,7 @@ static wmOperatorStatus unpack_single_bake_invoke(bContext *C,
                                                   wmOperator *op,
                                                   const wmEvent * /*event*/)
 {
-  uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Unpack"), ICON_NONE);
+  ui::PopupMenu *pup = ui::UI_popup_menu_begin(C, IFACE_("Unpack"), ICON_NONE);
   ui::Layout &layout = *UI_popup_menu_layout(pup);
 
   layout.operator_context_set(wm::OpCallContext::ExecDefault);

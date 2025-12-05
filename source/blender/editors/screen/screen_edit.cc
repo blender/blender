@@ -929,7 +929,7 @@ void ED_region_exit(bContext *C, ARegion *region)
 
   /* Stop panel animation in this region if there are any. */
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-    UI_panel_stop_animation(C, panel);
+    blender::ui::UI_panel_stop_animation(C, panel);
   }
 
   if (region->regiontype == RGN_TYPE_TEMPORARY) {
@@ -1198,7 +1198,7 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
        * because it can undo setting the right button as active due
        * to delayed notifier handling. */
       if (C) {
-        UI_screen_free_active_but_highlight(C, screen);
+        blender::ui::UI_screen_free_active_but_highlight(C, screen);
       }
     }
   }
@@ -1386,7 +1386,7 @@ void screen_change_prepare(
      * On the other hand this is a rare occurrence, script developers will often show errors
      * in a console too, so it's not such a priority to relocate these to the new screen.
      * See: #144958. */
-    UI_popup_handlers_remove_all(C, &win->modalhandlers);
+    blender::ui::UI_popup_handlers_remove_all(C, &win->modalhandlers);
 
     /* remove handlers referencing areas in old screen */
     LISTBASE_FOREACH (ScrArea *, area, &screen_old->areabase) {
@@ -1768,7 +1768,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
      * switching screens with tooltip open because region and tooltip
      * are no longer in the same screen */
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-      UI_blocklist_free(C, region);
+      blender::ui::UI_blocklist_free(C, region);
       if (region->runtime->regiontimer) {
         WM_event_timer_remove(wm, nullptr, region->runtime->regiontimer);
         region->runtime->regiontimer = nullptr;

@@ -268,7 +268,7 @@ static wmOperatorStatus graphkeys_viewall(bContext *C,
                                                                         UI_MARKER_MARGIN_Y;
   BLI_rctf_pad_y(&cur_new, ac.region->winy, pad_bottom, pad_top);
 
-  UI_view2d_smooth_view(C, ac.region, &cur_new, smooth_viewtx);
+  blender::ui::UI_view2d_smooth_view(C, ac.region, &cur_new, smooth_viewtx);
   return OPERATOR_FINISHED;
 }
 

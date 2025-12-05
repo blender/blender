@@ -20,6 +20,8 @@
 
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
 static int inverted_icon(int icon_id)
 {
   switch (icon_id) {
@@ -570,3 +572,5 @@ void icon_draw_rect_input(const float x,
     }
   }
 }
+
+}  // namespace blender::ui

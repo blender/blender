@@ -33,6 +33,8 @@
 
 #include "view2d_intern.hh"
 
+namespace blender::ui {
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
  * \{ */
@@ -325,7 +327,7 @@ static wmOperatorStatus view_pan_modal(bContext *C, wmOperator *op, const wmEven
           WM_cursor_modal_restore(CTX_wm_window(C));
         }
         WM_operator_name_call(
-            C, "VIEW2D_OT_zoom", blender::wm::OpCallContext::InvokeDefault, nullptr, event);
+            C, "VIEW2D_OT_zoom", wm::OpCallContext::InvokeDefault, nullptr, event);
         return OPERATOR_FINISHED;
       }
 #endif
@@ -1539,7 +1541,7 @@ static wmOperatorStatus view2d_ndof_invoke(bContext *C, wmOperator *op, const wm
   /* tune these until it feels right */
   const float zoom_sensitivity = 0.5f;
   const float pan_speed = NDOF_PIXELS_PER_SECOND;
-  blender::float3 pan_vec = WM_event_ndof_translation_get_for_navigation(ndof);
+  float3 pan_vec = WM_event_ndof_translation_get_for_navigation(ndof);
   const bool has_translate = !is_zero_v2(pan_vec) && view_pan_poll(C);
   const bool has_zoom = (pan_vec[2] != 0.0f) && view_zoom_poll(C);
 
@@ -2362,3 +2364,5 @@ void ED_keymap_view2d(wmKeyConfig *keyconf)
 }
 
 /** \} */
+
+}  // namespace blender::ui

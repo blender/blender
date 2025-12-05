@@ -1815,7 +1815,7 @@ static bool object_mouse_select_menu(bContext *C,
     const char *name = ob->id.name + 2;
 
     BLI_strncpy_utf8(object_mouse_select_menu_data[i].idname, name, MAX_ID_NAME - 2);
-    object_mouse_select_menu_data[i].icon = UI_icon_from_id(&ob->id);
+    object_mouse_select_menu_data[i].icon = blender::ui::UI_icon_from_id(&ob->id);
   }
 
   wmOperatorType *ot = WM_operatortype_find("VIEW3D_OT_select_menu", false);

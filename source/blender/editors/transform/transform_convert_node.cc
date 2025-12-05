@@ -35,7 +35,7 @@
 namespace blender::ed::transform {
 
 struct TransCustomDataNode {
-  View2DEdgePanData edgepan_data{};
+  ui::View2DEdgePanData edgepan_data{};
 
   /* Compare if the view has changed so we can update with `transformViewUpdate`. */
   rctf viewrect_prev{};
@@ -288,7 +288,7 @@ static void flushTransNodes(TransInfo *t)
           t->region->winrct.xmin + int(t->mval[0]),
           t->region->winrct.ymin + int(t->mval[1]),
       };
-      UI_view2d_edge_pan_apply(t->context, &customdata->edgepan_data, xy);
+      ui::UI_view2d_edge_pan_apply(t->context, &customdata->edgepan_data, xy);
     }
   }
 

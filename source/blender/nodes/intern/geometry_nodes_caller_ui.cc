@@ -159,7 +159,7 @@ SearchInfo SocketSearchData::info(const bContext &C) const
 }
 
 static void layer_name_search_update_fn(
-    const bContext *C, void *arg, const char *str, uiSearchItems *items, const bool is_first)
+    const bContext *C, void *arg, const char *str, ui::SearchItems *items, const bool is_first)
 {
   const SocketSearchData &data = *static_cast<SocketSearchData *>(arg);
   const SearchInfo info = data.info(*C);
@@ -240,7 +240,7 @@ static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
 
   uiBlock *block = prop_row.block();
   uiBut *but = uiDefIconTextButR(block,
-                                 ButType::SearchMenu,
+                                 ui::ButType::SearchMenu,
                                  ICON_OUTLINER_DATA_GP_LAYER,
                                  "",
                                  0,
@@ -278,7 +278,7 @@ static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
 }
 
 static void attribute_search_update_fn(
-    const bContext *C, void *arg, const char *str, uiSearchItems *items, const bool is_first)
+    const bContext *C, void *arg, const char *str, ui::SearchItems *items, const bool is_first)
 {
   SocketSearchData &data = *static_cast<SocketSearchData *>(arg);
   const SearchInfo info = data.info(*C);
@@ -357,7 +357,7 @@ static void add_attribute_search_button(DrawGroupInputsContext &ctx,
 
   uiBlock *block = layout.block();
   uiBut *but = uiDefIconTextButR(block,
-                                 ButType::SearchMenu,
+                                 ui::ButType::SearchMenu,
                                  ICON_NONE,
                                  "",
                                  0,
@@ -394,7 +394,7 @@ static void add_attribute_search_button(DrawGroupInputsContext &ctx,
   std::string attribute_name = RNA_string_get(ctx.properties_ptr, rna_path_attribute_name.c_str());
   const bool access_allowed = bke::allow_procedural_attribute_access(attribute_name);
   if (!access_allowed) {
-    UI_but_flag_enable(but, UI_BUT_REDALERT);
+    UI_but_flag_enable(but, ui::UI_BUT_REDALERT);
   }
 }
 
@@ -547,7 +547,7 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
                      "image.new",
                      "image.open",
                      nullptr,
-                     UI_TEMPLATE_ID_FILTER_ALL,
+                     ui::UI_TEMPLATE_ID_FILTER_ALL,
                      false,
                      name);
       }
@@ -564,7 +564,7 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
          * see #ui_item_enum_expand_exec. */
         row.prop(ctx.properties_ptr,
                  rna_path,
-                 UI_ITEM_R_EXPAND,
+                 ui::UI_ITEM_R_EXPAND,
                  StringRef(name).is_empty() ? " " : name,
                  ICON_NONE);
       }
@@ -664,7 +664,7 @@ static void draw_interface_panel_as_panel(DrawGroupInputsContext &ctx,
     return;
   }
   PanelOpenProperty open_property = ctx.panel_open_property_fn(interface_panel);
-  PanelLayout panel_layout;
+  ui::PanelLayout panel_layout;
   bool skip_first = false;
   /* Check if the panel should have a toggle in the header. */
   const bNodeTreeInterfaceSocket *toggle_socket = interface_panel.header_toggle_socket();
@@ -787,7 +787,7 @@ static void draw_warnings(const bContext *C,
   const int num_warnings = count_by_type.lookup_default(NodeWarningType::Warning, 0);
   const int num_infos = count_by_type.lookup_default(NodeWarningType::Info, 0);
   const std::string panel_name = get_node_warning_panel_name(num_errors, num_warnings, num_infos);
-  PanelLayout panel = layout.panel_prop(C, md_ptr, "open_warnings_panel");
+  ui::PanelLayout panel = layout.panel_prop(C, md_ptr, "open_warnings_panel");
   panel.header->label(panel_name.c_str(), ICON_NONE);
   if (!panel.body) {
     return;
@@ -814,7 +814,7 @@ static void draw_warnings(const bContext *C,
     const int icon = node_warning_type_icon(warning->type);
     const StringRef message = RPT_(warning->message);
     uiBut *but = uiDefIconTextBut(
-        block, ButType::Label, icon, message, 0, 0, 1, UI_UNIT_Y, nullptr, std::nullopt);
+        block, ui::ButType::Label, icon, message, 0, 0, 1, UI_UNIT_Y, nullptr, std::nullopt);
     /* Add tooltip containing the same message. This is helpful if the message is very long so that
      * it doesn't fit in the panel. */
     UI_but_func_tooltip_set(
@@ -1086,7 +1086,7 @@ void draw_geometry_nodes_operator_redo_ui(const bContext &C,
       [&](ui::Layout &layout, const int icon, const bNodeTreeInterfaceSocket &io_socket) {
         const std::string prop_name = fmt::format(
             "[\"{}{}\"]", BLI_str_escape(io_socket.identifier), nodes::input_use_attribute_suffix);
-        layout.prop(op.ptr, prop_name, UI_ITEM_R_ICON_ONLY, "", icon);
+        layout.prop(op.ptr, prop_name, ui::UI_ITEM_R_ICON_ONLY, "", icon);
       };
   ctx.use_name_for_ids = true;
 

@@ -15,7 +15,7 @@
 #include "UI_interface_layout.hh"
 #include "interface_intern.hh"
 
-using blender::StringRefNull;
+namespace blender::ui {
 
 static const wmKeyMapItem *keymap_item_from_enum_item(const wmKeyMap *keymap,
                                                       const EnumPropertyItem *item)
@@ -40,7 +40,7 @@ static bool keymap_item_can_collapse(const wmKeyMapItem *kmi_a, const wmKeyMapIt
           kmi_a->oskey == kmi_b->oskey && kmi_a->hyper == kmi_b->hyper);
 }
 
-int uiTemplateStatusBarModalItem(blender::ui::Layout *layout,
+int uiTemplateStatusBarModalItem(Layout *layout,
                                  wmOperator *op,
                                  const wmKeyMap *keymap,
                                  const EnumPropertyItem *item)
@@ -168,7 +168,7 @@ int uiTemplateStatusBarModalItem(blender::ui::Layout *layout,
   return uiTemplateEventFromKeymapItem(layout, item->name, kmi, false) ? 1 : 0;
 }
 
-bool uiTemplateEventFromKeymapItem(blender::ui::Layout *layout,
+bool uiTemplateEventFromKeymapItem(Layout *layout,
                                    const StringRefNull text,
                                    const wmKeyMapItem *kmi,
                                    bool text_fallback)
@@ -217,3 +217,5 @@ bool uiTemplateEventFromKeymapItem(blender::ui::Layout *layout,
   }
   return ok;
 }
+
+}  // namespace blender::ui

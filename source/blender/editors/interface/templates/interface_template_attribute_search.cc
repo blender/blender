@@ -44,7 +44,7 @@ static StringRef attribute_domain_string(const bke::AttrDomain domain)
   return StringRef(IFACE_(name));
 }
 
-static bool attribute_search_item_add(uiSearchItems *items, const GeometryAttributeInfo &item)
+static bool attribute_search_item_add(SearchItems *items, const GeometryAttributeInfo &item)
 {
   std::string search_item_text = fmt::format(
       "{} " UI_MENU_ARROW_SEP "{}" UI_SEP_CHAR_S "{}",
@@ -58,7 +58,7 @@ static bool attribute_search_item_add(uiSearchItems *items, const GeometryAttrib
 void attribute_search_add_items(StringRef str,
                                 const bool can_create_attribute,
                                 Span<const GeometryAttributeInfo *> infos,
-                                uiSearchItems *seach_items,
+                                SearchItems *seach_items,
                                 const bool is_first)
 {
   static GeometryAttributeInfo dummy_info;
@@ -90,7 +90,7 @@ void attribute_search_add_items(StringRef str,
    * so the items are in the same order they will appear in while searching. */
   const StringRef string = is_first ? "" : str;
 
-  ui::string_search::StringSearch<const GeometryAttributeInfo> search;
+  string_search::StringSearch<const GeometryAttributeInfo> search;
   for (const GeometryAttributeInfo *item : infos) {
     if (!bke::allow_procedural_attribute_access(item->name)) {
       continue;

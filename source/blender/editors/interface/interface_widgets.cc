@@ -55,6 +55,8 @@
 #  include "WM_types.hh"
 #endif
 
+namespace blender::ui {
+
 /* -------------------------------------------------------------------- */
 /** \name Local Enums/Defines
  * \{ */
@@ -125,7 +127,7 @@ struct uiWidgetStateInfo {
   /** Copy of #uiBut.drawflag (possibly with overrides for drawing). */
   int but_drawflag;
   /** Copy of #uiBut.emboss. */
-  blender::ui::EmbossType emboss;
+  EmbossType emboss;
 
   /** Show that holding the button opens a menu. */
   bool has_hold_action : 1;
@@ -259,8 +261,7 @@ struct uiWidgetType {
   /* converted colors for state */
   uiWidgetColors wcol;
 
-  void (*state)(uiWidgetType *, const uiWidgetStateInfo *state, blender::ui::EmbossType emboss)
-      ATTR_NONNULL();
+  void (*state)(uiWidgetType *, const uiWidgetStateInfo *state, EmbossType emboss) ATTR_NONNULL();
   void (*draw)(uiWidgetColors *,
                rcti *,
                const uiWidgetStateInfo *,
@@ -401,8 +402,8 @@ static const uint g_shape_preset_hold_action_face[2][3] = {{2, 0, 1}, {3, 5, 4}}
  * \{ */
 
 static struct {
-  blender::gpu::Batch *roundbox_widget;
-  blender::gpu::Batch *roundbox_shadow;
+  gpu::Batch *roundbox_widget;
+  gpu::Batch *roundbox_shadow;
 
   /* TODO: remove. */
   GPUVertFormat format;
@@ -414,7 +415,7 @@ static const GPUVertFormat &vflag_format()
   if (g_ui_batch_cache.format.attr_len == 0) {
     GPUVertFormat *format = &g_ui_batch_cache.format;
     g_ui_batch_cache.vflag_id = GPU_vertformat_attr_add(
-        format, "vflag", blender::gpu::VertAttrType::UINT_32);
+        format, "vflag", gpu::VertAttrType::UINT_32);
   }
   return g_ui_batch_cache.format;
 }
@@ -448,10 +449,10 @@ static uint32_t set_roundbox_vertex(GPUVertBufRaw *vflag_step,
   return *data;
 }
 
-blender::gpu::Batch *ui_batch_roundbox_widget_get()
+gpu::Batch *ui_batch_roundbox_widget_get()
 {
   if (g_ui_batch_cache.roundbox_widget == nullptr) {
-    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(vflag_format());
+    gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(vflag_format());
 
     GPU_vertbuf_data_alloc(*vbo, 12);
 
@@ -474,12 +475,12 @@ blender::gpu::Batch *ui_batch_roundbox_widget_get()
   return g_ui_batch_cache.roundbox_widget;
 }
 
-blender::gpu::Batch *ui_batch_roundbox_shadow_get()
+gpu::Batch *ui_batch_roundbox_shadow_get()
 {
   if (g_ui_batch_cache.roundbox_shadow == nullptr) {
     uint32_t last_data;
     GPUVertBufRaw vflag_step;
-    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(vflag_format());
+    gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(vflag_format());
     const int vcount = (WIDGET_SIZE_MAX + 1) * 2 + 2 + WIDGET_SIZE_MAX;
     GPU_vertbuf_data_alloc(*vbo, vcount);
     GPU_vertbuf_attr_get_raw_data(vbo, g_ui_batch_cache.vflag_id, &vflag_step);
@@ -534,7 +535,7 @@ static void draw_anti_tria(
   GPU_blend(GPU_BLEND_ALPHA);
 
   const uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+      immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformColor4fv(draw_color);
@@ -1077,7 +1078,7 @@ void UI_widgetbase_draw_cache_flush()
     return;
   }
 
-  blender::gpu::Batch *batch = ui_batch_roundbox_widget_get();
+  gpu::Batch *batch = ui_batch_roundbox_widget_get();
   if (g_widget_base_batch.count == 1) {
     /* draw single */
     GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
@@ -1138,7 +1139,7 @@ static void draw_widgetbase_batch(uiWidgetBase *wtb)
     const float checker_params[3] = {
         UI_ALPHA_CHECKER_DARK / 255.0f, UI_ALPHA_CHECKER_LIGHT / 255.0f, 8.0f};
     /* draw single */
-    blender::gpu::Batch *batch = ui_batch_roundbox_widget_get();
+    gpu::Batch *batch = ui_batch_roundbox_widget_get();
     GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
     GPU_batch_uniform_4fv_array(
         batch, "parameters", MAX_WIDGET_PARAMETERS, (float (*)[4]) & wtb->uniform_params);
@@ -1322,7 +1323,7 @@ static void widget_draw_preview_icon(BIFIconID icon,
 
 static int ui_but_draw_menu_icon(const uiBut *but)
 {
-  return (but->flag & UI_BUT_ICON_SUBMENU) && (but->emboss == blender::ui::EmbossType::Pulldown);
+  return (but->flag & UI_BUT_ICON_SUBMENU) && (but->emboss == EmbossType::Pulldown);
 }
 
 /* icons have been standardized... and this call draws in untransformed coordinates */
@@ -1364,7 +1365,7 @@ static void widget_draw_icon(
   }
   else if (but->type == ButType::Label) {
     /* extra feature allows more alpha blending */
-    const auto *but_label = reinterpret_cast<const blender::ui::ButtonLabel *>(but);
+    const auto *but_label = reinterpret_cast<const ButtonLabel *>(but);
     alpha *= but_label->alpha_factor;
   }
   else if (ELEM(but->type, ButType::But, ButType::Decorator)) {
@@ -1392,7 +1393,7 @@ static void widget_draw_icon(
       {
         xs = rect->xmin + 2.0f * ofs;
       }
-      else if (but->emboss == blender::ui::EmbossType::None || but->type == ButType::Label) {
+      else if (but->emboss == EmbossType::None || but->type == ButType::Label) {
         xs = rect->xmin + 2.0f * ofs;
       }
       else {
@@ -1697,15 +1698,13 @@ static void ui_text_clip_middle_protect_right(const uiFontStyle *fstyle,
   but->drawstr = new_drawstr;
 }
 
-blender::Vector<blender::StringRef> UI_text_clip_multiline_middle(
-    const uiFontStyle *fstyle,
-    const char *str,
-    char *clipped_str_buf,
-    const size_t clipped_str_buf_maxncpy,
-    const float max_line_width,
-    const int max_lines)
+Vector<StringRef> UI_text_clip_multiline_middle(const uiFontStyle *fstyle,
+                                                const char *str,
+                                                char *clipped_str_buf,
+                                                const size_t clipped_str_buf_maxncpy,
+                                                const float max_line_width,
+                                                const int max_lines)
 {
-  using namespace blender;
   BLI_assert(max_lines > 0);
 
   const Vector<StringRef> lines = BLF_string_wrap(
@@ -2099,7 +2098,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
       GPU_blend(GPU_BLEND_ALPHA);
       UI_widgetbase_draw_cache_flush();
       uint pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+          immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       immUniformColor4ubv(wcol->item);
       const auto boxes = BLF_str_selection_boxes(
@@ -2153,7 +2152,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
       GPU_blend(GPU_BLEND_NONE);
 
       uint pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+          immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
       immUniformThemeColor(TH_WIDGET_TEXT_CURSOR);
@@ -2331,7 +2330,7 @@ static void widget_draw_extra_icons(const uiWidgetColors *wcol,
   }
 
   /* Inverse order, from right to left. */
-  LISTBASE_FOREACH_BACKWARD (blender::ui::ButtonExtraOpIcon *, op_icon, &but->extra_op_icons) {
+  LISTBASE_FOREACH_BACKWARD (ButtonExtraOpIcon *, op_icon, &but->extra_op_icons) {
     rcti temp = *rect;
     float alpha_this = alpha;
 
@@ -2479,7 +2478,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
       /* pass (even if its a menu toolbar) */
     }
     else if (ui_block_is_pie_menu(but->block)) {
-      if (but->emboss == blender::ui::EmbossType::PieMenu) {
+      if (but->emboss == EmbossType::PieMenu) {
         rect->xmin += 0.3f * U.widget_unit;
       }
     }
@@ -2614,11 +2613,11 @@ static void widget_active_color(uiWidgetColors *wcol)
 
 static const uchar *widget_color_blend_from_flags(const uiWidgetStateColors *wcol_state,
                                                   const uiWidgetStateInfo *state,
-                                                  const blender::ui::EmbossType emboss)
+                                                  const EmbossType emboss)
 {
-  /* Explicitly require #blender::ui::EmbossType::NoneOrStatus for color blending with no emboss.
+  /* Explicitly require #EmbossType::NoneOrStatus for color blending with no emboss.
    */
-  if (emboss == blender::ui::EmbossType::None) {
+  if (emboss == EmbossType::None) {
     return nullptr;
   }
 
@@ -2641,9 +2640,7 @@ static const uchar *widget_color_blend_from_flags(const uiWidgetStateColors *wco
 }
 
 /* copy colors from theme, and set changes in it based on state */
-static void widget_state(uiWidgetType *wt,
-                         const uiWidgetStateInfo *state,
-                         blender::ui::EmbossType emboss)
+static void widget_state(uiWidgetType *wt, const uiWidgetStateInfo *state, EmbossType emboss)
 {
   uiWidgetStateColors *wcol_state = wt->wcol_state;
 
@@ -2692,7 +2689,7 @@ static void widget_state(uiWidgetType *wt,
   }
 
   if (state->but_flag & UI_BUT_REDALERT) {
-    if (wt->draw && emboss != blender::ui::EmbossType::None) {
+    if (wt->draw && emboss != EmbossType::None) {
       UI_GetThemeColor3ubv(TH_REDALERT, wt->wcol.inner);
     }
     else {
@@ -2773,7 +2770,7 @@ static bool draw_emboss(const uiBut *but)
 /* sliders use special hack which sets 'item' as inner when drawing filling */
 static void widget_state_numslider(uiWidgetType *wt,
                                    const uiWidgetStateInfo *state,
-                                   blender::ui::EmbossType emboss)
+                                   EmbossType emboss)
 {
   uiWidgetStateColors *wcol_state = wt->wcol_state;
 
@@ -2798,7 +2795,7 @@ static void widget_state_numslider(uiWidgetType *wt,
 /* labels use theme colors for text */
 static void widget_state_option_menu(uiWidgetType *wt,
                                      const uiWidgetStateInfo *state,
-                                     blender::ui::EmbossType emboss)
+                                     EmbossType emboss)
 {
   const bTheme *btheme = UI_GetTheme();
 
@@ -2817,7 +2814,7 @@ static void widget_state_option_menu(uiWidgetType *wt,
 
 static void widget_state_nothing(uiWidgetType *wt,
                                  const uiWidgetStateInfo * /*state*/,
-                                 blender::ui::EmbossType /*emboss*/)
+                                 EmbossType /*emboss*/)
 {
   wt->wcol = *(wt->wcol_theme);
 }
@@ -2825,7 +2822,7 @@ static void widget_state_nothing(uiWidgetType *wt,
 /* special case, button that calls pulldown */
 static void widget_state_pulldown(uiWidgetType *wt,
                                   const uiWidgetStateInfo * /*state*/,
-                                  blender::ui::EmbossType /*emboss*/)
+                                  EmbossType /*emboss*/)
 {
   wt->wcol = *(wt->wcol_theme);
 }
@@ -2833,7 +2830,7 @@ static void widget_state_pulldown(uiWidgetType *wt,
 /* special case, pie menu items */
 static void widget_state_pie_menu_item(uiWidgetType *wt,
                                        const uiWidgetStateInfo *state,
-                                       blender::ui::EmbossType /*emboss*/)
+                                       EmbossType /*emboss*/)
 {
   wt->wcol = *(wt->wcol_theme);
 
@@ -2870,7 +2867,7 @@ static void widget_state_pie_menu_item(uiWidgetType *wt,
 /* special case, menu items */
 static void widget_state_menu_item(uiWidgetType *wt,
                                    const uiWidgetStateInfo *state,
-                                   blender::ui::EmbossType /*emboss*/)
+                                   EmbossType /*emboss*/)
 {
   wt->wcol = *(wt->wcol_theme);
 
@@ -3001,7 +2998,7 @@ static void ui_hsv_cursor(const float x,
 
   GPU_blend(GPU_BLEND_ALPHA);
   const uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+      immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   GPU_program_point_size(true);
   immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
   immUniformColor3fv(rgb);
@@ -3115,9 +3112,8 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
   }
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
-  const uint color = GPU_vertformat_attr_add(
-      format, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
+  const uint color = GPU_vertformat_attr_add(format, "color", gpu::VertAttrType::SFLOAT_32_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
@@ -3151,7 +3147,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
 
   /* fully rounded outline */
   format = immVertexFormat();
-  pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -3258,10 +3254,8 @@ void ui_draw_gradient(const rcti *rect,
 
   /* old below */
   GPUVertFormat *format = immVertexFormat();
-  const uint pos = GPU_vertformat_attr_add(
-      format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
-  const uint col = GPU_vertformat_attr_add(
-      format, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
+  const uint col = GPU_vertformat_attr_add(format, "color", gpu::VertAttrType::SFLOAT_32_32_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
   immBegin(GPU_PRIM_TRIS, steps * 3 * 6);
@@ -3351,11 +3345,8 @@ void ui_draw_gradient(const rcti *rect,
   immUnbindProgram();
 }
 
-void ui_hsvcube_pos_from_vals(const blender::ui::ButtonHSVCube *hsv_but,
-                              const rcti *rect,
-                              const float *hsv,
-                              float *r_xp,
-                              float *r_yp)
+void ui_hsvcube_pos_from_vals(
+    const ButtonHSVCube *hsv_but, const rcti *rect, const float *hsv, float *r_xp, float *r_yp)
 {
   float x = 0.0f, y = 0.0f;
 
@@ -3405,7 +3396,7 @@ void ui_hsvcube_pos_from_vals(const blender::ui::ButtonHSVCube *hsv_but,
 
 static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 {
-  const blender::ui::ButtonHSVCube *hsv_but = (blender::ui::ButtonHSVCube *)but;
+  const ButtonHSVCube *hsv_but = (ButtonHSVCube *)but;
   float rgb[3], rgb_perceptual[3];
   float x = 0.0f, y = 0.0f;
   const ColorManagedDisplay *display = ui_block_cm_display_get(but->block);
@@ -3436,7 +3427,7 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 
   /* outline */
   const uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+      immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor3ub(0, 0, 0);
   imm_draw_box_wire_2d(pos, (rect->xmin), (rect->ymin), (rect->xmax), (rect->ymax));
@@ -3483,7 +3474,7 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 /* vertical 'value' slider, using new widget code */
 static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 {
-  const blender::ui::ButtonHSVCube *hsv_but = (blender::ui::ButtonHSVCube *)but;
+  const ButtonHSVCube *hsv_but = (ButtonHSVCube *)but;
   float rgb[3], hsv[3], v;
 
   ui_but_v3_get(but, rgb);
@@ -3540,8 +3531,7 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 /** Separator line. */
 static void ui_draw_separator(const uiWidgetColors *wcol, uiBut *but, const rcti *rect)
 {
-  const blender::ui::ButtonSeparatorLine *but_line =
-      static_cast<blender::ui::ButtonSeparatorLine *>(but);
+  const ButtonSeparatorLine *but_line = static_cast<ButtonSeparatorLine *>(but);
   const bool vertical = but_line->is_vertical;
   const int mid = vertical ? BLI_rcti_cent_x(rect) : BLI_rcti_cent_y(rect);
   const uchar col[4] = {
@@ -3552,7 +3542,7 @@ static void ui_draw_separator(const uiWidgetColors *wcol, uiBut *but, const rcti
   };
 
   const uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+      immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   GPU_blend(GPU_BLEND_ALPHA);
@@ -3730,7 +3720,7 @@ static void widget_menubut(uiWidgetColors *wcol,
   /* copy size and center to 2nd tria */
   wtb.tria2 = wtb.tria1;
 
-  if (ELEM(state->emboss, blender::ui::EmbossType::NoneOrStatus, blender::ui::EmbossType::None)) {
+  if (ELEM(state->emboss, EmbossType::NoneOrStatus, EmbossType::None)) {
     wtb.draw_inner = false;
     wtb.draw_outline = false;
     wtb.draw_emboss = false;
@@ -3864,8 +3854,7 @@ static void widget_scroll(uiBut *but,
                           int /*roundboxalign*/,
                           const float /*zoom*/)
 {
-  const blender::ui::ButtonScrollBar *but_scroll =
-      reinterpret_cast<const blender::ui::ButtonScrollBar *>(but);
+  const ButtonScrollBar *but_scroll = reinterpret_cast<const ButtonScrollBar *>(but);
   const float height = but_scroll->visual_height;
 
   /* calculate slider part */
@@ -3917,7 +3906,7 @@ static void widget_scroll(uiBut *but,
   UI_draw_widget_scroll(wcol, rect, &rect1, (state->but_flag & UI_SELECT) ? UI_SCROLL_PRESSED : 0);
 }
 
-static void widget_progress_type_bar(blender::ui::ButtonProgress *but_progress,
+static void widget_progress_type_bar(ButtonProgress *but_progress,
                                      uiWidgetColors *wcol,
                                      rcti *rect,
                                      int roundboxalign,
@@ -3953,7 +3942,7 @@ static void widget_progress_type_bar(blender::ui::ButtonProgress *but_progress,
 /**
  * Used for both ring & pie types.
  */
-static void widget_progress_type_ring(blender::ui::ButtonProgress *but_progress,
+static void widget_progress_type_ring(ButtonProgress *but_progress,
                                       uiWidgetColors *wcol,
                                       rcti *rect)
 {
@@ -3965,8 +3954,7 @@ static void widget_progress_type_ring(blender::ui::ButtonProgress *but_progress,
   const float start = 0.0f;
   const float end = but_progress->progress_factor * 360.0f;
   GPUVertFormat *format = immVertexFormat();
-  const uint pos = GPU_vertformat_attr_add(
-      format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor3ubvAlpha(wcol->item, 255 / UI_PIXEL_AA_JITTER * 2);
   GPU_blend(GPU_BLEND_ALPHA);
@@ -3995,13 +3983,13 @@ static void widget_progress_indicator(uiBut *but,
                                       int roundboxalign,
                                       const float zoom)
 {
-  blender::ui::ButtonProgress *but_progress = static_cast<blender::ui::ButtonProgress *>(but);
+  ButtonProgress *but_progress = static_cast<ButtonProgress *>(but);
   switch (but_progress->progress_type) {
-    case blender::ui::ButProgressType::Bar: {
+    case ButProgressType::Bar: {
       widget_progress_type_bar(but_progress, wcol, rect, roundboxalign, zoom);
       break;
     }
-    case blender::ui::ButProgressType::Ring: {
+    case ButProgressType::Ring: {
       widget_progress_type_ring(but_progress, wcol, rect);
       break;
     }
@@ -4015,10 +4003,10 @@ static void widget_nodesocket(uiBut *but,
                               int /*roundboxalign*/,
                               const float zoom)
 {
-  blender::ColorTheme4f socket_color;
+  ColorTheme4f socket_color;
   rgba_uchar_to_float(socket_color, but->col);
 
-  blender::ColorTheme4f outline_color;
+  ColorTheme4f outline_color;
   UI_GetThemeColorType4fv(TH_WIRE, SPACE_NODE, outline_color);
   outline_color.a = 1.0f;
 
@@ -4169,7 +4157,7 @@ static void widget_swatch(uiBut *but,
                           const float zoom)
 {
   BLI_assert(but->type == ButType::Color);
-  blender::ui::ButtonColor *color_but = (blender::ui::ButtonColor *)but;
+  ButtonColor *color_but = (ButtonColor *)but;
   float col[4];
 
   col[3] = 1.0f;
@@ -4239,7 +4227,7 @@ static void widget_swatch(uiBut *but,
     GPU_blend(GPU_BLEND_NONE);
 
     const uint pos = GPU_vertformat_attr_add(
-        immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+        immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     immUniformColor3f(bw, bw, bw);
@@ -4273,7 +4261,7 @@ static void widget_icon_has_anim(uiBut *but,
 {
   if (state->but_flag & (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN |
                          UI_BUT_OVERRIDDEN | UI_BUT_REDALERT) &&
-      but->emboss != blender::ui::EmbossType::None)
+      but->emboss != EmbossType::None)
   {
     uiWidgetBase wtb;
     widget_init(&wtb);
@@ -4440,8 +4428,8 @@ static void widget_list_itembut(uiBut *but,
   bool is_selected = state->but_flag & UI_SELECT;
 
   if (but->type == ButType::ViewItem) {
-    blender::ui::ButtonViewItem *item_but = static_cast<blender::ui::ButtonViewItem *>(but);
-    blender::ui::AbstractViewItem &view_item = *item_but->view_item;
+    ButtonViewItem *item_but = static_cast<ButtonViewItem *>(but);
+    AbstractViewItem &view_item = *item_but->view_item;
 
     if (!view_item.is_active() && view_item.is_selected()) {
       copy_v4_v4_uchar(wcol->inner, wcol->inner_sel);
@@ -4477,7 +4465,7 @@ static void widget_preview_tile(uiBut *but,
                                 int roundboxalign,
                                 const float zoom)
 {
-  if (!ELEM(but->emboss, blender::ui::EmbossType::None, blender::ui::EmbossType::NoneOrStatus)) {
+  if (!ELEM(but->emboss, EmbossType::None, EmbossType::NoneOrStatus)) {
     widget_list_itembut(but, wcol, rect, state, roundboxalign, zoom);
   }
 
@@ -4549,9 +4537,7 @@ static void widget_optionbut(uiWidgetColors *wcol,
 }
 
 /* labels use Editor theme colors for text */
-static void widget_state_label(uiWidgetType *wt,
-                               const uiWidgetStateInfo *state,
-                               blender::ui::EmbossType emboss)
+static void widget_state_label(uiWidgetType *wt, const uiWidgetStateInfo *state, EmbossType emboss)
 {
   if (state->but_flag & UI_BUT_LIST_ITEM) {
     /* Override default label theme's colors. */
@@ -4752,7 +4738,7 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
     but->block->drawextra(C, rect);
 
     const uint pos = GPU_vertformat_attr_add(
-        immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+        immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     /* make mask to draw over image */
@@ -5062,7 +5048,7 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
   uiWidgetType *wt = nullptr;
 
   /* handle menus separately */
-  if (but->emboss == blender::ui::EmbossType::Pulldown) {
+  if (but->emboss == EmbossType::Pulldown) {
     switch (but->type) {
       case ButType::Label:
         widget_draw_text_icon(&style->widget, &tui->wcol_menu_back, but, rect);
@@ -5082,10 +5068,9 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
       }
     }
   }
-  else if (ELEM(but->emboss, blender::ui::EmbossType::None, blender::ui::EmbossType::NoneOrStatus))
-  {
+  else if (ELEM(but->emboss, EmbossType::None, EmbossType::NoneOrStatus)) {
     /* Use the same widget types for both no emboss types. Later on,
-     * #blender::ui::EmbossType::NoneOrStatus will blend state colors if they apply. */
+     * #EmbossType::NoneOrStatus will blend state colors if they apply. */
     switch (but->type) {
       case ButType::Label:
       case ButType::Text:
@@ -5113,11 +5098,11 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
         break;
     }
   }
-  else if (but->emboss == blender::ui::EmbossType::PieMenu) {
+  else if (but->emboss == EmbossType::PieMenu) {
     wt = widget_type(UI_WTYPE_MENU_ITEM_PIE);
   }
   else {
-    BLI_assert(but->emboss == blender::ui::EmbossType::Emboss);
+    BLI_assert(but->emboss == EmbossType::Emboss);
 
     switch (but->type) {
       case ButType::Label:
@@ -5252,7 +5237,7 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
         break;
 
       case ButType::HsvCube: {
-        const blender::ui::ButtonHSVCube *hsv_but = (blender::ui::ButtonHSVCube *)but;
+        const ButtonHSVCube *hsv_but = (ButtonHSVCube *)but;
 
         if (ELEM(hsv_but->gradient_type, UI_GRAD_V_ALT, UI_GRAD_L_ALT)) {
           /* vertical V slider, uses new widget draw now */
@@ -5364,7 +5349,7 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
   }
 
   bool use_alpha_blend = false;
-  if (but->emboss != blender::ui::EmbossType::Pulldown) {
+  if (but->emboss != EmbossType::Pulldown) {
     if (but->flag & (UI_BUT_DISABLED | UI_BUT_INACTIVE | UI_SEARCH_FILTER_NO_MATCH)) {
       use_alpha_blend = true;
       ui_widget_color_disabled(wt, &state);
@@ -5473,7 +5458,7 @@ void ui_draw_menu_back(uiStyle * /*style*/, uiBlock *block, const rcti *rect)
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_MENU_BACK);
 
-  wt->state(wt, &STATE_INFO_NULL, blender::ui::EmbossType::Undefined);
+  wt->state(wt, &STATE_INFO_NULL, EmbossType::Undefined);
   if (block) {
     const float zoom = 1.0f / block->aspect;
     wt->draw_block(&wt->wcol,
@@ -5528,7 +5513,7 @@ static void ui_draw_popover_back_impl(const uiWidgetColors *wcol,
   /* Draw popover arrow (top/bottom) */
   if (ELEM(direction, UI_DIR_UP, UI_DIR_DOWN)) {
     const uint pos = GPU_vertformat_attr_add(
-        immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+        immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     const bool is_down = (direction == UI_DIR_DOWN);
@@ -5592,10 +5577,9 @@ static void draw_disk_shaded(float start,
 
   uint col;
   GPUVertFormat *format = immVertexFormat();
-  const uint pos = GPU_vertformat_attr_add(
-      format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
   if (shaded) {
-    col = GPU_vertformat_attr_add(format, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
+    col = GPU_vertformat_attr_add(format, "color", gpu::VertAttrType::SFLOAT_32_32_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
   }
   else {
@@ -5710,8 +5694,7 @@ void ui_draw_pie_center(uiBlock *block)
   }
 
   GPUVertFormat *format = immVertexFormat();
-  const uint pos = GPU_vertformat_attr_add(
-      format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor4ubv(btheme->tui.wcol_pie_menu.outline);
 
@@ -5762,7 +5745,7 @@ static void ui_draw_widget_back_color(uiWidgetTypeEnum type,
     widget_softshadow(rect, UI_CNR_ALL, 0.25f * U.widget_unit);
   }
 
-  wt->state(wt, &STATE_INFO_NULL, blender::ui::EmbossType::Undefined);
+  wt->state(wt, &STATE_INFO_NULL, EmbossType::Undefined);
   if (color) {
     rgba_float_to_uchar(wt->wcol.inner, color);
   }
@@ -5791,7 +5774,7 @@ void ui_draw_widget_menu_back(const rcti *rect, bool use_shadow)
 void ui_draw_tooltip_background(const uiStyle * /*style*/, uiBlock * /*block*/, const rcti *rect)
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_TOOLTIP);
-  wt->state(wt, &STATE_INFO_NULL, blender::ui::EmbossType::Undefined);
+  wt->state(wt, &STATE_INFO_NULL, EmbossType::Undefined);
   /* wt->draw_block ends up using same function to draw the tooltip as menu_back */
   wt->draw_block(&wt->wcol, rect, 0, 0, 1.0f);
 }
@@ -5817,7 +5800,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
   uiWidgetStateInfo state = {0};
   state.but_flag = but_flag;
 
-  wt->state(wt, &state, blender::ui::EmbossType::Undefined);
+  wt->state(wt, &state, EmbossType::Undefined);
 
   if (back_rect) {
     wt->draw(&wt->wcol, back_rect, &STATE_INFO_NULL, 0, zoom);
@@ -5912,7 +5895,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
       /* Set inactive state for grayed out text. */
       hint_state.but_flag |= UI_BUT_INACTIVE;
 
-      wt->state(wt, &hint_state, blender::ui::EmbossType::Undefined);
+      wt->state(wt, &hint_state, EmbossType::Undefined);
 
       char hint_drawstr[UI_MAX_DRAW_STR];
       {
@@ -5936,7 +5919,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
 
 void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
                                     rcti *rect,
-                                    const blender::StringRef name,
+                                    const StringRef name,
                                     int iconid,
                                     const uchar text_col[4],
                                     eFontStyle_Align text_align,
@@ -5998,10 +5981,12 @@ void ui_draw_preview_item(const uiFontStyle *fstyle,
   state.but_flag = but_flag;
 
   /* drawing button background */
-  wt->state(wt, &state, blender::ui::EmbossType::Undefined);
+  wt->state(wt, &state, EmbossType::Undefined);
   wt->draw(&wt->wcol, rect, &STATE_INFO_NULL, 0, zoom);
 
   ui_draw_preview_item_stateless(fstyle, rect, name, iconid, wt->wcol.text, text_align, true);
 }
 
 /** \} */
+
+}  // namespace blender::ui

@@ -467,7 +467,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   }
 
   {
-    PanelLayout panel = layout.panel(C, "USD_export_materials", true);
+    blender::ui::PanelLayout panel = layout.panel(C, "USD_export_materials", true);
     panel.header->use_property_split_set(false);
     panel.header->prop(ptr, "export_materials", UI_ITEM_NONE, "", ICON_NONE);
     panel.header->label(IFACE_("Materials"), ICON_NONE);

@@ -788,7 +788,7 @@ struct MergedSearchData {
 };
 
 static void merged_element_search_fn_recursive(
-    const ListBase *tree, short tselem_type, short type, const char *str, uiSearchItems *items)
+    const ListBase *tree, short tselem_type, short type, const char *str, ui::SearchItems *items)
 {
   char name[64];
   int iconid;
@@ -819,7 +819,7 @@ static void merged_element_search_fn_recursive(
 static void merged_element_search_update_fn(const bContext * /*C*/,
                                             void *data,
                                             const char *str,
-                                            uiSearchItems *items,
+                                            ui::SearchItems *items,
                                             const bool /*is_first*/)
 {
   MergedSearchData *search_data = (MergedSearchData *)data;
@@ -856,8 +856,9 @@ static uiBlock *merged_element_search_menu(bContext *C, ARegion *region, void *d
   *search = '\0';
 
   block = UI_block_begin(C, region, __func__, ui::EmbossType::Emboss);
-  UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
-  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  UI_block_flag_enable(block,
+                       ui::UI_BLOCK_LOOP | ui::UI_BLOCK_MOVEMOUSE_QUIT | ui::UI_BLOCK_SEARCH_MENU);
+  UI_block_theme_style_set(block, ui::UI_BLOCK_THEME_STYLE_POPUP);
 
   short menu_width = 10 * UI_UNIT_X;
   but = uiDefSearchBut(
@@ -870,11 +871,12 @@ static uiBlock *merged_element_search_menu(bContext *C, ARegion *region, void *d
                          nullptr,
                          merged_element_search_exec_fn,
                          nullptr);
-  UI_but_flag_enable(but, UI_BUT_ACTIVATE_ON_INIT);
+  UI_but_flag_enable(but, ui::UI_BUT_ACTIVATE_ON_INIT);
 
   /* Fake button to hold space for search items */
-  const int height = UI_searchbox_size_y() - UI_SEARCHBOX_BOUNDS;
-  uiDefBut(block, ButType::Label, "", 0, -height, menu_width, height, nullptr, 0, 0, std::nullopt);
+  const int height = ui::UI_searchbox_size_y() - UI_SEARCHBOX_BOUNDS;
+  uiDefBut(
+      block, ui::ButType::Label, "", 0, -height, menu_width, height, nullptr, 0, 0, std::nullopt);
 
   /* Center the menu on the cursor */
   const int offset[2] = {-(menu_width / 2), 0};
@@ -3635,7 +3637,8 @@ void OUTLINER_OT_data_operation(wmOperatorType *ot)
 static wmOperatorStatus outliner_operator_menu(bContext *C, const char *opname)
 {
   wmOperatorType *ot = WM_operatortype_find(opname, false);
-  uiPopupMenu *pup = UI_popup_menu_begin(C, WM_operatortype_name(ot, nullptr).c_str(), ICON_NONE);
+  ui::PopupMenu *pup = ui::UI_popup_menu_begin(
+      C, WM_operatortype_name(ot, nullptr).c_str(), ICON_NONE);
   ui::Layout &layout = *UI_popup_menu_layout(pup);
 
   /* Set this so the default execution context is the same as sub-menus. */
@@ -3735,14 +3738,14 @@ static wmOperatorStatus outliner_operation_invoke(bContext *C,
 {
   ARegion *region = CTX_wm_region(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-  uiBut *but = UI_context_active_but_get(C);
+  uiBut *but = ui::UI_context_active_but_get(C);
   float view_mval[2];
 
   if (but) {
     UI_but_tooltip_timer_remove(C, but);
   }
 
-  UI_view2d_region_to_view(
+  ui::UI_view2d_region_to_view(
       &region->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
 
   TreeElement *hovered_te = outliner_find_item_at_y(

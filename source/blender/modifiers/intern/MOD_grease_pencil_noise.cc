@@ -291,7 +291,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   col.prop(ptr, "noise_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col.prop(ptr, "noise_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col.prop(ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  PanelLayout random_panel_layout = layout.panel_prop_with_bool_header(
+  ui::PanelLayout random_panel_layout = layout.panel_prop_with_bool_header(
       C, ptr, "open_random_panel", ptr, "use_random", IFACE_("Random"));
   if (ui::Layout *random_layout = random_panel_layout.body) {
     ui::Layout &random_col = random_layout->column(false);

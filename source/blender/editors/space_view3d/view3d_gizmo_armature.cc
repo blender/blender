@@ -154,8 +154,8 @@ static void WIDGETGROUP_armature_spline_setup(const bContext *C, wmGizmoGroup *g
                  ED_GIZMO_MOVE_DRAW_FLAG_FILL | ED_GIZMO_MOVE_DRAW_FLAG_ALIGN_VIEW);
     WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_VALUE, true);
 
-    UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
-    UI_GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
+    blender::ui::UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
+    blender::ui::UI_GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
 
     gz->scale_basis = 0.06f;
 

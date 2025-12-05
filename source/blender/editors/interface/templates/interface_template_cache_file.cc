@@ -28,9 +28,9 @@
 #include "UI_interface_layout.hh"
 #include "interface_intern.hh"
 
-using blender::StringRefNull;
+namespace blender::ui {
 
-void uiTemplateCacheFileVelocity(blender::ui::Layout *layout, PointerRNA *fileptr)
+void uiTemplateCacheFileVelocity(Layout *layout, PointerRNA *fileptr)
 {
   if (RNA_pointer_is_null(fileptr)) {
     return;
@@ -43,7 +43,7 @@ void uiTemplateCacheFileVelocity(blender::ui::Layout *layout, PointerRNA *filept
   layout->prop(fileptr, "velocity_unit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
-void uiTemplateCacheFileTimeSettings(blender::ui::Layout *layout, PointerRNA *fileptr)
+void uiTemplateCacheFileTimeSettings(Layout *layout, PointerRNA *fileptr)
 {
   if (RNA_pointer_is_null(fileptr)) {
     return;
@@ -52,14 +52,14 @@ void uiTemplateCacheFileTimeSettings(blender::ui::Layout *layout, PointerRNA *fi
   /* Ensure that the context has a CacheFile as this may not be set inside of modifiers panels. */
   layout->context_ptr_set("edit_cachefile", fileptr);
 
-  blender::ui::Layout *row = &layout->row(false);
+  Layout *row = &layout->row(false);
   row->prop(fileptr, "is_sequence", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   row = &layout->row(true, IFACE_("Override Frame"));
-  blender::ui::Layout &sub = row->row(true);
+  Layout &sub = row->row(true);
   sub.use_property_decorate_set(false);
   sub.prop(fileptr, "override_frame", UI_ITEM_NONE, "", ICON_NONE);
-  blender::ui::Layout &subsub = sub.row(true);
+  Layout &subsub = sub.row(true);
   subsub.active_set(RNA_boolean_get(fileptr, "override_frame"));
   subsub.prop(fileptr, "frame", UI_ITEM_NONE, "", ICON_NONE);
   row->decorator(fileptr, "frame", 0);
@@ -71,7 +71,7 @@ void uiTemplateCacheFileTimeSettings(blender::ui::Layout *layout, PointerRNA *fi
 
 static void cache_file_layer_item(uiList * /*ui_list*/,
                                   const bContext * /*C*/,
-                                  blender::ui::Layout &layout,
+                                  Layout &layout,
                                   PointerRNA * /*dataptr*/,
                                   PointerRNA *itemptr,
                                   int /*icon*/,
@@ -80,7 +80,7 @@ static void cache_file_layer_item(uiList * /*ui_list*/,
                                   int /*index*/,
                                   int /*flt_flag*/)
 {
-  blender::ui::Layout &row = layout.row(true);
+  Layout &row = layout.row(true);
   row.prop(itemptr, "hide_layer", UI_ITEM_R_NO_BG, "", ICON_NONE);
   row.prop(itemptr, "filepath", UI_ITEM_R_NO_BG, "", ICON_NONE);
 }
@@ -95,7 +95,7 @@ uiListType *UI_UL_cache_file_layers()
   return list_type;
 }
 
-void uiTemplateCacheFileLayers(blender::ui::Layout *layout, const bContext *C, PointerRNA *fileptr)
+void uiTemplateCacheFileLayers(Layout *layout, const bContext *C, PointerRNA *fileptr)
 {
   if (RNA_pointer_is_null(fileptr)) {
     return;
@@ -104,8 +104,8 @@ void uiTemplateCacheFileLayers(blender::ui::Layout *layout, const bContext *C, P
   /* Ensure that the context has a CacheFile as this may not be set inside of modifiers panels. */
   layout->context_ptr_set("edit_cachefile", fileptr);
 
-  blender::ui::Layout &row = layout->row(false);
-  blender::ui::Layout *col = &row.column(true);
+  Layout &row = layout->row(false);
+  Layout *col = &row.column(true);
 
   uiTemplateList(col,
                  (bContext *)C,
@@ -160,7 +160,7 @@ bool uiTemplateCacheFilePointer(PointerRNA *ptr,
   return true;
 }
 
-void uiTemplateCacheFile(blender::ui::Layout *layout,
+void uiTemplateCacheFile(Layout *layout,
                          const bContext *C,
                          PointerRNA *ptr,
                          const StringRefNull propname)
@@ -188,9 +188,9 @@ void uiTemplateCacheFile(blender::ui::Layout *layout,
 
   layout->use_property_split_set(true);
 
-  blender::ui::Layout &row = layout->row(true);
+  Layout &row = layout->row(true);
   row.prop(&fileptr, "filepath", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  blender::ui::Layout &sub = row.row(true);
+  Layout &sub = row.row(true);
   sub.op("cachefile.reload", "", ICON_FILE_REFRESH);
 
   if (sbuts->mainb == BCONTEXT_CONSTRAINT) {
@@ -206,3 +206,5 @@ void uiTemplateCacheFile(blender::ui::Layout *layout,
   row->prop(&fileptr, "up_axis", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
 #endif
 }
+
+}  // namespace blender::ui

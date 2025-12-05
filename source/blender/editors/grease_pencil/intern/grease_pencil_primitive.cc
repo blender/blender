@@ -207,10 +207,10 @@ static void control_point_colors_and_sizes(const PrimitiveToolOperation &ptd,
   ColorGeometry4f color_gizmo_secondary;
   ColorGeometry4f color_gizmo_a;
   ColorGeometry4f color_gizmo_b;
-  UI_GetThemeColor4fv(TH_GIZMO_PRIMARY, color_gizmo_primary);
-  UI_GetThemeColor4fv(TH_GIZMO_SECONDARY, color_gizmo_secondary);
-  UI_GetThemeColor4fv(TH_GIZMO_A, color_gizmo_a);
-  UI_GetThemeColor4fv(TH_GIZMO_B, color_gizmo_b);
+  ui::UI_GetThemeColor4fv(TH_GIZMO_PRIMARY, color_gizmo_primary);
+  ui::UI_GetThemeColor4fv(TH_GIZMO_SECONDARY, color_gizmo_secondary);
+  ui::UI_GetThemeColor4fv(TH_GIZMO_A, color_gizmo_a);
+  ui::UI_GetThemeColor4fv(TH_GIZMO_B, color_gizmo_b);
 
   const float size_primary = ui_primary_point_draw_size_px;
   const float size_secondary = ui_secondary_point_draw_size_px;

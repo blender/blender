@@ -14,8 +14,7 @@
 #include "UI_interface_layout.hh"
 #include "interface_intern.hh"
 
-using blender::StringRef;
-using blender::StringRefNull;
+namespace blender::ui {
 
 struct ComponentMenuArgs {
   PointerRNA ptr;
@@ -26,19 +25,19 @@ static uiBlock *component_menu(bContext *C, ARegion *region, void *args_v)
 {
   ComponentMenuArgs *args = (ComponentMenuArgs *)args_v;
 
-  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  uiBlock *block = UI_block_begin(C, region, __func__, EmbossType::Emboss);
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN);
 
-  blender::ui::Layout &layout = blender::ui::block_layout(block,
-                                                          blender::ui::LayoutDirection::Vertical,
-                                                          blender::ui::LayoutType::Panel,
-                                                          0,
-                                                          0,
-                                                          UI_UNIT_X * 6,
-                                                          UI_UNIT_Y,
-                                                          0,
-                                                          UI_style_get())
-                                    .column(false);
+  Layout &layout = block_layout(block,
+                                LayoutDirection::Vertical,
+                                LayoutType::Panel,
+                                0,
+                                0,
+                                UI_UNIT_X * 6,
+                                UI_UNIT_Y,
+                                0,
+                                UI_style_get())
+                       .column(false);
 
   layout.prop(&args->ptr, args->propname, UI_ITEM_R_EXPAND, "", ICON_NONE);
 
@@ -47,7 +46,7 @@ static uiBlock *component_menu(bContext *C, ARegion *region, void *args_v)
 
   return block;
 }
-void uiTemplateComponentMenu(blender::ui::Layout *layout,
+void uiTemplateComponentMenu(Layout *layout,
                              PointerRNA *ptr,
                              const StringRefNull propname,
                              const StringRef name)
@@ -78,3 +77,5 @@ void uiTemplateComponentMenu(blender::ui::Layout *layout,
 
   UI_block_align_end(block);
 }
+
+}  // namespace blender::ui

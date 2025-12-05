@@ -33,6 +33,8 @@
 #include "eyedropper_intern.hh"
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
 struct DriverDropper {
   /* Destination property (i.e. where we'll add a driver) */
   PointerRNA ptr = {};
@@ -215,3 +217,5 @@ void UI_OT_eyedropper_driver(wmOperatorType *ot)
                "Mapping Type",
                "Method used to match target and driven properties");
 }
+
+}  // namespace blender::ui

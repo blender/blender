@@ -20,13 +20,10 @@
 
 #include "interface_intern.hh"
 
-using blender::StringRef;
-using blender::StringRefNull;
+namespace blender::ui {
 
 /* Format translation/rotation value as a string based on Blender unit settings. */
-static std::string format_unit_value(float value,
-                                     PropertySubType subtype,
-                                     blender::ui::Layout &layout)
+static std::string format_unit_value(float value, PropertySubType subtype, Layout &layout)
 {
   const UnitSettings *unit = layout.block()->unit;
   const int unit_type = RNA_SUBTYPE_UNIT(subtype);
@@ -60,7 +57,7 @@ static std::string format_coefficient(float value)
  * Defaults to XYZ Euler. */
 static int rotation_mode_index = ROT_MODE_EUL;
 
-static void rotation_mode_menu_callback(bContext *, blender::ui::Layout *layout, void *)
+static void rotation_mode_menu_callback(bContext *, Layout *layout, void *)
 {
   for (size_t i = 0; i < RNA_enum_items_count(rna_enum_object_rotation_mode_items); i++) {
     const EnumPropertyItem &mode_info = rna_enum_object_rotation_mode_items[i];
@@ -84,11 +81,11 @@ static void rotation_mode_menu_callback(bContext *, blender::ui::Layout *layout,
   }
 }
 
-static void draw_matrix_template(blender::ui::Layout &layout, PointerRNA &ptr, PropertyRNA &prop)
+static void draw_matrix_template(Layout &layout, PointerRNA &ptr, PropertyRNA &prop)
 {
   /* Matrix template UI is mirroring Object's Transform UI for better UX. */
-  blender::ui::Layout *row, *col;
-  blender::ui::Layout &layout_ = layout.box();
+  Layout *row, *col;
+  Layout &layout_ = layout.box();
 
   float m4[4][4];
   RNA_property_float_get_array(&ptr, &prop, &m4[0][0]);
@@ -214,7 +211,7 @@ static void draw_matrix_template(blender::ui::Layout &layout, PointerRNA &ptr, P
   row->label(format_coefficient(size[2]), ICON_NONE);
 }
 
-void uiTemplateMatrix(blender::ui::Layout *layout, PointerRNA *ptr, const StringRefNull propname)
+void uiTemplateMatrix(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 
@@ -228,3 +225,5 @@ void uiTemplateMatrix(blender::ui::Layout *layout, PointerRNA *ptr, const String
   }
   draw_matrix_template(*layout, *ptr, *prop);
 }
+
+}  // namespace blender::ui

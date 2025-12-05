@@ -31,7 +31,7 @@
 #include "CLG_log.h"
 #include "testing/testing.h"
 
-namespace blender::interface::tests {
+namespace blender::ui::tests {
 
 class CopyDriversToSelected : public testing::Test {
  public:
@@ -287,4 +287,4 @@ TEST_F(CopyDriversToSelected, paste_property_drivers)
   }
 }
 
-}  // namespace blender::interface::tests
+}  // namespace blender::ui::tests

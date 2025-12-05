@@ -31,6 +31,8 @@
 #include "UI_interface_layout.hh"
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
 static void uiTemplateRecentFiles_tooltip_func(bContext & /*C*/,
                                                uiTooltipData &tip,
                                                uiBut * /*but*/,
@@ -131,7 +133,7 @@ static void uiTemplateRecentFiles_tooltip_func(bContext & /*C*/,
   }
 }
 
-int uiTemplateRecentFiles(blender::ui::Layout *layout, int rows)
+int uiTemplateRecentFiles(Layout *layout, int rows)
 {
   int i = 0;
   LISTBASE_FOREACH_INDEX (RecentFile *, recent, &G.recent_files, i) {
@@ -144,7 +146,7 @@ int uiTemplateRecentFiles(blender::ui::Layout *layout, int rows)
                                 filename,
                                 BKE_blendfile_extension_check(filename) ? ICON_FILE_BLEND :
                                                                           ICON_FILE_BACKUP,
-                                blender::wm::OpCallContext::InvokeDefault,
+                                wm::OpCallContext::InvokeDefault,
                                 UI_ITEM_NONE);
     RNA_string_set(&ptr, "filepath", recent->filepath);
     RNA_boolean_set(&ptr, "display_file_selector", false);
@@ -157,3 +159,5 @@ int uiTemplateRecentFiles(blender::ui::Layout *layout, int rows)
 
   return i;
 }
+
+}  // namespace blender::ui

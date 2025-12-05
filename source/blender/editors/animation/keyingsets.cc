@@ -263,7 +263,7 @@ static wmOperatorStatus add_keyingset_button_exec(bContext *C, wmOperator *op)
   PointerRNA ptr = {};
   int index = 0, pflag = 0;
 
-  if (!UI_context_active_but_prop_get(C, &ptr, &prop, &index)) {
+  if (!blender::ui::UI_context_active_but_prop_get(C, &ptr, &prop, &index)) {
     /* Pass event on if no active button found. */
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
@@ -356,7 +356,7 @@ static wmOperatorStatus remove_keyingset_button_exec(bContext *C, wmOperator *op
   PointerRNA ptr = {};
   int index = 0;
 
-  if (!UI_context_active_but_prop_get(C, &ptr, &prop, &index)) {
+  if (!blender::ui::UI_context_active_but_prop_get(C, &ptr, &prop, &index)) {
     /* Pass event on if no active button found. */
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
@@ -429,7 +429,7 @@ static wmOperatorStatus keyingset_active_menu_invoke(bContext *C,
                                                      const wmEvent * /*event*/)
 {
   /* Call the menu, which will call this operator again, hence the canceled. */
-  uiPopupMenu *pup = UI_popup_menu_begin(C, op->type->name, ICON_NONE);
+  blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(C, op->type->name, ICON_NONE);
   blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
   layout.op_enum("ANIM_OT_keying_set_active_set", "type");
   UI_popup_menu_end(C, pup);

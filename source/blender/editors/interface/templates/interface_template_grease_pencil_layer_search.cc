@@ -29,7 +29,7 @@ namespace blender::ui {
 
 void grease_pencil_layer_search_add_items(const StringRef str,
                                           const Span<const std::string *> layer_names,
-                                          uiSearchItems &seach_items,
+                                          SearchItems &seach_items,
                                           const bool is_first)
 {
   static std::string dummy_str;
@@ -59,7 +59,7 @@ void grease_pencil_layer_search_add_items(const StringRef str,
    * so the items are in the same order they will appear in while searching. */
   const StringRef string = is_first ? "" : str;
 
-  ui::string_search::StringSearch<const std::string> search;
+  string_search::StringSearch<const std::string> search;
   for (const std::string *name : layer_names) {
     search.add(*name, name);
   }

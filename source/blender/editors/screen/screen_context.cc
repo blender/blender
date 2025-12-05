@@ -548,7 +548,7 @@ static eContextResult screen_ctx_property(const bContext *C, bContextDataResult 
   PropertyRNA *prop;
   int index;
 
-  UI_context_active_but_prop_get(C, &ptr, &prop, &index);
+  blender::ui::UI_context_active_but_prop_get(C, &ptr, &prop, &index);
   if (ptr.data && prop) {
     /* UI_context_active_but_prop_get returns an index of 0 if the property is not
      * an array, but other functions expect -1 for non-arrays. */
@@ -814,7 +814,7 @@ static eContextResult screen_ctx_active_operator(const bContext *C, bContextData
   if (sfile) {
     op = sfile->op;
   }
-  else if ((op = UI_context_active_operator_get(C))) {
+  else if ((op = blender::ui::UI_context_active_operator_get(C))) {
     /* do nothing */
   }
   else {
@@ -1070,7 +1070,7 @@ static eContextResult screen_ctx_ui_list(const bContext *C, bContextDataResult *
   wmWindow *win = CTX_wm_window(C);
   ARegion *region = CTX_wm_region(C);
   if (region) {
-    uiList *list = UI_list_find_mouse_over(region, win->eventstate);
+    uiList *list = blender::ui::UI_list_find_mouse_over(region, win->eventstate);
     if (list) {
       CTX_data_pointer_set(result, nullptr, &RNA_UIList, list);
       return CTX_RESULT_OK;

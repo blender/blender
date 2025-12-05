@@ -21,6 +21,8 @@
 
 #include "interface_regions_intern.hh"
 
+namespace blender::ui {
+
 ARegion *ui_region_temp_add(bScreen *screen)
 {
   ARegion *region = BKE_area_region_new();
@@ -53,3 +55,5 @@ void ui_region_temp_remove(bContext *C, bScreen *screen, ARegion *region)
     CTX_wm_region_popup_set(C, nullptr);
   }
 }
+
+}  // namespace blender::ui

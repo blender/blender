@@ -25,7 +25,6 @@ struct PointerRNA;
 struct Scene;
 struct SpaceLink;
 struct SpaceType;
-struct uiBlock;
 struct uiList;
 struct uiListType;
 struct wmDrawBuffer;

@@ -1015,7 +1015,7 @@ static wmOperatorStatus armature_parent_set_invoke(bContext *C,
     }
   }
 
-  uiPopupMenu *pup = UI_popup_menu_begin(
+  blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Make Parent"), ICON_NONE);
   blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
 
@@ -1135,7 +1135,7 @@ static wmOperatorStatus armature_parent_clear_invoke(bContext *C,
     }
   }
 
-  uiPopupMenu *pup = UI_popup_menu_begin(
+  blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Parent"), ICON_NONE);
   blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
 

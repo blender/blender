@@ -38,7 +38,7 @@
 
 #include "interface_intern.hh"
 
-using namespace blender;
+namespace blender::ui {
 
 /**
  * The validated data that was passed to #uiTemplateList (typically through Python).
@@ -91,7 +91,7 @@ struct TemplateListVisualInfo {
 
 static void uilist_draw_item_default(uiList *ui_list,
                                      const bContext * /*C*/,
-                                     ui::Layout &layout,
+                                     Layout &layout,
                                      PointerRNA * /*dataptr*/,
                                      PointerRNA *itemptr,
                                      int icon,
@@ -117,13 +117,13 @@ static void uilist_draw_item_default(uiList *ui_list,
   }
 }
 
-static void uilist_draw_filter_default(uiList *ui_list, const bContext * /*C*/, ui::Layout &layout)
+static void uilist_draw_filter_default(uiList *ui_list, const bContext * /*C*/, Layout &layout)
 {
   PointerRNA listptr = RNA_pointer_create_discrete(nullptr, &RNA_UIList, ui_list);
 
-  ui::Layout &row = layout.row(false);
+  Layout &row = layout.row(false);
 
-  ui::Layout *subrow = &row.row(true);
+  Layout *subrow = &row.row(true);
   subrow->prop(&listptr,
                RNA_struct_find_property(&listptr, "filter_name"),
                -1,
@@ -698,7 +698,7 @@ static uiList *ui_list_ensure(const bContext *C,
 
 static void ui_template_list_layout_draw(const bContext *C,
                                          uiList *ui_list,
-                                         ui::Layout &layout,
+                                         Layout &layout,
                                          TemplateListInputData *input_data,
                                          TemplateListItems *items,
                                          const TemplateListLayoutDrawData *layout_data,
@@ -707,7 +707,7 @@ static void ui_template_list_layout_draw(const bContext *C,
   uiListDyn *dyn_data = ui_list->dyn_data;
   const char *active_propname = RNA_property_identifier(input_data->activeprop);
 
-  ui::Layout *glob = nullptr, *box, *row, *col, *sub, *overlap;
+  Layout *glob = nullptr, *box, *row, *col, *sub, *overlap;
   char numstr[32];
   int rnaicon = ICON_NONE, icon = ICON_NONE;
   uiBut *but;
@@ -776,7 +776,7 @@ static void ui_template_list_layout_draw(const bContext *C,
             UI_but_func_tooltip_set(but, uilist_item_tooltip_func, dyntip_data, MEM_freeN);
           }
 
-          ui::Layout &item_row = overlap->row(true);
+          Layout &item_row = overlap->row(true);
 
           uiLayoutListItemAddPadding(&item_row);
 
@@ -829,7 +829,7 @@ static void ui_template_list_layout_draw(const bContext *C,
                         0,
                         dyn_data->height - dyn_data->visual_height,
                         "");
-        auto *but_scroll = reinterpret_cast<blender::ui::ButtonScrollBar *>(but);
+        auto *but_scroll = reinterpret_cast<ButtonScrollBar *>(but);
         but_scroll->visual_height = dyn_data->visual_height;
       }
       break;
@@ -896,7 +896,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       const int size_y = show_names ? UI_preview_tile_size_y() : UI_preview_tile_size_y_no_label();
 
       const int cols_per_row = std::max(int((box->width() - V2D_SCROLL_WIDTH) / size_x), 1);
-      ui::Layout &grid = row->grid_flow(true, cols_per_row, true, true, true);
+      Layout &grid = row->grid_flow(true, cols_per_row, true, true, true);
 
       TemplateListLayoutDrawData adjusted_layout_data = *layout_data;
       adjusted_layout_data.columns = cols_per_row;
@@ -970,7 +970,7 @@ static void ui_template_list_layout_draw(const bContext *C,
                         0,
                         dyn_data->height - dyn_data->visual_height,
                         "");
-        auto *but_scroll = reinterpret_cast<blender::ui::ButtonScrollBar *>(but);
+        auto *but_scroll = reinterpret_cast<ButtonScrollBar *>(but);
         but_scroll->visual_height = dyn_data->visual_height;
       }
       break;
@@ -998,7 +998,7 @@ static void ui_template_list_layout_draw(const bContext *C,
 
     row = &glob->row(true);
     uiBlock *subblock = row->block();
-    UI_block_emboss_set(subblock, blender::ui::EmbossType::None);
+    UI_block_emboss_set(subblock, EmbossType::None);
 
     if (ui_list->filter_flag & UILST_FLT_SHOW) {
       but = uiDefIconButBitI(subblock,
@@ -1030,7 +1030,7 @@ static void ui_template_list_layout_draw(const bContext *C,
         UI_but_func_set(but, [ui_list](bContext &C) { uilist_resize_update(&C, ui_list); });
       }
 
-      UI_block_emboss_set(subblock, blender::ui::EmbossType::Emboss);
+      UI_block_emboss_set(subblock, EmbossType::Emboss);
 
       col = &glob->column(false);
       subblock = col->block();
@@ -1069,12 +1069,12 @@ static void ui_template_list_layout_draw(const bContext *C,
         UI_but_func_set(but, [ui_list](bContext &C) { uilist_resize_update(&C, ui_list); });
       }
 
-      UI_block_emboss_set(subblock, blender::ui::EmbossType::Emboss);
+      UI_block_emboss_set(subblock, EmbossType::Emboss);
     }
   }
 }
 
-uiList *uiTemplateList_ex(ui::Layout *layout,
+uiList *uiTemplateList_ex(Layout *layout,
                           const bContext *C,
                           const char *listtype_name,
                           const char *list_id,
@@ -1144,7 +1144,7 @@ uiList *uiTemplateList_ex(ui::Layout *layout,
   return ui_list;
 }
 
-void uiTemplateList(ui::Layout *layout,
+void uiTemplateList(Layout *layout,
                     const bContext *C,
                     const char *listtype_name,
                     const char *list_id,
@@ -1187,3 +1187,5 @@ void ED_uilisttypes_ui()
 }
 
 /** \} */
+
+}  // namespace blender::ui

@@ -31,6 +31,8 @@
 /* we may want to make this optional, disable for now. */
 // #define USE_OP_RESET_BUT
 
+namespace blender::ui {
+
 struct uiTemplateOperatorPropertyPollParam {
   const bContext *C;
   wmOperator *op;
@@ -62,7 +64,7 @@ static bool ui_layout_operator_buts_poll_property(PointerRNA * /*ptr*/,
 static eAutoPropButsReturn template_operator_property_buts_draw_single(
     const bContext *C,
     wmOperator *op,
-    blender::ui::Layout &layout,
+    Layout &layout,
     const eButLabelAlign label_align,
     int layout_flags)
 {
@@ -70,7 +72,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
   eAutoPropButsReturn return_info = eAutoPropButsReturn(0);
 
   if (!op->properties) {
-    op->properties = blender::bke::idprop::create_group("wmOperatorProperties").release();
+    op->properties = bke::idprop::create_group("wmOperatorProperties").release();
   }
 
   /* poll() on this operator may still fail,
@@ -95,15 +97,14 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
 
     UI_block_set_active_operator(block, op, false);
 
-    blender::ui::Layout &row = layout.row(true);
+    Layout &row = layout.row(true);
     row.menu("WM_MT_operator_presets", std::nullopt, ICON_NONE);
 
     wmOperatorType *ot = WM_operatortype_find("WM_OT_operator_preset_add", false);
-    op_ptr = op_ptr = row.op(
-        ot, "", ICON_ADD, blender::wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
+    op_ptr = op_ptr = row.op(ot, "", ICON_ADD, wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
     RNA_string_set(&op_ptr, "operator", op->type->idname);
 
-    op_ptr = row.op(ot, "", ICON_REMOVE, blender::wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
+    op_ptr = row.op(ot, "", ICON_REMOVE, wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
     RNA_string_set(&op_ptr, "operator", op->type->idname);
     RNA_boolean_set(&op_ptr, "remove_active", true);
   }
@@ -154,7 +155,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
     uiBut *but;
 
     /* Needed to avoid alignment errors with previous buttons */
-    blender::ui::Layout &col = layout.column(false);
+    Layout &col = layout.column(false);
     block = col.block();
     but = uiDefIconTextBut(block,
                            ButType::But,
@@ -202,7 +203,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
 
 static void template_operator_property_buts_draw_recursive(const bContext *C,
                                                            wmOperator *op,
-                                                           blender::ui::Layout &layout,
+                                                           Layout &layout,
                                                            const eButLabelAlign label_align,
                                                            int layout_flags,
                                                            bool *r_has_advanced)
@@ -269,11 +270,8 @@ static bool ui_layout_operator_properties_only_booleans(const bContext *C,
   return true;
 }
 
-void uiTemplateOperatorPropertyButs(const bContext *C,
-                                    blender::ui::Layout *layout,
-                                    wmOperator *op,
-                                    eButLabelAlign label_align,
-                                    short flag)
+void uiTemplateOperatorPropertyButs(
+    const bContext *C, Layout *layout, wmOperator *op, eButLabelAlign label_align, short flag)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
 
@@ -286,7 +284,7 @@ void uiTemplateOperatorPropertyButs(const bContext *C,
   template_operator_property_buts_draw_recursive(C, op, *layout, label_align, flag, nullptr);
 }
 
-void uiTemplateOperatorRedoProperties(blender::ui::Layout *layout, const bContext *C)
+void uiTemplateOperatorRedoProperties(Layout *layout, const bContext *C)
 {
   wmOperator *op = WM_operator_last_redo(C);
   uiBlock *block = layout->block();
@@ -301,7 +299,7 @@ void uiTemplateOperatorRedoProperties(blender::ui::Layout *layout, const bContex
   layout->op("SCREEN_OT_repeat_last",
              WM_operatortype_name(op->type, op->ptr),
              ICON_NONE,
-             blender::wm::OpCallContext::InvokeDefault,
+             wm::OpCallContext::InvokeDefault,
              0);
 #endif
 
@@ -345,12 +343,12 @@ static wmOperator *minimal_operator_create(wmOperatorType *ot, PointerRNA *prope
 }
 
 static void draw_export_controls(
-    bContext *C, blender::ui::Layout &layout, const std::string &label, int index, bool valid)
+    bContext *C, Layout &layout, const std::string &label, int index, bool valid)
 {
   layout.label(label, ICON_NONE);
   if (valid) {
-    blender::ui::Layout &row = layout.row(false);
-    row.emboss_set(blender::ui::EmbossType::None);
+    Layout &row = layout.row(false);
+    row.emboss_set(EmbossType::None);
     row.popover(C, "WM_PT_operator_presets", "", ICON_PRESET);
     PointerRNA op_ptr = row.op("COLLECTION_OT_exporter_export", "", ICON_EXPORT);
     RNA_int_set(&op_ptr, "index", index);
@@ -358,12 +356,12 @@ static void draw_export_controls(
 }
 
 static void draw_export_properties(bContext *C,
-                                   blender::ui::Layout &layout,
+                                   Layout &layout,
                                    PointerRNA &exporter_ptr,
                                    wmOperator *op,
                                    const std::string &filename)
 {
-  blender::ui::Layout &col = layout.column(false);
+  Layout &col = layout.column(false);
 
   col.use_property_split_set(true);
   col.use_property_decorate_set(false);
@@ -393,7 +391,7 @@ static void draw_export_properties(bContext *C,
 
 static void draw_exporter_item(uiList * /*ui_list*/,
                                const bContext * /*C*/,
-                               blender::ui::Layout &layout,
+                               Layout &layout,
                                PointerRNA * /*idataptr*/,
                                PointerRNA *itemptr,
                                int /*icon*/,
@@ -402,12 +400,12 @@ static void draw_exporter_item(uiList * /*ui_list*/,
                                int /*index*/,
                                int /*flt_flag*/)
 {
-  blender::ui::Layout &row = layout.row(false);
-  row.emboss_set(blender::ui::EmbossType::None);
+  Layout &row = layout.row(false);
+  row.emboss_set(EmbossType::None);
   row.prop(itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
 }
 
-void uiTemplateCollectionExporters(blender::ui::Layout *layout, bContext *C)
+void uiTemplateCollectionExporters(Layout *layout, bContext *C)
 {
   Collection *collection = CTX_data_collection(C);
   ListBase *exporters = &collection->exporters;
@@ -424,23 +422,23 @@ void uiTemplateCollectionExporters(blender::ui::Layout *layout, bContext *C)
 
   /* Draw exporter list and controls. */
   PointerRNA collection_ptr = RNA_id_pointer_create(&collection->id);
-  blender::ui::Layout &row = layout->row(false);
-  uiTemplateList(&row,
-                 C,
-                 exporter_item_list->idname,
-                 "",
-                 &collection_ptr,
-                 "exporters",
-                 &collection_ptr,
-                 "active_exporter_index",
-                 nullptr,
-                 3,
-                 5,
-                 UILST_LAYOUT_DEFAULT,
-                 1,
-                 UI_TEMPLATE_LIST_FLAG_NONE);
+  Layout &row = layout->row(false);
+  blender::ui::uiTemplateList(&row,
+                              C,
+                              exporter_item_list->idname,
+                              "",
+                              &collection_ptr,
+                              "exporters",
+                              &collection_ptr,
+                              "active_exporter_index",
+                              nullptr,
+                              3,
+                              5,
+                              UILST_LAYOUT_DEFAULT,
+                              1,
+                              UI_TEMPLATE_LIST_FLAG_NONE);
 
-  blender::ui::Layout *col = &row.column(true);
+  Layout *col = &row.column(true);
   col->menu("COLLECTION_MT_exporter_add", "", ICON_ADD);
   PointerRNA op_ptr = col->op("COLLECTION_OT_exporter_remove", "", ICON_REMOVE);
   RNA_int_set(&op_ptr, "index", index);
@@ -461,7 +459,6 @@ void uiTemplateCollectionExporters(blender::ui::Layout *layout, bContext *C)
     return;
   }
 
-  using namespace blender;
   PointerRNA exporter_ptr = RNA_pointer_create_discrete(
       &collection->id, &RNA_CollectionExport, data);
   PanelLayout panel = layout->panel_prop(C, &exporter_ptr, "is_open");
@@ -494,3 +491,5 @@ void uiTemplateCollectionExporters(blender::ui::Layout *layout, bContext *C)
         C, *panel.body, exporter_ptr, op, fh->get_default_filename(collection->id.name + 2));
   }
 }
+
+}  // namespace blender::ui

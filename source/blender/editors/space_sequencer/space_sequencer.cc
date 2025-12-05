@@ -338,7 +338,7 @@ static int /*eContextResult*/ sequencer_context(const bContext *C,
 
 static void SEQUENCER_GGT_navigate(wmGizmoGroupType *gzgt)
 {
-  VIEW2D_GGT_navigate_impl(gzgt, "SEQUENCER_GGT_navigate");
+  ui::VIEW2D_GGT_navigate_impl(gzgt, "SEQUENCER_GGT_navigate");
 }
 
 static void SEQUENCER_GGT_gizmo2d(wmGizmoGroupType *gzgt)
@@ -423,7 +423,7 @@ static void sequencer_main_region_init(wmWindowManager *wm, ARegion *region)
   wmKeyMap *keymap;
   ListBase *lb;
 
-  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
+  UI_view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
 #if 0
   keymap = WM_keymap_ensure(wm->runtime->defaultconf, "Mask Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
@@ -672,7 +672,7 @@ static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
   }
 
   const View2D *v2d = &region->v2d;
-  if (UI_view2d_mouse_in_scrollers(region, v2d, win->eventstate->xy)) {
+  if (ui::UI_view2d_mouse_in_scrollers(region, v2d, win->eventstate->xy)) {
     WM_cursor_set(win, wmcursor);
     return;
   }
@@ -680,7 +680,7 @@ static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
   float mouse_co_region[2] = {float(win->eventstate->xy[0] - region->winrct.xmin),
                               float(win->eventstate->xy[1] - region->winrct.ymin)};
   float mouse_co_view[2];
-  UI_view2d_region_to_view(
+  ui::UI_view2d_region_to_view(
       &region->v2d, mouse_co_region[0], mouse_co_region[1], &mouse_co_view[0], &mouse_co_view[1]);
 
   if (STREQ(tref->idname, "builtin.blade") || STREQ(tref->idname, "builtin.slip")) {
@@ -819,7 +819,7 @@ static void sequencer_preview_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
+  UI_view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
 #if 0
   keymap = WM_keymap_ensure(wm->runtime->defaultconf, "Mask Editing", SPACE_EMPTY, RGN_TYPE_WINDOW);
@@ -1085,7 +1085,7 @@ static void sequencer_channel_region_init(wmWindowManager *wm, ARegion *region)
 
   region->alignment = RGN_ALIGN_LEFT;
 
-  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
+  UI_view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   keymap = WM_keymap_ensure(
       wm->runtime->defaultconf, "Sequencer Channels", SPACE_SEQ, RGN_TYPE_WINDOW);
@@ -1249,7 +1249,7 @@ void ED_spacetype_sequencer()
   BLI_addhead(&st->regiontypes, art);
 
   /* HUD. */
-  art = ED_area_type_hud(st->spaceid);
+  art = ui::ED_area_type_hud(st->spaceid);
   BLI_addhead(&st->regiontypes, art);
 
   WM_menutype_add(MEM_dupallocN<MenuType>(__func__, add_catalog_assets_menu_type()));

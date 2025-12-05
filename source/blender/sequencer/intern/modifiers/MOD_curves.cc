@@ -91,7 +91,7 @@ static void curves_apply(ModifierApplyContext &context, StripModifierData *smd, 
 static void curves_panel_draw(const bContext *C, Panel *panel)
 {
   ui::Layout &layout = *panel->layout;
-  PointerRNA *ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *ptr = blender::ui::UI_panel_custom_data_get(panel);
 
   uiTemplateCurveMapping(&layout, ptr, "curve_mapping", 'c', false, false, false, true, false);
 

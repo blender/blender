@@ -748,9 +748,9 @@ static void drawLine(
     col[0] = col[1] = col[2] = 220;
   }
   else {
-    UI_GetThemeColor3ubv(TH_GRID, col);
+    ui::UI_GetThemeColor3ubv(TH_GRID, col);
   }
-  UI_make_axis_color(col, axis, col2);
+  blender::ui::UI_make_axis_color(col, axis, col2);
 
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);

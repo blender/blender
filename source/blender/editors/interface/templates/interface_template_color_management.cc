@@ -15,11 +15,9 @@
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"
 
-using blender::StringRefNull;
+namespace blender::ui {
 
-void uiTemplateColorspaceSettings(blender::ui::Layout *layout,
-                                  PointerRNA *ptr,
-                                  const StringRefNull propname)
+void uiTemplateColorspaceSettings(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 
@@ -36,7 +34,7 @@ void uiTemplateColorspaceSettings(blender::ui::Layout *layout,
   layout->prop(&colorspace_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
 }
 
-void uiTemplateColormanagedViewSettings(blender::ui::Layout *layout,
+void uiTemplateColormanagedViewSettings(Layout *layout,
                                         bContext * /*C*/,
                                         PointerRNA *ptr,
                                         const StringRefNull propname)
@@ -55,7 +53,7 @@ void uiTemplateColormanagedViewSettings(blender::ui::Layout *layout,
   ColorManagedViewSettings *view_settings = static_cast<ColorManagedViewSettings *>(
       view_transform_ptr.data);
 
-  blender::ui::Layout *col = &layout->column(false);
+  Layout *col = &layout->column(false);
   col->prop(&view_transform_ptr, "view_transform", UI_ITEM_NONE, IFACE_("View"), ICON_NONE);
   col->prop(&view_transform_ptr, "look", UI_ITEM_NONE, IFACE_("Look"), ICON_NONE);
 
@@ -78,3 +76,5 @@ void uiTemplateColormanagedViewSettings(blender::ui::Layout *layout,
     col->prop(&view_transform_ptr, "white_balance_tint", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
+
+}  // namespace blender::ui

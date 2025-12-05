@@ -24,7 +24,7 @@
 
 #include "interface_intern.hh"
 
-using namespace blender;
+namespace blender::ui {
 
 /**
  * Calculate a bounding box for each section. Sections will be merged if they are closer than
@@ -182,8 +182,7 @@ static void ui_draw_button_sections_alignment_separator(const ARegion *region,
   /* Separator line. */
   {
     GPUVertFormat *format = immVertexFormat();
-    const uint pos = GPU_vertformat_attr_add(
-        format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+    const uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor4fv(bg_color);
 
@@ -250,3 +249,5 @@ bool UI_region_button_sections_is_inside_x(const ARegion *region, const int mval
   }
   return false;
 }
+
+}  // namespace blender::ui

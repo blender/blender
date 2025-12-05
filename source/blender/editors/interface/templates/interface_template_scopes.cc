@@ -14,15 +14,13 @@
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"
 
-using blender::StringRefNull;
+namespace blender::ui {
 
 /* -------------------------------------------------------------------- */
 /** \name Histogram Template
  * \{ */
 
-void uiTemplateHistogram(blender::ui::Layout *layout,
-                         PointerRNA *ptr,
-                         const StringRefNull propname)
+void uiTemplateHistogram(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 
@@ -43,7 +41,7 @@ void uiTemplateHistogram(blender::ui::Layout *layout,
     hist->height = UI_UNIT_Y * 20;
   }
 
-  blender::ui::Layout &col = layout->column(true);
+  Layout &col = layout->column(true);
   uiBlock *block = col.block();
 
   uiDefBut(block, ButType::Histogram, "", 0, 0, UI_UNIT_X * 10, hist->height, hist, 0, 0, "");
@@ -68,7 +66,7 @@ void uiTemplateHistogram(blender::ui::Layout *layout,
 /** \name Waveform Template
  * \{ */
 
-void uiTemplateWaveform(blender::ui::Layout *layout, PointerRNA *ptr, const StringRefNull propname)
+void uiTemplateWaveform(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 
@@ -82,7 +80,7 @@ void uiTemplateWaveform(blender::ui::Layout *layout, PointerRNA *ptr, const Stri
   }
   Scopes *scopes = (Scopes *)cptr.data;
 
-  blender::ui::Layout &col = layout->column(true);
+  Layout &col = layout->column(true);
   uiBlock *block = col.block();
 
   if (scopes->wavefrm_height < UI_UNIT_Y) {
@@ -124,9 +122,7 @@ void uiTemplateWaveform(blender::ui::Layout *layout, PointerRNA *ptr, const Stri
 /** \name Vector-Scope Template
  * \{ */
 
-void uiTemplateVectorscope(blender::ui::Layout *layout,
-                           PointerRNA *ptr,
-                           const StringRefNull propname)
+void uiTemplateVectorscope(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 
@@ -147,7 +143,7 @@ void uiTemplateVectorscope(blender::ui::Layout *layout,
     scopes->vecscope_height = UI_UNIT_Y * 20;
   }
 
-  blender::ui::Layout &col = layout->column(true);
+  Layout &col = layout->column(true);
   uiBlock *block = col.block();
 
   uiDefBut(block,
@@ -177,3 +173,5 @@ void uiTemplateVectorscope(blender::ui::Layout *layout,
 }
 
 /** \} */
+
+}  // namespace blender::ui

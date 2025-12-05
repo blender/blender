@@ -39,7 +39,7 @@ namespace blender::ed::vse {
 
 #define KEY_SIZE (10 * U.pixelsize)
 #define KEY_CENTER \
-  (UI_view2d_view_to_region_y(v2d, strip_y_rescale(strip, 0.0f)) + 4 + KEY_SIZE / 2)
+  (ui::UI_view2d_view_to_region_y(v2d, strip_y_rescale(strip, 0.0f)) + 4 + KEY_SIZE / 2)
 
 bool retiming_keys_can_be_displayed(const SpaceSeq *sseq)
 {
@@ -60,26 +60,28 @@ static float key_x_get(const Scene *scene, const Strip *strip, const SeqRetiming
 
 static float pixels_to_view_width(const bContext *C, const float width)
 {
-  const View2D *v2d = UI_view2d_fromcontext(C);
-  float scale_x = UI_view2d_view_to_region_x(v2d, 1) - UI_view2d_view_to_region_x(v2d, 0.0f);
+  const View2D *v2d = ui::UI_view2d_fromcontext(C);
+  float scale_x = ui::UI_view2d_view_to_region_x(v2d, 1) -
+                  ui::UI_view2d_view_to_region_x(v2d, 0.0f);
   return width / scale_x;
 }
 
 static float pixels_to_view_height(const bContext *C, const float height)
 {
-  const View2D *v2d = UI_view2d_fromcontext(C);
-  float scale_y = UI_view2d_view_to_region_y(v2d, 1) - UI_view2d_view_to_region_y(v2d, 0.0f);
+  const View2D *v2d = ui::UI_view2d_fromcontext(C);
+  float scale_y = ui::UI_view2d_view_to_region_y(v2d, 1) -
+                  ui::UI_view2d_view_to_region_y(v2d, 0.0f);
   return height / scale_y;
 }
 
 static float strip_start_screenspace_get(const Scene *scene, const View2D *v2d, const Strip *strip)
 {
-  return UI_view2d_view_to_region_x(v2d, seq::time_left_handle_frame_get(scene, strip));
+  return ui::UI_view2d_view_to_region_x(v2d, seq::time_left_handle_frame_get(scene, strip));
 }
 
 static float strip_end_screenspace_get(const Scene *scene, const View2D *v2d, const Strip *strip)
 {
-  return UI_view2d_view_to_region_x(v2d, seq::time_right_handle_frame_get(scene, strip));
+  return ui::UI_view2d_view_to_region_x(v2d, seq::time_right_handle_frame_get(scene, strip));
 }
 
 static rctf strip_box_get(const Scene *scene, const View2D *v2d, const Strip *strip)
@@ -87,8 +89,8 @@ static rctf strip_box_get(const Scene *scene, const View2D *v2d, const Strip *st
   rctf rect;
   rect.xmin = strip_start_screenspace_get(scene, v2d, strip);
   rect.xmax = strip_end_screenspace_get(scene, v2d, strip);
-  rect.ymin = UI_view2d_view_to_region_y(v2d, strip_y_rescale(strip, 0));
-  rect.ymax = UI_view2d_view_to_region_y(v2d, strip_y_rescale(strip, 1));
+  rect.ymin = ui::UI_view2d_view_to_region_y(v2d, strip_y_rescale(strip, 0));
+  rect.ymax = ui::UI_view2d_view_to_region_y(v2d, strip_y_rescale(strip, 1));
   return rect;
 }
 
@@ -127,7 +129,7 @@ static bool retiming_fake_key_frame_clicked(const bContext *C,
                                             int &r_frame)
 {
   const Scene *scene = CTX_data_sequencer_scene(C);
-  const View2D *v2d = UI_view2d_fromcontext(C);
+  const View2D *v2d = ui::UI_view2d_fromcontext(C);
 
   rctf box = strip_retiming_keys_box_get(scene, v2d, strip);
   if (!BLI_rctf_isect_pt(&box, mval[0], mval[1])) {
@@ -135,11 +137,11 @@ static bool retiming_fake_key_frame_clicked(const bContext *C,
   }
 
   const int left_frame = left_fake_key_frame_get(C, strip);
-  const float left_distance = fabs(UI_view2d_view_to_region_x(v2d, left_frame) - mval[0]);
+  const float left_distance = fabs(ui::UI_view2d_view_to_region_x(v2d, left_frame) - mval[0]);
 
   const int right_frame = right_fake_key_frame_get(C, strip);
   const int right_x = right_frame;
-  const float right_distance = fabs(UI_view2d_view_to_region_x(v2d, right_x) - mval[0]);
+  const float right_distance = fabs(ui::UI_view2d_view_to_region_x(v2d, right_x) - mval[0]);
 
   r_frame = (left_distance < right_distance) ? left_frame : right_frame;
 
@@ -172,14 +174,14 @@ static SeqRetimingKey *mouse_over_key_get_from_strip(const bContext *C,
                                                      const int mval[2])
 {
   const Scene *scene = CTX_data_sequencer_scene(C);
-  const View2D *v2d = UI_view2d_fromcontext(C);
+  const View2D *v2d = ui::UI_view2d_fromcontext(C);
 
   int best_distance = INT_MAX;
   SeqRetimingKey *best_key = nullptr;
 
   for (SeqRetimingKey &key : seq::retiming_keys_get(strip)) {
     int distance = round_fl_to_int(
-        fabsf(UI_view2d_view_to_region_x(v2d, key_x_get(scene, strip, &key)) - mval[0]));
+        fabsf(ui::UI_view2d_view_to_region_x(v2d, key_x_get(scene, strip, &key)) - mval[0]));
 
     int threshold = RETIME_KEY_MOUSEOVER_THRESHOLD;
     if (key_x_get(scene, strip, &key) == seq::time_left_handle_frame_get(scene, strip) ||
@@ -200,7 +202,7 @@ static SeqRetimingKey *mouse_over_key_get_from_strip(const bContext *C,
 SeqRetimingKey *retiming_mouseover_key_get(const bContext *C, const int mval[2], Strip **r_strip)
 {
   const Scene *scene = CTX_data_sequencer_scene(C);
-  const View2D *v2d = UI_view2d_fromcontext(C);
+  const View2D *v2d = ui::UI_view2d_fromcontext(C);
   for (Strip *strip : sequencer_visible_strips_get(C)) {
     if (!seq::retiming_data_is_editable(strip)) {
       continue;
@@ -263,7 +265,7 @@ static void retime_key_draw(const TimelineDrawContext &ctx,
 
   const float key_x = key_x_get(scene, strip, key);
   const rctf strip_box = strip_box_get(scene, v2d, strip);
-  if (!BLI_rctf_isect_x(&strip_box, UI_view2d_view_to_region_x(v2d, key_x))) {
+  if (!BLI_rctf_isect_x(&strip_box, ui::UI_view2d_view_to_region_x(v2d, key_x))) {
     return; /* Key out of the strip bounds. */
   }
 
@@ -280,9 +282,11 @@ static void retime_key_draw(const TimelineDrawContext &ctx,
   const float bottom = KEY_CENTER;
 
   /* Ensure, that key is always inside of strip. */
-  const float right_pos_max = UI_view2d_view_to_region_x(v2d, strip_ctx.right_handle) - (size / 2);
-  const float left_pos_min = UI_view2d_view_to_region_x(v2d, strip_ctx.left_handle) + (size / 2);
-  float key_position = UI_view2d_view_to_region_x(v2d, key_x);
+  const float right_pos_max = ui::UI_view2d_view_to_region_x(v2d, strip_ctx.right_handle) -
+                              (size / 2);
+  const float left_pos_min = ui::UI_view2d_view_to_region_x(v2d, strip_ctx.left_handle) +
+                             (size / 2);
+  float key_position = ui::UI_view2d_view_to_region_x(v2d, key_x);
   CLAMP(key_position, left_pos_min, right_pos_max);
   const float alpha = seq::retiming_data_is_editable(strip) ? 1.0f : 0.3f;
 
@@ -308,16 +312,17 @@ void sequencer_retiming_draw_continuity(const TimelineDrawContext &ctx,
   const Strip *strip = strip_ctx.strip;
   const View2D *v2d = ctx.v2d;
   const Scene *scene = ctx.scene;
-  const float left_handle_position = UI_view2d_view_to_region_x(v2d, strip_ctx.left_handle);
-  const float right_handle_position = UI_view2d_view_to_region_x(v2d, strip_ctx.right_handle);
+  const float left_handle_position = ui::UI_view2d_view_to_region_x(v2d, strip_ctx.left_handle);
+  const float right_handle_position = ui::UI_view2d_view_to_region_x(v2d, strip_ctx.right_handle);
 
   for (const SeqRetimingKey &key : seq::retiming_keys_get(strip)) {
     if (key_x_get(scene, strip, &key) == strip_ctx.left_handle || key.strip_frame_index == 0) {
       continue;
     }
 
-    float key_position = UI_view2d_view_to_region_x(v2d, key_x_get(scene, strip, &key));
-    float prev_key_position = UI_view2d_view_to_region_x(v2d, key_x_get(scene, strip, &key - 1));
+    float key_position = ui::UI_view2d_view_to_region_x(v2d, key_x_get(scene, strip, &key));
+    float prev_key_position = ui::UI_view2d_view_to_region_x(v2d,
+                                                             key_x_get(scene, strip, &key - 1));
     if (prev_key_position > right_handle_position || key_position < left_handle_position) {
       /* Don't draw highlights for out of bounds retiming keys. */
       continue;
@@ -533,7 +538,8 @@ static void retime_speed_text_draw(const TimelineDrawContext &ctx,
     col[3] = 255;
   }
 
-  UI_view2d_text_cache_add(ctx.v2d, label_rect.xmin, label_rect.ymin, label_str, label_len, col);
+  ui::UI_view2d_text_cache_add(
+      ctx.v2d, label_rect.xmin, label_rect.ymin, label_str, label_len, col);
 }
 
 void sequencer_retiming_speed_draw(const TimelineDrawContext &ctx,
@@ -547,7 +553,7 @@ void sequencer_retiming_speed_draw(const TimelineDrawContext &ctx,
     retime_speed_text_draw(ctx, strip_ctx, &key);
   }
 
-  UI_view2d_view_ortho(ctx.v2d);
+  ui::UI_view2d_view_ortho(ctx.v2d);
 }
 
 /** \} */

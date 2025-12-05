@@ -377,7 +377,8 @@ void unpack_menu(bContext *C,
   wmOperatorType *ot = WM_operatortype_find(opname, true);
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
 
-  uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Unpack File"), ICON_NONE);
+  blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(
+      C, IFACE_("Unpack File"), ICON_NONE);
   blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
 
   PointerRNA props_ptr = layout.op(

@@ -81,8 +81,8 @@ static ThemeColorID get_axis_theme_color_id(const int axis)
 static void get_axis_gizmo_colors(const int axis, float *r_color, float *r_color_hi)
 {
   const ThemeColorID theme_id = get_axis_theme_color_id(axis);
-  UI_GetThemeColor3fv(theme_id, r_color);
-  UI_GetThemeColor3fv(theme_id, r_color_hi);
+  ui::UI_GetThemeColor3fv(theme_id, r_color);
+  ui::UI_GetThemeColor3fv(theme_id, r_color_hi);
   r_color[3] = 0.6f;
   r_color_hi[3] = 1.0f;
 }
@@ -239,8 +239,8 @@ class LinearGizmo : public NodeGizmos {
 
     const ThemeColorID color_theme_id = get_gizmo_theme_color_id(
         GeometryNodeGizmoColor(storage.color_id));
-    UI_GetThemeColor3fv(color_theme_id, gizmo_->color);
-    UI_GetThemeColor3fv(TH_GIZMO_HI, gizmo_->color_hi);
+    ui::UI_GetThemeColor3fv(color_theme_id, gizmo_->color);
+    ui::UI_GetThemeColor3fv(TH_GIZMO_HI, gizmo_->color_hi);
   }
 
   bool update_transform(GizmosUpdateParams &params)
@@ -343,8 +343,8 @@ class DialGizmo : public NodeGizmos {
 
     const ThemeColorID color_theme_id = get_gizmo_theme_color_id(
         GeometryNodeGizmoColor(storage.color_id));
-    UI_GetThemeColor3fv(color_theme_id, gizmo_->color);
-    UI_GetThemeColor3fv(TH_GIZMO_HI, gizmo_->color_hi);
+    ui::UI_GetThemeColor3fv(color_theme_id, gizmo_->color);
+    ui::UI_GetThemeColor3fv(TH_GIZMO_HI, gizmo_->color_hi);
   }
 
   bool update_transform(GizmosUpdateParams &params)

@@ -10,6 +10,15 @@
 
 #include "DNA_vec_types.h"
 
+#ifdef __cplusplus
+namespace blender::ui {
+struct SmoothView2DStore;
+}
+using SmoothView2DStore = blender::ui::SmoothView2DStore;
+#else
+typedef struct SmoothView2DStore SmoothView2DStore;
+#endif
+
 /* ---------------------------------- */
 
 /** View 2D data - stored per region. */
@@ -75,7 +84,7 @@ typedef struct View2D {
   float page_size_y;
 
   /* animated smooth view */
-  struct SmoothView2DStore *sms;
+  SmoothView2DStore *sms;
   struct wmTimer *smooth_timer;
 } View2D;
 

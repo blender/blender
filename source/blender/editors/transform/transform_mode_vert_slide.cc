@@ -73,7 +73,7 @@ struct VertSlideData {
     }
     else {
       const View2D *v2d = static_cast<View2D *>(t->view);
-      UI_view2d_view_to_region_m4(v2d, this->proj_mat.ptr());
+      ui::UI_view2d_view_to_region_m4(v2d, this->proj_mat.ptr());
       this->proj_mat.location()[0] -= this->win_half[0];
       this->proj_mat.location()[1] -= this->win_half[1];
     }
@@ -286,8 +286,8 @@ static void drawVertSlide(TransInfo *t)
       const float3 co_orig_3d_act = curr_sv->co_orig_3d();
       const float3 co_dest_3d_act = curr_sv->co_dest_3d();
 
-      const float ctrl_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) + 1.5f;
-      const float line_size = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
+      const float ctrl_size = ui::UI_GetThemeValuef(TH_FACEDOT_SIZE) + 1.5f;
+      const float line_size = ui::UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
       const int alpha_shade = -160;
 
       GPU_depth_test(GPU_DEPTH_NONE);

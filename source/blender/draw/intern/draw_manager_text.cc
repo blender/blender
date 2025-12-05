@@ -144,7 +144,7 @@ static void drw_text_cache_draw_ex(const DRWTextStore *dt, const ARegion *region
   GPU_matrix_push();
   GPU_matrix_identity_set();
 
-  BLF_default_size(UI_style_get()->widget.points);
+  BLF_default_size(blender::ui::UI_style_get()->widget.points);
   const int font_id = BLF_set_default();
 
   float outline_dark_color[4] = {0, 0, 0, 0.8f};
@@ -332,7 +332,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
   if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN) {
     BMEdge *eed;
 
-    UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
+    blender::ui::UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
 
     if (use_coords) {
       BM_mesh_elem_index_ensure(em->bm, BM_VERT);
@@ -381,7 +381,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
     const bool is_rad = (unit.system_rotation == USER_UNIT_ROT_RADIANS);
     BMEdge *eed;
 
-    UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGEANG, col);
+    blender::ui::UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGEANG, col);
 
     Span<float3> face_normals;
     if (use_coords) {
@@ -455,7 +455,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
     /* would be nice to use BM_face_calc_area, but that is for 2d faces
      * so instead add up tessellation triangle areas */
 
-    UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
+    blender::ui::UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
 
     int i;
     BMFace *f = nullptr;
@@ -515,7 +515,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
     BMFace *efa;
     const bool is_rad = (unit.system_rotation == USER_UNIT_ROT_RADIANS);
 
-    UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
+    blender::ui::UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
 
     if (use_coords) {
       BM_mesh_elem_index_ensure(em->bm, BM_VERT);
@@ -587,7 +587,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
   if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_INDICES) {
     int i;
 
-    UI_GetThemeColor4ubv(TH_TEXT_HI, col);
+    blender::ui::UI_GetThemeColor4ubv(TH_TEXT_HI, col);
 
     if (em->selectmode & SCE_SELECT_VERTEX) {
       BMVert *v;

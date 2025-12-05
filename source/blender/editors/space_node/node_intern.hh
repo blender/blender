@@ -79,7 +79,7 @@ struct bNodeLinkDrag {
   bool swap_links = false;
 
   /* Data for edge panning */
-  View2DEdgePanData pan_data;
+  ui::View2DEdgePanData pan_data;
 };
 
 struct SpaceNode_Runtime {

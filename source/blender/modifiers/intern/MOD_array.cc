@@ -1029,8 +1029,8 @@ static void uv_panel_draw(const bContext * /*C*/, Panel *panel)
   layout.use_property_split_set(true);
 
   ui::Layout &col = layout.column(true);
-  col.prop(ptr, "offset_u", UI_ITEM_R_EXPAND, IFACE_("Offset U"), ICON_NONE);
-  col.prop(ptr, "offset_v", UI_ITEM_R_EXPAND, IFACE_("V"), ICON_NONE);
+  col.prop(ptr, "offset_u", ui::UI_ITEM_R_EXPAND, IFACE_("Offset U"), ICON_NONE);
+  col.prop(ptr, "offset_v", ui::UI_ITEM_R_EXPAND, IFACE_("V"), ICON_NONE);
 }
 
 static void caps_panel_draw(const bContext * /*C*/, Panel *panel)

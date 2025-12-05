@@ -267,7 +267,7 @@ static wmOperatorStatus unpack_all_invoke(bContext *C, wmOperator *op, const wmE
   const std::string title = fmt::format(
       fmt::runtime(IFACE_("Unpack - Files: {}, Bakes: {}")), count.individual_files, count.bakes);
 
-  uiPopupMenu *pup = UI_popup_menu_begin(C, title.c_str(), ICON_NONE);
+  blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(C, title.c_str(), ICON_NONE);
   blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
 
   layout.operator_context_set(blender::wm::OpCallContext::ExecDefault);
@@ -358,7 +358,7 @@ static wmOperatorStatus unpack_item_exec(bContext *C, wmOperator *op)
 
 static wmOperatorStatus unpack_item_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Unpack"), ICON_NONE);
+  blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(C, IFACE_("Unpack"), ICON_NONE);
   blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
 
   layout.operator_context_set(blender::wm::OpCallContext::ExecDefault);

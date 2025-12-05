@@ -45,13 +45,13 @@
 #include "interface_intern.hh"
 #include "interface_regions_intern.hh"
 
-using blender::StringRef;
+namespace blender::ui {
 
 /* -------------------------------------------------------------------- */
 /** \name Search Box Creation
  * \{ */
 
-struct uiSearchItems {
+struct SearchItems {
   int maxitem, totitem, maxstrlen;
 
   int offset, offset_i; /* offset for inserting in array */
@@ -75,10 +75,10 @@ struct uiSearchboxData {
   uiFontStyle fstyle;
   /** Region zoom level. */
   float zoom;
-  uiSearchItems items;
+  SearchItems items;
   bool size_set;
   ARegion *butregion;
-  blender::ui::ButtonSearch *search_but;
+  ButtonSearch *search_but;
   /** index in items array */
   int active;
   /** when menu opened with enough space for this */
@@ -94,14 +94,14 @@ struct uiSearchboxData {
    */
   const char *sep_string;
 
-  /* Owned by blender::ui::ButtonSearch */
+  /* Owned by ButtonSearch */
   void *search_arg;
   uiButSearchListenFn search_listener;
 };
 
 #define SEARCH_ITEMS 10
 
-bool UI_search_item_add(uiSearchItems *items,
+bool UI_search_item_add(SearchItems *items,
                         const StringRef name,
                         void *poin,
                         int iconid,
@@ -180,15 +180,13 @@ int UI_searchbox_size_x()
   return 12 * UI_UNIT_X;
 }
 
-static int ui_searchbox_size_x_from_items(const uiSearchItems &items)
+static int ui_searchbox_size_x_from_items(const SearchItems &items)
 {
-  using namespace blender;
-
   /* Compute the width of each item. */
   Array<int> item_widths(items.totitem);
   threading::parallel_for(item_widths.index_range(), 256, [&](const IndexRange range) {
     for (const int i : range) {
-      const blender::StringRefNull name = items.names[i];
+      const StringRefNull name = items.names[i];
       const int icon = items.icons ? items.icons[i] : ICON_NONE;
       const float text_width = BLF_width(BLF_default(), name.c_str(), name.size(), nullptr);
       const float icon_with_padding = icon == ICON_NONE ? 0.0f : UI_ICON_SIZE + UI_UNIT_X;
@@ -209,9 +207,7 @@ static int ui_searchbox_size_x_from_items(const uiSearchItems &items)
 
 int UI_searchbox_size_x_guess(const bContext *C, const uiButSearchUpdateFn update_fn, void *arg)
 {
-  using namespace blender;
-
-  uiSearchItems items{};
+  SearchItems items{};
   /* Upper bound on the number of item names that are checked. */
   items.maxitem = 1000;
   items.maxstrlen = 256;
@@ -235,7 +231,7 @@ int UI_searchbox_size_x_guess(const bContext *C, const uiButSearchUpdateFn updat
   return ui_searchbox_size_x_from_items(items);
 }
 
-int UI_search_items_find_index(const uiSearchItems *items, const char *name)
+int UI_search_items_find_index(const SearchItems *items, const char *name)
 {
   if (items->name_prefix_offsets != nullptr) {
     for (int i = 0; i < items->totitem; i++) {
@@ -341,7 +337,7 @@ bool ui_searchbox_inside(ARegion *region, const int xy[2])
 bool ui_searchbox_apply(uiBut *but, ARegion *region)
 {
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
-  blender::ui::ButtonSearch *search_but = (blender::ui::ButtonSearch *)but;
+  ButtonSearch *search_but = (ButtonSearch *)but;
 
   BLI_assert(but->type == ButType::SearchMenu);
 
@@ -382,7 +378,7 @@ static ARegion *wm_searchbox_tooltip_init(
         continue;
       }
 
-      blender::ui::ButtonSearch *search_but = (blender::ui::ButtonSearch *)but.get();
+      ButtonSearch *search_but = (ButtonSearch *)but.get();
       if (!search_but->item_tooltip_fn) {
         continue;
       }
@@ -406,7 +402,7 @@ bool ui_searchbox_event(
     bContext *C, ARegion *region, uiBut *but, ARegion *butregion, const wmEvent *event)
 {
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
-  blender::ui::ButtonSearch *search_but = (blender::ui::ButtonSearch *)but;
+  ButtonSearch *search_but = (ButtonSearch *)but;
   int type = event->type, val = event->val;
   bool handled = false;
   bool tooltip_timer_started = false;
@@ -505,9 +501,9 @@ bool ui_searchbox_event(
 
 /** Wrap #uiButSearchUpdateFn callback. */
 static void ui_searchbox_update_fn(bContext *C,
-                                   blender::ui::ButtonSearch *but,
+                                   ButtonSearch *but,
                                    const char *str,
-                                   uiSearchItems *items)
+                                   SearchItems *items)
 {
   /* While the button is in text editing mode (searchbox open), remove tooltips on every update. */
   if (but->editstr) {
@@ -520,7 +516,7 @@ static void ui_searchbox_update_fn(bContext *C,
 
 void ui_searchbox_update(bContext *C, ARegion *region, uiBut *but, const bool reset)
 {
-  blender::ui::ButtonSearch *search_but = (blender::ui::ButtonSearch *)but;
+  ButtonSearch *search_but = (ButtonSearch *)but;
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
 
   BLI_assert(but->type == ButType::SearchMenu);
@@ -598,7 +594,7 @@ void ui_searchbox_update(bContext *C, ARegion *region, uiBut *but, const bool re
 
 int ui_searchbox_autocomplete(bContext *C, ARegion *region, uiBut *but, char *str)
 {
-  blender::ui::ButtonSearch *search_but = (blender::ui::ButtonSearch *)but;
+  ButtonSearch *search_but = (ButtonSearch *)but;
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
   int match = AUTOCOMPLETE_NO_MATCH;
 
@@ -860,7 +856,7 @@ static void ui_searchbox_region_layout_fn(const bContext *C, ARegion *region)
     return;
   }
 
-  blender::ui::ButtonSearch *but = data->search_but;
+  ButtonSearch *but = data->search_but;
   ARegion *butregion = data->butregion;
   const int margin = UI_POPUP_MARGIN;
   wmWindow *win = CTX_wm_window(C);
@@ -970,7 +966,7 @@ static void ui_searchbox_region_layout_fn(const bContext *C, ARegion *region)
 
 static ARegion *ui_searchbox_create_generic_ex(bContext *C,
                                                ARegion *butregion,
-                                               blender::ui::ButtonSearch *but,
+                                               ButtonSearch *but,
                                                const bool use_shortcut_sep)
 {
   const uiStyle *style = UI_style_get();
@@ -1049,9 +1045,7 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
   return region;
 }
 
-ARegion *ui_searchbox_create_generic(bContext *C,
-                                     ARegion *butregion,
-                                     blender::ui::ButtonSearch *search_but)
+ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, ButtonSearch *search_but)
 {
   return ui_searchbox_create_generic_ex(C, butregion, search_but, false);
 }
@@ -1175,9 +1169,7 @@ static void ui_searchbox_region_draw_cb__operator(const bContext * /*C*/, ARegio
   }
 }
 
-ARegion *ui_searchbox_create_operator(bContext *C,
-                                      ARegion *butregion,
-                                      blender::ui::ButtonSearch *search_but)
+ARegion *ui_searchbox_create_operator(bContext *C, ARegion *butregion, ButtonSearch *search_but)
 {
   ARegion *region = ui_searchbox_create_generic_ex(C, butregion, search_but, true);
 
@@ -1196,9 +1188,7 @@ static void ui_searchbox_region_draw_cb__menu(const bContext * /*C*/, ARegion * 
   /* Currently unused. */
 }
 
-ARegion *ui_searchbox_create_menu(bContext *C,
-                                  ARegion *butregion,
-                                  blender::ui::ButtonSearch *search_but)
+ARegion *ui_searchbox_create_menu(bContext *C, ARegion *butregion, ButtonSearch *search_but)
 {
   ARegion *region = ui_searchbox_create_generic_ex(C, butregion, search_but, true);
 
@@ -1209,7 +1199,7 @@ ARegion *ui_searchbox_create_menu(bContext *C,
   return region;
 }
 
-void ui_but_search_refresh(blender::ui::ButtonSearch *but)
+void ui_but_search_refresh(ButtonSearch *but)
 {
   /* possibly very large lists (such as ID datablocks) only
    * only validate string RNA buts (not pointers) */
@@ -1217,7 +1207,7 @@ void ui_but_search_refresh(blender::ui::ButtonSearch *but)
     return;
   }
 
-  uiSearchItems *items = MEM_callocN<uiSearchItems>(__func__);
+  SearchItems *items = MEM_callocN<SearchItems>(__func__);
 
   /* setup search struct */
   items->maxitem = 10;
@@ -1249,3 +1239,5 @@ void ui_but_search_refresh(blender::ui::ButtonSearch *but)
 }
 
 /** \} */
+
+}  // namespace blender::ui

@@ -42,6 +42,8 @@
 
 #include "view2d_intern.hh"
 
+namespace blender::ui {
+
 static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize);
 
 /* -------------------------------------------------------------------- */
@@ -1195,9 +1197,8 @@ void UI_view2d_multi_grid_draw(
   vertex_count += 2 * (int((v2d->cur.ymax - v2d->cur.ymin) / lstep) + 1);
 
   GPUVertFormat *format = immVertexFormat();
-  const uint pos = GPU_vertformat_attr_add(
-      format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
-  uint color = GPU_vertformat_attr_add(format, "color", blender::gpu::VertAttrType::UNORM_8_8_8_8);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
+  uint color = GPU_vertformat_attr_add(format, "color", gpu::VertAttrType::UNORM_8_8_8_8);
 
   GPU_line_width(1.0f);
 
@@ -1297,8 +1298,7 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
   const float zoom_x = float(BLI_rcti_size_x(&v2d->mask) + 1) / BLI_rctf_size_x(&v2d->cur);
 
   GPUVertFormat *format = immVertexFormat();
-  const uint pos = GPU_vertformat_attr_add(
-      format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
   GPU_program_point_size(true);
   immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
 
@@ -2189,3 +2189,5 @@ void UI_view2d_text_cache_draw(ARegion *region)
 }
 
 /** \} */
+
+}  // namespace blender::ui

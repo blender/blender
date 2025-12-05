@@ -84,6 +84,8 @@
 #include "interface_intern.hh"
 #include "interface_regions_intern.hh"
 
+namespace blender::ui {
+
 /* Portions of line height. */
 #define UI_TIP_SPACER 0.3f
 #define UI_TIP_PADDING_X 1.95f
@@ -109,9 +111,9 @@ struct uiTooltipField {
   std::optional<uiTooltipImage> image;
 };
 
-struct uiTooltipData {
+struct TooltipData {
   rcti bbox;
-  blender::Vector<uiTooltipField> fields;
+  Vector<uiTooltipField> fields;
   uiFontStyle fstyle;
   int wrap_width;
   int toth, lineh;
@@ -308,7 +310,7 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
                                      bbox.ymax,
                                      field->image->ibuf->x,
                                      field->image->ibuf->y,
-                                     blender::gpu::TextureFormat::UNORM_8_8_8_8,
+                                     gpu::TextureFormat::UNORM_8_8_8_8,
                                      true,
                                      field->image->ibuf->byte_buffer.data,
                                      1.0f,
@@ -320,8 +322,7 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
       if (field->image->border) {
         GPU_blend(GPU_BLEND_ALPHA);
         GPUVertFormat *format = immVertexFormat();
-        uint pos = GPU_vertformat_attr_add(
-            format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+        uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
         immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
         float border_color[4] = {1.0f, 1.0f, 1.0f, 0.15f};
         float bgcolor[4];
@@ -441,7 +442,7 @@ static bool ui_tooltip_data_append_from_keymap(bContext *C, uiTooltipData &data,
 
 #endif /* WITH_PYTHON */
 
-static std::string ui_tooltip_with_period(blender::StringRef tip)
+static std::string ui_tooltip_with_period(StringRef tip)
 {
   if (tip.is_empty()) {
     return tip;
@@ -455,7 +456,7 @@ static std::string ui_tooltip_with_period(blender::StringRef tip)
   }
 
   /* Contains a bullet Unicode character. */
-  if (tip.find("\xe2\x80\xa2") != blender::StringRef::not_found) {
+  if (tip.find("\xe2\x80\xa2") != StringRef::not_found) {
     return tip;
   }
 
@@ -632,7 +633,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_tool(bContext *C,
     if (shortcut.empty()) {
       /* Check for direct access to the tool. */
       std::optional<std::string> shortcut_toolbar = WM_key_event_operator_string(
-          C, "WM_OT_toolbar", blender::wm::OpCallContext::InvokeRegionWin, nullptr, true);
+          C, "WM_OT_toolbar", wm::OpCallContext::InvokeRegionWin, nullptr, true);
       if (shortcut_toolbar) {
         /* Generate keymap in order to inspect it.
          * NOTE: we could make a utility to avoid the keymap generation part of this. */
@@ -732,7 +733,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_tool(bContext *C,
         RNA_string_set(&op_props, "name", item_step);
         shortcut = WM_key_event_operator_string(C,
                                                 but->optype->idname,
-                                                blender::wm::OpCallContext::InvokeRegionWin,
+                                                wm::OpCallContext::InvokeRegionWin,
                                                 static_cast<IDProperty *>(op_props.data),
                                                 true);
         if (shortcut) {
@@ -805,8 +806,8 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_tool(bContext *C,
   return data->fields.is_empty() ? nullptr : std::move(data);
 }
 
-static std::string ui_tooltip_color_string(const blender::float4 &color,
-                                           const blender::StringRefNull title,
+static std::string ui_tooltip_color_string(const float4 &color,
+                                           const StringRefNull title,
                                            const int max_title_len,
                                            const bool show_alpha,
                                            const bool show_hex = false)
@@ -839,15 +840,15 @@ static std::string ui_tooltip_color_string(const blender::float4 &color,
 };
 
 void UI_tooltip_color_field_add(uiTooltipData &data,
-                                const blender::float4 &original_color,
+                                const float4 &original_color,
                                 const bool has_alpha,
                                 const bool is_gamma,
                                 const ColorManagedDisplay *display,
                                 const uiTooltipColorID color_id)
 {
-  blender::float4 scene_linear_color = original_color;
-  blender::float4 display_color = original_color;
-  blender::float4 srgb_color = original_color;
+  float4 scene_linear_color = original_color;
+  float4 display_color = original_color;
+  float4 srgb_color = original_color;
 
   if (is_gamma) {
     IMB_colormanagement_srgb_to_scene_linear_v3(scene_linear_color, scene_linear_color);
@@ -862,10 +863,10 @@ void UI_tooltip_color_field_add(uiTooltipData &data,
   rgb_to_hsv_v(srgb_color, hsv);
   hsv[3] = srgb_color[3];
 
-  const blender::StringRefNull hex_title = TIP_("Hex");
-  const blender::StringRefNull rgb_title = (is_gamma) ? TIP_("sRGB") : TIP_("Display RGB");
-  const blender::StringRefNull hsv_title = TIP_("HSV");
-  const blender::StringRefNull alpha_title = TIP_("Alpha");
+  const StringRefNull hex_title = TIP_("Hex");
+  const StringRefNull rgb_title = (is_gamma) ? TIP_("sRGB") : TIP_("Display RGB");
+  const StringRefNull hsv_title = TIP_("HSV");
+  const StringRefNull alpha_title = TIP_("Alpha");
   const int max_title_len = std::max(
       {hex_title.size(), rgb_title.size(), hsv_title.size(), alpha_title.size()});
 
@@ -929,7 +930,7 @@ void UI_tooltip_color_field_add(uiTooltipData &data,
 void UI_tooltip_uibut_python_add(uiTooltipData &data,
                                  bContext &C,
                                  uiBut &but,
-                                 blender::ui::ButtonExtraOpIcon *extra_icon)
+                                 ButtonExtraOpIcon *extra_icon)
 {
   wmOperatorType *optype = extra_icon ? UI_but_extra_operator_icon_optype_get(extra_icon) :
                                         but.optype;
@@ -979,7 +980,7 @@ void UI_tooltip_uibut_python_add(uiTooltipData &data,
 }
 
 static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
-    bContext *C, uiBut *but, blender::ui::ButtonExtraOpIcon *extra_icon, const bool is_quick_tip)
+    bContext *C, uiBut *but, ButtonExtraOpIcon *extra_icon, const bool is_quick_tip)
 {
   char buf[512];
 
@@ -1049,8 +1050,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
    * prefix instead of comparing because the button may include the shortcut. Buttons with dynamic
    * tool-tips also don't get their default label here since they can already provide more accurate
    * and specific tool-tip content. */
-  else if (!but_label.empty() && !blender::StringRef(but->drawstr).startswith(but_label) &&
-           !but->tip_func)
+  else if (!but_label.empty() && !StringRef(but->drawstr).startswith(but_label) && !but->tip_func)
   {
     if (!enum_label.empty()) {
       UI_tooltip_text_field_add(*data,
@@ -1171,12 +1171,12 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
     if (but->rnapoin.owner_id) {
       const ID *id = but->rnapoin.owner_id;
       if (ID_IS_LINKED(id)) {
-        blender::StringRefNull assets_path = blender::asset_system::essentials_directory_path();
+        StringRefNull assets_path = asset_system::essentials_directory_path();
         const bool is_builtin = BLI_path_contains(assets_path.c_str(), id->lib->filepath);
-        const blender::StringRef title = is_builtin ? TIP_("Built-in Asset") : TIP_("Library");
-        const blender::StringRef lib_path = id->lib->filepath;
-        const blender::StringRef path = is_builtin ? lib_path.substr(assets_path.size()) :
-                                                     id->lib->filepath;
+        const StringRef title = is_builtin ? TIP_("Built-in Asset") : TIP_("Library");
+        const StringRef lib_path = id->lib->filepath;
+        const StringRef path = is_builtin ? lib_path.substr(assets_path.size()) :
+                                            id->lib->filepath;
         UI_tooltip_text_field_add(
             *data, fmt::format("{}: {}", title, path), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
       }
@@ -1213,16 +1213,16 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
         if ((RNA_property_flag(rnaprop) & PROP_PATH_SUPPORTS_TEMPLATES) != 0) {
           const std::string path = RNA_property_string_get(&but->rnapoin, rnaprop);
           if (BKE_path_contains_template_syntax(path)) {
-            const std::optional<blender::bke::path_templates::VariableMap> variables =
+            const std::optional<bke::path_templates::VariableMap> variables =
                 BKE_build_template_variables_for_prop(C, &but->rnapoin, rnaprop);
             BLI_assert(variables.has_value());
 
-            const blender::Vector<blender::bke::path_templates::Error> errors =
-                BKE_path_validate_template(path, *variables);
+            const Vector<bke::path_templates::Error> errors = BKE_path_validate_template(
+                path, *variables);
 
             if (!errors.is_empty()) {
               std::string error_message("Path template error(s):");
-              for (const blender::bke::path_templates::Error &error : errors) {
+              for (const bke::path_templates::Error &error : errors) {
                 error_message += "\n  - " + BKE_path_template_error_to_string(error, path);
               }
               UI_tooltip_text_field_add(
@@ -1242,8 +1242,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
 
     /* If operator poll check failed, it can give pretty precise info why. */
     if (optype) {
-      const blender::wm::OpCallContext opcontext = extra_icon ?
-                                                       extra_icon->optype_params->opcontext :
+      const wm::OpCallContext opcontext = extra_icon ? extra_icon->optype_params->opcontext :
                                                        but->opcontext;
       wmOperatorCallParams call_params{};
       call_params.optype = optype;
@@ -1348,7 +1347,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_gizmo(bContext *C, wm
         {
           IDProperty *prop = static_cast<IDProperty *>(gzop->ptr.data);
           std::optional<std::string> shortcut_str = WM_key_event_operator_string(
-              C, gzop->type->idname, blender::wm::OpCallContext::InvokeDefault, prop, true);
+              C, gzop->type->idname, wm::OpCallContext::InvokeDefault, prop, true);
           if (shortcut_str) {
             UI_tooltip_text_field_add(
                 *data,
@@ -1393,7 +1392,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
                                             const rcti *init_rect_overlap)
 {
   wmWindow *win = CTX_wm_window(C);
-  const blender::int2 win_size = WM_window_native_pixel_size(win);
+  const int2 win_size = WM_window_native_pixel_size(win);
   rcti rect_i;
   FontFlags font_flag = BLF_NONE;
 
@@ -1643,11 +1642,8 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
 /** \name ToolTip Public API
  * \{ */
 
-ARegion *UI_tooltip_create_from_button_or_extra_icon(bContext *C,
-                                                     ARegion *butregion,
-                                                     uiBut *but,
-                                                     blender::ui::ButtonExtraOpIcon *extra_icon,
-                                                     bool is_quick_tip)
+ARegion *UI_tooltip_create_from_button_or_extra_icon(
+    bContext *C, ARegion *butregion, uiBut *but, ButtonExtraOpIcon *extra_icon, bool is_quick_tip)
 {
   wmWindow *win = CTX_wm_window(C);
   float init_position[2];
@@ -1979,3 +1975,5 @@ void UI_tooltip_free(bContext *C, bScreen *screen, ARegion *region)
 }
 
 /** \} */
+
+}  // namespace blender::ui

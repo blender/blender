@@ -547,7 +547,7 @@ static wmOperatorStatus node_clipboard_paste_invoke(bContext *C,
 {
   const ARegion *region = CTX_wm_region(C);
   float2 cursor;
-  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &cursor.x, &cursor.y);
+  ui::UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &cursor.x, &cursor.y);
   RNA_float_set_array(op->ptr, "offset", cursor);
   return node_clipboard_paste_exec(C, op);
 }

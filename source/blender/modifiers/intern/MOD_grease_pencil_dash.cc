@@ -421,7 +421,7 @@ static void panel_draw(const bContext *C, Panel *panel)
                  10,
                  0,
                  1,
-                 UI_TEMPLATE_LIST_FLAG_NONE);
+                 blender::ui::UI_TEMPLATE_LIST_FLAG_NONE);
 
   ui::Layout &col = row.column(false);
   ui::Layout *sub = &col.column(true);
@@ -473,7 +473,7 @@ static void segment_list_item_draw(uiList * /*ui_list*/,
                                    int /*flt_flag*/)
 {
   ui::Layout &row = layout.row(true);
-  row.prop(itemptr, "name", UI_ITEM_R_NO_BG, "", ICON_NONE);
+  row.prop(itemptr, "name", blender::ui::UI_ITEM_R_NO_BG, "", ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

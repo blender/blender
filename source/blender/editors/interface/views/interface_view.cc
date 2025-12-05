@@ -35,8 +35,7 @@
 #include "UI_grid_view.hh"
 #include "UI_tree_view.hh"
 
-using namespace blender;
-using namespace blender::ui;
+namespace blender::ui {
 
 /**
  * Wrapper to store views in a #ListBase, addressable via an identifier.
@@ -99,13 +98,13 @@ void ViewLink::views_bounds_calc(const uiBlock &block)
     if (but->type != ButType::ViewItem) {
       continue;
     }
-    auto *view_item_but = static_cast<blender::ui::ButtonViewItem *>(but.get());
+    auto *view_item_but = static_cast<ButtonViewItem *>(but.get());
     if (!view_item_but->view_item) {
       continue;
     }
 
     /* Get the view from the button. */
-    AbstractViewItem &view_item = reinterpret_cast<AbstractViewItem &>(*view_item_but->view_item);
+    AbstractViewItem &view_item = *view_item_but->view_item;
     AbstractView &view = view_item.get_view();
 
     rcti &bounds = views_bounds.lookup(&view);
@@ -127,7 +126,7 @@ void ViewLink::views_bounds_calc(const uiBlock &block)
 
 void ui_block_view_persistent_state_restore(const ARegion &region,
                                             const uiBlock &block,
-                                            ui::AbstractView &view)
+                                            AbstractView &view)
 {
   StringRef idname = [&]() -> StringRef {
     LISTBASE_FOREACH (ViewLink *, link, &block.views) {
@@ -197,9 +196,7 @@ void ui_block_views_draw_overlays(const ARegion *region, const uiBlock *block)
   }
 }
 
-blender::ui::AbstractView *UI_region_view_find_at(const ARegion *region,
-                                                  const int xy[2],
-                                                  const int pad)
+AbstractView *UI_region_view_find_at(const ARegion *region, const int xy[2], const int pad)
 {
   /* NOTE: Similar to #ui_but_find_mouse_over_ex(). */
 
@@ -229,9 +226,9 @@ blender::ui::AbstractView *UI_region_view_find_at(const ARegion *region,
   return nullptr;
 }
 
-ui::AbstractViewItem *UI_region_views_find_item_at(const ARegion &region, const int xy[2])
+AbstractViewItem *UI_region_views_find_item_at(const ARegion &region, const int xy[2])
 {
-  auto *item_but = (blender::ui::ButtonViewItem *)ui_view_item_find_mouse_over(&region, xy);
+  auto *item_but = (ButtonViewItem *)ui_view_item_find_mouse_over(&region, xy);
   if (!item_but) {
     return nullptr;
   }
@@ -239,9 +236,9 @@ ui::AbstractViewItem *UI_region_views_find_item_at(const ARegion &region, const 
   return item_but->view_item;
 }
 
-ui::AbstractViewItem *UI_region_views_find_active_item(const ARegion *region)
+AbstractViewItem *UI_region_views_find_active_item(const ARegion *region)
 {
-  auto *item_but = (blender::ui::ButtonViewItem *)ui_view_item_find_active(region);
+  auto *item_but = (ButtonViewItem *)ui_view_item_find_active(region);
   if (!item_but) {
     return nullptr;
   }
@@ -263,12 +260,10 @@ void UI_region_views_clear_search_highlight(const ARegion *region)
   }
 }
 
-namespace blender::ui {
-
 std::unique_ptr<DropTargetInterface> region_views_find_drop_target_at(const ARegion *region,
                                                                       const int xy[2])
 {
-  if (ui::AbstractViewItem *item = UI_region_views_find_item_at(*region, xy)) {
+  if (AbstractViewItem *item = UI_region_views_find_item_at(*region, xy)) {
     if (std::unique_ptr<DropTargetInterface> target = item->create_item_drop_target()) {
       return target;
     }
@@ -302,8 +297,6 @@ std::unique_ptr<DropTargetInterface> region_views_find_drop_target_at(const AReg
 
   return nullptr;
 }
-
-}  // namespace blender::ui
 
 static StringRef ui_block_view_find_idname(const uiBlock &block, const AbstractView &view)
 {
@@ -340,14 +333,14 @@ static T *ui_block_view_find_matching_in_old_block_impl(const uiBlock &new_block
   return nullptr;
 }
 
-blender::ui::AbstractView *ui_block_view_find_matching_in_old_block(
-    const uiBlock &new_block, const blender::ui::AbstractView &new_view)
+AbstractView *ui_block_view_find_matching_in_old_block(const uiBlock &new_block,
+                                                       const AbstractView &new_view)
 {
   return ui_block_view_find_matching_in_old_block_impl(new_block, new_view);
 }
 
-blender::ui::ButtonViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
-    const uiBlock &new_block, const ui::AbstractViewItem &new_item)
+ButtonViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
+    const uiBlock &new_block, const AbstractViewItem &new_item)
 {
   uiBlock *old_block = new_block.oldblock;
   if (!old_block) {
@@ -364,11 +357,11 @@ blender::ui::ButtonViewItem *ui_block_view_find_matching_view_item_but_in_old_bl
     if (old_but->type != ButType::ViewItem) {
       continue;
     }
-    blender::ui::ButtonViewItem *old_item_but = (blender::ui::ButtonViewItem *)old_but.get();
+    ButtonViewItem *old_item_but = (ButtonViewItem *)old_but.get();
     if (!old_item_but->view_item) {
       continue;
     }
-    AbstractViewItem &old_item = *reinterpret_cast<AbstractViewItem *>(old_item_but->view_item);
+    AbstractViewItem &old_item = *old_item_but->view_item;
     /* Check if the item is from the expected view. */
     if (&old_item.get_view() != old_view) {
       continue;
@@ -381,3 +374,5 @@ blender::ui::ButtonViewItem *ui_block_view_find_matching_view_item_but_in_old_bl
 
   return nullptr;
 }
+
+}  // namespace blender::ui

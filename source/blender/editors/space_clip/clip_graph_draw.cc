@@ -67,13 +67,13 @@ static void tracking_segment_start_cb(void *userdata,
 
   switch (value_source) {
     case CLIP_VALUE_SOURCE_SPEED_X:
-      UI_GetThemeColor4fv(TH_AXIS_X, col);
+      blender::ui::UI_GetThemeColor4fv(TH_AXIS_X, col);
       break;
     case CLIP_VALUE_SOURCE_SPEED_Y:
-      UI_GetThemeColor4fv(TH_AXIS_Y, col);
+      blender::ui::UI_GetThemeColor4fv(TH_AXIS_Y, col);
       break;
     case CLIP_VALUE_SOURCE_REPROJECTION_ERROR:
-      UI_GetThemeColor4fv(TH_AXIS_Z, col);
+      blender::ui::UI_GetThemeColor4fv(TH_AXIS_Z, col);
       break;
   }
 
@@ -167,14 +167,14 @@ static void draw_tracks_motion_and_error_curves(View2D *v2d, SpaceClip *sc, uint
 
   TrackMotionCurveUserData userdata;
   userdata.sc = sc;
-  userdata.hsize = UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE);
+  userdata.hsize = blender::ui::UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE);
   userdata.sel = false;
   userdata.act_track = active_track;
   userdata.pos = pos;
 
   /* Non-selected knot handles. */
   if (draw_knots) {
-    UI_view2d_scale_get(v2d, &userdata.xscale, &userdata.yscale);
+    blender::ui::UI_view2d_scale_get(v2d, &userdata.xscale, &userdata.yscale);
     clip_graph_tracking_values_iterate(sc,
                                        (sc->flag & SC_SHOW_GRAPH_SEL_ONLY) != 0,
                                        (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
@@ -266,8 +266,8 @@ void clip_draw_graph(SpaceClip *sc, ARegion *region, Scene *scene)
   View2D *v2d = &region->v2d;
 
   /* grid */
-  UI_view2d_draw_lines_x__values(v2d, 10);
-  UI_view2d_draw_lines_y__values(v2d, 10);
+  blender::ui::UI_view2d_draw_lines_x__values(v2d, 10);
+  blender::ui::UI_view2d_draw_lines_y__values(v2d, 10);
 
   if (clip) {
     uint pos = GPU_vertformat_attr_add(
@@ -283,7 +283,7 @@ void clip_draw_graph(SpaceClip *sc, ARegion *region, Scene *scene)
   }
 
   /* Frame and preview range. */
-  UI_view2d_view_ortho(v2d);
+  blender::ui::UI_view2d_view_ortho(v2d);
   ANIM_draw_framerange(scene, v2d);
   ANIM_draw_previewrange(scene, v2d, 0);
 }

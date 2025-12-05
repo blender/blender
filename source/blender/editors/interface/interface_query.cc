@@ -30,7 +30,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-using blender::StringRef;
+namespace blender::ui {
 
 /* -------------------------------------------------------------------- */
 /** \name Button (#uiBut) State
@@ -95,8 +95,7 @@ bool ui_but_is_interactive_ex(const uiBut *but, const bool labeledit, const bool
     return false;
   }
   if ((but->type == ButType::Text) &&
-      ELEM(but->emboss, blender::ui::EmbossType::None, blender::ui::EmbossType::NoneOrStatus) &&
-      !labeledit)
+      ELEM(but->emboss, EmbossType::None, EmbossType::NoneOrStatus) && !labeledit)
   {
     return false;
   }
@@ -104,7 +103,7 @@ bool ui_but_is_interactive_ex(const uiBut *but, const bool labeledit, const bool
     return false;
   }
   if (but->type == ButType::ViewItem) {
-    const auto *but_item = static_cast<const blender::ui::ButtonViewItem *>(but);
+    const auto *but_item = static_cast<const ButtonViewItem *>(but);
     return but_item->view_item->is_interactive();
   }
 
@@ -506,7 +505,7 @@ static bool ui_but_is_active_view_item(const uiBut *but, const void * /*customda
     return false;
   }
 
-  const auto *view_item_but = (const blender::ui::ButtonViewItem *)but;
+  const auto *view_item_but = (const ButtonViewItem *)but;
   return view_item_but->view_item->is_active();
 }
 
@@ -524,7 +523,7 @@ uiBut *ui_view_item_find_search_highlight(const ARegion *region)
           return false;
         }
 
-        const auto *view_item_but = static_cast<const blender::ui::ButtonViewItem *>(but);
+        const auto *view_item_but = static_cast<const ButtonViewItem *>(but);
         return view_item_but->view_item->is_search_highlight();
       },
       nullptr);
@@ -620,10 +619,10 @@ size_t ui_but_drawstr_len_without_sep_char(const uiBut *but)
   return but->drawstr.size();
 }
 
-blender::StringRef ui_but_drawstr_without_sep_char(const uiBut *but)
+StringRef ui_but_drawstr_without_sep_char(const uiBut *but)
 {
   size_t str_len_clip = ui_but_drawstr_len_without_sep_char(but);
-  return blender::StringRef(but->drawstr).substr(0, str_len_clip);
+  return StringRef(but->drawstr).substr(0, str_len_clip);
 }
 
 size_t ui_but_tip_len_only_first_line(const uiBut *but)
@@ -885,3 +884,5 @@ void ui_interface_tag_script_reload_queries()
 }
 
 /** \} */
+
+}  // namespace blender::ui

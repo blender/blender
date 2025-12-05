@@ -349,7 +349,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   if (RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
-    layout.prop(ptr, "read_data", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "read_data", ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
     layout.prop(ptr, "use_vertex_interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (RNA_enum_get(&ob_ptr, "type") == OB_CURVES) {
@@ -367,7 +367,7 @@ static void velocity_panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   PointerRNA fileptr;
-  if (!uiTemplateCacheFilePointer(ptr, "cache_file", &fileptr)) {
+  if (!blender::ui::uiTemplateCacheFilePointer(ptr, "cache_file", &fileptr)) {
     return;
   }
 
@@ -384,7 +384,7 @@ static void time_panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   PointerRNA fileptr;
-  if (!uiTemplateCacheFilePointer(ptr, "cache_file", &fileptr)) {
+  if (!blender::ui::uiTemplateCacheFilePointer(ptr, "cache_file", &fileptr)) {
     return;
   }
 
@@ -400,7 +400,7 @@ static void override_layers_panel_draw(const bContext *C, Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   PointerRNA fileptr;
-  if (!uiTemplateCacheFilePointer(ptr, "cache_file", &fileptr)) {
+  if (!blender::ui::uiTemplateCacheFilePointer(ptr, "cache_file", &fileptr)) {
     return;
   }
 

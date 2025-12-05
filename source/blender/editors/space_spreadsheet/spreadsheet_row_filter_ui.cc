@@ -146,7 +146,7 @@ static void spreadsheet_filter_panel_draw_header(const bContext *C, Panel *panel
 {
   ui::Layout &layout = *panel->layout;
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  PointerRNA *filter_ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *filter_ptr = ui::UI_panel_custom_data_get(panel);
   const SpreadsheetRowFilter *filter = (SpreadsheetRowFilter *)filter_ptr->data;
   const StringRef column_name = filter->column_name;
   const eSpreadsheetFilterOperation operation = (eSpreadsheetFilterOperation)filter->operation;
@@ -160,7 +160,7 @@ static void spreadsheet_filter_panel_draw_header(const bContext *C, Panel *panel
 
   ui::Layout *row = &layout.row(true);
   row->emboss_set(ui::EmbossType::None);
-  row->prop(filter_ptr, "enabled", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+  row->prop(filter_ptr, "enabled", ui::UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
   if (column_name.is_empty()) {
     row->label(IFACE_("Filter"), ICON_NONE);
@@ -192,7 +192,7 @@ static void spreadsheet_filter_panel_draw(const bContext *C, Panel *panel)
 {
   ui::Layout &layout = *panel->layout;
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  PointerRNA *filter_ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *filter_ptr = ui::UI_panel_custom_data_get(panel);
   SpreadsheetRowFilter *filter = (SpreadsheetRowFilter *)filter_ptr->data;
   const StringRef column_name = filter->column_name;
   const eSpreadsheetFilterOperation operation = (eSpreadsheetFilterOperation)filter->operation;
@@ -294,10 +294,11 @@ static void spreadsheet_row_filters_layout(const bContext *C, Panel *panel)
 
   layout.op("SPREADSHEET_OT_add_row_filter_rule", std::nullopt, ICON_ADD);
 
-  const bool panels_match = UI_panel_list_matches_data(region, row_filters, filter_panel_id_fn);
+  const bool panels_match = ui::UI_panel_list_matches_data(
+      region, row_filters, filter_panel_id_fn);
 
   if (!panels_match) {
-    UI_panels_free_instanced(C, region);
+    ui::UI_panels_free_instanced(C, region);
     LISTBASE_FOREACH (SpreadsheetRowFilter *, row_filter, row_filters) {
       char panel_idname[MAX_NAME];
       filter_panel_id_fn(row_filter, panel_idname);
@@ -306,7 +307,7 @@ static void spreadsheet_row_filters_layout(const bContext *C, Panel *panel)
       *filter_ptr = RNA_pointer_create_discrete(
           &screen->id, &RNA_SpreadsheetRowFilter, row_filter);
 
-      UI_panel_add_instanced(C, region, &region->panels, panel_idname, filter_ptr);
+      ui::UI_panel_add_instanced(C, region, &region->panels, panel_idname, filter_ptr);
     }
   }
   else {
@@ -323,7 +324,7 @@ static void spreadsheet_row_filters_layout(const bContext *C, Panel *panel)
       PointerRNA *filter_ptr = MEM_new<PointerRNA>("panel customdata");
       *filter_ptr = RNA_pointer_create_discrete(
           &screen->id, &RNA_SpreadsheetRowFilter, row_filter);
-      UI_panel_custom_data_set(panel_iter, filter_ptr);
+      ui::UI_panel_custom_data_set(panel_iter, filter_ptr);
 
       panel_iter = panel_iter->next;
     }
@@ -334,7 +335,7 @@ static void filter_reorder(bContext *C, Panel *panel, int new_index)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   ListBase *row_filters = &sspreadsheet->row_filters;
-  PointerRNA *filter_ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *filter_ptr = ui::UI_panel_custom_data_get(panel);
   SpreadsheetRowFilter *filter = (SpreadsheetRowFilter *)filter_ptr->data;
 
   int current_index = BLI_findindex(row_filters, filter);
@@ -346,7 +347,7 @@ static void filter_reorder(bContext *C, Panel *panel, int new_index)
 
 static short get_filter_expand_flag(const bContext * /*C*/, Panel *panel)
 {
-  PointerRNA *filter_ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *filter_ptr = ui::UI_panel_custom_data_get(panel);
   SpreadsheetRowFilter *filter = (SpreadsheetRowFilter *)filter_ptr->data;
 
   return short(filter->flag) & SPREADSHEET_ROW_FILTER_UI_EXPAND;
@@ -354,7 +355,7 @@ static short get_filter_expand_flag(const bContext * /*C*/, Panel *panel)
 
 static void set_filter_expand_flag(const bContext * /*C*/, Panel *panel, short expand_flag)
 {
-  PointerRNA *filter_ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *filter_ptr = ui::UI_panel_custom_data_get(panel);
   SpreadsheetRowFilter *filter = (SpreadsheetRowFilter *)filter_ptr->data;
 
   SET_FLAG_FROM_TEST(filter->flag,

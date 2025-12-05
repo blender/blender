@@ -297,7 +297,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   col = &layout.column(true);
   col->prop_search(ptr, "vertex_group", &ob_ptr, "vertex_groups", std::nullopt, ICON_GROUP_VERTEX);
 
-  layout.prop(ptr, "default_weight", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "default_weight", blender::ui::UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   col = &layout.column(false, IFACE_("Group Add"));
   row = &col->row(true);
@@ -307,7 +307,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   sub = &sub->row(true);
   sub->active_set(RNA_boolean_get(ptr, "use_add"));
   sub->use_property_split_set(false);
-  sub->prop(ptr, "add_threshold", UI_ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
+  sub->prop(ptr, "add_threshold", blender::ui::UI_ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
   row->decorator(ptr, "add_threshold", 0);
 
   col = &layout.column(false, IFACE_("Group Remove"));
@@ -318,7 +318,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   sub = &sub->row(true);
   sub->active_set(RNA_boolean_get(ptr, "use_remove"));
   sub->use_property_split_set(false);
-  sub->prop(ptr, "remove_threshold", UI_ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
+  sub->prop(
+      ptr, "remove_threshold", blender::ui::UI_ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
   row->decorator(ptr, "remove_threshold", 0);
 
   layout.prop(ptr, "normalize", UI_ITEM_NONE, std::nullopt, ICON_NONE);

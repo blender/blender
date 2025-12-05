@@ -51,8 +51,7 @@
 
 #include <fmt/format.h>
 
-using blender::ResourceScope;
-using blender::StringRef;
+namespace blender::ui {
 
 /* -------------------------------------------------------------------- */
 /** \name Menu Search Template Implementation
@@ -94,7 +93,7 @@ struct MenuSearch_Item {
   struct OperatorData {
     wmOperatorType *type;
     PointerRNA *opptr;
-    blender::wm::OpCallContext opcontext;
+    wm::OpCallContext opcontext;
     const bContextStore *context;
     ~OperatorData()
     {
@@ -120,9 +119,9 @@ struct MenuSearch_Item {
 
 struct MenuSearch_Data {
   /** MenuSearch_Item */
-  blender::Vector<std::reference_wrapper<MenuSearch_Item>> items;
+  Vector<std::reference_wrapper<MenuSearch_Item>> items;
   /** Use for all small allocations. */
-  blender::ResourceScope scope;
+  ResourceScope scope;
 
   /** Use for context menu, to fake a button to create a context menu. */
   struct {
@@ -138,13 +137,12 @@ static bool menu_item_sort_by_drawstr_full(const MenuSearch_Item &menu_item_a,
 }
 
 static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
-                                                       blender::ResourceScope &scope,
+                                                       ResourceScope &scope,
                                                        MenuType *mt,
                                                        uiBut *but,
                                                        MenuSearch_Context *wm_context,
                                                        MenuSearch_Parent *menu_parent)
 {
-  using namespace blender;
   MenuSearch_Item *item = nullptr;
 
   /* Use override if the name is empty, this can happen with popovers. */
@@ -301,9 +299,9 @@ static void menu_types_add_from_keymap_items(bContext *C,
                                              wmWindow *win,
                                              ScrArea *area,
                                              ARegion *region,
-                                             blender::Stack<MenuStackEntry> &menu_stack,
-                                             blender::Map<MenuType *, wmKeyMapItem *> &menu_to_kmi,
-                                             blender::Set<MenuType *> &menu_tagged)
+                                             Stack<MenuStackEntry> &menu_stack,
+                                             Map<MenuType *, wmKeyMapItem *> &menu_to_kmi,
+                                             Set<MenuType *> &menu_tagged)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   ListBase *handlers[] = {
@@ -362,7 +360,7 @@ static void menu_types_add_from_keymap_items(bContext *C,
 static void menu_items_from_all_operators(bContext *C, MenuSearch_Data *data)
 {
   /* Add to temporary list so we can sort them separately. */
-  blender::Vector<std::reference_wrapper<MenuSearch_Item>> operator_items;
+  Vector<std::reference_wrapper<MenuSearch_Item>> operator_items;
 
   ResourceScope &scope = data->scope;
   for (wmOperatorType *ot : WM_operatortypes_registered_get()) {
@@ -377,7 +375,7 @@ static void menu_items_from_all_operators(bContext *C, MenuSearch_Data *data)
       item.data = MenuSearch_Item::OperatorData();
       auto &op_data = std::get<MenuSearch_Item::OperatorData>(item.data);
       op_data.type = ot;
-      op_data.opcontext = blender::wm::OpCallContext::InvokeDefault;
+      op_data.opcontext = wm::OpCallContext::InvokeDefault;
       op_data.context = nullptr;
 
       char idname_as_py[OP_MAX_TYPENAME];
@@ -413,7 +411,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
                                                   bool include_all_areas,
                                                   const char *single_menu_idname)
 {
-  blender::Map<MenuType *, const char *> menu_display_name_map;
+  Map<MenuType *, const char *> menu_display_name_map;
   const uiStyle *style = UI_style_get_dpi();
 
   const bContextStore *old_context_store = CTX_store_get(C);
@@ -432,12 +430,12 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
   fmt::memory_buffer str_buf;
 
   /* Use a stack of menus to handle and discover new menus in passes. */
-  blender::Stack<MenuStackEntry> menu_stack;
+  Stack<MenuStackEntry> menu_stack;
 
   /* Tag menu types not to add, either because they have already been added
    * or they have been blacklisted. */
-  blender::Set<MenuType *> menu_tagged;
-  blender::Map<MenuType *, wmKeyMapItem *> menu_to_kmi;
+  Set<MenuType *> menu_tagged;
+  Map<MenuType *, wmKeyMapItem *> menu_to_kmi;
 
   /* Blacklist menus we don't want to show. */
   {
@@ -515,8 +513,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
                               &space_type_ui_items_len,
                               &space_type_ui_items_free);
 
-      wm_contexts =
-          scope.construct<blender::Array<MenuSearch_Context>>(space_type_ui_items_len).data();
+      wm_contexts = scope.construct<Array<MenuSearch_Context>>(space_type_ui_items_len).data();
       for (int i = 0; i < space_type_ui_items_len; i++) {
         wm_contexts[i].space_type_ui_index = -1;
       }
@@ -662,24 +659,23 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
         continue;
       }
 
-      uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
-      blender::ui::Layout &layout = blender::ui::block_layout(
-          block,
-          blender::ui::LayoutDirection::Vertical,
-          blender::ui::LayoutType::Menu,
-          0,
-          0,
-          200,
-          0,
-          UI_MENU_PADDING,
-          style);
+      uiBlock *block = UI_block_begin(C, region, __func__, EmbossType::Emboss);
+      Layout &layout = block_layout(block,
+                                    LayoutDirection::Vertical,
+                                    LayoutType::Menu,
+                                    0,
+                                    0,
+                                    200,
+                                    0,
+                                    UI_MENU_PADDING,
+                                    style);
 
       UI_block_flag_enable(block, UI_BLOCK_SHOW_SHORTCUT_ALWAYS);
 
       if (current_menu.context.has_value()) {
         layout.context_copy(&*current_menu.context);
       }
-      layout.operator_context_set(blender::wm::OpCallContext::InvokeRegionWin);
+      layout.operator_context_set(wm::OpCallContext::InvokeRegionWin);
       UI_menutype_draw(C, mt, &layout);
 
       UI_block_end(C, block);
@@ -769,22 +765,20 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
           /* A non 'MenuType' menu button. */
 
           /* +1 to avoid overlap with the current 'block'. */
-          uiBlock *sub_block = UI_block_begin(
-              C, region, __func__ + 1, blender::ui::EmbossType::Emboss);
-          blender::ui::Layout &sub_layout = blender::ui::block_layout(
-              sub_block,
-              blender::ui::LayoutDirection::Vertical,
-              blender::ui::LayoutType::Menu,
-              0,
-              0,
-              200,
-              0,
-              UI_MENU_PADDING,
-              style);
+          uiBlock *sub_block = UI_block_begin(C, region, __func__ + 1, EmbossType::Emboss);
+          Layout &sub_layout = block_layout(sub_block,
+                                            LayoutDirection::Vertical,
+                                            LayoutType::Menu,
+                                            0,
+                                            0,
+                                            200,
+                                            0,
+                                            UI_MENU_PADDING,
+                                            style);
 
           UI_block_flag_enable(sub_block, UI_BLOCK_SHOW_SHORTCUT_ALWAYS);
 
-          sub_layout.operator_context_set(blender::wm::OpCallContext::InvokeRegionWin);
+          sub_layout.operator_context_set(wm::OpCallContext::InvokeRegionWin);
 
           /* If this is a panel, check it's poll function succeeds before drawing.
            * otherwise draw(..) may be called in an unsupported context and crash, see: #130744.
@@ -990,18 +984,18 @@ static void menu_search_exec_fn(bContext *C, void * /*arg1*/, void *arg2)
 static void menu_search_update_fn(const bContext * /*C*/,
                                   void *arg,
                                   const char *str,
-                                  uiSearchItems *items,
+                                  SearchItems *items,
                                   const bool /*is_first*/)
 {
   MenuSearch_Data *data = (MenuSearch_Data *)arg;
 
-  blender::ui::string_search::StringSearch<MenuSearch_Item> search;
+  string_search::StringSearch<MenuSearch_Item> search;
 
   for (MenuSearch_Item &item : data->items) {
     search.add(item.drawwstr_full, &item, item.weight);
   }
 
-  const blender::Vector<MenuSearch_Item *> filtered_items = search.query(str);
+  const Vector<MenuSearch_Item *> filtered_items = search.query(str);
 
   for (MenuSearch_Item *item : filtered_items) {
     if (!UI_search_item_add(items, item->drawwstr_full, item, item->icon, item->state, 0)) {
@@ -1144,14 +1138,14 @@ void UI_but_func_menu_search(uiBut *but, const char *single_menu_idname)
   UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
 }
 
-void uiTemplateMenuSearch(blender::ui::Layout *layout)
+void uiTemplateMenuSearch(Layout *layout)
 {
   uiBlock *block;
   uiBut *but;
   static char search[256] = "";
 
   block = layout->block();
-  blender::ui::block_layout_set_current(block, layout);
+  block_layout_set_current(block, layout);
 
   but = uiDefSearchBut(
       block, search, ICON_VIEWZOOM, sizeof(search), 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, "");
@@ -1159,3 +1153,5 @@ void uiTemplateMenuSearch(blender::ui::Layout *layout)
 }
 
 /** \} */
+
+}  // namespace blender::ui

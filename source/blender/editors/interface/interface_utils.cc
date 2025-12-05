@@ -48,8 +48,7 @@
 
 #include "interface_intern.hh"
 
-using blender::StringRef;
-using blender::StringRefNull;
+namespace blender::ui {
 
 /*************************** RNA Utilities ******************************/
 
@@ -281,7 +280,7 @@ void uiDefAutoButsArrayR(uiBlock *block,
   UI_block_align_end(block);
 }
 
-eAutoPropButsReturn uiDefAutoButsRNA(blender::ui::Layout *layout,
+eAutoPropButsReturn uiDefAutoButsRNA(Layout *layout,
                                      PointerRNA *ptr,
                                      bool (*check_prop)(PointerRNA *ptr,
                                                         PropertyRNA *prop,
@@ -292,7 +291,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(blender::ui::Layout *layout,
                                      const bool compact)
 {
   eAutoPropButsReturn return_info = UI_PROP_BUTS_NONE_ADDED;
-  blender::ui::Layout *col;
+  Layout *col;
   std::optional<StringRefNull> name;
 
   RNA_STRUCT_BEGIN (ptr, prop) {
@@ -324,7 +323,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(blender::ui::Layout *layout,
         else {
           BLI_assert(label_align == UI_BUT_LABEL_ALIGN_SPLIT_COLUMN);
           col = &layout->column(true);
-          /* Let blender::ui::Layout::prop() create the split layout. */
+          /* Let Layout::prop() create the split layout. */
           col->use_property_split_set(true);
         }
 
@@ -377,7 +376,7 @@ struct CollItemSearch {
 static bool add_collection_search_item(CollItemSearch &cis,
                                        const bool requires_exact_data_name,
                                        const bool has_id_icon,
-                                       uiSearchItems *items)
+                                       SearchItems *items)
 {
 
   /* If no item has its own icon to display, libraries can use the library icons rather than the
@@ -400,9 +399,8 @@ static bool add_collection_search_item(CollItemSearch &cis,
 }
 
 void ui_rna_collection_search_update_fn(
-    const bContext *C, void *arg, const char *str, uiSearchItems *items, const bool is_first)
+    const bContext *C, void *arg, const char *str, SearchItems *items, const bool is_first)
 {
-  using namespace blender;
   uiRNACollectionSearch *data = static_cast<uiRNACollectionSearch *>(arg);
   const int flag = RNA_property_flag(data->target_prop);
   const bool is_ptr_target = (RNA_property_type(data->target_prop) == PROP_POINTER);
@@ -555,7 +553,7 @@ void ui_rna_collection_search_update_fn(
     }
   }
   else {
-    ui::string_search::StringSearch<CollItemSearch> search;
+    string_search::StringSearch<CollItemSearch> search;
     for (std::unique_ptr<CollItemSearch> &cis : items_list) {
       search.add(cis->name, cis.get());
     }
@@ -974,3 +972,5 @@ void UI_butstore_update(uiBlock *block)
 }
 
 /** \} */
+
+}  // namespace blender::ui

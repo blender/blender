@@ -25,7 +25,7 @@ void ED_image_draw_cursor(ARegion *region, const float cursor[2])
 {
   float zoom[2], x_fac, y_fac;
 
-  UI_view2d_scale_get_inverse(&region->v2d, &zoom[0], &zoom[1]);
+  blender::ui::UI_view2d_scale_get_inverse(&region->v2d, &zoom[0], &zoom[1]);
 
   mul_v2_fl(zoom, 256.0f * UI_SCALE_FAC);
   x_fac = zoom[0];

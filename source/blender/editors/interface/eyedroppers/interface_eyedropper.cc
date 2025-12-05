@@ -22,6 +22,8 @@
 
 #include "eyedropper_intern.hh" /* own include */
 
+namespace blender::ui {
+
 /* -------------------------------------------------------------------- */
 /* Keymap
  */
@@ -148,3 +150,5 @@ void eyedropper_win_area_find(const bContext *C,
 }
 
 /** \} */
+
+}  // namespace blender::ui

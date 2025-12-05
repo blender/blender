@@ -27,7 +27,7 @@
 #include "interface_intern.hh"
 #include "interface_templates_intern.hh"
 
-using blender::StringRefNull;
+namespace blender::ui {
 
 static bool curvemap_can_zoom_out(CurveMapping *cumap)
 {
@@ -43,8 +43,6 @@ static bool curvemap_can_zoom_in(CurveMapping *cumap)
 
 static void curvemap_zoom(CurveMapping &cumap, const float scale)
 {
-  using namespace blender;
-
   const Bounds<float2> curr_bounds(float2(cumap.curr.xmin, cumap.curr.ymin),
                                    float2(cumap.curr.xmax, cumap.curr.ymax));
   const float2 offset = curr_bounds.size() * 0.5f * (scale - 1.0f);
@@ -88,8 +86,6 @@ static void curvemap_buttons_zoom_in(bContext *C, CurveMapping *cumap)
 
 static void curvemap_buttons_zoom_out(bContext *C, CurveMapping *cumap)
 {
-  using namespace blender;
-
   if (!curvemap_can_zoom_out(cumap)) {
     return;
   }
@@ -106,7 +102,7 @@ static uiBlock *curvemap_clipping_func(bContext *C, ARegion *region, void *cumap
   uiBut *bt;
   const float width = 8 * UI_UNIT_X;
 
-  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  uiBlock *block = UI_block_begin(C, region, __func__, EmbossType::Emboss);
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_MOVEMOUSE_QUIT);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
@@ -194,7 +190,7 @@ static uiBlock *curvemap_tools_func(
   short yco = 0;
   const short menuwidth = 10 * UI_UNIT_X;
 
-  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  uiBlock *block = UI_block_begin(C, region, __func__, EmbossType::Emboss);
 
   {
     uiBut *but = uiDefIconTextBut(block,
@@ -317,7 +313,7 @@ static void curvemap_buttons_redraw(bContext &C)
 static void add_preset_button(uiBlock *block,
                               const float dx,
                               const int icon,
-                              std::optional<blender::StringRef> tip,
+                              std::optional<StringRef> tip,
                               CurveMapping *cumap,
                               const bool neg_slope,
                               const int preset,
@@ -340,7 +336,7 @@ static void add_preset_button(uiBlock *block,
  *
  * \param labeltype: Used for defining which curve-channels to show.
  */
-static void curvemap_buttons_layout(blender::ui::Layout *layout,
+static void curvemap_buttons_layout(Layout *layout,
                                     PointerRNA *ptr,
                                     char labeltype,
                                     bool levels,
@@ -358,20 +354,20 @@ static void curvemap_buttons_layout(blender::ui::Layout *layout,
 
   uiBlock *block = layout->block();
 
-  UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
+  UI_block_emboss_set(block, EmbossType::Emboss);
 
   if (tone) {
-    blender::ui::Layout &split = layout->split(0.0f, false);
+    Layout &split = layout->split(0.0f, false);
     split.row(false).prop(ptr, "tone", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   }
 
   /* curve chooser */
-  blender::ui::Layout *row = &layout->row(false);
+  Layout *row = &layout->row(false);
 
   if (labeltype == 'v') {
     /* vector */
-    blender::ui::Layout &sub = row->row(true);
-    sub.alignment_set(blender::ui::LayoutAlign::Left);
+    Layout &sub = row->row(true);
+    sub.alignment_set(LayoutAlign::Left);
 
     if (cumap->cm[0].curve) {
       bt = uiDefButI(block, ButType::Row, "X", 0, 0, dx, dx, &cumap->cur, 0.0, 0.0, "");
@@ -388,8 +384,8 @@ static void curvemap_buttons_layout(blender::ui::Layout *layout,
   }
   else if (labeltype == 'c' && cumap->tone != CURVE_TONE_FILMLIKE) {
     /* color */
-    blender::ui::Layout &sub = row->row(true);
-    sub.alignment_set(blender::ui::LayoutAlign::Left);
+    Layout &sub = row->row(true);
+    sub.alignment_set(LayoutAlign::Left);
 
     if (cumap->cm[3].curve) {
       bt = uiDefButI(block,
@@ -450,8 +446,8 @@ static void curvemap_buttons_layout(blender::ui::Layout *layout,
   }
   else if (labeltype == 'h') {
     /* HSV */
-    blender::ui::Layout &sub = row->row(true);
-    sub.alignment_set(blender::ui::LayoutAlign::Left);
+    Layout &sub = row->row(true);
+    sub.alignment_set(LayoutAlign::Left);
 
     if (cumap->cm[0].curve) {
       bt = uiDefButI(block,
@@ -497,7 +493,7 @@ static void curvemap_buttons_layout(blender::ui::Layout *layout,
     }
   }
   else {
-    row->alignment_set(blender::ui::LayoutAlign::Right);
+    row->alignment_set(LayoutAlign::Right);
   }
 
   if (labeltype == 'h') {
@@ -506,8 +502,8 @@ static void curvemap_buttons_layout(blender::ui::Layout *layout,
 
   /* operation buttons */
   /* (Right aligned) */
-  blender::ui::Layout &sub = row->row(true);
-  sub.alignment_set(blender::ui::LayoutAlign::Right);
+  Layout &sub = row->row(true);
+  sub.alignment_set(LayoutAlign::Right);
 
   if (!(cumap->flag & CUMA_USE_WRAPPING)) {
     /* Zoom in */
@@ -577,18 +573,17 @@ static void curvemap_buttons_layout(blender::ui::Layout *layout,
   /* Curve itself. */
   const int size = max_ii(layout->width(), UI_UNIT_X);
   row = &layout->row(false);
-  blender::ui::ButtonCurveMapping *curve_but = (blender::ui::ButtonCurveMapping *)uiDefBut(
-      block,
-      ButType::Curve,
-      IFACE_("Edit Curve Map"),
-      0,
-      0,
-      size,
-      8.0f * UI_UNIT_X,
-      cumap,
-      0.0f,
-      1.0f,
-      "");
+  ButtonCurveMapping *curve_but = (ButtonCurveMapping *)uiDefBut(block,
+                                                                 ButType::Curve,
+                                                                 IFACE_("Edit Curve Map"),
+                                                                 0,
+                                                                 0,
+                                                                 size,
+                                                                 8.0f * UI_UNIT_X,
+                                                                 cumap,
+                                                                 0.0f,
+                                                                 1.0f,
+                                                                 "");
   curve_but->gradient_type = bg;
   if (!layout->active()) {
     UI_but_flag_enable(curve_but, UI_BUT_INACTIVE);
@@ -618,7 +613,7 @@ static void curvemap_buttons_layout(blender::ui::Layout *layout,
       bounds.xmax = bounds.ymax = 1000.0;
     }
 
-    UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
+    UI_block_emboss_set(block, EmbossType::Emboss);
 
     layout->row(true);
 
@@ -743,7 +738,7 @@ static void curvemap_buttons_layout(blender::ui::Layout *layout,
 
   /* black/white levels */
   if (levels) {
-    blender::ui::Layout &split = layout->split(0.0f, false);
+    Layout &split = layout->split(0.0f, false);
     split.column(false).prop(ptr, "black_level", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
     split.column(false).prop(ptr, "white_level", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
@@ -777,7 +772,7 @@ static void curvemap_buttons_layout(blender::ui::Layout *layout,
 
   if (presets) {
     row = &layout->row(true);
-    sub.alignment_set(blender::ui::LayoutAlign::Left);
+    sub.alignment_set(LayoutAlign::Left);
     add_preset_button(block,
                       dx,
                       ICON_SMOOTHCURVE,
@@ -813,7 +808,7 @@ static void curvemap_buttons_layout(blender::ui::Layout *layout,
   UI_block_funcN_set(block, nullptr, nullptr, nullptr);
 }
 
-void uiTemplateCurveMapping(blender::ui::Layout *layout,
+void uiTemplateCurveMapping(Layout *layout,
                             PointerRNA *ptr,
                             const StringRefNull propname,
                             int type,
@@ -851,3 +846,5 @@ void uiTemplateCurveMapping(blender::ui::Layout *layout,
 
   UI_block_lock_clear(block);
 }
+
+}  // namespace blender::ui

@@ -643,7 +643,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.prop(ptr, "proximity_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (RNA_enum_get(ptr, "proximity_mode") == MOD_WVG_PROXIMITY_GEOMETRY) {
-    layout.prop(ptr, "proximity_geometry", UI_ITEM_R_EXPAND, IFACE_("Geometry"), ICON_NONE);
+    layout.prop(
+        ptr, "proximity_geometry", blender::ui::UI_ITEM_R_EXPAND, IFACE_("Geometry"), ICON_NONE);
   }
 
   blender::ui::Layout &col = layout.column(true);

@@ -45,8 +45,7 @@
 #include "interface_intern.hh"
 #include "interface_templates_intern.hh"
 
-using blender::StringRef;
-using blender::StringRefNull;
+namespace blender::ui {
 
 struct TemplateID {
   PointerRNA ptr = {};
@@ -101,7 +100,7 @@ static bool id_search_allows_id(TemplateID *template_ui, const int flag, ID *id,
   return true;
 }
 
-static bool id_search_add(const bContext *C, TemplateID *template_ui, uiSearchItems *items, ID *id)
+static bool id_search_add(const bContext *C, TemplateID *template_ui, SearchItems *items, ID *id)
 {
   /* +1 is needed because BKE_id_ui_prefix used 3 letter prefix
    * followed by ID_NAME-2 characters from id->name
@@ -136,14 +135,14 @@ static bool id_search_add(const bContext *C, TemplateID *template_ui, uiSearchIt
 static void id_search_cb(const bContext *C,
                          void *arg_template,
                          const char *str,
-                         uiSearchItems *items,
+                         SearchItems *items,
                          const bool /*is_first*/)
 {
   TemplateID *template_ui = (TemplateID *)arg_template;
   ListBase *lb = template_ui->idlb;
   const int flag = RNA_property_flag(template_ui->prop);
 
-  blender::ui::string_search::StringSearch<ID> search;
+  string_search::StringSearch<ID> search;
 
   /* ID listbase */
   LISTBASE_FOREACH (ID *, id, lb) {
@@ -152,7 +151,7 @@ static void id_search_cb(const bContext *C,
     }
   }
 
-  const blender::Vector<ID *> filtered_ids = search.query(str);
+  const Vector<ID *> filtered_ids = search.query(str);
 
   for (ID *id : filtered_ids) {
     if (!id_search_add(C, template_ui, items, id)) {
@@ -167,7 +166,7 @@ static void id_search_cb(const bContext *C,
 static void id_search_cb_tagged(const bContext *C,
                                 void *arg_template,
                                 const char *str,
-                                uiSearchItems *items)
+                                SearchItems *items)
 {
   TemplateID *template_ui = (TemplateID *)arg_template;
   ListBase *lb = template_ui->idlb;
@@ -186,7 +185,7 @@ static void id_search_cb_tagged(const bContext *C,
     }
   }
 
-  blender::Vector<ID *> filtered_ids = search.query(str);
+  Vector<ID *> filtered_ids = search.query(str);
 
   for (ID *id : filtered_ids) {
     if (!id_search_add(C, template_ui, items, id)) {
@@ -201,7 +200,7 @@ static void id_search_cb_tagged(const bContext *C,
 static void id_search_cb_objects_from_scene(const bContext *C,
                                             void *arg_template,
                                             const char *str,
-                                            uiSearchItems *items,
+                                            SearchItems *items,
                                             const bool /*is_first*/)
 {
   TemplateID *template_ui = (TemplateID *)arg_template;
@@ -238,7 +237,7 @@ static uiBlock *id_search_menu(bContext *C, ARegion *region, void *arg_litem)
   static TemplateID template_ui;
   PointerRNA active_item_ptr;
   void (*id_search_update_fn)(
-      const bContext *, void *, const char *, uiSearchItems *, const bool) = id_search_cb;
+      const bContext *, void *, const char *, SearchItems *, const bool) = id_search_cb;
 
   /* arg_litem is malloced, can be freed by parent button */
   template_ui = *((TemplateID *)arg_litem);
@@ -891,7 +890,7 @@ static void template_id_workspace_pin_extra_icon(const TemplateID &template_ui, 
   const WorkSpace *workspace = WM_window_get_active_workspace(win);
   UI_but_extra_operator_icon_add(but,
                                  "WORKSPACE_OT_scene_pin_toggle",
-                                 blender::wm::OpCallContext::InvokeDefault,
+                                 wm::OpCallContext::InvokeDefault,
                                  (workspace->flags & WORKSPACE_USE_PIN_SCENE) ? ICON_PINNED :
                                                                                 ICON_UNPINNED);
 }
@@ -978,7 +977,7 @@ static uiBut *template_id_def_new_but(uiBlock *block,
     but = uiDefIconTextButO(block,
                             but_type,
                             newop,
-                            blender::wm::OpCallContext::InvokeDefault,
+                            wm::OpCallContext::InvokeDefault,
                             icon,
                             button_text,
                             0,
@@ -1016,7 +1015,7 @@ static uiBut *template_id_def_new_but(uiBlock *block,
 }
 
 static void template_ID(const bContext *C,
-                        blender::ui::Layout &layout,
+                        Layout &layout,
                         TemplateID &template_ui,
                         StructRNA *type,
                         int flag,
@@ -1167,13 +1166,12 @@ static void template_ID(const bContext *C,
          * the object data instead of the object. In that case disable the button if the object
          * data is non-editable. Otherwise the button does nothing. */
         else if (Object *object;
-                 (GS(idfrom->name) == ID_OB) && (object = blender::id_cast<Object *>(idfrom)) &&
+                 (GS(idfrom->name) == ID_OB) && (object = id_cast<Object *>(idfrom)) &&
                  (template_ui.idcode == ID_MA) &&
                  /* Trying to assign to linked/packed object data. */
                  (object->data && ID_IS_LINKED(object->data)) &&
                  /* Means material is assigned to the object data, not the object. */
-                 (object->matbits &&
-                  (object->matbits[blender::math::max(object->actcol - 1, 0)] == 0)))
+                 (object->matbits && (object->matbits[math::max(object->actcol - 1, 0)] == 0)))
         {
           UI_but_disable(but,
                          N_("Material is assigned to the object data, which is linked/packed "
@@ -1256,7 +1254,7 @@ static void template_ID(const bContext *C,
                       /* Using `_N` version allows us to get the 'active' state by default. */
                       ButType::IconToggleN,
                       "ASSET_OT_clear_single",
-                      blender::wm::OpCallContext::InvokeDefault,
+                      wm::OpCallContext::InvokeDefault,
                       /* 'active' state of a toggle button uses icon + 1, so to get proper asset
                        * icon we need to pass its value - 1 here. */
                       ICON_ASSET_MANAGER - 1,
@@ -1296,7 +1294,7 @@ static void template_ID(const bContext *C,
     but = uiDefIconButO(block,
                         ButType::But,
                         "FILE_OT_unpack_item",
-                        blender::wm::OpCallContext::InvokeRegionWin,
+                        wm::OpCallContext::InvokeRegionWin,
                         ICON_PACKAGE,
                         0,
                         0,
@@ -1325,7 +1323,7 @@ static void template_ID(const bContext *C,
       but = uiDefIconTextButO(block,
                               ButType::But,
                               openop,
-                              blender::wm::OpCallContext::InvokeDefault,
+                              wm::OpCallContext::InvokeDefault,
                               ICON_FILEBROWSER,
                               (id) ? "" : IFACE_("Open"),
                               0,
@@ -1374,7 +1372,7 @@ static void template_ID(const bContext *C,
       but = uiDefIconButO(block,
                           ButType::But,
                           unlinkop,
-                          blender::wm::OpCallContext::InvokeDefault,
+                          wm::OpCallContext::InvokeDefault,
                           ICON_X,
                           0,
                           0,
@@ -1441,7 +1439,7 @@ ID *UI_context_active_but_get_tab_ID(bContext *C)
 }
 
 static void template_ID_tabs(const bContext *C,
-                             blender::ui::Layout &layout,
+                             Layout &layout,
                              TemplateID &template_id,
                              StructRNA *type,
                              int flag,
@@ -1467,19 +1465,19 @@ static void template_ID_tabs(const bContext *C,
     const int name_width = UI_fontstyle_string_width(&style->widget, id->name + 2);
     const int but_width = name_width + UI_UNIT_X;
 
-    blender::ui::ButtonTab *tab = (blender::ui::ButtonTab *)uiDefButR_prop(block,
-                                                                           ButType::Tab,
-                                                                           id->name + 2,
-                                                                           0,
-                                                                           0,
-                                                                           but_width,
-                                                                           but_height,
-                                                                           &template_id.ptr,
-                                                                           template_id.prop,
-                                                                           0,
-                                                                           0.0f,
-                                                                           sizeof(id->name) - 2,
-                                                                           "");
+    ButtonTab *tab = (ButtonTab *)uiDefButR_prop(block,
+                                                 ButType::Tab,
+                                                 id->name + 2,
+                                                 0,
+                                                 0,
+                                                 but_width,
+                                                 but_height,
+                                                 &template_id.ptr,
+                                                 template_id.prop,
+                                                 0,
+                                                 0.0f,
+                                                 sizeof(id->name) - 2,
+                                                 "");
     UI_but_funcN_set(tab,
                      template_ID_set_property_exec_fn,
                      MEM_new<TemplateID>(__func__, template_id),
@@ -1514,7 +1512,7 @@ static void template_ID_tabs(const bContext *C,
   }
 }
 
-static void ui_template_id(blender::ui::Layout &layout,
+static void ui_template_id(Layout &layout,
                            const bContext *C,
                            PointerRNA *ptr,
                            const StringRefNull propname,
@@ -1572,18 +1570,18 @@ static void ui_template_id(blender::ui::Layout &layout,
    */
   if (template_ui.idlb) {
     if (use_tabs) {
-      blender::ui::Layout &row = layout.row(true);
+      Layout &row = layout.row(true);
       template_ID_tabs(C, row, template_ui, type, flag, newop, menu);
     }
     else {
-      blender::ui::Layout &row = layout.row(true);
+      Layout &row = layout.row(true);
       template_ID(
           C, row, template_ui, type, flag, newop, openop, unlinkop, text, live_icon, hide_buttons);
     }
   }
 }
 
-void uiTemplateID(blender::ui::Layout *layout,
+void uiTemplateID(Layout *layout,
                   const bContext *C,
                   PointerRNA *ptr,
                   const StringRefNull propname,
@@ -1613,7 +1611,7 @@ void uiTemplateID(blender::ui::Layout *layout,
                  false);
 }
 
-void uiTemplateAction(blender::ui::Layout *layout,
+void uiTemplateAction(Layout *layout,
                       const bContext *C,
                       ID *id,
                       const char *newop,
@@ -1656,12 +1654,12 @@ void uiTemplateAction(blender::ui::Layout *layout,
   template_ui.idlb = which_libbase(CTX_data_main(C), ID_AC);
   BLI_assert(template_ui.idlb);
 
-  blender::ui::Layout &row = layout->row(true);
+  Layout &row = layout->row(true);
   template_ID(
       C, row, template_ui, &RNA_Action, flag, newop, nullptr, unlinkop, text, false, false);
 }
 
-void uiTemplateIDBrowse(blender::ui::Layout *layout,
+void uiTemplateIDBrowse(Layout *layout,
                         bContext *C,
                         PointerRNA *ptr,
                         const StringRefNull propname,
@@ -1690,7 +1688,7 @@ void uiTemplateIDBrowse(blender::ui::Layout *layout,
                  false);
 }
 
-void uiTemplateIDPreview(blender::ui::Layout *layout,
+void uiTemplateIDPreview(Layout *layout,
                          bContext *C,
                          PointerRNA *ptr,
                          const StringRefNull propname,
@@ -1721,7 +1719,7 @@ void uiTemplateIDPreview(blender::ui::Layout *layout,
                  hide_buttons);
 }
 
-void uiTemplateGpencilColorPreview(blender::ui::Layout *layout,
+void uiTemplateGpencilColorPreview(Layout *layout,
                                    bContext *C,
                                    PointerRNA *ptr,
                                    const StringRefNull propname,
@@ -1749,7 +1747,7 @@ void uiTemplateGpencilColorPreview(blender::ui::Layout *layout,
                  false);
 }
 
-void uiTemplateIDTabs(blender::ui::Layout *layout,
+void uiTemplateIDTabs(Layout *layout,
                       bContext *C,
                       PointerRNA *ptr,
                       const StringRefNull propname,
@@ -1776,7 +1774,7 @@ void uiTemplateIDTabs(blender::ui::Layout *layout,
                  false);
 }
 
-void uiTemplateAnyID(blender::ui::Layout *layout,
+void uiTemplateAnyID(Layout *layout,
                      PointerRNA *ptr,
                      const StringRefNull propname,
                      const StringRefNull proptypename,
@@ -1801,10 +1799,10 @@ void uiTemplateAnyID(blender::ui::Layout *layout,
   /* Start drawing UI Elements using standard defines */
 
   /* NOTE: split amount here needs to be synced with normal labels */
-  blender::ui::Layout &split = layout->split(0.33f, false);
+  Layout &split = layout->split(0.33f, false);
 
   /* FIRST PART ................................................ */
-  blender::ui::Layout *row = &split.row(false);
+  Layout *row = &split.row(false);
 
   /* Label - either use the provided text, or will become "ID-Block:" */
   if (text) {
@@ -1823,8 +1821,8 @@ void uiTemplateAnyID(blender::ui::Layout *layout,
 
   /* HACK: special group just for the enum,
    * otherwise we get ugly layout with text included too... */
-  blender::ui::Layout *sub = &row->row(true);
-  sub->alignment_set(blender::ui::LayoutAlign::Left);
+  Layout *sub = &row->row(true);
+  sub->alignment_set(LayoutAlign::Left);
 
   sub->prop(ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
@@ -1833,7 +1831,9 @@ void uiTemplateAnyID(blender::ui::Layout *layout,
   /* HACK: special group to counteract the effects of the previous enum,
    * which now pushes everything too far right. */
   sub = &row->row(true);
-  sub->alignment_set(blender::ui::LayoutAlign::Expand);
+  sub->alignment_set(LayoutAlign::Expand);
 
   sub->prop(ptr, propID, 0, 0, UI_ITEM_NONE, "", ICON_NONE);
 }
+
+}  // namespace blender::ui

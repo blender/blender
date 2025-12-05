@@ -354,7 +354,7 @@ MenuType swap_root_catalogs_menu_type()
 void ui_template_node_asset_menu_items(ui::Layout &layout,
                                        const bContext &C,
                                        const StringRef catalog_path,
-                                       const NodeAssetMenuOperatorType operator_type)
+                                       const ui::NodeAssetMenuOperatorType operator_type)
 {
   SpaceNode &snode = *CTX_wm_space_node(&C);
   if (snode.runtime->assets_for_menu == nullptr) {
@@ -369,7 +369,7 @@ void ui_template_node_asset_menu_items(ui::Layout &layout,
   StringRef operator_id;
 
   switch (operator_type) {
-    case NodeAssetMenuOperatorType::Swap:
+    case ui::NodeAssetMenuOperatorType::Swap:
       operator_id = "NODE_OT_swap_group_asset";
       break;
     default:

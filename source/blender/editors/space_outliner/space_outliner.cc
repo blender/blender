@@ -75,7 +75,7 @@ static void outliner_main_region_init(wmWindowManager *wm, ARegion *region)
   region->v2d.keeptot = V2D_KEEPTOT_STRICT;
   region->v2d.minzoom = region->v2d.maxzoom = 1.0f;
 
-  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
+  UI_view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   /* own keymap */
   keymap = WM_keymap_ensure(wm->runtime->defaultconf, "Outliner", SPACE_OUTLINER, RGN_TYPE_WINDOW);
@@ -94,25 +94,25 @@ static void outliner_main_region_draw(const bContext *C, ARegion *region)
   const rctf v2d_cur_prev = v2d->cur;
 #endif
 
-  UI_ThemeClearColor(TH_BACK);
+  ui::UI_ThemeClearColor(TH_BACK);
   draw_outliner(C, true);
 
 #ifdef USE_OUTLINER_DRAW_CLAMPS_SCROLL_HACK
   /* This happens when scrolling is clamped & occasionally when resizing the area.
    * In practice this isn't often which is important as that would hurt performance. */
   if (!BLI_rctf_compare(&v2d->cur, &v2d_cur_prev, FLT_EPSILON)) {
-    UI_ThemeClearColor(TH_BACK);
+    ui::UI_ThemeClearColor(TH_BACK);
     draw_outliner(C, false);
   }
 #endif
 
   /* reset view matrix */
-  UI_view2d_view_restore(C);
+  ui::UI_view2d_view_restore(C);
 
   ED_region_draw_overflow_indication(CTX_wm_area(C), region);
 
   /* scrollers */
-  UI_view2d_scrollers_draw(v2d, nullptr);
+  ui::UI_view2d_scrollers_draw(v2d, nullptr);
 }
 
 static void outliner_main_region_free(ARegion * /*region*/) {}

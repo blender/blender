@@ -57,6 +57,8 @@
 
 #include "eyedropper_intern.hh"
 
+namespace blender::ui {
+
 struct Eyedropper {
   const ColorManagedDisplay *display = nullptr;
 
@@ -195,10 +197,10 @@ static bool eyedropper_cryptomatte_sample_view3d_fl(bContext *C,
   }
 
   const ID *id = nullptr;
-  if (blender::StringRef(type_name).endswith(RE_PASSNAME_CRYPTOMATTE_OBJECT)) {
+  if (StringRef(type_name).endswith(RE_PASSNAME_CRYPTOMATTE_OBJECT)) {
     id = &object->id;
   }
-  else if (blender::StringRef(type_name).endswith(RE_PASSNAME_CRYPTOMATTE_MATERIAL)) {
+  else if (StringRef(type_name).endswith(RE_PASSNAME_CRYPTOMATTE_MATERIAL)) {
     Material *material = BKE_object_material_get(object, material_slot);
     if (!material) {
       return false;
@@ -719,3 +721,5 @@ void UI_OT_eyedropper_color(wmOperatorType *ot)
                         "Path of property to be set with the depth");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
+
+}  // namespace blender::ui

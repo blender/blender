@@ -19,6 +19,8 @@
 
 struct bContext;
 
+namespace blender::ui {
+
 #define CURVE_ZOOM_MAX (1.0f / 25.0f)
 #define ERROR_LIBDATA_MESSAGE N_("Cannot edit external library data")
 
@@ -52,13 +54,13 @@ int template_search_textbut_height();
  * Add a block button for the search menu for templateID and templateSearch.
  */
 void template_add_button_search_menu(const bContext *C,
-                                     blender::ui::Layout &layout,
+                                     Layout &layout,
                                      uiBlock *block,
                                      PointerRNA *ptr,
                                      PropertyRNA *prop,
                                      uiBlockCreateFunc block_func,
                                      void *block_argN,
-                                     std::optional<blender::StringRef> tip,
+                                     std::optional<StringRef> tip,
                                      const bool use_previews,
                                      const bool editable,
                                      const bool live_icon,
@@ -75,3 +77,5 @@ uiBlock *template_common_search_menu(const bContext *C,
                                      const int preview_rows,
                                      const int preview_cols,
                                      float scale);
+
+}  // namespace blender::ui

@@ -85,7 +85,7 @@ void WM_tooltip_clear(bContext *C, wmWindow *win)
   bScreen *screen = WM_window_get_active_screen(win);
   if (screen->tool_tip != nullptr) {
     if (screen->tool_tip->region) {
-      UI_tooltip_free(C, screen, screen->tool_tip->region);
+      blender::ui::UI_tooltip_free(C, screen, screen->tool_tip->region);
       screen->tool_tip->region = nullptr;
       g_tooltip_time_closed = BLI_time_now_seconds();
     }
@@ -99,7 +99,7 @@ void WM_tooltip_init(bContext *C, wmWindow *win)
   WM_tooltip_timer_clear(C, win);
   bScreen *screen = WM_window_get_active_screen(win);
   if (screen->tool_tip->region) {
-    UI_tooltip_free(C, screen, screen->tool_tip->region);
+    blender::ui::UI_tooltip_free(C, screen, screen->tool_tip->region);
     screen->tool_tip->region = nullptr;
   }
   const int pass_prev = screen->tool_tip->pass;
@@ -136,7 +136,7 @@ void WM_tooltip_refresh(bContext *C, wmWindow *win)
   bScreen *screen = WM_window_get_active_screen(win);
   if (screen->tool_tip != nullptr) {
     if (screen->tool_tip->region) {
-      UI_tooltip_free(C, screen, screen->tool_tip->region);
+      blender::ui::UI_tooltip_free(C, screen, screen->tool_tip->region);
       screen->tool_tip->region = nullptr;
     }
     WM_tooltip_init(C, win);

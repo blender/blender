@@ -194,7 +194,7 @@ SpreadsheetColumn *find_hovered_column_edge(SpaceSpreadsheet &sspreadsheet,
   if (!table) {
     return nullptr;
   }
-  const float cursor_x_view = UI_view2d_region_to_view_x(&region.v2d, cursor_re.x);
+  const float cursor_x_view = ui::UI_view2d_region_to_view_x(&region.v2d, cursor_re.x);
   for (SpreadsheetColumn *column : Span{table->columns, table->num_columns}) {
     if (column->flag & SPREADSHEET_COLUMN_FLAG_UNAVAILABLE) {
       continue;
@@ -214,7 +214,7 @@ SpreadsheetColumn *find_hovered_column(SpaceSpreadsheet &sspreadsheet,
   if (!table) {
     return nullptr;
   }
-  const float cursor_x_view = UI_view2d_region_to_view_x(&region.v2d, cursor_re.x);
+  const float cursor_x_view = ui::UI_view2d_region_to_view_x(&region.v2d, cursor_re.x);
   for (SpreadsheetColumn *column : Span{table->columns, table->num_columns}) {
     if (column->flag & SPREADSHEET_COLUMN_FLAG_UNAVAILABLE) {
       continue;
@@ -324,7 +324,7 @@ static void SPREADSHEET_OT_fit_column(wmOperatorType *ot)
 struct ReorderColumnData {
   SpreadsheetColumn *column = nullptr;
   int initial_cursor_x_view = 0;
-  View2DEdgePanData pan_data{};
+  ui::View2DEdgePanData pan_data{};
 };
 
 static std::optional<int> find_first_available_column_index(const SpreadsheetTable &table)
@@ -370,7 +370,7 @@ static wmOperatorStatus reorder_columns_invoke(bContext *C, wmOperator *op, cons
 
   ReorderColumnData *data = MEM_new<ReorderColumnData>(__func__);
   data->column = column_to_move;
-  data->initial_cursor_x_view = UI_view2d_region_to_view_x(&region.v2d, cursor_re.x);
+  data->initial_cursor_x_view = ui::UI_view2d_region_to_view_x(&region.v2d, cursor_re.x);
   op->customdata = data;
 
   ReorderColumnVisualizationData &visualization_data =
@@ -445,8 +445,8 @@ static wmOperatorStatus reorder_columns_modal(bContext *C, wmOperator *op, const
       ReorderColumnVisualizationData &visualization_data =
           *sspreadsheet.runtime->reorder_column_visualization_data;
       visualization_data.new_index = new_index;
-      visualization_data.current_offset_x_px = UI_view2d_region_to_view_x(&region.v2d,
-                                                                          cursor_re.x) -
+      visualization_data.current_offset_x_px = ui::UI_view2d_region_to_view_x(&region.v2d,
+                                                                              cursor_re.x) -
                                                data.initial_cursor_x_view;
       ED_region_tag_redraw(&region);
       return OPERATOR_RUNNING_MODAL;

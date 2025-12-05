@@ -28,18 +28,19 @@ static enum eTextViewContext_LineFlag report_line_data(TextViewContext *tvc,
   const Report *report = static_cast<const Report *>(tvc->iter);
 
   /* Same text color no matter what type of report. */
-  UI_GetThemeColor4ubv((report->flag & SELECT) ? TH_INFO_SELECTED_TEXT : TH_TEXT, fg);
+  blender::ui::UI_GetThemeColor4ubv((report->flag & SELECT) ? TH_INFO_SELECTED_TEXT : TH_TEXT, fg);
 
   /* Zebra striping for background. */
   int bg_id = (report->flag & SELECT) ? TH_INFO_SELECTED : TH_BACK;
   int shade = (tvc->iter_tmp % 2) ? 4 : -4;
-  UI_GetThemeColorShade4ubv(bg_id, shade, bg);
+  blender::ui::UI_GetThemeColorShade4ubv(bg_id, shade, bg);
 
   /* Don't show icon on subsequent rows of multi-row report. */
-  *r_icon = (tvc->iter_char_begin != 0) ? ICON_NONE : UI_icon_from_report_type(report->type);
+  *r_icon = (tvc->iter_char_begin != 0) ? ICON_NONE :
+                                          blender::ui::UI_icon_from_report_type(report->type);
 
-  int icon_fg_id = UI_text_colorid_from_report_type(report->type);
-  int icon_bg_id = UI_icon_colorid_from_report_type(report->type);
+  int icon_fg_id = blender::ui::UI_text_colorid_from_report_type(report->type);
+  int icon_bg_id = blender::ui::UI_icon_colorid_from_report_type(report->type);
 
   if (report->flag & SELECT) {
     icon_fg_id = TH_INFO_SELECTED;
@@ -47,10 +48,10 @@ static enum eTextViewContext_LineFlag report_line_data(TextViewContext *tvc,
   }
 
   if (*r_icon != ICON_NONE) {
-    UI_GetThemeColor4ubv(icon_fg_id, r_icon_fg);
+    blender::ui::UI_GetThemeColor4ubv(icon_fg_id, r_icon_fg);
     /* This theme color is RGB only, so set alpha. */
     r_icon_fg[3] = 255;
-    UI_GetThemeColor4ubv(icon_bg_id, r_icon_bg);
+    blender::ui::UI_GetThemeColor4ubv(icon_bg_id, r_icon_bg);
     return TVC_LINE_FG | TVC_LINE_BG | TVC_LINE_ICON | TVC_LINE_ICON_FG | TVC_LINE_ICON_BG;
   }
 
@@ -91,7 +92,7 @@ static int report_textview_begin(TextViewContext *tvc)
   /* iterator */
   tvc->iter = reports->list.last;
 
-  UI_ThemeClearColor(TH_BACK);
+  blender::ui::UI_ThemeClearColor(TH_BACK);
 
   tvc->iter_tmp = 0;
   if (tvc->iter && report_textview_skip__internal(tvc)) {

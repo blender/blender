@@ -32,6 +32,8 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
+namespace blender::ui {
+
 /* Compute display grid resolution
  ********************************************************/
 
@@ -195,8 +197,7 @@ static void draw_parallel_lines(const ParallelLinesSet *lines,
   }
 
   GPUVertFormat *format = immVertexFormat();
-  const uint pos = GPU_vertformat_attr_add(
-      format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", gpu::VertAttrType::SFLOAT_32_32);
 
   if (U.pixelsize > 1.0f) {
     float viewport[4];
@@ -608,3 +609,5 @@ void UI_view2d_draw_scale_x__frames_or_seconds(const ARegion *region,
         region, v2d, step, rect, view_to_string__value, nullptr, colorid);
   }
 }
+
+}  // namespace blender::ui

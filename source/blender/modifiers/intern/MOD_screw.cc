@@ -1044,9 +1044,10 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  ui::Layout *sub, *row, *col;
-  ui::Layout &layout = *panel->layout;
-  const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+  blender::ui::Layout *sub, *row, *col;
+  blender::ui::Layout &layout = *panel->layout;
+  const blender::ui::eUI_Item_Flag toggles_flag = blender::ui::UI_ITEM_R_TOGGLE |
+                                                  blender::ui::UI_ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -1065,7 +1066,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout.separator();
   col = &layout.column(false);
   row = &col->row(false);
-  row->prop(ptr, "axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(ptr, "axis", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   col->prop(ptr, "object", UI_ITEM_NONE, IFACE_("Axis Object"), ICON_NONE);
   sub = &col->column(false);
   sub->active_set(!RNA_pointer_is_null(&screw_obj_ptr));
@@ -1096,13 +1097,13 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
 static void normals_panel_draw(const bContext * /*C*/, Panel *panel)
 {
-  ui::Layout &layout = *panel->layout;
+  blender::ui::Layout &layout = *panel->layout;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   layout.use_property_split_set(true);
 
-  ui::Layout &col = layout.column(false);
+  blender::ui::Layout &col = layout.column(false);
   col.prop(ptr, "use_smooth_shade", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col.prop(ptr, "use_normal_calculate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col.prop(ptr, "use_normal_flip", UI_ITEM_NONE, std::nullopt, ICON_NONE);

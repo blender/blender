@@ -33,9 +33,9 @@
 #  include "BLI_math_base.h" /* M_PI */
 #endif
 
-using blender::StringRef;
-
 static CLG_LogRef LOG = {"ui.font"};
+
+namespace blender::ui {
 
 static void fontstyle_set_ex(const uiFontStyle *fs, const float dpi_fac);
 
@@ -251,7 +251,7 @@ void UI_fontstyle_draw_multiline_clipped_ex(const uiFontStyle *fs,
   BLF_color4ubv(fs->uifont_id, col);
 
   char str_buf[UI_MAX_DRAW_STR];
-  const blender::Vector<blender::StringRef> lines = UI_text_clip_multiline_middle(
+  const Vector<StringRef> lines = UI_text_clip_multiline_middle(
       fs, str, str_buf, sizeof(str_buf), max_width, max_line_count);
 
   BLI_assert(lines.size() <= max_line_count);
@@ -378,7 +378,7 @@ void UI_fontstyle_draw_simple(
 void UI_fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
                                        float x,
                                        float y,
-                                       const blender::StringRef str,
+                                       const StringRef str,
                                        const float col_fg[4],
                                        const float col_bg[4])
 {
@@ -606,3 +606,5 @@ void UI_fontstyle_set(const uiFontStyle *fs)
 {
   fontstyle_set_ex(fs, UI_SCALE_FAC);
 }
+
+}  // namespace blender::ui

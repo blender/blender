@@ -22,13 +22,15 @@
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"
 
+namespace blender::ui {
+
 static void modifier_panel_id(void *md_link, char *r_name)
 {
   ModifierData *md = (ModifierData *)md_link;
   BKE_modifier_type_panel_id(ModifierType(md->type), r_name);
 }
 
-void uiTemplateModifiers(blender::ui::Layout * /*layout*/, bContext *C)
+void uiTemplateModifiers(Layout * /*layout*/, bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
 
@@ -79,3 +81,5 @@ void uiTemplateModifiers(blender::ui::Layout * /*layout*/, bContext *C)
     }
   }
 }
+
+}  // namespace blender::ui

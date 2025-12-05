@@ -32,6 +32,8 @@
 
 #define B_MATPRV 1
 
+namespace blender::ui {
+
 static void do_preview_buttons(bContext *C, void *arg, int event)
 {
   switch (event) {
@@ -41,7 +43,7 @@ static void do_preview_buttons(bContext *C, void *arg, int event)
   }
 }
 
-void uiTemplatePreview(blender::ui::Layout *layout,
+void uiTemplatePreview(Layout *layout,
                        bContext *C,
                        ID *id,
                        bool show_buttons,
@@ -120,8 +122,8 @@ void uiTemplatePreview(blender::ui::Layout *layout,
 
   /* layout */
   uiBlock *block = layout->block();
-  blender::ui::Layout *row = &layout->row(false);
-  blender::ui::Layout *col = &row->column(false);
+  Layout *row = &layout->row(false);
+  Layout *col = &row->column(false);
 
   /* add preview */
   uiDefBut(block, ButType::Extra, "", 0, 0, UI_UNIT_X * 10, ui_preview->height, pid, 0.0, 0.0, "");
@@ -262,3 +264,5 @@ void uiTemplatePreview(blender::ui::Layout *layout,
     }
   }
 }
+
+}  // namespace blender::ui

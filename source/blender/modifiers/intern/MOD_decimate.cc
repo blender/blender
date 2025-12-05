@@ -227,12 +227,12 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   char count_info[64];
   SNPRINTF(count_info, RPT_("Face Count: %d"), RNA_int_get(ptr, "face_count"));
 
-  layout.prop(ptr, "decimate_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "decimate_type", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
   if (decimate_type == MOD_DECIM_MODE_COLLAPSE) {
-    layout.prop(ptr, "ratio", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "ratio", blender::ui::UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
     blender::ui::Layout &row = layout.row(true, IFACE_("Symmetry"));
     row.use_property_decorate_set(false);
@@ -240,7 +240,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     sub->prop(ptr, "use_symmetry", UI_ITEM_NONE, "", ICON_NONE);
     sub = &sub->row(true);
     sub->active_set(RNA_boolean_get(ptr, "use_symmetry"));
-    sub->prop(ptr, "symmetry_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    sub->prop(ptr, "symmetry_axis", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
     row.decorator(ptr, "symmetry_axis", 0);
 
     layout.prop(ptr, "use_collapse_triangulate", UI_ITEM_NONE, std::nullopt, ICON_NONE);

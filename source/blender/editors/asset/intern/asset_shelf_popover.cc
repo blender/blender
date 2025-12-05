@@ -255,7 +255,7 @@ static void popover_panel_draw(const bContext *C, Panel *panel)
   sub.prop(&shelf_ptr,
            "search_filter",
            /* Force the button to be active in a semi-modal state. */
-           UI_ITEM_R_TEXT_BUT_FORCE_SEMI_MODAL_ACTIVE,
+           ui::UI_ITEM_R_TEXT_BUT_FORCE_SEMI_MODAL_ACTIVE,
            "",
            ICON_VIEWZOOM);
 

@@ -26,8 +26,7 @@
 #include "interface_intern.hh"
 #include "interface_templates_intern.hh"
 
-using blender::StringRef;
-using blender::StringRefNull;
+namespace blender::ui {
 
 static uiBlock *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_v)
 {
@@ -36,7 +35,7 @@ static uiBlock *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_
   CurveProfile *profile = static_cast<CurveProfile *>(profile_ptr.data);
   short yco = 0;
 
-  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  uiBlock *block = UI_block_begin(C, region, __func__, EmbossType::Emboss);
 
   for (const auto &item :
        {std::pair<StringRef, eCurveProfilePresets>(IFACE_("Default"), PROF_PRESET_LINE),
@@ -84,7 +83,7 @@ static uiBlock *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
   CurveProfile *profile = static_cast<CurveProfile *>(profile_ptr.data);
   short yco = 0;
 
-  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  uiBlock *block = UI_block_begin(C, region, __func__, EmbossType::Emboss);
 
   {
     uiBut *but = uiDefIconTextBut(block,
@@ -197,23 +196,21 @@ static void curve_profile_zoom_out(bContext *C, CurveProfile *profile)
   ED_region_tag_redraw(CTX_wm_region(C));
 }
 
-static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
-                                        PointerRNA *ptr,
-                                        const RNAUpdateCb &cb)
+static void CurveProfile_buttons_layout(Layout &layout, PointerRNA *ptr, const RNAUpdateCb &cb)
 {
   CurveProfile *profile = static_cast<CurveProfile *>(ptr->data);
   uiBut *bt;
 
   uiBlock *block = layout.block();
 
-  UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
+  UI_block_emboss_set(block, EmbossType::Emboss);
 
   layout.use_property_split_set(false);
 
   /* Preset selector */
-  /* There is probably potential to use simpler "blender::ui::Layout::prop" functions here, but
+  /* There is probably potential to use simpler "Layout::prop" functions here, but
    * automatic updating after a preset is selected would be more complicated. */
-  blender::ui::Layout *row = &layout.row(true);
+  Layout *row = &layout.row(true);
   RNAUpdateCb *presets_cb = MEM_new<RNAUpdateCb>(__func__, cb);
   bt = uiDefBlockBut(block,
                      curve_profile_presets_fn,
@@ -258,8 +255,8 @@ static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
   row = &layout.row(false);
 
   /* (Left aligned) */
-  blender::ui::Layout *sub = &row->row(true);
-  sub->alignment_set(blender::ui::LayoutAlign::Left);
+  Layout *sub = &row->row(true);
+  sub->alignment_set(LayoutAlign::Left);
 
   /* Zoom in */
   bt = uiDefIconBut(block,
@@ -297,7 +294,7 @@ static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
 
   /* (Right aligned) */
   sub = &row->row(true);
-  sub->alignment_set(blender::ui::LayoutAlign::Right);
+  sub->alignment_set(LayoutAlign::Right);
 
   /* Flip path */
   bt = uiDefIconBut(block,
@@ -501,9 +498,7 @@ static void CurveProfile_buttons_layout(blender::ui::Layout &layout,
   UI_block_funcN_set(block, nullptr, nullptr, nullptr);
 }
 
-void uiTemplateCurveProfile(blender::ui::Layout *layout,
-                            PointerRNA *ptr,
-                            const StringRefNull propname)
+void uiTemplateCurveProfile(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 
@@ -535,3 +530,5 @@ void uiTemplateCurveProfile(blender::ui::Layout *layout,
 
   UI_block_lock_clear(block);
 }
+
+}  // namespace blender::ui

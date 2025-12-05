@@ -434,7 +434,7 @@ void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
 
   /* The size of the symbol is larger than the vertex size.
    * This prevents overlaps. */
-  float radius = 2.5f * UI_GetThemeValuef(TH_VERTEX_SIZE);
+  float radius = 2.5f * blender::ui::UI_GetThemeValuef(TH_VERTEX_SIZE);
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
 

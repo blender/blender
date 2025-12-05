@@ -118,7 +118,7 @@ static void hue_correct_apply(ModifierApplyContext &context, StripModifierData *
 static void hue_correct_panel_draw(const bContext *C, Panel *panel)
 {
   ui::Layout &layout = *panel->layout;
-  PointerRNA *ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *ptr = blender::ui::UI_panel_custom_data_get(panel);
 
   uiTemplateCurveMapping(&layout, ptr, "curve_mapping", 'h', false, false, false, false, false);
 

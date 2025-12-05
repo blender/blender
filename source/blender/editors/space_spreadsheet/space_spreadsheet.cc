@@ -180,7 +180,7 @@ static void spreadsheet_main_region_init(wmWindowManager *wm, ARegion *region)
   region->v2d.keeptot = V2D_KEEPTOT_STRICT;
   region->v2d.minzoom = region->v2d.maxzoom = 1.0f;
 
-  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
+  UI_view2d_region_reinit(&region->v2d, ui::V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   region->flag |= RGN_FLAG_INDICATE_OVERFLOW;
 
@@ -368,7 +368,7 @@ const SpreadsheetTable *get_active_table(const SpaceSpreadsheet &sspreadsheet)
 static int get_index_column_width(const int tot_rows)
 {
   const int fontid = BLF_default();
-  BLF_size(fontid, UI_style_get_dpi()->widget.points * UI_SCALE_FAC);
+  BLF_size(fontid, ui::UI_style_get_dpi()->widget.points * UI_SCALE_FAC);
   return std::to_string(std::max(0, tot_rows - 1)).size() * BLF_width(fontid, "0", 1) +
          UI_UNIT_X * 0.75;
 }
@@ -509,7 +509,7 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
   sspreadsheet->runtime->left_column_width = drawer->left_column_width;
 
   rcti mask;
-  UI_view2d_mask_from_win(&region->v2d, &mask);
+  ui::UI_view2d_mask_from_win(&region->v2d, &mask);
   mask.ymax -= sspreadsheet->runtime->top_row_height;
   ED_region_draw_overflow_indication(CTX_wm_area(C), region, &mask);
 
@@ -646,10 +646,10 @@ static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
   ss << tot_rows_str << "   |   " << IFACE_("Columns:") << " " << runtime->tot_columns;
   std::string stats_str = ss.str();
 
-  UI_ThemeClearColor(TH_BACK);
+  ui::UI_ThemeClearColor(TH_BACK);
 
   uiBlock *block = UI_block_begin(C, region, __func__, ui::EmbossType::Emboss);
-  const uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = ui::UI_style_get_dpi();
   ui::Layout &layout = ui::block_layout(block,
                                         ui::LayoutDirection::Horizontal,
                                         ui::LayoutType::Header,
@@ -702,7 +702,7 @@ static void spreadsheet_dataset_region_draw(const bContext *C, ARegion *region)
 
 static void spreadsheet_sidebar_init(wmWindowManager *wm, ARegion *region)
 {
-  UI_panel_category_active_set_default(region, "Filters");
+  ui::UI_panel_category_active_set_default(region, "Filters");
   ED_region_panels_init(wm, region);
 
   wmKeyMap *keymap = WM_keymap_ensure(

@@ -569,7 +569,8 @@ static wmOperatorStatus uv_shortest_path_pick_invoke(bContext *C,
 
   const ARegion *region = CTX_wm_region(C);
 
-  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  blender::ui::UI_view2d_region_to_view(
+      &region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 
   BMElem *ele_src = nullptr, *ele_dst = nullptr;
 

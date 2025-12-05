@@ -19,6 +19,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender::ui {
+
 /**
  * This struct stores a (simplified) 2D representation of all buttons of a same align group,
  * with their immediate neighbors (if found),
@@ -50,11 +52,11 @@ struct ButAlign {
   std::array<float *, 4> borders;
 
   /* Distances to the neighbors. */
-  blender::float4 dists;
+  float4 dists;
 
   /* Flags, used to mark whether we should 'stitch'
    * the corners of this button with its neighbors' ones. */
-  blender::char4 flags;
+  char4 flags;
 };
 
 /* Side-related enums and flags. */
@@ -358,7 +360,7 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
 
   const int sides_to_ui_but_align_flags[4] = SIDE_TO_UI_BUT_ALIGN;
 
-  blender::Vector<ButAlign, 256> butal_array(block->buttons.size());
+  Vector<ButAlign, 256> butal_array(block->buttons.size());
 
   int n = 0;
   /* First loop: Initialize ButAlign data for each button and clear their align flag.
@@ -383,7 +385,7 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
     butal.borders[RIGHT] = &but->rect.xmax;
     butal.borders[DOWN] = &but->rect.ymin;
     butal.borders[TOP] = &but->rect.ymax;
-    butal.dists = blender::float4{FLT_MAX};
+    butal.dists = float4{FLT_MAX};
   }
   butal_array.resize(n);
 
@@ -504,3 +506,5 @@ int ui_but_align_opposite_to_area_align_get(const ARegion *region)
 
   return 0;
 }
+
+}  // namespace blender::ui

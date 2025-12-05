@@ -14,6 +14,8 @@
 
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
 void UI_but_drag_set_id(uiBut *but, ID *id)
 {
   but->dragtype = WM_DRAG_ID;
@@ -32,7 +34,7 @@ void UI_but_drag_attach_image(uiBut *but, const ImBuf *imb, const float scale)
 }
 
 void UI_but_drag_set_asset(uiBut *but,
-                           const blender::asset_system::AssetRepresentation *asset,
+                           const asset_system::AssetRepresentation *asset,
                            const AssetImportSettings &import_settings,
                            BIFIconID icon,
                            BIFIconID preview_icon)
@@ -65,7 +67,7 @@ void UI_but_drag_set_path(uiBut *but, const char *path)
   if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
     WM_drag_data_free(but->dragtype, but->dragpoin);
   }
-  but->dragpoin = WM_drag_create_path_data(blender::Span(&path, 1));
+  but->dragpoin = WM_drag_create_path_data(Span(&path, 1));
   but->dragflag |= UI_BUT_DRAGPOIN_FREE;
 }
 
@@ -128,3 +130,5 @@ void ui_but_drag_start(bContext *C, uiBut *but)
     WM_event_drag_path_override_poin_data_with_space_file_paths(C, drag);
   }
 }
+
+}  // namespace blender::ui

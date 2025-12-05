@@ -744,7 +744,7 @@ static wmOperatorStatus paintcurve_cursor_invoke(bContext *C,
         return OPERATOR_CANCELLED;
       }
 
-      UI_view2d_region_to_view(
+      blender::ui::UI_view2d_region_to_view(
           &region->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
       copy_v2_v2(sima->cursor, location);
       WM_event_add_notifier(C, NC_SPACE | ND_SPACE_IMAGE, nullptr);

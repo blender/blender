@@ -10,8 +10,6 @@
 
 #include "UI_abstract_view.hh"
 
-using namespace blender;
-
 namespace blender::ui {
 
 void AbstractView::register_item(AbstractViewItem &item)

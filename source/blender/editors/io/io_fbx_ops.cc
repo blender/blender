@@ -137,7 +137,7 @@ static void ui_fbx_import_settings(const bContext *C, blender::ui::Layout &layou
   }
 
   {
-    PanelLayout panel = layout.panel(C, "FBX_import_anim", true);
+    blender::ui::PanelLayout panel = layout.panel(C, "FBX_import_anim", true);
     panel.header->use_property_split_set(false);
     panel.header->prop(ptr, "use_anim", UI_ITEM_NONE, "", ICON_NONE);
     panel.header->label(IFACE_("Animation"), ICON_NONE);

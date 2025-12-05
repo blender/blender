@@ -38,8 +38,7 @@
 #include "interface_intern.hh"
 #include "interface_regions_intern.hh"
 
-using blender::StringRef;
-using blender::StringRefNull;
+namespace blender::ui {
 
 /* -------------------------------------------------------------------- */
 /** \name Pie Menu
@@ -47,13 +46,13 @@ using blender::StringRefNull;
 
 struct uiPieMenu {
   uiBlock *pie_block; /* radial block of the pie menu (more could be added later) */
-  blender::ui::Layout *layout;
+  Layout *layout;
   int mx, my;
 };
 
 static uiBlock *ui_block_func_PIE(bContext * /*C*/, uiPopupBlockHandle *handle, void *arg_pie)
 {
-  uiBlock *block;
+  Block *block;
   uiPieMenu *pie = static_cast<uiPieMenu *>(arg_pie);
   int minwidth;
 
@@ -66,7 +65,7 @@ static uiBlock *ui_block_func_PIE(bContext * /*C*/, uiPopupBlockHandle *handle, 
     UI_block_region_set(block, handle->region);
   }
 
-  blender::ui::block_layout_resolve(block);
+  block_layout_resolve(block);
 
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_NUMSELECT);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
@@ -98,7 +97,7 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
 
   uiPieMenu *pie = MEM_callocN<uiPieMenu>(__func__);
 
-  pie->pie_block = UI_block_begin(C, nullptr, __func__, blender::ui::EmbossType::Emboss);
+  pie->pie_block = UI_block_begin(C, nullptr, __func__, EmbossType::Emboss);
   /* may be useful later to allow spawning pies
    * from old positions */
   // pie->pie_block->flag |= UI_BLOCK_POPUP_MEMORY;
@@ -131,15 +130,8 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
     win->pie_event_type_lock = event_type;
   }
 
-  pie->layout = &blender::ui::block_layout(pie->pie_block,
-                                           blender::ui::LayoutDirection::Vertical,
-                                           blender::ui::LayoutType::PieMenu,
-                                           0,
-                                           0,
-                                           200,
-                                           0,
-                                           0,
-                                           style);
+  pie->layout = &block_layout(
+      pie->pie_block, LayoutDirection::Vertical, LayoutType::PieMenu, 0, 0, 200, 0, 0, style);
 
   /* NOTE: #wmEvent.xy is where we started dragging in case of #KM_PRESS_DRAG. */
   pie->mx = event->xy[0];
@@ -185,7 +177,7 @@ void UI_pie_menu_end(bContext *C, uiPieMenu *pie)
   MEM_freeN(pie);
 }
 
-blender::ui::Layout *UI_pie_menu_layout(uiPieMenu *pie)
+Layout *UI_pie_menu_layout(uiPieMenu *pie)
 {
   return pie->layout;
 }
@@ -206,7 +198,7 @@ wmOperatorStatus UI_pie_menu_invoke(bContext *C, const char *idname, const wmEve
 
   uiPieMenu *pie = UI_pie_menu_begin(
       C, CTX_IFACE_(mt->translation_context, mt->label), ICON_NONE, event);
-  blender::ui::Layout *layout = UI_pie_menu_layout(pie);
+  Layout *layout = UI_pie_menu_layout(pie);
 
   UI_menutype_draw(C, mt, layout);
 
@@ -221,7 +213,7 @@ wmOperatorStatus UI_pie_menu_invoke(bContext *C, const char *idname, const wmEve
 /** \name Pie Menu Levels
  *
  * Pie menus can't contain more than 8 items (yet).
- * When using ##blender::ui::Layout::operator_enum, a "More" button is created that calls
+ * When using ##Layout::operator_enum, a "More" button is created that calls
  * a new pie menu if the enum has too many items. We call this a new "level".
  * Indirect recursion is used, so that a theoretically unlimited number of items is supported.
  *
@@ -237,11 +229,11 @@ struct PieMenuLevelData {
   int icon;                    /* parent pie icon, copied for level */
   int totitem;                 /* total count of *remaining* items */
 
-  /* needed for calling #blender::ui::Layout::operator_enum_items again for new level */
+  /* needed for calling #Layout::operator_enum_items again for new level */
   wmOperatorType *ot;
-  blender::StringRefNull propname;
+  StringRefNull propname;
   IDProperty *properties;
-  blender::wm::OpCallContext context;
+  wm::OpCallContext context;
   eUI_Item_Flag flag;
 };
 
@@ -255,7 +247,7 @@ static void ui_pie_menu_level_invoke(bContext *C, void *argN, void *arg2)
   wmWindow *win = CTX_wm_window(C);
 
   uiPieMenu *pie = UI_pie_menu_begin(C, IFACE_(lvl->title), lvl->icon, win->eventstate);
-  blender::ui::Layout &layout = UI_pie_menu_layout(pie)->menu_pie();
+  Layout &layout = UI_pie_menu_layout(pie)->menu_pie();
 
   PointerRNA ptr;
 
@@ -281,7 +273,7 @@ void ui_pie_menu_level_create(uiBlock *block,
                               IDProperty *properties,
                               const EnumPropertyItem *items,
                               int totitem,
-                              const blender::wm::OpCallContext context,
+                              const wm::OpCallContext context,
                               const eUI_Item_Flag flag)
 {
   const int totitem_parent = PIE_MAX_ITEMS - 1;
@@ -320,3 +312,5 @@ void ui_pie_menu_level_create(uiBlock *block,
 }
 
 /** \} */ /* Pie Menu Levels */
+
+}  // namespace blender::ui

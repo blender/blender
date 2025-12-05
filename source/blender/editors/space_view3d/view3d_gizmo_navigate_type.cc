@@ -137,7 +137,7 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
     GPU_matrix_ortho_set_z(-gz->scale_final, gz->scale_final);
   }
 
-  UI_draw_roundbox_corner_set(UI_CNR_ALL);
+  UI_draw_roundbox_corner_set(blender::ui::UI_CNR_ALL);
   GPU_polygon_smooth(false);
 
   /* Circle defining active area. */
@@ -151,7 +151,7 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
     rect.xmax = rad;
     rect.ymin = -rad;
     rect.ymax = rad;
-    UI_draw_roundbox_4fv(&rect, true, rad, gz->color_hi);
+    blender::ui::UI_draw_roundbox_4fv(&rect, true, rad, gz->color_hi);
     GPU_matrix_pop();
   }
 
@@ -175,7 +175,7 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
       is_highlight = true;
     }
 
-    UI_GetThemeColor3fv(TH_AXIS_X + axis, axis_color[axis]);
+    blender::ui::UI_GetThemeColor3fv(TH_AXIS_X + axis, axis_color[axis]);
     axis_color[axis][3] = 1.0f;
 
     /* Color that is full at front, but 50% view background when in back. */
@@ -241,7 +241,7 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
       rect.xmax = rad;
       rect.ymin = -rad;
       rect.ymax = rad;
-      UI_draw_roundbox_4fv_ex(
+      blender::ui::UI_draw_roundbox_4fv_ex(
           &rect, inner_color, nullptr, 0.0f, outline_color, AXIS_RING_WIDTH, rad);
       GPU_matrix_pop();
     }

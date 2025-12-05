@@ -1274,7 +1274,7 @@ static void draw_context_panel(const bContext &C, ui::Layout &layout)
 {
   SpaceSpreadsheet &sspreadsheet = *CTX_wm_space_spreadsheet(&C);
 
-  PanelLayout context_panel = layout.panel(&C, "context", false);
+  ui::PanelLayout context_panel = layout.panel(&C, "context", false);
   context_panel.header->emboss_set(ui::EmbossType::None);
   if (ID *root_id = get_current_id(&sspreadsheet)) {
     std::string label = BKE_id_name(*root_id);

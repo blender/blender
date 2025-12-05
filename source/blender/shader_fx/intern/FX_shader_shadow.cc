@@ -138,7 +138,7 @@ static void wave_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.active_set(RNA_boolean_get(ptr, "use_wave"));
 
-  layout.prop(ptr, "orientation", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "orientation", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   layout.prop(ptr, "amplitude", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout.prop(ptr, "period", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout.prop(ptr, "phase", UI_ITEM_NONE, std::nullopt, ICON_NONE);

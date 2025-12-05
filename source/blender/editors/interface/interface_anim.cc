@@ -40,6 +40,8 @@
 
 #include "interface_intern.hh"
 
+namespace blender::ui {
+
 static FCurve *ui_but_get_fcurve(
     uiBut *but, AnimData **adt, bAction **action, bool *r_driven, bool *r_special)
 {
@@ -97,7 +99,7 @@ void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
     cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
   }
 
-  if (blender::animrig::fcurve_frame_has_keyframe(fcu, cfra)) {
+  if (animrig::fcurve_frame_has_keyframe(fcu, cfra)) {
     but->flag |= UI_BUT_ANIMATED_KEY;
   }
 
@@ -121,7 +123,7 @@ void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
   }
 }
 
-static uiBut *ui_but_anim_decorate_find_attached_button(blender::ui::ButtonDecorator *but)
+static uiBut *ui_but_anim_decorate_find_attached_button(ButtonDecorator *but)
 {
   uiBut *but_iter = nullptr;
 
@@ -147,7 +149,7 @@ static uiBut *ui_but_anim_decorate_find_attached_button(blender::ui::ButtonDecor
   return nullptr;
 }
 
-void ui_but_anim_decorate_update_from_flag(blender::ui::ButtonDecorator *but)
+void ui_but_anim_decorate_update_from_flag(ButtonDecorator *but)
 {
   if (!but->decorated_rnapoin.data || !but->decorated_rnaprop) {
     /* Nothing to do. */
@@ -315,34 +317,27 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
 
 void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 {
-  blender::animrig::autokeyframe_property(
-      C, scene, &but->rnapoin, but->rnaprop, but->rnaindex, cfra, true);
+  animrig::autokeyframe_property(C, scene, &but->rnapoin, but->rnaprop, but->rnaindex, cfra, true);
 }
 
 void ui_but_anim_copy_driver(bContext *C)
 {
   /* this operator calls UI_context_active_but_prop_get */
-  WM_operator_name_call(C,
-                        "ANIM_OT_copy_driver_button",
-                        blender::wm::OpCallContext::InvokeDefault,
-                        nullptr,
-                        nullptr);
+  WM_operator_name_call(
+      C, "ANIM_OT_copy_driver_button", wm::OpCallContext::InvokeDefault, nullptr, nullptr);
 }
 
 void ui_but_anim_paste_driver(bContext *C)
 {
   /* this operator calls UI_context_active_but_prop_get */
-  WM_operator_name_call(C,
-                        "ANIM_OT_paste_driver_button",
-                        blender::wm::OpCallContext::InvokeDefault,
-                        nullptr,
-                        nullptr);
+  WM_operator_name_call(
+      C, "ANIM_OT_paste_driver_button", wm::OpCallContext::InvokeDefault, nullptr, nullptr);
 }
 
 void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void * /*arg_dummy*/)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  auto *but_decorate = static_cast<blender::ui::ButtonDecorator *>(arg_but);
+  auto *but_decorate = static_cast<ButtonDecorator *>(arg_but);
   if (!but_decorate->toggle_keyframe_on_click) {
     return;
   }
@@ -362,8 +357,7 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void * /*arg_dummy*/)
     wmOperatorType *ot = WM_operatortype_find("ANIM_OT_keyframe_delete_button", false);
     WM_operator_properties_create_ptr(&props_ptr, ot);
     RNA_boolean_set(&props_ptr, "all", but_anim->rnaindex == -1);
-    WM_operator_name_call_ptr(
-        C, ot, blender::wm::OpCallContext::InvokeDefault, &props_ptr, nullptr);
+    WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &props_ptr, nullptr);
     WM_operator_properties_free(&props_ptr);
   }
   else {
@@ -371,11 +365,12 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void * /*arg_dummy*/)
     wmOperatorType *ot = WM_operatortype_find("ANIM_OT_keyframe_insert_button", false);
     WM_operator_properties_create_ptr(&props_ptr, ot);
     RNA_boolean_set(&props_ptr, "all", but_anim->rnaindex == -1);
-    WM_operator_name_call_ptr(
-        C, ot, blender::wm::OpCallContext::InvokeDefault, &props_ptr, nullptr);
+    WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &props_ptr, nullptr);
     WM_operator_properties_free(&props_ptr);
   }
 
   but_anim->flag &= ~UI_BUT_ACTIVE_OVERRIDE;
   wm->op_undo_depth--;
 }
+
+}  // namespace blender::ui

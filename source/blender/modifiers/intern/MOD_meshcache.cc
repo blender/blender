@@ -298,7 +298,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout.prop(ptr, "cache_format", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout.prop(ptr, "filepath", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  layout.prop(ptr, "factor", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "factor", blender::ui::UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
   layout.prop(ptr, "deform_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout.prop(ptr, "interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
@@ -312,11 +312,11 @@ static void time_remapping_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout.prop(ptr, "time_mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "time_mode", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
-  layout.prop(ptr, "play_mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "play_mode", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   if (RNA_enum_get(ptr, "play_mode") == MOD_MESHCACHE_PLAY_CFEA) {
     layout.prop(ptr, "frame_start", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -349,7 +349,8 @@ static void axis_mapping_panel_draw(const bContext * /*C*/, Panel *panel)
   col.prop(ptr, "forward_axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col.prop(ptr, "up_axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+  const blender::ui::eUI_Item_Flag toggles_flag = blender::ui::UI_ITEM_R_TOGGLE |
+                                                  blender::ui::UI_ITEM_R_FORCE_BLANK_DECORATE;
   PropertyRNA *prop = RNA_struct_find_property(ptr, "flip_axis");
   blender::ui::Layout &row = col.row(true, IFACE_("Flip Axis"));
   row.prop(ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);

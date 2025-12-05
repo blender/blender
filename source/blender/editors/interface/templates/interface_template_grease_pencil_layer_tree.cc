@@ -30,7 +30,8 @@
 
 #include <fmt/format.h>
 
-namespace blender::ui::greasepencil {
+namespace blender::ui {
+namespace greasepencil {
 
 using namespace blender::bke::greasepencil;
 
@@ -548,13 +549,10 @@ void LayerTreeView::build_tree()
     this->build_tree_node_recursive(*this, node->wrap());
   }
 }
+}  // namespace greasepencil
 
-}  // namespace blender::ui::greasepencil
-
-void uiTemplateGreasePencilLayerTree(blender::ui::Layout *layout, bContext *C)
+void uiTemplateGreasePencilLayerTree(Layout *layout, bContext *C)
 {
-  using namespace blender;
-
   GreasePencil *grease_pencil = blender::ed::greasepencil::from_context(*C);
 
   if (grease_pencil == nullptr) {
@@ -563,12 +561,14 @@ void uiTemplateGreasePencilLayerTree(blender::ui::Layout *layout, bContext *C)
 
   uiBlock *block = layout->block();
 
-  ui::AbstractTreeView *tree_view = UI_block_add_view(
+  AbstractTreeView *tree_view = UI_block_add_view(
       *block,
       "Grease Pencil Layer Tree View",
-      std::make_unique<blender::ui::greasepencil::LayerTreeView>(*grease_pencil));
+      std::make_unique<greasepencil::LayerTreeView>(*grease_pencil));
   tree_view->set_context_menu_title("Grease Pencil Layer");
   tree_view->set_default_rows(6);
 
-  ui::TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
+  TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
 }
+
+}  // namespace blender::ui
