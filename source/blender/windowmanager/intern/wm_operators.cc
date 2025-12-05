@@ -1148,7 +1148,7 @@ struct EnumSearchMenu {
 };
 
 /** Generic enum search invoke popup. */
-static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
+static blender::ui::Block *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
 {
   EnumSearchMenu *search_menu = static_cast<EnumSearchMenu *>(arg);
   wmWindow *win = CTX_wm_window(C);
@@ -1159,7 +1159,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
   const int height = blender::ui::searchbox_size_y();
   static char search[256] = "";
 
-  uiBlock *block = block_begin(C, region, "_popup", blender::ui::EmbossType::Emboss);
+  blender::ui::Block *block = block_begin(C, region, "_popup", blender::ui::EmbossType::Emboss);
   block_flag_enable(block,
                     blender::ui::BLOCK_LOOP | blender::ui::BLOCK_MOVEMOUSE_QUIT |
                         blender::ui::BLOCK_SEARCH_MENU);
@@ -1428,13 +1428,13 @@ static void wm_block_redo_cancel_cb(bContext *C, void *arg_op)
   }
 }
 
-static uiBlock *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
+static blender::ui::Block *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
 {
   wmOperator *op = static_cast<wmOperator *>(arg_op);
   const uiStyle *style = blender::ui::style_get_dpi();
   int width = 15 * UI_UNIT_X;
 
-  uiBlock *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  blender::ui::Block *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
   block_flag_disable(block, blender::ui::BLOCK_LOOP);
   block_theme_style_set(block, blender::ui::BLOCK_THEME_STYLE_REGULAR);
 
@@ -1504,7 +1504,7 @@ static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
     MEM_delete(data);
   }
 
-  uiBlock *block = static_cast<uiBlock *>(arg2);
+  blender::ui::Block *block = static_cast<blender::ui::Block *>(arg2);
   /* Explicitly set UI_RETURN_OK flag, otherwise the menu might be canceled
    * in case WM_operator_call_ex exits/reloads the current file (#49199). */
 
@@ -1524,7 +1524,7 @@ static void wm_operator_ui_popup_cancel(bContext *C, void *user_data);
 static void dialog_cancel_cb(bContext *C, void *arg1, void *arg2)
 {
   wm_operator_ui_popup_cancel(C, arg1);
-  uiBlock *block = static_cast<uiBlock *>(arg2);
+  blender::ui::Block *block = static_cast<blender::ui::Block *>(arg2);
   popup_menu_retval_set(block, blender::ui::UI_RETURN_CANCEL, true);
   wmWindow *win = CTX_wm_window(C);
   popup_block_close(C, win, block);
@@ -1533,7 +1533,7 @@ static void dialog_cancel_cb(bContext *C, void *arg1, void *arg2)
 /**
  * Dialogs are popups that require user verification (click OK) before exec.
  */
-static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_data)
+static blender::ui::Block *wm_block_dialog_create(bContext *C, ARegion *region, void *user_data)
 {
   wmOpPopUp *data = static_cast<wmOpPopUp *>(user_data);
   wmOperator *op = data->op;
@@ -1541,7 +1541,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
   const bool small = data->size == WM_POPUP_SIZE_SMALL;
   const short icon_size = (small ? 32 : 40) * UI_SCALE_FAC;
 
-  uiBlock *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  blender::ui::Block *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
   block_flag_disable(block, blender::ui::BLOCK_LOOP);
   block_theme_style_set(block, blender::ui::BLOCK_THEME_STYLE_POPUP);
   popup_dummy_panel_set(region, block);
@@ -1636,7 +1636,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
   if (!block_has_active_default_button(layout.block())) {
     /* New column so as not to interfere with custom layouts, see: #26436. */
     blender::ui::Layout &col = layout.column(false);
-    uiBlock *col_block = col.block();
+    blender::ui::Block *col_block = col.block();
     uiBut *confirm_but;
     uiBut *cancel_but;
 
@@ -1707,13 +1707,13 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
   return block;
 }
 
-static uiBlock *wm_operator_ui_create(bContext *C, ARegion *region, void *user_data)
+static blender::ui::Block *wm_operator_ui_create(bContext *C, ARegion *region, void *user_data)
 {
   wmOpPopUp *data = static_cast<wmOpPopUp *>(user_data);
   wmOperator *op = data->op;
   const uiStyle *style = blender::ui::style_get_dpi();
 
-  uiBlock *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  blender::ui::Block *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
   block_flag_disable(block, blender::ui::BLOCK_LOOP);
   block_flag_enable(block, blender::ui::BLOCK_KEEP_OPEN | blender::ui::BLOCK_MOVEMOUSE_QUIT);
   block_theme_style_set(block, blender::ui::BLOCK_THEME_STYLE_REGULAR);
@@ -2036,11 +2036,11 @@ struct SearchPopupInit_Data {
 
 static char g_search_text[256] = "";
 
-static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdata)
+static blender::ui::Block *wm_block_search_menu(bContext *C, ARegion *region, void *userdata)
 {
   const SearchPopupInit_Data *init_data = static_cast<const SearchPopupInit_Data *>(userdata);
 
-  uiBlock *block = block_begin(C, region, "_popup", blender::ui::EmbossType::Emboss);
+  blender::ui::Block *block = block_begin(C, region, "_popup", blender::ui::EmbossType::Emboss);
   block_flag_enable(block,
                     blender::ui::BLOCK_LOOP | blender::ui::BLOCK_MOVEMOUSE_QUIT |
                         blender::ui::BLOCK_SEARCH_MENU);

@@ -296,18 +296,18 @@ Array<bNode *> tree_draw_order_calc_nodes_reversed(bNodeTree &ntree)
   return nodes;
 }
 
-static Array<uiBlock *> node_uiblocks_init(const bContext &C, const Span<bNode *> nodes)
+static Array<ui::Block *> node_uiblocks_init(const bContext &C, const Span<bNode *> nodes)
 {
-  Array<uiBlock *> blocks(nodes.size());
+  Array<ui::Block *> blocks(nodes.size());
 
-  /* Add node uiBlocks in drawing order - prevents events going to overlapping nodes. */
+  /* Add node ui::Blocks in drawing order - prevents events going to overlapping nodes. */
   Scene *scene = CTX_data_scene(&C);
   wmWindow *window = CTX_wm_window(&C);
   ARegion *region = CTX_wm_region(&C);
   for (const int i : nodes.index_range()) {
     const bNode &node = *nodes[i];
     std::string block_name = "node_" + std::string(node.name);
-    uiBlock *block = block_begin(
+    ui::Block *block = block_begin(
         &C, scene, window, region, std::move(block_name), ui::EmbossType::Emboss);
     blocks[node.index()] = block;
     /* This cancels events for background nodes. */
@@ -353,7 +353,7 @@ static bool node_update_basis_buttons(const bContext &C,
                                       bNodeTree &ntree,
                                       bNode &node,
                                       blender::FunctionRef<nodes::DrawNodeLayoutFn> draw_buttons,
-                                      uiBlock &block,
+                                      ui::Block &block,
                                       int &dy)
 {
   /* Buttons rect? */
@@ -478,7 +478,7 @@ static bool node_update_basis_socket(TreeDrawContext &tree_draw_ctx,
                                      const char *panel_label,
                                      bNodeSocket *input_socket,
                                      bNodeSocket *output_socket,
-                                     uiBlock &block,
+                                     ui::Block &block,
                                      const int &locx,
                                      int &locy)
 {
@@ -1089,7 +1089,7 @@ static void node_update_basis_from_declaration(TreeDrawContext &tree_draw_ctx,
                                                const bContext &C,
                                                bNodeTree &ntree,
                                                bNode &node,
-                                               uiBlock &block,
+                                               ui::Block &block,
                                                const int locx,
                                                int &locy)
 {
@@ -1227,7 +1227,7 @@ static void node_update_basis_from_socket_lists(TreeDrawContext &tree_draw_ctx,
                                                 const bContext &C,
                                                 bNodeTree &ntree,
                                                 bNode &node,
-                                                uiBlock &block,
+                                                ui::Block &block,
                                                 const int locx,
                                                 int &locy)
 {
@@ -1288,7 +1288,7 @@ static void node_update_basis(const bContext &C,
                               TreeDrawContext &tree_draw_ctx,
                               bNodeTree &ntree,
                               bNode &node,
-                              uiBlock &block)
+                              ui::Block &block)
 {
   /* Round the node origin because text contents are always pixel-aligned. */
   const float2 loc = math::round(node_to_view(node.location));
@@ -1322,7 +1322,7 @@ static void node_update_basis(const bContext &C,
 /**
  * Based on settings in node, sets drawing rect info.
  */
-static void node_update_collapsed(bNode &node, uiBlock &block)
+static void node_update_collapsed(bNode &node, ui::Block &block)
 {
   int totin = 0, totout = 0;
 
@@ -1448,7 +1448,7 @@ static void node_draw_mute_line(const bContext &C,
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static void node_socket_tooltip_set(uiBlock &block,
+static void node_socket_tooltip_set(ui::Block &block,
                                     const int socket_index_in_tree,
                                     const float2 location,
                                     const float2 size)
@@ -1825,7 +1825,7 @@ static void node_draw_socket(const bContext &C,
                              const bNodeTree &ntree,
                              const bNode &node,
                              PointerRNA &node_ptr,
-                             uiBlock &block,
+                             ui::Block &block,
                              const bNodeSocket &sock,
                              const float outline_thickness,
                              const bool selected,
@@ -1858,7 +1858,7 @@ static void node_draw_socket(const bContext &C,
 }
 
 static void node_draw_sockets(const bContext &C,
-                              uiBlock &block,
+                              ui::Block &block,
                               const SpaceNode &snode,
                               const bNodeTree &ntree,
                               const bNode &node)
@@ -1983,7 +1983,7 @@ static bool panel_has_only_inactive_inputs(const bNode &node,
   return true;
 }
 
-static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block)
+static void node_draw_panels(bNodeTree &ntree, const bNode &node, ui::Block &block)
 {
   BLI_assert(is_node_panels_supported(node));
   const rctf &draw_bounds = node.runtime->draw_bounds;
@@ -2140,7 +2140,7 @@ static std::string node_errors_tooltip_fn(const Span<geo_log::NodeWarning> warni
 
 #define NODE_HEADER_ICON_SIZE (0.8f * U.widget_unit)
 
-static uiBut *add_error_message_button(uiBlock &block,
+static uiBut *add_error_message_button(ui::Block &block,
                                        const rctf &rect,
                                        const int icon,
                                        float &icon_offset,
@@ -2166,7 +2166,7 @@ static uiBut *add_error_message_button(uiBlock &block,
 static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
                                           const bNodeTree &ntree,
                                           const bNode &node,
-                                          uiBlock &block,
+                                          ui::Block &block,
                                           const rctf &rect,
                                           float &icon_offset)
 {
@@ -2610,7 +2610,7 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(const bContext &C,
 }
 
 static void node_draw_extra_info_row(const bNode &node,
-                                     uiBlock &block,
+                                     ui::Block &block,
                                      const rctf &rect,
                                      const int row,
                                      const NodeExtraInfoRow &extra_info_row)
@@ -2706,7 +2706,7 @@ static void node_draw_extra_info_panel(const bContext &C,
                                        const SpaceNode &snode,
                                        const bNode &node,
                                        ImBuf *preview,
-                                       uiBlock &block)
+                                       ui::Block &block)
 {
   const Scene *scene = CTX_data_scene(&C);
   if (!(snode.overlay.flag & SN_OVERLAY_SHOW_OVERLAYS)) {
@@ -2906,7 +2906,7 @@ static void node_draw_basis(const bContext &C,
                             const SpaceNode &snode,
                             bNodeTree &ntree,
                             const bNode &node,
-                            uiBlock &block,
+                            ui::Block &block,
                             bNodeInstanceKey key)
 {
   const float iconbutw = NODE_HEADER_ICON_SIZE;
@@ -3287,7 +3287,7 @@ static void node_draw_collapsed(const bContext &C,
                                 const SpaceNode &snode,
                                 bNodeTree &ntree,
                                 bNode &node,
-                                uiBlock &block)
+                                ui::Block &block)
 {
   const rctf &rct = node.runtime->draw_bounds;
   float centy = BLI_rctf_cent_y(&rct);
@@ -3646,7 +3646,7 @@ static void node_update_nodetree(const bContext &C,
                                  TreeDrawContext &tree_draw_ctx,
                                  bNodeTree &ntree,
                                  Span<bNode *> nodes,
-                                 Span<uiBlock *> blocks)
+                                 Span<ui::Block *> blocks)
 {
   /* Make sure socket "used" tags are correct, for displaying value buttons. */
   SpaceNode *snode = CTX_wm_space_node(&C);
@@ -3655,7 +3655,7 @@ static void node_update_nodetree(const bContext &C,
 
   for (const int i : nodes.index_range()) {
     bNode &node = *nodes[i];
-    uiBlock &block = *blocks[node.index()];
+    ui::Block &block = *blocks[node.index()];
     if (node.is_frame()) {
       /* Frame sizes are calculated after all other nodes have calculating their #draw_bounds. */
       continue;
@@ -3828,7 +3828,7 @@ static void frame_node_draw_overlay(const bContext &C,
                                     const ARegion &region,
                                     const SpaceNode &snode,
                                     const bNode &node,
-                                    uiBlock &block)
+                                    ui::Block &block)
 {
   /* Skip if out of view. */
   if (BLI_rctf_isect(&node.runtime->draw_bounds, &region.v2d.cur, nullptr) == false) {
@@ -3968,7 +3968,7 @@ static void reroute_node_draw_body(const bContext &C,
                                    const SpaceNode &snode,
                                    const bNodeTree &ntree,
                                    const bNode &node,
-                                   uiBlock &block,
+                                   ui::Block &block,
                                    const bool selected)
 {
   BLI_assert(node.is_reroute());
@@ -4001,7 +4001,7 @@ static void reroute_node_draw_body(const bContext &C,
 static void reroute_node_draw_label(TreeDrawContext &tree_draw_ctx,
                                     const SpaceNode &snode,
                                     const bNode &node,
-                                    uiBlock &block)
+                                    ui::Block &block)
 {
   const bool has_label = node.label[0] != '\0';
   const bool use_auto_label = !has_label && (snode.overlay.flag & SN_OVERLAY_SHOW_OVERLAYS) &&
@@ -4041,7 +4041,7 @@ static void reroute_node_draw(const bContext &C,
                               const SpaceNode &snode,
                               bNodeTree &ntree,
                               const bNode &node,
-                              uiBlock &block)
+                              ui::Block &block)
 {
   const rctf &rct = node.runtime->draw_bounds;
   const View2D &v2d = region.v2d;
@@ -4084,7 +4084,7 @@ static void node_draw(const bContext &C,
                       const SpaceNode &snode,
                       bNodeTree &ntree,
                       bNode &node,
-                      uiBlock &block,
+                      ui::Block &block,
                       bNodeInstanceKey key)
 {
   if (node.is_frame()) {
@@ -4360,7 +4360,7 @@ static void draw_frame_overlays(const bContext &C,
                                 const ARegion &region,
                                 const SpaceNode &snode,
                                 const bNodeTree &ntree,
-                                Span<uiBlock *> blocks)
+                                Span<ui::Block *> blocks)
 {
   for (const bNode *node : ntree.nodes_by_type("NodeFrame")) {
     frame_node_draw_overlay(C, tree_draw_ctx, region, snode, *node, *blocks[node->index()]);
@@ -4458,7 +4458,7 @@ static void draw_link_errors(const bContext &C,
                              SpaceNode &snode,
                              const bNodeLink &link,
                              const Span<bke::NodeLinkError> errors,
-                             uiBlock &invalid_links_block)
+                             ui::Block &invalid_links_block)
 {
   const ARegion &region = *CTX_wm_region(&C);
   if (errors.is_empty()) {
@@ -4519,7 +4519,7 @@ static void draw_link_errors(const bContext &C,
       but, [tooltip = std::move(error_tooltip)](const uiBut * /*but*/) { return tooltip; });
 }
 
-static uiBlock &invalid_links_uiblock_init(const bContext &C)
+static ui::Block &invalid_links_uiblock_init(const bContext &C)
 {
   Scene *scene = CTX_data_scene(&C);
   wmWindow *window = CTX_wm_window(&C);
@@ -4535,7 +4535,7 @@ static void node_draw_nodetree(const bContext &C,
                                SpaceNode &snode,
                                bNodeTree &ntree,
                                Span<bNode *> nodes,
-                               Span<uiBlock *> blocks,
+                               Span<ui::Block *> blocks,
                                bNodeInstanceKey parent_key)
 {
 #ifdef USE_DRAW_TOT_UPDATE
@@ -4585,7 +4585,7 @@ static void node_draw_nodetree(const bContext &C,
     node_draw(C, tree_draw_ctx, region, snode, ntree, node, *blocks[node.index()], key);
   }
 
-  uiBlock &invalid_links_block = invalid_links_uiblock_init(C);
+  ui::Block &invalid_links_block = invalid_links_uiblock_init(C);
   for (auto &&item : ntree.runtime->link_errors.items()) {
     if (const bNodeLink *link = item.key.try_find(ntree)) {
       if (!bke::node_link_is_hidden(*link)) {
@@ -4611,7 +4611,7 @@ static void draw_tree_path(const bContext &C, ARegion &region)
   const int y = region.winy - UI_UNIT_Y * 0.6f;
   const int width = BLI_rcti_size_x(rect) - 2 * padding_x;
 
-  uiBlock *block = block_begin(&C, &region, __func__, ui::EmbossType::None);
+  ui::Block *block = block_begin(&C, &region, __func__, ui::EmbossType::None);
   ui::Layout &layout = ui::block_layout(
       block, ui::LayoutDirection::Vertical, ui::LayoutType::Panel, x, y, width, 1, 0, style);
 
@@ -4669,7 +4669,7 @@ static void draw_nodetree(const bContext &C,
 
   Array<bNode *> nodes = tree_draw_order_calc_nodes(ntree);
 
-  Array<uiBlock *> blocks = node_uiblocks_init(C, nodes);
+  Array<ui::Block *> blocks = node_uiblocks_init(C, nodes);
 
   bke::ComputeContextCache compute_context_cache;
 

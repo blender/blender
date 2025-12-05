@@ -371,7 +371,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
   }
 
   /* third pass: widgets */
-  uiBlock *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  blender::ui::Block *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
   y = (CHANNEL_FIRST);
 
   /* get RNA properties (once) */

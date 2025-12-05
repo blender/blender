@@ -667,13 +667,13 @@ void FONT_OT_text_paste_from_file(wmOperatorType *ot)
 
 static void text_insert_unicode_cancel(bContext *C, void *arg_block, void * /*arg2*/)
 {
-  uiBlock *block = static_cast<uiBlock *>(arg_block);
+  blender::ui::Block *block = static_cast<blender::ui::Block *>(arg_block);
   popup_block_close(C, CTX_wm_window(C), block);
 }
 
 static void text_insert_unicode_confirm(bContext *C, void *arg_block, void *arg_string)
 {
-  uiBlock *block = static_cast<uiBlock *>(arg_block);
+  blender::ui::Block *block = static_cast<blender::ui::Block *>(arg_block);
   char *edit_string = static_cast<char *>(arg_string);
 
   if (edit_string[0] == 0) {
@@ -698,9 +698,11 @@ static void text_insert_unicode_confirm(bContext *C, void *arg_block, void *arg_
   }
 }
 
-static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, void *arg_string)
+static blender::ui::Block *wm_block_insert_unicode_create(bContext *C,
+                                                          ARegion *region,
+                                                          void *arg_string)
 {
-  uiBlock *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  blender::ui::Block *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
   char *edit_string = static_cast<char *>(arg_string);
 
   blender::ui::block_theme_style_set(block, blender::ui::BLOCK_THEME_STYLE_POPUP);

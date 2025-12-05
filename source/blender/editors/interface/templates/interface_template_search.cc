@@ -39,7 +39,7 @@ static void template_search_exec_fn(bContext *C, void *arg_template, void *item)
   RNA_property_update(C, &coll_search->target_ptr, coll_search->target_prop);
 }
 
-static uiBlock *template_search_menu(bContext *C, ARegion *region, void *arg_template)
+static Block *template_search_menu(bContext *C, ARegion *region, void *arg_template)
 {
   static TemplateSearch template_search;
 
@@ -62,7 +62,7 @@ static uiBlock *template_search_menu(bContext *C, ARegion *region, void *arg_tem
 
 static void template_search_add_button_searchmenu(const bContext *C,
                                                   Layout *layout,
-                                                  uiBlock *block,
+                                                  Block *block,
                                                   TemplateSearch &template_search,
                                                   const bool editable,
                                                   const bool live_icon)
@@ -85,7 +85,7 @@ static void template_search_add_button_searchmenu(const bContext *C,
                                   but_func_argN_copy<TemplateSearch>);
 }
 
-static void template_search_add_button_name(uiBlock *block,
+static void template_search_add_button_name(Block *block,
                                             PointerRNA *active_ptr,
                                             const StructRNA *type)
 {
@@ -113,7 +113,7 @@ static void template_search_add_button_name(uiBlock *block,
 }
 
 static void template_search_add_button_operator(
-    uiBlock *block,
+    Block *block,
     const char *const operator_name,
     const wm::OpCallContext opcontext,
     const int icon,
@@ -167,7 +167,7 @@ static void template_search_buttons(const bContext *C,
                                     const char *unlinkop,
                                     const std::optional<StringRef> text)
 {
-  uiBlock *block = layout.block();
+  Block *block = layout.block();
   uiRNACollectionSearch *search_data = &template_search.search_data;
   const StructRNA *type = RNA_property_pointer_type(&search_data->target_ptr,
                                                     search_data->target_prop);

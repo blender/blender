@@ -231,7 +231,7 @@ void node_geometry_add_attribute_search_button(const bContext & /*C*/,
                                                ui::Layout &layout,
                                                const StringRef placeholder)
 {
-  uiBlock *block = layout.block();
+  ui::Block *block = layout.block();
   uiBut *but = uiDefIconTextButR(block,
                                  ui::ButType::SearchMenu,
                                  ICON_NONE,

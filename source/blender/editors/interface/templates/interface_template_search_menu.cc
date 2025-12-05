@@ -126,7 +126,7 @@ struct MenuSearch_Data {
   /** Use for context menu, to fake a button to create a context menu. */
   struct {
     uiBut but;
-    uiBlock block;
+    Block block;
   } context_menu_data;
 };
 
@@ -658,7 +658,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
         continue;
       }
 
-      uiBlock *block = block_begin(C, region, __func__, EmbossType::Emboss);
+      Block *block = block_begin(C, region, __func__, EmbossType::Emboss);
       Layout &layout = block_layout(block,
                                     LayoutDirection::Vertical,
                                     LayoutType::Menu,
@@ -764,7 +764,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
           /* A non 'MenuType' menu button. */
 
           /* +1 to avoid overlap with the current 'block'. */
-          uiBlock *sub_block = block_begin(C, region, __func__ + 1, EmbossType::Emboss);
+          Block *sub_block = block_begin(C, region, __func__ + 1, EmbossType::Emboss);
           Layout &sub_layout = block_layout(sub_block,
                                             LayoutDirection::Vertical,
                                             LayoutType::Menu,
@@ -1023,9 +1023,9 @@ static bool ui_search_menu_create_context_menu(bContext *C,
   bool has_menu = false;
 
   new (&data->context_menu_data.but) uiBut();
-  new (&data->context_menu_data.block) uiBlock();
+  new (&data->context_menu_data.block) Block();
   uiBut *but = &data->context_menu_data.but;
-  uiBlock *block = &data->context_menu_data.block;
+  Block *block = &data->context_menu_data.block;
 
   but->block = block;
 
@@ -1064,9 +1064,9 @@ static ARegion *ui_search_menu_create_tooltip(
   MenuSearch_Item *item = (MenuSearch_Item *)active;
 
   new (&data->context_menu_data.but) uiBut();
-  new (&data->context_menu_data.block) uiBlock();
+  new (&data->context_menu_data.block) Block();
   uiBut *but = &data->context_menu_data.but;
-  uiBlock *block = &data->context_menu_data.block;
+  Block *block = &data->context_menu_data.block;
   unit_m4(block->winmat);
   block->aspect = 1;
 
@@ -1139,7 +1139,7 @@ void button_func_menu_search(uiBut *but, const char *single_menu_idname)
 
 void uiTemplateMenuSearch(Layout *layout)
 {
-  uiBlock *block;
+  Block *block;
   uiBut *but;
   static char search[256] = "";
 

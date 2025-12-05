@@ -68,7 +68,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
     const eButLabelAlign label_align,
     int layout_flags)
 {
-  uiBlock *block = layout.block();
+  Block *block = layout.block();
   eAutoPropButsReturn return_info = eAutoPropButsReturn(0);
 
   if (!op->properties) {
@@ -285,7 +285,7 @@ void uiTemplateOperatorPropertyButs(
 void template_operator_redo_properties(Layout *layout, const bContext *C)
 {
   wmOperator *op = WM_operator_last_redo(C);
-  uiBlock *block = layout->block();
+  Block *block = layout->block();
 
   if (op == nullptr) {
     return;
@@ -475,7 +475,7 @@ void template_collection_exporters(Layout *layout, bContext *C)
     return;
   }
 
-  /* Assign temporary operator to uiBlock, which takes ownership. */
+  /* Assign temporary operator to Block, which takes ownership. */
   PointerRNA properties = RNA_pointer_create_discrete(
       &collection->id, ot->srna, data->export_properties);
   wmOperator *op = minimal_operator_create(ot, &properties);

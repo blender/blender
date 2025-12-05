@@ -77,7 +77,7 @@
 void ED_file_path_button(bScreen *screen,
                          const SpaceFile *sfile,
                          FileSelectParams *params,
-                         uiBlock *block)
+                         blender::ui::Block *block)
 {
   uiBut *but;
 
@@ -456,7 +456,7 @@ static void file_but_tooltip_func_set(const SpaceFile *sfile, const FileDirEntry
 }
 
 static uiBut *file_add_icon_but(const SpaceFile *sfile,
-                                uiBlock *block,
+                                blender::ui::Block *block,
                                 const char * /*path*/,
                                 const FileDirEntry *file,
                                 const rcti *tile_draw_rect,
@@ -508,7 +508,7 @@ static uiBut *file_add_icon_but(const SpaceFile *sfile,
   return but;
 }
 
-static uiBut *file_add_overlay_icon_but(uiBlock *block, int pos_x, int pos_y, int icon)
+static uiBut *file_add_overlay_icon_but(blender::ui::Block *block, int pos_x, int pos_y, int icon)
 {
   uiBut *but = uiDefIconBut(block,
                             blender::ui::ButType::Label,
@@ -679,7 +679,7 @@ static std::tuple<int, int, float> preview_image_scaled_dimensions_get(const int
 }
 
 static void file_add_preview_drag_but(const SpaceFile *sfile,
-                                      uiBlock *block,
+                                      blender::ui::Block *block,
                                       FileLayout *layout,
                                       const FileDirEntry *file,
                                       const char *path,
@@ -1329,7 +1329,7 @@ void file_draw_list(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
   FileList *files = sfile->files;
   FileDirEntry *file;
-  uiBlock *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  blender::ui::Block *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
   int numfiles;
   int numfiles_layout;
   int offset;
@@ -1682,7 +1682,7 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
     file_draw_string_multiline(
         sx + UI_UNIT_X, sy, suggestion, width - UI_UNIT_X, line_height, text_col, nullptr, &sy);
 
-    uiBlock *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+    blender::ui::Block *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
     wmOperatorType *ot = WM_operatortype_find("SCREEN_OT_userpref_show", false);
     uiBut *but = uiDefIconTextButO_ptr(block,
                                        blender::ui::ButType::But,

@@ -427,11 +427,11 @@ static void link_drag_search_free_fn(void *arg)
   delete storage;
 }
 
-static uiBlock *create_search_popup_block(bContext *C, ARegion *region, void *arg_op)
+static ui::Block *create_search_popup_block(bContext *C, ARegion *region, void *arg_op)
 {
   LinkDragSearchStorage &storage = *(LinkDragSearchStorage *)arg_op;
 
-  uiBlock *block = block_begin(C, region, "_popup", ui::EmbossType::Emboss);
+  ui::Block *block = block_begin(C, region, "_popup", ui::EmbossType::Emboss);
   block_flag_enable(block, ui::BLOCK_LOOP | ui::BLOCK_MOVEMOUSE_QUIT | ui::BLOCK_SEARCH_MENU);
   block_theme_style_set(block, ui::BLOCK_THEME_STYLE_POPUP);
 

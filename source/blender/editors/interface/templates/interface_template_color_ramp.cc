@@ -66,7 +66,7 @@ static void colorband_distribute(bContext *C, ColorBand *coba, bool evenly)
   }
 }
 
-static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
+static Block *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
 {
   RNAUpdateCb &cb = *static_cast<RNAUpdateCb *>(cb_v);
   const uiStyle *style = style_get_dpi();
@@ -75,7 +75,7 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
   short yco = 0;
   const short menuwidth = 10 * UI_UNIT_X;
 
-  uiBlock *block = block_begin(C, region, __func__, EmbossType::Pulldown);
+  Block *block = block_begin(C, region, __func__, EmbossType::Pulldown);
 
   Layout &layout = block_layout(block,
                                 LayoutDirection::Vertical,
@@ -211,7 +211,7 @@ static void colorband_update_cb(bContext * /*C*/, void *bt_v, void *coba_v)
 }
 
 static void colorband_buttons_layout(Layout &layout,
-                                     uiBlock *block,
+                                     Block *block,
                                      ColorBand *coba,
                                      const rctf *butr,
                                      const RNAUpdateCb &cb,
@@ -400,7 +400,7 @@ void template_color_ramp(Layout *layout,
   rect.ymin = 0;
   rect.ymax = 19.5f * UI_UNIT_X;
 
-  uiBlock *block = layout->absolute().block();
+  Block *block = layout->absolute().block();
 
   ID *id = cptr.owner_id;
   block_lock_set(block, (id && !ID_IS_EDITABLE(id)), ERROR_LIBDATA_MESSAGE);

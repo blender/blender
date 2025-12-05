@@ -594,7 +594,7 @@ static void v3d_editvertex_buts(
     const bContext *C, blender::ui::Layout *layout, View3D *v3d, Object *ob, float lim)
 {
   using namespace blender;
-  uiBlock *block = (layout) ? layout->absolute().block() : nullptr;
+  blender::ui::Block *block = (layout) ? layout->absolute().block() : nullptr;
   TransformProperties *tfp = v3d_transform_props_ensure(v3d);
   TransformMedian median_basis, ve_median_basis;
   int tot, totedgedata, totcurvedata, totlattdata, totcurvebweight;
@@ -1602,7 +1602,7 @@ static void v3d_object_dimension_buts(bContext *C,
                                       View3D *v3d,
                                       Object *ob)
 {
-  uiBlock *block = (layout) ? layout->block() : nullptr;
+  blender::ui::Block *block = (layout) ? layout->block() : nullptr;
   blender::ui::Layout *sub_layout = layout ? &layout->absolute(false) : nullptr;
   TransformProperties *tfp = v3d_transform_props_ensure(v3d);
   const bool is_editable = ID_IS_EDITABLE(&ob->id);
@@ -1723,7 +1723,7 @@ static void update_active_vertex_weight(bContext *C, void *arg1, void * /*arg2*/
 
 static void view3d_panel_vgroup(const bContext *C, Panel *panel)
 {
-  uiBlock *block = panel->layout->absolute().block();
+  blender::ui::Block *block = panel->layout->absolute().block();
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
@@ -2124,7 +2124,7 @@ static bool view3d_panel_transform_poll(const bContext *C, PanelType * /*pt*/)
 
 static void view3d_panel_transform(const bContext *C, Panel *panel)
 {
-  uiBlock *block;
+  blender::ui::Block *block;
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
@@ -2387,7 +2387,7 @@ constexpr std::array<EnumPropertyItem, 5> enum_curve_knot_mode_items{{
 
 static void knot_modes_menu(bContext * /*C*/, blender::ui::Layout *layout, void *knot_mode_p)
 {
-  uiBlock *block = layout->block();
+  blender::ui::Block *block = layout->block();
   blender::ui::block_layout_set_current(block, layout);
   layout->column(false);
 
@@ -2415,7 +2415,7 @@ static void view3d_panel_curve_data(const bContext *C, Panel *panel)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  uiBlock *block = panel->layout->block();
+  blender::ui::Block *block = panel->layout->block();
 
   CurvesSelectionStatus status;
 

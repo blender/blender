@@ -121,7 +121,7 @@ void template_preview(Layout *layout,
   }
 
   /* layout */
-  uiBlock *block = layout->block();
+  Block *block = layout->block();
   Layout *row = &layout->row(false);
   Layout *col = &row->column(false);
 

@@ -23,7 +23,7 @@ struct IconViewMenuArgs {
 };
 
 /* ID Search browse menu, open */
-static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_litem)
+static Block *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_litem)
 {
   static IconViewMenuArgs args;
 
@@ -32,7 +32,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_lit
   const int w = UI_UNIT_X * (args.icon_scale);
   const int h = UI_UNIT_X * (args.icon_scale + args.show_labels);
 
-  uiBlock *block = block_begin(C, region, "_popup", EmbossType::Pulldown);
+  Block *block = block_begin(C, region, "_popup", EmbossType::Pulldown);
   block_flag_enable(block, BLOCK_LOOP);
   block_theme_style_set(block, BLOCK_THEME_STYLE_POPUP);
 
@@ -82,7 +82,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_lit
 
 void template_icon(Layout *layout, int icon_value, float icon_scale)
 {
-  uiBlock *block = layout->absolute().block();
+  Block *block = layout->absolute().block();
   uiBut *but = uiDefIconBut(block,
                             ButType::Label,
                             ICON_X,
@@ -113,7 +113,7 @@ void template_icon_view(Layout *layout,
     return;
   }
 
-  uiBlock *block = layout->absolute().block();
+  Block *block = layout->absolute().block();
 
   int tot_items;
   bool free_items;

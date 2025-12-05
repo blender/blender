@@ -45,12 +45,12 @@ namespace blender::ui {
  * \{ */
 
 struct uiPieMenu {
-  uiBlock *pie_block; /* radial block of the pie menu (more could be added later) */
+  Block *pie_block; /* radial block of the pie menu (more could be added later) */
   Layout *layout;
   int mx, my;
 };
 
-static uiBlock *ui_block_func_PIE(bContext * /*C*/, uiPopupBlockHandle *handle, void *arg_pie)
+static Block *ui_block_func_PIE(bContext * /*C*/, uiPopupBlockHandle *handle, void *arg_pie)
 {
   Block *block;
   uiPieMenu *pie = static_cast<uiPieMenu *>(arg_pie);
@@ -267,7 +267,7 @@ static void ui_pie_menu_level_invoke(bContext *C, void *argN, void *arg2)
   pie_menu_end(C, pie);
 }
 
-void ui_pie_menu_level_create(uiBlock *block,
+void ui_pie_menu_level_create(Block *block,
                               wmOperatorType *ot,
                               const StringRefNull propname,
                               IDProperty *properties,

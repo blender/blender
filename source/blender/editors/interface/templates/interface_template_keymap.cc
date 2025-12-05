@@ -59,7 +59,7 @@ static void template_keymap_item_properties(Layout &layout, const char *title, P
 
     if (is_set) {
       /* unset operator */
-      uiBlock *block = row.block();
+      Block *block = row.block();
       block_emboss_set(block, EmbossType::None);
       but = uiDefIconButO(block,
                           ButType::But,
@@ -84,7 +84,7 @@ void uiTemplateKeymapItemProperties(Layout *layout, PointerRNA *ptr)
   PointerRNA propptr = RNA_pointer_get(ptr, "properties");
 
   if (propptr.data) {
-    uiBlock *block = layout->block();
+    Block *block = layout->block();
     int i = layout->block()->buttons.size() - 1;
 
     WM_operator_properties_sanitize(&propptr, false);

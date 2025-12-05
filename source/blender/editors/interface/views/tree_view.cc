@@ -262,7 +262,7 @@ void AbstractTreeView::get_hierarchy_lines(const ARegion &region,
   }
 }
 
-static ButtonViewItem *find_first_view_item_but(const uiBlock &block, const AbstractTreeView &view)
+static ButtonViewItem *find_first_view_item_but(const Block &block, const AbstractTreeView &view)
 {
   for (const std::unique_ptr<uiBut> &but : block.buttons) {
     if (but->type != ButType::ViewItem) {
@@ -276,7 +276,7 @@ static ButtonViewItem *find_first_view_item_but(const uiBlock &block, const Abst
   return nullptr;
 }
 
-void AbstractTreeView::draw_hierarchy_lines(const ARegion &region, const uiBlock &block) const
+void AbstractTreeView::draw_hierarchy_lines(const ARegion &region, const Block &block) const
 {
   const float aspect = (region.v2d.flag & V2D_IS_INIT) ?
                            BLI_rctf_size_y(&region.v2d.cur) /
@@ -318,7 +318,7 @@ void AbstractTreeView::draw_hierarchy_lines(const ARegion &region, const uiBlock
   immUnbindProgram();
 }
 
-void AbstractTreeView::draw_overlays(const ARegion &region, const uiBlock &block) const
+void AbstractTreeView::draw_overlays(const ARegion &region, const Block &block) const
 {
   this->draw_hierarchy_lines(region, block);
 }
@@ -487,7 +487,7 @@ std::optional<DropLocation> TreeViewItemDropTarget::choose_drop_location(
 
 /* ---------------------------------------------------------------------- */
 
-void AbstractTreeViewItem::add_treerow_button(uiBlock &block)
+void AbstractTreeViewItem::add_treerow_button(Block &block)
 {
   /* For some reason a width > (UI_UNIT_X * 2) make the layout system use all available width. */
   view_item_but_ = reinterpret_cast<ButtonViewItem *>(uiDefBut(&block,
@@ -513,7 +513,7 @@ int AbstractTreeViewItem::indent_width() const
 
 void AbstractTreeViewItem::add_indent(Layout &row) const
 {
-  uiBlock *block = row.block();
+  Block *block = row.block();
   Layout &subrow = row.row(true);
   subrow.fixed_size_set(true);
 
@@ -554,7 +554,7 @@ void AbstractTreeViewItem::collapse_chevron_click_fn(bContext *C,
   }
 }
 
-void AbstractTreeViewItem::add_collapse_chevron(uiBlock &block) const
+void AbstractTreeViewItem::add_collapse_chevron(Block &block) const
 {
   if (!this->is_collapsible()) {
     return;
@@ -569,7 +569,7 @@ void AbstractTreeViewItem::add_collapse_chevron(uiBlock &block) const
 
 void AbstractTreeViewItem::add_rename_button(Layout &row)
 {
-  uiBlock *block = row.block();
+  Block *block = row.block();
   EmbossType previous_emboss = block_emboss_get(block);
 
   row.row(false);
@@ -818,7 +818,7 @@ void AbstractTreeViewItem::on_filter()
 /* ---------------------------------------------------------------------- */
 
 class TreeViewLayoutBuilder {
-  uiBlock &block_;
+  Block &block_;
   bool add_box_ = true;
 
   friend TreeViewBuilder;
@@ -827,7 +827,7 @@ class TreeViewLayoutBuilder {
   void build_from_tree(AbstractTreeView &tree_view);
   void build_row(AbstractTreeViewItem &item) const;
 
-  uiBlock &block() const;
+  Block &block() const;
   Layout &current_layout() const;
 
  private:
@@ -849,7 +849,7 @@ static int count_visible_items(AbstractTreeView &tree_view)
 void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
 {
   Layout &parent_layout = this->current_layout();
-  uiBlock *block = parent_layout.block();
+  Block *block = parent_layout.block();
 
   Layout &col = (add_box_ ? parent_layout.box() : parent_layout).column(true);
 
@@ -971,7 +971,7 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
 
 void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
 {
-  uiBlock &block_ = block();
+  Block &block_ = block();
 
   Layout &prev_layout = current_layout();
 
@@ -1025,7 +1025,7 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
   block_layout_set_current(&block_, &prev_layout);
 }
 
-uiBlock &TreeViewLayoutBuilder::block() const
+Block &TreeViewLayoutBuilder::block() const
 {
   return block_;
 }
@@ -1064,7 +1064,7 @@ void TreeViewBuilder::build_tree_view(const bContext &C,
                                       Layout &layout,
                                       const bool add_box)
 {
-  uiBlock &block = *layout.block();
+  Block &block = *layout.block();
 
   const ARegion *region = CTX_wm_region_popup(&C) ? CTX_wm_region_popup(&C) : CTX_wm_region(&C);
   if (region) {

@@ -559,7 +559,7 @@ void template_grease_pencil_layer_tree(Layout *layout, bContext *C)
     return;
   }
 
-  uiBlock *block = layout->block();
+  Block *block = layout->block();
 
   AbstractTreeView *tree_view = block_add_view(
       *block,

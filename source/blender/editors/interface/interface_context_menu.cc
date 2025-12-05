@@ -162,7 +162,7 @@ static void but_shortcut_name_func(bContext *C, void *arg1, int /*event*/)
   shortcut_free_operator_property(prop);
 }
 
-static uiBlock *menu_change_shortcut(bContext *C, ARegion *region, void *arg)
+static Block *menu_change_shortcut(bContext *C, ARegion *region, void *arg)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   uiBut *but = (uiBut *)arg;
@@ -184,7 +184,7 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *region, void *arg)
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, &RNA_KeyMapItem, kmi);
 
-  uiBlock *block = block_begin(C, region, "_popup", EmbossType::Emboss);
+  Block *block = block_begin(C, region, "_popup", EmbossType::Emboss);
   block_func_handle_set(block, but_shortcut_name_func, but);
   block_flag_enable(block, BLOCK_MOVEMOUSE_QUIT);
   block_direction_set(block, UI_DIR_CENTER_Y);
@@ -214,7 +214,7 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *region, void *arg)
 static int g_kmi_id_hack;
 #endif
 
-static uiBlock *menu_add_shortcut(bContext *C, ARegion *region, void *arg)
+static Block *menu_add_shortcut(bContext *C, ARegion *region, void *arg)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   uiBut *but = (uiBut *)arg;
@@ -245,7 +245,7 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *region, void *arg)
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, &RNA_KeyMapItem, kmi);
 
-  uiBlock *block = block_begin(C, region, "_popup", EmbossType::Emboss);
+  Block *block = block_begin(C, region, "_popup", EmbossType::Emboss);
   block_func_handle_set(block, but_shortcut_name_func, but);
   block_direction_set(block, UI_DIR_CENTER_Y);
 
@@ -1039,7 +1039,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
 
   /* Favorites Menu */
   if (ui_but_is_user_menu_compatible(C, but)) {
-    uiBlock *block = layout.block();
+    Block *block = layout.block();
     const int w = layout.width();
     bool item_found = false;
 
@@ -1100,7 +1100,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   IDProperty *prop;
   const char *idname = shortcut_get_operator_property(C, but, &prop);
   if (idname != nullptr) {
-    uiBlock *block = layout.block();
+    Block *block = layout.block();
     const int w = layout.width();
 
     /* We want to know if this op has a shortcut, be it hotkey or not. */
@@ -1307,7 +1307,7 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
 
     /* evil, force shortcut flag */
     {
-      uiBlock *block = layout.block();
+      Block *block = layout.block();
       uiBut *but = block->buttons.last().get();
       but->flag |= BUT_HAS_SEP_CHAR;
     }

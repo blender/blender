@@ -1289,7 +1289,7 @@ static void widget_draw_icon_centered(const BIFIconID icon,
 }
 
 /**
- * \param aspect: The inverse zoom factor (typically #uiBlock.aspect), with DPI applied (i.e. not
+ * \param aspect: The inverse zoom factor (typically #Block.aspect), with DPI applied (i.e. not
  * multiplied by #UI_INV_SCALE_FAC).
  * \param mono_color: Only for drawing monochrome icons.
  */
@@ -5394,7 +5394,7 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
   }
 }
 
-static void ui_draw_clip_tri(uiBlock *block, const rcti *rect, uiWidgetType *wt)
+static void ui_draw_clip_tri(Block *block, const rcti *rect, uiWidgetType *wt)
 {
   if (block) {
     float draw_color[4];
@@ -5416,21 +5416,21 @@ static void ui_draw_clip_tri(uiBlock *block, const rcti *rect, uiWidgetType *wt)
   }
 }
 
-static void ui_draw_dialog_alert(uiBlock *block, const rcti *rect)
+static void ui_draw_dialog_alert(Block *block, const rcti *rect)
 {
-  if (block->alert_level != uiBlockAlertLevel::Error) {
+  if (block->alert_level != BlockAlertLevel::Error) {
     return;
   }
 
   float color[4];
   switch (block->alert_level) {
-    case uiBlockAlertLevel::Error:
+    case BlockAlertLevel::Error:
       GetThemeColor4fv(TH_ERROR, color);
       break;
-    case uiBlockAlertLevel::Warning:
+    case BlockAlertLevel::Warning:
       GetThemeColor4fv(TH_WARNING, color);
       break;
-    case uiBlockAlertLevel::Success:
+    case BlockAlertLevel::Success:
       GetThemeColor4fv(TH_SUCCESS, color);
       break;
     default:
@@ -5450,7 +5450,7 @@ static void ui_draw_dialog_alert(uiBlock *block, const rcti *rect)
   draw_roundbox_4fv(&line_rect, true, radius, color);
 }
 
-void ui_draw_menu_back(uiStyle * /*style*/, uiBlock *block, const rcti *rect)
+void ui_draw_menu_back(uiStyle * /*style*/, Block *block, const rcti *rect)
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_MENU_BACK);
 
@@ -5460,10 +5460,10 @@ void ui_draw_menu_back(uiStyle * /*style*/, uiBlock *block, const rcti *rect)
     wt->draw_block(&wt->wcol,
                    rect,
                    block->flag,
-                   block->alert_level == uiBlockAlertLevel::None ? block->direction :
-                                                                   char(UI_DIR_DOWN),
+                   block->alert_level == BlockAlertLevel::None ? block->direction :
+                                                                 char(UI_DIR_DOWN),
                    zoom);
-    if (block->alert_level != uiBlockAlertLevel::None) {
+    if (block->alert_level != BlockAlertLevel::None) {
       ui_draw_dialog_alert(block, rect);
     }
   }
@@ -5548,7 +5548,7 @@ static void ui_draw_popover_back_impl(const uiWidgetColors *wcol,
   GPU_blend(GPU_BLEND_NONE);
 }
 
-void ui_draw_popover_back(ARegion *region, uiStyle * /*style*/, uiBlock *block, const rcti *rect)
+void ui_draw_popover_back(ARegion *region, uiStyle * /*style*/, Block *block, const rcti *rect)
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_MENU_BACK);
 
@@ -5616,7 +5616,7 @@ static void draw_disk_shaded(float start,
   immUnbindProgram();
 }
 
-void ui_draw_pie_center(uiBlock *block)
+void ui_draw_pie_center(Block *block)
 {
   bTheme *btheme = GetTheme();
   const float cx = block->pie_data.pie_center_spawned[0];
@@ -5767,7 +5767,7 @@ void ui_draw_widget_menu_back(const rcti *rect, bool use_shadow)
   ui_draw_widget_back_color(UI_WTYPE_MENU_BACK, use_shadow, rect, nullptr);
 }
 
-void ui_draw_tooltip_background(const uiStyle * /*style*/, uiBlock * /*block*/, const rcti *rect)
+void ui_draw_tooltip_background(const uiStyle * /*style*/, Block * /*block*/, const rcti *rect)
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_TOOLTIP);
   wt->state(wt, &STATE_INFO_NULL, EmbossType::Undefined);

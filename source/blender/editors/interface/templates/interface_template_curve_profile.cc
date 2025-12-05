@@ -28,14 +28,14 @@
 
 namespace blender::ui {
 
-static uiBlock *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_v)
+static Block *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_v)
 {
   RNAUpdateCb &cb = *static_cast<RNAUpdateCb *>(cb_v);
   PointerRNA profile_ptr = RNA_property_pointer_get(&cb.ptr, cb.prop);
   CurveProfile *profile = static_cast<CurveProfile *>(profile_ptr.data);
   short yco = 0;
 
-  uiBlock *block = block_begin(C, region, __func__, EmbossType::Emboss);
+  Block *block = block_begin(C, region, __func__, EmbossType::Emboss);
 
   for (const auto &item :
        {std::pair<StringRef, eCurveProfilePresets>(IFACE_("Default"), PROF_PRESET_LINE),
@@ -76,14 +76,14 @@ static uiBlock *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_
   return block;
 }
 
-static uiBlock *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
+static Block *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
 {
   RNAUpdateCb &cb = *static_cast<RNAUpdateCb *>(cb_v);
   PointerRNA profile_ptr = RNA_property_pointer_get(&cb.ptr, cb.prop);
   CurveProfile *profile = static_cast<CurveProfile *>(profile_ptr.data);
   short yco = 0;
 
-  uiBlock *block = block_begin(C, region, __func__, EmbossType::Emboss);
+  Block *block = block_begin(C, region, __func__, EmbossType::Emboss);
 
   {
     uiBut *but = uiDefIconTextBut(block,
@@ -201,7 +201,7 @@ static void CurveProfile_buttons_layout(Layout &layout, PointerRNA *ptr, const R
   CurveProfile *profile = static_cast<CurveProfile *>(ptr->data);
   uiBut *bt;
 
-  uiBlock *block = layout.block();
+  Block *block = layout.block();
 
   block_emboss_set(block, EmbossType::Emboss);
 
@@ -502,7 +502,7 @@ void template_curve_profile(Layout *layout, PointerRNA *ptr, const StringRefNull
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 
-  uiBlock *block = layout->block();
+  Block *block = layout->block();
 
   if (!prop) {
     RNA_warning("Curve Profile property not found: %s.%s",

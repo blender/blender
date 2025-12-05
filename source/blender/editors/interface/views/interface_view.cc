@@ -6,7 +6,7 @@
  * \ingroup edinterface
  *
  * Code to manage views as part of the regular screen hierarchy. E.g. managing ownership of views
- * inside blocks (#uiBlock.views), looking up items in the region, passing WM notifiers to views,
+ * inside blocks (#Block.views), looking up items in the region, passing WM notifiers to views,
  * etc.
  *
  * Blocks and their contained views are reconstructed on every redraw. This file also contains
@@ -44,11 +44,11 @@ struct ViewLink : public Link {
   std::string idname;
   std::unique_ptr<AbstractView> view;
 
-  static void views_bounds_calc(const uiBlock &block);
+  static void views_bounds_calc(const Block &block);
 };
 
 template<class T>
-static T *ui_block_add_view_impl(uiBlock &block,
+static T *ui_block_add_view_impl(Block &block,
                                  StringRef idname,
                                  std::unique_ptr<AbstractView> view)
 {
@@ -63,28 +63,28 @@ static T *ui_block_add_view_impl(uiBlock &block,
   return dynamic_cast<T *>(view_link->view.get());
 }
 
-AbstractGridView *block_add_view(uiBlock &block,
+AbstractGridView *block_add_view(Block &block,
                                  StringRef idname,
                                  std::unique_ptr<AbstractGridView> grid_view)
 {
   return ui_block_add_view_impl<AbstractGridView>(block, idname, std::move(grid_view));
 }
 
-AbstractTreeView *block_add_view(uiBlock &block,
+AbstractTreeView *block_add_view(Block &block,
                                  StringRef idname,
                                  std::unique_ptr<AbstractTreeView> tree_view)
 {
   return ui_block_add_view_impl<AbstractTreeView>(block, idname, std::move(tree_view));
 }
 
-void ui_block_free_views(uiBlock *block)
+void ui_block_free_views(Block *block)
 {
   LISTBASE_FOREACH_MUTABLE (ViewLink *, link, &block->views) {
     MEM_delete(link);
   }
 }
 
-void ViewLink::views_bounds_calc(const uiBlock &block)
+void ViewLink::views_bounds_calc(const Block &block)
 {
   Map<AbstractView *, rcti> views_bounds;
 
@@ -125,7 +125,7 @@ void ViewLink::views_bounds_calc(const uiBlock &block)
 }
 
 void ui_block_view_persistent_state_restore(const ARegion &region,
-                                            const uiBlock &block,
+                                            const Block &block,
                                             AbstractView &view)
 {
   StringRef idname = [&]() -> StringRef {
@@ -163,7 +163,7 @@ static uiViewStateLink *ensure_view_state(ARegion &region, const ViewLink &link)
   return new_state;
 }
 
-void ui_block_views_end(ARegion *region, const uiBlock *block)
+void ui_block_views_end(ARegion *region, const Block *block)
 {
   ViewLink::views_bounds_calc(*block);
 
@@ -178,7 +178,7 @@ void ui_block_views_end(ARegion *region, const uiBlock *block)
   }
 }
 
-void ui_block_views_listen(const uiBlock *block, const wmRegionListenerParams *listener_params)
+void ui_block_views_listen(const Block *block, const wmRegionListenerParams *listener_params)
 {
   ARegion *region = listener_params->region;
 
@@ -189,7 +189,7 @@ void ui_block_views_listen(const uiBlock *block, const wmRegionListenerParams *l
   }
 }
 
-void ui_block_views_draw_overlays(const ARegion *region, const uiBlock *block)
+void ui_block_views_draw_overlays(const ARegion *region, const Block *block)
 {
   LISTBASE_FOREACH (ViewLink *, view_link, &block->views) {
     view_link->view->draw_overlays(*region, *block);
@@ -203,7 +203,7 @@ AbstractView *region_view_find_at(const ARegion *region, const int xy[2], const 
   if (!ui_region_contains_point_px(region, xy)) {
     return nullptr;
   }
-  LISTBASE_FOREACH (uiBlock *, block, &region->runtime->uiblocks) {
+  LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
     float mx = xy[0], my = xy[1];
     ui_window_to_block_fl(region, block, &mx, &my);
 
@@ -253,7 +253,7 @@ uiBut *region_views_find_active_item_but(const ARegion *region)
 
 void region_views_clear_search_highlight(const ARegion *region)
 {
-  LISTBASE_FOREACH (uiBlock *, block, &region->runtime->uiblocks) {
+  LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
     LISTBASE_FOREACH (ViewLink *, view_link, &block->views) {
       view_link->view->clear_search_highlight();
     }
@@ -298,7 +298,7 @@ std::unique_ptr<DropTargetInterface> region_views_find_drop_target_at(const AReg
   return nullptr;
 }
 
-static StringRef ui_block_view_find_idname(const uiBlock &block, const AbstractView &view)
+static StringRef ui_block_view_find_idname(const Block &block, const AbstractView &view)
 {
   /* First get the `idname` of the view we're looking for. */
   LISTBASE_FOREACH (ViewLink *, view_link, &block.views) {
@@ -311,10 +311,9 @@ static StringRef ui_block_view_find_idname(const uiBlock &block, const AbstractV
 }
 
 template<class T>
-static T *ui_block_view_find_matching_in_old_block_impl(const uiBlock &new_block,
-                                                        const T &new_view)
+static T *ui_block_view_find_matching_in_old_block_impl(const Block &new_block, const T &new_view)
 {
-  uiBlock *old_block = new_block.oldblock;
+  Block *old_block = new_block.oldblock;
   if (!old_block) {
     return nullptr;
   }
@@ -333,16 +332,16 @@ static T *ui_block_view_find_matching_in_old_block_impl(const uiBlock &new_block
   return nullptr;
 }
 
-AbstractView *ui_block_view_find_matching_in_old_block(const uiBlock &new_block,
+AbstractView *ui_block_view_find_matching_in_old_block(const Block &new_block,
                                                        const AbstractView &new_view)
 {
   return ui_block_view_find_matching_in_old_block_impl(new_block, new_view);
 }
 
 ButtonViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
-    const uiBlock &new_block, const AbstractViewItem &new_item)
+    const Block &new_block, const AbstractViewItem &new_item)
 {
-  uiBlock *old_block = new_block.oldblock;
+  Block *old_block = new_block.oldblock;
   if (!old_block) {
     return nullptr;
   }

@@ -767,7 +767,7 @@ void file_create_asset_catalog_tree_view_in_layout(const bContext *C,
                                                    SpaceFile *space_file,
                                                    FileAssetSelectParams *params)
 {
-  uiBlock *block = layout.block();
+  ui::Block *block = layout.block();
 
   ui::block_layout_set_current(block, &layout);
 

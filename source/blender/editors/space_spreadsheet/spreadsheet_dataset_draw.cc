@@ -1221,7 +1221,7 @@ static bool viewer_path_ends_with_viewer_node(const ViewerPath &viewer_path)
 
 static void draw_viewer_path_panel(const bContext &C, ui::Layout &layout)
 {
-  uiBlock *block = layout.block();
+  ui::Block *block = layout.block();
   ui::AbstractTreeView *tree_view = block_add_view(
       *block, "Viewer Path", std::make_unique<ViewerPathTreeView>(C));
   tree_view->set_context_menu_title("Viewer Path");
@@ -1230,7 +1230,7 @@ static void draw_viewer_path_panel(const bContext &C, ui::Layout &layout)
 
 static void draw_viewer_data_panel(const bContext &C, ui::Layout &layout)
 {
-  uiBlock *block = layout.block();
+  ui::Block *block = layout.block();
   ui::AbstractTreeView *tree_view = block_add_view(
       *block, "Viewer Data", std::make_unique<ViewerDataTreeView>(C));
   tree_view->set_context_menu_title("Viewer Data");
@@ -1310,7 +1310,7 @@ void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
 
   ui::Layout &layout = *panel->layout;
-  uiBlock *block = layout.block();
+  ui::Block *block = layout.block();
   ui::block_layout_set_current(block, &layout);
 
   draw_context_panel(*C, layout);

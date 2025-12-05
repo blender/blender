@@ -99,7 +99,7 @@ void button_func_operator_search(uiBut *but)
 
 void uiTemplateOperatorSearch(Layout *layout)
 {
-  uiBlock *block;
+  Block *block;
   uiBut *but;
   static char search[256] = "";
 

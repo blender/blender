@@ -648,7 +648,7 @@ static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
 
   ui::ThemeClearColor(TH_BACK);
 
-  uiBlock *block = block_begin(C, region, __func__, ui::EmbossType::Emboss);
+  ui::Block *block = block_begin(C, region, __func__, ui::EmbossType::Emboss);
   const uiStyle *style = ui::style_get_dpi();
   ui::Layout &layout = ui::block_layout(block,
                                         ui::LayoutDirection::Horizontal,

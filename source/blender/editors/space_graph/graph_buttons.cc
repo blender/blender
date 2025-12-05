@@ -360,7 +360,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     return;
   }
 
-  uiBlock *block = layout.block();
+  blender::ui::Block *block = layout.block();
   // block_func_handle_set(block, do_graph_region_buttons, nullptr);
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
@@ -897,7 +897,7 @@ static void graph_draw_driven_property_enabled_btn(blender::ui::Layout &layout,
 {
   PointerRNA fcurve_ptr = RNA_pointer_create_discrete(id, &RNA_FCurve, fcu);
 
-  uiBlock *block = layout.block();
+  blender::ui::Block *block = layout.block();
   uiDefButR(block,
             blender::ui::ButType::CheckboxN,
             label,
@@ -960,7 +960,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
                                              const bool is_popover)
 {
   ChannelDriver *driver = fcu->driver;
-  uiBlock *block = layout.block();
+  blender::ui::Block *block = layout.block();
 
   uiBut *but;
 
@@ -1371,7 +1371,7 @@ static void graph_panel_modifiers(const bContext *C, Panel *panel)
     return;
   }
 
-  uiBlock *block = panel->layout->block();
+  blender::ui::Block *block = panel->layout->block();
   block_func_handle_set(block, do_graph_region_modifier_buttons, nullptr);
 
   /* 'add modifier' button at top of panel */

@@ -189,7 +189,7 @@ static void catalog_tree_draw(const bContext &C, ui::Layout &layout, AssetShelf 
     return;
   }
 
-  uiBlock *block = layout.block();
+  ui::Block *block = layout.block();
   ui::AbstractTreeView *tree_view = block_add_view(
       *block,
       "asset shelf catalog tree view",

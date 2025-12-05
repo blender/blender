@@ -82,7 +82,7 @@ void template_running_jobs(Layout *layout, bContext *C)
   const char *op_name = nullptr;
   const char *op_description = nullptr;
 
-  uiBlock *block = layout->block();
+  Block *block = layout->block();
   block_layout_set_current(block, layout);
 
   /* another scene can be rendering too, for example via compositor */

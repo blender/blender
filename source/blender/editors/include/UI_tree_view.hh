@@ -144,7 +144,7 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
  public:
   /* virtual */ ~AbstractTreeView() override = default;
 
-  void draw_overlays(const ARegion &region, const uiBlock &block) const override;
+  void draw_overlays(const ARegion &region, const Block &block) const override;
 
   void foreach_item(ItemIterFn iter_fn, IterOptions options = IterOptions::None) const;
   void foreach_root_item(ItemIterFn iter_fn) const;
@@ -183,7 +183,7 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
 
   bool supports_scrolling() const override;
 
-  void draw_hierarchy_lines(const ARegion &region, const uiBlock &block) const;
+  void draw_hierarchy_lines(const ARegion &region, const Block &block) const;
   void get_hierarchy_lines(const ARegion &region,
                            const TreeViewOrItem &parent,
                            const float aspect,
@@ -343,10 +343,10 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
    */
   bool set_state_active() final;
 
-  void add_treerow_button(uiBlock &block);
+  void add_treerow_button(Block &block);
   int indent_width() const;
   void add_indent(Layout &row) const;
-  void add_collapse_chevron(uiBlock &block) const;
+  void add_collapse_chevron(Block &block) const;
   void add_rename_button(Layout &row);
 
   bool has_active_child() const;

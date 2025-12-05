@@ -318,7 +318,7 @@ void template_tree(ui::Layout *layout, bContext *C)
     return;
   }
 
-  uiBlock *block = layout->block();
+  ui::Block *block = layout->block();
 
   ui::AbstractTreeView *tree_view = block_add_view(
       *block,

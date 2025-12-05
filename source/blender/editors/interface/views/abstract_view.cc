@@ -40,9 +40,9 @@ const AbstractViewItem *AbstractView::search_highlight_item() const
   return found_item;
 }
 
-void AbstractView::update_from_old(uiBlock &new_block)
+void AbstractView::update_from_old(Block &new_block)
 {
-  uiBlock *old_block = new_block.oldblock;
+  Block *old_block = new_block.oldblock;
   if (!old_block) {
     is_reconstructed_ = true;
     return;
@@ -119,7 +119,7 @@ bool AbstractView::begin_filtering(const bContext & /*C*/) const
   return false;
 }
 
-void AbstractView::draw_overlays(const ARegion & /*region*/, const uiBlock & /*block*/) const
+void AbstractView::draw_overlays(const ARegion & /*region*/, const Block & /*block*/) const
 {
   /* Nothing by default. */
 }

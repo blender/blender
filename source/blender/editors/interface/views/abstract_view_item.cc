@@ -223,7 +223,7 @@ static void rename_button_fn(bContext *C, void *arg, char * /*origstr*/)
   item->rename_apply(*C);
 }
 
-void AbstractViewItem::add_rename_button(uiBlock &block)
+void AbstractViewItem::add_rename_button(Block &block)
 {
   AbstractView &view = this->get_view();
   uiBut *rename_but = uiDefBut(&block,

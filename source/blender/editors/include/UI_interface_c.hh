@@ -123,7 +123,7 @@ namespace blender::ui {
 /** Use for clamping popups within the screen. */
 #define UI_SCREEN_MARGIN 10
 
-/** #uiBlock.emboss and #uiBut.emboss */
+/** #Block.emboss and #uiBut.emboss */
 enum class EmbossType : uint8_t {
   /** Use widget style for drawing. */
   Emboss = 0,
@@ -142,7 +142,7 @@ enum class EmbossType : uint8_t {
   Undefined = 255,
 };
 
-/** #uiBlock::direction */
+/** #Block::direction */
 enum {
   UI_DIR_UP = 1 << 0,
   UI_DIR_DOWN = 1 << 1,
@@ -154,7 +154,7 @@ enum {
   UI_DIR_ALL = UI_DIR_UP | UI_DIR_DOWN | UI_DIR_LEFT | UI_DIR_RIGHT,
 };
 
-/** #uiBlock.flag (controls) */
+/** #Block.flag (controls) */
 enum {
   BLOCK_LOOP = 1 << 0,
   BLOCK_NUMSELECT = 1 << 1,
@@ -171,7 +171,7 @@ enum {
   /** Stop handling mouse events. */
   BLOCK_CLIP_EVENTS = 1 << 11,
 
-  /* #uiBlock::flags bits 14-17 are identical to #uiBut::drawflag bits. */
+  /* #Block::flags bits 14-17 are identical to #uiBut::drawflag bits. */
 
   BLOCK_POPUP_HOLD = 1 << 18,
   BLOCK_LIST_ITEM = 1 << 19,
@@ -342,13 +342,13 @@ enum {
   BUT_NO_PREVIEW_PADDING = 1 << 7,
 
   /* Button align flag, for drawing groups together.
-   * Used in 'uiBlock.flag', take care! */
+   * Used in 'Block.flag', take care! */
   BUT_ALIGN_TOP = 1 << 14,
   BUT_ALIGN_LEFT = 1 << 15,
   BUT_ALIGN_RIGHT = 1 << 16,
   BUT_ALIGN_DOWN = 1 << 17,
   BUT_ALIGN = BUT_ALIGN_TOP | BUT_ALIGN_LEFT | BUT_ALIGN_RIGHT | BUT_ALIGN_DOWN,
-  /* end bits shared with 'uiBlock.flag' */
+  /* end bits shared with 'Block.flag' */
 
   /**
    * Warning - HACK!
@@ -624,7 +624,7 @@ using uiButCompleteFunc = int (*)(bContext *C, char *str, void *arg);
 
 /**
  * Signatures of callbacks used to free or copy some 'owned' void pointer data (like e.g.
- * #func_argN in #uiBut or #uiBlock).
+ * #func_argN in #uiBut or #Block).
  */
 using uiButArgNFree = void (*)(void *argN);
 using uiButArgNCopy = void *(*)(const void *argN);
@@ -700,7 +700,7 @@ struct uiBlockInteraction_CallbackData {
   void *arg1;
 };
 
-void block_interaction_set(uiBlock *block, uiBlockInteraction_CallbackData *callbacks);
+void block_interaction_set(Block *block, uiBlockInteraction_CallbackData *callbacks);
 
 /** \} */
 
@@ -712,14 +712,14 @@ bool but_is_tool(const uiBut *but);
 bool but_is_utf8(const uiBut *but);
 #define button_is_decorator(but) ((but)->type == ButType::Decorator)
 
-bool block_is_empty_ex(const uiBlock *block, bool skip_title);
-bool block_is_empty(const uiBlock *block);
-bool block_can_add_separator(const uiBlock *block);
+bool block_is_empty_ex(const Block *block, bool skip_title);
+bool block_is_empty(const Block *block);
+bool block_can_add_separator(const Block *block);
 /**
  * Return true when the block has a default button.
  * Use this for popups to detect when pressing "Return" will run an action.
  */
-bool block_has_active_default_button(const uiBlock *block);
+bool block_has_active_default_button(const Block *block);
 
 /**
  * Find a button under the mouse cursor, ignoring non-interactive ones (like labels). Holding Ctrl
@@ -747,7 +747,7 @@ PopupMenu *popup_menu_begin(bContext *C, const char *title, int icon) ATTR_NONNU
  * Directly create a popup menu that is not refreshed on redraw.
  *
  * Only return handler, and set optional title.
- * \param block_name: Assigned to uiBlock.name (useful info for debugging).
+ * \param block_name: Assigned to Block.name (useful info for debugging).
  */
 PopupMenu *popup_menu_begin_ex(bContext *C, const char *title, const char *block_name, int icon)
     ATTR_NONNULL();
@@ -767,7 +767,7 @@ wmOperatorStatus popup_menu_invoke(bContext *C, const char *idname, ReportList *
  * \param is_cancel: If set to true, the popup will be closed as being cancelled (e.g. when
  *                   pressing escape) as opposed to being handled successfully.
  */
-void popup_menu_close(const uiBlock *block, bool is_cancel = false);
+void popup_menu_close(const Block *block, bool is_cancel = false);
 /**
  * Version of #popup_menu_close() that can be called on a button contained in a popup menu
  * block. Convenience since the block may not be available.
@@ -778,12 +778,12 @@ void popup_menu_close_from_but(const uiBut *but, bool is_cancel = false);
  * Allow setting menu return value from externals.
  * E.g. WM might need to do this for exiting files correctly.
  */
-void popup_menu_retval_set(const uiBlock *block, int retval, bool enable);
+void popup_menu_retval_set(const Block *block, int retval, bool enable);
 /**
  * Set a dummy panel in the popup `block` to support using layout panels, the panel is linked
  * to the popup `region` so layout panels state can be persistent until the popup is closed.
  */
-void popup_dummy_panel_set(ARegion *region, uiBlock *block);
+void popup_dummy_panel_set(ARegion *region, Block *block);
 /**
  * Setting the button makes the popup open from the button instead of the cursor.
  */
@@ -830,7 +830,7 @@ Layout *pie_menu_layout(uiPieMenu *pie);
  *
  * Functions used to create popup blocks. These are like popup menus
  * but allow using all button types and creating their own layout. */
-using uiBlockCreateFunc = uiBlock *(*)(bContext * C, ARegion *region, void *arg1);
+using uiBlockCreateFunc = Block *(*)(bContext * C, ARegion *region, void *arg1);
 using uiBlockCancelFunc = void (*)(bContext *C, void *arg1);
 
 void popup_block_invoke(bContext *C, uiBlockCreateFunc func, void *arg, uiFreeArgFunc arg_free);
@@ -851,11 +851,11 @@ void popup_block_ex(bContext *C,
 /**
  * Return true when #popup_block_template_confirm and related functions are supported.
  */
-bool popup_block_template_confirm_is_supported(const uiBlock *block);
+bool popup_block_template_confirm_is_supported(const Block *block);
 /**
  * Create confirm & cancel buttons in a popup using callback functions.
  */
-void popup_block_template_confirm(uiBlock *block,
+void popup_block_template_confirm(Block *block,
                                   bool cancel_default,
                                   FunctionRef<uiBut *()> confirm_fn,
                                   FunctionRef<uiBut *()> cancel_fn);
@@ -881,7 +881,7 @@ void uiPupBlockOperator(bContext *C,
                         wm::OpCallContext opcontext);
 #endif
 
-void popup_block_close(bContext *C, wmWindow *win, uiBlock *block);
+void popup_block_close(bContext *C, wmWindow *win, Block *block);
 
 bool popup_block_name_exists(const bScreen *screen, StringRef name);
 
@@ -895,57 +895,57 @@ bool popup_block_name_exists(const bScreen *screen, StringRef name);
  * Freeing blocks is done by the screen/ module automatically.
  */
 
-uiBlock *block_begin(const bContext *C, ARegion *region, std::string name, EmbossType emboss);
-uiBlock *block_begin(const bContext *C,
-                     Scene *scene,
-                     wmWindow *window,
-                     ARegion *region,
-                     std::string name,
-                     EmbossType emboss);
+Block *block_begin(const bContext *C, ARegion *region, std::string name, EmbossType emboss);
+Block *block_begin(const bContext *C,
+                   Scene *scene,
+                   wmWindow *window,
+                   ARegion *region,
+                   std::string name,
+                   EmbossType emboss);
 void block_end_ex(const bContext *C,
                   Main *bmain,
                   wmWindow *window,
                   Scene *scene,
                   ARegion *region,
                   Depsgraph *depsgraph,
-                  uiBlock *block,
+                  Block *block,
                   const int xy[2] = nullptr,
                   int r_xy[2] = nullptr);
-void block_end(const bContext *C, uiBlock *block);
+void block_end(const bContext *C, Block *block);
 /**
  * Uses local copy of style, to scale things down, and allow widgets to change stuff.
  */
-void block_draw(const bContext *C, uiBlock *block);
+void block_draw(const bContext *C, Block *block);
 void blocklist_update_window_matrix(const bContext *C, const ListBase *lb);
 void blocklist_update_view_for_buttons(const bContext *C, const ListBase *lb);
 void blocklist_draw(const bContext *C, const ListBase *lb);
-void block_update_from_old(const bContext *C, uiBlock *block);
+void block_update_from_old(const bContext *C, Block *block);
 
 enum {
   BLOCK_THEME_STYLE_REGULAR = 0,
   BLOCK_THEME_STYLE_POPUP = 1,
 };
-void block_theme_style_set(uiBlock *block, char theme_style);
-EmbossType block_emboss_get(uiBlock *block);
-void block_emboss_set(uiBlock *block, EmbossType emboss);
-bool block_is_search_only(const uiBlock *block);
+void block_theme_style_set(Block *block, char theme_style);
+EmbossType block_emboss_get(Block *block);
+void block_emboss_set(Block *block, EmbossType emboss);
+bool block_is_search_only(const Block *block);
 /**
  * Use when a block must be searched to give accurate results
  * for the whole region but shouldn't be displayed.
  */
-void block_set_search_only(uiBlock *block, bool search_only);
+void block_set_search_only(Block *block, bool search_only);
 
 /**
  * Used for operator presets.
  */
-void block_set_active_operator(uiBlock *block, wmOperator *op, const bool free);
+void block_set_active_operator(Block *block, wmOperator *op, const bool free);
 
 /**
  * Can be called with C==NULL.
  */
-void block_free(const bContext *C, uiBlock *block);
+void block_free(const bContext *C, Block *block);
 
-void block_listen(const uiBlock *block, const wmRegionListenerParams *listener_params);
+void block_listen(const Block *block, const wmRegionListenerParams *listener_params);
 
 /**
  * Can be called with C==NULL.
@@ -959,10 +959,10 @@ void blocklist_free_inactive(const bContext *C, ARegion *region);
 void UI_screen_free_active_but_highlight(const bContext *C, bScreen *screen);
 void UI_region_free_active_but_all(bContext *C, ARegion *region);
 
-void block_region_set(uiBlock *block, ARegion *region);
+void block_region_set(Block *block, ARegion *region);
 
-void block_lock_set(uiBlock *block, bool val, const char *lockstr);
-void block_lock_clear(uiBlock *block);
+void block_lock_set(Block *block, bool val, const char *lockstr);
+void block_lock_clear(Block *block);
 
 #define UI_BUTTON_SECTION_MERGE_DISTANCE (UI_UNIT_X * 3)
 /* Separator line between regions if the #uiButtonSectionsAlign is not #None. */
@@ -986,8 +986,8 @@ bool region_button_sections_is_inside_x(const ARegion *region, const int mval_x)
 /**
  * Automatic aligning, horizontal or vertical.
  */
-void block_align_begin(uiBlock *block);
-void block_align_end(uiBlock *block);
+void block_align_begin(Block *block);
+void block_align_end(Block *block);
 
 /** Block bounds/position calculation. */
 enum eBlockBoundsCalc {
@@ -1003,34 +1003,34 @@ enum eBlockBoundsCalc {
 /**
  * Used for various cases.
  */
-void block_bounds_set_normal(uiBlock *block, int addval);
+void block_bounds_set_normal(Block *block, int addval);
 /**
  * Used for pull-downs.
  */
-void block_bounds_set_text(uiBlock *block, int addval);
+void block_bounds_set_text(Block *block, int addval);
 /**
  * Used for block popups.
  */
-void block_bounds_set_popup(uiBlock *block, int addval, const int bounds_offset[2]);
+void block_bounds_set_popup(Block *block, int addval, const int bounds_offset[2]);
 /**
  * Used for menu popups.
  */
-void block_bounds_set_menu(uiBlock *block, int addval, const int bounds_offset[2]);
+void block_bounds_set_menu(Block *block, int addval, const int bounds_offset[2]);
 /**
  * Used for centered popups, i.e. splash.
  */
-void block_bounds_set_centered(uiBlock *block, int addval);
-void block_bounds_set_explicit(uiBlock *block, int minx, int miny, int maxx, int maxy);
+void block_bounds_set_centered(Block *block, int addval);
+void block_bounds_set_explicit(Block *block, int minx, int miny, int maxx, int maxy);
 
 int blocklist_min_y_get(ListBase *lb);
 
-void block_direction_set(uiBlock *block, char direction);
+void block_direction_set(Block *block, char direction);
 /**
  * This call escapes if there's alignment flags.
  */
-void block_flag_enable(uiBlock *block, int flag);
-void block_flag_disable(uiBlock *block, int flag);
-void block_translate(uiBlock *block, float x, float y);
+void block_flag_enable(Block *block, int flag);
+void block_flag_disable(Block *block, int flag);
+void block_translate(Block *block, float x, float y);
 
 int button_return_value_get(uiBut *but);
 
@@ -1079,13 +1079,13 @@ void button_placeholder_set(uiBut *but, StringRef placeholder_text);
  * \return false when button removed.
  */
 bool button_active_only_ex(
-    const bContext *C, ARegion *region, uiBlock *block, uiBut *but, bool remove_on_failure);
-bool button_active_only(const bContext *C, ARegion *region, uiBlock *block, uiBut *but);
+    const bContext *C, ARegion *region, Block *block, uiBut *but, bool remove_on_failure);
+bool button_active_only(const bContext *C, ARegion *region, Block *block, uiBut *but);
 /**
  * \warning This must run after other handlers have been added,
  * otherwise the handler won't be removed, see: #71112.
  */
-bool block_active_only_flagged_buttons(const bContext *C, ARegion *region, uiBlock *block);
+bool block_active_only_flagged_buttons(const bContext *C, ARegion *region, Block *block);
 
 /**
  * Simulate button click.
@@ -1107,7 +1107,7 @@ bool button_is_userdef(const uiBut *but);
  * - R: RNA
  * - O: operator */
 
-uiBut *uiDefBut(uiBlock *block,
+uiBut *uiDefBut(Block *block,
                 uiButTypeWithPointerType but_and_ptr_type,
                 StringRef str,
                 int x,
@@ -1118,7 +1118,7 @@ uiBut *uiDefBut(uiBlock *block,
                 float min,
                 float max,
                 std::optional<StringRef> tip);
-uiBut *uiDefButF(uiBlock *block,
+uiBut *uiDefButF(Block *block,
                  ButType type,
                  StringRef str,
                  int x,
@@ -1129,7 +1129,7 @@ uiBut *uiDefButF(uiBlock *block,
                  float min,
                  float max,
                  std::optional<StringRef> tip);
-uiBut *uiDefButI(uiBlock *block,
+uiBut *uiDefButI(Block *block,
                  ButType type,
                  StringRef str,
                  int x,
@@ -1140,7 +1140,7 @@ uiBut *uiDefButI(uiBlock *block,
                  float min,
                  float max,
                  std::optional<StringRef> tip);
-uiBut *uiDefButBitI(uiBlock *block,
+uiBut *uiDefButBitI(Block *block,
                     ButType type,
                     int bit,
                     StringRef str,
@@ -1152,7 +1152,7 @@ uiBut *uiDefButBitI(uiBlock *block,
                     float min,
                     float max,
                     std::optional<StringRef> tip);
-uiBut *uiDefButS(uiBlock *block,
+uiBut *uiDefButS(Block *block,
                  ButType type,
                  StringRef str,
                  int x,
@@ -1163,7 +1163,7 @@ uiBut *uiDefButS(uiBlock *block,
                  float min,
                  float max,
                  std::optional<StringRef> tip);
-uiBut *uiDefButBitS(uiBlock *block,
+uiBut *uiDefButBitS(Block *block,
                     ButType type,
                     int bit,
                     StringRef str,
@@ -1175,7 +1175,7 @@ uiBut *uiDefButBitS(uiBlock *block,
                     float min,
                     float max,
                     std::optional<StringRef> tip);
-uiBut *uiDefButC(uiBlock *block,
+uiBut *uiDefButC(Block *block,
                  ButType type,
                  StringRef str,
                  int x,
@@ -1186,7 +1186,7 @@ uiBut *uiDefButC(uiBlock *block,
                  float min,
                  float max,
                  std::optional<StringRef> tip);
-uiBut *uiDefButBitC(uiBlock *block,
+uiBut *uiDefButBitC(Block *block,
                     ButType type,
                     int bit,
                     StringRef str,
@@ -1198,7 +1198,7 @@ uiBut *uiDefButBitC(uiBlock *block,
                     float min,
                     float max,
                     std::optional<StringRef> tip);
-uiBut *uiDefButR(uiBlock *block,
+uiBut *uiDefButR(Block *block,
                  ButType type,
                  std::optional<StringRef> str,
                  int x,
@@ -1211,7 +1211,7 @@ uiBut *uiDefButR(uiBlock *block,
                  float min,
                  float max,
                  std::optional<StringRef> tip);
-uiBut *uiDefButR_prop(uiBlock *block,
+uiBut *uiDefButR_prop(Block *block,
                       ButType type,
                       std::optional<StringRef> str,
                       int x,
@@ -1224,7 +1224,7 @@ uiBut *uiDefButR_prop(uiBlock *block,
                       float min,
                       float max,
                       std::optional<StringRef> tip);
-uiBut *uiDefButO(uiBlock *block,
+uiBut *uiDefButO(Block *block,
                  ButType type,
                  StringRefNull opname,
                  wm::OpCallContext opcontext,
@@ -1234,7 +1234,7 @@ uiBut *uiDefButO(uiBlock *block,
                  short width,
                  short height,
                  std::optional<StringRef> tip);
-uiBut *uiDefButO_ptr(uiBlock *block,
+uiBut *uiDefButO_ptr(Block *block,
                      ButType type,
                      wmOperatorType *ot,
                      wm::OpCallContext opcontext,
@@ -1245,7 +1245,7 @@ uiBut *uiDefButO_ptr(uiBlock *block,
                      short height,
                      std::optional<StringRef> tip);
 
-uiBut *uiDefIconBut(uiBlock *block,
+uiBut *uiDefIconBut(Block *block,
                     uiButTypeWithPointerType but_and_ptr_type,
                     int icon,
                     int x,
@@ -1256,7 +1256,7 @@ uiBut *uiDefIconBut(uiBlock *block,
                     float min,
                     float max,
                     std::optional<StringRef> tip);
-uiBut *uiDefIconButI(uiBlock *block,
+uiBut *uiDefIconButI(Block *block,
                      ButType type,
                      int icon,
                      int x,
@@ -1267,7 +1267,7 @@ uiBut *uiDefIconButI(uiBlock *block,
                      float min,
                      float max,
                      std::optional<StringRef> tip);
-uiBut *uiDefIconButBitI(uiBlock *block,
+uiBut *uiDefIconButBitI(Block *block,
                         ButType type,
                         int bit,
                         int icon,
@@ -1279,7 +1279,7 @@ uiBut *uiDefIconButBitI(uiBlock *block,
                         float min,
                         float max,
                         std::optional<StringRef> tip);
-uiBut *uiDefIconButS(uiBlock *block,
+uiBut *uiDefIconButS(Block *block,
                      ButType type,
                      int icon,
                      int x,
@@ -1290,7 +1290,7 @@ uiBut *uiDefIconButS(uiBlock *block,
                      float min,
                      float max,
                      std::optional<StringRef> tip);
-uiBut *uiDefIconButBitS(uiBlock *block,
+uiBut *uiDefIconButBitS(Block *block,
                         ButType type,
                         int bit,
                         int icon,
@@ -1302,7 +1302,7 @@ uiBut *uiDefIconButBitS(uiBlock *block,
                         float min,
                         float max,
                         std::optional<StringRef> tip);
-uiBut *uiDefIconButBitC(uiBlock *block,
+uiBut *uiDefIconButBitC(Block *block,
                         ButType type,
                         int bit,
                         int icon,
@@ -1314,7 +1314,7 @@ uiBut *uiDefIconButBitC(uiBlock *block,
                         float min,
                         float max,
                         std::optional<StringRef> tip);
-uiBut *uiDefIconButR(uiBlock *block,
+uiBut *uiDefIconButR(Block *block,
                      ButType type,
                      int icon,
                      int x,
@@ -1327,7 +1327,7 @@ uiBut *uiDefIconButR(uiBlock *block,
                      float min,
                      float max,
                      std::optional<StringRef> tip);
-uiBut *uiDefIconButR_prop(uiBlock *block,
+uiBut *uiDefIconButR_prop(Block *block,
                           ButType type,
                           int icon,
                           int x,
@@ -1340,7 +1340,7 @@ uiBut *uiDefIconButR_prop(uiBlock *block,
                           float min,
                           float max,
                           std::optional<StringRef> tip);
-uiBut *uiDefIconButO(uiBlock *block,
+uiBut *uiDefIconButO(Block *block,
                      ButType type,
                      StringRefNull opname,
                      wm::OpCallContext opcontext,
@@ -1350,7 +1350,7 @@ uiBut *uiDefIconButO(uiBlock *block,
                      short width,
                      short height,
                      std::optional<StringRef> tip);
-uiBut *uiDefIconButO_ptr(uiBlock *block,
+uiBut *uiDefIconButO_ptr(Block *block,
                          ButType type,
                          wmOperatorType *ot,
                          wm::OpCallContext opcontext,
@@ -1360,7 +1360,7 @@ uiBut *uiDefIconButO_ptr(uiBlock *block,
                          short width,
                          short height,
                          std::optional<StringRef> tip);
-uiBut *uiDefIconPreviewBut(uiBlock *block,
+uiBut *uiDefIconPreviewBut(Block *block,
                            ButType type,
                            int icon,
                            int x,
@@ -1372,10 +1372,10 @@ uiBut *uiDefIconPreviewBut(uiBlock *block,
                            float max,
                            std::optional<StringRef> tip);
 uiBut *uiDefButImage(
-    uiBlock *block, void *imbuf, int x, int y, short width, short height, const uchar color[4]);
-uiBut *uiDefButAlert(uiBlock *block, AlertIcon icon, int x, int y, short width, short height);
+    Block *block, void *imbuf, int x, int y, short width, short height, const uchar color[4]);
+uiBut *uiDefButAlert(Block *block, AlertIcon icon, int x, int y, short width, short height);
 /** Button containing both string label and icon. */
-uiBut *uiDefIconTextBut(uiBlock *block,
+uiBut *uiDefIconTextBut(Block *block,
                         uiButTypeWithPointerType but_and_ptr_type,
                         int icon,
                         StringRef str,
@@ -1385,7 +1385,7 @@ uiBut *uiDefIconTextBut(uiBlock *block,
                         short height,
                         void *poin,
                         std::optional<StringRef> tip);
-uiBut *uiDefIconTextButI(uiBlock *block,
+uiBut *uiDefIconTextButI(Block *block,
                          ButType type,
                          int icon,
                          StringRef str,
@@ -1395,7 +1395,7 @@ uiBut *uiDefIconTextButI(uiBlock *block,
                          short height,
                          int *poin,
                          std::optional<StringRef> tip);
-uiBut *uiDefIconTextButS(uiBlock *block,
+uiBut *uiDefIconTextButS(Block *block,
                          ButType type,
                          int icon,
                          StringRef str,
@@ -1405,7 +1405,7 @@ uiBut *uiDefIconTextButS(uiBlock *block,
                          short height,
                          short *poin,
                          std::optional<StringRef> tip);
-uiBut *uiDefIconTextButR(uiBlock *block,
+uiBut *uiDefIconTextButR(Block *block,
                          ButType type,
                          int icon,
                          std::optional<StringRefNull> str,
@@ -1417,7 +1417,7 @@ uiBut *uiDefIconTextButR(uiBlock *block,
                          StringRefNull propname,
                          int index,
                          std::optional<StringRef> tip);
-uiBut *uiDefIconTextButR_prop(uiBlock *block,
+uiBut *uiDefIconTextButR_prop(Block *block,
                               ButType type,
                               int icon,
                               std::optional<StringRef> str,
@@ -1431,7 +1431,7 @@ uiBut *uiDefIconTextButR_prop(uiBlock *block,
                               float min,
                               float max,
                               std::optional<StringRef> tip);
-uiBut *uiDefIconTextButO(uiBlock *block,
+uiBut *uiDefIconTextButO(Block *block,
                          ButType type,
                          StringRefNull,
                          wm::OpCallContext opcontext,
@@ -1442,7 +1442,7 @@ uiBut *uiDefIconTextButO(uiBlock *block,
                          short width,
                          short height,
                          std::optional<StringRef> tip);
-uiBut *uiDefIconTextButO_ptr(uiBlock *block,
+uiBut *uiDefIconTextButO_ptr(Block *block,
                              ButType type,
                              wmOperatorType *ot,
                              wm::OpCallContext opcontext,
@@ -1470,8 +1470,8 @@ void button_operator_set_never_call(uiBut *but);
 /** For passing inputs to ButO buttons. */
 PointerRNA *button_operator_ptr_ensure(uiBut *but);
 
-void button_context_ptr_set(uiBlock *block, uiBut *but, StringRef name, const PointerRNA *ptr);
-void button_context_int_set(uiBlock *block, uiBut *but, StringRef name, int64_t value);
+void button_context_ptr_set(Block *block, uiBut *but, StringRef name, const PointerRNA *ptr);
+void button_context_int_set(Block *block, uiBut *but, StringRef name, int64_t value);
 const PointerRNA *button_context_ptr_get(const uiBut *but,
                                          StringRef name,
                                          const StructRNA *type = nullptr);
@@ -1513,7 +1513,7 @@ std::string button_extra_icon_string_get_operator_keymap(const bContext &C,
  *
  * Buttons with a more specific purpose:
  * - MenuBut: buttons that popup a menu (in headers usually).
- * - PulldownBut: like MenuBut, but creating a uiBlock (for compatibility).
+ * - PulldownBut: like MenuBut, but creating a Block (for compatibility).
  * - BlockBut: buttons that popup a block with more buttons.
  * - KeyevtBut: buttons that can be used to turn key events into values.
  * - PickerButtons: buttons like the color picker (for code sharing).
@@ -1557,7 +1557,7 @@ int UI_text_colorid_from_report_type(int type);
 int icon_from_event_type(short event_type, short event_value);
 int icon_from_keymap_item(const wmKeyMapItem *kmi, int r_icon_mod[KM_MOD_NUM]);
 
-uiBut *uiDefMenuBut(uiBlock *block,
+uiBut *uiDefMenuBut(Block *block,
                     uiMenuCreateFunc func,
                     void *arg,
                     StringRef str,
@@ -1566,7 +1566,7 @@ uiBut *uiDefMenuBut(uiBlock *block,
                     short width,
                     short height,
                     std::optional<StringRef> tip);
-uiBut *uiDefIconTextMenuBut(uiBlock *block,
+uiBut *uiDefIconTextMenuBut(Block *block,
                             uiMenuCreateFunc func,
                             void *arg,
                             int icon,
@@ -1576,7 +1576,7 @@ uiBut *uiDefIconTextMenuBut(uiBlock *block,
                             short width,
                             short height,
                             std::optional<StringRef> tip);
-uiBut *uiDefIconMenuBut(uiBlock *block,
+uiBut *uiDefIconMenuBut(Block *block,
                         uiMenuCreateFunc func,
                         void *arg,
                         int icon,
@@ -1586,7 +1586,7 @@ uiBut *uiDefIconMenuBut(uiBlock *block,
                         short height,
                         std::optional<StringRef> tip);
 
-uiBut *uiDefBlockBut(uiBlock *block,
+uiBut *uiDefBlockBut(Block *block,
                      uiBlockCreateFunc func,
                      void *arg,
                      StringRef str,
@@ -1595,7 +1595,7 @@ uiBut *uiDefBlockBut(uiBlock *block,
                      short width,
                      short height,
                      std::optional<StringRef> tip);
-uiBut *uiDefBlockButN(uiBlock *block,
+uiBut *uiDefBlockButN(Block *block,
                       uiBlockCreateFunc func,
                       void *argN,
                       StringRef str,
@@ -1610,7 +1610,7 @@ uiBut *uiDefBlockButN(uiBlock *block,
 /**
  * Block button containing icon.
  */
-uiBut *uiDefIconBlockBut(uiBlock *block,
+uiBut *uiDefIconBlockBut(Block *block,
                          uiBlockCreateFunc func,
                          void *arg,
                          int icon,
@@ -1623,7 +1623,7 @@ uiBut *uiDefIconBlockBut(uiBlock *block,
 /**
  * \param arg: A pointer to string/name, use #button_func_search_set() below to make this work.
  */
-uiBut *uiDefSearchBut(uiBlock *block,
+uiBut *uiDefSearchBut(Block *block,
                       void *arg,
                       int icon,
                       int maxncpy,
@@ -1636,7 +1636,7 @@ uiBut *uiDefSearchBut(uiBlock *block,
  * Same parameters as for #uiDefSearchBut, with additional operator type and properties,
  * used by callback to call again the right op with the right options (properties values).
  */
-uiBut *uiDefSearchButO_ptr(uiBlock *block,
+uiBut *uiDefSearchButO_ptr(Block *block,
                            wmOperatorType *ot,
                            IDProperty *properties,
                            void *arg,
@@ -1668,7 +1668,7 @@ enum eAutoPropButsReturn {
 
 ENUM_OPERATORS(eAutoPropButsReturn);
 
-uiBut *uiDefAutoButR(uiBlock *block,
+uiBut *uiDefAutoButR(Block *block,
                      PointerRNA *ptr,
                      PropertyRNA *prop,
                      int index,
@@ -1678,7 +1678,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
                      int y,
                      int width,
                      int height);
-void uiDefAutoButsArrayR(uiBlock *block,
+void uiDefAutoButsArrayR(Block *block,
                          PointerRNA *ptr,
                          PropertyRNA *prop,
                          const int icon,
@@ -1811,9 +1811,9 @@ void button_view_item_draw_size_set(uiBut *but,
                                     const std::optional<int> draw_width = std::nullopt,
                                     const std::optional<int> draw_height = std::nullopt);
 
-void block_func_handle_set(uiBlock *block, uiBlockHandleFunc func, void *arg);
-void block_func_set(uiBlock *block, uiButHandleFunc func, void *arg1, void *arg2);
-void block_funcN_set(uiBlock *block,
+void block_func_handle_set(Block *block, uiBlockHandleFunc func, void *arg);
+void block_func_set(Block *block, uiButHandleFunc func, void *arg1, void *arg2);
+void block_funcN_set(Block *block,
                      uiButHandleNFunc funcN,
                      void *argN,
                      void *arg2,
@@ -1833,7 +1833,7 @@ void button_funcN_set(uiBut *but,
 
 void button_func_complete_set(uiBut *but, uiButCompleteFunc func, void *arg);
 
-void button_func_drawextra_set(uiBlock *block,
+void button_func_drawextra_set(Block *block,
                                std::function<void(const bContext *C, rcti *rect)> func);
 
 void button_func_menu_step_set(uiBut *but, uiMenuStepFunc func);
@@ -2043,7 +2043,7 @@ Panel *panel_find_by_type(ListBase *lb, const PanelType *pt);
  * \note \a panel should be return value from #panel_find_by_type and can be NULL.
  */
 Panel *panel_begin(
-    ARegion *region, ListBase *lb, uiBlock *block, PanelType *pt, Panel *panel, bool *r_open);
+    ARegion *region, ListBase *lb, Block *block, PanelType *pt, Panel *panel, bool *r_open);
 /**
  * Create the panel header button group, used to mark which buttons are part of
  * panel headers for the panel search process that happens later. This Should be
@@ -2075,7 +2075,7 @@ bool panel_is_active(const Panel *panel);
 /**
  * For button layout next to label.
  */
-void panel_label_offset(const uiBlock *block, int *r_x, int *r_y);
+void panel_label_offset(const Block *block, int *r_x, int *r_y);
 bool panel_should_show_background(const ARegion *region, const PanelType *panel_type);
 int panel_size_y(const Panel *panel);
 bool panel_is_dragging(const Panel *panel);
@@ -2129,7 +2129,7 @@ void panels_free_instanced(const bContext *C, ARegion *region);
 
 #define INSTANCED_PANEL_UNIQUE_STR_SIZE 16
 /**
- * Find a unique key to append to the #PanelType.idname for the lookup to the panel's #uiBlock.
+ * Find a unique key to append to the #PanelType.idname for the lookup to the panel's #Block.
  * Needed for instanced panels, where there can be multiple with the same type and identifier.
  */
 void list_panel_unique_str(Panel *panel, char *r_name);
@@ -2735,7 +2735,7 @@ ID *context_active_but_get_tab_ID(bContext *C);
 
 uiBut *region_active_but_get(const ARegion *region);
 uiBut *region_but_find_rect_over(const ARegion *region, const rcti *rect_px);
-uiBlock *region_block_find_mouse_over(const ARegion *region, const int xy[2], bool only_clip);
+Block *region_block_find_mouse_over(const ARegion *region, const int xy[2], bool only_clip);
 /**
  * Try to find a search-box region opened from a button in \a button_region.
  */
@@ -2818,7 +2818,7 @@ int fontstyle_string_width(const uiFontStyle *fs, const char *str) ATTR_WARN_UNU
     ATTR_NONNULL(1, 2);
 /**
  * Return the width of `str` with the spacing & kerning of `fs` with `aspect`
- * (representing #uiBlock.aspect) applied.
+ * (representing #Block.aspect) applied.
  *
  * When calculating text width, the UI layout logic calculate widths without scale,
  * only applying scale when drawing. This causes problems for fonts since kerning at
@@ -2872,23 +2872,23 @@ struct uiButStore;
 /**
  * Create a new button store, the caller must manage and run #butstore_free
  */
-uiButStore *butstore_create(uiBlock *block);
+uiButStore *butstore_create(Block *block);
 /**
  * NULL all pointers, don't free since the owner needs to be able to inspect.
  */
-void butstore_clear(uiBlock *block);
+void butstore_clear(Block *block);
 /**
  * Map freed buttons from the old block and update pointers.
  */
-void butstore_update(uiBlock *block);
-void butstore_free(uiBlock *block, uiButStore *bs_handle);
+void butstore_update(Block *block);
+void butstore_free(Block *block, uiButStore *bs_handle);
 bool butstore_is_valid(uiButStore *bs_handle);
-bool butstore_is_registered(uiBlock *block, uiBut *but);
+bool butstore_is_registered(Block *block, uiBut *but);
 void butstore_register(uiButStore *bs_handle, uiBut **but_p);
 /**
  * Update the pointer for a registered button.
  */
-bool butstore_register_update(uiBlock *block, uiBut *but_dst, const uiBut *but_src);
+bool butstore_register_update(Block *block, uiBut *but_dst, const uiBut *but_src);
 void butstore_unregister(uiButStore *bs_handle, uiBut **but_p);
 
 /* ui_interface_region_tooltip.c */

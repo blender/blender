@@ -89,7 +89,7 @@ void template_layers(Layout *layout,
 
     for (int row = 0; row < 2; row++) {
       Layout &uRow = uCol.row(true);
-      uiBlock *block = uRow.block();
+      Block *block = uRow.block();
       int layer = groups * cols_per_group * row + cols_per_group * group;
 
       /* add layers as toggle buts */

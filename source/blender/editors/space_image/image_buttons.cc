@@ -73,7 +73,7 @@ ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
 
 static void ui_imageuser_slot_menu(bContext *C, blender::ui::Layout *layout, void *image_p)
 {
-  uiBlock *block = layout->block();
+  blender::ui::Block *block = layout->block();
   Image *image = static_cast<Image *>(image_p);
 
   /* The scene isn't expected to be null, check since it's not a requirement
@@ -174,7 +174,7 @@ static ImageUI_Data *ui_imageuser_data_copy(const ImageUI_Data *rnd_pt_src)
 static void ui_imageuser_layer_menu(bContext * /*C*/, blender::ui::Layout *layout, void *rnd_pt)
 {
   ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
-  uiBlock *block = layout->block();
+  blender::ui::Block *block = layout->block();
   Image *image = rnd_data->image;
   ImageUser *iuser = rnd_data->iuser;
   Scene *scene = iuser->scene;
@@ -239,7 +239,7 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, blender::ui::Layout *layou
 static void ui_imageuser_pass_menu(bContext * /*C*/, blender::ui::Layout *layout, void *rnd_pt)
 {
   ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
-  uiBlock *block = layout->block();
+  blender::ui::Block *block = layout->block();
   Image *image = rnd_data->image;
   ImageUser *iuser = rnd_data->iuser;
   /* (rpass_index == -1) means composite result */
@@ -313,7 +313,7 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, blender::ui::Layout *layout
 static void ui_imageuser_view_menu_rr(bContext * /*C*/, blender::ui::Layout *layout, void *rnd_pt)
 {
   ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
-  uiBlock *block = layout->block();
+  blender::ui::Block *block = layout->block();
   Image *image = rnd_data->image;
   ImageUser *iuser = rnd_data->iuser;
   RenderResult *rr;
@@ -370,7 +370,7 @@ static void ui_imageuser_view_menu_multiview(bContext * /*C*/,
                                              void *rnd_pt)
 {
   ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
-  uiBlock *block = layout->block();
+  blender::ui::Block *block = layout->block();
   Image *image = rnd_data->image;
   ImageUser *iuser = rnd_data->iuser;
   int nr;
@@ -562,7 +562,7 @@ static void uiblock_layer_pass_buttons(blender::ui::Layout &layout,
                                        const short *render_slot)
 {
   ImageUI_Data rnd_pt_local, *rnd_pt = nullptr;
-  uiBlock *block = layout.block();
+  blender::ui::Block *block = layout.block();
   uiBut *but;
   RenderLayer *rl = nullptr;
   int wmenu1, wmenu2, wmenu3, wmenu4;
@@ -757,7 +757,7 @@ void uiTemplateImage(blender::ui::Layout *layout,
     return;
   }
 
-  uiBlock *block = layout->block();
+  blender::ui::Block *block = layout->block();
 
   PointerRNA imaptr = RNA_property_pointer_get(ptr, prop);
   Image *ima = static_cast<Image *>(imaptr.data);

@@ -33,7 +33,7 @@ void template_color_picker(Layout *layout,
                            bool cubic)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
-  uiBlock *block = layout->block();
+  Block *block = layout->block();
   ColorPicker *cpicker = ui_block_colorpicker_create(block);
 
   if (!prop) {
@@ -235,7 +235,7 @@ void template_palette(Layout *layout,
     return;
   }
 
-  uiBlock *block = layout->block();
+  Block *block = layout->block();
 
   Palette *palette = static_cast<Palette *>(cptr.data);
 
@@ -336,7 +336,7 @@ void template_crypto_picker(Layout *layout,
     return;
   }
 
-  uiBlock *block = layout->block();
+  Block *block = layout->block();
 
   uiBut *but = uiDefIconButO(block,
                              ButType::But,

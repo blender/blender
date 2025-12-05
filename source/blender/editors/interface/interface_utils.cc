@@ -52,7 +52,7 @@ namespace blender::ui {
 
 /*************************** RNA Utilities ******************************/
 
-uiBut *uiDefAutoButR(uiBlock *block,
+uiBut *uiDefAutoButR(Block *block,
                      PointerRNA *ptr,
                      PropertyRNA *prop,
                      int index,
@@ -257,7 +257,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
   return but;
 }
 
-void uiDefAutoButsArrayR(uiBlock *block,
+void uiDefAutoButsArrayR(Block *block,
                          PointerRNA *ptr,
                          PropertyRNA *prop,
                          const int icon,
@@ -830,7 +830,7 @@ void but_ensure_in_view(const bContext *C, ARegion *region, const uiBut *but)
 
 struct uiButStore {
   uiButStore *next, *prev;
-  uiBlock *block;
+  Block *block;
   ListBase items;
 };
 
@@ -839,7 +839,7 @@ struct uiButStoreElem {
   uiBut **but_p;
 };
 
-uiButStore *butstore_create(uiBlock *block)
+uiButStore *butstore_create(Block *block)
 {
   uiButStore *bs_handle = MEM_callocN<uiButStore>(__func__);
 
@@ -849,7 +849,7 @@ uiButStore *butstore_create(uiBlock *block)
   return bs_handle;
 }
 
-void butstore_free(uiBlock *block, uiButStore *bs_handle)
+void butstore_free(Block *block, uiButStore *bs_handle)
 {
   /* NOTE(@ideasman42): Workaround for button store being moved into new block,
    * which then can't use the previous buttons state
@@ -875,7 +875,7 @@ bool butstore_is_valid(uiButStore *bs_handle)
   return (bs_handle->block != nullptr);
 }
 
-bool butstore_is_registered(uiBlock *block, uiBut *but)
+bool butstore_is_registered(Block *block, uiBut *but)
 {
   LISTBASE_FOREACH (uiButStore *, bs_handle, &block->butstore) {
     LISTBASE_FOREACH (uiButStoreElem *, bs_elem, &bs_handle->items) {
@@ -909,7 +909,7 @@ void butstore_unregister(uiButStore *bs_handle, uiBut **but_p)
   BLI_assert(0);
 }
 
-bool butstore_register_update(uiBlock *block, uiBut *but_dst, const uiBut *but_src)
+bool butstore_register_update(Block *block, uiBut *but_dst, const uiBut *but_src)
 {
   bool found = false;
 
@@ -925,7 +925,7 @@ bool butstore_register_update(uiBlock *block, uiBut *but_dst, const uiBut *but_s
   return found;
 }
 
-void butstore_clear(uiBlock *block)
+void butstore_clear(Block *block)
 {
   LISTBASE_FOREACH (uiButStore *, bs_handle, &block->butstore) {
     bs_handle->block = nullptr;
@@ -935,7 +935,7 @@ void butstore_clear(uiBlock *block)
   }
 }
 
-void butstore_update(uiBlock *block)
+void butstore_update(Block *block)
 {
   /* move this list to the new block */
   if (block->oldblock) {

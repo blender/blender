@@ -5756,7 +5756,7 @@ static void achannel_setting_slider_nla_curve_cb(bContext *C, void * /*id_poin*/
 static void draw_setting_widget(bAnimContext *ac,
                                 bAnimListElem *ale,
                                 const bAnimChannelType *acf,
-                                uiBlock *block,
+                                blender::ui::Block *block,
                                 const int xpos,
                                 const int ypos,
                                 const eAnimChannel_Settings setting)
@@ -6001,7 +6001,7 @@ static void draw_setting_widget(bAnimContext *ac,
 }
 
 static void draw_grease_pencil_layer_widgets(bAnimListElem *ale,
-                                             uiBlock *block,
+                                             blender::ui::Block *block,
                                              const rctf *rect,
                                              short &offset,
                                              const short channel_height,
@@ -6087,7 +6087,7 @@ static void draw_grease_pencil_layer_widgets(bAnimListElem *ale,
 void ANIM_channel_draw_widgets(const bContext *C,
                                bAnimContext *ac,
                                bAnimListElem *ale,
-                               uiBlock *block,
+                               blender::ui::Block *block,
                                const rctf *rect,
                                size_t channel_index)
 {

@@ -542,7 +542,7 @@ void region_layout(const bContext *C, ARegion *region)
     return;
   }
 
-  uiBlock *block = block_begin(C, region, __func__, ui::EmbossType::Emboss);
+  ui::Block *block = block_begin(C, region, __func__, ui::EmbossType::Emboss);
 
   const uiStyle *style = ui::style_get_dpi();
   const int padding_y = main_region_padding_y();
@@ -792,7 +792,7 @@ AssetShelf *active_shelf_from_context(const bContext *C)
 /** \name Catalog toggle buttons
  * \{ */
 
-static uiBut *add_tab_button(uiBlock &block, StringRefNull name)
+static uiBut *add_tab_button(ui::Block &block, StringRefNull name)
 {
   const uiStyle *style = ui::style_get_dpi();
   const int string_width = ui::fontstyle_string_width(&style->widget, name.c_str());
@@ -820,7 +820,7 @@ static uiBut *add_tab_button(uiBlock &block, StringRefNull name)
 
 static void add_catalog_tabs(AssetShelf &shelf, ui::Layout &layout)
 {
-  uiBlock *block = layout.block();
+  ui::Block *block = layout.block();
   AssetShelfSettings &shelf_settings = shelf.settings;
 
   /* "All" tab. */
@@ -862,7 +862,7 @@ static void add_catalog_tabs(AssetShelf &shelf, ui::Layout &layout)
 static void asset_shelf_header_draw(const bContext *C, Header *header)
 {
   ui::Layout &layout = *header->layout;
-  uiBlock *block = layout.block();
+  ui::Block *block = layout.block();
   const AssetLibraryReference *library_ref = CTX_wm_asset_library_ref(C);
 
   list::storage_fetch(library_ref, C);

@@ -232,7 +232,7 @@ static ARegion *template_ID_search_menu_item_tooltip(
 }
 
 /* ID Search browse menu, open */
-static uiBlock *id_search_menu(bContext *C, ARegion *region, void *arg_litem)
+static Block *id_search_menu(bContext *C, ARegion *region, void *arg_litem)
 {
   static TemplateID template_ui;
   PointerRNA active_item_ptr;
@@ -911,7 +911,7 @@ static const char *template_id_context(StructRNA *type)
 #  define template_id_context(type) 0
 #endif
 
-static uiBut *template_id_def_new_but(uiBlock *block,
+static uiBut *template_id_def_new_but(Block *block,
                                       const ID *id,
                                       const TemplateID &template_ui,
                                       StructRNA *type,
@@ -1038,7 +1038,7 @@ static void template_ID(const bContext *C,
   /* Allow operators to take the ID from context. */
   layout.context_ptr_set("id", &idptr);
 
-  uiBlock *block = layout.block();
+  Block *block = layout.block();
   block_align_begin(block);
 
   if (idptr.type) {
@@ -1458,7 +1458,7 @@ static void template_ID_tabs(const bContext *C,
 
   const int but_height = UI_UNIT_Y * 1.1;
 
-  uiBlock *block = layout.block();
+  Block *block = layout.block();
   const uiStyle *style = style_get_dpi();
 
   for (ID *id : BKE_id_ordered_list(template_id.idlb)) {

@@ -304,7 +304,7 @@ struct ARegionType {
    * Set as bitflag value in #ARegionDrawLockFlags.
    */
   short do_lock, lock;
-  /** Don't handle gizmos events behind #uiBlock's with #BLOCK_CLIP_EVENTS flag set. */
+  /** Don't handle gizmos events behind #ui::Block's with #BLOCK_CLIP_EVENTS flag set. */
   bool clip_gizmo_events_by_ui;
   /** Call cursor function on each move event. */
   short event_cursor;
@@ -445,7 +445,7 @@ struct Panel_Runtime {
   PointerRNA *custom_data_ptr = nullptr;
 
   /**
-   * Pointer to the panel's block. Useful when changes to panel #uiBlocks
+   * Pointer to the panel's block. Useful when changes to panel #ui::Blocks
    * need some context from traversal of the panel "tree".
    */
   blender::ui::Block *block = nullptr;
@@ -484,9 +484,9 @@ struct ARegionRuntime {
   /** Panel category to use between 'layout' and 'draw'. */
   const char *category = nullptr;
 
-  /** Maps #uiBlock::name to uiBlock for faster lookups. */
+  /** Maps #ui::Block::name to ui::Block for faster lookups. */
   Map<std::string, blender::ui::Block *> block_name_map;
-  /** #uiBlock. */
+  /** #ui::Block. */
   ListBase uiblocks = {};
 
   /** #wmEventHandler. */

@@ -846,10 +846,10 @@ static void merged_element_search_exec_fn(bContext *C, void * /*arg1*/, void *el
  * Merged element search menu
  * Created on activation of a merged or aggregated icon-row icon.
  */
-static uiBlock *merged_element_search_menu(bContext *C, ARegion *region, void *data)
+static ui::Block *merged_element_search_menu(bContext *C, ARegion *region, void *data)
 {
   static char search[64] = "";
-  uiBlock *block;
+  ui::Block *block;
   uiBut *but;
 
   /* Clear search on each menu creation */

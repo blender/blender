@@ -569,7 +569,7 @@ void template_tree_interface(Layout *layout, const bContext *C, PointerRNA *ptr)
   bNodeTree &nodetree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNodeTreeInterface &interface = *static_cast<bNodeTreeInterface *>(ptr->data);
 
-  uiBlock *block = layout->block();
+  Block *block = layout->block();
 
   AbstractTreeView *tree_view = block_add_view(
       *block,

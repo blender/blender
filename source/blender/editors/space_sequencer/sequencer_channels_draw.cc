@@ -96,7 +96,7 @@ static std::string draw_channel_widget_tooltip(bContext * /*C*/,
 }
 
 static float draw_channel_widget_mute(const SeqChannelDrawContext *context,
-                                      uiBlock *block,
+                                      ui::Block *block,
                                       const int channel_index,
                                       const float offset)
 {
@@ -134,7 +134,7 @@ static float draw_channel_widget_mute(const SeqChannelDrawContext *context,
 }
 
 static float draw_channel_widget_lock(const SeqChannelDrawContext *context,
-                                      uiBlock *block,
+                                      ui::Block *block,
                                       const int channel_index,
                                       const float offset)
 {
@@ -209,7 +209,7 @@ static rctf label_rect_init(const SeqChannelDrawContext *context,
 }
 
 static void draw_channel_labels(const SeqChannelDrawContext *context,
-                                uiBlock *block,
+                                ui::Block *block,
                                 const int channel_index,
                                 const float used_width)
 {
@@ -270,7 +270,7 @@ static void draw_channel_headers(const SeqChannelDrawContext *context)
   GPU_matrix_push();
   wmOrtho2_pixelspace(context->region->winx / context->scale,
                       context->region->winy / context->scale);
-  uiBlock *block = block_begin(context->C, context->region, __func__, ui::EmbossType::Emboss);
+  ui::Block *block = block_begin(context->C, context->region, __func__, ui::EmbossType::Emboss);
 
   int channel_range[2];
   displayed_channel_range_get(context, channel_range);

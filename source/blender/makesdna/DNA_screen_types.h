@@ -164,7 +164,6 @@ enum LayoutPanelStateFlag {
   LAYOUT_PANEL_STATE_FLAG_OPEN = (1 << 0),
 };
 
-/** The part from uiBlock that needs saved in file. */
 typedef struct Panel {
   struct Panel *next, *prev;
 

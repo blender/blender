@@ -36,7 +36,7 @@ void template_asset_shelf_popover(Layout &layout,
   }
 
   const ARegion *region = CTX_wm_region(&C);
-  uiBlock *block = layout.block();
+  Block *block = layout.block();
 
   Layout &row = layout.row(true);
   const bool use_big_size = !RGN_TYPE_IS_HEADER_ANY(region->regiontype);

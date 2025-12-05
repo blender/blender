@@ -4035,13 +4035,13 @@ void WM_OT_clear_recent_files(wmOperatorType *ot)
 static void wm_block_autorun_warning_ignore(bContext *C, void *arg_block, void * /*arg*/)
 {
   wmWindow *win = CTX_wm_window(C);
-  popup_block_close(C, win, static_cast<uiBlock *>(arg_block));
+  popup_block_close(C, win, static_cast<blender::ui::Block *>(arg_block));
 
   /* Free the data as it's no longer needed. */
   wm_test_autorun_revert_action_set(nullptr, nullptr);
 }
 
-static void wm_block_autorun_warning_reload_with_scripts(bContext *C, uiBlock *block)
+static void wm_block_autorun_warning_reload_with_scripts(bContext *C, blender::ui::Block *block)
 {
   wmWindow *win = CTX_wm_window(C);
 
@@ -4058,7 +4058,7 @@ static void wm_block_autorun_warning_reload_with_scripts(bContext *C, uiBlock *b
   wm_test_autorun_revert_action_exec(C);
 }
 
-static void wm_block_autorun_warning_enable_scripts(bContext *C, uiBlock *block)
+static void wm_block_autorun_warning_enable_scripts(bContext *C, blender::ui::Block *block)
 {
   wmWindow *win = CTX_wm_window(C);
   Main *bmain = CTX_data_main(C);
@@ -4078,12 +4078,14 @@ static void wm_block_autorun_warning_enable_scripts(bContext *C, uiBlock *block)
 }
 
 /* Build the auto-run warning dialog UI. */
-static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void * /*arg1*/)
+static blender::ui::Block *block_create_autorun_warning(bContext *C,
+                                                        ARegion *region,
+                                                        void * /*arg1*/)
 {
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
   wmWindowManager *wm = CTX_wm_manager(C);
 
-  uiBlock *block = block_begin(
+  blender::ui::Block *block = block_begin(
       C, region, "autorun_warning_popup", blender::ui::EmbossType::Emboss);
   block_flag_enable(block,
                     blender::ui::BLOCK_KEEP_OPEN | blender::ui::BLOCK_LOOP |
@@ -4375,10 +4377,11 @@ static void file_overwrite_detailed_info_show(blender::ui::Layout &parent_layout
 static void save_file_overwrite_cancel(bContext *C, void *arg_block, void * /*arg_data*/)
 {
   wmWindow *win = CTX_wm_window(C);
-  popup_block_close(C, win, static_cast<uiBlock *>(arg_block));
+  popup_block_close(C, win, static_cast<blender::ui::Block *>(arg_block));
 }
 
-static void save_file_overwrite_cancel_button(uiBlock *block, wmGenericCallback *post_action)
+static void save_file_overwrite_cancel_button(blender::ui::Block *block,
+                                              wmGenericCallback *post_action)
 {
   uiBut *but = uiDefIconTextBut(block,
                                 blender::ui::ButType::But,
@@ -4405,7 +4408,7 @@ static void save_file_overwrite_confirm(bContext *C, void *arg_block, void *arg_
 
   /* Needs to be done after stealing the callback data above, otherwise it would cause a
    * use-after-free. */
-  popup_block_close(C, win, static_cast<uiBlock *>(arg_block));
+  popup_block_close(C, win, static_cast<blender::ui::Block *>(arg_block));
 
   PointerRNA operator_propptr = {};
   PointerRNA *operator_propptr_p = &operator_propptr;
@@ -4421,7 +4424,8 @@ static void save_file_overwrite_confirm(bContext *C, void *arg_block, void *arg_
   WM_generic_callback_free(callback);
 }
 
-static void save_file_overwrite_confirm_button(uiBlock *block, wmGenericCallback *post_action)
+static void save_file_overwrite_confirm_button(blender::ui::Block *block,
+                                               wmGenericCallback *post_action)
 {
   uiBut *but = uiDefIconTextBut(block,
                                 blender::ui::ButType::But,
@@ -4441,13 +4445,14 @@ static void save_file_overwrite_confirm_button(uiBlock *block, wmGenericCallback
 static void save_file_overwrite_saveas(bContext *C, void *arg_block, void * /*arg_data*/)
 {
   wmWindow *win = CTX_wm_window(C);
-  popup_block_close(C, win, static_cast<uiBlock *>(arg_block));
+  popup_block_close(C, win, static_cast<blender::ui::Block *>(arg_block));
 
   WM_operator_name_call(
       C, "WM_OT_save_as_mainfile", blender::wm::OpCallContext::InvokeDefault, nullptr, nullptr);
 }
 
-static void save_file_overwrite_saveas_button(uiBlock *block, wmGenericCallback *post_action)
+static void save_file_overwrite_saveas_button(blender::ui::Block *block,
+                                              wmGenericCallback *post_action)
 {
   uiBut *but = uiDefIconTextBut(block,
                                 blender::ui::ButType::But,
@@ -4464,12 +4469,14 @@ static void save_file_overwrite_saveas_button(uiBlock *block, wmGenericCallback 
   button_flag_enable(but, blender::ui::BUT_ACTIVE_DEFAULT);
 }
 
-static uiBlock *block_create_save_file_overwrite_dialog(bContext *C, ARegion *region, void *arg1)
+static blender::ui::Block *block_create_save_file_overwrite_dialog(bContext *C,
+                                                                   ARegion *region,
+                                                                   void *arg1)
 {
   wmGenericCallback *post_action = static_cast<wmGenericCallback *>(arg1);
   Main *bmain = CTX_data_main(C);
 
-  uiBlock *block = block_begin(
+  blender::ui::Block *block = block_begin(
       C, region, save_file_overwrite_dialog_name, blender::ui::EmbossType::Emboss);
   block_flag_enable(block,
                     blender::ui::BLOCK_KEEP_OPEN | blender::ui::BLOCK_LOOP |
@@ -4583,7 +4590,7 @@ static char save_images_when_file_is_closed = true;
 static void wm_block_file_close_cancel(bContext *C, void *arg_block, void * /*arg_data*/)
 {
   wmWindow *win = CTX_wm_window(C);
-  popup_block_close(C, win, static_cast<uiBlock *>(arg_block));
+  popup_block_close(C, win, static_cast<blender::ui::Block *>(arg_block));
 }
 
 static void wm_block_file_close_discard(bContext *C, void *arg_block, void *arg_data)
@@ -4594,7 +4601,7 @@ static void wm_block_file_close_discard(bContext *C, void *arg_block, void *arg_
    * the popup might be closed by the callback, which will lead
    * to a crash. */
   wmWindow *win = CTX_wm_window(C);
-  popup_block_close(C, win, static_cast<uiBlock *>(arg_block));
+  popup_block_close(C, win, static_cast<blender::ui::Block *>(arg_block));
 
   callback->exec(C, callback->user_data);
   WM_generic_callback_free(callback);
@@ -4608,7 +4615,7 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
   bool execute_callback = true;
 
   wmWindow *win = CTX_wm_window(C);
-  popup_block_close(C, win, static_cast<uiBlock *>(arg_block));
+  popup_block_close(C, win, static_cast<blender::ui::Block *>(arg_block));
 
   int modified_images_count = ED_image_save_all_modified_info(CTX_data_main(C), nullptr);
   if (modified_images_count > 0 && save_images_when_file_is_closed) {
@@ -4660,7 +4667,8 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
   WM_generic_callback_free(callback);
 }
 
-static void wm_block_file_close_cancel_button(uiBlock *block, wmGenericCallback *post_action)
+static void wm_block_file_close_cancel_button(blender::ui::Block *block,
+                                              wmGenericCallback *post_action)
 {
   uiBut *but = uiDefIconTextBut(block,
                                 blender::ui::ButType::But,
@@ -4676,7 +4684,8 @@ static void wm_block_file_close_cancel_button(uiBlock *block, wmGenericCallback 
   button_drawflag_disable(but, blender::ui::BUT_TEXT_LEFT);
 }
 
-static void wm_block_file_close_discard_button(uiBlock *block, wmGenericCallback *post_action)
+static void wm_block_file_close_discard_button(blender::ui::Block *block,
+                                               wmGenericCallback *post_action)
 {
   uiBut *but = uiDefIconTextBut(block,
                                 blender::ui::ButType::But,
@@ -4692,7 +4701,7 @@ static void wm_block_file_close_discard_button(uiBlock *block, wmGenericCallback
   button_drawflag_disable(but, blender::ui::BUT_TEXT_LEFT);
 }
 
-static void wm_block_file_close_save_button(uiBlock *block,
+static void wm_block_file_close_save_button(blender::ui::Block *block,
                                             wmGenericCallback *post_action,
                                             const bool needs_overwrite_confirm)
 {
@@ -4722,13 +4731,16 @@ static void save_catalogs_when_file_is_closed_set_fn(bContext * /*C*/, void *arg
       *save_catalogs_when_file_is_closed != 0);
 }
 
-static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, void *arg1)
+static blender::ui::Block *block_create__close_file_dialog(bContext *C,
+                                                           ARegion *region,
+                                                           void *arg1)
 {
   using namespace blender;
   wmGenericCallback *post_action = (wmGenericCallback *)arg1;
   Main *bmain = CTX_data_main(C);
 
-  uiBlock *block = block_begin(C, region, close_file_dialog_name, blender::ui::EmbossType::Emboss);
+  blender::ui::Block *block = block_begin(
+      C, region, close_file_dialog_name, blender::ui::EmbossType::Emboss);
   block_flag_enable(block,
                     blender::ui::BLOCK_KEEP_OPEN | blender::ui::BLOCK_LOOP |
                         blender::ui::BLOCK_NO_WIN_CLIP | blender::ui::BLOCK_NUMSELECT);

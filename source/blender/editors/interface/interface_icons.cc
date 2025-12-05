@@ -1666,7 +1666,7 @@ static void icon_draw_size(float x,
     GPU_blend(GPU_BLEND_ALPHA);
   }
   else if (di->type == ICON_TYPE_VECTOR) {
-    /* vector icons use the uiBlock transformation, they are not drawn
+    /* vector icons use the Block transformation, they are not drawn
      * with untransformed coordinates like the other icons */
     di->data.vector.func(
         x, y, float(draw_size) / aspect, float(draw_size) / aspect, alpha, mono_rgba);

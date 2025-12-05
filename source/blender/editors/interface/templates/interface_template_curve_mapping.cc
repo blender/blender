@@ -96,13 +96,13 @@ static void curvemap_buttons_zoom_out(bContext *C, CurveMapping *cumap)
 }
 
 /* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
-static uiBlock *curvemap_clipping_func(bContext *C, ARegion *region, void *cumap_v)
+static Block *curvemap_clipping_func(bContext *C, ARegion *region, void *cumap_v)
 {
   CurveMapping *cumap = static_cast<CurveMapping *>(cumap_v);
   uiBut *bt;
   const float width = 8 * UI_UNIT_X;
 
-  uiBlock *block = block_begin(C, region, __func__, EmbossType::Emboss);
+  Block *block = block_begin(C, region, __func__, EmbossType::Emboss);
   block_flag_enable(block, BLOCK_KEEP_OPEN | BLOCK_MOVEMOUSE_QUIT);
   block_theme_style_set(block, BLOCK_THEME_STYLE_POPUP);
 
@@ -181,7 +181,7 @@ static uiBlock *curvemap_clipping_func(bContext *C, ARegion *region, void *cumap
   return block;
 }
 
-static uiBlock *curvemap_tools_func(
+static Block *curvemap_tools_func(
     bContext *C, ARegion *region, RNAUpdateCb &cb, bool show_extend, CurveMapSlopeType reset_mode)
 {
   PointerRNA cumap_ptr = RNA_property_pointer_get(&cb.ptr, cb.prop);
@@ -190,7 +190,7 @@ static uiBlock *curvemap_tools_func(
   short yco = 0;
   const short menuwidth = 10 * UI_UNIT_X;
 
-  uiBlock *block = block_begin(C, region, __func__, EmbossType::Emboss);
+  Block *block = block_begin(C, region, __func__, EmbossType::Emboss);
 
   {
     uiBut *but = uiDefIconTextBut(block,
@@ -281,25 +281,25 @@ static uiBlock *curvemap_tools_func(
   return block;
 }
 
-static uiBlock *curvemap_tools_posslope_func(bContext *C, ARegion *region, void *cb_v)
+static Block *curvemap_tools_posslope_func(bContext *C, ARegion *region, void *cb_v)
 {
   return curvemap_tools_func(
       C, region, *static_cast<RNAUpdateCb *>(cb_v), true, CurveMapSlopeType::Positive);
 }
 
-static uiBlock *curvemap_tools_negslope_func(bContext *C, ARegion *region, void *cb_v)
+static Block *curvemap_tools_negslope_func(bContext *C, ARegion *region, void *cb_v)
 {
   return curvemap_tools_func(
       C, region, *static_cast<RNAUpdateCb *>(cb_v), true, CurveMapSlopeType::Negative);
 }
 
-static uiBlock *curvemap_brush_tools_func(bContext *C, ARegion *region, void *cb_v)
+static Block *curvemap_brush_tools_func(bContext *C, ARegion *region, void *cb_v)
 {
   return curvemap_tools_func(
       C, region, *static_cast<RNAUpdateCb *>(cb_v), false, CurveMapSlopeType::Positive);
 }
 
-static uiBlock *curvemap_brush_tools_negslope_func(bContext *C, ARegion *region, void *cb_v)
+static Block *curvemap_brush_tools_negslope_func(bContext *C, ARegion *region, void *cb_v)
 {
   return curvemap_tools_func(
       C, region, *static_cast<RNAUpdateCb *>(cb_v), false, CurveMapSlopeType::Negative);
@@ -310,7 +310,7 @@ static void curvemap_buttons_redraw(bContext &C)
   ED_region_tag_redraw(CTX_wm_region(&C));
 }
 
-static void add_preset_button(uiBlock *block,
+static void add_preset_button(Block *block,
                               const float dx,
                               const int icon,
                               std::optional<StringRef> tip,
@@ -352,7 +352,7 @@ static void curvemap_buttons_layout(Layout *layout,
   const float dx = UI_UNIT_X;
   eButGradientType bg = UI_GRAD_NONE;
 
-  uiBlock *block = layout->block();
+  Block *block = layout->block();
 
   block_emboss_set(block, EmbossType::Emboss);
 
@@ -819,7 +819,7 @@ void template_curve_mapping(Layout *layout,
                             bool presets)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
-  uiBlock *block = layout->block();
+  Block *block = layout->block();
 
   if (!prop) {
     RNA_warning(

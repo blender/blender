@@ -102,7 +102,7 @@ static void constraint_ops_extra_draw(bContext *C, Layout *layout, void *con_v)
 static void draw_constraint_header(Layout &layout, Object *ob, bConstraint *con)
 {
   /* unless button has its own callback, it adds this callback to button */
-  uiBlock *block = layout.block();
+  Block *block = layout.block();
   block_func_set(block, constraint_active_func, ob, con);
 
   PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Constraint, con);

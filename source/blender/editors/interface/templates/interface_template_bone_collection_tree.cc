@@ -471,7 +471,7 @@ void template_bone_collection_tree(Layout *layout, bContext *C)
   }
   BLI_assert(GS(armature->id.name) == ID_AR);
 
-  uiBlock *block = layout->block();
+  Block *block = layout->block();
 
   AbstractTreeView *tree_view = block_add_view(
       *block,

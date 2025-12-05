@@ -238,7 +238,7 @@ static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
   name_row.label(socket.name ? IFACE_(socket.name) : "", ICON_NONE);
   ui::Layout &prop_row = split.row(true);
 
-  uiBlock *block = prop_row.block();
+  ui::Block *block = prop_row.block();
   uiBut *but = uiDefIconTextButR(block,
                                  ui::ButType::SearchMenu,
                                  ICON_OUTLINER_DATA_GP_LAYER,
@@ -355,7 +355,7 @@ static void add_attribute_search_button(DrawGroupInputsContext &ctx,
     return;
   }
 
-  uiBlock *block = layout.block();
+  ui::Block *block = layout.block();
   uiBut *but = uiDefIconTextButR(block,
                                  ui::ButType::SearchMenu,
                                  ICON_NONE,
@@ -809,7 +809,7 @@ static void draw_warnings(const bContext *C,
   });
 
   ui::Layout &col = panel.body->column(false);
-  uiBlock *block = col.block();
+  ui::Block *block = col.block();
   for (const NodeWarning *warning : warnings) {
     const int icon = node_warning_type_icon(warning->type);
     const StringRef message = RPT_(warning->message);

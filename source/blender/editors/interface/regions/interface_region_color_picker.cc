@@ -238,7 +238,7 @@ void ui_but_hsv_set(uiBut *but)
 }
 
 /* Updates all buttons who share the same color picker as the one passed. */
-static void ui_update_color_picker_buts_rgba(uiBlock *block,
+static void ui_update_color_picker_buts_rgba(Block *block,
                                              ColorPicker *cpicker,
                                              const bool is_editing_sliders,
                                              const float rgba_scene_linear[4])
@@ -290,7 +290,7 @@ static void ui_update_color_picker_buts_rgba(uiBlock *block,
 static void ui_colorpicker_rgba_update_cb(bContext * /*C*/, void *picker_bt1, void *prop_bt1)
 {
   uiBut *picker_but = static_cast<uiBut *>(picker_bt1);
-  uiBlock *block = picker_but->block;
+  Block *block = picker_but->block;
   uiPopupBlockHandle *popup = block->handle;
   ColorPicker *cpicker = static_cast<ColorPicker *>(picker_but->custom_data);
 
@@ -452,7 +452,7 @@ static void ui_popup_close_cb(bContext * /*C*/, void *bt1, void * /*arg*/)
   }
 }
 
-static void ui_colorpicker_hide_reveal(uiBlock *block)
+static void ui_colorpicker_hide_reveal(Block *block)
 {
   const ePickerType type = ePickerType(g_color_picker_type);
   const ePickerSpace space = (block->is_color_gamma_picker) ? (type == PICKER_TYPE_RGB) ?
@@ -490,7 +490,7 @@ static void ui_colorpicker_hide_reveal(uiBlock *block)
 static void ui_colorpicker_update_type_space_cb(bContext * /*C*/, void *picker_bt1, void *prop_bt1)
 {
   uiBut *picker_but = static_cast<uiBut *>(picker_bt1);
-  uiBlock *block = picker_but->block;
+  Block *block = picker_but->block;
   ColorPicker *cpicker = static_cast<ColorPicker *>(picker_but->custom_data);
 
   uiBut *prop_but = static_cast<uiBut *>(prop_bt1);
@@ -513,7 +513,7 @@ static void ui_colorpicker_update_type_space_cb(bContext * /*C*/, void *picker_b
 #define PICKER_W (PICKER_TOTAL_W - PICKER_BAR - PICKER_SPACE)
 #define PICKER_H PICKER_W
 
-static void ui_colorpicker_circle(uiBlock *block,
+static void ui_colorpicker_circle(Block *block,
                                   PointerRNA *ptr,
                                   PropertyRNA *prop,
                                   ColorPicker *cpicker)
@@ -576,11 +576,8 @@ static void ui_colorpicker_circle(uiBlock *block,
   hsv_but->custom_data = cpicker;
 }
 
-static void ui_colorpicker_square(uiBlock *block,
-                                  PointerRNA *ptr,
-                                  PropertyRNA *prop,
-                                  eButGradientType type,
-                                  ColorPicker *cpicker)
+static void ui_colorpicker_square(
+    Block *block, PointerRNA *ptr, PropertyRNA *prop, eButGradientType type, ColorPicker *cpicker)
 {
   ButtonHSVCube *hsv_but;
 
@@ -625,7 +622,7 @@ static void ui_colorpicker_square(uiBlock *block,
 
 /* a HS circle, V slider, rgb/hsv/hex sliders */
 static void ui_block_colorpicker(const bContext * /*C*/,
-                                 uiBlock *block,
+                                 Block *block,
                                  uiBut *from_but,
                                  float rgba_scene_linear[4],
                                  bool show_picker)
@@ -1025,7 +1022,7 @@ static void ui_block_colorpicker(const bContext * /*C*/,
   ui_colorpicker_hide_reveal(block);
 }
 
-static int ui_colorpicker_wheel_cb(const bContext * /*C*/, uiBlock *block, const wmEvent *event)
+static int ui_colorpicker_wheel_cb(const bContext * /*C*/, Block *block, const wmEvent *event)
 {
   uiPopupBlockHandle *popup = block->handle;
   bool mouse_in_region = popup && BLI_rcti_isect_pt(&popup->region->winrct,
@@ -1092,10 +1089,10 @@ static int ui_colorpicker_wheel_cb(const bContext * /*C*/, uiBlock *block, const
   return 0;
 }
 
-uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_but)
+Block *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_but)
 {
   uiBut *but = static_cast<uiBut *>(arg_but);
-  uiBlock *block;
+  Block *block;
 
   block = block_begin(C, handle->region, __func__, EmbossType::Emboss);
 
@@ -1117,7 +1114,7 @@ uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_
   return block;
 }
 
-ColorPicker *ui_block_colorpicker_create(uiBlock *block)
+ColorPicker *ui_block_colorpicker_create(Block *block)
 {
   ColorPicker *cpicker = MEM_callocN<ColorPicker>(__func__);
   BLI_addhead(&block->color_pickers.list, cpicker);

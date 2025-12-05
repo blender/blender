@@ -689,7 +689,7 @@ Panel *panel_find_by_type(ListBase *lb, const PanelType *pt)
 }
 
 Panel *panel_begin(
-    ARegion *region, ListBase *lb, uiBlock *block, PanelType *pt, Panel *panel, bool *r_open)
+    ARegion *region, ListBase *lb, Block *block, PanelType *pt, Panel *panel, bool *r_open)
 {
   Panel *panel_last;
   const char *drawname = CTX_IFACE_(pt->translation_context, pt->label);
@@ -760,14 +760,14 @@ Panel *panel_begin(
 
 void panel_header_buttons_begin(Panel *panel)
 {
-  uiBlock *block = panel->runtime->block;
+  Block *block = panel->runtime->block;
 
   ui_block_new_button_group(block, UI_BUTTON_GROUP_LOCK | UI_BUTTON_GROUP_PANEL_HEADER);
 }
 
 void panel_header_buttons_end(Panel *panel)
 {
-  uiBlock *block = panel->runtime->block;
+  Block *block = panel->runtime->block;
 
   /* A button group should always be created in #panel_header_buttons_begin. */
   BLI_assert(!block->button_groups.is_empty());
@@ -862,7 +862,7 @@ void panel_drawname_set(Panel *panel, StringRef name)
   panel->drawname = BLI_strdupn(name.data(), name.size());
 }
 
-static void ui_offset_panel_block(uiBlock *block)
+static void ui_offset_panel_block(Block *block)
 {
   const uiStyle *style = style_get_dpi();
 
@@ -946,7 +946,7 @@ static void region_panels_set_expansion_from_search_filter(const bContext *C,
  */
 static void panel_remove_invisible_layouts_recursive(Panel *panel, const Panel *parent_panel)
 {
-  uiBlock *block = panel->runtime->block;
+  Block *block = panel->runtime->block;
   BLI_assert(block != nullptr);
   BLI_assert(block->active);
   if (parent_panel != nullptr && panel_is_closed(parent_panel)) {
@@ -1015,9 +1015,9 @@ bool panel_is_active(const Panel *panel)
 
 void panels_draw(const bContext *C, ARegion *region)
 {
-  /* Draw in reverse order, because #uiBlocks are added in reverse order
+  /* Draw in reverse order, because #Blocks are added in reverse order
    * and we need child panels to draw on top. */
-  LISTBASE_FOREACH_BACKWARD (uiBlock *, block, &region->runtime->uiblocks) {
+  LISTBASE_FOREACH_BACKWARD (Block *, block, &region->runtime->uiblocks) {
     if (block->active && block->panel && !panel_is_dragging(block->panel) &&
         !block_is_search_only(block))
     {
@@ -1025,7 +1025,7 @@ void panels_draw(const bContext *C, ARegion *region)
     }
   }
 
-  LISTBASE_FOREACH_BACKWARD (uiBlock *, block, &region->runtime->uiblocks) {
+  LISTBASE_FOREACH_BACKWARD (Block *, block, &region->runtime->uiblocks) {
     if (block->active && block->panel && panel_is_dragging(block->panel) &&
         !block_is_search_only(block))
     {
@@ -1036,7 +1036,7 @@ void panels_draw(const bContext *C, ARegion *region)
 
 #define PNL_ICON UI_UNIT_X /* Could be UI_UNIT_Y too. */
 
-void panel_label_offset(const uiBlock *block, int *r_x, int *r_y)
+void panel_label_offset(const Block *block, int *r_x, int *r_y)
 {
   Panel *panel = block->panel;
   const bool is_subpanel = (panel->type && panel->type->parent);
@@ -1337,7 +1337,7 @@ static void panel_draw_aligned_backdrop(const ARegion *region,
 
 void ui_draw_aligned_panel(const ARegion *region,
                            const uiStyle *style,
-                           const uiBlock *block,
+                           const Block *block,
                            const rcti *rect,
                            const bool show_pin,
                            const bool show_background,
@@ -1418,7 +1418,7 @@ void panel_category_draw_all(ARegion *region, const char *category_id_active)
   float fstyle_points = fstyle->points;
   const float aspect = BLI_listbase_is_empty(&region->runtime->uiblocks) ?
                            1.0f :
-                           ((uiBlock *)region->runtime->uiblocks.first)->aspect;
+                           ((Block *)region->runtime->uiblocks.first)->aspect;
   const float zoom = 1.0f / aspect;
   const int px = U.pixelsize;
   const int category_tabs_width = round_fl_to_int(UI_PANEL_CATEGORY_MARGIN_WIDTH * zoom);
@@ -1713,7 +1713,7 @@ int panel_size_y(const Panel *panel)
 }
 
 /**
- * This function is needed because #uiBlock and Panel itself don't
+ * This function is needed because #Block and Panel itself don't
  * change #Panel.sizey or location when closed.
  */
 static int get_panel_real_ofsy(Panel *panel)
@@ -2024,7 +2024,7 @@ void panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
   }
 
   /* Offset contents. */
-  LISTBASE_FOREACH (uiBlock *, block, &region->runtime->uiblocks) {
+  LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
     if (block->active && block->panel) {
       ui_offset_panel_block(block);
 
@@ -2096,7 +2096,7 @@ LayoutPanelHeader *ui_layout_panel_header_under_mouse(const Panel &panel, const 
   return nullptr;
 }
 
-static uiPanelMouseState ui_panel_mouse_state_get(const uiBlock *block,
+static uiPanelMouseState ui_panel_mouse_state_get(const Block *block,
                                                   const Panel *panel,
                                                   const int mx,
                                                   const int my)
@@ -2140,7 +2140,7 @@ static void ui_panel_drag_collapse(const bContext *C,
   if (!region) {
     region = CTX_wm_region(C);
   }
-  LISTBASE_FOREACH (uiBlock *, block, &region->runtime->uiblocks) {
+  LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
     float xy_a_block[2] = {float(dragcol_data->xy_init[0]), float(dragcol_data->xy_init[1])};
     float xy_b_block[2] = {float(xy_dst[0]), float(xy_dst[1])};
     Panel *panel = block->panel;
@@ -2267,7 +2267,7 @@ bool ui_layout_panel_toggle_open(const bContext *C, LayoutPanelHeader *header)
 }
 
 static void ui_handle_layout_panel_header(
-    bContext *C, const uiBlock *block, const int /*mx*/, const int my, const int event_type)
+    bContext *C, const Block *block, const int /*mx*/, const int my, const int event_type)
 {
   Panel *panel = block->panel;
   BLI_assert(panel->type != nullptr);
@@ -2292,7 +2292,7 @@ static void ui_handle_layout_panel_header(
  * \param mx: The mouse x coordinate, in panel space.
  */
 static void ui_handle_panel_header(const bContext *C,
-                                   const uiBlock *block,
+                                   const Block *block,
                                    const int mx,
                                    const int event_type,
                                    const bool ctrl,
@@ -2670,7 +2670,7 @@ int ui_handler_panel_region(bContext *C,
   const bool region_has_active_button = region_active_but &&
                                         region_active_but->type != ButType::Label;
 
-  LISTBASE_FOREACH (uiBlock *, block, &region->runtime->uiblocks) {
+  LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
     Panel *panel = block->panel;
     if (panel == nullptr || panel->type == nullptr) {
       continue;
@@ -2766,7 +2766,7 @@ PointerRNA *region_panel_custom_data_under_cursor(const bContext *C, const wmEve
 {
   ARegion *region = CTX_wm_region(C);
   if (region) {
-    LISTBASE_FOREACH (uiBlock *, block, &region->runtime->uiblocks) {
+    LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
       Panel *panel = block->panel;
       if (panel == nullptr) {
         continue;

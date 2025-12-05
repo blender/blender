@@ -62,7 +62,7 @@ void uiTemplateReportsBanner(Layout *layout, bContext *C)
   }
 
   Layout &ui_abs = layout->absolute(false);
-  uiBlock *block = ui_abs.block();
+  Block *block = ui_abs.block();
   EmbossType previous_emboss = block_emboss_get(block);
 
   uchar report_icon_color[4];
@@ -541,7 +541,7 @@ void uiTemplateStatusInfo(Layout *layout, bContext *C)
 
   const uiStyle *style = style_get();
   Layout &ui_abs = layout->absolute(false);
-  uiBlock *block = ui_abs.block();
+  Block *block = ui_abs.block();
   EmbossType previous_emboss = block_emboss_get(block);
 
   fontstyle_set(&style->widget);

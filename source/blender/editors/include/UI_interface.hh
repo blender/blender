@@ -279,10 +279,10 @@ void list_filter_and_sort_items(uiList *ui_list,
  * \param idname: Used for restoring persistent state of this view, potentially written to files.
  * Must not be longer than #BKE_ST_MAXNAME (including 0 terminator).
  */
-AbstractGridView *block_add_view(uiBlock &block,
+AbstractGridView *block_add_view(Block &block,
                                  StringRef idname,
                                  std::unique_ptr<AbstractGridView> grid_view);
-AbstractTreeView *block_add_view(uiBlock &block,
+AbstractTreeView *block_add_view(Block &block,
                                  StringRef idname,
                                  std::unique_ptr<AbstractTreeView> tree_view);
 

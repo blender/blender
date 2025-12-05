@@ -354,7 +354,7 @@ static void ui_block_align_but_to_region(uiBut *but, const ARegion *region)
   }
 }
 
-void ui_block_align_calc(uiBlock *block, const ARegion *region)
+void ui_block_align_calc(Block *block, const ARegion *region)
 {
 
   const int sides_to_ui_but_align_flags[4] = SIDE_TO_BUT_ALIGN;

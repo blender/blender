@@ -305,7 +305,7 @@ static void nla_panel_animdata(const bContext *C, Panel *panel)
 
   // adt = adt_ptr.data;
 
-  uiBlock *block = layout.block();
+  blender::ui::Block *block = layout.block();
   block_func_handle_set(block, do_nla_region_buttons, nullptr);
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
@@ -366,7 +366,7 @@ static void nla_panel_stripname(const bContext *C, Panel *panel)
   }
 
   blender::ui::Layout &layout = *panel->layout;
-  uiBlock *block = layout.block();
+  blender::ui::Block *block = layout.block();
   block_func_handle_set(block, do_nla_region_buttons, nullptr);
 
   /* Strip Properties ------------------------------------- */
@@ -403,7 +403,7 @@ static void nla_panel_properties(const bContext *C, Panel *panel)
     return;
   }
   blender::ui::Layout &layout = *panel->layout;
-  uiBlock *block = layout.block();
+  blender::ui::Block *block = layout.block();
   block_func_handle_set(block, do_nla_region_buttons, nullptr);
 
   /* Strip Properties ------------------------------------- */
@@ -468,7 +468,7 @@ static void nla_panel_actclip(const bContext *C, Panel *panel)
   }
   blender::ui::Layout &layout = *panel->layout;
 
-  uiBlock *block = layout.block();
+  blender::ui::Block *block = layout.block();
   block_func_handle_set(block, do_nla_region_buttons, nullptr);
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(true);
@@ -528,7 +528,7 @@ static void nla_panel_animated_influence_header(const bContext *C, Panel *panel)
   }
   blender::ui::Layout &layout = *panel->layout;
 
-  uiBlock *block = layout.block();
+  blender::ui::Block *block = layout.block();
   block_func_handle_set(block, do_nla_region_buttons, nullptr);
 
   blender::ui::Layout &col = layout.column(true);
@@ -546,7 +546,7 @@ static void nla_panel_evaluation(const bContext *C, Panel *panel)
 
   blender::ui::Layout &layout = *panel->layout;
 
-  uiBlock *block = layout.block();
+  blender::ui::Block *block = layout.block();
   block_func_handle_set(block, do_nla_region_buttons, nullptr);
   layout.use_property_split_set(true);
 
@@ -563,7 +563,7 @@ static void nla_panel_animated_strip_time_header(const bContext *C, Panel *panel
   }
   blender::ui::Layout &layout = *panel->layout;
 
-  uiBlock *block = layout.block();
+  blender::ui::Block *block = layout.block();
   block_func_handle_set(block, do_nla_region_buttons, nullptr);
 
   blender::ui::Layout &col = layout.column(true);
@@ -579,7 +579,7 @@ static void nla_panel_animated_strip_time(const bContext *C, Panel *panel)
   }
   blender::ui::Layout &layout = *panel->layout;
 
-  uiBlock *block = layout.block();
+  blender::ui::Block *block = layout.block();
   block_func_handle_set(block, do_nla_region_buttons, nullptr);
   layout.use_property_split_set(true);
 
@@ -608,7 +608,7 @@ static void nla_panel_modifiers(const bContext *C, Panel *panel)
   }
   NlaStrip *strip = static_cast<NlaStrip *>(strip_ptr.data);
 
-  uiBlock *block = panel->layout->block();
+  blender::ui::Block *block = panel->layout->block();
   block_func_handle_set(block, do_nla_region_buttons, nullptr);
 
   /* 'add modifier' button at top of panel */

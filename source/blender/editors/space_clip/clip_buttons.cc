@@ -129,7 +129,7 @@ void uiTemplateMovieClip(blender::ui::Layout *layout,
 
   if (clip) {
     blender::ui::Layout &row = layout->row(false);
-    uiBlock *block = row.block();
+    blender::ui::Block *block = row.block();
     uiDefBut(block,
              blender::ui::ButType::Label,
              IFACE_("File Path:"),
@@ -191,7 +191,7 @@ void uiTemplateTrack(blender::ui::Layout *layout, PointerRNA *ptr, const StringR
   }
 
   blender::ui::Layout &col = layout->column(true);
-  uiBlock *block = col.block();
+  blender::ui::Block *block = col.block();
 
   uiDefBut(block,
            blender::ui::ButType::TrackPreview,
@@ -430,7 +430,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
   cb->framenr = user->framenr;
 
   if (compact) {
-    uiBlock *block = layout->block();
+    blender::ui::Block *block = layout->block();
 
     blender::StringRef tip;
     if (cb->marker_flag & MARKER_DISABLED) {
@@ -462,7 +462,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
 
     if (track->flag & TRACK_LOCKED) {
       layout->active_set(false);
-      uiBlock *block = layout->absolute().block();
+      blender::ui::Block *block = layout->absolute().block();
       uiDefBut(block,
                blender::ui::ButType::Label,
                IFACE_("Track is locked"),
@@ -497,7 +497,7 @@ void uiTemplateMarker(blender::ui::Layout *layout,
 
     cb->marker_flag = marker->flag;
 
-    uiBlock *block = layout->absolute().block();
+    blender::ui::Block *block = layout->absolute().block();
     block_func_handle_set(block, marker_block_handler, cb);
     block_funcN_set(block, marker_update_cb, cb, nullptr);
 

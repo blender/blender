@@ -181,7 +181,7 @@ static void draw_matrix_template(Layout &layout, PointerRNA &ptr, PropertyRNA &p
   /* Mirror RNA enum property drop-down UI - with menu triangle an drop-down items. */
   row = &layout_.row(true);
   uiItemL_respect_property_split(row, IFACE_("Mode"), ICON_NONE);
-  uiBlock *block = row->block();
+  Block *block = row->block();
   uiBut *but = uiDefMenuBut(block,
                             rotation_mode_menu_callback,
                             nullptr,

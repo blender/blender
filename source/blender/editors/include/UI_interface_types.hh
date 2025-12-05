@@ -18,7 +18,6 @@ struct TooltipData;
 }  // namespace blender::ui
 
 using uiBut = blender::ui::Button;
-using uiBlock = blender::ui::Block;
 using uiTooltipData = blender::ui::TooltipData;
 
 /* names */

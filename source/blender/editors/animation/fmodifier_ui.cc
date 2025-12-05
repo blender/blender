@@ -302,7 +302,7 @@ static void fmodifier_panel_header(const bContext *C, Panel *panel)
   FModifier *fcm = static_cast<FModifier *>(ptr->data);
   const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 
-  uiBlock *block = layout.block();
+  blender::ui::Block *block = layout.block();
 
   blender::ui::Layout *sub = &layout.row(true);
 
@@ -680,7 +680,7 @@ static void envelope_panel_draw(const bContext *C, Panel *panel)
   /* Control points list. */
 
   blender::ui::Layout *row = &layout.row(false);
-  uiBlock *block = row->block();
+  blender::ui::Block *block = row->block();
 
   uiBut *but = uiDefBut(block,
                         blender::ui::ButType::But,

@@ -273,7 +273,7 @@ void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *region, bDope
   const float padding_x = 2 * UI_SCALE_FAC;
   const float padding_y = UI_SCALE_FAC;
 
-  uiBlock *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  blender::ui::Block *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
   blender::ui::Layout &layout = blender::ui::block_layout(block,
                                                           blender::ui::LayoutDirection::Vertical,
                                                           blender::ui::LayoutType::Header,

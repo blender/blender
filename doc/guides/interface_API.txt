@@ -12,8 +12,8 @@ Contents
 2.1 Memory allocation
 2.2 And how it works internally
 
-3. API for uiBlock
-3.1 uiBlock Controlling functions
+3. API for ui::Block
+3.1 ui::Block Controlling functions
 3.2 Internal function to know
 
 4. API for uiButton
@@ -88,10 +88,10 @@ blender/source/blender/src/toolbox.c (extra GUI elements built on top of this AP
 
 --------------2. Windows & Blocks
 
-All GUI elements are collected in uiBlocks, which in turn are linked together in a list that's
+All GUI elements are collected in ui::Blocks, which in turn are linked together in a list that's
 part of a Blender Area-window.
 
-	uiBlock *block = uiNewBlock(&curarea->uiblocks, "stuff", UI_EMBOSSX, UI_HELV, curarea->win);
+	ui::Block *block = uiNewBlock(&curarea->uiblocks, "stuff", UI_EMBOSSX, UI_HELV, curarea->win);
 
 The next code example makes a new block, and puts it in the list of blocks of the current active
 Area:
@@ -110,9 +110,9 @@ Important to know is that for this toolkit there's no difference in "creating bl
 button interfaces in Blender always happens in the main drawing function itself.
 
 Memory allocation is handled as follows:
-- if in this window a uiBlock with the same name existed, it is freed
-- when you close a window (or blender) the uiBlocks get freed.
-- when you duplicate (split) a window, the uiBlocks get copied
+- if in this window a ui::Block with the same name existed, it is freed
+- when you close a window (or blender) the ui::Blocks get freed.
+- when you duplicate (split) a window, the ui::Blocks get copied
 
 2.2 And how it works internally
 
@@ -151,14 +151,14 @@ It walks through the lists in a rather complex manner:
 
 
 
--------------3. API for uiBlock
+-------------3. API for ui::Block
 
 Create a new buttons block, and link it to the window:
 
-uiBlock *uiNewBlock(ListBase *lb, char *name, short dt, short font, short win)
+ui::Block *uiNewBlock(ListBase *lb, char *name, short dt, short font, short win)
 	ListBase *lb	pointer to list basis, where the block will be appended to (blenlib)
 	char *name		unique name to identify the block. When the name exists in the list,
-					the old uiBlock gets freed.
+					the old ui::Block gets freed.
 	short dt		drawtype. See below
 	short font		font id number
 	short win		blender area-window id
@@ -176,17 +176,17 @@ font:
 	UI_HELVB		1	/* bold font */
 With the new truetype option in Blender, this is used for all font families
 
-When a uiBlock is created, each uiButton that is defined gets the uiBlock properties.
+When a ui::Block is created, each uiButton that is defined gets the ui::Block properties.
 Changing Block properties in between will effect uiButtons defined thereafter.
 
 
 
-----------3.1 uiBlock Controlling functions:
+----------3.1 ui::Block Controlling functions:
 
 void uiDrawBlock(block)
 	draws the block
 
-void uiBlockSetCol(uiBlock *block, int col)
+void ui::BlockSetCol(ui::Block *block, int col)
 
 col:
 	BUTGREY,
@@ -196,10 +196,10 @@ col:
 	MIDGREY,
 	BUTPURPLE,
 
-void uiBlockSetEmboss(uiBlock *block, int emboss)
+void ui::BlockSetEmboss(ui::Block *block, int emboss)
 	changes drawtype
 
-void uiBlockSetDirection(uiBlock *block, int direction)
+void ui::BlockSetDirection(ui::Block *block, int direction)
 	for pop-up and pulldown menus:
 
 direction:
@@ -208,13 +208,13 @@ direction:
 	UI_LEFT
 	UI_RIGHT
 
-void uiBlockSetXOfs(uiBlock *block, int xofs)
+void ui::BlockSetXOfs(ui::Block *block, int xofs)
 	for menus, offset from parent
 
-void uiBlockSetButmFunc(uiBlock *block, void (*menufunc)(void *arg, int event), void *arg)
+void ui::BlockSetButmFunc(ui::Block *block, void (*menufunc)(void *arg, int event), void *arg)
 	sets function to be handled when a menu-block is marked "OK"
 
-void uiAutoBlock(uiBlock *block, float minx, float miny, float sizex, float sizey, BLOCK_ROWS)
+void uiAutoBlock(ui::Block *block, float minx, float miny, float sizex, float sizey, BLOCK_ROWS)
 
 	Sets the buttons in this block to automatically align, and fit within boundaries.
 	Internally it allows multiple columns or rows as well. Only 'row order' has been implemented.
@@ -230,7 +230,7 @@ void uiAutoBlock(uiBlock *block, float minx, float miny, float sizex, float size
 These flags used to be accessible from outside of interface.c. Currently it is only
 used elsewhere by toolbox.c, so it can be considered 'internal' somewhat.
 
-void uiBlockSetFlag(uiBlock *block, int flag)	/* block types, can be 'OR'ed */
+void ui::BlockSetFlag(ui::Block *block, int flag)	/* block types, can be 'OR'ed */
 	BLOCK_LOOP		1		a sublooping block, drawn in frontbuffer, i.e. menus
 	BLOCK_REDRAW		2		block needs a redraw
 	BLOCK_RET_1		4		block is closed when an event happens with value '1' (press key, not for mouse)
@@ -259,7 +259,7 @@ for each most button types individually.
 
 -----------4.1 UiDefBut
 
-uiBut *UiDefBut[CSIF](	uiBlock *block, int type, int retval, char *str,
+uiBut *UiDefBut[CSIF](	ui::Block *block, int type, int retval, char *str,
 				short x1, short y1, short x2, short y2, xxxx *poin,
 				float min, float max, float a1, float a2,  char *tip)
 
@@ -268,7 +268,7 @@ UiDefButS	operates on short
 UiDefButI	operates on int
 UiDefButF	operates on float
 
-*block:		current uiBlock pointer
+*block:		current ui::Block pointer
 type:		see below
 retval:		return value, which is put back in queue
 *str:		button name
@@ -348,14 +348,14 @@ type:
 
 Instead of a 'name', all buttons as described for uiDefBut also can have an icon:
 
-uiBut *uiDefIconBut(uiBlock *block, int type, int retval, int icon,
+uiBut *uiDefIconBut(ui::Block *block, int type, int retval, int icon,
 			short x1, short y1, short x2, short y2, void *poin,
 			float min, float max, float a1, float a2,  char *tip)
 
 	Same syntax and types available as previous uiDefBut, but now with an icon code
 	instead of a name. The icons are numbered in resources.c
 
-uiBut *uiDefIconTextButF(uiBlock *block, int type, int retval, int icon, char *str,
+uiBut *uiDefIconTextButF(ui::Block *block, int type, int retval, int icon, char *str,
 			short x1, short y1, short x2, short y2, float *poin,
 			float min, float max, float a1, float a2,  char *tip)
 
@@ -365,19 +365,19 @@ uiBut *uiDefIconTextButF(uiBlock *block, int type, int retval, int icon, char *s
 -----------4.3 pulldown menus / block buttons
 
 14. BLOCK
-void uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, char *str,
+void uiDefBlockBut(ui::Block *block, ui::BlockFuncFP func, void *arg, char *str,
 	short x1, short y1, short x2, short y2, char *tip)
 
 	This button creates a new block when pressed. The function argument 'func' is called
 	to take care of this. An example func:
 
-	static uiBlock *info_file_importmenu(void *arg_unused)
+	static ui::Block *info_file_importmenu(void *arg_unused)
 	{
-		uiBlock *block;
+		ui::Block *block;
 		short yco = 0, xco = 20;
 
 		block = uiNewBlock(&curarea->uiblocks, "importmenu", UI_EMBOSSW, UI_HELV, G.curscreen->mainwin);
-		uiBlockSetXOfs(block, -40);  // offset to parent button
+		ui::BlockSetXOfs(block, -40);  // offset to parent button
 
 		/* flags are defines */
 		uiDefBut(block, LABEL, 0, "VRML 2.0 options", xco, yco, 125, 19, NULL, 0.0, 0.0, 0, 0, "");
@@ -385,7 +385,7 @@ void uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, char *str,
 		uiDefButS(block, TOG|BIT|1, 0, "Scale 1/100", xco, yco-=20, 75, 19, &U.vrmlflag, 0.0, 0.0, 0, 0, "");
 		uiDefButS(block, TOG|BIT|2, 0, "Two Sided", xco, yco-=20, 75, 19, &U.vrmlflag, 0.0, 0.0, 0, 0, "");
 
-		uiBlockSetDirection(block, UI_RIGHT);
+		ui::BlockSetDirection(block, UI_RIGHT);
 		uiTextBoundsBlock(block, 50);  /* checks for fontsize */
 
 		return block;
@@ -394,7 +394,7 @@ void uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, char *str,
 	The uiDef coordinates here are only relative. When this function is called, the interface
 	code automatically makes sure the buttons fit in the menu nicely.
 
-	Inside a menu uiBlock, other uiBlocks can be invoked to make a hierarchical menu.
+	Inside a menu ui::Block, other ui::Blocks can be invoked to make a hierarchical menu.
 
 
 
@@ -402,7 +402,7 @@ void uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, char *str,
 
 15. KEYEVT
 
-void uiDefKeyevtButS(uiBlock *block, int retval, char *str,
+void uiDefKeyevtButS(ui::Block *block, int retval, char *str,
 		short x1, short y1, short x2, short y2, short *spoin, char *tip)
 
 	A special button, which stores a keyvalue in *spoin. When the button is pressed,

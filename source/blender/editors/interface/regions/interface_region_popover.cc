@@ -52,7 +52,7 @@ namespace blender::ui {
  * \{ */
 
 struct uiPopover {
-  uiBlock *block;
+  Block *block;
   Layout *layout;
   uiBut *but;
   ARegion *butregion;
@@ -107,7 +107,7 @@ static void ui_popover_create_block(bContext *C,
   }
 }
 
-static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, void *arg_pup)
+static Block *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, void *arg_pup)
 {
   uiPopover *pup = static_cast<uiPopover *>(arg_pup);
 
@@ -125,7 +125,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
   }
 
   /* Setup and resolve UI layout for block. */
-  uiBlock *block = pup->block;
+  Block *block = pup->block;
 
   /* in some cases we create the block before the region,
    * so we set it delayed here if necessary */
@@ -320,7 +320,7 @@ wmOperatorStatus popover_panel_invoke(bContext *C,
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
-  uiBlock *block = nullptr;
+  Block *block = nullptr;
   if (keep_open) {
     uiPopupBlockHandle *handle = ui_popover_panel_create(
         C, nullptr, nullptr, ui_item_paneltype_func, pt);

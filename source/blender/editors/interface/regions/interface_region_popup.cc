@@ -50,7 +50,7 @@ void ui_popup_translate(ARegion *region, const int mdiff[2])
   ED_region_tag_redraw(region);
 
   /* update blocks */
-  LISTBASE_FOREACH (uiBlock *, block, &region->runtime->uiblocks) {
+  LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
     uiPopupBlockHandle *handle = block->handle;
     /* Make empty, will be initialized on next use, see #60608. */
     BLI_rctf_init(&handle->prev_block_rect, 0, 0, 0, 0);
@@ -63,10 +63,7 @@ void ui_popup_translate(ARegion *region, const int mdiff[2])
 }
 
 /* position block relative to but, result is in window space */
-static void ui_popup_block_position(wmWindow *window,
-                                    ARegion *butregion,
-                                    uiBut *but,
-                                    uiBlock *block)
+static void ui_popup_block_position(wmWindow *window, ARegion *butregion, uiBut *but, Block *block)
 {
   uiPopupBlockHandle *handle = block->handle;
 
@@ -422,7 +419,7 @@ static void ui_block_region_refresh(const bContext *C, ARegion *region)
     ARegion *handle_ctx_region;
 
     region->runtime->do_draw &= ~RGN_REFRESH_UI;
-    LISTBASE_FOREACH_MUTABLE (uiBlock *, block, &region->runtime->uiblocks) {
+    LISTBASE_FOREACH_MUTABLE (Block *, block, &region->runtime->uiblocks) {
       uiPopupBlockHandle *handle = block->handle;
 
       if (handle->can_refresh) {
@@ -449,7 +446,7 @@ static void ui_block_region_refresh(const bContext *C, ARegion *region)
 
 static void ui_block_region_draw(const bContext *C, ARegion *region)
 {
-  LISTBASE_FOREACH (uiBlock *, block, &region->runtime->uiblocks) {
+  LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
     block_draw(C, block);
   }
 }
@@ -476,7 +473,7 @@ static void ui_block_region_popup_window_listener(const wmRegionListenerParams *
   }
 }
 
-static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
+static void ui_popup_block_clip(wmWindow *window, Block *block)
 {
   const float xmin_orig = block->rect.xmin;
   const int margin = UI_SCREEN_MARGIN;
@@ -511,7 +508,7 @@ static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
   }
 }
 
-void ui_popup_block_scrolltest(uiBlock *block)
+void ui_popup_block_scrolltest(Block *block)
 {
   block->flag &= ~(BLOCK_CLIPBOTTOM | BLOCK_CLIPTOP);
 
@@ -607,7 +604,7 @@ void ui_layout_panel_popup_scroll_apply(Panel *panel, const float dy)
   }
 }
 
-void popup_dummy_panel_set(ARegion *region, uiBlock *block)
+void popup_dummy_panel_set(ARegion *region, Block *block)
 {
   Panel *&panel = region->runtime->popup_block_panel;
   if (!panel) {
@@ -624,20 +621,20 @@ void popup_dummy_panel_set(ARegion *region, uiBlock *block)
   panel->runtime->block = block;
 }
 
-uiBlock *ui_popup_block_refresh(bContext *C,
-                                uiPopupBlockHandle *handle,
-                                ARegion *butregion,
-                                uiBut *but)
+Block *ui_popup_block_refresh(bContext *C,
+                              uiPopupBlockHandle *handle,
+                              ARegion *butregion,
+                              uiBut *but)
 {
   const int margin = UI_POPUP_MARGIN;
   wmWindow *window = CTX_wm_window(C);
   ARegion *region = handle->region;
 
   const uiBlockCreateFunc create_func = handle->popup_create_vars.create_func;
-  const uiBlockHandleCreateFunc handle_create_func = handle->popup_create_vars.handle_create_func;
+  const BlockHandleCreateFunc handle_create_func = handle->popup_create_vars.handle_create_func;
   void *arg = handle->popup_create_vars.arg;
 
-  uiBlock *block_old = static_cast<uiBlock *>(region->runtime->uiblocks.first);
+  Block *block_old = static_cast<Block *>(region->runtime->uiblocks.first);
 
   handle->refresh = (block_old != nullptr);
 
@@ -649,7 +646,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
 #endif
 
   /* create ui block */
-  uiBlock *block;
+  Block *block;
   if (create_func) {
     block = create_func(C, region, arg);
   }
@@ -876,7 +873,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
                                           ARegion *butregion,
                                           uiBut *but,
                                           uiBlockCreateFunc create_func,
-                                          uiBlockHandleCreateFunc handle_create_func,
+                                          BlockHandleCreateFunc handle_create_func,
                                           void *arg,
                                           uiFreeArgFunc arg_free,
                                           const bool can_refresh)
@@ -945,7 +942,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
     CTX_wm_region_popup_set(C, region);
   }
 
-  uiBlock *block = ui_popup_block_refresh(C, handle, butregion, but);
+  Block *block = ui_popup_block_refresh(C, handle, butregion, but);
   handle = block->handle;
 
   /* Wait with tooltips until the mouse is moved, button handling will re-enable them on the first
@@ -972,7 +969,7 @@ void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
    * then close the popover too. We could extend this to other popup types too. */
   ARegion *region = handle->popup_create_vars.butregion;
   if (region != nullptr) {
-    LISTBASE_FOREACH (uiBlock *, block, &region->runtime->uiblocks) {
+    LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
       if (block->handle && (block->flag & BLOCK_POPOVER) && (block->flag & BLOCK_KEEP_OPEN) == 0) {
         uiPopupBlockHandle *menu = block->handle;
         menu->menuretval = UI_RETURN_OK;
@@ -1015,7 +1012,7 @@ static void ui_alert_ok_cb(bContext *C, void *arg1, void *arg2)
 {
   uiAlertData *data = static_cast<uiAlertData *>(arg1);
   MEM_delete(data);
-  uiBlock *block = static_cast<uiBlock *>(arg2);
+  Block *block = static_cast<Block *>(arg2);
   popup_menu_retval_set(block, UI_RETURN_OK, true);
   wmWindow *win = CTX_wm_window(C);
   popup_block_close(C, win, block);
@@ -1033,7 +1030,7 @@ static void ui_alert_cancel(bContext * /*C*/, void *user_data)
   MEM_delete(data);
 }
 
-static uiBlock *ui_alert_create(bContext *C, ARegion *region, void *user_data)
+static Block *ui_alert_create(bContext *C, ARegion *region, void *user_data)
 {
   uiAlertData *data = static_cast<uiAlertData *>(user_data);
 
@@ -1042,7 +1039,7 @@ static uiBlock *ui_alert_create(bContext *C, ARegion *region, void *user_data)
   const int max_width = int((data->compact ? 250.0f : 350.0f) * UI_SCALE_FAC);
   const int min_width = int(120.0f * UI_SCALE_FAC);
 
-  uiBlock *block = block_begin(C, region, __func__, EmbossType::Emboss);
+  Block *block = block_begin(C, region, __func__, EmbossType::Emboss);
   block_theme_style_set(block, BLOCK_THEME_STYLE_POPUP);
   block_flag_disable(block, BLOCK_LOOP);
   block_emboss_set(block, EmbossType::Emboss);
@@ -1099,7 +1096,7 @@ static uiBlock *ui_alert_create(bContext *C, ARegion *region, void *user_data)
     Layout &buttons = split.split(1.0f - (pad * 2.0f), true);
     buttons.scale_y_set(1.2f);
 
-    uiBlock *buttons_block = layout.block();
+    Block *buttons_block = layout.block();
     uiBut *okay_but = uiDefBut(
         buttons_block, ButType::But, "OK", 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, "");
     button_func_set(okay_but, ui_alert_ok_cb, user_data, block);

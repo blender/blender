@@ -160,7 +160,7 @@ struct Layout : public uiItem, NonCopyable, NonMovable {
   [[nodiscard]] LayoutAlign alignment() const;
   void alignment_set(LayoutAlign alignment);
 
-  [[nodiscard]] uiBlock *block() const;
+  [[nodiscard]] Block *block() const;
 
   void context_copy(const bContextStore *context);
 
@@ -829,7 +829,7 @@ enum class ButProgressType : int8_t {
   Ring = 1,
 };
 
-Layout &block_layout(uiBlock *block,
+Layout &block_layout(Block *block,
                      LayoutDirection direction,
                      LayoutType type,
                      int x,
@@ -838,16 +838,16 @@ Layout &block_layout(uiBlock *block,
                      int em,
                      int padding,
                      const uiStyle *style);
-int2 block_layout_resolve(uiBlock *block);
+int2 block_layout_resolve(Block *block);
 
-void block_layout_set_current(uiBlock *block, Layout *layout);
-bool block_layout_needs_resolving(const uiBlock *block);
+void block_layout_set_current(Block *block, Layout *layout);
+bool block_layout_needs_resolving(const Block *block);
 /**
  * Used for property search when the layout process needs to be cancelled in order to avoid
  * computing the locations for buttons, but the layout items created while adding the buttons
  * must still be freed.
  */
-void block_layout_free(uiBlock *block);
+void block_layout_free(Block *block);
 
 enum eUI_Item_Flag : uint16_t {
   /* ITEM_O_RETURN_PROPS = 1 << 0, */ /* UNUSED */
@@ -893,7 +893,7 @@ ENUM_OPERATORS(eUI_Item_Flag)
  *
  * \note Must not be run after #block_layout_resolve.
  */
-bool block_apply_search_filter(uiBlock *block, const char *search_filter);
+bool block_apply_search_filter(Block *block, const char *search_filter);
 
 void uiLayoutSetFunc(Layout *layout, uiMenuHandleFunc handlefunc, void *argv);
 
@@ -982,11 +982,11 @@ const char *UI_layout_introspect(Layout *layout);
  * Helpers to add a big icon and create a split layout for alert popups.
  * Returns the layout to place further items into the alert box.
  */
-Layout *uiItemsAlertBox(uiBlock *block,
+Layout *uiItemsAlertBox(Block *block,
                         const uiStyle *style,
                         const int dialog_width,
                         const AlertIcon icon,
                         const int icon_size);
-Layout *uiItemsAlertBox(uiBlock *block, const int size, const AlertIcon icon);
+Layout *uiItemsAlertBox(Block *block, const int size, const AlertIcon icon);
 
 }  // namespace blender::ui

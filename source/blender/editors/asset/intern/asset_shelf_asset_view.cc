@@ -362,7 +362,7 @@ void build_asset_view(ui::Layout &layout,
   asset_view->set_catalog_filter(catalog_filter_from_shelf_settings(shelf.settings, *library));
   asset_view->set_tile_size(tile_width, tile_height);
 
-  uiBlock *block = layout.block();
+  ui::Block *block = layout.block();
   ui::AbstractGridView *grid_view = block_add_view(
       *block, "asset shelf asset view", std::move(asset_view));
   grid_view->set_context_menu_title("Asset Shelf");

@@ -484,7 +484,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
   bNodeSocket *sock = arg->sock;
   ui::Layout *layout = arg->layout;
   ui::Layout *column = nullptr;
-  uiBlock *block = layout->block();
+  ui::Block *block = layout->block();
   uiBut *but;
   NodeLinkArg *argN;
   int first = 1;
@@ -605,7 +605,7 @@ static void ui_template_node_link_menu(bContext *C, ui::Layout *layout, void *bu
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  uiBlock *block = layout->block();
+  ui::Block *block = layout->block();
   uiBut *but = (uiBut *)but_p;
   ui::Layout *split, *column;
   NodeLinkArg *arg = (NodeLinkArg *)but->func_argN;
@@ -669,7 +669,7 @@ void uiTemplateNodeLink(
 {
   using namespace blender::ed::space_node;
 
-  uiBlock *block = layout->block();
+  blender::ui::Block *block = layout->block();
   NodeLinkArg *arg;
   uiBut *but;
   float socket_col[4];
@@ -855,7 +855,7 @@ static void ui_node_draw_input(ui::Layout &layout,
                                int depth,
                                const char *panel_label)
 {
-  uiBlock *block = layout.block();
+  ui::Block *block = layout.block();
   ui::Layout *row = nullptr;
   bool dependency_loop;
 
