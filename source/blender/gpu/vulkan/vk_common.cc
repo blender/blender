@@ -133,6 +133,21 @@ TextureFormat to_gpu_format(const VkFormat format)
   return TextureFormat::SFLOAT_32_32_32_32;
 }
 
+std::string to_gpu_format_string(VkFormat format)
+{
+#define CASE(a, b, c, blender_enum, vk_enum, e, f, g, h) \
+  case VK_FORMAT_##vk_enum: \
+    return STRINGIFY(blender_enum);
+  switch (format) {
+    GPU_TEXTURE_TARGET_FORMAT_EXPAND(CASE)
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
+#undef CASE
+  return "Invalid";
+}
+
 VkFormat to_vk_format(const TextureFormat format)
 {
 #define CASE(a, b, c, blender_enum, vk_enum, e, f, g, h) \

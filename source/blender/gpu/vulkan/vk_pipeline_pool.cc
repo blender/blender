@@ -5,6 +5,9 @@
 /** \file
  * \ingroup gpu
  */
+
+#include <sstream>
+
 #include "BKE_appdir.hh"
 #include "BKE_blender_version.h"
 
@@ -236,6 +239,240 @@ VkPipeline VKPipelineMap<VKGraphicsInfo>::create(const VKGraphicsInfo &graphics_
     return create_graphics_pipeline_no_libs(
         graphics_info, vk_pipeline_cache, vk_pipeline_base, name);
   }
+}
+
+std::string VKGraphicsInfo::pipeline_info_source() const
+{
+  std::stringstream result;
+  result << "info.pipeline_state()\n";
+  result << "  .primitive(";
+  switch (vertex_in.vk_topology) {
+    case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
+      result << "GPU_PRIM_POINTS";
+      break;
+    case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
+      result << "GPU_PRIM_LINES";
+      break;
+    case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
+      result << "GPU_PRIM_LINE_STRIP";
+      break;
+    case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
+      result << "GPU_PRIM_TRIS";
+      break;
+    case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
+      result << "GPU_PRIM_TRI_STRIP";
+      break;
+    case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
+      result << "GPU_PRIM_TRI_FAN";
+      break;
+    case VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY:
+      result << "GPU_PRIM_LINES_ADJ";
+      break;
+    case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY:
+      result << "GPU_PRIM_TRIS_ADJ";
+      break;
+    default:
+      BLI_assert_unreachable();
+  };
+  result << ")\n";
+  result << "  .state(";
+  /* Write mask */
+  Vector<std::string> write_masks;
+  if (fragment_out.state.write_mask & GPU_WRITE_COLOR) {
+    if ((fragment_out.state.write_mask & GPU_WRITE_COLOR) == GPU_WRITE_COLOR) {
+      write_masks.append("GPU_WRITE_COLOR");
+    }
+    else {
+      if (fragment_out.state.write_mask & GPU_WRITE_RED) {
+        write_masks.append("GPU_WRITE_RED");
+      }
+      if (fragment_out.state.write_mask & GPU_WRITE_GREEN) {
+        write_masks.append("GPU_WRITE_GREEN");
+      }
+      if (fragment_out.state.write_mask & GPU_WRITE_BLUE) {
+        write_masks.append("GPU_WRITE_BLUE");
+      }
+      if (fragment_out.state.write_mask & GPU_WRITE_ALPHA) {
+        write_masks.append("GPU_WRITE_ALPHA");
+      }
+    }
+  }
+  if (fragment_out.state.write_mask & GPU_WRITE_DEPTH) {
+    write_masks.append("GPU_WRITE_DEPTH");
+  }
+  if (fragment_out.state.write_mask & GPU_WRITE_STENCIL) {
+    write_masks.append("GPU_WRITE_STENCIL");
+  }
+  if (write_masks.is_empty()) {
+    write_masks.append("GPU_WRITE_NONE");
+  }
+  for (const std::string &write_mask : write_masks) {
+    result << write_mask;
+    if (&write_mask != &write_masks.last()) {
+      result << " | ";
+    }
+  }
+  /* Blending mode */
+  result << ",\n         ";
+  switch (fragment_out.state.blend) {
+    case GPU_BLEND_NONE:
+      result << "GPU_BLEND_NONE";
+      break;
+    case GPU_BLEND_ALPHA:
+      result << "GPU_BLEND_ALPHA";
+      break;
+    case GPU_BLEND_ALPHA_PREMULT:
+      result << "GPU_BLEND_ALPHA_PREMULT";
+      break;
+    case GPU_BLEND_ADDITIVE:
+      result << "GPU_BLEND_ADDITIVE";
+      break;
+    case GPU_BLEND_ADDITIVE_PREMULT:
+      result << "GPU_BLEND_ADDITIVE_PREMULT";
+      break;
+    case GPU_BLEND_MULTIPLY:
+      result << "GPU_BLEND_MULTIPLY";
+      break;
+    case GPU_BLEND_SUBTRACT:
+      result << "GPU_BLEND_SUBTRACT";
+      break;
+    case GPU_BLEND_INVERT:
+      result << "GPU_BLEND_INVERT";
+      break;
+    case GPU_BLEND_MIN:
+      result << "GPU_BLEND_MIN";
+      break;
+    case GPU_BLEND_MAX:
+      result << "GPU_BLEND_MAX";
+      break;
+    case GPU_BLEND_OIT:
+      result << "GPU_BLEND_OIT";
+      break;
+    case GPU_BLEND_BACKGROUND:
+      result << "GPU_BLEND_BACKGROUND";
+      break;
+    case GPU_BLEND_CUSTOM:
+      result << "GPU_BLEND_CUSTOM";
+      break;
+    case GPU_BLEND_ALPHA_UNDER_PREMUL:
+      result << "GPU_BLEND_ALPHA_UNDER_PREMUL";
+      break;
+    case GPU_BLEND_OVERLAY_MASK_FROM_ALPHA:
+      result << "GPU_BLEND_OVERLAY_MASK_FROM_ALPHA";
+      break;
+    default:
+      BLI_assert_unreachable();
+  }
+  /* Culling test */
+  result << ",\n         ";
+  switch (shaders.state.culling_test) {
+    case GPU_CULL_NONE:
+      result << "GPU_CULL_NONE";
+      break;
+    case GPU_CULL_FRONT:
+      result << "GPU_CULL_FRONT";
+      break;
+    case GPU_CULL_BACK:
+      result << "GPU_CULL_BACK";
+      break;
+    default:
+      BLI_assert_unreachable();
+  }
+  /* Depth test */
+  result << ",\n         ";
+  switch (shaders.state.depth_test) {
+    case GPU_DEPTH_NONE:
+      result << "GPU_DEPTH_NONE";
+      break;
+    case GPU_DEPTH_LESS:
+      result << "GPU_DEPTH_LESS";
+      break;
+    case GPU_DEPTH_LESS_EQUAL:
+      result << "GPU_DEPTH_LESS_EQUAL";
+      break;
+    case GPU_DEPTH_EQUAL:
+      result << "GPU_DEPTH_EQUAL";
+      break;
+    case GPU_DEPTH_GREATER:
+      result << "GPU_DEPTH_GREATER";
+      break;
+    case GPU_DEPTH_GREATER_EQUAL:
+      result << "GPU_DEPTH_GREATER_EQUAL";
+      break;
+    case GPU_DEPTH_ALWAYS:
+      result << "GPU_DEPTH_ALWAYS";
+      break;
+    default:
+      BLI_assert_unreachable();
+  }
+  /* Stencil test */
+  result << ",\n         ";
+  switch (shaders.state.stencil_test) {
+    case GPU_STENCIL_NONE:
+      result << "GPU_STENCIL_NONE";
+      break;
+    case GPU_STENCIL_ALWAYS:
+      result << "GPU_STENCIL_ALWAYS";
+      break;
+    case GPU_STENCIL_EQUAL:
+      result << "GPU_STENCIL_EQUAL";
+      break;
+    case GPU_STENCIL_NEQUAL:
+      result << "GPU_STENCIL_NEQUAL";
+      break;
+    default:
+      BLI_assert_unreachable();
+  }
+  /* Stencil operation */
+  result << ",\n         ";
+  switch (shaders.state.stencil_op) {
+    case GPU_STENCIL_OP_NONE:
+      result << "GPU_STENCIL_OP_NONE";
+      break;
+    case GPU_STENCIL_OP_REPLACE:
+      result << "GPU_STENCIL_OP_REPLACE";
+      break;
+    case GPU_STENCIL_OP_COUNT_DEPTH_PASS:
+      result << "GPU_STENCIL_OP_COUNT_DEPTH_PASS";
+      break;
+    case GPU_STENCIL_OP_COUNT_DEPTH_FAIL:
+      result << "GPU_STENCIL_OP_COUNT_DEPTH_FAIL";
+      break;
+    default:
+      BLI_assert_unreachable();
+  }
+  /* Provoking vertex */
+  result << ",\n         ";
+  switch (shaders.state.provoking_vert) {
+    case GPU_VERTEX_FIRST:
+      result << "GPU_VERTEX_FIRST";
+      break;
+    case GPU_VERTEX_LAST:
+      result << "GPU_VERTEX_LAST";
+      break;
+    default:
+      BLI_assert_unreachable();
+  }
+  result << ")\n";
+  /* viewports */
+  result << "  .viewports(" << shaders.viewport_count << ")\n";
+  /* Depth format */
+  if (fragment_out.depth_attachment_format != VK_FORMAT_UNDEFINED) {
+    result << "  .depth_format(gpu::TextureTargetFormat::"
+           << to_gpu_format_string(fragment_out.depth_attachment_format) << ")\n";
+  }
+  /* Stencil format */
+  if (fragment_out.stencil_attachment_format != VK_FORMAT_UNDEFINED) {
+    result << "  .stencil_format(gpu::TextureTargetFormat::"
+           << to_gpu_format_string(fragment_out.stencil_attachment_format) << ")\n";
+  }
+  /* Color formats */
+  for (const VkFormat format : fragment_out.color_attachment_formats) {
+    result << "  .color_format(gpu::TextureTargetFormat::" << to_gpu_format_string(format)
+           << ")\n";
+  }
+  result << ";";
+  return result.str();
 }
 
 /* \} */

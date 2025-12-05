@@ -1300,12 +1300,18 @@ VkPipeline VKShader::ensure_and_get_compute_pipeline(
 bool VKShader::ensure_graphics_pipelines(Span<shader::PipelineState> pipeline_states)
 {
   BLI_assert(!is_compute_shader_);
-  has_precompiled_pipelines_ = !pipeline_states.is_empty();
+
+  VKDevice &device = VKBackend::get().device;
+  const VKExtensions &extensions = device.extensions_get();
+
   for (const shader::PipelineState &pipeline_state : pipeline_states) {
     const VkPrimitiveTopology vk_topology = to_vk_primitive_topology(pipeline_state.primitive_);
 
-    VKDevice &device = VKBackend::get().device;
-    const VKExtensions &extensions = device.extensions_get();
+    /* Only compile graphics pipelines without vertex inputs when vertex input dynamic state isn't
+     * available as it will create an unused pipeline. */
+    if (!pipeline_state.vertex_inputs_.is_empty() && !extensions.vertex_input_dynamic_state) {
+      continue;
+    }
 
     VKVertexInputDescription vertex_input_description(pipeline_state);
     VKGraphicsInfo graphics_info = {};
@@ -1348,6 +1354,7 @@ bool VKShader::ensure_graphics_pipelines(Span<shader::PipelineState> pipeline_st
     bool pipeline_created = false;
     VkPipeline vk_pipeline = device.pipelines.get_or_create_graphics_pipeline(
         graphics_info, is_static_shader_, vk_pipeline_base_, name_get(), pipeline_created);
+    has_precompiled_pipelines_ = true;
     UNUSED_VARS_NDEBUG(pipeline_created);
     if (vk_pipeline == VK_NULL_HANDLE) {
       return false;
@@ -1431,6 +1438,10 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(
               "Pipeline states were compiled for `%s`, however a pipeline state triggered a new "
               "pipeline compilation.",
               name_get().c_str());
+    if (G.debug & G_DEBUG_GPU) {
+      CLOG_DEBUG(
+          &LOG, "Missing pipeline state:\n%s", graphics_info.pipeline_info_source().c_str());
+    }
     const VKContext &context = *VKContext::get();
     BLI_assert(!context.debug_pipeline_creation);
   }
