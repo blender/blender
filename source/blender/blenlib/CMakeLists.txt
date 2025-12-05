@@ -131,7 +131,7 @@ set(SRC
   intern/polyfill_2d.cc
   intern/polyfill_2d_beautify.cc
   intern/quadric.cc
-  intern/radial_tiling_shared.cc
+  intern/radial_tiling_wrapper.cc
   intern/rand.cc
   intern/rct.cc
   intern/resource_scope.cc
