@@ -1818,7 +1818,12 @@ static wmOperatorStatus armature_bone_primitive_add_exec(bContext *C, wmOperator
   ANIM_armature_bonecoll_assign_active(static_cast<bArmature *>(obedit->data), bone);
 
   bArmature *arm = static_cast<bArmature *>(obedit->data);
-  if (!ANIM_bonecoll_is_visible_editbone(arm, bone)) {
+  if (BLI_listbase_is_empty(&bone->bone_collections) && (arm->flag & ARM_BCOLL_SOLO_ACTIVE)) {
+    BKE_report(op->reports,
+               RPT_WARNING,
+               "Bone not added to a collection and hidden because solo bone collection(s) exist.");
+  }
+  else if (!ANIM_bonecoll_is_visible_editbone(arm, bone)) {
     const BoneCollectionReference *bcoll_ref = static_cast<const BoneCollectionReference *>(
         bone->bone_collections.first);
     BLI_assert_msg(bcoll_ref,
