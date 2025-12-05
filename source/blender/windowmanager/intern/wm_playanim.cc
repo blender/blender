@@ -165,7 +165,9 @@ enum eWS_Qual {
 #define WS_QUAL_ALT (WS_QUAL_LALT | WS_QUAL_RALT)
   WS_QUAL_LCTRL = (1 << 4),
   WS_QUAL_RCTRL = (1 << 5),
-#define WS_QUAL_CTRL (WS_QUAL_LCTRL | WS_QUAL_RCTRL)
+  WS_QUAL_LCMD = (1 << 6),
+  WS_QUAL_RCMD = (1 << 7),
+#define WS_QUAL_CTRL (WS_QUAL_LCTRL | WS_QUAL_RCTRL | WS_QUAL_LCMD | WS_QUAL_RCMD)
   WS_QUAL_LMOUSE = (1 << 16),
   WS_QUAL_MMOUSE = (1 << 17),
   WS_QUAL_RMOUSE = (1 << 18),
@@ -329,6 +331,15 @@ static void playanim_event_qual_update(GhostData &ghost_data)
 
   GHOST_GetModifierKeyState(ghost_data.system, GHOST_kModifierKeyRightControl, &val);
   SET_FLAG_FROM_TEST(ghost_data.qual, val, WS_QUAL_RCTRL);
+
+/* Command, equivalent to control on macOS. */
+#ifdef __APPLE__
+  GHOST_GetModifierKeyState(ghost_data.system, GHOST_kModifierKeyLeftOS, &val);
+  SET_FLAG_FROM_TEST(ghost_data.qual, val, WS_QUAL_LCMD);
+
+  GHOST_GetModifierKeyState(ghost_data.system, GHOST_kModifierKeyRightOS, &val);
+  SET_FLAG_FROM_TEST(ghost_data.qual, val, WS_QUAL_RCMD);
+#endif
 
   /* Alt. */
   GHOST_GetModifierKeyState(ghost_data.system, GHOST_kModifierKeyLeftAlt, &val);
@@ -1673,8 +1684,9 @@ static void playanim_window_zoom(PlayState &ps, const float zoom_offset)
   // size = playanim_window_size_get(ps.ghost_data.window);
   // ofs[0] += size[0] / 2; /* UNUSED. */
   // ofs[1] += size[1] / 2; /* UNUSED. */
-  size[0] = ps.zoom * ps.ibuf_size[0];
-  size[1] = ps.zoom * ps.ibuf_size[1];
+  const float native_pixel_size = GHOST_GetNativePixelSize(ps.ghost_data.window);
+  size[0] = ps.zoom * ps.ibuf_size[0] / native_pixel_size;
+  size[1] = ps.zoom * ps.ibuf_size[1] / native_pixel_size;
   // ofs[0] -= size[0] / 2; /* UNUSED. */
   // ofs[1] -= size[1] / 2; /* UNUSED. */
   // window_set_position(ps.ghost_data.window, size[0], size[1]);
