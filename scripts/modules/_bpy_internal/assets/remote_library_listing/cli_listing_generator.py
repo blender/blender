@@ -6,27 +6,28 @@ from __future__ import annotations
 
 """Blender Online Asset Repository Listing Generator."""
 
+__all__ = (
+    'cli_main',
+    'SCHEMA_VERSION',
+)
+
 import argparse
 import dataclasses
 import json
 import logging
 import sys
+import urllib.parse
 from pathlib import Path
 from typing import Any
 
 import cattrs.preconf.json
 
-from . import asset_catalogs, asset_finder, listing_common, pagination, json_parsing
+from . import asset_catalogs, asset_finder, hashing, listing_common, pagination, json_parsing
 from . import blender_asset_library_openapi as api_models
 
 SCHEMA_VERSION = "1.0.0"
-
-
-_api_versions = {
-    "v{:d}".format(listing_common.API_VERSION): listing_common.API_VERSIONED_ASSET_INDEX_JSON_PATH,
-}
 DEFAULT_METADATA = api_models.AssetLibraryMeta(
-    api_versions=_api_versions.copy(),
+    api_versions={},  # Determined by cli_main().
     name="Your Asset Library",
     contact=api_models.Contact(
         name="Your Name",
@@ -55,10 +56,11 @@ def cli_main(arguments_raw: argparse.Namespace) -> None:
     # Parse CLI arguments.
     arguments = _parse_cli_args(arguments_raw)
 
-    # Write the top-level meta file first. If this already exists, an attempt
+    # Read the top-level meta file first. If this already exists, an attempt
     # at parsing & upgrading it is performed. Better to do this (and stop on
     # errors) before diving into the assets themselves.
-    _write_toplevel_meta(arguments)
+    meta_json_path = arguments.repository / listing_common.ASSET_TOP_METADATA_FILENAME
+    toplevel_meta = _toplevel_meta_read(meta_json_path)
 
     # Find all .blend files.
     filepaths: list[Path] = []
@@ -86,30 +88,38 @@ def cli_main(arguments_raw: argparse.Namespace) -> None:
         assets.extend(assets_in_file)
         files.append(bfile_info)
 
-    # Write the output.
+    # Write the listing index and the pages:
     asset_index_pages = pagination.paginate_asset_list(assets, files, arguments.page_size)
-    _write_json_files(arguments, asset_index_pages)
+    index_path = _write_json_files(arguments, asset_index_pages)
+
+    # Write the top-level meta file:
+    api_version_key = "v{:d}".format(listing_common.API_VERSION)
+    index_relpath: Path = index_path.relative_to(arguments.repository)
+    toplevel_meta.api_versions[api_version_key] = api_models.URLWithHash(
+        url=urllib.parse.quote(index_relpath.as_posix()),
+        hash=hashing.hash_file(index_path),
+    )
+    _save_json(toplevel_meta, meta_json_path)
 
 
-def _write_toplevel_meta(arguments: CLIArguments) -> None:
-    outdir_root = arguments.repository
-
-    # Metadata file /_asset-library-meta.json. This gets loaded if it exists.
-    meta_json_path = outdir_root / listing_common.ASSET_TOP_METADATA_FILENAME
+def _toplevel_meta_read(meta_json_path: Path) -> api_models.AssetLibraryMeta:
     try:
         metadata = _toplevel_metadata(meta_json_path)
     except (json.JSONDecodeError, cattrs.errors.ClassValidationError) as ex:
-        msg = "Metadata file {} could not be parsed as JSON: {}"
+        msg = "Metadata file {} could not be parsed: {}"
         logger.error(msg.format(meta_json_path, ex))
         raise SystemExit(1) from None
-
-    _save_json(metadata, meta_json_path)
+    return metadata
 
 
 def _write_json_files(
     arguments: CLIArguments,
     asset_index_pages: list[api_models.AssetLibraryIndexPageV1],
-) -> None:
+) -> Path:
+    """Write the asset listing page files and the index file.
+
+    :returns: the path of the index file.
+    """
     outdir_root = arguments.repository
     outdir_versioned = outdir_root / listing_common.API_VERSIONED_SUBDIR
 
@@ -124,12 +134,15 @@ def _write_json_files(
     # Note that these paths are determined by the generator, and their URLs are
     # listed explicitly in the index file, so there is no need to have those in
     # the listing_common.py file.
-    page_urls = []
+    page_infos: list[api_models.URLWithHash] = []
     for page_index, page in enumerate(asset_index_pages):
         page_relpath = listing_common.api_versioned(f"assets-{page_index:05}.json")
-        page_urls.append(page_relpath.as_posix())
-
         _save_json(page, outdir_root / page_relpath)
+
+        page_infos.append(api_models.URLWithHash(
+            url=urllib.parse.quote(page_relpath.as_posix()),
+            hash=hashing.hash_file(page_relpath),
+        ))
 
     # Library Index file /_v1/asset-index.json:
     total_asset_count = sum(page.asset_count for page in asset_index_pages)
@@ -143,10 +156,13 @@ def _write_json_files(
         asset_size_bytes=asset_size_bytes,
         asset_count=total_asset_count,
         file_count=total_file_count,
-        page_urls=page_urls,
+        pages=page_infos,
         catalogs=asset_cats,
     )
-    _save_json(index, outdir_versioned / listing_common.ASSET_INDEX_JSON_FILENAME)
+    index_path = outdir_versioned / listing_common.ASSET_INDEX_JSON_FILENAME
+    _save_json(index, index_path)
+
+    return index_path
 
 
 def _save_json(model: Any, json_path: Path) -> None:

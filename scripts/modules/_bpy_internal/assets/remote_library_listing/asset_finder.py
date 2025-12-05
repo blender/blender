@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import logging
 import os
 import re
@@ -16,6 +15,7 @@ from pathlib import Path
 import bpy
 
 from . import blender_asset_library_openapi as api_models
+from . import hashing
 
 log = logging.getLogger(__name__)
 
@@ -105,15 +105,18 @@ def _find_assets(
 
         if thumbnail_path:
             as_posix = thumbnail_path.relative_to(asset_library_root).as_posix()
-            thumbnail_url = urllib.parse.quote(as_posix)
+            thumbnail = api_models.URLWithHash(
+                url=urllib.parse.quote(as_posix),
+                hash=hashing.hash_file(thumbnail_path),
+            )
         else:
-            thumbnail_url = ""
+            thumbnail = None
 
         asset = api_models.AssetV1(
             name=datablock.name,
             id_type=api_models.AssetIDTypeV1(datablock.id_type.lower()),
             file=file.path,
-            thumbnail_url=thumbnail_url,
+            thumbnail=thumbnail,
             meta=_get_asset_meta(asset_data),
         )
 
@@ -252,19 +255,7 @@ def _blendfile_info(filepath: Path, asset_library_root: Path) -> api_models.File
     return api_models.FileV1(
         path=relative_posix,
         url=file_url,
-        hash=_sha256_file(filepath),
+        hash=hashing.hash_file(filepath),
         size_in_bytes=stat.st_size,
         blender_version="",  # Determined later when the file is opened to find assets.
     )
-
-
-def _sha256_file(filepath: Path) -> str:
-    """Computes and returns the SHA256 hash of the file."""
-    sha256_hash = hashlib.sha256()
-
-    file_size_bytes = 0
-    with open(filepath, "rb") as f:
-        for byte_block in iter(lambda: f.read(4096), b""):
-            file_size_bytes += len(byte_block)
-            sha256_hash.update(byte_block)
-    return sha256_hash.hexdigest()

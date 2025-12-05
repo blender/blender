@@ -44,7 +44,8 @@ AssetRepresentation::AssetRepresentation(StringRef relative_asset_path,
                                          std::unique_ptr<AssetMetaData> metadata,
                                          AssetLibrary &owner_asset_library,
                                          StringRef download_dst_filepath,
-                                         std::optional<StringRef> preview_url)
+                                         URLWithHash download_url,
+                                         std::optional<URLWithHash> preview_url)
     : owner_asset_library_(owner_asset_library),
       relative_identifier_(relative_asset_path),
       asset_(AssetRepresentation::ExternalAsset{
@@ -52,7 +53,8 @@ AssetRepresentation::AssetRepresentation(StringRef relative_asset_path,
           id_type,
           std::move(metadata),
           nullptr,
-          std::make_unique<OnlineAssetInfo>(OnlineAssetInfo{download_dst_filepath, preview_url})})
+          std::make_unique<OnlineAssetInfo>(
+              OnlineAssetInfo{download_dst_filepath, download_url, preview_url})})
 {
 }
 
@@ -183,6 +185,16 @@ std::string AssetRepresentation::full_library_path() const
   return blend_path;
 }
 
+/* This makes a copy of the URLWithHash, but since it's only used when
+ * downloading the asset, it's not performance-sensitive. */
+std::optional<URLWithHash> AssetRepresentation::online_asset_url() const
+{
+  if (!this->is_online()) {
+    return {};
+  }
+  return std::get<ExternalAsset>(asset_).online_info_->asset_url_;
+}
+
 std::optional<StringRefNull> AssetRepresentation::download_dst_filepath() const
 {
   if (!this->is_online()) {
@@ -196,7 +208,25 @@ std::optional<StringRefNull> AssetRepresentation::online_asset_preview_url() con
   if (!this->is_online()) {
     return {};
   }
-  return std::get<ExternalAsset>(asset_).online_info_->preview_url_;
+  std::optional<URLWithHash> &url_with_hash =
+      std::get<ExternalAsset>(asset_).online_info_->preview_url_;
+  if (!url_with_hash) {
+    return {};
+  }
+  return url_with_hash->url;
+}
+
+std::optional<StringRefNull> AssetRepresentation::online_asset_preview_hash() const
+{
+  if (!this->is_online()) {
+    return {};
+  }
+  std::optional<URLWithHash> &url_with_hash =
+      std::get<ExternalAsset>(asset_).online_info_->preview_url_;
+  if (!url_with_hash) {
+    return {};
+  }
+  return url_with_hash->hash;
 }
 
 void AssetRepresentation::online_asset_mark_downloaded()

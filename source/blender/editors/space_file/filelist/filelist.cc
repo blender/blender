@@ -2426,7 +2426,8 @@ static void filelist_readjob_list_lib_add_datablock(
     const int idcode,
     const char *group_name,
     const std::optional<std::string> asset_download_dst_filepath = std::nullopt,
-    const std::optional<std::string> asset_preview_url = std::nullopt)
+    const std::optional<asset_system::URLWithHash> asset_download_url = std::nullopt,
+    const std::optional<asset_system::URLWithHash> asset_preview_url = std::nullopt)
 {
   FileListInternEntry *entry = MEM_new<FileListInternEntry>(__func__);
   if (prefix_relpath_with_group_name) {
@@ -2463,6 +2464,9 @@ static void filelist_readjob_list_lib_add_datablock(
         datablock_info->asset_data = metadata.get();
         datablock_info->free_asset_data = false;
 
+        BLI_assert_msg(!is_online_asset || asset_download_url.has_value(),
+                       "An online asset must have a URLWithHash");
+
         entry->asset = is_online_asset ?
                            job_params->load_asset_library->add_external_online_asset(
                                entry->relpath,
@@ -2470,6 +2474,7 @@ static void filelist_readjob_list_lib_add_datablock(
                                idcode,
                                std::move(metadata),
                                *asset_download_dst_filepath,
+                               *asset_download_url,
                                asset_preview_url) :
                            job_params->load_asset_library->add_external_on_disk_asset(
                                entry->relpath, datablock_info->name, idcode, std::move(metadata));
@@ -3274,6 +3279,7 @@ static void filelist_readjob_remote_asset_library_index_read(
                                             entry.idcode,
                                             group_name,
                                             entry.file_path,
+                                            entry.download_url,
                                             entry.thumbnail_url);
 
     int entries_num = 0;

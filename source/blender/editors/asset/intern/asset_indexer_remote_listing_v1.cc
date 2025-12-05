@@ -20,6 +20,7 @@
 
 #include "ED_asset_indexer.hh"
 #include "asset_index.hh"
+#include "asset_indexer_remote_listing.hh"
 
 static CLG_LogRef LOG = {"asset.remote_listing"};
 
@@ -37,7 +38,9 @@ struct AssetLibraryListingPageV1 {
 };
 
 static std::optional<RemoteListingAssetEntry> listing_entry_from_asset_dictionary(
-    const DictionaryValue &dictionary, const char **r_failure_reason)
+    const DictionaryValue &dictionary,
+    const char **r_failure_reason,
+    const Map<std::string, RemoteListingFileEntry> &file_path_to_entry_map)
 {
   RemoteListingAssetEntry listing_entry{};
 
@@ -73,8 +76,22 @@ static std::optional<RemoteListingAssetEntry> listing_entry_from_asset_dictionar
     return {};
   }
 
-  /* 'thumbnail': optional string. */
-  listing_entry.thumbnail_url = dictionary.lookup_str("thumbnail_url").value_or("");
+  /* Look up the file URL and hash from the <files> section of the JSON. */
+  if (const RemoteListingFileEntry *file_entry = file_path_to_entry_map.lookup_ptr(
+          listing_entry.file_path))
+  {
+    listing_entry.download_url.url = file_entry->download_url.url;
+    listing_entry.download_url.hash = file_entry->download_url.hash;
+  }
+  else {
+    /* TODO: include the path that's not found. */
+    *r_failure_reason = "asset references unknown file";
+    return {};
+  }
+
+  /* 'thumbnail': URL and hash of the preview image. */
+  listing_entry.thumbnail_url = ed::asset::index::parse_url_with_hash_dict(
+      dictionary.lookup_dict("thumbnail"));
 
   /* 'metadata': optional dictionary. If all the metadata fields are empty, this can be left out of
    * the listing. Default metadata will then be allocated, with all fields empty/0. */
@@ -87,19 +104,78 @@ static std::optional<RemoteListingAssetEntry> listing_entry_from_asset_dictionar
   return listing_entry;
 }
 
+static std::optional<RemoteListingFileEntry> listing_file_from_asset_dictionary(
+    const DictionaryValue &dictionary)
+{
+  RemoteListingFileEntry file_entry{};
+
+  /* Path is mandatory. */
+  if (const std::optional<StringRefNull> path = dictionary.lookup_str("path")) {
+    file_entry.local_path = *path;
+  }
+  else {
+    printf(
+        "Error reading asset listing file entry, skipping. Reason: found a file without 'path' "
+        "field\n");
+    return {};
+  }
+
+  /* Hash is mandatory. */
+  if (const std::optional<StringRefNull> hash = dictionary.lookup_str("hash")) {
+    file_entry.download_url.hash = *hash;
+  }
+  else {
+    printf(
+        "Error reading asset listing file entry, skipping. Reason: found a file (%s) without "
+        "'hash' field\n",
+        file_entry.local_path.c_str());
+    return {};
+  }
+
+  /* URL is optional, and defaults to the local path. That's handled in Python
+   * (see `download_asset()` in `asset_downloader.py`) so here we can just use
+   * an empty string to indicate "no URL". */
+  file_entry.download_url.url = dictionary.lookup_str("url").value_or("");
+
+  return file_entry;
+}
+
 static ReadingResult listing_entries_from_root(const DictionaryValue &value,
                                                const RemoteListingEntryProcessFn process_fn)
 {
-  const ArrayValue *entries = value.lookup_array("assets");
-  BLI_assert(entries != nullptr);
-  if (entries == nullptr) {
+  const ArrayValue *assets = value.lookup_array("assets");
+  BLI_assert(assets != nullptr);
+  if (assets == nullptr) {
     return ReadingResult::Failure;
   }
 
-  for (const std::shared_ptr<Value> &element : entries->elements()) {
+  /* Build a mapping from local file path to its file info. */
+  const ArrayValue *files = value.lookup_array("files");
+  BLI_assert(files != nullptr);
+  if (assets == nullptr) {
+    /* The 'files' section is mandatory in the OpenAPI schema. */
+    printf("Error reading asset listing, page file has no files section.\n");
+    return ReadingResult::Failure;
+  }
+  Map<std::string, RemoteListingFileEntry> path_to_file_info;
+  for (const std::shared_ptr<Value> &file_element : files->elements()) {
+    std::optional<RemoteListingFileEntry> file_entry = listing_file_from_asset_dictionary(
+        *file_element->as_dictionary_value());
+    if (!file_entry) {
+      continue;
+    }
+    if (file_entry->local_path.empty()) {
+      continue;
+    }
+    std::string local_path = file_entry->local_path; /* Make a copy before std::moving. */
+    path_to_file_info.add_overwrite(local_path, std::move(*file_entry));
+  }
+
+  /* Convert the assets into RemoteListingAssetEntry objects. */
+  for (const std::shared_ptr<Value> &asset_element : assets->elements()) {
     const char *failure_reason = "";
     std::optional<RemoteListingAssetEntry> entry = listing_entry_from_asset_dictionary(
-        *element->as_dictionary_value(), &failure_reason);
+        *asset_element->as_dictionary_value(), &failure_reason, path_to_file_info);
     if (!entry) {
       /* Don't add this entry on failure to read it. */
       printf("Error reading asset listing entry, skipping. Reason: %s\n", failure_reason);
@@ -181,7 +257,7 @@ std::optional<AssetLibraryListingV1> AssetLibraryListingV1::read(
     return {};
   }
 
-  const ArrayValue *entries = root->lookup_array("page_urls");
+  const ArrayValue *entries = root->lookup_array("pages");
   BLI_assert(entries != nullptr);
   if (entries == nullptr) {
     return {};
@@ -191,15 +267,16 @@ std::optional<AssetLibraryListingV1> AssetLibraryListingV1::read(
 
   int i = 0;
   for (const std::shared_ptr<Value> &element : entries->elements()) {
-    const StringValue *page_path = element->as_string_value();
-    if (!page_path) {
+    const std::optional<asset_system::URLWithHash> page_info = parse_url_with_hash_dict(
+        element->as_dictionary_value());
+    if (!page_info) {
       printf("Error reading asset listing page path at index %i in %s - ignoring\n",
              i,
              listing_filepath.c_str());
       i++;
       continue;
     }
-    listing.page_rel_paths.append(std::move(page_path->value()));
+    listing.page_rel_paths.append(std::move(page_info->url));
     i++;
   }
 

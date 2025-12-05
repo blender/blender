@@ -19,6 +19,12 @@ class Contact:
     email: Optional[str] = None
 
 
+@dataclass
+class URLWithHash:
+    url: str
+    hash: str
+
+
 class AssetIDTypeV1(Enum):
     brush = "brush"
     action = "action"
@@ -57,7 +63,7 @@ class FileV1:
 
 @dataclass
 class AssetLibraryMeta:
-    api_versions: dict[str, str]
+    api_versions: dict[str, URLWithHash]
     name: str
     contact: Contact
 
@@ -68,7 +74,7 @@ class AssetLibraryIndexV1:
     asset_size_bytes: int
     asset_count: int
     file_count: int
-    page_urls: Optional[list[str]] = None
+    pages: list[URLWithHash]
     catalogs: Optional[list[CatalogV1]] = None
 
 
@@ -85,7 +91,7 @@ class AssetV1:
     name: str
     id_type: AssetIDTypeV1
     file: str
-    thumbnail_url: Optional[str] = None
+    thumbnail: Optional[URLWithHash] = None
     meta: Optional[AssetMetadataV1] = None
 
 

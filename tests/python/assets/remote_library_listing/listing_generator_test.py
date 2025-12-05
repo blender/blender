@@ -5,7 +5,7 @@
 import sys
 import unittest
 
-from _bpy_internal.assets.remote_library_listing import asset_finder
+from _bpy_internal.assets.remote_library_listing import asset_finder, json_parsing, hashing
 from _bpy_internal.assets.remote_library_listing import blender_asset_library_openapi as api_models
 
 import bpy
@@ -82,13 +82,52 @@ class CustomPropertiesTest(unittest.TestCase):
         self.assertEqual(expected_custom, meta.custom)
 
     def test_serialize_to_json(self) -> None:
-        import cattrs.preconf.json
-
         meta = asset_finder._get_asset_meta(self.cube.asset_data)
 
-        converter = cattrs.preconf.json.JsonConverter(omit_if_default=True)
-        as_json = converter.dumps(meta, indent=2)
+        # The asset metadata should be convertable to JSON.
+        parser = json_parsing.ValidatingParser()
+        as_json = parser.dumps(meta)
         self.assertIsNotNone(as_json)
+
+        # The JSON should also be deserializable as well, and produce the same data.
+        roundtripped = parser.parse_and_validate(api_models.AssetMetadataV1, as_json)
+        self.assertEqual(meta, roundtripped)
+
+
+class HashingTest(unittest.TestCase):
+    def test_url_function(self) -> None:
+        # No hash.
+        url_with_hash = api_models.URLWithHash(
+            url="http://localhost:8080/_v1/asset-index.json",
+            hash=""
+        )
+        self.assertEqual("http://localhost:8080/_v1/asset-index.json", hashing.url(url_with_hash))
+
+        # Hash without type, and to-be-quoted characters.
+        url_with_hash.hash = "this is a weird häsh"
+        self.assertEqual(
+            "http://localhost:8080/_v1/asset-index.json?hash=this%20is%20a%20weird%20h%C3%A4sh",
+            hashing.url(url_with_hash))
+
+        # Hash with a type prefix, should be stripped.
+        url_with_hash.hash = "sha1:2cafc9d388fb8c2d0b6ca9780d6b75963587916d"
+        self.assertEqual(
+            "http://localhost:8080/_v1/asset-index.json?hash=2cafc9d388fb8c2d0b6ca9780d6b75963587916d",
+            hashing.url(url_with_hash))
+
+        # Existing query string, should be correctly appended to.
+        url_with_hash.url = "http://localhost:8080/_v1/asset-index.json?auth=none"
+        self.assertEqual(
+            "http://localhost:8080/_v1/asset-index.json?auth=none&hash=2cafc9d388fb8c2d0b6ca9780d6b75963587916d",
+            hashing.url(url_with_hash))
+
+        # Using a tuple instead of an URLWithHash object.
+        self.assertEqual(
+            "http://localhost:8080/_v1/asset-index.json?auth=none&hash=2cafc9d388fb8c2d0b6ca9780d6b75963587916d",
+            hashing.url((
+                "http://localhost:8080/_v1/asset-index.json?auth=none",
+                "sha1:2cafc9d388fb8c2d0b6ca9780d6b75963587916d"
+            )))
 
 
 def main():

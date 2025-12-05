@@ -12,6 +12,7 @@
 #include <optional>
 
 #include "AS_asset_catalog.hh"
+#include "AS_asset_representation.hh" /* For URLWithHash. */
 
 #include "DNA_asset_types.h"
 
@@ -157,7 +158,8 @@ class AssetLibrary {
       int id_type,
       std::unique_ptr<AssetMetaData> metadata,
       StringRef download_dst_filepath,
-      std::optional<StringRef> preview_url);
+      URLWithHash download_url,
+      std::optional<URLWithHash> preview_url);
   /** See #AssetLibrary::add_external_on_disk_asset(). */
   std::weak_ptr<AssetRepresentation> add_local_id_asset(ID &id);
   /**
