@@ -21,7 +21,7 @@ static std::string process_test_string(std::string str,
       language,
       str,
       "test.glsl",
-      true,
+      false,
       true,
       [&](int /*err_line*/, int /*err_char*/, const std::string & /*line*/, const char *err_msg) {
         if (first_error.empty()) {
@@ -38,6 +38,60 @@ static std::string process_test_string(std::string str,
   size_t newline = result.find('\n');
   return result.substr(newline + 1);
 }
+
+static void test_preprocess_array()
+{
+  using namespace shader;
+  using namespace std;
+  {
+    string input = R"(
+float a[] = {0, 1};
+float b[2] = {
+    a[0],
+    a(0, 1),
+};
+float d[] = {a[0], a(0, 1)};
+)";
+    string expect =
+        R"(
+float a[2] = ARRAY_T(float) ARRAY_V( 0, 1 );
+float b[2] = ARRAY_T(float) ARRAY_V(
+    a[0],
+    a(0, 1)
+ );
+float d[2] = ARRAY_T(float) ARRAY_V( a[0], a(0, 1) );
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(expect, output);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+float c[] = {};
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(error, "Array size must be greater than zero.");
+  }
+  {
+    string input = R"(
+float c[0] = {};
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(error, "Array size must be greater than zero.");
+  }
+  {
+    string input = R"(
+float2 c[2] = {{0, 1}, {0, 1}};
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(error, "Nested initializer list is not supported.");
+  }
+}
+GPU_TEST(preprocess_array);
 
 static void test_preprocess_include()
 {

@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include <algorithm>
 #include <cctype>
 #include <cstdint>
 #include <functional>
@@ -425,12 +424,10 @@ struct Source {
  */
 class Preprocessor {
   using uint64_t = std::uint64_t;
-  using report_callback = std::function<void(
-      int error_line, int error_char, std::string error_line_string, const char *error_str)>;
+  using report_callback = parser::report_callback;
+  using Parser = shader::parser::IntermediateForm;
 
   metadata::Source metadata;
-
-  using Parser = shader::parser::IntermediateForm;
 
  public:
   enum SourceLanguage {
@@ -442,6 +439,9 @@ class Preprocessor {
      * include system, etc ... */
     BLENDER_GLSL,
   };
+
+  /* Cannot use `__` because of some compilers complaining about reserved symbols. */
+  static constexpr const char *namespace_separator = "_";
 
   static SourceLanguage language_from_filename(const std::string &filename)
   {
@@ -460,7 +460,7 @@ class Preprocessor {
   /* Takes a whole source file and output processed source. */
   std::string process(SourceLanguage language,
                       std::string str,
-                      const std::string &filename,
+                      const std::string &filepath,
                       bool do_parse_function,
                       bool do_small_type_linting,
                       report_callback report_error,
@@ -470,6 +470,9 @@ class Preprocessor {
       report_error(0, 0, "", "Unknown file type");
       return "";
     }
+
+    const std::string filename = std::regex_replace(filepath, std::regex(R"((?:.*)\/(.*))"), "$1");
+
     str = remove_comments(str, report_error);
     if (language == BLENDER_GLSL || language == CPP) {
       str = disabled_code_mutation(str, report_error);
@@ -480,11 +483,11 @@ class Preprocessor {
     str = threadgroup_variables_parse_and_remove(str, report_error);
     parse_builtins(str, filename);
     if (language == BLENDER_GLSL || language == CPP) {
-      if (do_parse_function) {
-        parse_library_functions(str);
-      }
       {
         Parser parser(str, report_error);
+        if (do_parse_function) {
+          parse_library_functions(parser, report_error);
+        }
         if (language == BLENDER_GLSL) {
           pragma_runtime_generated_parsing(parser);
           pragma_once_linting(parser, filename, report_error);
@@ -503,6 +506,7 @@ class Preprocessor {
           template_struct_mutation(parser, report_error);
           template_definition_mutation(parser, report_error);
           template_call_mutation(parser, report_error);
+          namespace_separator_mutation(parser, report_error);
           entry_point_parsing_and_mutation(parser, report_error);
           stage_function_mutation(parser, report_error);
           pipeline_parse_and_remove(parser, filename, report_error);
@@ -521,6 +525,7 @@ class Preprocessor {
           quote_linting(parser, report_error);
         }
 
+        array_mutation(parser, report_error);
         default_argument_mutation(parser, report_error);
         global_scope_constant_linting(parser, report_error);
         if (do_small_type_linting) {
@@ -531,13 +536,7 @@ class Preprocessor {
         argument_reference_mutation(parser, report_error);
         remove_whitespace(parser, report_error);
         variable_reference_mutation(parser, report_error);
-        str = parser.result_get();
-      }
-      if (language == BLENDER_GLSL) {
-        str = namespace_separator_mutation(str);
-      }
-      {
-        Parser parser(str, report_error);
+        namespace_separator_mutation(parser, report_error);
         /* Do another whitespace pass to remove the one introduced by mutations. */
         remove_whitespace(parser, report_error);
         cleanup_empty_lines(parser, report_error);
@@ -559,8 +558,9 @@ class Preprocessor {
 #endif
     str = argument_decorator_macro_injection(str);
     str = array_constructor_macro_injection(str);
+    str = line_directive_prefix(filename) + str;
     r_metadata = metadata;
-    return line_directive_prefix(filename) + str;
+    return str;
   }
 
   /* Variant use for python shaders. */
@@ -571,36 +571,7 @@ class Preprocessor {
   }
 
  private:
-  using regex_callback = std::function<void(const std::smatch &)>;
-  using regex_callback_with_line_count = std::function<void(const std::smatch &, int64_t)>;
-
-  /* Helper to make the code more readable in parsing functions. */
-  void regex_global_search(const std::string &str,
-                           const std::regex &regex,
-                           regex_callback callback)
-  {
-    using namespace std;
-    string::const_iterator it = str.begin();
-    for (smatch match; regex_search(it, str.end(), match, regex); it = match.suffix().first) {
-      callback(match);
-    }
-  }
-
-  void regex_global_search(const std::string &str,
-                           const std::regex &regex,
-                           regex_callback_with_line_count callback)
-  {
-    using namespace std;
-    int64_t line = 1;
-    regex_global_search(str, regex, [&line, &callback](const std::smatch &match) {
-      line += line_count(match.prefix().str());
-      callback(match, line);
-      line += line_count(match[0].str());
-    });
-  }
-
-  template<typename ReportErrorF>
-  std::string remove_comments(const std::string &str, const ReportErrorF &report_error)
+  std::string remove_comments(const std::string &str, const report_callback &report_error)
   {
     std::string out_str = str;
     {
@@ -1558,8 +1529,8 @@ class Preprocessor {
         report_error(ERROR_TOK(tokens[0]), "Nested namespaces are unsupported.");
       });
 
-      string namespace_prefix = namespace_separator_mutation(
-          scope.start().prev().full_symbol_name() + "::");
+      string prefix = scope.start().prev().full_symbol_name();
+
       auto process_symbol = [&](const Token &symbol) {
         if (symbol.next() == '<') {
           /* Template instantiation or specialization. */
@@ -1578,7 +1549,7 @@ class Preprocessor {
           if (token.prev() == '.') {
             return;
           }
-          parser.replace(token, namespace_prefix + token.str(), true);
+          parser.replace(token, prefix + namespace_separator + token.str(), true);
         });
       };
 
@@ -1662,8 +1633,6 @@ class Preprocessor {
         }
       }
 
-      to = namespace_separator_mutation(to);
-
       /* Assignments do not allow to alias functions symbols. */
       const bool use_alias = from.str() != to_end.str();
       const bool replace_fn = !use_alias;
@@ -1711,16 +1680,25 @@ class Preprocessor {
     });
   }
 
-  std::string namespace_separator_mutation(const std::string &str)
+  void namespace_separator_mutation(Parser &parser, report_callback /*report_error*/)
   {
-    std::string out = str;
+    using namespace std;
+    using namespace shader::parser;
 
-    /* Global namespace reference. */
-    replace_all(out, " ::", "   ");
-    /* Specific namespace reference.
-     * Cannot use `__` because of some compilers complaining about reserved symbols. */
-    replace_all(out, "::", "_");
-    return out;
+    parser().foreach_match("::", [&](const std::vector<Token> &tokens) {
+      if (tokens[0].scope().type() == ScopeType::Attribute) {
+        return;
+      }
+      if (tokens[0].prev() != Word) {
+        /* Global namespace reference. */
+        parser.erase(tokens.front(), tokens.back());
+      }
+      else {
+        /* Specific namespace reference. */
+        parser.replace(tokens.front(), tokens.back(), namespace_separator);
+      }
+    });
+    parser.apply_mutations();
   }
 
   std::string disabled_code_mutation(const std::string &str, report_callback &report_error)
@@ -1844,38 +1822,50 @@ class Preprocessor {
     return parser.result_get();
   }
 
-  void parse_library_functions(const std::string &str)
+  void parse_library_functions(Parser &parser, report_callback report_error)
   {
+    using namespace std;
+    using namespace shader::parser;
     using namespace metadata;
-    std::regex regex_func(R"(void\s+(\w+)\s*\(([^)]+\))\s*\{)");
-    regex_global_search(str, regex_func, [&](const std::smatch &match) {
-      std::string name = match[1].str();
-      std::string args = match[2].str();
 
+    parser().foreach_function([&](bool, Token fn_type, Token fn_name, Scope fn_args, bool, Scope) {
+      /* Only match void function with parameters. */
+      if (fn_type.str() != "void" || fn_args.token_count() <= 3) {
+        return;
+      }
+      /* Reject main function. */
+      if (fn_name.str() == "main") {
+        return;
+      }
       FunctionFormat fn;
-      fn.name = name;
+      fn.name = fn_name.str();
 
-      std::regex regex_arg(R"((?:(const|in|out|inout)\s)?(\w+)\s([\w\[\]]+)(?:,|\)))");
-      regex_global_search(args, regex_arg, [&](const std::smatch &arg) {
-        std::string qualifier = arg[1].str();
-        std::string type = arg[2].str();
-        if (qualifier.empty() || qualifier == "const") {
+      fn_args.foreach_scope(ScopeType::FunctionArg, [&](Scope arg) {
+        /* Note: There is no array support. */
+        const Token name = arg.end();
+        const Token type = name.prev();
+        std::string qualifier = type.prev().str();
+        if (qualifier != "out" && qualifier != "inout" && qualifier != "in") {
+          if (qualifier != "const" && qualifier != "(" && qualifier != ",") {
+            report_error(ERROR_TOK(type.prev()),
+                         "Unrecognized qualifier, expecting 'const', 'in', 'out' or 'inout'.");
+          }
           qualifier = "in";
         }
-        fn.arguments.emplace_back(
-            ArgumentFormat{metadata::Qualifier(hash(qualifier)), metadata::Type(hash(type))});
+        fn.arguments.emplace_back(ArgumentFormat{metadata::Qualifier(hash(qualifier)),
+                                                 metadata::Type(hash(type.str()))});
       });
+
       metadata.functions.emplace_back(fn);
     });
   }
 
   void parse_builtins(const std::string &str, const std::string &filename)
   {
-    const bool skip_drw_debug = filename.find("draw_debug_draw_lib.glsl") != std::string::npos ||
-                                filename.find("draw_debug_infos.hh") != std::string::npos ||
-                                filename.find("draw_debug_draw_display_vert.glsl") !=
-                                    std::string::npos ||
-                                filename.find("draw_shader_shared.hh") != std::string::npos;
+    const bool skip_drw_debug = filename == "draw_debug_draw_lib.glsl" ||
+                                filename == "draw_debug_infos.hh" ||
+                                filename == "draw_debug_draw_display_vert.glsl" ||
+                                filename == "draw_shader_shared.hh";
     using namespace metadata;
     /* TODO: This can trigger false positive caused by disabled #if blocks. */
     std::string tokens[] = {"gl_FragCoord",
@@ -1936,10 +1926,8 @@ class Preprocessor {
     parser.apply_mutations();
   }
 
-  void assert_processing(Parser &parser, const std::string &filepath, report_callback report_error)
+  void assert_processing(Parser &parser, const std::string &filename, report_callback report_error)
   {
-    std::string filename = std::regex_replace(filepath, std::regex(R"((?:.*)\/(.*))"), "$1");
-
     using namespace std;
     using namespace shader::parser;
 
@@ -1977,31 +1965,6 @@ class Preprocessor {
     uint64_t hash_64 = metadata::hash(str);
     uint32_t hash_32 = uint32_t(hash_64 ^ (hash_64 >> 32));
     return hash_32;
-  }
-
-  void static_strings_parsing(const std::string &str)
-  {
-    using namespace metadata;
-    /* Matches any character inside a pair of un-escaped quote. */
-    std::regex regex(R"("(?:[^"])*")");
-    regex_global_search(str, regex, [&](const std::smatch &match) {
-      std::string format = match[0].str();
-      metadata.printf_formats.emplace_back(metadata::PrintfFormat{hash_string(format), format});
-    });
-  }
-
-  std::string static_strings_mutation(std::string str)
-  {
-    /* Replaces all matches by the respective string hash. */
-    for (const metadata::PrintfFormat &format : metadata.printf_formats) {
-      const std::string &str_var = format.format;
-      std::regex escape_regex(R"([\\\.\^\$\+\(\)\[\]\{\}\|\?\*])");
-      std::string str_regex = std::regex_replace(str_var, escape_regex, "\\$&");
-
-      std::regex regex(str_regex);
-      str = std::regex_replace(str, regex, std::to_string(hash_string(str_var)) + 'u');
-    }
-    return str;
   }
 
   /* Move all method definition outside of struct definition blocks. */
@@ -2580,8 +2543,7 @@ class Preprocessor {
             const Token const_tok = is_const ? fn_args.end().next() : Token::invalid();
 
             if (is_static) {
-              parser.replace(
-                  fn_name, namespace_separator_mutation(struct_name.str() + "::" + fn_name.str()));
+              parser.replace(fn_name, struct_name.str() + namespace_separator + fn_name.str());
               /* WORKAROUND: Erase the static keyword as it conflicts with the wrapper class
                * member accesses MSL. */
               parser.erase(static_tok);
@@ -2693,14 +2655,12 @@ class Preprocessor {
   }
 
   void pipeline_parse_and_remove(Parser &parser,
-                                 const std::string &filepath,
+                                 const std::string &filename,
                                  report_callback /*report_error*/)
   {
     using namespace std;
     using namespace shader::parser;
     using namespace metadata;
-
-    const std::string filename = std::regex_replace(filepath, std::regex(R"((?:.*)\/(.*))"), "$1");
 
     auto process_compilation_constants = [&](Token tok) {
       string create_info_decl;
@@ -2909,18 +2869,6 @@ class Preprocessor {
     parser.insert_before(scope.end().line_start(), guard_else + guard_end + line_end);
   };
 
-  std::string guarded_scope_mutation(std::string content, int64_t line_start, std::string check)
-  {
-    int64_t line_end = line_start + line_count(content);
-    std::string guarded_cope;
-    guarded_cope += "#if " + check + "\n";
-    guarded_cope += "#line " + std::to_string(line_start) + "\n";
-    guarded_cope += content;
-    guarded_cope += "#endif\n";
-    guarded_cope += "#line " + std::to_string(line_end) + "\n";
-    return guarded_cope;
-  }
-
   void enum_macro_injection(Parser &parser, bool is_shared_file, report_callback report_error)
   {
     /**
@@ -3016,6 +2964,57 @@ class Preprocessor {
                    tokens[0].line_str(),
                    "invalid enum declaration");
     });
+  }
+
+  void array_mutation(Parser &parser, report_callback report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    parser().foreach_match("ww[..]={..};", [&](vector<Token> toks) {
+      const Token type_tok = toks[0];
+      const Token name_tok = toks[1];
+      const Scope array_scope = toks[2].scope();
+      const Scope list_scope = toks[7].scope();
+
+      /* Auto array size. */
+      int array_scope_tok_len = array_scope.token_count();
+      if (array_scope_tok_len == 2) {
+        int comma_count = 0;
+        list_scope.foreach_token(Comma, [&](Token t) {
+          if (t.scope() == list_scope) {
+            comma_count++;
+          }
+        });
+        const int list_len = (comma_count > 0) ? comma_count + 1 : 0;
+        if (list_len == 0) {
+          report_error(ERROR_TOK(name_tok), "Array size must be greater than zero.");
+        }
+        parser.insert_after(array_scope[0], to_string(list_len));
+      }
+      else if (array_scope_tok_len == 3 && array_scope[1] == Number) {
+        if (stol(array_scope[1].str()) == 0) {
+          report_error(ERROR_TOK(name_tok), "Array size must be greater than zero.");
+        }
+      }
+
+      /* Lint nested initializer list. */
+      list_scope.foreach_token(BracketOpen, [&](Token tok) {
+        if (tok != list_scope.start()) {
+          report_error(ERROR_TOK(name_tok), "Nested initializer list is not supported.");
+        }
+      });
+
+      /* Mutation to compatible syntax. */
+      parser.insert_before(list_scope.start(), "ARRAY_T(" + type_tok.str() + ") ARRAY_V(");
+      parser.insert_after(list_scope.end(), ")");
+      parser.erase(list_scope.start());
+      parser.erase(list_scope.end());
+      if (list_scope.end().prev() == ',') {
+        parser.erase(list_scope.end().prev());
+      }
+    });
+    parser.apply_mutations();
   }
 
   std::string strip_whitespace(const std::string &str) const
@@ -3637,48 +3636,11 @@ class Preprocessor {
     });
   }
 
-  std::string line_directive_prefix(const std::string &filepath)
+  std::string line_directive_prefix(const std::string &filename)
   {
-    std::string filename = std::regex_replace(filepath, std::regex(R"((?:.*)\/(.*))"), "$1");
-
-    std::stringstream suffix;
     /* NOTE: This is not supported by GLSL. All line directives are muted at runtime and the
      * sources are scanned after error reporting for the locating the muted line. */
-    suffix << "#line 1 \"" << filename << "\"\n";
-    return suffix.str();
-  }
-
-  /* Made public for unit testing purpose. */
- public:
-  static void replace_all(std::string &str, const std::string &from, const std::string &to)
-  {
-    if (from.empty()) {
-      return;
-    }
-    size_t start_pos = 0;
-    while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
-      str.replace(start_pos, from.length(), to);
-      start_pos += to.length();
-    }
-  }
-
-  static void replace_all(std::string &str, const char from, const char to)
-  {
-    for (char &string_char : str) {
-      if (string_char == from) {
-        string_char = to;
-      }
-    }
-  }
-
-  static int64_t char_count(const std::string &str, char c)
-  {
-    return std::count(str.begin(), str.end(), c);
-  }
-
-  static int64_t line_count(const std::string &str)
-  {
-    return char_count(str, '\n');
+    return "#line 1 \"" + filename + "\"\n";
   }
 };
 
