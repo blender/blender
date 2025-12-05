@@ -41,12 +41,12 @@ static void handle_layer_buttons(bContext *C, void *arg1, void *arg2)
   /* see `view3d_header.cc` */
 }
 
-void uiTemplateLayers(Layout *layout,
-                      PointerRNA *ptr,
-                      const StringRefNull propname,
-                      PointerRNA *used_ptr,
-                      const char *used_propname,
-                      int active_layer)
+void template_layers(Layout *layout,
+                     PointerRNA *ptr,
+                     const StringRefNull propname,
+                     PointerRNA *used_ptr,
+                     const char *used_propname,
+                     int active_layer)
 {
   const int cols_per_group = 5;
 
@@ -106,7 +106,7 @@ void uiTemplateLayers(Layout *layout,
 
         uiBut *but = uiDefAutoButR(
             block, ptr, prop, layer, "", icon, 0, 0, UI_UNIT_X / 2, UI_UNIT_Y / 2);
-        UI_but_func_set(but, handle_layer_buttons, but, POINTER_FROM_INT(layer));
+        button_func_set(but, handle_layer_buttons, but, POINTER_FROM_INT(layer));
         but->type = ButType::Toggle;
       }
     }

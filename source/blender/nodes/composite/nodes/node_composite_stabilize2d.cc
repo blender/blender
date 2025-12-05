@@ -43,7 +43,7 @@ static void cmp_node_stabilize2d_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
 
   b.add_layout([](ui::Layout &layout, bContext *context, PointerRNA *node_pointer) {
-    uiTemplateID(&layout, context, node_pointer, "clip", nullptr, "CLIP_OT_open", nullptr);
+    template_id(&layout, context, node_pointer, "clip", nullptr, "CLIP_OT_open", nullptr);
   });
 
   b.add_input<decl::Bool>("Invert").default_value(false).description(

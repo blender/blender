@@ -462,8 +462,8 @@ static void deform_verts(ModifierData *md,
 static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   blender::ui::Layout &layout = *panel->layout;
-  const blender::ui::eUI_Item_Flag toggles_flag = blender::ui::UI_ITEM_R_TOGGLE |
-                                                  blender::ui::UI_ITEM_R_FORCE_BLANK_DECORATE;
+  const blender::ui::eUI_Item_Flag toggles_flag = blender::ui::ITEM_R_TOGGLE |
+                                                  blender::ui::ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);

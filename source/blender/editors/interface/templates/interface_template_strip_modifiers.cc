@@ -33,7 +33,7 @@ static void strip_modifier_panel_id(void *smd_link, char *r_name)
   seq::modifier_type_panel_id(eStripModifierType(smd->type), r_name);
 }
 
-void uiTemplateStripModifiers(Layout * /*layout*/, bContext *C)
+void template_strip_modifiers(Layout * /*layout*/, bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
 
@@ -45,10 +45,10 @@ void uiTemplateStripModifiers(Layout * /*layout*/, bContext *C)
   BLI_assert(active_strip != nullptr);
   ListBase *modifiers = &active_strip->modifiers;
 
-  const bool panels_match = UI_panel_list_matches_data(region, modifiers, strip_modifier_panel_id);
+  const bool panels_match = panel_list_matches_data(region, modifiers, strip_modifier_panel_id);
 
   if (!panels_match) {
-    UI_panels_free_instanced(C, region);
+    panels_free_instanced(C, region);
     LISTBASE_FOREACH (StripModifierData *, smd, modifiers) {
       const seq::StripModifierTypeInfo *mti = seq::modifier_type_info_get(smd->type);
       if (mti->panel_register == nullptr) {
@@ -62,7 +62,7 @@ void uiTemplateStripModifiers(Layout * /*layout*/, bContext *C)
       PointerRNA *md_ptr = MEM_new<PointerRNA>(__func__);
       *md_ptr = RNA_pointer_create_discrete(&sequencer_scene->id, &RNA_StripModifier, smd);
 
-      UI_panel_add_instanced(C, region, &region->panels, panel_idname, md_ptr);
+      panel_add_instanced(C, region, &region->panels, panel_idname, md_ptr);
     }
   }
   else {
@@ -83,7 +83,7 @@ void uiTemplateStripModifiers(Layout * /*layout*/, bContext *C)
 
       PointerRNA *md_ptr = MEM_new<PointerRNA>(__func__);
       *md_ptr = RNA_pointer_create_discrete(&sequencer_scene->id, &RNA_StripModifier, smd);
-      UI_panel_custom_data_set(panel, md_ptr);
+      panel_custom_data_set(panel, md_ptr);
 
       panel = panel->next;
     }

@@ -211,8 +211,8 @@ static void vicon_rgb_color_draw(
 {
   rctf rect = {x, x + w, y, y + h};
   const float color_bg[4] = {color[0], color[1], color[2], bg_alpha};
-  UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  UI_draw_roundbox_4fv_ex(&rect, color_bg, nullptr, 1.0f, color, U.pixelsize, 2.0f * UI_SCALE_FAC);
+  draw_roundbox_corner_set(CNR_ALL);
+  draw_roundbox_4fv_ex(&rect, color_bg, nullptr, 1.0f, color, U.pixelsize, 2.0f * UI_SCALE_FAC);
 }
 
 static void vicon_rgb_text_draw(
@@ -271,7 +271,7 @@ static void vicon_keytype_draw_wrapper(const float x,
    * (since we're doing this off-screen, free from any particular space_id). */
   bThemeState theme_state;
 
-  UI_Theme_Store(&theme_state);
+  Theme_Store(&theme_state);
   UI_SetTheme(SPACE_ACTION, RGN_TYPE_WINDOW);
 
   /* The "x" and "y" given are the bottom-left coordinates of the icon,
@@ -317,7 +317,7 @@ static void vicon_keytype_draw_wrapper(const float x,
   GPU_program_point_size(false);
   immUnbindProgram();
 
-  UI_Theme_Restore(&theme_state);
+  Theme_Restore(&theme_state);
 }
 
 static void vicon_keytype_keyframe_draw(
@@ -406,7 +406,7 @@ static void icon_node_socket_draw(
   blender::ed::space_node::std_node_socket_colors_get(socket_type, color_inner);
 
   float color_outer[4] = {0};
-  UI_GetThemeColorType4fv(TH_WIRE, SPACE_NODE, color_outer);
+  GetThemeColorType4fv(TH_WIRE, SPACE_NODE, color_outer);
   color_outer[3] = 1.0f;
 
   blender::ed::space_node::node_draw_nodesocket(
@@ -415,7 +415,7 @@ static void icon_node_socket_draw(
 
 static void vicon_colorset_draw(int index, int x, int y, int w, int h, float /*alpha*/)
 {
-  bTheme *btheme = UI_GetTheme();
+  bTheme *btheme = GetTheme();
   const ThemeWireColor *cs = &btheme->tarm[index];
 
   /* Draw three bands of color: One per color
@@ -479,20 +479,20 @@ DEF_ICON_VECTOR_COLORSET_DRAW_NTH(20, 19)
 static void vicon_strip_color_draw(
     short color_tag, float x, float y, float w, float /*h*/, float /*alpha*/)
 {
-  bTheme *btheme = UI_GetTheme();
+  bTheme *btheme = GetTheme();
   const ThemeStripColor *strip_color = &btheme->strip_color[color_tag];
 
   const float aspect = float(ICON_DEFAULT_WIDTH) / w;
 
-  UI_icon_draw_ex(x,
-                  y,
-                  ICON_SNAP_FACE,
-                  aspect,
-                  1.0f,
-                  0.0f,
-                  strip_color->color,
-                  btheme->tui.icon_border_intensity > 0.0f,
-                  UI_NO_ICON_OVERLAY_TEXT);
+  icon_draw_ex(x,
+               y,
+               ICON_SNAP_FACE,
+               aspect,
+               1.0f,
+               0.0f,
+               strip_color->color,
+               btheme->tui.icon_border_intensity > 0.0f,
+               UI_NO_ICON_OVERLAY_TEXT);
 }
 
 #  define DEF_ICON_STRIP_COLOR_DRAW(index, color) \
@@ -521,15 +521,15 @@ static void vicon_strip_color_draw_library_data_indirect(
 {
   const float aspect = float(ICON_DEFAULT_WIDTH) / w;
 
-  UI_icon_draw_ex(x,
-                  y,
-                  ICON_LIBRARY_DATA_DIRECT,
-                  aspect,
-                  ICON_INDIRECT_DATA_ALPHA * alpha,
-                  0.0f,
-                  nullptr,
-                  false,
-                  UI_NO_ICON_OVERLAY_TEXT);
+  icon_draw_ex(x,
+               y,
+               ICON_LIBRARY_DATA_DIRECT,
+               aspect,
+               ICON_INDIRECT_DATA_ALPHA * alpha,
+               0.0f,
+               nullptr,
+               false,
+               UI_NO_ICON_OVERLAY_TEXT);
 }
 
 static void vicon_strip_color_draw_library_data_override_noneditable(
@@ -537,34 +537,34 @@ static void vicon_strip_color_draw_library_data_override_noneditable(
 {
   const float aspect = float(ICON_DEFAULT_WIDTH) / w;
 
-  UI_icon_draw_ex(x,
-                  y,
-                  ICON_LIBRARY_DATA_OVERRIDE,
-                  aspect,
-                  ICON_INDIRECT_DATA_ALPHA * alpha * 0.75f,
-                  0.0f,
-                  nullptr,
-                  false,
-                  UI_NO_ICON_OVERLAY_TEXT);
+  icon_draw_ex(x,
+               y,
+               ICON_LIBRARY_DATA_OVERRIDE,
+               aspect,
+               ICON_INDIRECT_DATA_ALPHA * alpha * 0.75f,
+               0.0f,
+               nullptr,
+               false,
+               UI_NO_ICON_OVERLAY_TEXT);
 }
 
 static void vicon_layergroup_color_draw(
     short color_tag, float x, float y, float w, float /*h*/, float /*alpha*/)
 {
-  bTheme *btheme = UI_GetTheme();
+  bTheme *btheme = GetTheme();
   const ThemeCollectionColor *layergroup_color = &btheme->collection_color[color_tag];
 
   const float aspect = float(ICON_DEFAULT_WIDTH) / w;
 
-  UI_icon_draw_ex(x,
-                  y,
-                  ICON_GREASEPENCIL_LAYER_GROUP,
-                  aspect,
-                  1.0f,
-                  0.0f,
-                  layergroup_color->color,
-                  btheme->tui.icon_border_intensity > 0.0f,
-                  UI_NO_ICON_OVERLAY_TEXT);
+  icon_draw_ex(x,
+               y,
+               ICON_GREASEPENCIL_LAYER_GROUP,
+               aspect,
+               1.0f,
+               0.0f,
+               layergroup_color->color,
+               btheme->tui.icon_border_intensity > 0.0f,
+               UI_NO_ICON_OVERLAY_TEXT);
 }
 
 #  define DEF_ICON_LAYERGROUP_COLOR_DRAW(index, color) \
@@ -621,7 +621,7 @@ static void vicon_gplayer_color_draw(Icon *icon, int x, int y, int w, int h)
 
   /* Just draw a colored rect - Like for vicon_colorset_draw() */
   /* TODO: Make this have rounded corners, and maybe be a bit smaller.
-   * However, UI_draw_roundbox_aa() draws the colors too dark, so can't be used.
+   * However, draw_roundbox_aa() draws the colors too dark, so can't be used.
    */
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -634,7 +634,7 @@ static void vicon_gplayer_color_draw(Icon *icon, int x, int y, int w, int h)
 
 static DrawInfo *g_di_event_list = nullptr;
 
-int UI_icon_from_event_type(short event_type, short event_value)
+int icon_from_event_type(short event_type, short event_value)
 {
   if (event_type == EVT_RIGHTSHIFTKEY) {
     event_type = EVT_LEFTSHIFTKEY;
@@ -669,7 +669,7 @@ int UI_icon_from_event_type(short event_type, short event_value)
   return ICON_NONE;
 }
 
-int UI_icon_from_keymap_item(const wmKeyMapItem *kmi, int r_icon_mod[KM_MOD_NUM])
+int icon_from_keymap_item(const wmKeyMapItem *kmi, int r_icon_mod[KM_MOD_NUM])
 {
   if (r_icon_mod) {
     memset(r_icon_mod, 0x0, sizeof(int[KM_MOD_NUM]));
@@ -690,7 +690,7 @@ int UI_icon_from_keymap_item(const wmKeyMapItem *kmi, int r_icon_mod[KM_MOD_NUM]
       r_icon_mod[i++] = ICON_EVENT_HYPER;
     }
   }
-  return UI_icon_from_event_type(kmi->type, kmi->val);
+  return icon_from_event_type(kmi->type, kmi->val);
 }
 
 static void init_event_icons()
@@ -1077,7 +1077,7 @@ static DrawInfo *icon_ensure_drawinfo(Icon *icon)
   return di;
 }
 
-bool UI_icon_get_theme_color(int icon_id, uchar color[4])
+bool icon_get_theme_color(int icon_id, uchar color[4])
 {
   Icon *icon = BKE_icon_get(icon_id);
   if (icon == nullptr) {
@@ -1085,7 +1085,7 @@ bool UI_icon_get_theme_color(int icon_id, uchar color[4])
   }
 
   DrawInfo *di = icon_ensure_drawinfo(icon);
-  return UI_GetIconThemeColor4ubv(di->data.texture.theme_color, color);
+  return GetIconThemeColor4ubv(di->data.texture.theme_color, color);
 }
 
 void UI_icons_init()
@@ -1096,7 +1096,7 @@ void UI_icons_init()
 #endif
 }
 
-int UI_icon_preview_to_render_size(enum eIconSizes size)
+int icon_preview_to_render_size(enum eIconSizes size)
 {
   switch (size) {
     case ICON_SIZE_ICON:
@@ -1112,7 +1112,7 @@ int UI_icon_preview_to_render_size(enum eIconSizes size)
  */
 static void icon_create_rect(PreviewImage *prv_img, enum eIconSizes size)
 {
-  const uint render_size = UI_icon_preview_to_render_size(size);
+  const uint render_size = icon_preview_to_render_size(size);
 
   if (!prv_img) {
     if (G.debug & G_DEBUG) {
@@ -1276,7 +1276,7 @@ bool ui_icon_is_preview_deferred_loading(const int icon_id, const bool big)
 }
 
 /**
- * * Only call with valid pointer from UI_icon_draw.
+ * * Only call with valid pointer from icon_draw.
  * * Only called when icon has changed.
  *
  * Note that if an ID doesn't support jobs for preview creation, \a use_job will be ignored.
@@ -1316,7 +1316,7 @@ static void icon_set_image(const bContext *C,
   }
 }
 
-PreviewImage *UI_icon_to_preview(int icon_id)
+PreviewImage *icon_to_preview(int icon_id)
 {
   Icon *icon = BKE_icon_get(icon_id);
 
@@ -1454,7 +1454,7 @@ static void svg_replace_color_attributes(std::string &svg,
                                          const size_t start,
                                          const size_t end)
 {
-  bTheme *btheme = UI_GetTheme();
+  bTheme *btheme = GetTheme();
 
   uchar white[] = {255, 255, 255, 255};
   uchar black[] = {0, 0, 0, 255};
@@ -1531,10 +1531,10 @@ static void svg_replace_color_attributes(std::string &svg,
     }
     else if (item.colorid != TH_UNDEFINED) {
       if (item.spacetype != SPACE_TYPE_ANY) {
-        UI_GetThemeColorType4ubv(item.colorid, item.spacetype, color);
+        GetThemeColorType4ubv(item.colorid, item.spacetype, color);
       }
       else {
-        UI_GetThemeColor4ubv(item.colorid, color);
+        GetThemeColor4ubv(item.colorid, color);
       }
     }
     else {
@@ -1631,7 +1631,7 @@ static void icon_draw_size(float x,
     return;
   }
 
-  bTheme *btheme = UI_GetTheme();
+  bTheme *btheme = GetTheme();
   const float fdraw_size = float(draw_size);
 
   Icon *icon = BKE_icon_get(icon_id);
@@ -1656,7 +1656,7 @@ static void icon_draw_size(float x,
   DrawInfo *di = icon_ensure_drawinfo(icon);
 
   /* We need to flush widget base first to ensure correct ordering. */
-  UI_widgetbase_draw_cache_flush();
+  widgetbase_draw_cache_flush();
 
   if (di->type == ICON_TYPE_IMBUF) {
     const ImBuf *ibuf = static_cast<const ImBuf *>(icon->obj);
@@ -1721,13 +1721,13 @@ static void icon_draw_size(float x,
 
     float color[4];
     if (icon_id == ICON_NOT_FOUND) {
-      UI_GetThemeColor4fv(TH_ERROR, color);
+      GetThemeColor4fv(TH_ERROR, color);
     }
     else if (mono_rgba) {
       rgba_uchar_to_float(color, mono_rgba);
     }
     else {
-      UI_GetThemeColor4fv(TH_TEXT, color);
+      GetThemeColor4fv(TH_TEXT, color);
     }
 
     color[3] *= alpha;
@@ -1760,7 +1760,7 @@ static void icon_draw_size(float x,
         copy_v4_v4_uchar(text_color, text_overlay->color);
       }
       else {
-        UI_GetThemeColor4ubv(TH_TEXT, text_color);
+        GetThemeColor4ubv(TH_TEXT, text_color);
       }
       const bool is_light = srgb_to_grayscale_byte(text_color) > 96;
       const float zoom_factor = w / UI_ICON_SIZE;
@@ -1771,12 +1771,12 @@ static void icon_draw_size(float x,
       fstyle_small.shady = 0;
       rcti text_rect = {int(x), int(x + UI_UNIT_X * zoom_factor), int(y), int(y)};
       uiFontStyleDraw_Params params = {UI_STYLE_TEXT_RIGHT, 0};
-      UI_fontstyle_draw(&fstyle_small,
-                        &text_rect,
-                        text_overlay->text,
-                        sizeof(text_overlay->text),
-                        text_color,
-                        &params);
+      fontstyle_draw(&fstyle_small,
+                     &text_rect,
+                     text_overlay->text,
+                     sizeof(text_overlay->text),
+                     text_color,
+                     &params);
     }
   }
 
@@ -1840,17 +1840,17 @@ static void ui_id_preview_image_render_size(
   }
 }
 
-void UI_icon_render_id_ex(const bContext *C,
-                          Scene *scene,
-                          ID *id_to_render,
-                          const enum eIconSizes size,
-                          const bool use_job,
-                          PreviewImage *r_preview_image)
+void icon_render_id_ex(const bContext *C,
+                       Scene *scene,
+                       ID *id_to_render,
+                       const enum eIconSizes size,
+                       const bool use_job,
+                       PreviewImage *r_preview_image)
 {
   ui_id_preview_image_render_size(C, scene, id_to_render, r_preview_image, size, use_job);
 }
 
-void UI_icon_render_id(
+void icon_render_id(
     const bContext *C, Scene *scene, ID *id, const enum eIconSizes size, const bool use_job)
 {
   PreviewImage *pi = BKE_previewimg_id_ensure(id);
@@ -1872,7 +1872,7 @@ void UI_icon_render_id(
     return;
   }
 
-  UI_icon_render_id_ex(C, scene, id_to_render, size, use_job, pi);
+  icon_render_id_ex(C, scene, id_to_render, size, use_job, pi);
 }
 
 static void ui_id_icon_render(const bContext *C, ID *id, bool use_jobs)
@@ -1910,16 +1910,16 @@ int ui_id_icon_get(const bContext *C, ID *id, const bool big)
     case ID_LA: /* fall through */
       iconid = BKE_icon_id_ensure(id);
       /* checks if not exists, or changed */
-      UI_icon_render_id(C, nullptr, id, big ? ICON_SIZE_PREVIEW : ICON_SIZE_ICON, true);
+      icon_render_id(C, nullptr, id, big ? ICON_SIZE_PREVIEW : ICON_SIZE_ICON, true);
       break;
     case ID_SCR:
       iconid = ui_id_screen_get_icon(C, id);
       break;
     case ID_OB:
-      iconid = UI_icon_from_object_type((Object *)id);
+      iconid = icon_from_object_type((Object *)id);
       break;
     case ID_GR:
-      iconid = UI_icon_color_from_collection((Collection *)id);
+      iconid = icon_color_from_collection((Collection *)id);
       break;
     default:
       break;
@@ -1928,7 +1928,7 @@ int ui_id_icon_get(const bContext *C, ID *id, const bool big)
   return iconid;
 }
 
-int UI_icon_from_library(const ID *id)
+int icon_from_library(const ID *id)
 {
   if (ID_IS_LINKED(id)) {
     if (ID_IS_PACKED(id)) {
@@ -1957,7 +1957,7 @@ int UI_icon_from_library(const ID *id)
   return ICON_NONE;
 }
 
-int UI_icon_from_rnaptr(const bContext *C, PointerRNA *ptr, int rnaicon, const bool big)
+int icon_from_rnaptr(const bContext *C, PointerRNA *ptr, int rnaicon, const bool big)
 {
   ID *id = nullptr;
 
@@ -2014,7 +2014,7 @@ int UI_icon_from_rnaptr(const bContext *C, PointerRNA *ptr, int rnaicon, const b
   return rnaicon;
 }
 
-int UI_icon_from_idcode(const int idcode)
+int icon_from_idcode(const int idcode)
 {
   switch ((ID_Type)idcode) {
     case ID_AC:
@@ -2099,7 +2099,7 @@ int UI_icon_from_idcode(const int idcode)
   return ICON_NONE;
 }
 
-int UI_icon_from_object_mode(const int mode)
+int icon_from_object_mode(const int mode)
 {
   switch ((eObjectMode)mode) {
     case OB_MODE_OBJECT:
@@ -2129,7 +2129,7 @@ int UI_icon_from_object_mode(const int mode)
   return ICON_NONE;
 }
 
-int UI_icon_from_object_type(const Object *object)
+int icon_from_object_type(const Object *object)
 {
   switch (object->type) {
     case OB_LAMP:
@@ -2179,7 +2179,7 @@ int UI_icon_from_object_type(const Object *object)
   return ICON_NONE;
 }
 
-int UI_icon_color_from_collection(const Collection *collection)
+int icon_color_from_collection(const Collection *collection)
 {
   int icon = ICON_OUTLINER_COLLECTION;
 
@@ -2190,19 +2190,19 @@ int UI_icon_color_from_collection(const Collection *collection)
   return icon;
 }
 
-void UI_icon_draw(float x, float y, int icon_id)
+void icon_draw(float x, float y, int icon_id)
 {
-  UI_icon_draw_ex(
+  icon_draw_ex(
       x, y, icon_id, UI_INV_SCALE_FAC, 1.0f, 0.0f, nullptr, false, UI_NO_ICON_OVERLAY_TEXT);
 }
 
-void UI_icon_draw_alpha(float x, float y, int icon_id, float alpha)
+void icon_draw_alpha(float x, float y, int icon_id, float alpha)
 {
-  UI_icon_draw_ex(
+  icon_draw_ex(
       x, y, icon_id, UI_INV_SCALE_FAC, alpha, 0.0f, nullptr, false, UI_NO_ICON_OVERLAY_TEXT);
 }
 
-void UI_icon_draw_preview(float x, float y, int icon_id, float aspect, float alpha, int size)
+void icon_draw_preview(float x, float y, int icon_id, float aspect, float alpha, int size)
 {
   icon_draw_size(x,
                  y,
@@ -2217,16 +2217,16 @@ void UI_icon_draw_preview(float x, float y, int icon_id, float aspect, float alp
                  UI_NO_ICON_OVERLAY_TEXT);
 }
 
-void UI_icon_draw_ex(float x,
-                     float y,
-                     int icon_id,
-                     float aspect,
-                     float alpha,
-                     float desaturate,
-                     const uchar mono_color[4],
-                     const bool mono_border,
-                     const IconTextOverlay *text_overlay,
-                     const bool inverted)
+void icon_draw_ex(float x,
+                  float y,
+                  int icon_id,
+                  float aspect,
+                  float alpha,
+                  float desaturate,
+                  const uchar mono_color[4],
+                  const bool mono_border,
+                  const IconTextOverlay *text_overlay,
+                  const bool inverted)
 {
   const int draw_size = get_draw_size(ICON_SIZE_ICON);
   icon_draw_size(x,
@@ -2275,8 +2275,8 @@ ImBuf *UI_svg_icon_bitmap(uint icon_id, float size, bool multicolor)
   return ibuf;
 }
 
-void UI_icon_text_overlay_init_from_count(IconTextOverlay *text_overlay,
-                                          const int icon_indicator_number)
+void icon_text_overlay_init_from_count(IconTextOverlay *text_overlay,
+                                       const int icon_indicator_number)
 {
   /* The icon indicator is used as an aggregator, no need to show if it is 1. */
   if (icon_indicator_number < 2) {
@@ -2288,7 +2288,7 @@ void UI_icon_text_overlay_init_from_count(IconTextOverlay *text_overlay,
 
 /* ********** Alert Icons ********** */
 
-ImBuf *UI_icon_alert_imbuf_get(AlertIcon icon, float size)
+ImBuf *icon_alert_imbuf_get(AlertIcon icon, float size)
 {
 #ifdef WITH_HEADLESS
   UNUSED_VARS(icon, size);

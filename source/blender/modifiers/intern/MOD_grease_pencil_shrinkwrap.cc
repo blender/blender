@@ -241,8 +241,8 @@ static void modify_geometry_set(ModifierData *md,
 
 static void panel_draw(const bContext *C, Panel *panel)
 {
-  static const ui::eUI_Item_Flag toggles_flag = ui::UI_ITEM_R_TOGGLE |
-                                                ui::UI_ITEM_R_FORCE_BLANK_DECORATE;
+  static const ui::eUI_Item_Flag toggles_flag = ui::ITEM_R_TOGGLE |
+                                                ui::ITEM_R_FORCE_BLANK_DECORATE;
 
   ui::Layout &layout = *panel->layout;
 
@@ -275,7 +275,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     col->prop(ptr, "use_negative_direction", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col->prop(ptr, "use_positive_direction", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    layout.prop(ptr, "cull_face", ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "cull_face", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
     col = &layout.column(false);
     col->active_set(RNA_boolean_get(ptr, "use_negative_direction") &&
                     RNA_enum_get(ptr, "cull_face") != 0);

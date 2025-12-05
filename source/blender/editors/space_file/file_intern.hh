@@ -61,7 +61,7 @@ bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegio
 void file_draw_check_ex(bContext *C, ScrArea *area);
 void file_draw_check(bContext *C);
 /**
- * For use with; #UI_block_func_set.
+ * For use with; #block_func_set.
  */
 void file_draw_check_cb(bContext *C, void *arg1, void *arg2);
 bool file_draw_check_exists(SpaceFile *sfile);

@@ -922,7 +922,7 @@ FileAttributeColumnType file_attribute_column_type_find_isect(const View2D *v2d,
   float mx, my;
   int offset_tile;
 
-  blender::ui::UI_view2d_region_to_view(v2d, x, v2d->mask.ymax - layout->offset_top - 1, &mx, &my);
+  blender::ui::view2d_region_to_view(v2d, x, v2d->mask.ymax - layout->offset_top - 1, &mx, &my);
   offset_tile = ED_fileselect_layout_offset(
       layout, int(v2d->tot.xmin + mx), int(v2d->tot.ymax - my));
   if (offset_tile > -1) {
@@ -956,15 +956,15 @@ FileAttributeColumnType file_attribute_column_type_find_isect(const View2D *v2d,
 
 float file_string_width(const char *str)
 {
-  const uiStyle *style = blender::ui::UI_style_get();
-  blender::ui::UI_fontstyle_set(&style->widget);
+  const uiStyle *style = blender::ui::style_get();
+  blender::ui::fontstyle_set(&style->widget);
   return BLF_width(style->widget.uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
 }
 
 float file_font_pointsize()
 {
-  const uiStyle *style = blender::ui::UI_style_get();
-  return blender::ui::UI_fontstyle_height_max(&style->widget);
+  const uiStyle *style = blender::ui::style_get();
+  return blender::ui::fontstyle_height_max(&style->widget);
 }
 
 static void file_attribute_columns_widths(const FileSelectParams *params, FileLayout *layout)
@@ -1051,7 +1051,7 @@ void ED_fileselect_init_layout(SpaceFile *sfile, ARegion *region)
   if (params->display == FILE_IMGDISPLAY) {
     /* More compact spacing for asset browser. */
     const float pad_fac = ED_fileselect_is_asset_browser(sfile) ? 0.15f : 0.3f;
-    /* Matches UI_preview_tile_size_x()/_y() by default. */
+    /* Matches preview_tile_size_x()/_y() by default. */
     layout->prv_w = (float(params->thumbnail_size) / 20.0f) * UI_UNIT_X;
     layout->prv_h = (float(params->thumbnail_size) / 20.0f) * UI_UNIT_Y;
     layout->tile_border_x = pad_fac * UI_UNIT_X;
@@ -1237,7 +1237,7 @@ int autocomplete_directory(bContext *C, char *str, void * /*arg_v*/)
     dir = opendir(dirname);
 
     if (dir) {
-      blender::ui::AutoComplete *autocpl = blender::ui::UI_autocomplete_begin(str, FILE_MAX);
+      blender::ui::AutoComplete *autocpl = blender::ui::autocomplete_begin(str, FILE_MAX);
 
       while ((de = readdir(dir)) != nullptr) {
         if (FILENAME_IS_CURRPAR(de->d_name)) {
@@ -1251,14 +1251,14 @@ int autocomplete_directory(bContext *C, char *str, void * /*arg_v*/)
 
           if (BLI_stat(dirpath, &status) == 0) {
             if (S_ISDIR(status.st_mode)) { /* is subdir */
-              UI_autocomplete_update_name(autocpl, dirpath);
+              autocomplete_update_name(autocpl, dirpath);
             }
           }
         }
       }
       closedir(dir);
 
-      match = UI_autocomplete_end(autocpl, str);
+      match = autocomplete_end(autocpl, str);
       if (match == AUTOCOMPLETE_FULL_MATCH) {
         BLI_path_slash_ensure(str, FILE_MAX);
       }
@@ -1275,14 +1275,14 @@ int autocomplete_file(bContext *C, char *str, void * /*arg_v*/)
 
   /* search if str matches the beginning of name */
   if (str[0] && sfile->files) {
-    blender::ui::AutoComplete *autocpl = blender::ui::UI_autocomplete_begin(str, FILE_MAX);
+    blender::ui::AutoComplete *autocpl = blender::ui::autocomplete_begin(str, FILE_MAX);
     int nentries = filelist_files_ensure(sfile->files);
 
     for (int i = 0; i < nentries; i++) {
       const char *relpath = filelist_entry_get_relpath(sfile->files, i);
-      UI_autocomplete_update_name(autocpl, relpath);
+      autocomplete_update_name(autocpl, relpath);
     }
-    match = UI_autocomplete_end(autocpl, str);
+    match = autocomplete_end(autocpl, str);
   }
 
   return match;

@@ -621,7 +621,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   blender::ui::Layout &layout = *panel->layout;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  layout.prop(ptr, "operation", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "operation", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
@@ -633,7 +633,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     layout.prop(ptr, "collection", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  layout.prop(ptr, "solver", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "solver", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }

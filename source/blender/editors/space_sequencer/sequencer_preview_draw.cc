@@ -191,7 +191,7 @@ static void sequencer_draw_gpencil_overlay(const bContext *C)
   ED_annotation_draw_2dimage(C);
 
   /* Orthographic at pixel level. */
-  ui::UI_view2d_view_restore(C);
+  ui::view2d_view_restore(C);
 
   /* Draw grease-pencil (screen aligned). */
   ED_annotation_draw_view2d(C, false);
@@ -236,10 +236,10 @@ static void sequencer_draw_borders_overlay(const SpaceSeq &sseq,
     rect.xmax = x2;
     rect.ymin = y1;
     rect.ymax = y2;
-    ui::UI_draw_safe_areas(shdr_pos, &rect, scene->safe_areas.title, scene->safe_areas.action);
+    ui::draw_safe_areas(shdr_pos, &rect, scene->safe_areas.title, scene->safe_areas.action);
 
     if (sseq.preview_overlay.flag & SEQ_PREVIEW_SHOW_SAFE_CENTER) {
-      ui::UI_draw_safe_areas(
+      ui::draw_safe_areas(
           shdr_pos, &rect, scene->safe_areas.title_center, scene->safe_areas.action_center);
     }
   }
@@ -307,7 +307,7 @@ static void sequencer_stop_running_jobs(const bContext *C, Scene *scene)
 
 static void sequencer_preview_clear()
 {
-  blender::ui::UI_ThemeClearColor(TH_SEQ_PREVIEW);
+  blender::ui::ThemeClearColor(TH_SEQ_PREVIEW);
 }
 
 /* Semantic utility to get a rectangle with positions that correspond to a full frame drawn in the
@@ -406,7 +406,7 @@ static void add_vertical_line(const float val,
   BLF_width_and_height(BLF_default(), buf, buf_len, &text_width, &text_height);
   text_width *= text_scale_x;
   text_height *= text_scale_y;
-  ui::UI_view2d_text_cache_add(
+  ui::view2d_text_cache_add(
       &v2d, x - text_width / 2, area.ymax - text_height * 1.3f, buf, buf_len, color);
 
   quads.add_line(x, area.ymin, x, area.ymax - text_height * 1.4f, color);
@@ -424,7 +424,7 @@ static void draw_histogram(ARegion &region,
   /* Grid lines and labels. */
   View2D &v2d = region.v2d;
   float text_scale_x, text_scale_y;
-  ui::UI_view2d_scale_get_inverse(&v2d, &text_scale_x, &text_scale_y);
+  ui::view2d_scale_get_inverse(&v2d, &text_scale_x, &text_scale_y);
 
   const bool hdr = ScopeHistogram::bin_to_float(math::reduce_max(hist.max_bin)) > 1.001f;
   const float max_val = hdr ? 12.0f : 1.0f;
@@ -486,7 +486,7 @@ static void draw_histogram(ARegion &region,
   quads.draw();
   GPU_blend(GPU_BLEND_ALPHA);
 
-  ui::UI_view2d_text_cache_draw(&region);
+  ui::view2d_text_cache_draw(&region);
 }
 
 static float2 rgb_to_uv_scaled(const float3 &rgb)
@@ -512,14 +512,14 @@ static void draw_waveform_graticule(ARegion *region, SeqQuadsBatch &quads, const
     char buf[10];
     const size_t buf_len = SNPRINTF_UTF8_RLEN(buf, "%.1f", lines[i]);
     quads.add_line(x0, y, x1, y, col_grid);
-    ui::UI_view2d_text_cache_add(&region->v2d, x0 + 8, y + 8, buf, buf_len, col_grid);
+    ui::view2d_text_cache_add(&region->v2d, x0 + 8, y + 8, buf, buf_len, col_grid);
   }
   /* Border. */
   uchar col_border[4] = {64, 64, 64, 128};
   quads.add_wire_quad(x0, area.ymin, x1, area.ymax, col_border);
 
   quads.draw();
-  ui::UI_view2d_text_cache_draw(region);
+  ui::view2d_text_cache_draw(region);
 }
 
 static void draw_vectorscope_graticule(ARegion *region, SeqQuadsBatch &quads, const rctf &area)
@@ -644,7 +644,7 @@ static void draw_vectorscope_graticule(ARegion *region, SeqQuadsBatch &quads, co
   /* Calculate size of single text letter. */
   char buf[2] = {'M', 0};
   float text_scale_x, text_scale_y;
-  ui::UI_view2d_scale_get_inverse(&region->v2d, &text_scale_x, &text_scale_y);
+  ui::view2d_scale_get_inverse(&region->v2d, &text_scale_x, &text_scale_y);
   float text_width, text_height;
   BLF_width_and_height(BLF_default(), buf, 1, &text_width, &text_height);
   text_width *= text_scale_x;
@@ -658,12 +658,12 @@ static void draw_vectorscope_graticule(ARegion *region, SeqQuadsBatch &quads, co
     quads.add_wire_quad(pos.x - delta, pos.y - delta, pos.x + delta, pos.y + delta, col_target);
 
     buf[0] = names[i];
-    ui::UI_view2d_text_cache_add(&region->v2d,
-                                 pos.x + delta * 1.2f + text_width / 4,
-                                 pos.y - text_height / 2,
-                                 buf,
-                                 1,
-                                 col_target);
+    ui::view2d_text_cache_add(&region->v2d,
+                              pos.x + delta * 1.2f + text_width / 4,
+                              pos.y - text_height / 2,
+                              buf,
+                              1,
+                              col_target);
   }
 
   /* Skin tone line. */
@@ -675,7 +675,7 @@ static void draw_vectorscope_graticule(ARegion *region, SeqQuadsBatch &quads, co
                  col_tone);
 
   quads.draw();
-  ui::UI_view2d_text_cache_draw(region);
+  ui::view2d_text_cache_draw(region);
 }
 
 static const char *get_scope_debug_name(eSpaceSeq_RegionType type)
@@ -1030,10 +1030,10 @@ static void strip_draw_image_origin_and_outline(const bContext *C,
 
   float col[3];
   if (is_active_seq) {
-    ui::UI_GetThemeColor3fv(TH_SEQ_ACTIVE, col);
+    ui::GetThemeColor3fv(TH_SEQ_ACTIVE, col);
   }
   else {
-    ui::UI_GetThemeColor3fv(TH_SEQ_SELECTED, col);
+    ui::GetThemeColor3fv(TH_SEQ_SELECTED, col);
   }
   immUniformColor3fv(col);
   immBegin(GPU_PRIM_LINE_LOOP, 4);
@@ -1107,11 +1107,11 @@ static void text_selection_draw(const bContext *C, const Strip *strip, uint pos)
 static float2 coords_region_view_align(const View2D *v2d, const float2 coords)
 {
   int2 coords_view;
-  ui::UI_view2d_view_to_region(v2d, coords.x, coords.y, &coords_view.x, &coords_view.y);
+  ui::view2d_view_to_region(v2d, coords.x, coords.y, &coords_view.x, &coords_view.y);
   coords_view.x = std::round(coords_view.x);
   coords_view.y = std::round(coords_view.y);
   float2 coords_region_aligned;
-  ui::UI_view2d_region_to_view(
+  ui::view2d_region_to_view(
       v2d, coords_view.x, coords_view.y, &coords_region_aligned.x, &coords_region_aligned.y);
   return coords_region_aligned;
 }
@@ -1136,7 +1136,7 @@ static void text_edit_draw_cursor(const bContext *C, const Strip *strip, uint po
   cursor_coords.x = std::max(cursor_coords.x, bound_left);
   cursor_coords.x = std::min(cursor_coords.x, bound_right);
 
-  cursor_coords = coords_region_view_align(ui::UI_view2d_fromcontext(C), cursor_coords);
+  cursor_coords = coords_region_view_align(ui::view2d_fromcontext(C), cursor_coords);
 
   float2 cursor_quad[4] = {
       {cursor_coords.x, cursor_coords.y},
@@ -1234,14 +1234,14 @@ static void preview_draw_begin(const bContext *C,
     v2d.keepzoom |= V2D_KEEPASPECT | V2D_KEEPZOOM;
   }
   sequencer_display_size(render_data, viewrect);
-  ui::UI_view2d_totRect_set(&v2d, roundf(viewrect[0]), roundf(viewrect[1]));
-  ui::UI_view2d_curRect_validate(&v2d);
-  ui::UI_view2d_view_ortho(&v2d);
+  ui::view2d_totRect_set(&v2d, roundf(viewrect[0]), roundf(viewrect[1]));
+  ui::view2d_curRect_validate(&v2d);
+  ui::view2d_view_ortho(&v2d);
 }
 
 static void preview_draw_end(const bContext *C)
 {
-  ui::UI_view2d_view_restore(C);
+  ui::view2d_view_restore(C);
   seq_prefetch_wm_notify(C, CTX_data_sequencer_scene(C));
 }
 
@@ -1391,7 +1391,7 @@ static bool is_cursor_visible(const SpaceSeq &sseq)
 static void draw_cursor_2d(const ARegion *region, const float2 &cursor)
 {
   int co[2];
-  ui::UI_view2d_view_to_region(&region->v2d, cursor[0], cursor[1], &co[0], &co[1]);
+  ui::view2d_view_to_region(&region->v2d, cursor[0], cursor[1], &co[0], &co[1]);
 
   /* Draw nice Anti Aliased cursor. */
   GPU_blend(GPU_BLEND_ALPHA);
@@ -1437,7 +1437,7 @@ static void draw_cursor_2d(const ARegion *region, const float2 &cursor)
   immEnd();
 
   float crosshair_color[3];
-  ui::UI_GetThemeColor3fv(TH_VIEW_OVERLAY, crosshair_color);
+  ui::GetThemeColor3fv(TH_VIEW_OVERLAY, crosshair_color);
 
   immBegin(GPU_PRIM_LINES, 8);
   immAttr3fv(attr_id.col, crosshair_color);
@@ -1730,7 +1730,7 @@ static void sequencer_preview_draw_overlays(const bContext *C,
 
   draw_registered_callbacks(C, region);
 
-  ui::UI_view2d_view_restore(C);
+  ui::view2d_view_restore(C);
 
   /* No need to show the cursor for scopes. */
   if ((is_playing == false) && show_preview_image && is_cursor_visible(space_sequencer)) {

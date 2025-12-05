@@ -119,8 +119,7 @@ static void graphview_cursor_setprops(bContext *C, wmOperator *op, const wmEvent
   }
 
   /* convert from region coordinates to View2D 'tot' space */
-  blender::ui::UI_view2d_region_to_view(
-      &region->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
+  blender::ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &viewx, &viewy);
 
   /* store the values in the operator properties */
   /* NOTE: we don't clamp frame here, as it might be used for the drivers cursor */

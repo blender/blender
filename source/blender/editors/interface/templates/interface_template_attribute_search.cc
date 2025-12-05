@@ -51,8 +51,7 @@ static bool attribute_search_item_add(SearchItems *items, const GeometryAttribut
       attribute_domain_string(*item.domain),
       item.name,
       attribute_data_type_string(*bke::attr_type_to_custom_data_type(*item.data_type)));
-  return UI_search_item_add(
-      items, search_item_text, (void *)&item, ICON_NONE, UI_BUT_HAS_SEP_CHAR, 0);
+  return search_item_add(items, search_item_text, (void *)&item, ICON_NONE, BUT_HAS_SEP_CHAR, 0);
 }
 
 void attribute_search_add_items(StringRef str,
@@ -74,7 +73,7 @@ void attribute_search_add_items(StringRef str,
     }
     if (!contained) {
       dummy_info.name = str;
-      UI_search_item_add(
+      search_item_add(
           seach_items, str, &dummy_info, can_create_attribute ? ICON_ADD : ICON_NONE, 0, 0);
     }
   }
@@ -83,7 +82,7 @@ void attribute_search_add_items(StringRef str,
     /* Allow clearing the text field when the string is empty, but not on the first pass,
      * or opening an attribute field for the first time would show this search item. */
     dummy_info.name = str;
-    UI_search_item_add(seach_items, str, &dummy_info, ICON_X, 0, 0);
+    search_item_add(seach_items, str, &dummy_info, ICON_X, 0, 0);
   }
 
   /* Don't filter when the menu is first opened, but still run the search

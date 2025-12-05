@@ -141,7 +141,7 @@ class AbstractView {
   MutableSpan<char> get_rename_buffer();
   /**
    * Get the rectangle containing all the view items that are in the layout, in button space.
-   * Updated as part of #UI_block_end(), before that it's unset.
+   * Updated as part of #block_end(), before that it's unset.
    */
   std::optional<rcti> get_bounds() const;
 

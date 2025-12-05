@@ -68,7 +68,7 @@ class Cursor : Overlay {
     }
     else {
       const SpaceImage *sima = (SpaceImage *)state.space_data;
-      ui::UI_view2d_view_to_region(
+      ui::view2d_view_to_region(
           &state.region->v2d, sima->cursor[0], sima->cursor[1], &pixel_coord[0], &pixel_coord[1]);
     }
 

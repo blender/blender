@@ -62,19 +62,19 @@ static uiBlock *ui_block_func_PIE(bContext * /*C*/, uiPopupBlockHandle *handle, 
   /* in some cases we create the block before the region,
    * so we set it delayed here if necessary */
   if (BLI_findindex(&handle->region->runtime->uiblocks, block) == -1) {
-    UI_block_region_set(block, handle->region);
+    block_region_set(block, handle->region);
   }
 
   block_layout_resolve(block);
 
-  UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_NUMSELECT);
-  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  block_flag_enable(block, BLOCK_LOOP | BLOCK_NUMSELECT);
+  block_theme_style_set(block, BLOCK_THEME_STYLE_POPUP);
 
   block->minbounds = minwidth;
   block->bounds = 1;
   block->bounds_offset[0] = 0;
   block->bounds_offset[1] = 0;
-  block->bounds_type = UI_BLOCK_BOUNDS_PIE_CENTER;
+  block->bounds_type = BLOCK_BOUNDS_PIE_CENTER;
 
   block->pie_data.pie_center_spawned[0] = pie->mx;
   block->pie_data.pie_center_spawned[1] = pie->my;
@@ -85,24 +85,24 @@ static uiBlock *ui_block_func_PIE(bContext * /*C*/, uiPopupBlockHandle *handle, 
 static float ui_pie_menu_title_width(const char *name, int icon)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-  return (UI_fontstyle_string_width(fstyle, name) + (UI_UNIT_X * (1.50f + (icon ? 0.25f : 0.0f))));
+  return (fontstyle_string_width(fstyle, name) + (UI_UNIT_X * (1.50f + (icon ? 0.25f : 0.0f))));
 }
 
-uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmEvent *event)
+uiPieMenu *pie_menu_begin(bContext *C, const char *title, int icon, const wmEvent *event)
 {
-  const uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = style_get_dpi();
   short event_type;
 
   wmWindow *win = CTX_wm_window(C);
 
   uiPieMenu *pie = MEM_callocN<uiPieMenu>(__func__);
 
-  pie->pie_block = UI_block_begin(C, nullptr, __func__, EmbossType::Emboss);
+  pie->pie_block = block_begin(C, nullptr, __func__, EmbossType::Emboss);
   /* may be useful later to allow spawning pies
    * from old positions */
-  // pie->pie_block->flag |= UI_BLOCK_POPUP_MEMORY;
+  // pie->pie_block->flag |= BLOCK_POPUP_MEMORY;
   pie->pie_block->puphash = ui_popup_menu_hash(title);
-  pie->pie_block->flag |= UI_BLOCK_PIE_MENU;
+  pie->pie_block->flag |= BLOCK_PIE_MENU;
 
   /* if pie is spawned by a left click, release or click event,
    * it is always assumed to be click style */
@@ -154,7 +154,7 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
           pie->pie_block, ButType::Label, title, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
     }
     /* do not align left */
-    but->drawflag &= ~UI_BUT_TEXT_LEFT;
+    but->drawflag &= ~BUT_TEXT_LEFT;
     pie->pie_block->pie_data.title = but->str.c_str();
     pie->pie_block->pie_data.icon = icon;
   }
@@ -162,7 +162,7 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
   return pie;
 }
 
-void UI_pie_menu_end(bContext *C, uiPieMenu *pie)
+void pie_menu_end(bContext *C, uiPieMenu *pie)
 {
   wmWindow *window = CTX_wm_window(C);
 
@@ -171,18 +171,18 @@ void UI_pie_menu_end(bContext *C, uiPieMenu *pie)
   menu->popup = true;
   menu->towardstime = BLI_time_now_seconds();
 
-  UI_popup_handlers_add(C, &window->modalhandlers, menu, WM_HANDLER_ACCEPT_DBL_CLICK);
+  popup_handlers_add(C, &window->modalhandlers, menu, WM_HANDLER_ACCEPT_DBL_CLICK);
   WM_event_add_mousemove(window);
 
   MEM_freeN(pie);
 }
 
-Layout *UI_pie_menu_layout(uiPieMenu *pie)
+Layout *pie_menu_layout(uiPieMenu *pie)
 {
   return pie->layout;
 }
 
-wmOperatorStatus UI_pie_menu_invoke(bContext *C, const char *idname, const wmEvent *event)
+wmOperatorStatus pie_menu_invoke(bContext *C, const char *idname, const wmEvent *event)
 {
   MenuType *mt = WM_menutype_find(idname, true);
 
@@ -196,13 +196,13 @@ wmOperatorStatus UI_pie_menu_invoke(bContext *C, const char *idname, const wmEve
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
-  uiPieMenu *pie = UI_pie_menu_begin(
+  uiPieMenu *pie = pie_menu_begin(
       C, CTX_IFACE_(mt->translation_context, mt->label), ICON_NONE, event);
-  Layout *layout = UI_pie_menu_layout(pie);
+  Layout *layout = pie_menu_layout(pie);
 
-  UI_menutype_draw(C, mt, layout);
+  menutype_draw(C, mt, layout);
 
-  UI_pie_menu_end(C, pie);
+  pie_menu_end(C, pie);
 
   return OPERATOR_INTERFACE;
 }
@@ -246,8 +246,8 @@ static void ui_pie_menu_level_invoke(bContext *C, void *argN, void *arg2)
   PieMenuLevelData *lvl = (PieMenuLevelData *)arg2;
   wmWindow *win = CTX_wm_window(C);
 
-  uiPieMenu *pie = UI_pie_menu_begin(C, IFACE_(lvl->title), lvl->icon, win->eventstate);
-  Layout &layout = UI_pie_menu_layout(pie)->menu_pie();
+  uiPieMenu *pie = pie_menu_begin(C, IFACE_(lvl->title), lvl->icon, win->eventstate);
+  Layout &layout = pie_menu_layout(pie)->menu_pie();
 
   PointerRNA ptr;
 
@@ -264,7 +264,7 @@ static void ui_pie_menu_level_invoke(bContext *C, void *argN, void *arg2)
     RNA_warning("%s.%s not found", RNA_struct_identifier(ptr.type), lvl->propname.c_str());
   }
 
-  UI_pie_menu_end(C, pie);
+  pie_menu_end(C, pie);
 }
 
 void ui_pie_menu_level_create(uiBlock *block,
@@ -308,7 +308,7 @@ void ui_pie_menu_level_create(uiBlock *block,
                                 UI_UNIT_Y,
                                 nullptr,
                                 "Show more items of this menu");
-  UI_but_funcN_set(but, ui_pie_menu_level_invoke, remaining, &lvl);
+  button_funcN_set(but, ui_pie_menu_level_invoke, remaining, &lvl);
 }
 
 /** \} */ /* Pie Menu Levels */

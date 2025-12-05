@@ -18,7 +18,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_bevel(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "samples", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "samples", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 static void node_shader_init_bevel(bNodeTree * /*ntree*/, bNode *node)

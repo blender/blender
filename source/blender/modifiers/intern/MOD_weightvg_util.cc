@@ -319,7 +319,7 @@ void weightvg_ui_common(const bContext *C,
   layout.use_property_split_set(true);
 
   layout.prop(
-      ptr, "mask_constant", blender::ui::UI_ITEM_R_SLIDER, IFACE_("Global Influence:"), ICON_NONE);
+      ptr, "mask_constant", blender::ui::ITEM_R_SLIDER, IFACE_("Global Influence:"), ICON_NONE);
 
   if (!has_mask_texture) {
     modifier_vgroup_ui(
@@ -327,16 +327,16 @@ void weightvg_ui_common(const bContext *C,
   }
 
   if (!has_mask_vertex_group) {
-    uiTemplateID(&layout,
-                 C,
-                 ptr,
-                 "mask_texture",
-                 "texture.new",
-                 nullptr,
-                 nullptr,
-                 blender::ui::UI_TEMPLATE_ID_FILTER_ALL,
-                 false,
-                 IFACE_("Mask Texture"));
+    template_id(&layout,
+                C,
+                ptr,
+                "mask_texture",
+                "texture.new",
+                nullptr,
+                nullptr,
+                blender::ui::TEMPLATE_ID_FILTER_ALL,
+                false,
+                IFACE_("Mask Texture"));
 
     if (has_mask_texture) {
       layout.prop(ptr, "mask_tex_use_channel", UI_ITEM_NONE, IFACE_("Channel"), ICON_NONE);

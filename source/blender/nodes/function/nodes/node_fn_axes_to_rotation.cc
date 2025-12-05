@@ -30,8 +30,8 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "primary_axis", ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  layout.prop(ptr, "secondary_axis", ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "primary_axis", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "secondary_axis", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 static float3 get_orthogonal_of_non_zero_vector(const float3 &v)

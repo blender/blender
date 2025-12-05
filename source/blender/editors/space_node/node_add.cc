@@ -132,7 +132,7 @@ static void node_templateID_assign(bContext *C, bNodeTree *node_tree)
   PointerRNA ptr;
   PropertyRNA *prop;
 
-  ui::UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
+  ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
 
   if (prop) {
     /* #RNA_property_pointer_set increases the user count, fixed here as the editor is the initial
@@ -195,8 +195,7 @@ static wmOperatorStatus add_reroute_exec(bContext *C, wmOperator *op)
     float2 loc_region;
     RNA_float_get_array(&itemptr, "loc", loc_region);
     float2 loc_view;
-    ui::UI_view2d_region_to_view(
-        &region.v2d, loc_region.x, loc_region.y, &loc_view.x, &loc_view.y);
+    ui::view2d_region_to_view(&region.v2d, loc_region.x, loc_region.y, &loc_view.x, &loc_view.y);
     path.append(loc_view);
     if (path.size() >= 256) {
       break;
@@ -429,11 +428,11 @@ static wmOperatorStatus node_add_group_invoke(bContext *C, wmOperator *op, const
   SpaceNode *snode = CTX_wm_space_node(C);
 
   /* Convert mouse coordinates to v2d space. */
-  ui::UI_view2d_region_to_view(&region->v2d,
-                               event->mval[0],
-                               event->mval[1],
-                               &snode->runtime->cursor[0],
-                               &snode->runtime->cursor[1]);
+  ui::view2d_region_to_view(&region->v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode->runtime->cursor[0],
+                            &snode->runtime->cursor[1]);
 
   snode->runtime->cursor[0] /= UI_SCALE_FAC;
   snode->runtime->cursor[1] /= UI_SCALE_FAC;
@@ -530,11 +529,11 @@ static wmOperatorStatus node_add_group_asset_invoke(bContext *C,
   }
 
   /* Convert mouse coordinates to v2d space. */
-  ui::UI_view2d_region_to_view(&region.v2d,
-                               event->mval[0],
-                               event->mval[1],
-                               &snode.runtime->cursor[0],
-                               &snode.runtime->cursor[1]);
+  ui::view2d_region_to_view(&region.v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode.runtime->cursor[0],
+                            &snode.runtime->cursor[1]);
 
   snode.runtime->cursor /= UI_SCALE_FAC;
 
@@ -573,11 +572,11 @@ static wmOperatorStatus node_swap_group_asset_invoke(bContext *C,
   }
 
   /* Convert mouse coordinates to v2d space. */
-  ui::UI_view2d_region_to_view(&region.v2d,
-                               event->mval[0],
-                               event->mval[1],
-                               &snode.runtime->cursor[0],
-                               &snode.runtime->cursor[1]);
+  ui::view2d_region_to_view(&region.v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode.runtime->cursor[0],
+                            &snode.runtime->cursor[1]);
 
   snode.runtime->cursor /= UI_SCALE_FAC;
 
@@ -724,11 +723,11 @@ static wmOperatorStatus node_add_object_invoke(bContext *C, wmOperator *op, cons
   SpaceNode *snode = CTX_wm_space_node(C);
 
   /* Convert mouse coordinates to v2d space. */
-  ui::UI_view2d_region_to_view(&region->v2d,
-                               event->mval[0],
-                               event->mval[1],
-                               &snode->runtime->cursor[0],
-                               &snode->runtime->cursor[1]);
+  ui::view2d_region_to_view(&region->v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode->runtime->cursor[0],
+                            &snode->runtime->cursor[1]);
 
   snode->runtime->cursor[0] /= UI_SCALE_FAC;
   snode->runtime->cursor[1] /= UI_SCALE_FAC;
@@ -813,11 +812,11 @@ static wmOperatorStatus node_add_collection_invoke(bContext *C,
   SpaceNode *snode = CTX_wm_space_node(C);
 
   /* Convert mouse coordinates to v2d space. */
-  ui::UI_view2d_region_to_view(&region->v2d,
-                               event->mval[0],
-                               event->mval[1],
-                               &snode->runtime->cursor[0],
-                               &snode->runtime->cursor[1]);
+  ui::view2d_region_to_view(&region->v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode->runtime->cursor[0],
+                            &snode->runtime->cursor[1]);
 
   snode->runtime->cursor[0] /= UI_SCALE_FAC;
   snode->runtime->cursor[1] /= UI_SCALE_FAC;
@@ -1033,11 +1032,11 @@ static wmOperatorStatus node_add_image_invoke(bContext *C, wmOperator *op, const
   }
 
   /* Convert mouse coordinates to `v2d` space. */
-  ui::UI_view2d_region_to_view(&region->v2d,
-                               event->mval[0],
-                               event->mval[1],
-                               &snode->runtime->cursor[0],
-                               &snode->runtime->cursor[1]);
+  ui::view2d_region_to_view(&region->v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode->runtime->cursor[0],
+                            &snode->runtime->cursor[1]);
 
   snode->runtime->cursor[0] /= UI_SCALE_FAC;
   snode->runtime->cursor[1] /= UI_SCALE_FAC;
@@ -1177,11 +1176,11 @@ static wmOperatorStatus node_add_material_invoke(bContext *C, wmOperator *op, co
   SpaceNode *snode = CTX_wm_space_node(C);
 
   /* Convert mouse coordinates to v2d space. */
-  ui::UI_view2d_region_to_view(&region->v2d,
-                               event->mval[0],
-                               event->mval[1],
-                               &snode->runtime->cursor[0],
-                               &snode->runtime->cursor[1]);
+  ui::view2d_region_to_view(&region->v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode->runtime->cursor[0],
+                            &snode->runtime->cursor[1]);
 
   snode->runtime->cursor[0] /= UI_SCALE_FAC;
   snode->runtime->cursor[1] /= UI_SCALE_FAC;
@@ -1289,11 +1288,11 @@ static wmOperatorStatus node_add_import_node_invoke(bContext *C,
   SpaceNode *snode = CTX_wm_space_node(C);
 
   /* Convert mouse coordinates to v2d space. */
-  ui::UI_view2d_region_to_view(&region->v2d,
-                               event->mval[0],
-                               event->mval[1],
-                               &snode->runtime->cursor[0],
-                               &snode->runtime->cursor[1]);
+  ui::view2d_region_to_view(&region->v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode->runtime->cursor[0],
+                            &snode->runtime->cursor[1]);
 
   snode->runtime->cursor[0] /= UI_SCALE_FAC;
   snode->runtime->cursor[1] /= UI_SCALE_FAC;
@@ -1434,11 +1433,11 @@ static wmOperatorStatus node_add_group_input_node_invoke(bContext *C,
   SpaceNode *snode = CTX_wm_space_node(C);
 
   /* Convert mouse coordinates to v2d space. */
-  ui::UI_view2d_region_to_view(&region->v2d,
-                               event->mval[0],
-                               event->mval[1],
-                               &snode->runtime->cursor[0],
-                               &snode->runtime->cursor[1]);
+  ui::view2d_region_to_view(&region->v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode->runtime->cursor[0],
+                            &snode->runtime->cursor[1]);
 
   snode->runtime->cursor[0] /= UI_SCALE_FAC;
   snode->runtime->cursor[1] /= UI_SCALE_FAC;
@@ -1590,11 +1589,11 @@ static wmOperatorStatus node_add_color_invoke(bContext *C, wmOperator *op, const
   SpaceNode *snode = CTX_wm_space_node(C);
 
   /* Convert mouse coordinates to v2d space. */
-  ui::UI_view2d_region_to_view(&region->v2d,
-                               event->mval[0],
-                               event->mval[1],
-                               &snode->runtime->cursor[0],
-                               &snode->runtime->cursor[1]);
+  ui::view2d_region_to_view(&region->v2d,
+                            event->mval[0],
+                            event->mval[1],
+                            &snode->runtime->cursor[0],
+                            &snode->runtime->cursor[1]);
 
   snode->runtime->cursor[0] /= UI_SCALE_FAC;
   snode->runtime->cursor[1] /= UI_SCALE_FAC;

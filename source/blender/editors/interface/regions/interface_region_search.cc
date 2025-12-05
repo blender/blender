@@ -101,16 +101,16 @@ struct uiSearchboxData {
 
 #define SEARCH_ITEMS 10
 
-bool UI_search_item_add(SearchItems *items,
-                        const StringRef name,
-                        void *poin,
-                        int iconid,
-                        const int but_flag,
-                        const uint8_t name_prefix_offset)
+bool search_item_add(SearchItems *items,
+                     const StringRef name,
+                     void *poin,
+                     int iconid,
+                     const int but_flag,
+                     const uint8_t name_prefix_offset)
 {
   /* hijack for autocomplete */
   if (items->autocpl) {
-    UI_autocomplete_update_name(items->autocpl, name.drop_prefix(name_prefix_offset));
+    autocomplete_update_name(items->autocpl, name.drop_prefix(name_prefix_offset));
     return true;
   }
 
@@ -159,8 +159,7 @@ bool UI_search_item_add(SearchItems *items,
 
   /* Limit flags that can be set so flags such as 'UI_SELECT' aren't accidentally set
    * which will cause problems, add others as needed. */
-  BLI_assert((but_flag &
-              ~(UI_BUT_DISABLED | UI_BUT_INACTIVE | UI_BUT_REDALERT | UI_BUT_HAS_SEP_CHAR)) == 0);
+  BLI_assert((but_flag & ~(BUT_DISABLED | BUT_INACTIVE | BUT_REDALERT | BUT_HAS_SEP_CHAR)) == 0);
   if (items->but_flags) {
     items->but_flags[items->totitem] = but_flag;
   }
@@ -170,12 +169,12 @@ bool UI_search_item_add(SearchItems *items,
   return true;
 }
 
-int UI_searchbox_size_y()
+int searchbox_size_y()
 {
   return SEARCH_ITEMS * UI_UNIT_Y + 2 * UI_SEARCHBOX_TRIA_H;
 }
 
-int UI_searchbox_size_x()
+int searchbox_size_x()
 {
   return 12 * UI_UNIT_X;
 }
@@ -196,16 +195,16 @@ static int ui_searchbox_size_x_from_items(const SearchItems &items)
   });
 
   /* Compute the final width of the search box. */
-  int box_width = UI_searchbox_size_x();
+  int box_width = searchbox_size_x();
   for (const int width : item_widths) {
     box_width = std::max(box_width, width);
   }
   /* Avoid extremely wide boxes. */
-  box_width = std::min(box_width, UI_searchbox_size_x() * 5);
+  box_width = std::min(box_width, searchbox_size_x() * 5);
   return box_width;
 }
 
-int UI_searchbox_size_x_guess(const bContext *C, const uiButSearchUpdateFn update_fn, void *arg)
+int searchbox_size_x_guess(const bContext *C, const uiButSearchUpdateFn update_fn, void *arg)
 {
   SearchItems items{};
   /* Upper bound on the number of item names that are checked. */
@@ -225,7 +224,7 @@ int UI_searchbox_size_x_guess(const bContext *C, const uiButSearchUpdateFn updat
   /* Gather the items shown in the search box. */
   update_fn(C, arg, "", &items, true);
 
-  /* This is lazy-initialized in #UI_search_item_add. */
+  /* This is lazy-initialized in #search_item_add. */
   MEM_SAFE_FREE(items.name_prefix_offsets);
 
   return ui_searchbox_size_x_from_items(items);
@@ -279,7 +278,7 @@ static void ui_searchbox_select(bContext *C, ARegion *region, uiBut *but, int st
     }
     else {
       /* only let users step into an 'unset' state for unlink buttons */
-      data->active = (but->flag & UI_BUT_VALUE_CLEAR) ? -1 : 0;
+      data->active = (but->flag & BUT_VALUE_CLEAR) ? -1 : 0;
     }
   }
 
@@ -383,7 +382,7 @@ static ARegion *wm_searchbox_tooltip_init(
         continue;
       }
 
-      ARegion *searchbox_region = UI_region_searchbox_region_get(region);
+      ARegion *searchbox_region = region_searchbox_region_get(region);
       uiSearchboxData *data = static_cast<uiSearchboxData *>(searchbox_region->regiondata);
 
       BLI_assert(data->items.pointers[data->active] == search_but->item_active);
@@ -606,11 +605,11 @@ int ui_searchbox_autocomplete(bContext *C, ARegion *region, uiBut *but, char *st
       /* The string length is dynamic, just assume a reasonable length. */
       maxncpy = strlen(str) + 1024;
     }
-    data->items.autocpl = UI_autocomplete_begin(str, maxncpy);
+    data->items.autocpl = autocomplete_begin(str, maxncpy);
 
     ui_searchbox_update_fn(C, search_but, but->editstr, &data->items);
 
-    match = UI_autocomplete_end(data->items.autocpl, str);
+    match = autocomplete_end(data->items.autocpl, str);
     data->items.autocpl = nullptr;
   }
 
@@ -629,8 +628,7 @@ static void ui_searchbox_draw_clip_tri_down(rcti *rect, const float zoom)
                   zoom * UI_ICON_SIZE;
   const float aspect = U.inv_scale_factor / zoom;
   GPU_blend(GPU_BLEND_ALPHA);
-  UI_icon_draw_ex(
-      x, y, ICON_TRIA_DOWN, aspect, 1.0f, 0.0f, nullptr, false, UI_NO_ICON_OVERLAY_TEXT);
+  icon_draw_ex(x, y, ICON_TRIA_DOWN, aspect, 1.0f, 0.0f, nullptr, false, UI_NO_ICON_OVERLAY_TEXT);
   GPU_blend(GPU_BLEND_NONE);
 }
 
@@ -645,7 +643,7 @@ static void ui_searchbox_draw_clip_tri_up(rcti *rect, const float zoom)
   const float y = rect->ymax + (0.5f * zoom * (UI_SEARCHBOX_TRIA_H - UI_ICON_SIZE) - U.pixelsize);
   const float aspect = U.inv_scale_factor / zoom;
   GPU_blend(GPU_BLEND_ALPHA);
-  UI_icon_draw_ex(x, y, ICON_TRIA_UP, aspect, 1.0f, 0.0f, nullptr, false, UI_NO_ICON_OVERLAY_TEXT);
+  icon_draw_ex(x, y, ICON_TRIA_UP, aspect, 1.0f, 0.0f, nullptr, false, UI_NO_ICON_OVERLAY_TEXT);
   GPU_blend(GPU_BLEND_NONE);
 }
 
@@ -718,7 +716,7 @@ static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
           separator_type = UI_MENU_ITEM_SEPARATOR_SHORTCUT;
         }
         /* Only set for displaying additional hint (e.g. library name of a linked data-block). */
-        else if (but_flag & UI_BUT_HAS_SEP_CHAR) {
+        else if (but_flag & BUT_HAS_SEP_CHAR) {
           separator_type = UI_MENU_ITEM_SEPARATOR_HINT;
         }
 
@@ -764,7 +762,7 @@ static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
                             data->noback,
                             name,
                             ICON_NONE,
-                            but_flag | UI_BUT_INACTIVE,
+                            but_flag | BUT_INACTIVE,
                             UI_MENU_ITEM_SEPARATOR_NONE,
                             &name_width);
           *name_sep = name_sep_prev;
@@ -862,7 +860,7 @@ static void ui_searchbox_region_layout_fn(const bContext *C, ARegion *region)
   wmWindow *win = CTX_wm_window(C);
 
   /* compute position */
-  if (but->block->flag & UI_BLOCK_SEARCH_MENU) {
+  if (but->block->flag & BLOCK_SEARCH_MENU) {
     /* this case is search menu inside other menu */
     /* we copy region size */
 
@@ -894,7 +892,7 @@ static void ui_searchbox_region_layout_fn(const bContext *C, ARegion *region)
     rect_fl.xmin = but->rect.xmin;
     rect_fl.xmax = but->rect.xmax;
     rect_fl.ymax = but->rect.ymin;
-    rect_fl.ymin = rect_fl.ymax - UI_searchbox_size_y();
+    rect_fl.ymin = rect_fl.ymax - searchbox_size_y();
 
     const int ofsx = (but->block->panel) ? but->block->panel->ofsx : 0;
     const int ofsy = (but->block->panel) ? but->block->panel->ofsy : 0;
@@ -911,7 +909,7 @@ static void ui_searchbox_region_layout_fn(const bContext *C, ARegion *region)
     BLI_rcti_rctf_copy(&rect_i, &rect_fl);
 
     if (butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
-      UI_view2d_view_to_region_rcti(&butregion->v2d, &rect_fl, &rect_i);
+      view2d_view_to_region_rcti(&butregion->v2d, &rect_fl, &rect_i);
     }
 
     BLI_rcti_translate(&rect_i, butregion->winrct.xmin, butregion->winrct.ymin);
@@ -936,7 +934,7 @@ static void ui_searchbox_region_layout_fn(const bContext *C, ARegion *region)
       int newy1 = but->rect.ymax + ofsy;
 
       if (butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
-        newy1 = UI_view2d_view_to_region_y(&butregion->v2d, newy1);
+        newy1 = view2d_view_to_region_y(&butregion->v2d, newy1);
       }
 
       newy1 += butregion->winrct.ymin;
@@ -969,7 +967,7 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
                                                ButtonSearch *but,
                                                const bool use_shortcut_sep)
 {
-  const uiStyle *style = UI_style_get();
+  const uiStyle *style = style_get();
   const float aspect = but->block->aspect;
 
   /* create area region */
@@ -996,13 +994,13 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
   /* Set font, get the bounding-box. */
   data->fstyle = style->widget; /* copy struct */
   ui_fontscale(&data->fstyle.points, aspect);
-  UI_fontstyle_set(&data->fstyle);
+  fontstyle_set(&data->fstyle);
 
   region->regiondata = data;
 
   /* Special case, hard-coded feature, not draw backdrop when called from menus,
    * assume for design that popup already added it. */
-  if (but->block->flag & UI_BLOCK_SEARCH_MENU) {
+  if (but->block->flag & BLOCK_SEARCH_MENU) {
     data->noback = true;
   }
 
@@ -1222,11 +1220,11 @@ void ui_but_search_refresh(ButtonSearch *but)
   if (!but->results_are_suggestions) {
     /* Only red-alert when we are sure of it, this can miss cases when >10 matches. */
     if (items->totitem == 0) {
-      UI_but_flag_enable(but, UI_BUT_REDALERT);
+      button_flag_enable(but, BUT_REDALERT);
     }
     else if (items->more == 0) {
       if (UI_search_items_find_index(items, but->drawstr.c_str()) == -1) {
-        UI_but_flag_enable(but, UI_BUT_REDALERT);
+        button_flag_enable(but, BUT_REDALERT);
       }
     }
   }

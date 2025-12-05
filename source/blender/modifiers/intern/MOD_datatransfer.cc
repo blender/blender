@@ -248,7 +248,7 @@ static void vertex_panel_draw(const bContext * /*C*/, Panel *panel)
   bool use_vert_data = RNA_boolean_get(ptr, "use_vert_data");
   layout.active_set(use_vert_data);
 
-  layout.prop(ptr, "data_types_verts", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "data_types_verts", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
@@ -286,7 +286,7 @@ static void edge_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.active_set(RNA_boolean_get(ptr, "use_edge_data"));
 
-  layout.prop(ptr, "data_types_edges", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "data_types_edges", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
@@ -310,7 +310,7 @@ static void face_corner_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.active_set(RNA_boolean_get(ptr, "use_loop_data"));
 
-  layout.prop(ptr, "data_types_loops", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "data_types_loops", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 

@@ -73,10 +73,10 @@ static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_tex_noise(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "noise_dimensions", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  layout.prop(ptr, "noise_type", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "noise_dimensions", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "noise_type", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   if (ELEM(RNA_enum_get(ptr, "noise_type"), SHD_NOISE_FBM)) {
-    layout.prop(ptr, "normalize", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "normalize", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 }
 

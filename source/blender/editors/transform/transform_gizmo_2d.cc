@@ -193,7 +193,7 @@ static void gizmo2d_get_axis_color(const int axis_idx, float *r_col, float *r_co
       break;
   }
 
-  ui::UI_GetThemeColor4fv(col_id, r_col);
+  ui::GetThemeColor4fv(col_id, r_col);
 
   copy_v4_v4(r_col_hi, r_col);
   r_col[3] *= alpha;
@@ -436,8 +436,7 @@ static bool gizmo2d_calc_transform_pivot(const bContext *C, float r_pivot[2])
  */
 BLI_INLINE void gizmo2d_origin_to_region(ARegion *region, float *r_origin)
 {
-  ui::UI_view2d_view_to_region_fl(
-      &region->v2d, r_origin[0], r_origin[1], &r_origin[0], &r_origin[1]);
+  ui::view2d_view_to_region_fl(&region->v2d, r_origin[0], r_origin[1], &r_origin[0], &r_origin[1]);
 }
 
 /**
@@ -495,7 +494,7 @@ static void gizmo2d_xform_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
     }
     else {
       float color[4], color_hi[4];
-      ui::UI_GetThemeColor4fv(TH_GIZMO_VIEW_ALIGN, color);
+      ui::GetThemeColor4fv(TH_GIZMO_VIEW_ALIGN, color);
       copy_v4_v4(color_hi, color);
       color[3] *= 0.6f;
 
@@ -630,7 +629,7 @@ static void gizmo2d_xform_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
     WM_gizmo_set_matrix_location(gz, origin);
   }
 
-  ui::UI_view2d_view_to_region_m4(&region->v2d, ggd->cage->matrix_space);
+  ui::view2d_view_to_region_m4(&region->v2d, ggd->cage->matrix_space);
   /* Define the bounding box of the gizmo in the offset transform matrix. */
   unit_m4(ggd->cage->matrix_offset);
   const float min_gizmo_pixel_size = 0.001f; /* Draw Gizmo larger than this many pixels. */
@@ -895,7 +894,7 @@ static void gizmo2d_resize_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
     }
     else {
       float color[4], color_hi[4];
-      ui::UI_GetThemeColor4fv(TH_GIZMO_VIEW_ALIGN, color);
+      ui::GetThemeColor4fv(TH_GIZMO_VIEW_ALIGN, color);
       copy_v4_v4(color_hi, color);
       color[3] *= 0.6f;
 
@@ -1029,7 +1028,7 @@ static void gizmo2d_rotate_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 
     {
       float color[4];
-      ui::UI_GetThemeColor4fv(TH_GIZMO_VIEW_ALIGN, color);
+      ui::GetThemeColor4fv(TH_GIZMO_VIEW_ALIGN, color);
 
       PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "icon");
       RNA_property_enum_set(gz->ptr, prop, ICON_NONE);

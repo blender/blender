@@ -964,8 +964,8 @@ static wmOperatorStatus parent_set_exec(bContext *C, wmOperator *op)
 static wmOperatorStatus parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
 {
   Object *parent = context_active_object(C);
-  ui::PopupMenu *pup = ui::UI_popup_menu_begin(C, IFACE_("Set Parent To"), ICON_NONE);
-  ui::Layout &layout = *UI_popup_menu_layout(pup);
+  ui::PopupMenu *pup = ui::popup_menu_begin(C, IFACE_("Set Parent To"), ICON_NONE);
+  ui::Layout &layout = *popup_menu_layout(pup);
 
   PointerRNA opptr = layout.op(
       ot, IFACE_("Object"), ICON_NONE, wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
@@ -1069,7 +1069,7 @@ static wmOperatorStatus parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
     RNA_enum_set(&op_ptr, "type", PAR_VERTEX_TRI);
   }
 
-  UI_popup_menu_end(C, pup);
+  popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;
 }
@@ -3185,7 +3185,7 @@ static wmOperatorStatus object_unlink_data_exec(bContext *C, wmOperator *op)
   ID *id;
   PropertyPointerRNA pprop;
 
-  ui::UI_context_active_but_prop_get_templateID(C, &pprop.ptr, &pprop.prop);
+  ui::context_active_but_prop_get_templateID(C, &pprop.ptr, &pprop.prop);
 
   if (pprop.prop == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Incorrect context for running object data unlink");

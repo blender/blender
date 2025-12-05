@@ -115,15 +115,15 @@ static bool id_search_add(const bContext *C, TemplateID *template_ui, SearchItem
   int name_prefix_offset;
   BKE_id_full_name_ui_prefix_get(name_ui, id, use_lib_prefix, UI_SEP_CHAR, &name_prefix_offset);
   if (!use_lib_prefix) {
-    iconid = UI_icon_from_library(id);
+    iconid = icon_from_library(id);
   }
 
-  if (!UI_search_item_add(items,
-                          name_ui,
-                          id,
-                          iconid,
-                          has_sep_char ? int(UI_BUT_HAS_SEP_CHAR) : 0,
-                          name_prefix_offset))
+  if (!search_item_add(items,
+                       name_ui,
+                       id,
+                       iconid,
+                       has_sep_char ? int(BUT_HAS_SEP_CHAR) : 0,
+                       name_prefix_offset))
   {
     return false;
   }
@@ -228,7 +228,7 @@ static ARegion *template_ID_search_menu_item_tooltip(
     bContext *C, ARegion *region, const rcti *item_rect, void * /*arg*/, void *active)
 {
   ID *active_id = static_cast<ID *>(active);
-  return UI_tooltip_create_from_search_item_generic(C, region, item_rect, active_id);
+  return tooltip_create_from_search_item_generic(C, region, item_rect, active_id);
 }
 
 /* ID Search browse menu, open */
@@ -246,7 +246,7 @@ static uiBlock *id_search_menu(bContext *C, ARegion *region, void *arg_litem)
   if (template_ui.filter) {
     /* Currently only used for objects. */
     if (template_ui.idcode == ID_OB) {
-      if (template_ui.filter == UI_TEMPLATE_ID_FILTER_AVAILABLE) {
+      if (template_ui.filter == TEMPLATE_ID_FILTER_AVAILABLE) {
         id_search_update_fn = id_search_cb_objects_from_scene;
       }
     }
@@ -266,11 +266,11 @@ static uiBlock *id_search_menu(bContext *C, ARegion *region, void *arg_litem)
 
 static void template_id_cb(bContext *C, void *arg_litem, void *arg_event);
 
-void UI_context_active_but_prop_get_templateID(const bContext *C,
-                                               PointerRNA *r_ptr,
-                                               PropertyRNA **r_prop)
+void context_active_but_prop_get_templateID(const bContext *C,
+                                            PointerRNA *r_ptr,
+                                            PropertyRNA **r_prop)
 {
-  uiBut *but = UI_context_active_but_get(C);
+  uiBut *but = context_active_but_get(C);
 
   *r_ptr = {};
   *r_prop = nullptr;
@@ -673,7 +673,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
     case UI_ID_NOP:
       /* Don't do anything, typically set for buttons that execute an operator instead. They may
        * still assign the callback so the button can be identified as part of an ID-template. See
-       * #UI_context_active_but_prop_get_templateID(). */
+       * #context_active_but_prop_get_templateID(). */
       break;
     case UI_ID_RENAME:
       /* Only for the undo push. */
@@ -685,7 +685,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       break;
     case UI_ID_OPEN:
     case UI_ID_ADD_NEW:
-      /* these call UI_context_active_but_prop_get_templateID */
+      /* these call context_active_but_prop_get_templateID */
       break;
     case UI_ID_DELETE:
       idptr = {};
@@ -888,7 +888,7 @@ static void template_id_workspace_pin_extra_icon(const TemplateID &template_ui, 
 
   const wmWindow *win = static_cast<const wmWindow *>(template_ui.ptr.data);
   const WorkSpace *workspace = WM_window_get_active_workspace(win);
-  UI_but_extra_operator_icon_add(but,
+  button_extra_operator_icon_add(but,
                                  "WORKSPACE_OT_scene_pin_toggle",
                                  wm::OpCallContext::InvokeDefault,
                                  (workspace->flags & WORKSPACE_USE_PIN_SCENE) ? ICON_PINNED :
@@ -970,7 +970,7 @@ static uiBut *template_id_def_new_but(uiBlock *block,
 
   int w = id ? UI_UNIT_X : id_open ? UI_UNIT_X * 3 : UI_UNIT_X * 6;
   if (!id) {
-    w = std::max(UI_fontstyle_string_width(fstyle, button_text) + int(UI_UNIT_X * 1.5f), w);
+    w = std::max(fontstyle_string_width(fstyle, button_text) + int(UI_UNIT_X * 1.5f), w);
   }
 
   if (newop) {
@@ -985,7 +985,7 @@ static uiBut *template_id_def_new_but(uiBlock *block,
                             w,
                             but_height,
                             std::nullopt);
-    UI_but_funcN_set(but,
+    button_funcN_set(but,
                      template_id_cb,
                      MEM_new<TemplateID>(__func__, template_ui),
                      POINTER_FROM_INT(UI_ID_ADD_NEW),
@@ -995,7 +995,7 @@ static uiBut *template_id_def_new_but(uiBlock *block,
   else {
     but = uiDefIconTextBut(
         block, but_type, icon, button_text, 0, 0, w, but_height, nullptr, std::nullopt);
-    UI_but_funcN_set(but,
+    button_funcN_set(but,
                      template_id_cb,
                      MEM_new<TemplateID>(__func__, template_ui),
                      POINTER_FROM_INT(UI_ID_ADD_NEW),
@@ -1004,7 +1004,7 @@ static uiBut *template_id_def_new_but(uiBlock *block,
   }
 
   if ((idfrom && !ID_IS_EDITABLE(idfrom)) || !editable) {
-    UI_but_flag_enable(but, UI_BUT_DISABLED);
+    button_flag_enable(but, BUT_DISABLED);
   }
 
 #ifndef WITH_INTERNATIONAL
@@ -1039,7 +1039,7 @@ static void template_ID(const bContext *C,
   layout.context_ptr_set("id", &idptr);
 
   uiBlock *block = layout.block();
-  UI_block_align_begin(block);
+  block_align_begin(block);
 
   if (idptr.type) {
     type = idptr.type;
@@ -1098,18 +1098,18 @@ static void template_ID(const bContext *C,
     /* Handle undo through the #template_id_cb set below. Default undo handling from the button
      * code (see #ui_apply_but_undo) would not work here, as the new name is not yet applied to the
      * ID. */
-    UI_but_flag_disable(but, UI_BUT_UNDO);
+    button_flag_disable(but, BUT_UNDO);
     Main *bmain = CTX_data_main(C);
-    UI_but_func_rename_full_set(
+    button_func_rename_full_set(
         but, [bmain, id](std::string &new_name) { ED_id_rename(*bmain, *id, new_name); });
-    UI_but_funcN_set(but,
+    button_funcN_set(but,
                      template_id_cb,
                      MEM_new<TemplateID>(__func__, template_ui),
                      POINTER_FROM_INT(UI_ID_RENAME),
                      but_func_argN_free<TemplateID>,
                      but_func_argN_copy<TemplateID>);
     if (user_alert) {
-      UI_but_flag_enable(but, UI_BUT_REDALERT);
+      button_flag_enable(but, BUT_REDALERT);
     }
 
     template_id_workspace_pin_extra_icon(template_ui, but);
@@ -1160,7 +1160,7 @@ static void template_ID(const bContext *C,
         }
 
         if (disabled) {
-          UI_but_flag_enable(but, UI_BUT_DISABLED);
+          button_flag_enable(but, BUT_DISABLED);
         }
         /* When displaying the material selector for objects, the material slot may be assigned to
          * the object data instead of the object. In that case disable the button if the object
@@ -1173,13 +1173,13 @@ static void template_ID(const bContext *C,
                  /* Means material is assigned to the object data, not the object. */
                  (object->matbits && (object->matbits[math::max(object->actcol - 1, 0)] == 0)))
         {
-          UI_but_disable(but,
+          button_disable(but,
                          N_("Material is assigned to the object data, which is linked/packed "
                             "and therefore not editable. Change to link this material slot to the "
                             "object instead, or make the object data local."));
         }
         else {
-          UI_but_funcN_set(but,
+          button_funcN_set(but,
                            template_id_cb,
                            MEM_new<TemplateID>(__func__, template_ui),
                            POINTER_FROM_INT(UI_ID_LOCAL),
@@ -1201,7 +1201,7 @@ static void template_ID(const bContext *C,
             0,
             TIP_("Library override of linked data-block, click to make fully local, "
                  "Shift + Click to clear the library override and toggle if it can be edited"));
-        UI_but_funcN_set(but,
+        button_funcN_set(but,
                          template_id_cb,
                          MEM_new<TemplateID>(__func__, template_ui),
                          POINTER_FROM_INT(UI_ID_OVERRIDE),
@@ -1228,9 +1228,9 @@ static void template_ID(const bContext *C,
           0,
           0,
           TIP_("Display number of users of this data (click to make a single-user copy)"));
-      but->flag |= UI_BUT_UNDO;
+      but->flag |= BUT_UNDO;
 
-      UI_but_funcN_set(but,
+      button_funcN_set(but,
                        template_id_cb,
                        MEM_new<TemplateID>(__func__, template_ui),
                        POINTER_FROM_INT(UI_ID_ALONE),
@@ -1240,12 +1240,12 @@ static void template_ID(const bContext *C,
           /* object in editmode - don't change data */
           (idfrom && GS(idfrom->name) == ID_OB && (((Object *)idfrom)->mode & OB_MODE_EDIT)))
       {
-        UI_but_flag_enable(but, UI_BUT_DISABLED);
+        button_flag_enable(but, BUT_DISABLED);
       }
     }
 
     if (user_alert) {
-      UI_but_flag_enable(but, UI_BUT_REDALERT);
+      button_flag_enable(but, BUT_REDALERT);
     }
 
     if (!ID_IS_LINKED(id)) {
@@ -1301,13 +1301,13 @@ static void template_ID(const bContext *C,
                         UI_UNIT_X,
                         UI_UNIT_Y,
                         TIP_("Packed File, click to unpack"));
-    UI_but_operator_ptr_ensure(but);
+    button_operator_ptr_ensure(but);
 
     RNA_string_set(but->opptr, "id_name", id->name + 2);
     RNA_int_set(but->opptr, "id_type", GS(id->name));
 
     if (!ID_IS_EDITABLE(id)) {
-      UI_but_flag_enable(but, UI_BUT_DISABLED);
+      button_flag_enable(but, BUT_DISABLED);
     }
   }
   else if (flag & UI_ID_OPEN) {
@@ -1316,7 +1316,7 @@ static void template_ID(const bContext *C,
 
     int w = id ? UI_UNIT_X : (flag & UI_ID_ADD_NEW) ? UI_UNIT_X * 3 : UI_UNIT_X * 6;
     if (!id) {
-      w = std::max(UI_fontstyle_string_width(fstyle, button_text) + int(UI_UNIT_X * 1.5f), w);
+      w = std::max(fontstyle_string_width(fstyle, button_text) + int(UI_UNIT_X * 1.5f), w);
     }
 
     if (openop) {
@@ -1331,7 +1331,7 @@ static void template_ID(const bContext *C,
                               w,
                               UI_UNIT_Y,
                               std::nullopt);
-      UI_but_funcN_set(but,
+      button_funcN_set(but,
                        template_id_cb,
                        MEM_new<TemplateID>(__func__, template_ui),
                        POINTER_FROM_INT(UI_ID_OPEN),
@@ -1349,7 +1349,7 @@ static void template_ID(const bContext *C,
                              UI_UNIT_Y,
                              nullptr,
                              std::nullopt);
-      UI_but_funcN_set(but,
+      button_funcN_set(but,
                        template_id_cb,
                        MEM_new<TemplateID>(__func__, template_ui),
                        POINTER_FROM_INT(UI_ID_OPEN),
@@ -1358,7 +1358,7 @@ static void template_ID(const bContext *C,
     }
 
     if ((idfrom && !ID_IS_EDITABLE(idfrom)) || !editable) {
-      UI_but_flag_enable(but, UI_BUT_DISABLED);
+      button_flag_enable(but, BUT_DISABLED);
     }
   }
 
@@ -1380,7 +1380,7 @@ static void template_ID(const bContext *C,
                           UI_UNIT_Y,
                           std::nullopt);
       /* so we can access the template from operators, font unlinking needs this */
-      UI_but_funcN_set(but,
+      button_funcN_set(but,
                        template_id_cb,
                        MEM_new<TemplateID>(__func__, template_ui),
                        POINTER_FROM_INT(UI_ID_NOP),
@@ -1402,7 +1402,7 @@ static void template_ID(const bContext *C,
             0,
             TIP_("Unlink data-block "
                  "(Shift + Click to set users to zero, data will then not be saved)"));
-        UI_but_funcN_set(but,
+        button_funcN_set(but,
                          template_id_cb,
                          MEM_new<TemplateID>(__func__, template_ui),
                          POINTER_FROM_INT(UI_ID_DELETE),
@@ -1410,14 +1410,14 @@ static void template_ID(const bContext *C,
                          but_func_argN_copy<TemplateID>);
 
         if (RNA_property_flag(template_ui.prop) & PROP_NEVER_NULL) {
-          UI_but_flag_enable(but, UI_BUT_DISABLED);
+          button_flag_enable(but, BUT_DISABLED);
         }
       }
     }
 
     if (but) {
       if ((idfrom && !ID_IS_EDITABLE(idfrom)) || !editable) {
-        UI_but_flag_enable(but, UI_BUT_DISABLED);
+        button_flag_enable(but, BUT_DISABLED);
       }
     }
   }
@@ -1425,12 +1425,12 @@ static void template_ID(const bContext *C,
   if (template_ui.idcode == ID_TE) {
     uiTemplateTextureShow(&layout, C, &template_ui.ptr, template_ui.prop);
   }
-  UI_block_align_end(block);
+  block_align_end(block);
 }
 
-ID *UI_context_active_but_get_tab_ID(bContext *C)
+ID *context_active_but_get_tab_ID(bContext *C)
 {
-  uiBut *but = UI_context_active_but_get(C);
+  uiBut *but = context_active_but_get(C);
 
   if (but && but->type == ButType::Tab) {
     return static_cast<ID *>(but->custom_data);
@@ -1459,10 +1459,10 @@ static void template_ID_tabs(const bContext *C,
   const int but_height = UI_UNIT_Y * 1.1;
 
   uiBlock *block = layout.block();
-  const uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = style_get_dpi();
 
   for (ID *id : BKE_id_ordered_list(template_id.idlb)) {
-    const int name_width = UI_fontstyle_string_width(&style->widget, id->name + 2);
+    const int name_width = fontstyle_string_width(&style->widget, id->name + 2);
     const int but_width = name_width + UI_UNIT_X;
 
     ButtonTab *tab = (ButtonTab *)uiDefButR_prop(block,
@@ -1478,17 +1478,17 @@ static void template_ID_tabs(const bContext *C,
                                                  0.0f,
                                                  sizeof(id->name) - 2,
                                                  "");
-    UI_but_funcN_set(tab,
+    button_funcN_set(tab,
                      template_ID_set_property_exec_fn,
                      MEM_new<TemplateID>(__func__, template_id),
                      id,
                      but_func_argN_free<TemplateID>,
                      but_func_argN_copy<TemplateID>);
-    UI_but_drag_set_id(tab, id);
+    button_drag_set_id(tab, id);
     tab->custom_data = (void *)id;
     tab->menu = mt;
 
-    UI_but_drawflag_enable(tab, but_align);
+    button_drawflag_enable(tab, but_align);
   }
 
   if (flag & UI_ID_ADD_NEW) {
@@ -1508,7 +1508,7 @@ static void template_ID_tabs(const bContext *C,
                                   flag & UI_ID_OPEN,
                                   true,
                                   but_height);
-    UI_but_drawflag_enable(but, but_align);
+    button_drawflag_enable(but, but_align);
   }
 }
 
@@ -1581,16 +1581,16 @@ static void ui_template_id(Layout &layout,
   }
 }
 
-void uiTemplateID(Layout *layout,
-                  const bContext *C,
-                  PointerRNA *ptr,
-                  const StringRefNull propname,
-                  const char *newop,
-                  const char *openop,
-                  const char *unlinkop,
-                  int filter,
-                  const bool live_icon,
-                  const std::optional<StringRef> text)
+void template_id(Layout *layout,
+                 const bContext *C,
+                 PointerRNA *ptr,
+                 const StringRefNull propname,
+                 const char *newop,
+                 const char *openop,
+                 const char *unlinkop,
+                 int filter,
+                 const bool live_icon,
+                 const std::optional<StringRef> text)
 {
   ui_template_id(*layout,
                  C,
@@ -1611,12 +1611,12 @@ void uiTemplateID(Layout *layout,
                  false);
 }
 
-void uiTemplateAction(Layout *layout,
-                      const bContext *C,
-                      ID *id,
-                      const char *newop,
-                      const char *unlinkop,
-                      const std::optional<StringRef> text)
+void template_action(Layout *layout,
+                     const bContext *C,
+                     ID *id,
+                     const char *newop,
+                     const char *unlinkop,
+                     const std::optional<StringRef> text)
 {
   if (!id_can_have_animdata(id)) {
     RNA_warning("Cannot show Action selector for non-animatable ID: %s", id->name + 2);
@@ -1643,7 +1643,7 @@ void uiTemplateAction(Layout *layout,
   template_ui.prv_rows = 0;
   template_ui.prv_cols = 0;
   template_ui.scale = 1.0f;
-  template_ui.filter = UI_TEMPLATE_ID_FILTER_ALL;
+  template_ui.filter = TEMPLATE_ID_FILTER_ALL;
 
   int flag = UI_ID_BROWSE | UI_ID_RENAME | UI_ID_DELETE;
   if (newop) {
@@ -1659,7 +1659,7 @@ void uiTemplateAction(Layout *layout,
       C, row, template_ui, &RNA_Action, flag, newop, nullptr, unlinkop, text, false, false);
 }
 
-void uiTemplateIDBrowse(Layout *layout,
+void template_id_browse(Layout *layout,
                         bContext *C,
                         PointerRNA *ptr,
                         const StringRefNull propname,
@@ -1688,7 +1688,7 @@ void uiTemplateIDBrowse(Layout *layout,
                  false);
 }
 
-void uiTemplateIDPreview(Layout *layout,
+void template_id_preview(Layout *layout,
                          bContext *C,
                          PointerRNA *ptr,
                          const StringRefNull propname,
@@ -1719,14 +1719,14 @@ void uiTemplateIDPreview(Layout *layout,
                  hide_buttons);
 }
 
-void uiTemplateGpencilColorPreview(Layout *layout,
-                                   bContext *C,
-                                   PointerRNA *ptr,
-                                   const StringRefNull propname,
-                                   int rows,
-                                   int cols,
-                                   float scale,
-                                   int filter)
+void template_greasepencil_color_preview(Layout *layout,
+                                         bContext *C,
+                                         PointerRNA *ptr,
+                                         const StringRefNull propname,
+                                         int rows,
+                                         int cols,
+                                         float scale,
+                                         int filter)
 {
   ui_template_id(*layout,
                  C,
@@ -1747,7 +1747,7 @@ void uiTemplateGpencilColorPreview(Layout *layout,
                  false);
 }
 
-void uiTemplateIDTabs(Layout *layout,
+void template_id_tabs(Layout *layout,
                       bContext *C,
                       PointerRNA *ptr,
                       const StringRefNull propname,
@@ -1774,7 +1774,7 @@ void uiTemplateIDTabs(Layout *layout,
                  false);
 }
 
-void uiTemplateAnyID(Layout *layout,
+void template_any_id(Layout *layout,
                      PointerRNA *ptr,
                      const StringRefNull propname,
                      const StringRefNull proptypename,
@@ -1824,7 +1824,7 @@ void uiTemplateAnyID(Layout *layout,
   Layout *sub = &row->row(true);
   sub->alignment_set(LayoutAlign::Left);
 
-  sub->prop(ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+  sub->prop(ptr, propType, 0, 0, ITEM_R_ICON_ONLY, "", ICON_NONE);
 
   /* ID-Block Selector - just use pointer widget... */
 

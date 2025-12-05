@@ -160,8 +160,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
   Image *image = ED_space_image(sima);
 
   float uv[2];
-  blender::ui::UI_view2d_region_to_view(
-      &region->v2d, event->mval[0], event->mval[1], &uv[0], &uv[1]);
+  blender::ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &uv[0], &uv[1]);
   int tile = BKE_image_get_tile_from_pos(sima->image, uv, uv, nullptr);
 
   void *lock;
@@ -287,7 +286,7 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
     return;
   }
 
-  blender::ui::UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fx, &fy);
+  blender::ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fx, &fy);
 
   fx /= scene->r.xasp / scene->r.yasp;
 

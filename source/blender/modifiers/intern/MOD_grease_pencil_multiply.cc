@@ -251,7 +251,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   ui::Layout &col = layout.column(false);
   col.active_set(RNA_int_get(ptr, "duplicates") > 0);
   col.prop(ptr, "distance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  col.prop(ptr, "offset", ui::UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  col.prop(ptr, "offset", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
   ui::PanelLayout fade_panel_layout = layout.panel_prop_with_bool_header(
       C, ptr, "open_fading_panel", ptr, "use_fade", IFACE_("Fade"));
   if (ui::Layout *fade_panel = fade_panel_layout.body) {
@@ -259,8 +259,8 @@ static void panel_draw(const bContext *C, Panel *panel)
     sub.active_set(RNA_boolean_get(ptr, "use_fade"));
 
     sub.prop(ptr, "fading_center", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    sub.prop(ptr, "fading_thickness", ui::UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-    sub.prop(ptr, "fading_opacity", ui::UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+    sub.prop(ptr, "fading_thickness", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+    sub.prop(ptr, "fading_opacity", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
   }
 
   if (ui::Layout *influence_panel = layout.panel_prop(

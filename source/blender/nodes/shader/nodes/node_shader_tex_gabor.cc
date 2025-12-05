@@ -62,7 +62,7 @@ static void sh_node_tex_gabor_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_tex_gabor(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "gabor_type", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "gabor_type", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static void node_shader_init_tex_gabor(bNodeTree * /*ntree*/, bNode *node)

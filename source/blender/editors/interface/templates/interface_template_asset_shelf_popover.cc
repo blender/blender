@@ -56,10 +56,10 @@ void template_asset_shelf_popover(Layout &layout,
   row.popover(&C, "ASSETSHELF_PT_popover_panel", name, icon);
   uiBut *but = block->buttons.last().get();
   if (use_preview_icon) {
-    ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+    ui_def_but_icon(but, icon, UI_HAS_ICON | BUT_ICON_PREVIEW);
     /* Avoid small annoyance where asset shelf popover gets spawned unintentionally on mouse hover,
      * see #132293. */
-    UI_but_menu_disable_hover_open(but);
+    button_menu_disable_hover_open(but);
   }
 }
 
@@ -96,7 +96,7 @@ bool asset_shelf_popover_invoke(bContext &C, StringRef asset_shelf_idname, Repor
 
 std::optional<StringRefNull> UI_asset_shelf_idname_from_button_context(const uiBut *but)
 {
-  return UI_but_context_string_get(but, "asset_shelf_idname");
+  return button_context_string_get(but, "asset_shelf_idname");
 }
 
 }  // namespace blender::ui

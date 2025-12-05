@@ -39,7 +39,7 @@ static void draw_item_in_list(uiList * /*ui_list*/,
   if constexpr (Accessor::has_type) {
     float4 color;
     RNA_float_get_array(itemptr, "color", color);
-    uiTemplateNodeSocket(&row, const_cast<bContext *>(C), color);
+    template_node_socket(&row, const_cast<bContext *>(C), color);
   }
   row.emboss_set(blender::ui::EmbossType::None);
   row.prop(itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
@@ -68,20 +68,20 @@ static void draw_items_list_with_operators(const bContext *C,
   }();
 
   blender::ui::Layout *row = &layout->row(false);
-  uiTemplateList(row,
-                 C,
-                 items_list->idname,
-                 "",
-                 &node_ptr,
-                 Accessor::rna_names::items,
-                 &node_ptr,
-                 Accessor::rna_names::active_index.c_str(),
-                 nullptr,
-                 3,
-                 5,
-                 UILST_LAYOUT_DEFAULT,
-                 0,
-                 blender::ui::UI_TEMPLATE_LIST_FLAG_NONE);
+  template_list(row,
+                C,
+                items_list->idname,
+                "",
+                &node_ptr,
+                Accessor::rna_names::items,
+                &node_ptr,
+                Accessor::rna_names::active_index.c_str(),
+                nullptr,
+                3,
+                5,
+                UILST_LAYOUT_DEFAULT,
+                0,
+                blender::ui::TEMPLATE_LIST_FLAG_NONE);
 
   blender::ui::Layout *ops_col = &row->column(false);
   {

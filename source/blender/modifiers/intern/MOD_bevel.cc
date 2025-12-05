@@ -291,7 +291,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   bool edge_bevel = RNA_enum_get(ptr, "affect") != MOD_BEVEL_AFFECT_VERTICES;
 
-  layout.prop(ptr, "affect", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "affect", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
@@ -338,7 +338,7 @@ static void profile_panel_draw(const bContext * /*C*/, Panel *panel)
   int miter_outer = RNA_enum_get(ptr, "miter_outer");
   bool edge_bevel = RNA_enum_get(ptr, "affect") != MOD_BEVEL_AFFECT_VERTICES;
 
-  layout.prop(ptr, "profile_type", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "profile_type", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
@@ -350,7 +350,7 @@ static void profile_panel_draw(const bContext * /*C*/, Panel *panel)
          !((miter_inner == MOD_BEVEL_MITER_SHARP) && (miter_outer == MOD_BEVEL_MITER_SHARP))));
     row.prop(ptr,
              "profile",
-             blender::ui::UI_ITEM_R_SLIDER,
+             blender::ui::ITEM_R_SLIDER,
              (profile_type == MOD_BEVEL_PROFILE_SUPERELLIPSE) ? IFACE_("Shape") :
                                                                 IFACE_("Miter Shape"),
              ICON_NONE);
@@ -358,7 +358,7 @@ static void profile_panel_draw(const bContext * /*C*/, Panel *panel)
     if (profile_type == MOD_BEVEL_PROFILE_CUSTOM) {
       blender::ui::Layout &sub = layout.column(false);
       sub.use_property_decorate_set(false);
-      uiTemplateCurveProfile(&sub, ptr, "custom_profile");
+      template_curve_profile(&sub, ptr, "custom_profile");
     }
   }
 }

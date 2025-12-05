@@ -76,9 +76,8 @@ enum {
   STITCH_DOWN = 1 << DOWN,
 };
 
-/* Mapping between 'our' sides and 'public' UI_BUT_ALIGN flags, order must match enum above. */
-#define SIDE_TO_UI_BUT_ALIGN \
-  {UI_BUT_ALIGN_LEFT, UI_BUT_ALIGN_TOP, UI_BUT_ALIGN_RIGHT, UI_BUT_ALIGN_DOWN}
+/* Mapping between 'our' sides and 'public' BUT_ALIGN flags, order must match enum above. */
+#define SIDE_TO_BUT_ALIGN {BUT_ALIGN_LEFT, BUT_ALIGN_TOP, BUT_ALIGN_RIGHT, BUT_ALIGN_DOWN}
 
 /* Given one side, compute the three other ones */
 #define SIDE1(_s) (((_s) + 1) % TOTSIDES)
@@ -280,12 +279,12 @@ static void block_align_stitch_neighbors(ButAlign *butal,
       *butal_neighbor->borders[side_opp] = co;
       butal_neighbor->dists[side_opp] = 0.0f;
     }
-    /* See definition of UI_BUT_ALIGN_STITCH_LEFT/TOP for reason of this... */
+    /* See definition of BUT_ALIGN_STITCH_LEFT/TOP for reason of this... */
     else if (side == LEFT) {
-      butal->but->drawflag |= UI_BUT_ALIGN_STITCH_LEFT;
+      butal->but->drawflag |= BUT_ALIGN_STITCH_LEFT;
     }
     else if (side == TOP) {
-      butal->but->drawflag |= UI_BUT_ALIGN_STITCH_TOP;
+      butal->but->drawflag |= BUT_ALIGN_STITCH_TOP;
     }
     *butal->borders[side] = co;
     butal->dists[side] = 0.0f;
@@ -330,20 +329,20 @@ static void ui_block_align_but_to_region(uiBut *but, const ARegion *region)
   const float but_height = BLI_rctf_size_y(rect);
   const float outline_px = U.pixelsize; /* This may have to be made more variable. */
 
-  switch (but->drawflag & UI_BUT_ALIGN) {
-    case UI_BUT_ALIGN_TOP:
+  switch (but->drawflag & BUT_ALIGN) {
+    case BUT_ALIGN_TOP:
       rect->ymax = region->winy + outline_px;
       rect->ymin = but->rect.ymax - but_height;
       break;
-    case UI_BUT_ALIGN_DOWN:
+    case BUT_ALIGN_DOWN:
       rect->ymin = -outline_px;
       rect->ymax = rect->ymin + but_height;
       break;
-    case UI_BUT_ALIGN_LEFT:
+    case BUT_ALIGN_LEFT:
       rect->xmin = -outline_px;
       rect->xmax = rect->xmin + but_width;
       break;
-    case UI_BUT_ALIGN_RIGHT:
+    case BUT_ALIGN_RIGHT:
       rect->xmax = region->winx + outline_px;
       rect->xmin = rect->xmax - but_width;
       break;
@@ -358,7 +357,7 @@ static void ui_block_align_but_to_region(uiBut *but, const ARegion *region)
 void ui_block_align_calc(uiBlock *block, const ARegion *region)
 {
 
-  const int sides_to_ui_but_align_flags[4] = SIDE_TO_UI_BUT_ALIGN;
+  const int sides_to_ui_but_align_flags[4] = SIDE_TO_BUT_ALIGN;
 
   Vector<ButAlign, 256> butal_array(block->buttons.size());
 
@@ -372,7 +371,7 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
     }
     else {
       /* Clear old align flags. */
-      but->drawflag &= ~UI_BUT_ALIGN_ALL;
+      but->drawflag &= ~BUT_ALIGN_ALL;
     }
 
     if (but->alignnr == 0) {
@@ -479,7 +478,7 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
   }
 }
 
-#undef SIDE_TO_UI_BUT_ALIGN
+#undef SIDE_TO_BUT_ALIGN
 #undef SIDE1
 #undef OPPOSITE
 #undef SIDE2
@@ -495,13 +494,13 @@ int ui_but_align_opposite_to_area_align_get(const ARegion *region)
 
   switch (RGN_ALIGN_ENUM_FROM_MASK(align_region->alignment)) {
     case RGN_ALIGN_TOP:
-      return UI_BUT_ALIGN_DOWN;
+      return BUT_ALIGN_DOWN;
     case RGN_ALIGN_BOTTOM:
-      return UI_BUT_ALIGN_TOP;
+      return BUT_ALIGN_TOP;
     case RGN_ALIGN_LEFT:
-      return UI_BUT_ALIGN_RIGHT;
+      return BUT_ALIGN_RIGHT;
     case RGN_ALIGN_RIGHT:
-      return UI_BUT_ALIGN_LEFT;
+      return BUT_ALIGN_LEFT;
   }
 
   return 0;

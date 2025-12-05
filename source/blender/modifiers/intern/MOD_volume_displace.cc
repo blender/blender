@@ -101,7 +101,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   layout.use_property_split_set(true);
 
-  uiTemplateID(&layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
+  template_id(&layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
   layout.prop(ptr, "texture_map_mode", UI_ITEM_NONE, IFACE_("Texture Mapping"), ICON_NONE);
 
   if (vdmd->texture_map_mode == MOD_VOLUME_DISPLACE_MAP_OBJECT) {

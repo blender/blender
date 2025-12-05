@@ -116,7 +116,7 @@ static bool grid_search_item_add(ui::SearchItems &items, const VolumeGridInfo &i
 {
   std::string text = fmt::format(
       "{}" UI_SEP_CHAR_S "{}", item.name, grid_data_type_string(item.grid_type));
-  return UI_search_item_add(&items, text, (void *)&item, ICON_NONE, ui::UI_BUT_HAS_SEP_CHAR, 0);
+  return search_item_add(&items, text, (void *)&item, ICON_NONE, ui::BUT_HAS_SEP_CHAR, 0);
 }
 
 static void volume_grid_search_add_items(const StringRef str,
@@ -137,8 +137,7 @@ static void volume_grid_search_add_items(const StringRef str,
     }
     if (!contained) {
       dummy_str = str;
-      UI_search_item_add(
-          &seach_items, str, &dummy_str, can_create_grid ? ICON_ADD : ICON_NONE, 0, 0);
+      search_item_add(&seach_items, str, &dummy_str, can_create_grid ? ICON_ADD : ICON_NONE, 0, 0);
     }
   }
 
@@ -146,7 +145,7 @@ static void volume_grid_search_add_items(const StringRef str,
     /* Allow clearing the text field when the string is empty, but not on the first pass,
      * or opening a name field for the first time would show this search item. */
     dummy_str = str;
-    UI_search_item_add(&seach_items, str, &dummy_str, ICON_X, 0, 0);
+    search_item_add(&seach_items, str, &dummy_str, ICON_X, 0, 0);
   }
 
   /* Don't filter when the menu is first opened, but still run the search
@@ -239,7 +238,7 @@ void node_geometry_add_volume_grid_search_button(const bContext & /*C*/,
                                  "default_value",
                                  0,
                                  "");
-  UI_but_placeholder_set(but, placeholder);
+  button_placeholder_set(but, placeholder);
 
   const bNodeSocket &socket = *static_cast<const bNodeSocket *>(socket_ptr.data);
   GridSearchData *data = MEM_callocN<GridSearchData>(__func__);
@@ -247,9 +246,9 @@ void node_geometry_add_volume_grid_search_button(const bContext & /*C*/,
   data->can_create_grid = node.is_type("GeometryNodeStoreNamedGrid");
   STRNCPY_UTF8(data->socket_identifier, socket.identifier);
 
-  UI_but_func_search_set_results_are_suggestions(but, true);
-  UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
-  UI_but_func_search_set(but,
+  button_func_search_set_results_are_suggestions(but, true);
+  button_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
+  button_func_search_set(but,
                          nullptr,
                          grid_search_update_fn,
                          static_cast<void *>(data),

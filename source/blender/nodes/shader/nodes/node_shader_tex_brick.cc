@@ -82,17 +82,15 @@ static void node_shader_buts_tex_brick(ui::Layout &layout, bContext * /*C*/, Poi
     ui::Layout &col = layout.column(true);
     col.prop(ptr,
              "offset",
-             ui::UI_ITEM_R_SPLIT_EMPTY_NAME | ui::UI_ITEM_R_SLIDER,
+             ui::ITEM_R_SPLIT_EMPTY_NAME | ui::ITEM_R_SLIDER,
              IFACE_("Offset"),
              ICON_NONE);
-    col.prop(
-        ptr, "offset_frequency", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Frequency"), ICON_NONE);
+    col.prop(ptr, "offset_frequency", ui::ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Frequency"), ICON_NONE);
   }
   {
     ui::Layout &col = layout.column(true);
-    col.prop(ptr, "squash", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Squash"), ICON_NONE);
-    col.prop(
-        ptr, "squash_frequency", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Frequency"), ICON_NONE);
+    col.prop(ptr, "squash", ui::ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Squash"), ICON_NONE);
+    col.prop(ptr, "squash_frequency", ui::ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Frequency"), ICON_NONE);
   }
 }
 

@@ -102,7 +102,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                   params.height,
                                   nullptr,
                                   std::nullopt);
-    UI_but_func_tooltip_set(
+    button_func_tooltip_set(
         but,
         [](bContext * /*C*/, void *arg, blender::StringRef /*tip*/) {
           return *static_cast<std::string *>(arg);
@@ -110,8 +110,8 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
         MEM_new<std::string>(__func__, name),
         [](void *arg) { MEM_delete(static_cast<std::string *>(arg)); });
     /* Center-align column headers. */
-    UI_but_drawflag_disable(but, ui::UI_BUT_TEXT_LEFT);
-    UI_but_drawflag_disable(but, ui::UI_BUT_TEXT_RIGHT);
+    button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
+    button_drawflag_disable(but, ui::BUT_TEXT_RIGHT);
   }
 
   void draw_left_column_cell(int row_index, const CellDrawParams &params) const final
@@ -129,8 +129,8 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                   nullptr,
                                   std::nullopt);
     /* Right-align indices. */
-    UI_but_drawflag_enable(but, ui::UI_BUT_TEXT_RIGHT);
-    UI_but_drawflag_disable(but, ui::UI_BUT_TEXT_LEFT);
+    button_drawflag_enable(but, ui::BUT_TEXT_RIGHT);
+    button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
   }
 
   void draw_content_cell(int row_index, int column_index, const CellDrawParams &params) const final
@@ -176,8 +176,8 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr,
                                     std::nullopt);
       /* Right-align Integers. */
-      UI_but_drawflag_disable(but, ui::UI_BUT_TEXT_LEFT);
-      UI_but_drawflag_enable(but, ui::UI_BUT_TEXT_RIGHT);
+      button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
+      button_drawflag_enable(but, ui::BUT_TEXT_RIGHT);
       return;
     }
     if (type.is<short2>()) {
@@ -210,7 +210,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     params.height,
                                     nullptr,
                                     std::nullopt);
-      UI_but_func_tooltip_set(
+      button_func_tooltip_set(
           but,
           [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
             return fmt::format("{:f}", *((float *)argN));
@@ -218,8 +218,8 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
           MEM_dupallocN<float>(__func__, value),
           MEM_freeN);
       /* Right-align Floats. */
-      UI_but_drawflag_disable(but, ui::UI_BUT_TEXT_LEFT);
-      UI_but_drawflag_enable(but, ui::UI_BUT_TEXT_RIGHT);
+      button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
+      button_drawflag_enable(but, ui::BUT_TEXT_RIGHT);
       return;
     }
     if (type.is<bool>()) {
@@ -235,7 +235,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     params.height,
                                     nullptr,
                                     std::nullopt);
-      UI_but_drawflag_disable(but, ui::UI_BUT_ICON_LEFT);
+      button_drawflag_disable(but, ui::BUT_ICON_LEFT);
       return;
     }
     if (type.is<float2>()) {
@@ -310,7 +310,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr,
                                     std::nullopt);
 
-      UI_but_func_tooltip_set(
+      button_func_tooltip_set(
           but,
           [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
             const MStringProperty &prop = *static_cast<MStringProperty *>(argN);
@@ -387,7 +387,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr,
                                     std::nullopt);
 
-      UI_but_func_tooltip_set(
+      button_func_tooltip_set(
           but,
           [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
             return fmt::format("{:f}", *((float *)argN));
@@ -395,8 +395,8 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
           MEM_dupallocN<float>(__func__, value),
           MEM_freeN);
       /* Right-align Floats. */
-      UI_but_drawflag_disable(but, ui::UI_BUT_TEXT_LEFT);
-      UI_but_drawflag_enable(but, ui::UI_BUT_TEXT_RIGHT);
+      button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
+      button_drawflag_enable(but, ui::BUT_TEXT_RIGHT);
     }
   }
 
@@ -431,7 +431,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                   std::nullopt);
     switch (display_hint) {
       case ColumnValueDisplayHint::Bytes: {
-        UI_but_func_tooltip_set(
+        button_func_tooltip_set(
             but,
             [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
               char dst[BLI_STR_FORMAT_INT64_GROUPED_SIZE];
@@ -443,7 +443,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
         break;
       }
       default: {
-        UI_but_func_tooltip_set(
+        button_func_tooltip_set(
             but,
             [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
               return fmt::format("{}", *(int64_t *)argN);
@@ -454,8 +454,8 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       }
     }
     /* Right-align Integers. */
-    UI_but_drawflag_disable(but, ui::UI_BUT_TEXT_LEFT);
-    UI_but_drawflag_enable(but, ui::UI_BUT_TEXT_RIGHT);
+    button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
+    button_drawflag_enable(but, ui::BUT_TEXT_RIGHT);
   }
 
   void draw_int_vector(const CellDrawParams &params, const Span<int> values) const
@@ -477,7 +477,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     params.height,
                                     nullptr,
                                     std::nullopt);
-      UI_but_func_tooltip_set(
+      button_func_tooltip_set(
           but,
           [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
             return fmt::format("{}", *((int *)argN));
@@ -485,8 +485,8 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
           MEM_dupallocN<int>(__func__, value),
           MEM_freeN);
       /* Right-align Floats. */
-      UI_but_drawflag_disable(but, ui::UI_BUT_TEXT_LEFT);
-      UI_but_drawflag_enable(but, ui::UI_BUT_TEXT_RIGHT);
+      button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
+      button_drawflag_enable(but, ui::BUT_TEXT_RIGHT);
     }
   }
 
@@ -511,11 +511,11 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr,
                                     std::nullopt);
       /* Right-align Floats. */
-      UI_but_drawflag_disable(but, ui::UI_BUT_TEXT_LEFT);
-      UI_but_drawflag_enable(but, ui::UI_BUT_TEXT_RIGHT);
+      button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
+      button_drawflag_enable(but, ui::BUT_TEXT_RIGHT);
 
       /* Tooltip showing raw byte values. Encode values in pointer to avoid memory allocation. */
-      UI_but_func_tooltip_set(
+      button_func_tooltip_set(
           but,
           [](bContext * /*C*/, void *argN, const StringRef /*tip*/) {
             const uint32_t uint_color = POINTER_AS_UINT(argN);
@@ -535,13 +535,13 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
   {
     uiBut *but = this->draw_undrawable(params);
     /* Center alignment. */
-    UI_but_drawflag_disable(but, ui::UI_BUT_TEXT_LEFT);
-    UI_but_func_tooltip_custom_set(
+    button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
+    button_func_tooltip_custom_set(
         but,
         [](bContext & /*C*/, uiTooltipData &tip, uiBut * /*but*/, void *argN) {
           const float4x4 matrix = *static_cast<const float4x4 *>(argN);
           UI_tooltip_text_field_add(
-              tip, format_matrix_to_grid(matrix), {}, ui::UI_TIP_STYLE_MONO, ui::UI_TIP_LC_VALUE);
+              tip, format_matrix_to_grid(matrix), {}, ui::TIP_STYLE_MONO, ui::TIP_LC_VALUE);
         },
         MEM_dupallocN<float4x4>(__func__, value),
         MEM_freeN);
@@ -560,7 +560,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                   nullptr,
                                   std::nullopt);
     /* Center alignment. */
-    UI_but_drawflag_disable(but, ui::UI_BUT_TEXT_LEFT);
+    button_drawflag_disable(but, ui::BUT_TEXT_LEFT);
     return but;
   }
 

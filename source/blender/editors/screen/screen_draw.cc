@@ -172,7 +172,7 @@ void ED_screen_draw_edges(wmWindow *win)
   GPU_scissor_test(true);
 
   float col[4];
-  blender::ui::UI_GetThemeColor4fv(TH_EDITOR_BORDER, col);
+  blender::ui::GetThemeColor4fv(TH_EDITOR_BORDER, col);
 
   const float edge_thickness = float(U.border_width) * UI_SCALE_FAC;
 
@@ -202,19 +202,19 @@ void ED_screen_draw_edges(wmWindow *win)
   rctf bounds;
   /* Outset by 1/2 pixel, regardless of UI scale or pixel size. #141550. */
   const float padding = 0.5f;
-  blender::ui::UI_GetThemeColor4fv(TH_EDITOR_OUTLINE, outline1);
-  blender::ui::UI_GetThemeColor4fv(TH_EDITOR_OUTLINE_ACTIVE, outline2);
-  blender::ui::UI_draw_roundbox_corner_set(blender::ui::UI_CNR_ALL);
+  blender::ui::GetThemeColor4fv(TH_EDITOR_OUTLINE, outline1);
+  blender::ui::GetThemeColor4fv(TH_EDITOR_OUTLINE_ACTIVE, outline2);
+  blender::ui::draw_roundbox_corner_set(blender::ui::CNR_ALL);
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     BLI_rctf_rcti_copy(&bounds, &area->totrct);
     BLI_rctf_pad(&bounds, padding, padding);
-    blender::ui::UI_draw_roundbox_4fv_ex(&bounds,
-                                         nullptr,
-                                         nullptr,
-                                         1.0f,
-                                         (area == active_area) ? outline2 : outline1,
-                                         U.pixelsize,
-                                         EDITORRADIUS);
+    blender::ui::draw_roundbox_4fv_ex(&bounds,
+                                      nullptr,
+                                      nullptr,
+                                      1.0f,
+                                      (area == active_area) ? outline2 : outline1,
+                                      U.pixelsize,
+                                      EDITORRADIUS);
   }
 
   GPU_blend(GPU_BLEND_NONE);
@@ -256,11 +256,11 @@ void screen_draw_move_highlight(const wmWindow *win,
 
   float inner[4] = {1.0f, 1.0f, 1.0f, 0.4f * anim_factor};
   float outline[4];
-  blender::ui::UI_GetThemeColor4fv(TH_EDITOR_BORDER, outline);
+  blender::ui::GetThemeColor4fv(TH_EDITOR_BORDER, outline);
   outline[3] *= anim_factor;
 
-  blender::ui::UI_draw_roundbox_corner_set(blender::ui::UI_CNR_ALL);
-  blender::ui::UI_draw_roundbox_4fv_ex(
+  blender::ui::draw_roundbox_corner_set(blender::ui::CNR_ALL);
+  blender::ui::draw_roundbox_4fv_ex(
       &rect, inner, nullptr, 1.0f, outline, width - U.pixelsize, 2.5f * UI_SCALE_FAC);
 }
 
@@ -268,7 +268,7 @@ void screen_draw_region_scale_highlight(ARegion *region)
 {
   rctf rect;
   BLI_rctf_rcti_copy(&rect, &region->winrct);
-  blender::ui::UI_draw_roundbox_corner_set(blender::ui::UI_CNR_ALL);
+  blender::ui::draw_roundbox_corner_set(blender::ui::CNR_ALL);
 
   switch (region->alignment) {
     case RGN_ALIGN_RIGHT:
@@ -301,7 +301,7 @@ void screen_draw_region_scale_highlight(ARegion *region)
 
   float inner[4] = {1.0f, 1.0f, 1.0f, 0.4f};
   float outline[4] = {0.0f, 0.0f, 0.0f, 0.3f};
-  blender::ui::UI_draw_roundbox_4fv_ex(
+  blender::ui::draw_roundbox_4fv_ex(
       &rect, inner, nullptr, 1.0f, outline, 1.0f * U.pixelsize, 2.5f * UI_SCALE_FAC);
 }
 
@@ -310,7 +310,7 @@ static void screen_draw_area_drag_tip(
 {
   const char *area_name = IFACE_(ED_area_name(source).c_str());
   const uiFontStyle *fstyle = UI_FSTYLE_TOOLTIP;
-  const bTheme *btheme = blender::ui::UI_GetTheme();
+  const bTheme *btheme = blender::ui::GetTheme();
   const uiWidgetColors *wcol = &btheme->tui.wcol_tooltip;
   float col_fg[4], col_bg[4];
   rgba_uchar_to_float(col_fg, wcol->text);
@@ -340,18 +340,18 @@ static void screen_draw_area_drag_tip(
   rect.xmax = left + width;
   rect.ymax = top;
   rect.ymin = top - height;
-  blender::ui::UI_draw_roundbox_corner_set(blender::ui::UI_CNR_ALL);
-  blender::ui::UI_draw_roundbox_4fv(&rect, true, wcol->roundness * U.widget_unit, col_bg);
+  blender::ui::draw_roundbox_corner_set(blender::ui::CNR_ALL);
+  blender::ui::draw_roundbox_4fv(&rect, true, wcol->roundness * U.widget_unit, col_bg);
 
-  blender::ui::UI_icon_draw_ex(left + margin,
-                               top - height + margin + (1.0f * scale),
-                               ED_area_icon(source),
-                               1.4f / scale,
-                               1.0f,
-                               0.0f,
-                               wcol->text,
-                               true,
-                               UI_NO_ICON_OVERLAY_TEXT);
+  blender::ui::icon_draw_ex(left + margin,
+                            top - height + margin + (1.0f * scale),
+                            ED_area_icon(source),
+                            1.4f / scale,
+                            1.0f,
+                            0.0f,
+                            wcol->text,
+                            true,
+                            UI_NO_ICON_OVERLAY_TEXT);
 
   BLF_size(fstyle->uifont_id, UI_DEFAULT_TOOLTIP_POINTS * scale);
   BLF_color4fv(fstyle->uifont_id, col_fg);
@@ -371,8 +371,8 @@ static void screen_draw_area_closed(int xmin, int xmax, int ymin, int ymax, floa
   /* Darken the area. */
   rctf rect = {float(xmin), float(xmax), float(ymin), float(ymax)};
   float darken[4] = {0.0f, 0.0f, 0.0f, 0.7f * anim_factor};
-  blender::ui::UI_draw_roundbox_corner_set(blender::ui::UI_CNR_ALL);
-  blender::ui::UI_draw_roundbox_4fv_ex(
+  blender::ui::draw_roundbox_corner_set(blender::ui::CNR_ALL);
+  blender::ui::draw_roundbox_4fv_ex(
       &rect, darken, nullptr, 1.0f, nullptr, U.pixelsize, EDITORRADIUS);
 }
 
@@ -443,10 +443,10 @@ void screen_draw_join_highlight(
   }
 
   /* Outline the combined area. */
-  UI_draw_roundbox_corner_set(blender::ui::UI_CNR_ALL);
+  draw_roundbox_corner_set(blender::ui::CNR_ALL);
   float outline[4] = {1.0f, 1.0f, 1.0f, 0.4f * anim_factor};
   float inner[4] = {1.0f, 1.0f, 1.0f, 0.10f * anim_factor};
-  blender::ui::UI_draw_roundbox_4fv_ex(
+  blender::ui::draw_roundbox_4fv_ex(
       &combined, inner, nullptr, 1.0f, outline, U.pixelsize, EDITORRADIUS);
 
   screen_draw_area_drag_tip(
@@ -474,7 +474,7 @@ static void rounded_corners(rctf rect, float color[4], int corners)
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor4fv(color);
 
-  if (corners & blender::ui::UI_CNR_TOP_LEFT) {
+  if (corners & blender::ui::CNR_TOP_LEFT) {
     immBegin(GPU_PRIM_TRI_FAN, 7);
     immVertex2f(pos, rect.xmin - 1, rect.ymax);
     immVertex2f(pos, rect.xmin, rect.ymax - rad);
@@ -485,7 +485,7 @@ static void rounded_corners(rctf rect, float color[4], int corners)
     immEnd();
   }
 
-  if (corners & blender::ui::UI_CNR_TOP_RIGHT) {
+  if (corners & blender::ui::CNR_TOP_RIGHT) {
     immBegin(GPU_PRIM_TRI_FAN, 7);
     immVertex2f(pos, rect.xmax + 1, rect.ymax);
     immVertex2f(pos, rect.xmax - rad, rect.ymax);
@@ -496,7 +496,7 @@ static void rounded_corners(rctf rect, float color[4], int corners)
     immEnd();
   }
 
-  if (corners & blender::ui::UI_CNR_BOTTOM_RIGHT) {
+  if (corners & blender::ui::CNR_BOTTOM_RIGHT) {
     immBegin(GPU_PRIM_TRI_FAN, 7);
     immVertex2f(pos, rect.xmax + 1, rect.ymin);
     immVertex2f(pos, rect.xmax, rect.ymin + rad);
@@ -507,7 +507,7 @@ static void rounded_corners(rctf rect, float color[4], int corners)
     immEnd();
   }
 
-  if (corners & blender::ui::UI_CNR_BOTTOM_LEFT) {
+  if (corners & blender::ui::CNR_BOTTOM_LEFT) {
     immBegin(GPU_PRIM_TRI_FAN, 7);
     immVertex2f(pos, rect.xmin - 1, rect.ymin);
     immVertex2f(pos, rect.xmin + rad, rect.ymin);
@@ -537,9 +537,9 @@ void screen_draw_dock_preview(const wmWindow *win,
   float outline[4] = {1.0f, 1.0f, 1.0f, 0.4f * anim_factor};
   float inner[4] = {1.0f, 1.0f, 1.0f, 0.1f * anim_factor};
   float border[4];
-  blender::ui::UI_GetThemeColor4fv(TH_EDITOR_BORDER, border);
+  blender::ui::GetThemeColor4fv(TH_EDITOR_BORDER, border);
   border[3] *= anim_factor;
-  blender::ui::UI_draw_roundbox_corner_set(blender::ui::UI_CNR_ALL);
+  blender::ui::draw_roundbox_corner_set(blender::ui::CNR_ALL);
   float half_line_width = float(U.border_width) * UI_SCALE_FAC;
 
   rctf dest;
@@ -548,39 +548,39 @@ void screen_draw_dock_preview(const wmWindow *win,
   BLI_rctf_rcti_copy(&remainder, &target->totrct);
 
   float split;
-  int corners = blender::ui::UI_CNR_NONE;
+  int corners = blender::ui::CNR_NONE;
 
   if (dock_target == AreaDockTarget::Right) {
     split = std::min(dest.xmin + target->winx * (1.0f - factor),
                      dest.xmax - AREAMINX * UI_SCALE_FAC);
     dest.xmin = split + half_line_width;
     remainder.xmax = split - half_line_width;
-    corners = blender::ui::UI_CNR_TOP_LEFT | blender::ui::UI_CNR_BOTTOM_LEFT;
+    corners = blender::ui::CNR_TOP_LEFT | blender::ui::CNR_BOTTOM_LEFT;
   }
   else if (dock_target == AreaDockTarget::Left) {
     split = std::max(dest.xmax - target->winx * (1.0f - factor),
                      dest.xmin + AREAMINX * UI_SCALE_FAC);
     dest.xmax = split - half_line_width;
     remainder.xmin = split + half_line_width;
-    corners = blender::ui::UI_CNR_TOP_RIGHT | blender::ui::UI_CNR_BOTTOM_RIGHT;
+    corners = blender::ui::CNR_TOP_RIGHT | blender::ui::CNR_BOTTOM_RIGHT;
   }
   else if (dock_target == AreaDockTarget::Top) {
     split = std::min(dest.ymin + target->winy * (1.0f - factor),
                      dest.ymax - HEADERY * UI_SCALE_FAC);
     dest.ymin = split + half_line_width;
     remainder.ymax = split - half_line_width;
-    corners = blender::ui::UI_CNR_BOTTOM_RIGHT | blender::ui::UI_CNR_BOTTOM_LEFT;
+    corners = blender::ui::CNR_BOTTOM_RIGHT | blender::ui::CNR_BOTTOM_LEFT;
   }
   else if (dock_target == AreaDockTarget::Bottom) {
     split = std::max(dest.ymax - target->winy * (1.0f - factor),
                      dest.ymin + HEADERY * UI_SCALE_FAC);
     dest.ymax = split - half_line_width;
     remainder.ymin = split + half_line_width;
-    corners = blender::ui::UI_CNR_TOP_RIGHT | blender::ui::UI_CNR_TOP_LEFT;
+    corners = blender::ui::CNR_TOP_RIGHT | blender::ui::CNR_TOP_LEFT;
   }
 
   rounded_corners(dest, border, corners);
-  blender::ui::UI_draw_roundbox_4fv_ex(
+  blender::ui::draw_roundbox_4fv_ex(
       &dest, inner, nullptr, 1.0f, outline, U.pixelsize, EDITORRADIUS);
 
   if (dock_target != AreaDockTarget::Center) {
@@ -593,7 +593,7 @@ void screen_draw_dock_preview(const wmWindow *win,
       dest.ymin = split - half_line_width;
       dest.ymax = split + half_line_width;
     }
-    blender::ui::UI_draw_roundbox_4fv(&dest, true, 0.0f, border);
+    blender::ui::draw_roundbox_4fv(&dest, true, 0.0f, border);
   }
 
   screen_draw_area_drag_tip(win,
@@ -609,15 +609,15 @@ void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const 
   float outline[4] = {1.0f, 1.0f, 1.0f, 0.4f};
   float inner[4] = {1.0f, 1.0f, 1.0f, 0.10f};
   float border[4];
-  blender::ui::UI_GetThemeColor4fv(TH_EDITOR_BORDER, border);
-  UI_draw_roundbox_corner_set(blender::ui::UI_CNR_ALL);
+  blender::ui::GetThemeColor4fv(TH_EDITOR_BORDER, border);
+  draw_roundbox_corner_set(blender::ui::CNR_ALL);
 
   rctf rect;
   BLI_rctf_rcti_copy(&rect, &area->totrct);
 
   if (factor < 0.0001 || factor > 0.9999) {
     /* Highlight the entire area. */
-    blender::ui::UI_draw_roundbox_4fv_ex(
+    blender::ui::draw_roundbox_4fv_ex(
         &rect, inner, nullptr, 1.0f, outline, U.pixelsize, EDITORRADIUS);
     return;
   }
@@ -635,9 +635,9 @@ void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const 
   rounded_corners(rect,
                   border,
                   (dir_axis == SCREEN_AXIS_H) ?
-                      blender::ui::UI_CNR_TOP_RIGHT | blender::ui::UI_CNR_TOP_LEFT :
-                      blender::ui::UI_CNR_BOTTOM_RIGHT | blender::ui::UI_CNR_TOP_RIGHT);
-  blender::ui::UI_draw_roundbox_4fv_ex(
+                      blender::ui::CNR_TOP_RIGHT | blender::ui::CNR_TOP_LEFT :
+                      blender::ui::CNR_BOTTOM_RIGHT | blender::ui::CNR_TOP_RIGHT);
+  blender::ui::draw_roundbox_4fv_ex(
       &rect, inner, nullptr, 1.0f, outline, U.pixelsize, EDITORRADIUS);
 
   /* Outlined rectangle to right/below split position. */
@@ -653,9 +653,9 @@ void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const 
   rounded_corners(rect,
                   border,
                   (dir_axis == SCREEN_AXIS_H) ?
-                      blender::ui::UI_CNR_BOTTOM_RIGHT | blender::ui::UI_CNR_BOTTOM_LEFT :
-                      blender::ui::UI_CNR_BOTTOM_LEFT | blender::ui::UI_CNR_TOP_LEFT);
-  blender::ui::UI_draw_roundbox_4fv_ex(
+                      blender::ui::CNR_BOTTOM_RIGHT | blender::ui::CNR_BOTTOM_LEFT :
+                      blender::ui::CNR_BOTTOM_LEFT | blender::ui::CNR_TOP_LEFT);
+  blender::ui::draw_roundbox_4fv_ex(
       &rect, inner, nullptr, 1.0f, outline, U.pixelsize, EDITORRADIUS);
 
   /* Darken the split position itself. */
@@ -667,7 +667,7 @@ void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const 
     rect.xmin = x - half_line_width;
     rect.xmax = x + half_line_width;
   }
-  blender::ui::UI_draw_roundbox_4fv(&rect, true, 0.0f, border);
+  blender::ui::draw_roundbox_4fv(&rect, true, 0.0f, border);
 }
 
 struct AreaAnimateHighlightData {
@@ -713,14 +713,14 @@ static void area_animate_highlight_cb(const wmWindow * /*win*/, void *userdata)
     outline_color[3] = (1.0f - factor) * data->outline[3];
   }
 
-  blender::ui::UI_draw_roundbox_corner_set(blender::ui::UI_CNR_ALL);
-  blender::ui::UI_draw_roundbox_4fv_ex(&data->rect,
-                                       do_inner ? inner_color : nullptr,
-                                       nullptr,
-                                       1.0f,
-                                       do_outline ? outline_color : nullptr,
-                                       U.pixelsize,
-                                       EDITORRADIUS);
+  blender::ui::draw_roundbox_corner_set(blender::ui::CNR_ALL);
+  blender::ui::draw_roundbox_4fv_ex(&data->rect,
+                                    do_inner ? inner_color : nullptr,
+                                    nullptr,
+                                    1.0f,
+                                    do_outline ? outline_color : nullptr,
+                                    U.pixelsize,
+                                    EDITORRADIUS);
 
   data->screen->do_refresh = true;
 }

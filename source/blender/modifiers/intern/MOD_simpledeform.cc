@@ -445,7 +445,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   int deform_method = RNA_enum_get(ptr, "deform_method");
 
   blender::ui::Layout &row = layout.row(false);
-  row.prop(ptr, "deform_method", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row.prop(ptr, "deform_method", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.use_property_split_set(true);
 
@@ -457,7 +457,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   }
 
   layout.prop(ptr, "origin", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout.prop(ptr, "deform_axis", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "deform_axis", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
 }
@@ -465,8 +465,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 static void restrictions_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   blender::ui::Layout &layout = *panel->layout;
-  const blender::ui::eUI_Item_Flag toggles_flag = blender::ui::UI_ITEM_R_TOGGLE |
-                                                  blender::ui::UI_ITEM_R_FORCE_BLANK_DECORATE;
+  const blender::ui::eUI_Item_Flag toggles_flag = blender::ui::ITEM_R_TOGGLE |
+                                                  blender::ui::ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -475,7 +475,7 @@ static void restrictions_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout.use_property_split_set(true);
 
-  layout.prop(ptr, "limits", blender::ui::UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "limits", blender::ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   if (ELEM(deform_method,
            MOD_SIMPLEDEFORM_MODE_TAPER,

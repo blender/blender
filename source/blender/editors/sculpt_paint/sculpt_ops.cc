@@ -1294,7 +1294,7 @@ static void mask_from_cavity_ui(bContext *C, wmOperator *op)
 
       if (sd && RNA_boolean_get(op->ptr, "use_curve")) {
         PointerRNA sculpt_ptr = RNA_pointer_create_discrete(&scene->id, &RNA_Sculpt, sd);
-        uiTemplateCurveMapping(&layout,
+        template_curve_mapping(&layout,
                                &sculpt_ptr,
                                "automasking_cavity_curve_op",
                                'v',

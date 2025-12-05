@@ -28,11 +28,11 @@ static void node_shader_buts_vect_transform(ui::Layout &layout, bContext * /*C*/
 {
   layout.prop(ptr,
               "vector_type",
-              ui::UI_ITEM_R_SPLIT_EMPTY_NAME | ui::UI_ITEM_R_EXPAND,
+              ui::ITEM_R_SPLIT_EMPTY_NAME | ui::ITEM_R_EXPAND,
               std::nullopt,
               ICON_NONE);
-  layout.prop(ptr, "convert_from", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  layout.prop(ptr, "convert_to", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "convert_from", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "convert_to", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static void node_shader_init_vect_transform(bNodeTree * /*ntree*/, bNode *node)

@@ -30,7 +30,7 @@
 
 namespace blender::ui {
 
-void uiTemplateCacheFileVelocity(Layout *layout, PointerRNA *fileptr)
+void template_cache_file_velocity(Layout *layout, PointerRNA *fileptr)
 {
   if (RNA_pointer_is_null(fileptr)) {
     return;
@@ -43,7 +43,7 @@ void uiTemplateCacheFileVelocity(Layout *layout, PointerRNA *fileptr)
   layout->prop(fileptr, "velocity_unit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
-void uiTemplateCacheFileTimeSettings(Layout *layout, PointerRNA *fileptr)
+void template_cache_file_time_settings(Layout *layout, PointerRNA *fileptr)
 {
   if (RNA_pointer_is_null(fileptr)) {
     return;
@@ -81,8 +81,8 @@ static void cache_file_layer_item(uiList * /*ui_list*/,
                                   int /*flt_flag*/)
 {
   Layout &row = layout.row(true);
-  row.prop(itemptr, "hide_layer", UI_ITEM_R_NO_BG, "", ICON_NONE);
-  row.prop(itemptr, "filepath", UI_ITEM_R_NO_BG, "", ICON_NONE);
+  row.prop(itemptr, "hide_layer", ITEM_R_NO_BG, "", ICON_NONE);
+  row.prop(itemptr, "filepath", ITEM_R_NO_BG, "", ICON_NONE);
 }
 
 uiListType *UI_UL_cache_file_layers()
@@ -95,7 +95,7 @@ uiListType *UI_UL_cache_file_layers()
   return list_type;
 }
 
-void uiTemplateCacheFileLayers(Layout *layout, const bContext *C, PointerRNA *fileptr)
+void template_list_flags(Layout *layout, const bContext *C, PointerRNA *fileptr)
 {
   if (RNA_pointer_is_null(fileptr)) {
     return;
@@ -107,20 +107,20 @@ void uiTemplateCacheFileLayers(Layout *layout, const bContext *C, PointerRNA *fi
   Layout &row = layout->row(false);
   Layout *col = &row.column(true);
 
-  uiTemplateList(col,
-                 (bContext *)C,
-                 "UI_UL_cache_file_layers",
-                 "cache_file_layers",
-                 fileptr,
-                 "layers",
-                 fileptr,
-                 "active_index",
-                 "",
-                 1,
-                 5,
-                 UILST_LAYOUT_DEFAULT,
-                 1,
-                 UI_TEMPLATE_LIST_FLAG_NONE);
+  template_list(col,
+                (bContext *)C,
+                "UI_UL_cache_file_layers",
+                "cache_file_layers",
+                fileptr,
+                "layers",
+                fileptr,
+                "active_index",
+                "",
+                1,
+                5,
+                UILST_LAYOUT_DEFAULT,
+                1,
+                TEMPLATE_LIST_FLAG_NONE);
 
   col = &row.column(true);
   col->op("cachefile.layer_add", "", ICON_ADD);
@@ -134,9 +134,9 @@ void uiTemplateCacheFileLayers(Layout *layout, const bContext *C, PointerRNA *fi
   }
 }
 
-bool uiTemplateCacheFilePointer(PointerRNA *ptr,
-                                const StringRefNull propname,
-                                PointerRNA *r_file_ptr)
+bool template_cache_file_pointer(PointerRNA *ptr,
+                                 const StringRefNull propname,
+                                 PointerRNA *r_file_ptr)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 
@@ -160,7 +160,7 @@ bool uiTemplateCacheFilePointer(PointerRNA *ptr,
   return true;
 }
 
-void uiTemplateCacheFile(Layout *layout,
+void template_cache_file(Layout *layout,
                          const bContext *C,
                          PointerRNA *ptr,
                          const StringRefNull propname)
@@ -170,7 +170,7 @@ void uiTemplateCacheFile(Layout *layout,
   }
 
   PointerRNA fileptr;
-  if (!uiTemplateCacheFilePointer(ptr, propname, &fileptr)) {
+  if (!template_cache_file_pointer(ptr, propname, &fileptr)) {
     return;
   }
 
@@ -178,7 +178,7 @@ void uiTemplateCacheFile(Layout *layout,
 
   layout->context_ptr_set("edit_cachefile", &fileptr);
 
-  uiTemplateID(layout, C, ptr, propname, nullptr, "CACHEFILE_OT_open", nullptr);
+  template_id(layout, C, ptr, propname, nullptr, "CACHEFILE_OT_open", nullptr);
 
   if (!file) {
     return;

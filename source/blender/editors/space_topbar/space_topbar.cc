@@ -84,11 +84,11 @@ static void topbar_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  /* force delayed UI_view2d_region_reinit call */
+  /* force delayed view2d_region_reinit call */
   if (ELEM(RGN_ALIGN_ENUM_FROM_MASK(region->alignment), RGN_ALIGN_RIGHT)) {
     region->flag |= RGN_FLAG_DYNAMIC_SIZE;
   }
-  blender::ui::UI_view2d_region_reinit(
+  blender::ui::view2d_region_reinit(
       &region->v2d, blender::ui::V2D_COMMONVIEW_HEADER, region->winx, region->winy);
 
   keymap = WM_keymap_ensure(
@@ -193,11 +193,11 @@ static void recent_files_menu_draw(const bContext *C, Menu *menu)
   layout.operator_context_set(blender::wm::OpCallContext::InvokeDefault);
   const bool is_menu_search = CTX_data_int_get(C, "is_menu_search").value_or(false);
   if (is_menu_search) {
-    uiTemplateRecentFiles(&layout, U.recent_files);
+    template_recent_files(&layout, U.recent_files);
   }
   else {
     const int limit = std::min<int>(U.recent_files, 20);
-    if (uiTemplateRecentFiles(&layout, limit) != 0) {
+    if (template_recent_files(&layout, limit) != 0) {
       layout.separator();
       PointerRNA search_props = layout.op(
           "WM_OT_search_single_menu", IFACE_("More..."), ICON_VIEWZOOM);

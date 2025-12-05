@@ -74,7 +74,7 @@ static void node_composit_buts_keyingscreen(ui::Layout &layout, bContext *C, Poi
 {
   bNode *node = (bNode *)ptr->data;
 
-  uiTemplateID(&layout, C, ptr, "clip", nullptr, nullptr, nullptr);
+  template_id(&layout, C, ptr, "clip", nullptr, nullptr, nullptr);
 
   if (node->id) {
     MovieClip *clip = (MovieClip *)node->id;

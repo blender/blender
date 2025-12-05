@@ -1696,7 +1696,7 @@ static void stitch_draw(const bContext * /*C*/, ARegion * /*region*/, void *arg)
 
     /* Static Triangles. */
     if (stitch_preview->static_tris) {
-      blender::ui::UI_GetThemeColor4fv(TH_STITCH_PREVIEW_ACTIVE, col);
+      blender::ui::GetThemeColor4fv(TH_STITCH_PREVIEW_ACTIVE, col);
       vbo = GPU_vertbuf_create_with_format(format);
       GPU_vertbuf_data_alloc(*vbo, stitch_preview->num_static_tris * 3);
       for (int i = 0; i < stitch_preview->num_static_tris * 3; i++) {
@@ -1750,9 +1750,9 @@ static void stitch_draw(const bContext * /*C*/, ARegion * /*region*/, void *arg)
         index += stitch_preview->uvs_per_polygon[i] * 2;
       }
 
-      blender::ui::UI_GetThemeColor4fv(TH_STITCH_PREVIEW_FACE, col);
+      blender::ui::GetThemeColor4fv(TH_STITCH_PREVIEW_FACE, col);
       stitch_draw_vbo(vbo, GPU_PRIM_TRIS, col);
-      blender::ui::UI_GetThemeColor4fv(TH_STITCH_PREVIEW_EDGE, col);
+      blender::ui::GetThemeColor4fv(TH_STITCH_PREVIEW_EDGE, col);
       stitch_draw_vbo(vbo_line, GPU_PRIM_LINES, col);
     }
 
@@ -1760,9 +1760,9 @@ static void stitch_draw(const bContext * /*C*/, ARegion * /*region*/, void *arg)
 
     /* draw stitch vert/lines preview */
     if (ssc->mode == STITCH_VERT) {
-      GPU_point_size(blender::ui::UI_GetThemeValuef(TH_VERTEX_SIZE) * 2.0f);
+      GPU_point_size(blender::ui::GetThemeValuef(TH_VERTEX_SIZE) * 2.0f);
 
-      blender::ui::UI_GetThemeColor4fv(TH_STITCH_PREVIEW_STITCHABLE, col);
+      blender::ui::GetThemeColor4fv(TH_STITCH_PREVIEW_STITCHABLE, col);
       vbo = GPU_vertbuf_create_with_format(format);
       GPU_vertbuf_data_alloc(*vbo, stitch_preview->num_stitchable);
       for (int i = 0; i < stitch_preview->num_stitchable; i++) {
@@ -1770,7 +1770,7 @@ static void stitch_draw(const bContext * /*C*/, ARegion * /*region*/, void *arg)
       }
       stitch_draw_vbo(vbo, GPU_PRIM_POINTS, col);
 
-      blender::ui::UI_GetThemeColor4fv(TH_STITCH_PREVIEW_UNSTITCHABLE, col);
+      blender::ui::GetThemeColor4fv(TH_STITCH_PREVIEW_UNSTITCHABLE, col);
       vbo = GPU_vertbuf_create_with_format(format);
       GPU_vertbuf_data_alloc(*vbo, stitch_preview->num_unstitchable);
       for (int i = 0; i < stitch_preview->num_unstitchable; i++) {
@@ -1779,7 +1779,7 @@ static void stitch_draw(const bContext * /*C*/, ARegion * /*region*/, void *arg)
       stitch_draw_vbo(vbo, GPU_PRIM_POINTS, col);
     }
     else {
-      blender::ui::UI_GetThemeColor4fv(TH_STITCH_PREVIEW_STITCHABLE, col);
+      blender::ui::GetThemeColor4fv(TH_STITCH_PREVIEW_STITCHABLE, col);
       vbo = GPU_vertbuf_create_with_format(format);
       GPU_vertbuf_data_alloc(*vbo, stitch_preview->num_stitchable * 2);
       for (int i = 0; i < stitch_preview->num_stitchable * 2; i++) {
@@ -1787,7 +1787,7 @@ static void stitch_draw(const bContext * /*C*/, ARegion * /*region*/, void *arg)
       }
       stitch_draw_vbo(vbo, GPU_PRIM_LINES, col);
 
-      blender::ui::UI_GetThemeColor4fv(TH_STITCH_PREVIEW_UNSTITCHABLE, col);
+      blender::ui::GetThemeColor4fv(TH_STITCH_PREVIEW_UNSTITCHABLE, col);
       vbo = GPU_vertbuf_create_with_format(format);
       GPU_vertbuf_data_alloc(*vbo, stitch_preview->num_unstitchable * 2);
       for (int i = 0; i < stitch_preview->num_unstitchable * 2; i++) {
@@ -2475,8 +2475,7 @@ static StitchState *stitch_select(bContext *C,
   ARegion *region = CTX_wm_region(C);
   UvNearestHit hit = uv_nearest_hit_init_max(&region->v2d);
 
-  blender::ui::UI_view2d_region_to_view(
-      &region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+  blender::ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 
   if (ssc->mode == STITCH_VERT) {
     if (uv_find_nearest_vert_multi(scene, {ssc->objects, ssc->objects_len}, co, 0.0f, &hit)) {

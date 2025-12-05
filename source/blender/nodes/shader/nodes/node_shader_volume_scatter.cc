@@ -51,7 +51,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_scatter(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "phase", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "phase", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static void node_shader_init_scatter(bNodeTree * /*ntree*/, bNode *node)

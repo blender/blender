@@ -155,14 +155,14 @@ static void createTransNodeData(bContext *C, TransInfo *t)
 
   /* Custom data to enable edge panning during the node transform. */
   TransCustomDataNode *customdata = MEM_new<TransCustomDataNode>(__func__);
-  UI_view2d_edge_pan_init(t->context,
-                          &customdata->edgepan_data,
-                          NODE_EDGE_PAN_INSIDE_PAD,
-                          NODE_EDGE_PAN_OUTSIDE_PAD,
-                          NODE_EDGE_PAN_SPEED_RAMP,
-                          NODE_EDGE_PAN_MAX_SPEED,
-                          NODE_EDGE_PAN_DELAY,
-                          NODE_EDGE_PAN_ZOOM_INFLUENCE);
+  view2d_edge_pan_init(t->context,
+                       &customdata->edgepan_data,
+                       NODE_EDGE_PAN_INSIDE_PAD,
+                       NODE_EDGE_PAN_OUTSIDE_PAD,
+                       NODE_EDGE_PAN_SPEED_RAMP,
+                       NODE_EDGE_PAN_MAX_SPEED,
+                       NODE_EDGE_PAN_DELAY,
+                       NODE_EDGE_PAN_ZOOM_INFLUENCE);
   customdata->viewrect_prev = customdata->edgepan_data.initial_rect;
   customdata->is_new_node = t->remove_on_cancel;
 
@@ -280,7 +280,7 @@ static void flushTransNodes(TransInfo *t)
 
   if (t->options & CTX_VIEW2D_EDGE_PAN) {
     if (t->state == TRANS_CANCEL) {
-      UI_view2d_edge_pan_cancel(t->context, &customdata->edgepan_data);
+      view2d_edge_pan_cancel(t->context, &customdata->edgepan_data);
     }
     else {
       /* Edge panning functions expect window coordinates, mval is relative to region. */
@@ -288,7 +288,7 @@ static void flushTransNodes(TransInfo *t)
           t->region->winrct.xmin + int(t->mval[0]),
           t->region->winrct.ymin + int(t->mval[1]),
       };
-      ui::UI_view2d_edge_pan_apply(t->context, &customdata->edgepan_data, xy);
+      ui::view2d_edge_pan_apply(t->context, &customdata->edgepan_data, xy);
     }
   }
 

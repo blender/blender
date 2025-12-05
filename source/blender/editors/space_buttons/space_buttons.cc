@@ -185,7 +185,7 @@ void ED_buttons_visible_tabs_menu(bContext *C, blender::ui::Layout *layout, void
   };
 
   for (blender::StringRefNull item : filter_items) {
-    layout->prop(&ptr, item, blender::ui::UI_ITEM_R_TOGGLE, std::nullopt, ICON_NONE);
+    layout->prop(&ptr, item, blender::ui::ITEM_R_TOGGLE, std::nullopt, ICON_NONE);
   }
 }
 
@@ -440,7 +440,7 @@ static void property_search_all_tabs(const bContext *C,
                    i,
                    property_search_for_context(C, region_copy, &sbuts_copy));
 
-    blender::ui::UI_blocklist_free(C, region_copy);
+    blender::ui::blocklist_free(C, region_copy);
   }
 
   BKE_area_region_free(area_copy.type, region_copy);
@@ -467,9 +467,7 @@ static void buttons_main_region_property_search(const bContext *C,
   /* Check whether the current tab has a search match. */
   bool current_tab_has_search_match = false;
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-    if (blender::ui::UI_panel_is_active(panel) &&
-        blender::ui::UI_panel_matches_search_filter(panel))
-    {
+    if (blender::ui::panel_is_active(panel) && blender::ui::panel_matches_search_filter(panel)) {
       current_tab_has_search_match = true;
     }
   }
@@ -562,7 +560,7 @@ static void buttons_main_region_layout(const bContext *C, ARegion *region)
   buttons_context_compute(C, sbuts);
 
   if (ED_buttons_tabs_list(sbuts).is_empty()) {
-    View2D *v2d = blender::ui::UI_view2d_fromcontext(C);
+    View2D *v2d = blender::ui::view2d_fromcontext(C);
     v2d->scroll &= ~V2D_SCROLL_VERTICAL;
     return;
   }

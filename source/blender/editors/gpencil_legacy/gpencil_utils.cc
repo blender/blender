@@ -237,7 +237,7 @@ void gpencil_point_to_xy(
   else if (gps->flag & GP_STROKE_2DSPACE) {
     float vec[3] = {pt->x, pt->y, 0.0f};
     mul_m4_v3(gsc->mat, vec);
-    blender::ui::UI_view2d_view_to_region_clip(v2d, vec[0], vec[1], r_x, r_y);
+    blender::ui::view2d_view_to_region_clip(v2d, vec[0], vec[1], r_x, r_y);
   }
   else {
     if (subrect == nullptr) {

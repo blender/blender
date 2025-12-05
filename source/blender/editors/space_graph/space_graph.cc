@@ -183,7 +183,7 @@ static void graph_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  UI_view2d_region_reinit(
+  view2d_region_reinit(
       &region->v2d, blender::ui::V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
   /* own keymap */
@@ -230,9 +230,9 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   const int min_height = UI_ANIM_MINY;
 
   /* clear and setup matrix */
-  blender::ui::UI_ThemeClearColor(TH_BACK);
+  blender::ui::ThemeClearColor(TH_BACK);
 
-  blender::ui::UI_view2d_view_ortho(v2d);
+  blender::ui::view2d_view_ortho(v2d);
 
   /* In driver mode, both X and Y axes are in the same units as the driven property, and so the
    * grid size should be independent of the scene's frame rate. */
@@ -241,12 +241,12 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   bool display_seconds = (sipo->mode == SIPO_MODE_ANIMATION) && (sipo->flag & SIPO_DRAWTIME);
   if (region->winy > min_height) {
     if (sipo->mode == SIPO_MODE_DRIVERS) {
-      blender::ui::UI_view2d_draw_lines_x__values(v2d, driver_step);
+      blender::ui::view2d_draw_lines_x__values(v2d, driver_step);
     }
     else {
-      blender::ui::UI_view2d_draw_lines_x__frames_or_seconds(v2d, scene, display_seconds);
+      blender::ui::view2d_draw_lines_x__frames_or_seconds(v2d, scene, display_seconds);
     }
-    blender::ui::UI_view2d_draw_lines_y__values(v2d, 10);
+    blender::ui::view2d_draw_lines_y__values(v2d, 10);
   }
 
   ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
@@ -324,7 +324,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
 
   /* markers */
   if (sipo->mode != SIPO_MODE_DRIVERS) {
-    blender::ui::UI_view2d_view_orthoSpecial(region, v2d, true);
+    blender::ui::view2d_view_orthoSpecial(region, v2d, true);
     int marker_draw_flag = DRAW_MARKERS_MARGIN;
     if (ED_markers_region_visible(CTX_wm_area(C), region)) {
       ED_markers_draw(C, marker_draw_flag);
@@ -333,16 +333,16 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
 
   /* preview range */
   if (sipo->mode != SIPO_MODE_DRIVERS) {
-    blender::ui::UI_view2d_view_ortho(v2d);
+    blender::ui::view2d_view_ortho(v2d);
     ANIM_draw_previewrange(scene, v2d, 0);
   }
 
   /* callback */
-  blender::ui::UI_view2d_view_ortho(v2d);
+  blender::ui::view2d_view_ortho(v2d);
   ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
 
   /* reset view matrix */
-  blender::ui::UI_view2d_view_restore(C);
+  blender::ui::view2d_view_restore(C);
 
   /* time-scrubbing */
   int base = round_db_to_int(scene->frames_per_second());
@@ -372,14 +372,14 @@ static void graph_main_region_draw_overlay(const bContext *C, ARegion *region)
     const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
     /* FIXME: args for scrollers depend on the type of data being shown. */
     region->v2d.scroll |= V2D_SCROLL_BOTTOM;
-    blender::ui::UI_view2d_scrollers_draw(v2d, &scroller_mask);
+    blender::ui::view2d_scrollers_draw(v2d, &scroller_mask);
 
     /* scale numbers */
     {
       rcti rect;
       BLI_rcti_init(
           &rect, 0, 15 * UI_SCALE_FAC, 15 * UI_SCALE_FAC, region->winy - UI_TIME_SCRUB_MARGIN_Y);
-      blender::ui::UI_view2d_draw_scale_y__values(region, v2d, &rect, TH_SCROLL_TEXT, 10);
+      blender::ui::view2d_draw_scale_y__values(region, v2d, &rect, TH_SCROLL_TEXT, 10);
     }
   }
   else {
@@ -400,8 +400,7 @@ static void graph_channel_region_init(wmWindowManager *wm, ARegion *region)
   region->v2d.scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
   region->v2d.scroll |= V2D_SCROLL_VERTICAL_HIDE;
 
-  UI_view2d_region_reinit(
-      &region->v2d, blender::ui::V2D_COMMONVIEW_LIST, region->winx, region->winy);
+  view2d_region_reinit(&region->v2d, blender::ui::V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   /* own keymap */
   keymap = WM_keymap_ensure(
@@ -416,7 +415,7 @@ static void set_v2d_height(View2D *v2d, const size_t item_count)
 {
   const int height = ANIM_UI_get_channels_total_height(v2d, item_count);
   v2d->tot.ymin = -height;
-  blender::ui::UI_view2d_curRect_clamp_y(v2d);
+  blender::ui::view2d_curRect_clamp_y(v2d);
 }
 
 static void graph_channel_region_draw(const bContext *C, ARegion *region)
@@ -428,7 +427,7 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   /* clear and setup matrix */
-  blender::ui::UI_ThemeClearColor(TH_BACK);
+  blender::ui::ThemeClearColor(TH_BACK);
 
   ListBase anim_data = {nullptr, nullptr};
   const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
@@ -436,7 +435,7 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
   const size_t item_count = ANIM_animdata_filter(
       &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
   set_v2d_height(v2d, item_count);
-  blender::ui::UI_view2d_view_ortho(v2d);
+  blender::ui::view2d_view_ortho(v2d);
 
   /* draw channels */
   graph_draw_channel_names((bContext *)C, &ac, region, anim_data);
@@ -445,10 +444,10 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
   ED_time_scrub_channel_search_draw(C, region, ac.ads);
 
   /* reset view matrix */
-  blender::ui::UI_view2d_view_restore(C);
+  blender::ui::view2d_view_restore(C);
 
   /* scrollers */
-  blender::ui::UI_view2d_scrollers_draw(v2d, nullptr);
+  blender::ui::view2d_scrollers_draw(v2d, nullptr);
 
   ANIM_animdata_freelist(&anim_data);
 }
@@ -737,13 +736,13 @@ static void graph_refresh_fcurve_colors(const bContext *C)
 
         switch (fcu->array_index) {
           case 0:
-            blender::ui::UI_GetThemeColor3fv(TH_AXIS_X, col);
+            blender::ui::GetThemeColor3fv(TH_AXIS_X, col);
             break;
           case 1:
-            blender::ui::UI_GetThemeColor3fv(TH_AXIS_Y, col);
+            blender::ui::GetThemeColor3fv(TH_AXIS_Y, col);
             break;
           case 2:
-            blender::ui::UI_GetThemeColor3fv(TH_AXIS_Z, col);
+            blender::ui::GetThemeColor3fv(TH_AXIS_Z, col);
             break;
           default:
             /* 'unknown' color - bluish so as to not conflict with handles */
@@ -760,17 +759,17 @@ static void graph_refresh_fcurve_colors(const bContext *C)
 
         switch (fcu->array_index) {
           case 1:
-            blender::ui::UI_GetThemeColor3fv(TH_AXIS_X, col);
+            blender::ui::GetThemeColor3fv(TH_AXIS_X, col);
             break;
           case 2:
-            blender::ui::UI_GetThemeColor3fv(TH_AXIS_Y, col);
+            blender::ui::GetThemeColor3fv(TH_AXIS_Y, col);
             break;
           case 3:
-            blender::ui::UI_GetThemeColor3fv(TH_AXIS_Z, col);
+            blender::ui::GetThemeColor3fv(TH_AXIS_Z, col);
             break;
 
           case 0: {
-            blender::ui::UI_GetThemeColor3fv(TH_AXIS_W, col);
+            blender::ui::GetThemeColor3fv(TH_AXIS_W, col);
             break;
           }
 

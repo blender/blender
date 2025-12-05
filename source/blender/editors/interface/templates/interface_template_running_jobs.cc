@@ -70,7 +70,7 @@ static void set_global_break(bContext &C)
   WM_jobs_stop_all_from_owner(CTX_wm_manager(&C), CTX_data_scene(&C));
 }
 
-void uiTemplateRunningJobs(Layout *layout, bContext *C)
+void template_running_jobs(Layout *layout, bContext *C)
 {
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -242,7 +242,7 @@ void uiTemplateRunningJobs(Layout *layout, bContext *C)
     }
 
     /* job name and icon if not previously set */
-    const int textwidth = UI_fontstyle_string_width(fstyle, name);
+    const int textwidth = fontstyle_string_width(fstyle, name);
     uiDefIconTextBut(block,
                      ButType::Label,
                      op_name ? 0 : icon,
@@ -276,7 +276,7 @@ void uiTemplateRunningJobs(Layout *layout, bContext *C)
                                                                         nullptr);
 
       but_progress->progress_factor = progress;
-      UI_but_func_tooltip_set(but_progress, progress_tooltip_func, tip_arg, MEM_freeN);
+      button_func_tooltip_set(but_progress, progress_tooltip_func, tip_arg, MEM_freeN);
     }
 
     if (cancel_fn && !wm->runtime->is_interface_locked) {
@@ -290,7 +290,7 @@ void uiTemplateRunningJobs(Layout *layout, bContext *C)
                                     UI_UNIT_Y,
                                     nullptr,
                                     TIP_("Stop this job"));
-      UI_but_func_set(but, std::move(cancel_fn));
+      button_func_set(but, std::move(cancel_fn));
     }
   }
 
@@ -305,7 +305,7 @@ void uiTemplateRunningJobs(Layout *layout, bContext *C)
                                   UI_UNIT_Y,
                                   nullptr,
                                   TIP_("Stop animation playback"));
-    UI_but_func_set(but, [](bContext &C) {
+    button_func_set(but, [](bContext &C) {
       WM_operator_name_call(
           &C, "SCREEN_OT_animation_play", wm::OpCallContext::InvokeScreen, nullptr, nullptr);
     });

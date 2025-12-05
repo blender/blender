@@ -56,7 +56,7 @@ static void init(const bContext *C, PointerRNA *ptr)
 
 static void node_composit_buts_movieclip(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
-  uiTemplateID(&layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
+  template_id(&layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
 }
 
 static void node_composit_buts_movieclip_ex(ui::Layout &layout, bContext *C, PointerRNA *ptr)

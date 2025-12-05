@@ -194,7 +194,7 @@ SpreadsheetColumn *find_hovered_column_edge(SpaceSpreadsheet &sspreadsheet,
   if (!table) {
     return nullptr;
   }
-  const float cursor_x_view = ui::UI_view2d_region_to_view_x(&region.v2d, cursor_re.x);
+  const float cursor_x_view = ui::view2d_region_to_view_x(&region.v2d, cursor_re.x);
   for (SpreadsheetColumn *column : Span{table->columns, table->num_columns}) {
     if (column->flag & SPREADSHEET_COLUMN_FLAG_UNAVAILABLE) {
       continue;
@@ -214,7 +214,7 @@ SpreadsheetColumn *find_hovered_column(SpaceSpreadsheet &sspreadsheet,
   if (!table) {
     return nullptr;
   }
-  const float cursor_x_view = ui::UI_view2d_region_to_view_x(&region.v2d, cursor_re.x);
+  const float cursor_x_view = ui::view2d_region_to_view_x(&region.v2d, cursor_re.x);
   for (SpreadsheetColumn *column : Span{table->columns, table->num_columns}) {
     if (column->flag & SPREADSHEET_COLUMN_FLAG_UNAVAILABLE) {
       continue;
@@ -370,7 +370,7 @@ static wmOperatorStatus reorder_columns_invoke(bContext *C, wmOperator *op, cons
 
   ReorderColumnData *data = MEM_new<ReorderColumnData>(__func__);
   data->column = column_to_move;
-  data->initial_cursor_x_view = ui::UI_view2d_region_to_view_x(&region.v2d, cursor_re.x);
+  data->initial_cursor_x_view = ui::view2d_region_to_view_x(&region.v2d, cursor_re.x);
   op->customdata = data;
 
   ReorderColumnVisualizationData &visualization_data =
@@ -379,7 +379,7 @@ static wmOperatorStatus reorder_columns_invoke(bContext *C, wmOperator *op, cons
   visualization_data.new_index = old_index;
   visualization_data.current_offset_x_px = 0;
 
-  UI_view2d_edge_pan_init(C, &data->pan_data, 0, 0, 1, 26, 0.5f, 0.0f);
+  view2d_edge_pan_init(C, &data->pan_data, 0, 0, 1, 26, 0.5f, 0.0f);
   /* Limit to horizontal panning. */
   data->pan_data.limit.xmin = region.v2d.tot.xmin;
   data->pan_data.limit.xmax = region.v2d.tot.xmax;
@@ -427,7 +427,7 @@ static wmOperatorStatus reorder_columns_modal(bContext *C, wmOperator *op, const
   switch (event->type) {
     case RIGHTMOUSE:
     case EVT_ESCKEY: {
-      UI_view2d_edge_pan_cancel(C, &data.pan_data);
+      view2d_edge_pan_cancel(C, &data.pan_data);
       cleanup_on_finish();
       return OPERATOR_CANCELLED;
     }
@@ -440,13 +440,13 @@ static wmOperatorStatus reorder_columns_modal(bContext *C, wmOperator *op, const
       return OPERATOR_FINISHED;
     }
     case MOUSEMOVE: {
-      UI_view2d_edge_pan_apply(C, &data.pan_data, event->xy);
+      view2d_edge_pan_apply(C, &data.pan_data, event->xy);
 
       ReorderColumnVisualizationData &visualization_data =
           *sspreadsheet.runtime->reorder_column_visualization_data;
       visualization_data.new_index = new_index;
-      visualization_data.current_offset_x_px = ui::UI_view2d_region_to_view_x(&region.v2d,
-                                                                              cursor_re.x) -
+      visualization_data.current_offset_x_px = ui::view2d_region_to_view_x(&region.v2d,
+                                                                           cursor_re.x) -
                                                data.initial_cursor_x_view;
       ED_region_tag_redraw(&region);
       return OPERATOR_RUNNING_MODAL;

@@ -646,7 +646,7 @@ static void draw_primitive_view(const bContext *C, ARegion * /*region*/, void *a
 {
   InteractivePlaceData *ipd = static_cast<InteractivePlaceData *>(arg);
   float color[4];
-  blender::ui::UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, color);
+  blender::ui::GetThemeColor3fv(TH_GIZMO_PRIMARY, color);
 
   const bool use_depth = !XRAY_ENABLED(ipd->v3d);
   const GPUDepthTest depth_test_enabled = GPU_depth_test_get();

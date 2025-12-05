@@ -46,7 +46,7 @@ void uiTemplateReportsBanner(Layout *layout, bContext *C)
 {
   ReportList *reports = CTX_wm_reports(C);
   Report *report = BKE_reports_last_displayable(reports);
-  const uiStyle *style = UI_style_get();
+  const uiStyle *style = style_get();
 
   uiBut *but;
 
@@ -63,14 +63,14 @@ void uiTemplateReportsBanner(Layout *layout, bContext *C)
 
   Layout &ui_abs = layout->absolute(false);
   uiBlock *block = ui_abs.block();
-  EmbossType previous_emboss = UI_block_emboss_get(block);
+  EmbossType previous_emboss = block_emboss_get(block);
 
   uchar report_icon_color[4];
   uchar report_text_color[4];
 
-  UI_GetThemeColorType4ubv(
-      UI_icon_colorid_from_report_type(report->type), SPACE_INFO, report_icon_color);
-  UI_GetThemeColorType4ubv(
+  GetThemeColorType4ubv(
+      icon_colorid_from_report_type(report->type), SPACE_INFO, report_icon_color);
+  GetThemeColorType4ubv(
       UI_text_colorid_from_report_type(report->type), SPACE_INFO, report_text_color);
   report_text_color[3] = 255; /* This theme color is RGB only, so have to set alpha here. */
 
@@ -80,13 +80,13 @@ void uiTemplateReportsBanner(Layout *layout, bContext *C)
     add_v3_uchar_clamped(report_icon_color, brighten_amount);
   }
 
-  UI_fontstyle_set(&style->widget);
+  fontstyle_set(&style->widget);
   int width = BLF_width(style->widget.uifont_id, report->message, report->len);
   width = min_ii(width, int(REPORT_BANNER_MAX_WIDTH));
   width = min_ii(int(rti->widthfac * width), width);
   width = max_ii(width, 10 * UI_SCALE_FAC);
 
-  UI_block_align_begin(block);
+  block_align_begin(block);
 
   /* Background for icon. */
   but = uiDefBut(block,
@@ -119,15 +119,15 @@ void uiTemplateReportsBanner(Layout *layout, bContext *C)
   copy_v3_v3_uchar(but->col, report_icon_color);
   but->col[3] = 64;
 
-  UI_block_align_end(block);
-  UI_block_emboss_set(block, EmbossType::None);
+  block_align_end(block);
+  block_emboss_set(block, EmbossType::None);
 
   /* The report icon itself. */
   but = uiDefIconButO(block,
                       ButType::But,
                       "SCREEN_OT_info_log_show",
                       blender::wm::OpCallContext::InvokeRegionWin,
-                      UI_icon_from_report_type(report->type),
+                      icon_from_report_type(report->type),
                       (3 * UI_SCALE_FAC),
                       0,
                       UI_UNIT_X,
@@ -147,7 +147,7 @@ void uiTemplateReportsBanner(Layout *layout, bContext *C)
                   UI_UNIT_Y,
                   TIP_("Show in Info Log"));
 
-  UI_block_emboss_set(block, previous_emboss);
+  block_emboss_set(block, previous_emboss);
 }
 
 static bool uiTemplateInputStatusAzone(Layout *layout, const AZone *az, const ARegion *region)
@@ -279,7 +279,7 @@ void uiTemplateInputStatus(Layout *layout, bContext *C)
       else {
         uiBut *but = uiItemL_ex(&row, item.text, item.icon, false, false);
         if (item.inverted) {
-          but->drawflag |= UI_BUT_ICON_INVERT;
+          but->drawflag |= BUT_ICON_INVERT;
         }
         const float offset = ui_event_icon_offset(item.icon);
         if (offset != 0.0f) {
@@ -439,11 +439,11 @@ void uiTemplateStatusInfo(Layout *layout, bContext *C)
       row.op("EXTENSIONS_OT_userpref_show_for_update", "", ICON_ERROR);
       uiBut *but = layout->block()->buttons.last().get();
       uchar color[4];
-      UI_GetThemeColor4ubv(TH_TEXT, color);
+      GetThemeColor4ubv(TH_TEXT, color);
       copy_v4_v4_uchar(but->col, color);
 
       BLI_str_format_integer_unit(but->icon_overlay_text.text, wm->extensions_blocked);
-      UI_but_icon_indicator_color_set(but, color);
+      button_icon_indicator_color_set(but, color);
 
       row.separator(1.0f);
       has_status_info = true;
@@ -464,7 +464,7 @@ void uiTemplateStatusInfo(Layout *layout, bContext *C)
         row.op("EXTENSIONS_OT_userpref_show_online", "", ICON_INTERNET_OFFLINE);
         uiBut *but = layout->block()->buttons.last().get();
         uchar color[4];
-        UI_GetThemeColor4ubv(TH_TEXT, color);
+        GetThemeColor4ubv(TH_TEXT, color);
         copy_v4_v4_uchar(but->col, color);
       }
 
@@ -488,12 +488,12 @@ void uiTemplateStatusInfo(Layout *layout, bContext *C)
       row.op("EXTENSIONS_OT_userpref_show_for_update", "", icon);
       uiBut *but = layout->block()->buttons.last().get();
       uchar color[4];
-      UI_GetThemeColor4ubv(TH_TEXT, color);
+      GetThemeColor4ubv(TH_TEXT, color);
       copy_v4_v4_uchar(but->col, color);
 
       if (wm->extensions_updates > 0) {
         BLI_str_format_integer_unit(but->icon_overlay_text.text, wm->extensions_updates);
-        UI_but_icon_indicator_color_set(but, color);
+        button_icon_indicator_color_set(but, color);
       }
 
       row.separator(1.0f);
@@ -539,17 +539,17 @@ void uiTemplateStatusInfo(Layout *layout, bContext *C)
     warning_message = warning_message + RPT_("Color Management");
   }
 
-  const uiStyle *style = UI_style_get();
+  const uiStyle *style = style_get();
   Layout &ui_abs = layout->absolute(false);
   uiBlock *block = ui_abs.block();
-  EmbossType previous_emboss = UI_block_emboss_get(block);
+  EmbossType previous_emboss = block_emboss_get(block);
 
-  UI_fontstyle_set(&style->widget);
+  fontstyle_set(&style->widget);
   const int width = max_ii(
       int(BLF_width(style->widget.uifont_id, warning_message.c_str(), warning_message.size())),
       int(10 * UI_SCALE_FAC));
 
-  UI_block_align_begin(block);
+  block_align_begin(block);
 
   /* Background for icon. */
   uiBut *but = uiDefBut(block,
@@ -564,7 +564,7 @@ void uiTemplateStatusInfo(Layout *layout, bContext *C)
                         0.0f,
                         "");
   /*# ButType::Roundbox's background color is set in `but->col`. */
-  UI_GetThemeColor4ubv(TH_WARNING, but->col);
+  GetThemeColor4ubv(TH_WARNING, but->col);
 
   if (!warning_message.empty()) {
     /* Background for the rest of the message. */
@@ -581,12 +581,12 @@ void uiTemplateStatusInfo(Layout *layout, bContext *C)
                    "");
 
     /* Use icon background at low opacity to highlight, but still contrasting with area TH_TEXT. */
-    UI_GetThemeColor4ubv(TH_WARNING, but->col);
+    GetThemeColor4ubv(TH_WARNING, but->col);
     but->col[3] = 64;
   }
 
-  UI_block_align_end(block);
-  UI_block_emboss_set(block, EmbossType::None);
+  block_align_end(block);
+  block_emboss_set(block, EmbossType::None);
 
   /* The warning icon itself. */
   but = uiDefIconBut(block,
@@ -600,8 +600,8 @@ void uiTemplateStatusInfo(Layout *layout, bContext *C)
                      0.0f,
                      0.0f,
                      std::nullopt);
-  UI_but_func_tooltip_set(but, ui_template_status_tooltip, nullptr, nullptr);
-  UI_GetThemeColorType4ubv(TH_INFO_WARNING_TEXT, SPACE_INFO, but->col);
+  button_func_tooltip_set(but, ui_template_status_tooltip, nullptr, nullptr);
+  GetThemeColorType4ubv(TH_INFO_WARNING_TEXT, SPACE_INFO, but->col);
   but->col[3] = 255; /* This theme color is RBG only, so have to set alpha here. */
 
   /* The warning message, if any. */
@@ -617,10 +617,10 @@ void uiTemplateStatusInfo(Layout *layout, bContext *C)
                    0.0f,
                    0.0f,
                    std::nullopt);
-    UI_but_func_tooltip_set(but, ui_template_status_tooltip, nullptr, nullptr);
+    button_func_tooltip_set(but, ui_template_status_tooltip, nullptr, nullptr);
   }
 
-  UI_block_emboss_set(block, previous_emboss);
+  block_emboss_set(block, previous_emboss);
 }
 
 }  // namespace blender::ui

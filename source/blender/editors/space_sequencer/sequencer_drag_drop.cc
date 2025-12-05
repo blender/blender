@@ -184,7 +184,7 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
 
   /* Update the position were we would place the strip if we complete the drag and drop action.
    */
-  ui::UI_view2d_region_to_view(v2d, mval[0], mval[1], &coords->start_frame, &coords->channel);
+  ui::view2d_region_to_view(v2d, mval[0], mval[1], &coords->start_frame, &coords->channel);
   coords->start_frame = roundf(coords->start_frame);
   if (coords->channel < 1.0f) {
     coords->channel = 1;
@@ -392,7 +392,7 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
   /* Sometimes the active theme is not the sequencer theme, e.g. when an operator invokes the
    * file browser. This makes sure we get the right color values for the theme. */
   blender::ui::bThemeState theme_state;
-  blender::ui::UI_Theme_Store(&theme_state);
+  blender::ui::Theme_Store(&theme_state);
   blender::ui::UI_SetTheme(SPACE_SEQ, RGN_TYPE_WINDOW);
 
   if (coords->use_snapping) {
@@ -422,10 +422,10 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
        * One for video and the other for audio.
        * The audio channel is added first.
        */
-      ui::UI_GetThemeColor3ubv(TH_SEQ_AUDIO, strip_color);
+      ui::GetThemeColor3ubv(TH_SEQ_AUDIO, strip_color);
     }
     else {
-      ui::UI_GetThemeColor3ubv(coords->type, strip_color);
+      ui::GetThemeColor3ubv(coords->type, strip_color);
     }
 
     SeqStripDrawData &data = batch.add_strip(x1, x2, y2, y1, y2, x1, x2, 0, true);
@@ -439,12 +439,12 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
     else {
       if (coords->channel_len - 1 == i) {
         text_color[0] = text_color[1] = text_color[2] = 255;
-        ui::UI_GetThemeColor3ubv(TH_SEQ_ACTIVE, strip_color);
+        ui::GetThemeColor3ubv(TH_SEQ_ACTIVE, strip_color);
         data.flags |= GPU_SEQ_FLAG_ACTIVE;
       }
       else {
         text_color[0] = text_color[1] = text_color[2] = 10;
-        ui::UI_GetThemeColor3ubv(TH_SEQ_SELECTED, strip_color);
+        ui::GetThemeColor3ubv(TH_SEQ_SELECTED, strip_color);
       }
     }
     strip_color[3] = 204;
@@ -504,17 +504,17 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
     const size_t text_display_len = BLI_string_join_array(
         text_display, FILE_MAX, text_array, len_text_arr);
 
-    ui::UI_view2d_text_cache_add_rectf(
+    ui::view2d_text_cache_add_rectf(
         &region->v2d, &rect, text_display, text_display_len, text_color);
   }
   batch.flush_batch();
 
   /* Clean after drawing up. */
-  UI_Theme_Restore(&theme_state);
+  Theme_Restore(&theme_state);
   GPU_matrix_pop();
   GPU_blend(GPU_BLEND_NONE);
 
-  ui::UI_view2d_text_cache_draw(region);
+  ui::view2d_text_cache_draw(region);
 }
 
 static bool generic_drop_draw_handling(wmDropBox *drop)

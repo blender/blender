@@ -61,7 +61,7 @@ class StripsDrawBatch {
 
   void flush_batch();
 
-  /* Same math as `UI_view2d_view_to_region_*` but avoiding divisions,
+  /* Same math as `view2d_view_to_region_*` but avoiding divisions,
    * and without relying on View2D data type. */
   float pos_to_pixel_space_x(float x) const
   {

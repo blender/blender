@@ -39,7 +39,7 @@ static void cmp_node_mask_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Mask").structure_type(StructureType::Dynamic);
 
   b.add_layout([](ui::Layout &layout, bContext *C, PointerRNA *ptr) {
-    uiTemplateID(&layout, C, ptr, "mask", nullptr, nullptr, nullptr);
+    template_id(&layout, C, ptr, "mask", nullptr, nullptr, nullptr);
   });
 
   b.add_input<decl::Menu>("Size Source")

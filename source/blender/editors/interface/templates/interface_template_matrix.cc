@@ -74,9 +74,9 @@ static void rotation_mode_menu_callback(bContext *, Layout *layout, void *)
                            i,
                            i,
                            TIP_(mode_info.description));
-    UI_but_flag_disable(but, UI_BUT_UNDO);
+    button_flag_disable(but, BUT_UNDO);
     if (i == rotation_mode_index) {
-      UI_but_flag_enable(but, UI_SELECT_DRAW);
+      button_flag_enable(but, UI_SELECT_DRAW);
     }
   }
 }
@@ -192,7 +192,7 @@ static void draw_matrix_template(Layout &layout, PointerRNA &ptr, PropertyRNA &p
                             UI_UNIT_Y,
                             TIP_("Rotation mode.\n\nOnly affects the way "
                                  "rotation is displayed, rotation itself is unaffected."));
-  UI_but_type_set_menu_from_pulldown(but);
+  button_type_set_menu_from_pulldown(but);
 
   /* Scale. */
   col = &layout_.column(true);
@@ -211,7 +211,7 @@ static void draw_matrix_template(Layout &layout, PointerRNA &ptr, PropertyRNA &p
   row->label(format_coefficient(size[2]), ICON_NONE);
 }
 
-void uiTemplateMatrix(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
+void template_matrix(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 

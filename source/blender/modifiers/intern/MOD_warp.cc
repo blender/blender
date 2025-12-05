@@ -392,7 +392,7 @@ static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
   }
 
   if (use_falloff && RNA_enum_get(ptr, "falloff_type") == eWarp_Falloff_Curve) {
-    uiTemplateCurveMapping(&layout, ptr, "falloff_curve", 0, false, false, false, false, false);
+    template_curve_mapping(&layout, ptr, "falloff_curve", 0, false, false, false, false, false);
   }
 }
 
@@ -405,7 +405,7 @@ static void texture_panel_draw(const bContext *C, Panel *panel)
 
   int texture_coords = RNA_enum_get(ptr, "texture_coords");
 
-  uiTemplateID(&layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
+  template_id(&layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
 
   layout.use_property_split_set(true);
 

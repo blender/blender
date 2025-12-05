@@ -169,11 +169,11 @@ static void set_fcurve_vertex_color(FCurve *fcu, bool sel)
   /* Set color of curve vertex based on state of curve (i.e. 'Edit' Mode) */
   if ((fcu->flag & FCURVE_PROTECTED) == 0) {
     /* Curve's points ARE BEING edited */
-    blender::ui::UI_GetThemeColor3fv(sel ? TH_VERTEX_SELECT : TH_VERTEX, color);
+    blender::ui::GetThemeColor3fv(sel ? TH_VERTEX_SELECT : TH_VERTEX, color);
   }
   else {
     /* Curve's points CANNOT BE edited */
-    blender::ui::UI_GetThemeColorShade4fv(TH_HEADER, 50, color);
+    blender::ui::GetThemeColorShade4fv(TH_HEADER, 50, color);
   }
 
   /* Fade the 'intensity' of the vertices based on the selection of the curves too
@@ -265,11 +265,11 @@ static void draw_fcurve_keyframe_vertices(FCurve *fcu, View2D *v2d, const uint p
   immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
 
   if ((fcu->flag & FCURVE_PROTECTED) == 0) {
-    immUniform1f("size", blender::ui::UI_GetThemeValuef(TH_VERTEX_SIZE) * UI_SCALE_FAC);
+    immUniform1f("size", blender::ui::GetThemeValuef(TH_VERTEX_SIZE) * UI_SCALE_FAC);
   }
   else {
     /* Draw keyframes on locked curves slightly smaller to give them less visual weight. */
-    immUniform1f("size", (blender::ui::UI_GetThemeValuef(TH_VERTEX_SIZE) * UI_SCALE_FAC) * 0.8f);
+    immUniform1f("size", (blender::ui::GetThemeValuef(TH_VERTEX_SIZE) * UI_SCALE_FAC) * 0.8f);
   }
 
   const blender::IndexRange index_range = get_bounding_bezt_index_range(
@@ -290,7 +290,7 @@ static void draw_fcurve_selected_handle_vertices(
 
   /* set handle color */
   float hcolor[3];
-  blender::ui::UI_GetThemeColor3fv(sel ? TH_HANDLE_VERTEX_SELECT : TH_HANDLE_VERTEX, hcolor);
+  blender::ui::GetThemeColor3fv(sel ? TH_HANDLE_VERTEX_SELECT : TH_HANDLE_VERTEX, hcolor);
   immUniform4f("outlineColor", hcolor[0], hcolor[1], hcolor[2], 1.0f);
   immUniformColor3fvAlpha(hcolor, 0.01f); /* almost invisible - only keep for smoothness */
 
@@ -351,7 +351,7 @@ static void draw_fcurve_active_handle_vertices(const FCurve *fcu,
   }
 
   float active_col[4];
-  blender::ui::UI_GetThemeColor4fv(TH_VERTEX_ACTIVE, active_col);
+  blender::ui::GetThemeColor4fv(TH_VERTEX_ACTIVE, active_col);
   immUniform4fv("outlineColor", active_col);
   immUniformColor3fvAlpha(active_col, 0.01f); /* Almost invisible - only keep for smoothness. */
   immBeginAtMost(GPU_PRIM_POINTS, 2);
@@ -374,8 +374,7 @@ static void draw_fcurve_handle_vertices(FCurve *fcu, View2D *v2d, bool sel_handl
   immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
 
   /* set handle size */
-  immUniform1f("size",
-               (1.4f * blender::ui::UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE)) * UI_SCALE_FAC);
+  immUniform1f("size", (1.4f * blender::ui::GetThemeValuef(TH_HANDLE_VERTEX_SIZE)) * UI_SCALE_FAC);
   immUniform1f("outlineWidth", 1.5f * UI_SCALE_FAC);
 
   draw_fcurve_selected_handle_vertices(fcu, v2d, false, sel_handle_only, pos);
@@ -487,7 +486,7 @@ static void draw_fcurve_handles(SpaceGraph *sipo, ARegion *region, const FCurve 
         if ((!prevbezt && (bezt->ipo == BEZT_IPO_BEZ)) ||
             (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ)))
         {
-          blender::ui::UI_GetThemeColor3fv(basecol + bezt->h1, col);
+          blender::ui::GetThemeColor3fv(basecol + bezt->h1, col);
           col[3] = fcurve_display_alpha(fcu);
           immAttr4fv(color, col);
           immVertex2fv(pos, bezt->vec[0]);
@@ -497,7 +496,7 @@ static void draw_fcurve_handles(SpaceGraph *sipo, ARegion *region, const FCurve 
 
         /* only draw second handle if this segment is bezier */
         if (bezt->ipo == BEZT_IPO_BEZ) {
-          blender::ui::UI_GetThemeColor3fv(basecol + bezt->h2, col);
+          blender::ui::GetThemeColor3fv(basecol + bezt->h2, col);
           col[3] = fcurve_display_alpha(fcu);
           immAttr4fv(color, col);
           immVertex2fv(pos, bezt->vec[1]);
@@ -510,7 +509,7 @@ static void draw_fcurve_handles(SpaceGraph *sipo, ARegion *region, const FCurve 
         if (((bezt->f1 & SELECT) == sel) && ((!prevbezt && (bezt->ipo == BEZT_IPO_BEZ)) ||
                                              (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ))))
         {
-          blender::ui::UI_GetThemeColor3fv(basecol + bezt->h1, col);
+          blender::ui::GetThemeColor3fv(basecol + bezt->h1, col);
           col[3] = fcurve_display_alpha(fcu);
           immAttr4fv(color, col);
           immVertex2fv(pos, bezt->vec[0]);
@@ -520,7 +519,7 @@ static void draw_fcurve_handles(SpaceGraph *sipo, ARegion *region, const FCurve 
 
         /* only draw second handle if this segment is bezier, and selection is ok */
         if (((bezt->f3 & SELECT) == sel) && (bezt->ipo == BEZT_IPO_BEZ)) {
-          blender::ui::UI_GetThemeColor3fv(basecol + bezt->h2, col);
+          blender::ui::GetThemeColor3fv(basecol + bezt->h2, col);
           col[3] = fcurve_display_alpha(fcu);
           immAttr4fv(color, col);
           immVertex2fv(pos, bezt->vec[1]);
@@ -549,8 +548,8 @@ static void draw_fcurve_samples(ARegion *region, const FCurve *fcu, const float 
   float scale[2];
 
   /* get view settings */
-  const float hsize = blender::ui::UI_GetThemeValuef(TH_VERTEX_SIZE);
-  blender::ui::UI_view2d_scale_get(&region->v2d, &scale[0], &scale[1]);
+  const float hsize = blender::ui::GetThemeValuef(TH_VERTEX_SIZE);
+  blender::ui::view2d_scale_get(&region->v2d, &scale[0], &scale[1]);
 
   scale[0] /= hsize;
   scale[1] /= hsize / unit_scale;
@@ -601,7 +600,7 @@ static void draw_fcurve_curve(bAnimContext *ac,
 
   /* when opening a blend file on a different sized screen or while dragging the toolbar this can
    * happen best just bail out in this case. */
-  if (blender::ui::UI_view2d_scale_get_x(v2d) <= 0.0f) {
+  if (blender::ui::view2d_scale_get_x(v2d) <= 0.0f) {
     return;
   }
 
@@ -630,7 +629,7 @@ static void draw_fcurve_curve(bAnimContext *ac,
   /* TODO: perhaps we should have 1.0 frames
    * as upper limit so that curves don't get too distorted? */
   float pixels_per_sample = 1.5f;
-  float samplefreq = pixels_per_sample / blender::ui::UI_view2d_scale_get_x(v2d);
+  float samplefreq = pixels_per_sample / blender::ui::view2d_scale_get_x(v2d);
 
   if (!(U.animation_flag & USER_ANIM_HIGH_QUALITY_DRAWING)) {
     /* Low Precision = coarse lower-bound clamping
@@ -1548,7 +1547,7 @@ void graph_draw_channel_names(bContext *C,
     }
   }
   { /* second pass: widgets */
-    uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+    uiBlock *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
     size_t channel_index = 0;
     float ymax = ANIM_UI_get_first_channel_top(v2d);
 
@@ -1571,8 +1570,8 @@ void graph_draw_channel_names(bContext *C,
       }
     }
 
-    UI_block_end(C, block);
-    UI_block_draw(C, block);
+    block_end(C, block);
+    block_draw(C, block);
 
     GPU_blend(GPU_BLEND_NONE);
   }

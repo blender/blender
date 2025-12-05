@@ -17,7 +17,7 @@
 
 namespace blender::ui {
 
-void uiTemplateColorspaceSettings(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
+void template_colorspace_settings(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 
@@ -34,10 +34,10 @@ void uiTemplateColorspaceSettings(Layout *layout, PointerRNA *ptr, const StringR
   layout->prop(&colorspace_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
 }
 
-void uiTemplateColormanagedViewSettings(Layout *layout,
-                                        bContext * /*C*/,
-                                        PointerRNA *ptr,
-                                        const StringRefNull propname)
+void template_colormanaged_view_settings(Layout *layout,
+                                         bContext * /*C*/,
+                                         PointerRNA *ptr,
+                                         const StringRefNull propname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 
@@ -64,7 +64,7 @@ void uiTemplateColormanagedViewSettings(Layout *layout,
   col = &layout->column(false);
   col->prop(&view_transform_ptr, "use_curve_mapping", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) {
-    uiTemplateCurveMapping(
+    template_curve_mapping(
         col, &view_transform_ptr, "curve_mapping", 'c', true, false, false, false, false);
   }
 

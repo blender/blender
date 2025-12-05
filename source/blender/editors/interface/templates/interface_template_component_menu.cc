@@ -25,8 +25,8 @@ static uiBlock *component_menu(bContext *C, ARegion *region, void *args_v)
 {
   ComponentMenuArgs *args = (ComponentMenuArgs *)args_v;
 
-  uiBlock *block = UI_block_begin(C, region, __func__, EmbossType::Emboss);
-  UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN);
+  uiBlock *block = block_begin(C, region, __func__, EmbossType::Emboss);
+  block_flag_enable(block, BLOCK_KEEP_OPEN);
 
   Layout &layout = block_layout(block,
                                 LayoutDirection::Vertical,
@@ -36,17 +36,17 @@ static uiBlock *component_menu(bContext *C, ARegion *region, void *args_v)
                                 UI_UNIT_X * 6,
                                 UI_UNIT_Y,
                                 0,
-                                UI_style_get())
+                                style_get())
                        .column(false);
 
-  layout.prop(&args->ptr, args->propname, UI_ITEM_R_EXPAND, "", ICON_NONE);
+  layout.prop(&args->ptr, args->propname, ITEM_R_EXPAND, "", ICON_NONE);
 
-  UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
-  UI_block_direction_set(block, UI_DIR_DOWN);
+  block_bounds_set_normal(block, 0.3f * U.widget_unit);
+  block_direction_set(block, UI_DIR_DOWN);
 
   return block;
 }
-void uiTemplateComponentMenu(Layout *layout,
+void template_component_menu(Layout *layout,
                              PointerRNA *ptr,
                              const StringRefNull propname,
                              const StringRef name)
@@ -57,7 +57,7 @@ void uiTemplateComponentMenu(Layout *layout,
   STRNCPY(args->propname, propname.c_str());
 
   uiBlock *block = layout->block();
-  UI_block_align_begin(block);
+  block_align_begin(block);
 
   uiBut *but = uiDefBlockButN(block,
                               component_menu,
@@ -75,7 +75,7 @@ void uiTemplateComponentMenu(Layout *layout,
   but->rnaprop = RNA_struct_find_property(ptr, propname.c_str());
   but->rnaindex = 0;
 
-  UI_block_align_end(block);
+  block_align_end(block);
 }
 
 }  // namespace blender::ui

@@ -886,7 +886,7 @@ static PointerRNA rna_Event_xr_get(PointerRNA *ptr)
 static PointerRNA rna_PopupMenu_layout_get(PointerRNA *ptr)
 {
   blender::ui::PopupMenu *pup = static_cast<blender::ui::PopupMenu *>(ptr->data);
-  blender::ui::Layout *layout = blender::ui::UI_popup_menu_layout(pup);
+  blender::ui::Layout *layout = blender::ui::popup_menu_layout(pup);
 
   PointerRNA rptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_UILayout, layout);
   return rptr;
@@ -895,7 +895,7 @@ static PointerRNA rna_PopupMenu_layout_get(PointerRNA *ptr)
 static PointerRNA rna_PopoverMenu_layout_get(PointerRNA *ptr)
 {
   blender::ui::uiPopover *pup = static_cast<blender::ui::uiPopover *>(ptr->data);
-  blender::ui::Layout *layout = blender::ui::UI_popover_layout(pup);
+  blender::ui::Layout *layout = blender::ui::popover_layout(pup);
 
   PointerRNA rptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_UILayout, layout);
   return rptr;
@@ -904,7 +904,7 @@ static PointerRNA rna_PopoverMenu_layout_get(PointerRNA *ptr)
 static PointerRNA rna_PieMenu_layout_get(PointerRNA *ptr)
 {
   blender::ui::uiPieMenu *pie = static_cast<blender::ui::uiPieMenu *>(ptr->data);
-  blender::ui::Layout *layout = blender::ui::UI_pie_menu_layout(pie);
+  blender::ui::Layout *layout = blender::ui::pie_menu_layout(pie);
 
   PointerRNA rptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_UILayout, layout);
   return rptr;

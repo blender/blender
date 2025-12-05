@@ -40,10 +40,10 @@ static bool keymap_item_can_collapse(const wmKeyMapItem *kmi_a, const wmKeyMapIt
           kmi_a->oskey == kmi_b->oskey && kmi_a->hyper == kmi_b->hyper);
 }
 
-int uiTemplateStatusBarModalItem(Layout *layout,
-                                 wmOperator *op,
-                                 const wmKeyMap *keymap,
-                                 const EnumPropertyItem *item)
+int template_status_bar_modal_item(Layout *layout,
+                                   wmOperator *op,
+                                   const wmKeyMap *keymap,
+                                   const EnumPropertyItem *item)
 {
   const wmKeyMapItem *kmi = keymap_item_from_enum_item(keymap, item);
   if (kmi == nullptr) {
@@ -89,7 +89,7 @@ int uiTemplateStatusBarModalItem(Layout *layout,
 #ifdef WITH_HEADLESS
       int icon = 0;
 #else
-      int icon = UI_icon_from_keymap_item(kmi, icon_mod);
+      int icon = icon_from_keymap_item(kmi, icon_mod);
 #endif
       for (int j = 0; j < ARRAY_SIZE(icon_mod) && icon_mod[j]; j++) {
         layout->label("", icon_mod[j]);
@@ -102,7 +102,7 @@ int uiTemplateStatusBarModalItem(Layout *layout,
       layout->separator(ui_event_icon_offset(icon));
 
 #ifndef WITH_HEADLESS
-      icon = UI_icon_from_keymap_item(kmi_y, icon_mod);
+      icon = icon_from_keymap_item(kmi_y, icon_mod);
 #endif
       layout->label("", icon);
       layout->separator(ui_event_icon_offset(icon));
@@ -112,7 +112,7 @@ int uiTemplateStatusBarModalItem(Layout *layout,
       {
         /* Z item is included. */
 #ifndef WITH_HEADLESS
-        icon = UI_icon_from_keymap_item(kmi_z, icon_mod);
+        icon = icon_from_keymap_item(kmi_z, icon_mod);
 #endif
         layout->label("", icon);
         layout->separator(ui_event_icon_offset(icon));
@@ -140,7 +140,7 @@ int uiTemplateStatusBarModalItem(Layout *layout,
 #ifdef WITH_HEADLESS
       int icon = 0;
 #else
-      int icon = UI_icon_from_keymap_item(kmi, icon_mod);
+      int icon = icon_from_keymap_item(kmi, icon_mod);
 #endif
       for (int j = 0; j < ARRAY_SIZE(icon_mod) && icon_mod[j]; j++) {
         layout->label("", icon_mod[j]);
@@ -153,7 +153,7 @@ int uiTemplateStatusBarModalItem(Layout *layout,
       layout->separator(ui_event_icon_offset(icon));
 
 #ifndef WITH_HEADLESS
-      icon = UI_icon_from_keymap_item(kmi_y, icon_mod);
+      icon = icon_from_keymap_item(kmi_y, icon_mod);
 #endif
       layout->label("", icon);
       layout->separator(ui_event_icon_offset(icon));
@@ -165,13 +165,13 @@ int uiTemplateStatusBarModalItem(Layout *layout,
   }
 
   /* Single item without merging. */
-  return uiTemplateEventFromKeymapItem(layout, item->name, kmi, false) ? 1 : 0;
+  return template_event_from_keymap_item(layout, item->name, kmi, false) ? 1 : 0;
 }
 
-bool uiTemplateEventFromKeymapItem(Layout *layout,
-                                   const StringRefNull text,
-                                   const wmKeyMapItem *kmi,
-                                   bool text_fallback)
+bool template_event_from_keymap_item(Layout *layout,
+                                     const StringRefNull text,
+                                     const wmKeyMapItem *kmi,
+                                     bool text_fallback)
 {
   bool ok = false;
 
@@ -179,7 +179,7 @@ bool uiTemplateEventFromKeymapItem(Layout *layout,
 #ifdef WITH_HEADLESS
   int icon = 0;
 #else
-  const int icon = UI_icon_from_keymap_item(kmi, icon_mod);
+  const int icon = icon_from_keymap_item(kmi, icon_mod);
 #endif
   if (icon != 0) {
     for (int j = 0; j < ARRAY_SIZE(icon_mod) && icon_mod[j]; j++) {

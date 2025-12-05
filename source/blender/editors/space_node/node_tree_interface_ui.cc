@@ -53,7 +53,7 @@ void node_tree_interface_draw(bContext &C, ui::Layout &layout, bNodeTree &tree)
 
   {
     ui::Layout &row = layout.row(false);
-    uiTemplateNodeTreeInterface(&row, &C, &interface_ptr);
+    template_tree_interface(&row, &C, &interface_ptr);
 
     ui::Layout &col = row.column(true);
     col.enabled_set(ID_IS_EDITABLE(&tree.id));

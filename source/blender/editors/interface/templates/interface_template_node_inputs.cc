@@ -134,7 +134,7 @@ static void draw_node_inputs_recursive(bContext *C,
 
 }  // namespace nodes
 
-void uiTemplateNodeInputs(Layout *layout, bContext *C, PointerRNA *ptr)
+void template_node_inputs(Layout *layout, bContext *C, PointerRNA *ptr)
 {
   bNodeTree &tree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNode &node = *static_cast<bNode *>(ptr->data);

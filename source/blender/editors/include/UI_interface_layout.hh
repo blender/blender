@@ -850,40 +850,40 @@ bool block_layout_needs_resolving(const uiBlock *block);
 void block_layout_free(uiBlock *block);
 
 enum eUI_Item_Flag : uint16_t {
-  /* UI_ITEM_O_RETURN_PROPS = 1 << 0, */ /* UNUSED */
-  UI_ITEM_R_EXPAND = 1 << 1,
-  UI_ITEM_R_SLIDER = 1 << 2,
+  /* ITEM_O_RETURN_PROPS = 1 << 0, */ /* UNUSED */
+  ITEM_R_EXPAND = 1 << 1,
+  ITEM_R_SLIDER = 1 << 2,
   /**
    * Use for booleans, causes the button to draw with an outline (emboss),
    * instead of text with a checkbox.
    * This is implied when toggle buttons have an icon
-   * unless #UI_ITEM_R_ICON_NEVER flag is set.
+   * unless #ITEM_R_ICON_NEVER flag is set.
    */
-  UI_ITEM_R_TOGGLE = 1 << 3,
+  ITEM_R_TOGGLE = 1 << 3,
   /**
    * Don't attempt to use an icon when the icon is set to #ICON_NONE.
    *
    * Use for booleans, causes the buttons to always show as a checkbox
    * even when there is an icon (which would normally show the button as a toggle).
    */
-  UI_ITEM_R_ICON_NEVER = 1 << 4,
-  UI_ITEM_R_ICON_ONLY = 1 << 5,
-  UI_ITEM_R_EVENT = 1 << 6,
-  UI_ITEM_R_FULL_EVENT = 1 << 7,
-  UI_ITEM_R_NO_BG = 1 << 8,
-  UI_ITEM_R_IMMEDIATE = 1 << 9,
-  UI_ITEM_O_DEPRESS = 1 << 10,
-  UI_ITEM_R_COMPACT = 1 << 11,
-  UI_ITEM_R_CHECKBOX_INVERT = 1 << 12,
+  ITEM_R_ICON_NEVER = 1 << 4,
+  ITEM_R_ICON_ONLY = 1 << 5,
+  ITEM_R_EVENT = 1 << 6,
+  ITEM_R_FULL_EVENT = 1 << 7,
+  ITEM_R_NO_BG = 1 << 8,
+  ITEM_R_IMMEDIATE = 1 << 9,
+  ITEM_O_DEPRESS = 1 << 10,
+  ITEM_R_COMPACT = 1 << 11,
+  ITEM_R_CHECKBOX_INVERT = 1 << 12,
   /** Don't add a real decorator item, just blank space. */
-  UI_ITEM_R_FORCE_BLANK_DECORATE = 1 << 13,
+  ITEM_R_FORCE_BLANK_DECORATE = 1 << 13,
   /* Even create the property split layout if there's no name to show there. */
-  UI_ITEM_R_SPLIT_EMPTY_NAME = 1 << 14,
+  ITEM_R_SPLIT_EMPTY_NAME = 1 << 14,
   /**
    * Only for text buttons (for now): Force the button as active in a semi-modal state (capturing
    * text input while leaving the remaining UI interactive).
    */
-  UI_ITEM_R_TEXT_BUT_FORCE_SEMI_MODAL_ACTIVE = 1 << 15,
+  ITEM_R_TEXT_BUT_FORCE_SEMI_MODAL_ACTIVE = 1 << 15,
 };
 ENUM_OPERATORS(eUI_Item_Flag)
 #define UI_ITEM_NONE blender::ui::eUI_Item_Flag(0)
@@ -891,20 +891,20 @@ ENUM_OPERATORS(eUI_Item_Flag)
 /**
  * Apply property search behavior, setting panel flags and deactivating buttons that don't match.
  *
- * \note Must not be run after #UI_block_layout_resolve.
+ * \note Must not be run after #block_layout_resolve.
  */
-bool UI_block_apply_search_filter(uiBlock *block, const char *search_filter);
+bool block_apply_search_filter(uiBlock *block, const char *search_filter);
 
 void uiLayoutSetFunc(Layout *layout, uiMenuHandleFunc handlefunc, void *argv);
 
 /**
  * Set tooltip function for all buttons in the layout.
- * func, arg and free_arg are passed on to UI_but_func_tooltip_set, so their meaning is the same.
+ * func, arg and free_arg are passed on to button_func_tooltip_set, so their meaning is the same.
  *
  * \param func: The callback function that gets called to get tooltip content
  * \param arg: An optional opaque pointer that gets passed to func
  * \param free_arg: An optional callback for freeing arg (can be set to e.g. MEM_freeN)
- * \param copy_arg: An optional callback for duplicating arg in case UI_but_func_tooltip_set
+ * \param copy_arg: An optional callback for duplicating arg in case button_func_tooltip_set
  * is being called on multiple buttons (can be set to e.g. MEM_dupallocN). If set to NULL, arg will
  * be passed as-is to all buttons.
  */
@@ -924,7 +924,7 @@ void uiLayoutSetTooltipCustomFunc(Layout *layout,
                                   uiCopyArgFunc copy_arg,
                                   uiFreeArgFunc free_arg);
 
-void UI_menutype_draw(bContext *C, MenuType *mt, Layout *layout);
+void menutype_draw(bContext *C, MenuType *mt, Layout *layout);
 
 /**
  * Used for popup panels only.

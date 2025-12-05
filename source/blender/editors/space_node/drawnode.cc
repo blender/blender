@@ -71,7 +71,7 @@
 namespace blender::ed::space_node {
 
 /* Default flags for Layout::prop(). Name is kept short since this is used a lot in this file. */
-#define DEFAULT_FLAGS ui::UI_ITEM_R_SPLIT_EMPTY_NAME
+#define DEFAULT_FLAGS ui::ITEM_R_SPLIT_EMPTY_NAME
 
 /* ****************** SOCKET BUTTON DRAW FUNCTIONS ***************** */
 
@@ -102,22 +102,22 @@ static void node_buts_mix_rgb(ui::Layout &layout, bContext * /*C*/, PointerRNA *
 
 static void node_buts_time(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiTemplateCurveMapping(&layout, ptr, "curve", 's', false, false, false, false, false);
+  template_curve_mapping(&layout, ptr, "curve", 's', false, false, false, false, false);
 }
 
 static void node_buts_colorramp(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiTemplateColorRamp(&layout, ptr, "color_ramp", false);
+  template_color_ramp(&layout, ptr, "color_ramp", false);
 }
 
 static void node_buts_curvevec(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiTemplateCurveMapping(&layout, ptr, "mapping", 'v', false, false, false, false, false);
+  template_curve_mapping(&layout, ptr, "mapping", 'v', false, false, false, false, false);
 }
 
 static void node_buts_curvefloat(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiTemplateCurveMapping(&layout, ptr, "mapping", 0, false, false, false, false, false);
+  template_curve_mapping(&layout, ptr, "mapping", 0, false, false, false, false, false);
 }
 
 }  // namespace blender::ed::space_node
@@ -152,7 +152,7 @@ static void node_buts_curvecol(ui::Layout &layout, bContext * /*C*/, PointerRNA 
 
   /* "Tone" (Standard/Film-like) only used in the Compositor. */
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
-  uiTemplateCurveMapping(
+  template_curve_mapping(
       &layout, ptr, "mapping", 'c', false, false, false, (ntree->type == NTREE_COMPOSIT), false);
 }
 
@@ -173,7 +173,7 @@ static void node_buts_texture(ui::Layout &layout, bContext *C, PointerRNA *ptr)
   short multi = (node->id && ((Tex *)node->id)->use_nodes &&
                  (node->type_legacy != TEX_NODE_TEXTURE));
 
-  uiTemplateID(&layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
+  template_id(&layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
 
   if (multi) {
     /* Number Drawing not optimal here, better have a list. */
@@ -254,7 +254,7 @@ NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
 
 static void node_draw_buttons_group(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
-  uiTemplateIDBrowse(&layout, C, ptr, "node_tree", nullptr, nullptr, nullptr);
+  template_id_browse(&layout, C, ptr, "node_tree", nullptr, nullptr, nullptr);
 }
 
 static void node_buts_frame_ex(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
@@ -353,7 +353,7 @@ static void node_shader_buts_tex_image(ui::Layout &layout, bContext *C, PointerR
   PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
 
   layout.context_ptr_set("image_user", &iuserptr);
-  uiTemplateID(&layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
+  template_id(&layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
   layout.prop(ptr, "interpolation", DEFAULT_FLAGS, "", ICON_NONE);
   layout.prop(ptr, "projection", DEFAULT_FLAGS, "", ICON_NONE);
 
@@ -381,7 +381,7 @@ static void node_shader_buts_tex_environment(ui::Layout &layout, bContext *C, Po
   PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
 
   layout.context_ptr_set("image_user", &iuserptr);
-  uiTemplateID(&layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
+  template_id(&layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
 
   layout.prop(ptr, "interpolation", DEFAULT_FLAGS, "", ICON_NONE);
   layout.prop(ptr, "projection", DEFAULT_FLAGS, "", ICON_NONE);
@@ -502,7 +502,7 @@ static void node_composit_buts_image(ui::Layout &layout, bContext *C, PointerRNA
 
   PointerRNA iuserptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_ImageUser, node->storage);
   layout.context_ptr_set("image_user", &iuserptr);
-  uiTemplateID(&layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
+  template_id(&layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
   if (!node->id) {
     return;
   }
@@ -536,7 +536,7 @@ static void node_composit_buts_huecorrect(ui::Layout &layout, bContext * /*C*/, 
     cumap->flag &= ~CUMA_DRAW_SAMPLE;
   }
 
-  uiTemplateCurveMapping(&layout, ptr, "mapping", 'h', false, false, false, false, false);
+  template_curve_mapping(&layout, ptr, "mapping", 'h', false, false, false, false, false);
 }
 
 static void node_composit_buts_combsep_color(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
@@ -559,8 +559,8 @@ static void node_composit_buts_cryptomatte_legacy(ui::Layout &layout,
   col.label(IFACE_("Matte Objects:"), ICON_NONE);
 
   ui::Layout &row = col.row(true);
-  uiTemplateCryptoPicker(&row, ptr, "add", ICON_ADD);
-  uiTemplateCryptoPicker(&row, ptr, "remove", ICON_REMOVE);
+  template_crypto_picker(&row, ptr, "add", ICON_ADD);
+  template_crypto_picker(&row, ptr, "remove", ICON_REMOVE);
 
   col.prop(ptr, "matte_id", DEFAULT_FLAGS, "", ICON_NONE);
 }
@@ -578,14 +578,14 @@ static void node_composit_buts_cryptomatte(ui::Layout &layout, bContext *C, Poin
   bNode *node = (bNode *)ptr->data;
 
   ui::Layout &row = layout.row(true);
-  row.prop(ptr, "source", DEFAULT_FLAGS | ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row.prop(ptr, "source", DEFAULT_FLAGS | ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   ui::Layout &col = layout.column(false);
   if (node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER) {
-    uiTemplateID(&col, C, ptr, "scene", nullptr, nullptr, nullptr);
+    template_id(&col, C, ptr, "scene", nullptr, nullptr, nullptr);
   }
   else {
-    uiTemplateID(&col, C, ptr, "image", nullptr, "IMAGE_OT_open", nullptr);
+    template_id(&col, C, ptr, "image", nullptr, "IMAGE_OT_open", nullptr);
 
     NodeCryptomatte *crypto = (NodeCryptomatte *)node->storage;
     PointerRNA imaptr = RNA_pointer_get(ptr, "image");
@@ -603,8 +603,8 @@ static void node_composit_buts_cryptomatte(ui::Layout &layout, bContext *C, Poin
 
   ui::Layout &row_2 = col_2.row(true);
   row_2.prop(ptr, "matte_id", DEFAULT_FLAGS, "", ICON_NONE);
-  uiTemplateCryptoPicker(&row_2, ptr, "add", ICON_ADD);
-  uiTemplateCryptoPicker(&row_2, ptr, "remove", ICON_REMOVE);
+  template_crypto_picker(&row_2, ptr, "add", ICON_ADD);
+  template_crypto_picker(&row_2, ptr, "remove", ICON_REMOVE);
 }
 
 /* only once called */
@@ -647,7 +647,7 @@ static void node_texture_buts_bricks(ui::Layout &layout, bContext * /*C*/, Point
 {
   {
     ui::Layout &col = layout.column(true);
-    col.prop(ptr, "offset", DEFAULT_FLAGS | ui::UI_ITEM_R_SLIDER, IFACE_("Offset"), ICON_NONE);
+    col.prop(ptr, "offset", DEFAULT_FLAGS | ui::ITEM_R_SLIDER, IFACE_("Offset"), ICON_NONE);
     col.prop(ptr, "offset_frequency", DEFAULT_FLAGS, IFACE_("Frequency"), ICON_NONE);
   }
   {
@@ -671,26 +671,20 @@ static void node_texture_buts_proc(ui::Layout &layout, bContext * /*C*/, Pointer
     case TEX_BLEND: {
       col.prop(&tex_ptr, "progression", DEFAULT_FLAGS, "", ICON_NONE);
       ui::Layout &row = col.row(false);
-      row.prop(&tex_ptr,
-               "use_flip_axis",
-               DEFAULT_FLAGS | ui::UI_ITEM_R_EXPAND,
-               std::nullopt,
-               ICON_NONE);
+      row.prop(
+          &tex_ptr, "use_flip_axis", DEFAULT_FLAGS | ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
       break;
     }
     case TEX_MARBLE: {
       {
         ui::Layout &row = col.row(false);
-        row.prop(&tex_ptr,
-                 "marble_type",
-                 DEFAULT_FLAGS | ui::UI_ITEM_R_EXPAND,
-                 std::nullopt,
-                 ICON_NONE);
+        row.prop(
+            &tex_ptr, "marble_type", DEFAULT_FLAGS | ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
       }
       {
         ui::Layout &row = col.row(false);
         row.prop(
-            &tex_ptr, "noise_type", DEFAULT_FLAGS | ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+            &tex_ptr, "noise_type", DEFAULT_FLAGS | ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
       }
       {
         ui::Layout &row = col.row(false);
@@ -698,11 +692,8 @@ static void node_texture_buts_proc(ui::Layout &layout, bContext * /*C*/, Pointer
       }
       {
         ui::Layout &row = col.row(false);
-        row.prop(&tex_ptr,
-                 "noise_basis_2",
-                 DEFAULT_FLAGS | ui::UI_ITEM_R_EXPAND,
-                 std::nullopt,
-                 ICON_NONE);
+        row.prop(
+            &tex_ptr, "noise_basis_2", DEFAULT_FLAGS | ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
       }
       break;
     }
@@ -713,16 +704,13 @@ static void node_texture_buts_proc(ui::Layout &layout, bContext * /*C*/, Pointer
     case TEX_STUCCI: {
       {
         ui::Layout &row = col.row(false);
-        row.prop(&tex_ptr,
-                 "stucci_type",
-                 DEFAULT_FLAGS | ui::UI_ITEM_R_EXPAND,
-                 std::nullopt,
-                 ICON_NONE);
+        row.prop(
+            &tex_ptr, "stucci_type", DEFAULT_FLAGS | ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
       }
       {
         ui::Layout &row = col.row(false);
         row.prop(
-            &tex_ptr, "noise_type", DEFAULT_FLAGS | ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+            &tex_ptr, "noise_type", DEFAULT_FLAGS | ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
         col.prop(&tex_ptr, "noise_basis", DEFAULT_FLAGS, "", ICON_NONE);
       }
       break;
@@ -732,17 +720,14 @@ static void node_texture_buts_proc(ui::Layout &layout, bContext * /*C*/, Pointer
       col.prop(&tex_ptr, "wood_type", DEFAULT_FLAGS, "", ICON_NONE);
       {
         ui::Layout &row = col.row(false);
-        row.prop(&tex_ptr,
-                 "noise_basis_2",
-                 DEFAULT_FLAGS | ui::UI_ITEM_R_EXPAND,
-                 std::nullopt,
-                 ICON_NONE);
+        row.prop(
+            &tex_ptr, "noise_basis_2", DEFAULT_FLAGS | ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
       }
       {
         ui::Layout &row = col.row(false);
         row.active_set(!ELEM(tex->stype, TEX_BAND, TEX_RING));
         row.prop(
-            &tex_ptr, "noise_type", DEFAULT_FLAGS | ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+            &tex_ptr, "noise_type", DEFAULT_FLAGS | ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
       }
       break;
     }
@@ -751,15 +736,15 @@ static void node_texture_buts_proc(ui::Layout &layout, bContext * /*C*/, Pointer
       {
         ui::Layout &row = col.row(false);
         row.prop(
-            &tex_ptr, "cloud_type", DEFAULT_FLAGS | ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+            &tex_ptr, "cloud_type", DEFAULT_FLAGS | ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
       }
       {
         ui::Layout &row = col.row(false);
         row.prop(
-            &tex_ptr, "noise_type", DEFAULT_FLAGS | ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+            &tex_ptr, "noise_type", DEFAULT_FLAGS | ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
         col.prop(&tex_ptr,
                  "noise_depth",
-                 DEFAULT_FLAGS | ui::UI_ITEM_R_EXPAND,
+                 DEFAULT_FLAGS | ui::ITEM_R_EXPAND,
                  IFACE_("Depth"),
                  ICON_NONE);
       }
@@ -788,7 +773,7 @@ static void node_texture_buts_proc(ui::Layout &layout, bContext * /*C*/, Pointer
 
 static void node_texture_buts_image(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
-  uiTemplateID(&layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
+  template_id(&layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
 }
 
 static void node_texture_buts_image_ex(ui::Layout &layout, bContext *C, PointerRNA *ptr)
@@ -1188,7 +1173,7 @@ static void std_node_socket_draw(
       break;
     case SOCK_VECTOR:
       if (socket_decl && socket_decl->compact) {
-        uiTemplateComponentMenu(layout, ptr, "default_value", label_or_empty);
+        template_component_menu(layout, ptr, "default_value", label_or_empty);
       }
       else {
         if (sock->typeinfo->subtype == PROP_DIRECTION) {
@@ -1312,7 +1297,7 @@ static void std_node_socket_draw(
             if (expanded) {
               /* Use a single space for the name to work around a bug. Also see
                * #ui_item_enum_expand_exec. */
-              layout->prop(ptr, "default_value", ui::UI_ITEM_R_EXPAND, " ", ICON_NONE);
+              layout->prop(ptr, "default_value", ui::ITEM_R_EXPAND, " ", ICON_NONE);
             }
             else {
               layout->prop(ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
@@ -1324,7 +1309,7 @@ static void std_node_socket_draw(
             if (expanded) {
               /* Use a single space for the name to work around a bug. Also see
                * #ui_item_enum_expand_exec. */
-              row.row(true).prop(ptr, "default_value", ui::UI_ITEM_R_EXPAND, " ", ICON_NONE);
+              row.row(true).prop(ptr, "default_value", ui::ITEM_R_EXPAND, " ", ICON_NONE);
             }
             else {
               row.prop(ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
@@ -1369,13 +1354,13 @@ static void std_node_socket_draw(
       const bNodeTree *node_tree = (const bNodeTree *)node_ptr->owner_id;
       if (node_tree->type == NTREE_GEOMETRY) {
         if (optional_label) {
-          uiTemplateID(layout, C, ptr, "default_value", "image.new", "image.open", nullptr);
+          template_id(layout, C, ptr, "default_value", "image.new", "image.open", nullptr);
         }
         else {
           /* 0.3 split ratio is inconsistent, but use it here because the "New" button is large. */
           ui::Layout *row = &layout->split(0.3f, false);
           row->label(label, ICON_NONE);
-          uiTemplateID(row, C, ptr, "default_value", "image.new", "image.open", nullptr);
+          template_id(row, C, ptr, "default_value", "image.new", "image.open", nullptr);
         }
       }
       else {
@@ -1385,13 +1370,13 @@ static void std_node_socket_draw(
     }
     case SOCK_TEXTURE: {
       if (optional_label) {
-        uiTemplateID(layout, C, ptr, "default_value", "texture.new", nullptr, nullptr);
+        template_id(layout, C, ptr, "default_value", "texture.new", nullptr, nullptr);
       }
       else {
         /* 0.3 split ratio is inconsistent, but use it here because the "New" button is large. */
         ui::Layout *row = &layout->split(0.3f, false);
         row->label(label, ICON_NONE);
-        uiTemplateID(row, C, ptr, "default_value", "texture.new", nullptr, nullptr);
+        template_id(row, C, ptr, "default_value", "texture.new", nullptr, nullptr);
       }
 
       break;
@@ -1443,7 +1428,7 @@ static void std_node_socket_interface_draw(ID *id,
                 DEFAULT_FLAGS,
                 CTX_IFACE_(BLT_I18NCONTEXT_ID_TEXTURE, "Dimensions"),
                 ICON_NONE);
-      col->prop(&ptr, "default_value", ui::UI_ITEM_R_EXPAND, IFACE_("Default"), ICON_NONE);
+      col->prop(&ptr, "default_value", ui::ITEM_R_EXPAND, IFACE_("Default"), ICON_NONE);
       ui::Layout *sub = &col->column(true);
       sub->prop(&ptr, "min_value", DEFAULT_FLAGS, IFACE_("Min"), ICON_NONE);
       sub->prop(&ptr, "max_value", DEFAULT_FLAGS, IFACE_("Max"), ICON_NONE);
@@ -1675,7 +1660,7 @@ float2 socket_link_connection_location(const bNode &node,
 
 static void calculate_inner_link_bezier_points(std::array<float2, 4> &points)
 {
-  const int curving = ui::UI_GetThemeValueType(TH_NODE_CURVING, SPACE_NODE);
+  const int curving = ui::GetThemeValueType(TH_NODE_CURVING, SPACE_NODE);
   if (curving == 0) {
     /* Straight line: align all points. */
     points[1] = math::interpolate(points[0], points[3], 1.0f / 3.0f);
@@ -2036,13 +2021,12 @@ static void nodelink_batch_draw(const SpaceNode &snode)
   GPU_blend(GPU_BLEND_ALPHA);
   NodeLinkUniformData node_link_data;
 
-  ui::UI_GetThemeColor4fv(TH_WIRE_INNER,
-                          node_link_data.colors[nodelink_get_color_id(TH_WIRE_INNER)]);
-  ui::UI_GetThemeColor4fv(TH_WIRE, node_link_data.colors[nodelink_get_color_id(TH_WIRE)]);
-  ui::UI_GetThemeColor4fv(TH_ACTIVE, node_link_data.colors[nodelink_get_color_id(TH_ACTIVE)]);
-  ui::UI_GetThemeColor4fv(TH_EDGE_SELECT,
-                          node_link_data.colors[nodelink_get_color_id(TH_EDGE_SELECT)]);
-  ui::UI_GetThemeColor4fv(TH_REDALERT, node_link_data.colors[nodelink_get_color_id(TH_REDALERT)]);
+  ui::GetThemeColor4fv(TH_WIRE_INNER, node_link_data.colors[nodelink_get_color_id(TH_WIRE_INNER)]);
+  ui::GetThemeColor4fv(TH_WIRE, node_link_data.colors[nodelink_get_color_id(TH_WIRE)]);
+  ui::GetThemeColor4fv(TH_ACTIVE, node_link_data.colors[nodelink_get_color_id(TH_ACTIVE)]);
+  ui::GetThemeColor4fv(TH_EDGE_SELECT,
+                       node_link_data.colors[nodelink_get_color_id(TH_EDGE_SELECT)]);
+  ui::GetThemeColor4fv(TH_REDALERT, node_link_data.colors[nodelink_get_color_id(TH_REDALERT)]);
   node_link_data.aspect = snode.runtime->aspect;
   node_link_data.arrow_size = ARROW_SIZE;
 
@@ -2142,8 +2126,8 @@ static void node_draw_link_end_marker(const float2 center,
   rctf rect;
   BLI_rctf_init(&rect, center.x - radius, center.x + radius, center.y - radius, center.y + radius);
 
-  ui::UI_draw_roundbox_corner_set(ui::UI_CNR_ALL);
-  ui::UI_draw_roundbox_4fv(&rect, true, radius, color);
+  ui::draw_roundbox_corner_set(ui::CNR_ALL);
+  ui::draw_roundbox_4fv(&rect, true, radius, color);
   /* Round-box disables alpha. Re-enable it for node links that are drawn after this one. */
   GPU_blend(GPU_BLEND_ALPHA);
 }
@@ -2206,7 +2190,7 @@ static NodeLinkDrawConfig nodelink_get_draw_config(const bContext &C,
 
   draw_config.dim_factor = selected ? 1.0f : node_link_dim_factor(v2d, link);
 
-  bTheme *btheme = ui::UI_GetTheme();
+  bTheme *btheme = ui::GetTheme();
   draw_config.dash_alpha = btheme->space_node.dash_alpha;
 
   const bool field_link = node_link_is_field_link(snode, link);
@@ -2215,7 +2199,7 @@ static NodeLinkDrawConfig nodelink_get_draw_config(const bContext &C,
   draw_config.dash_factor = field_link ? 0.75f : 1.0f;
   draw_config.dash_length = 10.0f * UI_SCALE_FAC;
 
-  const float scale = ui::UI_view2d_scale_get_x(&v2d);
+  const float scale = ui::view2d_scale_get_x(&v2d);
   /* Clamp the thickness to make the links more readable when zooming out. */
   draw_config.thickness = LINK_WIDTH * max_ff(UI_SCALE_FAC * scale, 1.0f) *
                           (field_link ? 0.7f : 1.0f);
@@ -2225,7 +2209,7 @@ static NodeLinkDrawConfig nodelink_get_draw_config(const bContext &C,
                             (link.fromnode && link.fromnode->is_reroute()));
   draw_config.draw_muted = (link.flag & NODE_LINK_MUTED);
 
-  ui::UI_GetThemeColor4fv(th_col3, draw_config.outline_color);
+  ui::GetThemeColor4fv(th_col3, draw_config.outline_color);
 
   if (snode.overlay.flag & SN_OVERLAY_SHOW_OVERLAYS &&
       snode.overlay.flag & SN_OVERLAY_SHOW_WIRE_COLORS)
@@ -2251,14 +2235,14 @@ static NodeLinkDrawConfig nodelink_get_draw_config(const bContext &C,
     }
   }
   else {
-    ui::UI_GetThemeColor4fv(th_col1, draw_config.start_color);
-    ui::UI_GetThemeColor4fv(th_col2, draw_config.end_color);
+    ui::GetThemeColor4fv(th_col1, draw_config.start_color);
+    ui::GetThemeColor4fv(th_col2, draw_config.end_color);
   }
 
   /* Highlight links connected to selected nodes. */
   if (selected) {
     ColorTheme4f color_selected;
-    ui::UI_GetThemeColor4fv(TH_EDGE_SELECT, color_selected);
+    ui::GetThemeColor4fv(TH_EDGE_SELECT, color_selected);
     const float alpha = color_selected.a;
 
     /* Interpolate color if highlight color is not fully transparent. */
@@ -2274,7 +2258,7 @@ static NodeLinkDrawConfig nodelink_get_draw_config(const bContext &C,
 
   if (draw_config.highlighted) {
     ColorTheme4f link_preselection_highlight_color;
-    ui::UI_GetThemeColor4fv(TH_SELECT, link_preselection_highlight_color);
+    ui::GetThemeColor4fv(TH_SELECT, link_preselection_highlight_color);
     /* Multi sockets can only be inputs. So we only have to highlight the end of the link. */
     copy_v4_v4(draw_config.end_color, link_preselection_highlight_color);
   }

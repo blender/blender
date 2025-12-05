@@ -1032,7 +1032,7 @@ static wmOperatorStatus node_resize_modal(bContext *C, wmOperator *op, const wmE
       int2 mval;
       WM_event_drag_start_mval(event, region, mval);
       float mx, my;
-      ui::UI_view2d_region_to_view(&region->v2d, mval.x, mval.y, &mx, &my);
+      ui::view2d_region_to_view(&region->v2d, mval.x, mval.y, &mx, &my);
       const float dx = (mx - nsw->mxstart) / UI_SCALE_FAC;
       const float dy = (my - nsw->mystart) / UI_SCALE_FAC;
 
@@ -1126,7 +1126,7 @@ static wmOperatorStatus node_resize_invoke(bContext *C, wmOperator *op, const wm
   float2 cursor;
   int2 mval;
   WM_event_drag_start_mval(event, region, mval);
-  ui::UI_view2d_region_to_view(&region->v2d, mval.x, mval.y, &cursor.x, &cursor.y);
+  ui::view2d_region_to_view(&region->v2d, mval.x, mval.y, &cursor.x, &cursor.y);
   const NodeResizeDirection dir = node_get_resize_direction(*snode, node, cursor.x, cursor.y);
   if (dir == NODE_RESIZE_NONE) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
@@ -1249,7 +1249,7 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
                                         const float2 &cursor,
                                         const eNodeSocketInOut in_out)
 {
-  const float view2d_scale = ui::UI_view2d_scale_get_x(&region.v2d);
+  const float view2d_scale = ui::view2d_scale_get_x(&region.v2d);
   const float max_distance = NODE_SOCKSIZE + std::clamp(20.0f / view2d_scale, 5.0f, 30.0f);
   const float padded_socket_size = NODE_SOCKSIZE + 4;
 

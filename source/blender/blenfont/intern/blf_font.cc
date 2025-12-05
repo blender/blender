@@ -66,7 +66,7 @@ static FTC_CMapCache ftc_charmap_cache = nullptr;
 /* Lock for FreeType library, used around face creation and deletion. */
 static blender::Mutex ft_lib_mutex;
 
-/* May be set to #UI_widgetbase_draw_cache_flush. */
+/* May be set to #widgetbase_draw_cache_flush. */
 static void (*blf_draw_cache_flush)() = nullptr;
 
 static ft_pix blf_font_height_max_ft_pix(FontBLF *font);

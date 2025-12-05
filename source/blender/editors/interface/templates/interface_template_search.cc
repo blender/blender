@@ -101,7 +101,7 @@ static void template_search_add_button_name(uiBlock *block,
     name_prop = RNA_struct_find_property(active_ptr, "name_display");
     /* Also show an icon for the data-block type that each slot is intended for. */
     animrig::Slot &slot = reinterpret_cast<ActionSlot *>(active_ptr->data)->wrap();
-    iconid = UI_icon_from_idcode(slot.idtype);
+    iconid = icon_from_idcode(slot.idtype);
   }
   else {
     name_prop = RNA_struct_name_property(type);
@@ -127,7 +127,7 @@ static void template_search_add_button_operator(
   uiBut *but;
   if (button_text) {
     const int button_width = std::max(
-        UI_fontstyle_string_width(UI_FSTYLE_WIDGET, button_text->c_str()) + int(UI_UNIT_X * 1.5f),
+        fontstyle_string_width(UI_FSTYLE_WIDGET, button_text->c_str()) + int(UI_UNIT_X * 1.5f),
         UI_UNIT_X * 5);
 
     but = uiDefIconTextButO(block,
@@ -156,7 +156,7 @@ static void template_search_add_button_operator(
   }
 
   if (!editable) {
-    UI_but_drawflag_enable(but, UI_BUT_DISABLED);
+    button_drawflag_enable(but, BUT_DISABLED);
   }
 }
 
@@ -181,7 +181,7 @@ static void template_search_buttons(const bContext *C,
   }
 
   Layout &row = layout.row(true);
-  UI_block_align_begin(block);
+  block_align_begin(block);
 
   Layout *decorator_layout = nullptr;
   if (text && !text->is_empty()) {
@@ -207,7 +207,7 @@ static void template_search_buttons(const bContext *C,
         block, unlinkop, wm::OpCallContext::InvokeRegionWin, ICON_X, editable);
   }
 
-  UI_block_align_end(block);
+  block_align_end(block);
 
   if (decorator_layout) {
     decorator_layout->decorator(nullptr, "", RNA_NO_INDEX);
@@ -285,15 +285,15 @@ static bool template_search_setup(TemplateSearch &template_search,
   return true;
 }
 
-void uiTemplateSearch(Layout *layout,
-                      const bContext *C,
-                      PointerRNA *ptr,
-                      const StringRefNull propname,
-                      PointerRNA *searchptr,
-                      const char *searchpropname,
-                      const char *newop,
-                      const char *unlinkop,
-                      const std::optional<StringRef> text)
+void template_search(Layout *layout,
+                     const bContext *C,
+                     PointerRNA *ptr,
+                     const StringRefNull propname,
+                     PointerRNA *searchptr,
+                     const char *searchpropname,
+                     const char *newop,
+                     const char *unlinkop,
+                     const std::optional<StringRef> text)
 {
   TemplateSearch template_search;
   if (template_search_setup(template_search, ptr, propname, searchptr, searchpropname)) {
@@ -301,7 +301,7 @@ void uiTemplateSearch(Layout *layout,
   }
 }
 
-void uiTemplateSearchPreview(Layout *layout,
+void template_search_preview(Layout *layout,
                              bContext *C,
                              PointerRNA *ptr,
                              const StringRefNull propname,

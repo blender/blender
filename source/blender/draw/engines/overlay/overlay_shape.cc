@@ -1360,23 +1360,23 @@ ShapeCache::ShapeCache()
       float3 axis(0.0f);
       axis[i] = 1.0f;
       /* Draw the positive axes. */
-      ui::UI_GetThemeColor3fv(axis_theme[i], crosshair_color);
+      ui::GetThemeColor3fv(axis_theme[i], crosshair_color);
       verts.append({outer_limit * axis, crosshair_color});
       verts.append({color_limit * axis, crosshair_color});
 
       /* Inner crosshair. */
-      ui::UI_GetThemeColor3fv(TH_VIEW_OVERLAY, crosshair_color);
+      ui::GetThemeColor3fv(TH_VIEW_OVERLAY, crosshair_color);
       verts.append({color_limit * axis, crosshair_color});
       verts.append({inner_limit * axis, crosshair_color});
 
       /* Draw the negative axis a little darker and desaturated. */
       axis[i] = -1.0f;
-      ui::UI_GetThemeColorBlendShade3fv(axis_theme[i], TH_WHITE, .25f, -60, crosshair_color);
+      ui::GetThemeColorBlendShade3fv(axis_theme[i], TH_WHITE, .25f, -60, crosshair_color);
       verts.append({outer_limit * axis, crosshair_color});
       verts.append({color_limit * axis, crosshair_color});
 
       /* Inner crosshair. */
-      ui::UI_GetThemeColor3fv(TH_VIEW_OVERLAY, crosshair_color);
+      ui::GetThemeColor3fv(TH_VIEW_OVERLAY, crosshair_color);
       verts.append({color_limit * axis, crosshair_color});
       verts.append({inner_limit * axis, crosshair_color});
     }

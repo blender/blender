@@ -60,7 +60,7 @@ static void template_keymap_item_properties(Layout &layout, const char *title, P
     if (is_set) {
       /* unset operator */
       uiBlock *block = row.block();
-      UI_block_emboss_set(block, EmbossType::None);
+      block_emboss_set(block, EmbossType::None);
       but = uiDefIconButO(block,
                           ButType::But,
                           "UI_OT_unset_property_button",
@@ -73,7 +73,7 @@ static void template_keymap_item_properties(Layout &layout, const char *title, P
                           std::nullopt);
       but->rnapoin = *ptr;
       but->rnaprop = prop;
-      UI_block_emboss_set(block, EmbossType::Emboss);
+      block_emboss_set(block, EmbossType::Emboss);
     }
   }
   RNA_STRUCT_END;
@@ -98,11 +98,11 @@ void uiTemplateKeymapItemProperties(Layout *layout, PointerRNA *ptr)
       uiBut *but = block->buttons[i].get();
       /* operator buttons may store props for use (file selector, #36492) */
       if (but->rnaprop) {
-        UI_but_func_set(but, keymap_item_modified, ptr->data, nullptr);
+        button_func_set(but, keymap_item_modified, ptr->data, nullptr);
 
         /* Otherwise the keymap will be re-generated which we're trying to edit,
          * see: #47685 */
-        UI_but_flag_enable(but, UI_BUT_UPDATE_DELAY);
+        button_flag_enable(but, BUT_UPDATE_DELAY);
       }
     }
   }

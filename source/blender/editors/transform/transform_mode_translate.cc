@@ -600,8 +600,8 @@ static void initTranslation(TransInfo *t, wmOperator * /*op*/)
   if (t->spacetype == SPACE_GRAPH) {
     View2D *v2d = &t->region->v2d;
     Scene *scene = t->scene;
-    aspect[0] = ui::UI_view2d_grid_resolution_x__frames_or_seconds(v2d, scene);
-    aspect[1] = ui::UI_view2d_grid_resolution_y__values(v2d, 10);
+    aspect[0] = ui::view2d_grid_resolution_x__frames_or_seconds(v2d, scene);
+    aspect[1] = ui::view2d_grid_resolution_y__values(v2d, 10);
   }
 
   t->increment = t->snap_spatial * aspect;

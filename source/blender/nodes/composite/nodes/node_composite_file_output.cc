@@ -202,8 +202,8 @@ static Vector<path_templates::Error> compute_image_path(const StringRefNull dire
 
 static void node_layout(ui::Layout &layout, bContext * /*context*/, PointerRNA *node_pointer)
 {
-  layout.prop(node_pointer, "directory", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  layout.prop(node_pointer, "file_name", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(node_pointer, "directory", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(node_pointer, "file_name", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static void format_layout(ui::Layout *layout,
@@ -216,7 +216,7 @@ static void format_layout(ui::Layout *layout,
   col.use_property_decorate_set(false);
   col.prop(node_or_item_pointer,
            "save_as_render",
-           ui::UI_ITEM_R_SPLIT_EMPTY_NAME,
+           ui::ITEM_R_SPLIT_EMPTY_NAME,
            std::nullopt,
            ICON_NONE);
   const bool save_as_render = RNA_boolean_get(node_or_item_pointer, "save_as_render");
@@ -313,11 +313,8 @@ static void item_layout(ui::Layout &layout,
     return;
   }
 
-  layout.prop(item_pointer,
-              "override_node_format",
-              ui::UI_ITEM_R_SPLIT_EMPTY_NAME,
-              std::nullopt,
-              ICON_NONE);
+  layout.prop(
+      item_pointer, "override_node_format", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   const bool override_node_format = RNA_boolean_get(item_pointer, "override_node_format");
 
   PointerRNA node_format_pointer = RNA_pointer_get(node_pointer, "format");
@@ -338,7 +335,7 @@ static void node_layout_ex(ui::Layout &layout, bContext *context, PointerRNA *no
   PointerRNA format_pointer = RNA_pointer_get(node_pointer, "format");
   const bool is_multi_layer = RNA_enum_get(&format_pointer, "file_format") ==
                               R_IMF_IMTYPE_MULTILAYER;
-  layout.prop(&format_pointer, "media_type", ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(&format_pointer, "media_type", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   if (ui::Layout *panel = layout.panel(context, "node_format", false, IFACE_("Node Format"))) {
     format_layout(panel, context, &format_pointer, node_pointer);
   }

@@ -1046,8 +1046,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   blender::ui::Layout *sub, *row, *col;
   blender::ui::Layout &layout = *panel->layout;
-  const blender::ui::eUI_Item_Flag toggles_flag = blender::ui::UI_ITEM_R_TOGGLE |
-                                                  blender::ui::UI_ITEM_R_FORCE_BLANK_DECORATE;
+  const blender::ui::eUI_Item_Flag toggles_flag = blender::ui::ITEM_R_TOGGLE |
+                                                  blender::ui::ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -1066,7 +1066,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout.separator();
   col = &layout.column(false);
   row = &col->row(false);
-  row->prop(ptr, "axis", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(ptr, "axis", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   col->prop(ptr, "object", UI_ITEM_NONE, IFACE_("Axis Object"), ICON_NONE);
   sub = &col->column(false);
   sub->active_set(!RNA_pointer_is_null(&screw_obj_ptr));

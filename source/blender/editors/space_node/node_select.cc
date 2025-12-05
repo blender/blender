@@ -179,7 +179,7 @@ static bool is_event_over_node_or_socket(const bContext &C, const wmEvent &event
   WM_event_drag_start_mval(&event, &region, mval);
 
   float2 mouse;
-  ui::UI_view2d_region_to_view(&region.v2d, mval.x, mval.y, &mouse.x, &mouse.y);
+  ui::view2d_region_to_view(&region.v2d, mval.x, mval.y, &mouse.x, &mouse.y);
   return is_position_over_node_or_socket(snode, region, mouse);
 }
 
@@ -613,7 +613,7 @@ static bool node_mouse_select(bContext *C,
 
   /* Get mouse coordinates in view2d space. */
   float2 cursor;
-  ui::UI_view2d_region_to_view(&region.v2d, mval.x, mval.y, &cursor.x, &cursor.y);
+  ui::view2d_region_to_view(&region.v2d, mval.x, mval.y, &cursor.x, &cursor.y);
 
   /* First do socket selection, these generally overlap with nodes. */
   if (socket_select) {
@@ -853,7 +853,7 @@ static wmOperatorStatus node_box_select_exec(bContext *C, wmOperator *op)
   rctf rectf;
 
   WM_operator_properties_border_to_rctf(op, &rectf);
-  ui::UI_view2d_region_to_view_rctf(&region.v2d, &rectf, &rectf);
+  ui::view2d_region_to_view_rctf(&region.v2d, &rectf, &rectf);
 
   const eSelectOp sel_op = (eSelectOp)RNA_enum_get(op->ptr, "mode");
   const bool select = (sel_op != SEL_OP_SUB);
@@ -966,7 +966,7 @@ static wmOperatorStatus node_circleselect_exec(bContext *C, wmOperator *op)
   y = RNA_int_get(op->ptr, "y");
   radius = RNA_int_get(op->ptr, "radius");
 
-  ui::UI_view2d_region_to_view(&region->v2d, x, y, &offset.x, &offset.y);
+  ui::view2d_region_to_view(&region->v2d, x, y, &offset.x, &offset.y);
 
   for (bNode *node : node_tree.all_nodes()) {
     switch (node->type_legacy) {
@@ -1067,7 +1067,7 @@ static bool do_lasso_select_node(bContext *C, const Span<int2> mcoords, eSelectO
          * nodes - would prevent selection of other nodes inside that frame. */
         rctf rectf;
         BLI_rctf_rcti_copy(&rectf, &rect);
-        ui::UI_view2d_region_to_view_rctf(&region->v2d, &rectf, &rectf);
+        ui::view2d_region_to_view_rctf(&region->v2d, &rectf, &rectf);
         const rctf frame_inside = node_frame_rect_inside(*snode, *node);
         if (BLI_rctf_isect(&rectf, &node->runtime->draw_bounds, nullptr) &&
             !BLI_rctf_inside_rctf(&frame_inside, &rectf))
@@ -1083,7 +1083,7 @@ static bool do_lasso_select_node(bContext *C, const Span<int2> mcoords, eSelectO
                                BLI_rctf_cent_y(&node->runtime->draw_bounds)};
 
         /* marker in screen coords */
-        if (ui::UI_view2d_view_to_region_clip(
+        if (ui::view2d_view_to_region_clip(
                 &region->v2d, center.x, center.y, &screen_co.x, &screen_co.y) &&
             BLI_rcti_isect_pt(&rect, screen_co.x, screen_co.y) &&
             BLI_lasso_is_point_inside(mcoords, screen_co.x, screen_co.y, INT_MAX))
@@ -1556,7 +1556,7 @@ static void node_find_update_fn(const bContext *C,
 
   const Vector<Item *> filtered_items = search.query(str);
   for (const Item *item : filtered_items) {
-    if (!UI_search_item_add(items, item->search_str, item->node, ICON_NONE, 0, 0)) {
+    if (!search_item_add(items, item->search_str, item->node, ICON_NONE, 0, 0)) {
       break;
     }
   }
@@ -1584,27 +1584,26 @@ static uiBlock *node_find_menu(bContext *C, ARegion *region, void *arg_optype)
   uiBut *but;
   wmOperatorType *optype = (wmOperatorType *)arg_optype;
 
-  block = UI_block_begin(C, region, "_popup", ui::EmbossType::Emboss);
-  UI_block_flag_enable(block,
-                       ui::UI_BLOCK_LOOP | ui::UI_BLOCK_MOVEMOUSE_QUIT | ui::UI_BLOCK_SEARCH_MENU);
-  UI_block_theme_style_set(block, ui::UI_BLOCK_THEME_STYLE_POPUP);
+  block = block_begin(C, region, "_popup", ui::EmbossType::Emboss);
+  block_flag_enable(block, ui::BLOCK_LOOP | ui::BLOCK_MOVEMOUSE_QUIT | ui::BLOCK_SEARCH_MENU);
+  block_theme_style_set(block, ui::BLOCK_THEME_STYLE_POPUP);
 
-  const int box_width = ui::UI_searchbox_size_x_guess(C, node_find_update_fn, nullptr);
+  const int box_width = ui::searchbox_size_x_guess(C, node_find_update_fn, nullptr);
 
   but = uiDefSearchBut(
       block, search, ICON_VIEWZOOM, sizeof(search), 0, 0, box_width, UI_UNIT_Y, "");
-  UI_but_func_search_set(
+  button_func_search_set(
       but, nullptr, node_find_update_fn, optype, false, nullptr, node_find_exec_fn, nullptr);
-  UI_but_flag_enable(but, ui::UI_BUT_ACTIVATE_ON_INIT);
+  button_flag_enable(but, ui::BUT_ACTIVATE_ON_INIT);
 
   /* Fake button holds space for search items. */
-  const int height = ui::UI_searchbox_size_y() - UI_SEARCHBOX_BOUNDS;
+  const int height = ui::searchbox_size_y() - UI_SEARCHBOX_BOUNDS;
   uiDefBut(
       block, ui::ButType::Label, "", 0, -height, box_width, height, nullptr, 0, 0, std::nullopt);
 
   /* Move it downwards, mouse over button. */
   std::array<int, 2> bounds_offset = {0, -UI_UNIT_Y};
-  UI_block_bounds_set_popup(block, UI_SEARCHBOX_BOUNDS, bounds_offset.data());
+  block_bounds_set_popup(block, UI_SEARCHBOX_BOUNDS, bounds_offset.data());
 
   return block;
 }
@@ -1613,7 +1612,7 @@ static wmOperatorStatus node_find_node_invoke(bContext *C,
                                               wmOperator *op,
                                               const wmEvent * /*event*/)
 {
-  ui::UI_popup_block_invoke(C, node_find_menu, op->type, nullptr);
+  ui::popup_block_invoke(C, node_find_menu, op->type, nullptr);
   return OPERATOR_CANCELLED;
 }
 

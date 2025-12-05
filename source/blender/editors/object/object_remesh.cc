@@ -316,7 +316,7 @@ static void voxel_size_edit_draw(const bContext *C, ARegion * /*region*/, void *
       pos3d, cd->preview_plane[1], cd->preview_plane[2], cd->preview_plane[0], cd->voxel_size);
 
   /* Draw text */
-  const uiStyle *style = ui::UI_style_get();
+  const uiStyle *style = ui::style_get();
   const uiFontStyle *fstyle = &style->widget;
   const int fontid = fstyle->uifont_id;
   float strwidth, strheight;

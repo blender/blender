@@ -440,7 +440,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   row.prop(ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   row.prop(ptr, "use_weight_as_factor", UI_ITEM_NONE, "", ICON_MOD_VERTEX_WEIGHT);
 
-  layout.prop(ptr, "tint_mode", ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "tint_mode", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   switch (tint_mode) {
     case MOD_GREASE_PENCIL_TINT_UNIFORM:
       layout.prop(ptr, "color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -448,7 +448,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     case MOD_GREASE_PENCIL_TINT_GRADIENT:
       ui::Layout &col = layout.column(false);
       col.use_property_split_set(false);
-      uiTemplateColorRamp(&col, ptr, "color_ramp", true);
+      template_color_ramp(&col, ptr, "color_ramp", true);
       layout.separator();
       layout.prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       layout.prop(ptr, "radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);

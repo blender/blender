@@ -23,7 +23,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_tangent(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
-  layout.prop(ptr, "direction_type", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "direction_type", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
   if (RNA_enum_get(ptr, "direction_type") == SHD_TANGENT_UVMAP) {
     PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
@@ -40,14 +40,11 @@ static void node_shader_buts_tangent(ui::Layout &layout, bContext *C, PointerRNA
       }
     }
 
-    layout.prop(ptr, "uv_map", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_GROUP_UVS);
+    layout.prop(ptr, "uv_map", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_GROUP_UVS);
   }
   else {
-    layout.prop(ptr,
-                "axis",
-                ui::UI_ITEM_R_SPLIT_EMPTY_NAME | ui::UI_ITEM_R_EXPAND,
-                std::nullopt,
-                ICON_NONE);
+    layout.prop(
+        ptr, "axis", ui::ITEM_R_SPLIT_EMPTY_NAME | ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   }
 }
 

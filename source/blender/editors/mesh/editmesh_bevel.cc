@@ -925,7 +925,7 @@ static void edbm_bevel_ui(bContext *C, wmOperator *op)
   layout.use_property_decorate_set(false);
 
   blender::ui::Layout *row = &layout.row(false);
-  row->prop(op->ptr, "affect", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(op->ptr, "affect", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   layout.separator();
 
@@ -942,7 +942,7 @@ static void edbm_bevel_ui(bContext *C, wmOperator *op)
   if (ELEM(profile_type, BEVEL_PROFILE_SUPERELLIPSE, BEVEL_PROFILE_CUSTOM)) {
     layout.prop(op->ptr,
                 "profile",
-                blender::ui::UI_ITEM_R_SLIDER,
+                blender::ui::ITEM_R_SLIDER,
                 (profile_type == BEVEL_PROFILE_SUPERELLIPSE) ? IFACE_("Profile Shape") :
                                                                IFACE_("Miter Profile Shape"),
                 ICON_NONE);
@@ -980,13 +980,13 @@ static void edbm_bevel_ui(bContext *C, wmOperator *op)
   layout.separator();
 
   row = &layout.row(false);
-  row->prop(op->ptr, "profile_type", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(op->ptr, "profile_type", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   if (profile_type == BEVEL_PROFILE_CUSTOM) {
     /* Get an RNA pointer to ToolSettings to give to the curve profile template code. */
     Scene *scene = CTX_data_scene(C);
     PointerRNA toolsettings_ptr = RNA_pointer_create_discrete(
         &scene->id, &RNA_ToolSettings, scene->toolsettings);
-    uiTemplateCurveProfile(&layout, &toolsettings_ptr, "custom_bevel_profile_preset");
+    template_curve_profile(&layout, &toolsettings_ptr, "custom_bevel_profile_preset");
   }
 }
 

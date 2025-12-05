@@ -126,20 +126,20 @@ static uiFont *uifont_to_blfont(int id)
 
 /* *************** draw ************************ */
 
-void UI_fontstyle_draw_ex(const uiFontStyle *fs,
-                          const rcti *rect,
-                          const char *str,
-                          const size_t str_len,
-                          const uchar col[4],
-                          const uiFontStyleDraw_Params *fs_params,
-                          int *r_xofs,
-                          int *r_yofs,
-                          ResultBLF *r_info)
+void fontstyle_draw_ex(const uiFontStyle *fs,
+                       const rcti *rect,
+                       const char *str,
+                       const size_t str_len,
+                       const uchar col[4],
+                       const uiFontStyleDraw_Params *fs_params,
+                       int *r_xofs,
+                       int *r_yofs,
+                       ResultBLF *r_info)
 {
   int xofs = 0, yofs;
   FontFlags font_flag = BLF_CLIPPING;
 
-  UI_fontstyle_set(fs);
+  fontstyle_set(fs);
 
   /* set the flag */
   if (fs->shadow) {
@@ -197,24 +197,24 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
   }
 }
 
-void UI_fontstyle_draw(const uiFontStyle *fs,
-                       const rcti *rect,
-                       const char *str,
-                       const size_t str_len,
-                       const uchar col[4],
-                       const uiFontStyleDraw_Params *fs_params)
+void fontstyle_draw(const uiFontStyle *fs,
+                    const rcti *rect,
+                    const char *str,
+                    const size_t str_len,
+                    const uchar col[4],
+                    const uiFontStyleDraw_Params *fs_params)
 {
-  UI_fontstyle_draw_ex(fs, rect, str, str_len, col, fs_params, nullptr, nullptr, nullptr);
+  fontstyle_draw_ex(fs, rect, str, str_len, col, fs_params, nullptr, nullptr, nullptr);
 }
 
-void UI_fontstyle_draw_multiline_clipped_ex(const uiFontStyle *fs,
-                                            const rcti *rect,
-                                            const char *str,
-                                            const uchar col[4],
-                                            const eFontStyle_Align align,
-                                            int *r_xofs,
-                                            int *r_yofs,
-                                            ResultBLF *r_info)
+void fontstyle_draw_multiline_clipped_ex(const uiFontStyle *fs,
+                                         const rcti *rect,
+                                         const char *str,
+                                         const uchar col[4],
+                                         const eFontStyle_Align align,
+                                         int *r_xofs,
+                                         int *r_yofs,
+                                         ResultBLF *r_info)
 {
   int xofs = 0, yofs;
   FontFlags font_flag = BLF_CLIPPING;
@@ -223,7 +223,7 @@ void UI_fontstyle_draw_multiline_clipped_ex(const uiFontStyle *fs,
    * string is wrapped and shortened to fit. Disabling it can help spot issues. */
   // font_flag &= ~BLF_CLIPPING;
 
-  UI_fontstyle_set(fs);
+  fontstyle_set(fs);
 
   /* set the flag */
   if (fs->shadow) {
@@ -251,7 +251,7 @@ void UI_fontstyle_draw_multiline_clipped_ex(const uiFontStyle *fs,
   BLF_color4ubv(fs->uifont_id, col);
 
   char str_buf[UI_MAX_DRAW_STR];
-  const Vector<StringRef> lines = UI_text_clip_multiline_middle(
+  const Vector<StringRef> lines = text_clip_multiline_middle(
       fs, str, str_buf, sizeof(str_buf), max_width, max_line_count);
 
   BLI_assert(lines.size() <= max_line_count);
@@ -298,26 +298,26 @@ void UI_fontstyle_draw_multiline_clipped_ex(const uiFontStyle *fs,
   }
 }
 
-void UI_fontstyle_draw_multiline_clipped(const uiFontStyle *fs,
-                                         const rcti *rect,
-                                         const char *str,
-                                         const uchar col[4],
-                                         const eFontStyle_Align align)
+void fontstyle_draw_multiline_clipped(const uiFontStyle *fs,
+                                      const rcti *rect,
+                                      const char *str,
+                                      const uchar col[4],
+                                      const eFontStyle_Align align)
 {
-  UI_fontstyle_draw_multiline_clipped_ex(fs, rect, str, col, align, nullptr, nullptr, nullptr);
+  fontstyle_draw_multiline_clipped_ex(fs, rect, str, col, align, nullptr, nullptr, nullptr);
 }
 
-void UI_fontstyle_draw_rotated(const uiFontStyle *fs,
-                               const rcti *rect,
-                               const char *str,
-                               const uchar col[4])
+void fontstyle_draw_rotated(const uiFontStyle *fs,
+                            const rcti *rect,
+                            const char *str,
+                            const uchar col[4])
 {
   float height;
   int xofs, yofs;
   float angle;
   rcti txtrect;
 
-  UI_fontstyle_set(fs);
+  fontstyle_set(fs);
 
   height = BLF_ascender(fs->uifont_id) + BLF_descender(fs->uifont_id);
   /* becomes x-offset when rotated */
@@ -366,23 +366,23 @@ void UI_fontstyle_draw_rotated(const uiFontStyle *fs,
   }
 }
 
-void UI_fontstyle_draw_simple(
+void fontstyle_draw_simple(
     const uiFontStyle *fs, float x, float y, const char *str, const uchar col[4])
 {
-  UI_fontstyle_set(fs);
+  fontstyle_set(fs);
   BLF_position(fs->uifont_id, x, y, 0.0f);
   BLF_color4ubv(fs->uifont_id, col);
   BLF_draw(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
 }
 
-void UI_fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
-                                       float x,
-                                       float y,
-                                       const StringRef str,
-                                       const float col_fg[4],
-                                       const float col_bg[4])
+void fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
+                                    float x,
+                                    float y,
+                                    const StringRef str,
+                                    const float col_fg[4],
+                                    const float col_bg[4])
 {
-  UI_fontstyle_set(fs);
+  fontstyle_set(fs);
 
   {
     const int width = BLF_width(fs->uifont_id, str.data(), str.size());
@@ -395,8 +395,8 @@ void UI_fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
     rect.xmax = x + width + margin;
     rect.ymin = (y + decent) - margin;
     rect.ymax = (y + decent) + height + margin;
-    UI_draw_roundbox_corner_set(UI_CNR_ALL);
-    UI_draw_roundbox_4fv(&rect, true, margin, col_bg);
+    draw_roundbox_corner_set(CNR_ALL);
+    draw_roundbox_4fv(&rect, true, margin, col_bg);
   }
 
   BLF_position(fs->uifont_id, x, y, 0.0f);
@@ -406,7 +406,7 @@ void UI_fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
 
 /* ************** helpers ************************ */
 
-const uiStyle *UI_style_get()
+const uiStyle *style_get()
 {
 #if 0
   uiStyle *style = nullptr;
@@ -418,9 +418,9 @@ const uiStyle *UI_style_get()
 #endif
 }
 
-const uiStyle *UI_style_get_dpi()
+const uiStyle *style_get_dpi()
 {
-  const uiStyle *style = UI_style_get();
+  const uiStyle *style = style_get();
   static uiStyle _style;
 
   _style = *style;
@@ -445,15 +445,15 @@ const uiStyle *UI_style_get_dpi()
   return &_style;
 }
 
-int UI_fontstyle_string_width(const uiFontStyle *fs, const char *str)
+int fontstyle_string_width(const uiFontStyle *fs, const char *str)
 {
-  UI_fontstyle_set(fs);
+  fontstyle_set(fs);
   return int(BLF_width(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX));
 }
 
-int UI_fontstyle_string_width_with_block_aspect(const uiFontStyle *fs,
-                                                const StringRef str,
-                                                const float aspect)
+int fontstyle_string_width_with_block_aspect(const uiFontStyle *fs,
+                                             const StringRef str,
+                                             const float aspect)
 {
   /* FIXME(@ideasman42): the final scale of the font is rounded which should be accounted for.
    * Failing to do so causes bad alignment when zoomed out very far in the node-editor. */
@@ -461,9 +461,9 @@ int UI_fontstyle_string_width_with_block_aspect(const uiFontStyle *fs,
   return int(BLF_width(fs->uifont_id, str.data(), str.size()) * aspect);
 }
 
-int UI_fontstyle_height_max(const uiFontStyle *fs)
+int fontstyle_height_max(const uiFontStyle *fs)
 {
-  UI_fontstyle_set(fs);
+  fontstyle_set(fs);
   return BLF_height_max(fs->uifont_id);
 }
 
@@ -525,7 +525,7 @@ void uiStyleInit()
     style = ui_style_new(&U.uistyles, "Default Style", UIFONT_DEFAULT);
   }
 
-  BLF_cache_flush_set_fn(UI_widgetbase_draw_cache_flush);
+  BLF_cache_flush_set_fn(widgetbase_draw_cache_flush);
 
   BLF_default_size(style->widget.points);
 
@@ -602,7 +602,7 @@ static void fontstyle_set_ex(const uiFontStyle *fs, const float dpi_fac)
   BLF_character_weight(font->blf_id, fs->character_weight);
 }
 
-void UI_fontstyle_set(const uiFontStyle *fs)
+void fontstyle_set(const uiFontStyle *fs)
 {
   fontstyle_set_ex(fs, UI_SCALE_FAC);
 }

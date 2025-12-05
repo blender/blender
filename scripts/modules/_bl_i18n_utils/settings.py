@@ -268,7 +268,7 @@ PYGETTEXT_KEYWORDS = (() +
     tuple(PyGettextKeyword(("{}\\((?:[^\"',]+,){{1,2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it))
           for it in ("BKE_report", "BKE_reportf", "BKE_reports_prepend", "BKE_reports_prependf",
                      "CTX_wm_operator_poll_msg_set", "WM_global_report", "WM_global_reportf",
-                     "UI_but_disable")) +
+                     "button_disable")) +
 
     # ED_undo_push() is used in Undo History menu and has the "Operator" context, same as operators.
     tuple(PyGettextKeyword(("{}\\((?:[^\"',]+,)\\s*" + _msg_re + r"\s*(?:\))").format(it),

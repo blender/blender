@@ -28,7 +28,7 @@ static void node_declare(NodeDeclarationBuilder &b)
                        prop,
                        -1,
                        0,
-                       ui::UI_ITEM_R_SPLIT_EMPTY_NAME,
+                       ui::ITEM_R_SPLIT_EMPTY_NAME,
                        "",
                        ICON_NONE,
                        IFACE_("String"));
@@ -100,7 +100,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
     /* Adapt width of the new node to its content. */
     const StringRef string = static_cast<NodeInputString *>(node.storage)->string;
-    const uiFontStyle &fstyle = blender::ui::UI_style_get()->widget;
+    const uiFontStyle &fstyle = blender::ui::style_get()->widget;
     BLF_size(fstyle.uifont_id, fstyle.points);
     const float width = BLF_width(fstyle.uifont_id, string.data(), string.size()) + 40.0f;
     node.width = std::clamp(width, 140.0f, 1000.0f);

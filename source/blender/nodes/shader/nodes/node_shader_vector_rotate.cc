@@ -49,8 +49,8 @@ static void sh_node_vector_rotate_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_vector_rotate(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout.prop(ptr, "rotation_type", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  layout.prop(ptr, "invert", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "rotation_type", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "invert", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 static const char *gpu_shader_get_name(int mode)

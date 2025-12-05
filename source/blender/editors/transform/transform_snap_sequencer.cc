@@ -425,8 +425,7 @@ static float seq_snap_threshold_get_view_distance(const TransInfo *t)
 {
   const int snap_distance = seq::tool_settings_snap_distance_get(t->scene);
   const View2D *v2d = &t->region->v2d;
-  return ui::UI_view2d_region_to_view_x(v2d, snap_distance) -
-         ui::UI_view2d_region_to_view_x(v2d, 0);
+  return ui::view2d_region_to_view_x(v2d, snap_distance) - ui::view2d_region_to_view_x(v2d, 0);
 }
 
 static int seq_snap_threshold_get_frame_distance(const TransInfo *t)

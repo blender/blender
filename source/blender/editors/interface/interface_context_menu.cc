@@ -106,21 +106,21 @@ static const char *shortcut_get_operator_property(bContext *C, uiBut *but, IDPro
     }
   }
 
-  if (MenuType *mt = UI_but_menutype_get(but)) {
+  if (MenuType *mt = button_menutype_get(but)) {
     IDProperty *prop = bke::idprop::create_group(__func__).release();
     IDP_AddToGroup(prop, bke::idprop::create("name", mt->idname).release());
     *r_prop = prop;
     return "WM_OT_call_menu";
   }
 
-  if (std::optional asset_shelf_idname = UI_but_asset_shelf_type_idname_get(but)) {
+  if (std::optional asset_shelf_idname = button_asset_shelf_type_idname_get(but)) {
     IDProperty *prop = bke::idprop::create_group(__func__).release();
     IDP_AddToGroup(prop, bke::idprop::create("name", *asset_shelf_idname).release());
     *r_prop = prop;
     return "WM_OT_call_asset_shelf_popover";
   }
 
-  if (PanelType *pt = UI_but_paneltype_get(but)) {
+  if (PanelType *pt = button_paneltype_get(but)) {
     IDProperty *prop = bke::idprop::create_group(__func__).release();
     IDP_AddToGroup(prop, bke::idprop::create("name", pt->idname).release());
     *r_prop = prop;
@@ -166,7 +166,7 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *region, void *arg)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   uiBut *but = (uiBut *)arg;
-  const uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = style_get_dpi();
   IDProperty *prop;
   const char *idname = shortcut_get_operator_property(C, but, &prop);
 
@@ -184,10 +184,10 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *region, void *arg)
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, &RNA_KeyMapItem, kmi);
 
-  uiBlock *block = UI_block_begin(C, region, "_popup", EmbossType::Emboss);
-  UI_block_func_handle_set(block, but_shortcut_name_func, but);
-  UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT);
-  UI_block_direction_set(block, UI_DIR_CENTER_Y);
+  uiBlock *block = block_begin(C, region, "_popup", EmbossType::Emboss);
+  block_func_handle_set(block, but_shortcut_name_func, but);
+  block_flag_enable(block, BLOCK_MOVEMOUSE_QUIT);
+  block_direction_set(block, UI_DIR_CENTER_Y);
 
   Layout &layout = block_layout(block,
                                 LayoutDirection::Vertical,
@@ -200,10 +200,10 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *region, void *arg)
                                 style);
 
   layout.label(CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Change Shortcut..."), ICON_HAND);
-  layout.prop(&ptr, "type", UI_ITEM_R_FULL_EVENT | UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
+  layout.prop(&ptr, "type", ITEM_R_FULL_EVENT | ITEM_R_IMMEDIATE, "", ICON_NONE);
 
   const int bounds_offset[2] = {int(-100 * UI_SCALE_FAC), int(36 * UI_SCALE_FAC)};
-  UI_block_bounds_set_popup(block, 6 * UI_SCALE_FAC, bounds_offset);
+  block_bounds_set_popup(block, 6 * UI_SCALE_FAC, bounds_offset);
 
   shortcut_free_operator_property(prop);
 
@@ -218,7 +218,7 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *region, void *arg)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   uiBut *but = (uiBut *)arg;
-  const uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = style_get_dpi();
   IDProperty *prop;
   const char *idname = shortcut_get_operator_property(C, but, &prop);
 
@@ -245,9 +245,9 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *region, void *arg)
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, &RNA_KeyMapItem, kmi);
 
-  uiBlock *block = UI_block_begin(C, region, "_popup", EmbossType::Emboss);
-  UI_block_func_handle_set(block, but_shortcut_name_func, but);
-  UI_block_direction_set(block, UI_DIR_CENTER_Y);
+  uiBlock *block = block_begin(C, region, "_popup", EmbossType::Emboss);
+  block_func_handle_set(block, but_shortcut_name_func, but);
+  block_direction_set(block, UI_DIR_CENTER_Y);
 
   Layout &layout = block_layout(block,
                                 LayoutDirection::Vertical,
@@ -260,10 +260,10 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *region, void *arg)
                                 style);
 
   layout.label(CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Shortcut..."), ICON_HAND);
-  layout.prop(&ptr, "type", UI_ITEM_R_FULL_EVENT | UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
+  layout.prop(&ptr, "type", ITEM_R_FULL_EVENT | ITEM_R_IMMEDIATE, "", ICON_NONE);
 
   const int bounds_offset[2] = {int(-100 * UI_SCALE_FAC), int(36 * UI_SCALE_FAC)};
-  UI_block_bounds_set_popup(block, 6 * UI_SCALE_FAC, bounds_offset);
+  block_bounds_set_popup(block, 6 * UI_SCALE_FAC, bounds_offset);
 
 #ifdef USE_KEYMAP_ADD_HACK
   g_kmi_id_hack = kmi_id;
@@ -329,10 +329,10 @@ static bool ui_but_is_user_menu_compatible(bContext *C, uiBut *but)
       }
     }
   }
-  else if (UI_but_menutype_get(but)) {
+  else if (button_menutype_get(but)) {
     result = true;
   }
-  else if (UI_but_operatortype_get_from_enum_menu(but, nullptr)) {
+  else if (button_operatortype_get_from_enum_menu(but, nullptr)) {
     result = true;
   }
 
@@ -368,12 +368,12 @@ static bUserMenuItem *ui_but_user_menu_find(bContext *C, uiBut *but, bUserMenu *
 
   wmOperatorType *ot = nullptr;
   PropertyRNA *prop_enum = nullptr;
-  if ((ot = UI_but_operatortype_get_from_enum_menu(but, &prop_enum))) {
+  if ((ot = button_operatortype_get_from_enum_menu(but, &prop_enum))) {
     return (bUserMenuItem *)ED_screen_user_menu_item_find_operator(
         &um->items, ot, nullptr, RNA_property_identifier(prop_enum), but->opcontext);
   }
 
-  MenuType *mt = UI_but_menutype_get(but);
+  MenuType *mt = button_menutype_get(but);
   if (mt != nullptr) {
     return (bUserMenuItem *)ED_screen_user_menu_item_find_menu(&um->items, mt);
   }
@@ -394,7 +394,7 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
   if (but->optype) {
     if (drawstr[0] == '\0') {
       /* Hard code overrides for generic operators. */
-      if (UI_but_is_tool(but)) {
+      if (but_is_tool(but)) {
         char idname[64];
         RNA_string_get(but->opptr, "name", idname);
 #ifdef WITH_PYTHON
@@ -452,10 +452,10 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
           &um->items, "", member_id_data_path->c_str(), prop_id.c_str(), but->rnaindex);
     }
   }
-  else if ((mt = UI_but_menutype_get(but))) {
+  else if ((mt = button_menutype_get(but))) {
     ED_screen_user_menu_item_add_menu(&um->items, drawstr.c_str(), mt);
   }
-  else if ((ot = UI_but_operatortype_get_from_enum_menu(but, &prop))) {
+  else if ((ot = button_operatortype_get_from_enum_menu(but, &prop))) {
     ED_screen_user_menu_item_add_operator(&um->items,
                                           WM_operatortype_name(ot, nullptr).c_str(),
                                           ot,
@@ -527,14 +527,14 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   }
 
   const bContextStore *previous_ctx = CTX_store_get(C);
-  PopupMenu *pup = UI_popup_menu_begin(
-      C, UI_but_context_menu_title_from_button(*but).c_str(), ICON_NONE);
-  Layout &layout = *UI_popup_menu_layout(pup);
+  PopupMenu *pup = popup_menu_begin(
+      C, button_context_menu_title_from_button(*but).c_str(), ICON_NONE);
+  Layout &layout = *popup_menu_layout(pup);
 
   set_layout_context_from_button(C, layout, but);
   layout.operator_context_set(wm::OpCallContext::InvokeDefault);
 
-  const bool is_disabled = but->flag & UI_BUT_DISABLED;
+  const bool is_disabled = but->flag & BUT_DISABLED;
 
   if (is_disabled) {
     /* Suppress editing commands. */
@@ -542,7 +542,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   else if (but->type == ButType::Tab) {
     ButtonTab *tab = (ButtonTab *)but;
     if (tab->menu) {
-      UI_menutype_draw(C, tab->menu, &layout);
+      menutype_draw(C, tab->menu, &layout);
       layout.separator();
     }
   }
@@ -574,7 +574,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     layout.context_set_from_but(but);
 
     /* Keyframes */
-    if (but->flag & UI_BUT_ANIMATED_KEY) {
+    if (but->flag & BUT_ANIMATED_KEY) {
       /* Replace/delete keyframes. */
       if (is_array_component) {
         PointerRNA op_ptr = layout.op(
@@ -610,7 +610,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       /* keyframe settings */
       layout.separator();
     }
-    else if (but->flag & UI_BUT_DRIVEN) {
+    else if (but->flag & BUT_DRIVEN) {
       /* pass */
     }
     else if (is_anim) {
@@ -634,7 +634,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       }
     }
 
-    if ((but->flag & UI_BUT_ANIMATED) && (but->rnapoin.type != &RNA_NlaStrip)) {
+    if ((but->flag & BUT_ANIMATED) && (but->rnapoin.type != &RNA_NlaStrip)) {
       if (is_array_component) {
         PointerRNA op_ptr = layout.op(
             "ANIM_OT_keyframe_clear_button",
@@ -655,7 +655,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       }
     }
 
-    if (but->flag & UI_BUT_ANIMATED) {
+    if (but->flag & BUT_ANIMATED) {
       layout.separator();
       if (is_array_component) {
         PointerRNA op_ptr;
@@ -692,7 +692,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     }
 
     /* Drivers */
-    if (but->flag & UI_BUT_DRIVEN) {
+    if (but->flag & BUT_DRIVEN) {
       layout.separator();
 
       if (is_array_component) {
@@ -752,7 +752,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                 CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open Drivers Editor"),
                 ICON_NONE);
     }
-    else if (but->flag & (UI_BUT_ANIMATED_KEY | UI_BUT_ANIMATED)) {
+    else if (but->flag & (BUT_ANIMATED_KEY | BUT_ANIMATED)) {
       /* pass */
     }
     else if (is_anim) {
@@ -813,7 +813,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       /* Override Operators */
       layout.separator();
 
-      if (but->flag & UI_BUT_OVERRIDDEN) {
+      if (but->flag & BUT_OVERRIDDEN) {
         if (is_array_component) {
           PointerRNA op_ptr = layout.op(
               "UI_OT_override_remove_button",
@@ -1064,7 +1064,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
             nullptr,
             "");
         item_found = true;
-        UI_but_func_set(but2, [um, umi](bContext &) {
+        button_func_set(but2, [um, umi](bContext &) {
           U.runtime.is_dirty = true;
           ED_screen_user_menu_item_remove(&um->items, umi);
         });
@@ -1086,7 +1086,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           UI_UNIT_Y,
           nullptr,
           TIP_("Add to a user defined context menu (stored in the user preferences)"));
-      UI_but_func_set(but2, [but](bContext &C) {
+      button_func_set(but2, [but](bContext &C) {
         bUserMenu *um = ED_screen_user_menu_ensure(&C);
         U.runtime.is_dirty = true;
         ui_but_user_menu_add(&C, but, um);
@@ -1134,8 +1134,8 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
             UI_UNIT_Y,
             nullptr,
             "");
-        UI_but_func_set(but2, [but](bContext &C) {
-          UI_popup_block_invoke(&C, menu_change_shortcut, but, nullptr);
+        button_func_set(but2, [but](bContext &C) {
+          popup_block_invoke(&C, menu_change_shortcut, but, nullptr);
         });
       }
       else {
@@ -1150,7 +1150,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                                        nullptr,
                                        TIP_("Only keyboard shortcuts can be edited that way, "
                                             "please use User Preferences otherwise"));
-        UI_but_flag_enable(but2, UI_BUT_DISABLED);
+        button_flag_enable(but2, BUT_DISABLED);
       }
 
       uiBut *but2 = uiDefIconTextBut(
@@ -1164,7 +1164,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           UI_UNIT_Y,
           nullptr,
           "");
-      UI_but_func_set(but2, [but](bContext &C) { remove_shortcut_func(&C, but); });
+      button_func_set(but2, [but](bContext &C) { remove_shortcut_func(&C, but); });
     }
     /* only show 'assign' if there's a suitable key map for it to go in */
     else if (WM_keymap_guess_opname(C, idname)) {
@@ -1179,8 +1179,8 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           UI_UNIT_Y,
           nullptr,
           "");
-      UI_but_func_set(but2, [but](bContext &C) {
-        UI_popup_block_ex(&C, menu_add_shortcut, nullptr, menu_add_shortcut_cancel, but, nullptr);
+      button_func_set(but2, [but](bContext &C) {
+        popup_block_ex(&C, menu_add_shortcut, nullptr, menu_add_shortcut_cancel, but, nullptr);
       });
     }
 
@@ -1193,7 +1193,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   }
 
   { /* Docs */
-    if (std::optional<std::string> manual_id = UI_but_online_manual_id(but)) {
+    if (std::optional<std::string> manual_id = button_online_manual_id(but)) {
       PointerRNA ptr_props;
       layout.op("WM_OT_doc_view_manual_ui_context",
                 CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Online Manual"),
@@ -1257,20 +1257,20 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   if (is_inside_listrow) {
     MenuType *mt = WM_menutype_find("UI_MT_list_item_context_menu", true);
     if (mt) {
-      UI_menutype_draw(C, mt, &layout.column(false));
+      menutype_draw(C, mt, &layout.column(false));
     }
   }
 
   MenuType *mt = WM_menutype_find("UI_MT_button_context_menu", true);
   if (mt) {
-    UI_menutype_draw(C, mt, &layout.column(false));
+    menutype_draw(C, mt, &layout.column(false));
   }
 
   if (but->context) {
     CTX_store_set(C, previous_ctx);
   }
 
-  return UI_popup_menu_end_or_cancel(C, pup);
+  return popup_menu_end_or_cancel(C, pup);
 }
 
 /** \} */
@@ -1282,7 +1282,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
 void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
 {
   bScreen *screen = CTX_wm_screen(C);
-  const bool has_panel_category = UI_panel_category_is_visible(region);
+  const bool has_panel_category = panel_category_is_visible(region);
   const bool any_item_visible = has_panel_category;
 
   if (!any_item_visible) {
@@ -1291,14 +1291,14 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
   if (panel->type->parent != nullptr) {
     return;
   }
-  if (!UI_panel_can_be_pinned(panel)) {
+  if (!panel_can_be_pinned(panel)) {
     return;
   }
 
   PointerRNA ptr = RNA_pointer_create_discrete(&screen->id, &RNA_Panel, panel);
 
-  PopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Panel"), ICON_NONE);
-  Layout &layout = *UI_popup_menu_layout(pup);
+  PopupMenu *pup = popup_menu_begin(C, IFACE_("Panel"), ICON_NONE);
+  Layout &layout = *popup_menu_layout(pup);
 
   if (has_panel_category) {
     char tmpstr[80];
@@ -1309,10 +1309,10 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
     {
       uiBlock *block = layout.block();
       uiBut *but = block->buttons.last().get();
-      but->flag |= UI_BUT_HAS_SEP_CHAR;
+      but->flag |= BUT_HAS_SEP_CHAR;
     }
   }
-  UI_popup_menu_end(C, pup);
+  popup_menu_end(C, pup);
 }
 
 /** \} */

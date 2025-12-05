@@ -55,7 +55,7 @@ AnimData *ED_actedit_animdata_from_context(const bContext *C, ID **r_adt_id_owne
   { /* Support use from the layout.template_action() UI template. */
     PointerRNA ptr = {};
     PropertyRNA *prop = nullptr;
-    blender::ui::UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
+    blender::ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
     /* template_action() sets a RNA_AnimData pointer, whereas other code may set
      * other pointer types. This code here only deals with the former. */
     if (prop && ptr.type == &RNA_AnimData) {
@@ -152,7 +152,7 @@ static bool action_new_poll(bContext *C)
   { /* Support use from the layout.template_action() UI template. */
     PointerRNA ptr = {};
     PropertyRNA *prop = nullptr;
-    blender::ui::UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
+    blender::ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
     if (prop) {
       return RNA_property_editable(&ptr, prop);
     }
@@ -204,7 +204,7 @@ static wmOperatorStatus action_new_exec(bContext *C, wmOperator * /*op*/)
   AnimData *adt = nullptr;
   ID *adt_id_owner = nullptr;
   /* hook into UI */
-  blender::ui::UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
+  blender::ui::context_active_but_prop_get_templateID(C, &ptr, &prop);
 
   if (prop) {
     /* The operator was called from a button. */

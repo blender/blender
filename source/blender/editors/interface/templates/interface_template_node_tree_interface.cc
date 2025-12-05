@@ -112,7 +112,7 @@ class NodeSocketViewItem : public BasicTreeViewItem {
     Layout &input_socket_layout = row.row(true);
     if (socket_.flag & NODE_INTERFACE_SOCKET_INPUT) {
       /* Context is not used by the template function. */
-      uiTemplateNodeSocket(&input_socket_layout, /*C*/ nullptr, socket_.socket_color());
+      template_node_socket(&input_socket_layout, /*C*/ nullptr, socket_.socket_color());
     }
     else {
       /* Blank item to align output socket labels with inputs. */
@@ -124,7 +124,7 @@ class NodeSocketViewItem : public BasicTreeViewItem {
     Layout &output_socket_layout = row.row(true);
     if (socket_.flag & NODE_INTERFACE_SOCKET_OUTPUT) {
       /* Context is not used by the template function. */
-      uiTemplateNodeSocket(&output_socket_layout, /*C*/ nullptr, socket_.socket_color());
+      template_node_socket(&output_socket_layout, /*C*/ nullptr, socket_.socket_color());
     }
     else {
       /* Blank item to align input socket labels with outputs. */
@@ -205,7 +205,7 @@ class NodePanelViewItem : public BasicTreeViewItem {
     if (toggle_ != nullptr) {
       Layout &toggle_layout = row.row(true);
       /* Context is not used by the template function. */
-      uiTemplateNodeSocket(&toggle_layout, /*C*/ nullptr, toggle_->socket_color());
+      template_node_socket(&toggle_layout, /*C*/ nullptr, toggle_->socket_color());
     }
 
     this->add_label(row, IFACE_(label_.c_str()));
@@ -558,7 +558,7 @@ bool NodePanelDropTarget::on_drop(bContext *C, const DragInfo &drag_info) const
 }  // namespace
 }  // namespace nodes
 
-void uiTemplateNodeTreeInterface(Layout *layout, const bContext *C, PointerRNA *ptr)
+void template_tree_interface(Layout *layout, const bContext *C, PointerRNA *ptr)
 {
   if (!ptr->data) {
     return;
@@ -571,7 +571,7 @@ void uiTemplateNodeTreeInterface(Layout *layout, const bContext *C, PointerRNA *
 
   uiBlock *block = layout->block();
 
-  AbstractTreeView *tree_view = UI_block_add_view(
+  AbstractTreeView *tree_view = block_add_view(
       *block,
       "Node Tree Declaration Tree View",
       std::make_unique<nodes::NodeTreeInterfaceView>(nodetree, interface));

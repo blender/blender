@@ -3706,7 +3706,7 @@ static wmOperatorStatus animchannels_select_filter_modal(bContext *C,
   }
 
   ARegion *region = CTX_wm_region(C);
-  if (blender::ui::UI_textbutton_activate_rna(C, region, ac.ads, "filter_text")) {
+  if (blender::ui::textbutton_activate_rna(C, region, ac.ads, "filter_text")) {
     /* Redraw to make sure it shows the cursor after activating */
     WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
   }
@@ -3804,8 +3804,8 @@ static void box_select_anim_channels(bAnimContext *ac, const rcti &rect, short s
   rctf rectf;
 
   /* convert border-region to view coordinates */
-  blender::ui::UI_view2d_region_to_view(v2d, rect.xmin, rect.ymin + 2, &rectf.xmin, &rectf.ymin);
-  blender::ui::UI_view2d_region_to_view(v2d, rect.xmax, rect.ymax - 2, &rectf.xmax, &rectf.ymax);
+  blender::ui::view2d_region_to_view(v2d, rect.xmin, rect.ymin + 2, &rectf.xmin, &rectf.ymin);
+  blender::ui::view2d_region_to_view(v2d, rect.xmax, rect.ymax - 2, &rectf.xmax, &rectf.ymax);
 
   /* filter data */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
@@ -4083,28 +4083,28 @@ static int animchannels_channel_get(bAnimContext *ac, const int mval[2])
   v2d = &region->v2d;
 
   /* Figure out which channel user clicked in. */
-  blender::ui::UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
+  blender::ui::view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
 
   if (ac->datatype == ANIMCONT_NLA) {
     SpaceNla *snla = reinterpret_cast<SpaceNla *>(ac->sl);
-    blender::ui::UI_view2d_listview_view_to_cell(NLATRACK_NAMEWIDTH,
-                                                 NLATRACK_STEP(snla),
-                                                 0,
-                                                 NLATRACK_FIRST_TOP(ac),
-                                                 x,
-                                                 y,
-                                                 nullptr,
-                                                 &channel_index);
+    blender::ui::view2d_listview_view_to_cell(NLATRACK_NAMEWIDTH,
+                                              NLATRACK_STEP(snla),
+                                              0,
+                                              NLATRACK_FIRST_TOP(ac),
+                                              x,
+                                              y,
+                                              nullptr,
+                                              &channel_index);
   }
   else {
-    blender::ui::UI_view2d_listview_view_to_cell(ANIM_UI_get_channel_name_width(),
-                                                 ANIM_UI_get_channel_step(),
-                                                 0,
-                                                 ANIM_UI_get_first_channel_top(v2d),
-                                                 x,
-                                                 y,
-                                                 nullptr,
-                                                 &channel_index);
+    blender::ui::view2d_listview_view_to_cell(ANIM_UI_get_channel_name_width(),
+                                              ANIM_UI_get_channel_step(),
+                                              0,
+                                              ANIM_UI_get_first_channel_top(v2d),
+                                              x,
+                                              y,
+                                              nullptr,
+                                              &channel_index);
   }
 
   return channel_index;
@@ -4862,15 +4862,15 @@ static wmOperatorStatus animchannels_mouseclick_invoke(bContext *C,
   }
 
   /* figure out which channel user clicked in */
-  blender::ui::UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, &y);
-  blender::ui::UI_view2d_listview_view_to_cell(ANIM_UI_get_channel_name_width(),
-                                               ANIM_UI_get_channel_step(),
-                                               0,
-                                               ANIM_UI_get_first_channel_top(v2d),
-                                               x,
-                                               y,
-                                               nullptr,
-                                               &channel_index);
+  blender::ui::view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, &y);
+  blender::ui::view2d_listview_view_to_cell(ANIM_UI_get_channel_name_width(),
+                                            ANIM_UI_get_channel_step(),
+                                            0,
+                                            ANIM_UI_get_first_channel_top(v2d),
+                                            x,
+                                            y,
+                                            nullptr,
+                                            &channel_index);
 
   /* handle mouse-click in the relevant channel then */
   notifierFlags = mouse_anim_channels(C, &ac, channel_index, selectmode);
@@ -5112,7 +5112,7 @@ static wmOperatorStatus graphkeys_view_selected_channels_exec(bContext *C, wmOpe
   }
 
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-  blender::ui::UI_view2d_smooth_view(C, window_region, &bounds, smooth_viewtx);
+  blender::ui::view2d_smooth_view(C, window_region, &bounds, smooth_viewtx);
 
   ANIM_animdata_freelist(&anim_data);
 
@@ -5203,7 +5203,7 @@ static wmOperatorStatus graphkeys_channel_view_pick_invoke(bContext *C,
   }
 
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-  blender::ui::UI_view2d_smooth_view(C, window_region, &bounds, smooth_viewtx);
+  blender::ui::view2d_smooth_view(C, window_region, &bounds, smooth_viewtx);
 
   ANIM_animdata_freelist(&anim_data);
 
@@ -5799,7 +5799,7 @@ static wmOperatorStatus view_curve_in_graph_editor_exec(bContext *C, wmOperator 
   uiBut *but;
   int index;
 
-  if (!(but = blender::ui::UI_context_active_but_prop_get(C, &button_ptr, &button_prop, &index))) {
+  if (!(but = blender::ui::context_active_but_prop_get(C, &button_ptr, &button_prop, &index))) {
     /* Pass event on if no active button found. */
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
@@ -5816,7 +5816,7 @@ static wmOperatorStatus view_curve_in_graph_editor_exec(bContext *C, wmOperator 
 
   bool path_from_id;
   std::optional<std::string> id_to_prop_path;
-  const bool selected_list_success = blender::ui::UI_context_copy_to_selected_list(
+  const bool selected_list_success = blender::ui::context_copy_to_selected_list(
       C, &button_ptr, button_prop, &selection, &path_from_id, &id_to_prop_path);
 
   if (!context_find_graph_editor(
@@ -5892,7 +5892,7 @@ static wmOperatorStatus view_curve_in_graph_editor_exec(bContext *C, wmOperator 
         add_region_padding(C, region, &bounds);
 
         const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-        blender::ui::UI_view2d_smooth_view(C, region, &bounds, smooth_viewtx);
+        blender::ui::view2d_smooth_view(C, region, &bounds, smooth_viewtx);
 
         /* This ensures the channel list updates. */
         ED_area_tag_redraw(area);

@@ -280,7 +280,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     col.prop_search(ptr, "subtarget", &hook_object_data_ptr, "bones", IFACE_("Bone"), ICON_NONE);
   }
 
-  layout.prop(ptr, "strength", ui::UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "strength", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   if (ui::Layout *sub = layout.panel_prop(C, ptr, "open_falloff_panel", IFACE_("Falloff"))) {
     sub->use_property_split_set(true);
@@ -296,7 +296,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     sub->prop(ptr, "use_falloff_uniform", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     if (RNA_enum_get(ptr, "falloff_type") == eWarp_Falloff_Curve) {
-      uiTemplateCurveMapping(sub, ptr, "custom_curve", 0, false, false, false, false, false);
+      template_curve_mapping(sub, ptr, "custom_curve", 0, false, false, false, false, false);
     }
   }
 

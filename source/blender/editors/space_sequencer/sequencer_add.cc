@@ -181,7 +181,7 @@ static void sequencer_add_draw(bContext * /*C*/, wmOperator *op)
                    sequencer_add_draw_check_fn,
                    nullptr,
                    nullptr,
-                   ui::UI_BUT_LABEL_ALIGN_NONE,
+                   ui::BUT_LABEL_ALIGN_NONE,
                    false);
 
   /* There is no effect strip add UI, so assume an image is being imported if "length" is found. */
@@ -427,8 +427,7 @@ static void sequencer_file_drop_channel_frame_set(bContext *C,
   }
 
   float frame_start, channel;
-  ui::UI_view2d_region_to_view(
-      &region->v2d, event->mval[0], event->mval[1], &frame_start, &channel);
+  ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &frame_start, &channel);
   RNA_int_set(op->ptr, "channel", int(channel));
   RNA_int_set(op->ptr, "frame_start", int(frame_start));
 }
@@ -622,7 +621,7 @@ static bool load_data_init_from_operator(seq::LoadData *load_data, bContext *C, 
     BLI_rcti_clamp_pt_v(&clamp_bounds, mouse_region);
 
     float2 mouse_view;
-    ui::UI_view2d_region_to_view(
+    ui::view2d_region_to_view(
         &region->v2d, mouse_region.x, mouse_region.y, &mouse_view.x, &mouse_view.y);
 
     load_data->start_frame = std::trunc(mouse_view.x);

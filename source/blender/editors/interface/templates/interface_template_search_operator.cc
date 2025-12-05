@@ -71,7 +71,7 @@ static void operator_search_update_fn(const bContext *C,
           name += *kmi_str;
         }
 
-        if (!UI_search_item_add(items, name, ot, ICON_NONE, 0, 0)) {
+        if (!search_item_add(items, name, ot, ICON_NONE, 0, 0)) {
           break;
         }
       }
@@ -85,9 +85,9 @@ static void operator_search_update_fn(const bContext *C,
 /** \name Operator Search Template API
  * \{ */
 
-void UI_but_func_operator_search(uiBut *but)
+void button_func_operator_search(uiBut *but)
 {
-  UI_but_func_search_set(but,
+  button_func_search_set(but,
                          ui_searchbox_create_operator,
                          operator_search_update_fn,
                          nullptr,
@@ -108,7 +108,7 @@ void uiTemplateOperatorSearch(Layout *layout)
 
   but = uiDefSearchBut(
       block, search, ICON_VIEWZOOM, sizeof(search), 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, "");
-  UI_but_func_operator_search(but);
+  button_func_operator_search(but);
 }
 
 /** \} */

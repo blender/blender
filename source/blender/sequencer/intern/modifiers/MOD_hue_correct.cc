@@ -118,9 +118,9 @@ static void hue_correct_apply(ModifierApplyContext &context, StripModifierData *
 static void hue_correct_panel_draw(const bContext *C, Panel *panel)
 {
   ui::Layout &layout = *panel->layout;
-  PointerRNA *ptr = blender::ui::UI_panel_custom_data_get(panel);
+  PointerRNA *ptr = blender::ui::panel_custom_data_get(panel);
 
-  uiTemplateCurveMapping(&layout, ptr, "curve_mapping", 'h', false, false, false, false, false);
+  template_curve_mapping(&layout, ptr, "curve_mapping", 'h', false, false, false, false, false);
 
   if (ui::Layout *mask_input_layout = layout.panel_prop(
           C, ptr, "open_mask_input_panel", IFACE_("Mask Input")))

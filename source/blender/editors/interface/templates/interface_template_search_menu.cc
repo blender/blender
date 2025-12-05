@@ -147,8 +147,8 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
 
   /* Use override if the name is empty, this can happen with popovers. */
   std::string drawstr_override;
-  const size_t sep_index = (but->flag & UI_BUT_HAS_SEP_CHAR) ? but->drawstr.find(UI_SEP_CHAR) :
-                                                               std::string::npos;
+  const size_t sep_index = (but->flag & BUT_HAS_SEP_CHAR) ? but->drawstr.find(UI_SEP_CHAR) :
+                                                            std::string::npos;
   const bool drawstr_is_empty = sep_index == 0 || but->drawstr.empty();
 
   if (but->optype != nullptr) {
@@ -230,8 +230,7 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
     }
 
     item->icon = ui_but_icon(but);
-    item->state = (but->flag &
-                   (UI_BUT_DISABLED | UI_BUT_INACTIVE | UI_BUT_REDALERT | UI_BUT_HAS_SEP_CHAR));
+    item->state = (but->flag & (BUT_DISABLED | BUT_INACTIVE | BUT_REDALERT | BUT_HAS_SEP_CHAR));
     item->mt = mt;
 
     item->wm_context = wm_context;
@@ -412,7 +411,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
                                                   const char *single_menu_idname)
 {
   Map<MenuType *, const char *> menu_display_name_map;
-  const uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = style_get_dpi();
 
   const bContextStore *old_context_store = CTX_store_get(C);
   BLI_SCOPED_DEFER([&]() { CTX_store_set(C, old_context_store); });
@@ -659,7 +658,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
         continue;
       }
 
-      uiBlock *block = UI_block_begin(C, region, __func__, EmbossType::Emboss);
+      uiBlock *block = block_begin(C, region, __func__, EmbossType::Emboss);
       Layout &layout = block_layout(block,
                                     LayoutDirection::Vertical,
                                     LayoutType::Menu,
@@ -670,15 +669,15 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
                                     UI_MENU_PADDING,
                                     style);
 
-      UI_block_flag_enable(block, UI_BLOCK_SHOW_SHORTCUT_ALWAYS);
+      block_flag_enable(block, BLOCK_SHOW_SHORTCUT_ALWAYS);
 
       if (current_menu.context.has_value()) {
         layout.context_copy(&*current_menu.context);
       }
       layout.operator_context_set(wm::OpCallContext::InvokeRegionWin);
-      UI_menutype_draw(C, mt, &layout);
+      menutype_draw(C, mt, &layout);
 
-      UI_block_end(C, block);
+      block_end(C, block);
 
       for (const int i : block->buttons.index_range()) {
         const std::unique_ptr<uiBut> &but = block->buttons[i];
@@ -702,7 +701,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
         {
           /* pass */
         }
-        else if ((mt_from_but = UI_but_menutype_get(but.get()))) {
+        else if ((mt_from_but = button_menutype_get(but.get()))) {
           const bool uses_context = but->context &&
                                     flag_is_set(mt_from_but->flag, MenuTypeFlag::ContextDependent);
           const bool tagged_first_time = menu_tagged.add(mt_from_but);
@@ -715,7 +714,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
              * This is needed so we don't right align sub-menu contents
              * we only want to do that for the last menu item, not the path that leads to it.
              */
-            const char *drawstr_sep = but->flag & UI_BUT_HAS_SEP_CHAR ?
+            const char *drawstr_sep = but->flag & BUT_HAS_SEP_CHAR ?
                                           strrchr(but->drawstr.c_str(), UI_SEP_CHAR) :
                                           nullptr;
             bool drawstr_is_empty = false;
@@ -765,7 +764,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
           /* A non 'MenuType' menu button. */
 
           /* +1 to avoid overlap with the current 'block'. */
-          uiBlock *sub_block = UI_block_begin(C, region, __func__ + 1, EmbossType::Emboss);
+          uiBlock *sub_block = block_begin(C, region, __func__ + 1, EmbossType::Emboss);
           Layout &sub_layout = block_layout(sub_block,
                                             LayoutDirection::Vertical,
                                             LayoutType::Menu,
@@ -776,18 +775,18 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
                                             UI_MENU_PADDING,
                                             style);
 
-          UI_block_flag_enable(sub_block, UI_BLOCK_SHOW_SHORTCUT_ALWAYS);
+          block_flag_enable(sub_block, BLOCK_SHOW_SHORTCUT_ALWAYS);
 
           sub_layout.operator_context_set(wm::OpCallContext::InvokeRegionWin);
 
           /* If this is a panel, check it's poll function succeeds before drawing.
            * otherwise draw(..) may be called in an unsupported context and crash, see: #130744.
            *
-           * NOTE(@ideasman42): it would be good if the buttons #UI_BUT_DISABLED flag
+           * NOTE(@ideasman42): it would be good if the buttons #BUT_DISABLED flag
            * could be used as a more general way to know if poll succeeded,
            * at this point it's not set - this could be further investigated. */
           bool poll_success = true;
-          if (PanelType *pt = UI_but_paneltype_get(but.get())) {
+          if (PanelType *pt = button_paneltype_get(but.get())) {
             if (pt->poll && (pt->poll(C, pt) == false)) {
               poll_success = false;
             }
@@ -797,7 +796,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
             but->menu_create_func(C, &sub_layout, but->poin);
           }
 
-          UI_block_end(C, sub_block);
+          block_end(C, sub_block);
 
           if (poll_success) {
             MenuSearch_Parent *menu_parent = &scope.construct<MenuSearch_Parent>();
@@ -814,14 +813,14 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
             region->runtime->block_name_map.remove(sub_block->name);
             BLI_remlink(&region->runtime->uiblocks, sub_block);
           }
-          UI_block_free(nullptr, sub_block);
+          block_free(nullptr, sub_block);
         }
       }
       if (region) {
         region->runtime->block_name_map.remove(block->name);
         BLI_remlink(&region->runtime->uiblocks, block);
       }
-      UI_block_free(nullptr, block);
+      block_free(nullptr, block);
 
       if (single_menu_idname == nullptr) {
         /* Add key-map items as a second pass, so all menus are accessed from the header & top-bar
@@ -928,7 +927,7 @@ static void menu_search_exec_fn(bContext *C, void * /*arg1*/, void *arg2)
   if (item == nullptr) {
     return;
   }
-  if (item->state & UI_BUT_DISABLED) {
+  if (item->state & BUT_DISABLED) {
     return;
   }
 
@@ -998,7 +997,7 @@ static void menu_search_update_fn(const bContext * /*C*/,
   const Vector<MenuSearch_Item *> filtered_items = search.query(str);
 
   for (MenuSearch_Item *item : filtered_items) {
-    if (!UI_search_item_add(items, item->drawwstr_full, item, item->icon, item->state, 0)) {
+    if (!search_item_add(items, item->drawwstr_full, item, item->icon, item->state, 0)) {
       break;
     }
   }
@@ -1094,7 +1093,7 @@ static ARegion *ui_search_menu_create_tooltip(
       CTX_wm_region_set(C, item->wm_context->region);
     }
 
-    ARegion *region_tip = UI_tooltip_create_from_button(C, region, but, false);
+    ARegion *region_tip = tooltip_create_from_button(C, region, but, false);
 
     if (item->wm_context != nullptr) {
       CTX_wm_area_set(C, area_prev);
@@ -1112,7 +1111,7 @@ static ARegion *ui_search_menu_create_tooltip(
 /** \name Menu Search Template Public API
  * \{ */
 
-void UI_but_func_menu_search(uiBut *but, const char *single_menu_idname)
+void button_func_menu_search(uiBut *but, const char *single_menu_idname)
 {
   bContext *C = (bContext *)but->block->evil_C;
   wmWindow *win = CTX_wm_window(C);
@@ -1123,7 +1122,7 @@ void UI_but_func_menu_search(uiBut *but, const char *single_menu_idname)
                                  !single_menu_idname;
   MenuSearch_Data *data = menu_items_from_ui_create(
       C, win, area, region, include_all_areas, single_menu_idname);
-  UI_but_func_search_set(but,
+  button_func_search_set(but,
                          /* Generic callback. */
                          ui_searchbox_create_menu,
                          menu_search_update_fn,
@@ -1133,9 +1132,9 @@ void UI_but_func_menu_search(uiBut *but, const char *single_menu_idname)
                          menu_search_exec_fn,
                          nullptr);
 
-  UI_but_func_search_set_context_menu(but, ui_search_menu_create_context_menu);
-  UI_but_func_search_set_tooltip(but, ui_search_menu_create_tooltip);
-  UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
+  button_func_search_set_context_menu(but, ui_search_menu_create_context_menu);
+  button_func_search_set_tooltip(but, ui_search_menu_create_tooltip);
+  button_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
 }
 
 void uiTemplateMenuSearch(Layout *layout)
@@ -1149,7 +1148,7 @@ void uiTemplateMenuSearch(Layout *layout)
 
   but = uiDefSearchBut(
       block, search, ICON_VIEWZOOM, sizeof(search), 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, "");
-  UI_but_func_menu_search(but);
+  button_func_menu_search(but);
 }
 
 /** \} */

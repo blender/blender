@@ -251,7 +251,7 @@ static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
                                  rna_path,
                                  0,
                                  StringRef(socket.description));
-  UI_but_placeholder_set(but, IFACE_("Layer"));
+  button_placeholder_set(but, IFACE_("Layer"));
   layout.label("", ICON_BLANK1);
 
   const Object *object = ed::object::context_object(&ctx.C);
@@ -265,9 +265,9 @@ static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
   SocketSearchData *data = static_cast<SocketSearchData *>(
       MEM_mallocN(sizeof(SocketSearchData), __func__));
   *data = ctx.socket_search_data_fn(socket);
-  UI_but_func_search_set_results_are_suggestions(but, true);
-  UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
-  UI_but_func_search_set(but,
+  button_func_search_set_results_are_suggestions(but, true);
+  button_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
+  button_func_search_set(but,
                          nullptr,
                          layer_name_search_update_fn,
                          data,
@@ -380,9 +380,9 @@ static void add_attribute_search_button(DrawGroupInputsContext &ctx,
   SocketSearchData *data = static_cast<SocketSearchData *>(
       MEM_mallocN(sizeof(SocketSearchData), __func__));
   *data = ctx.socket_search_data_fn(socket);
-  UI_but_func_search_set_results_are_suggestions(but, true);
-  UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
-  UI_but_func_search_set(but,
+  button_func_search_set_results_are_suggestions(but, true);
+  button_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
+  button_func_search_set(but,
                          nullptr,
                          attribute_search_update_fn,
                          data,
@@ -394,7 +394,7 @@ static void add_attribute_search_button(DrawGroupInputsContext &ctx,
   std::string attribute_name = RNA_string_get(ctx.properties_ptr, rna_path_attribute_name.c_str());
   const bool access_allowed = bke::allow_procedural_attribute_access(attribute_name);
   if (!access_allowed) {
-    UI_but_flag_enable(but, ui::UI_BUT_REDALERT);
+    button_flag_enable(but, ui::BUT_REDALERT);
   }
 }
 
@@ -540,19 +540,19 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
     case SOCK_IMAGE: {
       PropertyRNA *prop = RNA_struct_find_property(ctx.properties_ptr, rna_path.c_str());
       if (prop && RNA_property_type(prop) == PROP_POINTER) {
-        uiTemplateID(&row,
-                     &ctx.C,
-                     ctx.properties_ptr,
-                     rna_path,
-                     "image.new",
-                     "image.open",
-                     nullptr,
-                     ui::UI_TEMPLATE_ID_FILTER_ALL,
-                     false,
-                     name);
+        template_id(&row,
+                    &ctx.C,
+                    ctx.properties_ptr,
+                    rna_path,
+                    "image.new",
+                    "image.open",
+                    nullptr,
+                    ui::TEMPLATE_ID_FILTER_ALL,
+                    false,
+                    name);
       }
       else {
-        /* #uiTemplateID only supports pointer properties currently. Node tools store data-block
+        /* #template_id only supports pointer properties currently. Node tools store data-block
          * pointers in strings currently. */
         row.prop_search(ctx.properties_ptr, rna_path, ctx.bmain_ptr, "images", name, ICON_IMAGE);
       }
@@ -564,7 +564,7 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
          * see #ui_item_enum_expand_exec. */
         row.prop(ctx.properties_ptr,
                  rna_path,
-                 ui::UI_ITEM_R_EXPAND,
+                 ui::ITEM_R_EXPAND,
                  StringRef(name).is_empty() ? " " : name,
                  ICON_NONE);
       }
@@ -817,7 +817,7 @@ static void draw_warnings(const bContext *C,
         block, ui::ButType::Label, icon, message, 0, 0, 1, UI_UNIT_Y, nullptr, std::nullopt);
     /* Add tooltip containing the same message. This is helpful if the message is very long so that
      * it doesn't fit in the panel. */
-    UI_but_func_tooltip_set(
+    button_func_tooltip_set(
         but,
         [](bContext * /*C*/, void *argN, blender::StringRef /*tip*/) -> std::string {
           return *static_cast<std::string *>(argN);
@@ -1022,7 +1022,7 @@ void draw_geometry_nodes_modifier_ui(const bContext &C,
   if (!(nmd.flag & NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR)) {
     const char *newop = (nmd.node_group == nullptr) ? "node.new_geometry_node_group_assign" :
                                                       "object.geometry_node_tree_copy_assign";
-    uiTemplateID(&layout, &C, modifier_ptr, "node_group", newop, nullptr, nullptr);
+    template_id(&layout, &C, modifier_ptr, "node_group", newop, nullptr, nullptr);
   }
 
   if (nmd.node_group != nullptr && nmd.settings.properties != nullptr) {
@@ -1086,7 +1086,7 @@ void draw_geometry_nodes_operator_redo_ui(const bContext &C,
       [&](ui::Layout &layout, const int icon, const bNodeTreeInterfaceSocket &io_socket) {
         const std::string prop_name = fmt::format(
             "[\"{}{}\"]", BLI_str_escape(io_socket.identifier), nodes::input_use_attribute_suffix);
-        layout.prop(op.ptr, prop_name, ui::UI_ITEM_R_ICON_ONLY, "", icon);
+        layout.prop(op.ptr, prop_name, ui::ITEM_R_ICON_ONLY, "", icon);
       };
   ctx.use_name_for_ids = true;
 

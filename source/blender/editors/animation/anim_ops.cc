@@ -139,8 +139,8 @@ static bool change_frame_poll(bContext *C)
 static float get_snap_threshold(const ToolSettings *tool_settings, const ARegion *region)
 {
   const int snap_threshold = tool_settings->playhead_snap_distance;
-  return blender::ui::UI_view2d_region_to_view_x(&region->v2d, snap_threshold) -
-         blender::ui::UI_view2d_region_to_view_x(&region->v2d, 0);
+  return blender::ui::view2d_region_to_view_x(&region->v2d, snap_threshold) -
+         blender::ui::view2d_region_to_view_x(&region->v2d, 0);
 }
 
 static void ensure_change_frame_keylist(bContext *C, FrameChangeModalData &op_data)
@@ -605,7 +605,7 @@ static float frame_from_event(bContext *C, const wmEvent *event)
   float frame;
 
   /* convert from region coordinates to View2D 'tot' space */
-  frame = blender::ui::UI_view2d_region_to_view_x(&region->v2d, event->mval[0]);
+  frame = blender::ui::view2d_region_to_view_x(&region->v2d, event->mval[0]);
 
   /* respect preview range restrictions (if only allowed to move around within that range) */
   if (scene->r.flag & SCER_LOCK_FRAME_SELECTION) {
@@ -662,10 +662,10 @@ static bool sequencer_is_mouse_over_handle(const bContext *C, const wmEvent *eve
     return false;
   }
 
-  const View2D *v2d = blender::ui::UI_view2d_fromcontext(C);
+  const View2D *v2d = blender::ui::view2d_fromcontext(C);
 
   float mouse_co[2];
-  blender::ui::UI_view2d_region_to_view(
+  blender::ui::view2d_region_to_view(
       v2d, event->mval[0], event->mval[1], &mouse_co[0], &mouse_co[1]);
 
   blender::ed::vse::StripSelection selection = blender::ed::vse::pick_strip_and_handle(
@@ -1030,8 +1030,8 @@ static wmOperatorStatus previewrange_define_exec(bContext *C, wmOperator *op)
   WM_operator_properties_border_to_rcti(op, &rect);
 
   /* convert min/max values to frames (i.e. region to 'tot' rect) */
-  sfra = blender::ui::UI_view2d_region_to_view_x(&region->v2d, rect.xmin);
-  efra = blender::ui::UI_view2d_region_to_view_x(&region->v2d, rect.xmax);
+  sfra = blender::ui::view2d_region_to_view_x(&region->v2d, rect.xmin);
+  efra = blender::ui::view2d_region_to_view_x(&region->v2d, rect.xmax);
 
   /* set start/end frames for preview-range
    * - must clamp within allowable limits
@@ -1195,7 +1195,7 @@ static wmOperatorStatus scene_range_frame_exec(bContext *C, wmOperator * /*op*/)
 
   v2d.cur = ANIM_frame_range_view2d_add_xmargin(v2d, v2d.cur);
 
-  blender::ui::UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), &v2d, V2D_LOCK_COPY);
+  blender::ui::view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), &v2d, V2D_LOCK_COPY);
   ED_area_tag_redraw(CTX_wm_area(C));
 
   return OPERATOR_FINISHED;

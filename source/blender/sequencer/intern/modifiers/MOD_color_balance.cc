@@ -265,7 +265,7 @@ static void colorBalance_apply(ModifierApplyContext &context, StripModifierData 
 static void colorBalance_panel_draw(const bContext *C, Panel *panel)
 {
   ui::Layout &layout = *panel->layout;
-  PointerRNA *ptr = blender::ui::UI_panel_custom_data_get(panel);
+  PointerRNA *ptr = blender::ui::panel_custom_data_get(panel);
 
   PointerRNA color_balance = RNA_pointer_get(ptr, "color_balance");
   const int correction_method = RNA_enum_get(&color_balance, "correction_method");
@@ -288,7 +288,7 @@ static void colorBalance_panel_draw(const bContext *C, Panel *panel)
       col.prop(&color_balance, "lift", UI_ITEM_NONE, "", ICON_NONE);
       col.prop(
           &color_balance, "invert_lift", UI_ITEM_NONE, IFACE_("Invert"), ICON_ARROW_LEFTRIGHT);
-      uiTemplateColorPicker(&split, &color_balance, "lift", true, false, false, true);
+      template_color_picker(&split, &color_balance, "lift", true, false, false, true);
       col.separator();
     }
     {
@@ -300,7 +300,7 @@ static void colorBalance_panel_draw(const bContext *C, Panel *panel)
       col.prop(&color_balance, "gamma", UI_ITEM_NONE, "", ICON_NONE);
       col.prop(
           &color_balance, "invert_gamma", UI_ITEM_NONE, IFACE_("Invert"), ICON_ARROW_LEFTRIGHT);
-      uiTemplateColorPicker(&split, &color_balance, "gamma", true, false, true, true);
+      template_color_picker(&split, &color_balance, "gamma", true, false, true, true);
       col.separator();
     }
     {
@@ -312,7 +312,7 @@ static void colorBalance_panel_draw(const bContext *C, Panel *panel)
       col.prop(&color_balance, "gain", UI_ITEM_NONE, "", ICON_NONE);
       col.prop(
           &color_balance, "invert_gain", UI_ITEM_NONE, IFACE_("Invert"), ICON_ARROW_LEFTRIGHT);
-      uiTemplateColorPicker(&split, &color_balance, "gain", true, false, true, true);
+      template_color_picker(&split, &color_balance, "gain", true, false, true, true);
     }
   }
   else if (correction_method == SEQ_COLOR_BALANCE_METHOD_SLOPEOFFSETPOWER) {
@@ -325,7 +325,7 @@ static void colorBalance_panel_draw(const bContext *C, Panel *panel)
       col.prop(&color_balance, "offset", UI_ITEM_NONE, "", ICON_NONE);
       col.prop(
           &color_balance, "invert_offset", UI_ITEM_NONE, IFACE_("Invert"), ICON_ARROW_LEFTRIGHT);
-      uiTemplateColorPicker(&split, &color_balance, "offset", true, false, false, true);
+      template_color_picker(&split, &color_balance, "offset", true, false, false, true);
       col.separator();
     }
     {
@@ -337,7 +337,7 @@ static void colorBalance_panel_draw(const bContext *C, Panel *panel)
       col.prop(&color_balance, "power", UI_ITEM_NONE, "", ICON_NONE);
       col.prop(
           &color_balance, "invert_power", UI_ITEM_NONE, IFACE_("Invert"), ICON_ARROW_LEFTRIGHT);
-      uiTemplateColorPicker(&split, &color_balance, "power", true, false, false, true);
+      template_color_picker(&split, &color_balance, "power", true, false, false, true);
       col.separator();
     }
     {
@@ -349,7 +349,7 @@ static void colorBalance_panel_draw(const bContext *C, Panel *panel)
       col.prop(&color_balance, "slope", UI_ITEM_NONE, "", ICON_NONE);
       col.prop(
           &color_balance, "invert_slope", UI_ITEM_NONE, IFACE_("Invert"), ICON_ARROW_LEFTRIGHT);
-      uiTemplateColorPicker(&split, &color_balance, "slope", true, false, false, true);
+      template_color_picker(&split, &color_balance, "slope", true, false, false, true);
     }
   }
   else {

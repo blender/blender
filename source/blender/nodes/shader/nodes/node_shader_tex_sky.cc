@@ -28,42 +28,42 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_tex_sky(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
-  layout.prop(ptr, "sky_type", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "sky_type", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
   if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_PREETHAM) {
-    layout.prop(ptr, "sun_direction", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-    layout.prop(ptr, "turbidity", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "sun_direction", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    layout.prop(ptr, "turbidity", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
   else if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_HOSEK) {
-    layout.prop(ptr, "sun_direction", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-    layout.prop(ptr, "turbidity", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-    layout.prop(ptr, "ground_albedo", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "sun_direction", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    layout.prop(ptr, "turbidity", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "ground_albedo", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
   else {
     Scene *scene = CTX_data_scene(C);
     if (BKE_scene_uses_blender_eevee(scene)) {
       layout.label(RPT_("Sun disc not available in EEVEE"), ICON_ERROR);
     }
-    layout.prop(ptr, "sun_disc", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "sun_disc", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     if (RNA_boolean_get(ptr, "sun_disc")) {
       ui::Layout &col = layout.column(true);
-      col.prop(ptr, "sun_size", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-      col.prop(ptr, "sun_intensity", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+      col.prop(ptr, "sun_size", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+      col.prop(ptr, "sun_intensity", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
     }
 
     {
       ui::Layout &col = layout.column(true);
-      col.prop(ptr, "sun_elevation", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-      col.prop(ptr, "sun_rotation", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+      col.prop(ptr, "sun_elevation", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+      col.prop(ptr, "sun_rotation", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
     }
-    layout.prop(ptr, "altitude", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "altitude", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     {
       ui::Layout &col = layout.column(true);
-      col.prop(ptr, "air_density", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-      col.prop(ptr, "aerosol_density", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-      col.prop(ptr, "ozone_density", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+      col.prop(ptr, "air_density", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+      col.prop(ptr, "aerosol_density", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+      col.prop(ptr, "ozone_density", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
     }
   }
 }

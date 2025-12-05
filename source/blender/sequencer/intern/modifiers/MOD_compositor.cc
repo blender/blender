@@ -255,7 +255,7 @@ static void compositor_modifier_apply(ModifierApplyContext &context,
 static void compositor_modifier_panel_draw(const bContext *C, Panel *panel)
 {
   ui::Layout &layout = *panel->layout;
-  PointerRNA *ptr = blender::ui::UI_panel_custom_data_get(panel);
+  PointerRNA *ptr = blender::ui::panel_custom_data_get(panel);
 
   layout.use_property_split_set(true);
 
@@ -268,26 +268,26 @@ static void compositor_modifier_panel_draw(const bContext *C, Panel *panel)
     if (smd && smd->type == eSeqModifierType_Compositor) {
       SequencerCompositorModifierData *nmd = (SequencerCompositorModifierData *)smd;
       if (nmd->node_group != nullptr) {
-        uiTemplateID(&layout,
-                     C,
-                     ptr,
-                     "node_group",
-                     "NODE_OT_duplicate_compositing_modifier_node_group",
-                     nullptr,
-                     nullptr);
+        template_id(&layout,
+                    C,
+                    ptr,
+                    "node_group",
+                    "NODE_OT_duplicate_compositing_modifier_node_group",
+                    nullptr,
+                    nullptr);
         has_existing_group = true;
       }
     }
   }
 
   if (!has_existing_group) {
-    uiTemplateID(&layout,
-                 C,
-                 ptr,
-                 "node_group",
-                 "NODE_OT_new_compositor_sequencer_node_group",
-                 nullptr,
-                 nullptr);
+    template_id(&layout,
+                C,
+                ptr,
+                "node_group",
+                "NODE_OT_new_compositor_sequencer_node_group",
+                nullptr,
+                nullptr);
   }
 
   if (ui::Layout *mask_input_layout = layout.panel_prop(

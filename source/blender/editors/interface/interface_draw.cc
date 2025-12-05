@@ -50,9 +50,9 @@
 
 namespace blender::ui {
 
-static int roundboxtype = UI_CNR_ALL;
+static int roundboxtype = CNR_ALL;
 
-void UI_draw_roundbox_corner_set(int type)
+void draw_roundbox_corner_set(int type)
 {
   /* Not sure the roundbox function is the best place to change this
    * if this is undone, it's not that big a deal, only makes curves edges square. */
@@ -60,19 +60,19 @@ void UI_draw_roundbox_corner_set(int type)
 }
 
 #if 0 /* unused */
-int UI_draw_roundbox_corner_get()
+int draw_roundbox_corner_get()
 {
   return roundboxtype;
 }
 #endif
 
-void UI_draw_roundbox_4fv_ex(const rctf *rect,
-                             const float inner1[4],
-                             const float inner2[4],
-                             float shade_dir,
-                             const float outline[4],
-                             float outline_width,
-                             float rad)
+void draw_roundbox_4fv_ex(const rctf *rect,
+                          const float inner1[4],
+                          const float inner2[4],
+                          float shade_dir,
+                          const float outline[4],
+                          float outline_width,
+                          float rad)
 {
   /* WATCH: This is assuming the ModelViewProjectionMatrix is area pixel space.
    * If it has been scaled, then it's no longer valid. */
@@ -84,10 +84,10 @@ void UI_draw_roundbox_4fv_ex(const rctf *rect,
   widget_params.rect = *rect;
   widget_params.radi = rad;
   widget_params.rad = rad;
-  widget_params.round_corners[0] = (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 1.0f : 0.0f;
-  widget_params.round_corners[1] = (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 1.0f : 0.0f;
-  widget_params.round_corners[2] = (roundboxtype & UI_CNR_TOP_RIGHT) ? 1.0f : 0.0f;
-  widget_params.round_corners[3] = (roundboxtype & UI_CNR_TOP_LEFT) ? 1.0f : 0.0f;
+  widget_params.round_corners[0] = (roundboxtype & CNR_BOTTOM_LEFT) ? 1.0f : 0.0f;
+  widget_params.round_corners[1] = (roundboxtype & CNR_BOTTOM_RIGHT) ? 1.0f : 0.0f;
+  widget_params.round_corners[2] = (roundboxtype & CNR_TOP_RIGHT) ? 1.0f : 0.0f;
+  widget_params.round_corners[3] = (roundboxtype & CNR_TOP_LEFT) ? 1.0f : 0.0f;
   widget_params.color_inner1[0] = inner1 ? inner1[0] : 0.0f;
   widget_params.color_inner1[1] = inner1 ? inner1[1] : 0.0f;
   widget_params.color_inner1[2] = inner1 ? inner1[2] : 0.0f;
@@ -112,7 +112,7 @@ void UI_draw_roundbox_4fv_ex(const rctf *rect,
   GPU_blend(old_blend);
 }
 
-void UI_draw_roundbox_3ub_alpha(
+void draw_roundbox_3ub_alpha(
     const rctf *rect, bool filled, float rad, const uchar col[3], uchar alpha)
 {
   const float colv[4] = {
@@ -121,17 +121,17 @@ void UI_draw_roundbox_3ub_alpha(
       float(col[2]) / 255.0f,
       float(alpha) / 255.0f,
   };
-  UI_draw_roundbox_4fv_ex(rect, (filled) ? colv : nullptr, nullptr, 1.0f, colv, U.pixelsize, rad);
+  draw_roundbox_4fv_ex(rect, (filled) ? colv : nullptr, nullptr, 1.0f, colv, U.pixelsize, rad);
 }
 
-void UI_draw_roundbox_3fv_alpha(
+void draw_roundbox_3fv_alpha(
     const rctf *rect, bool filled, float rad, const float col[3], float alpha)
 {
   const float colv[4] = {col[0], col[1], col[2], alpha};
-  UI_draw_roundbox_4fv_ex(rect, (filled) ? colv : nullptr, nullptr, 1.0f, colv, U.pixelsize, rad);
+  draw_roundbox_4fv_ex(rect, (filled) ? colv : nullptr, nullptr, 1.0f, colv, U.pixelsize, rad);
 }
 
-void UI_draw_roundbox_aa(const rctf *rect, bool filled, float rad, const float color[4])
+void draw_roundbox_aa(const rctf *rect, bool filled, float rad, const float color[4])
 {
   /* XXX this is to emulate previous behavior of semitransparent fills but that's was a side effect
    * of the previous AA method. Better fix the callers. */
@@ -140,13 +140,13 @@ void UI_draw_roundbox_aa(const rctf *rect, bool filled, float rad, const float c
     colv[3] *= 0.65f;
   }
 
-  UI_draw_roundbox_4fv_ex(rect, (filled) ? colv : nullptr, nullptr, 1.0f, colv, U.pixelsize, rad);
+  draw_roundbox_4fv_ex(rect, (filled) ? colv : nullptr, nullptr, 1.0f, colv, U.pixelsize, rad);
 }
 
-void UI_draw_roundbox_4fv(const rctf *rect, bool filled, float rad, const float col[4])
+void draw_roundbox_4fv(const rctf *rect, bool filled, float rad, const float col[4])
 {
-  /* Exactly the same as UI_draw_roundbox_aa but does not do the legacy transparency. */
-  UI_draw_roundbox_4fv_ex(rect, (filled) ? col : nullptr, nullptr, 1.0f, col, U.pixelsize, rad);
+  /* Exactly the same as draw_roundbox_aa but does not do the legacy transparency. */
+  draw_roundbox_4fv_ex(rect, (filled) ? col : nullptr, nullptr, 1.0f, col, U.pixelsize, rad);
 }
 
 void ui_draw_rounded_corners_inverted(const rcti &rect, const float rad, const float4 color)
@@ -167,7 +167,7 @@ void ui_draw_rounded_corners_inverted(const rcti &rect, const float rad, const f
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor4fv(color);
 
-  if (roundboxtype & UI_CNR_TOP_LEFT) {
+  if (roundboxtype & CNR_TOP_LEFT) {
     immBegin(GPU_PRIM_TRI_FAN, 7);
     immVertex2f(pos, rect.xmin, rect.ymax);
     immVertex2f(pos, rect.xmin, rect.ymax - rad);
@@ -178,7 +178,7 @@ void ui_draw_rounded_corners_inverted(const rcti &rect, const float rad, const f
     immEnd();
   }
 
-  if (roundboxtype & UI_CNR_TOP_RIGHT) {
+  if (roundboxtype & CNR_TOP_RIGHT) {
     immBegin(GPU_PRIM_TRI_FAN, 7);
     immVertex2f(pos, rect.xmax, rect.ymax);
     immVertex2f(pos, rect.xmax - rad, rect.ymax);
@@ -189,7 +189,7 @@ void ui_draw_rounded_corners_inverted(const rcti &rect, const float rad, const f
     immEnd();
   }
 
-  if (roundboxtype & UI_CNR_BOTTOM_RIGHT) {
+  if (roundboxtype & CNR_BOTTOM_RIGHT) {
     immBegin(GPU_PRIM_TRI_FAN, 7);
     immVertex2f(pos, rect.xmax, rect.ymin);
     immVertex2f(pos, rect.xmax, rect.ymin + rad);
@@ -200,7 +200,7 @@ void ui_draw_rounded_corners_inverted(const rcti &rect, const float rad, const f
     immEnd();
   }
 
-  if (roundboxtype & UI_CNR_BOTTOM_LEFT) {
+  if (roundboxtype & CNR_BOTTOM_LEFT) {
     immBegin(GPU_PRIM_TRI_FAN, 7);
     immVertex2f(pos, rect.xmin, rect.ymin);
     immVertex2f(pos, rect.xmin + rad, rect.ymin);
@@ -214,7 +214,7 @@ void ui_draw_rounded_corners_inverted(const rcti &rect, const float rad, const f
   immUnbindProgram();
 }
 
-void UI_draw_text_underline(int pos_x, int pos_y, int len, int height, const float color[4])
+void draw_text_underline(int pos_x, int pos_y, int len, int height, const float color[4])
 {
   const int ofs_y = 4 * U.pixelsize;
 
@@ -263,7 +263,7 @@ void ui_draw_but_TAB_outline(const rcti *rect,
   immAttr4ub(col, UNPACK3(highlight), 255);
 
   /* start with corner left-top */
-  if (roundboxtype & UI_CNR_TOP_LEFT) {
+  if (roundboxtype & CNR_TOP_LEFT) {
     immVertex2f(pos, minx, maxy - rad);
     for (a = 0; a < 4; a++) {
       immVertex2f(pos, minx + vec[a][1], maxy - rad + vec[a][0]);
@@ -275,7 +275,7 @@ void ui_draw_but_TAB_outline(const rcti *rect,
   }
 
   /* corner right-top */
-  if (roundboxtype & UI_CNR_TOP_RIGHT) {
+  if (roundboxtype & CNR_TOP_RIGHT) {
     immVertex2f(pos, maxx - rad, maxy);
     for (a = 0; a < 4; a++) {
       immVertex2f(pos, maxx - rad + vec[a][0], maxy - vec[a][1]);
@@ -289,7 +289,7 @@ void ui_draw_but_TAB_outline(const rcti *rect,
   immAttr4ub(col, UNPACK3(highlight_fade), 255);
 
   /* corner right-bottom */
-  if (roundboxtype & UI_CNR_BOTTOM_RIGHT) {
+  if (roundboxtype & CNR_BOTTOM_RIGHT) {
     immVertex2f(pos, maxx, miny + rad);
     for (a = 0; a < 4; a++) {
       immVertex2f(pos, maxx - vec[a][1], miny + rad - vec[a][0]);
@@ -301,7 +301,7 @@ void ui_draw_but_TAB_outline(const rcti *rect,
   }
 
   /* corner left-bottom */
-  if (roundboxtype & UI_CNR_BOTTOM_LEFT) {
+  if (roundboxtype & CNR_BOTTOM_LEFT) {
     immVertex2f(pos, minx + rad, miny);
     for (a = 0; a < 4; a++) {
       immVertex2f(pos, minx + rad - vec[a][0], miny + vec[a][1]);
@@ -315,7 +315,7 @@ void ui_draw_but_TAB_outline(const rcti *rect,
   immAttr4ub(col, UNPACK3(highlight), 255);
 
   /* back to corner left-top */
-  immVertex2f(pos, minx, (roundboxtype & UI_CNR_TOP_LEFT) ? (maxy - rad) : maxy);
+  immVertex2f(pos, minx, (roundboxtype & CNR_TOP_LEFT) ? (maxy - rad) : maxy);
 
   immEnd();
   immUnbindProgram();
@@ -384,10 +384,10 @@ void ui_draw_but_IMAGE(ARegion * /*region*/,
 #endif
 }
 
-void UI_draw_safe_areas(uint pos,
-                        const rctf *rect,
-                        const float title_aspect[2],
-                        const float action_aspect[2])
+void draw_safe_areas(uint pos,
+                     const rctf *rect,
+                     const float title_aspect[2],
+                     const float action_aspect[2])
 {
   const float size_x_half = (rect->xmax - rect->xmin) * 0.5f;
   const float size_y_half = (rect->ymax - rect->ymin) * 0.5f;
@@ -415,14 +415,14 @@ static void draw_scope_end(const rctf *rect)
   GPU_blend(GPU_BLEND_ALPHA);
 
   /* outline */
-  UI_draw_roundbox_corner_set(UI_CNR_ALL);
+  draw_roundbox_corner_set(CNR_ALL);
   const float color[4] = {0.0f, 0.0f, 0.0f, 0.5f};
   rctf box_rect{};
   box_rect.xmin = rect->xmin - 1;
   box_rect.xmax = rect->xmax + 1;
   box_rect.ymin = rect->ymin;
   box_rect.ymax = rect->ymax + 1;
-  UI_draw_roundbox_4fv(&box_rect, false, 3.0f, color);
+  draw_roundbox_4fv(&box_rect, false, 3.0f, color);
 }
 
 static void histogram_draw_one(float r,
@@ -513,15 +513,15 @@ void ui_draw_but_HISTOGRAM(ARegion *region,
   GPU_blend(GPU_BLEND_ALPHA);
 
   float color[4];
-  UI_GetThemeColor4fv(TH_PREVIEW_BACK, color);
-  UI_draw_roundbox_corner_set(UI_CNR_ALL);
+  GetThemeColor4fv(TH_PREVIEW_BACK, color);
+  draw_roundbox_corner_set(CNR_ALL);
   rctf back_rect{};
   back_rect.xmin = rect.xmin - 1;
   back_rect.xmax = rect.xmax + 1;
   back_rect.ymin = rect.ymin - 1;
   back_rect.ymax = rect.ymax + 1;
 
-  UI_draw_roundbox_4fv(&back_rect, true, 3.0f, color);
+  draw_roundbox_4fv(&back_rect, true, 3.0f, color);
 
   /* need scissor test, histogram can draw outside of boundary */
   int scissor[4];
@@ -728,14 +728,14 @@ void ui_draw_but_WAVEFORM(ARegion *region,
   GPU_blend(GPU_BLEND_ALPHA);
 
   float color[4];
-  UI_GetThemeColor4fv(TH_PREVIEW_BACK, color);
-  UI_draw_roundbox_corner_set(UI_CNR_ALL);
+  GetThemeColor4fv(TH_PREVIEW_BACK, color);
+  draw_roundbox_corner_set(CNR_ALL);
   rctf back_rect{};
   back_rect.xmin = rect.xmin - 1.0f;
   back_rect.xmax = rect.xmax + 1.0f;
   back_rect.ymin = rect.ymin - 1.0f;
   back_rect.ymax = rect.ymax + 1.0f;
-  UI_draw_roundbox_4fv(&back_rect, true, 3.0f, color);
+  draw_roundbox_4fv(&back_rect, true, 3.0f, color);
 
   /* need scissor test, waveform can draw outside of boundary */
   GPU_scissor_get(scissor);
@@ -1034,14 +1034,14 @@ void ui_draw_but_VECTORSCOPE(ARegion *region,
   GPU_blend(GPU_BLEND_ALPHA);
 
   float color[4];
-  UI_GetThemeColor4fv(TH_PREVIEW_BACK, color);
-  UI_draw_roundbox_corner_set(UI_CNR_ALL);
+  GetThemeColor4fv(TH_PREVIEW_BACK, color);
+  draw_roundbox_corner_set(CNR_ALL);
   rctf back_rect{};
   back_rect.xmin = rect.xmin - 1;
   back_rect.xmax = rect.xmax + 1;
   back_rect.ymin = rect.ymin - 1;
   back_rect.ymax = rect.ymax + 1;
-  UI_draw_roundbox_4fv(&back_rect, true, 3.0f, color);
+  draw_roundbox_4fv(&back_rect, true, 3.0f, color);
 
   /* need scissor test, vectorscope can draw outside of boundary */
   int scissor[4];
@@ -1488,13 +1488,13 @@ void ui_draw_but_UNITVEC(uiBut *but,
   const float size = 0.5f * min_ff(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect));
 
   /* backdrop */
-  UI_draw_roundbox_corner_set(UI_CNR_ALL);
+  draw_roundbox_corner_set(CNR_ALL);
   rctf box_rect{};
   box_rect.xmin = rect->xmin;
   box_rect.xmax = rect->xmax;
   box_rect.ymin = rect->ymin;
   box_rect.ymax = rect->ymax;
-  UI_draw_roundbox_3ub_alpha(&box_rect, true, radius, wcol->inner, 255);
+  draw_roundbox_3ub_alpha(&box_rect, true, radius, wcol->inner, 255);
 
   GPU_face_culling(GPU_CULL_BACK);
 
@@ -1589,7 +1589,7 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
   CurveMapping *cumap = (but_cumap->edit_cumap == nullptr) ? (CurveMapping *)but->poin :
                                                              but_cumap->edit_cumap;
 
-  const bool inactive = but->flag & UI_BUT_INACTIVE;
+  const bool inactive = but->flag & BUT_INACTIVE;
   const float fade_factor_float = inactive ? 0.33f : 1.0f;
   const uchar fade_factor_uchar = inactive ? 3 : 1;
 
@@ -1688,8 +1688,8 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
     ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 1.0f);
     /* axes */
     uchar col_axis_x[3], col_axis_y[3];
-    UI_GetThemeColor3ubv(TH_AXIS_X, col_axis_x);
-    UI_GetThemeColor3ubv(TH_AXIS_Y, col_axis_y);
+    GetThemeColor3ubv(TH_AXIS_X, col_axis_x);
+    GetThemeColor3ubv(TH_AXIS_Y, col_axis_y);
 
     immBegin(GPU_PRIM_LINES, 2);
     immUniformColor3ubvAlpha(col_axis_x, 128 / fade_factor_uchar);
@@ -2317,13 +2317,13 @@ void ui_draw_but_TRACKPREVIEW(ARegion *region,
 
   if (scopes->track_disabled) {
     const float color[4] = {0.7f, 0.3f, 0.3f, 0.3f};
-    UI_draw_roundbox_corner_set(UI_CNR_ALL);
+    draw_roundbox_corner_set(CNR_ALL);
     rctf disabled_rect{};
     disabled_rect.xmin = rect.xmin - 1;
     disabled_rect.xmax = rect.xmax + 1;
     disabled_rect.ymin = rect.ymin;
     disabled_rect.ymax = rect.ymax + 1;
-    UI_draw_roundbox_4fv(&disabled_rect, true, 3.0f, color);
+    draw_roundbox_4fv(&disabled_rect, true, 3.0f, color);
 
     ok = true;
   }
@@ -2371,13 +2371,13 @@ void ui_draw_but_TRACKPREVIEW(ARegion *region,
 
       if (scopes->use_track_mask) {
         const float color[4] = {0.0f, 0.0f, 0.0f, 0.3f};
-        UI_draw_roundbox_corner_set(UI_CNR_ALL);
+        draw_roundbox_corner_set(CNR_ALL);
         rctf mask_rect{};
         mask_rect.xmin = rect.xmin - 1;
         mask_rect.xmax = rect.xmax + 1;
         mask_rect.ymin = rect.ymin;
         mask_rect.ymax = rect.ymax + 1;
-        UI_draw_roundbox_4fv(&mask_rect, true, 3.0f, color);
+        draw_roundbox_4fv(&mask_rect, true, 3.0f, color);
       }
 
       IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
@@ -2403,8 +2403,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion *region,
           format, "color", gpu::VertAttrType::SFLOAT_32_32_32_32);
       immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
-      UI_GetThemeColor4fv(TH_SEL_MARKER, col_sel);
-      UI_GetThemeColor4fv(TH_MARKER_OUTLINE, col_outline);
+      GetThemeColor4fv(TH_SEL_MARKER, col_sel);
+      GetThemeColor4fv(TH_MARKER_OUTLINE, col_outline);
 
       /* Do stipple cross with geometry */
       immBegin(GPU_PRIM_LINES, 7 * 2 * 2);
@@ -2439,13 +2439,13 @@ void ui_draw_but_TRACKPREVIEW(ARegion *region,
 
   if (!ok) {
     const float color[4] = {0.0f, 0.0f, 0.0f, 0.3f};
-    UI_draw_roundbox_corner_set(UI_CNR_ALL);
+    draw_roundbox_corner_set(CNR_ALL);
     rctf box_rect{};
     box_rect.xmin = rect.xmin - 1;
     box_rect.xmax = rect.xmax + 1;
     box_rect.ymin = rect.ymin;
     box_rect.ymax = rect.ymax + 1;
-    UI_draw_roundbox_4fv(&box_rect, true, 3.0f, color);
+    draw_roundbox_4fv(&box_rect, true, 3.0f, color);
   }
 
   /* Restore scissor test. */
@@ -2458,7 +2458,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *region,
 
 /* ****************************************************** */
 
-void ui_draw_dropshadow(
+void draw_dropshadow(
     const rctf *rct, const float radius, const float width, const float aspect, const float alpha)
 {
   if (width == 0.0f) {
@@ -2486,10 +2486,10 @@ void ui_draw_dropshadow(
   widget_params.rect.ymax = rct->ymax + shadow_width - shadow_offset;
   widget_params.radi = inner_radius;
   widget_params.rad = shadow_radius;
-  widget_params.round_corners[0] = (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 1.0f : 0.0f;
-  widget_params.round_corners[1] = (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 1.0f : 0.0f;
-  widget_params.round_corners[2] = (roundboxtype & UI_CNR_TOP_RIGHT) ? 1.0f : 0.0f;
-  widget_params.round_corners[3] = (roundboxtype & UI_CNR_TOP_LEFT) ? 1.0f : 0.0f;
+  widget_params.round_corners[0] = (roundboxtype & CNR_BOTTOM_LEFT) ? 1.0f : 0.0f;
+  widget_params.round_corners[1] = (roundboxtype & CNR_BOTTOM_RIGHT) ? 1.0f : 0.0f;
+  widget_params.round_corners[2] = (roundboxtype & CNR_TOP_RIGHT) ? 1.0f : 0.0f;
+  widget_params.round_corners[3] = (roundboxtype & CNR_TOP_LEFT) ? 1.0f : 0.0f;
   widget_params.alpha_discard = 1.0f;
 
   gpu::Batch *batch = ui_batch_roundbox_shadow_get();

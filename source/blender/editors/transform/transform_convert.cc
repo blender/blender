@@ -498,7 +498,7 @@ char transform_convert_frame_side_dir_get(TransInfo *t, float cframe)
   char dir;
   float center[2];
   if (t->flag & T_MODAL) {
-    ui::UI_view2d_region_to_view(
+    ui::view2d_region_to_view(
         (View2D *)t->view, t->mouse.imval[0], t->mouse.imval[1], &center[0], &center[1]);
     dir = (center[0] > cframe) ? 'R' : 'L';
     {

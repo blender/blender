@@ -75,7 +75,7 @@ void template_breadcrumbs(Layout &layout, Span<ContextPathItem> context_path)
     else {
       but = uiItemL_ex(&sub_row, name.c_str(), icon, false, false);
     }
-    UI_but_icon_indicator_number_set(but, context_path[i].icon_indicator_number);
+    button_icon_indicator_number_set(but, context_path[i].icon_indicator_number);
   }
 }
 

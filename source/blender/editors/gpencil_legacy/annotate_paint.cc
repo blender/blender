@@ -349,7 +349,7 @@ static void annotation_stroke_convertcoords(tGPsdata *p,
 
   /* 2d - on 'canvas' (assume that p->v2d is set) */
   else if ((gpd->runtime.sbuffer_sflag & GP_STROKE_2DSPACE) && (p->v2d)) {
-    blender::ui::UI_view2d_region_to_view(p->v2d, mval[0], mval[1], &out[0], &out[1]);
+    blender::ui::view2d_region_to_view(p->v2d, mval[0], mval[1], &out[0], &out[1]);
     mul_v3_m4v3(out, p->imat, out);
   }
 

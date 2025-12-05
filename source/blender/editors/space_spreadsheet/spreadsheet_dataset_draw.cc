@@ -57,7 +57,7 @@ static void draw_row_suffix(ui::AbstractTreeViewItem &view_item, const StringRef
 {
   /* Using the tree row button instead of a separate right aligned button gives padding
    * to the right side of the number, which it didn't have with the button. */
-  UI_but_hint_drawstr_set(reinterpret_cast<uiBut *>(view_item.view_item_button()), str.c_str());
+  button_hint_drawstr_set(reinterpret_cast<uiBut *>(view_item.view_item_button()), str.c_str());
 }
 
 static void draw_count(ui::AbstractTreeViewItem &view_item, const int count)
@@ -1222,7 +1222,7 @@ static bool viewer_path_ends_with_viewer_node(const ViewerPath &viewer_path)
 static void draw_viewer_path_panel(const bContext &C, ui::Layout &layout)
 {
   uiBlock *block = layout.block();
-  ui::AbstractTreeView *tree_view = UI_block_add_view(
+  ui::AbstractTreeView *tree_view = block_add_view(
       *block, "Viewer Path", std::make_unique<ViewerPathTreeView>(C));
   tree_view->set_context_menu_title("Viewer Path");
   ui::TreeViewBuilder::build_tree_view(C, *tree_view, layout, true);
@@ -1231,7 +1231,7 @@ static void draw_viewer_path_panel(const bContext &C, ui::Layout &layout)
 static void draw_viewer_data_panel(const bContext &C, ui::Layout &layout)
 {
   uiBlock *block = layout.block();
-  ui::AbstractTreeView *tree_view = UI_block_add_view(
+  ui::AbstractTreeView *tree_view = block_add_view(
       *block, "Viewer Data", std::make_unique<ViewerDataTreeView>(C));
   tree_view->set_context_menu_title("Viewer Data");
   ui::TreeViewBuilder::build_tree_view(C, *tree_view, layout, false);
@@ -1324,7 +1324,7 @@ void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
                                                                                   object))
   {
     if (ui::Layout *panel = layout.panel(C, "instance tree", false, IFACE_("Geometry"))) {
-      ui::AbstractTreeView *tree_view = UI_block_add_view(
+      ui::AbstractTreeView *tree_view = block_add_view(
           *block,
           "Instances Tree View",
           std::make_unique<GeometryInstancesTreeView>(*root_geometry, *C));
@@ -1336,7 +1336,7 @@ void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
       bke::GeometrySet instance_geometry = get_geometry_set_for_instance_ids(
           *root_geometry,
           {sspreadsheet->geometry_id.instance_ids, sspreadsheet->geometry_id.instance_ids_num});
-      ui::AbstractTreeView *tree_view = UI_block_add_view(
+      ui::AbstractTreeView *tree_view = block_add_view(
           *block,
           "Data Set Tree View",
           std::make_unique<GeometryDataSetTreeView>(std::move(instance_geometry), *C));

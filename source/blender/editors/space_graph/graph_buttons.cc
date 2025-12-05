@@ -361,7 +361,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
   }
 
   uiBlock *block = layout.block();
-  // UI_block_func_handle_set(block, do_graph_region_buttons, nullptr);
+  // block_func_handle_set(block, do_graph_region_buttons, nullptr);
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
 
@@ -436,8 +436,8 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       std::nullopt);
-      UI_but_retval_set(but, B_REDR);
-      UI_but_func_set(but, graphedit_activekey_update_cb, fcu, bezt);
+      button_retval_set(but, B_REDR);
+      button_func_set(but, graphedit_activekey_update_cb, fcu, bezt);
 
       uiItemL_respect_property_split(&col, IFACE_("Value"), ICON_NONE);
       but = uiDefButR(block,
@@ -453,9 +453,9 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       std::nullopt);
-      UI_but_retval_set(but, B_REDR);
-      UI_but_func_set(but, graphedit_activekey_update_cb, fcu, bezt);
-      UI_but_unit_type_set(but, unit);
+      button_retval_set(but, B_REDR);
+      button_func_set(but, graphedit_activekey_update_cb, fcu, bezt);
+      button_unit_type_set(but, unit);
     }
 
     /* previous handle - only if previous was Bezier interpolation */
@@ -476,8 +476,8 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       "Type of left handle");
-      UI_but_retval_set(but, B_REDR);
-      UI_but_func_set(but, graphedit_activekey_handles_cb, fcu, bezt);
+      button_retval_set(but, B_REDR);
+      button_func_set(but, graphedit_activekey_handles_cb, fcu, bezt);
 
       uiItemL_respect_property_split(&col, IFACE_("Frame"), ICON_NONE);
       but = uiDefButR(block,
@@ -493,8 +493,8 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       std::nullopt);
-      UI_but_retval_set(but, B_REDR);
-      UI_but_func_set(but, graphedit_activekey_left_handle_coord_cb, fcu, bezt);
+      button_retval_set(but, B_REDR);
+      button_func_set(but, graphedit_activekey_left_handle_coord_cb, fcu, bezt);
 
       uiItemL_respect_property_split(&col, IFACE_("Value"), ICON_NONE);
       but = uiDefButR(block,
@@ -510,9 +510,9 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       std::nullopt);
-      UI_but_retval_set(but, B_REDR);
-      UI_but_func_set(but, graphedit_activekey_left_handle_coord_cb, fcu, bezt);
-      UI_but_unit_type_set(but, unit);
+      button_retval_set(but, B_REDR);
+      button_func_set(but, graphedit_activekey_left_handle_coord_cb, fcu, bezt);
+      button_unit_type_set(but, unit);
     }
 
     /* next handle - only if current is Bezier interpolation */
@@ -534,8 +534,8 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       "Type of right handle");
-      UI_but_retval_set(but, B_REDR);
-      UI_but_func_set(but, graphedit_activekey_handles_cb, fcu, bezt);
+      button_retval_set(but, B_REDR);
+      button_func_set(but, graphedit_activekey_handles_cb, fcu, bezt);
 
       uiItemL_respect_property_split(&col, IFACE_("Frame"), ICON_NONE);
       but = uiDefButR(block,
@@ -551,8 +551,8 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       std::nullopt);
-      UI_but_retval_set(but, B_REDR);
-      UI_but_func_set(but, graphedit_activekey_right_handle_coord_cb, fcu, bezt);
+      button_retval_set(but, B_REDR);
+      button_func_set(but, graphedit_activekey_right_handle_coord_cb, fcu, bezt);
 
       uiItemL_respect_property_split(&col, IFACE_("Value"), ICON_NONE);
       but = uiDefButR(block,
@@ -568,9 +568,9 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       std::nullopt);
-      UI_but_retval_set(but, B_REDR);
-      UI_but_func_set(but, graphedit_activekey_right_handle_coord_cb, fcu, bezt);
-      UI_but_unit_type_set(but, unit);
+      button_retval_set(but, B_REDR);
+      button_func_set(but, graphedit_activekey_right_handle_coord_cb, fcu, bezt);
+      button_unit_type_set(but, unit);
     }
   }
   else {
@@ -667,9 +667,9 @@ static void driver_delete_var_cb(bContext *C, void *driver_v, void *dvar_v)
 /* callback to report why a driver variable is invalid */
 static void driver_dvar_invalid_name_query_cb(bContext *C, void *dvar_v, void * /*arg*/)
 {
-  blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(
+  blender::ui::PopupMenu *pup = blender::ui::popup_menu_begin(
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Invalid Variable Name"), ICON_NONE);
-  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
+  blender::ui::Layout &layout = *popup_menu_layout(pup);
 
   DriverVar *dvar = (DriverVar *)dvar_v;
 
@@ -698,7 +698,7 @@ static void driver_dvar_invalid_name_query_cb(bContext *C, void *dvar_v, void * 
     layout.label(RPT_("It cannot be a reserved keyword in Python"), ICON_INFO);
   }
 
-  UI_popup_menu_end(C, pup);
+  popup_menu_end(C, pup);
 }
 
 /* callback to reset the driver's flags */
@@ -749,7 +749,7 @@ static void graph_panel_driverVar__singleProp(blender::ui::Layout &layout, ID *i
   /* Target ID */
   blender::ui::Layout &row = layout.row(false);
   row.red_alert_set((dtar->flag & DTAR_FLAG_INVALID) && !dtar->id);
-  uiTemplateAnyID(&row, &dtar_ptr, "id", "id_type", IFACE_("Prop:"));
+  template_any_id(&row, &dtar_ptr, "id", "id_type", IFACE_("Prop:"));
 
   /* Target Property */
   if (dtar->id) {
@@ -759,7 +759,7 @@ static void graph_panel_driverVar__singleProp(blender::ui::Layout &layout, ID *i
     /* rna path */
     blender::ui::Layout &col = layout.column(true);
     col.red_alert_set(dtar->flag & (DTAR_FLAG_INVALID | DTAR_FLAG_FALLBACK_USED));
-    uiTemplatePathBuilder(&col,
+    template_path_builder(&col,
                           &dtar_ptr,
                           "data_path",
                           &root_ptr,
@@ -875,7 +875,7 @@ static void graph_panel_driverVar__contextProp(blender::ui::Layout &layout,
   {
     blender::ui::Layout &col = layout.column(true);
     col.red_alert_set(dtar->flag & (DTAR_FLAG_INVALID | DTAR_FLAG_FALLBACK_USED));
-    uiTemplatePathBuilder(&col,
+    template_path_builder(&col,
                           &dtar_ptr,
                           "data_path",
                           nullptr,
@@ -965,7 +965,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
   uiBut *but;
 
   /* set event handler for panel */
-  UI_block_func_handle_set(block, do_graph_region_driver_buttons, id);
+  block_func_handle_set(block, do_graph_region_driver_buttons, id);
 
   /* driver-level settings - type, expressions, and errors */
   PointerRNA driver_ptr = RNA_pointer_create_discrete(id, &RNA_Driver, driver);
@@ -1072,8 +1072,8 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
         UI_UNIT_Y,
         nullptr,
         TIP_("Add a Driver Variable to keep track of an input used by the driver"));
-    UI_but_retval_set(but, B_IPO_DEPCHANGE);
-    UI_but_func_set(but, driver_add_var_cb, driver, nullptr);
+    button_retval_set(but, B_IPO_DEPCHANGE);
+    button_func_set(but, driver_add_var_cb, driver, nullptr);
 
     if (is_popover) {
       /* add driver variable - add using eyedropper */
@@ -1111,7 +1111,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
 
     type_sub.alignment_set(blender::ui::LayoutAlign::Left);
 
-    type_sub.prop(&dvar_ptr, "type", blender::ui::UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+    type_sub.prop(&dvar_ptr, "type", blender::ui::ITEM_R_ICON_ONLY, "", ICON_NONE);
 
     /* 1.1.2) variable name */
 
@@ -1124,7 +1124,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
     name_sub.prop(&dvar_ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
 
     /* 1.2) invalid name? */
-    UI_block_emboss_set(block, blender::ui::EmbossType::None);
+    block_emboss_set(block, blender::ui::EmbossType::None);
 
     if (dvar->flag & DVAR_FLAG_INVALID_NAME) {
       but = uiDefIconBut(block,
@@ -1138,8 +1138,8 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
                          0.0,
                          0.0,
                          TIP_("Invalid variable name, click here for details"));
-      UI_but_retval_set(but, B_IPO_DEPCHANGE);
-      UI_but_func_set(but, driver_dvar_invalid_name_query_cb, dvar, nullptr); /* XXX: reports? */
+      button_retval_set(but, B_IPO_DEPCHANGE);
+      button_func_set(but, driver_dvar_invalid_name_query_cb, dvar, nullptr); /* XXX: reports? */
     }
 
     /* 1.3) remove button */
@@ -1154,9 +1154,9 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
                        0.0,
                        0.0,
                        TIP_("Delete target variable"));
-    UI_but_retval_set(but, B_IPO_DEPCHANGE);
-    UI_but_func_set(but, driver_delete_var_cb, driver, dvar);
-    UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
+    button_retval_set(but, B_IPO_DEPCHANGE);
+    button_func_set(but, driver_delete_var_cb, driver, dvar);
+    block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
     /* 2) variable type settings */
     blender::ui::Layout &box = col.box();
@@ -1225,8 +1225,8 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
                          nullptr,
                          TIP_("Force updates of dependencies - Only use this if drivers are not "
                               "updating correctly"));
-  UI_but_retval_set(but, B_IPO_DEPCHANGE);
-  UI_but_func_set(but, driver_update_flags_cb, fcu, nullptr);
+  button_retval_set(but, B_IPO_DEPCHANGE);
+  button_func_set(but, driver_update_flags_cb, fcu, nullptr);
 }
 
 /* ----------------------------------------------------------------- */
@@ -1285,7 +1285,7 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *panel)
   uiBut *but = nullptr;
 
   /* Get active property to show driver properties for */
-  but = blender::ui::UI_region_active_but_prop_get(CTX_wm_region(C), &ptr, &prop, &index);
+  but = blender::ui::region_active_but_prop_get(CTX_wm_region(C), &ptr, &prop, &index);
   if (but) {
     FCurve *fcu;
     bool driven, special;
@@ -1372,7 +1372,7 @@ static void graph_panel_modifiers(const bContext *C, Panel *panel)
   }
 
   uiBlock *block = panel->layout->block();
-  UI_block_func_handle_set(block, do_graph_region_modifier_buttons, nullptr);
+  block_func_handle_set(block, do_graph_region_modifier_buttons, nullptr);
 
   /* 'add modifier' button at top of panel */
   {

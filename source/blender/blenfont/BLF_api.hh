@@ -165,7 +165,7 @@ void BLF_color4f(int fontid, float r, float g, float b, float a);
 void BLF_color4fv(int fontid, const float rgba[4]);
 void BLF_color3f(int fontid, float r, float g, float b);
 void BLF_color3fv_alpha(int fontid, const float rgb[3], float alpha);
-/* Also available: `UI_FontThemeColor(fontid, colorid)`. */
+/* Also available: `FontThemeColor(fontid, colorid)`. */
 
 /**
  * Batch draw-calls together as long as

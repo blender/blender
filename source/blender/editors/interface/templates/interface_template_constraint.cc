@@ -103,12 +103,12 @@ static void draw_constraint_header(Layout &layout, Object *ob, bConstraint *con)
 {
   /* unless button has its own callback, it adds this callback to button */
   uiBlock *block = layout.block();
-  UI_block_func_set(block, constraint_active_func, ob, con);
+  block_func_set(block, constraint_active_func, ob, con);
 
   PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Constraint, con);
 
   if (block->panel) {
-    UI_panel_context_pointer_set(block->panel, "constraint", &ptr);
+    panel_context_pointer_set(block->panel, "constraint", &ptr);
   }
   else {
     layout.context_ptr_set("constraint", &ptr);
@@ -120,7 +120,7 @@ static void draw_constraint_header(Layout &layout, Object *ob, bConstraint *con)
   row->red_alert_set(con->flag & CONSTRAINT_DISABLE);
   row->label("", RNA_struct_ui_icon(ptr.type));
 
-  UI_block_emboss_set(block, EmbossType::Emboss);
+  block_emboss_set(block, EmbossType::Emboss);
 
   row = &layout.row(true);
 
@@ -142,10 +142,10 @@ static void draw_constraint_header(Layout &layout, Object *ob, bConstraint *con)
   layout.separator();
 
   /* clear any locks set up for proxies/lib-linking */
-  UI_block_lock_clear(block);
+  block_lock_clear(block);
 }
 
-void uiTemplateConstraintHeader(Layout *layout, PointerRNA *ptr)
+void template_constraint_header(Layout *layout, PointerRNA *ptr)
 {
   /* verify we have valid data */
   if (!RNA_struct_is_a(ptr->type, &RNA_Constraint)) {
@@ -161,7 +161,7 @@ void uiTemplateConstraintHeader(Layout *layout, PointerRNA *ptr)
     return;
   }
 
-  UI_block_lock_set(layout->block(), (ob && !ID_IS_EDITABLE(ob)), ERROR_LIBDATA_MESSAGE);
+  block_lock_set(layout->block(), (ob && !ID_IS_EDITABLE(ob)), ERROR_LIBDATA_MESSAGE);
 
   draw_constraint_header(*layout, ob, con);
 }
@@ -194,7 +194,7 @@ static void constraint_reorder(bContext *C, Panel *panel, int new_index)
 {
   const bool constraint_from_bone = constraint_panel_is_bone(panel);
 
-  PointerRNA *con_ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *con_ptr = panel_custom_data_get(panel);
   bConstraint *con = (bConstraint *)con_ptr->data;
 
   PointerRNA props_ptr;
@@ -213,7 +213,7 @@ static void constraint_reorder(bContext *C, Panel *panel, int new_index)
  */
 static short get_constraint_expand_flag(const bContext * /*C*/, Panel *panel)
 {
-  PointerRNA *con_ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *con_ptr = panel_custom_data_get(panel);
   bConstraint *con = (bConstraint *)con_ptr->data;
 
   return con->ui_expand_flag;
@@ -224,7 +224,7 @@ static short get_constraint_expand_flag(const bContext * /*C*/, Panel *panel)
  */
 static void set_constraint_expand_flag(const bContext * /*C*/, Panel *panel, short expand_flag)
 {
-  PointerRNA *con_ptr = UI_panel_custom_data_get(panel);
+  PointerRNA *con_ptr = panel_custom_data_get(panel);
   bConstraint *con = (bConstraint *)con_ptr->data;
   con->ui_expand_flag = expand_flag;
 }
@@ -259,7 +259,7 @@ static void bone_constraint_panel_id(void *md_link, char *r_idname)
   BLI_string_join(r_idname, BKE_ST_MAXNAME, CONSTRAINT_BONE_TYPE_PANEL_PREFIX, cti->struct_name);
 }
 
-void uiTemplateConstraints(Layout * /*layout*/, bContext *C, bool use_bone_constraints)
+void template_constraints(Layout * /*layout*/, bContext *C, bool use_bone_constraints)
 {
   ARegion *region = CTX_wm_region(C);
 
@@ -276,10 +276,10 @@ void uiTemplateConstraints(Layout * /*layout*/, bContext *C, bool use_bone_const
   uiListPanelIDFromDataFunc panel_id_func = use_bone_constraints ? bone_constraint_panel_id :
                                                                    object_constraint_panel_id;
 
-  const bool panels_match = UI_panel_list_matches_data(region, constraints, panel_id_func);
+  const bool panels_match = panel_list_matches_data(region, constraints, panel_id_func);
 
   if (!panels_match) {
-    UI_panels_free_instanced(C, region);
+    panels_free_instanced(C, region);
     for (bConstraint *con =
              (constraints == nullptr) ? nullptr : static_cast<bConstraint *>(constraints->first);
          con;
@@ -304,7 +304,7 @@ void uiTemplateConstraints(Layout * /*layout*/, bContext *C, bool use_bone_const
       PointerRNA *con_ptr = MEM_new<PointerRNA>(__func__);
       *con_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Constraint, con);
 
-      Panel *new_panel = UI_panel_add_instanced(C, region, &region->panels, panel_idname, con_ptr);
+      Panel *new_panel = panel_add_instanced(C, region, &region->panels, panel_idname, con_ptr);
 
       if (new_panel) {
         /* Set the list panel functionality function pointers since we don't do it with python. */
@@ -338,7 +338,7 @@ void uiTemplateConstraints(Layout * /*layout*/, bContext *C, bool use_bone_const
 
       PointerRNA *con_ptr = MEM_new<PointerRNA>(__func__);
       *con_ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Constraint, con);
-      UI_panel_custom_data_set(panel, con_ptr);
+      panel_custom_data_set(panel, con_ptr);
 
       panel = panel->next;
     }

@@ -13,8 +13,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Collection>("Collection").custom_draw([](CustomSocketDrawParams &params) {
     params.layout.alignment_set(ui::LayoutAlign::Expand);
-    params.layout.prop(
-        &params.node_ptr, "collection", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    params.layout.prop(&params.node_ptr, "collection", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   });
 }
 

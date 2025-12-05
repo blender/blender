@@ -255,7 +255,7 @@ static void ui_update_color_picker_buts_rgba(uiBlock *block,
       ui_but_v4_set(bt.get(), rgba_scene_linear);
       /* original button that created the color picker already does undo
        * push, so disable it on RNA buttons in the color picker block */
-      UI_but_flag_disable(bt.get(), UI_BUT_UNDO);
+      button_flag_disable(bt.get(), BUT_UNDO);
     }
     else if (bt->type == ButType::Text) {
       /* Hex text input field. */
@@ -535,7 +535,7 @@ static void ui_colorpicker_circle(uiBlock *block,
                       0.0,
                       0.0,
                       TIP_("Color"));
-  UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, bt);
+  button_func_set(bt, ui_colorpicker_rgba_update_cb, bt, bt);
   bt->custom_data = cpicker;
 
   /* value */
@@ -554,7 +554,7 @@ static void ui_colorpicker_circle(uiBlock *block,
                                               0.0,
                                               "Lightness");
     hsv_but->gradient_type = UI_GRAD_L_ALT;
-    UI_but_func_set(hsv_but, ui_colorpicker_rgba_update_cb, hsv_but, hsv_but);
+    button_func_set(hsv_but, ui_colorpicker_rgba_update_cb, hsv_but, hsv_but);
   }
   else {
     hsv_but = (ButtonHSVCube *)uiDefButR_prop(block,
@@ -571,7 +571,7 @@ static void ui_colorpicker_circle(uiBlock *block,
                                               0.0,
                                               CTX_TIP_(BLT_I18NCONTEXT_COLOR, "Value"));
     hsv_but->gradient_type = UI_GRAD_V_ALT;
-    UI_but_func_set(hsv_but, ui_colorpicker_rgba_update_cb, hsv_but, hsv_but);
+    button_func_set(hsv_but, ui_colorpicker_rgba_update_cb, hsv_but, hsv_but);
   }
   hsv_but->custom_data = cpicker;
 }
@@ -601,7 +601,7 @@ static void ui_colorpicker_square(uiBlock *block,
                                             0.0,
                                             TIP_("Color"));
   hsv_but->gradient_type = type;
-  UI_but_func_set(hsv_but, ui_colorpicker_rgba_update_cb, hsv_but, hsv_but);
+  button_func_set(hsv_but, ui_colorpicker_rgba_update_cb, hsv_but, hsv_but);
   hsv_but->custom_data = cpicker;
 
   /* value */
@@ -619,7 +619,7 @@ static void ui_colorpicker_square(uiBlock *block,
                                             0.0,
                                             CTX_TIP_(BLT_I18NCONTEXT_COLOR, "Value"));
   hsv_but->gradient_type = (eButGradientType)(type + 3);
-  UI_but_func_set(hsv_but, ui_colorpicker_rgba_update_cb, hsv_but, hsv_but);
+  button_func_set(hsv_but, ui_colorpicker_rgba_update_cb, hsv_but, hsv_but);
   hsv_but->custom_data = cpicker;
 }
 
@@ -678,17 +678,17 @@ static void ui_block_colorpicker(const bContext * /*C*/,
 
   if (!block->is_color_gamma_picker) {
     auto colorspace_tip_func = [](bContext & /*C*/, uiTooltipData &tip, uiBut *but, void *space) {
-      UI_tooltip_text_field_add(tip, but->tip, {}, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL, false);
+      UI_tooltip_text_field_add(tip, but->tip, {}, TIP_STYLE_HEADER, TIP_LC_NORMAL, false);
       UI_tooltip_text_field_add(tip,
                                 IFACE_("Color Space: ") +
                                     std::string(static_cast<const char *>(space)),
                                 {},
-                                UI_TIP_STYLE_NORMAL,
-                                UI_TIP_LC_ACTIVE,
+                                TIP_STYLE_NORMAL,
+                                TIP_LC_ACTIVE,
                                 false);
     };
 
-    UI_block_align_begin(block);
+    block_align_begin(block);
 
     bt = uiDefButC(block,
                    ButType::Row,
@@ -701,10 +701,10 @@ static void ui_block_colorpicker(const bContext * /*C*/,
                    0.0,
                    float(PICKER_TYPE_RGB),
                    TIP_("Scene linear values in the working color space"));
-    UI_but_flag_disable(bt, UI_BUT_UNDO);
-    UI_but_drawflag_disable(bt, UI_BUT_TEXT_LEFT);
-    UI_but_func_set(bt, ui_colorpicker_update_type_space_cb, bt, from_but);
-    UI_but_func_tooltip_custom_set(
+    button_flag_disable(bt, BUT_UNDO);
+    button_drawflag_disable(bt, BUT_TEXT_LEFT);
+    button_func_set(bt, ui_colorpicker_update_type_space_cb, bt, from_but);
+    button_func_tooltip_custom_set(
         bt,
         colorspace_tip_func,
         const_cast<char *>(IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR)),
@@ -722,10 +722,10 @@ static void ui_block_colorpicker(const bContext * /*C*/,
                    0.0,
                    float(PICKER_TYPE_HSV),
                    TIP_("Perceptually uniform values, matching the color picker"));
-    UI_but_flag_disable(bt, UI_BUT_UNDO);
-    UI_but_drawflag_disable(bt, UI_BUT_TEXT_LEFT);
-    UI_but_func_set(bt, ui_colorpicker_update_type_space_cb, bt, from_but);
-    UI_but_func_tooltip_custom_set(
+    button_flag_disable(bt, BUT_UNDO);
+    button_drawflag_disable(bt, BUT_TEXT_LEFT);
+    button_func_set(bt, ui_colorpicker_update_type_space_cb, bt, from_but);
+    button_func_tooltip_custom_set(
         bt,
         colorspace_tip_func,
         const_cast<char *>(IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_COLOR_PICKING)),
@@ -733,12 +733,12 @@ static void ui_block_colorpicker(const bContext * /*C*/,
 
     bt->custom_data = cpicker;
 
-    UI_block_align_end(block);
+    block_align_end(block);
 
     yco -= 0.5f * UI_UNIT_X;
   }
 
-  UI_block_align_begin(block);
+  block_align_begin(block);
 
   bt = uiDefButC(block,
                  ButType::Row,
@@ -751,9 +751,9 @@ static void ui_block_colorpicker(const bContext * /*C*/,
                  0.0,
                  float(PICKER_TYPE_RGB),
                  TIP_("RGB values"));
-  UI_but_flag_disable(bt, UI_BUT_UNDO);
-  UI_but_drawflag_disable(bt, UI_BUT_TEXT_LEFT);
-  UI_but_func_set(bt, ui_colorpicker_update_type_space_cb, bt, from_but);
+  button_flag_disable(bt, BUT_UNDO);
+  button_drawflag_disable(bt, BUT_TEXT_LEFT);
+  button_func_set(bt, ui_colorpicker_update_type_space_cb, bt, from_but);
   bt->custom_data = cpicker;
 
   bt = uiDefButC(block,
@@ -768,19 +768,19 @@ static void ui_block_colorpicker(const bContext * /*C*/,
                  float(PICKER_TYPE_HSV),
                  (U.color_picker_type == USER_CP_CIRCLE_HSL) ? TIP_("Hue, Saturation, Lightness") :
                                                                TIP_("Hue, Saturation, Value"));
-  UI_but_flag_disable(bt, UI_BUT_UNDO);
-  UI_but_drawflag_disable(bt, UI_BUT_TEXT_LEFT);
-  UI_but_func_set(bt, ui_colorpicker_update_type_space_cb, bt, from_but);
+  button_flag_disable(bt, BUT_UNDO);
+  button_drawflag_disable(bt, BUT_TEXT_LEFT);
+  button_func_set(bt, ui_colorpicker_update_type_space_cb, bt, from_but);
   bt->custom_data = cpicker;
 
-  UI_block_align_end(block);
+  block_align_end(block);
 
   const int slider_yco = yco - 1.1f * UI_UNIT_Y;
 
-  /* NOTE: don't disable UI_BUT_UNDO for RGBA values, since these don't add undo steps. */
+  /* NOTE: don't disable BUT_UNDO for RGBA values, since these don't add undo steps. */
 
   /* RGB values */
-  UI_block_align_begin(block);
+  block_align_begin(block);
   const auto add_rgb_perceptual_slider =
       [&](const char *str, const char *tip, const int index, const int y) {
         bt = uiDefButR_prop(block,
@@ -796,9 +796,9 @@ static void ui_block_colorpicker(const bContext * /*C*/,
                             0.0,
                             0.0,
                             tip);
-        UI_but_number_slider_step_size_set(bt, 10);
-        UI_but_number_slider_precision_set(bt, 3);
-        UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, bt);
+        button_number_slider_step_size_set(bt, 10);
+        button_number_slider_precision_set(bt, 3);
+        button_func_set(bt, ui_colorpicker_rgba_update_cb, bt, bt);
         bt->custom_data = cpicker;
       };
 
@@ -825,10 +825,10 @@ static void ui_block_colorpicker(const bContext * /*C*/,
         if (index == 2) {
           bt->hardmax = hardmax; /* Not common but RGB may be over 1.0. */
         }
-        UI_but_number_slider_step_size_set(bt, 10);
-        UI_but_number_slider_precision_set(bt, 3);
-        UI_but_flag_disable(bt, UI_BUT_UNDO);
-        UI_but_func_set(bt,
+        button_number_slider_step_size_set(bt, 10);
+        button_number_slider_precision_set(bt, 3);
+        button_flag_disable(bt, BUT_UNDO);
+        button_func_set(bt,
                         linear ? ui_colorpicker_hsv_linear_slider_update_cb :
                                  ui_colorpicker_hsv_perceptual_slider_update_cb,
                         bt,
@@ -859,8 +859,8 @@ static void ui_block_colorpicker(const bContext * /*C*/,
   }
 
   /* Could use:
-   * col->prop(ptr, prop, -1, 0,ui::UI_ITEM_R_EXPAND |ui::UI_ITEM_R_SLIDER, "", ICON_NONE);
-   * but need to use UI_but_func_set for updating other fake buttons */
+   * col->prop(ptr, prop, -1, 0,ui::ITEM_R_EXPAND |ui::ITEM_R_SLIDER, "", ICON_NONE);
+   * but need to use button_func_set for updating other fake buttons */
 
   if (!block->is_color_gamma_picker) {
     yco = slider_yco;
@@ -879,12 +879,12 @@ static void ui_block_colorpicker(const bContext * /*C*/,
                          hardmin,
                          hardmax,
                          tip);
-          UI_but_number_slider_step_size_set(bt, 10);
-          UI_but_number_slider_precision_set(bt, 3);
+          button_number_slider_step_size_set(bt, 10);
+          button_number_slider_precision_set(bt, 3);
           bt->softmin = softmin;
           bt->softmax = softmax;
-          UI_but_flag_disable(bt, UI_BUT_UNDO);
-          UI_but_func_set(bt, ui_colorpicker_rgb_perceptual_slider_update_cb, bt, from_but);
+          button_flag_disable(bt, BUT_UNDO);
+          button_func_set(bt, ui_colorpicker_rgb_perceptual_slider_update_cb, bt, from_but);
           bt->custom_data = cpicker;
         };
 
@@ -920,16 +920,16 @@ static void ui_block_colorpicker(const bContext * /*C*/,
                         0.0,
                         0.0,
                         TIP_("Alpha"));
-    UI_but_number_slider_step_size_set(bt, 10);
-    UI_but_number_slider_precision_set(bt, 3);
-    UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, bt);
+    button_number_slider_step_size_set(bt, 10);
+    button_number_slider_precision_set(bt, 3);
+    button_func_set(bt, ui_colorpicker_rgba_update_cb, bt, bt);
     bt->custom_data = cpicker;
   }
   else {
     rgba_scene_linear[3] = 1.0f;
   }
 
-  UI_block_align_end(block);
+  block_align_end(block);
 
   /* Hex color is in sRGB space. */
   float rgba_hex[4];
@@ -980,32 +980,29 @@ static void ui_block_colorpicker(const bContext * /*C*/,
                 0,
                 cpicker->has_alpha ? 10 : 8,
                 std::nullopt);
-  const auto bt_tooltip_func =
-      [](bContext & /*C*/, uiTooltipData &tip, uiBut * /*but*/, void *has_alpha_ptr) {
-        const bool *has_alpha = static_cast<bool *>(has_alpha_ptr);
-        if (*has_alpha) {
-          UI_tooltip_text_field_add(tip,
-                                    "Hex triplet for color with alpha (#RRGGBBAA).",
-                                    {},
-                                    UI_TIP_STYLE_HEADER,
-                                    UI_TIP_LC_NORMAL,
-                                    false);
-        }
-        else {
-          UI_tooltip_text_field_add(tip,
-                                    "Hex triplet for color (#RRGGBB).",
-                                    {},
-                                    UI_TIP_STYLE_HEADER,
-                                    UI_TIP_LC_NORMAL,
-                                    false);
-        }
-        UI_tooltip_text_field_add(
-            tip, "Gamma corrected", {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL, false);
-      };
-  UI_but_func_tooltip_custom_set(
+  const auto bt_tooltip_func = [](bContext & /*C*/,
+                                  uiTooltipData &tip,
+                                  uiBut * /*but*/,
+                                  void *has_alpha_ptr) {
+    const bool *has_alpha = static_cast<bool *>(has_alpha_ptr);
+    if (*has_alpha) {
+      UI_tooltip_text_field_add(tip,
+                                "Hex triplet for color with alpha (#RRGGBBAA).",
+                                {},
+                                TIP_STYLE_HEADER,
+                                TIP_LC_NORMAL,
+                                false);
+    }
+    else {
+      UI_tooltip_text_field_add(
+          tip, "Hex triplet for color (#RRGGBB).", {}, TIP_STYLE_HEADER, TIP_LC_NORMAL, false);
+    }
+    UI_tooltip_text_field_add(tip, "Gamma corrected", {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL, false);
+  };
+  button_func_tooltip_custom_set(
       bt, bt_tooltip_func, static_cast<void *>(&cpicker->has_alpha), nullptr);
-  UI_but_flag_disable(bt, UI_BUT_UNDO);
-  UI_but_func_set(bt, ui_colorpicker_hex_rna_cb, bt, from_but);
+  button_flag_disable(bt, BUT_UNDO);
+  button_func_set(bt, ui_colorpicker_hex_rna_cb, bt, from_but);
   bt->custom_data = cpicker;
 
   if (show_picker) {
@@ -1019,9 +1016,9 @@ static void ui_block_colorpicker(const bContext * /*C*/,
                        UI_UNIT_X,
                        UI_UNIT_Y,
                        std::nullopt);
-    UI_but_flag_disable(bt, UI_BUT_UNDO);
-    UI_but_drawflag_disable(bt, UI_BUT_ICON_LEFT);
-    UI_but_func_set(bt, ui_popup_close_cb, bt, nullptr);
+    button_flag_disable(bt, BUT_UNDO);
+    button_drawflag_disable(bt, BUT_ICON_LEFT);
+    button_func_set(bt, ui_popup_close_cb, bt, nullptr);
     bt->custom_data = cpicker;
   }
 
@@ -1100,7 +1097,7 @@ uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_
   uiBut *but = static_cast<uiBut *>(arg_but);
   uiBlock *block;
 
-  block = UI_block_begin(C, handle->region, __func__, EmbossType::Emboss);
+  block = block_begin(C, handle->region, __func__, EmbossType::Emboss);
 
   if (ui_but_is_color_gamma(but)) {
     block->is_color_gamma_picker = true;
@@ -1110,9 +1107,9 @@ uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_
 
   ui_block_colorpicker(C, block, but, handle->retvec, true);
 
-  block->flag = UI_BLOCK_LOOP | UI_BLOCK_KEEP_OPEN | UI_BLOCK_OUT_1 | UI_BLOCK_MOVEMOUSE_QUIT;
-  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
-  UI_block_bounds_set_normal(block, 0.5 * UI_UNIT_X);
+  block->flag = BLOCK_LOOP | BLOCK_KEEP_OPEN | BLOCK_OUT_1 | BLOCK_MOVEMOUSE_QUIT;
+  block_theme_style_set(block, BLOCK_THEME_STYLE_POPUP);
+  block_bounds_set_normal(block, 0.5 * UI_UNIT_X);
 
   block->block_event_func = ui_colorpicker_wheel_cb;
   block->direction = UI_DIR_UP;

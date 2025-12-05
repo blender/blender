@@ -17,7 +17,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     params.layout.alignment_set(ui::LayoutAlign::Expand);
     ui::Layout &row = params.layout.row(true);
     row.prop(
-        &params.node_ptr, "boolean", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Boolean"), ICON_NONE);
+        &params.node_ptr, "boolean", ui::ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Boolean"), ICON_NONE);
     if (gizmos::value_node_has_gizmo(params.tree, params.node)) {
       row.prop(&params.socket_ptr, "pin_gizmo", UI_ITEM_NONE, "", ICON_GIZMO);
     }

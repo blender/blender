@@ -237,18 +237,18 @@ void AbstractViewItem::add_rename_button(uiBlock &block)
                                1.0f,
                                view.get_rename_buffer().size(),
                                "");
-  UI_but_retval_set(rename_but, 1);
+  button_retval_set(rename_but, 1);
 
   /* Gotta be careful with what's passed to the `arg1` here. Any view data will be freed once the
    * callback is executed. */
-  UI_but_func_rename_set(rename_but, rename_button_fn, rename_but);
-  UI_but_flag_disable(rename_but, UI_BUT_UNDO);
+  button_func_rename_set(rename_but, rename_button_fn, rename_but);
+  button_flag_disable(rename_but, BUT_UNDO);
 
   const bContext *evil_C = reinterpret_cast<bContext *>(block.evil_C);
   ARegion *region = CTX_wm_region_popup(evil_C) ? CTX_wm_region_popup(evil_C) :
                                                   CTX_wm_region(evil_C);
   /* Returns false if the button was removed. */
-  if (UI_but_active_only(evil_C, region, &block, rename_but) == false) {
+  if (button_active_only(evil_C, region, &block, rename_but) == false) {
     end_renaming();
   }
 }
@@ -423,7 +423,7 @@ class ViewItemAPIWrapper {
   }
 };
 
-bool UI_view_item_matches(const AbstractViewItem &a, const AbstractViewItem &b)
+bool view_item_matches(const AbstractViewItem &a, const AbstractViewItem &b)
 {
   return ViewItemAPIWrapper::matches(a, b);
 }
@@ -433,28 +433,28 @@ void ui_view_item_swap_button_pointers(AbstractViewItem &a, AbstractViewItem &b)
   ViewItemAPIWrapper::swap_button_pointers(a, b);
 }
 
-bool UI_view_item_can_rename(const AbstractViewItem &item)
+bool view_item_can_rename(const AbstractViewItem &item)
 {
   const AbstractView &view = item.get_view();
   return !view.is_renaming() && item.supports_renaming();
 }
 
-void UI_view_item_begin_rename(AbstractViewItem &item)
+void view_item_begin_rename(AbstractViewItem &item)
 {
   item.begin_renaming();
 }
 
-bool UI_view_item_supports_drag(const AbstractViewItem &item)
+bool view_item_supports_drag(const AbstractViewItem &item)
 {
   return item.create_drag_controller() != nullptr;
 }
 
-bool UI_view_item_popup_keep_open(const AbstractViewItem &item)
+bool view_item_popup_keep_open(const AbstractViewItem &item)
 {
   return item.get_view().get_popup_keep_open();
 }
 
-bool UI_view_item_drag_start(bContext &C, AbstractViewItem &item)
+bool view_item_drag_start(bContext &C, AbstractViewItem &item)
 {
   const std::unique_ptr<AbstractViewItemDragController> drag_controller =
       item.create_drag_controller();

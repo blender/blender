@@ -161,7 +161,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   layout.use_property_split_set(true);
 
   layout.prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  layout.prop(ptr, "strength", ui::UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "strength", ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   if (ui::Layout *influence_panel = layout.panel_prop(
           C, ptr, "open_influence_panel", IFACE_("Influence")))

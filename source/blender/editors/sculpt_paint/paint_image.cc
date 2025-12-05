@@ -572,9 +572,9 @@ static wmOperatorStatus grab_clone_modal(bContext *C, wmOperator *op, const wmEv
       return OPERATOR_FINISHED;
     case MOUSEMOVE:
       /* mouse moved, so move the clone image */
-      blender::ui::UI_view2d_region_to_view(
+      blender::ui::view2d_region_to_view(
           &region->v2d, cmv->startx - xmin, cmv->starty - ymin, &startfx, &startfy);
-      blender::ui::UI_view2d_region_to_view(
+      blender::ui::view2d_region_to_view(
           &region->v2d, event->xy[0] - xmin, event->xy[1] - ymin, &fx, &fy);
 
       delta[0] = fx - startfx;

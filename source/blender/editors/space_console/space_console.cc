@@ -111,7 +111,7 @@ static void console_main_region_init(wmWindowManager *wm, ARegion *region)
 
   const float prev_y_min = region->v2d.cur.ymin; /* so re-sizing keeps the cursor visible */
 
-  UI_view2d_region_reinit(
+  view2d_region_reinit(
       &region->v2d, blender::ui::V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
   /* always keep the bottom part of the view aligned, less annoying */
@@ -141,7 +141,7 @@ static void console_cursor(wmWindow *win, ScrArea * /*area*/, ARegion *region)
 {
   int wmcursor = WM_CURSOR_TEXT_EDIT;
   const wmEvent *event = win->eventstate;
-  if (blender::ui::UI_view2d_mouse_in_scrollers(region, &region->v2d, event->xy)) {
+  if (blender::ui::view2d_mouse_in_scrollers(region, &region->v2d, event->xy)) {
     wmcursor = WM_CURSOR_DEFAULT;
   }
 
@@ -224,10 +224,10 @@ static void console_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* clear and setup matrix */
-  blender::ui::UI_ThemeClearColor(TH_BACK);
+  blender::ui::ThemeClearColor(TH_BACK);
 
   /* Works best with no view2d matrix set. */
-  blender::ui::UI_view2d_view_ortho(v2d);
+  blender::ui::view2d_view_ortho(v2d);
 
   /* data... */
 
@@ -235,10 +235,10 @@ static void console_main_region_draw(const bContext *C, ARegion *region)
   console_textview_main(sc, region);
 
   /* reset view matrix */
-  blender::ui::UI_view2d_view_restore(C);
+  blender::ui::view2d_view_restore(C);
 
   /* scrollers */
-  blender::ui::UI_view2d_scrollers_draw(v2d, nullptr);
+  blender::ui::view2d_scrollers_draw(v2d, nullptr);
 }
 
 static void console_operatortypes()

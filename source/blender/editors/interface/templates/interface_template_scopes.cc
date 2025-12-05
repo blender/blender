@@ -20,7 +20,7 @@ namespace blender::ui {
 /** \name Histogram Template
  * \{ */
 
-void uiTemplateHistogram(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
+void template_histogram(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 
@@ -66,7 +66,7 @@ void uiTemplateHistogram(Layout *layout, PointerRNA *ptr, const StringRefNull pr
 /** \name Waveform Template
  * \{ */
 
-void uiTemplateWaveform(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
+void template_waveform(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 
@@ -122,7 +122,7 @@ void uiTemplateWaveform(Layout *layout, PointerRNA *ptr, const StringRefNull pro
 /** \name Vector-Scope Template
  * \{ */
 
-void uiTemplateVectorscope(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
+void template_vectorscope(Layout *layout, PointerRNA *ptr, const StringRefNull propname)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 

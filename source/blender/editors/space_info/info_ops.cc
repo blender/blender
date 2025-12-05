@@ -267,13 +267,13 @@ static wmOperatorStatus unpack_all_invoke(bContext *C, wmOperator *op, const wmE
   const std::string title = fmt::format(
       fmt::runtime(IFACE_("Unpack - Files: {}, Bakes: {}")), count.individual_files, count.bakes);
 
-  blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(C, title.c_str(), ICON_NONE);
-  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
+  blender::ui::PopupMenu *pup = blender::ui::popup_menu_begin(C, title.c_str(), ICON_NONE);
+  blender::ui::Layout &layout = *popup_menu_layout(pup);
 
   layout.operator_context_set(blender::wm::OpCallContext::ExecDefault);
   layout.op_enum("FILE_OT_unpack_all", "method");
 
-  UI_popup_menu_end(C, pup);
+  popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;
 }
@@ -358,8 +358,8 @@ static wmOperatorStatus unpack_item_exec(bContext *C, wmOperator *op)
 
 static wmOperatorStatus unpack_item_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(C, IFACE_("Unpack"), ICON_NONE);
-  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
+  blender::ui::PopupMenu *pup = blender::ui::popup_menu_begin(C, IFACE_("Unpack"), ICON_NONE);
+  blender::ui::Layout &layout = *popup_menu_layout(pup);
 
   layout.operator_context_set(blender::wm::OpCallContext::ExecDefault);
   layout.op_enum(op->type->idname,
@@ -368,7 +368,7 @@ static wmOperatorStatus unpack_item_invoke(bContext *C, wmOperator *op, const wm
                  blender::wm::OpCallContext::ExecRegionWin,
                  UI_ITEM_NONE);
 
-  UI_popup_menu_end(C, pup);
+  popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;
 }

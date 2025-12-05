@@ -1121,9 +1121,9 @@ wmOperatorStatus WM_menu_invoke_ex(bContext *C,
     return retval;
   }
   else {
-    blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(
+    blender::ui::PopupMenu *pup = blender::ui::popup_menu_begin(
         C, WM_operatortype_name(op->type, op->ptr).c_str(), ICON_NONE);
-    blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
+    blender::ui::Layout &layout = *popup_menu_layout(pup);
     /* Set this so the default execution context is the same as submenus. */
     layout.operator_context_set(opcontext);
     layout.op_enum(op->type->idname,
@@ -1131,7 +1131,7 @@ wmOperatorStatus WM_menu_invoke_ex(bContext *C,
                    static_cast<IDProperty *>(op->ptr->data),
                    opcontext,
                    UI_ITEM_NONE);
-    UI_popup_menu_end(C, pup);
+    popup_menu_end(C, pup);
     return OPERATOR_INTERFACE;
   }
 
@@ -1155,15 +1155,15 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
   wmOperator *op = search_menu->op;
   /* `template_ID` uses `4 * widget_unit` for width,
    * we use a bit more, some items may have a suffix to show. */
-  const int width = blender::ui::UI_searchbox_size_x();
-  const int height = blender::ui::UI_searchbox_size_y();
+  const int width = blender::ui::searchbox_size_x();
+  const int height = blender::ui::searchbox_size_y();
   static char search[256] = "";
 
-  uiBlock *block = UI_block_begin(C, region, "_popup", blender::ui::EmbossType::Emboss);
-  UI_block_flag_enable(block,
-                       blender::ui::UI_BLOCK_LOOP | blender::ui::UI_BLOCK_MOVEMOUSE_QUIT |
-                           blender::ui::UI_BLOCK_SEARCH_MENU);
-  UI_block_theme_style_set(block, blender::ui::UI_BLOCK_THEME_STYLE_POPUP);
+  uiBlock *block = block_begin(C, region, "_popup", blender::ui::EmbossType::Emboss);
+  block_flag_enable(block,
+                    blender::ui::BLOCK_LOOP | blender::ui::BLOCK_MOVEMOUSE_QUIT |
+                        blender::ui::BLOCK_SEARCH_MENU);
+  block_theme_style_set(block, blender::ui::BLOCK_THEME_STYLE_POPUP);
 
   search[0] = '\0';
   uiBut *but = uiDefSearchButO_ptr(block,
@@ -1192,9 +1192,9 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
            std::nullopt);
 
   /* Move it downwards, mouse over button. */
-  UI_block_bounds_set_popup(block, UI_SEARCHBOX_BOUNDS, blender::int2{0, -UI_UNIT_Y});
+  block_bounds_set_popup(block, UI_SEARCHBOX_BOUNDS, blender::int2{0, -UI_UNIT_Y});
 
-  UI_but_focus_on_enter_event(win, but);
+  button_focus_on_enter_event(win, but);
 
   return block;
 }
@@ -1205,7 +1205,7 @@ wmOperatorStatus WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEven
   search_menu.op = op;
   /* Refreshing not supported, because operator might get freed. */
   const bool can_refresh = false;
-  UI_popup_block_invoke_ex(C, wm_enum_search_menu, &search_menu, nullptr, can_refresh);
+  popup_block_invoke_ex(C, wm_enum_search_menu, &search_menu, nullptr, can_refresh);
   return OPERATOR_INTERFACE;
 }
 
@@ -1431,24 +1431,24 @@ static void wm_block_redo_cancel_cb(bContext *C, void *arg_op)
 static uiBlock *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
 {
   wmOperator *op = static_cast<wmOperator *>(arg_op);
-  const uiStyle *style = blender::ui::UI_style_get_dpi();
+  const uiStyle *style = blender::ui::style_get_dpi();
   int width = 15 * UI_UNIT_X;
 
-  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
-  UI_block_flag_disable(block, blender::ui::UI_BLOCK_LOOP);
-  UI_block_theme_style_set(block, blender::ui::UI_BLOCK_THEME_STYLE_REGULAR);
+  uiBlock *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  block_flag_disable(block, blender::ui::BLOCK_LOOP);
+  block_theme_style_set(block, blender::ui::BLOCK_THEME_STYLE_REGULAR);
 
-  /* #UI_BLOCK_NUMSELECT for layer buttons. */
-  UI_block_flag_enable(block,
-                       blender::ui::UI_BLOCK_NUMSELECT | blender::ui::UI_BLOCK_KEEP_OPEN |
-                           blender::ui::UI_BLOCK_MOVEMOUSE_QUIT);
+  /* #BLOCK_NUMSELECT for layer buttons. */
+  block_flag_enable(block,
+                    blender::ui::BLOCK_NUMSELECT | blender::ui::BLOCK_KEEP_OPEN |
+                        blender::ui::BLOCK_MOVEMOUSE_QUIT);
 
   /* If register is not enabled, the operator gets freed on #OPERATOR_FINISHED
    * ui_apply_but_funcs_after calls #ED_undo_operator_repeate_cb and crashes. */
   BLI_assert(op->type->flag & OPTYPE_REGISTER);
 
-  UI_block_func_handle_set(block, wm_block_redo_cb, arg_op);
-  UI_popup_dummy_panel_set(region, block);
+  block_func_handle_set(block, wm_block_redo_cb, arg_op);
+  popup_dummy_panel_set(region, block);
   blender::ui::Layout &layout = blender::ui::block_layout(block,
                                                           blender::ui::LayoutDirection::Vertical,
                                                           blender::ui::LayoutType::Panel,
@@ -1470,9 +1470,9 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
   layout.separator(0.5f);
 
   blender::ui::Layout &col = layout.column(false);
-  uiTemplateOperatorPropertyButs(C, &col, op, blender::ui::UI_BUT_LABEL_ALIGN_NONE, 0);
+  uiTemplateOperatorPropertyButs(C, &col, op, blender::ui::BUT_LABEL_ALIGN_NONE, 0);
 
-  UI_block_bounds_set_popup(block, 7 * UI_SCALE_FAC, nullptr);
+  block_bounds_set_popup(block, 7 * UI_SCALE_FAC, nullptr);
 
   return block;
 }
@@ -1508,12 +1508,12 @@ static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
   /* Explicitly set UI_RETURN_OK flag, otherwise the menu might be canceled
    * in case WM_operator_call_ex exits/reloads the current file (#49199). */
 
-  UI_popup_menu_retval_set(block, blender::ui::UI_RETURN_OK, true);
+  popup_menu_retval_set(block, blender::ui::UI_RETURN_OK, true);
 
   /* Get context data *after* WM_operator_call_ex
    * which might have closed the current file and changed context. */
   wmWindow *win = CTX_wm_window(C);
-  UI_popup_block_close(C, win, block);
+  popup_block_close(C, win, block);
 
   WM_operator_call_ex(C, op, true);
 }
@@ -1525,9 +1525,9 @@ static void dialog_cancel_cb(bContext *C, void *arg1, void *arg2)
 {
   wm_operator_ui_popup_cancel(C, arg1);
   uiBlock *block = static_cast<uiBlock *>(arg2);
-  UI_popup_menu_retval_set(block, blender::ui::UI_RETURN_CANCEL, true);
+  popup_menu_retval_set(block, blender::ui::UI_RETURN_CANCEL, true);
   wmWindow *win = CTX_wm_window(C);
-  UI_popup_block_close(C, win, block);
+  popup_block_close(C, win, block);
 }
 
 /**
@@ -1537,25 +1537,25 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
 {
   wmOpPopUp *data = static_cast<wmOpPopUp *>(user_data);
   wmOperator *op = data->op;
-  const uiStyle *style = blender::ui::UI_style_get_dpi();
+  const uiStyle *style = blender::ui::style_get_dpi();
   const bool small = data->size == WM_POPUP_SIZE_SMALL;
   const short icon_size = (small ? 32 : 40) * UI_SCALE_FAC;
 
-  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
-  UI_block_flag_disable(block, blender::ui::UI_BLOCK_LOOP);
-  UI_block_theme_style_set(block, blender::ui::UI_BLOCK_THEME_STYLE_POPUP);
-  UI_popup_dummy_panel_set(region, block);
+  uiBlock *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  block_flag_disable(block, blender::ui::BLOCK_LOOP);
+  block_theme_style_set(block, blender::ui::BLOCK_THEME_STYLE_POPUP);
+  popup_dummy_panel_set(region, block);
 
   if (data->mouse_move_quit) {
-    UI_block_flag_enable(block, blender::ui::UI_BLOCK_MOVEMOUSE_QUIT);
+    block_flag_enable(block, blender::ui::BLOCK_MOVEMOUSE_QUIT);
   }
   if (data->icon < blender::ui::AlertIcon::None || data->icon >= blender::ui::AlertIcon::Max) {
     data->icon = blender::ui::AlertIcon::Question;
   }
 
-  UI_block_flag_enable(block, blender::ui::UI_BLOCK_KEEP_OPEN | blender::ui::UI_BLOCK_NUMSELECT);
+  block_flag_enable(block, blender::ui::BLOCK_KEEP_OPEN | blender::ui::BLOCK_NUMSELECT);
 
-  blender::ui::UI_fontstyle_set(&style->widget);
+  blender::ui::fontstyle_set(&style->widget);
   /* Width based on the text lengths. */
   int text_width = std::max(
       120 * UI_SCALE_FAC,
@@ -1617,14 +1617,13 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
 
   if (data->include_properties) {
     layout.separator(0.5f);
-    uiTemplateOperatorPropertyButs(
-        C, &layout, op, blender::ui::UI_BUT_LABEL_ALIGN_SPLIT_COLUMN, 0);
+    uiTemplateOperatorPropertyButs(C, &layout, op, blender::ui::BUT_LABEL_ALIGN_SPLIT_COLUMN, 0);
   }
 
   layout.separator(small ? 0.1f : 1.8f);
 
   /* Clear so the OK button is left alone. */
-  UI_block_func_set(block, nullptr, nullptr, nullptr);
+  block_func_set(block, nullptr, nullptr, nullptr);
 
 #ifdef _WIN32
   const bool windows_layout = true;
@@ -1634,7 +1633,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
 
   /* Check there are no active default buttons, allowing a dialog to define its own
    * confirmation buttons which are shown instead of these, see: #124098. */
-  if (!UI_block_has_active_default_button(layout.block())) {
+  if (!block_has_active_default_button(layout.block())) {
     /* New column so as not to interfere with custom layouts, see: #26436. */
     blender::ui::Layout &col = layout.column(false);
     uiBlock *col_block = col.block();
@@ -1686,10 +1685,10 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
                              "");
     }
 
-    UI_but_func_set(confirm_but, dialog_exec_cb, data, col_block);
-    UI_but_func_set(cancel_but, dialog_cancel_cb, data, col_block);
-    UI_but_flag_enable((data->cancel_default) ? cancel_but : confirm_but,
-                       blender::ui::UI_BUT_ACTIVE_DEFAULT);
+    button_func_set(confirm_but, dialog_exec_cb, data, col_block);
+    button_func_set(cancel_but, dialog_cancel_cb, data, col_block);
+    button_flag_enable((data->cancel_default) ? cancel_but : confirm_but,
+                       blender::ui::BUT_ACTIVE_DEFAULT);
   }
 
   const int padding = (small ? 7 : 14) * UI_SCALE_FAC;
@@ -1699,10 +1698,10 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
     const float button_center_y = small ? 2.0f : 3.1f;
     const int bounds_offset[2] = {int(button_center_x * layout.width()),
                                   int(button_center_y * UI_UNIT_X)};
-    UI_block_bounds_set_popup(block, padding, bounds_offset);
+    block_bounds_set_popup(block, padding, bounds_offset);
   }
   else if (data->position == WM_POPUP_POSITION_CENTER) {
-    UI_block_bounds_set_centered(block, padding);
+    block_bounds_set_centered(block, padding);
   }
 
   return block;
@@ -1712,15 +1711,14 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *region, void *user_d
 {
   wmOpPopUp *data = static_cast<wmOpPopUp *>(user_data);
   wmOperator *op = data->op;
-  const uiStyle *style = blender::ui::UI_style_get_dpi();
+  const uiStyle *style = blender::ui::style_get_dpi();
 
-  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
-  UI_block_flag_disable(block, blender::ui::UI_BLOCK_LOOP);
-  UI_block_flag_enable(block,
-                       blender::ui::UI_BLOCK_KEEP_OPEN | blender::ui::UI_BLOCK_MOVEMOUSE_QUIT);
-  UI_block_theme_style_set(block, blender::ui::UI_BLOCK_THEME_STYLE_REGULAR);
+  uiBlock *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  block_flag_disable(block, blender::ui::BLOCK_LOOP);
+  block_flag_enable(block, blender::ui::BLOCK_KEEP_OPEN | blender::ui::BLOCK_MOVEMOUSE_QUIT);
+  block_theme_style_set(block, blender::ui::BLOCK_THEME_STYLE_REGULAR);
 
-  UI_popup_dummy_panel_set(region, block);
+  popup_dummy_panel_set(region, block);
 
   blender::ui::Layout &layout = blender::ui::block_layout(block,
                                                           blender::ui::LayoutDirection::Vertical,
@@ -1733,11 +1731,11 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *region, void *user_d
                                                           style);
 
   /* Since UI is defined the auto-layout args are not used. */
-  uiTemplateOperatorPropertyButs(C, &layout, op, blender::ui::UI_BUT_LABEL_ALIGN_COLUMN, 0);
+  uiTemplateOperatorPropertyButs(C, &layout, op, blender::ui::BUT_LABEL_ALIGN_COLUMN, 0);
 
-  UI_block_func_set(block, nullptr, nullptr, nullptr);
+  block_func_set(block, nullptr, nullptr, nullptr);
 
-  UI_block_bounds_set_popup(block, 6 * UI_SCALE_FAC, nullptr);
+  block_bounds_set_popup(block, 6 * UI_SCALE_FAC, nullptr);
 
   return block;
 }
@@ -1785,7 +1783,7 @@ wmOperatorStatus WM_operator_confirm_ex(bContext *C,
 
   /* Larger dialog needs a wider minimum width to balance with the big icon. */
   const float min_width = (message == nullptr) ? 180.0f : 230.0f;
-  data->width = int(min_width * UI_SCALE_FAC * blender::ui::UI_style_get()->widget.points /
+  data->width = int(min_width * UI_SCALE_FAC * blender::ui::style_get()->widget.points /
                     UI_DEFAULT_TEXT_POINTS);
 
   data->free_op = true;
@@ -1799,7 +1797,7 @@ wmOperatorStatus WM_operator_confirm_ex(bContext *C,
   data->mouse_move_quit = (message == nullptr) ? true : false;
   data->include_properties = false;
 
-  UI_popup_block_ex(
+  popup_block_ex(
       C, wm_block_dialog_create, wm_operator_ui_popup_ok, wm_operator_ui_popup_cancel, data, op);
 
   return OPERATOR_RUNNING_MODAL;
@@ -1811,7 +1809,7 @@ wmOperatorStatus WM_operator_ui_popup(bContext *C, wmOperator *op, int width)
   data->op = op;
   data->width = width * UI_SCALE_FAC;
   data->free_op = true; /* If this runs and gets registered we may want not to free it. */
-  UI_popup_block_ex(C, wm_operator_ui_create, nullptr, wm_operator_ui_popup_cancel, data, op);
+  popup_block_ex(C, wm_operator_ui_create, nullptr, wm_operator_ui_popup_cancel, data, op);
   return OPERATOR_RUNNING_MODAL;
 }
 
@@ -1855,7 +1853,7 @@ static wmOperatorStatus wm_operator_props_popup_ex(
         C, op, 300, title, confirm_text, cancel_default, message);
   }
 
-  UI_popup_block_ex(C, wm_block_create_redo, nullptr, wm_block_redo_cancel_cb, op, op);
+  popup_block_ex(C, wm_block_create_redo, nullptr, wm_block_redo_cancel_cb, op, op);
 
   if (do_call) {
     wm_block_redo_cb(C, op, 0);
@@ -1905,7 +1903,7 @@ wmOperatorStatus WM_operator_props_dialog_popup(bContext *C,
 {
   wmOpPopUp *data = MEM_new<wmOpPopUp>(__func__);
   data->op = op;
-  data->width = int(float(width) * UI_SCALE_FAC * blender::ui::UI_style_get()->widget.points /
+  data->width = int(float(width) * UI_SCALE_FAC * blender::ui::style_get()->widget.points /
                     UI_DEFAULT_TEXT_POINTS);
   data->free_op = true; /* If this runs and gets registered we may want not to free it. */
   data->title = title ? std::move(*title) : WM_operatortype_name(op->type, op->ptr);
@@ -1919,7 +1917,7 @@ wmOperatorStatus WM_operator_props_dialog_popup(bContext *C,
   data->include_properties = true;
 
   /* The operator is not executed until popup OK button is clicked. */
-  UI_popup_block_ex(
+  popup_block_ex(
       C, wm_block_dialog_create, wm_operator_ui_popup_ok, wm_operator_ui_popup_cancel, data, op);
 
   return OPERATOR_RUNNING_MODAL;
@@ -1943,7 +1941,7 @@ wmOperatorStatus WM_operator_redo_popup(bContext *C, wmOperator *op)
 
   /* Operator is stored and kept alive in the window manager. So passing a pointer to the UI is
    * fine, it will remain valid. */
-  blender::ui::UI_popup_block_invoke(C, wm_block_create_redo, op, nullptr);
+  blender::ui::popup_block_invoke(C, wm_block_create_redo, op, nullptr);
 
   return OPERATOR_CANCELLED;
 }
@@ -2042,11 +2040,11 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdat
 {
   const SearchPopupInit_Data *init_data = static_cast<const SearchPopupInit_Data *>(userdata);
 
-  uiBlock *block = UI_block_begin(C, region, "_popup", blender::ui::EmbossType::Emboss);
-  UI_block_flag_enable(block,
-                       blender::ui::UI_BLOCK_LOOP | blender::ui::UI_BLOCK_MOVEMOUSE_QUIT |
-                           blender::ui::UI_BLOCK_SEARCH_MENU);
-  UI_block_theme_style_set(block, blender::ui::UI_BLOCK_THEME_STYLE_POPUP);
+  uiBlock *block = block_begin(C, region, "_popup", blender::ui::EmbossType::Emboss);
+  block_flag_enable(block,
+                    blender::ui::BLOCK_LOOP | blender::ui::BLOCK_MOVEMOUSE_QUIT |
+                        blender::ui::BLOCK_SEARCH_MENU);
+  block_theme_style_set(block, blender::ui::BLOCK_THEME_STYLE_POPUP);
 
   uiBut *but = uiDefSearchBut(block,
                               g_search_text,
@@ -2059,20 +2057,20 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdat
                               "");
 
   if (init_data->search_type == SEARCH_TYPE_OPERATOR) {
-    UI_but_func_operator_search(but);
+    button_func_operator_search(but);
   }
   else if (init_data->search_type == SEARCH_TYPE_MENU) {
-    UI_but_func_menu_search(but);
+    button_func_menu_search(but);
   }
   else if (init_data->search_type == SEARCH_TYPE_SINGLE_MENU) {
-    UI_but_func_menu_search(but, init_data->single_menu_idname.c_str());
-    UI_but_flag2_enable(but, blender::ui::UI_BUT2_ACTIVATE_ON_INIT_NO_SELECT);
+    button_func_menu_search(but, init_data->single_menu_idname.c_str());
+    button_flag2_enable(but, blender::ui::UI_BUT2_ACTIVATE_ON_INIT_NO_SELECT);
   }
   else {
     BLI_assert_unreachable();
   }
 
-  UI_but_flag_enable(but, blender::ui::UI_BUT_ACTIVATE_ON_INIT);
+  button_flag_enable(but, blender::ui::BUT_ACTIVATE_ON_INIT);
 
   /* Fake button, it holds space for search items. */
   const int height = init_data->size[1] - UI_SEARCHBOX_BOUNDS;
@@ -2089,7 +2087,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdat
            std::nullopt);
 
   /* Move it downwards, mouse over button. */
-  UI_block_bounds_set_popup(block, UI_SEARCHBOX_BOUNDS, blender::int2{0, -UI_UNIT_Y});
+  block_bounds_set_popup(block, UI_SEARCHBOX_BOUNDS, blender::int2{0, -UI_UNIT_Y});
 
   return block;
 }
@@ -2151,10 +2149,10 @@ static wmOperatorStatus wm_search_menu_invoke(bContext *C, wmOperator *op, const
   }
 
   data.search_type = search_type;
-  data.size[0] = blender::ui::UI_searchbox_size_x() * 2;
-  data.size[1] = blender::ui::UI_searchbox_size_y();
+  data.size[0] = blender::ui::searchbox_size_x() * 2;
+  data.size[1] = blender::ui::searchbox_size_y();
 
-  UI_popup_block_invoke_ex(C, wm_block_search_menu, &data, nullptr, false);
+  popup_block_invoke_ex(C, wm_block_search_menu, &data, nullptr, false);
 
   return OPERATOR_INTERFACE;
 }
@@ -2205,7 +2203,7 @@ static wmOperatorStatus wm_call_menu_exec(bContext *C, wmOperator *op)
   char idname[BKE_ST_MAXNAME];
   RNA_string_get(op->ptr, "name", idname);
 
-  return blender::ui::UI_popup_menu_invoke(C, idname, op->reports);
+  return blender::ui::popup_menu_invoke(C, idname, op->reports);
 }
 
 static std::string wm_call_menu_get_name(wmOperatorType *ot, PointerRNA *ptr)
@@ -2244,7 +2242,7 @@ static wmOperatorStatus wm_call_pie_menu_invoke(bContext *C, wmOperator *op, con
   char idname[BKE_ST_MAXNAME];
   RNA_string_get(op->ptr, "name", idname);
 
-  return blender::ui::UI_pie_menu_invoke(C, idname, event);
+  return blender::ui::pie_menu_invoke(C, idname, event);
 }
 
 static wmOperatorStatus wm_call_pie_menu_exec(bContext *C, wmOperator *op)
@@ -2252,7 +2250,7 @@ static wmOperatorStatus wm_call_pie_menu_exec(bContext *C, wmOperator *op)
   char idname[BKE_ST_MAXNAME];
   RNA_string_get(op->ptr, "name", idname);
 
-  return blender::ui::UI_pie_menu_invoke(C, idname, CTX_wm_window(C)->eventstate);
+  return blender::ui::pie_menu_invoke(C, idname, CTX_wm_window(C)->eventstate);
 }
 
 static void WM_OT_call_menu_pie(wmOperatorType *ot)
@@ -2284,7 +2282,7 @@ static wmOperatorStatus wm_call_panel_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "name", idname);
   const bool keep_open = RNA_boolean_get(op->ptr, "keep_open");
 
-  return blender::ui::UI_popover_panel_invoke(C, idname, keep_open, op->reports);
+  return blender::ui::popover_panel_invoke(C, idname, keep_open, op->reports);
 }
 
 static std::string wm_call_panel_get_name(wmOperatorType *ot, PointerRNA *ptr)
@@ -2822,7 +2820,7 @@ static void radial_control_paint_cursor(bContext * /*C*/,
                                         void *customdata)
 {
   RadialControl *rc = static_cast<RadialControl *>(customdata);
-  const uiStyle *style = blender::ui::UI_style_get();
+  const uiStyle *style = blender::ui::style_get();
   const uiFontStyle *fstyle = &style->widget;
   const int fontid = fstyle->uifont_id;
   short fstyle_points = fstyle->points;
@@ -2966,7 +2964,7 @@ static void radial_control_paint_cursor(bContext * /*C*/,
   immUnbindProgram();
 
   BLF_size(fontid, 1.75f * fstyle_points * UI_SCALE_FAC);
-  blender::ui::UI_GetThemeColor4fv(TH_TEXT_HI, text_color);
+  blender::ui::GetThemeColor4fv(TH_TEXT_HI, text_color);
   BLF_color4fv(fontid, text_color);
 
   /* Draw value. */
@@ -3935,8 +3933,8 @@ static void previews_id_ensure(bContext *C, Scene *scene, ID *id)
   /* Only preview non-library datablocks, lib ones do not pertain to this .blend file!
    * Same goes for ID with no user. */
   if (ID_IS_EDITABLE(id) && (id->us != 0)) {
-    blender::ui::UI_icon_render_id(C, scene, id, ICON_SIZE_ICON, false);
-    blender::ui::UI_icon_render_id(C, scene, id, ICON_SIZE_PREVIEW, false);
+    blender::ui::icon_render_id(C, scene, id, ICON_SIZE_ICON, false);
+    blender::ui::icon_render_id(C, scene, id, ICON_SIZE_PREVIEW, false);
   }
 }
 
@@ -4164,7 +4162,7 @@ static wmOperatorStatus doc_view_manual_ui_context_exec(bContext *C, wmOperator 
   PointerRNA ptr_props;
   wmOperatorStatus retval = OPERATOR_CANCELLED;
 
-  if (std::optional<std::string> manual_id = blender::ui::UI_but_online_manual_id_from_active(C)) {
+  if (std::optional<std::string> manual_id = blender::ui::button_online_manual_id_from_active(C)) {
     WM_operator_properties_create(&ptr_props, "WM_OT_doc_view_manual");
     RNA_string_set(&ptr_props, "doc_id", manual_id.value().c_str());
 
@@ -4594,7 +4592,7 @@ static const EnumPropertyItem *rna_id_itemf(bool *r_free,
 
         /* Show collection color tag icons in menus. */
         if (id_type == ID_GR) {
-          item_tmp.icon = blender::ui::UI_icon_color_from_collection((Collection *)id);
+          item_tmp.icon = blender::ui::icon_color_from_collection((Collection *)id);
         }
 
         RNA_enum_item_add(&item, &totitem, &item_tmp);

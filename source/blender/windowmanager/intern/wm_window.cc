@@ -798,7 +798,7 @@ static void wm_window_decoration_style_set_from_theme(const wmWindow *win, const
   }
 
   float titlebar_bg_color[3];
-  blender::ui::UI_GetThemeColor3fv(TH_BACK, titlebar_bg_color);
+  blender::ui::GetThemeColor3fv(TH_BACK, titlebar_bg_color);
   copy_v3_v3(decoration_settings.colored_titlebar_bg_color, titlebar_bg_color);
 
   GHOST_SetWindowDecorationStyleSettings(static_cast<GHOST_WindowHandle>(win->ghostwin),
@@ -1023,7 +1023,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
      * background theme color to match with the colored title-bar decoration style. */
     float window_bg_color[3];
     blender::ui::UI_SetTheme(SPACE_TOPBAR, RGN_TYPE_HEADER);
-    blender::ui::UI_GetThemeColor3fv(TH_BACK, window_bg_color);
+    blender::ui::GetThemeColor3fv(TH_BACK, window_bg_color);
 
     /* Until screens get drawn, draw a default background using the window theme color. */
     wm_window_swap_buffer_acquire(win);
@@ -2007,7 +2007,7 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
         /* Close all popups since they are positioned with the pixel
          * size baked in and it's difficult to correct them. */
         CTX_wm_window_set(C, win);
-        blender::ui::UI_popup_handlers_remove_all(C, &win->modalhandlers);
+        blender::ui::popup_handlers_remove_all(C, &win->modalhandlers);
         CTX_wm_window_set(C, nullptr);
 
         wm_window_make_drawable(wm, win);
@@ -2312,11 +2312,11 @@ void wm_test_gpu_backend_fallback(bContext *C)
     std::string message = RPT_("Updating GPU drivers may solve this issue.");
     message += RPT_(
         "The graphics backend can be changed in the System section of the Preferences.");
-    UI_alert(C,
-             RPT_("Failed to load using Vulkan, using OpenGL instead."),
-             message,
-             blender::ui::AlertIcon::Error,
-             false);
+    alert(C,
+          RPT_("Failed to load using Vulkan, using OpenGL instead."),
+          message,
+          blender::ui::AlertIcon::Error,
+          false);
     CTX_wm_window_set(C, prevwin);
   }
 }

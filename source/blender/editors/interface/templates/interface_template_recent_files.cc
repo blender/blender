@@ -33,7 +33,7 @@
 
 namespace blender::ui {
 
-static void uiTemplateRecentFiles_tooltip_func(bContext & /*C*/,
+static void template_recent_files_tooltip_func(bContext & /*C*/,
                                                uiTooltipData &tip,
                                                uiBut * /*but*/,
                                                void *argN)
@@ -44,13 +44,13 @@ static void uiTemplateRecentFiles_tooltip_func(bContext & /*C*/,
   char dirname[FILE_MAX];
   char filename[FILE_MAX];
   BLI_path_split_dir_file(path, dirname, sizeof(dirname), filename, sizeof(filename));
-  UI_tooltip_text_field_add(tip, filename, {}, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
-  UI_tooltip_text_field_add(tip, dirname, {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+  UI_tooltip_text_field_add(tip, filename, {}, TIP_STYLE_HEADER, TIP_LC_NORMAL);
+  UI_tooltip_text_field_add(tip, dirname, {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL);
 
-  UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+  UI_tooltip_text_field_add(tip, {}, {}, TIP_STYLE_SPACER, TIP_LC_NORMAL);
 
   if (!BLI_exists(path)) {
-    UI_tooltip_text_field_add(tip, N_("File Not Found"), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_ALERT);
+    UI_tooltip_text_field_add(tip, N_("File Not Found"), {}, TIP_STYLE_NORMAL, TIP_LC_ALERT);
     return;
   }
 
@@ -75,8 +75,8 @@ static void uiTemplateRecentFiles_tooltip_func(bContext & /*C*/,
 
   if (version_str[0]) {
     UI_tooltip_text_field_add(
-        tip, fmt::format("Blender {}", version_str), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
-    UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+        tip, fmt::format("Blender {}", version_str), {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL);
+    UI_tooltip_text_field_add(tip, {}, {}, TIP_STYLE_SPACER, TIP_LC_NORMAL);
   }
 
   BLI_stat_t status;
@@ -96,14 +96,14 @@ static void uiTemplateRecentFiles_tooltip_func(bContext & /*C*/,
                                           (is_today || is_yesterday) ? "" : date_str,
                                           (is_today || is_yesterday) ? time_st : ""),
                               {},
-                              UI_TIP_STYLE_NORMAL,
-                              UI_TIP_LC_NORMAL);
+                              TIP_STYLE_NORMAL,
+                              TIP_LC_NORMAL);
 
     if (status.st_size > 0) {
       char size[16];
       BLI_filelist_entry_size_to_string(nullptr, status.st_size, false, size);
       UI_tooltip_text_field_add(
-          tip, fmt::format("{}: {}", N_("Size"), size), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+          tip, fmt::format("{}: {}", N_("Size"), size), {}, TIP_STYLE_NORMAL, TIP_LC_NORMAL);
     }
   }
 
@@ -117,8 +117,8 @@ static void uiTemplateRecentFiles_tooltip_func(bContext & /*C*/,
   }
 
   if (thumb) {
-    UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
-    UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+    UI_tooltip_text_field_add(tip, {}, {}, TIP_STYLE_SPACER, TIP_LC_NORMAL);
+    UI_tooltip_text_field_add(tip, {}, {}, TIP_STYLE_SPACER, TIP_LC_NORMAL);
 
     uiTooltipImage image_data;
     float scale = (72.0f * UI_SCALE_FAC) / float(std::max(thumb->x, thumb->y));
@@ -133,7 +133,7 @@ static void uiTemplateRecentFiles_tooltip_func(bContext & /*C*/,
   }
 }
 
-int uiTemplateRecentFiles(Layout *layout, int rows)
+int template_recent_files(Layout *layout, int rows)
 {
   int i = 0;
   LISTBASE_FOREACH_INDEX (RecentFile *, recent, &G.recent_files, i) {
@@ -153,8 +153,8 @@ int uiTemplateRecentFiles(Layout *layout, int rows)
 
     uiBlock *block = layout->block();
     uiBut *but = ui_but_last(block);
-    UI_but_func_tooltip_custom_set(
-        but, uiTemplateRecentFiles_tooltip_func, BLI_strdup(recent->filepath), MEM_freeN);
+    button_func_tooltip_custom_set(
+        but, template_recent_files_tooltip_func, BLI_strdup(recent->filepath), MEM_freeN);
   }
 
   return i;

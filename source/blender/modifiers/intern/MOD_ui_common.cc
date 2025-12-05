@@ -57,7 +57,7 @@ static bool modifier_ui_poll(const bContext *C, PanelType * /*pt*/)
  */
 static void modifier_reorder(bContext *C, Panel *panel, int new_index)
 {
-  PointerRNA *md_ptr = blender::ui::UI_panel_custom_data_get(panel);
+  PointerRNA *md_ptr = blender::ui::panel_custom_data_get(panel);
   ModifierData *md = (ModifierData *)md_ptr->data;
 
   PointerRNA props_ptr;
@@ -71,14 +71,14 @@ static void modifier_reorder(bContext *C, Panel *panel, int new_index)
 
 static short get_modifier_expand_flag(const bContext * /*C*/, Panel *panel)
 {
-  PointerRNA *md_ptr = blender::ui::UI_panel_custom_data_get(panel);
+  PointerRNA *md_ptr = blender::ui::panel_custom_data_get(panel);
   ModifierData *md = (ModifierData *)md_ptr->data;
   return md->ui_expand_flag;
 }
 
 static void set_modifier_expand_flag(const bContext * /*C*/, Panel *panel, short expand_flag)
 {
-  PointerRNA *md_ptr = blender::ui::UI_panel_custom_data_get(panel);
+  PointerRNA *md_ptr = blender::ui::panel_custom_data_get(panel);
   ModifierData *md = (ModifierData *)md_ptr->data;
   md->ui_expand_flag = expand_flag;
 }
@@ -106,7 +106,7 @@ void modifier_error_message_draw(blender::ui::Layout &layout, PointerRNA *ptr)
 #define ERROR_LIBDATA_MESSAGE N_("External library data")
 PointerRNA *modifier_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_ptr)
 {
-  PointerRNA *ptr = blender::ui::UI_panel_custom_data_get(panel);
+  PointerRNA *ptr = blender::ui::panel_custom_data_get(panel);
   BLI_assert(!RNA_pointer_is_null(ptr));
   BLI_assert(RNA_struct_is_a(ptr->type, &RNA_Modifier));
 
@@ -115,9 +115,9 @@ PointerRNA *modifier_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_
   }
 
   uiBlock *block = panel->layout->block();
-  UI_block_lock_set(block, !ID_IS_EDITABLE((Object *)ptr->owner_id), ERROR_LIBDATA_MESSAGE);
+  block_lock_set(block, !ID_IS_EDITABLE((Object *)ptr->owner_id), ERROR_LIBDATA_MESSAGE);
 
-  blender::ui::UI_panel_context_pointer_set(panel, "modifier", ptr);
+  blender::ui::panel_context_pointer_set(panel, "modifier", ptr);
 
   return ptr;
 }
@@ -156,7 +156,7 @@ void modifier_grease_pencil_curve_panel_draw(const bContext * /*C*/, Panel *pane
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiTemplateCurveMapping(&layout, ptr, "curve", 0, false, false, false, false, false);
+  template_curve_mapping(&layout, ptr, "curve", 0, false, false, false, false, false);
 }
 
 /**
@@ -311,11 +311,11 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
   blender::ui::Layout &layout = *panel->layout;
 
   /* Don't use #modifier_panel_get_property_pointers, we don't want to lock the header. */
-  PointerRNA *ptr = blender::ui::UI_panel_custom_data_get(panel);
+  PointerRNA *ptr = blender::ui::panel_custom_data_get(panel);
   ModifierData *md = (ModifierData *)ptr->data;
   Object *ob = (Object *)ptr->owner_id;
 
-  blender::ui::UI_panel_context_pointer_set(panel, "modifier", ptr);
+  blender::ui::panel_context_pointer_set(panel, "modifier", ptr);
 
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
   Scene *scene = CTX_data_scene(C);
@@ -369,7 +369,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
                                     0.0,
                                     0.0,
                                     RPT_("Apply on Spline"));
-      UI_but_disable(but,
+      button_disable(but,
                      "This modifier can only deform filled curve/surface, not the control points");
       buttons_number++;
     }
@@ -392,7 +392,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
                                     0.0,
                                     0.0,
                                     RPT_("Apply on Spline"));
-      UI_but_disable(but,
+      button_disable(but,
                      "This modifier can only deform control points, not the filled curve/surface");
       buttons_number++;
     }

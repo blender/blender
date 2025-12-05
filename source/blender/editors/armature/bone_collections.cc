@@ -1177,13 +1177,13 @@ static void move_to_collection_menu_create(bContext *C,
 static wmOperatorStatus move_to_collection_regular_invoke(bContext *C, wmOperator *op)
 {
   const char *title = CTX_IFACE_(op->type->translation_context, op->type->name);
-  blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(C, title, ICON_NONE);
-  blender::ui::Layout *layout = UI_popup_menu_layout(pup);
+  blender::ui::PopupMenu *pup = blender::ui::popup_menu_begin(C, title, ICON_NONE);
+  blender::ui::Layout *layout = popup_menu_layout(pup);
 
   const bool is_move_operation = STREQ(op->type->idname, "ARMATURE_OT_move_to_collection");
   move_to_collection_menu_create(C, layout, menu_custom_data_encode(-1, is_move_operation));
 
-  UI_popup_menu_end(C, pup);
+  popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;
 }

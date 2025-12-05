@@ -668,7 +668,7 @@ static bool edit_constraint_invoke_properties(bContext *C,
 
   /* Check the custom data of panels under the mouse for a modifier. */
   if (event != nullptr) {
-    PointerRNA *panel_ptr = ui::UI_region_panel_custom_data_under_cursor(C, event);
+    PointerRNA *panel_ptr = ui::region_panel_custom_data_under_cursor(C, event);
 
     if (!(panel_ptr == nullptr || RNA_pointer_is_null(panel_ptr))) {
       if (RNA_struct_is_a(panel_ptr->type, &RNA_Constraint)) {
@@ -2640,8 +2640,8 @@ static wmOperatorStatus pose_ik_add_invoke(bContext *C, wmOperator *op, const wm
   }
 
   /* prepare popup menu to choose targeting options */
-  ui::PopupMenu *pup = ui::UI_popup_menu_begin(C, IFACE_("Add IK"), ICON_NONE);
-  ui::Layout &layout = *UI_popup_menu_layout(pup);
+  ui::PopupMenu *pup = ui::popup_menu_begin(C, IFACE_("Add IK"), ICON_NONE);
+  ui::Layout &layout = *popup_menu_layout(pup);
 
   /* the type of targets we'll set determines the menu entries to show... */
   if (get_new_constraint_target(C, CONSTRAINT_TYPE_KINEMATIC, &tar_ob, &tar_pchan, false)) {
@@ -2666,7 +2666,7 @@ static wmOperatorStatus pose_ik_add_invoke(bContext *C, wmOperator *op, const wm
   }
 
   /* finish building the menu, and process it (should result in calling self again) */
-  UI_popup_menu_end(C, pup);
+  popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;
 }

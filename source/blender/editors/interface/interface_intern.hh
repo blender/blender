@@ -101,7 +101,7 @@ enum {
   /** Temporarily override the active button for lookups in context, regions, etc. (everything
    * using #ui_context_button_active()). For example, so that operators normally acting on the
    * active button can be polled on non-active buttons to (e.g. for disabling). */
-  UI_BUT_ACTIVE_OVERRIDE = (1 << 7),
+  BUT_ACTIVE_OVERRIDE = (1 << 7),
 
   /* WARNING: rest of #uiBut.flag in `UI_interface_c.hh`. */
 };
@@ -197,7 +197,7 @@ struct Button {
 
   /**
    * Optional color for monochrome icon. Also used as text
-   * color for labels without icons. Set with #UI_but_color_set().
+   * color for labels without icons. Set with #button_color_set().
    */
   uchar col[4] = {0};
 
@@ -213,7 +213,7 @@ struct Button {
   char *poin = nullptr;
   float hardmin = 0, hardmax = 0, softmin = 0, softmax = 0;
 
-  /** See \ref UI_but_func_identity_compare_set(). */
+  /** See \ref button_func_identity_compare_set(). */
   uiButIdentityCompareFunc identity_cmp_func = nullptr;
 
   uiButHandleFunc func = nullptr;
@@ -281,7 +281,7 @@ struct Button {
   /** so buttons can support unit systems which are not RNA */
   uchar unit_type = 0;
 
-  /** See #UI_but_menu_disable_hover_open(). */
+  /** See #button_menu_disable_hover_open(). */
   bool menu_no_hover_open = false;
 
   /** #ButType::Block data */
@@ -306,7 +306,7 @@ struct Button {
 
   /**
    * Keep an operator attached but never actually call it through the button. See
-   * #UI_but_operator_set_never_call().
+   * #button_operator_set_never_call().
    */
   bool operator_never_call = false;
   /* Operator data */
@@ -560,7 +560,7 @@ struct PieMenuData {
 enum eBlockContentHints {
   /** In a menu block, if there is a single sub-menu button, we add some
    * padding to the right to put nicely aligned triangle icons there. */
-  UI_BLOCK_CONTAINS_SUBMENU_BUT = (1 << 0),
+  BLOCK_CONTAINS_SUBMENU_BUT = (1 << 0),
 };
 
 /* #uiButtonGroup.flag. */
@@ -656,7 +656,7 @@ struct Block {
   short content_hints; /* #eBlockContentHints */
 
   char direction;
-  /** UI_BLOCK_THEME_STYLE_* */
+  /** BLOCK_THEME_STYLE_* */
   char theme_style;
   /** Copied to #uiBut.emboss */
   EmbossType emboss;
@@ -671,7 +671,7 @@ struct Block {
   bool active;
   /** To avoid tool-tip after click. */
   bool tooltipdisabled;
-  /** True when #UI_block_end has been called. */
+  /** True when #block_end has been called. */
   bool endblock;
 
   /** for doing delayed */
@@ -936,7 +936,7 @@ struct PopupBlockHandle {
   /* internal */
   ARegion *region = nullptr;
 
-  /** Use only for #UI_BLOCK_MOVEMOUSE_QUIT popups. */
+  /** Use only for #BLOCK_MOVEMOUSE_QUIT popups. */
   float towards_xy[2];
   double towardstime = 0.0;
   bool dotowards = false;
@@ -1229,7 +1229,7 @@ void ui_handle_afterfunc_add_operator(wmOperatorType *ot, wm::OpCallContext opco
  */
 void ui_pan_to_scroll(const wmEvent *event, int *type, int *val);
 /**
- * Exported to `interface.cc`: #UI_but_active_only()
+ * Exported to `interface.cc`: #button_active_only()
  * \note The region is only for the button.
  * The context needs to be set by the caller.
  */
@@ -1351,7 +1351,7 @@ enum uiMenuItemSeparatorType {
  * \param back_rect: Used to draw/leave out the backdrop of the menu item. Useful when layering
  *                   multiple items with different formatting like in search menus.
  * \param but_flag: Button flags (#uiBut.flag) indicating the state of the item, typically
- *                  #UI_HOVER, #UI_BUT_DISABLED, #UI_BUT_INACTIVE.
+ *                  #UI_HOVER, #BUT_DISABLED, #BUT_INACTIVE.
  * \param separator_type: The kind of separator which controls if and how the string is clipped.
  * \param r_xmax: The right hand position of the text, this takes into the icon, padding and text
  *                clipping when there is not enough room to display the full text.
@@ -1437,7 +1437,7 @@ void ui_layout_remove_but(Layout *layout, const uiBut *but);
 bool ui_layout_replace_but_ptr(Layout *layout, const void *old_but_ptr, uiBut *new_but);
 /**
  * \note May reallocate \a but, so the possibly new address is returned. May also override the
- *       #UI_BUT_DISABLED flag depending on if a search pointer-property pair was provided/found.
+ *       #BUT_DISABLED flag depending on if a search pointer-property pair was provided/found.
  */
 uiBut *ui_but_add_search(uiBut *but,
                          PointerRNA *ptr,
@@ -1448,7 +1448,7 @@ uiBut *ui_but_add_search(uiBut *but,
                          bool results_are_suggestions);
 /**
  * Check all buttons defined in this layout,
- * and set any button flagged as UI_BUT_LIST_ITEM as active/selected.
+ * and set any button flagged as BUT_LIST_ITEM as active/selected.
  * Needed to handle correctly text colors of active (selected) list item.
  */
 void ui_layout_list_set_labels_active(Layout *layout);

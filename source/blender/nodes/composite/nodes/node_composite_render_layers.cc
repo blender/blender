@@ -437,7 +437,7 @@ static void node_composit_buts_viewlayers(ui::Layout &layout, bContext *C, Point
 {
   bNode *node = (bNode *)ptr->data;
 
-  uiTemplateID(&layout, C, ptr, "scene", nullptr, nullptr, nullptr);
+  template_id(&layout, C, ptr, "scene", nullptr, nullptr, nullptr);
 
   if (!node->id) {
     return;
@@ -445,7 +445,7 @@ static void node_composit_buts_viewlayers(ui::Layout &layout, bContext *C, Point
 
   ui::Layout &col = layout.column(false);
   ui::Layout &row = col.row(true);
-  row.prop(ptr, "layer", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  row.prop(ptr, "layer", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
   PropertyRNA *prop = RNA_struct_find_property(ptr, "layer");
   const char *layer_name;

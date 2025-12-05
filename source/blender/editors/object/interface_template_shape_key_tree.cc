@@ -212,11 +212,11 @@ class ShapeKeyItem : public ui::AbstractTreeViewItem {
         &shape_key_.key->id, &RNA_ShapeKey, shape_key_.kb);
 
     if (shape_key_.index > 0) {
-      sub.prop(&shapekey_ptr, "value", ui::UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
+      sub.prop(&shapekey_ptr, "value", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
     }
 
-    sub.prop(&shapekey_ptr, "mute", ui::UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
-    sub.prop(&shapekey_ptr, "lock_shape", ui::UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
+    sub.prop(&shapekey_ptr, "mute", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
+    sub.prop(&shapekey_ptr, "lock_shape", ui::ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
     if (shape_key_.kb->flag & KEYBLOCK_MUTE) {
       row.active_set(false);
     }
@@ -283,7 +283,7 @@ class ShapeKeyItem : public ui::AbstractTreeViewItem {
     if (!mt) {
       return;
     }
-    ui::UI_menutype_draw(&C, mt, &layout);
+    ui::menutype_draw(&C, mt, &layout);
   }
 
   std::unique_ptr<ui::AbstractViewItemDragController> create_drag_controller() const override
@@ -320,7 +320,7 @@ void template_tree(ui::Layout *layout, bContext *C)
 
   uiBlock *block = layout->block();
 
-  ui::AbstractTreeView *tree_view = UI_block_add_view(
+  ui::AbstractTreeView *tree_view = block_add_view(
       *block,
       "Shape Key Tree View",
       std::make_unique<ed::object::shapekey::ShapeKeyTreeView>(*ob));

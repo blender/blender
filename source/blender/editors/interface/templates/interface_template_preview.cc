@@ -43,13 +43,13 @@ static void do_preview_buttons(bContext *C, void *arg, int event)
   }
 }
 
-void uiTemplatePreview(Layout *layout,
-                       bContext *C,
-                       ID *id,
-                       bool show_buttons,
-                       ID *parent,
-                       MTex *slot,
-                       const char *preview_id)
+void template_preview(Layout *layout,
+                      bContext *C,
+                      ID *id,
+                      bool show_buttons,
+                      ID *parent,
+                      MTex *slot,
+                      const char *preview_id)
 {
   Material *ma = nullptr;
   short *pr_texture = nullptr;
@@ -127,11 +127,11 @@ void uiTemplatePreview(Layout *layout,
 
   /* add preview */
   uiDefBut(block, ButType::Extra, "", 0, 0, UI_UNIT_X * 10, ui_preview->height, pid, 0.0, 0.0, "");
-  UI_but_func_drawextra_set(block,
+  button_func_drawextra_set(block,
                             [pid, pparent, slot, ui_preview](const bContext *C, rcti *rect) {
                               ED_preview_draw(C, pid, pparent, slot, ui_preview, rect);
                             });
-  UI_block_func_handle_set(block, do_preview_buttons, nullptr);
+  block_func_handle_set(block, do_preview_buttons, nullptr);
 
   uiDefIconButS(block,
                 ButType::Grip,
@@ -160,7 +160,7 @@ void uiTemplatePreview(Layout *layout,
 
       col = &row->column(true);
       col->scale_x_set(1.5);
-      col->prop(&material_ptr, "preview_render_type", UI_ITEM_R_EXPAND, "", ICON_NONE);
+      col->prop(&material_ptr, "preview_render_type", ITEM_R_EXPAND, "", ICON_NONE);
 
       /* EEVEE preview file has baked lighting so use_preview_world has no effect,
        * just hide the option until this feature is supported. */
@@ -186,7 +186,7 @@ void uiTemplatePreview(Layout *layout,
                              10,
                              TEX_PR_TEXTURE,
                              "");
-      UI_but_retval_set(but, B_MATPRV);
+      button_retval_set(but, B_MATPRV);
       if (GS(parent->name) == ID_MA) {
         but = uiDefButS(block,
                         ButType::Row,
@@ -199,7 +199,7 @@ void uiTemplatePreview(Layout *layout,
                         10,
                         TEX_PR_OTHER,
                         "");
-        UI_but_retval_set(but, B_MATPRV);
+        button_retval_set(but, B_MATPRV);
       }
       else if (GS(parent->name) == ID_LA) {
         but = uiDefButS(block,
@@ -213,7 +213,7 @@ void uiTemplatePreview(Layout *layout,
                         10,
                         TEX_PR_OTHER,
                         "");
-        UI_but_retval_set(but, B_MATPRV);
+        button_retval_set(but, B_MATPRV);
       }
       else if (GS(parent->name) == ID_WO) {
         but = uiDefButS(block,
@@ -227,7 +227,7 @@ void uiTemplatePreview(Layout *layout,
                         10,
                         TEX_PR_OTHER,
                         "");
-        UI_but_retval_set(but, B_MATPRV);
+        button_retval_set(but, B_MATPRV);
       }
       else if (GS(parent->name) == ID_LS) {
         but = uiDefButS(block,
@@ -241,7 +241,7 @@ void uiTemplatePreview(Layout *layout,
                         10,
                         TEX_PR_OTHER,
                         "");
-        UI_but_retval_set(but, B_MATPRV);
+        button_retval_set(but, B_MATPRV);
       }
       but = uiDefButS(block,
                       ButType::Row,
@@ -254,7 +254,7 @@ void uiTemplatePreview(Layout *layout,
                       10,
                       TEX_PR_BOTH,
                       "");
-      UI_but_retval_set(but, B_MATPRV);
+      button_retval_set(but, B_MATPRV);
 
       /* Alpha button for texture preview */
       if (*pr_texture != TEX_PR_OTHER) {

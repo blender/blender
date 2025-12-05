@@ -159,14 +159,14 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
                                     0,
                                     0,
                                     TIP_("Toggle catalog visibility in the asset shelf"));
-      UI_but_func_set(toggle_but, [&tree](bContext &C) {
+      button_func_set(toggle_but, [&tree](bContext &C) {
         tree.update_shelf_settings_from_enabled_catalogs();
         send_redraw_notifier(C);
       });
       if (!is_catalog_path_enabled() && has_enabled_in_subtree()) {
-        UI_but_drawflag_enable(toggle_but, blender::ui::UI_BUT_INDETERMINATE);
+        button_drawflag_enable(toggle_but, blender::ui::BUT_INDETERMINATE);
       }
-      UI_but_flag_disable(toggle_but, blender::ui::UI_BUT_UNDO);
+      button_flag_disable(toggle_but, blender::ui::BUT_UNDO);
     }
   };
 };
@@ -214,7 +214,7 @@ static void catalog_selector_panel_draw(const bContext *C, Panel *panel)
   }
 
   uiBlock *block = layout.block();
-  ui::AbstractTreeView *tree_view = UI_block_add_view(
+  ui::AbstractTreeView *tree_view = block_add_view(
       *block,
       "asset catalog tree view",
       std::make_unique<AssetCatalogSelectorTree>(*library, *shelf));

@@ -406,7 +406,7 @@ static wmOperatorStatus graphkeys_click_insert_invoke(bContext *C,
   mval[0] = (event->xy[0] - region->winrct.xmin);
   mval[1] = (event->xy[1] - region->winrct.ymin);
 
-  blender::ui::UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
+  blender::ui::view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
 
   RNA_float_set(op->ptr, "frame", x);
   RNA_float_set(op->ptr, "value", y);

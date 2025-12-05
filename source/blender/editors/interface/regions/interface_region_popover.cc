@@ -84,14 +84,14 @@ static void ui_popover_create_block(bContext *C,
 {
   BLI_assert(pup->ui_size_x != 0);
 
-  const uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = style_get_dpi();
 
-  pup->block = UI_block_begin(C, region, __func__, EmbossType::Emboss);
+  pup->block = block_begin(C, region, __func__, EmbossType::Emboss);
 
-  UI_block_flag_enable(pup->block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_POPOVER);
+  block_flag_enable(pup->block, BLOCK_KEEP_OPEN | BLOCK_POPOVER);
 #ifdef USE_UI_POPOVER_ONCE
   if (pup->is_once) {
-    UI_block_flag_enable(pup->block, UI_BLOCK_POPOVER_ONCE);
+    block_flag_enable(pup->block, BLOCK_POPOVER_ONCE);
   }
 #endif
 
@@ -130,23 +130,23 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
   /* in some cases we create the block before the region,
    * so we set it delayed here if necessary */
   if (BLI_findindex(&handle->region->runtime->uiblocks, block) == -1) {
-    UI_block_region_set(block, handle->region);
+    block_region_set(block, handle->region);
   }
 
   block_layout_resolve(block);
-  UI_block_direction_set(block, UI_DIR_DOWN | UI_DIR_CENTER_X);
+  block_direction_set(block, UI_DIR_DOWN | UI_DIR_CENTER_X);
 
   const int block_margin = U.widget_unit / 2;
 
   if (pup->but) {
     /* For a header menu we set the direction automatic. */
     block->minbounds = BLI_rctf_size_x(&pup->but->rect);
-    UI_block_bounds_set_normal(block, block_margin);
+    block_bounds_set_normal(block, block_margin);
 
     /* If menu slides out of other menu, override direction. */
     const bool slideout = ui_block_is_menu(pup->but->block);
     if (slideout) {
-      UI_block_direction_set(block, UI_DIR_RIGHT);
+      block_direction_set(block, UI_DIR_RIGHT);
     }
 
     /* Store the button location for positioning the popover arrow hint. */
@@ -169,13 +169,13 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
       if (region && region->panels.first) {
         /* For regions with panels, prefer to open to top so we can
          * see the values of the buttons below changing. */
-        UI_block_direction_set(block, UI_DIR_UP | UI_DIR_CENTER_X);
+        block_direction_set(block, UI_DIR_UP | UI_DIR_CENTER_X);
       }
       /* Prefer popover from header to be positioned into the editor. */
       else if (region) {
         if (RGN_TYPE_IS_HEADER_ANY(region->regiontype)) {
           if (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_BOTTOM) {
-            UI_block_direction_set(block, UI_DIR_UP | UI_DIR_CENTER_X);
+            block_direction_set(block, UI_DIR_UP | UI_DIR_CENTER_X);
           }
         }
       }
@@ -188,23 +188,23 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
   else if (pup->panel_type &&
            (pup->panel_type->offset_units_xy.x || pup->panel_type->offset_units_xy.y))
   {
-    UI_block_flag_enable(block, UI_BLOCK_LOOP);
-    UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
-    UI_block_direction_set(block, block->direction);
+    block_flag_enable(block, BLOCK_LOOP);
+    block_theme_style_set(block, BLOCK_THEME_STYLE_POPUP);
+    block_direction_set(block, block->direction);
     block->minbounds = UI_MENU_WIDTH_MIN;
 
     const int bounds_offset[2] = {
         int(pup->panel_type->offset_units_xy.x * UI_UNIT_X),
         int(pup->panel_type->offset_units_xy.y * UI_UNIT_Y),
     };
-    UI_block_bounds_set_popup(block, block_margin, bounds_offset);
+    block_bounds_set_popup(block, block_margin, bounds_offset);
   }
   else {
     /* Not attached to a button. */
     int bounds_offset[2] = {0, 0};
-    UI_block_flag_enable(block, UI_BLOCK_LOOP);
-    UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
-    UI_block_direction_set(block, block->direction);
+    block_flag_enable(block, BLOCK_LOOP);
+    block_theme_style_set(block, BLOCK_THEME_STYLE_POPUP);
+    block_direction_set(block, block->direction);
     block->minbounds = UI_MENU_WIDTH_MIN;
 
     if (!handle->refresh) {
@@ -234,7 +234,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
       copy_v2_v2_int(bounds_offset, handle->prev_bounds_offset);
     }
 
-    UI_block_bounds_set_popup(block, block_margin, bounds_offset);
+    block_bounds_set_popup(block, block_margin, bounds_offset);
   }
 
   return block;
@@ -257,7 +257,7 @@ uiPopupBlockHandle *ui_popover_panel_create(bContext *C,
                                             const PanelType *panel_type)
 {
   wmWindow *window = CTX_wm_window(C);
-  const uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = style_get_dpi();
 
   /* Create popover, buttons are created from callback. */
   uiPopover *pup = MEM_new<uiPopover>(__func__);
@@ -289,7 +289,7 @@ uiPopupBlockHandle *ui_popover_panel_create(bContext *C,
   /* Add handlers. If attached to a button, the button will already
    * add a modal handler and pass on events. */
   if (!but) {
-    UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
+    popup_handlers_add(C, &window->modalhandlers, handle, 0);
     WM_event_add_mousemove(window);
     handle->popup = true;
   }
@@ -303,10 +303,10 @@ uiPopupBlockHandle *ui_popover_panel_create(bContext *C,
 /** \name Standard Popover Panels
  * \{ */
 
-wmOperatorStatus UI_popover_panel_invoke(bContext *C,
-                                         const char *idname,
-                                         bool keep_open,
-                                         ReportList *reports)
+wmOperatorStatus popover_panel_invoke(bContext *C,
+                                      const char *idname,
+                                      bool keep_open,
+                                      ReportList *reports)
 {
   Layout *layout;
   PanelType *pt = WM_paneltype_find(idname, true);
@@ -328,16 +328,16 @@ wmOperatorStatus UI_popover_panel_invoke(bContext *C,
     block = pup->block;
   }
   else {
-    uiPopover *pup = UI_popover_begin(C, U.widget_unit * pt->ui_units_x, false);
-    layout = UI_popover_layout(pup);
+    uiPopover *pup = popover_begin(C, U.widget_unit * pt->ui_units_x, false);
+    layout = popover_layout(pup);
     blender::ui::UI_paneltype_draw(C, pt, layout);
-    blender::ui::UI_popover_end(C, pup, nullptr);
+    blender::ui::popover_end(C, pup, nullptr);
     block = pup->block;
   }
 
   if (block) {
     uiPopupBlockHandle *handle = block->handle;
-    UI_block_active_only_flagged_buttons(C, handle->region, block);
+    block_active_only_flagged_buttons(C, handle->region, block);
   }
   return OPERATOR_INTERFACE;
 }
@@ -348,7 +348,7 @@ wmOperatorStatus UI_popover_panel_invoke(bContext *C,
 /** \name Popup Menu API with begin & end
  * \{ */
 
-uiPopover *UI_popover_begin(bContext *C, int ui_menu_width, bool from_active_button)
+uiPopover *popover_begin(bContext *C, int ui_menu_width, bool from_active_button)
 {
   uiPopover *pup = MEM_new<uiPopover>(__func__);
   if (ui_menu_width == 0) {
@@ -361,7 +361,7 @@ uiPopover *UI_popover_begin(bContext *C, int ui_menu_width, bool from_active_but
 
   if (from_active_button) {
     butregion = CTX_wm_region(C);
-    but = UI_region_active_but_get(butregion);
+    but = region_active_but_get(butregion);
     if (but == nullptr) {
       butregion = nullptr;
     }
@@ -386,13 +386,13 @@ static void popover_keymap_fn(wmKeyMap * /*keymap*/, wmKeyMapItem * /*kmi*/, voi
   pup->block->handle->menuretval = UI_RETURN_OK;
 }
 
-void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
+void popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
 {
   wmWindow *window = CTX_wm_window(C);
 
   if (keymap) {
     /* Add so we get keymaps shown in the buttons. */
-    UI_block_flag_enable(pup->block, UI_BLOCK_SHOW_SHORTCUT_ALWAYS);
+    block_flag_enable(pup->block, BLOCK_SHOW_SHORTCUT_ALWAYS);
     pup->keymap = keymap;
     pup->keymap_handler = WM_event_add_keymap_handler_priority(&window->modalhandlers, keymap, 0);
     WM_event_set_keymap_handler_post_callback(pup->keymap_handler, popover_keymap_fn, pup);
@@ -410,7 +410,7 @@ void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
                                                      false);
 
   /* Add handlers. */
-  UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
+  popup_handlers_add(C, &window->modalhandlers, handle, 0);
   WM_event_add_mousemove(window);
   handle->popup = true;
 
@@ -425,16 +425,16 @@ void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
   /* TODO(@ideasman42): we may want to make this configurable.
    * The begin/end type of calling popups doesn't allow 'can_refresh' to be set.
    * For now close this style of popovers when accessed. */
-  UI_block_flag_disable(pup->block, UI_BLOCK_KEEP_OPEN);
+  block_flag_disable(pup->block, BLOCK_KEEP_OPEN);
 }
 
-Layout *UI_popover_layout(uiPopover *pup)
+Layout *popover_layout(uiPopover *pup)
 {
   return pup->layout;
 }
 
 #ifdef USE_UI_POPOVER_ONCE
-void UI_popover_once_clear(uiPopover *pup)
+void popover_once_clear(uiPopover *pup)
 {
   pup->is_once = false;
 }

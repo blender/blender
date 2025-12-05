@@ -330,7 +330,7 @@ void ED_image_mouse_pos(SpaceImage *sima, const ARegion *region, const int mval[
   ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
   ED_space_image_get_size(sima, &width, &height);
 
-  blender::ui::UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
+  blender::ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
 
   co[0] = ((mval[0] - sx) / zoomx) / width;
   co[1] = ((mval[1] - sy) / zoomy) / height;
@@ -357,7 +357,7 @@ void ED_image_point_pos(
   ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
   ED_space_image_get_size(sima, &width, &height);
 
-  blender::ui::UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
+  blender::ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
 
   *r_x = ((x - sx) / zoomx) / width;
   *r_y = ((y - sy) / zoomy) / height;
@@ -372,7 +372,7 @@ void ED_image_point_pos__reverse(SpaceImage *sima,
   int width, height;
   int sx, sy;
 
-  blender::ui::UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
+  blender::ui::view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &sx, &sy);
   ED_space_image_get_size(sima, &width, &height);
   ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
 

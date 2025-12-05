@@ -61,10 +61,10 @@ typedef struct View2D {
   /** Alignment of content in totrect. */
   short align;
 
-  /** Storage of current winx/winy values, set in UI_view2d_size_update. */
+  /** Storage of current winx/winy values, set in view2d_size_update. */
   short winx, winy;
   /**
-   * Storage of previous winx/winy values encountered by #UI_view2d_curRect_validate(),
+   * Storage of previous winx/winy values encountered by #view2d_curRect_validate(),
    * for V2D_KEEPZOOM and V2D_KEEPASPECT.
    */
   short oldwinx, oldwiny;

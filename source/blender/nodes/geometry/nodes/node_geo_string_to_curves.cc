@@ -64,7 +64,7 @@ static void node_layout(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
-  uiTemplateID(&layout, C, ptr, "font", nullptr, "FONT_OT_open", "FONT_OT_unlink");
+  template_id(&layout, C, ptr, "font", nullptr, "FONT_OT_open", "FONT_OT_unlink");
   layout.prop(ptr, "overflow", UI_ITEM_NONE, "", ICON_NONE);
   layout.prop(ptr, "align_x", UI_ITEM_NONE, "", ICON_NONE);
   layout.prop(ptr, "align_y", UI_ITEM_NONE, "", ICON_NONE);

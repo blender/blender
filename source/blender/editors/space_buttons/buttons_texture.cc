@@ -497,7 +497,7 @@ static void template_texture_user_menu(bContext *C, blender::ui::Layout *layout,
     if (!last_category || !STREQ(last_category, user->category)) {
       layout->label(IFACE_(user->category), ICON_NONE);
       but = block->buttons.last().get();
-      but->drawflag = blender::ui::UI_BUT_TEXT_LEFT;
+      but->drawflag = blender::ui::BUT_TEXT_LEFT;
     }
 
     /* create button */
@@ -526,7 +526,7 @@ static void template_texture_user_menu(bContext *C, blender::ui::Layout *layout,
                            UI_UNIT_Y,
                            nullptr,
                            "");
-    UI_but_funcN_set(but,
+    button_funcN_set(but,
                      template_texture_select,
                      MEM_new<ButsTextureUser>("ButsTextureUser", *user),
                      nullptr,
@@ -582,9 +582,9 @@ void uiTemplateTextureUser(blender::ui::Layout *layout, bContext *C)
   }
 
   /* some cosmetic tweaks */
-  UI_but_type_set_menu_from_pulldown(but);
+  button_type_set_menu_from_pulldown(but);
 
-  but->flag &= ~blender::ui::UI_BUT_ICON_SUBMENU;
+  but->flag &= ~blender::ui::BUT_ICON_SUBMENU;
 }
 
 /************************* Texture Show **************************/
@@ -702,14 +702,14 @@ void uiTemplateTextureShow(blender::ui::Layout *layout,
                      0.0,
                      0.0,
                      TIP_("Show texture in texture tab"));
-  UI_but_func_set(but,
+  button_func_set(but,
                   template_texture_show,
                   user_found ? user->ptr.data : nullptr,
                   user_found ? user->prop : nullptr);
   if (ct == nullptr) {
-    UI_but_disable(but, "No (unpinned) Properties Editor found to display texture in");
+    button_disable(but, "No (unpinned) Properties Editor found to display texture in");
   }
   else if (!user_found) {
-    UI_but_disable(but, "No texture user found");
+    button_disable(but, "No texture user found");
   }
 }

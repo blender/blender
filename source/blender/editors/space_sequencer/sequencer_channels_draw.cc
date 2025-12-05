@@ -45,15 +45,15 @@ static float draw_offset_get(const View2D *timeline_region_v2d)
 
 static float channel_height_pixelspace_get(const View2D *timeline_region_v2d)
 {
-  return ui::UI_view2d_view_to_region_y(timeline_region_v2d, 1.0f) -
-         ui::UI_view2d_view_to_region_y(timeline_region_v2d, 0.0f);
+  return ui::view2d_view_to_region_y(timeline_region_v2d, 1.0f) -
+         ui::view2d_view_to_region_y(timeline_region_v2d, 0.0f);
 }
 
 static float frame_width_pixelspace_get(const View2D *timeline_region_v2d)
 {
 
-  return ui::UI_view2d_view_to_region_x(timeline_region_v2d, 1.0f) -
-         ui::UI_view2d_view_to_region_x(timeline_region_v2d, 0.0f);
+  return ui::view2d_view_to_region_x(timeline_region_v2d, 1.0f) -
+         ui::view2d_view_to_region_x(timeline_region_v2d, 0.0f);
 }
 
 static float icon_width_get(const SeqChannelDrawContext *context)
@@ -110,7 +110,7 @@ static float draw_channel_widget_mute(const SeqChannelDrawContext *context,
       &context->scene->id, &RNA_SequenceTimelineChannel, channel);
   PropertyRNA *hide_prop = RNA_struct_type_find_property(&RNA_SequenceTimelineChannel, "mute");
 
-  UI_block_emboss_set(block, ui::EmbossType::None);
+  block_emboss_set(block, ui::EmbossType::None);
   uiBut *but = uiDefIconButR_prop(block,
                                   ui::ButType::Toggle,
                                   icon,
@@ -124,11 +124,11 @@ static float draw_channel_widget_mute(const SeqChannelDrawContext *context,
                                   0,
                                   0,
                                   std::nullopt);
-  UI_but_retval_set(but, 1);
+  button_retval_set(but, 1);
 
   char *tooltip = BLI_sprintfN(
       "%s channel %d", seq::channel_is_muted(channel) ? "Unmute" : "Mute", channel_index);
-  UI_but_func_tooltip_set(but, draw_channel_widget_tooltip, tooltip, MEM_freeN);
+  button_func_tooltip_set(but, draw_channel_widget_tooltip, tooltip, MEM_freeN);
 
   return width;
 }
@@ -149,7 +149,7 @@ static float draw_channel_widget_lock(const SeqChannelDrawContext *context,
       &context->scene->id, &RNA_SequenceTimelineChannel, channel);
   PropertyRNA *hide_prop = RNA_struct_type_find_property(&RNA_SequenceTimelineChannel, "lock");
 
-  UI_block_emboss_set(block, ui::EmbossType::None);
+  block_emboss_set(block, ui::EmbossType::None);
   uiBut *but = uiDefIconButR_prop(block,
                                   ui::ButType::Toggle,
                                   icon,
@@ -163,11 +163,11 @@ static float draw_channel_widget_lock(const SeqChannelDrawContext *context,
                                   0,
                                   0,
                                   "");
-  UI_but_retval_set(but, 1);
+  button_retval_set(but, 1);
 
   char *tooltip = BLI_sprintfN(
       "%s channel %d", seq::channel_is_locked(channel) ? "Unlock" : "Lock", channel_index);
-  UI_but_func_tooltip_set(but, draw_channel_widget_tooltip, tooltip, MEM_freeN);
+  button_func_tooltip_set(but, draw_channel_widget_tooltip, tooltip, MEM_freeN);
 
   return width;
 }
@@ -179,8 +179,8 @@ static bool channel_is_being_renamed(const SpaceSeq *sseq, const int channel_ind
 
 static float text_size_get(const SeqChannelDrawContext *context)
 {
-  const uiStyle *style = ui::UI_style_get_dpi();
-  return ui::UI_fontstyle_height_max(&style->widget) * 1.5f * context->scale;
+  const uiStyle *style = ui::style_get_dpi();
+  return ui::fontstyle_height_max(&style->widget) * 1.5f * context->scale;
 }
 
 /* TODO: decide what gets priority - label or buttons. */
@@ -226,7 +226,7 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
         &context->scene->id, &RNA_SequenceTimelineChannel, channel);
     PropertyRNA *prop = RNA_struct_name_property(ptr.type);
 
-    UI_block_emboss_set(block, ui::EmbossType::Emboss);
+    block_emboss_set(block, ui::EmbossType::Emboss);
     uiBut *but = uiDefButR(block,
                            ui::ButType::Text,
                            "",
@@ -240,10 +240,10 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
                            0,
                            0,
                            std::nullopt);
-    UI_but_retval_set(but, 1);
-    UI_block_emboss_set(block, ui::EmbossType::None);
+    button_retval_set(but, 1);
+    block_emboss_set(block, ui::EmbossType::None);
 
-    if (UI_but_active_only(context->C, context->region, block, but) == false) {
+    if (button_active_only(context->C, context->region, block, but) == false) {
       sseq->runtime->rename_channel_index = 0;
     }
 
@@ -270,7 +270,7 @@ static void draw_channel_headers(const SeqChannelDrawContext *context)
   GPU_matrix_push();
   wmOrtho2_pixelspace(context->region->winx / context->scale,
                       context->region->winy / context->scale);
-  uiBlock *block = UI_block_begin(context->C, context->region, __func__, ui::EmbossType::Emboss);
+  uiBlock *block = block_begin(context->C, context->region, __func__, ui::EmbossType::Emboss);
 
   int channel_range[2];
   displayed_channel_range_get(context, channel_range);
@@ -289,15 +289,15 @@ static void draw_channel_headers(const SeqChannelDrawContext *context)
     draw_channel_labels(context, block, channel, offset_width);
   }
 
-  UI_block_end(context->C, block);
-  UI_block_draw(context->C, block);
+  block_end(context->C, block);
+  block_draw(context->C, block);
 
   GPU_matrix_pop();
 }
 
 static void draw_background()
 {
-  ui::UI_ThemeClearColor(TH_BACK);
+  ui::ThemeClearColor(TH_BACK);
 }
 
 void channel_draw_context_init(const bContext *C,
@@ -343,11 +343,11 @@ void draw_channels(const bContext *C, ARegion *region)
     return;
   }
 
-  ui::UI_view2d_view_ortho(context.v2d);
+  ui::view2d_view_ortho(context.v2d);
 
   draw_channel_headers(&context);
 
-  ui::UI_view2d_view_restore(C);
+  ui::view2d_view_restore(C);
 }
 
 }  // namespace blender::ed::vse

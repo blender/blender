@@ -484,8 +484,7 @@ Base *ED_outliner_give_base_under_cursor(bContext *C, const int mval[2])
   Base *base = nullptr;
   float view_mval[2];
 
-  blender::ui::UI_view2d_region_to_view(
-      &region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
+  blender::ui::view2d_region_to_view(&region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
 
   te = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]);
   if (te) {
@@ -506,8 +505,7 @@ bool ED_outliner_give_rna_under_cursor(bContext *C, const int mval[2], PointerRN
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
   float view_mval[2];
-  blender::ui::UI_view2d_region_to_view(
-      &region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
+  blender::ui::view2d_region_to_view(&region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
 
   TreeElement *te = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]);
   if (!te) {

@@ -232,12 +232,12 @@ static wmOperatorStatus node_group_enter_exit_invoke(bContext *C,
   ARegion &region = *CTX_wm_region(C);
 
   /* Don't interfere when the mouse is interacting with some button. See #147282. */
-  if (ISMOUSE_BUTTON(event->type) && ui::UI_but_find_mouse_over(&region, event)) {
+  if (ISMOUSE_BUTTON(event->type) && ui::but_find_mouse_over(&region, event)) {
     return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;
   }
 
   float2 cursor;
-  ui::UI_view2d_region_to_view(&region.v2d, event->mval[0], event->mval[1], &cursor.x, &cursor.y);
+  ui::view2d_region_to_view(&region.v2d, event->mval[0], event->mval[1], &cursor.x, &cursor.y);
   bNode *node = node_under_mouse_get(snode, cursor);
 
   if (!node || node->is_frame()) {
@@ -730,9 +730,9 @@ static wmOperatorStatus node_group_separate_invoke(bContext *C,
                                                    wmOperator * /*op*/,
                                                    const wmEvent * /*event*/)
 {
-  ui::PopupMenu *pup = ui::UI_popup_menu_begin(
+  ui::PopupMenu *pup = ui::popup_menu_begin(
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Separate"), ICON_NONE);
-  ui::Layout *layout = UI_popup_menu_layout(pup);
+  ui::Layout *layout = popup_menu_layout(pup);
 
   layout->operator_context_set(wm::OpCallContext::ExecDefault);
   PointerRNA op_ptr = layout->op("NODE_OT_group_separate", IFACE_("Copy"), ICON_NONE);
@@ -740,7 +740,7 @@ static wmOperatorStatus node_group_separate_invoke(bContext *C,
   op_ptr = layout->op("NODE_OT_group_separate", IFACE_("Move"), ICON_NONE);
   RNA_enum_set(&op_ptr, "type", NODE_GS_MOVE);
 
-  UI_popup_menu_end(C, pup);
+  popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;
 }

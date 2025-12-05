@@ -1076,7 +1076,7 @@ typedef enum eSpreadsheetTableFlag {
  * modifies the width of text as well.
  */
 #define SPREADSHEET_WIDTH_UNIT \
-  (UI_UNIT_X * ui::UI_style_get_dpi()->widget.points / (float)UI_DEFAULT_TEXT_POINTS)
+  (UI_UNIT_X * ui::style_get_dpi()->widget.points / (float)UI_DEFAULT_TEXT_POINTS)
 
 /** \} */
 

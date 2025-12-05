@@ -109,7 +109,7 @@ static void acf_generic_root_color(bAnimContext * /*ac*/,
                                    float r_color[3])
 {
   /* darker blue for top-level widgets */
-  ui::UI_GetThemeColor3fv(TH_DOPESHEET_CHANNELOB, r_color);
+  ui::GetThemeColor3fv(TH_DOPESHEET_CHANNELOB, r_color);
 }
 
 /* backdrop for top-level widgets (Scene and Object only) */
@@ -128,16 +128,16 @@ static void acf_generic_root_backdrop(bAnimContext *ac,
   acf->get_backdrop_color(ac, ale, color);
 
   /* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
-  blender::ui::UI_draw_roundbox_corner_set(
-      (expanded) ? blender::ui::UI_CNR_TOP_LEFT :
-                   (blender::ui::UI_CNR_TOP_LEFT | blender::ui::UI_CNR_BOTTOM_LEFT));
+  blender::ui::draw_roundbox_corner_set(
+      (expanded) ? blender::ui::CNR_TOP_LEFT :
+                   (blender::ui::CNR_TOP_LEFT | blender::ui::CNR_BOTTOM_LEFT));
 
   rctf box;
   box.xmin = offset;
   box.xmax = v2d->cur.xmax + EXTRA_SCROLL_PAD;
   box.ymin = yminc;
   box.ymax = ymaxc;
-  blender::ui::UI_draw_roundbox_3fv_alpha(&box, true, 8, color, 1.0f);
+  blender::ui::draw_roundbox_3fv_alpha(&box, true, 8, color, 1.0f);
 }
 
 /* get backdrop color for data expanders under top-level Scene/Object */
@@ -146,7 +146,7 @@ static void acf_generic_dataexpand_color(bAnimContext * /*ac*/,
                                          float r_color[3])
 {
   /* lighter color than top-level widget */
-  ui::UI_GetThemeColor3fv(TH_DOPESHEET_CHANNELSUBOB, r_color);
+  ui::GetThemeColor3fv(TH_DOPESHEET_CHANNELSUBOB, r_color);
 }
 
 /* backdrop for data expanders under top-level Scene/Object */
@@ -190,7 +190,7 @@ static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
   /* FIXME: what happens when the indentation is 1 greater than what it should be
    * (due to grouping)? */
   const int colorOffset = 10 - 10 * indent;
-  ui::UI_GetThemeColorShade3fv(TH_CHANNEL, colorOffset, r_color);
+  ui::GetThemeColorShade3fv(TH_CHANNEL, colorOffset, r_color);
 }
 
 /* backdrop for generic channels */
@@ -426,7 +426,7 @@ static void acf_summary_color(bAnimContext *ac, bAnimListElem *ale, float r_colo
    * just one line, there is no need for any distinction between lines, and the red-ish
    * color is only going to be a distraction. */
   const bool is_expanded = ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_EXPAND);
-  ui::UI_GetThemeColor3fv(is_expanded ? TH_ANIM_ACTIVE : TH_HEADER, r_color);
+  ui::GetThemeColor3fv(is_expanded ? TH_ANIM_ACTIVE : TH_HEADER, r_color);
 }
 
 /* backdrop for summary widget */
@@ -443,15 +443,14 @@ static void acf_summary_backdrop(bAnimContext *ac, bAnimListElem *ale, float ymi
    * - top and bottom
    * - special hack: make the top a bit higher, since we are first...
    */
-  blender::ui::UI_draw_roundbox_corner_set(blender::ui::UI_CNR_TOP_LEFT |
-                                           blender::ui::UI_CNR_BOTTOM_LEFT);
+  blender::ui::draw_roundbox_corner_set(blender::ui::CNR_TOP_LEFT | blender::ui::CNR_BOTTOM_LEFT);
 
   rctf box;
   box.xmin = 0;
   box.xmax = v2d->cur.xmax + EXTRA_SCROLL_PAD;
   box.ymin = yminc - 2;
   box.ymax = ymaxc;
-  blender::ui::UI_draw_roundbox_3fv_alpha(&box, true, 8, color, 1.0f);
+  blender::ui::draw_roundbox_3fv_alpha(&box, true, 8, color, 1.0f);
 }
 
 /* name for summary entries */
@@ -829,10 +828,10 @@ static bAnimChannelType ACF_OBJECT = {
 static void acf_group_color(bAnimContext * /*ac*/, bAnimListElem *ale, float r_color[3])
 {
   if (ale->flag & AGRP_ACTIVE) {
-    ui::UI_GetThemeColor3fv(TH_GROUP_ACTIVE, r_color);
+    ui::GetThemeColor3fv(TH_GROUP_ACTIVE, r_color);
   }
   else {
-    ui::UI_GetThemeColor3fv(TH_GROUP, r_color);
+    ui::GetThemeColor3fv(TH_GROUP, r_color);
   }
 }
 
@@ -849,16 +848,16 @@ static void acf_group_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc
   acf->get_backdrop_color(ac, ale, color);
 
   /* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
-  blender::ui::UI_draw_roundbox_corner_set(
-      expanded ? blender::ui::UI_CNR_TOP_LEFT :
-                 (blender::ui::UI_CNR_TOP_LEFT | blender::ui::UI_CNR_BOTTOM_LEFT));
+  blender::ui::draw_roundbox_corner_set(
+      expanded ? blender::ui::CNR_TOP_LEFT :
+                 (blender::ui::CNR_TOP_LEFT | blender::ui::CNR_BOTTOM_LEFT));
 
   rctf box;
   box.xmin = offset;
   box.xmax = v2d->cur.xmax + EXTRA_SCROLL_PAD;
   box.ymin = yminc;
   box.ymax = ymaxc;
-  blender::ui::UI_draw_roundbox_3fv_alpha(&box, true, 8, color, 1.0f);
+  blender::ui::draw_roundbox_3fv_alpha(&box, true, 8, color, 1.0f);
 }
 
 /* name for group entries */
@@ -975,7 +974,7 @@ static bool get_actiongroup_color(const bActionGroup *agrp, uint8_t r_color[3])
     wire_color = &agrp->cs;
   }
   else {
-    const bTheme *btheme = blender::ui::UI_GetTheme();
+    const bTheme *btheme = blender::ui::GetTheme();
     wire_color = &btheme->tarm[(color_index - 1)];
   }
 
@@ -1187,7 +1186,7 @@ static void acf_nla_controls_color(bAnimContext * /*ac*/,
                                    float r_color[3])
 {
   /* TODO: give this its own theme setting? */
-  ui::UI_GetThemeColorShade3fv(TH_GROUP, 55, r_color);
+  ui::GetThemeColorShade3fv(TH_GROUP, 55, r_color);
 }
 
 /* backdrop for nla controls expander widget */
@@ -1206,16 +1205,16 @@ static void acf_nla_controls_backdrop(bAnimContext *ac,
   acf->get_backdrop_color(ac, ale, color);
 
   /* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
-  blender::ui::UI_draw_roundbox_corner_set(
-      expanded ? blender::ui::UI_CNR_TOP_LEFT :
-                 (blender::ui::UI_CNR_TOP_LEFT | blender::ui::UI_CNR_BOTTOM_LEFT));
+  blender::ui::draw_roundbox_corner_set(
+      expanded ? blender::ui::CNR_TOP_LEFT :
+                 (blender::ui::CNR_TOP_LEFT | blender::ui::CNR_BOTTOM_LEFT));
 
   rctf box;
   box.xmin = offset;
   box.xmax = v2d->cur.xmax + EXTRA_SCROLL_PAD;
   box.ymin = yminc;
   box.ymax = ymaxc;
-  blender::ui::UI_draw_roundbox_3fv_alpha(&box, true, 5, color, 1.0f);
+  blender::ui::draw_roundbox_3fv_alpha(&box, true, 5, color, 1.0f);
 }
 
 /* name for nla controls expander entries */
@@ -1473,7 +1472,7 @@ static int acf_action_slot_icon(bAnimListElem * /*ale*/)
 static int acf_action_slot_idtype_icon(bAnimListElem *ale)
 {
   animrig::Slot *slot = static_cast<animrig::Slot *>(ale->data);
-  return blender::ui::UI_icon_from_idcode(slot->idtype);
+  return blender::ui::icon_from_idcode(slot->idtype);
 }
 
 static bool acf_action_slot_setting_valid(bAnimContext * /*ac*/,
@@ -3910,10 +3909,10 @@ static void *data_block_setting_ptr(bAnimListElem *ale,
 static void datablock_color(bAnimContext *ac, bAnimListElem * /*ale*/, float r_color[3])
 {
   if (ac->datatype == ANIMCONT_GPENCIL) {
-    ui::UI_GetThemeColorShade3fv(TH_DOPESHEET_CHANNELSUBOB, 20, r_color);
+    ui::GetThemeColorShade3fv(TH_DOPESHEET_CHANNELSUBOB, 20, r_color);
   }
   else {
-    ui::UI_GetThemeColor3fv(TH_DOPESHEET_CHANNELSUBOB, r_color);
+    ui::GetThemeColor3fv(TH_DOPESHEET_CHANNELSUBOB, r_color);
   }
 }
 
@@ -4050,7 +4049,7 @@ static int layer_group_icon(bAnimListElem *ale)
 
 static void layer_group_color(bAnimContext * /*ac*/, bAnimListElem * /*ale*/, float r_color[3])
 {
-  ui::UI_GetThemeColor3fv(TH_GROUP, r_color);
+  ui::GetThemeColor3fv(TH_GROUP, r_color);
 }
 
 /* Name for grease pencil layer entries */
@@ -4162,7 +4161,7 @@ static bAnimChannelType ACF_GPLGROUP = {
 static void acf_mask_color(bAnimContext * /*ac*/, bAnimListElem * /*ale*/, float r_color[3])
 {
   /* these are ID-blocks, but not exactly standalone... */
-  ui::UI_GetThemeColorShade3fv(TH_DOPESHEET_CHANNELSUBOB, 20, r_color);
+  ui::GetThemeColorShade3fv(TH_DOPESHEET_CHANNELSUBOB, 20, r_color);
 }
 
 /* TODO: just get this from RNA? */
@@ -4354,7 +4353,7 @@ static void acf_nlatrack_color(bAnimContext * /*ac*/, bAnimListElem *ale, float 
   }
 
   /* set color for nla track */
-  ui::UI_GetThemeColorShade3fv(TH_NLA_TRACK, ((nonSolo == false) ? 20 : -20), r_color);
+  ui::GetThemeColorShade3fv(TH_NLA_TRACK, ((nonSolo == false) ? 20 : -20), r_color);
 }
 
 /* name for nla track entries */
@@ -4563,7 +4562,7 @@ static void acf_nlaaction_backdrop(bAnimContext *ac, bAnimListElem *ale, float y
   /* only on top left corner, to show that this track sits on top of the preceding ones
    * while still linking into the action line strip to the right
    */
-  UI_draw_roundbox_corner_set(blender::ui::UI_CNR_TOP_LEFT);
+  draw_roundbox_corner_set(blender::ui::CNR_TOP_LEFT);
 
   /* draw slightly shifted up vertically to look like it has more separation from other tracks,
    * but we then need to slightly shorten it so that it doesn't look like it overlaps
@@ -4573,7 +4572,7 @@ static void acf_nlaaction_backdrop(bAnimContext *ac, bAnimListElem *ale, float y
   box.xmax = v2d->cur.xmax;
   box.ymin = yminc + NLATRACK_SKIP;
   box.ymax = ymaxc + NLATRACK_SKIP - 1;
-  blender::ui::UI_draw_roundbox_4fv(&box, true, 8, color);
+  blender::ui::draw_roundbox_4fv(&box, true, 8, color);
 }
 
 /* name for nla action entries */
@@ -5137,7 +5136,7 @@ static bool achannel_is_broken(const bAnimListElem *ale)
 
 float ANIM_UI_get_keyframe_scale_factor()
 {
-  bTheme *btheme = blender::ui::UI_GetTheme();
+  bTheme *btheme = blender::ui::GetTheme();
   const float yscale_fac = btheme->space_action.keyframe_scale_fac;
 
   /* clamp to avoid problems with uninitialized values... */
@@ -5159,7 +5158,7 @@ float ANIM_UI_get_channel_skip()
 
 float ANIM_UI_get_first_channel_top(View2D *v2d)
 {
-  return blender::ui::UI_view2d_scale_get_y(v2d) * -UI_TIME_SCRUB_MARGIN_Y -
+  return blender::ui::view2d_scale_get_y(v2d) * -UI_TIME_SCRUB_MARGIN_Y -
          ANIM_UI_get_channel_skip();
 }
 
@@ -5238,7 +5237,7 @@ void ANIM_channel_draw(
 
   /* step 3) draw icon ............................................... */
   if (acf->icon) {
-    blender::ui::UI_icon_draw(offset, ymid, acf->icon(ale));
+    blender::ui::icon_draw(offset, ymid, acf->icon(ale));
     offset += ICON_WIDTH;
   }
 
@@ -5306,10 +5305,10 @@ void ANIM_channel_draw(
     /* XXX: if active, highlight differently? */
 
     if (selected) {
-      ui::UI_GetThemeColor4ubv(TH_TEXT_HI, col);
+      ui::GetThemeColor4ubv(TH_TEXT_HI, col);
     }
     else {
-      ui::UI_GetThemeColor4ubv(TH_TEXT, col);
+      ui::GetThemeColor4ubv(TH_TEXT, col);
     }
 
     /* Gray out disconnected action slots and their children. */
@@ -5321,7 +5320,7 @@ void ANIM_channel_draw(
     acf->name(ale, name);
 
     offset += 3;
-    blender::ui::UI_fontstyle_draw_simple(fstyle, offset, ytext, name, col);
+    blender::ui::fontstyle_draw_simple(fstyle, offset, ytext, name, col);
 
     /* draw red underline if channel is disabled */
     if (achannel_is_broken(ale)) {
@@ -5726,7 +5725,7 @@ static void achannel_setting_slider_nla_curve_cb(bContext *C, void * /*id_poin*/
 
   /* Get pointer and property from the slider -
    * this should all match up with the NlaStrip required. */
-  blender::ui::UI_context_active_but_prop_get(C, &ptr, &prop, &index);
+  blender::ui::context_active_but_prop_get(C, &ptr, &prop, &index);
 
   if (fcu && prop) {
     /* set the special 'replace' flag if on a keyframe */
@@ -5972,7 +5971,7 @@ static void draw_setting_widget(bAnimContext *ac,
         button_callback = achannel_setting_widget_cb;
         break;
     }
-    UI_but_funcN_set(but, button_callback, MEM_dupallocN(ale), POINTER_FROM_INT(setting));
+    button_funcN_set(but, button_callback, MEM_dupallocN(ale), POINTER_FROM_INT(setting));
   }
 
   if ((ale->fcurve_owner_id != nullptr && !BKE_id_is_editable(ac->bmain, ale->fcurve_owner_id)) ||
@@ -5980,7 +5979,7 @@ static void draw_setting_widget(bAnimContext *ac,
        !BKE_id_is_editable(ac->bmain, ale->id)))
   {
     if (setting != ACHANNEL_SETTING_EXPAND) {
-      UI_but_disable(but, "Cannot edit this property from a linked data-block");
+      button_disable(but, "Cannot edit this property from a linked data-block");
     }
   }
 
@@ -5991,7 +5990,7 @@ static void draw_setting_widget(bAnimContext *ac,
       if (ale->datatype == ALE_FCURVE) {
         const FCurve *fcu = static_cast<const FCurve *>(ale->key_data);
         if (BLI_listbase_is_empty(&fcu->modifiers)) {
-          UI_but_flag_enable(but, blender::ui::UI_BUT_INACTIVE);
+          button_flag_enable(but, blender::ui::BUT_INACTIVE);
         }
       }
       break;
@@ -6024,7 +6023,7 @@ static void draw_grease_pencil_layer_widgets(bAnimListElem *ale,
 
   /* Layer onion skinning switch. */
   offset -= ICON_WIDTH;
-  UI_block_emboss_set(block, blender::ui::EmbossType::None);
+  block_emboss_set(block, blender::ui::EmbossType::None);
   PropertyRNA *onion_skinning_prop = RNA_struct_find_property(&ptr, "use_onion_skinning");
 
   const std::optional<std::string> onion_skinning_rna_path = RNA_path_from_ID_to_property(
@@ -6046,7 +6045,7 @@ static void draw_grease_pencil_layer_widgets(bAnimListElem *ale,
 
   /* Mask layer. */
   offset -= ICON_WIDTH;
-  UI_block_emboss_set(block, blender::ui::EmbossType::None);
+  block_emboss_set(block, blender::ui::EmbossType::None);
   PropertyRNA *layer_mask_prop = RNA_struct_find_property(&ptr, "use_masks");
 
   const std::optional<std::string> layer_mask_rna_path = RNA_path_from_ID_to_property(
@@ -6067,7 +6066,7 @@ static void draw_grease_pencil_layer_widgets(bAnimListElem *ale,
   /* Layer opacity. */
   const short width = SLIDER_WIDTH * 0.6;
   offset -= width;
-  UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
+  block_emboss_set(block, blender::ui::EmbossType::Emboss);
   PropertyRNA *opacity_prop = RNA_struct_find_property(&ptr, "opacity");
   const std::optional<std::string> opacity_rna_path = RNA_path_from_ID_to_property(&ptr,
                                                                                    opacity_prop);
@@ -6113,7 +6112,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
   ymid = BLI_rctf_cent_y(rect) - 0.5f * ICON_WIDTH;
 
   /* no button backdrop behind icons */
-  UI_block_emboss_set(block, blender::ui::EmbossType::None);
+  block_emboss_set(block, blender::ui::EmbossType::None);
 
   /* step 1) draw expand widget ....................................... */
   if (acf->has_setting(ac, ale, ACHANNEL_SETTING_EXPAND)) {
@@ -6172,7 +6171,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
       const short width = ac->region->winx - offset - (margin_x * 2);
       uiBut *but;
 
-      UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
+      block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
       but = uiDefButR(block,
                       blender::ui::ButType::Text,
@@ -6187,17 +6186,17 @@ void ANIM_channel_draw_widgets(const bContext *C,
                       0,
                       0,
                       std::nullopt);
-      UI_but_retval_set(but, 1);
+      button_retval_set(but, 1);
 
       /* copy what outliner does here, see outliner_buttons */
-      if (UI_but_active_only(C, ac->region, block, but) == false) {
+      if (button_active_only(C, ac->region, block, but) == false) {
         ac->ads->renameIndex = 0;
 
         /* send notifiers */
         WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_RENAME, nullptr);
       }
 
-      UI_block_emboss_set(block, blender::ui::EmbossType::None);
+      block_emboss_set(block, blender::ui::EmbossType::None);
     }
     else {
       /* Cannot get property/cannot or rename for some reason, so clear rename index
@@ -6322,7 +6321,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
         uiBut *but;
         PointerRNA *opptr_b;
 
-        UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
+        block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
         offset -= UI_UNIT_X;
         but = uiDefIconButO(block,
@@ -6336,16 +6335,16 @@ void ANIM_channel_draw_widgets(const bContext *C,
                             UI_UNIT_X,
                             std::nullopt);
 
-        opptr_b = UI_but_operator_ptr_ensure(but);
+        opptr_b = button_operator_ptr_ensure(but);
         RNA_int_set(opptr_b, "track_index", channel_index);
 
-        UI_block_emboss_set(block, blender::ui::EmbossType::None);
+        block_emboss_set(block, blender::ui::EmbossType::None);
       }
 
       /* Slot ID type indicator. */
       if (ale->type == ANIMTYPE_ACTION_SLOT) {
         offset -= ICON_WIDTH;
-        blender::ui::UI_icon_draw(offset, ymid, acf_action_slot_idtype_icon(ale));
+        blender::ui::icon_draw(offset, ymid, acf_action_slot_idtype_icon(ale));
       }
     }
 
@@ -6376,7 +6375,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
       offset -= SLIDER_WIDTH;
 
       /* need backdrop behind sliders... */
-      UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
+      block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
       if (ale->owner) { /* Slider using custom RNA Access ---------- */
         if (ale->type == ANIMTYPE_NLACURVE) {
@@ -6404,7 +6403,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
                                 rect->ymin,
                                 SLIDER_WIDTH,
                                 channel_height);
-            UI_but_func_set(but, achannel_setting_slider_nla_curve_cb, ale->id, ale->data);
+            button_func_set(but, achannel_setting_slider_nla_curve_cb, ale->id, ale->data);
           }
         }
       }
@@ -6443,7 +6442,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
 
             /* Layer onion skinning switch. */
             offset -= ICON_WIDTH;
-            UI_block_emboss_set(block, blender::ui::EmbossType::None);
+            block_emboss_set(block, blender::ui::EmbossType::None);
             prop = RNA_struct_find_property(&ptr, "use_annotation_onion_skinning");
             if (const std::optional<std::string> gp_rna_path = RNA_path_from_ID_to_property(&ptr,
                                                                                             prop))
@@ -6467,7 +6466,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
             /* Layer opacity. */
             const short width = SLIDER_WIDTH * 0.6;
             offset -= width;
-            UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
+            block_emboss_set(block, blender::ui::EmbossType::Emboss);
             prop = RNA_struct_find_property(&ptr, "annotation_opacity");
             if (const std::optional<std::string> gp_rna_path = RNA_path_from_ID_to_property(&ptr,
                                                                                             prop))
@@ -6516,10 +6515,10 @@ void ANIM_channel_draw_widgets(const bContext *C,
 
             /* assign keyframing function according to slider type */
             if (ale->type == ANIMTYPE_SHAPEKEY) {
-              UI_but_func_set(but, achannel_setting_slider_shapekey_cb, ale->id, ale->data);
+              button_func_set(but, achannel_setting_slider_shapekey_cb, ale->id, ale->data);
             }
             else {
-              UI_but_func_set(but, achannel_setting_slider_cb, ale->id, ale->data);
+              button_func_set(but, achannel_setting_slider_cb, ale->id, ale->data);
             }
           }
         }

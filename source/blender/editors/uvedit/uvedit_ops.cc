@@ -2279,7 +2279,7 @@ static wmOperatorStatus uv_set_2d_cursor_invoke(bContext *C, wmOperator *op, con
     }
   }
 
-  blender::ui::UI_view2d_region_to_view(
+  blender::ui::view2d_region_to_view(
       &region->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
   RNA_float_set_array(op->ptr, "location", location);
 
@@ -2473,8 +2473,8 @@ static wmOperatorStatus uv_mark_seam_invoke(bContext *C, wmOperator *op, const w
     return uv_mark_seam_exec(C, op);
   }
 
-  blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(C, IFACE_("Edges"), ICON_NONE);
-  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
+  blender::ui::PopupMenu *pup = blender::ui::popup_menu_begin(C, IFACE_("Edges"), ICON_NONE);
+  blender::ui::Layout &layout = *popup_menu_layout(pup);
 
   layout.operator_context_set(blender::wm::OpCallContext::ExecDefault);
   PointerRNA op_ptr = layout.op(
@@ -2484,7 +2484,7 @@ static wmOperatorStatus uv_mark_seam_invoke(bContext *C, wmOperator *op, const w
       op->type->idname, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Seam"), ICON_NONE);
   RNA_boolean_set(&op_ptr, "clear", true);
 
-  UI_popup_menu_end(C, pup);
+  popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;
 }

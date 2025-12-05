@@ -290,7 +290,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     col.prop(ptr, "end_length", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }
 
-  layout.prop(ptr, "overshoot_factor", ui::UI_ITEM_R_SLIDER, IFACE_("Used Length"), ICON_NONE);
+  layout.prop(ptr, "overshoot_factor", ui::ITEM_R_SLIDER, IFACE_("Used Length"), ICON_NONE);
   ui::PanelLayout random_panel_layout = layout.panel_prop_with_bool_header(
       C, ptr, "open_random_panel", ptr, "use_random", IFACE_("Randomize"));
   if (ui::Layout *random_layout = random_panel_layout.body) {

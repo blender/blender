@@ -1216,9 +1216,9 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 0,
                                 0,
                                 TIP_("Use view layer for rendering"));
-          UI_but_func_set(bt, restrictbutton_r_lay_fn, tselem->id, nullptr);
-          UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
-          UI_but_drawflag_enable(bt, ui::UI_BUT_ICON_REVERSE);
+          button_func_set(bt, restrictbutton_r_lay_fn, tselem->id, nullptr);
+          button_flag_enable(bt, ui::BUT_DRAG_LOCK);
+          button_drawflag_enable(bt, ui::BUT_ICON_REVERSE);
         }
       }
       else if (((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) &&
@@ -1250,11 +1250,11 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                     0,
                                     TIP_("Temporarily hide in viewport\n"
                                          " \u2022 Shift to set children"));
-            UI_but_func_set(
+            button_func_set(
                 bt, outliner__base_set_flag_recursive_fn, base, (void *)"hide_viewport");
-            UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
+            button_flag_enable(bt, ui::BUT_DRAG_LOCK);
             if (!props_active.base_hide_viewport) {
-              UI_but_flag_enable(bt, ui::UI_BUT_INACTIVE);
+              button_flag_enable(bt, ui::BUT_INACTIVE);
             }
           }
         }
@@ -1274,10 +1274,10 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   0,
                                   TIP_("Disable selection in viewport\n"
                                        " \u2022 Shift to set children"));
-          UI_but_func_set(bt, outliner__object_set_flag_recursive_fn, ob, (char *)"hide_select");
-          UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
+          button_func_set(bt, outliner__object_set_flag_recursive_fn, ob, (char *)"hide_select");
+          button_flag_enable(bt, ui::BUT_DRAG_LOCK);
           if (!props_active.object_hide_select) {
-            UI_but_flag_enable(bt, ui::UI_BUT_INACTIVE);
+            button_flag_enable(bt, ui::BUT_INACTIVE);
           }
         }
 
@@ -1296,10 +1296,10 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   0,
                                   TIP_("Globally disable in viewports\n"
                                        " \u2022 Shift to set children"));
-          UI_but_func_set(bt, outliner__object_set_flag_recursive_fn, ob, (void *)"hide_viewport");
-          UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
+          button_func_set(bt, outliner__object_set_flag_recursive_fn, ob, (void *)"hide_viewport");
+          button_flag_enable(bt, ui::BUT_DRAG_LOCK);
           if (!props_active.object_hide_viewport) {
-            UI_but_flag_enable(bt, ui::UI_BUT_INACTIVE);
+            button_flag_enable(bt, ui::BUT_INACTIVE);
           }
         }
 
@@ -1318,10 +1318,10 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   0,
                                   TIP_("Globally disable in renders\n"
                                        " \u2022 Shift to set children"));
-          UI_but_func_set(bt, outliner__object_set_flag_recursive_fn, ob, (char *)"hide_render");
-          UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
+          button_func_set(bt, outliner__object_set_flag_recursive_fn, ob, (char *)"hide_render");
+          button_flag_enable(bt, ui::BUT_DRAG_LOCK);
           if (!props_active.object_hide_render) {
-            UI_but_flag_enable(bt, ui::UI_BUT_INACTIVE);
+            button_flag_enable(bt, ui::BUT_INACTIVE);
           }
         }
       }
@@ -1344,9 +1344,9 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   0,
                                   0,
                                   nullptr);
-          UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
+          button_flag_enable(bt, ui::BUT_DRAG_LOCK);
           if (!props_active.constraint_enable) {
-            UI_but_flag_enable(bt, ui::UI_BUT_INACTIVE);
+            button_flag_enable(bt, ui::BUT_INACTIVE);
           }
         }
       }
@@ -1369,9 +1369,9 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   0,
                                   0,
                                   std::nullopt);
-          UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
+          button_flag_enable(bt, ui::BUT_DRAG_LOCK);
           if (!props_active.modifier_show_viewport) {
-            UI_but_flag_enable(bt, ui::UI_BUT_INACTIVE);
+            button_flag_enable(bt, ui::BUT_INACTIVE);
           }
         }
 
@@ -1389,9 +1389,9 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   0,
                                   0,
                                   std::nullopt);
-          UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
+          button_flag_enable(bt, ui::BUT_DRAG_LOCK);
           if (!props_active.modifier_show_render) {
-            UI_but_flag_enable(bt, ui::UI_BUT_INACTIVE);
+            button_flag_enable(bt, ui::BUT_INACTIVE);
           }
         }
       }
@@ -1418,9 +1418,9 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   0,
                                   TIP_("Restrict visibility in the 3D View\n"
                                        " \u2022 Shift to set children"));
-          UI_but_func_set(bt, restrictbutton_bone_visibility_fn, ob, pchan);
-          UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
-          UI_but_drawflag_enable(bt, ui::UI_BUT_ICON_REVERSE);
+          button_func_set(bt, restrictbutton_bone_visibility_fn, ob, pchan);
+          button_flag_enable(bt, ui::BUT_DRAG_LOCK);
+          button_drawflag_enable(bt, ui::BUT_ICON_REVERSE);
         }
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_SELECT) {
@@ -1437,9 +1437,9 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 0,
                                 TIP_("Restrict selection in the 3D View\n"
                                      " \u2022 Shift to set children"));
-          UI_but_func_set(bt, restrictbutton_bone_select_fn, ob->data, bone);
-          UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
-          UI_but_drawflag_enable(bt, ui::UI_BUT_ICON_REVERSE);
+          button_func_set(bt, restrictbutton_bone_select_fn, ob->data, bone);
+          button_flag_enable(bt, ui::BUT_DRAG_LOCK);
+          button_drawflag_enable(bt, ui::BUT_ICON_REVERSE);
         }
       }
       else if (tselem->type == TSE_EBONE) {
@@ -1460,9 +1460,9 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 0,
                                 TIP_("Restrict visibility in the 3D View\n"
                                      " \u2022 Shift to set children"));
-          UI_but_func_set(bt, restrictbutton_ebone_visibility_fn, arm, ebone);
-          UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
-          UI_but_drawflag_enable(bt, ui::UI_BUT_ICON_REVERSE);
+          button_func_set(bt, restrictbutton_ebone_visibility_fn, arm, ebone);
+          button_flag_enable(bt, ui::BUT_DRAG_LOCK);
+          button_drawflag_enable(bt, ui::BUT_ICON_REVERSE);
         }
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_SELECT) {
@@ -1479,9 +1479,9 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 0,
                                 TIP_("Restrict selection in the 3D View\n"
                                      " \u2022 Shift to set children"));
-          UI_but_func_set(bt, restrictbutton_ebone_select_fn, arm, ebone);
-          UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
-          UI_but_drawflag_enable(bt, ui::UI_BUT_ICON_REVERSE);
+          button_func_set(bt, restrictbutton_ebone_select_fn, arm, ebone);
+          button_flag_enable(bt, ui::BUT_DRAG_LOCK);
+          button_drawflag_enable(bt, ui::BUT_ICON_REVERSE);
         }
       }
       else if (tselem->type == TSE_GP_LAYER) {
@@ -1501,9 +1501,9 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 0,
                                 0,
                                 TIP_("Restrict visibility in the 3D View"));
-          UI_but_func_set(bt, restrictbutton_gp_layer_flag_fn, id, gpl);
-          UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
-          UI_but_drawflag_enable(bt, ui::UI_BUT_ICON_REVERSE);
+          button_func_set(bt, restrictbutton_gp_layer_flag_fn, id, gpl);
+          button_flag_enable(bt, ui::BUT_DRAG_LOCK);
+          button_drawflag_enable(bt, ui::BUT_ICON_REVERSE);
         }
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_SELECT) {
@@ -1519,8 +1519,8 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 0,
                                 0,
                                 TIP_("Restrict editing of strokes and keyframes in this layer"));
-          UI_but_func_set(bt, restrictbutton_gp_layer_flag_fn, id, gpl);
-          UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
+          button_func_set(bt, restrictbutton_gp_layer_flag_fn, id, gpl);
+          button_flag_enable(bt, ui::BUT_DRAG_LOCK);
         }
       }
       else if (tselem->type == TSE_GREASE_PENCIL_NODE) {
@@ -1551,9 +1551,9 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   0,
                                   0,
                                   std::nullopt);
-          UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
+          button_flag_enable(bt, ui::BUT_DRAG_LOCK);
           if (node.parent_group() && !node.parent_group()->is_visible()) {
-            UI_but_flag_enable(bt, ui::UI_BUT_INACTIVE);
+            button_flag_enable(bt, ui::BUT_INACTIVE);
           }
         }
       }
@@ -1585,11 +1585,11 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                       0,
                                       0,
                                       std::nullopt);
-              UI_but_func_set(bt,
+              button_func_set(bt,
                               view_layer__layer_collection_set_flag_recursive_fn,
                               layer_collection,
                               (char *)"exclude");
-              UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
+              button_flag_enable(bt, ui::BUT_DRAG_LOCK);
             }
 
             if (space_outliner->show_restrict_flags & SO_RESTRICT_HIDE) {
@@ -1608,13 +1608,13 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                       TIP_("Temporarily hide in viewport\n"
                                            " \u2022 Ctrl to isolate collection\n"
                                            " \u2022 Shift to set inside collections and objects"));
-              UI_but_func_set(bt,
+              button_func_set(bt,
                               view_layer__layer_collection_set_flag_recursive_fn,
                               layer_collection,
                               (char *)"hide_viewport");
-              UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
+              button_flag_enable(bt, ui::BUT_DRAG_LOCK);
               if (!props_active.layer_collection_hide_viewport) {
-                UI_but_flag_enable(bt, ui::UI_BUT_INACTIVE);
+                button_flag_enable(bt, ui::BUT_INACTIVE);
               }
             }
 
@@ -1634,13 +1634,13 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                       TIP_("Mask out objects in collection from view layer\n"
                                            " \u2022 Ctrl to isolate collection\n"
                                            " \u2022 Shift to set inside collections"));
-              UI_but_func_set(bt,
+              button_func_set(bt,
                               view_layer__layer_collection_set_flag_recursive_fn,
                               layer_collection,
                               (char *)"holdout");
-              UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
+              button_flag_enable(bt, ui::BUT_DRAG_LOCK);
               if (!props_active.layer_collection_holdout) {
-                UI_but_flag_enable(bt, ui::UI_BUT_INACTIVE);
+                button_flag_enable(bt, ui::BUT_INACTIVE);
               }
             }
 
@@ -1662,15 +1662,15 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                        "reflections) in the view layer\n"
                        " \u2022 Ctrl to isolate collection\n"
                        " \u2022 Shift to set inside collections"));
-              UI_but_func_set(bt,
+              button_func_set(bt,
                               view_layer__layer_collection_set_flag_recursive_fn,
                               layer_collection,
                               (char *)"indirect_only");
-              UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
+              button_flag_enable(bt, ui::BUT_DRAG_LOCK);
               if (props_active.layer_collection_holdout ||
                   !props_active.layer_collection_indirect_only)
               {
-                UI_but_flag_enable(bt, ui::UI_BUT_INACTIVE);
+                button_flag_enable(bt, ui::BUT_INACTIVE);
               }
             }
           }
@@ -1692,20 +1692,20 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                          " \u2022 Ctrl to isolate collection\n"
                                          " \u2022 Shift to set inside collections and objects"));
             if (layer_collection != nullptr) {
-              UI_but_func_set(bt,
+              button_func_set(bt,
                               view_layer__collection_set_flag_recursive_fn,
                               layer_collection,
                               (char *)"hide_viewport");
             }
             else {
-              UI_but_func_set(bt,
+              button_func_set(bt,
                               scenes__collection_set_flag_recursive_fn,
                               collection,
                               (char *)"hide_viewport");
             }
-            UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
+            button_flag_enable(bt, ui::BUT_DRAG_LOCK);
             if (!props_active.collection_hide_viewport) {
-              UI_but_flag_enable(bt, ui::UI_BUT_INACTIVE);
+              button_flag_enable(bt, ui::BUT_INACTIVE);
             }
           }
 
@@ -1726,18 +1726,18 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                          " \u2022 Ctrl to isolate collection\n"
                                          " \u2022 Shift to set inside collections and objects"));
             if (layer_collection != nullptr) {
-              UI_but_func_set(bt,
+              button_func_set(bt,
                               view_layer__collection_set_flag_recursive_fn,
                               layer_collection,
                               (char *)"hide_render");
             }
             else {
-              UI_but_func_set(
+              button_func_set(
                   bt, scenes__collection_set_flag_recursive_fn, collection, (char *)"hide_render");
             }
-            UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
+            button_flag_enable(bt, ui::BUT_DRAG_LOCK);
             if (!props_active.collection_hide_render) {
-              UI_but_flag_enable(bt, ui::UI_BUT_INACTIVE);
+              button_flag_enable(bt, ui::BUT_INACTIVE);
             }
           }
 
@@ -1758,18 +1758,18 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                          " \u2022 Ctrl to isolate collection\n"
                                          " \u2022 Shift to set inside collections and objects"));
             if (layer_collection != nullptr) {
-              UI_but_func_set(bt,
+              button_func_set(bt,
                               view_layer__collection_set_flag_recursive_fn,
                               layer_collection,
                               (char *)"hide_select");
             }
             else {
-              UI_but_func_set(
+              button_func_set(
                   bt, scenes__collection_set_flag_recursive_fn, collection, (char *)"hide_select");
             }
-            UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
+            button_flag_enable(bt, ui::BUT_DRAG_LOCK);
             if (!props_active.collection_hide_select) {
-              UI_but_flag_enable(bt, ui::UI_BUT_INACTIVE);
+              button_flag_enable(bt, ui::BUT_INACTIVE);
             }
           }
         }
@@ -1857,23 +1857,23 @@ static void outliner_draw_userbuts(uiBlock *block,
                             0,
                             0,
                             tip);
-      UI_but_retval_set(bt, 1);
+      button_retval_set(bt, 1);
 
       if (is_linked) {
-        UI_but_flag_enable(bt, ui::UI_BUT_DISABLED);
+        button_flag_enable(bt, ui::BUT_DISABLED);
       }
       else {
-        UI_but_func_set(bt, restrictbutton_id_user_toggle, id, nullptr);
+        button_func_set(bt, restrictbutton_id_user_toggle, id, nullptr);
         /* Allow _inaccurate_ dragging over multiple toggles. */
-        UI_but_flag_enable(bt, ui::UI_BUT_DRAG_LOCK);
+        button_flag_enable(bt, ui::BUT_DRAG_LOCK);
       }
 
       if (!real_users && !has_fake_user) {
         uchar overlay_color[4];
-        ui::UI_GetThemeColor4ubv(TH_REDALERT, overlay_color);
-        UI_but_icon_indicator_color_set(bt, overlay_color);
+        ui::GetThemeColor4ubv(TH_REDALERT, overlay_color);
+        button_icon_indicator_color_set(bt, overlay_color);
       }
-      UI_but_icon_indicator_set(bt, overlay);
+      button_icon_indicator_set(bt, overlay);
     }
   });
 }
@@ -1916,7 +1916,7 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
                             0.0f,
                             0.0f,
                             "");
-      UI_but_flag_enable(but, ui::UI_BUT_REDALERT);
+      button_flag_enable(but, ui::BUT_REDALERT);
       continue;
     }
 
@@ -1971,8 +1971,8 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
 
 static bool outliner_but_identity_cmp_context_id_fn(const uiBut *a, const uiBut *b)
 {
-  const std::optional<int64_t> session_uid_a = UI_but_context_int_get(a, "session_uid");
-  const std::optional<int64_t> session_uid_b = UI_but_context_int_get(b, "session_uid");
+  const std::optional<int64_t> session_uid_a = button_context_int_get(a, "session_uid");
+  const std::optional<int64_t> session_uid_b = button_context_int_get(b, "session_uid");
   if (!session_uid_a || !session_uid_b) {
     return false;
   }
@@ -2026,13 +2026,13 @@ static void outliner_draw_overrides_restrictbuts(Main *bmain,
                                "");
     /* "id" is used by the operator #ED_OT_lib_id_override_editable_toggle. */
     PointerRNA idptr = RNA_id_pointer_create(&id);
-    UI_but_context_ptr_set(block, but, "id", &idptr);
+    button_context_ptr_set(block, but, "id", &idptr);
 
     /* "session_uid" is used to compare buttons (in redraws). */
-    UI_but_context_int_set(block, but, "session_uid", id.session_uid);
-    UI_but_func_identity_compare_set(but, outliner_but_identity_cmp_context_id_fn);
+    button_context_int_set(block, but, "session_uid", id.session_uid);
+    button_func_identity_compare_set(but, outliner_but_identity_cmp_context_id_fn);
 
-    UI_but_flag_enable(but, ui::UI_BUT_DRAG_LOCK);
+    button_flag_enable(but, ui::BUT_DRAG_LOCK);
   }
 }
 
@@ -2088,7 +2088,7 @@ static void outliner_draw_rnabuts(uiBlock *block,
                                      te->ys,
                                      OL_RNA_COL_SIZEX,
                                      UI_UNIT_Y - 1);
-          UI_but_flag_enable(but, ui::UI_BUT_DISABLED);
+          button_flag_enable(but, ui::BUT_DISABLED);
         }
         else if (RNA_property_type(prop) == PROP_ENUM) {
           uiDefAutoButR(block,
@@ -2178,15 +2178,15 @@ static void outliner_buttons(const bContext *C,
                 1.0,
                 float(len),
                 "");
-  UI_but_retval_set(bt, OL_NAMEBUTTON);
+  button_retval_set(bt, OL_NAMEBUTTON);
   /* Handle undo through the #template_id_cb set below. Default undo handling from the button
    * code (see #ui_apply_but_undo) would not work here, as the new name is not yet applied to the
    * ID. */
-  UI_but_flag_disable(bt, ui::UI_BUT_UNDO);
-  UI_but_func_rename_set(bt, namebutton_fn, tselem);
+  button_flag_disable(bt, ui::BUT_UNDO);
+  button_func_rename_set(bt, namebutton_fn, tselem);
 
   /* Returns false if button got removed. */
-  if (false == UI_but_active_only(C, region, block, bt)) {
+  if (false == button_active_only(C, region, block, bt)) {
     tselem->flag &= ~TSE_TEXTBUT;
 
     /* Bad! (notifier within draw) without this, we don't get a refresh. */
@@ -2246,7 +2246,7 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
     /* Another object has our (shared) data in edit mode, so nothing we can change. */
     uiBut *but = uiDefIconBut(block,
                               ui::ButType::But,
-                              ui::UI_icon_from_object_mode(ob_active->mode),
+                              ui::icon_from_object_mode(ob_active->mode),
                               x_pad,
                               te->ys,
                               UI_UNIT_X,
@@ -2255,7 +2255,7 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
                               0.0,
                               0.0,
                               TIP_("Another object has this shared data in edit mode"));
-    UI_but_flag_enable(but, ui::UI_BUT_DISABLED);
+    button_flag_enable(but, ui::BUT_DISABLED);
     return;
   }
 
@@ -2275,7 +2275,7 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
   int icon;
   StringRef tip;
   if (draw_active_icon) {
-    icon = ui::UI_icon_from_object_mode(ob_active->mode);
+    icon = ui::icon_from_object_mode(ob_active->mode);
     tip = object_data_shared ? TIP_("Change the object in the current mode") :
                                TIP_("Remove from the current mode");
   }
@@ -2285,7 +2285,7 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
         "Change the object in the current mode\n"
         " \u2022 Ctrl to add to the current mode");
   }
-  UI_block_emboss_set(block, ui::EmbossType::NoneOrStatus);
+  block_emboss_set(block, ui::EmbossType::NoneOrStatus);
   uiBut *but = uiDefIconBut(block,
                             ui::ButType::IconToggle,
                             icon,
@@ -2297,16 +2297,16 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
                             0.0,
                             0.0,
                             tip);
-  UI_but_func_set(but, outliner_mode_toggle_fn, tselem, nullptr);
-  UI_but_flag_enable(but, ui::UI_BUT_DRAG_LOCK);
+  button_func_set(but, outliner_mode_toggle_fn, tselem, nullptr);
+  button_flag_enable(but, ui::BUT_DRAG_LOCK);
   /* Mode toggling handles its own undo state because undo steps need to be grouped. */
-  UI_but_flag_disable(but, ui::UI_BUT_UNDO);
+  button_flag_disable(but, ui::BUT_UNDO);
 
   if (!ID_IS_EDITABLE(&ob->id) ||
       (ID_IS_OVERRIDE_LIBRARY_REAL(ob) &&
        (ob->id.override_library->flag & LIBOVERRIDE_FLAG_SYSTEM_DEFINED) != 0))
   {
-    UI_but_disable(but, "Cannot edit library or non-editable override data");
+    button_disable(but, "Cannot edit library or non-editable override data");
   }
 }
 
@@ -2372,7 +2372,7 @@ static void outliner_draw_warning_tree_element(uiBlock *block,
                                        UI_UNIT_X :
                                        0;
 
-  UI_block_emboss_set(block, ui::EmbossType::NoneOrStatus);
+  block_emboss_set(block, ui::EmbossType::NoneOrStatus);
   uiBut *but = uiDefIconBut(block,
                             ui::ButType::IconToggle,
                             ICON_ERROR,
@@ -2385,7 +2385,7 @@ static void outliner_draw_warning_tree_element(uiBlock *block,
                             0.0,
                             warning_msg);
   /* No need for undo here, this is a pure info widget. */
-  UI_but_flag_disable(but, ui::UI_BUT_UNDO);
+  button_flag_disable(but, ui::BUT_UNDO);
 }
 
 static void outliner_draw_warning_column(uiBlock *block,
@@ -2413,7 +2413,7 @@ static void outliner_draw_warning_column(uiBlock *block,
 static BIFIconID tree_element_get_icon_from_id(const ID *id)
 {
   if (GS(id->name) == ID_OB) {
-    return ui::UI_icon_from_object_type((Object *)id);
+    return ui::icon_from_object_type((Object *)id);
   }
 
   /* TODO(sergey): Casting to short here just to handle ID_NLA which is
@@ -2899,7 +2899,7 @@ static bool tselem_draw_icon(uiBlock *block,
 
   const bool is_collection = outliner_is_collection_tree_element(te);
   ui::IconTextOverlay text_overlay;
-  UI_icon_text_overlay_init_from_count(&text_overlay, num_elements);
+  icon_text_overlay_init_from_count(&text_overlay, num_elements);
 
   /* Collection colors and icons covered by restrict buttons. */
   if (!is_clickable || x >= xmax || is_collection) {
@@ -2907,20 +2907,20 @@ static bool tselem_draw_icon(uiBlock *block,
     float aspect = (0.8f * UI_UNIT_Y) / ICON_DEFAULT_HEIGHT;
     x += 2.0f * aspect;
     y += 2.0f * aspect;
-    bTheme *btheme = ui::UI_GetTheme();
+    bTheme *btheme = ui::GetTheme();
 
     if (is_collection) {
       Collection *collection = outliner_collection_from_tree_element(te);
       if (collection->color_tag != COLLECTION_COLOR_NONE) {
-        UI_icon_draw_ex(x,
-                        y,
-                        ICON_COLLECTION_COLOR_01 + collection->color_tag,
-                        UI_INV_SCALE_FAC,
-                        alpha,
-                        0.0f,
-                        btheme->collection_color[collection->color_tag].color,
-                        btheme->tui.icon_border_intensity > 0.0f,
-                        &text_overlay);
+        icon_draw_ex(x,
+                     y,
+                     ICON_COLLECTION_COLOR_01 + collection->color_tag,
+                     UI_INV_SCALE_FAC,
+                     alpha,
+                     0.0f,
+                     btheme->collection_color[collection->color_tag].color,
+                     btheme->tui.icon_border_intensity > 0.0f,
+                     &text_overlay);
         return true;
       }
     }
@@ -2930,20 +2930,19 @@ static bool tselem_draw_icon(uiBlock *block,
 
     /* Restrict column clip. it has been coded by simply overdrawing, doesn't work for buttons. */
     uchar color[4];
-    if (ui::UI_icon_get_theme_color(data.icon, color)) {
-      UI_icon_draw_ex(x,
-                      y,
-                      data.icon,
-                      UI_INV_SCALE_FAC,
-                      alpha,
-                      0.0f,
-                      color,
-                      btheme->tui.icon_border_intensity > 0.0f,
-                      &text_overlay);
+    if (ui::icon_get_theme_color(data.icon, color)) {
+      icon_draw_ex(x,
+                   y,
+                   data.icon,
+                   UI_INV_SCALE_FAC,
+                   alpha,
+                   0.0f,
+                   color,
+                   btheme->tui.icon_border_intensity > 0.0f,
+                   &text_overlay);
     }
     else {
-      UI_icon_draw_ex(
-          x, y, data.icon, UI_INV_SCALE_FAC, alpha, 0.0f, nullptr, false, &text_overlay);
+      icon_draw_ex(x, y, data.icon, UI_INV_SCALE_FAC, alpha, 0.0f, nullptr, false, &text_overlay);
     }
   }
   else {
@@ -2959,7 +2958,7 @@ static bool tselem_draw_icon(uiBlock *block,
         0.0,
         0.0,
         (data.drag_id && ID_IS_LINKED(data.drag_id)) ? data.drag_id->lib->filepath : "");
-    UI_but_label_alpha_factor_set(but, alpha);
+    button_label_alpha_factor_set(but, alpha);
   }
 
   return true;
@@ -2968,7 +2967,7 @@ static bool tselem_draw_icon(uiBlock *block,
 static void outliner_icon_background_colors(float icon_color[4], float icon_border[4])
 {
   float text[4];
-  ui::UI_GetThemeColor4fv(TH_TEXT, text);
+  ui::GetThemeColor4fv(TH_TEXT, text);
 
   copy_v3_v3(icon_color, text);
   icon_color[3] = 0.4f;
@@ -2989,9 +2988,9 @@ static void outliner_draw_active_indicator(const float minx,
   rctf rect{};
   BLI_rctf_init(&rect, minx, maxx, miny + ufac, maxy - ufac);
 
-  UI_draw_roundbox_corner_set(ui::UI_CNR_ALL);
-  ui::UI_draw_roundbox_aa(&rect, true, radius, icon_color);
-  ui::UI_draw_roundbox_aa(&rect, false, radius, icon_border);
+  draw_roundbox_corner_set(ui::CNR_ALL);
+  ui::draw_roundbox_aa(&rect, true, radius, icon_color);
+  ui::draw_roundbox_aa(&rect, false, radius, icon_border);
   GPU_blend(GPU_BLEND_ALPHA); /* Round-box disables. */
 }
 
@@ -3010,7 +3009,7 @@ static void outliner_draw_iconrow_doit(uiBlock *block,
     float icon_color[4], icon_border[4];
     outliner_icon_background_colors(icon_color, icon_border);
     if (active == OL_DRAWSEL_ACTIVE) {
-      ui::UI_GetThemeColor4fv(TH_EDITED_OBJECT, icon_color);
+      ui::GetThemeColor4fv(TH_EDITED_OBJECT, icon_color);
       icon_border[3] = 0.3f;
     }
 
@@ -3295,7 +3294,7 @@ static void outliner_draw_tree_element(uiBlock *block,
   int offsx = 0;
   eOLDrawState active = OL_DRAWSEL_NONE;
   uchar text_color[4];
-  ui::UI_GetThemeColor4ubv(TH_TEXT, text_color);
+  ui::GetThemeColor4ubv(TH_TEXT, text_color);
   float icon_bgcolor[4], icon_border[4];
   outliner_icon_background_colors(icon_bgcolor, icon_border);
 
@@ -3330,19 +3329,19 @@ static void outliner_draw_tree_element(uiBlock *block,
         if (is_selected) {
           if (ob == tvc.obact) {
             /* Active selected object. */
-            ui::UI_GetThemeColor3ubv(TH_ACTIVE_OBJECT, text_color);
+            ui::GetThemeColor3ubv(TH_ACTIVE_OBJECT, text_color);
             text_color[3] = 255;
           }
           else {
             /* Other selected objects. */
-            ui::UI_GetThemeColor3ubv(TH_SELECTED_OBJECT, text_color);
+            ui::GetThemeColor3ubv(TH_SELECTED_OBJECT, text_color);
             text_color[3] = 255;
           }
         }
       }
       else if (is_object_data_in_editmode(tselem->id, tvc.obact)) {
         /* Objects being edited. */
-        ui::UI_GetThemeColor4fv(TH_EDITED_OBJECT, icon_bgcolor);
+        ui::GetThemeColor4fv(TH_EDITED_OBJECT, icon_bgcolor);
         icon_border[3] = 0.3f;
         active = OL_DRAWSEL_ACTIVE;
       }
@@ -3352,7 +3351,7 @@ static void outliner_draw_tree_element(uiBlock *block,
           icon_bgcolor[3] = 0.2f;
           active = OL_DRAWSEL_ACTIVE;
           if (te->idcode == ID_SCE) {
-            ui::UI_GetThemeColor3ubv(TH_TEXT_HI, text_color);
+            ui::GetThemeColor3ubv(TH_TEXT_HI, text_color);
             text_color[3] = 255;
           }
         }
@@ -3361,7 +3360,7 @@ static void outliner_draw_tree_element(uiBlock *block,
     else {
       active = tree_element_type_active_state_get(tvc, te, tselem);
       if (active != OL_DRAWSEL_NONE) {
-        ui::UI_GetThemeColor3ubv(TH_TEXT_HI, text_color);
+        ui::GetThemeColor3ubv(TH_TEXT_HI, text_color);
         text_color[3] = 255;
       }
     }
@@ -3387,11 +3386,11 @@ static void outliner_draw_tree_element(uiBlock *block,
 
       /* Icons a bit higher. */
       if (TSELEM_OPEN(tselem, space_outliner)) {
-        ui::UI_icon_draw_alpha(
+        ui::icon_draw_alpha(
             float(icon_x) + 2 * ufac, float(*starty) + 1 * ufac, ICON_DOWNARROW_HLT, alpha_fac);
       }
       else {
-        ui::UI_icon_draw_alpha(
+        ui::icon_draw_alpha(
             float(icon_x) + 2 * ufac, float(*starty) + 1 * ufac, ICON_RIGHTARROW, alpha_fac);
       }
     }
@@ -3419,9 +3418,9 @@ static void outliner_draw_tree_element(uiBlock *block,
     if (ELEM(tselem->type, TSE_SOME_ID, TSE_LAYER_COLLECTION, TSE_LINKED_NODE_TREE) ||
         (te_rna_struct && RNA_struct_is_ID(te_rna_struct->get_pointer_rna().type)))
     {
-      const BIFIconID lib_icon = ui::UI_icon_from_library(tselem->id);
+      const BIFIconID lib_icon = ui::icon_from_library(tselem->id);
       if (lib_icon != ICON_NONE) {
-        ui::UI_icon_draw_alpha(
+        ui::icon_draw_alpha(
             float(startx) + offsx + 2 * ufac, float(*starty) + 2 * ufac, lib_icon, alpha_fac);
         offsx += UI_UNIT_X + 4 * ufac;
       }
@@ -3429,7 +3428,7 @@ static void outliner_draw_tree_element(uiBlock *block,
       if (tselem->type == TSE_LAYER_COLLECTION) {
         const Collection *collection = (Collection *)tselem->id;
         if (!BLI_listbase_is_empty(&collection->exporters)) {
-          ui::UI_icon_draw_alpha(
+          ui::icon_draw_alpha(
               float(startx) + offsx + 2 * ufac, float(*starty) + 2 * ufac, ICON_EXPORT, alpha_fac);
           offsx += UI_UNIT_X + 4 * ufac;
         }
@@ -3440,15 +3439,14 @@ static void outliner_draw_tree_element(uiBlock *block,
     /* Name. */
     if ((tselem->flag & TSE_TEXTBUT) == 0) {
       if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
-        ui::UI_GetThemeColorBlend3ubv(TH_BACK, TH_TEXT, 0.75f, text_color);
+        ui::GetThemeColorBlend3ubv(TH_BACK, TH_TEXT, 0.75f, text_color);
         text_color[3] = 255;
       }
       text_color[3] *= alpha_fac;
-      ui::UI_fontstyle_draw_simple(
-          fstyle, startx + offsx, *starty + 5 * ufac, te->name, text_color);
+      ui::fontstyle_draw_simple(fstyle, startx + offsx, *starty + 5 * ufac, te->name, text_color);
     }
 
-    offsx += int(UI_UNIT_X + ui::UI_fontstyle_string_width(fstyle, te->name));
+    offsx += int(UI_UNIT_X + ui::fontstyle_string_width(fstyle, te->name));
 
     /* Closed item, we draw the icons, not when it's a scene, or master-server list though. */
     if (!TSELEM_OPEN(tselem, space_outliner)) {
@@ -3550,7 +3548,7 @@ static void outliner_draw_hierarchy_lines_recursive(uint pos,
                                                     bool draw_grayed_out,
                                                     int *starty)
 {
-  bTheme *btheme = ui::UI_GetTheme();
+  bTheme *btheme = ui::GetTheme();
   int y = *starty;
 
   /* Draw vertical lines between collections */
@@ -3633,7 +3631,7 @@ static void outliner_draw_hierarchy_lines(SpaceOutliner *space_outliner,
   immUniform2f("viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
   immUniform1i("colors_len", 0); /* "simple"  mode */
   immUniform1f("dash_width", 8.0f);
-  ui::UI_GetThemeColorBlend3ubv(TH_BACK, TH_TEXT, 0.4f, col);
+  ui::GetThemeColorBlend3ubv(TH_BACK, TH_TEXT, 0.4f, col);
   col[3] = 255;
 
   GPU_line_width(1.0f);
@@ -3713,18 +3711,18 @@ static void outliner_draw_highlights(const ARegion *region,
                   int(region->v2d.cur.xmax) - padding_x,
                   start_y + ufac,
                   start_y + UI_UNIT_Y - ufac);
-    UI_draw_roundbox_corner_set(ui::UI_CNR_ALL);
+    draw_roundbox_corner_set(ui::CNR_ALL);
 
     /* Selection status. */
     if ((tselem->flag & TSE_ACTIVE) && (tselem->flag & TSE_SELECTED)) {
-      ui::UI_draw_roundbox_4fv(&rect, true, radius, col_active);
+      ui::draw_roundbox_4fv(&rect, true, radius, col_active);
 
       float col_active_outline[4];
-      ui::UI_GetThemeColorShade4fv(TH_SELECT_ACTIVE, 40, col_active_outline);
-      ui::UI_draw_roundbox_4fv(&rect, false, radius, col_active_outline);
+      ui::GetThemeColorShade4fv(TH_SELECT_ACTIVE, 40, col_active_outline);
+      ui::draw_roundbox_4fv(&rect, false, radius, col_active_outline);
     }
     else if (tselem->flag & TSE_SELECTED) {
-      ui::UI_draw_roundbox_4fv(&rect, true, radius, col_selection);
+      ui::draw_roundbox_4fv(&rect, true, radius, col_selection);
     }
 
     /* Highlights. */
@@ -3732,34 +3730,33 @@ static void outliner_draw_highlights(const ARegion *region,
       if (tselem->flag & TSE_DRAG_ANY) {
         /* Drag and drop highlight. */
         float col_outline[4];
-        ui::UI_GetThemeColorBlend4f(TH_TEXT, TH_BACK, 0.4f, col_outline);
+        ui::GetThemeColorBlend4f(TH_TEXT, TH_BACK, 0.4f, col_outline);
 
         if (tselem->flag & TSE_DRAG_BEFORE) {
           rect.ymax += (1.0f * UI_SCALE_FAC) + (1.0f * U.pixelsize);
           rect.ymin = rect.ymax - (2.0f * U.pixelsize);
-          ui::UI_draw_roundbox_4fv(&rect, true, 0.0f, col_outline);
+          ui::draw_roundbox_4fv(&rect, true, 0.0f, col_outline);
         }
         else if (tselem->flag & TSE_DRAG_AFTER) {
           rect.ymin -= (1.0f * UI_SCALE_FAC) + (1.0f * U.pixelsize);
           rect.ymax = rect.ymin + (2.0f * U.pixelsize);
-          ui::UI_draw_roundbox_4fv(&rect, true, 0.0f, col_outline);
+          ui::draw_roundbox_4fv(&rect, true, 0.0f, col_outline);
         }
         else {
           float col_bg[4];
-          ui::UI_GetThemeColorShade4fv(TH_BACK, 40, col_bg);
-          ui::UI_draw_roundbox_4fv_ex(
-              &rect, col_bg, nullptr, 1.0f, col_outline, U.pixelsize, radius);
+          ui::GetThemeColorShade4fv(TH_BACK, 40, col_bg);
+          ui::draw_roundbox_4fv_ex(&rect, col_bg, nullptr, 1.0f, col_outline, U.pixelsize, radius);
         }
       }
       else {
         if (is_searching && (tselem->flag & TSE_SEARCHMATCH)) {
           /* Search match highlights. We don't expand items when searching in the data-blocks,
            * but we still want to highlight any filter matches. */
-          ui::UI_draw_roundbox_4fv(&rect, true, radius, col_searchmatch);
+          ui::draw_roundbox_4fv(&rect, true, radius, col_searchmatch);
         }
         else if (tselem->flag & TSE_HIGHLIGHTED) {
           /* Mouse hover highlight. */
-          ui::UI_draw_roundbox_4fv(&rect, true, radius, col_highlight);
+          ui::draw_roundbox_4fv(&rect, true, radius, col_highlight);
         }
       }
     }
@@ -3776,11 +3773,11 @@ static void outliner_draw_highlights(ARegion *region,
   const float col_highlight[4] = {1.0f, 1.0f, 1.0f, 0.13f};
   float col_selection[4], col_active[4], col_searchmatch[4];
 
-  ui::UI_GetThemeColor3fv(TH_SELECT_HIGHLIGHT, col_selection);
+  ui::GetThemeColor3fv(TH_SELECT_HIGHLIGHT, col_selection);
   col_selection[3] = 1.0f; /* No alpha. */
-  ui::UI_GetThemeColor3fv(TH_SELECT_ACTIVE, col_active);
+  ui::GetThemeColor3fv(TH_SELECT_ACTIVE, col_active);
   col_active[3] = 1.0f; /* No alpha. */
-  ui::UI_GetThemeColor4fv(TH_MATCH, col_searchmatch);
+  ui::GetThemeColor4fv(TH_MATCH, col_searchmatch);
   col_searchmatch[3] = 0.5f;
 
   GPU_blend(GPU_BLEND_ALPHA);
@@ -3890,7 +3887,7 @@ static void outliner_back(ARegion *region)
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   float col_alternating[4];
-  ui::UI_GetThemeColor4fv(TH_ROW_ALTERNATE, col_alternating);
+  ui::GetThemeColor4fv(TH_ROW_ALTERNATE, col_alternating);
   immUniformThemeColorBlend(TH_BACK, TH_ROW_ALTERNATE, col_alternating[3]);
 
   const float x1 = 0.0f, x2 = region->v2d.cur.xmax;
@@ -3943,7 +3940,7 @@ static void outliner_update_viewable_area(ARegion *region,
   /* Extend size to allow for horizontal scroll-bar and extra offset. */
   sizey += V2D_SCROLL_HEIGHT + OL_Y_OFFSET;
 
-  ui::UI_view2d_totRect_set(&region->v2d, sizex, sizey);
+  ui::view2d_totRect_set(&region->v2d, sizex, sizey);
 }
 
 /** \} */
@@ -4000,7 +3997,7 @@ void draw_outliner(const bContext *C, bool do_rebuild)
   /* Force display to pixel coords. */
   v2d->flag |= (V2D_PIXELOFS_X | V2D_PIXELOFS_Y);
   /* Set matrix for 2D-view controls. */
-  ui::UI_view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
 
   /* Only show mode column in View Layers and Scenes view. */
   const bool use_mode_column = outliner_shows_mode_column(*space_outliner);
@@ -4009,7 +4006,7 @@ void draw_outliner(const bContext *C, bool do_rebuild)
   /* Draw outliner stuff (background, hierarchy lines and names). */
   const float right_column_width = outliner_right_columns_width(space_outliner);
   outliner_back(region);
-  block = UI_block_begin(C, region, __func__, ui::EmbossType::Emboss);
+  block = block_begin(C, region, __func__, ui::EmbossType::Emboss);
   outliner_draw_tree(block,
                      tvc,
                      region,
@@ -4024,7 +4021,7 @@ void draw_outliner(const bContext *C, bool do_rebuild)
   outliner_tree_dimensions(space_outliner, &tree_width, &tree_height);
 
   /* Default to no emboss for outliner UI. */
-  UI_block_emboss_set(block, ui::EmbossType::NoneOrStatus);
+  block_emboss_set(block, ui::EmbossType::NoneOrStatus);
 
   if (space_outliner->outlinevis == SO_DATA_API) {
     int buttons_start_x = outliner_data_api_buttons_start_x(tree_width);
@@ -4032,9 +4029,9 @@ void draw_outliner(const bContext *C, bool do_rebuild)
     outliner_draw_separator(region, buttons_start_x);
     outliner_draw_separator(region, buttons_start_x + OL_RNA_COL_SIZEX);
 
-    UI_block_emboss_set(block, ui::EmbossType::Emboss);
+    block_emboss_set(block, ui::EmbossType::Emboss);
     outliner_draw_rnabuts(block, region, space_outliner, buttons_start_x);
-    UI_block_emboss_set(block, ui::EmbossType::NoneOrStatus);
+    block_emboss_set(block, ui::EmbossType::NoneOrStatus);
   }
   else if (ELEM(space_outliner->outlinevis, SO_ID_ORPHANS, SO_LIBRARIES)) {
     outliner_draw_userbuts(block, region, space_outliner);
@@ -4043,10 +4040,10 @@ void draw_outliner(const bContext *C, bool do_rebuild)
     const int x = region->v2d.cur.xmax - right_column_width;
     outliner_draw_separator(region, x);
     if (space_outliner->lib_override_view_mode == SO_LIB_OVERRIDE_VIEW_PROPERTIES) {
-      UI_block_emboss_set(block, ui::EmbossType::Emboss);
-      UI_block_flag_enable(block, ui::UI_BLOCK_NO_DRAW_OVERRIDDEN_STATE);
+      block_emboss_set(block, ui::EmbossType::Emboss);
+      block_flag_enable(block, ui::BLOCK_NO_DRAW_OVERRIDDEN_STATE);
       outliner_draw_overrides_rna_buts(block, region, space_outliner, &space_outliner->tree, x);
-      UI_block_emboss_set(block, ui::EmbossType::NoneOrStatus);
+      block_emboss_set(block, ui::EmbossType::NoneOrStatus);
     }
     else if (space_outliner->lib_override_view_mode == SO_LIB_OVERRIDE_VIEW_HIERARCHIES) {
       outliner_draw_overrides_restrictbuts(
@@ -4076,15 +4073,15 @@ void draw_outliner(const bContext *C, bool do_rebuild)
     outliner_draw_warning_column(block, space_outliner, use_mode_column);
   }
 
-  UI_block_emboss_set(block, ui::EmbossType::Emboss);
+  block_emboss_set(block, ui::EmbossType::Emboss);
 
   /* Draw edit buttons if necessary. */
   if (te_edit) {
     outliner_buttons(C, block, region, right_column_width, te_edit);
   }
 
-  UI_block_end(C, block);
-  UI_block_draw(C, block);
+  block_end(C, block);
+  block_draw(C, block);
 
   /* Update total viewable region. */
   outliner_update_viewable_area(

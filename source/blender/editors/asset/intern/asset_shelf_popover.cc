@@ -190,7 +190,7 @@ static void catalog_tree_draw(const bContext &C, ui::Layout &layout, AssetShelf 
   }
 
   uiBlock *block = layout.block();
-  ui::AbstractTreeView *tree_view = UI_block_add_view(
+  ui::AbstractTreeView *tree_view = block_add_view(
       *block,
       "asset shelf catalog tree view",
       std::make_unique<AssetCatalogTreeView>(*library, shelf));
@@ -255,7 +255,7 @@ static void popover_panel_draw(const bContext *C, Panel *panel)
   sub.prop(&shelf_ptr,
            "search_filter",
            /* Force the button to be active in a semi-modal state. */
-           ui::UI_ITEM_R_TEXT_BUT_FORCE_SEMI_MODAL_ACTIVE,
+           ui::ITEM_R_TEXT_BUT_FORCE_SEMI_MODAL_ACTIVE,
            "",
            ICON_VIEWZOOM);
 

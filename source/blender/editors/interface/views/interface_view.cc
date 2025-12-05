@@ -63,16 +63,16 @@ static T *ui_block_add_view_impl(uiBlock &block,
   return dynamic_cast<T *>(view_link->view.get());
 }
 
-AbstractGridView *UI_block_add_view(uiBlock &block,
-                                    StringRef idname,
-                                    std::unique_ptr<AbstractGridView> grid_view)
+AbstractGridView *block_add_view(uiBlock &block,
+                                 StringRef idname,
+                                 std::unique_ptr<AbstractGridView> grid_view)
 {
   return ui_block_add_view_impl<AbstractGridView>(block, idname, std::move(grid_view));
 }
 
-AbstractTreeView *UI_block_add_view(uiBlock &block,
-                                    StringRef idname,
-                                    std::unique_ptr<AbstractTreeView> tree_view)
+AbstractTreeView *block_add_view(uiBlock &block,
+                                 StringRef idname,
+                                 std::unique_ptr<AbstractTreeView> tree_view)
 {
   return ui_block_add_view_impl<AbstractTreeView>(block, idname, std::move(tree_view));
 }
@@ -196,7 +196,7 @@ void ui_block_views_draw_overlays(const ARegion *region, const uiBlock *block)
   }
 }
 
-AbstractView *UI_region_view_find_at(const ARegion *region, const int xy[2], const int pad)
+AbstractView *region_view_find_at(const ARegion *region, const int xy[2], const int pad)
 {
   /* NOTE: Similar to #ui_but_find_mouse_over_ex(). */
 
@@ -226,7 +226,7 @@ AbstractView *UI_region_view_find_at(const ARegion *region, const int xy[2], con
   return nullptr;
 }
 
-AbstractViewItem *UI_region_views_find_item_at(const ARegion &region, const int xy[2])
+AbstractViewItem *region_views_find_item_at(const ARegion &region, const int xy[2])
 {
   auto *item_but = (ButtonViewItem *)ui_view_item_find_mouse_over(&region, xy);
   if (!item_but) {
@@ -236,7 +236,7 @@ AbstractViewItem *UI_region_views_find_item_at(const ARegion &region, const int 
   return item_but->view_item;
 }
 
-AbstractViewItem *UI_region_views_find_active_item(const ARegion *region)
+AbstractViewItem *region_views_find_active_item(const ARegion *region)
 {
   auto *item_but = (ButtonViewItem *)ui_view_item_find_active(region);
   if (!item_but) {
@@ -246,12 +246,12 @@ AbstractViewItem *UI_region_views_find_active_item(const ARegion *region)
   return item_but->view_item;
 }
 
-uiBut *UI_region_views_find_active_item_but(const ARegion *region)
+uiBut *region_views_find_active_item_but(const ARegion *region)
 {
   return ui_view_item_find_active(region);
 }
 
-void UI_region_views_clear_search_highlight(const ARegion *region)
+void region_views_clear_search_highlight(const ARegion *region)
 {
   LISTBASE_FOREACH (uiBlock *, block, &region->runtime->uiblocks) {
     LISTBASE_FOREACH (ViewLink *, view_link, &block->views) {
@@ -263,21 +263,21 @@ void UI_region_views_clear_search_highlight(const ARegion *region)
 std::unique_ptr<DropTargetInterface> region_views_find_drop_target_at(const ARegion *region,
                                                                       const int xy[2])
 {
-  if (AbstractViewItem *item = UI_region_views_find_item_at(*region, xy)) {
+  if (AbstractViewItem *item = region_views_find_item_at(*region, xy)) {
     if (std::unique_ptr<DropTargetInterface> target = item->create_item_drop_target()) {
       return target;
     }
   }
 
   /* Get style for some sensible padding around the view items. */
-  const uiStyle *style = UI_style_get_dpi();
-  if (AbstractView *view = UI_region_view_find_at(region, xy, style->buttonspacex)) {
+  const uiStyle *style = style_get_dpi();
+  if (AbstractView *view = region_view_find_at(region, xy, style->buttonspacex)) {
     if (std::unique_ptr<DropTargetInterface> target = view->create_drop_target()) {
       return target;
     }
   }
 
-  if (AbstractView *view = UI_region_view_find_at(region, xy, 0)) {
+  if (AbstractView *view = region_view_find_at(region, xy, 0)) {
     /* If we are above a tree, but not hovering any specific element, dropping something should
      * insert it after the last item. */
     if (AbstractTreeView *tree_view = dynamic_cast<AbstractTreeView *>(view)) {
@@ -367,7 +367,7 @@ ButtonViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
       continue;
     }
 
-    if (UI_view_item_matches(new_item, old_item)) {
+    if (view_item_matches(new_item, old_item)) {
       return old_item_but;
     }
   }

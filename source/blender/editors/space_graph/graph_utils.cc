@@ -45,7 +45,7 @@ void ED_drivers_editor_init(bContext *C, ScrArea *area)
   /* Show Properties Region (or else the settings can't be edited) */
   ARegion *region_props = BKE_area_find_region_type(area, RGN_TYPE_UI);
   if (region_props) {
-    blender::ui::UI_panel_category_active_set(region_props, "Drivers");
+    blender::ui::panel_category_active_set(region_props, "Drivers");
 
     region_props->flag &= ~RGN_FLAG_HIDDEN;
     /* XXX: Adjust width of this too? */

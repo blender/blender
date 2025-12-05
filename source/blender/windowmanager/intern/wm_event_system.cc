@@ -645,7 +645,7 @@ void wm_event_do_notifiers(bContext *C)
           if (note->data == ND_WORKSPACE_SET) {
             WorkSpace *ref_ws = static_cast<WorkSpace *>(note->reference);
 
-            blender::ui::UI_popup_handlers_remove_all(C, &win->modalhandlers);
+            blender::ui::popup_handlers_remove_all(C, &win->modalhandlers);
 
             WM_window_set_active_workspace(C, win, ref_ws);
             if (G.debug & G_DEBUG_EVENTS) {
@@ -666,7 +666,7 @@ void wm_event_do_notifiers(bContext *C)
                 static_cast<WorkSpaceLayout *>(note->reference));
 
             /* Free popup handlers only #35434. */
-            blender::ui::UI_popup_handlers_remove_all(C, &win->modalhandlers);
+            blender::ui::popup_handlers_remove_all(C, &win->modalhandlers);
 
             ED_screen_change(C, ref_screen); /* XXX: hum, think this over! */
             if (G.debug & G_DEBUG_EVENTS) {
@@ -1201,7 +1201,7 @@ static void wm_operator_reports(bContext *C,
 {
   if (G.background == 0 && caller_owns_reports == false) { /* Popup. */
     if (op->reports->list.first) {
-      /* FIXME: temp setting window, see other call to #UI_popup_menu_reports for why. */
+      /* FIXME: temp setting window, see other call to #popup_menu_reports for why. */
       wmWindow *win_prev = CTX_wm_window(C);
       ScrArea *area_prev = CTX_wm_area(C);
       ARegion *region_prev = CTX_wm_region(C);
@@ -1210,7 +1210,7 @@ static void wm_operator_reports(bContext *C,
         CTX_wm_window_set(C, static_cast<wmWindow *>(CTX_wm_manager(C)->windows.first));
       }
 
-      blender::ui::UI_popup_menu_reports(C, op->reports);
+      blender::ui::popup_menu_reports(C, op->reports);
 
       CTX_wm_window_set(C, win_prev);
       CTX_wm_area_set(C, area_prev);
@@ -2917,7 +2917,7 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
             /* Some operators expect a drawable context (for #EVT_FILESELECT_EXEC). */
             wm_window_make_drawable(wm, root_win);
             /* Ensure correct cursor position, otherwise, popups may close immediately after
-             * opening (#UI_BLOCK_MOVEMOUSE_QUIT). */
+             * opening (#BLOCK_MOVEMOUSE_QUIT). */
             int xy[2];
             if (wm_cursor_position_get(root_win, &xy[0], &xy[1])) {
               copy_v2_v2_int(eventstate->xy, xy);
@@ -2954,7 +2954,7 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
         ED_area_do_refresh(C, handler_area);
       }
 
-      /* Needed for #UI_popup_menu_reports. */
+      /* Needed for #popup_menu_reports. */
 
       if (val == EVT_FILESELECT_EXEC) {
         if (handler->op->type->flag & OPTYPE_UNDO) {
@@ -2995,7 +2995,7 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
           }
 
           BKE_report_print_level_set(handler->op->reports, RPT_WARNING);
-          blender::ui::UI_popup_menu_reports(C, handler->op->reports);
+          blender::ui::popup_menu_reports(C, handler->op->reports);
 
           WM_reports_from_reports_move(CTX_wm_manager(C), handler->op->reports);
 
@@ -3273,7 +3273,7 @@ static eHandlerActionFlag wm_handlers_do_gizmo_handler(bContext *C,
    * noticeable for the node editor - where dragging on a node should move it, see: #73212.
    * note we still allow for starting the gizmo drag outside, then travel 'inside' the node. */
   if (region->runtime->type->clip_gizmo_events_by_ui) {
-    if (blender::ui::UI_region_block_find_mouse_over(region, event->xy, true)) {
+    if (blender::ui::region_block_find_mouse_over(region, event->xy, true)) {
       if (gz != nullptr && event->type != EVT_GIZMO_UPDATE) {
         if (restore_highlight_unless_activated == false) {
           WM_tooltip_clear(C, CTX_wm_window(C));
@@ -6860,7 +6860,7 @@ bool WM_window_modal_keymap_status_draw(bContext *C, wmWindow *win, blender::ui:
       continue;
     }
 
-    const int num_items_used = uiTemplateStatusBarModalItem(&row, op, keymap, items + i);
+    const int num_items_used = template_status_bar_modal_item(&row, op, keymap, items + i);
     if (num_items_used > 0) {
       /* Skip items in case consecutive items were merged. */
       i += num_items_used - 1;

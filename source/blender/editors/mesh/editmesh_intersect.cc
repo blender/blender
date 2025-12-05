@@ -249,14 +249,14 @@ static void edbm_intersect_ui(bContext * /*C*/, wmOperator *op)
   layout.use_property_split_set(true);
   layout.use_property_decorate_set(false);
   blender::ui::Layout *row = &layout.row(false);
-  row->prop(op->ptr, "mode", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(op->ptr, "mode", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   layout.separator();
   row = &layout.row(false);
-  row->prop(op->ptr, "separate_mode", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(op->ptr, "separate_mode", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   layout.separator();
 
   row = &layout.row(false);
-  row->prop(op->ptr, "solver", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(op->ptr, "solver", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   layout.separator();
 
   if (!use_exact) {
@@ -409,11 +409,11 @@ static void edbm_intersect_boolean_ui(bContext * /*C*/, wmOperator *op)
   layout.use_property_decorate_set(false);
 
   blender::ui::Layout &operation_row = layout.row(false);
-  operation_row.prop(op->ptr, "operation", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  operation_row.prop(op->ptr, "operation", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   layout.separator();
 
   blender::ui::Layout &solver_row = layout.row(false);
-  solver_row.prop(op->ptr, "solver", blender::ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  solver_row.prop(op->ptr, "solver", blender::ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   layout.separator();
 
   layout.prop(op->ptr, "use_swap", UI_ITEM_NONE, std::nullopt, ICON_NONE);

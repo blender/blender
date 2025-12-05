@@ -91,13 +91,13 @@ static void draw_current_frame(const Scene *scene,
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
   const float current_frame = BKE_scene_ctime_get(scene);
-  const float subframe_x = blender::ui::UI_view2d_view_to_region_x(v2d, current_frame);
+  const float subframe_x = blender::ui::view2d_view_to_region_x(v2d, current_frame);
 
   constexpr int max_frame_string_len = 64;
   char frame_str[max_frame_string_len];
   get_current_time_str(scene, display_seconds, current_frame, frame_str, max_frame_string_len);
 
-  const float text_width = blender::ui::UI_fontstyle_string_width(fstyle, frame_str);
+  const float text_width = blender::ui::fontstyle_string_width(fstyle, frame_str);
   const float text_padding = 4.0f * UI_SCALE_FAC;
   const float box_min_width = 24.0f * UI_SCALE_FAC;
   const float box_width = std::max(text_width + (2.0f * text_padding), box_min_width);
@@ -110,9 +110,9 @@ static void draw_current_frame(const Scene *scene,
   uint pos;
 
   float fg_color[4];
-  blender::ui::UI_GetThemeColor4fv(TH_CFRAME, fg_color);
+  blender::ui::GetThemeColor4fv(TH_CFRAME, fg_color);
   float bg_color[4];
-  blender::ui::UI_GetThemeColorShade4fv(TH_BACK, -20, bg_color);
+  blender::ui::GetThemeColorShade4fv(TH_BACK, -20, bg_color);
 
   if (display_stalk) {
     /* Shadow for triangle below frame box. */
@@ -144,25 +144,25 @@ static void draw_current_frame(const Scene *scene,
     }
     rect.ymin = 0.0f;
     rect.ymax = ceil(scrub_region_rect->ymax - box_margin + shadow_width);
-    blender::ui::UI_draw_roundbox_4fv_ex(
+    blender::ui::draw_roundbox_4fv_ex(
         &rect, fg_color, nullptr, 1.0f, bg_color, shadow_width, 0.0f);
   }
 
   /* Box. */
-  UI_draw_roundbox_corner_set(blender::ui::UI_CNR_ALL);
+  draw_roundbox_corner_set(blender::ui::CNR_ALL);
   const float box_corner_radius = 4.0f * UI_SCALE_FAC;
   rect.xmin = subframe_x - (box_width / 2.0f);
   rect.xmax = subframe_x + (box_width / 2.0f) + 1.0f;
   rect.ymin = floor(scrub_region_rect->ymin + (box_margin - shadow_width));
   rect.ymax = ceil(scrub_region_rect->ymax - box_margin + shadow_width);
-  blender::ui::UI_draw_roundbox_4fv_ex(
+  blender::ui::draw_roundbox_4fv_ex(
       &rect, fg_color, nullptr, 1.0f, bg_color, shadow_width, box_corner_radius);
 
   /* Frame number text. */
   uchar text_color[4];
-  blender::ui::UI_GetThemeColor4ubv(TH_HEADER_TEXT_HI, text_color);
+  blender::ui::GetThemeColor4ubv(TH_HEADER_TEXT_HI, text_color);
   const int y = BLI_rcti_cent_y(scrub_region_rect) - int(fstyle->points * UI_SCALE_FAC * 0.38f);
-  blender::ui::UI_fontstyle_draw_simple(
+  blender::ui::fontstyle_draw_simple(
       fstyle, subframe_x - (text_width / 2.0f), y, frame_str, text_color);
 
   if (display_stalk) {
@@ -216,11 +216,11 @@ void ED_time_scrub_draw(const ARegion *region,
   rcti numbers_rect = scrub_region_rect;
   numbers_rect.ymin = get_centered_text_y(&scrub_region_rect) - 4 * UI_SCALE_FAC;
   if (discrete_frames) {
-    blender::ui::UI_view2d_draw_scale_x__discrete_frames_or_seconds(
+    blender::ui::view2d_draw_scale_x__discrete_frames_or_seconds(
         region, v2d, &numbers_rect, scene, display_seconds, TH_TIME_SCRUB_TEXT, base);
   }
   else {
-    blender::ui::UI_view2d_draw_scale_x__frames_or_seconds(
+    blender::ui::view2d_draw_scale_x__frames_or_seconds(
         region, v2d, &numbers_rect, scene, display_seconds, TH_TIME_SCRUB_TEXT, base);
   }
 
@@ -269,11 +269,11 @@ void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *region, bDope
 
   PointerRNA ptr = RNA_pointer_create_discrete(&CTX_wm_screen(C)->id, &RNA_DopeSheet, dopesheet);
 
-  const uiStyle *style = blender::ui::UI_style_get_dpi();
+  const uiStyle *style = blender::ui::style_get_dpi();
   const float padding_x = 2 * UI_SCALE_FAC;
   const float padding_y = UI_SCALE_FAC;
 
-  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  uiBlock *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
   blender::ui::Layout &layout = blender::ui::block_layout(block,
                                                           blender::ui::LayoutDirection::Vertical,
                                                           blender::ui::LayoutType::Header,
@@ -285,18 +285,18 @@ void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *region, bDope
                                                           style);
   layout.scale_y_set((UI_UNIT_Y - padding_y) / UI_UNIT_Y);
   blender::ui::block_layout_set_current(block, &layout);
-  UI_block_align_begin(block);
+  block_align_begin(block);
   layout.prop(&ptr, "filter_text", UI_ITEM_NONE, "", ICON_NONE);
   layout.prop(&ptr, "use_filter_invert", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
-  UI_block_align_end(block);
+  block_align_end(block);
   blender::ui::block_layout_resolve(block);
 
   /* Make sure the events are consumed from the search and don't reach other UI blocks since this
    * is drawn on top of animation-channels. */
-  UI_block_flag_enable(block, blender::ui::UI_BLOCK_CLIP_EVENTS);
-  UI_block_bounds_set_normal(block, 0);
-  UI_block_end(C, block);
-  UI_block_draw(C, block);
+  block_flag_enable(block, blender::ui::BLOCK_CLIP_EVENTS);
+  block_bounds_set_normal(block, 0);
+  block_end(C, block);
+  block_draw(C, block);
 
   GPU_matrix_pop_projection();
 }

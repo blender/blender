@@ -42,7 +42,7 @@ static int unpadded_item_height()
 }
 static int padded_item_height()
 {
-  const uiStyle *style = UI_style_get_dpi();
+  const uiStyle *style = style_get_dpi();
   return unpadded_item_height() + style->buttonspacey;
 }
 
@@ -540,8 +540,8 @@ void AbstractTreeViewItem::collapse_chevron_click_fn(bContext *C,
 
   const wmWindow *win = CTX_wm_window(C);
   const ARegion *region = CTX_wm_region_popup(C) ? CTX_wm_region_popup(C) : CTX_wm_region(C);
-  AbstractViewItem *hovered_abstract_item = UI_region_views_find_item_at(*region,
-                                                                         win->eventstate->xy);
+  AbstractViewItem *hovered_abstract_item = region_views_find_item_at(*region,
+                                                                      win->eventstate->xy);
 
   auto *hovered_item = reinterpret_cast<AbstractTreeViewItem *>(hovered_abstract_item);
   BLI_assert(hovered_item != nullptr);
@@ -563,22 +563,22 @@ void AbstractTreeViewItem::add_collapse_chevron(uiBlock &block) const
   const BIFIconID icon = this->is_collapsed() ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT;
   uiBut *but = uiDefIconBut(
       &block, ButType::ButToggle, icon, 0, 0, UI_TREEVIEW_INDENT, UI_UNIT_Y, nullptr, 0, 0, "");
-  UI_but_func_set(but, collapse_chevron_click_fn, nullptr, nullptr);
-  UI_but_flag_disable(but, UI_BUT_UNDO);
+  button_func_set(but, collapse_chevron_click_fn, nullptr, nullptr);
+  button_flag_disable(but, BUT_UNDO);
 }
 
 void AbstractTreeViewItem::add_rename_button(Layout &row)
 {
   uiBlock *block = row.block();
-  EmbossType previous_emboss = UI_block_emboss_get(block);
+  EmbossType previous_emboss = block_emboss_get(block);
 
   row.row(false);
   /* Enable emboss for the text button. */
-  UI_block_emboss_set(block, EmbossType::Emboss);
+  block_emboss_set(block, EmbossType::Emboss);
 
   AbstractViewItem::add_rename_button(*block);
 
-  UI_block_emboss_set(block, previous_emboss);
+  block_emboss_set(block, previous_emboss);
   block_layout_set_current(block, &row);
 }
 
@@ -916,7 +916,7 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
 
     /* Bottom */
     Layout &bottom = col.row(false);
-    UI_block_emboss_set(block, EmbossType::None);
+    block_emboss_set(block, EmbossType::None);
     uiBut *but = uiDefIconButBitC(block,
                                   ButType::IconToggleN,
                                   1,
@@ -929,8 +929,8 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
                                   0,
                                   0,
                                   TIP_(""));
-    UI_but_flag_disable(but, UI_BUT_UNDO);
-    UI_block_emboss_set(block, EmbossType::Emboss);
+    button_flag_disable(but, BUT_UNDO);
+    block_emboss_set(block, EmbossType::Emboss);
     bottom.column(false);
 
     uiDefIconButI(block,
@@ -958,11 +958,11 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
                             0,
                             UI_MAX_NAME_STR,
                             "");
-      UI_but_retval_set(but, 1);
-      UI_but_flag_enable(but, UI_BUT_TEXTEDIT_UPDATE | UI_BUT_VALUE_CLEAR);
-      UI_but_flag_disable(but, UI_BUT_UNDO);
+      button_retval_set(but, 1);
+      button_flag_enable(but, BUT_TEXTEDIT_UPDATE | BUT_VALUE_CLEAR);
+      button_flag_disable(but, BUT_UNDO);
       ui_def_but_icon(but, ICON_VIEWZOOM, UI_HAS_ICON);
-      UI_but_placeholder_set(but, IFACE_("Search"));
+      button_placeholder_set(but, IFACE_("Search"));
     }
   }
 
@@ -980,7 +980,7 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
     return;
   }
 
-  EmbossType previous_emboss = UI_block_emboss_get(&block_);
+  EmbossType previous_emboss = block_emboss_get(&block_);
 
   Layout &overlap = prev_layout.overlap();
 
@@ -995,7 +995,7 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
   item.add_treerow_button(block_);
 
   /* After adding tree-row button (would disable hover highlighting). */
-  UI_block_emboss_set(&block_, EmbossType::NoneOrStatus);
+  block_emboss_set(&block_, EmbossType::NoneOrStatus);
 
   /* Add little margin to align actual contents vertically. */
   Layout &content_col = overlap.column(true);
@@ -1021,7 +1021,7 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
 
   uiLayoutListItemAddPadding(row);
 
-  UI_block_emboss_set(&block_, previous_emboss);
+  block_emboss_set(&block_, previous_emboss);
   block_layout_set_current(&block_, &prev_layout);
 }
 
@@ -1087,9 +1087,9 @@ void TreeViewBuilder::build_tree_view(const bContext &C,
 
   TreeViewLayoutBuilder builder(layout);
   builder.add_box_ = add_box;
-  UI_block_flag_enable(&block, UI_BLOCK_LIST_ITEM);
+  block_flag_enable(&block, BLOCK_LIST_ITEM);
   builder.build_from_tree(tree_view);
-  UI_block_flag_disable(&block, UI_BLOCK_LIST_ITEM);
+  block_flag_disable(&block, BLOCK_LIST_ITEM);
 }
 
 /* ---------------------------------------------------------------------- */

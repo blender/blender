@@ -531,7 +531,7 @@ static void waves_panel_draw(const bContext * /*C*/, Panel *panel)
   layout.separator();
 
   col = &layout.column(false);
-  col->prop(ptr, "wave_alignment", blender::ui::UI_ITEM_R_SLIDER, IFACE_("Alignment"), ICON_NONE);
+  col->prop(ptr, "wave_alignment", blender::ui::ITEM_R_SLIDER, IFACE_("Alignment"), ICON_NONE);
   blender::ui::Layout &sub = col->column(false);
   sub.active_set(RNA_float_get(ptr, "wave_alignment") > 0.0f);
   sub.prop(ptr, "wave_direction", UI_ITEM_NONE, IFACE_("Direction"), ICON_NONE);
@@ -607,7 +607,7 @@ static void spectrum_panel_draw(const bContext * /*C*/, Panel *panel)
   blender::ui::Layout &col = layout.column(false);
   col.prop(ptr, "spectrum", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (ELEM(spectrum, MOD_OCEAN_SPECTRUM_TEXEL_MARSEN_ARSLOE, MOD_OCEAN_SPECTRUM_JONSWAP)) {
-    col.prop(ptr, "sharpen_peak_jonswap", blender::ui::UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+    col.prop(ptr, "sharpen_peak_jonswap", blender::ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
     col.prop(ptr, "fetch_jonswap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }

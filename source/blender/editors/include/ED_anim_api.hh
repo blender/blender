@@ -526,8 +526,7 @@ ENUM_OPERATORS(eAnimFilter_Flags);
 
 /** NLA track heights */
 #define NLATRACK_FIRST_TOP(ac) \
-  (blender::ui::UI_view2d_scale_get_y(&(ac)->region->v2d) * -UI_TIME_SCRUB_MARGIN_Y - \
-   NLATRACK_SKIP)
+  (blender::ui::view2d_scale_get_y(&(ac)->region->v2d) * -UI_TIME_SCRUB_MARGIN_Y - NLATRACK_SKIP)
 #define NLATRACK_HEIGHT(snla) \
   (((snla) && ((snla)->flag & SNLA_NOSTRIPCURVES)) ? (0.8f * U.widget_unit) : \
                                                      (1.2f * U.widget_unit))

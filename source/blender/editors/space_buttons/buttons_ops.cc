@@ -56,7 +56,7 @@ static wmOperatorStatus buttons_start_filter_exec(bContext *C, wmOperator * /*op
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
 
-  blender::ui::UI_textbutton_activate_rna(C, region, space, "search_filter");
+  blender::ui::textbutton_activate_rna(C, region, space, "search_filter");
 
   return OPERATOR_FINISHED;
 }
@@ -147,12 +147,12 @@ static wmOperatorStatus context_menu_invoke(bContext *C,
                                             wmOperator * /*op*/,
                                             const wmEvent * /*event*/)
 {
-  blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(
+  blender::ui::PopupMenu *pup = blender::ui::popup_menu_begin(
       C, IFACE_("Context Menu"), ICON_NONE);
-  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
+  blender::ui::Layout &layout = *popup_menu_layout(pup);
 
   layout.menu("INFO_MT_area", std::nullopt, ICON_NONE);
-  UI_popup_menu_end(C, pup);
+  popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;
 }
@@ -297,7 +297,7 @@ static wmOperatorStatus file_browse_invoke(bContext *C, wmOperator *op, const wm
     return OPERATOR_CANCELLED;
   }
 
-  blender::ui::UI_context_active_but_prop_get_filebrowser(C, &ptr, &prop, &is_undo, &is_userdef);
+  blender::ui::context_active_but_prop_get_filebrowser(C, &ptr, &prop, &is_undo, &is_userdef);
 
   if (!prop) {
     return OPERATOR_CANCELLED;

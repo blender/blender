@@ -122,7 +122,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   row.prop(ptr, "use_crease", UI_ITEM_NONE, "", ICON_NONE);
   blender::ui::Layout &sub = row.row(true);
   sub.active_set(RNA_boolean_get(ptr, "use_crease"));
-  sub.prop(ptr, "crease_weight", blender::ui::UI_ITEM_R_SLIDER, "", ICON_NONE);
+  sub.prop(ptr, "crease_weight", blender::ui::ITEM_R_SLIDER, "", ICON_NONE);
 
   layout.prop(ptr, "material_offset", UI_ITEM_NONE, IFACE_("Material Offset"), ICON_NONE);
 

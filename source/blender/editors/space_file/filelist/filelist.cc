@@ -380,7 +380,7 @@ static int filelist_geticon_file_type_ex(const FileList *filelist,
     return ICON_FILE_ARCHIVE;
   }
   if (typeflag & FILE_TYPE_BLENDERLIB) {
-    const int ret = blender::ui::UI_icon_from_idcode(file->blentype);
+    const int ret = blender::ui::icon_from_idcode(file->blentype);
     if (ret != ICON_NONE) {
       return ret;
     }

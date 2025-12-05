@@ -612,15 +612,15 @@ static void createTransSeqData(bContext *C, TransInfo *t)
   ts->tdseq = tdsq = MEM_calloc_arrayN<TransDataSeq>(tc->data_len, "TransSeq TransDataSeq");
 
   /* Custom data to enable edge panning during transformation. */
-  UI_view2d_edge_pan_init(t->context,
-                          &ts->edge_pan,
-                          STRIP_EDGE_PAN_INSIDE_PAD,
-                          STRIP_EDGE_PAN_OUTSIDE_PAD,
-                          STRIP_EDGE_PAN_SPEED_RAMP,
-                          STRIP_EDGE_PAN_MAX_SPEED,
-                          STRIP_EDGE_PAN_DELAY,
-                          STRIP_EDGE_PAN_ZOOM_INFLUENCE);
-  UI_view2d_edge_pan_set_limits(&ts->edge_pan, -FLT_MAX, FLT_MAX, 1, seq::MAX_CHANNELS + 1);
+  view2d_edge_pan_init(t->context,
+                       &ts->edge_pan,
+                       STRIP_EDGE_PAN_INSIDE_PAD,
+                       STRIP_EDGE_PAN_OUTSIDE_PAD,
+                       STRIP_EDGE_PAN_SPEED_RAMP,
+                       STRIP_EDGE_PAN_MAX_SPEED,
+                       STRIP_EDGE_PAN_DELAY,
+                       STRIP_EDGE_PAN_ZOOM_INFLUENCE);
+  view2d_edge_pan_set_limits(&ts->edge_pan, -FLT_MAX, FLT_MAX, 1, seq::MAX_CHANNELS + 1);
   ts->initial_v2d_cur = t->region->v2d.cur;
 
   /* Loop 2: build transdata array. */
@@ -645,7 +645,7 @@ static void view2d_edge_pan_loc_compensate(TransInfo *t, float r_offset[2])
 
   if (t->options & CTX_VIEW2D_EDGE_PAN) {
     if (t->state == TRANS_CANCEL) {
-      UI_view2d_edge_pan_cancel(t->context, &ts->edge_pan);
+      view2d_edge_pan_cancel(t->context, &ts->edge_pan);
     }
     else {
       /* Edge panning functions expect window coordinates, mval is relative to region. */
@@ -653,7 +653,7 @@ static void view2d_edge_pan_loc_compensate(TransInfo *t, float r_offset[2])
           t->region->winrct.xmin + int(t->mval[0]),
           t->region->winrct.ymin + int(t->mval[1]),
       };
-      UI_view2d_edge_pan_apply(t->context, &ts->edge_pan, xy);
+      view2d_edge_pan_apply(t->context, &ts->edge_pan, xy);
     }
   }
 

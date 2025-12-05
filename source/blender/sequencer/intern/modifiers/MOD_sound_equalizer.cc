@@ -30,7 +30,7 @@ namespace blender::seq {
 static void sound_equalizermodifier_draw(const bContext * /*C*/, Panel *panel)
 {
   ui::Layout &layout = *panel->layout;
-  PointerRNA *ptr = blender::ui::UI_panel_custom_data_get(panel);
+  PointerRNA *ptr = blender::ui::panel_custom_data_get(panel);
 
   layout.use_property_split_set(true);
 
@@ -46,7 +46,7 @@ static void sound_equalizermodifier_draw(const bContext * /*C*/, Panel *panel)
     split.label("Hz", ICON_NONE);
     split.alignment_set(ui::LayoutAlign::Right);
     split.label(fmt::format("{:.2f}", clip_max_x), ICON_NONE);
-    uiTemplateCurveMapping(&col, &sound_eq, "curve_mapping", 0, false, true, true, false, false);
+    template_curve_mapping(&col, &sound_eq, "curve_mapping", 0, false, true, true, false, false);
     ui::Layout &row = col.row(false);
     row.alignment_set(ui::LayoutAlign::Center);
     row.label("dB", ICON_NONE);

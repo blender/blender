@@ -29,11 +29,11 @@ static void cmp_node_rgb_declare(NodeDeclarationBuilder &b)
       .custom_draw([](CustomSocketDrawParams &params) {
         params.layout.alignment_set(ui::LayoutAlign::Expand);
         ui::Layout &col = params.layout.column(false);
-        uiTemplateColorPicker(
+        template_color_picker(
             &col, &params.socket_ptr, "default_value", true, false, false, false);
         col.prop(&params.socket_ptr,
                  "default_value",
-                 ui::UI_ITEM_R_SLIDER | ui::UI_ITEM_R_SPLIT_EMPTY_NAME,
+                 ui::ITEM_R_SLIDER | ui::ITEM_R_SPLIT_EMPTY_NAME,
                  "",
                  ICON_NONE);
       });

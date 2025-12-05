@@ -341,7 +341,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   layout.use_property_split_set(true);
 
-  uiTemplateCacheFile(&layout, C, ptr, "cache_file");
+  template_cache_file(&layout, C, ptr, "cache_file");
 
   if (has_cache_file) {
     layout.prop_search(
@@ -349,7 +349,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   if (RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
-    layout.prop(ptr, "read_data", ui::UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    layout.prop(ptr, "read_data", ui::ITEM_R_EXPAND, std::nullopt, ICON_NONE);
     layout.prop(ptr, "use_vertex_interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (RNA_enum_get(&ob_ptr, "type") == OB_CURVES) {
@@ -367,12 +367,12 @@ static void velocity_panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   PointerRNA fileptr;
-  if (!blender::ui::uiTemplateCacheFilePointer(ptr, "cache_file", &fileptr)) {
+  if (!blender::ui::template_cache_file_pointer(ptr, "cache_file", &fileptr)) {
     return;
   }
 
   layout.use_property_split_set(true);
-  uiTemplateCacheFileVelocity(&layout, &fileptr);
+  template_cache_file_velocity(&layout, &fileptr);
   layout.prop(ptr, "velocity_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
@@ -384,12 +384,12 @@ static void time_panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   PointerRNA fileptr;
-  if (!blender::ui::uiTemplateCacheFilePointer(ptr, "cache_file", &fileptr)) {
+  if (!blender::ui::template_cache_file_pointer(ptr, "cache_file", &fileptr)) {
     return;
   }
 
   layout.use_property_split_set(true);
-  uiTemplateCacheFileTimeSettings(&layout, &fileptr);
+  template_cache_file_time_settings(&layout, &fileptr);
 }
 
 static void override_layers_panel_draw(const bContext *C, Panel *panel)
@@ -400,12 +400,12 @@ static void override_layers_panel_draw(const bContext *C, Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   PointerRNA fileptr;
-  if (!blender::ui::uiTemplateCacheFilePointer(ptr, "cache_file", &fileptr)) {
+  if (!blender::ui::template_cache_file_pointer(ptr, "cache_file", &fileptr)) {
     return;
   }
 
   layout.use_property_split_set(true);
-  uiTemplateCacheFileLayers(&layout, C, &fileptr);
+  template_list_flags(&layout, C, &fileptr);
 }
 
 static void panel_register(ARegionType *region_type)

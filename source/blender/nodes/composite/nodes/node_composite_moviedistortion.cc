@@ -73,7 +73,7 @@ static void storage_copy(bNodeTree * /*dst_ntree*/, bNode *dest_node, const bNod
 
 static void node_composit_buts_moviedistortion(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
-  uiTemplateID(&layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
+  template_id(&layout, C, ptr, "clip", nullptr, "CLIP_OT_open", nullptr);
 }
 
 using namespace blender::compositor;

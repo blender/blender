@@ -305,9 +305,9 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   const bool is_sculpt_mode = CTX_data_active_object(C)->mode & OB_MODE_SCULPT;
   uiBlock *block = layout.block();
-  UI_block_lock_set(block, !is_sculpt_mode, N_("Sculpt Base Mesh"));
+  block_lock_set(block, !is_sculpt_mode, N_("Sculpt Base Mesh"));
   col.prop(ptr, "use_sculpt_base_mesh", UI_ITEM_NONE, IFACE_("Sculpt Base Mesh"), ICON_NONE);
-  UI_block_lock_clear(block);
+  block_lock_clear(block);
 
   layout.prop(ptr, "show_only_control_edges", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

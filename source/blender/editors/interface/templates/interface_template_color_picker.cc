@@ -24,7 +24,7 @@ namespace blender::ui {
 
 #define WHEEL_SIZE (5 * U.widget_unit)
 
-void uiTemplateColorPicker(Layout *layout,
+void template_color_picker(Layout *layout,
                            PointerRNA *ptr,
                            const StringRefNull propname,
                            bool value_slider,
@@ -215,10 +215,10 @@ static void ui_template_palette_menu(bContext * /*C*/, Layout *layout, void * /*
   RNA_enum_set(&op_ptr, "type", 4);
 }
 
-void uiTemplatePalette(Layout *layout,
-                       PointerRNA *ptr,
-                       const StringRefNull propname,
-                       bool /*colors*/)
+void template_palette(Layout *layout,
+                      PointerRNA *ptr,
+                      const StringRefNull propname,
+                      bool /*colors*/)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
   uiBut *but = nullptr;
@@ -272,7 +272,7 @@ void uiTemplatePalette(Layout *layout,
                         UI_UNIT_X,
                         UI_UNIT_Y,
                         std::nullopt);
-    UI_but_operator_ptr_ensure(but);
+    button_operator_ptr_ensure(but);
     RNA_enum_set(but->opptr, "type", -1);
 
     but = uiDefIconButO(block,
@@ -285,7 +285,7 @@ void uiTemplatePalette(Layout *layout,
                         UI_UNIT_X,
                         UI_UNIT_Y,
                         std::nullopt);
-    UI_but_operator_ptr_ensure(but);
+    button_operator_ptr_ensure(but);
     RNA_enum_set(but->opptr, "type", 1);
 
     /* Menu. */
@@ -324,7 +324,7 @@ void uiTemplatePalette(Layout *layout,
   }
 }
 
-void uiTemplateCryptoPicker(Layout *layout,
+void template_crypto_picker(Layout *layout,
                             PointerRNA *ptr,
                             const StringRefNull propname,
                             int icon)

@@ -994,8 +994,8 @@ void calculateCenterCursor2D(TransInfo *t, float r_center[2])
     }
     else if (t->options & CTX_PAINT_CURVE) {
       if (t->spacetype == SPACE_IMAGE) {
-        r_center[0] = ui::UI_view2d_view_to_region_x(&t->region->v2d, cursor[0]);
-        r_center[1] = ui::UI_view2d_view_to_region_y(&t->region->v2d, cursor[1]);
+        r_center[0] = ui::view2d_view_to_region_x(&t->region->v2d, cursor[0]);
+        r_center[1] = ui::view2d_view_to_region_y(&t->region->v2d, cursor[1]);
       }
     }
     else {

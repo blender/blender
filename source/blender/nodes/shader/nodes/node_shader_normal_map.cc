@@ -34,7 +34,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_normal_map(ui::Layout &layout, bContext *C, PointerRNA *ptr)
 {
-  layout.prop(ptr, "space", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout.prop(ptr, "space", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
   if (RNA_enum_get(ptr, "space") == SHD_SPACE_TANGENT) {
     PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
@@ -51,7 +51,7 @@ static void node_shader_buts_normal_map(ui::Layout &layout, bContext *C, Pointer
       }
     }
 
-    layout.prop(ptr, "uv_map", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    layout.prop(ptr, "uv_map", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   }
 }
 

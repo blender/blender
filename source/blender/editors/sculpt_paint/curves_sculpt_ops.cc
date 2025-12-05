@@ -479,10 +479,10 @@ static void select_random_ui(bContext * /*C*/, wmOperator *op)
   layout.prop(op->ptr, "partial", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (RNA_boolean_get(op->ptr, "partial")) {
-    layout.prop(op->ptr, "min", ui::UI_ITEM_R_SLIDER, IFACE_("Min"), ICON_NONE);
+    layout.prop(op->ptr, "min", ui::ITEM_R_SLIDER, IFACE_("Min"), ICON_NONE);
   }
   else {
-    layout.prop(op->ptr, "probability", ui::UI_ITEM_R_SLIDER, IFACE_("Probability"), ICON_NONE);
+    layout.prop(op->ptr, "probability", ui::ITEM_R_SLIDER, IFACE_("Probability"), ICON_NONE);
   }
 }
 

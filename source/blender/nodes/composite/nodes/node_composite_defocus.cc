@@ -63,26 +63,26 @@ static void node_composit_buts_defocus(ui::Layout &layout, bContext *C, PointerR
   {
     ui::Layout &col = layout.column(false);
     col.label(IFACE_("Bokeh Type:"), ICON_NONE);
-    col.prop(ptr, "bokeh", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-    col.prop(ptr, "angle", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    col.prop(ptr, "bokeh", ui::ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    col.prop(ptr, "angle", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 
   {
     ui::Layout &col = layout.column(false);
     col.active_set(RNA_boolean_get(ptr, "use_zbuffer") == true);
-    col.prop(ptr, "f_stop", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    col.prop(ptr, "f_stop", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 
-  layout.prop(ptr, "blur_max", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "blur_max", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
-  uiTemplateID(&layout, C, ptr, "scene", nullptr, nullptr, nullptr);
+  template_id(&layout, C, ptr, "scene", nullptr, nullptr, nullptr);
 
   {
     ui::Layout &col = layout.column(false);
-    col.prop(ptr, "use_zbuffer", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    col.prop(ptr, "use_zbuffer", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
     ui::Layout &sub = col.column(false);
     sub.active_set(RNA_boolean_get(ptr, "use_zbuffer") == false);
-    sub.prop(ptr, "z_scale", ui::UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    sub.prop(ptr, "z_scale", ui::ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 }
 

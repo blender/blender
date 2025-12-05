@@ -107,7 +107,7 @@ static wmOperatorStatus dopesheet_select_channel_invoke(bContext *C,
   ARegion *region = CTX_wm_region(C);
   float location[2];
 
-  blender::ui::UI_view2d_region_to_view(
+  blender::ui::view2d_region_to_view(
       &region->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
   RNA_float_set_array(op->ptr, "location", location);
 

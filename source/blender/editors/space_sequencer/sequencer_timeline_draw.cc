@@ -81,7 +81,7 @@ constexpr float ICON_SIZE = 12.0f;
 
 Vector<Strip *> sequencer_visible_strips_get(const bContext *C)
 {
-  return sequencer_visible_strips_get(CTX_data_sequencer_scene(C), ui::UI_view2d_fromcontext(C));
+  return sequencer_visible_strips_get(CTX_data_sequencer_scene(C), ui::view2d_fromcontext(C));
 }
 
 Vector<Strip *> sequencer_visible_strips_get(const Scene *scene, const View2D *v2d)
@@ -119,7 +119,7 @@ static TimelineDrawContext timeline_draw_context_get(const bContext *C, SeqQuads
   ctx.region = CTX_wm_region(C);
   ctx.scene = CTX_data_sequencer_scene(C);
   ctx.sseq = CTX_wm_space_seq(C);
-  ctx.v2d = ui::UI_view2d_fromcontext(C);
+  ctx.v2d = ui::view2d_fromcontext(C);
 
   ctx.ed = ctx.scene ? seq::editing_get(ctx.scene) : nullptr;
   ctx.channels = ctx.ed ? seq::channels_displayed_get(ctx.ed) : nullptr;
@@ -301,7 +301,7 @@ static void color3ubv_from_seq(const Scene *curscene,
   if (show_strip_color_tag && uint(strip->color_tag) < STRIP_COLOR_TOT &&
       strip->color_tag != STRIP_COLOR_NONE)
   {
-    bTheme *btheme = ui::UI_GetTheme();
+    bTheme *btheme = ui::GetTheme();
     const ThemeStripColor *strip_color = &btheme->strip_color[strip->color_tag];
     copy_v3_v3_uchar(r_col, strip_color->color);
     return;
@@ -312,35 +312,35 @@ static void color3ubv_from_seq(const Scene *curscene,
   /* Sometimes the active theme is not the sequencer theme, e.g. when an operator invokes the file
    * browser. This makes sure we get the right color values for the theme. */
   ui::bThemeState theme_state;
-  ui::UI_Theme_Store(&theme_state);
+  ui::Theme_Store(&theme_state);
   ui::UI_SetTheme(SPACE_SEQ, RGN_TYPE_WINDOW);
 
   switch (strip->type) {
     case STRIP_TYPE_IMAGE:
-      ui::UI_GetThemeColor3ubv(TH_SEQ_IMAGE, r_col);
+      ui::GetThemeColor3ubv(TH_SEQ_IMAGE, r_col);
       break;
 
     case STRIP_TYPE_META:
-      ui::UI_GetThemeColor3ubv(TH_SEQ_META, r_col);
+      ui::GetThemeColor3ubv(TH_SEQ_META, r_col);
       break;
 
     case STRIP_TYPE_MOVIE:
-      ui::UI_GetThemeColor3ubv(TH_SEQ_MOVIE, r_col);
+      ui::GetThemeColor3ubv(TH_SEQ_MOVIE, r_col);
       break;
 
     case STRIP_TYPE_MOVIECLIP:
-      ui::UI_GetThemeColor3ubv(TH_SEQ_MOVIECLIP, r_col);
+      ui::GetThemeColor3ubv(TH_SEQ_MOVIECLIP, r_col);
       break;
 
     case STRIP_TYPE_MASK:
-      ui::UI_GetThemeColor3ubv(TH_SEQ_MASK, r_col);
+      ui::GetThemeColor3ubv(TH_SEQ_MASK, r_col);
       break;
 
     case STRIP_TYPE_SCENE:
-      ui::UI_GetThemeColor3ubv(TH_SEQ_SCENE, r_col);
+      ui::GetThemeColor3ubv(TH_SEQ_SCENE, r_col);
 
       if (strip->scene == curscene) {
-        ui::UI_GetColorPtrShade3ubv(r_col, 20, r_col);
+        ui::GetColorPtrShade3ubv(r_col, 20, r_col);
       }
       break;
 
@@ -348,7 +348,7 @@ static void color3ubv_from_seq(const Scene *curscene,
     case STRIP_TYPE_CROSS:
     case STRIP_TYPE_GAMCROSS:
     case STRIP_TYPE_WIPE:
-      ui::UI_GetThemeColor3ubv(TH_SEQ_TRANSITION, r_col);
+      ui::GetThemeColor3ubv(TH_SEQ_TRANSITION, r_col);
 
       /* Slightly offset hue to distinguish different transition types. */
       if (strip->type == STRIP_TYPE_GAMCROSS) {
@@ -371,7 +371,7 @@ static void color3ubv_from_seq(const Scene *curscene,
     case STRIP_TYPE_ADJUSTMENT:
     case STRIP_TYPE_GAUSSIAN_BLUR:
     case STRIP_TYPE_COLORMIX:
-      ui::UI_GetThemeColor3ubv(TH_SEQ_EFFECT, r_col);
+      ui::GetThemeColor3ubv(TH_SEQ_EFFECT, r_col);
 
       /* Slightly offset hue to distinguish different effects. */
       if (strip->type == STRIP_TYPE_ADD) {
@@ -410,19 +410,19 @@ static void color3ubv_from_seq(const Scene *curscene,
       break;
 
     case STRIP_TYPE_COLOR:
-      ui::UI_GetThemeColor3ubv(TH_SEQ_COLOR, r_col);
+      ui::GetThemeColor3ubv(TH_SEQ_COLOR, r_col);
       break;
 
     case STRIP_TYPE_SOUND:
-      ui::UI_GetThemeColor3ubv(TH_SEQ_AUDIO, r_col);
+      ui::GetThemeColor3ubv(TH_SEQ_AUDIO, r_col);
       blendcol[0] = blendcol[1] = blendcol[2] = 128;
       if (is_muted) {
-        ui::UI_GetColorPtrBlendShade3ubv(r_col, blendcol, 0.5, 20, r_col);
+        ui::GetColorPtrBlendShade3ubv(r_col, blendcol, 0.5, 20, r_col);
       }
       break;
 
     case STRIP_TYPE_TEXT:
-      ui::UI_GetThemeColor3ubv(TH_SEQ_TEXT, r_col);
+      ui::GetThemeColor3ubv(TH_SEQ_TEXT, r_col);
       break;
 
     default:
@@ -432,7 +432,7 @@ static void color3ubv_from_seq(const Scene *curscene,
       break;
   }
 
-  UI_Theme_Restore(&theme_state);
+  Theme_Restore(&theme_state);
 }
 
 static void waveform_job_start_if_needed(const bContext *C, const Strip *strip)
@@ -742,7 +742,7 @@ static void draw_handle_transform_text(const TimelineDrawContext &ctx,
     text_x = strip_ctx.right_handle -
              (text_margin + ctx.pixelx * BLF_width(BLF_default(), numstr, numstr_len));
   }
-  ui::UI_view2d_text_cache_add(ctx.v2d, text_x, text_y, numstr, numstr_len, col);
+  ui::view2d_text_cache_add(ctx.v2d, text_x, text_y, numstr, numstr_len, col);
 }
 
 float strip_handle_draw_size_get(const Scene *scene, const Strip *strip, const float pixelx)
@@ -887,14 +887,14 @@ static void draw_icon_centered(const TimelineDrawContext &ctx,
                                int icon_id,
                                const uchar color[4])
 {
-  ui::UI_view2d_view_ortho(ctx.v2d);
+  ui::view2d_view_ortho(ctx.v2d);
   wmOrtho2_region_pixelspace(ctx.region);
 
   const float icon_size = ICON_SIZE * UI_SCALE_FAC;
   if (BLI_rctf_size_x(&rect) * 1.1f < icon_size * ctx.pixelx ||
       BLI_rctf_size_y(&rect) * 1.1f < icon_size * ctx.pixely)
   {
-    ui::UI_view2d_view_restore(ctx.C);
+    ui::view2d_view_restore(ctx.C);
     return;
   }
 
@@ -907,18 +907,18 @@ static void draw_icon_centered(const TimelineDrawContext &ctx,
 
   const float inv_scale_fac = (ICON_DEFAULT_HEIGHT / ICON_SIZE) * UI_INV_SCALE_FAC;
 
-  ui::UI_icon_draw_ex(left + x_offset,
-                      bottom + y_offset,
-                      icon_id,
-                      inv_scale_fac,
-                      1.0f,
-                      0.0f,
-                      color,
-                      false,
-                      UI_NO_ICON_OVERLAY_TEXT);
+  ui::icon_draw_ex(left + x_offset,
+                   bottom + y_offset,
+                   icon_id,
+                   inv_scale_fac,
+                   1.0f,
+                   0.0f,
+                   color,
+                   false,
+                   UI_NO_ICON_OVERLAY_TEXT);
 
   /* Restore view matrix. */
-  ui::UI_view2d_view_restore(ctx.C);
+  ui::view2d_view_restore(ctx.C);
 }
 
 static void draw_strip_icons(const TimelineDrawContext &ctx,
@@ -1029,7 +1029,7 @@ static void draw_seq_text_overlay(const TimelineDrawContext &ctx,
     return;
   }
 
-  ui::UI_view2d_text_cache_add_rectf(ctx.v2d, &rect, overlay_string, overlay_string_len, col);
+  ui::view2d_text_cache_add_rectf(ctx.v2d, &rect, overlay_string, overlay_string_len, col);
 }
 
 static void draw_strip_offsets(const TimelineDrawContext &ctx, const StripDrawContext &strip_ctx)
@@ -1053,10 +1053,10 @@ static void draw_strip_offsets(const TimelineDrawContext &ctx, const StripDrawCo
   uchar col[4], blend_col[4];
   color3ubv_from_seq(scene, strip, strip_ctx.show_strip_color_tag, strip_ctx.is_muted, col);
   if (strip->flag & SEQ_SELECT) {
-    ui::UI_GetColorPtrShade3ubv(col, 50, col);
+    ui::GetColorPtrShade3ubv(col, 50, col);
   }
   col[3] = strip_ctx.is_muted ? MUTE_ALPHA : 200;
-  ui::UI_GetColorPtrShade3ubv(col, 10, blend_col);
+  ui::GetColorPtrShade3ubv(col, 10, blend_col);
   blend_col[3] = 255;
 
   if (strip_ctx.left_handle > strip_ctx.content_start) {
@@ -1194,11 +1194,11 @@ static void seq_prefetch_wm_notify(const bContext *C, Scene *scene)
 static void draw_seq_timeline_channels(const TimelineDrawContext &ctx)
 {
   View2D *v2d = ctx.v2d;
-  ui::UI_view2d_view_ortho(v2d);
+  ui::view2d_view_ortho(v2d);
 
   GPU_blend(GPU_BLEND_ALPHA);
   uchar4 color;
-  ui::UI_GetThemeColor4ubv(TH_ROW_ALTERNATE, color);
+  ui::GetThemeColor4ubv(TH_ROW_ALTERNATE, color);
 
   /* Alternating horizontal stripes. */
   int i = max_ii(1, int(v2d->cur.ymin) - 1);
@@ -1281,7 +1281,7 @@ static void draw_strips_background(const TimelineDrawContext &ctx,
     /* Muted strips: turn almost gray. */
     if (strip.is_muted) {
       uchar muted_color[3] = {128, 128, 128};
-      ui::UI_GetColorPtrBlendShade3ubv(col, muted_color, 0.5f, 0, col);
+      ui::GetColorPtrBlendShade3ubv(col, muted_color, 0.5f, 0, col);
     }
     data.col_background = color_pack(col);
 
@@ -1319,7 +1319,7 @@ static void draw_strips_background(const TimelineDrawContext &ctx,
         color3ubv_from_seq(scene, input2, strip.show_strip_color_tag, strip.is_muted, col);
         /* If the transition inputs are of the same type, draw the right side slightly darker. */
         if (input1->type == input2->type) {
-          ui::UI_GetColorPtrShade3ubv(col, -15, col);
+          ui::GetColorPtrShade3ubv(col, -15, col);
         }
       }
       data.col_transition_out = color_pack(col);
@@ -1363,21 +1363,21 @@ static void strip_data_outline_params_set(const StripDrawContext &strip,
   uchar4 col{0, 0, 0, 255};
 
   if (selected) {
-    ui::UI_GetThemeColor3ubv(TH_SEQ_SELECTED, col);
+    ui::GetThemeColor3ubv(TH_SEQ_SELECTED, col);
     data.flags |= GPU_SEQ_FLAG_SELECTED;
   }
   if (active) {
     if (selected) {
-      ui::UI_GetThemeColor3ubv(TH_SEQ_ACTIVE, col);
+      ui::GetThemeColor3ubv(TH_SEQ_ACTIVE, col);
     }
     else {
-      ui::UI_GetThemeColorShade3ubv(TH_SEQ_ACTIVE, -40, col);
+      ui::GetThemeColorShade3ubv(TH_SEQ_ACTIVE, -40, col);
     }
     data.flags |= GPU_SEQ_FLAG_ACTIVE;
   }
   if (!selected && !active) {
     /* Color for unselected strips is a bit darker than the background. */
-    ui::UI_GetThemeColorShade3ubv(TH_BACK, -40, col);
+    ui::GetThemeColorShade3ubv(TH_BACK, -40, col);
   }
 
   const bool translating = (G.moving & G_TRANSFORM_SEQ);
@@ -1399,7 +1399,7 @@ static void strip_data_outline_params_set(const StripDrawContext &strip,
     data.flags |= GPU_SEQ_FLAG_OVERLAP;
   }
   else if (translating && selected) {
-    ui::UI_GetColorPtrShade3ubv(col, 70, col);
+    ui::GetColorPtrShade3ubv(col, 70, col);
   }
 
   data.col_outline = color_pack(col);
@@ -1496,7 +1496,7 @@ static void draw_seq_strips(const TimelineDrawContext &ctx,
     return;
   }
 
-  ui::UI_view2d_view_ortho(ctx.v2d);
+  ui::view2d_view_ortho(ctx.v2d);
 
   /* Draw parts of strips below thumbnails. */
   draw_strips_background(ctx, strips_batch, strips);
@@ -1535,7 +1535,7 @@ static void draw_seq_strips(const TimelineDrawContext &ctx,
   draw_strip_icons(ctx, strips);
 
   /* Draw text labels. */
-  ui::UI_view2d_text_cache_draw(ctx.region);
+  ui::view2d_text_cache_draw(ctx.region);
   GPU_blend(GPU_BLEND_NONE);
 }
 
@@ -1578,7 +1578,7 @@ static void draw_timeline_sfra_efra(const TimelineDrawContext &ctx)
 
   /* Draw overlay outside of frame range. */
   uchar4 color;
-  ui::UI_GetThemeColorShadeAlpha4ubv(TH_BACK, -10, -100, color);
+  ui::GetThemeColorShadeAlpha4ubv(TH_BACK, -10, -100, color);
 
   if (frame_sta < frame_end) {
     ctx.quads->add_quad(v2d->cur.xmin, v2d->cur.ymin, float(frame_sta), v2d->cur.ymax, color);
@@ -1589,7 +1589,7 @@ static void draw_timeline_sfra_efra(const TimelineDrawContext &ctx)
   }
 
   /* Draw frame range boundary. */
-  ui::UI_GetThemeColorShade4ubv(TH_BACK, -60, color);
+  ui::GetThemeColorShade4ubv(TH_BACK, -60, color);
 
   ctx.quads->add_line(frame_end, v2d->cur.ymin, frame_end, v2d->cur.ymax, color);
   ctx.quads->add_line(frame_end, v2d->cur.ymin, frame_end, v2d->cur.ymax, color);
@@ -1612,7 +1612,7 @@ static void draw_timeline_sfra_efra(const TimelineDrawContext &ctx)
 
     immUnbindProgram();
 
-    ui::UI_GetThemeColorShade4ubv(TH_BACK, -40, color);
+    ui::GetThemeColorShade4ubv(TH_BACK, -40, color);
     ctx.quads->add_line(ms->disp_range[0], v2d->cur.ymin, ms->disp_range[0], v2d->cur.ymax, color);
     ctx.quads->add_line(ms->disp_range[1], v2d->cur.ymin, ms->disp_range[1], v2d->cur.ymax, color);
     ctx.quads->draw();
@@ -1637,8 +1637,8 @@ static void draw_cache_final_iter_fn(void *userdata, int timeline_frame)
   const uchar4 col{108, 108, 210, 255};
 
   const View2D *v2d = drawdata->v2d;
-  float stripe_top = v2d->cur.ymax - (UI_TIME_SCRUB_MARGIN_Y / ui::UI_view2d_scale_get_y(v2d));
-  float stripe_bot = stripe_top - (UI_TIME_CACHE_MARGIN_Y / ui::UI_view2d_scale_get_y(v2d));
+  float stripe_top = v2d->cur.ymax - (UI_TIME_SCRUB_MARGIN_Y / ui::view2d_scale_get_y(v2d));
+  float stripe_bot = stripe_top - (UI_TIME_CACHE_MARGIN_Y / ui::view2d_scale_get_y(v2d));
   drawdata->quads->add_quad(timeline_frame, stripe_bot, timeline_frame + 1, stripe_top, col);
 }
 
@@ -1670,7 +1670,7 @@ static void draw_cache_stripe(const Scene *scene,
 static void draw_cache_background(const bContext *C, const CacheDrawData *draw_data)
 {
   const Scene *scene = CTX_data_sequencer_scene(C);
-  const View2D *v2d = ui::UI_view2d_fromcontext(C);
+  const View2D *v2d = ui::view2d_fromcontext(C);
   const SpaceSeq *sseq = CTX_wm_space_seq(C);
 
   /* NOTE: Final bg color is the same as the movie clip cache color.
@@ -1684,8 +1684,8 @@ static void draw_cache_background(const bContext *C, const CacheDrawData *draw_d
 
   if (sseq->cache_overlay.flag & SEQ_CACHE_SHOW_FINAL_OUT) {
     /* Draw the final cache on top of the timeline */
-    float stripe_top = v2d->cur.ymax - (UI_TIME_SCRUB_MARGIN_Y / ui::UI_view2d_scale_get_y(v2d));
-    stripe_bot = stripe_top - (UI_TIME_CACHE_MARGIN_Y / ui::UI_view2d_scale_get_y(v2d));
+    float stripe_top = v2d->cur.ymax - (UI_TIME_SCRUB_MARGIN_Y / ui::view2d_scale_get_y(v2d));
+    stripe_bot = stripe_top - (UI_TIME_CACHE_MARGIN_Y / ui::view2d_scale_get_y(v2d));
 
     draw_data->quads->add_quad(scene->r.sfra, stripe_bot, scene->r.efra, stripe_top, bg_final);
   }
@@ -1709,15 +1709,15 @@ static void draw_cache_background(const bContext *C, const CacheDrawData *draw_d
 static void draw_cache_view(const bContext *C)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
-  const View2D *v2d = ui::UI_view2d_fromcontext(C);
+  const View2D *v2d = ui::view2d_fromcontext(C);
   const SpaceSeq *sseq = CTX_wm_space_seq(C);
 
   if ((sseq->flag & SEQ_SHOW_OVERLAY) == 0 || (sseq->cache_overlay.flag & SEQ_CACHE_SHOW) == 0) {
     return;
   }
 
-  float stripe_ofs_y = ui::UI_view2d_region_to_view_y(v2d, 1.0f) - v2d->cur.ymin;
-  float stripe_ht = ui::UI_view2d_region_to_view_y(v2d, 4.0f * UI_SCALE_FAC * U.pixelsize) -
+  float stripe_ofs_y = ui::view2d_region_to_view_y(v2d, 1.0f) - v2d->cur.ymin;
+  float stripe_ht = ui::view2d_region_to_view_y(v2d, 4.0f * UI_SCALE_FAC * U.pixelsize) -
                     v2d->cur.ymin;
 
   CLAMP_MAX(stripe_ht, 0.2f);
@@ -1783,7 +1783,7 @@ static void draw_timeline_grid(const TimelineDrawContext &ctx)
      * *something*. */
     scene = DNA_struct_default_get(Scene);
   }
-  ui::UI_view2d_draw_lines_x__discrete_frames_or_seconds(
+  ui::view2d_draw_lines_x__discrete_frames_or_seconds(
       ctx.v2d, scene, (ctx.sseq->flag & SEQ_DRAWFRAMES) == 0, false);
 }
 
@@ -1796,7 +1796,7 @@ static void draw_timeline_markers(const TimelineDrawContext &ctx)
     return;
   }
 
-  ui::UI_view2d_view_orthoSpecial(ctx.region, ctx.v2d, true);
+  ui::view2d_view_orthoSpecial(ctx.region, ctx.v2d, true);
   ED_markers_draw(ctx.C, DRAW_MARKERS_MARGIN);
 }
 
@@ -1832,17 +1832,17 @@ void draw_timeline_seq(const bContext *C, const ARegion *region)
   StripsDrawBatch strips_batch(ctx.v2d);
 
   draw_timeline_pre_view_callbacks(ctx);
-  ui::UI_ThemeClearColor(TH_BACK);
+  ui::ThemeClearColor(TH_BACK);
   draw_seq_timeline_channels(ctx);
   draw_timeline_grid(ctx);
   draw_timeline_sfra_efra(ctx);
   draw_seq_strips(ctx, strips_batch);
   draw_timeline_markers(ctx);
-  ui::UI_view2d_view_ortho(ctx.v2d);
+  ui::view2d_view_ortho(ctx.v2d);
   if (ctx.scene) {
     ANIM_draw_previewrange(ctx.scene, ctx.v2d, 1);
   }
-  ui::UI_view2d_view_restore(C);
+  ui::view2d_view_restore(C);
   draw_timeline_gizmos(ctx);
   draw_timeline_post_view_callbacks(ctx);
   if (ctx.scene) {
@@ -1865,12 +1865,12 @@ void draw_timeline_seq_display(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   if (scene->ed != nullptr) {
-    ui::UI_view2d_view_ortho(v2d);
+    ui::view2d_view_ortho(v2d);
     draw_cache_view(C);
     if (scene->ed->overlay_frame_flag & SEQ_EDIT_OVERLAY_FRAME_SHOW) {
       draw_overlay_frame_indicator(scene, v2d);
     }
-    ui::UI_view2d_view_restore(C);
+    ui::view2d_view_restore(C);
   }
 
   ED_time_scrub_draw_current_frame(
@@ -1882,7 +1882,7 @@ void draw_timeline_seq_display(const bContext *C, ARegion *region)
       seq::timeline_boundbox(scene, seqbase, &v2d->tot);
       const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
       region->v2d.scroll |= V2D_SCROLL_BOTTOM;
-      ui::UI_view2d_scrollers_draw(v2d, &scroller_mask);
+      ui::view2d_scrollers_draw(v2d, &scroller_mask);
     }
   }
   else {

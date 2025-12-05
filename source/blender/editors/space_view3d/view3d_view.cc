@@ -647,7 +647,7 @@ int view3d_gpu_select_ex(const ViewContext *vc,
   }
 
   /* Tools may request depth outside of regular drawing code. */
-  blender::ui::UI_Theme_Store(&theme_state);
+  blender::ui::Theme_Store(&theme_state);
   blender::ui::UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
   /* All of the queries need to be perform on the drawing context. */
@@ -731,7 +731,7 @@ int view3d_gpu_select_ex(const ViewContext *vc,
 
   DRW_gpu_context_disable();
 
-  UI_Theme_Restore(&theme_state);
+  Theme_Restore(&theme_state);
 
   return hits;
 }

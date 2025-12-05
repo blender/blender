@@ -91,9 +91,9 @@ static void curves_apply(ModifierApplyContext &context, StripModifierData *smd, 
 static void curves_panel_draw(const bContext *C, Panel *panel)
 {
   ui::Layout &layout = *panel->layout;
-  PointerRNA *ptr = blender::ui::UI_panel_custom_data_get(panel);
+  PointerRNA *ptr = blender::ui::panel_custom_data_get(panel);
 
-  uiTemplateCurveMapping(&layout, ptr, "curve_mapping", 'c', false, false, false, true, false);
+  template_curve_mapping(&layout, ptr, "curve_mapping", 'c', false, false, false, true, false);
 
   if (ui::Layout *mask_input_layout = layout.panel_prop(
           C, ptr, "open_mask_input_panel", IFACE_("Mask Input")))

@@ -182,10 +182,10 @@ static void ui_alembic_export_settings(const bContext *C,
     sub->prop(ptr, "gsamples", UI_ITEM_NONE, IFACE_("Geometry"), ICON_NONE);
 
     sub = &col->column(true);
-    sub->prop(ptr, "sh_open", blender::ui::UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+    sub->prop(ptr, "sh_open", blender::ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
     sub->prop(ptr,
               "sh_close",
-              blender::ui::UI_ITEM_R_SLIDER,
+              blender::ui::ITEM_R_SLIDER,
               CTX_IFACE_(BLT_I18NCONTEXT_ID_CAMERA, "Close"),
               ICON_NONE);
 

@@ -103,14 +103,14 @@ void eyedropper_draw_cursor_text_region(const int xy[2], const char *name)
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 
   /* Use the theme settings from tooltips. */
-  const bTheme *btheme = UI_GetTheme();
+  const bTheme *btheme = GetTheme();
   const uiWidgetColors *wcol = &btheme->tui.wcol_tooltip;
 
   float col_fg[4], col_bg[4];
   rgba_uchar_to_float(col_fg, wcol->text);
   rgba_uchar_to_float(col_bg, wcol->inner);
 
-  UI_fontstyle_draw_simple_backdrop(fstyle, xy[0], xy[1] + U.widget_unit, name, col_fg, col_bg);
+  fontstyle_draw_simple_backdrop(fstyle, xy[0], xy[1] + U.widget_unit, name, col_fg, col_bg);
 }
 
 uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *event)
@@ -119,7 +119,7 @@ uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *ev
   ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->xy);
   const ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_ANY, event->xy);
 
-  uiBut *but = UI_but_find_mouse_over(region, event);
+  uiBut *but = but_find_mouse_over(region, event);
 
   if (ELEM(nullptr, but, but->rnapoin.data, but->rnaprop)) {
     return nullptr;

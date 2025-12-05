@@ -233,15 +233,15 @@ static void panel_draw(const bContext *C, Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   ui::Layout &row = layout.row(true);
-  row.prop(ptr, "use_edit_position", ui::UI_ITEM_R_TOGGLE, IFACE_("Position"), ICON_NONE);
+  row.prop(ptr, "use_edit_position", ui::ITEM_R_TOGGLE, IFACE_("Position"), ICON_NONE);
   row.prop(ptr,
            "use_edit_strength",
-           ui::UI_ITEM_R_TOGGLE,
+           ui::ITEM_R_TOGGLE,
            CTX_IFACE_(BLT_I18NCONTEXT_ID_GPENCIL, "Strength"),
            ICON_NONE);
-  row.prop(ptr, "use_edit_thickness", ui::UI_ITEM_R_TOGGLE, IFACE_("Thickness"), ICON_NONE);
+  row.prop(ptr, "use_edit_thickness", ui::ITEM_R_TOGGLE, IFACE_("Thickness"), ICON_NONE);
 
-  row.prop(ptr, "use_edit_uv", ui::UI_ITEM_R_TOGGLE, IFACE_("UV"), ICON_NONE);
+  row.prop(ptr, "use_edit_uv", ui::ITEM_R_TOGGLE, IFACE_("UV"), ICON_NONE);
 
   layout.use_property_split_set(true);
 

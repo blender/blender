@@ -40,8 +40,8 @@ struct SearchItems;
 
 namespace blender::ui {
 
-void UI_but_func_set(uiBut *but, std::function<void(bContext &)> func);
-void UI_but_func_pushed_state_set(uiBut *but, std::function<bool(const uiBut &)> func);
+void button_func_set(uiBut *but, std::function<void(bContext &)> func);
+void button_func_pushed_state_set(uiBut *but, std::function<bool(const uiBut &)> func);
 
 /**
  * Template generating a freeing callback matching the #uiButArgNFree signature, for data created
@@ -230,7 +230,7 @@ enum eUIListFilterResult {
 
 /**
  * Function object for UI list item filtering that does the default name comparison with '*'
- * wildcards. Create an instance of this once and pass it to #UI_list_filter_and_sort_items(), do
+ * wildcards. Create an instance of this once and pass it to #list_filter_and_sort_items(), do
  * NOT create an instance for every item, this would be costly.
  */
 class uiListNameFilter {
@@ -267,25 +267,25 @@ using uiListItemGetNameFn = FunctionRef<std::string(const PointerRNA &itemptr, i
  * \param get_name_fn: In some cases the name cannot be retrieved via RNA. This function can be set
  *                     to provide the name still.
  */
-void UI_list_filter_and_sort_items(uiList *ui_list,
-                                   const bContext *C,
-                                   uiListItemFilterFn item_filter_fn,
-                                   PointerRNA *dataptr,
-                                   const char *propname,
-                                   uiListItemGetNameFn get_name_fn = nullptr);
+void list_filter_and_sort_items(uiList *ui_list,
+                                const bContext *C,
+                                uiListItemFilterFn item_filter_fn,
+                                PointerRNA *dataptr,
+                                const char *propname,
+                                uiListItemGetNameFn get_name_fn = nullptr);
 
 /**
  * Override this for all available view types.
  * \param idname: Used for restoring persistent state of this view, potentially written to files.
  * Must not be longer than #BKE_ST_MAXNAME (including 0 terminator).
  */
-AbstractGridView *UI_block_add_view(uiBlock &block,
-                                    StringRef idname,
-                                    std::unique_ptr<AbstractGridView> grid_view);
-AbstractTreeView *UI_block_add_view(uiBlock &block,
-                                    StringRef idname,
-                                    std::unique_ptr<AbstractTreeView> tree_view);
+AbstractGridView *block_add_view(uiBlock &block,
+                                 StringRef idname,
+                                 std::unique_ptr<AbstractGridView> grid_view);
+AbstractTreeView *block_add_view(uiBlock &block,
+                                 StringRef idname,
+                                 std::unique_ptr<AbstractTreeView> tree_view);
 
-void UI_alert(bContext *C, StringRef title, StringRef message, AlertIcon icon, bool compact);
+void alert(bContext *C, StringRef title, StringRef message, AlertIcon icon, bool compact);
 
 }  // namespace blender::ui

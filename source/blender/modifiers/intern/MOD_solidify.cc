@@ -179,7 +179,7 @@ static void edge_data_panel_draw(const bContext * /*C*/, Panel *panel)
              CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"),
              ICON_NONE);
   }
-  layout.prop(ptr, "bevel_convex", blender::ui::UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout.prop(ptr, "bevel_convex", blender::ui::ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 }
 
 static void clamp_panel_draw(const bContext * /*C*/, Panel *panel)

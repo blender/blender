@@ -169,8 +169,7 @@ static void nla_track_region_init(wmWindowManager *wm, ARegion *region)
   /* ensure the 2d view sync works - main region has bottom scroller */
   region->v2d.scroll = V2D_SCROLL_BOTTOM;
 
-  UI_view2d_region_reinit(
-      &region->v2d, blender::ui::V2D_COMMONVIEW_LIST, region->winx, region->winy);
+  view2d_region_reinit(&region->v2d, blender::ui::V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
   /* own keymap */
   /* own tracks map first to override some track keymaps */
@@ -195,7 +194,7 @@ static void nla_track_region_draw(const bContext *C, ARegion *region)
   }
 
   /* clear and setup matrix */
-  blender::ui::UI_ThemeClearColor(TH_BACK);
+  blender::ui::ThemeClearColor(TH_BACK);
 
   ListBase anim_data = {nullptr, nullptr};
 
@@ -208,7 +207,7 @@ static void nla_track_region_draw(const bContext *C, ARegion *region)
       &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
 
   /* Recalculate the height of the track list.
-   * Needs to be done before the call to #UI_view2d_view_ortho. */
+   * Needs to be done before the call to #view2d_view_ortho. */
   int height = NLATRACK_TOT_HEIGHT(&ac, item_count);
   /* Add padding for the collapsed redo panel. */
   height += HEADERY;
@@ -216,9 +215,9 @@ static void nla_track_region_draw(const bContext *C, ARegion *region)
     height += (UI_MARKER_MARGIN_Y - NLATRACK_STEP(snla));
   }
   v2d->tot.ymin = -height;
-  blender::ui::UI_view2d_curRect_clamp_y(v2d);
+  blender::ui::view2d_curRect_clamp_y(v2d);
 
-  blender::ui::UI_view2d_view_ortho(v2d);
+  blender::ui::view2d_view_ortho(v2d);
 
   draw_nla_track_list(C, &ac, region, anim_data);
 
@@ -226,11 +225,11 @@ static void nla_track_region_draw(const bContext *C, ARegion *region)
   ED_time_scrub_channel_search_draw(C, region, ac.ads);
 
   /* reset view matrix */
-  blender::ui::UI_view2d_view_restore(C);
+  blender::ui::view2d_view_restore(C);
 
   /* scrollers */
   if (region->winy > UI_ANIM_MINY) {
-    blender::ui::UI_view2d_scrollers_draw(v2d, nullptr);
+    blender::ui::view2d_scrollers_draw(v2d, nullptr);
   }
 
   ANIM_animdata_freelist(&anim_data);
@@ -241,7 +240,7 @@ static void nla_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  UI_view2d_region_reinit(
+  view2d_region_reinit(
       &region->v2d, blender::ui::V2D_COMMONVIEW_CUSTOM, region->winx, region->winy);
 
   /* own keymap */
@@ -262,13 +261,13 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
   const int min_height = UI_ANIM_MINY;
 
   /* clear and setup matrix */
-  blender::ui::UI_ThemeClearColor(TH_BACK);
+  blender::ui::ThemeClearColor(TH_BACK);
 
-  blender::ui::UI_view2d_view_ortho(v2d);
+  blender::ui::view2d_view_ortho(v2d);
 
   /* time grid */
   if (region->winy > min_height) {
-    blender::ui::UI_view2d_draw_lines_x__discrete_frames_or_seconds(
+    blender::ui::view2d_draw_lines_x__discrete_frames_or_seconds(
         v2d, scene, snla->flag & SNLA_DRAWTIME, true);
   }
 
@@ -285,26 +284,26 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
     draw_nla_main_data(&ac, snla, region);
 
     /* Text draw cached, in pixel-space now. */
-    blender::ui::UI_view2d_text_cache_draw(region);
+    blender::ui::view2d_text_cache_draw(region);
   }
 
   /* markers */
-  blender::ui::UI_view2d_view_orthoSpecial(region, v2d, true);
+  blender::ui::view2d_view_orthoSpecial(region, v2d, true);
   int marker_draw_flag = DRAW_MARKERS_MARGIN;
   if (ED_markers_region_visible(CTX_wm_area(C), region)) {
     ED_markers_draw(C, marker_draw_flag);
   }
 
   /* preview range */
-  blender::ui::UI_view2d_view_ortho(v2d);
+  blender::ui::view2d_view_ortho(v2d);
   ANIM_draw_previewrange(scene, v2d, 0);
 
   /* callback */
-  blender::ui::UI_view2d_view_ortho(v2d);
+  blender::ui::view2d_view_ortho(v2d);
   ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
 
   /* reset view matrix */
-  blender::ui::UI_view2d_view_restore(C);
+  blender::ui::view2d_view_restore(C);
 
   const int fps = round_db_to_int(scene->frames_per_second());
   ED_time_scrub_draw(region, scene, snla->flag & SNLA_DRAWTIME, true, fps);
@@ -323,7 +322,7 @@ static void nla_main_region_draw_overlay(const bContext *C, ARegion *region)
 
   /* scrollers */
   if (region->winy >= UI_ANIM_MINY) {
-    blender::ui::UI_view2d_scrollers_draw(v2d, nullptr);
+    blender::ui::view2d_scrollers_draw(v2d, nullptr);
   }
 }
 

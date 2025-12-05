@@ -123,7 +123,7 @@ static wmOperatorStatus outliner_highlight_update_invoke(bContext *C,
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
   float view_mval[2];
-  ui::UI_view2d_region_to_view(
+  ui::view2d_region_to_view(
       &region->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
 
   TreeElement *hovered_te = outliner_find_item_at_y(
@@ -217,7 +217,7 @@ static wmOperatorStatus outliner_item_openclose_modal(bContext *C,
   OpenCloseData *data = (OpenCloseData *)op->customdata;
 
   float view_mval[2];
-  ui::UI_view2d_region_to_view(
+  ui::view2d_region_to_view(
       &region->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
 
   if (event->type == MOUSEMOVE) {
@@ -264,7 +264,7 @@ static wmOperatorStatus outliner_item_openclose_invoke(bContext *C,
   int mval[2];
   WM_event_drag_start_mval(event, region, mval);
 
-  ui::UI_view2d_region_to_view(&region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
+  ui::view2d_region_to_view(&region->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
 
   TreeElement *te = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]);
 
@@ -411,7 +411,7 @@ static TreeElement *outliner_item_rename_find_hovered(const SpaceOutliner *space
                                                       const wmEvent *event)
 {
   float fmval[2];
-  ui::UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+  ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
   TreeElement *hovered = outliner_find_item_at_y(space_outliner, &space_outliner->tree, fmval[1]);
   if (hovered && outliner_item_is_co_over_name(hovered, fmval[0])) {
@@ -708,7 +708,7 @@ static wmOperatorStatus outliner_id_delete_invoke(bContext *C,
 
   BLI_assert(region && space_outliner);
 
-  ui::UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+  ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
   SceneReplaceData scene_replace_data;
 
@@ -836,8 +836,7 @@ static wmOperatorStatus outliner_id_remap_invoke(bContext *C, wmOperator *op, co
   float fmval[2];
 
   if (!RNA_property_is_set(op->ptr, RNA_struct_find_property(op->ptr, "id_type"))) {
-    ui::UI_view2d_region_to_view(
-        &region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+    ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
     outliner_id_remap_find_tree_element(C, op, &space_outliner->tree, fmval[1]);
   }
@@ -1216,7 +1215,7 @@ static wmOperatorStatus outliner_lib_relocate_invoke(bContext *C,
 
   BLI_assert(region && space_outliner);
 
-  ui::UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+  ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
   LISTBASE_FOREACH (TreeElement *, te, &space_outliner->tree) {
     wmOperatorStatus ret;
@@ -1268,7 +1267,7 @@ static wmOperatorStatus outliner_lib_reload_invoke(bContext *C,
 
   BLI_assert(region && space_outliner);
 
-  ui::UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+  ui::view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
   LISTBASE_FOREACH (TreeElement *, te, &space_outliner->tree) {
     wmOperatorStatus ret;
@@ -1492,7 +1491,7 @@ static wmOperatorStatus outliner_start_filter_exec(bContext *C, wmOperator * /*o
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
-  ui::UI_textbutton_activate_rna(C, region, space_outliner, "filter_text");
+  ui::textbutton_activate_rna(C, region, space_outliner, "filter_text");
 
   return OPERATOR_FINISHED;
 }
@@ -2458,7 +2457,7 @@ static int unused_message_popup_width_compute(bContext *C)
   BKE_lib_query_unused_ids_amounts(bmain, data);
 
   std::string unused_message;
-  const uiStyle *style = ui::UI_style_get_dpi();
+  const uiStyle *style = ui::style_get_dpi();
   unused_message_gen(unused_message, data.num_local);
   float max_messages_width = BLF_width(
       style->widget.uifont_id, unused_message.c_str(), BLF_DRAW_STR_DUMMY_MAX);

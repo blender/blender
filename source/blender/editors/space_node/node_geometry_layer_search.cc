@@ -195,16 +195,16 @@ void node_geometry_add_layer_search_button(const bContext & /*C*/,
                                  "default_value",
                                  0,
                                  "");
-  UI_but_placeholder_set(but, placeholder);
+  button_placeholder_set(but, placeholder);
 
   const bNodeSocket &socket = *static_cast<const bNodeSocket *>(socket_ptr.data);
   LayerSearchData *data = MEM_callocN<LayerSearchData>(__func__);
   data->node_id = node.identifier;
   STRNCPY_UTF8(data->socket_identifier, socket.identifier);
 
-  UI_but_func_search_set_results_are_suggestions(but, true);
-  UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
-  UI_but_func_search_set(but,
+  button_func_search_set_results_are_suggestions(but, true);
+  button_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
+  button_func_search_set(but,
                          nullptr,
                          layer_search_update_fn,
                          static_cast<void *>(data),

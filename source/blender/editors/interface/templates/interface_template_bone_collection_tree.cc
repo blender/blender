@@ -222,7 +222,7 @@ class BoneCollectionItem : public AbstractTreeViewItem {
 
     uiBut *name_label = uiItemL_ex(&sub, bone_collection_.name, ICON_NONE, false, false);
     if (!ANIM_armature_bonecoll_is_editable(&armature_, &bone_collection_)) {
-      UI_but_flag_enable(name_label, UI_BUT_INACTIVE);
+      button_flag_enable(name_label, BUT_INACTIVE);
     }
 
     /* Contains Active Bone icon. */
@@ -250,14 +250,14 @@ class BoneCollectionItem : public AbstractTreeViewItem {
 
       const int icon = bone_collection_.is_visible() ? ICON_HIDE_OFF : ICON_HIDE_ON;
       PointerRNA bcoll_ptr = rna_pointer();
-      visibility_sub.prop(&bcoll_ptr, "is_visible", UI_ITEM_R_ICON_ONLY, "", icon);
+      visibility_sub.prop(&bcoll_ptr, "is_visible", ITEM_R_ICON_ONLY, "", icon);
     }
 
     /* Solo icon. */
     {
       const int icon = bone_collection_.is_solo() ? ICON_SOLO_ON : ICON_SOLO_OFF;
       PointerRNA bcoll_ptr = rna_pointer();
-      sub.prop(&bcoll_ptr, "is_solo", UI_ITEM_R_ICON_ONLY, "", icon);
+      sub.prop(&bcoll_ptr, "is_solo", ITEM_R_ICON_ONLY, "", icon);
     }
   }
 
@@ -267,7 +267,7 @@ class BoneCollectionItem : public AbstractTreeViewItem {
     if (!mt) {
       return;
     }
-    UI_menutype_draw(&C, mt, &column);
+    menutype_draw(&C, mt, &column);
   }
 
   std::optional<bool> should_be_active() const override
@@ -463,7 +463,7 @@ void BoneCollectionDragController::on_drag_start(bContext & /*C*/)
 
 }  // namespace bonecollections
 
-void uiTemplateBoneCollectionTree(Layout *layout, bContext *C)
+void template_bone_collection_tree(Layout *layout, bContext *C)
 {
   bArmature *armature = ED_armature_context(C);
   if (armature == nullptr) {
@@ -473,7 +473,7 @@ void uiTemplateBoneCollectionTree(Layout *layout, bContext *C)
 
   uiBlock *block = layout->block();
 
-  AbstractTreeView *tree_view = UI_block_add_view(
+  AbstractTreeView *tree_view = block_add_view(
       *block,
       "Bone Collection Tree View",
       std::make_unique<bonecollections::BoneCollectionTreeView>(*armature));

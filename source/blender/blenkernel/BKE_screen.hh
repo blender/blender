@@ -304,7 +304,7 @@ struct ARegionType {
    * Set as bitflag value in #ARegionDrawLockFlags.
    */
   short do_lock, lock;
-  /** Don't handle gizmos events behind #uiBlock's with #UI_BLOCK_CLIP_EVENTS flag set. */
+  /** Don't handle gizmos events behind #uiBlock's with #BLOCK_CLIP_EVENTS flag set. */
   bool clip_gizmo_events_by_ui;
   /** Call cursor function on each move event. */
   short event_cursor;

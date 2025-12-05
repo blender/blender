@@ -377,9 +377,8 @@ void unpack_menu(bContext *C,
   wmOperatorType *ot = WM_operatortype_find(opname, true);
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
 
-  blender::ui::PopupMenu *pup = blender::ui::UI_popup_menu_begin(
-      C, IFACE_("Unpack File"), ICON_NONE);
-  blender::ui::Layout &layout = *UI_popup_menu_layout(pup);
+  blender::ui::PopupMenu *pup = blender::ui::popup_menu_begin(C, IFACE_("Unpack File"), ICON_NONE);
+  blender::ui::Layout &layout = *popup_menu_layout(pup);
 
   PointerRNA props_ptr = layout.op(
       ot, IFACE_("Remove Pack"), ICON_NONE, blender::wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
@@ -456,7 +455,7 @@ void unpack_menu(bContext *C,
       break;
   }
 
-  UI_popup_menu_end(C, pup);
+  popup_menu_end(C, pup);
 }
 
 void ED_spacedata_id_remap(ScrArea *area,

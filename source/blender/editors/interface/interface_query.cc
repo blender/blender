@@ -115,12 +115,12 @@ bool ui_but_is_interactive(const uiBut *but, const bool labeledit)
   return ui_but_is_interactive_ex(but, labeledit, false);
 }
 
-bool UI_but_is_utf8(const uiBut *but)
+bool but_is_utf8(const uiBut *but)
 {
   if (but->rnaprop) {
     return RNA_property_string_is_utf8(but->rnaprop);
   }
-  return !(but->flag & UI_BUT_NO_UTF8);
+  return !(but->flag & BUT_NO_UTF8);
 }
 
 #ifdef USE_UI_POPOVER_ONCE
@@ -136,7 +136,7 @@ bool ui_but_has_array_value(const uiBut *but)
 }
 
 static wmOperatorType *g_ot_tool_set_by_id = nullptr;
-bool UI_but_is_tool(const uiBut *but)
+bool but_is_tool(const uiBut *but)
 {
   /* very evil! */
   if (but->optype != nullptr) {
@@ -150,9 +150,9 @@ bool UI_but_is_tool(const uiBut *but)
   return false;
 }
 
-bool UI_but_has_quick_tooltip(const uiBut *but)
+bool but_has_quick_tooltip(const uiBut *but)
 {
-  return (but->drawflag & UI_BUT_HAS_QUICK_TOOLTIP) != 0;
+  return (but->drawflag & BUT_HAS_QUICK_TOOLTIP) != 0;
 }
 
 int ui_but_icon(const uiBut *but)
@@ -161,7 +161,7 @@ int ui_but_icon(const uiBut *but)
     return ICON_NONE;
   }
 
-  const bool is_preview = (but->flag & UI_BUT_ICON_PREVIEW) != 0;
+  const bool is_preview = (but->flag & BUT_ICON_PREVIEW) != 0;
 
   /* While icon is loading, show loading icon at the normal icon size. */
   if (ui_icon_is_preview_deferred_loading(but->icon, is_preview)) {
@@ -169,7 +169,7 @@ int ui_but_icon(const uiBut *but)
   }
 
   /* Consecutive icons can be toggle between. */
-  if (but->drawflag & UI_BUT_ICON_REVERSE) {
+  if (but->drawflag & BUT_ICON_REVERSE) {
     return but->icon - but->iconadd;
   }
   return but->icon + but->iconadd;
@@ -287,10 +287,10 @@ bool ui_but_contains_point_px_icon(const uiBut *but, ARegion *region, const wmEv
 
   BLI_rcti_rctf_copy(&rect, &but->rect);
 
-  if (but->dragflag & UI_BUT_DRAG_FULL_BUT) {
+  if (but->dragflag & BUT_DRAG_FULL_BUT) {
     /* use button size itself */
   }
-  else if (but->drawflag & UI_BUT_ICON_LEFT) {
+  else if (but->drawflag & BUT_ICON_LEFT) {
     rect.xmax = rect.xmin + BLI_rcti_size_y(&rect);
   }
   else {
@@ -355,7 +355,7 @@ uiBut *ui_but_find_mouse_over_ex(const ARegion *region,
     }
 
     /* CLIP_EVENTS prevents the event from reaching other blocks */
-    if (block->flag & UI_BLOCK_CLIP_EVENTS) {
+    if (block->flag & BLOCK_CLIP_EVENTS) {
       /* check if mouse is inside block */
       if (BLI_rctf_isect_pt(&block->rect, mx, my)) {
         break;
@@ -366,7 +366,7 @@ uiBut *ui_but_find_mouse_over_ex(const ARegion *region,
   return butover;
 }
 
-uiBut *UI_but_find_mouse_over(const ARegion *region, const wmEvent *event)
+uiBut *but_find_mouse_over(const ARegion *region, const wmEvent *event)
 {
   return ui_but_find_mouse_over_ex(
       region, event->xy, event->modifier & KM_CTRL, false, nullptr, nullptr);
@@ -401,7 +401,7 @@ uiBut *ui_but_find_rect_over(const ARegion *region, const rcti *rect_px)
     }
 
     /* CLIP_EVENTS prevents the event from reaching other blocks */
-    if (block->flag & UI_BLOCK_CLIP_EVENTS) {
+    if (block->flag & BLOCK_CLIP_EVENTS) {
       /* check if mouse is inside block */
       if (BLI_rctf_isect(&block->rect, &rect_block, nullptr)) {
         break;
@@ -439,7 +439,7 @@ uiBut *ui_list_find_mouse_over(const ARegion *region, const wmEvent *event)
   return ui_list_find_mouse_over_ex(region, event->xy);
 }
 
-uiList *UI_list_find_mouse_over(const ARegion *region, const wmEvent *event)
+uiList *list_find_mouse_over(const ARegion *region, const wmEvent *event)
 {
   uiBut *list_but = ui_list_find_mouse_over(region, event);
   if (!list_but) {
@@ -610,7 +610,7 @@ bool ui_but_contains_password(const uiBut *but)
 
 size_t ui_but_drawstr_len_without_sep_char(const uiBut *but)
 {
-  if (but->flag & UI_BUT_HAS_SEP_CHAR) {
+  if (but->flag & BUT_HAS_SEP_CHAR) {
     const size_t sep_index = but->drawstr.find(UI_SEP_CHAR);
     if (sep_index != std::string::npos) {
       return sep_index;
@@ -656,19 +656,19 @@ uiBut *ui_block_active_but_get(const uiBlock *block)
 
 bool ui_block_is_menu(const uiBlock *block)
 {
-  return (((block->flag & UI_BLOCK_LOOP) != 0) &&
+  return (((block->flag & BLOCK_LOOP) != 0) &&
           /* non-menu popups use keep-open, so check this is off */
-          ((block->flag & UI_BLOCK_KEEP_OPEN) == 0));
+          ((block->flag & BLOCK_KEEP_OPEN) == 0));
 }
 
 bool ui_block_is_popover(const uiBlock *block)
 {
-  return (block->flag & UI_BLOCK_POPOVER) != 0;
+  return (block->flag & BLOCK_POPOVER) != 0;
 }
 
 bool ui_block_is_pie_menu(const uiBlock *block)
 {
-  return ((block->flag & UI_BLOCK_PIE_MENU) != 0);
+  return ((block->flag & BLOCK_PIE_MENU) != 0);
 }
 
 bool ui_block_is_popup_any(const uiBlock *block)
@@ -690,7 +690,7 @@ static const uiBut *ui_but_next_non_separator(const uiBut *but)
   return nullptr;
 }
 
-bool UI_block_is_empty_ex(const uiBlock *block, const bool skip_title)
+bool block_is_empty_ex(const uiBlock *block, const bool skip_title)
 {
   const uiBut *but = block->first_but();
   if (skip_title) {
@@ -704,12 +704,12 @@ bool UI_block_is_empty_ex(const uiBlock *block, const bool skip_title)
   return (ui_but_next_non_separator(but) == nullptr);
 }
 
-bool UI_block_is_empty(const uiBlock *block)
+bool block_is_empty(const uiBlock *block)
 {
-  return UI_block_is_empty_ex(block, false);
+  return block_is_empty_ex(block, false);
 }
 
-bool UI_block_can_add_separator(const uiBlock *block)
+bool block_can_add_separator(const uiBlock *block)
 {
   if (ui_block_is_menu(block) && !ui_block_is_pie_menu(block)) {
     const uiBut *but = block->last_but();
@@ -718,10 +718,10 @@ bool UI_block_can_add_separator(const uiBlock *block)
   return true;
 }
 
-bool UI_block_has_active_default_button(const uiBlock *block)
+bool block_has_active_default_button(const uiBlock *block)
 {
   for (const std::unique_ptr<uiBut> &but : block->buttons) {
-    if ((but->flag & UI_BUT_ACTIVE_DEFAULT) && ((but->flag & UI_HIDDEN) == 0)) {
+    if ((but->flag & BUT_ACTIVE_DEFAULT) && ((but->flag & UI_HIDDEN) == 0)) {
       return true;
     }
   }
@@ -741,7 +741,7 @@ uiBlock *ui_block_find_mouse_over_ex(const ARegion *region, const int xy[2], boo
   }
   LISTBASE_FOREACH (uiBlock *, block, &region->runtime->uiblocks) {
     if (only_clip) {
-      if ((block->flag & UI_BLOCK_CLIP_EVENTS) == 0) {
+      if ((block->flag & BLOCK_CLIP_EVENTS) == 0) {
         continue;
       }
     }
@@ -815,7 +815,7 @@ bool ui_region_contains_point_px(const ARegion *region, const int xy[2])
 
     ui_window_to_region(region, &mx, &my);
     if (!BLI_rcti_isect_pt(&v2d->mask, mx, my) ||
-        UI_view2d_mouse_in_scrollers(region, &region->v2d, xy))
+        view2d_mouse_in_scrollers(region, &region->v2d, xy))
     {
       return false;
     }
@@ -838,7 +838,7 @@ bool ui_region_contains_rect_px(const ARegion *region, const rcti *rect_px)
     rcti rect_region;
     ui_window_to_region_rcti(region, &rect_region, rect_px);
     if (!BLI_rcti_isect(&v2d->mask, &rect_region, nullptr) ||
-        UI_view2d_rect_in_scrollers(region, &region->v2d, rect_px))
+        view2d_rect_in_scrollers(region, &region->v2d, rect_px))
     {
       return false;
     }

@@ -32,9 +32,9 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_lit
   const int w = UI_UNIT_X * (args.icon_scale);
   const int h = UI_UNIT_X * (args.icon_scale + args.show_labels);
 
-  uiBlock *block = UI_block_begin(C, region, "_popup", EmbossType::Pulldown);
-  UI_block_flag_enable(block, UI_BLOCK_LOOP);
-  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  uiBlock *block = block_begin(C, region, "_popup", EmbossType::Pulldown);
+  block_flag_enable(block, BLOCK_LOOP);
+  block_theme_style_set(block, BLOCK_THEME_STYLE_POPUP);
 
   bool free;
   const EnumPropertyItem *item;
@@ -67,11 +67,11 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_lit
       but = uiDefIconButR_prop(
           block, ButType::Row, icon, x, y, w, h, &args.ptr, args.prop, -1, 0, value, std::nullopt);
     }
-    ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+    ui_def_but_icon(but, icon, UI_HAS_ICON | BUT_ICON_PREVIEW);
   }
 
-  UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
-  UI_block_direction_set(block, UI_DIR_DOWN);
+  block_bounds_set_normal(block, 0.3f * U.widget_unit);
+  block_direction_set(block, UI_DIR_DOWN);
 
   if (free) {
     MEM_freeN(item);
@@ -80,7 +80,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_lit
   return block;
 }
 
-void uiTemplateIcon(Layout *layout, int icon_value, float icon_scale)
+void template_icon(Layout *layout, int icon_value, float icon_scale)
 {
   uiBlock *block = layout->absolute().block();
   uiBut *but = uiDefIconBut(block,
@@ -94,10 +94,10 @@ void uiTemplateIcon(Layout *layout, int icon_value, float icon_scale)
                             0.0,
                             0.0,
                             "");
-  ui_def_but_icon(but, icon_value, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+  ui_def_but_icon(but, icon_value, UI_HAS_ICON | BUT_ICON_PREVIEW);
 }
 
-void uiTemplateIconView(Layout *layout,
+void template_icon_view(Layout *layout,
                         PointerRNA *ptr,
                         const StringRefNull propname,
                         bool show_labels,
@@ -158,7 +158,7 @@ void uiTemplateIconView(Layout *layout,
                        "");
   }
 
-  ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+  ui_def_but_icon(but, icon, UI_HAS_ICON | BUT_ICON_PREVIEW);
 
   if (free_items) {
     MEM_freeN(items);

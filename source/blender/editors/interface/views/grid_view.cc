@@ -31,9 +31,7 @@ namespace blender::ui {
 
 /* ---------------------------------------------------------------------- */
 
-AbstractGridView::AbstractGridView() : style_(UI_preview_tile_size_x(), UI_preview_tile_size_y())
-{
-}
+AbstractGridView::AbstractGridView() : style_(preview_tile_size_x(), preview_tile_size_y()) {}
 
 AbstractGridViewItem &AbstractGridView::add_item(std::unique_ptr<AbstractGridViewItem> item)
 {
@@ -463,7 +461,7 @@ void PreviewGridItem::build_grid_tile_button(Layout &layout,
   const GridViewStyle &style = this->get_view().get_style();
   uiBlock *block = layout.block();
 
-  UI_but_func_quick_tooltip_set(this->view_item_button(),
+  button_func_quick_tooltip_set(this->view_item_button(),
                                 [this](const uiBut * /*but*/) { return label; });
 
   uiBut *but = uiDefBut(block,
@@ -483,7 +481,7 @@ void PreviewGridItem::build_grid_tile_button(Layout &layout,
   ui_def_but_icon(but,
                   icon_id,
                   /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
-                  UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+                  UI_HAS_ICON | BUT_ICON_PREVIEW);
   but->emboss = EmbossType::None;
 }
 

@@ -90,7 +90,7 @@ static void script_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  UI_view2d_region_reinit(
+  view2d_region_reinit(
       &region->v2d, blender::ui::V2D_COMMONVIEW_STANDARD, region->winx, region->winy);
 
   /* own keymap */
@@ -105,9 +105,9 @@ static void script_main_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   /* clear and setup matrix */
-  blender::ui::UI_ThemeClearColor(TH_BACK);
+  blender::ui::ThemeClearColor(TH_BACK);
 
-  blender::ui::UI_view2d_view_ortho(v2d);
+  blender::ui::view2d_view_ortho(v2d);
 
   /* data... */
   // BPY_script_exec(C, "/root/blender-svn/blender25/test.py", nullptr);
@@ -121,7 +121,7 @@ static void script_main_region_draw(const bContext *C, ARegion *region)
 #endif
 
   /* reset view matrix */
-  blender::ui::UI_view2d_view_restore(C);
+  blender::ui::view2d_view_restore(C);
 
   /* scrollers? */
 }

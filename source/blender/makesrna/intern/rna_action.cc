@@ -312,7 +312,7 @@ static std::optional<std::string> rna_ActionSlot_path(const PointerRNA *ptr)
 int rna_ActionSlot_target_id_type_icon_get(PointerRNA *ptr)
 {
   animrig::Slot &slot = rna_data_slot(ptr);
-  return blender::ui::UI_icon_from_idcode(slot.idtype);
+  return blender::ui::icon_from_idcode(slot.idtype);
 }
 
 /* Name functions that ignore the first two ID characters */

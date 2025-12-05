@@ -153,7 +153,7 @@ static void cmp_node_colorbalance_declare(NodeDeclarationBuilder &b)
       .description("Color tint of the input's white point (the default of 10 matches daylight)");
   input_panel.add_layout([](ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr) {
     ui::Layout &split = layout.split(0.2f, false);
-    uiTemplateCryptoPicker(&split, ptr, "input_whitepoint", ICON_EYEDROPPER);
+    template_crypto_picker(&split, ptr, "input_whitepoint", ICON_EYEDROPPER);
   });
 
   PanelDeclarationBuilder &output_panel = b.add_panel("Output");
@@ -173,7 +173,7 @@ static void cmp_node_colorbalance_declare(NodeDeclarationBuilder &b)
       .description("Color tint of the output's white point (the default of 10 matches daylight)");
   output_panel.add_layout([](ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr) {
     ui::Layout &split = layout.split(0.2f, false);
-    uiTemplateCryptoPicker(&split, ptr, "output_whitepoint", ICON_EYEDROPPER);
+    template_crypto_picker(&split, ptr, "output_whitepoint", ICON_EYEDROPPER);
   });
 }
 

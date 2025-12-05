@@ -97,7 +97,7 @@ class SocketTooltipBuilder {
 
   void build_tooltip_dangling_reroute()
   {
-    this->add_text_field(TIP_("Dangling reroute nodes are ignored."), ui::UI_TIP_LC_ALERT);
+    this->add_text_field(TIP_("Dangling reroute nodes are ignored."), ui::TIP_LC_ALERT);
   }
 
   bool should_show_label()
@@ -383,7 +383,7 @@ class SocketTooltipBuilder {
       return;
     }
     if (!enum_item->description.empty()) {
-      this->add_text_field(TIP_(enum_item->description), ui::UI_TIP_LC_VALUE);
+      this->add_text_field(TIP_(enum_item->description), ui::TIP_LC_VALUE);
       this->add_space();
     }
     this->build_tooltip_value_and_type_oneline(TIP_(enum_item->name), TIP_("Menu"));
@@ -426,11 +426,11 @@ class SocketTooltipBuilder {
     bool is_gamma = false;
     const ColorManagedDisplay *display = nullptr;
     if (but_) {
-      is_gamma = UI_but_is_color_gamma(*but_);
-      display = UI_but_cm_display_get(*but_);
+      is_gamma = button_is_color_gamma(*but_);
+      display = button_cm_display_get(*but_);
     }
     UI_tooltip_color_field_add(
-        tip_data_, float4(value), true, is_gamma, display, ui::UI_TIP_LC_VALUE);
+        tip_data_, float4(value), true, is_gamma, display, ui::TIP_LC_VALUE);
   }
 
   void build_tooltip_value_quaternion(const math::Quaternion &value)
@@ -871,25 +871,24 @@ class SocketTooltipBuilder {
   void add_text_field_header(std::string text)
   {
     UI_tooltip_text_field_add(
-        tip_data_, this->indent(text), {}, ui::UI_TIP_STYLE_HEADER, ui::UI_TIP_LC_MAIN);
+        tip_data_, this->indent(text), {}, ui::TIP_STYLE_HEADER, ui::TIP_LC_MAIN);
   }
 
-  void add_text_field(std::string text, const ui::uiTooltipColorID color_id = ui::UI_TIP_LC_NORMAL)
+  void add_text_field(std::string text, const ui::uiTooltipColorID color_id = ui::TIP_LC_NORMAL)
   {
-    UI_tooltip_text_field_add(
-        tip_data_, this->indent(text), {}, ui::UI_TIP_STYLE_NORMAL, color_id);
+    UI_tooltip_text_field_add(tip_data_, this->indent(text), {}, ui::TIP_STYLE_NORMAL, color_id);
   }
 
   void add_text_field_mono(std::string text,
-                           const ui::uiTooltipColorID color_id = ui::UI_TIP_LC_VALUE)
+                           const ui::uiTooltipColorID color_id = ui::TIP_LC_VALUE)
   {
-    UI_tooltip_text_field_add(tip_data_, this->indent(text), {}, ui::UI_TIP_STYLE_MONO, color_id);
+    UI_tooltip_text_field_add(tip_data_, this->indent(text), {}, ui::TIP_STYLE_MONO, color_id);
   }
 
   void add_space(const int amount = 1)
   {
     for ([[maybe_unused]] const int i : IndexRange(amount)) {
-      UI_tooltip_text_field_add(tip_data_, {}, {}, ui::UI_TIP_STYLE_SPACER, ui::UI_TIP_LC_NORMAL);
+      UI_tooltip_text_field_add(tip_data_, {}, {}, ui::TIP_STYLE_SPACER, ui::TIP_LC_NORMAL);
     }
   }
 
