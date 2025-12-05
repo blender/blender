@@ -8366,6 +8366,15 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
       }
     }
 
+    /* When clicking on a disabled button on top of a list row, activate the list row below it.
+     * See #150341. */
+    if (is_disabled && (event->type == LEFTMOUSE) && (event->val == KM_PRESS)) {
+      if (uiBut *listrow = ui_list_row_find_mouse_over(data->region, event->xy)) {
+        UI_but_execute(C, data->region, listrow);
+        return WM_UI_HANDLER_BREAK;
+      }
+    }
+
     /* do copy first, because it is the only allowed operator when disabled */
     if (do_copy) {
       if (ui_but_copy(C, but, event->modifier & KM_ALT)) {
