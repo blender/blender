@@ -885,7 +885,7 @@ static wmOperatorStatus vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
   BKE_mesh_batch_cache_dirty_tag((Mesh *)ob.data, BKE_MESH_BATCH_DIRTY_ALL);
 
   /* update modifier stack for mapping requirements */
-  DEG_id_tag_update(&mesh->id, 0);
+  DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
 
   WM_event_add_notifier(C, NC_SCENE | ND_MODE, &scene);
   WM_msg_publish_rna_prop(mbus, &ob.id, &ob, Object, mode);

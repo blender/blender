@@ -297,7 +297,7 @@ static void transform_active_color_data(
 
   color_attribute.finish();
 
-  DEG_id_tag_update(&mesh.id, 0);
+  DEG_id_tag_update(&mesh.id, ID_RECALC_GEOMETRY);
 }
 
 static void transform_active_color(bContext *C,
