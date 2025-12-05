@@ -1701,7 +1701,14 @@ wmOperatorStatus grease_pencil_draw_operator_invoke(bContext *C,
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
     return OPERATOR_CANCELLED;
   }
+
   if (inserted_keyframe) {
+    for (bke::greasepencil::Layer *layer : grease_pencil.layers_for_write()) {
+      for (auto [frame_number, frame] : layer->frames_for_write().items()) {
+        const bool select_keyframe = (frame_number == scene->r.cfra) && (layer == &active_layer);
+        SET_FLAG_FROM_TEST(frame.flag, select_keyframe, GP_FRAME_SELECTED);
+      }
+    }
     WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
   }
   return OPERATOR_RUNNING_MODAL;
