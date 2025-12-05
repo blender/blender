@@ -50,7 +50,7 @@ struct uiPieMenu {
   int mx, my;
 };
 
-static Block *ui_block_func_PIE(bContext * /*C*/, uiPopupBlockHandle *handle, void *arg_pie)
+static Block *ui_block_func_PIE(bContext * /*C*/, PopupBlockHandle *handle, void *arg_pie)
 {
   Block *block;
   uiPieMenu *pie = static_cast<uiPieMenu *>(arg_pie);
@@ -166,7 +166,7 @@ void pie_menu_end(bContext *C, uiPieMenu *pie)
 {
   wmWindow *window = CTX_wm_window(C);
 
-  uiPopupBlockHandle *menu = ui_popup_block_create(
+  PopupBlockHandle *menu = ui_popup_block_create(
       C, nullptr, nullptr, nullptr, ui_block_func_PIE, pie, nullptr, false);
   menu->popup = true;
   menu->towardstime = BLI_time_now_seconds();

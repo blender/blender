@@ -51,7 +51,7 @@ void ui_popup_translate(ARegion *region, const int mdiff[2])
 
   /* update blocks */
   LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
-    uiPopupBlockHandle *handle = block->handle;
+    PopupBlockHandle *handle = block->handle;
     /* Make empty, will be initialized on next use, see #60608. */
     BLI_rctf_init(&handle->prev_block_rect, 0, 0, 0, 0);
 
@@ -68,7 +68,7 @@ static void ui_popup_block_position(wmWindow *window,
                                     Button *but,
                                     Block *block)
 {
-  uiPopupBlockHandle *handle = block->handle;
+  PopupBlockHandle *handle = block->handle;
 
   /* Compute button position in window coordinates using the source
    * button region/block, to position the popup attached to it. */
@@ -423,7 +423,7 @@ static void ui_block_region_refresh(const bContext *C, ARegion *region)
 
     region->runtime->do_draw &= ~RGN_REFRESH_UI;
     LISTBASE_FOREACH_MUTABLE (Block *, block, &region->runtime->uiblocks) {
-      uiPopupBlockHandle *handle = block->handle;
+      PopupBlockHandle *handle = block->handle;
 
       if (handle->can_refresh) {
         handle_ctx_area = handle->ctx_area;
@@ -550,7 +550,7 @@ void ui_popup_block_scrolltest(Block *block)
   }
 }
 
-static void ui_popup_block_remove(bContext *C, uiPopupBlockHandle *handle)
+static void ui_popup_block_remove(bContext *C, PopupBlockHandle *handle)
 {
   wmWindow *ctx_win = CTX_wm_window(C);
   ScrArea *ctx_area = CTX_wm_area(C);
@@ -625,7 +625,7 @@ void popup_dummy_panel_set(ARegion *region, Block *block)
 }
 
 Block *ui_popup_block_refresh(bContext *C,
-                              uiPopupBlockHandle *handle,
+                              PopupBlockHandle *handle,
                               ARegion *butregion,
                               Button *but)
 {
@@ -683,7 +683,7 @@ Block *ui_popup_block_refresh(bContext *C,
 #endif
 
   if (block->handle) {
-    memcpy(block->handle, handle, sizeof(uiPopupBlockHandle));
+    memcpy(block->handle, handle, sizeof(PopupBlockHandle));
     MEM_delete(handle);
     handle = block->handle;
   }
@@ -872,14 +872,14 @@ Block *ui_popup_block_refresh(bContext *C,
   return block;
 }
 
-uiPopupBlockHandle *ui_popup_block_create(bContext *C,
-                                          ARegion *butregion,
-                                          Button *but,
-                                          uiBlockCreateFunc create_func,
-                                          BlockHandleCreateFunc handle_create_func,
-                                          void *arg,
-                                          uiFreeArgFunc arg_free,
-                                          const bool can_refresh)
+PopupBlockHandle *ui_popup_block_create(bContext *C,
+                                        ARegion *butregion,
+                                        Button *but,
+                                        uiBlockCreateFunc create_func,
+                                        BlockHandleCreateFunc handle_create_func,
+                                        void *arg,
+                                        uiFreeArgFunc arg_free,
+                                        const bool can_refresh)
 {
   wmWindow *window = CTX_wm_window(C);
   Button *activebut = context_active_but_get(C);
@@ -892,7 +892,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
   WM_cursor_set(window, WM_CURSOR_DEFAULT);
 
   /* create handle */
-  uiPopupBlockHandle *handle = MEM_new<uiPopupBlockHandle>(__func__);
+  PopupBlockHandle *handle = MEM_new<PopupBlockHandle>(__func__);
 
   /* store context for operator */
   handle->ctx_area = CTX_wm_area(C);
@@ -964,7 +964,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
   return handle;
 }
 
-void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
+void ui_popup_block_free(bContext *C, PopupBlockHandle *handle)
 {
   bool is_submenu = false;
 
@@ -974,7 +974,7 @@ void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
   if (region != nullptr) {
     LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
       if (block->handle && (block->flag & BLOCK_POPOVER) && (block->flag & BLOCK_KEEP_OPEN) == 0) {
-        uiPopupBlockHandle *menu = block->handle;
+        PopupBlockHandle *menu = block->handle;
         menu->menuretval = UI_RETURN_OK;
       }
 

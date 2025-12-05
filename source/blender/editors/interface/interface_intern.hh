@@ -54,7 +54,6 @@ struct wmEvent;
 struct wmKeyConfig;
 struct wmOperatorType;
 struct wmTimer;
-using uiHandleButtonData = blender::ui::HandleButtonData;
 
 namespace blender::ui {
 
@@ -320,7 +319,7 @@ struct Button {
    * Active button data, set when the user is hovering or interacting with a button (#UI_HOVER and
    * #UI_SELECT state mostly).
    */
-  uiHandleButtonData *active = nullptr;
+  HandleButtonData *active = nullptr;
   /**
    * Event handling only supports one active button at a time, but there are cases where that's not
    * enough. A common one is to keep some filter button active to receive text input, while other
@@ -332,7 +331,7 @@ struct Button {
    *
    * Currently only text buttons support this well.
    */
-  uiHandleButtonData *semi_modal_state = nullptr;
+  HandleButtonData *semi_modal_state = nullptr;
 
   /** Custom button data (borrowed, not owned). */
   void *custom_data = nullptr;
@@ -686,7 +685,7 @@ struct Block {
   /** #uiSafetyRct list */
   ListBase saferct;
 
-  uiPopupBlockHandle *handle;
+  PopupBlockHandle *handle;
 
   /** use so presets can find the operator,
    * across menus and from nested popups which fail for operator context. */
@@ -914,7 +913,7 @@ struct uiKeyNavLock {
   int2 event_xy = int2(0);
 };
 
-using BlockHandleCreateFunc = Block *(*)(bContext * C, uiPopupBlockHandle *handle, void *arg1);
+using BlockHandleCreateFunc = Block *(*)(bContext * C, PopupBlockHandle *handle, void *arg1);
 
 struct uiPopupBlockCreate {
   uiBlockCreateFunc create_func = nullptr;
@@ -946,10 +945,10 @@ struct PopupBlockHandle {
   /** Store data for refreshing popups. */
   uiPopupBlockCreate popup_create_vars;
   /**
-   * True if we can re-create the popup using #uiPopupBlockHandle.popup_create_vars.
+   * True if we can re-create the popup using #PopupBlockHandle.popup_create_vars.
    *
    * \note Popups that can refresh are called with #bContext::wm::region_popup set
-   * to the #uiPopupBlockHandle::region both on initial creation and when refreshing.
+   * to the #PopupBlockHandle::region both on initial creation and when refreshing.
    */
   bool can_refresh = false;
   bool refresh = false;
@@ -1022,7 +1021,7 @@ bool ui_but_color_has_alpha(Button *but);
 void ui_scene_linear_to_perceptual_space(Button *but, float rgb[3]);
 void ui_perceptual_to_scene_linear_space(Button *but, float rgb[3]);
 
-Block *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_but);
+Block *ui_block_func_COLOR(bContext *C, PopupBlockHandle *handle, void *arg_but);
 ColorPicker *ui_block_colorpicker_create(Block *block);
 
 /* `interface_region_search.cc` */
@@ -1067,30 +1066,30 @@ void ui_popup_menu_memory_set(Block *block, Button *but);
  * Called for creating new popups and refreshing existing ones.
  */
 Block *ui_popup_block_refresh(bContext *C,
-                              uiPopupBlockHandle *handle,
+                              PopupBlockHandle *handle,
                               ARegion *butregion,
                               Button *but);
 
-uiPopupBlockHandle *ui_popup_block_create(bContext *C,
-                                          ARegion *butregion,
-                                          Button *but,
-                                          uiBlockCreateFunc create_func,
-                                          BlockHandleCreateFunc handle_create_func,
-                                          void *arg,
-                                          uiFreeArgFunc arg_free,
-                                          bool can_refresh);
-uiPopupBlockHandle *ui_popup_menu_create(
+PopupBlockHandle *ui_popup_block_create(bContext *C,
+                                        ARegion *butregion,
+                                        Button *but,
+                                        uiBlockCreateFunc create_func,
+                                        BlockHandleCreateFunc handle_create_func,
+                                        void *arg,
+                                        uiFreeArgFunc arg_free,
+                                        bool can_refresh);
+PopupBlockHandle *ui_popup_menu_create(
     bContext *C, ARegion *butregion, Button *but, uiMenuCreateFunc menu_func, void *arg);
 
 /* `interface_region_popover.cc` */
 
 using uiPopoverCreateFunc = std::function<void(bContext *, Layout *, PanelType *)>;
 
-uiPopupBlockHandle *ui_popover_panel_create(bContext *C,
-                                            ARegion *butregion,
-                                            Button *but,
-                                            uiPopoverCreateFunc popover_func,
-                                            const PanelType *panel_type);
+PopupBlockHandle *ui_popover_panel_create(bContext *C,
+                                          ARegion *butregion,
+                                          Button *but,
+                                          uiPopoverCreateFunc popover_func,
+                                          const PanelType *panel_type);
 
 /* `interface_region_menu_pie.cc` */
 
@@ -1112,7 +1111,7 @@ void ui_pie_menu_level_create(Block *block,
  * Translate any popup regions (so we can drag them).
  */
 void ui_popup_translate(ARegion *region, const int mdiff[2]);
-void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle);
+void ui_popup_block_free(bContext *C, PopupBlockHandle *handle);
 void ui_popup_block_scrolltest(Block *block);
 
 /** \} */
@@ -1218,7 +1217,7 @@ const char *ui_textedit_undo(uiUndoStack_Text *stack, int direction, int *r_curs
 
 /* `interface_handlers.cc` */
 
-void ui_but_handle_data_free(uiHandleButtonData **data);
+void ui_but_handle_data_free(HandleButtonData **data);
 
 void ui_handle_afterfunc_add_operator(wmOperatorType *ot, wm::OpCallContext opcontext);
 /**

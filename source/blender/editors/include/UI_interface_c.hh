@@ -87,8 +87,6 @@ struct TooltipData;
 struct PopupBlockHandle;
 }  // namespace blender::ui
 
-using uiPopupBlockHandle = blender::ui::PopupBlockHandle;
-
 /* Defines */
 
 namespace blender::ui {
@@ -191,7 +189,7 @@ enum {
   BLOCK_NO_ACCELERATOR_KEYS = 1 << 27,
 };
 
-/** #uiPopupBlockHandle.menuretval */
+/** #PopupBlockHandle.menuretval */
 enum {
   /** Cancel all menus cascading. */
   UI_RETURN_CANCEL = 1 << 0,
@@ -2159,8 +2157,8 @@ bool panel_list_matches_data(ARegion *region,
  * as screen/ if ED_KEYMAP_UI is set, or internally in popup functions. */
 
 void region_handlers_add(ListBase *handlers);
-void popup_handlers_add(bContext *C, ListBase *handlers, uiPopupBlockHandle *popup, char flag);
-void popup_handlers_remove(ListBase *handlers, uiPopupBlockHandle *popup);
+void popup_handlers_add(bContext *C, ListBase *handlers, PopupBlockHandle *popup, char flag);
+void popup_handlers_remove(ListBase *handlers, PopupBlockHandle *popup);
 void popup_handlers_remove_all(bContext *C, ListBase *handlers);
 
 /* Module

@@ -107,7 +107,7 @@ static void ui_popover_create_block(bContext *C,
   }
 }
 
-static Block *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, void *arg_pup)
+static Block *ui_block_func_POPOVER(bContext *C, PopupBlockHandle *handle, void *arg_pup)
 {
   uiPopover *pup = static_cast<uiPopover *>(arg_pup);
 
@@ -250,11 +250,11 @@ static void ui_block_free_func_POPOVER(void *arg_pup)
   MEM_delete(pup);
 }
 
-uiPopupBlockHandle *ui_popover_panel_create(bContext *C,
-                                            ARegion *butregion,
-                                            Button *but,
-                                            uiPopoverCreateFunc popover_func,
-                                            const PanelType *panel_type)
+PopupBlockHandle *ui_popover_panel_create(bContext *C,
+                                          ARegion *butregion,
+                                          Button *but,
+                                          uiPopoverCreateFunc popover_func,
+                                          const PanelType *panel_type)
 {
   wmWindow *window = CTX_wm_window(C);
   const uiStyle *style = style_get_dpi();
@@ -283,7 +283,7 @@ uiPopupBlockHandle *ui_popover_panel_create(bContext *C,
 #endif
 
   /* Create popup block. */
-  uiPopupBlockHandle *handle = ui_popup_block_create(
+  PopupBlockHandle *handle = ui_popup_block_create(
       C, butregion, but, nullptr, ui_block_func_POPOVER, pup, ui_block_free_func_POPOVER, true);
 
   /* Add handlers. If attached to a button, the button will already
@@ -322,7 +322,7 @@ wmOperatorStatus popover_panel_invoke(bContext *C,
 
   Block *block = nullptr;
   if (keep_open) {
-    uiPopupBlockHandle *handle = ui_popover_panel_create(
+    PopupBlockHandle *handle = ui_popover_panel_create(
         C, nullptr, nullptr, ui_item_paneltype_func, pt);
     uiPopover *pup = static_cast<uiPopover *>(handle->popup_create_vars.arg);
     block = pup->block;
@@ -336,7 +336,7 @@ wmOperatorStatus popover_panel_invoke(bContext *C,
   }
 
   if (block) {
-    uiPopupBlockHandle *handle = block->handle;
+    PopupBlockHandle *handle = block->handle;
     block_active_only_flagged_buttons(C, handle->region, block);
   }
   return OPERATOR_INTERFACE;
@@ -373,9 +373,9 @@ uiPopover *popover_begin(bContext *C, int ui_menu_width, bool from_active_button
   /* Operator context default same as menus, change if needed. */
   ui_popover_create_block(C, nullptr, pup, wm::OpCallContext::ExecRegionWin);
 
-  /* Create in advance so we can let buttons point to #uiPopupBlockHandle::retvalue
+  /* Create in advance so we can let buttons point to #PopupBlockHandle::retvalue
    * (and other return values) already. */
-  pup->block->handle = MEM_new<uiPopupBlockHandle>(__func__);
+  pup->block->handle = MEM_new<PopupBlockHandle>(__func__);
 
   return pup;
 }
@@ -400,14 +400,14 @@ void popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
 
   /* Create popup block. No refresh support since the buttons were created
    * between begin/end and we have no callback to recreate them. */
-  uiPopupBlockHandle *handle = ui_popup_block_create(C,
-                                                     pup->butregion,
-                                                     pup->but,
-                                                     nullptr,
-                                                     ui_block_func_POPOVER,
-                                                     pup,
-                                                     ui_block_free_func_POPOVER,
-                                                     false);
+  PopupBlockHandle *handle = ui_popup_block_create(C,
+                                                   pup->butregion,
+                                                   pup->but,
+                                                   nullptr,
+                                                   ui_block_func_POPOVER,
+                                                   pup,
+                                                   ui_block_free_func_POPOVER,
+                                                   false);
 
   /* Add handlers. */
   popup_handlers_add(C, &window->modalhandlers, handle, 0);

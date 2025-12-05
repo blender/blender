@@ -291,7 +291,7 @@ static void ui_colorpicker_rgba_update_cb(bContext * /*C*/, void *picker_bt1, vo
 {
   Button *picker_but = static_cast<Button *>(picker_bt1);
   Block *block = picker_but->block;
-  uiPopupBlockHandle *popup = block->handle;
+  PopupBlockHandle *popup = block->handle;
   ColorPicker *cpicker = static_cast<ColorPicker *>(picker_but->custom_data);
 
   Button *prop_but = static_cast<Button *>(prop_bt1);
@@ -315,7 +315,7 @@ static void ui_colorpicker_rgba_update_cb(bContext * /*C*/, void *picker_bt1, vo
 static void ui_colorpicker_hsv_perceptual_slider_update_cb(bContext * /*C*/, void *bt1, void *bt2)
 {
   Button *but = static_cast<Button *>(bt1);
-  uiPopupBlockHandle *popup = but->block->handle;
+  PopupBlockHandle *popup = but->block->handle;
   ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
 
   /* Get RNA ptr/prop from the original color datablock button (bt2) since the HSV buttons (bt1)
@@ -345,7 +345,7 @@ static void ui_colorpicker_hsv_perceptual_slider_update_cb(bContext * /*C*/, voi
 static void ui_colorpicker_hsv_linear_slider_update_cb(bContext * /*C*/, void *bt1, void *bt2)
 {
   Button *but = static_cast<Button *>(bt1);
-  uiPopupBlockHandle *popup = but->block->handle;
+  PopupBlockHandle *popup = but->block->handle;
   ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
 
   /* Get RNA ptr/prop from the original color datablock button (bt2) since the HSV buttons (bt1)
@@ -373,7 +373,7 @@ static void ui_colorpicker_hsv_linear_slider_update_cb(bContext * /*C*/, void *b
 static void ui_colorpicker_rgb_perceptual_slider_update_cb(bContext * /*C*/, void *bt1, void *bt2)
 {
   Button *but = static_cast<Button *>(bt1);
-  uiPopupBlockHandle *popup = but->block->handle;
+  PopupBlockHandle *popup = but->block->handle;
   ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
 
   /* Get RNA ptr/prop from the original color datablock button (bt2) since the HSV buttons (bt1)
@@ -403,7 +403,7 @@ static void ui_colorpicker_rgb_perceptual_slider_update_cb(bContext * /*C*/, voi
 static void ui_colorpicker_hex_rna_cb(bContext * /*C*/, void *bt1, void *bt2)
 {
   Button *but = static_cast<Button *>(bt1);
-  uiPopupBlockHandle *popup = but->block->handle;
+  PopupBlockHandle *popup = but->block->handle;
   ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
   char hexcol[128];
   ui_but_string_get(but, hexcol, ARRAY_SIZE(hexcol));
@@ -441,7 +441,7 @@ static void ui_colorpicker_hex_rna_cb(bContext * /*C*/, void *bt1, void *bt2)
 static void ui_popup_close_cb(bContext * /*C*/, void *bt1, void * /*arg*/)
 {
   Button *but = (Button *)bt1;
-  uiPopupBlockHandle *popup = but->block->handle;
+  PopupBlockHandle *popup = but->block->handle;
 
   if (popup) {
     ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
@@ -1024,7 +1024,7 @@ static void ui_block_colorpicker(const bContext * /*C*/,
 
 static int ui_colorpicker_wheel_cb(const bContext * /*C*/, Block *block, const wmEvent *event)
 {
-  uiPopupBlockHandle *popup = block->handle;
+  PopupBlockHandle *popup = block->handle;
   bool mouse_in_region = popup && BLI_rcti_isect_pt(&popup->region->winrct,
                                                     float(event->xy[0]),
                                                     float(event->xy[1]));
@@ -1089,7 +1089,7 @@ static int ui_colorpicker_wheel_cb(const bContext * /*C*/, Block *block, const w
   return 0;
 }
 
-Block *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_but)
+Block *ui_block_func_COLOR(bContext *C, PopupBlockHandle *handle, void *arg_but)
 {
   Button *but = static_cast<Button *>(arg_but);
   Block *block;

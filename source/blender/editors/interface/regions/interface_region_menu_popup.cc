@@ -223,7 +223,7 @@ static void ui_popup_menu_create_block(bContext *C,
   }
 }
 
-static Block *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, void *arg_pup)
+static Block *ui_block_func_POPUP(bContext *C, PopupBlockHandle *handle, void *arg_pup)
 {
   PopupMenu *pup = static_cast<PopupMenu *>(arg_pup);
 
@@ -390,7 +390,7 @@ static void ui_block_free_func_POPUP(void *arg_pup)
   MEM_delete(pup);
 }
 
-static uiPopupBlockHandle *ui_popup_menu_create_impl(
+static PopupBlockHandle *ui_popup_menu_create_impl(
     bContext *C,
     ARegion *butregion,
     Button *but,
@@ -420,7 +420,7 @@ static uiPopupBlockHandle *ui_popup_menu_create_impl(
     pup->my = window->eventstate->xy[1];
     pup->popup = true;
   }
-  uiPopupBlockHandle *handle = ui_popup_block_create(
+  PopupBlockHandle *handle = ui_popup_block_create(
       C, butregion, but, nullptr, ui_block_func_POPUP, pup, ui_block_free_func_POPUP, can_refresh);
 
   if (!but) {
@@ -433,7 +433,7 @@ static uiPopupBlockHandle *ui_popup_menu_create_impl(
   return handle;
 }
 
-uiPopupBlockHandle *ui_popup_menu_create(
+PopupBlockHandle *ui_popup_menu_create(
     bContext *C, ARegion *butregion, Button *but, uiMenuCreateFunc menu_func, void *arg)
 {
   return ui_popup_menu_create_impl(
@@ -478,7 +478,7 @@ PopupMenu *popup_menu_begin_ex(bContext *C, const char *title, const char *block
   ui_popup_menu_create_block(C, pup, title, block_name);
 
   /* create in advance so we can let buttons point to retval already */
-  pup->block->handle = MEM_new<uiPopupBlockHandle>(__func__);
+  pup->block->handle = MEM_new<PopupBlockHandle>(__func__);
 
   if (title[0]) {
     create_title_button(*pup->layout, title, icon);
@@ -513,7 +513,7 @@ void popup_menu_end(bContext *C, PopupMenu *pup)
     butregion = pup->butregion;
   }
 
-  uiPopupBlockHandle *menu = ui_popup_block_create(
+  PopupBlockHandle *menu = ui_popup_block_create(
       C, butregion, but, nullptr, ui_block_func_POPUP, pup, nullptr, false);
   menu->popup = true;
 
@@ -605,7 +605,7 @@ static void ui_popup_menu_create_from_menutype(bContext *C,
                                                const char *title,
                                                const int icon)
 {
-  uiPopupBlockHandle *handle = ui_popup_menu_create_impl(
+  PopupBlockHandle *handle = ui_popup_menu_create_impl(
       C,
       nullptr,
       nullptr,
@@ -672,7 +672,7 @@ void popup_block_invoke_ex(
 {
   wmWindow *window = CTX_wm_window(C);
 
-  uiPopupBlockHandle *handle = ui_popup_block_create(
+  PopupBlockHandle *handle = ui_popup_block_create(
       C, nullptr, nullptr, func, nullptr, arg, arg_free, can_refresh);
   handle->popup = true;
 
@@ -700,7 +700,7 @@ void popup_block_ex(bContext *C,
 {
   wmWindow *window = CTX_wm_window(C);
 
-  uiPopupBlockHandle *handle = ui_popup_block_create(
+  PopupBlockHandle *handle = ui_popup_block_create(
       C, nullptr, nullptr, func, nullptr, arg, nullptr, true);
   handle->popup = true;
   handle->retvalue = 1;
@@ -725,7 +725,7 @@ static void popup_block_template_close_cb(bContext *C, void *arg1, void * /*arg2
 {
   Block *block = (Block *)arg1;
 
-  uiPopupBlockHandle *handle = block->handle;
+  PopupBlockHandle *handle = block->handle;
   if (handle == nullptr) {
     printf("Error: used outside of a popup!\n");
     return;
@@ -852,7 +852,7 @@ void uiPupBlockOperator(bContext *C,
 {
   wmWindow *window = CTX_wm_window(C);
 
-  uiPopupBlockHandle *handle = ui_popup_block_create(C, nullptr, nullptr, func, nullptr, op, nullptr, true);
+  PopupBlockHandle *handle = ui_popup_block_create(C, nullptr, nullptr, func, nullptr, op, nullptr, true);
   handle->popup = 1;
   handle->retvalue = 1;
 

@@ -4479,7 +4479,7 @@ void ui_def_but_icon_clear(Button *but)
 static void ui_def_but_rna__menu(bContext *C, Layout *layout, void *but_p)
 {
   Block *block = layout->block();
-  uiPopupBlockHandle *handle = block->handle;
+  PopupBlockHandle *handle = block->handle;
   Button *but = (Button *)but_p;
   const int current_value = RNA_property_enum_get(&but->rnapoin, but->rnaprop);
 
