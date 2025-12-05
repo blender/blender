@@ -1054,7 +1054,7 @@ static void ui_item_enum_expand_tabs(Layout *layout,
     const int end = std::min<int>(start_size + highlight_array_len, block->buttons.size());
     for (int i = start_size; i < end; i++) {
       uiBut *tab_but = block->buttons[i].get();
-      SET_FLAG_FROM_TEST(tab_but->flag, !highlight_array[i], UI_BUT_INACTIVE);
+      SET_FLAG_FROM_TEST(tab_but->flag, !highlight_array[i - start_size], UI_BUT_INACTIVE);
     }
   }
 }
