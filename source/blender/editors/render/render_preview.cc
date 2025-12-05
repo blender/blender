@@ -1977,6 +1977,8 @@ bool ED_preview_id_is_supported(const ID *id, const char **r_disabled_hint)
       case ID_SCE:
         return {scene_preview_is_supported((const Scene *)id),
                 RPT_("Scenes without a camera do not support previews")};
+      case ID_BR:
+        return {false, RPT_("Brushes do not support automatic previews")};
       default:
         return {BKE_previewimg_id_get_p(id) != nullptr,
                 RPT_("Data-block type does not support automatic previews")};
