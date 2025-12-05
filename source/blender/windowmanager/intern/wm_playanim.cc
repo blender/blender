@@ -1523,7 +1523,8 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr p
           }
         }
 
-        playanim_change_frame_tag(ps, cx);
+        const float native_pixel_size = GHOST_GetNativePixelSize(ghost_window);
+        playanim_change_frame_tag(ps, cx * native_pixel_size);
       }
       break;
     }
