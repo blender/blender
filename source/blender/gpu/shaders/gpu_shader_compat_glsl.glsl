@@ -192,10 +192,12 @@ struct string {
   uint hash;
 };
 
+#if 0 /* Causes NVidia compiler error on OpenGL. To be fixed. */
 bool equal(string a, string b)
 {
   return a.hash == b.hash;
 }
+#endif
 
 uint as_uint(string str)
 {
