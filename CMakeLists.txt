@@ -637,8 +637,8 @@ Path to python site-packages or dist-packages containing 'zstandard' module"
   mark_as_advanced(PYTHON_ZSTANDARD_PATH)
 endif()
 
-option(WITH_CPU_SIMD "Enable SIMD instruction if they're detected on the host machine" ON)
-mark_as_advanced(WITH_CPU_SIMD)
+option(WITH_COMPILER_SIMD "Add the recommended Blender default SIMD flags to the compiler's C_FLAGS/CXX_FLAGS" ON)
+mark_as_advanced(WITH_COMPILER_SIMD)
 
 # Cycles
 option(WITH_CYCLES "Enable Cycles Render Engine" ON)
@@ -1331,6 +1331,10 @@ if(NOT WITH_BLENDER AND NOT WITH_CYCLES_STANDALONE AND NOT WITH_CYCLES_HYDRA_REN
   )
 endif()
 
+# Doesn't make too much sense to check if the CPU supports our default SIMD options if they are
+# turned off.
+set_and_warn_dependency(WITH_COMPILER_SIMD WITH_CPU_CHECK OFF)
+
 set_and_warn_dependency(WITH_AUDASPACE WITH_OPENAL OFF)
 set_and_warn_dependency(WITH_AUDASPACE WITH_COREAUDIO OFF)
 set_and_warn_dependency(WITH_AUDASPACE WITH_JACK OFF)
@@ -1566,17 +1570,6 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Release")
   endif()
 endif()
 
-# Test SIMD support, before platform includes to determine if sse2neon is needed.
-if(WITH_CPU_SIMD)
-  set(COMPILER_SSE42_FLAG)
-
-  # Test Neon first since macOS Arm can compile and run x86-64 SSE binaries.
-  test_neon_support()
-  if(NOT SUPPORT_NEON_BUILD)
-    test_sse_support(COMPILER_SSE42_FLAG)
-  endif()
-endif()
-
 
 # ----------------------------------------------------------------------------
 # Main Platform Checks
@@ -1597,53 +1590,20 @@ endif()
 # -----------------------------------------------------------------------------
 # Common Checks for Compatible Options
 
-# Enable SIMD support if detected by `test_sse_support()` or `test_neon_support()`.
+# Add the default compiler SIMD flags if enabled
 #
-if(WITH_CPU_SIMD)
-  if(SUPPORT_NEON_BUILD)
-    # Neon
-    if(SSE2NEON_FOUND)
-      include_directories(SYSTEM "${SSE2NEON_INCLUDE_DIRS}")
-      add_definitions(-DWITH_SSE2NEON)
-    endif()
-  else()
-    # SSE
-    if(SUPPORT_SSE42_BUILD)
-      string(APPEND CMAKE_CXX_FLAGS " ${COMPILER_SSE42_FLAG}")
-      string(APPEND CMAKE_C_FLAGS " ${COMPILER_SSE42_FLAG}")
-      # MSVC doesn't define any of these and only does the AVX and higher flags.
-      # For consistency we define these flags for MSVC.
-      if(WIN32)
-        add_compile_definitions(
-          __MMX__
-          __SSE__
-          __SSE2__
-          __SSE3__
-          __SSE4_1__
-          __SSE4_2__
-        )
-      endif()
-    endif()
-  endif()
+if(WITH_COMPILER_SIMD)
+  set(COMPILER_SSE42_FLAG)
+  get_sse_flags(COMPILER_SSE42_FLAG)
+  string(APPEND CMAKE_CXX_FLAGS " ${COMPILER_SSE42_FLAG}")
+  string(APPEND CMAKE_C_FLAGS " ${COMPILER_SSE42_FLAG}")
 endif()
 
-# Print instructions used on first run.
-if(FIRST_RUN)
-  if(WITH_CPU_SIMD)
-    if(SUPPORT_NEON_BUILD)
-      if(SSE2NEON_FOUND)
-        message(STATUS "Neon SIMD instructions enabled")
-      else()
-        message(STATUS "Neon SIMD instructions detected but unused, requires sse2neon")
-      endif()
-    elseif(SUPPORT_SSE42_BUILD)
-      message(STATUS "SSE42 SIMD instructions enabled")
-    else()
-      message(STATUS "No SIMD instructions detected")
-    endif()
-  else()
-    message(STATUS "SIMD instructions disabled")
-  endif()
+# Enable SSE2NEON SIMD support if found.
+#
+if(SUPPORTS_NEON_BUILD AND SSE2NEON_FOUND)
+  include_directories(SYSTEM "${SSE2NEON_INCLUDE_DIRS}")
+  add_definitions(-DWITH_SSE2NEON)
 endif()
 
 # Test endianness and set the endian define.

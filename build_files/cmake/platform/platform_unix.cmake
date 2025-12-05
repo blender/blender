@@ -413,8 +413,9 @@ if(WITH_NANOVDB)
   set_and_warn_library_found("NanoVDB" NANOVDB_FOUND WITH_NANOVDB)
 endif()
 
-if(WITH_CPU_SIMD AND SUPPORT_NEON_BUILD)
-  find_package_wrapper(sse2neon)
+test_neon_support()
+if(SUPPORTS_NEON_BUILD)
+  find_package_wrapper(sse2neon REQUIRED)
 endif()
 
 if(WITH_ALEMBIC)
