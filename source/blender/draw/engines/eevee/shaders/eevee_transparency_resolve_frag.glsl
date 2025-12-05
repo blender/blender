@@ -22,7 +22,7 @@ void main()
   if (uniform_buf.pipeline.use_monochromatic_transmittance) {
     float4 data = texelFetch(transparency_r_tx, texel, 0);
     out_radiance = float4(data.rgb, 0.0f);
-    out_transmittance = float4(data.aaa, 1.0f);
+    out_transmittance = data.aaaa;
   }
   else {
     /* The data is stored "transposed". */
