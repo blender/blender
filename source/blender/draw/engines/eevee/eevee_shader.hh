@@ -298,6 +298,9 @@ class ShaderModule {
  private:
   const char *static_shader_create_info_name_get(eShaderType shader_type);
   ShaderGroups static_shaders_load(ShaderGroups request_bits, bool block_until_ready);
+  void material_create_info_pipelines_amend(eMaterialGeometry geometry_type,
+                                            eMaterialPipeline pipeline_type,
+                                            gpu::shader::ShaderCreateInfo &r_info);
 };
 
 }  // namespace blender::eevee
