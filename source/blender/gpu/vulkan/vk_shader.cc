@@ -1303,26 +1303,19 @@ bool VKShader::ensure_graphics_pipelines(Span<shader::PipelineState> pipeline_st
 
   VKDevice &device = VKBackend::get().device;
   const VKExtensions &extensions = device.extensions_get();
+  if (!extensions.vertex_input_dynamic_state) {
+    return true;
+  }
 
   for (const shader::PipelineState &pipeline_state : pipeline_states) {
     const VkPrimitiveTopology vk_topology = to_vk_primitive_topology(pipeline_state.primitive_);
 
-    /* Only compile graphics pipelines without vertex inputs when vertex input dynamic state isn't
-     * available as it will create an unused pipeline. */
-    if (!pipeline_state.vertex_inputs_.is_empty() && !extensions.vertex_input_dynamic_state) {
-      continue;
-    }
-
-    VKVertexInputDescription vertex_input_description(pipeline_state);
     VKGraphicsInfo graphics_info = {};
     graphics_info.vertex_in.vk_topology = vk_topology;
     /* When vertex input dynamic state is enabled the actual vertex input doesn't matter. We use an
      * invalid key to ensure that same hash-keys are constructed for compatible graphics infos and
      * incorrect usages would still assert.*/
-    graphics_info.vertex_in.vertex_input_key = extensions.vertex_input_dynamic_state ?
-                                                   VKVertexInputDescriptionPool::invalid_key :
-                                                   device.vertex_input_descriptions.get_or_insert(
-                                                       vertex_input_description);
+    graphics_info.vertex_in.vertex_input_key = VKVertexInputDescriptionPool::invalid_key;
 
     graphics_info.shaders.vk_vertex_module = vertex_module.vk_shader_module;
     graphics_info.shaders.vk_geometry_module = geometry_module.vk_shader_module;

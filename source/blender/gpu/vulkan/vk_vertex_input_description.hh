@@ -31,32 +31,6 @@ struct VKVertexInputDescription {
 
   VKVertexInputDescription() = default;
 
-  VKVertexInputDescription(const gpu::shader::PipelineState &pipeline_state)
-  {
-    attributes.reserve(pipeline_state.vertex_inputs_.size());
-    bindings.reserve(pipeline_state.vertex_inputs_.size());
-    uint32_t binding = 0;
-    for (const gpu::shader::PipelineState::AttributeBinding &attribute_binding :
-         pipeline_state.vertex_inputs_)
-    {
-      const GPUVertAttr::Type attribute_type = {attribute_binding.type};
-      attributes.append({VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT,
-                         nullptr,
-                         attribute_binding.location,
-                         binding,
-                         to_vk_format(attribute_type.comp_type(),
-                                      attribute_type.size(),
-                                      attribute_type.fetch_mode()),
-                         attribute_binding.offset});
-      bindings.append({VK_STRUCTURE_TYPE_VERTEX_INPUT_BINDING_DESCRIPTION_2_EXT,
-                       nullptr,
-                       attribute_binding.binding,
-                       attribute_binding.stride,
-                       VK_VERTEX_INPUT_RATE_VERTEX});
-      binding++;
-    }
-  }
-
   void clear();
 
   bool operator==(const VKVertexInputDescription &other) const
