@@ -231,13 +231,18 @@ struct GPUSource {
 
       shader::PrintfFormat::Block::ArgumentType type =
           shader::PrintfFormat::Block::ArgumentType::NONE;
-      int64_t start = 0, end = 0;
-      while ((end = format.find_first_of('%', start + 1)) != -1) {
-        /* Add the previous block without the newly found % character. */
-        fmt.format_blocks.append({type, format.substr(start, end - start)});
+      int64_t start = 0, end = 0, cursor = -1;
+      while ((end = format.find_first_of('%', cursor + 1)) != -1) {
+        if (end - start > 0) {
+          /* Add the previous block without the newly found % character. */
+          fmt.format_blocks.append({type, format.substr(start, end - start)});
+        }
         /* Format type of the next block. */
         /* TODO(fclem): This doesn't support advance formats like `%3.2f`. */
         switch (format[end + 1]) {
+          case 's':
+            type = shader::PrintfFormat::Block::ArgumentType::STRING;
+            break;
           case 'x':
           case 'u':
             type = shader::PrintfFormat::Block::ArgumentType::UINT;
@@ -254,6 +259,7 @@ struct GPUSource {
         }
         /* Start of the next block. */
         start = end;
+        cursor = end;
       }
       fmt.format_blocks.append({type, format.substr(start, format.size() - start)});
 

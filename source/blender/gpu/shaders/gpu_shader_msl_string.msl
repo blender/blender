@@ -1,0 +1,25 @@
+/* SPDX-FileCopyrightText: 2025 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#pragma once
+
+/**
+ * This string type is much like the OSL string.
+ * It is merely a hash of the actual string and it immutable.
+ */
+struct string {
+  uint hash;
+
+  string(uint hash_) : hash(hash_) {}
+
+  friend bool operator==(string a, string b)
+  {
+    return a.hash == b.hash;
+  }
+};
+
+uint as_uint(string str)
+{
+  return str.hash;
+}

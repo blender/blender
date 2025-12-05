@@ -35,6 +35,7 @@ struct PrintfFormat {
   struct Block {
     enum ArgumentType {
       NONE = 0,
+      STRING,
       UINT,
       INT,
       FLOAT,

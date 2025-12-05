@@ -456,6 +456,9 @@ void Parser::parse_scopes(report_callback &report_error)
           if (scopes.top().type == ScopeType::FunctionArg) {
             exit_scope(tok_id - 1);
           }
+          if (scopes.top().type == ScopeType::FunctionParam) {
+            exit_scope(tok_id - 1);
+          }
           if (scopes.top().type == ScopeType::LoopArg) {
             exit_scope(tok_id - 1);
           }
@@ -488,6 +491,9 @@ void Parser::parse_scopes(report_callback &report_error)
           if (scopes.top().type == ScopeType::FunctionArg) {
             exit_scope(tok_id - 1);
           }
+          if (scopes.top().type == ScopeType::FunctionParam) {
+            exit_scope(tok_id - 1);
+          }
           if (scopes.top().type == ScopeType::TemplateArg) {
             exit_scope(tok_id - 1);
           }
@@ -501,6 +507,9 @@ void Parser::parse_scopes(report_callback &report_error)
           }
           if (scopes.top().type == ScopeType::FunctionArgs) {
             enter_scope(ScopeType::FunctionArg, tok_id);
+          }
+          if (scopes.top().type == ScopeType::FunctionCall) {
+            enter_scope(ScopeType::FunctionParam, tok_id);
           }
           if (scopes.top().type == ScopeType::LoopArgs) {
             enter_scope(ScopeType::LoopArg, tok_id);

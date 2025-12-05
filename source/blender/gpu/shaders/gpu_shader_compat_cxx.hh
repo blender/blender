@@ -31,6 +31,7 @@
 #include "gpu_shader_cxx_image.hh"    // IWYU pragma: export
 #include "gpu_shader_cxx_matrix.hh"   // IWYU pragma: export
 #include "gpu_shader_cxx_sampler.hh"  // IWYU pragma: export
+#include "gpu_shader_cxx_string.hh"   // IWYU pragma: export
 #include "gpu_shader_cxx_vector.hh"   // IWYU pragma: export
 
 #define assert(assertion)

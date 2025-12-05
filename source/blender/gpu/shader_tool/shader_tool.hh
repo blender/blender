@@ -1909,16 +1909,12 @@ class Preprocessor {
       }
 
       int arg_count = 0;
-      tokens[1].scope().foreach_scope(ScopeType::FunctionArg, [&](const Scope &) { arg_count++; });
+      tokens[1].scope().foreach_scope(ScopeType::FunctionParam,
+                                      [&](const Scope &) { arg_count++; });
 
-      string unrolled;
-      tokens[1].scope().foreach_scope(ScopeType::FunctionArg, [&](const Scope &attribute) {
-        if (unrolled.empty()) {
-          unrolled = "print_header(" + to_string(arg_count) + ", " + attribute.str() + ")";
-        }
-        else {
-          unrolled = "print_data(" + unrolled + ", " + attribute.str() + ")";
-        }
+      string unrolled = "print_start(" + to_string(arg_count) + ")";
+      tokens[1].scope().foreach_scope(ScopeType::FunctionParam, [&](const Scope &attribute) {
+        unrolled = "print_data(" + unrolled + ", " + attribute.str() + ")";
       });
 
       parser.replace(tokens.front(), tokens.back(), unrolled);
@@ -2482,7 +2478,7 @@ class Preprocessor {
       uint32_t hash = hash_string(token.str());
       metadata::PrintfFormat format = {hash, token.str()};
       metadata.printf_formats.emplace_back(format);
-      parser.replace(token, std::to_string(hash) + 'u', true);
+      parser.replace(token, "string(" + std::to_string(hash) + "u)", true);
     });
     parser.apply_mutations();
   }

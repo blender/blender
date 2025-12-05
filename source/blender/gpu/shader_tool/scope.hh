@@ -40,6 +40,8 @@ enum class ScopeType : char {
   Local = 'L',
   /* Added scope inside FunctionArgs. */
   FunctionArg = 'g',
+  /* Added scope inside FunctionCall. */
+  FunctionParam = 'm',
   /* Added scope inside LoopArgs. */
   LoopArg = 'r',
 

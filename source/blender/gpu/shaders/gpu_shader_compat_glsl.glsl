@@ -184,6 +184,24 @@ RESHAPE(float3x3, mat3x3, mat3x4)
 #define thread
 #define threadgroup
 
+/**
+ * This string type is much like the OSL string.
+ * It is merely a hash of the actual string and it immutable.
+ */
+struct string {
+  uint hash;
+};
+
+bool equal(string a, string b)
+{
+  return a.hash == b.hash;
+}
+
+uint as_uint(string str)
+{
+  return str.hash;
+}
+
 float4 texelFetchExtend(sampler2D samp, int2 texel, int lvl)
 {
   texel = clamp(texel, int2(0), textureSize(samp, lvl).xy - 1);

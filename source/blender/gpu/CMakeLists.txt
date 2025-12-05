@@ -769,6 +769,7 @@ set(MTL_BACKEND_GLSL_SRC
   shaders/gpu_shader_msl_matrix_legacy.msl
   shaders/gpu_shader_msl_matrix.msl
   shaders/gpu_shader_msl_sampler.msl
+  shaders/gpu_shader_msl_string.msl
   shaders/gpu_shader_msl_types.msl
   shaders/gpu_shader_msl_types_legacy.msl
   shaders/gpu_shader_msl_defines.msl
