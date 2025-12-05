@@ -5796,7 +5796,7 @@ static wmOperatorStatus view_curve_in_graph_editor_exec(bContext *C, wmOperator 
 {
   PointerRNA button_ptr = {};
   PropertyRNA *button_prop = nullptr;
-  uiBut *but;
+  blender::ui::Button *but;
   int index;
 
   if (!(but = blender::ui::context_active_but_prop_get(C, &button_ptr, &button_prop, &index))) {

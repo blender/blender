@@ -48,7 +48,7 @@ void uiTemplateReportsBanner(Layout *layout, bContext *C)
   Report *report = BKE_reports_last_displayable(reports);
   const uiStyle *style = style_get();
 
-  uiBut *but;
+  Button *but;
 
   /* if the report display has timed out, don't show */
   if (!reports->reporttimer) {
@@ -277,7 +277,7 @@ void uiTemplateInputStatus(Layout *layout, bContext *C)
         row.separator(item.space_factor);
       }
       else {
-        uiBut *but = uiItemL_ex(&row, item.text, item.icon, false, false);
+        Button *but = uiItemL_ex(&row, item.text, item.icon, false, false);
         if (item.inverted) {
           but->drawflag |= BUT_ICON_INVERT;
         }
@@ -437,7 +437,7 @@ void uiTemplateStatusInfo(Layout *layout, bContext *C)
       row.emboss_set(EmbossType::None);
       /* This operator also works fine for blocked extensions. */
       row.op("EXTENSIONS_OT_userpref_show_for_update", "", ICON_ERROR);
-      uiBut *but = layout->block()->buttons.last().get();
+      Button *but = layout->block()->buttons.last().get();
       uchar color[4];
       GetThemeColor4ubv(TH_TEXT, color);
       copy_v4_v4_uchar(but->col, color);
@@ -462,7 +462,7 @@ void uiTemplateStatusInfo(Layout *layout, bContext *C)
       else {
         row.emboss_set(EmbossType::None);
         row.op("EXTENSIONS_OT_userpref_show_online", "", ICON_INTERNET_OFFLINE);
-        uiBut *but = layout->block()->buttons.last().get();
+        Button *but = layout->block()->buttons.last().get();
         uchar color[4];
         GetThemeColor4ubv(TH_TEXT, color);
         copy_v4_v4_uchar(but->col, color);
@@ -486,7 +486,7 @@ void uiTemplateStatusInfo(Layout *layout, bContext *C)
       }
       row.emboss_set(EmbossType::None);
       row.op("EXTENSIONS_OT_userpref_show_for_update", "", icon);
-      uiBut *but = layout->block()->buttons.last().get();
+      Button *but = layout->block()->buttons.last().get();
       uchar color[4];
       GetThemeColor4ubv(TH_TEXT, color);
       copy_v4_v4_uchar(but->col, color);
@@ -552,17 +552,17 @@ void uiTemplateStatusInfo(Layout *layout, bContext *C)
   block_align_begin(block);
 
   /* Background for icon. */
-  uiBut *but = uiDefBut(block,
-                        ButType::Roundbox,
-                        "",
-                        0,
-                        0,
-                        UI_UNIT_X + (6 * UI_SCALE_FAC),
-                        UI_UNIT_Y,
-                        nullptr,
-                        0.0f,
-                        0.0f,
-                        "");
+  Button *but = uiDefBut(block,
+                         ButType::Roundbox,
+                         "",
+                         0,
+                         0,
+                         UI_UNIT_X + (6 * UI_SCALE_FAC),
+                         UI_UNIT_Y,
+                         nullptr,
+                         0.0f,
+                         0.0f,
+                         "");
   /*# ButType::Roundbox's background color is set in `but->col`. */
   GetThemeColor4ubv(TH_WARNING, but->col);
 

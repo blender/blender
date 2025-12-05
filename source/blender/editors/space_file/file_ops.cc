@@ -3020,7 +3020,7 @@ void file_filename_enter_handle(bContext *C, void * /*arg_unused*/, void *arg_bu
   }
 
   const Main *bmain = CTX_data_main(C);
-  uiBut *but = static_cast<uiBut *>(arg_but);
+  blender::ui::Button *but = static_cast<blender::ui::Button *>(arg_but);
 
   file_expand_directory(bmain, params);
 

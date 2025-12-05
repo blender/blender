@@ -322,7 +322,7 @@ void ui_draw_but_TAB_outline(const rcti *rect,
 }
 
 void ui_draw_but_IMAGE(ARegion * /*region*/,
-                       uiBut *but,
+                       Button *but,
                        const uiWidgetColors * /*wcol*/,
                        const rcti *rect)
 {
@@ -357,7 +357,7 @@ void ui_draw_but_IMAGE(ARegion * /*region*/,
 
   float col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   if (but->col[3] != 0) {
-    /* Optionally use uiBut's col to recolor the image. */
+    /* Optionally use Button's col to recolor the image. */
     rgba_uchar_to_float(col, but->col);
   }
 
@@ -493,7 +493,7 @@ static void histogram_draw_one(float r,
 #define HISTOGRAM_TOT_GRID_LINES 4
 
 void ui_draw_but_HISTOGRAM(ARegion *region,
-                           uiBut *but,
+                           Button *but,
                            const uiWidgetColors * /*wcol*/,
                            const rcti *recti)
 {
@@ -680,7 +680,7 @@ static void circle_draw_rgb(float *points, int tot_points, const float *col, GPU
 }
 
 void ui_draw_but_WAVEFORM(ARegion *region,
-                          uiBut *but,
+                          Button *but,
                           const uiWidgetColors * /*wcol*/,
                           const rcti *recti)
 {
@@ -998,7 +998,7 @@ static void vectorscope_draw_target(
 }
 
 void ui_draw_but_VECTORSCOPE(ARegion *region,
-                             uiBut *but,
+                             Button *but,
                              const uiWidgetColors * /*wcol*/,
                              const rcti *recti)
 {
@@ -1356,7 +1356,7 @@ static void ui_draw_colorband_handle(uint shdr_pos,
   GPU_blend(GPU_BLEND_NONE);
 }
 
-void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *wcol, const rcti *rect)
+void ui_draw_but_COLORBAND(Button *but, const uiWidgetColors *wcol, const rcti *rect)
 {
   const ColorManagedDisplay *display = ui_block_cm_display_get(but->block);
   uint pos_id, col_id;
@@ -1477,7 +1477,7 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *wcol, const rcti *r
   }
 }
 
-void ui_draw_but_UNITVEC(uiBut *but,
+void ui_draw_but_UNITVEC(Button *but,
                          const uiWidgetColors *wcol,
                          const rcti *rect,
                          const float radius)
@@ -1583,7 +1583,7 @@ static void ui_draw_but_curve_grid(const uint pos,
   immEnd();
 }
 
-void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, const rcti *rect)
+void ui_draw_but_CURVE(ARegion *region, Button *but, const uiWidgetColors *wcol, const rcti *rect)
 {
   ButtonCurveMapping *but_cumap = (ButtonCurveMapping *)but;
   CurveMapping *cumap = (but_cumap->edit_cumap == nullptr) ? (CurveMapping *)but->poin :
@@ -1939,7 +1939,7 @@ static bool point_draw_handles(CurveProfilePoint *point)
 }
 
 void ui_draw_but_CURVEPROFILE(ARegion *region,
-                              uiBut *but,
+                              Button *but,
                               const uiWidgetColors *wcol,
                               const rcti *rect)
 {
@@ -2282,7 +2282,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
 }
 
 void ui_draw_but_TRACKPREVIEW(ARegion *region,
-                              uiBut *but,
+                              Button *but,
                               const uiWidgetColors * /*wcol*/,
                               const rcti *recti)
 {

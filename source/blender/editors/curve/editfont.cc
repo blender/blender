@@ -723,17 +723,17 @@ static blender::ui::Block *wm_block_insert_unicode_create(bContext *C,
   uiItemL_ex(&layout, IFACE_("Insert Unicode Character"), ICON_NONE, true, false);
   layout.label(RPT_("Enter a Unicode codepoint hex value"), ICON_NONE);
 
-  uiBut *text_but = uiDefBut(block,
-                             blender::ui::ButType::Text,
-                             "",
-                             0,
-                             0,
-                             100,
-                             UI_UNIT_Y,
-                             edit_string,
-                             0,
-                             7,
-                             TIP_("Unicode codepoint hex value"));
+  blender::ui::Button *text_but = uiDefBut(block,
+                                           blender::ui::ButType::Text,
+                                           "",
+                                           0,
+                                           0,
+                                           100,
+                                           UI_UNIT_Y,
+                                           edit_string,
+                                           0,
+                                           7,
+                                           TIP_("Unicode codepoint hex value"));
   button_flag_enable(text_but, blender::ui::BUT_ACTIVATE_ON_INIT);
   /* Hitting Enter in the text input is treated the same as clicking the Confirm button. */
   button_func_set(text_but, text_insert_unicode_confirm, block, edit_string);
@@ -748,8 +748,8 @@ static blender::ui::Block *wm_block_insert_unicode_create(bContext *C,
   const bool windows_layout = false;
 #endif
 
-  uiBut *confirm = nullptr;
-  uiBut *cancel = nullptr;
+  blender::ui::Button *confirm = nullptr;
+  blender::ui::Button *cancel = nullptr;
   blender::ui::Layout &split = layout.split(0.0f, true);
   split.column(false);
 

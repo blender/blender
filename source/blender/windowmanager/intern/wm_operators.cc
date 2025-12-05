@@ -1166,17 +1166,17 @@ static blender::ui::Block *wm_enum_search_menu(bContext *C, ARegion *region, voi
   block_theme_style_set(block, blender::ui::BLOCK_THEME_STYLE_POPUP);
 
   search[0] = '\0';
-  uiBut *but = uiDefSearchButO_ptr(block,
-                                   op->type,
-                                   static_cast<IDProperty *>(op->ptr->data),
-                                   search,
-                                   ICON_VIEWZOOM,
-                                   sizeof(search),
-                                   0,
-                                   0,
-                                   width,
-                                   UI_UNIT_Y,
-                                   "");
+  blender::ui::Button *but = uiDefSearchButO_ptr(block,
+                                                 op->type,
+                                                 static_cast<IDProperty *>(op->ptr->data),
+                                                 search,
+                                                 ICON_VIEWZOOM,
+                                                 sizeof(search),
+                                                 0,
+                                                 0,
+                                                 width,
+                                                 UI_UNIT_Y,
+                                                 "");
 
   /* Fake button, it holds space for search items. */
   uiDefBut(block,
@@ -1637,8 +1637,8 @@ static blender::ui::Block *wm_block_dialog_create(bContext *C, ARegion *region, 
     /* New column so as not to interfere with custom layouts, see: #26436. */
     blender::ui::Layout &col = layout.column(false);
     blender::ui::Block *col_block = col.block();
-    uiBut *confirm_but;
-    uiBut *cancel_but;
+    blender::ui::Button *confirm_but;
+    blender::ui::Button *cancel_but;
 
     blender::ui::Layout &split = col.split(0.0f, true);
     split.scale_y_set(small ? 1.0f : 1.2f);
@@ -2046,15 +2046,15 @@ static blender::ui::Block *wm_block_search_menu(bContext *C, ARegion *region, vo
                         blender::ui::BLOCK_SEARCH_MENU);
   block_theme_style_set(block, blender::ui::BLOCK_THEME_STYLE_POPUP);
 
-  uiBut *but = uiDefSearchBut(block,
-                              g_search_text,
-                              ICON_VIEWZOOM,
-                              sizeof(g_search_text),
-                              0,
-                              0,
-                              init_data->size[0],
-                              UI_UNIT_Y,
-                              "");
+  blender::ui::Button *but = uiDefSearchBut(block,
+                                            g_search_text,
+                                            ICON_VIEWZOOM,
+                                            sizeof(g_search_text),
+                                            0,
+                                            0,
+                                            init_data->size[0],
+                                            UI_UNIT_Y,
+                                            "");
 
   if (init_data->search_type == SEARCH_TYPE_OPERATOR) {
     button_func_operator_search(but);

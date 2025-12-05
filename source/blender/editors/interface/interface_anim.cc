@@ -43,7 +43,7 @@
 namespace blender::ui {
 
 static FCurve *ui_but_get_fcurve(
-    uiBut *but, AnimData **adt, bAction **action, bool *r_driven, bool *r_special)
+    Button *but, AnimData **adt, bAction **action, bool *r_driven, bool *r_special)
 {
   /* for entire array buttons we check the first component, it's not perfect
    * but works well enough in typical cases */
@@ -59,7 +59,7 @@ static FCurve *ui_but_get_fcurve(
                                            r_special);
 }
 
-void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
+void ui_but_anim_flag(Button *but, const AnimationEvalContext *anim_eval_context)
 {
   /* Clear the flags that this function might set. */
   but->flag &= ~(BUT_ANIMATED | BUT_ANIMATED_KEY | BUT_DRIVEN);
@@ -123,9 +123,9 @@ void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
   }
 }
 
-static uiBut *ui_but_anim_decorate_find_attached_button(ButtonDecorator *but)
+static Button *ui_but_anim_decorate_find_attached_button(ButtonDecorator *but)
 {
-  uiBut *but_iter = nullptr;
+  Button *but_iter = nullptr;
 
   BLI_assert(button_is_decorator(but));
   BLI_assert(but->decorated_rnapoin.data && but->decorated_rnaprop);
@@ -156,7 +156,7 @@ void ui_but_anim_decorate_update_from_flag(ButtonDecorator *but)
     return;
   }
 
-  const uiBut *but_anim = ui_but_anim_decorate_find_attached_button(but);
+  const Button *but_anim = ui_but_anim_decorate_find_attached_button(but);
 
   if (!but_anim) {
     printf("Could not find button with matching property to decorate (%s.%s)\n",
@@ -192,7 +192,7 @@ void ui_but_anim_decorate_update_from_flag(ButtonDecorator *but)
   but->flag = (but->flag & ~flag_copy) | (flag & flag_copy);
 }
 
-bool ui_but_anim_expression_get(uiBut *but, char *str, size_t str_maxncpy)
+bool ui_but_anim_expression_get(Button *but, char *str, size_t str_maxncpy)
 {
   FCurve *fcu;
   ChannelDriver *driver;
@@ -214,7 +214,7 @@ bool ui_but_anim_expression_get(uiBut *but, char *str, size_t str_maxncpy)
   return false;
 }
 
-bool ui_but_anim_expression_set(uiBut *but, const char *str)
+bool ui_but_anim_expression_set(Button *but, const char *str)
 {
   FCurve *fcu;
   ChannelDriver *driver;
@@ -249,7 +249,7 @@ bool ui_but_anim_expression_set(uiBut *but, const char *str)
   return false;
 }
 
-bool ui_but_anim_expression_create(uiBut *but, const char *str)
+bool ui_but_anim_expression_create(Button *but, const char *str)
 {
   bContext *C = static_cast<bContext *>(but->block->evil_C);
   ID *id;
@@ -315,7 +315,7 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
   return ok;
 }
 
-void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
+void ui_but_anim_autokey(bContext *C, Button *but, Scene *scene, float cfra)
 {
   animrig::autokeyframe_property(C, scene, &but->rnapoin, but->rnaprop, but->rnaindex, cfra, true);
 }
@@ -342,7 +342,7 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void * /*arg_dummy*/)
     return;
   }
 
-  uiBut *but_anim = ui_but_anim_decorate_find_attached_button(but_decorate);
+  Button *but_anim = ui_but_anim_decorate_find_attached_button(but_decorate);
   if (!but_anim) {
     return;
   }

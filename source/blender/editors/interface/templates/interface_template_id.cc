@@ -270,7 +270,7 @@ void context_active_but_prop_get_templateID(const bContext *C,
                                             PointerRNA *r_ptr,
                                             PropertyRNA **r_prop)
 {
-  uiBut *but = context_active_but_get(C);
+  Button *but = context_active_but_get(C);
 
   *r_ptr = {};
   *r_prop = nullptr;
@@ -880,7 +880,7 @@ static StringRef template_id_browse_tip(const StructRNA *type)
  * Rather ugly special handling, but this is really a special case at this point, nothing worth
  * generalizing.
  */
-static void template_id_workspace_pin_extra_icon(const TemplateID &template_ui, uiBut *but)
+static void template_id_workspace_pin_extra_icon(const TemplateID &template_ui, Button *but)
 {
   if ((template_ui.idcode != ID_SCE) || (template_ui.ptr.type != &RNA_Window)) {
     return;
@@ -911,18 +911,18 @@ static const char *template_id_context(StructRNA *type)
 #  define template_id_context(type) 0
 #endif
 
-static uiBut *template_id_def_new_but(Block *block,
-                                      const ID *id,
-                                      const TemplateID &template_ui,
-                                      StructRNA *type,
-                                      const char *const newop,
-                                      const bool editable,
-                                      const bool id_open,
-                                      const bool use_tab_but,
-                                      int but_height)
+static Button *template_id_def_new_but(Block *block,
+                                       const ID *id,
+                                       const TemplateID &template_ui,
+                                       StructRNA *type,
+                                       const char *const newop,
+                                       const bool editable,
+                                       const bool id_open,
+                                       const bool use_tab_but,
+                                       int but_height)
 {
   ID *idfrom = template_ui.ptr.owner_id;
-  uiBut *but;
+  Button *but;
   const ButType but_type = use_tab_but ? ButType::Tab : ButType::But;
 
   /* i18n markup, does nothing! */
@@ -1026,7 +1026,7 @@ static void template_ID(const bContext *C,
                         const bool live_icon,
                         const bool hide_buttons)
 {
-  uiBut *but;
+  Button *but;
   const bool editable = RNA_property_editable(&template_ui.ptr, template_ui.prop);
   const bool use_previews = template_ui.preview = (flag & UI_ID_PREVIEWS) != 0;
 
@@ -1430,7 +1430,7 @@ static void template_ID(const bContext *C,
 
 ID *context_active_but_get_tab_ID(bContext *C)
 {
-  uiBut *but = context_active_but_get(C);
+  Button *but = context_active_but_get(C);
 
   if (but && but->type == ButType::Tab) {
     return static_cast<ID *>(but->custom_data);
@@ -1493,7 +1493,7 @@ static void template_ID_tabs(const bContext *C,
 
   if (flag & UI_ID_ADD_NEW) {
     const bool editable = RNA_property_editable(&template_id.ptr, template_id.prop);
-    uiBut *but;
+    Button *but;
 
     if (active_ptr.type) {
       type = active_ptr.type;

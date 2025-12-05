@@ -155,20 +155,20 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
   /* callbacks for operator check functions */
   block_func_set(block, file_draw_check_cb, nullptr, nullptr);
 
-  uiBut *but = uiDefButR(block,
-                         blender::ui::ButType::Text,
-                         "",
-                         0,
-                         0,
-                         UI_UNIT_X * 5,
-                         UI_UNIT_Y,
-                         &params_rna_ptr,
-                         "filename",
-                         0,
-                         0.0f,
-                         float(FILE_MAXFILE),
-                         overwrite_alert ? TIP_("File name, overwrite existing") :
-                                           TIP_("File name"));
+  blender::ui::Button *but = uiDefButR(block,
+                                       blender::ui::ButType::Text,
+                                       "",
+                                       0,
+                                       0,
+                                       UI_UNIT_X * 5,
+                                       UI_UNIT_Y,
+                                       &params_rna_ptr,
+                                       "filename",
+                                       0,
+                                       0.0f,
+                                       float(FILE_MAXFILE),
+                                       overwrite_alert ? TIP_("File name, overwrite existing") :
+                                                         TIP_("File name"));
   button_retval_set(but, -1);
 
   BLI_assert(!button_flag_is_set(but, blender::ui::BUT_UNDO));

@@ -871,7 +871,7 @@ static void ui_offset_panel_block(Block *block)
 
   const int ofsy = block->panel->sizey - style->panelspace;
 
-  for (const std::unique_ptr<uiBut> &but : block->buttons) {
+  for (const std::unique_ptr<Button> &but : block->buttons) {
     but->rect.ymin += ofsy;
     but->rect.ymax += ofsy;
   }
@@ -952,7 +952,7 @@ static void panel_remove_invisible_layouts_recursive(Panel *panel, const Panel *
   if (parent_panel != nullptr && panel_is_closed(parent_panel)) {
     /* The parent panel is closed, so this panel can be completely removed. */
     block_set_search_only(block, true);
-    for (const std::unique_ptr<uiBut> &but : block->buttons) {
+    for (const std::unique_ptr<Button> &but : block->buttons) {
       but->flag |= UI_HIDDEN;
     }
   }
@@ -964,7 +964,7 @@ static void panel_remove_invisible_layouts_recursive(Panel *panel, const Panel *
       if (button_group.flag & UI_BUTTON_GROUP_PANEL_HEADER) {
         continue;
       }
-      for (uiBut *but : button_group.buttons) {
+      for (Button *but : button_group.buttons) {
         but->flag |= UI_HIDDEN;
       }
     }
@@ -2523,7 +2523,7 @@ void panel_category_clear_all(ARegion *region)
 
 static int ui_handle_panel_category_cycling(const wmEvent *event,
                                             ARegion *region,
-                                            const uiBut *active_but)
+                                            const Button *active_but)
 {
   const bool is_mousewheel = ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE);
   const bool inside_tabregion =
@@ -2599,7 +2599,7 @@ static void ui_panel_region_width_set(ARegion *region, const float aspect, int u
 int ui_handler_panel_region(bContext *C,
                             const wmEvent *event,
                             ARegion *region,
-                            const uiBut *active_but)
+                            const Button *active_but)
 {
   /* Mouse-move events are handled by separate handlers for dragging and drag collapsing. */
   if (ISMOUSE_MOTION(event->type)) {
@@ -2666,7 +2666,7 @@ int ui_handler_panel_region(bContext *C,
     return retval;
   }
 
-  const uiBut *region_active_but = ui_region_find_active_but(region);
+  const Button *region_active_but = ui_region_find_active_but(region);
   const bool region_has_active_button = region_active_but &&
                                         region_active_but->type != ButType::Label;
 

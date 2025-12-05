@@ -57,7 +57,8 @@ static void draw_row_suffix(ui::AbstractTreeViewItem &view_item, const StringRef
 {
   /* Using the tree row button instead of a separate right aligned button gives padding
    * to the right side of the number, which it didn't have with the button. */
-  button_hint_drawstr_set(reinterpret_cast<uiBut *>(view_item.view_item_button()), str.c_str());
+  button_hint_drawstr_set(reinterpret_cast<ui::Button *>(view_item.view_item_button()),
+                          str.c_str());
 }
 
 static void draw_count(ui::AbstractTreeViewItem &view_item, const int count)

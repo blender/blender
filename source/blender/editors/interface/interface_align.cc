@@ -43,7 +43,7 @@ namespace blender::ui {
  *       but not sure we want to support such exotic cases anyway.
  */
 struct ButAlign {
-  uiBut *but;
+  Button *but;
 
   /* Neighbor buttons */
   ButAlign *neighbors[4];
@@ -93,7 +93,7 @@ enum {
 /* Max distance between to buttons for them to be 'mergeable'. */
 #define MAX_DELTA 0.45f * max_ii(UI_UNIT_Y, UI_UNIT_X)
 
-bool ui_but_can_align(const uiBut *but)
+bool ui_but_can_align(const Button *but)
 {
   const bool btype_can_align = !ELEM(but->type,
                                      ButType::Label,
@@ -322,7 +322,7 @@ static bool ui_block_align_butal_cmp(const ButAlign &butal, const ButAlign &buta
   return false;
 }
 
-static void ui_block_align_but_to_region(uiBut *but, const ARegion *region)
+static void ui_block_align_but_to_region(Button *but, const ARegion *region)
 {
   rctf *rect = &but->rect;
   const float but_width = BLI_rctf_size_x(rect);
@@ -364,7 +364,7 @@ void ui_block_align_calc(Block *block, const ARegion *region)
   int n = 0;
   /* First loop: Initialize ButAlign data for each button and clear their align flag.
    * Tabs get some special treatment here, they get aligned to region border. */
-  for (const std::unique_ptr<uiBut> &but : block->buttons) {
+  for (const std::unique_ptr<Button> &but : block->buttons) {
     /* special case: tabs need to be aligned to a region border, drawflag tells which one */
     if (but->type == ButType::Tab) {
       ui_block_align_but_to_region(but.get(), region);

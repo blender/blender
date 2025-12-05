@@ -52,18 +52,18 @@ namespace blender::ui {
 
 /*************************** RNA Utilities ******************************/
 
-uiBut *uiDefAutoButR(Block *block,
-                     PointerRNA *ptr,
-                     PropertyRNA *prop,
-                     int index,
-                     const std::optional<StringRef> name,
-                     int icon,
-                     int x,
-                     int y,
-                     int width,
-                     int height)
+Button *uiDefAutoButR(Block *block,
+                      PointerRNA *ptr,
+                      PropertyRNA *prop,
+                      int index,
+                      const std::optional<StringRef> name,
+                      int icon,
+                      int x,
+                      int y,
+                      int width,
+                      int height)
 {
-  uiBut *but = nullptr;
+  Button *but = nullptr;
 
   switch (RNA_property_type(prop)) {
     case PROP_BOOLEAN: {
@@ -356,7 +356,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(Layout *layout,
   return return_info;
 }
 
-void button_func_identity_compare_set(uiBut *but, uiButIdentityCompareFunc cmp_fn)
+void button_func_identity_compare_set(Button *but, uiButIdentityCompareFunc cmp_fn)
 {
   but->identity_cmp_func = cmp_fn;
 }
@@ -711,7 +711,7 @@ int calc_float_precision(int prec, double value)
   return prec;
 }
 
-std::optional<std::string> button_online_manual_id(const uiBut *but)
+std::optional<std::string> button_online_manual_id(const Button *but)
 {
   if (but->rnapoin.data && but->rnaprop) {
     return fmt::format(
@@ -728,7 +728,7 @@ std::optional<std::string> button_online_manual_id(const uiBut *but)
 
 std::optional<std::string> button_online_manual_id_from_active(const bContext *C)
 {
-  if (uiBut *but = context_active_but_get(C)) {
+  if (Button *but = context_active_but_get(C)) {
     return button_online_manual_id(but);
   }
   return std::nullopt;
@@ -736,7 +736,7 @@ std::optional<std::string> button_online_manual_id_from_active(const bContext *C
 
 /* -------------------------------------------------------------------- */
 
-static rctf ui_but_rect_to_view(const uiBut *but, const ARegion *region, const View2D *v2d)
+static rctf ui_but_rect_to_view(const Button *but, const ARegion *region, const View2D *v2d)
 {
   rctf region_rect;
   ui_block_to_region_rctf(region, but->block, &region_rect, &but->rect);
@@ -796,7 +796,7 @@ static bool ui_view2d_cur_ensure_rect_in_view(View2D *v2d, const rctf *rect)
   return changed;
 }
 
-void but_ensure_in_view(const bContext *C, ARegion *region, const uiBut *but)
+void but_ensure_in_view(const bContext *C, ARegion *region, const Button *but)
 {
   View2D *v2d = &region->v2d;
   /* Uninitialized view or region that doesn't use View2D. */
@@ -836,7 +836,7 @@ struct uiButStore {
 
 struct uiButStoreElem {
   uiButStoreElem *next, *prev;
-  uiBut **but_p;
+  Button **but_p;
 };
 
 uiButStore *butstore_create(Block *block)
@@ -875,7 +875,7 @@ bool butstore_is_valid(uiButStore *bs_handle)
   return (bs_handle->block != nullptr);
 }
 
-bool butstore_is_registered(Block *block, uiBut *but)
+bool butstore_is_registered(Block *block, Button *but)
 {
   LISTBASE_FOREACH (uiButStore *, bs_handle, &block->butstore) {
     LISTBASE_FOREACH (uiButStoreElem *, bs_elem, &bs_handle->items) {
@@ -888,7 +888,7 @@ bool butstore_is_registered(Block *block, uiBut *but)
   return false;
 }
 
-void butstore_register(uiButStore *bs_handle, uiBut **but_p)
+void butstore_register(uiButStore *bs_handle, Button **but_p)
 {
   uiButStoreElem *bs_elem = MEM_callocN<uiButStoreElem>(__func__);
   BLI_assert(*but_p);
@@ -897,7 +897,7 @@ void butstore_register(uiButStore *bs_handle, uiBut **but_p)
   BLI_addtail(&bs_handle->items, bs_elem);
 }
 
-void butstore_unregister(uiButStore *bs_handle, uiBut **but_p)
+void butstore_unregister(uiButStore *bs_handle, Button **but_p)
 {
   LISTBASE_FOREACH_MUTABLE (uiButStoreElem *, bs_elem, &bs_handle->items) {
     if (bs_elem->but_p == but_p) {
@@ -909,7 +909,7 @@ void butstore_unregister(uiButStore *bs_handle, uiBut **but_p)
   BLI_assert(0);
 }
 
-bool butstore_register_update(Block *block, uiBut *but_dst, const uiBut *but_src)
+bool butstore_register_update(Block *block, Button *but_dst, const Button *but_src)
 {
   bool found = false;
 
@@ -959,7 +959,7 @@ void butstore_update(Block *block)
 
       LISTBASE_FOREACH (uiButStoreElem *, bs_elem, &bs_handle->items) {
         if (*bs_elem->but_p) {
-          uiBut *but_new = ui_but_find_new(block, *bs_elem->but_p);
+          Button *but_new = ui_but_find_new(block, *bs_elem->but_p);
 
           /* can be nullptr if the buttons removed,
            * NOTE: we could allow passing in a callback when buttons are removed

@@ -864,7 +864,7 @@ static void v3d_editvertex_buts(
   }
 
   if (block) { /* buttons */
-    uiBut *but;
+    blender::ui::Button *but;
     int yi = 200;
     const float tilt_limit = DEG2RADF(21600.0f);
     const int butw = 200;
@@ -1636,7 +1636,7 @@ static void v3d_object_dimension_buts(bContext *C,
     block_align_begin(block);
     const float lim = FLT_MAX;
     for (int i = 0; i < 3; i++) {
-      uiBut *but;
+      blender::ui::Button *but;
       const char text[3] = {char('X' + i), ':', '\0'};
       but = uiDefButF(block,
                       blender::ui::ButType::Num,
@@ -1744,7 +1744,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
 
     blender::ui::Layout *col, *bcol;
     blender::ui::Layout *row;
-    uiBut *but;
+    blender::ui::Button *but;
     bDeformGroup *dg;
     uint i;
     int subset_count, vgroup_tot;
@@ -2475,22 +2475,23 @@ static void view3d_panel_curve_data(const bContext *C, Panel *panel)
   panel->layout->use_property_split_set(true);
   blender::ui::Layout &bcol = panel->layout->column(false);
 
-  auto add_labeled_field =
-      [&](const StringRef label, const bool active, FunctionRef<uiBut *()> add_button) {
-        blender::ui::Layout &row = bcol.row(true);
-        blender::ui::Layout &split = row.split(0.4, true);
-        blender::ui::Layout &col = split.column(true);
-        col.alignment_set(ui::LayoutAlign::Right);
-        col.label(label, ICON_NONE);
-        split.column(false);
-        uiBut *but = add_button();
-        if (active) {
-          button_drawflag_disable(but, blender::ui::BUT_INDETERMINATE);
-        }
-        else {
-          button_drawflag_enable(but, blender::ui::BUT_INDETERMINATE);
-        }
-      };
+  auto add_labeled_field = [&](const StringRef label,
+                               const bool active,
+                               FunctionRef<blender::ui::Button *()> add_button) {
+    blender::ui::Layout &row = bcol.row(true);
+    blender::ui::Layout &split = row.split(0.4, true);
+    blender::ui::Layout &col = split.column(true);
+    col.alignment_set(ui::LayoutAlign::Right);
+    col.label(label, ICON_NONE);
+    split.column(false);
+    blender::ui::Button *but = add_button();
+    if (active) {
+      button_drawflag_disable(but, blender::ui::BUT_INDETERMINATE);
+    }
+    else {
+      button_drawflag_enable(but, blender::ui::BUT_INDETERMINATE);
+    }
+  };
 
   const int butw = 10 * UI_UNIT_X;
   const int buth = 20 * UI_SCALE_FAC;
@@ -2498,43 +2499,44 @@ static void view3d_panel_curve_data(const bContext *C, Panel *panel)
   add_labeled_field(IFACE_("Cyclic"),
                     status.cyclic_count == 0 || status.cyclic_count == status.curve_count,
                     [&]() {
-                      uiBut *but = uiDefButC(block,
-                                             blender::ui::ButType::Checkbox,
-                                             "",
-                                             0,
-                                             0,
-                                             butw,
-                                             buth,
-                                             &modified.cyclic,
-                                             0,
-                                             1,
-                                             "");
+                      blender::ui::Button *but = uiDefButC(block,
+                                                           blender::ui::ButType::Checkbox,
+                                                           "",
+                                                           0,
+                                                           0,
+                                                           butw,
+                                                           buth,
+                                                           &modified.cyclic,
+                                                           0,
+                                                           1,
+                                                           "");
                       button_func_set(but, handle_curves_cyclic, nullptr, nullptr);
                       return but;
                     });
 
   if (status.nurbs_count == status.curve_count) {
-    add_labeled_field(
-        IFACE_("Knot Mode"),
-        status.nurbs_knot_mode_max * status.nurbs_count == status.nurbs_knot_mode_sum,
-        [&]() {
-          uiBut *but = uiDefMenuBut(block,
-                                    knot_modes_menu,
-                                    &modified.nurbs_knot_mode,
-                                    enum_curve_knot_mode_items[modified.nurbs_knot_mode].name,
-                                    0,
-                                    0,
-                                    butw,
-                                    buth,
-                                    "");
-          button_type_set_menu_from_pulldown(but);
-          button_func_set(but, handle_curves_knot_mode, nullptr, nullptr);
-          return but;
-        });
+    add_labeled_field(IFACE_("Knot Mode"),
+                      status.nurbs_knot_mode_max * status.nurbs_count ==
+                          status.nurbs_knot_mode_sum,
+                      [&]() {
+                        blender::ui::Button *but = uiDefMenuBut(
+                            block,
+                            knot_modes_menu,
+                            &modified.nurbs_knot_mode,
+                            enum_curve_knot_mode_items[modified.nurbs_knot_mode].name,
+                            0,
+                            0,
+                            butw,
+                            buth,
+                            "");
+                        button_type_set_menu_from_pulldown(but);
+                        button_func_set(but, handle_curves_knot_mode, nullptr, nullptr);
+                        return but;
+                      });
 
     add_labeled_field(
         IFACE_("Order"), status.order_max * status.nurbs_count == status.order_sum, [&]() {
-          uiBut *but = uiDefButI(
+          blender::ui::Button *but = uiDefButI(
               block, blender::ui::ButType::Num, "", 0, 0, butw, buth, &modified.order, 2, 6, "");
           button_number_step_size_set(but, 1);
           button_number_precision_set(but, -1);
@@ -2547,17 +2549,17 @@ static void view3d_panel_curve_data(const bContext *C, Panel *panel)
     add_labeled_field(IFACE_("Resolution"),
                       status.resolution_max * status.curve_count == status.resolution_sum,
                       [&]() {
-                        uiBut *but = uiDefButI(block,
-                                               blender::ui::ButType::Num,
-                                               "",
-                                               0,
-                                               0,
-                                               butw,
-                                               buth,
-                                               &modified.resolution,
-                                               1,
-                                               64,
-                                               "");
+                        blender::ui::Button *but = uiDefButI(block,
+                                                             blender::ui::ButType::Num,
+                                                             "",
+                                                             0,
+                                                             0,
+                                                             butw,
+                                                             buth,
+                                                             &modified.resolution,
+                                                             1,
+                                                             64,
+                                                             "");
                         button_number_step_size_set(but, 1);
                         button_number_precision_set(but, -1);
                         button_func_set(but, handle_curves_resolution, nullptr, nullptr);

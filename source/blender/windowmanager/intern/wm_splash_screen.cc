@@ -68,7 +68,7 @@ static void wm_block_splash_add_label(blender::ui::Block *block, const char *lab
 
   block_emboss_set(block, blender::ui::EmbossType::None);
 
-  uiBut *but = uiDefBut(
+  blender::ui::Button *but = uiDefBut(
       block, blender::ui::ButType::Label, label, 0, y, x, UI_UNIT_Y, nullptr, 0, 0, std::nullopt);
   button_drawflag_disable(but, blender::ui::BUT_TEXT_LEFT);
   button_drawflag_enable(but, blender::ui::BUT_TEXT_RIGHT);
@@ -308,7 +308,7 @@ static blender::ui::Block *wm_block_splash_create(bContext *C, ARegion *region, 
   ImBuf *ibuf = wm_block_splash_image(splash_width, &splash_height);
   /* This should never happen, if it does - don't crash. */
   if (LIKELY(ibuf)) {
-    uiBut *but = uiDefButImage(
+    blender::ui::Button *but = uiDefButImage(
         block, ibuf, 0, 0.5f * U.widget_unit, splash_width, splash_height, nullptr);
 
     button_func_set(but, wm_block_splash_close, block, nullptr);
@@ -327,7 +327,7 @@ static blender::ui::Block *wm_block_splash_create(bContext *C, ARegion *region, 
   ImBuf *bannerbuf = wm_block_splash_banner_image(
       &banner_width, &banner_height, splash_width, splash_height);
   if (bannerbuf) {
-    uiBut *banner_but = uiDefButImage(
+    blender::ui::Button *banner_but = uiDefButImage(
         block, bannerbuf, 0, 0.5f * U.widget_unit, banner_width, banner_height, nullptr);
 
     button_func_set(banner_but, wm_block_splash_close, block, nullptr);

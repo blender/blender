@@ -124,7 +124,7 @@ static void template_search_add_button_operator(
     return;
   }
 
-  uiBut *but;
+  Button *but;
   if (button_text) {
     const int button_width = std::max(
         fontstyle_string_width(UI_FSTYLE_WIDGET, button_text->c_str()) + int(UI_UNIT_X * 1.5f),

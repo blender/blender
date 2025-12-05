@@ -85,7 +85,7 @@ static void operator_search_update_fn(const bContext *C,
 /** \name Operator Search Template API
  * \{ */
 
-void button_func_operator_search(uiBut *but)
+void button_func_operator_search(Button *but)
 {
   button_func_search_set(but,
                          ui_searchbox_create_operator,
@@ -100,7 +100,7 @@ void button_func_operator_search(uiBut *but)
 void uiTemplateOperatorSearch(Layout *layout)
 {
   Block *block;
-  uiBut *but;
+  Button *but;
   static char search[256] = "";
 
   block = layout->block();

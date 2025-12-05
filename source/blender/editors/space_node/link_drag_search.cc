@@ -435,15 +435,15 @@ static ui::Block *create_search_popup_block(bContext *C, ARegion *region, void *
   block_flag_enable(block, ui::BLOCK_LOOP | ui::BLOCK_MOVEMOUSE_QUIT | ui::BLOCK_SEARCH_MENU);
   block_theme_style_set(block, ui::BLOCK_THEME_STYLE_POPUP);
 
-  uiBut *but = uiDefSearchBut(block,
-                              storage.search,
-                              ICON_VIEWZOOM,
-                              sizeof(storage.search),
-                              storage.in_out() == SOCK_OUT ? 10 : 10 - ui::searchbox_size_x(),
-                              0,
-                              ui::searchbox_size_x(),
-                              UI_UNIT_Y,
-                              "");
+  ui::Button *but = uiDefSearchBut(block,
+                                   storage.search,
+                                   ICON_VIEWZOOM,
+                                   sizeof(storage.search),
+                                   storage.in_out() == SOCK_OUT ? 10 : 10 - ui::searchbox_size_x(),
+                                   0,
+                                   ui::searchbox_size_x(),
+                                   UI_UNIT_Y,
+                                   "");
   button_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
   button_func_search_set_listen(but, link_drag_search_listen_fn);
   button_func_search_set(but,

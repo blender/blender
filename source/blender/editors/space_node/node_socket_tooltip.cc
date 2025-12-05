@@ -39,7 +39,7 @@ class SocketTooltipBuilder {
   const bNodeTree &tree_;
   const bNode &node_;
   const bNodeSocket &socket_;
-  uiBut *but_ = nullptr;
+  ui::Button *but_ = nullptr;
   bContext &C_;
   int indentation_ = 0;
 
@@ -57,7 +57,7 @@ class SocketTooltipBuilder {
                        const bNodeTree &tree,
                        const bNodeSocket &socket,
                        bContext &C,
-                       uiBut *but)
+                       ui::Button *but)
       : tip_data_(tip_data),
         tree_(tree),
         node_(socket.owner_node()),
@@ -903,7 +903,7 @@ class SocketTooltipBuilder {
 
 void build_socket_tooltip(ui::TooltipData &tip_data,
                           bContext &C,
-                          uiBut *but,
+                          ui::Button *but,
                           const bNodeTree &tree,
                           const bNodeSocket &socket)
 {

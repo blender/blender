@@ -110,7 +110,7 @@ static bool depthdropper_test(bContext *C, wmOperator *op)
   PointerRNA ptr;
   PropertyRNA *prop;
   int index_dummy;
-  uiBut *but;
+  Button *but;
 
   /* Check if the custom prop_data_path is set. */
   if ((prop = RNA_struct_find_property(op->ptr, "prop_data_path")) &&
@@ -167,7 +167,7 @@ static int depthdropper_init(bContext *C, wmOperator *op)
   else {
     /* fallback to the active camera's dof */
     int index_dummy;
-    uiBut *but = context_active_but_prop_get(C, &ddr->ptr, &ddr->prop, &index_dummy);
+    Button *but = context_active_but_prop_get(C, &ddr->ptr, &ddr->prop, &index_dummy);
     if (ddr->prop == nullptr) {
       RegionView3D *rv3d = CTX_wm_region_view3d(C);
       if (rv3d && rv3d->persp == RV3D_CAMOB) {
@@ -433,7 +433,7 @@ static bool depthdropper_poll(bContext *C)
   PointerRNA ptr;
   PropertyRNA *prop;
   int index_dummy;
-  uiBut *but;
+  Button *but;
 
   /* check if there's an active button taking depth value */
   if ((CTX_wm_window(C) != nullptr) &&

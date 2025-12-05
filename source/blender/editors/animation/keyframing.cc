@@ -1307,7 +1307,7 @@ static wmOperatorStatus insert_key_button_exec(bContext *C, wmOperator *op)
   ToolSettings *ts = scene->toolsettings;
   PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
-  uiBut *but;
+  blender::ui::Button *but;
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
       CTX_data_depsgraph_pointer(C), BKE_scene_frame_get(scene));
   bool changed = false;

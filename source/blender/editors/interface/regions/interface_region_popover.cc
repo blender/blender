@@ -54,7 +54,7 @@ namespace blender::ui {
 struct uiPopover {
   Block *block;
   Layout *layout;
-  uiBut *but;
+  Button *but;
   ARegion *butregion;
 
   /* Needed for keymap removal. */
@@ -208,9 +208,9 @@ static Block *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, voi
     block->minbounds = UI_MENU_WIDTH_MIN;
 
     if (!handle->refresh) {
-      uiBut *but = nullptr;
-      uiBut *but_first = nullptr;
-      for (const std::unique_ptr<uiBut> &but_iter : block->buttons) {
+      Button *but = nullptr;
+      Button *but_first = nullptr;
+      for (const std::unique_ptr<Button> &but_iter : block->buttons) {
         if ((but_first == nullptr) && ui_but_is_editable(but_iter.get())) {
           but_first = but_iter.get();
         }
@@ -252,7 +252,7 @@ static void ui_block_free_func_POPOVER(void *arg_pup)
 
 uiPopupBlockHandle *ui_popover_panel_create(bContext *C,
                                             ARegion *butregion,
-                                            uiBut *but,
+                                            Button *but,
                                             uiPopoverCreateFunc popover_func,
                                             const PanelType *panel_type)
 {
@@ -357,7 +357,7 @@ uiPopover *popover_begin(bContext *C, int ui_menu_width, bool from_active_button
   pup->ui_size_x = ui_menu_width;
 
   ARegion *butregion = nullptr;
-  uiBut *but = nullptr;
+  Button *but = nullptr;
 
   if (from_active_button) {
     butregion = CTX_wm_region(C);

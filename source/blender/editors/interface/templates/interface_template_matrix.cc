@@ -63,17 +63,17 @@ static void rotation_mode_menu_callback(bContext *, Layout *layout, void *)
     const EnumPropertyItem &mode_info = rna_enum_object_rotation_mode_items[i];
     const int yco = -1.5f * UI_UNIT_Y;
     const int width = 9 * UI_UNIT_X;
-    uiBut *but = uiDefButI(layout->block(),
-                           ButType::Row,
-                           IFACE_(mode_info.name),
-                           0,
-                           yco,
-                           width / 2,
-                           UI_UNIT_Y,
-                           &rotation_mode_index,
-                           i,
-                           i,
-                           TIP_(mode_info.description));
+    Button *but = uiDefButI(layout->block(),
+                            ButType::Row,
+                            IFACE_(mode_info.name),
+                            0,
+                            yco,
+                            width / 2,
+                            UI_UNIT_Y,
+                            &rotation_mode_index,
+                            i,
+                            i,
+                            TIP_(mode_info.description));
     button_flag_disable(but, BUT_UNDO);
     if (i == rotation_mode_index) {
       button_flag_enable(but, UI_SELECT_DRAW);
@@ -182,16 +182,16 @@ static void draw_matrix_template(Layout &layout, PointerRNA &ptr, PropertyRNA &p
   row = &layout_.row(true);
   uiItemL_respect_property_split(row, IFACE_("Mode"), ICON_NONE);
   Block *block = row->block();
-  uiBut *but = uiDefMenuBut(block,
-                            rotation_mode_menu_callback,
-                            nullptr,
-                            IFACE_(mode_info.name),
-                            0,
-                            0,
-                            UI_UNIT_X * 10,
-                            UI_UNIT_Y,
-                            TIP_("Rotation mode.\n\nOnly affects the way "
-                                 "rotation is displayed, rotation itself is unaffected."));
+  Button *but = uiDefMenuBut(block,
+                             rotation_mode_menu_callback,
+                             nullptr,
+                             IFACE_(mode_info.name),
+                             0,
+                             0,
+                             UI_UNIT_X * 10,
+                             UI_UNIT_Y,
+                             TIP_("Rotation mode.\n\nOnly affects the way "
+                                  "rotation is displayed, rotation itself is unaffected."));
   button_type_set_menu_from_pulldown(but);
 
   /* Scale. */

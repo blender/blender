@@ -225,9 +225,9 @@ void AssetViewItem::build_grid_tile(const bContext & /*C*/, ui::Layout &layout) 
 
   PointerRNA asset_ptr = RNA_pointer_create_discrete(nullptr, &RNA_AssetRepresentation, &asset_);
   button_context_ptr_set(
-      layout.block(), reinterpret_cast<uiBut *>(view_item_but_), "asset", &asset_ptr);
+      layout.block(), reinterpret_cast<ui::Button *>(view_item_but_), "asset", &asset_ptr);
 
-  uiBut *item_but = reinterpret_cast<uiBut *>(this->view_item_button());
+  ui::Button *item_but = reinterpret_cast<ui::Button *>(this->view_item_button());
   if (std::optional<wmOperatorCallParams> activate_op = create_asset_operator_params(
           shelf_type.activate_operator, asset_))
   {
@@ -246,7 +246,7 @@ void AssetViewItem::build_grid_tile(const bContext & /*C*/, ui::Layout &layout) 
 
   button_func_tooltip_custom_set(
       item_but,
-      [](bContext & /*C*/, uiTooltipData &tip, uiBut * /*but*/, void *argN) {
+      [](bContext & /*C*/, uiTooltipData &tip, ui::Button * /*but*/, void *argN) {
         const asset_system::AssetRepresentation *asset =
             static_cast<const asset_system::AssetRepresentation *>(argN);
         asset_tooltip(*asset, tip);

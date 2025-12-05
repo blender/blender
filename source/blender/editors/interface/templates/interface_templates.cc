@@ -74,7 +74,7 @@ void template_add_button_search_menu(const bContext *C,
                nullptr;
   const ID *idfrom = ptr->owner_id;
   const StructRNA *type = active_ptr.type ? active_ptr.type : RNA_property_pointer_type(ptr, prop);
-  uiBut *but;
+  Button *but;
 
   if (use_previews) {
     ARegion *region = CTX_wm_region(C);
@@ -165,7 +165,7 @@ Block *template_common_search_menu(const bContext *C,
 {
   static char search[256];
   wmWindow *win = CTX_wm_window(C);
-  uiBut *but;
+  Button *but;
 
   /* clear initial search string, then all items show */
   search[0] = 0;
@@ -291,7 +291,7 @@ void template_node_socket(Layout *layout, bContext * /*C*/, const float color[4]
   /* XXX using explicit socket colors is not quite ideal.
    * Eventually it should be possible to use theme colors for this purpose,
    * but this requires a better design for extendable color palettes in user preferences. */
-  uiBut *but = uiDefBut(
+  Button *but = uiDefBut(
       block, ButType::NodeSocket, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0, 0, "");
   rgba_float_to_uchar(but->col, color);
 

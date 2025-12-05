@@ -175,7 +175,7 @@ struct Layout : public uiItem, NonCopyable, NonMovable {
   void context_int_set(StringRef name, int64_t value);
 
   /** Only for convenience. */
-  void context_set_from_but(const uiBut *but);
+  void context_set_from_but(const Button *but);
 
   [[nodiscard]] bContextStore *context_store() const;
 
@@ -662,10 +662,10 @@ struct Layout : public uiItem, NonCopyable, NonMovable {
                       const char *menu_type);
 
   /** Simple button executing \a func on click. */
-  uiBut *button(StringRef name,
-                int icon,
-                std::function<void(bContext &)> func,
-                std::optional<StringRef> tooltip = std::nullopt);
+  Button *button(StringRef name,
+                 int icon,
+                 std::function<void(bContext &)> func,
+                 std::optional<StringRef> tooltip = std::nullopt);
 
   /** Adds a separator item, that adds empty space between items. */
   void separator(float factor = 1.0f, LayoutSeparatorType type = LayoutSeparatorType::Auto);
@@ -957,7 +957,7 @@ struct uiPropertySplitWrapper {
  */
 uiPropertySplitWrapper uiItemPropertySplitWrapperCreate(Layout *parent_layout);
 
-uiBut *uiItemL_ex(
+Button *uiItemL_ex(
     Layout *layout, blender::StringRef name, int icon, bool highlight, bool redalert);
 /**
  * Helper to add a label using a property split layout if needed. After calling this the

@@ -369,7 +369,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
   if (get_active_fcurve_keyframe_edit(fcu, &bezt, &prevbezt)) {
     PointerRNA fcu_prop_ptr;
     PropertyRNA *fcu_prop = nullptr;
-    uiBut *but;
+    blender::ui::Button *but;
     int unit = B_UNIT_NONE;
 
     /* RNA pointer to keyframe, to allow editing */
@@ -962,7 +962,7 @@ static void graph_draw_driver_settings_panel(blender::ui::Layout &layout,
   ChannelDriver *driver = fcu->driver;
   blender::ui::Block *block = layout.block();
 
-  uiBut *but;
+  blender::ui::Button *but;
 
   /* set event handler for panel */
   block_func_handle_set(block, do_graph_region_driver_buttons, id);
@@ -1282,7 +1282,7 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *panel)
   PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
   int index = -1;
-  uiBut *but = nullptr;
+  blender::ui::Button *but = nullptr;
 
   /* Get active property to show driver properties for */
   but = blender::ui::region_active_but_prop_get(CTX_wm_region(C), &ptr, &prop, &index);

@@ -462,19 +462,19 @@ void PreviewGridItem::build_grid_tile_button(Layout &layout,
   Block *block = layout.block();
 
   button_func_quick_tooltip_set(this->view_item_button(),
-                                [this](const uiBut * /*but*/) { return label; });
+                                [this](const Button * /*but*/) { return label; });
 
-  uiBut *but = uiDefBut(block,
-                        ButType::PreviewTile,
-                        hide_label_ ? "" : label,
-                        0,
-                        0,
-                        style.tile_width,
-                        style.tile_height,
-                        nullptr,
-                        0,
-                        0,
-                        "");
+  Button *but = uiDefBut(block,
+                         ButType::PreviewTile,
+                         hide_label_ ? "" : label,
+                         0,
+                         0,
+                         style.tile_width,
+                         style.tile_height,
+                         nullptr,
+                         0,
+                         0,
+                         "");
 
   const BIFIconID icon_id = override_preview_icon_id ? override_preview_icon_id : preview_icon_id;
 

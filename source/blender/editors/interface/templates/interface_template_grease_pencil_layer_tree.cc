@@ -310,7 +310,7 @@ class LayerViewItem : public AbstractTreeViewItem {
 
   void build_layer_name(Layout &row)
   {
-    uiBut *but = uiItemL_ex(
+    Button *but = uiItemL_ex(
         &row, layer_.name().c_str(), ICON_OUTLINER_DATA_GP_LAYER, false, false);
 
     if (ID_IS_LINKED(&grease_pencil_)) {
@@ -485,7 +485,7 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
       icon = ICON_LAYERGROUP_COLOR_01 + group_.color_tag;
     }
 
-    uiBut *but = uiItemL_ex(&row, group_.name(), icon, false, false);
+    Button *but = uiItemL_ex(&row, group_.name(), icon, false, false);
     if (ID_IS_LINKED(&grease_pencil_)) {
       button_flag_enable(but, BUT_DISABLED);
     }

@@ -5894,7 +5894,7 @@ static void draw_setting_widget(bAnimContext *ac,
   }
 
   /* draw button for setting */
-  uiBut *but = nullptr;
+  blender::ui::Button *but = nullptr;
   switch (ptrsize) {
     case sizeof(int): /* integer pointer for setting */
       but = uiDefIconButBitI(block,
@@ -6169,7 +6169,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
     if (acf->name_prop(ale, &ptr, &prop)) {
       const short margin_x = 3 * round_fl_to_int(UI_SCALE_FAC);
       const short width = ac->region->winx - offset - (margin_x * 2);
-      uiBut *but;
+      blender::ui::Button *but;
 
       block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
@@ -6318,7 +6318,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
       if ((ale->type == ANIMTYPE_NLAACTION) && (ale->adt && ale->adt->action) &&
           !(ale->adt->flag & ADT_NLA_EDIT_ON))
       {
-        uiBut *but;
+        blender::ui::Button *but;
         PointerRNA *opptr_b;
 
         block_emboss_set(block, blender::ui::EmbossType::Emboss);
@@ -6389,7 +6389,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
 
           /* create property slider */
           if (prop) {
-            uiBut *but;
+            blender::ui::Button *but;
 
             /* Create the slider button,
              * and assign relevant callback to ensure keyframes are inserted. */
@@ -6497,7 +6497,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
 
           /* try to resolve the path */
           if (RNA_path_resolve_property(&id_ptr, rna_path->c_str(), &ptr, &prop)) {
-            uiBut *but;
+            blender::ui::Button *but;
 
             /* Create the slider button,
              * and assign relevant callback to ensure keyframes are inserted. */

@@ -101,16 +101,16 @@ static void ui_imageuser_slot_menu(bContext *C, blender::ui::Layout *layout, voi
     else if (slot->render != nullptr) {
       icon = ICON_DOT;
     }
-    uiBut *but = uiDefIconTextBut(block,
-                                  blender::ui::ButType::ButMenu,
-                                  icon,
-                                  str,
-                                  0,
-                                  0,
-                                  UI_UNIT_X * 5,
-                                  UI_UNIT_X,
-                                  nullptr,
-                                  "");
+    blender::ui::Button *but = uiDefIconTextBut(block,
+                                                blender::ui::ButType::ButMenu,
+                                                icon,
+                                                str,
+                                                0,
+                                                0,
+                                                UI_UNIT_X * 5,
+                                                UI_UNIT_X,
+                                                nullptr,
+                                                "");
     button_retval_set(but, B_NOP);
     button_func_set(but, [image, slot_id](bContext & /*C*/) { image->render_slot = slot_id; });
   }
@@ -190,33 +190,33 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, blender::ui::Layout *layou
 
   const char *fake_name = ui_imageuser_layer_fake_name(rr);
   if (fake_name) {
-    uiBut *but = uiDefButS(block,
-                           blender::ui::ButType::ButMenu,
-                           fake_name,
-                           0,
-                           0,
-                           UI_UNIT_X * 5,
-                           UI_UNIT_X,
-                           &iuser->layer,
-                           0.0,
-                           0.0,
-                           "");
+    blender::ui::Button *but = uiDefButS(block,
+                                         blender::ui::ButType::ButMenu,
+                                         fake_name,
+                                         0,
+                                         0,
+                                         UI_UNIT_X * 5,
+                                         UI_UNIT_X,
+                                         &iuser->layer,
+                                         0.0,
+                                         0.0,
+                                         "");
     button_retval_set(but, B_NOP);
   }
 
   int nr = fake_name ? 1 : 0;
   for (RenderLayer *rl = static_cast<RenderLayer *>(rr->layers.first); rl; rl = rl->next, nr++) {
-    uiBut *but = uiDefButS(block,
-                           blender::ui::ButType::ButMenu,
-                           rl->name,
-                           0,
-                           0,
-                           UI_UNIT_X * 5,
-                           UI_UNIT_X,
-                           &iuser->layer,
-                           float(nr),
-                           0.0,
-                           "");
+    blender::ui::Button *but = uiDefButS(block,
+                                         blender::ui::ButType::ButMenu,
+                                         rl->name,
+                                         0,
+                                         0,
+                                         UI_UNIT_X * 5,
+                                         UI_UNIT_X,
+                                         &iuser->layer,
+                                         float(nr),
+                                         0.0,
+                                         "");
     button_retval_set(but, B_NOP);
   }
 
@@ -277,17 +277,17 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, blender::ui::Layout *layout
     }
     BLI_addtail(&added_passes, BLI_genericNodeN(rpass->name));
 
-    uiBut *but = uiDefButS(block,
-                           blender::ui::ButType::ButMenu,
-                           IFACE_(rpass->name),
-                           0,
-                           0,
-                           UI_UNIT_X * 5,
-                           UI_UNIT_X,
-                           &iuser->pass,
-                           float(nr),
-                           0.0,
-                           "");
+    blender::ui::Button *but = uiDefButS(block,
+                                         blender::ui::ButType::ButMenu,
+                                         IFACE_(rpass->name),
+                                         0,
+                                         0,
+                                         UI_UNIT_X * 5,
+                                         UI_UNIT_X,
+                                         &iuser->pass,
+                                         float(nr),
+                                         0.0,
+                                         "");
     button_retval_set(but, B_NOP);
   }
 
@@ -348,17 +348,17 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, blender::ui::Layout *lay
   for (rview = static_cast<RenderView *>(rr ? rr->views.last : nullptr); rview;
        rview = rview->prev, nr--)
   {
-    uiBut *but = uiDefButS(block,
-                           blender::ui::ButType::ButMenu,
-                           IFACE_(rview->name),
-                           0,
-                           0,
-                           UI_UNIT_X * 5,
-                           UI_UNIT_X,
-                           &iuser->view,
-                           float(nr),
-                           0.0,
-                           "");
+    blender::ui::Button *but = uiDefButS(block,
+                                         blender::ui::ButType::ButMenu,
+                                         IFACE_(rview->name),
+                                         0,
+                                         0,
+                                         UI_UNIT_X * 5,
+                                         UI_UNIT_X,
+                                         &iuser->view,
+                                         float(nr),
+                                         0.0,
+                                         "");
     button_retval_set(but, B_NOP);
   }
 
@@ -394,17 +394,17 @@ static void ui_imageuser_view_menu_multiview(bContext * /*C*/,
 
   nr = BLI_listbase_count(&image->views) - 1;
   for (iv = static_cast<ImageView *>(image->views.last); iv; iv = iv->prev, nr--) {
-    uiBut *but = uiDefButS(block,
-                           blender::ui::ButType::ButMenu,
-                           IFACE_(iv->name),
-                           0,
-                           0,
-                           UI_UNIT_X * 5,
-                           UI_UNIT_X,
-                           &iuser->view,
-                           float(nr),
-                           0.0,
-                           "");
+    blender::ui::Button *but = uiDefButS(block,
+                                         blender::ui::ButType::ButMenu,
+                                         IFACE_(iv->name),
+                                         0,
+                                         0,
+                                         UI_UNIT_X * 5,
+                                         UI_UNIT_X,
+                                         &iuser->view,
+                                         float(nr),
+                                         0.0,
+                                         "");
     button_retval_set(but, B_NOP);
   }
 }
@@ -563,7 +563,7 @@ static void uiblock_layer_pass_buttons(blender::ui::Layout &layout,
 {
   ImageUI_Data rnd_pt_local, *rnd_pt = nullptr;
   blender::ui::Block *block = layout.block();
-  uiBut *but;
+  blender::ui::Button *but;
   RenderLayer *rl = nullptr;
   int wmenu1, wmenu2, wmenu3, wmenu4;
   const char *fake_name;

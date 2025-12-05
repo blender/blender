@@ -707,7 +707,7 @@ static void ui_template_list_layout_draw(const bContext *C,
   Layout *glob = nullptr, *box, *row, *col, *sub, *overlap;
   char numstr[32];
   int rnaicon = ICON_NONE, icon = ICON_NONE;
-  uiBut *but;
+  Button *but;
 
   Block *block = layout.block();
 

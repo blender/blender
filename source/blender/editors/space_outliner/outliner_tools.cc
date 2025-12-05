@@ -850,7 +850,7 @@ static ui::Block *merged_element_search_menu(bContext *C, ARegion *region, void 
 {
   static char search[64] = "";
   ui::Block *block;
-  uiBut *but;
+  ui::Button *but;
 
   /* Clear search on each menu creation */
   *search = '\0';
@@ -3737,7 +3737,7 @@ static wmOperatorStatus outliner_operation_invoke(bContext *C,
 {
   ARegion *region = CTX_wm_region(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-  uiBut *but = ui::context_active_but_get(C);
+  ui::Button *but = ui::context_active_but_get(C);
   float view_mval[2];
 
   if (but) {

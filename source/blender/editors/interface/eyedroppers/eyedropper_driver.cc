@@ -49,7 +49,7 @@ static bool driverdropper_init(bContext *C, wmOperator *op)
 {
   DriverDropper *ddr = MEM_new<DriverDropper>(__func__);
 
-  uiBut *but = context_active_but_prop_get(C, &ddr->ptr, &ddr->prop, &ddr->index);
+  Button *but = context_active_but_prop_get(C, &ddr->ptr, &ddr->prop, &ddr->index);
 
   if ((ddr->ptr.data == nullptr) || (ddr->prop == nullptr) ||
       (RNA_property_driver_editable(&ddr->ptr, ddr->prop) == false) || (but->flag & BUT_DRIVEN))
@@ -78,7 +78,7 @@ static void driverdropper_exit(bContext *C, wmOperator *op)
 static void driverdropper_sample(bContext *C, wmOperator *op, const wmEvent *event)
 {
   DriverDropper *ddr = static_cast<DriverDropper *>(op->customdata);
-  uiBut *but = eyedropper_get_property_button_under_mouse(C, event);
+  Button *but = eyedropper_get_property_button_under_mouse(C, event);
 
   const short mapping_type = RNA_enum_get(op->ptr, "mapping_type");
   const short flag = 0;

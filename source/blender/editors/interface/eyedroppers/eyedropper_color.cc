@@ -110,7 +110,7 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
     eye->is_undo = true;
   }
   else {
-    uiBut *but = context_active_but_prop_get(C, &eye->ptr, &eye->prop, &eye->index);
+    Button *but = context_active_but_prop_get(C, &eye->ptr, &eye->prop, &eye->index);
     if (but != nullptr) {
       eye->is_undo = button_flag_is_set(but, BUT_UNDO);
     }

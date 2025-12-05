@@ -226,18 +226,18 @@ void node_geometry_add_volume_grid_search_button(const bContext & /*C*/,
                                                  const StringRef placeholder)
 {
   ui::Block *block = layout.block();
-  uiBut *but = uiDefIconTextButR(block,
-                                 ui::ButType::SearchMenu,
-                                 ICON_NONE,
-                                 "",
-                                 0,
-                                 0,
-                                 10 * UI_UNIT_X, /* Dummy value, replaced by layout system. */
-                                 UI_UNIT_Y,
-                                 &socket_ptr,
-                                 "default_value",
-                                 0,
-                                 "");
+  ui::Button *but = uiDefIconTextButR(block,
+                                      ui::ButType::SearchMenu,
+                                      ICON_NONE,
+                                      "",
+                                      0,
+                                      0,
+                                      10 * UI_UNIT_X, /* Dummy value, replaced by layout system. */
+                                      UI_UNIT_Y,
+                                      &socket_ptr,
+                                      "default_value",
+                                      0,
+                                      "");
   button_placeholder_set(but, placeholder);
 
   const bNodeSocket &socket = *static_cast<const bNodeSocket *>(socket_ptr.data);

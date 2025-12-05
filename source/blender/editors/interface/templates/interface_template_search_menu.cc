@@ -125,7 +125,7 @@ struct MenuSearch_Data {
 
   /** Use for context menu, to fake a button to create a context menu. */
   struct {
-    uiBut but;
+    Button but;
     Block block;
   } context_menu_data;
 };
@@ -139,7 +139,7 @@ static bool menu_item_sort_by_drawstr_full(const MenuSearch_Item &menu_item_a,
 static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
                                                        ResourceScope &scope,
                                                        MenuType *mt,
-                                                       uiBut *but,
+                                                       Button *but,
                                                        MenuSearch_Context *wm_context,
                                                        MenuSearch_Parent *menu_parent)
 {
@@ -246,7 +246,7 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
 /**
  * Populate a fake button from a menu item (use for context menu).
  */
-static bool menu_items_to_ui_button(MenuSearch_Item *item, uiBut *but)
+static bool menu_items_to_ui_button(MenuSearch_Item *item, Button *but)
 {
   bool changed = false;
   if (auto *op_data = std::get_if<MenuSearch_Item::OperatorData>(&item->data)) {
@@ -680,14 +680,14 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
       block_end(C, block);
 
       for (const int i : block->buttons.index_range()) {
-        const std::unique_ptr<uiBut> &but = block->buttons[i];
+        const std::unique_ptr<Button> &but = block->buttons[i];
         MenuType *mt_from_but = nullptr;
         /* Support menu titles with dynamic from initial labels
          * (used by edit-mesh context menu). */
         if (but->type == ButType::Label) {
 
           /* Check if the label is the title. */
-          const std::unique_ptr<uiBut> *but_test = block->buttons.begin() + i - 1;
+          const std::unique_ptr<Button> *but_test = block->buttons.begin() + i - 1;
           while (but_test >= block->buttons.begin() && (*but_test)->type == ButType::Sepr) {
             but_test--;
           }
@@ -803,7 +803,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
             menu_parent->drawstr = scope.allocator().copy_string(but->drawstr);
             menu_parent->parent = current_menu.self_as_parent;
 
-            for (const std::unique_ptr<uiBut> &sub_but : sub_block->buttons) {
+            for (const std::unique_ptr<Button> &sub_but : sub_block->buttons) {
               menu_items_from_ui_create_item_from_button(
                   data, scope, mt, sub_but.get(), wm_context, menu_parent);
             }
@@ -1022,9 +1022,9 @@ static bool ui_search_menu_create_context_menu(bContext *C,
   MenuSearch_Item *item = (MenuSearch_Item *)active;
   bool has_menu = false;
 
-  new (&data->context_menu_data.but) uiBut();
+  new (&data->context_menu_data.but) Button();
   new (&data->context_menu_data.block) Block();
-  uiBut *but = &data->context_menu_data.but;
+  Button *but = &data->context_menu_data.but;
   Block *block = &data->context_menu_data.block;
 
   but->block = block;
@@ -1063,9 +1063,9 @@ static ARegion *ui_search_menu_create_tooltip(
   MenuSearch_Data *data = (MenuSearch_Data *)arg;
   MenuSearch_Item *item = (MenuSearch_Item *)active;
 
-  new (&data->context_menu_data.but) uiBut();
+  new (&data->context_menu_data.but) Button();
   new (&data->context_menu_data.block) Block();
-  uiBut *but = &data->context_menu_data.but;
+  Button *but = &data->context_menu_data.but;
   Block *block = &data->context_menu_data.block;
   unit_m4(block->winmat);
   block->aspect = 1;
@@ -1111,7 +1111,7 @@ static ARegion *ui_search_menu_create_tooltip(
 /** \name Menu Search Template Public API
  * \{ */
 
-void button_func_menu_search(uiBut *but, const char *single_menu_idname)
+void button_func_menu_search(Button *but, const char *single_menu_idname)
 {
   bContext *C = (bContext *)but->block->evil_C;
   wmWindow *win = CTX_wm_window(C);
@@ -1140,7 +1140,7 @@ void button_func_menu_search(uiBut *but, const char *single_menu_idname)
 void uiTemplateMenuSearch(Layout *layout)
 {
   Block *block;
-  uiBut *but;
+  Button *but;
   static char search[256] = "";
 
   block = layout->block();

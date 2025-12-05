@@ -139,7 +139,7 @@ uiPieMenu *pie_menu_begin(bContext *C, const char *title, int icon, const wmEven
 
   /* create title button */
   if (title[0]) {
-    uiBut *but;
+    Button *but;
     char titlestr[256];
     int w;
     if (icon) {
@@ -298,16 +298,16 @@ void ui_pie_menu_level_create(Block *block,
   lvl.flag = flag;
 
   /* add a 'more' menu entry */
-  uiBut *but = uiDefIconTextBut(block,
-                                ButType::But,
-                                ICON_PLUS,
-                                "More",
-                                0,
-                                0,
-                                UI_UNIT_X * 3,
-                                UI_UNIT_Y,
-                                nullptr,
-                                "Show more items of this menu");
+  Button *but = uiDefIconTextBut(block,
+                                 ButType::But,
+                                 ICON_PLUS,
+                                 "More",
+                                 0,
+                                 0,
+                                 UI_UNIT_X * 3,
+                                 UI_UNIT_Y,
+                                 nullptr,
+                                 "Show more items of this menu");
   button_funcN_set(but, ui_pie_menu_level_invoke, remaining, &lvl);
 }
 

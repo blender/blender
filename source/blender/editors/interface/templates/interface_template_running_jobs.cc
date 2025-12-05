@@ -280,31 +280,31 @@ void template_running_jobs(Layout *layout, bContext *C)
     }
 
     if (cancel_fn && !wm->runtime->is_interface_locked) {
-      uiBut *but = uiDefIconTextBut(block,
-                                    ButType::But,
-                                    ICON_PANEL_CLOSE,
-                                    "",
-                                    0,
-                                    0,
-                                    UI_UNIT_X,
-                                    UI_UNIT_Y,
-                                    nullptr,
-                                    TIP_("Stop this job"));
+      Button *but = uiDefIconTextBut(block,
+                                     ButType::But,
+                                     ICON_PANEL_CLOSE,
+                                     "",
+                                     0,
+                                     0,
+                                     UI_UNIT_X,
+                                     UI_UNIT_Y,
+                                     nullptr,
+                                     TIP_("Stop this job"));
       button_func_set(but, std::move(cancel_fn));
     }
   }
 
   if (ED_screen_animation_no_scrub(wm)) {
-    uiBut *but = uiDefIconTextBut(block,
-                                  ButType::But,
-                                  ICON_CANCEL,
-                                  IFACE_("Anim Player"),
-                                  0,
-                                  0,
-                                  UI_UNIT_X * 5.0f,
-                                  UI_UNIT_Y,
-                                  nullptr,
-                                  TIP_("Stop animation playback"));
+    Button *but = uiDefIconTextBut(block,
+                                   ButType::But,
+                                   ICON_CANCEL,
+                                   IFACE_("Anim Player"),
+                                   0,
+                                   0,
+                                   UI_UNIT_X * 5.0f,
+                                   UI_UNIT_Y,
+                                   nullptr,
+                                   TIP_("Stop animation playback"));
     button_func_set(but, [](bContext &C) {
       WM_operator_name_call(
           &C, "SCREEN_OT_animation_play", wm::OpCallContext::InvokeScreen, nullptr, nullptr);

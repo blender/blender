@@ -79,7 +79,7 @@ void ED_file_path_button(bScreen *screen,
                          FileSelectParams *params,
                          blender::ui::Block *block)
 {
-  uiBut *but;
+  blender::ui::Button *but;
 
   BLI_assert_msg(params != nullptr,
                  "File select parameters not set. The caller is expected to check this.");
@@ -136,7 +136,7 @@ static FileTooltipData *file_tooltip_data_create(const SpaceFile *sfile, const F
 
 static void file_draw_tooltip_custom_func(bContext & /*C*/,
                                           uiTooltipData &tip,
-                                          uiBut * /*but*/,
+                                          blender::ui::Button * /*but*/,
                                           void *argN)
 {
   FileTooltipData *file_data = static_cast<FileTooltipData *>(argN);
@@ -384,7 +384,7 @@ static void file_draw_tooltip_custom_func(bContext & /*C*/,
 
 static void file_draw_asset_tooltip_custom_func(bContext & /*C*/,
                                                 uiTooltipData &tip,
-                                                uiBut * /*but*/,
+                                                blender::ui::Button * /*but*/,
                                                 void *argN)
 {
   const auto *asset = static_cast<blender::asset_system::AssetRepresentation *>(argN);
@@ -402,7 +402,7 @@ static void draw_tile_background(const rcti *draw_rect, int colorid, int shade)
   blender::ui::draw_roundbox_aa(&draw_rect_fl, true, 5.0f, color);
 }
 
-static void file_but_enable_drag(uiBut *but,
+static void file_but_enable_drag(blender::ui::Button *but,
                                  const SpaceFile *sfile,
                                  const FileDirEntry *file,
                                  const char *path,
@@ -444,7 +444,9 @@ static void file_but_enable_drag(uiBut *but,
   }
 }
 
-static void file_but_tooltip_func_set(const SpaceFile *sfile, const FileDirEntry *file, uiBut *but)
+static void file_but_tooltip_func_set(const SpaceFile *sfile,
+                                      const FileDirEntry *file,
+                                      blender::ui::Button *but)
 {
   if (file->asset) {
     button_func_tooltip_custom_set(but, file_draw_asset_tooltip_custom_func, file->asset, nullptr);
@@ -455,18 +457,18 @@ static void file_but_tooltip_func_set(const SpaceFile *sfile, const FileDirEntry
   }
 }
 
-static uiBut *file_add_icon_but(const SpaceFile *sfile,
-                                blender::ui::Block *block,
-                                const char * /*path*/,
-                                const FileDirEntry *file,
-                                const rcti *tile_draw_rect,
-                                int icon,
-                                int width,
-                                int height,
-                                int padx,
-                                bool dimmed)
+static blender::ui::Button *file_add_icon_but(const SpaceFile *sfile,
+                                              blender::ui::Block *block,
+                                              const char * /*path*/,
+                                              const FileDirEntry *file,
+                                              const rcti *tile_draw_rect,
+                                              int icon,
+                                              int width,
+                                              int height,
+                                              int padx,
+                                              bool dimmed)
 {
-  uiBut *but;
+  blender::ui::Button *but;
 
   const int x = tile_draw_rect->xmin + padx;
   const int y = tile_draw_rect->ymin +
@@ -508,19 +510,22 @@ static uiBut *file_add_icon_but(const SpaceFile *sfile,
   return but;
 }
 
-static uiBut *file_add_overlay_icon_but(blender::ui::Block *block, int pos_x, int pos_y, int icon)
+static blender::ui::Button *file_add_overlay_icon_but(blender::ui::Block *block,
+                                                      int pos_x,
+                                                      int pos_y,
+                                                      int icon)
 {
-  uiBut *but = uiDefIconBut(block,
-                            blender::ui::ButType::Label,
-                            icon,
-                            pos_x,
-                            pos_y,
-                            ICON_DEFAULT_WIDTH_SCALE,
-                            ICON_DEFAULT_HEIGHT_SCALE,
-                            nullptr,
-                            0.0f,
-                            0.0f,
-                            std::nullopt);
+  blender::ui::Button *but = uiDefIconBut(block,
+                                          blender::ui::ButType::Label,
+                                          icon,
+                                          pos_x,
+                                          pos_y,
+                                          ICON_DEFAULT_WIDTH_SCALE,
+                                          ICON_DEFAULT_HEIGHT_SCALE,
+                                          nullptr,
+                                          0.0f,
+                                          0.0f,
+                                          std::nullopt);
   /* Otherwise a left hand padding will be added. */
   button_drawflag_disable(but, blender::ui::BUT_ICON_LEFT);
   button_label_alpha_factor_set(but, 0.6f);
@@ -693,17 +698,17 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
    * for box select. */
   BLI_rcti_pad(&drag_rect, -layout->tile_border_x, -layout->tile_border_y);
 
-  uiBut *but = uiDefBut(block,
-                        blender::ui::ButType::Label,
-                        "",
-                        drag_rect.xmin,
-                        drag_rect.ymin,
-                        BLI_rcti_size_x(&drag_rect),
-                        BLI_rcti_size_y(&drag_rect),
-                        nullptr,
-                        0.0,
-                        0.0,
-                        std::nullopt);
+  blender::ui::Button *but = uiDefBut(block,
+                                      blender::ui::ButType::Label,
+                                      "",
+                                      drag_rect.xmin,
+                                      drag_rect.ymin,
+                                      BLI_rcti_size_x(&drag_rect),
+                                      BLI_rcti_size_y(&drag_rect),
+                                      nullptr,
+                                      0.0,
+                                      0.0,
+                                      std::nullopt);
 
   const ImBuf *drag_image = preview_image ? preview_image :
                                             /* Larger directory or document icon. */
@@ -1488,17 +1493,17 @@ void file_draw_list(const bContext *C, ARegion *region)
         if (drag_width > 0) {
           /* Uses full row height (tile height plus 2 * tile border padding) so there's no space
            * between rows. */
-          uiBut *drag_but = uiDefBut(block,
-                                     blender::ui::ButType::Label,
-                                     "",
-                                     tile_draw_rect.xmin,
-                                     tile_draw_rect.ymin - layout->tile_border_y,
-                                     drag_width,
-                                     layout->tile_h + layout->tile_border_y * 2,
-                                     nullptr,
-                                     0,
-                                     0,
-                                     std::nullopt);
+          blender::ui::Button *drag_but = uiDefBut(block,
+                                                   blender::ui::ButType::Label,
+                                                   "",
+                                                   tile_draw_rect.xmin,
+                                                   tile_draw_rect.ymin - layout->tile_border_y,
+                                                   drag_width,
+                                                   layout->tile_h + layout->tile_border_y * 2,
+                                                   nullptr,
+                                                   0,
+                                                   0,
+                                                   std::nullopt);
           button_dragflag_enable(drag_but, blender::ui::BUT_DRAG_FULL_BUT);
           file_but_enable_drag(drag_but, sfile, file, path, nullptr, icon, UI_SCALE_FAC);
           file_but_tooltip_func_set(sfile, file, drag_but);
@@ -1506,16 +1511,16 @@ void file_draw_list(const bContext *C, ARegion *region)
       }
 
       /* Add this after the fake draggable button, so the icon button tooltip is displayed. */
-      uiBut *icon_but = file_add_icon_but(sfile,
-                                          block,
-                                          path,
-                                          file,
-                                          &tile_draw_rect,
-                                          icon,
-                                          layout->prv_w,
-                                          layout->prv_h,
-                                          padx,
-                                          is_hidden);
+      blender::ui::Button *icon_but = file_add_icon_but(sfile,
+                                                        block,
+                                                        path,
+                                                        file,
+                                                        &tile_draw_rect,
+                                                        icon,
+                                                        layout->prv_w,
+                                                        layout->prv_h,
+                                                        padx,
+                                                        is_hidden);
       if (do_drag) {
         /* For some reason the dragging is unreliable for the icon button if we don't explicitly
          * enable dragging, even though the dummy drag button above covers the same area. */
@@ -1542,18 +1547,19 @@ void file_draw_list(const bContext *C, ARegion *region)
               layout->text_line_height * 1.4f :
               /* Just a little smaller than the tile height, clamped to #UI_UNIT_Y as maximum. */
               std::min(short(BLI_rcti_size_y(&text_rect) - 1.0f * UI_SCALE_FAC), UI_UNIT_Y);
-      uiBut *but = uiDefBut(block,
-                            blender::ui::ButType::Text,
-                            "",
-                            text_rect.xmin,
-                            /* First line only, when name is displayed in multiple lines. */
-                            text_rect.ymax - but_height,
-                            BLI_rcti_size_x(&text_rect),
-                            but_height,
-                            params->renamefile,
-                            1.0f,
-                            float(sizeof(params->renamefile)),
-                            "");
+      blender::ui::Button *but = uiDefBut(
+          block,
+          blender::ui::ButType::Text,
+          "",
+          text_rect.xmin,
+          /* First line only, when name is displayed in multiple lines. */
+          text_rect.ymax - but_height,
+          BLI_rcti_size_x(&text_rect),
+          but_height,
+          params->renamefile,
+          1.0f,
+          float(sizeof(params->renamefile)),
+          "");
       button_retval_set(but, 1);
       button_func_rename_set(but, renamebutton_cb, file);
       button_flag_enable(but, blender::ui::BUT_NO_UTF8); /* Allow non UTF8 names. */
@@ -1684,17 +1690,17 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
 
     blender::ui::Block *block = block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
     wmOperatorType *ot = WM_operatortype_find("SCREEN_OT_userpref_show", false);
-    uiBut *but = uiDefIconTextButO_ptr(block,
-                                       blender::ui::ButType::But,
-                                       ot,
-                                       blender::wm::OpCallContext::InvokeDefault,
-                                       ICON_PREFERENCES,
-                                       WM_operatortype_name(ot, nullptr),
-                                       sx + UI_UNIT_X,
-                                       sy - line_height - UI_UNIT_Y * 1.2f,
-                                       UI_UNIT_X * 8,
-                                       UI_UNIT_Y,
-                                       std::nullopt);
+    blender::ui::Button *but = uiDefIconTextButO_ptr(block,
+                                                     blender::ui::ButType::But,
+                                                     ot,
+                                                     blender::wm::OpCallContext::InvokeDefault,
+                                                     ICON_PREFERENCES,
+                                                     WM_operatortype_name(ot, nullptr),
+                                                     sx + UI_UNIT_X,
+                                                     sy - line_height - UI_UNIT_Y * 1.2f,
+                                                     UI_UNIT_X * 8,
+                                                     UI_UNIT_Y,
+                                                     std::nullopt);
     PointerRNA *but_opptr = button_operator_ptr_ensure(but);
     RNA_enum_set(but_opptr, "section", USER_SECTION_FILE_PATHS);
 

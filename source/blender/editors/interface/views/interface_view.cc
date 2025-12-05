@@ -94,7 +94,7 @@ void ViewLink::views_bounds_calc(const Block &block)
     views_bounds.add(link->view.get(), minmax);
   }
 
-  for (const std::unique_ptr<uiBut> &but : block.buttons) {
+  for (const std::unique_ptr<Button> &but : block.buttons) {
     if (but->type != ButType::ViewItem) {
       continue;
     }
@@ -246,7 +246,7 @@ AbstractViewItem *region_views_find_active_item(const ARegion *region)
   return item_but->view_item;
 }
 
-uiBut *region_views_find_active_item_but(const ARegion *region)
+Button *region_views_find_active_item_but(const ARegion *region)
 {
   return ui_view_item_find_active(region);
 }
@@ -352,7 +352,7 @@ ButtonViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
     return nullptr;
   }
 
-  for (const std::unique_ptr<uiBut> &old_but : old_block->buttons) {
+  for (const std::unique_ptr<Button> &old_but : old_block->buttons) {
     if (old_but->type != ButType::ViewItem) {
       continue;
     }

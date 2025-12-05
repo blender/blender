@@ -66,7 +66,7 @@ void template_breadcrumbs(Layout &layout, Span<ContextPathItem> context_path)
     if (i > 0) {
       sub_row.label("", ICON_RIGHTARROW_THIN);
     }
-    uiBut *but;
+    Button *but;
     int icon = context_path[i].icon;
     std::string name = context_path[i].name;
     if (context_path[i].handle_func) {

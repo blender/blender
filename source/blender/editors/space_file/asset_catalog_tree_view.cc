@@ -291,8 +291,10 @@ void AssetCatalogTreeViewItem::build_row(ui::Layout &row)
   ui::ButtonViewItem *view_item_but = view_item_button();
   PointerRNA *props;
 
-  props = button_extra_operator_icon_add(
-      (uiBut *)view_item_but, "ASSET_OT_catalog_new", wm::OpCallContext::InvokeDefault, ICON_ADD);
+  props = button_extra_operator_icon_add((ui::Button *)view_item_but,
+                                         "ASSET_OT_catalog_new",
+                                         wm::OpCallContext::InvokeDefault,
+                                         ICON_ADD);
   RNA_string_set(props, "parent_path", catalog_item_.catalog_path().c_str());
 }
 
@@ -582,12 +584,12 @@ void AssetCatalogTreeViewAllItem::build_row(ui::Layout &row)
 
   PointerRNA *props;
 
-  button_extra_operator_icon_add(reinterpret_cast<uiBut *>(this->view_item_button()),
+  button_extra_operator_icon_add(reinterpret_cast<ui::Button *>(this->view_item_button()),
                                  "ASSET_OT_catalogs_save",
                                  wm::OpCallContext::InvokeDefault,
                                  ICON_FILE_TICK);
 
-  props = button_extra_operator_icon_add(reinterpret_cast<uiBut *>(this->view_item_button()),
+  props = button_extra_operator_icon_add(reinterpret_cast<ui::Button *>(this->view_item_button()),
                                          "ASSET_OT_catalog_new",
                                          wm::OpCallContext::InvokeDefault,
                                          ICON_ADD);

@@ -345,7 +345,7 @@ void wm_drags_exit(wmWindowManager *wm, wmWindow *win)
 
 static std::unique_ptr<bContextStore> wm_drop_ui_context_create(const bContext *C)
 {
-  uiBut *active_but = blender::ui::region_active_but_get(CTX_wm_region(C));
+  blender::ui::Button *active_but = blender::ui::region_active_but_get(CTX_wm_region(C));
   if (!active_but) {
     return nullptr;
   }

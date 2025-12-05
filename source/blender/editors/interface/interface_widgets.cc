@@ -122,11 +122,11 @@ enum uiWidgetTypeEnum {
  * The button's state information adapted for drawing. Use #STATE_INFO_NULL for empty state.
  */
 struct uiWidgetStateInfo {
-  /** Copy of #uiBut.flag (possibly with overrides for drawing). */
+  /** Copy of #Button.flag (possibly with overrides for drawing). */
   int but_flag;
-  /** Copy of #uiBut.drawflag (possibly with overrides for drawing). */
+  /** Copy of #Button.drawflag (possibly with overrides for drawing). */
   int but_drawflag;
-  /** Copy of #uiBut.emboss. */
+  /** Copy of #Button.emboss. */
   EmbossType emboss;
 
   /** Show that holding the button opens a menu. */
@@ -267,7 +267,7 @@ struct uiWidgetType {
                const uiWidgetStateInfo *,
                int roundboxalign,
                const float zoom) ATTR_NONNULL();
-  void (*custom)(uiBut *,
+  void (*custom)(Button *,
                  uiWidgetColors *,
                  rcti *,
                  const uiWidgetStateInfo *,
@@ -275,7 +275,7 @@ struct uiWidgetType {
                  const float zoom) ATTR_NONNULL();
   void (*draw_block)(
       uiWidgetColors *, const rcti *, int block_flag, int roundboxalign, const float zoom);
-  void (*text)(const uiFontStyle *, const uiWidgetColors *, uiBut *, rcti *);
+  void (*text)(const uiFontStyle *, const uiWidgetColors *, Button *, rcti *);
 };
 
 /** \} */
@@ -1321,7 +1321,7 @@ static void widget_draw_preview_icon(BIFIconID icon,
   }
 }
 
-static int ui_but_draw_menu_icon(const uiBut *but)
+static int ui_but_draw_menu_icon(const Button *but)
 {
   return (but->flag & BUT_ICON_SUBMENU) && (but->emboss == EmbossType::Pulldown);
 }
@@ -1329,7 +1329,7 @@ static int ui_but_draw_menu_icon(const uiBut *but)
 /* icons have been standardized... and this call draws in untransformed coordinates */
 
 static void widget_draw_icon(
-    const uiBut *but, BIFIconID icon, float alpha, const rcti *rect, const uchar mono_color[4])
+    const Button *but, BIFIconID icon, float alpha, const rcti *rect, const uchar mono_color[4])
 {
   if (but->flag & BUT_ICON_PREVIEW) {
     GPU_blend(GPU_BLEND_ALPHA);
@@ -1450,7 +1450,7 @@ static void widget_draw_icon(
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static void widget_draw_submenu_tria(const uiBut *but,
+static void widget_draw_submenu_tria(const Button *but,
                                      const rcti *rect,
                                      const uiWidgetColors *wcol)
 {
@@ -1474,7 +1474,7 @@ static void widget_draw_submenu_tria(const uiBut *but,
   draw_anti_tria_rect(&tria_rect, 'h', col);
 }
 
-static void ui_text_clip_give_prev_off(uiBut *but, const char *str)
+static void ui_text_clip_give_prev_off(Button *but, const char *str)
 {
   const char *prev_utf8 = BLI_str_find_prev_char_utf8(str + but->ofs, str);
   const int bytes = str + but->ofs - prev_utf8;
@@ -1482,7 +1482,7 @@ static void ui_text_clip_give_prev_off(uiBut *but, const char *str)
   but->ofs -= bytes;
 }
 
-static void ui_text_clip_give_next_off(uiBut *but, const char *str, const char *str_end)
+static void ui_text_clip_give_next_off(Button *but, const char *str, const char *str_end)
 {
   const char *next_utf8 = BLI_str_find_next_char_utf8(str + but->ofs, str_end);
   const int bytes = next_utf8 - (str + but->ofs);
@@ -1655,7 +1655,7 @@ float text_clip_middle_ex(const uiFontStyle *fstyle,
 /**
  * Wrapper around text_clip_middle_ex.
  */
-static void ui_text_clip_middle(const uiFontStyle *fstyle, uiBut *but, const rcti *rect)
+static void ui_text_clip_middle(const uiFontStyle *fstyle, Button *but, const rcti *rect)
 {
   /* No margin for labels! */
   const int border = ELEM(but->type, ButType::Label, ButType::Menu, ButType::Popover) ?
@@ -1679,7 +1679,7 @@ static void ui_text_clip_middle(const uiFontStyle *fstyle, uiBut *but, const rct
  * (like 'AVeryLongFooBarLabelForMenuEntry|Ctrl O' -> 'AVeryLong...MenuEntry|Ctrl O').
  */
 static void ui_text_clip_middle_protect_right(const uiFontStyle *fstyle,
-                                              uiBut *but,
+                                              Button *but,
                                               const rcti *rect,
                                               const char rsep)
 {
@@ -1789,7 +1789,7 @@ Vector<StringRef> text_clip_multiline_middle(const uiFontStyle *fstyle,
 /**
  * Cut off the text, taking into account the cursor location (text display while editing).
  */
-static void ui_text_clip_cursor(const uiFontStyle *fstyle, uiBut *but, const rcti *rect)
+static void ui_text_clip_cursor(const uiFontStyle *fstyle, Button *but, const rcti *rect)
 {
   const int border = int(UI_TEXT_CLIP_MARGIN + 0.5f);
   const int okwidth = max_ii(BLI_rcti_size_x(rect) - border, 0);
@@ -1845,7 +1845,7 @@ static void ui_text_clip_cursor(const uiFontStyle *fstyle, uiBut *but, const rct
  *
  * \note deals with ': ' especially for number buttons
  */
-static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, const rcti *rect)
+static void ui_text_clip_right_label(const uiFontStyle *fstyle, Button *but, const rcti *rect)
 {
   const int border = UI_TEXT_CLIP_MARGIN + 1;
   const int okwidth = max_ii(BLI_rcti_size_x(rect) - border, 0);
@@ -1948,7 +1948,7 @@ static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, cons
 #ifdef WITH_INPUT_IME
 static void widget_draw_text_ime_underline(const uiFontStyle *fstyle,
                                            const uiWidgetColors *wcol,
-                                           const uiBut *but,
+                                           const Button *but,
                                            const rcti *rect,
                                            const wmIMEData *ime_data,
                                            const char *drawstr)
@@ -2002,7 +2002,7 @@ static void widget_draw_text_ime_underline(const uiFontStyle *fstyle,
 
 static void widget_draw_text(const uiFontStyle *fstyle,
                              const uiWidgetColors *wcol,
-                             uiBut *but,
+                             Button *but,
                              rcti *rect)
 {
   int drawstr_left_len = UI_MAX_DRAW_STR;
@@ -2031,7 +2031,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
   /* Special case: when we're entering text for multiple buttons,
    * don't draw the text for any of the multi-editing buttons */
   if (UNLIKELY(but->flag & BUT_DRAG_MULTI)) {
-    uiBut *but_edit = ui_but_drag_multi_edit_get(but);
+    Button *but_edit = ui_but_drag_multi_edit_get(but);
     if (but_edit) {
       drawstr = but_edit->editstr;
       align = UI_STYLE_TEXT_LEFT;
@@ -2316,7 +2316,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 }
 
 static void widget_draw_extra_icons(const uiWidgetColors *wcol,
-                                    uiBut *but,
+                                    Button *but,
                                     rcti *rect,
                                     float alpha)
 {
@@ -2355,7 +2355,7 @@ static void widget_draw_extra_icons(const uiWidgetColors *wcol,
 
 static void widget_draw_node_link_socket(const uiWidgetColors *wcol,
                                          const rcti *rect,
-                                         uiBut *but,
+                                         Button *but,
                                          float alpha)
 {
   /* Node socket pointer can be passed as custom_data, see button_node_link_set(). */
@@ -2381,7 +2381,7 @@ static void widget_draw_node_link_socket(const uiWidgetColors *wcol,
 /* draws text and icons for buttons */
 static void widget_draw_text_icon(const uiFontStyle *fstyle,
                                   const uiWidgetColors *wcol,
-                                  uiBut *but,
+                                  Button *but,
                                   rcti *rect)
 {
   const bool show_menu_icon = ui_but_draw_menu_icon(but);
@@ -2743,12 +2743,12 @@ static float widget_radius_from_rcti(const rcti *rect, const uiWidgetColors *wco
  * vertically-aligned stacks of buttons it should only be shown under the bottom one.
  * \{ */
 
-static bool draw_emboss(const uiBut *but)
+static bool draw_emboss(const Button *but)
 {
   if (but->drawflag & BUT_ALIGN_DOWN) {
     return false;
   }
-  uiBut *but_next = but->block->next_but(but);
+  Button *but_next = but->block->next_but(but);
   if (but->type == ButType::Tab &&
       (BLI_rctf_size_y(&but->block->rect) > BLI_rctf_size_x(&but->block->rect)) &&
       !(but_next == nullptr || but_next->type == ButType::Sepr))
@@ -3059,7 +3059,7 @@ void ui_hsvcircle_pos_from_vals(
   *r_ypos = centy + sinf(-ang) * rad;
 }
 
-static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const rcti *rect)
+static void ui_draw_but_HSVCIRCLE(Button *but, const uiWidgetColors *wcol, const rcti *rect)
 {
   /* TODO(merwin): reimplement as shader for pixel-perfect colors */
 
@@ -3391,7 +3391,7 @@ void ui_hsvcube_pos_from_vals(
   *r_yp = rect->ymin + y * BLI_rcti_size_y(rect);
 }
 
-static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
+static void ui_draw_but_HSVCUBE(Button *but, const rcti *rect)
 {
   const ButtonHSVCube *hsv_but = (ButtonHSVCube *)but;
   float rgb[3], rgb_perceptual[3];
@@ -3469,7 +3469,7 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 }
 
 /* vertical 'value' slider, using new widget code */
-static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
+static void ui_draw_but_HSV_v(Button *but, const rcti *rect)
 {
   const ButtonHSVCube *hsv_but = (ButtonHSVCube *)but;
   float rgb[3], hsv[3], v;
@@ -3526,7 +3526,7 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 }
 
 /** Separator line. */
-static void ui_draw_separator(const uiWidgetColors *wcol, uiBut *but, const rcti *rect)
+static void ui_draw_separator(const uiWidgetColors *wcol, Button *but, const rcti *rect)
 {
   const ButtonSeparatorLine *but_line = static_cast<ButtonSeparatorLine *>(but);
   const bool vertical = but_line->is_vertical;
@@ -3572,7 +3572,7 @@ static void ui_draw_separator(const uiWidgetColors *wcol, uiBut *but, const rcti
 
 #define NUM_BUT_PADDING_FACTOR 0.425f
 
-static void widget_numbut_draw(const uiBut *but,
+static void widget_numbut_draw(const Button *but,
                                uiWidgetColors *wcol,
                                rcti *rect,
                                const float zoom,
@@ -3690,7 +3690,7 @@ static void widget_numbut_draw(const uiBut *but,
   }
 }
 
-static void widget_numbut(uiBut *but,
+static void widget_numbut(Button *but,
                           uiWidgetColors *wcol,
                           rcti *rect,
                           const uiWidgetStateInfo *state,
@@ -3732,7 +3732,7 @@ static void widget_menubut(uiWidgetColors *wcol,
 /**
  * Draw menu buttons still with triangles when field is not embossed
  */
-static void widget_menubut_embossn(const uiBut * /*but*/,
+static void widget_menubut_embossn(const Button * /*but*/,
                                    uiWidgetColors *wcol,
                                    rcti *rect,
                                    const uiWidgetStateInfo * /*state*/,
@@ -3754,7 +3754,7 @@ static void widget_menubut_embossn(const uiBut * /*but*/,
 /**
  * Draw number buttons still with triangles when field is not embossed
  */
-static void widget_numbut_embossn(const uiBut *but,
+static void widget_numbut_embossn(const Button *but,
                                   uiWidgetColors *wcol,
                                   rcti *rect,
                                   const uiWidgetStateInfo *state,
@@ -3844,7 +3844,7 @@ void draw_widget_scroll(uiWidgetColors *wcol, const rcti *rect, const rcti *slid
   }
 }
 
-static void widget_scroll(uiBut *but,
+static void widget_scroll(Button *but,
                           uiWidgetColors *wcol,
                           rcti *rect,
                           const uiWidgetStateInfo *state,
@@ -3973,7 +3973,7 @@ static void widget_progress_type_ring(ButtonProgress *but_progress,
   }
 }
 
-static void widget_progress_indicator(uiBut *but,
+static void widget_progress_indicator(Button *but,
                                       uiWidgetColors *wcol,
                                       rcti *rect,
                                       const uiWidgetStateInfo * /*state*/,
@@ -3993,7 +3993,7 @@ static void widget_progress_indicator(uiBut *but,
   }
 }
 
-static void widget_nodesocket(uiBut *but,
+static void widget_nodesocket(Button *but,
                               uiWidgetColors * /*wcol*/,
                               rcti *rect,
                               const uiWidgetStateInfo * /*state*/,
@@ -4029,7 +4029,7 @@ static void widget_nodesocket(uiBut *but,
                                                 1.0f / zoom);
 }
 
-static void widget_numslider(uiBut *but,
+static void widget_numslider(Button *but,
                              uiWidgetColors *wcol,
                              rcti *rect,
                              const uiWidgetStateInfo *state,
@@ -4146,7 +4146,7 @@ static void widget_numslider(uiBut *but,
 /* I think 3 is sufficient border to indicate keyed status */
 #define SWATCH_KEYED_BORDER 3
 
-static void widget_swatch(uiBut *but,
+static void widget_swatch(Button *but,
                           uiWidgetColors *wcol,
                           rcti *rect,
                           const uiWidgetStateInfo *state,
@@ -4238,7 +4238,7 @@ static void widget_swatch(uiBut *but,
   }
 }
 
-static void widget_unitvec(uiBut *but,
+static void widget_unitvec(Button *but,
                            uiWidgetColors *wcol,
                            rcti *rect,
                            const uiWidgetStateInfo * /*state*/,
@@ -4249,7 +4249,7 @@ static void widget_unitvec(uiBut *but,
   ui_draw_but_UNITVEC(but, wcol, rect, rad);
 }
 
-static void widget_icon_has_anim(uiBut *but,
+static void widget_icon_has_anim(Button *but,
                                  uiWidgetColors *wcol,
                                  rcti *rect,
                                  const uiWidgetStateInfo *state,
@@ -4387,7 +4387,7 @@ static void widget_menu_itembut_unpadded(uiWidgetColors *wcol,
   widgetbase_draw(&wtb, wcol);
 }
 
-static void widget_menu_pie_itembut(uiBut *but,
+static void widget_menu_pie_itembut(Button *but,
                                     uiWidgetColors *wcol,
                                     rcti *rect,
                                     const uiWidgetStateInfo * /*state*/,
@@ -4414,7 +4414,7 @@ static void widget_menu_pie_itembut(uiBut *but,
   widgetbase_draw(&wtb, wcol);
 }
 
-static void widget_list_itembut(uiBut *but,
+static void widget_list_itembut(Button *but,
                                 uiWidgetColors *wcol,
                                 rcti *rect,
                                 const uiWidgetStateInfo *state,
@@ -4455,7 +4455,7 @@ static void widget_list_itembut(uiBut *but,
   widgetbase_draw(&wtb, wcol);
 }
 
-static void widget_preview_tile(uiBut *but,
+static void widget_preview_tile(Button *but,
                                 uiWidgetColors *wcol,
                                 rcti *rect,
                                 const uiWidgetStateInfo *state,
@@ -4577,7 +4577,7 @@ static void widget_radiobut(uiWidgetColors *wcol,
   widgetbase_draw(&wtb, wcol);
 }
 
-static void widget_box(uiBut *but,
+static void widget_box(Button *but,
                        uiWidgetColors *wcol,
                        rcti *rect,
                        const uiWidgetStateInfo * /*state*/,
@@ -4641,7 +4641,7 @@ static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int /*state*/ int 
 }
 #endif
 
-static void widget_roundbut_exec(uiBut *but,
+static void widget_roundbut_exec(Button *but,
                                  uiWidgetColors *wcol,
                                  rcti *rect,
                                  const uiWidgetStateInfo *state,
@@ -4664,7 +4664,7 @@ static void widget_roundbut_exec(uiBut *but,
   widgetbase_draw(&wtb, wcol);
 }
 
-static void widget_tab(uiBut *but,
+static void widget_tab(Button *but,
                        uiWidgetColors *wcol,
                        rcti *rect,
                        const uiWidgetStateInfo *state,
@@ -4718,7 +4718,7 @@ static void widget_tab(uiBut *but,
 #endif
 }
 
-static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *wt, rcti *rect)
+static void widget_draw_extra_mask(const bContext *C, Button *but, uiWidgetType *wt, rcti *rect)
 {
   bTheme *btheme = GetTheme();
   uiWidgetColors *wcol = &btheme->tui.wcol_radio;
@@ -4947,7 +4947,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
   return &wt;
 }
 
-static int widget_roundbox_set(uiBut *but, rcti *rect)
+static int widget_roundbox_set(Button *but, rcti *rect)
 {
   int roundbox = CNR_ALL;
 
@@ -5015,7 +5015,7 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
   return roundbox;
 }
 
-static uiWidgetType *popover_widget_type(uiBut *but, rcti *rect)
+static uiWidgetType *popover_widget_type(Button *but, rcti *rect)
 {
   /* We could use a flag for this, but for now just check size,
    * add up/down arrows if there is room. */
@@ -5037,7 +5037,7 @@ static uiWidgetType *popover_widget_type(uiBut *but, rcti *rect)
 /** \name Public API
  * \{ */
 
-void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but, rcti *rect)
+void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, Button *but, rcti *rect)
 {
   bTheme *btheme = GetTheme();
   const ThemeUI *tui = &btheme->tui;

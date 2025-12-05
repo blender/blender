@@ -264,7 +264,7 @@ void AbstractTreeView::get_hierarchy_lines(const ARegion &region,
 
 static ButtonViewItem *find_first_view_item_but(const Block &block, const AbstractTreeView &view)
 {
-  for (const std::unique_ptr<uiBut> &but : block.buttons) {
+  for (const std::unique_ptr<Button> &but : block.buttons) {
     if (but->type != ButType::ViewItem) {
       continue;
     }
@@ -561,7 +561,7 @@ void AbstractTreeViewItem::add_collapse_chevron(Block &block) const
   }
 
   const BIFIconID icon = this->is_collapsed() ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT;
-  uiBut *but = uiDefIconBut(
+  Button *but = uiDefIconBut(
       &block, ButType::ButToggle, icon, 0, 0, UI_TREEVIEW_INDENT, UI_UNIT_Y, nullptr, 0, 0, "");
   button_func_set(but, collapse_chevron_click_fn, nullptr, nullptr);
   button_flag_disable(but, BUT_UNDO);
@@ -897,17 +897,17 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
 
     if (visible_row_count && (tot_items > *visible_row_count)) {
       row.column(false);
-      uiBut *but = uiDefButI(block,
-                             ButType::Scroll,
-                             "",
-                             0,
-                             0,
-                             V2D_SCROLL_WIDTH,
-                             *tree_view.custom_height_,
-                             tree_view.scroll_value_.get(),
-                             0,
-                             tot_items - *visible_row_count,
-                             "");
+      Button *but = uiDefButI(block,
+                              ButType::Scroll,
+                              "",
+                              0,
+                              0,
+                              V2D_SCROLL_WIDTH,
+                              *tree_view.custom_height_,
+                              tree_view.scroll_value_.get(),
+                              0,
+                              tot_items - *visible_row_count,
+                              "");
       auto *but_scroll = reinterpret_cast<ButtonScrollBar *>(but);
       but_scroll->visual_height = *visible_row_count;
     }
@@ -917,18 +917,18 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
     /* Bottom */
     Layout &bottom = col.row(false);
     block_emboss_set(block, EmbossType::None);
-    uiBut *but = uiDefIconButBitC(block,
-                                  ButType::IconToggleN,
-                                  1,
-                                  ICON_DISCLOSURE_TRI_DOWN,
-                                  0,
-                                  0,
-                                  UI_UNIT_X,
-                                  UI_UNIT_Y * 0.5,
-                                  tree_view.show_display_options_.get(),
-                                  0,
-                                  0,
-                                  TIP_(""));
+    Button *but = uiDefIconButBitC(block,
+                                   ButType::IconToggleN,
+                                   1,
+                                   ICON_DISCLOSURE_TRI_DOWN,
+                                   0,
+                                   0,
+                                   UI_UNIT_X,
+                                   UI_UNIT_Y * 0.5,
+                                   tree_view.show_display_options_.get(),
+                                   0,
+                                   0,
+                                   TIP_(""));
     button_flag_disable(but, BUT_UNDO);
     block_emboss_set(block, EmbossType::Emboss);
     bottom.column(false);
@@ -947,17 +947,17 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
 
     if (*tree_view.show_display_options_) {
       block_layout_set_current(block, &col);
-      uiBut *but = uiDefBut(block,
-                            ButType::Text,
-                            "",
-                            0,
-                            0,
-                            UI_TREEVIEW_INDENT,
-                            UI_UNIT_Y,
-                            tree_view.search_string_.get(),
-                            0,
-                            UI_MAX_NAME_STR,
-                            "");
+      Button *but = uiDefBut(block,
+                             ButType::Text,
+                             "",
+                             0,
+                             0,
+                             UI_TREEVIEW_INDENT,
+                             UI_UNIT_Y,
+                             tree_view.search_string_.get(),
+                             0,
+                             UI_MAX_NAME_STR,
+                             "");
       button_retval_set(but, 1);
       button_flag_enable(but, BUT_TEXTEDIT_UPDATE | BUT_VALUE_CLEAR);
       button_flag_disable(but, BUT_UNDO);

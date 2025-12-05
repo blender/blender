@@ -259,7 +259,7 @@ for each most button types individually.
 
 -----------4.1 UiDefBut
 
-uiBut *UiDefBut[CSIF](	ui::Block *block, int type, int retval, char *str,
+Button *UiDefBut[CSIF](	ui::Block *block, int type, int retval, char *str,
 				short x1, short y1, short x2, short y2, xxxx *poin,
 				float min, float max, float a1, float a2,  char *tip)
 
@@ -348,14 +348,14 @@ type:
 
 Instead of a 'name', all buttons as described for uiDefBut also can have an icon:
 
-uiBut *uiDefIconBut(ui::Block *block, int type, int retval, int icon,
+Button *uiDefIconBut(ui::Block *block, int type, int retval, int icon,
 			short x1, short y1, short x2, short y2, void *poin,
 			float min, float max, float a1, float a2,  char *tip)
 
 	Same syntax and types available as previous uiDefBut, but now with an icon code
 	instead of a name. The icons are numbered in resources.c
 
-uiBut *uiDefIconTextButF(ui::Block *block, int type, int retval, int icon, char *str,
+Button *uiDefIconTextButF(ui::Block *block, int type, int retval, int icon, char *str,
 			short x1, short y1, short x2, short y2, float *poin,
 			float min, float max, float a1, float a2,  char *tip)
 
@@ -424,7 +424,7 @@ void uiDefKeyevtButS(ui::Block *block, int retval, char *str,
 	These buttons are defined as follows:
 
 
-uiBut but= uiDefIconBut(block, LINK, 0, ICON_LINK,	x1, y1, w, h, NULL, 0, 0, 0, 0, "");
+Button but= uiDefIconBut(block, LINK, 0, ICON_LINK,	x1, y1, w, h, NULL, 0, 0, 0, 0, "");
 	/* create the LINK icon */
 
 uiSetButLink(but, void **pt, void ***ppt, short *totlink, short fromcode, short tocode);
@@ -445,15 +445,15 @@ uiDefIconBut(block, INLINK, 0, ICON_INLINK, x1, y1, w, h, void *poin, short from
 ------------- 4.5 uiButton control functions
 
 
-void uiButSetFunc(uiBut *but, void (*func)(void *arg1, void *arg2), void *arg1, void *arg2)
+void uiButSetFunc(Button *but, void (*func)(void *arg1, void *arg2), void *arg1, void *arg2)
 	When the button is pressed and released, it calls this function, with the 2 arguments.
 
-void uiButSetFlag(uiBut *but, int flag)
+void uiButSetFlag(Button *but, int flag)
 	set a flag for further control of button behavior:
 	flag:
 	UI_TEXT_LEFT
 
-int uiButGetRetVal(uiBut *but)
+int uiButGetRetVal(Button *but)
 	gives return value
 
 

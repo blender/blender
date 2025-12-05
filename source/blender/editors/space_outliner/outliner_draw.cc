@@ -1190,7 +1190,7 @@ static void outliner_draw_restrictbuts(ui::Block *block,
              outliner_right_columns_width(space_outliner));
 
   /* Create buttons. */
-  uiBut *bt;
+  ui::Button *bt;
 
   LISTBASE_FOREACH (TreeElement *, te, lb) {
     TreeStoreElem *tselem = TREESTORE(te);
@@ -1805,7 +1805,7 @@ static void outliner_draw_userbuts(ui::Block *block,
       return;
     }
 
-    uiBut *bt;
+    ui::Button *bt;
     std::optional<StringRef> tip;
     const int real_users = id->us - ID_FAKE_USERS(id);
     const bool has_fake_user = id->flag & ID_FLAG_FAKEUSER;
@@ -1905,17 +1905,17 @@ static void outliner_draw_overrides_rna_buts(ui::Block *block,
     }
 
     if (!override_elem->is_rna_path_valid) {
-      uiBut *but = uiDefBut(block,
-                            ui::ButType::Label,
-                            override_elem->rna_path,
-                            x + pad_x,
-                            te->ys + pad_y,
-                            item_max_width,
-                            item_height,
-                            nullptr,
-                            0.0f,
-                            0.0f,
-                            "");
+      ui::Button *but = uiDefBut(block,
+                                 ui::ButType::Label,
+                                 override_elem->rna_path,
+                                 x + pad_x,
+                                 te->ys + pad_y,
+                                 item_max_width,
+                                 item_height,
+                                 nullptr,
+                                 0.0f,
+                                 0.0f,
+                                 "");
       button_flag_enable(but, ui::BUT_REDALERT);
       continue;
     }
@@ -1944,16 +1944,17 @@ static void outliner_draw_overrides_rna_buts(ui::Block *block,
     PropertyRNA *prop = &override_elem->override_rna_prop;
     const PropertyType prop_type = RNA_property_type(prop);
 
-    uiBut *auto_but = uiDefAutoButR(block,
-                                    ptr,
-                                    prop,
-                                    -1,
-                                    (prop_type == PROP_ENUM) ? std::nullopt : std::optional(""),
-                                    ICON_NONE,
-                                    x + pad_x,
-                                    te->ys + pad_y,
-                                    item_max_width,
-                                    item_height);
+    ui::Button *auto_but = uiDefAutoButR(block,
+                                         ptr,
+                                         prop,
+                                         -1,
+                                         (prop_type == PROP_ENUM) ? std::nullopt :
+                                                                    std::optional(""),
+                                         ICON_NONE,
+                                         x + pad_x,
+                                         te->ys + pad_y,
+                                         item_max_width,
+                                         item_height);
     /* Added the button successfully, nothing else to do. Otherwise, cases for multiple buttons
      * need to be handled. */
     if (auto_but) {
@@ -1969,7 +1970,7 @@ static void outliner_draw_overrides_rna_buts(ui::Block *block,
   }
 }
 
-static bool outliner_but_identity_cmp_context_id_fn(const uiBut *a, const uiBut *b)
+static bool outliner_but_identity_cmp_context_id_fn(const ui::Button *a, const ui::Button *b)
 {
   const std::optional<int64_t> session_uid_a = button_context_int_get(a, "session_uid");
   const std::optional<int64_t> session_uid_b = button_context_int_get(b, "session_uid");
@@ -2014,16 +2015,16 @@ static void outliner_draw_overrides_restrictbuts(Main *bmain,
     const bool is_system_override = BKE_lib_override_library_is_system_defined(bmain, &id);
     const BIFIconID icon = is_system_override ? ICON_LIBRARY_DATA_OVERRIDE_NONEDITABLE :
                                                 ICON_LIBRARY_DATA_OVERRIDE;
-    uiBut *but = uiDefIconButO(block,
-                               ui::ButType::But,
-                               "ED_OT_lib_id_override_editable_toggle",
-                               wm::OpCallContext::ExecDefault,
-                               icon,
-                               x,
-                               te->ys,
-                               UI_UNIT_X,
-                               UI_UNIT_Y,
-                               "");
+    ui::Button *but = uiDefIconButO(block,
+                                    ui::ButType::But,
+                                    "ED_OT_lib_id_override_editable_toggle",
+                                    wm::OpCallContext::ExecDefault,
+                                    icon,
+                                    x,
+                                    te->ys,
+                                    UI_UNIT_X,
+                                    UI_UNIT_Y,
+                                    "");
     /* "id" is used by the operator #ED_OT_lib_id_override_editable_toggle. */
     PointerRNA idptr = RNA_id_pointer_create(&id);
     button_context_ptr_set(block, but, "id", &idptr);
@@ -2078,16 +2079,16 @@ static void outliner_draw_rnabuts(ui::Block *block,
 
       if (!TSELEM_OPEN(tselem, space_outliner)) {
         if (RNA_property_type(prop) == PROP_POINTER) {
-          uiBut *but = uiDefAutoButR(block,
-                                     &ptr,
-                                     prop,
-                                     -1,
-                                     "",
-                                     ICON_NONE,
-                                     sizex,
-                                     te->ys,
-                                     OL_RNA_COL_SIZEX,
-                                     UI_UNIT_Y - 1);
+          ui::Button *but = uiDefAutoButR(block,
+                                          &ptr,
+                                          prop,
+                                          -1,
+                                          "",
+                                          ICON_NONE,
+                                          sizex,
+                                          te->ys,
+                                          OL_RNA_COL_SIZEX,
+                                          UI_UNIT_Y - 1);
           button_flag_enable(but, ui::BUT_DISABLED);
         }
         else if (RNA_property_type(prop) == PROP_ENUM) {
@@ -2142,7 +2143,7 @@ static void outliner_buttons(const bContext *C,
                              const float restrict_column_width,
                              TreeElement *te)
 {
-  uiBut *bt;
+  ui::Button *bt;
   TreeStoreElem *tselem;
   int spx, dx, len;
 
@@ -2244,17 +2245,17 @@ static void outliner_draw_mode_column_toggle(ui::Block *block,
 
   if (ob->mode == OB_MODE_OBJECT && BKE_object_is_in_editmode(ob)) {
     /* Another object has our (shared) data in edit mode, so nothing we can change. */
-    uiBut *but = uiDefIconBut(block,
-                              ui::ButType::But,
-                              ui::icon_from_object_mode(ob_active->mode),
-                              x_pad,
-                              te->ys,
-                              UI_UNIT_X,
-                              UI_UNIT_Y,
-                              nullptr,
-                              0.0,
-                              0.0,
-                              TIP_("Another object has this shared data in edit mode"));
+    ui::Button *but = uiDefIconBut(block,
+                                   ui::ButType::But,
+                                   ui::icon_from_object_mode(ob_active->mode),
+                                   x_pad,
+                                   te->ys,
+                                   UI_UNIT_X,
+                                   UI_UNIT_Y,
+                                   nullptr,
+                                   0.0,
+                                   0.0,
+                                   TIP_("Another object has this shared data in edit mode"));
     button_flag_enable(but, ui::BUT_DISABLED);
     return;
   }
@@ -2286,17 +2287,17 @@ static void outliner_draw_mode_column_toggle(ui::Block *block,
         " \u2022 Ctrl to add to the current mode");
   }
   block_emboss_set(block, ui::EmbossType::NoneOrStatus);
-  uiBut *but = uiDefIconBut(block,
-                            ui::ButType::IconToggle,
-                            icon,
-                            x_pad,
-                            te->ys,
-                            UI_UNIT_X,
-                            UI_UNIT_Y,
-                            nullptr,
-                            0.0,
-                            0.0,
-                            tip);
+  ui::Button *but = uiDefIconBut(block,
+                                 ui::ButType::IconToggle,
+                                 icon,
+                                 x_pad,
+                                 te->ys,
+                                 UI_UNIT_X,
+                                 UI_UNIT_Y,
+                                 nullptr,
+                                 0.0,
+                                 0.0,
+                                 tip);
   button_func_set(but, outliner_mode_toggle_fn, tselem, nullptr);
   button_flag_enable(but, ui::BUT_DRAG_LOCK);
   /* Mode toggling handles its own undo state because undo steps need to be grouped. */
@@ -2373,17 +2374,17 @@ static void outliner_draw_warning_tree_element(ui::Block *block,
                                        0;
 
   block_emboss_set(block, ui::EmbossType::NoneOrStatus);
-  uiBut *but = uiDefIconBut(block,
-                            ui::ButType::IconToggle,
-                            ICON_ERROR,
-                            mode_column_offset,
-                            te_ys,
-                            UI_UNIT_X,
-                            UI_UNIT_Y,
-                            nullptr,
-                            0.0,
-                            0.0,
-                            warning_msg);
+  ui::Button *but = uiDefIconBut(block,
+                                 ui::ButType::IconToggle,
+                                 ICON_ERROR,
+                                 mode_column_offset,
+                                 te_ys,
+                                 UI_UNIT_X,
+                                 UI_UNIT_Y,
+                                 nullptr,
+                                 0.0,
+                                 0.0,
+                                 warning_msg);
   /* No need for undo here, this is a pure info widget. */
   button_flag_disable(but, ui::BUT_UNDO);
 }
@@ -2946,7 +2947,7 @@ static bool tselem_draw_icon(ui::Block *block,
     }
   }
   else {
-    uiBut *but = uiDefIconBut(
+    ui::Button *but = uiDefIconBut(
         block,
         ui::ButType::Label,
         data.icon,

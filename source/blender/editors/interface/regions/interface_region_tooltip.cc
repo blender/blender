@@ -467,7 +467,7 @@ static std::string ui_tooltip_with_period(StringRef tip)
  * Special tool-system exception.
  */
 static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_tool(bContext *C,
-                                                                uiBut *but,
+                                                                Button *but,
                                                                 bool is_quick_tip)
 {
   if (but->optype == nullptr) {
@@ -925,7 +925,7 @@ void UI_tooltip_color_field_add(uiTooltipData &data,
 
 void UI_tooltip_uibut_python_add(uiTooltipData &data,
                                  bContext &C,
-                                 uiBut &but,
+                                 Button &but,
                                  ButtonExtraOpIcon *extra_icon)
 {
   wmOperatorType *optype = extra_icon ? button_extra_operator_icon_optype_get(extra_icon) :
@@ -976,7 +976,7 @@ void UI_tooltip_uibut_python_add(uiTooltipData &data,
 }
 
 static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
-    bContext *C, uiBut *but, ButtonExtraOpIcon *extra_icon, const bool is_quick_tip)
+    bContext *C, Button *but, ButtonExtraOpIcon *extra_icon, const bool is_quick_tip)
 {
   char buf[512];
 
@@ -1365,7 +1365,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_gizmo(bContext *C, wm
   return data->fields.is_empty() ? nullptr : std::move(data);
 }
 
-static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_custom_func(bContext *C, uiBut *but)
+static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_custom_func(bContext *C, Button *but)
 {
   /* Create tooltip data. */
   std::unique_ptr<uiTooltipData> data = std::make_unique<uiTooltipData>();
@@ -1633,7 +1633,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
  * \{ */
 
 ARegion *tooltip_create_from_button_or_extra_icon(
-    bContext *C, ARegion *butregion, uiBut *but, ButtonExtraOpIcon *extra_icon, bool is_quick_tip)
+    bContext *C, ARegion *butregion, Button *but, ButtonExtraOpIcon *extra_icon, bool is_quick_tip)
 {
   wmWindow *win = CTX_wm_window(C);
   float init_position[2];
@@ -1698,7 +1698,10 @@ ARegion *tooltip_create_from_button_or_extra_icon(
   return region;
 }
 
-ARegion *tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *but, bool is_quick_tip)
+ARegion *tooltip_create_from_button(bContext *C,
+                                    ARegion *butregion,
+                                    Button *but,
+                                    bool is_quick_tip)
 {
   return tooltip_create_from_button_or_extra_icon(C, butregion, but, nullptr, is_quick_tip);
 }

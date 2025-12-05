@@ -357,18 +357,18 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
       sub = &row.row(true);
       blender::ui::Block *block = sub->block();
       static int apply_on_spline_always_off_hack = 0;
-      uiBut *but = uiDefIconButBitI(block,
-                                    blender::ui::ButType::Toggle,
-                                    eModifierMode_ApplyOnSpline,
-                                    ICON_SURFACE_DATA,
-                                    0,
-                                    0,
-                                    UI_UNIT_X - 2,
-                                    UI_UNIT_Y,
-                                    &apply_on_spline_always_off_hack,
-                                    0.0,
-                                    0.0,
-                                    RPT_("Apply on Spline"));
+      blender::ui::Button *but = uiDefIconButBitI(block,
+                                                  blender::ui::ButType::Toggle,
+                                                  eModifierMode_ApplyOnSpline,
+                                                  ICON_SURFACE_DATA,
+                                                  0,
+                                                  0,
+                                                  UI_UNIT_X - 2,
+                                                  UI_UNIT_Y,
+                                                  &apply_on_spline_always_off_hack,
+                                                  0.0,
+                                                  0.0,
+                                                  RPT_("Apply on Spline"));
       button_disable(but,
                      "This modifier can only deform filled curve/surface, not the control points");
       buttons_number++;
@@ -380,18 +380,18 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
       sub = &row.row(true);
       blender::ui::Block *block = sub->block();
       static int apply_on_spline_always_on_hack = eModifierMode_ApplyOnSpline;
-      uiBut *but = uiDefIconButBitI(block,
-                                    blender::ui::ButType::Toggle,
-                                    eModifierMode_ApplyOnSpline,
-                                    ICON_SURFACE_DATA,
-                                    0,
-                                    0,
-                                    UI_UNIT_X - 2,
-                                    UI_UNIT_Y,
-                                    &apply_on_spline_always_on_hack,
-                                    0.0,
-                                    0.0,
-                                    RPT_("Apply on Spline"));
+      blender::ui::Button *but = uiDefIconButBitI(block,
+                                                  blender::ui::ButType::Toggle,
+                                                  eModifierMode_ApplyOnSpline,
+                                                  ICON_SURFACE_DATA,
+                                                  0,
+                                                  0,
+                                                  UI_UNIT_X - 2,
+                                                  UI_UNIT_Y,
+                                                  &apply_on_spline_always_on_hack,
+                                                  0.0,
+                                                  0.0,
+                                                  RPT_("Apply on Spline"));
       button_disable(but,
                      "This modifier can only deform control points, not the filled curve/surface");
       buttons_number++;

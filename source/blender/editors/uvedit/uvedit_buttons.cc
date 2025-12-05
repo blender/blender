@@ -156,7 +156,7 @@ static void uvedit_vertex_buttons(const bContext *C, blender::ui::Block *block)
       digits = 2;
     }
 
-    uiBut *but;
+    blender::ui::Button *but;
 
     int y = 0;
     block_align_begin(block);

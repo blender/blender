@@ -148,17 +148,17 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
       subrow.label(catalog_item_.get_name(), ICON_NONE);
       ui::block_layout_set_current(block, &row);
 
-      uiBut *toggle_but = uiDefButC(block,
-                                    blender::ui::ButType::Checkbox,
-                                    "",
-                                    0,
-                                    0,
-                                    UI_UNIT_X,
-                                    UI_UNIT_Y,
-                                    &catalog_path_enabled_,
-                                    0,
-                                    0,
-                                    TIP_("Toggle catalog visibility in the asset shelf"));
+      ui::Button *toggle_but = uiDefButC(block,
+                                         blender::ui::ButType::Checkbox,
+                                         "",
+                                         0,
+                                         0,
+                                         UI_UNIT_X,
+                                         UI_UNIT_Y,
+                                         &catalog_path_enabled_,
+                                         0,
+                                         0,
+                                         TIP_("Toggle catalog visibility in the asset shelf"));
       button_func_set(toggle_but, [&tree](bContext &C) {
         tree.update_shelf_settings_from_enabled_catalogs();
         send_redraw_notifier(C);

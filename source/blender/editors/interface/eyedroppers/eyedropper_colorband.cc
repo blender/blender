@@ -61,7 +61,7 @@ static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
 {
   ColorBand *band = nullptr;
 
-  uiBut *but = context_active_but_get(C);
+  Button *but = context_active_but_get(C);
 
   PointerRNA rna_update_ptr = PointerRNA_NULL;
   PropertyRNA *rna_update_prop = nullptr;
@@ -308,7 +308,7 @@ static wmOperatorStatus eyedropper_colorband_exec(bContext *C, wmOperator *op)
 
 static bool eyedropper_colorband_poll(bContext *C)
 {
-  uiBut *but = context_active_but_get(C);
+  Button *but = context_active_but_get(C);
   if (but && but->type == ButType::ColorBand) {
     return true;
   }

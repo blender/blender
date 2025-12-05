@@ -4130,7 +4130,7 @@ static blender::ui::Block *block_create_autorun_warning(bContext *C,
   layout.separator(2.0f);
 
   /* Buttons. */
-  uiBut *but;
+  blender::ui::Button *but;
   blender::ui::Layout &split = layout.split(0.0f, true);
   split.scale_y_set(1.2f);
 
@@ -4383,16 +4383,16 @@ static void save_file_overwrite_cancel(bContext *C, void *arg_block, void * /*ar
 static void save_file_overwrite_cancel_button(blender::ui::Block *block,
                                               wmGenericCallback *post_action)
 {
-  uiBut *but = uiDefIconTextBut(block,
-                                blender::ui::ButType::But,
-                                ICON_NONE,
-                                IFACE_("Cancel"),
-                                0,
-                                0,
-                                0,
-                                UI_UNIT_Y,
-                                nullptr,
-                                "");
+  blender::ui::Button *but = uiDefIconTextBut(block,
+                                              blender::ui::ButType::But,
+                                              ICON_NONE,
+                                              IFACE_("Cancel"),
+                                              0,
+                                              0,
+                                              0,
+                                              UI_UNIT_Y,
+                                              nullptr,
+                                              "");
   button_func_set(but, save_file_overwrite_cancel, block, post_action);
   button_drawflag_disable(but, blender::ui::BUT_TEXT_LEFT);
 }
@@ -4427,16 +4427,16 @@ static void save_file_overwrite_confirm(bContext *C, void *arg_block, void *arg_
 static void save_file_overwrite_confirm_button(blender::ui::Block *block,
                                                wmGenericCallback *post_action)
 {
-  uiBut *but = uiDefIconTextBut(block,
-                                blender::ui::ButType::But,
-                                ICON_NONE,
-                                IFACE_("Overwrite"),
-                                0,
-                                0,
-                                0,
-                                UI_UNIT_Y,
-                                nullptr,
-                                "");
+  blender::ui::Button *but = uiDefIconTextBut(block,
+                                              blender::ui::ButType::But,
+                                              ICON_NONE,
+                                              IFACE_("Overwrite"),
+                                              0,
+                                              0,
+                                              0,
+                                              UI_UNIT_Y,
+                                              nullptr,
+                                              "");
   button_func_set(but, save_file_overwrite_confirm, block, post_action);
   button_drawflag_disable(but, blender::ui::BUT_TEXT_LEFT);
   button_flag_enable(but, blender::ui::BUT_REDALERT);
@@ -4454,16 +4454,16 @@ static void save_file_overwrite_saveas(bContext *C, void *arg_block, void * /*ar
 static void save_file_overwrite_saveas_button(blender::ui::Block *block,
                                               wmGenericCallback *post_action)
 {
-  uiBut *but = uiDefIconTextBut(block,
-                                blender::ui::ButType::But,
-                                ICON_NONE,
-                                IFACE_("Save As..."),
-                                0,
-                                0,
-                                0,
-                                UI_UNIT_Y,
-                                nullptr,
-                                "");
+  blender::ui::Button *but = uiDefIconTextBut(block,
+                                              blender::ui::ButType::But,
+                                              ICON_NONE,
+                                              IFACE_("Save As..."),
+                                              0,
+                                              0,
+                                              0,
+                                              UI_UNIT_Y,
+                                              nullptr,
+                                              "");
   button_func_set(but, save_file_overwrite_saveas, block, post_action);
   button_drawflag_disable(but, blender::ui::BUT_TEXT_LEFT);
   button_flag_enable(but, blender::ui::BUT_ACTIVE_DEFAULT);
@@ -4670,16 +4670,16 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
 static void wm_block_file_close_cancel_button(blender::ui::Block *block,
                                               wmGenericCallback *post_action)
 {
-  uiBut *but = uiDefIconTextBut(block,
-                                blender::ui::ButType::But,
-                                ICON_NONE,
-                                IFACE_("Cancel"),
-                                0,
-                                0,
-                                0,
-                                UI_UNIT_Y,
-                                nullptr,
-                                "");
+  blender::ui::Button *but = uiDefIconTextBut(block,
+                                              blender::ui::ButType::But,
+                                              ICON_NONE,
+                                              IFACE_("Cancel"),
+                                              0,
+                                              0,
+                                              0,
+                                              UI_UNIT_Y,
+                                              nullptr,
+                                              "");
   button_func_set(but, wm_block_file_close_cancel, block, post_action);
   button_drawflag_disable(but, blender::ui::BUT_TEXT_LEFT);
 }
@@ -4687,16 +4687,16 @@ static void wm_block_file_close_cancel_button(blender::ui::Block *block,
 static void wm_block_file_close_discard_button(blender::ui::Block *block,
                                                wmGenericCallback *post_action)
 {
-  uiBut *but = uiDefIconTextBut(block,
-                                blender::ui::ButType::But,
-                                ICON_NONE,
-                                IFACE_("Don't Save"),
-                                0,
-                                0,
-                                0,
-                                UI_UNIT_Y,
-                                nullptr,
-                                "");
+  blender::ui::Button *but = uiDefIconTextBut(block,
+                                              blender::ui::ButType::But,
+                                              ICON_NONE,
+                                              IFACE_("Don't Save"),
+                                              0,
+                                              0,
+                                              0,
+                                              UI_UNIT_Y,
+                                              nullptr,
+                                              "");
   button_func_set(but, wm_block_file_close_discard, block, post_action);
   button_drawflag_disable(but, blender::ui::BUT_TEXT_LEFT);
 }
@@ -4705,7 +4705,7 @@ static void wm_block_file_close_save_button(blender::ui::Block *block,
                                             wmGenericCallback *post_action,
                                             const bool needs_overwrite_confirm)
 {
-  uiBut *but = uiDefIconTextBut(
+  blender::ui::Button *but = uiDefIconTextBut(
       block,
       blender::ui::ButType::But,
       ICON_NONE,
@@ -4834,18 +4834,18 @@ static blender::ui::Block *block_create__close_file_dialog(bContext *C,
     if (!has_extra_checkboxes) {
       layout.separator();
     }
-    uiBut *but = uiDefButBitC(block,
-                              blender::ui::ButType::Checkbox,
-                              1,
-                              "Save modified asset catalogs",
-                              0,
-                              0,
-                              0,
-                              UI_UNIT_Y,
-                              &save_catalogs_when_file_is_closed,
-                              0,
-                              0,
-                              "");
+    blender::ui::Button *but = uiDefButBitC(block,
+                                            blender::ui::ButType::Checkbox,
+                                            1,
+                                            "Save modified asset catalogs",
+                                            0,
+                                            0,
+                                            0,
+                                            UI_UNIT_Y,
+                                            &save_catalogs_when_file_is_closed,
+                                            0,
+                                            0,
+                                            "");
     button_func_set(but,
                     save_catalogs_when_file_is_closed_set_fn,
                     &save_catalogs_when_file_is_closed,

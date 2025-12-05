@@ -485,7 +485,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
   ui::Layout *layout = arg->layout;
   ui::Layout *column = nullptr;
   ui::Block *block = layout->block();
-  uiBut *but;
+  ui::Button *but;
   NodeLinkArg *argN;
   int first = 1;
 
@@ -606,7 +606,7 @@ static void ui_template_node_link_menu(bContext *C, ui::Layout *layout, void *bu
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ui::Block *block = layout->block();
-  uiBut *but = (uiBut *)but_p;
+  ui::Button *but = (ui::Button *)but_p;
   ui::Layout *split, *column;
   NodeLinkArg *arg = (NodeLinkArg *)but->func_argN;
   bNodeSocket *sock = arg->sock;
@@ -671,7 +671,7 @@ void uiTemplateNodeLink(
 
   blender::ui::Block *block = layout->block();
   NodeLinkArg *arg;
-  uiBut *but;
+  blender::ui::Button *but;
   float socket_col[4];
 
   arg = MEM_callocN<NodeLinkArg>("NodeLinkArg");

@@ -193,12 +193,12 @@ void AbstractViewItem::end_renaming()
   view.end_renaming();
 }
 
-static AbstractViewItem *find_item_from_rename_button(const uiBut &rename_but)
+static AbstractViewItem *find_item_from_rename_button(const Button &rename_but)
 {
   /* A minimal sanity check, can't do much more here. */
   BLI_assert(rename_but.type == ButType::Text && rename_but.poin);
 
-  for (const std::unique_ptr<uiBut> &but : rename_but.block->buttons) {
+  for (const std::unique_ptr<Button> &but : rename_but.block->buttons) {
     if (but->type != ButType::ViewItem) {
       continue;
     }
@@ -217,7 +217,7 @@ static AbstractViewItem *find_item_from_rename_button(const uiBut &rename_but)
 
 static void rename_button_fn(bContext *C, void *arg, char * /*origstr*/)
 {
-  const uiBut *rename_but = static_cast<uiBut *>(arg);
+  const Button *rename_but = static_cast<Button *>(arg);
   AbstractViewItem *item = find_item_from_rename_button(*rename_but);
   BLI_assert(item);
   item->rename_apply(*C);
@@ -226,17 +226,17 @@ static void rename_button_fn(bContext *C, void *arg, char * /*origstr*/)
 void AbstractViewItem::add_rename_button(Block &block)
 {
   AbstractView &view = this->get_view();
-  uiBut *rename_but = uiDefBut(&block,
-                               ButType::Text,
-                               "",
-                               0,
-                               0,
-                               UI_UNIT_X * 10,
-                               UI_UNIT_Y,
-                               view.get_rename_buffer().data(),
-                               1.0f,
-                               view.get_rename_buffer().size(),
-                               "");
+  Button *rename_but = uiDefBut(&block,
+                                ButType::Text,
+                                "",
+                                0,
+                                0,
+                                UI_UNIT_X * 10,
+                                UI_UNIT_Y,
+                                view.get_rename_buffer().data(),
+                                1.0f,
+                                view.get_rename_buffer().size(),
+                                "");
   button_retval_set(rename_but, 1);
 
   /* Gotta be careful with what's passed to the `arg1` here. Any view data will be freed once the

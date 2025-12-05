@@ -490,7 +490,7 @@ static void template_texture_user_menu(bContext *C, blender::ui::Layout *layout,
   const char *last_category = nullptr;
 
   LISTBASE_FOREACH (ButsTextureUser *, user, &ct->users) {
-    uiBut *but;
+    blender::ui::Button *but;
     char name[UI_MAX_NAME_STR];
 
     /* add label per category */
@@ -545,7 +545,7 @@ void uiTemplateTextureUser(blender::ui::Layout *layout, bContext *C)
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
   ButsContextTexture *ct = (sbuts) ? static_cast<ButsContextTexture *>(sbuts->texuser) : nullptr;
   blender::ui::Block *block = layout->block();
-  uiBut *but;
+  blender::ui::Button *but;
   ButsTextureUser *user;
   char name[UI_MAX_NAME_STR];
 
@@ -690,7 +690,7 @@ void uiTemplateTextureShow(blender::ui::Layout *layout,
 
   /* Draw button (disabled if we cannot find a Properties Editor to display this in). */
   blender::ui::Block *block = layout->block();
-  uiBut *but;
+  blender::ui::Button *but;
   but = uiDefIconBut(block,
                      blender::ui::ButType::But,
                      ICON_PROPERTIES,

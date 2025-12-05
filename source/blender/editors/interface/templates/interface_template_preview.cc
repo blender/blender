@@ -175,17 +175,17 @@ void template_preview(Layout *layout,
       PointerRNA texture_ptr = RNA_id_pointer_create(id);
 
       layout->row(true);
-      uiBut *but = uiDefButS(block,
-                             ButType::Row,
-                             IFACE_("Texture"),
-                             0,
-                             0,
-                             UI_UNIT_X * 10,
-                             UI_UNIT_Y,
-                             pr_texture,
-                             10,
-                             TEX_PR_TEXTURE,
-                             "");
+      Button *but = uiDefButS(block,
+                              ButType::Row,
+                              IFACE_("Texture"),
+                              0,
+                              0,
+                              UI_UNIT_X * 10,
+                              UI_UNIT_Y,
+                              pr_texture,
+                              10,
+                              TEX_PR_TEXTURE,
+                              "");
       button_retval_set(but, B_MATPRV);
       if (GS(parent->name) == ID_MA) {
         but = uiDefButS(block,

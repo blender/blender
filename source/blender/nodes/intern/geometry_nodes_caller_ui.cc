@@ -239,18 +239,18 @@ static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
   ui::Layout &prop_row = split.row(true);
 
   ui::Block *block = prop_row.block();
-  uiBut *but = uiDefIconTextButR(block,
-                                 ui::ButType::SearchMenu,
-                                 ICON_OUTLINER_DATA_GP_LAYER,
-                                 "",
-                                 0,
-                                 0,
-                                 10 * UI_UNIT_X, /* Dummy value, replaced by layout system. */
-                                 UI_UNIT_Y,
-                                 ctx.properties_ptr,
-                                 rna_path,
-                                 0,
-                                 StringRef(socket.description));
+  ui::Button *but = uiDefIconTextButR(block,
+                                      ui::ButType::SearchMenu,
+                                      ICON_OUTLINER_DATA_GP_LAYER,
+                                      "",
+                                      0,
+                                      0,
+                                      10 * UI_UNIT_X, /* Dummy value, replaced by layout system. */
+                                      UI_UNIT_Y,
+                                      ctx.properties_ptr,
+                                      rna_path,
+                                      0,
+                                      StringRef(socket.description));
   button_placeholder_set(but, IFACE_("Layer"));
   layout.label("", ICON_BLANK1);
 
@@ -356,18 +356,18 @@ static void add_attribute_search_button(DrawGroupInputsContext &ctx,
   }
 
   ui::Block *block = layout.block();
-  uiBut *but = uiDefIconTextButR(block,
-                                 ui::ButType::SearchMenu,
-                                 ICON_NONE,
-                                 "",
-                                 0,
-                                 0,
-                                 10 * UI_UNIT_X, /* Dummy value, replaced by layout system. */
-                                 UI_UNIT_Y,
-                                 ctx.properties_ptr,
-                                 rna_path_attribute_name,
-                                 0,
-                                 StringRef(socket.description));
+  ui::Button *but = uiDefIconTextButR(block,
+                                      ui::ButType::SearchMenu,
+                                      ICON_NONE,
+                                      "",
+                                      0,
+                                      0,
+                                      10 * UI_UNIT_X, /* Dummy value, replaced by layout system. */
+                                      UI_UNIT_Y,
+                                      ctx.properties_ptr,
+                                      rna_path_attribute_name,
+                                      0,
+                                      StringRef(socket.description));
 
   const Object *object = ed::object::context_object(&ctx.C);
   BLI_assert(object != nullptr);
@@ -813,7 +813,7 @@ static void draw_warnings(const bContext *C,
   for (const NodeWarning *warning : warnings) {
     const int icon = node_warning_type_icon(warning->type);
     const StringRef message = RPT_(warning->message);
-    uiBut *but = uiDefIconTextBut(
+    ui::Button *but = uiDefIconTextBut(
         block, ui::ButType::Label, icon, message, 0, 0, 1, UI_UNIT_Y, nullptr, std::nullopt);
     /* Add tooltip containing the same message. This is helpful if the message is very long so that
      * it doesn't fit in the panel. */

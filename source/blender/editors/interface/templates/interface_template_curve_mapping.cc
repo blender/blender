@@ -99,7 +99,7 @@ static void curvemap_buttons_zoom_out(bContext *C, CurveMapping *cumap)
 static Block *curvemap_clipping_func(bContext *C, ARegion *region, void *cumap_v)
 {
   CurveMapping *cumap = static_cast<CurveMapping *>(cumap_v);
-  uiBut *bt;
+  Button *bt;
   const float width = 8 * UI_UNIT_X;
 
   Block *block = block_begin(C, region, __func__, EmbossType::Emboss);
@@ -193,16 +193,16 @@ static Block *curvemap_tools_func(
   Block *block = block_begin(C, region, __func__, EmbossType::Emboss);
 
   {
-    uiBut *but = uiDefIconTextBut(block,
-                                  ButType::ButMenu,
-                                  ICON_BLANK1,
-                                  IFACE_("Reset View"),
-                                  0,
-                                  yco -= UI_UNIT_Y,
-                                  menuwidth,
-                                  UI_UNIT_Y,
-                                  nullptr,
-                                  "");
+    Button *but = uiDefIconTextBut(block,
+                                   ButType::ButMenu,
+                                   ICON_BLANK1,
+                                   IFACE_("Reset View"),
+                                   0,
+                                   yco -= UI_UNIT_Y,
+                                   menuwidth,
+                                   UI_UNIT_Y,
+                                   nullptr,
+                                   "");
     button_retval_set(but, 1);
     button_func_set(but, [cumap](bContext &C) {
       BKE_curvemapping_reset_view(cumap);
@@ -212,16 +212,16 @@ static Block *curvemap_tools_func(
 
   if (show_extend && !(cumap->flag & CUMA_USE_WRAPPING)) {
     {
-      uiBut *but = uiDefIconTextBut(block,
-                                    ButType::ButMenu,
-                                    ICON_BLANK1,
-                                    IFACE_("Extend Horizontal"),
-                                    0,
-                                    yco -= UI_UNIT_Y,
-                                    menuwidth,
-                                    UI_UNIT_Y,
-                                    nullptr,
-                                    "");
+      Button *but = uiDefIconTextBut(block,
+                                     ButType::ButMenu,
+                                     ICON_BLANK1,
+                                     IFACE_("Extend Horizontal"),
+                                     0,
+                                     yco -= UI_UNIT_Y,
+                                     menuwidth,
+                                     UI_UNIT_Y,
+                                     nullptr,
+                                     "");
       button_retval_set(but, 1);
       button_func_set(but, [cumap, cb](bContext &C) {
         cumap->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
@@ -232,16 +232,16 @@ static Block *curvemap_tools_func(
       });
     }
     {
-      uiBut *but = uiDefIconTextBut(block,
-                                    ButType::ButMenu,
-                                    ICON_BLANK1,
-                                    IFACE_("Extend Extrapolated"),
-                                    0,
-                                    yco -= UI_UNIT_Y,
-                                    menuwidth,
-                                    UI_UNIT_Y,
-                                    nullptr,
-                                    "");
+      Button *but = uiDefIconTextBut(block,
+                                     ButType::ButMenu,
+                                     ICON_BLANK1,
+                                     IFACE_("Extend Extrapolated"),
+                                     0,
+                                     yco -= UI_UNIT_Y,
+                                     menuwidth,
+                                     UI_UNIT_Y,
+                                     nullptr,
+                                     "");
       button_retval_set(but, 1);
       button_func_set(but, [cumap, cb](bContext &C) {
         cumap->flag |= CUMA_EXTEND_EXTRAPOLATE;
@@ -254,16 +254,16 @@ static Block *curvemap_tools_func(
   }
 
   {
-    uiBut *but = uiDefIconTextBut(block,
-                                  ButType::ButMenu,
-                                  ICON_BLANK1,
-                                  IFACE_("Reset Curve"),
-                                  0,
-                                  yco -= UI_UNIT_Y,
-                                  menuwidth,
-                                  UI_UNIT_Y,
-                                  nullptr,
-                                  "");
+    Button *but = uiDefIconTextBut(block,
+                                   ButType::ButMenu,
+                                   ICON_BLANK1,
+                                   IFACE_("Reset Curve"),
+                                   0,
+                                   yco -= UI_UNIT_Y,
+                                   menuwidth,
+                                   UI_UNIT_Y,
+                                   nullptr,
+                                   "");
     button_retval_set(but, 1);
     button_func_set(but, [cumap, cb, reset_mode](bContext &C) {
       CurveMap *cuma = cumap->cm + cumap->cur;
@@ -319,7 +319,7 @@ static void add_preset_button(Block *block,
                               const int preset,
                               const RNAUpdateCb &cb)
 {
-  uiBut *bt = uiDefIconBut(block, ButType::Row, icon, 0, 0, dx, dx, &cumap->cur, 0.0, 3.0, tip);
+  Button *bt = uiDefIconBut(block, ButType::Row, icon, 0, 0, dx, dx, &cumap->cur, 0.0, 3.0, tip);
   button_func_set(bt, [&, cumap, neg_slope, preset, cb](bContext &C) {
     const CurveMapSlopeType slope = neg_slope ? CurveMapSlopeType::Negative :
                                                 CurveMapSlopeType::Positive;
@@ -348,7 +348,7 @@ static void curvemap_buttons_layout(Layout *layout,
 {
   CurveMapping *cumap = static_cast<CurveMapping *>(ptr->data);
   CurveMap *cm = &cumap->cm[cumap->cur];
-  uiBut *bt;
+  Button *bt;
   const float dx = UI_UNIT_X;
   eButGradientType bg = UI_GRAD_NONE;
 

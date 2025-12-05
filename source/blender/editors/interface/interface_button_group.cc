@@ -28,7 +28,7 @@ void ui_block_new_button_group(Block *block, uiButtonGroupFlag flag)
   block->button_groups.last().flag = flag;
 }
 
-void ui_button_group_add_but(Block *block, uiBut *but)
+void ui_button_group_add_but(Block *block, Button *but)
 {
   if (block->button_groups.is_empty()) {
     ui_block_new_button_group(block, uiButtonGroupFlag(0));
@@ -38,13 +38,13 @@ void ui_button_group_add_but(Block *block, uiBut *but)
   current_group.buttons.append(but);
 }
 
-void ui_button_group_replace_but_ptr(Block *block, const uiBut *old_but_ptr, uiBut *new_but)
+void ui_button_group_replace_but_ptr(Block *block, const Button *old_but_ptr, Button *new_but)
 {
   for (uiButtonGroup &group : block->button_groups) {
     std::replace_if(
         group.buttons.begin(),
         group.buttons.end(),
-        [&](const uiBut *ptr) { return ptr == old_but_ptr; },
+        [&](const Button *ptr) { return ptr == old_but_ptr; },
         new_but);
   }
 }

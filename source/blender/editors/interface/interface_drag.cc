@@ -16,7 +16,7 @@
 
 namespace blender::ui {
 
-void button_drag_set_id(uiBut *but, ID *id)
+void button_drag_set_id(Button *but, ID *id)
 {
   but->dragtype = WM_DRAG_ID;
   if (but->dragflag & BUT_DRAGPOIN_FREE) {
@@ -26,14 +26,14 @@ void button_drag_set_id(uiBut *but, ID *id)
   but->dragpoin = (void *)id;
 }
 
-void button_drag_attach_image(uiBut *but, const ImBuf *imb, const float scale)
+void button_drag_attach_image(Button *but, const ImBuf *imb, const float scale)
 {
   but->imb = imb;
   but->imb_scale = scale;
   button_dragflag_enable(but, BUT_DRAG_FULL_BUT);
 }
 
-void button_drag_set_asset(uiBut *but,
+void button_drag_set_asset(Button *but,
                            const asset_system::AssetRepresentation *asset,
                            const AssetImportSettings &import_settings,
                            BIFIconID icon,
@@ -51,7 +51,7 @@ void button_drag_set_asset(uiBut *but,
   but->drag_preview_icon_id = preview_icon;
 }
 
-void button_drag_set_rna(uiBut *but, PointerRNA *ptr)
+void button_drag_set_rna(Button *but, PointerRNA *ptr)
 {
   but->dragtype = WM_DRAG_RNA;
   if (but->dragflag & BUT_DRAGPOIN_FREE) {
@@ -61,7 +61,7 @@ void button_drag_set_rna(uiBut *but, PointerRNA *ptr)
   but->dragpoin = (void *)ptr;
 }
 
-void button_drag_set_path(uiBut *but, const char *path)
+void button_drag_set_path(Button *but, const char *path)
 {
   but->dragtype = WM_DRAG_PATH;
   if (but->dragflag & BUT_DRAGPOIN_FREE) {
@@ -71,7 +71,7 @@ void button_drag_set_path(uiBut *but, const char *path)
   but->dragflag |= BUT_DRAGPOIN_FREE;
 }
 
-void button_drag_set_name(uiBut *but, const char *name)
+void button_drag_set_name(Button *but, const char *name)
 {
   but->dragtype = WM_DRAG_NAME;
   if (but->dragflag & BUT_DRAGPOIN_FREE) {
@@ -81,26 +81,26 @@ void button_drag_set_name(uiBut *but, const char *name)
   but->dragpoin = (void *)name;
 }
 
-void button_drag_set_image(uiBut *but, const char *path, int icon, const ImBuf *imb, float scale)
+void button_drag_set_image(Button *but, const char *path, int icon, const ImBuf *imb, float scale)
 {
   ui_def_but_icon(but, icon, 0); /* no flag UI_HAS_ICON, so icon doesn't draw in button */
   button_drag_set_path(but, path);
   button_drag_attach_image(but, imb, scale);
 }
 
-void ui_but_drag_free(uiBut *but)
+void ui_but_drag_free(Button *but)
 {
   if (but->dragpoin && (but->dragflag & BUT_DRAGPOIN_FREE)) {
     WM_drag_data_free(but->dragtype, but->dragpoin);
   }
 }
 
-bool ui_but_drag_is_draggable(const uiBut *but)
+bool ui_but_drag_is_draggable(const Button *but)
 {
   return but->dragpoin != nullptr;
 }
 
-void ui_but_drag_start(bContext *C, uiBut *but)
+void ui_but_drag_start(bContext *C, Button *but)
 {
   wmDrag *drag = WM_drag_data_create(C,
                                      but->icon,

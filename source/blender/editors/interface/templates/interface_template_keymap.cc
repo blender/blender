@@ -37,7 +37,7 @@ static void template_keymap_item_properties(Layout &layout, const char *title, P
 
   RNA_STRUCT_BEGIN_SKIP_RNA_TYPE (ptr, prop) {
     const bool is_set = RNA_property_is_set(ptr, prop);
-    uiBut *but;
+    Button *but;
 
     /* recurse for nested properties */
     if (RNA_property_type(prop) == PROP_POINTER) {
@@ -95,7 +95,7 @@ void uiTemplateKeymapItemProperties(Layout *layout, PointerRNA *ptr)
     /* attach callbacks to compensate for missing properties update,
      * we don't know which keymap (item) is being modified there */
     for (; i < block->buttons.size(); i++) {
-      uiBut *but = block->buttons[i].get();
+      Button *but = block->buttons[i].get();
       /* operator buttons may store props for use (file selector, #36492) */
       if (but->rnaprop) {
         button_func_set(but, keymap_item_modified, ptr->data, nullptr);

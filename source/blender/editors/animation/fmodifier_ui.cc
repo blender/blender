@@ -325,17 +325,17 @@ static void fmodifier_panel_header(const bContext *C, Panel *panel)
   sub->prop(ptr, "mute", blender::ui::ITEM_R_ICON_ONLY, "", ICON_NONE);
 
   /* Delete button. */
-  uiBut *but = uiDefIconBut(block,
-                            blender::ui::ButType::But,
-                            ICON_X,
-                            0,
-                            0,
-                            UI_UNIT_X,
-                            UI_UNIT_Y,
-                            nullptr,
-                            0.0,
-                            0.0,
-                            TIP_("Delete Modifier"));
+  blender::ui::Button *but = uiDefIconBut(block,
+                                          blender::ui::ButType::But,
+                                          ICON_X,
+                                          0,
+                                          0,
+                                          UI_UNIT_X,
+                                          UI_UNIT_Y,
+                                          nullptr,
+                                          0.0,
+                                          0.0,
+                                          TIP_("Delete Modifier"));
   button_retval_set(but, B_REDR);
   FModifierDeleteContext *ctx = MEM_mallocN<FModifierDeleteContext>(__func__);
   ctx->owner_id = owner_id;
@@ -682,17 +682,18 @@ static void envelope_panel_draw(const bContext *C, Panel *panel)
   blender::ui::Layout *row = &layout.row(false);
   blender::ui::Block *block = row->block();
 
-  uiBut *but = uiDefBut(block,
-                        blender::ui::ButType::But,
-                        IFACE_("Add Control Point"),
-                        0,
-                        0,
-                        7.5 * UI_UNIT_X,
-                        UI_UNIT_Y,
-                        nullptr,
-                        0,
-                        0,
-                        TIP_("Add a new control-point to the envelope on the current frame"));
+  blender::ui::Button *but = uiDefBut(
+      block,
+      blender::ui::ButType::But,
+      IFACE_("Add Control Point"),
+      0,
+      0,
+      7.5 * UI_UNIT_X,
+      UI_UNIT_Y,
+      nullptr,
+      0,
+      0,
+      TIP_("Add a new control-point to the envelope on the current frame"));
   button_retval_set(but, B_FMODIFIER_REDRAW);
   button_func_set(but, fmod_envelope_addpoint_cb, env, nullptr);
 

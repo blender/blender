@@ -150,7 +150,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
    * but this is not so important if this button is drawn in those cases
    * (which isn't all that likely anyway) - campbell */
   if (op->properties->len) {
-    uiBut *but;
+    Button *but;
 
     /* Needed to avoid alignment errors with previous buttons */
     Layout &col = layout.column(false);
@@ -175,7 +175,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
 
   const bool is_popup = (block->flag & BLOCK_KEEP_OPEN) != 0;
 
-  for (const std::unique_ptr<uiBut> &but : block->buttons) {
+  for (const std::unique_ptr<Button> &but : block->buttons) {
     /* no undo for buttons for operator redo panels */
     if (!(layout_flags & TEMPLATE_OP_PROPS_ALLOW_UNDO_PUSH)) {
       button_flag_disable(but.get(), BUT_UNDO);

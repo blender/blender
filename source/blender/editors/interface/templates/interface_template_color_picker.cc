@@ -47,7 +47,7 @@ void template_color_picker(Layout *layout,
   Layout &col = layout->column(true);
   Layout &row = col.row(true);
 
-  uiBut *but = nullptr;
+  Button *but = nullptr;
   ButtonHSVCube *hsv_but;
   switch (U.color_picker_type) {
     case USER_CP_SQUARE_SV:
@@ -221,7 +221,7 @@ void template_palette(Layout *layout,
                       bool /*colors*/)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
-  uiBut *but = nullptr;
+  Button *but = nullptr;
 
   const int cols_per_row = std::max(layout->width() / UI_UNIT_X, 1);
 
@@ -338,16 +338,16 @@ void template_crypto_picker(Layout *layout,
 
   Block *block = layout->block();
 
-  uiBut *but = uiDefIconButO(block,
-                             ButType::But,
-                             "UI_OT_eyedropper_color",
-                             wm::OpCallContext::InvokeDefault,
-                             icon,
-                             0,
-                             0,
-                             UI_UNIT_X,
-                             UI_UNIT_Y,
-                             RNA_property_ui_description(prop));
+  Button *but = uiDefIconButO(block,
+                              ButType::But,
+                              "UI_OT_eyedropper_color",
+                              wm::OpCallContext::InvokeDefault,
+                              icon,
+                              0,
+                              0,
+                              UI_UNIT_X,
+                              UI_UNIT_Y,
+                              RNA_property_ui_description(prop));
   but->rnapoin = *ptr;
   but->rnaprop = prop;
   but->rnaindex = -1;

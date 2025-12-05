@@ -59,17 +59,17 @@ void template_component_menu(Layout *layout,
   Block *block = layout->block();
   block_align_begin(block);
 
-  uiBut *but = uiDefBlockButN(block,
-                              component_menu,
-                              args,
-                              name,
-                              0,
-                              0,
-                              UI_UNIT_X * 6,
-                              UI_UNIT_Y,
-                              "",
-                              but_func_argN_free<ComponentMenuArgs>,
-                              but_func_argN_copy<ComponentMenuArgs>);
+  Button *but = uiDefBlockButN(block,
+                               component_menu,
+                               args,
+                               name,
+                               0,
+                               0,
+                               UI_UNIT_X * 6,
+                               UI_UNIT_Y,
+                               "",
+                               but_func_argN_free<ComponentMenuArgs>,
+                               but_func_argN_copy<ComponentMenuArgs>);
   /* set rna directly, uiDefBlockButN doesn't do this */
   but->rnapoin = *ptr;
   but->rnaprop = RNA_struct_find_property(ptr, propname.c_str());

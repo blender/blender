@@ -250,7 +250,7 @@ int UI_search_items_find_index(const SearchItems *items, const char *name)
 }
 
 /* region is the search box itself */
-static void ui_searchbox_select(bContext *C, ARegion *region, uiBut *but, int step)
+static void ui_searchbox_select(bContext *C, ARegion *region, Button *but, int step)
 {
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
 
@@ -333,7 +333,7 @@ bool ui_searchbox_inside(ARegion *region, const int xy[2])
   return BLI_rcti_isect_pt(&data->bbox, xy[0] - region->winrct.xmin, xy[1] - region->winrct.ymin);
 }
 
-bool ui_searchbox_apply(uiBut *but, ARegion *region)
+bool ui_searchbox_apply(Button *but, ARegion *region)
 {
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
   ButtonSearch *search_but = (ButtonSearch *)but;
@@ -372,7 +372,7 @@ static ARegion *wm_searchbox_tooltip_init(
   *r_exit_on_event = true;
 
   LISTBASE_FOREACH (Block *, block, &region->runtime->uiblocks) {
-    for (const std::unique_ptr<uiBut> &but : block->buttons) {
+    for (const std::unique_ptr<Button> &but : block->buttons) {
       if (but->type != ButType::SearchMenu) {
         continue;
       }
@@ -398,7 +398,7 @@ static ARegion *wm_searchbox_tooltip_init(
 }
 
 bool ui_searchbox_event(
-    bContext *C, ARegion *region, uiBut *but, ARegion *butregion, const wmEvent *event)
+    bContext *C, ARegion *region, Button *but, ARegion *butregion, const wmEvent *event)
 {
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
   ButtonSearch *search_but = (ButtonSearch *)but;
@@ -513,7 +513,7 @@ static void ui_searchbox_update_fn(bContext *C,
   but->items_update_fn(C, but->arg, str, items, is_first_search);
 }
 
-void ui_searchbox_update(bContext *C, ARegion *region, uiBut *but, const bool reset)
+void ui_searchbox_update(bContext *C, ARegion *region, Button *but, const bool reset)
 {
   ButtonSearch *search_but = (ButtonSearch *)but;
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);
@@ -591,7 +591,7 @@ void ui_searchbox_update(bContext *C, ARegion *region, uiBut *but, const bool re
   ED_region_tag_redraw(region);
 }
 
-int ui_searchbox_autocomplete(bContext *C, ARegion *region, uiBut *but, char *str)
+int ui_searchbox_autocomplete(bContext *C, ARegion *region, Button *but, char *str)
 {
   ButtonSearch *search_but = (ButtonSearch *)but;
   uiSearchboxData *data = static_cast<uiSearchboxData *>(region->regiondata);

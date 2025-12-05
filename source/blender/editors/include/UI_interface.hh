@@ -40,8 +40,8 @@ struct SearchItems;
 
 namespace blender::ui {
 
-void button_func_set(uiBut *but, std::function<void(bContext &)> func);
-void button_func_pushed_state_set(uiBut *but, std::function<bool(const uiBut &)> func);
+void button_func_set(Button *but, std::function<void(bContext &)> func);
+void button_func_pushed_state_set(Button *but, std::function<bool(const Button &)> func);
 
 /**
  * Template generating a freeing callback matching the #uiButArgNFree signature, for data created

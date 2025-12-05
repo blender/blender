@@ -48,16 +48,16 @@ static Block *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_v)
         std::pair<StringRef, eCurveProfilePresets>(CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Steps"),
                                                    PROF_PRESET_STEPS)})
   {
-    uiBut *but = uiDefIconTextBut(block,
-                                  ButType::ButMenu,
-                                  ICON_BLANK1,
-                                  item.first,
-                                  0,
-                                  yco -= UI_UNIT_Y,
-                                  0,
-                                  UI_UNIT_Y,
-                                  nullptr,
-                                  "");
+    Button *but = uiDefIconTextBut(block,
+                                   ButType::ButMenu,
+                                   ICON_BLANK1,
+                                   item.first,
+                                   0,
+                                   yco -= UI_UNIT_Y,
+                                   0,
+                                   UI_UNIT_Y,
+                                   nullptr,
+                                   "");
     button_retval_set(but, 1);
     const eCurveProfilePresets preset = item.second;
     button_func_set(but, [profile, cb, preset](bContext &C) {
@@ -86,16 +86,16 @@ static Block *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
   Block *block = block_begin(C, region, __func__, EmbossType::Emboss);
 
   {
-    uiBut *but = uiDefIconTextBut(block,
-                                  ButType::ButMenu,
-                                  ICON_BLANK1,
-                                  IFACE_("Reset View"),
-                                  0,
-                                  yco -= UI_UNIT_Y,
-                                  0,
-                                  UI_UNIT_Y,
-                                  nullptr,
-                                  "");
+    Button *but = uiDefIconTextBut(block,
+                                   ButType::ButMenu,
+                                   ICON_BLANK1,
+                                   IFACE_("Reset View"),
+                                   0,
+                                   yco -= UI_UNIT_Y,
+                                   0,
+                                   UI_UNIT_Y,
+                                   nullptr,
+                                   "");
     button_retval_set(but, 1);
     button_func_set(but, [profile](bContext &C) {
       BKE_curveprofile_reset_view(profile);
@@ -103,16 +103,16 @@ static Block *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
     });
   }
   {
-    uiBut *but = uiDefIconTextBut(block,
-                                  ButType::ButMenu,
-                                  ICON_BLANK1,
-                                  IFACE_("Reset Curve"),
-                                  0,
-                                  yco -= UI_UNIT_Y,
-                                  0,
-                                  UI_UNIT_Y,
-                                  nullptr,
-                                  "");
+    Button *but = uiDefIconTextBut(block,
+                                   ButType::ButMenu,
+                                   ICON_BLANK1,
+                                   IFACE_("Reset Curve"),
+                                   0,
+                                   yco -= UI_UNIT_Y,
+                                   0,
+                                   UI_UNIT_Y,
+                                   nullptr,
+                                   "");
     button_retval_set(but, 1);
     button_func_set(but, [profile, cb](bContext &C) {
       BKE_curveprofile_reset(profile);
@@ -199,7 +199,7 @@ static void curve_profile_zoom_out(bContext *C, CurveProfile *profile)
 static void CurveProfile_buttons_layout(Layout &layout, PointerRNA *ptr, const RNAUpdateCb &cb)
 {
   CurveProfile *profile = static_cast<CurveProfile *>(ptr->data);
-  uiBut *bt;
+  Button *bt;
 
   Block *block = layout.block();
 

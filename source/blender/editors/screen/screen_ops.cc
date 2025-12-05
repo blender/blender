@@ -6684,7 +6684,7 @@ static wmOperatorStatus drivers_editor_show_exec(bContext *C, wmOperator *op)
   int index;
   PointerRNA ptr;
   PropertyRNA *prop;
-  uiBut *but = blender::ui::context_active_but_prop_get(C, &ptr, &prop, &index);
+  blender::ui::Button *but = blender::ui::context_active_but_prop_get(C, &ptr, &prop, &index);
 
   /* changes context! */
   if (WM_window_open_temp(C, IFACE_("Blender Drivers Editor"), SPACE_GRAPH, false)) {
