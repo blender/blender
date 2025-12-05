@@ -832,6 +832,17 @@ static uint64_t get_address_id_int(WriteData &wd, const void *address)
     return 0;
   }
   /* Either reuse an existing identifier or create a new one. */
+  /* NOTE: In undo case, the stable address data is re-used from the previously written undo step.
+   * This means that the address may already be in the map.
+   * However, in very rare cases, it could be from another, implicitly-shared data (i.e. have the
+   * `implicit_sharing_address_id_flag` flag set).
+   *
+   * This is handled properly by both #BLO_write_shared_tag and #prepare_stable_data_block_ids,
+   * but doing so here would add a significant overhead to a very often used function. Further
+   * more, there is no expected actual issue currently if such 'wrongly categorized' stable address
+   * values are used. The only really critical thing is that all written stable addresses remain
+   * unique, which should remain true even if this ever happens.
+   */
   return wd.stable_address_ids.pointer_map.lookup_or_add_cb(address, [&]() {
     return get_next_stable_address_id(wd, wd.stable_address_ids.next_id_hint);
   });
@@ -1686,10 +1697,16 @@ static void prepare_stable_data_block_ids(WriteData &wd, Main &bmain)
   FOREACH_MAIN_ID_BEGIN (&bmain, id) {
     /* Ensure no other stable pointer has been created before. */
     if (wd.use_memfile) {
-      /* In memfile case (undo steps), the stable address ids data is preserved between undo steps,
-       * so the ID address may already be in there, and does not need to be re-generated. */
-      if (wd.stable_address_ids.pointer_map.contains(id)) {
-        continue;
+      /* In undo case, the stable address data is re-used from the previously written undo step.
+       * This means that the ID address may already be in the map.
+       *
+       * However, in very rare cases, it could be from another, implicitly-shared data, in which
+       * case the ID address 'stable value' needs to be re-generated and re-inserted. */
+      uint64_t address_id = wd.stable_address_ids.pointer_map.lookup_default(id, 0);
+      if (address_id != 0) {
+        if (LIKELY((address_id & implicit_sharing_address_id_flag) == 0)) {
+          continue;
+        }
       }
     }
     else {
@@ -1703,7 +1720,7 @@ static void prepare_stable_data_block_ids(WriteData &wd, Main &bmain)
 
     /* Store the computed stable pointer so that it is used whenever the data-block is written or
      * referenced. */
-    wd.stable_address_ids.pointer_map.add(id, address_id);
+    wd.stable_address_ids.pointer_map.add_overwrite(id, address_id);
   }
   FOREACH_MAIN_ID_END;
 }
@@ -2292,11 +2309,24 @@ void BLO_write_shared_tag(BlendWriter *writer, const void *data)
   if (!BLO_write_is_undo(writer)) {
     return;
   }
+
   const uint64_t address_id = get_address_id_for_implicit_sharing_data(data);
   /* Check that the pointer has not been written before it was tagged as being shared. */
-  BLI_assert(writer->wd->stable_address_ids.pointer_map.lookup_default(data, address_id) ==
-             address_id);
-  writer->wd->stable_address_ids.pointer_map.add(data, address_id);
+  /* In undo case, the stable address data is re-used from the previously written undo step.
+   * This means that the shared data address may already be in the map.
+   *
+   * However, in very rare cases, it could be from another, regular (non-shared) data previously
+   * using the same memory address, in which case the data address 'stable value' needs to be
+   * re-inserted. */
+#ifndef NDEBUG
+  {
+    const uint64_t existing_address_id = writer->wd->stable_address_ids.pointer_map.lookup_default(
+        data, address_id);
+    BLI_assert(existing_address_id == address_id ||
+               (existing_address_id & implicit_sharing_address_id_flag) == 0);
+  }
+#endif
+  writer->wd->stable_address_ids.pointer_map.add_overwrite(data, address_id);
 }
 
 void BLO_write_shared(BlendWriter *writer,
