@@ -438,8 +438,16 @@ static void um_arraystore_compact(UndoMesh *um, const UndoMesh *um_ref)
    * At the moment it seems fast enough to split by domain.
    * Since this is itself a background thread, using too many threads here could
    * interfere with foreground tasks. */
+
+#  ifdef USE_ARRAY_STORE_THREAD
+  const bool use_threading = 4096 < (mesh->verts_num + mesh->edges_num + mesh->corners_num +
+                                     mesh->faces_num);
+#  else
+  const bool use_threading = false;
+#  endif
+
   blender::threading::parallel_invoke(
-      4096 < (mesh->verts_num + mesh->edges_num + mesh->corners_num + mesh->faces_num),
+      use_threading,
       [&]() {
         um->store.vdata = um_arraystore_cd_create(&mesh->vert_data,
                                                   mesh->verts_num,
