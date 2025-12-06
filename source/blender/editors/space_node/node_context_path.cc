@@ -63,8 +63,7 @@ static std::function<void(bContext &)> tree_path_handle_func(int i)
     wmOperatorType *ot = WM_operatortype_find("NODE_OT_tree_path_parent", false);
     WM_operator_properties_create_ptr(&op_props, ot);
     RNA_int_set(&op_props, "parent_tree_index", i);
-    WM_operator_name_call_ptr(
-        &C, ot, blender::wm::OpCallContext::InvokeDefault, &op_props, nullptr);
+    WM_operator_name_call_ptr(&C, ot, wm::OpCallContext::InvokeDefault, &op_props, nullptr);
     WM_operator_properties_free(&op_props);
   };
 }

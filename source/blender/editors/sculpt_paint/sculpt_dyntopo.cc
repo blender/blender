@@ -290,7 +290,7 @@ static wmOperatorStatus sculpt_dynamic_topology_toggle_invoke(bContext *C,
           RPT_("Generative Modifiers Detected!"),
           RPT_("Keeping the modifiers will increase polycount when returning to object mode"),
           IFACE_("Enable"),
-          blender::ui::AlertIcon::Warning,
+          ui::AlertIcon::Warning,
           false);
     }
   }

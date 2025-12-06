@@ -190,51 +190,48 @@ ItemType Item::type() const
 
 Layout::Layout(ItemType type, LayoutRoot *root) : Item(type), root_{root} {};
 
-using uiItemType = ItemType;
-using uiItemInternalFlag = ItemInternalFlag;
-
 struct ButtonItem : public Item {
   Button *but = nullptr;
-  ButtonItem() : Item(uiItemType::Button) {}
+  ButtonItem() : Item(ItemType::Button) {}
 };
 
 struct LayoutRow : public Layout {
-  LayoutRow(LayoutRoot *root) : Layout(uiItemType::LayoutRow, root) {}
-  LayoutRow(uiItemType type, LayoutRoot *root) : Layout(type, root) {}
+  LayoutRow(LayoutRoot *root) : Layout(ItemType::LayoutRow, root) {}
+  LayoutRow(ItemType type, LayoutRoot *root) : Layout(type, root) {}
 
   void estimate_impl() override;
   void resolve_impl() override;
 };
 
 struct LayoutColumn : public Layout {
-  LayoutColumn(LayoutRoot *root) : Layout(uiItemType::LayoutColumn, root) {}
-  LayoutColumn(uiItemType type, LayoutRoot *root) : Layout(type, root) {}
+  LayoutColumn(LayoutRoot *root) : Layout(ItemType::LayoutColumn, root) {}
+  LayoutColumn(ItemType type, LayoutRoot *root) : Layout(type, root) {}
 
   void estimate_impl() override;
   void resolve_impl() override;
 };
 
 struct LayoutRootPieMenu : public Layout {
-  LayoutRootPieMenu(LayoutRoot *root) : Layout(uiItemType::LayoutRoot, root) {}
+  LayoutRootPieMenu(LayoutRoot *root) : Layout(ItemType::LayoutRoot, root) {}
   void resolve_impl() override;
 };
 
 struct LayoutOverlap : public Layout {
-  LayoutOverlap() : Layout(uiItemType::LayoutOverlap, nullptr) {}
+  LayoutOverlap() : Layout(ItemType::LayoutOverlap, nullptr) {}
 
   void estimate_impl() override;
   void resolve_impl() override;
 };
 
 struct LayoutRadial : public Layout {
-  LayoutRadial() : Layout(uiItemType::LayoutRadial, nullptr) {}
+  LayoutRadial() : Layout(ItemType::LayoutRadial, nullptr) {}
 
   void estimate_impl() override {};
   void resolve_impl() override;
 };
 
 struct LayoutAbsolute : public Layout {
-  LayoutAbsolute() : Layout(uiItemType::LayoutAbsolute, nullptr) {}
+  LayoutAbsolute() : Layout(ItemType::LayoutAbsolute, nullptr) {}
 
   void estimate_impl() override;
   void resolve_impl() override;
@@ -243,7 +240,7 @@ struct LayoutAbsolute : public Layout {
 struct LayoutItemFlow : public Layout {
   int number = 0;
   int totcol = 0;
-  LayoutItemFlow() : Layout(uiItemType::LayoutColumnFlow, nullptr) {}
+  LayoutItemFlow() : Layout(ItemType::LayoutColumnFlow, nullptr) {}
 
   void estimate_impl() override;
   void resolve_impl() override;
@@ -265,7 +262,7 @@ struct LayoutItemGridFlow : public Layout {
   /* Pure internal runtime storage. */
   int tot_items = 0, tot_columns = 0, tot_rows = 0;
 
-  LayoutItemGridFlow() : Layout(uiItemType::LayoutGridFlow, nullptr) {}
+  LayoutItemGridFlow() : Layout(ItemType::LayoutGridFlow, nullptr) {}
 
   void estimate_impl() override;
   void resolve_impl() override;
@@ -273,7 +270,7 @@ struct LayoutItemGridFlow : public Layout {
 
 struct LayoutItemBx : public LayoutColumn {
   Button *roundbox = nullptr;
-  LayoutItemBx() : LayoutColumn(uiItemType::LayoutBox, nullptr) {}
+  LayoutItemBx() : LayoutColumn(ItemType::LayoutBox, nullptr) {}
 
   void estimate_impl() override;
   void resolve_impl() override;
@@ -282,20 +279,20 @@ struct LayoutItemBx : public LayoutColumn {
 struct LayoutItemPanelHeader : public Layout {
   PointerRNA open_prop_owner;
   std::string open_prop_name;
-  LayoutItemPanelHeader() : Layout(uiItemType::LayoutPanelHeader, nullptr) {}
+  LayoutItemPanelHeader() : Layout(ItemType::LayoutPanelHeader, nullptr) {}
 
   void estimate_impl() override;
   void resolve_impl() override;
 };
 
 struct LayoutItemPanelBody : public LayoutColumn {
-  LayoutItemPanelBody() : LayoutColumn(uiItemType::LayoutPanelBody, nullptr) {}
+  LayoutItemPanelBody() : LayoutColumn(ItemType::LayoutPanelBody, nullptr) {}
   void resolve_impl() override;
 };
 
 struct LayoutItemSplit : public LayoutRow {
   float percentage = 0.0f;
-  LayoutItemSplit() : LayoutRow(uiItemType::LayoutSplit, nullptr) {}
+  LayoutItemSplit() : LayoutRow(ItemType::LayoutSplit, nullptr) {}
 
   void estimate_impl() override;
   void resolve_impl() override;
@@ -467,7 +464,7 @@ static int ui_text_icon_width(Layout *layout,
 
 int2 Item::size() const
 {
-  if (this->type() == uiItemType::Button) {
+  if (this->type() == ItemType::Button) {
     const ButtonItem *bitem = static_cast<const ButtonItem *>(this);
     return {int(BLI_rctf_size_x(&bitem->but->rect)), int(BLI_rctf_size_y(&bitem->but->rect))};
   }
@@ -486,7 +483,7 @@ int2 Layout::size() const
 
 int2 Item::offset() const
 {
-  if (this->type() == uiItemType::Button) {
+  if (this->type() == ItemType::Button) {
     const ButtonItem *bitem = static_cast<const ButtonItem *>(this);
     return {int(bitem->but->rect.xmin), int(bitem->but->rect.ymin)};
   }
@@ -495,7 +492,7 @@ int2 Item::offset() const
 
 static void ui_item_position(Item *item, const int x, const int y, const int w, const int h)
 {
-  if (item->type() == uiItemType::Button) {
+  if (item->type() == ItemType::Button) {
     ButtonItem *bitem = static_cast<ButtonItem *>(item);
 
     bitem->but->rect.xmin = x;
@@ -520,7 +517,7 @@ void LayoutInternal::layout_offset_size_set(Layout *layout, int x, int y, int w,
 
 static void ui_item_move(Item *item, const int delta_xmin, const int delta_xmax)
 {
-  if (item->type() == uiItemType::Button) {
+  if (item->type() == ItemType::Button) {
     ButtonItem *bitem = static_cast<ButtonItem *>(item);
 
     bitem->but->rect.xmin += delta_xmin;
@@ -557,18 +554,18 @@ void LayoutInternal::layout_space_set(Layout *layout, int space)
 LayoutDirection Layout::local_direction() const
 {
   switch (this->type()) {
-    case uiItemType::LayoutRow:
-    case uiItemType::LayoutRoot:
-    case uiItemType::LayoutOverlap:
-    case uiItemType::LayoutPanelHeader:
-    case uiItemType::LayoutGridFlow:
+    case ItemType::LayoutRow:
+    case ItemType::LayoutRoot:
+    case ItemType::LayoutOverlap:
+    case ItemType::LayoutPanelHeader:
+    case ItemType::LayoutGridFlow:
       return LayoutDirection::Horizontal;
-    case uiItemType::LayoutColumn:
-    case uiItemType::LayoutColumnFlow:
-    case uiItemType::LayoutSplit:
-    case uiItemType::LayoutAbsolute:
-    case uiItemType::LayoutBox:
-    case uiItemType::LayoutPanelBody:
+    case ItemType::LayoutColumn:
+    case ItemType::LayoutColumnFlow:
+    case ItemType::LayoutSplit:
+    case ItemType::LayoutAbsolute:
+    case ItemType::LayoutBox:
+    case ItemType::LayoutPanelBody:
     default:
       return LayoutDirection::Vertical;
   }
@@ -955,13 +952,13 @@ static void ui_item_enum_expand_exec(Layout *layout,
       block_layout_set_current(block, layout_radial);
     }
     else {
-      if (layout->type() == uiItemType::LayoutRadial) {
+      if (layout->type() == ItemType::LayoutRadial) {
         layout_radial = layout;
       }
       block_layout_set_current(block, layout);
     }
   }
-  else if (ELEM(layout->type(), uiItemType::LayoutGridFlow, uiItemType::LayoutColumnFlow) ||
+  else if (ELEM(layout->type(), ItemType::LayoutGridFlow, ItemType::LayoutColumnFlow) ||
            layout->root()->type == LayoutType::Menu)
   {
     block_layout_set_current(block, layout);
@@ -1503,8 +1500,8 @@ PointerRNA Layout::op(const StringRefNull opname,
 
 BLI_INLINE bool ui_layout_is_radial(const Layout *layout)
 {
-  return (layout->type() == uiItemType::LayoutRadial) ||
-         ((layout->type() == uiItemType::LayoutRoot) &&
+  return (layout->type() == ItemType::LayoutRadial) ||
+         ((layout->type() == ItemType::LayoutRoot) &&
           (layout->root()->type == LayoutType::PieMenu));
 }
 
@@ -1899,7 +1896,7 @@ Layout *LayoutInternal::ui_item_prop_split_layout_hack(Layout *layout_parent, La
    * treatment if needed. */
   ItemInternal::inside_property_split_set(layout_parent, true);
 
-  if (layout_parent->type() == uiItemType::LayoutRow) {
+  if (layout_parent->type() == ItemType::LayoutRow) {
     /* Prevent further splits within the row. */
     layout_parent->use_property_split_set(false);
 
@@ -1922,7 +1919,7 @@ void Layout::prop(PointerRNA *ptr,
   Block *block = this->block();
   char namestr[UI_MAX_NAME_STR];
   const bool use_prop_sep = this->use_property_split();
-  const bool inside_prop_sep = flag_is_set(flag_, uiItemInternalFlag::InsidePropSep);
+  const bool inside_prop_sep = flag_is_set(flag_, ItemInternalFlag::InsidePropSep);
   /* Columns can define a heading to insert. If the first item added to a split layout doesn't have
    * a label to display in the first column, the heading is inserted there. Otherwise it's inserted
    * as a new row before the first item. */
@@ -2174,7 +2171,7 @@ void Layout::prop(PointerRNA *ptr,
       ui_decorate.but = block->last_but();
 
       /* Clear after. */
-      layout->flag_ |= uiItemInternalFlag::PropDecorateNoPad;
+      layout->flag_ |= ItemInternalFlag::PropDecorateNoPad;
     }
 #endif /* UI_PROP_DECORATE */
   }
@@ -2361,7 +2358,7 @@ void Layout::prop(PointerRNA *ptr,
     }
     BLI_assert(ELEM(i, 1, ui_decorate.len));
 
-    layout->flag_ &= ~uiItemInternalFlag::PropDecorateNoPad;
+    layout->flag_ &= ~ItemInternalFlag::PropDecorateNoPad;
   }
 #endif /* UI_PROP_DECORATE */
 
@@ -3555,7 +3552,7 @@ void LayoutInternal::layout_resolve(Layout *layout)
 /* single-row layout */
 void LayoutRow::estimate_impl()
 {
-  if (this->type() == uiItemType::LayoutRoot) {
+  if (this->type() == ItemType::LayoutRoot) {
     return;
   }
   bool min_size_flag = true;
@@ -3653,7 +3650,7 @@ void LayoutRow::resolve_impl()
 
       bool min_flag = item->fixed_size();
       /* ignore min flag for rows with right or center alignment */
-      if (item->type() != uiItemType::Button &&
+      if (item->type() != ItemType::Button &&
           ELEM((static_cast<Layout *>(item))->alignment(),
                LayoutAlign::Right,
                LayoutAlign::Center) &&
@@ -3665,7 +3662,7 @@ void LayoutRow::resolve_impl()
       if ((neww < minw || min_flag) && w != 0) {
         /* fixed size */
         ItemInternal::auto_fixed_size_set(item, true);
-        if (item->type() != uiItemType::Button && item->fixed_size()) {
+        if (item->type() != ItemType::Button && item->fixed_size()) {
           minw = size.x;
         }
         fixedw += minw;
@@ -3697,7 +3694,7 @@ void LayoutRow::resolve_impl()
 
     if (ItemInternal::auto_fixed_size(item)) {
       /* fixed minimum size items */
-      if (item->type() != uiItemType::Button && item->fixed_size()) {
+      if (item->type() != ItemType::Button && item->fixed_size()) {
         minw = size.x;
       }
       size.x = ui_item_fit(
@@ -3760,14 +3757,14 @@ static int spaces_after_column_item(const Layout *litem,
   if (next_item == nullptr) {
     return 0;
   }
-  if (item->type() == uiItemType::LayoutPanelHeader &&
-      next_item->type() == uiItemType::LayoutPanelHeader)
+  if (item->type() == ItemType::LayoutPanelHeader &&
+      next_item->type() == ItemType::LayoutPanelHeader)
   {
     /* No extra space between layout panel headers. */
     return 0;
   }
-  if (item->type() == uiItemType::LayoutPanelBody &&
-      !ELEM(next_item->type(), uiItemType::LayoutPanelHeader, uiItemType::LayoutPanelBody))
+  if (item->type() == ItemType::LayoutPanelBody &&
+      !ELEM(next_item->type(), ItemType::LayoutPanelHeader, ItemType::LayoutPanelBody))
   {
     /* One for the end of the panel and one at the start of the parent panel. */
     return 2;
@@ -3784,10 +3781,10 @@ static int spaces_after_column_item(const Layout *litem,
 /* single-column layout */
 void LayoutColumn::estimate_impl()
 {
-  if (this->type() == uiItemType::LayoutRoot) {
+  if (this->type() == ItemType::LayoutRoot) {
     return;
   }
-  const bool is_box = this->type() == uiItemType::LayoutBox;
+  const bool is_box = this->type() == ItemType::LayoutBox;
   bool min_size_flag = true;
 
   w_ = 0;
@@ -3814,8 +3811,8 @@ void LayoutColumn::estimate_impl()
 
 void LayoutColumn::resolve_impl()
 {
-  const bool is_box = this->type() == uiItemType::LayoutBox;
-  const bool is_menu = this->type() == uiItemType::LayoutRoot &&
+  const bool is_box = this->type() == ItemType::LayoutBox;
+  const bool is_menu = this->type() == ItemType::LayoutRoot &&
                        this->root()->type == LayoutType::Menu;
   const int x = x_;
   int y = y_;
@@ -3860,7 +3857,7 @@ static RadialDirection ui_get_radialbut_vec(float vec[2], short itemnum)
 static bool ui_item_is_radial_displayable(Item *item)
 {
 
-  if ((item->type() == uiItemType::Button) &&
+  if ((item->type() == ItemType::Button) &&
       ((static_cast<ButtonItem *>(item))->but->type == ButtonType::Label))
   {
     return false;
@@ -3913,7 +3910,7 @@ void LayoutRadial::resolve_impl()
     /* Enable for non-buttons because a direction may reference a layout, see: #112610. */
     bool use_dir = true;
 
-    if (item->type() == uiItemType::Button) {
+    if (item->type() == ItemType::Button) {
       ButtonItem *bitem = static_cast<ButtonItem *>(item);
 
       bitem->but->pie_dir = dir;
@@ -3970,7 +3967,7 @@ void LayoutRootPieMenu::resolve_impl()
   /* first item is pie menu title, align on center of menu */
   Item *item = this->items().first();
 
-  if (item->type() == uiItemType::Button) {
+  if (item->type() == ItemType::Button) {
     int x, y;
     x = x_;
     y = y_;
@@ -4717,7 +4714,7 @@ void LayoutInternal::init_from_parent(Layout *litem, Layout *layout, int align)
   litem->root_ = layout->root_;
   litem->align_ = align;
   /* Children of grid-flow layout shall never have "ideal big size" returned as estimated size. */
-  litem->variable_size_ = layout->variable_size_ || layout->type() == uiItemType::LayoutGridFlow;
+  litem->variable_size_ = layout->variable_size_ || layout->type() == ItemType::LayoutGridFlow;
   litem->active_ = true;
   litem->enabled_ = true;
   litem->context_ = layout->context_;
@@ -4801,8 +4798,8 @@ PanelLayout Layout::panel_prop_with_bool_header(const bContext *C,
   PanelLayout panel_layout = this->panel_prop(C, open_prop_owner, open_prop_name);
 
   Layout *panel_header = panel_layout.header;
-  panel_header->flag_ &= ~(uiItemInternalFlag::PropSep | uiItemInternalFlag::PropDecorate |
-                           uiItemInternalFlag::InsidePropSep);
+  panel_header->flag_ &= ~(ItemInternalFlag::PropSep | ItemInternalFlag::PropDecorate |
+                           ItemInternalFlag::InsidePropSep);
   panel_header->prop(bool_prop_owner, bool_prop_name, UI_ITEM_NONE, label, ICON_NONE);
 
   return panel_layout;
@@ -4848,7 +4845,7 @@ bool uiLayoutEndsWithPanelHeader(const Layout &layout)
     return false;
   }
   const Item *item = layout.items().last();
-  return item->type() == uiItemType::LayoutPanelHeader;
+  return item->type() == ItemType::LayoutPanelHeader;
 }
 
 Layout &Layout::row(bool align, const StringRef heading)
@@ -4930,7 +4927,7 @@ Layout &Layout::menu_pie()
 
   /* only one radial wheel per root layout is allowed, so check and return that, if it exists */
   for (Item *item : root_->layout->items()) {
-    if (item->type() == uiItemType::LayoutRadial) {
+    if (item->type() == ItemType::LayoutRadial) {
       Layout *litem = static_cast<Layout *>(item);
       block_layout_set_current(this->block(), litem);
       return *litem;
@@ -4953,7 +4950,7 @@ Layout &Layout::box()
 void layout_list_set_labels_active(Layout *layout)
 {
   for (Item *item : layout->items()) {
-    if (item->type() != uiItemType::Button) {
+    if (item->type() != ItemType::Button) {
       layout_list_set_labels_active(static_cast<Layout *>(item));
     }
     else {
@@ -5023,22 +5020,22 @@ void Layout::emboss_set(EmbossType emboss)
 
 bool Layout::use_property_split() const
 {
-  return flag_is_set(flag_, uiItemInternalFlag::PropSep);
+  return flag_is_set(flag_, ItemInternalFlag::PropSep);
 }
 
 void Layout::use_property_split_set(bool is_sep)
 {
-  SET_FLAG_FROM_TEST(flag_, is_sep, uiItemInternalFlag::PropSep);
+  SET_FLAG_FROM_TEST(flag_, is_sep, ItemInternalFlag::PropSep);
 }
 
 bool Layout::use_property_decorate() const
 {
-  return flag_is_set(flag_, uiItemInternalFlag::PropDecorate);
+  return flag_is_set(flag_, ItemInternalFlag::PropDecorate);
 }
 
 void Layout::use_property_decorate_set(bool is_sep)
 {
-  SET_FLAG_FROM_TEST(flag_, is_sep, uiItemInternalFlag::PropDecorate);
+  SET_FLAG_FROM_TEST(flag_, is_sep, ItemInternalFlag::PropDecorate);
 }
 
 Panel *Layout::root_panel() const
@@ -5234,7 +5231,7 @@ static void ui_item_scale(Layout *litem, const float scale[2])
 {
   for (auto riter = litem->items().rbegin(); riter != litem->items().rend(); riter++) {
     Item *item = *riter;
-    if (item->type() != uiItemType::Button) {
+    if (item->type() != ItemType::Button) {
       Layout *subitem = static_cast<Layout *>(item);
       ui_item_scale(subitem, scale);
     }
@@ -5258,7 +5255,7 @@ static void ui_item_scale(Layout *litem, const float scale[2])
 
 void Layout::estimate()
 {
-  if (this->type() != uiItemType::Button) {
+  if (this->type() != ItemType::Button) {
 
     if (this->items().is_empty()) {
       w_ = 0;
@@ -5267,7 +5264,7 @@ void Layout::estimate()
     }
 
     for (Item *subitem : this->items()) {
-      if (subitem->type() == uiItemType::Button) {
+      if (subitem->type() == ItemType::Button) {
         continue;
       }
       static_cast<Layout *>(subitem)->estimate();
@@ -5292,19 +5289,19 @@ static void ui_item_align(Layout *litem, short nr)
 {
   for (auto riter = litem->items().rbegin(); riter != litem->items().rend(); riter++) {
     Item *item = *riter;
-    if (item->type() == uiItemType::Button) {
+    if (item->type() == ItemType::Button) {
       ButtonItem *bitem = static_cast<ButtonItem *>(item);
       if (!bitem->but->alignnr) {
         bitem->but->alignnr = nr;
       }
     }
-    else if (item->type() == uiItemType::LayoutAbsolute) {
+    else if (item->type() == ItemType::LayoutAbsolute) {
       /* pass */
     }
-    else if (item->type() == uiItemType::LayoutOverlap) {
+    else if (item->type() == ItemType::LayoutOverlap) {
       /* pass */
     }
-    else if (item->type() == uiItemType::LayoutBox) {
+    else if (item->type() == ItemType::LayoutBox) {
       LayoutItemBx *box = static_cast<LayoutItemBx *>(item);
       if (!box->roundbox->alignnr) {
         box->roundbox->alignnr = nr;
@@ -5323,7 +5320,7 @@ static void ui_item_flag(Layout *litem, int flag)
 {
   for (auto riter = litem->items().rbegin(); riter != litem->items().rend(); riter++) {
     Item *item = *riter;
-    if (item->type() == uiItemType::Button) {
+    if (item->type() == ItemType::Button) {
       ButtonItem *bitem = static_cast<ButtonItem *>(item);
       bitem->but->flag |= flag;
     }
@@ -5355,7 +5352,7 @@ void Layout::resolve()
     if (ItemInternal::box_item(this)) {
       ItemInternal::box_item_set(subitem, true);
     }
-    if (subitem->type() == uiItemType::Button) {
+    if (subitem->type() == ItemType::Button) {
       if (ItemInternal::box_item(this)) {
         ButtonItem *sub_bitem = static_cast<ButtonItem *>(subitem);
         sub_bitem->but->drawflag |= BUT_BOX_ITEM;
@@ -5380,7 +5377,7 @@ static int2 ui_layout_end(Block *block, Layout *layout)
 static void ui_layout_free(Layout *layout)
 {
   for (Item *item : layout->items()) {
-    if (item->type() == uiItemType::Button) {
+    if (item->type() == ItemType::Button) {
       ButtonItem *bitem = static_cast<ButtonItem *>(item);
 
       bitem->but->layout = nullptr;
@@ -5433,13 +5430,13 @@ Layout &block_layout(Block *block,
       case LayoutType::PieMenu:
         return MEM_new<LayoutRootPieMenu>(func, root);
       case LayoutType::Header:
-        return MEM_new<LayoutRow>(func, uiItemType::LayoutRoot, root);
+        return MEM_new<LayoutRow>(func, ItemType::LayoutRoot, root);
       default:
-        return MEM_new<LayoutColumn>(func, uiItemType::LayoutRoot, root);
+        return MEM_new<LayoutColumn>(func, ItemType::LayoutRoot, root);
     }
   }();
 
-  /* Only used when 'uiItemInternalFlag::PropSep' is set. */
+  /* Only used when 'ItemInternalFlag::PropSep' is set. */
   layout->use_property_decorate_set(true);
 
   LayoutInternal::layout_space_set(layout, style->templatespace);
@@ -5525,7 +5522,7 @@ ButtonItem *LayoutInternal::ui_layout_find_button_item(const Layout *layout, con
                                          layout->items();
 
   for (Item *item : child_list) {
-    if (item->type() == uiItemType::Button) {
+    if (item->type() == ItemType::Button) {
       ButtonItem *bitem = static_cast<ButtonItem *>(item);
 
       if (bitem->but == but) {
@@ -5549,7 +5546,7 @@ void LayoutInternal::layout_remove_but(Layout *layout, const Button *but)
   Vector<Item *> &child_list = layout->child_items_layout_ ? layout->child_items_layout_->items_ :
                                                              layout->items_;
   const int64_t removed_num = child_list.remove_if([but](auto item) {
-    if (item->type() == uiItemType::Button) {
+    if (item->type() == ItemType::Button) {
       ButtonItem *bitem = static_cast<ButtonItem *>(item);
       return (bitem->but == but);
     }
@@ -5579,12 +5576,12 @@ bool layout_replace_but_ptr(Layout *layout, const void *old_but_ptr, Button *new
 
 void Item::fixed_size_set(bool fixed_size)
 {
-  SET_FLAG_FROM_TEST(flag_, fixed_size, uiItemInternalFlag::FixedSize);
+  SET_FLAG_FROM_TEST(flag_, fixed_size, ItemInternalFlag::FixedSize);
 }
 
 bool Item::fixed_size() const
 {
-  return flag_is_set(flag_, uiItemInternalFlag::FixedSize);
+  return flag_is_set(flag_, ItemInternalFlag::FixedSize);
 }
 
 void Layout::operator_context_set(wm::OpCallContext opcontext)
@@ -5694,7 +5691,7 @@ void uiLayoutSetTooltipFunc(
       arg = copy_arg(arg);
     }
 
-    if (item->type() == uiItemType::Button) {
+    if (item->type() == ItemType::Button) {
       ButtonItem *bitem = static_cast<ButtonItem *>(item);
       if (bitem->but->type == ButtonType::Decorator) {
         continue;
@@ -5729,7 +5726,7 @@ void uiLayoutSetTooltipCustomFunc(Layout *layout,
       arg = copy_arg(arg);
     }
 
-    if (item->type() == uiItemType::Button) {
+    if (item->type() == ItemType::Button) {
       ButtonItem *bitem = static_cast<ButtonItem *>(item);
       if (bitem->but->type == ButtonType::Decorator) {
         continue;
@@ -5837,7 +5834,7 @@ void menutype_draw(bContext *C, MenuType *mt, Layout *layout)
 static bool ui_layout_has_panel_label(const Layout *layout, const PanelType *pt)
 {
   for (Item *subitem : layout->items()) {
-    if (subitem->type() == uiItemType::Button) {
+    if (subitem->type() == ItemType::Button) {
       ButtonItem *bitem = static_cast<ButtonItem *>(subitem);
       if (!(bitem->but->flag & UI_HIDDEN) &&
           bitem->but->str == CTX_IFACE_(pt->translation_context, pt->label))
@@ -5998,26 +5995,26 @@ static void ui_layout_introspect_items(DynStr *ds, Span<const Item *> items)
     ((void)0)
 
     switch (item->type()) {
-      CASE_ITEM(uiItemType::Button, "BUTTON");
-      CASE_ITEM(uiItemType::LayoutRow, "LAYOUT_ROW");
-      CASE_ITEM(uiItemType::LayoutPanelHeader, "LAYOUT_PANEL_HEADER");
-      CASE_ITEM(uiItemType::LayoutPanelBody, "LAYOUT_PANEL_BODY");
-      CASE_ITEM(uiItemType::LayoutColumn, "LAYOUT_COLUMN");
-      CASE_ITEM(uiItemType::LayoutColumnFlow, "LAYOUT_COLUMN_FLOW");
-      CASE_ITEM(uiItemType::LayoutRowFlow, "LAYOUT_ROW_FLOW");
-      CASE_ITEM(uiItemType::LayoutBox, "LAYOUT_BOX");
-      CASE_ITEM(uiItemType::LayoutAbsolute, "LAYOUT_ABSOLUTE");
-      CASE_ITEM(uiItemType::LayoutSplit, "LAYOUT_SPLIT");
-      CASE_ITEM(uiItemType::LayoutOverlap, "LAYOUT_OVERLAP");
-      CASE_ITEM(uiItemType::LayoutRoot, "LAYOUT_ROOT");
-      CASE_ITEM(uiItemType::LayoutGridFlow, "LAYOUT_GRID_FLOW");
-      CASE_ITEM(uiItemType::LayoutRadial, "LAYOUT_RADIAL");
+      CASE_ITEM(ItemType::Button, "BUTTON");
+      CASE_ITEM(ItemType::LayoutRow, "LAYOUT_ROW");
+      CASE_ITEM(ItemType::LayoutPanelHeader, "LAYOUT_PANEL_HEADER");
+      CASE_ITEM(ItemType::LayoutPanelBody, "LAYOUT_PANEL_BODY");
+      CASE_ITEM(ItemType::LayoutColumn, "LAYOUT_COLUMN");
+      CASE_ITEM(ItemType::LayoutColumnFlow, "LAYOUT_COLUMN_FLOW");
+      CASE_ITEM(ItemType::LayoutRowFlow, "LAYOUT_ROW_FLOW");
+      CASE_ITEM(ItemType::LayoutBox, "LAYOUT_BOX");
+      CASE_ITEM(ItemType::LayoutAbsolute, "LAYOUT_ABSOLUTE");
+      CASE_ITEM(ItemType::LayoutSplit, "LAYOUT_SPLIT");
+      CASE_ITEM(ItemType::LayoutOverlap, "LAYOUT_OVERLAP");
+      CASE_ITEM(ItemType::LayoutRoot, "LAYOUT_ROOT");
+      CASE_ITEM(ItemType::LayoutGridFlow, "LAYOUT_GRID_FLOW");
+      CASE_ITEM(ItemType::LayoutRadial, "LAYOUT_RADIAL");
     }
 
 #undef CASE_ITEM
 
     switch (item->type()) {
-      case uiItemType::Button:
+      case ItemType::Button:
         ui_layout_introspect_button(ds, static_cast<const ButtonItem *>(item));
         break;
       default:
@@ -6139,11 +6136,11 @@ bool Layout::align() const
 {
   return align_;
 }
-[[nodiscard]] bool Layout::variable_size() const
+bool Layout::variable_size() const
 {
   return variable_size_;
 }
-[[nodiscard]] EmbossType Layout::emboss_or_undefined() const
+EmbossType Layout::emboss_or_undefined() const
 {
   return emboss_;
 }

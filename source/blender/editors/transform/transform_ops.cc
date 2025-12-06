@@ -197,8 +197,8 @@ static wmOperatorStatus select_orientation_invoke(bContext *C,
                                                   wmOperator * /*op*/,
                                                   const wmEvent * /*event*/)
 {
-  blender::ui::PopupMenu *pup = blender::ui::popup_menu_begin(C, IFACE_("Orientation"), ICON_NONE);
-  blender::ui::Layout &layout = *blender::ui::popup_menu_layout(pup);
+  ui::PopupMenu *pup = ui::popup_menu_begin(C, IFACE_("Orientation"), ICON_NONE);
+  ui::Layout &layout = *ui::popup_menu_layout(pup);
   layout.op_enum("TRANSFORM_OT_select_orientation", "orientation");
   popup_menu_end(C, pup);
 

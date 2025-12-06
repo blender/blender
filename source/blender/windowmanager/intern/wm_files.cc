@@ -4739,12 +4739,10 @@ static blender::ui::Block *block_create__close_file_dialog(bContext *C,
   wmGenericCallback *post_action = (wmGenericCallback *)arg1;
   Main *bmain = CTX_data_main(C);
 
-  blender::ui::Block *block = block_begin(
-      C, region, close_file_dialog_name, blender::ui::EmbossType::Emboss);
-  block_flag_enable(block,
-                    blender::ui::BLOCK_KEEP_OPEN | blender::ui::BLOCK_LOOP |
-                        blender::ui::BLOCK_NO_WIN_CLIP | blender::ui::BLOCK_NUMSELECT);
-  block_theme_style_set(block, blender::ui::BLOCK_THEME_STYLE_POPUP);
+  ui::Block *block = block_begin(C, region, close_file_dialog_name, ui::EmbossType::Emboss);
+  block_flag_enable(
+      block, ui::BLOCK_KEEP_OPEN | ui::BLOCK_LOOP | ui::BLOCK_NO_WIN_CLIP | ui::BLOCK_NUMSELECT);
+  block_theme_style_set(block, ui::BLOCK_THEME_STYLE_POPUP);
 
   ui::Layout &layout = *uiItemsAlertBox(
       block, (bmain->colorspace.is_missing_opencolorio_config) ? 44 : 34, ui::AlertIcon::Question);

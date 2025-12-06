@@ -227,11 +227,8 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
             ui_name = CTX_IFACE_(ot->translation_context, ui_name->c_str());
           }
           if (umi_op->op_prop_enum[0] == '\0') {
-            PointerRNA ptr = menu->layout->op(ot,
-                                              ui_name,
-                                              ICON_NONE,
-                                              blender::wm::OpCallContext(umi_op->opcontext),
-                                              UI_ITEM_NONE);
+            PointerRNA ptr = menu->layout->op(
+                ot, ui_name, ICON_NONE, wm::OpCallContext(umi_op->opcontext), UI_ITEM_NONE);
             if (umi_op->prop) {
               IDP_CopyPropertyContent(ptr.data_as<IDProperty>(), umi_op->prop);
             }
