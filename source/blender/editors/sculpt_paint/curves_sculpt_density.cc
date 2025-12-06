@@ -42,9 +42,9 @@ namespace blender::ed::sculpt_paint {
 class DensityAddOperation : public CurvesSculptStrokeOperation {
  private:
   /** Used when some data should be interpolated from existing curves. */
-  blender::KDTree_3d *original_curve_roots_kdtree_ = nullptr;
+  KDTree_3d *original_curve_roots_kdtree_ = nullptr;
   /** Contains curve roots of all curves that existed before the brush started. */
-  blender::KDTree_3d *deformed_curve_roots_kdtree_ = nullptr;
+  KDTree_3d *deformed_curve_roots_kdtree_ = nullptr;
   /** Root positions of curves that have been added in the current brush stroke. */
   Vector<float3> new_deformed_root_positions_;
   int original_curve_num_ = 0;
@@ -55,10 +55,10 @@ class DensityAddOperation : public CurvesSculptStrokeOperation {
   ~DensityAddOperation() override
   {
     if (original_curve_roots_kdtree_ != nullptr) {
-      blender::kdtree_3d_free(original_curve_roots_kdtree_);
+      kdtree_3d_free(original_curve_roots_kdtree_);
     }
     if (deformed_curve_roots_kdtree_ != nullptr) {
-      blender::kdtree_3d_free(deformed_curve_roots_kdtree_);
+      kdtree_3d_free(deformed_curve_roots_kdtree_);
     }
   }
 
@@ -180,9 +180,8 @@ struct DensityAddOperationExecutor {
     }
 
     const int already_added_curves = self_->new_deformed_root_positions_.size();
-    blender::KDTree_3d *new_roots_kdtree = blender::kdtree_3d_new(already_added_curves +
-                                                                  new_positions_cu.size());
-    BLI_SCOPED_DEFER([&]() { blender::kdtree_3d_free(new_roots_kdtree); });
+    KDTree_3d *new_roots_kdtree = kdtree_3d_new(already_added_curves + new_positions_cu.size());
+    BLI_SCOPED_DEFER([&]() { kdtree_3d_free(new_roots_kdtree); });
 
     /* Used to tag all curves that are too close to existing curves or too close to other new
      * curves. */
@@ -192,14 +191,13 @@ struct DensityAddOperationExecutor {
         /* Build kdtree from root points created by the current stroke. */
         [&]() {
           for (const int i : IndexRange(already_added_curves)) {
-            blender::kdtree_3d_insert(
-                new_roots_kdtree, -1, self_->new_deformed_root_positions_[i]);
+            kdtree_3d_insert(new_roots_kdtree, -1, self_->new_deformed_root_positions_[i]);
           }
           for (const int new_i : new_positions_cu.index_range()) {
             const float3 &root_pos_cu = new_positions_cu[new_i];
-            blender::kdtree_3d_insert(new_roots_kdtree, new_i, root_pos_cu);
+            kdtree_3d_insert(new_roots_kdtree, new_i, root_pos_cu);
           }
-          blender::kdtree_3d_balance(new_roots_kdtree);
+          kdtree_3d_balance(new_roots_kdtree);
         },
         /* Check which new root points are close to roots that existed before the current stroke
          * started. */
@@ -208,9 +206,9 @@ struct DensityAddOperationExecutor {
               new_positions_cu.index_range(), 128, [&](const IndexRange range) {
                 for (const int new_i : range) {
                   const float3 &new_root_pos_cu = new_positions_cu[new_i];
-                  blender::KDTreeNearest_3d nearest;
+                  KDTreeNearest_3d nearest;
                   nearest.dist = FLT_MAX;
-                  blender::kdtree_3d_find_nearest(
+                  kdtree_3d_find_nearest(
                       self_->deformed_curve_roots_kdtree_, new_root_pos_cu, &nearest);
                   if (nearest.dist < brush_settings_->minimum_distance) {
                     new_curve_skipped[new_i] = true;
@@ -225,7 +223,7 @@ struct DensityAddOperationExecutor {
         continue;
       }
       const float3 &root_pos_cu = new_positions_cu[new_i];
-      blender::kdtree_3d_range_search_cb_cpp(
+      kdtree_3d_range_search_cb_cpp(
           new_roots_kdtree,
           root_pos_cu,
           brush_settings_->minimum_distance,
@@ -314,12 +312,12 @@ struct DensityAddOperationExecutor {
     BLI_assert(original_positions.size() == deformed_positions.size());
 
     auto roots_kdtree_from_positions = [&](const Span<float3> positions) {
-      blender::KDTree_3d *kdtree = blender::kdtree_3d_new(curves_orig_->curves_num());
+      KDTree_3d *kdtree = kdtree_3d_new(curves_orig_->curves_num());
       for (const int curve_i : curves_orig_->curves_range()) {
         const int root_point_i = curve_offsets[curve_i];
-        blender::kdtree_3d_insert(kdtree, curve_i, positions[root_point_i]);
+        kdtree_3d_insert(kdtree, curve_i, positions[root_point_i]);
       }
-      blender::kdtree_3d_balance(kdtree);
+      kdtree_3d_balance(kdtree);
       return kdtree;
     };
 
@@ -526,7 +524,7 @@ struct DensitySubtractOperationExecutor {
 
   CurvesSurfaceTransforms transforms_;
 
-  blender::KDTree_3d *root_points_kdtree_;
+  KDTree_3d *root_points_kdtree_;
 
   DensitySubtractOperationExecutor(const bContext &C) : ctx_(C) {}
 
@@ -581,13 +579,13 @@ struct DensitySubtractOperationExecutor {
       }
     }
 
-    root_points_kdtree_ = blender::kdtree_3d_new(curve_selection_.size());
-    BLI_SCOPED_DEFER([&]() { blender::kdtree_3d_free(root_points_kdtree_); });
+    root_points_kdtree_ = kdtree_3d_new(curve_selection_.size());
+    BLI_SCOPED_DEFER([&]() { kdtree_3d_free(root_points_kdtree_); });
     curve_selection_.foreach_index([&](const int curve_i) {
       const float3 &pos_cu = self_->deformed_root_positions_[curve_i];
-      blender::kdtree_3d_insert(root_points_kdtree_, curve_i, pos_cu);
+      kdtree_3d_insert(root_points_kdtree_, curve_i, pos_cu);
     });
-    blender::kdtree_3d_balance(root_points_kdtree_);
+    kdtree_3d_balance(root_points_kdtree_);
 
     /* Find all curves that should be deleted. */
     Array<bool> curves_to_keep(curves_->curves_num(), true);
@@ -681,7 +679,7 @@ struct DensitySubtractOperationExecutor {
         if (dist_to_brush_sq_re > brush_radius_sq_re) {
           continue;
         }
-        blender::kdtree_3d_range_search_cb_cpp(
+        kdtree_3d_range_search_cb_cpp(
             root_points_kdtree_,
             orig_pos_cu,
             minimum_distance_,
@@ -768,7 +766,7 @@ struct DensitySubtractOperationExecutor {
           continue;
         }
 
-        blender::kdtree_3d_range_search_cb_cpp(
+        kdtree_3d_range_search_cb_cpp(
             root_points_kdtree_,
             pos_cu,
             minimum_distance_,
