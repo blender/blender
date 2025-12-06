@@ -66,7 +66,7 @@ static Array<NeighborCurves> find_curve_neighbors(const Span<float3> root_positi
     for (const int i : range) {
       const float3 root = root_positions[i];
       std::array<blender::KDTreeNearest_3d, max_neighbors> nearest_n;
-      const int found_neighbors = blender::BLI_kdtree_3d_find_nearest_n(
+      const int found_neighbors = blender::kdtree_3d_find_nearest_n(
           &old_roots_kdtree, root, nearest_n.data(), max_neighbors);
       float tot_weight = 0.0f;
       for (const int neighbor_i : IndexRange(found_neighbors)) {

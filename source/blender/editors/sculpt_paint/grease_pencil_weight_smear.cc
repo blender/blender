@@ -36,7 +36,7 @@ class SmearWeightPaintOperation : public WeightPaintOperation {
   {
     /* Find the nearest neighbors of the to-be-smeared point. */
     blender::KDTreeNearest_2d nearest_points[SMEAR_NEIGHBOUR_NUM];
-    const int point_num = blender::BLI_kdtree_2d_find_nearest_n(
+    const int point_num = blender::kdtree_2d_find_nearest_n(
         touched_points.kdtree,
         drawing_weight.point_positions[point.drawing_point_index],
         nearest_points,
@@ -182,7 +182,7 @@ class SmearWeightPaintOperation : public WeightPaintOperation {
             drawing_weight.points_in_brush.clear();
           });
 
-          blender::BLI_kdtree_2d_free(touched_points.kdtree);
+          blender::kdtree_2d_free(touched_points.kdtree);
         });
 
     if (drawing_changed) {

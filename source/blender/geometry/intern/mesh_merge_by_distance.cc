@@ -1799,16 +1799,16 @@ std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
 {
   Array<int> vert_dest_map(mesh.verts_num, OUT_OF_CONTEXT);
 
-  blender::KDTree_3d *tree = blender::BLI_kdtree_3d_new(selection.size());
+  blender::KDTree_3d *tree = blender::kdtree_3d_new(selection.size());
 
   const Span<float3> positions = mesh.vert_positions();
   selection.foreach_index(
-      [&](const int64_t i) { blender::BLI_kdtree_3d_insert(tree, i, positions[i]); });
+      [&](const int64_t i) { blender::kdtree_3d_insert(tree, i, positions[i]); });
 
-  blender::BLI_kdtree_3d_balance(tree);
-  const int vert_kill_len = blender::BLI_kdtree_3d_calc_duplicates_fast(
+  blender::kdtree_3d_balance(tree);
+  const int vert_kill_len = blender::kdtree_3d_calc_duplicates_fast(
       tree, merge_distance, true, vert_dest_map.data());
-  blender::BLI_kdtree_3d_free(tree);
+  blender::kdtree_3d_free(tree);
 
   if (vert_kill_len == 0) {
     return std::nullopt;

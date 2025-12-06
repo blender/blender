@@ -1500,7 +1500,7 @@ static void emit_from_particles_task_cb(void *__restrict userdata,
       /* Find particle distance from the kdtree. */
       blender::KDTreeNearest_3d nearest;
       const float range = data->solid + data->smooth;
-      blender::BLI_kdtree_3d_find_nearest(data->tree, ray_start, &nearest);
+      blender::kdtree_3d_find_nearest(data->tree, ray_start, &nearest);
 
       if (nearest.dist < range) {
         bb->influence[index] = (nearest.dist < data->solid) ?
@@ -1564,7 +1564,7 @@ static void emit_from_particles(Object *flow_ob,
 
     /* setup particle radius emission if enabled */
     if (ffs->flags & FLUID_FLOW_USE_PART_SIZE) {
-      tree = blender::BLI_kdtree_3d_new(psys->totpart + psys->totchild);
+      tree = blender::kdtree_3d_new(psys->totpart + psys->totchild);
       bounds_margin = int(ceil(solid + smooth));
     }
 
@@ -1603,7 +1603,7 @@ static void emit_from_particles(Object *flow_ob,
       mul_mat3_m4_v3(fds->imat, &particle_vel[valid_particles * 3]);
 
       if (ffs->flags & FLUID_FLOW_USE_PART_SIZE) {
-        blender::BLI_kdtree_3d_insert(tree, valid_particles, pos);
+        blender::kdtree_3d_insert(tree, valid_particles, pos);
       }
 
       /* calculate emission map bounds */
@@ -1656,7 +1656,7 @@ static void emit_from_particles(Object *flow_ob,
         res[i] = bb->res[i];
       }
 
-      blender::BLI_kdtree_3d_balance(tree);
+      blender::kdtree_3d_balance(tree);
 
       EmitFromParticlesData data{};
       data.ffs = ffs;
@@ -1676,7 +1676,7 @@ static void emit_from_particles(Object *flow_ob,
     }
 
     if (ffs->flags & FLUID_FLOW_USE_PART_SIZE) {
-      blender::BLI_kdtree_3d_free(tree);
+      blender::kdtree_3d_free(tree);
     }
 
     /* free data */

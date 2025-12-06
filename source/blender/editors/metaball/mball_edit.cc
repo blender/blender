@@ -256,10 +256,10 @@ static void mball_select_similar_type_get(Object *obedit,
         }
       }
       if (tree_1d) {
-        blender::BLI_kdtree_1d_insert(tree_1d, tree_index++, tree_entry);
+        blender::kdtree_1d_insert(tree_1d, tree_index++, tree_entry);
       }
       else {
-        blender::BLI_kdtree_3d_insert(tree_3d, tree_index++, tree_entry);
+        blender::kdtree_3d_insert(tree_3d, tree_index++, tree_entry);
       }
     }
   }
@@ -308,7 +308,7 @@ static bool mball_select_similar_type(Object *obedit,
         float thresh_cos = cosf(thresh * float(M_PI_2));
 
         blender::KDTreeNearest_3d nearest;
-        if (blender::BLI_kdtree_3d_find_nearest(tree_3d, dir, &nearest) != -1) {
+        if (blender::kdtree_3d_find_nearest(tree_3d, dir, &nearest) != -1) {
           float orient = angle_normalized_v3v3(dir, nearest.co);
           /* Map to 0-1 to compare orientation. */
           float delta = thresh_cos - fabsf(cosf(orient));
@@ -348,10 +348,10 @@ static wmOperatorStatus mball_select_similar_exec(bContext *C, wmOperator *op)
   switch (type) {
     case SIMMBALL_RADIUS:
     case SIMMBALL_STIFFNESS:
-      tree_1d = blender::BLI_kdtree_1d_new(tot_mball_selected_all);
+      tree_1d = blender::kdtree_1d_new(tot_mball_selected_all);
       break;
     case SIMMBALL_ROTATION:
-      tree_3d = blender::BLI_kdtree_3d_new(tot_mball_selected_all);
+      tree_3d = blender::kdtree_3d_new(tot_mball_selected_all);
       break;
   }
 
@@ -382,12 +382,12 @@ static wmOperatorStatus mball_select_similar_exec(bContext *C, wmOperator *op)
   }
 
   if (tree_1d != nullptr) {
-    blender::BLI_kdtree_1d_deduplicate(tree_1d);
-    blender::BLI_kdtree_1d_balance(tree_1d);
+    blender::kdtree_1d_deduplicate(tree_1d);
+    blender::kdtree_1d_balance(tree_1d);
   }
   if (tree_3d != nullptr) {
-    blender::BLI_kdtree_3d_deduplicate(tree_3d);
-    blender::BLI_kdtree_3d_balance(tree_3d);
+    blender::kdtree_3d_deduplicate(tree_3d);
+    blender::kdtree_3d_balance(tree_3d);
   }
   /* Select MetaBalls with desired type. */
   for (Base *base : bases) {
@@ -423,10 +423,10 @@ static wmOperatorStatus mball_select_similar_exec(bContext *C, wmOperator *op)
   }
 
   if (tree_1d != nullptr) {
-    blender::BLI_kdtree_1d_free(tree_1d);
+    blender::kdtree_1d_free(tree_1d);
   }
   if (tree_3d != nullptr) {
-    blender::BLI_kdtree_3d_free(tree_3d);
+    blender::kdtree_3d_free(tree_3d);
   }
   return OPERATOR_FINISHED;
 }

@@ -4473,7 +4473,7 @@ static void dynamic_paint_paint_particle_cell_point_cb_ex(
     float smooth_range, part_solidradius;
 
     /* Find nearest particle and get distance to it */
-    blender::BLI_kdtree_3d_find_nearest(tree, bData->realCoord[bData->s_pos[index]].v, &nearest);
+    blender::kdtree_3d_find_nearest(tree, bData->realCoord[bData->s_pos[index]].v, &nearest);
     /* if outside maximum range, no other particle can influence either */
     if (nearest.dist > range) {
       return;
@@ -4515,7 +4515,7 @@ static void dynamic_paint_paint_particle_cell_point_cb_ex(
     /* Make gcc happy! */
     dist = max_range;
 
-    const int particles = blender::BLI_kdtree_3d_range_search(
+    const int particles = blender::kdtree_3d_range_search(
         tree, bData->realCoord[bData->s_pos[index]].v, &nearest, max_range);
 
     /* Find particle that produces highest influence */
@@ -4640,7 +4640,7 @@ static bool dynamicPaint_paintParticles(DynamicPaintSurface *surface,
   /*
    * Build a KD-tree to optimize distance search
    */
-  tree = blender::BLI_kdtree_3d_new(psys->totpart);
+  tree = blender::kdtree_3d_new(psys->totpart);
 
   /* loop through particles and insert valid ones to the tree */
   p = 0;
@@ -4664,7 +4664,7 @@ static bool dynamicPaint_paintParticles(DynamicPaintSurface *surface,
       continue;
     }
 
-    blender::BLI_kdtree_3d_insert(tree, p, pa->state.co);
+    blender::kdtree_3d_insert(tree, p, pa->state.co);
 
     /* calc particle system bounds */
     boundInsert(&part_bb, pa->state.co);
@@ -4677,7 +4677,7 @@ static bool dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 
   /* If no suitable particles were found, exit */
   if (particlesAdded < 1) {
-    blender::BLI_kdtree_3d_free(tree);
+    blender::kdtree_3d_free(tree);
     return true;
   }
 
@@ -4687,7 +4687,7 @@ static bool dynamicPaint_paintParticles(DynamicPaintSurface *surface,
     int total_cells = grid->dim[0] * grid->dim[1] * grid->dim[2];
 
     /* balance tree */
-    blender::BLI_kdtree_3d_balance(tree);
+    blender::kdtree_3d_balance(tree);
 
     /* loop through space partitioning grid */
     for (c_index = 0; c_index < total_cells; c_index++) {
@@ -4716,7 +4716,7 @@ static bool dynamicPaint_paintParticles(DynamicPaintSurface *surface,
                               &settings);
     }
   }
-  blender::BLI_kdtree_3d_free(tree);
+  blender::kdtree_3d_free(tree);
 
   return true;
 }

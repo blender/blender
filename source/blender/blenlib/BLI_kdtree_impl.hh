@@ -12,7 +12,7 @@
 
 #define _BLI_CONCAT_AUX(MACRO_ARG1, MACRO_ARG2) MACRO_ARG1##MACRO_ARG2
 #define _BLI_CONCAT(MACRO_ARG1, MACRO_ARG2) _BLI_CONCAT_AUX(MACRO_ARG1, MACRO_ARG2)
-#define BLI_kdtree_nd_(id) _BLI_CONCAT(KDTREE_PREFIX_ID, _##id)
+#define kdtree_nd_(id) _BLI_CONCAT(KDTREE_PREFIX_ID, _##id)
 
 /* For auto-complete / `clangd`. */
 #ifndef KD_DIMS
@@ -33,40 +33,39 @@ typedef struct KDTreeNearest {
 /**
  * \param nodes_len_capacity: The maximum length this KD-tree may hold.
  */
-KDTree *BLI_kdtree_nd_(new)(unsigned int nodes_len_capacity);
-void BLI_kdtree_nd_(free)(KDTree *tree);
-void BLI_kdtree_nd_(balance)(KDTree *tree) ATTR_NONNULL(1);
+KDTree *kdtree_nd_(new)(unsigned int nodes_len_capacity);
+void kdtree_nd_(free)(KDTree *tree);
+void kdtree_nd_(balance)(KDTree *tree) ATTR_NONNULL(1);
 
-void BLI_kdtree_nd_(insert)(KDTree *tree, int index, const float co[KD_DIMS]) ATTR_NONNULL(1, 3);
-int BLI_kdtree_nd_(find_nearest)(const KDTree *tree,
-                                 const float co[KD_DIMS],
-                                 KDTreeNearest *r_nearest) ATTR_NONNULL(1, 2);
+void kdtree_nd_(insert)(KDTree *tree, int index, const float co[KD_DIMS]) ATTR_NONNULL(1, 3);
+int kdtree_nd_(find_nearest)(const KDTree *tree, const float co[KD_DIMS], KDTreeNearest *r_nearest)
+    ATTR_NONNULL(1, 2);
 
-int BLI_kdtree_nd_(find_nearest_n)(const KDTree *tree,
-                                   const float co[KD_DIMS],
-                                   KDTreeNearest *r_nearest,
-                                   uint nearest_len_capacity) ATTR_NONNULL(1, 2, 3);
+int kdtree_nd_(find_nearest_n)(const KDTree *tree,
+                               const float co[KD_DIMS],
+                               KDTreeNearest *r_nearest,
+                               uint nearest_len_capacity) ATTR_NONNULL(1, 2, 3);
 
-int BLI_kdtree_nd_(range_search)(const KDTree *tree,
-                                 const float co[KD_DIMS],
-                                 KDTreeNearest **r_nearest,
-                                 float range) ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
+int kdtree_nd_(range_search)(const KDTree *tree,
+                             const float co[KD_DIMS],
+                             KDTreeNearest **r_nearest,
+                             float range) ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 
 /**
- * A version of #BLI_kdtree_3d_find_nearest which runs a callback
+ * A version of #kdtree_3d_find_nearest which runs a callback
  * to filter out values.
  *
  * \param filter_cb: Filter find results,
  * Return codes: (1: accept, 0: skip, -1: immediate exit).
  */
-int BLI_kdtree_nd_(find_nearest_cb)(
+int kdtree_nd_(find_nearest_cb)(
     const KDTree *tree,
     const float co[KD_DIMS],
     int (*filter_cb)(void *user_data, int index, const float co[KD_DIMS], float dist_sq),
     void *user_data,
     KDTreeNearest *r_nearest);
 /**
- * A version of #BLI_kdtree_3d_range_search which runs a callback
+ * A version of #kdtree_3d_range_search which runs a callback
  * instead of allocating an array.
  *
  * \param search_cb: Called for every node found in \a range,
@@ -74,7 +73,7 @@ int BLI_kdtree_nd_(find_nearest_cb)(
  *
  * \note the order of calls isn't sorted based on distance.
  */
-void BLI_kdtree_nd_(range_search_cb)(
+void kdtree_nd_(range_search_cb)(
     const KDTree *tree,
     const float co[KD_DIMS],
     float range,
@@ -99,10 +98,10 @@ void BLI_kdtree_nd_(range_search_cb)(
  *
  * \note Merging is always a single step (target indices won't be marked for merging).
  */
-int BLI_kdtree_nd_(calc_duplicates_fast)(const KDTree *tree,
-                                         float range,
-                                         bool use_index_order,
-                                         int *duplicates);
+int kdtree_nd_(calc_duplicates_fast)(const KDTree *tree,
+                                     float range,
+                                     bool use_index_order,
+                                     int *duplicates);
 
 /**
  * De-duplicate utility where the callback can evaluate duplicates and select the target
@@ -122,28 +121,28 @@ int BLI_kdtree_nd_(calc_duplicates_fast)(const KDTree *tree,
  * \note The duplicate search is performed in an order defined by the tree-nodes index,
  * the index of the input (first to last) for predictability.
  */
-int BLI_kdtree_nd_(calc_duplicates_cb)(const KDTree *tree,
-                                       const float range,
-                                       int *duplicates,
-                                       bool has_self_index,
-                                       int (*deduplicate_cb)(void *user_data,
-                                                             const int *cluster,
-                                                             int cluster_num),
-                                       void *user_data);
+int kdtree_nd_(calc_duplicates_cb)(const KDTree *tree,
+                                   const float range,
+                                   int *duplicates,
+                                   bool has_self_index,
+                                   int (*deduplicate_cb)(void *user_data,
+                                                         const int *cluster,
+                                                         int cluster_num),
+                                   void *user_data);
 
 /**
  * Remove exact duplicates (run before balancing).
  *
  * Keep the first element added when duplicates are found.
  */
-int BLI_kdtree_nd_(deduplicate)(KDTree *tree);
+int kdtree_nd_(deduplicate)(KDTree *tree);
 
 /**
  * Find \a nearest_len_capacity nearest returns number of points found, with results in nearest.
  *
  * \param r_nearest: An array of nearest, sized at least \a nearest_len_capacity.
  */
-int BLI_kdtree_nd_(find_nearest_n_with_len_squared_cb)(
+int kdtree_nd_(find_nearest_n_with_len_squared_cb)(
     const KDTree *tree,
     const float co[KD_DIMS],
     KDTreeNearest *r_nearest,
@@ -157,23 +156,23 @@ int BLI_kdtree_nd_(find_nearest_n_with_len_squared_cb)(
  *
  * \param r_nearest: Allocated array of nearest nearest_len (caller is responsible for freeing).
  */
-int BLI_kdtree_nd_(range_search_with_len_squared_cb)(
-    const KDTree *tree,
-    const float co[KD_DIMS],
-    KDTreeNearest **r_nearest,
-    float range,
-    float (*len_sq_fn)(const float co_search[KD_DIMS],
-                       const float co_test[KD_DIMS],
-                       const void *user_data),
-    const void *user_data) ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
+int kdtree_nd_(range_search_with_len_squared_cb)(const KDTree *tree,
+                                                 const float co[KD_DIMS],
+                                                 KDTreeNearest **r_nearest,
+                                                 float range,
+                                                 float (*len_sq_fn)(const float co_search[KD_DIMS],
+                                                                    const float co_test[KD_DIMS],
+                                                                    const void *user_data),
+                                                 const void *user_data)
+    ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 
 template<typename Fn>
-inline void BLI_kdtree_nd_(range_search_cb_cpp)(const KDTree *tree,
-                                                const float co[KD_DIMS],
-                                                const float distance,
-                                                const Fn &fn)
+inline void kdtree_nd_(range_search_cb_cpp)(const KDTree *tree,
+                                            const float co[KD_DIMS],
+                                            const float distance,
+                                            const Fn &fn)
 {
-  BLI_kdtree_nd_(range_search_cb)(
+  kdtree_nd_(range_search_cb)(
       tree,
       co,
       distance,
@@ -185,12 +184,12 @@ inline void BLI_kdtree_nd_(range_search_cb_cpp)(const KDTree *tree,
 }
 
 template<typename Fn>
-inline int BLI_kdtree_nd_(find_nearest_cb_cpp)(const KDTree *tree,
-                                               const float co[KD_DIMS],
-                                               KDTreeNearest *r_nearest,
-                                               Fn &&fn)
+inline int kdtree_nd_(find_nearest_cb_cpp)(const KDTree *tree,
+                                           const float co[KD_DIMS],
+                                           KDTreeNearest *r_nearest,
+                                           Fn &&fn)
 {
-  return BLI_kdtree_nd_(find_nearest_cb)(
+  return kdtree_nd_(find_nearest_cb)(
       tree,
       co,
       [](void *user_data, const int index, const float *co, const float dist_sq) {
@@ -202,13 +201,13 @@ inline int BLI_kdtree_nd_(find_nearest_cb_cpp)(const KDTree *tree,
 }
 
 template<typename Fn>
-inline int BLI_kdtree_nd_(calc_duplicates_cb_cpp)(const KDTree *tree,
-                                                  const float distance,
-                                                  int *duplicates,
-                                                  const bool has_self_index,
-                                                  const Fn &fn)
+inline int kdtree_nd_(calc_duplicates_cb_cpp)(const KDTree *tree,
+                                              const float distance,
+                                              int *duplicates,
+                                              const bool has_self_index,
+                                              const Fn &fn)
 {
-  return BLI_kdtree_nd_(calc_duplicates_cb)(
+  return kdtree_nd_(calc_duplicates_cb)(
       tree,
       distance,
       duplicates,
@@ -224,4 +223,4 @@ inline int BLI_kdtree_nd_(calc_duplicates_cb_cpp)(const KDTree *tree,
 
 #undef _BLI_CONCAT_AUX
 #undef _BLI_CONCAT
-#undef BLI_kdtree_nd_
+#undef kdtree_nd_

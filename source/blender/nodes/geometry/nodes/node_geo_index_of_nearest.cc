@@ -25,16 +25,15 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static KDTree_3d *build_kdtree(const Span<float3> positions, const IndexMask &mask)
 {
-  KDTree_3d *tree = BLI_kdtree_3d_new(mask.size());
-  mask.foreach_index(
-      [&](const int index) { BLI_kdtree_3d_insert(tree, index, positions[index]); });
-  BLI_kdtree_3d_balance(tree);
+  KDTree_3d *tree = kdtree_3d_new(mask.size());
+  mask.foreach_index([&](const int index) { kdtree_3d_insert(tree, index, positions[index]); });
+  kdtree_3d_balance(tree);
   return tree;
 }
 
 static int find_nearest_non_self(const KDTree_3d &tree, const float3 &position, const int index)
 {
-  return BLI_kdtree_3d_find_nearest_cb_cpp(
+  return kdtree_3d_find_nearest_cb_cpp(
       &tree,
       position,
       nullptr,
@@ -86,7 +85,7 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
       result.reinitialize(mask.min_array_size());
       KDTree_3d *tree = build_kdtree(positions, IndexRange(domain_size));
       find_neighbors(*tree, positions, mask, result);
-      BLI_kdtree_3d_free(tree);
+      kdtree_3d_free(tree);
       return VArray<int>::from_container(std::move(result));
     }
     const VArraySpan<int> group_ids_span(group_ids);
@@ -124,7 +123,7 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
         const IndexMask &lookup_mask = lookup_indices_by_group_id[group_index];
         KDTree_3d *tree = build_kdtree(positions, tree_mask);
         find_neighbors(*tree, positions, lookup_mask, result);
-        BLI_kdtree_3d_free(tree);
+        kdtree_3d_free(tree);
       }
     });
 

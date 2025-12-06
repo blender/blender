@@ -11,7 +11,7 @@
 
 /* 1D version */
 #define KD_DIMS 1
-#define KDTREE_PREFIX_ID BLI_kdtree_1d
+#define KDTREE_PREFIX_ID kdtree_1d
 #define KDTree KDTree_1d
 #define KDTreeNearest KDTreeNearest_1d
 #include "BLI_kdtree_impl.hh"
@@ -22,7 +22,7 @@
 
 /* 2D version */
 #define KD_DIMS 2
-#define KDTREE_PREFIX_ID BLI_kdtree_2d
+#define KDTREE_PREFIX_ID kdtree_2d
 #define KDTree KDTree_2d
 #define KDTreeNearest KDTreeNearest_2d
 #include "BLI_kdtree_impl.hh"
@@ -33,7 +33,7 @@
 
 /* 3D version */
 #define KD_DIMS 3
-#define KDTREE_PREFIX_ID BLI_kdtree_3d
+#define KDTREE_PREFIX_ID kdtree_3d
 #define KDTree KDTree_3d
 #define KDTreeNearest KDTreeNearest_3d
 #include "BLI_kdtree_impl.hh"
@@ -44,7 +44,7 @@
 
 /* 4D version */
 #define KD_DIMS 4
-#define KDTREE_PREFIX_ID BLI_kdtree_4d
+#define KDTREE_PREFIX_ID kdtree_4d
 #define KDTree KDTree_4d
 #define KDTreeNearest KDTreeNearest_4d
 #include "BLI_kdtree_impl.hh"

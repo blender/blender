@@ -896,7 +896,7 @@ static void grease_pencil_fill_extension_lines_from_circles(
   Array<float2> view_centers(max_kd_entries);
   Array<float> view_radii(max_kd_entries);
 
-  blender::KDTree_2d *kdtree = blender::BLI_kdtree_2d_new(max_kd_entries);
+  blender::KDTree_2d *kdtree = blender::kdtree_2d_new(max_kd_entries);
 
   /* Insert points for overlap tests. */
   for (const int point_i : circles_range.index_range()) {
@@ -909,13 +909,13 @@ static void grease_pencil_fill_extension_lines_from_circles(
     view_centers[kd_index] = center;
     view_radii[kd_index] = radius;
 
-    blender::BLI_kdtree_2d_insert(kdtree, kd_index, center);
+    blender::kdtree_2d_insert(kdtree, kd_index, center);
   }
   for (const int i_point : feature_points_range.index_range()) {
     /* TODO Insert feature points into the KDTree. */
     UNUSED_VARS(i_point);
   }
-  blender::BLI_kdtree_2d_balance(kdtree);
+  blender::kdtree_2d_balance(kdtree);
 
   struct {
     Vector<float3> starts;
@@ -931,7 +931,7 @@ static void grease_pencil_fill_extension_lines_from_circles(
     const float radius = view_radii[kd_index];
 
     bool found = false;
-    blender::BLI_kdtree_2d_range_search_cb_cpp(
+    blender::kdtree_2d_range_search_cb_cpp(
         kdtree,
         center,
         radius,
@@ -960,7 +960,7 @@ static void grease_pencil_fill_extension_lines_from_circles(
     }
   }
 
-  blender::BLI_kdtree_2d_free(kdtree);
+  blender::kdtree_2d_free(kdtree);
 
   /* Add new extension lines. */
   extension_data.lines.starts.extend(connection_lines.starts);

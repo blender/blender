@@ -111,19 +111,18 @@ static Map<int, KDTree_3d *> build_kdtrees_for_root_positions(
     const int group = item.key;
     const Span<int> guide_indices = item.value;
 
-    KDTree_3d *kdtree = BLI_kdtree_3d_new(guide_indices.size());
+    KDTree_3d *kdtree = kdtree_3d_new(guide_indices.size());
     kdtrees.add_new(group, kdtree);
 
     for (const int curve_i : guide_indices) {
       const int first_point_i = offsets[curve_i];
       const float3 &root_pos = positions[first_point_i];
-      BLI_kdtree_3d_insert(kdtree, curve_i, root_pos);
+      kdtree_3d_insert(kdtree, curve_i, root_pos);
     }
   }
   Vector<KDTree_3d *> kdtrees_vec;
   kdtrees_vec.extend(kdtrees.values().begin(), kdtrees.values().end());
-  threading::parallel_for_each(kdtrees_vec,
-                               [](KDTree_3d *kdtree) { BLI_kdtree_3d_balance(kdtree); });
+  threading::parallel_for_each(kdtrees_vec, [](KDTree_3d *kdtree) { kdtree_3d_balance(kdtree); });
   return kdtrees;
 }
 
@@ -158,7 +157,7 @@ static void find_neighbor_guides(const Span<float3> positions,
       const int neighbors_to_find = max_neighbor_count + use_extra_neighbor;
 
       Vector<KDTreeNearest_3d, 16> nearest_n(neighbors_to_find);
-      const int num_neighbors = BLI_kdtree_3d_find_nearest_n(
+      const int num_neighbors = kdtree_3d_find_nearest_n(
           kdtree, position, nearest_n.data(), neighbors_to_find);
       if (num_neighbors == 0) {
         r_all_neighbor_counts[child_curve_i] = 0;
@@ -700,7 +699,7 @@ static GeometrySet generate_interpolated_curves(
   Map<int, KDTree_3d *> kdtrees = build_kdtrees_for_root_positions(guides_by_group, guide_curves);
   BLI_SCOPED_DEFER([&]() {
     for (KDTree_3d *kdtree : kdtrees.values()) {
-      BLI_kdtree_3d_free(kdtree);
+      kdtree_3d_free(kdtree);
     }
   });
 
