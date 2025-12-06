@@ -2129,7 +2129,7 @@ static StructRNA *rna_Node_register(Main *bmain,
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
   BKE_main_ensure_invariants(*bmain);
-  return nt->rna_ext.srna;Fix #151215: Crash accessing node_group.node_tool_idname for some groups
+  return nt->rna_ext.srna;
 }
 
 static const EnumPropertyItem *itemf_function_check(
