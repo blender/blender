@@ -2129,7 +2129,7 @@ static StructRNA *rna_Node_register(Main *bmain,
   /* update while blender is running */
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
   BKE_main_ensure_invariants(*bmain);
-  return nt->rna_ext.srna;
+  return nt->rna_ext.srna;Fix #151215: Crash accessing node_group.node_tool_idname for some groups
 }
 
 static const EnumPropertyItem *itemf_function_check(
@@ -2164,6 +2164,7 @@ static void rna_GeometryNodeTree_node_tool_idname_get(PointerRNA *ptr, char *val
   bNodeTree *ntree = ptr->data_as<bNodeTree>();
   if (!ntree->geometry_node_asset_traits) {
     strcpy(value, "");
+    return;
   }
   const char *idname = ntree->geometry_node_asset_traits->node_tool_idname;
   strcpy(value, idname ? idname : "");
