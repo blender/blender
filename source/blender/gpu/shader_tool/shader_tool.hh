@@ -640,7 +640,7 @@ class Preprocessor {
     while ((last_whitespace = str.find(" \n", last_whitespace + 1)) != string::npos) {
       size_t first_not_whitespace = str.find_last_not_of(" ", last_whitespace);
       if (first_not_whitespace == string::npos) {
-        return;
+        first_not_whitespace = 0;
       }
       parser.replace(first_not_whitespace + 1, last_whitespace, "");
     }
