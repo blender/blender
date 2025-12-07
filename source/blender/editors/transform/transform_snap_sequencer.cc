@@ -35,7 +35,6 @@
 #include "SEQ_render.hh"
 #include "SEQ_retiming.hh"
 #include "SEQ_sequencer.hh"
-#include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 
 #include "transform.hh"
@@ -97,14 +96,14 @@ static void points_build_sources_timeline_strips(const Scene *scene,
   for (Strip *strip : snap_sources) {
     int left = 0, right = 0;
     if (strip->flag & SEQ_LEFTSEL && !(strip->flag & SEQ_RIGHTSEL)) {
-      left = right = seq::time_left_handle_frame_get(scene, strip);
+      left = right = strip->left_handle();
     }
     else if (strip->flag & SEQ_RIGHTSEL && !(strip->flag & SEQ_LEFTSEL)) {
-      left = right = seq::time_right_handle_frame_get(scene, strip);
+      left = right = strip->right_handle(scene);
     }
     else {
-      left = seq::time_left_handle_frame_get(scene, strip);
-      right = seq::time_right_handle_frame_get(scene, strip);
+      left = strip->left_handle();
+      right = strip->right_handle(scene);
     }
 
     /* Set only the x-positions when snapping in the timeline. */
@@ -272,7 +271,7 @@ static Map<SeqRetimingKey *, Strip *> visible_retiming_keys_get(const Scene *sce
   for (Strip *strip : snap_strip_targets) {
     for (SeqRetimingKey &key : seq::retiming_keys_get(strip)) {
       const int key_frame = seq::retiming_key_timeline_frame_get(scene, strip, &key);
-      if (seq::time_strip_intersects_frame(scene, strip, key_frame)) {
+      if (strip->intersects_frame(scene, key_frame)) {
         visible_keys.add(&key, strip);
       }
     }
@@ -302,25 +301,21 @@ static void points_build_targets_timeline(const Scene *scene,
   }
 
   for (Strip *strip : strip_targets) {
-    snap_data->target_snap_points.append(float2(seq::time_left_handle_frame_get(scene, strip)));
-    snap_data->target_snap_points.append(float2(seq::time_right_handle_frame_get(scene, strip)));
+    snap_data->target_snap_points.append(float2(strip->left_handle()));
+    snap_data->target_snap_points.append(float2(strip->right_handle(scene)));
 
     if (snap_mode & SEQ_SNAP_TO_STRIP_HOLD) {
-      int content_start = seq::time_start_frame_get(strip);
-      int content_end = seq::time_content_end_frame_get(scene, strip);
+      int content_start = strip->content_start();
+      int content_end = strip->content_end(scene);
 
       /* Effects and single image strips produce incorrect content length. Skip these strips. */
       if (strip->is_effect() || strip->len == 1) {
-        content_start = seq::time_left_handle_frame_get(scene, strip);
-        content_end = seq::time_right_handle_frame_get(scene, strip);
+        content_start = strip->left_handle();
+        content_end = strip->right_handle(scene);
       }
 
-      CLAMP(content_start,
-            seq::time_left_handle_frame_get(scene, strip),
-            seq::time_right_handle_frame_get(scene, strip));
-      CLAMP(content_end,
-            seq::time_left_handle_frame_get(scene, strip),
-            seq::time_right_handle_frame_get(scene, strip));
+      CLAMP(content_start, strip->left_handle(), strip->right_handle(scene));
+      CLAMP(content_end, strip->left_handle(), strip->right_handle(scene));
 
       snap_data->target_snap_points.append(float2(content_start));
       snap_data->target_snap_points.append(float2(content_end));

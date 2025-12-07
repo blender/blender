@@ -11,7 +11,6 @@
 #include "SEQ_channels.hh"
 #include "SEQ_render.hh"
 #include "SEQ_sequencer.hh"
-#include "SEQ_time.hh"
 #include "SEQ_utils.hh"
 
 #include "effects.hh"
@@ -44,9 +43,8 @@ static ImBuf *do_adjustment_impl(const RenderData *context,
   /* Clamp timeline_frame to strip range so it behaves as if it had "still frame" offset (last
    * frame is static after end of strip). This is how most strips behave. This way transition
    * effects that doesn't overlap or speed effect can't fail rendering outside of strip range. */
-  timeline_frame = clamp_i(timeline_frame,
-                           time_left_handle_frame_get(context->scene, strip),
-                           time_right_handle_frame_get(context->scene, strip) - 1);
+  timeline_frame = clamp_i(
+      timeline_frame, strip->left_handle(), strip->right_handle(context->scene) - 1);
 
   if (strip->channel > 1) {
     i = seq_render_give_ibuf_seqbase(

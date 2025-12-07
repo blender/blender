@@ -30,7 +30,6 @@
 #include "UI_view2d.hh"
 
 #include "SEQ_retiming.hh"
-#include "SEQ_time.hh"
 
 #include "sequencer_intern.hh"
 #include "sequencer_quads_batch.hh"
@@ -72,20 +71,20 @@ static float pixels_to_view_height(const bContext *C, const float height)
   return height / scale_y;
 }
 
-static float strip_start_screenspace_get(const Scene *scene, const View2D *v2d, const Strip *strip)
+static float strip_start_screenspace_get(const View2D *v2d, const Strip *strip)
 {
-  return ui::view2d_view_to_region_x(v2d, seq::time_left_handle_frame_get(scene, strip));
+  return ui::view2d_view_to_region_x(v2d, strip->left_handle());
 }
 
 static float strip_end_screenspace_get(const Scene *scene, const View2D *v2d, const Strip *strip)
 {
-  return ui::view2d_view_to_region_x(v2d, seq::time_right_handle_frame_get(scene, strip));
+  return ui::view2d_view_to_region_x(v2d, strip->right_handle(scene));
 }
 
 static rctf strip_box_get(const Scene *scene, const View2D *v2d, const Strip *strip)
 {
   rctf rect;
-  rect.xmin = strip_start_screenspace_get(scene, v2d, strip);
+  rect.xmin = strip_start_screenspace_get(v2d, strip);
   rect.xmax = strip_end_screenspace_get(scene, v2d, strip);
   rect.ymin = ui::view2d_view_to_region_y(v2d, strip_y_rescale(strip, 0));
   rect.ymax = ui::view2d_view_to_region_y(v2d, strip_y_rescale(strip, 1));
@@ -107,18 +106,18 @@ int left_fake_key_frame_get(const bContext *C, const Strip *strip)
 {
   const Scene *scene = CTX_data_sequencer_scene(C);
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
-  const int sound_offset = seq::time_get_rounded_sound_offset(strip, scene_fps);
-  const int content_start = seq::time_start_frame_get(strip) + sound_offset;
-  return max_ii(content_start, seq::time_left_handle_frame_get(scene, strip));
+  const int sound_offset = strip->rounded_sound_offset(scene_fps);
+  const int content_start = strip->content_start() + sound_offset;
+  return max_ii(content_start, strip->left_handle());
 }
 
 int right_fake_key_frame_get(const bContext *C, const Strip *strip)
 {
   const Scene *scene = CTX_data_sequencer_scene(C);
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
-  const int sound_offset = seq::time_get_rounded_sound_offset(strip, scene_fps);
-  const int content_end = seq::time_content_end_frame_get(scene, strip) + sound_offset;
-  return min_ii(content_end, seq::time_right_handle_frame_get(scene, strip));
+  const int sound_offset = strip->rounded_sound_offset(scene_fps);
+  const int content_end = strip->content_end(scene) + sound_offset;
+  return min_ii(content_end, strip->right_handle(scene));
 }
 
 static bool retiming_fake_key_frame_clicked(const bContext *C,
@@ -150,8 +149,8 @@ static bool retiming_fake_key_frame_clicked(const bContext *C,
 void realize_fake_keys(const Scene *scene, Strip *strip)
 {
   seq::retiming_data_ensure(strip);
-  seq::retiming_add_key(scene, strip, seq::time_left_handle_frame_get(scene, strip));
-  seq::retiming_add_key(scene, strip, seq::time_right_handle_frame_get(scene, strip));
+  seq::retiming_add_key(scene, strip, strip->left_handle());
+  seq::retiming_add_key(scene, strip, strip->right_handle(scene));
 }
 
 SeqRetimingKey *try_to_realize_fake_keys(const bContext *C, Strip *strip, const int mval[2])
@@ -182,8 +181,8 @@ static SeqRetimingKey *mouse_over_key_get_from_strip(const bContext *C,
         fabsf(ui::view2d_view_to_region_x(v2d, key_x_get(scene, strip, &key)) - mval[0]));
 
     int threshold = RETIME_KEY_MOUSEOVER_THRESHOLD;
-    if (key_x_get(scene, strip, &key) == seq::time_left_handle_frame_get(scene, strip) ||
-        key_x_get(scene, strip, &key) == seq::time_right_handle_frame_get(scene, strip))
+    if (key_x_get(scene, strip, &key) == strip->left_handle() ||
+        key_x_get(scene, strip, &key) == strip->right_handle(scene))
     {
       threshold *= 2; /* Make first and last key easier to select. */
     }
@@ -356,10 +355,10 @@ void sequencer_retiming_draw_continuity(const TimelineDrawContext &ctx,
 static SeqRetimingKey fake_retiming_key_init(const Scene *scene, const Strip *strip, int key_x)
 {
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
-  const int sound_offset = seq::time_get_rounded_sound_offset(strip, scene_fps);
+  const int sound_offset = strip->rounded_sound_offset(scene_fps);
   SeqRetimingKey fake_key = {0};
-  fake_key.strip_frame_index = (key_x - seq::time_start_frame_get(strip) - sound_offset) *
-                               seq::time_media_playback_rate_factor_get(strip, scene_fps);
+  fake_key.strip_frame_index = (key_x - strip->content_start() - sound_offset) *
+                               strip->media_playback_rate_factor(scene_fps);
   fake_key.flag = 0;
   return fake_key;
 }

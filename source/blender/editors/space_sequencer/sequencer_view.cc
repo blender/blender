@@ -377,8 +377,8 @@ static void seq_view_collection_rect_timeline(const bContext *C, Span<Strip *> s
   int xmargin = scene->frames_per_second();
 
   for (Strip *strip : strips) {
-    xmin = min_ii(xmin, seq::time_left_handle_frame_get(scene, strip));
-    xmax = max_ii(xmax, seq::time_right_handle_frame_get(scene, strip));
+    xmin = min_ii(xmin, strip->left_handle());
+    xmax = max_ii(xmax, strip->right_handle(scene));
 
     ymin = min_ii(ymin, strip->channel);
     /* "+1" because each channel has a thickness of 1. */

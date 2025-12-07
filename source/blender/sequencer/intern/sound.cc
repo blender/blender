@@ -27,7 +27,6 @@
 
 #include "SEQ_sequencer.hh"
 #include "SEQ_sound.hh"
-#include "SEQ_time.hh"
 
 #include "strip_time.hh"
 
@@ -118,8 +117,8 @@ void sound_update_bounds(Scene *scene, Strip *strip)
 
       BKE_sound_move_scene_sound(scene,
                                  strip->runtime->scene_sound,
-                                 time_left_handle_frame_get(scene, strip),
-                                 time_right_handle_frame_get(scene, strip),
+                                 strip->left_handle(),
+                                 strip->right_handle(scene),
                                  startofs,
                                  0.0);
     }

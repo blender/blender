@@ -64,7 +64,6 @@
 #include "SEQ_render.hh"
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
-#include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 
 #include "UI_interface.hh"
@@ -985,10 +984,10 @@ static int sequencer_draw_get_transform_preview_frame(const Scene *scene)
   int preview_frame;
 
   if (last_seq->flag & SEQ_RIGHTSEL) {
-    preview_frame = seq::time_right_handle_frame_get(scene, last_seq) - 1;
+    preview_frame = last_seq->right_handle(scene) - 1;
   }
   else {
-    preview_frame = seq::time_left_handle_frame_get(scene, last_seq);
+    preview_frame = last_seq->left_handle();
   }
 
   return preview_frame;

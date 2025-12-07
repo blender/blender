@@ -17,8 +17,6 @@
 
 #include "NOD_node_extra_info.hh"
 
-#include "SEQ_time.hh"
-
 #include "UI_resources.hh"
 
 #include "node_composite_util.hh"
@@ -51,15 +49,13 @@ class StripInfoOperation : public NodeOperation {
     Result &start_frame_result = this->get_result("Start Frame");
     if (start_frame_result.should_compute()) {
       start_frame_result.allocate_single_value();
-      start_frame_result.set_single_value(
-          seq::time_left_handle_frame_get(&context().get_scene(), strip));
+      start_frame_result.set_single_value(strip->left_handle());
     }
 
     Result &end_frame_result = this->get_result("End Frame");
     if (end_frame_result.should_compute()) {
       end_frame_result.allocate_single_value();
-      end_frame_result.set_single_value(
-          seq::time_right_handle_frame_get(&context().get_scene(), strip));
+      end_frame_result.set_single_value(strip->right_handle(&context().get_scene()));
     }
 
     Result &location_result = this->get_result("Location");

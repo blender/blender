@@ -52,7 +52,6 @@
 #include "SEQ_sequencer.hh"
 #include "SEQ_sound.hh"
 #include "SEQ_thumbnail_cache.hh"
-#include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 #include "SEQ_utils.hh"
 
@@ -432,8 +431,8 @@ static MetaStack *seq_meta_stack_alloc(const Scene *scene, Strip *strip_meta)
   /* Reference to previously displayed timeline data. */
   ms->old_strip = lookup_meta_by_strip(ed, strip_meta);
 
-  ms->disp_range[0] = time_left_handle_frame_get(scene, ms->parent_strip);
-  ms->disp_range[1] = time_right_handle_frame_get(scene, ms->parent_strip);
+  ms->disp_range[0] = ms->parent_strip->left_handle();
+  ms->disp_range[1] = ms->parent_strip->right_handle(scene);
   return ms;
 }
 

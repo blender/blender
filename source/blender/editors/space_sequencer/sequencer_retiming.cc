@@ -26,7 +26,6 @@
 #include "SEQ_retiming.hh"
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
-#include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 
 #include "WM_api.hh"
@@ -216,8 +215,8 @@ static bool retiming_key_add_new_for_strip(bContext *C,
 {
   Scene *scene = CTX_data_sequencer_scene(C);
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
-  const float frame_index = (BKE_scene_frame_get(scene) - seq::time_start_frame_get(strip)) *
-                            seq::time_media_playback_rate_factor_get(strip, scene_fps);
+  const float frame_index = (BKE_scene_frame_get(scene) - strip->content_start()) *
+                            strip->media_playback_rate_factor(scene_fps);
   const SeqRetimingKey *key = seq::retiming_find_segment_start_key(strip, frame_index);
 
   if (key != nullptr && seq::retiming_key_is_transition_start(key)) {
@@ -225,7 +224,7 @@ static bool retiming_key_add_new_for_strip(bContext *C,
     return false;
   }
 
-  const float end_frame = strip->start + seq::time_strip_length_get(scene, strip);
+  const float end_frame = strip->start + strip->length(scene);
   if (strip->start > timeline_frame || end_frame < timeline_frame) {
     return false;
   }
@@ -898,10 +897,10 @@ static void realize_fake_keys_in_rect(bContext *C, Strip *strip, const rctf &rec
 {
   const Scene *scene = CTX_data_sequencer_scene(C);
 
-  const int content_start = seq::time_start_frame_get(strip);
-  const int left_key_frame = max_ii(content_start, seq::time_left_handle_frame_get(scene, strip));
-  const int content_end = seq::time_content_end_frame_get(scene, strip);
-  const int right_key_frame = min_ii(content_end, seq::time_right_handle_frame_get(scene, strip));
+  const int content_start = strip->content_start();
+  const int left_key_frame = max_ii(content_start, strip->left_handle());
+  const int content_end = strip->content_end(scene);
+  const int right_key_frame = min_ii(content_end, strip->right_handle(scene));
 
   /* Realize "fake" keys. */
   if (left_key_frame > rectf.xmin && left_key_frame < rectf.xmax) {
@@ -946,8 +945,8 @@ wmOperatorStatus sequencer_retiming_box_select_exec(bContext *C, wmOperator *op)
 
     for (SeqRetimingKey &key : seq::retiming_keys_get(strip)) {
       const int key_frame = seq::retiming_key_timeline_frame_get(scene, strip, &key);
-      const int strip_start = seq::time_left_handle_frame_get(scene, strip);
-      const int strip_end = seq::time_right_handle_frame_get(scene, strip);
+      const int strip_start = strip->left_handle();
+      const int strip_end = strip->right_handle(scene);
       if (key_frame < strip_start || key_frame > strip_end) {
         continue;
       }

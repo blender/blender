@@ -32,7 +32,6 @@
 #include "SEQ_render.hh"
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
-#include "SEQ_time.hh"
 #include "SEQ_utils.hh"
 
 #include "UI_interface.hh"
@@ -445,8 +444,7 @@ static bool skip_modifier(Scene *scene, const StripModifierData *smd, int timeli
   }
   const bool strip_has_ended_skip = smd->mask_input_type == STRIP_MASK_INPUT_STRIP &&
                                     smd->mask_time == STRIP_MASK_TIME_RELATIVE &&
-                                    !time_strip_intersects_frame(
-                                        scene, smd->mask_strip, timeline_frame);
+                                    !smd->mask_strip->intersects_frame(scene, timeline_frame);
   const bool missing_data_skip = !strip_has_valid_data(smd->mask_strip) ||
                                  media_presence_is_missing(scene, smd->mask_strip);
 

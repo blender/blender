@@ -145,8 +145,8 @@ void ANIM_draw_scene_strip_range(const bContext *C, View2D *v2d)
   /* ..._handle are frames in "sequencer logic", meaning that on the right_handle point in time,
    * the strip is not visible any more. The last visible frame of the strip is actually on
    * (right_handle-1), hence the -1 when computing the end_frame. */
-  const float left_handle = seq::time_left_handle_frame_get(sequencer_scene, scene_strip);
-  const float right_handle = seq::time_right_handle_frame_get(sequencer_scene, scene_strip);
+  const float left_handle = scene_strip->left_handle();
+  const float right_handle = scene_strip->right_handle(sequencer_scene);
   float start_frame = seq::give_frame_index(sequencer_scene, scene_strip, left_handle) +
                       scene_strip->scene->r.sfra;
   float end_frame = seq::give_frame_index(sequencer_scene, scene_strip, right_handle - 1) +

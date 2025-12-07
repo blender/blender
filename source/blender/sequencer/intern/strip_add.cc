@@ -181,7 +181,7 @@ Strip *add_effect_strip(Scene *scene, ListBase *seqbase, LoadData *load_data)
   if (strip->input1 == nullptr) {
     strip->len = 1; /* Effect is generator, set non zero length. */
     strip->flag |= SEQ_SINGLE_FRAME_CONTENT;
-    time_right_handle_frame_set(scene, strip, load_data->start_frame + load_data->effect.length);
+    strip->right_handle_set(scene, load_data->start_frame + load_data->effect.length);
   }
 
   strip_add_set_name(scene, strip, load_data);
@@ -197,7 +197,7 @@ void add_image_set_directory(Strip *strip, const char *dirpath)
 
 void add_image_load_file(Scene *scene, Strip *strip, size_t strip_frame, const char *filename)
 {
-  StripElem *se = render_give_stripelem(scene, strip, time_start_frame_get(strip) + strip_frame);
+  StripElem *se = render_give_stripelem(scene, strip, strip->content_start() + strip_frame);
   STRNCPY(se->filename, filename);
 }
 
@@ -544,8 +544,8 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
 
   if (lock_range) {
     /* keep so we don't have to move the actual start and end points (only the data) */
-    prev_start_frame = time_left_handle_frame_get(scene, strip);
-    prev_end_frame = time_right_handle_frame_get(scene, strip);
+    prev_start_frame = strip->left_handle();
+    prev_end_frame = strip->right_handle(scene);
   }
 
   switch (strip->type) {
@@ -681,7 +681,7 @@ void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool loc
   free_strip_proxy(strip);
 
   if (lock_range) {
-    time_handles_frame_set(scene, strip, prev_start_frame, prev_end_frame);
+    strip->handles_set(scene, prev_start_frame, prev_end_frame);
   }
 
   relations_invalidate_cache_raw(scene, strip);

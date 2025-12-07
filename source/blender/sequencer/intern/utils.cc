@@ -37,7 +37,6 @@
 #include "SEQ_render.hh"
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
-#include "SEQ_time.hh"
 #include "SEQ_utils.hh"
 
 #include "IMB_imbuf_types.hh"
@@ -184,7 +183,7 @@ ListBase *get_seqbase_from_strip(Strip *strip, ListBase **r_channels, int *r_off
     case STRIP_TYPE_META: {
       seqbase = &strip->seqbase;
       *r_channels = &strip->channels;
-      *r_offset = time_start_frame_get(strip);
+      *r_offset = strip->content_start();
       break;
     }
     case STRIP_TYPE_SCENE: {
@@ -335,7 +334,7 @@ const Strip *strip_topmost_get(const Scene *scene, int frame)
   int best_channel = -1;
 
   LISTBASE_FOREACH (const Strip *, strip, ed->current_strips()) {
-    if (render_is_muted(channels, strip) || !time_strip_intersects_frame(scene, strip, frame)) {
+    if (render_is_muted(channels, strip) || !strip->intersects_frame(scene, frame)) {
       continue;
     }
     /* Only use strips that generate an image, not ones that combine

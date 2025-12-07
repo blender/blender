@@ -273,6 +273,77 @@ typedef struct Strip {
 
 #ifdef __cplusplus
   bool is_effect() const;
+
+  /**
+   * Get timeline frame where strip content starts.
+   */
+  float content_start() const;
+  /**
+   * Set frame where strip content starts.
+   * This function will also move strip handles.
+   */
+  void content_start_set(const Scene *scene, int timeline_frame);
+  /**
+   * Get timeline frame where strip content ends.
+   */
+  float content_end(const Scene *scene) const;
+  /**
+   * Get number of frames (in timeline) that can be rendered.
+   * This can change depending on scene FPS or strip speed factor.
+   */
+  int length(const Scene *scene) const;
+  /**
+   * Get the sound offset (if any) and round it to the nearest integer.
+   * This is mostly used in places where subframe data is not allowed (like re-timing key
+   * positions). Returns zero if strip is not a sound strip or if there is no offset.
+   */
+  int rounded_sound_offset(float scene_fps) const;
+  /**
+   * Get timeline frame where strip boundary starts.
+   */
+  int left_handle() const;
+  /**
+   * Get timeline frame where strip boundary ends.
+   */
+  int right_handle(const Scene *scene) const;
+  /**
+   * Set frame where strip boundary starts. This function moves only handle, content is not moved.
+   */
+  void left_handle_set(const Scene *scene, int timeline_frame);
+  /**
+   * Set frame where strip boundary ends.
+   * This function moves only handle, content is not moved.
+   */
+  void right_handle_set(const Scene *scene, int timeline_frame);
+  /**
+   * This function has same effect as calling @Strip::right_handle_frame_set and
+   * @Strip::left_handle_frame_set. If both handles are to be set after strip length changes, it is
+   * recommended to use this function as the order of setting handles is important. See #131731.
+   */
+  void handles_set(const Scene *scene,
+                   int left_handle_timeline_frame,
+                   int right_handle_timeline_frame);
+  /**
+   * Test if strip intersects with timeline frame.
+   * \note This checks if strip would be rendered at this frame. For rendering it is assumed, that
+   * timeline frame has width of 1 frame and therefore ends at timeline_frame + 1
+   *
+   * \param strip: Strip to be checked
+   * \param timeline_frame: absolute frame position
+   * \return true if strip intersects with timeline frame.
+   */
+  bool intersects_frame(const Scene *scene, int timeline_frame) const;
+  /**
+   * Get difference between scene and movie strip frame-rate.
+   * Returns 1.0f for all other strip types.
+   */
+  float media_playback_rate_factor(float scene_fps) const;
+  /**
+   * Get FPS rate of source media. Movie, scene and movie-clip strips are supported.
+   * Returns 0 for unsupported strip or if media can't be loaded.
+   */
+  float media_fps(Scene *scene);
+
 #endif
 } Strip;
 

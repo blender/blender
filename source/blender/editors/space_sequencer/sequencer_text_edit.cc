@@ -21,7 +21,6 @@
 #include "SEQ_effects.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_select.hh"
-#include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 
 #include "WM_api.hh"
@@ -74,7 +73,7 @@ bool sequencer_text_editing_active_poll(bContext *C)
     return false;
   }
 
-  if (!seq::time_strip_intersects_frame(scene, strip, BKE_scene_frame_get(scene))) {
+  if (!strip->intersects_frame(scene, BKE_scene_frame_get(scene))) {
     return false;
   }
 

@@ -19,7 +19,6 @@
 #include "SEQ_iterator.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
-#include "SEQ_time.hh"
 
 namespace blender::seq {
 
@@ -120,7 +119,7 @@ static void query_strips_recursive_at_frame(const Scene *scene,
                                             VectorSet<Strip *> &strips)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (!time_strip_intersects_frame(scene, strip, timeline_frame)) {
+    if (!strip->intersects_frame(scene, timeline_frame)) {
       continue;
     }
     if (strip->type == STRIP_TYPE_META) {
@@ -166,7 +165,7 @@ static VectorSet<Strip *> query_strips_at_frame(const Scene *scene,
   VectorSet<Strip *> strips;
 
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (time_strip_intersects_frame(scene, strip, timeline_frame)) {
+    if (strip->intersects_frame(scene, timeline_frame)) {
       strips.add(strip);
     }
   }
