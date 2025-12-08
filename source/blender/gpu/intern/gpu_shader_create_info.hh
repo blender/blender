@@ -807,7 +807,7 @@ struct ShaderCreateInfo {
       return true;
     }
   };
-  Vector<VertIn> vertex_inputs_;
+  Vector<VertIn, 0> vertex_inputs_;
 
   struct GeometryStageLayout {
     PrimitiveIn primitive_in;
@@ -860,7 +860,7 @@ struct ShaderCreateInfo {
       return true;
     }
   };
-  Vector<FragOut> fragment_outputs_;
+  Vector<FragOut, 0> fragment_outputs_;
 
   struct SubpassIn {
     int index;
@@ -880,10 +880,10 @@ struct ShaderCreateInfo {
       return true;
     }
   };
-  Vector<SubpassIn> subpass_inputs_;
+  Vector<SubpassIn, 0> subpass_inputs_;
 
   Vector<CompilationConstant, 0> compilation_constants_;
-  Vector<SpecializationConstant> specialization_constants_;
+  Vector<SpecializationConstant, 0> specialization_constants_;
 
   struct SharedVariable {
     Type type;
@@ -975,9 +975,9 @@ struct ShaderCreateInfo {
    * Geometry resources can be changed in a very granular manner (per draw-call).
    * Misuse will only produce suboptimal performance.
    */
-  Vector<Resource> pass_resources_, batch_resources_, geometry_resources_;
+  Vector<Resource, 0> pass_resources_, batch_resources_, geometry_resources_;
 
-  Vector<Resource> &resources_get_(Frequency freq)
+  Vector<Resource, 0> &resources_get_(Frequency freq)
   {
     switch (freq) {
       case Frequency::PASS:
@@ -1001,8 +1001,8 @@ struct ShaderCreateInfo {
     return all_resources;
   }
 
-  Vector<StageInterfaceInfo *> vertex_out_interfaces_;
-  Vector<StageInterfaceInfo *> geometry_out_interfaces_;
+  Vector<StageInterfaceInfo *, 0> vertex_out_interfaces_;
+  Vector<StageInterfaceInfo *, 0> geometry_out_interfaces_;
 
   struct PushConst {
     Type type;
@@ -1028,21 +1028,21 @@ struct ShaderCreateInfo {
     }
   };
 
-  Vector<PushConst> push_constants_;
+  Vector<PushConst, 0> push_constants_;
 
   /* Sources for resources type definitions. */
-  Vector<StringRefNull> typedef_sources_;
+  Vector<StringRefNull, 0> typedef_sources_;
 
   StringRefNull vertex_source_, geometry_source_, fragment_source_, compute_source_;
   StringRefNull vertex_entry_fn_ = "main", geometry_entry_fn_ = "main",
                 fragment_entry_fn_ = "main", compute_entry_fn_ = "main";
 
-  Vector<std::array<StringRefNull, 2>> defines_;
+  Vector<std::array<StringRefNull, 2>, 0> defines_;
   /**
    * Name of other infos to recursively merge with this one.
    * No data slot must overlap otherwise we throw an error.
    */
-  Vector<StringRefNull> additional_infos_;
+  Vector<StringRefNull, 0> additional_infos_;
 
   Vector<PipelineState, 0> pipelines_;
 
