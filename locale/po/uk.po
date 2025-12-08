@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2025-12-08 10:32+0000\n"
 "PO-Revision-Date: 2025-07-23 15:08+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -26354,6 +26354,38 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
+msgid "Assign Material"
+msgstr "Призначити Матеріал"
+
+
+msgid "Select More/Less"
+msgstr "Вибрати більше/менше"
+
+
+msgid "Metaball"
+msgstr "Метакуля"
+
+
+msgid "Light"
+msgstr "Слабко"
+
+
+msgid "Light Probe"
+msgstr "Проба Освітлення"
+
+
+msgid "Add Image"
+msgstr "Додати Зображення"
+
+
+msgid "Relations"
+msgstr "Зв'язки"
+
+
+msgid "Rigid Body"
+msgstr "Тверде тіло"
+
+
 msgid "Apply"
 msgstr "Застосувати"
 
@@ -26372,6 +26404,10 @@ msgstr "Показати/приховати"
 
 msgid "Clean Up"
 msgstr "Вичищення"
+
+
+msgid "Layout"
+msgstr "Розстановка"
 
 
 msgid "Asset"
@@ -26406,12 +26442,28 @@ msgid "Face Sets Init"
 msgstr "Ініціація Наборів Граней"
 
 
+msgid "Keying"
+msgstr "Ключування"
+
+
+msgid "Tracking"
+msgstr "Стеження"
+
+
+msgid "Utilities"
+msgstr "Утиліти"
+
+
 msgid "Clear Transform"
 msgstr "Зчистити трансформації"
 
 
 msgid "In-Betweens"
 msgstr "У проміжках"
+
+
+msgid "Math"
+msgstr "Математика"
 
 
 msgid "Propagate"
@@ -26434,10 +26486,6 @@ msgid "Disable Bone Options"
 msgstr "Відключити параметри кісток"
 
 
-msgid "Layout"
-msgstr "Розстановка"
-
-
 msgid "Mesh Select Mode"
 msgstr "Режим Вибору Сіті"
 
@@ -26458,22 +26506,6 @@ msgid "Merge"
 msgstr "Об'єднання"
 
 
-msgid "Keying"
-msgstr "Ключування"
-
-
-msgid "Tracking"
-msgstr "Стеження"
-
-
-msgid "Utilities"
-msgstr "Утиліти"
-
-
-msgid "Math"
-msgstr "Математика"
-
-
 msgid "Special Characters"
 msgstr "Спеціальні символи"
 
@@ -26486,12 +26518,16 @@ msgid "Text"
 msgstr "Текст"
 
 
-msgid "Metaball"
-msgstr "Метакуля"
-
-
 msgid "Bone Roll"
 msgstr "Прокручення Кістки"
+
+
+msgid "Sample"
+msgstr "Вибірка"
+
+
+msgid "Primitives"
+msgstr "Примітиви"
 
 
 msgid "Pivot Point"
@@ -26518,12 +26554,12 @@ msgid "Face Sets Edit"
 msgstr "Редагування Наборів Граней"
 
 
-msgid "Sample"
-msgstr "Вибірка"
+msgid "Import"
+msgstr "Імпортувати"
 
 
-msgid "Primitives"
-msgstr "Примітиви"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -26558,10 +26594,6 @@ msgid "View Regions"
 msgstr "Регіони Огляду"
 
 
-msgid "Select More/Less"
-msgstr "Вибрати більше/менше"
-
-
 msgid "Select Similar"
 msgstr "Вибрати подібні"
 
@@ -26576,38 +26608,6 @@ msgstr "Виділити пов'язане"
 
 msgid "Select Loops"
 msgstr "Виділити петлі"
-
-
-msgid "Import"
-msgstr "Імпортувати"
-
-
-msgid "Assign Material"
-msgstr "Призначити Матеріал"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Light"
-msgstr "Слабко"
-
-
-msgid "Light Probe"
-msgstr "Проба Освітлення"
-
-
-msgid "Add Image"
-msgstr "Додати Зображення"
-
-
-msgid "Relations"
-msgstr "Зв'язки"
-
-
-msgid "Rigid Body"
-msgstr "Тверде тіло"
 
 
 msgid "Basic"
@@ -26675,8 +26675,8 @@ msgid "Console"
 msgstr "Консоль"
 
 
-msgid "Languages..."
-msgstr "Мови..."
+msgid "Languages"
+msgstr "Мова"
 
 
 msgid "Add Attribute"
@@ -37587,11 +37587,6 @@ msgstr "Вилучити властивість"
 
 msgid "Generate system information, saved into a text file"
 msgstr "Згенерувати системну інформацію, збережену у текстовий файл"
-
-
-msgctxt "Operator"
-msgid "Save System Info"
-msgstr "Зберегти системну інформацію"
 
 
 msgctxt "Operator"
@@ -60940,6 +60935,26 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
+msgid "Quad View"
+msgstr "Чотирибічний Огляд"
+
+
+msgid "Onion Skin"
+msgstr "Покрив Калькою"
+
+
+msgid "Stereoscopy"
+msgstr "Стереоскопія"
+
+
+msgid "Multi Frame"
+msgstr "Багато Кадр"
+
+
+msgid "Auto-Masking"
+msgstr "Авто-Маскування"
+
+
 msgid "VR"
 msgstr "ВР"
 
@@ -61002,26 +61017,6 @@ msgstr "Розміщення Штриха"
 
 msgid "Drawing Plane"
 msgstr "Площина Рисування"
-
-
-msgid "Quad View"
-msgstr "Чотирибічний Огляд"
-
-
-msgid "Onion Skin"
-msgstr "Покрив Калькою"
-
-
-msgid "Stereoscopy"
-msgstr "Стереоскопія"
-
-
-msgid "Multi Frame"
-msgstr "Багато Кадр"
-
-
-msgid "Auto-Masking"
-msgstr "Авто-Маскування"
 
 
 msgid "Chain Scaling"
@@ -66049,10 +66044,6 @@ msgstr "Індекс активної мови у сукупності мов"
 
 msgid "Whether these settings have already been auto-set or not"
 msgstr "Чи були значення цих параметрів встановлені автоматично"
-
-
-msgid "Languages"
-msgstr "Мова"
 
 
 msgid "POT File Path"
@@ -78947,11 +78938,6 @@ msgstr "Режим Екстраполяції"
 
 
 msgctxt "Operator"
-msgid "Move..."
-msgstr "Переміщення..."
-
-
-msgctxt "Operator"
 msgid "Snap"
 msgstr "Підхоп"
 
@@ -79463,11 +79449,6 @@ msgstr "Перейменування..."
 
 
 msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "Порядок Відстеження..."
-
-
-msgctxt "Operator"
 msgid "Stop Tweaking Strip Actions"
 msgstr "Зупинити Підправлення Дій Смужок"
 
@@ -79811,11 +79792,6 @@ msgstr "Правий Сусід"
 msgctxt "Operator"
 msgid "Both Sides"
 msgstr "Обидві Сторони"
-
-
-msgctxt "Operator"
-msgid "Side of Frame..."
-msgstr "Сторона Кадру..."
 
 
 msgid "Handle"
@@ -80787,11 +80763,6 @@ msgstr "Гучномовець"
 
 
 msgctxt "Operator"
-msgid "Make Local..."
-msgstr "Зробити Локальним..."
-
-
-msgctxt "Operator"
 msgid "Bake Action..."
 msgstr "Запекти Дію..."
 
@@ -81138,11 +81109,6 @@ msgstr "Зчистити Шляхи Руху"
 
 
 msgctxt "Operator"
-msgid "Sort Elements..."
-msgstr "Сортувати Елементи..."
-
-
-msgctxt "Operator"
 msgid "Extrude Vertices"
 msgstr "Видавити Вершини"
 
@@ -81417,16 +81383,6 @@ msgstr "Нема Колекцій у Примірник"
 msgctxt "Operator"
 msgid "Collection Instance"
 msgstr "Примірник Колекції"
-
-
-msgctxt "Operator"
-msgid "Reference"
-msgstr "Орієнтир"
-
-
-msgctxt "Operator"
-msgid "Background"
-msgstr "Фон"
 
 
 msgctxt "Operator"
@@ -82538,10 +82494,6 @@ msgid "ID %s uses shapekey %s, but its 'from' pointer is invalid (%p), fixing...
 msgstr "Ідентифікатор %s використовує ключ форми %s, але його вказівник 'із' є недійсним (%p), виправлення..."
 
 
-msgid "insufficient content"
-msgstr "недостатній вміст"
-
-
 msgid "unknown error reading file"
 msgstr "невідома помилка читання файлу"
 
@@ -82576,10 +82528,6 @@ msgstr "Неможливо відкрити файл blend <пам'ять>"
 
 msgid "Failed to read blend file '%s': %s"
 msgstr "Не вдалось прочитати blend-файл '%s': %s"
-
-
-msgid "Unable to read '%s': %s"
-msgstr "Неможливо прочитати '%s': %s"
 
 
 msgid "Unrecognized file format '%s'"
@@ -83262,16 +83210,6 @@ msgstr "Shift Ліва кнопка Миші"
 
 msgid "Only keyboard shortcuts can be edited that way, please use User Preferences otherwise"
 msgstr "Лише клавіатурні швидкі клавіші можуть таким чином редагуватися, для усіх інших випадків скористайтесь вікном Налаштунки Користувача"
-
-
-msgctxt "Operator"
-msgid "Change Shortcut"
-msgstr "Змінити швидку клавішу"
-
-
-msgctxt "Operator"
-msgid "Assign Shortcut"
-msgstr "Призначити Скорочення"
 
 
 msgctxt "Operator"
@@ -88972,18 +88910,6 @@ msgstr "Властивість має бути цілою або дійсною"
 
 msgid "Property must be a none, distance, factor, percentage, angle, or pixel"
 msgstr "Властивість має бути безтиповою, відстанню, множником, процентом, кутом або пікселем"
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', at position %d"
-msgstr "Реєстрація класу оператора: '%s', неправильне bl_idname '%s', у позиції %d"
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', is too long, maximum length is %d"
-msgstr "Реєстрація класу оператора: '%s', неправильне bl_idname '%s', занадто довге, найбільша довжина - %d"
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', must contain 1 '.' character"
-msgstr "Реєстрація класу оператора: '%s', неправильне bl_idname '%s', має містити один символ '.'"
 
 
 msgid "Cannot read %s '%s': %s"

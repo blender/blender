@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2025-12-08 10:32+0000\n"
 "PO-Revision-Date: 2025-07-23 15:18+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -3117,8 +3117,8 @@ msgid "Animals"
 msgstr "Gyvūnai"
 
 
-msgid "Languages..."
-msgstr "Kalbos..."
+msgid "Languages"
+msgstr "Kalbos"
 
 
 msgid "Key"
@@ -3405,11 +3405,6 @@ msgstr "„I18n“ išsaugojimo nustatymai"
 msgctxt "Operator"
 msgid "Update I18n Blender Repository"
 msgstr "Atnaujinti „I18n Blender“ saugyklą"
-
-
-msgctxt "Operator"
-msgid "Save System Info"
-msgstr "Išsaugoti sistemos informaciją"
 
 
 msgctxt "Operator"
@@ -3715,10 +3710,6 @@ msgstr "Kalbos ID"
 
 msgid "Active Language"
 msgstr "Aktyvi kalba"
-
-
-msgid "Languages"
-msgstr "Kalbos"
 
 
 msgid "Blender 2.7"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2025-12-08 10:32+0000\n"
 "PO-Revision-Date: 2025-11-14 10:59+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28413,6 +28413,18 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
+msgid "Metaball"
+msgstr "Mpira wa miguu"
+
+
+msgid "Light"
+msgstr "Mwanga"
+
+
+msgid "Light Probe"
+msgstr "Uchunguzi wa Mwanga"
+
+
 msgid "Apply"
 msgstr "Tumia"
 
@@ -28425,24 +28437,16 @@ msgid "Clean Up"
 msgstr "Safisha"
 
 
-msgid "Asset"
-msgstr "Mali"
-
-
-msgid "Bone Collections"
-msgstr "Mikusanyo ya Mifupa"
-
-
 msgid "Layout"
 msgstr "Mpangilio"
 
 
+msgid "Asset"
+msgstr "Mali"
+
+
 msgid "Adjust"
 msgstr "Rekebisha"
-
-
-msgid "Merge"
-msgstr "Unganisha"
 
 
 msgid "Keying"
@@ -28461,20 +28465,16 @@ msgid "Math"
 msgstr "Hisabati"
 
 
+msgid "Bone Collections"
+msgstr "Mikusanyo ya Mifupa"
+
+
+msgid "Merge"
+msgstr "Unganisha"
+
+
 msgid "Text"
 msgstr "Maandishi"
-
-
-msgid "Metaball"
-msgstr "Mpira wa miguu"
-
-
-msgid "Pivot Point"
-msgstr "Egemeo"
-
-
-msgid "Snap"
-msgstr "Picha"
 
 
 msgid "Read"
@@ -28493,20 +28493,16 @@ msgid "Primitives"
 msgstr "Watu wa kwanza"
 
 
-msgid "Mirror"
-msgstr "Kioo"
+msgid "Pivot Point"
+msgstr "Egemeo"
 
 
-msgid "Navigation"
-msgstr "Urambazaji"
+msgid "Snap"
+msgstr "Picha"
 
 
 msgid "Instances"
 msgstr "Matukio"
-
-
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
 
 
 msgid "Import"
@@ -28517,12 +28513,16 @@ msgid "Deprecated"
 msgstr "Imeacha kutumika"
 
 
-msgid "Light"
-msgstr "Mwanga"
+msgid "Mirror"
+msgstr "Kioo"
 
 
-msgid "Light Probe"
-msgstr "Uchunguzi wa Mwanga"
+msgid "Navigation"
+msgstr "Urambazaji"
+
+
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
 
 
 msgid "Keyframe Insert Pie"
@@ -28607,8 +28607,8 @@ msgid "Collection Specials"
 msgstr "Maalum ya Mkusanyiko"
 
 
-msgid "Languages..."
-msgstr "Lugha..."
+msgid "Languages"
+msgstr "Lugha"
 
 
 msgid "Add Attribute"
@@ -44122,11 +44122,6 @@ msgid "Generate system information, saved into a text file"
 msgstr "Tengeneza habari ya mfumo, iliyohifadhiwa kwenye faili ya maandishi"
 
 
-msgctxt "Operator"
-msgid "Save System Info"
-msgstr "Hifadhi Maelezo ya Mfumo"
-
-
 msgid "Set the tool by name (for key-maps)"
 msgstr "Weka zana kwa jina (kwa ramani muhimu)"
 
@@ -51286,18 +51281,6 @@ msgid "Name of color attribute"
 msgstr "Jina la sifa ya rangi"
 
 
-msgid "Execute a node group on geometry"
-msgstr "Tekeleza kikundi cha nodi kwenye jiometri"
-
-
-msgid "Name of the data-block to use by the operator"
-msgstr "Jina la kizuizi-data cha kutumiwa na opereta"
-
-
-msgid "Session UID of the data-block to use by the operator"
-msgstr "UID ya Kipindi cha kizuizi cha data cha kutumiwa na opereta"
-
-
 msgctxt "Operator"
 msgid "Set Geometry Randomization"
 msgstr "Weka Usanifu wa Jiometri"
@@ -57904,6 +57887,14 @@ msgstr "Ongeza Mkusanyiko wa Nodi"
 
 msgid "Add a collection info node to the current node editor"
 msgstr "Ongeza nodi ya maelezo ya mkusanyiko kwa kihariri cha nodi ya sasa"
+
+
+msgid "Name of the data-block to use by the operator"
+msgstr "Jina la kizuizi-data cha kutumiwa na opereta"
+
+
+msgid "Session UID of the data-block to use by the operator"
+msgstr "UID ya Kipindi cha kizuizi cha data cha kutumiwa na opereta"
 
 
 msgid "Source color"
@@ -73024,6 +73015,30 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
+msgid "Quad View"
+msgstr "Mtazamo wa Quad"
+
+
+msgid "Multi Frame"
+msgstr "Fremu nyingi"
+
+
+msgid "Auto-Masking"
+msgstr "Kufunika Masking Kiotomatiki"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Mchoro wa Mikunjo Ongeza Chaguzi za Mviringo"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Curves Sculpt Parameta Falloff"
+
+
+msgid "Viewport Debug"
+msgstr "Utatuzi wa kituo cha kutazama"
+
+
 msgid "View Lock"
 msgstr "Kufuli ya Tazama"
 
@@ -73074,30 +73089,6 @@ msgstr "Uwekaji wa Kiharusi"
 
 msgid "Drawing Plane"
 msgstr "Ndege ya Kuchora"
-
-
-msgid "Quad View"
-msgstr "Mtazamo wa Quad"
-
-
-msgid "Multi Frame"
-msgstr "Fremu nyingi"
-
-
-msgid "Auto-Masking"
-msgstr "Kufunika Masking Kiotomatiki"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Mchoro wa Mikunjo Ongeza Chaguzi za Mviringo"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Curves Sculpt Parameta Falloff"
-
-
-msgid "Viewport Debug"
-msgstr "Utatuzi wa kituo cha kutazama"
 
 
 msgid "Motion Blur"
@@ -78559,10 +78550,6 @@ msgstr "Fahirisi ya lugha tendaji katika mkusanyo wa lugha"
 
 msgid "Whether these settings have already been auto-set or not"
 msgstr "Ikiwa mipangilio hii tayari imewekwa kiotomatiki au la"
-
-
-msgid "Languages"
-msgstr "Lugha"
 
 
 msgid "Languages to update in work repository"
@@ -95969,11 +95956,6 @@ msgstr "Njia ya Kuzidisha"
 
 
 msgctxt "Operator"
-msgid "Move..."
-msgstr "Sogeza..."
-
-
-msgctxt "Operator"
 msgid "Snap"
 msgstr "Picha"
 
@@ -96647,11 +96629,6 @@ msgstr "Badilisha jina..."
 
 
 msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "Kuagiza Wimbo..."
-
-
-msgctxt "Operator"
 msgid "Add Above Selected"
 msgstr "Ongeza Juu Iliyochaguliwa"
 
@@ -97141,11 +97118,6 @@ msgid "Both Sides"
 msgstr "Pande zote mbili"
 
 
-msgctxt "Operator"
-msgid "Side of Frame..."
-msgstr "Upande wa Fremu..."
-
-
 msgid "Handle"
 msgstr "Mshiko"
 
@@ -97198,11 +97170,6 @@ msgstr "Mwangaza"
 msgctxt "Operator"
 msgid "Gaussian Blur"
 msgstr "Ukungu wa Gaussian"
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe with Keying Set"
-msgstr "Ingiza Fremu Muhimu kwa Kuweka Ufunguo"
 
 
 msgctxt "Operator"
@@ -98114,11 +98081,6 @@ msgstr "Msemaji"
 
 
 msgctxt "Operator"
-msgid "Make Local..."
-msgstr "Fanya Karibu Nawe..."
-
-
-msgctxt "Operator"
 msgid "Bake Object Transform to Grease Pencil..."
 msgstr "Oka Ubadilishaji wa Kitu Ili Kupaka Penseli..."
 
@@ -98352,11 +98314,6 @@ msgstr "Sasisha Njia za Mwendo wa Kivita"
 msgctxt "Operator"
 msgid "Update All Motion Paths"
 msgstr "Sasisha Njia Zote za Mwendo"
-
-
-msgctxt "Operator"
-msgid "Sort Elements..."
-msgstr "Panga Vipengele..."
 
 
 msgctxt "Operator"
@@ -98704,11 +98661,6 @@ msgstr "Hakuna Mikusanyiko kwa Mfano"
 msgctxt "Operator"
 msgid "Collection Instance"
 msgstr "Mfano wa Mkusanyo"
-
-
-msgctxt "Operator"
-msgid "Background"
-msgstr "Usuli"
 
 
 msgctxt "Operator"
@@ -100629,10 +100581,6 @@ msgid "ID %s uses shapekey %s, but its 'from' pointer is invalid (%p), fixing...
 msgstr "ID %s hutumia ufunguo wa umbo %s, lakini kielekezi chake cha 'kutoka' ni batili (%p), kinarekebisha..."
 
 
-msgid "insufficient content"
-msgstr "maudhui yasiyotosha"
-
-
 msgid "unknown error reading file"
 msgstr "faili isiyojulikana ya kusoma makosa"
 
@@ -100675,10 +100623,6 @@ msgstr "Faili ilihifadhiwa na toleo jipya zaidi, ifungue kwa Blender %s au toleo
 
 msgid "Failed to read blend file '%s': %s"
 msgstr "Imeshindwa kusoma faili mseto '%s': %s"
-
-
-msgid "Unable to read '%s': %s"
-msgstr "Haiwezi kusoma '%s': %s"
 
 
 msgid "Unrecognized file format '%s'"
@@ -101755,16 +101699,6 @@ msgstr "Shift Kushoto Kipanya"
 
 msgid "Only keyboard shortcuts can be edited that way, please use User Preferences otherwise"
 msgstr "Njia za mkato za kibodi pekee ndizo zinazoweza kuhaririwa kwa njia hiyo, tafadhali tumia Mapendeleo ya Mtumiaji vinginevyo"
-
-
-msgctxt "Operator"
-msgid "Change Shortcut"
-msgstr "Badilisha Njia ya mkato"
-
-
-msgctxt "Operator"
-msgid "Assign Shortcut"
-msgstr "Weka Njia ya mkato"
 
 
 msgctxt "Operator"
@@ -112329,18 +112263,6 @@ msgstr "Mali lazima iwe nambari kamili au kuelea"
 
 msgid "Property must be a none, distance, factor, percentage, angle, or pixel"
 msgstr "Sifa lazima iwe hakuna, umbali, kipengele, asilimia, pembe, au pikseli"
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', at position %d"
-msgstr "Kusajili darasa la opereta: '%s', bl_idname batili '%s', kwenye nafasi %d"
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', is too long, maximum length is %d"
-msgstr "Darasa la opereta la kusajili: '%s', bl_idname batili '%s', ni refu sana, urefu wa juu zaidi ni %d"
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', must contain 1 '.' character"
-msgstr "Kusajili opereta darasa: '%s', bl_idname batili '%s', lazima iwe na 1 '.'"
 
 
 msgid "Cannot read %s '%s': %s"

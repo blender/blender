@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
-"PO-Revision-Date: 2025-12-02 09:58+0000\n"
-"Last-Translator: Tan <nazapizzaemail.com@gmail.com>\n"
+"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"PO-Revision-Date: 2025-12-06 08:12+0000\n"
+"Last-Translator: Banditer1483 <pleum.wongvarit@gmail.com>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
 "Language: th\n"
 "MIME-Version: 1.0\n"
@@ -65,6 +65,42 @@ msgstr "ถุงช่องภาพเคลื่อนไหว"
 
 msgid "Collection of animation channels, typically associated with an action slot"
 msgstr "ชุดสะสมของช่องภาพเคลื่อนไหว ตามแบบอย่างแล้วเกี่ยวข้องกับช่องรูการกระทำ"
+
+
+msgid "The individual F-Curves that animate the slot"
+msgstr "เส้นโค้ง F แต่ละตัวที่เคลื่อนไหวช่องเสียบ"
+
+
+msgid "F-Curve Groups"
+msgstr "กลุ่มเส้นโค้ง F"
+
+
+msgid "Groupings of F-Curves for display purposes, in e.g. the dopesheet and graph editor"
+msgstr "การจัดกลุ่มของเส้นโค้ง F เพื่อวัตถุประสงค์ในการแสดงผล เช่น ในโปรแกรมแก้ไขโดปชีตและกราฟ"
+
+
+msgid "Slot"
+msgstr "ช่องเสียบ"
+
+
+msgid "The Slot that the Channelbag's animation data is for"
+msgstr "ช่องเสียบที่ข้อมูลแอนิเมชั่นของ Channelbag มีไว้สำหรับมัน"
+
+
+msgid "Collection of F-Curves for a specific action slot, on a specific strip"
+msgstr "การสะสมของเส้นโค้ง F สำหรับช่องเสียบการกระทำเฉพาะบนสแถบเฉพาะเจาะจง"
+
+
+msgid "Collection of f-curve groups"
+msgstr "การสะสมของกลุ่มเส้นโค้ง F"
+
+
+msgid "Animation Channels for Slots"
+msgstr "ช่องแอนิเมชั่นสำหรับช่องเสียบ"
+
+
+msgid "For each action slot, a list of animation channels that are meant for that slot"
+msgstr "สำหรับแต่ละช่องเสียบการกระทำ รายการช่องแอนิเมชั่นที่มีไว้สำหรับช่องเสียบนั้น"
 
 
 msgid "Action Group"
@@ -201,6 +237,86 @@ msgstr "กลุ่มการกระทำถูกเลือก"
 
 msgid "Expanded"
 msgstr "ขยาย"
+
+
+msgid "Action group is expanded except in graph editor"
+msgstr "กลุ่มการกระทำถูกขยายแล้วยกเว้นในตัวแก้ไขกราฟ"
+
+
+msgid "Expanded in Graph Editor"
+msgstr "ขยายแล้วในตัวแก้ไขกราฟ"
+
+
+msgid "Action group is expanded in graph editor"
+msgstr "กลุ่มการกระทำถูกขยายแล้วในตัวแก้ไขกราฟ"
+
+
+msgid "Pin in Graph Editor"
+msgstr "ปักตัวแก้ไขกราฟ"
+
+
+msgid "Action Layer"
+msgstr "ชั้นภาพที่กำลังใช้งาน"
+
+
+msgid "Strips"
+msgstr "แถบ"
+
+
+msgid "The list of strips that are on this animation layer"
+msgstr "รายการแถบที่อยู่ในชั้นภาพแอนิเมชันนี้"
+
+
+msgid "Action Layers"
+msgstr "ชั้นภาพที่กำลังใช้งาน"
+
+
+msgid "Collection of animation layers"
+msgstr "ชุดสะสมชั้นภาพแอนิเมชัน"
+
+
+msgid "Action Pose Markers"
+msgstr "ตัวบ่งการจัดท่าทางการกระทำ"
+
+
+msgid "Collection of timeline markers"
+msgstr "การรวบรวมเครื่องหมายเส้นเวลา"
+
+
+msgid "Active Pose Marker"
+msgstr "เครื่องหมายจัดท่าทางกัมมันต์"
+
+
+msgid "Active pose marker for this action"
+msgstr "เครื่องหมายท่าทางใช้งานสำหรับการกระทำนี้"
+
+
+msgid "Active Pose Marker Index"
+msgstr "ดัชนีเครื่องหมายท่าทางที่ใช้งานอยู่"
+
+
+msgid "Index of active pose marker"
+msgstr "ดัชนีของเครื่องหมายท่าทางที่ใช้งานอยู่"
+
+
+msgid "Action slot"
+msgstr "ช่องเสียบการกระทำ"
+
+
+msgid "Identifier for a set of channels in this Action, that can be used by a data-block to specify what it gets animated by"
+msgstr "ตัวระบุสำหรับชุดช่องในการดำเนินการนี้ ซึ่งสามารถใช้โดยบล็อกข้อมูลเพื่อระบุว่าจะเคลื่อนไหวอย่างไร"
+
+
+msgid "Active"
+msgstr "กัมมันต์"
+
+
+msgid "Whether this is the active slot, can be set by assigning to action.slots.active"
+msgstr "ว่านี่คือสล็อตที่ใช้งานอยู่หรือไม่ สามารถตั้งค่าได้โดยการกำหนดให้กับ action.slots.active"
+
+
+msgid "Slot Handle"
+msgstr "ที่จับช่องเสียบ"
 
 
 msgctxt "ID"
@@ -1905,6 +2021,18 @@ msgid "Mask"
 msgstr "หน้ากาก"
 
 
+msgid "Metaball"
+msgstr "เมตาบอล"
+
+
+msgid "Light"
+msgstr "แสง"
+
+
+msgid "Add Image"
+msgstr "เพิ่มภาพ"
+
+
 msgid "Apply"
 msgstr "นำไปใช้"
 
@@ -1913,24 +2041,12 @@ msgid "Track"
 msgstr "แทร็ค"
 
 
-msgid "Hooks"
-msgstr "ตะขอ"
-
-
-msgid "Names"
-msgstr "ชื่อ"
-
-
 msgid "Layout"
 msgstr "เค้าโครง"
 
 
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
-
-
-msgid "Merge"
-msgstr "ผสาน"
+msgid "Hooks"
+msgstr "ตะขอ"
 
 
 msgid "Keying"
@@ -1941,12 +2057,20 @@ msgid "Math"
 msgstr "คณิตศาสตร์"
 
 
+msgid "Names"
+msgstr "ชื่อ"
+
+
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
+
+
+msgid "Merge"
+msgstr "ผสาน"
+
+
 msgid "Text"
 msgstr "ช้อความ"
-
-
-msgid "Metaball"
-msgstr "เมตาบอล"
 
 
 msgid "Pivot Point"
@@ -1963,6 +2087,14 @@ msgstr "แก้ไข"
 
 msgid "Mask Edit"
 msgstr "การแก้ไขหน้ากาก"
+
+
+msgid "Import"
+msgstr "นำเข้า"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -1991,22 +2123,6 @@ msgstr "จัดมุมมองไปยังที่วัตถุใช
 
 msgid "View Regions"
 msgstr "ขอบเขตมุมมอง"
-
-
-msgid "Import"
-msgstr "นำเข้า"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Light"
-msgstr "แสง"
-
-
-msgid "Add Image"
-msgstr "เพิ่มภาพ"
 
 
 msgid "Zoom"
@@ -4702,16 +4818,6 @@ msgstr "แหลม"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "โครงร่าง"
-
-
-msgctxt "Operator"
-msgid "Reference"
-msgstr "อ้างอิง"
-
-
-msgctxt "Operator"
-msgid "Background"
-msgstr "พื้นหลัง"
 
 
 msgid "Mirror Vertices"

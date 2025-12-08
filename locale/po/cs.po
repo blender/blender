@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2025-12-08 10:32+0000\n"
 "PO-Revision-Date: 2025-12-01 09:17+0000\n"
 "Last-Translator: Matt Mitacek <mattmitacek@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13834,6 +13834,26 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
+
+
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
+msgid "Light"
+msgstr "Světlo"
+
+
+msgid "Relations"
+msgstr "Vztahy"
+
+
+msgid "Rigid Body"
+msgstr "Tuhé Těleso"
+
+
 msgid "Apply"
 msgstr "Použít"
 
@@ -13854,40 +13874,16 @@ msgid "Clean Up"
 msgstr "Vyčistit"
 
 
+msgid "Layout"
+msgstr "Rozložení"
+
+
 msgid "Make Single User"
 msgstr "Přivlastnit"
 
 
 msgid "Hooks"
 msgstr "Háky"
-
-
-msgid "Clear Transform"
-msgstr "Vyčistit transformaci"
-
-
-msgid "Propagate"
-msgstr "Vložit"
-
-
-msgid "Names"
-msgstr "Názvy"
-
-
-msgid "Layout"
-msgstr "Rozložení"
-
-
-msgid "Mesh Select Mode"
-msgstr "Síťový mód výběru"
-
-
-msgid "Face Data"
-msgstr "Data Ploch"
-
-
-msgid "Merge"
-msgstr "Sloučit"
 
 
 msgid "Keying"
@@ -13902,8 +13898,32 @@ msgid "Utilities"
 msgstr "Nástroje"
 
 
+msgid "Clear Transform"
+msgstr "Vyčistit transformaci"
+
+
 msgid "Math"
 msgstr "Matematika"
+
+
+msgid "Propagate"
+msgstr "Vložit"
+
+
+msgid "Names"
+msgstr "Názvy"
+
+
+msgid "Mesh Select Mode"
+msgstr "Síťový mód výběru"
+
+
+msgid "Face Data"
+msgstr "Data Ploch"
+
+
+msgid "Merge"
+msgstr "Sloučit"
 
 
 msgid "Special Characters"
@@ -13912,10 +13932,6 @@ msgstr "Speciální Znaky"
 
 msgid "Text"
 msgstr "Text"
-
-
-msgid "Metaball"
-msgstr "Meta objekt"
 
 
 msgid "Bone Roll"
@@ -13932,6 +13948,14 @@ msgstr "Přichytit"
 
 msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
+
+
+msgid "Instances"
+msgstr "Instance"
+
+
+msgid "Import"
+msgstr "Importovat"
 
 
 msgid "Mirror"
@@ -13954,32 +13978,8 @@ msgid "Align View"
 msgstr "Zarovnat pohled"
 
 
-msgid "Instances"
-msgstr "Instance"
-
-
 msgid "Select Linked"
 msgstr "Vybrat Propojené"
-
-
-msgid "Import"
-msgstr "Importovat"
-
-
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
-
-
-msgid "Light"
-msgstr "Světlo"
-
-
-msgid "Relations"
-msgstr "Vztahy"
-
-
-msgid "Rigid Body"
-msgstr "Tuhé Těleso"
 
 
 msgid "Basic"
@@ -14015,8 +14015,8 @@ msgid "Console"
 msgstr "Konzola"
 
 
-msgid "Languages..."
-msgstr "Jazyky..."
+msgid "Languages"
+msgstr "Jazyky"
 
 
 msgid "Add Attribute"
@@ -18453,11 +18453,6 @@ msgstr "Odstranit Vlastnost"
 
 msgid "Generate system information, saved into a text file"
 msgstr "Generovat informace o systému a uložit je do textového souboru"
-
-
-msgctxt "Operator"
-msgid "Save System Info"
-msgstr "Uložit Systémové Informace"
 
 
 msgctxt "Operator"
@@ -30486,6 +30481,14 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Maska"
+
+
 msgid "Active Tool"
 msgstr "Aktivní nástroj"
 
@@ -30532,14 +30535,6 @@ msgstr "Editační Režim Křivky"
 
 msgid "Transform Orientations"
 msgstr "Orientace transformací"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Maska"
 
 
 msgid "Chain Scaling"
@@ -33109,10 +33104,6 @@ msgstr "Jazyk & Fonty"
 
 msgid "Language ID"
 msgstr "ID Jazyka"
-
-
-msgid "Languages"
-msgstr "Jazyky"
 
 
 msgid "POT File Path"
@@ -38471,11 +38462,6 @@ msgstr "Po současném snímku"
 
 
 msgctxt "Operator"
-msgid "Move..."
-msgstr "Přesunout..."
-
-
-msgctxt "Operator"
 msgid "Snap"
 msgstr "Přichytit"
 
@@ -39646,11 +39632,6 @@ msgstr "Reproduktor"
 
 
 msgctxt "Operator"
-msgid "Make Local..."
-msgstr "Vytvořit lokální..."
-
-
-msgctxt "Operator"
 msgid "Bake Action..."
 msgstr "Bake Akci..."
 
@@ -39894,11 +39875,6 @@ msgstr "Vymazat cesty pohybu"
 
 
 msgctxt "Operator"
-msgid "Sort Elements..."
-msgstr "Seřadit prvky..."
-
-
-msgctxt "Operator"
 msgid "Extrude Vertices"
 msgstr "Vysunout vrcholy"
 
@@ -40074,16 +40050,6 @@ msgstr "Vybrat non-manifold"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "Kostra"
-
-
-msgctxt "Operator"
-msgid "Reference"
-msgstr "Reference"
-
-
-msgctxt "Operator"
-msgid "Background"
-msgstr "Pozadí"
 
 
 msgctxt "Operator"
@@ -40498,10 +40464,6 @@ msgid "ID %s not found in library %s anymore!"
 msgstr "ID %s se v knihovně %s už nenašlo!"
 
 
-msgid "insufficient content"
-msgstr "nedostatek obsahu"
-
-
 msgid "unknown error reading file"
 msgstr "neznámá chyba čtení souboru"
 
@@ -40516,10 +40478,6 @@ msgstr "Není možné otevřít soubor"
 
 msgid "Unable to open blend <memory>"
 msgstr "Není možné otevřít soubor"
-
-
-msgid "Unable to read '%s': %s"
-msgstr "Nelze číst '%s': %s"
 
 
 msgid "Unrecognized file format '%s'"
@@ -40772,16 +40730,6 @@ msgstr "Nastavení hodnoty se nezdařilo"
 
 msgid "Pin"
 msgstr "Připnout"
-
-
-msgctxt "Operator"
-msgid "Change Shortcut"
-msgstr "Znaky"
-
-
-msgctxt "Operator"
-msgid "Assign Shortcut"
-msgstr "Přiřadit Zkratku"
 
 
 msgctxt "Operator"

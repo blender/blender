@@ -1,0 +1,3191 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"PO-Revision-Date: 2025-12-07 22:42+0000\n"
+"Last-Translator: Martin Hansen <mh306602@gmail.com>\n"
+"Language-Team: Norwegian Bokmål <https://translate.blender.org/projects/blender-ui/ui/nb_NO/>\n"
+"Language: nb_NO\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.14.3"
+
+
+msgid "Shader AOV"
+msgstr "Fargelegger-AOV"
+
+
+msgid "Valid"
+msgstr "Gyldig"
+
+
+msgid "Is the name of the AOV conflicting"
+msgstr "Er navnet på AOV-en i konflikt"
+
+
+msgid "Name"
+msgstr "Navn"
+
+
+msgid "Name of the AOV"
+msgstr "Navnet til AOV-en"
+
+
+msgid "Type"
+msgstr "Type"
+
+
+msgid "Data type of the AOV"
+msgstr "Datatypen til AOV-en"
+
+
+msgid "Color"
+msgstr "Farge"
+
+
+msgid "Value"
+msgstr "Verdi"
+
+
+msgid "List of AOVs"
+msgstr "Liste over AOV-er"
+
+
+msgid "Collection of AOVs"
+msgstr "Samling av AOV-er"
+
+
+msgid "Animation Channel Bag"
+msgstr "Animasjons-kanalpose"
+
+
+msgid "Collection of animation channels, typically associated with an action slot"
+msgstr "Samling av animasjons-kanaler, vanligvis forbundet med en handlings-plass"
+
+
+msgid "F-Curves"
+msgstr "F-kurver"
+
+
+msgid "The individual F-Curves that animate the slot"
+msgstr "De enkelte F-kuvene som animerer handlings-plassen"
+
+
+msgid "F-Curve Groups"
+msgstr "F-kurve grupper"
+
+
+msgid "Groupings of F-Curves for display purposes, in e.g. the dopesheet and graph editor"
+msgstr "Grupperinger av F-kurver til visnings formål, f.eks. animasjonstabellen og graf redigering"
+
+
+msgid "Slot"
+msgstr "Handlings-plass"
+
+
+msgid "The Slot that the Channelbag's animation data is for"
+msgstr "Plassen som kanalposens animasjonsdata er for"
+
+
+msgid "Collection of F-Curves for a specific action slot, on a specific strip"
+msgstr "Samling av F-kurver for en spesifikk handlings-plass, på en spesifikk stripe"
+
+
+msgid "Collection of f-curve groups"
+msgstr "Samling av F-kurve grupperinger"
+
+
+msgid "Animation Channels for Slots"
+msgstr "Animasjons-kanaler for handlings-plasser"
+
+
+msgid "For each action slot, a list of animation channels that are meant for that slot"
+msgstr "For hver handlings-plass, en liste av animasjons-kanaler ment for den handlings-plassen"
+
+
+msgid "Action Group"
+msgstr "Handlingsgrupper"
+
+
+msgid "Groups of F-Curves"
+msgstr "Grupper av F-kurver"
+
+
+msgid "Channels"
+msgstr "Kanaler"
+
+
+msgid "F-Curves in this group"
+msgstr "F-kurver i denne gruppa"
+
+
+msgid "Color Set"
+msgstr "Fargesett"
+
+
+msgid "Custom color set to use"
+msgstr "Tilpasset farge valgt for bruk"
+
+
+msgid "Default Colors"
+msgstr "Standard farger"
+
+
+msgid "01 - Theme Color Set"
+msgstr "01 - Tema fargesett"
+
+
+msgid "02 - Theme Color Set"
+msgstr "02 - Tema fargesett"
+
+
+msgid "03 - Theme Color Set"
+msgstr "03 - Tema fargesett"
+
+
+msgid "04 - Theme Color Set"
+msgstr "04 - Tema fargesett"
+
+
+msgid "05 - Theme Color Set"
+msgstr "05 - Tema fargesett"
+
+
+msgid "06 - Theme Color Set"
+msgstr "06 - Tema fargesett"
+
+
+msgid "07 - Theme Color Set"
+msgstr "07 - Tema fargesett"
+
+
+msgid "08 - Theme Color Set"
+msgstr "08 - Tema fargesett"
+
+
+msgid "09 - Theme Color Set"
+msgstr "09 - Tema fargesett"
+
+
+msgid "10 - Theme Color Set"
+msgstr "10 - Tema fargesett"
+
+
+msgid "11 - Theme Color Set"
+msgstr "11 - Tema fargesett"
+
+
+msgid "12 - Theme Color Set"
+msgstr "12 - Tema fargesett"
+
+
+msgid "13 - Theme Color Set"
+msgstr "13 - Tema fargesett"
+
+
+msgid "14 - Theme Color Set"
+msgstr "14 - Tema fargesett"
+
+
+msgid "15 - Theme Color Set"
+msgstr "15 - Tema fargesett"
+
+
+msgid "16 - Theme Color Set"
+msgstr "16 - Tema fargesett"
+
+
+msgid "17 - Theme Color Set"
+msgstr "17 - Tema fargesett"
+
+
+msgid "18 - Theme Color Set"
+msgstr "18 - Tema fargesett"
+
+
+msgid "19 - Theme Color Set"
+msgstr "19 - Tema fargesett"
+
+
+msgid "20 - Theme Color Set"
+msgstr "20 - Tema fargesett"
+
+
+msgid "Custom Color Set"
+msgstr "Tilpasset fargesett"
+
+
+msgid "Colors"
+msgstr "Farger"
+
+
+msgid "Copy of the colors associated with the group's color set"
+msgstr "Kopi av fargen bundet med gruppens fargesett"
+
+
+msgid "Color set is user-defined instead of a fixed theme color set"
+msgstr "Fargesett er brukertilpasset i stedet for et fast fargetemasett"
+
+
+msgid "Lock"
+msgstr "Lås"
+
+
+msgid "Action group is locked"
+msgstr "Handlingsgruppa er låst"
+
+
+msgid "Mute"
+msgstr "Demp"
+
+
+msgid "Action group is muted"
+msgstr "Handlingsgruppa er dempet"
+
+
+msgid "Select"
+msgstr "Velg"
+
+
+msgid "Action group is selected"
+msgstr "Handlingsgruppa er valgt"
+
+
+msgid "Expanded"
+msgstr "Utvidet"
+
+
+msgid "Action group is expanded except in graph editor"
+msgstr "Handlingsgruppa er utvidet bortsett fra i graf redigering"
+
+
+msgid "Expanded in Graph Editor"
+msgstr "Utvidet i graf redigering"
+
+
+msgid "Action group is expanded in graph editor"
+msgstr "Handlingsgruppa er utvidet i graf redigering"
+
+
+msgid "Pin in Graph Editor"
+msgstr "Fest i graf redigering"
+
+
+msgid "Action Layer"
+msgstr "Handlingslag"
+
+
+msgid "Strips"
+msgstr "Striper"
+
+
+msgid "The list of strips that are on this animation layer"
+msgstr "Lista med striper som er på dette animasjonslaget"
+
+
+msgid "Action Layers"
+msgstr "Handlingslag"
+
+
+msgid "Collection of animation layers"
+msgstr "Samling av animasjonslag"
+
+
+msgid "Action Pose Markers"
+msgstr "Handlingsposeringsmarkører"
+
+
+msgid "Collection of timeline markers"
+msgstr "Samling av tidslinjemarkører"
+
+
+msgid "Active Pose Marker"
+msgstr "Gjeldende poseringsmarkør"
+
+
+msgid "Active pose marker for this action"
+msgstr "Gjeldende poseringsmarkør for denne handlinga"
+
+
+msgid "Active Pose Marker Index"
+msgstr "Gjeldende poseringsmarkør indeks"
+
+
+msgid "Index of active pose marker"
+msgstr "Indeks for gjeldende poseringsmarkører"
+
+
+msgid "Action slot"
+msgstr "Handlings-plass"
+
+
+msgid "Identifier for a set of channels in this Action, that can be used by a data-block to specify what it gets animated by"
+msgstr "Identifikator for et sett kanaler i denne handlinga, som kan brukes av en datablokk til å spesifisere hva den animeres av"
+
+
+msgid "Active"
+msgstr "Gjeldende"
+
+
+msgid "Whether this is the active slot, can be set by assigning to action.slots.active"
+msgstr "Om denne er den handlings-plassen i bruk, kan velges ved å tildele til action.slots.active"
+
+
+msgid "Slot Handle"
+msgstr "Handlings-plasshåndtak"
+
+
+msgid ""
+"Number specific to this Slot, unique within the Action.\n"
+"This is used, for example, on a ActionKeyframeStrip to look up the ActionChannelbag for this Slot"
+msgstr ""
+"Tall, spesifikt for denne plassen, unikt i handlinga.\n"
+"Dette brukes f.eks. på ei handlings-nøkkelbildestripe for å søke etter handlings-kanalposen for denne plassen"
+
+
+msgid "Slot Identifier"
+msgstr "Handlings-plass-identifikator"
+
+
+msgid "Used when connecting an Action to a data-block, to find the correct slot handle. This is the display name, prefixed by two characters determined by the slot's ID type"
+msgstr "Brukes ved tilkobling av en handling til en datablokk, for å finne det riktige handlings-plasshåndtaket. Dette er visningsnavnet, etterfulgt av to tegn, bestemt av plass-ID-typen"
+
+
+msgid "Slot Display Name"
+msgstr "Handlings-plass visningsnavn"
+
+
+msgid "Name of the slot, for display in the user interface. This name combined with the slot's data-block type is unique within its Action"
+msgstr "Navnet på handlings-plassen, for visning i brukergrensesnittet. Dette navnet kombinert med plassens type datablokk er unik i dens handling"
+
+
+msgid "Selection state of the slot"
+msgstr "Valgtilstand for handlings-plassen"
+
+
+msgid "Show Expanded"
+msgstr "Vis utvidet"
+
+
+msgid "Expanded state of the slot"
+msgstr "Utvidet tilstand av handlings-plassen"
+
+
+msgctxt "ID"
+msgid "Target ID Type"
+msgstr "Mål ID-type"
+
+
+msgid "Type of data-block that this slot is intended to animate; can be set when 'UNSPECIFIED' but is otherwise read-only"
+msgstr "Type datablokk, som denne handlings-plassen er ment å animere; kan velges når «IKKE-SPESIFISERT», men ellers er skrivebeskyttet"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Handling"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Armatur"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Pensel"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Hurtiglagringsfil"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Samling"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Kurve"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "Kurver"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Skrift"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
+msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "Grease Pencil v3"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Bilde"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Nøkkel"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Gitter"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Bibliotek"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Lys"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "Lyssonder"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Linjestil"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Maske"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Material"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Maskenett"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "Filmklipp"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "Nodetre"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Objekt"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "Malingskurve"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Palett"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Partikkel"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Punktskyer"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Scene"
+
+
+msgctxt "ID"
+msgid "Screen"
+msgstr "Skjerm"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Lyd"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Høyttaler"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Tekst"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Tekstur"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Volum"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Vindusbehandler"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Arbeidsområde"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Verden"
+
+
+msgctxt "ID"
+msgid "Unspecified"
+msgstr "Ikke-spesifisert"
+
+
+msgid "Not yet specified. When this slot is first assigned to a data-block, this will be set to the type of that data-block"
+msgstr "Ikke enda spesifisert. Når denne handlings-plassen er tildelt en datablokk, vil denne bli valgt til typen for den datablokken"
+
+
+msgid "Action Slots"
+msgstr "Handlings-plass"
+
+
+msgid "Collection of action slots"
+msgstr "Samling av handlings-plasser"
+
+
+msgid "Active Slot"
+msgstr "Gjeldende handlings-plass"
+
+
+msgid "Active slot for this action"
+msgstr "Gjeldende handlings-plass for denne handlinga"
+
+
+msgid "Action Strip"
+msgstr "Handlingsstripe"
+
+
+msgid "Keyframe"
+msgstr "Nøkkelbilde"
+
+
+msgid "Strip with a set of F-Curves for each action slot"
+msgstr "Stripe med et sett F-kurver for hvert handlings-plass"
+
+
+msgid "Keyframe Animation Strip"
+msgstr "Nøkkelbilde-animasjonsstripe"
+
+
+msgid "Action Strips"
+msgstr "Handlingsstriper"
+
+
+msgid "Collection of animation strips"
+msgstr "Samling av animasjonsstriper"
+
+
+msgid "Add-on"
+msgstr "Tillegg"
+
+
+msgid "Python add-ons to be loaded automatically"
+msgstr "Python-tillegg som lastes inn automatisk"
+
+
+msgid "Module"
+msgstr "Modul"
+
+
+msgid "Module name"
+msgstr "Modulnavn"
+
+
+msgid "Add-on Preferences"
+msgstr "Tilleggsinnstillinger"
+
+
+msgid "Compute Device Type"
+msgstr "Beregningsenhet-type"
+
+
+msgid "Device to use for computation (rendering with Cycles)"
+msgstr "Enhet, for bruk til beregning (gjengivelse med Cycles)"
+
+
+msgid "Kernel Optimization"
+msgstr "Kjerneoptimalisering"
+
+
+msgid "Kernels can be optimized based on scene content. Optimized kernels are requested at the start of a render. If optimized kernels are not available, rendering will proceed using generic kernels until the optimized set is available in the cache. This can result in additional CPU usage for a brief time (tens of seconds)"
+msgstr "Kjerner kan optimaliseres basert på sceneinnhold. Optimaliserte kjerner anmodes ved begynnelsen av en gjengivelse. Hvis en optimalisert kjerne ikke er tilgjengelig, fortsettes gjengivelsen med en vanlig kjerne, inntil det optimaliserte settet er tilgjengelig i hurtiglageret. Dette kan resultere i ytterligere CPU-bruk i en kort periode (titalls av sekunder)"
+
+
+msgid "Off"
+msgstr "Av"
+
+
+msgid "Disable kernel optimization. Slowest rendering, no extra background CPU usage"
+msgstr "Slå av kjerneoptimalisering. Tregeste gjengivelse, ingen ekstra CPU-bruk i bakgrunnen"
+
+
+msgid "Intersection only"
+msgstr "Kun kryss"
+
+
+msgid "Optimize only intersection kernels. Faster rendering, negligible extra background CPU usage"
+msgstr "Optimaliser kun krysspunktkjerner. Raskere gjengivelse, ubetydelig ekstra CPU-bruk i bakgrunnen"
+
+
+msgid "Full"
+msgstr "Full"
+
+
+msgid "Optimize all kernels. Fastest rendering, may result in extra background CPU usage"
+msgstr "Optimaliser alle kjerner. Raskest gjengivelse, kan resultere i ekstra CPU-bruk i bakgrunnen"
+
+
+msgid "MetalRT"
+msgstr "MetalRT"
+
+
+msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases"
+msgstr "MetalRT for strålesporing bruker mindre minne for scener, der det brukes mange kurver, og kan gi bedre ytelse i noen tilfeller"
+
+
+msgid "Disable MetalRT (uses BVH2 layout for intersection queries)"
+msgstr "Slå av MetalRT (bruker BVH2-utforming for krysspunkt-søk)"
+
+
+msgid "On"
+msgstr "På"
+
+
+msgid "Enable MetalRT for intersection queries"
+msgstr "Slå på MetalRT for krysspunkt-søk"
+
+
+msgid "Auto"
+msgstr "Automatisk"
+
+
+msgid "Automatically pick the fastest intersection method"
+msgstr "Velg automatisk den raskeste krysspunkt-metoden"
+
+
+msgid "Distribute memory across devices"
+msgstr "Tildel minne på tvers av enheter"
+
+
+msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
+msgstr "Gi mer plass for store scener ved å tildele minne på tvers av sammenkoblede enheter (f.eks. via NVLink) i stedet for å duplisere det"
+
+
+msgid "HIP RT"
+msgstr "HIP RT"
+
+
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above"
+msgstr "HIP RT tar i bruk AMD-maskinvarestrålesporing på RDNA2 og nyere"
+
+
+msgid "Embree on GPU"
+msgstr "Embree på GPU"
+
+
+msgid "Embree on GPU enables the use of hardware ray tracing on Intel GPUs, providing better overall performance"
+msgstr "Embree på GPU tar i bruk maskinvarestrålesporing på Intel-GPU-er, hvilket gir bedre ytelse på generelt grunnlag"
+
+
+msgid "KHR_materials_variants_ui"
+msgstr "KHR_materials_variants_ui"
+
+
+msgid "Displays glTF UI to manage material variants"
+msgstr "Viser glTF-grensesnitt for håndtering av materielle varianter"
+
+
+msgid "Allow glTF Embedded format"
+msgstr "Tillat glTF innebygget format"
+
+
+msgid "Display glTF UI to manage animations"
+msgstr "Vis glTF-grensesnitt for håndtering av animasjoner"
+
+
+msgid "glTFpack file path"
+msgstr "glTFpack filsti"
+
+
+msgid "Path to gltfpack binary"
+msgstr "Sti til gltfpack-binær"
+
+
+msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
+msgstr "Viser glTF materiellutdatanode i fargelegger redigering (Legg til meny → utdata)"
+
+
+msgid "        Filter by Name"
+msgstr "        Filtrer etter navn"
+
+
+msgid "Show only hotkeys that have this text in their name"
+msgstr "Vis kun hurtigtast, der denne har tekst i dens navn"
+
+
+msgid "Hide Mix Nodes"
+msgstr "Skjul blandingsnoder"
+
+
+msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify whether to collapse them or show the full node with options expanded"
+msgstr "Når du fletter noder sammen med «Ctrl + Numpad0»-hurtigtasten (og lignende), skal du velge, om de skal skjules eller vise hele noden med utvidede innstillinger"
+
+
+msgid "Always"
+msgstr "Alltid"
+
+
+msgid "Always collapse the new merge nodes"
+msgstr "Skjul alltid de nye sammenflettingsnodene"
+
+
+msgid "Non-Shader"
+msgstr "Ingen-fargelegging"
+
+
+msgid "Collapse in all cases except for shaders"
+msgstr "Fold sammen i alle tilfeller unntatt fargeleggere"
+
+
+msgid "Never"
+msgstr "Aldri"
+
+
+msgid "Never collapse the new merge nodes"
+msgstr "Aldri fold sammen de nye sammenflettingsnodene"
+
+
+msgid "Mix Node Position"
+msgstr "Blandingsnodeposisjon"
+
+
+msgid "When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specify the position of the new nodes"
+msgstr "Når du fletter noder sammen noder med «Ctrl + Numpad0»-hurtigtasten (og lignende), skal du velge plasseringen av de nye nodene"
+
+
+msgid "Center"
+msgstr "Midtstilt"
+
+
+msgid "Place the Mix node between the two nodes"
+msgstr "Plasser blandingsnodene mellom de to nodene"
+
+
+msgid "Bottom"
+msgstr "Nederst"
+
+
+msgid "Place the Mix node at the same height as the lowest node"
+msgstr "Plasser blandingsnoden på samme høyde som den nederste node"
+
+
+msgid "Show Hotkey List"
+msgstr "Vis hurtigtastliste"
+
+
+msgid "Expand this box into a list of all the hotkeys for functions in this addon"
+msgstr "Utvid denne boksen til en liste over alle hurtigtaster for funksjoner i dette tillegget"
+
+
+msgid "Show Principled Naming Tags"
+msgstr "Vis prinsipielle navnemerker"
+
+
+msgid "Expand this box into a list of all naming tags for Principled Texture setup"
+msgstr "Utvid denne boksen til en liste over alle prinsipielle navnemerker for prinsipielt teksturoppsett"
+
+
+msgid "Fribidi Library"
+msgstr "Fribidi-bibliotek"
+
+
+msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in Blender libraries repository"
+msgstr "Fribidi C kompilerte bibliotek (.so under Linux, .dll under windows …), du må sannsynligvis redigere det, hvis du er under windows, f.eks. ved å bruke den som er inkludert i Blender library repository"
+
+
+msgid "Translation Root"
+msgstr "Oversettelsesrot"
+
+
+msgid "The bf-translation repository"
+msgstr "bf-oversettelses-depotet"
+
+
+msgid "Import Paths"
+msgstr "Importer søkestier"
+
+
+msgid "Additional paths to add to sys.path (';' separated)"
+msgstr "Ytterligere stier å legge til i sys.path («;» separert)"
+
+
+msgid "Source Root"
+msgstr "Kilde rot"
+
+
+msgid "The Blender source root path"
+msgstr "Blender-kildens rotsti"
+
+
+msgid "Spell Cache"
+msgstr "Stavehurtiglagring"
+
+
+msgid "A cache storing validated msgids, to avoid re-spellchecking them"
+msgstr "Et hurtiglager for lagring av validerte msgids, for å unngå stavekontroll av dem igjen"
+
+
+msgid "Warn Msgid Not Capitalized"
+msgstr "Advarselsmeldingen er ikke skrevet med store bokstaver"
+
+
+msgid "Warn about messages not starting by a capitalized letter (with a few allowed exceptions!)"
+msgstr "Advar om meldinger, som ikke starter med stor forbokstav (med noen få tillate unntak!)"
+
+
+msgid "Persistent Data Path"
+msgstr "Vedvarende data sti"
+
+
+msgid "The name of a json file storing those settings (unfortunately, Blender's system does not work here)"
+msgstr "Navnet på en json-fil som lagrer disse innstillingene (dessverre, fungerer ikke Blenders system her)"
+
+
+msgid "User Add-ons"
+msgstr "Brukertillegg"
+
+
+msgid "Collection of add-ons"
+msgstr "Samling av tillegg"
+
+
+msgid "Animation Data"
+msgstr "Animasjonsdata"
+
+
+msgid "Animation data for data-block"
+msgstr "Animasjonsdata for datablokk"
+
+
+msgid "Action"
+msgstr "Handling"
+
+
+msgid "Active Action for this data-block"
+msgstr "Gjeldende handling for denne datablokka"
+
+
+msgid "Action Blending"
+msgstr "Handlingsovergang"
+
+
+msgid "Method used for combining Active Action's result with result of NLA stack"
+msgstr "Metode brukt for å kombinere resultatet av gjeldende handlinger med resultatet av NLA-bunka"
+
+
+msgid "Replace"
+msgstr "Erstatt"
+
+
+msgid "The strip values replace the accumulated results by amount specified by influence"
+msgstr "Stripe verdien erstatter de oppsamlede resultatene med mengden valgt av innflytelse"
+
+
+msgid "Combine"
+msgstr "Kombiner"
+
+
+msgid "The strip values are combined with accumulated results by appropriately using addition, multiplication, or quaternion math, based on channel type"
+msgstr "Stripe verdiene kombineres med oppsamlede resultater ved å bruke addisjon, multiplikasjon eller kvaternion matte, basert på kanaltype"
+
+
+msgid "Add"
+msgstr "Legg til"
+
+
+msgid "Weighted result of strip is added to the accumulated results"
+msgstr "Vektet resultat av stripa legges til de oppsamlede resultatene"
+
+
+msgid "Subtract"
+msgstr "Subtrahere"
+
+
+msgid "Weighted result of strip is removed from the accumulated results"
+msgstr "Vektet resultat fra stripa fjernes fra de oppsamlede resultatene"
+
+
+msgid "Multiply"
+msgstr "Multiplisere"
+
+
+msgid "Weighted result of strip is multiplied with the accumulated results"
+msgstr "Vektet resultat av stripa multipliseres med de oppsamlede resultatene"
+
+
+msgid "Action Extrapolation"
+msgstr "Handlingsekstrapolering"
+
+
+msgid "Action to take for gaps past the Active Action's range (when evaluating with NLA)"
+msgstr "Handling som skal iverksettes for hull utenfor gjeldende handlings område (ved evaluering med NLA)"
+
+
+msgid "Nothing"
+msgstr "Ingenting"
+
+
+msgid "Strip has no influence past its extents"
+msgstr "Stripa har ingen innflytelse ut over dets omfang"
+
+
+msgid "Hold"
+msgstr "Hold"
+
+
+msgid "Hold the first frame if no previous strips in track, and always hold last frame"
+msgstr "Hold det første bildet hvis ingen tidligere striper i sporet, og hold alltid det siste bildet"
+
+
+msgid "Hold Forward"
+msgstr "Hold fremover"
+
+
+msgid "Only hold last frame"
+msgstr "Hold kun siste bilde"
+
+
+msgid "Action Influence"
+msgstr "Handlings innflytelse"
+
+
+msgid "Amount the Active Action contributes to the result of the NLA stack"
+msgstr "Mengden den gjeldende handling bidrar til resultatet av NLA-bunka"
+
+
+msgid "Action Slot"
+msgstr "Handlings-plass"
+
+
+msgid "The slot identifies which sub-set of the Action is considered to be for this data-block, and its name is used to find the right slot when assigning an Action"
+msgstr "Handlings-plassen identifiserer hvilken del av handlinga skal betraktes å være for denne datablokka, og navnet brukes til å finne riktig plass når en handling tildeles"
+
+
+msgid "Action Slot Handle"
+msgstr "Handlings-plass håndtak"
+
+
+msgid "A number that identifies which sub-set of the Action is considered to be for this data-block"
+msgstr "Et tall som identifiserer hvilken del av handlinga skal betraktes å være for denne datablokka"
+
+
+msgid "Tweak Mode Action Slot Storage"
+msgstr "Justeringsmodus for lagring av handlings-plass"
+
+
+msgid "Storage to temporarily hold the main action slot while in tweak mode"
+msgstr "Lagring for midlertidig bevaring av hoved handlings-plassen mens i justeringsmodus"
+
+
+msgid "Slots"
+msgstr "Handlings-plass"
+
+
+msgid "The list of slots in this animation data-block"
+msgstr "Lista over handlings-plasser i denne animasjons datablokka"
+
+
+msgid "Tweak Mode Action Storage"
+msgstr "Justeringsmodus for handlingslagring"
+
+
+msgid "Storage to temporarily hold the main action while in tweak mode"
+msgstr "Lagring for midlertidig bevaring av hoved handlinga mens i justeringsmodus"
+
+
+msgid "Drivers"
+msgstr "Drivere"
+
+
+msgid "The Drivers/Expressions for this data-block"
+msgstr "Driverne/utrykkene for denne datablokka"
+
+
+msgid "Last Action Slot Identifier"
+msgstr "Siste handlings-plass identifikator"
+
+
+msgid "The identifier of the most recently assigned action slot. The slot identifies which sub-set of the Action is considered to be for this data-block, and its identifier is used to find the right slot when assigning an Action."
+msgstr "Identifikatoren for den sist brukte tildelte handlings-plassen. Plassen identifiserer hvilken del av handlinga skal betraktes å være for denne datablokka, og dens identifikator brukes for å finne den riktige plasseringa ved tildeling av en handling."
+
+
+msgid "NLA Tracks"
+msgstr "NLA-spor"
+
+
+msgid "NLA Tracks (i.e. Animation Layers)"
+msgstr "NLA-spor (f.eks. animasjonslag)"
+
+
+msgid "NLA Evaluation Enabled"
+msgstr "NLA-evaluering i bruk"
+
+
+msgid "NLA stack is evaluated when evaluating this block"
+msgstr "NLA-bunka evalueres ved evaluering av denne blokka"
+
+
+msgid "Use NLA Tweak Mode"
+msgstr "Bruk NLA justeringsmodus"
+
+
+msgid "Whether to enable or disable tweak mode in NLA"
+msgstr "Om NLA justeringsmodus skal være i bruk eller ei"
+
+
+msgid "Collection of Driver F-Curves"
+msgstr "Samling av driverens F-kurver"
+
+
+msgid "Animation Visualization"
+msgstr "Animasjonsvisualisering"
+
+
+msgid "Settings for the visualization of motion"
+msgstr "Innstillinger for visualisering av bevegelser"
+
+
+msgid "Motion Paths"
+msgstr "Bevegelses stier"
+
+
+msgid "Motion Path settings for visualization"
+msgstr "Innstillinger for bevegelses sti til visualisering"
+
+
+msgid "Motion Path Settings"
+msgstr "Innstillinger for bevegelses sti"
+
+
+msgid "Motion Path settings for animation visualization"
+msgstr "Innstillinger for bevegelses sti til animasjonsvisualisering"
+
+
+msgid "Bake Location"
+msgstr "Bake plassering"
+
+
+msgid "When calculating Bone Paths, use Head or Tips"
+msgstr "Når du beregner beinsti, bruk hode eller endene"
+
+
+msgid "Heads"
+msgstr "Hoder"
+
+
+msgid "Calculate bone paths from heads"
+msgstr "Beregn beinstiene fra hodene"
+
+
+msgid "Tails"
+msgstr "Haler"
+
+
+msgid "Calculate bone paths from tails"
+msgstr "Beregn beinstiene fra halene"
+
+
+msgid "After Current"
+msgstr "Etter gjeldende"
+
+
+msgid "Number of frames to show after the current frame (only for 'Around Frame' Onion-skinning method)"
+msgstr "Antall bilder å vise etter gjeldende bilde (kun for «Rundt bilde» løk kuttings metode)"
+
+
+msgid "Before Current"
+msgstr "Før gjeldende"
+
+
+msgid "Number of frames to show before the current frame (only for 'Around Frame' Onion-skinning method)"
+msgstr "Antall bilder å vise før gjeldende bilde (kun for «Rundt bilde» løk kuttings metode)"
+
+
+msgid "End Frame"
+msgstr "Slutt bilde"
+
+
+msgid "End frame of range of paths to display/calculate (not for 'Around Frame' Onion-skinning method)"
+msgstr "Slutt bilde for et område med stier som skal vises/beregnes (ikke for «Rundt bilde» løk kuttings metode)"
+
+
+msgid "Start Frame"
+msgstr "Start bilde"
+
+
+msgid "Starting frame of range of paths to display/calculate (not for 'Around Frame' Onion-skinning method)"
+msgstr "Start bilde for et område med stier som skal vises/beregnes (ikke for «Rundt bilde» løk kuttings metode)"
+
+
+msgid "Frame Step"
+msgstr "Bildesteg"
+
+
+msgid "Number of frames between paths shown (not for 'On Keyframes' Onion-skinning method)"
+msgstr "Antall bilder mellom viste stier (ikke for «På nøkkelbilder» løk kuttings metode)"
+
+
+msgid "Has Motion Paths"
+msgstr "Har bevegelses stier"
+
+
+msgid "Are there any bone paths that will need updating (read-only)"
+msgstr "Er det noen beinstier, som trenger oppdatering (skrivebeskyttet)"
+
+
+msgid "Paths Range"
+msgstr "Sti område"
+
+
+msgid "Type of range to calculate for Motion Paths"
+msgstr "Type område som skal beregnes for bevegelses stier"
+
+
+msgid "All Keys"
+msgstr "Alle nøkler"
+
+
+msgid "From the first keyframe to the last"
+msgstr "Fra det første nøkkelbilde til det siste"
+
+
+msgid "Selected Keys"
+msgstr "Valgte nøkler"
+
+
+msgid "From the first selected keyframe to the last"
+msgstr "Fra det første valgte nøkkelbilde til det siste"
+
+
+msgid "Scene Frame Range"
+msgstr "Område for scenebilde"
+
+
+msgid "The entire Scene / Preview range"
+msgstr "Hele scenen / forhåndsvisning av området"
+
+
+msgid "Manual Range"
+msgstr "Manuell område"
+
+
+msgid "Manually determined frame range"
+msgstr "Manuelt bestemt bildeområde"
+
+
+msgid "Show Frame Numbers"
+msgstr "Vis bildetall"
+
+
+msgid "Show frame numbers on Motion Paths"
+msgstr "Vis bildetall på bevegelses stiene"
+
+
+msgid "All Action Keyframes"
+msgstr "Alle handlings nøkkelbildene"
+
+
+msgid "For bone motion paths, search whole Action for keyframes instead of in group with matching name only (is slower)"
+msgstr "For bein bevegelses stier, søk i hele handlinga for nøkkelbilder i stedet for i gruppa med kun samsvarte navn (er saktere)"
+
+
+msgid "Highlight Keyframes"
+msgstr "Fremhev nøkkelbilder"
+
+
+msgid "Emphasize position of keyframes on Motion Paths"
+msgstr "Fremhev plasseringen av nøkkelbildene på bevegelses stiene"
+
+
+msgid "Show Keyframe Numbers"
+msgstr "Vis nøkkelbildetall"
+
+
+msgid "Show frame numbers of Keyframes on Motion Paths"
+msgstr "Vis bildetall av nøkkelbildene på bevegelses stiene"
+
+
+msgid "Paths Type"
+msgstr "Type sti"
+
+
+msgid "Type of range to show for Motion Paths"
+msgstr "Type område å vise for bevegelses stiene"
+
+
+msgid "Around Frame"
+msgstr "Rundt bilde"
+
+
+msgid "Display Paths of poses within a fixed number of frames around the current frame"
+msgstr "Vis stier av poseringer innen et fast antall bilder rundt det gjeldende bilde"
+
+
+msgid "In Range"
+msgstr "I området"
+
+
+msgid "Display Paths of poses within specified range"
+msgstr "Vis stier av poseringer innen et spesifikt område"
+
+
+msgid "Bake to active Camera"
+msgstr "Bak til gjeldende kamera"
+
+
+msgid "Motion path points will be baked into the camera space of the active camera. This means they will only look right when looking through that camera. Switching cameras using markers is not supported."
+msgstr "Bevegelses sti punkter vil bakes inn i kameraområdet av det gjeldende kameraet. Det betyr, de bare vil se riktig ut gjennom det kameraet. Bytting av kamera ved bruk av markører støttes ikke."
+
+
+msgid "Annotation Frame"
+msgstr "Merknadsbilde"
+
+
+msgid "Collection of related sketches on a particular frame"
+msgstr "Samling av relaterte skisser på et spesifikt bilde"
+
+
+msgid "Frame Number"
+msgstr "Bildetall"
+
+
+msgid "The frame on which this sketch appears"
+msgstr "Bildet hvor denne skissen vises på"
+
+
+msgid "Frame is selected for editing in the Dope Sheet"
+msgstr "Bildet er valgt for redigering i eksponeringsarket"
+
+
+msgid "Strokes"
+msgstr "Strøk"
+
+
+msgid "Freehand curves defining the sketch on this frame"
+msgstr "Frihåndskurver som definerer skissen på dette bildet"
+
+
+msgid "Annotation Frames"
+msgstr "Merknadsbilder"
+
+
+msgid "Collection of annotation frames"
+msgstr "Samling av merknadsbilder"
+
+
+msgid "Annotation Layer"
+msgstr "Merknadslag"
+
+
+msgid "Collection of related sketches"
+msgstr "Samling av relaterte skisser"
+
+
+msgid "Active Frame"
+msgstr "Gjeldende bilde"
+
+
+msgid "Frame currently being displayed for this layer"
+msgstr "Bildet som vises nå for dette gjeldende laget"
+
+
+msgid "Hide"
+msgstr "Skjul"
+
+
+msgid "Set annotation Visibility"
+msgstr "Velg synlighet for merknader"
+
+
+msgid "After Color"
+msgstr "Etter farge"
+
+
+msgid "Base color for ghosts after the active frame"
+msgstr "Grunnfarge for spøkelser etter det gjeldende bildet"
+
+
+msgid "Frames After"
+msgstr "Bilder etter"
+
+
+msgid "Maximum number of frames to show after current frame"
+msgstr "Maks antall bilder å vise etter gjeldende bilde"
+
+
+msgid "Before Color"
+msgstr "Før farge"
+
+
+msgid "Base color for ghosts before the active frame"
+msgstr "Grunnfarge for spøkelser før det gjeldende bildet"
+
+
+msgid "Frames Before"
+msgstr "Bilder før"
+
+
+msgid "Maximum number of frames to show before current frame"
+msgstr "Maks antall bilder å vise før gjeldende bilde"
+
+
+msgid "Custom Onion Skin Colors"
+msgstr "Tilpassede løkskallfarger"
+
+
+msgid "Use custom colors for onion skinning instead of the theme"
+msgstr "Bruk tilpassede farget for kutting av løk i stedet for temaet"
+
+
+msgid "Opacity"
+msgstr "Ugjennomsiktighet"
+
+
+msgid "Annotation Layer Opacity"
+msgstr "Ugjennomsiktighet for merknadslag"
+
+
+msgid "Color for all strokes in this layer"
+msgstr "Farge for alle strøk i dette laget"
+
+
+msgid "Frames"
+msgstr "Bilder"
+
+
+msgid "Sketches for this layer on different frames"
+msgstr "Skisser for dette laget på forskjellige bilder"
+
+
+msgid "Info"
+msgstr "Info"
+
+
+msgid "Layer name"
+msgstr "Navn på lag"
+
+
+msgid "Ruler"
+msgstr "Linjal"
+
+
+msgid "This is a special ruler layer"
+msgstr "Dette er et spesielt lag for linjal"
+
+
+msgid "Locked"
+msgstr "Låst"
+
+
+msgid "Protect layer from further editing and/or frame changes"
+msgstr "Beskytt laget mot videre redigering og/eller bilde endringer"
+
+
+msgid "Frame Locked"
+msgstr "Låst bilde"
+
+
+msgid "Lock current frame displayed by layer"
+msgstr "Lås gjeldende bilde vist av laget"
+
+
+msgid "Layer is selected for editing in the Dope Sheet"
+msgstr "Laget er valgt for redigering i eksponeringsarket"
+
+
+msgid "In Front"
+msgstr "Foran"
+
+
+msgid "Make the layer display in front of objects"
+msgstr "Få laget bil å vises foran objekter"
+
+
+msgid "Thickness"
+msgstr "Tykkelse"
+
+
+msgid "Thickness of annotation strokes"
+msgstr "Tykkelsen på merknadsstrøkene"
+
+
+msgid "Onion Skinning"
+msgstr "Løkkutting"
+
+
+msgid "Display annotation onion skins before and after the current frame"
+msgstr "Vis merknads løkskall før og etter det gjeldende bildet"
+
+
+msgid "Annotation Layers"
+msgstr "Merknadslag"
+
+
+msgid "Collection of annotation layers"
+msgstr "Samling av merknadslag"
+
+
+msgid "Active Layer Index"
+msgstr "Gjeldende lagindeks"
+
+
+msgid "Index of active annotation layer"
+msgstr "Indeks for gjeldende merknadslag"
+
+
+msgid "Active Note"
+msgstr "Gjeldende notat"
+
+
+msgid "Note/Layer to add annotation strokes to"
+msgstr "Notat / lag å legge merknadsstrøk til"
+
+
+msgid "Default"
+msgstr "Standard"
+
+
+msgid "Annotation Stroke"
+msgstr "Merknadsstrøk"
+
+
+msgid "Freehand curve defining part of a sketch"
+msgstr "Frihåndskurve som definerer en del av en skisse"
+
+
+msgid "Stroke Points"
+msgstr "Strøkpunkter"
+
+
+msgid "Stroke data points"
+msgstr "Data for strøkpunkter"
+
+
+msgid "Annotation Stroke Point"
+msgstr "Merknadsstrøkpunkter"
+
+
+msgid "Data point for freehand stroke curve"
+msgstr "Datapunkt for frihånds strøkkurve"
+
+
+msgid "Coordinates"
+msgstr "Koordinater"
+
+
+msgid "Any Type"
+msgstr "Valgfri type"
+
+
+msgid "RNA type used for pointers to any possible data"
+msgstr "RNA-type brukt for markører for hvilken som helst data"
+
+
+msgid "Area in a subdivided screen, containing an editor"
+msgstr "Areal i en underinndelt skjerm, inneholder et skriveprogram"
+
+
+msgid "Height"
+msgstr "Høyde"
+
+
+msgid "Area height"
+msgstr "Arealhøyde"
+
+
+msgid "Regions"
+msgstr "Regioner"
+
+
+msgid "Regions this area is subdivided in"
+msgstr "Regioner dette området er underinndelt i"
+
+
+msgid "Show Menus"
+msgstr "Vis menyer"
+
+
+msgid "Show menus in the header"
+msgstr "Vis menyer i overskrifta"
+
+
+msgid "Spaces"
+msgstr "Plasser"
+
+
+msgid "Spaces contained in this area, the first being the active space (NOTE: Useful for example to restore a previously used 3D view space in a certain area to get the old view orientation)"
+msgstr "Plasser i dette området, hvor det første er den gjeldende plassen (MERK: Nyttig f.eks. å gjenopprette et tidligere 3D-visningsområde i et bestemt område for å få den gamle visningsretningen)"
+
+
+msgid "Editor Type"
+msgstr "Redigeringstype"
+
+
+msgid "Current editor type for this area"
+msgstr "Gjeldende redigeringstype for dette området"
+
+
+msgid "Empty"
+msgstr "Tom"
+
+
+msgid "3D Viewport"
+msgstr "3D-visningsfelt"
+
+
+msgid "Manipulate objects in a 3D environment"
+msgstr "Endre objekter i et 3D-miljø"
+
+
+msgid "UV/Image Editor"
+msgstr "UV/bildebehandler"
+
+
+msgid "View and edit images and UV Maps"
+msgstr "Vis og rediger bilder og UV-kart"
+
+
+msgid "Node Editor"
+msgstr "Noderedigering"
+
+
+msgid "Editor for node-based shading and compositing tools"
+msgstr "Program for node-basert fargelegging og sammensettelses verktøy"
+
+
+msgid "Video Sequencer"
+msgstr "Videosekvenser"
+
+
+msgid "Non-linear editor for arranging and mixing scenes, video, audio, and effects"
+msgstr "Ikke-lineært program for arrangering og miksing av scener, video, lyd og effekter"
+
+
+msgid "Movie Clip Editor"
+msgstr "Filmklipp redigering"
+
+
+msgid "Motion tracking tools"
+msgstr "Verktøy til bevegelsessporing"
+
+
+msgid "Dope Sheet"
+msgstr "Eksponeringsark"
+
+
+msgid "Adjust timing of keyframes"
+msgstr "Tidsjustering av nøkkelbildene"
+
+
+msgid "Graph Editor"
+msgstr "Graf redigering"
+
+
+msgid "Edit drivers and keyframe interpolation"
+msgstr "Rediger drivere og interpolering av nøkkelbilder"
+
+
+msgid "Nonlinear Animation"
+msgstr "Ikke-lineære animasjoner"
+
+
+msgid "Combine and layer Actions"
+msgstr "Kombiner og lag-handlinger"
+
+
+msgid "Text Editor"
+msgstr "Tekstredigering"
+
+
+msgid "Edit scripts and in-file documentation"
+msgstr "Rediger skript og dokumentasjon i fila"
+
+
+msgid "Python Console"
+msgstr "Python-konsoll"
+
+
+msgid "Interactive programmatic console for advanced editing and script development"
+msgstr "Interaktiv programmatisk konsoll for avansert redigering og skriptutvikling"
+
+
+msgid "Log of operations, warnings and error messages"
+msgstr "Logg over operasjoner, advarsler og feilmeldinger"
+
+
+msgid "Top Bar"
+msgstr "Topplinje"
+
+
+msgid "Global bar at the top of the screen for global per-window settings"
+msgstr "Global linje på toppen av skjermen for globale innstillinger per vindu"
+
+
+msgid "Status Bar"
+msgstr "Statuslinje"
+
+
+msgid "Global bar at the bottom of the screen for general status information"
+msgstr "Global linje på bunnen av skjermen for generell statusinformasjon"
+
+
+msgid "Outliner"
+msgstr "Disposisjon"
+
+
+msgid "Overview of scene graph and all available data-blocks"
+msgstr "Oversikt over scene graf og alle tilgjengelige datablokker"
+
+
+msgid "Properties"
+msgstr "Egenskaper"
+
+
+msgid "Edit properties of active object and related data-blocks"
+msgstr "Rediger egenskaper av gjeldende objekter og relaterte datablokker"
+
+
+msgid "File Browser"
+msgstr "Filbehandler"
+
+
+msgid "Browse for files and assets"
+msgstr "Bla gjennom filer og eiendeler"
+
+
+msgid "Spreadsheet"
+msgstr "Regneark"
+
+
+msgid "Explore geometry data in a table"
+msgstr "Utforsk geometridata i en tabell"
+
+
+msgid "Preferences"
+msgstr "Innstillinger"
+
+
+msgid "Edit persistent configuration settings"
+msgstr "Rediger vedvarende oppsettsinnstillinger"
+
+
+msgid "Width"
+msgstr "Bredde"
+
+
+msgid "Area width"
+msgstr "Arealbredde"
+
+
+msgid "X Position"
+msgstr "X-posisjon"
+
+
+msgid "The window relative vertical location of the area"
+msgstr "Vinduets relative vertikale plassering av området"
+
+
+msgid "Y Position"
+msgstr "Y-posisjon"
+
+
+msgid "The window relative horizontal location of the area"
+msgstr "Vinduets relative horisontale plassering av området"
+
+
+msgid "Area Spaces"
+msgstr "Arealplass"
+
+
+msgid "Collection of spaces"
+msgstr "Samling av plasser"
+
+
+msgid "Active Space"
+msgstr "Gjeldende plass"
+
+
+msgid "Space currently being displayed in this area"
+msgstr "Plass som vises for øyeblikket i dette området"
+
+
+msgid "Armature Bones"
+msgstr "Armatur bein"
+
+
+msgid "Collection of armature bones"
+msgstr "Samling av armatur bein"
+
+
+msgid "Active Bone"
+msgstr "Gjeldende bein"
+
+
+msgid "Armature's active bone"
+msgstr "Armaturens gjeldende bein"
+
+
+msgid "Armature Deform Constraint Targets"
+msgstr "Mål for begrensning av armaturdeformasjon"
+
+
+msgid "Collection of target bones and weights"
+msgstr "Samling av mål bein og vekter"
+
+
+msgid "Armature EditBones"
+msgstr "Armatur redigeringsbein"
+
+
+msgid "Collection of armature edit bones"
+msgstr "Samling av armatur redigeringsbein"
+
+
+msgid "Active EditBone"
+msgstr "Gjeldende redigeringsbein"
+
+
+msgid "Armatures active edit bone"
+msgstr "Armaturens gjeldende redigeringsbein"
+
+
+msgid "User Asset Libraries"
+msgstr "Eiendels bibliotek"
+
+
+msgid "Collection of user asset libraries"
+msgstr "Samling av brukerens eiendeler"
+
+
+msgid "Asset Library Reference"
+msgstr "Eiendels bibliotek referanse"
+
+
+msgid "Identifier to refer to the asset library"
+msgstr "Identifikator for eiendels biblioteket"
+
+
+msgid "Asset Data"
+msgstr "Eiendelsdata"
+
+
+msgid "Additional data stored for an asset data-block"
+msgstr "Ytterligere data lagret for en eiendels datablokk"
+
+
+msgid "Active Tag"
+msgstr "Gjeldende merke"
+
+
+msgid "Index of the tag set for editing"
+msgstr "Indeks over merket for redigering"
+
+
+msgid "Author"
+msgstr "Opphavsperson"
+
+
+msgid "Name of the creator of the asset"
+msgstr "Navnet til skaperen av eiendelen"
+
+
+msgid "Catalog UUID"
+msgstr "Katalog UUID"
+
+
+msgid "Identifier for the asset's catalog, used by Blender to look up the asset's catalog path. Must be a UUID according to RFC4122."
+msgstr "Identifikator for eiendelens katalog, brukes av Blender for å søke etter eiendelens katalog sti. Må være en UUID i følge RFC4122."
+
+
+msgid "Catalog Simple Name"
+msgstr "Katalog enkelt navn"
+
+
+msgid "Simple name of the asset's catalog, for debugging and data recovery purposes"
+msgstr "Enkelt navn for eiendelens katalog, for feilsøking og datagjenoppretting"
+
+
+msgid "Copyright"
+msgstr "Opphavsrett"
+
+
+msgid "Copyright notice for this asset. An empty copyright notice does not necessarily indicate that this is copyright-free. Contact the author if any clarification is needed."
+msgstr "Opphavsrettserklæring for denne eiendelen. En tom opphavsrettserklæring trenger ikke bety at denne mangler opphavsrett. Ta kontakt med opphavspersonen hvis du trenger avklaring."
+
+
+msgid "Description"
+msgstr "Beskrivelse"
+
+
+msgid "A description of the asset to be displayed for the user"
+msgstr "En beskrivelse av eiendelen å vises foran brukeren"
+
+
+msgid "License"
+msgstr "Lisens"
+
+
+msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed."
+msgstr "Typen lisens denne eiendelen distribueres under. Et tomt lisensnavn trenger ikke bety at dette mangler lisensvilkår. Ta kontakt med opphavspersonen hvis du trenger avklaring."
+
+
+msgid "Tags"
+msgstr "Merker"
+
+
+msgid "Custom tags (name tokens) for the asset, used for filtering and general asset management"
+msgstr "Tilpassede merker (symbolnavn) for denne eiendelen, brukes for filtrering og generell håndtering av eiendeler"
+
+
+msgid "Asset Representation"
+msgstr "Representasjon av eiendeler"
+
+
+msgid "Information about an entity that makes it possible for the asset system to deal with the entity as asset"
+msgstr "Informasjon om en skikkelse som gjør det mulig for eiendelssystemet å behandle skikkelsen som en eiendel"
+
+
+msgid "Full Library Path"
+msgstr "Fullstendig bibliotek-sti"
+
+
+msgid "Absolute path to the .blend file containing this asset"
+msgstr "Absolutt sti til .blend-fila som inneholder denne eiendelen"
+
+
+msgid "Full Path"
+msgstr "Fullstendig sti"
+
+
+msgid "Absolute path to the .blend file containing this asset extended with the path of the asset inside the file"
+msgstr "Absolutt sti til .blend-fila som inneholder denne eiendelen, utvidet med stien til eiendelen inne i fila"
+
+
+msgctxt "ID"
+msgid "Data-block Type"
+msgstr "Type datablokk"
+
+
+msgid "The type of the data-block, if the asset represents one ('NONE' otherwise)"
+msgstr "Typen datablokk, hvis eiendelen representerer én («INGEN» ellers)"
+
+
+msgid "The local data-block this asset represents; only valid if that is a data-block in this file"
+msgstr "Den lokale datablokka denne eiendelen representerer; kun gyldig hvis den er en datablokk i denne fila"
+
+
+msgid "Asset Metadata"
+msgstr "Metadata for eiendeler"
+
+
+msgid "Additional information about the asset"
+msgstr "Ytterligere informasjon om eiendelen"
+
+
+msgid "Asset Shelf"
+msgstr "Eiendelshylle"
+
+
+msgid "Regions for quick access to assets"
+msgstr "Regioner for enkel tilgang til eiendelene"
+
+
+msgid "Asset Library"
+msgstr "Eiendelsbibliotek"
+
+
+msgid "Choose the asset library to display assets from"
+msgstr "Velg eiendelsbiblioteket å vise eiendeler fra"
+
+
+msgid "All Libraries"
+msgstr "Alle bibliotek"
+
+
+msgid "Show assets from all of the listed asset libraries"
+msgstr "Vis eiendeler fra alle de oppførte eiendelsbibliotekene"
+
+
+msgid "Current File"
+msgstr "Gjeldende fil"
+
+
+msgid "Show the assets currently available in this Blender session"
+msgstr "Vis de tilgjengelige eiendelene i denne Blender-økta"
+
+
+msgid "Essentials"
+msgstr "Nødvendigheter"
+
+
+msgid "Show the basic building blocks and utilities coming with Blender"
+msgstr "Vis de grunnleggende byggeblokkene og verktøyene, Blender kommer med"
+
+
+msgid "Custom"
+msgstr "Tilpasset"
+
+
+msgid "Show assets from the asset libraries configured in the Preferences"
+msgstr "Vis eiendeler fra eiendelsbiblioteket satt opp i innstillingene"
+
+
+msgid "Activate Operator"
+msgstr "Ta i bruk operatør"
+
+
+msgid "Operator to call when activating an item with asset reference properties"
+msgstr "Operatør å kalle når et element med eiendel referanse egenskaper tas i bruk"
+
+
+msgid "Default Preview Size"
+msgstr "Standard forhåndsvisnings størrelse"
+
+
+msgid "Default size of the asset preview thumbnails in pixels"
+msgstr "Standard størrelse for forhåndsvisning av minibilder i piksler"
+
+
+msgid "Drag Operator"
+msgstr "Dragoperatør"
+
+
+msgid "Operator to call when dragging an item with asset reference properties"
+msgstr "Operatør å kalle når du drar et element med eiendel referanse egenskaper"
+
+
+msgid "ID Name"
+msgstr "ID-navn"
+
+
+msgid "If this is set, the asset gets a custom ID, otherwise it takes the name of the class used to define the asset (for example, if the class name is \"OBJECT_AST_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_AST_hello\")"
+msgstr "Hvis dette er valgt, vil eiendelen få et tilpasset ID, ellers vil den ta navnet til klassen brukt for definering av eiendelen (f.eks. hvis klassens navn er «OBJEKT_AST_hei», og bl_idname ikke er satt av skriptet, da blir bl_idname = \"OBJEKT_AST_hei\")"
+
+
+msgid "Options"
+msgstr "Innstillinger"
+
+
+msgid "Options for this asset shelf type"
+msgstr "Innstillingene for denne type eiendelshylle"
+
+
+msgid "No Asset Dragging"
+msgstr "Ingen draing av eiendeler"
+
+
+msgid "Disable the default asset dragging on drag events. Useful for implementing custom dragging via custom key-map items."
+msgstr "Slå av standard eiendels draing ved dra-hendelser. Nyttig for implementering av tilpasset draing via tilpassede hurtigtast elementer."
+
+
+msgid "Visible by Default"
+msgstr "Synlig som standard"
+
+
+msgid "Unhide the asset shelf when it's available for the first time, otherwise it will be hidden"
+msgstr "Synliggjør eiendelshylla når den er tilgjengelig for første gang, ellers vil den være skjult"
+
+
+msgid "Store Enabled Catalogs in Preferences"
+msgstr "Lagre påslåtte kataloger i innstillingene"
+
+
+msgid "Store the shelf's enabled catalogs in the preferences rather than the local asset shelf settings"
+msgstr "Lagre kataloger i bruk fra hylla i innstillingene, i stedet for innstillingene for den lokale hylla"
+
+
+msgid "When spawning a context menu for an asset, activate the asset and call `bl_activate_operator` if present, rather than just highlighting the asset"
+msgstr "Når du legger til en meny for en eiendel, ta eiendelen i bruk og kall «bl_activate_operator» hvis tilgjengelig, enn å bare fremheve eiendelen"
+
+
+msgid "Space Type"
+msgstr "Type plass"
+
+
+msgid "The space where the asset shelf will show up in. Ignored for popup asset shelves which can be displayed in any space."
+msgstr "Plassen hvor eiendelshylla vil vises. Ignoreres for sprettopp-eiendelshyller som kan vises hvor som helst."
+
+
+msgid "Actions"
+msgstr "Handlinger"
+
+
+msgid "Show Action data-blocks"
+msgstr "Vis handlings datablokker"
+
+
+msgid "Annotations"
+msgstr "Merknader"
+
+
+msgid "Show Annotation data-blocks"
+msgstr "Vis merknader for datablokker"
+
+
+msgid "Armatures"
+msgstr "Armaturer"
+
+
+msgid "Show Armature data-blocks"
+msgstr "Vis armatur datablokker"
+
+
+msgid "Brushes"
+msgstr "Pensler"
+
+
+msgid "Show Brushes data-blocks"
+msgstr "Vis pensler datablokker"
+
+
+msgid "Cache Files"
+msgstr "Hurtiglager-filer"
+
+
+msgid "Show Cache File data-blocks"
+msgstr "Vis hurtiglager-filer datablokker"
+
+
+msgid "Cameras"
+msgstr "Kameraer"
+
+
+msgid "Show Camera data-blocks"
+msgstr "Vis kamera datablokker"
+
+
+msgid "Curves"
+msgstr "Kurver"
+
+
+msgid "Show Curve data-blocks"
+msgstr "Vis kurve datablokker"
+
+
+msgid "Hair Curves"
+msgstr "Hårkurver"
+
+
+msgid "Show/hide Curves data-blocks"
+msgstr "Vis/skjul kurve datablokker"
+
+
+msgid "Fonts"
+msgstr "Skrifter"
+
+
+msgid "Show Font data-blocks"
+msgstr "Vis skrift datablokker"
+
+
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
+msgid "Show Grease Pencil data-blocks"
+msgstr "Vis Grease Pencil datablokker"
+
+
+msgid "Collections"
+msgstr "Samlinger"
+
+
+msgid "Show Collection data-blocks"
+msgstr "Vis samlings datablokker"
+
+
+msgid "Images"
+msgstr "Bilder"
+
+
+msgid "Show Image data-blocks"
+msgstr "Vis bilde datablokker"
+
+
+msgid "Lattices"
+msgstr "Gitter"
+
+
+msgid "Show Lattice data-blocks"
+msgstr "Vis gitter datablokker"
+
+
+msgid "Lights"
+msgstr "Lys"
+
+
+msgid "Show Light data-blocks"
+msgstr "Vis lys datablokker"
+
+
+msgid "Light Probes"
+msgstr "Lyssonder"
+
+
+msgid "Show Light Probe data-blocks"
+msgstr "Vis lyssonder datablokker"
+
+
+msgid "Freestyle Linestyles"
+msgstr "Freestyle linjestiler"
+
+
+msgid "Show Freestyle's Line Style data-blocks"
+msgstr "Vis Freestyle linjestiler datablokker"
+
+
+msgid "Masks"
+msgstr "Masker"
+
+
+msgid "Show Mask data-blocks"
+msgstr "Vis masker datablokker"
+
+
+msgid "Materials"
+msgstr "Materialer"
+
+
+msgid "Show Material data-blocks"
+msgstr "Vis material datablokker"
+
+
+msgid "Meshes"
+msgstr "Maskenett"
+
+
+msgid "Show Mesh data-blocks"
+msgstr "Vis maskenett datablokker"
+
+
+msgid "Metaballs"
+msgstr "Metaballer"
+
+
+msgid "Show Metaball data-blocks"
+msgstr "Vis metaball datablokker"
+
+
+msgid "Movie Clips"
+msgstr "Filmklipp"
+
+
+msgid "Show Movie Clip data-blocks"
+msgstr "Vis filmklipp datablokker"
+
+
+msgid "Node Trees"
+msgstr "Nodetrær"
+
+
+msgid "Show Node Tree data-blocks"
+msgstr "Vis nodetre datablokker"
+
+
+msgid "Objects"
+msgstr "Objekter"
+
+
+msgid "Show Object data-blocks"
+msgstr "Vis objekt datablokker"
+
+
+msgid "Paint Curves"
+msgstr "Malingskurver"
+
+
+msgid "Show Paint Curve data-blocks"
+msgstr "Vis malingskurve datablokker"
+
+
+msgid "Palettes"
+msgstr "Paletter"
+
+
+msgid "Show Palette data-blocks"
+msgstr "Vis palett datablokker"
+
+
+msgid "Particles Settings"
+msgstr "Partikkelinnstillinger"
+
+
+msgid "Show Particle Settings data-blocks"
+msgstr "Vis partikkelinnstillinger datablokker"
+
+
+msgid "Point Clouds"
+msgstr "Punktskyer"
+
+
+msgid "Show/hide Point Cloud data-blocks"
+msgstr "Vis/skjul punktsky datablokker"
+
+
+msgid "Scenes"
+msgstr "Scener"
+
+
+msgid "Show Scene data-blocks"
+msgstr "Vis scene datablokker"
+
+
+msgid "Sounds"
+msgstr "Lyder"
+
+
+msgid "Show Sound data-blocks"
+msgstr "Vis lyd datablokker"
+
+
+msgid "Speakers"
+msgstr "Høyttalere"
+
+
+msgid "Show Speaker data-blocks"
+msgstr "Vis høyttaler datablokker"
+
+
+msgid "Texts"
+msgstr "Tekster"
+
+
+msgid "Show Text data-blocks"
+msgstr "Vis tekst datablokker"
+
+
+msgid "Textures"
+msgstr "Teksturer"
+
+
+msgid "Show Texture data-blocks"
+msgstr "Vis tekstur datablokker"
+
+
+msgid "Volumes"
+msgstr "Volumer"
+
+
+msgid "Show/hide Volume data-blocks"
+msgstr "Vis/skjul volum datablokker"
+
+
+msgid "Workspaces"
+msgstr "Arbeidsområder"
+
+
+msgid "Show workspace data-blocks"
+msgstr "Vis arbeidsområde datablokker"
+
+
+msgid "Worlds"
+msgstr "Verdener"
+
+
+msgid "Show World data-blocks"
+msgstr "Vis verden datablokker"
+
+
+msgid "Preview Size"
+msgstr "Forhåndvisningsstørrelse"
+
+
+msgid "Size of the asset preview thumbnails in pixels"
+msgstr "Størrelsen på eiendels forhåndsvisning av minibilder i piksler"
+
+
+msgid "Display Filter"
+msgstr "Skjermfilter"
+
+
+msgid "Filter assets by name"
+msgstr "Filtrer eiendeler etter navn"
+
+
+msgid "Show Names"
+msgstr "Vis navn"
+
+
+msgid "Show the asset name together with the preview. Otherwise only the preview will be visible."
+msgstr "Vis eiendels navnet sammen med forhåndsvisningen. Ellers vises bare bildet i forhåndsvisningen."
+
+
+msgid "Asset Tag"
+msgstr "Eiendel-merke"
+
+
+msgid "User defined tag (name token)"
+msgstr "Brukerdefinert merke (symbolnavn)"
+
+
+msgid "The identifier that makes up this tag"
+msgstr "Identifikatoren som representerer dette merket"
+
+
+msgid "Asset Tags"
+msgstr "Eiendels-merker"
+
+
+msgid "Collection of custom asset tags"
+msgstr "Samling av tilpassede eiendels-merker"
+
+
+msgid "Asset Weak Reference"
+msgstr "Eiendel svak referanse"
+
+
+msgid "Weak reference to some asset"
+msgstr "Svak referanse til noen eiendeler"
+
+
+msgid "Geometry attribute"
+msgstr "Geometri-egenskap"
+
+
+msgid "Data Type"
+msgstr "Datatype"
+
+
+msgid "Type of data stored in attribute"
+msgstr "Type data lagret i denne egenskapen"
+
+
+msgid "Float"
+msgstr "Flyttall"
+
+
+msgid "Floating-point value"
+msgstr "Flyttall verdi"
+
+
+msgid "Integer"
+msgstr "Heltall"
+
+
+msgid "32-bit integer"
+msgstr "32-bit heltall"
+
+
+msgid "Boolean"
+msgstr "Boolsk"
+
+
+msgid "True or false"
+msgstr "Sant eller usant"
+
+
+msgid "Vector"
+msgstr "Vektor"
+
+
+msgid "3D vector with floating-point values"
+msgstr "3D-vektor med flyttall verdier"
+
+
+msgid "RGBA color with 32-bit floating-point values"
+msgstr "RGBA farger med 32-bit flyttall verdier"
+
+
+msgid "Quaternion"
+msgstr "Kvaternion"
+
+
+msgid "Floating point quaternion rotation"
+msgstr "Flyttall med kvaternion rotasjon"
+
+
+msgid "4x4 Matrix"
+msgstr "4 · 3 matrise"
+
+
+msgid "Floating point matrix"
+msgstr "Flyttall matrise"
+
+
+msgid "String"
+msgstr "Streng"
+
+
+msgid "Text string"
+msgstr "Tekststreng"
+
+
+msgid "8-Bit Integer"
+msgstr "8-bit heltall"
+
+
+msgid "Smaller integer with a range from -128 to 127"
+msgstr "Mindre heltall med rekkevidde fra -128 til 127"
+
+
+msgid "2D 16-Bit Integer Vector"
+msgstr "2D 16-bit heltall-vektor"
+
+
+msgid "16-bit signed integer vector"
+msgstr "16-bit signert heltall-vektor"
+
+
+msgid "2D Integer Vector"
+msgstr "2D heltall-vektor"
+
+
+msgid "32-bit signed integer vector"
+msgstr "32-bit signert heltall-vektor"
+
+
+msgid "2D Vector"
+msgstr "2D-vektor"
+
+
+msgid "2D vector with floating-point values"
+msgstr "2D-vektor med flyttall verdier"
+
+
+msgid "Byte Color"
+msgstr "Byte farge"
+
+
+msgid "RGBA color with 8-bit positive integer values"
+msgstr "RGBA farge med 8-bit positive heltall verdier"
+
+
+msgid "Domain"
+msgstr "Domene"
+
+
+msgid "Domain of the Attribute"
+msgstr "Domene av egenskapen"
+
+
+msgid "Point"
+msgstr "Punkt"
+
+
+msgid "Attribute on point"
+msgstr "Egenskapen på punkt"
+
+
+msgid "Edge"
+msgstr "Kant"
+
+
+msgid "Attribute on mesh edge"
+msgstr "Egenskap på maskenett kanten"
+
+
+msgid "Face"
+msgstr "Sideflate"
+
+
+msgid "Attribute on mesh faces"
+msgstr "Egenskap på maskenett sideflata"
+
+
+msgid "Face Corner"
+msgstr "Sideflate kanter"
+
+
+msgid "Attribute on mesh face corner"
+msgstr "Egenskap på maskenett sideflate kanter"
+
+
+msgid "Spline"
+msgstr "Spline"
+
+
+msgid "Attribute on spline"
+msgstr "Egenskap på spline"
+
+
+msgid "Instance"
+msgstr "Instans"
+
+
+msgid "Attribute on instance"
+msgstr "Egenskap på instans"
+
+
+msgid "Layer"
+msgstr "Lag"
+
+
+msgid "Attribute on Grease Pencil layer"
+msgstr "Egenskap på Grease Pencil lag"
+
+
+msgid "Is Internal"
+msgstr "Er intern"
+
+
+msgid "The attribute is meant for internal use by Blender"
+msgstr "Egenskapen er ment for intern bruk av Blender"
+
+
+msgid "Is Required"
+msgstr "Kreves"
+
+
+msgid "Whether the attribute can be removed or renamed"
+msgstr "Om egenskapen kan fjernes eller gis nytt navn"
+
+
+msgid "Name of the Attribute"
+msgstr "Navnet på egenskapen"
+
+
+msgctxt "Amount"
+msgid "Storage Type"
+msgstr "Lagringstype"
+
+
+msgid "Method used to store the data"
+msgstr "Metode brukt for lagring av data"
+
+
+msgctxt "Amount"
+msgid "Array"
+msgstr "Matrise"
+
+
+msgid "Store a value for every element"
+msgstr "Lagre en verdi for hvert element"
+
+
+msgctxt "Amount"
+msgid "Single"
+msgstr "Enkel"
+
+
+msgid "Store a single value for the entire domain"
+msgstr "Lagre en enkel verdi for hele domenet"
+
+
+msgid "Bool Attribute"
+msgstr "Boolsk-egenskap"
+
+
+msgid "Geometry attribute that stores booleans"
+msgstr "Geometri egenskap som lagrer boolske"
+
+
+msgid "Byte Color Attribute"
+msgstr "Byte farge-egenskap"
+
+
+msgid "Geometry attribute that stores RGBA colors as positive integer values using 8-bits per channel"
+msgstr "Geometri-egenskap som lagrer RGBA farger som positiv heltall verdier, bruker 8-bit per kanal"
+
+
+msgid "8-bit Integer Attribute"
+msgstr "8-bit heltall-egenskap"
+
+
+msgid "Geometry attribute that stores 8-bit integers"
+msgstr "Geometri-egenskap som lagrer 8-bit heltall"
+
+
+msgid "Float2 Attribute"
+msgstr "Flyttall2-egenskap"
+
+
+msgid "Geometry attribute that stores floating-point 2D vectors"
+msgstr "Geometri-egenskap som lagrer flytetall 2D-vektorer"
+
+
+msgid "4x4 Matrix Attribute"
+msgstr "4 · 3 matrise-egenskap"
+
+
+msgid "Geometry attribute that stores a 4 by 4 float matrix"
+msgstr "Geometri-egenskap som lagrer 4 gange 4 flyttall matrise"
+
+
+msgid "Float Attribute"
+msgstr "Flyttall-egenskap"
+
+
+msgid "Geometry attribute that stores floating-point values"
+msgstr "Geometri-egenskap som lagrer flyttall verdier"
+
+
+msgid "Float Color Attribute"
+msgstr "Flyttall farge-egenskap"
+
+
+msgid "Geometry attribute that stores RGBA colors as floating-point values using 32-bits per channel"
+msgstr "Geometri-egenskap som lagrer RGBA farger som flyttall verdier, bruker 32-bit per kanal"
+
+
+msgid "Float Vector Attribute"
+msgstr "Flyttall-vektor-egenskap"
+
+
+msgid "Geometry attribute that stores floating-point 3D vectors"
+msgstr "Geometri-egenskap som lagrer flyttall 3D-vektorer"
+
+
+msgid "2D Integer Vector Attribute"
+msgstr "2D-heltall vektor-egenskap"
+
+
+msgid "Geometry attribute that stores 2D integer vectors"
+msgstr "Geometri-egenskap som lagrer 2D-heltall vektorer"
+
+
+msgid "Integer Attribute"
+msgstr "Heltall-egenskap"
+
+
+msgid "Geometry attribute that stores integer values"
+msgstr "Geometri-egenskap som lagrer heltall verdier"
+
+
+msgid "Quaternion Attribute"
+msgstr "Kvaternion-egenskap"
+
+
+msgid "Geometry attribute that stores rotation"
+msgstr "Geometri-egenskap som lagrer rotasjon"
+
+
+msgid "2D 16-Bit Integer Vector Attribute"
+msgstr "2D 16-bit heltall vektor-egenskap"
+
+
+msgid "String Attribute"
+msgstr "Streng-egenskap"
+
+
+msgid "Geometry attribute that stores strings"
+msgstr "Geometri-egenskap som lagrer strenger"
+
+
+msgid "Attribute Group"
+msgstr "Egenskapgruppe"
+
+
+msgid "Group of geometry attributes"
+msgstr "Gruppe geometri-egenskaper"
+
+
+msgid "Active Attribute"
+msgstr "Gjeldende egenskap"
+
+
+msgid "Active attribute"
+msgstr "Gjeldende egenskap"
+
+
+msgid "Active Attribute Index"
+msgstr "Gjeldende egenskapindeks"
+
+
+msgid "Active attribute index or -1 when none are active"
+msgstr "Gjeldende egenskapindeks eller -1 når ingen er i bruk"
+
+
+msgid "Active Color"
+msgstr "Gjeldende farge"
+
+
+msgid "Active color attribute for display and editing"
+msgstr "Gjeldende farge egenskap for visning og redigering"
+
+
+msgid "Active Color Index"
+msgstr "Gjeldende fargeindeks"
+
+
+msgid "Active color attribute index"
+msgstr "Gjeldende fargeindeks-egenskap"
+
+
+msgid "Active Color Attribute"
+msgstr "Gjeldende fargeegenskap"
+
+
+msgid "The name of the active color attribute for display and editing"
+msgstr "Navnet på den gjeldende fargeegenskapen for visning og redigering"
+
+
+msgid "Default Color Attribute"
+msgstr "Standard fargeegenskap"
+
+
+msgid "The name of the default color attribute used as a fallback for rendering"
+msgstr "Navnet på standard fargeegenskap, brukt som reserve for gjengivelse"
+
+
+msgid "Active Render Color Index"
+msgstr "Gjeldende fargeindeks for gjengivelse"
+
+
+msgid "The index of the color attribute used as a fallback for rendering"
+msgstr "Indeksen for fargeegenskapen, brukt som reserve for gjengivelse"
+
+
+msgid "Bake Data"
+msgstr "Bakedata"
+
+
+msgid "Bake data for a Scene data-block"
+msgstr "Bakedata for scene datablokk"
+
+
+msgid "Cage Extrusion"
+msgstr "Burekstrudering"
+
+
+msgid "Inflate the active object by the specified distance for baking. This helps matching to points nearer to the outside of the selected object meshes."
+msgstr "Blås opp det gjeldende objektet med den valgte avstanden for baking. Dette hjelper med å samsvare punkter nærmere utsiden av de valgte objekt-nettmaskene."
+
+
+msgid "Cage Object"
+msgstr "Bur-objekt"
+
+
+msgid "Object to use as cage instead of calculating the cage from the active object with cage extrusion"
+msgstr "Objekt for bruk som bur i stedet for kalkulering av buret fra det gjeldende objektet med burekstrudering"
+
+
+msgid "Displacement Space"
+msgstr "Forskyvningsplass"
+
+
+msgid "Choose displacement space for baking"
+msgstr "Velg forskyvningsplass for baking"
+
+
+msgid "Object"
+msgstr "Objekt"
+
+
+msgid "Bake the displacement in object space"
+msgstr "Bak forskyvningen i objektplassen"
+
+
+msgid "Tangent"
+msgstr "Tangent"
+
+
+msgid "Bake the displacement in tangent space"
+msgstr "Bak forskyvningen i tangentplassen"
+
+
+msgid "File Path"
+msgstr "Filsti"
+
+
+msgid "Image filepath to use when saving externally"
+msgstr "Bilde filsti for bruk ved ekstern lagring"
+
+
+msgid "Vertical dimension of the baking map"
+msgstr "Vertikal dimensjon av bakekartet"
+
+
+msgid "Image Format"
+msgstr "Bildeformat"
+
+
+msgid "Margin"
+msgstr "Marg"
+
+
+msgid "Extends the baked result as a post process filter"
+msgstr "Utvider bakeresultatet som en etterbehandlings-filter"
+
+
+msgid "Margin Type"
+msgstr "Type marg"
+
+
+msgid "Algorithm to extend the baked result"
+msgstr "Algoritme for utvidelse av bakeresultatet"
+
+
+msgid "Adjacent Faces"
+msgstr "Nærliggende sideflater"
+
+
+msgid "Use pixels from adjacent faces across UV seams"
+msgstr "Bruk piksler fra nærliggende sideflater på tvers av UV-sømmer"
+
+
+msgid "Extend"
+msgstr "Utvid"
+
+
+msgid "Extend border pixels outwards"
+msgstr "Utvid kantpiksler utover"
+
+
+msgid "Max Ray Distance"
+msgstr "Maks stråle distanse"
+
+
+msgid "The maximum ray distance for matching points between the active and selected objects. If zero, there is no limit."
+msgstr "Den maksimale stråle distansen for samsvarende punkt mellom den gjeldende og valgte objektet. Hvis null, er det ingen grense."
+
+
+msgid "Normal Space"
+msgstr "Normal plass"
+
+
+msgid "Axis to bake in blue channel"
+msgstr "Akse å bake i den blåe kanalen"
+
+
+msgid "+X"
+msgstr "+X"
+
+
+msgid "+Y"
+msgstr "+Y"
+
+
+msgid "+Z"
+msgstr "+Z"
+
+
+msgid "-X"
+msgstr "-X"
+
+
+msgid "-Y"
+msgstr "-Y"
+
+
+msgid "-Z"
+msgstr "-Z"
+
+
+msgid "Axis to bake in green channel"
+msgstr "Akse å bake i den grønne kanalen"
+
+
+msgid "Axis to bake in red channel"
+msgstr "Akse å bake i den røde kanalen"
+
+
+msgid "Choose normal space for baking"
+msgstr "Velg en normal plass for baking"
+
+
+msgid "Version"
+msgstr "Versjon"
+
+
+msgid "Left"
+msgstr "Venstre"
+
+
+msgid "Right"
+msgstr "Høyre"
+
+
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgid "Render"
+msgstr "Gjengi"
+
+
+msgid "Size"
+msgstr "Størrelse"
+
+
+msgid "Save"
+msgstr "Lagre"
+
+
+msgid "Window"
+msgstr "Vindu"
+
+
+msgid "Up"
+msgstr "Opp"
+
+
+msgid "Interface"
+msgstr "Grensesnitt"
+
+
+msgid "Edit"
+msgstr "Rediger"
+
+
+msgctxt "ParticleSettings"
+msgid "Rendered"
+msgstr "Gjengitt"
+
+
+msgid "Windows"
+msgstr "Vinduer"
+
+
+msgid "Languages"
+msgstr "Språk"
+
+
+msgid "Python"
+msgstr "Python"
+
+
+msgid "Blender"
+msgstr "Blender"
+
+
+msgid "System"
+msgstr "System"
+
+
+msgid "File"
+msgstr "Fil"
+
+
+msgid "Defaults"
+msgstr "Standarder"
+
+
+msgid "Export"
+msgstr "Eksporter"
+
+
+msgid "External Data"
+msgstr "Ekstern data"
+
+
+msgid "New File"
+msgstr "Ny fil"
+
+
+msgid "Help"
+msgstr "Hjelp"
+
+
+msgid "About"
+msgstr "Om"
+
+
+msgid "Root"
+msgstr "Rot"
+
+
+msgid "Freestyle"
+msgstr "Freestyle"
+
+
+msgid "Cycles"
+msgstr "Cycles"
+
+
+msgid "Down"
+msgstr "Ned"
+
+
+msgctxt "Python console"
+msgid "Language"
+msgstr "Språk"
+
+
+msgid "Rendered"
+msgstr "Gjengitt"
+
+
+msgid "Data-Block Type"
+msgstr "Type datablokk"
+
+
+msgctxt "Operator"
+msgid "Splash Screen"
+msgstr "Velkomstbilde"
+
+
+msgid "Open the splash screen with release info"
+msgstr "Åpne velkomstbildet med utgivelsesinfo"
+
+
+msgctxt "Operator"
+msgid "About Blender"
+msgstr "Om Blender"
+
+
+msgid "Onion Skin"
+msgstr "Løkskall"
+
+
+msgctxt "WindowManager"
+msgid "Language"
+msgstr "Språk"
+
+
+msgid "User Interface"
+msgstr "Brukergrensesnitt"
+
+
+msgid "Language"
+msgstr "Språk"
+
+
+msgid "Language used for translation"
+msgstr "Språk brukt for oversettelse"
+
+
+msgctxt "MovieClip"
+msgid "Dope Sheet"
+msgstr "Eksponeringsark"
+
+
+msgid "Layer Index"
+msgstr "Lagindeks"
+
+
+msgid "Onion Skins"
+msgstr "Løkskall"
+
+
+msgid "Search"
+msgstr "Søk"
+
+
+msgctxt "WindowManager"
+msgid "Window"
+msgstr "Vindu"
+
+
+msgctxt "WindowManager"
+msgid "User Interface"
+msgstr "Brukergrensesnitt"
+
+
+msgid "Renders"
+msgstr "Gjengivelser"
+
+
+msgctxt "Operator"
+msgid "Open..."
+msgstr "Åpne …"
+
+
+msgid "Blender is free software"
+msgstr "Blender er fri programvare"
+
+
+msgid "Licensed under the GNU General Public License"
+msgstr "Lisensiert under GNU General Public License"
+
+
+msgctxt "Operator"
+msgid "License"
+msgstr "Lisens"
+
+
+msgid "Version: {:s}"
+msgstr "Versjon: {:s}"
+
+
+msgid "Date: {:s} {:s}"
+msgstr "Dato: {:s} {:s}"
+
+
+msgid "Hash: {:s}"
+msgstr "Referanse: {:s}"
+
+
+msgid "Branch: {:s}"
+msgstr "Gren: {:s}"
+
+
+msgid "Windowing Environment: {:s}"
+msgstr "Vindumiljø: {:s}"
+
+
+msgid "Blender Version"
+msgstr "Blender-versjon"
+
+
+msgctxt "WindowManager"
+msgid "Search"
+msgstr "Søk"
+
+
+msgctxt "WorkSpace"
+msgid "Rendering"
+msgstr "Gjengir"
+
+
+msgctxt "Preferences"
+msgid "Render"
+msgstr "Gjengi"
+
+
+msgctxt "Preferences"
+msgid "User Interface"
+msgstr "Brukergrensesnitt"
+

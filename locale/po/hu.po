@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2025-12-08 10:32+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6573,6 +6573,22 @@ msgid "Mask"
 msgstr "Maszk"
 
 
+msgid "Metaball"
+msgstr "Meta test"
+
+
+msgid "Light"
+msgstr "Fényforrás"
+
+
+msgid "Relations"
+msgstr "Kapcsolatok"
+
+
+msgid "Rigid Body"
+msgstr "Szilárd test"
+
+
 msgid "Apply"
 msgstr "Elfogadás"
 
@@ -6589,10 +6605,6 @@ msgid "Clean Up"
 msgstr "Tisztítás"
 
 
-msgid "Merge"
-msgstr "Összefésülés"
-
-
 msgid "Keying"
 msgstr "Kulcsozás"
 
@@ -6601,12 +6613,20 @@ msgid "Tracking"
 msgstr "Követés"
 
 
+msgid "Merge"
+msgstr "Összefésülés"
+
+
 msgid "Text"
 msgstr "Szöveg"
 
 
-msgid "Metaball"
-msgstr "Meta test"
+msgid "Import"
+msgstr "Importálás"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -6623,26 +6643,6 @@ msgstr "Navigáció"
 
 msgid "Align View"
 msgstr "Nézet igazítása"
-
-
-msgid "Import"
-msgstr "Importálás"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Light"
-msgstr "Fényforrás"
-
-
-msgid "Relations"
-msgstr "Kapcsolatok"
-
-
-msgid "Rigid Body"
-msgstr "Szilárd test"
 
 
 msgctxt "MovieClip"

@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
-"PO-Revision-Date: 2025-07-23 15:34+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"PO-Revision-Date: 2025-12-04 22:18+0000\n"
+"Last-Translator: Jackson Zheng <business.jackson.zheng@gmail.com>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
 "Language: hi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.12.1"
+"X-Generator: Weblate 5.14.3"
 
 
 msgid "Valid"
@@ -173,6 +173,11 @@ msgstr "कार्य समूह का चयन किया है"
 
 msgid "Expanded"
 msgstr "विस्तृत"
+
+
+msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "तैलीय पेंसिल v3"
 
 
 msgid "Off"
@@ -2572,6 +2577,14 @@ msgid "Mask"
 msgstr "आवरण"
 
 
+msgid "Light"
+msgstr "प्रकाश"
+
+
+msgid "Rigid Body"
+msgstr "कठोर-पदार्थ"
+
+
 msgid "Apply"
 msgstr "लागू करें"
 
@@ -2596,6 +2609,14 @@ msgid "Hooks"
 msgstr "खूँटी"
 
 
+msgid "Keying"
+msgstr "कुंजीयन"
+
+
+msgid "Math"
+msgstr "गणित"
+
+
 msgid "Names"
 msgstr "नाम"
 
@@ -2612,14 +2633,6 @@ msgid "Merge"
 msgstr "विलय करें"
 
 
-msgid "Keying"
-msgstr "कुंजीयन"
-
-
-msgid "Math"
-msgstr "गणित"
-
-
 msgid "Text"
 msgstr "पाठ"
 
@@ -2632,10 +2645,6 @@ msgid "Snap"
 msgstr "स्नैप"
 
 
-msgid "Mirror"
-msgstr "दर्पण"
-
-
 msgid "Import"
 msgstr "आयात करें"
 
@@ -2644,12 +2653,8 @@ msgid "UV"
 msgstr "यूवी"
 
 
-msgid "Light"
-msgstr "प्रकाश"
-
-
-msgid "Rigid Body"
-msgstr "कठोर-पदार्थ"
+msgid "Mirror"
+msgstr "दर्पण"
 
 
 msgid "Basic"
@@ -5828,11 +5833,6 @@ msgstr "रद्द करें"
 msgctxt "Curve"
 msgid "Surface"
 msgstr "सतह"
-
-
-msgctxt "Operator"
-msgid "Change Shortcut"
-msgstr "परिवर्तन शॉर्टकट"
 
 
 msgctxt "Operator"

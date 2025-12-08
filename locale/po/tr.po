@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2025-12-08 10:32+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -28949,6 +28949,38 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
+msgid "Assign Material"
+msgstr "Malzeme Atamak"
+
+
+msgid "Select More/Less"
+msgstr "Daha Fazla/Daha Az Seç"
+
+
+msgid "Metaball"
+msgstr "Metabol"
+
+
+msgid "Light"
+msgstr "Işık"
+
+
+msgid "Light Probe"
+msgstr "Işık Sondası"
+
+
+msgid "Add Image"
+msgstr "Resim Ekle"
+
+
+msgid "Relations"
+msgstr "İlişkiler"
+
+
+msgid "Rigid Body"
+msgstr "Sert Gövde"
+
+
 msgid "Apply"
 msgstr "Uygula"
 
@@ -28967,6 +28999,10 @@ msgstr "Göster/Gizle"
 
 msgid "Clean Up"
 msgstr "Temizle"
+
+
+msgid "Layout"
+msgstr "Yerleşim"
 
 
 msgid "Asset"
@@ -28997,6 +29033,10 @@ msgid "Trim/Add"
 msgstr "Kırp/Ekle"
 
 
+msgid "Adjust"
+msgstr "Ayarlamak"
+
+
 msgid "Sculpt Set Pivot"
 msgstr "Heykel Seti Pivot"
 
@@ -29005,8 +29045,20 @@ msgid "Face Sets Init"
 msgstr "Yüz Setleri Başlatma"
 
 
+msgid "Keying"
+msgstr "Anahtarlama"
+
+
 msgid "Random Mask"
 msgstr "Rastgele Maske"
+
+
+msgid "Tracking"
+msgstr "Takip"
+
+
+msgid "Utilities"
+msgstr "Kamu hizmetleri"
 
 
 msgid "Clear Transform"
@@ -29015,6 +29067,10 @@ msgstr "Temizle Dönüşüm"
 
 msgid "In-Betweens"
 msgstr "Arada Kalanlar"
+
+
+msgid "Math"
+msgstr "Matematik"
 
 
 msgid "Propagate"
@@ -29041,10 +29097,6 @@ msgid "Disable Bone Options"
 msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
 
 
-msgid "Layout"
-msgstr "Yerleşim"
-
-
 msgid "Mesh Select Mode"
 msgstr "Örgü Seçim Kipi"
 
@@ -29061,28 +29113,8 @@ msgid "Set Face Strength"
 msgstr "Yüz Gücünü Ayarla"
 
 
-msgid "Adjust"
-msgstr "Ayarlamak"
-
-
 msgid "Merge"
 msgstr "Birleştir"
-
-
-msgid "Keying"
-msgstr "Anahtarlama"
-
-
-msgid "Tracking"
-msgstr "Takip"
-
-
-msgid "Utilities"
-msgstr "Kamu hizmetleri"
-
-
-msgid "Math"
-msgstr "Matematik"
 
 
 msgid "Special Characters"
@@ -29097,12 +29129,24 @@ msgid "Text"
 msgstr "Metin"
 
 
-msgid "Metaball"
-msgstr "Metabol"
-
-
 msgid "Bone Roll"
 msgstr "Kemik Rulosu"
+
+
+msgid "Read"
+msgstr "Okumak"
+
+
+msgid "Sample"
+msgstr "Örnek"
+
+
+msgid "Write"
+msgstr "Yazmak"
+
+
+msgid "Primitives"
+msgstr "İlkel"
 
 
 msgid "Pivot Point"
@@ -29125,24 +29169,24 @@ msgid "Automasking"
 msgstr "Otomatik maskeleme"
 
 
+msgid "Instances"
+msgstr "Örnekler"
+
+
 msgid "Face Sets Edit"
 msgstr "Yüz Setleri Düzenle"
 
 
-msgid "Read"
-msgstr "Okumak"
+msgid "Import"
+msgstr "İçe Aktar"
 
 
-msgid "Sample"
-msgstr "Örnek"
+msgid "Deprecated"
+msgstr "Kullanım dışı bırakıldı"
 
 
-msgid "Write"
-msgstr "Yazmak"
-
-
-msgid "Primitives"
-msgstr "İlkel"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -29177,14 +29221,6 @@ msgid "View Regions"
 msgstr "Bölgeleri Görüntüle"
 
 
-msgid "Select More/Less"
-msgstr "Daha Fazla/Daha Az Seç"
-
-
-msgid "Instances"
-msgstr "Örnekler"
-
-
 msgid "Select Similar"
 msgstr "Benzerini Seç"
 
@@ -29199,42 +29235,6 @@ msgstr "Bağlantılıyı Seç"
 
 msgid "Select Loops"
 msgstr "Döngüleri Seç"
-
-
-msgid "Import"
-msgstr "İçe Aktar"
-
-
-msgid "Deprecated"
-msgstr "Kullanım dışı bırakıldı"
-
-
-msgid "Assign Material"
-msgstr "Malzeme Atamak"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Light"
-msgstr "Işık"
-
-
-msgid "Light Probe"
-msgstr "Işık Sondası"
-
-
-msgid "Add Image"
-msgstr "Resim Ekle"
-
-
-msgid "Relations"
-msgstr "İlişkiler"
-
-
-msgid "Rigid Body"
-msgstr "Sert Gövde"
 
 
 msgid "Keyframe Insert Pie"
@@ -29331,8 +29331,8 @@ msgid "Console"
 msgstr "Konsol"
 
 
-msgid "Languages..."
-msgstr "Diller..."
+msgid "Languages"
+msgstr "Diller"
 
 
 msgid "Add Attribute"
@@ -45834,11 +45834,6 @@ msgstr "Sistem bilgilerini oluşturun, bir metin dosyasına kaydedin"
 
 
 msgctxt "Operator"
-msgid "Save System Info"
-msgstr "Sistem Bilgisini Kaydet"
-
-
-msgctxt "Operator"
 msgid "Set Tool by Brush Type"
 msgstr "Fırça Türüne Göre Araç Ayarla"
 
@@ -52899,39 +52894,6 @@ msgstr "Renk niteliğinin adı"
 
 
 msgctxt "Operator"
-msgid "Run Node Group"
-msgstr "Düğüm Grubunu Çalıştır"
-
-
-msgid "Execute a node group on geometry"
-msgstr "Geometri üzerinde bir düğüm grubu yürüt"
-
-
-msgid "Mouse coordinates in region space"
-msgstr "Bölge uzayındaki fare koordinatları"
-
-
-msgid "Name of the data-block to use by the operator"
-msgstr "Operatör tarafından kullanılacak veri bloğunun adı"
-
-
-msgid "Region Size"
-msgstr "Bölge Boyutu"
-
-
-msgid "Viewport Is Perspective"
-msgstr "Görünüm Perspektiftir"
-
-
-msgid "Viewport Projection Transform"
-msgstr "Görünüm Alanı Projeksiyon Dönüşümü"
-
-
-msgid "Viewport View Transform"
-msgstr "Görünüm Görünümü Dönüşümü"
-
-
-msgctxt "Operator"
 msgid "Set Geometry Randomization"
 msgstr "Geometri Rastgeleleştirmeyi Ayarla"
 
@@ -59838,6 +59800,10 @@ msgstr "Düğüm Koleksiyonu Ekle"
 
 msgid "Add a collection info node to the current node editor"
 msgstr "Mevcut düğüm düzenleyicisine bir koleksiyon bilgi düğümü ekleyin"
+
+
+msgid "Name of the data-block to use by the operator"
+msgstr "Operatör tarafından kullanılacak veri bloğunun adı"
 
 
 msgid "Source color"
@@ -76206,6 +76172,42 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
+msgid "Quad View"
+msgstr "Dörtlü Görünüm"
+
+
+msgid "Onion Skin"
+msgstr "Soğan Kabuğu"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopi"
+
+
+msgid "Multi Frame"
+msgstr "Çoklu Çerçeve"
+
+
+msgid "Auto-Masking"
+msgstr "Otomatik Maskeleme"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Eğriler Heykel Eğri Seçenekleri Ekle"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Eğriler Şekil Parametresi Düşüşü"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Eğriler Büyüyor/Küçülüyor Ölçekleme"
+
+
+msgid "Viewport Debug"
+msgstr "Görüş Alanı Hata Ayıklaması"
+
+
 msgid "VR"
 msgstr "Sanal Gerçeklik"
 
@@ -76292,42 +76294,6 @@ msgstr "İnme Yerleşimi"
 
 msgid "Drawing Plane"
 msgstr "Çizim düzlemi"
-
-
-msgid "Quad View"
-msgstr "Dörtlü Görünüm"
-
-
-msgid "Onion Skin"
-msgstr "Soğan Kabuğu"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopi"
-
-
-msgid "Multi Frame"
-msgstr "Çoklu Çerçeve"
-
-
-msgid "Auto-Masking"
-msgstr "Otomatik Maskeleme"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Eğriler Heykel Eğri Seçenekleri Ekle"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Eğriler Şekil Parametresi Düşüşü"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Eğriler Büyüyor/Küçülüyor Ölçekleme"
-
-
-msgid "Viewport Debug"
-msgstr "Görüş Alanı Hata Ayıklaması"
 
 
 msgid "Chain Scaling"
@@ -82594,10 +82560,6 @@ msgstr "Langs koleksiyonundaki etkin dilin dizini"
 
 msgid "Whether these settings have already been auto-set or not"
 msgstr "Bu ayarların daha önceden otomatik olarak ayarlanıp ayarlanmadığını"
-
-
-msgid "Languages"
-msgstr "Diller"
 
 
 msgid "Languages to update in work repository"
@@ -103349,11 +103311,6 @@ msgstr "Ekstrapolasyon Modu"
 
 
 msgctxt "Operator"
-msgid "Move..."
-msgstr "Taşınmak..."
-
-
-msgctxt "Operator"
 msgid "Snap"
 msgstr "Patlatmak"
 
@@ -104027,11 +103984,6 @@ msgstr "Yeniden Adlandır..."
 
 
 msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "Sipariş Takibi..."
-
-
-msgctxt "Operator"
 msgid "Add Above Selected"
 msgstr "Yukarıdaki Seçilileri Ekle"
 
@@ -104555,11 +104507,6 @@ msgid "Both Sides"
 msgstr "Her iki taraf"
 
 
-msgctxt "Operator"
-msgid "Side of Frame..."
-msgstr "Çerçevenin Yanı..."
-
-
 msgid "Handle"
 msgstr "Halletmek"
 
@@ -104612,11 +104559,6 @@ msgstr "Parıltı"
 msgctxt "Operator"
 msgid "Gaussian Blur"
 msgstr "Gauss Bulanıklığı"
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe with Keying Set"
-msgstr "Anahtarlama Ayarı ile Anahtar Kare Ekle"
 
 
 msgctxt "Operator"
@@ -105902,16 +105844,6 @@ msgstr "Konuşmacı"
 
 
 msgctxt "Operator"
-msgid "Mesh Plane"
-msgstr "Örgü Düzlemi"
-
-
-msgctxt "Operator"
-msgid "Make Local..."
-msgstr "Yerel Yap..."
-
-
-msgctxt "Operator"
 msgid "Bake Action..."
 msgstr "Pişirme Eylemi..."
 
@@ -106406,11 +106338,6 @@ msgstr "Tüm Hareket Yollarını Güncelle"
 
 
 msgctxt "Operator"
-msgid "Sort Elements..."
-msgstr "Öğeleri Sırala..."
-
-
-msgctxt "Operator"
 msgid "Extrude Vertices"
 msgstr "Tepe Noktalarını Çıkar"
 
@@ -106773,16 +106700,6 @@ msgstr "Örnek için Koleksiyon Yok"
 msgctxt "Operator"
 msgid "Collection Instance"
 msgstr "Koleksiyon Örneği"
-
-
-msgctxt "Operator"
-msgid "Reference"
-msgstr "Referans"
-
-
-msgctxt "Operator"
-msgid "Background"
-msgstr "Arka plan"
 
 
 msgctxt "Operator"
@@ -108758,10 +108675,6 @@ msgid "ID %s not found in library %s anymore!"
 msgstr "ID %s artık %s kütüphanesinde bulunamadı!"
 
 
-msgid "insufficient content"
-msgstr "yetersiz içerik"
-
-
 msgid "unknown error reading file"
 msgstr "dosya okunurken bilinmeyen hata"
 
@@ -108800,10 +108713,6 @@ msgstr "<bellek> karışımı açılamıyor"
 
 msgid "Failed to read blend file '%s': %s"
 msgstr "Karışım dosyası '%s' okunamadı: %s"
-
-
-msgid "Unable to read '%s': %s"
-msgstr "'%s' okunamıyor: %s"
 
 
 msgid "Unrecognized file format '%s'"
@@ -110019,16 +109928,6 @@ msgstr "Pin"
 
 msgid "Shift Left Mouse"
 msgstr "Shift Left Mouse"
-
-
-msgctxt "Operator"
-msgid "Change Shortcut"
-msgstr "Kısayolu Değiştir"
-
-
-msgctxt "Operator"
-msgid "Assign Shortcut"
-msgstr "Kısayol Ata"
 
 
 msgctxt "Operator"
@@ -121753,10 +121652,6 @@ msgstr "Özellik bir tam sayı veya kayan noktalı sayı olmalıdır"
 
 msgid "Property must be a none, distance, factor, percentage, angle, or pixel"
 msgstr "Özellik hiçbiri, mesafe, faktör, yüzde, açı veya piksel olmalıdır"
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', at position %d"
-msgstr "Operatör sınıfı kaydediliyor: '%s', geçersiz bl_idname '%s', %d konumunda"
 
 
 msgid "Cannot read %s '%s': %s"

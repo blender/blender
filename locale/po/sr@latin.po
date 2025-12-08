@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2025-12-08 10:32+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -8497,6 +8497,22 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
+msgid "Metaball"
+msgstr "Meta lopta"
+
+
+msgid "Light"
+msgstr "Svetlost"
+
+
+msgid "Relations"
+msgstr "Odnosi"
+
+
+msgid "Rigid Body"
+msgstr "Kruto telo"
+
+
 msgid "Apply"
 msgstr "Primeni"
 
@@ -8517,12 +8533,24 @@ msgid "Hooks"
 msgstr "Udice"
 
 
+msgid "Keying"
+msgstr "Zbirka tastera"
+
+
+msgid "Tracking"
+msgstr "Praćenje"
+
+
 msgid "Clear Transform"
 msgstr "Očisti transformacije"
 
 
 msgid "In-Betweens"
 msgstr "U međuvremenu"
+
+
+msgid "Math"
+msgstr "Matematika"
 
 
 msgid "Propagate"
@@ -8553,24 +8581,8 @@ msgid "Merge"
 msgstr "Sjedini"
 
 
-msgid "Keying"
-msgstr "Zbirka tastera"
-
-
-msgid "Tracking"
-msgstr "Praćenje"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
 msgid "Special Characters"
 msgstr "Specijalni znaci"
-
-
-msgid "Metaball"
-msgstr "Meta lopta"
 
 
 msgid "Bone Roll"
@@ -8579,6 +8591,14 @@ msgstr "Rolna kostiju"
 
 msgid "Snap"
 msgstr "Lepljenje"
+
+
+msgid "Import"
+msgstr "Uvoz"
+
+
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -8603,26 +8623,6 @@ msgstr "Poravnaj pogled"
 
 msgid "Select Linked"
 msgstr "Izaberi povezano"
-
-
-msgid "Import"
-msgstr "Uvoz"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Light"
-msgstr "Svetlost"
-
-
-msgid "Relations"
-msgstr "Odnosi"
-
-
-msgid "Rigid Body"
-msgstr "Kruto telo"
 
 
 msgid "Basic"
@@ -8654,8 +8654,8 @@ msgid "Console"
 msgstr "Konzola"
 
 
-msgid "Languages..."
-msgstr "Jezici..."
+msgid "Languages"
+msgstr "Jezik"
 
 
 msgid "Cache"
@@ -20474,10 +20474,6 @@ msgid "Language ID"
 msgstr "ID jezika"
 
 
-msgid "Languages"
-msgstr "Jezik"
-
-
 msgid "POT File Path"
 msgstr "Putanja do datoteka"
 
@@ -23106,11 +23102,6 @@ msgstr "Posle tekućeg kadra"
 
 
 msgctxt "Operator"
-msgid "Move..."
-msgstr "Premesti..."
-
-
-msgctxt "Operator"
 msgid "Snap"
 msgstr "Lepljenje"
 
@@ -23251,11 +23242,6 @@ msgstr "Raspakuj"
 msgctxt "Operator"
 msgid "Sound"
 msgstr "Zvuk"
-
-
-msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "Redosled praćenja..."
 
 
 msgctxt "Operator"
@@ -23623,11 +23609,6 @@ msgstr "Zvučnik"
 
 
 msgctxt "Operator"
-msgid "Make Local..."
-msgstr "Stvori veze..."
-
-
-msgctxt "Operator"
 msgid "Bake Action..."
 msgstr "Ispeci akciju..."
 
@@ -23723,11 +23704,6 @@ msgstr "Podešavanje kosti"
 msgctxt "Operator"
 msgid "Calculate"
 msgstr "Izračunaj"
-
-
-msgctxt "Operator"
-msgid "Sort Elements..."
-msgstr "Poređaj elemente..."
 
 
 msgctxt "Operator"
@@ -24104,11 +24080,6 @@ msgstr "Ništa nije izabrano"
 
 msgid "Pin"
 msgstr "Zakači"
-
-
-msgctxt "Operator"
-msgid "Change Shortcut"
-msgstr "Promeni prečicu"
 
 
 msgctxt "Operator"

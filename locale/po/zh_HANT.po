@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2025-12-08 10:32+0000\n"
 "PO-Revision-Date: 2025-11-29 13:12+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -20586,6 +20586,10 @@ msgid "Pin Scene"
 msgstr "釘選場景"
 
 
+msgid "Sync Scene Time"
+msgstr "同步場景時間"
+
+
 msgid "World data-block describing the environment and ambient lighting of a scene"
 msgstr "描述環境與場景環境照明的世界資料組塊"
 
@@ -23870,6 +23874,34 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
+msgid "Select More/Less"
+msgstr "選取更多/更少"
+
+
+msgid "Metaball"
+msgstr "變幻球"
+
+
+msgid "Light"
+msgstr "燈光"
+
+
+msgid "Light Probe"
+msgstr "燈光採樣器"
+
+
+msgid "Add Image"
+msgstr "新增影像"
+
+
+msgid "Relations"
+msgstr "關係"
+
+
+msgid "Rigid Body"
+msgstr "剛體"
+
+
 msgid "Apply"
 msgstr "套用"
 
@@ -23888,6 +23920,10 @@ msgstr "顯示/隱藏"
 
 msgid "Clean Up"
 msgstr "清理"
+
+
+msgid "Layout"
+msgstr "配置"
 
 
 msgid "Asset"
@@ -23910,12 +23946,28 @@ msgid "Hooks"
 msgstr "鉤"
 
 
+msgid "Adjust"
+msgstr "調整"
+
+
 msgid "Face Sets Init"
 msgstr "面集初始化"
 
 
+msgid "Keying"
+msgstr "鍵處理"
+
+
 msgid "Random Mask"
 msgstr "隨機遮罩"
+
+
+msgid "Tracking"
+msgstr "跟蹤"
+
+
+msgid "Utilities"
+msgstr "效用"
 
 
 msgid "Clear Transform"
@@ -23924,6 +23976,10 @@ msgstr "清除變換"
 
 msgid "In-Betweens"
 msgstr "內部之間"
+
+
+msgid "Math"
+msgstr "數學公式"
 
 
 msgid "Propagate"
@@ -23950,40 +24006,20 @@ msgid "Disable Bone Options"
 msgstr "停用骨骼設定"
 
 
-msgid "Layout"
-msgstr "配置"
-
-
 msgid "Mesh Select Mode"
 msgstr "網格選取模式"
+
+
+msgid "Render Preview"
+msgstr "算繪預覽"
 
 
 msgid "Face Data"
 msgstr "面資料"
 
 
-msgid "Adjust"
-msgstr "調整"
-
-
 msgid "Merge"
 msgstr "合併"
-
-
-msgid "Keying"
-msgstr "鍵處理"
-
-
-msgid "Tracking"
-msgstr "跟蹤"
-
-
-msgid "Utilities"
-msgstr "效用"
-
-
-msgid "Math"
-msgstr "數學公式"
 
 
 msgid "Special Characters"
@@ -23998,16 +24034,24 @@ msgid "Text"
 msgstr "文字"
 
 
-msgid "Metaball"
-msgstr "變幻球"
-
-
 msgid "Bone Roll"
 msgstr "骨骼滾動"
 
 
-msgid "Render Preview"
-msgstr "算繪預覽"
+msgid "Read"
+msgstr "讀取"
+
+
+msgid "Sample"
+msgstr "取樣"
+
+
+msgid "Write"
+msgstr "寫入"
+
+
+msgid "Primitives"
+msgstr "原形"
 
 
 msgid "Pivot Point"
@@ -24030,24 +24074,20 @@ msgid "Automasking"
 msgstr "自動遮罩"
 
 
+msgid "Instances"
+msgstr "實例化"
+
+
 msgid "Face Sets Edit"
 msgstr "面集編輯"
 
 
-msgid "Read"
-msgstr "讀取"
+msgid "Import"
+msgstr "匯入"
 
 
-msgid "Sample"
-msgstr "取樣"
-
-
-msgid "Write"
-msgstr "寫入"
-
-
-msgid "Primitives"
-msgstr "原形"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -24082,48 +24122,12 @@ msgid "View Regions"
 msgstr "檢視範圍"
 
 
-msgid "Select More/Less"
-msgstr "選取更多/更少"
-
-
-msgid "Instances"
-msgstr "實例化"
-
-
 msgid "Select Similar"
 msgstr "選取相似者"
 
 
 msgid "Select Linked"
 msgstr "選取連結項"
-
-
-msgid "Import"
-msgstr "匯入"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Light"
-msgstr "燈光"
-
-
-msgid "Light Probe"
-msgstr "燈光採樣器"
-
-
-msgid "Add Image"
-msgstr "新增影像"
-
-
-msgid "Relations"
-msgstr "關係"
-
-
-msgid "Rigid Body"
-msgstr "剛體"
 
 
 msgid "Basic"
@@ -24176,8 +24180,8 @@ msgid "Console"
 msgstr "主控臺"
 
 
-msgid "Languages..."
-msgstr "語言..."
+msgid "Languages"
+msgstr "語言"
 
 
 msgid "Cache"
@@ -33730,11 +33734,6 @@ msgstr "移除屬性"
 
 
 msgctxt "Operator"
-msgid "Save System Info"
-msgstr "儲存系統資訊"
-
-
-msgctxt "Operator"
 msgid "Toolbar"
 msgstr "工具列"
 
@@ -38601,18 +38600,6 @@ msgstr "移除色彩特性"
 
 msgid "Name of color attribute"
 msgstr "色彩特性名稱"
-
-
-msgid "3D Cursor Position"
-msgstr "3D 游標位置"
-
-
-msgid "3D Cursor Rotation"
-msgstr "3D 游標旋轉"
-
-
-msgid "Viewport Is Perspective"
-msgstr "視圖區採透視法"
 
 
 msgctxt "Operator"
@@ -52798,6 +52785,26 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
+msgid "Quad View"
+msgstr "四格檢視"
+
+
+msgid "Onion Skin"
+msgstr "洋蔥皮"
+
+
+msgid "Stereoscopy"
+msgstr "立體視覺"
+
+
+msgid "Multi Frame"
+msgstr "多重畫框"
+
+
+msgid "Auto-Masking"
+msgstr "自動遮罩"
+
+
 msgid "VR"
 msgstr "VR"
 
@@ -52892,26 +52899,6 @@ msgstr "描繪平面"
 
 msgid "Grease Pencil Options"
 msgstr "蠟筆選項"
-
-
-msgid "Quad View"
-msgstr "四格檢視"
-
-
-msgid "Onion Skin"
-msgstr "洋蔥皮"
-
-
-msgid "Stereoscopy"
-msgstr "立體視覺"
-
-
-msgid "Multi Frame"
-msgstr "多重畫框"
-
-
-msgid "Auto-Masking"
-msgstr "自動遮罩"
 
 
 msgid "Import Settings"
@@ -57663,10 +57650,6 @@ msgstr "語言集盒中活躍語言的索引"
 
 msgid "Whether these settings have already been auto-set or not"
 msgstr "這些設定是否已經自動設定"
-
-
-msgid "Languages"
-msgstr "語言"
 
 
 msgid "Languages to update in work repository"
@@ -69277,11 +69260,6 @@ msgstr "外推模式"
 
 
 msgctxt "Operator"
-msgid "Move..."
-msgstr "移動..."
-
-
-msgctxt "Operator"
 msgid "Snap"
 msgstr "吸附"
 
@@ -69755,11 +69733,6 @@ msgstr "聲音"
 msgctxt "Operator"
 msgid "Rename..."
 msgstr "重新命名..."
-
-
-msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "軌道排序處理..."
 
 
 msgctxt "Operator"
@@ -70269,10 +70242,6 @@ msgstr "移動標記"
 msgctxt "Operator"
 msgid "Duplicate Marker"
 msgstr "製作標記複本"
-
-
-msgid "Sync Scene Time"
-msgstr "同步場景時間"
 
 
 msgctxt "Operator"
@@ -71184,16 +71153,6 @@ msgstr "喇叭"
 
 
 msgctxt "Operator"
-msgid "Mesh Plane"
-msgstr "網格平面"
-
-
-msgctxt "Operator"
-msgid "Make Local..."
-msgstr "設為區域..."
-
-
-msgctxt "Operator"
 msgid "Bake Action..."
 msgstr "烘焙動作..."
 
@@ -71564,11 +71523,6 @@ msgstr "更新所有運動路徑"
 
 
 msgctxt "Operator"
-msgid "Sort Elements..."
-msgstr "排序元素..."
-
-
-msgctxt "Operator"
 msgid "Extrude Vertices"
 msgstr "擠出頂點"
 
@@ -71769,16 +71723,6 @@ msgstr "骨架"
 msgctxt "Operator"
 msgid "Collection Instance"
 msgstr "集盒實例"
-
-
-msgctxt "Operator"
-msgid "Reference"
-msgstr "參照"
-
-
-msgctxt "Operator"
-msgid "Background"
-msgstr "背景"
 
 
 msgctxt "Operator"
@@ -73039,10 +72983,6 @@ msgid "worlds"
 msgstr "世界"
 
 
-msgid "insufficient content"
-msgstr "不完整內容"
-
-
 msgid "unknown error reading file"
 msgstr "讀取檔案時發生錯誤"
 
@@ -73735,16 +73675,6 @@ msgstr "Shift+滑鼠左鍵"
 
 msgid "Only keyboard shortcuts can be edited that way, please use User Preferences otherwise"
 msgstr "只有鍵盤快捷鍵可以這樣修改，其他則請利用使用者偏好設定"
-
-
-msgctxt "Operator"
-msgid "Change Shortcut"
-msgstr "更改快捷鍵"
-
-
-msgctxt "Operator"
-msgid "Assign Shortcut"
-msgstr "指派快捷鍵"
 
 
 msgctxt "Operator"
@@ -80129,18 +80059,6 @@ msgstr "屬性必須是整數或是浮點"
 
 msgid "Property must be a none, distance, factor, percentage, angle, or pixel"
 msgstr "屬性必須是無、距離、係數、百分比、角度或像素之一"
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', at position %d"
-msgstr "操作器類別註冊：'%s'，無效 bl_idname '%s'，位於 %d"
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', is too long, maximum length is %d"
-msgstr "操作器類別註冊：'%s'，無效 bl_idname '%s'，太長了，最大長度為 %d"
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', must contain 1 '.' character"
-msgstr "操作器類別註冊：'%s'，無效 bl_idname '%s'，必須包含一個 '.' 字元"
 
 
 msgid "Cannot read %s '%s': %s"

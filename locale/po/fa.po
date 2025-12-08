@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2025-12-08 10:32+0000\n"
 "PO-Revision-Date: 2025-11-19 06:24+0000\n"
 "Last-Translator: \"M. Amin Taheri\" <amintaheri2001@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -3074,16 +3074,24 @@ msgid "Mix"
 msgstr "ﻁﻮﻠﺨﻣ"
 
 
+msgid "Add Image"
+msgstr "ﺮﯾﻮﺼﺗ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
+
+
+msgid "Relations"
+msgstr "ﻂﺑﺍﻭﺭ"
+
+
 msgid "Apply"
 msgstr "ﻝﺎﻤﻋﺍ"
 
 
-msgid "Convert"
-msgstr "ﻞﯾﺪﺒﺗ"
-
-
 msgid "Layout"
 msgstr "ﺡﺮﻃ"
+
+
+msgid "Convert"
+msgstr "ﻞﯾﺪﺒﺗ"
 
 
 msgid "Tracking"
@@ -3102,10 +3110,6 @@ msgid "Pivot Point"
 msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
 
 
-msgid "Mirror"
-msgstr "ﻪﻨﯾﺁ"
-
-
 msgid "Import"
 msgstr "ﻥﺩﺮﮐ ﺩﺭﺍﻭ"
 
@@ -3114,12 +3118,8 @@ msgid "UV"
 msgstr "UV"
 
 
-msgid "Add Image"
-msgstr "ﺮﯾﻮﺼﺗ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
-
-
-msgid "Relations"
-msgstr "ﻂﺑﺍﻭﺭ"
+msgid "Mirror"
+msgstr "ﻪﻨﯾﺁ"
 
 
 msgid "Key"

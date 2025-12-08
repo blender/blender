@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2025-12-08 10:32+0000\n"
 "PO-Revision-Date: 2025-07-23 15:30+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -23632,6 +23632,38 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
+msgid "Assign Material"
+msgstr "매테리얼을 할당"
+
+
+msgid "Select More/Less"
+msgstr "선택 증가/감소"
+
+
+msgid "Metaball"
+msgstr "메타볼"
+
+
+msgid "Light"
+msgstr "라이트"
+
+
+msgid "Light Probe"
+msgstr "라이트 프로브"
+
+
+msgid "Add Image"
+msgstr "이미지를 추가"
+
+
+msgid "Relations"
+msgstr "관계"
+
+
+msgid "Rigid Body"
+msgstr "리지드 바디"
+
+
 msgid "Apply"
 msgstr "적용"
 
@@ -23652,6 +23684,10 @@ msgid "Clean Up"
 msgstr "정리"
 
 
+msgid "Layout"
+msgstr "레이아웃"
+
+
 msgid "Asset"
 msgstr "에셋"
 
@@ -23668,12 +23704,24 @@ msgid "Sculpt Set Pivot"
 msgstr "스컬프트 설정 피벗"
 
 
+msgid "Keying"
+msgstr "키잉"
+
+
+msgid "Tracking"
+msgstr "트래킹"
+
+
 msgid "Clear Transform"
 msgstr "변환을 지우기"
 
 
 msgid "In-Betweens"
 msgstr "사이에서"
+
+
+msgid "Math"
+msgstr "수학"
 
 
 msgid "Propagate"
@@ -23696,10 +23744,6 @@ msgid "Disable Bone Options"
 msgstr "본 옵션을 사용 중지"
 
 
-msgid "Layout"
-msgstr "레이아웃"
-
-
 msgid "Mesh Select Mode"
 msgstr "메쉬 선택 모드"
 
@@ -23720,18 +23764,6 @@ msgid "Merge"
 msgstr "병합"
 
 
-msgid "Keying"
-msgstr "키잉"
-
-
-msgid "Tracking"
-msgstr "트래킹"
-
-
-msgid "Math"
-msgstr "수학"
-
-
 msgid "Special Characters"
 msgstr "특수 문자"
 
@@ -23744,12 +23776,16 @@ msgid "Text"
 msgstr "텍스트"
 
 
-msgid "Metaball"
-msgstr "메타볼"
-
-
 msgid "Bone Roll"
 msgstr "본 롤"
+
+
+msgid "Sample"
+msgstr "샘플"
+
+
+msgid "Primitives"
+msgstr "프리미티브"
 
 
 msgid "Pivot Point"
@@ -23768,12 +23804,12 @@ msgid "Mask Edit"
 msgstr "마스크 편집"
 
 
-msgid "Sample"
-msgstr "샘플"
+msgid "Import"
+msgstr "가져오기"
 
 
-msgid "Primitives"
-msgstr "프리미티브"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -23808,10 +23844,6 @@ msgid "View Regions"
 msgstr "뷰 지역"
 
 
-msgid "Select More/Less"
-msgstr "선택 증가/감소"
-
-
 msgid "Select Similar"
 msgstr "유사한 선택"
 
@@ -23826,38 +23858,6 @@ msgstr "연결된 선택"
 
 msgid "Select Loops"
 msgstr "루프를 선택"
-
-
-msgid "Import"
-msgstr "가져오기"
-
-
-msgid "Assign Material"
-msgstr "매테리얼을 할당"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Light"
-msgstr "라이트"
-
-
-msgid "Light Probe"
-msgstr "라이트 프로브"
-
-
-msgid "Add Image"
-msgstr "이미지를 추가"
-
-
-msgid "Relations"
-msgstr "관계"
-
-
-msgid "Rigid Body"
-msgstr "리지드 바디"
 
 
 msgid "Basic"
@@ -23913,8 +23913,8 @@ msgid "Console"
 msgstr "콘솔"
 
 
-msgid "Languages..."
-msgstr "언어..."
+msgid "Languages"
+msgstr "언어"
 
 
 msgid "Cache"
@@ -33123,11 +33123,6 @@ msgstr "속성을 제거"
 
 msgid "Generate system information, saved into a text file"
 msgstr "시스템 정보를 생성, 텍스트 파일에 저장됨"
-
-
-msgctxt "Operator"
-msgid "Save System Info"
-msgstr "시스템 정보를 저장"
 
 
 msgctxt "Operator"
@@ -53257,6 +53252,22 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
+msgid "Quad View"
+msgstr "쿼드 뷰"
+
+
+msgid "Onion Skin"
+msgstr "어니언 스킨"
+
+
+msgid "Stereoscopy"
+msgstr "입체 영상"
+
+
+msgid "Multi Frame"
+msgstr "다중 프레임"
+
+
 msgid "Active Tool"
 msgstr "활성 도구"
 
@@ -53315,22 +53326,6 @@ msgstr "스트로크 배치"
 
 msgid "Drawing Plane"
 msgstr "드로잉 평면"
-
-
-msgid "Quad View"
-msgstr "쿼드 뷰"
-
-
-msgid "Onion Skin"
-msgstr "어니언 스킨"
-
-
-msgid "Stereoscopy"
-msgstr "입체 영상"
-
-
-msgid "Multi Frame"
-msgstr "다중 프레임"
 
 
 msgid "Bone Constraints"
@@ -57893,10 +57888,6 @@ msgstr "랭스 컬렉션에서 활성 언어의 인덱스"
 
 msgid "Whether these settings have already been auto-set or not"
 msgstr "이러한 설정이 이미 자동으로 설정되었는지 여부"
-
-
-msgid "Languages"
-msgstr "언어"
 
 
 msgid "POT File Path"
@@ -68829,11 +68820,6 @@ msgstr "외삽법 모드"
 
 
 msgctxt "Operator"
-msgid "Move..."
-msgstr "이동..."
-
-
-msgctxt "Operator"
 msgid "Snap"
 msgstr "스냅"
 
@@ -69270,11 +69256,6 @@ msgstr "사운드"
 msgctxt "Operator"
 msgid "Rename..."
 msgstr "이름을 변경..."
-
-
-msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "트랙 정리..."
 
 
 msgctxt "Operator"
@@ -70349,11 +70330,6 @@ msgstr "스피커"
 
 
 msgctxt "Operator"
-msgid "Make Local..."
-msgstr "로컬을 만들기..."
-
-
-msgctxt "Operator"
 msgid "Bake Action..."
 msgstr "액션을 베이크..."
 
@@ -70568,11 +70544,6 @@ msgstr "모션 경로를 계산"
 msgctxt "Operator"
 msgid "Clear Motion Paths"
 msgstr "모션 경로를 지우기"
-
-
-msgctxt "Operator"
-msgid "Sort Elements..."
-msgstr "분류 요소..."
 
 
 msgctxt "Operator"
@@ -70812,16 +70783,6 @@ msgstr "인스턴스 컬렉션이 없음"
 msgctxt "Operator"
 msgid "Collection Instance"
 msgstr "컬렉션 인스턴스"
-
-
-msgctxt "Operator"
-msgid "Reference"
-msgstr "참조"
-
-
-msgctxt "Operator"
-msgid "Background"
-msgstr "배경"
 
 
 msgctxt "Operator"
@@ -71728,10 +71689,6 @@ msgid "ID %s uses shapekey %s, but its 'from' pointer is invalid (%p), fixing...
 msgstr "ID %s은 셰이프키 %s를 사용하지만 'from' 포인터가 유효하지 않습니다 (%p), 고치는 중..."
 
 
-msgid "insufficient content"
-msgstr "부족한 콘텐츠"
-
-
 msgid "unknown error reading file"
 msgstr "알 수 없는 오류 파일을 읽는 중"
 
@@ -71766,10 +71723,6 @@ msgstr "블렌드 열 수 없음 <memory>"
 
 msgid "Failed to read blend file '%s': %s"
 msgstr "blend 파일 '%s'을 읽지 못했습니다: %s"
-
-
-msgid "Unable to read '%s': %s"
-msgstr "'%s'을 읽을 수 없음: %s"
 
 
 msgid "Unrecognized file format '%s'"
@@ -72388,16 +72341,6 @@ msgstr "Shift Left Mouse"
 
 msgid "Only keyboard shortcuts can be edited that way, please use User Preferences otherwise"
 msgstr "키보드 단축 키 만 편집할 수 있습니다. 그렇지 않으면 사용자 환경 설정을 사용하십시오"
-
-
-msgctxt "Operator"
-msgid "Change Shortcut"
-msgstr "단축 키를 변경"
-
-
-msgctxt "Operator"
-msgid "Assign Shortcut"
-msgstr "단축 키를 할당"
 
 
 msgctxt "Operator"
@@ -77238,18 +77181,6 @@ msgstr "반드시 정수나 실수여야 하는 속성"
 
 msgid "Property must be a none, distance, factor, percentage, angle, or pixel"
 msgstr "속성은 없음, 거리, 팩터, 백분율, 각도 또는 픽셀이 여야 합니다"
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', at position %d"
-msgstr "작업자 클래스를 등록하기: '%s', 잘못된 bl_idname '%s', 위치 %d에서"
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', is too long, maximum length is %d"
-msgstr "등록하는 작업자 클래스: '%s', 잘못된 bl_idname '%s', 는 너무 깁니다, 최대 길이는 %d"
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', must contain 1 '.' character"
-msgstr "등록하는 작업자 클래스: '%s', 잘못된 bl_idname '%s', 1 '.' 문자가 포함 되어야 합니다"
 
 
 msgid "Cannot read %s '%s': %s"

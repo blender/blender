@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2025-12-08 10:32+0000\n"
 "PO-Revision-Date: 2025-12-01 14:52+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15524,92 +15524,12 @@ msgid "Mask"
 msgstr "Masker"
 
 
-msgid "Apply"
-msgstr "Tetapkan"
-
-
-msgid "Track"
-msgstr "Lacak"
-
-
-msgid "Asset"
-msgstr "Aset"
-
-
-msgid "Hooks"
-msgstr "Kait"
-
-
-msgid "Names"
-msgstr "Nama"
-
-
-msgid "Layout"
-msgstr "Tata Letak"
-
-
-msgid "Merge"
-msgstr "Menggabungkan"
-
-
-msgid "Tracking"
-msgstr "Pelacakan"
-
-
-msgid "Utilities"
-msgstr "Utilitas"
-
-
-msgid "Math"
-msgstr "Matematika"
-
-
-msgid "Text"
-msgstr "Teks"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Snap"
-msgstr "Jepret"
-
-
-msgid "Sample"
-msgstr "Sampel"
-
-
-msgid "Mirror"
-msgstr "Cermin"
-
-
-msgid "Navigation"
-msgstr "Navigasi"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Contoh-contoh"
-
-
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
-
-
-msgid "Import"
-msgstr "Impor"
-
-
 msgid "Assign Material"
 msgstr "Tugaskan Bahan"
 
 
-msgid "UV"
-msgstr "UV"
+msgid "Metaball"
+msgstr "Metabola"
 
 
 msgid "Light"
@@ -15624,6 +15544,86 @@ msgid "Add Image"
 msgstr "Tambah Gambar"
 
 
+msgid "Apply"
+msgstr "Tetapkan"
+
+
+msgid "Track"
+msgstr "Lacak"
+
+
+msgid "Layout"
+msgstr "Tata Letak"
+
+
+msgid "Asset"
+msgstr "Aset"
+
+
+msgid "Hooks"
+msgstr "Kait"
+
+
+msgid "Tracking"
+msgstr "Pelacakan"
+
+
+msgid "Utilities"
+msgstr "Utilitas"
+
+
+msgid "Math"
+msgstr "Matematika"
+
+
+msgid "Names"
+msgstr "Nama"
+
+
+msgid "Merge"
+msgstr "Menggabungkan"
+
+
+msgid "Text"
+msgstr "Teks"
+
+
+msgid "Sample"
+msgstr "Sampel"
+
+
+msgid "Snap"
+msgstr "Jepret"
+
+
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
+msgid "Instances"
+msgstr "Contoh-contoh"
+
+
+msgid "Import"
+msgstr "Impor"
+
+
+msgid "UV"
+msgstr "UV"
+
+
+msgid "Mirror"
+msgstr "Cermin"
+
+
+msgid "Navigation"
+msgstr "Navigasi"
+
+
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
+
+
 msgctxt "MovieClip"
 msgid "Clip"
 msgstr "Klip"
@@ -15635,10 +15635,6 @@ msgstr "Perbesar"
 
 msgid "Console"
 msgstr "Konsol"
-
-
-msgid "Languages..."
-msgstr "Bahasa..."
 
 
 msgid "Add Attribute"
@@ -29159,11 +29155,6 @@ msgstr "Mode Ekstrapolasi"
 
 
 msgctxt "Operator"
-msgid "Move..."
-msgstr "Pindahkan..."
-
-
-msgctxt "Operator"
 msgid "Snap"
 msgstr "Jepret"
 
@@ -30188,11 +30179,6 @@ msgstr "Kurangi Kontras"
 
 
 msgctxt "Operator"
-msgid "Sort Elements..."
-msgstr "Sortir Elemen..."
-
-
-msgctxt "Operator"
 msgid "Extrude Vertices"
 msgstr "Memperpanjang Simpul"
 
@@ -30327,11 +30313,6 @@ msgstr "Tidak ada Koleksi ke Contoh"
 msgctxt "Operator"
 msgid "Collection Instance"
 msgstr "Contoh Koleksi"
-
-
-msgctxt "Operator"
-msgid "Reference"
-msgstr "Referensi"
 
 
 msgctxt "Operator"
@@ -30565,10 +30546,6 @@ msgstr "Tidak dapat membuka blend <memory>"
 
 msgid "Failed to read blend file '%s': %s"
 msgstr "Gagal membaca dokumen blend '%s': %s"
-
-
-msgid "Unable to read '%s': %s"
-msgstr "Tidak dapat membaca '%s': %s"
 
 
 msgid "Unrecognized file format '%s'"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
-"PO-Revision-Date: 2025-12-02 02:49+0000\n"
+"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"PO-Revision-Date: 2025-12-02 17:37+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -30094,8 +30094,8 @@ msgid "Remember the last used scene for the workspace and switch to it whenever 
 msgstr "Permite recordar la última escena usada en el espacio de trabajo y cambiar a ésta cuando se vuelva a activar este espacio de trabajo"
 
 
-msgid "Sync Active Scene"
-msgstr "Sincronizar con escena activa"
+msgid "Sync Scene Time"
+msgstr "Sincronizar con tiempo de la escena"
 
 
 msgid "Set the active scene and time based on the current scene strip"
@@ -32597,6 +32597,15 @@ msgstr "ZonaA Región"
 
 
 msgctxt "UI_Events_KeyMaps"
+msgid "ActionZone Quad"
+msgstr "ZonaAcción Cuádruple"
+
+
+msgid "AZone Quad"
+msgstr "ZonaA Cuádruple"
+
+
+msgctxt "UI_Events_KeyMaps"
 msgid "ActionZone Fullscreen"
 msgstr "ZonaAcción PantallaCompleta"
 
@@ -34897,6 +34906,38 @@ msgid "Editor menu containing buttons"
 msgstr "Menú del editor que contiene botones"
 
 
+msgid "Assign Material"
+msgstr "Asignar material"
+
+
+msgid "Select More/Less"
+msgstr "Seleccionar más / menos"
+
+
+msgid "Metaball"
+msgstr "Metabola"
+
+
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Light Probe"
+msgstr "Sonda de luz"
+
+
+msgid "Add Image"
+msgstr "Agregar imagen"
+
+
+msgid "Relations"
+msgstr "Relaciones"
+
+
+msgid "Rigid Body"
+msgstr "Cuerpo rígido"
+
+
 msgid "Apply"
 msgstr "Aplicar"
 
@@ -34915,6 +34956,10 @@ msgstr "Mostrar / Ocultar"
 
 msgid "Clean Up"
 msgstr "Limpiar"
+
+
+msgid "Layout"
+msgstr "Organizar"
 
 
 msgid "Asset"
@@ -34945,6 +34990,10 @@ msgid "Trim/Add"
 msgstr "Recortar / Agregar"
 
 
+msgid "Adjust"
+msgstr "Ajustar"
+
+
 msgid "Sculpt Set Pivot"
 msgstr "Esculpido definir pivote"
 
@@ -34953,8 +35002,20 @@ msgid "Face Sets Init"
 msgstr "Inicialización de conjuntos de caras"
 
 
+msgid "Keying"
+msgstr "Recortar"
+
+
 msgid "Random Mask"
 msgstr "Máscara aleatoria"
+
+
+msgid "Tracking"
+msgstr "Rastreo"
+
+
+msgid "Utilities"
+msgstr "Utilitarios"
 
 
 msgid "Clear Transform"
@@ -34965,8 +35026,16 @@ msgid "In-Betweens"
 msgstr "Intermedios"
 
 
+msgid "Math"
+msgstr "Operar"
+
+
 msgid "Propagate"
 msgstr "Propagar"
+
+
+msgid "Creative"
+msgstr "Creatividad"
 
 
 msgid "Bone Collections"
@@ -34989,12 +35058,12 @@ msgid "Disable Bone Options"
 msgstr "Deshabilitar opciones huesos"
 
 
-msgid "Layout"
-msgstr "Organizar"
-
-
 msgid "Mesh Select Mode"
 msgstr "Modo de selección de mallas"
+
+
+msgid "Render Preview"
+msgstr "Procesar previsualización"
 
 
 msgid "Face Data"
@@ -35009,32 +35078,8 @@ msgid "Set Face Strength"
 msgstr "Definir intensidad de caras"
 
 
-msgid "Adjust"
-msgstr "Ajustar"
-
-
 msgid "Merge"
 msgstr "Fusionar"
-
-
-msgid "Keying"
-msgstr "Recortar"
-
-
-msgid "Tracking"
-msgstr "Rastreo"
-
-
-msgid "Utilities"
-msgstr "Utilitarios"
-
-
-msgid "Math"
-msgstr "Operar"
-
-
-msgid "Creative"
-msgstr "Creatividad"
 
 
 msgid "Special Characters"
@@ -35049,16 +35094,24 @@ msgid "Text"
 msgstr "Texto"
 
 
-msgid "Metaball"
-msgstr "Metabola"
-
-
 msgid "Bone Roll"
 msgstr "Giro de huesos"
 
 
-msgid "Render Preview"
-msgstr "Procesar previsualización"
+msgid "Read"
+msgstr "Lectura"
+
+
+msgid "Sample"
+msgstr "Muestreo"
+
+
+msgid "Write"
+msgstr "Escritura"
+
+
+msgid "Primitives"
+msgstr "Primitivas"
 
 
 msgid "Pivot Point"
@@ -35077,28 +35130,36 @@ msgid "Mask Edit"
 msgstr "Edición de máscara"
 
 
+msgid "Gizmo"
+msgstr "Manipulador"
+
+
 msgid "Automasking"
 msgstr "Autoenmascarar"
+
+
+msgid "Instances"
+msgstr "Instancias"
 
 
 msgid "Face Sets Edit"
 msgstr "Edición de conjuntos de caras"
 
 
-msgid "Read"
-msgstr "Lectura"
+msgid "Import"
+msgstr "Importar"
 
 
-msgid "Sample"
-msgstr "Muestreo"
+msgid "Deprecated"
+msgstr "Obsoleto"
 
 
-msgid "Write"
-msgstr "Escritura"
+msgid "List"
+msgstr "Lista"
 
 
-msgid "Primitives"
-msgstr "Primitivas"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -35133,18 +35194,6 @@ msgid "View Regions"
 msgstr "Regiones de la vista"
 
 
-msgid "Select More/Less"
-msgstr "Seleccionar más / menos"
-
-
-msgid "Gizmo"
-msgstr "Manipulador"
-
-
-msgid "Instances"
-msgstr "Instancias"
-
-
 msgid "Select Similar"
 msgstr "Seleccionar similar"
 
@@ -35159,46 +35208,6 @@ msgstr "Seleccionar vinculado"
 
 msgid "Select Loops"
 msgstr "Seleccionar bucles"
-
-
-msgid "Import"
-msgstr "Importar"
-
-
-msgid "Deprecated"
-msgstr "Obsoleto"
-
-
-msgid "Assign Material"
-msgstr "Asignar material"
-
-
-msgid "List"
-msgstr "Lista"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Light"
-msgstr "Luz"
-
-
-msgid "Light Probe"
-msgstr "Sonda de luz"
-
-
-msgid "Add Image"
-msgstr "Agregar imagen"
-
-
-msgid "Relations"
-msgstr "Relaciones"
-
-
-msgid "Rigid Body"
-msgstr "Cuerpo rígido"
 
 
 msgid "Keyframe Insert Pie"
@@ -35299,8 +35308,8 @@ msgid "Console"
 msgstr "Consola"
 
 
-msgid "Languages..."
-msgstr "Lenguajes"
+msgid "Languages"
+msgstr "Idiomas"
 
 
 msgid "Add Attribute"
@@ -55764,11 +55773,6 @@ msgid "Generate system information, saved into a text file"
 msgstr "Permite generar información del sistema, guardándola en un archivo de texto"
 
 
-msgctxt "Operator"
-msgid "Save System Info"
-msgstr "Guardar información del sistema"
-
-
 msgid "Look up the most appropriate tool for the given brush type and activate that"
 msgstr "Busca la herramienta más apropiada para el tipo de pincel dado y la activa"
 
@@ -60372,6 +60376,10 @@ msgid "Select a point or its handles"
 msgstr "Permite seleccionar un punto o sus asas"
 
 
+msgid "Diameter of new points"
+msgstr "Diámetro de nuevos puntos"
+
+
 msgid "Toggle Selection"
 msgstr "Alternar selección"
 
@@ -61661,6 +61669,10 @@ msgstr "ADVERTENCIA: no disponible en instancias de duplicados de grupos"
 
 msgid "Other"
 msgstr "Otro"
+
+
+msgid "Other geometry types, like curve, meta-ball, etc. (converted to meshes)"
+msgstr "Otros tipos de geometría como curvas, metabolas, etc. (convertidos a mallas)"
 
 
 msgctxt "File browser"
@@ -63878,51 +63890,6 @@ msgstr "Define a este atributo de color como el predefinido durante el procesami
 
 msgid "Name of color attribute"
 msgstr "Nombre del atributo de color"
-
-
-msgctxt "Operator"
-msgid "Run Node Group"
-msgstr "Ejecutar grupo de nodos"
-
-
-msgid "Execute a node group on geometry"
-msgstr "Ejecuta un grupo de nodos en la geometría"
-
-
-msgid "3D Cursor Position"
-msgstr "Posición cursor 3D"
-
-
-msgid "3D Cursor Rotation"
-msgstr "Rotación cursor 3D"
-
-
-msgid "Mouse coordinates in region space"
-msgstr "Coordenadas del ratón en espacio de la región"
-
-
-msgid "Name of the data-block to use by the operator"
-msgstr "Nombre del bloque de datos a ser usado por el operador"
-
-
-msgid "Region Size"
-msgstr "Tamaño de región"
-
-
-msgid "Session UID of the data-block to use by the operator"
-msgstr "Identificador UID de sesión del bloque de datos a ser usado por el operador"
-
-
-msgid "Viewport Is Perspective"
-msgstr "Vista es perspectiva"
-
-
-msgid "Viewport Projection Transform"
-msgstr "Transformar proyección de vista"
-
-
-msgid "Viewport View Transform"
-msgstr "Transformar vista"
 
 
 msgctxt "Operator"
@@ -67552,12 +67519,20 @@ msgid "Update Scene FPS"
 msgstr "Actualizar FPS de escena"
 
 
+msgid "Set the scene frame-rate to that of the BVH file (note that this nullifies the 'Scale FPS' option, as the scale will be 1:1)"
+msgstr "Permite redefinir la velocidad de fotogramas de la escena a la del archivo BVH (tener en cuenta que esto anulará la opción 'Escalar FPS', ya que la escala será 1:1)"
+
+
 msgid "Loop the animation playback"
 msgstr "Reproducción cíclica de la animación"
 
 
 msgid "Scale FPS"
 msgstr "Escalar FPS"
+
+
+msgid "Scale the frame-rate from the BVH to the current scenes, otherwise each BVH frame maps directly to a Blender frame"
+msgstr "Escala la velocidad del BVH en la escena actual, de otro modo cada fotograma del BVH será mapeado directamente a un fotograma de Blender"
 
 
 msgid "Animation Offset"
@@ -71398,6 +71373,10 @@ msgid "After baking curves, remove redundant keys"
 msgstr "Luego de capturar las curvas, permite eliminar los claves redundantes"
 
 
+msgid "Clear Local Constraints"
+msgstr "Eliminar restricciones locales"
+
+
 msgid "Remove all constraints from keyed object/bones. To get a correct bake with this setting Visual Keying should be enabled"
 msgstr "Elimina todas las restricciones de los objetos/huesos animados. Para obtener una captura correcta con esta opción, la opción Claves visuales deberá estar activa"
 
@@ -71761,6 +71740,14 @@ msgstr "Agregar colección de nodos"
 
 msgid "Add a collection info node to the current node editor"
 msgstr "Agrega un nodo de información de colección al editor de nodos actual"
+
+
+msgid "Name of the data-block to use by the operator"
+msgstr "Nombre del bloque de datos a ser usado por el operador"
+
+
+msgid "Session UID of the data-block to use by the operator"
+msgstr "Identificador UID de sesión del bloque de datos a ser usado por el operador"
 
 
 msgctxt "Operator"
@@ -81039,6 +81026,15 @@ msgstr "Permite agregar una nueva organización de pantalla"
 
 
 msgctxt "Operator"
+msgid "Quad View Resize"
+msgstr "Redimensionar vista cuádruple"
+
+
+msgid "Resize Quad View areas"
+msgstr "Redimensiona las áreas de la vista cuádruple"
+
+
+msgctxt "Operator"
 msgid "Redo Last"
 msgstr "Rehacer lo último"
 
@@ -83008,7 +83004,7 @@ msgstr "Elimina todos los huecos hacia la derecha del fotograma actual"
 
 msgctxt "Operator"
 msgid "Add Image Strip"
-msgstr "Agregar clip de imagen"
+msgstr "Agregar imagen"
 
 
 msgid "Add an image or image sequence to the sequencer"
@@ -83700,7 +83696,7 @@ msgstr "Fotograma al cual serán adheridos los clips"
 
 msgctxt "Operator"
 msgid "Add Sound Strip"
-msgstr "Agregar clip de sonido"
+msgstr "Agregar sonido"
 
 
 msgid "Add a sound strip to the sequencer"
@@ -91617,6 +91613,42 @@ msgid "Panel containing UI elements"
 msgstr "Panel que contiene elementos de la interfaz"
 
 
+msgid "Quad View"
+msgstr "Vista cuádruple"
+
+
+msgid "Onion Skin"
+msgstr "Piel de cebolla"
+
+
+msgid "Stereoscopy"
+msgstr "Estereoscopía"
+
+
+msgid "Multi Frame"
+msgstr "Multifotograma"
+
+
+msgid "Auto-Masking"
+msgstr "Autoenmascarar"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Opciones adición de curvas (esculpido de curvas)"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Decaimiento parámetro esculpido de curvas"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Escala expandir/contraer curvas"
+
+
+msgid "Viewport Debug"
+msgstr "Depurar Vista 3D"
+
+
 msgid "VR"
 msgstr "RV"
 
@@ -91723,42 +91755,6 @@ msgstr "Plano de dibujo"
 
 msgid "Grease Pencil Options"
 msgstr "Opciones de Grease Pencil"
-
-
-msgid "Quad View"
-msgstr "Vista cuádruple"
-
-
-msgid "Onion Skin"
-msgstr "Piel de cebolla"
-
-
-msgid "Stereoscopy"
-msgstr "Estereoscopía"
-
-
-msgid "Multi Frame"
-msgstr "Multifotograma"
-
-
-msgid "Auto-Masking"
-msgstr "Autoenmascarar"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Opciones adición de curvas (esculpido de curvas)"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Decaimiento parámetro esculpido de curvas"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Escala expandir/contraer curvas"
-
-
-msgid "Viewport Debug"
-msgstr "Depurar Vista 3D"
 
 
 msgid "Import Settings"
@@ -95355,6 +95351,14 @@ msgid "Enable additional features for the new curves data block"
 msgstr "Habilita características adicionales para el nuevo bloque de datos de curvas"
 
 
+msgid "Recompute ID User Count On Save"
+msgstr "Recalcular usuarios de cada ID al guardar"
+
+
+msgid "Recompute all ID user-counts before saving to a blend-file. Allows to work around invalid user-count handling in code that may lead to loss of data due to wrongly detected unused data-blocks"
+msgstr "Recalcula los usuarios de todos los ID antes de guardar un archivo .blend. Permite solucionar la manipulación inválida del recuento de usuarios en el código, lo que podría acarrear la pérdida de datos debido a la detección incorrecta de bloques de datos no usados"
+
+
 msgid "Sculpt Texture Paint"
 msgstr "Pintar texturas en esculpido"
 
@@ -96965,6 +96969,10 @@ msgid "Chinese (Traditional) - 繁體中文"
 msgstr "Chino (tradicional) - 繁體中文"
 
 
+msgid "Locale code: zh_HANT. Translation progress: 52%"
+msgstr "Código de localización: zh_HANT. Progreso de la traducción: 52%"
+
+
 msgid "Croatian - Hrvatski"
 msgstr "Croata - Hrvatski"
 
@@ -96999,10 +97007,6 @@ msgstr "Código de localización: nl_NL. Progreso de la traducción: 5%"
 
 msgid "English (UK)"
 msgstr "Inglés (Reino Unido) - English (UK)"
-
-
-msgid "Locale code: en_GB. Translation progress: 92%"
-msgstr "Código de localización: en_GB. Progreso de la traducción: 92%"
 
 
 msgid "English (US)"
@@ -97065,10 +97069,6 @@ msgid "Hebrew - תירִבְעִ"
 msgstr "Hebreo - תירִבְעִ"
 
 
-msgid "Locale code: he_IL. Translation progress: 1%"
-msgstr "Código de localización: he_IL. Progreso de la traducción: 1%"
-
-
 msgid "Hindi - हिन्दी"
 msgstr "Hindi - हिन्दी"
 
@@ -97089,16 +97089,20 @@ msgid "Indonesian - Bahasa indonesia"
 msgstr "Indonesio - Bahasa indonesia"
 
 
-msgid "Locale code: id_ID. Translation progress: 20%"
-msgstr "Código de localización: id_ID. Progreso de la traducción: 20%"
-
-
 msgid "Italian - Italiano"
 msgstr "Italiano - Italiano"
 
 
+msgid "Locale code: it_IT. Translation progress: 45%"
+msgstr "Código de localización: it_IT. Progreso de la traducción: 45%"
+
+
 msgid "Japanese - 日本語"
 msgstr "Japonés - 日本語"
+
+
+msgid "Locale code: ja_JP. Translation progress: 99%"
+msgstr "Código de localización: ja_JP. Progreso de la traducción: 99%"
 
 
 msgid "Khmer - ខ្មែរ"
@@ -97147,6 +97151,10 @@ msgstr "Nepalés - नेपाली"
 
 msgid "Locale code: ne_NP. Translation progress: 0%"
 msgstr "Código de localización: ne_NP. Progreso de la traducción: 0%"
+
+
+msgid "Norwegian (Bokmål) - Norsk bokmål"
+msgstr "Noruego (Bokmål) - Norsk bokmål"
 
 
 msgid "Persian - ﯽﺳﺭﺎﻓ"
@@ -97241,6 +97249,10 @@ msgid "Tamil - தமிழ்"
 msgstr "Tamil - தமிழ்"
 
 
+msgid "Locale code: ta. Translation progress: 94%"
+msgstr "Código de localización: ta. Progreso de la traducción: 94%"
+
+
 msgid "Thai - ภาษาไทย"
 msgstr "Tailandés - ภาษาไทย"
 
@@ -97253,12 +97265,24 @@ msgid "Turkish - Türkçe"
 msgstr "Turco - Türkçe"
 
 
+msgid "Locale code: tr_TR. Translation progress: 79%"
+msgstr "Código de localización: tr_TR. Progreso de la traducción: 79%"
+
+
 msgid "Ukrainian - Українська"
 msgstr "Ucraniano - Українська"
 
 
+msgid "Locale code: uk_UA. Translation progress: 57%"
+msgstr "Código de localización: uk_UA. Progreso de la traducción: 57%"
+
+
 msgid "Urdu - وُدرُا"
 msgstr "Urdu - وُدرُا"
+
+
+msgid "Locale code: ur. Translation progress: 87%"
+msgstr "Código de localización: ur. Progreso de la traducción: 87%"
 
 
 msgid "Vietnamese - Tiếng Việt"
@@ -100026,10 +100050,6 @@ msgstr "Identificador del idioma activo en la colección de idiomas"
 
 msgid "Whether these settings have already been auto-set or not"
 msgstr "Indica si estas opciones ya han sido definidas automáticamente o no"
-
-
-msgid "Languages"
-msgstr "Idiomas"
 
 
 msgid "Languages to update in work repository"
@@ -107087,7 +107107,7 @@ msgstr "Regiones de vista cuádruple"
 
 
 msgid "3D regions (the third one defines quad view settings, the fourth one is same as 'region_3d')"
-msgstr "Regiones 3D (la tercera define las opciones de la vista cuádruple, la cuarta es igual que la 'region_3d')"
+msgstr "Regiones 3D (la tercera define las opciones de la vista cuádruple, la cuarta será igual a la 'region_3d')"
 
 
 msgid "Settings for shading in the 3D viewport"
@@ -109205,6 +109225,10 @@ msgid "Sound Equalizer"
 msgstr "Ecualizador de audio"
 
 
+msgid "Echo"
+msgstr "Eco"
+
+
 msgid "Bright/contrast modifier data for sequence strip"
 msgstr "Modificador Brillo / Contraste para el clip de la secuencia"
 
@@ -109227,6 +109251,18 @@ msgstr "Permite multiplicar la intensidad de cada píxel"
 
 msgid "RGB curves modifier for sequence strip"
 msgstr "Modificador de curvas RVA para el clip de la secuencia"
+
+
+msgid "The delay of the effect in seconds"
+msgstr "El retardo de la señal, en segundos"
+
+
+msgid "The feedback of the effect"
+msgstr "El grado de retroalimentación del efecto"
+
+
+msgid "The wet/dry mix of the effect"
+msgstr "La mezcla entre la señal original y la procesada por el efecto"
 
 
 msgid "Hue correction modifier for sequence strip"
@@ -121762,6 +121798,10 @@ msgid "No camera found"
 msgstr "No se encontró una cámara"
 
 
+msgid "No selected editable objects to operate on"
+msgstr "Ningún objeto editable sobre el cual operar"
+
+
 msgid "Expected one other selected mesh object to copy from"
 msgstr "Se esperaba otro objeto poligonal seleccionado desde el cual poder copiar"
 
@@ -125128,11 +125168,6 @@ msgstr "Modo de extrapolación"
 
 
 msgctxt "Operator"
-msgid "Move..."
-msgstr "Mover..."
-
-
-msgctxt "Operator"
 msgid "Snap"
 msgstr "Adherir"
 
@@ -125899,11 +125934,6 @@ msgstr "Renombrar..."
 
 
 msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "Orden de pistas..."
-
-
-msgctxt "Operator"
 msgid "Add Above Selected"
 msgstr "Agregar sobre la seleccionada"
 
@@ -126480,11 +126510,6 @@ msgid "Both Sides"
 msgstr "Ambos lados"
 
 
-msgctxt "Operator"
-msgid "Side of Frame..."
-msgstr "Lado del fotograma..."
-
-
 msgid "Handle"
 msgstr "Asa"
 
@@ -126552,11 +126577,6 @@ msgstr "Desenfoque gaussiano"
 msgctxt "Operator"
 msgid "Show Hidden Strips"
 msgstr "Mostrar clips ocultos"
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe with Keying Set"
-msgstr "Insertar clave (conjunto de claves)"
 
 
 msgctxt "Operator"
@@ -126814,10 +126834,6 @@ msgstr "Mover marcador"
 msgctxt "Operator"
 msgid "Duplicate Marker"
 msgstr "Duplicar marcador"
-
-
-msgid "Sync Scene Time"
-msgstr "Sincronizar con tiempo de la escena"
 
 
 msgctxt "Operator"
@@ -128090,16 +128106,6 @@ msgstr "Altavoz"
 
 
 msgctxt "Operator"
-msgid "Mesh Plane"
-msgstr "Plano (malla)"
-
-
-msgctxt "Operator"
-msgid "Make Local..."
-msgstr "Convertir en local..."
-
-
-msgctxt "Operator"
 msgid "Bake Action..."
 msgstr "Capturar a acción..."
 
@@ -128609,11 +128615,6 @@ msgstr "Actualizar todas las trayectorias de movimiento"
 
 
 msgctxt "Operator"
-msgid "Sort Elements..."
-msgstr "Ordenar elementos"
-
-
-msgctxt "Operator"
 msgid "Extrude Vertices"
 msgstr "Extruir vértices"
 
@@ -129028,16 +129029,6 @@ msgstr "No hay colecciones para instanciar"
 msgctxt "Operator"
 msgid "Collection Instance"
 msgstr "Instanciar colección"
-
-
-msgctxt "Operator"
-msgid "Reference"
-msgstr "Referencia"
-
-
-msgctxt "Operator"
-msgid "Background"
-msgstr "Fondo"
 
 
 msgctxt "Operator"
@@ -131514,10 +131505,6 @@ msgid "ShapeKey %s has an invalid 'from' pointer (%p), it will be deleted"
 msgstr "La forma clave %s contiene un puntero 'desde' inválido (%p), será borrada"
 
 
-msgid "insufficient content"
-msgstr "contenido insuficiente"
-
-
 msgid "unknown error reading file"
 msgstr "error desconocido leyendo el archivo"
 
@@ -131540,6 +131527,10 @@ msgstr "La escena '%s' contenía una colección principal inválida, que no pudo
 
 msgid "Library '%s', '%s' had multiple instances, save and reload!"
 msgstr "La biblioteca '%s', '%s' tiene múltiples instancias, guardar y recargar!"
+
+
+msgid "Library '%s' ('%s') is an archive storage for packed data, but has no real library parent."
+msgstr "La biblioteca '%s' ('%s') es un almacén para datos empacados, pero no contiene un superior real de la biblioteca."
 
 
 msgid "LIB: .blend file %s seems corrupted, no owner 'Library' data found for the linked data-block '%s'. Try saving the file again."
@@ -131596,10 +131587,6 @@ msgstr "No es posible leer el archivo .blend '%s', su encabezado se encuentra in
 
 msgid "Failed to read file '%s', not a blend file"
 msgstr "Falla al leer el archivo '%s', no es un archivo .blend"
-
-
-msgid "Unable to read '%s': %s"
-msgstr "No es posible leer '%s': %s"
 
 
 msgid "Unrecognized file format '%s'"
@@ -133516,16 +133503,6 @@ msgstr "Sólo los atajos de teclado pueden ser editados de esta forma, de otro m
 
 
 msgctxt "Operator"
-msgid "Change Shortcut"
-msgstr "Cambiar atajo"
-
-
-msgctxt "Operator"
-msgid "Assign Shortcut"
-msgstr "Asignar atajo"
-
-
-msgctxt "Operator"
 msgid "Open File Externally"
 msgstr "Abrir archivo externamente"
 
@@ -134788,6 +134765,10 @@ msgid "Swap Areas"
 msgstr "Intercambiar áreas"
 
 
+msgid "Resize Quadrants"
+msgstr "Redimensionar cuadrantes"
+
+
 msgid "Resize Region"
 msgstr "Redimensionar región"
 
@@ -135076,6 +135057,10 @@ msgstr "También se debe seleccionar una cadena de vértices conectados"
 
 msgid "Thickness: %s, Depth: %s"
 msgstr "Grosor: %s, Profundidad: %s"
+
+
+msgid "Compiled without GMP, using \"float\" solver"
+msgstr "Compilado sin GMP, se usará un método de resolución \"decimal\" de punto flotante"
 
 
 msgid "No intersections found"
@@ -137578,7 +137563,11 @@ msgstr "No es posible cerrar el área"
 
 
 msgid "Can only scale region size from an action zone"
-msgstr "Sólo es posible redimensionar el tamaño de región de una zona de acción"
+msgstr "Sólo es posible redimensionar una región de una zona de acción"
+
+
+msgid "Can only size Quad View from an action zone"
+msgstr "Sólo es posible redimensionar una vista cuádruple de una zona de acción"
 
 
 msgid "No more keyframes to jump to in this direction"
@@ -148095,6 +148084,10 @@ msgid "Values used to sort the curve's points. Uses indices by default"
 msgstr "Valores usados para ordenar los puntos de la curva. De forma predefinida usará los identificadores"
 
 
+msgid "Which of the sorted points to output. Negative indexing is supported"
+msgstr "Cuál de los puntos ordenados proporcionar. Se soportan identificadores negativos"
+
+
 msgid "A point of the curve, chosen by the sort index"
 msgstr "Un punto de la curva, elegido por el Identificador de ordenamiento"
 
@@ -149363,6 +149356,10 @@ msgid "Values that sort the corners attached to the edge"
 msgstr "Valores que ordenan las esquinas ancladas al borde"
 
 
+msgid "Which of the sorted corners to output. Negative indexing is supported"
+msgstr "Cuál de las esquinas ordenadas proporcionar. Se soportan identificadores negativos"
+
+
 msgid "A corner of the input edge in its face's winding order, chosen by the sort index"
 msgstr "Una esquina del borde de entrada, en el orden de devanado de su cara, elegido según su identificador de ordenamiento"
 
@@ -149457,6 +149454,10 @@ msgstr "Borde anterior de esquina"
 
 msgid "Values used to sort the edges connected to the vertex. Uses indices by default"
 msgstr "Valores usados para ordenar los bordes conectados al vértice. De forma predefinida usa sus identificadores"
+
+
+msgid "Which of the sorted edges to output. Negative indexing is supported"
+msgstr "Cuál de los bordes ordenados proporcionar. Se soportan identificadores negativos"
 
 
 msgid "An edge connected to the face, chosen by the sort index"
@@ -151809,6 +151810,11 @@ msgstr "Ninguno"
 
 
 msgctxt "Sequence"
+msgid "Echo"
+msgstr "Eco"
+
+
+msgctxt "Sequence"
 msgid "Equalizer"
 msgstr "Ecualizador"
 
@@ -152390,18 +152396,6 @@ msgstr "La propiedad debe ser un entero o un decimal"
 
 msgid "Property must be a none, distance, factor, percentage, angle, or pixel"
 msgstr "La propiedad debe ser nula o una distancia, factor, porcentaje, ángulo o píxel"
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', at position %d"
-msgstr "Registrando clase de operador: '%s', bl_idname '%s' inválido en la posición %d"
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', is too long, maximum length is %d"
-msgstr "Registrando clase de operador: '%s', bl_idname '%s' inválido, es demasiado largo, la longitud máxima es %d"
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', must contain 1 '.' character"
-msgstr "Registrando clase de operador: '%s', bl_idname '%s' inválido, debe contener 1 caracter '.'"
 
 
 msgid "Cannot read %s '%s': %s"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
+"POT-Creation-Date: 2025-12-08 10:32+0000\n"
 "PO-Revision-Date: 2025-11-25 16:07+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
@@ -30090,8 +30090,8 @@ msgid "Remember the last used scene for the workspace and switch to it whenever 
 msgstr "Se souvenir de la dernière scène utilisée pour cet espace de travail et basculer vers cette scène quand cet espace de travail est activé à nouveau"
 
 
-msgid "Sync Active Scene"
-msgstr "Synchroniser la scène active"
+msgid "Sync Scene Time"
+msgstr "Synchro temps de la scène"
 
 
 msgid "Set the active scene and time based on the current scene strip"
@@ -34893,6 +34893,38 @@ msgid "Editor menu containing buttons"
 msgstr "Menu d’éditeur contenant des boutons"
 
 
+msgid "Assign Material"
+msgstr "Assigner un matériau"
+
+
+msgid "Select More/Less"
+msgstr "Sélectionner plus ou moins"
+
+
+msgid "Metaball"
+msgstr "Métaballe"
+
+
+msgid "Light"
+msgstr "Éclairage"
+
+
+msgid "Light Probe"
+msgstr "Sonde d’éclairage"
+
+
+msgid "Add Image"
+msgstr "Ajouter une image"
+
+
+msgid "Relations"
+msgstr "Relations"
+
+
+msgid "Rigid Body"
+msgstr "Corps rigide"
+
+
 msgid "Apply"
 msgstr "Appliquer"
 
@@ -34911,6 +34943,10 @@ msgstr "Afficher/cacher"
 
 msgid "Clean Up"
 msgstr "Nettoyer"
+
+
+msgid "Layout"
+msgstr "Disposition"
 
 
 msgid "Asset"
@@ -34941,6 +34977,10 @@ msgid "Trim/Add"
 msgstr "Découper/Ajouter"
 
 
+msgid "Adjust"
+msgstr "Ajuster"
+
+
 msgid "Sculpt Set Pivot"
 msgstr "Définir le pivot pour la sculpture"
 
@@ -34949,8 +34989,20 @@ msgid "Face Sets Init"
 msgstr "Initialiser les ensembles de faces"
 
 
+msgid "Keying"
+msgstr "Incrustation"
+
+
 msgid "Random Mask"
 msgstr "Masque aléatoire"
+
+
+msgid "Tracking"
+msgstr "Suivi"
+
+
+msgid "Utilities"
+msgstr "Utilitaires"
 
 
 msgid "Clear Transform"
@@ -34961,8 +35013,16 @@ msgid "In-Betweens"
 msgstr "Intervalles"
 
 
+msgid "Math"
+msgstr "Maths"
+
+
 msgid "Propagate"
 msgstr "Propager"
+
+
+msgid "Creative"
+msgstr "Créatif"
 
 
 msgid "Bone Collections"
@@ -34985,12 +35045,12 @@ msgid "Disable Bone Options"
 msgstr "Désactiver des options d’os"
 
 
-msgid "Layout"
-msgstr "Disposition"
-
-
 msgid "Mesh Select Mode"
 msgstr "Mode de sélection du maillage"
+
+
+msgid "Render Preview"
+msgstr "Rendu de prévisualisation"
 
 
 msgid "Face Data"
@@ -35005,32 +35065,8 @@ msgid "Set Face Strength"
 msgstr "Définir la force de face"
 
 
-msgid "Adjust"
-msgstr "Ajuster"
-
-
 msgid "Merge"
 msgstr "Fusionner"
-
-
-msgid "Keying"
-msgstr "Incrustation"
-
-
-msgid "Tracking"
-msgstr "Suivi"
-
-
-msgid "Utilities"
-msgstr "Utilitaires"
-
-
-msgid "Math"
-msgstr "Maths"
-
-
-msgid "Creative"
-msgstr "Créatif"
 
 
 msgid "Special Characters"
@@ -35045,16 +35081,24 @@ msgid "Text"
 msgstr "Texte"
 
 
-msgid "Metaball"
-msgstr "Métaballe"
-
-
 msgid "Bone Roll"
 msgstr "Roulis de l’os"
 
 
-msgid "Render Preview"
-msgstr "Rendu de prévisualisation"
+msgid "Read"
+msgstr "Lecture"
+
+
+msgid "Sample"
+msgstr "Échantillonner"
+
+
+msgid "Write"
+msgstr "Écriture"
+
+
+msgid "Primitives"
+msgstr "Primitives"
 
 
 msgid "Pivot Point"
@@ -35073,28 +35117,36 @@ msgid "Mask Edit"
 msgstr "Édition du masque"
 
 
+msgid "Gizmo"
+msgstr "Gizmo"
+
+
 msgid "Automasking"
 msgstr "Masquage auto"
+
+
+msgid "Instances"
+msgstr "Instances"
 
 
 msgid "Face Sets Edit"
 msgstr "Édition des ensembles de faces"
 
 
-msgid "Read"
-msgstr "Lecture"
+msgid "Import"
+msgstr "Importer"
 
 
-msgid "Sample"
-msgstr "Échantillonner"
+msgid "Deprecated"
+msgstr "Obsolète"
 
 
-msgid "Write"
-msgstr "Écriture"
+msgid "List"
+msgstr "Liste"
 
 
-msgid "Primitives"
-msgstr "Primitives"
+msgid "UV"
+msgstr "UV"
 
 
 msgid "Mirror"
@@ -35129,18 +35181,6 @@ msgid "View Regions"
 msgstr "Régions dans la vue"
 
 
-msgid "Select More/Less"
-msgstr "Sélectionner plus ou moins"
-
-
-msgid "Gizmo"
-msgstr "Gizmo"
-
-
-msgid "Instances"
-msgstr "Instances"
-
-
 msgid "Select Similar"
 msgstr "Sélectionner similaires"
 
@@ -35155,46 +35195,6 @@ msgstr "Sélectionner liés"
 
 msgid "Select Loops"
 msgstr "Sélectionner les boucles"
-
-
-msgid "Import"
-msgstr "Importer"
-
-
-msgid "Deprecated"
-msgstr "Obsolète"
-
-
-msgid "Assign Material"
-msgstr "Assigner un matériau"
-
-
-msgid "List"
-msgstr "Liste"
-
-
-msgid "UV"
-msgstr "UV"
-
-
-msgid "Light"
-msgstr "Éclairage"
-
-
-msgid "Light Probe"
-msgstr "Sonde d’éclairage"
-
-
-msgid "Add Image"
-msgstr "Ajouter une image"
-
-
-msgid "Relations"
-msgstr "Relations"
-
-
-msgid "Rigid Body"
-msgstr "Corps rigide"
 
 
 msgid "Keyframe Insert Pie"
@@ -35295,8 +35295,8 @@ msgid "Console"
 msgstr "Console"
 
 
-msgid "Languages..."
-msgstr "Langages…"
+msgid "Languages"
+msgstr "Langues"
 
 
 msgid "Add Attribute"
@@ -55759,11 +55759,6 @@ msgid "Generate system information, saved into a text file"
 msgstr "Générer les informations système et les enregistrer dans un fichier texte"
 
 
-msgctxt "Operator"
-msgid "Save System Info"
-msgstr "Enregistrer les infos système"
-
-
 msgid "Look up the most appropriate tool for the given brush type and activate that"
 msgstr "Rechecher l’outil le plus adapté pour le type de brosse donné, et l’activer"
 
@@ -63868,51 +63863,6 @@ msgstr "Nom de l’attribut de couleur"
 
 
 msgctxt "Operator"
-msgid "Run Node Group"
-msgstr "Lancer le groupe de nœuds"
-
-
-msgid "Execute a node group on geometry"
-msgstr "Exécuter un groupe de nœuds sur la géométrie"
-
-
-msgid "3D Cursor Position"
-msgstr "Position du curseur 3D"
-
-
-msgid "3D Cursor Rotation"
-msgstr "Rotation du curseur 3D"
-
-
-msgid "Mouse coordinates in region space"
-msgstr "Coordonnées de la souris dans l’espace de la région"
-
-
-msgid "Name of the data-block to use by the operator"
-msgstr "Nom du bloc de données à utiliser par l’opérateur"
-
-
-msgid "Region Size"
-msgstr "Taille de la région"
-
-
-msgid "Session UID of the data-block to use by the operator"
-msgstr "UID de session du bloc de données à utiliser par l’opérateur"
-
-
-msgid "Viewport Is Perspective"
-msgstr "La vue 3D est perspective"
-
-
-msgid "Viewport Projection Transform"
-msgstr "Transformation de projection de la vue"
-
-
-msgid "Viewport View Transform"
-msgstr "Transformation de la vue 3D"
-
-
-msgctxt "Operator"
 msgid "Set Geometry Randomization"
 msgstr "Activer la randomisation de géométrie"
 
@@ -71748,6 +71698,14 @@ msgstr "Ajouter un nœud de collection"
 
 msgid "Add a collection info node to the current node editor"
 msgstr "Ajouter un nœud d’infos de collection à l’éditeur de nœuds actuel"
+
+
+msgid "Name of the data-block to use by the operator"
+msgstr "Nom du bloc de données à utiliser par l’opérateur"
+
+
+msgid "Session UID of the data-block to use by the operator"
+msgstr "UID de session du bloc de données à utiliser par l’opérateur"
 
 
 msgctxt "Operator"
@@ -91588,6 +91546,42 @@ msgid "Panel containing UI elements"
 msgstr "Panneau contenant des éléments d’interface"
 
 
+msgid "Quad View"
+msgstr "Vue quadrants"
+
+
+msgid "Onion Skin"
+msgstr "Pelures d’oignon"
+
+
+msgid "Stereoscopy"
+msgstr "Stéréoscopie"
+
+
+msgid "Multi Frame"
+msgstr "Multi-frames"
+
+
+msgid "Auto-Masking"
+msgstr "Masquage auto"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Sculpture courbes – options d’ajout de courbe"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Sculpture courbes – atténuation le long de la courbe"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Courbes – échelle pour grandir/raccourcir"
+
+
+msgid "Viewport Debug"
+msgstr "Débugage vue 3D"
+
+
 msgid "VR"
 msgstr "VR"
 
@@ -91694,42 +91688,6 @@ msgstr "Plan de dessin"
 
 msgid "Grease Pencil Options"
 msgstr "Options du Grease Pencil"
-
-
-msgid "Quad View"
-msgstr "Vue quadrants"
-
-
-msgid "Onion Skin"
-msgstr "Pelures d’oignon"
-
-
-msgid "Stereoscopy"
-msgstr "Stéréoscopie"
-
-
-msgid "Multi Frame"
-msgstr "Multi-frames"
-
-
-msgid "Auto-Masking"
-msgstr "Masquage auto"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Sculpture courbes – options d’ajout de courbe"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Sculpture courbes – atténuation le long de la courbe"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Courbes – échelle pour grandir/raccourcir"
-
-
-msgid "Viewport Debug"
-msgstr "Débugage vue 3D"
 
 
 msgid "Import Settings"
@@ -96964,10 +96922,6 @@ msgid "English (UK)"
 msgstr "Anglais (UK) - English (UK)"
 
 
-msgid "Locale code: en_GB. Translation progress: 92%"
-msgstr "Identificateur de culture : en_GB. Progrès de la traduction : 92%"
-
-
 msgid "English (US)"
 msgstr "Anglais (USA) - English (US)"
 
@@ -97028,10 +96982,6 @@ msgid "Hebrew - תירִבְעִ"
 msgstr "Hébreu - תירִבְעִ"
 
 
-msgid "Locale code: he_IL. Translation progress: 1%"
-msgstr "Identificateur de culture : he_IL. Progrès de la traduction : 1%"
-
-
 msgid "Hindi - हिन्दी"
 msgstr "Hindi - हिन्दी"
 
@@ -97050,10 +97000,6 @@ msgstr "Identificateur de culture : hu_HU. Progrès de la traduction : 11%"
 
 msgid "Indonesian - Bahasa indonesia"
 msgstr "Indonésien - Bahasa indonesia"
-
-
-msgid "Locale code: id_ID. Translation progress: 20%"
-msgstr "Identificateur de culture : id_ID. Progrès de la traduction : 20%"
 
 
 msgid "Italian - Italiano"
@@ -99989,10 +99935,6 @@ msgstr "Indice de la langue active dans la collection langs"
 
 msgid "Whether these settings have already been auto-set or not"
 msgstr "Ces réglages ont-ils déjà été initialisés automatiquement ou non"
-
-
-msgid "Languages"
-msgstr "Langues"
 
 
 msgid "Languages to update in work repository"
@@ -124771,11 +124713,6 @@ msgstr "Mode d’extrapolation"
 
 
 msgctxt "Operator"
-msgid "Move..."
-msgstr "Déplacer…"
-
-
-msgctxt "Operator"
 msgid "Snap"
 msgstr "Aimanter"
 
@@ -125538,11 +125475,6 @@ msgstr "Renommer…"
 
 
 msgctxt "Operator"
-msgid "Track Ordering..."
-msgstr "Ordre des pistes…"
-
-
-msgctxt "Operator"
 msgid "Add Above Selected"
 msgstr "Ajouter au-dessus de la sélection"
 
@@ -126119,11 +126051,6 @@ msgid "Both Sides"
 msgstr "Des deux côtés"
 
 
-msgctxt "Operator"
-msgid "Side of Frame..."
-msgstr "Côté de la frame…"
-
-
 msgid "Handle"
 msgstr "Poignée"
 
@@ -126191,11 +126118,6 @@ msgstr "Flou gaussien"
 msgctxt "Operator"
 msgid "Show Hidden Strips"
 msgstr "Afficher bandes cachées"
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe with Keying Set"
-msgstr "Insérer une image clé avec l’ensemble de clés"
 
 
 msgctxt "Operator"
@@ -126453,10 +126375,6 @@ msgstr "Déplacer le marqueur"
 msgctxt "Operator"
 msgid "Duplicate Marker"
 msgstr "Dupliquer le marqueur"
-
-
-msgid "Sync Scene Time"
-msgstr "Synchro temps de la scène"
 
 
 msgctxt "Operator"
@@ -127729,16 +127647,6 @@ msgstr "Haut-parleur"
 
 
 msgctxt "Operator"
-msgid "Mesh Plane"
-msgstr "Maillage plan"
-
-
-msgctxt "Operator"
-msgid "Make Local..."
-msgstr "Rendre locaux…"
-
-
-msgctxt "Operator"
 msgid "Bake Action..."
 msgstr "Précalculer l’action…"
 
@@ -128248,11 +128156,6 @@ msgstr "Mettre à jour tous les chemins de mouvement"
 
 
 msgctxt "Operator"
-msgid "Sort Elements..."
-msgstr "Trier les éléments…"
-
-
-msgctxt "Operator"
 msgid "Extrude Vertices"
 msgstr "Extruder les sommets"
 
@@ -128663,16 +128566,6 @@ msgstr "Aucune collection à instancier"
 msgctxt "Operator"
 msgid "Collection Instance"
 msgstr "Instance de collection"
-
-
-msgctxt "Operator"
-msgid "Reference"
-msgstr "Référence"
-
-
-msgctxt "Operator"
-msgid "Background"
-msgstr "Arrière-plan"
 
 
 msgctxt "Operator"
@@ -131149,10 +131042,6 @@ msgid "ShapeKey %s has an invalid 'from' pointer (%p), it will be deleted"
 msgstr "La clé de forme %s a un pointeur 'from' invalide (%p), elle va être supprimée"
 
 
-msgid "insufficient content"
-msgstr "contenu insuffisant"
-
-
 msgid "unknown error reading file"
 msgstr "erreur inconnue à la lecture du fichier"
 
@@ -131231,10 +131120,6 @@ msgstr "Lecture du fichier blend « %s » impossible, en-tête incomplet. Peut
 
 msgid "Failed to read file '%s', not a blend file"
 msgstr "La lecture du fichier « %s » a échoué, ce n’est pas un fichier blend"
-
-
-msgid "Unable to read '%s': %s"
-msgstr "Impossible de lire '%s' : %s"
 
 
 msgid "Unrecognized file format '%s'"
@@ -133144,16 +133029,6 @@ msgstr "Ajouter à un menu contextuel défini par l’utilisateur (enregistré d
 
 msgid "Only keyboard shortcuts can be edited that way, please use User Preferences otherwise"
 msgstr "Seuls les raccourcis clavier peuvent être édités de cette façon, utilisez les préférences utilisateurs sinon"
-
-
-msgctxt "Operator"
-msgid "Change Shortcut"
-msgstr "Modifier le raccourci"
-
-
-msgctxt "Operator"
-msgid "Assign Shortcut"
-msgstr "Assigner un raccourci"
 
 
 msgctxt "Operator"
@@ -151930,18 +151805,6 @@ msgstr "La propriété doit être un entier ou un flottant"
 
 msgid "Property must be a none, distance, factor, percentage, angle, or pixel"
 msgstr "La propriété doit être un None, une distance, un facteur, un pourcentage, un angle ou un pixel"
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', at position %d"
-msgstr "Enregistrement de la classe d’opérateur : « %s », bl_idname « %s » invalide, à la position %d"
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', is too long, maximum length is %d"
-msgstr "Enregistrement de la classe d’opérateur : « %s », bl_idname « %s » invalide, trop long, la longueur maximale est %d"
-
-
-msgid "Registering operator class: '%s', invalid bl_idname '%s', must contain 1 '.' character"
-msgstr "Enregistrement de la classe d’opérateur : « %s », bl_idname « %s » invalide, doit contenir un caractère « . »"
 
 
 msgid "Cannot read %s '%s': %s"

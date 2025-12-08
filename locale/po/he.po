@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.1.0 Alpha (b'dba3692987cb')\n"
+"Project-Id-Version: Blender 5.1.0 Alpha (b'7084f8328cd3')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-02 11:29+0000\n"
-"PO-Revision-Date: 2025-11-25 23:12+0000\n"
+"POT-Creation-Date: 2025-12-08 10:32+0000\n"
+"PO-Revision-Date: 2025-12-07 07:59+0000\n"
 "Last-Translator: golden dragon <trmhtk2@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
 "Language: he\n"
@@ -566,12 +566,56 @@ msgid "Meshes"
 msgstr "תורוצ"
 
 
+msgid "Show Object data-blocks"
+msgstr "טקייבוא ינותנ-יקולב גצה"
+
+
+msgid "Palettes"
+msgstr "תוטלפ"
+
+
+msgid "Show Palette data-blocks"
+msgstr "הטלפ ינותנ-יקולב גצה"
+
+
+msgid "Particles Settings"
+msgstr "םיקיקלח תורדגה"
+
+
+msgid "Show Particle Settings data-blocks"
+msgstr "םיקיקלח ינותנ-יקולב גצה"
+
+
+msgid "Point Clouds"
+msgstr "ודוקנ יננע"
+
+
+msgid "Show/hide Point Cloud data-blocks"
+msgstr "תודוקנ יננע ינותנ-יקולב רתסה/גצה"
+
+
 msgid "Scenes"
 msgstr "תונצס"
 
 
+msgid "Show Scene data-blocks"
+msgstr "הנצס ינותנ-יקולב גצה"
+
+
 msgid "Sounds"
 msgstr "םילילצ"
+
+
+msgid "Show Sound data-blocks"
+msgstr "לילצ ינותנ-יקולב גצה"
+
+
+msgid "Speakers"
+msgstr "םילוקמר"
+
+
+msgid "Show Speaker data-blocks"
+msgstr "םילוקמר ינותנ-יקולב גצה"
 
 
 msgid "Texts"
@@ -835,6 +879,10 @@ msgstr "םימקרמ ףסוא"
 
 msgid "Collection of worlds"
 msgstr "תומלוע ףסוא"
+
+
+msgid "Separate"
+msgstr "הדרפה"
 
 
 msgid "Speed"
@@ -1228,6 +1276,46 @@ msgid "Modifiers"
 msgstr "םינשמ"
 
 
+msgid "No Audio"
+msgstr "עמש אלל"
+
+
+msgid "Disables audio output, for video-only renders"
+msgstr "דבלב ואידיו לש םידוביעל ,עמש טלפ קתשה"
+
+
+msgid "AAC"
+msgstr "AAC"
+
+
+msgid "AC3"
+msgstr "AC3"
+
+
+msgid "FLAC"
+msgstr "FLAC"
+
+
+msgid "MP2"
+msgstr "MP2"
+
+
+msgid "MP3"
+msgstr "MP3"
+
+
+msgid "Opus"
+msgstr "Opus"
+
+
+msgid "PCM"
+msgstr "PCM"
+
+
+msgid "Vorbis"
+msgstr "Vorbis"
+
+
 msgctxt "Sound"
 msgid "Volume"
 msgstr "עמש תמצוע"
@@ -1453,6 +1541,10 @@ msgstr "לילג סוידר"
 
 msgid "Radius of the virtual cylinder"
 msgstr "ילאוטריווה לילגה לש סוידר"
+
+
+msgid "Twist Method"
+msgstr "לותיפ תטיש"
 
 
 msgid "Path"
@@ -1719,12 +1811,12 @@ msgid "Apply"
 msgstr "לחה"
 
 
-msgid "Convert"
-msgstr "רמה"
-
-
 msgid "Layout"
 msgstr "הסירפ"
+
+
+msgid "Convert"
+msgstr "רמה"
 
 
 msgid "Face Data"
@@ -1739,8 +1831,8 @@ msgid "Proxy"
 msgstr "יסקורפ"
 
 
-msgid "Languages..."
-msgstr "..תופש"
+msgid "Languages"
+msgstr "תופש"
 
 
 msgid "Strip"
@@ -2037,14 +2129,6 @@ msgstr "תימניד העיבצ תייפא"
 
 msgid "Lamp"
 msgstr "הרונמ"
-
-
-msgid "3D Cursor Position"
-msgstr "דממ-תלתה ןמס םוקימ"
-
-
-msgid "3D Cursor Rotation"
-msgstr "דממ-תלתה ןמס בוביס"
 
 
 msgid "Eraser"
@@ -2427,10 +2511,6 @@ msgid "Language Name"
 msgstr "הפשה םש"
 
 
-msgid "Languages"
-msgstr "תופש"
-
-
 msgctxt "Sequence"
 msgid "Image"
 msgstr "הנומת"
@@ -2587,11 +2667,6 @@ msgstr "לוטיב"
 
 msgid "Nothing selected"
 msgstr "רבד רחבנ אל"
-
-
-msgctxt "Operator"
-msgid "Change Shortcut"
-msgstr "ךרד־רוציק הנש"
 
 
 msgctxt "Operator"
