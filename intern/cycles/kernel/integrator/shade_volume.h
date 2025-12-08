@@ -25,8 +25,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifdef __VOLUME__
-
 /* Events for probabilistic scattering. */
 
 enum VolumeIntegrateEvent {
@@ -34,6 +32,8 @@ enum VolumeIntegrateEvent {
   VOLUME_PATH_ATTENUATED = 1,
   VOLUME_PATH_MISSED = 2
 };
+
+#ifdef __VOLUME__
 
 struct VolumeIntegrateResult {
   /* Throughput and offset for direct light scattering. */

@@ -161,7 +161,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 }
 #endif /*__BVH_LOCAL__ */
 
-#ifdef __SHADOW_RECORD_ALL__
+#ifdef __TRANSPARENT_SHADOWS__
 ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
                                                      IntegratorShadowState state,
                                                      const ccl_private Ray *ray,
@@ -198,7 +198,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   const hiprtHit hit = traversal.getNextHit();
   return hit.hasHit();
 }
-#endif /* __SHADOW_RECORD_ALL__ */
+#endif /* __TRANSPARENT_SHADOWS__ */
 
 #ifdef __VOLUME__
 ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,

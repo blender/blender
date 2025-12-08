@@ -182,7 +182,6 @@ CCL_NAMESPACE_BEGIN
 #define __RAY_DIFFERENTIALS__
 #define __SHADER_RAYTRACE__
 #define __SHADOW_CATCHER__
-#define __SHADOW_RECORD_ALL__
 #define __SUBSURFACE__
 #define __SVM__
 #define __TRANSPARENT_SHADOWS__
@@ -225,7 +224,6 @@ CCL_NAMESPACE_BEGIN
 #    undef __VOLUME__
 #    if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_TRANSPARENT)
 #      undef __TRANSPARENT_SHADOWS__
-#      undef __SHADOW_RECORD_ALL__
 #    endif
 #  endif
 #  if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_SUBSURFACE)
