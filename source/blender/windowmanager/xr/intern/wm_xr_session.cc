@@ -96,19 +96,10 @@ static void wm_xr_session_vignette_data_free(wmXrSessionState *state)
   }
 }
 
-static void wm_xr_session_raycast_model_free(wmXrSessionState *state)
-{
-  if (state->raycast_model) {
-    GPU_batch_discard(state->raycast_model);
-    state->raycast_model = nullptr;
-  }
-}
-
 void wm_xr_session_data_free(wmXrSessionState *state)
 {
   wm_xr_session_controller_data_free(state);
   wm_xr_session_vignette_data_free(state);
-  wm_xr_session_raycast_model_free(state);
 }
 
 static void wm_xr_session_exit_cb(void *customdata)

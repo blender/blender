@@ -8,4 +8,4 @@
 
 #pragma once
 
-#define XR_MAX_RAYCASTS 8
+#define XR_TELEPORTATION_ARC_CONTROL_POINTS 12

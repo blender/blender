@@ -54,7 +54,6 @@ struct wmXrSessionState {
   bool force_reset_to_base_pose;
   bool is_view_data_set;
   bool swap_hands;
-  bool is_raycast_shown;
 
   /** Current navigation transforms. */
   GHOST_XrPose nav_pose;
@@ -77,9 +76,6 @@ struct wmXrSessionState {
 
   /** The current state and parameters of the vignette that appears while moving. */
   struct wmXrVignetteData *vignette_data;
-
-  /** Model used to draw teleportation raycast. */
-  blender::gpu::Batch *raycast_model;
 };
 
 struct wmXrRuntimeData {

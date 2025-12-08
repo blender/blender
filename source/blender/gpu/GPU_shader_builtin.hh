@@ -91,9 +91,6 @@ enum GPUBuiltinShader {
   /** Draw sequencer zebra pattern (overexposed regions). */
   GPU_SHADER_SEQUENCER_ZEBRA,
 
-  /** Draw XR ray-cast as a ruled spline surface. */
-  GPU_SHADER_XR_RAYCAST,
-
   /** Compute shaders to generate 2d index buffers (mainly for curve drawing). */
   GPU_SHADER_INDEXBUF_POINTS,
   GPU_SHADER_INDEXBUF_LINES,
@@ -137,7 +134,7 @@ enum GPUBuiltinShader {
 
   /**
    * Draw a sRGB color space texture in 3D.
-   * Texture color space is assumed to match the frame-buffer.
+   * Texture color space is assumed to match the framebuffer.
    * Take a 3D position and a 2D texture coordinate for each vertex.
    *
    * \param image: uniform sampler2D

@@ -267,13 +267,7 @@ actionconfig_data = [
                         "haptic_amplitude": "0.0",
                         "haptic_mode": "PRESS",
                     },
-                    {
-                        "op_properties": [
-                            ("interpolation", 0.9),
-                            ("hit_color", (0.0, 1.0, 1.0, 1.0)),
-                            ("miss_color", (1.0, 0.0, 0.0, 1.0)),
-                        ],
-                    },
+                    None,
                     {
                         "bindings": [
                             (
@@ -1559,14 +1553,7 @@ actionconfig_data = [
                         "haptic_amplitude": "0.0",
                         "haptic_mode": "PRESS",
                     },
-                    {
-                        "op_properties": [
-                            ("interpolation", 0.9),
-                            ("from_viewer", True),
-                            ("hit_color", (0.0, 1.0, 1.0, 1.0)),
-                            ("miss_color", (1.0, 0.0, 0.0, 1.0)),
-                        ],
-                    },
+                    None,
                     {
                         "bindings": [
                             (

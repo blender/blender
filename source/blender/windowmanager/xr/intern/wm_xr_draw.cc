@@ -332,17 +332,8 @@ static void wm_xr_controller_model_draw(const XrSessionSettings *settings,
 
 static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSessionState *state)
 {
-  bool draw_ray;
-  switch (settings->controller_draw_style) {
-    case XR_CONTROLLER_DRAW_DARK:
-    case XR_CONTROLLER_DRAW_LIGHT:
-      draw_ray = false;
-      break;
-    case XR_CONTROLLER_DRAW_DARK_RAY:
-    case XR_CONTROLLER_DRAW_LIGHT_RAY:
-      draw_ray = !state->is_raycast_shown;
-      break;
-  }
+  const bool draw_ray = (settings->controller_draw_style == XR_CONTROLLER_DRAW_DARK_RAY ||
+                         settings->controller_draw_style == XR_CONTROLLER_DRAW_LIGHT_RAY);
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
