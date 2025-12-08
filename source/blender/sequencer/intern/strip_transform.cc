@@ -715,6 +715,33 @@ static Array<float2> strip_image_transform_quad_get_ex(const Scene *scene,
       {(-image_size[0] / 2) + crop->left, (image_size[1] / 2) - crop->top},
   };
 
+  if (strip->type == STRIP_TYPE_TEXT) {
+    const TextVars *data = static_cast<TextVars *>(strip->effectdata);
+    float2 offset{(0, 0)};
+
+    switch (data->anchor_x) {
+      case SEQ_TEXT_ALIGN_X_LEFT:
+        offset.x = image_size.x / 2;
+        break;
+      case SEQ_TEXT_ALIGN_X_RIGHT:
+        offset.x = -image_size.x / 2;
+        break;
+    }
+    switch (data->anchor_y) {
+      case SEQ_TEXT_ALIGN_Y_BOTTOM:
+        offset.y = image_size.y / 2;
+        break;
+      case SEQ_TEXT_ALIGN_Y_TOP:
+        offset.y = -image_size.y / 2;
+        break;
+    }
+
+    quad[0] += offset;
+    quad[1] += offset;
+    quad[2] += offset;
+    quad[3] += offset;
+  }
+
   const float3x3 matrix = seq_image_transform_matrix_get_ex(scene, strip, apply_rotation);
   const float2 viewport_pixel_aspect(scene->r.xasp / scene->r.yasp, 1.0f);
   const float2 mirror = image_transform_mirror_factor_get(strip);
