@@ -788,11 +788,11 @@ class USDImportTest(AbstractUSDTest):
         # Validate some simple aspects of the animated objects which prove that they're animating.
         ob_xform = bpy.data.objects["cube_anim_xform"]
         ob_xform_child = bpy.data.objects["cube_anim_child_mesh"]
-        ob_shapekeys = bpy.data.objects["cube_anim_keys"]
+        ob_shapekeys = bpy.data.objects["cube_anim_keys.001"]
         ob_arm = bpy.data.objects["column_anim_armature"]
         ob_arm2_side_a = bpy.data.objects["side_a"]
         ob_arm2_side_b = bpy.data.objects["side_b"]
-        self.assertEqual(bpy.data.objects["Armature"].animation_data.action.name, "ArmatureAction_001")
+        self.assertEqual(bpy.data.objects["Armature.001"].animation_data.action.name, "ArmatureAction_001")
 
         bpy.context.scene.frame_set(1)
         self.assertEqual(len(ob_xform.constraints), 1)
@@ -877,7 +877,7 @@ class USDImportTest(AbstractUSDTest):
         res = bpy.ops.wm.usd_import(filepath=infile)
         self.assertEqual({'FINISHED'}, res)
 
-        obj = bpy.data.objects["Plane"]
+        obj = bpy.data.objects["Plane.001"]
 
         obj.active_shape_key_index = 1
 
@@ -1970,12 +1970,12 @@ class USDImportTest(AbstractUSDTest):
         bpy.utils.unregister_class(GetPrimMapUsdImportHook)
 
         expected_prim_map = {
-            Sdf.Path('/Cube'): [bpy.data.objects["Cube.002"], bpy.data.meshes["Cube.002"]],
+            Sdf.Path('/Cube'): [bpy.data.objects["Cube"], bpy.data.meshes["Cube"]],
             Sdf.Path('/XformThenCube'): [bpy.data.objects["XformThenCube"]],
-            Sdf.Path('/XformThenCube/Cube'): [bpy.data.objects["Cube"], bpy.data.meshes["Cube"]],
+            Sdf.Path('/XformThenCube/Cube'): [bpy.data.objects["Cube.001"], bpy.data.meshes["Cube.001"]],
             Sdf.Path('/XformThenXformCube'): [bpy.data.objects["XformThenXformCube"]],
             Sdf.Path('/XformThenXformCube/XformIntermediate'): [bpy.data.objects["XformIntermediate"]],
-            Sdf.Path('/XformThenXformCube/XformIntermediate/Cube'): [bpy.data.objects["Cube.001"], bpy.data.meshes["Cube.001"]],
+            Sdf.Path('/XformThenXformCube/XformIntermediate/Cube'): [bpy.data.objects["Cube.002"], bpy.data.meshes["Cube.002"]],
             Sdf.Path('/Material'): [bpy.data.materials["Material"]],
         }
 
@@ -1988,12 +1988,12 @@ class USDImportTest(AbstractUSDTest):
         bpy.utils.unregister_class(GetPrimMapUsdImportHook)
 
         expected_prim_map = {
-            Sdf.Path('/Cube'): [bpy.data.objects["Cube.002"], bpy.data.meshes["Cube.002"]],
-            Sdf.Path('/XformThenCube'): [bpy.data.objects["Cube"]],
-            Sdf.Path('/XformThenCube/Cube'): [bpy.data.meshes["Cube"]],
+            Sdf.Path('/Cube'): [bpy.data.objects["Cube"], bpy.data.meshes["Cube"]],
+            Sdf.Path('/XformThenCube'): [bpy.data.objects["Cube.001"]],
+            Sdf.Path('/XformThenCube/Cube'): [bpy.data.meshes["Cube.001"]],
             Sdf.Path('/XformThenXformCube'): [bpy.data.objects["XformThenXformCube"]],
-            Sdf.Path('/XformThenXformCube/XformIntermediate'): [bpy.data.objects["Cube.001"]],
-            Sdf.Path('/XformThenXformCube/XformIntermediate/Cube'): [bpy.data.meshes["Cube.001"]],
+            Sdf.Path('/XformThenXformCube/XformIntermediate'): [bpy.data.objects["Cube.002"]],
+            Sdf.Path('/XformThenXformCube/XformIntermediate/Cube'): [bpy.data.meshes["Cube.002"]],
             Sdf.Path('/Material'): [bpy.data.materials["Material"]],
         }
 

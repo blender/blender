@@ -82,17 +82,17 @@
     - (1.000, 1.000, 1.000)
 
 ==== Objects: 6
-- Obj 'A' MESH data:'A'
+- Obj 'A' MESH data:'A' par:'main_inst1'
   - pos 0.000, 0.000, 0.000
-  - rot 0.000, 0.000, 0.000 (XYZ)
+  - rot 0.627, 0.435, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000
 - Obj 'A.001' MESH data:'A.001'
   - pos 0.000, 0.000, 0.000
   - rot 0.000, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000
-- Obj 'A.002' MESH data:'A.002' par:'main_inst1'
+- Obj 'A.002' MESH data:'A.002'
   - pos 0.000, 0.000, 0.000
-  - rot 0.627, 0.435, 0.000 (XYZ)
+  - rot 0.000, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000
 - Obj 'main_inst1' EMPTY par:'root'
   - pos -2.680, -1.249, -0.181

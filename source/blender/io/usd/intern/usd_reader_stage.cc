@@ -743,7 +743,15 @@ void USDStageReader::sort_readers()
 {
   blender::parallel_sort(
       readers_.begin(), readers_.end(), [](const USDPrimReader *a, const USDPrimReader *b) {
-        return BLI_strcasecmp(a->name().c_str(), b->name().c_str()) < 0;
+        int result = BLI_strcasecmp(a->name().c_str(), b->name().c_str());
+
+        /* The sorting should be deterministic and consistent regardless of how the list of readers
+         * was created. Use the original, unique, USD prim path to break ties. */
+        if (result == 0) {
+          return a->prim_path() < b->prim_path();
+        }
+
+        return result < 0;
       });
 }
 
