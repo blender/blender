@@ -17,17 +17,18 @@
  * Placeholder type for the actual shading language type.
  * This string type is much like the OSL string.
  * It is merely a hash of the actual string and it immutable.
+ * Named `string_t` to avoid name collision with `std::string`.
  */
-struct string {
-  string(const char * /*str*/) {}
+struct string_t {
+  string_t(const char * /*str*/) {}
 };
 
-bool equal(string, string)
+bool equal(string_t, string_t)
 {
   return false;
 }
 
-uint as_uint(string)
+uint as_uint(string_t)
 {
   return 1;
 }

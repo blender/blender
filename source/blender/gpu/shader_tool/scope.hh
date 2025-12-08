@@ -208,6 +208,18 @@ struct Scope {
     return scope.type() == type ? scope : Scope::invalid();
   }
 
+  /**
+   * Small pattern matching engine.
+   * - pattern is expected to a be a sequence of #TokenType stored as a string.
+   * - single '?' after a token will make this token optional.
+   * - double '?' will match the question mark.
+   * - double '.' will skip to the end of the current matched scope.
+   * - callback is called for each matches with a vector of token the size of the input pattern.
+   * - control tokens ('..' and '?') and unmatched optional tokens will be set to invalid in match
+   *   vector.
+   * IMPORTANT: 2 matches cannot overlap. The pattern matching algorithm skips the whole match
+   *            after a match there is no readback. This could eventually be fixed.
+   */
   void foreach_match(const std::string &pattern,
                      std::function<void(const std::vector<Token>)> callback) const
   {
@@ -302,6 +314,16 @@ struct Scope {
       }
       pos += 1;
     }
+  }
+
+  /* Will iterate over all the attribute if this scope is an ScopeType::Attributes. */
+  void foreach_attribute(
+      std::function<void(Token attribute_name, Scope attribute_props)> callback) const
+  {
+    assert(this->type() == ScopeType::Attributes);
+    this->foreach_scope(ScopeType::Attribute, [&](Scope attr) {
+      callback(attr[0], attr[1] == '(' ? attr[1].scope() : Scope::invalid());
+    });
   }
 
   void foreach_token(const TokenType token_type, std::function<void(const Token)> callback) const

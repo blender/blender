@@ -7,19 +7,20 @@
 /**
  * This string type is much like the OSL string.
  * It is merely a hash of the actual string and it immutable.
+ * Named `string_t` to avoid name collision with `std::string`.
  */
-struct string {
+struct string_t {
   uint hash;
 
-  string(uint hash_) : hash(hash_) {}
+  string_t(uint hash_) : hash(hash_) {}
 
-  friend bool operator==(string a, string b)
+  friend bool operator==(string_t a, string_t b)
   {
     return a.hash == b.hash;
   }
 };
 
-uint as_uint(string str)
+uint as_uint(string_t str)
 {
   return str.hash;
 }

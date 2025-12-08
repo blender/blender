@@ -178,7 +178,6 @@ RESHAPE(float3x3, mat3x3, mat3x4)
 
 /* Incompatible keywords. */
 #define static
-#define inline
 #define constant
 #define device
 #define thread
@@ -187,19 +186,20 @@ RESHAPE(float3x3, mat3x3, mat3x4)
 /**
  * This string type is much like the OSL string.
  * It is merely a hash of the actual string and it immutable.
+ * Named `string_t` to avoid name collision with `std::string`.
  */
-struct string {
+struct string_t {
   uint hash;
 };
 
 #if 0 /* Causes NVidia compiler error on OpenGL. To be fixed. */
-bool equal(string a, string b)
+bool equal(string_t a, string_t b)
 {
   return a.hash == b.hash;
 }
 #endif
 
-uint as_uint(string str)
+uint as_uint(string_t str)
 {
   return str.hash;
 }

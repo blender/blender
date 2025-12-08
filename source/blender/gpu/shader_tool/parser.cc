@@ -407,7 +407,8 @@ void Parser::parse_scopes(report_callback &report_error)
             enter_scope(ScopeType::FunctionArgs, tok_id);
           }
           else if ((scopes.top().type == ScopeType::Function ||
-                    scopes.top().type == ScopeType::Local) &&
+                    scopes.top().type == ScopeType::Local ||
+                    scopes.top().type == ScopeType::Attribute) &&
                    (tok_id >= 1 && token_types[tok_id - 1] == Word))
           {
             enter_scope(ScopeType::FunctionCall, tok_id);
@@ -498,6 +499,9 @@ void Parser::parse_scopes(report_callback &report_error)
             exit_scope(tok_id - 1);
           }
           if (scopes.top().type == ScopeType::Attributes) {
+            exit_scope(tok_id - 1);
+          }
+          if (scopes.top().type == ScopeType::Attribute) {
             exit_scope(tok_id - 1);
           }
           break;

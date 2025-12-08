@@ -16,7 +16,7 @@ uint print_data(uint offset, uint data)
   return offset + 1u;
 }
 
-uint print_data(uint offset, string data)
+uint print_data(uint offset, string_t data)
 {
   return print_data(offset, as_uint(data));
 }

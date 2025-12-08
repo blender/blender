@@ -138,6 +138,9 @@ struct ParsedResource {
     if (res_type == "legacy_info") {
       ss << "ADDITIONAL_INFO(" << var_name << ")";
     }
+    else if (res_type == "resource_table") {
+      ss << "ADDITIONAL_INFO(" << var_type << ")";
+    }
     else if (res_type == "sampler") {
       if (res_frequency.empty()) {
         ss << "SAMPLER(" << res_slot << ", " << var_type << ", " << var_name << ")";
@@ -498,6 +501,9 @@ class Preprocessor {
         pragmas_mutation(parser, report_error);
         swizzle_function_mutation(parser, report_error);
         enum_macro_injection(parser, language == CPP, report_error);
+        merge_attributes_mutation(parser, report_error);
+        attributes_linting(parser, report_error);
+        inline_mutation(parser, report_error);
 
         if (language == BLENDER_GLSL) {
           srt_template_linter_and_mutation(parser, report_error);
@@ -508,13 +514,14 @@ class Preprocessor {
           template_call_mutation(parser, report_error);
           namespace_separator_mutation(parser, report_error);
           entry_point_parsing_and_mutation(parser, report_error);
-          stage_function_mutation(parser, report_error);
           pipeline_parse_and_remove(parser, filename, report_error);
           resource_table_parsing(parser, report_error);
           resource_guard_mutation(parser, report_error);
           struct_method_mutation(parser, report_error);
           method_call_mutation(parser, report_error);
           srt_member_access_mutation(parser, report_error);
+          empty_entry_point_mutation(parser, report_error);
+          stage_function_mutation(parser, report_error);
           static_branch_mutation(parser, report_error);
           empty_struct_mutation(parser, report_error);
           loop_unroll(parser, report_error);
@@ -988,27 +995,28 @@ class Preprocessor {
     });
   }
 
+  std::string get_create_info_placeholder(const std::string &name)
+  {
+    std::string placeholder;
+    placeholder += "#ifdef CREATE_INFO_RES_PASS_" + name + "\n";
+    placeholder += "CREATE_INFO_RES_PASS_" + name + "\n";
+    placeholder += "#endif\n";
+    placeholder += "#ifdef CREATE_INFO_RES_BATCH_" + name + "\n";
+    placeholder += "CREATE_INFO_RES_BATCH_" + name + "\n";
+    placeholder += "#endif\n";
+    placeholder += "#ifdef CREATE_INFO_RES_GEOMETRY_" + name + "\n";
+    placeholder += "CREATE_INFO_RES_GEOMETRY_" + name + "\n";
+    placeholder += "#endif\n";
+    placeholder += "#ifdef CREATE_INFO_RES_SHARED_VARS_" + name + "\n";
+    placeholder += "CREATE_INFO_RES_SHARED_VARS_" + name + "\n";
+    placeholder += "#endif\n";
+    return placeholder;
+  };
+
   void create_info_parse_and_remove(Parser &parser, report_callback report_error)
   {
     using namespace std;
     using namespace shader::parser;
-
-    auto get_placeholder = [](const string &name) {
-      string placeholder;
-      placeholder += "#ifdef CREATE_INFO_RES_PASS_" + name + "\n";
-      placeholder += "CREATE_INFO_RES_PASS_" + name + "\n";
-      placeholder += "#endif\n";
-      placeholder += "#ifdef CREATE_INFO_RES_BATCH_" + name + "\n";
-      placeholder += "CREATE_INFO_RES_BATCH_" + name + "\n";
-      placeholder += "#endif\n";
-      placeholder += "#ifdef CREATE_INFO_RES_GEOMETRY_" + name + "\n";
-      placeholder += "CREATE_INFO_RES_GEOMETRY_" + name + "\n";
-      placeholder += "#endif\n";
-      placeholder += "#ifdef CREATE_INFO_RES_SHARED_VARS_" + name + "\n";
-      placeholder += "CREATE_INFO_RES_SHARED_VARS_" + name + "\n";
-      placeholder += "#endif\n";
-      return placeholder;
-    };
 
     parser().foreach_scope(ScopeType::Attributes, [&](const Scope attrs) {
       if (attrs.str_with_whitespace() != "[resource_table]") {
@@ -1019,7 +1027,7 @@ class Preprocessor {
       if (type != Word || struct_keyword != Struct) {
         return;
       }
-      parser.insert_before(struct_keyword, get_placeholder(type.str()));
+      parser.insert_before(struct_keyword, get_create_info_placeholder(type.str()));
       parser.insert_line_number(struct_keyword.str_index_start() - 1,
                                 struct_keyword.line_number());
     });
@@ -1032,7 +1040,7 @@ class Preprocessor {
         const string variant_decl = parser.substr_range_inclusive(tokens.front(), tokens.back());
         metadata.create_infos_declarations.emplace_back(variant_decl);
 
-        parser.replace(tokens.front(), tokens.back(), get_placeholder(variant_name));
+        parser.replace(tokens.front(), tokens.back(), get_create_info_placeholder(variant_name));
         return;
       }
       if (tokens[0].str() == "GPU_SHADER_CREATE_INFO") {
@@ -1053,7 +1061,7 @@ class Preprocessor {
 
         parser.replace(tokens.front().str_index_start(),
                        end_pos + end_tok.size(),
-                       get_placeholder(variant_name));
+                       get_create_info_placeholder(variant_name));
         return;
       }
       if (tokens[0].str() == "GPU_SHADER_NAMED_INTERFACE_INFO") {
@@ -1460,7 +1468,6 @@ class Preprocessor {
     using namespace shader::parser;
 
     if (attribute.str() != "static_branch") {
-      report_error(ERROR_TOK(attribute), "Unrecognized attribute.");
       return;
     }
 
@@ -2022,10 +2029,10 @@ class Preprocessor {
           resource.res_type = type;
         }
         else if (type == "legacy_info") {
-          /* Name is already stored. */
+          resource.res_type = type;
         }
         else {
-          report_error(ERROR_TOK(attribute[0]), "Unrecognized attribute");
+          report_error(ERROR_TOK(attribute[0]), "Invalid attribute in resource table");
         }
       });
       return resource;
@@ -2050,7 +2057,7 @@ class Preprocessor {
           vert_in.slot = attribute[2].str();
         }
         else {
-          report_error(ERROR_TOK(attribute[0]), "Unrecognized attribute");
+          report_error(ERROR_TOK(attribute[0]), "Invalid attribute in vertex input interface");
         }
       });
       return vert_in;
@@ -2078,32 +2085,30 @@ class Preprocessor {
           if (attr.interpolation_mode != "smooth" && attr.interpolation_mode != "flat" &&
               attr.interpolation_mode != "no_perspective")
           {
-            report_error(ERROR_TOK(attributes[0]), "Unrecognized attribute");
+            report_error(ERROR_TOK(attributes[0]), "Invalid attribute in shader stage interface");
           }
           return attr;
         };
 
     auto parse_fragment_output =
-        [&](Token struct_name, Scope attributes, Token type, Token name, Scope) {
+        [&](Token struct_name, Scope attributes, Token tok_type, Token name, Scope) {
           metadata::ParsedFragOuput frag_out{
-              type.line_number(), type.str(), struct_name.str() + "_" + name.str()};
+              tok_type.line_number(), tok_type.str(), struct_name.str() + "_" + name.str()};
 
           attributes.foreach_scope(ScopeType::Attribute, [&](const Scope &attribute) {
             std::string type = attribute[0].str();
-            if (type == "color") {
+            if (type == "frag_color") {
               frag_out.slot = attribute[2].str();
             }
             else if (type == "raster_order_group") {
               frag_out.raster_order_group = attribute[2].str();
             }
-            else if (type == "color") {
-              frag_out.slot = attribute[2].str();
-            }
             else if (type == "index") {
               frag_out.dual_source = attribute[2].str();
             }
             else {
-              report_error(ERROR_TOK(attribute[0]), "Unrecognized attribute");
+              report_error(ERROR_TOK(attributes[0]),
+                           "Invalid attribute in fragment output interface");
             }
           });
           return frag_out;
@@ -2125,7 +2130,7 @@ class Preprocessor {
     };
     auto is_fragment_output_attribute = [](Token attr) {
       string type = attr.str();
-      return (type == "color" || type == "depth" || type == "stencil");
+      return (type == "frag_color" || type == "frag_depth" || type == "frag_stencil_ref");
     };
 
     parser().foreach_struct([&](Token struct_tok, Token struct_name, Scope body) {
@@ -2165,7 +2170,6 @@ class Preprocessor {
           decl_type = SrtType::fragment_output;
         }
         else {
-          report_error(ERROR_TOK(attributes[1]), "Unrecognized attribute");
           return;
         }
 
@@ -2303,147 +2307,14 @@ class Preprocessor {
         }
         parser.insert_after(end_of_srt.next().line_end() + 1, access_macros);
 
+        parser.insert_after(end_of_srt.next().line_end() + 1,
+                            get_create_info_placeholder(srt.name));
+
         parser.insert_line_number(end_of_srt.next().line_end() + 1,
                                   end_of_srt.next().line_number() + 2);
 
         /* Insert attribute so that method mutations know that this struct is an SRT. */
         parser.insert_before(struct_tok, "[[resource_table]] ");
-      }
-    });
-    parser.apply_mutations();
-  }
-
-  /* Move all method definition outside of struct definition blocks. */
-  void stage_interface_parsing(Parser &parser, report_callback /*report_error*/)
-  {
-    using namespace std;
-    using namespace shader::parser;
-
-    auto parse_interface = [&](const std::vector<Token> &tokens) {
-      if (tokens[2].scope().str_exclusive() == "vertex_out") {
-        Token srt_name = tokens[7];
-        Scope body = tokens[8].scope();
-
-        metadata::StageInterface iface;
-        iface.name = srt_name.str();
-
-        body.foreach_match("[[..]]ww;", [&](const std::vector<Token> &tokens) {
-          Token interpolation_mode = tokens[1].scope()[1];
-          Token type = tokens[6];
-          Token name = tokens[7];
-
-          metadata::ParsedAttribute attr{type.line_number(),
-                                         type.str(),
-                                         iface.name + "_" + name.str(),
-                                         interpolation_mode.str()};
-
-          iface.emplace_back(attr);
-        });
-
-        metadata.stage_interfaces.emplace_back(iface);
-        /* Erase SRT definition. The resources are defined by the backend at runtime. */
-        /* Note that this might change in the future. */
-        parser.erase(tokens[1], tokens[6]);
-        parser.erase(tokens[8].scope().start().next(), tokens[8].scope().end().prev());
-      }
-    };
-
-    parser().foreach_match("s[[..]]w{..};",
-                           [&](const std::vector<Token> &tokens) { parse_interface(tokens); });
-    parser.apply_mutations();
-  }
-
-  void vertex_in_parsing(Parser &parser, report_callback report_error)
-  {
-    using namespace std;
-    using namespace shader::parser;
-
-    parser().foreach_match("s[[..]]w{..};", [&](const std::vector<Token> &tokens) {
-      if (tokens[2].scope().str_exclusive() == "vertex_in") {
-        Token srt_name = tokens[7];
-        Scope body = tokens[8].scope();
-
-        metadata::VertexInputs iface;
-        iface.name = srt_name.str();
-
-        body.foreach_match("[[..]]ww;", [&](const std::vector<Token> &tokens) {
-          Scope attributes = tokens[1].scope();
-          Token type = tokens[6];
-          Token name = tokens[7];
-
-          metadata::ParsedVertInput frag_out{type.line_number(), type.str(), name.str()};
-
-          attributes.foreach_scope(ScopeType::Attribute, [&](const Scope &attribute) {
-            std::string type = attribute[0].str();
-            if (type == "attribute") {
-              frag_out.slot = attribute[2].str();
-            }
-            else {
-              report_error(ERROR_TOK(attribute[0]), "Unrecognized attribute");
-            }
-          });
-
-          iface.emplace_back(frag_out);
-        });
-
-        metadata.vertex_inputs.emplace_back(iface);
-        /* Erase SRT definition. The resources are defined by the backend at runtime. */
-        /* Note that this might change in the future. */
-        parser.erase(tokens[1], tokens[6]);
-        parser.erase(tokens[8].scope().start().next(), tokens[8].scope().end().prev());
-      }
-    });
-    parser.apply_mutations();
-  }
-
-  void fragment_out_parsing(Parser &parser, report_callback report_error)
-  {
-    using namespace std;
-    using namespace shader::parser;
-
-    parser().foreach_match("s[[..]]w{..};", [&](const std::vector<Token> &tokens) {
-      if (tokens[2].scope().str_exclusive() == "fragment_out") {
-        Token srt_name = tokens[7];
-        Scope body = tokens[8].scope();
-
-        metadata::FragmentOutputs iface;
-        iface.name = srt_name.str();
-
-        body.foreach_match("[[..]]ww;", [&](const std::vector<Token> &tokens) {
-          Scope attributes = tokens[1].scope();
-          Token type = tokens[6];
-          Token name = tokens[7];
-
-          metadata::ParsedFragOuput frag_out{
-              type.line_number(), type.str(), iface.name + "_" + name.str()};
-
-          attributes.foreach_scope(ScopeType::Attribute, [&](const Scope &attribute) {
-            std::string type = attribute[0].str();
-            if (type == "color") {
-              frag_out.slot = attribute[2].str();
-            }
-            else if (type == "raster_order_group") {
-              frag_out.raster_order_group = attribute[2].str();
-            }
-            else if (type == "color") {
-              frag_out.slot = attribute[2].str();
-            }
-            else if (type == "index") {
-              frag_out.dual_source = attribute[2].str();
-            }
-            else {
-              report_error(ERROR_TOK(attribute[0]), "Unrecognized attribute");
-            }
-          });
-
-          iface.emplace_back(frag_out);
-        });
-
-        metadata.fragment_outputs.emplace_back(iface);
-        /* Erase SRT definition. The resources are defined by the backend at runtime. */
-        /* Note that this might change in the future. */
-        parser.erase(tokens[1], tokens[6]);
-        parser.erase(tokens[8].scope().start().next(), tokens[8].scope().end().prev());
       }
     });
     parser.apply_mutations();
@@ -2557,6 +2428,14 @@ class Preprocessor {
               else {
                 parser.insert_after(fn_args.start(),
                                     prefix + struct_name.str() + " &this_" + suffix);
+              }
+
+              if (fn_name.str().find_first_not_of("xyzw") == string::npos ||
+                  fn_name.str().find_first_not_of("rgba") == string::npos)
+              {
+                report_error(ERROR_TOK(fn_name),
+                             "Method name matching swizzles and vector component "
+                             "accessor are forbidden.");
               }
             }
           });
@@ -2692,6 +2571,7 @@ class Preprocessor {
       create_info_decl += "ADDITIONAL_INFO(" + vertex_fn.str() + "_infos_)\n";
       create_info_decl += "ADDITIONAL_INFO(" + fragment_fn.str() + "_infos_)\n";
       create_info_decl += process_compilation_constants(params[4]);
+      create_info_decl += "DO_STATIC_COMPILATION()\n";
       create_info_decl += "GPU_SHADER_CREATE_END()\n";
 
       metadata.create_infos_declarations.emplace_back(create_info_decl);
@@ -2706,6 +2586,7 @@ class Preprocessor {
       create_info_decl += "COMPUTE_FUNCTION(\"" + compute_fn.str() + "\")\n";
       create_info_decl += "ADDITIONAL_INFO(" + compute_fn.str() + "_infos_)\n";
       create_info_decl += process_compilation_constants(params[2]);
+      create_info_decl += "DO_STATIC_COMPILATION()\n";
       create_info_decl += "GPU_SHADER_CREATE_END()\n";
 
       metadata.create_infos_declarations.emplace_back(create_info_decl);
@@ -2735,28 +2616,30 @@ class Preprocessor {
           if (attr_tok.is_invalid() || attr_tok != ']' || attr_tok.prev() != ']') {
             return;
           }
-          Scope attribute = attr_tok.prev().scope();
-          if (attribute.type() != ScopeType::Attributes) {
+          Scope attributes = attr_tok.prev().scope();
+          if (attributes.type() != ScopeType::Attributes) {
             return;
           }
 
-          const string attr = attribute.str_exclusive();
-          parser.erase(attribute.scope());
+          parser.erase(attributes.scope());
 
-          string condition = "defined(";
-          if (attr == "gpu::vertex_function" || attr == "vertex") {
-            condition += "GPU_VERTEX_SHADER";
-          }
-          else if (attr == "gpu::fragment_function" || attr == "fragment") {
-            condition += "GPU_FRAGMENT_SHADER";
-          }
-          else if (attr == "gpu::compute_function" || attr == "compute") {
-            condition += "GPU_COMPUTE_SHADER";
-          }
-          else {
+          string condition;
+          attributes.foreach_attribute([&](Token attr_tok, Scope) {
+            const string attr = attr_tok.str();
+            if (attr == "vertex") {
+              condition += "GPU_VERTEX_SHADER";
+            }
+            else if (attr == "fragment") {
+              condition += "GPU_FRAGMENT_SHADER";
+            }
+            else if (attr == "compute") {
+              condition += "GPU_COMPUTE_SHADER";
+            }
+          });
+          if (condition.empty()) {
             return;
           }
-          condition += ")";
+          condition = "defined(" + condition + ")";
 
           guarded_scope_mutation(parser, fn_body, condition);
         });
@@ -2836,7 +2719,7 @@ class Preprocessor {
     string line_start = "#line " + std::to_string(scope.start().next().line_number()) + "\n";
     string line_end = "#line " + std::to_string(scope.end().line_number()) + "\n";
 
-    string guard_start = "#if " + condition + "\n";
+    string guard_start = "#if " + condition;
     string guard_else;
     if (fn_type.is_valid() && fn_type.str() != "void") {
       string type = fn_type.str();
@@ -2859,10 +2742,10 @@ class Preprocessor {
       guard_else += line_start;
       guard_else += "  return " + type + (is_trivial ? "(0)" : "::zero()") + ";\n";
     }
-    string guard_end = "#endif\n";
+    string guard_end = "#endif";
 
-    parser.insert_after(scope.start().line_end() + 1, guard_start + line_start);
-    parser.insert_before(scope.end().line_start(), guard_else + guard_end + line_end);
+    parser.insert_directive(scope.start(), guard_start);
+    parser.insert_directive(scope.end().prev(), guard_else + guard_end);
   };
 
   void enum_macro_injection(Parser &parser, bool is_shared_file, report_callback report_error)
@@ -2959,6 +2842,160 @@ class Preprocessor {
                    tokens[0].char_number(),
                    tokens[0].line_str(),
                    "invalid enum declaration");
+    });
+  }
+
+  /* Merge attribute scopes. They are equivalent in the C++ standard.
+   * This allow to simplify parsing later on.
+   * `[[a]] [[b]]` > `[[a, b]]` */
+  void merge_attributes_mutation(Parser &parser, report_callback /*report_error*/)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    do {
+      parser().foreach_match("[[..]][[..]]", [&](vector<Token> toks) {
+        parser.insert_before(toks[4], ",");
+        parser.erase(toks[4], toks[7]);
+      });
+    } while (parser.apply_mutations());
+  }
+
+  void attributes_linting(Parser &parser, report_callback report_error)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    parser().foreach_token(SquareOpen, [&](Token par_open) {
+      if (par_open.next() != '[') {
+        return;
+      }
+      Scope attributes = par_open.next().scope();
+      bool invalid = false;
+      attributes.foreach_attribute([&](Token attr, Scope attr_scope) {
+        string attr_str = attr.str();
+        if (attr_str == "base_instance" || attr_str == "clip_distance" ||
+            attr_str == "compilation_constant" || attr_str == "compute" ||
+            attr_str == "early_fragment_tests" || attr_str == "flat" || attr_str == "frag_coord" ||
+            attr_str == "frag_stencil_ref" || attr_str == "fragment" ||
+            attr_str == "front_facing" || attr_str == "global_invocation_id" || attr_str == "in" ||
+            attr_str == "instance_id" || attr_str == "layer" ||
+            attr_str == "local_invocation_id" || attr_str == "local_invocation_index" ||
+            attr_str == "no_perspective" || attr_str == "num_work_groups" || attr_str == "out" ||
+            attr_str == "point_coord" || attr_str == "point_size" || attr_str == "position" ||
+            attr_str == "push_constant" || attr_str == "resource_table" || attr_str == "smooth" ||
+            attr_str == "specialization_constant" || attr_str == "vertex_id" ||
+            attr_str == "legacy_info" || attr_str == "vertex" || attr_str == "viewport_index" ||
+            attr_str == "work_group_id" || attr_str == "maybe_unused" ||
+            attr_str == "fallthrough" || attr_str == "nodiscard")
+        {
+          if (attr_scope.is_valid()) {
+            report_error(ERROR_TOK(attr), "This attribute requires no argument");
+            invalid = true;
+          }
+        }
+        else if (attr_str == "attribute" || attr_str == "index" || attr_str == "frag_color" ||
+                 attr_str == "frag_depth" || attr_str == "uniform" || attr_str == "condition" ||
+                 attr_str == "sampler")
+        {
+          if (attr_scope.is_invalid()) {
+            report_error(ERROR_TOK(attr), "This attribute requires 1 argument");
+            invalid = true;
+          }
+        }
+        else if (attr_str == "storage") {
+          if (attr_scope.is_invalid()) {
+            report_error(ERROR_TOK(attr), "This attribute requires 2 arguments");
+            invalid = true;
+          }
+        }
+        else if (attr_str == "image") {
+          if (attr_scope.is_invalid()) {
+            report_error(ERROR_TOK(attr), "This attribute requires 3 arguments");
+            invalid = true;
+          }
+        }
+        else if (attr_str == "local_size") {
+          if (attr_scope.is_invalid()) {
+            report_error(ERROR_TOK(attr), "This attribute requires at least 1 argument");
+            invalid = true;
+          }
+        }
+        else if (attr_str == "gpu") {
+          Token second_tok = attr.next().next().next();
+          string second_part = second_tok.str();
+          /* Should eventually drop the gpu prefix. */
+          if (second_part == "unroll" || second_part == "unroll_define") {
+            if (attributes.end().next().next() != For) {
+              report_error(ERROR_TOK(second_tok),
+                           "unroll attributes must be declared before a 'for' loop keyword");
+              invalid = true;
+            }
+            /* Placement already checked. */
+            return;
+          }
+
+          report_error(ERROR_TOK(second_tok), "Unrecognized attribute");
+          invalid = true;
+          /* Attribute already invalid, don't check placement. */
+          return;
+        }
+        else if (attr_str == "static_branch") {
+          if (attributes.start().prev().prev().scope().start().prev() != If) {
+            report_error(ERROR_TOK(attr),
+                         "[[static_branch]] attribute must be declared after a 'if' condition");
+            invalid = true;
+          }
+          /* Placement already checked. */
+          return;
+        }
+        else {
+          std::cout << "attr_str " << attr_str << std::endl;
+          report_error(ERROR_TOK(attr), "Unrecognized attribute");
+          invalid = true;
+          /* Attribute already invalid, don't check placement. */
+          return;
+        }
+
+        if (attr_str == "fallthrough") {
+          /* Placement is too complicated to check. C++ compilation should already have checked. */
+          return;
+        }
+
+        Token prev_tok = attributes.start().prev().prev();
+        if (prev_tok == '(' || prev_tok == '{' || prev_tok == ';' || prev_tok == ',' ||
+            prev_tok == '}' || prev_tok == ')' || prev_tok.is_invalid())
+        {
+          /* Placement is maybe correct. Could refine a bit more. */
+        }
+        else {
+          report_error(ERROR_TOK(attr), "attribute must be declared at a start of a declaration");
+          invalid = true;
+        }
+      });
+      if (invalid) {
+        /* Erase invalid attributes to avoid spawning more errors. */
+        parser.erase(attributes.scope());
+      }
+    });
+    parser.apply_mutations();
+  }
+
+  void inline_mutation(Parser &parser, report_callback /*report_error*/)
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    parser().foreach_token(Word, [&](Token tok) {
+      if (tok.str() == "inline") {
+        /* inline has no equivalent in GLSL and is making parsing more complicated. */
+        parser.erase(tok);
+      }
+      else if (tok.scope().type() != ScopeType::Struct && tok.str() == "static") {
+        /* static have no meaning for the shading language when not inside a struct.
+         * Removing to make parsing easier. */
+        parser.erase(tok);
+      }
     });
   }
 
@@ -3088,13 +3125,25 @@ class Preprocessor {
     using namespace std;
     using namespace shader::parser;
 
-    parser().foreach_match("#w0\n#w0\n", [&](vector<Token> toks) {
-      parser.replace(toks[0].line_start(), toks[0].line_end() + 1, "");
+    parser().foreach_match("#w0\n", [&](vector<Token> toks) {
+      /* Workaround the foreach_match not matching overlapping patterns. */
+      if (toks.back().next() == '#' && toks.back().next().next() == 'w' &&
+          toks.back().next().next().next() == '0' &&
+          toks.back().next().next().next().next() == '\n')
+      {
+        parser.replace(toks[0].line_start(), toks[0].line_end() + 1, "");
+      }
     });
     parser.apply_mutations();
 
-    parser().foreach_match("#w0\n#w\n#w0\n", [&](vector<Token> toks) {
-      parser.replace(toks[0].line_start(), toks[0].line_end() + 1, "");
+    parser().foreach_match("#w0\n#w\n", [&](vector<Token> toks) {
+      /* Workaround the foreach_match not matching overlapping patterns. */
+      if (toks.back().next() == '#' && toks.back().next().next() == 'w' &&
+          toks.back().next().next().next() == '0' &&
+          toks.back().next().next().next().next() == '\n')
+      {
+        parser.replace(toks[0].line_start(), toks[0].line_end() + 1, "");
+      }
     });
     parser.apply_mutations();
 
@@ -3301,38 +3350,50 @@ class Preprocessor {
     using namespace shader::parser;
     using namespace metadata;
 
+    auto to_uppercase = [](std::string str) {
+      for (char &c : str) {
+        c = toupper(c);
+      }
+      return str;
+    };
+
     parser().foreach_function(
         [&](bool, Token type, Token fn_name, Scope args, bool, Scope fn_body) {
           bool is_entry_point = false;
           bool is_compute_func = false;
           bool is_vertex_func = false;
           bool is_fragment_func = false;
+          bool use_early_frag_test = false;
+          string local_size;
 
           if (type.prev() == ']') {
             Scope attributes = type.prev().prev().scope();
-            if (attributes.type() == ScopeType::Attributes) {
-              string attribute = attributes.str_with_whitespace();
-
-              if (attribute == "[vertex]") {
+            attributes.foreach_attribute([&](Token attr, Scope attr_scope) {
+              const string attr_str = attr.str();
+              if (attr_str == "vertex") {
                 is_vertex_func = true;
+                is_entry_point = true;
               }
-              else if (attribute == "[fragment]") {
+              else if (attr_str == "fragment") {
                 is_fragment_func = true;
+                is_entry_point = true;
               }
-              else if (attribute == "[compute]") {
+              else if (attr_str == "compute") {
                 is_compute_func = true;
+                is_entry_point = true;
               }
-              is_entry_point = true;
-            }
+              else if (attr_str == "early_fragment_tests") {
+                use_early_frag_test = true;
+              }
+              else if (attr_str == "local_size") {
+                local_size = attr_scope.str();
+              }
+            });
           }
 
           if (is_entry_point && type.str() != "void") {
             report_error(ERROR_TOK(type), "Entry point function must return void.");
             return;
-          }
-
-          if (is_entry_point && args.str() != "()") {
-            parser.erase(args.start().next(), args.end().prev());
           }
 
           auto replace_word = [&](const string &replaced, const string &replacement) {
@@ -3354,6 +3415,26 @@ class Preprocessor {
           /* For now, just emit good old create info macros. */
           string create_info_decl;
           create_info_decl += "GPU_SHADER_CREATE_INFO(" + fn_name.str() + "_infos_)\n";
+
+          if (!local_size.empty()) {
+            if (!is_compute_func) {
+              report_error(ERROR_TOK(type),
+                           "Only compute entry point function can use [[local_size(x,y,z)]].");
+            }
+            else {
+              create_info_decl += "LOCAL_GROUP_SIZE" + local_size + "\n";
+            }
+          }
+
+          if (use_early_frag_test) {
+            if (!is_fragment_func) {
+              report_error(ERROR_TOK(type),
+                           "Only fragment entry point function can use [[use_early_frag_test]].");
+            }
+            else {
+              create_info_decl += "EARLY_FRAGMENT_TEST(true)\n";
+            }
+          }
 
           auto process_argument = [&](Token type, Token var, Scope attributes) {
             const bool is_const = type.prev() == Const;
@@ -3383,28 +3464,217 @@ class Preprocessor {
               replace_word(srt_var, "gl_InstanceID");
               metadata.builtins.emplace_back(Builtin(hash("gl_InstanceID")));
             }
-            else if (srt_attr == "position" && is_entry_point) {
+            else if (srt_attr == "base_instance" && is_entry_point) {
+              if (!is_vertex_func) {
+                report_error(ERROR_TOK(attributes[1]),
+                             "[[base_instance]] is only supported in vertex functions.");
+              }
+              else if (!is_const || srt_type != "int") {
+                report_error(ERROR_TOK(type),
+                             "[[base_instance]] must be declared as "
+                             "`const int`.");
+              }
+              replace_word(srt_var, "gl_BaseInstance");
+              metadata.builtins.emplace_back(Builtin(hash("gl_BaseInstance")));
+            }
+            else if (srt_attr == "point_size" && is_entry_point) {
+              if (!is_vertex_func) {
+                report_error(ERROR_TOK(attributes[1]),
+                             "[[point_size]] is only supported in vertex functions.");
+              }
+              else if (is_const || srt_type != "float") {
+                report_error(
+                    ERROR_TOK(type),
+                    "[[point_size]] must be declared as non-const reference (aka `float &`).");
+              }
+              replace_word(srt_var, "gl_PointSize");
+              create_info_decl += "BUILTINS(BuiltinBits::POINT_SIZE)\n";
+            }
+            else if (srt_attr == "clip_distance" && is_entry_point) {
+              if (!is_vertex_func) {
+                report_error(ERROR_TOK(attributes[1]),
+                             "[[clip_distance]] is only supported in vertex functions.");
+              }
+              else if (is_const || srt_type != "float") {
+                report_error(ERROR_TOK(type),
+                             "[[clip_distance]] must be declared as non-const reference "
+                             "(aka `float (&)[]`).");
+              }
+              replace_word(srt_var, "gl_ClipDistance");
+              create_info_decl += "BUILTINS(BuiltinBits::CLIP_DISTANCES)\n";
+            }
+            else if (srt_attr == "layer" && is_entry_point) {
               if (is_compute_func) {
                 report_error(ERROR_TOK(attributes[1]),
-                             "[[position]] is only supported in vertex or fragment functions.");
+                             "[[layer]] is only supported in vertex and fragment functions.");
               }
-              else if (is_vertex_func && (is_const || srt_type != "float4")) {
+              else if (is_vertex_func && (is_const || srt_type != "int")) {
+                report_error(ERROR_TOK(type),
+                             "[[layer]] must be declared as non-const reference "
+                             "(aka `int &`).");
+              }
+              else if (is_fragment_func && (!is_const || srt_type != "int")) {
+                report_error(ERROR_TOK(type),
+                             "[[layer]] must be declared as const reference "
+                             "(aka `const int &`).");
+              }
+              replace_word(srt_var, "gl_Layer");
+              create_info_decl += "BUILTINS(BuiltinBits::LAYER)\n";
+            }
+            else if (srt_attr == "viewport_index" && is_entry_point) {
+              if (is_compute_func) {
+                report_error(ERROR_TOK(attributes[1]),
+                             "[[viewport_index]] is only supported in vertex and "
+                             "fragment functions.");
+              }
+              else if (is_vertex_func && (is_const || srt_type != "int")) {
+                report_error(ERROR_TOK(type),
+                             "[[viewport_index]] must be declared as non-const reference "
+                             "(aka `int &`).");
+              }
+              else if (is_fragment_func && (!is_const || srt_type != "int")) {
+                report_error(ERROR_TOK(type),
+                             "[[viewport_index]] must be declared as const reference "
+                             "(aka `const int &`).");
+              }
+              replace_word(srt_var, "gl_ViewportIndex");
+              create_info_decl += "BUILTINS(BuiltinBits::VIEWPORT_INDEX)\n";
+            }
+            else if (srt_attr == "position" && is_entry_point) {
+              if (!is_vertex_func) {
+                report_error(ERROR_TOK(attributes[1]),
+                             "[[position]] is only supported in vertex functions.");
+              }
+              else if (is_const || srt_type != "float4") {
                 report_error(
                     ERROR_TOK(type),
                     "[[position]] must be declared as non-const reference (aka `float4 &`).");
               }
-              else if (is_fragment_func && (!is_const || srt_type != "float4")) {
-                report_error(ERROR_TOK(type), "[[position]] must be declared as `const float4`.");
+              else {
+                replace_word(srt_var, "gl_Position");
               }
-              replace_word(srt_var, "gl_Position");
             }
-            else if (srt_attr == "stage_in") {
+            else if (srt_attr == "frag_coord" && is_entry_point) {
+              if (!is_fragment_func) {
+                report_error(ERROR_TOK(attributes[1]),
+                             "[[frag_coord]] is only supported in fragment functions.");
+              }
+              else if (!is_const || srt_type != "float4") {
+                report_error(ERROR_TOK(type),
+                             "[[frag_coord]] must be declared as `const float4`.");
+              }
+              else {
+                create_info_decl += "BUILTINS(BuiltinBits::FRAG_COORD)\n";
+                replace_word(srt_var, "gl_FragCoord");
+              }
+            }
+            else if (srt_attr == "point_coord" && is_entry_point) {
+              if (!is_fragment_func) {
+                report_error(ERROR_TOK(attributes[1]),
+                             "[[point_coord]] is only supported in fragment functions.");
+              }
+              else if (!is_const || srt_type != "float2") {
+                report_error(ERROR_TOK(type),
+                             "[[point_coord]] must be declared as `const float2`.");
+              }
+              else {
+                create_info_decl += "BUILTINS(BuiltinBits::POINT_COORD)\n";
+                replace_word(srt_var, "gl_PointCoord");
+              }
+            }
+            else if (srt_attr == "front_facing" && is_entry_point) {
+              if (!is_fragment_func) {
+                report_error(ERROR_TOK(attributes[1]),
+                             "[[front_facing]] is only supported in fragment functions.");
+              }
+              else if (!is_const || srt_type != "bool") {
+                report_error(ERROR_TOK(type),
+                             "[[front_facing]] must be declared as `const bool`.");
+              }
+              else {
+                create_info_decl += "BUILTINS(BuiltinBits::FRONT_FACING)\n";
+                replace_word(srt_var, "gl_FrontFacing");
+              }
+            }
+            else if (srt_attr == "global_invocation_id" && is_entry_point) {
+              if (!is_compute_func) {
+                report_error(ERROR_TOK(attributes[1]),
+                             "[[global_invocation_id]] is only supported in compute functions.");
+              }
+              else if (!is_const || srt_type != "uint3") {
+                report_error(ERROR_TOK(type),
+                             "[[global_invocation_id]] must be declared as `const uint3`.");
+              }
+              else {
+                create_info_decl += "BUILTINS(BuiltinBits::GLOBAL_INVOCATION_ID)\n";
+                replace_word(srt_var, "gl_GlobalInvocationID");
+              }
+            }
+            else if (srt_attr == "local_invocation_id" && is_entry_point) {
+              if (!is_compute_func) {
+                report_error(ERROR_TOK(attributes[1]),
+                             "[[local_invocation_id]] is only supported in compute functions.");
+              }
+              else if (!is_const || srt_type != "uint3") {
+                report_error(ERROR_TOK(type),
+                             "[[local_invocation_id]] must be declared as `const uint3`.");
+              }
+              else {
+                create_info_decl += "BUILTINS(BuiltinBits::LOCAL_INVOCATION_ID)\n";
+                replace_word(srt_var, "gl_LocalInvocationID");
+              }
+            }
+            else if (srt_attr == "local_invocation_index" && is_entry_point) {
+              if (!is_compute_func) {
+                report_error(ERROR_TOK(attributes[1]),
+                             "[[local_invocation_index]] is only supported in compute functions.");
+              }
+              else if (!is_const || srt_type != "uint") {
+                report_error(ERROR_TOK(type),
+                             "[[local_invocation_index]] must be declared as `const uint`.");
+              }
+              else {
+                create_info_decl += "BUILTINS(BuiltinBits::LOCAL_INVOCATION_INDEX)\n";
+                replace_word(srt_var, "gl_LocalInvocationIndex");
+              }
+            }
+            else if (srt_attr == "work_group_id" && is_entry_point) {
+              if (!is_compute_func) {
+                report_error(ERROR_TOK(attributes[1]),
+                             "[[work_group_id]] is only supported in compute functions.");
+              }
+              else if (!is_const || srt_type != "uint3") {
+                report_error(ERROR_TOK(type),
+                             "[[work_group_id]] must be declared as "
+                             "`const uint3`.");
+              }
+              else {
+                create_info_decl += "BUILTINS(BuiltinBits::WORK_GROUP_ID)\n";
+                replace_word(srt_var, "gl_WorkGroupID");
+              }
+            }
+            else if (srt_attr == "num_work_groups" && is_entry_point) {
+              if (!is_compute_func) {
+                report_error(ERROR_TOK(attributes[1]),
+                             "[[num_work_groups]] is only supported in compute functions.");
+              }
+              else if (!is_const || srt_type != "uint3") {
+                report_error(ERROR_TOK(type),
+                             "[[num_work_groups]] must be declared as "
+                             "`const uint3`.");
+              }
+              else {
+                create_info_decl += "BUILTINS(BuiltinBits::NUM_WORK_GROUP)\n";
+                replace_word(srt_var, "gl_NumWorkGroups");
+              }
+            }
+            else if (srt_attr == "in") {
               if (is_compute_func) {
                 report_error(ERROR_TOK(attributes[1]),
-                             "[[stage_in]] is only supported in vertex and fragment functions.");
+                             "[[in]] is only supported in vertex and fragment functions.");
               }
               else if (!is_const) {
-                report_error(ERROR_TOK(type), "[[stage_in]] must be declared as const reference.");
+                report_error(ERROR_TOK(type), "[[in]] must be declared as const reference.");
               }
               else if (is_vertex_func) {
                 replace_word_and_accessor(srt_var, "");
@@ -3415,18 +3685,17 @@ class Preprocessor {
                 // create_info_decl += "VERTEX_OUT(" + srt_type + ")\n";
               }
             }
-            else if (srt_attr == "stage_out") {
+            else if (srt_attr == "out") {
               if (is_compute_func) {
                 report_error(ERROR_TOK(attributes[1]),
-                             "[[stage_out]] is only supported in vertex and fragment functions.");
+                             "[[out]] is only supported in vertex and fragment functions.");
               }
               else if (is_const) {
-                report_error(ERROR_TOK(type),
-                             "[[stage_out]] must be declared as non-const reference.");
+                report_error(ERROR_TOK(type), "[[out]] must be declared as non-const reference.");
               }
               else if (is_vertex_func) {
                 replace_word_and_accessor(srt_var, srt_type + "_");
-                create_info_decl += "VERTEX_OUT(" + srt_type + ")\n";
+                create_info_decl += "VERTEX_OUT(" + srt_type + "_t)\n";
               }
               else if (is_fragment_func) {
                 replace_word_and_accessor(srt_var, srt_type + "_");
@@ -3441,6 +3710,30 @@ class Preprocessor {
                 create_info_decl += "ADDITIONAL_INFO(" + srt_type + ")\n";
               }
             }
+            else if (srt_attr == "frag_depth") {
+              if (srt_type != "float") {
+                report_error(ERROR_TOK(type), "[[frag_depth]] needs to be declared as float");
+              }
+              const string mode = attributes[3].str();
+
+              if (mode != "any" && mode != "greater" && mode != "less") {
+                report_error(ERROR_TOK(attributes[3]),
+                             "unrecognized mode, expecting 'any', 'greater' or 'less'");
+              }
+              else {
+                create_info_decl += "DEPTH_WRITE(" + to_uppercase(mode) + ")\n";
+                replace_word(srt_var, "gl_FragDepth");
+              }
+            }
+            else if (srt_attr == "frag_stencil_ref") {
+              if (srt_type != "int") {
+                report_error(ERROR_TOK(type), "[[frag_stencil_ref]] needs to be declared as int");
+              }
+              else {
+                create_info_decl += "BUILTINS(BuiltinBits::STENCIL_REF)\n";
+                replace_word(srt_var, "gl_FragStencilRefARB");
+              }
+            }
             else {
               report_error(ERROR_TOK(attributes[1]), "Invalid attribute.");
             }
@@ -3453,10 +3746,45 @@ class Preprocessor {
             process_argument(toks[8], toks[10], toks[1].scope());
           });
 
+          args.foreach_match("[[..]]c?w(&w)", [&](const vector<Token> toks) {
+            process_argument(toks[8], toks[11], toks[1].scope());
+          });
+
           create_info_decl += "GPU_SHADER_CREATE_END()\n";
 
-          metadata.create_infos_declarations.emplace_back(create_info_decl);
+          if (is_entry_point) {
+            metadata.create_infos_declarations.emplace_back(create_info_decl);
+          }
         });
+
+    parser.apply_mutations();
+  }
+
+  /* Removes entry point arguments to make it compatible with the legacy code.
+   * Has to run after mutation related to function arguments. */
+  void empty_entry_point_mutation(Parser &parser, report_callback /*report_error*/)
+  {
+    using namespace std;
+    using namespace shader::parser;
+    using namespace metadata;
+
+    parser().foreach_function([&](bool, Token type, Token, Scope args, bool, Scope) {
+      bool is_entry_point = false;
+
+      if (type.prev() == ']') {
+        Scope attributes = type.prev().prev().scope();
+        attributes.foreach_attribute([&](Token attr, Scope) {
+          const string attr_str = attr.str();
+          if (attr_str == "vertex" || attr_str == "fragment" || attr_str == "compute") {
+            is_entry_point = true;
+          }
+        });
+      }
+
+      if (is_entry_point && args.str() != "()") {
+        parser.erase(args.start().next(), args.end().prev());
+      }
+    });
 
     parser.apply_mutations();
   }
