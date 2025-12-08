@@ -487,7 +487,9 @@ void VKBackend::detect_workarounds(VKDevice &device)
   /* During testing graphics pipeline library feature it was detected that it would crash on
    * official AMD drivers.
    */
-  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) &&
+      bool(G.debug & G_DEBUG_GPU))
+  {
     extensions.graphics_pipeline_library = false;
     extensions.vertex_input_dynamic_state = false;
   }
