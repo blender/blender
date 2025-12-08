@@ -1443,7 +1443,7 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C,
     found = wm_keymap_item_find_handlers(C,
                                          wm,
                                          win,
-                                         &win->runtime->modalhandlers,
+                                         &win->modalhandlers,
                                          opname,
                                          opcontext,
                                          properties,
@@ -1451,16 +1451,8 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C,
                                          params,
                                          r_keymap);
     if (found == nullptr) {
-      found = wm_keymap_item_find_handlers(C,
-                                           wm,
-                                           win,
-                                           &win->runtime->handlers,
-                                           opname,
-                                           opcontext,
-                                           properties,
-                                           is_strict,
-                                           params,
-                                           r_keymap);
+      found = wm_keymap_item_find_handlers(
+          C, wm, win, &win->handlers, opname, opcontext, properties, is_strict, params, r_keymap);
     }
   }
 

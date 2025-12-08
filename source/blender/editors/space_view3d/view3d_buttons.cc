@@ -2621,8 +2621,7 @@ static wmOperatorStatus view3d_object_mode_menu_exec(bContext *C, wmOperator *op
     return OPERATOR_CANCELLED;
   }
 
-  blender::ui::pie_menu_invoke(
-      C, "VIEW3D_MT_object_mode_pie", CTX_wm_window(C)->runtime->eventstate);
+  blender::ui::pie_menu_invoke(C, "VIEW3D_MT_object_mode_pie", CTX_wm_window(C)->eventstate);
   return OPERATOR_CANCELLED;
 }
 
