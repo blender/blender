@@ -69,6 +69,9 @@ struct Operation;
 
 /* Common data used for executing a gesture operation. */
 struct GestureData {
+  const Paint *paint;
+  const Brush *brush;
+
   SculptSession *ss;
   ViewContext vc;
 

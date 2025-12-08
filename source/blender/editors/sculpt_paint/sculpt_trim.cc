@@ -272,11 +272,8 @@ static void calculate_depth(gesture::GestureData &gesture_data,
        * compute the radius ourselves.  See #81452.
        */
 
-      Sculpt *sd = CTX_data_tool_settings(vc.C)->sculpt;
-      Brush *brush = BKE_paint_brush(&sd->paint);
-
       depth_radius = object_space_radius_get(
-          vc, sd->paint, *brush, trim_operation->initial_location);
+          vc, *gesture_data.paint, *gesture_data.brush, trim_operation->initial_location);
     }
 
     depth_front = mid_point_depth - depth_radius;
