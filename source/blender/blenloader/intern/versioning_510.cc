@@ -14,6 +14,7 @@
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
@@ -397,6 +398,12 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 9)) {
     init_node_tool_operator_idnames(*bmain);
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 10)) {
+    LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
+      wm->xr.session_settings.view_scale = 1.0f;
+    }
   }
 
   /**

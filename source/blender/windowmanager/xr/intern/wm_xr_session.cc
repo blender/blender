@@ -357,6 +357,42 @@ void wm_xr_session_draw_data_update(wmXrSessionState *state,
   }
 }
 
+static void wm_xr_session_state_update_navigation_scale(wmXrSessionState *state,
+                                                        const wmXrDrawData *draw_data,
+                                                        const XrSessionSettings *settings)
+{
+  using namespace blender;
+
+  /* Set the navigation scale from the scene unit scale and VR view scale. */
+  const float scene_scale = draw_data->scene->unit.scale_length;
+  const float new_nav_scale = scene_scale * settings->view_scale;
+
+  BLI_assert(state->nav_scale != 0 && new_nav_scale != 0);
+
+  if (state->nav_scale == new_nav_scale) {
+    return;
+  }
+
+  /* Adjust nav position to keep the viewer at the same relative location after scale change. */
+  /* Calculate view offset from the current navigation origin. */
+  const float3 viewer_location = float3(state->viewer_pose.position);
+  const float3 nav_location = float3(state->nav_pose.position);
+  const float3 viewer_base_offset = (viewer_location - nav_location) / state->nav_scale;
+
+  const float offset_val = state->nav_scale - new_nav_scale;
+  const float3 view_scaling_offset = viewer_base_offset * offset_val;
+
+  /* On X/Y axes: Add the scaling offset to maintain relative horizontal world position. */
+  state->nav_pose.position[0] += view_scaling_offset.x;
+  state->nav_pose.position[1] += view_scaling_offset.y;
+  /* On Z axis: Scale proportionally for the scaling change to be visible. */
+  state->nav_pose.position[2] *= new_nav_scale / state->nav_scale;
+
+  /* Set nav scale and tag navigation to be recalculated. */
+  state->nav_scale = new_nav_scale;
+  state->is_navigation_dirty = true;
+}
+
 void wm_xr_session_state_update(const XrSessionSettings *settings,
                                 const wmXrDrawData *draw_data,
                                 const GHOST_XrDrawViewInfo *draw_view,
@@ -408,6 +444,7 @@ void wm_xr_session_state_update(const XrSessionSettings *settings,
   state->force_reset_to_base_pose = false;
 
   WM_xr_session_state_vignette_update(state);
+  wm_xr_session_state_update_navigation_scale(state, draw_data, settings);
 }
 
 wmXrSessionState *WM_xr_session_state_handle_get(const wmXrData *xr)
