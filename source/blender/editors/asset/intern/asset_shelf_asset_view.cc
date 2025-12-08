@@ -212,8 +212,7 @@ static std::optional<wmOperatorCallParams> create_asset_operator_params(
     return {};
   }
 
-  PointerRNA *op_props = MEM_new<PointerRNA>(__func__);
-  WM_operator_properties_create_ptr(op_props, ot);
+  PointerRNA *op_props = MEM_new<PointerRNA>(__func__, WM_operator_properties_create_ptr(ot));
   asset::operator_asset_reference_props_set(asset, *op_props);
   return wmOperatorCallParams{ot, op_props, wm::OpCallContext::InvokeRegionWin};
 }

@@ -2106,9 +2106,8 @@ static wmOperatorStatus editsource_text_edit(bContext *C,
                                              const int line)
 {
   wmOperatorType *ot = WM_operatortype_find("TEXT_OT_jump_to_file_at_point", true);
-  PointerRNA op_props;
 
-  WM_operator_properties_create_ptr(&op_props, ot);
+  PointerRNA op_props = WM_operator_properties_create_ptr(ot);
   RNA_string_set(&op_props, "filepath", filepath);
   RNA_int_set(&op_props, "line", line - 1);
   RNA_int_set(&op_props, "column", 0);

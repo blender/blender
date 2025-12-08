@@ -804,8 +804,7 @@ static wmOperatorStatus preferences_extension_url_drop_invoke(bContext *C,
   wmOperatorType *ot = WM_operatortype_find(idname_external, true);
   wmOperatorStatus retval;
   if (ot) {
-    PointerRNA props_ptr;
-    WM_operator_properties_create_ptr(&props_ptr, ot);
+    PointerRNA props_ptr = WM_operator_properties_create_ptr(ot);
     if (use_url) {
       RNA_string_set(&props_ptr, "url", url.c_str());
     }

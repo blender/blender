@@ -3458,8 +3458,7 @@ static wmOperatorStatus wm_recover_last_session_impl(bContext *C,
   if (WM_file_recover_last_session(C, use_scripts_autoexec_check, op->reports)) {
     if (!G.background) {
       wmOperatorType *ot = op->type;
-      PointerRNA *props_ptr = MEM_new<PointerRNA>(__func__);
-      WM_operator_properties_create_ptr(props_ptr, ot);
+      PointerRNA *props_ptr = MEM_new<PointerRNA>(__func__, WM_operator_properties_create_ptr(ot));
       RNA_boolean_set(props_ptr, "use_scripts", true);
       wm_test_autorun_revert_action_set(ot, props_ptr);
     }
@@ -3537,8 +3536,7 @@ static wmOperatorStatus wm_recover_auto_save_exec(bContext *C, wmOperator *op)
   if (success) {
     if (!G.background) {
       wmOperatorType *ot = op->type;
-      PointerRNA *props_ptr = MEM_new<PointerRNA>(__func__);
-      WM_operator_properties_create_ptr(props_ptr, ot);
+      PointerRNA *props_ptr = MEM_new<PointerRNA>(__func__, WM_operator_properties_create_ptr(ot));
       RNA_boolean_set(props_ptr, "use_scripts", true);
       wm_test_autorun_revert_action_set(ot, props_ptr);
     }
@@ -4224,8 +4222,7 @@ void wm_test_autorun_revert_action_exec(bContext *C)
   /* Use regular revert. */
   if (ot == nullptr) {
     ot = WM_operatortype_find("WM_OT_revert_mainfile", false);
-    ptr = MEM_new<PointerRNA>(__func__);
-    WM_operator_properties_create_ptr(ptr, ot);
+    ptr = MEM_new<PointerRNA>(__func__, WM_operator_properties_create_ptr(ot));
     RNA_boolean_set(ptr, "use_scripts", true);
 
     /* Set state, so it's freed correctly. */

@@ -1639,9 +1639,7 @@ wmOperatorStatus node_render_changed_exec(bContext *C, wmOperator * /*op*/)
     ViewLayer *view_layer = (ViewLayer *)BLI_findlink(&sce->view_layers, node->custom1);
 
     if (view_layer) {
-      PointerRNA op_ptr;
-
-      WM_operator_properties_create(&op_ptr, "RENDER_OT_render");
+      PointerRNA op_ptr = WM_operator_properties_create("RENDER_OT_render");
       RNA_string_set(&op_ptr, "layer", view_layer->name);
       RNA_string_set(&op_ptr, "scene", sce->id.name + 2);
 

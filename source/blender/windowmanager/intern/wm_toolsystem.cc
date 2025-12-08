@@ -968,8 +968,7 @@ bToolRef *WM_toolsystem_ref_set_by_id_ex(
   }
 #endif
 
-  PointerRNA op_props;
-  WM_operator_properties_create_ptr(&op_props, ot);
+  PointerRNA op_props = WM_operator_properties_create_ptr(ot);
   RNA_string_set(&op_props, "name", name);
 
   BLI_assert((1 << tkey->space_type) & WM_TOOLSYSTEM_SPACE_MASK);
@@ -1027,8 +1026,7 @@ static void toolsystem_ref_set_by_brush_type(bContext *C, const char *brush_type
   }
 #endif
 
-  PointerRNA op_props;
-  WM_operator_properties_create_ptr(&op_props, ot);
+  PointerRNA op_props = WM_operator_properties_create_ptr(ot);
   RNA_string_set(&op_props, "brush_type", brush_type);
 
   BLI_assert((1 << tkey.space_type) & WM_TOOLSYSTEM_SPACE_MASK);

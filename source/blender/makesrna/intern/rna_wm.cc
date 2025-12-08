@@ -720,8 +720,7 @@ static PointerRNA rna_Operator_properties_get(PointerRNA *ptr)
 {
   wmOperator *op = (wmOperator *)ptr->data;
 
-  PointerRNA result;
-  WM_operator_properties_create_ptr(&result, op->type);
+  PointerRNA result = WM_operator_properties_create_ptr(op->type);
   result.owner_id = (ptr->owner_id) ? ptr->owner_id : result.owner_id;
   result.data = op->properties;
   return result;
@@ -732,8 +731,7 @@ static PointerRNA rna_OperatorMacro_properties_get(PointerRNA *ptr)
   wmOperatorTypeMacro *otmacro = (wmOperatorTypeMacro *)ptr->data;
   wmOperatorType *ot = WM_operatortype_find(otmacro->idname, true);
 
-  PointerRNA result;
-  WM_operator_properties_create_ptr(&result, ot);
+  PointerRNA result = WM_operator_properties_create_ptr(ot);
   result.owner_id = (ptr->owner_id) ? ptr->owner_id : result.owner_id;
   result.data = otmacro->properties;
   return result;

@@ -162,7 +162,7 @@ static void wm_dropbox_item_update_ot(wmDropBox *drop)
   }
   else {
     if (ot->srna != drop->ptr->type) {
-      WM_operator_properties_create_ptr(drop->ptr, ot);
+      *drop->ptr = WM_operator_properties_create_ptr(ot);
       if (drop->properties) {
         drop->ptr->data = drop->properties;
       }

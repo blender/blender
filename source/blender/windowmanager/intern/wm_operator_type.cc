@@ -240,7 +240,6 @@ void WM_operatortype_props_advanced_begin(wmOperatorType *ot)
 
 void WM_operatortype_props_advanced_end(wmOperatorType *ot)
 {
-  PointerRNA struct_ptr;
   int counter = 0;
 
   if (ot_prop_basic_count == -1) {
@@ -248,7 +247,7 @@ void WM_operatortype_props_advanced_end(wmOperatorType *ot)
     return;
   }
 
-  WM_operator_properties_create_ptr(&struct_ptr, ot);
+  PointerRNA struct_ptr = WM_operator_properties_create_ptr(ot);
 
   RNA_STRUCT_BEGIN (&struct_ptr, prop) {
     counter++;

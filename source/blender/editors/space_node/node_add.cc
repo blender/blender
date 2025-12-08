@@ -543,8 +543,7 @@ static wmOperatorStatus node_add_group_asset_invoke(bContext *C,
 
   wmOperatorType *ot = WM_operatortype_find("NODE_OT_translate_attach_remove_on_cancel", true);
   BLI_assert(ot);
-  PointerRNA ptr;
-  WM_operator_properties_create_ptr(&ptr, ot);
+  PointerRNA ptr = WM_operator_properties_create_ptr(ot);
   WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &ptr, nullptr);
   WM_operator_properties_free(&ptr);
 
@@ -587,9 +586,8 @@ static wmOperatorStatus node_swap_group_asset_invoke(bContext *C,
   }
   wmOperatorType *ot = WM_operatortype_find("NODE_OT_swap_node", true);
   BLI_assert(ot);
-  PointerRNA ptr;
   PointerRNA itemptr;
-  WM_operator_properties_create_ptr(&ptr, ot);
+  PointerRNA ptr = WM_operator_properties_create_ptr(ot);
   RNA_string_set(&ptr, "type", node_idname.data());
 
   /* Assign node group via operator.settings. This needs to be done here so that NODE_OT_swap_node

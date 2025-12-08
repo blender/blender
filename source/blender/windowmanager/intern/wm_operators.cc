@@ -285,7 +285,7 @@ std::string WM_operator_pystring_ex(bContext *C,
       PointerRNA *opmptr = opm->ptr;
       PointerRNA opmptr_default;
       if (opmptr == nullptr) {
-        WM_operator_properties_create_ptr(&opmptr_default, opm->type);
+        opmptr_default = WM_operator_properties_create_ptr(opm->type);
         opmptr = &opmptr_default;
       }
 
@@ -309,7 +309,7 @@ std::string WM_operator_pystring_ex(bContext *C,
     const bool macro_args_test = ot->macro.first ? macro_args : true;
 
     if (opptr == nullptr) {
-      WM_operator_properties_create_ptr(&opptr_default, ot);
+      opptr_default = WM_operator_properties_create_ptr(ot);
       opptr = &opptr_default;
     }
 
@@ -738,24 +738,22 @@ std::optional<std::string> WM_prop_pystring_assign(bContext *C,
   return ret;
 }
 
-void WM_operator_properties_create_ptr(PointerRNA *ptr, wmOperatorType *ot)
+PointerRNA WM_operator_properties_create_ptr(wmOperatorType *ot)
 {
   /* Set the ID so the context can be accessed: see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
-  *ptr = RNA_pointer_create_discrete(static_cast<ID *>(G_MAIN->wm.first), ot->srna, nullptr);
+  return RNA_pointer_create_discrete(static_cast<ID *>(G_MAIN->wm.first), ot->srna, nullptr);
 }
 
-void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
+PointerRNA WM_operator_properties_create(const char *opstring)
 {
   wmOperatorType *ot = WM_operatortype_find(opstring, false);
 
   if (ot) {
-    WM_operator_properties_create_ptr(ptr, ot);
+    return WM_operator_properties_create_ptr(ot);
   }
-  else {
-    /* Set the ID so the context can be accessed: see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
-    *ptr = RNA_pointer_create_discrete(
-        static_cast<ID *>(G_MAIN->wm.first), &RNA_OperatorProperties, nullptr);
-  }
+  /* Set the ID so the context can be accessed: see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
+  return RNA_pointer_create_discrete(
+      static_cast<ID *>(G_MAIN->wm.first), &RNA_OperatorProperties, nullptr);
 }
 
 void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, const char *opstring)
@@ -771,8 +769,7 @@ void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, con
   }
 
   if (*ptr == nullptr) {
-    *ptr = MEM_new<PointerRNA>("wmOpItemPtr");
-    WM_operator_properties_create(*ptr, opstring);
+    *ptr = MEM_new<PointerRNA>("wmOpItemPtr", WM_operator_properties_create(opstring));
   }
 
   (*ptr)->data = *properties;
@@ -4159,11 +4156,10 @@ static void WM_OT_previews_clear(wmOperatorType *ot)
 
 static wmOperatorStatus doc_view_manual_ui_context_exec(bContext *C, wmOperator * /*op*/)
 {
-  PointerRNA ptr_props;
   wmOperatorStatus retval = OPERATOR_CANCELLED;
 
   if (std::optional<std::string> manual_id = blender::ui::button_online_manual_id_from_active(C)) {
-    WM_operator_properties_create(&ptr_props, "WM_OT_doc_view_manual");
+    PointerRNA ptr_props = WM_operator_properties_create("WM_OT_doc_view_manual");
     RNA_string_set(&ptr_props, "doc_id", manual_id.value().c_str());
 
     retval = WM_operator_name_call_ptr(C,

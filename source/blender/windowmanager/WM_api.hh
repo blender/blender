@@ -1108,8 +1108,8 @@ bool WM_operator_properties_default(PointerRNA *ptr, bool do_update);
  * Remove all props without #PROP_SKIP_SAVE or #PROP_SKIP_PRESET.
  */
 void WM_operator_properties_reset(wmOperator *op);
-void WM_operator_properties_create(PointerRNA *ptr, const char *opstring);
-void WM_operator_properties_create_ptr(PointerRNA *ptr, wmOperatorType *ot);
+PointerRNA WM_operator_properties_create(const char *opstring);
+PointerRNA WM_operator_properties_create_ptr(wmOperatorType *ot);
 void WM_operator_properties_clear(PointerRNA *ptr);
 void WM_operator_properties_free(PointerRNA *ptr);
 

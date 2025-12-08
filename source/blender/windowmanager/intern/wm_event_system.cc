@@ -1167,8 +1167,7 @@ bool WM_operator_ui_poll(wmOperatorType *ot, PointerRNA *ptr)
   }
 
   bool result = false;
-  PointerRNA op_ptr;
-  WM_operator_properties_create_ptr(&op_ptr, ot);
+  PointerRNA op_ptr = WM_operator_properties_create_ptr(ot);
   RNA_STRUCT_BEGIN (&op_ptr, prop) {
     int flag = RNA_property_flag(prop);
     if ((flag & PROP_HIDDEN) == 0) {
@@ -1977,8 +1976,7 @@ wmOperatorStatus WM_operator_name_call_with_properties(bContext *C,
 void WM_menu_name_call(bContext *C, const char *menu_name, blender::wm::OpCallContext context)
 {
   wmOperatorType *ot = WM_operatortype_find("WM_OT_call_menu", false);
-  PointerRNA ptr;
-  WM_operator_properties_create_ptr(&ptr, ot);
+  PointerRNA ptr = WM_operator_properties_create_ptr(ot);
   RNA_string_set(&ptr, "name", menu_name);
   WM_operator_name_call_ptr(
       C, ot, static_cast<blender::wm::OpCallContext>(context), &ptr, nullptr);

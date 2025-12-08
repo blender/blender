@@ -716,8 +716,7 @@ static std::unique_ptr<TooltipData> ui_tooltip_data_from_tool(bContext *C,
     }
 
     if (expr_result != nullptr) {
-      PointerRNA op_props;
-      WM_operator_properties_create_ptr(&op_props, but->optype);
+      PointerRNA op_props = WM_operator_properties_create_ptr(but->optype);
       RNA_boolean_set(&op_props, "cycle", true);
 
       std::optional<std::string> shortcut;

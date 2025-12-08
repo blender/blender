@@ -303,8 +303,7 @@ void WM_operator_type_set(wmOperator *op, wmOperatorType *ot)
 
   /* Ensure compatible properties. */
   if (op->properties) {
-    PointerRNA ptr;
-    WM_operator_properties_create_ptr(&ptr, ot);
+    PointerRNA ptr = WM_operator_properties_create_ptr(ot);
 
     WM_operator_properties_default(&ptr, false);
 

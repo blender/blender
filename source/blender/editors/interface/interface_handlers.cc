@@ -10718,8 +10718,7 @@ static int ui_handle_menu_letter_press_search(PopupBlockHandle *menu, const wmEv
     wmOperatorType *ot = WM_operatortype_find("WM_OT_search_single_menu", false);
     after->optype = ot;
     after->opcontext = wm::OpCallContext::InvokeDefault;
-    after->opptr = MEM_new<PointerRNA>(__func__);
-    WM_operator_properties_create_ptr(after->opptr, ot);
+    after->opptr = MEM_new<PointerRNA>(__func__, WM_operator_properties_create_ptr(ot));
     RNA_string_set(after->opptr, "menu_idname", menu->menu_idname);
     if (event->type != EVT_SPACEKEY) {
       /* Forward all keys except space-bar to the search. */

@@ -405,8 +405,7 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
 
   wmOperatorType *ot = WM_operatortype_find("NODE_OT_insert_offset", true);
   BLI_assert(ot);
-  PointerRNA ptr;
-  WM_operator_properties_create_ptr(&ptr, ot);
+  PointerRNA ptr = WM_operator_properties_create_ptr(ot);
   WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &ptr, nullptr);
   WM_operator_properties_free(&ptr);
 }

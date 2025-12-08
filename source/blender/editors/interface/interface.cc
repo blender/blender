@@ -1762,9 +1762,8 @@ static PointerRNA *ui_but_extra_operator_icon_add_ptr(Button *but,
   extra_op_icon->icon = icon;
   extra_op_icon->optype_params = MEM_callocN<wmOperatorCallParams>(__func__);
   extra_op_icon->optype_params->optype = optype;
-  extra_op_icon->optype_params->opptr = MEM_new<PointerRNA>(__func__);
-  WM_operator_properties_create_ptr(extra_op_icon->optype_params->opptr,
-                                    extra_op_icon->optype_params->optype);
+  extra_op_icon->optype_params->opptr = MEM_new<PointerRNA>(
+      __func__, WM_operator_properties_create_ptr(extra_op_icon->optype_params->optype));
   extra_op_icon->optype_params->opcontext = opcontext;
   extra_op_icon->highlighted = false;
   extra_op_icon->disabled = false;
@@ -6054,8 +6053,7 @@ int button_return_value_get(Button *but)
 PointerRNA *button_operator_ptr_ensure(Button *but)
 {
   if (but->optype && !but->opptr) {
-    but->opptr = MEM_new<PointerRNA>(__func__);
-    WM_operator_properties_create_ptr(but->opptr, but->optype);
+    but->opptr = MEM_new<PointerRNA>(__func__, WM_operator_properties_create_ptr(but->optype));
   }
 
   return but->opptr;

@@ -1887,8 +1887,7 @@ static wmOperatorStatus file_external_operation_exec(bContext *C, wmOperator *op
   }
 #else
   wmOperatorType *ot = WM_operatortype_find("WM_OT_path_open", true);
-  PointerRNA op_props;
-  WM_operator_properties_create_ptr(&op_props, ot);
+  PointerRNA op_props = WM_operator_properties_create_ptr(ot);
   RNA_string_set(&op_props, "filepath", filepath);
   const wmOperatorStatus retval = WM_operator_name_call_ptr(
       C, ot, blender::wm::OpCallContext::InvokeDefault, &op_props, nullptr);
@@ -2532,7 +2531,6 @@ static wmOperatorStatus file_smoothscroll_invoke(bContext *C,
   CTX_wm_region_set(C, region);
 
   /* scroll one step in the desired direction */
-  PointerRNA op_ptr;
   int deltax = 0;
   int deltay = 0;
 
@@ -2568,7 +2566,7 @@ static wmOperatorStatus file_smoothscroll_invoke(bContext *C,
       deltay = -scroll_delta;
     }
   }
-  WM_operator_properties_create(&op_ptr, "VIEW2D_OT_pan");
+  PointerRNA op_ptr = WM_operator_properties_create("VIEW2D_OT_pan");
   RNA_int_set(&op_ptr, "deltax", deltax);
   RNA_int_set(&op_ptr, "deltay", deltay);
 
@@ -2992,8 +2990,7 @@ void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void * /*ar
     else {
       /* If not, ask to create it and enter if confirmed. */
       wmOperatorType *ot = WM_operatortype_find("FILE_OT_directory_new", false);
-      PointerRNA ptr;
-      WM_operator_properties_create_ptr(&ptr, ot);
+      PointerRNA ptr = WM_operator_properties_create_ptr(ot);
       RNA_string_set(&ptr, "directory", params->dir);
       RNA_boolean_set(&ptr, "open", true);
       /* Enable confirmation prompt, else it's too easy to accidentally create new directories. */

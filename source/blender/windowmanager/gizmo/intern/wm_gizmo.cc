@@ -215,7 +215,7 @@ PointerRNA *WM_gizmo_operator_set(wmGizmo *gz,
   if (gzop.ptr.data) {
     WM_operator_properties_free(&gzop.ptr);
   }
-  WM_operator_properties_create_ptr(&gzop.ptr, ot);
+  gzop.ptr = WM_operator_properties_create_ptr(ot);
 
   if (properties) {
     gzop.ptr.data = properties;

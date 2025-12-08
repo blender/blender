@@ -322,7 +322,6 @@ static wmOperatorStatus file_browse_invoke(bContext *C, wmOperator *op, const wm
    * Alt+Click to browse a folder in the OS's browser. */
   if (event->modifier & (KM_SHIFT | KM_ALT)) {
     wmOperatorType *ot = WM_operatortype_find("WM_OT_path_open", true);
-    PointerRNA props_ptr;
 
     if (event->modifier & KM_ALT) {
       char *lslash = (char *)BLI_path_slash_rfind(path);
@@ -331,7 +330,7 @@ static wmOperatorStatus file_browse_invoke(bContext *C, wmOperator *op, const wm
       }
     }
 
-    WM_operator_properties_create_ptr(&props_ptr, ot);
+    PointerRNA props_ptr = WM_operator_properties_create_ptr(ot);
     RNA_string_set(&props_ptr, "filepath", path);
     WM_operator_name_call_ptr(C, ot, blender::wm::OpCallContext::ExecDefault, &props_ptr, nullptr);
     WM_operator_properties_free(&props_ptr);

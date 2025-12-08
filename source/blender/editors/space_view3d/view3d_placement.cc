@@ -1159,7 +1159,6 @@ static wmOperatorStatus view3d_interactive_add_modal(bContext *C,
         }
 
         wmOperatorType *ot = nullptr;
-        PointerRNA op_props;
         if (ipd->primitive_type == PLACE_PRIMITIVE_TYPE_CUBE) {
           ot = WM_operatortype_find("MESH_OT_primitive_cube_add", false);
         }
@@ -1177,7 +1176,7 @@ static wmOperatorStatus view3d_interactive_add_modal(bContext *C,
         }
 
         if (ot != nullptr) {
-          WM_operator_properties_create_ptr(&op_props, ot);
+          PointerRNA op_props = WM_operator_properties_create_ptr(ot);
 
           if (ipd->use_tool) {
             bToolRef *tref = ipd->area->runtime.tool;

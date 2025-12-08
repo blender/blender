@@ -119,8 +119,7 @@ static wmOperatorStatus wm_drop_import_file_exec(bContext *C, wmOperator *op)
   }
 
   wmOperatorType *ot = WM_operatortype_find(file_handlers[0]->import_operator, false);
-  PointerRNA file_props;
-  WM_operator_properties_create_ptr(&file_props, ot);
+  PointerRNA file_props = WM_operator_properties_create_ptr(ot);
   file_handler_import_operator_write_ptr(file_handlers[0], file_props, paths);
 
   WM_operator_name_call_ptr(

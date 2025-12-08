@@ -1920,8 +1920,7 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
         /* Operator needs a valid window in context, ensures it is correctly set. */
         CTX_wm_window_set(C, win);
 
-        PointerRNA props_ptr;
-        WM_operator_properties_create_ptr(&props_ptr, ot);
+        PointerRNA props_ptr = WM_operator_properties_create_ptr(ot);
         RNA_string_set(&props_ptr, "filepath", path);
         RNA_boolean_set(&props_ptr, "display_file_selector", false);
         WM_operator_name_call_ptr(

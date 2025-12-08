@@ -48,9 +48,8 @@ static void shaderfx_reorder(bContext *C, Panel *panel, int new_index)
   PointerRNA *fx_ptr = blender::ui::panel_custom_data_get(panel);
   ShaderFxData *fx = (ShaderFxData *)fx_ptr->data;
 
-  PointerRNA props_ptr;
   wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_shaderfx_move_to_index", false);
-  WM_operator_properties_create_ptr(&props_ptr, ot);
+  PointerRNA props_ptr = WM_operator_properties_create_ptr(ot);
   RNA_string_set(&props_ptr, "shaderfx", fx->name);
   RNA_int_set(&props_ptr, "index", new_index);
   WM_operator_name_call_ptr(C, ot, blender::wm::OpCallContext::InvokeDefault, &props_ptr, nullptr);

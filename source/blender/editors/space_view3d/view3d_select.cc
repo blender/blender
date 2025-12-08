@@ -1819,9 +1819,8 @@ static bool object_mouse_select_menu(bContext *C,
   }
 
   wmOperatorType *ot = WM_operatortype_find("VIEW3D_OT_select_menu", false);
-  PointerRNA ptr;
 
-  WM_operator_properties_create_ptr(&ptr, ot);
+  PointerRNA ptr = WM_operator_properties_create_ptr(ot);
   RNA_boolean_set(&ptr, "extend", params.sel_op == SEL_OP_ADD);
   RNA_boolean_set(&ptr, "deselect", params.sel_op == SEL_OP_SUB);
   RNA_boolean_set(&ptr, "toggle", params.sel_op == SEL_OP_XOR);
@@ -2066,9 +2065,8 @@ static bool bone_mouse_select_menu(bContext *C,
   }
 
   wmOperatorType *ot = WM_operatortype_find("VIEW3D_OT_bone_select_menu", false);
-  PointerRNA ptr;
 
-  WM_operator_properties_create_ptr(&ptr, ot);
+  PointerRNA ptr = WM_operator_properties_create_ptr(ot);
   RNA_boolean_set(&ptr, "extend", params.sel_op == SEL_OP_ADD);
   RNA_boolean_set(&ptr, "deselect", params.sel_op == SEL_OP_SUB);
   RNA_boolean_set(&ptr, "toggle", params.sel_op == SEL_OP_XOR);

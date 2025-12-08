@@ -1487,8 +1487,7 @@ static wmOperatorStatus transform_from_gizmo_invoke(bContext *C,
       }
       if (op_id) {
         wmOperatorType *ot = WM_operatortype_find(op_id, true);
-        PointerRNA op_ptr;
-        WM_operator_properties_create_ptr(&op_ptr, ot);
+        PointerRNA op_ptr = WM_operator_properties_create_ptr(ot);
         RNA_boolean_set(&op_ptr, "release_confirm", true);
         WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &op_ptr, event);
         WM_operator_properties_free(&op_ptr);

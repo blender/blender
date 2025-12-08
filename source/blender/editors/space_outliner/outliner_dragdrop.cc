@@ -1450,8 +1450,7 @@ static wmOperatorStatus outliner_item_drag_drop_invoke(bContext *C,
    * when the drag goes too far outside the region. */
   {
     wmOperatorType *ot = WM_operatortype_find("VIEW2D_OT_edge_pan", true);
-    PointerRNA op_ptr;
-    WM_operator_properties_create_ptr(&op_ptr, ot);
+    PointerRNA op_ptr = WM_operator_properties_create_ptr(ot);
     RNA_float_set(&op_ptr, "outside_padding", OUTLINER_DRAG_SCOLL_OUTSIDE_PAD);
     WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &op_ptr, event);
     WM_operator_properties_free(&op_ptr);

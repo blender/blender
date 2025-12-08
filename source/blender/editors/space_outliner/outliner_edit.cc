@@ -918,11 +918,10 @@ void id_remap_fn(bContext *C,
                  TreeStoreElem *tselem)
 {
   wmOperatorType *ot = WM_operatortype_find("OUTLINER_OT_id_remap", false);
-  PointerRNA op_props;
 
   BLI_assert(tselem->id != nullptr);
 
-  WM_operator_properties_create_ptr(&op_props, ot);
+  PointerRNA op_props = WM_operator_properties_create_ptr(ot);
 
   RNA_enum_set(&op_props, "id_type", GS(tselem->id->name));
   RNA_enum_set_identifier(C, &op_props, "old_id", tselem->id->name + 2);
@@ -1096,9 +1095,7 @@ static wmOperatorStatus outliner_id_relocate_invoke(bContext *C,
   }
 
   wmOperatorType *ot = WM_operatortype_find("WM_OT_id_linked_relocate", false);
-  PointerRNA op_props;
-
-  WM_operator_properties_create_ptr(&op_props, ot);
+  PointerRNA op_props = WM_operator_properties_create_ptr(ot);
   RNA_int_set(&op_props, "id_session_uid", *reinterpret_cast<int *>(&id_linked->session_uid));
 
   const wmOperatorStatus ret = WM_operator_name_call_ptr(
@@ -1136,13 +1133,12 @@ void OUTLINER_OT_id_linked_relocate(wmOperatorType *ot)
 static wmOperatorStatus lib_relocate(
     bContext *C, TreeElement *te, TreeStoreElem *tselem, wmOperatorType *ot, const bool reload)
 {
-  PointerRNA op_props;
   wmOperatorStatus ret = wmOperatorStatus(0);
 
   BLI_assert(te->idcode == ID_LI && tselem->id != nullptr);
   UNUSED_VARS_NDEBUG(te);
 
-  WM_operator_properties_create_ptr(&op_props, ot);
+  PointerRNA op_props = WM_operator_properties_create_ptr(ot);
 
   RNA_string_set(&op_props, "library", tselem->id->name + 2);
 

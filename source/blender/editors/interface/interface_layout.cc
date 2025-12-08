@@ -1655,8 +1655,7 @@ void Layout::op_enum(const StringRefNull opname,
     return;
   }
 
-  PointerRNA ptr;
-  WM_operator_properties_create_ptr(&ptr, ot);
+  PointerRNA ptr = WM_operator_properties_create_ptr(ot);
   /* so the context is passed to itemf functions (some need it) */
   WM_operator_properties_sanitize(&ptr, false);
   PropertyRNA *prop = RNA_struct_find_property(&ptr, propname.c_str());
@@ -3367,11 +3366,10 @@ static int menu_item_enum_opname_menu_active(bContext *C, Button *but, MenuItemL
     return -1;
   }
 
-  PointerRNA ptr;
   const EnumPropertyItem *item_array = nullptr;
   bool free;
   int totitem;
-  WM_operator_properties_create_ptr(&ptr, ot);
+  PointerRNA ptr = WM_operator_properties_create_ptr(ot);
   /* so the context is passed to itemf functions (some need it) */
   WM_operator_properties_sanitize(&ptr, false);
   PropertyRNA *prop = RNA_struct_find_property(&ptr, lvl->propname);
@@ -3442,8 +3440,7 @@ PointerRNA Layout::op_menu_enum(const bContext *C,
                              but_func_argN_copy<MenuItemLevel>);
   /* Use the menu button as owner for the operator properties, which will then be passed to the
    * individual menu items. */
-  but->opptr = MEM_new<PointerRNA>("uiButOpPtr");
-  WM_operator_properties_create_ptr(but->opptr, ot);
+  but->opptr = MEM_new<PointerRNA>("uiButOpPtr", WM_operator_properties_create_ptr(ot));
   BLI_assert(but->opptr->data == nullptr);
   WM_operator_properties_alloc(&but->opptr, (IDProperty **)&but->opptr->data, ot->idname);
 
