@@ -32,7 +32,6 @@
 #include "DNA_material_types.h"
 
 #include "ED_curves.hh"
-#include "ED_grease_pencil.hh"
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
@@ -804,7 +803,11 @@ static void add_single_point_and_curve(const PenToolOperation &ptd,
 {
   const float3 depth_point = ptd.project(ptd.mouse_co);
 
-  ed::greasepencil::add_single_curve(curves, true);
+  /* Add single curve to the end. */
+  const int num_old_points = curves.points_num();
+  curves.resize(curves.points_num() + 1, curves.curves_num() + 1);
+  curves.offsets_for_write().last(1) = num_old_points;
+
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
   Set<std::string> curve_attributes_to_skip;

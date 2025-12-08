@@ -983,7 +983,7 @@ bool ensure_selection_domain(ToolSettings *ts, Object *object);
  * Creates a new curve with one point at the beginning or end.
  * \note Does not initialize the new curve or points.
  */
-void add_single_curve(bke::CurvesGeometry &curves, bool at_end);
+void add_single_curve(bke::greasepencil::Drawing &drawing, const bool at_end);
 
 /**
  * Resize the first or last curve to `new_points_num` number of points.

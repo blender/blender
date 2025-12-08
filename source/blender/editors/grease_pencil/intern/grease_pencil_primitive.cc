@@ -562,7 +562,12 @@ static void grease_pencil_primitive_update_curves(PrimitiveToolOperation &ptd)
                                     bke::attribute_filter_from_skip_ref(point_attributes_to_skip),
                                     curve_points);
 
-  ptd.drawing->tag_topology_changed();
+  if (on_back) {
+    ptd.drawing->tag_topology_changed();
+  }
+  else {
+    ptd.drawing->tag_topology_changed(IndexRange::from_single(target_curve_index));
+  }
   ptd.drawing->set_texture_matrices({ptd.texture_space},
                                     IndexRange::from_single(target_curve_index));
 }
@@ -570,10 +575,9 @@ static void grease_pencil_primitive_update_curves(PrimitiveToolOperation &ptd)
 static void grease_pencil_primitive_init_curves(PrimitiveToolOperation &ptd)
 {
   /* Resize the curves geometry so there is one more curve with a single point. */
-  bke::CurvesGeometry &curves = ptd.drawing->strokes_for_write();
-
   const bool on_back = ptd.on_back;
-  ed::greasepencil::add_single_curve(curves, on_back == false);
+  ed::greasepencil::add_single_curve(*ptd.drawing, on_back == false);
+  bke::CurvesGeometry &curves = ptd.drawing->strokes_for_write();
 
   const int target_curve_index = on_back ? 0 : (curves.curves_num() - 1);
 
