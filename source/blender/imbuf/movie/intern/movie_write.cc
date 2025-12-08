@@ -1352,7 +1352,8 @@ static bool start_ffmpeg_impl(MovieWriter *context,
                                                audio_codec,
                                                of,
                                                error,
-                                               sizeof(error));
+                                               sizeof(error),
+                                               reports);
     if (!context->audio_stream) {
       if (error[0]) {
         BKE_report(reports, RPT_ERROR, error);

@@ -215,7 +215,8 @@ AVStream *alloc_audio_stream(MovieWriter *context,
                              AVCodecID codec_id,
                              AVFormatContext *of,
                              char *error,
-                             int error_size)
+                             int error_size,
+                             ReportList *reports)
 {
   AVStream *st;
   const AVCodec *codec;
@@ -235,6 +236,98 @@ AVStream *alloc_audio_stream(MovieWriter *context,
     return nullptr;
   }
 
+  int channel_layout_mask = 0;
+  int channel_count = 0;
+  switch (audio_channels) {
+    case FFM_CHANNELS_MONO:
+      channel_layout_mask = AV_CH_LAYOUT_MONO;
+      channel_count = 1;
+      break;
+    case FFM_CHANNELS_STEREO:
+      channel_layout_mask = AV_CH_LAYOUT_STEREO;
+      channel_count = 2;
+      break;
+    case FFM_CHANNELS_SURROUND4:
+      channel_layout_mask = AV_CH_LAYOUT_QUAD;
+      channel_count = 4;
+      break;
+    case FFM_CHANNELS_SURROUND51:
+      channel_layout_mask = AV_CH_LAYOUT_5POINT1_BACK;
+      channel_count = 6;
+      break;
+    case FFM_CHANNELS_SURROUND71:
+      channel_layout_mask = AV_CH_LAYOUT_7POINT1;
+      channel_count = 8;
+      break;
+    default:
+      BLI_assert(false);
+      break;
+  }
+
+  /* Clamp audio bitrate and report info if bitrate is set higher than the maximum bitrate of the
+   * codec. */
+  switch (codec_id) {
+    case AV_CODEC_ID_MP2:
+      if (context->ffmpeg_audio_bitrate > 384) {
+        context->ffmpeg_audio_bitrate = 384;
+        BKE_report(reports,
+                   RPT_INFO,
+                   "The audio is rendered with a bitrate of 384kbit/s, the maximum bitrate MP2 "
+                   "supports.");
+      }
+      break;
+    case AV_CODEC_ID_MP3:
+      if (context->ffmpeg_audio_bitrate > 320) {
+        context->ffmpeg_audio_bitrate = 320;
+        BKE_report(reports,
+                   RPT_INFO,
+                   "The audio is rendered with a bitrate of 320kbit/s, the maximum bitrate MP3 "
+                   "supports.");
+      }
+      break;
+    case AV_CODEC_ID_AAC:
+      if (context->ffmpeg_audio_bitrate > 250 * channel_count) {
+        /* AAC doesn't specify a maximum bitrate. Instead, the maximum bitrate is dependent on the
+         * encoder used. Clamping of the bitrate is therefore left to the encoder. */
+        BKE_report(
+            reports,
+            RPT_INFO,
+            "The audio is rendered with a bitrate of roughly 250kbit/s per channel, the maximum "
+            "bitrate AAC supports.");
+      }
+      break;
+    case AV_CODEC_ID_AC3:
+      if (context->ffmpeg_audio_bitrate > 640) {
+        context->ffmpeg_audio_bitrate = 640;
+        BKE_report(reports,
+                   RPT_INFO,
+                   "The audio is rendered with a bitrate of 640kbit/s, the maximum bitrate AC3 "
+                   "supports.");
+      }
+      break;
+    case AV_CODEC_ID_OPUS:
+      if (context->ffmpeg_audio_bitrate > 256 * channel_count) {
+        context->ffmpeg_audio_bitrate = 256 * channel_count;
+        BKE_report(reports,
+                   RPT_INFO,
+                   "The audio is rendered with a bitrate of 256kbit/s per channel, the maximum "
+                   "bitrate Opus supports.");
+      }
+      break;
+    case AV_CODEC_ID_VORBIS:
+      if (context->ffmpeg_audio_bitrate > 240 * channel_count) {
+        context->ffmpeg_audio_bitrate = 240 * channel_count;
+        BKE_report(reports,
+                   RPT_INFO,
+                   "The audio is rendered with a bitrate of 240kbit/s per channel, the maximum "
+                   "bitrate Vorbis supports.");
+      }
+      break;
+    default:
+      /* Default case for suppressing compiler warnings. */
+      break;
+  }
+
   context->audio_codec = avcodec_alloc_context3(codec);
   AVCodecContext *c = context->audio_codec;
   c->thread_count = MOV_thread_count();
@@ -243,26 +336,6 @@ AVStream *alloc_audio_stream(MovieWriter *context,
   c->sample_rate = audio_mixrate;
   c->bit_rate = context->ffmpeg_audio_bitrate * 1000;
   c->sample_fmt = AV_SAMPLE_FMT_S16;
-
-  int channel_layout_mask = 0;
-  switch (audio_channels) {
-    case FFM_CHANNELS_MONO:
-      channel_layout_mask = AV_CH_LAYOUT_MONO;
-      break;
-    case FFM_CHANNELS_STEREO:
-      channel_layout_mask = AV_CH_LAYOUT_STEREO;
-      break;
-    case FFM_CHANNELS_SURROUND4:
-      channel_layout_mask = AV_CH_LAYOUT_QUAD;
-      break;
-    case FFM_CHANNELS_SURROUND51:
-      channel_layout_mask = AV_CH_LAYOUT_5POINT1_BACK;
-      break;
-    case FFM_CHANNELS_SURROUND71:
-      channel_layout_mask = AV_CH_LAYOUT_7POINT1;
-      break;
-  }
-  BLI_assert(channel_layout_mask != 0);
 
 #  ifdef FFMPEG_USE_OLD_CHANNEL_VARS
   c->channels = audio_channels;

@@ -98,7 +98,8 @@ AVStream *alloc_audio_stream(MovieWriter *context,
                              AVCodecID codec_id,
                              AVFormatContext *of,
                              char *error,
-                             int error_size);
+                             int error_size,
+                             ReportList *reports);
 void write_audio_frames(MovieWriter *context, double to_pts);
 
 #endif /* WITH_FFMPEG */

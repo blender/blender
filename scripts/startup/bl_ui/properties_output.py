@@ -644,7 +644,8 @@ class RENDER_PT_encoding_audio(RenderOutputButtonsPanel, Panel):
         if ffmpeg.audio_codec != 'NONE':
             layout.prop(ffmpeg, "audio_channels")
             layout.prop(ffmpeg, "audio_mixrate", text="Sample Rate")
-            layout.prop(ffmpeg, "audio_bitrate")
+            if (ffmpeg.audio_codec != 'FLAC') and (ffmpeg.audio_codec != 'PCM'):
+                layout.prop(ffmpeg, "audio_bitrate")
             layout.prop(ffmpeg, "audio_volume", slider=True)
 
 
