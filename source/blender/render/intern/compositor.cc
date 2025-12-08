@@ -236,9 +236,6 @@ class Context : public compositor::Context {
       image_buffer->userflags |= IB_DISPLAY_BUFFER_INVALID;
     }
 
-    BKE_image_release_ibuf(image, image_buffer, lock);
-    BLI_thread_unlock(LOCK_DRAW_IMAGE);
-
     if (result.is_single_value()) {
       IMB_rectfill(image_buffer, result.get_single_value<compositor::Color>());
     }
@@ -257,6 +254,9 @@ class Context : public compositor::Context {
     if (input_data_.node_tree->runtime->update_draw) {
       input_data_.node_tree->runtime->update_draw(input_data_.node_tree->runtime->udh);
     }
+
+    BKE_image_release_ibuf(image, image_buffer, lock);
+    BLI_thread_unlock(LOCK_DRAW_IMAGE);
   }
 
   compositor::Result get_pass(const Scene *scene, int view_layer_id, const char *name) override
