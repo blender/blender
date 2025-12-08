@@ -1139,13 +1139,6 @@ void init_default()
   btheme->active_theme_area = active_theme_area;
 }
 
-void style_init_default()
-{
-  BLI_freelistN(&U.uistyles);
-  /* gets automatically re-allocated */
-  style_init();
-}
-
 void theme_set(int spacetype, int regionid)
 {
   if (spacetype) {
