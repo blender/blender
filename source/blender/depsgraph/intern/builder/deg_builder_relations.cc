@@ -2889,8 +2889,7 @@ void DepsgraphRelationBuilder::build_armature_bones(ListBase *bones)
   }
 }
 
-void DepsgraphRelationBuilder::build_armature_bone_collections(
-    blender::Span<BoneCollection *> collections)
+void DepsgraphRelationBuilder::build_armature_bone_collections(Span<BoneCollection *> collections)
 {
   for (BoneCollection *bcoll : collections) {
     build_idproperties(bcoll->prop);

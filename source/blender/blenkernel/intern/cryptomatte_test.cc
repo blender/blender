@@ -95,7 +95,7 @@ static void validate_cryptomatte_session_from_stamp_data(void * /*data*/,
                                                          char *propvalue,
                                                          int /*propvalue_maxncpy*/)
 {
-  blender::StringRefNull prop_name(propname);
+  StringRefNull prop_name(propname);
   if (!prop_name.startswith("cryptomatte/")) {
     return;
   }

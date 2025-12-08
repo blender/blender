@@ -37,7 +37,7 @@ namespace blender::seq {
 
 MutableSpan<SeqRetimingKey> retiming_keys_get(const Strip *strip)
 {
-  blender::MutableSpan<SeqRetimingKey> handles(strip->retiming_keys, strip->retiming_keys_num);
+  MutableSpan<SeqRetimingKey> handles(strip->retiming_keys, strip->retiming_keys_num);
   return handles;
 }
 
@@ -132,8 +132,8 @@ void retiming_data_clear(Strip *strip)
 static void retiming_key_overlap(Scene *scene, Strip *strip)
 {
   ListBase *seqbase = active_seqbase_get(editing_get(scene));
-  blender::VectorSet<Strip *> strips;
-  blender::VectorSet<Strip *> dependant;
+  VectorSet<Strip *> strips;
+  VectorSet<Strip *> dependant;
   dependant.add(strip);
   iterator_set_expand(scene, seqbase, dependant, query_strip_effect_chain);
   strips.add_multiple(dependant);
@@ -149,7 +149,7 @@ void retiming_reset(Scene *scene, Strip *strip)
 
   retiming_data_clear(strip);
 
-  blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
+  Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
   strip_time_update_effects_strip_range(scene, effects);
   time_update_meta_strip_range(scene, lookup_meta_by_strip(scene->ed, strip));
 
@@ -415,10 +415,10 @@ static void strip_retiming_cleanup_freeze_frame(SeqRetimingKey *key)
   }
 }
 
-void retiming_remove_multiple_keys(Strip *strip, blender::Vector<SeqRetimingKey *> &keys_to_remove)
+void retiming_remove_multiple_keys(Strip *strip, Vector<SeqRetimingKey *> &keys_to_remove)
 {
   /* Transitions need special treatment, so separate these from `keys_to_remove`. */
-  blender::Vector<SeqRetimingKey *> transitions;
+  Vector<SeqRetimingKey *> transitions;
 
   /* Cleanup freeze frames and extract transition keys. */
   for (SeqRetimingKey *key : keys_to_remove) {
@@ -802,7 +802,7 @@ void retiming_key_timeline_frame_set(
     strip_retiming_key_offset(scene, strip, key, offset);
   }
 
-  blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
+  Span<Strip *> effects = SEQ_lookup_effects_by_strip(scene->ed, strip);
   strip_time_update_effects_strip_range(scene, effects);
   time_update_meta_strip_range(scene, lookup_meta_by_strip(scene->ed, strip));
 }
@@ -865,7 +865,7 @@ class RetimingRange {
  public:
   int start, end;
   float speed;
-  blender::Vector<float> speed_table;
+  Vector<float> speed_table;
 
   eRangeType type;
   RetimingRange(const Strip *strip, int start_frame, int end_frame, float speed, eRangeType type)
@@ -988,7 +988,7 @@ class RetimingRange {
 
 class RetimingRangeData {
  public:
-  blender::Vector<RetimingRange> ranges;
+  Vector<RetimingRange> ranges;
   RetimingRangeData(const Strip *strip)
   {
     for (const SeqRetimingKey &key : retiming_keys_get(strip)) {
@@ -1169,9 +1169,9 @@ void retiming_selection_copy(SeqRetimingKey *dst, const SeqRetimingKey *src)
   dst->flag |= (src->flag & SEQ_KEY_SELECTED);
 }
 
-blender::Map<SeqRetimingKey *, Strip *> retiming_selection_get(const Editing *ed)
+Map<SeqRetimingKey *, Strip *> retiming_selection_get(const Editing *ed)
 {
-  blender::Map<SeqRetimingKey *, Strip *> selection;
+  Map<SeqRetimingKey *, Strip *> selection;
   if (!ed) {
     return selection;
   }
@@ -1203,7 +1203,7 @@ bool retiming_selection_has_whole_transition(const Editing *ed, SeqRetimingKey *
   SeqRetimingKey *key_end = key_start + 1;
   bool has_start = false, has_end = false;
 
-  blender::Map<SeqRetimingKey *, Strip *> selection = retiming_selection_get(ed);
+  Map<SeqRetimingKey *, Strip *> selection = retiming_selection_get(ed);
 
   for (auto item : selection.items()) {
     if (item.key == key_start) {

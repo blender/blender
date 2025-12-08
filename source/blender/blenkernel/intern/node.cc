@@ -1363,7 +1363,7 @@ typedef struct bNodeSocketValueMenu_404 {
  * data. Currently used for `bNodeSocket.default_value`. */
 template<typename T, typename T_404>
 static void direct_link_node_socket_legacy_data_version_do(
-    void **dest_data, void **raw_data, blender::FunctionRef<void(T &dest, T_404 &source)> copy_fn)
+    void **dest_data, void **raw_data, FunctionRef<void(T &dest, T_404 &source)> copy_fn)
 {
   /* Cannot check for equality because of potential alignment offset. */
   BLI_assert(MEM_allocN_len(*raw_data) >= sizeof(T_404));

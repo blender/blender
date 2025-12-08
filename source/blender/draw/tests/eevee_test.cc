@@ -1225,8 +1225,7 @@ static void test_eevee_shadow_tilemap_amend()
 {
   GPU_render_begin();
 
-  blender::Vector<uint32_t> tilemap_data(SHADOW_TILEMAP_RES * SHADOW_TILEMAP_RES *
-                                         SHADOW_TILEMAP_PER_ROW);
+  Vector<uint32_t> tilemap_data(SHADOW_TILEMAP_RES * SHADOW_TILEMAP_RES * SHADOW_TILEMAP_PER_ROW);
   tilemap_data.fill(0);
 
   auto pixel_get = [&](int x, int y, int tilemap_index) -> uint32_t & {

@@ -68,7 +68,7 @@ struct _uilist_item {
  * Container for the item vector and additional info.
  */
 struct TemplateListItems {
-  blender::Vector<_uilist_item> item_vec = {};
+  Vector<_uilist_item> item_vec = {};
   /* Index of the active item following visual order. I.e. unlike
    * TemplateListInputData.active_item_idx, this is the index after sorting. */
   int active_item_idx = 0;
@@ -1155,7 +1155,7 @@ void template_list(Layout *layout,
                    const char *listtype_name,
                    const char *list_id,
                    PointerRNA *dataptr,
-                   blender::StringRefNull propname,
+                   StringRefNull propname,
                    PointerRNA *active_dataptr,
                    const char *active_propname,
                    const char *item_dyntip_propname,

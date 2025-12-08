@@ -607,7 +607,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(
   bke::AttributeAccessor src_attributes = mesh_src.attributes();
   bke::MutableAttributeAccessor dst_attributes = mesh_dst.attributes_for_write();
   const bke::AttrType attr_type = *bke::custom_data_type_to_attr_type(cddata_type);
-  std::variant<const void *, blender::GVArray> data_src;
+  std::variant<const void *, GVArray> data_src;
   std::variant<void *, blender::bke::GSpanAttributeWriter> data_dst = nullptr;
   int idx_src = num_layers_src;
   int idx_dst, tot_dst = dst_names.size();

@@ -45,7 +45,7 @@ const StringRefNull materials_filename = "usd/usd_materials_export.blend";
 const StringRefNull output_filename = "output.usd";
 
 static const bNode *find_node_for_type_in_graph(const bNodeTree *nodetree,
-                                                const blender::StringRefNull type_idname);
+                                                const StringRefNull type_idname);
 
 class UsdExportTest : public BlendfileLoadingBaseTest {
  protected:
@@ -236,7 +236,7 @@ TEST_F(UsdExportTest, usd_export_rain_mesh)
 }
 
 static const bNode *find_node_for_type_in_graph(const bNodeTree *nodetree,
-                                                const blender::StringRefNull type_idname)
+                                                const StringRefNull type_idname)
 {
   auto found_nodes = nodetree->nodes_by_type(type_idname);
   if (found_nodes.size() == 1) {

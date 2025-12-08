@@ -58,17 +58,17 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   int faces_dst_num, edges_dst_num, loops_dst_num = 0;
   float frac;
   /* maps vert indices in old mesh to indices in new mesh */
-  blender::Map<int, int> vertHash;
+  Map<int, int> vertHash;
   /* maps edge indices in new mesh to indices in old mesh */
-  blender::Map<int, int> edgeHash;
+  Map<int, int> edgeHash;
   /* maps edge indices in old mesh to indices in new mesh */
-  blender::Map<int, int> edgeHash2;
+  Map<int, int> edgeHash2;
 
   const int vert_src_num = mesh->verts_num;
-  const blender::Span<blender::int2> edges_src = mesh->edges();
-  const blender::OffsetIndices faces_src = mesh->faces();
-  const blender::Span<int> corner_verts_src = mesh->corner_verts();
-  const blender::Span<int> corner_edges_src = mesh->corner_edges();
+  const Span<blender::int2> edges_src = mesh->edges();
+  const OffsetIndices faces_src = mesh->faces();
+  const Span<int> corner_verts_src = mesh->corner_verts();
+  const Span<int> corner_edges_src = mesh->corner_edges();
 
   int *vertMap = MEM_malloc_arrayN<int>(size_t(vert_src_num), __func__);
   int *edgeMap = MEM_malloc_arrayN<int>(size_t(edges_src.size()), __func__);
@@ -101,7 +101,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
      */
     hash_num = 0;
     for (i = 0; i < faces_dst_num; i++) {
-      const blender::IndexRange face = faces_src[faceMap[i]];
+      const IndexRange face = faces_src[faceMap[i]];
       for (j = 0; j < face.size(); j++) {
         const int vert_i = corner_verts_src[face[j]];
         if (vertHash.add(vert_i, hash_num)) {
@@ -179,10 +179,10 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   /* now we know the number of verts, edges and faces, we can create the mesh. */
   result = BKE_mesh_new_nomain_from_template(
       mesh, vertHash.size(), edgeHash.size(), faces_dst_num, loops_dst_num);
-  blender::MutableSpan<blender::int2> result_edges = result->edges_for_write();
-  blender::MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
-  blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
-  blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
+  MutableSpan<blender::int2> result_edges = result->edges_for_write();
+  MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
+  MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
+  MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
 
   bke::LegacyMeshInterpolator vert_interp(*mesh, *result, bke::AttrDomain::Point);
   bke::LegacyMeshInterpolator edge_interp(*mesh, *result, bke::AttrDomain::Edge);
@@ -215,7 +215,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   /* copy the faces across, remapping indices */
   k = 0;
   for (i = 0; i < faces_dst_num; i++) {
-    const blender::IndexRange src_face = faces_src[faceMap[i]];
+    const IndexRange src_face = faces_src[faceMap[i]];
     result_face_offsets[i] = k;
 
     face_interp.copy(faceMap[i], i, 1);

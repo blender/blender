@@ -227,7 +227,7 @@ class FieldOperation : public FieldNode {
   const mf::MultiFunction *function_;
 
   /** Inputs to the operation. */
-  blender::Vector<GField> inputs_;
+  Vector<GField> inputs_;
 
  public:
   FieldOperation(std::shared_ptr<const mf::MultiFunction> function, Vector<GField> inputs = {});
@@ -284,7 +284,7 @@ class FieldInput : public FieldNode {
                                          ResourceScope &scope) const = 0;
 
   virtual std::string socket_inspection_name() const;
-  blender::StringRef debug_name() const;
+  StringRef debug_name() const;
   const CPPType &cpp_type() const;
   Category category() const;
 

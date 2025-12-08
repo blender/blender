@@ -591,7 +591,7 @@ void insert_selected_values(Object *object,
                             const bke::AttrDomain domain,
                             const StringRef attribute_id,
                             const int handle_display,
-                            blender::Set<T> &r_value_set)
+                            Set<T> &r_value_set)
 {
   T default_value;
   CPPType::get<T>().default_construct(&default_value);
@@ -647,10 +647,9 @@ static void select_similar_by_value(Scene *scene,
   T default_value;
   CPPType::get<T>().default_construct(&default_value);
 
-  const blender::Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene,
-                                                                                  grease_pencil);
+  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
 
-  blender::Set<T> selected_values;
+  Set<T> selected_values;
   for (const MutableDrawingInfo &info : drawings) {
     insert_selected_values(
         object, info, selection_domain, attribute_id, handle_display, selected_values);
@@ -692,10 +691,9 @@ static void select_similar_by_layer(Scene *scene,
                                     GreasePencil &grease_pencil,
                                     bke::AttrDomain domain)
 {
-  const blender::Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene,
-                                                                                  grease_pencil);
+  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
 
-  blender::Set<int> selected_layers;
+  Set<int> selected_layers;
   /* Layer is selected if any point is selected. */
   for (const MutableDrawingInfo &info : drawings) {
     const VArraySpan<bool> selection =

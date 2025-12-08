@@ -819,7 +819,7 @@ static void draw_warnings(const bContext *C,
      * it doesn't fit in the panel. */
     button_func_tooltip_set(
         but,
-        [](bContext * /*C*/, void *argN, blender::StringRef /*tip*/) -> std::string {
+        [](bContext * /*C*/, void *argN, StringRef /*tip*/) -> std::string {
           return *static_cast<std::string *>(argN);
         },
         MEM_new<std::string>(__func__, message),

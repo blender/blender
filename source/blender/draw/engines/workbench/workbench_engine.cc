@@ -73,7 +73,7 @@ class Instance : public DrawEngine {
  public:
   const DRWContext *draw_ctx = nullptr;
 
-  blender::StringRefNull name_get() final
+  StringRefNull name_get() final
   {
     return "Workbench";
   }

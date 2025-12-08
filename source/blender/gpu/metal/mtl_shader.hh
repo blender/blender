@@ -153,13 +153,12 @@ class MTLShader : public Shader {
    * which contribute to instantiation of a unique PSO. */
   MTLRenderPipelineStateDescriptor current_pipeline_state_;
   /* Cache of compiled PipelineStateObjects. */
-  blender::Map<MTLRenderPipelineStateDescriptor, MTLRenderPipelineStateInstance *> pso_cache_;
+  Map<MTLRenderPipelineStateDescriptor, MTLRenderPipelineStateInstance *> pso_cache_;
   std::mutex pso_cache_lock_;
 
   /** Compute pipeline state and Compute PSO caching. */
   MTLComputePipelineStateCommon compute_pso_common_state_;
-  blender::Map<MTLComputePipelineStateDescriptor, MTLComputePipelineStateInstance *>
-      compute_pso_cache_;
+  Map<MTLComputePipelineStateDescriptor, MTLComputePipelineStateInstance *> compute_pso_cache_;
 
  public:
   MTLShader(MTLContext *ctx, const char *name);

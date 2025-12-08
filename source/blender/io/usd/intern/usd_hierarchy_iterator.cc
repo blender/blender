@@ -451,8 +451,7 @@ void USDHierarchyIterator::add_usd_skel_export_mapping(const Object *obj, const 
   }
 }
 
-const blender::Map<pxr::SdfPath, blender::Vector<ID *>> &USDHierarchyIterator::
-    get_exported_prim_map() const
+const Map<pxr::SdfPath, Vector<ID *>> &USDHierarchyIterator::get_exported_prim_map() const
 {
   return exported_prim_map_;
 }

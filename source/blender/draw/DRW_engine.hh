@@ -207,7 +207,7 @@ namespace blender::draw {
 void DRW_cdlayer_attr_aliases_add(GPUVertFormat *format,
                                   const char *base_name,
                                   bke::AttrType data_type,
-                                  blender::StringRef layer_name,
+                                  StringRef layer_name,
                                   bool is_active_render,
                                   bool is_active_layer);
 

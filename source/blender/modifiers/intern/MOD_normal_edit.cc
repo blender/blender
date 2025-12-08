@@ -182,7 +182,7 @@ static void faces_check_flip(Mesh &mesh,
   IndexMaskMemory memory;
   const IndexMask faces_to_flip = IndexMask::from_predicate(
       faces.index_range(), GrainSize(1024), memory, [&](const int i) {
-        const blender::IndexRange face = faces[i];
+        const IndexRange face = faces[i];
         float norsum[3] = {0.0f};
 
         for (const int64_t j : face) {
@@ -476,10 +476,10 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
     result = mesh;
   }
 
-  const blender::Span<blender::float3> positions = result->vert_positions();
+  const Span<blender::float3> positions = result->vert_positions();
   const OffsetIndices faces = result->faces();
-  blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
-  blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
+  MutableSpan<int> corner_verts = result->corner_verts_for_write();
+  MutableSpan<int> corner_edges = result->corner_edges_for_write();
 
   int defgrp_index;
   const MDeformVert *dvert;

@@ -1341,7 +1341,7 @@ void CurvesGeometry::translate(const float3 &translation)
   if (bounds) {
     bounds->min += translation;
     bounds->max += translation;
-    this->runtime->bounds_cache.ensure([&](blender::Bounds<float3> &r_data) { r_data = *bounds; });
+    this->runtime->bounds_cache.ensure([&](Bounds<float3> &r_data) { r_data = *bounds; });
   }
 }
 

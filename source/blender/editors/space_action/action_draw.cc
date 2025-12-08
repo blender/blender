@@ -730,11 +730,11 @@ static void timeline_cache_draw_single(PTCacheID *pid, float y_offset, float hei
 }
 
 struct CacheRange {
-  blender::IndexRange frames;
+  IndexRange frames;
   blender::bke::bake::CacheStatus status;
 };
 
-static void timeline_cache_draw_geometry_nodes(const blender::Span<CacheRange> cache_ranges,
+static void timeline_cache_draw_geometry_nodes(const Span<CacheRange> cache_ranges,
                                                const bool all_simulations_baked,
                                                float *y_offset,
                                                const float line_height,
@@ -757,15 +757,15 @@ static void timeline_cache_draw_geometry_nodes(const blender::Span<CacheRange> c
     }
   }
 
-  blender::Set<int> status_change_frames_set;
+  Set<int> status_change_frames_set;
   for (const CacheRange &sim_range : cache_ranges) {
     status_change_frames_set.add(sim_range.frames.first());
     status_change_frames_set.add(sim_range.frames.one_after_last());
   }
-  blender::Vector<int> status_change_frames;
+  Vector<int> status_change_frames;
   status_change_frames.extend(status_change_frames_set.begin(), status_change_frames_set.end());
   std::sort(status_change_frames.begin(), status_change_frames.end());
-  const blender::OffsetIndices<int> frame_ranges = status_change_frames.as_span();
+  const OffsetIndices<int> frame_ranges = status_change_frames.as_span();
 
   GPU_matrix_push();
   GPU_matrix_translate_2f(0.0, float(V2D_SCROLL_HANDLE_HEIGHT) + *y_offset);
@@ -782,7 +782,7 @@ static void timeline_cache_draw_geometry_nodes(const blender::Span<CacheRange> c
 
   float max_used_height = 1.0f;
   for (const int range_i : frame_ranges.index_range()) {
-    const blender::IndexRange frame_range = frame_ranges[range_i];
+    const IndexRange frame_range = frame_ranges[range_i];
     const int start_frame = frame_range.first();
     const int end_frame = frame_range.last();
 
@@ -875,7 +875,7 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
     y_offset += cache_draw_height;
   }
   if (saction->cache_display & TIME_CACHE_SIMULATION_NODES) {
-    blender::Vector<CacheRange> cache_ranges;
+    Vector<CacheRange> cache_ranges;
     bool all_simulations_baked = true;
     LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
       if (md->type != eModifierType_Nodes) {

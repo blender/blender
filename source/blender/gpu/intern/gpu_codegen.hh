@@ -91,7 +91,7 @@ class GPUCodegen {
  private:
   void set_unique_ids();
 
-  void node_serialize(blender::Set<blender::StringRefNull> &used_libraries,
+  void node_serialize(Set<StringRefNull> &used_libraries,
                       std::stringstream &eval_ss,
                       const GPUNode *node);
   GPUGraphOutput graph_serialize(GPUNodeTag tree_tag,

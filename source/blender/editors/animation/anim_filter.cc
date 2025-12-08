@@ -3951,7 +3951,7 @@ static size_t animdata_filter_remove_duplis(ListBase *anim_data)
 {
   /* Build new hash-table to efficiently store and retrieve which entries have been
    * encountered already while searching. */
-  blender::Set<const void *> gs;
+  Set<const void *> gs;
 
   /* loop through items, removing them from the list if a similar item occurs already */
   LISTBASE_FOREACH_MUTABLE (bAnimListElem *, ale, anim_data) {

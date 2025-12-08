@@ -79,8 +79,7 @@ std::string AS_asset_library_root_path_from_library_ref(
   return AssetLibraryService::root_path_from_library_ref(library_reference);
 }
 
-std::string AS_asset_library_find_suitable_root_path_from_path(
-    const blender::StringRefNull input_path)
+std::string AS_asset_library_find_suitable_root_path_from_path(const StringRefNull input_path)
 {
   if (bUserAssetLibrary *preferences_lib = BKE_preferences_asset_library_containing_path(
           &U, input_path.c_str()))

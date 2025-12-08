@@ -311,7 +311,7 @@ void GPUCodegen::node_serialize(Set<StringRefNull> &used_libraries,
       if (from == GPU_VEC4 && to == GPU_FLOAT) {
         float coefficients[3];
         IMB_colormanagement_get_luminance_coefficients(coefficients);
-        eval_ss << ", " << blender::Span<float>(coefficients, 3);
+        eval_ss << ", " << Span<float>(coefficients, 3);
       }
       eval_ss << ")";
     }
@@ -502,8 +502,8 @@ void GPUCodegen::generate_uniform_buffer()
 /* Sets id for unique names for all inputs, resources and temp variables. */
 void GPUCodegen::set_unique_ids()
 {
-  blender::Map<int, GPUNode *> zone_starts;
-  blender::Map<int, GPUNode *> zone_ends;
+  Map<int, GPUNode *> zone_starts;
+  Map<int, GPUNode *> zone_ends;
 
   int id = 1;
   LISTBASE_FOREACH (GPUNode *, node, &graph.nodes) {

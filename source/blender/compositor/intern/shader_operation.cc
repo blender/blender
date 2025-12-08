@@ -579,8 +579,7 @@ void ShaderOperation::generate_code(void *thunk,
     res.info_name = "compositor_nodetrees";
   }
 
-  blender::Vector<blender::StringRefNull> dependencies =
-      code_generator_output->composite.dependencies;
+  Vector<StringRefNull> dependencies = code_generator_output->composite.dependencies;
   dependencies.prepend("compositor_node_tree_infos.hh");
   dependencies.prepend("gpu_shader_compositor_texture_utilities.glsl");
   dependencies.prepend("gpu_shader_compositor_code_generation.glsl");

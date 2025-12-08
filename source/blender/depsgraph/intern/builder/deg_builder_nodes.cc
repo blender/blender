@@ -1901,8 +1901,7 @@ void DepsgraphNodeBuilder::build_armature_bones(ListBase *bones)
   }
 }
 
-void DepsgraphNodeBuilder::build_armature_bone_collections(
-    blender::Span<BoneCollection *> collections)
+void DepsgraphNodeBuilder::build_armature_bone_collections(Span<BoneCollection *> collections)
 {
   for (BoneCollection *bcoll : collections) {
     build_idproperties(bcoll->prop);

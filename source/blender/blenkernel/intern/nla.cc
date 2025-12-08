@@ -1964,9 +1964,7 @@ void BKE_nlastrip_validate_name(AnimData *adt, NlaStrip *strip)
    *   but then everything else in Blender would fail too :).
    */
   BLI_uniquename_cb(
-      [&](const blender::StringRefNull check_name) {
-        return BLI_ghash_haskey(gh, check_name.c_str());
-      },
+      [&](const StringRefNull check_name) { return BLI_ghash_haskey(gh, check_name.c_str()); },
       DATA_("NlaStrip"),
       '.',
       strip->name,
@@ -2787,7 +2785,7 @@ void BKE_nla_liboverride_post_process(ID *id, AnimData *adt)
   }
 }
 
-static bool visit_strip(NlaStrip *strip, blender::FunctionRef<bool(NlaStrip *)> callback)
+static bool visit_strip(NlaStrip *strip, FunctionRef<bool(NlaStrip *)> callback)
 {
   if (!callback(strip)) {
     return false;
@@ -2804,7 +2802,7 @@ static bool visit_strip(NlaStrip *strip, blender::FunctionRef<bool(NlaStrip *)> 
 
 namespace blender::bke::nla {
 
-bool foreach_strip(ID *id, blender::FunctionRef<bool(NlaStrip *)> callback)
+bool foreach_strip(ID *id, FunctionRef<bool(NlaStrip *)> callback)
 {
   const AnimData *adt = BKE_animdata_from_id(id);
   if (!adt) {
@@ -2814,7 +2812,7 @@ bool foreach_strip(ID *id, blender::FunctionRef<bool(NlaStrip *)> callback)
   return foreach_strip_adt(*adt, callback);
 }
 
-bool foreach_strip_adt(const AnimData &adt, blender::FunctionRef<bool(NlaStrip *)> callback)
+bool foreach_strip_adt(const AnimData &adt, FunctionRef<bool(NlaStrip *)> callback)
 {
   LISTBASE_FOREACH (NlaTrack *, nlt, &adt.nla_tracks) {
     LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {

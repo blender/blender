@@ -25,7 +25,7 @@ namespace blender::ed::space_node {
 struct NestedTreePreviews {
   Render *previews_render = nullptr;
   /** Use this map to keep track of the latest #ImBuf used (after freeing the render-result). */
-  blender::Map<int32_t, ImBuf *> previews_map;
+  Map<int32_t, ImBuf *> previews_map;
   int preview_size;
   bool rendering = false;
   bool restart_needed = false;

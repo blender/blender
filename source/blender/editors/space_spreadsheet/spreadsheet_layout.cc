@@ -104,7 +104,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                        std::nullopt);
     button_func_tooltip_set(
         but,
-        [](bContext * /*C*/, void *arg, blender::StringRef /*tip*/) {
+        [](bContext * /*C*/, void *arg, StringRef /*tip*/) {
           return *static_cast<std::string *>(arg);
         },
         MEM_new<std::string>(__func__, name),

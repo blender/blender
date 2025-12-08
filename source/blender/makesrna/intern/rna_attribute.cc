@@ -948,7 +948,7 @@ static PointerRNA rna_AttributeGroupID_active_get(PointerRNA *ptr)
 {
   using namespace blender;
   AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
-  const std::optional<blender::StringRef> name = BKE_attributes_active_name_get(owner);
+  const std::optional<StringRef> name = BKE_attributes_active_name_get(owner);
   if (!name) {
     return PointerRNA_NULL;
   }
@@ -1216,7 +1216,7 @@ static PointerRNA rna_AttributeGroupGreasePencilDrawing_active_get(PointerRNA *p
   using namespace blender;
   GreasePencilDrawing *drawing = static_cast<GreasePencilDrawing *>(ptr->data);
   AttributeOwner owner = AttributeOwner(AttributeOwnerType::GreasePencilDrawing, drawing);
-  const std::optional<blender::StringRef> name = BKE_attributes_active_name_get(owner);
+  const std::optional<StringRef> name = BKE_attributes_active_name_get(owner);
   if (!name) {
     return PointerRNA_NULL;
   }

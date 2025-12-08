@@ -58,9 +58,9 @@ class GreasePencilExporter {
 
   /* Camera projection matrix, only available with an active camera. */
   std::optional<float4x4> camera_persmat_;
-  blender::Bounds<float2> camera_rect_;
+  Bounds<float2> camera_rect_;
   float2 camera_fac_;
-  blender::Bounds<float2> screen_rect_;
+  Bounds<float2> screen_rect_;
 
  public:
   GreasePencilExporter(const IOContext &context, const ExportParams &params);

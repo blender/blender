@@ -45,7 +45,7 @@ struct ViewerPathForGeometryNodesViewer {
   /** #ModifierData.persistent_uid. */
   int modifier_uid;
   /** Contains only group node and simulation zone elements. */
-  blender::Vector<const ViewerPathElem *> node_path;
+  Vector<const ViewerPathElem *> node_path;
   int32_t viewer_node_id;
 };
 

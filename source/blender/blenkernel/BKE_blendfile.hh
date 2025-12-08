@@ -204,7 +204,7 @@ class PartialWriteContext : NonCopyable, NonMovable {
   IDNameLib_Map *matching_uid_map_;
 
   /** A mapping from the absolute library paths to the #Library IDs in the context. */
-  blender::Map<std::string, Library *> libraries_map_;
+  Map<std::string, Library *> libraries_map_;
 
  public:
   /* Passing a reference root filepath is mandatory, for remapping of relative paths to work as
@@ -322,9 +322,8 @@ class PartialWriteContext : NonCopyable, NonMovable {
    */
   ID *id_add(const ID *id,
              IDAddOptions options,
-             blender::FunctionRef<IDAddOperations(LibraryIDLinkCallbackData *cb_data,
-                                                  IDAddOptions options)> dependencies_filter_cb =
-                 nullptr);
+             FunctionRef<IDAddOperations(LibraryIDLinkCallbackData *cb_data, IDAddOptions options)>
+                 dependencies_filter_cb = nullptr);
 
   /**
    * Add and return a new ID into the partial write context.

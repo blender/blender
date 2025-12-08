@@ -387,9 +387,8 @@ void BKE_action_flip_with_pose(bAction *act, blender::Span<Object *> objects) AT
 
 namespace blender::bke {
 
-using FoundFCurveCallback = blender::FunctionRef<void(FCurve *fcurve, const char *bone_name)>;
-using FoundFCurveCallbackConst =
-    blender::FunctionRef<void(const FCurve *fcurve, const char *bone_name)>;
+using FoundFCurveCallback = FunctionRef<void(FCurve *fcurve, const char *bone_name)>;
+using FoundFCurveCallbackConst = FunctionRef<void(const FCurve *fcurve, const char *bone_name)>;
 
 /**
  * Calls `callback` for every fcurve in an action slot that targets any bone.

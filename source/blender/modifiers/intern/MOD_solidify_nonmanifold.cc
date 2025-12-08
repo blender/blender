@@ -188,11 +188,11 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
   const bool do_flat_faces = dvert && (smd->flag & MOD_SOLIDIFY_NONMANIFOLD_FLAT_FACES);
 
-  const blender::Span<blender::float3> orig_vert_positions = mesh->vert_positions();
-  const blender::Span<int2> orig_edges = mesh->edges();
-  const blender::OffsetIndices orig_faces = mesh->faces();
-  const blender::Span<int> orig_corner_verts = mesh->corner_verts();
-  const blender::Span<int> orig_corner_edges = mesh->corner_edges();
+  const Span<blender::float3> orig_vert_positions = mesh->vert_positions();
+  const Span<int2> orig_edges = mesh->edges();
+  const OffsetIndices orig_faces = mesh->faces();
+  const Span<int> orig_corner_verts = mesh->corner_verts();
+  const Span<int> orig_corner_edges = mesh->corner_edges();
   const bke::AttributeAccessor orig_attributes = mesh->attributes();
 
   /* These might be null. */
@@ -222,7 +222,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   /* Calculate face to #NewFaceRef map. */
   {
     for (const int i : orig_faces.index_range()) {
-      const blender::IndexRange &face = orig_faces[i];
+      const IndexRange &face = orig_faces[i];
       /* Make normals for faces without area (should really be avoided though). */
       if (len_squared_v3(face_nors[i]) < 0.5f) {
         const int2 &edge = orig_edges[orig_corner_edges[face.start()]];
@@ -381,7 +381,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                   (ELEM(vm[orig_edges[k][0]], v1, v2) != ELEM(vm[orig_edges[k][1]], v1, v2)))
               {
                 for (uint j = 0; j < edge_adj_faces[k]->faces_len && can_merge; j++) {
-                  const blender::IndexRange face = orig_faces[edge_adj_faces[k]->faces[j]];
+                  const IndexRange face = orig_faces[edge_adj_faces[k]->faces[j]];
                   uint changes = 0;
                   /* Ensure there are at least 3 unique vertices in this face.
                    * Without this check a duplicate edge would be created
@@ -1995,11 +1995,11 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   result = BKE_mesh_new_nomain_from_template(
       mesh, int(new_verts_num), int(new_edges_num), int(new_faces_num), int(new_loops_num));
 
-  blender::MutableSpan<float3> vert_positions = result->vert_positions_for_write();
-  blender::MutableSpan<int2> edges = result->edges_for_write();
-  blender::MutableSpan<int> face_offsets = result->face_offsets_for_write();
-  blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
-  blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
+  MutableSpan<float3> vert_positions = result->vert_positions_for_write();
+  MutableSpan<int2> edges = result->edges_for_write();
+  MutableSpan<int> face_offsets = result->face_offsets_for_write();
+  MutableSpan<int> corner_verts = result->corner_verts_for_write();
+  MutableSpan<int> corner_edges = result->corner_edges_for_write();
   bke::MutableAttributeAccessor result_attributes = result->attributes_for_write();
 
   bke::LegacyMeshInterpolator vert_interp(*mesh, *result, bke::AttrDomain::Point);
@@ -2336,7 +2336,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
               for (uint k = 0; g2->valid && k < j; g2++) {
                 if ((do_rim && !g2->is_orig_closed) || (do_shell && g2->split)) {
-                  const blender::IndexRange face = g2->edges[0]->faces[0]->face;
+                  const IndexRange face = g2->edges[0]->faces[0]->face;
                   for (int l = 0; l < face.size(); l++) {
                     const int vert = orig_corner_verts[face[l]];
                     if (vm[vert] == i) {
@@ -2397,7 +2397,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
         }
 
         const uint orig_face_index = (*new_edges)->faces[0]->index;
-        const blender::IndexRange face = (*new_edges)->faces[0]->face;
+        const IndexRange face = (*new_edges)->faces[0]->face;
         face_interp.copy(int((*new_edges)->faces[0]->index), int(face_index), 1);
         face_offsets[face_index] = int(loop_index);
         dst_material_index.span[face_index] = (!src_material_index.is_empty() ?

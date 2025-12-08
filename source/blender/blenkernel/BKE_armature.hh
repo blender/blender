@@ -682,11 +682,11 @@ struct SelectedBonesResult {
   bool no_bones_selected = true;
 };
 
-using SelectedBoneCallback = blender::FunctionRef<void(Bone *bone)>;
+using SelectedBoneCallback = FunctionRef<void(Bone *bone)>;
 SelectedBonesResult BKE_armature_find_selected_bones(const bArmature *armature,
                                                      SelectedBoneCallback callback);
 
-using BoneNameSet = blender::Set<std::string>;
+using BoneNameSet = Set<std::string>;
 /**
  * Return a set of names of the selected bones.
  */

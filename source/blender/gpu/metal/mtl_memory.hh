@@ -400,7 +400,7 @@ class MTLBufferPool {
   using MTLBufferResourceOptions = uint64_t;
 
   std::mutex buffer_pool_lock_;
-  blender::Map<MTLBufferResourceOptions, MTLBufferPoolOrderedList *> buffer_pools_;
+  Map<MTLBufferResourceOptions, MTLBufferPoolOrderedList *> buffer_pools_;
 
   /* Linked list to track all existing allocations. Prioritizing fast insert/deletion. */
   gpu::MTLBuffer *allocations_list_base_;
@@ -411,7 +411,7 @@ class MTLBufferPool {
    * MemoryManager pools.
    * Access to this queue is made thread-safe through safelist_lock_. */
   std::mutex safelist_lock_;
-  blender::Vector<MTLSafeFreeList *> completed_safelist_queue_;
+  Vector<MTLSafeFreeList *> completed_safelist_queue_;
 
   /* Current free list, associated with active MTLCommandBuffer submission. */
   /* MTLBuffer::free() can be called from separate threads, due to usage within animation

@@ -177,7 +177,7 @@ static bke::CurvesGeometry create_array_copies(const Object &ob,
 
   float3 size(0.0f);
   if (mmd.flag & MOD_GREASE_PENCIL_ARRAY_USE_RELATIVE) {
-    std::optional<blender::Bounds<float3>> bounds = filtered_curves.bounds_min_max();
+    std::optional<Bounds<float3>> bounds = filtered_curves.bounds_min_max();
     if (bounds.has_value()) {
       size = bounds.value().max - bounds.value().min;
       /* Need a minimum size (for flat drawings). */

@@ -32,7 +32,7 @@ static std::optional<Vector<char>> read_file(const StringRefNull path)
   const int64_t size = stream.tellg();
   stream.seekg(0, std::ios_base::beg);
 
-  blender::Vector<char> buffer(size);
+  Vector<char> buffer(size);
   stream.read(buffer.data(), size);
   if (stream.bad()) {
     return std::nullopt;

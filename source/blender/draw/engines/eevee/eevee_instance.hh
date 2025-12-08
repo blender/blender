@@ -209,7 +209,7 @@ class Instance : public DrawEngine {
         volume(*this, uniform_data.data.volumes) {};
   ~Instance() {};
 
-  blender::StringRefNull name_get() final
+  StringRefNull name_get() final
   {
     return "EEVEE";
   }

@@ -74,7 +74,7 @@ bool sequencer_retiming_mode_is_active(const bContext *C);
  * \param C: context
  * \return collection of strips (`Strip`)
  */
-blender::VectorSet<Strip *> selected_strips_from_context(bContext *C);
+VectorSet<Strip *> selected_strips_from_context(bContext *C);
 StripSelection pick_strip_and_handle(const struct Scene *scene,
                                      const View2D *v2d,
                                      float mouse_co[2]);

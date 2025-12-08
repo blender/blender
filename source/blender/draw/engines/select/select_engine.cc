@@ -82,7 +82,7 @@ struct Instance : public DrawEngine {
     }
   };
 
-  blender::StringRefNull name_get() final
+  StringRefNull name_get() final
   {
     return "SelectID";
   }

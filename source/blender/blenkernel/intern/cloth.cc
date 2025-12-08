@@ -1460,7 +1460,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, const Mesh *mesh)
   uint numedges = uint(mesh->edges_num);
   uint numface = uint(mesh->faces_num);
   float shrink_factor;
-  const blender::Span<int2> edges = mesh->edges();
+  const Span<int2> edges = mesh->edges();
   const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<int> corner_edges = mesh->corner_edges();
@@ -1515,8 +1515,8 @@ static bool cloth_build_springs(ClothModifierData *clmd, const Mesh *mesh)
                                                         mesh->bvh_corner_tris();
     rng = BLI_rng_new_srandom(0);
 
-    const blender::Span<blender::float3> vert_normals = tmp_mesh ? tmp_mesh->vert_normals() :
-                                                                   mesh->vert_normals();
+    const Span<blender::float3> vert_normals = tmp_mesh ? tmp_mesh->vert_normals() :
+                                                          mesh->vert_normals();
 
     for (int i = 0; i < mvert_num; i++) {
       if (find_internal_spring_target_vertex(

@@ -119,7 +119,7 @@ class Instance : public DrawEngine {
     DRW_text_cache_destroy(state.dt);
   }
 
-  blender::StringRefNull name_get() final
+  StringRefNull name_get() final
   {
     return "Overlay";
   }

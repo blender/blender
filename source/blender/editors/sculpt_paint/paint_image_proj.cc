@@ -6419,7 +6419,7 @@ static wmOperatorStatus texture_paint_image_from_view_exec(bContext *C, wmOperat
      * re-projection will reuse this */
     IDProperty *idgroup = IDP_EnsureProperties(&image->id);
 
-    blender::Vector<float, PROJ_VIEW_DATA_SIZE> array;
+    Vector<float, PROJ_VIEW_DATA_SIZE> array;
     array.extend(Span(reinterpret_cast<float *>(rv3d->winmat), 16));
     array.extend(Span(reinterpret_cast<float *>(rv3d->viewmat), 16));
     float clip_start;

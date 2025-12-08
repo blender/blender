@@ -32,7 +32,7 @@ struct FCurveDescriptor {
   int array_index;
   std::optional<PropertyType> prop_type;
   std::optional<PropertySubType> prop_subtype;
-  std::optional<blender::StringRefNull> channel_group;
+  std::optional<StringRefNull> channel_group;
 };
 
 /* This is used to pass in the settings for a keyframe into a function. */

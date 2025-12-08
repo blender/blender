@@ -24,7 +24,7 @@
 
 namespace blender::bke::path_templates {
 
-bool VariableMap::contains(blender::StringRef name) const
+bool VariableMap::contains(StringRef name) const
 {
   if (this->strings_.contains(name)) {
     return true;
@@ -41,7 +41,7 @@ bool VariableMap::contains(blender::StringRef name) const
   return false;
 }
 
-bool VariableMap::remove(blender::StringRef name)
+bool VariableMap::remove(StringRef name)
 {
   if (this->strings_.remove(name)) {
     return true;
@@ -58,7 +58,7 @@ bool VariableMap::remove(blender::StringRef name)
   return false;
 }
 
-bool VariableMap::add_string(blender::StringRef name, blender::StringRef value)
+bool VariableMap::add_string(StringRef name, StringRef value)
 {
   if (this->contains(name)) {
     return false;
@@ -67,7 +67,7 @@ bool VariableMap::add_string(blender::StringRef name, blender::StringRef value)
   return true;
 }
 
-bool VariableMap::add_filepath(blender::StringRef name, blender::StringRef value)
+bool VariableMap::add_filepath(StringRef name, StringRef value)
 {
   if (this->contains(name)) {
     return false;
@@ -76,7 +76,7 @@ bool VariableMap::add_filepath(blender::StringRef name, blender::StringRef value
   return true;
 }
 
-bool VariableMap::add_integer(blender::StringRef name, const int64_t value)
+bool VariableMap::add_integer(StringRef name, const int64_t value)
 {
   if (this->contains(name)) {
     return false;
@@ -85,7 +85,7 @@ bool VariableMap::add_integer(blender::StringRef name, const int64_t value)
   return true;
 }
 
-bool VariableMap::add_float(blender::StringRef name, const double value)
+bool VariableMap::add_float(StringRef name, const double value)
 {
   if (this->contains(name)) {
     return false;
@@ -94,25 +94,25 @@ bool VariableMap::add_float(blender::StringRef name, const double value)
   return true;
 }
 
-std::optional<blender::StringRefNull> VariableMap::get_string(blender::StringRef name) const
+std::optional<StringRefNull> VariableMap::get_string(StringRef name) const
 {
   const std::string *value = this->strings_.lookup_ptr(name);
   if (value == nullptr) {
     return std::nullopt;
   }
-  return blender::StringRefNull(*value);
+  return StringRefNull(*value);
 }
 
-std::optional<blender::StringRefNull> VariableMap::get_filepath(blender::StringRef name) const
+std::optional<StringRefNull> VariableMap::get_filepath(StringRef name) const
 {
   const std::string *value = this->filepaths_.lookup_ptr(name);
   if (value == nullptr) {
     return std::nullopt;
   }
-  return blender::StringRefNull(*value);
+  return StringRefNull(*value);
 }
 
-std::optional<int64_t> VariableMap::get_integer(blender::StringRef name) const
+std::optional<int64_t> VariableMap::get_integer(StringRef name) const
 {
   const int64_t *value = this->integers_.lookup_ptr(name);
   if (value == nullptr) {
@@ -121,7 +121,7 @@ std::optional<int64_t> VariableMap::get_integer(blender::StringRef name) const
   return *value;
 }
 
-std::optional<double> VariableMap::get_float(blender::StringRef name) const
+std::optional<double> VariableMap::get_float(StringRef name) const
 {
   const double *value = this->floats_.lookup_ptr(name);
   if (value == nullptr) {

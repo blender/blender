@@ -1323,7 +1323,7 @@ void motion_paths_recalc(bContext *C,
   Main *bmain = CTX_data_main(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  blender::Vector<MPathTarget *> targets;
+  Vector<MPathTarget *> targets;
   LISTBASE_FOREACH (LinkData *, link, ld_objects) {
     Object *ob = static_cast<Object *>(link->data);
 

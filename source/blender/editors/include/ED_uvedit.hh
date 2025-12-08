@@ -106,13 +106,13 @@ class UVSyncSelectFromMesh : NonCopyable {
   char uv_sticky_;
   BMesh &bm_;
 
-  blender::VectorList<BMVert *> bm_verts_select_;
-  blender::VectorList<BMEdge *> bm_edges_select_;
-  blender::VectorList<BMFace *> bm_faces_select_;
+  VectorList<BMVert *> bm_verts_select_;
+  VectorList<BMEdge *> bm_edges_select_;
+  VectorList<BMFace *> bm_faces_select_;
 
-  blender::VectorList<BMVert *> bm_verts_deselect_;
-  blender::VectorList<BMEdge *> bm_edges_deselect_;
-  blender::VectorList<BMFace *> bm_faces_deselect_;
+  VectorList<BMVert *> bm_verts_deselect_;
+  VectorList<BMEdge *> bm_edges_deselect_;
+  VectorList<BMFace *> bm_faces_deselect_;
 
  public:
   UVSyncSelectFromMesh(BMesh &bm, char uv_sticky) : uv_sticky_(uv_sticky), bm_(bm) {}

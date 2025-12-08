@@ -437,7 +437,7 @@ int armature_bonecoll_move_to_parent(bArmature *armature,
  * pointers-to-the-duplicate-collections. This can be used to remap
  * collection pointers in other data, such as EditBones.
  */
-blender::Map<BoneCollection *, BoneCollection *> ANIM_bonecoll_array_copy_no_membership(
+Map<BoneCollection *, BoneCollection *> ANIM_bonecoll_array_copy_no_membership(
     BoneCollection ***bcoll_array_dst,
     int *bcoll_array_dst_num,
     BoneCollection **bcoll_array_src,

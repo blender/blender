@@ -157,10 +157,9 @@ bool spreadsheet_table_id_match(const SpreadsheetTableID &a, const SpreadsheetTa
              a_.geometry_component_type == b_.geometry_component_type &&
              a_.attribute_domain == b_.attribute_domain &&
              a_.object_eval_state == b_.object_eval_state && a_.layer_index == b_.layer_index &&
-             blender::Span(a_.instance_ids, a_.instance_ids_num) ==
-                 blender::Span(b_.instance_ids, b_.instance_ids_num) &&
-             blender::Span(a_.bundle_path, a_.bundle_path_num) ==
-                 blender::Span(b_.bundle_path, b_.bundle_path_num);
+             Span(a_.instance_ids, a_.instance_ids_num) ==
+                 Span(b_.instance_ids, b_.instance_ids_num) &&
+             Span(a_.bundle_path, a_.bundle_path_num) == Span(b_.bundle_path, b_.bundle_path_num);
     }
   }
   return true;

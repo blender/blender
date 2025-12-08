@@ -254,7 +254,7 @@ void WM_OT_fbx_import(wmOperatorType *ot)
 namespace blender::ed::io {
 void fbx_file_handler_add()
 {
-  auto fh = std::make_unique<blender::bke::FileHandlerType>();
+  auto fh = std::make_unique<bke::FileHandlerType>();
   STRNCPY_UTF8(fh->idname, "IO_FH_fbx");
   STRNCPY_UTF8(fh->import_operator, "WM_OT_fbx_import");
   STRNCPY_UTF8(fh->export_operator, "export_scene.fbx"); /* Use Python add-on for export. */

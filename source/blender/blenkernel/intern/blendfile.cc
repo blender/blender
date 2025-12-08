@@ -1918,7 +1918,7 @@ Library *PartialWriteContext::ensure_library(ID *ctx_id)
   BLI_assert((is_archive_lib && src_lib != src_base_lib && !ctx_id->deep_hash.is_null()) ||
              (!is_archive_lib && src_lib == src_base_lib && ctx_id->deep_hash.is_null()));
 
-  blender::StringRefNull lib_path = src_base_lib->runtime->filepath_abs;
+  StringRefNull lib_path = src_base_lib->runtime->filepath_abs;
   Library *ctx_base_lib = this->libraries_map_.lookup_default(lib_path, nullptr);
   if (!ctx_base_lib) {
     ctx_base_lib = reinterpret_cast<Library *>(id_add_copy(&src_base_lib->id, true));
@@ -1947,7 +1947,7 @@ Library *PartialWriteContext::ensure_library(ID *ctx_id)
   ctx_id->lib = ctx_lib;
   return ctx_lib;
 }
-Library *PartialWriteContext::ensure_library(blender::StringRefNull library_absolute_path)
+Library *PartialWriteContext::ensure_library(StringRefNull library_absolute_path)
 {
   Library *ctx_lib = this->libraries_map_.lookup_default(library_absolute_path, nullptr);
   if (!ctx_lib) {
@@ -1964,8 +1964,8 @@ Library *PartialWriteContext::ensure_library(blender::StringRefNull library_abso
 ID *PartialWriteContext::id_add(
     const ID *id,
     PartialWriteContext::IDAddOptions options,
-    blender::FunctionRef<PartialWriteContext::IDAddOperations(
-        LibraryIDLinkCallbackData *cb_data, PartialWriteContext::IDAddOptions options)>
+    FunctionRef<PartialWriteContext::IDAddOperations(LibraryIDLinkCallbackData *cb_data,
+                                                     PartialWriteContext::IDAddOptions options)>
         dependencies_filter_cb)
 {
   constexpr int make_local_flags = (LIB_ID_MAKELOCAL_INDIRECT | LIB_ID_MAKELOCAL_FORCE_LOCAL |
@@ -1999,12 +1999,12 @@ ID *PartialWriteContext::id_add(
   /* Local mapping, such that even in case dependencies are duplicated for this specific added ID,
    * once a dependency has been duplicated, it can be re-used for other ID usages within the
    * dependencies of the added ID. */
-  blender::Map<const ID *, ID *> local_ctx_id_map;
+  Map<const ID *, ID *> local_ctx_id_map;
   /* A list of IDs to post-process. Only contains IDs that were actually added to the context (not
    * the ones that were already there and were re-used). The #IDAddOperations item of the pair
    * stores the returned value from the given #dependencies_filter_cb (or given global #options
    * parameter otherwise). */
-  blender::Vector<std::pair<ID *, PartialWriteContext::IDAddOperations>> post_process_ids_todo;
+  Vector<std::pair<ID *, PartialWriteContext::IDAddOperations>> post_process_ids_todo;
 
   ctx_root_id = id_add_copy(id, false);
   if (!ctx_root_id) {
@@ -2019,7 +2019,7 @@ ID *PartialWriteContext::id_add(
   post_process_ids_todo.append({ctx_root_id, options.operations});
   this->process_added_id(ctx_root_id, options.operations);
 
-  blender::VectorSet<ID *> ids_to_process{ctx_root_id};
+  VectorSet<ID *> ids_to_process{ctx_root_id};
   auto dependencies_cb = [this,
                           options,
                           &local_ctx_id_map,
@@ -2148,7 +2148,7 @@ ID *PartialWriteContext::id_add(
 }
 
 ID *PartialWriteContext::id_create(const short id_type,
-                                   const blender::StringRefNull id_name,
+                                   const StringRefNull id_name,
                                    Library *library,
                                    PartialWriteContext::IDAddOptions options)
 {
@@ -2211,8 +2211,8 @@ void PartialWriteContext::clear()
 
 bool PartialWriteContext::is_valid()
 {
-  blender::Set<ID *> ids_in_context;
-  blender::Set<uint> session_uids_in_context;
+  Set<ID *> ids_in_context;
+  Set<uint> session_uids_in_context;
   bool is_valid = true;
 
   ID *id_iter;
@@ -2281,7 +2281,7 @@ bool PartialWriteContext::write(const char *write_filepath,
 
   /* In case the write path is the same as one of the libraries used by this context, make this
    * library local, and delete it (and all of its potentially remaining linked data). */
-  blender::Vector<Library *> make_local_libs;
+  Vector<Library *> make_local_libs;
   LISTBASE_FOREACH (Library *, library, &this->bmain.libraries) {
     if (STREQ(write_filepath, library->runtime->filepath_abs)) {
       make_local_libs.append(library);

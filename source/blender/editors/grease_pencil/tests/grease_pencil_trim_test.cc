@@ -43,8 +43,7 @@ static bke::CurvesGeometry create_test_curves(const Span<int> offsets,
   return curves;
 }
 
-static void expect_near_positions(const blender::Span<float3> actual,
-                                  const blender::Span<float2> expected)
+static void expect_near_positions(const Span<float3> actual, const Span<float2> expected)
 {
   EXPECT_EQ(expected.size(), actual.size());
   if (expected.size() != actual.size()) {

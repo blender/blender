@@ -112,7 +112,7 @@ struct InputSpec {
 };
 
 /* Map Blender socket names to USD Preview Surface InputSpec structs. */
-using InputSpecMap = blender::Map<StringRef, InputSpec>;
+using InputSpecMap = Map<StringRef, InputSpec>;
 
 /* Static function forward declarations. */
 static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &usd_export_context,

@@ -738,17 +738,16 @@ struct KeyInsertData {
   int array_index;
 };
 
-static SingleKeyingResult insert_key_layer(
-    Main *bmain,
-    Action &action,
-    Layer &layer,
-    const Slot &slot,
-    const std::string &rna_path,
-    PropertyRNA *prop,
-    const std::optional<blender::StringRefNull> channel_group,
-    const KeyInsertData &key_data,
-    const KeyframeSettings &key_settings,
-    const eInsertKeyFlags insert_key_flags)
+static SingleKeyingResult insert_key_layer(Main *bmain,
+                                           Action &action,
+                                           Layer &layer,
+                                           const Slot &slot,
+                                           const std::string &rna_path,
+                                           PropertyRNA *prop,
+                                           const std::optional<StringRefNull> channel_group,
+                                           const KeyInsertData &key_data,
+                                           const KeyframeSettings &key_settings,
+                                           const eInsertKeyFlags insert_key_flags)
 {
   assert_baklava_phase_1_invariants(layer);
   BLI_assert(layer.strips().size() == 1);
@@ -841,7 +840,7 @@ static CombinedKeyingResult insert_key_layered_action(
 CombinedKeyingResult insert_keyframes(Main *bmain,
                                       PointerRNA *struct_pointer,
                                       const std::optional<StringRefNull> channel_group,
-                                      const blender::Span<RNAPath> rna_paths,
+                                      const Span<RNAPath> rna_paths,
                                       const std::optional<float> scene_frame,
                                       const AnimationEvalContext &anim_eval_context,
                                       const eBezTriple_KeyframeType key_type,
@@ -975,7 +974,7 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
 
     CombinedKeyingResult result;
 
-    const std::optional<blender::StringRefNull> this_rna_path_channel_group =
+    const std::optional<StringRefNull> this_rna_path_channel_group =
         channel_group.has_value() ? *channel_group :
                                     default_channel_group_for_path(&ptr, *rna_path_id_to_prop);
 

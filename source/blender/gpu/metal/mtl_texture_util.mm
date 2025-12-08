@@ -256,8 +256,7 @@ bool mtl_format_supports_blending(MTLPixelFormat format)
 
 id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_update_impl(
     TextureUpdateRoutineSpecialisation specialization_params,
-    blender::Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
-        &specialization_cache,
+    Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>> &specialization_cache,
     GPUTextureType texture_type)
 {
   /* Check whether the Kernel exists. */
@@ -544,8 +543,7 @@ void gpu::MTLTexture::update_sub_depth_2d(
 
 id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_read_impl(
     TextureReadRoutineSpecialisation specialization_params,
-    blender::Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>>
-        &specialization_cache,
+    Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>> &specialization_cache,
     GPUTextureType texture_type)
 {
   /* Check whether the Kernel exists. */

@@ -64,7 +64,7 @@ struct AssetItemTree {
 asset_system::AssetCatalogTree build_filtered_catalog_tree(
     const asset_system::AssetLibrary &library,
     const AssetLibraryReference &library_ref,
-    blender::FunctionRef<bool(const asset_system::AssetRepresentation &)> is_asset_visible_fn);
+    FunctionRef<bool(const asset_system::AssetRepresentation &)> is_asset_visible_fn);
 AssetItemTree build_filtered_all_catalog_tree(
     const AssetLibraryReference &library_ref,
     const bContext &C,

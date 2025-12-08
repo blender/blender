@@ -1099,8 +1099,8 @@ static wmOperatorStatus uv_remove_doubles_to_selected(bContext *C, wmOperator *o
 
   blender::KDTree_2d *tree = blender::kdtree_2d_new(uv_maxlen);
 
-  blender::Vector<int> duplicates;
-  blender::Vector<float *> uv_map_arr;
+  Vector<int> duplicates;
+  Vector<float *> uv_map_arr;
 
   int uv_map_count = 0; /* Also used for *duplicates count. */
 
@@ -1201,7 +1201,7 @@ static wmOperatorStatus uv_remove_doubles_to_unselected(bContext *C, wmOperator 
 
   blender::KDTree_2d *tree = blender::kdtree_2d_new(uv_maxlen);
 
-  blender::Vector<float *> uv_map_arr;
+  Vector<float *> uv_map_arr;
 
   int uv_map_count = 0;
 
@@ -1262,7 +1262,7 @@ static wmOperatorStatus uv_remove_doubles_to_selected_shared_vertex(bContext *C,
     BMIter viter, liter;
 
     /* The `changed` variable keeps track if any loops from the current object are merged. */
-    blender::Vector<float *> uvs;
+    Vector<float *> uvs;
     uvs.reserve(32);
     bool changed = false;
 

@@ -573,7 +573,7 @@ void import_animations(Main &bmain,
             anim_transform_curve_index[index] = -1;
           }
         }
-        blender::Vector<FCurve *> transform_curves;
+        Vector<FCurve *> transform_curves;
         if (!curve_desc.is_empty()) {
           transform_curves = channelbag.fcurve_create_many(nullptr, curve_desc.as_span());
         }

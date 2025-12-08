@@ -446,7 +446,7 @@ void import_blendshapes(Main *bmain,
 
   /* Keep track of the shape-keys we're adding,
    * for validation when creating curves later. */
-  blender::Set<pxr::TfToken> shapekey_names;
+  Set<pxr::TfToken> shapekey_names;
   Span<pxr::TfToken> blendshapes = Span(usd_blendshapes.cdata(), usd_blendshapes.size());
 
   for (int i = 0; i < targets.size(); ++i) {
@@ -615,8 +615,8 @@ void import_blendshapes(Main *bmain,
   blender::animrig::Channelbag &channelbag = blender::animrig::action_channelbag_ensure(*act,
                                                                                         key->id);
 
-  blender::Set<pxr::TfToken> processed_shapes;
-  blender::Vector<FCurve *> curves;
+  Set<pxr::TfToken> processed_shapes;
+  Vector<FCurve *> curves;
   curves.reserve(usd_blendshapes.size());
   processed_shapes.reserve(usd_blendshapes.size());
 
@@ -683,7 +683,7 @@ static void set_rest_pose(Main *bmain,
                           bArmature *arm,
                           const pxr::VtArray<pxr::GfMatrix4d> &bind_xforms,
                           const pxr::VtTokenArray &joint_order,
-                          const blender::Map<pxr::TfToken, std::string> &joint_to_bone_map,
+                          const Map<pxr::TfToken, std::string> &joint_to_bone_map,
                           const pxr::UsdSkelTopology &skel_topology,
                           const pxr::UsdSkelSkeletonQuery &skel_query)
 {
@@ -758,7 +758,7 @@ void import_skeleton(Main *bmain,
   }
 
   /* Each joint path should be valid and unique. */
-  blender::Set<pxr::TfToken> unique_joint_paths;
+  Set<pxr::TfToken> unique_joint_paths;
   unique_joint_paths.reserve(joint_order.size());
   const bool all_valid_paths = std::all_of(
       joint_order.cbegin(), joint_order.cend(), [&unique_joint_paths](const pxr::TfToken &val) {
@@ -780,12 +780,12 @@ void import_skeleton(Main *bmain,
   ED_armature_to_edit(arm);
 
   /* The bones we create, stored in the skeleton's joint order. */
-  blender::Vector<EditBone *> edit_bones;
+  Vector<EditBone *> edit_bones;
 
   /* Keep track of the bones we create for each joint.
    * We'll need this when creating animation curves
    * later. */
-  blender::Map<pxr::TfToken, std::string> joint_to_bone_map;
+  Map<pxr::TfToken, std::string> joint_to_bone_map;
 
   /* Create the bones. */
   for (const pxr::TfToken &joint : joint_order) {
@@ -895,7 +895,7 @@ void import_skeleton(Main *bmain,
 
   /* This will record the child bone indices per parent bone,
    * to simplify accessing children when computing lengths. */
-  blender::Vector<blender::Vector<int>> child_bones(num_joints);
+  Vector<Vector<int>> child_bones(num_joints);
 
   for (size_t i = 0; i < num_joints; ++i) {
     const int parent_idx = skel_topology.GetParent(i);
@@ -1129,7 +1129,7 @@ void import_mesh_skel_bindings(Object *mesh_obj, const pxr::UsdPrim &prim, Repor
   }
 
   /* Determine which joint indices are used for skinning this prim. */
-  blender::Vector<int> used_indices;
+  Vector<int> used_indices;
   for (int index : joint_indices.AsConst()) {
     if (std::find(used_indices.begin(), used_indices.end(), index) == used_indices.end()) {
       /* We haven't accounted for this index yet. */
@@ -1162,7 +1162,7 @@ void import_mesh_skel_bindings(Object *mesh_obj, const pxr::UsdPrim &prim, Repor
   }
 
   /* Create a deform group per joint. */
-  blender::Vector<bDeformGroup *> joint_def_grps(joints.size(), nullptr);
+  Vector<bDeformGroup *> joint_def_grps(joints.size(), nullptr);
 
   for (int idx : used_indices) {
     std::string joint_name = pxr::SdfPath(joints.AsConst()[idx]).GetName();

@@ -71,8 +71,9 @@ void collection_hide_menu_draw(const bContext *C, ui::Layout &layout);
  *   the callers \a filter_fn needs to check of they are editable
  *   (assuming they need to be modified).
  */
-blender::Vector<Object *> objects_in_mode_or_selected(
-    bContext *C, bool (*filter_fn)(const Object *ob, void *user_data), void *filter_user_data);
+Vector<Object *> objects_in_mode_or_selected(bContext *C,
+                                             bool (*filter_fn)(const Object *ob, void *user_data),
+                                             void *filter_user_data);
 
 /**
  * Set the active material by index.

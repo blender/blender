@@ -16,7 +16,7 @@ static void file_handler_add_test(const int test_number,
                                   const char *idname,
                                   const char *label,
                                   const char *file_extensions_str,
-                                  blender::Vector<std::string> expected_file_extensions)
+                                  Vector<std::string> expected_file_extensions)
 {
   EXPECT_LE(test_number, MAX_FILE_HANDLERS_TEST_SIZE);
   EXPECT_GE(test_number, 1);

@@ -736,7 +736,7 @@ template<typename CommandEncoderT>
 static void bind_sampler_argument_buffer(
     CommandEncoderT enc,
     MTLSamplerArray &sampler_array,
-    blender::Map<MTLSamplerArray, gpu::MTLBuffer *> &sampler_buffers_cache,
+    Map<MTLSamplerArray, gpu::MTLBuffer *> &sampler_buffers_cache,
     MTLShaderInterface &shader_interface,
     id<MTLFunction> mtl_function,
     MTLBindingCache<CommandEncoderT> &bindings)

@@ -263,10 +263,10 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   if (object_mesh != nullptr) {
     const Span<float3> mesh_positions = mesh->vert_positions();
     const Span<blender::int2> mesh_edges = mesh->edges();
-    const blender::OffsetIndices mesh_faces = mesh->faces();
+    const OffsetIndices mesh_faces = mesh->faces();
     const Span<float3> me_positions = object_mesh->vert_positions();
     const Span<blender::int2> me_edges = object_mesh->edges();
-    const blender::OffsetIndices me_faces = object_mesh->faces();
+    const OffsetIndices me_faces = object_mesh->faces();
 
     /* TODO(sybren+bastien): possibly check relevant custom data layers (UV/color depending on
      * flags) and duplicate those too.

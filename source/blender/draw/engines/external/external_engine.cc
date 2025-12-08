@@ -199,7 +199,7 @@ class Instance : public DrawEngine {
    * This is only needed for GPencil integration. */
   bool do_prepass = false;
 
-  blender::StringRefNull name_get() final
+  StringRefNull name_get() final
   {
     return "External";
   }

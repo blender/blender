@@ -20,9 +20,9 @@ TEST(wm_drag, wmDragPath)
      * only needs its extension, so there is no need to describe a full path here that can have a
      * different format on Windows or Linux. However callers must ensure that they are valid paths.
      */
-    blender::Vector<const char *> paths{"text_file.txt"};
+    Vector<const char *> paths{"text_file.txt"};
     wmDragPath *path_data = WM_drag_create_path_data(paths);
-    blender::Vector<std::string> expected_file_paths{"text_file.txt"};
+    Vector<std::string> expected_file_paths{"text_file.txt"};
 
     EXPECT_EQ(path_data->paths.size(), 1);
     EXPECT_EQ(path_data->tooltip, "text_file.txt");
@@ -43,10 +43,9 @@ TEST(wm_drag, wmDragPath)
     MEM_delete(path_data);
   }
   {
-    blender::Vector<const char *> paths = {"blender.blend", "text_file.txt", "image.png"};
+    Vector<const char *> paths = {"blender.blend", "text_file.txt", "image.png"};
     wmDragPath *path_data = WM_drag_create_path_data(paths);
-    blender::Vector<std::string> expected_file_paths = {
-        "blender.blend", "text_file.txt", "image.png"};
+    Vector<std::string> expected_file_paths = {"blender.blend", "text_file.txt", "image.png"};
 
     EXPECT_EQ(path_data->paths.size(), 3);
     EXPECT_EQ(path_data->tooltip, "Dragging 3 files");

@@ -425,7 +425,7 @@ static void socket_data_foreach_id(LibraryForeachIDData *data, bNodeTreeInterfac
 
 namespace item_types {
 
-using UidGeneratorFn = blender::FunctionRef<int()>;
+using UidGeneratorFn = FunctionRef<int()>;
 
 static void item_copy(bNodeTreeInterfaceItem &dst,
                       const bNodeTreeInterfaceItem &src,
@@ -621,7 +621,7 @@ static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item
 
       /* Read the direct-data for each interface item if possible. The pointer becomes null if the
        * struct type is not known. */
-      for (const int i : blender::IndexRange(panel.items_num)) {
+      for (const int i : IndexRange(panel.items_num)) {
         BLO_read_struct(reader, bNodeTreeInterfaceItem, &panel.items_array[i]);
       }
       /* Forward compatibility: Discard unknown tree interface item types that may be introduced in
@@ -632,7 +632,7 @@ static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item
                             [&](const bNodeTreeInterfaceItem *item) { return item == nullptr; }) -
                         panel.items_array;
       /* Now read the actual data if the known interface items. */
-      for (const int i : blender::IndexRange(panel.items_num)) {
+      for (const int i : IndexRange(panel.items_num)) {
         item_read_data(reader, *panel.items_array[i]);
       }
       break;
@@ -1184,8 +1184,8 @@ bNodeTreeInterfaceSocket *add_interface_socket_from_node(bNodeTree &ntree,
 }
 
 static bNodeTreeInterfacePanel *make_panel(const int uid,
-                                           const blender::StringRef name,
-                                           const blender::StringRef description,
+                                           const StringRef name,
+                                           const StringRef description,
                                            const NodeTreeInterfacePanelFlag flag)
 {
   BLI_assert(!name.is_empty());

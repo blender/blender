@@ -181,15 +181,15 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
   using namespace blender;
   const int verts_num = wn_data->verts_num;
 
-  const blender::Span<blender::float3> positions = wn_data->vert_positions;
-  const blender::OffsetIndices faces = wn_data->faces;
-  const blender::Span<int> corner_verts = wn_data->corner_verts;
-  const blender::Span<int> corner_edges = wn_data->corner_edges;
+  const Span<blender::float3> positions = wn_data->vert_positions;
+  const OffsetIndices faces = wn_data->faces;
+  const Span<int> corner_verts = wn_data->corner_verts;
+  const Span<int> corner_edges = wn_data->corner_edges;
 
   MutableSpan<short2> clnors = wn_data->clnors;
-  const blender::Span<int> loop_to_face = wn_data->loop_to_face;
+  const Span<int> loop_to_face = wn_data->loop_to_face;
 
-  const blender::Span<blender::float3> face_normals = wn_data->face_normals;
+  const Span<blender::float3> face_normals = wn_data->face_normals;
   const VArray<int> face_strength = wn_data->face_strength;
 
   const MDeformVert *dvert = wn_data->dvert;
@@ -462,10 +462,10 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   result = (Mesh *)BKE_id_copy_ex(nullptr, &mesh->id, nullptr, LIB_ID_COPY_LOCALIZE);
 
   const int verts_num = result->verts_num;
-  const blender::Span<blender::float3> positions = mesh->vert_positions();
+  const Span<blender::float3> positions = mesh->vert_positions();
   const OffsetIndices faces = result->faces();
-  const blender::Span<int> corner_verts = mesh->corner_verts();
-  const blender::Span<int> corner_edges = mesh->corner_edges();
+  const Span<int> corner_verts = mesh->corner_verts();
+  const Span<int> corner_edges = mesh->corner_edges();
 
   /* Right now:
    * If weight = 50 then all faces are given equal weight.

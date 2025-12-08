@@ -777,7 +777,7 @@ static bool fcurves_path_rename_fix(ID *owner_id,
                                     const char *newName,
                                     const char *oldKey,
                                     const char *newKey,
-                                    blender::Span<FCurve *> curves,
+                                    Span<FCurve *> curves,
                                     bool verify_paths)
 {
   bool is_changed = false;
@@ -1181,7 +1181,7 @@ bool BKE_animdata_drivers_remove_for_rna_struct(ID &owner_id, StructRNA &type, v
 using IDFCurveCallback = FunctionRef<bool(ID *, FCurve *)>;
 
 /* Helper for adt_apply_all_fcurves_cb() - Apply wrapped operator to list of F-Curves */
-static bool fcurves_apply_cb(ID *id, blender::Span<FCurve *> fcurves, const IDFCurveCallback func)
+static bool fcurves_apply_cb(ID *id, Span<FCurve *> fcurves, const IDFCurveCallback func)
 {
   for (FCurve *fcu : fcurves) {
     if (!func(id, fcu)) {

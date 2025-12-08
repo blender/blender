@@ -1301,7 +1301,7 @@ static void subdiv_mesh_loop(const ForeachContext *foreach_context,
  * \{ */
 
 static void subdiv_mesh_face(const ForeachContext *foreach_context,
-                             blender::OffsetIndices<int> subdiv_faces_by_base_face)
+                             OffsetIndices<int> subdiv_faces_by_base_face)
 {
   SubdivMeshContext *ctx = static_cast<SubdivMeshContext *>(foreach_context->user_data);
   threading::memory_bandwidth_bound_task(int64_t(ctx->subdiv_mesh->faces_num) * 4, [&]() {

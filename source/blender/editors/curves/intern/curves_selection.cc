@@ -211,10 +211,9 @@ static bke::GSpanAttributeWriter &selection_attribute_writer_by_name(
   return selections[0];
 }
 
-void foreach_selection_attribute_writer(
-    bke::CurvesGeometry &curves,
-    bke::AttrDomain selection_domain,
-    blender::FunctionRef<void(bke::GSpanAttributeWriter &selection)> fn)
+void foreach_selection_attribute_writer(bke::CurvesGeometry &curves,
+                                        bke::AttrDomain selection_domain,
+                                        FunctionRef<void(bke::GSpanAttributeWriter &selection)> fn)
 {
   Vector<bke::GSpanAttributeWriter> selection_writers = init_selection_writers(curves,
                                                                                selection_domain);

@@ -120,7 +120,7 @@ void autokeyframe_object(bContext *C, const Scene *scene, Object *ob, Span<RNAPa
   const eInsertKeyFlags flag = get_autokey_flags(scene);
 
   /* Add data-source override for the object. */
-  blender::Vector<PointerRNA> sources;
+  Vector<PointerRNA> sources;
   relative_keyingset_add_source(sources, id);
 
   if (is_keying_flag(scene, AUTOKEY_FLAG_ONLYKEYINGSET) && (active_ks)) {
@@ -165,7 +165,7 @@ bool autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks)
    * 2) Insert key-frames.
    * 3) Free the extra info.
    */
-  blender::Vector<PointerRNA> sources;
+  Vector<PointerRNA> sources;
   relative_keyingset_add_source(sources, &ob->id);
   apply_keyingset(C, &sources, ks, ModifyKeyMode::INSERT, BKE_scene_frame_get(scene));
 
@@ -183,7 +183,7 @@ bool autokeyframe_pchan(bContext *C, Scene *scene, Object *ob, bPoseChannel *pch
    * 2) Insert key-frames.
    * 3) Free the extra info.
    */
-  blender::Vector<PointerRNA> sources;
+  Vector<PointerRNA> sources;
   relative_keyingset_add_source(sources, &ob->id, &RNA_PoseBone, pchan);
   apply_keyingset(C, &sources, ks, ModifyKeyMode::INSERT, BKE_scene_frame_get(scene));
 

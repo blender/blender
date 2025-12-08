@@ -919,7 +919,7 @@ void paintvert_select_linked(bContext *C, Object *ob)
   blender::bke::SpanAttributeWriter<bool> select_vert =
       attributes.lookup_or_add_for_write_span<bool>(".select_vert", bke::AttrDomain::Point);
 
-  blender::Vector<int> indices;
+  Vector<int> indices;
   for (const int i : select_vert.span.index_range()) {
     if (!select_vert.span[i]) {
       continue;

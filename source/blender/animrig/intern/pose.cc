@@ -21,8 +21,8 @@ namespace blender::animrig {
 
 namespace {
 
-using ActionApplier = blender::FunctionRef<void(
-    PointerRNA *, bAction *, slot_handle_t, const AnimationEvalContext *)>;
+using ActionApplier =
+    FunctionRef<void(PointerRNA *, bAction *, slot_handle_t, const AnimationEvalContext *)>;
 
 void pose_apply_restore_fcurves(const Span<FCurve *> fcurves)
 {
@@ -120,7 +120,7 @@ void pose_apply_action_blend_all_bones(Object *ob,
   animsys_blend_in_action(&pose_owner_ptr, action, slot_handle, anim_eval_context, blend_factor);
 }
 
-bool any_bone_selected(const blender::Span<const Object *> objects)
+bool any_bone_selected(const Span<const Object *> objects)
 {
   for (const Object *obj : objects) {
     if (!obj->pose) {
@@ -135,7 +135,7 @@ bool any_bone_selected(const blender::Span<const Object *> objects)
   return false;
 }
 
-void pose_apply_action(const blender::Span<Object *> objects,
+void pose_apply_action(const Span<Object *> objects,
                        Action &pose_action,
                        const AnimationEvalContext *anim_eval_context,
                        const float blend_factor)

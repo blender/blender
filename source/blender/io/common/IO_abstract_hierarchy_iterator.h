@@ -228,19 +228,19 @@ bool operator==(const ObjectIdentifier &obj_ident_a, const ObjectIdentifier &obj
 class AbstractHierarchyIterator {
  public:
   /* Mapping from export path to writer. */
-  using WriterMap = blender::Map<std::string, AbstractHierarchyWriter *>;
+  using WriterMap = Map<std::string, AbstractHierarchyWriter *>;
   /* All the children of some object, as per the export hierarchy. */
-  using ExportChildren = blender::Set<HierarchyContext *>;
+  using ExportChildren = Set<HierarchyContext *>;
   /* Mapping from an object and its duplicator to the object's export-children. */
-  using ExportGraph = blender::Map<ObjectIdentifier, ExportChildren>;
+  using ExportGraph = Map<ObjectIdentifier, ExportChildren>;
   /* Mapping from ID to its export path. This is used for instancing; given an
    * instanced datablock, the export path of the original can be looked up. */
-  using ExportPathMap = blender::Map<ID *, std::string>;
+  using ExportPathMap = Map<ID *, std::string>;
   /* Mapping from ID name to a set of names logically residing "under" it. Used for unique
    * name generation. */
-  using ExportUsedNameMap = blender::Map<std::string, blender::Set<std::string>>;
+  using ExportUsedNameMap = Map<std::string, Set<std::string>>;
   /* IDs of all duplisource objects, used to identify instance prototypes. */
-  using DupliSources = blender::Set<ID *>;
+  using DupliSources = Set<ID *>;
 
  protected:
   ExportGraph export_graph_;

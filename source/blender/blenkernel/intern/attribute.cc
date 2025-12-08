@@ -874,7 +874,7 @@ std::optional<blender::StringRef> BKE_attribute_from_index(AttributeOwner &owner
     return storage.at_index(lookup_index).name();
   }
   int index = 0;
-  std::optional<blender::StringRef> result;
+  std::optional<StringRef> result;
   storage.foreach_with_stop([&](const bke::Attribute &attr) {
     if (!(ATTR_DOMAIN_AS_MASK(attr.domain()) & domain_mask)) {
       return true;

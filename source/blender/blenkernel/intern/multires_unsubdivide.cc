@@ -1005,8 +1005,8 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
   const int base_l_offset = CustomData_get_offset_named(
       &bm_base_mesh->ldata, CD_PROP_INT32, lname);
 
-  const blender::OffsetIndices faces = base_mesh->faces();
-  const blender::Span<int> corner_verts = base_mesh->corner_verts();
+  const OffsetIndices faces = base_mesh->faces();
+  const Span<int> corner_verts = base_mesh->corner_verts();
 
   /* Main loop for extracting the grids. Iterates over the base mesh vertices. */
   BM_ITER_MESH (v, &iter, bm_base_mesh, BM_VERTS_OF_MESH) {

@@ -1218,7 +1218,7 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
   /* When keyframes are moved on top of other keyframes, the drawings in the GreasePencil data
    * might need to be updated/removed. This needs to happen after all the layers have been
    * processed. So keep track of the GreasePencils that need to be updated later. */
-  blender::Set<GreasePencil *> grease_pencils_to_update;
+  Set<GreasePencil *> grease_pencils_to_update;
 
   if (ELEM(ac.datatype, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY, ANIMCONT_TIMELINE)) {
     ListBase anim_data = {nullptr, nullptr};

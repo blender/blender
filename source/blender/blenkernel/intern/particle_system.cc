@@ -3968,7 +3968,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
       break;
     }
     case PART_PHYS_FLUID: {
-      blender::Map<blender::OrderedEdge, int> eh;
+      Map<OrderedEdge, int> eh;
       SPHData sphdata;
       psys_sph_init(sim, &sphdata, eh);
 

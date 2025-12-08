@@ -62,17 +62,14 @@ struct NodePlacementContext {
    * Generate a key for caching a Blender node created for a given USD shader by returning the
    * shader prim path with an optional tag suffix. The tag can be specified in order to generate a
    * unique key when more than one Blender node is created for the USD shader. */
-  std::string get_key(const pxr::UsdShadeShader &usd_shader, const blender::StringRef tag) const;
+  std::string get_key(const pxr::UsdShadeShader &usd_shader, const StringRef tag) const;
 
   /* Returns the Blender node previously cached for the given USD shader. Returns null if no cached
    * shader was found. */
-  bNode *get_cached_node(const pxr::UsdShadeShader &usd_shader,
-                         const blender::StringRef tag = {}) const;
+  bNode *get_cached_node(const pxr::UsdShadeShader &usd_shader, const StringRef tag = {}) const;
 
   /* Cache the Blender node translated from the given USD shader. */
-  void cache_node(const pxr::UsdShadeShader &usd_shader,
-                  bNode *node,
-                  const blender::StringRef tag = {});
+  void cache_node(const pxr::UsdShadeShader &usd_shader, bNode *node, const StringRef tag = {});
 };
 
 /* Helper struct which carries an assortment of optional
@@ -215,7 +212,7 @@ class USDMaterialReader {
  * might be modified to be a valid USD identifier, to match material
  * names in the imported USD.
  */
-void build_material_map(const Main *bmain, blender::Map<std::string, Material *> &r_mat_map);
+void build_material_map(const Main *bmain, Map<std::string, Material *> &r_mat_map);
 
 /**
  * Returns an existing Blender material that corresponds to the USD material with the given path.
@@ -232,7 +229,7 @@ void build_material_map(const Main *bmain, blender::Map<std::string, Material *>
  */
 Material *find_existing_material(const pxr::SdfPath &usd_mat_path,
                                  const USDImportParams &params,
-                                 const blender::Map<std::string, Material *> &mat_map,
-                                 const blender::Map<pxr::SdfPath, Material *> &usd_path_to_mat);
+                                 const Map<std::string, Material *> &mat_map,
+                                 const Map<pxr::SdfPath, Material *> &usd_path_to_mat);
 
 }  // namespace blender::io::usd

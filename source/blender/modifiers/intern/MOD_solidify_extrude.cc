@@ -176,7 +176,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   int *edge_order = nullptr;
 
   float (*vert_nors)[3] = nullptr;
-  blender::Span<blender::float3> face_normals;
+  Span<blender::float3> face_normals;
 
   const bool need_face_normals = (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) ||
                                  (smd->flag & MOD_SOLIDIFY_EVEN) ||
@@ -205,15 +205,15 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   /* array size is doubled in case of using a shell */
   const uint stride = do_shell ? 2 : 1;
 
-  const blender::Span<blender::float3> vert_normals = mesh->vert_normals_true();
+  const Span<blender::float3> vert_normals = mesh->vert_normals_true();
 
   MOD_get_vgroup(ctx->object, mesh, smd->defgrp_name, &dvert, &defgrp_index);
 
-  const blender::Span<blender::float3> orig_vert_positions = mesh->vert_positions();
-  const blender::Span<blender::int2> orig_edges = mesh->edges();
-  const blender::OffsetIndices orig_faces = mesh->faces();
-  const blender::Span<int> orig_corner_verts = mesh->corner_verts();
-  const blender::Span<int> orig_corner_edges = mesh->corner_edges();
+  const Span<blender::float3> orig_vert_positions = mesh->vert_positions();
+  const Span<blender::int2> orig_edges = mesh->edges();
+  const OffsetIndices orig_faces = mesh->faces();
+  const Span<int> orig_corner_verts = mesh->corner_verts();
+  const Span<int> orig_corner_edges = mesh->corner_edges();
   const blender::bke::AttributeAccessor orig_attributes = mesh->attributes();
 
   if (need_face_normals) {
@@ -248,7 +248,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     }
 
     for (const int64_t i : orig_faces.index_range()) {
-      const blender::IndexRange face = orig_faces[i];
+      const IndexRange face = orig_faces[i];
       int j;
 
       int corner_i_prev = face.last();
@@ -331,11 +331,11 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
                                              int((faces_num * stride) + newPolys),
                                              int((loops_num * stride) + newLoops));
 
-  blender::MutableSpan<blender::float3> vert_positions = result->vert_positions_for_write();
-  blender::MutableSpan<blender::int2> edges = result->edges_for_write();
-  blender::MutableSpan<int> face_offsets = result->face_offsets_for_write();
-  blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
-  blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
+  MutableSpan<blender::float3> vert_positions = result->vert_positions_for_write();
+  MutableSpan<blender::int2> edges = result->edges_for_write();
+  MutableSpan<int> face_offsets = result->face_offsets_for_write();
+  MutableSpan<int> corner_verts = result->corner_verts_for_write();
+  MutableSpan<int> corner_edges = result->corner_edges_for_write();
   bke::MutableAttributeAccessor result_attributes = result->attributes_for_write();
 
   bke::LegacyMeshInterpolator vert_interp(*mesh, *result, bke::AttrDomain::Point);
@@ -431,8 +431,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   /* flip normals */
 
   if (do_shell) {
-    for (const int64_t i : blender::IndexRange(mesh->faces_num)) {
-      const blender::IndexRange face = orig_faces[i];
+    for (const int64_t i : IndexRange(mesh->faces_num)) {
+      const IndexRange face = orig_faces[i];
       const int loop_end = face.size() - 1;
       int e;
       int j;
@@ -519,7 +519,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
         edge_user_pairs[eidx][1] = INVALID_UNUSED;
       }
       for (const int64_t i : orig_faces.index_range()) {
-        const blender::IndexRange face = orig_faces[i];
+        const IndexRange face = orig_faces[i];
         int prev_corner_i = face.last();
         for (const int corner_i : face) {
           const int vert_i = orig_corner_verts[corner_i];
@@ -717,8 +717,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       }
     }
 
-    for (const int64_t i : blender::IndexRange(faces_num)) {
-      const blender::IndexRange face = orig_faces[i];
+    for (const int64_t i : IndexRange(faces_num)) {
+      const IndexRange face = orig_faces[i];
       /* #bke::mesh::face_angles_calc logic is inlined here */
       float nor_prev[3];
       float nor_next[3];
@@ -815,7 +815,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
         edge_user_pairs[eidx][1] = INVALID_UNUSED;
       }
       for (const int i : orig_faces.index_range()) {
-        const blender::IndexRange face = orig_faces[i];
+        const IndexRange face = orig_faces[i];
         int prev_corner_i = face.start() + face.size() - 1;
         for (int j = 0; j < face.size(); j++) {
           const int corner_i = face.start() + j;
@@ -1040,8 +1040,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
     /* faces */
     int new_face_index = int(faces_num * stride);
-    blender::MutableSpan<int> new_corner_verts = corner_verts.drop_front(loops_num * stride);
-    blender::MutableSpan<int> new_corner_edges = corner_edges.drop_front(loops_num * stride);
+    MutableSpan<int> new_corner_verts = corner_verts.drop_front(loops_num * stride);
+    MutableSpan<int> new_corner_edges = corner_edges.drop_front(loops_num * stride);
     j = 0;
     for (i = 0; i < newPolys; i++) {
       uint eidx = new_edge_arr[i];

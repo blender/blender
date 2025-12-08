@@ -213,8 +213,7 @@ TEST(blf_wrapping_minimal, wrap_overflow_ascii)
   int id = open_font("Roboto.ttf");
   BLF_size(id, 10.0f);
   const float width = BLF_width(id, sample, sizeof(sample));
-  blender::Vector<blender::StringRef> wrapped = BLF_string_wrap(
-      id, sample, int(float(width) * 0.05f));
+  Vector<StringRef> wrapped = BLF_string_wrap(id, sample, int(float(width) * 0.05f));
   EXPECT_TRUE(wrapped.size() == 1);
   close_font(id);
 }
@@ -226,8 +225,7 @@ TEST(blf_wrapping_minimal, wrap_space)
   int id = open_font("Ahem.ttf");
   BLF_size(id, 10.0f);
   const float width = BLF_width(id, sample, sizeof(sample));
-  blender::Vector<blender::StringRef> wrapped = BLF_string_wrap(
-      id, sample, int(float(width) * 0.7f));
+  Vector<StringRef> wrapped = BLF_string_wrap(id, sample, int(float(width) * 0.7f));
   EXPECT_TRUE(wrapped.size() == 2 && wrapped[0].back() == ' ' && wrapped[1].substr(0, 1) != " ");
   close_font(id);
 }
@@ -239,8 +237,7 @@ TEST(blf_wrapping_minimal, wrap_linefeed)
   int id = open_font("Ahem.ttf");
   BLF_size(id, 10.0f);
   const float width = BLF_width(id, sample, sizeof(sample));
-  blender::Vector<blender::StringRef> wrapped = BLF_string_wrap(
-      id, sample, int(float(width) * 0.7f));
+  Vector<StringRef> wrapped = BLF_string_wrap(id, sample, int(float(width) * 0.7f));
   EXPECT_TRUE(wrapped.size() == 4 && wrapped[2].is_empty());
   close_font(id);
 }
@@ -252,7 +249,7 @@ TEST(blf_wrapping_minimal, wrap_hardlimit)
   int id = open_font("Ahem.ttf");
   BLF_size(id, 10.0f);
   const float width = BLF_width(id, sample, sizeof(sample));
-  blender::Vector<blender::StringRef> wrapped = BLF_string_wrap(
+  Vector<StringRef> wrapped = BLF_string_wrap(
       id, sample, int(float(width) * 0.7f), BLFWrapMode::HardLimit);
   EXPECT_TRUE(wrapped.size() == 2);
   close_font(id);
@@ -268,7 +265,7 @@ TEST(blf_wrapping_path, wrap_path_overflow_ascii)
   int id = open_font("Roboto.ttf");
   BLF_size(id, 10.0f);
   const float width = BLF_width(id, sample, sizeof(sample));
-  blender::Vector<blender::StringRef> wrapped = BLF_string_wrap(
+  Vector<StringRef> wrapped = BLF_string_wrap(
       id, sample, int(float(width) * 0.05f), BLFWrapMode::Path);
   EXPECT_TRUE(wrapped.size() == 1);
   close_font(id);
@@ -281,7 +278,7 @@ TEST(blf_wrapping_path, wrap_path_space)
   int id = open_font("Ahem.ttf");
   BLF_size(id, 10.0f);
   const float width = BLF_width(id, sample, sizeof(sample));
-  blender::Vector<blender::StringRef> wrapped = BLF_string_wrap(
+  Vector<StringRef> wrapped = BLF_string_wrap(
       id, sample, int(float(width) * 0.7f), BLFWrapMode::Path);
   EXPECT_TRUE(wrapped.size() == 2);
   close_font(id);
@@ -295,7 +292,7 @@ TEST(blf_wrapping_path, wrap_path_separators_underscore)
   BLF_size(id, 10.0f);
   const char sample[] = "x_xx_xxxxxxxxxxxxx_xxxxxxxxxxxxxxxxxxx_";
   float width = BLF_width(id, sample, sizeof(sample));
-  blender::Vector<blender::StringRef> wrapped = BLF_string_wrap(
+  Vector<StringRef> wrapped = BLF_string_wrap(
       id, sample, int(float(width) * 0.7f), BLFWrapMode::Path);
   EXPECT_TRUE(wrapped.size() == 2);
   close_font(id);
@@ -309,7 +306,7 @@ TEST(blf_wrapping_path, wrap_path_separators_slash)
   BLF_size(id, 10.0f);
   const char sample[] = "xxxxxxxxxx" SEP_STR "xxxxxxxxxxxxxxxxxxxxxx";
   float width = BLF_width(id, sample, sizeof(sample));
-  blender::Vector<blender::StringRef> wrapped = BLF_string_wrap(
+  Vector<StringRef> wrapped = BLF_string_wrap(
       id, sample, int(float(width) * 0.7f), BLFWrapMode::Path);
   EXPECT_TRUE(wrapped.size() == 2);
   close_font(id);
@@ -322,7 +319,7 @@ TEST(blf_wrapping_path, wrap_path_hardlimit)
   int id = open_font("Ahem.ttf");
   BLF_size(id, 10.0f);
   const float width = BLF_width(id, sample, sizeof(sample));
-  blender::Vector<blender::StringRef> wrapped = BLF_string_wrap(
+  Vector<StringRef> wrapped = BLF_string_wrap(
       id,
       sample,
       int(float(width) * 0.7f),
@@ -338,7 +335,7 @@ TEST(blf_wrapping_typographical, wrap_typographical_thinspace)
   int id = open_font("Roboto.ttf");
   BLF_size(id, 10.0f);
   const float width = BLF_width(id, sample, sizeof(sample));
-  blender::Vector<blender::StringRef> wrapped = BLF_string_wrap(
+  Vector<StringRef> wrapped = BLF_string_wrap(
       id, sample, int(float(width) * 0.7f), BLFWrapMode::Typographical);
   EXPECT_TRUE(wrapped.size() == 2);
   close_font(id);
@@ -351,7 +348,7 @@ TEST(blf_wrapping_typographical, wrap_typographical_backslash)
   int id = open_font("Roboto.ttf");
   BLF_size(id, 10.0f);
   const float width = BLF_width(id, sample, sizeof(sample));
-  blender::Vector<blender::StringRef> wrapped = BLF_string_wrap(
+  Vector<StringRef> wrapped = BLF_string_wrap(
       id, sample, int(float(width) * 0.7f), BLFWrapMode::Typographical);
   EXPECT_TRUE(wrapped.size() == 2);
   close_font(id);
@@ -364,7 +361,7 @@ TEST(blf_wrapping_typographical, wrap_typographical_underscore)
   int id = open_font("Roboto.ttf");
   BLF_size(id, 10.0f);
   const float width = BLF_width(id, sample, sizeof(sample));
-  blender::Vector<blender::StringRef> wrapped = BLF_string_wrap(
+  Vector<StringRef> wrapped = BLF_string_wrap(
       id, sample, int(float(width) * 0.7f), BLFWrapMode::Typographical);
   EXPECT_TRUE(wrapped.size() == 2);
   close_font(id);
@@ -377,7 +374,7 @@ TEST(blf_wrapping_typographical, wrap_typographical_forward_slash)
   int id = open_font("Roboto.ttf");
   BLF_size(id, 10.0f);
   const float width = BLF_width(id, sample, sizeof(sample));
-  blender::Vector<blender::StringRef> wrapped = BLF_string_wrap(
+  Vector<StringRef> wrapped = BLF_string_wrap(
       id, sample, int(float(width) * 0.7f), BLFWrapMode::Typographical);
   EXPECT_TRUE(wrapped.size() == 2 && wrapped[0].back() != '3');
   close_font(id);
@@ -390,7 +387,7 @@ TEST(blf_wrapping_typographical, wrap_typographical_dash)
   int id = open_font("Roboto.ttf");
   BLF_size(id, 10.0f);
   const float width = BLF_width(id, sample, sizeof(sample));
-  blender::Vector<blender::StringRef> wrapped = BLF_string_wrap(
+  Vector<StringRef> wrapped = BLF_string_wrap(
       id, sample, int(float(width) * 0.7f), BLFWrapMode::Typographical);
   EXPECT_TRUE(wrapped.size() == 2 && wrapped[0].back() != ' ');
   close_font(id);
@@ -406,7 +403,7 @@ TEST(blf_wrapping_typographical, wrap_typographical_CJK)
   int id = open_font("Roboto.ttf");
   BLF_size(id, 10.0f);
   const float width = BLF_width(id, sample, sizeof(sample));
-  blender::Vector<blender::StringRef> wrapped = BLF_string_wrap(
+  Vector<StringRef> wrapped = BLF_string_wrap(
       id, sample, int(float(width) * 0.7f), BLFWrapMode::Typographical);
   EXPECT_TRUE(wrapped.size() == 2);
   close_font(id);
@@ -422,7 +419,7 @@ TEST(blf_wrapping_typographical, wrap_typographical_Tibetan)
   int id = open_font("Roboto.ttf");
   BLF_size(id, 10.0f);
   const float width = BLF_width(id, sample, sizeof(sample));
-  blender::Vector<blender::StringRef> wrapped = BLF_string_wrap(
+  Vector<StringRef> wrapped = BLF_string_wrap(
       id, sample, int(float(width) * 0.7f), BLFWrapMode::Typographical);
   EXPECT_TRUE(wrapped.size() == 2);
   close_font(id);
@@ -435,7 +432,7 @@ TEST(blf_wrapping_typographical, wrap_typographical_hardlimit)
   int id = open_font("Ahem.ttf");
   BLF_size(id, 10.0f);
   const float width = BLF_width(id, sample, sizeof(sample));
-  blender::Vector<blender::StringRef> wrapped = BLF_string_wrap(
+  Vector<StringRef> wrapped = BLF_string_wrap(
       id,
       sample,
       int(float(width) * 0.7f),
@@ -449,14 +446,13 @@ TEST(blf_wrapping_minimal, wrap_hardlimit_too_narrow_width)
   /* Must break for each character. */
   const char sample[] = "aeiouáéíóú ;'/./\n\n1234567890-=";
   int id = open_font("Ahem.ttf");
-  const blender::Vector<blender::StringRef> expected_wrap = {
+  const Vector<StringRef> expected_wrap = {
       "a", "e", "i", "o", "u", "á", "é", "í", "ó", "ú", " ", ";", "\'", "/", ".",
       "/", "",  "",  "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",  "-", "=",
   };
   for (float size : {0.1f, 1.0f, 5.0f, 10.0f}) {
     BLF_size(id, size);
-    const blender::Vector<blender::StringRef> wrapped = BLF_string_wrap(
-        id, sample, 0, BLFWrapMode::HardLimit);
+    const Vector<StringRef> wrapped = BLF_string_wrap(id, sample, 0, BLFWrapMode::HardLimit);
     EXPECT_EQ(wrapped, expected_wrap);
   }
   close_font(id);

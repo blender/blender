@@ -23,6 +23,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
+
 #include "BLT_translation.hh"
 
 #include "DNA_anim_types.h"
@@ -2460,7 +2461,7 @@ static struct Clipboard {
 } *grease_pencil_clipboard = nullptr;
 
 /** The clone brush accesses the clipboard from multiple threads. Protect from parallel access. */
-blender::Mutex grease_pencil_clipboard_lock;
+Mutex grease_pencil_clipboard_lock;
 
 static Clipboard &ensure_grease_pencil_clipboard()
 {

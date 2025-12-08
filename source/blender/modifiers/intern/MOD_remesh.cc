@@ -180,7 +180,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     /* TODO(jbakker): Dualcon crashes when run in parallel. Could be related to incorrect
      * input data or that the library isn't thread safe.
      * This was identified when changing the task isolation's during #76553. */
-    static blender::Mutex dualcon_mutex;
+    static Mutex dualcon_mutex;
     {
       std::scoped_lock lock(dualcon_mutex);
       output = static_cast<DualConOutput *>(dualcon(&input,

@@ -429,8 +429,8 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
   blender::int3 *corner_tris = MEM_malloc_arrayN<blender::int3>(size_t(tottri), __func__);
   blender::bke::mesh::corner_tris_calc(
       vert_positions, mesh_polys, corner_verts, {corner_tris, tottri});
-  const blender::Span<int> tri_faces = mesh->corner_tri_faces();
-  const blender::Span<blender::float3> corner_normals = mesh->corner_normals();
+  const Span<int> tri_faces = mesh->corner_tri_faces();
+  const Span<blender::float3> corner_normals = mesh->corner_normals();
   const bke::AttributeAccessor attributes = mesh->attributes();
 
   // Get other mesh data

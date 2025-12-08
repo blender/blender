@@ -190,7 +190,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
   const int src_verts_num = mesh->verts_num;
   const int src_edges_num = mesh->edges_num;
-  const blender::OffsetIndices src_faces = mesh->faces();
+  const OffsetIndices src_faces = mesh->faces();
   const int src_loops_num = mesh->corners_num;
 
   Mesh *result = BKE_mesh_new_nomain_from_template(
@@ -225,7 +225,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   }
 
   /* mirror vertex coordinates */
-  blender::MutableSpan<blender::float3> positions = result->vert_positions_for_write();
+  MutableSpan<blender::float3> positions = result->vert_positions_for_write();
   for (int i = 0; i < src_verts_num; i++) {
     const int vert_index_prev = i;
     const int vert_index = src_verts_num + i;
@@ -297,10 +297,10 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     }
   }
 
-  blender::MutableSpan<blender::int2> result_edges = result->edges_for_write();
-  blender::MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
-  blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
-  blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
+  MutableSpan<blender::int2> result_edges = result->edges_for_write();
+  MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
+  MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
+  MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
 
   /* adjust mirrored edge vertex indices */
   for (const int i : result_edges.index_range().drop_front(src_edges_num)) {
@@ -311,7 +311,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   for (const int i : src_faces.index_range()) {
     result_face_offsets[src_faces.size() + i] = src_faces[i].start() + src_loops_num;
   }
-  const blender::OffsetIndices result_faces = result->faces();
+  const OffsetIndices result_faces = result->faces();
 
   /* adjust mirrored loop vertex and edge indices */
   for (const int i : result_corner_verts.index_range().drop_front(src_loops_num)) {
@@ -324,7 +324,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   bke::mesh_flip_faces(*result, result_faces.index_range().drop_front(src_faces.size()));
 
   if (!mesh->runtime->subsurf_optimal_display_edges.is_empty()) {
-    const blender::BoundedBitSpan src = mesh->runtime->subsurf_optimal_display_edges;
+    const BoundedBitSpan src = mesh->runtime->subsurf_optimal_display_edges;
     result->runtime->subsurf_optimal_display_edges.resize(result->edges_num);
     blender::MutableBoundedBitSpan dst = result->runtime->subsurf_optimal_display_edges;
     dst.take_front(src.size()).copy_from(src);
@@ -406,7 +406,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
     /* mirroring has to account for loops being reversed in faces in second half */
     for (const int i : src_faces.index_range()) {
-      const blender::IndexRange src_face = src_faces[i];
+      const IndexRange src_face = src_faces[i];
       const int mirror_i = src_faces.size() + i;
 
       for (const int j : src_face) {

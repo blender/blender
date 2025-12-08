@@ -18,8 +18,8 @@ struct SeqRetimingKey;
 
 namespace blender::seq {
 
-blender::MutableSpan<SeqRetimingKey> retiming_keys_get(const Strip *strip);
-blender::Map<SeqRetimingKey *, Strip *> retiming_selection_get(const Editing *ed);
+MutableSpan<SeqRetimingKey> retiming_keys_get(const Strip *strip);
+Map<SeqRetimingKey *, Strip *> retiming_selection_get(const Editing *ed);
 int retiming_keys_count(const Strip *strip);
 bool retiming_is_active(const Strip *strip);
 void retiming_data_ensure(Strip *strip);
@@ -69,8 +69,7 @@ bool retiming_selection_clear(const Editing *ed);
 void retiming_selection_append(SeqRetimingKey *key);
 void retiming_selection_remove(SeqRetimingKey *key);
 void retiming_selection_copy(SeqRetimingKey *dst, const SeqRetimingKey *src);
-void retiming_remove_multiple_keys(Strip *strip,
-                                   blender::Vector<SeqRetimingKey *> &keys_to_remove);
+void retiming_remove_multiple_keys(Strip *strip, Vector<SeqRetimingKey *> &keys_to_remove);
 bool retiming_selection_contains(const Editing *ed, const SeqRetimingKey *key);
 bool retiming_selection_has_whole_transition(const Editing *ed, SeqRetimingKey *key);
 bool retiming_data_is_editable(const Strip *strip);

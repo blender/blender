@@ -1482,7 +1482,7 @@ static void grease_pencil_wire_batch_ensure(Object &object,
   GPUIndexBufBuilder elb;
   GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, index_len, max_index);
 
-  blender::MutableSpan<uint32_t> indices = GPU_indexbuf_get_data(&elb);
+  MutableSpan<uint32_t> indices = GPU_indexbuf_get_data(&elb);
 
   threading::parallel_for(cyclic_per_curve.index_range(), 1024, [&](const IndexRange range) {
     for (const int curve : range) {

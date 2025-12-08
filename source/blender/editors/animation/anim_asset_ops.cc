@@ -68,7 +68,7 @@ static Vector<RNAPath> construct_pose_rna_paths(const PointerRNA &bone_pointer)
 {
   BLI_assert(bone_pointer.type == &RNA_PoseBone);
 
-  blender::Vector<RNAPath> paths;
+  Vector<RNAPath> paths;
   paths.append({"location"});
   paths.append({"scale"});
   bPoseChannel *pose_bone = static_cast<bPoseChannel *>(bone_pointer.data);
@@ -106,8 +106,7 @@ static Vector<RNAPath> construct_pose_rna_paths(const PointerRNA &bone_pointer)
   return paths;
 }
 
-static blender::animrig::Action &extract_pose(Main &bmain,
-                                              const blender::Span<Object *> pose_objects)
+static blender::animrig::Action &extract_pose(Main &bmain, const Span<Object *> pose_objects)
 {
   /* This currently only looks at the pose and not other things that could go onto different
    * slots on the same action. */
@@ -220,12 +219,12 @@ static void ensure_asset_ui_visible(bContext &C)
   ED_region_visibility_change_update(&C, CTX_wm_area(&C), shelf_region);
 }
 
-static blender::Vector<Object *> get_selected_pose_objects(bContext *C)
+static Vector<Object *> get_selected_pose_objects(bContext *C)
 {
-  blender::Vector<PointerRNA> selected_objects;
+  Vector<PointerRNA> selected_objects;
   CTX_data_selected_objects(C, &selected_objects);
 
-  blender::Vector<Object *> selected_pose_objects;
+  Vector<Object *> selected_pose_objects;
   for (const PointerRNA &ptr : selected_objects) {
     Object *object = reinterpret_cast<Object *>(ptr.owner_id);
     if (!object->pose) {
@@ -248,7 +247,7 @@ static wmOperatorStatus create_pose_asset_local(bContext *C,
                                                 const StringRefNull name,
                                                 const AssetLibraryReference lib_ref)
 {
-  blender::Vector<Object *> selected_pose_objects = get_selected_pose_objects(C);
+  Vector<Object *> selected_pose_objects = get_selected_pose_objects(C);
 
   if (selected_pose_objects.is_empty()) {
     return OPERATOR_CANCELLED;
@@ -310,7 +309,7 @@ static wmOperatorStatus create_pose_asset_user_library(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  blender::Vector<Object *> selected_pose_objects = get_selected_pose_objects(C);
+  Vector<Object *> selected_pose_objects = get_selected_pose_objects(C);
 
   if (selected_pose_objects.is_empty()) {
     return OPERATOR_CANCELLED;

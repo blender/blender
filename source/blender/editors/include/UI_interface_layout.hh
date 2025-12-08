@@ -954,8 +954,7 @@ struct PropertySplitWrapper {
  */
 PropertySplitWrapper uiItemPropertySplitWrapperCreate(Layout *parent_layout);
 
-Button *uiItemL_ex(
-    Layout *layout, blender::StringRef name, int icon, bool highlight, bool redalert);
+Button *uiItemL_ex(Layout *layout, StringRef name, int icon, bool highlight, bool redalert);
 /**
  * Helper to add a label using a property split layout if needed. After calling this the
  * active layout will be the one to place the labeled items in. An additional layout may be
@@ -963,11 +962,11 @@ Button *uiItemL_ex(
  *
  * \return the layout to place decorators in, if #UI_ITEM_PROP_SEP is enabled. Otherwise null.
  */
-Layout *uiItemL_respect_property_split(Layout *layout, blender::StringRef text, int icon);
+Layout *uiItemL_respect_property_split(Layout *layout, StringRef text, int icon);
 /**
  * Label icon for dragging.
  */
-void uiItemLDrag(Layout *layout, PointerRNA *ptr, blender::StringRef name, int icon);
+void uiItemLDrag(Layout *layout, PointerRNA *ptr, StringRef name, int icon);
 
 /* Only for testing, inspecting layouts. */
 /**

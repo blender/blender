@@ -2073,7 +2073,7 @@ struct TodoDir {
 };
 
 struct FileListReadJob {
-  blender::Mutex lock;
+  Mutex lock;
   char main_filepath[FILE_MAX] = "";
   Main *current_main = nullptr;
   FileList *filelist = nullptr;

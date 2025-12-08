@@ -1287,7 +1287,7 @@ void WM_OT_usd_import(wmOperatorType *ot)
 namespace blender::ed::io {
 void usd_file_handler_add()
 {
-  auto fh = std::make_unique<blender::bke::FileHandlerType>();
+  auto fh = std::make_unique<bke::FileHandlerType>();
   STRNCPY_UTF8(fh->idname, "IO_FH_usd");
   STRNCPY_UTF8(fh->import_operator, "WM_OT_usd_import");
   STRNCPY_UTF8(fh->export_operator, "WM_OT_usd_export");

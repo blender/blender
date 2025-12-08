@@ -304,7 +304,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   psys_sim_data_init(&sim);
 
   if (psys->flag & (PSYS_HAIR_DONE | PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) {
-    if (const std::optional<blender::Bounds<blender::float3>> bounds = mesh->bounds_min_max()) {
+    if (const std::optional<Bounds<blender::float3>> bounds = mesh->bounds_min_max()) {
       min_co = bounds->min[track];
       max_co = bounds->max[track];
     }
@@ -312,14 +312,14 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   result = BKE_mesh_new_nomain_from_template(mesh, maxvert, maxedge, maxpoly, maxloop);
 
-  const blender::OffsetIndices orig_faces = mesh->faces();
-  const blender::Span<int> orig_corner_verts = mesh->corner_verts();
-  const blender::Span<int> orig_corner_edges = mesh->corner_edges();
-  blender::MutableSpan<blender::float3> positions = result->vert_positions_for_write();
-  blender::MutableSpan<blender::int2> edges = result->edges_for_write();
-  blender::MutableSpan<int> face_offsets = result->face_offsets_for_write();
-  blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
-  blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
+  const OffsetIndices orig_faces = mesh->faces();
+  const Span<int> orig_corner_verts = mesh->corner_verts();
+  const Span<int> orig_corner_edges = mesh->corner_edges();
+  MutableSpan<blender::float3> positions = result->vert_positions_for_write();
+  MutableSpan<blender::int2> edges = result->edges_for_write();
+  MutableSpan<int> face_offsets = result->face_offsets_for_write();
+  MutableSpan<int> corner_verts = result->corner_verts_for_write();
+  MutableSpan<int> corner_edges = result->corner_edges_for_write();
   blender::bke::MutableAttributeAccessor attributes = result->attributes_for_write();
   bke::SpanAttributeWriter mloopcols_index =
       attributes.lookup_or_add_for_write_span<ColorGeometry4b>(pimd->index_layer_name,
@@ -485,7 +485,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
     /* create faces and loops */
     for (k = 0; k < faces_num; k++) {
-      const blender::IndexRange in_face = orig_faces[k];
+      const IndexRange in_face = orig_faces[k];
 
       face_interp.copy(k, p_skip * faces_num + k, 1);
       const int dst_face_start = in_face.start() + p_skip * totloop;

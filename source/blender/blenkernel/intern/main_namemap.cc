@@ -206,7 +206,7 @@ struct UniqueName_Map {
       if (this->is_global) {
         /* Global name-map is expected to have several IDs using the same name (from different
          * libraries). */
-        int &count = type_map.full_names.lookup_or_add_as(blender::StringRef{BKE_id_name(*id)}, 0);
+        int &count = type_map.full_names.lookup_or_add_as(StringRef{BKE_id_name(*id)}, 0);
         count++;
         if (count > 1) {
           /* Name is already used at least once, just increase user-count. */
@@ -278,7 +278,7 @@ struct UniqueName_Map {
 
   /* Remove a full name_full from the specified #type_map. Trying to remove an unknown
    * (unregistered) name_full is an error. */
-  void remove_full_name(UniqueName_TypeMap &type_map, blender::StringRef name_full)
+  void remove_full_name(UniqueName_TypeMap &type_map, StringRef name_full)
   {
     BLI_assert(name_full.size() < MAX_ID_NAME - 2);
 
@@ -318,7 +318,7 @@ struct UniqueName_Map {
       type_map.base_name_to_num_suffix.remove(name_base);
     }
   }
-  void remove_full_name(const short id_type, blender::StringRef name_full)
+  void remove_full_name(const short id_type, StringRef name_full)
   {
     this->remove_full_name(this->find_by_type(id_type), name_full);
   }

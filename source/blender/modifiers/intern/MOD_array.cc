@@ -288,12 +288,12 @@ static void mesh_merge_transform(Mesh *result,
   int *index_orig;
   int i;
   int2 *edge;
-  const blender::Span<int> cap_face_offsets = cap_mesh->face_offsets();
-  blender::MutableSpan<float3> result_positions = result->vert_positions_for_write();
-  blender::MutableSpan<int2> result_edges = result->edges_for_write();
-  blender::MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
-  blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
-  blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
+  const Span<int> cap_face_offsets = cap_mesh->face_offsets();
+  MutableSpan<float3> result_positions = result->vert_positions_for_write();
+  MutableSpan<int2> result_edges = result->edges_for_write();
+  MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
+  MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
+  MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
   bke::MutableAttributeAccessor result_attributes = result->attributes_for_write();
 
   bke::LegacyMeshInterpolator vert_interp(*cap_mesh, *result, bke::AttrDomain::Point);
@@ -564,11 +564,11 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   /* Initialize a result dm */
   result = BKE_mesh_new_nomain_from_template(
       mesh, result_nverts, result_nedges, result_nfaces, result_nloops);
-  blender::MutableSpan<float3> result_positions = result->vert_positions_for_write();
-  blender::MutableSpan<int2> result_edges = result->edges_for_write();
-  blender::MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
-  blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
-  blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
+  MutableSpan<float3> result_positions = result->vert_positions_for_write();
+  MutableSpan<int2> result_edges = result->edges_for_write();
+  MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
+  MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
+  MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
   bke::MutableAttributeAccessor result_attributes = result->attributes_for_write();
 
   if (use_merge) {
@@ -594,7 +594,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   first_chunk_nverts = chunk_nverts;
 
   unit_m4(current_offset);
-  blender::Span<blender::float3> src_vert_normals;
+  Span<blender::float3> src_vert_normals;
   Vector<float3> dst_vert_normals;
   if (!use_recalc_normals) {
     src_vert_normals = mesh->vert_normals();

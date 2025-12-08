@@ -81,7 +81,7 @@ using ForeachLoopCb = void (*)(const ForeachContext *context,
  * information, see #OffsetIndices.
  */
 using FacesCb = void (*)(const ForeachContext *context,
-                         blender::OffsetIndices<int> subdiv_faces_by_base_face);
+                         OffsetIndices<int> subdiv_faces_by_base_face);
 
 using ForeachLooseCb = void (*)(const ForeachContext *context,
                                 void *tls,

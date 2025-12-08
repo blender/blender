@@ -608,7 +608,7 @@ void WM_OT_obj_import(wmOperatorType *ot)
 namespace blender::ed::io {
 void obj_file_handler_add()
 {
-  auto fh = std::make_unique<blender::bke::FileHandlerType>();
+  auto fh = std::make_unique<bke::FileHandlerType>();
   STRNCPY_UTF8(fh->idname, "IO_FH_obj");
   STRNCPY_UTF8(fh->import_operator, "WM_OT_obj_import");
   STRNCPY_UTF8(fh->export_operator, "WM_OT_obj_export");

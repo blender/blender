@@ -59,7 +59,7 @@ struct LibraryRuntime {
    * Helper listing all archived libraries 'versions' of this library.
    * Should only contain something if this library is a regular 'real' blendfile library.
    */
-  blender::Vector<Library *> archived_libraries = {};
+  Vector<Library *> archived_libraries = {};
 
   /** #eLibrary_Tag. */
   ushort tag = 0;
@@ -78,7 +78,7 @@ struct LibraryRuntime {
 /**
  * Search for given absolute filepath in all libraries in given #ListBase.
  */
-Library *search_filepath_abs(ListBase *libraries, blender::StringRef filepath_abs);
+Library *search_filepath_abs(ListBase *libraries, StringRef filepath_abs);
 
 /**
  * Pack given linked ID, and all the related hierarchy.

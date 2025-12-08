@@ -92,7 +92,7 @@ void GPU_indexbuf_init_build_on_device(IndexBuf *elem, uint index_len)
   elem_->init_build_on_device(index_len);
 }
 
-blender::MutableSpan<uint32_t> GPU_indexbuf_get_data(GPUIndexBufBuilder *builder)
+MutableSpan<uint32_t> GPU_indexbuf_get_data(GPUIndexBufBuilder *builder)
 {
   return {builder->data, builder->max_index_len};
 }

@@ -31,9 +31,9 @@ class TexturePool {
   };
 
   /* Pool of texture ready to be reused. */
-  blender::Vector<TextureHandle> pool_;
+  Vector<TextureHandle> pool_;
   /* List of textures that are currently being used. Tracked to check memory leak. */
-  blender::Vector<blender::gpu::Texture *> acquired_;
+  Vector<blender::gpu::Texture *> acquired_;
 
  public:
   ~TexturePool();

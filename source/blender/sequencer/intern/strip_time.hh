@@ -41,7 +41,7 @@ void strip_time_effect_range_set(const Scene *scene, Strip *strip);
 /**
  * Update strip `startdisp` and `enddisp` (n-input effects have no length to calculate these).
  */
-void strip_time_update_effects_strip_range(const Scene *scene, blender::Span<Strip *> effects);
+void strip_time_update_effects_strip_range(const Scene *scene, Span<Strip *> effects);
 float strip_retiming_evaluate(const Strip *strip, const float frame_index);
 
 }  // namespace blender::seq

@@ -2461,8 +2461,8 @@ static wmOperatorStatus make_override_library_exec(bContext *C, wmOperator *op)
   /** Currently there is no 'all editable' option from the 3DView. */
   const bool do_fully_editable = false;
 
-  std::unique_ptr<blender::Set<uint32_t>> user_overrides_objects_uids =
-      do_fully_editable ? nullptr : std::make_unique<blender::Set<uint32_t>>();
+  std::unique_ptr<Set<uint32_t>> user_overrides_objects_uids =
+      do_fully_editable ? nullptr : std::make_unique<Set<uint32_t>>();
 
   if (do_fully_editable) {
     /* Pass. */

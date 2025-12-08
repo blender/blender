@@ -20,7 +20,7 @@ class USDShapeReader : public USDGeomReader {
   /* A cache to record whether a given primvar is time-varying, so that static primvars are not
    * read more than once when the mesh is evaluated for animation by the cache file modifier.
    * The map is mutable so that it can be updated in const functions. */
-  mutable blender::Map<const pxr::TfToken, bool> primvar_time_varying_map_;
+  mutable Map<const pxr::TfToken, bool> primvar_time_varying_map_;
 
  private:
   /* Template required to read mesh information out of Shape prims,

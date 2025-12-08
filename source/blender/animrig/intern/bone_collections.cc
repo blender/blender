@@ -1389,7 +1389,7 @@ int armature_bonecoll_move_to_parent(bArmature *armature,
 
 /* Utility functions for Armature edit-mode undo. */
 
-blender::Map<BoneCollection *, BoneCollection *> ANIM_bonecoll_array_copy_no_membership(
+Map<BoneCollection *, BoneCollection *> ANIM_bonecoll_array_copy_no_membership(
     BoneCollection ***bcoll_array_dst,
     int *bcoll_array_dst_num,
     BoneCollection **bcoll_array_src,
@@ -1402,7 +1402,7 @@ blender::Map<BoneCollection *, BoneCollection *> ANIM_bonecoll_array_copy_no_mem
   *bcoll_array_dst = MEM_malloc_arrayN<BoneCollection *>(bcoll_array_src_num, __func__);
   *bcoll_array_dst_num = bcoll_array_src_num;
 
-  blender::Map<BoneCollection *, BoneCollection *> bcoll_map{};
+  Map<BoneCollection *, BoneCollection *> bcoll_map{};
   for (int i = 0; i < bcoll_array_src_num; i++) {
     BoneCollection *bcoll_src = bcoll_array_src[i];
     BoneCollection *bcoll_dst = static_cast<BoneCollection *>(MEM_dupallocN(bcoll_src));

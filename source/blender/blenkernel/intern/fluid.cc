@@ -3220,9 +3220,9 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   if (!mesh) {
     return nullptr;
   }
-  blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
-  blender::MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
-  blender::MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
+  MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
+  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
+  MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
   if (orgmesh->attributes().domain_size(AttrDomain::Face) > 0) {
     const bool is_sharp = orgmesh->attributes()
@@ -3363,9 +3363,9 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
   }
 
   result = BKE_mesh_new_nomain(num_verts, 0, num_faces, num_faces * 4);
-  blender::MutableSpan<blender::float3> positions = result->vert_positions_for_write();
-  blender::MutableSpan<int> face_offsets = result->face_offsets_for_write();
-  blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
+  MutableSpan<blender::float3> positions = result->vert_positions_for_write();
+  MutableSpan<int> face_offsets = result->face_offsets_for_write();
+  MutableSpan<int> corner_verts = result->corner_verts_for_write();
 
   if (num_verts) {
     /* Volume bounds. */

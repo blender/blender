@@ -165,7 +165,7 @@ PackedFileCount BKE_packedfile_count_all(Main *bmain)
     LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
       if (md->type == eModifierType_Nodes) {
         NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-        for (const NodesModifierBake &bake : blender::Span{nmd->bakes, nmd->bakes_num}) {
+        for (const NodesModifierBake &bake : Span{nmd->bakes, nmd->bakes_num}) {
           if (bake.packed) {
             count.bakes++;
           }
@@ -206,7 +206,7 @@ PackedFile *BKE_packedfile_duplicate(const PackedFile *pf_src)
 
 PackedFile *BKE_packedfile_new_from_memory(const void *mem,
                                            int memlen,
-                                           const blender::ImplicitSharingInfo *sharing_info)
+                                           const ImplicitSharingInfo *sharing_info)
 {
   BLI_assert(mem != nullptr);
   if (!sharing_info) {
@@ -339,7 +339,7 @@ void BKE_packedfile_pack_all(Main *bmain, ReportList *reports, bool verbose)
     LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
       if (md->type == eModifierType_Nodes) {
         NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-        for (NodesModifierBake &bake : blender::MutableSpan{nmd->bakes, nmd->bakes_num}) {
+        for (NodesModifierBake &bake : MutableSpan{nmd->bakes, nmd->bakes_num}) {
           blender::bke::bake::pack_geometry_nodes_bake(*bmain, reports, *object, *nmd, bake);
         }
       }
@@ -885,7 +885,7 @@ void BKE_packedfile_unpack_all(Main *bmain, ReportList *reports, enum ePF_FileSt
     LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
       if (md->type == eModifierType_Nodes) {
         NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-        for (NodesModifierBake &bake : blender::MutableSpan{nmd->bakes, nmd->bakes_num}) {
+        for (NodesModifierBake &bake : MutableSpan{nmd->bakes, nmd->bakes_num}) {
           blender::bke::bake::unpack_geometry_nodes_bake(
               *bmain, reports, *object, *nmd, bake, how);
         }

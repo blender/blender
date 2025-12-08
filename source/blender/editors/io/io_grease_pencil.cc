@@ -593,7 +593,7 @@ namespace blender::ed::io {
 
 void grease_pencil_file_handler_add()
 {
-  auto fh = std::make_unique<blender::bke::FileHandlerType>();
+  auto fh = std::make_unique<bke::FileHandlerType>();
   STRNCPY_UTF8(fh->idname, "IO_FH_grease_pencil_svg");
   STRNCPY_UTF8(fh->import_operator, "WM_OT_grease_pencil_import_svg");
   STRNCPY_UTF8(fh->label, "SVG as Grease Pencil");

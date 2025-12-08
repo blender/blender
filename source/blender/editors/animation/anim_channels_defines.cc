@@ -4785,7 +4785,7 @@ const bAnimChannelType *ANIM_channel_get_typeinfo(const bAnimListElem *ale)
 
 /* --------------------------- */
 
-static blender::StringRefNull setting_name(const eAnimChannel_Settings setting)
+static StringRefNull setting_name(const eAnimChannel_Settings setting)
 {
   switch (setting) {
     case ACHANNEL_SETTING_SELECT:
@@ -4843,7 +4843,7 @@ void ANIM_channel_debug_print_info(bAnimContext &ac, bAnimListElem *ale, short i
   printf("ChanType: <%-25s> Name: \"%s\"\n       ", acf->channel_type_name, name);
 
   /* Print settings. */
-  blender::Vector<eAnimChannel_Settings> settings = {
+  Vector<eAnimChannel_Settings> settings = {
       ACHANNEL_SETTING_SELECT,
       ACHANNEL_SETTING_PROTECT,
       ACHANNEL_SETTING_MUTE,

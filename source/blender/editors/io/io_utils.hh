@@ -20,7 +20,7 @@ namespace blender::ed::io {
  */
 wmOperatorStatus filesel_drop_import_invoke(bContext *C, wmOperator *op, const wmEvent *event);
 
-bool poll_file_object_drop(const bContext *C, blender::bke::FileHandlerType *fh);
+bool poll_file_object_drop(const bContext *C, bke::FileHandlerType *fh);
 
 /**
  * Return all paths stored in the pointer.

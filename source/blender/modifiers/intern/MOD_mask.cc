@@ -442,7 +442,7 @@ static void copy_masked_faces_to_new_mesh(const Mesh &src_mesh,
                                           int faces_masked_num)
 {
   using namespace blender;
-  const blender::OffsetIndices src_faces = src_mesh.faces();
+  const OffsetIndices src_faces = src_mesh.faces();
   MutableSpan<int> dst_face_offsets = dst_mesh.face_offsets_for_write();
   const Span<int> src_corner_verts = src_mesh.corner_verts();
   const Span<int> src_corner_edges = src_mesh.corner_edges();
@@ -454,7 +454,7 @@ static void copy_masked_faces_to_new_mesh(const Mesh &src_mesh,
 
   for (const int i_dst : IndexRange(faces_masked_num)) {
     const int i_src = masked_face_indices[i_dst];
-    const blender::IndexRange src_face = src_faces[i_src];
+    const IndexRange src_face = src_faces[i_src];
 
     dst_face_offsets[i_dst] = new_loop_starts[i_dst];
 
@@ -482,7 +482,7 @@ static void add_interpolated_faces_to_new_mesh(const Mesh &src_mesh,
                                                int edges_add_num)
 {
   using namespace blender;
-  const blender::OffsetIndices src_faces = src_mesh.faces();
+  const OffsetIndices src_faces = src_mesh.faces();
   MutableSpan<int> dst_face_offsets = dst_mesh.face_offsets_for_write();
   MutableSpan<int2> dst_edges = dst_mesh.edges_for_write();
   const Span<int> src_corner_verts = src_mesh.corner_verts();
@@ -508,7 +508,7 @@ static void add_interpolated_faces_to_new_mesh(const Mesh &src_mesh,
       last_i_src = i_src;
     }
 
-    const blender::IndexRange src_face = src_faces[i_src];
+    const IndexRange src_face = src_faces[i_src];
     const int i_ml_src = src_face.start();
     int i_ml_dst = new_loop_starts[i_dst];
     face_interp.copy(i_src, i_dst, 1);

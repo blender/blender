@@ -733,7 +733,7 @@ void WM_OT_alembic_import(wmOperatorType *ot)
 namespace blender::ed::io {
 void alembic_file_handler_add()
 {
-  auto fh = std::make_unique<blender::bke::FileHandlerType>();
+  auto fh = std::make_unique<bke::FileHandlerType>();
   STRNCPY_UTF8(fh->idname, "IO_FH_alembic");
   STRNCPY_UTF8(fh->import_operator, "WM_OT_alembic_import");
   STRNCPY_UTF8(fh->export_operator, "WM_OT_alembic_export");

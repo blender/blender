@@ -116,7 +116,7 @@ static void create_trans_seq_clamp_data(TransInfo *t, const Scene *scene)
   /* Prevent snaps and change in `values` past `offset_clamp` for all selected retiming keys. */
   BLI_rcti_init(&ts->offset_clamp, -INT_MAX, INT_MAX, 0, 0);
 
-  blender::Map selection = seq::retiming_selection_get(ed);
+  Map selection = seq::retiming_selection_get(ed);
   for (auto item : selection.items()) {
     SeqRetimingKey *key = item.key;
 

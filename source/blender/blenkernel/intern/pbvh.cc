@@ -698,7 +698,7 @@ struct StackItem {
 
 struct PBVHIter {
   Tree *pbvh;
-  blender::FunctionRef<bool(Node &)> scb;
+  FunctionRef<bool(Node &)> scb;
 
   Stack<StackItem, 100> stack;
 };
@@ -1622,7 +1622,7 @@ int count_grid_quads(const BitGroupVector<> &grid_hidden,
 
   int totquad = 0;
   for (const int grid : grid_indices) {
-    const blender::BoundedBitSpan gh = grid_hidden[grid];
+    const BoundedBitSpan gh = grid_hidden[grid];
     /* grid hidden are present, have to check each element */
     for (int y = 0; y < gridsize - skip; y += skip) {
       for (int x = 0; x < gridsize - skip; x += skip) {

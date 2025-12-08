@@ -2067,7 +2067,7 @@ void BKE_pose_check_uids_unique_and_report(const bPose *pose)
     return;
   }
 
-  blender::Set<SessionUID> used_uids;
+  Set<SessionUID> used_uids;
 
   LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
     const SessionUID *session_uid = &pchan->runtime.session_uid;

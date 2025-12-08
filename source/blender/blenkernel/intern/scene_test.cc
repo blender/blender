@@ -97,10 +97,10 @@ TEST_F(SceneTest, linked_copy_id_remapping)
   ASSERT_NE(animdata_src, nullptr);
   EXPECT_EQ(animdata_src->action, action_src);
 
-  constexpr blender::StringRef idp_scene2scene_name = "scene2scene";
-  constexpr blender::StringRef idp_scene2action_name = "scene2action";
-  constexpr blender::StringRef idp_action2scene_name = "action2scene";
-  constexpr blender::StringRef idp_action2action_name = "action2action";
+  constexpr StringRef idp_scene2scene_name = "scene2scene";
+  constexpr StringRef idp_scene2action_name = "scene2action";
+  constexpr StringRef idp_action2scene_name = "action2scene";
+  constexpr StringRef idp_action2action_name = "action2action";
 
   IDProperty *scene_idgroup_src = IDP_EnsureProperties(&scene_src->id);
   IDP_AddToGroup(scene_idgroup_src,

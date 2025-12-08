@@ -261,9 +261,9 @@ void BKE_mesh_foreach_mapped_face_center(
     }
   }
   else {
-    const blender::Span<float3> positions = mesh->vert_positions();
-    const blender::OffsetIndices faces = mesh->faces();
-    const blender::Span<int> corner_verts = mesh->corner_verts();
+    const Span<float3> positions = mesh->vert_positions();
+    const OffsetIndices faces = mesh->faces();
+    const Span<int> corner_verts = mesh->corner_verts();
     const int *index = static_cast<const int *>(
         CustomData_get_layer(&mesh->face_data, CD_ORIGINDEX));
 

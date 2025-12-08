@@ -163,7 +163,7 @@ inline void set_item_name_and_make_unique(bNode &node,
 
   const std::string unique_name = BLI_uniquename_cb(
       [&](const StringRef name) {
-        for (ItemT &item_iter : blender::MutableSpan(*array.items, *array.items_num)) {
+        for (ItemT &item_iter : MutableSpan(*array.items, *array.items_num)) {
           if (&item_iter != &item) {
             if (*Accessor::get_name(item_iter) == name) {
               return true;

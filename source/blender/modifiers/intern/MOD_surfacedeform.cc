@@ -1175,11 +1175,11 @@ static bool surfacedeformBind(Object *ob,
                               Mesh *mesh)
 {
   using namespace blender;
-  const blender::Span<blender::float3> positions = target->vert_positions();
-  const blender::Span<blender::int2> edges = target->edges();
-  const blender::OffsetIndices polys = target->faces();
-  const blender::Span<int> corner_verts = target->corner_verts();
-  const blender::Span<int> corner_edges = target->corner_edges();
+  const Span<blender::float3> positions = target->vert_positions();
+  const Span<blender::int2> edges = target->edges();
+  const OffsetIndices polys = target->faces();
+  const Span<int> corner_verts = target->corner_verts();
+  const Span<int> corner_edges = target->corner_edges();
   uint tedges_num = target->edges_num;
   int adj_result;
 

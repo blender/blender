@@ -256,7 +256,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_rig(Object *object);
   virtual void build_armature(bArmature *armature);
   virtual void build_armature_bones(ListBase *bones);
-  virtual void build_armature_bone_collections(blender::Span<BoneCollection *> collections);
+  virtual void build_armature_bone_collections(Span<BoneCollection *> collections);
   /** Shape-keys. */
   virtual void build_shapekeys(Key *key);
   virtual void build_camera(Camera *camera);

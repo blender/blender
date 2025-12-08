@@ -536,7 +536,7 @@ static bool handles_visible(KeyframeEditData *ked, BezTriple *bezt)
 static short keyframe_ok_checks(
     KeyframeEditData *ked,
     BezTriple *bezt,
-    blender::FunctionRef<bool(KeyframeEditData *ked, BezTriple *bezt, const int index)> check)
+    FunctionRef<bool(KeyframeEditData *ked, BezTriple *bezt, const int index)> check)
 {
   short ok = 0;
   if (check(ked, bezt, 1)) {

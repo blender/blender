@@ -640,7 +640,7 @@ bool gpu_shader_create_info_compile_all(const char *name_starts_with_filter)
     info->finalize();
     if (info->do_static_compilation_) {
       if (name_starts_with_filter &&
-          !StringRefNull(info->name_).startswith(blender::StringRefNull(name_starts_with_filter)))
+          !StringRefNull(info->name_).startswith(StringRefNull(name_starts_with_filter)))
       {
         skipped_filter++;
         continue;
@@ -668,10 +668,10 @@ bool gpu_shader_create_info_compile_all(const char *name_starts_with_filter)
         /* TODO(fclem): Limit this to OpenGL backend. */
         const ShaderInterface *interface = shader->interface;
 
-        blender::Vector<ShaderCreateInfo::Resource> all_resources = info->resources_get_all_();
+        Vector<ShaderCreateInfo::Resource> all_resources = info->resources_get_all_();
 
         for (ShaderCreateInfo::Resource &res : all_resources) {
-          blender::StringRefNull name = "";
+          StringRefNull name = "";
           const ShaderInput *input = nullptr;
 
           switch (res.bind_type) {

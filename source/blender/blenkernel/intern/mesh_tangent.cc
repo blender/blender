@@ -228,7 +228,7 @@ struct SGLSLMeshToTangent {
         return mikk::float3(this->face_normals[face_index]);
       }
 #ifdef USE_TRI_DETECT_QUADS
-      const blender::IndexRange face = this->faces[face_index];
+      const IndexRange face = this->faces[face_index];
       float normal[3];
       if (face.size() == 4) {
         normal_quad_v3(normal,

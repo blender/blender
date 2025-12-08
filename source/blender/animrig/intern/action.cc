@@ -236,15 +236,13 @@ bool Action::is_action_layered() const
          (BLI_listbase_is_empty(&this->curves) && BLI_listbase_is_empty(&this->groups));
 }
 
-blender::Span<const Layer *> Action::layers() const
+Span<const Layer *> Action::layers() const
 {
-  return blender::Span<const Layer *>{reinterpret_cast<Layer **>(this->layer_array),
-                                      this->layer_array_num};
+  return Span<const Layer *>{reinterpret_cast<Layer **>(this->layer_array), this->layer_array_num};
 }
-blender::Span<Layer *> Action::layers()
+Span<Layer *> Action::layers()
 {
-  return blender::Span<Layer *>{reinterpret_cast<Layer **>(this->layer_array),
-                                this->layer_array_num};
+  return Span<Layer *>{reinterpret_cast<Layer **>(this->layer_array), this->layer_array_num};
 }
 const Layer *Action::layer(const int64_t index) const
 {
@@ -344,13 +342,13 @@ int64_t Action::find_slot_index(const Slot &slot) const
   return -1;
 }
 
-blender::Span<const Slot *> Action::slots() const
+Span<const Slot *> Action::slots() const
 {
-  return blender::Span<Slot *>{reinterpret_cast<Slot **>(this->slot_array), this->slot_array_num};
+  return Span<Slot *>{reinterpret_cast<Slot **>(this->slot_array), this->slot_array_num};
 }
-blender::Span<Slot *> Action::slots()
+Span<Slot *> Action::slots()
 {
-  return blender::Span<Slot *>{reinterpret_cast<Slot **>(this->slot_array), this->slot_array_num};
+  return Span<Slot *>{reinterpret_cast<Slot **>(this->slot_array), this->slot_array_num};
 }
 const Slot *Action::slot(const int64_t index) const
 {
@@ -938,15 +936,13 @@ Layer::~Layer()
   this->strip_array_num = 0;
 }
 
-blender::Span<const Strip *> Layer::strips() const
+Span<const Strip *> Layer::strips() const
 {
-  return blender::Span<Strip *>{reinterpret_cast<Strip **>(this->strip_array),
-                                this->strip_array_num};
+  return Span<Strip *>{reinterpret_cast<Strip **>(this->strip_array), this->strip_array_num};
 }
-blender::Span<Strip *> Layer::strips()
+Span<Strip *> Layer::strips()
 {
-  return blender::Span<Strip *>{reinterpret_cast<Strip **>(this->strip_array),
-                                this->strip_array_num};
+  return Span<Strip *>{reinterpret_cast<Strip **>(this->strip_array), this->strip_array_num};
 }
 const Strip *Layer::strip(const int64_t index) const
 {
@@ -1715,15 +1711,15 @@ StripKeyframeData::~StripKeyframeData()
   this->channelbag_array_num = 0;
 }
 
-blender::Span<const Channelbag *> StripKeyframeData::channelbags() const
+Span<const Channelbag *> StripKeyframeData::channelbags() const
 {
-  return blender::Span<Channelbag *>{reinterpret_cast<Channelbag **>(this->channelbag_array),
-                                     this->channelbag_array_num};
+  return Span<Channelbag *>{reinterpret_cast<Channelbag **>(this->channelbag_array),
+                            this->channelbag_array_num};
 }
-blender::Span<Channelbag *> StripKeyframeData::channelbags()
+Span<Channelbag *> StripKeyframeData::channelbags()
 {
-  return blender::Span<Channelbag *>{reinterpret_cast<Channelbag **>(this->channelbag_array),
-                                     this->channelbag_array_num};
+  return Span<Channelbag *>{reinterpret_cast<Channelbag **>(this->channelbag_array),
+                            this->channelbag_array_num};
 }
 const Channelbag *StripKeyframeData::channelbag(const int64_t index) const
 {
@@ -2275,13 +2271,13 @@ Channelbag::~Channelbag()
   this->group_array_num = 0;
 }
 
-blender::Span<const FCurve *> Channelbag::fcurves() const
+Span<const FCurve *> Channelbag::fcurves() const
 {
-  return blender::Span<FCurve *>{this->fcurve_array, this->fcurve_array_num};
+  return Span<FCurve *>{this->fcurve_array, this->fcurve_array_num};
 }
-blender::Span<FCurve *> Channelbag::fcurves()
+Span<FCurve *> Channelbag::fcurves()
 {
-  return blender::Span<FCurve *>{this->fcurve_array, this->fcurve_array_num};
+  return Span<FCurve *>{this->fcurve_array, this->fcurve_array_num};
 }
 const FCurve *Channelbag::fcurve(const int64_t index) const
 {
@@ -2292,13 +2288,13 @@ FCurve *Channelbag::fcurve(const int64_t index)
   return this->fcurve_array[index];
 }
 
-blender::Span<const bActionGroup *> Channelbag::channel_groups() const
+Span<const bActionGroup *> Channelbag::channel_groups() const
 {
-  return blender::Span<bActionGroup *>{this->group_array, this->group_array_num};
+  return Span<bActionGroup *>{this->group_array, this->group_array_num};
 }
-blender::Span<bActionGroup *> Channelbag::channel_groups()
+Span<bActionGroup *> Channelbag::channel_groups()
 {
-  return blender::Span<bActionGroup *>{this->group_array, this->group_array_num};
+  return Span<bActionGroup *>{this->group_array, this->group_array_num};
 }
 const bActionGroup *Channelbag::channel_group(const int64_t index) const
 {
@@ -3057,7 +3053,7 @@ ID *action_slot_get_id_for_keying(Main &bmain,
     return nullptr;
   }
 
-  blender::Span<ID *> users = slot->users(bmain);
+  Span<ID *> users = slot->users(bmain);
   if (users.size() == 1) {
     /* We only do this for `users.size() == 1` and not `users.size() >= 1`
      * because when there's more than one user it's ambiguous which user we
@@ -3076,7 +3072,7 @@ ID *action_slot_get_id_for_keying(Main &bmain,
 
 ID *action_slot_get_id_best_guess(Main &bmain, Slot &slot, ID *primary_id)
 {
-  blender::Span<ID *> users = slot.users(bmain);
+  Span<ID *> users = slot.users(bmain);
   if (users.is_empty()) {
     return nullptr;
   }
@@ -3153,7 +3149,7 @@ Action *convert_to_layered_action(Main &bmain, const Action &legacy_action)
   bag->fcurve_array_num = fcu_count;
 
   int i = 0;
-  blender::Map<FCurve *, FCurve *> old_new_fcurve_map;
+  Map<FCurve *, FCurve *> old_new_fcurve_map;
   LISTBASE_FOREACH_INDEX (FCurve *, fcu, &legacy_action.curves, i) {
     bag->fcurve_array[i] = BKE_fcurve_copy(fcu);
     bag->fcurve_array[i]->grp = nullptr;

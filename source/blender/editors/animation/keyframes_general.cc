@@ -1566,7 +1566,7 @@ bool copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
 
 namespace blender::ed::animation {
 
-std::optional<std::string> flip_names(const blender::StringRefNull rna_path)
+std::optional<std::string> flip_names(const StringRefNull rna_path)
 {
   int ofs_start, ofs_end;
   if (!BLI_str_quoted_substr_range(rna_path.c_str(), "pose.bones[", &ofs_start, &ofs_end)) {
@@ -1867,7 +1867,7 @@ bool pastebuf_match_path_property(Main *bmain,
 
   const char *identifier = RNA_property_identifier(prop);
   /* NOTE: paths which end with "] will fail with this test - Animated ID Props. */
-  return blender::StringRef(fcurve_to_match.rna_path).endswith(identifier);
+  return StringRef(fcurve_to_match.rna_path).endswith(identifier);
 }
 
 bool pastebuf_match_index_only(Main * /*bmain*/,

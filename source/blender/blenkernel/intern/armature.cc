@@ -3134,7 +3134,7 @@ void BKE_pose_where_is(Depsgraph *depsgraph, Scene *scene, Object *ob)
 /** \name Calculate Bounding Box (Armature & Pose)
  * \{ */
 
-std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const Object *ob)
+std::optional<Bounds<blender::float3>> BKE_armature_min_max(const Object *ob)
 {
   return BKE_pose_minmax(ob, false);
 }
@@ -3196,8 +3196,7 @@ void BKE_pchan_minmax(const Object *ob,
   }
 }
 
-std::optional<blender::Bounds<blender::float3>> BKE_pose_minmax(const Object *ob,
-                                                                const bool use_select)
+std::optional<Bounds<blender::float3>> BKE_pose_minmax(const Object *ob, const bool use_select)
 {
   if (!ob->pose) {
     return std::nullopt;
@@ -3233,7 +3232,7 @@ std::optional<blender::Bounds<blender::float3>> BKE_pose_minmax(const Object *ob
     return std::nullopt;
   }
 
-  return blender::Bounds<blender::float3>(min, max);
+  return Bounds<blender::float3>(min, max);
 }
 
 /** \} */
@@ -3286,34 +3285,33 @@ bPoseChannel *BKE_armature_splineik_solver_find_root(bPoseChannel *pchan,
 /** \name implementations of DNA struct C++ methods.
  * \{ */
 
-blender::Span<const BoneCollection *> bArmature::collections_span() const
+Span<const BoneCollection *> bArmature::collections_span() const
 {
-  return blender::Span(collection_array, collection_array_num);
+  return Span(collection_array, collection_array_num);
 }
 
-blender::Span<BoneCollection *> bArmature::collections_span()
+Span<BoneCollection *> bArmature::collections_span()
 {
-  return blender::Span(collection_array, collection_array_num);
+  return Span(collection_array, collection_array_num);
 }
 
-blender::Span<const BoneCollection *> bArmature::collections_roots() const
+Span<const BoneCollection *> bArmature::collections_roots() const
 {
-  return blender::Span(collection_array, collection_root_count);
+  return Span(collection_array, collection_root_count);
 }
-blender::Span<BoneCollection *> bArmature::collections_roots()
+Span<BoneCollection *> bArmature::collections_roots()
 {
-  return blender::Span(collection_array, collection_root_count);
-}
-
-blender::Span<const BoneCollection *> bArmature::collection_children(
-    const BoneCollection *parent) const
-{
-  return blender::Span(&collection_array[parent->child_index], parent->child_count);
+  return Span(collection_array, collection_root_count);
 }
 
-blender::Span<BoneCollection *> bArmature::collection_children(BoneCollection *parent)
+Span<const BoneCollection *> bArmature::collection_children(const BoneCollection *parent) const
 {
-  return blender::Span(&collection_array[parent->child_index], parent->child_count);
+  return Span(&collection_array[parent->child_index], parent->child_count);
+}
+
+Span<BoneCollection *> bArmature::collection_children(BoneCollection *parent)
+{
+  return Span(&collection_array[parent->child_index], parent->child_count);
 }
 
 bool BoneCollection::is_visible() const

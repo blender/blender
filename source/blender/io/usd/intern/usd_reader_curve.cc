@@ -112,8 +112,8 @@ static CurveType get_curve_type(pxr::TfToken type, pxr::TfToken basis)
 
 static std::optional<bke::AttrDomain> convert_usd_interp_to_blender(const pxr::TfToken usd_domain)
 {
-  static const blender::Map<pxr::TfToken, bke::AttrDomain> domain_map = []() {
-    blender::Map<pxr::TfToken, bke::AttrDomain> map;
+  static const Map<pxr::TfToken, bke::AttrDomain> domain_map = []() {
+    Map<pxr::TfToken, bke::AttrDomain> map;
     map.add_new(pxr::UsdGeomTokens->vertex, bke::AttrDomain::Point);
     map.add_new(pxr::UsdGeomTokens->varying, bke::AttrDomain::Point);
     map.add_new(pxr::UsdGeomTokens->constant, bke::AttrDomain::Curve);

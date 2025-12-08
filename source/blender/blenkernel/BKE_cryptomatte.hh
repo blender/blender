@@ -59,7 +59,7 @@ struct CryptomatteHash {
     hash = BLI_hash_mm3((const unsigned char *)name, name_len, 0);
   }
 
-  static CryptomatteHash from_hex_encoded(blender::StringRef hex_encoded);
+  static CryptomatteHash from_hex_encoded(StringRef hex_encoded);
   std::string hex_encoded() const;
 
   /**
@@ -91,13 +91,13 @@ struct CryptomatteHash {
 };
 
 struct CryptomatteLayer {
-  blender::Map<std::string, CryptomatteHash> hashes;
+  Map<std::string, CryptomatteHash> hashes;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("cryptomatte:CryptomatteLayer")
 
-  static std::unique_ptr<CryptomatteLayer> read_from_manifest(blender::StringRefNull manifest);
+  static std::unique_ptr<CryptomatteLayer> read_from_manifest(StringRefNull manifest);
   uint32_t add_ID(const ID &id);
-  void add_hash(blender::StringRef name, CryptomatteHash cryptomatte_hash);
+  void add_hash(StringRef name, CryptomatteHash cryptomatte_hash);
   std::string manifest() const;
 
   std::optional<std::string> operator[](float encoded_hash) const;
@@ -105,14 +105,14 @@ struct CryptomatteLayer {
 
 struct CryptomatteStampDataCallbackData {
   CryptomatteSession *session;
-  blender::Map<std::string, std::string> hash_to_layer_name;
+  Map<std::string, std::string> hash_to_layer_name;
 
   /**
    * Extract the hash from a stamp data key.
    *
    * Cryptomatte keys are formatted as "cryptomatte/{layer_hash}/{attribute}".
    */
-  static blender::StringRef extract_layer_hash(blender::StringRefNull key);
+  static StringRef extract_layer_hash(StringRefNull key);
 
   /* C type callback function (StampCallback). */
   static void extract_layer_names(void *_data,
@@ -126,8 +126,7 @@ struct CryptomatteStampDataCallbackData {
                                      int propvalue_maxncpy);
 };
 
-const blender::Vector<std::string> &BKE_cryptomatte_layer_names_get(
-    const CryptomatteSession &session);
+const Vector<std::string> &BKE_cryptomatte_layer_names_get(const CryptomatteSession &session);
 CryptomatteLayer *BKE_cryptomatte_layer_get(CryptomatteSession &session, StringRef layer_name);
 
 struct CryptomatteSessionDeleter {

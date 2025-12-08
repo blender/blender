@@ -416,8 +416,8 @@ static bool weight_paint_set(Object *ob, float paintweight)
   /* mutually exclusive, could be made into a */
   const short paint_selmode = ME_EDIT_PAINT_SEL_MODE(mesh);
 
-  const blender::OffsetIndices faces = mesh->faces();
-  const blender::Span<int> corner_verts = mesh->corner_verts();
+  const OffsetIndices faces = mesh->faces();
+  const Span<int> corner_verts = mesh->corner_verts();
   MDeformVert *dvert = mesh->deform_verts_for_write().data();
 
   if (mesh->faces_num == 0 || dvert == nullptr) {

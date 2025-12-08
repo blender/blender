@@ -139,7 +139,7 @@ PackGeometryNodesBakeResult pack_geometry_nodes_bake(Main &bmain,
   return PackGeometryNodesBakeResult::Success;
 }
 
-static bool directory_is_empty(const blender::StringRefNull path)
+static bool directory_is_empty(const StringRefNull path)
 {
   direntry *entries = nullptr;
   const int entries_num = BLI_filelist_dir_contents(path.c_str(), &entries);

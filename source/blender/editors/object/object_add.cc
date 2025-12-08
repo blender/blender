@@ -2767,7 +2767,7 @@ static void make_object_duplilist_real(bContext *C,
     return;
   }
 
-  blender::Map<const DupliObject *, Object *> dupli_map;
+  Map<const DupliObject *, Object *> dupli_map;
   if (use_hierarchy) {
     parent_gh = MEM_new<ParentMap>(__func__);
 

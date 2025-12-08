@@ -243,45 +243,42 @@ struct MTLContextTextureUtils {
    * use a compute shader to write to depth, so we must instead render to a depth target.
    * These processes use vertex/fragment shaders to render texture data from an intermediate
    * source, in order to prime the depth buffer. */
-  blender::Map<DepthTextureUpdateRoutineSpecialisation, gpu::Shader *> depth_2d_update_shaders;
+  Map<DepthTextureUpdateRoutineSpecialisation, gpu::Shader *> depth_2d_update_shaders;
   gpu::Shader *fullscreen_blit_shader = nullptr;
 
   /* Texture Read/Update routines */
-  blender::Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>>
-      texture_1d_read_compute_psos;
-  blender::Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>>
+  Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>> texture_1d_read_compute_psos;
+  Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>>
       texture_1d_array_read_compute_psos;
-  blender::Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>>
-      texture_2d_read_compute_psos;
-  blender::Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>>
+  Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>> texture_2d_read_compute_psos;
+  Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>>
       texture_2d_array_read_compute_psos;
-  blender::Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>>
-      texture_3d_read_compute_psos;
-  blender::Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>>
+  Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>> texture_3d_read_compute_psos;
+  Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>>
       texture_cube_read_compute_psos;
-  blender::Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>>
+  Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>>
       texture_cube_array_read_compute_psos;
-  blender::Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>>
+  Map<TextureReadRoutineSpecialisation, id<MTLComputePipelineState>>
       texture_buffer_read_compute_psos;
 
-  blender::Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
+  Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
       texture_1d_update_compute_psos;
-  blender::Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
+  Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
       texture_1d_array_update_compute_psos;
-  blender::Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
+  Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
       texture_2d_update_compute_psos;
-  blender::Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
+  Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
       texture_2d_array_update_compute_psos;
-  blender::Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
+  Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
       texture_3d_update_compute_psos;
-  blender::Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
+  Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
       texture_cube_update_compute_psos;
-  blender::Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
+  Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
       texture_cube_array_update_compute_psos;
-  blender::Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
+  Map<TextureUpdateRoutineSpecialisation, id<MTLComputePipelineState>>
       texture_buffer_update_compute_psos;
 
-  template<typename T> void free_cached_pso_map(blender::Map<T, id<MTLComputePipelineState>> &map)
+  template<typename T> void free_cached_pso_map(Map<T, id<MTLComputePipelineState>> &map)
   {
     for (typename blender::MutableMapItem<T, id<MTLComputePipelineState>> item : map.items()) {
       [item.value release];
@@ -648,7 +645,7 @@ class MTLContext : public Context {
   gpu::MTLTexture *default_fbo_gputexture_ = nullptr;
 
   /* Depth-stencil state cache. */
-  blender::Map<MTLContextDepthStencilState, id<MTLDepthStencilState>> depth_stencil_state_cache;
+  Map<MTLContextDepthStencilState, id<MTLDepthStencilState>> depth_stencil_state_cache;
 
   /* Compute and specialization caches. */
   MTLContextTextureUtils texture_utils_;
@@ -669,7 +666,7 @@ class MTLContext : public Context {
    * re-generation. `samplers_` stores the current list of bound sampler objects.
    * `cached_sampler_buffers_` is a cache of encoded argument buffers which can be re-used. */
   MTLSamplerArray samplers_;
-  blender::Map<MTLSamplerArray, gpu::MTLBuffer *> cached_sampler_buffers_;
+  Map<MTLSamplerArray, gpu::MTLBuffer *> cached_sampler_buffers_;
 
   /* Frame. */
   bool is_inside_frame_ = false;
@@ -892,7 +889,7 @@ class MTLContext : public Context {
     return samplers_;
   }
 
-  blender::Map<MTLSamplerArray, gpu::MTLBuffer *> &get_sampler_arg_buf_cache()
+  Map<MTLSamplerArray, gpu::MTLBuffer *> &get_sampler_arg_buf_cache()
   {
     return cached_sampler_buffers_;
   }

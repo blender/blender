@@ -932,7 +932,7 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
     BakeData *bake = &bkr->scene->r.bake;
     char filepath[FILE_MAX];
 
-    const blender::Vector<bke::path_templates::Error> errors = BKE_image_path_from_imtype(
+    const Vector<bke::path_templates::Error> errors = BKE_image_path_from_imtype(
         filepath,
         bkr->filepath,
         BKE_main_blendfile_path(bkr->main),

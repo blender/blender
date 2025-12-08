@@ -346,7 +346,7 @@ static wmOperatorStatus insert_key(bContext *C, wmOperator *op)
 {
   using namespace blender;
 
-  blender::Vector<PointerRNA> selection;
+  Vector<PointerRNA> selection;
   const bool found_selection = get_selection(C, &selection);
   if (!found_selection) {
     BKE_reportf(op->reports, RPT_ERROR, "Unsupported context mode");
@@ -370,7 +370,7 @@ static wmOperatorStatus insert_key(bContext *C, wmOperator *op)
       depsgraph, BKE_scene_frame_get(scene));
 
   animrig::CombinedKeyingResult combined_result;
-  blender::Set<ID *> ids;
+  Set<ID *> ids;
   for (PointerRNA &id_ptr : selection) {
     ID *selected_id = id_ptr.owner_id;
     ids.add(selected_id);

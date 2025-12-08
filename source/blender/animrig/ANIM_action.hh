@@ -150,8 +150,8 @@ class Action : public ::bAction {
   bool is_action_layered() const;
 
   /* Action Layers access. */
-  blender::Span<const Layer *> layers() const;
-  blender::Span<Layer *> layers();
+  Span<const Layer *> layers() const;
+  Span<Layer *> layers();
   const Layer *layer(int64_t index) const;
   Layer *layer(int64_t index);
 
@@ -193,8 +193,8 @@ class Action : public ::bAction {
   void layer_keystrip_ensure();
 
   /* Action Slot access. */
-  blender::Span<const Slot *> slots() const;
-  blender::Span<Slot *> slots();
+  Span<const Slot *> slots() const;
+  Span<Slot *> slots();
   const Slot *slot(int64_t index) const;
   Slot *slot(int64_t index);
 
@@ -717,8 +717,8 @@ class Layer : public ::ActionLayer {
   }
 
   /* Strip array access. */
-  blender::Span<const Strip *> strips() const;
-  blender::Span<Strip *> strips();
+  Span<const Strip *> strips() const;
+  Span<Strip *> strips();
   const Strip *strip(int64_t index) const;
   Strip *strip(int64_t index);
 
@@ -980,8 +980,8 @@ class StripKeyframeData : public ::ActionStripKeyframeData {
   ~StripKeyframeData();
 
   /* Channelbag array access. */
-  blender::Span<const Channelbag *> channelbags() const;
-  blender::Span<Channelbag *> channelbags();
+  Span<const Channelbag *> channelbags() const;
+  Span<Channelbag *> channelbags();
   const Channelbag *channelbag(int64_t index) const;
   Channelbag *channelbag(int64_t index);
 
@@ -1063,8 +1063,8 @@ class Channelbag : public ::ActionChannelbag {
   ~Channelbag();
 
   /* FCurves access. */
-  blender::Span<const FCurve *> fcurves() const;
-  blender::Span<FCurve *> fcurves();
+  Span<const FCurve *> fcurves() const;
+  Span<FCurve *> fcurves();
   const FCurve *fcurve(int64_t index) const;
   FCurve *fcurve(int64_t index);
 
@@ -1213,8 +1213,8 @@ class Channelbag : public ::ActionChannelbag {
   void fcurves_clear();
 
   /* Channel group access. */
-  blender::Span<const bActionGroup *> channel_groups() const;
-  blender::Span<bActionGroup *> channel_groups();
+  Span<const bActionGroup *> channel_groups() const;
+  Span<bActionGroup *> channel_groups();
   const bActionGroup *channel_group(int64_t index) const;
   bActionGroup *channel_group(int64_t index);
 
@@ -1996,7 +1996,7 @@ Slot &duplicate_slot(Action &action, const Slot &slot);
 /**
  * Deselect the keys of all actions in the Span. Duplicate entries are only visited once.
  */
-void deselect_keys_actions(blender::Span<bAction *> actions);
+void deselect_keys_actions(Span<bAction *> actions);
 
 /**
  * Deselect all keys within the action.

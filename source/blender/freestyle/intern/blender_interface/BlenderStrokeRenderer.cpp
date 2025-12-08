@@ -593,7 +593,7 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
   mesh->totcol = group->materials.size();
   BKE_mesh_face_offsets_ensure_alloc(mesh);
   blender::bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
-  blender::MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
+  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   bke::SpanAttributeWriter position_attr = attributes.lookup_or_add_for_write_span<float3>(
       "position", bke::AttrDomain::Point);
   bke::SpanAttributeWriter edge_verts_attr = attributes.lookup_or_add_for_write_span<int2>(

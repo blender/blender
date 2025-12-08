@@ -38,7 +38,7 @@ using CopyArgFunc = void *(*)(const void *arg);
 using FreeArgFunc = void (*)(void *arg);
 
 /** Must return an allocated string. */
-using ButtonToolTipFunc = std::string (*)(bContext *C, void *argN, blender::StringRef tip);
+using ButtonToolTipFunc = std::string (*)(bContext *C, void *argN, StringRef tip);
 
 /**
  * \param data: The tooltip data to be filled.

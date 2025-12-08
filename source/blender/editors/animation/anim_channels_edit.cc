@@ -5683,7 +5683,7 @@ static blender::Vector<FCurve *> get_fcurves_of_property(
 
   const std::optional<std::string> path = RNA_path_from_ID_to_property(ptr, prop);
 
-  blender::Vector<FCurve *> fcurves;
+  Vector<FCurve *> fcurves;
   if (RNA_property_array_check(prop) && whole_array) {
     const int length = RNA_property_array_length(ptr, prop);
     for (int i = 0; i < length; i++) {

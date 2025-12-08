@@ -561,7 +561,7 @@ static bool id_delete_tag(bContext *C,
       BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked library '%s'", id->name);
       return false;
     }
-    blender::Set<Library *> libraries{lib};
+    Set<Library *> libraries{lib};
     libraries.add_multiple_new(lib->runtime->archived_libraries.as_span());
     BLI_assert(!libraries.contains(nullptr));
     if (libraries.contains(scene_curr->id.lib)) {

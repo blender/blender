@@ -1561,7 +1561,7 @@ static void rna_Mesh_edges_begin(CollectionPropertyIterator *iter, PointerRNA *p
 {
   using namespace blender;
   Mesh *mesh = rna_mesh(ptr);
-  blender::MutableSpan<blender::int2> edges = mesh->edges_for_write();
+  MutableSpan<blender::int2> edges = mesh->edges_for_write();
   rna_iterator_array_begin(
       iter, ptr, edges.data(), sizeof(blender::int2), edges.size(), false, nullptr);
 }
@@ -1577,7 +1577,7 @@ bool rna_Mesh_edges_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
   if (index < 0 || index >= mesh->edges_num) {
     return false;
   }
-  blender::MutableSpan<blender::int2> edges = mesh->edges_for_write();
+  MutableSpan<blender::int2> edges = mesh->edges_for_write();
   rna_pointer_create_with_ancestors(*ptr, &RNA_MeshEdge, &edges[index], *r_ptr);
   return true;
 }

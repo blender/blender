@@ -307,7 +307,7 @@ static ArmatureDeformParams get_armature_deform_params(
     std::optional<Span<float3>> vert_coords_prev,
     std::optional<MutableSpan<float3x3>> vert_deform_mats,
     const int deformflag,
-    blender::StringRefNull defgrp_name,
+    StringRefNull defgrp_name,
     const bool try_use_dverts)
 {
   const bool dverts_supported = BKE_object_supports_vertex_groups(&ob_target);
@@ -497,7 +497,7 @@ static void armature_deform_coords(const Object &ob_arm,
                                    const std::optional<MutableSpan<float3x3>> vert_deform_mats,
                                    const int deformflag,
                                    const std::optional<Span<float3>> vert_coords_prev,
-                                   blender::StringRefNull defgrp_name,
+                                   StringRefNull defgrp_name,
                                    const std::optional<Span<MDeformVert>> dverts,
                                    const Mesh *me_target)
 {
@@ -561,7 +561,7 @@ static void armature_deform_editmesh(const Object &ob_arm,
                                      const std::optional<MutableSpan<float3x3>> vert_deform_mats,
                                      const int deformflag,
                                      const std::optional<Span<float3>> vert_coords_prev,
-                                     blender::StringRefNull defgrp_name,
+                                     StringRefNull defgrp_name,
                                      const BMEditMesh &em_target,
                                      const int cd_dvert_offset)
 {
@@ -677,7 +677,7 @@ void BKE_armature_deform_coords_with_mesh(
     defbase = BKE_id_defgroup_list_get(id_target);
   }
 
-  blender::Span<MDeformVert> dverts;
+  Span<MDeformVert> dverts;
   if (ob_target.type == OB_MESH) {
     if (me_target == nullptr) {
       me_target = static_cast<const Mesh *>(ob_target.data);
@@ -687,7 +687,7 @@ void BKE_armature_deform_coords_with_mesh(
   else if (ob_target.type == OB_LATTICE) {
     const Lattice *lt = static_cast<const Lattice *>(ob_target.data);
     if (lt->dvert != nullptr) {
-      dverts = blender::Span<MDeformVert>(lt->dvert, lt->pntsu * lt->pntsv * lt->pntsw);
+      dverts = Span<MDeformVert>(lt->dvert, lt->pntsu * lt->pntsv * lt->pntsw);
     }
   }
 

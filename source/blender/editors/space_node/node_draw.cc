@@ -352,7 +352,7 @@ static bool is_node_panels_supported(const bNode &node)
 static bool node_update_basis_buttons(const bContext &C,
                                       bNodeTree &ntree,
                                       bNode &node,
-                                      blender::FunctionRef<nodes::DrawNodeLayoutFn> draw_buttons,
+                                      FunctionRef<nodes::DrawNodeLayoutFn> draw_buttons,
                                       ui::Block &block,
                                       int &dy)
 {

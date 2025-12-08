@@ -144,7 +144,7 @@ Vector<RNAPath> get_keyable_id_property_paths(const PointerRNA &ptr)
     return {};
   }
 
-  blender::Vector<RNAPath> paths;
+  Vector<RNAPath> paths;
   LISTBASE_FOREACH (const IDProperty *, id_prop, &properties->data.group) {
     PointerRNA resolved_ptr;
     PropertyRNA *resolved_prop;

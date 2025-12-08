@@ -74,7 +74,7 @@ bool snap_selected_frames(GreasePencil &grease_pencil,
                           const eEditKeyframes_Snap mode)
 {
   bool changed = false;
-  blender::Map<int, int> frame_number_destinations;
+  Map<int, int> frame_number_destinations;
   for (auto [frame_number, frame] : layer.frames().items()) {
     if (!frame.is_selected()) {
       continue;

@@ -606,7 +606,7 @@ namespace blender::bke::nla {
  * NLA or it has no strips, returns `true` because the loop ran until its
  * natural end and wasn't stopped by the callback.
  */
-bool foreach_strip(ID *id, blender::FunctionRef<bool(NlaStrip *)> callback);
+bool foreach_strip(ID *id, FunctionRef<bool(NlaStrip *)> callback);
 
 /**
  * Call the callback for every strip of this AnimData's NLA.
@@ -621,6 +621,6 @@ bool foreach_strip(ID *id, blender::FunctionRef<bool(NlaStrip *)> callback);
  * NLA or it has no strips, returns `true` because the loop ran until its
  * natural end and wasn't stopped by the callback.
  */
-bool foreach_strip_adt(const AnimData &adt, blender::FunctionRef<bool(NlaStrip *)> callback);
+bool foreach_strip_adt(const AnimData &adt, FunctionRef<bool(NlaStrip *)> callback);
 
 }  // namespace blender::bke::nla

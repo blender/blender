@@ -26,7 +26,7 @@ namespace blender::gpu {
  * \{ */
 
 struct VKRenderGraphWait {
-  blender::Mutex is_submitted_mutex;
+  Mutex is_submitted_mutex;
   std::condition_variable_any is_submitted_condition;
   bool is_submitted;
 };
@@ -86,7 +86,7 @@ TimelineValue VKDevice::render_graph_submit(render_graph::VKRenderGraph *render_
   submit_task = nullptr;
 
   if (wait_for_submission) {
-    std::unique_lock<blender::Mutex> lock(wait_condition.is_submitted_mutex);
+    std::unique_lock<Mutex> lock(wait_condition.is_submitted_mutex);
     wait_condition.is_submitted_condition.wait(lock, [&] { return wait_condition.is_submitted; });
   }
 
@@ -262,8 +262,7 @@ void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
                       submit_task->signal_fence);
       }
       if (submit_task->wait_for_submission != nullptr) {
-        std::unique_lock<blender::Mutex> lock(
-            submit_task->wait_for_submission->is_submitted_mutex);
+        std::unique_lock<Mutex> lock(submit_task->wait_for_submission->is_submitted_mutex);
         submit_task->wait_for_submission->is_submitted = true;
         submit_task->wait_for_submission->is_submitted_condition.notify_one();
       }

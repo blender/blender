@@ -178,7 +178,7 @@ ResourceHandleRange Manager::unique_handle_for_sculpt(const ObjectRef &ref)
     return ref.sculpt_handle_;
   }
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(*ref.object);
-  const blender::Bounds<float3> bounds = bke::pbvh::bounds_get(pbvh);
+  const Bounds<float3> bounds = bke::pbvh::bounds_get(pbvh);
   const float3 center = math::midpoint(bounds.min, bounds.max);
   const float3 half_extent = bounds.max - center;
   /* WORKAROUND: Instead of breaking const correctness everywhere, we only break it for this. */

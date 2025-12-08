@@ -1300,7 +1300,7 @@ void fcurve_to_keylist(AnimData *adt,
   /* The indices for which keys have been added to the key columns. Initialized as invalid bounds
    * for the case that no keyframes get added to the key-columns, which happens when the given
    * range doesn't overlap with the existing keyframes. */
-  blender::Bounds<int> index_bounds(int(fcu->totvert), 0);
+  Bounds<int> index_bounds(int(fcu->totvert), 0);
   /* The following is used to find the keys that are JUST outside the range. This is done so
    * drawing in the dope sheet can create lines that extend off-screen. */
   float left_outside_key_x = -FLT_MAX;

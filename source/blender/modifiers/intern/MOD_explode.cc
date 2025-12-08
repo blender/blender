@@ -667,7 +667,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
   int layers_num;
 
   int totesplit = totvert;
-  blender::Map<blender::OrderedEdge, int> edgehash;
+  Map<OrderedEdge, int> edgehash;
 
   /* recreate vertpa from facepa calculation */
   for (i = 0, mf = mface; i < totface; i++, mf++) {
@@ -735,7 +735,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
 
   layers_num = CustomData_number_of_layers(&split_m->fdata_legacy, CD_MTFACE);
 
-  blender::MutableSpan<blender::float3> split_m_positions = split_m->vert_positions_for_write();
+  MutableSpan<blender::float3> split_m_positions = split_m->vert_positions_for_write();
 
   /* copy new faces & verts (is it really this painful with custom data??) */
   bke::LegacyMeshInterpolator vert_interp(*mesh, *split_m, bke::AttrDomain::Point);
@@ -930,7 +930,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   ctime = BKE_scene_ctime_get(scene);
 
   /* hash table for vertex <-> particle relations */
-  blender::Map<blender::OrderedEdge, int> vertpahash;
+  Map<OrderedEdge, int> vertpahash;
 
   for (i = 0; i < totface; i++) {
     if (facepa[i] != totpart) {
@@ -979,8 +979,8 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
   psys_sim_data_init(&sim);
 
-  const blender::Span<blender::float3> positions = mesh->vert_positions();
-  blender::MutableSpan<blender::float3> explode_positions = explode->vert_positions_for_write();
+  const Span<blender::float3> positions = mesh->vert_positions();
+  MutableSpan<blender::float3> explode_positions = explode->vert_positions_for_write();
 
   bke::LegacyMeshInterpolator vert_interp(*mesh, *explode, bke::AttrDomain::Point);
 

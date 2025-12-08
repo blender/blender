@@ -1636,8 +1636,8 @@ static void dynamicPaint_setInitialColor(const Scene * /*scene*/, DynamicPaintSu
   else if (surface->init_color_type == MOD_DPAINT_INITIAL_TEXTURE) {
     Tex *tex = surface->init_texture;
 
-    const blender::Span<int> corner_verts = mesh->corner_verts();
-    const blender::Span<int3> corner_tris = mesh->corner_tris();
+    const Span<int> corner_verts = mesh->corner_verts();
+    const Span<int3> corner_tris = mesh->corner_tris();
 
     if (!tex) {
       return;
@@ -1690,7 +1690,7 @@ static void dynamicPaint_setInitialColor(const Scene * /*scene*/, DynamicPaintSu
 
     /* For vertex surface, just copy colors from #MLoopCol. */
     if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
-      const blender::Span<int> corner_verts = mesh->corner_verts();
+      const Span<int> corner_verts = mesh->corner_verts();
       const VArraySpan col = *attributes.lookup<ColorGeometry4b>(surface->init_layername,
                                                                  bke::AttrDomain::Corner);
       if (col.is_empty()) {
@@ -1702,7 +1702,7 @@ static void dynamicPaint_setInitialColor(const Scene * /*scene*/, DynamicPaintSu
       }
     }
     else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
-      const blender::Span<int3> corner_tris = mesh->corner_tris();
+      const Span<int3> corner_tris = mesh->corner_tris();
       const VArraySpan col = *attributes.lookup<ColorGeometry4b>(surface->init_layername,
                                                                  bke::AttrDomain::Corner);
       if (col.is_empty()) {
@@ -1945,8 +1945,8 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
 
           /* vertex color paint */
           if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
-            const blender::OffsetIndices faces = result->faces();
-            const blender::Span<int> corner_verts = result->corner_verts();
+            const OffsetIndices faces = result->faces();
+            const Span<int> corner_verts = result->corner_verts();
 
             /* paint is stored on dry and wet layers, so mix final color first */
             float (*fcolor)[4] = MEM_calloc_arrayN<float[4]>(sData->total_points,
@@ -2020,7 +2020,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
             float *weight = (float *)sData->type_data;
 
             /* apply weights into a vertex group, if doesn't exists add a new layer */
-            blender::MutableSpan<MDeformVert> dverts = result->deform_verts_for_write();
+            MutableSpan<MDeformVert> dverts = result->deform_verts_for_write();
             if (defgrp_index != -1) {
               for (int i = 0; i < sData->total_points; i++) {
                 MDeformVert *dv = &dverts[i];
@@ -2856,8 +2856,8 @@ int dynamicPaint_createUVSurface(Scene *scene,
     return setError(canvas, N_("Cannot bake non-'image sequence' formats"));
   }
 
-  const blender::Span<int> corner_verts = mesh->corner_verts();
-  const blender::Span<int3> corner_tris = mesh->corner_tris();
+  const Span<int> corner_verts = mesh->corner_verts();
+  const Span<int3> corner_tris = mesh->corner_tris();
 
   /* get uv map */
   const VectorSet<StringRefNull> uv_map_names = mesh->uv_map_names();
