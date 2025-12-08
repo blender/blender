@@ -1760,12 +1760,14 @@ bool foreach_subdiv_geometry(Subdiv *subdiv,
   ctx.foreach_context = context;
   subdiv_foreach_ctx_init(subdiv, &ctx);
   if (context->topology_info != nullptr) {
+    /* Skip the last sentinel element so that the callback "sees" offsets of actual faces. */
+    const Span<int> subdiv_face_offset_no_sentinel = ctx.subdiv_face_offset.as_span().drop_back(1);
     if (!context->topology_info(context,
                                 ctx.num_subdiv_vertices,
                                 ctx.num_subdiv_edges,
                                 ctx.num_subdiv_loops,
                                 ctx.num_subdiv_faces,
-                                ctx.subdiv_face_offset.data()))
+                                subdiv_face_offset_no_sentinel))
     {
       subdiv_foreach_ctx_free(&ctx);
       return false;

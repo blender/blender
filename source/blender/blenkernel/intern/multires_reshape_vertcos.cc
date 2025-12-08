@@ -96,7 +96,7 @@ static bool multires_reshape_vertcos_foreach_topology_info(
     const int /*num_edges*/,
     const int /*num_loops*/,
     const int /*num_faces*/,
-    const int * /*subdiv_face_offset*/)
+    const blender::Span<int> /*subdiv_face_offset*/)
 {
   MultiresReshapeAssignVertcosContext *reshape_vertcos_context =
       static_cast<MultiresReshapeAssignVertcosContext *>(foreach_context->user_data);

@@ -832,7 +832,7 @@ static bool subdiv_mesh_topology_info(const ForeachContext *foreach_context,
                                       const int num_edges,
                                       const int num_loops,
                                       const int num_faces,
-                                      const int * /*subdiv_face_offset*/)
+                                      const Span<int> /*subdiv_face_offset*/)
 {
   /* Multi-resolution grid data will be applied or become invalid after subdivision,
    * so don't try to preserve it and use memory. Crease values should also not be interpolated. */

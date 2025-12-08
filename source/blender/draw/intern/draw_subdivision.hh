@@ -118,7 +118,7 @@ struct DRWSubdivCache {
   /* Vertex buffer for face_ptex_offset. */
   gpu::VertBuf *face_ptex_offset_buffer;
 
-  int *subdiv_face_offset;
+  Array<int> subdiv_face_offset;
   gpu::VertBuf *subdiv_face_offset_buffer;
 
   /* Contains the start loop index and the smooth flag for each coarse face. */

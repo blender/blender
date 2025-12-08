@@ -1057,7 +1057,7 @@ static Array<GridCoord> get_subdivided_corner_grid_coords(subdiv::Subdiv &subdiv
                                      const int /*num_edges*/,
                                      const int num_corners,
                                      const int /*num_faces*/,
-                                     const int * /*subdiv_face_offset*/) -> bool {
+                                     const Span<int> /*subdiv_face_offset*/) -> bool {
     SubdividedCornerGridCoordData *data = static_cast<SubdividedCornerGridCoordData *>(
         context->user_data);
     data->corner_grid_coords.reinitialize(num_corners);
@@ -1313,7 +1313,7 @@ static Array<GridCoord> get_highres_mesh_loop_grid_coords(
                                      const int /*num_edges*/,
                                      const int num_corners,
                                      const int /*num_faces*/,
-                                     const int * /*subdiv_face_offset*/) -> bool {
+                                     const Span<int> /*subdiv_face_offset*/) -> bool {
     HighresCornerGridCoordData *data = static_cast<HighresCornerGridCoordData *>(
         context->user_data);
     data->corner_grid_coords.reinitialize(num_corners);

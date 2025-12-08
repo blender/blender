@@ -473,7 +473,7 @@ static bool foreach_topology_info(const blender::bke::subdiv::ForeachContext *fo
                                   const int num_edges,
                                   const int num_loops,
                                   const int num_faces,
-                                  const int * /*subdiv_face_offset*/)
+                                  const blender::Span<int> /*subdiv_face_offset*/)
 {
   using namespace blender;
   MultiresReshapeSmoothContext *reshape_smooth_context =
