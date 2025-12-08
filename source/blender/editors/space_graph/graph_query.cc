@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_listbase.h"
+#include "DNA_listBase.h"
+#include "DNA_userdef_types.h"
+
 #include "ED_anim_api.hh"
 #include "ED_space_graph.hh"
 

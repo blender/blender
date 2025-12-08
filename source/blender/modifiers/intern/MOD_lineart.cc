@@ -11,8 +11,8 @@
 #include "BLO_read_write.hh"
 
 #include "DNA_collection_types.h"
-#include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_lineart_types.h"
 #include "DNA_scene_types.h"
 
@@ -78,10 +78,7 @@ static bool is_last_line_art(const GreasePencilLineartModifierData &md, const bo
 static void init_data(ModifierData *md)
 {
   GreasePencilLineartModifierData *gpmd = (GreasePencilLineartModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(GreasePencilLineartModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(gpmd, modifier);
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)

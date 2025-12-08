@@ -40,7 +40,8 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryInputNamedAttribute *data = MEM_callocN<NodeGeometryInputNamedAttribute>(__func__);
+  NodeGeometryInputNamedAttribute *data = MEM_new_for_free<NodeGeometryInputNamedAttribute>(
+      __func__);
   data->data_type = CD_PROP_FLOAT;
   node->storage = data;
 }

@@ -36,7 +36,7 @@ wmKeyConfigPref *BKE_keyconfig_pref_ensure(UserDef *userdef, const char *kc_idna
   wmKeyConfigPref *kpt = static_cast<wmKeyConfigPref *>(BLI_findstring(
       &userdef->user_keyconfig_prefs, kc_idname, offsetof(wmKeyConfigPref, idname)));
   if (kpt == nullptr) {
-    kpt = MEM_callocN<wmKeyConfigPref>(__func__);
+    kpt = MEM_new_for_free<wmKeyConfigPref>(__func__);
     STRNCPY(kpt->idname, kc_idname);
     BLI_addtail(&userdef->user_keyconfig_prefs, kpt);
   }

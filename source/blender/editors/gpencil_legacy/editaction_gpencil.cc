@@ -353,7 +353,7 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
 
     /* create a new layer in buffer if there were keyframes here */
     if (BLI_listbase_is_empty(&copied_frames) == false) {
-      bGPDlayer *new_layer = MEM_callocN<bGPDlayer>("GPCopyPasteLayer");
+      bGPDlayer *new_layer = MEM_new_for_free<bGPDlayer>("GPCopyPasteLayer");
       BLI_addtail(&gpencil_anim_copybuf, new_layer);
 
       /* move over copied frames */

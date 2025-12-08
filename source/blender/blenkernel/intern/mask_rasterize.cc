@@ -209,7 +209,7 @@ MaskRasterHandle *BKE_maskrasterize_handle_new()
 {
   MaskRasterHandle *mr_handle;
 
-  mr_handle = MEM_callocN<MaskRasterHandle>("MaskRasterHandle");
+  mr_handle = MEM_new_for_free<MaskRasterHandle>("MaskRasterHandle");
 
   return mr_handle;
 }
@@ -580,7 +580,8 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
   MemArena *sf_arena;
 
   mr_handle->layers_tot = uint(BLI_listbase_count(&mask->masklayers));
-  mr_handle->layers = MEM_calloc_arrayN<MaskRasterLayer>(mr_handle->layers_tot, "MaskRasterLayer");
+  mr_handle->layers = MEM_new_array_for_free<MaskRasterLayer>(mr_handle->layers_tot,
+                                                              "MaskRasterLayer");
   BLI_rctf_init_minmax(&mr_handle->bounds);
 
   sf_arena = BLI_memarena_new(BLI_SCANFILL_ARENA_SIZE, __func__);
@@ -615,7 +616,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
     }
 
     tot_splines = uint(BLI_listbase_count(&masklay->splines));
-    open_spline_ranges = MEM_calloc_arrayN<MaskRasterSplineInfo>(tot_splines, __func__);
+    open_spline_ranges = MEM_new_array_for_free<MaskRasterSplineInfo>(tot_splines, __func__);
 
     BLI_scanfill_begin_arena(&sf_ctx, sf_arena);
 

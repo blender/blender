@@ -77,7 +77,7 @@ static bool solve_camera_initjob(
                                                          width,
                                                          height);
 
-  tracking->stats = MEM_callocN<MovieTrackingStats>("solve camera stats");
+  tracking->stats = MEM_new_for_free<MovieTrackingStats>("solve camera stats");
 
   WM_locked_interface_set(scj->wm, true);
 

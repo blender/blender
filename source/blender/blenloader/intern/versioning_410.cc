@@ -15,7 +15,6 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
-#include "DNA_defaults.h"
 #include "DNA_genfile.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_material_types.h"
@@ -192,7 +191,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
 
     STRNCPY_UTF8(node->idname, "ShaderNodeTexNoise");
     node->type_legacy = SH_NODE_TEX_NOISE;
-    NodeTexNoise *data = MEM_callocN<NodeTexNoise>(__func__);
+    NodeTexNoise *data = MEM_new_for_free<NodeTexNoise>(__func__);
     data->base = (static_cast<NodeTexMusgrave *>(node->storage))->base;
     data->dimensions = (static_cast<NodeTexMusgrave *>(node->storage))->dimensions;
     data->normalize = false;
@@ -694,7 +693,7 @@ static void change_input_socket_to_rotation_type(bNodeTree &ntree,
   socket.type = SOCK_ROTATION;
   STRNCPY_UTF8(socket.idname, "NodeSocketRotation");
   auto *old_value = static_cast<bNodeSocketValueVector *>(socket.default_value);
-  auto *new_value = MEM_callocN<bNodeSocketValueRotation>(__func__);
+  auto *new_value = MEM_new_for_free<bNodeSocketValueRotation>(__func__);
   copy_v3_v3(new_value->value_euler, old_value->value);
   socket.default_value = new_value;
   MEM_freeN(old_value);
@@ -902,7 +901,7 @@ void blo_do_versions_410(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 7)) {
     if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "int", "volumetric_ray_depth")) {
-      SceneEEVEE default_eevee = *DNA_struct_default_get(SceneEEVEE);
+      SceneEEVEE default_eevee;
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.volumetric_ray_depth = default_eevee.volumetric_ray_depth;
       }
@@ -933,7 +932,7 @@ void blo_do_versions_410(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "float", "gtao_thickness")) {
-      SceneEEVEE default_eevee = *DNA_struct_default_get(SceneEEVEE);
+      SceneEEVEE default_eevee;
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.gtao_thickness = default_eevee.gtao_thickness;
         scene->eevee.fast_gi_bias = default_eevee.fast_gi_bias;
@@ -941,7 +940,7 @@ void blo_do_versions_410(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     if (!DNA_struct_member_exists(fd->filesdna, "LightProbe", "float", "data_display_size")) {
-      LightProbe default_probe = *DNA_struct_default_get(LightProbe);
+      LightProbe default_probe;
       LISTBASE_FOREACH (LightProbe *, probe, &bmain->lightprobes) {
         probe->data_display_size = default_probe.data_display_size;
       }
@@ -1062,13 +1061,13 @@ void blo_do_versions_410(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 14)) {
-    const Brush *default_brush = DNA_struct_default_get(Brush);
+    const Brush default_brush;
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      brush->automasking_start_normal_limit = default_brush->automasking_start_normal_limit;
-      brush->automasking_start_normal_falloff = default_brush->automasking_start_normal_falloff;
+      brush->automasking_start_normal_limit = default_brush.automasking_start_normal_limit;
+      brush->automasking_start_normal_falloff = default_brush.automasking_start_normal_falloff;
 
-      brush->automasking_view_normal_limit = default_brush->automasking_view_normal_limit;
-      brush->automasking_view_normal_falloff = default_brush->automasking_view_normal_falloff;
+      brush->automasking_view_normal_limit = default_brush.automasking_view_normal_limit;
+      brush->automasking_view_normal_falloff = default_brush.automasking_view_normal_falloff;
     }
   }
 
@@ -1090,7 +1089,7 @@ void blo_do_versions_410(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       Sculpt *sculpt = scene->toolsettings->sculpt;
       if (sculpt != nullptr) {
-        Sculpt default_sculpt = blender::dna::shallow_copy(*DNA_struct_default_get(Sculpt));
+        Sculpt default_sculpt = {};
         sculpt->automasking_boundary_edges_propagation_steps =
             default_sculpt.automasking_boundary_edges_propagation_steps;
       }

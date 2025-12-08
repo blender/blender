@@ -12,7 +12,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_defaults.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -2981,7 +2980,7 @@ static void unwrap_draw(bContext * /*C*/, wmOperator *op)
 
 void UV_OT_unwrap(wmOperatorType *ot)
 {
-  const ToolSettings *tool_settings_default = DNA_struct_default_get(ToolSettings);
+  const ToolSettings tool_settings_default = {};
 
   static const EnumPropertyItem method_items[] = {
       {UVCALC_UNWRAP_METHOD_ANGLE, "ANGLE_BASED", 0, "Angle Based", ""},
@@ -3008,13 +3007,13 @@ void UV_OT_unwrap(wmOperatorType *ot)
       ot->srna,
       "method",
       method_items,
-      tool_settings_default->unwrapper,
+      tool_settings_default.unwrapper,
       "Method",
       "Unwrapping method (Angle Based usually gives better results than Conformal, while "
       "being somewhat slower)");
   RNA_def_boolean(ot->srna,
                   "fill_holes",
-                  tool_settings_default->uvcalc_flag & UVCALC_FILLHOLES,
+                  tool_settings_default.uvcalc_flag & UVCALC_FILLHOLES,
                   "Fill Holes",
                   "Virtually fill holes in mesh before unwrapping, to better avoid overlaps and "
                   "preserve symmetry");
@@ -3039,14 +3038,14 @@ void UV_OT_unwrap(wmOperatorType *ot)
   /* SLIM only */
   RNA_def_boolean(ot->srna,
                   "no_flip",
-                  tool_settings_default->uvcalc_flag & UVCALC_UNWRAP_NO_FLIP,
+                  tool_settings_default.uvcalc_flag & UVCALC_UNWRAP_NO_FLIP,
                   "No Flip",
                   "Prevent flipping UV's, "
                   "flipping may lower distortion depending on the position of pins");
 
   RNA_def_int(ot->srna,
               "iterations",
-              tool_settings_default->uvcalc_iterations,
+              tool_settings_default.uvcalc_iterations,
               0,
               10000,
               "Iterations",
@@ -3056,19 +3055,19 @@ void UV_OT_unwrap(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna,
                   "use_weights",
-                  tool_settings_default->uvcalc_flag & UVCALC_UNWRAP_USE_WEIGHTS,
+                  tool_settings_default.uvcalc_flag & UVCALC_UNWRAP_USE_WEIGHTS,
                   "Importance Weights",
                   "Whether to take into account per-vertex importance weights");
   RNA_def_string(ot->srna,
                  "weight_group",
-                 tool_settings_default->uvcalc_weight_group,
+                 tool_settings_default.uvcalc_weight_group,
                  MAX_ID_NAME,
                  "Weight Group",
                  "Vertex group name for importance weights (modulating the deform)");
   RNA_def_float(
       ot->srna,
       "weight_factor",
-      tool_settings_default->uvcalc_weight_factor,
+      tool_settings_default.uvcalc_weight_factor,
       -10000.0,
       10000.0,
       "Weight Factor",

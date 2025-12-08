@@ -1627,7 +1627,7 @@ static void copy_vertex_group_name(ListBase *dst_deform_group,
     /* Skip if the source attribute can't possibly contain vertex weights. */
     return;
   }
-  bDeformGroup *dst = MEM_callocN<bDeformGroup>(__func__);
+  bDeformGroup *dst = MEM_new_for_free<bDeformGroup>(__func__);
   src_name.copy_utf8_truncated(dst->name);
   BLI_addtail(dst_deform_group, dst);
 }

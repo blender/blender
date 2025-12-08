@@ -53,8 +53,6 @@ static void cache_file_init_data(ID *id)
 {
   CacheFile *cache_file = (CacheFile *)id;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(cache_file, id));
-
   cache_file->scale = 1.0f;
   cache_file->velocity_unit = CACHEFILE_VELOCITY_UNIT_SECOND;
   STRNCPY(cache_file->velocity_name, ".velocities");
@@ -423,7 +421,7 @@ CacheFileLayer *BKE_cachefile_add_layer(CacheFile *cache_file, const char filepa
 
   const int num_layers = BLI_listbase_count(&cache_file->layers);
 
-  CacheFileLayer *layer = MEM_callocN<CacheFileLayer>("CacheFileLayer");
+  CacheFileLayer *layer = MEM_new_for_free<CacheFileLayer>("CacheFileLayer");
   STRNCPY(layer->filepath, filepath);
 
   BLI_addtail(&cache_file->layers, layer);

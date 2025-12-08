@@ -12,7 +12,6 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
-#include "DNA_defaults.h"
 #include "DNA_light_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_force_types.h"
@@ -4700,8 +4699,7 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 76)) {
-    ToolSettings toolsettings_default = blender::dna::shallow_copy(
-        *DNA_struct_default_get(ToolSettings));
+    ToolSettings toolsettings_default = {};
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       scene->toolsettings->snap_playhead_mode = toolsettings_default.snap_playhead_mode;
       scene->toolsettings->snap_step_frames = toolsettings_default.snap_step_frames;
@@ -4785,7 +4783,7 @@ static void do_version_node_curve_to_mesh_scale_input(bNodeTree *tree)
 
     bNode &named_attribute = version_node_add_empty(*tree, "GeometryNodeInputNamedAttribute");
     NodeGeometryInputNamedAttribute *named_attribute_storage =
-        MEM_callocN<NodeGeometryInputNamedAttribute>(__func__);
+        MEM_new_for_free<NodeGeometryInputNamedAttribute>(__func__);
     named_attribute_storage->data_type = CD_PROP_FLOAT;
     named_attribute.storage = named_attribute_storage;
     named_attribute.parent = curve_to_mesh->parent;
@@ -4803,7 +4801,7 @@ static void do_version_node_curve_to_mesh_scale_input(bNodeTree *tree)
         tree, &named_attribute, SOCK_OUT, SOCK_FLOAT, PROP_NONE, "Attribute", "Attribute");
 
     bNode &switch_node = version_node_add_empty(*tree, "GeometryNodeSwitch");
-    NodeSwitch *switch_storage = MEM_callocN<NodeSwitch>(__func__);
+    NodeSwitch *switch_storage = MEM_new_for_free<NodeSwitch>(__func__);
     switch_storage->input_type = SOCK_FLOAT;
     switch_node.storage = switch_storage;
     switch_node.parent = curve_to_mesh->parent;
@@ -5102,7 +5100,7 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         if (node->storage != nullptr) {
           continue;
         }
-        NodeScaleData *data = MEM_callocN<NodeScaleData>(__func__);
+        NodeScaleData *data = MEM_new_for_free<NodeScaleData>(__func__);
         data->interpolation = CMP_NODE_INTERPOLATION_BILINEAR;
         node->storage = data;
       }
@@ -5563,18 +5561,18 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 51)) {
-    const Object *dob = DNA_struct_default_get(Object);
+    const Object dob;
     LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-      object->shadow_terminator_normal_offset = dob->shadow_terminator_normal_offset;
-      object->shadow_terminator_geometry_offset = dob->shadow_terminator_geometry_offset;
-      object->shadow_terminator_shading_offset = dob->shadow_terminator_shading_offset;
+      object->shadow_terminator_normal_offset = dob.shadow_terminator_normal_offset;
+      object->shadow_terminator_geometry_offset = dob.shadow_terminator_geometry_offset;
+      object->shadow_terminator_shading_offset = dob.shadow_terminator_shading_offset;
       /* Copy Cycles' property into Blender Object. */
       IDProperty *cob = version_cycles_properties_from_ID(&object->id);
       if (cob) {
         object->shadow_terminator_geometry_offset = version_cycles_property_float(
-            cob, "shadow_terminator_geometry_offset", dob->shadow_terminator_geometry_offset);
+            cob, "shadow_terminator_geometry_offset", dob.shadow_terminator_geometry_offset);
         object->shadow_terminator_shading_offset = version_cycles_property_float(
-            cob, "shadow_terminator_offset", dob->shadow_terminator_shading_offset);
+            cob, "shadow_terminator_offset", dob.shadow_terminator_shading_offset);
       }
     }
   }

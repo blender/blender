@@ -55,7 +55,7 @@ static void cmp_node_translate_declare(NodeDeclarationBuilder &b)
 static void node_composit_init_translate(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
-  NodeTranslateData *data = MEM_callocN<NodeTranslateData>(__func__);
+  NodeTranslateData *data = MEM_new_for_free<NodeTranslateData>(__func__);
   node->storage = data;
 }
 

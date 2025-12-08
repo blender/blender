@@ -64,14 +64,14 @@ NodesModifierPackedBake *pack_bake_from_disk(const BakePath &bake_path, ReportLi
   const Vector<NodesModifierBakeFile> blob_bake_files = pack_files_from_directory(
       bake_path.blobs_dir, reports);
 
-  NodesModifierPackedBake *packed_bake = MEM_callocN<NodesModifierPackedBake>(__func__);
+  NodesModifierPackedBake *packed_bake = MEM_new_for_free<NodesModifierPackedBake>(__func__);
   packed_bake->meta_files_num = meta_bake_files.size();
   packed_bake->blob_files_num = blob_bake_files.size();
 
-  packed_bake->meta_files = MEM_calloc_arrayN<NodesModifierBakeFile>(packed_bake->meta_files_num,
-                                                                     __func__);
-  packed_bake->blob_files = MEM_calloc_arrayN<NodesModifierBakeFile>(packed_bake->blob_files_num,
-                                                                     __func__);
+  packed_bake->meta_files = MEM_new_array_for_free<NodesModifierBakeFile>(
+      packed_bake->meta_files_num, __func__);
+  packed_bake->blob_files = MEM_new_array_for_free<NodesModifierBakeFile>(
+      packed_bake->blob_files_num, __func__);
 
   uninitialized_copy_n(meta_bake_files.data(), meta_bake_files.size(), packed_bake->meta_files);
   uninitialized_copy_n(blob_bake_files.data(), blob_bake_files.size(), packed_bake->blob_files);

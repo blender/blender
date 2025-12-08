@@ -83,7 +83,7 @@ void ED_node_tree_start(ARegion *region, SpaceNode *snode, bNodeTree *ntree, ID 
   BLI_listbase_clear(&snode->treepath);
 
   if (ntree) {
-    bNodeTreePath *path = MEM_callocN<bNodeTreePath>("node tree path");
+    bNodeTreePath *path = MEM_new_for_free<bNodeTreePath>("node tree path");
     path->nodetree = ntree;
     path->parent_key = blender::bke::NODE_INSTANCE_KEY_BASE;
 
@@ -120,7 +120,7 @@ void ED_node_tree_start(ARegion *region, SpaceNode *snode, bNodeTree *ntree, ID 
 
 void ED_node_tree_push(ARegion *region, SpaceNode *snode, bNodeTree *ntree, bNode *gnode)
 {
-  bNodeTreePath *path = MEM_callocN<bNodeTreePath>("node tree path");
+  bNodeTreePath *path = MEM_new_for_free<bNodeTreePath>("node tree path");
   bNodeTreePath *prev_path = (bNodeTreePath *)snode->treepath.last;
   path->nodetree = ntree;
   if (gnode) {
@@ -556,7 +556,7 @@ const ComputeContext *compute_context_for_edittree_node(
 
 static SpaceLink *node_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 {
-  SpaceNode *snode = MEM_callocN<SpaceNode>(__func__);
+  SpaceNode *snode = MEM_new_for_free<SpaceNode>(__func__);
   snode->runtime = MEM_new<SpaceNode_Runtime>(__func__);
   snode->spacetype = SPACE_NODE;
 

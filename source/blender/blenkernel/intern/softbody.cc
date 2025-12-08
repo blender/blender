@@ -3057,7 +3057,7 @@ SoftBody *sbNew()
 {
   SoftBody *sb;
 
-  sb = MEM_callocN<SoftBody>("softbody");
+  sb = MEM_new_for_free<SoftBody>("softbody");
 
   sb->mediafrict = 0.5f;
   sb->nodemass = 1.0f;
@@ -3093,7 +3093,7 @@ SoftBody *sbNew()
   sb->shearstiff = 1.0f;
   sb->solverflags |= SBSO_OLDERR;
 
-  sb->shared = MEM_callocN<SoftBody_Shared>("SoftBody_Shared");
+  sb->shared = MEM_new_for_free<SoftBody_Shared>("SoftBody_Shared");
   sb->shared->pointcache = BKE_ptcache_add(&sb->shared->ptcaches);
 
   if (!sb->effector_weights) {

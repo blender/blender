@@ -10,14 +10,14 @@
 
 /* Keep for 'Camera' versioning. */
 /** Properties for DOF effect. */
-typedef struct GPUDOFSettings {
+struct GPUDOFSettings {
   /** Focal distance for depth of field. */
-  float focus_distance;
-  float fstop;
-  float focal_length;
-  float sensor;
-  float rotation;
-  float ratio;
-  int num_blades;
-  int high_quality;
-} GPUDOFSettings;
+  float focus_distance = 0;
+  float fstop = 0;
+  float focal_length = 0;
+  float sensor = 0;
+  float rotation = 0;
+  float ratio = 0;
+  int num_blades = 0;
+  int high_quality = 0;
+};

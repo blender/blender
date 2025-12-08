@@ -59,7 +59,7 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
   SpaceAction *saction;
   ARegion *region;
 
-  saction = MEM_callocN<SpaceAction>("initaction");
+  saction = MEM_new_for_free<SpaceAction>("initaction");
   saction->spacetype = SPACE_ACTION;
 
   const eAnimEdit_Context desired_mode = area ? eAnimEdit_Context(area->butspacetype_subtype) :

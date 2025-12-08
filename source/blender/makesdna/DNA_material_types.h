@@ -239,101 +239,101 @@ enum {
   GP_MATERIAL_FOLLOW_FIXED = 2,
 };
 
-typedef struct TexPaintSlot {
+struct TexPaintSlot {
   DNA_DEFINE_CXX_METHODS(TexPaintSlot)
 
   /** Image to be painted on. Mutual exclusive with attribute_name. */
-  struct Image *ima;
-  struct ImageUser *image_user;
+  struct Image *ima = nullptr;
+  struct ImageUser *image_user = nullptr;
 
   /**
    * Custom-data index for uv layer, #MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX.
    * May reference #NodeShaderUVMap::uv_name.
    */
-  char *uvname;
+  char *uvname = nullptr;
   /**
    * Color attribute name when painting using color attributes. Mutual exclusive with ima.
    * Points to the name of a CustomDataLayer.
    */
-  char *attribute_name;
+  char *attribute_name = nullptr;
   /** Do we have a valid image and UV map or attribute. */
-  int valid;
+  int valid = 0;
   /** Copy of node interpolation setting. */
-  int interp;
-} TexPaintSlot;
+  int interp = 0;
+};
 
-typedef struct MaterialGPencilStyle {
+struct MaterialGPencilStyle {
   DNA_DEFINE_CXX_METHODS(MaterialGPencilStyle)
 
   /** Texture image for strokes. */
-  struct Image *sima;
+  struct Image *sima = nullptr;
   /** Texture image for filling. */
-  struct Image *ima;
+  struct Image *ima = nullptr;
   /** Color for paint and strokes (alpha included). */
-  float stroke_rgba[4];
+  float stroke_rgba[4] = {};
   /** Color that should be used for drawing "fills" for strokes (alpha included). */
-  float fill_rgba[4];
+  float fill_rgba[4] = {};
   /** Secondary color used for gradients and other stuff. */
-  float mix_rgba[4];
+  float mix_rgba[4] = {};
   /** Settings. */
-  short flag;
+  short flag = 0;
   /** Custom index for passes. */
-  short index;
+  short index = 0;
   /** Style for drawing strokes (used to select shader type). */
-  short stroke_style;
+  short stroke_style = 0;
   /** Style for filling areas (used to select shader type). */
-  short fill_style;
+  short fill_style = 0;
   /** Factor used to define shader behavior (several uses). */
-  float mix_factor;
+  float mix_factor = 0;
   /** Angle used for gradients orientation. */
-  float gradient_angle DNA_DEPRECATED;
+  DNA_DEPRECATED float gradient_angle = 0;
   /** Radius for radial gradients. */
-  float gradient_radius DNA_DEPRECATED;
-  char _pad2[4];
+  DNA_DEPRECATED float gradient_radius = 0;
+  char _pad2[4] = {};
   /** UV coordinates scale. */
-  float gradient_scale[2] DNA_DEPRECATED;
+  DNA_DEPRECATED float gradient_scale[2] = {};
   /** Factor to shift filling in 2d space. */
-  float gradient_shift[2] DNA_DEPRECATED;
+  DNA_DEPRECATED float gradient_shift[2] = {};
   /** Angle used for texture orientation. */
-  float texture_angle;
+  float texture_angle = 0;
   /** Texture scale (separated of uv scale). */
-  float texture_scale[2];
+  float texture_scale[2] = {};
   /** Factor to shift texture in 2d space. */
-  float texture_offset[2];
+  float texture_offset[2] = {};
   /** Texture opacity. */
-  float texture_opacity DNA_DEPRECATED;
+  DNA_DEPRECATED float texture_opacity = 0;
   /** Pixel size for uv along the stroke. */
-  float texture_pixsize;
+  float texture_pixsize = 0;
   /** Drawing mode (line or dots). */
-  int mode;
+  int mode = 0;
 
   /** Type of gradient. */
-  int gradient_type;
+  int gradient_type = 0;
 
   /** Factor used to mix texture and stroke color. */
-  float mix_stroke_factor;
+  float mix_stroke_factor = 0;
   /** Mode used to align Dots and Boxes with stroke drawing path and object rotation */
-  int alignment_mode;
+  int alignment_mode = 0;
   /** Rotation for texture for Dots and Squares. */
-  float alignment_rotation;
-} MaterialGPencilStyle;
+  float alignment_rotation = 0;
+};
 
-typedef struct MaterialLineArt {
+struct MaterialLineArt {
   /* eMaterialLineArtFlags */
-  int flags;
+  int flags = 0;
 
   /* Used to filter line art occlusion edges */
-  unsigned char material_mask_bits;
+  unsigned char material_mask_bits = 0;
 
   /** Maximum 255 levels of equivalent occlusion. */
-  unsigned char mat_occlusion;
+  unsigned char mat_occlusion = 1;
 
-  unsigned char intersection_priority;
+  unsigned char intersection_priority = 0;
 
-  char _pad;
-} MaterialLineArt;
+  char _pad = {};
+};
 
-typedef struct Material {
+struct Material {
 #ifdef __cplusplus
   DNA_DEFINE_CXX_METHODS(Material)
   /** See #ID_Type comment for why this is here. */
@@ -342,79 +342,79 @@ typedef struct Material {
 
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
-  struct AnimData *adt;
+  struct AnimData *adt = nullptr;
 
-  short flag;
+  short flag = 0;
   /** Rendering modes for EEVEE. */
-  char surface_render_method;
-  char _pad1[1];
+  char surface_render_method = 0;
+  char _pad1[1] = {};
 
   /* Colors from Blender Internal that we are still using. */
-  float r, g, b, a;
-  float specr, specg, specb;
-  float alpha DNA_DEPRECATED;
-  float ray_mirror DNA_DEPRECATED;
-  float spec;
+  float r = 0.8, g = 0.8, b = 0.8, a = 1.0f;
+  float specr = 1.0, specg = 1.0, specb = 1.0;
+  DNA_DEPRECATED float alpha = 0;
+  DNA_DEPRECATED float ray_mirror = 0;
+  float spec = 0.5;
   /** Renamed and inversed to roughness. */
-  float gloss_mir DNA_DEPRECATED;
-  float roughness;
-  float metallic;
+  DNA_DEPRECATED float gloss_mir = 0;
+  float roughness = 0.4f;
+  float metallic = 0;
 
   /** Nodes */
-  char use_nodes DNA_DEPRECATED;
+  DNA_DEPRECATED char use_nodes = 0;
 
   /** Preview render. */
-  char pr_type;
-  short pr_texture;
-  short pr_flag;
+  char pr_type = MA_SPHERE;
+  short pr_texture = 0;
+  short pr_flag = 0;
 
   /** Index for render passes. */
-  short index;
+  short index = 0;
 
-  struct bNodeTree *nodetree;
-  struct PreviewImage *preview;
+  struct bNodeTree *nodetree = nullptr;
+  struct PreviewImage *preview = nullptr;
 
   /* Freestyle line settings. */
-  float line_col[4];
-  short line_priority;
-  short vcol_alpha;
+  float line_col[4] = {};
+  short line_priority = 0;
+  short vcol_alpha = 0;
 
   /* Texture painting slots. */
-  short paint_active_slot;
-  short paint_clone_slot;
-  short tot_slots;
+  short paint_active_slot = 0;
+  short paint_clone_slot = 0;
+  short tot_slots = 0;
 
   /* Displacement. */
-  char displacement_method;
+  char displacement_method = 0;
 
   /* Thickness. */
-  char thickness_mode;
+  char thickness_mode = 0;
 
   /* Transparency. */
-  float alpha_threshold;
-  float refract_depth;
-  char blend_method; /* TODO(fclem): Deprecate once we remove legacy EEVEE. */
-  char blend_shadow; /* TODO(fclem): Deprecate once we remove legacy EEVEE. */
-  char blend_flag;
+  float alpha_threshold = 0.5f;
+  float refract_depth = 0;
+  char blend_method = 0;           /* TODO(fclem): Deprecate once we remove legacy EEVEE. */
+  char blend_shadow = MA_BS_SOLID; /* TODO(fclem): Deprecate once we remove legacy EEVEE. */
+  char blend_flag = MA_BL_TRANSPARENT_SHADOW;
 
   /* Volume. */
-  char volume_intersection_method;
+  char volume_intersection_method = 0;
 
   /* Displacement. */
-  float inflate_bounds;
+  float inflate_bounds = 0;
 
-  char _pad3[4];
+  char _pad3[4] = {};
 
   /**
    * Cached slots for texture painting, must be refreshed via
    * BKE_texpaint_slot_refresh_cache before using.
    */
-  struct TexPaintSlot *texpaintslot;
+  struct TexPaintSlot *texpaintslot = nullptr;
 
   /** Runtime cache for GLSL materials. */
-  ListBase gpumaterial;
+  ListBase gpumaterial = {nullptr, nullptr};
 
   /** Grease pencil color. */
-  struct MaterialGPencilStyle *gp_style;
+  struct MaterialGPencilStyle *gp_style = nullptr;
   struct MaterialLineArt lineart;
-} Material;
+};

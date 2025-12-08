@@ -14,7 +14,6 @@
 
 #include "DNA_ID.h"
 #include "DNA_camera_types.h"
-#include "DNA_defaults.h"
 #include "DNA_light_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -55,9 +54,7 @@
 static void camera_init_data(ID *id)
 {
   Camera *cam = (Camera *)id;
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(cam, id));
-
-  MEMCPY_STRUCT_AFTER(cam, DNA_struct_default_get(Camera), id);
+  INIT_DEFAULT_STRUCT_AFTER(cam, id);
 }
 
 /**
@@ -353,7 +350,7 @@ int BKE_camera_sensor_fit(int sensor_fit, float sizex, float sizey)
 
 void BKE_camera_params_init(CameraParams *params)
 {
-  memset(params, 0, sizeof(CameraParams));
+  *params = CameraParams();
 
   /* defaults */
   params->sensor_x = DEFAULT_SENSOR_WIDTH;
@@ -1241,7 +1238,7 @@ void BKE_camera_multiview_params(const RenderData *rd,
 
 CameraBGImage *BKE_camera_background_image_new(Camera *cam)
 {
-  CameraBGImage *bgpic = MEM_callocN<CameraBGImage>("Background Image");
+  CameraBGImage *bgpic = MEM_new_for_free<CameraBGImage>("Background Image");
 
   bgpic->scale = 1.0f;
   bgpic->alpha = 0.5f;

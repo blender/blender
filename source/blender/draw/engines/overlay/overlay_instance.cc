@@ -93,7 +93,7 @@ void Instance::init()
                         (ctx->v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0;
     }
     else {
-      memset(&state.overlay, 0, sizeof(state.overlay));
+      _DNA_internal_memzero(&state.overlay, sizeof(state.overlay));
       state.v3d_flag = 0;
       state.v3d_gridflag = 0;
       state.overlay.flag = V3D_OVERLAY_HIDE_TEXT | V3D_OVERLAY_HIDE_MOTION_PATHS |

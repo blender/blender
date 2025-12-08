@@ -6,7 +6,6 @@
  * \ingroup modifiers
  */
 
-#include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
 
 #include "BKE_curves.hh"
@@ -46,10 +45,7 @@ namespace blender {
 static void init_data(ModifierData *md)
 {
   auto *mmd = reinterpret_cast<GreasePencilArrayModifierData *>(md);
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(mmd, DNA_struct_default_get(GreasePencilArrayModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(mmd, modifier);
   modifier::greasepencil::init_influence_data(&mmd->influence, false);
 }
 

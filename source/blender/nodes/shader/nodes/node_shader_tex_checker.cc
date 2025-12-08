@@ -36,7 +36,7 @@ static void sh_node_tex_checker_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_init_tex_checker(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTexChecker *tex = MEM_callocN<NodeTexChecker>(__func__);
+  NodeTexChecker *tex = MEM_new_for_free<NodeTexChecker>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
 

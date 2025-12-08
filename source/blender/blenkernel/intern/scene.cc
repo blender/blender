@@ -20,7 +20,6 @@
 #include "DNA_brush_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curveprofile_types.h"
-#include "DNA_defaults.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_linestyle_types.h"
@@ -162,9 +161,7 @@ static void scene_init_data(ID *id)
   SceneRenderView *srv;
   CurveMapping *mblur_shutter_curve;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(scene, id));
-
-  MEMCPY_STRUCT_AFTER(scene, DNA_struct_default_get(Scene), id);
+  INIT_DEFAULT_STRUCT_AFTER(scene, id);
 
   STRNCPY(scene->r.bake.filepath, U.renderdir);
 
@@ -176,7 +173,7 @@ static void scene_init_data(ID *id)
                      CURVE_PRESET_MAX,
                      CurveMapSlopeType::PositiveNegative);
 
-  scene->toolsettings = DNA_struct_default_alloc(ToolSettings);
+  scene->toolsettings = MEM_new_for_free<ToolSettings>(__func__);
 
   scene->toolsettings->autokey_mode = uchar(U.autokey_mode);
 
@@ -334,7 +331,7 @@ static void scene_copy_data(Main *bmain,
 
   /* Copy sequencer, this is local data! */
   if (scene_src->ed) {
-    scene_dst->ed = MEM_callocN<Editing>(__func__);
+    scene_dst->ed = MEM_new_for_free<Editing>(__func__);
     scene_dst->ed->cache_flag = scene_src->ed->cache_flag;
     scene_dst->ed->show_missing_media_flag = scene_src->ed->show_missing_media_flag;
     scene_dst->ed->proxy_storage = scene_src->ed->proxy_storage;
@@ -1847,7 +1844,7 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
 void BKE_scene_copy_data_eevee(Scene *sce_dst, const Scene *sce_src)
 {
   /* Copy eevee data between scenes. */
-  sce_dst->eevee = sce_src->eevee;
+  sce_dst->eevee = blender::dna::shallow_copy(sce_src->eevee);
 }
 
 Scene *BKE_scene_duplicate(Main *bmain,
@@ -1867,7 +1864,7 @@ Scene *BKE_scene_duplicate(Main *bmain,
 
     rv = sce_copy->r.views;
     BKE_curvemapping_free_data(&sce_copy->r.mblur_shutter_curve);
-    sce_copy->r = sce->r;
+    sce_copy->r = blender::dna::shallow_copy(sce->r);
     sce_copy->r.views = rv;
     sce_copy->unit = sce->unit;
     sce_copy->physics_settings = sce->physics_settings;
@@ -2818,7 +2815,7 @@ SceneRenderView *BKE_scene_add_render_view(Scene *sce, const char *name)
     name = DATA_("RenderView");
   }
 
-  SceneRenderView *srv = MEM_callocN<SceneRenderView>(__func__);
+  SceneRenderView *srv = MEM_new_for_free<SceneRenderView>(__func__);
   STRNCPY_UTF8(srv->name, name);
   BLI_uniquename(&sce->r.views,
                  srv,

@@ -99,7 +99,7 @@ TEST_F(ActionFilterTest, slots_expanded_or_not)
   ASSERT_NE(nullptr, fcu_cube_loc_y);
 
   /* Mock an bAnimContext for the Animation editor, with the above Animation showing. */
-  SpaceAction saction = {nullptr};
+  SpaceAction saction = {};
   saction.ads.filterflag = eDopeSheet_FilterFlag(0);
 
   bAnimContext ac = {nullptr};
@@ -256,7 +256,7 @@ TEST_F(ActionFilterTest, layered_action_active_fcurves)
   fcurve_other->flag &= ~FCURVE_ACTIVE;
 
   /* Mock an bAnimContext for the Action editor. */
-  SpaceAction saction = {nullptr};
+  SpaceAction saction = {};
   saction.ads.filterflag = eDopeSheet_FilterFlag(0);
 
   bAnimContext ac = {nullptr};

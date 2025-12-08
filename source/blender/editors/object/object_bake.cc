@@ -10,6 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_layer_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -29,7 +30,6 @@
 #include "BKE_multires.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
-#include "BKE_subdiv.hh"
 
 #include "RE_multires_bake.h"
 #include "RE_pipeline.h"

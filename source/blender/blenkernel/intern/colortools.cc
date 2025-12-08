@@ -73,7 +73,7 @@ void BKE_curvemapping_set_defaults(CurveMapping *cumap,
     }
 
     cumap->cm[a].totpoint = 2;
-    cumap->cm[a].curve = MEM_calloc_arrayN<CurveMapPoint>(2, "curve points");
+    cumap->cm[a].curve = MEM_new_array_for_free<CurveMapPoint>(2, "curve points");
 
     cumap->cm[a].curve[0].x = minx;
     cumap->cm[a].curve[0].y = miny;
@@ -90,7 +90,7 @@ CurveMapping *BKE_curvemapping_add(int tot, float minx, float miny, float maxx, 
 {
   CurveMapping *cumap;
 
-  cumap = MEM_callocN<CurveMapping>("new curvemap");
+  cumap = MEM_new_for_free<CurveMapping>("new curvemap");
 
   BKE_curvemapping_set_defaults(cumap, tot, minx, miny, maxx, maxy, HD_AUTO);
 
@@ -129,7 +129,7 @@ void BKE_curvemapping_copy_data(CurveMapping *target, const CurveMapping *cumap)
 {
   int a;
 
-  *target = *cumap;
+  *target = blender::dna::shallow_copy(*cumap);
 
   for (a = 0; a < CM_TOT; a++) {
     if (cumap->cm[a].curve) {
@@ -195,7 +195,7 @@ bool BKE_curvemap_remove_point(CurveMap *cuma, CurveMapPoint *point)
     return false;
   }
 
-  cmp = MEM_malloc_arrayN<CurveMapPoint>(size_t(cuma->totpoint), "curve points");
+  cmp = MEM_new_array_for_free<CurveMapPoint>(size_t(cuma->totpoint), "curve points");
 
   /* well, lets keep the two outer points! */
   for (a = 0, b = 0; a < cuma->totpoint; a++) {
@@ -216,7 +216,8 @@ bool BKE_curvemap_remove_point(CurveMap *cuma, CurveMapPoint *point)
 
 void BKE_curvemap_remove(CurveMap *cuma, const short flag)
 {
-  CurveMapPoint *cmp = MEM_malloc_arrayN<CurveMapPoint>(size_t(cuma->totpoint), "curve points");
+  CurveMapPoint *cmp = MEM_new_array_for_free<CurveMapPoint>(size_t(cuma->totpoint),
+                                                             "curve points");
   int a, b, removed = 0;
 
   /* well, lets keep the two outer points! */
@@ -239,8 +240,8 @@ void BKE_curvemap_remove(CurveMap *cuma, const short flag)
 
 CurveMapPoint *BKE_curvemap_insert(CurveMap *cuma, float x, float y)
 {
-  CurveMapPoint *cmp = MEM_calloc_arrayN<CurveMapPoint>(size_t(cuma->totpoint) + 1,
-                                                        "curve points");
+  CurveMapPoint *cmp = MEM_new_array_for_free<CurveMapPoint>(size_t(cuma->totpoint) + 1,
+                                                             "curve points");
   CurveMapPoint *newcmp = nullptr;
   int a, b;
   bool foundloc = false;
@@ -310,7 +311,7 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, CurveMapS
       break;
   }
 
-  cuma->curve = MEM_calloc_arrayN<CurveMapPoint>(cuma->totpoint, "curve points");
+  cuma->curve = MEM_new_array_for_free<CurveMapPoint>(cuma->totpoint, "curve points");
 
   for (int i = 0; i < cuma->totpoint; i++) {
     cuma->curve[i].flag = cuma->default_handle_type;
@@ -474,8 +475,8 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, CurveMapS
   }
   else if (slope == CurveMapSlopeType::PositiveNegative) {
     const int num_points = cuma->totpoint * 2 - 1;
-    CurveMapPoint *new_points = MEM_malloc_arrayN<CurveMapPoint>(size_t(num_points),
-                                                                 "curve symmetric points");
+    CurveMapPoint *new_points = MEM_new_array_for_free<CurveMapPoint>(size_t(num_points),
+                                                                      "curve symmetric points");
     for (int i = 0; i < cuma->totpoint; i++) {
       const int src_last_point = cuma->totpoint - i - 1;
       const int dst_last_point = num_points - i - 1;
@@ -873,7 +874,7 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
   float *lastpoint = allpoints + 2 * (totpoint - 1);
   point = allpoints;
 
-  CurveMapPoint *cmp = MEM_calloc_arrayN<CurveMapPoint>(CM_TABLE + 1, "dist table");
+  CurveMapPoint *cmp = MEM_new_array_for_free<CurveMapPoint>(CM_TABLE + 1, "dist table");
 
   for (int a = 0; a <= CM_TABLE; a++) {
     float cur_x = cuma->mintable + range * float(a);
@@ -942,7 +943,7 @@ void BKE_curvemapping_premultiply(CurveMapping *cumap, bool restore)
           curvemap_make_table(cumap, cumap->cm + a);
         }
         cumap->cm[a].premultable = cumap->cm[a].table;
-        cumap->cm[a].table = MEM_malloc_arrayN<CurveMapPoint>(CM_TABLE + 1, "premul table");
+        cumap->cm[a].table = MEM_new_array_for_free<CurveMapPoint>(CM_TABLE + 1, "premul table");
         memcpy(
             cumap->cm[a].table, cumap->cm[a].premultable, (CM_TABLE + 1) * sizeof(CurveMapPoint));
       }

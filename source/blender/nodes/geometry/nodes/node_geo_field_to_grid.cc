@@ -349,7 +349,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  GeometryNodeFieldToGrid *data = MEM_callocN<GeometryNodeFieldToGrid>(__func__);
+  GeometryNodeFieldToGrid *data = MEM_new_for_free<GeometryNodeFieldToGrid>(__func__);
   data->data_type = SOCK_FLOAT;
   node->storage = data;
 }
@@ -363,7 +363,8 @@ static void node_free_storage(bNode *node)
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const GeometryNodeFieldToGrid &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_dupallocN<GeometryNodeFieldToGrid>(__func__, src_storage);
+  auto *dst_storage = MEM_new_for_free<GeometryNodeFieldToGrid>(__func__,
+                                                                dna::shallow_copy(src_storage));
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<ItemsAccessor>(*src_node, *dst_node);

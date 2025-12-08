@@ -9,7 +9,6 @@
 #include "BKE_attribute.hh"
 #include "BKE_material.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
@@ -49,10 +48,7 @@ namespace blender {
 static void init_data(ModifierData *md)
 {
   auto *smd = reinterpret_cast<GreasePencilShrinkwrapModifierData *>(md);
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(smd, modifier));
-
-  MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(GreasePencilShrinkwrapModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(smd, modifier);
   modifier::greasepencil::init_influence_data(&smd->influence, false);
 }
 

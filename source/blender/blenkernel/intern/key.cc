@@ -1574,7 +1574,7 @@ KeyBlock *BKE_keyblock_add(Key *key, const char *name)
     curpos = kb->pos;
   }
 
-  kb = MEM_callocN<KeyBlock>("Keyblock");
+  kb = MEM_new_for_free<KeyBlock>("Keyblock");
   BLI_addtail(&key->block, kb);
   kb->type = KEY_LINEAR;
 

@@ -52,7 +52,7 @@ static void cmp_node_setalpha_declare(NodeDeclarationBuilder &b)
 static void node_composit_init_setalpha(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, but allocated for forward compatibility. */
-  NodeSetAlpha *settings = MEM_callocN<NodeSetAlpha>(__func__);
+  NodeSetAlpha *settings = MEM_new_for_free<NodeSetAlpha>(__func__);
   node->storage = settings;
 }
 

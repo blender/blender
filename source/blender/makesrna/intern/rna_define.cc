@@ -17,7 +17,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_defaults.h"
 #include "DNA_genfile.h"
 #include "DNA_sdna_types.h"
 
@@ -36,6 +35,9 @@
 
 #include "RNA_define.hh"
 
+#ifndef RNA_RUNTIME
+#  include "rna_defaults.hh"
+#endif
 #include "rna_internal.hh"
 
 #include "CLG_log.h"

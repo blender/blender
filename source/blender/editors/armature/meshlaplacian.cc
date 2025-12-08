@@ -1697,9 +1697,10 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
     }
 
     /* convert MDefBindInfluences to smaller MDefInfluences */
-    mmd->dyngrid = MEM_calloc_arrayN<MDefCell>(mdb->size3, "MDefDynGrid");
+    mmd->dyngrid = MEM_new_array_for_free<MDefCell>(mdb->size3, "MDefDynGrid");
     mmd->dyngrid_sharing_info = implicit_sharing::info_for_mem_free(mmd->dyngrid);
-    mmd->dyninfluences = MEM_calloc_arrayN<MDefInfluence>(mmd->influences_num, "MDefInfluence");
+    mmd->dyninfluences = MEM_new_array_for_free<MDefInfluence>(mmd->influences_num,
+                                                               "MDefInfluence");
     mmd->dyninfluences_sharing_info = implicit_sharing::info_for_mem_free(mmd->dyninfluences);
     offset = 0;
     for (a = 0; a < mdb->size3; a++) {

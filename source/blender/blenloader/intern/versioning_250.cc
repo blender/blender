@@ -26,6 +26,7 @@
 #include "DNA_fluid_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -555,7 +556,7 @@ static bNodeSocket *do_versions_node_group_add_socket_2_56_2(bNodeTree *ngroup,
                                                              int in_out)
 {
   //  bNodeSocketType *stype = ntreeGetSocketType(type);
-  bNodeSocket *gsock = MEM_callocN<bNodeSocket>("bNodeSocket");
+  bNodeSocket *gsock = MEM_new_for_free<bNodeSocket>("bNodeSocket");
 
   STRNCPY_UTF8(gsock->name, name);
   gsock->type = type;
@@ -596,7 +597,7 @@ static void do_versions_socket_default_value_259(bNodeSocket *sock)
 
   switch (sock->type) {
     case SOCK_FLOAT:
-      valfloat = MEM_callocN<bNodeSocketValueFloat>("default socket value");
+      valfloat = MEM_new_for_free<bNodeSocketValueFloat>("default socket value");
       valfloat->value = sock->ns.vec[0];
       valfloat->min = sock->ns.min;
       valfloat->max = sock->ns.max;
@@ -604,7 +605,7 @@ static void do_versions_socket_default_value_259(bNodeSocket *sock)
       sock->default_value = valfloat;
       break;
     case SOCK_VECTOR:
-      valvector = MEM_callocN<bNodeSocketValueVector>("default socket value");
+      valvector = MEM_new_for_free<bNodeSocketValueVector>("default socket value");
       copy_v3_v3(valvector->value, sock->ns.vec);
       valvector->min = sock->ns.min;
       valvector->max = sock->ns.max;
@@ -612,7 +613,7 @@ static void do_versions_socket_default_value_259(bNodeSocket *sock)
       sock->default_value = valvector;
       break;
     case SOCK_RGBA:
-      valrgba = MEM_callocN<bNodeSocketValueRGBA>("default socket value");
+      valrgba = MEM_new_for_free<bNodeSocketValueRGBA>("default socket value");
       copy_v4_v4(valrgba->value, sock->ns.vec);
       sock->default_value = valrgba;
       break;
@@ -1836,7 +1837,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
              * have to create these directly here.
              * These links are updated again in subsequent do_version!
              */
-            bNodeLink *link = MEM_callocN<bNodeLink>("link");
+            bNodeLink *link = MEM_new_for_free<bNodeLink>("link");
             BLI_addtail(&ntree->links, link);
             link->fromnode = nullptr;
             link->fromsock = gsock;
@@ -1861,7 +1862,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
              * have to create these directly here.
              * These links are updated again in subsequent do_version!
              */
-            bNodeLink *link = MEM_callocN<bNodeLink>("link");
+            bNodeLink *link = MEM_new_for_free<bNodeLink>("link");
             BLI_addtail(&ntree->links, link);
             link->fromnode = node;
             link->fromsock = sock;

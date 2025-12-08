@@ -12,8 +12,6 @@ extern "C" {
 
 /** Default theme, see: `release/datafiles/userdef/userdef_default_theme.c`. */
 extern const bTheme U_theme_default;
-/** Default preferences, defined by: `release/datafiles/userdef/userdef_default.c`. */
-extern const UserDef U_default;
 
 #ifdef __cplusplus
 }

@@ -14,7 +14,6 @@
 #include "BLT_translation.hh"
 
 #include "DNA_curveprofile_types.h"
-#include "DNA_defaults.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
@@ -46,10 +45,7 @@
 static void init_data(ModifierData *md)
 {
   BevelModifierData *bmd = (BevelModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(bmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(bmd, DNA_struct_default_get(BevelModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(bmd, modifier);
 
   bmd->custom_profile = BKE_curveprofile_add(PROF_PRESET_LINE);
 }

@@ -9,7 +9,6 @@
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_array_utils.hh"
-#include "DNA_defaults.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
@@ -78,7 +77,7 @@ constexpr const char *layer_default_name = "Layer";
 
 static animrig::Layer &ActionLayer_alloc()
 {
-  ActionLayer *layer = DNA_struct_default_alloc(ActionLayer);
+  ActionLayer *layer = MEM_new_for_free<ActionLayer>(__func__);
   return layer->wrap();
 }
 
@@ -893,7 +892,7 @@ static float2 get_frame_range_of_fcurves(Span<const FCurve *> fcurves,
 
 Layer *Layer::duplicate_with_shallow_strip_copies(const StringRefNull allocation_name) const
 {
-  ActionLayer *copy = MEM_callocN<ActionLayer>(allocation_name.c_str());
+  ActionLayer *copy = MEM_new_for_free<ActionLayer>(allocation_name.c_str());
   *copy = *reinterpret_cast<const ActionLayer *>(this);
 
   /* Make a shallow copy of the Strips, without copying their data. */
@@ -991,7 +990,7 @@ int64_t Layer::find_strip_index(const Strip &strip) const
 Slot::Slot()
 {
   /* Zero-initialize the DNA struct. 'this' is a C++ class, and shouldn't be memset like this. */
-  memset(static_cast<ActionSlot *>(this), 0, sizeof(ActionSlot));
+  _DNA_internal_memzero(this, sizeof(ActionSlot));
   this->runtime = MEM_new<SlotRuntime>(__func__);
 }
 
@@ -1566,8 +1565,7 @@ std::optional<std::pair<Action *, Slot *>> get_action_slot_pair(ID &animated_id)
 Strip &Strip::create(Action &owning_action, const Strip::Type type)
 {
   /* Create the strip. */
-  ActionStrip *strip = MEM_callocN<ActionStrip>(__func__);
-  *strip = *DNA_struct_default_get(ActionStrip);
+  ActionStrip *strip = MEM_new_for_free<ActionStrip>(__func__);
   strip->strip_type = int8_t(type);
 
   /* Create the strip's data on the owning Action. */
@@ -2299,7 +2297,7 @@ int Channelbag::channel_group_containing_index(const int fcurve_array_index)
 
 bActionGroup &Channelbag::channel_group_create(StringRefNull name)
 {
-  bActionGroup *new_group = MEM_callocN<bActionGroup>(__func__);
+  bActionGroup *new_group = MEM_new_for_free<bActionGroup>(__func__);
 
   /* Find the end fcurve index of the current channel groups, to be used as the
    * start of the new channel group. */

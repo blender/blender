@@ -236,7 +236,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryViewer *data = MEM_callocN<NodeGeometryViewer>(__func__);
+  NodeGeometryViewer *data = MEM_new_for_free<NodeGeometryViewer>(__func__);
   data->data_type_legacy = CD_PROP_FLOAT;
   data->domain = int8_t(AttrDomain::Auto);
   node->storage = data;
@@ -447,9 +447,8 @@ static void node_free_storage(bNode *node)
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeGeometryViewer &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_mallocN<NodeGeometryViewer>(__func__);
-  *dst_storage = src_storage;
-  dst_node->storage = dst_storage;
+  dst_node->storage = MEM_new_for_free<NodeGeometryViewer>(__func__,
+                                                           dna::shallow_copy(src_storage));
 
   socket_items::copy_array<GeoViewerItemsAccessor>(*src_node, *dst_node);
 }

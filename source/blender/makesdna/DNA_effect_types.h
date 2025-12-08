@@ -63,77 +63,75 @@ enum {
   PAF_TEXGRAD = 2,
 };
 
-typedef struct Effect {
-  struct Effect *next, *prev;
-  short type, flag, buttype;
-  char _pad0[2];
-} Effect;
+struct Effect {
+  struct Effect *next = nullptr, *prev = nullptr;
+  short type = 0, flag = 0, buttype = 0;
+  char _pad0[2] = {};
+};
 
-typedef struct BuildEff {
+struct BuildEff {
   /* NOTE: match #Effect. */
-  struct BuildEff *next, *prev;
-  short type, flag, buttype;
+  struct BuildEff *next = nullptr, *prev = nullptr;
+  short type = 0, flag = 0, buttype = 0;
   /* End header. */
 
-  char _pad0[2];
+  char _pad0[2] = {};
 
-  float len, sfra;
-
-} BuildEff;
+  float len = 0, sfra = 0;
+};
 
 #
 #
-typedef struct Particle {
-  float co[3], no[3];
-  float time, lifetime;
-  short mat_nr;
-  char _pad0[2];
-} Particle;
+struct Particle {
+  float co[3] = {}, no[3] = {};
+  float time = 0, lifetime = 0;
+  short mat_nr = 0;
+  char _pad0[2] = {};
+};
 
 struct Collection;
 
-typedef struct PartEff {
+struct PartEff {
   /* NOTE: match #Effect. */
-  struct PartEff *next, *prev;
-  short type, flag, buttype;
+  struct PartEff *next = nullptr, *prev = nullptr;
+  short type = 0, flag = 0, buttype = 0;
   /* End header. */
 
-  short stype, vertgroup, userjit;
+  short stype = 0, vertgroup = 0, userjit = 0;
 
-  float sta, end, lifetime;
-  int totpart, totkey, seed;
+  float sta = 0, end = 0, lifetime = 0;
+  int totpart = 0, totkey = 0, seed = 0;
 
-  float normfac, obfac, randfac, texfac, randlife;
-  float force[3];
-  float damp;
+  float normfac = 0, obfac = 0, randfac = 0, texfac = 0, randlife = 0;
+  float force[3] = {};
+  float damp = 0;
 
-  float nabla, vectsize, maxlen, defvec[3];
-  char _pad[4];
+  float nabla = 0, vectsize = 0, maxlen = 0, defvec[3] = {};
+  char _pad[4] = {};
 
-  float mult[4], life[4];
-  short child[4], mat[4];
-  short texmap, curmult;
-  short staticstep, omat, timetex, speedtex, flag2, flag2neg;
-  short disp, vertgroup_v;
+  float mult[4] = {}, life[4] = {};
+  short child[4] = {}, mat[4] = {};
+  short texmap = 0, curmult = 0;
+  short staticstep = 0, omat = 0, timetex = 0, speedtex = 0, flag2 = 0, flag2neg = 0;
+  short disp = 0, vertgroup_v = 0;
 
-  char vgroupname[/*MAX_VGROUP_NAME*/ 64], vgroupname_v[/*MAX_VGROUP_NAME*/ 64];
+  char vgroupname[/*MAX_VGROUP_NAME*/ 64] = "";
+  char vgroupname_v[/*MAX_VGROUP_NAME*/ 64] = "";
   /** Inverse matrix of parent Object. */
-  float imat[4][4];
+  float imat[4][4] = {};
 
-  Particle *keys;
-  struct Collection *group;
+  Particle *keys = nullptr;
+  struct Collection *group = nullptr;
+};
 
-} PartEff;
-
-typedef struct WaveEff {
+struct WaveEff {
   /* NOTE: match #Effect. */
-  struct WaveEff *next, *prev;
-  short type, flag, buttype, stype;
+  struct WaveEff *next = nullptr, *prev = nullptr;
+  short type = 0, flag = 0, buttype = 0, stype = 0;
   /* End header. */
 
-  float startx, starty, height, width;
-  float narrow, speed, minfac, damp;
+  float startx = 0, starty = 0, height = 0, width = 0;
+  float narrow = 0, speed = 0, minfac = 0, damp = 0;
 
-  float timeoffs, lifetime;
-
-} WaveEff;
+  float timeoffs = 0, lifetime = 0;
+};

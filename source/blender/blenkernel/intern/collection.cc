@@ -40,8 +40,6 @@
 #include "BKE_rigidbody.h"
 #include "BKE_scene.hh"
 
-#include "DNA_defaults.h"
-
 #include "DNA_ID.h"
 #include "DNA_collection_types.h"
 #include "DNA_layer_types.h"
@@ -123,9 +121,7 @@ static void collection_exporter_copy(Collection *collection, CollectionExport *d
 static void collection_init_data(ID *id)
 {
   Collection *collection = (Collection *)id;
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(collection, id));
-
-  MEMCPY_STRUCT_AFTER(collection, DNA_struct_default_get(Collection), id);
+  INIT_DEFAULT_STRUCT_AFTER(collection, id);
   collection->runtime = MEM_new<blender::bke::CollectionRuntime>(__func__);
 }
 
@@ -850,7 +846,7 @@ static void collection_object_cache_fill(ListBase *lb,
     Base *base = static_cast<Base *>(BLI_findptr(lb, cob->ob, offsetof(Base, object)));
 
     if (base == nullptr) {
-      base = MEM_callocN<Base>("Object Base");
+      base = MEM_new_for_free<Base>("Object Base");
       base->object = cob->ob;
       BLI_addtail(lb, base);
       if (with_instances && cob->ob->instance_collection) {
@@ -1419,7 +1415,7 @@ static bool collection_object_add(Main *bmain,
   bool newly_added = false;
   CollectionObject *cob = collection->runtime->gobject_hash->lookup_or_add_cb(ob, [&]() {
     newly_added = true;
-    return MEM_callocN<CollectionObject>(__func__);
+    return MEM_new_for_free<CollectionObject>(__func__);
   });
   if (!newly_added) {
     return false;
@@ -1481,7 +1477,7 @@ CollectionExport *BKE_collection_exporter_add(Collection *collection, char *idna
 {
   /* Add a new #CollectionExport item to our handler list and fill it with #FileHandlerType
    * information. Also load in the operator's properties now as well. */
-  CollectionExport *data = MEM_callocN<CollectionExport>("CollectionExport");
+  CollectionExport *data = MEM_new_for_free<CollectionExport>("CollectionExport");
   STRNCPY(data->fh_idname, idname);
 
   BKE_collection_exporter_name_set(&collection->exporters, data, label);
@@ -1520,7 +1516,7 @@ bool BKE_collection_exporter_move(Collection *collection, const int from, const 
 
 static void collection_exporter_copy(Collection *collection, CollectionExport *data)
 {
-  CollectionExport *new_data = MEM_callocN<CollectionExport>("CollectionExport");
+  CollectionExport *new_data = MEM_new_for_free<CollectionExport>("CollectionExport");
   STRNCPY(new_data->fh_idname, data->fh_idname);
   new_data->export_properties = IDP_CopyProperty(data->export_properties);
   new_data->flag = data->flag;
@@ -1957,7 +1953,7 @@ static bool collection_child_add(Main *bmain,
     return false;
   }
 
-  child = MEM_callocN<CollectionChild>("CollectionChild");
+  child = MEM_new_for_free<CollectionChild>("CollectionChild");
   child->collection = collection;
   if (light_linking) {
     child->light_linking = *light_linking;

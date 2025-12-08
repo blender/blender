@@ -16,6 +16,7 @@ struct bAnimContext;
 struct bContext;
 struct wmKeyConfig;
 struct ARegion;
+struct ViewLayer;
 
 /* -------------------------------------------------------------------- */
 /** \name Drawing API

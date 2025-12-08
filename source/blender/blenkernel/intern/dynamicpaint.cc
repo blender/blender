@@ -1044,7 +1044,7 @@ void dynamicPaint_Modifier_free(DynamicPaintModifierData *pmd)
 DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSettings *canvas,
                                                    Scene *scene)
 {
-  DynamicPaintSurface *surface = MEM_callocN<DynamicPaintSurface>(__func__);
+  DynamicPaintSurface *surface = MEM_new_for_free<DynamicPaintSurface>(__func__);
   if (!surface) {
     return nullptr;
   }
@@ -1127,7 +1127,7 @@ bool dynamicPaint_createType(DynamicPaintModifierData *pmd, int type, Scene *sce
         dynamicPaint_freeCanvas(pmd);
       }
 
-      canvas = pmd->canvas = MEM_callocN<DynamicPaintCanvasSettings>(__func__);
+      canvas = pmd->canvas = MEM_new_for_free<DynamicPaintCanvasSettings>(__func__);
       if (!canvas) {
         return false;
       }
@@ -1144,7 +1144,7 @@ bool dynamicPaint_createType(DynamicPaintModifierData *pmd, int type, Scene *sce
         dynamicPaint_freeBrush(pmd);
       }
 
-      brush = pmd->brush = MEM_callocN<DynamicPaintBrushSettings>(__func__);
+      brush = pmd->brush = MEM_new_for_free<DynamicPaintBrushSettings>(__func__);
       if (!brush) {
         return false;
       }

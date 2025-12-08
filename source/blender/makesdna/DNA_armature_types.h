@@ -269,152 +269,158 @@ ENUM_OPERATORS(eBoneCollection_Flag)
  *                    See bPoseChannel::chan_mat
  */
 
-typedef struct BoneColor {
+struct BoneColor {
   /**
    * Index of color palette to use when drawing bones.
    * 0=default, >0 = predefined in theme, -1=custom color in #custom.
    *
    * For the predefined ones, see #rna_enum_color_sets_items in rna_armature.c.
    */
-  int8_t palette_index;
-  uint8_t _pad0[7];
-  ThemeWireColor custom;
+  int8_t palette_index = 0;
+  uint8_t _pad0[7] = {};
+  ThemeWireColor custom = {};
 #ifdef __cplusplus
   blender::animrig::BoneColor &wrap();
   const blender::animrig::BoneColor &wrap() const;
 #endif
-} BoneColor;
+};
 
-typedef struct Bone_Runtime {
+struct Bone_Runtime {
   /* #BoneCollectionReference */
-  ListBase collections;
-} Bone_Runtime;
+  ListBase collections = {nullptr, nullptr};
+};
 
-typedef struct Bone {
+struct Bone {
+  DNA_DEFINE_CXX_METHODS(Bone)
+
   /** Next/previous elements within this list. */
-  struct Bone *next, *prev;
+  struct Bone *next = nullptr, *prev = nullptr;
   /** User-Defined Properties on this Bone. */
-  IDProperty *prop;
+  IDProperty *prop = nullptr;
   /** System-Defined Properties storage. */
-  IDProperty *system_properties;
-  void *_pad0;
+  IDProperty *system_properties = nullptr;
+  void *_pad0 = nullptr;
   /** Parent (IK parent if appropriate flag is set). */
-  struct Bone *parent;
+  struct Bone *parent = nullptr;
   /** Children. */
-  ListBase childbase;
+  ListBase childbase = {nullptr, nullptr};
   /** Name of the bone - must be unique within the armature. */
-  char name[/*MAXBONENAME*/ 64];
+  char name[/*MAXBONENAME*/ 64] = "";
 
   /** Roll is input for edit-mode, length calculated. */
-  float roll;
+  float roll = 0;
   /** Head position in Bone Space (see top of this file). */
-  float head[3];
+  float head[3] = {};
   /** Tail position in Bone Space (see top of this file). */
-  float tail[3];
+  float tail[3] = {};
   /**
    * Bone matrix in Bone Space (see top of this file).
    *
    * bone.matrix in RNA. Computed in BKE_armature_where_is_bone(). */
-  float bone_mat[3][3];
+  float bone_mat[3][3] = {};
 
-  int flag;
-  int8_t drawtype; /* eArmature_Drawtype */
-  char _pad1[3];
+  int flag = 0;
+  int8_t drawtype = ARM_DRAW_TYPE_ARMATURE_DEFINED; /* eArmature_Drawtype */
+  char _pad1[3] = {};
   BoneColor color; /* MUST be named the same as in bPoseChannel and EditBone structs. */
 
-  char inherit_scale_mode;
-  char _pad[3];
+  char inherit_scale_mode = 0;
+  char _pad[3] = {};
 
   /** Head position in armature space. So should be the same as head in edit mode. */
-  float arm_head[3];
+  float arm_head[3] = {};
   /** Tail position in armature space. So should be the same as tail in edit mode. */
-  float arm_tail[3];
+  float arm_tail[3] = {};
   /** Matrix: `(bone_mat(b)+head(b))*arm_mat(b-1)`, rest pose in armature space. */
-  float arm_mat[4][4];
+  float arm_mat[4][4] = {};
   /** Roll in Armature Space (rest pose). */
-  float arm_roll;
+  float arm_roll = 0;
 
   /** Envelope distance, added to rad_head / rad_tail. */
-  float dist;
+  float dist = 0;
   /** Weight: for non-deformgroup deforms. */
-  float weight;
+  float weight = 0;
   /**
    * The width for block bones. The final X/Z bone widths are double these values.
    *
    * \note keep in this order for transform code which stores a pointer to `xwidth`,
    * accessing length and `zwidth` as offsets.
    */
-  float xwidth, length, zwidth;
+  float xwidth = 0, length = 0, zwidth = 0;
   /**
    * Radius for head/tail sphere, defining deform as well,
    * `parent->rad_tip` overrides `rad_head`.
    */
-  float rad_head, rad_tail;
+  float rad_head = 0, rad_tail = 0;
 
   /** Curved bones settings - these define the "rest-pose" for a curved bone. */
-  float roll1, roll2;
-  float curve_in_x, curve_in_z;
-  float curve_out_x, curve_out_z;
+  float roll1 = 0, roll2 = 0;
+  float curve_in_x = 0, curve_in_z = 0;
+  float curve_out_x = 0, curve_out_z = 0;
   /** Length of bezier handles. */
-  float ease1, ease2;
-  float scale_in_x DNA_DEPRECATED, scale_in_z DNA_DEPRECATED;
-  float scale_out_x DNA_DEPRECATED, scale_out_z DNA_DEPRECATED;
-  float scale_in[3], scale_out[3];
+  float ease1 = 0, ease2 = 0;
+  DNA_DEPRECATED float scale_in_x = 0;
+  DNA_DEPRECATED float scale_in_z = 0;
+  DNA_DEPRECATED float scale_out_x = 0;
+  DNA_DEPRECATED float scale_out_z = 0;
+  float scale_in[3] = {1.0f, 1.0f, 1.0f};
+  float scale_out[3] = {1.0f, 1.0f, 1.0f};
 
   /** Patch for upward compatibility, UNUSED! */
-  float size[3];
+  float size[3] = {};
   /** Layers that bone appears on. */
-  int layer;
+  int layer = 0;
   /** For B-bones. */
-  short segments;
+  short segments = 0;
   /** Vertex to segment mapping mode. */
-  char bbone_mapping_mode;
-  char _pad2[7];
+  char bbone_mapping_mode = 0;
+  char _pad2[7] = {};
 
   /** Type of next/prev bone handles. */
-  char bbone_prev_type;
-  char bbone_next_type;
+  char bbone_prev_type = 0;
+  char bbone_next_type = 0;
   /** B-Bone flags. */
-  int bbone_flag;
-  short bbone_prev_flag;
-  short bbone_next_flag;
+  int bbone_flag = 0;
+  short bbone_prev_flag = 0;
+  short bbone_next_flag = 0;
   /** Next/prev bones to use as handle references when calculating bbones (optional). */
-  struct Bone *bbone_prev;
-  struct Bone *bbone_next;
+  struct Bone *bbone_prev = nullptr;
+  struct Bone *bbone_next = nullptr;
 
   /* Keep last. */
   Bone_Runtime runtime;
-} Bone;
+};
 
-typedef struct bArmature_Runtime {
+struct bArmature_Runtime {
   /**
    * Index of the active collection, -1 if there is no collection active.
    *
    * For UIList support in the user interface. Assigning here does nothing, use
    * `ANIM_armature_bonecoll_active_set` to set the active bone collection.
    */
-  int active_collection_index;
-  uint8_t _pad0[4];
-  struct BoneCollection *active_collection;
-} bArmature_Runtime;
+  int active_collection_index = 0;
+  uint8_t _pad0[4] = {};
+  struct BoneCollection *active_collection = nullptr;
+};
 
-typedef struct bArmature {
+struct bArmature {
 #ifdef __cplusplus
+  DNA_DEFINE_CXX_METHODS(bArmature)
   /** See #ID_Type comment for why this is here. */
   static constexpr ID_Type id_type = ID_AR;
 #endif
 
   ID id;
-  struct AnimData *adt;
+  struct AnimData *adt = nullptr;
 
-  ListBase bonebase;
+  ListBase bonebase = {nullptr, nullptr};
 
   /** Use a hash-table for quicker lookups of bones by name. */
-  struct GHash *bonehash;
-  void *_pad1;
+  struct GHash *bonehash = nullptr;
+  void *_pad1 = nullptr;
 
   /** #EditBone list (use an allocated pointer so the state can be checked). */
-  ListBase *edbo;
+  ListBase *edbo = nullptr;
 
   /* active bones should work like active object where possible
    * - active and selection are unrelated
@@ -423,19 +429,19 @@ typedef struct bArmature {
    * - active should be ignored when not visible (hidden layer) */
 
   /** Active bone. */
-  Bone *act_bone;
+  Bone *act_bone = nullptr;
   /** Active edit-bone (in edit-mode). */
-  struct EditBone *act_edbone;
+  struct EditBone *act_edbone = nullptr;
 
   /** ID data is older than edit-mode data (TODO: move to edit-mode struct). */
-  char needs_flush_to_id;
-  char _pad0[3];
+  char needs_flush_to_id = 0;
+  char _pad0[3] = {};
 
-  int flag;
-  int drawtype; /* eArmature_Drawtype */
+  int flag = ARM_COL_CUSTOM;         /* custom bone-group colors */
+  int drawtype = ARM_DRAW_TYPE_OCTA; /* eArmature_Drawtype */
 
-  short deformflag;
-  short pathflag;
+  short deformflag = ARM_DEF_VGROUP | ARM_DEF_ENVELOPE;
+  short pathflag = 0;
 
   /** This is used only for reading/writing BoneCollections in blend
    * files, for forwards/backwards compatibility with Blender 4.0. It
@@ -443,30 +449,32 @@ typedef struct bArmature {
    * everything other than file reading/writing.
    * TODO: remove this in Blender 5.0, and instead write the contents of
    * collection_array to blend files directly. */
-  ListBase collections_legacy; /* BoneCollection. */
+  ListBase collections_legacy = {nullptr, nullptr}; /* BoneCollection. */
 
-  struct BoneCollection **collection_array; /* Array of `collection_array_num` BoneCollections. */
-  int collection_array_num;
+  struct BoneCollection **collection_array =
+      nullptr; /* Array of `collection_array_num` BoneCollections. */
+  int collection_array_num = 0;
   /**
    * Number of root bone collections.
    *
    * `collection_array[0:collection_root_count]` are the collections without a parent collection.
    */
-  int collection_root_count;
+  int collection_root_count = 0;
 
   /** Do not directly assign, use `ANIM_armature_bonecoll_active_set` instead.
    * This is stored as a string to make it possible for the library overrides system to understand
    * when it actually changed (compared to a BoneCollection*, which would change on every load).
    */
-  char active_collection_name[/*MAX_NAME*/ 64];
+  char active_collection_name[/*MAX_NAME*/ 64] = "";
 
   /** For UI, to show which layers are there. */
-  unsigned int layer_used DNA_DEPRECATED;
+  DNA_DEPRECATED unsigned int layer_used = 0;
   /** For buttons to work, both variables in this order together. */
-  unsigned int layer DNA_DEPRECATED, layer_protected DNA_DEPRECATED;
+  DNA_DEPRECATED unsigned int layer = 1;
+  DNA_DEPRECATED unsigned int layer_protected = 0;
 
   /** Relative position of the axes on the bone, from head (0.0f) to tail (1.0f). */
-  float axes_position;
+  float axes_position = 0;
 
   /** Keep last, for consistency with the position of other DNA runtime structures. */
   struct bArmature_Runtime runtime;
@@ -484,7 +492,7 @@ typedef struct bArmature {
   blender::Span<const BoneCollection *> collection_children(const BoneCollection *parent) const;
   blender::Span<BoneCollection *> collection_children(BoneCollection *parent);
 #endif
-} bArmature;
+};
 
 /**
  * Collection of Bones within an Armature.
@@ -497,31 +505,31 @@ typedef struct bArmature {
  * Selectability and visibility of bones are determined by OR-ing the collection
  * flags.
  */
-typedef struct BoneCollection {
-  struct BoneCollection *next, *prev;
+struct BoneCollection {
+  struct BoneCollection *next = nullptr, *prev = nullptr;
 
-  char name[/*MAX_NAME*/ 64];
+  char name[/*MAX_NAME*/ 64] = "";
 
   /** BoneCollectionMember. */
-  ListBase bones;
+  ListBase bones = {nullptr, nullptr};
 
   /** eBoneCollection_Flag. */
-  uint8_t flags;
-  uint8_t _pad0[7];
+  uint8_t flags = 0;
+  uint8_t _pad0[7] = {};
 
   /*
    * Hierarchy information. The Armature has an array of BoneCollection pointers. These are ordered
    * such that siblings are always stored in consecutive array elements.
    */
   /** Array index of the first child of this BoneCollection. */
-  int child_index;
+  int child_index = 0;
   /** Number of children of this BoneCollection. */
-  int child_count;
+  int child_count = 0;
 
   /** Custom properties. */
-  struct IDProperty *prop;
+  struct IDProperty *prop = nullptr;
   /** Custom system IDProperties. */
-  struct IDProperty *system_properties;
+  struct IDProperty *system_properties = nullptr;
 
 #ifdef __cplusplus
   /**
@@ -563,13 +571,13 @@ typedef struct BoneCollection {
    */
   bool is_expanded() const;
 #endif
-} BoneCollection;
+};
 
 /** Membership relation of a bone with a bone collection. */
-typedef struct BoneCollectionMember {
-  struct BoneCollectionMember *next, *prev;
-  struct Bone *bone;
-} BoneCollectionMember;
+struct BoneCollectionMember {
+  struct BoneCollectionMember *next = nullptr, *prev = nullptr;
+  struct Bone *bone = nullptr;
+};
 
 /**
  * Membership relation of a bone with its collections.
@@ -577,10 +585,10 @@ typedef struct BoneCollectionMember {
  * This is only bone-runtime data for easy lookups, the actual membership is
  * stored on the #bArmature in #BoneCollectionMember structs.
  */
-typedef struct BoneCollectionReference {
-  struct BoneCollectionReference *next, *prev;
-  struct BoneCollection *bcoll;
-} BoneCollectionReference;
+struct BoneCollectionReference {
+  struct BoneCollectionReference *next = nullptr, *prev = nullptr;
+  struct BoneCollection *bcoll = nullptr;
+};
 
 #ifdef __cplusplus
 

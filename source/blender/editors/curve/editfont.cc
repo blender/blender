@@ -886,7 +886,7 @@ static void txt_add_object(bContext *C,
   }
 
   cu->str = MEM_malloc_arrayN<char>(nbytes + 4, "str");
-  cu->strinfo = MEM_calloc_arrayN<CharInfo>((nchars + 4), "strinfo");
+  cu->strinfo = MEM_new_array_for_free<CharInfo>((nchars + 4), "strinfo");
 
   cu->len = 0;
   cu->len_char32 = nchars - 1;
@@ -2270,7 +2270,7 @@ void ED_curve_editfont_make(Object *obedit)
 
     ef->textbuf = static_cast<char32_t *>(
         MEM_callocN((MAXTEXT + 4) * sizeof(*ef->textbuf), "texteditbuf"));
-    ef->textbufinfo = MEM_calloc_arrayN<CharInfo>((MAXTEXT + 4), "texteditbufinfo");
+    ef->textbufinfo = MEM_new_array_for_free<CharInfo>((MAXTEXT + 4), "texteditbufinfo");
   }
 
   /* Convert the original text to chat32_t. */
@@ -2322,7 +2322,7 @@ void ED_curve_editfont_load(Object *obedit)
   if (cu->strinfo) {
     MEM_freeN(cu->strinfo);
   }
-  cu->strinfo = MEM_calloc_arrayN<CharInfo>((cu->len_char32 + 4), "texteditinfo");
+  cu->strinfo = MEM_new_array_for_free<CharInfo>((cu->len_char32 + 4), "texteditinfo");
   memcpy(cu->strinfo, ef->textbufinfo, cu->len_char32 * sizeof(CharInfo));
 
   /* Other vars */

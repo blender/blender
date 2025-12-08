@@ -81,7 +81,7 @@ class KeyframingTest : public testing::Test {
     object = BKE_object_add_only_object(bmain, OB_EMPTY, "Empty");
     object_rna_pointer = RNA_id_pointer_create(&object->id);
 
-    Bone *bone = MEM_callocN<Bone>("BONE");
+    Bone *bone = MEM_new_for_free<Bone>("BONE");
     STRNCPY(bone->name, "Bone");
 
     armature = BKE_armature_add(bmain, "Armature");

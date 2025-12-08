@@ -11,12 +11,12 @@
 
 #include "CLG_log.h"
 
+#include "DNA_defs.h"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_array_utils.hh"
 #include "DNA_curve_types.h"
-#include "DNA_defaults.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
@@ -3594,7 +3594,7 @@ static wmOperatorStatus dash_modifier_segment_add_exec(bContext *C, wmOperator *
   }
 
   GreasePencilDashModifierSegment *new_segments =
-      MEM_malloc_arrayN<GreasePencilDashModifierSegment>(dmd->segments_num + 1, __func__);
+      MEM_new_array_for_free<GreasePencilDashModifierSegment>(dmd->segments_num + 1, __func__);
 
   const int new_active_index = std::clamp(dmd->segment_active_index + 1, 0, dmd->segments_num);
   if (dmd->segments_num != 0) {
@@ -3610,9 +3610,7 @@ static wmOperatorStatus dash_modifier_segment_add_exec(bContext *C, wmOperator *
 
   /* Create the new segment. */
   GreasePencilDashModifierSegment *ds = &new_segments[new_active_index];
-  memcpy(ds,
-         DNA_struct_default_get(GreasePencilDashModifierSegment),
-         sizeof(GreasePencilDashModifierSegment));
+  *ds = GreasePencilDashModifierSegment();
   BLI_uniquename_cb(
       [&](const StringRef name) {
         for (const GreasePencilDashModifierSegment &ds : dmd->segments()) {
@@ -3830,7 +3828,7 @@ static wmOperatorStatus time_modifier_segment_add_exec(bContext *C, wmOperator *
   }
 
   GreasePencilTimeModifierSegment *new_segments =
-      MEM_malloc_arrayN<GreasePencilTimeModifierSegment>(tmd->segments_num + 1, __func__);
+      MEM_new_array_for_free<GreasePencilTimeModifierSegment>(tmd->segments_num + 1, __func__);
 
   const int new_active_index = std::clamp(tmd->segment_active_index + 1, 0, tmd->segments_num);
   if (tmd->segments_num != 0) {
@@ -3846,9 +3844,7 @@ static wmOperatorStatus time_modifier_segment_add_exec(bContext *C, wmOperator *
 
   /* Create the new segment. */
   GreasePencilTimeModifierSegment *segment = &new_segments[new_active_index];
-  memcpy(segment,
-         DNA_struct_default_get(GreasePencilTimeModifierSegment),
-         sizeof(GreasePencilTimeModifierSegment));
+  *segment = GreasePencilTimeModifierSegment();
   BLI_uniquename_cb(
       [&](const StringRef name) {
         for (const GreasePencilTimeModifierSegment &segment : tmd->segments()) {

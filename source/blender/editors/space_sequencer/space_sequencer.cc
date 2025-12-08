@@ -71,7 +71,7 @@ static SpaceLink *sequencer_create(const ScrArea * /*area*/, const Scene *scene)
   ARegion *region;
   SpaceSeq *sseq;
 
-  sseq = MEM_callocN<SpaceSeq>("initsequencer");
+  sseq = MEM_new_for_free<SpaceSeq>("initsequencer");
   sseq->runtime = MEM_new<SpaceSeq_Runtime>(__func__);
   sseq->spacetype = SPACE_SEQ;
   sseq->chanshown = 0;

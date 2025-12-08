@@ -154,7 +154,7 @@ static void ntree_version_241(bNodeTree *ntree)
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       if (node->type_legacy == CMP_NODE_BLUR) {
         if (node->storage == nullptr) {
-          NodeBlurData *nbd = MEM_callocN<NodeBlurData>("node blur patch");
+          NodeBlurData *nbd = MEM_new_for_free<NodeBlurData>("node blur patch");
           nbd->sizex = node->custom1;
           nbd->sizey = node->custom2;
           nbd->filtertype = R_FILTER_QUAD;
@@ -163,7 +163,7 @@ static void ntree_version_241(bNodeTree *ntree)
       }
       else if (node->type_legacy == CMP_NODE_VECBLUR) {
         if (node->storage == nullptr) {
-          NodeBlurData *nbd = MEM_callocN<NodeBlurData>("node blur patch");
+          NodeBlurData *nbd = MEM_new_for_free<NodeBlurData>("node blur patch");
           nbd->samples = node->custom1;
           nbd->maxspeed = node->custom2;
           nbd->fac = 1.0f;
@@ -201,7 +201,7 @@ static void ntree_version_245(FileData *fd, Library * /*lib*/, bNodeTree *ntree)
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       if (node->type_legacy == CMP_NODE_ALPHAOVER) {
         if (!node->storage) {
-          ntf = MEM_callocN<NodeTwoFloats>("NodeTwoFloats");
+          ntf = MEM_new_for_free<NodeTwoFloats>("NodeTwoFloats");
           node->storage = ntf;
           if (node->custom1) {
             ntf->x = 1.0f;
@@ -366,7 +366,7 @@ static void do_version_ntree_242_2(bNodeTree *ntree)
         /* only image had storage */
         if (node->storage) {
           NodeImageAnim *nia = static_cast<NodeImageAnim *>(node->storage);
-          ImageUser *iuser = MEM_callocN<ImageUser>("ima user node");
+          ImageUser *iuser = MEM_new_for_free<ImageUser>("ima user node");
 
           iuser->frames = nia->frames;
           iuser->sfra = nia->sfra;
@@ -377,7 +377,7 @@ static void do_version_ntree_242_2(bNodeTree *ntree)
           MEM_freeN(nia);
         }
         else {
-          ImageUser *iuser = MEM_callocN<ImageUser>("node image user");
+          ImageUser *iuser = MEM_new_for_free<ImageUser>("node image user");
           iuser->sfra = 1;
           node->storage = iuser;
         }
@@ -1342,7 +1342,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     while (sce) {
       if (sce->toolsettings == nullptr) {
-        sce->toolsettings = MEM_callocN<ToolSettings>("Tool Settings Struct");
+        sce->toolsettings = MEM_new_for_free<ToolSettings>("Tool Settings Struct");
         sce->toolsettings->doublimit = 0.001f;
       }
       sce = static_cast<Scene *>(sce->id.next);
@@ -2208,7 +2208,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         ParticleSettings *part;
 
         /* create new particle system */
-        psys = MEM_callocN<ParticleSystem>("particle_system");
+        psys = MEM_new_for_free<ParticleSystem>("particle_system");
         psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
 
         /* Bad, but better not try to change this prehistorical code nowadays. */

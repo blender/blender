@@ -77,7 +77,7 @@ static PreviewImage *previewimg_deferred_create(const char *filepath, ThumbSourc
 
 PreviewImage *BKE_previewimg_create()
 {
-  PreviewImage *prv = MEM_callocN<PreviewImage>(__func__);
+  PreviewImage *prv = MEM_new_for_free<PreviewImage>(__func__);
 
   for (int i = 0; i < NUM_ICON_SIZES; i++) {
     prv->flag[i] |= PRV_CHANGED;
@@ -142,7 +142,7 @@ PreviewImage *BKE_previewimg_copy(const PreviewImage *prv)
     return nullptr;
   }
 
-  PreviewImage *prv_img = MEM_mallocN<PreviewImage>(__func__);
+  PreviewImage *prv_img = MEM_new_for_free<PreviewImage>(__func__);
   *prv_img = blender::dna::shallow_copy(*prv);
   prv_img->runtime = MEM_new<blender::bke::PreviewImageRuntime>(__func__, *prv->runtime);
 

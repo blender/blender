@@ -8,6 +8,7 @@
 #include <pxr/imaging/hd/light.h>
 #include <pxr/imaging/hd/renderBuffer.h>
 
+#include "DNA_layer_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"

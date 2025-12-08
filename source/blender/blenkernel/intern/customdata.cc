@@ -21,7 +21,6 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_enums.h"
 #include "DNA_userdef_types.h"
-#include "DNA_vec_types.h"
 
 #include "BLI_bit_vector.hh"
 #include "BLI_bitmap.h"
@@ -2409,7 +2408,7 @@ CustomData CustomData_shallow_copy_remove_non_bmesh_attributes(const CustomData 
   }
 
   CustomData dst = *src;
-  dst.layers = MEM_calloc_arrayN<CustomDataLayer>(dst_layers.size(), __func__);
+  dst.layers = MEM_new_array_for_free<CustomDataLayer>(dst_layers.size(), __func__);
   dst.maxlayer = dst.totlayer = dst_layers.size();
   memcpy(dst.layers, dst_layers.data(), dst_layers.as_span().size_in_bytes());
 
@@ -4557,7 +4556,7 @@ void CustomData_external_add(CustomData *data,
   }
 
   if (!external) {
-    external = MEM_callocN<CustomDataExternal>(__func__);
+    external = MEM_new_for_free<CustomDataExternal>(__func__);
     data->external = external;
   }
   STRNCPY(external->filepath, filepath);

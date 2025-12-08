@@ -45,7 +45,7 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  node->storage = MEM_callocN<NodeInputString>(__func__);
+  node->storage = MEM_new_for_free<NodeInputString>(__func__);
 }
 
 static void node_storage_free(bNode *node)

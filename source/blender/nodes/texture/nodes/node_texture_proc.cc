@@ -236,7 +236,7 @@ ProcDef(stucci);
 
 static void init(bNodeTree * /*ntree*/, bNode *node)
 {
-  Tex *tex = MEM_callocN<Tex>("Tex");
+  Tex *tex = MEM_new_for_free<Tex>("Tex");
   node->storage = tex;
 
   BKE_texture_default(tex);

@@ -73,88 +73,88 @@ enum {
   BOID_ALLOW_CLIMB = 1 << 2,
 };
 
-typedef struct BoidRule {
-  struct BoidRule *next, *prev;
-  int type, flag;
-  char name[32];
-} BoidRule;
+struct BoidRule {
+  struct BoidRule *next = nullptr, *prev = nullptr;
+  int type = 0, flag = 0;
+  char name[32] = "";
+};
 
-typedef struct BoidRuleGoalAvoid {
+struct BoidRuleGoalAvoid {
   BoidRule rule;
-  struct Object *ob;
-  int options;
-  float fear_factor;
+  struct Object *ob = nullptr;
+  int options = 0;
+  float fear_factor = 0;
 
   /* signals */
-  int signal_id, channels;
-} BoidRuleGoalAvoid;
+  int signal_id = 0, channels = 0;
+};
 
-typedef struct BoidRuleAvoidCollision {
+struct BoidRuleAvoidCollision {
   BoidRule rule;
-  int options;
-  float look_ahead;
-} BoidRuleAvoidCollision;
+  int options = 0;
+  float look_ahead = 0;
+};
 
-typedef struct BoidRuleFollowLeader {
+struct BoidRuleFollowLeader {
   BoidRule rule;
-  struct Object *ob;
-  float loc[3], oloc[3];
-  float cfra, distance;
-  int options, queue_size;
-} BoidRuleFollowLeader;
+  struct Object *ob = nullptr;
+  float loc[3] = {}, oloc[3] = {};
+  float cfra = 0, distance = 0;
+  int options = 0, queue_size = 0;
+};
 
-typedef struct BoidRuleAverageSpeed {
+struct BoidRuleAverageSpeed {
   BoidRule rule;
-  float wander, level, speed;
-  char _pad0[4];
-} BoidRuleAverageSpeed;
+  float wander = 0, level = 0, speed = 0;
+  char _pad0[4] = {};
+};
 
-typedef struct BoidRuleFight {
+struct BoidRuleFight {
   BoidRule rule;
-  float distance, flee_distance;
-} BoidRuleFight;
+  float distance = 0, flee_distance = 0;
+};
 
-typedef struct BoidData {
-  float health, acc[3];
-  short state_id, mode;
-} BoidData;
+struct BoidData {
+  float health = 0, acc[3] = {};
+  short state_id = 0, mode = 0;
+};
 
-typedef struct BoidState {
-  struct BoidState *next, *prev;
-  ListBase rules;
-  ListBase conditions;
-  ListBase actions;
-  char name[32];
-  int id, flag;
+struct BoidState {
+  struct BoidState *next = nullptr, *prev = nullptr;
+  ListBase rules = {nullptr, nullptr};
+  ListBase conditions = {nullptr, nullptr};
+  ListBase actions = {nullptr, nullptr};
+  char name[32] = "";
+  int id = 0, flag = 0;
 
   /* rules */
-  int ruleset_type;
-  float rule_fuzziness;
+  int ruleset_type = 0;
+  float rule_fuzziness = 0;
 
   /* signal */
-  int signal_id, channels;
-  float volume, falloff;
-} BoidState;
+  int signal_id = 0, channels = 0;
+  float volume = 0, falloff = 0;
+};
 
-typedef struct BoidSettings {
-  int options, last_state_id;
+struct BoidSettings {
+  int options = 0, last_state_id = 0;
 
-  float landing_smoothness, height;
-  float banking, pitch;
+  float landing_smoothness = 0, height = 0;
+  float banking = 0, pitch = 0;
 
-  float health, aggression;
-  float strength, accuracy, range;
+  float health = 0, aggression = 0;
+  float strength = 0, accuracy = 0, range = 0;
 
   /* flying related */
-  float air_min_speed, air_max_speed;
-  float air_max_acc, air_max_ave;
-  float air_personal_space;
+  float air_min_speed = 0, air_max_speed = 0;
+  float air_max_acc = 0, air_max_ave = 0;
+  float air_personal_space = 0;
 
   /* walk/run related */
-  float land_jump_speed, land_max_speed;
-  float land_max_acc, land_max_ave;
-  float land_personal_space;
-  float land_stick_force;
+  float land_jump_speed = 0, land_max_speed = 0;
+  float land_max_acc = 0, land_max_ave = 0;
+  float land_personal_space = 0;
+  float land_stick_force = 0;
 
-  struct ListBase states;
-} BoidSettings;
+  ListBase states = {nullptr, nullptr};
+};

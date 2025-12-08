@@ -25,6 +25,7 @@
 #include "BLI_sys_types.h"
 
 #include "DNA_action_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
@@ -8281,7 +8282,6 @@ static void rna_def_space_node(BlenderRNA *brna)
   RNA_def_property_boolean_negative_sdna(
       prop, nullptr, "gizmo_flag", SNODE_GIZMO_HIDE_ACTIVE_NODE);
   RNA_def_property_ui_text(prop, "Active Node", "Context sensitive gizmo for the active node");
-  RNA_def_property_boolean_default(prop, true);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, nullptr);
 
   /* Overlays */

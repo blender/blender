@@ -21,7 +21,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -55,10 +54,7 @@ using namespace blender;
 static void init_data(ModifierData *md)
 {
   ScrewModifierData *ltmd = (ScrewModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(ltmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(ltmd, DNA_struct_default_get(ScrewModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(ltmd, modifier);
 }
 
 /** Used for gathering edge connectivity. */

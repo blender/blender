@@ -33,7 +33,7 @@ RegionAssetShelf *RegionAssetShelf::ensure_from_asset_shelf_region(ARegion &regi
     return nullptr;
   }
   if (!region.regiondata) {
-    region.regiondata = MEM_callocN<RegionAssetShelf>("RegionAssetShelf");
+    region.regiondata = MEM_new_for_free<RegionAssetShelf>("RegionAssetShelf");
   }
   return static_cast<RegionAssetShelf *>(region.regiondata);
 }
@@ -42,9 +42,10 @@ namespace blender::ed::asset::shelf {
 
 RegionAssetShelf *regiondata_duplicate(const RegionAssetShelf *shelf_regiondata)
 {
-  static_assert(std::is_trivial_v<RegionAssetShelf>,
-                "RegionAssetShelf needs to be trivial to allow freeing with MEM_freeN()");
-  RegionAssetShelf *new_shelf_regiondata = MEM_callocN<RegionAssetShelf>(__func__);
+  static_assert(
+      std::is_trivially_copyable_v<RegionAssetShelf>,
+      "RegionAssetShelf needs to be trivially copyable to allow freeing with MEM_freeN()");
+  RegionAssetShelf *new_shelf_regiondata = MEM_new_for_free<RegionAssetShelf>(__func__);
   *new_shelf_regiondata = *shelf_regiondata;
 
   BLI_listbase_clear(&new_shelf_regiondata->shelves);

@@ -214,7 +214,7 @@ PackedFile *BKE_packedfile_new_from_memory(const void *mem,
     sharing_info = blender::implicit_sharing::info_for_mem_free(const_cast<void *>(mem));
   }
 
-  PackedFile *pf = MEM_callocN<PackedFile>("PackedFile");
+  PackedFile *pf = MEM_new_for_free<PackedFile>("PackedFile");
   pf->data = mem;
   pf->size = memlen;
   pf->sharing_info = sharing_info;

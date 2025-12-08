@@ -5405,7 +5405,7 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
         return group_index;
       }
     }
-    bDeformGroup *defgroup = MEM_callocN<bDeformGroup>(__func__);
+    bDeformGroup *defgroup = MEM_new_for_free<bDeformGroup>(__func__);
     group_name.copy_utf8_truncated(defgroup->name);
     BLI_addtail(&new_curves.vertex_group_names, defgroup);
     return group_index;

@@ -11,6 +11,8 @@
 #include "DNA_vec_types.h"
 
 struct ARegion;
+struct Scene;
+struct ViewLayer;
 
 /* ----------------------------------------------------- */
 

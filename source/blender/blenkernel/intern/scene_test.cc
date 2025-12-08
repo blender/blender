@@ -12,6 +12,7 @@
 
 #include "BLO_userdef_default.h"
 
+#include "DNA_defs.h"
 #include "IMB_imbuf.hh"
 
 #include "DNA_action_types.h"
@@ -67,7 +68,7 @@ class SceneTest : public ::testing::Test {
     IMB_init();
     BKE_idtype_init();
     /* #BKE_scene_duplicate() uses #U::dupflag. */
-    U = blender::dna::shallow_copy(U_default);
+    U = dna::shallow_copy(UserDef());
   }
 
   static void TearDownTestSuite()

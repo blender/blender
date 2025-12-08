@@ -203,13 +203,13 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
     }
 
     if (totpart) {
-      newpars = MEM_calloc_arrayN<ParticleData>(totpart, "particles");
+      newpars = MEM_new_array_for_free<ParticleData>(totpart, "particles");
       if (newpars == nullptr) {
         return;
       }
 
       if (psys->part->phystype == PART_PHYS_BOIDS) {
-        newboids = MEM_calloc_arrayN<BoidParticle>(totpart, "boid particles");
+        newboids = MEM_new_array_for_free<BoidParticle>(totpart, "boid particles");
 
         if (newboids == nullptr) {
           /* allocation error! */
@@ -632,7 +632,7 @@ static void free_unexisting_particles(ParticleSimulationData *sim)
     int newtotpart = psys->totpart - psys->totunexist;
     ParticleData *npa, *newpars;
 
-    npa = newpars = MEM_calloc_arrayN<ParticleData>(newtotpart, "particles");
+    npa = newpars = MEM_new_array_for_free<ParticleData>(newtotpart, "particles");
 
     for (p = 0, pa = psys->particles; p < newtotpart; p++, pa++, npa++) {
       while (pa->flag & PARS_UNEXIST) {
@@ -650,7 +650,8 @@ static void free_unexisting_particles(ParticleSimulationData *sim)
     psys->totpart -= psys->totunexist;
 
     if (psys->particles->boid) {
-      BoidParticle *newboids = MEM_calloc_arrayN<BoidParticle>(psys->totpart, "boid particles");
+      BoidParticle *newboids = MEM_new_array_for_free<BoidParticle>(psys->totpart,
+                                                                    "boid particles");
 
       LOOP_PARTICLES
       {
@@ -4670,7 +4671,7 @@ void psys_check_boid_data(ParticleSystem *psys)
 
   if (psys->part && psys->part->phystype == PART_PHYS_BOIDS) {
     if (!pa->boid) {
-      bpa = MEM_calloc_arrayN<BoidParticle>(psys->totpart, "Boid Data");
+      bpa = MEM_new_array_for_free<BoidParticle>(psys->totpart, "Boid Data");
 
       LOOP_PARTICLES
       {

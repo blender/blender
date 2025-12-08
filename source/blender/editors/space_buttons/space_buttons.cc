@@ -64,7 +64,7 @@ static SpaceLink *buttons_create(const ScrArea * /*area*/, const Scene * /*scene
   ARegion *region;
   SpaceProperties *sbuts;
 
-  sbuts = MEM_callocN<SpaceProperties>("initbuts");
+  sbuts = MEM_new_for_free<SpaceProperties>("initbuts");
 
   sbuts->runtime = MEM_new<SpaceProperties_Runtime>(__func__);
   sbuts->runtime->search_string[0] = '\0';

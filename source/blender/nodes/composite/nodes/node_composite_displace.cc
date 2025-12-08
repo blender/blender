@@ -63,7 +63,7 @@ static void cmp_node_displace_declare(NodeDeclarationBuilder &b)
 static void cmp_node_init_displace(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
-  NodeDisplaceData *data = MEM_callocN<NodeDisplaceData>(__func__);
+  NodeDisplaceData *data = MEM_new_for_free<NodeDisplaceData>(__func__);
   node->storage = data;
 }
 

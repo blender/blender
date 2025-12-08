@@ -153,7 +153,7 @@ void folder_history_list_ensure_for_active_browse_mode(SpaceFile *sfile)
   FileFolderHistory *history = folder_history_find(sfile, (eFileBrowse_Mode)sfile->browse_mode);
 
   if (!history) {
-    history = MEM_callocN<FileFolderHistory>(__func__);
+    history = MEM_new_for_free<FileFolderHistory>(__func__);
     history->browse_mode = sfile->browse_mode;
     BLI_addtail(&sfile->folder_histories, history);
   }

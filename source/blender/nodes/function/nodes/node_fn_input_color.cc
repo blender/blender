@@ -32,7 +32,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeInputColor *data = MEM_callocN<NodeInputColor>(__func__);
+  NodeInputColor *data = MEM_new_for_free<NodeInputColor>(__func__);
   copy_v4_fl4(data->color, 0.5f, 0.5f, 0.5f, 1.0f);
   node->storage = data;
 }

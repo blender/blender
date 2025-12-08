@@ -10,6 +10,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_defs.h"
+#include "DNA_key_types.h"
 
 struct AnimData;
 struct BPoint;
@@ -28,21 +29,21 @@ enum {
 
 #
 #
-typedef struct EditLatt {
+struct EditLatt {
   DNA_DEFINE_CXX_METHODS(EditLatt)
 
-  struct Lattice *latt;
+  struct Lattice *latt = nullptr;
 
-  int shapenr;
+  int shapenr = 0;
 
   /**
    * ID data is older than edit-mode data.
    * Set #Main.is_memfile_undo_flush_needed when enabling.
    */
-  char needs_flush_to_id;
-} EditLatt;
+  char needs_flush_to_id = 0;
+};
 
-typedef struct Lattice {
+struct Lattice {
 #ifdef __cplusplus
   DNA_DEFINE_CXX_METHODS(Lattice)
   /** See #ID_Type comment for why this is here. */
@@ -50,31 +51,31 @@ typedef struct Lattice {
 #endif
 
   ID id;
-  struct AnimData *adt;
+  struct AnimData *adt = nullptr;
 
-  short pntsu, pntsv, pntsw, flag;
-  short opntsu, opntsv, opntsw;
-  char _pad2[3];
+  short pntsu = 0, pntsv = 0, pntsw = 0, flag = LT_GRID;
+  short opntsu = 0, opntsv = 0, opntsw = 0;
+  char _pad2[3] = {};
   /* KeyInterpolationType */
-  char typeu, typev, typew;
+  char typeu = KEY_BSPLINE, typev = KEY_BSPLINE, typew = KEY_BSPLINE;
   /** Active element index, unset with LT_ACTBP_NONE. */
-  int actbp;
+  int actbp = LT_ACTBP_NONE;
 
-  float fu, fv, fw, du, dv, dw;
+  float fu = 0, fv = 0, fw = 0, du = 0, dv = 0, dw = 0;
 
-  struct BPoint *def;
+  struct BPoint *def = nullptr;
 
-  struct Key *key;
+  struct Key *key = nullptr;
 
-  struct MDeformVert *dvert;
+  struct MDeformVert *dvert = nullptr;
   /** Multiply the influence. */
-  char vgroup[/*MAX_VGROUP_NAME*/ 64];
+  char vgroup[/*MAX_VGROUP_NAME*/ 64] = "";
   /** List of bDeformGroup names and flag only. */
-  ListBase vertex_group_names;
-  int vertex_group_active_index;
+  ListBase vertex_group_names = {nullptr, nullptr};
+  int vertex_group_active_index = 0;
 
-  char _pad0[4];
+  char _pad0[4] = {};
 
-  struct EditLatt *editlatt;
-  void *batch_cache;
-} Lattice;
+  struct EditLatt *editlatt = nullptr;
+  void *batch_cache = nullptr;
+};

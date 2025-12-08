@@ -393,9 +393,19 @@ inline constexpr int64_t power_of_2_max(const int64_t x)
 extern bool BLI_memory_is_zero(const void *arr, size_t arr_size);
 #endif
 
-#define MEMCMP_STRUCT_AFTER_IS_ZERO(struct_var, member) \
-  (BLI_memory_is_zero((const char *)(struct_var) + OFFSETOF_STRUCT_AFTER(struct_var, member), \
-                      sizeof(*(struct_var)) - OFFSETOF_STRUCT_AFTER(struct_var, member)))
+#define MEMCMP_STRUCT_AFTER_IS_ZERO_OR_EQUAL(struct_dst, struct_src, member) \
+  (BLI_memory_is_zero((const char *)(struct_dst) + OFFSETOF_STRUCT_AFTER(struct_dst, member), \
+                      sizeof(*(struct_dst)) - OFFSETOF_STRUCT_AFTER(struct_dst, member)) || \
+   (memcmp((const char *)(struct_dst) + OFFSETOF_STRUCT_AFTER(struct_dst, member), \
+           (const char *)(struct_src) + OFFSETOF_STRUCT_AFTER(struct_src, member), \
+           sizeof(*(struct_dst)) - OFFSETOF_STRUCT_AFTER(struct_dst, member)) == 0))
+
+#define INIT_DEFAULT_STRUCT_AFTER(struct_dst, member) \
+  { \
+    const typename std::remove_reference<decltype(*(struct_dst))>::type struct_src; \
+    BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO_OR_EQUAL(struct_dst, &struct_src, member)); \
+    MEMCPY_STRUCT_AFTER(struct_dst, &struct_src, member); \
+  }
 
 /** \} */
 

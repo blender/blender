@@ -34,7 +34,7 @@ struct PointCloudRuntime;
 }  // namespace blender
 using PointCloudRuntimeHandle = blender::bke::PointCloudRuntime;
 #else
-typedef struct PointCloudRuntimeHandle PointCloudRuntimeHandle;
+struct PointCloudRuntimeHandle;
 #endif
 
 /** #PointCloud.flag */
@@ -42,19 +42,19 @@ enum {
   PT_DS_EXPAND = (1 << 0),
 };
 
-typedef struct PointCloud {
+struct PointCloud {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
   static constexpr ID_Type id_type = ID_PT;
 #endif
 
   ID id;
-  struct AnimData *adt; /* animation data (must be immediately after id) */
+  struct AnimData *adt = nullptr; /* animation data (must be immediately after id) */
 
-  int flag;
+  int flag = 0;
 
   /* Geometry */
-  int totpoint;
+  int totpoint = 0;
 
   /** Storage for generic attributes. */
   struct AttributeStorage attribute_storage;
@@ -62,13 +62,13 @@ typedef struct PointCloud {
   /* Custom Data */
   struct CustomData pdata_legacy;
   /** Set to -1 when none is active. */
-  int attributes_active_index;
-  int _pad4;
+  int attributes_active_index = 0;
+  int _pad4 = {};
 
   /* Material */
-  struct Material **mat;
-  short totcol;
-  short _pad3[3];
+  struct Material **mat = nullptr;
+  short totcol = 0;
+  short _pad3[3] = {};
 
 #ifdef __cplusplus
   blender::Span<blender::float3> positions() const;
@@ -93,11 +93,11 @@ typedef struct PointCloud {
   void count_memory(blender::MemoryCounter &memory) const;
 #endif
 
-  PointCloudRuntimeHandle *runtime;
+  PointCloudRuntimeHandle *runtime = nullptr;
 
   /* Draw Cache */
-  void *batch_cache;
-} PointCloud;
+  void *batch_cache = nullptr;
+};
 
 /* Only one material supported currently. */
 #define POINTCLOUD_MATERIAL_NR 1

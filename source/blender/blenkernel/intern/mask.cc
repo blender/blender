@@ -26,7 +26,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_mask_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"
@@ -296,7 +295,7 @@ MaskSplinePoint *BKE_mask_spline_point_array_from_point(MaskSpline *spline,
 
 MaskLayer *BKE_mask_layer_new(Mask *mask, const char *name)
 {
-  MaskLayer *masklay = MEM_callocN<MaskLayer>(__func__);
+  MaskLayer *masklay = MEM_new_for_free<MaskLayer>(__func__);
 
   STRNCPY_UTF8(masklay->name, name && name[0] ? name : DATA_("MaskLayer"));
 
@@ -360,7 +359,7 @@ void BKE_mask_layer_rename(Mask *mask,
 
 MaskLayer *BKE_mask_layer_copy(const MaskLayer *masklay)
 {
-  MaskLayer *masklay_new = MEM_callocN<MaskLayer>("new mask layer");
+  MaskLayer *masklay_new = MEM_new_for_free<MaskLayer>("new mask layer");
 
   STRNCPY_UTF8(masklay_new->name, masklay->name);
 
@@ -391,7 +390,7 @@ MaskLayer *BKE_mask_layer_copy(const MaskLayer *masklay)
   /* correct animation */
   if (masklay->splines_shapes.first) {
     LISTBASE_FOREACH (MaskLayerShape *, masklay_shape, &masklay->splines_shapes) {
-      MaskLayerShape *masklay_shape_new = MEM_callocN<MaskLayerShape>("new mask layer shape");
+      MaskLayerShape *masklay_shape_new = MEM_new_for_free<MaskLayerShape>("new mask layer shape");
 
       masklay_shape_new->data = static_cast<float *>(MEM_dupallocN(masklay_shape->data));
       masklay_shape_new->tot_vert = masklay_shape->tot_vert;
@@ -418,12 +417,12 @@ void BKE_mask_layer_copy_list(ListBase *masklayers_new, const ListBase *masklaye
 
 MaskSpline *BKE_mask_spline_add(MaskLayer *masklay)
 {
-  MaskSpline *spline = MEM_callocN<MaskSpline>("new mask spline");
+  MaskSpline *spline = MEM_new_for_free<MaskSpline>("new mask spline");
 
   BLI_addtail(&masklay->splines, spline);
 
   /* spline shall have one point at least */
-  spline->points = MEM_callocN<MaskSplinePoint>("new mask spline point");
+  spline->points = MEM_new_array_for_free<MaskSplinePoint>(1, "new mask spline point");
   spline->tot_point = 1;
 
   /* cyclic shapes are more usually used */
@@ -885,7 +884,7 @@ MaskSplinePointUW *BKE_mask_point_sort_uw(MaskSplinePoint *point, MaskSplinePoin
 void BKE_mask_point_add_uw(MaskSplinePoint *point, float u, float w)
 {
   if (!point->uw) {
-    point->uw = MEM_callocN<MaskSplinePointUW>("mask point uw");
+    point->uw = MEM_new_array_for_free<MaskSplinePointUW>(point->tot_uw + 1, "mask point uw");
   }
   else {
     point->uw = static_cast<MaskSplinePointUW *>(
@@ -1045,7 +1044,7 @@ static MaskSplinePoint *mask_spline_points_copy(const MaskSplinePoint *points, i
 
 MaskSpline *BKE_mask_spline_copy(const MaskSpline *spline)
 {
-  MaskSpline *nspline = MEM_callocN<MaskSpline>("new spline");
+  MaskSpline *nspline = MEM_new_for_free<MaskSpline>("new spline");
 
   *nspline = *spline;
 
@@ -1064,7 +1063,7 @@ MaskLayerShape *BKE_mask_layer_shape_alloc(MaskLayer *masklay, const int frame)
   MaskLayerShape *masklay_shape;
   int tot_vert = BKE_mask_layer_shape_totvert(masklay);
 
-  masklay_shape = MEM_callocN<MaskLayerShape>(__func__);
+  masklay_shape = MEM_new_for_free<MaskLayerShape>(__func__);
   masklay_shape->frame = frame;
   masklay_shape->tot_vert = tot_vert;
   masklay_shape->data = (float *)MEM_calloc_arrayN<MaskLayerShapeElem>(tot_vert, __func__);
@@ -1234,7 +1233,7 @@ void BKE_mask_point_parent_matrix_get(MaskSplinePoint *point,
       MovieTrackingObject *ob = BKE_tracking_object_get_named(tracking, parent->parent);
 
       if (ob) {
-        MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
+        MovieClipUser user = {};
         float clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, ctime);
         BKE_movieclip_user_set_frame(&user, ctime);
 
@@ -1487,7 +1486,7 @@ void BKE_mask_spline_ensure_deform(MaskSpline *spline)
       MEM_freeN(spline->points_deform);
     }
 
-    spline->points_deform = MEM_calloc_arrayN<MaskSplinePoint>(spline->tot_point, __func__);
+    spline->points_deform = MEM_new_array_for_free<MaskSplinePoint>(spline->tot_point, __func__);
   }
   else {
     // printf("alloc spline done\n");

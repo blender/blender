@@ -29,7 +29,7 @@ static void strip_connections_free(Strip *strip)
 void connections_duplicate(ListBase *connections_dst, ListBase *connections_src)
 {
   LISTBASE_FOREACH (StripConnection *, con, connections_src) {
-    StripConnection *con_duplicate = MEM_dupallocN<StripConnection>(__func__, *con);
+    StripConnection *con_duplicate = MEM_new_for_free<StripConnection>(__func__, *con);
     BLI_addtail(connections_dst, con_duplicate);
   }
 }
@@ -109,7 +109,7 @@ void connect(VectorSet<Strip *> &strip_list)
       if (strip1 == strip2) {
         continue;
       }
-      StripConnection *con = MEM_callocN<StripConnection>("stripconnection");
+      StripConnection *con = MEM_new_for_free<StripConnection>("stripconnection");
       con->strip_ref = strip2;
       BLI_addtail(&strip1->connections, con);
     }

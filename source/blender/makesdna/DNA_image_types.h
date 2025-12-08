@@ -18,7 +18,7 @@ struct ImageRuntime;
 }  // namespace blender::bke
 using ImageRuntimeHandle = blender::bke::ImageRuntime;
 #else
-typedef struct ImageRuntimeHandle ImageRuntimeHandle;
+struct ImageRuntimeHandle;
 #endif
 
 struct MovieReader;
@@ -124,143 +124,145 @@ enum {
  * ImageUser is in Texture, in Nodes, Background Image, Image Window, ...
  * should be used in conjunction with an ID * to Image.
  */
-typedef struct ImageUser {
+struct ImageUser {
   /** To retrieve render result. */
-  struct Scene *scene;
+  struct Scene *scene = nullptr;
 
   /** Movies, sequences: current to display. */
-  int framenr;
+  int framenr = 0;
   /** Total amount of frames to use. */
-  int frames;
+  int frames = 0;
   /** Offset within movie, start frame in global time. */
-  int offset, sfra;
+  int offset = 0, sfra = 0;
   /** Cyclic flag. */
-  char cycl;
+  char cycl = 0;
 
   /** Multiview current eye - for internal use of drawing routines. */
-  char multiview_eye;
-  short pass;
+  char multiview_eye = 0;
+  short pass = 0;
 
-  int tile;
+  int tile = 0;
 
   /** Listbase indices, for menu browsing or retrieve buffer. */
-  short multi_index, view, layer;
-  short flag;
-} ImageUser;
+  short multi_index = 0, view = 0, layer = 0;
+  short flag = 0;
+};
 
-typedef struct ImageAnim {
-  struct ImageAnim *next, *prev;
-  struct MovieReader *anim;
-} ImageAnim;
+struct ImageAnim {
+  struct ImageAnim *next = nullptr, *prev = nullptr;
+  struct MovieReader *anim = nullptr;
+};
 
-typedef struct ImageView {
-  struct ImageView *next, *prev;
-  char name[/*MAX_NAME*/ 64];
-  char filepath[/*FILE_MAX*/ 1024];
-} ImageView;
+struct ImageView {
+  struct ImageView *next = nullptr, *prev = nullptr;
+  char name[/*MAX_NAME*/ 64] = "";
+  char filepath[/*FILE_MAX*/ 1024] = "";
+};
 
-typedef struct ImagePackedFile {
-  struct ImagePackedFile *next, *prev;
-  struct PackedFile *packedfile;
+struct ImagePackedFile {
+  struct ImagePackedFile *next = nullptr, *prev = nullptr;
+  struct PackedFile *packedfile = nullptr;
 
   /* Which view and tile this ImagePackedFile represents. Normal images will use 0 and 1001
    * respectively when creating their ImagePackedFile. Must be provided for each packed image. */
-  int view;
-  int tile_number;
-  char filepath[/*FILE_MAX*/ 1024];
-} ImagePackedFile;
+  int view = 0;
+  int tile_number = 0;
+  char filepath[/*FILE_MAX*/ 1024] = "";
+};
 
-typedef struct RenderSlot {
-  struct RenderSlot *next, *prev;
-  char name[/*MAX_NAME*/ 64];
-  struct RenderResult *render;
-} RenderSlot;
+struct RenderSlot {
+  struct RenderSlot *next = nullptr, *prev = nullptr;
+  char name[/*MAX_NAME*/ 64] = "";
+  struct RenderResult *render = nullptr;
+};
 
-typedef struct ImageTile_Runtime {
-  int tilearray_layer;
-  int _pad;
-  int tilearray_offset[2];
-  int tilearray_size[2];
-} ImageTile_Runtime;
+struct ImageTile_Runtime {
+  int tilearray_layer = 0;
+  int _pad = {};
+  int tilearray_offset[2] = {};
+  int tilearray_size[2] = {};
+};
 
-typedef struct ImageTile {
-  struct ImageTile *next, *prev;
+struct ImageTile {
+  struct ImageTile *next = nullptr, *prev = nullptr;
 
   struct ImageTile_Runtime runtime;
 
-  int tile_number;
+  int tile_number = 0;
 
   /* for generated images */
-  int gen_x, gen_y;
-  char gen_type, gen_flag;
-  short gen_depth;
-  float gen_color[4];
+  int gen_x = 0, gen_y = 0;
+  char gen_type = 0, gen_flag = 0;
+  short gen_depth = 0;
+  float gen_color[4] = {};
 
-  char label[64];
-} ImageTile;
+  char label[64] = "";
+};
 
-typedef struct Image {
+struct Image {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
   static constexpr ID_Type id_type = ID_IM;
 #endif
 
   ID id;
-  struct AnimData *adt;
+  struct AnimData *adt = nullptr;
 
   /** File path. */
-  char filepath[/*FILE_MAX*/ 1024];
+  char filepath[/*FILE_MAX*/ 1024] = "";
 
   /* sources from: */
-  ListBase anims;
-  struct RenderResult *rr;
+  ListBase anims = {nullptr, nullptr};
+  struct RenderResult *rr = nullptr;
 
-  ListBase renderslots;
-  short render_slot, last_render_slot;
+  ListBase renderslots = {nullptr, nullptr};
+  short render_slot = 0, last_render_slot = 0;
 
-  int flag;
-  short source, type;
-  int lastframe;
+  int flag = 0;
+  short source = 0, type = 0;
+  int lastframe = 0;
 
   /* Number of iterations to perform when extracting mask for uv seam fixing. */
-  short seam_margin;
+  short seam_margin = 8;
 
-  char _pad2[6];
+  char _pad2[6] = {};
 
   /** Deprecated. */
-  struct PackedFile *packedfile DNA_DEPRECATED;
-  struct ListBase packedfiles;
-  struct PreviewImage *preview;
+  DNA_DEPRECATED struct PackedFile *packedfile = nullptr;
+  ListBase packedfiles = {nullptr, nullptr};
+  struct PreviewImage *preview = nullptr;
 
-  char _pad3[4];
+  char _pad3[4] = {};
 
   /* for generated images */
-  int gen_x DNA_DEPRECATED, gen_y DNA_DEPRECATED;
-  char gen_type DNA_DEPRECATED, gen_flag DNA_DEPRECATED;
-  short gen_depth DNA_DEPRECATED;
-  float gen_color[4] DNA_DEPRECATED;
+  DNA_DEPRECATED int gen_x = 1024;
+  DNA_DEPRECATED int gen_y = 1024;
+  DNA_DEPRECATED char gen_type = IMA_GENTYPE_GRID;
+  DNA_DEPRECATED char gen_flag = 0;
+  DNA_DEPRECATED short gen_depth = 0;
+  DNA_DEPRECATED float gen_color[4] = {};
 
   /* display aspect - for UV editing images resized for faster openGL display */
-  float aspx, aspy;
+  float aspx = 1.0, aspy = 1.0;
 
   /* color management */
   ColorManagedColorspaceSettings colorspace_settings;
-  char alpha_mode;
+  char alpha_mode = 0;
 
-  char _pad;
+  char _pad = {};
 
   /* Multiview */
   /** For viewer node stereoscopy. */
-  char eye;
-  char views_format;
+  char eye = 0;
+  char views_format = 0;
 
   /* ImageTile list for UDIMs. */
-  int active_tile_index;
-  ListBase tiles;
+  int active_tile_index = 0;
+  ListBase tiles = {nullptr, nullptr};
 
   /** ImageView. */
-  ListBase views;
-  struct Stereo3dFormat *stereo3d_format;
+  ListBase views = {nullptr, nullptr};
+  struct Stereo3dFormat *stereo3d_format = nullptr;
 
-  ImageRuntimeHandle *runtime;
-} Image;
+  ImageRuntimeHandle *runtime = nullptr;
+};

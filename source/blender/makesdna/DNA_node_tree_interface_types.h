@@ -16,8 +16,6 @@
 #  include "BLI_function_ref.hh"
 #  include "BLI_span.hh"
 #  include "BLI_string_ref.hh"
-
-#  include <memory>
 #endif
 
 #ifdef __cplusplus
@@ -28,8 +26,8 @@ struct bNodeSocketType;
 using bNodeTreeInterfaceRuntimeHandle = blender::bke::bNodeTreeInterfaceRuntime;
 using bNodeSocketTypeHandle = blender::bke::bNodeSocketType;
 #else
-typedef struct bNodeTreeInterfaceRuntimeHandle bNodeTreeInterfaceRuntimeHandle;
-typedef struct bNodeSocketTypeHandle bNodeSocketTypeHandle;
+struct bNodeTreeInterfaceRuntimeHandle;
+struct bNodeSocketTypeHandle;
 #endif
 
 struct bNodeSocket;
@@ -49,11 +47,11 @@ enum eNodeTreeInterfaceItemType {
 };
 
 /** Describes a socket and all necessary details for a node declaration. */
-typedef struct bNodeTreeInterfaceItem {
+struct bNodeTreeInterfaceItem {
   /* eNodeTreeInterfaceItemType */
-  char item_type;
-  char _pad[7];
-} bNodeTreeInterfaceItem;
+  char item_type = 0;
+  char _pad[7] = {};
+};
 
 /* Socket interface flags */
 enum NodeTreeInterfaceSocketFlag {
@@ -125,33 +123,33 @@ enum NodeDefaultInputType {
   NODE_DEFAULT_INPUT_HANDLE_RIGHT_FIELD = 7,
 };
 
-typedef struct bNodeTreeInterfaceSocket {
+struct bNodeTreeInterfaceSocket {
   bNodeTreeInterfaceItem item;
 
   /* UI name of the socket. */
-  char *name;
-  char *description;
+  char *name = nullptr;
+  char *description = nullptr;
   /* Type idname of the socket to generate, e.g. "NodeSocketFloat". */
-  char *socket_type;
+  char *socket_type = nullptr;
   /* NodeTreeInterfaceSocketFlag */
-  int flag;
+  int flag = 0;
 
   /* AttrDomain */
-  int16_t attribute_domain;
+  int16_t attribute_domain = 0;
   /** NodeDefaultInputType. */
-  int16_t default_input;
-  char *default_attribute_name;
+  int16_t default_input = 0;
+  char *default_attribute_name = nullptr;
 
   /* Unique identifier for generated sockets. */
-  char *identifier;
+  char *identifier = nullptr;
   /* Socket default value and associated data, e.g. bNodeSocketValueFloat. */
-  void *socket_data;
+  void *socket_data = nullptr;
 
-  struct IDProperty *properties;
+  struct IDProperty *properties = nullptr;
 
   /** #NodeSocketInterfaceStructureType. */
-  int8_t structure_type;
-  char _pad[7];
+  int8_t structure_type = 0;
+  char _pad[7] = {};
 
 #ifdef __cplusplus
   bNodeSocketTypeHandle *socket_typeinfo() const;
@@ -178,23 +176,23 @@ typedef struct bNodeTreeInterfaceSocket {
    */
   void init_from_socket_instance(const bNodeSocket *socket);
 #endif
-} bNodeTreeInterfaceSocket;
+};
 
-typedef struct bNodeTreeInterfacePanel {
+struct bNodeTreeInterfacePanel {
   bNodeTreeInterfaceItem item;
 
   /* UI name of the panel. */
-  char *name;
-  char *description;
+  char *name = nullptr;
+  char *description = nullptr;
   /* NodeTreeInterfacePanelFlag */
-  int flag;
-  char _pad[4];
+  int flag = 0;
+  char _pad[4] = {};
 
-  bNodeTreeInterfaceItem **items_array;
-  int items_num;
+  bNodeTreeInterfaceItem **items_array = nullptr;
+  int items_num = 0;
 
   /* Internal unique identifier for validating panel states. */
-  int identifier;
+  int identifier = 0;
 
 #ifdef __cplusplus
   blender::IndexRange items_range() const;
@@ -278,16 +276,16 @@ typedef struct bNodeTreeInterfacePanel {
   int find_valid_insert_position_for_item(const bNodeTreeInterfaceItem &item,
                                           int initial_position) const;
 #endif
-} bNodeTreeInterfacePanel;
+};
 
-typedef struct bNodeTreeInterface {
+struct bNodeTreeInterface {
   bNodeTreeInterfacePanel root_panel;
 
   /* Global index of the active item. */
-  int active_index;
-  int next_uid;
+  int active_index = 0;
+  int next_uid = 0;
 
-  bNodeTreeInterfaceRuntimeHandle *runtime;
+  bNodeTreeInterfaceRuntimeHandle *runtime = nullptr;
 
 #ifdef __cplusplus
 
@@ -507,4 +505,4 @@ typedef struct bNodeTreeInterface {
   void tag_missing_runtime_data();
 
 #endif
-} bNodeTreeInterface;
+};

@@ -17,7 +17,7 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
+#include "DNA_layer_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -66,10 +66,7 @@ using blender::VectorSet;
 static void init_data(ModifierData *md)
 {
   BooleanModifierData *bmd = (BooleanModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(bmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(bmd, DNA_struct_default_get(BooleanModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(bmd, modifier);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)

@@ -8,6 +8,8 @@
  * Engine for drawing a selection map where the pixels indicate the selection indices.
  */
 
+#include "DNA_userdef_types.h"
+
 #include "BKE_editmesh.hh"
 #include "BKE_mesh_types.hh"
 #include "BLI_math_matrix.h"

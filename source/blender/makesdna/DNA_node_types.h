@@ -20,8 +20,6 @@
 
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
-#  include <string>
-
 #  include "BLI_vector.hh"
 
 namespace blender {
@@ -60,14 +58,14 @@ using bNodeTypeHandle = blender::bke::bNodeType;
 using bNodeSocketTypeHandle = blender::bke::bNodeSocketType;
 #else
 
-typedef struct bNodeTreeRuntimeHandle bNodeTreeRuntimeHandle;
-typedef struct bNodeRuntimeHandle bNodeRuntimeHandle;
-typedef struct bNodeSocketRuntimeHandle bNodeSocketRuntimeHandle;
-typedef struct RuntimeNodeEnumItemsHandle RuntimeNodeEnumItemsHandle;
-typedef struct NodeInstanceHashHandle NodeInstanceHashHandle;
-typedef struct bNodeTreeTypeHandle bNodeTreeTypeHandle;
-typedef struct bNodeTypeHandle bNodeTypeHandle;
-typedef struct bNodeSocketTypeHandle bNodeSocketTypeHandle;
+struct bNodeTreeRuntimeHandle;
+struct bNodeRuntimeHandle;
+struct bNodeSocketRuntimeHandle;
+struct RuntimeNodeEnumItemsHandle;
+struct NodeInstanceHashHandle;
+struct bNodeTreeTypeHandle;
+struct bNodeTypeHandle;
+struct bNodeSocketTypeHandle;
 #endif
 
 struct AnimData;
@@ -1354,75 +1352,75 @@ enum NodeGeometryTransformMode {
   GEO_NODE_TRANSFORM_MODE_MATRIX = 1,
 };
 
-typedef struct bNodeStack {
-  float vec[4];
-  float min, max;
-  void *data;
+struct bNodeStack {
+  float vec[4] = {};
+  float min = 0, max = 0;
+  void *data = nullptr;
   /** When input has link, tagged before executing. */
-  short hasinput;
+  short hasinput = 0;
   /** When output is linked, tagged before executing. */
-  short hasoutput;
+  short hasoutput = 0;
   /** Type of data pointer. */
-  short datatype;
+  short datatype = 0;
   /** Type of socket stack comes from, to remap linking different sockets. */
-  short sockettype;
+  short sockettype = 0;
   /** Data is a copy of external data (no freeing). */
-  short is_copy;
+  short is_copy = 0;
   /** Data is used by external nodes (no freeing). */
-  short external;
-  char _pad[4];
-} bNodeStack;
+  short external = 0;
+  char _pad[4] = {};
+};
 
-typedef struct bNodeSocket {
-  struct bNodeSocket *next, *prev;
+struct bNodeSocket {
+  struct bNodeSocket *next = nullptr, *prev = nullptr;
 
   /** User-defined properties. */
-  IDProperty *prop;
+  IDProperty *prop = nullptr;
 
   /** Unique identifier for mapping. */
-  char identifier[64];
+  char identifier[64] = "";
 
-  char name[/*MAX_NAME*/ 64];
+  char name[/*MAX_NAME*/ 64] = "";
 
   /** Only used for the Image and OutputFile nodes, should be removed at some point. */
-  void *storage;
+  void *storage = nullptr;
 
   /**
    * The socket's data type. #eNodeSocketDatatype.
    */
-  short type;
+  short type = 0;
   /** #eNodeSocketFlag */
-  short flag;
+  short flag = 0;
   /**
    * Maximum number of links that can connect to the socket. Read via #nodeSocketLinkLimit, because
    * the limit might be defined on the socket type, in which case this value does not have any
    * effect. It is necessary to store this in the socket because it is exposed as an RNA property
    * for custom nodes.
    */
-  short limit;
+  short limit = 0;
   /** Input/output type. */
-  short in_out;
+  short in_out = 0;
   /** Runtime type information. */
-  bNodeSocketTypeHandle *typeinfo;
+  bNodeSocketTypeHandle *typeinfo = nullptr;
   /** Runtime type identifier. */
-  char idname[64];
+  char idname[64] = "";
 
   /** Default input value used for unlinked sockets. */
-  void *default_value;
+  void *default_value = nullptr;
 
   /** Local stack index for "node_exec". */
-  int stack_index;
-  char display_shape;
+  int stack_index = 0;
+  char display_shape = 0;
 
   /* #AttrDomain used when the geometry nodes modifier creates an attribute for a group
    * output. */
-  char attribute_domain;
+  char attribute_domain = 0;
 
-  char _pad[2];
+  char _pad[2] = {};
 
   /** Custom dynamic defined label. */
-  char label[/*MAX_NAME*/ 64];
-  char description[/*MAX_NAME*/ 64];
+  char label[/*MAX_NAME*/ 64] = "";
+  char description[/*MAX_NAME*/ 64] = "";
 
   /**
    * The default attribute name to use for geometry nodes modifier output attribute sockets.
@@ -1430,25 +1428,25 @@ typedef struct bNodeSocket {
    * to describe group inputs and outputs. In the future, it should be stored in socket
    * declarations.
    */
-  char *default_attribute_name;
+  char *default_attribute_name = nullptr;
 
   /* internal data to retrieve relations and groups
    * DEPRECATED, now uses the generic identifier string instead
    */
   /** Group socket identifiers, to find matching pairs after reading files. */
-  int own_index DNA_DEPRECATED;
+  DNA_DEPRECATED int own_index = 0;
   /* XXX deprecated, only used for restoring old group node links */
-  int to_index DNA_DEPRECATED;
+  DNA_DEPRECATED int to_index = 0;
 
   /** A link pointer, set in #BKE_ntree_update. */
-  struct bNodeLink *link;
+  struct bNodeLink *link = nullptr;
 
   /* XXX deprecated, socket input values are stored in default_value now.
    * kept for forward compatibility */
   /** Custom data for inputs, only UI writes in this. */
-  bNodeStack ns DNA_DEPRECATED;
+  DNA_DEPRECATED bNodeStack ns;
 
-  bNodeSocketRuntimeHandle *runtime;
+  bNodeSocketRuntimeHandle *runtime = nullptr;
 
 #ifdef __cplusplus
   /**
@@ -1550,30 +1548,30 @@ typedef struct bNodeSocket {
   const bNodeSocket *internal_link_input() const;
 
 #endif
-} bNodeSocket;
+};
 
-typedef struct bNodePanelState {
+struct bNodePanelState {
   /* Unique identifier for validating state against panels in node declaration. */
-  int identifier;
+  int identifier = 0;
   /* eNodePanelFlag */
-  char flag;
-  char _pad[3];
+  char flag = 0;
+  char _pad[3] = {};
 
 #ifdef __cplusplus
   bool is_collapsed() const;
   bool is_parent_collapsed() const;
   bool has_visible_content() const;
 #endif
-} bNodePanelState;
+};
 
-typedef struct bNode {
-  struct bNode *next, *prev;
+struct bNode {
+  struct bNode *next = nullptr, *prev = nullptr;
 
   /* Input and output #bNodeSocket. */
   ListBase inputs, outputs;
 
   /** The node's name for unique identification and string lookup. */
-  char name[/*MAX_NAME*/ 64];
+  char name[/*MAX_NAME*/ 64] = "";
 
   /**
    * A value that uniquely identifies a node in a node tree even when the name changes.
@@ -1582,18 +1580,18 @@ typedef struct bNode {
    * Must be set whenever a node is added to a tree, besides a simple tree copy.
    * Must always be positive.
    */
-  int32_t identifier;
+  int32_t identifier = 0;
 
-  int flag;
+  int flag = 0;
 
   /**
    * String identifier of the type like "FunctionNodeCompare". Stored in files to allow retrieving
    * the node type for node types including custom nodes defined in Python by addons.
    */
-  char idname[64];
+  char idname[64] = "";
 
   /** Type information retrieved from the #idname. TODO: Move to runtime data. */
-  bNodeTypeHandle *typeinfo;
+  bNodeTypeHandle *typeinfo = nullptr;
 
   /**
    * Legacy integer type for nodes. It does not uniquely identify a node type, only the `idname`
@@ -1614,69 +1612,69 @@ typedef struct bNode {
    * pointer comparison), or using a run-time generated integer that is automatically assigned when
    * node types are registered.
    */
-  int16_t type_legacy;
+  int16_t type_legacy = 0;
 
   /**
    * Depth of the node in the node editor, used to keep recently selected nodes at the front, and
    * to order frame nodes properly.
    */
-  int16_t ui_order;
+  int16_t ui_order = 0;
 
   /** Used for some builtin nodes that store properties but don't have a storage struct. */
-  int16_t custom1, custom2;
-  float custom3, custom4;
+  int16_t custom1 = 0, custom2 = 0;
+  float custom3 = 0, custom4 = 0;
 
   /**
    * #NodeWarningPropagation.
    */
-  int8_t warning_propagation;
-  char _pad[7];
+  int8_t warning_propagation = 0;
+  char _pad[7] = {};
 
   /**
    * Optional link to libdata.
    *
    * \see #bNodeType::initfunc & #bNodeType::freefunc for details on ID user-count.
    */
-  struct ID *id;
+  struct ID *id = nullptr;
 
   /** Custom data struct for node properties for storage in files. */
-  void *storage;
+  void *storage = nullptr;
 
   /**
    * Custom properties often defined by addons to store arbitrary data on nodes. A non-builtin
    * equivalent to #storage.
    */
-  IDProperty *prop;
+  IDProperty *prop = nullptr;
 
   /**
    * System-defined properties, used e.g. to store data for custom node types.
    */
-  IDProperty *system_properties;
+  IDProperty *system_properties = nullptr;
 
   /** Parent node (for frame nodes). */
-  struct bNode *parent;
+  struct bNode *parent = nullptr;
 
   /** The location of the top left corner of the node on the canvas. */
-  float location[2];
+  float location[2] = {};
   /**
    * Custom width and height controlled by users. Height is calculate automatically for most
    * nodes.
    */
-  float width, height;
-  float locx_legacy, locy_legacy;
-  float offsetx_legacy, offsety_legacy;
+  float width = 0, height = 0;
+  float locx_legacy = 0, locy_legacy = 0;
+  float offsetx_legacy = 0, offsety_legacy = 0;
 
   /** Custom user-defined label. */
-  char label[/*MAX_NAME*/ 64];
+  char label[/*MAX_NAME*/ 64] = "";
 
   /** Custom user-defined color. */
-  float color[3];
+  float color[3] = {};
 
   /** Panel states for this node instance. */
-  int num_panel_states;
-  bNodePanelState *panel_states_array;
+  int num_panel_states = 0;
+  bNodePanelState *panel_states_array = nullptr;
 
-  bNodeRuntimeHandle *runtime;
+  bNodeRuntimeHandle *runtime = nullptr;
 
 #ifdef __cplusplus
   /** The index in the owner node tree. */
@@ -1742,14 +1740,14 @@ typedef struct bNode {
   const bNodeTree &owner_tree() const;
   bNodeTree &owner_tree();
 #endif
-} bNode;
+};
 
 /**
  * Unique hash key for identifying node instances
  * Defined as a struct because DNA does not support other typedefs.
  */
-typedef struct bNodeInstanceKey {
-  unsigned int value;
+struct bNodeInstanceKey {
+  unsigned int value = 0;
 
 #ifdef __cplusplus
   inline bool operator==(const bNodeInstanceKey &other) const
@@ -1766,7 +1764,7 @@ typedef struct bNodeInstanceKey {
     return value;
   }
 #endif
-} bNodeInstanceKey;
+};
 
 /**
  * Base struct for entries in node instance hash.
@@ -1776,27 +1774,27 @@ typedef struct bNodeInstanceKey {
  */
 #
 #
-typedef struct bNodeInstanceHashEntry {
+struct bNodeInstanceHashEntry {
   bNodeInstanceKey key;
 
   /** Tags for cleaning the cache. */
-  short tag;
-} bNodeInstanceHashEntry;
+  short tag = 0;
+};
 
-typedef struct bNodeLink {
-  struct bNodeLink *next, *prev;
+struct bNodeLink {
+  struct bNodeLink *next = nullptr, *prev = nullptr;
 
-  bNode *fromnode, *tonode;
-  bNodeSocket *fromsock, *tosock;
+  bNode *fromnode = nullptr, *tonode = nullptr;
+  bNodeSocket *fromsock = nullptr, *tosock = nullptr;
 
-  int flag;
+  int flag = 0;
   /**
    * Determines the order in which links are connected to a multi-input socket.
    * For historical reasons, larger ids come before lower ids.
    * Usually, this should not be accessed directly. One can instead use e.g.
    * `socket.directly_linked_links()` to get the links in the correct order.
    */
-  int multi_input_sort_id;
+  int multi_input_sort_id = 0;
 
 #ifdef __cplusplus
   bool is_muted() const;
@@ -1804,29 +1802,28 @@ typedef struct bNodeLink {
   /** Both linked sockets are available and the link is not muted. */
   bool is_used() const;
 #endif
+};
 
-} bNodeLink;
-
-typedef struct bNestedNodePath {
+struct bNestedNodePath {
   /** ID of the node that is or contains the nested node. */
-  int32_t node_id;
+  int32_t node_id = 0;
   /** Unused if the node is the final nested node, otherwise an id inside of the (group) node. */
-  int32_t id_in_node;
+  int32_t id_in_node = 0;
 
 #ifdef __cplusplus
   uint64_t hash() const;
   friend bool operator==(const bNestedNodePath &a, const bNestedNodePath &b);
 #endif
-} bNestedNodePath;
+};
 
-typedef struct bNestedNodeRef {
+struct bNestedNodeRef {
   /** Identifies a potentially nested node. This ID remains stable even if the node is moved into
    * and out of node groups. */
-  int32_t id;
-  char _pad[4];
+  int32_t id = 0;
+  char _pad[4] = {};
   /** Where to find the nested node in the current node tree. */
   bNestedNodePath path;
-} bNestedNodeRef;
+};
 
 /**
  * The basis for a Node tree, all links and nodes reside internal here.
@@ -1834,7 +1831,7 @@ typedef struct bNestedNodeRef {
  * Only re-usable node trees are in the library though,
  * materials and textures allocate their own tree struct.
  */
-typedef struct bNodeTree {
+struct bNodeTree {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
   static constexpr ID_Type id_type = ID_NT;
@@ -1842,58 +1839,59 @@ typedef struct bNodeTree {
 
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
-  struct AnimData *adt;
+  struct AnimData *adt = nullptr;
 
   /** The ID owning this node tree, in case it is an embedded one. */
-  ID *owner_id;
+  ID *owner_id = nullptr;
 
   /** Runtime type information. */
-  bNodeTreeTypeHandle *typeinfo;
+  bNodeTreeTypeHandle *typeinfo = nullptr;
   /** Runtime type identifier. */
-  char idname[64];
+  char idname[64] = "";
   /** User-defined description of the node tree. */
-  char *description;
+  char *description = nullptr;
 
   /** Grease pencil data. */
-  struct bGPdata *gpd;
+  struct bGPdata *gpd = nullptr;
   /** Node tree stores its own offset for consistent editor view. */
-  float view_center[2];
+  float view_center[2] = {};
 
   ListBase nodes, links;
 
-  int type;
+  int type = 0;
 
   /**
    * Sockets in groups have unique identifiers, adding new sockets always
    * will increase this counter.
    */
-  int cur_index;
-  int flag;
+  int cur_index = 0;
+  int flag = 0;
 
   /** Tile size for compositor engine. */
-  int chunksize DNA_DEPRECATED;
+  DNA_DEPRECATED int chunksize = 0;
   /** Execution mode to use for compositor engine. */
-  int execution_mode DNA_DEPRECATED;
+  DNA_DEPRECATED int execution_mode = 0;
   /** Precision used by the GPU execution of the compositor tree. */
-  int precision DNA_DEPRECATED;
+  DNA_DEPRECATED int precision = 0;
 
   /** #blender::bke::NodeColorTag. */
-  int color_tag;
+  int color_tag = 0;
 
   /**
    * Default width of a group node created for this group. May be zero, in which case this value
    * should be ignored.
    */
-  int default_group_node_width;
+  int default_group_node_width = 0;
 
-  rctf viewer_border;
+  rctf viewer_border = {};
 
   /**
    * Lists of #bNodeSocket to hold default values and own_index.
    * Warning! Don't make links to these sockets, input/output nodes are used for that.
    * These sockets are used only for generating external interfaces.
    */
-  ListBase inputs_legacy DNA_DEPRECATED, outputs_legacy DNA_DEPRECATED;
+  DNA_DEPRECATED ListBase inputs_legacy;
+  DNA_DEPRECATED ListBase outputs_legacy;
 
   bNodeTreeInterface tree_interface;
 
@@ -1907,15 +1905,15 @@ typedef struct bNodeTree {
    * Used to maintain stable IDs for a subset of nested nodes. For example, every simulation zone
    * that is in the node tree has a unique entry here.
    */
-  int nested_node_refs_num;
-  bNestedNodeRef *nested_node_refs;
+  int nested_node_refs_num = 0;
+  bNestedNodeRef *nested_node_refs = nullptr;
 
-  struct GeometryNodeAssetTraits *geometry_node_asset_traits;
+  struct GeometryNodeAssetTraits *geometry_node_asset_traits = nullptr;
 
   /** Image representing what the node group does. */
-  struct PreviewImage *preview;
+  struct PreviewImage *preview = nullptr;
 
-  bNodeTreeRuntimeHandle *runtime;
+  bNodeTreeRuntimeHandle *runtime = nullptr;
 
 #ifdef __cplusplus
 
@@ -2011,737 +2009,888 @@ typedef struct bNodeTree {
   int interface_output_index(const bNodeTreeInterfaceSocket &io_socket) const;
   int interface_item_index(const bNodeTreeInterfaceItem &io_item) const;
 #endif
-} bNodeTree;
+};
 
 /* socket value structs for input buttons
  * DEPRECATED now using ID properties
  */
 
-typedef struct bNodeSocketValueInt {
+struct bNodeSocketValueInt {
   /** RNA subtype. */
-  int subtype;
-  int value;
-  int min, max;
-} bNodeSocketValueInt;
+  int subtype = 0;
+  int value = 0;
+  int min = 0, max = 0;
+};
 
-typedef struct bNodeSocketValueFloat {
+struct bNodeSocketValueFloat {
   /** RNA subtype. */
-  int subtype;
-  float value;
-  float min, max;
-} bNodeSocketValueFloat;
+  int subtype = 0;
+  float value = 0;
+  float min = 0, max = 0;
+};
 
-typedef struct bNodeSocketValueBoolean {
-  char value;
-} bNodeSocketValueBoolean;
+struct bNodeSocketValueBoolean {
+  char value = 0;
+};
 
-typedef struct bNodeSocketValueVector {
+struct bNodeSocketValueVector {
   /** RNA subtype. */
-  int subtype;
+  int subtype = 0;
   /* Only some of the values might be used depending on the dimensions. */
-  float value[4];
-  float min, max;
+  float value[4] = {};
+  float min = 0, max = 0;
   /* The number of dimensions of the vector. Can be 2, 3, or 4. */
-  int dimensions;
-} bNodeSocketValueVector;
+  int dimensions = 0;
+};
 
-typedef struct bNodeSocketValueRotation {
-  float value_euler[3];
-} bNodeSocketValueRotation;
+struct bNodeSocketValueRotation {
+  float value_euler[3] = {};
+};
 
-typedef struct bNodeSocketValueRGBA {
-  float value[4];
-} bNodeSocketValueRGBA;
+struct bNodeSocketValueRGBA {
+  float value[4] = {};
+};
 
-typedef struct bNodeSocketValueString {
-  int subtype;
-  char _pad[4];
-  char value[/*FILE_MAX*/ 1024];
-} bNodeSocketValueString;
+struct bNodeSocketValueString {
+  int subtype = 0;
+  char _pad[4] = {};
+  char value[/*FILE_MAX*/ 1024] = "";
+};
 
-typedef struct bNodeSocketValueObject {
-  struct Object *value;
-} bNodeSocketValueObject;
+struct bNodeSocketValueObject {
+  struct Object *value = nullptr;
+};
 
-typedef struct bNodeSocketValueImage {
-  struct Image *value;
-} bNodeSocketValueImage;
+struct bNodeSocketValueImage {
+  struct Image *value = nullptr;
+};
 
-typedef struct bNodeSocketValueCollection {
-  struct Collection *value;
-} bNodeSocketValueCollection;
+struct bNodeSocketValueCollection {
+  struct Collection *value = nullptr;
+};
 
-typedef struct bNodeSocketValueTexture {
-  struct Tex *value;
-} bNodeSocketValueTexture;
+struct bNodeSocketValueTexture {
+  struct Tex *value = nullptr;
+};
 
-typedef struct bNodeSocketValueMaterial {
-  struct Material *value;
-} bNodeSocketValueMaterial;
+struct bNodeSocketValueMaterial {
+  struct Material *value = nullptr;
+};
 
-typedef struct bNodeSocketValueFont {
-  struct VFont *value;
-} bNodeSocketValueFont;
+struct bNodeSocketValueFont {
+  struct VFont *value = nullptr;
+};
 
-typedef struct bNodeSocketValueScene {
-  struct Scene *value;
-} bNodeSocketValueScene;
+struct bNodeSocketValueScene {
+  struct Scene *value = nullptr;
+};
 
-typedef struct bNodeSocketValueText {
-  struct Text *value;
-} bNodeSocketValueText;
+struct bNodeSocketValueText {
+  struct Text *value = nullptr;
+};
 
-typedef struct bNodeSocketValueMask {
-  struct Mask *value;
-} bNodeSocketValueMask;
+struct bNodeSocketValueMask {
+  struct Mask *value = nullptr;
+};
 
-typedef struct bNodeSocketValueSound {
-  struct bSound *value;
-} bNodeSocketValueSound;
+struct bNodeSocketValueSound {
+  struct bSound *value = nullptr;
+};
 
-typedef struct bNodeSocketValueMenu {
+struct bNodeSocketValueMenu {
   /* Default input enum identifier. */
-  int value;
+  int value = 0;
   /* #NodeSocketValueMenuRuntimeFlag */
-  int runtime_flag;
+  int runtime_flag = 0;
   /* Immutable runtime enum definition. */
-  const RuntimeNodeEnumItemsHandle *enum_items;
+  const RuntimeNodeEnumItemsHandle *enum_items = nullptr;
 
 #ifdef __cplusplus
   bool has_conflict() const;
 #endif
-} bNodeSocketValueMenu;
+};
 
-typedef struct GeometryNodeAssetTraits {
-  int flag;
-  char _pad[4];
-  char *node_tool_idname;
-} GeometryNodeAssetTraits;
+struct GeometryNodeAssetTraits {
+  int flag = 0;
+  char _pad[4] = {};
+  char *node_tool_idname = nullptr;
+};
 
-typedef struct NodeFrame {
-  short flag;
-  short label_size;
-} NodeFrame;
+struct NodeFrame {
+  DNA_DEFINE_CXX_METHODS(NodeFrame)
 
-typedef struct NodeReroute {
+  short flag = 0;
+  short label_size = 0;
+};
+
+struct NodeReroute {
+  DNA_DEFINE_CXX_METHODS(NodeReroute)
+
   /** Name of the socket type (e.g. `NodeSocketFloat`). */
-  char type_idname[64];
-
-} NodeReroute;
+  char type_idname[64] = "";
+};
 
 /** \note This one has been replaced with #ImageUser, keep it for do_versions(). */
-typedef struct NodeImageAnim {
-  int frames DNA_DEPRECATED;
-  int sfra DNA_DEPRECATED;
-  int nr DNA_DEPRECATED;
-  char cyclic DNA_DEPRECATED;
-  char movie DNA_DEPRECATED;
-  char _pad[2];
-} NodeImageAnim;
+struct NodeImageAnim {
+  DNA_DEFINE_CXX_METHODS(NodeImageAnim)
 
-typedef struct ColorCorrectionData {
-  float saturation DNA_DEPRECATED;
-  float contrast DNA_DEPRECATED;
-  float gamma DNA_DEPRECATED;
-  float gain DNA_DEPRECATED;
-  float lift DNA_DEPRECATED;
-  char _pad[4];
-} ColorCorrectionData;
+  DNA_DEPRECATED int frames = 0;
+  DNA_DEPRECATED int sfra = 0;
+  DNA_DEPRECATED int nr = 0;
+  DNA_DEPRECATED char cyclic = 0;
+  DNA_DEPRECATED char movie = 0;
+  char _pad[2] = {};
+};
 
-typedef struct NodeColorCorrection {
-  ColorCorrectionData master DNA_DEPRECATED;
-  ColorCorrectionData shadows DNA_DEPRECATED;
-  ColorCorrectionData midtones DNA_DEPRECATED;
-  ColorCorrectionData highlights DNA_DEPRECATED;
-  float startmidtones DNA_DEPRECATED;
-  float endmidtones DNA_DEPRECATED;
-} NodeColorCorrection;
+struct ColorCorrectionData {
+  DNA_DEFINE_CXX_METHODS(ColorCorrectionData)
 
-typedef struct NodeBokehImage {
-  float angle DNA_DEPRECATED;
-  int flaps DNA_DEPRECATED;
-  float rounding DNA_DEPRECATED;
-  float catadioptric DNA_DEPRECATED;
-  float lensshift DNA_DEPRECATED;
-} NodeBokehImage;
+  DNA_DEPRECATED float saturation = 0;
+  DNA_DEPRECATED float contrast = 0;
+  DNA_DEPRECATED float gamma = 0;
+  DNA_DEPRECATED float gain = 0;
+  DNA_DEPRECATED float lift = 0;
+  char _pad[4] = {};
+};
 
-typedef struct NodeBoxMask {
-  float x DNA_DEPRECATED;
-  float y DNA_DEPRECATED;
-  float rotation DNA_DEPRECATED;
-  float height DNA_DEPRECATED;
-  float width DNA_DEPRECATED;
-  char _pad[4];
-} NodeBoxMask;
+struct NodeColorCorrection {
+  DNA_DEFINE_CXX_METHODS(NodeColorCorrection)
 
-typedef struct NodeEllipseMask {
-  float x DNA_DEPRECATED;
-  float y DNA_DEPRECATED;
-  float rotation DNA_DEPRECATED;
-  float height DNA_DEPRECATED;
-  float width DNA_DEPRECATED;
-  char _pad[4];
-} NodeEllipseMask;
+  DNA_DEPRECATED ColorCorrectionData master;
+  DNA_DEPRECATED ColorCorrectionData shadows;
+  DNA_DEPRECATED ColorCorrectionData midtones;
+  DNA_DEPRECATED ColorCorrectionData highlights;
+  DNA_DEPRECATED float startmidtones = 0;
+  DNA_DEPRECATED float endmidtones = 0;
+};
+
+struct NodeBokehImage {
+  DNA_DEFINE_CXX_METHODS(NodeBokehImage)
+
+  DNA_DEPRECATED float angle = 0;
+  DNA_DEPRECATED int flaps = 0;
+  DNA_DEPRECATED float rounding = 0;
+  DNA_DEPRECATED float catadioptric = 0;
+  DNA_DEPRECATED float lensshift = 0;
+};
+
+struct NodeBoxMask {
+  DNA_DEFINE_CXX_METHODS(NodeBoxMask)
+
+  DNA_DEPRECATED float x = 0;
+  DNA_DEPRECATED float y = 0;
+  DNA_DEPRECATED float rotation = 0;
+  DNA_DEPRECATED float height = 0;
+  DNA_DEPRECATED float width = 0;
+  char _pad[4] = {};
+};
+
+struct NodeEllipseMask {
+  DNA_DEFINE_CXX_METHODS(NodeEllipseMask)
+
+  DNA_DEPRECATED float x = 0;
+  DNA_DEPRECATED float y = 0;
+  DNA_DEPRECATED float rotation = 0;
+  DNA_DEPRECATED float height = 0;
+  DNA_DEPRECATED float width = 0;
+  char _pad[4] = {};
+};
 
 /** Layer info for image node outputs. */
-typedef struct NodeImageLayer {
+struct NodeImageLayer {
+  DNA_DEFINE_CXX_METHODS(NodeImageLayer)
+
   /** Index in the `image->layers->passes` lists. */
-  int pass_index DNA_DEPRECATED;
+  DNA_DEPRECATED int pass_index = 0;
   /* render pass name */
   /** Amount defined in IMB_openexr.hh. */
-  char pass_name[64];
-} NodeImageLayer;
+  char pass_name[64] = "";
+};
 
-typedef struct NodeBlurData {
-  short sizex DNA_DEPRECATED;
-  short sizey DNA_DEPRECATED;
-  short samples DNA_DEPRECATED;
-  short maxspeed DNA_DEPRECATED;
-  short minspeed DNA_DEPRECATED;
-  short relative DNA_DEPRECATED;
-  short aspect DNA_DEPRECATED;
-  short curved DNA_DEPRECATED;
-  float fac DNA_DEPRECATED;
-  float percentx DNA_DEPRECATED;
-  float percenty DNA_DEPRECATED;
-  short filtertype DNA_DEPRECATED;
-  char bokeh DNA_DEPRECATED;
-  char gamma DNA_DEPRECATED;
-} NodeBlurData;
+struct NodeBlurData {
+  DNA_DEFINE_CXX_METHODS(NodeBlurData)
 
-typedef struct NodeDBlurData {
-  float center_x DNA_DEPRECATED;
-  float center_y DNA_DEPRECATED;
-  float distance DNA_DEPRECATED;
-  float angle DNA_DEPRECATED;
-  float spin DNA_DEPRECATED;
-  float zoom DNA_DEPRECATED;
-  short iter DNA_DEPRECATED;
-  char _pad[2];
-} NodeDBlurData;
+  DNA_DEPRECATED short sizex = 0;
+  DNA_DEPRECATED short sizey = 0;
+  DNA_DEPRECATED short samples = 0;
+  DNA_DEPRECATED short maxspeed = 0;
+  DNA_DEPRECATED short minspeed = 0;
+  DNA_DEPRECATED short relative = 0;
+  DNA_DEPRECATED short aspect = 0;
+  DNA_DEPRECATED short curved = 0;
+  DNA_DEPRECATED float fac = 0;
+  DNA_DEPRECATED float percentx = 0;
+  DNA_DEPRECATED float percenty = 0;
+  DNA_DEPRECATED short filtertype = 0;
+  DNA_DEPRECATED char bokeh = 0;
+  DNA_DEPRECATED char gamma = 0;
+};
 
-typedef struct NodeBilateralBlurData {
-  float sigma_color DNA_DEPRECATED;
-  float sigma_space DNA_DEPRECATED;
-  short iter DNA_DEPRECATED;
-  char _pad[2];
-} NodeBilateralBlurData;
+struct NodeDBlurData {
+  DNA_DEFINE_CXX_METHODS(NodeDBlurData)
 
-typedef struct NodeKuwaharaData {
-  short size DNA_DEPRECATED;
-  short variation DNA_DEPRECATED;
-  int uniformity DNA_DEPRECATED;
-  float sharpness DNA_DEPRECATED;
-  float eccentricity DNA_DEPRECATED;
-  char high_precision DNA_DEPRECATED;
-  char _pad[3];
-} NodeKuwaharaData;
+  DNA_DEPRECATED float center_x = 0;
+  DNA_DEPRECATED float center_y = 0;
+  DNA_DEPRECATED float distance = 0;
+  DNA_DEPRECATED float angle = 0;
+  DNA_DEPRECATED float spin = 0;
+  DNA_DEPRECATED float zoom = 0;
+  DNA_DEPRECATED short iter = 0;
+  char _pad[2] = {};
+};
 
-typedef struct NodeAntiAliasingData {
-  float threshold DNA_DEPRECATED;
-  float contrast_limit DNA_DEPRECATED;
-  float corner_rounding DNA_DEPRECATED;
-} NodeAntiAliasingData;
+struct NodeBilateralBlurData {
+  DNA_DEFINE_CXX_METHODS(NodeBilateralBlurData)
+
+  DNA_DEPRECATED float sigma_color = 0;
+  DNA_DEPRECATED float sigma_space = 0;
+  DNA_DEPRECATED short iter = 0;
+  char _pad[2] = {};
+};
+
+struct NodeKuwaharaData {
+  DNA_DEFINE_CXX_METHODS(NodeKuwaharaData)
+
+  DNA_DEPRECATED short size = 0;
+  DNA_DEPRECATED short variation = 0;
+  DNA_DEPRECATED int uniformity = 0;
+  DNA_DEPRECATED float sharpness = 0;
+  DNA_DEPRECATED float eccentricity = 0;
+  DNA_DEPRECATED char high_precision = 0;
+  char _pad[3] = {};
+};
+
+struct NodeAntiAliasingData {
+  DNA_DEFINE_CXX_METHODS(NodeAntiAliasingData)
+
+  DNA_DEPRECATED float threshold = 0;
+  DNA_DEPRECATED float contrast_limit = 0;
+  DNA_DEPRECATED float corner_rounding = 0;
+};
 
 /** \note Only for do-version code. */
-typedef struct NodeHueSat {
-  float hue DNA_DEPRECATED;
-  float sat DNA_DEPRECATED;
-  float val DNA_DEPRECATED;
-} NodeHueSat;
+struct NodeHueSat {
+  DNA_DEFINE_CXX_METHODS(NodeHueSat)
 
-typedef struct NodeImageFile {
-  char name[/*FILE_MAX*/ 1024];
-  struct ImageFormatData im_format;
-  int sfra, efra;
-} NodeImageFile;
+  DNA_DEPRECATED float hue = 0;
+  DNA_DEPRECATED float sat = 0;
+  DNA_DEPRECATED float val = 0;
+};
 
-typedef struct NodeCompositorFileOutputItem {
+struct NodeImageFile {
+  DNA_DEFINE_CXX_METHODS(NodeImageFile)
+
+  char name[/*FILE_MAX*/ 1024] = "";
+  ImageFormatData im_format;
+  int sfra = 0, efra = 0;
+};
+
+struct NodeCompositorFileOutputItem {
   /* The unique identifier of the item used to construct the socket identifier. */
-  int identifier;
+  int identifier = 0;
   /* The type of socket for the item, which is limited to the types listed in the
    * FileOutputItemsAccessor::supports_socket_type. */
-  int16_t socket_type;
+  int16_t socket_type = 0;
   /* The number of dimensions in the vector socket if the socket type is vector, otherwise, it is
    * unused, */
-  char vector_socket_dimensions;
+  char vector_socket_dimensions = 0;
   /* If true and the node is saving individual files, the format an save_as_render members of this
    * struct will be used, otherwise, the members of the NodeCompositorFileOutput struct will be
    * used for all items. */
-  char override_node_format;
+  char override_node_format = 0;
   /* Apply the render part of the display transform when saving non-linear images. Unused if
    * override_node_format is false or the node is saving multi-layer images. */
-  char save_as_render;
-  char _pad[7];
+  char save_as_render = 0;
+  char _pad[7] = {};
   /* The unique name of the item. It is used as the file name when saving individual files and used
    * as the layer name when saving multi-layer images. */
-  char *name;
+  char *name = nullptr;
   /* The image format to use when saving individual images and override_node_format is true. */
   ImageFormatData format;
-} NodeCompositorFileOutputItem;
+};
 
-typedef struct NodeCompositorFileOutput {
-  char directory[/*FILE_MAX*/ 1024];
+struct NodeCompositorFileOutput {
+  DNA_DEFINE_CXX_METHODS(NodeCompositorFileOutput)
+
+  char directory[/*FILE_MAX*/ 1024] = "";
   /* The base name of the file. Can be nullptr. */
-  char *file_name;
+  char *file_name = nullptr;
   /* The image format to use when saving the images. */
   ImageFormatData format;
   /* The file output images. They can represent individual images or layers depending on whether
    * multi-layer images are being saved. */
-  NodeCompositorFileOutputItem *items;
+  NodeCompositorFileOutputItem *items = nullptr;
   /* The number of file output items. */
-  int items_count;
+  int items_count = 0;
   /* The currently active file output item. */
-  int active_item_index;
+  int active_item_index = 0;
   /* Apply the render part of the display transform when saving non-linear images. */
-  char save_as_render;
-  char _pad[7];
-} NodeCompositorFileOutput;
+  char save_as_render = 0;
+  char _pad[7] = {};
+};
 
-typedef struct NodeImageMultiFileSocket {
+struct NodeImageMultiFileSocket {
+  DNA_DEFINE_CXX_METHODS(NodeImageMultiFileSocket)
+
   /* single layer file output */
-  short use_render_format DNA_DEPRECATED;
+  DNA_DEPRECATED short use_render_format = 0;
   /** Use overall node image format. */
-  short use_node_format DNA_DEPRECATED;
-  char save_as_render DNA_DEPRECATED;
-  char _pad1[3];
-  char path[/*FILE_MAX*/ 1024] DNA_DEPRECATED;
-  ImageFormatData format DNA_DEPRECATED;
+  DNA_DEPRECATED short use_node_format = 0;
+  DNA_DEPRECATED char save_as_render = 0;
+  char _pad1[3] = {};
+  DNA_DEPRECATED char path[/*FILE_MAX*/ 1024];
+  DNA_DEPRECATED ImageFormatData format;
 
   /* Multi-layer output. */
   /** Subtract 2 because '.' and channel char are appended. */
-  char layer[/*EXR_TOT_MAXNAME - 2*/ 62] DNA_DEPRECATED;
-  char _pad2[2];
-} NodeImageMultiFileSocket;
+  DNA_DEPRECATED char layer[/*EXR_TOT_MAXNAME - 2*/ 62];
+  char _pad2[2] = {};
+};
 
-typedef struct NodeChroma {
-  float t1 DNA_DEPRECATED;
-  float t2 DNA_DEPRECATED;
-  float t3 DNA_DEPRECATED;
-  float fsize DNA_DEPRECATED;
-  float fstrength DNA_DEPRECATED;
-  float falpha DNA_DEPRECATED;
-  float key[4] DNA_DEPRECATED;
-  short algorithm DNA_DEPRECATED;
-  short channel DNA_DEPRECATED;
-} NodeChroma;
+struct NodeChroma {
+  DNA_DEFINE_CXX_METHODS(NodeChroma)
 
-typedef struct NodeTwoXYs {
-  short x1 DNA_DEPRECATED;
-  short x2 DNA_DEPRECATED;
-  short y1 DNA_DEPRECATED;
-  short y2 DNA_DEPRECATED;
-  float fac_x1 DNA_DEPRECATED;
-  float fac_x2 DNA_DEPRECATED;
-  float fac_y1 DNA_DEPRECATED;
-  float fac_y2 DNA_DEPRECATED;
-} NodeTwoXYs;
+  DNA_DEPRECATED float t1 = 0;
+  DNA_DEPRECATED float t2 = 0;
+  DNA_DEPRECATED float t3 = 0;
+  DNA_DEPRECATED float fsize = 0;
+  DNA_DEPRECATED float fstrength = 0;
+  DNA_DEPRECATED float falpha = 0;
+  DNA_DEPRECATED float key[4] = {};
+  DNA_DEPRECATED short algorithm = 0;
+  DNA_DEPRECATED short channel = 0;
+};
 
-typedef struct NodeTwoFloats {
-  float x DNA_DEPRECATED;
-  float y DNA_DEPRECATED;
-} NodeTwoFloats;
+struct NodeTwoXYs {
+  DNA_DEFINE_CXX_METHODS(NodeTwoXYs)
 
-typedef struct NodeVertexCol {
-  char name[64];
-} NodeVertexCol;
+  DNA_DEPRECATED short x1 = 0;
+  DNA_DEPRECATED short x2 = 0;
+  DNA_DEPRECATED short y1 = 0;
+  DNA_DEPRECATED short y2 = 0;
+  DNA_DEPRECATED float fac_x1 = 0;
+  DNA_DEPRECATED float fac_x2 = 0;
+  DNA_DEPRECATED float fac_y1 = 0;
+  DNA_DEPRECATED float fac_y2 = 0;
+};
 
-typedef struct NodeCMPCombSepColor {
+struct NodeTwoFloats {
+  DNA_DEFINE_CXX_METHODS(NodeTwoFloats)
+
+  DNA_DEPRECATED float x = 0;
+  DNA_DEPRECATED float y = 0;
+};
+
+struct NodeVertexCol {
+  DNA_DEFINE_CXX_METHODS(NodeVertexCol)
+
+  char name[64] = "";
+};
+
+struct NodeCMPCombSepColor {
+  DNA_DEFINE_CXX_METHODS(NodeCMPCombSepColor)
+
   /* CMPNodeCombSepColorMode */
-  uint8_t mode;
-  uint8_t ycc_mode;
-} NodeCMPCombSepColor;
+  uint8_t mode = 0;
+  uint8_t ycc_mode = 0;
+};
 
 /** Defocus blur node. */
-typedef struct NodeDefocus {
-  char bktype;
-  char gamco DNA_DEPRECATED;
-  char no_zbuf;
-  char _pad0;
-  float fstop;
-  float maxblur;
-  float scale;
-  float rotation;
-} NodeDefocus;
+struct NodeDefocus {
+  DNA_DEFINE_CXX_METHODS(NodeDefocus)
 
-typedef struct NodeScriptDict {
+  char bktype = 0;
+  DNA_DEPRECATED char gamco = 0;
+  char no_zbuf = 0;
+  char _pad0 = {};
+  float fstop = 0;
+  float maxblur = 0;
+  float scale = 0;
+  float rotation = 0;
+};
+
+struct NodeScriptDict {
+  DNA_DEFINE_CXX_METHODS(NodeScriptDict)
+
   /** For PyObject *dict. */
-  void *dict;
+  void *dict = nullptr;
   /** For BPy_Node *node. */
-  void *node;
-} NodeScriptDict;
+  void *node = nullptr;
+};
 
 /** glare node. */
-typedef struct NodeGlare {
-  char type DNA_DEPRECATED;
-  char quality DNA_DEPRECATED;
-  char iter DNA_DEPRECATED;
-  char angle DNA_DEPRECATED;
-  char _pad0;
-  char size DNA_DEPRECATED;
-  char star_45 DNA_DEPRECATED;
-  char streaks DNA_DEPRECATED;
-  float colmod DNA_DEPRECATED;
-  float mix DNA_DEPRECATED;
-  float threshold DNA_DEPRECATED;
-  float fade DNA_DEPRECATED;
-  float angle_ofs DNA_DEPRECATED;
-  char _pad1[4];
-} NodeGlare;
+struct NodeGlare {
+  DNA_DEFINE_CXX_METHODS(NodeGlare)
+
+  DNA_DEPRECATED char type = 0;
+  DNA_DEPRECATED char quality = 0;
+  DNA_DEPRECATED char iter = 0;
+  DNA_DEPRECATED char angle = 0;
+  char _pad0 = {};
+  DNA_DEPRECATED char size = 0;
+  DNA_DEPRECATED char star_45 = 0;
+  DNA_DEPRECATED char streaks = 0;
+  DNA_DEPRECATED float colmod = 0;
+  DNA_DEPRECATED float mix = 0;
+  DNA_DEPRECATED float threshold = 0;
+  DNA_DEPRECATED float fade = 0;
+  DNA_DEPRECATED float angle_ofs = 0;
+  char _pad1[4] = {};
+};
 
 /** Tone-map node. */
-typedef struct NodeTonemap {
-  float key DNA_DEPRECATED;
-  float offset DNA_DEPRECATED;
-  float gamma DNA_DEPRECATED;
-  float f DNA_DEPRECATED;
-  float m DNA_DEPRECATED;
-  float a DNA_DEPRECATED;
-  float c DNA_DEPRECATED;
-  int type DNA_DEPRECATED;
-} NodeTonemap;
+struct NodeTonemap {
+  DNA_DEFINE_CXX_METHODS(NodeTonemap)
+
+  DNA_DEPRECATED float key = 0;
+  DNA_DEPRECATED float offset = 0;
+  DNA_DEPRECATED float gamma = 0;
+  DNA_DEPRECATED float f = 0;
+  DNA_DEPRECATED float m = 0;
+  DNA_DEPRECATED float a = 0;
+  DNA_DEPRECATED float c = 0;
+  DNA_DEPRECATED int type = 0;
+};
 
 /* Lens Distortion node. */
-typedef struct NodeLensDist {
-  short jit DNA_DEPRECATED;
-  short proj DNA_DEPRECATED;
-  short fit DNA_DEPRECATED;
-  char _pad[2];
-  int distortion_type DNA_DEPRECATED;
-} NodeLensDist;
+struct NodeLensDist {
+  DNA_DEFINE_CXX_METHODS(NodeLensDist)
 
-typedef struct NodeColorBalance {
+  DNA_DEPRECATED short jit = 0;
+  DNA_DEPRECATED short proj = 0;
+  DNA_DEPRECATED short fit = 0;
+  char _pad[2] = {};
+  DNA_DEPRECATED int distortion_type = 0;
+};
+
+struct NodeColorBalance {
+  DNA_DEFINE_CXX_METHODS(NodeColorBalance)
+
   /* ASC CDL parameters. */
-  float slope[3] DNA_DEPRECATED;
-  float offset[3] DNA_DEPRECATED;
-  float power[3] DNA_DEPRECATED;
-  float offset_basis DNA_DEPRECATED;
-  char _pad[4];
+  DNA_DEPRECATED float slope[3] = {};
+  DNA_DEPRECATED float offset[3] = {};
+  DNA_DEPRECATED float power[3] = {};
+  DNA_DEPRECATED float offset_basis = 0;
+  char _pad[4] = {};
 
   /* LGG parameters. */
-  float lift[3] DNA_DEPRECATED;
-  float gamma[3] DNA_DEPRECATED;
-  float gain[3] DNA_DEPRECATED;
+  DNA_DEPRECATED float lift[3] = {};
+  DNA_DEPRECATED float gamma[3] = {};
+  DNA_DEPRECATED float gain[3] = {};
 
   /* White-point parameters. */
-  float input_temperature DNA_DEPRECATED;
-  float input_tint DNA_DEPRECATED;
-  float output_temperature DNA_DEPRECATED;
-  float output_tint DNA_DEPRECATED;
-} NodeColorBalance;
+  DNA_DEPRECATED float input_temperature = 0;
+  DNA_DEPRECATED float input_tint = 0;
+  DNA_DEPRECATED float output_temperature = 0;
+  DNA_DEPRECATED float output_tint = 0;
+};
 
-typedef struct NodeColorspill {
-  short limchan DNA_DEPRECATED;
-  short unspill DNA_DEPRECATED;
-  float limscale DNA_DEPRECATED;
-  float uspillr DNA_DEPRECATED;
-  float uspillg DNA_DEPRECATED;
-  float uspillb DNA_DEPRECATED;
-} NodeColorspill;
+struct NodeColorspill {
+  DNA_DEFINE_CXX_METHODS(NodeColorspill)
 
-typedef struct NodeConvertColorSpace {
-  char from_color_space[64];
-  char to_color_space[64];
-} NodeConvertColorSpace;
+  DNA_DEPRECATED short limchan = 0;
+  DNA_DEPRECATED short unspill = 0;
+  DNA_DEPRECATED float limscale = 0;
+  DNA_DEPRECATED float uspillr = 0;
+  DNA_DEPRECATED float uspillg = 0;
+  DNA_DEPRECATED float uspillb = 0;
+};
 
-typedef struct NodeConvertToDisplay {
+struct NodeConvertColorSpace {
+  DNA_DEFINE_CXX_METHODS(NodeConvertColorSpace)
+
+  char from_color_space[64] = "";
+  char to_color_space[64] = "";
+};
+
+struct NodeConvertToDisplay {
+  DNA_DEFINE_CXX_METHODS(NodeConvertToDisplay)
+
   ColorManagedDisplaySettings display_settings;
   ColorManagedViewSettings view_settings;
-} NodeConvertToDisplay;
+};
 
-typedef struct NodeDilateErode {
-  char falloff;
-} NodeDilateErode;
+struct NodeDilateErode {
+  DNA_DEFINE_CXX_METHODS(NodeDilateErode)
 
-typedef struct NodeMask {
-  int size_x DNA_DEPRECATED;
-  int size_y DNA_DEPRECATED;
-} NodeMask;
+  char falloff = 0;
+};
 
-typedef struct NodeSetAlpha {
-  char mode DNA_DEPRECATED;
-} NodeSetAlpha;
+struct NodeMask {
+  DNA_DEFINE_CXX_METHODS(NodeMask)
 
-typedef struct NodeTexBase {
+  DNA_DEPRECATED int size_x = 0;
+  DNA_DEPRECATED int size_y = 0;
+};
+
+struct NodeSetAlpha {
+  DNA_DEFINE_CXX_METHODS(NodeSetAlpha)
+
+  DNA_DEPRECATED char mode = 0;
+};
+
+struct NodeTexBase {
   TexMapping tex_mapping;
   ColorMapping color_mapping;
-} NodeTexBase;
+};
 
-typedef struct NodeTexSky {
+struct NodeTexSky {
+  DNA_DEFINE_CXX_METHODS(NodeTexSky)
+
   NodeTexBase base;
-  int sky_model;
-  float sun_direction[3];
-  float turbidity;
-  float ground_albedo;
-  float sun_size;
-  float sun_intensity;
-  float sun_elevation;
-  float sun_rotation;
-  float altitude;
-  float air_density;
-  float aerosol_density;
-  float ozone_density;
-  char sun_disc;
-  char _pad[7];
-} NodeTexSky;
+  int sky_model = 0;
+  float sun_direction[3] = {0.0f, 0.0f, 1.0f};
+  float turbidity = 0;
+  float ground_albedo = 0;
+  float sun_size = 0;
+  float sun_intensity = 0;
+  float sun_elevation = 0;
+  float sun_rotation = 0;
+  float altitude = 0;
+  float air_density = 0;
+  float aerosol_density = 0;
+  float ozone_density = 0;
+  char sun_disc = 0;
+  char _pad[7] = {};
+};
 
-typedef struct NodeTexImage {
-  NodeTexBase base;
-  ImageUser iuser;
-  int color_space DNA_DEPRECATED;
-  int projection;
-  float projection_blend;
-  int interpolation;
-  int extension;
-  char _pad[4];
-} NodeTexImage;
+struct NodeTexImage {
+  DNA_DEFINE_CXX_METHODS(NodeTexImage)
 
-typedef struct NodeTexChecker {
-  NodeTexBase base;
-} NodeTexChecker;
-
-typedef struct NodeTexBrick {
-  NodeTexBase base;
-  int offset_freq, squash_freq;
-  float offset, squash;
-} NodeTexBrick;
-
-typedef struct NodeTexEnvironment {
   NodeTexBase base;
   ImageUser iuser;
-  int color_space DNA_DEPRECATED;
-  int projection;
-  int interpolation;
-  char _pad[4];
-} NodeTexEnvironment;
+  DNA_DEPRECATED int color_space = 0;
+  int projection = 0;
+  float projection_blend = 0;
+  int interpolation = 0;
+  int extension = 0;
+  char _pad[4] = {};
+};
 
-typedef struct NodeTexGabor {
+struct NodeTexChecker {
+  DNA_DEFINE_CXX_METHODS(NodeTexChecker)
+
+  NodeTexBase base;
+};
+
+struct NodeTexBrick {
+  DNA_DEFINE_CXX_METHODS(NodeTexBrick)
+
+  NodeTexBase base;
+  int offset_freq = 0, squash_freq = 0;
+  float offset = 0, squash = 0;
+};
+
+struct NodeTexEnvironment {
+  DNA_DEFINE_CXX_METHODS(NodeTexEnvironment)
+
+  NodeTexBase base;
+  ImageUser iuser;
+  DNA_DEPRECATED int color_space = 0;
+  int projection = 0;
+  int interpolation = 0;
+  char _pad[4] = {};
+};
+
+struct NodeTexGabor {
+  DNA_DEFINE_CXX_METHODS(NodeTexGabor)
+
   NodeTexBase base;
   /* Stores NodeGaborType. */
-  char type;
-  char _pad[7];
-} NodeTexGabor;
+  char type = 0;
+  char _pad[7] = {};
+};
 
-typedef struct NodeTexGradient {
+struct NodeTexGradient {
+  DNA_DEFINE_CXX_METHODS(NodeTexGradient)
+
   NodeTexBase base;
-  int gradient_type;
-  char _pad[4];
-} NodeTexGradient;
+  int gradient_type = 0;
+  char _pad[4] = {};
+};
 
-typedef struct NodeTexNoise {
+struct NodeTexNoise {
+  DNA_DEFINE_CXX_METHODS(NodeTexNoise)
+
   NodeTexBase base;
-  int dimensions;
-  uint8_t type;
-  uint8_t normalize;
-  char _pad[2];
-} NodeTexNoise;
+  int dimensions = 0;
+  uint8_t type = 0;
+  uint8_t normalize = 0;
+  char _pad[2] = {};
+};
 
-typedef struct NodeTexVoronoi {
+struct NodeTexVoronoi {
+  DNA_DEFINE_CXX_METHODS(NodeTexVoronoi)
+
   NodeTexBase base;
-  int dimensions;
-  int feature;
-  int distance;
-  int normalize;
-  int coloring DNA_DEPRECATED;
-  char _pad[4];
-} NodeTexVoronoi;
+  int dimensions = 0;
+  int feature = 0;
+  int distance = 0;
+  int normalize = 0;
+  DNA_DEPRECATED int coloring = 0;
+  char _pad[4] = {};
+};
 
-typedef struct NodeTexMusgrave {
-  NodeTexBase base DNA_DEPRECATED;
-  int musgrave_type DNA_DEPRECATED;
-  int dimensions DNA_DEPRECATED;
-} NodeTexMusgrave;
+struct NodeTexMusgrave {
+  DNA_DEFINE_CXX_METHODS(NodeTexMusgrave)
 
-typedef struct NodeTexWave {
+  DNA_DEPRECATED NodeTexBase base;
+  DNA_DEPRECATED int musgrave_type = 0;
+  DNA_DEPRECATED int dimensions = 0;
+};
+
+struct NodeTexWave {
+  DNA_DEFINE_CXX_METHODS(NodeTexWave)
+
   NodeTexBase base;
-  int wave_type;
-  int bands_direction;
-  int rings_direction;
-  int wave_profile;
-} NodeTexWave;
+  int wave_type = 0;
+  int bands_direction = 0;
+  int rings_direction = 0;
+  int wave_profile = 0;
+};
 
-typedef struct NodeTexMagic {
+struct NodeTexMagic {
+  DNA_DEFINE_CXX_METHODS(NodeTexMagic)
+
   NodeTexBase base;
-  int depth;
-  char _pad[4];
-} NodeTexMagic;
+  int depth = 0;
+  char _pad[4] = {};
+};
 
-typedef struct NodeShaderAttribute {
-  char name[256];
-  int type;
-  char _pad[4];
-} NodeShaderAttribute;
+struct NodeShaderAttribute {
+  DNA_DEFINE_CXX_METHODS(NodeShaderAttribute)
 
-typedef struct NodeShaderVectTransform {
-  int type;
-  int convert_from, convert_to;
-  char _pad[4];
-} NodeShaderVectTransform;
+  char name[256] = "";
+  int type = 0;
+  char _pad[4] = {};
+};
 
-typedef struct NodeShaderPrincipled {
-  char use_subsurface_auto_radius;
-  char _pad[3];
-} NodeShaderPrincipled;
+struct NodeShaderVectTransform {
+  DNA_DEFINE_CXX_METHODS(NodeShaderVectTransform)
 
-typedef struct NodeShaderHairPrincipled {
-  short model;
-  short parametrization;
-  char _pad[4];
-} NodeShaderHairPrincipled;
+  int type = 0;
+  int convert_from = 0, convert_to = 0;
+  char _pad[4] = {};
+};
+
+struct NodeShaderPrincipled {
+  DNA_DEFINE_CXX_METHODS(NodeShaderPrincipled)
+
+  char use_subsurface_auto_radius = 0;
+  char _pad[3] = {};
+};
+
+struct NodeShaderHairPrincipled {
+  DNA_DEFINE_CXX_METHODS(NodeShaderHairPrincipled)
+
+  short model = 0;
+  short parametrization = 0;
+  char _pad[4] = {};
+};
 
 /** TEX_output. */
-typedef struct TexNodeOutput {
-  char name[64];
-} TexNodeOutput;
+struct TexNodeOutput {
+  DNA_DEFINE_CXX_METHODS(TexNodeOutput)
 
-typedef struct NodeKeyingScreenData {
-  char tracking_object[/*MAX_NAME*/ 64];
-  float smoothness DNA_DEPRECATED;
-} NodeKeyingScreenData;
+  char name[64] = "";
+};
 
-typedef struct NodeKeyingData {
-  float screen_balance DNA_DEPRECATED;
-  float despill_factor DNA_DEPRECATED;
-  float despill_balance DNA_DEPRECATED;
-  int edge_kernel_radius DNA_DEPRECATED;
-  float edge_kernel_tolerance DNA_DEPRECATED;
-  float clip_black DNA_DEPRECATED;
-  float clip_white DNA_DEPRECATED;
-  int dilate_distance DNA_DEPRECATED;
-  int feather_distance DNA_DEPRECATED;
-  int feather_falloff DNA_DEPRECATED;
-  int blur_pre DNA_DEPRECATED;
-  int blur_post DNA_DEPRECATED;
-} NodeKeyingData;
+struct NodeKeyingScreenData {
+  DNA_DEFINE_CXX_METHODS(NodeKeyingScreenData)
 
-typedef struct NodeTrackPosData {
-  char tracking_object[/*MAX_NAME*/ 64];
-  char track_name[64];
-} NodeTrackPosData;
+  char tracking_object[/*MAX_NAME*/ 64] = "";
+  DNA_DEPRECATED float smoothness = 0;
+};
 
-typedef struct NodeTransformData {
-  short interpolation DNA_DEPRECATED;
-  char extension_x DNA_DEPRECATED;
-  char extension_y DNA_DEPRECATED;
-} NodeTransformData;
+struct NodeKeyingData {
+  DNA_DEFINE_CXX_METHODS(NodeKeyingData)
 
-typedef struct NodeTranslateData {
-  char wrap_axis DNA_DEPRECATED;
-  char relative DNA_DEPRECATED;
-  short extension_x DNA_DEPRECATED;
-  short extension_y DNA_DEPRECATED;
-  short interpolation DNA_DEPRECATED;
-} NodeTranslateData;
+  DNA_DEPRECATED float screen_balance = 0;
+  DNA_DEPRECATED float despill_factor = 0;
+  DNA_DEPRECATED float despill_balance = 0;
+  DNA_DEPRECATED int edge_kernel_radius = 0;
+  DNA_DEPRECATED float edge_kernel_tolerance = 0;
+  DNA_DEPRECATED float clip_black = 0;
+  DNA_DEPRECATED float clip_white = 0;
+  DNA_DEPRECATED int dilate_distance = 0;
+  DNA_DEPRECATED int feather_distance = 0;
+  DNA_DEPRECATED int feather_falloff = 0;
+  DNA_DEPRECATED int blur_pre = 0;
+  DNA_DEPRECATED int blur_post = 0;
+};
 
-typedef struct NodeRotateData {
-  short interpolation DNA_DEPRECATED;
-  char extension_x DNA_DEPRECATED;
-  char extension_y DNA_DEPRECATED;
-} NodeRotateData;
+struct NodeTrackPosData {
+  DNA_DEFINE_CXX_METHODS(NodeTrackPosData)
 
-typedef struct NodeScaleData {
-  short interpolation DNA_DEPRECATED;
-  char extension_x DNA_DEPRECATED;
-  char extension_y DNA_DEPRECATED;
-} NodeScaleData;
+  char tracking_object[/*MAX_NAME*/ 64] = "";
+  char track_name[64] = "";
+};
 
-typedef struct NodeCornerPinData {
-  short interpolation DNA_DEPRECATED;
-  char extension_x DNA_DEPRECATED;
-  char extension_y DNA_DEPRECATED;
-} NodeCornerPinData;
+struct NodeTransformData {
+  DNA_DEFINE_CXX_METHODS(NodeTransformData)
 
-typedef struct NodeDisplaceData {
-  short interpolation DNA_DEPRECATED;
-  char extension_x DNA_DEPRECATED;
-  char extension_y DNA_DEPRECATED;
-} NodeDisplaceData;
+  DNA_DEPRECATED short interpolation = 0;
+  DNA_DEPRECATED char extension_x = 0;
+  DNA_DEPRECATED char extension_y = 0;
+};
 
-typedef struct NodeMapUVData {
-  short interpolation DNA_DEPRECATED;
-  char extension_x DNA_DEPRECATED;
-  char extension_y DNA_DEPRECATED;
-} NodeMapUVData;
+struct NodeTranslateData {
+  DNA_DEFINE_CXX_METHODS(NodeTranslateData)
 
-typedef struct NodePlaneTrackDeformData {
-  char tracking_object[64];
-  char plane_track_name[64];
-  char flag DNA_DEPRECATED;
-  char motion_blur_samples DNA_DEPRECATED;
-  char _pad[2];
-  float motion_blur_shutter DNA_DEPRECATED;
-} NodePlaneTrackDeformData;
+  DNA_DEPRECATED char wrap_axis = 0;
+  DNA_DEPRECATED char relative = 0;
+  DNA_DEPRECATED short extension_x = 0;
+  DNA_DEPRECATED short extension_y = 0;
+  DNA_DEPRECATED short interpolation = 0;
+};
 
-typedef struct NodeShaderScript {
-  int mode;
-  int flag;
+struct NodeRotateData {
+  DNA_DEFINE_CXX_METHODS(NodeRotateData)
 
-  char filepath[/*FILE_MAX*/ 1024];
+  DNA_DEPRECATED short interpolation = 0;
+  DNA_DEPRECATED char extension_x = 0;
+  DNA_DEPRECATED char extension_y = 0;
+};
 
-  char bytecode_hash[64];
-  char *bytecode;
-} NodeShaderScript;
+struct NodeScaleData {
+  DNA_DEFINE_CXX_METHODS(NodeScaleData)
 
-typedef struct NodeShaderTangent {
-  int direction_type;
-  int axis;
-  char uv_map[/*MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX*/ 64];
-} NodeShaderTangent;
+  DNA_DEPRECATED short interpolation = 0;
+  DNA_DEPRECATED char extension_x = 0;
+  DNA_DEPRECATED char extension_y = 0;
+};
 
-typedef struct NodeShaderNormalMap {
-  int space;
-  char uv_map[/*MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX*/ 64];
-} NodeShaderNormalMap;
+struct NodeCornerPinData {
+  DNA_DEFINE_CXX_METHODS(NodeCornerPinData)
 
-typedef struct NodeRadialTiling {
-  uint8_t normalize;
-  char _pad[7];
-} NodeRadialTiling;
+  DNA_DEPRECATED short interpolation = 0;
+  DNA_DEPRECATED char extension_x = 0;
+  DNA_DEPRECATED char extension_y = 0;
+};
 
-typedef struct NodeShaderUVMap {
-  char uv_map[/*MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX*/ 64];
-} NodeShaderUVMap;
+struct NodeDisplaceData {
+  DNA_DEFINE_CXX_METHODS(NodeDisplaceData)
 
-typedef struct NodeShaderVertexColor {
-  char layer_name[/*MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX*/ 64];
-} NodeShaderVertexColor;
+  DNA_DEPRECATED short interpolation = 0;
+  DNA_DEPRECATED char extension_x = 0;
+  DNA_DEPRECATED char extension_y = 0;
+};
 
-typedef struct NodeShaderTexIES {
-  int mode;
+struct NodeMapUVData {
+  DNA_DEFINE_CXX_METHODS(NodeMapUVData)
 
-  char filepath[/*FILE_MAX*/ 1024];
-} NodeShaderTexIES;
+  DNA_DEPRECATED short interpolation = 0;
+  DNA_DEPRECATED char extension_x = 0;
+  DNA_DEPRECATED char extension_y = 0;
+};
 
-typedef struct NodeShaderOutputAOV {
-  char name[/*MAX_NAME*/ 64];
-} NodeShaderOutputAOV;
+struct NodePlaneTrackDeformData {
+  DNA_DEFINE_CXX_METHODS(NodePlaneTrackDeformData)
 
-typedef struct NodeSunBeams {
-  float source[2] DNA_DEPRECATED;
-  float ray_length DNA_DEPRECATED;
-} NodeSunBeams;
+  char tracking_object[64] = "";
+  char plane_track_name[64] = "";
+  DNA_DEPRECATED char flag = 0;
+  DNA_DEPRECATED char motion_blur_samples = 0;
+  char _pad[2] = {};
+  DNA_DEPRECATED float motion_blur_shutter = 0;
+};
 
-typedef struct CryptomatteEntry {
-  struct CryptomatteEntry *next, *prev;
-  float encoded_hash;
-  char name[/*MAX_NAME*/ 64];
-  char _pad[4];
-} CryptomatteEntry;
+struct NodeShaderScript {
+  DNA_DEFINE_CXX_METHODS(NodeShaderScript)
 
-typedef struct CryptomatteLayer {
-  struct CryptomatteEntry *next, *prev;
-  char name[64];
-} CryptomatteLayer;
+  int mode = 0;
+  int flag = 0;
 
-typedef struct NodeCryptomatte_Runtime {
+  char filepath[/*FILE_MAX*/ 1024] = "";
+
+  char bytecode_hash[64] = "";
+  char *bytecode = nullptr;
+};
+
+struct NodeShaderTangent {
+  DNA_DEFINE_CXX_METHODS(NodeShaderTangent)
+
+  int direction_type = 0;
+  int axis = 0;
+  char uv_map[/*MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX*/ 64] = "";
+};
+
+struct NodeShaderNormalMap {
+  DNA_DEFINE_CXX_METHODS(NodeShaderNormalMap)
+
+  int space = 0;
+  char uv_map[/*MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX*/ 64] = "";
+};
+
+struct NodeRadialTiling {
+  DNA_DEFINE_CXX_METHODS(NodeRadialTiling)
+
+  uint8_t normalize = 0;
+  char _pad[7] = {};
+};
+
+struct NodeShaderUVMap {
+  DNA_DEFINE_CXX_METHODS(NodeShaderUVMap)
+
+  char uv_map[/*MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX*/ 64] = "";
+};
+
+struct NodeShaderVertexColor {
+  DNA_DEFINE_CXX_METHODS(NodeShaderVertexColor)
+
+  char layer_name[/*MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX*/ 64] = "";
+};
+
+struct NodeShaderTexIES {
+  DNA_DEFINE_CXX_METHODS(NodeShaderTexIES)
+
+  int mode = 0;
+
+  char filepath[/*FILE_MAX*/ 1024] = "";
+};
+
+struct NodeShaderOutputAOV {
+  DNA_DEFINE_CXX_METHODS(NodeShaderOutputAOV)
+
+  char name[/*MAX_NAME*/ 64] = "";
+};
+
+struct NodeSunBeams {
+  DNA_DEFINE_CXX_METHODS(NodeSunBeams)
+
+  DNA_DEPRECATED float source[2] = {};
+  DNA_DEPRECATED float ray_length = 0;
+};
+
+struct CryptomatteEntry {
+  DNA_DEFINE_CXX_METHODS(CryptomatteEntry)
+
+  struct CryptomatteEntry *next = nullptr, *prev = nullptr;
+  float encoded_hash = 0;
+  char name[/*MAX_NAME*/ 64] = "";
+  char _pad[4] = {};
+};
+
+struct CryptomatteLayer {
+  DNA_DEFINE_CXX_METHODS(CryptomatteLayer)
+
+  struct CryptomatteEntry *next = nullptr, *prev = nullptr;
+  char name[64] = "";
+};
+
+struct NodeCryptomatte_Runtime {
+  DNA_DEFINE_CXX_METHODS(NodeCryptomatte_Runtime)
+
   /** Contains #CryptomatteLayer. */
-  ListBase layers;
+  ListBase layers = {nullptr, nullptr};
   /** Temp storage for the crypto-matte picker. */
-  float add[3];
-  float remove[3];
-} NodeCryptomatte_Runtime;
+  float add[3] = {1.0f, 1.0f, 1.0f};
+  float remove[3] = {1.0f, 1.0f, 1.0f};
+};
 
-typedef struct NodeCryptomatte {
+struct NodeCryptomatte {
+  DNA_DEFINE_CXX_METHODS(NodeCryptomatte)
+
   /**
    * `iuser` needs to be first element due to RNA limitations.
    * When we define the #ImageData properties, we can't define them from
@@ -2750,524 +2899,654 @@ typedef struct NodeCryptomatte {
   ImageUser iuser;
 
   /** Contains #CryptomatteEntry. */
-  ListBase entries;
+  ListBase entries = {nullptr, nullptr};
 
-  char layer_name[/*MAX_NAME*/ 64];
+  char layer_name[/*MAX_NAME*/ 64] = "";
   /** Stores `entries` as a string for opening in 2.80-2.91. */
-  char *matte_id;
+  char *matte_id = nullptr;
 
   /* Legacy attributes. */
   /** Number of input sockets. */
-  int inputs_num;
+  int inputs_num = 0;
 
-  char _pad[4];
+  char _pad[4] = {};
   NodeCryptomatte_Runtime runtime;
-} NodeCryptomatte;
+};
 
-typedef struct NodeDenoise {
-  char hdr DNA_DEPRECATED;
-  char prefilter DNA_DEPRECATED;
-  char quality DNA_DEPRECATED;
-  char _pad[1];
-} NodeDenoise;
+struct NodeDenoise {
+  DNA_DEFINE_CXX_METHODS(NodeDenoise)
 
-typedef struct NodeMapRange {
+  DNA_DEPRECATED char hdr = 0;
+  DNA_DEPRECATED char prefilter = 0;
+  DNA_DEPRECATED char quality = 0;
+  char _pad[1] = {};
+};
+
+struct NodeMapRange {
+  DNA_DEFINE_CXX_METHODS(NodeMapRange)
+
   /** #eCustomDataType */
-  uint8_t data_type;
+  uint8_t data_type = 0;
 
   /** #NodeMapRangeType. */
-  uint8_t interpolation_type;
-  uint8_t clamp;
-  char _pad[5];
-} NodeMapRange;
+  uint8_t interpolation_type = 0;
+  uint8_t clamp = 0;
+  char _pad[5] = {};
+};
 
-typedef struct NodeRandomValue {
-  /** #eCustomDataType. */
-  uint8_t data_type;
-} NodeRandomValue;
+struct NodeRandomValue {
+  DNA_DEFINE_CXX_METHODS(NodeRandomValue)
 
-typedef struct NodeAccumulateField {
   /** #eCustomDataType. */
-  uint8_t data_type;
+  uint8_t data_type = 0;
+};
+
+struct NodeAccumulateField {
+  DNA_DEFINE_CXX_METHODS(NodeAccumulateField)
+
+  /** #eCustomDataType. */
+  uint8_t data_type = 0;
   /** #AttrDomain. */
-  uint8_t domain;
-} NodeAccumulateField;
+  uint8_t domain = 0;
+};
 
-typedef struct NodeInputBool {
-  uint8_t boolean;
-} NodeInputBool;
+struct NodeInputBool {
+  DNA_DEFINE_CXX_METHODS(NodeInputBool)
 
-typedef struct NodeInputInt {
-  int integer;
-} NodeInputInt;
+  uint8_t boolean = 0;
+};
 
-typedef struct NodeInputRotation {
-  float rotation_euler[3];
-} NodeInputRotation;
+struct NodeInputInt {
+  DNA_DEFINE_CXX_METHODS(NodeInputInt)
 
-typedef struct NodeInputVector {
-  float vector[3];
-} NodeInputVector;
+  int integer = 0;
+};
 
-typedef struct NodeInputColor {
-  float color[4];
-} NodeInputColor;
+struct NodeInputRotation {
+  DNA_DEFINE_CXX_METHODS(NodeInputRotation)
 
-typedef struct NodeInputString {
-  char *string;
-} NodeInputString;
+  float rotation_euler[3] = {};
+};
 
-typedef struct NodeGeometryExtrudeMesh {
+struct NodeInputVector {
+  DNA_DEFINE_CXX_METHODS(NodeInputVector)
+
+  float vector[3] = {};
+};
+
+struct NodeInputColor {
+  DNA_DEFINE_CXX_METHODS(NodeInputColor)
+
+  float color[4] = {};
+};
+
+struct NodeInputString {
+  DNA_DEFINE_CXX_METHODS(NodeInputString)
+
+  char *string = nullptr;
+};
+
+struct NodeGeometryExtrudeMesh {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryExtrudeMesh)
+
   /** #GeometryNodeExtrudeMeshMode */
-  uint8_t mode;
-} NodeGeometryExtrudeMesh;
+  uint8_t mode = 0;
+};
 
-typedef struct NodeGeometryObjectInfo {
+struct NodeGeometryObjectInfo {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryObjectInfo)
+
   /** #GeometryNodeTransformSpace. */
-  uint8_t transform_space;
-} NodeGeometryObjectInfo;
+  uint8_t transform_space = 0;
+};
 
-typedef struct NodeGeometryPointsToVolume {
+struct NodeGeometryPointsToVolume {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryPointsToVolume)
+
   /** #GeometryNodePointsToVolumeResolutionMode */
-  uint8_t resolution_mode;
-} NodeGeometryPointsToVolume;
+  uint8_t resolution_mode = 0;
+};
 
-typedef struct NodeGeometryCollectionInfo {
+struct NodeGeometryCollectionInfo {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryCollectionInfo)
+
   /** #GeometryNodeTransformSpace. */
-  uint8_t transform_space;
-} NodeGeometryCollectionInfo;
+  uint8_t transform_space = 0;
+};
 
-typedef struct NodeGeometryProximity {
+struct NodeGeometryProximity {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryProximity)
+
   /** #GeometryNodeProximityTargetType. */
-  uint8_t target_element;
-} NodeGeometryProximity;
+  uint8_t target_element = 0;
+};
 
-typedef struct NodeGeometryVolumeToMesh {
+struct NodeGeometryVolumeToMesh {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryVolumeToMesh)
+
   /** #VolumeToMeshResolutionMode */
-  uint8_t resolution_mode;
-} NodeGeometryVolumeToMesh;
+  uint8_t resolution_mode = 0;
+};
 
-typedef struct NodeGeometryMeshToVolume {
+struct NodeGeometryMeshToVolume {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryMeshToVolume)
+
   /** #MeshToVolumeModifierResolutionMode */
-  uint8_t resolution_mode;
-} NodeGeometryMeshToVolume;
+  uint8_t resolution_mode = 0;
+};
 
-typedef struct NodeGeometrySubdivisionSurface {
+struct NodeGeometrySubdivisionSurface {
+  DNA_DEFINE_CXX_METHODS(NodeGeometrySubdivisionSurface)
+
   /** #eSubsurfUVSmooth. */
-  uint8_t uv_smooth;
+  uint8_t uv_smooth = 0;
   /** #eSubsurfBoundarySmooth. */
-  uint8_t boundary_smooth;
-} NodeGeometrySubdivisionSurface;
+  uint8_t boundary_smooth = 0;
+};
 
-typedef struct NodeGeometryMeshCircle {
+struct NodeGeometryMeshCircle {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryMeshCircle)
+
   /** #GeometryNodeMeshCircleFillType. */
-  uint8_t fill_type;
-} NodeGeometryMeshCircle;
+  uint8_t fill_type = 0;
+};
 
-typedef struct NodeGeometryMeshCylinder {
+struct NodeGeometryMeshCylinder {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryMeshCylinder)
+
   /** #GeometryNodeMeshCircleFillType. */
-  uint8_t fill_type;
-} NodeGeometryMeshCylinder;
+  uint8_t fill_type = 0;
+};
 
-typedef struct NodeGeometryMeshCone {
+struct NodeGeometryMeshCone {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryMeshCone)
+
   /** #GeometryNodeMeshCircleFillType. */
-  uint8_t fill_type;
-} NodeGeometryMeshCone;
+  uint8_t fill_type = 0;
+};
 
-typedef struct NodeGeometryMergeByDistance {
+struct NodeGeometryMergeByDistance {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryMergeByDistance)
+
   /** #GeometryNodeMergeByDistanceMode. */
-  uint8_t mode;
-} NodeGeometryMergeByDistance;
+  uint8_t mode = 0;
+};
 
-typedef struct NodeGeometryMeshLine {
+struct NodeGeometryMeshLine {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryMeshLine)
+
   /** #GeometryNodeMeshLineMode. */
-  uint8_t mode;
+  uint8_t mode = 0;
   /** #GeometryNodeMeshLineCountMode. */
-  uint8_t count_mode;
-} NodeGeometryMeshLine;
+  uint8_t count_mode = 0;
+};
 
-typedef struct NodeSwitch {
+struct NodeSwitch {
+  DNA_DEFINE_CXX_METHODS(NodeSwitch)
+
   /** #eNodeSocketDatatype. */
-  uint8_t input_type;
-} NodeSwitch;
+  uint8_t input_type = 0;
+};
 
-typedef struct NodeEnumItem {
-  char *name;
-  char *description;
+struct NodeEnumItem {
+  char *name = nullptr;
+  char *description = nullptr;
   /* Immutable unique identifier. */
-  int32_t identifier;
-  char _pad[4];
-} NodeEnumItem;
+  int32_t identifier = 0;
+  char _pad[4] = {};
+};
 
-typedef struct NodeEnumDefinition {
+struct NodeEnumDefinition {
+  DNA_DEFINE_CXX_METHODS(NodeEnumDefinition)
+
   /* User-defined enum items owned and managed by this node. */
-  NodeEnumItem *items_array;
-  int items_num;
-  int active_index;
-  uint32_t next_identifier;
-  char _pad[4];
+  NodeEnumItem *items_array = nullptr;
+  int items_num = 0;
+  int active_index = 0;
+  uint32_t next_identifier = 0;
+  char _pad[4] = {};
 
 #ifdef __cplusplus
   blender::Span<NodeEnumItem> items() const;
   blender::MutableSpan<NodeEnumItem> items();
 #endif
-} NodeEnumDefinition;
+};
 
-typedef struct NodeMenuSwitch {
+struct NodeMenuSwitch {
+  DNA_DEFINE_CXX_METHODS(NodeMenuSwitch)
+
   NodeEnumDefinition enum_definition;
 
   /** #eNodeSocketDatatype. */
-  uint8_t data_type;
-  char _pad[7];
-} NodeMenuSwitch;
+  uint8_t data_type = 0;
+  char _pad[7] = {};
+};
 
-typedef struct NodeGeometryCurveSplineType {
+struct NodeGeometryCurveSplineType {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryCurveSplineType)
+
   /** #GeometryNodeSplineType. */
-  uint8_t spline_type;
-} NodeGeometryCurveSplineType;
+  uint8_t spline_type = 0;
+};
 
-typedef struct NodeGeometrySetCurveHandlePositions {
+struct NodeGeometrySetCurveHandlePositions {
+  DNA_DEFINE_CXX_METHODS(NodeGeometrySetCurveHandlePositions)
+
   /** #GeometryNodeCurveHandleMode. */
-  uint8_t mode;
-} NodeGeometrySetCurveHandlePositions;
+  uint8_t mode = 0;
+};
 
-typedef struct NodeGeometryCurveSetHandles {
+struct NodeGeometryCurveSetHandles {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryCurveSetHandles)
+
   /** #GeometryNodeCurveHandleType. */
-  uint8_t handle_type;
+  uint8_t handle_type = 0;
   /** #GeometryNodeCurveHandleMode. */
-  uint8_t mode;
-} NodeGeometryCurveSetHandles;
+  uint8_t mode = 0;
+};
 
-typedef struct NodeGeometryCurveSelectHandles {
+struct NodeGeometryCurveSelectHandles {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryCurveSelectHandles)
+
   /** #GeometryNodeCurveHandleType. */
-  uint8_t handle_type;
+  uint8_t handle_type = 0;
   /** #GeometryNodeCurveHandleMode. */
-  uint8_t mode;
-} NodeGeometryCurveSelectHandles;
+  uint8_t mode = 0;
+};
 
-typedef struct NodeGeometryCurvePrimitiveArc {
+struct NodeGeometryCurvePrimitiveArc {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryCurvePrimitiveArc)
+
   /** #GeometryNodeCurvePrimitiveArcMode. */
-  uint8_t mode;
-} NodeGeometryCurvePrimitiveArc;
+  uint8_t mode = 0;
+};
 
-typedef struct NodeGeometryCurvePrimitiveLine {
+struct NodeGeometryCurvePrimitiveLine {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryCurvePrimitiveLine)
+
   /** #GeometryNodeCurvePrimitiveLineMode. */
-  uint8_t mode;
-} NodeGeometryCurvePrimitiveLine;
+  uint8_t mode = 0;
+};
 
-typedef struct NodeGeometryCurvePrimitiveBezierSegment {
+struct NodeGeometryCurvePrimitiveBezierSegment {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryCurvePrimitiveBezierSegment)
+
   /** #GeometryNodeCurvePrimitiveBezierSegmentMode. */
-  uint8_t mode;
-} NodeGeometryCurvePrimitiveBezierSegment;
+  uint8_t mode = 0;
+};
 
-typedef struct NodeGeometryCurvePrimitiveCircle {
+struct NodeGeometryCurvePrimitiveCircle {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryCurvePrimitiveCircle)
+
   /** #GeometryNodeCurvePrimitiveMode. */
-  uint8_t mode;
-} NodeGeometryCurvePrimitiveCircle;
+  uint8_t mode = 0;
+};
 
-typedef struct NodeGeometryCurvePrimitiveQuad {
+struct NodeGeometryCurvePrimitiveQuad {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryCurvePrimitiveQuad)
+
   /** #GeometryNodeCurvePrimitiveQuadMode. */
-  uint8_t mode;
-} NodeGeometryCurvePrimitiveQuad;
+  uint8_t mode = 0;
+};
 
-typedef struct NodeGeometryCurveResample {
+struct NodeGeometryCurveResample {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryCurveResample)
+
   /** #GeometryNodeCurveResampleMode. */
-  uint8_t mode;
+  uint8_t mode = 0;
   /**
    * If false, curves may be collapsed to a single point. This is unexpected and is only supported
    * for compatibility reasons (#102598).
    */
-  uint8_t keep_last_segment;
-} NodeGeometryCurveResample;
+  uint8_t keep_last_segment = 0;
+};
 
-typedef struct NodeGeometryCurveFillet {
+struct NodeGeometryCurveFillet {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryCurveFillet)
+
   /** #GeometryNodeCurveFilletMode. */
-  uint8_t mode;
-} NodeGeometryCurveFillet;
+  uint8_t mode = 0;
+};
 
-typedef struct NodeGeometryCurveTrim {
+struct NodeGeometryCurveTrim {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryCurveTrim)
+
   /** #GeometryNodeCurveSampleMode. */
-  uint8_t mode;
-} NodeGeometryCurveTrim;
+  uint8_t mode = 0;
+};
 
-typedef struct NodeGeometryCurveToPoints {
+struct NodeGeometryCurveToPoints {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryCurveToPoints)
+
   /** #GeometryNodeCurveResampleMode. */
-  uint8_t mode;
-} NodeGeometryCurveToPoints;
+  uint8_t mode = 0;
+};
 
-typedef struct NodeGeometryCurveSample {
+struct NodeGeometryCurveSample {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryCurveSample)
+
   /** #GeometryNodeCurveSampleMode. */
-  uint8_t mode;
-  int8_t use_all_curves;
+  uint8_t mode = 0;
+  int8_t use_all_curves = 0;
   /** #eCustomDataType. */
-  int8_t data_type;
-  char _pad[1];
-} NodeGeometryCurveSample;
+  int8_t data_type = 0;
+  char _pad[1] = {};
+};
 
-typedef struct NodeGeometryTransferAttribute {
+struct NodeGeometryTransferAttribute {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryTransferAttribute)
+
   /** #eCustomDataType. */
-  int8_t data_type;
+  int8_t data_type = 0;
   /** #AttrDomain. */
-  int8_t domain;
+  int8_t domain = 0;
   /** #GeometryNodeAttributeTransferMode. */
-  uint8_t mode;
-  char _pad[1];
-} NodeGeometryTransferAttribute;
+  uint8_t mode = 0;
+  char _pad[1] = {};
+};
 
-typedef struct NodeGeometrySampleIndex {
+struct NodeGeometrySampleIndex {
+  DNA_DEFINE_CXX_METHODS(NodeGeometrySampleIndex)
+
   /** #eCustomDataType. */
-  int8_t data_type;
+  int8_t data_type = 0;
   /** #AttrDomain. */
-  int8_t domain;
-  int8_t clamp;
-  char _pad[1];
-} NodeGeometrySampleIndex;
+  int8_t domain = 0;
+  int8_t clamp = 0;
+  char _pad[1] = {};
+};
 
-typedef struct NodeGeometryRaycast {
+struct NodeGeometryRaycast {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryRaycast)
+
   /** #GeometryNodeRaycastMapMode. */
-  uint8_t mapping;
+  uint8_t mapping = 0;
 
   /** #eCustomDataType. */
-  int8_t data_type;
-} NodeGeometryRaycast;
+  int8_t data_type = 0;
+};
 
-typedef struct NodeGeometryCurveFill {
-  uint8_t mode;
-} NodeGeometryCurveFill;
+struct NodeGeometryCurveFill {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryCurveFill)
 
-typedef struct NodeGeometryMeshToPoints {
+  uint8_t mode = 0;
+};
+
+struct NodeGeometryMeshToPoints {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryMeshToPoints)
+
   /** #GeometryNodeMeshToPointsMode */
-  uint8_t mode;
-} NodeGeometryMeshToPoints;
+  uint8_t mode = 0;
+};
 
-typedef struct NodeGeometryAttributeCaptureItem {
+struct NodeGeometryAttributeCaptureItem {
   /** #eCustomDataType. */
-  int8_t data_type;
-  char _pad[3];
+  int8_t data_type = 0;
+  char _pad[3] = {};
   /**
    * If the identifier is zero, the item supports forward-compatibility with older versions of
    * Blender when it was only possible to capture a single attribute at a time.
    */
-  int identifier;
-  char *name;
-} NodeGeometryAttributeCaptureItem;
+  int identifier = 0;
+  char *name = nullptr;
+};
 
-typedef struct NodeGeometryAttributeCapture {
+struct NodeGeometryAttributeCapture {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryAttributeCapture)
+
   /** #eCustomDataType. */
-  int8_t data_type_legacy;
+  int8_t data_type_legacy = 0;
   /** #AttrDomain. */
-  int8_t domain;
-  char _pad[2];
-  int next_identifier;
-  NodeGeometryAttributeCaptureItem *capture_items;
-  int capture_items_num;
-  int active_index;
-} NodeGeometryAttributeCapture;
+  int8_t domain = 0;
+  char _pad[2] = {};
+  int next_identifier = 0;
+  NodeGeometryAttributeCaptureItem *capture_items = nullptr;
+  int capture_items_num = 0;
+  int active_index = 0;
+};
 
-typedef struct NodeGeometryStoreNamedAttribute {
+struct NodeGeometryStoreNamedAttribute {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryStoreNamedAttribute)
+
   /** #eCustomDataType. */
-  int8_t data_type;
+  int8_t data_type = 0;
   /** #AttrDomain. */
-  int8_t domain;
-} NodeGeometryStoreNamedAttribute;
+  int8_t domain = 0;
+};
 
-typedef struct NodeGeometryInputNamedAttribute {
+struct NodeGeometryInputNamedAttribute {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryInputNamedAttribute)
+
   /** #eCustomDataType. */
-  int8_t data_type;
-} NodeGeometryInputNamedAttribute;
+  int8_t data_type = 0;
+};
 
-typedef struct NodeGeometryStringToCurves {
+struct NodeGeometryStringToCurves {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryStringToCurves)
+
   /** #GeometryNodeStringToCurvesOverflowMode */
-  uint8_t overflow;
+  uint8_t overflow = 0;
   /** #GeometryNodeStringToCurvesAlignXMode */
-  uint8_t align_x;
+  uint8_t align_x = 0;
   /** #GeometryNodeStringToCurvesAlignYMode */
-  uint8_t align_y;
+  uint8_t align_y = 0;
   /** #GeometryNodeStringToCurvesPivotMode */
-  uint8_t pivot_mode;
-} NodeGeometryStringToCurves;
+  uint8_t pivot_mode = 0;
+};
 
-typedef struct NodeGeometryDeleteGeometry {
+struct NodeGeometryDeleteGeometry {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryDeleteGeometry)
+
   /** #AttrDomain. */
-  int8_t domain;
+  int8_t domain = 0;
   /** #GeometryNodeDeleteGeometryMode. */
-  int8_t mode;
-} NodeGeometryDeleteGeometry;
+  int8_t mode = 0;
+};
 
-typedef struct NodeGeometryDuplicateElements {
+struct NodeGeometryDuplicateElements {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryDuplicateElements)
+
   /** #AttrDomain. */
-  int8_t domain;
-} NodeGeometryDuplicateElements;
+  int8_t domain = 0;
+};
 
-typedef struct NodeGeometryMergeLayers {
+struct NodeGeometryMergeLayers {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryMergeLayers)
+
   /** #MergeLayerMode. */
-  int8_t mode;
-} NodeGeometryMergeLayers;
+  int8_t mode = 0;
+};
 
-typedef struct NodeGeometrySeparateGeometry {
+struct NodeGeometrySeparateGeometry {
+  DNA_DEFINE_CXX_METHODS(NodeGeometrySeparateGeometry)
+
   /** #AttrDomain. */
-  int8_t domain;
-} NodeGeometrySeparateGeometry;
+  int8_t domain = 0;
+};
 
-typedef struct NodeGeometryImageTexture {
-  int8_t interpolation;
-  int8_t extension;
-} NodeGeometryImageTexture;
+struct NodeGeometryImageTexture {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryImageTexture)
 
-typedef struct NodeGeometryViewerItem {
-  char *name;
+  int8_t interpolation = 0;
+  int8_t extension = 0;
+};
+
+struct NodeGeometryViewerItem {
+  char *name = nullptr;
   /** #eNodeSocketDatatype. */
-  short socket_type;
-  uint8_t flag;
-  char _pad[1];
+  short socket_type = 0;
+  uint8_t flag = 0;
+  char _pad[1] = {};
   /**
    * Generated unique identifier for sockets which stays the same even when the item order or
    * names change.
    */
-  int identifier;
-} NodeGeometryViewerItem;
+  int identifier = 0;
+};
 
-typedef struct NodeGeometryViewer {
-  NodeGeometryViewerItem *items;
-  int items_num;
-  int active_index;
-  int next_identifier;
+struct NodeGeometryViewer {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryViewer)
+
+  NodeGeometryViewerItem *items = nullptr;
+  int items_num = 0;
+  int active_index = 0;
+  int next_identifier = 0;
 
   /** #eCustomDataType. */
-  int8_t data_type_legacy;
+  int8_t data_type_legacy = 0;
   /** #AttrDomain. */
-  int8_t domain;
+  int8_t domain = 0;
 
-  char _pad[2];
-} NodeGeometryViewer;
+  char _pad[2] = {};
+};
 
-typedef struct NodeGeometryUVUnwrap {
+struct NodeGeometryUVUnwrap {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryUVUnwrap)
+
   /** #GeometryNodeUVUnwrapMethod. */
-  uint8_t method;
-} NodeGeometryUVUnwrap;
+  uint8_t method = 0;
+};
 
-typedef struct NodeSimulationItem {
-  char *name;
+struct NodeSimulationItem {
+  char *name = nullptr;
   /** #eNodeSocketDatatype. */
-  short socket_type;
+  short socket_type = 0;
   /** #AttrDomain. */
-  short attribute_domain;
+  short attribute_domain = 0;
   /**
    * Generates unique identifier for sockets which stays the same even when the item order or
    * names change.
    */
-  int identifier;
-} NodeSimulationItem;
+  int identifier = 0;
+};
 
-typedef struct NodeGeometrySimulationInput {
+struct NodeGeometrySimulationInput {
+  DNA_DEFINE_CXX_METHODS(NodeGeometrySimulationInput)
+
   /** bNode.identifier of the corresponding output node. */
-  int32_t output_node_id;
-} NodeGeometrySimulationInput;
+  int32_t output_node_id = 0;
+};
 
-typedef struct NodeGeometrySimulationOutput {
-  NodeSimulationItem *items;
-  int items_num;
-  int active_index;
+struct NodeGeometrySimulationOutput {
+  DNA_DEFINE_CXX_METHODS(NodeGeometrySimulationOutput)
+
+  NodeSimulationItem *items = nullptr;
+  int items_num = 0;
+  int active_index = 0;
   /** Number to give unique IDs to state items. */
-  int next_identifier;
-  int _pad;
+  int next_identifier = 0;
+  int _pad = {};
 
 #ifdef __cplusplus
   blender::Span<NodeSimulationItem> items_span() const;
   blender::MutableSpan<NodeSimulationItem> items_span();
 #endif
-} NodeGeometrySimulationOutput;
+};
 
-typedef struct NodeRepeatItem {
-  char *name;
+struct NodeRepeatItem {
+  char *name = nullptr;
   /** #eNodeSocketDatatype. */
-  short socket_type;
-  char _pad[2];
+  short socket_type = 0;
+  char _pad[2] = {};
   /**
    * Generated unique identifier for sockets which stays the same even when the item order or
    * names change.
    */
-  int identifier;
-} NodeRepeatItem;
+  int identifier = 0;
+};
 
-typedef struct NodeGeometryRepeatInput {
+struct NodeGeometryRepeatInput {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryRepeatInput)
+
   /** bNode.identifier of the corresponding output node. */
-  int32_t output_node_id;
-} NodeGeometryRepeatInput;
+  int32_t output_node_id = 0;
+};
 
-typedef struct NodeGeometryRepeatOutput {
-  NodeRepeatItem *items;
-  int items_num;
-  int active_index;
+struct NodeGeometryRepeatOutput {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryRepeatOutput)
+
+  NodeRepeatItem *items = nullptr;
+  int items_num = 0;
+  int active_index = 0;
   /** Identifier to give to the next repeat item. */
-  int next_identifier;
-  int inspection_index;
+  int next_identifier = 0;
+  int inspection_index = 0;
 
 #ifdef __cplusplus
   blender::Span<NodeRepeatItem> items_span() const;
   blender::MutableSpan<NodeRepeatItem> items_span();
 #endif
-} NodeGeometryRepeatOutput;
+};
 
-typedef struct NodeGeometryForeachGeometryElementInput {
+struct NodeGeometryForeachGeometryElementInput {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryForeachGeometryElementInput)
+
   /** bNode.identifier of the corresponding output node. */
-  int32_t output_node_id;
-} NodeGeometryForeachGeometryElementInput;
+  int32_t output_node_id = 0;
+};
 
-typedef struct NodeForeachGeometryElementInputItem {
-  char *name;
+struct NodeForeachGeometryElementInputItem {
+  char *name = nullptr;
   /** #eNodeSocketDatatype. */
-  short socket_type;
-  char _pad[2];
+  short socket_type = 0;
+  char _pad[2] = {};
   /** Generated identifier that stays the same even when the name or order changes. */
-  int identifier;
-} NodeForeachGeometryElementInputItem;
+  int identifier = 0;
+};
 
-typedef struct NodeForeachGeometryElementMainItem {
-  char *name;
+struct NodeForeachGeometryElementMainItem {
+  char *name = nullptr;
   /** #eNodeSocketDatatype. */
-  short socket_type;
-  char _pad[2];
+  short socket_type = 0;
+  char _pad[2] = {};
   /** Generated identifier that stays the same even when the name or order changes. */
-  int identifier;
-} NodeForeachGeometryElementMainItem;
+  int identifier = 0;
+};
 
-typedef struct NodeForeachGeometryElementGenerationItem {
-  char *name;
+struct NodeForeachGeometryElementGenerationItem {
+  char *name = nullptr;
   /** #eNodeSocketDatatype. */
-  short socket_type;
+  short socket_type = 0;
   /** #AttrDomain. */
-  uint8_t domain;
-  char _pad[1];
+  uint8_t domain = 0;
+  char _pad[1] = {};
   /** Generated identifier that stays the same even when the name or order changes. */
-  int identifier;
-} NodeForeachGeometryElementGenerationItem;
+  int identifier = 0;
+};
 
-typedef struct NodeForeachGeometryElementInputItems {
-  NodeForeachGeometryElementInputItem *items;
-  int items_num;
-  int active_index;
-  int next_identifier;
-  char _pad[4];
-} NodeForeachGeometryElementInputItems;
+struct NodeForeachGeometryElementInputItems {
+  DNA_DEFINE_CXX_METHODS(NodeForeachGeometryElementInputItems)
 
-typedef struct NodeForeachGeometryElementMainItems {
-  NodeForeachGeometryElementMainItem *items;
-  int items_num;
-  int active_index;
-  int next_identifier;
-  char _pad[4];
-} NodeForeachGeometryElementMainItems;
+  NodeForeachGeometryElementInputItem *items = nullptr;
+  int items_num = 0;
+  int active_index = 0;
+  int next_identifier = 0;
+  char _pad[4] = {};
+};
 
-typedef struct NodeForeachGeometryElementGenerationItems {
-  NodeForeachGeometryElementGenerationItem *items;
-  int items_num;
-  int active_index;
-  int next_identifier;
-  char _pad[4];
-} NodeForeachGeometryElementGenerationItems;
+struct NodeForeachGeometryElementMainItems {
+  DNA_DEFINE_CXX_METHODS(NodeForeachGeometryElementMainItems)
 
-typedef struct NodeGeometryForeachGeometryElementOutput {
+  NodeForeachGeometryElementMainItem *items = nullptr;
+  int items_num = 0;
+  int active_index = 0;
+  int next_identifier = 0;
+  char _pad[4] = {};
+};
+
+struct NodeForeachGeometryElementGenerationItems {
+  DNA_DEFINE_CXX_METHODS(NodeForeachGeometryElementGenerationItems)
+
+  NodeForeachGeometryElementGenerationItem *items = nullptr;
+  int items_num = 0;
+  int active_index = 0;
+  int next_identifier = 0;
+  char _pad[4] = {};
+};
+
+struct NodeGeometryForeachGeometryElementOutput {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryForeachGeometryElementOutput)
+
   /**
    * The `foreach` zone has three sets of dynamic sockets.
    * One on the input node and two on the output node.
@@ -3277,258 +3556,298 @@ typedef struct NodeGeometryForeachGeometryElementOutput {
   NodeForeachGeometryElementMainItems main_items;
   NodeForeachGeometryElementGenerationItems generation_items;
   /** This index is used when displaying socket values or using the viewer node. */
-  int inspection_index;
+  int inspection_index = 0;
   /** #AttrDomain. This is the domain that is iterated over. */
-  uint8_t domain;
-  char _pad[3];
-} NodeGeometryForeachGeometryElementOutput;
+  uint8_t domain = 0;
+  char _pad[3] = {};
+};
 
-typedef struct NodeClosureInput {
+struct NodeClosureInput {
+  DNA_DEFINE_CXX_METHODS(NodeClosureInput)
+
   /** bNode.identifier of the corresponding output node. */
-  int32_t output_node_id;
-} NodeClosureInput;
+  int32_t output_node_id = 0;
+};
 
-typedef struct NodeClosureInputItem {
-  char *name;
+struct NodeClosureInputItem {
+  char *name = nullptr;
   /** #eNodeSocketDatatype. */
-  short socket_type;
+  short socket_type = 0;
   /** #NodeSocketInterfaceStructureType. */
-  int8_t structure_type;
-  char _pad[1];
-  int identifier;
-} NodeClosureInputItem;
+  int8_t structure_type = 0;
+  char _pad[1] = {};
+  int identifier = 0;
+};
 
-typedef struct NodeClosureOutputItem {
-  char *name;
+struct NodeClosureOutputItem {
+  char *name = nullptr;
   /** #eNodeSocketDatatype. */
-  short socket_type;
+  short socket_type = 0;
   /** #NodeSocketInterfaceStructureType. */
-  int8_t structure_type;
-  char _pad[1];
-  int identifier;
-} NodeClosureOutputItem;
+  int8_t structure_type = 0;
+  char _pad[1] = {};
+  int identifier = 0;
+};
 
-typedef struct NodeClosureInputItems {
-  NodeClosureInputItem *items;
-  int items_num;
-  int active_index;
-  int next_identifier;
-  char _pad[4];
-} NodeClosureInputItems;
+struct NodeClosureInputItems {
+  DNA_DEFINE_CXX_METHODS(NodeClosureInputItems)
 
-typedef struct NodeClosureOutputItems {
-  NodeClosureOutputItem *items;
-  int items_num;
-  int active_index;
-  int next_identifier;
-  char _pad[4];
-} NodeClosureOutputItems;
+  NodeClosureInputItem *items = nullptr;
+  int items_num = 0;
+  int active_index = 0;
+  int next_identifier = 0;
+  char _pad[4] = {};
+};
 
-typedef struct NodeClosureOutput {
+struct NodeClosureOutputItems {
+  DNA_DEFINE_CXX_METHODS(NodeClosureOutputItems)
+
+  NodeClosureOutputItem *items = nullptr;
+  int items_num = 0;
+  int active_index = 0;
+  int next_identifier = 0;
+  char _pad[4] = {};
+};
+
+struct NodeClosureOutput {
+  DNA_DEFINE_CXX_METHODS(NodeClosureOutput)
+
   NodeClosureInputItems input_items;
   NodeClosureOutputItems output_items;
   /** #NodeClosureFlag. */
-  uint8_t flag;
-  char _pad[7];
-} NodeClosureOutput;
+  uint8_t flag = 0;
+  char _pad[7] = {};
+};
 
-typedef struct NodeEvaluateClosureInputItem {
-  char *name;
+struct NodeEvaluateClosureInputItem {
+  char *name = nullptr;
   /** #eNodeSocketDatatype */
-  short socket_type;
+  short socket_type = 0;
   /** #NodeSocketInterfaceStructureType. */
-  int8_t structure_type;
-  char _pad[1];
-  int identifier;
-} NodeEvaluateClosureInputItem;
+  int8_t structure_type = 0;
+  char _pad[1] = {};
+  int identifier = 0;
+};
 
-typedef struct NodeEvaluateClosureOutputItem {
-  char *name;
+struct NodeEvaluateClosureOutputItem {
+  char *name = nullptr;
   /** #eNodeSocketDatatype */
-  short socket_type;
+  short socket_type = 0;
   /** #NodeSocketInterfaceStructureType. */
-  int8_t structure_type;
-  char _pad[1];
-  int identifier;
-} NodeEvaluateClosureOutputItem;
+  int8_t structure_type = 0;
+  char _pad[1] = {};
+  int identifier = 0;
+};
 
-typedef struct NodeEvaluateClosureInputItems {
-  NodeEvaluateClosureInputItem *items;
-  int items_num;
-  int active_index;
-  int next_identifier;
-  char _pad[4];
-} NodeEvaluateClosureInputItems;
+struct NodeEvaluateClosureInputItems {
+  DNA_DEFINE_CXX_METHODS(NodeEvaluateClosureInputItems)
 
-typedef struct NodeEvaluateClosureOutputItems {
-  NodeEvaluateClosureOutputItem *items;
-  int items_num;
-  int active_index;
-  int next_identifier;
-  char _pad[4];
-} NodeEvaluateClosureOutputItems;
+  NodeEvaluateClosureInputItem *items = nullptr;
+  int items_num = 0;
+  int active_index = 0;
+  int next_identifier = 0;
+  char _pad[4] = {};
+};
 
-typedef struct NodeEvaluateClosure {
+struct NodeEvaluateClosureOutputItems {
+  DNA_DEFINE_CXX_METHODS(NodeEvaluateClosureOutputItems)
+
+  NodeEvaluateClosureOutputItem *items = nullptr;
+  int items_num = 0;
+  int active_index = 0;
+  int next_identifier = 0;
+  char _pad[4] = {};
+};
+
+struct NodeEvaluateClosure {
+  DNA_DEFINE_CXX_METHODS(NodeEvaluateClosure)
+
   NodeEvaluateClosureInputItems input_items;
   NodeEvaluateClosureOutputItems output_items;
   /** #NodeEvaluateClosureFlag. */
-  uint8_t flag;
-  char _pad[7];
-} NodeEvaluateClosure;
+  uint8_t flag = 0;
+  char _pad[7] = {};
+};
 
-typedef struct IndexSwitchItem {
+struct IndexSwitchItem {
   /** Generated unique identifier which stays the same even when the item order or names change. */
-  int identifier;
-} IndexSwitchItem;
+  int identifier = 0;
+};
 
-typedef struct NodeIndexSwitch {
-  IndexSwitchItem *items;
-  int items_num;
+struct NodeIndexSwitch {
+  DNA_DEFINE_CXX_METHODS(NodeIndexSwitch)
+
+  IndexSwitchItem *items = nullptr;
+  int items_num = 0;
 
   /* #eNodeSocketDataType. */
-  int data_type;
+  int data_type = 0;
   /** Identifier to give to the next item. */
-  int next_identifier;
+  int next_identifier = 0;
 
-  char _pad[4];
+  char _pad[4] = {};
 #ifdef __cplusplus
   blender::Span<IndexSwitchItem> items_span() const;
   blender::MutableSpan<IndexSwitchItem> items_span();
 #endif
-} NodeIndexSwitch;
+};
 
-typedef struct GeometryNodeFieldToGridItem {
+struct GeometryNodeFieldToGridItem {
   /** #eNodeSocketDatatype. */
-  int8_t data_type;
-  char _pad[3];
-  int identifier;
-  char *name;
-} GeometryNodeFieldToGridItem;
+  int8_t data_type = 0;
+  char _pad[3] = {};
+  int identifier = 0;
+  char *name = nullptr;
+};
 
-typedef struct GeometryNodeFieldToGrid {
+struct GeometryNodeFieldToGrid {
+  DNA_DEFINE_CXX_METHODS(GeometryNodeFieldToGrid)
+
   /** #eNodeSocketDatatype. */
-  int8_t data_type;
-  char _pad[3];
-  int next_identifier;
-  GeometryNodeFieldToGridItem *items;
-  int items_num;
-  int active_index;
-} GeometryNodeFieldToGrid;
+  int8_t data_type = 0;
+  char _pad[3] = {};
+  int next_identifier = 0;
+  GeometryNodeFieldToGridItem *items = nullptr;
+  int items_num = 0;
+  int active_index = 0;
+};
 
-typedef struct NodeGeometryDistributePointsInVolume {
+struct NodeGeometryDistributePointsInVolume {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryDistributePointsInVolume)
+
   /** #GeometryNodePointDistributeVolumeMode. */
-  uint8_t mode;
-} NodeGeometryDistributePointsInVolume;
+  uint8_t mode = 0;
+};
 
-typedef struct NodeFunctionCompare {
+struct NodeFunctionCompare {
+  DNA_DEFINE_CXX_METHODS(NodeFunctionCompare)
+
   /** #NodeCompareOperation */
-  int8_t operation;
+  int8_t operation = 0;
   /** #eNodeSocketDatatype */
-  int8_t data_type;
+  int8_t data_type = 0;
   /** #NodeCompareMode */
-  int8_t mode;
-  char _pad[1];
-} NodeFunctionCompare;
+  int8_t mode = 0;
+  char _pad[1] = {};
+};
 
-typedef struct NodeCombSepColor {
+struct NodeCombSepColor {
+  DNA_DEFINE_CXX_METHODS(NodeCombSepColor)
+
   /** #NodeCombSepColorMode */
-  int8_t mode;
-} NodeCombSepColor;
+  int8_t mode = 0;
+};
 
-typedef struct NodeShaderMix {
+struct NodeShaderMix {
+  DNA_DEFINE_CXX_METHODS(NodeShaderMix)
+
   /** #eNodeSocketDatatype */
-  int8_t data_type;
+  int8_t data_type = 0;
   /** #NodeShaderMixMode */
-  int8_t factor_mode;
-  int8_t clamp_factor;
-  int8_t clamp_result;
-  int8_t blend_type;
-  char _pad[3];
-} NodeShaderMix;
+  int8_t factor_mode = 0;
+  int8_t clamp_factor = 0;
+  int8_t clamp_result = 0;
+  int8_t blend_type = 0;
+  char _pad[3] = {};
+};
 
-typedef struct NodeGeometryLinearGizmo {
+struct NodeGeometryLinearGizmo {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryLinearGizmo)
+
   /** #GeometryNodeGizmoColor. */
-  int color_id;
+  int color_id = 0;
   /** #GeometryNodeLinearGizmoDrawStyle. */
-  int draw_style;
-} NodeGeometryLinearGizmo;
+  int draw_style = 0;
+};
 
-typedef struct NodeGeometryDialGizmo {
+struct NodeGeometryDialGizmo {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryDialGizmo)
+
   /** #GeometryNodeGizmoColor. */
-  int color_id;
-} NodeGeometryDialGizmo;
+  int color_id = 0;
+};
 
-typedef struct NodeGeometryTransformGizmo {
+struct NodeGeometryTransformGizmo {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryTransformGizmo)
+
   /** #NodeGeometryTransformGizmoFlag. */
-  uint32_t flag;
-} NodeGeometryTransformGizmo;
+  uint32_t flag = 0;
+};
 
-typedef struct NodeGeometryBakeItem {
-  char *name;
-  int16_t socket_type;
-  int16_t attribute_domain;
-  int identifier;
-  int32_t flag;
-  char _pad[4];
-} NodeGeometryBakeItem;
+struct NodeGeometryBakeItem {
+  char *name = nullptr;
+  int16_t socket_type = 0;
+  int16_t attribute_domain = 0;
+  int identifier = 0;
+  int32_t flag = 0;
+  char _pad[4] = {};
+};
 
-typedef struct NodeGeometryBake {
-  NodeGeometryBakeItem *items;
-  int items_num;
-  int next_identifier;
-  int active_index;
-  char _pad[4];
-} NodeGeometryBake;
+struct NodeGeometryBake {
+  DNA_DEFINE_CXX_METHODS(NodeGeometryBake)
 
-typedef struct NodeCombineBundleItem {
-  char *name;
-  int identifier;
-  int16_t socket_type;
+  NodeGeometryBakeItem *items = nullptr;
+  int items_num = 0;
+  int next_identifier = 0;
+  int active_index = 0;
+  char _pad[4] = {};
+};
+
+struct NodeCombineBundleItem {
+  char *name = nullptr;
+  int identifier = 0;
+  int16_t socket_type = 0;
   /** #NodeSocketInterfaceStructureType. */
-  int8_t structure_type;
-  char _pad[1];
-} NodeCombineBundleItem;
+  int8_t structure_type = 0;
+  char _pad[1] = {};
+};
 
-typedef struct NodeCombineBundle {
-  NodeCombineBundleItem *items;
-  int items_num;
-  int next_identifier;
-  int active_index;
+struct NodeCombineBundle {
+  DNA_DEFINE_CXX_METHODS(NodeCombineBundle)
+
+  NodeCombineBundleItem *items = nullptr;
+  int items_num = 0;
+  int next_identifier = 0;
+  int active_index = 0;
   /** #NodeCombineBundleFlag. */
-  uint8_t flag;
-  char _pad[3];
-} NodeCombineBundle;
+  uint8_t flag = 0;
+  char _pad[3] = {};
+};
 
-typedef struct NodeSeparateBundleItem {
-  char *name;
-  int identifier;
-  int16_t socket_type;
+struct NodeSeparateBundleItem {
+  char *name = nullptr;
+  int identifier = 0;
+  int16_t socket_type = 0;
   /** #NodeSocketInterfaceStructureType. */
-  int8_t structure_type;
-  char _pad[1];
-} NodeSeparateBundleItem;
+  int8_t structure_type = 0;
+  char _pad[1] = {};
+};
 
-typedef struct NodeSeparateBundle {
-  NodeSeparateBundleItem *items;
-  int items_num;
-  int next_identifier;
-  int active_index;
+struct NodeSeparateBundle {
+  DNA_DEFINE_CXX_METHODS(NodeSeparateBundle)
+
+  NodeSeparateBundleItem *items = nullptr;
+  int items_num = 0;
+  int next_identifier = 0;
+  int active_index = 0;
   /** #NodeSeparateBundleFlag. */
-  uint8_t flag;
-  char _pad[3];
-} NodeSeparateBundle;
+  uint8_t flag = 0;
+  char _pad[3] = {};
+};
 
-typedef struct NodeFunctionFormatStringItem {
-  char *name;
-  int identifier;
-  int16_t socket_type;
-  char _pad[2];
-} NodeFunctionFormatStringItem;
+struct NodeFunctionFormatStringItem {
+  char *name = nullptr;
+  int identifier = 0;
+  int16_t socket_type = 0;
+  char _pad[2] = {};
+};
 
-typedef struct NodeFunctionFormatString {
-  NodeFunctionFormatStringItem *items;
-  int items_num;
-  int next_identifier;
-  int active_index;
-  char _pad[4];
-} NodeFunctionFormatString;
+struct NodeFunctionFormatString {
+  DNA_DEFINE_CXX_METHODS(NodeFunctionFormatString)
+
+  NodeFunctionFormatStringItem *items = nullptr;
+  int items_num = 0;
+  int next_identifier = 0;
+  int active_index = 0;
+  char _pad[4] = {};
+};

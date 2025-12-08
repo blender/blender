@@ -10,6 +10,8 @@
 
 #include <cstring>
 
+#include "DNA_defs.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
@@ -327,20 +329,17 @@ const char *DNA_struct_rename_legacy_hack_alias_from_static(const char *name)
 /** \name Internal helpers for C++
  * \{ */
 
-extern "C" void _DNA_internal_memcpy(void *dst, const void *src, size_t size);
-extern "C" void _DNA_internal_memcpy(void *dst, const void *src, const size_t size)
+void _DNA_internal_memcpy(void *dst, const void *src, const size_t size)
 {
   memcpy(dst, src, size);
 }
 
-extern "C" void _DNA_internal_memzero(void *dst, size_t size);
-extern "C" void _DNA_internal_memzero(void *dst, const size_t size)
+void _DNA_internal_memzero(void *dst, const size_t size)
 {
   memset(dst, 0, size);
 }
 
-extern "C" void _DNA_internal_swap(void *a, void *b, size_t size);
-extern "C" void _DNA_internal_swap(void *a, void *b, const size_t size)
+void _DNA_internal_swap(void *a, void *b, const size_t size)
 {
   void *tmp = alloca(size);
   memcpy(tmp, a, size);

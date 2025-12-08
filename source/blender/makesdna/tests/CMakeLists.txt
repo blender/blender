@@ -10,6 +10,7 @@ if(WITH_GTESTS)
   add_custom_command(
     OUTPUT
       ${CMAKE_CURRENT_BINARY_DIR}/test_dna.cc
+      ${CMAKE_CURRENT_BINARY_DIR}/test_dna_defaults.cc
       ${CMAKE_CURRENT_BINARY_DIR}/test_dna_struct_ids.cc
       ${CMAKE_CURRENT_BINARY_DIR}/test_dna_type_offsets.h
       ${CMAKE_CURRENT_BINARY_DIR}/test_dna_verify.cc
@@ -21,6 +22,7 @@ if(WITH_GTESTS)
       ${CMAKE_CURRENT_BINARY_DIR}/test_dna_type_offsets.h
       ${CMAKE_CURRENT_BINARY_DIR}/test_dna_verify.cc
       ${CMAKE_CURRENT_BINARY_DIR}/test_dna_struct_ids.cc
+      ${CMAKE_CURRENT_BINARY_DIR}/test_dna_defaults.cc
       ${CMAKE_SOURCE_DIR}/source/blender/makesdna/tests/dna/
     DEPENDS
       makesdna
@@ -29,6 +31,7 @@ if(WITH_GTESTS)
 
   set_source_files_properties(
     ${CMAKE_CURRENT_BINARY_DIR}/test_dna.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/test_dna_defaults.cc
     ${CMAKE_CURRENT_BINARY_DIR}/test_dna_struct_ids.cc
     ${CMAKE_CURRENT_BINARY_DIR}/test_dna_type_offsets.h
     ${CMAKE_CURRENT_BINARY_DIR}/test_dna_verify.cc

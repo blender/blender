@@ -25,7 +25,6 @@
 #define DNA_DEPRECATED_ALLOW
 
 #include "DNA_curve_types.h"
-#include "DNA_defaults.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meshdata_types.h"
@@ -54,9 +53,7 @@ static void lattice_init_data(ID *id)
 {
   Lattice *lattice = (Lattice *)id;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(lattice, id));
-
-  MEMCPY_STRUCT_AFTER(lattice, DNA_struct_default_get(Lattice), id);
+  INIT_DEFAULT_STRUCT_AFTER(lattice, id);
 
   lattice->def = MEM_callocN<BPoint>("lattvert"); /* temporary */
   BKE_lattice_resize(lattice, 2, 2, 2, nullptr);  /* creates a uniform lattice */

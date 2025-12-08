@@ -33,7 +33,6 @@ set(INC_SYS
 )
 
 set(SRC
-  ${CMAKE_SOURCE_DIR}/release/datafiles/userdef/userdef_default.c
   intern/action.cc
   intern/action_bones.cc
   intern/action_mirror.cc

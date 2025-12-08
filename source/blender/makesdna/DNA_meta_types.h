@@ -9,7 +9,6 @@
 #pragma once
 
 #include "DNA_ID.h"
-#include "DNA_defs.h"
 #include "DNA_listBase.h"
 
 struct AnimData;
@@ -55,78 +54,77 @@ enum {
   MB_SCALE_RAD = 1 << 4,
 };
 
-typedef struct MetaElem {
-  struct MetaElem *next, *prev;
+struct MetaElem {
+  struct MetaElem *next = nullptr, *prev = nullptr;
 
   /** Bound Box of MetaElem. */
-  struct BoundBox *bb;
+  struct BoundBox *bb = nullptr;
 
-  short type, flag;
-  char _pad[4];
+  short type = 0, flag = 0;
+  char _pad[4] = {};
   /** Position of center of MetaElem. */
-  float x, y, z;
+  float x = 0, y = 0, z = 0;
   /** Rotation of MetaElem (MUST be kept normalized). */
-  float quat[4];
+  float quat[4] = {};
   /** Dimension parameters, used for some types like cubes. */
-  float expx;
-  float expy;
-  float expz;
+  float expx = 0;
+  float expy = 0;
+  float expz = 0;
   /** Radius of the meta element. */
-  float rad;
+  float rad = 0;
   /** Temp field, used only while processing. */
-  float rad2;
+  float rad2 = 0;
   /** Stiffness, how much of the element to fill. */
-  float s;
+  float s = 0;
   /** Old, only used for backwards compatibility. use dimensions now. */
-  float len;
+  float len = 0;
 
   /** Matrix and inverted matrix. */
-  float *mat, *imat;
-} MetaElem;
+  float *mat = nullptr, *imat = nullptr;
+};
 
-typedef struct MetaBall {
+struct MetaBall {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
   static constexpr ID_Type id_type = ID_MB;
 #endif
 
   ID id;
-  struct AnimData *adt;
+  struct AnimData *adt = nullptr;
 
-  ListBase elems;
+  ListBase elems = {nullptr, nullptr};
   /** Not saved in files, note we use pointer for editmode check. */
-  ListBase *editelems;
+  ListBase *editelems = nullptr;
 
   /* material of the mother ball will define the material used of all others */
-  struct Material **mat;
+  struct Material **mat = nullptr;
 
   /** Flag is enum for updates, flag2 is bit-flags for settings. */
-  char flag, flag2;
-  short totcol;
+  char flag = 0, flag2 = 0;
+  short totcol = 0;
   /** Used to store #MB_TEXTURE_FLAG_AUTO. */
-  char texspace_flag;
-  char _pad[2];
+  char texspace_flag = MB_TEXSPACE_FLAG_AUTO;
+  char _pad[2] = {};
 
   /**
    * ID data is older than edit-mode data (TODO: move to edit-mode struct).
    * Set #Main.is_memfile_undo_flush_needed when enabling.
    */
-  char needs_flush_to_id;
+  char needs_flush_to_id = 0;
 
-  float texspace_location[3];
-  float texspace_size[3];
+  float texspace_location[3] = {};
+  float texspace_size[3] = {1, 1, 1};
 
   /** Display and render res. */
-  float wiresize, rendersize;
+  float wiresize = 0.4f, rendersize = 0.2f;
 
   /* bias elements to have an offset volume.
    * mother ball changes will effect other objects thresholds,
    * but these may also have their own thresh as an offset */
-  float thresh;
+  float thresh = 0.6f;
 
-  char _pad0[4];
+  char _pad0[4] = {};
 
   /** The active meta-element (used in edit-mode). */
-  MetaElem *lastelem;
-
-} MetaBall;
+  MetaElem *lastelem = nullptr;
+};

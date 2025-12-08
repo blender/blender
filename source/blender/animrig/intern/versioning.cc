@@ -15,7 +15,6 @@
 #include "ANIM_action_legacy.hh"
 #include "ANIM_versioning.hh"
 
-#include "DNA_action_defaults.h"
 #include "DNA_action_types.h"
 
 #include "BKE_lib_id.hh"

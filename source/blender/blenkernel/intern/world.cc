@@ -15,9 +15,8 @@
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
-#include "DNA_defaults.h"
+#include "DNA_layer_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
 #include "BLI_listbase.h"
@@ -64,9 +63,7 @@ static void world_free_data(ID *id)
 static void world_init_data(ID *id)
 {
   World *wrld = (World *)id;
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wrld, id));
-
-  MEMCPY_STRUCT_AFTER(wrld, DNA_struct_default_get(World), id);
+  INIT_DEFAULT_STRUCT_AFTER(wrld, id);
 }
 
 /**

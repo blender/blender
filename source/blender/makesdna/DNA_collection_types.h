@@ -20,7 +20,7 @@ struct CollectionRuntime;
 }  // namespace blender::bke
 using CollectionRuntimeHandle = blender::bke::CollectionRuntime;
 #else
-typedef struct CollectionRuntimeHandle CollectionRuntimeHandle;
+struct CollectionRuntimeHandle;
 #endif
 
 struct Collection;
@@ -88,7 +88,7 @@ enum CollectionColorTag {
 };
 
 /* Light linking relation of a collection or an object. */
-typedef struct CollectionLightLinking {
+struct CollectionLightLinking {
   /* Light and shadow linking configuration, an enumerator of eCollectionLightLinkingState.
    * The meaning depends on whether the collection is specified as a light or shadow linking on the
    * Object's LightLinking.
@@ -110,42 +110,42 @@ typedef struct CollectionLightLinking {
    *
    *   - EXCLUDE: the collection or object does not cast shadow when lit by this emitter, but does
    *     for other light sources in the scene. */
-  uint8_t link_state;
+  uint8_t link_state = 0;
 
-  uint8_t _pad[3];
-} CollectionLightLinking;
+  uint8_t _pad[3] = {};
+};
 
-typedef struct CollectionObject {
-  struct CollectionObject *next, *prev;
-  struct Object *ob;
-
-  CollectionLightLinking light_linking;
-  int _pad;
-} CollectionObject;
-
-typedef struct CollectionChild {
-  struct CollectionChild *next, *prev;
-  struct Collection *collection;
+struct CollectionObject {
+  struct CollectionObject *next = nullptr, *prev = nullptr;
+  struct Object *ob = nullptr;
 
   CollectionLightLinking light_linking;
-  int _pad;
-} CollectionChild;
+  int _pad = {};
+};
+
+struct CollectionChild {
+  struct CollectionChild *next = nullptr, *prev = nullptr;
+  struct Collection *collection = nullptr;
+
+  CollectionLightLinking light_linking;
+  int _pad = {};
+};
 
 /* Collection IO property storage and access. */
-typedef struct CollectionExport {
-  struct CollectionExport *next, *prev;
+struct CollectionExport {
+  struct CollectionExport *next = nullptr, *prev = nullptr;
 
   /** Identifier that matches the #FileHandlerType.idname. */
-  char fh_idname[64];
-  char name[64];
+  char fh_idname[64] = "";
+  char name[64] = "";
 
-  IDProperty *export_properties;
-  uint32_t flag;
+  IDProperty *export_properties = nullptr;
+  uint32_t flag = 0;
 
-  uint32_t _pad0;
-} CollectionExport;
+  uint32_t _pad0 = {};
+};
 
-typedef struct Collection {
+struct Collection {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
   static constexpr ID_Type id_type = ID_GR;
@@ -154,35 +154,35 @@ typedef struct Collection {
   ID id;
 
   /** The ID owning this collection, in case it is an embedded one. */
-  ID *owner_id;
+  ID *owner_id = nullptr;
 
   /** CollectionObject. */
-  ListBase gobject;
+  ListBase gobject = {nullptr, nullptr};
   /** CollectionChild. */
-  ListBase children;
+  ListBase children = {nullptr, nullptr};
 
-  char _pad0[4];
+  char _pad0[4] = {};
 
-  int active_exporter_index;
-  ListBase exporters;
+  int active_exporter_index = 0;
+  ListBase exporters = {nullptr, nullptr};
 
-  struct PreviewImage *preview;
+  struct PreviewImage *preview = nullptr;
 
-  unsigned int layer DNA_DEPRECATED;
-  float instance_offset[3];
+  DNA_DEPRECATED unsigned int layer = 0;
+  float instance_offset[3] = {};
 
-  uint8_t flag;
-  int8_t color_tag;
+  uint8_t flag = 0;
+  int8_t color_tag = COLLECTION_COLOR_NONE;
 
-  char _pad1[2];
+  char _pad1[2] = {};
 
-  uint8_t lineart_usage; /* #eCollectionLineArt_Usage */
-  uint8_t lineart_flags; /* #eCollectionLineArt_Flags */
-  uint8_t lineart_intersection_mask;
-  uint8_t lineart_intersection_priority;
+  uint8_t lineart_usage = 0; /* #eCollectionLineArt_Usage */
+  uint8_t lineart_flags = 0; /* #eCollectionLineArt_Flags */
+  uint8_t lineart_intersection_mask = 0;
+  uint8_t lineart_intersection_priority = 0;
 
-  struct ViewLayer *view_layer DNA_DEPRECATED;
+  DNA_DEPRECATED struct ViewLayer *view_layer = nullptr;
 
   /* Keep last. */
-  CollectionRuntimeHandle *runtime;
-} Collection;
+  CollectionRuntimeHandle *runtime = nullptr;
+};

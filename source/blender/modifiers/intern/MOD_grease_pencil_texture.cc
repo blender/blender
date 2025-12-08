@@ -12,7 +12,6 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_span.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
 
 #include "BKE_curves.hh"
@@ -45,10 +44,7 @@ namespace blender {
 static void init_data(ModifierData *md)
 {
   auto *tmd = reinterpret_cast<GreasePencilTextureModifierData *>(md);
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(tmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(tmd, DNA_struct_default_get(GreasePencilTextureModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(tmd, modifier);
   modifier::greasepencil::init_influence_data(&tmd->influence, false);
 }
 

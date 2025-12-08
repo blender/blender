@@ -11,7 +11,8 @@
 
 #include "Node.h"
 
-#include "DNA_scene_types.h" /* for Scene and ViewLayer */
+#include "DNA_layer_types.h"
+#include "DNA_scene_types.h"
 
 using namespace std;
 

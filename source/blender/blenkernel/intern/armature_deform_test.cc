@@ -120,7 +120,7 @@ class ArmatureDeformTestBase {
     bArmature *arm = BKE_id_new<bArmature>(bmain, "Test Armature");
     ob->data = arm;
 
-    Bone *bone1 = MEM_callocN<Bone>("Bone1");
+    Bone *bone1 = MEM_new_for_free<Bone>("Bone1");
     STRNCPY(bone1->name, "Bone1");
     copy_v3_v3(bone1->tail, float3(0, 0, 0));
     copy_v3_v3(bone1->head, float3(0, 0, 1));
@@ -132,7 +132,7 @@ class ArmatureDeformTestBase {
     bone1->rad_head = 2.0f;
     bone1->rad_tail = 2.0f;
 
-    Bone *bone2 = MEM_callocN<Bone>("Bone2");
+    Bone *bone2 = MEM_new_for_free<Bone>("Bone2");
     STRNCPY(bone2->name, "Bone2");
     copy_v3_v3(bone2->tail, float3(0, 0, 0));
     copy_v3_v3(bone2->head, float3(0, 0, 1));
@@ -208,8 +208,8 @@ class ArmatureDeformTestBase {
     }
     mesh->tag_positions_changed();
 
-    bDeformGroup *defgroup1 = MEM_callocN<bDeformGroup>(__func__);
-    bDeformGroup *defgroup2 = MEM_callocN<bDeformGroup>(__func__);
+    bDeformGroup *defgroup1 = MEM_new_for_free<bDeformGroup>(__func__);
+    bDeformGroup *defgroup2 = MEM_new_for_free<bDeformGroup>(__func__);
     STRNCPY(defgroup1->name, "Bone1");
     STRNCPY(defgroup2->name, "Bone2");
     BLI_addtail(&mesh->vertex_group_names, defgroup1);

@@ -108,7 +108,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryRepeatInput *data = MEM_callocN<NodeGeometryRepeatInput>(__func__);
+  NodeGeometryRepeatInput *data = MEM_new_for_free<NodeGeometryRepeatInput>(__func__);
   /* Needs to be initialized for the node to work. */
   data->output_node_id = 0;
   node->storage = data;
@@ -202,12 +202,12 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree *tree, bNode *node)
 {
-  NodeGeometryRepeatOutput *data = MEM_callocN<NodeGeometryRepeatOutput>(__func__);
+  NodeGeometryRepeatOutput *data = MEM_new_for_free<NodeGeometryRepeatOutput>(__func__);
 
   data->next_identifier = 0;
 
   if (tree->type == NTREE_GEOMETRY) {
-    data->items = MEM_calloc_arrayN<NodeRepeatItem>(1, __func__);
+    data->items = MEM_new_array_for_free<NodeRepeatItem>(1, __func__);
     data->items[0].name = BLI_strdup(DATA_("Geometry"));
     data->items[0].socket_type = SOCK_GEOMETRY;
     data->items[0].identifier = data->next_identifier++;
@@ -220,13 +220,14 @@ static void node_init(bNodeTree *tree, bNode *node)
 static void node_free_storage(bNode *node)
 {
   socket_items::destruct_array<RepeatItemsAccessor>(*node);
-  MEM_freeN(node->storage);
+  MEM_freeN(reinterpret_cast<NodeGeometryRepeatOutput *>(node->storage));
 }
 
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeGeometryRepeatOutput &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_dupallocN<NodeGeometryRepeatOutput>(__func__, src_storage);
+  auto *dst_storage = MEM_new_for_free<NodeGeometryRepeatOutput>(
+      __func__, blender::dna::shallow_copy(src_storage));
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<RepeatItemsAccessor>(*src_node, *dst_node);

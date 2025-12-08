@@ -56,7 +56,7 @@ TracksMap *tracks_map_new(const char *object_name, int num_tracks)
 
   map->num_tracks = num_tracks;
 
-  map->tracks = MEM_calloc_arrayN<MovieTrackingTrack>(num_tracks, "TrackingsMap tracks");
+  map->tracks = MEM_new_array_for_free<MovieTrackingTrack>(num_tracks, "TrackingsMap tracks");
 
   map->hash = MEM_new<blender::Map<MovieTrackingTrack *, MovieTrackingTrack *>>("TracksMap hash");
 

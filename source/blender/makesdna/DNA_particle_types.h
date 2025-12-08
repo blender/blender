@@ -18,7 +18,7 @@ template<int DimsNum> struct KDTree;
 }  // namespace blender
 using KDTree3d = blender::KDTree<3>;
 #else
-typedef struct KDTree3d KDTree3d;
+struct KDTree3d;
 #endif
 
 struct AnimData;
@@ -384,7 +384,7 @@ enum eParticleTextureInfluence {
                  PAMAP_TWIST),
 };
 
-typedef struct HairKey {
+struct HairKey {
   /** Location of hair vertex. */
   float co[3];
   /** Time along hair, default 0-100. */
@@ -395,9 +395,9 @@ typedef struct HairKey {
   short editflag;
   char _pad[2];
   float world_co[3];
-} HairKey;
+};
 
-typedef struct ParticleKey { /* when changed update size of struct to copy_particleKey()!! */
+struct ParticleKey { /* when changed update size of struct to copy_particleKey()!! */
   /** Location. */
   float co[3];
   /** Velocity. */
@@ -408,23 +408,23 @@ typedef struct ParticleKey { /* when changed update size of struct to copy_parti
   float ave[3];
   /** When this key happens. */
   float time;
-} ParticleKey;
+};
 
-typedef struct BoidParticle {
-  struct Object *ground;
+struct BoidParticle {
+  struct Object *ground = nullptr;
   struct BoidData data;
-  float gravity[3];
-  float wander[3];
-  char _pad0[4];
-} BoidParticle;
+  float gravity[3] = {};
+  float wander[3] = {};
+  char _pad0[4] = {};
+};
 
-typedef struct ParticleSpring {
+struct ParticleSpring {
   float rest_length;
   unsigned int particle_index[2], delete_flag;
-} ParticleSpring;
+};
 
 /** Child particles are created around or between parent particles. */
-typedef struct ChildParticle {
+struct ChildParticle {
   /** Face index on the final derived mesh. */
   int num;
   int parent;
@@ -435,27 +435,27 @@ typedef struct ChildParticle {
   /** Face vertex weights and offset. */
   float fuv[4], foffset;
   char _pad0[4];
-} ChildParticle;
+};
 
-typedef struct ParticleTarget {
-  struct ParticleTarget *next, *prev;
-  struct Object *ob;
-  int psys;
-  short flag, mode;
-  float time, duration;
-} ParticleTarget;
+struct ParticleTarget {
+  struct ParticleTarget *next = nullptr, *prev = nullptr;
+  struct Object *ob = nullptr;
+  int psys = 0;
+  short flag = 0, mode = 0;
+  float time = 0, duration = 0;
+};
 
-typedef struct ParticleDupliWeight {
-  struct ParticleDupliWeight *next, *prev;
-  struct Object *ob;
-  short count;
-  short flag;
+struct ParticleDupliWeight {
+  struct ParticleDupliWeight *next = nullptr, *prev = nullptr;
+  struct Object *ob = nullptr;
+  short count = 0;
+  short flag = 0;
   /** Only updated on file save and used on file load. */
-  short index;
-  char _pad0[2];
-} ParticleDupliWeight;
+  short index = 0;
+  char _pad0[2] = {};
+};
 
-typedef struct ParticleData {
+struct ParticleData {
   /** Current global coordinates. */
   ParticleKey state;
 
@@ -463,287 +463,295 @@ typedef struct ParticleData {
   ParticleKey prev_state;
 
   /** Hair vertices. */
-  HairKey *hair;
+  HairKey *hair = nullptr;
 
   /** Keyed keys. */
-  ParticleKey *keys;
+  ParticleKey *keys = nullptr;
 
   /** Boids data. */
-  BoidParticle *boid;
+  BoidParticle *boid = nullptr;
 
   /** Amount of hair or keyed keys. */
-  int totkey;
+  int totkey = 0;
 
   /** Die-time is not necessarily time+lifetime as. */
-  float time, lifetime;
+  float time = 0, lifetime = 0;
   /**
    * Particles can die unnaturally (collision).
    *
    * \note Particles die on this frame, be sure to add 1 when clamping the lifetime of particles
    * to inclusive ranges such as the scenes end frame. See: #68290.
    */
-  float dietime;
+  float dietime = 0;
 
   /**
    * WARNING! Those two indices,
    * when not affected to vertices, are for !!! TESSELLATED FACES !!!, not POLYGONS!
    */
   /** Index to vert/edge/face. */
-  int num;
+  int num = 0;
   /**
    * Index to derived mesh data (face) to avoid slow lookups. It can also have negative
    * values DMCACHE_NOTFOUND and DMCACHE_ISCHILD.
    */
-  int num_dmcache;
+  int num_dmcache = 0;
 
   /** Coordinates on face/edge number "num" and depth along. */
-  float fuv[4], foffset;
+  float fuv[4] = {}, foffset = 0;
   /* face normal for volume emission. */
 
   /** Size and multiplier so that we can update size when ever. */
-  float size;
+  float size = 0;
 
   /** Density of SPH particle. */
-  float sphdensity;
-  char _pad[4];
+  float sphdensity = 0;
+  char _pad[4] = {};
 
-  int hair_index;
-  short flag;
+  int hair_index = 0;
+  short flag = 0;
   /** The life state of a particle. */
-  short alive;
-} ParticleData;
+  short alive = 0;
+};
 
-typedef struct SPHFluidSettings {
+struct SPHFluidSettings {
   /* Particle Fluid. */
-  float radius, spring_k, rest_length;
-  float plasticity_constant, yield_ratio;
-  float plasticity_balance, yield_balance;
-  float viscosity_omega, viscosity_beta;
-  float stiffness_k, stiffness_knear, rest_density;
-  float buoyancy;
-  int flag, spring_frames;
-  short solver;
-  char _pad[6];
-} SPHFluidSettings;
+  float radius = 0, spring_k = 0, rest_length = 0;
+  float plasticity_constant = 0, yield_ratio = 0;
+  float plasticity_balance = 0, yield_balance = 0;
+  float viscosity_omega = 0, viscosity_beta = 0;
+  float stiffness_k = 0, stiffness_knear = 0, rest_density = 0;
+  float buoyancy = 0;
+  int flag = 0, spring_frames = 0;
+  short solver = 0;
+  char _pad[6] = {};
+};
 
-typedef struct ParticleSettings {
+struct ParticleSettings {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
   static constexpr ID_Type id_type = ID_PA;
 #endif
 
   ID id;
-  struct AnimData *adt;
+  struct AnimData *adt = nullptr;
 
-  struct BoidSettings *boids;
-  struct SPHFluidSettings *fluid;
+  struct BoidSettings *boids = nullptr;
+  struct SPHFluidSettings *fluid = nullptr;
 
-  struct EffectorWeights *effector_weights;
-  struct Collection *collision_group;
+  struct EffectorWeights *effector_weights = nullptr;
+  struct Collection *collision_group = nullptr;
 
-  int flag;
-  char _pad1[4];
-  short type, from, distr, texact;
+  int flag = PART_EDISTR | PART_TRAND | PART_HIDE_ADVANCED_HAIR;
+  char _pad1[4] = {};
+  short type = PART_EMITTER, from = PART_FROM_FACE, distr = PART_DISTR_JIT, texact = 0;
   /* physics modes */
-  short phystype, rotmode, avemode, reactevent;
-  int draw;
-  float draw_size;
-  short draw_as, childtype;
-  char _pad2[4];
-  short ren_as, subframes, draw_col;
+  short phystype = PART_PHYS_NEWTON, rotmode = PART_ROT_VEL, avemode = PART_AVE_VELOCITY,
+        reactevent = PART_EVENT_DEATH;
+  int draw = 0;
+  float draw_size = 0.1f;
+  short draw_as = PART_DRAW_REND, childtype = 0;
+  char _pad2[4] = {};
+  short ren_as = PART_DRAW_HALO, subframes = 0, draw_col = PART_DRAW_COL_MAT;
   /* number of path segments, power of 2 except */
-  short draw_step, ren_step;
-  short hair_step, keys_step;
+  short draw_step = 2, ren_step = 3;
+  short hair_step = 5, keys_step = 5;
 
   /* adaptive path rendering */
-  short adapt_angle, adapt_pix;
+  short adapt_angle = 5, adapt_pix = 3;
 
-  short disp, omat, interpolation, integrator;
-  short rotfrom DNA_DEPRECATED;
-  short kink, kink_axis;
+  short disp = 100, omat = 1, interpolation = 0, integrator = PART_INT_MIDPOINT;
+  DNA_DEPRECATED short rotfrom = 0;
+  short kink = 0, kink_axis = 2;
 
   /* billboards */
-  short bb_align, bb_uv_split, bb_anim, bb_split_offset DNA_DEPRECATED;
-  float bb_tilt, bb_rand_tilt, bb_offset[2], bb_size[2], bb_vel_head, bb_vel_tail DNA_DEPRECATED;
+  DNA_DEPRECATED short bb_align = 0, bb_uv_split = 1, bb_anim = 0, bb_split_offset = 0;
+  DNA_DEPRECATED float bb_tilt = 0, bb_rand_tilt = 0, bb_offset[2] = {}, bb_size[2] = {1.0f, 1.0f};
+  DNA_DEPRECATED float bb_vel_head = 0;
+  DNA_DEPRECATED float bb_vel_tail = 0;
 
   /* draw color */
-  float color_vec_max;
+  float color_vec_max = 1.0f;
 
   /* time and emission */
-  float sta, end, lifetime, randlife;
-  float timetweak, courant_target;
-  float jitfac, eff_hair, grid_rand, ps_offset[1];
-  int totpart, userjit, grid_res, effector_amount;
-  short time_flag;
-  char _pad0[6];
+  float sta = 1.0f, end = 200.0f, lifetime = 50.0f, randlife = 0;
+  float timetweak = 1.0f, courant_target = 0.2f;
+  float jitfac = 1.0f, eff_hair = 0, grid_rand = 0, ps_offset[1] = {};
+  int totpart = 1000, userjit = 0, grid_res = 10, effector_amount = 0;
+  short time_flag = 0;
+  char _pad0[6] = {};
 
   /* initial velocity factors */
-  float normfac, obfac, randfac, partfac, tanfac, tanphase, reactfac;
-  float ob_vel[3];
-  float avefac, phasefac, randrotfac, randphasefac;
+  float normfac = 1.0f, obfac = 0, randfac = 0, partfac = 0, tanfac = 0, tanphase = 0,
+        reactfac = 0;
+  float ob_vel[3] = {};
+  float avefac = 0, phasefac = 0, randrotfac = 0, randphasefac = 0;
   /* physical properties */
-  float mass, size, randsize;
+  float mass = 1.0f, size = 0.05f, randsize = 0;
   /* global physical properties */
-  float acc[3], dragfac, brownfac, dampfac;
+  float acc[3] = {}, dragfac = 0, brownfac = 0, dampfac = 0;
   /* length */
-  float randlength;
+  float randlength = 0;
   /* children */
-  int child_flag;
-  char _pad3[4];
-  int child_percent, child_render_percent;
-  float parents, childsize, childrandsize;
-  float childrad, childflat;
+  int child_flag = 0;
+  char _pad3[4] = {};
+  int child_percent = 10, child_render_percent = 100;
+  float parents = 0, childsize = 1.0f, childrandsize = 0;
+  float childrad = 0.2f, childflat = 0.0f;
   /* clumping */
-  float clumpfac, clumppow;
+  float clumpfac = 0, clumppow = 0.0f;
   /* kink */
-  float kink_amp, kink_freq, kink_shape, kink_flat;
-  float kink_amp_clump;
-  int kink_extra_steps;
-  char _pad4[4];
-  float kink_axis_random, kink_amp_random;
+  float kink_amp = 0.2f, kink_freq = 2.0f, kink_shape = 0, kink_flat = 0;
+  float kink_amp_clump = 1.0f;
+  int kink_extra_steps = 4;
+  char _pad4[4] = {};
+  float kink_axis_random = 0, kink_amp_random = 0;
   /* rough */
-  float rough1, rough1_size;
-  float rough2, rough2_size, rough2_thres;
-  float rough_end, rough_end_shape;
+  float rough1 = 0, rough1_size = 1.0f;
+  float rough2 = 0, rough2_size = 1.0f, rough2_thres = 0;
+  float rough_end = 0, rough_end_shape = 1.0f;
   /* length */
-  float clength, clength_thres;
+  float clength = 1.0f, clength_thres = 0.0f;
   /* parting */
-  float parting_fac;
-  float parting_min, parting_max;
+  float parting_fac = 0;
+  float parting_min = 0, parting_max = 0;
   /* branching */
-  float branch_thres;
+  float branch_thres = 0;
   /* drawing stuff */
-  float draw_line[2];
-  float path_start, path_end;
-  int trail_count;
+  float draw_line[2] = {
+      0.5f,
+  };
+  float path_start = 0.0f, path_end = 1.0f;
+  int trail_count = 0;
   /* keyed particles */
-  int keyed_loops;
-  struct CurveMapping *clumpcurve;
-  struct CurveMapping *roughcurve;
-  float clump_noise_size;
+  int keyed_loops = 1;
+  struct CurveMapping *clumpcurve = nullptr;
+  struct CurveMapping *roughcurve = nullptr;
+  float clump_noise_size = 1.0f;
 
   /* hair dynamics */
-  float bending_random;
+  float bending_random = 0;
 
-  struct MTex *mtex[/*MAX_MTEX*/ 18];
+  struct MTex *mtex[/*MAX_MTEX*/ 18] = {};
 
-  struct Collection *instance_collection;
-  struct ListBase instance_weights;
-  struct Collection *force_group DNA_DEPRECATED; /* deprecated */
-  struct Object *instance_object;
-  struct Object *bb_ob;
-  struct PartDeflect *pd;
-  struct PartDeflect *pd2;
+  struct Collection *instance_collection = nullptr;
+  ListBase instance_weights = {nullptr, nullptr};
+  DNA_DEPRECATED struct Collection *force_group = nullptr; /* deprecated */
+  struct Object *instance_object = nullptr;
+  struct Object *bb_ob = nullptr;
+  struct PartDeflect *pd = nullptr;
+  struct PartDeflect *pd2 = nullptr;
 
   /* Evaluated mesh support. */
-  short use_modifier_stack;
-  char _pad5[2];
+  short use_modifier_stack = false;
+  char _pad5[2] = {};
 
   /* hair shape */
-  short shape_flag;
-  char _pad6[2];
+  short shape_flag = PART_SHAPE_CLOSE_TIP;
+  char _pad6[2] = {};
 
-  float twist;
-  char _pad8[4];
+  float twist = 0;
+  char _pad8[4] = {};
 
   /* hair thickness shape */
-  float shape;
-  float rad_root, rad_tip, rad_scale;
+  float shape = 0.0f;
+  float rad_root = 1.0f, rad_tip = 0.0f, rad_scale = 0.01f;
 
-  struct CurveMapping *twistcurve;
-} ParticleSettings;
+  struct CurveMapping *twistcurve = nullptr;
+};
 
-typedef struct ParticleSystem {
+struct ParticleSystem {
+  DNA_DEFINE_CXX_METHODS(ParticleSystem)
+
   /* note1: make sure all (run-time) are NULL's in `copy_particlesystem` XXX,
    * this function is no more! - need to investigate. */
 
   /* note2: make sure any uses of this struct in DNA are
    * accounted for in #BKE_object_copy_particlesystems. */
 
-  struct ParticleSystem *next, *prev;
+  struct ParticleSystem *next = nullptr, *prev = nullptr;
 
   /** Particle settings. */
-  ParticleSettings *part;
+  ParticleSettings *part = nullptr;
 
   /** (parent) particles. */
-  ParticleData *particles;
+  ParticleData *particles = nullptr;
   /** Child particles. */
-  ChildParticle *child;
+  ChildParticle *child = nullptr;
 
   /** Particle editmode (runtime). */
-  struct PTCacheEdit *edit;
+  struct PTCacheEdit *edit = nullptr;
   /** Free callback. */
-  void (*free_edit)(struct PTCacheEdit *edit);
+  void (*free_edit)(struct PTCacheEdit *edit) = nullptr;
 
   /** Path cache (runtime). */
-  struct ParticleCacheKey **pathcache;
+  struct ParticleCacheKey **pathcache = nullptr;
   /** Child cache (runtime). */
-  struct ParticleCacheKey **childcache;
+  struct ParticleCacheKey **childcache = nullptr;
   /** Buffers for the above. */
   ListBase pathcachebufs, childcachebufs;
 
   /** Cloth simulation for hair. */
-  struct ClothModifierData *clmd;
+  struct ClothModifierData *clmd = nullptr;
   /** Input/output for cloth simulation. */
-  struct Mesh *hair_in_mesh, *hair_out_mesh;
+  struct Mesh *hair_in_mesh = nullptr, *hair_out_mesh = nullptr;
 
-  struct Object *target_ob;
+  struct Object *target_ob = nullptr;
 
   /** Run-time only lattice deformation data. */
-  struct LatticeDeformData *lattice_deform_data;
+  struct LatticeDeformData *lattice_deform_data = nullptr;
 
   /** Particles from global space -> parent space. */
-  struct Object *parent;
+  struct Object *parent = nullptr;
 
   /** Used for keyed and boid physics. */
-  struct ListBase targets;
+  ListBase targets = {nullptr, nullptr};
 
   /** Particle system name. */
-  char name[/*MAX_NAME*/ 64];
+  char name[/*MAX_NAME*/ 64] = "";
 
   /** Used for instancing. */
-  float imat[4][4];
-  float cfra, tree_frame, bvhtree_frame;
-  int seed, child_seed;
-  int flag, totpart, totunexist, totchild, totcached, totchildcache;
+  float imat[4][4] = {};
+  float cfra = 0, tree_frame = 0, bvhtree_frame = 0;
+  int seed = 0, child_seed = 0;
+  int flag = 0, totpart = 0, totunexist = 0, totchild = 0, totcached = 0, totchildcache = 0;
   /* NOTE: Recalc is one of ID_RECALC_PSYS_ALL flags.
    *
    * TODO(sergey): Use #ParticleSettings.id.recalc instead of this duplicated flag somehow. */
-  int recalc;
-  short target_psys, totkeyed, bakespace;
-  char _pad1[6];
+  int recalc = 0;
+  short target_psys = 0, totkeyed = 0, bakespace = 0;
+  char _pad1[6] = {};
 
   /** Billboard UV name. */
-  char bb_uvname[3][/*MAX_CUSTOMDATA_LAYER_NAME*/ 68] DNA_DEPRECATED;
+  DNA_DEPRECATED char bb_uvname[3][/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
 
-  char _pad2[4];
+  char _pad2[4] = {};
   /* if you change these remember to update array lengths to PSYS_TOT_VG! */
   /** Vertex groups, 0==disable, 1==starting index. */
-  short vgroup[13], vg_neg, rt3;
-  char _pad3[6];
+  short vgroup[13] = {}, vg_neg = 0, rt3 = 0;
+  char _pad3[6] = {};
 
   /* point cache */
-  struct PointCache *pointcache;
-  struct ListBase ptcaches;
+  struct PointCache *pointcache = nullptr;
+  ListBase ptcaches = {nullptr, nullptr};
 
-  struct ListBase *effectors;
+  struct ListBase *effectors = nullptr;
 
-  ParticleSpring *fluid_springs;
-  int tot_fluidsprings, alloc_fluidsprings;
+  ParticleSpring *fluid_springs = nullptr;
+  int tot_fluidsprings = 0, alloc_fluidsprings = 0;
 
   /** Used for interactions with self and other systems. */
-  KDTree3d *tree;
+  KDTree3d *tree = nullptr;
   /** Used for interactions with self and other systems. */
-  struct BVHTree *bvhtree;
+  struct BVHTree *bvhtree = nullptr;
 
-  struct ParticleDrawData *pdd;
+  struct ParticleDrawData *pdd = nullptr;
 
   /** Current time step, as a fraction of a frame. */
-  float dt_frac;
+  float dt_frac = 0;
   /** Influence of the lattice modifier. */
-  float lattice_strength;
+  float lattice_strength = 0;
 
-  void *batch_cache;
+  void *batch_cache = nullptr;
 
   /**
    * Set by dependency graph's copy-on-evaluation, allows to quickly go
@@ -753,5 +761,5 @@ typedef struct ParticleSystem {
    *
    * Use #psys_orig_get() function to access.
    */
-  struct ParticleSystem *orig_psys;
-} ParticleSystem;
+  struct ParticleSystem *orig_psys = nullptr;
+};

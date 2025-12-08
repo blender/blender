@@ -16,6 +16,7 @@
 #include <memory>
 
 #include "DNA_anim_types.h"
+#include "DNA_defs.h"
 #include "DNA_image_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -360,7 +361,7 @@ void RE_SetScene(Render *re, Scene *sce)
 
 void RE_AcquireResultImageViews(Render *re, RenderResult *rr)
 {
-  memset(rr, 0, sizeof(RenderResult));
+  *rr = RenderResult();
 
   if (re) {
     BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_READ);
@@ -409,7 +410,7 @@ void RE_ReleaseResultImageViews(Render *re, RenderResult *rr)
 
 void RE_AcquireResultImage(Render *re, RenderResult *rr, const int view_id)
 {
-  memset(rr, 0, sizeof(RenderResult));
+  *rr = RenderResult();
 
   if (re) {
     BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_READ);
@@ -762,7 +763,7 @@ void render_copy_renderdata(RenderData *to, RenderData *from)
   /* Mostly shallow copy referencing pointers in scene renderdata. */
   BKE_curvemapping_free_data(&to->mblur_shutter_curve);
 
-  memcpy(to, from, sizeof(*to));
+  *to = blender::dna::shallow_copy(*from);
 
   BKE_curvemapping_copy_data(&to->mblur_shutter_curve, &from->mblur_shutter_curve);
 }
@@ -860,7 +861,7 @@ void RE_InitState(Render *re,
 
     /* make empty render result, so display callbacks can initialize */
     render_result_free(re->result);
-    re->result = MEM_callocN<RenderResult>("new render result");
+    re->result = MEM_new_for_free<RenderResult>("new render result");
     re->result->rectx = re->rectx;
     re->result->recty = re->recty;
     BKE_scene_ppm_get(&re->r, re->result->ppm);
@@ -1962,8 +1963,7 @@ void RE_RenderFrame(Render *re,
   if (render_init_from_main(
           re, &scene->r, bmain, scene, single_layer, camera_override, false, false))
   {
-    RenderData rd;
-    memcpy(&rd, &scene->r, sizeof(rd));
+    RenderData rd = blender::dna::shallow_copy(scene->r);
     MEM_reset_peak_memory();
 
     render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_PRE);
@@ -2348,8 +2348,7 @@ void RE_RenderAnim(Render *re,
    * copying (e.g. alter the output path). */
   render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_INIT);
 
-  RenderData rd;
-  memcpy(&rd, &scene->r, sizeof(rd));
+  RenderData rd = blender::dna::shallow_copy(scene->r);
   const int cfra_old = rd.cfra;
   const float subframe_old = rd.subframe;
   int nfra, totrendered = 0, totskipped = 0;
@@ -2831,7 +2830,7 @@ RenderPass *RE_create_gp_pass(RenderResult *rr, const char *layername, const cha
   RenderLayer *rl = RE_GetRenderLayer(rr, layername);
   /* only create render layer if not exist */
   if (!rl) {
-    rl = MEM_callocN<RenderLayer>(layername);
+    rl = MEM_new_for_free<RenderLayer>(layername);
     BLI_addtail(&rr->layers, rl);
     STRNCPY(rl->name, layername);
     rl->layflag = SCE_LAY_SOLID;

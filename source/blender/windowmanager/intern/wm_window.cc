@@ -324,14 +324,14 @@ static int find_free_winid(wmWindowManager *wm)
 
 wmWindow *wm_window_new(const Main *bmain, wmWindowManager *wm, wmWindow *parent, bool dialog)
 {
-  wmWindow *win = MEM_callocN<wmWindow>("window");
+  wmWindow *win = MEM_new_for_free<wmWindow>("window");
 
   BLI_addtail(&wm->windows, win);
   win->winid = find_free_winid(wm);
 
   /* Dialogs may have a child window as parent. Otherwise, a child must not be a parent too. */
   win->parent = (!dialog && parent && parent->parent) ? parent->parent : parent;
-  win->stereo3d_format = MEM_callocN<Stereo3dFormat>("Stereo 3D Format (window)");
+  win->stereo3d_format = MEM_new_for_free<Stereo3dFormat>("Stereo 3D Format (window)");
   win->workspace_hook = BKE_workspace_instance_hook_create(bmain, win->winid);
   win->runtime = MEM_new<blender::bke::WindowRuntime>(__func__);
 
@@ -406,7 +406,7 @@ static void wm_save_file_on_quit_dialog_callback(bContext *C, void * /*user_data
  */
 static void wm_confirm_quit(bContext *C)
 {
-  wmGenericCallback *action = MEM_callocN<wmGenericCallback>(__func__);
+  wmGenericCallback *action = MEM_new_for_free<wmGenericCallback>(__func__);
   action->exec = wm_save_file_on_quit_dialog_callback;
   wm_close_file_dialog(C, action);
 }
@@ -938,7 +938,7 @@ static void wm_window_ensure_eventstate(wmWindow *win)
     return;
   }
 
-  win->runtime->eventstate = MEM_callocN<wmEvent>("window event state");
+  win->runtime->eventstate = MEM_new_for_free<wmEvent>("window event state");
   wm_window_update_eventstate(win);
 }
 

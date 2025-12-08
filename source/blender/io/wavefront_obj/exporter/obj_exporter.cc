@@ -10,8 +10,11 @@
 #include <memory>
 #include <system_error>
 
+#include "DNA_collection_types.h"
 #include "DNA_curve_enums.h"
 #include "DNA_curve_types.h"
+#include "DNA_layer_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
@@ -24,9 +27,6 @@
 #include "BLI_vector.hh"
 
 #include "DEG_depsgraph_query.hh"
-
-#include "DNA_collection_types.h"
-#include "DNA_scene_types.h"
 
 #include "ED_object.hh"
 

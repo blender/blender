@@ -27,12 +27,11 @@
 #include "BLT_translation.hh"
 
 #include "DNA_anim_types.h"
-#include "DNA_array_utils.hh"
 #include "DNA_gpencil_legacy_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 

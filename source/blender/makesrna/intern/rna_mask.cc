@@ -26,7 +26,6 @@
 #  include <algorithm>
 #  include <fmt/format.h>
 
-#  include "DNA_defaults.h"
 #  include "DNA_movieclip_types.h"
 
 #  include "BLI_math_vector.h"
@@ -70,7 +69,7 @@ static void rna_Mask_update_parent(Main *bmain, Scene *scene, PointerRNA *ptr)
           if (track) {
             MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_framenr);
             float marker_pos_ofs[2], parmask_pos[2];
-            MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
+            MovieClipUser user = {};
 
             BKE_movieclip_user_set_frame(&user, scene->r.cfra);
 
@@ -569,8 +568,8 @@ static void rna_MaskSpline_point_remove(ID *id,
 
   point_index = point - spline->points;
 
-  new_point_array = MEM_malloc_arrayN<MaskSplinePoint>(size_t(spline->tot_point) - 1,
-                                                       "remove mask point");
+  new_point_array = MEM_new_array_for_free<MaskSplinePoint>(size_t(spline->tot_point) - 1,
+                                                            "remove mask point");
 
   memcpy(new_point_array, spline->points, sizeof(MaskSplinePoint) * point_index);
   memcpy(new_point_array + point_index,

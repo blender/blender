@@ -89,7 +89,7 @@ static void cmp_node_cornerpin_declare(NodeDeclarationBuilder &b)
 static void node_composit_init_cornerpin(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
-  NodeCornerPinData *data = MEM_callocN<NodeCornerPinData>(__func__);
+  NodeCornerPinData *data = MEM_new_for_free<NodeCornerPinData>(__func__);
   node->storage = data;
 }
 

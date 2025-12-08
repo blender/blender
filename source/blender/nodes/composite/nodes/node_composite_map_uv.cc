@@ -70,7 +70,7 @@ static void cmp_node_map_uv_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_map_uv(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeMapUVData *data = MEM_callocN<NodeMapUVData>(__func__);
+  NodeMapUVData *data = MEM_new_for_free<NodeMapUVData>(__func__);
   node->storage = data;
 }
 

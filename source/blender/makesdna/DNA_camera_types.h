@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_math_constants.h"
+
 #include "DNA_ID.h"
 #include "DNA_defs.h"
 #include "DNA_gpu_types.h"
@@ -137,57 +139,57 @@ enum {
 
 /* ------------------------------------------- */
 /* Stereo Settings */
-typedef struct CameraStereoSettings {
-  float interocular_distance;
-  float convergence_distance;
-  short convergence_mode;
-  short pivot;
-  short flag;
-  char _pad[2];
+struct CameraStereoSettings {
+  float interocular_distance = 0.065f;
+  float convergence_distance = 30.0f * 0.065f;
+  short convergence_mode = 0;
+  short pivot = 0;
+  short flag = 0;
+  char _pad[2] = {};
   /* Cut-off angle at which interocular distance start to fade down. */
-  float pole_merge_angle_from;
+  float pole_merge_angle_from = DEG2RADF(60.0f);
   /* Cut-off angle at which interocular distance stops to fade down. */
-  float pole_merge_angle_to;
-} CameraStereoSettings;
+  float pole_merge_angle_to = DEG2RADF(75.0f);
+};
 
 /* Background Picture */
-typedef struct CameraBGImage {
-  struct CameraBGImage *next, *prev;
+struct CameraBGImage {
+  struct CameraBGImage *next = nullptr, *prev = nullptr;
 
-  struct Image *ima;
+  struct Image *ima = nullptr;
   struct ImageUser iuser;
-  struct MovieClip *clip;
+  struct MovieClip *clip = nullptr;
   struct MovieClipUser cuser;
-  float offset[2], scale, rotation;
-  float alpha;
-  short flag;
-  short source;
-} CameraBGImage;
+  float offset[2] = {}, scale = 0, rotation = 0;
+  float alpha = 0;
+  short flag = 0;
+  short source = 0;
+};
 
 /** Properties for dof effect. */
-typedef struct CameraDOFSettings {
+struct CameraDOFSettings {
   /** Focal distance for depth of field. */
-  struct Object *focus_object;
-  char focus_subtarget[64];
-  float focus_distance;
-  float aperture_fstop;
-  float aperture_rotation;
-  float aperture_ratio;
-  int aperture_blades;
-  short flag;
-  char _pad[2];
-} CameraDOFSettings;
+  struct Object *focus_object = nullptr;
+  char focus_subtarget[64] = "";
+  float focus_distance = 10.0f;
+  float aperture_fstop = 2.8f;
+  float aperture_rotation = 0;
+  float aperture_ratio = 1.0f;
+  int aperture_blades = 0;
+  short flag = 0;
+  char _pad[2] = {};
+};
 
-typedef struct Camera_Runtime {
+struct Camera_Runtime {
   /* For draw manager. */
-  float drw_corners[2][4][2];
-  float drw_tria[2][2];
-  float drw_depth[2];
-  float drw_focusmat[4][4];
-  float drw_normalmat[4][4];
-} Camera_Runtime;
+  float drw_corners[2][4][2] = {};
+  float drw_tria[2][2] = {};
+  float drw_depth[2] = {};
+  float drw_focusmat[4][4] = {};
+  float drw_normalmat[4][4] = {};
+};
 
-typedef struct Camera {
+struct Camera {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
   static constexpr ID_Type id_type = ID_CA;
@@ -195,68 +197,68 @@ typedef struct Camera {
 
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
-  struct AnimData *adt;
+  struct AnimData *adt = nullptr;
 
   /** CAM_PERSP, CAM_ORTHO, CAM_PANO or CAM_CUSTOM. */
-  char type;
+  char type = 0;
   /** Draw type extra. */
-  char dtx;
-  short flag;
-  float passepartalpha;
-  float clip_start, clip_end;
-  float lens, ortho_scale, drawsize;
-  float sensor_x, sensor_y;
-  float shiftx, shifty;
-  float dof_distance DNA_DEPRECATED;
+  char dtx = 0;
+  short flag = CAM_SHOWPASSEPARTOUT;
+  float passepartalpha = 0.5f;
+  float clip_start = 0.1f, clip_end = 1000.0f;
+  float lens = 50.0f, ortho_scale = 6.0, drawsize = 1.0f;
+  float sensor_x = DEFAULT_SENSOR_WIDTH, sensor_y = DEFAULT_SENSOR_HEIGHT;
+  float shiftx = 0, shifty = 0;
+  DNA_DEPRECATED float dof_distance = 0;
 
-  char sensor_fit;
-  char panorama_type;
-  char _pad[2];
+  char sensor_fit = 0;
+  char panorama_type = CAM_PANORAMA_FISHEYE_EQUISOLID;
+  char _pad[2] = {};
 
   /* Fish-eye properties. */
-  float fisheye_fov;
-  float fisheye_lens;
-  float latitude_min, latitude_max;
-  float longitude_min, longitude_max;
-  float fisheye_polynomial_k0;
-  float fisheye_polynomial_k1;
-  float fisheye_polynomial_k2;
-  float fisheye_polynomial_k3;
-  float fisheye_polynomial_k4;
+  float fisheye_fov = M_PI;
+  float fisheye_lens = 10.5f;
+  float latitude_min = -0.5f * (float)M_PI, latitude_max = 0.5f * (float)M_PI;
+  float longitude_min = -M_PI, longitude_max = M_PI;
+  float fisheye_polynomial_k0 = -1.1735143712967577e-05f;
+  float fisheye_polynomial_k1 = -0.019988736953434998f;
+  float fisheye_polynomial_k2 = -3.3525322965709175e-06f;
+  float fisheye_polynomial_k3 = 3.099275275886036e-06f;
+  float fisheye_polynomial_k4 = -2.6064646454854524e-08f;
 
   /* Central cylindrical range properties. */
-  float central_cylindrical_range_u_min;
-  float central_cylindrical_range_u_max;
-  float central_cylindrical_range_v_min;
-  float central_cylindrical_range_v_max;
-  float central_cylindrical_radius;
-  float _pad2;
+  float central_cylindrical_range_u_min = DEG2RADF(-180.0f);
+  float central_cylindrical_range_u_max = DEG2RADF(180.0f);
+  float central_cylindrical_range_v_min = -1.0f;
+  float central_cylindrical_range_v_max = 1.0f;
+  float central_cylindrical_radius = 1.0f;
+  float _pad2 = {};
 
   /* Custom Camera properties. */
-  struct Text *custom_shader;
+  struct Text *custom_shader = nullptr;
 
-  char custom_filepath[/*FILE_MAX*/ 1024];
+  char custom_filepath[/*FILE_MAX*/ 1024] = "";
 
-  char custom_bytecode_hash[64];
-  char *custom_bytecode;
-  int custom_mode;
-  int _pad3;
+  char custom_bytecode_hash[64] = "";
+  char *custom_bytecode = nullptr;
+  int custom_mode = 0;
+  int _pad3 = {};
 
-  struct Object *dof_ob DNA_DEPRECATED;
-  struct GPUDOFSettings gpu_dof DNA_DEPRECATED;
+  DNA_DEPRECATED struct Object *dof_ob = nullptr;
+  DNA_DEPRECATED struct GPUDOFSettings gpu_dof;
   struct CameraDOFSettings dof;
 
   /* CameraBGImage reference images */
-  struct ListBase bg_images;
+  ListBase bg_images = {nullptr, nullptr};
 
   /* Stereo settings */
   struct CameraStereoSettings stereo;
 
   /* Compositional guide overlay color */
-  float composition_guide_color[4];
+  float composition_guide_color[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 
   /** Runtime data (keep last). */
   Camera_Runtime runtime;
-} Camera;
+};
 
 /* **************** CAMERA ********************* */

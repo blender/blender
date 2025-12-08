@@ -14,7 +14,6 @@
 
 #include "eevee_light.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_light_types.h"
 #include "DNA_sdna_type_ids.hh"
 
@@ -361,8 +360,7 @@ void LightModule::add_world_sun_light(const ObjectKey &key, bool use_diffuse, bo
 {
   /* Create a placeholder light to be fed by the GPU after sunlight extraction.
    * Sunlight is disabled if power is zero. */
-  ::Light la = blender::dna::shallow_copy(
-      *(const ::Light *)DNA_default_table[dna::sdna_struct_id_get<::Light>()]);
+  ::Light la = {};
   la.type = LA_SUN;
   /* Set on the GPU. */
   la.r = la.g = la.b = -1.0f; /* Tag as world sun light. */

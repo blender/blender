@@ -13,7 +13,6 @@
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
-#include "DNA_defaults.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -92,10 +91,7 @@ static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata);
 static void mesh_init_data(ID *id)
 {
   Mesh *mesh = reinterpret_cast<Mesh *>(id);
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mesh, id));
-
-  MEMCPY_STRUCT_AFTER(mesh, DNA_struct_default_get(Mesh), id);
+  INIT_DEFAULT_STRUCT_AFTER(mesh, id);
 
   CustomData_reset(&mesh->vert_data);
   CustomData_reset(&mesh->edge_data);

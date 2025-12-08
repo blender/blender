@@ -58,7 +58,7 @@ static void cmp_node_rotate_declare(NodeDeclarationBuilder &b)
 static void node_composit_init_rotate(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
-  NodeRotateData *data = MEM_callocN<NodeRotateData>(__func__);
+  NodeRotateData *data = MEM_new_for_free<NodeRotateData>(__func__);
   node->storage = data;
 }
 

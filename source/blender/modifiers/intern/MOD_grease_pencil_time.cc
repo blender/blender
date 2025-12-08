@@ -12,7 +12,6 @@
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 
-#include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
@@ -48,13 +47,11 @@ static void init_data(ModifierData *md)
 {
   auto *tmd = reinterpret_cast<GreasePencilTimeModifierData *>(md);
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(tmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(tmd, DNA_struct_default_get(GreasePencilTimeModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(tmd, modifier);
   modifier::greasepencil::init_influence_data(&tmd->influence, false);
 
-  GreasePencilTimeModifierSegment *segment = DNA_struct_default_alloc(
-      GreasePencilTimeModifierSegment);
+  GreasePencilTimeModifierSegment *segment = MEM_new_for_free<GreasePencilTimeModifierSegment>(
+      __func__);
   STRNCPY_UTF8(segment->name, DATA_("Segment"));
   tmd->segments_array = segment;
   tmd->segments_num = 1;

@@ -8,7 +8,6 @@
 #pragma once
 
 #include "DNA_ID.h"
-#include "DNA_defs.h"
 
 #ifdef __cplusplus
 namespace blender::bke {
@@ -16,7 +15,7 @@ struct SoundRuntime;
 }  // namespace blender::bke
 using SoundRuntimeHandle = blender::bke::SoundRuntime;
 #else
-typedef struct SoundRuntimeHandle SoundRuntimeHandle;
+struct SoundRuntimeHandle;
 #endif
 
 struct PackedFile;
@@ -31,7 +30,7 @@ enum {
   SOUND_FLAGS_MONO = (1 << 5),
 };
 
-typedef struct bSound {
+struct bSound {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
   static constexpr ID_Type id_type = ID_SO;
@@ -42,32 +41,32 @@ typedef struct bSound {
   /**
    * The path to the sound file.
    */
-  char filepath[/*FILE_MAX*/ 1024];
+  char filepath[/*FILE_MAX*/ 1024] = "";
 
   /**
    * The packed file.
    */
-  struct PackedFile *packedfile;
+  struct PackedFile *packedfile = nullptr;
 
   /**
    * Deprecated; used for loading pre 2.5 files.
    */
-  struct PackedFile *newpackedfile;
-  void *_pad0;
+  struct PackedFile *newpackedfile = nullptr;
+  void *_pad0 = nullptr;
 
-  double offset_time;
-  float volume;
-  float attenuation;
-  float pitch;
-  float min_gain;
-  float max_gain;
-  float distance;
+  double offset_time = 0;
+  float volume = 0;
+  float attenuation = 0;
+  float pitch = 0;
+  float min_gain = 0;
+  float max_gain = 0;
+  float distance = 0;
   /* Description of Audio channels, as of #eSoundChannels. */
-  int audio_channels;
-  int samplerate;
-  short flags;
-  char _pad1[6];
+  int audio_channels = 0;
+  int samplerate = 0;
+  short flags = 0;
+  char _pad1[6] = {};
 
-  SoundRuntimeHandle *runtime;
-  void *_pad2;
-} bSound;
+  SoundRuntimeHandle *runtime = nullptr;
+  void *_pad2 = nullptr;
+};

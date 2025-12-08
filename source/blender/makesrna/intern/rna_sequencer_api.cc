@@ -627,7 +627,7 @@ static void rna_StripElements_pop(ID *id, Strip *strip, ReportList *reports, int
     return;
   }
 
-  new_se = MEM_calloc_arrayN<StripElem>(size_t(strip->len) - 1, "StripElements_pop");
+  new_se = MEM_new_array_for_free<StripElem>((strip->len - 1), "StripElements_pop");
   strip->len--;
 
   if (strip->len == 1) {

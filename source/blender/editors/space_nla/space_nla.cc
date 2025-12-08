@@ -52,11 +52,11 @@ static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
   ARegion *region;
   SpaceNla *snla;
 
-  snla = MEM_callocN<SpaceNla>("initnla");
+  snla = MEM_new_for_free<SpaceNla>("initnla");
   snla->spacetype = SPACE_NLA;
 
   /* allocate DopeSheet data for NLA Editor */
-  snla->ads = MEM_callocN<bDopeSheet>("NlaEdit DopeSheet");
+  snla->ads = MEM_new_for_free<bDopeSheet>("NlaEdit DopeSheet");
   snla->ads->source = (ID *)(scene);
 
   /* set auto-snapping settings */
@@ -143,7 +143,7 @@ static void nla_init(wmWindowManager *wm, ScrArea *area)
 
   /* init dope-sheet data if non-existent (i.e. for old files). */
   if (snla->ads == nullptr) {
-    snla->ads = MEM_callocN<bDopeSheet>("NlaEdit DopeSheet");
+    snla->ads = MEM_new_for_free<bDopeSheet>("NlaEdit DopeSheet");
     wmWindow *win = WM_window_find_by_area(wm, area);
     snla->ads->source = win ? reinterpret_cast<ID *>(WM_window_get_active_scene(win)) : nullptr;
   }

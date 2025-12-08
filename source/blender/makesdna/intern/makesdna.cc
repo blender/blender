@@ -642,6 +642,7 @@ static int preprocess_include(char *maindata, const int maindata_len)
 
   /* No need for leading '#' character. */
   const char *cpp_block_start = "ifdef __cplusplus";
+  const char *cpp_block_start_alt = "if defined(__cplusplus)";
   const char *cpp_block_end = "endif";
 
   /* data from temp copy to maindata, remove irrelevant identifiers and double spaces */
@@ -684,7 +685,9 @@ static int preprocess_include(char *maindata, const int maindata_len)
         skip_until_closing_brace = false;
       }
     }
-    else if (match_preproc_prefix(cp, cpp_block_start)) {
+    else if (match_preproc_prefix(cp, cpp_block_start) ||
+             match_preproc_prefix(cp, cpp_block_start_alt))
+    {
       char *end_ptr = match_preproc_strstr(cp, cpp_block_end);
 
       if (end_ptr == nullptr) {
@@ -1338,8 +1341,12 @@ void print_struct_sizes()
   printf("*** End of list\n");
 }
 
-static int make_structDNA(
-    const char *base_directory, FILE *file, FILE *file_offsets, FILE *file_verify, FILE *file_ids)
+static int make_structDNA(const char *base_directory,
+                          FILE *file,
+                          FILE *file_offsets,
+                          FILE *file_verify,
+                          FILE *file_ids,
+                          FILE *file_defaults)
 {
   if (debugSDNA > 0) {
     fflush(stdout);
@@ -1577,6 +1584,44 @@ static int make_structDNA(
     }
   }
 
+  {
+    /* Write default struct member values for RNA. */
+    fprintf(file_defaults, "/* Default struct member values for RNA. */\n");
+    fprintf(file_defaults, "#define DNA_DEPRECATED_ALLOW\n");
+    fprintf(file_defaults, "#define DNA_NO_EXTERNAL_CONSTRUCTORS\n");
+    for (int i = 0; *(includefiles[i]) != '\0'; i++) {
+      fprintf(file_defaults, "#include \"%s%s\"\n", base_directory, includefiles[i]);
+    }
+    /* Starting at 1, because 0 is "raw data". */
+    for (int i = 1; i < structs_num; i++) {
+      const short *structpoin = structs[i];
+      const int struct_type_index = structpoin[0];
+      const char *name = version_struct_alias_from_static(types[struct_type_index]);
+      if (STREQ(name, "bTheme")) {
+        /* Exception for bTheme which is auto-generated. */
+        fprintf(file_defaults, "extern \"C\" const bTheme U_theme_default;\n");
+      }
+      else {
+        fprintf(file_defaults, "static const %s DNA_DEFAULT_%s = {};\n", name, name);
+      }
+    }
+    fprintf(file_defaults, "const void *DNA_default_table[%d] = {\n", structs_num);
+    fprintf(file_defaults, "  nullptr,\n");
+    for (int i = 1; i < structs_num; i++) {
+      const short *structpoin = structs[i];
+      const int struct_type_index = structpoin[0];
+      const char *name = version_struct_alias_from_static(types[struct_type_index]);
+      if (STREQ(name, "bTheme")) {
+        fprintf(file_defaults, "  &U_theme_default,\n");
+      }
+      else {
+        fprintf(file_defaults, "  &DNA_DEFAULT_%s,\n", name);
+      }
+    }
+    fprintf(file_defaults, "};\n");
+    fprintf(file_defaults, "\n");
+  }
+
   /* Check versioning errors which could cause duplicate names,
    * do last because names are stripped. */
   {
@@ -1650,7 +1695,7 @@ static void print_usage(const char *argv0)
 {
   printf(
       "Usage: %s [--include-file <file>, ...] "
-      "dna.cc dna_type_offsets.h dna_verify.cc dna_struct_ids.cc"
+      "dna.cc dna_type_offsets.h dna_verify.cc dna_struct_ids.cc dna_defaults.cc "
       "[base directory]\n",
       argv0);
 }
@@ -1660,7 +1705,7 @@ int main(int argc, char **argv)
   blender::Vector<const char *> cli_include_files;
 
   /* There is a number of non-optional arguments that must be provided to the executable. */
-  if (argc < 5) {
+  if (argc < 6) {
     print_usage(argv[0]);
     return 1;
   }
@@ -1691,7 +1736,7 @@ int main(int argc, char **argv)
 
   /* Check the number of non-optional positional arguments. */
   const int num_arguments = argc - arg_index;
-  if (!ELEM(num_arguments, 4, 5)) {
+  if (!ELEM(num_arguments, 5, 6)) {
     print_usage(argv[0]);
     return 0;
   }
@@ -1702,6 +1747,7 @@ int main(int argc, char **argv)
   FILE *file_dna_offsets = fopen(argv[arg_index + 1], "w");
   FILE *file_dna_verify = fopen(argv[arg_index + 2], "w");
   FILE *file_dna_ids = fopen(argv[arg_index + 3], "w");
+  FILE *file_dna_defaults = fopen(argv[arg_index + 4], "w");
   if (!file_dna) {
     printf("Unable to open file: %s\n", argv[arg_index]);
     return_status = 1;
@@ -1718,11 +1764,15 @@ int main(int argc, char **argv)
     printf("Unable to open file: %s\n", argv[arg_index + 3]);
     return_status = 1;
   }
+  else if (!file_dna_defaults) {
+    printf("Unable to open file: %s\n", argv[arg_index + 4]);
+    return_status = 1;
+  }
   else {
     const char *base_directory;
 
-    if (num_arguments == 5) {
-      base_directory = argv[arg_index + 4];
+    if (num_arguments == 6) {
+      base_directory = argv[arg_index + 5];
     }
     else {
       base_directory = BASE_HEADER;
@@ -1740,7 +1790,12 @@ int main(int argc, char **argv)
     fprintf(file_dna, "const unsigned char" FORCE_ALIGN_4 "DNAstr[] = {\n");
 #undef FORCE_ALIGN_4
 
-    if (make_structDNA(base_directory, file_dna, file_dna_offsets, file_dna_verify, file_dna_ids))
+    if (make_structDNA(base_directory,
+                       file_dna,
+                       file_dna_offsets,
+                       file_dna_verify,
+                       file_dna_ids,
+                       file_dna_defaults))
     {
       /* error */
       fclose(file_dna);
@@ -1766,6 +1821,9 @@ int main(int argc, char **argv)
   }
   if (file_dna_ids) {
     fclose(file_dna_ids);
+  }
+  if (file_dna_defaults) {
+    fclose(file_dna_defaults);
   }
 
   return return_status;

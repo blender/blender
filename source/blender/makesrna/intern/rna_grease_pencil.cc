@@ -12,7 +12,6 @@
 
 #include "DNA_grease_pencil_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_userdef_defaults.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -1020,8 +1019,6 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static const float scale_defaults[3] = {1.0f, 1.0f, 1.0f};
-
   static const EnumPropertyItem rna_enum_layer_blend_modes_items[] = {
       {GP_LAYER_BLEND_NONE, "REGULAR", 0, "Regular", ""},
       {GP_LAYER_BLEND_HARDLIGHT, "HARDLIGHT", 0, "Hard Light", ""},
@@ -1155,7 +1152,6 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
   prop = RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
   RNA_def_property_array(prop, 3);
   RNA_def_property_float_sdna(prop, nullptr, "scale");
-  RNA_def_property_float_array_default(prop, scale_defaults);
   RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 3);
   RNA_def_property_ui_text(prop, "Scale", "Scale of the layer");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");

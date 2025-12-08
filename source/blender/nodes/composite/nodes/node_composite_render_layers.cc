@@ -16,6 +16,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_scene.hh"
 
+#include "DNA_layer_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 

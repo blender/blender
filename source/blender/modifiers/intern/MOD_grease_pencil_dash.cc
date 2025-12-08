@@ -12,7 +12,6 @@
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 
-#include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
 
 #include "BKE_curves.hh"
@@ -47,12 +46,11 @@ static void init_data(ModifierData *md)
 {
   auto *dmd = reinterpret_cast<GreasePencilDashModifierData *>(md);
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(dmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(dmd, DNA_struct_default_get(GreasePencilDashModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(dmd, modifier);
   modifier::greasepencil::init_influence_data(&dmd->influence, false);
 
-  GreasePencilDashModifierSegment *ds = DNA_struct_default_alloc(GreasePencilDashModifierSegment);
+  GreasePencilDashModifierSegment *ds = MEM_new_for_free<GreasePencilDashModifierSegment>(
+      __func__);
   STRNCPY_UTF8(ds->name, DATA_("Segment"));
   dmd->segments_array = ds;
   dmd->segments_num = 1;

@@ -18,6 +18,7 @@
 
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
+#include "DNA_curve_types.h"
 
 #include "BLI_easing.h"
 #include "BLI_ghash.h"
@@ -62,7 +63,7 @@ static CLG_LogRef LOG = {"anim.fcurve"};
 
 FCurve *BKE_fcurve_create()
 {
-  FCurve *fcu = MEM_callocN<FCurve>(__func__);
+  FCurve *fcu = MEM_new_for_free<FCurve>(__func__);
   return fcu;
 }
 
@@ -981,8 +982,7 @@ void fcurve_store_samples(FCurve *fcu, void *data, int start, int end, FcuSample
 
   /* Set up sample data. */
   FPoint *new_fpt;
-  FPoint *fpt = new_fpt = MEM_calloc_arrayN<FPoint>(size_t(end) - size_t(start) + 1,
-                                                    "FPoint Samples");
+  FPoint *fpt = new_fpt = MEM_calloc_arrayN<FPoint>((end - start + 1), "FPoint Samples");
 
   /* Use the sampling callback at 1-frame intervals from start to end frames. */
   for (int cfra = start; cfra <= end; cfra++, fpt++) {
@@ -1649,7 +1649,7 @@ void BKE_fcurve_bezt_resize(FCurve *fcu, const int new_totvert)
    * of the fields will actually be updated by the caller. */
   const int old_totvert = fcu->totvert;
   if (new_totvert > old_totvert) {
-    memset(&fcu->bezt[old_totvert], 0, sizeof(fcu->bezt[0]) * (new_totvert - old_totvert));
+    std::fill_n(fcu->bezt + old_totvert, new_totvert - old_totvert, BezTriple{});
   }
 
   fcu->totvert = new_totvert;

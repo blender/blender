@@ -113,23 +113,23 @@ enum eTreeStoreElemType {
          TSE_GP_LAYER, \
          TSE_GENERIC_LABEL))
 
-typedef struct TreeStoreElem {
-  short type, nr, flag, used;
+struct TreeStoreElem {
+  short type = 0, nr = 0, flag = 0, used = 0;
 
   /* XXX We actually also store non-ID data in this pointer for identifying
    * the #TreeStoreElem for a #TreeElement when rebuilding the tree. Ugly! */
-  struct ID *id;
-} TreeStoreElem;
+  struct ID *id = nullptr;
+};
 
 /** Used only to store data in blend files. */
-typedef struct TreeStore {
+struct TreeStore {
   /** Was previously used for memory pre-allocation. */
-  int totelem DNA_DEPRECATED;
+  DNA_DEPRECATED int totelem = 0;
   /** Number of elements in data array. */
-  int usedelem;
+  int usedelem = 0;
   /**
    * Elements to be packed from mempool in `writefile.cc`
    * or extracted to mempool in `readfile.cc`.
    */
-  TreeStoreElem *data;
-} TreeStore;
+  TreeStoreElem *data = nullptr;
+};

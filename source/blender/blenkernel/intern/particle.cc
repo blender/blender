@@ -18,8 +18,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_defaults.h"
-
 #include "DNA_cloth_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
@@ -93,9 +91,7 @@ static void fluid_free_settings(SPHFluidSettings *fluid);
 static void particle_settings_init(ID *id)
 {
   ParticleSettings *particle_settings = (ParticleSettings *)id;
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(particle_settings, id));
-
-  MEMCPY_STRUCT_AFTER(particle_settings, DNA_struct_default_get(ParticleSettings), id);
+  INIT_DEFAULT_STRUCT_AFTER(particle_settings, id);
 
   particle_settings->effector_weights = BKE_effector_add_weights(nullptr);
   particle_settings->pd = BKE_partdeflect_new(PFIELD_NULL);
@@ -800,7 +796,7 @@ void psys_check_group_weights(ParticleSettings *part)
     }
 
     if (!dw) {
-      dw = MEM_callocN<ParticleDupliWeight>("ParticleDupliWeight");
+      dw = MEM_new_for_free<ParticleDupliWeight>("ParticleDupliWeight");
       dw->ob = object;
       dw->count = 1;
       BLI_addtail(&part->instance_weights, dw);
@@ -3932,7 +3928,7 @@ static ModifierData *object_add_or_copy_particle_system(
     psys->flag &= ~PSYS_CURRENT;
   }
 
-  psys = MEM_callocN<ParticleSystem>("particle_system");
+  psys = MEM_new_for_free<ParticleSystem>("particle_system");
   psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
   BLI_addtail(&ob->particlesystem, psys);
   psys_unique_name(ob, psys, name);

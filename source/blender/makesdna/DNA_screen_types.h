@@ -99,7 +99,7 @@ enum eScreen_Redraws_Flag {
  * Once the top-bar is merged bScreen should be refactored to use ScrAreaMap. */
 #define AREAMAP_FROM_SCREEN(screen) ((ScrAreaMap *)&(screen)->vertbase)
 
-typedef struct bScreen {
+struct bScreen {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
   static constexpr ID_Type id_type = ID_SCR;
@@ -110,87 +110,87 @@ typedef struct bScreen {
   /* TODO: Should become ScrAreaMap now.
    * NOTE: KEEP ORDER IN SYNC WITH #ScrAreaMap! (see AREAMAP_FROM_SCREEN macro above). */
   /** Screens have vertices/edges to define areas. */
-  ListBase vertbase;
-  ListBase edgebase;
-  ListBase areabase;
+  ListBase vertbase = {nullptr, nullptr};
+  ListBase edgebase = {nullptr, nullptr};
+  ListBase areabase = {nullptr, nullptr};
   /* End variables that must be in sync with #ScrAreaMap. */
 
   /** Screen level regions (menus), runtime only. */
-  ListBase regionbase;
+  ListBase regionbase = {nullptr, nullptr};
 
-  struct Scene *scene DNA_DEPRECATED;
+  DNA_DEPRECATED struct Scene *scene = nullptr;
 
   /** General flags. */
-  short flag;
+  short flag = 0;
   /** Window-ID from WM, starts with 1. */
-  short winid;
+  short winid = 0;
   /** User-setting for which editors get redrawn during animation playback. */
-  short redraws_flag;
+  short redraws_flag = 0;
 
   /** Temp screen in a temp window, don't save (like user-preferences). */
-  char temp;
+  char temp = 0;
   /** Temp screen for image render display or file-select. */
-  char state;
+  char state = 0;
   /** Notifier for drawing edges. */
-  char do_draw;
+  char do_draw = 0;
   /** Notifier for scale screen, changed screen, etc. */
-  char do_refresh;
+  char do_refresh = 0;
   /** Notifier for gesture draw. */
-  char do_draw_gesture;
+  char do_draw_gesture = 0;
   /** Notifier for paint cursor draw. */
-  char do_draw_paintcursor;
+  char do_draw_paintcursor = 0;
   /** Notifier for dragging draw. */
-  char do_draw_drag;
+  char do_draw_drag = 0;
   /** Set to delay screen handling after switching back from maximized area. */
-  char skip_handling;
+  char skip_handling = 0;
   /** Set when scrubbing to avoid some costly updates. */
-  char scrubbing;
-  char _pad[1];
+  char scrubbing = 0;
+  char _pad[1] = {};
 
   /** Active region that has mouse focus. */
-  struct ARegion *active_region;
+  struct ARegion *active_region = nullptr;
 
   /** If set, screen has timer handler added in window. */
-  struct wmTimer *animtimer;
+  struct wmTimer *animtimer = nullptr;
   /** Context callback. */
-  void /*bContextDataCallback*/ *context;
+  void /*bContextDataCallback*/ *context = nullptr;
 
   /* Used to restore after SCREENFULL state. */
-  short fullscreen_flag;
-  char _pad2[6];
+  short fullscreen_flag = 0;
+  char _pad2[6] = {};
 
   /** Runtime. */
-  struct wmTooltipState *tool_tip;
+  struct wmTooltipState *tool_tip = nullptr;
 
-  PreviewImage *preview;
-} bScreen;
+  PreviewImage *preview = nullptr;
+};
 
-typedef struct ScrVert {
-  struct ScrVert *next, *prev, *newv;
-  vec2s vec;
+struct ScrVert {
+  struct ScrVert *next = nullptr, *prev = nullptr, *newv = nullptr;
+  vec2s vec = {};
   /* first one used internally, second one for tools */
-  short flag, editflag;
-} ScrVert;
+  short flag = 0, editflag = 0;
+};
 
-typedef struct ScrEdge {
-  struct ScrEdge *next, *prev;
-  ScrVert *v1, *v2;
+struct ScrEdge {
+  struct ScrEdge *next = nullptr, *prev = nullptr;
+  ScrVert *v1 = nullptr, *v2 = nullptr;
   /** 1 when at edge of screen. */
-  short border;
-  short flag;
-  char _pad[4];
-} ScrEdge;
+  short border = 0;
+  short flag = 0;
+  char _pad[4] = {};
+};
 
-typedef struct ScrAreaMap {
+struct ScrAreaMap {
   /* ** NOTE: KEEP ORDER IN SYNC WITH LISTBASES IN bScreen! ** */
 
   /** ScrVert - screens have vertices/edges to define areas. */
-  ListBase vertbase;
+  ListBase vertbase = {nullptr, nullptr};
   /** ScrEdge. */
-  ListBase edgebase;
+  ListBase edgebase = {nullptr, nullptr};
   /** ScrArea. */
-  ListBase areabase;
-} ScrAreaMap;
+  ListBase areabase = {nullptr, nullptr};
+};
 
 enum LayoutPanelStateFlag {
   /** If set, the panel is currently open. Otherwise it is collapsed. */
@@ -240,62 +240,62 @@ enum {
 /** Fallback panel category (only for old scripts which need updating). */
 #define PNL_CATEGORY_FALLBACK "Misc"
 
-typedef struct LayoutPanelState {
-  struct LayoutPanelState *next, *prev;
+struct LayoutPanelState {
+  struct LayoutPanelState *next = nullptr, *prev = nullptr;
   /** Identifier of the panel. */
-  char *idname;
-  uint8_t flag;
-  char _pad[3];
+  char *idname = nullptr;
+  uint8_t flag = 0;
+  char _pad[3] = {};
   /**
    * A logical time set from #layout_panel_states_clock when the panel is used by the UI. This is
    * used to detect the least-recently-used panel states when some panel states should be removed.
    */
-  uint32_t last_used;
-} LayoutPanelState;
+  uint32_t last_used = 0;
+};
 
-typedef struct Panel {
-  struct Panel *next, *prev;
+struct Panel {
+  struct Panel *next = nullptr, *prev = nullptr;
 
   /** Runtime. */
-  struct PanelType *type;
+  struct PanelType *type = nullptr;
   /** Runtime for drawing. */
-  uiLayoutHandle *layout;
+  uiLayoutHandle *layout = nullptr;
 
-  char panelname[/*BKE_ST_MAXNAME*/ 64];
+  char panelname[/*BKE_ST_MAXNAME*/ 64] = "";
   /** Panel name is identifier for restoring location. */
-  char *drawname;
+  char *drawname = nullptr;
   /** Offset within the region. */
-  int ofsx, ofsy;
+  int ofsx = 0, ofsy = 0;
   /** Panel size including children. */
-  int sizex, sizey;
+  int sizex = 0, sizey = 0;
   /** Panel size excluding children. */
-  int blocksizex, blocksizey;
-  short labelofs;
-  short flag, runtime_flag;
-  char _pad[6];
+  int blocksizex = 0, blocksizey = 0;
+  short labelofs = 0;
+  short flag = 0, runtime_flag = 0;
+  char _pad[6] = {};
   /** Panels are aligned according to increasing sort-order. */
-  int sortorder;
+  int sortorder = 0;
   /** Runtime for panel manipulation. */
-  void *activedata;
+  void *activedata = nullptr;
   /** Sub panels. */
-  ListBase children;
+  ListBase children = {nullptr, nullptr};
 
   /**
    * List of #LayoutPanelState. This stores the open-close-state of layout-panels created with
    * `layout.panel(...)` in Python. For more information on layout-panels, see
    * `blender::ui::Layout::panel_prop`.
    */
-  ListBase layout_panel_states;
+  ListBase layout_panel_states = {nullptr, nullptr};
   /**
    * This is increased whenever a layout panel state is used by the UI. This is used to allow for
    * some garbage collection of panel states when #layout_panel_states becomes large. It works by
    * removing all least-recently-used panel states up to a certain threshold.
    */
-  uint32_t layout_panel_states_clock;
-  char _pad2[4];
+  uint32_t layout_panel_states_clock = 0;
+  char _pad2[4] = {};
 
-  struct Panel_Runtime *runtime;
-} Panel;
+  struct Panel_Runtime *runtime = nullptr;
+};
 
 /**
  * Notes on Panel Categories:
@@ -316,17 +316,17 @@ typedef struct Panel {
 /* region level tabs */
 #
 #
-typedef struct PanelCategoryDyn {
-  struct PanelCategoryDyn *next, *prev;
-  char idname[64];
-  rcti rect;
-} PanelCategoryDyn;
+struct PanelCategoryDyn {
+  struct PanelCategoryDyn *next = nullptr, *prev = nullptr;
+  char idname[64] = "";
+  rcti rect = {};
+};
 
 /** Region stack of active tabs. */
-typedef struct PanelCategoryStack {
-  struct PanelCategoryStack *next, *prev;
-  char idname[64];
-} PanelCategoryStack;
+struct PanelCategoryStack {
+  struct PanelCategoryStack *next = nullptr, *prev = nullptr;
+  char idname[64] = "";
+};
 
 /** #uiList.layout_type */
 enum {
@@ -386,95 +386,95 @@ typedef void (*uiListFreeRuntimeDataFunc)(struct uiList *ui_list);
 /* These two lines with # tell `makesdna` this struct can be excluded. */
 #
 #
-typedef struct uiListDyn {
+struct uiListDyn {
   /** Callback to free UI data when freeing UI-Lists in BKE. */
-  uiListFreeRuntimeDataFunc free_runtime_data_fn;
+  uiListFreeRuntimeDataFunc free_runtime_data_fn = {};
 
   /** Number of rows needed to draw all elements. */
-  int height;
+  int height = 0;
   /** Actual visual height of the list (in rows). */
-  int visual_height;
+  int visual_height = 0;
   /** Minimal visual height of the list (in rows). */
-  int visual_height_min;
+  int visual_height_min = 0;
 
   /** Number of items in collection. */
-  int items_len;
+  int items_len = 0;
   /** Number of items actually visible after filtering. */
-  int items_shown;
+  int items_shown = 0;
 
   /* Those are temp data used during drag-resize with GRIP button
    * (they are in pixels, the meaningful data is the
    * difference between resize_prev and resize)...
    */
-  int resize;
-  int resize_prev;
+  int resize = 0;
+  int resize_prev = 0;
 
   /** Allocated custom data. Freed together with the #uiList (and when re-assigning). */
-  void *customdata;
+  void *customdata = nullptr;
 
   /* Filtering data. */
   /** This bit-field is effectively exposed in Python, and scripts are explicitly allowed to assign
    * any own meaning to the lower 16 ones.
    * #items_len length. */
-  int *items_filter_flags;
+  int *items_filter_flags = nullptr;
   /** Org_idx -> new_idx, items_len length. */
-  int *items_filter_neworder;
+  int *items_filter_neworder = nullptr;
 
-  struct wmOperatorType *custom_drag_optype;
-} uiListDyn;
+  struct wmOperatorType *custom_drag_optype = nullptr;
+};
 
-typedef struct uiList { /* some list UI data need to be saved in file */
-  struct uiList *next, *prev;
+struct uiList { /* some list UI data need to be saved in file */
+  struct uiList *next = nullptr, *prev = nullptr;
 
   /** Runtime. */
-  struct uiListType *type;
+  struct uiListType *type = nullptr;
 
-  char list_id[/*UI_MAX_NAME_STR*/ 256];
+  char list_id[/*UI_MAX_NAME_STR*/ 256] = "";
 
   /** How items are laid out in the list. */
-  int layout_type;
-  int flag;
+  int layout_type = 0;
+  int flag = 0;
 
-  int list_scroll;
-  int list_grip;
-  int list_last_len;
-  int list_last_activei;
+  int list_scroll = 0;
+  int list_grip = 0;
+  int list_last_len = 0;
+  int list_last_activei = 0;
 
   /* Filtering data. */
   /** Defined as . */
-  char filter_byname[/*UI_MAX_NAME_STR*/ 256];
-  int filter_flag;
-  int filter_sort_flag;
+  char filter_byname[/*UI_MAX_NAME_STR*/ 256] = "";
+  int filter_flag = 0;
+  int filter_sort_flag = 0;
 
   /** Custom sub-classes properties. */
-  IDProperty *properties;
+  IDProperty *properties = nullptr;
 
   /** Dynamic data (runtime). */
-  uiListDyn *dyn_data;
-} uiList;
+  uiListDyn *dyn_data = nullptr;
+};
 
 enum uiViewStateFlag {
   UI_VIEW_SHOW_FILTER_OPTIONS = (1 << 0),
 };
 
 /** See #uiViewStateLink. */
-typedef struct uiViewState {
+struct uiViewState {
   /**
    * User set height of the view in unscaled pixels. A value of 0 means no custom height was set
    * and the default should be used.
    */
-  int custom_height;
+  int custom_height = 0;
   /**
    * Amount of vertical scrolling. View types decide on the unit:
    * - Tree views: Number of items scrolled out of view (#scroll_offset of 5 means 5 items are
    *   scrolled out of view).
    */
-  int scroll_offset;
-  uint16_t flag; /* #uiViewStateFlag */
-  char _pad[6];
+  int scroll_offset = 0;
+  uint16_t flag = 0; /* #uiViewStateFlag */
+  char _pad[6] = {};
 
-  char search_string[/*UI_MAX_NAME_STR*/ 256];
-} uiViewState;
+  char search_string[/*UI_MAX_NAME_STR*/ 256] = "";
+};
 
 /**
  * Persistent storage for some state of views (#ui::AbstractView), for storage in a region. The
@@ -483,20 +483,20 @@ typedef struct uiViewState {
  * The actual state is stored in #uiViewState, so views can manage this conveniently without having
  * to care about the idname and listbase pointers themselves.
  */
-typedef struct uiViewStateLink {
-  struct uiViewStateLink *next, *prev;
+struct uiViewStateLink {
+  struct uiViewStateLink *next = nullptr, *prev = nullptr;
 
-  char idname[/*BKE_ST_MAXNAME*/ 64];
+  char idname[/*BKE_ST_MAXNAME*/ 64] = "";
 
   uiViewState state;
-} uiViewStateLink;
+};
 
-typedef struct TransformOrientation {
-  struct TransformOrientation *next, *prev;
-  char name[/*MAX_NAME*/ 64];
-  float mat[3][3];
-  char _pad[4];
-} TransformOrientation;
+struct TransformOrientation {
+  struct TransformOrientation *next = nullptr, *prev = nullptr;
+  char name[/*MAX_NAME*/ 64] = "";
+  float mat[3][3] = {};
+  char _pad[4] = {};
+};
 
 enum uiPreviewTag {
   /** Preview needs re-rendering, handled in #ED_preview_draw(). */
@@ -504,18 +504,18 @@ enum uiPreviewTag {
 };
 
 /** Some preview UI data need to be saved in file. */
-typedef struct uiPreview {
-  struct uiPreview *next, *prev;
+struct uiPreview {
+  struct uiPreview *next = nullptr, *prev = nullptr;
 
-  char preview_id[/*BKE_ST_MAXNAME*/ 64];
-  short height;
+  char preview_id[/*BKE_ST_MAXNAME*/ 64] = "";
+  short height = 0;
 
   /* Unset on file read. */
-  short tag; /* #uiPreviewTag */
+  short tag = 0; /* #uiPreviewTag */
 
   /** #ID.session_uid of the ID this preview is made for. Unset on file read. */
-  unsigned int id_session_uid;
-} uiPreview;
+  unsigned int id_session_uid = 0;
+};
 
 enum GlobalAreaFlag {
   GLOBAL_AREA_IS_HIDDEN = (1 << 0),
@@ -526,25 +526,25 @@ enum GlobalAreaAlign {
   GLOBAL_AREA_ALIGN_BOTTOM = 1,
 };
 
-typedef struct ScrGlobalAreaData {
+struct ScrGlobalAreaData {
   /**
    * Global areas have a non-dynamic size. That means, changing the window size doesn't
    * affect their size at all. However, they can still be 'collapsed', by changing this value.
    * Ignores DPI (#ED_area_global_size_y and winx/winy don't).
    */
-  short cur_fixed_height;
+  short cur_fixed_height = 0;
   /**
    * For global areas, this is the min and max size they can use depending on
    * if they are 'collapsed' or not.
    */
-  short size_min, size_max;
+  short size_min = 0, size_max = 0;
   /** GlobalAreaAlign. */
-  short align;
+  short align = 0;
 
   /** GlobalAreaFlag. */
-  short flag;
-  char _pad[2];
-} ScrGlobalAreaData;
+  short flag = 0;
+  char _pad[2] = {};
+};
 
 /** #ScrArea.flag */
 enum {
@@ -577,27 +577,27 @@ enum {
 #define HEADER_PADDING_Y 6
 #define HEADERY (20 + HEADER_PADDING_Y)
 
-typedef struct ScrArea_Runtime {
-  struct bToolRef *tool;
-  char is_tool_set;
-  char _pad0[7];
-} ScrArea_Runtime;
+struct ScrArea_Runtime {
+  struct bToolRef *tool = nullptr;
+  char is_tool_set = 0;
+  char _pad0[7] = {};
+};
 
-typedef struct ScrArea {
+struct ScrArea {
   DNA_DEFINE_CXX_METHODS(ScrArea)
 
-  struct ScrArea *next, *prev;
+  struct ScrArea *next = nullptr, *prev = nullptr;
 
   /** Ordered (bottom-left, top-left, top-right, bottom-right). */
-  ScrVert *v1, *v2, *v3, *v4;
+  ScrVert *v1 = nullptr, *v2 = nullptr, *v3 = nullptr, *v4 = nullptr;
   /** If area==full, this is the parent. */
-  bScreen *full;
+  bScreen *full = nullptr;
 
   /** Rect bound by v1 v2 v3 v4. */
-  rcti totrct;
+  rcti totrct = {};
 
   /** eSpace_Type (SPACE_FOO). */
-  char spacetype;
+  char spacetype = 0;
   /**
    * eSpace_Type (SPACE_FOO).
    *
@@ -605,31 +605,31 @@ typedef struct ScrArea {
    * Also, versioning uses it to nicely replace deprecated editors.
    * It's been there for ages, name doesn't fit any more.
    */
-  char butspacetype;
-  short butspacetype_subtype;
+  char butspacetype = 0;
+  short butspacetype_subtype = 0;
 
   /** Size. */
-  short winx, winy;
+  short winx = 0, winy = 0;
 
   /** OLD! 0=no header, 1= down, 2= up. */
-  char headertype DNA_DEPRECATED;
+  DNA_DEPRECATED char headertype = 0;
   /** Private, for spacetype refresh callback. */
-  char do_refresh;
-  short flag;
+  char do_refresh = 0;
+  short flag = 0;
   /**
    * Index of last used region of 'RGN_TYPE_WINDOW'
    * runtime variable, updated by executing operators.
    */
-  short region_active_win;
-  char _pad[2];
+  short region_active_win = 0;
+  char _pad[2] = {};
 
   /** Callbacks for this space type. */
-  struct SpaceType *type;
+  struct SpaceType *type = nullptr;
 
   /** Non-NULL if this area is global. */
-  ScrGlobalAreaData *global;
+  ScrGlobalAreaData *global = nullptr;
 
-  float quadview_ratio[2];
+  float quadview_ratio[2] = {};
 
   /**
    * #SpaceLink.
@@ -637,21 +637,21 @@ typedef struct ScrArea {
    * changing the editor type, we try to reuse old editor data from this list.
    * The first item is the active/visible one.
    */
-  ListBase spacedata;
+  ListBase spacedata = {nullptr, nullptr};
   /**
    * #ARegion.
    * \note This region list is the one from the active/visible editor (first item in
    * spacedata list). Use SpaceLink.regionbase if it's inactive (but only then)!
    */
-  ListBase regionbase;
+  ListBase regionbase = {nullptr, nullptr};
   /** #wmEventHandler. */
-  ListBase handlers;
+  ListBase handlers = {nullptr, nullptr};
 
   /** #AZone. */
-  ListBase actionzones;
+  ListBase actionzones = {nullptr, nullptr};
 
   ScrArea_Runtime runtime;
-} ScrArea;
+};
 
 /**
  * regiontype, first two are the default set.
@@ -777,60 +777,60 @@ enum {
   RGN_DRAW_EDITOR_OVERLAYS = 32,
 };
 
-typedef struct ARegion {
-  struct ARegion *next, *prev;
+struct ARegion {
+  struct ARegion *next = nullptr, *prev = nullptr;
 
   /** 2D-View scrolling/zoom info (most regions are 2d anyways). */
   View2D v2d;
   /** Coordinates of region. */
-  rcti winrct;
+  rcti winrct = {};
   /** Size. */
-  short winx, winy;
+  short winx = 0, winy = 0;
   /**
    * This is a Y offset on the panel tabs that represents pixels,
    * where zero represents no scroll - the first category always shows first at the top.
    */
-  int category_scroll;
+  int category_scroll = 0;
 
   /** Window, header, etc. identifier for drawing. */
-  short regiontype;
+  short regiontype = 0;
   /** How it should split. */
-  short alignment;
+  short alignment = 0;
   /** Hide, .... */
-  short flag;
+  short flag = 0;
 
   /** Current split size in unscaled pixels (if zero it uses regiontype).
    * To convert to pixels use: `UI_SCALE_FAC * region->sizex + 0.5f`.
    * However to get the current region size, you should usually use winx/winy from above, not this!
    */
-  short sizex, sizey;
+  short sizex = 0, sizey = 0;
 
   /** Private, set for indicate drawing overlapped. */
-  short overlap;
+  short overlap = 0;
   /** Temporary copy of flag settings for clean full-screen. */
-  short flagfullscreen;
+  short flagfullscreen = 0;
 
-  char _pad[2];
+  char _pad[2] = {};
 
   /** Panel. */
-  ListBase panels;
+  ListBase panels = {nullptr, nullptr};
   /** Stack of panel categories. */
-  ListBase panels_category_active;
+  ListBase panels_category_active = {nullptr, nullptr};
   /** #uiList. */
-  ListBase ui_lists;
+  ListBase ui_lists = {nullptr, nullptr};
   /** #uiPreview. */
-  ListBase ui_previews;
+  ListBase ui_previews = {nullptr, nullptr};
   /**
    * Permanent state storage of #ui::AbstractView instances, so hiding regions with views or
    * loading files remembers the view state.
    */
-  ListBase view_states; /* #uiViewStateLink */
+  ListBase view_states = {nullptr, nullptr}; /* #uiViewStateLink */
 
   /** XXX 2.50, need spacedata equivalent? */
-  void *regiondata;
+  void *regiondata = nullptr;
 
-  ARegionRuntimeHandle *runtime;
-} ARegion;
+  ARegionRuntimeHandle *runtime = nullptr;
+};
 
 /* #AssetShelfSettings.display_flag */
 enum AssetShelfSettings_DisplayFlag {
@@ -849,21 +849,21 @@ enum AssetShelf_InstanceFlag {
 };
 ENUM_OPERATORS(AssetShelf_InstanceFlag);
 
-typedef struct AssetShelfSettings {
+struct AssetShelfSettings {
   AssetLibraryReference asset_library_reference;
 
-  ListBase enabled_catalog_paths; /* #AssetCatalogPathLink */
+  ListBase enabled_catalog_paths = {nullptr, nullptr}; /* #AssetCatalogPathLink */
   /** If not set (null or empty string), all assets will be displayed ("All" catalog behavior). */
-  const char *active_catalog_path;
+  const char *active_catalog_path = nullptr;
 
   /** For filtering assets displayed in the asset view. */
-  char search_string[64];
+  char search_string[64] = "";
 
-  short preview_size;
-  short display_flag; /* #AssetShelfSettings_DisplayFlag */
-  char _pad1[4];
+  short preview_size = 0;
+  short display_flag = 0; /* #AssetShelfSettings_DisplayFlag */
+  char _pad1[4] = {};
 
-#ifdef __cplusplus
+#if defined(__cplusplus) && !defined(DNA_NO_EXTERNAL_CONSTRUCTORS)
   /* Zero initializes. */
   AssetShelfSettings();
   /* Proper deep copy. */
@@ -871,26 +871,26 @@ typedef struct AssetShelfSettings {
   AssetShelfSettings &operator=(const AssetShelfSettings &other);
   ~AssetShelfSettings();
 #endif
-} AssetShelfSettings;
+};
 
-typedef struct AssetShelf {
+struct AssetShelf {
   DNA_DEFINE_CXX_METHODS(AssetShelf)
 
-  struct AssetShelf *next, *prev;
+  struct AssetShelf *next = nullptr, *prev = nullptr;
 
   /** Identifier that matches the #AssetShelfType.idname this shelf was created with. Used to
    * restore the #AssetShelf.type pointer below on file read. */
-  char idname[/*MAX_NAME*/ 64];
+  char idname[/*MAX_NAME*/ 64] = "";
   /** Runtime. */
-  struct AssetShelfType *type;
+  struct AssetShelfType *type = nullptr;
 
   AssetShelfSettings settings;
 
   /** Only for the permanent asset shelf regions, not asset shelves in temporary popups. */
-  short preferred_row_count;
-  short instance_flag;
-  char _pad[4];
-} AssetShelf;
+  short preferred_row_count = 0;
+  short instance_flag = 0;
+  char _pad[4] = {};
+};
 
 /**
  * Region-data for the main asset shelf region (#RGN_TYPE_ASSET_SHELF). Managed by the asset shelf
@@ -899,24 +899,24 @@ typedef struct AssetShelf {
  * Contains storage for all previously activated asset shelf instances plus info on the currently
  * active one (only one can be active at any time).
  */
-typedef struct RegionAssetShelf {
+struct RegionAssetShelf {
   /** Owning list of previously activated asset shelves. */
-  ListBase shelves;
+  ListBase shelves = {nullptr, nullptr};
   /**
    * The currently active shelf, if any. Updated on redraw, so that context changes are reflected.
    * Note that this may still be set even though the shelf isn't available anymore
    * (#AssetShelfType.poll() fails). The pointer isn't necessarily unset when polling.
    */
-  AssetShelf *active_shelf; /* Non-owning. */
+  AssetShelf *active_shelf = nullptr; /* Non-owning. */
 #ifdef __cplusplus
   static RegionAssetShelf *get_from_asset_shelf_region(const ARegion &region);
   /** Creates the asset shelf region data if necessary, and returns it. */
   static RegionAssetShelf *ensure_from_asset_shelf_region(ARegion &region);
 #endif
-} RegionAssetShelf;
+};
 
-typedef struct FileHandler {
+struct FileHandler {
   DNA_DEFINE_CXX_METHODS(FileHandler)
   /** Runtime. */
-  FileHandlerTypeHandle *type;
-} FileHandler;
+  FileHandlerTypeHandle *type = nullptr;
+};

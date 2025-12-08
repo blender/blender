@@ -15,7 +15,6 @@
 #include "BLT_translation.hh"
 
 #include "DNA_cachefile_types.h"
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -62,14 +61,8 @@ using namespace blender;
 static void init_data(ModifierData *md)
 {
   MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mcmd, modifier));
-
-  mcmd->cache_file = nullptr;
-  mcmd->object_path[0] = '\0';
+  INIT_DEFAULT_STRUCT_AFTER(mcmd, modifier);
   mcmd->read_flag = MOD_MESHSEQ_READ_ALL;
-
-  MEMCPY_STRUCT_AFTER(mcmd, DNA_struct_default_get(MeshSeqCacheModifierData), modifier);
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)

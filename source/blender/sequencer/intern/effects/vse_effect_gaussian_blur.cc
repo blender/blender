@@ -22,7 +22,7 @@ namespace blender::seq {
 static void init_gaussian_blur_effect(Strip *strip)
 {
   MEM_SAFE_FREE(strip->effectdata);
-  GaussianBlurVars *data = MEM_callocN<GaussianBlurVars>("gaussianblurvars");
+  GaussianBlurVars *data = MEM_new_for_free<GaussianBlurVars>("gaussianblurvars");
   strip->effectdata = data;
   data->size_x = 9.0f;
   data->size_y = 9.0f;

@@ -6,7 +6,6 @@
  * \ingroup spimage
  */
 
-#include "DNA_defaults.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_image_types.h"
 #include "DNA_mask_types.h"
@@ -102,7 +101,7 @@ static SpaceLink *image_create(const ScrArea * /*area*/, const Scene * /*scene*/
   ARegion *region;
   SpaceImage *simage;
 
-  simage = MEM_callocN<SpaceImage>("initimage");
+  simage = MEM_new_for_free<SpaceImage>("initimage");
   simage->spacetype = SPACE_IMAGE;
   simage->zoom = 1.0f;
   simage->lock = true;
@@ -126,7 +125,7 @@ static SpaceLink *image_create(const ScrArea * /*area*/, const Scene * /*scene*/
   simage->custom_grid_subdiv[0] = 10;
   simage->custom_grid_subdiv[1] = 10;
 
-  simage->mask_info = *DNA_struct_default_get(MaskSpaceInfo);
+  simage->mask_info = MaskSpaceInfo();
 
   /* header */
   region = BKE_area_region_new();

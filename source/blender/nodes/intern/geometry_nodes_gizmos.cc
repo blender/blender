@@ -19,6 +19,7 @@
 #include "NOD_partial_eval.hh"
 #include "NOD_socket_usage_inference.hh"
 
+#include "DNA_layer_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"

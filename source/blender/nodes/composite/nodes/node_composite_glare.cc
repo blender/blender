@@ -248,7 +248,7 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
 static void node_composit_init_glare(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, but kept for forward compatibility. */
-  NodeGlare *ndg = MEM_callocN<NodeGlare>(__func__);
+  NodeGlare *ndg = MEM_new_for_free<NodeGlare>(__func__);
   node->storage = ndg;
 }
 

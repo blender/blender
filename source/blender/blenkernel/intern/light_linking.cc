@@ -30,7 +30,7 @@
 void BKE_light_linking_ensure(Object *object)
 {
   if (object->light_linking == nullptr) {
-    object->light_linking = MEM_callocN<LightLinking>(__func__);
+    object->light_linking = MEM_new_for_free<LightLinking>(__func__);
   }
 }
 

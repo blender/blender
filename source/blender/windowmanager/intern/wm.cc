@@ -15,6 +15,7 @@
 
 #include <cstring>
 
+#include "DNA_layer_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"

@@ -598,7 +598,7 @@ static void rna_Curve_body_set(PointerRNA *ptr, const char *value)
   cu->str = MEM_malloc_arrayN<char>(len_bytes + sizeof(char32_t), "str");
   memcpy(cu->str, value, len_bytes + 1);
 
-  cu->strinfo = MEM_calloc_arrayN<CharInfo>((len_chars + 4), "strinfo");
+  cu->strinfo = MEM_new_array_for_free<CharInfo>((len_chars + 4), "strinfo");
 }
 
 static void rna_Nurb_update_cyclic_u(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -683,7 +683,7 @@ static void rna_Curve_spline_bezpoints_add(ID *id, Nurb *nu, ReportList *reports
 
 static Nurb *rna_Curve_spline_new(Curve *cu, int type)
 {
-  Nurb *nu = MEM_callocN<Nurb>("spline.new");
+  Nurb *nu = MEM_new_for_free<Nurb>("spline.new");
 
   if (type == CU_BEZIER) {
     BezTriple *bezt = MEM_callocN<BezTriple>("spline.new.bezt");

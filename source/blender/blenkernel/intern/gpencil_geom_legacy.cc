@@ -179,8 +179,8 @@ void BKE_gpencil_stroke_fill_triangulate(bGPDstroke *gps)
   /* Save triangulation data. */
   if (gps->tot_triangles > 0) {
     MEM_SAFE_FREE(gps->triangles);
-    gps->triangles = MEM_calloc_arrayN<bGPDtriangle>(gps->tot_triangles,
-                                                     "GP Stroke triangulation");
+    gps->triangles = MEM_new_array_for_free<bGPDtriangle>(gps->tot_triangles,
+                                                          "GP Stroke triangulation");
 
     for (int i = 0; i < gps->tot_triangles; i++) {
       memcpy(gps->triangles[i].verts, tmp_triangles[i], sizeof(uint[3]));
@@ -260,7 +260,7 @@ static void gpencil_stroke_join_islands(bGPdata *gpd,
   /* create new stroke */
   bGPDstroke *join_stroke = BKE_gpencil_stroke_duplicate(gps_first, false, true);
 
-  join_stroke->points = MEM_calloc_arrayN<bGPDspoint>(totpoints, __func__);
+  join_stroke->points = MEM_new_array_for_free<bGPDspoint>(totpoints, __func__);
   join_stroke->totpoints = totpoints;
   join_stroke->flag &= ~GP_STROKE_CYCLIC;
 
@@ -417,8 +417,8 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
       new_stroke->totpoints = island->end_idx - island->start_idx + 1;
 
       /* Copy over the relevant point data */
-      new_stroke->points = MEM_calloc_arrayN<bGPDspoint>(new_stroke->totpoints,
-                                                         "gp delete stroke fragment");
+      new_stroke->points = MEM_new_array_for_free<bGPDspoint>(new_stroke->totpoints,
+                                                              "gp delete stroke fragment");
       memcpy(static_cast<void *>(new_stroke->points),
              gps->points + island->start_idx,
              sizeof(bGPDspoint) * new_stroke->totpoints);

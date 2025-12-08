@@ -48,14 +48,13 @@ class AnimDrawTest : public testing::Test {
 
 TEST_F(AnimDrawTest, anim_unit_mapping_get_factor_not_normalizing)
 {
-  FCurve *fcurve = MEM_callocN<FCurve>(__func__);
+  FCurve *fcurve = MEM_new_for_free<FCurve>(__func__);
   fcurve->array_index = 0;
 
   /* Avoid creating a Scene via BKE_id_new<Scene>(this->bmain, "SCTestScene"); as that requires
    * much more setup (appdirs, imbuf for color management, and maybe more). This test doesn't
    * actually need a full Scene, it just needs its `units` field. */
-  Scene scene;
-  memset(&scene.unit, 0, sizeof(scene.unit));
+  Scene scene = {};
   scene.unit.scale_length = 1.0f;
 
   { /* Rotation: Degrees. */

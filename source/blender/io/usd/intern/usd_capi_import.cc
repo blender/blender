@@ -73,7 +73,7 @@ static bool gather_objects_paths(const pxr::UsdPrim &object, ListBase *object_pa
     gather_objects_paths(childPrim, object_paths);
   }
 
-  CacheObjectPath *usd_path = MEM_callocN<CacheObjectPath>("CacheObjectPath");
+  CacheObjectPath *usd_path = MEM_new_for_free<CacheObjectPath>("CacheObjectPath");
 
   STRNCPY(usd_path->path, object.GetPrimPath().GetString().c_str());
   BLI_addtail(object_paths, usd_path);

@@ -15,7 +15,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_defaults.h"
+#include "DNA_layer_types.h"
 #include "DNA_material_types.h" /* for ramp blend */
 #include "DNA_object_types.h"
 #include "DNA_sdna_type_ids.hh"
@@ -50,10 +50,7 @@ using blender::dna::sdna_struct_id_get;
 static void linestyle_init_data(ID *id)
 {
   FreestyleLineStyle *linestyle = (FreestyleLineStyle *)id;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(linestyle, id));
-
-  MEMCPY_STRUCT_AFTER(linestyle, DNA_struct_default_get(FreestyleLineStyle), id);
+  INIT_DEFAULT_STRUCT_AFTER(linestyle, id);
 
   BKE_linestyle_geometry_modifier_add(linestyle, nullptr, LS_MODIFIER_SAMPLING);
 }
@@ -74,7 +71,7 @@ static void linestyle_copy_data(Main *bmain,
 
   for (int a = 0; a < MAX_MTEX; a++) {
     if (linestyle_src->mtex[a]) {
-      linestyle_dst->mtex[a] = MEM_callocN<MTex>(__func__);
+      linestyle_dst->mtex[a] = MEM_new_for_free<MTex>(__func__);
       *linestyle_dst->mtex[a] = blender::dna::shallow_copy(*linestyle_src->mtex[a]);
     }
   }

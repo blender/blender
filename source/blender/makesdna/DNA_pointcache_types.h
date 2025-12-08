@@ -82,27 +82,27 @@ enum PointCacheCompression {
   PTCACHE_COMPRESS_ZSTD_SLOW_DEPRECATED = 8, /* Used only during 5.0 alpha. */
 };
 
-typedef struct PTCacheExtra {
-  struct PTCacheExtra *next, *prev;
-  unsigned int type, totdata;
-  void *data;
-} PTCacheExtra;
+struct PTCacheExtra {
+  struct PTCacheExtra *next = nullptr, *prev = nullptr;
+  unsigned int type = 0, totdata = 0;
+  void *data = nullptr;
+};
 
-typedef struct PTCacheMem {
-  struct PTCacheMem *next, *prev;
-  unsigned int frame, totpoint;
-  unsigned int data_types, flag;
+struct PTCacheMem {
+  struct PTCacheMem *next = nullptr, *prev = nullptr;
+  unsigned int frame = 0, totpoint = 0;
+  unsigned int data_types = 0, flag = 0;
 
   /** BPHYS_TOT_DATA. */
-  void *data[8];
+  void *data[8] = {};
 
-  struct ListBase extradata;
-} PTCacheMem;
+  ListBase extradata = {nullptr, nullptr};
+};
 
-typedef struct PointCache {
-  struct PointCache *next, *prev;
+struct PointCache {
+  struct PointCache *next = nullptr, *prev = nullptr;
   /** Generic flag. */
-  int flag;
+  int flag = 0;
 
   /**
    * The number of frames between cached frames.
@@ -117,48 +117,48 @@ typedef struct PointCache {
    * The result will look like the point is oscillating around the collision location.
    * So for now cache step should be set to 1 for accurate reproduction of collisions.
    */
-  int step;
+  int step = 0;
 
   /** Current frame of simulation (only if SIMULATION_VALID). */
-  int simframe;
+  int simframe = 0;
   /** Simulation start frame. */
-  int startframe;
+  int startframe = 0;
   /** Simulation end frame. */
-  int endframe;
+  int endframe = 0;
   /** Frame being edited (runtime only). */
-  int editframe;
+  int editframe = 0;
   /** Last exact frame that's cached. */
-  int last_exact;
+  int last_exact = 0;
   /** Used for editing cache - what is the last baked frame. */
-  int last_valid;
-  char _pad[4];
+  int last_valid = 0;
+  char _pad[4] = {};
 
   /* for external cache files */
   /** Number of cached points. */
-  int totpoint;
+  int totpoint = 0;
   /** Modifier stack index. */
-  int index;
+  int index = 0;
   /** #PointCacheCompression. Used for versioning only; now cache is always compressed. */
-  short compression;
-  char _pad0[2];
+  short compression = 0;
+  char _pad0[2] = {};
 
-  char name[64];
-  char prev_name[64];
-  char info[128];
+  char name[64] = "";
+  char prev_name[64] = "";
+  char info[128] = "";
   /** File path. */
-  char path[/*FILE_MAX*/ 1024];
+  char path[/*FILE_MAX*/ 1024] = "";
 
   /**
    * Array of length `endframe - startframe + 1` with flags to indicate cached frames.
    * Can be later used for other per frame flags too if needed.
    */
-  char *cached_frames;
-  int cached_frames_len;
-  char _pad1[4];
+  char *cached_frames = nullptr;
+  int cached_frames_len = 0;
+  char _pad1[4] = {};
 
-  struct ListBase mem_cache;
+  ListBase mem_cache = {nullptr, nullptr};
 
-  struct PTCacheEdit *edit;
+  struct PTCacheEdit *edit = nullptr;
   /** Free callback. */
-  void (*free_edit)(struct PTCacheEdit *edit);
-} PointCache;
+  void (*free_edit)(struct PTCacheEdit *edit) = nullptr;
+};

@@ -82,7 +82,7 @@ eSpreadsheetColumnValueType cpp_type_to_column_type(const CPPType &type)
 
 SpreadsheetColumnID *spreadsheet_column_id_new()
 {
-  SpreadsheetColumnID *column_id = MEM_callocN<SpreadsheetColumnID>(__func__);
+  SpreadsheetColumnID *column_id = MEM_new_for_free<SpreadsheetColumnID>(__func__);
   return column_id;
 }
 
@@ -114,7 +114,7 @@ void spreadsheet_column_id_blend_read(BlendDataReader *reader, SpreadsheetColumn
 
 SpreadsheetColumn *spreadsheet_column_new(SpreadsheetColumnID *column_id)
 {
-  SpreadsheetColumn *column = MEM_callocN<SpreadsheetColumn>(__func__);
+  SpreadsheetColumn *column = MEM_new_for_free<SpreadsheetColumn>(__func__);
   column->id = column_id;
   column->runtime = MEM_new<SpreadsheetColumnRuntime>(__func__);
   return column;

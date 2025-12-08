@@ -13,7 +13,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_screen_types.h"
 
@@ -39,10 +38,7 @@
 static void init_data(ModifierData *md)
 {
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(psmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(psmd, DNA_struct_default_get(ParticleSystemModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(psmd, modifier);
 }
 static void free_data(ModifierData *md)
 {

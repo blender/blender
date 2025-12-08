@@ -201,8 +201,8 @@ static void paintcurve_point_add(bContext *C, wmOperator *op, const int loc[2])
 
   ED_paintcurve_undo_push_begin(op->type->name);
 
-  PaintCurvePoint *pcp = MEM_malloc_arrayN<PaintCurvePoint>((pc->tot_points + 1),
-                                                            "PaintCurvePoint");
+  PaintCurvePoint *pcp = MEM_new_array_for_free<PaintCurvePoint>((pc->tot_points + 1),
+                                                                 "PaintCurvePoint");
   int add_index = pc->add_index;
 
   if (pc->points) {
@@ -331,7 +331,7 @@ static wmOperatorStatus paintcurve_delete_point_exec(bContext *C, wmOperator *op
     int new_tot = pc->tot_points - tot_del;
     PaintCurvePoint *points_new = nullptr;
     if (new_tot > 0) {
-      points_new = MEM_malloc_arrayN<PaintCurvePoint>(new_tot, "PaintCurvePoint");
+      points_new = MEM_new_array_for_free<PaintCurvePoint>(new_tot, "PaintCurvePoint");
     }
 
     for (i = 0, pcp = pc->points; i < pc->tot_points; i++, pcp++) {

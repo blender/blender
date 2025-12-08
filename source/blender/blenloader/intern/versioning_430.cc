@@ -12,7 +12,6 @@
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curves_types.h"
-#include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
@@ -132,7 +131,7 @@ static void node_reroute_add_storage(bNodeTree &tree)
       STRNCPY_UTF8(input.identifier, "Input");
       STRNCPY_UTF8(output.identifier, "Output");
 
-      NodeReroute *data = MEM_callocN<NodeReroute>(__func__);
+      NodeReroute *data = MEM_new_for_free<NodeReroute>(__func__);
       STRNCPY_UTF8(data->type_idname, input.idname);
       node->storage = data;
     }
@@ -189,7 +188,7 @@ static void hide_simulation_node_skip_socket_value(Main &bmain)
       input_node.locx_legacy = node->locx_legacy - 25;
       input_node.locy_legacy = node->locy_legacy;
 
-      NodeInputBool *input_node_storage = MEM_callocN<NodeInputBool>(__func__);
+      NodeInputBool *input_node_storage = MEM_new_for_free<NodeInputBool>(__func__);
       input_node.storage = input_node_storage;
       input_node_storage->boolean = true;
 
@@ -281,7 +280,7 @@ void blo_do_versions_430(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 13)) {
-    Camera default_cam = *DNA_struct_default_get(Camera);
+    Camera default_cam;
     LISTBASE_FOREACH (Camera *, camera, &bmain->cameras) {
       camera->central_cylindrical_range_u_min = default_cam.central_cylindrical_range_u_min;
       camera->central_cylindrical_range_u_max = default_cam.central_cylindrical_range_u_max;

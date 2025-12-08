@@ -39,7 +39,7 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeInputRotation *data = MEM_callocN<NodeInputRotation>(__func__);
+  NodeInputRotation *data = MEM_new_for_free<NodeInputRotation>(__func__);
   node->storage = data;
 }
 

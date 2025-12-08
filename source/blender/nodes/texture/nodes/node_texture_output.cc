@@ -119,7 +119,7 @@ check_index:
 
 static void init(bNodeTree * /*ntree*/, bNode *node)
 {
-  TexNodeOutput *tno = MEM_callocN<TexNodeOutput>("TEX_output");
+  TexNodeOutput *tno = MEM_new_for_free<TexNodeOutput>("TEX_output");
   node->storage = tno;
 
   STRNCPY(tno->name, "Default");

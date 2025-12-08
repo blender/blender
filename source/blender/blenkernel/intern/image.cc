@@ -49,7 +49,6 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_defaults.h"
 #include "DNA_image_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
@@ -625,7 +624,7 @@ void BKE_image_free_data(Image *ima)
 
 static ImageTile *imagetile_alloc(int tile_number)
 {
-  ImageTile *tile = MEM_callocN<ImageTile>("Image Tile");
+  ImageTile *tile = MEM_new_for_free<ImageTile>("Image Tile");
   tile->tile_number = tile_number;
   tile->gen_x = 1024;
   tile->gen_y = 1024;
@@ -636,9 +635,7 @@ static ImageTile *imagetile_alloc(int tile_number)
 /* only image block itself */
 static void image_init(Image *ima, short source, short type)
 {
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(ima, id));
-
-  MEMCPY_STRUCT_AFTER(ima, DNA_struct_default_get(Image), id);
+  INIT_DEFAULT_STRUCT_AFTER(ima, id);
 
   ima->source = source;
   ima->type = type;
@@ -659,7 +656,7 @@ static void image_init(Image *ima, short source, short type)
   ima->runtime = MEM_new<blender::bke::ImageRuntime>(__func__);
 
   BKE_color_managed_colorspace_settings_init(&ima->colorspace_settings);
-  ima->stereo3d_format = MEM_callocN<Stereo3dFormat>("Image Stereo Format");
+  ima->stereo3d_format = MEM_new_for_free<Stereo3dFormat>("Image Stereo Format");
 }
 
 static Image *image_alloc(Main *bmain,
@@ -722,7 +719,7 @@ static void copy_image_packedfiles(ListBase *lb_dst, const ListBase *lb_src)
   for (imapf_src = static_cast<const ImagePackedFile *>(lb_src->first); imapf_src;
        imapf_src = imapf_src->next)
   {
-    ImagePackedFile *imapf_dst = MEM_mallocN<ImagePackedFile>("Image Packed Files (copy)");
+    ImagePackedFile *imapf_dst = MEM_new_for_free<ImagePackedFile>("Image Packed Files (copy)");
 
     imapf_dst->view = imapf_src->view;
     imapf_dst->tile_number = imapf_src->tile_number;
@@ -1380,7 +1377,7 @@ static bool image_memorypack_imbuf(
   const int encoded_size = ibuf->encoded_size;
   PackedFile *pf = BKE_packedfile_new_from_memory(IMB_steal_encoded_buffer(ibuf), encoded_size);
 
-  imapf = MEM_mallocN<ImagePackedFile>("Image PackedFile");
+  imapf = MEM_new_for_free<ImagePackedFile>("Image PackedFile");
   STRNCPY(imapf->filepath, filepath);
   imapf->packedfile = pf;
   imapf->view = view;
@@ -1472,7 +1469,7 @@ void BKE_image_packfiles(ReportList *reports, Image *ima, const char *basepath)
       char filepath[FILE_MAX];
       BKE_image_user_file_path(&iuser, ima, filepath);
 
-      ImagePackedFile *imapf = MEM_mallocN<ImagePackedFile>("Image packed file");
+      ImagePackedFile *imapf = MEM_new_for_free<ImagePackedFile>("Image packed file");
       BLI_addtail(&ima->packedfiles, imapf);
 
       imapf->packedfile = BKE_packedfile_new(reports, filepath, basepath);
@@ -1502,7 +1499,7 @@ void BKE_image_packfiles_from_mem(ReportList *reports,
     BKE_report(reports, RPT_ERROR, "Cannot pack tiled images from raw data currently...");
   }
   else {
-    ImagePackedFile *imapf = MEM_mallocN<ImagePackedFile>(__func__);
+    ImagePackedFile *imapf = MEM_new_for_free<ImagePackedFile>(__func__);
     BLI_addtail(&ima->packedfiles, imapf);
     imapf->packedfile = BKE_packedfile_new_from_memory(data, data_len);
     imapf->view = 0;
@@ -3776,7 +3773,7 @@ static void image_init_multilayer_multiview(Image *ima, RenderResult *rr)
 
   if (rr) {
     LISTBASE_FOREACH (RenderView *, rv, &rr->views) {
-      ImageView *iv = MEM_callocN<ImageView>("Viewer Image View");
+      ImageView *iv = MEM_new_for_free<ImageView>("Viewer Image View");
       STRNCPY_UTF8(iv->name, rv->name);
       BLI_addtail(&ima->views, iv);
     }
@@ -3887,9 +3884,7 @@ void BKE_image_backup_render(Scene *scene, Image *ima, bool free_current_slot)
 
 static void image_add_view(Image *ima, const char *viewname, const char *filepath)
 {
-  ImageView *iv;
-
-  iv = MEM_mallocN<ImageView>("Viewer Image View");
+  ImageView *iv = MEM_new_for_free<ImageView>("Viewer Image View");
   STRNCPY_UTF8(iv->name, viewname);
   STRNCPY(iv->filepath, filepath);
 
@@ -4099,7 +4094,7 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 
     for (int i = 0; i < tot_viewfiles; i++) {
       /* allocate the ImageAnim */
-      ImageAnim *ia = MEM_callocN<ImageAnim>("Image Anim");
+      ImageAnim *ia = MEM_new_for_free<ImageAnim>("Image Anim");
       BLI_addtail(&ima->anims, ia);
     }
   }
@@ -4218,7 +4213,7 @@ static ImBuf *load_image_single(Image *ima,
 
       /* Make packed file for auto-pack. */
       if (!is_sequence && (has_packed == false) && (G.fileflags & G_FILE_AUTOPACK)) {
-        ImagePackedFile *imapf = MEM_mallocN<ImagePackedFile>("Image Pack-file");
+        ImagePackedFile *imapf = MEM_new_for_free<ImagePackedFile>("Image Pack-file");
         BLI_addtail(&ima->packedfiles, imapf);
 
         STRNCPY(imapf->filepath, filepath);
@@ -5576,7 +5571,7 @@ static void image_update_views_format(Image *ima, ImageUser *iuser)
 
 RenderSlot *BKE_image_add_renderslot(Image *ima, const char *name)
 {
-  RenderSlot *slot = MEM_callocN<RenderSlot>("Image new Render Slot");
+  RenderSlot *slot = MEM_new_for_free<RenderSlot>("Image new Render Slot");
   if (name && name[0]) {
     STRNCPY_UTF8(slot->name, name);
   }

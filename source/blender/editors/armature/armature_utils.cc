@@ -452,7 +452,7 @@ static EditBone *make_boneList_recursive(ListBase *edbo,
   EditBone *eBoneTest = nullptr;
 
   LISTBASE_FOREACH (Bone *, curBone, bones) {
-    eBone = MEM_new<EditBone>("make_editbone");
+    eBone = MEM_new_for_free<EditBone>("make_editbone");
     eBone->temp.bone = curBone;
 
     /* Copy relevant data from bone to eBone
@@ -726,7 +726,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
 
   /* Copy the bones from the edit-data into the armature. */
   LISTBASE_FOREACH (EditBone *, eBone, arm->edbo) {
-    newBone = MEM_callocN<Bone>("bone");
+    newBone = MEM_new_for_free<Bone>("bone");
     eBone->temp.bone = newBone; /* Associate the real Bones with the EditBones */
 
     STRNCPY_UTF8(newBone->name, eBone->name);
@@ -781,7 +781,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
     newBone->color = eBone->color;
 
     LISTBASE_FOREACH (BoneCollectionReference *, ref, &eBone->bone_collections) {
-      BoneCollectionReference *newBoneRef = MEM_dupallocN<BoneCollectionReference>(
+      BoneCollectionReference *newBoneRef = MEM_new_for_free<BoneCollectionReference>(
           "ED_armature_from_edit", *ref);
       BLI_addtail(&newBone->runtime.collections, newBoneRef);
     }

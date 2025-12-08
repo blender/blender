@@ -15,7 +15,6 @@
 #include "BLT_translation.hh"
 
 #include "DNA_color_types.h"
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -47,10 +46,7 @@
 static void init_data(ModifierData *md)
 {
   HookModifierData *hmd = (HookModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(hmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(hmd, DNA_struct_default_get(HookModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(hmd, modifier);
 
   hmd->curfalloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }

@@ -45,7 +45,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryMeshCircle *node_storage = MEM_callocN<NodeGeometryMeshCircle>(__func__);
+  NodeGeometryMeshCircle *node_storage = MEM_new_for_free<NodeGeometryMeshCircle>(__func__);
 
   node_storage->fill_type = GEO_NODE_MESH_CIRCLE_FILL_NONE;
 

@@ -68,7 +68,6 @@
 
 static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
 {
-
 #define USER_VERSION_ATLEAST(ver, subver) MAIN_VERSION_FILE_ATLEAST(userdef, ver, subver)
 #define FROM_DEFAULT_V4_UCHAR(member) copy_v4_v4_uchar(btheme->member, U_theme_default.member)
 
@@ -803,6 +802,8 @@ static void keymap_update_mesh_texture_paint_brushes(wmKeyMap *keymap)
 
 void blo_do_versions_userdef(UserDef *userdef)
 {
+  UserDef U_default = {};
+
 /* #UserDef & #Main happen to have the same struct member. */
 #define USER_VERSION_ATLEAST(ver, subver) MAIN_VERSION_FILE_ATLEAST(userdef, ver, subver)
 
@@ -1413,7 +1414,7 @@ void blo_do_versions_userdef(UserDef *userdef)
 
   if (!USER_VERSION_ATLEAST(306, 5)) {
     if (userdef->pythondir_legacy[0]) {
-      bUserScriptDirectory *script_dir = MEM_callocN<bUserScriptDirectory>(
+      bUserScriptDirectory *script_dir = MEM_new_for_free<bUserScriptDirectory>(
           "Versioning user script path");
 
       STRNCPY(script_dir->dir_path, userdef->pythondir_legacy);

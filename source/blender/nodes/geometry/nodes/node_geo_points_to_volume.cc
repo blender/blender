@@ -169,7 +169,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   /* Still used for forward compatibility. */
-  node->storage = MEM_callocN<NodeGeometryPointsToVolume>(__func__);
+  node->storage = MEM_new_for_free<NodeGeometryPointsToVolume>(__func__);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

@@ -2384,7 +2384,7 @@ static wmOperatorStatus constraint_add_exec(
       /* Armature constraints don't have a target by default, add one. */
       if (type == CONSTRAINT_TYPE_ARMATURE) {
         bArmatureConstraint *acon = static_cast<bArmatureConstraint *>(con->data);
-        bConstraintTarget *ct = MEM_callocN<bConstraintTarget>("Constraint Target");
+        bConstraintTarget *ct = MEM_new_for_free<bConstraintTarget>("Constraint Target");
 
         ct->weight = 1.0f;
         BLI_addtail(&acon->targets, ct);

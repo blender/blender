@@ -97,7 +97,7 @@ static bGPDpalette *BKE_gpencil_palette_addnew(bGPdata *gpd, const char *name)
   }
 
   /* allocate memory and add to end of list */
-  palette = MEM_callocN<bGPDpalette>("bGPDpalette");
+  palette = MEM_new_for_free<bGPDpalette>("bGPDpalette");
 
   /* add to datablock */
   BLI_addtail(&gpd->palettes, palette);
@@ -127,7 +127,7 @@ static bGPDpalettecolor *BKE_gpencil_palettecolor_addnew(bGPDpalette *palette, c
   }
 
   /* allocate memory and add to end of list */
-  palcolor = MEM_callocN<bGPDpalettecolor>("bGPDpalettecolor");
+  palcolor = MEM_new_for_free<bGPDpalettecolor>("bGPDpalettecolor");
 
   /* add to datablock */
   BLI_addtail(&palette->colors, palcolor);
@@ -372,7 +372,7 @@ static void do_versions_compositor_render_passes_storage(bNode *node)
        sock = static_cast<bNodeSocket *>(sock->next), pass_index++)
   {
     if (sock->storage == nullptr) {
-      NodeImageLayer *sockdata = MEM_callocN<NodeImageLayer>("node image layer");
+      NodeImageLayer *sockdata = MEM_new_for_free<NodeImageLayer>("node image layer");
       sock->storage = sockdata;
       STRNCPY_UTF8(sockdata->pass_name, legacy_socket_index_to_pass_name(pass_index));
 
@@ -464,7 +464,7 @@ static void do_version_bbone_easing_fcurve_fix(ID * /*id*/, FCurve *fcu)
 
 static bool strip_update_proxy_cb(Strip *strip, void * /*user_data*/)
 {
-  strip->stereo3d_format = MEM_callocN<Stereo3dFormat>("Stereo Display 3d Format");
+  strip->stereo3d_format = MEM_new_for_free<Stereo3dFormat>("Stereo Display 3d Format");
 
 #define STRIP_USE_PROXY_CUSTOM_DIR (1 << 19)
 #define STRIP_USE_PROXY_CUSTOM_FILE (1 << 21)
@@ -929,10 +929,10 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     LISTBASE_FOREACH (Image *, ima, &bmain->images) {
-      ima->stereo3d_format = MEM_callocN<Stereo3dFormat>("Image Stereo 3d Format");
+      ima->stereo3d_format = MEM_new_for_free<Stereo3dFormat>("Image Stereo 3d Format");
 
       if (ima->packedfile) {
-        ImagePackedFile *imapf = MEM_mallocN<ImagePackedFile>("Image Packed File");
+        ImagePackedFile *imapf = MEM_new_for_free<ImagePackedFile>("Image Packed File");
         BLI_addtail(&ima->packedfiles, imapf);
 
         imapf->packedfile = ima->packedfile;
@@ -943,7 +943,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
       LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-        win->stereo3d_format = MEM_callocN<Stereo3dFormat>("Stereo Display 3d Format");
+        win->stereo3d_format = MEM_new_for_free<Stereo3dFormat>("Stereo Display 3d Format");
       }
     }
   }

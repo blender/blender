@@ -31,17 +31,17 @@ enum {
   TXT_TABSTOSPACES = 1 << 10,
 };
 
-typedef struct TextLine {
-  struct TextLine *next, *prev;
+struct TextLine {
+  struct TextLine *next = nullptr, *prev = nullptr;
 
-  char *line;
+  char *line = nullptr;
   /** May be NULL if syntax is off or not yet formatted. */
-  char *format;
-  int len;
-  char _pad0[4];
-} TextLine;
+  char *format = nullptr;
+  int len = 0;
+  char _pad0[4] = {};
+};
 
-typedef struct Text {
+struct Text {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
   static constexpr ID_Type id_type = ID_TXT;
@@ -49,7 +49,7 @@ typedef struct Text {
 
   ID id;
 
-  void *_pad1;
+  void *_pad1 = nullptr;
 
   /**
    * Optional file path, when NULL text is considered internal.
@@ -57,21 +57,21 @@ typedef struct Text {
    *
    * When set this is where the file will or has been saved.
    */
-  char *filepath;
+  char *filepath = nullptr;
 
   /**
    * Python code object for this text (cached result of #Py_CompileStringObject).
    */
-  void *compiled;
+  void *compiled = nullptr;
 
-  int flags;
-  char _pad0[4];
+  int flags = 0;
+  char _pad0[4] = {};
 
-  ListBase lines;
-  TextLine *curl, *sell;
-  int curc, selc;
+  ListBase lines = {nullptr, nullptr};
+  TextLine *curl = nullptr, *sell = nullptr;
+  int curc = 0, selc = 0;
 
-  double mtime;
-} Text;
+  double mtime = 0;
+};
 
 #define TXT_TABSIZE 4

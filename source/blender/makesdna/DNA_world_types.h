@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_math_constants.h"
+
 #include "DNA_ID.h"
 #include "DNA_defs.h"
 
@@ -71,7 +73,7 @@ enum eLightProbeResolution {
 /**
  * World defines general modeling data such as a background fill,
  * gravity, color model etc. It mixes rendering data and modeling data. */
-typedef struct World {
+struct World {
 #ifdef __cplusplus
   DNA_DEFINE_CXX_METHODS(World)
   /** See #ID_Type comment for why this is here. */
@@ -80,64 +82,63 @@ typedef struct World {
 
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
-  struct AnimData *adt;
+  struct AnimData *adt = nullptr;
 
-  char _pad0[4];
-  short texact, mistype;
+  char _pad0[4] = {};
+  short texact = 0, mistype = 0;
 
-  float horr, horg, horb;
+  float horr = 0.05f, horg = 0.05f, horb = 0.05f;
 
   /**
    * Exposure is a multiplication factor. Unused now, but maybe back later.
    * Kept in to be upward compatible.
    */
-  float exposure, exp, range;
+  float exposure = 0, exp = 0, range = 0;
 
   /**
    * Some world modes
    * bit 0: Do mist
    */
-  short mode;
+  short mode = 0;
 
   /** Assorted settings. */
-  short flag;
+  short flag = WO_USE_SUN_SHADOW;
 
-  float misi, miststa, mistdist, misthi;
+  float misi = 0, miststa = 5.0f, mistdist = 25.0f, misthi = 0;
 
   /** Ambient occlusion. */
-  float aodist, aoenergy;
+  float aodist = 10.0f, aoenergy = 1.0f;
 
   /** Eevee settings. */
   /**
    * Resolution of the world probe when baked to a texture. Contains `eLightProbeResolution`.
    */
-  int probe_resolution;
+  int probe_resolution = LIGHT_PROBE_RESOLUTION_1024;
   /** Threshold for sun extraction. */
-  float sun_threshold;
+  float sun_threshold = 10.0f;
   /** Angle for sun extraction. */
-  float sun_angle;
+  float sun_angle = DEG2RADF(0.526f);
   /** Shadow properties for sun extraction. */
-  float sun_shadow_maximum_resolution;
-  float sun_shadow_jitter_overblur;
-  float sun_shadow_filter_radius;
+  float sun_shadow_maximum_resolution = 0.001f;
+  float sun_shadow_jitter_overblur = 10.0f;
+  float sun_shadow_filter_radius = 1.0f;
 
-  short pr_texture;
-  short use_nodes DNA_DEPRECATED;
+  short pr_texture = 0;
+  DNA_DEPRECATED short use_nodes = 0;
 
   /* previews */
-  struct PreviewImage *preview;
+  struct PreviewImage *preview = nullptr;
 
   /* nodes */
-  struct bNodeTree *nodetree;
+  struct bNodeTree *nodetree = nullptr;
 
   /** Light-group membership information. */
-  struct LightgroupMembership *lightgroup;
+  struct LightgroupMembership *lightgroup = nullptr;
 
-  void *_pad1;
+  void *_pad1 = nullptr;
 
   /** Runtime. */
-  ListBase gpumaterial;
+  ListBase gpumaterial = {nullptr, nullptr};
   /* The Depsgraph::update_count when this World was last updated. */
-  uint64_t last_update;
-
-} World;
+  uint64_t last_update = 0;
+};

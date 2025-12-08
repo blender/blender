@@ -71,7 +71,7 @@ static void cmp_node_blur_declare(NodeDeclarationBuilder &b)
 static void node_composit_init_blur(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, but allocated for forward compatibility. */
-  NodeBlurData *data = MEM_callocN<NodeBlurData>(__func__);
+  NodeBlurData *data = MEM_new_for_free<NodeBlurData>(__func__);
   node->storage = data;
 }
 

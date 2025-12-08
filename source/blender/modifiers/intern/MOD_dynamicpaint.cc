@@ -14,7 +14,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
@@ -39,10 +38,7 @@
 static void init_data(ModifierData *md)
 {
   DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(pmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(pmd, DNA_struct_default_get(DynamicPaintModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(pmd, modifier);
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)

@@ -162,8 +162,9 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
   reconstruction->camnr = 0;
   reconstruction->cameras = nullptr;
 
-  MovieReconstructedCamera *reconstructed_cameras = MEM_calloc_arrayN<MovieReconstructedCamera>(
-      (efra - sfra + 1), "temp reconstructed camera");
+  MovieReconstructedCamera *reconstructed_cameras =
+      MEM_new_array_for_free<MovieReconstructedCamera>((efra - sfra + 1),
+                                                       "temp reconstructed camera");
 
   for (int a = sfra; a <= efra; a++) {
     double matd[4][4];
@@ -213,8 +214,8 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
 
   if (reconstruction->camnr) {
     const size_t size = reconstruction->camnr * sizeof(MovieReconstructedCamera);
-    reconstruction->cameras = MEM_calloc_arrayN<MovieReconstructedCamera>(reconstruction->camnr,
-                                                                          "reconstructed camera");
+    reconstruction->cameras = MEM_new_array_for_free<MovieReconstructedCamera>(
+        reconstruction->camnr, "reconstructed camera");
     memcpy(reconstruction->cameras, reconstructed_cameras, size);
   }
 

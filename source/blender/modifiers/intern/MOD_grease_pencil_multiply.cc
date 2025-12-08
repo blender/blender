@@ -8,7 +8,6 @@
 
 #include "BLI_math_matrix.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
@@ -48,10 +47,7 @@ using bke::greasepencil::Drawing;
 static void init_data(ModifierData *md)
 {
   auto *mmd = reinterpret_cast<GreasePencilMultiModifierData *>(md);
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(mmd, DNA_struct_default_get(GreasePencilMultiModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(mmd, modifier);
   modifier::greasepencil::init_influence_data(&mmd->influence, true);
 }
 

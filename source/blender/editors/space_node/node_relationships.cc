@@ -1336,8 +1336,7 @@ static void add_dragged_links_to_tree(bContext &C, bNodeLinkDrag &nldrag)
 
     /* Before actually adding the link let nodes perform special link insertion handling. */
 
-    bNodeLink *new_link = MEM_mallocN<bNodeLink>(__func__);
-    *new_link = link;
+    bNodeLink *new_link = MEM_new_for_free<bNodeLink>(__func__, link);
     if (link.fromnode->typeinfo->insert_link) {
       bke::NodeInsertLinkParams params{ntree, *link.fromnode, *new_link, &C};
       if (!link.fromnode->typeinfo->insert_link(params)) {

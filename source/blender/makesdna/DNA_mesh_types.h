@@ -12,7 +12,6 @@
 #include "DNA_attribute_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_defs.h"
-#include "DNA_session_uid_types.h"
 
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
@@ -45,7 +44,7 @@ enum class MeshNormalDomain : int8_t;
 }  // namespace blender
 using MeshRuntimeHandle = blender::bke::MeshRuntime;
 #else
-typedef struct MeshRuntimeHandle MeshRuntimeHandle;
+struct MeshRuntimeHandle;
 #endif
 
 struct AnimData;
@@ -141,7 +140,7 @@ enum eMeshSymmetryType {
   ME_SYMMETRY_Z = 1 << 2,
 };
 
-typedef struct Mesh {
+struct Mesh {
 #ifdef __cplusplus
   DNA_DEFINE_CXX_METHODS(Mesh)
   /** See #ID_Type comment for why this is here. */
@@ -150,25 +149,25 @@ typedef struct Mesh {
 
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
-  struct AnimData *adt;
+  struct AnimData *adt = nullptr;
 
-  struct Key *key;
+  struct Key *key = nullptr;
 
   /**
    * An array of materials, with length #totcol. These can be overridden by material slots
    * on #Object. Indices in the "material_index" attribute control which material is used for every
    * face.
    */
-  struct Material **mat;
+  struct Material **mat = nullptr;
 
   /** The number of vertices in the mesh, and the size of #vert_data. */
-  int verts_num;
+  int verts_num = 0;
   /** The number of edges in the mesh, and the size of #edge_data. */
-  int edges_num;
+  int edges_num = 0;
   /** The number of faces in the mesh, and the size of #face_data. */
-  int faces_num;
+  int faces_num = 0;
   /** The number of face corners in the mesh, and the size of #corner_data. */
-  int corners_num;
+  int corners_num = 0;
 
   /**
    * Array owned by mesh. See #Mesh::faces() and #OffsetIndices.
@@ -176,7 +175,7 @@ typedef struct Mesh {
    * This array is shared based on the bke::MeshRuntime::face_offsets_sharing_info.
    * Avoid accessing directly when possible.
    */
-  int *face_offset_indices;
+  int *face_offset_indices = nullptr;
 
   /**
    * Vertex, edge, face, and corner generic attributes. Currently unused at runtime, but used for
@@ -193,9 +192,9 @@ typedef struct Mesh {
    * List of vertex group (#bDeformGroup) names and flags only. Actual weights are stored in dvert.
    * \note This pointer is for convenient access to the #CD_MDEFORMVERT layer in #vert_data.
    */
-  ListBase vertex_group_names;
+  ListBase vertex_group_names = {nullptr, nullptr};
   /** The active index in the #vertex_group_names list. */
-  int vertex_group_active_index;
+  int vertex_group_active_index = 0;
 
   /**
    * The index of the active attribute in the UI. The attribute list is a combination of the
@@ -203,7 +202,7 @@ typedef struct Mesh {
    *
    * Set to -1 when none is active.
    */
-  int attributes_active_index;
+  int attributes_active_index = 0;
 
   /**
    * This array represents the selection order when the user manually picks elements in edit-mode,
@@ -212,10 +211,10 @@ typedef struct Mesh {
    * this is generally empty (selections are stored as boolean attributes in the corresponding
    * custom data).
    */
-  struct MSelect *mselect;
+  struct MSelect *mselect = nullptr;
 
   /** The length of the #mselect array. */
-  int totselect;
+  int totselect = 0;
 
   /**
    * In most cases the last selected element (see #mselect) represents the active element.
@@ -226,99 +225,99 @@ typedef struct Mesh {
    *
    * \note This is mainly stored for use in edit-mode.
    */
-  int act_face;
+  int act_face = 0;
 
   /**
    * An optional mesh owned elsewhere (by #Main) that can be used to override
    * the texture space #loc and #size.
    * \note Vertex indices should be aligned for this to work usefully.
    */
-  struct Mesh *texcomesh;
+  struct Mesh *texcomesh = nullptr;
 
   /** Texture space location and size, used for procedural coordinates when rendering. */
-  float texspace_location[3];
-  float texspace_size[3];
-  char texspace_flag;
+  float texspace_location[3] = {};
+  float texspace_size[3] = {1.0f, 1.0f, 1.0f};
+  char texspace_flag = ME_TEXSPACE_FLAG_AUTO;
 
   /** Various flags used when editing the mesh. */
-  char editflag;
+  char editflag = ME_EDIT_MIRROR_VERTEX_GROUPS;
   /** Mostly more flags used when editing or displaying the mesh. */
-  uint16_t flag;
+  uint16_t flag = ME_REMESH_REPROJECT_VOLUME | ME_REMESH_REPROJECT_ATTRIBUTES;
 
-  float smoothresh_legacy DNA_DEPRECATED;
+  DNA_DEPRECATED float smoothresh_legacy = 0;
 
   /** Per-mesh settings for voxel remesh. */
-  float remesh_voxel_size;
-  float remesh_voxel_adaptivity;
+  float remesh_voxel_size = 0.1f;
+  float remesh_voxel_adaptivity = 0.0f;
 
-  int face_sets_color_seed;
+  int face_sets_color_seed = 0;
   /* Stores the initial Face Set to be rendered white. This way the overlay can be enabled by
    * default and Face Sets can be used without affecting the color of the mesh. */
-  int face_sets_color_default;
+  int face_sets_color_default = 1;
 
   /** The color attribute currently selected in the list and edited by a user. */
-  char *active_color_attribute;
+  char *active_color_attribute = nullptr;
   /** The color attribute used by default (i.e. for rendering) if no name is given explicitly. */
-  char *default_color_attribute;
+  char *default_color_attribute = nullptr;
 
   /**
    * The UV map currently selected in the list and edited by a user.
    * \note While the edit BMesh (`edit_mesh.bm`) is non null, that is the source of truth instead.
    * Typical access should be through #Mesh::active_uv_map_name() rather than direct.
    */
-  char *active_uv_map_attribute;
+  char *active_uv_map_attribute = nullptr;
   /**
    * The UV map used by default (i.e. for rendering) if no name is given explicitly.
    * \note While the edit BMesh (`edit_mesh.bm`) is non null, that is the source of truth instead.
    * Typical access should be through #Mesh::default_uv_map_name() rather than direct.
    */
-  char *default_uv_map_attribute;
+  char *default_uv_map_attribute = nullptr;
   /** UV map selection used for texture paint masking. */
-  char *stencil_uv_map_attribute;
+  char *stencil_uv_map_attribute = nullptr;
   /** UV map selection used for texture paint clone brush. */
-  char *clone_uv_map_attribute;
+  char *clone_uv_map_attribute = nullptr;
 
   /**
    * User-defined symmetry flag (#eMeshSymmetryType) that causes editing operations to maintain
    * symmetrical geometry. Supported by operations such as transform and weight-painting.
    */
-  char symmetry;
+  char symmetry = 0;
 
   /** Choice between different remesh methods in the UI. */
-  char remesh_mode;
+  char remesh_mode = 0;
 
   /** The length of the #mat array. */
-  short totcol;
+  short totcol = 0;
 
   /**
    * Deprecated flag for choosing whether to store specific custom data that was built into #Mesh
    * structs in edit mode. Replaced by separating that data to separate layers. Kept for forward
    * and backwards compatibility.
    */
-  char cd_flag DNA_DEPRECATED;
-  char subdiv DNA_DEPRECATED;
-  char subdivr DNA_DEPRECATED;
-  char subsurftype DNA_DEPRECATED;
+  DNA_DEPRECATED char cd_flag = 0;
+  DNA_DEPRECATED char subdiv = 0;
+  DNA_DEPRECATED char subdivr = 0;
+  DNA_DEPRECATED char subsurftype = 0;
 
   /** Deprecated pointer to mesh polygons, kept for forward compatibility. */
-  struct MPoly *mpoly DNA_DEPRECATED;
+  DNA_DEPRECATED struct MPoly *mpoly = nullptr;
   /** Deprecated pointer to face corners, kept for forward compatibility. */
-  struct MLoop *mloop DNA_DEPRECATED;
+  DNA_DEPRECATED struct MLoop *mloop = nullptr;
 
   /** Deprecated array of mesh vertices, kept for reading old files, now stored in #CustomData. */
-  struct MVert *mvert DNA_DEPRECATED;
+  DNA_DEPRECATED struct MVert *mvert = nullptr;
   /** Deprecated array of mesh edges, kept for reading old files, now stored in #CustomData. */
-  struct MEdge *medge DNA_DEPRECATED;
+  DNA_DEPRECATED struct MEdge *medge = nullptr;
   /** Deprecated "Vertex group" data. Kept for reading old files, now stored in #CustomData. */
-  struct MDeformVert *dvert DNA_DEPRECATED;
+  DNA_DEPRECATED struct MDeformVert *dvert = nullptr;
   /** Deprecated runtime data for tessellation face UVs and texture, kept for reading old files. */
-  struct MTFace *mtface DNA_DEPRECATED;
+  DNA_DEPRECATED struct MTFace *mtface = nullptr;
   /** Deprecated, use mtface. */
-  struct TFace *tface DNA_DEPRECATED;
+  DNA_DEPRECATED struct TFace *tface = nullptr;
   /** Deprecated array of colors for the tessellated faces, kept for reading old files. */
-  struct MCol *mcol DNA_DEPRECATED;
+  DNA_DEPRECATED struct MCol *mcol = nullptr;
   /** Deprecated face storage (quads & triangles only). Kept for reading old files. */
-  struct MFace *mface DNA_DEPRECATED;
+  DNA_DEPRECATED struct MFace *mface = nullptr;
 
   /**
    * Deprecated storage of old faces (only triangles or quads).
@@ -328,10 +327,10 @@ typedef struct Mesh {
    */
   CustomData fdata_legacy;
   /* Deprecated size of #fdata. */
-  int totface_legacy;
+  int totface_legacy = 0;
 
-  char _pad1;
-  int8_t radial_symmetry[3];
+  char _pad1 = {};
+  int8_t radial_symmetry[3] = {1, 1, 1};
 
   /**
    * Data that isn't saved in files, including caches of derived data, temporary data to improve
@@ -339,7 +338,7 @@ typedef struct Mesh {
    * without null checks, with the exception of some temporary meshes which should allocate and
    * free the data if they are passed to functions that expect run-time data.
    */
-  MeshRuntimeHandle *runtime;
+  MeshRuntimeHandle *runtime = nullptr;
 #ifdef __cplusplus
   /**
    * Array of vertex positions. Edges and face corners are defined by indices into this array.
@@ -571,21 +570,21 @@ typedef struct Mesh {
   /** Call when changing the "material_index" attribute. */
   void tag_material_index_changed();
 #endif
-} Mesh;
+};
 
 /* deprecated by MTFace, only here for file reading */
 
 #ifdef DNA_DEPRECATED_ALLOW
-typedef struct TFace {
+struct TFace {
   DNA_DEFINE_CXX_METHODS(TFace)
 
   /** The faces image for the active UVLayer. */
-  void *tpage;
-  float uv[4][2];
-  unsigned int col[4];
-  char flag, transp;
-  short mode, tile, unwrap;
-} TFace;
+  void *tpage = nullptr;
+  float uv[4][2] = {};
+  unsigned int col[4] = {};
+  char flag = 0, transp = 0;
+  short mode = 0, tile = 0, unwrap = 0;
+};
 #endif
 
 #define MESH_MAX_VERTS 2000000000L

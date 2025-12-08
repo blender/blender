@@ -10,6 +10,7 @@
 
 #include "AS_asset_catalog_path.hh"
 
+#include "DNA_defs.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 

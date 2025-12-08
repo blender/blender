@@ -2945,7 +2945,7 @@ static int remove_tagged_particles(Object *ob, ParticleSystem *psys, int mirror)
 
   if (new_totpart != psys->totpart) {
     if (new_totpart) {
-      npa = new_pars = MEM_calloc_arrayN<ParticleData>(new_totpart, "ParticleData array");
+      npa = new_pars = MEM_new_array_for_free<ParticleData>(new_totpart, "ParticleData array");
       npoint = new_points = MEM_calloc_arrayN<PTCacheEditPoint>(new_totpart,
                                                                 "PTCacheEditKey array");
 
@@ -3593,7 +3593,7 @@ static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagg
                                                                      CD_MFACE);
 
     /* allocate new arrays and copy existing */
-    new_pars = MEM_calloc_arrayN<ParticleData>(newtotpart, "ParticleData new");
+    new_pars = MEM_new_array_for_free<ParticleData>(newtotpart, "ParticleData new");
     new_points = MEM_calloc_arrayN<PTCacheEditPoint>(newtotpart, "PTCacheEditPoint new");
 
     if (psys->particles) {
@@ -4444,7 +4444,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
     return 0;
   }
 
-  add_pars = MEM_calloc_arrayN<ParticleData>(number, "ParticleData add");
+  add_pars = MEM_new_array_for_free<ParticleData>(number, "ParticleData add");
 
   rng = BLI_rng_new_srandom(psys->seed + data->mval[0] + data->mval[1]);
 
@@ -4511,7 +4511,8 @@ static int brush_add(const bContext *C, PEData *data, short number)
     int newtotpart = totpart + n;
     float hairmat[4][4], cur_co[3];
     blender::KDTree_3d *tree = nullptr;
-    ParticleData *pa, *new_pars = MEM_calloc_arrayN<ParticleData>(newtotpart, "ParticleData new");
+    ParticleData *pa,
+        *new_pars = MEM_new_array_for_free<ParticleData>(newtotpart, "ParticleData new");
     PTCacheEditPoint *point, *new_points = MEM_calloc_arrayN<PTCacheEditPoint>(
                                  newtotpart, "PTCacheEditPoint array new");
     PTCacheEditKey *key;

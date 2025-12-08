@@ -18,7 +18,7 @@ struct VolumeRuntime;
 }
 using VolumeRuntimeHandle = blender::bke::VolumeRuntime;
 #else
-typedef struct VolumeRuntimeHandle VolumeRuntimeHandle;
+struct VolumeRuntimeHandle;
 #endif
 
 /** #Volume.flag */
@@ -82,78 +82,78 @@ enum SliceAxis {
   VOLUME_SLICE_AXIS_Z = 3,
 };
 
-typedef struct VolumeDisplay {
-  float density;
-  int wireframe_type;
-  int wireframe_detail;
-  int interpolation_method;
-  int axis_slice_method;
-  int slice_axis;
-  float slice_depth;
-  int _pad[1];
-} VolumeDisplay;
+struct VolumeDisplay {
+  float density = 1.0f;
+  int wireframe_type = VOLUME_WIREFRAME_BOXES;
+  int wireframe_detail = VOLUME_WIREFRAME_COARSE;
+  int interpolation_method = 0;
+  int axis_slice_method = 0;
+  int slice_axis = 0;
+  float slice_depth = 0.5f;
+  int _pad[1] = {};
+};
 
-typedef struct VolumeRender {
-  int precision;
-  int space;
-  float step_size;
-  float clipping;
-} VolumeRender;
+struct VolumeRender {
+  int precision = VOLUME_PRECISION_HALF;
+  int space = VOLUME_SPACE_OBJECT;
+  float step_size = 0.0f;
+  float clipping = 0.001f;
+};
 
-typedef struct Volume {
+struct Volume {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
   static constexpr ID_Type id_type = ID_VO;
 #endif
 
   ID id;
-  struct AnimData *adt; /* animation data (must be immediately after id) */
+  struct AnimData *adt = nullptr; /* animation data (must be immediately after id) */
 
   /* File */
-  char filepath[/*FILE_MAX*/ 1024];
-  struct PackedFile *packedfile;
+  char filepath[/*FILE_MAX*/ 1024] = "";
+  struct PackedFile *packedfile = nullptr;
 
   /* Sequence */
-  char is_sequence;
-  char sequence_mode;
-  char _pad1[2];
-  int frame_start;
-  int frame_duration;
-  int frame_offset;
+  char is_sequence = 0;
+  char sequence_mode = 0;
+  char _pad1[2] = {};
+  int frame_start = 1;
+  int frame_duration = 0;
+  int frame_offset = 0;
 
   /* Flag */
-  int flag;
+  int flag = 0;
 
   /* Grids */
-  int active_grid;
+  int active_grid = 0;
 
   /* Material */
-  struct Material **mat;
-  short totcol;
-  short _pad2[3];
+  struct Material **mat = nullptr;
+  short totcol = 0;
+  short _pad2[3] = {};
 
   /* Render & Display Settings */
   VolumeRender render;
   VolumeDisplay display;
 
   /* Velocity field name. */
-  char velocity_grid[64];
+  char velocity_grid[64] = "";
 
-  char _pad3[3];
+  char _pad3[3] = {};
 
   /* Unit of time the velocity vectors are expressed in.
    * This uses the same enumeration values as #CacheFile.velocity_unit. */
-  char velocity_unit;
+  char velocity_unit = 0;
 
   /* Factor for velocity vector for artistic control. */
-  float velocity_scale;
+  float velocity_scale = 1.0f;
 
   /* Draw Cache */
-  void *batch_cache;
+  void *batch_cache = nullptr;
 
   /* Runtime Data */
-  VolumeRuntimeHandle *runtime;
-} Volume;
+  VolumeRuntimeHandle *runtime = nullptr;
+};
 
 /* Only one material supported currently. */
 #define VOLUME_MATERIAL_NR 1

@@ -26,7 +26,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryTransformGizmo *storage = MEM_callocN<NodeGeometryTransformGizmo>(__func__);
+  NodeGeometryTransformGizmo *storage = MEM_new_for_free<NodeGeometryTransformGizmo>(__func__);
   storage->flag = (GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_X |
                    GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_Y |
                    GEO_NODE_TRANSFORM_GIZMO_USE_TRANSLATION_Z |

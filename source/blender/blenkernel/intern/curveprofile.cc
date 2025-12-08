@@ -32,7 +32,7 @@
 
 CurveProfile *BKE_curveprofile_add(eCurveProfilePresets preset)
 {
-  CurveProfile *profile = MEM_callocN<CurveProfile>(__func__);
+  CurveProfile *profile = MEM_new_for_free<CurveProfile>(__func__);
 
   BKE_curveprofile_set_defaults(profile);
   profile->preset = preset;
@@ -206,8 +206,8 @@ bool BKE_curveprofile_remove_point(CurveProfile *profile, CurveProfilePoint *poi
     return false;
   }
 
-  CurveProfilePoint *new_path = MEM_malloc_arrayN<CurveProfilePoint>(size_t(profile->path_len),
-                                                                     __func__);
+  CurveProfilePoint *new_path = MEM_new_array_for_free<CurveProfilePoint>(
+      size_t(profile->path_len), __func__);
 
   int i_delete = int(point - profile->path);
   BLI_assert(i_delete > 0);
@@ -227,8 +227,8 @@ bool BKE_curveprofile_remove_point(CurveProfile *profile, CurveProfilePoint *poi
 void BKE_curveprofile_remove_by_flag(CurveProfile *profile, const short flag)
 {
   /* Copy every point without the flag into the new path. */
-  CurveProfilePoint *new_path = MEM_malloc_arrayN<CurveProfilePoint>(size_t(profile->path_len),
-                                                                     __func__);
+  CurveProfilePoint *new_path = MEM_new_array_for_free<CurveProfilePoint>(
+      size_t(profile->path_len), __func__);
 
   /* Build the new list without any of the points with the flag. Keep the first and last points. */
   int i_new = 1;
@@ -288,8 +288,8 @@ CurveProfilePoint *BKE_curveprofile_insert(CurveProfile *profile, float x, float
 
   /* Insert the new point at the location we found and copy all of the old points in as well. */
   profile->path_len++;
-  CurveProfilePoint *new_path = MEM_malloc_arrayN<CurveProfilePoint>(size_t(profile->path_len),
-                                                                     __func__);
+  CurveProfilePoint *new_path = MEM_new_array_for_free<CurveProfilePoint>(
+      size_t(profile->path_len), __func__);
   CurveProfilePoint *new_pt = nullptr;
   for (int i_new = 0, i_old = 0; i_new < profile->path_len; i_new++) {
     if (i_new != i_insert) {
@@ -346,8 +346,8 @@ void BKE_curveprofile_reverse(CurveProfile *profile)
   if (profile->path_len == 2) {
     return;
   }
-  CurveProfilePoint *new_path = MEM_malloc_arrayN<CurveProfilePoint>(size_t(profile->path_len),
-                                                                     __func__);
+  CurveProfilePoint *new_path = MEM_new_array_for_free<CurveProfilePoint>(
+      size_t(profile->path_len), __func__);
   /* Mirror the new points across the y = x line */
   for (int i = 0; i < profile->path_len; i++) {
     int i_reversed = profile->path_len - i - 1;
@@ -458,7 +458,7 @@ void BKE_curveprofile_reset(CurveProfile *profile)
       break;
   }
 
-  profile->path = MEM_calloc_arrayN<CurveProfilePoint>(profile->path_len, __func__);
+  profile->path = MEM_new_array_for_free<CurveProfilePoint>(profile->path_len, __func__);
 
   switch (preset) {
     case PROF_PRESET_LINE:
@@ -808,7 +808,7 @@ void BKE_curveprofile_set_defaults(CurveProfile *profile)
   profile->clip_rect = profile->view_rect;
 
   profile->path_len = 2;
-  profile->path = MEM_calloc_arrayN<CurveProfilePoint>(2, __func__);
+  profile->path = MEM_new_array_for_free<CurveProfilePoint>(2, __func__);
 
   profile->path[0].x = 1.0f;
   profile->path[0].y = 0.0f;
@@ -923,8 +923,8 @@ static void create_samples_even_spacing(CurveProfile *profile,
 static void curveprofile_make_table(CurveProfile *profile)
 {
   int n_samples = BKE_curveprofile_table_size(profile);
-  CurveProfilePoint *new_table = MEM_calloc_arrayN<CurveProfilePoint>(size_t(n_samples) + 1,
-                                                                      __func__);
+  CurveProfilePoint *new_table = MEM_new_array_for_free<CurveProfilePoint>((n_samples + 1),
+                                                                           __func__);
 
   if (n_samples > 1) {
     create_samples(profile, n_samples - 1, false, new_table);
@@ -948,8 +948,8 @@ static void curveprofile_make_segments_table(CurveProfile *profile)
   if (n_samples <= 0) {
     return;
   }
-  CurveProfilePoint *new_table = MEM_calloc_arrayN<CurveProfilePoint>(size_t(n_samples) + 1,
-                                                                      __func__);
+  CurveProfilePoint *new_table = MEM_new_array_for_free<CurveProfilePoint>((n_samples + 1),
+                                                                           __func__);
 
   if (profile->flag & PROF_SAMPLE_EVEN_LENGTHS) {
     /* Even length sampling incompatible with only straight edge sampling for now. */

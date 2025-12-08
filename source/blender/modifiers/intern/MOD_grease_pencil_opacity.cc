@@ -6,7 +6,6 @@
  * \ingroup modifiers
  */
 
-#include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
 
 #include "BKE_colortools.hh"
@@ -39,10 +38,7 @@ using bke::greasepencil::Layer;
 static void init_data(ModifierData *md)
 {
   auto *omd = reinterpret_cast<GreasePencilOpacityModifierData *>(md);
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(omd, modifier));
-
-  MEMCPY_STRUCT_AFTER(omd, DNA_struct_default_get(GreasePencilOpacityModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(omd, modifier);
   modifier::greasepencil::init_influence_data(&omd->influence, true);
 }
 

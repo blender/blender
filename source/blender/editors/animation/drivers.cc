@@ -107,7 +107,7 @@ FCurve *alloc_driver_fcurve(const char rna_path[],
 
   if (!ELEM(creation_mode, DRIVER_FCURVE_LOOKUP_ONLY, DRIVER_FCURVE_EMPTY)) {
     /* add some new driver data */
-    fcu->driver = MEM_callocN<ChannelDriver>("ChannelDriver");
+    fcu->driver = MEM_new_for_free<ChannelDriver>("ChannelDriver");
 
     /* Add 2 keyframes so that user has something to work with
      * - These are configured to 0,0 and 1,1 to give a 1-1 mapping

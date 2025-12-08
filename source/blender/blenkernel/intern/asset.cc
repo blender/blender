@@ -10,7 +10,6 @@
 #include <utility>
 
 #include "DNA_ID.h"
-#include "DNA_defaults.h"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
@@ -31,8 +30,7 @@ using namespace blender;
 
 AssetMetaData *BKE_asset_metadata_create()
 {
-  const AssetMetaData *default_metadata = DNA_struct_default_get(AssetMetaData);
-  return MEM_new<AssetMetaData>(__func__, *default_metadata);
+  return MEM_new<AssetMetaData>(__func__);
 }
 
 void BKE_asset_metadata_free(AssetMetaData **asset_data)
@@ -97,7 +95,7 @@ AssetMetaData::~AssetMetaData()
 
 static AssetTag *asset_metadata_tag_add(AssetMetaData *asset_data, const char *const name)
 {
-  AssetTag *tag = MEM_callocN<AssetTag>(__func__);
+  AssetTag *tag = MEM_new_for_free<AssetTag>(__func__);
   STRNCPY_UTF8(tag->name, name);
 
   BLI_addtail(&asset_data->tags, tag);
@@ -148,7 +146,7 @@ void BKE_asset_metadata_tag_remove(AssetMetaData *asset_data, AssetTag *tag)
 
 void BKE_asset_library_reference_init_default(AssetLibraryReference *library_ref)
 {
-  memcpy(library_ref, DNA_struct_default_get(AssetLibraryReference), sizeof(*library_ref));
+  *library_ref = AssetLibraryReference();
 }
 
 void BKE_asset_metadata_catalog_id_clear(AssetMetaData *asset_data)

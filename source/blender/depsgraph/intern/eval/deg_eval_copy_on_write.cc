@@ -86,17 +86,15 @@ namespace blender::deg {
 namespace {
 
 #ifdef NESTED_ID_NASTY_WORKAROUND
-union NestedIDHackTempStorage {
-  Curve curve;
-  FreestyleLineStyle linestyle;
-  Light lamp;
-  Lattice lattice;
-  Material material;
-  Mesh mesh;
-  Scene scene;
-  Tex tex;
-  World world;
-};
+constexpr size_t NestedIDHackTempStorage = std::max({sizeof(Curve),
+                                                     sizeof(FreestyleLineStyle),
+                                                     sizeof(Light),
+                                                     sizeof(Lattice),
+                                                     sizeof(Material),
+                                                     sizeof(Mesh),
+                                                     sizeof(Scene),
+                                                     sizeof(Tex),
+                                                     sizeof(World)});
 
 /* Set nested owned ID pointers to nullptr. */
 void nested_id_hack_discard_pointers(ID *id_cow)
@@ -143,14 +141,15 @@ void nested_id_hack_discard_pointers(ID *id_cow)
 /* Set ID pointer of nested owned IDs (nodetree, key) to nullptr.
  *
  * Return pointer to a new ID to be used. */
-const ID *nested_id_hack_get_discarded_pointers(NestedIDHackTempStorage *storage, const ID *id)
+const ID *nested_id_hack_get_discarded_pointers(void *storage, const ID *id)
 {
   switch (GS(id->name)) {
 #  define SPECIAL_CASE(id_type, dna_type, field, variable) \
     case id_type: { \
-      storage->variable = dna::shallow_copy(*(dna_type *)id); \
-      storage->variable.field = nullptr; \
-      return &storage->variable.id; \
+      dna_type *data = static_cast<dna_type *>(storage); \
+      *data = dna::shallow_copy(*(dna_type *)id); \
+      data->field = nullptr; \
+      return &data->id; \
     }
 
     SPECIAL_CASE(ID_LS, FreestyleLineStyle, nodetree, linestyle)
@@ -164,9 +163,11 @@ const ID *nested_id_hack_get_discarded_pointers(NestedIDHackTempStorage *storage
     SPECIAL_CASE(ID_ME, Mesh, key, mesh)
 
     case ID_SCE: {
-      storage->scene = *(Scene *)id;
-      storage->scene.toolsettings = nullptr;
-      return &storage->scene.id;
+      Scene *scene = static_cast<Scene *>(storage);
+      *scene = blender::dna::shallow_copy(*(Scene *)id);
+      scene->toolsettings = nullptr;
+      scene->nodetree = nullptr;
+      return &scene->id;
     }
 
 #  undef SPECIAL_CASE
@@ -262,7 +263,7 @@ bool id_copy_inplace_no_main(const ID *id, ID *newid)
   }
 
 #ifdef NESTED_ID_NASTY_WORKAROUND
-  NestedIDHackTempStorage id_hack_storage;
+  uint8_t id_hack_storage[NestedIDHackTempStorage];
   id_for_copy = nested_id_hack_get_discarded_pointers(&id_hack_storage, id);
 #endif
 
@@ -291,7 +292,7 @@ bool scene_copy_inplace_no_main(const Scene *scene, Scene *new_scene)
   }
 
 #ifdef NESTED_ID_NASTY_WORKAROUND
-  NestedIDHackTempStorage id_hack_storage;
+  uint8_t id_hack_storage[NestedIDHackTempStorage];
   const ID *id_for_copy = nested_id_hack_get_discarded_pointers(&id_hack_storage, &scene->id);
 #else
   const ID *id_for_copy = &scene->id;

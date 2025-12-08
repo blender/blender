@@ -8,9 +8,16 @@
 
 #pragma once
 
+#include "BLI_math_constants.h"
+
+#include "DNA_ID.h"
+#include "DNA_anim_enums.h"
+#include "DNA_asset_types.h"
 #include "DNA_colorband_types.h"
+#include "DNA_curve_enums.h"
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
+#include "DNA_space_enums.h"
 #include "DNA_theme_types.h" /* IWYU pragma: export */
 #include "DNA_userdef_enums.h"
 #include "DNA_vec_types.h"
@@ -533,27 +540,27 @@ enum {
   ULANGUAGE_ENGLISH = 1,
 };
 
-typedef struct bAddon {
-  struct bAddon *next, *prev;
+struct bAddon {
+  struct bAddon *next = nullptr, *prev = nullptr;
   /**
    * 64 characters for a package prefix, 63 characters for the add-on name.
    */
-  char module[128];
+  char module[128] = "";
   /** User-Defined Properties on this add-on (for storing preferences). */
-  struct IDProperty *prop;
-} bAddon;
+  struct IDProperty *prop = nullptr;
+};
 
 /** #bPathCompare.flag */
 enum ePathCompare_Flag {
   USER_PATHCMP_GLOB = (1 << 0),
 };
 
-typedef struct bPathCompare {
-  struct bPathCompare *next, *prev;
-  char path[/*FILE_MAXDIR*/ 768];
-  char flag;
-  char _pad0[7];
-} bPathCompare;
+struct bPathCompare {
+  struct bPathCompare *next = nullptr, *prev = nullptr;
+  char path[/*FILE_MAXDIR*/ 768] = "";
+  char flag = 0;
+  char _pad0[7] = {};
+};
 
 enum {
   USER_MENU_TYPE_SEP = 1,
@@ -562,55 +569,55 @@ enum {
   USER_MENU_TYPE_PROP = 4,
 };
 
-typedef struct bUserMenu {
-  struct bUserMenu *next, *prev;
-  char space_type;
-  char _pad0[7];
-  char context[64];
+struct bUserMenu {
+  struct bUserMenu *next = nullptr, *prev = nullptr;
+  char space_type = 0;
+  char _pad0[7] = {};
+  char context[64] = "";
   /* bUserMenuItem */
-  ListBase items;
-} bUserMenu;
+  ListBase items = {nullptr, nullptr};
+};
 
 /** May be part of #bUserMenu or other list. */
-typedef struct bUserMenuItem {
-  struct bUserMenuItem *next, *prev;
-  char ui_name[64];
-  char type;
-  char _pad0[7];
-} bUserMenuItem;
+struct bUserMenuItem {
+  struct bUserMenuItem *next = nullptr, *prev = nullptr;
+  char ui_name[64] = "";
+  char type = 0;
+  char _pad0[7] = {};
+};
 
-typedef struct bUserMenuItem_Op {
+struct bUserMenuItem_Op {
   bUserMenuItem item;
-  char op_idname[64];
-  struct IDProperty *prop;
-  char op_prop_enum[64];
-  char opcontext; /* #blender::wm::OpCallContext */
-  char _pad0[7];
-} bUserMenuItem_Op;
+  char op_idname[64] = "";
+  struct IDProperty *prop = nullptr;
+  char op_prop_enum[64] = "";
+  char opcontext = 0; /* #blender::wm::OpCallContext */
+  char _pad0[7] = {};
+};
 
-typedef struct bUserMenuItem_Menu {
+struct bUserMenuItem_Menu {
   bUserMenuItem item;
-  char mt_idname[64];
-} bUserMenuItem_Menu;
+  char mt_idname[64] = "";
+};
 
-typedef struct bUserMenuItem_Prop {
+struct bUserMenuItem_Prop {
   bUserMenuItem item;
-  char context_data_path[256];
-  char prop_id[64];
-  int prop_index;
-  char _pad0[4];
-} bUserMenuItem_Prop;
+  char context_data_path[256] = "";
+  char prop_id[64] = "";
+  int prop_index = 0;
+  char _pad0[4] = {};
+};
 
-typedef struct bUserAssetLibrary {
-  struct bUserAssetLibrary *next, *prev;
+struct bUserAssetLibrary {
+  struct bUserAssetLibrary *next = nullptr, *prev = nullptr;
 
-  char name[/*MAX_NAME*/ 64];
-  char dirpath[/*FILE_MAX*/ 1024];
+  char name[/*MAX_NAME*/ 64] = "";
+  char dirpath[/*FILE_MAX*/ 1024] = "";
 
-  short import_method; /* eAssetImportMethod */
-  short flag;          /* eAssetLibrary_Flag */
-  char _pad0[4];
-} bUserAssetLibrary;
+  short import_method = ASSET_IMPORT_PACK;  /* eAssetImportMethod */
+  short flag = ASSET_LIBRARY_RELATIVE_PATH; /* eAssetLibrary_Flag */
+  char _pad0[4] = {};
+};
 
 enum eUserExtensionRepo_Flag {
   /** Maintain disk cache. */
@@ -631,74 +638,76 @@ enum eUserExtensionRepo_Source {
   USER_EXTENSION_REPO_SOURCE_SYSTEM = 1,
 };
 
-typedef struct bUserExtensionRepo {
-  struct bUserExtensionRepo *next, *prev;
+struct bUserExtensionRepo {
+  struct bUserExtensionRepo *next = nullptr, *prev = nullptr;
   /**
    * Unique identifier, only for display in the UI list.
    * The `module` is used for internal identifiers.
    */
-  char name[/*MAX_NAME*/ 64];
+  char name[/*MAX_NAME*/ 64] = "";
   /**
    * The unique module name (sub-module) in fact.
    *
    * Use a shorter name than #NAME_MAX to leave room for a base module prefix.
    * e.g. `bl_ext.{submodule}.{add_on}` to allow this string to fit into #bAddon::module.
    */
-  char module[/*MAX_NAME - 16*/ 48];
+  char module[/*MAX_NAME - 16*/ 48] = "";
 
   /**
    * Secret access token for remote repositories (allocated).
    * Only use when #USER_EXTENSION_REPO_FLAG_USE_ACCESS_TOKEN is set.
    */
-  char *access_token;
+  char *access_token = nullptr;
 
   /**
    * The "local" directory where extensions are stored.
    * When unset, use `{BLENDER_USER_EXTENSIONS}/{bUserExtensionRepo::module}`.
    */
-  char custom_dirpath[/*FILE_MAX*/ 1024];
-  char remote_url[/*FILE_MAX*/ 1024];
+  char custom_dirpath[/*FILE_MAX*/ 1024] = "";
+  char remote_url[/*FILE_MAX*/ 1024] = "";
 
   /** Options for the repository (#eUserExtensionRepo_Flag). */
-  uint8_t flag;
+  uint8_t flag = 0;
   /** The source location when the custom directory isn't used (#eUserExtensionRepo_Source). */
-  uint8_t source;
+  uint8_t source = 0;
 
-  char _pad0[6];
-} bUserExtensionRepo;
+  char _pad0[6] = {};
+};
 
-typedef struct SolidLight {
-  int flag;
-  float smooth;
-  float col[4], spec[4], vec[4];
-} SolidLight;
+struct SolidLight {
+  int flag = 0;
+  float smooth = 0;
+  float col[4] = {0.8f, 0.8f, 0.8f};
+  float spec[4] = {0.8f, 0.8f, 0.8f};
+  float vec[4] = {0.0f, 0.0f, 1.0f};
+};
 
-typedef struct WalkNavigation {
+struct WalkNavigation {
   /** Speed factor for look around. */
-  float mouse_speed;
-  float walk_speed;
-  float walk_speed_factor;
-  float view_height;
-  float jump_height;
+  float mouse_speed = 1;
+  float walk_speed = 2.5;
+  float walk_speed_factor = 5;
+  float view_height = 1.6;
+  float jump_height = 0.4;
   /** Duration to use for teleporting. */
-  float teleport_time;
-  short flag;
-  char _pad0[6];
-} WalkNavigation;
+  float teleport_time = 0.2;
+  short flag = 0;
+  char _pad0[6] = {};
+};
 
-typedef struct XrNavigation {
-  float vignette_intensity;
-  float turn_speed;
-  float turn_amount;
-  short flag;
-  char _pad0[2];
-} XrNavigation;
+struct XrNavigation {
+  float vignette_intensity = 60;
+  float turn_speed = DEG2RAD(60);
+  float turn_amount = DEG2RAD(30);
+  short flag = USER_XR_NAV_SNAP_TURN;
+  char _pad0[2] = {};
+};
 
-typedef struct UserDef_Runtime {
+struct UserDef_Runtime {
   /** Mark as changed so the preferences are saved on exit. */
-  char is_dirty;
-  char _pad0[7];
-} UserDef_Runtime;
+  char is_dirty = 0;
+  char _pad0[7] = {};
+};
 
 /* Toggles for unfinished 2.8 UserPref design. */
 // #define WITH_USERDEF_WORKSPACES
@@ -739,65 +748,66 @@ enum eUserPref_SpaceData_Flag {
  * Store UI data here instead of the space
  * since the space is typically a window which is freed.
  */
-typedef struct UserDef_SpaceData {
-  char section_active;
+struct UserDef_SpaceData {
+  char section_active = USER_SECTION_INTERFACE;
   /** #eUserPref_SpaceData_Flag UI options. */
-  char flag;
-  char _pad0[6];
-} UserDef_SpaceData;
+  char flag = 0;
+  char _pad0[6] = {};
+};
 
 /**
  * Storage for UI data that to keep it even after the window was closed. (Similar to
  * #UserDef_SpaceData.)
  */
-typedef struct UserDef_FileSpaceData {
-  int display_type;   /* FileSelectParams.display */
-  int thumbnail_size; /* FileSelectParams.thumbnail_size */
-  int sort_type;      /* FileSelectParams.sort */
-  int details_flags;  /* FileSelectParams.details_flags */
-  int flag;           /* FileSelectParams.flag */
-  int _pad0;
-  uint64_t filter_id; /* FileSelectParams.filter_id */
-} UserDef_FileSpaceData;
+struct UserDef_FileSpaceData {
+  int display_type = FILE_VERTICALDISPLAY; /* FileSelectParams.display */
+  int thumbnail_size = 96;                 /* FileSelectParams.thumbnail_size */
+  int sort_type = FILE_SORT_ALPHA;         /* FileSelectParams.sort */
+  int details_flags = FILE_DETAILS_SIZE |
+                      FILE_DETAILS_DATETIME; /* FileSelectParams.details_flags */
+  int flag = FILE_HIDE_DOT;                  /* FileSelectParams.flag */
+  int _pad0 = {};
+  uint64_t filter_id = FILTER_ID_ALL; /* FileSelectParams.filter_id */
+};
 
-typedef struct UserDef_TempWinBounds {
-  rctf file;
-  rctf userpref;
-  rctf image;
-  rctf graph;
-  rctf info;
-  rctf outliner;
-} UserDef_TempWinBounds;
+struct UserDef_TempWinBounds {
+  rctf file = {100.0f, 1160.0f, 350.0f, 950.0f};
+  rctf userpref = {100.0f, 940.0f, 350.0f, 900.0f};
+  rctf image = {50.0f, 1360.0f, 50.0f, 830.0f};
+  rctf graph = {50.0f, 950.0f, 200.0f, 780.0f};
+  rctf info = {100.0f, 1000.0f, 300.0f, 880.0f};
+  rctf outliner = {100.0f, 550.0f, 350.0f, 800.0f};
+};
 
 /**
  * Checking experimental members must use either the #USER_EXPERIMENTAL_TEST() macro
  * or the #USER_DEVELOPER_TOOL_TEST() macro.
  */
-typedef struct UserDef_Experimental {
+struct UserDef_Experimental {
   /* Debug options, always available. */
-  char use_undo_legacy;
-  char no_override_auto_resync;
-  char use_cycles_debug;
-  char use_eevee_debug;
-  char show_asset_debug_info;
-  char no_asset_indexing;
-  char use_viewport_debug;
-  char use_all_linked_data_direct;
-  char use_extensions_debug;
-  char use_recompute_usercount_on_save_debug;
-  char write_legacy_blend_file_format;
-  char no_data_block_packing;
-  char use_paint_debug;
-  char SANITIZE_AFTER_HERE;
+  char use_undo_legacy = 0;
+  char no_override_auto_resync = 0;
+  char use_cycles_debug = 0;
+  char use_eevee_debug = 0;
+  char show_asset_debug_info = 0;
+  char no_asset_indexing = 0;
+  char use_viewport_debug = 0;
+  char use_all_linked_data_direct = 0;
+  char use_extensions_debug = 0;
+  char use_recompute_usercount_on_save_debug = 0;
+  char write_legacy_blend_file_format = 0;
+  char no_data_block_packing = 0;
+  char use_paint_debug = 0;
+  char SANITIZE_AFTER_HERE = {};
   /* The following options are automatically sanitized (set to 0)
    * when the release cycle is not alpha. */
-  char use_new_curves_tools;
-  char use_extended_asset_browser;
-  char use_sculpt_texture_paint;
-  char use_shader_node_previews;
-  char use_geometry_nodes_lists;
-  char _pad[5];
-} UserDef_Experimental;
+  char use_new_curves_tools = 0;
+  char use_extended_asset_browser = 0;
+  char use_sculpt_texture_paint = 0;
+  char use_shader_node_previews = 0;
+  char use_geometry_nodes_lists = 0;
+  char _pad[5] = {};
+};
 
 #define USER_EXPERIMENTAL_TEST(userdef, member) (((userdef)->experimental).member)
 
@@ -807,118 +817,126 @@ typedef struct UserDef_Experimental {
 /**
  * Container to store multiple directory paths and a name for each as a #ListBase.
  */
-typedef struct bUserScriptDirectory {
-  struct bUserScriptDirectory *next, *prev;
+struct bUserScriptDirectory {
+  struct bUserScriptDirectory *next = nullptr, *prev = nullptr;
 
   /** Name must be unique. */
-  char name[/*MAX_NAME*/ 64];
-  char dir_path[/*FILE_MAXDIR*/ 768];
-} bUserScriptDirectory;
+  char name[/*MAX_NAME*/ 64] = "";
+  char dir_path[/*FILE_MAXDIR*/ 768] = "";
+};
 
 /**
  * Settings for an asset shelf, stored in the Preferences. Most settings are still stored in the
  * asset shelf instance in #AssetShelfSettings. This is just for the options that should be shared
  * as Preferences.
  */
-typedef struct bUserAssetShelfSettings {
-  struct bUserAssetShelfSettings *next, *prev;
+struct bUserAssetShelfSettings {
+  struct bUserAssetShelfSettings *next = nullptr, *prev = nullptr;
 
   /** Identifier that matches the #AssetShelfType.idname of the shelf these settings apply to. */
-  char shelf_idname[/*MAX_NAME*/ 64];
+  char shelf_idname[/*MAX_NAME*/ 64] = "";
 
-  ListBase enabled_catalog_paths; /* #AssetCatalogPathLink */
-} bUserAssetShelfSettings;
+  ListBase enabled_catalog_paths = {nullptr, nullptr}; /* #AssetCatalogPathLink */
+};
 
 /**
  * Main user preferences data, typically accessed from #U.
  * See: #BKE_blendfile_userdef_from_defaults & #BKE_blendfile_userdef_read.
  *
- * \note This is either loaded from the file #BLENDER_USERPREF_FILE or from memory, see #U_default.
+ * \note This is either loaded from the file #BLENDER_USERPREF_FILE or from memory.
  */
-typedef struct UserDef {
+struct UserDef {
   DNA_DEFINE_CXX_METHODS(UserDef)
 
   /** UserDef has separate do-version handling, and can be read from other files. */
-  int versionfile, subversionfile;
+  int versionfile = 0, subversionfile = 0;
 
   /** #eUserPref_Flag. */
-  int flag;
+  int flag = (USER_AUTOSAVE | USER_TOOLTIPS | USER_RELPATHS | USER_RELEASECONFIRM |
+              USER_SCRIPT_AUTOEXEC_DISABLE | USER_NONEGFRAMES | USER_FILECOMPRESS);
   /** #eDupli_ID_Flags. */
-  unsigned int dupflag;
+  unsigned int dupflag = USER_DUP_MESH | USER_DUP_CURVE | USER_DUP_SURF | USER_DUP_LATTICE |
+                         USER_DUP_FONT | USER_DUP_MBALL | USER_DUP_LAMP | USER_DUP_ARM |
+                         USER_DUP_CAMERA | USER_DUP_SPEAKER | USER_DUP_ACT | USER_DUP_LIGHTPROBE |
+                         USER_DUP_GPENCIL | USER_DUP_CURVES | USER_DUP_POINTCLOUD;
   /** #eUserPref_PrefFlag preferences for the preferences. */
-  char pref_flag;
-  char savetime;
-  char mouse_emulate_3_button_modifier;
+  char pref_flag = USER_PREF_FLAG_SAVE;
+  char savetime = 2;
+  char mouse_emulate_3_button_modifier = 0;
   /**
    * Workaround for WAYLAND (at time of writing compositors don't support this info).
    * #eUserpref_TrackpadScrollDir type
    * TODO: Remove this once this API is better supported by Wayland compositors, see #107676.
    */
-  char trackpad_scroll_direction;
+  char trackpad_scroll_direction = 0;
   /**  length. */
-  char tempdir[/*FILE_MAXDIR*/ 768];
-  char fontdir[/*FILE_MAXDIR*/ 768];
-  char renderdir[/*FILE_MAX*/ 1024];
+  char tempdir[/*FILE_MAXDIR*/ 768] = "";
+  char fontdir[/*FILE_MAXDIR*/ 768] = "//";
+  char renderdir[/*FILE_MAX*/ 1024] = "//";
   /* EXR cache path */
-  char render_cachedir[/*FILE_MAXDIR*/ 768];
-  char textudir[/*FILE_MAXDIR*/ 768];
+  char render_cachedir[/*FILE_MAXDIR*/ 768] = "";
+  char textudir[/*FILE_MAXDIR*/ 768] = "//";
   /* Deprecated, use #UserDef.script_directories instead. */
-  char pythondir_legacy[/*FILE_MAXDIR*/ 768] DNA_DEPRECATED;
-  char sounddir[/*FILE_MAXDIR*/ 768];
-  char i18ndir[/*FILE_MAXDIR*/ 768];
-  char image_editor[/*FILE_MAX*/ 1024];
-  char text_editor[/*FILE_MAX*/ 1024];
-  char text_editor_args[256];
-  char anim_player[/*FILE_MAX*/ 1024];
-  int anim_player_preset;
+  DNA_DEPRECATED char pythondir_legacy[/*FILE_MAXDIR*/ 768] = "";
+  char sounddir[/*FILE_MAXDIR*/ 768] = "//";
+  char i18ndir[/*FILE_MAXDIR*/ 768] = "";
+  char image_editor[/*FILE_MAX*/ 1024] = "";
+  char text_editor[/*FILE_MAX*/ 1024] = "";
+  char text_editor_args[256] = "";
+  char anim_player[/*FILE_MAX*/ 1024] = "";
+  int anim_player_preset = 0;
 
   /** Minimum spacing between grid-lines in View2D grids. */
-  short v2d_min_gridsize;
+  short v2d_min_gridsize = 45;
   /** #eTimecodeStyles, style of time-code display. */
-  short timecode_style;
+  short timecode_style = USER_TIMECODE_MINIMAL;
 
-  short versions;
-  short dbl_click_time;
+  short versions = 1;
+  short dbl_click_time = 350;
 
-  char _pad0[2];
+  char _pad0[2] = {};
 
   /** Space around each area. Inter-editor gap width. */
-  char border_width;
+  char border_width = 2;
 
-  char mini_axis_type;
+  char mini_axis_type = USER_MINI_AXIS_TYPE_GIZMO;
   /** #eUserpref_UI_Flag. */
-  int uiflag;
+  int uiflag = USER_FILTERFILEEXTS | USER_DRAWVIEWINFO | USER_PLAINMENUS |
+               USER_LOCK_CURSOR_ADJUST | USER_DEPTH_CURSOR | USER_AUTOPERSP |
+               USER_NODE_AUTO_OFFSET | USER_GLOBALUNDO | USER_SHOW_GIZMO_NAVIGATE |
+               USER_SHOW_VIEWPORTNAME | USER_SHOW_FPS | USER_CONTINUOUS_MOUSE | USER_SAVE_PROMPT;
   /** #eUserpref_UI_Flag2. */
-  char uiflag2;
-  char gpu_flag;
-  char _pad8[6];
+  char uiflag2 = USER_REGION_OVERLAP;
+  char gpu_flag = USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE | USER_GPU_FLAG_SUBDIVISION_EVALUATION;
+  char _pad8[6] = {};
   /* Experimental flag for app-templates to make changes to behavior
    * which are outside the scope of typical preferences. */
-  char app_flag;
-  char viewzoom;
-  short language;
+  char app_flag = 0;
+  char viewzoom = USER_ZOOM_DOLLY;
+  /** Default language of English (1), not Automatic (0). */
+  short language = 1;
 
-  int mixbufsize;
-  int audiodevice;
-  int audiorate;
-  int audioformat;
-  int audiochannels;
+  int mixbufsize = 2048;
+  int audiodevice = 0;
+  int audiorate = 48000;
+  int audioformat = 0x24;
+  int audiochannels = 2;
 
   /** Setting for UI scale (fractional), before screen DPI has been applied. */
-  float ui_scale;
+  float ui_scale = 1.0;
   /**
    * Setting for UI line width.
    *
    * In most cases this should not be used directly it is an offset used to calculate `pixelsize`
    * which should be used to define the line width.
    */
-  int ui_line_width;
+  int ui_line_width = 0;
   /** Runtime, full DPI divided by `pixelsize`. */
-  int dpi;
+  int dpi = 0;
   /** Runtime multiplier to scale UI elements. Use macro UI_SCALE_FAC instead of this. */
-  float scale_factor;
+  float scale_factor = 0;
   /** Runtime, `1.0 / scale_factor` */
-  float inv_scale_factor;
+  float inv_scale_factor = 0;
   /**
    * Runtime, calculated from line-width and point-size based on DPI.
    *
@@ -931,34 +949,34 @@ typedef struct UserDef {
    * \note This should never be used as a UI scale value otherwise changing the line-width
    * could double or halve the size of UI elements. Use #UI_SCALE_FAC instead.
    */
-  float pixelsize;
+  float pixelsize = 1;
   /** Deprecated, for forward compatibility. */
-  int virtual_pixel;
+  int virtual_pixel = 0;
 
   /** Console scroll-back limit. */
-  int scrollback;
+  int scrollback = 256;
   /** Node insert offset (aka auto-offset) margin, but might be useful for later stuff as well. */
-  char node_margin;
-  char node_preview_res;
+  char node_margin = 40;
+  char node_preview_res = 120;
   /** #eUserpref_Translation_Flags. */
-  short transopts;
-  short menuthreshold1, menuthreshold2;
+  short transopts = USER_TR_TOOLTIPS | USER_TR_IFACE | USER_TR_REPORTS | USER_TR_NEWDATANAME;
+  short menuthreshold1 = 5, menuthreshold2 = 2;
 
   /** Startup application template. */
-  char app_template[64];
+  char app_template[64] = "";
 
   /**
    * A list of themes (#bTheme), the first is only used currently.
    * But there may be multiple themes in the list.
    */
-  struct ListBase themes;
-  struct ListBase uifonts;
-  struct ListBase uistyles;
-  struct ListBase user_keymaps;
+  ListBase themes = {nullptr, nullptr};
+  ListBase uifonts = {nullptr, nullptr};
+  ListBase uistyles = {nullptr, nullptr};
+  ListBase user_keymaps = {nullptr, nullptr};
   /** #wmKeyConfigPref. */
-  struct ListBase user_keyconfig_prefs;
-  struct ListBase addons;
-  struct ListBase autoexec_paths;
+  ListBase user_keyconfig_prefs = {nullptr, nullptr};
+  ListBase addons = {nullptr, nullptr};
+  ListBase autoexec_paths = {nullptr, nullptr};
   /**
    * Optional user locations for Python scripts.
    *
@@ -974,213 +992,219 @@ typedef struct UserDef {
    * launch with a new version of Blender. In this case setting the script path on top of
    * factory settings will work without problems.
    */
-  ListBase script_directories; /* #bUserScriptDirectory */
+  ListBase script_directories = {nullptr, nullptr}; /* #bUserScriptDirectory */
   /** #bUserMenu. */
-  struct ListBase user_menus;
+  ListBase user_menus = {nullptr, nullptr};
   /** #bUserAssetLibrary */
-  struct ListBase asset_libraries;
+  ListBase asset_libraries = {nullptr, nullptr};
   /** #bUserExtensionRepo */
-  struct ListBase extension_repos;
-  struct ListBase asset_shelves_settings; /* #bUserAssetShelfSettings */
+  ListBase extension_repos = {nullptr, nullptr};
+  ListBase asset_shelves_settings = {nullptr, nullptr}; /* #bUserAssetShelfSettings */
 
-  char keyconfigstr[64];
+  char keyconfigstr[64] = "Blender";
 
   /** Index of the asset library being edited in the Preferences UI. */
-  short active_asset_library;
+  short active_asset_library = 0;
 
   /** Index of the extension repo in the Preferences UI. */
-  short active_extension_repo;
+  short active_extension_repo = 0;
   /** Flag for all extensions (#eUserPref_ExtensionFlag). */
-  char extension_flag;
+  char extension_flag = 0;
 
   /* Network settings, used by extensions but not specific to extensions. */
 
   /** Time in seconds to wait before timing out online operation (0 uses the systems default). */
-  uint8_t network_timeout;
+  uint8_t network_timeout = 10;
   /** Maximum number of simulations connection limit for online operations. */
-  uint8_t network_connection_limit;
+  uint8_t network_connection_limit = 5;
 
-  char _pad14[3];
+  char _pad14[3] = {};
 
-  short undosteps;
-  int undomemory;
-  float gpu_viewport_quality DNA_DEPRECATED;
-  short gp_manhattandist, gp_euclideandist, gp_eraser;
+  short undosteps = 32;
+  int undomemory = 0;
+  DNA_DEPRECATED float gpu_viewport_quality = 0;
+  short gp_manhattandist = 1, gp_euclideandist = 2, gp_eraser = 25;
   /** #eGP_UserdefSettings. */
-  short gp_settings;
-  char _pad13[4];
+  short gp_settings = 0;
+  char _pad13[4] = {};
   struct SolidLight light_param[4];
-  float light_ambient[3];
-  char gizmo_flag;
+  float light_ambient[3] = {};
+  char gizmo_flag = USER_GIZMO_DRAW;
   /** Generic gizmo size. */
-  char gizmo_size;
+  char gizmo_size = 75;
   /** Navigate gizmo size. */
-  char gizmo_size_navigate_v3d;
-  char _pad3[5];
-  short edit_studio_light;
-  short lookdev_sphere_size;
-  short vbotimeout, vbocollectrate;
-  short textimeout, texcollectrate;
-  int memcachelimit;
+  char gizmo_size_navigate_v3d = 80;
+  char _pad3[5] = {};
+  short edit_studio_light = 0;
+  short lookdev_sphere_size = 150;
+  short vbotimeout = 120, vbocollectrate = 60;
+  short textimeout = 120, texcollectrate = 60;
+  int memcachelimit = 4096;
   /** Unused. */
-  int prefetchframes;
+  int prefetchframes = 0;
   /** Control the rotation step of the view when PAD2, PAD4, PAD6&PAD8 is use. */
-  float pad_rot_angle;
-  char _pad12[4];
+  float pad_rot_angle = 15;
+  char _pad12[4] = {};
   /** Rotating view icon size. */
-  short rvisize;
+  short rvisize = 25;
   /** Rotating view icon brightness. */
-  short rvibright;
+  short rvibright = 8;
   /** Maximum number of recently used files to remember. */
-  short recent_files;
+  short recent_files = 200;
   /** Milliseconds to spend spinning the view. */
-  short smooth_viewtx;
-  short glreslimit;
+  short smooth_viewtx = 200;
+  short glreslimit = 0;
   /** #eColorPicker_Types. */
-  short color_picker_type;
+  short color_picker_type = USER_CP_CIRCLE_HSV;
   /** Curve smoothing type for newly added F-Curves. */
-  char auto_smoothing_new;
+  char auto_smoothing_new = FCURVE_SMOOTH_CONT_ACCEL;
   /** Interpolation mode for newly added F-Curves. */
-  char ipo_new;
+  char ipo_new = BEZT_IPO_BEZ;
   /** Handle types for newly added keyframes. */
-  char keyhandles_new;
-  char _pad11[4];
+  char keyhandles_new = HD_AUTO_ANIM;
+  char _pad11[4] = {};
   /** #eZoomFrame_Mode. */
-  char view_frame_type;
+  char view_frame_type = ZOOM_FRAME_MODE_KEEP_RANGE;
 
   /** Number of keyframes to zoom around current frame. */
-  int view_frame_keyframes;
+  int view_frame_keyframes = 0;
   /** Seconds to zoom around current frame. */
-  float view_frame_seconds;
+  float view_frame_seconds = 0;
 
   /** Preferred device/vendor for GPU device selection. */
-  int gpu_preferred_index;
-  uint32_t gpu_preferred_vendor_id;
-  uint32_t gpu_preferred_device_id;
+  int gpu_preferred_index = 0;
+  uint32_t gpu_preferred_vendor_id = 0;
+  uint32_t gpu_preferred_device_id = 0;
 
   /** Max number of parallel shader compilation workers. */
-  short gpu_shader_workers;
+  short gpu_shader_workers = 0;
   /** eUserpref_ShaderCompileMethod (OpenGL only). */
-  short shader_compilation_method;
+  short shader_compilation_method = USER_SHADER_COMPILE_THREAD;
 
-  char _pad16[2];
+  char _pad16[2] = {};
 
   /** #GPUBackendType */
-  short gpu_backend;
+  short gpu_backend = USER_GPU_BACKEND_DEFAULT;
 
   /** Number of samples for FPS display calculations. */
-  short playback_fps_samples;
+  short playback_fps_samples = 8;
 
   /** Private, defaults to 20 for 72 DPI setting. */
-  short widget_unit;
-  short anisotropic_filter;
+  short widget_unit = 0;
+  short anisotropic_filter = 2;
 
   /** Tablet API to use (Windows only). */
-  short tablet_api;
+  short tablet_api = USER_TABLET_AUTOMATIC;
 
   /** Raw tablet pressure that maps to 100%. */
-  float pressure_threshold_max;
+  float pressure_threshold_max = 1.0;
   /** Curve non-linearity parameter. */
-  float pressure_softness;
+  float pressure_softness = 0;
   /** #eUserPref_Tablet_Flags */
-  int tablet_flag;
+  int tablet_flag = 0;
 
   /** 3D mouse: overall translation sensitivity. */
-  float ndof_translation_sensitivity;
+  float ndof_translation_sensitivity = 4.0;
   /** 3D mouse: overall rotation sensitivity. */
-  float ndof_rotation_sensitivity;
+  float ndof_rotation_sensitivity = 4.0;
   /** 3D mouse: dead-zone. */
-  float ndof_deadzone;
+  float ndof_deadzone = 0;
   /** #eNdof_Flag, flags for 3D mouse. */
-  int ndof_flag;
+  int ndof_flag = NDOF_SHOW_GUIDE_ORBIT_CENTER | NDOF_ORBIT_CENTER_AUTO | NDOF_LOCK_HORIZON |
+                  NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM | NDOF_SHOULD_ROTATE | NDOF_CAMERA_PAN_ZOOM;
   /** #eNdof_Navigation_Mode, current navigation mode. */
-  uint8_t ndof_navigation_mode;
-  char _pad17[1];
+  uint8_t ndof_navigation_mode = 0;
+  char _pad17[1] = {};
 
   /** eImageDrawMethod, Method to be used to draw the images
    * (AUTO, GLSL, Textures or DrawPixels) */
-  short image_draw_method;
+  short image_draw_method = IMAGE_DRAW_METHOD_AUTO;
 
-  float glalphaclip;
+  float glalphaclip = 0.004;
 
   /** #eAutokey_Mode, auto-keying mode. */
-  short autokey_mode;
+  short autokey_mode = (AUTOKEY_MODE_NORMAL & ~AUTOKEY_ON);
   /** Flags for inserting keyframes. */
-  short keying_flag;
+  short keying_flag = KEYING_FLAG_XYZ2RGB | AUTOKEY_FLAG_INSERTNEEDED;
   /** Flags for which channels to insert keys at. */
-  short key_insert_channels;  // eKeyInsertChannels
-  char _pad15[2];
+  short key_insert_channels = USER_ANIM_KEY_CHANNEL_LOCATION | USER_ANIM_KEY_CHANNEL_ROTATION |
+                              USER_ANIM_KEY_CHANNEL_SCALE |
+                              USER_ANIM_KEY_CHANNEL_CUSTOM_PROPERTIES;  // eKeyInsertChannels
+  char _pad15[2] = {};
   /** Flags for animation. */
-  short animation_flag;
+  short animation_flag = USER_ANIM_HIGH_QUALITY_DRAWING;
 
   /** Options for text rendering. */
-  char text_render;
-  char navigation_mode;
+  char text_render = 0;
+  char navigation_mode = VIEW_NAVIGATION_WALK;
 
   /** Turn-table rotation amount per-pixel in radians. Scaled with DPI. */
-  float view_rotate_sensitivity_turntable;
+  float view_rotate_sensitivity_turntable = DEG2RAD(0.4);
   /** Track-ball rotation scale. */
-  float view_rotate_sensitivity_trackball;
+  float view_rotate_sensitivity_trackball = 1.0f;
 
   /** From texture.h. */
   struct ColorBand coba_weight;
 
-  float sculpt_paint_overlay_col[3];
+  float sculpt_paint_overlay_col[3] = {0, 0, 0};
   /** Default color for newly created Grease Pencil layers. */
-  float gpencil_new_layer_col[4];
+  float gpencil_new_layer_col[4] = {0.38, 0.61, 0.78, 0.9};
 
   /** Drag pixels (scaled by DPI). */
-  char drag_threshold_mouse;
-  char drag_threshold_tablet;
-  char drag_threshold;
-  char move_threshold;
+  char drag_threshold_mouse = 3;
+  char drag_threshold_tablet = 10;
+  char drag_threshold = 30;
+  char move_threshold = 2;
 
-  char font_path_ui[/*FILE_MAX*/ 1024];
-  char font_path_ui_mono[/*FILE_MAX*/ 1024];
+  char font_path_ui[/*FILE_MAX*/ 1024] = "";
+  char font_path_ui_mono[/*FILE_MAX*/ 1024] = "";
 
   /** Legacy, for backwards compatibility only. */
-  int compute_device_type;
+  int compute_device_type = 0;
 
   /** Opacity of inactive F-Curves in F-Curve Editor. */
-  float fcu_inactive_alpha;
+  float fcu_inactive_alpha = 0.25;
 
   /**
    * If keeping a pie menu spawn button pressed after this time,
    * it turns into a drag/release pie menu.
    */
-  short pie_tap_timeout;
+  short pie_tap_timeout = 20;
   /**
    * Direction in the pie menu will always be calculated from the
    * initial position within this time limit.
    */
-  short pie_initial_timeout;
-  short pie_animation_timeout;
-  short pie_menu_confirm;
+  short pie_initial_timeout = 0;
+  short pie_animation_timeout = 6;
+  short pie_menu_confirm = 0;
   /** Pie menu radius. */
-  short pie_menu_radius;
+  short pie_menu_radius = 100;
   /** Pie menu distance from center before a direction is set. */
-  short pie_menu_threshold;
+  short pie_menu_threshold = 12;
 
-  int sequencer_editor_flag; /* eUserpref_SeqEditorFlags */
+  int sequencer_editor_flag = USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT; /* eUserpref_SeqEditorFlags */
 
-  char factor_display_type;
+  char factor_display_type = USER_FACTOR_AS_FACTOR;
 
-  char viewport_aa;
+  char viewport_aa = 8;
 
-  char render_display_type;      /* eUserpref_RenderDisplayType */
-  char filebrowser_display_type; /* eUserpref_TempSpaceDisplayType */
-  char preferences_display_type; /* eUserpref_TempSpaceDisplayType */
-  char _pad18[7];
+  char render_display_type = USER_RENDER_DISPLAY_WINDOW; /* eUserpref_RenderDisplayType */
+  char filebrowser_display_type =
+      USER_TEMP_SPACE_DISPLAY_WINDOW; /* eUserpref_TempSpaceDisplayType */
+  char preferences_display_type =
+      USER_TEMP_SPACE_DISPLAY_WINDOW; /* eUserpref_TempSpaceDisplayType */
+  char _pad18[7] = {};
 
-  short sequencer_proxy_setup; /* eUserpref_SeqProxySetup */
-  short _pad1;
+  short sequencer_proxy_setup = USER_SEQ_PROXY_SETUP_AUTOMATIC; /* eUserpref_SeqProxySetup */
+  short _pad1 = {};
 
-  float collection_instance_empty_size;
-  char text_flag;
-  char _pad10[1];
+  float collection_instance_empty_size = 1.0f;
+  char text_flag = 0;
+  char _pad10[1] = {};
 
-  char file_preview_type; /* eUserpref_File_Preview_Type */
-  char statusbar_flag;    /* eUserpref_StatusBar_Flag */
+  char file_preview_type = USER_FILE_PREVIEW_AUTO; /* eUserpref_File_Preview_Type */
+  char statusbar_flag = STATUSBAR_SHOW_VERSION |
+                        STATUSBAR_SHOW_EXTENSIONS_UPDATES; /* eUserpref_StatusBar_Flag */
 
   struct WalkNavigation walk_navigation;
   struct XrNavigation xr_navigation;
@@ -1195,7 +1219,7 @@ typedef struct UserDef {
 
   /** Runtime data (keep last). */
   UserDef_Runtime runtime;
-} UserDef;
+};
 
 /** From `source/blender/blenkernel/intern/blender.cc`. */
 extern UserDef U;

@@ -14,7 +14,6 @@
 #include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_defaults.h"
 #include "DNA_genfile.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
@@ -652,7 +651,7 @@ static void add_image_editor_asset_shelf(Main &bmain)
         if (ARegion *new_shelf_region = do_versions_add_region_if_not_found(
                 regionbase, RGN_TYPE_ASSET_SHELF, __func__, RGN_TYPE_TOOL_HEADER))
         {
-          new_shelf_region->regiondata = MEM_callocN<RegionAssetShelf>(__func__);
+          new_shelf_region->regiondata = MEM_new_for_free<RegionAssetShelf>(__func__);
           new_shelf_region->alignment = RGN_ALIGN_BOTTOM;
           new_shelf_region->flag |= RGN_FLAG_HIDDEN;
         }
@@ -1012,7 +1011,7 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 26)) {
     if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "float", "shadow_resolution_scale"))
     {
-      SceneEEVEE default_scene_eevee = *DNA_struct_default_get(SceneEEVEE);
+      SceneEEVEE default_scene_eevee;
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.shadow_resolution_scale = default_scene_eevee.shadow_resolution_scale;
       }
@@ -1165,11 +1164,11 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 37)) {
-    const World *default_world = DNA_struct_default_get(World);
+    const World default_world;
     LISTBASE_FOREACH (World *, world, &bmain->worlds) {
-      world->sun_threshold = default_world->sun_threshold;
-      world->sun_angle = default_world->sun_angle;
-      world->sun_shadow_maximum_resolution = default_world->sun_shadow_maximum_resolution;
+      world->sun_threshold = default_world.sun_threshold;
+      world->sun_angle = default_world.sun_angle;
+      world->sun_shadow_maximum_resolution = default_world.sun_shadow_maximum_resolution;
       /* Having the sun extracted is mandatory to keep the same look and avoid too much light
        * leaking compared to EEVEE-Legacy. But adding shadows might create performance overhead and
        * change the result in a very different way. So we disable shadows in older file. */
@@ -1186,12 +1185,12 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 39)) {
     /* Unify cast shadow property with Cycles. */
     if (!all_scenes_use(bmain, {RE_engine_id_BLENDER_EEVEE})) {
-      const Light *default_light = DNA_struct_default_get(Light);
+      const Light default_light;
       LISTBASE_FOREACH (Light *, light, &bmain->lights) {
         IDProperty *clight = version_cycles_properties_from_ID(&light->id);
         if (clight) {
           bool value = version_cycles_property_boolean(
-              clight, "cast_shadow", default_light->mode & LA_SHADOW);
+              clight, "cast_shadow", default_light.mode & LA_SHADOW);
           SET_FLAG_FROM_TEST(light->mode, value, LA_SHADOW);
         }
       }
@@ -1207,25 +1206,25 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 41)) {
-    const Light *default_light = DNA_struct_default_get(Light);
+    const Light default_light;
     LISTBASE_FOREACH (Light *, light, &bmain->lights) {
-      light->shadow_jitter_overblur = default_light->shadow_jitter_overblur;
+      light->shadow_jitter_overblur = default_light.shadow_jitter_overblur;
     }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 43)) {
-    const World *default_world = DNA_struct_default_get(World);
+    const World default_world;
     LISTBASE_FOREACH (World *, world, &bmain->worlds) {
-      world->sun_shadow_maximum_resolution = default_world->sun_shadow_maximum_resolution;
-      world->sun_shadow_filter_radius = default_world->sun_shadow_filter_radius;
+      world->sun_shadow_maximum_resolution = default_world.sun_shadow_maximum_resolution;
+      world->sun_shadow_filter_radius = default_world.sun_shadow_filter_radius;
     }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 44)) {
-    const Scene *default_scene = DNA_struct_default_get(Scene);
+    const Scene default_scene;
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      scene->eevee.fast_gi_step_count = default_scene->eevee.fast_gi_step_count;
-      scene->eevee.fast_gi_ray_count = default_scene->eevee.fast_gi_ray_count;
+      scene->eevee.fast_gi_step_count = default_scene.eevee.fast_gi_step_count;
+      scene->eevee.fast_gi_ray_count = default_scene.eevee.fast_gi_ray_count;
     }
   }
 
@@ -1243,10 +1242,10 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 46)) {
-    const Scene *default_scene = DNA_struct_default_get(Scene);
+    const Scene default_scene;
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      scene->eevee.fast_gi_thickness_near = default_scene->eevee.fast_gi_thickness_near;
-      scene->eevee.fast_gi_thickness_far = default_scene->eevee.fast_gi_thickness_far;
+      scene->eevee.fast_gi_thickness_near = default_scene.eevee.fast_gi_thickness_near;
+      scene->eevee.fast_gi_thickness_far = default_scene.eevee.fast_gi_thickness_far;
     }
   }
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 48)) {
@@ -1288,7 +1287,7 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
           continue;
         }
         storage->capture_items_num = 1;
-        storage->capture_items = MEM_calloc_arrayN<NodeGeometryAttributeCaptureItem>(
+        storage->capture_items = MEM_new_array_for_free<NodeGeometryAttributeCaptureItem>(
             storage->capture_items_num, __func__);
         NodeGeometryAttributeCaptureItem &item = storage->capture_items[0];
         item.data_type = storage->data_type_legacy;
@@ -1398,7 +1397,7 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
              * be needed for future versioning (before linking), see
              * #do_version_denoise_menus_to_inputs so we set a valid storage at this stage such
              * that the node becomes well defined. */
-            NodeDenoise *ndg = MEM_callocN<NodeDenoise>(__func__);
+            NodeDenoise *ndg = MEM_new_for_free<NodeDenoise>(__func__);
             ndg->hdr = true;
             ndg->prefilter = CMP_NODE_DENOISE_PREFILTER_ACCURATE;
             node->storage = ndg;

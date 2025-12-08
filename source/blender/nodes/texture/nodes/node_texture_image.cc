@@ -89,7 +89,7 @@ static void exec(void *data,
 
 static void init(bNodeTree * /*ntree*/, bNode *node)
 {
-  ImageUser *iuser = MEM_callocN<ImageUser>("node image user");
+  ImageUser *iuser = MEM_new_for_free<ImageUser>("node image user");
   node->storage = iuser;
   iuser->sfra = 1;
   iuser->flag |= IMA_ANIM_ALWAYS;

@@ -12,7 +12,6 @@
  */
 
 #include "DNA_ID.h"
-#include "DNA_defs.h"
 #include "DNA_listBase.h"
 
 struct AnimData;
@@ -62,47 +61,46 @@ enum KeyBlockFlag {
  * The struct that holds the data for an individual Shape Key. Depending on which object owns the
  * `Key`, the contained data type can vary (see `void *data;`).
  */
-typedef struct KeyBlock {
-  struct KeyBlock *next, *prev;
+struct KeyBlock {
+  struct KeyBlock *next = nullptr, *prev = nullptr;
 
   /**
    * A point in time used in case of `(Key::type == KEY_NORMAL)` only,
    * for historic reasons this is relative to (Key::ctime / 100),
    * so this value increments by 0.1f per frame.
    */
-  float pos;
+  float pos = 0;
   /** Influence (typically [0 - 1] but can be more), `(Key::type == KEY_RELATIVE)` only. */
-  float curval;
+  float curval = 0;
 
   /** Interpolation type. Used for `(Key::type == KEY_NORMAL)` only (KeyInterpolationType). */
-  short type;
-  char _pad1[2];
+  short type = 0;
+  char _pad1[2] = {};
 
   /** `relative == 0` means first key is reference, otherwise the index of Key::blocks. */
-  short relative;
+  short relative = 0;
   /* KeyBlockFlag */
-  short flag;
+  short flag = 0;
 
   /** Total number of items in the keyblock (compare with mesh/curve verts to check we match). */
-  int totelem;
+  int totelem = 0;
   /** For meshes only, match the unique number with the customdata layer. */
-  int uid;
+  int uid = 0;
 
   /** Array of shape key values, size is `(Key::elemsize * KeyBlock->totelem)`.
    * E.g. meshes use float3. */
-  void *data;
+  void *data = nullptr;
   /** Unique name, user assigned. */
-  char name[/*MAX_NAME*/ 64];
+  char name[/*MAX_NAME*/ 64] = "";
   /** Optional vertex group, array gets allocated into 'weights' when set. */
-  char vgroup[/*MAX_VGROUP_NAME*/ 64];
+  char vgroup[/*MAX_VGROUP_NAME*/ 64] = "";
 
   /** Ranges, for RNA and UI only to clamp 'curval'. */
-  float slidermin;
-  float slidermax;
+  float slidermin = 0;
+  float slidermax = 0;
+};
 
-} KeyBlock;
-
-typedef struct Key {
+struct Key {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
   static constexpr ID_Type id_type = ID_KE;
@@ -110,44 +108,44 @@ typedef struct Key {
 
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
-  struct AnimData *adt;
+  struct AnimData *adt = nullptr;
 
   /**
    * Commonly called 'Basis', `(Key::type == KEY_RELATIVE)` only.
    * Looks like this is _always_ 'key->block.first',
    * perhaps later on it could be defined as some other KeyBlock - campbell.
    */
-  KeyBlock *refkey;
+  KeyBlock *refkey = nullptr;
 
   /**
    * This is not a regular string, although it is \0 terminated
    * this is an array of (element_array_size, element_type) pairs
    * (each one char) used for calculating shape key-blocks. */
-  char elemstr[32];
+  char elemstr[32] = "";
   /** Size of each element in #KeyBlock.data, use for allocation and stride. */
-  int elemsize;
-  char _pad[4];
+  int elemsize = 0;
+  char _pad[4] = {};
 
   /** A list of KeyBlock's. */
-  ListBase block;
+  ListBase block = {nullptr, nullptr};
 
-  ID *from;
+  ID *from = nullptr;
 
   /** (totkey == BLI_listbase_count(&key->block)). */
-  int totkey;
+  int totkey = 0;
   /* ShapekeyContainerFlag */
-  short flag;
+  short flag = 0;
   /** Absolute or relative shape key (ShapekeyContainerType). */
-  char type;
-  char _pad2;
+  char type = 0;
+  char _pad2 = {};
 
   /** Only used when (Key::type == KEY_NORMAL), this value is used as a time slider,
    * rather than using the scene's time, this value can be animated to give greater control */
-  float ctime;
+  float ctime = 0;
 
   /**
    * Can never be 0, this is used for detecting old data.
    * current free UID for key-blocks.
    */
-  int uidgen;
-} Key;
+  int uidgen = 0;
+};

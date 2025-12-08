@@ -105,7 +105,7 @@ static void cmp_node_denoise_declare(NodeDeclarationBuilder &b)
 static void node_composit_init_denonise(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
-  NodeDenoise *ndg = MEM_callocN<NodeDenoise>(__func__);
+  NodeDenoise *ndg = MEM_new_for_free<NodeDenoise>(__func__);
   node->storage = ndg;
 }
 

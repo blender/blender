@@ -10,7 +10,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_defaults.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -133,9 +132,8 @@ void BKE_volumes_init()
 static void volume_init_data(ID *id)
 {
   Volume *volume = (Volume *)id;
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(volume, id));
 
-  MEMCPY_STRUCT_AFTER(volume, DNA_struct_default_get(Volume), id);
+  INIT_DEFAULT_STRUCT_AFTER(volume, id);
 
   volume->runtime = MEM_new<blender::bke::VolumeRuntime>(__func__);
 

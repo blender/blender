@@ -1017,7 +1017,7 @@ DriverVar *driver_add_new_variable(ChannelDriver *driver)
   }
 
   /* Make a new variable. */
-  dvar = MEM_callocN<DriverVar>("DriverVar");
+  dvar = MEM_new_for_free<DriverVar>("DriverVar");
   BLI_addtail(&driver->variables, dvar);
 
   /* Don't use translations as this is referenced as a literal in #ChannelDriver::expression. */

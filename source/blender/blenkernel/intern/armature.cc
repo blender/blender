@@ -30,8 +30,6 @@
 #include "BLI_utildefines.h"
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
-
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_listBase.h"
@@ -85,9 +83,7 @@ static void copy_bonechildren_custom_handles(Bone *bone_dst, bArmature *arm_dst)
 static void armature_init_data(ID *id)
 {
   bArmature *armature = (bArmature *)id;
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(armature, id));
-
-  MEMCPY_STRUCT_AFTER(armature, DNA_struct_default_get(bArmature), id);
+  INIT_DEFAULT_STRUCT_AFTER(armature, id);
 }
 
 /**
@@ -1668,13 +1664,13 @@ static void allocate_bbone_cache(bPoseChannel *pchan,
                                                        "bPoseChannel_Runtime::bbone_pose_mats");
     runtime->bbone_deform_mats = MEM_malloc_arrayN<Mat4>(
         2 + uint(segments), "bPoseChannel_Runtime::bbone_deform_mats");
-    runtime->bbone_dual_quats = MEM_malloc_arrayN<DualQuat>(
+    runtime->bbone_dual_quats = MEM_new_array_for_free<DualQuat>(
         1 + uint(segments), "bPoseChannel_Runtime::bbone_dual_quats");
   }
 
   /* If the segment count changed, the array was deallocated and nulled above. */
   if (use_boundaries && !runtime->bbone_segment_boundaries) {
-    runtime->bbone_segment_boundaries = MEM_malloc_arrayN<bPoseChannel_BBoneSegmentBoundary>(
+    runtime->bbone_segment_boundaries = MEM_new_array_for_free<bPoseChannel_BBoneSegmentBoundary>(
         1 + uint(segments), "bPoseChannel_Runtime::bbone_segment_boundaries");
   }
   else if (!use_boundaries) {
@@ -2885,7 +2881,7 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
   /* only done here */
   if (ob->pose == nullptr) {
     /* create new pose */
-    ob->pose = MEM_callocN<bPose>("new pose");
+    ob->pose = MEM_new_for_free<bPose>("new pose");
 
     /* set default settings for animviz */
     animviz_settings_init(&ob->pose->avs);

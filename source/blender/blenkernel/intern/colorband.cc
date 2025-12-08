@@ -299,7 +299,7 @@ ColorBand *BKE_colorband_add(bool rangetype)
 {
   ColorBand *coba;
 
-  coba = MEM_callocN<ColorBand>("colorband");
+  coba = MEM_new_for_free<ColorBand>("colorband");
   BKE_colorband_init(coba, rangetype);
 
   return coba;

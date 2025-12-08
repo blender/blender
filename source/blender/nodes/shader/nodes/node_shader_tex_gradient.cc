@@ -33,7 +33,7 @@ static void node_shader_buts_tex_gradient(ui::Layout &layout, bContext * /*C*/, 
 
 static void node_shader_init_tex_gradient(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeTexGradient *tex = MEM_callocN<NodeTexGradient>(__func__);
+  NodeTexGradient *tex = MEM_new_for_free<NodeTexGradient>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->gradient_type = SHD_BLEND_LINEAR;

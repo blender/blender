@@ -29,7 +29,6 @@
 #include "BKE_node_legacy_types.hh"
 #include "DNA_brush_types.h"
 #include "DNA_color_types.h"
-#include "DNA_defaults.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -59,10 +58,7 @@
 static void texture_init_data(ID *id)
 {
   Tex *texture = (Tex *)id;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(texture, id));
-
-  MEMCPY_STRUCT_AFTER(texture, DNA_struct_default_get(Tex), id);
+  INIT_DEFAULT_STRUCT_AFTER(texture, id);
 
   BKE_imageuser_default(&texture->iuser);
 }
@@ -224,7 +220,7 @@ void BKE_texture_mtex_foreach_id(LibraryForeachIDData *data, MTex *mtex)
 
 TexMapping *BKE_texture_mapping_add(int type)
 {
-  TexMapping *texmap = MEM_callocN<TexMapping>("TexMapping");
+  TexMapping *texmap = MEM_new_for_free<TexMapping>("TexMapping");
 
   BKE_texture_mapping_default(texmap, type);
 
@@ -327,7 +323,7 @@ void BKE_texture_mapping_init(TexMapping *texmap)
 
 ColorMapping *BKE_texture_colormapping_add()
 {
-  ColorMapping *colormap = MEM_callocN<ColorMapping>("ColorMapping");
+  ColorMapping *colormap = MEM_new_for_free<ColorMapping>("ColorMapping");
 
   BKE_texture_colormapping_default(colormap);
 
@@ -380,7 +376,7 @@ Tex *BKE_texture_add(Main *bmain, const char *name)
 
 void BKE_texture_mtex_default(MTex *mtex)
 {
-  *mtex = blender::dna::shallow_copy(*DNA_struct_default_get(MTex));
+  *mtex = blender::dna::shallow_copy(MTex());
 }
 
 /* ------------------------------------------------------------------------- */
@@ -389,7 +385,7 @@ MTex *BKE_texture_mtex_add()
 {
   MTex *mtex;
 
-  mtex = MEM_callocN<MTex>("BKE_texture_mtex_add");
+  mtex = MEM_new_for_free<MTex>("BKE_texture_mtex_add");
 
   BKE_texture_mtex_default(mtex);
 

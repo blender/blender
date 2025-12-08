@@ -21,7 +21,6 @@
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
-#include "DNA_defaults.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
@@ -60,10 +59,7 @@ using blender::Span;
 static void metaball_init_data(ID *id)
 {
   MetaBall *metaball = (MetaBall *)id;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(metaball, id));
-
-  MEMCPY_STRUCT_AFTER(metaball, DNA_struct_default_get(MetaBall), id);
+  INIT_DEFAULT_STRUCT_AFTER(metaball, id);
 }
 
 static void metaball_copy_data(Main * /*bmain*/,
@@ -178,7 +174,7 @@ MetaBall *BKE_mball_add(Main *bmain, const char *name)
 
 MetaElem *BKE_mball_element_add(MetaBall *mb, const int type)
 {
-  MetaElem *ml = MEM_callocN<MetaElem>(__func__);
+  MetaElem *ml = MEM_new_for_free<MetaElem>(__func__);
 
   unit_qt(ml->quat);
 

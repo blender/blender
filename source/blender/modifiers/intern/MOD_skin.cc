@@ -51,7 +51,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -1972,10 +1971,7 @@ static Mesh *final_skin(SkinModifierData *smd, Mesh *mesh, eSkinErrorFlag *r_err
 static void init_data(ModifierData *md)
 {
   SkinModifierData *smd = (SkinModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(smd, modifier));
-
-  MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(SkinModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(smd, modifier);
 
   /* Enable in editmode by default. */
   md->mode |= eModifierMode_Editmode;

@@ -161,7 +161,7 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
 static void node_composit_init_keying(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, only kept for forward compatibility. */
-  NodeKeyingData *data = MEM_callocN<NodeKeyingData>(__func__);
+  NodeKeyingData *data = MEM_new_for_free<NodeKeyingData>(__func__);
   node->storage = data;
 }
 

@@ -39,41 +39,40 @@ enum eCurveProfilePresets {
  * \note The flags use the same enum as Bezier curves, but they aren't guaranteed
  * to have identical functionality, and all types aren't implemented.
  */
-typedef struct CurveProfilePoint {
+struct CurveProfilePoint {
   /** Location of the point, keep together. */
-  float x, y;
+  float x = 0, y = 0;
   /** Flag selection state and others. */
-  short flag;
+  short flag = 0;
   /** Flags for both handle's type (eBezTriple_Handle auto, vect, free, and aligned supported). */
-  char h1, h2;
+  char h1 = 0, h2 = 0;
   /** Handle locations, keep together.
    * \note For now the two handle types are set to the same type in RNA. */
-  float h1_loc[2];
-  float h2_loc[2];
-  char _pad[4];
+  float h1_loc[2] = {};
+  float h2_loc[2] = {};
+  char _pad[4] = {};
   /** Runtime pointer to the point's profile for updating the curve with no direct reference. */
-  struct CurveProfile *profile;
-} CurveProfilePoint;
+  struct CurveProfile *profile = nullptr;
+};
 
 /** Defines a profile. */
-typedef struct CurveProfile {
+struct CurveProfile {
   /** Number of user-added points that define the profile. */
-  short path_len;
+  short path_len = 0;
   /** Number of sampled points. */
-  short segments_len;
+  short segments_len = 0;
   /** Preset to use when reset. */
-  int preset;
+  int preset = 0;
   /** Sequence of points defining the shape of the curve. */
-  CurveProfilePoint *path;
+  CurveProfilePoint *path = nullptr;
   /** Display and evaluation table at higher resolution for curves. */
-  CurveProfilePoint *table;
+  CurveProfilePoint *table = nullptr;
   /** The positions of the sampled points. Used to display a preview of where they will be. */
-  CurveProfilePoint *segments;
+  CurveProfilePoint *segments = nullptr;
   /** Flag for mode states, sampling options, etc... */
-  int flag;
+  int flag = 0;
   /** Used for keeping track how many times the widget is changed. */
-  int changed_timestamp;
+  int changed_timestamp = 0;
   /** Widget's current view, and clipping rect (is default rect too). */
-  rctf view_rect, clip_rect;
-} CurveProfile;
-
+  rctf view_rect = {}, clip_rect = {};
+};

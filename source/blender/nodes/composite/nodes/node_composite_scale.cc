@@ -99,7 +99,7 @@ static void cmp_node_scale_declare(NodeDeclarationBuilder &b)
 static void node_composit_init_scale(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
-  NodeScaleData *data = MEM_callocN<NodeScaleData>(__func__);
+  NodeScaleData *data = MEM_new_for_free<NodeScaleData>(__func__);
   node->storage = data;
 }
 

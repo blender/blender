@@ -645,7 +645,7 @@ static uiList *ui_list_ensure(const bContext *C,
       BLI_findstring(&region->ui_lists, full_list_id, offsetof(uiList, list_id)));
 
   if (!ui_list) {
-    ui_list = MEM_callocN<uiList>("uiList");
+    ui_list = MEM_new_for_free<uiList>("uiList");
     STRNCPY_UTF8(ui_list->list_id, full_list_id);
     BLI_addtail(&region->ui_lists, ui_list);
     ui_list->list_grip = -UI_LIST_AUTO_SIZE_THRESHOLD; /* Force auto size by default. */
@@ -658,7 +658,7 @@ static uiList *ui_list_ensure(const bContext *C,
   }
 
   if (!ui_list->dyn_data) {
-    ui_list->dyn_data = MEM_callocN<uiListDyn>("uiList.dyn_data");
+    ui_list->dyn_data = MEM_new_for_free<uiListDyn>("uiList.dyn_data");
   }
   uiListDyn *dyn_data = ui_list->dyn_data;
   /* Note that this isn't a `uiListType` callback, it's stored in the runtime list data. Otherwise

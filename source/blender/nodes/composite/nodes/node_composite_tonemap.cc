@@ -112,7 +112,7 @@ static void cmp_node_tonemap_declare(NodeDeclarationBuilder &b)
 static void node_composit_init_tonemap(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, but still allocated for forward compatibility. */
-  NodeTonemap *ntm = MEM_callocN<NodeTonemap>(__func__);
+  NodeTonemap *ntm = MEM_new_for_free<NodeTonemap>(__func__);
   node->storage = ntm;
 }
 

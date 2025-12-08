@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include <cmath>
+
 #include "DNA_ID.h"
 #include "DNA_armature_types.h"
 #include "DNA_listBase.h"
@@ -39,8 +41,8 @@ class Batch;
 using GPUBatchHandle = blender::gpu::Batch;
 using GPUVertBufHandle = blender::gpu::VertBuf;
 #else
-typedef struct GPUBatchHandle GPUBatchHandle;
-typedef struct GPUVertBufHandle GPUVertBufHandle;
+struct GPUBatchHandle;
+struct GPUVertBufHandle;
 #endif
 
 /* Forward declarations so the actual declarations can happen top-down. */
@@ -63,7 +65,7 @@ class StripKeyframeData;
 }  // namespace blender::animrig
 using ActionSlotRuntimeHandle = blender::animrig::SlotRuntime;
 #else
-typedef struct ActionSlotRuntimeHandle ActionSlotRuntimeHandle;
+struct ActionSlotRuntimeHandle;
 #endif
 
 /* The last_slot_handle is set to a high value to disambiguate slot handles from
@@ -577,132 +579,132 @@ enum eTimeline_Cache_Flag {
 /* (used for Pose Channels and Objects) */
 
 /** Data point for motion path (`mpv`). */
-typedef struct bMotionPathVert {
+struct bMotionPathVert {
   /** Coordinates of point in 3D-space. */
-  float co[3];
+  float co[3] = {};
   /** Quick settings. */
-  int flag;
-} bMotionPathVert;
+  int flag = 0;
+};
 
 /* ........ */
 
 /* Motion Path data cache (mpath)
  * - for elements providing transforms (i.e. Objects or PoseChannels)
  */
-typedef struct bMotionPath {
+struct bMotionPath {
   /** Path samples. */
-  bMotionPathVert *points;
+  bMotionPathVert *points = nullptr;
   /** The number of cached verts. */
-  int length;
+  int length = 0;
 
   /** For drawing paths, the start frame number. Inclusive. */
-  int start_frame;
+  int start_frame = 0;
   /** For drawing paths, the end frame number. Exclusive. */
-  int end_frame;
+  int end_frame = 0;
 
   /** Optional custom color. */
-  float color[3];
-  float color_post[3];
+  float color[3] = {};
+  float color_post[3] = {};
   /** Line thickness. */
-  int line_thickness;
+  int line_thickness = 0;
   /** Baking settings - eMotionPath_Flag. */
-  int flag;
+  int flag = 0;
 
-  char _pad2[4];
+  char _pad2[4] = {};
   /* Used for drawing. */
-  GPUVertBufHandle *points_vbo;
-  GPUBatchHandle *batch_line;
-  GPUBatchHandle *batch_points;
-  void *_pad;
-} bMotionPath;
+  GPUVertBufHandle *points_vbo = nullptr;
+  GPUBatchHandle *batch_line = nullptr;
+  GPUBatchHandle *batch_points = nullptr;
+  void *_pad = nullptr;
+};
 
 /* Visualization General --------------------------- */
 /* for Objects or Poses (but NOT PoseChannels) */
 
 /* Animation Visualization Settings (avs) */
-typedef struct bAnimVizSettings {
+struct bAnimVizSettings {
   /* General Settings ------------------------ */
   /** #eAnimViz_RecalcFlags. */
-  short recalc;
+  short recalc = 0;
 
   /* Motion Path Settings ------------------- */
   /** #eMotionPath_Types. */
-  short path_type;
+  short path_type = 0;
   /** Number of frames between points indicated on the paths. */
-  short path_step;
+  short path_step = 0;
   /** #eMotionPath_Ranges. */
-  short path_range;
+  short path_range = 0;
 
   /** #eMotionPaths_ViewFlag. */
-  short path_viewflag;
-  /** #eMotionPaths_BakeFlag. */
-  short path_bakeflag;
-  char _pad[4];
+  short path_viewflag = 0;
+  /** #eMotionPath_BakeFlag. */
+  short path_bakeflag = 0;
+  char _pad[4] = {};
 
   /** Start and end frames of path-calculation range. Both are inclusive. */
-  int path_sf, path_ef;
+  int path_sf = 0, path_ef = 0;
   /** Number of frames before/after current frame to show. */
-  int path_bc, path_ac;
-} bAnimVizSettings;
+  int path_bc = 0, path_ac = 0;
+};
 
 /* runtime */
 #
 #
-typedef struct bPoseChannelDrawData {
-  float solid_color[4];
-  float wire_color[4];
+struct bPoseChannelDrawData {
+  float solid_color[4] = {};
+  float wire_color[4] = {};
 
-  int bbone_matrix_len;
+  int bbone_matrix_len = 0;
   /* keep last */
-  float bbone_matrix[0][4][4];
-} bPoseChannelDrawData;
+  float bbone_matrix[0][4][4] = {};
+};
 
 struct DualQuat;
 struct Mat4;
 
 /* Describes a plane in pose space that delimits B-Bone segments. */
-typedef struct bPoseChannel_BBoneSegmentBoundary {
+struct bPoseChannel_BBoneSegmentBoundary {
   /* Boundary data in pose space. */
-  float point[3];
-  float plane_normal[3];
+  float point[3] = {};
+  float plane_normal[3] = {};
   /* Dot product of point and plane_normal to speed up distance computation. */
-  float plane_offset;
+  float plane_offset = 0;
 
   /**
    * Inverse width of the smoothing at this level in head-tail space.
    * Optimization: this value is actually indexed by BSP depth (0 to `bsp_depth - 1`), not joint
    * index. It's put here to avoid allocating a separate array by utilizing the padding space.
    */
-  float depth_scale;
-} bPoseChannel_BBoneSegmentBoundary;
+  float depth_scale = 0;
+};
 
-typedef struct bPoseChannel_Runtime {
+struct bPoseChannel_Runtime {
   SessionUID session_uid;
 
   /* Cached dual quaternion for deformation. */
   struct DualQuat deform_dual_quat;
 
   /* B-Bone shape data: copy of the segment count for validation. */
-  int bbone_segments;
+  int bbone_segments = 0;
 
   /* Inverse of the total length of the segment polyline. */
-  float bbone_arc_length_reciprocal;
+  float bbone_arc_length_reciprocal = 0;
   /* bPoseChannelRuntimeFlag */
-  uint8_t flag;
-  char _pad1[3];
+  uint8_t flag = 0;
+  char _pad1[3] = {};
 
   /* Rest and posed matrices for segments. */
-  struct Mat4 *bbone_rest_mats;
-  struct Mat4 *bbone_pose_mats;
+  struct Mat4 *bbone_rest_mats = nullptr;
+  struct Mat4 *bbone_pose_mats = nullptr;
 
   /* Delta from rest to pose in matrix and DualQuat form. */
-  struct Mat4 *bbone_deform_mats;
-  struct DualQuat *bbone_dual_quats;
+  struct Mat4 *bbone_deform_mats = nullptr;
+  struct DualQuat *bbone_dual_quats = nullptr;
 
   /* Segment boundaries for curved mode. */
-  struct bPoseChannel_BBoneSegmentBoundary *bbone_segment_boundaries;
-  void *_pad;
-} bPoseChannel_Runtime;
+  struct bPoseChannel_BBoneSegmentBoundary *bbone_segment_boundaries = nullptr;
+  void *_pad = nullptr;
+};
 
 /* ************************************************ */
 /* Poses */
@@ -715,16 +717,16 @@ typedef struct bPoseChannel_Runtime {
  * A #bPoseChannel stores the results of Actions and transform information
  * with respect to the rest-position of #bArmature bones.
  */
-typedef struct bPoseChannel {
+struct bPoseChannel {
   DNA_DEFINE_CXX_METHODS(bPoseChannel)
 
-  struct bPoseChannel *next, *prev;
+  struct bPoseChannel *next = nullptr, *prev = nullptr;
 
   /**
    * User-defined custom properties storage on this PoseChannel. Typically Accessed through the
    * 'dict' syntax from Python.
    */
-  IDProperty *prop;
+  IDProperty *prop = nullptr;
 
   /**
    * System-defined custom properties storage. Used to store data dynamically defined either by
@@ -733,82 +735,82 @@ typedef struct bPoseChannel {
    * Typically accessed through RNA paths (`C.object.my_dynamic_float_property = 33.3`), when
    * wrapped/defined by RNA.
    */
-  IDProperty *system_properties;
+  IDProperty *system_properties = nullptr;
 
   /** Constraints that act on this PoseChannel. */
-  ListBase constraints;
-  char name[/*MAXBONENAME*/ 64];
+  ListBase constraints = {nullptr, nullptr};
+  char name[/*MAXBONENAME*/ 64] = "";
 
   /** Dynamic, for detecting transform changes (ePchan_Flag). */
-  short flag;
+  short flag = 0;
   /** Settings for IK bones. */
-  short ikflag;
+  short ikflag = 0;
   /** Protect channels from being transformed. */
-  short protectflag;
+  short protectflag = 0;
   /** Index of action-group this bone belongs to (0 = default/no group). */
-  short agrp_index;
+  short agrp_index = 0;
   /** For quick detecting which constraints affect this channel. */
-  char constflag;
+  char constflag = 0;
   /**
    * This used to store the selection-flag for serialization but is not longer required
    * since that is now natively stored on the `flag` property.
    */
-  char selectflag DNA_DEPRECATED;
-  char drawflag;
-  char bboneflag DNA_DEPRECATED;
-  char _pad0[4];
+  DNA_DEPRECATED char selectflag = 0;
+  char drawflag = 0;
+  DNA_DEPRECATED char bboneflag = 0;
+  char _pad0[4] = {};
 
   /** Set on read file or rebuild pose. */
-  struct Bone *bone;
+  struct Bone *bone = nullptr;
   /** Set on read file or rebuild pose. */
-  struct bPoseChannel *parent;
+  struct bPoseChannel *parent = nullptr;
   /** Set on read file or rebuild pose, the 'ik' child, for b-bones. */
-  struct bPoseChannel *child;
+  struct bPoseChannel *child = nullptr;
 
   /** "IK trees" - only while evaluating pose. */
-  struct ListBase iktree;
+  ListBase iktree = {nullptr, nullptr};
   /** Spline-IK "trees" - only while evaluating pose. */
-  struct ListBase siktree;
+  ListBase siktree = {nullptr, nullptr};
 
   /** Motion path cache for this bone. */
-  bMotionPath *mpath;
+  bMotionPath *mpath = nullptr;
   /**
    * Draws custom object instead of default bone shape.
    *
    * \note For the purpose of user interaction (selection, display etc),
    * it's important this value is treated as NULL when #ARM_NO_CUSTOM is set.
    */
-  struct Object *custom;
+  struct Object *custom = nullptr;
   /**
    * This is a specific feature to display with another bones transform.
    * Needed in rare cases for advanced rigs, since alternative solutions are highly complicated.
    *
    * \note This depends #bPoseChannel.custom being set and the #ARM_NO_CUSTOM flag being unset.
    */
-  struct bPoseChannel *custom_tx;
-  float custom_scale; /* Deprecated */
-  float custom_scale_xyz[3];
-  float custom_translation[3];
-  float custom_rotation_euler[3];
-  float custom_shape_wire_width;
+  struct bPoseChannel *custom_tx = nullptr;
+  float custom_scale = 0; /* Deprecated */
+  float custom_scale_xyz[3] = {1.0f, 1.0f, 1.0f};
+  float custom_translation[3] = {0.0f, 0.0f, 0.0f};
+  float custom_rotation_euler[3] = {};
+  float custom_shape_wire_width = 0;
 
   /** Transforms - written in by actions or transform. */
-  float loc[3];
-  float scale[3];
+  float loc[3] = {};
+  float scale[3] = {1.0f, 1.0f, 1.0f};
 
   /**
    * Rotations - written in by actions or transform
    * (but only one representation gets used at any time)
    */
   /** Euler rotation. */
-  float eul[3];
+  float eul[3] = {};
   /** Quaternion rotation. */
-  float quat[4];
+  float quat[4] = {1.0f, 0.0f, 0.0f};
   /** Axis-angle rotation. */
-  float rotAxis[3], rotAngle;
+  float rotAxis[3] = {}, rotAngle = 0;
   /** #eRotationModes - rotation representation to use. */
-  short rotmode;
-  char _pad[6];
+  short rotmode = 0;
+  char _pad[6] = {};
 
   /**
    * Matrix result of location/rotation/scale components, and evaluation of
@@ -816,67 +818,70 @@ typedef struct bPoseChannel {
    *
    * This is the dynamic component of `pose_mat` (without #Bone.arm_mat).
    */
-  float chan_mat[4][4];
+  float chan_mat[4][4] = {};
   /**
    * Channel matrix in the armature object space, i.e. `pose_mat = bone->arm_mat * chan_mat`.
    */
-  float pose_mat[4][4];
+  float pose_mat[4][4] = {};
   /** For display, pose_mat with bone length applied. */
-  float disp_mat[4][4];
+  float disp_mat[4][4] = {};
   /** For display, pose_mat with bone length applied and translated to tail. */
-  float disp_tail_mat[4][4];
+  float disp_tail_mat[4][4] = {};
   /**
    * Inverse result of constraints.
    * doesn't include effect of rest-position, parent, and local transform.
    */
-  float constinv[4][4];
+  float constinv[4][4] = {};
 
   /** Actually pose_mat[3]. */
-  float pose_head[3];
+  float pose_head[3] = {};
   /** Also used for drawing help lines. */
-  float pose_tail[3];
+  float pose_tail[3] = {};
 
   /** DOF constraint, note! - these are stored in degrees, not radians. */
-  float limitmin[3], limitmax[3];
+  float limitmin[3] = {}, limitmax[3] = {};
   /** DOF stiffness. */
-  float stiffness[3];
-  float ikstretch;
+  float stiffness[3] = {};
+  float ikstretch = 0;
   /** Weight of joint rotation constraint. */
-  float ikrotweight;
+  float ikrotweight = 0;
   /** Weight of joint stretch constraint. */
-  float iklinweight;
+  float iklinweight = 0;
 
   /**
    * Curved bones settings - these are for animating,
    * and are applied on top of the copies in pchan->bone
    */
-  float roll1, roll2;
-  float curve_in_x, curve_in_z;
-  float curve_out_x, curve_out_z;
-  float ease1, ease2;
-  float scale_in_x DNA_DEPRECATED, scale_in_z DNA_DEPRECATED;
-  float scale_out_x DNA_DEPRECATED, scale_out_z DNA_DEPRECATED;
-  float scale_in[3], scale_out[3];
+  float roll1 = 0, roll2 = 0;
+  float curve_in_x = 0, curve_in_z = 0;
+  float curve_out_x = 0, curve_out_z = 0;
+  float ease1 = 0, ease2 = 0;
+  DNA_DEPRECATED float scale_in_x = 0;
+  DNA_DEPRECATED float scale_in_z = 0;
+  DNA_DEPRECATED float scale_out_x = 0;
+  DNA_DEPRECATED float scale_out_z = 0;
+  float scale_in[3] = {1.0f, 1.0f, 1.0f};
+  float scale_out[3] = {1.0f, 1.0f, 1.0f};
 
   /** B-Bone custom handles; set on read file or rebuild pose based on pchan->bone data. */
-  struct bPoseChannel *bbone_prev;
-  struct bPoseChannel *bbone_next;
+  struct bPoseChannel *bbone_prev = nullptr;
+  struct bPoseChannel *bbone_next = nullptr;
 
   /** Use for outliner. */
-  void *temp;
+  void *temp = nullptr;
   /** Runtime data for color and bbone segment matrix. */
-  bPoseChannelDrawData *draw_data;
+  bPoseChannelDrawData *draw_data = nullptr;
 
   /** Points to an original pose channel. */
-  struct bPoseChannel *orig_pchan;
+  struct bPoseChannel *orig_pchan = nullptr;
 
   BoneColor color; /* MUST be named the same as in Bone and EditBone structs. */
 
-  void *_pad2;
+  void *_pad2 = nullptr;
 
   /** Runtime data (keep last). */
   struct bPoseChannel_Runtime runtime;
-} bPoseChannel;
+};
 
 /* Pose ------------------------------------ */
 
@@ -885,68 +890,68 @@ typedef struct bPoseChannel {
  * It is only found under ob->pose. It is not library data, even
  * though there is a define for it (hack for the outliner).
  */
-typedef struct bPose {
+struct bPose {
   /** List of pose channels, PoseBones in RNA. */
-  ListBase chanbase;
+  ListBase chanbase = {nullptr, nullptr};
   /** Use a hash-table for quicker string lookups. */
-  struct GHash *chanhash;
+  struct GHash *chanhash = nullptr;
 
   /* Flat array of pose channels. It references pointers from
    * chanbase. Used for quick pose channel lookup from an index.
    */
-  bPoseChannel **chan_array;
+  bPoseChannel **chan_array = nullptr;
 
-  short flag;
-  char _pad[2];
+  short flag = 0;
+  char _pad[2] = {};
 
   /** Local action time of this pose. */
-  float ctime;
+  float ctime = 0;
   /** Applied to object. */
-  float stride_offset[3];
+  float stride_offset[3] = {};
   /** Result of match and cycles, applied in BKE_pose_where_is(). */
-  float cyclic_offset[3];
+  float cyclic_offset[3] = {};
 
   /** List of bActionGroups. */
-  ListBase agroups;
+  ListBase agroups = {nullptr, nullptr};
 
   /** Index of active group (starts from 1). */
-  int active_group;
+  int active_group = 0;
   /** Ik solver to use, see ePose_IKSolverType. */
-  int iksolver;
+  int iksolver = 0;
   /** Temporary IK data, depends on the IK solver. Not saved in file. */
-  void *ikdata;
+  void *ikdata = nullptr;
   /** IK solver parameters, structure depends on iksolver. */
-  void *ikparam;
+  void *ikparam = nullptr;
 
   /** Settings for visualization of bone animation. */
   bAnimVizSettings avs;
-} bPose;
+};
 
 /* IK Solvers ------------------------------------ */
 
 /* header for all bPose->ikparam structures */
-typedef struct bIKParam {
-  int iksolver;
-} bIKParam;
+struct bIKParam {
+  int iksolver = 0;
+};
 
 /* bPose->ikparam when bPose->iksolver=1 */
-typedef struct bItasc {
-  int iksolver;
-  float precision;
-  short numiter;
-  short numstep;
-  float minstep;
-  float maxstep;
-  short solver;
-  short flag;
-  float feedback;
+struct bItasc {
+  int iksolver = 0;
+  float precision = 0;
+  short numiter = 0;
+  short numstep = 0;
+  float minstep = 0;
+  float maxstep = 0;
+  short solver = 0;
+  short flag = 0;
+  float feedback = 0;
   /** Max velocity to SDLS solver. */
-  float maxvel;
+  float maxvel = 0;
   /** Maximum damping for DLS solver. */
-  float dampmax;
+  float dampmax = 0;
   /** Threshold of singular value from which the damping start progressively. */
-  float dampeps;
-} bItasc;
+  float dampeps = 0;
+};
 
 /* ************************************************ */
 /* Action */
@@ -969,8 +974,8 @@ typedef struct bItasc {
  *
  * Note that these two uses each have their own RNA 'ActionGroup' and 'BoneGroup'.
  */
-typedef struct bActionGroup {
-  struct bActionGroup *next, *prev;
+struct bActionGroup {
+  struct bActionGroup *next = nullptr, *prev = nullptr;
 
   /**
    * List of channels in this group for legacy actions.
@@ -978,7 +983,7 @@ typedef struct bActionGroup {
    * NOTE: this must not be touched by standard listbase functions
    * which would clear links to other channels.
    */
-  ListBase channels;
+  ListBase channels = {nullptr, nullptr};
 
   /**
    * Span of channels in this group for layered actions.
@@ -992,8 +997,8 @@ typedef struct bActionGroup {
    * that sits at the border between the element at `fcurve_range_start` and the
    * element just before it.
    */
-  int fcurve_range_start;
-  int fcurve_range_length;
+  int fcurve_range_start = 0;
+  int fcurve_range_length = 0;
 
   /**
    * For layered actions: the Channelbag this group belongs to.
@@ -1001,26 +1006,26 @@ typedef struct bActionGroup {
    * This is needed in the keyframe drawing code, etc., to give direct access to
    * the fcurves in this group.
    */
-  struct ActionChannelbag *channelbag;
+  struct ActionChannelbag *channelbag = nullptr;
 
   /** Settings for this action-group. */
-  int flag;
+  int flag = 0;
   /**
    * Index of custom color set to use when used for bones
    * (0=default - used for all old files, -1=custom set).
    */
-  int customCol;
+  int customCol = 0;
   /** Name of the group. */
-  char name[64];
+  char name[64] = "";
 
   /** Color set to use when customCol == -1. */
-  ThemeWireColor cs;
+  ThemeWireColor cs = {};
 
 #ifdef __cplusplus
   blender::animrig::ChannelGroup &wrap();
   const blender::animrig::ChannelGroup &wrap() const;
 #endif
-} bActionGroup;
+};
 
 /* Actions -------------------------------------- */
 
@@ -1029,7 +1034,7 @@ typedef struct bActionGroup {
  *
  * \see blender::animrig::Action for more detailed documentation.
  */
-typedef struct bAction {
+struct bAction {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
   static constexpr ID_Type id_type = ID_AC;
@@ -1039,24 +1044,24 @@ typedef struct bAction {
   ID id;
 
   /** Array of `layer_array_num` layers. */
-  struct ActionLayer **layer_array;
-  int layer_array_num;
-  int layer_active_index; /* Index into layer_array, -1 means 'no active'. */
+  struct ActionLayer **layer_array = nullptr;
+  int layer_array_num = 0;
+  int layer_active_index = 0; /* Index into layer_array, -1 means 'no active'. */
 
   /** Array of `slot_array_num` slots. */
-  struct ActionSlot **slot_array;
-  int slot_array_num;
-  int32_t last_slot_handle;
+  struct ActionSlot **slot_array = nullptr;
+  int slot_array_num = 0;
+  int32_t last_slot_handle = DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE;
 
   /* Storage for the underlying data of strips. Each strip type has its own
    * array, and strips reference this data with an enum indicating the strip
    * type and an int containing the index in the array to use.
    *
    * NOTE: when adding new strip data arrays, also update `duplicate_slot()`. */
-  struct ActionStripKeyframeData **strip_keyframe_data_array;
-  int strip_keyframe_data_array_num;
+  struct ActionStripKeyframeData **strip_keyframe_data_array = nullptr;
+  int strip_keyframe_data_array_num = 0;
 
-  char _pad0[4];
+  char _pad0[4] = {};
 
   /* Note about legacy animation data:
    *
@@ -1071,113 +1076,115 @@ typedef struct bAction {
    */
 
   /** Legacy F-Curves (FCurve), introduced in Blender 2.5. */
-  ListBase curves;
+  ListBase curves = {nullptr, nullptr};
   /** Legacy Groups of function-curves (bActionGroup), introduced in Blender 2.5. */
-  ListBase groups;
+  ListBase groups = {nullptr, nullptr};
 
   /** Markers local to the Action (used to provide Pose-Libraries). */
-  ListBase markers;
+  ListBase markers = {nullptr, nullptr};
 
   /** Settings for this action. \see eAction_Flags */
-  int flag;
+  int flag = 0;
   /** Index of the active marker. */
-  int active_marker;
+  int active_marker = 0;
 
   /**
    * Type of ID-blocks that action can be assigned to
    * (if 0, will be set to whatever ID first evaluates it).
    */
-  int idroot;
-  char _pad1[4];
+  int idroot = 0;
+  char _pad1[4] = {};
 
   /**
    * Start and end of the manually set intended playback frame range. Used by UI and
    * some editing tools, but doesn't directly affect animation evaluation in any way.
    */
-  float frame_start, frame_end;
+  float frame_start = 0, frame_end = 0;
 
-  PreviewImage *preview;
+  PreviewImage *preview = nullptr;
 
 #ifdef __cplusplus
   blender::animrig::Action &wrap();
   const blender::animrig::Action &wrap() const;
 #endif
-} bAction;
+};
 
 /* ************************************************ */
 /* Action/Dope-sheet Editor */
 
 /** Storage for Dope-sheet/Grease-Pencil Editor data. */
-typedef struct bDopeSheet {
+struct bDopeSheet {
   /** Currently ID_SCE (for Dope-sheet), and ID_SC (for Grease Pencil). */
-  ID *source;
+  ID *source = nullptr;
   /** Cache for channels (only initialized when pinned). */ /* XXX not used! */
-  ListBase chanbase;
+  ListBase chanbase = {nullptr, nullptr};
 
   /** Object group for option to only include objects that belong to this Collection. */
-  struct Collection *filter_grp;
+  struct Collection *filter_grp = nullptr;
   /** String to search for in displayed names of F-Curves, or NlaTracks/GP Layers/etc. */
-  char searchstr[64];
+  char searchstr[64] = "";
 
   /** Flags to use for filtering data #eAnimFilter_Flags. */
-  int filterflag;
+  int filterflag = 0;
   /** #eDopeSheet_FilterFlag2 */
-  int filterflag2;
+  int filterflag2 = 0;
   /** Standard flags. */
-  int flag;
+  int flag = 0;
 
   /** `index + 1` of channel to rename - only gets set by renaming operator. */
-  int renameIndex;
-} bDopeSheet;
+  int renameIndex = 0;
+};
 
-typedef struct SpaceAction_Runtime {
-  char flag;
-  char _pad0[7];
-} SpaceAction_Runtime;
+struct SpaceAction_Runtime {
+  char flag = 0;
+  char _pad0[7] = {};
+};
 
-typedef struct SpaceActionOverlays {
+struct SpaceActionOverlays {
   /** #SpaceActionOverlays_Flag */
-  int flag;
-  char _pad0[4];
-} SpaceActionOverlays;
+  int flag = 0;
+  char _pad0[4] = {};
+};
 
 /* Action Editor Space. This is defined here instead of in DNA_space_types.h */
-typedef struct SpaceAction {
-  struct SpaceLink *next, *prev;
+struct SpaceAction {
+  DNA_DEFINE_CXX_METHODS(SpaceAction)
+
+  struct SpaceLink *next = nullptr, *prev = nullptr;
   /** Storage of regions for inactive spaces. */
-  ListBase regionbase;
-  char spacetype;
-  char link_flag;
-  char _pad0[6];
+  ListBase regionbase = {nullptr, nullptr};
+  char spacetype = 0;
+  char link_flag = 0;
+  char _pad0[6] = {};
   /* End 'SpaceLink' header. */
 
   /** Copied to region. */
-  View2D v2d DNA_DEPRECATED;
+  DNA_DEPRECATED View2D v2d;
 
   /** The currently active action (deprecated). */
-  bAction *action DNA_DEPRECATED;
+  DNA_DEPRECATED bAction *action = nullptr;
 
   /** The currently active context (when not showing action). */
   bDopeSheet ads;
 
   /** For Time-Slide transform mode drawing - current frame? */
-  float timeslide;
+  float timeslide = 0;
 
-  short flag;
+  short flag = 0;
   /* Editing context */
-  char mode;
+  char mode = 0;
   /* Storage for sub-space types. */
-  char mode_prev;
+  char mode_prev = 0;
   /* Snapping now lives on the Scene. */
-  char autosnap DNA_DEPRECATED;
+  DNA_DEPRECATED char autosnap = 0;
   /** (eTimeline_Cache_Flag). */
-  char cache_display;
-  char _pad1[6];
+  char cache_display = 0;
+  char _pad1[6] = {};
 
   SpaceActionOverlays overlays;
 
   SpaceAction_Runtime runtime;
-} SpaceAction;
+};
 
 /* ************************************************ */
 /* Layered Animation data-types. */
@@ -1185,39 +1192,39 @@ typedef struct SpaceAction {
 /**
  * \see #blender::animrig::Layer
  */
-typedef struct ActionLayer {
+struct ActionLayer {
   /** User-Visible identifier, unique within the Animation. */
-  char name[/*MAX_NAME*/ 64];
+  char name[/*MAX_NAME*/ 64] = "";
 
-  float influence; /* [0-1] */
+  float influence = 1.0f; /* [0-1] */
 
   /** \see #blender::animrig::Layer::flags() */
-  uint8_t layer_flags;
+  uint8_t layer_flags = 0;
 
   /** \see #blender::animrig::Layer::mixmode() */
-  int8_t layer_mix_mode;
+  int8_t layer_mix_mode = 0;
 
-  uint8_t _pad0[2];
+  uint8_t _pad0[2] = {};
 
   /**
    * The layer's array of strips. See the documentation of
    * #blender::animrig::Layer for the invariants of this array.
    */
-  struct ActionStrip **strip_array; /* Array of 'strip_array_num' strips. */
-  int strip_array_num;
+  struct ActionStrip **strip_array = nullptr; /* Array of 'strip_array_num' strips. */
+  int strip_array_num = 0;
 
-  uint8_t _pad1[4];
+  uint8_t _pad1[4] = {};
 
 #ifdef __cplusplus
   blender::animrig::Layer &wrap();
   const blender::animrig::Layer &wrap() const;
 #endif
-} ActionLayer;
+};
 
 /**
  * \see #blender::animrig::Slot
  */
-typedef struct ActionSlot {
+struct ActionSlot {
   /**
    * The string identifier of this Slot within the Action.
    *
@@ -1231,14 +1238,14 @@ typedef struct ActionSlot {
    *
    * \see #AnimData::slot_name
    */
-  char identifier[/*MAX_ID_NAME*/ 258];
+  char identifier[/*MAX_ID_NAME*/ 258] = "";
 
   /**
    * Type of ID-block that this slot is intended for.
    *
    * If 0, will be set to whatever ID is first assigned.
    */
-  int16_t idtype;
+  int16_t idtype = 0;
 
   /**
    * Numeric identifier of this Slot within the Action.
@@ -1257,30 +1264,30 @@ typedef struct ActionSlot {
    *
    * \see #blender::animrig::Action::slot_for_handle()
    */
-  int32_t handle;
+  int32_t handle = 0;
 
   /** \see #blender::animrig::Slot::flags() */
-  int8_t slot_flags;
-  uint8_t _pad1[7];
+  int8_t slot_flags = 0;
+  uint8_t _pad1[7] = {};
 
   /** Runtime data. Set to nullptr when writing to disk. */
-  ActionSlotRuntimeHandle *runtime;
+  ActionSlotRuntimeHandle *runtime = nullptr;
 
 #ifdef __cplusplus
   blender::animrig::Slot &wrap();
   const blender::animrig::Slot &wrap() const;
 #endif
-} ActionSlot;
+};
 
 /**
  * \see #blender::animrig::Strip
  */
-typedef struct ActionStrip {
+struct ActionStrip {
   /**
    * \see #blender::animrig::Strip::type()
    */
-  int8_t strip_type;
-  uint8_t _pad0[3];
+  int8_t strip_type = 0;
+  uint8_t _pad0[3] = {};
 
   /**
    * The index of the "strip data" item that this strip uses, in the array of
@@ -1291,10 +1298,10 @@ typedef struct ActionStrip {
    * catch when strips aren't fully initialized before making their way outside
    * of those APIs.
    */
-  int data_index;
+  int data_index = -1;
 
-  float frame_start; /** Start frame of the strip, in Animation time. */
-  float frame_end;   /** End frame of the strip, in Animation time. */
+  float frame_start = -INFINITY; /** Start frame of the strip, in Animation time. */
+  float frame_end = INFINITY;    /** End frame of the strip, in Animation time. */
 
   /**
    * Offset applied to the contents of the strip, in frames.
@@ -1303,38 +1310,38 @@ typedef struct ActionStrip {
    * typically be the same as the scene time, until the animation system
    * supports strips referencing other Actions).
    */
-  float frame_offset;
+  float frame_offset = 0;
 
-  uint8_t _pad1[4];
+  uint8_t _pad1[4] = {};
 
 #ifdef __cplusplus
   blender::animrig::Strip &wrap();
   const blender::animrig::Strip &wrap() const;
 #endif
-} ActionStrip;
+};
 
 /**
  * #ActionStrip::type = #Strip::Type::Keyframe.
  *
  * \see #blender::animrig::StripKeyframeData
  */
-typedef struct ActionStripKeyframeData {
-  struct ActionChannelbag **channelbag_array;
-  int channelbag_array_num;
+struct ActionStripKeyframeData {
+  struct ActionChannelbag **channelbag_array = nullptr;
+  int channelbag_array_num = 0;
 
-  uint8_t _pad[4];
+  uint8_t _pad[4] = {};
 
 #ifdef __cplusplus
   blender::animrig::StripKeyframeData &wrap();
   const blender::animrig::StripKeyframeData &wrap() const;
 #endif
-} ActionStripKeyframeData;
+};
 
 /**
  * \see #blender::animrig::Channelbag
  */
-typedef struct ActionChannelbag {
-  int32_t slot_handle;
+struct ActionChannelbag {
+  int32_t slot_handle = 0;
 
   /* Channel groups. These index into the `fcurve_array` below to specify group
    * membership of the fcurves.
@@ -1350,13 +1357,13 @@ typedef struct ActionChannelbag {
    * 2. The grouped fcurves are tightly packed, starting at the first fcurve and
    *    having no gaps of ungrouped fcurves between them. Ungrouped fcurves come
    *    at the end, after all of the grouped fcurves. */
-  int group_array_num;
-  struct bActionGroup **group_array;
+  int group_array_num = 0;
+  struct bActionGroup **group_array = nullptr;
 
-  uint8_t _pad[4];
+  uint8_t _pad[4] = {};
 
-  int fcurve_array_num;
-  struct FCurve **fcurve_array; /* Array of 'fcurve_array_num' FCurves. */
+  int fcurve_array_num = 0;
+  struct FCurve **fcurve_array = nullptr; /* Array of 'fcurve_array_num' FCurves. */
 
   /* TODO: Design & implement a way to integrate other channel types as well,
    * and still have them map to a certain slot */
@@ -1364,7 +1371,7 @@ typedef struct ActionChannelbag {
   blender::animrig::Channelbag &wrap();
   const blender::animrig::Channelbag &wrap() const;
 #endif
-} ActionChannelbag;
+};
 
 #ifdef __cplusplus
 /* Some static assertions that things that should have the same type actually do. */

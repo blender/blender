@@ -26,7 +26,7 @@ namespace blender::seq {
 static void init_speed_effect(Strip *strip)
 {
   MEM_SAFE_FREE(strip->effectdata);
-  SpeedControlVars *data = MEM_callocN<SpeedControlVars>("speedcontrolvars");
+  SpeedControlVars *data = MEM_new_for_free<SpeedControlVars>("speedcontrolvars");
   strip->effectdata = data;
   data->speed_control_type = SEQ_SPEED_STRETCH;
   data->speed_fader = 1.0f;

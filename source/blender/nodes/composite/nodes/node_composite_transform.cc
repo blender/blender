@@ -62,7 +62,7 @@ static void cmp_node_transform_declare(NodeDeclarationBuilder &b)
 static void cmp_node_init_transform(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, kept for forward compatibility. */
-  NodeTransformData *data = MEM_callocN<NodeTransformData>(__func__);
+  NodeTransformData *data = MEM_new_for_free<NodeTransformData>(__func__);
   node->storage = data;
 }
 

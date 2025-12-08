@@ -1506,8 +1506,10 @@ UserDef *BKE_blendfile_userdef_read_from_memory(const void *file_buf,
 
 UserDef *BKE_blendfile_userdef_from_defaults()
 {
-  UserDef *userdef = MEM_callocN<UserDef>(__func__);
-  *userdef = blender::dna::shallow_copy(U_default);
+  UserDef *userdef = MEM_new_for_free<UserDef>(__func__);
+
+  userdef->versionfile = BLENDER_FILE_VERSION;
+  userdef->subversionfile = BLENDER_FILE_SUBVERSION;
 
   /* Add-ons. */
   {

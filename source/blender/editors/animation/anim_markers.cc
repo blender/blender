@@ -848,7 +848,7 @@ static wmOperatorStatus ed_marker_add_exec(bContext *C, wmOperator * /*op*/)
     marker->flag &= ~SELECT;
   }
 
-  TimeMarker *marker = MEM_callocN<TimeMarker>("TimeMarker");
+  TimeMarker *marker = MEM_new_for_free<TimeMarker>("TimeMarker");
   marker->flag = SELECT;
   marker->frame = frame;
   SNPRINTF_UTF8(marker->name, "F_%02d", frame);
@@ -1289,7 +1289,7 @@ static void ed_marker_duplicate_apply(bContext *C)
       marker->flag &= ~SELECT;
 
       /* create and set up new marker */
-      TimeMarker *newmarker = MEM_callocN<TimeMarker>("TimeMarker");
+      TimeMarker *newmarker = MEM_new_for_free<TimeMarker>("TimeMarker");
       newmarker->flag = SELECT;
       newmarker->frame = marker->frame;
       STRNCPY_UTF8(newmarker->name, marker->name);
@@ -2014,7 +2014,7 @@ static wmOperatorStatus ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
 
   marker = ED_markers_find_nearest_marker(markers, scene->r.cfra);
   if ((marker == nullptr) || (marker->frame != scene->r.cfra)) {
-    marker = MEM_callocN<TimeMarker>("Camera TimeMarker");
+    marker = MEM_new_for_free<TimeMarker>("Camera TimeMarker");
     /* This marker's name is only displayed in the viewport statistics, animation editors use the
      * camera's name when bound to a marker. */
     SNPRINTF_UTF8(marker->name, "F_%02d", scene->r.cfra);

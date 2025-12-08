@@ -15,7 +15,6 @@
 
 #include "DNA_ID.h"
 #include "DNA_brush_types.h"
-#include "DNA_defaults.h"
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 
@@ -55,9 +54,7 @@
 static void brush_init_data(ID *id)
 {
   Brush *brush = reinterpret_cast<Brush *>(id);
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(brush, id));
-
-  MEMCPY_STRUCT_AFTER(brush, DNA_struct_default_get(Brush), id);
+  INIT_DEFAULT_STRUCT_AFTER(brush, id);
 
   /* enable fake user by default */
   id_fake_user_set(&brush->id);
@@ -104,8 +101,8 @@ static void brush_copy_data(Main * /*bmain*/,
   brush_dst->curve_jitter = BKE_curvemapping_copy(brush_src->curve_jitter);
 
   if (brush_src->gpencil_settings != nullptr) {
-    brush_dst->gpencil_settings = MEM_dupallocN<BrushGpencilSettings>(
-        __func__, *(brush_src->gpencil_settings));
+    brush_dst->gpencil_settings = MEM_new_for_free<BrushGpencilSettings>(
+        __func__, blender::dna::shallow_copy(*(brush_src->gpencil_settings)));
     brush_dst->gpencil_settings->curve_sensitivity = BKE_curvemapping_copy(
         brush_src->gpencil_settings->curve_sensitivity);
     brush_dst->gpencil_settings->curve_strength = BKE_curvemapping_copy(
@@ -127,7 +124,7 @@ static void brush_copy_data(Main * /*bmain*/,
         brush_src->gpencil_settings->curve_rand_value);
   }
   if (brush_src->curves_sculpt_settings != nullptr) {
-    brush_dst->curves_sculpt_settings = MEM_dupallocN<BrushCurvesSculptSettings>(
+    brush_dst->curves_sculpt_settings = MEM_new_for_free<BrushCurvesSculptSettings>(
         __func__, *(brush_src->curves_sculpt_settings));
     brush_dst->curves_sculpt_settings->curve_parameter_falloff = BKE_curvemapping_copy(
         brush_src->curves_sculpt_settings->curve_parameter_falloff);
@@ -647,7 +644,7 @@ Brush *BKE_brush_add(Main *bmain, const char *name, const eObjectMode ob_mode)
 void BKE_brush_init_gpencil_settings(Brush *brush)
 {
   if (brush->gpencil_settings == nullptr) {
-    brush->gpencil_settings = MEM_callocN<BrushGpencilSettings>("BrushGpencilSettings");
+    brush->gpencil_settings = MEM_new_for_free<BrushGpencilSettings>("BrushGpencilSettings");
   }
 
   brush->gpencil_settings->draw_smoothlvl = 1;
@@ -747,7 +744,7 @@ Brush *BKE_brush_duplicate(Main *bmain,
 void BKE_brush_init_curves_sculpt_settings(Brush *brush)
 {
   if (brush->curves_sculpt_settings == nullptr) {
-    brush->curves_sculpt_settings = MEM_callocN<BrushCurvesSculptSettings>(__func__);
+    brush->curves_sculpt_settings = MEM_new_for_free<BrushCurvesSculptSettings>(__func__);
   }
   BrushCurvesSculptSettings *settings = brush->curves_sculpt_settings;
   settings->flag = BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_RADIUS;

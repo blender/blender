@@ -20,6 +20,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "DNA_layer_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 

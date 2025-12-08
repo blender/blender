@@ -192,7 +192,7 @@ void BKE_viewer_path_id_remap(ViewerPath *viewer_path,
 
 template<typename T> static T *make_elem(const ViewerPathElemType type)
 {
-  T *elem = MEM_callocN<T>(__func__);
+  T *elem = MEM_new_for_free<T>(__func__);
   elem->base.type = type;
   return elem;
 }

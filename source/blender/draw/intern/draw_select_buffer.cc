@@ -19,6 +19,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_rect.h"
 
+#include "DNA_layer_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"

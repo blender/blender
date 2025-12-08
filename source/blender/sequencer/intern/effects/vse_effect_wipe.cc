@@ -159,7 +159,7 @@ static float calc_wipe_blend(const WipeData *data, int x, int y)
 static void init_wipe_effect(Strip *strip)
 {
   MEM_SAFE_FREE(strip->effectdata);
-  strip->effectdata = MEM_callocN<WipeVars>("wipevars");
+  strip->effectdata = MEM_new_for_free<WipeVars>("wipevars");
 }
 
 static int num_inputs_wipe()

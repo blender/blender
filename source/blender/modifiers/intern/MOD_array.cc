@@ -20,7 +20,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -55,10 +54,7 @@ using namespace blender;
 static void init_data(ModifierData *md)
 {
   ArrayModifierData *amd = (ArrayModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(amd, modifier));
-
-  MEMCPY_STRUCT_AFTER(amd, DNA_struct_default_get(ArrayModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(amd, modifier);
 
   /* Open the first sub-panel by default,
    * it corresponds to Relative offset which is enabled too. */

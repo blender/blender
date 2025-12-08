@@ -180,7 +180,7 @@ static void node_layout(ui::Layout &layout, bContext * /*C*/, PointerRNA *ptr)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryForeachGeometryElementInput *data =
-      MEM_callocN<NodeGeometryForeachGeometryElementInput>(__func__);
+      MEM_new_for_free<NodeGeometryForeachGeometryElementInput>(__func__);
   /* Needs to be initialized for the node to work. */
   data->output_node_id = 0;
   node->storage = data;
@@ -315,9 +315,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryForeachGeometryElementOutput *data =
-      MEM_callocN<NodeGeometryForeachGeometryElementOutput>(__func__);
+      MEM_new_for_free<NodeGeometryForeachGeometryElementOutput>(__func__);
 
-  data->generation_items.items = MEM_calloc_arrayN<NodeForeachGeometryElementGenerationItem>(
+  data->generation_items.items = MEM_new_array_for_free<NodeForeachGeometryElementGenerationItem>(
       1, __func__);
   NodeForeachGeometryElementGenerationItem &item = data->generation_items.items[0];
   item.name = BLI_strdup(DATA_("Geometry"));
@@ -333,14 +333,14 @@ static void node_free_storage(bNode *node)
   socket_items::destruct_array<ForeachGeometryElementInputItemsAccessor>(*node);
   socket_items::destruct_array<ForeachGeometryElementGenerationItemsAccessor>(*node);
   socket_items::destruct_array<ForeachGeometryElementMainItemsAccessor>(*node);
-  MEM_freeN(node->storage);
+  MEM_freeN(reinterpret_cast<NodeGeometryForeachGeometryElementOutput *>(node->storage));
 }
 
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeGeometryForeachGeometryElementOutput &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_dupallocN<NodeGeometryForeachGeometryElementOutput>(__func__,
-                                                                              src_storage);
+  auto *dst_storage = MEM_new_for_free<NodeGeometryForeachGeometryElementOutput>(
+      __func__, blender::dna::shallow_copy(src_storage));
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<ForeachGeometryElementInputItemsAccessor>(*src_node, *dst_node);

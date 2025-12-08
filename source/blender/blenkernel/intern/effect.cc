@@ -15,6 +15,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_curve_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_listBase.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_force_types.h"
@@ -57,7 +58,7 @@
 
 EffectorWeights *BKE_effector_add_weights(Collection *collection)
 {
-  EffectorWeights *weights = MEM_callocN<EffectorWeights>("EffectorWeights");
+  EffectorWeights *weights = MEM_new_for_free<EffectorWeights>("EffectorWeights");
   for (int i = 0; i < NUM_PFIELD_TYPES; i++) {
     weights->weight[i] = 1.0f;
   }
@@ -72,7 +73,7 @@ PartDeflect *BKE_partdeflect_new(int type)
 {
   PartDeflect *pd;
 
-  pd = MEM_callocN<PartDeflect>("PartDeflect");
+  pd = MEM_new_for_free<PartDeflect>("PartDeflect");
 
   pd->forcefield = type;
   pd->pdef_sbdamp = 0.1f;

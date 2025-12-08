@@ -6,7 +6,7 @@
 
 #include "DNA_listBase.h"
 
-#include <stdint.h>
+#include <cstdint>
 
 struct ID;
 struct bNodeTree;
@@ -22,72 +22,72 @@ enum ViewerPathElemType {
   VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE = 7,
 };
 
-typedef struct ViewerPathElem {
-  struct ViewerPathElem *next, *prev;
-  int type;
-  char _pad[4];
-  char *ui_name;
-} ViewerPathElem;
+struct ViewerPathElem {
+  struct ViewerPathElem *next = nullptr, *prev = nullptr;
+  int type = 0;
+  char _pad[4] = {};
+  char *ui_name = nullptr;
+};
 
-typedef struct IDViewerPathElem {
+struct IDViewerPathElem {
   ViewerPathElem base;
-  struct ID *id;
-} IDViewerPathElem;
+  struct ID *id = nullptr;
+};
 
-typedef struct ModifierViewerPathElem {
+struct ModifierViewerPathElem {
   ViewerPathElem base;
   /** #ModifierData.persistent_uid. */
-  int modifier_uid;
-  char _pad[4];
-} ModifierViewerPathElem;
+  int modifier_uid = 0;
+  char _pad[4] = {};
+};
 
-typedef struct GroupNodeViewerPathElem {
+struct GroupNodeViewerPathElem {
   ViewerPathElem base;
 
-  int32_t node_id;
-  char _pad1[4];
-} GroupNodeViewerPathElem;
+  int32_t node_id = 0;
+  char _pad1[4] = {};
+};
 
-typedef struct SimulationZoneViewerPathElem {
+struct SimulationZoneViewerPathElem {
   ViewerPathElem base;
 
-  int32_t sim_output_node_id;
-  char _pad1[4];
-} SimulationZoneViewerPathElem;
+  int32_t sim_output_node_id = 0;
+  char _pad1[4] = {};
+};
 
-typedef struct RepeatZoneViewerPathElem {
+struct RepeatZoneViewerPathElem {
   ViewerPathElem base;
 
-  int repeat_output_node_id;
-  int iteration;
-} RepeatZoneViewerPathElem;
+  int repeat_output_node_id = 0;
+  int iteration = 0;
+};
 
-typedef struct ForeachGeometryElementZoneViewerPathElem {
+struct ForeachGeometryElementZoneViewerPathElem {
   ViewerPathElem base;
 
-  int zone_output_node_id;
-  int index;
-} ForeachGeometryElementZoneViewerPathElem;
+  int zone_output_node_id = 0;
+  int index = 0;
+};
 
-typedef struct ViewerNodeViewerPathElem {
+struct ViewerNodeViewerPathElem {
   ViewerPathElem base;
 
-  int32_t node_id;
-  char _pad1[4];
-} ViewerNodeViewerPathElem;
+  int32_t node_id = 0;
+  char _pad1[4] = {};
+};
 
-typedef struct EvaluateClosureNodeViewerPathElem {
+struct EvaluateClosureNodeViewerPathElem {
   ViewerPathElem base;
 
   /** The identifier of the node that evaluates the closure. */
-  int32_t evaluate_node_id;
+  int32_t evaluate_node_id = 0;
   /** The identifier of the output node of the closure zone that is evaluated. */
-  int32_t source_output_node_id;
+  int32_t source_output_node_id = 0;
   /** The node tree that contains the closure zone that is evaluated. */
-  struct bNodeTree *source_node_tree;
-} EvaluateClosureNodeViewerPathElem;
+  struct bNodeTree *source_node_tree = nullptr;
+};
 
-typedef struct ViewerPath {
+struct ViewerPath {
   /** List of #ViewerPathElem. */
-  ListBase path;
-} ViewerPath;
+  ListBase path = {nullptr, nullptr};
+};

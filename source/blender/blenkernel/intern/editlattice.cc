@@ -53,7 +53,7 @@ void BKE_editlattice_make(Object *obedit)
   if (actkey) {
     BKE_keyblock_convert_to_lattice(actkey, lt);
   }
-  lt->editlatt = MEM_callocN<EditLatt>("editlatt");
+  lt->editlatt = MEM_new_for_free<EditLatt>("editlatt");
   lt->editlatt->latt = static_cast<Lattice *>(MEM_dupallocN(lt));
   lt->editlatt->latt->def = static_cast<BPoint *>(MEM_dupallocN(lt->def));
 

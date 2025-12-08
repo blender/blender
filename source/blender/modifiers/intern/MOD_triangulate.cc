@@ -12,7 +12,6 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_defaults.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_mesh.hh"
@@ -81,10 +80,7 @@ static Mesh *triangulate_mesh(Mesh *mesh,
 static void init_data(ModifierData *md)
 {
   TriangulateModifierData *tmd = (TriangulateModifierData *)md;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(tmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(tmd, DNA_struct_default_get(TriangulateModifierData), modifier);
+  INIT_DEFAULT_STRUCT_AFTER(tmd, modifier);
 
   /* Enable in editmode by default */
   md->mode |= eModifierMode_Editmode;

@@ -465,7 +465,7 @@ bGPDframe *BKE_gpencil_frame_addnew(bGPDlayer *gpl, int cframe)
   }
 
   /* allocate memory for this frame */
-  gpf = MEM_callocN<bGPDframe>("bGPDframe");
+  gpf = MEM_new_for_free<bGPDframe>("bGPDframe");
   gpf->framenum = cframe;
 
   /* find appropriate place to add frame */
@@ -575,7 +575,7 @@ bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd,
   }
 
   /* allocate memory for frame and add to end of list */
-  gpl = MEM_callocN<bGPDlayer>("bGPDlayer");
+  gpl = MEM_new_for_free<bGPDlayer>("bGPDlayer");
 
   gpl_active = BKE_gpencil_layer_active_get(gpd);
 

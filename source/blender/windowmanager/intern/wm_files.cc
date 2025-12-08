@@ -4569,7 +4569,7 @@ static blender::ui::Block *block_create_save_file_overwrite_dialog(bContext *C,
 void wm_save_file_overwrite_dialog(bContext *C, wmOperator *op)
 {
   if (!blender::ui::popup_block_name_exists(CTX_wm_screen(C), save_file_overwrite_dialog_name)) {
-    wmGenericCallback *callback = MEM_callocN<wmGenericCallback>(__func__);
+    wmGenericCallback *callback = MEM_new_for_free<wmGenericCallback>(__func__);
     callback->exec = nullptr;
     callback->user_data = IDP_CopyProperty(op->properties);
     callback->free_user_data = wm_free_operator_properties_callback;
@@ -4921,7 +4921,7 @@ bool wm_operator_close_file_dialog_if_needed(bContext *C,
   if (U.uiflag & USER_SAVE_PROMPT &&
       wm_file_or_session_data_has_unsaved_changes(CTX_data_main(C), CTX_wm_manager(C)))
   {
-    wmGenericCallback *callback = MEM_callocN<wmGenericCallback>(__func__);
+    wmGenericCallback *callback = MEM_new_for_free<wmGenericCallback>(__func__);
     callback->exec = post_action_fn;
     callback->user_data = IDP_CopyProperty(op->properties);
     callback->free_user_data = wm_free_operator_properties_callback;

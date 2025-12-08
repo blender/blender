@@ -14,7 +14,6 @@
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
-#include "DNA_defaults.h"
 #include "DNA_light_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
@@ -45,9 +44,7 @@
 static void light_init_data(ID *id)
 {
   Light *la = (Light *)id;
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(la, id));
-
-  MEMCPY_STRUCT_AFTER(la, DNA_struct_default_get(Light), id);
+  INIT_DEFAULT_STRUCT_AFTER(la, id);
 }
 
 /**

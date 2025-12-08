@@ -140,7 +140,7 @@ static IDPropertyUIDataEnumItem *idprop_enum_items_from_py(PyObject *seq_fast, i
   PyObject **seq_fast_items = PySequence_Fast_ITEMS(seq_fast);
   int i;
 
-  items = MEM_calloc_arrayN<IDPropertyUIDataEnumItem>(seq_len, __func__);
+  items = MEM_new_array_for_free<IDPropertyUIDataEnumItem>(seq_len, __func__);
   r_items_num = seq_len;
 
   for (i = 0; i < seq_len; i++) {

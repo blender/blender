@@ -95,7 +95,7 @@ struct RenderLayer {
 };
 
 struct RenderResult {
-  struct RenderResult *next, *prev;
+  struct RenderResult *next = nullptr, *prev = nullptr;
 
   /* The number of users of this render result. Default value is 0. The result is freed when
    * #RE_FreeRenderResult is called with the render result with 0 users. In a way this is
@@ -106,30 +106,30 @@ struct RenderResult {
    * the number of users goes to 0.
    *
    * TODO: Make it atomic. Currently it is not to allow shallow copying. */
-  int user_counter;
+  int user_counter = 0;
 
   /* target image size */
-  int rectx, recty;
+  int rectx = 0, recty = 0;
 
   /* The temporary storage to pass image data from #RE_AcquireResultImage.
    * Is null pointer when the RenderResult is not coming from the #RE_AcquireResultImage, and is
    * a pointer to an existing ibuf in either RenderView or a RenderPass otherwise. */
-  struct ImBuf *ibuf;
+  struct ImBuf *ibuf = nullptr;
 
   /* coordinates within final image (after cropping) */
   rcti tilerect;
 
   /* the main buffers */
-  ListBase layers;
+  ListBase layers = {};
 
   /* multiView maps to a StringVector in OpenEXR */
-  ListBase views; /* RenderView */
+  ListBase views = {}; /* RenderView */
 
   /* Render layer to display. */
-  RenderLayer *renlay;
+  RenderLayer *renlay = nullptr;
 
   /* for render results in Image, verify validity for sequences */
-  int framenr;
+  int framenr = 0;
 
   /**
    * Pixels per meter (for image output).
@@ -140,15 +140,15 @@ struct RenderResult {
   double ppm[2];
 
   /* for acquire image, to indicate if it there is a combined layer */
-  bool have_combined;
+  bool have_combined = false;
 
   /* render info text */
-  char *text;
-  char *error;
+  char *text = nullptr;
+  char *error = nullptr;
 
-  struct StampData *stamp_data;
+  struct StampData *stamp_data = nullptr;
 
-  bool passes_allocated;
+  bool passes_allocated = false;
 };
 
 struct RenderStats {

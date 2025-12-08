@@ -113,124 +113,128 @@ enum {
   COLORMANAGE_VIEW_ONLY_VIEW_LOOK = (1 << 3)
 };
 
-typedef struct CurveMapPoint {
-  float x, y;
+struct CurveMapPoint {
+  float x = 0, y = 0;
   /** Shorty for result lookup. */
-  short flag, shorty;
-} CurveMapPoint;
+  short flag = 0, shorty = 0;
+};
 
-typedef struct CurveMap {
-  short totpoint;
-  short flag DNA_DEPRECATED;
+struct CurveMap {
+  DNA_DEFINE_CXX_METHODS(CurveMap)
+
+  short totpoint = 0;
+  DNA_DEPRECATED short flag = 0;
 
   /** Quick multiply value for reading table. */
-  float range;
+  float range = 0;
   /** The x-axis range for the table. */
-  float mintable, maxtable;
+  float mintable = 0, maxtable = 0;
   /** For extrapolated curves, the direction vector. */
-  float ext_in[2], ext_out[2];
+  float ext_in[2] = {}, ext_out[2] = {};
   /** Actual curve. */
-  CurveMapPoint *curve;
+  CurveMapPoint *curve = nullptr;
   /** Display and evaluate table. */
-  CurveMapPoint *table;
+  CurveMapPoint *table = nullptr;
 
   /** For RGB curves, pre-multiplied table. */
-  CurveMapPoint *premultable;
+  CurveMapPoint *premultable = nullptr;
   /** For RGB curves, pre-multiplied extrapolation vector. */
-  float premul_ext_in[2];
-  float premul_ext_out[2];
-  short default_handle_type;
-  char _pad[6];
-} CurveMap;
+  float premul_ext_in[2] = {};
+  float premul_ext_out[2] = {};
+  short default_handle_type = 0;
+  char _pad[6] = {};
+};
 
-typedef struct CurveMapping {
+struct CurveMapping {
+  DNA_DEFINE_CXX_METHODS(CurveMapping)
+
   /** Cur; for buttons, to show active curve. */
-  int flag, cur;
-  int preset;
-  int changed_timestamp;
+  int flag = 0, cur = 0;
+  int preset = 0;
+  int changed_timestamp = 0;
 
   /** Current rect, clip rect (is default rect too). */
-  rctf curr, clipr;
+  rctf curr = {}, clipr = {};
 
   /** Max 4 builtin curves per mapping struct now. */
   CurveMap cm[4];
   /** Black/white point (black[0] abused for current frame). */
-  float black[3], white[3];
+  float black[3] = {}, white[3] = {};
   /** Black/white point multiply value, for speed. */
-  float bwmul[3];
+  float bwmul[3] = {};
 
   /** Sample values, if flag set it draws line and intersection. */
-  float sample[3];
+  float sample[3] = {};
 
-  short tone;
-  char _pad[6];
-} CurveMapping;
+  short tone = 0;
+  char _pad[6] = {};
+};
 
-typedef struct Histogram {
-  int channels;
-  int x_resolution;
-  float data_luma[256];
-  float data_r[256];
-  float data_g[256];
-  float data_b[256];
-  float data_a[256];
-  float xmax, ymax;
-  short mode;
-  short flag;
-  int height;
+struct Histogram {
+  int channels = 0;
+  int x_resolution = 0;
+  float data_luma[256] = {};
+  float data_r[256] = {};
+  float data_g[256] = {};
+  float data_b[256] = {};
+  float data_a[256] = {};
+  float xmax = 0, ymax = 0;
+  short mode = 0;
+  short flag = 0;
+  int height = 0;
 
   /** Sample line only (image coords: source -> destination). */
-  float co[2][2];
-} Histogram;
+  float co[2][2] = {};
+};
 
-typedef struct Scopes {
-  int ok;
-  int sample_full;
-  int sample_lines;
-  int wavefrm_mode;
-  int vecscope_mode;
-  int wavefrm_height;
-  int vecscope_height;
-  int waveform_tot;
-  float accuracy;
-  float wavefrm_alpha;
-  float wavefrm_yfac;
-  float vecscope_alpha;
-  float minmax[3][2];
+struct Scopes {
+  int ok = 0;
+  int sample_full = 0;
+  int sample_lines = 0;
+  int wavefrm_mode = 0;
+  int vecscope_mode = 0;
+  int wavefrm_height = 0;
+  int vecscope_height = 0;
+  int waveform_tot = 0;
+  float accuracy = 0;
+  float wavefrm_alpha = 0;
+  float wavefrm_yfac = 0;
+  float vecscope_alpha = 0;
+  float minmax[3][2] = {};
   struct Histogram hist;
-  float *waveform_1;
-  float *waveform_2;
-  float *waveform_3;
-  float *vecscope;
-  float *vecscope_rgb;
-} Scopes;
+  float *waveform_1 = nullptr;
+  float *waveform_2 = nullptr;
+  float *waveform_3 = nullptr;
+  float *vecscope = nullptr;
+  float *vecscope_rgb = nullptr;
+};
 
-typedef struct ColorManagedViewSettings {
-  int flag;
-  char _pad[4];
+struct ColorManagedViewSettings {
+  int flag = 0;
+  char _pad[4] = {};
   /** Look which is being applied when displaying buffer on the screen
    * (prior to view transform). */
-  char look[64];
+  char look[64] = "";
   /** View transform which is being applied when displaying buffer on the screen. */
-  char view_transform[64];
+  char view_transform[64] = "";
   /** F-stop exposure. */
-  float exposure;
+  float exposure = 0;
   /** Post-display gamma transform. */
-  float gamma;
+  float gamma = 0;
   /** White balance parameters. */
-  float temperature;
-  float tint;
+  float temperature = 0;
+  float tint = 0;
   /** Pre-display RGB curves transform. */
-  struct CurveMapping *curve_mapping;
-  void *_pad2;
-} ColorManagedViewSettings;
+  struct CurveMapping *curve_mapping = nullptr;
+  void *_pad2 = nullptr;
+};
 
-typedef struct ColorManagedDisplaySettings {
-  char display_device[64];
-  char emulation;
-  char _pad[7];
-} ColorManagedDisplaySettings;
+struct ColorManagedDisplaySettings {
+  char display_device[64] = "";
+  char emulation = 0;
+  char _pad[7] = {};
+};
 
-typedef struct ColorManagedColorspaceSettings {
-  char name[/*MAX_COLORSPACE_NAME*/ 64];
-} ColorManagedColorspaceSettings;
+struct ColorManagedColorspaceSettings {
+  char name[/*MAX_COLORSPACE_NAME*/ 64] = "";
+};

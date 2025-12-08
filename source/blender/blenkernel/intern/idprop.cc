@@ -66,7 +66,7 @@ static size_t idp_size_table[] = {
 
 IDProperty *IDP_NewIDPArray(const blender::StringRef name)
 {
-  IDProperty *prop = MEM_callocN<IDProperty>("IDProperty prop array");
+  IDProperty *prop = MEM_new_for_free<IDProperty>("IDProperty prop array");
   prop->type = IDP_IDPARRAY;
   prop->len = 0;
   name.copy_utf8_truncated(prop->name);
@@ -79,8 +79,7 @@ IDProperty *IDP_CopyIDPArray(const IDProperty *array, const int flag)
   /* don't use MEM_dupallocN because this may be part of an array */
   BLI_assert(array->type == IDP_IDPARRAY);
 
-  IDProperty *narray = MEM_mallocN<IDProperty>(__func__);
-  *narray = *array;
+  IDProperty *narray = MEM_new_for_free<IDProperty>(__func__, *array);
 
   narray->data.pointer = MEM_dupallocN(array->data.pointer);
   for (int i = 0; i < narray->len; i++) {
@@ -311,7 +310,7 @@ IDPropertyUIData *IDP_ui_data_copy(const IDProperty *prop)
 
 static IDProperty *idp_generic_copy(const IDProperty *prop, const int /*flag*/)
 {
-  IDProperty *newp = MEM_callocN<IDProperty>(__func__);
+  IDProperty *newp = MEM_new_for_free<IDProperty>(__func__);
 
   STRNCPY(newp->name, prop->name);
   newp->type = prop->type;
@@ -361,7 +360,7 @@ IDProperty *IDP_NewStringMaxSize(const char *st,
                                  const blender::StringRef name,
                                  const eIDPropertyFlag flags)
 {
-  IDProperty *prop = MEM_callocN<IDProperty>("IDProperty string");
+  IDProperty *prop = MEM_new_for_free<IDProperty>("IDProperty string");
 
   if (st == nullptr) {
     prop->data.pointer = MEM_malloc_arrayN<char>(DEFAULT_ALLOC_FOR_NULL_STRINGS,
@@ -878,7 +877,7 @@ IDProperty *IDP_GetProperties(ID *id)
 IDProperty *IDP_EnsureProperties(ID *id)
 {
   if (id->properties == nullptr) {
-    id->properties = MEM_callocN<IDProperty>("IDProperty");
+    id->properties = MEM_new_for_free<IDProperty>("IDProperty");
     id->properties->type = IDP_GROUP;
     /* NOTE(@ideasman42): Don't overwrite the data's name and type
      * some functions might need this if they
@@ -896,7 +895,7 @@ IDProperty *IDP_ID_system_properties_get(ID *id)
 IDProperty *IDP_ID_system_properties_ensure(ID *id)
 {
   if (id->system_properties == nullptr) {
-    id->system_properties = MEM_callocN<IDProperty>(__func__);
+    id->system_properties = MEM_new_for_free<IDProperty>(__func__);
     id->system_properties->type = IDP_GROUP;
     /* NOTE(@ideasman42): Don't overwrite the data's name and type
      * some functions might need this if they
@@ -1011,19 +1010,19 @@ IDProperty *IDP_New(const char type,
 
   switch (type) {
     case IDP_INT:
-      prop = MEM_callocN<IDProperty>("IDProperty int");
+      prop = MEM_new_for_free<IDProperty>("IDProperty int");
       prop->data.val = val->i;
       break;
     case IDP_FLOAT:
-      prop = MEM_callocN<IDProperty>("IDProperty float");
+      prop = MEM_new_for_free<IDProperty>("IDProperty float");
       *(float *)&prop->data.val = val->f;
       break;
     case IDP_DOUBLE:
-      prop = MEM_callocN<IDProperty>("IDProperty double");
+      prop = MEM_new_for_free<IDProperty>("IDProperty double");
       *(double *)&prop->data.val = val->d;
       break;
     case IDP_BOOLEAN:
-      prop = MEM_callocN<IDProperty>("IDProperty boolean");
+      prop = MEM_new_for_free<IDProperty>("IDProperty boolean");
       prop->data.val = bool(val->i);
       break;
     case IDP_ARRAY: {
@@ -1031,7 +1030,7 @@ IDProperty *IDP_New(const char type,
        * `IDP_ARRAY`. This is most likely a mistake. `IDP_GROUP` array should be of type
        * `IDP_IDPARRAY`, as done e.g. in #idp_from_PySequence_Buffer in bpy API. */
       if (ELEM(val->array.type, IDP_FLOAT, IDP_INT, IDP_DOUBLE, IDP_GROUP, IDP_BOOLEAN)) {
-        prop = MEM_callocN<IDProperty>("IDProperty array");
+        prop = MEM_new_for_free<IDProperty>("IDProperty array");
         prop->subtype = val->array.type;
         if (val->array.len) {
           prop->data.pointer = MEM_calloc_arrayN(
@@ -1046,7 +1045,7 @@ IDProperty *IDP_New(const char type,
     case IDP_STRING: {
       const char *st = val->string.str;
 
-      prop = MEM_callocN<IDProperty>("IDProperty string");
+      prop = MEM_new_for_free<IDProperty>("IDProperty string");
       if (val->string.subtype == IDP_STRING_SUB_BYTE) {
         /* NOTE: Intentionally not null terminated. */
         if (st == nullptr) {
@@ -1087,18 +1086,18 @@ IDProperty *IDP_New(const char type,
     }
     case IDP_GROUP: {
       /* Values are set properly by calloc. */
-      prop = MEM_callocN<IDProperty>("IDProperty group");
+      prop = MEM_new_for_free<IDProperty>("IDProperty group");
       break;
     }
     case IDP_ID: {
-      prop = MEM_callocN<IDProperty>("IDProperty datablock");
+      prop = MEM_new_for_free<IDProperty>("IDProperty datablock");
       prop->data.pointer = (void *)val->id;
       prop->type = IDP_ID;
       id_us_plus(IDP_ID_get(prop));
       break;
     }
     default: {
-      prop = MEM_callocN<IDProperty>("IDProperty array");
+      prop = MEM_new_for_free<IDProperty>("IDProperty array");
       break;
     }
   }
@@ -1715,15 +1714,15 @@ static IDPropertyUIData *ui_data_alloc(const eIDPropertyUIDataType type)
 {
   switch (type) {
     case IDP_UI_DATA_TYPE_STRING: {
-      IDPropertyUIDataString *ui_data = MEM_callocN<IDPropertyUIDataString>(__func__);
+      IDPropertyUIDataString *ui_data = MEM_new_for_free<IDPropertyUIDataString>(__func__);
       return &ui_data->base;
     }
     case IDP_UI_DATA_TYPE_ID: {
-      IDPropertyUIDataID *ui_data = MEM_callocN<IDPropertyUIDataID>(__func__);
+      IDPropertyUIDataID *ui_data = MEM_new_for_free<IDPropertyUIDataID>(__func__);
       return &ui_data->base;
     }
     case IDP_UI_DATA_TYPE_INT: {
-      IDPropertyUIDataInt *ui_data = MEM_callocN<IDPropertyUIDataInt>(__func__);
+      IDPropertyUIDataInt *ui_data = MEM_new_for_free<IDPropertyUIDataInt>(__func__);
       ui_data->min = INT_MIN;
       ui_data->max = INT_MAX;
       ui_data->soft_min = INT_MIN;
@@ -1732,11 +1731,11 @@ static IDPropertyUIData *ui_data_alloc(const eIDPropertyUIDataType type)
       return &ui_data->base;
     }
     case IDP_UI_DATA_TYPE_BOOLEAN: {
-      IDPropertyUIDataBool *ui_data = MEM_callocN<IDPropertyUIDataBool>(__func__);
+      IDPropertyUIDataBool *ui_data = MEM_new_for_free<IDPropertyUIDataBool>(__func__);
       return &ui_data->base;
     }
     case IDP_UI_DATA_TYPE_FLOAT: {
-      IDPropertyUIDataFloat *ui_data = MEM_callocN<IDPropertyUIDataFloat>(__func__);
+      IDPropertyUIDataFloat *ui_data = MEM_new_for_free<IDPropertyUIDataFloat>(__func__);
       ui_data->min = -FLT_MAX;
       ui_data->max = FLT_MAX;
       ui_data->soft_min = -FLT_MAX;

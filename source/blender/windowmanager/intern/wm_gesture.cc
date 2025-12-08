@@ -38,7 +38,7 @@ using blender::int2;
 
 wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent *event, int type)
 {
-  wmGesture *gesture = MEM_callocN<wmGesture>("new gesture");
+  wmGesture *gesture = MEM_new_for_free<wmGesture>("new gesture");
 
   BLI_addtail(&window->runtime->gesture, gesture);
 

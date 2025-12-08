@@ -16,6 +16,8 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_enums.h"
+#include "DNA_space_enums.h"
 #include "DNA_view3d_enums.h"
 #include "DNA_viewer_path_types.h"
 
@@ -426,52 +428,53 @@ enum eV3DPlaceOrient {
   V3D_PLACE_ORIENT_DEFAULT = 1,
 };
 
-typedef struct RegionView3D {
+struct RegionView3D {
+  DNA_DEFINE_CXX_METHODS(RegionView3D)
 
   /** GL_PROJECTION matrix. */
-  float winmat[4][4];
+  float winmat[4][4] = {};
   /** GL_MODELVIEW matrix. */
-  float viewmat[4][4];
+  float viewmat[4][4] = {};
   /** Inverse of viewmat. */
-  float viewinv[4][4];
+  float viewinv[4][4] = {};
   /** Viewmat*winmat. */
-  float persmat[4][4];
+  float persmat[4][4] = {};
   /** Inverse of persmat. */
-  float persinv[4][4];
+  float persinv[4][4] = {};
   /** Offset/scale for camera GLSL texture-coordinates. */
-  float viewcamtexcofac[4];
+  float viewcamtexcofac[4] = {};
 
   /** viewmat/persmat multiplied with object matrix, while drawing and selection. */
-  float viewmatob[4][4];
-  float persmatob[4][4];
+  float viewmatob[4][4] = {};
+  float persmatob[4][4] = {};
 
   /** User defined clipping planes. */
-  float clip[6][4];
+  float clip[6][4] = {};
   /**
    * Clip in object space,
    * means we can test for clipping in edit-mode without first going into world-space.
    */
-  float clip_local[6][4];
-  struct BoundBox *clipbb;
+  float clip_local[6][4] = {};
+  struct BoundBox *clipbb = nullptr;
 
   /** Allocated backup of itself while in local-view. */
-  struct RegionView3D *localvd;
-  struct ViewRender *view_render;
+  struct RegionView3D *localvd = nullptr;
+  struct ViewRender *view_render = nullptr;
 
   /** Animated smooth view. */
-  struct SmoothView3DStore *sms;
-  struct wmTimer *smooth_timer;
+  struct SmoothView3DStore *sms = nullptr;
+  struct wmTimer *smooth_timer = nullptr;
 
   /** Transform gizmo matrix. */
-  float twmat[4][4];
+  float twmat[4][4] = {};
   /** min/max dot product on `twmat` XYZ axis. */
-  float tw_axis_min[3], tw_axis_max[3];
-  float tw_axis_matrix[3][3];
+  float tw_axis_min[3] = {}, tw_axis_max[3] = {};
+  float tw_axis_matrix[3][3] = {};
 
-  float gridview DNA_DEPRECATED;
+  DNA_DEPRECATED float gridview = 0;
 
   /** View rotation, must be kept normalized. */
-  float viewquat[4];
+  float viewquat[4] = {};
   /**
    * Distance from `ofs` along `-viewinv[2]` vector, where result is negative as is `ofs`.
    *
@@ -479,69 +482,69 @@ typedef struct RegionView3D {
    * see #ED_view3d_dist_soft_range_get to calculate a working range
    * viewport "zoom" functions to use.
    */
-  float dist;
+  float dist = 0;
   /** Camera view offsets, 1.0 = viewplane moves entire width/height. */
-  float camdx, camdy;
+  float camdx = 0, camdy = 0;
   /** Runtime only. */
-  float pixsize;
+  float pixsize = 0;
   /**
    * View center & orbit pivot, negative of world-space location,
    * also matches `-viewinv[3][0:3]` in orthographic mode.
    */
-  float ofs[3];
+  float ofs[3] = {};
   /** Viewport zoom on the camera frame, see BKE_screen_view3d_zoom_to_fac. */
-  float camzoom;
+  float camzoom = 0;
   /**
    * Check if persp/ortho view, since 'persp' can't be used for this since
    * it can have cameras assigned as well. (only set in #view3d_winmatrix_set)
    */
-  char is_persp;
-  char persp;
-  char view;
-  char view_axis_roll;
-  char viewlock; /* Should usually be accessed with RV3D_LOCK_FLAGS()! */
+  char is_persp = 0;
+  char persp = 0;
+  char view = 0;
+  char view_axis_roll = 0;
+  char viewlock = 0; /* Should usually be accessed with RV3D_LOCK_FLAGS()! */
   /** Options for runtime only locking (cleared on file read) */
-  char runtime_viewlock; /* Should usually be accessed with RV3D_LOCK_FLAGS()! */
+  char runtime_viewlock = 0; /* Should usually be accessed with RV3D_LOCK_FLAGS()! */
   /** Options for quadview (store while out of quad view). */
-  char viewlock_quad;
-  char _pad[1];
+  char viewlock_quad = 0;
+  char _pad[1] = {};
   /** Normalized offset for locked view: (-1, -1) bottom left, (1, 1) upper right. */
-  float ofs_lock[2];
+  float ofs_lock[2] = {};
 
   /** XXX can easily get rid of this (Julian). */
-  short twdrawflag;
-  short rflag;
+  short twdrawflag = 0;
+  short rflag = 0;
 
   /** Last view (use when switching out of camera view). */
-  float lviewquat[4];
+  float lviewquat[4] = {};
   /** The last perspective can never be set to #RV3D_CAMOB. */
-  char lpersp;
-  char lview;
-  char lview_axis_roll;
-  char _pad8[4];
+  char lpersp = 0;
+  char lview = 0;
+  char lview_axis_roll = 0;
+  char _pad8[4] = {};
 
-  char ndof_flag;
+  char ndof_flag = 0;
   /**
    * Rotation center used for "Auto Orbit" (see #NDOF_ORBIT_CENTER_AUTO).
    * Any modification should be followed by adjusting #RegionView3D::dist
    * to prevent problems zooming in after navigation. See: #134732.
    */
-  float ndof_ofs[3];
+  float ndof_ofs[3] = {};
 
   /** Active rotation from NDOF (run-time only). */
-  float ndof_rot_angle;
-  float ndof_rot_axis[3];
-} RegionView3D;
+  float ndof_rot_angle = 0;
+  float ndof_rot_axis[3] = {};
+};
 
-typedef struct View3DCursor {
-  float location[3];
+struct View3DCursor {
+  float location[3] = {};
 
-  float rotation_quaternion[4];
-  float rotation_euler[3];
-  float rotation_axis[3], rotation_angle;
-  short rotation_mode;
+  float rotation_quaternion[4] = {1, 0, 0, 0};
+  float rotation_euler[3] = {};
+  float rotation_axis[3] = {0, 1, 0}, rotation_angle = 0;
+  short rotation_mode = ROT_MODE_XYZ;
 
-  char _pad[6];
+  char _pad[6] = {};
 
 #ifdef __cplusplus
   template<typename T> T matrix() const;
@@ -551,231 +554,236 @@ typedef struct View3DCursor {
   void set_matrix(const blender::float3x3 &mat, bool use_compat);
   void set_matrix(const blender::float4x4 &mat, bool use_compat);
 #endif
-} View3DCursor;
+};
 
 /** 3D Viewport Shading settings. */
-typedef struct View3DShading {
+struct View3DShading {
   /** Shading type (OB_SOLID, ..). */
-  char type;
+  char type = OB_SOLID;
   /** Runtime, for toggle between rendered viewport. */
-  char prev_type;
-  char prev_type_wire;
+  char prev_type = OB_SOLID;
+  char prev_type_wire = 0;
 
-  char color_type;
-  short flag;
+  char color_type = 0;
+  short flag = V3D_SHADING_SPECULAR_HIGHLIGHT | V3D_SHADING_XRAY_WIREFRAME |
+               V3D_SHADING_SCENE_LIGHTS_RENDER | V3D_SHADING_SCENE_WORLD_RENDER;
 
-  char light;
-  char background_type;
-  char cavity_type;
-  char wire_color_type;
+  char light = V3D_LIGHTING_STUDIO;
+  char background_type = 0;
+  char cavity_type = V3D_SHADING_CAVITY_CURVATURE;
+  char wire_color_type = V3D_SHADING_SINGLE_COLOR;
 
   /** When to preview the compositor output in the viewport. View3DShadingUseCompositor. */
-  char use_compositor;
+  char use_compositor = 0;
 
-  char _pad;
+  char _pad = {};
 
-  char studio_light[/*FILE_MAXFILE*/ 256];
-  char lookdev_light[/*FILE_MAXFILE*/ 256];
-  char matcap[/*FILE_MAXFILE*/ 256];
+  char studio_light[/*FILE_MAXFILE*/ 256] = "";
+  char lookdev_light[/*FILE_MAXFILE*/ 256] = "";
+  char matcap[/*FILE_MAXFILE*/ 256] = "";
 
-  float shadow_intensity;
-  float single_color[3];
+  float shadow_intensity = 0.5f;
+  float single_color[3] = {0.8f, 0.8f, 0.8f};
 
-  float studiolight_rot_z;
-  float studiolight_background;
-  float studiolight_intensity;
-  float studiolight_blur;
+  float studiolight_rot_z = 0;
+  float studiolight_background = 0;
+  float studiolight_intensity = 1.0f;
+  float studiolight_blur = 0;
 
-  float object_outline_color[3];
-  float xray_alpha;
-  float xray_alpha_wire;
+  float object_outline_color[3] = {};
+  float xray_alpha = 0.5f;
+  float xray_alpha_wire = 0.5f;
 
-  float cavity_valley_factor;
-  float cavity_ridge_factor;
+  float cavity_valley_factor = 1.0f;
+  float cavity_ridge_factor = 1.0f;
 
-  float background_color[3];
+  float background_color[3] = {0.05f, 0.05f, 0.05f};
 
-  float curvature_ridge_factor;
-  float curvature_valley_factor;
+  float curvature_ridge_factor = 1.0f;
+  float curvature_valley_factor = 1.0f;
 
   /* Render pass displayed in the viewport. Is an `eScenePassType` where one bit is set */
-  int render_pass;
-  char aov_name[64];
+  int render_pass = SCE_PASS_COMBINED;
+  char aov_name[64] = "";
 
-  struct IDProperty *prop;
-  void *_pad2;
-} View3DShading;
+  struct IDProperty *prop = nullptr;
+  void *_pad2 = nullptr;
+};
 
 /** 3D Viewport Overlay settings. */
-typedef struct View3DOverlay {
-  int flag;
+struct View3DOverlay {
+  int flag = V3D_OVERLAY_VIEWER_ATTRIBUTE | V3D_OVERLAY_SCULPT_SHOW_MASK |
+             V3D_OVERLAY_SCULPT_SHOW_FACE_SETS;
 
   /** Edit mode settings. */
-  int edit_flag;
-  float normals_length;
-  float normals_constant_screen_size;
+  int edit_flag = V3D_OVERLAY_EDIT_FACES | V3D_OVERLAY_EDIT_SEAMS | V3D_OVERLAY_EDIT_SHARP |
+                  V3D_OVERLAY_EDIT_FREESTYLE_EDGE | V3D_OVERLAY_EDIT_FREESTYLE_FACE |
+                  V3D_OVERLAY_EDIT_CREASES | V3D_OVERLAY_EDIT_BWEIGHTS;
+  float normals_length = 0.1f;
+  float normals_constant_screen_size = 7.0f;
 
   /** Paint mode settings. */
-  int paint_flag;
+  int paint_flag = 0;
 
   /** Weight paint mode settings. */
-  int wpaint_flag;
+  int wpaint_flag = 0;
 
   /** Alpha for texture, weight, vertex paint overlay. */
-  float texture_paint_mode_opacity;
-  float vertex_paint_mode_opacity;
-  float weight_paint_mode_opacity;
-  float sculpt_mode_mask_opacity;
-  float sculpt_mode_face_sets_opacity;
-  float viewer_attribute_opacity;
+  float texture_paint_mode_opacity = 1.0f;
+  float vertex_paint_mode_opacity = 1.0f;
+  float weight_paint_mode_opacity = 1.0f;
+  float sculpt_mode_mask_opacity = 0.75f;
+  float sculpt_mode_face_sets_opacity = 1.0f;
+  float viewer_attribute_opacity = 1.0f;
 
   /** Armature edit/pose mode settings. */
-  float xray_alpha_bone;
-  float bone_wire_alpha;
+  float xray_alpha_bone = 0.5f;
+  float bone_wire_alpha = 1.0f;
 
   /** Darken Inactive. */
-  float fade_alpha;
+  float fade_alpha = 0.40f;
 
   /** Other settings. */
-  float wireframe_threshold;
-  float wireframe_opacity;
-  float retopology_offset;
+  float wireframe_threshold = 1.0f;
+  float wireframe_opacity = 1.0f;
+  float retopology_offset = 0.01f;
 
   /** Grease pencil settings. */
-  float gpencil_paper_opacity;
-  float gpencil_grid_opacity;
-  float gpencil_fade_layer;
+  float gpencil_paper_opacity = 0.5f;
+  float gpencil_grid_opacity = 0.9f;
+  float gpencil_fade_layer = 0;
 
   /* Grease Pencil canvas settings. */
-  float gpencil_grid_color[3];
-  float gpencil_grid_scale[2];
-  float gpencil_grid_offset[2];
-  int gpencil_grid_subdivisions;
+  float gpencil_grid_color[3] = {0.5f, 0.5f, 0.5f};
+  float gpencil_grid_scale[2] = {1.0f, 1.0f};
+  float gpencil_grid_offset[2] = {0.0f, 0.0f};
+  int gpencil_grid_subdivisions = 4;
 
   /** Factor for mixing vertex paint with original color */
-  float gpencil_vertex_paint_opacity;
+  float gpencil_vertex_paint_opacity = 1.0f;
   /** Handles display type for curves. */
-  int handle_display;
+  int handle_display = CURVE_HANDLE_SELECTED;
 
   /** Curves sculpt mode settings. */
-  float sculpt_curves_cage_opacity;
-} View3DOverlay;
+  float sculpt_curves_cage_opacity = 0;
+};
 
-typedef struct View3D_Runtime {
+struct View3D_Runtime {
   /** Nkey panel stores stuff here. */
-  void *properties_storage;
-  void (*properties_storage_free)(void *properties_storage);
+  void *properties_storage = nullptr;
+  void (*properties_storage_free)(void *properties_storage) = nullptr;
   /** Runtime only flags. */
-  int flag;
+  int flag = 0;
 
   /**
    * The previously calculated selection center.
    * Only use when `flag` #V3D_RUNTIME_OFS_LAST_IS_VALID is set.
    */
-  float ofs_last_center[3];
+  float ofs_last_center[3] = {};
 
   /* Only used for overlay stats while in local-view. */
-  struct SceneStats *local_stats;
+  struct SceneStats *local_stats = nullptr;
 
   /* Times recorded for performance overlay. */
-  float last_sync_time;
-  float last_submission_time;
-} View3D_Runtime;
+  float last_sync_time = 0;
+  float last_submission_time = 0;
+};
 
 /** 3D ViewPort Struct. */
-typedef struct View3D {
+struct View3D {
   DNA_DEFINE_CXX_METHODS(View3D)
 
-  struct SpaceLink *next, *prev;
+  struct SpaceLink *next = nullptr, *prev = nullptr;
   /** Storage of regions for inactive spaces. */
-  ListBase regionbase;
-  char spacetype;
-  char link_flag;
-  char _pad0[6];
+  ListBase regionbase = {nullptr, nullptr};
+  char spacetype = SPACE_VIEW3D;
+  char link_flag = 0;
+  char _pad0[6] = {};
   /* End 'SpaceLink' header. */
 
-  float viewquat[4] DNA_DEPRECATED;
-  float dist DNA_DEPRECATED;
+  DNA_DEPRECATED float viewquat[4] = {};
+  DNA_DEPRECATED float dist = 0;
 
   /** Size of bundles in reconstructed data. */
-  float bundle_size;
+  float bundle_size = 0.2f;
   /** Display style for bundle. */
-  char bundle_drawtype;
+  char bundle_drawtype = OB_PLAINAXES;
 
-  char drawtype DNA_DEPRECATED;
+  DNA_DEPRECATED char drawtype = 0;
 
-  char _pad3[1];
+  char _pad3[1] = {};
 
   /** Multiview current eye - for internal use. */
-  char multiview_eye;
+  char multiview_eye = 0;
 
-  int object_type_exclude_viewport;
-  int object_type_exclude_select;
+  int object_type_exclude_viewport = 0;
+  int object_type_exclude_select = 0;
 
-  short persp DNA_DEPRECATED;
-  short view DNA_DEPRECATED;
+  DNA_DEPRECATED short persp = 0;
+  DNA_DEPRECATED short view = 0;
 
-  struct Object *camera, *ob_center;
-  rctf render_border;
+  struct Object *camera = nullptr, *ob_center = nullptr;
+  rctf render_border = {};
 
   /** Allocated backup of itself while in local-view. */
-  struct View3D *localvd;
+  struct View3D *localvd = nullptr;
 
   /** Optional string for armature bone to define center. */
-  char ob_center_bone[/*MAXBONENAME*/ 64];
+  char ob_center_bone[/*MAXBONENAME*/ 64] = "";
 
-  unsigned short local_view_uid;
-  char _pad6[2];
-  int layact DNA_DEPRECATED;
-  unsigned short local_collections_uid;
-  short _pad7[2];
+  unsigned short local_view_uid = 0;
+  char _pad6[2] = {};
+  DNA_DEPRECATED int layact = 0;
+  unsigned short local_collections_uid = 0;
+  short _pad7[2] = {};
 
-  short debug_flag;
+  short debug_flag = 0;
 
   /** Optional bool for 3d cursor to define center. */
-  short ob_center_cursor;
-  short scenelock;
-  short gp_flag;
-  short flag;
-  int flag2;
+  short ob_center_cursor = 0;
+  short scenelock = true;
+  short gp_flag = V3D_GP_SHOW_EDIT_LINES;
+  short flag = V3D_SELECT_OUTLINE;
+  int flag2 = V3D_SHOW_RECONSTRUCTION | V3D_SHOW_ANNOTATION | V3D_SHOW_VIEWER |
+              V3D_SHOW_CAMERA_GUIDES | V3D_SHOW_CAMERA_PASSEPARTOUT;
 
-  float lens, grid;
-  float clip_start, clip_end;
-  float vignette_aperture;
-  float ofs[2] DNA_DEPRECATED;
+  float lens = 50.0f, grid = 1.0f;
+  float clip_start = 0.01f, clip_end = 1000.0f;
+  float vignette_aperture = 0;
+  DNA_DEPRECATED float ofs[2] = {};
 
-  char _pad[1];
+  char _pad[1] = {};
 
   /** Transform gizmo info. */
   /** #V3D_GIZMO_SHOW_* */
-  char gizmo_flag;
+  char gizmo_flag = 0;
 
-  char gizmo_show_object;
-  char gizmo_show_armature;
-  char gizmo_show_empty;
-  char gizmo_show_light;
-  char gizmo_show_camera;
+  char gizmo_show_object = 0;
+  char gizmo_show_armature = 0;
+  char gizmo_show_empty = 0;
+  char gizmo_show_light = 0;
+  char gizmo_show_camera = 0;
 
-  char gridflag;
+  char gridflag = V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_FLOOR | V3D_SHOW_ORTHO_GRID;
 
-  short gridlines;
+  short gridlines = 16;
   /** Number of subdivisions in the grid between each highlighted grid line. */
-  short gridsubdiv;
+  short gridsubdiv = 10;
 
   /** Actually only used to define the opacity of the grease pencil vertex in edit mode. */
-  float vertex_opacity;
+  float vertex_opacity = 1.0f;
 
   /* XXX deprecated? */
   /** Grease-Pencil Data (annotation layers). */
-  struct bGPdata *gpd DNA_DEPRECATED;
+  DNA_DEPRECATED struct bGPdata *gpd = nullptr;
 
   /** Stereoscopy settings. */
-  short stereo3d_flag;
-  char stereo3d_camera;
-  char _pad4;
-  float stereo3d_convergence_factor;
-  float stereo3d_volume_alpha;
-  float stereo3d_convergence_alpha;
+  short stereo3d_flag = V3D_S3D_DISPPLANE;
+  char stereo3d_camera = STEREO_3D_ID;
+  char _pad4 = {};
+  float stereo3d_convergence_factor = 0;
+  float stereo3d_volume_alpha = 0.05f;
+  float stereo3d_convergence_alpha = 0.15f;
 
   /** Display settings. */
   View3DShading shading;
@@ -786,7 +794,7 @@ typedef struct View3D {
 
   /** Runtime evaluation data (keep last). */
   View3D_Runtime runtime;
-} View3D;
+};
 
 #define RV3D_CAMZOOM_MIN -30
 #define RV3D_CAMZOOM_MAX 600

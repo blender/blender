@@ -78,7 +78,7 @@ static void pose_backup_create(const Object *ob,
       return;
     }
 
-    PoseChannelBackup *chan_bak = MEM_callocN<PoseChannelBackup>("PoseChannelBackup");
+    PoseChannelBackup *chan_bak = MEM_new_for_free<PoseChannelBackup>("PoseChannelBackup");
     chan_bak->pchan = pchan;
     chan_bak->olddata = blender::dna::shallow_copy(*chan_bak->pchan);
     chan_bak->owner = ob;

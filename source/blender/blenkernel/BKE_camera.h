@@ -40,36 +40,36 @@ float BKE_camera_sensor_size(int sensor_fit, float sensor_x, float sensor_y);
  * Intermediate struct for storing camera parameters from various sources,
  * to unify computation of view-plane, window matrix, ... etc.
  */
-typedef struct CameraParams {
+struct CameraParams {
   /* lens */
-  bool is_ortho;
-  float lens;
-  float ortho_scale;
-  float zoom;
+  bool is_ortho = false;
+  float lens = 0.0f;
+  float ortho_scale = 1.0f;
+  float zoom = 1.0f;
 
-  float shiftx;
-  float shifty;
-  float offsetx;
-  float offsety;
+  float shiftx = 0.0f;
+  float shifty = 0.0f;
+  float offsetx = 0.0f;
+  float offsety = 0.0f;
 
   /* sensor */
-  float sensor_x;
-  float sensor_y;
-  int sensor_fit;
+  float sensor_x = 0.0f;
+  float sensor_y = 0.0f;
+  int sensor_fit = 0;
 
   /* clipping */
-  float clip_start;
-  float clip_end;
+  float clip_start = 0.1f;
+  float clip_end = 100.0f;
 
   /* computed viewplane */
-  float ycor;
-  float viewdx;
-  float viewdy;
+  float ycor = 0.0f;
+  float viewdx = 0.0f;
+  float viewdy = 0.0f;
   rctf viewplane;
 
   /* computed matrix */
-  float winmat[4][4];
-} CameraParams;
+  float winmat[4][4] = {};
+};
 
 /* Values for CameraParams.zoom, need to be taken into account for some operations. */
 #define CAMERA_PARAM_ZOOM_INIT_CAMOB 1.0f

@@ -165,7 +165,7 @@ void BKE_report(ReportList *reports, eReportType type, const char *_message)
     std::scoped_lock lock(*reports->lock);
 
     char *message_alloc;
-    report = MEM_callocN<Report>("Report");
+    report = MEM_new_for_free<Report>("Report");
     report->type = type;
     report->typestr = BKE_report_type_str(type);
 
@@ -196,7 +196,7 @@ void BKE_reportf(ReportList *reports, eReportType type, const char *_format, ...
   if (reports && (reports->flag & RPT_STORE) && (type >= reports->storelevel)) {
     std::scoped_lock lock(*reports->lock);
 
-    report = MEM_callocN<Report>("Report");
+    report = MEM_new_for_free<Report>("Report");
 
     va_start(args, _format);
     report->message = BLI_vsprintfN(format, args);

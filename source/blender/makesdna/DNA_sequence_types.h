@@ -257,81 +257,81 @@ enum eSeqChannelFlag {
 /** \name Strip & Editing Structs
  * \{ */
 
-typedef struct StripElem {
+struct StripElem {
   /** File name concatenated onto #StripData::dirpath. */
-  char filename[/*FILE_MAXFILE*/ 256];
+  char filename[/*FILE_MAXFILE*/ 256] = "";
   /** Ignore when zeroed. */
-  int orig_width, orig_height;
-  float orig_fps;
-} StripElem;
+  int orig_width = 0, orig_height = 0;
+  float orig_fps = 0;
+};
 
-typedef struct StripCrop {
-  int top;
-  int bottom;
-  int left;
-  int right;
-} StripCrop;
+struct StripCrop {
+  int top = 0;
+  int bottom = 0;
+  int left = 0;
+  int right = 0;
+};
 
-typedef struct StripTransform {
-  float xofs;
-  float yofs;
-  float scale_x;
-  float scale_y;
-  float rotation;
+struct StripTransform {
+  float xofs = 0;
+  float yofs = 0;
+  float scale_x = 0;
+  float scale_y = 0;
+  float rotation = 0;
   /** 0-1 range, `seq::image_transform_origin_offset_pixelspace_get` to convert to pixel-space. */
-  float origin[2];
-  int filter; /* eStripTransformFilter */
-} StripTransform;
+  float origin[2] = {};
+  int filter = 0; /* eStripTransformFilter */
+};
 
-typedef struct StripColorBalance {
-  int method; /* eModColorBalanceMethod */
-  float lift[3];
-  float gamma[3];
-  float gain[3];
-  float slope[3];
-  float offset[3];
-  float power[3];
-  int flag; /* eModColorBalanceInverseFlag */
-  char _pad[4];
-  // float exposure;
-  // float saturation;
-} StripColorBalance;
+struct StripColorBalance {
+  int method = 0; /* eModColorBalanceMethod */
+  float lift[3] = {};
+  float gamma[3] = {};
+  float gain[3] = {};
+  float slope[3] = {};
+  float offset[3] = {};
+  float power[3] = {};
+  int flag = 0; /* eModColorBalanceInverseFlag */
+  char _pad[4] = {};
+  // float exposure = {};
+  // float saturation = {};
+};
 
-typedef struct StripProxy {
+struct StripProxy {
   /** Custom directory for index and proxy files (defaults to "BL_proxy"). */
-  char dirpath[/*FILE_MAXDIR*/ 768];
+  char dirpath[/*FILE_MAXDIR*/ 768] = "";
   /** Custom file. */
-  char filename[/*FILE_MAXFILE*/ 256];
-  struct MovieReader *anim; /* Custom proxy anim file. */
+  char filename[/*FILE_MAXFILE*/ 256] = "";
+  struct MovieReader *anim = nullptr; /* Custom proxy anim file. */
 
-  short tc; /* Time code in use. */
+  short tc = 0; /* Time code in use. */
 
-  short quality;          /* Proxy build quality. */
-  short build_size_flags; /* eStripProxyBuildSize, which proxy sizes to build. */
-  short build_tc_flags;   /* eStripProxyTimeCode, which time codes to build. */
-  short build_flags;      /* eStripProxyBuildFlag */
-  char storage;           /* eStripProxyStorageFlag */
-  char _pad[5];
-} StripProxy;
+  short quality = 0;          /* Proxy build quality. */
+  short build_size_flags = 0; /* eStripProxyBuildSize, which proxy sizes to build. */
+  short build_tc_flags = 0;   /* eStripProxyTimeCode, which time codes to build. */
+  short build_flags = 0;      /* eStripProxyBuildFlag */
+  char storage = 0;           /* eStripProxyStorageFlag */
+  char _pad[5] = {};
+};
 
-typedef struct StripData {
-  struct StripData *next, *prev;
+struct StripData {
+  struct StripData *next = nullptr, *prev = nullptr;
   /**
    * Only used as an array in IMAGE sequences(!),
    * and as a 1-element array in MOVIE sequences,
    * NULL for all other strip-types.
    */
-  StripElem *stripdata;
-  char dirpath[/*FILE_MAXDIR*/ 768];
-  StripProxy *proxy;
-  StripCrop *crop;
-  StripTransform *transform;
+  StripElem *stripdata = nullptr;
+  char dirpath[/*FILE_MAXDIR*/ 768] = "";
+  StripProxy *proxy = nullptr;
+  StripCrop *crop = nullptr;
+  StripTransform *transform = nullptr;
   /* Replaced by #ColorBalanceModifierData::color_balance in 2.64. */
-  StripColorBalance *color_balance_legacy DNA_DEPRECATED;
+  DNA_DEPRECATED StripColorBalance *color_balance_legacy = nullptr;
 
   /* Color management */
   ColorManagedColorspaceSettings colorspace_settings;
-} StripData;
+};
 
 /** #SeqRetimingKey::flag */
 enum eSeqRetimingKeyFlag {
@@ -342,15 +342,15 @@ enum eSeqRetimingKeyFlag {
   SEQ_KEY_SELECTED = (1 << 4),
 };
 
-typedef struct SeqRetimingKey {
-  double strip_frame_index;
-  int flag;              /* eSeqRetimingKeyFlag */
-  float retiming_factor; /* Value between 0-1 mapped to original content range. */
+struct SeqRetimingKey {
+  double strip_frame_index = 0;
+  int flag = 0;              /* eSeqRetimingKeyFlag */
+  float retiming_factor = 0; /* Value between 0-1 mapped to original content range. */
 
-  double original_strip_frame_index; /* Used for transition keys only. */
-  float original_retiming_factor;    /* Used for transition keys only. */
-  char _pad[4];
-} SeqRetimingKey;
+  double original_strip_frame_index = 0; /* Used for transition keys only. */
+  float original_retiming_factor = 0;    /* Used for transition keys only. */
+  char _pad[4] = {};
+};
 
 #define STRIP_NAME_MAXSTR 64
 
@@ -358,122 +358,124 @@ typedef struct SeqRetimingKey {
  * `Strip` is the basic struct used by any strip.
  * Each strip uses a different `Strip` struct.
  */
-typedef struct Strip {
-  struct Strip *next, *prev;
+struct Strip {
+  struct Strip *next = nullptr, *prev = nullptr;
   /** Name, set by default and needs to be unique, for RNA paths. */
-  char name[/*STRIP_NAME_MAXSTR*/ 64];
+  char name[/*STRIP_NAME_MAXSTR*/ 64] = "";
 
-  int flag; /* eStripFlag; flags bit mask. */
-  int type; /* StripType; strip type. */
+  int flag = 0; /* eStripFlag; flags bit mask. */
+  int type = 0; /* StripType; strip type. */
   /** The length of the contents of this strip before handles are applied. */
-  int len;
+  int len = 0;
   /**
    * Start frame of contents of strip in absolute frame coordinates.
    * For meta-strips start of first strip startdisp.
    */
-  float start;
+  float start = 0;
   /**
    * Frame distance from content start to left handle, and from right handle to content end,
    * meaning these can be negative if hold frames are visible.
    */
-  float startofs, endofs;
+  float startofs = 0, endofs = 0;
   /** Replaced by `startofs` and `endofs` in 3.3. */
-  float startstill_legacy DNA_DEPRECATED, endstill_legacy DNA_DEPRECATED;
+  DNA_DEPRECATED float startstill_legacy = 0;
+  DNA_DEPRECATED float endstill_legacy = 0;
   /** The current channel index of the strip in the timeline. */
-  int channel;
+  int channel = 0;
   /** Starting and ending points of the effect strip. Undefined for other strip types. */
-  int startdisp, enddisp;
-  float sat;
-  float mul;
+  int startdisp = 0, enddisp = 0;
+  float sat = 0;
+  float mul = 0;
 
   /** Stream-index for movie or sound files with several streams. */
-  short streamindex;
-  short _pad1;
+  short streamindex = 0;
+  short _pad1 = {};
   /** For multi-camera source selection. */
-  int multicam_source;
-  int clip_flag; /* eStripMovieClipFlag */
+  int multicam_source = 0;
+  int clip_flag = 0; /* eStripMovieClipFlag */
 
-  StripData *data;
+  StripData *data = nullptr;
 
   /** These ID vars should never be NULL but can be when linked libraries fail to load,
    * so check on access. */
   /* For SCENE strips. */
-  struct Scene *scene;
+  struct Scene *scene = nullptr;
   /** Override scene camera. */
-  struct Object *scene_camera;
+  struct Object *scene_camera = nullptr;
   /** For MOVIECLIP strips. */
-  struct MovieClip *clip;
+  struct MovieClip *clip = nullptr;
   /** For MASK strips. */
-  struct Mask *mask;
+  struct Mask *mask = nullptr;
 
   /** Only for transition effect strips. Allows keyframing custom fade progression over time. */
-  float effect_fader;
+  float effect_fader = 0;
   /** Moved to #SpeedControlVars::speed_fader in 3.0. */
-  float speed_fader_legacy DNA_DEPRECATED;
+  DNA_DEPRECATED float speed_fader_legacy = 0;
 
   /** Effect strip inputs (`nullptr` if not an effect strip). */
-  struct Strip *input1, *input2;
+  struct Strip *input1 = nullptr, *input2 = nullptr;
 
   /** List of strips for meta-strips. */
-  ListBase seqbase;
+  ListBase seqbase = {nullptr, nullptr};
   /** List of channels for meta-strips. */
-  ListBase channels; /* SeqTimelineChannel */
+  ListBase channels = {nullptr, nullptr}; /* SeqTimelineChannel */
 
   /* List of strip connections (one-way, not bidirectional). */
-  ListBase connections; /* StripConnection */
+  ListBase connections = {nullptr, nullptr}; /* StripConnection */
 
   /** The linked "bSound" object. */
-  struct bSound *sound;
-  float volume;
+  struct bSound *sound = nullptr;
+  float volume = 0;
 
   /** Pitch ranges from -0.1 to 10, replaced in 3.3 with #Strip::speed_factor on sound strips.
    * Pan ranges from -2 to 2. */
-  float pitch_legacy DNA_DEPRECATED, pan;
-  float strobe;
+  DNA_DEPRECATED float pitch_legacy = 0;
+  float pan = 0;
+  float strobe = 0;
 
-  float sound_offset;
-  char _pad4[4];
+  float sound_offset = 0;
+  char _pad4[4] = {};
 
   /** Struct pointer for effect settings. */
-  void *effectdata;
+  void *effectdata = nullptr;
 
   /** Frame offset from start/end of video file content to be ignored and invisible to the VSE. */
-  int anim_startofs, anim_endofs;
+  int anim_startofs = 0, anim_endofs = 0;
 
-  int blend_mode; /* StripBlendMode */
-  float blend_opacity;
+  int blend_mode = 0; /* StripBlendMode */
+  float blend_opacity = 0;
 
-  int8_t color_tag; /* StripColorTag */
+  int8_t color_tag = 0; /* StripColorTag */
 
-  char alpha_mode; /* eStripAlphaMode */
-  char _pad2[2];
-  int _pad9;
+  char alpha_mode = 0; /* eStripAlphaMode */
+  char _pad2[2] = {};
+  int _pad9 = {};
 
   /* is sfra needed anymore? - it looks like its only used in one place */
   /** Starting frame according to the timeline of the scene. */
-  int sfra;
+  int sfra = 0;
 
   /* Multiview */
-  char views_format;
-  char _pad3[3];
-  struct Stereo3dFormat *stereo3d_format;
+  char views_format = 0;
+  char _pad3[3] = {};
+  struct Stereo3dFormat *stereo3d_format = nullptr;
 
-  struct IDProperty *prop;
+  struct IDProperty *prop = nullptr;
   /** System-defined custom properties storage. */
-  struct IDProperty *system_properties;
+  struct IDProperty *system_properties = nullptr;
 
   /* Modifiers */
-  ListBase modifiers; /* StripModifierData */
+  ListBase modifiers = {nullptr, nullptr}; /* StripModifierData */
 
   /* Playback rate of original video file in frames per second, for movie strips only. */
-  float media_playback_rate;
-  float speed_factor;
+  float media_playback_rate = 0;
+  float speed_factor = 0;
 
-  struct SeqRetimingKey *retiming_keys;
-  int retiming_keys_num;
-  char _pad6[4];
+  struct SeqRetimingKey *retiming_keys = nullptr;
+  int retiming_keys_num = 0;
+  char _pad6[4] = {};
 
-  StripRuntime *runtime;
+  StripRuntime *runtime = nullptr;
 
 #ifdef __cplusplus
   bool is_effect() const;
@@ -549,31 +551,31 @@ typedef struct Strip {
   float media_fps(Scene *scene);
 
 #endif
-} Strip;
+};
 
-typedef struct MetaStack {
-  struct MetaStack *next, *prev;
+struct MetaStack {
+  struct MetaStack *next = nullptr, *prev = nullptr;
   /**
    * The meta-strip that contains `parent_strip`. May be null (that means it is the top-most
    * strips).
    */
-  Strip *old_strip;
-  Strip *parent_strip;
+  Strip *old_strip = nullptr;
+  Strip *parent_strip = nullptr;
   /* The startdisp/enddisp when entering the metastrip. */
-  int disp_range[2];
-} MetaStack;
+  int disp_range[2] = {};
+};
 
-typedef struct SeqTimelineChannel {
-  struct SeqTimelineChannel *next, *prev;
-  char name[64];
-  int index;
-  int flag; /* eSeqChannelFlag */
-} SeqTimelineChannel;
+struct SeqTimelineChannel {
+  struct SeqTimelineChannel *next = nullptr, *prev = nullptr;
+  char name[64] = "";
+  int index = 0;
+  int flag = 0; /* eSeqChannelFlag */
+};
 
-typedef struct StripConnection {
-  struct StripConnection *next, *prev;
-  Strip *strip_ref;
-} StripConnection;
+struct StripConnection {
+  struct StripConnection *next = nullptr, *prev = nullptr;
+  Strip *strip_ref = nullptr;
+};
 
 /** #Editing::overlay_frame_flag */
 enum eEditingOverlayFrameFlag {
@@ -619,46 +621,46 @@ enum eEditingRuntimeFlag {
   SEQ_SHOW_TRANSFORM_PREVIEW = (1 << 0),
 };
 
-typedef struct EditingRuntime {
-  StripLookup *strip_lookup;
-  MediaPresence *media_presence;
-  ThumbnailCache *thumbnail_cache;
-  IntraFrameCache *intra_frame_cache;
-  SourceImageCache *source_image_cache;
-  FinalImageCache *final_image_cache;
-  PreviewCache *preview_cache;
+struct EditingRuntime {
+  StripLookup *strip_lookup = nullptr;
+  MediaPresence *media_presence = nullptr;
+  ThumbnailCache *thumbnail_cache = nullptr;
+  IntraFrameCache *intra_frame_cache = nullptr;
+  SourceImageCache *source_image_cache = nullptr;
+  FinalImageCache *final_image_cache = nullptr;
+  PreviewCache *preview_cache = nullptr;
   /** Used for rendering a different frame using sequencer_draw_get_transform_preview from the box
    * blade tool. */
-  int transform_preview_frame;
+  int transform_preview_frame = 0;
   /** Determines if transform_preview_frame should be used for transform preview. */
-  uint32_t flag; /* eEditingRuntimeFlag */
-} EditingRuntime;
+  uint32_t flag = 0; /* eEditingRuntimeFlag */
+};
 
-typedef struct Editing {
+struct Editing {
   /**
    * The current meta-strip being edited and/or viewed, may be null, in which case the top-most
    * strips are used.
    */
-  Strip *current_meta_strip;
+  Strip *current_meta_strip = nullptr;
 
   /** Pointer to the top-most strips. */
-  ListBase seqbase;
-  ListBase metastack;
-  ListBase channels; /* SeqTimelineChannel */
+  ListBase seqbase = {nullptr, nullptr};
+  ListBase metastack = {nullptr, nullptr};
+  ListBase channels = {nullptr, nullptr}; /* SeqTimelineChannel */
 
-  Strip *act_strip;
-  char proxy_dir[/*FILE_MAX*/ 1024];
+  Strip *act_strip = nullptr;
+  char proxy_dir[/*FILE_MAX*/ 1024] = "";
 
-  int proxy_storage; /* eEditingProxyStorageMode */
+  int proxy_storage = 0; /* eEditingProxyStorageMode */
 
-  int overlay_frame_ofs, overlay_frame_abs;
-  int overlay_frame_flag; /* eEditingOverlayFrameFlag */
-  rctf overlay_frame_rect;
+  int overlay_frame_ofs = 0, overlay_frame_abs = 0;
+  int overlay_frame_flag = 0; /* eEditingOverlayFrameFlag */
+  rctf overlay_frame_rect = {};
 
-  int show_missing_media_flag; /* eEditingShowMissingMediaFlag */
-  int cache_flag;              /* eEditingCacheFlag */
+  int show_missing_media_flag = 0; /* eEditingShowMissingMediaFlag */
+  int cache_flag = 0;              /* eEditingCacheFlag */
 
-  PrefetchJob *prefetch_job;
+  PrefetchJob *prefetch_job = nullptr;
 
   EditingRuntime runtime;
 
@@ -671,7 +673,7 @@ typedef struct Editing {
   ListBase *current_channels();
   ListBase *current_channels() const;
 #endif
-} Editing;
+};
 
 /** \} */
 
@@ -757,111 +759,115 @@ enum ePitchQuality {
   PITCH_QUALITY_CONSISTENT = 2,
 };
 
-typedef struct WipeVars {
-  float edgeWidth, angle;
-  short forward;
-  short wipetype; /* eEffectWipeType */
-} WipeVars;
+struct WipeVars {
+  float edgeWidth = 0, angle = 0;
+  short forward = 0;
+  short wipetype = 0; /* eEffectWipeType */
+};
 
-typedef struct GlowVars {
+struct GlowVars {
   /** Minimum intensity to trigger a glow. */
-  float fMini;
-  float fClamp;
+  float fMini = 0;
+  float fClamp = 0;
   /** Amount to multiply glow intensity. */
-  float fBoost;
+  float fBoost = 0;
   /** Radius of glow blurring. */
-  float dDist;
-  int dQuality;
+  float dDist = 0;
+  int dQuality = 0;
   /** SHOW/HIDE glow buffer. */
-  int bNoComp;
-} GlowVars;
+  int bNoComp = 0;
+};
 
 /* Removed in 5.0. Only used in versioning and blend reading. */
-typedef struct TransformVarsLegacy {
-  float ScalexIni;
-  float ScaleyIni;
-  float xIni;
-  float yIni;
-  float rotIni;
-  int percent;
-  int interpolation;
+struct TransformVarsLegacy {
+  float ScalexIni = {};
+  float ScaleyIni = {};
+  float xIni = 0;
+  float yIni = 0;
+  float rotIni = 0;
+  int percent = 0;
+  int interpolation = 0;
   /** Preserve aspect/ratio when scaling. */
-  int uniform_scale;
-} TransformVarsLegacy;
+  int uniform_scale = 0;
+};
 
-typedef struct SolidColorVars {
-  float col[3];
-  char _pad[4];
-} SolidColorVars;
+struct SolidColorVars {
+  float col[3] = {};
+  char _pad[4] = {};
+};
 
-typedef struct SpeedControlVars {
-  float *frameMap;
+struct SpeedControlVars {
+  DNA_DEFINE_CXX_METHODS(SpeedControlVars)
+
+  float *frameMap = nullptr;
   /** Replaced by `speed_fader_*` fields in 3.0. */
-  float globalSpeed_legacy DNA_DEPRECATED;
-  int flags; /* eEffectSpeedControlFlags */
+  DNA_DEPRECATED float globalSpeed_legacy = 0;
+  int flags = 0; /* eEffectSpeedControlFlags */
 
-  int speed_control_type; /* eEffectSpeedControlType */
+  int speed_control_type = 0; /* eEffectSpeedControlType */
 
-  float speed_fader;
-  float speed_fader_length;
-  float speed_fader_frame_number;
-} SpeedControlVars;
+  float speed_fader = 0;
+  float speed_fader_length = 0;
+  float speed_fader_frame_number = 0;
+};
 
-typedef struct GaussianBlurVars {
-  float size_x;
-  float size_y;
-} GaussianBlurVars;
+struct GaussianBlurVars {
+  float size_x = 0;
+  float size_y = 0;
+};
 
-typedef struct TextVars {
-  char *text_ptr;
+struct TextVars {
+  DNA_DEFINE_CXX_METHODS(TextVars)
+
+  char *text_ptr = nullptr;
   /**
    * Text length in bytes, not including terminating zero
    * (The `strlen` of text).
    */
-  int text_len_bytes;
-  char _pad2[4];
+  int text_len_bytes = 0;
+  char _pad2[4] = {};
 
-  struct VFont *text_font;
-  int text_blf_id;
-  float text_size;
-  float color[4], shadow_color[4], box_color[4], outline_color[4];
-  float loc[2];
-  float wrap_width;
-  float box_margin;
-  float box_roundness;
-  float shadow_angle;
-  float shadow_offset;
-  float shadow_blur;
-  float outline_width;
-  char flag;  /* eEffectTextFlags */
-  char align; /* eEffectTextAlignX */
-  char _pad[2];
+  struct VFont *text_font = nullptr;
+  int text_blf_id = 0;
+  float text_size = 0;
+  float color[4] = {}, shadow_color[4] = {}, box_color[4] = {}, outline_color[4] = {};
+  float loc[2] = {};
+  float wrap_width = 0;
+  float box_margin = 0;
+  float box_roundness = 0;
+  float shadow_angle = 0;
+  float shadow_offset = 0;
+  float shadow_blur = 0;
+  float outline_width = 0;
+  char flag = 0;  /* eEffectTextFlags */
+  char align = 0; /* eEffectTextAlignX */
+  char _pad[2] = {};
 
   /** Offsets in characters (unicode code-points) for #TextVars::text_ptr. */
-  int cursor_offset;
-  int selection_start_offset;
-  int selection_end_offset;
+  int cursor_offset = 0;
+  int selection_start_offset = 0;
+  int selection_end_offset = 0;
 
   /** Replaced by `anchor_y` in 4.4. */
-  char align_y_legacy DNA_DEPRECATED; /* eEffectTextAlignY */
+  DNA_DEPRECATED char align_y_legacy = 0; /* eEffectTextAlignY */
 
-  char anchor_x; /* eEffectTextAlignX */
-  char anchor_y; /* eEffectTextAlignY */
-  char _pad1;
-  TextVarsRuntime *runtime;
+  char anchor_x = 0; /* eEffectTextAlignX */
+  char anchor_y = 0; /* eEffectTextAlignY */
+  char _pad1 = {};
+  TextVarsRuntime *runtime = nullptr;
 
   /* Fixed size text buffer, only exists for forward/backward compatibility.
    * #TextVars::text_ptr and #TextVars::text_len_bytes are used for full text. */
-  char text_legacy[512];
-} TextVars;
+  char text_legacy[512] = "";
+};
 
 #define STRIP_FONT_NOT_LOADED -2
 
-typedef struct ColorMixVars {
-  int blend_effect; /* StripBlendMode */
+struct ColorMixVars {
+  int blend_effect = 0; /* StripBlendMode */
   /** Blend factor [0.0f, 1.0f]. */
-  float factor;
-} ColorMixVars;
+  float factor = 0;
+};
 
 /** \} */
 
@@ -906,90 +912,90 @@ enum eModMaskTime {
   STRIP_MASK_TIME_ABSOLUTE = 1,
 };
 
-typedef struct StripModifierDataRuntime {
+struct StripModifierDataRuntime {
   /* Reference parameters for optimizing updates. Sound modifiers can store parameters, sound
    * inputs and outputs. When all existing parameters do match new ones, the update can be skipped
    * and old sound handle may be returned. This is to prevent audio glitches, see #141595 */
 
-  float *last_buf; /* Equalizer frequency/volume curve buffer */
+  float *last_buf = nullptr; /* Equalizer frequency/volume curve buffer */
 
   /* Reference sound handles (may be used by any sound modifier). */
-  void *last_sound_in;
-  void *last_sound_out;
-} StripModifierDataRuntime;
+  void *last_sound_in = nullptr;
+  void *last_sound_out = nullptr;
+};
 
-typedef struct StripModifierData {
-  struct StripModifierData *next, *prev;
-  int type; /* eStripModifierType */
-  int flag; /* eStripModifierFlag */
-  char name[/*MAX_NAME*/ 64];
+struct StripModifierData {
+  struct StripModifierData *next = nullptr, *prev = nullptr;
+  int type = 0; /* eStripModifierType */
+  int flag = 0; /* eStripModifierFlag */
+  char name[/*MAX_NAME*/ 64] = "";
 
   /* Mask input, either strip or mask ID. */
-  int mask_input_type; /* eModMaskInput */
-  int mask_time;       /* eModMaskTime */
+  int mask_input_type = 0; /* eModMaskInput */
+  int mask_time = 0;       /* eModMaskTime */
 
-  struct Strip *mask_strip;
-  struct Mask *mask_id;
+  struct Strip *mask_strip = nullptr;
+  struct Mask *mask_id = nullptr;
 
-  int persistent_uid;
+  int persistent_uid = 0;
   /**
    * Bits that can be used for open-states of layout panels in the modifier.
    */
-  uint16_t layout_panel_open_flag;
-  uint16_t ui_expand_flag;
+  uint16_t layout_panel_open_flag = 0;
+  uint16_t ui_expand_flag = 0;
 
   StripModifierDataRuntime runtime;
-} StripModifierData;
+};
 
-typedef struct ColorBalanceModifierData {
+struct ColorBalanceModifierData {
   StripModifierData modifier;
 
   StripColorBalance color_balance;
-  float color_multiply;
-} ColorBalanceModifierData;
+  float color_multiply = 0;
+};
 
-typedef struct CurvesModifierData {
+struct CurvesModifierData {
   StripModifierData modifier;
 
   struct CurveMapping curve_mapping;
-} CurvesModifierData;
+};
 
-typedef struct HueCorrectModifierData {
+struct HueCorrectModifierData {
   StripModifierData modifier;
 
   struct CurveMapping curve_mapping;
-} HueCorrectModifierData;
+};
 
-typedef struct BrightContrastModifierData {
+struct BrightContrastModifierData {
   StripModifierData modifier;
 
-  float bright;
-  float contrast;
-} BrightContrastModifierData;
+  float bright = 0;
+  float contrast = 0;
+};
 
-typedef struct SequencerMaskModifierData {
+struct SequencerMaskModifierData {
   StripModifierData modifier;
-} SequencerMaskModifierData;
+};
 
-typedef struct WhiteBalanceModifierData {
-  StripModifierData modifier;
-
-  float white_value[3];
-  char _pad[4];
-} WhiteBalanceModifierData;
-
-typedef struct SequencerTonemapModifierData {
+struct WhiteBalanceModifierData {
   StripModifierData modifier;
 
-  float key, offset, gamma;
-  float intensity, contrast, adaptation, correction;
-  int type; /* eModTonemapType */
-} SequencerTonemapModifierData;
+  float white_value[3] = {};
+  char _pad[4] = {};
+};
 
-typedef struct SequencerCompositorModifierData {
+struct SequencerTonemapModifierData {
   StripModifierData modifier;
-  struct bNodeTree *node_group;
-} SequencerCompositorModifierData;
+
+  float key = 0, offset = 0, gamma = 0;
+  float intensity = 0, contrast = 0, adaptation = 0, correction = 0;
+  int type = 0; /* eModTonemapType */
+};
+
+struct SequencerCompositorModifierData {
+  StripModifierData modifier;
+  struct bNodeTree *node_group = nullptr;
+};
 
 /** \} */
 
@@ -997,34 +1003,34 @@ typedef struct SequencerCompositorModifierData {
 /** \name Sound Modifiers
  * \{ */
 
-typedef struct EQCurveMappingData {
-  struct EQCurveMappingData *next, *prev;
+struct EQCurveMappingData {
+  struct EQCurveMappingData *next = nullptr, *prev = nullptr;
   struct CurveMapping curve_mapping;
-} EQCurveMappingData;
+};
 
-typedef struct SoundEqualizerModifierData {
+struct SoundEqualizerModifierData {
   StripModifierData modifier;
   /* EQCurveMappingData */
-  ListBase graphics;
-} SoundEqualizerModifierData;
+  ListBase graphics = {nullptr, nullptr};
+};
 
-typedef struct PitchModifierData {
+struct PitchModifierData {
   StripModifierData modifier;
-  int mode; /*ePitchMode*/
-  int semitones;
-  int cents;
-  float ratio;
-  char preserve_formant;
-  char _pad[3];
-  int quality; /*ePitchQuality*/
-} PitchModifierData;
+  int mode = 0; /*ePitchMode*/
+  int semitones = 0;
+  int cents = 0;
+  float ratio = 0;
+  char preserve_formant = 0;
+  char _pad[3] = {};
+  int quality = 0; /*ePitchQuality*/
+};
 
-typedef struct EchoModifierData {
+struct EchoModifierData {
   StripModifierData modifier;
-  float delay;
-  float feedback;
-  float mix;
-  char _pad[4];
-} EchoModifierData;
+  float delay = 0;
+  float feedback = 0;
+  float mix = 0;
+  char _pad[4] = {};
+};
 
 /** \} */

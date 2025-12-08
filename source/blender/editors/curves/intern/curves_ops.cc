@@ -312,7 +312,7 @@ static void try_convert_single_object(Object &curves_ob,
   settings.totpart = 0;
   psys_changed_type(&surface_ob, particle_system);
 
-  MutableSpan<ParticleData> particles{MEM_calloc_arrayN<ParticleData>(hair_num, __func__),
+  MutableSpan<ParticleData> particles{MEM_new_array_for_free<ParticleData>(hair_num, __func__),
                                       hair_num};
 
   /* The old hair system still uses #MFace, so make sure those are available on the mesh. */

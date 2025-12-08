@@ -155,7 +155,7 @@ static uiViewStateLink *ensure_view_state(ARegion &region, const ViewLink &link)
     }
   }
 
-  uiViewStateLink *new_state = MEM_callocN<uiViewStateLink>(__func__);
+  uiViewStateLink *new_state = MEM_new_for_free<uiViewStateLink>(__func__);
   link.idname.copy(new_state->idname, sizeof(new_state->idname));
   BLI_addhead(&region.view_states, new_state);
   return new_state;

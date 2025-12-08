@@ -198,7 +198,7 @@ class KeylistSummaryTest : public testing::Test {
   Bone *bone1;
   Bone *bone2;
 
-  SpaceAction saction = {nullptr};
+  SpaceAction saction = {};
   bAnimContext ac = {nullptr};
 
   static void SetUpTestSuite()

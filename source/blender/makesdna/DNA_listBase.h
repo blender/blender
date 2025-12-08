@@ -13,15 +13,15 @@
 #pragma once
 
 /** Generic - all structs which are put into linked lists begin with this. */
-typedef struct Link {
+struct Link {
   struct Link *next, *prev;
-} Link;
+};
 
 /** Simple subclass of Link. Use this when it is not worth defining a custom one. */
-typedef struct LinkData {
+struct LinkData {
   struct LinkData *next, *prev;
   void *data;
-} LinkData;
+};
 
 /**
  * The basic double linked-list structure.
@@ -29,8 +29,8 @@ typedef struct LinkData {
  * \warning Never change the size/definition of this struct! The #init_structDNA
  * function (from dna_genfile.cc) uses it to compute the #pointer_size.
  */
-typedef struct ListBase {
+struct ListBase {
   void *first, *last;
-} ListBase;
+};
 
 /* 8 byte alignment! */

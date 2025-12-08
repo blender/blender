@@ -11,6 +11,7 @@
 #include <cstring>
 #include <optional>
 
+#include "BLI_utildefines.h"
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
@@ -21,7 +22,6 @@
 #include "DNA_ID.h"
 #include "DNA_curve_types.h"
 #include "DNA_curves_types.h"
-#include "DNA_defaults.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_material_types.h"
@@ -83,10 +83,7 @@ static CLG_LogRef LOG = {"material"};
 static void material_init_data(ID *id)
 {
   Material *material = (Material *)id;
-
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(material, id));
-
-  MEMCPY_STRUCT_AFTER(material, DNA_struct_default_get(Material), id);
+  INIT_DEFAULT_STRUCT_AFTER(material, id);
 }
 
 static void material_copy_data(Main *bmain,
@@ -277,7 +274,7 @@ IDTypeInfo IDType_ID_MA = {
 void BKE_gpencil_material_attr_init(Material *ma)
 {
   if ((ma) && (ma->gp_style == nullptr)) {
-    ma->gp_style = MEM_callocN<MaterialGPencilStyle>("Grease Pencil Material Settings");
+    ma->gp_style = MEM_new_for_free<MaterialGPencilStyle>("Grease Pencil Material Settings");
 
     MaterialGPencilStyle *gp_style = ma->gp_style;
     /* set basic settings */
@@ -1698,7 +1695,7 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const Object *o
       ma->paint_clone_slot = 0;
     }
     else {
-      ma->texpaintslot = MEM_calloc_arrayN<TexPaintSlot>(count, "texpaint_slots");
+      ma->texpaintslot = MEM_new_array_for_free<TexPaintSlot>(count, "texpaint_slots");
 
       bNode *active_node = blender::bke::node_get_active_paint_canvas(*ma->nodetree);
 

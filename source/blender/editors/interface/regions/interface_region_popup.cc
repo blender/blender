@@ -397,7 +397,7 @@ static void ui_popup_block_position(wmWindow *window,
   }
 
   /* Keep a list of these, needed for pull-down menus. */
-  SafetyRect *saferct = MEM_callocN<SafetyRect>(__func__);
+  SafetyRect *saferct = MEM_new_for_free<SafetyRect>(__func__);
   saferct->parent = butrct;
   saferct->safety = block->safety;
   BLI_freelistN(&block->saferct);
@@ -722,7 +722,7 @@ Block *popup_block_refresh(bContext *C, PopupBlockHandle *handle, ARegion *butre
   }
   else {
     /* Keep a list of these, needed for pull-down menus. */
-    SafetyRect *saferct = MEM_callocN<SafetyRect>(__func__);
+    SafetyRect *saferct = MEM_new_for_free<SafetyRect>(__func__);
     saferct->safety = block->safety;
     BLI_addhead(&block->saferct, saferct);
   }

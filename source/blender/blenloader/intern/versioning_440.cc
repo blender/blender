@@ -16,7 +16,6 @@
 #include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_curves_types.h"
-#include "DNA_defaults.h"
 #include "DNA_genfile.h"
 #include "DNA_modifier_types.h"
 #include "DNA_screen_types.h"
@@ -615,7 +614,7 @@ static void remove_triangulate_node_min_size_input(bNodeTree *tree)
     }
 
     bNode &greater_or_equal = version_node_add_empty(*tree, "FunctionNodeCompare");
-    auto *compare_storage = MEM_callocN<NodeFunctionCompare>(__func__);
+    auto *compare_storage = MEM_new_for_free<NodeFunctionCompare>(__func__);
     compare_storage->operation = NODE_COMPARE_GREATER_EQUAL;
     compare_storage->data_type = SOCK_INT;
     greater_or_equal.storage = compare_storage;
@@ -954,15 +953,15 @@ void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 26)) {
-    const Brush *default_brush = DNA_struct_default_get(Brush);
+    const Brush default_brush;
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       if ((brush->mask_stencil_dimension[0] == 0) && (brush->mask_stencil_dimension[1] == 0)) {
-        brush->mask_stencil_dimension[0] = default_brush->mask_stencil_dimension[0];
-        brush->mask_stencil_dimension[1] = default_brush->mask_stencil_dimension[1];
+        brush->mask_stencil_dimension[0] = default_brush.mask_stencil_dimension[0];
+        brush->mask_stencil_dimension[1] = default_brush.mask_stencil_dimension[1];
       }
       if ((brush->mask_stencil_pos[0] == 0) && (brush->mask_stencil_pos[1] == 0)) {
-        brush->mask_stencil_pos[0] = default_brush->mask_stencil_pos[0];
-        brush->mask_stencil_pos[1] = default_brush->mask_stencil_pos[1];
+        brush->mask_stencil_pos[0] = default_brush.mask_stencil_pos[0];
+        brush->mask_stencil_pos[1] = default_brush.mask_stencil_pos[1];
       }
     }
   }

@@ -1593,40 +1593,40 @@ BoidRule *boid_new_rule(int type)
   switch (type) {
     case eBoidRuleType_Goal:
     case eBoidRuleType_Avoid: {
-      BoidRuleGoalAvoid *rule_goal = MEM_callocN<BoidRuleGoalAvoid>("BoidRuleGoalAvoid");
+      BoidRuleGoalAvoid *rule_goal = MEM_new_for_free<BoidRuleGoalAvoid>("BoidRuleGoalAvoid");
       rule = reinterpret_cast<BoidRule *>(rule_goal);
       break;
     }
     case eBoidRuleType_AvoidCollision: {
-      BoidRuleAvoidCollision *rule_avoid = MEM_callocN<BoidRuleAvoidCollision>(
+      BoidRuleAvoidCollision *rule_avoid = MEM_new_for_free<BoidRuleAvoidCollision>(
           "BoidRuleAvoidCollision");
       rule_avoid->look_ahead = 2.0f;
       rule = reinterpret_cast<BoidRule *>(rule_avoid);
       break;
     }
     case eBoidRuleType_FollowLeader: {
-      BoidRuleFollowLeader *rule_follow = MEM_callocN<BoidRuleFollowLeader>(
+      BoidRuleFollowLeader *rule_follow = MEM_new_for_free<BoidRuleFollowLeader>(
           "BoidRuleFollowLeader");
       rule_follow->distance = 1.0f;
       rule = reinterpret_cast<BoidRule *>(rule_follow);
       break;
     }
     case eBoidRuleType_AverageSpeed: {
-      BoidRuleAverageSpeed *rule_avgspeed = MEM_callocN<BoidRuleAverageSpeed>(
+      BoidRuleAverageSpeed *rule_avgspeed = MEM_new_for_free<BoidRuleAverageSpeed>(
           "BoidRuleAverageSpeed");
       rule_avgspeed->speed = 0.5f;
       rule = reinterpret_cast<BoidRule *>(rule_avgspeed);
       break;
     }
     case eBoidRuleType_Fight: {
-      BoidRuleFight *rule_fight = MEM_callocN<BoidRuleFight>("BoidRuleFight");
+      BoidRuleFight *rule_fight = MEM_new_for_free<BoidRuleFight>("BoidRuleFight");
       rule_fight->distance = 100.0f;
       rule_fight->flee_distance = 100.0f;
       rule = reinterpret_cast<BoidRule *>(rule_fight);
       break;
     }
     default:
-      rule = MEM_callocN<BoidRule>("BoidRule");
+      rule = MEM_new_for_free<BoidRule>("BoidRule");
       break;
   }
 
@@ -1664,7 +1664,7 @@ void boid_default_settings(BoidSettings *boids)
 
 BoidState *boid_new_state(BoidSettings *boids)
 {
-  BoidState *state = MEM_callocN<BoidState>("BoidState");
+  BoidState *state = MEM_new_for_free<BoidState>("BoidState");
 
   state->id = boids->last_state_id++;
   if (state->id) {

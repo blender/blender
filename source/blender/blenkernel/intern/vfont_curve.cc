@@ -310,7 +310,7 @@ static Nurb *build_underline(const Curve &cu,
   Nurb *nu;
   BPoint *bp;
 
-  nu = MEM_callocN<Nurb>("underline_nurb");
+  nu = MEM_new_for_free<Nurb>("underline_nurb");
   nu->resolu = cu.resolu;
   nu->bezt = nullptr;
   nu->knotsu = nu->knotsv = nullptr;
@@ -396,7 +396,7 @@ static void vfont_char_build_impl(const Curve &cu,
   while (nu_from_vchar) {
     const BezTriple *bezt_from_vchar = nu_from_vchar->bezt;
     if (bezt_from_vchar) {
-      Nurb *nu = MEM_mallocN<Nurb>("duplichar_nurb");
+      Nurb *nu = MEM_new_for_free<Nurb>("duplichar_nurb");
       if (nu == nullptr) {
         break;
       }
@@ -828,8 +828,8 @@ static bool vfont_to_curve(Object *ob,
   TextBoxBounds_ForCursor *tb_bounds_for_cursor = nullptr;
   if (cursor_params != nullptr) {
     if (cu.textoncurve == nullptr && (cu.totbox > 1) && (slen > 0)) {
-      tb_bounds_for_cursor = MEM_malloc_arrayN<TextBoxBounds_ForCursor>(size_t(cu.totbox),
-                                                                        "TextboxBounds_Cursor");
+      tb_bounds_for_cursor = MEM_new_array_for_free<TextBoxBounds_ForCursor>(
+          size_t(cu.totbox), "TextboxBounds_Cursor");
       for (curbox = 0; curbox < cu.totbox; curbox++) {
         TextBoxBounds_ForCursor *tb_bounds = &tb_bounds_for_cursor[curbox];
         tb_bounds->char_index_last = -1;

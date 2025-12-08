@@ -8,6 +8,8 @@
  * Eyedropper (bones)
  */
 
+#include "DNA_layer_types.h"
+
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
 #include "BKE_object.hh"

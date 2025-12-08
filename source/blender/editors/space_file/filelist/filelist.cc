@@ -176,7 +176,8 @@ void filelist_setlibrary(FileList *filelist, const AssetLibraryReference *asset_
   }
 
   if (!filelist->asset_library_ref) {
-    filelist->asset_library_ref = MEM_callocN<AssetLibraryReference>("filelist asset library");
+    filelist->asset_library_ref = MEM_new_for_free<AssetLibraryReference>(
+        "filelist asset library");
     *filelist->asset_library_ref = *asset_library_ref;
 
     filelist->flags |= FL_FORCE_RESET;
@@ -842,7 +843,7 @@ void filelist_cache_clear(FileListEntryCache *cache, size_t new_size)
 
 FileList *filelist_new(short type)
 {
-  FileList *p = MEM_callocN<FileList>(__func__);
+  FileList *p = MEM_new_for_free<FileList>(__func__);
 
   p->filelist_cache = MEM_new<FileListEntryCache>("FileListEntryCache");
 
@@ -1185,7 +1186,7 @@ static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int in
   FileListEntryCache *cache = filelist->filelist_cache;
   FileDirEntry *ret;
 
-  ret = MEM_callocN<FileDirEntry>(__func__);
+  ret = MEM_new_for_free<FileDirEntry>(__func__);
 
   ret->size = uint64_t(entry->st.st_size);
   ret->time = int64_t(entry->st.st_mtime);

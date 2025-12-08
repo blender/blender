@@ -104,7 +104,7 @@ void AbcNurbsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSele
   std::vector<std::pair<INuPatchSchema, IObject>>::iterator it;
 
   for (it = m_schemas.begin(); it != m_schemas.end(); ++it) {
-    Nurb *nu = MEM_callocN<Nurb>("abc_getnurb");
+    Nurb *nu = MEM_new_for_free<Nurb>("abc_getnurb");
     nu->flag = CU_SMOOTH;
     nu->type = CU_NURBS;
     nu->resolu = cu->resolu;

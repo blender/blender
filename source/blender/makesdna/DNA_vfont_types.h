@@ -16,7 +16,7 @@
 struct PackedFile;
 struct VFontData;
 
-typedef struct VFont {
+struct VFont {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
   static constexpr ID_Type id_type = ID_VF;
@@ -24,14 +24,14 @@ typedef struct VFont {
 
   ID id;
 
-  char filepath[/*FILE_MAX*/ 1024];
+  char filepath[/*FILE_MAX*/ 1024] = "";
 
-  struct VFontData *data;
-  struct PackedFile *packedfile;
+  struct VFontData *data = nullptr;
+  struct PackedFile *packedfile = nullptr;
 
   /* runtime only, holds memory for freetype to read from
    * TODO: replace this with #blf_font_new() style loading. */
-  struct PackedFile *temp_pf;
-} VFont;
+  struct PackedFile *temp_pf = nullptr;
+};
 
 #define FO_BUILTIN_NAME "<builtin>"

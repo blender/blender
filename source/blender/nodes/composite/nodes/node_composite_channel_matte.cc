@@ -259,7 +259,7 @@ static void cmp_node_channel_matte_declare(NodeDeclarationBuilder &b)
 static void node_composit_init_channel_matte(bNodeTree * /*ntree*/, bNode *node)
 {
   /* Unused, but allocated for forward compatibility. */
-  node->storage = MEM_callocN<NodeChroma>(__func__);
+  node->storage = MEM_new_for_free<NodeChroma>(__func__);
 }
 
 using namespace blender::compositor;

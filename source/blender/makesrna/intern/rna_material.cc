@@ -798,7 +798,6 @@ static void rna_def_material_lineart(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialLineArt_update");
 
   prop = RNA_def_property(srna, "mat_occlusion", PROP_INT, PROP_NONE);
-  RNA_def_property_int_default(prop, 1);
   RNA_def_property_ui_range(prop, 0.0f, 5.0f, 1.0f, 1);
   RNA_def_property_ui_text(
       prop,

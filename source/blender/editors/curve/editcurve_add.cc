@@ -131,7 +131,7 @@ Nurb *ED_curve_add_nurbs_primitive(
 
   /* these types call this function to return a Nurb */
   if (!ELEM(stype, CU_PRIM_TUBE, CU_PRIM_DONUT)) {
-    nu = MEM_callocN<Nurb>("addNurbprim");
+    nu = MEM_new_for_free<Nurb>("addNurbprim");
     nu->type = cutype;
     nu->resolu = cu->resolu;
     nu->resolv = cu->resolv;

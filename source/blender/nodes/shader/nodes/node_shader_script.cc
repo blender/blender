@@ -50,7 +50,7 @@ static void node_shader_buts_script_ex(ui::Layout &layout, bContext *C, PointerR
 
 static void init(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeShaderScript *nss = MEM_callocN<NodeShaderScript>("shader script node");
+  NodeShaderScript *nss = MEM_new_for_free<NodeShaderScript>("shader script node");
   node->storage = nss;
 }
 

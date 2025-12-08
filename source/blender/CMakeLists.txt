@@ -100,50 +100,12 @@ set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_xr_types.h
 )
 
-set(SRC_DNA_DEFAULTS_INC
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_action_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_armature_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_asset_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_brush_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_cachefile_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_camera_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_collection_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_curve_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_curves_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_fluid_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_gpencil_modifier_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_grease_pencil_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_image_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_lattice_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_layer_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_light_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_lightprobe_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_linestyle_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_material_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_mesh_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_meta_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_modifier_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_movieclip_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_object_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_particle_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_pointcloud_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_scene_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_space_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_speaker_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_texture_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_userdef_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_vec_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_view3d_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_volume_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_world_defaults.h
-)
-
 # Utility & other headers.
 set(SRC_DNA_OTHER_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_array_utils.hh
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_print.hh
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_sdna_type_ids.hh
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_vec_defaults.h
 )
 
 add_subdirectory(datatoc)

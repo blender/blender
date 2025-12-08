@@ -178,7 +178,7 @@ bool effects_can_render_text(const Strip *strip)
 static void init_text_effect(Strip *strip)
 {
   MEM_SAFE_FREE(strip->effectdata);
-  TextVars *data = MEM_callocN<TextVars>("textvars");
+  TextVars *data = MEM_new_for_free<TextVars>("textvars");
   strip->effectdata = data;
 
   data->text_font = nullptr;

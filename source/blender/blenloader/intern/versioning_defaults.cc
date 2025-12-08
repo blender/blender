@@ -28,7 +28,6 @@
 
 #include "DNA_camera_types.h"
 #include "DNA_curveprofile_types.h"
-#include "DNA_defaults.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
 #include "DNA_mask_types.h"
@@ -390,7 +389,7 @@ static void blo_update_defaults_paint(Paint *paint)
     paint->unified_paint_settings.input_samples = 1;
   }
 
-  const UnifiedPaintSettings &default_ups = *DNA_struct_default_get(UnifiedPaintSettings);
+  const UnifiedPaintSettings &default_ups = UnifiedPaintSettings();
   paint->unified_paint_settings.size = default_ups.size;
   paint->unified_paint_settings.input_samples = default_ups.input_samples;
   paint->unified_paint_settings.unprojected_size = default_ups.unprojected_size;
@@ -491,7 +490,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   }
 
   if (ts->sculpt) {
-    ts->sculpt->flags = DNA_struct_default_get(Sculpt)->flags;
+    ts->sculpt->flags = Sculpt().flags;
   }
 
   /* Correct default startup UVs. */
@@ -530,7 +529,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
     ts->unified_paint_settings.input_samples = 1;
   }
 
-  const UnifiedPaintSettings &default_ups = *DNA_struct_default_get(UnifiedPaintSettings);
+  const UnifiedPaintSettings default_ups = {};
   ts->unified_paint_settings.flag = default_ups.flag;
   copy_v3_v3(ts->unified_paint_settings.color, default_ups.color);
   copy_v3_v3(ts->unified_paint_settings.secondary_color, default_ups.secondary_color);
@@ -730,11 +729,11 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   }
 
   LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-    const Object *dob = DNA_struct_default_get(Object);
+    const Object dob;
     /* Set default for shadow terminator bias. */
-    object->shadow_terminator_normal_offset = dob->shadow_terminator_normal_offset;
-    object->shadow_terminator_geometry_offset = dob->shadow_terminator_geometry_offset;
-    object->shadow_terminator_shading_offset = dob->shadow_terminator_shading_offset;
+    object->shadow_terminator_normal_offset = dob.shadow_terminator_normal_offset;
+    object->shadow_terminator_geometry_offset = dob.shadow_terminator_geometry_offset;
+    object->shadow_terminator_shading_offset = dob.shadow_terminator_shading_offset;
   }
 
   LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {

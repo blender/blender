@@ -69,11 +69,11 @@ class PoseTest : public testing::Test {
     bArmature *armature = BKE_armature_add(bmain, "ArmatureA");
     obj_armature_a->data = armature;
 
-    Bone *bone = MEM_callocN<Bone>("BONE");
+    Bone *bone = MEM_new_for_free<Bone>("BONE");
     STRNCPY(bone->name, "BoneA");
     BLI_addtail(&armature->bonebase, bone);
 
-    bone = MEM_callocN<Bone>("BONE");
+    bone = MEM_new_for_free<Bone>("BONE");
     STRNCPY(bone->name, "BoneB");
     BLI_addtail(&armature->bonebase, bone);
 
@@ -82,11 +82,11 @@ class PoseTest : public testing::Test {
     armature = BKE_armature_add(bmain, "ArmatureB");
     obj_armature_b->data = armature;
 
-    bone = MEM_callocN<Bone>("BONE");
+    bone = MEM_new_for_free<Bone>("BONE");
     STRNCPY(bone->name, "BoneA");
     BLI_addtail(&armature->bonebase, bone);
 
-    bone = MEM_callocN<Bone>("BONE");
+    bone = MEM_new_for_free<Bone>("BONE");
     STRNCPY(bone->name, "BoneB");
     BLI_addtail(&armature->bonebase, bone);
 

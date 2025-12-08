@@ -522,7 +522,7 @@ TEST_F(keyframes_paste, pastebuf_match_path_property)
 
     bArmature *armature = BKE_armature_add(bmain, "Armature");
     for (const auto &bone_name : {"hand.L", "hand.R", "middle"}) {
-      Bone *bone = MEM_callocN<Bone>(__func__);
+      Bone *bone = MEM_new_for_free<Bone>(__func__);
       STRNCPY_UTF8(bone->name, bone_name);
       BLI_addtail(&armature->bonebase, bone);
     }

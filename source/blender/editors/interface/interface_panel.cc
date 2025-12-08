@@ -2377,7 +2377,7 @@ static void ui_panel_category_active_set(ARegion *region, const char *idname, bo
     BLI_remlink(lb, pc_act);
   }
   else {
-    pc_act = MEM_callocN<PanelCategoryStack>(__func__);
+    pc_act = MEM_new_for_free<PanelCategoryStack>(__func__);
     STRNCPY_UTF8(pc_act->idname, idname);
   }
 
@@ -2466,7 +2466,7 @@ static PanelCategoryDyn *panel_categories_find_mouse_over(ARegion *region, const
 
 void panel_category_add(ARegion *region, const char *name)
 {
-  PanelCategoryDyn *pc_dyn = MEM_callocN<PanelCategoryDyn>(__func__);
+  PanelCategoryDyn *pc_dyn = MEM_new_for_free<PanelCategoryDyn>(__func__);
   BLI_addtail(&region->runtime->panels_category, pc_dyn);
 
   STRNCPY_UTF8(pc_dyn->idname, name);
