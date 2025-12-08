@@ -297,7 +297,7 @@ static void color3ubv_from_seq(const Scene *curscene,
   if (show_strip_color_tag && uint(strip->color_tag) < STRIP_COLOR_TOT &&
       strip->color_tag != STRIP_COLOR_NONE)
   {
-    bTheme *btheme = ui::GetTheme();
+    bTheme *btheme = ui::theme::theme_get();
     const ThemeStripColor *strip_color = &btheme->strip_color[strip->color_tag];
     copy_v3_v3_uchar(r_col, strip_color->color);
     return;
@@ -307,36 +307,36 @@ static void color3ubv_from_seq(const Scene *curscene,
 
   /* Sometimes the active theme is not the sequencer theme, e.g. when an operator invokes the file
    * browser. This makes sure we get the right color values for the theme. */
-  ui::bThemeState theme_state;
-  ui::Theme_Store(&theme_state);
-  ui::UI_SetTheme(SPACE_SEQ, RGN_TYPE_WINDOW);
+  ui::theme::bThemeState theme_state;
+  ui::theme::theme_store(&theme_state);
+  ui::theme::theme_set(SPACE_SEQ, RGN_TYPE_WINDOW);
 
   switch (strip->type) {
     case STRIP_TYPE_IMAGE:
-      ui::GetThemeColor3ubv(TH_SEQ_IMAGE, r_col);
+      ui::theme::get_color_3ubv(TH_SEQ_IMAGE, r_col);
       break;
 
     case STRIP_TYPE_META:
-      ui::GetThemeColor3ubv(TH_SEQ_META, r_col);
+      ui::theme::get_color_3ubv(TH_SEQ_META, r_col);
       break;
 
     case STRIP_TYPE_MOVIE:
-      ui::GetThemeColor3ubv(TH_SEQ_MOVIE, r_col);
+      ui::theme::get_color_3ubv(TH_SEQ_MOVIE, r_col);
       break;
 
     case STRIP_TYPE_MOVIECLIP:
-      ui::GetThemeColor3ubv(TH_SEQ_MOVIECLIP, r_col);
+      ui::theme::get_color_3ubv(TH_SEQ_MOVIECLIP, r_col);
       break;
 
     case STRIP_TYPE_MASK:
-      ui::GetThemeColor3ubv(TH_SEQ_MASK, r_col);
+      ui::theme::get_color_3ubv(TH_SEQ_MASK, r_col);
       break;
 
     case STRIP_TYPE_SCENE:
-      ui::GetThemeColor3ubv(TH_SEQ_SCENE, r_col);
+      ui::theme::get_color_3ubv(TH_SEQ_SCENE, r_col);
 
       if (strip->scene == curscene) {
-        ui::GetColorPtrShade3ubv(r_col, 20, r_col);
+        ui::theme::get_color_shade_3ubv(r_col, 20, r_col);
       }
       break;
 
@@ -344,7 +344,7 @@ static void color3ubv_from_seq(const Scene *curscene,
     case STRIP_TYPE_CROSS:
     case STRIP_TYPE_GAMCROSS:
     case STRIP_TYPE_WIPE:
-      ui::GetThemeColor3ubv(TH_SEQ_TRANSITION, r_col);
+      ui::theme::get_color_3ubv(TH_SEQ_TRANSITION, r_col);
 
       /* Slightly offset hue to distinguish different transition types. */
       if (strip->type == STRIP_TYPE_GAMCROSS) {
@@ -367,7 +367,7 @@ static void color3ubv_from_seq(const Scene *curscene,
     case STRIP_TYPE_ADJUSTMENT:
     case STRIP_TYPE_GAUSSIAN_BLUR:
     case STRIP_TYPE_COLORMIX:
-      ui::GetThemeColor3ubv(TH_SEQ_EFFECT, r_col);
+      ui::theme::get_color_3ubv(TH_SEQ_EFFECT, r_col);
 
       /* Slightly offset hue to distinguish different effects. */
       if (strip->type == STRIP_TYPE_ADD) {
@@ -406,19 +406,19 @@ static void color3ubv_from_seq(const Scene *curscene,
       break;
 
     case STRIP_TYPE_COLOR:
-      ui::GetThemeColor3ubv(TH_SEQ_COLOR, r_col);
+      ui::theme::get_color_3ubv(TH_SEQ_COLOR, r_col);
       break;
 
     case STRIP_TYPE_SOUND:
-      ui::GetThemeColor3ubv(TH_SEQ_AUDIO, r_col);
+      ui::theme::get_color_3ubv(TH_SEQ_AUDIO, r_col);
       blendcol[0] = blendcol[1] = blendcol[2] = 128;
       if (is_muted) {
-        ui::GetColorPtrBlendShade3ubv(r_col, blendcol, 0.5, 20, r_col);
+        ui::theme::get_color_blend_shade_3ubv(r_col, blendcol, 0.5, 20, r_col);
       }
       break;
 
     case STRIP_TYPE_TEXT:
-      ui::GetThemeColor3ubv(TH_SEQ_TEXT, r_col);
+      ui::theme::get_color_3ubv(TH_SEQ_TEXT, r_col);
       break;
 
     default:
@@ -428,7 +428,7 @@ static void color3ubv_from_seq(const Scene *curscene,
       break;
   }
 
-  Theme_Restore(&theme_state);
+  blender::ui::theme::theme_restore(&theme_state);
 }
 
 static void waveform_job_start_if_needed(const bContext *C, const Strip *strip)
@@ -1046,10 +1046,10 @@ static void draw_strip_offsets(const TimelineDrawContext &ctx, const StripDrawCo
   uchar col[4], blend_col[4];
   color3ubv_from_seq(scene, strip, strip_ctx.show_strip_color_tag, strip_ctx.is_muted, col);
   if (strip->flag & SEQ_SELECT) {
-    ui::GetColorPtrShade3ubv(col, 50, col);
+    ui::theme::get_color_shade_3ubv(col, 50, col);
   }
   col[3] = strip_ctx.is_muted ? MUTE_ALPHA : 200;
-  ui::GetColorPtrShade3ubv(col, 10, blend_col);
+  ui::theme::get_color_shade_3ubv(col, 10, blend_col);
   blend_col[3] = 255;
 
   if (strip_ctx.left_handle > strip_ctx.content_start) {
@@ -1191,7 +1191,7 @@ static void draw_seq_timeline_channels(const TimelineDrawContext &ctx)
 
   GPU_blend(GPU_BLEND_ALPHA);
   uchar4 color;
-  ui::GetThemeColor4ubv(TH_ROW_ALTERNATE, color);
+  ui::theme::get_color_4ubv(TH_ROW_ALTERNATE, color);
 
   /* Alternating horizontal stripes. */
   int i = max_ii(1, int(v2d->cur.ymin) - 1);
@@ -1274,7 +1274,7 @@ static void draw_strips_background(const TimelineDrawContext &ctx,
     /* Muted strips: turn almost gray. */
     if (strip.is_muted) {
       uchar muted_color[3] = {128, 128, 128};
-      ui::GetColorPtrBlendShade3ubv(col, muted_color, 0.5f, 0, col);
+      ui::theme::get_color_blend_shade_3ubv(col, muted_color, 0.5f, 0, col);
     }
     data.col_background = color_pack(col);
 
@@ -1312,7 +1312,7 @@ static void draw_strips_background(const TimelineDrawContext &ctx,
         color3ubv_from_seq(scene, input2, strip.show_strip_color_tag, strip.is_muted, col);
         /* If the transition inputs are of the same type, draw the right side slightly darker. */
         if (input1->type == input2->type) {
-          ui::GetColorPtrShade3ubv(col, -15, col);
+          ui::theme::get_color_shade_3ubv(col, -15, col);
         }
       }
       data.col_transition_out = color_pack(col);
@@ -1356,21 +1356,21 @@ static void strip_data_outline_params_set(const StripDrawContext &strip,
   uchar4 col{0, 0, 0, 255};
 
   if (selected) {
-    ui::GetThemeColor3ubv(TH_SEQ_SELECTED, col);
+    ui::theme::get_color_3ubv(TH_SEQ_SELECTED, col);
     data.flags |= GPU_SEQ_FLAG_SELECTED;
   }
   if (active) {
     if (selected) {
-      ui::GetThemeColor3ubv(TH_SEQ_ACTIVE, col);
+      ui::theme::get_color_3ubv(TH_SEQ_ACTIVE, col);
     }
     else {
-      ui::GetThemeColorShade3ubv(TH_SEQ_ACTIVE, -40, col);
+      ui::theme::get_color_shade_3ubv(TH_SEQ_ACTIVE, -40, col);
     }
     data.flags |= GPU_SEQ_FLAG_ACTIVE;
   }
   if (!selected && !active) {
     /* Color for unselected strips is a bit darker than the background. */
-    ui::GetThemeColorShade3ubv(TH_BACK, -40, col);
+    ui::theme::get_color_shade_3ubv(TH_BACK, -40, col);
   }
 
   const bool translating = (G.moving & G_TRANSFORM_SEQ);
@@ -1392,7 +1392,7 @@ static void strip_data_outline_params_set(const StripDrawContext &strip,
     data.flags |= GPU_SEQ_FLAG_OVERLAP;
   }
   else if (translating && selected) {
-    ui::GetColorPtrShade3ubv(col, 70, col);
+    ui::theme::get_color_shade_3ubv(col, 70, col);
   }
 
   data.col_outline = color_pack(col);
@@ -1571,7 +1571,7 @@ static void draw_timeline_sfra_efra(const TimelineDrawContext &ctx)
 
   /* Draw overlay outside of frame range. */
   uchar4 color;
-  ui::GetThemeColorShadeAlpha4ubv(TH_BACK, -10, -100, color);
+  ui::theme::get_color_shade_alpha_4ubv(TH_BACK, -10, -100, color);
 
   if (frame_sta < frame_end) {
     ctx.quads->add_quad(v2d->cur.xmin, v2d->cur.ymin, float(frame_sta), v2d->cur.ymax, color);
@@ -1582,7 +1582,7 @@ static void draw_timeline_sfra_efra(const TimelineDrawContext &ctx)
   }
 
   /* Draw frame range boundary. */
-  ui::GetThemeColorShade4ubv(TH_BACK, -60, color);
+  ui::theme::get_color_shade_4ubv(TH_BACK, -60, color);
 
   ctx.quads->add_line(frame_end, v2d->cur.ymin, frame_end, v2d->cur.ymax, color);
   ctx.quads->add_line(frame_end, v2d->cur.ymin, frame_end, v2d->cur.ymax, color);
@@ -1605,7 +1605,7 @@ static void draw_timeline_sfra_efra(const TimelineDrawContext &ctx)
 
     immUnbindProgram();
 
-    ui::GetThemeColorShade4ubv(TH_BACK, -40, color);
+    ui::theme::get_color_shade_4ubv(TH_BACK, -40, color);
     ctx.quads->add_line(ms->disp_range[0], v2d->cur.ymin, ms->disp_range[0], v2d->cur.ymax, color);
     ctx.quads->add_line(ms->disp_range[1], v2d->cur.ymin, ms->disp_range[1], v2d->cur.ymax, color);
     ctx.quads->draw();
@@ -1822,7 +1822,7 @@ void draw_timeline_seq(const bContext *C, const ARegion *region)
   StripsDrawBatch strips_batch(ctx.v2d);
 
   draw_timeline_pre_view_callbacks(ctx);
-  ui::ThemeClearColor(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
   draw_seq_timeline_channels(ctx);
   draw_timeline_grid(ctx);
   draw_timeline_sfra_efra(ctx);

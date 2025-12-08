@@ -175,7 +175,7 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
       is_highlight = true;
     }
 
-    blender::ui::GetThemeColor3fv(TH_AXIS_X + axis, axis_color[axis]);
+    blender::ui::theme::get_color_3fv(TH_AXIS_X + axis, axis_color[axis]);
     axis_color[axis][3] = 1.0f;
 
     /* Color that is full at front, but 50% view background when in back. */

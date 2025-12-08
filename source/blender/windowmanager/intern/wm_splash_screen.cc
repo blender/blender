@@ -97,7 +97,7 @@ static void wm_block_splash_image_roundcorners_add(ImBuf *ibuf)
     return;
   }
 
-  bTheme *btheme = blender::ui::GetTheme();
+  bTheme *btheme = blender::ui::theme::theme_get();
   const float roundness = btheme->tui.wcol_menu_back.roundness * UI_SCALE_FAC;
   const int size = roundness * 20;
 
@@ -471,7 +471,7 @@ static blender::ui::Block *wm_block_about_create(bContext *C, ARegion *region, v
   ImBuf *ibuf = blender::ui::svg_icon_bitmap(ICON_BLENDER_LOGO_LARGE, size, show_color);
 
   if (ibuf) {
-    bTheme *btheme = blender::ui::GetTheme();
+    bTheme *btheme = blender::ui::theme::theme_get();
     const uchar *color = btheme->tui.wcol_menu_back.text_sel;
 
     /* The top margin. */

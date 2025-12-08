@@ -242,7 +242,7 @@ static void gizmo_mesh_placement_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
   ggd->cage = WM_gizmo_new_ptr(gzt_cage, gzgroup, nullptr);
 
-  blender::ui::GetThemeColor3fv(TH_GIZMO_PRIMARY, ggd->cage->color);
+  blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, ggd->cage->color);
 
   RNA_enum_set(ggd->cage->ptr,
                "transform",

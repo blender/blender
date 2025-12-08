@@ -131,7 +131,7 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
     }
 
     if (pc->poll == nullptr || pc->poll(C)) {
-      blender::ui::UI_SetTheme(area->spacetype, region->regiontype);
+      blender::ui::theme::theme_set(area->spacetype, region->regiontype);
 
       /* Prevent drawing outside region. */
       GPU_scissor_test(true);
@@ -411,7 +411,7 @@ static void wm_region_draw_overlay(bContext *C, const ScrArea *area, ARegion *re
   const wmWindow *win = CTX_wm_window(C);
 
   wmViewport(&region->winrct);
-  blender::ui::UI_SetTheme(area->spacetype, region->regiontype);
+  blender::ui::theme::theme_set(area->spacetype, region->regiontype);
   region->runtime->type->draw_overlay(C, region);
   wmWindowViewport(win);
 }
@@ -1169,7 +1169,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   }
 
   /* After area regions so we can do area 'overlay' drawing. */
-  blender::ui::UI_SetTheme(0, 0);
+  blender::ui::theme::theme_set(0, 0);
   ED_screen_draw_edges(win);
 
   /* Needs zero offset here or it looks blurry. #128112. */

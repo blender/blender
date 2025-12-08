@@ -63,7 +63,7 @@ static void icon_draw_icon(const rctf *rect,
                            const bool inverted)
 {
   float color[4];
-  GetThemeColor4fv(TH_TEXT, color);
+  theme::get_color_4fv(TH_TEXT, color);
   if (alpha < 1.0f) {
     color[3] *= alpha;
   }
@@ -93,7 +93,7 @@ static void icon_draw_rect_input_text(const rctf *rect,
 
   const int font_id = BLF_default();
   float color[4];
-  GetThemeColor4fv(inverted ? TH_BACK : TH_TEXT, color);
+  theme::get_color_4fv(inverted ? TH_BACK : TH_TEXT, color);
   if (alpha < 1.0f) {
     color[3] *= alpha;
   }

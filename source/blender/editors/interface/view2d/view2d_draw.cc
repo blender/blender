@@ -252,7 +252,7 @@ static void view2d_draw_lines(const View2D *v2d,
 {
   if (display_minor_lines) {
     uchar minor_color[3];
-    GetThemeColorShade3ubv(TH_GRID, 16, minor_color);
+    theme::get_color_shade_3ubv(TH_GRID, 16, minor_color);
     ParallelLinesSet minor_lines;
     int distance_int;
     if (major_distance > 1) {
@@ -278,7 +278,7 @@ static void view2d_draw_lines(const View2D *v2d,
 
   {
     uchar major_color[3];
-    GetThemeColor3ubv(TH_GRID, major_color);
+    theme::get_color_3ubv(TH_GRID, major_color);
     ParallelLinesSet major_lines;
     major_lines.distance = major_distance;
     major_lines.offset = 0;
@@ -325,7 +325,7 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
   wmOrtho2_region_pixelspace(region);
 
   const int font_id = BLF_set_default();
-  FontThemeColor(font_id, colorid);
+  theme::font_theme_color_set(font_id, colorid);
 
   BLF_batch_draw_begin();
 
@@ -400,13 +400,13 @@ static void draw_vertical_scale_indicators(const ARegion *region,
   wmOrtho2_region_pixelspace(region);
 
   const int font_id = BLF_set_default();
-  FontThemeColor(font_id, colorid);
+  theme::font_theme_color_set(font_id, colorid);
 
   BLF_batch_draw_begin();
 
   BLF_enable(font_id, BLF_SHADOW);
   float shadow_color[4];
-  GetThemeColor4fv(TH_BACK, shadow_color);
+  theme::get_color_4fv(TH_BACK, shadow_color);
   BLF_shadow_offset(font_id, 0, 0);
   BLF_shadow(font_id, FontShadowType::Outline, shadow_color);
 

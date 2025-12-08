@@ -167,13 +167,13 @@ static void gizmo_mesh_extrude_setup(const bContext *C, wmGizmoGroup *gzgroup)
   }
 
   for (int i = 0; i < 3; i++) {
-    ui::GetThemeColor3fv(TH_AXIS_X + i, ggd->invoke_xyz_no[i]->color);
+    ui::theme::get_color_3fv(TH_AXIS_X + i, ggd->invoke_xyz_no[i]->color);
   }
-  ui::GetThemeColor3fv(TH_GIZMO_PRIMARY, ggd->invoke_xyz_no[3]->color);
+  ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, ggd->invoke_xyz_no[3]->color);
   ggd->invoke_view->color[3] = 0.5f;
 
   for (int i = 0; i < 2; i++) {
-    ui::GetThemeColor3fv(TH_GIZMO_PRIMARY, ggd->adjust[i]->color);
+    ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, ggd->adjust[i]->color);
   }
 
   for (int i = 0; i < 4; i++) {

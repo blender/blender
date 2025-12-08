@@ -193,7 +193,7 @@ static void gizmo2d_get_axis_color(const int axis_idx, float *r_col, float *r_co
       break;
   }
 
-  ui::GetThemeColor4fv(col_id, r_col);
+  ui::theme::get_color_4fv(col_id, r_col);
 
   copy_v4_v4(r_col_hi, r_col);
   r_col[3] *= alpha;
@@ -494,7 +494,7 @@ static void gizmo2d_xform_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
     }
     else {
       float color[4], color_hi[4];
-      ui::GetThemeColor4fv(TH_GIZMO_VIEW_ALIGN, color);
+      ui::theme::get_color_4fv(TH_GIZMO_VIEW_ALIGN, color);
       copy_v4_v4(color_hi, color);
       color[3] *= 0.6f;
 
@@ -894,7 +894,7 @@ static void gizmo2d_resize_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
     }
     else {
       float color[4], color_hi[4];
-      ui::GetThemeColor4fv(TH_GIZMO_VIEW_ALIGN, color);
+      ui::theme::get_color_4fv(TH_GIZMO_VIEW_ALIGN, color);
       copy_v4_v4(color_hi, color);
       color[3] *= 0.6f;
 
@@ -1028,7 +1028,7 @@ static void gizmo2d_rotate_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 
     {
       float color[4];
-      ui::GetThemeColor4fv(TH_GIZMO_VIEW_ALIGN, color);
+      ui::theme::get_color_4fv(TH_GIZMO_VIEW_ALIGN, color);
 
       PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "icon");
       RNA_property_enum_set(gz->ptr, prop, ICON_NONE);

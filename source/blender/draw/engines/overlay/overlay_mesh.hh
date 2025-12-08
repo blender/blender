@@ -707,9 +707,9 @@ class MeshUVs : Overlay {
     }
 
     if (select_vert_) {
-      const float dot_size = ui::GetThemeValuef(TH_VERTEX_SIZE) * UI_SCALE_FAC;
+      const float dot_size = ui::theme::get_value_f(TH_VERTEX_SIZE) * UI_SCALE_FAC;
       float4 theme_color;
-      ui::GetThemeColor4fv(TH_VERTEX, theme_color);
+      ui::theme::get_color_4fv(TH_VERTEX, theme_color);
       srgb_to_linearrgb_v4(theme_color, theme_color);
 
       auto &pass = verts_ps_;
@@ -725,7 +725,7 @@ class MeshUVs : Overlay {
     }
 
     if (select_face_dots_) {
-      const float dot_size = ui::GetThemeValuef(TH_FACEDOT_SIZE) * UI_SCALE_FAC;
+      const float dot_size = ui::theme::get_value_f(TH_FACEDOT_SIZE) * UI_SCALE_FAC;
 
       auto &pass = facedots_ps_;
       pass.init();
@@ -935,9 +935,9 @@ class MeshUVs : Overlay {
       uchar4 text_color;
       /* Color Management: Exception here as texts are drawn in sRGB space directly. No conversion
        * required. */
-      ui::GetThemeColorShade4ubv(TH_BACK, 60, text_color);
-      ui::GetThemeColorShade4fv(TH_BACK, 60, theme_color);
-      ui::GetThemeColor4fv(TH_FACE_SELECT, selected_color);
+      ui::theme::get_color_shade_4ubv(TH_BACK, 60, text_color);
+      ui::theme::get_color_shade_4fv(TH_BACK, 60, theme_color);
+      ui::theme::get_color_4fv(TH_FACE_SELECT, selected_color);
       srgb_to_linearrgb_v4(theme_color, theme_color);
       srgb_to_linearrgb_v4(selected_color, selected_color);
 

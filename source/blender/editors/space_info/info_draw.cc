@@ -28,12 +28,13 @@ static enum eTextViewContext_LineFlag report_line_data(TextViewContext *tvc,
   const Report *report = static_cast<const Report *>(tvc->iter);
 
   /* Same text color no matter what type of report. */
-  blender::ui::GetThemeColor4ubv((report->flag & SELECT) ? TH_INFO_SELECTED_TEXT : TH_TEXT, fg);
+  blender::ui::theme::get_color_4ubv((report->flag & SELECT) ? TH_INFO_SELECTED_TEXT : TH_TEXT,
+                                     fg);
 
   /* Zebra striping for background. */
   int bg_id = (report->flag & SELECT) ? TH_INFO_SELECTED : TH_BACK;
   int shade = (tvc->iter_tmp % 2) ? 4 : -4;
-  blender::ui::GetThemeColorShade4ubv(bg_id, shade, bg);
+  blender::ui::theme::get_color_shade_4ubv(bg_id, shade, bg);
 
   /* Don't show icon on subsequent rows of multi-row report. */
   *r_icon = (tvc->iter_char_begin != 0) ? ICON_NONE :
@@ -48,10 +49,10 @@ static enum eTextViewContext_LineFlag report_line_data(TextViewContext *tvc,
   }
 
   if (*r_icon != ICON_NONE) {
-    blender::ui::GetThemeColor4ubv(icon_fg_id, r_icon_fg);
+    blender::ui::theme::get_color_4ubv(icon_fg_id, r_icon_fg);
     /* This theme color is RGB only, so set alpha. */
     r_icon_fg[3] = 255;
-    blender::ui::GetThemeColor4ubv(icon_bg_id, r_icon_bg);
+    blender::ui::theme::get_color_4ubv(icon_bg_id, r_icon_bg);
     return TVC_LINE_FG | TVC_LINE_BG | TVC_LINE_ICON | TVC_LINE_ICON_FG | TVC_LINE_ICON_BG;
   }
 
@@ -92,7 +93,7 @@ static int report_textview_begin(TextViewContext *tvc)
   /* iterator */
   tvc->iter = reports->list.last;
 
-  blender::ui::ThemeClearColor(TH_BACK);
+  blender::ui::theme::frame_buffer_clear(TH_BACK);
 
   tvc->iter_tmp = 0;
   if (tvc->iter && report_textview_skip__internal(tvc)) {

@@ -207,7 +207,7 @@ static void WIDGETGROUP_light_spot_setup(const bContext *C, wmGizmoGroup *gzgrou
     wmGizmo *gz = ls_gzgroup->spot_angle;
     RNA_enum_set(gz->ptr, "transform", ED_GIZMO_ARROW_XFORM_FLAG_INVERTED);
     ED_gizmo_arrow3d_set_range_fac(gz, 4.0f);
-    blender::ui::GetThemeColor3fv(TH_GIZMO_SECONDARY, gz->color);
+    blender::ui::theme::get_color_3fv(TH_GIZMO_SECONDARY, gz->color);
   }
 
   /* Spot blend gizmo. */
@@ -219,8 +219,8 @@ static void WIDGETGROUP_light_spot_setup(const bContext *C, wmGizmoGroup *gzgrou
                  ED_GIZMO_CAGE_XFORM_FLAG_SCALE | ED_GIZMO_CAGE_XFORM_FLAG_SCALE_UNIFORM);
     RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_CAGE2D_STYLE_CIRCLE);
     WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_HOVER, true);
-    blender::ui::GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
-    blender::ui::GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
+    blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
+    blender::ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
 
     wmGizmoPropertyFnParams params{};
     params.value_get_fn = gizmo_spot_blend_prop_matrix_get;
@@ -240,8 +240,8 @@ static void WIDGETGROUP_light_spot_setup(const bContext *C, wmGizmoGroup *gzgrou
                  ED_GIZMO_CAGE_XFORM_FLAG_SCALE | ED_GIZMO_CAGE_XFORM_FLAG_SCALE_UNIFORM);
     RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_CAGE2D_STYLE_CIRCLE);
     WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_HOVER, true);
-    blender::ui::GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
-    blender::ui::GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
+    blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
+    blender::ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
 
     wmGizmoPropertyFnParams params{};
     params.value_get_fn = gizmo_light_radius_prop_matrix_get;
@@ -373,8 +373,8 @@ static void WIDGETGROUP_light_point_setup(const bContext *C, wmGizmoGroup *gzgro
                ED_GIZMO_CAGE_XFORM_FLAG_SCALE | ED_GIZMO_CAGE_XFORM_FLAG_SCALE_UNIFORM);
   RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_CAGE2D_STYLE_CIRCLE);
   WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_HOVER, true);
-  blender::ui::GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
-  blender::ui::GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
+  blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
+  blender::ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
 
   wmGizmoPropertyFnParams params{};
   params.value_get_fn = gizmo_light_radius_prop_matrix_get;
@@ -516,8 +516,8 @@ static void WIDGETGROUP_light_area_setup(const bContext * /*C*/, wmGizmoGroup *g
 
   WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_HOVER, true);
 
-  blender::ui::GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
-  blender::ui::GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
+  blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
+  blender::ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
 
   /* All gizmos must perform undo. */
   LISTBASE_FOREACH (wmGizmo *, gz_iter, &gzgroup->gizmos) {
@@ -614,8 +614,8 @@ static void WIDGETGROUP_light_target_setup(const bContext * /*C*/, wmGizmoGroup 
 
   gzgroup->customdata = wwrapper;
 
-  blender::ui::GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
-  blender::ui::GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
+  blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
+  blender::ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
 
   gz->scale_basis = 0.06f;
 

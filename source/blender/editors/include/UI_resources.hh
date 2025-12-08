@@ -371,7 +371,7 @@ enum ThemeColorID {
   TH_FREESTYLE,
 };
 
-namespace blender::ui {
+namespace blender::ui::theme {
 
 /* Specific defines per space should have higher define values. */
 
@@ -385,148 +385,145 @@ struct bThemeState {
 /**
  * Get individual values, not scaled.
  */
-float GetThemeValuef(int colorid);
+float get_value_f(int colorid);
 /**
  * Get individual values, not scaled.
  */
-int GetThemeValue(int colorid);
+int get_value(int colorid);
 
-/* Versions of #GetThemeValue & #GetThemeValuef, which take a space-type */
+/* Versions of #get_value & #get_value_f, which take a space-type */
 
-float GetThemeValueTypef(int colorid, int spacetype);
-int GetThemeValueType(int colorid, int spacetype);
+float get_value_type_f(int colorid, int spacetype);
+int get_value_type(int colorid, int spacetype);
 
 /**
  * Get three color values, scaled to 0.0-1.0 range.
  */
-void GetThemeColor3fv(int colorid, float col[3]);
-void GetThemeColorBlend3ubv(int colorid1, int colorid2, float fac, unsigned char col[3]);
-void GetThemeColorBlend3f(int colorid1, int colorid2, float fac, float r_col[3]);
-void GetThemeColorBlend4f(int colorid1, int colorid2, float fac, float r_col[4]);
+void get_color_3fv(int colorid, float col[3]);
+void get_color_blend_3ubv(int colorid1, int colorid2, float fac, unsigned char col[3]);
+void get_color_blend_3f(int colorid1, int colorid2, float fac, float r_col[3]);
+void get_color_blend_4f(int colorid1, int colorid2, float fac, float r_col[4]);
 /**
  * Get the color, range 0.0-1.0, complete with shading offset.
  */
-void GetThemeColorShade3fv(int colorid, int offset, float col[3]);
-void GetThemeColorShade3ubv(int colorid, int offset, unsigned char col[3]);
-void GetThemeColorShade4ubv(int colorid, int offset, unsigned char col[4]);
+void get_color_shade_3fv(int colorid, int offset, float col[3]);
+void get_color_shade_3ubv(int colorid, int offset, unsigned char col[3]);
+void get_color_shade_4ubv(int colorid, int offset, unsigned char col[4]);
 
 /**
  * Get three color values, range 0-255,
  * complete with shading offset for the RGB components and blending.
  */
-void GetThemeColorBlendShade3ubv(
+void get_color_blend_shade_3ubv(
     int colorid1, int colorid2, float fac, int offset, unsigned char col[3]);
 
 /**
  * Get four color values, scaled to 0.0-1.0 range.
  */
-void GetThemeColor4fv(int colorid, float col[4]);
+void get_color_4fv(int colorid, float col[4]);
 
 /**
  * Get four color values from specified space type, scaled to 0.0-1.0 range.
  */
-void GetThemeColorType4fv(int colorid, int spacetype, float col[4]);
+void get_color_type_4fv(int colorid, int spacetype, float col[4]);
 
 /**
  * Get four color values, range 0.0-1.0, complete with shading offset for the RGB components.
  */
-void GetThemeColorShade4fv(int colorid, int offset, float col[4]);
-void GetThemeColorShadeAlpha4fv(int colorid, int coloffset, int alphaoffset, float col[4]);
+void get_color_shade_4fv(int colorid, int offset, float col[4]);
+void get_color_shade_alpha_4fv(int colorid, int coloffset, int alphaoffset, float col[4]);
 
 /**
  * Get four color values ranged between 0 and 255; includes the alpha channel.
  */
-void GetThemeColorShadeAlpha4ubv(int colorid,
-                                 int coloffset,
-                                 int alphaoffset,
-                                 unsigned char col[4]);
+void get_color_shade_alpha_4ubv(int colorid, int coloffset, int alphaoffset, unsigned char col[4]);
 
 /**
  * Get four color values, range 0.0-1.0,
  * complete with shading offset for the RGB components and blending.
  */
-void GetThemeColorBlendShade3fv(int colorid1, int colorid2, float fac, int offset, float col[3]);
-void GetThemeColorBlendShade4fv(int colorid1, int colorid2, float fac, int offset, float col[4]);
+void get_color_blend_shade_3fv(int colorid1, int colorid2, float fac, int offset, float col[3]);
+void get_color_blend_shade_4fv(int colorid1, int colorid2, float fac, int offset, float col[4]);
 
 /**
  * Get the 3 or 4 byte values.
  */
-void GetThemeColor3ubv(int colorid, unsigned char col[3]);
+void get_color_3ubv(int colorid, unsigned char col[3]);
 /**
  * Get the color, in char pointer.
  */
-void GetThemeColor4ubv(int colorid, unsigned char col[4]);
+void get_color_4ubv(int colorid, unsigned char col[4]);
 
 /**
  * Get a theme color from specified space type.
  */
-void GetThemeColorType3fv(int colorid, int spacetype, float col[3]);
-void GetThemeColorType3ubv(int colorid, int spacetype, unsigned char col[3]);
-void GetThemeColorType4ubv(int colorid, int spacetype, unsigned char col[4]);
+void get_color_type_3fv(int colorid, int spacetype, float col[3]);
+void get_color_type_3ubv(int colorid, int spacetype, unsigned char col[3]);
+void get_color_type_4ubv(int colorid, int spacetype, unsigned char col[4]);
 
 /**
  * Get theme color for coloring monochrome icons.
  */
-bool GetIconThemeColor4ubv(int colorid, unsigned char col[4]);
+bool get_icon_color_4ubv(int colorid, unsigned char col[4]);
 
 /**
  * Get four color values, range 0.0-1.0, blended between two other float color pointers,
  * complete with offset for the alpha component.
  */
-void GetColorPtrBlendAlpha4fv(
+void get_color_blend_alpha_4fv(
     const float cp1[4], const float cp2[4], float fac, float alphaoffset, float r_col[4]);
 
 /**
- * Shade a 3 byte color (same as GetColorPtrBlendShade3ubv with 0.0 factor).
+ * Shade a 3 byte color (same as get_color_blend_shade_3ubv with 0.0 factor).
  */
-void GetColorPtrShade3ubv(const unsigned char cp[3], int offset, unsigned char r_col[3]);
+void get_color_shade_3ubv(const unsigned char cp[3], int offset, unsigned char r_col[3]);
 
 /**
  * Get a 3 byte color, blended and shaded between two other char color pointers.
  */
-void GetColorPtrBlendShade3ubv(const unsigned char cp1[3],
-                               const unsigned char cp2[3],
-                               float fac,
-                               int offset,
-                               unsigned char r_col[3]);
+void get_color_blend_shade_3ubv(const unsigned char cp1[3],
+                                const unsigned char cp2[3],
+                                float fac,
+                                int offset,
+                                unsigned char r_col[3]);
 
 /**
  * Sets the font color
  * (for anything fancy use GetThemeColor[Fancy] then BLF_color).
  */
-void FontThemeColor(int fontid, int colorid);
+void font_theme_color_set(int fontid, int colorid);
 
 /**
  * Clear the frame-buffer using the input colorid.
  */
-void ThemeClearColor(int colorid);
+void frame_buffer_clear(int colorid);
 
 /**
  * Internal (blender) usage only, for init and set active.
  */
-void UI_SetTheme(int spacetype, int regionid);
+void theme_set(int spacetype, int regionid);
 
 /**
  * Get current theme.
  */
-bTheme *GetTheme();
+bTheme *theme_get();
 
 /**
  * For the rare case we need to temp swap in a different theme (off-screen render).
  */
-void Theme_Store(bThemeState *theme_state);
-void Theme_Restore(const bThemeState *theme_state);
+void theme_store(bThemeState *theme_state);
+void theme_restore(const bThemeState *theme_state);
 
 /**
  * Return shadow width outside menus and popups.
  */
-int ThemeMenuShadowWidth();
+int get_menu_shadow_width();
 
 /**
  * Only for buttons in theme editor!
  */
-const unsigned char *ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid);
+const unsigned char *get_color_ptr(bTheme *btheme, int spacetype, int colorid);
 
 void make_axis_color(const unsigned char col[3], char axis, unsigned char r_col[3]);
 
-}  // namespace blender::ui
+}  // namespace blender::ui::theme

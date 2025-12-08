@@ -210,7 +210,7 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
   color_blend_f3_f3(active_color, main_color, 0.3f);
 
   /* `alert_color` is red, push a bit toward text color. */
-  GetThemeColor3fv(TH_REDALERT, alert_color);
+  theme::get_color_3fv(TH_REDALERT, alert_color);
   color_blend_f3_f3(alert_color, main_color, 0.3f);
 
   /* Draw text. */
@@ -326,7 +326,7 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
         immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
         float border_color[4] = {1.0f, 1.0f, 1.0f, 0.15f};
         float bgcolor[4];
-        GetThemeColor4fv(TH_BACK, bgcolor);
+        theme::get_color_4fv(TH_BACK, bgcolor);
         if (srgb_to_grayscale(bgcolor) > 0.5f) {
           border_color[0] = 0.0f;
           border_color[1] = 0.0f;

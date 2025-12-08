@@ -297,7 +297,7 @@ static void draw_channel_headers(const SeqChannelDrawContext *context)
 
 static void draw_background()
 {
-  ui::ThemeClearColor(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
 }
 
 void channel_draw_context_init(const bContext *C,

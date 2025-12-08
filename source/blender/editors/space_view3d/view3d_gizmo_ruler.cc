@@ -712,8 +712,8 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
   BLF_size(blf_mono_font, 14.0f * UI_SCALE_FAC);
   BLF_rotation(blf_mono_font, 0.0f);
 
-  blender::ui::GetThemeColor3ubv(TH_TEXT, color_text);
-  blender::ui::GetThemeColor3ubv(TH_WIRE, color_wire);
+  blender::ui::theme::get_color_3ubv(TH_TEXT, color_text);
+  blender::ui::theme::get_color_3ubv(TH_WIRE, color_wire);
 
   /* Avoid white on white text. (TODO: Fix by using theme). */
   if (int(color_text[0]) + int(color_text[1]) + int(color_text[2]) > 127 * 3 * 0.6f) {

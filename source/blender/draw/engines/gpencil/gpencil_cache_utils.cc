@@ -235,8 +235,8 @@ static float4 grease_pencil_layer_final_tint_and_alpha_get(const Instance *inst,
       color_prev = float3(grease_pencil.onion_skinning_settings.color_before);
     }
     else {
-      ui::GetThemeColor3fv(TH_FRAME_AFTER, color_next);
-      ui::GetThemeColor3fv(TH_FRAME_BEFORE, color_prev);
+      ui::theme::get_color_3fv(TH_FRAME_AFTER, color_next);
+      ui::theme::get_color_3fv(TH_FRAME_BEFORE, color_prev);
     }
 
     const float4 onion_col_custom = use_next_col ? float4(color_next, 1.0f) :

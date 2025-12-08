@@ -80,7 +80,7 @@ void ED_view3d_background_color_get(const Scene *scene, const View3D *v3d, float
     return;
   }
 
-  blender::ui::GetThemeColor3fv(TH_BACK, r_color);
+  blender::ui::theme::get_color_3fv(TH_BACK, r_color);
 }
 
 void ED_view3d_text_colors_get(const Scene *scene,
@@ -94,7 +94,7 @@ void ED_view3d_text_colors_get(const Scene *scene,
 
   /* Default text color from TH_TEXT_HI. If it is too close
    * to the background color, darken or lighten it. */
-  blender::ui::GetThemeColor3fv(TH_TEXT_HI, r_text_color);
+  blender::ui::theme::get_color_3fv(TH_TEXT_HI, r_text_color);
   float text_lightness = srgb_to_grayscale(r_text_color);
   float bg_color[3];
   ED_view3d_background_color_get(scene, v3d, bg_color);

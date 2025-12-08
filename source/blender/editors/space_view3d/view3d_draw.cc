@@ -796,7 +796,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
 
   /* camera name - draw in highlighted text color */
   if (ca && ((v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0) && (ca->flag & CAM_SHOWNAME)) {
-    blender::ui::FontThemeColor(BLF_default(), TH_TEXT_HI);
+    blender::ui::theme::font_theme_color_set(BLF_default(), TH_TEXT_HI);
     BLF_draw_default(x1i,
                      y1i - (0.7f * U.widget_unit),
                      0.0f,
@@ -994,8 +994,8 @@ static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
     axis_pos[i][1] = starty + vec[1] * k;
 
     /* get color of each axis */
-    blender::ui::GetThemeColorShade3fv(TH_AXIS_X + i, bright, axis_col[i]); /* rgb */
-    axis_col[i][3] = hypotf(vec[0], vec[1]);                                /* alpha */
+    blender::ui::theme::get_color_shade_3fv(TH_AXIS_X + i, bright, axis_col[i]); /* rgb */
+    axis_col[i][3] = hypotf(vec[0], vec[1]);                                     /* alpha */
   }
 
   /* draw axis lines */
@@ -1463,13 +1463,13 @@ static void draw_selected_name(
 
     /* color depends on whether there is a keyframe */
     if (is_grease_pencil_with_layer_keyframe(*ob)) {
-      blender::ui::FontThemeColor(font_id, TH_TIME_GP_KEYFRAME);
+      blender::ui::theme::font_theme_color_set(font_id, TH_TIME_GP_KEYFRAME);
     }
 
     if (blender::animrig::id_frame_has_keyframe((ID *)ob,
                                                 /* BKE_scene_ctime_get(scene) */ float(cfra)))
     {
-      blender::ui::FontThemeColor(font_id, TH_KEYTYPE_KEYFRAME_SELECT);
+      blender::ui::theme::font_theme_color_set(font_id, TH_KEYTYPE_KEYFRAME_SELECT);
     }
   }
 
@@ -1523,7 +1523,7 @@ static float4 get_low_fps_color()
 {
   float alert_rgb[4];
   float alert_hsv[4];
-  blender::ui::GetThemeColor4fv(TH_REDALERT, alert_rgb);
+  blender::ui::theme::get_color_4fv(TH_REDALERT, alert_rgb);
   /* Brighten since we favor dark shadows to increase contrast.
    * This gives similar results to the old hardcoded 225, 36, 36. */
   rgb_to_hsv_v(alert_rgb, alert_hsv);
@@ -1832,7 +1832,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
 
   /* Store `orig` variables. */
   struct {
-    blender::ui::bThemeState theme_state;
+    blender::ui::theme::bThemeState theme_state;
 
     /* #View3D */
     eDrawType v3d_shading_type;
@@ -1860,8 +1860,8 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
   orig.rv3d_persp = rv3d->persp;
   orig.rv3d_mats = ED_view3d_mats_rv3d_backup(static_cast<RegionView3D *>(region->regiondata));
 
-  blender::ui::Theme_Store(&orig.theme_state);
-  blender::ui::UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
+  blender::ui::theme::theme_store(&orig.theme_state);
+  blender::ui::theme::theme_set(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
   /* Set temporary new size. */
   region->winx = winx;
@@ -1939,7 +1939,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
   MEM_freeN(orig.rv3d_mats);
   rv3d->persp = orig.rv3d_persp;
 
-  Theme_Restore(&orig.theme_state);
+  blender::ui::theme::theme_restore(&orig.theme_state);
 
   v3d->shading.type = orig.v3d_shading_type;
   v3d->camera = orig.v3d_camera;
@@ -2589,7 +2589,7 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
       return;
     }
   }
-  blender::ui::bThemeState theme_state;
+  blender::ui::theme::bThemeState theme_state;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
@@ -2607,8 +2607,8 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
   }
 
   /* Tools may request depth outside of regular drawing code. */
-  blender::ui::Theme_Store(&theme_state);
-  blender::ui::UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
+  blender::ui::theme::theme_store(&theme_state);
+  blender::ui::theme::theme_set(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
   ED_view3d_draw_setup_view(static_cast<wmWindowManager *>(G_MAIN->wm.first),
                             nullptr,
@@ -2666,7 +2666,7 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
   v3d->flag2 = flag2;
   v3d->runtime.flag |= V3D_RUNTIME_DEPTHBUF_OVERRIDDEN;
 
-  Theme_Restore(&theme_state);
+  blender::ui::theme::theme_restore(&theme_state);
 }
 
 void ED_view3d_depths_free(ViewDepths *depths)

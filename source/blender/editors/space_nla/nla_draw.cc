@@ -54,16 +54,16 @@ void nla_action_get_color(AnimData *adt, bAction *act, float color[4])
 {
   if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {
     /* greenish color (same as tweaking strip) */
-    ui::GetThemeColor4fv(TH_NLA_TWEAK, color);
+    ui::theme::get_color_4fv(TH_NLA_TWEAK, color);
   }
   else {
     if (act) {
       /* reddish color - same as dope-sheet summary */
-      ui::GetThemeColor4fv(TH_ANIM_ACTIVE, color);
+      ui::theme::get_color_4fv(TH_ANIM_ACTIVE, color);
     }
     else {
       /* grayish-red color */
-      ui::GetThemeColor4fv(TH_ANIM_INACTIVE, color);
+      ui::theme::get_color_4fv(TH_ANIM_INACTIVE, color);
     }
   }
 
@@ -250,7 +250,7 @@ static void nla_strip_get_color_inside(AnimData *adt, NlaStrip *strip, float col
         /* Active strip tweak - tweak theme is applied only to active edit strip,
          * not linked-duplicates.
          */
-        ui::GetThemeColor3fv(TH_NLA_TWEAK, color);
+        ui::theme::get_color_3fv(TH_NLA_TWEAK, color);
         break;
       }
 
@@ -258,35 +258,35 @@ static void nla_strip_get_color_inside(AnimData *adt, NlaStrip *strip, float col
         /* Non-active strip tweak - display warning theme
          * for non active linked-duplicates.
          */
-        ui::GetThemeColor3fv(TH_NLA_TWEAK_DUPLI, color);
+        ui::theme::get_color_3fv(TH_NLA_TWEAK_DUPLI, color);
         break;
       }
       if (strip->flag & NLASTRIP_FLAG_SELECT) {
         /* selected. */
-        ui::GetThemeColor3fv(TH_STRIP_SELECT, color);
+        ui::theme::get_color_3fv(TH_STRIP_SELECT, color);
         break;
       }
 
       /* unselected - use standard strip theme. */
-      ui::GetThemeColor3fv(TH_STRIP, color);
+      ui::theme::get_color_3fv(TH_STRIP, color);
       break;
 
     case NLASTRIP_TYPE_META:
       /* Meta Strip. */
-      ui::GetThemeColor3fv(is_selected ? TH_NLA_META_SEL : TH_NLA_META, color);
+      ui::theme::get_color_3fv(is_selected ? TH_NLA_META_SEL : TH_NLA_META, color);
       break;
     case NLASTRIP_TYPE_TRANSITION: {
       /* Transition Strip. */
-      ui::GetThemeColor3fv(is_selected ? TH_NLA_TRANSITION_SEL : TH_NLA_TRANSITION, color);
+      ui::theme::get_color_3fv(is_selected ? TH_NLA_TRANSITION_SEL : TH_NLA_TRANSITION, color);
       break;
     }
     case NLASTRIP_TYPE_SOUND:
       /* Sound Strip. */
-      ui::GetThemeColor3fv(is_selected ? TH_NLA_SOUND_SEL : TH_NLA_SOUND, color);
+      ui::theme::get_color_3fv(is_selected ? TH_NLA_SOUND_SEL : TH_NLA_SOUND, color);
       break;
     default: {
       /* default to unselected theme. */
-      ui::GetThemeColor3fv(TH_STRIP, color);
+      ui::theme::get_color_3fv(TH_STRIP, color);
     } break;
   }
 }

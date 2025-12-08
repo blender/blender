@@ -83,7 +83,7 @@ const UserDef U_default = {
     .menuthreshold2 = 2,
     .app_template = "",
 
-    /** Initialized by #theme_init_default. */
+    /** Initialized by #ui::theme::init_default. */
     .themes = {NULL},
 
     /** Initialized by #style_init. */

@@ -137,7 +137,7 @@ static void view3d_ob_drop_on_enter(wmDropBox *drop, wmDrag *drag)
 
   if (!is_zero_v3(dimensions)) {
     mul_v3_v3fl(state->box_dimensions, dimensions, 0.5f);
-    blender::ui::GetThemeColor4ubv(TH_GIZMO_PRIMARY, state->color_box);
+    blender::ui::theme::get_color_4ubv(TH_GIZMO_PRIMARY, state->color_box);
     state->draw_box = true;
   }
 }

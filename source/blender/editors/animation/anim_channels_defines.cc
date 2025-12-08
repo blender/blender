@@ -109,7 +109,7 @@ static void acf_generic_root_color(bAnimContext * /*ac*/,
                                    float r_color[3])
 {
   /* darker blue for top-level widgets */
-  ui::GetThemeColor3fv(TH_DOPESHEET_CHANNELOB, r_color);
+  ui::theme::get_color_3fv(TH_DOPESHEET_CHANNELOB, r_color);
 }
 
 /* backdrop for top-level widgets (Scene and Object only) */
@@ -146,7 +146,7 @@ static void acf_generic_dataexpand_color(bAnimContext * /*ac*/,
                                          float r_color[3])
 {
   /* lighter color than top-level widget */
-  ui::GetThemeColor3fv(TH_DOPESHEET_CHANNELSUBOB, r_color);
+  ui::theme::get_color_3fv(TH_DOPESHEET_CHANNELSUBOB, r_color);
 }
 
 /* backdrop for data expanders under top-level Scene/Object */
@@ -190,7 +190,7 @@ static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
   /* FIXME: what happens when the indentation is 1 greater than what it should be
    * (due to grouping)? */
   const int colorOffset = 10 - 10 * indent;
-  ui::GetThemeColorShade3fv(TH_CHANNEL, colorOffset, r_color);
+  ui::theme::get_color_shade_3fv(TH_CHANNEL, colorOffset, r_color);
 }
 
 /* backdrop for generic channels */
@@ -426,7 +426,7 @@ static void acf_summary_color(bAnimContext *ac, bAnimListElem *ale, float r_colo
    * just one line, there is no need for any distinction between lines, and the red-ish
    * color is only going to be a distraction. */
   const bool is_expanded = ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_EXPAND);
-  ui::GetThemeColor3fv(is_expanded ? TH_ANIM_ACTIVE : TH_HEADER, r_color);
+  ui::theme::get_color_3fv(is_expanded ? TH_ANIM_ACTIVE : TH_HEADER, r_color);
 }
 
 /* backdrop for summary widget */
@@ -828,10 +828,10 @@ static bAnimChannelType ACF_OBJECT = {
 static void acf_group_color(bAnimContext * /*ac*/, bAnimListElem *ale, float r_color[3])
 {
   if (ale->flag & AGRP_ACTIVE) {
-    ui::GetThemeColor3fv(TH_GROUP_ACTIVE, r_color);
+    ui::theme::get_color_3fv(TH_GROUP_ACTIVE, r_color);
   }
   else {
-    ui::GetThemeColor3fv(TH_GROUP, r_color);
+    ui::theme::get_color_3fv(TH_GROUP, r_color);
   }
 }
 
@@ -974,7 +974,7 @@ static bool get_actiongroup_color(const bActionGroup *agrp, uint8_t r_color[3])
     wire_color = &agrp->cs;
   }
   else {
-    const bTheme *btheme = blender::ui::GetTheme();
+    const bTheme *btheme = blender::ui::theme::theme_get();
     wire_color = &btheme->tarm[(color_index - 1)];
   }
 
@@ -1186,7 +1186,7 @@ static void acf_nla_controls_color(bAnimContext * /*ac*/,
                                    float r_color[3])
 {
   /* TODO: give this its own theme setting? */
-  ui::GetThemeColorShade3fv(TH_GROUP, 55, r_color);
+  ui::theme::get_color_shade_3fv(TH_GROUP, 55, r_color);
 }
 
 /* backdrop for nla controls expander widget */
@@ -3909,10 +3909,10 @@ static void *data_block_setting_ptr(bAnimListElem *ale,
 static void datablock_color(bAnimContext *ac, bAnimListElem * /*ale*/, float r_color[3])
 {
   if (ac->datatype == ANIMCONT_GPENCIL) {
-    ui::GetThemeColorShade3fv(TH_DOPESHEET_CHANNELSUBOB, 20, r_color);
+    ui::theme::get_color_shade_3fv(TH_DOPESHEET_CHANNELSUBOB, 20, r_color);
   }
   else {
-    ui::GetThemeColor3fv(TH_DOPESHEET_CHANNELSUBOB, r_color);
+    ui::theme::get_color_3fv(TH_DOPESHEET_CHANNELSUBOB, r_color);
   }
 }
 
@@ -4049,7 +4049,7 @@ static int layer_group_icon(bAnimListElem *ale)
 
 static void layer_group_color(bAnimContext * /*ac*/, bAnimListElem * /*ale*/, float r_color[3])
 {
-  ui::GetThemeColor3fv(TH_GROUP, r_color);
+  ui::theme::get_color_3fv(TH_GROUP, r_color);
 }
 
 /* Name for grease pencil layer entries */
@@ -4161,7 +4161,7 @@ static bAnimChannelType ACF_GPLGROUP = {
 static void acf_mask_color(bAnimContext * /*ac*/, bAnimListElem * /*ale*/, float r_color[3])
 {
   /* these are ID-blocks, but not exactly standalone... */
-  ui::GetThemeColorShade3fv(TH_DOPESHEET_CHANNELSUBOB, 20, r_color);
+  ui::theme::get_color_shade_3fv(TH_DOPESHEET_CHANNELSUBOB, 20, r_color);
 }
 
 /* TODO: just get this from RNA? */
@@ -4353,7 +4353,7 @@ static void acf_nlatrack_color(bAnimContext * /*ac*/, bAnimListElem *ale, float 
   }
 
   /* set color for nla track */
-  ui::GetThemeColorShade3fv(TH_NLA_TRACK, ((nonSolo == false) ? 20 : -20), r_color);
+  ui::theme::get_color_shade_3fv(TH_NLA_TRACK, ((nonSolo == false) ? 20 : -20), r_color);
 }
 
 /* name for nla track entries */
@@ -5136,7 +5136,7 @@ static bool achannel_is_broken(const bAnimListElem *ale)
 
 float ANIM_UI_get_keyframe_scale_factor()
 {
-  bTheme *btheme = blender::ui::GetTheme();
+  bTheme *btheme = blender::ui::theme::theme_get();
   const float yscale_fac = btheme->space_action.keyframe_scale_fac;
 
   /* clamp to avoid problems with uninitialized values... */
@@ -5305,10 +5305,10 @@ void ANIM_channel_draw(
     /* XXX: if active, highlight differently? */
 
     if (selected) {
-      ui::GetThemeColor4ubv(TH_TEXT_HI, col);
+      ui::theme::get_color_4ubv(TH_TEXT_HI, col);
     }
     else {
-      ui::GetThemeColor4ubv(TH_TEXT, col);
+      ui::theme::get_color_4ubv(TH_TEXT, col);
     }
 
     /* Gray out disconnected action slots and their children. */

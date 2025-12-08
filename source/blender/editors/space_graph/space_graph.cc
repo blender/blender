@@ -230,7 +230,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   const int min_height = UI_ANIM_MINY;
 
   /* clear and setup matrix */
-  blender::ui::ThemeClearColor(TH_BACK);
+  blender::ui::theme::frame_buffer_clear(TH_BACK);
 
   blender::ui::view2d_view_ortho(v2d);
 
@@ -427,7 +427,7 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   /* clear and setup matrix */
-  blender::ui::ThemeClearColor(TH_BACK);
+  blender::ui::theme::frame_buffer_clear(TH_BACK);
 
   ListBase anim_data = {nullptr, nullptr};
   const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
@@ -702,7 +702,7 @@ static void graph_refresh_fcurve_colors(const bContext *C)
     return;
   }
 
-  blender::ui::UI_SetTheme(SPACE_GRAPH, RGN_TYPE_WINDOW);
+  blender::ui::theme::theme_set(SPACE_GRAPH, RGN_TYPE_WINDOW);
 
   /* build list of F-Curves which will be visible as channels in channel-region
    * - we don't include ANIMFILTER_CURVEVISIBLE filter, as that will result in a
@@ -736,13 +736,13 @@ static void graph_refresh_fcurve_colors(const bContext *C)
 
         switch (fcu->array_index) {
           case 0:
-            blender::ui::GetThemeColor3fv(TH_AXIS_X, col);
+            blender::ui::theme::get_color_3fv(TH_AXIS_X, col);
             break;
           case 1:
-            blender::ui::GetThemeColor3fv(TH_AXIS_Y, col);
+            blender::ui::theme::get_color_3fv(TH_AXIS_Y, col);
             break;
           case 2:
-            blender::ui::GetThemeColor3fv(TH_AXIS_Z, col);
+            blender::ui::theme::get_color_3fv(TH_AXIS_Z, col);
             break;
           default:
             /* 'unknown' color - bluish so as to not conflict with handles */
@@ -759,17 +759,17 @@ static void graph_refresh_fcurve_colors(const bContext *C)
 
         switch (fcu->array_index) {
           case 1:
-            blender::ui::GetThemeColor3fv(TH_AXIS_X, col);
+            blender::ui::theme::get_color_3fv(TH_AXIS_X, col);
             break;
           case 2:
-            blender::ui::GetThemeColor3fv(TH_AXIS_Y, col);
+            blender::ui::theme::get_color_3fv(TH_AXIS_Y, col);
             break;
           case 3:
-            blender::ui::GetThemeColor3fv(TH_AXIS_Z, col);
+            blender::ui::theme::get_color_3fv(TH_AXIS_Z, col);
             break;
 
           case 0: {
-            blender::ui::GetThemeColor3fv(TH_AXIS_W, col);
+            blender::ui::theme::get_color_3fv(TH_AXIS_W, col);
             break;
           }
 

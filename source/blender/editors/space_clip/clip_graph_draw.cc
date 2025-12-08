@@ -67,13 +67,13 @@ static void tracking_segment_start_cb(void *userdata,
 
   switch (value_source) {
     case CLIP_VALUE_SOURCE_SPEED_X:
-      blender::ui::GetThemeColor4fv(TH_AXIS_X, col);
+      blender::ui::theme::get_color_4fv(TH_AXIS_X, col);
       break;
     case CLIP_VALUE_SOURCE_SPEED_Y:
-      blender::ui::GetThemeColor4fv(TH_AXIS_Y, col);
+      blender::ui::theme::get_color_4fv(TH_AXIS_Y, col);
       break;
     case CLIP_VALUE_SOURCE_REPROJECTION_ERROR:
-      blender::ui::GetThemeColor4fv(TH_AXIS_Z, col);
+      blender::ui::theme::get_color_4fv(TH_AXIS_Z, col);
       break;
   }
 
@@ -167,7 +167,7 @@ static void draw_tracks_motion_and_error_curves(View2D *v2d, SpaceClip *sc, uint
 
   TrackMotionCurveUserData userdata;
   userdata.sc = sc;
-  userdata.hsize = blender::ui::GetThemeValuef(TH_HANDLE_VERTEX_SIZE);
+  userdata.hsize = blender::ui::theme::get_value_f(TH_HANDLE_VERTEX_SIZE);
   userdata.sel = false;
   userdata.act_track = active_track;
   userdata.pos = pos;

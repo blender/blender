@@ -391,9 +391,9 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
 
   /* Sometimes the active theme is not the sequencer theme, e.g. when an operator invokes the
    * file browser. This makes sure we get the right color values for the theme. */
-  blender::ui::bThemeState theme_state;
-  blender::ui::Theme_Store(&theme_state);
-  blender::ui::UI_SetTheme(SPACE_SEQ, RGN_TYPE_WINDOW);
+  blender::ui::theme::bThemeState theme_state;
+  blender::ui::theme::theme_store(&theme_state);
+  blender::ui::theme::theme_set(SPACE_SEQ, RGN_TYPE_WINDOW);
 
   if (coords->use_snapping) {
     transform::sequencer_snap_point(region, coords->snap_point_x);
@@ -422,10 +422,10 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
        * One for video and the other for audio.
        * The audio channel is added first.
        */
-      ui::GetThemeColor3ubv(TH_SEQ_AUDIO, strip_color);
+      ui::theme::get_color_3ubv(TH_SEQ_AUDIO, strip_color);
     }
     else {
-      ui::GetThemeColor3ubv(coords->type, strip_color);
+      ui::theme::get_color_3ubv(coords->type, strip_color);
     }
 
     SeqStripDrawData &data = batch.add_strip(x1, x2, y2, y1, y2, x1, x2, 0, true);
@@ -439,12 +439,12 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
     else {
       if (coords->channel_len - 1 == i) {
         text_color[0] = text_color[1] = text_color[2] = 255;
-        ui::GetThemeColor3ubv(TH_SEQ_ACTIVE, strip_color);
+        ui::theme::get_color_3ubv(TH_SEQ_ACTIVE, strip_color);
         data.flags |= GPU_SEQ_FLAG_ACTIVE;
       }
       else {
         text_color[0] = text_color[1] = text_color[2] = 10;
-        ui::GetThemeColor3ubv(TH_SEQ_SELECTED, strip_color);
+        ui::theme::get_color_3ubv(TH_SEQ_SELECTED, strip_color);
       }
     }
     strip_color[3] = 204;
@@ -510,7 +510,7 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
   batch.flush_batch();
 
   /* Clean after drawing up. */
-  Theme_Restore(&theme_state);
+  blender::ui::theme::theme_restore(&theme_state);
   GPU_matrix_pop();
   GPU_blend(GPU_BLEND_NONE);
 

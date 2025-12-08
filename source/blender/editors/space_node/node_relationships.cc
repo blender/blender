@@ -1081,7 +1081,7 @@ static void draw_draglink_tooltip(const bContext * /*C*/, ARegion * /*region*/, 
   bNodeLinkDrag *nldrag = static_cast<bNodeLinkDrag *>(arg);
 
   uchar text_col[4];
-  ui::GetThemeColor4ubv(TH_TEXT, text_col);
+  ui::theme::get_color_4ubv(TH_TEXT, text_col);
 
   const int padding = 4 * UI_SCALE_FAC;
   const float x = nldrag->in_out == SOCK_IN ? nldrag->cursor[0] - 3.3f * padding :

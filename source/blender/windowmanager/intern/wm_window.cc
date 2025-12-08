@@ -785,20 +785,20 @@ static void wm_window_decoration_style_set_from_theme(const wmWindow *win, const
   /* Colored TitleBar Decoration. */
   /* For main windows, use the top-bar color. */
   if (WM_window_is_main_top_level(win)) {
-    blender::ui::UI_SetTheme(SPACE_TOPBAR, RGN_TYPE_HEADER);
+    blender::ui::theme::theme_set(SPACE_TOPBAR, RGN_TYPE_HEADER);
   }
   /* For single editor floating windows, use the editor header color. */
   else if (screen && BLI_listbase_is_single(&screen->areabase)) {
     const ScrArea *main_area = static_cast<ScrArea *>(screen->areabase.first);
-    blender::ui::UI_SetTheme(main_area->spacetype, RGN_TYPE_HEADER);
+    blender::ui::theme::theme_set(main_area->spacetype, RGN_TYPE_HEADER);
   }
   /* For floating window with multiple editors/areas, use the default space color. */
   else {
-    blender::ui::UI_SetTheme(0, RGN_TYPE_WINDOW);
+    blender::ui::theme::theme_set(0, RGN_TYPE_WINDOW);
   }
 
   float titlebar_bg_color[3];
-  blender::ui::GetThemeColor3fv(TH_BACK, titlebar_bg_color);
+  blender::ui::theme::get_color_3fv(TH_BACK, titlebar_bg_color);
   copy_v3_v3(decoration_settings.colored_titlebar_bg_color, titlebar_bg_color);
 
   GHOST_SetWindowDecorationStyleSettings(static_cast<GHOST_WindowHandle>(win->ghostwin),
@@ -1022,8 +1022,8 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
     /* Get the window background color from the current theme. Using the top-bar header
      * background theme color to match with the colored title-bar decoration style. */
     float window_bg_color[3];
-    blender::ui::UI_SetTheme(SPACE_TOPBAR, RGN_TYPE_HEADER);
-    blender::ui::GetThemeColor3fv(TH_BACK, window_bg_color);
+    blender::ui::theme::theme_set(SPACE_TOPBAR, RGN_TYPE_HEADER);
+    blender::ui::theme::get_color_3fv(TH_BACK, window_bg_color);
 
     /* Until screens get drawn, draw a default background using the window theme color. */
     wm_window_swap_buffer_acquire(win);

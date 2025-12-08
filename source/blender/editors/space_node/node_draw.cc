@@ -1491,7 +1491,7 @@ static void node_socket_outline_color_get(const bool selected,
    * sockets are drawn in other editors.
    */
   if (selected) {
-    ui::GetThemeColorType4fv(TH_ACTIVE, SPACE_NODE, r_outline_color);
+    ui::theme::get_color_type_4fv(TH_ACTIVE, SPACE_NODE, r_outline_color);
   }
   else if (socket_type == SOCK_CUSTOM) {
     /* Until there is a better place for per socket color,
@@ -1499,7 +1499,7 @@ static void node_socket_outline_color_get(const bool selected,
     copy_v4_v4(r_outline_color, virtual_node_socket_outline_color);
   }
   else {
-    ui::GetThemeColorType4fv(TH_WIRE, SPACE_NODE, r_outline_color);
+    ui::theme::get_color_type_4fv(TH_WIRE, SPACE_NODE, r_outline_color);
     r_outline_color[3] = 1.0f;
   }
 }
@@ -1735,10 +1735,10 @@ static void node_draw_node_group_indicator(const SpaceNode &snode,
 
   const float outline_width = is_selected ? 1.0f : 0.5f;
   float outline_color[4];
-  ui::GetThemeColor4fv(TH_NODE_OUTLINE, outline_color);
+  ui::theme::get_color_4fv(TH_NODE_OUTLINE, outline_color);
 
   if (is_selected) {
-    ui::GetThemeColor4fv((node.flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, outline_color);
+    ui::theme::get_color_4fv((node.flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, outline_color);
   }
 
   ui::draw_roundbox_corner_set(ui::CNR_BOTTOM_LEFT | ui::CNR_BOTTOM_RIGHT);
@@ -1916,7 +1916,7 @@ static void node_draw_panels_background(const bNode &node)
   BLI_assert(is_node_panels_supported(node));
 
   float panel_color[4];
-  ui::GetThemeColor4fv(TH_PANEL_SUB_BACK, panel_color);
+  ui::theme::get_color_4fv(TH_PANEL_SUB_BACK, panel_color);
   /* Increase contrast in nodes a bit. */
   panel_color[3] *= 1.5f;
   const rctf &draw_bounds = node.runtime->draw_bounds;
@@ -2685,15 +2685,15 @@ static void node_draw_extra_info_panel_back(const bNode &node, const rctf &extra
 
   ColorTheme4f color;
   if (node.is_muted()) {
-    ui::GetThemeColorBlend4f(TH_BACK, TH_NODE, 0.2f, color);
+    ui::theme::get_color_blend_4f(TH_BACK, TH_NODE, 0.2f, color);
   }
   else {
-    ui::GetThemeColorBlend4f(TH_BACK, TH_NODE, 0.75f, color);
+    ui::theme::get_color_blend_4f(TH_BACK, TH_NODE, 0.75f, color);
   }
   color.a -= 0.35f;
 
   ColorTheme4f color_outline;
-  ui::GetThemeColorBlendShade4fv(TH_BACK, TH_NODE, 0.4f, -20, color_outline);
+  ui::theme::get_color_blend_shade_4fv(TH_BACK, TH_NODE, 0.4f, -20, color_outline);
 
   const float outline_width = U.pixelsize;
   BLI_rctf_pad(&panel_back_rect, outline_width, outline_width);
@@ -2850,13 +2850,13 @@ static ColorTheme4f node_header_color_get(const bNodeTree &ntree,
   /* The base color of the node header. */
   if (node_undefined_or_unsupported(ntree, node)) {
     /* Use warning color to indicate undefined types. */
-    ui::GetThemeColorBlendShade4fv(TH_REDALERT, color_id, 0.1f, -40, color_header);
+    ui::theme::get_color_blend_shade_4fv(TH_REDALERT, color_id, 0.1f, -40, color_header);
   }
   else if ((node.flag & NODE_COLLAPSED) && (node.flag & NODE_CUSTOM_COLOR)) {
     rgba_float_args_set(color_header, node.color[0], node.color[1], node.color[2], 1.0f);
   }
   else {
-    ui::GetThemeColor4fv(color_id, color_header);
+    ui::theme::get_color_4fv(color_id, color_header);
   }
 
   /* Draw selected nodes fully opaque. */
@@ -2868,9 +2868,10 @@ static ColorTheme4f node_header_color_get(const bNodeTree &ntree,
    * transparent so the wires inside are visible. */
   if (node.is_muted()) {
     ColorTheme4f color_background;
-    ui::GetThemeColor4fv(TH_BACK, color_background);
+    ui::theme::get_color_4fv(TH_BACK, color_background);
 
-    ui::GetColorPtrBlendAlpha4fv(color_header, color_background, 0.6f, -0.2f, color_header);
+    ui::theme::get_color_blend_alpha_4fv(
+        color_header, color_background, 0.6f, -0.2f, color_header);
   }
 
   return color_header;
@@ -3136,10 +3137,10 @@ static void node_draw_basis(const bContext &C,
 
   /* Title. */
   if (node.flag & SELECT) {
-    ui::GetThemeColor4fv(TH_SELECT, color);
+    ui::theme::get_color_4fv(TH_SELECT, color);
   }
   else {
-    ui::GetThemeColorBlendShade4fv(TH_SELECT, color_id, 0.4f, 10, color);
+    ui::theme::get_color_blend_shade_4fv(TH_SELECT, color_id, 0.4f, 10, color);
   }
 
   /* Collapse/expand icon. */
@@ -3194,13 +3195,13 @@ static void node_draw_basis(const bContext &C,
   {
     /* Use warning color to indicate undefined types. */
     if (node_undefined_or_unsupported(ntree, node)) {
-      ui::GetThemeColorShade4fv(TH_REDALERT, -40, color);
+      ui::theme::get_color_shade_4fv(TH_REDALERT, -40, color);
     }
     else if (node.flag & NODE_CUSTOM_COLOR) {
       rgba_float_args_set(color, node.color[0], node.color[1], node.color[2], 1.0f);
     }
     else {
-      ui::GetThemeColor4fv(TH_NODE, color);
+      ui::theme::get_color_4fv(TH_NODE, color);
     }
 
     /* Draw selected nodes fully opaque. */
@@ -3212,9 +3213,9 @@ static void node_draw_basis(const bContext &C,
      * transparent so the wires inside are visible. */
     if (node.is_muted()) {
       float color_background[4];
-      ui::GetThemeColor4fv(TH_BACK, color_background);
+      ui::theme::get_color_4fv(TH_BACK, color_background);
 
-      ui::GetColorPtrBlendAlpha4fv(color, color_background, 0.8f, -0.2f, color);
+      ui::theme::get_color_blend_alpha_4fv(color, color_background, 0.8f, -0.2f, color);
     }
 
     /* Add some padding to prevent transparent gaps with the outline. */
@@ -3248,17 +3249,17 @@ static void node_draw_basis(const bContext &C,
     };
     float color_outline[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     if (node.flag & SELECT) {
-      ui::GetThemeColor4fv((node.flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, color_outline);
+      ui::theme::get_color_4fv((node.flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, color_outline);
     }
     else if (node_undefined_or_unsupported(ntree, node)) {
-      ui::GetThemeColor4fv(TH_REDALERT, color_outline);
+      ui::theme::get_color_4fv(TH_REDALERT, color_outline);
     }
     else if (const bke::bNodeZoneType *zone_type = bke::zone_type_by_node_type(node.type_legacy)) {
-      ui::GetThemeColor4fv(zone_type->theme_id, color_outline);
+      ui::theme::get_color_4fv(zone_type->theme_id, color_outline);
       color_outline[3] = 1.0f;
     }
     else {
-      ui::GetThemeColor4fv(TH_NODE_OUTLINE, color_outline);
+      ui::theme::get_color_4fv(TH_NODE_OUTLINE, color_outline);
     }
     ui::draw_roundbox_corner_set(ui::CNR_ALL);
     ui::draw_roundbox_4fv(&rect_node, false, BASIS_RAD + outline_width, color_outline);
@@ -3332,10 +3333,10 @@ static void node_draw_collapsed(const bContext &C,
 
   /* Title. */
   if (node.flag & SELECT) {
-    ui::GetThemeColor4fv(TH_SELECT, color);
+    ui::theme::get_color_4fv(TH_SELECT, color);
   }
   else {
-    ui::GetThemeColorBlendShade4fv(TH_SELECT, color_id, 0.4f, 10, color);
+    ui::theme::get_color_blend_shade_4fv(TH_SELECT, color_id, 0.4f, 10, color);
   }
 
   /* Collapse/expand icon. */
@@ -3391,17 +3392,17 @@ static void node_draw_collapsed(const bContext &C,
     float color_outline[4];
 
     if (node.flag & SELECT) {
-      ui::GetThemeColor4fv((node.flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, color_outline);
+      ui::theme::get_color_4fv((node.flag & NODE_ACTIVE) ? TH_ACTIVE : TH_SELECT, color_outline);
     }
     else if (node_undefined_or_unsupported(ntree, node)) {
-      ui::GetThemeColor4fv(TH_REDALERT, color_outline);
+      ui::theme::get_color_4fv(TH_REDALERT, color_outline);
     }
     else if (node.is_muted()) {
       /* Muted nodes get a mix of the background with the node color. */
-      ui::GetThemeColorBlendShade4fv(TH_BACK, color_id, .4f, 10, color_outline);
+      ui::theme::get_color_blend_shade_4fv(TH_BACK, color_id, .4f, 10, color_outline);
     }
     else {
-      ui::GetThemeColor4fv(TH_NODE_OUTLINE, color_outline);
+      ui::theme::get_color_4fv(TH_NODE_OUTLINE, color_outline);
     }
 
     draw_roundbox_corner_set(ui::CNR_ALL);
@@ -3703,7 +3704,7 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
   /* Title color. */
   int color_id = node_get_colorid(tree_draw_ctx, node);
   uchar color[3];
-  ui::GetThemeColorBlendShade3ubv(TH_TEXT, color_id, 0.4f, 10, color);
+  ui::theme::get_color_blend_shade_3ubv(TH_TEXT, color_id, 0.4f, 10, color);
   BLF_color3ubv(fontid, color);
 
   const float label_width = BLF_width(fontid, node.label, strlen(node.label));
@@ -3766,7 +3767,7 @@ static void frame_node_draw_background(const ARegion &region,
   }
 
   float color[4];
-  ui::GetThemeColor4fv(TH_NODE_FRAME, color);
+  ui::theme::get_color_4fv(TH_NODE_FRAME, color);
   const float alpha = color[3];
 
   node_draw_shadow(snode, node, BASIS_RAD, alpha);
@@ -3781,10 +3782,10 @@ static void frame_node_draw_background(const ARegion &region,
     }
 
     if (depth % 2 == 0) {
-      ui::GetThemeColor4fv(TH_NODE_FRAME, color);
+      ui::theme::get_color_4fv(TH_NODE_FRAME, color);
     }
     else {
-      ui::GetThemeColorShade4fv(TH_NODE_FRAME, 20, color);
+      ui::theme::get_color_shade_4fv(TH_NODE_FRAME, 20, color);
     }
   }
 
@@ -3808,15 +3809,15 @@ static void frame_node_draw_outline(const ARegion &region,
 
   if (snode.runtime->frame_identifier_to_highlight == node.identifier) {
     draw_outline = true;
-    ui::GetThemeColorShadeAlpha4fv(TH_ACTIVE, 0, -100, outline_color);
+    ui::theme::get_color_shade_alpha_4fv(TH_ACTIVE, 0, -100, outline_color);
   }
   else if (node.flag & SELECT) {
     draw_outline = true;
     if (node.flag & NODE_ACTIVE) {
-      ui::GetThemeColorShadeAlpha4fv(TH_ACTIVE, 0, -40, outline_color);
+      ui::theme::get_color_shade_alpha_4fv(TH_ACTIVE, 0, -40, outline_color);
     }
     else {
-      ui::GetThemeColorShadeAlpha4fv(TH_SELECT, 0, -40, outline_color);
+      ui::theme::get_color_shade_alpha_4fv(TH_SELECT, 0, -40, outline_color);
     }
   }
 
@@ -4287,7 +4288,7 @@ static void node_draw_zones_and_frames(const ARegion &region,
       const bNodeTreeZone &zone = **zone_p;
       const int zone_i = zone.index;
       float zone_color[4];
-      ui::GetThemeColor4fv(get_theme_id(zone_i), zone_color);
+      ui::theme::get_color_4fv(get_theme_id(zone_i), zone_color);
       if (zone_color[3] == 0.0f) {
         continue;
       }
@@ -4499,7 +4500,7 @@ static void draw_link_errors(const bContext &C,
   rctf bg_rect;
   BLI_rctf_init_pt_radius(&bg_rect, float2(draw_position), bg_radius);
   ColorTheme4f bg_color;
-  ui::GetThemeColor4fv(TH_REDALERT, bg_color);
+  ui::theme::get_color_4fv(TH_REDALERT, bg_color);
   draw_roundbox_corner_set(ui::CNR_ALL);
   ui::draw_dropshadow(&bg_rect, bg_corner_radius, UI_UNIT_X * 0.2f, snode.runtime->aspect, 0.5f);
   ui::draw_roundbox_4fv(&bg_rect, true, bg_corner_radius, bg_color);
@@ -4749,7 +4750,7 @@ static void draw_background_color(const SpaceNode &snode)
   const int depth = max_ii(0, clamped_tree_path_length - 1);
 
   float color[3];
-  ui::GetThemeColor3fv(TH_BACK, color);
+  ui::theme::get_color_3fv(TH_BACK, color);
   mul_v3_fl(color, 1.0f + bright_factor * depth);
   GPU_clear_color(color[0], color[1], color[2], 1.0);
 }
@@ -4789,7 +4790,7 @@ void node_draw_space(const bContext &C, ARegion &region)
   /* Nodes. */
   snode_set_context(C);
 
-  const int grid_levels = ui::GetThemeValueType(TH_NODE_GRID_LEVELS, SPACE_NODE);
+  const int grid_levels = ui::theme::get_value_type(TH_NODE_GRID_LEVELS, SPACE_NODE);
   ui::view2d_dot_grid_draw(&v2d, TH_GRID, NODE_GRID_STEP_SIZE, grid_levels);
 
   /* Draw parent node trees. */

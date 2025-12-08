@@ -332,7 +332,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
   if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN) {
     BMEdge *eed;
 
-    blender::ui::GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
+    blender::ui::theme::get_color_3ubv(TH_DRAWEXTRA_EDGELEN, col);
 
     if (use_coords) {
       BM_mesh_elem_index_ensure(em->bm, BM_VERT);
@@ -381,7 +381,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
     const bool is_rad = (unit.system_rotation == USER_UNIT_ROT_RADIANS);
     BMEdge *eed;
 
-    blender::ui::GetThemeColor3ubv(TH_DRAWEXTRA_EDGEANG, col);
+    blender::ui::theme::get_color_3ubv(TH_DRAWEXTRA_EDGEANG, col);
 
     Span<float3> face_normals;
     if (use_coords) {
@@ -455,7 +455,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
     /* would be nice to use BM_face_calc_area, but that is for 2d faces
      * so instead add up tessellation triangle areas */
 
-    blender::ui::GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
+    blender::ui::theme::get_color_3ubv(TH_DRAWEXTRA_FACEAREA, col);
 
     int i;
     BMFace *f = nullptr;
@@ -515,7 +515,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
     BMFace *efa;
     const bool is_rad = (unit.system_rotation == USER_UNIT_ROT_RADIANS);
 
-    blender::ui::GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
+    blender::ui::theme::get_color_3ubv(TH_DRAWEXTRA_FACEANG, col);
 
     if (use_coords) {
       BM_mesh_elem_index_ensure(em->bm, BM_VERT);
@@ -587,7 +587,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
   if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_INDICES) {
     int i;
 
-    blender::ui::GetThemeColor4ubv(TH_TEXT_HI, col);
+    blender::ui::theme::get_color_4ubv(TH_TEXT_HI, col);
 
     if (em->selectmode & SCE_SELECT_VERTEX) {
       BMVert *v;

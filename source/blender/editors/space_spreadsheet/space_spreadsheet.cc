@@ -646,7 +646,7 @@ static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
   ss << tot_rows_str << "   |   " << IFACE_("Columns:") << " " << runtime->tot_columns;
   std::string stats_str = ss.str();
 
-  ui::ThemeClearColor(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
 
   ui::Block *block = block_begin(C, region, __func__, ui::EmbossType::Emboss);
   const uiStyle *style = ui::style_get_dpi();

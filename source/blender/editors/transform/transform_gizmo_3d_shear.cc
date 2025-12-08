@@ -68,7 +68,7 @@ static void WIDGETGROUP_xform_shear_setup(const bContext * /*C*/, wmGizmoGroup *
 
   float axis_color[3][3];
   for (int i = 0; i < 3; i++) {
-    ui::GetThemeColor3fv(TH_AXIS_X + i, axis_color[i]);
+    ui::theme::get_color_3fv(TH_AXIS_X + i, axis_color[i]);
   }
 
   for (int i = 0; i < 3; i++) {

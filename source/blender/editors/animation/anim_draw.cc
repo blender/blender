@@ -231,7 +231,7 @@ void ANIM_draw_action_framerange(
   immBindBuiltinProgram(GPU_SHADER_2D_DIAG_STRIPES);
 
   float color[4];
-  blender::ui::GetThemeColorShadeAlpha4fv(TH_BACK, -40, -50, color);
+  blender::ui::theme::get_color_shade_alpha_4fv(TH_BACK, -40, -50, color);
 
   immUniform4f("color1", color[0], color[1], color[2], color[3]);
   immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);

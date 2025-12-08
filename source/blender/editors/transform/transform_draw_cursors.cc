@@ -119,8 +119,8 @@ void transform_draw_cursor_draw(bContext *C,
   }
   else {
     /* Otherwise editor foreground and background colors. */
-    ui::GetThemeColor3fv(TH_TEXT_HI, fg_color);
-    ui::GetThemeColor3fv(TH_BACK, bg_color);
+    ui::theme::get_color_3fv(TH_TEXT_HI, fg_color);
+    ui::theme::get_color_3fv(TH_BACK, bg_color);
   }
   fg_color[3] = 1.0f;
   bg_color[3] = 0.5f;
@@ -241,12 +241,12 @@ void transform_draw_cursor_draw(bContext *C,
 
       immUniform1f("lineWidth", ARROW_WIDTH);
       uchar col[3], col2[3];
-      ui::GetThemeColor3ubv(TH_GRID, col);
-      ui::make_axis_color(col, 'X', col2);
+      ui::theme::get_color_3ubv(TH_GRID, col);
+      ui::theme::make_axis_color(col, 'X', col2);
       immUniformColor3ubv(col2);
       drawArrow(pos_id, RIGHT);
       drawArrow(pos_id, LEFT);
-      ui::make_axis_color(col, 'Y', col2);
+      ui::theme::make_axis_color(col, 'Y', col2);
       immUniformColor3ubv(col2);
       drawArrow(pos_id, UP);
       drawArrow(pos_id, DOWN);

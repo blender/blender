@@ -93,22 +93,26 @@ void draw_keyframe_shape(const float x,
     /* get interior colors from theme (for selected and unselected only) */
     switch (key_type) {
       case BEZT_KEYTYPE_BREAKDOWN:
-        ui::GetThemeColor3ubv(sel ? TH_KEYTYPE_BREAKDOWN_SELECT : TH_KEYTYPE_BREAKDOWN, fill_col);
+        ui::theme::get_color_3ubv(sel ? TH_KEYTYPE_BREAKDOWN_SELECT : TH_KEYTYPE_BREAKDOWN,
+                                  fill_col);
         break;
       case BEZT_KEYTYPE_EXTREME:
-        ui::GetThemeColor3ubv(sel ? TH_KEYTYPE_EXTREME_SELECT : TH_KEYTYPE_EXTREME, fill_col);
+        ui::theme::get_color_3ubv(sel ? TH_KEYTYPE_EXTREME_SELECT : TH_KEYTYPE_EXTREME, fill_col);
         break;
       case BEZT_KEYTYPE_JITTER:
-        ui::GetThemeColor3ubv(sel ? TH_KEYTYPE_JITTER_SELECT : TH_KEYTYPE_JITTER, fill_col);
+        ui::theme::get_color_3ubv(sel ? TH_KEYTYPE_JITTER_SELECT : TH_KEYTYPE_JITTER, fill_col);
         break;
       case BEZT_KEYTYPE_MOVEHOLD:
-        ui::GetThemeColor3ubv(sel ? TH_KEYTYPE_MOVEHOLD_SELECT : TH_KEYTYPE_MOVEHOLD, fill_col);
+        ui::theme::get_color_3ubv(sel ? TH_KEYTYPE_MOVEHOLD_SELECT : TH_KEYTYPE_MOVEHOLD,
+                                  fill_col);
         break;
       case BEZT_KEYTYPE_KEYFRAME:
-        ui::GetThemeColor3ubv(sel ? TH_KEYTYPE_KEYFRAME_SELECT : TH_KEYTYPE_KEYFRAME, fill_col);
+        ui::theme::get_color_3ubv(sel ? TH_KEYTYPE_KEYFRAME_SELECT : TH_KEYTYPE_KEYFRAME,
+                                  fill_col);
         break;
       case BEZT_KEYTYPE_GENERATED:
-        ui::GetThemeColor3ubv(sel ? TH_KEYTYPE_GENERATED_SELECT : TH_KEYTYPE_GENERATED, fill_col);
+        ui::theme::get_color_3ubv(sel ? TH_KEYTYPE_GENERATED_SELECT : TH_KEYTYPE_GENERATED,
+                                  fill_col);
         break;
     }
 
@@ -127,7 +131,7 @@ void draw_keyframe_shape(const float x,
 
   if (draw_outline) {
     /* exterior - black frame */
-    ui::GetThemeColor4ubv(sel ? TH_KEYBORDER_SELECT : TH_KEYBORDER, outline_col);
+    ui::theme::get_color_4ubv(sel ? TH_KEYBORDER_SELECT : TH_KEYBORDER, outline_col);
     outline_col[3] *= alpha;
 
     if (!draw_fill) {
@@ -219,12 +223,12 @@ static void channel_ui_data_init(DrawKeylistUIData *ctx,
 
   ctx->show_ipo = (saction_flag & SACTION_SHOW_INTERPOLATION) != 0;
 
-  ui::GetThemeColor4fv(TH_LONGKEY_SELECT, ctx->sel_color);
-  ui::GetThemeColor4fv(TH_LONGKEY, ctx->unsel_color);
-  ui::GetThemeColor4fv(TH_DOPESHEET_IPOLINE, ctx->ipo_color_linear);
-  ui::GetThemeColor4fv(TH_DOPESHEET_IPOCONST, ctx->ipo_color_constant);
-  ui::GetThemeColor4fv(TH_DOPESHEET_IPOOTHER, ctx->ipo_color_other);
-  ui::GetThemeColor4fv(TH_KEYTYPE_KEYFRAME, ctx->ipo_color_mix);
+  ui::theme::get_color_4fv(TH_LONGKEY_SELECT, ctx->sel_color);
+  ui::theme::get_color_4fv(TH_LONGKEY, ctx->unsel_color);
+  ui::theme::get_color_4fv(TH_DOPESHEET_IPOLINE, ctx->ipo_color_linear);
+  ui::theme::get_color_4fv(TH_DOPESHEET_IPOCONST, ctx->ipo_color_constant);
+  ui::theme::get_color_4fv(TH_DOPESHEET_IPOOTHER, ctx->ipo_color_other);
+  ui::theme::get_color_4fv(TH_KEYTYPE_KEYFRAME, ctx->ipo_color_mix);
 
   ctx->sel_color[3] *= ctx->alpha;
   ctx->unsel_color[3] *= ctx->alpha;

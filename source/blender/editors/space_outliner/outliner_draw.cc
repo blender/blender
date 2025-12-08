@@ -1870,7 +1870,7 @@ static void outliner_draw_userbuts(ui::Block *block,
 
       if (!real_users && !has_fake_user) {
         uchar overlay_color[4];
-        ui::GetThemeColor4ubv(TH_REDALERT, overlay_color);
+        ui::theme::get_color_4ubv(TH_REDALERT, overlay_color);
         button_icon_indicator_color_set(bt, overlay_color);
       }
       button_icon_indicator_set(bt, overlay);
@@ -2908,7 +2908,7 @@ static bool tselem_draw_icon(ui::Block *block,
     float aspect = (0.8f * UI_UNIT_Y) / ICON_DEFAULT_HEIGHT;
     x += 2.0f * aspect;
     y += 2.0f * aspect;
-    bTheme *btheme = ui::GetTheme();
+    bTheme *btheme = ui::theme::theme_get();
 
     if (is_collection) {
       Collection *collection = outliner_collection_from_tree_element(te);
@@ -2968,7 +2968,7 @@ static bool tselem_draw_icon(ui::Block *block,
 static void outliner_icon_background_colors(float icon_color[4], float icon_border[4])
 {
   float text[4];
-  ui::GetThemeColor4fv(TH_TEXT, text);
+  ui::theme::get_color_4fv(TH_TEXT, text);
 
   copy_v3_v3(icon_color, text);
   icon_color[3] = 0.4f;
@@ -3010,7 +3010,7 @@ static void outliner_draw_iconrow_doit(ui::Block *block,
     float icon_color[4], icon_border[4];
     outliner_icon_background_colors(icon_color, icon_border);
     if (active == OL_DRAWSEL_ACTIVE) {
-      ui::GetThemeColor4fv(TH_EDITED_OBJECT, icon_color);
+      ui::theme::get_color_4fv(TH_EDITED_OBJECT, icon_color);
       icon_border[3] = 0.3f;
     }
 
@@ -3295,7 +3295,7 @@ static void outliner_draw_tree_element(ui::Block *block,
   int offsx = 0;
   eOLDrawState active = OL_DRAWSEL_NONE;
   uchar text_color[4];
-  ui::GetThemeColor4ubv(TH_TEXT, text_color);
+  ui::theme::get_color_4ubv(TH_TEXT, text_color);
   float icon_bgcolor[4], icon_border[4];
   outliner_icon_background_colors(icon_bgcolor, icon_border);
 
@@ -3330,19 +3330,19 @@ static void outliner_draw_tree_element(ui::Block *block,
         if (is_selected) {
           if (ob == tvc.obact) {
             /* Active selected object. */
-            ui::GetThemeColor3ubv(TH_ACTIVE_OBJECT, text_color);
+            ui::theme::get_color_3ubv(TH_ACTIVE_OBJECT, text_color);
             text_color[3] = 255;
           }
           else {
             /* Other selected objects. */
-            ui::GetThemeColor3ubv(TH_SELECTED_OBJECT, text_color);
+            ui::theme::get_color_3ubv(TH_SELECTED_OBJECT, text_color);
             text_color[3] = 255;
           }
         }
       }
       else if (is_object_data_in_editmode(tselem->id, tvc.obact)) {
         /* Objects being edited. */
-        ui::GetThemeColor4fv(TH_EDITED_OBJECT, icon_bgcolor);
+        ui::theme::get_color_4fv(TH_EDITED_OBJECT, icon_bgcolor);
         icon_border[3] = 0.3f;
         active = OL_DRAWSEL_ACTIVE;
       }
@@ -3352,7 +3352,7 @@ static void outliner_draw_tree_element(ui::Block *block,
           icon_bgcolor[3] = 0.2f;
           active = OL_DRAWSEL_ACTIVE;
           if (te->idcode == ID_SCE) {
-            ui::GetThemeColor3ubv(TH_TEXT_HI, text_color);
+            ui::theme::get_color_3ubv(TH_TEXT_HI, text_color);
             text_color[3] = 255;
           }
         }
@@ -3361,7 +3361,7 @@ static void outliner_draw_tree_element(ui::Block *block,
     else {
       active = tree_element_type_active_state_get(tvc, te, tselem);
       if (active != OL_DRAWSEL_NONE) {
-        ui::GetThemeColor3ubv(TH_TEXT_HI, text_color);
+        ui::theme::get_color_3ubv(TH_TEXT_HI, text_color);
         text_color[3] = 255;
       }
     }
@@ -3440,7 +3440,7 @@ static void outliner_draw_tree_element(ui::Block *block,
     /* Name. */
     if ((tselem->flag & TSE_TEXTBUT) == 0) {
       if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
-        ui::GetThemeColorBlend3ubv(TH_BACK, TH_TEXT, 0.75f, text_color);
+        ui::theme::get_color_blend_3ubv(TH_BACK, TH_TEXT, 0.75f, text_color);
         text_color[3] = 255;
       }
       text_color[3] *= alpha_fac;
@@ -3549,7 +3549,7 @@ static void outliner_draw_hierarchy_lines_recursive(uint pos,
                                                     bool draw_grayed_out,
                                                     int *starty)
 {
-  bTheme *btheme = ui::GetTheme();
+  bTheme *btheme = ui::theme::theme_get();
   int y = *starty;
 
   /* Draw vertical lines between collections */
@@ -3632,7 +3632,7 @@ static void outliner_draw_hierarchy_lines(SpaceOutliner *space_outliner,
   immUniform2f("viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
   immUniform1i("colors_len", 0); /* "simple"  mode */
   immUniform1f("dash_width", 8.0f);
-  ui::GetThemeColorBlend3ubv(TH_BACK, TH_TEXT, 0.4f, col);
+  ui::theme::get_color_blend_3ubv(TH_BACK, TH_TEXT, 0.4f, col);
   col[3] = 255;
 
   GPU_line_width(1.0f);
@@ -3719,7 +3719,7 @@ static void outliner_draw_highlights(const ARegion *region,
       ui::draw_roundbox_4fv(&rect, true, radius, col_active);
 
       float col_active_outline[4];
-      ui::GetThemeColorShade4fv(TH_SELECT_ACTIVE, 40, col_active_outline);
+      ui::theme::get_color_shade_4fv(TH_SELECT_ACTIVE, 40, col_active_outline);
       ui::draw_roundbox_4fv(&rect, false, radius, col_active_outline);
     }
     else if (tselem->flag & TSE_SELECTED) {
@@ -3731,7 +3731,7 @@ static void outliner_draw_highlights(const ARegion *region,
       if (tselem->flag & TSE_DRAG_ANY) {
         /* Drag and drop highlight. */
         float col_outline[4];
-        ui::GetThemeColorBlend4f(TH_TEXT, TH_BACK, 0.4f, col_outline);
+        ui::theme::get_color_blend_4f(TH_TEXT, TH_BACK, 0.4f, col_outline);
 
         if (tselem->flag & TSE_DRAG_BEFORE) {
           rect.ymax += (1.0f * UI_SCALE_FAC) + (1.0f * U.pixelsize);
@@ -3745,7 +3745,7 @@ static void outliner_draw_highlights(const ARegion *region,
         }
         else {
           float col_bg[4];
-          ui::GetThemeColorShade4fv(TH_BACK, 40, col_bg);
+          ui::theme::get_color_shade_4fv(TH_BACK, 40, col_bg);
           ui::draw_roundbox_4fv_ex(&rect, col_bg, nullptr, 1.0f, col_outline, U.pixelsize, radius);
         }
       }
@@ -3774,11 +3774,11 @@ static void outliner_draw_highlights(ARegion *region,
   const float col_highlight[4] = {1.0f, 1.0f, 1.0f, 0.13f};
   float col_selection[4], col_active[4], col_searchmatch[4];
 
-  ui::GetThemeColor3fv(TH_SELECT_HIGHLIGHT, col_selection);
+  ui::theme::get_color_3fv(TH_SELECT_HIGHLIGHT, col_selection);
   col_selection[3] = 1.0f; /* No alpha. */
-  ui::GetThemeColor3fv(TH_SELECT_ACTIVE, col_active);
+  ui::theme::get_color_3fv(TH_SELECT_ACTIVE, col_active);
   col_active[3] = 1.0f; /* No alpha. */
-  ui::GetThemeColor4fv(TH_MATCH, col_searchmatch);
+  ui::theme::get_color_4fv(TH_MATCH, col_searchmatch);
   col_searchmatch[3] = 0.5f;
 
   GPU_blend(GPU_BLEND_ALPHA);
@@ -3888,7 +3888,7 @@ static void outliner_back(ARegion *region)
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   float col_alternating[4];
-  ui::GetThemeColor4fv(TH_ROW_ALTERNATE, col_alternating);
+  ui::theme::get_color_4fv(TH_ROW_ALTERNATE, col_alternating);
   immUniformThemeColorBlend(TH_BACK, TH_ROW_ALTERNATE, col_alternating[3]);
 
   const float x1 = 0.0f, x2 = region->v2d.cur.xmax;

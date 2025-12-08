@@ -709,7 +709,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* clear and setup matrix */
-  blender::ui::ThemeClearColor(TH_BACK);
+  blender::ui::theme::frame_buffer_clear(TH_BACK);
 
   /* data... */
   movieclip_main_area_set_view2d(C, region);
@@ -861,7 +861,7 @@ static void graph_region_draw(const bContext *C, ARegion *region)
   }
 
   /* clear and setup matrix */
-  blender::ui::ThemeClearColor(minimized ? TH_TIME_SCRUB_BACKGROUND : TH_BACK);
+  blender::ui::theme::frame_buffer_clear(minimized ? TH_TIME_SCRUB_BACKGROUND : TH_BACK);
 
   blender::ui::view2d_view_ortho(v2d);
 
@@ -917,7 +917,7 @@ static void dopesheet_region_draw(const bContext *C, ARegion *region)
   }
 
   /* clear and setup matrix */
-  blender::ui::ThemeClearColor(minimized ? TH_TIME_SCRUB_BACKGROUND : TH_BACK);
+  blender::ui::theme::frame_buffer_clear(minimized ? TH_TIME_SCRUB_BACKGROUND : TH_BACK);
 
   blender::ui::view2d_view_ortho(v2d);
 
@@ -1007,7 +1007,7 @@ static void clip_channels_region_draw(const bContext *C, ARegion *region)
   }
 
   /* clear and setup matrix */
-  blender::ui::ThemeClearColor(TH_BACK);
+  blender::ui::theme::frame_buffer_clear(TH_BACK);
 
   blender::ui::view2d_view_ortho(v2d);
 

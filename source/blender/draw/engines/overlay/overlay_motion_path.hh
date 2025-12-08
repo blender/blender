@@ -198,8 +198,8 @@ class MotionPath : Overlay {
     if (show_frame_number || (show_keyframes_number && show_keyframes)) {
       uchar4 col, col_kf;
       /* Color Management: Exception here as texts are drawn in sRGB space directly. */
-      ui::GetThemeColor3ubv(TH_TEXT_HI, col);
-      ui::GetThemeColor3ubv(TH_VERTEX_SELECT, col_kf);
+      ui::theme::get_color_3ubv(TH_TEXT_HI, col);
+      ui::theme::get_color_3ubv(TH_VERTEX_SELECT, col_kf);
       col.w = col_kf.w = 255;
 
       auto safe_index = [&](int index) { return math::clamp(index, 0, mpath->length - 1); };

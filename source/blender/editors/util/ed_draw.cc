@@ -282,11 +282,11 @@ static void slider_draw(const bContext * /*C*/, ARegion *region, void *arg)
   uint8_t color_bg[4];
 
   /* Get theme colors. */
-  blender::ui::GetThemeColor4ubv(TH_HEADER_TEXT_HI, color_handle);
-  blender::ui::GetThemeColor4ubv(TH_HEADER_TEXT, color_text);
-  blender::ui::GetThemeColor4ubv(TH_HEADER_TEXT, color_line);
-  blender::ui::GetThemeColor4ubv(TH_HEADER_TEXT, color_overshoot);
-  blender::ui::GetThemeColor4ubv(TH_HEADER, color_bg);
+  blender::ui::theme::get_color_4ubv(TH_HEADER_TEXT_HI, color_handle);
+  blender::ui::theme::get_color_4ubv(TH_HEADER_TEXT, color_text);
+  blender::ui::theme::get_color_4ubv(TH_HEADER_TEXT, color_line);
+  blender::ui::theme::get_color_4ubv(TH_HEADER_TEXT, color_overshoot);
+  blender::ui::theme::get_color_4ubv(TH_HEADER, color_bg);
 
   color_overshoot[0] = color_overshoot[0] * 0.8;
   color_overshoot[1] = color_overshoot[1] * 0.8;
@@ -927,7 +927,7 @@ static void text_info_row(const char *text,
   const int font_id = BLF_default();
   float text_color[4];
 
-  blender::ui::GetThemeColor4fv(TH_TEXT_HI, text_color);
+  blender::ui::theme::get_color_4fv(TH_TEXT_HI, text_color);
   BLF_color4fv(font_id, text_color);
 
   /* Ensure text is visible against bright background. */
@@ -1021,7 +1021,7 @@ void ED_region_image_render_region_draw(
   }
 
   float wire_color[3];
-  blender::ui::GetThemeColor3fv(TH_WIRE_EDIT, wire_color);
+  blender::ui::theme::get_color_3fv(TH_WIRE_EDIT, wire_color);
   immUniformColor4f(wire_color[0], wire_color[1], wire_color[2], 1);
 
   /* The bounding box must be drawn last to ensure it remains visible
@@ -1072,7 +1072,7 @@ void ED_region_image_metadata_draw(
     BLF_clipping(blf_mono_font, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
     BLF_enable(blf_mono_font, BLF_CLIPPING);
 
-    blender::ui::FontThemeColor(blf_mono_font, TH_METADATA_TEXT);
+    blender::ui::theme::font_theme_color_set(blf_mono_font, TH_METADATA_TEXT);
     metadata_draw_imbuf(ibuf, &rect, blf_mono_font, true);
 
     BLF_disable(blf_mono_font, BLF_CLIPPING);
@@ -1097,7 +1097,7 @@ void ED_region_image_metadata_draw(
     BLF_clipping(blf_mono_font, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
     BLF_enable(blf_mono_font, BLF_CLIPPING);
 
-    blender::ui::FontThemeColor(blf_mono_font, TH_METADATA_TEXT);
+    blender::ui::theme::font_theme_color_set(blf_mono_font, TH_METADATA_TEXT);
     metadata_draw_imbuf(ibuf, &rect, blf_mono_font, false);
 
     BLF_disable(blf_mono_font, BLF_CLIPPING);

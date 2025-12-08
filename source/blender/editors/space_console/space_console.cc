@@ -224,7 +224,7 @@ static void console_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* clear and setup matrix */
-  blender::ui::ThemeClearColor(TH_BACK);
+  blender::ui::theme::frame_buffer_clear(TH_BACK);
 
   /* Works best with no view2d matrix set. */
   blender::ui::view2d_view_ortho(v2d);

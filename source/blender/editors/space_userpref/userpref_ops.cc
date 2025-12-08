@@ -54,7 +54,7 @@
 static wmOperatorStatus preferences_reset_default_theme_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
-  blender::ui::theme_init_default();
+  blender::ui::theme::init_default();
   blender::ui::style_init_default();
   WM_reinit_gizmomap_all(bmain);
   WM_event_add_notifier(C, NC_WINDOW, nullptr);

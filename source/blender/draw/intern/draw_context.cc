@@ -2098,7 +2098,7 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d)
   using namespace blender::draw;
 
   /* Make sure select engine gets the correct vertex size. */
-  blender::ui::UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
+  blender::ui::theme::theme_set(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
   DRWContext draw_ctx(DRWContext::SELECT_EDIT_MESH, depsgraph, viewport, nullptr, region, v3d);
   draw_ctx.acquire_data();

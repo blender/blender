@@ -94,14 +94,14 @@ static void outliner_main_region_draw(const bContext *C, ARegion *region)
   const rctf v2d_cur_prev = v2d->cur;
 #endif
 
-  ui::ThemeClearColor(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
   draw_outliner(C, true);
 
 #ifdef USE_OUTLINER_DRAW_CLAMPS_SCROLL_HACK
   /* This happens when scrolling is clamped & occasionally when resizing the area.
    * In practice this isn't often which is important as that would hurt performance. */
   if (!BLI_rctf_compare(&v2d->cur, &v2d_cur_prev, FLT_EPSILON)) {
-    ui::ThemeClearColor(TH_BACK);
+    ui::theme::frame_buffer_clear(TH_BACK);
     draw_outliner(C, false);
   }
 #endif

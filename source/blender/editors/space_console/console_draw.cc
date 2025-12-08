@@ -51,7 +51,7 @@ static enum eTextViewContext_LineFlag console_line_data(TextViewContext *tvc,
       break;
   }
 
-  blender::ui::GetThemeColor4ubv(fg_id, fg);
+  blender::ui::theme::get_color_4ubv(fg_id, fg);
   return TVC_LINE_FG;
 }
 
@@ -164,7 +164,7 @@ static void console_textview_draw_cursor(TextViewContext *tvc, int cwidth, int c
 
 static void console_textview_const_colors(TextViewContext * /*tvc*/, uchar bg_sel[4])
 {
-  blender::ui::GetThemeColor4ubv(TH_CONSOLE_SELECT, bg_sel);
+  blender::ui::theme::get_color_4ubv(TH_CONSOLE_SELECT, bg_sel);
 }
 
 static void console_textview_draw_rect_calc(const ARegion *region,

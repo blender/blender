@@ -2964,7 +2964,7 @@ static void radial_control_paint_cursor(bContext * /*C*/,
   immUnbindProgram();
 
   BLF_size(fontid, 1.75f * fstyle_points * UI_SCALE_FAC);
-  blender::ui::GetThemeColor4fv(TH_TEXT_HI, text_color);
+  blender::ui::theme::get_color_4fv(TH_TEXT_HI, text_color);
   BLF_color4fv(fontid, text_color);
 
   /* Draw value. */

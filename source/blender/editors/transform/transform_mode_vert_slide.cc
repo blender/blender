@@ -286,8 +286,8 @@ static void drawVertSlide(TransInfo *t)
       const float3 co_orig_3d_act = curr_sv->co_orig_3d();
       const float3 co_dest_3d_act = curr_sv->co_dest_3d();
 
-      const float ctrl_size = ui::GetThemeValuef(TH_FACEDOT_SIZE) + 1.5f;
-      const float line_size = ui::GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
+      const float ctrl_size = ui::theme::get_value_f(TH_FACEDOT_SIZE) + 1.5f;
+      const float line_size = ui::theme::get_value_f(TH_OUTLINE_WIDTH) + 0.5f;
       const int alpha_shade = -160;
 
       GPU_depth_test(GPU_DEPTH_NONE);

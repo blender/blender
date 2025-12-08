@@ -710,14 +710,14 @@ void immUniformColor4ubv(const uchar rgba[4])
 void immUniformThemeColor(int color_id)
 {
   float color[4];
-  blender::ui::GetThemeColor4fv(color_id, color);
+  blender::ui::theme::get_color_4fv(color_id, color);
   immUniformColor4fv(color);
 }
 
 void immUniformThemeColorAlpha(int color_id, float a)
 {
   float color[4];
-  blender::ui::GetThemeColor3fv(color_id, color);
+  blender::ui::theme::get_color_3fv(color_id, color);
   color[3] = a;
   immUniformColor4fv(color);
 }
@@ -725,42 +725,42 @@ void immUniformThemeColorAlpha(int color_id, float a)
 void immUniformThemeColor3(int color_id)
 {
   float color[3];
-  blender::ui::GetThemeColor3fv(color_id, color);
+  blender::ui::theme::get_color_3fv(color_id, color);
   immUniformColor3fv(color);
 }
 
 void immUniformThemeColorShade(int color_id, int offset)
 {
   float color[4];
-  blender::ui::GetThemeColorShade4fv(color_id, offset, color);
+  blender::ui::theme::get_color_shade_4fv(color_id, offset, color);
   immUniformColor4fv(color);
 }
 
 void immUniformThemeColorShadeAlpha(int color_id, int color_offset, int alpha_offset)
 {
   float color[4];
-  blender::ui::GetThemeColorShadeAlpha4fv(color_id, color_offset, alpha_offset, color);
+  blender::ui::theme::get_color_shade_alpha_4fv(color_id, color_offset, alpha_offset, color);
   immUniformColor4fv(color);
 }
 
 void immUniformThemeColorBlendShade(int color_id1, int color_id2, float fac, int offset)
 {
   float color[4];
-  blender::ui::GetThemeColorBlendShade4fv(color_id1, color_id2, fac, offset, color);
+  blender::ui::theme::get_color_blend_shade_4fv(color_id1, color_id2, fac, offset, color);
   immUniformColor4fv(color);
 }
 
 void immUniformThemeColorBlend(int color_id1, int color_id2, float fac)
 {
   uint8_t color[3];
-  blender::ui::GetThemeColorBlend3ubv(color_id1, color_id2, fac, color);
+  blender::ui::theme::get_color_blend_3ubv(color_id1, color_id2, fac, color);
   immUniformColor3ubv(color);
 }
 
 void immThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset)
 {
   uchar col[4];
-  blender::ui::GetThemeColorShadeAlpha4ubv(colorid, coloffset, alphaoffset, col);
+  blender::ui::theme::get_color_shade_alpha_4ubv(colorid, coloffset, alphaoffset, col);
   immUniformColor4ub(col[0], col[1], col[2], col[3]);
 }
 

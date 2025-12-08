@@ -1208,7 +1208,7 @@ void view2d_multi_grid_draw(
   for (int level = 0; level < totlevels; level++) {
     /* Blend the background color (colorid) with the grid color, to avoid either too low contrast
      * or high contrast grid lines. This only has an effect if colorid != TH_GRID. */
-    GetThemeColorBlendShade3ubv(colorid, TH_GRID, 0.25f, offset, grid_line_color);
+    theme::get_color_blend_shade_3ubv(colorid, TH_GRID, 0.25f, offset, grid_line_color);
 
     int i = int(v2d->cur.xmin / lstep);
     if (v2d->cur.xmin > 0.0f) {
@@ -1249,7 +1249,7 @@ void view2d_multi_grid_draw(
   }
 
   /* X and Y axis */
-  GetThemeColorBlendShade3ubv(
+  theme::get_color_blend_shade_3ubv(
       colorid, TH_GRID, 0.5f, -18 + ((totlevels - 1) * -6), grid_line_color);
 
   immAttrSkip(color);
@@ -1345,7 +1345,7 @@ void view2d_dot_grid_draw(const View2D *v2d,
     const float subdivision_fade = last_level ? (1.0f - fractf(view_level)) : 1.0f;
 
     float color[4];
-    GetThemeColor3fv(grid_color_id, color);
+    theme::get_color_3fv(grid_color_id, color);
     color[3] = alpha_clamped * subdivision_fade;
 
     const float step = min_step * level_scale;
@@ -1505,7 +1505,7 @@ void view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
 {
   View2DScrollers scrollers;
   view2d_scrollers_calc(v2d, mask_custom, &scrollers);
-  bTheme *btheme = GetTheme();
+  bTheme *btheme = theme::theme_get();
   rcti vert, hor;
   const int scroll = view2d_scroll_mapped(v2d->scroll);
   const char emboss_alpha = btheme->tui.widget_emboss[3];
@@ -1514,7 +1514,7 @@ void view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
   uchar scrollers_back_color[4];
 
   /* Color for scroll-bar backs. */
-  GetThemeColor4ubv(TH_BACK, scrollers_back_color);
+  theme::get_color_4ubv(TH_BACK, scrollers_back_color);
 
   /* make copies of rects for less typing */
   vert = scrollers.vert;

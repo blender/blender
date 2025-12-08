@@ -308,7 +308,7 @@ static void draw_column_reorder_destination(const ARegion &region,
   {
     /* Draw column that is moved. */
     ColorTheme4f color;
-    ui::GetThemeColorShade4fv(TH_BACK, -20, color);
+    ui::theme::get_color_shade_4fv(TH_BACK, -20, color);
     color.a = 0.3f;
     rctf offset_column_rect;
     offset_column_rect.xmin = moving_column.runtime->left_x + data.current_offset_x_px -
@@ -322,7 +322,7 @@ static void draw_column_reorder_destination(const ARegion &region,
   {
     /* Draw indicator where the column is inserted. */
     ColorTheme4f color;
-    ui::GetThemeColorShade4fv(TH_TEXT, 20, color);
+    ui::theme::get_color_shade_4fv(TH_TEXT, 20, color);
     color.a = 0.6f;
     const int insert_column_x = data.new_index <= data.old_index ? insert_column.runtime->left_x :
                                                                    insert_column.runtime->right_x;
@@ -350,7 +350,7 @@ void draw_spreadsheet_in_region(const bContext *C,
 
   update_view2d_tot_rect(drawer, region, drawer.tot_rows);
 
-  ui::ThemeClearColor(TH_BACK);
+  ui::theme::frame_buffer_clear(TH_BACK);
 
   View2D *v2d = &region->v2d;
   const int scroll_offset_y = v2d->cur.ymax;

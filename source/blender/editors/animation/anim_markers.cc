@@ -448,12 +448,12 @@ void debug_markers_print_list(ListBase *markers)
 static void marker_color_get(const TimeMarker *marker, uchar *r_text_color, uchar *r_line_color)
 {
   if (marker->flag & SELECT) {
-    blender::ui::GetThemeColor4ubv(TH_TIME_MARKER_LINE_SELECTED, r_text_color);
-    blender::ui::GetThemeColor4ubv(TH_TIME_MARKER_LINE_SELECTED, r_line_color);
+    blender::ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE_SELECTED, r_text_color);
+    blender::ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE_SELECTED, r_line_color);
   }
   else {
-    blender::ui::GetThemeColor4ubv(TH_TIME_MARKER_LINE, r_text_color);
-    blender::ui::GetThemeColor4ubv(TH_TIME_MARKER_LINE, r_line_color);
+    blender::ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE, r_text_color);
+    blender::ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE, r_line_color);
   }
 }
 
@@ -546,10 +546,10 @@ static void draw_marker(const uiFontStyle *fstyle,
 
   uchar marker_color[4];
   if (marker->flag & SELECT) {
-    blender::ui::GetThemeColor4ubv(TH_TIME_MARKER_LINE_SELECTED, marker_color);
+    blender::ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE_SELECTED, marker_color);
   }
   else {
-    blender::ui::GetThemeColor4ubv(TH_TIME_MARKER_LINE, marker_color);
+    blender::ui::theme::get_color_4ubv(TH_TIME_MARKER_LINE, marker_color);
   }
 
   blender::ui::icon_draw_ex(xpos - (0.5f * UI_ICON_SIZE) - (0.5f * U.pixelsize),
@@ -579,7 +579,7 @@ static void draw_markers_background(const rctf *rect)
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   uchar shade[4];
-  blender::ui::GetThemeColor4ubv(TH_TIME_SCRUB_BACKGROUND, shade);
+  blender::ui::theme::get_color_4ubv(TH_TIME_SCRUB_BACKGROUND, shade);
 
   immUniformColor4ubv(shade);
 

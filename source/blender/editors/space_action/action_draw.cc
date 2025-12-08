@@ -177,15 +177,15 @@ static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, u
   uchar col_summary[4];
 
   /* get theme colors */
-  ui::GetThemeColor4ubv(TH_CHANNEL, col2);
-  ui::GetThemeColor4ubv(TH_CHANNEL_SELECT, col1);
-  ui::GetThemeColor4ubv(TH_ANIM_ACTIVE, col_summary);
+  ui::theme::get_color_4ubv(TH_CHANNEL, col2);
+  ui::theme::get_color_4ubv(TH_CHANNEL_SELECT, col1);
+  ui::theme::get_color_4ubv(TH_ANIM_ACTIVE, col_summary);
 
-  ui::GetThemeColor4ubv(TH_GROUP, col2a);
-  ui::GetThemeColor4ubv(TH_GROUP_ACTIVE, col1a);
+  ui::theme::get_color_4ubv(TH_GROUP, col2a);
+  ui::theme::get_color_4ubv(TH_GROUP_ACTIVE, col1a);
 
-  ui::GetThemeColor4ubv(TH_DOPESHEET_CHANNELOB, col1b);
-  ui::GetThemeColor4ubv(TH_DOPESHEET_CHANNELSUBOB, col2b);
+  ui::theme::get_color_4ubv(TH_DOPESHEET_CHANNELOB, col1b);
+  ui::theme::get_color_4ubv(TH_DOPESHEET_CHANNELSUBOB, col2b);
 
   float ymax = ANIM_UI_get_first_channel_top(v2d);
   const float channel_step = ANIM_UI_get_channel_step();
@@ -706,7 +706,7 @@ static void timeline_cache_draw_single(PTCacheID *pid, float y_offset, float hei
 
   /* Mix in the background color to tone it down a bit. */
   blender::ColorTheme4f background;
-  ui::GetThemeColor4fv(TH_BACK, background);
+  ui::theme::get_color_4fv(TH_BACK, background);
 
   interp_v3_v3v3(color, color, background, 0.6f);
 
@@ -772,7 +772,7 @@ static void timeline_cache_draw_geometry_nodes(const Span<CacheRange> cache_rang
   GPU_matrix_scale_2f(1.0, line_height);
 
   blender::ColorTheme4f base_color;
-  ui::GetThemeColor4fv(TH_SIMULATED_FRAMES, base_color);
+  ui::theme::get_color_4fv(TH_SIMULATED_FRAMES, base_color);
   blender::ColorTheme4f invalid_color = base_color;
   mul_v3_fl(invalid_color, 0.5f);
   invalid_color.a *= 0.7f;

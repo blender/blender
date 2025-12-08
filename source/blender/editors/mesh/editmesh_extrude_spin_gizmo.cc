@@ -122,7 +122,7 @@ static void gizmo_mesh_spin_init_setup(const bContext * /*C*/, wmGizmoGroup *gzg
       RNA_enum_set(gz->ptr, "draw_options", ED_GIZMO_BUTTON_SHOW_BACKDROP);
 
       float color[4];
-      blender::ui::GetThemeColor3fv(TH_AXIS_X + i, color);
+      blender::ui::theme::get_color_3fv(TH_AXIS_X + i, color);
       color[3] = alpha;
       WM_gizmo_set_color(gz, color);
 
@@ -137,7 +137,7 @@ static void gizmo_mesh_spin_init_setup(const bContext * /*C*/, wmGizmoGroup *gzg
 
   for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.xyz_view); i++) {
     wmGizmo *gz = WM_gizmo_new_ptr(gzt_dial, gzgroup, nullptr);
-    blender::ui::GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
+    blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
     WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_VALUE | WM_GIZMO_HIDDEN_SELECT, true);
     ggd->gizmos.xyz_view[i] = gz;
   }
@@ -149,7 +149,7 @@ static void gizmo_mesh_spin_init_setup(const bContext * /*C*/, wmGizmoGroup *gzg
 #endif
     WM_gizmo_set_line_width(gz, 2.0f);
     float color[4];
-    blender::ui::GetThemeColor3fv(TH_AXIS_X + i, color);
+    blender::ui::theme::get_color_3fv(TH_AXIS_X + i, color);
     color[3] = alpha;
     WM_gizmo_set_color(gz, color);
     color[3] = alpha_hi;
@@ -823,7 +823,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
   /* Rotate View Axis (rotate_view) */
   {
     wmGizmo *gz = WM_gizmo_new_ptr(gzt_dial, gzgroup, nullptr);
-    blender::ui::GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
+    blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
     zero_v4(gz->color);
     copy_v3_fl(gz->color_hi, 1.0f);
     gz->color_hi[3] = 0.1f;
@@ -838,7 +838,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
   /* Translate Center (translate_c) */
   {
     wmGizmo *gz = WM_gizmo_new_ptr(gzt_move, gzgroup, nullptr);
-    blender::ui::GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
+    blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
     gz->color[3] = 0.6f;
     RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_MOVE_STYLE_RING_2D);
     WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_VALUE, true);
@@ -865,7 +865,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
   /* Translate X/Y Tangents (translate_xy) */
   for (int i = 0; i < 2; i++) {
     wmGizmo *gz = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
-    blender::ui::GetThemeColor3fv(TH_AXIS_X + i, gz->color);
+    blender::ui::theme::get_color_3fv(TH_AXIS_X + i, gz->color);
     RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_NORMAL);
     RNA_enum_set(gz->ptr, "draw_options", 0);
     WM_gizmo_set_scale(gz, 1.2f);
@@ -875,7 +875,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
   /* Rotate X/Y Tangents (rotate_xy) */
   for (int i = 0; i < 2; i++) {
     wmGizmo *gz = WM_gizmo_new_ptr(gzt_dial, gzgroup, nullptr);
-    blender::ui::GetThemeColor3fv(TH_AXIS_X + i, gz->color);
+    blender::ui::theme::get_color_3fv(TH_AXIS_X + i, gz->color);
     gz->color[3] = 0.6f;
     WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_VALUE, true);
     WM_gizmo_set_line_width(gz, 3.0f);

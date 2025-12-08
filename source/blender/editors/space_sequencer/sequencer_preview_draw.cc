@@ -306,7 +306,7 @@ static void sequencer_stop_running_jobs(const bContext *C, Scene *scene)
 
 static void sequencer_preview_clear()
 {
-  blender::ui::ThemeClearColor(TH_SEQ_PREVIEW);
+  blender::ui::theme::frame_buffer_clear(TH_SEQ_PREVIEW);
 }
 
 /* Semantic utility to get a rectangle with positions that correspond to a full frame drawn in the
@@ -1029,10 +1029,10 @@ static void strip_draw_image_origin_and_outline(const bContext *C,
 
   float col[3];
   if (is_active_seq) {
-    ui::GetThemeColor3fv(TH_SEQ_ACTIVE, col);
+    ui::theme::get_color_3fv(TH_SEQ_ACTIVE, col);
   }
   else {
-    ui::GetThemeColor3fv(TH_SEQ_SELECTED, col);
+    ui::theme::get_color_3fv(TH_SEQ_SELECTED, col);
   }
   immUniformColor3fv(col);
   immBegin(GPU_PRIM_LINE_LOOP, 4);
@@ -1436,7 +1436,7 @@ static void draw_cursor_2d(const ARegion *region, const float2 &cursor)
   immEnd();
 
   float crosshair_color[3];
-  ui::GetThemeColor3fv(TH_VIEW_OVERLAY, crosshair_color);
+  ui::theme::get_color_3fv(TH_VIEW_OVERLAY, crosshair_color);
 
   immBegin(GPU_PRIM_LINES, 8);
   immAttr3fv(attr_id.col, crosshair_color);

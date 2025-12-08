@@ -485,7 +485,7 @@ class GreasePencil : Overlay {
     Object &object = *ob_ref.object;
 
     uchar4 color;
-    ui::GetThemeColor4ubv(res.object_wire_theme_id(ob_ref, state), color);
+    ui::theme::get_color_4ubv(res.object_wire_theme_id(ob_ref, state), color);
 
     ::GreasePencil &grease_pencil = DRW_object_get_data_for_drawing<::GreasePencil>(object);
 

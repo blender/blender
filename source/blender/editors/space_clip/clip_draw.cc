@@ -682,7 +682,7 @@ static void track_colors(const MovieTrackingTrack *track, int act, float r_col[3
 {
   if (track->flag & TRACK_CUSTOMCOLOR) {
     if (act) {
-      blender::ui::GetThemeColor3fv(TH_ACT_MARKER, r_scol);
+      blender::ui::theme::get_color_3fv(TH_ACT_MARKER, r_scol);
     }
     else {
       copy_v3_v3(r_scol, track->color);
@@ -691,13 +691,13 @@ static void track_colors(const MovieTrackingTrack *track, int act, float r_col[3
     mul_v3_v3fl(r_col, track->color, 0.5f);
   }
   else {
-    blender::ui::GetThemeColor3fv(TH_MARKER, r_col);
+    blender::ui::theme::get_color_3fv(TH_MARKER, r_col);
 
     if (act) {
-      blender::ui::GetThemeColor3fv(TH_ACT_MARKER, r_scol);
+      blender::ui::theme::get_color_3fv(TH_ACT_MARKER, r_scol);
     }
     else {
-      blender::ui::GetThemeColor3fv(TH_SEL_MARKER, r_scol);
+      blender::ui::theme::get_color_3fv(TH_SEL_MARKER, r_scol);
     }
   }
 }
@@ -766,13 +766,13 @@ static void draw_marker_areas(SpaceClip *sc,
 
     if (track->flag & TRACK_LOCKED) {
       if (act) {
-        blender::ui::GetThemeColor4fv(TH_ACT_MARKER, color);
+        blender::ui::theme::get_color_4fv(TH_ACT_MARKER, color);
       }
       else if (track->flag & SELECT) {
-        blender::ui::GetThemeColorShade4fv(TH_LOCK_MARKER, 64, color);
+        blender::ui::theme::get_color_shade_4fv(TH_LOCK_MARKER, 64, color);
       }
       else {
-        blender::ui::GetThemeColor4fv(TH_LOCK_MARKER, color);
+        blender::ui::theme::get_color_4fv(TH_LOCK_MARKER, color);
       }
     }
     else {
@@ -1065,16 +1065,16 @@ static void draw_marker_texts(SpaceClip *sc,
 
   if (marker->flag & MARKER_DISABLED) {
     if (act) {
-      blender::ui::FontThemeColor(fontid, TH_ACT_MARKER);
+      blender::ui::theme::font_theme_color_set(fontid, TH_ACT_MARKER);
     }
     else {
       uchar color[4];
-      blender::ui::GetThemeColorShade4ubv(TH_DIS_MARKER, 128, color);
+      blender::ui::theme::get_color_shade_4ubv(TH_DIS_MARKER, 128, color);
       BLF_color4ubv(fontid, color);
     }
   }
   else {
-    blender::ui::FontThemeColor(fontid, act ? TH_ACT_MARKER : TH_SEL_MARKER);
+    blender::ui::theme::font_theme_color_set(fontid, act ? TH_ACT_MARKER : TH_SEL_MARKER);
   }
 
   if ((sc->flag & SC_SHOW_MARKER_SEARCH) &&
@@ -1139,9 +1139,9 @@ static void draw_marker_texts(SpaceClip *sc,
 
 static void plane_track_colors(bool is_active, float r_color[3], float r_selected_color[3])
 {
-  blender::ui::GetThemeColor3fv(TH_MARKER, r_color);
+  blender::ui::theme::get_color_3fv(TH_MARKER, r_color);
 
-  blender::ui::GetThemeColor3fv(is_active ? TH_ACT_MARKER : TH_SEL_MARKER, r_selected_color);
+  blender::ui::theme::get_color_3fv(is_active ? TH_ACT_MARKER : TH_SEL_MARKER, r_selected_color);
 }
 
 static void getArrowEndPoint(const int width,

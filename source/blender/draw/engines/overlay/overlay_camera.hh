@@ -438,8 +438,8 @@ class Cameras : Overlay {
     float *bundle_color_unselected = res.theme.colors.wire;
     uchar4 text_color_selected, text_color_unselected;
     /* Color Management: Exception here as texts are drawn in sRGB space directly. */
-    ui::GetThemeColor4ubv(TH_SELECT, text_color_selected);
-    ui::GetThemeColor4ubv(TH_TEXT, text_color_unselected);
+    ui::theme::get_color_4ubv(TH_SELECT, text_color_selected);
+    ui::theme::get_color_4ubv(TH_TEXT, text_color_unselected);
 
     float4x4 camera_mat;
     BKE_tracking_get_camera_object_matrix(ob, camera_mat.ptr());

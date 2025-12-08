@@ -295,7 +295,7 @@ static void file_draw_tooltip_custom_func(bContext & /*C*/,
     }
     else if (file->typeflag & FILE_TYPE_FTFONT) {
       float color[4];
-      bTheme *btheme = blender::ui::GetTheme();
+      bTheme *btheme = blender::ui::theme::theme_get();
       rgba_uchar_to_float(color, btheme->tui.wcol_tooltip.text);
       thumb = IMB_font_preview(file->redirection_path ? file->redirection_path : full_path,
                                512 * UI_SCALE_FAC,
@@ -393,7 +393,7 @@ static void draw_tile_background(const rcti *draw_rect, int colorid, int shade)
   rctf draw_rect_fl;
   BLI_rctf_rcti_copy(&draw_rect_fl, draw_rect);
 
-  blender::ui::GetThemeColorShade4fv(colorid, shade, color);
+  blender::ui::theme::get_color_shade_4fv(colorid, shade, color);
   draw_roundbox_corner_set(blender::ui::CNR_ALL);
   blender::ui::draw_roundbox_aa(&draw_rect_fl, true, 5.0f, color);
 }
@@ -737,7 +737,7 @@ static void file_draw_preview(const FileDirEntry *file,
 
   float document_img_col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   if (file->typeflag & FILE_TYPE_FTFONT) {
-    blender::ui::GetThemeColor4fv(TH_TEXT, document_img_col);
+    blender::ui::theme::get_color_4fv(TH_TEXT, document_img_col);
   }
   if (dimmed) {
     document_img_col[3] *= 0.3f;
@@ -780,7 +780,7 @@ static void file_draw_preview(const FileDirEntry *file,
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     float border_color[4] = {1.0f, 1.0f, 1.0f, 0.15f};
     float bgcolor[4];
-    blender::ui::GetThemeColor4fv(TH_BACK, bgcolor);
+    blender::ui::theme::get_color_4fv(TH_BACK, bgcolor);
     if (srgb_to_grayscale(bgcolor) > 0.5f) {
       border_color[0] = 0.0f;
       border_color[1] = 0.0f;
@@ -807,10 +807,10 @@ static void file_draw_special_image(const FileDirEntry *file,
 {
   float document_img_col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   if (file->typeflag & FILE_TYPE_DIR) {
-    blender::ui::GetThemeColor4fv(TH_ICON_FOLDER, document_img_col);
+    blender::ui::theme::get_color_4fv(TH_ICON_FOLDER, document_img_col);
   }
   else {
-    blender::ui::GetThemeColor4fv(TH_TEXT, document_img_col);
+    blender::ui::theme::get_color_4fv(TH_TEXT, document_img_col);
   }
 
   if (dimmed) {
@@ -878,7 +878,7 @@ static void file_draw_loading_icon(const rcti *tile_draw_rect,
 {
   uchar icon_color[4] = {0, 0, 0, 255};
   /* Contrast with background since we are not showing the large document image. */
-  blender::ui::GetThemeColor4ubv(TH_TEXT, icon_color);
+  blender::ui::theme::get_color_4ubv(TH_TEXT, icon_color);
 
   const int cent_x = tile_draw_rect->xmin + layout->prv_border_x + (layout->prv_w / 2.0f) + 0.5f;
   const int cent_y = tile_draw_rect->ymax - layout->prv_border_y - (layout->prv_h / 2.0f) + 0.5f;
@@ -1033,7 +1033,7 @@ static void draw_background(FileLayout *layout, View2D *v2d)
       immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   float col_alternating[4];
-  blender::ui::GetThemeColor4fv(TH_ROW_ALTERNATE, col_alternating);
+  blender::ui::theme::get_color_4fv(TH_ROW_ALTERNATE, col_alternating);
   immUniformThemeColorBlend(TH_BACK, TH_ROW_ALTERNATE, col_alternating[3]);
 
   /* alternating flat shade background */
@@ -1070,8 +1070,8 @@ static void draw_dividers(FileLayout *layout, View2D *v2d)
     float v1[2], v2[2];
     float col_hi[3], col_lo[3];
 
-    blender::ui::GetThemeColorShade3fv(TH_BACK, 30, col_hi);
-    blender::ui::GetThemeColorShade3fv(TH_BACK, -30, col_lo);
+    blender::ui::theme::get_color_shade_3fv(TH_BACK, 30, col_hi);
+    blender::ui::theme::get_color_shade_3fv(TH_BACK, -30, col_lo);
 
     v1[1] = v2d->cur.ymax - layout->tile_border_y;
     v2[1] = v2d->cur.ymin;
@@ -1397,7 +1397,7 @@ void file_draw_list(const bContext *C, ARegion *region)
 
   BLF_batch_draw_begin();
 
-  blender::ui::GetThemeColor4ubv(TH_TEXT, text_col);
+  blender::ui::theme::get_color_4ubv(TH_TEXT, text_col);
 
   for (i = offset; (i < numfiles) && (i < offset + numfiles_layout); i++) {
     eDirEntry_SelectFlag file_selflag;
@@ -1653,7 +1653,7 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
   file_path_to_ui_path(asset_params->base_params.dir, library_ui_path, sizeof(library_ui_path));
 
   uchar text_col[4];
-  blender::ui::GetThemeColor4ubv(TH_TEXT, text_col);
+  blender::ui::theme::get_color_4ubv(TH_TEXT, text_col);
 
   const View2D *v2d = &region->v2d;
   const int pad = sfile->layout->tile_border_x;
@@ -1712,7 +1712,7 @@ static void file_draw_invalid_library_hint(const bContext * /*C*/,
                                            ReportList *reports)
 {
   uchar text_col[4];
-  blender::ui::GetThemeColor4ubv(TH_TEXT, text_col);
+  blender::ui::theme::get_color_4ubv(TH_TEXT, text_col);
 
   const View2D *v2d = &region->v2d;
   const int pad = sfile->layout->tile_border_x;

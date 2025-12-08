@@ -215,17 +215,17 @@ void drawSnapping(TransInfo *t)
   }
 
   if (t->spacetype == SPACE_SEQ) {
-    ui::GetThemeColor3ubv(TH_SEQ_ACTIVE, col);
+    ui::theme::get_color_3ubv(TH_SEQ_ACTIVE, col);
     col[3] = 128;
   }
   else if (t->spacetype != SPACE_IMAGE) {
-    ui::GetThemeColor3ubv(TH_TRANSFORM, col);
+    ui::theme::get_color_3ubv(TH_TRANSFORM, col);
     col[3] = 128;
 
-    ui::GetThemeColor3ubv(TH_SELECT, selectedCol);
+    ui::theme::get_color_3ubv(TH_SELECT, selectedCol);
     selectedCol[3] = 128;
 
-    ui::GetThemeColor3ubv(TH_ACTIVE, activeCol);
+    ui::theme::get_color_3ubv(TH_ACTIVE, activeCol);
     activeCol[3] = 192;
   }
 
@@ -239,7 +239,7 @@ void drawSnapping(TransInfo *t)
     if (!BLI_listbase_is_empty(&t->tsnap.points)) {
       /* Draw snap points. */
 
-      float size = 2.0f * blender::ui::GetThemeValuef(TH_VERTEX_SIZE);
+      float size = 2.0f * blender::ui::theme::get_value_f(TH_VERTEX_SIZE);
       float view_inv[4][4];
       copy_m4_m4(view_inv, rv3d->viewinv);
 
@@ -303,7 +303,7 @@ void drawSnapping(TransInfo *t)
         t->tsnap.snap_target[1] / t->aspect[1],
     };
     blender::ui::view2d_view_to_region_fl(&t->region->v2d, UNPACK2(snap_point), &x, &y);
-    float radius = 2.5f * blender::ui::GetThemeValuef(TH_VERTEX_SIZE) * U.pixelsize;
+    float radius = 2.5f * blender::ui::theme::get_value_f(TH_VERTEX_SIZE) * U.pixelsize;
 
     GPU_matrix_push_projection();
     wmOrtho2_region_pixelspace(t->region);

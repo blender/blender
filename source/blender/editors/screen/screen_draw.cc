@@ -172,7 +172,7 @@ void ED_screen_draw_edges(wmWindow *win)
   GPU_scissor_test(true);
 
   float col[4];
-  blender::ui::GetThemeColor4fv(TH_EDITOR_BORDER, col);
+  blender::ui::theme::get_color_4fv(TH_EDITOR_BORDER, col);
 
   const float edge_thickness = float(U.border_width) * UI_SCALE_FAC;
 
@@ -202,8 +202,8 @@ void ED_screen_draw_edges(wmWindow *win)
   rctf bounds;
   /* Outset by 1/2 pixel, regardless of UI scale or pixel size. #141550. */
   const float padding = 0.5f;
-  blender::ui::GetThemeColor4fv(TH_EDITOR_OUTLINE, outline1);
-  blender::ui::GetThemeColor4fv(TH_EDITOR_OUTLINE_ACTIVE, outline2);
+  blender::ui::theme::get_color_4fv(TH_EDITOR_OUTLINE, outline1);
+  blender::ui::theme::get_color_4fv(TH_EDITOR_OUTLINE_ACTIVE, outline2);
   blender::ui::draw_roundbox_corner_set(blender::ui::CNR_ALL);
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     BLI_rctf_rcti_copy(&bounds, &area->totrct);
@@ -256,7 +256,7 @@ void screen_draw_move_highlight(const wmWindow *win,
 
   float inner[4] = {1.0f, 1.0f, 1.0f, 0.4f * anim_factor};
   float outline[4];
-  blender::ui::GetThemeColor4fv(TH_EDITOR_BORDER, outline);
+  blender::ui::theme::get_color_4fv(TH_EDITOR_BORDER, outline);
   outline[3] *= anim_factor;
 
   blender::ui::draw_roundbox_corner_set(blender::ui::CNR_ALL);
@@ -310,7 +310,7 @@ static void screen_draw_area_drag_tip(
 {
   const char *area_name = IFACE_(ED_area_name(source).c_str());
   const uiFontStyle *fstyle = UI_FSTYLE_TOOLTIP;
-  const bTheme *btheme = blender::ui::GetTheme();
+  const bTheme *btheme = blender::ui::theme::theme_get();
   const uiWidgetColors *wcol = &btheme->tui.wcol_tooltip;
   float col_fg[4], col_bg[4];
   rgba_uchar_to_float(col_fg, wcol->text);
@@ -537,7 +537,7 @@ void screen_draw_dock_preview(const wmWindow *win,
   float outline[4] = {1.0f, 1.0f, 1.0f, 0.4f * anim_factor};
   float inner[4] = {1.0f, 1.0f, 1.0f, 0.1f * anim_factor};
   float border[4];
-  blender::ui::GetThemeColor4fv(TH_EDITOR_BORDER, border);
+  blender::ui::theme::get_color_4fv(TH_EDITOR_BORDER, border);
   border[3] *= anim_factor;
   blender::ui::draw_roundbox_corner_set(blender::ui::CNR_ALL);
   float half_line_width = float(U.border_width) * UI_SCALE_FAC;
@@ -609,7 +609,7 @@ void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const 
   float outline[4] = {1.0f, 1.0f, 1.0f, 0.4f};
   float inner[4] = {1.0f, 1.0f, 1.0f, 0.10f};
   float border[4];
-  blender::ui::GetThemeColor4fv(TH_EDITOR_BORDER, border);
+  blender::ui::theme::get_color_4fv(TH_EDITOR_BORDER, border);
   draw_roundbox_corner_set(blender::ui::CNR_ALL);
 
   rctf rect;

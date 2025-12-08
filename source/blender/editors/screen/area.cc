@@ -71,9 +71,9 @@ static void region_draw_gradient(const ARegion *region)
   }
 
   float opaque[4];
-  blender::ui::GetThemeColor4fv(TH_HEADER, opaque);
+  blender::ui::theme::get_color_4fv(TH_HEADER, opaque);
   float transparent[4];
-  blender::ui::GetThemeColor3fv(TH_HEADER, transparent);
+  blender::ui::theme::get_color_3fv(TH_HEADER, transparent);
   transparent[3] = 0.0f;
 
   rctf rect{};
@@ -324,7 +324,7 @@ static void region_draw_azones(ScrArea *area, ARegion *region)
 static void region_draw_status_text(ScrArea * /*area*/, ARegion *region)
 {
   float header_color[4];
-  blender::ui::GetThemeColor4fv(TH_HEADER, header_color);
+  blender::ui::theme::get_color_4fv(TH_HEADER, header_color);
 
   /* Clear the region from the buffer. */
   GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
@@ -357,7 +357,7 @@ static void region_draw_status_text(ScrArea * /*area*/, ARegion *region)
     blender::ui::draw_roundbox_4fv(&rect, true, 4.0f * UI_SCALE_FAC, header_color);
   }
 
-  blender::ui::FontThemeColor(fontid, TH_TEXT);
+  blender::ui::theme::font_theme_color_set(fontid, TH_TEXT);
   BLF_position(fontid, x, y, 0.0f);
   BLF_draw(fontid, region->runtime->headerstr, BLF_DRAW_STR_DUMMY_MAX);
 }
@@ -473,7 +473,7 @@ void ED_region_do_layout(bContext *C, ARegion *region)
 
   region->runtime->do_draw |= RGN_DRAWING;
 
-  blender::ui::UI_SetTheme(area ? area->spacetype : 0, at->regionid);
+  blender::ui::theme::theme_set(area ? area->spacetype : 0, at->regionid);
   at->layout(C, region);
 
   /* Clear temporary update flag. */
@@ -499,10 +499,10 @@ void ED_region_do_draw(bContext *C, ARegion *region)
 
   wmOrtho2_region_pixelspace(region);
 
-  blender::ui::UI_SetTheme(area ? area->spacetype : 0, at->regionid);
+  blender::ui::theme::theme_set(area ? area->spacetype : 0, at->regionid);
 
   if (area && area_is_pseudo_minimized(area)) {
-    blender::ui::ThemeClearColor(TH_EDITOR_BORDER);
+    blender::ui::theme::frame_buffer_clear(TH_EDITOR_BORDER);
     return;
   }
   /* optional header info instead? */
@@ -560,7 +560,7 @@ void ED_region_do_draw(bContext *C, ARegion *region)
       /* draw separating lines between the quad views */
 
       float color[4] = {0.0f, 0.0f, 0.0f, 0.8f};
-      blender::ui::GetThemeColor3fv(TH_EDITOR_BORDER, color);
+      blender::ui::theme::get_color_3fv(TH_EDITOR_BORDER, color);
       GPUVertFormat *format = immVertexFormat();
       uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -1159,14 +1159,14 @@ static void quadview_azone_init(ScrArea *area, ARegion *region)
 static bool region_background_is_transparent(const ScrArea *area, const ARegion *region)
 {
   /* Ensure the right theme is active, may not be the case on startup, for example. */
-  blender::ui::bThemeState theme_state;
-  blender::ui::Theme_Store(&theme_state);
-  blender::ui::UI_SetTheme(area->spacetype, region->regiontype);
+  blender::ui::theme::bThemeState theme_state;
+  blender::ui::theme::theme_store(&theme_state);
+  blender::ui::theme::theme_set(area->spacetype, region->regiontype);
 
   uchar back[4];
-  blender::ui::GetThemeColor4ubv(TH_BACK, back);
+  blender::ui::theme::get_color_4ubv(TH_BACK, back);
 
-  Theme_Restore(&theme_state);
+  blender::ui::theme::theme_restore(&theme_state);
 
   return back[3] < 50;
 }
@@ -1514,7 +1514,7 @@ bool ED_region_is_overlap(const int spacetype, const int regiontype)
     case SPACE_VIEW3D:
       if (regiontype == RGN_TYPE_HEADER) {
         /* Only treat as overlapped if there is transparency. */
-        bTheme *theme = blender::ui::GetTheme();
+        bTheme *theme = blender::ui::theme::theme_get();
         return theme->space_view3d.header[3] != 255;
       }
       return ELEM(regiontype,
@@ -2968,11 +2968,11 @@ void ED_region_clear(const bContext *C, const ARegion *region, const int /*Theme
     blender::ui::view2d_view_restore(C);
 
     float back[4];
-    blender::ui::GetThemeColor4fv(colorid, back);
+    blender::ui::theme::get_color_4fv(colorid, back);
     GPU_clear_color(back[3] * back[0], back[3] * back[1], back[3] * back[2], back[3]);
   }
   else {
-    blender::ui::ThemeClearColor(colorid);
+    blender::ui::theme::frame_buffer_clear(colorid);
   }
 }
 
@@ -3462,11 +3462,11 @@ void ED_region_draw_overflow_indication(const ScrArea *area,
 
   float opaque[4];
   if (narrow) {
-    blender::ui::GetThemeColor3fv(TH_BLACK, opaque);
+    blender::ui::theme::get_color_3fv(TH_BLACK, opaque);
     opaque[3] = 0.2f;
   }
   else {
-    blender::ui::GetThemeColor3fv(TH_BACK, opaque);
+    blender::ui::theme::get_color_3fv(TH_BACK, opaque);
     opaque[3] = 1.0f;
     if (!is_header) {
       mul_v3_fl(opaque, 0.85f);
@@ -4141,7 +4141,7 @@ void ED_region_info_draw_multiline(ARegion *region,
   GPU_blend(GPU_BLEND_NONE);
 
   /* text */
-  blender::ui::FontThemeColor(fontid, TH_TEXT_HI);
+  blender::ui::theme::font_theme_color_set(fontid, TH_TEXT_HI);
   BLF_clipping(fontid, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
   BLF_enable(fontid, BLF_CLIPPING);
   int offset = num_lines - 1;
@@ -4203,7 +4203,7 @@ void ED_region_grid_draw(ARegion *region, float zoomx, float zoomy, float x0, fl
   uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
 
   float gridcolor[4];
-  blender::ui::GetThemeColor4fv(TH_GRID, gridcolor);
+  blender::ui::theme::get_color_4fv(TH_GRID, gridcolor);
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   /* To fake alpha-blending, color shading is reduced when alpha is nearing 0. */
@@ -4247,7 +4247,7 @@ void ED_region_grid_draw(ARegion *region, float zoomx, float zoomy, float x0, fl
     immBegin(GPU_PRIM_LINES, 4 * count_fine + 4 * count_large);
 
     float theme_color[3];
-    blender::ui::GetThemeColorShade3fv(TH_GRID, int(20.0f * (1.0f - blendfac)), theme_color);
+    blender::ui::theme::get_color_shade_3fv(TH_GRID, int(20.0f * (1.0f - blendfac)), theme_color);
     float fac = 0.0f;
 
     /* the fine resolution level */
@@ -4264,7 +4264,7 @@ void ED_region_grid_draw(ARegion *region, float zoomx, float zoomy, float x0, fl
     }
 
     if (count_large > 0) {
-      blender::ui::GetThemeColor3fv(TH_GRID, theme_color);
+      blender::ui::theme::get_color_3fv(TH_GRID, theme_color);
       fac = 0.0f;
 
       /* the large resolution level */
@@ -4379,9 +4379,9 @@ void ED_region_cache_draw_curfra_label(const int framenr, const float x, const f
 
   /* Rounded corner background box. */
   float4 bg_color;
-  blender::ui::GetThemeColorShade4fv(TH_CFRAME, -5, bg_color);
+  blender::ui::theme::get_color_shade_4fv(TH_CFRAME, -5, bg_color);
   float4 outline_color;
-  blender::ui::GetThemeColorShade4fv(TH_CFRAME, 5, outline_color);
+  blender::ui::theme::get_color_shade_4fv(TH_CFRAME, 5, outline_color);
 
   rctf rect{};
   rect.xmin = x - text_dims.x / 2 - padding;
@@ -4393,7 +4393,7 @@ void ED_region_cache_draw_curfra_label(const int framenr, const float x, const f
       &rect, bg_color, nullptr, 1.0f, outline_color, U.pixelsize, 3 * UI_SCALE_FAC);
 
   /* Text label. */
-  blender::ui::FontThemeColor(fontid, TH_HEADER_TEXT_HI);
+  blender::ui::theme::font_theme_color_set(fontid, TH_HEADER_TEXT_HI);
   BLF_position(fontid, x - text_dims.x * 0.5f, y + padding, 0.0f);
   BLF_draw(fontid, numstr, sizeof(numstr));
 }

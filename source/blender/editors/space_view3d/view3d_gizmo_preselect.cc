@@ -32,8 +32,8 @@ static void WIDGETGROUP_mesh_preselect_elem_setup(const bContext * /*C*/, wmGizm
   gzgroup->customdata = ggd;
 
   wmGizmo *gz = ggd->gizmo = WM_gizmo_new_ptr(gzt_presel, gzgroup, nullptr);
-  blender::ui::GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
-  blender::ui::GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
+  blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
+  blender::ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
 }
 
 void VIEW3D_GGT_mesh_preselect_elem(wmGizmoGroupType *gzgt)
@@ -68,8 +68,8 @@ static void WIDGETGROUP_mesh_preselect_edgering_setup(const bContext * /*C*/,
   gzgroup->customdata = ggd;
 
   wmGizmo *gz = ggd->gizmo = WM_gizmo_new_ptr(gzt_presel, gzgroup, nullptr);
-  blender::ui::GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
-  blender::ui::GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
+  blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
+  blender::ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
 }
 
 void VIEW3D_GGT_mesh_preselect_edgering(wmGizmoGroupType *gzgt)

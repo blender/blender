@@ -130,32 +130,32 @@ static void format_draw_color(const TextDrawContext *tdc, char formatchar)
     case FMT_TYPE_WHITESPACE:
       break;
     case FMT_TYPE_SYMBOL:
-      blender::ui::FontThemeColor(tdc->font_id, TH_SYNTAX_S);
+      blender::ui::theme::font_theme_color_set(tdc->font_id, TH_SYNTAX_S);
       break;
     case FMT_TYPE_COMMENT:
-      blender::ui::FontThemeColor(tdc->font_id, TH_SYNTAX_C);
+      blender::ui::theme::font_theme_color_set(tdc->font_id, TH_SYNTAX_C);
       break;
     case FMT_TYPE_NUMERAL:
-      blender::ui::FontThemeColor(tdc->font_id, TH_SYNTAX_N);
+      blender::ui::theme::font_theme_color_set(tdc->font_id, TH_SYNTAX_N);
       break;
     case FMT_TYPE_STRING:
-      blender::ui::FontThemeColor(tdc->font_id, TH_SYNTAX_L);
+      blender::ui::theme::font_theme_color_set(tdc->font_id, TH_SYNTAX_L);
       break;
     case FMT_TYPE_DIRECTIVE:
-      blender::ui::FontThemeColor(tdc->font_id, TH_SYNTAX_D);
+      blender::ui::theme::font_theme_color_set(tdc->font_id, TH_SYNTAX_D);
       break;
     case FMT_TYPE_SPECIAL:
-      blender::ui::FontThemeColor(tdc->font_id, TH_SYNTAX_V);
+      blender::ui::theme::font_theme_color_set(tdc->font_id, TH_SYNTAX_V);
       break;
     case FMT_TYPE_RESERVED:
-      blender::ui::FontThemeColor(tdc->font_id, TH_SYNTAX_R);
+      blender::ui::theme::font_theme_color_set(tdc->font_id, TH_SYNTAX_R);
       break;
     case FMT_TYPE_KEYWORD:
-      blender::ui::FontThemeColor(tdc->font_id, TH_SYNTAX_B);
+      blender::ui::theme::font_theme_color_set(tdc->font_id, TH_SYNTAX_B);
       break;
     case FMT_TYPE_DEFAULT:
     default:
-      blender::ui::FontThemeColor(tdc->font_id, TH_TEXT);
+      blender::ui::theme::font_theme_color_set(tdc->font_id, TH_TEXT);
       break;
   }
 }
@@ -1013,7 +1013,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *r_scroll, rcti 
 
 static void draw_textscroll(const SpaceText *st, const rcti *scroll, const rcti *back)
 {
-  bTheme *btheme = blender::ui::GetTheme();
+  bTheme *btheme = blender::ui::theme::theme_get();
   uiWidgetColors wcol = btheme->tui.wcol_scroll;
   float col[4];
   float rad;
@@ -1035,7 +1035,7 @@ static void draw_textscroll(const SpaceText *st, const rcti *scroll, const rcti 
   draw_roundbox_corner_set(blender::ui::CNR_ALL);
   rad = 0.4f * min_ii(BLI_rcti_size_x(&st->runtime->scroll_region_select),
                       BLI_rcti_size_y(&st->runtime->scroll_region_select));
-  blender::ui::GetThemeColor3fv(TH_HILITE, col);
+  blender::ui::theme::get_color_3fv(TH_HILITE, col);
   col[3] = 0.18f;
 
   rctf rect;
@@ -1282,7 +1282,7 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
 
     if (!(y1 < 0 || y2 > region->winy)) { /* Check we need to draw. */
       float highlight_color[4];
-      blender::ui::GetThemeColor4fv(TH_TEXT, highlight_color);
+      blender::ui::theme::get_color_4fv(TH_TEXT, highlight_color);
       highlight_color[3] = 0.1f;
       immUniformColor4fv(highlight_color);
       GPU_blend(GPU_BLEND_ALPHA);
@@ -1453,7 +1453,7 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
     return;
   }
 
-  blender::ui::FontThemeColor(tdc->font_id, TH_HILITE);
+  blender::ui::theme::font_theme_color_set(tdc->font_id, TH_HILITE);
   x = TXT_BODY_LEFT(st);
   y = region->winy - st->runtime->lheight_px;
   if (st->flags & ST_SCROLL_SELECT) {
@@ -1595,7 +1595,7 @@ void draw_text_main(SpaceText *st, ARegion *region)
   draw_text_decoration(st, region);
 
   /* Draw the text. */
-  blender::ui::FontThemeColor(tdc.font_id, TH_TEXT);
+  blender::ui::theme::font_theme_color_set(tdc.font_id, TH_TEXT);
 
   for (i = 0; y > clip_min_y && i < viewlines && tmp; i++, tmp = tmp->next) {
     if (tdc.syntax_highlight && !tmp->format) {
@@ -1604,11 +1604,12 @@ void draw_text_main(SpaceText *st, ARegion *region)
 
     if (st->showlinenrs && !wrap_skip) {
       /* Draw line number. */
-      blender::ui::FontThemeColor(tdc.font_id, (tmp == text->sell) ? TH_HILITE : TH_LINENUMBERS);
+      blender::ui::theme::font_theme_color_set(tdc.font_id,
+                                               (tmp == text->sell) ? TH_HILITE : TH_LINENUMBERS);
       SNPRINTF_UTF8(linenr, "%*d", st->runtime->line_number_display_digits, i + linecount + 1);
       text_font_draw(&tdc, TXT_NUMCOL_PAD * st->runtime->cwidth_px, y, linenr);
       /* Change back to text color. */
-      blender::ui::FontThemeColor(tdc.font_id, TH_TEXT);
+      blender::ui::theme::font_theme_color_set(tdc.font_id, TH_TEXT);
     }
 
     if (st->wordwrap) {
@@ -1634,7 +1635,7 @@ void draw_text_main(SpaceText *st, ARegion *region)
           immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       float margin_color[4];
-      blender::ui::GetThemeColor4fv(TH_TEXT, margin_color);
+      blender::ui::theme::get_color_4fv(TH_TEXT, margin_color);
       margin_color[3] = 0.2f;
       immUniformColor4fv(margin_color);
       GPU_blend(GPU_BLEND_ALPHA);

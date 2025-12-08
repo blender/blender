@@ -103,7 +103,7 @@ void eyedropper_draw_cursor_text_region(const int xy[2], const char *name)
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 
   /* Use the theme settings from tooltips. */
-  const bTheme *btheme = GetTheme();
+  const bTheme *btheme = theme::theme_get();
   const uiWidgetColors *wcol = &btheme->tui.wcol_tooltip;
 
   float col_fg[4], col_bg[4];

@@ -406,7 +406,7 @@ static void knife_draw_line(const KnifeTool_OpData *kcd, const uchar color[3])
 static void knifetool_draw_angle_snapping(const KnifeTool_OpData *kcd)
 {
   uchar color[3];
-  ui::GetThemeColor3ubv(TH_TRANSFORM, color);
+  ui::theme::get_color_3ubv(TH_TRANSFORM, color);
   knife_draw_line(kcd, color);
 }
 
@@ -489,7 +489,7 @@ static void knifetool_draw_visible_distances(const KnifeTool_OpData *kcd)
 
   /* Draw text. */
   uchar color_text[3];
-  ui::GetThemeColor3ubv(TH_TEXT, color_text);
+  ui::theme::get_color_3ubv(TH_TEXT, color_text);
 
   BLF_color3ubv(blf_mono_font, color_text);
   BLF_position(blf_mono_font, posit[0], posit[1], 0.0f);
@@ -618,7 +618,7 @@ static void knifetool_draw_angle(const KnifeTool_OpData *kcd,
 
   /* Draw text. */
   uchar color_text[3];
-  ui::GetThemeColor3ubv(TH_TEXT, color_text);
+  ui::theme::get_color_3ubv(TH_TEXT, color_text);
 
   BLF_color3ubv(blf_mono_font, color_text);
   BLF_position(blf_mono_font, posit[0], posit[1], 0.0f);
@@ -3882,21 +3882,21 @@ static void knife_init_colors(KnifeColors *colors)
 {
   /* Possible BMESH_TODO: add explicit themes or calculate these by
    * figuring out contrasting colors with grid / edges / verts
-   * a la make_axis_color. */
-  ui::GetThemeColorType3ubv(TH_GIZMO_PRIMARY, SPACE_VIEW3D, colors->line);
-  ui::GetThemeColorType3ubv(TH_GIZMO_A, SPACE_VIEW3D, colors->edge);
-  ui::GetThemeColorType3ubv(TH_GIZMO_B, SPACE_VIEW3D, colors->edge_extra);
-  ui::GetThemeColorType3ubv(TH_GIZMO_SECONDARY, SPACE_VIEW3D, colors->curpoint);
-  ui::GetThemeColorType3ubv(TH_GIZMO_SECONDARY, SPACE_VIEW3D, colors->curpoint_a);
+   * a la theme::make_axis_color. */
+  ui::theme::get_color_type_3ubv(TH_GIZMO_PRIMARY, SPACE_VIEW3D, colors->line);
+  ui::theme::get_color_type_3ubv(TH_GIZMO_A, SPACE_VIEW3D, colors->edge);
+  ui::theme::get_color_type_3ubv(TH_GIZMO_B, SPACE_VIEW3D, colors->edge_extra);
+  ui::theme::get_color_type_3ubv(TH_GIZMO_SECONDARY, SPACE_VIEW3D, colors->curpoint);
+  ui::theme::get_color_type_3ubv(TH_GIZMO_SECONDARY, SPACE_VIEW3D, colors->curpoint_a);
   colors->curpoint_a[3] = 102;
-  ui::GetThemeColorType3ubv(TH_VERTEX, SPACE_VIEW3D, colors->point);
-  ui::GetThemeColorType3ubv(TH_VERTEX, SPACE_VIEW3D, colors->point_a);
+  ui::theme::get_color_type_3ubv(TH_VERTEX, SPACE_VIEW3D, colors->point);
+  ui::theme::get_color_type_3ubv(TH_VERTEX, SPACE_VIEW3D, colors->point_a);
   colors->point_a[3] = 102;
 
-  ui::GetThemeColorType3ubv(TH_AXIS_X, SPACE_VIEW3D, colors->xaxis);
-  ui::GetThemeColorType3ubv(TH_AXIS_Y, SPACE_VIEW3D, colors->yaxis);
-  ui::GetThemeColorType3ubv(TH_AXIS_Z, SPACE_VIEW3D, colors->zaxis);
-  ui::GetThemeColorType3ubv(TH_TRANSFORM, SPACE_VIEW3D, colors->axis_extra);
+  ui::theme::get_color_type_3ubv(TH_AXIS_X, SPACE_VIEW3D, colors->xaxis);
+  ui::theme::get_color_type_3ubv(TH_AXIS_Y, SPACE_VIEW3D, colors->yaxis);
+  ui::theme::get_color_type_3ubv(TH_AXIS_Z, SPACE_VIEW3D, colors->zaxis);
+  ui::theme::get_color_type_3ubv(TH_TRANSFORM, SPACE_VIEW3D, colors->axis_extra);
 }
 
 /* called when modal loop selection gets set up... */

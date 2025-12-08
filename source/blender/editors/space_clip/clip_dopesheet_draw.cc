@@ -41,16 +41,16 @@ static void track_channel_color(MovieTrackingTrack *track, bool default_color, f
 {
   if (track->flag & TRACK_CUSTOMCOLOR) {
     float bg[3];
-    blender::ui::GetThemeColor3fv(TH_HEADER, bg);
+    blender::ui::theme::get_color_3fv(TH_HEADER, bg);
 
     interp_v3_v3v3(color, track->color, bg, 0.5);
   }
   else {
     if (default_color) {
-      blender::ui::GetThemeColor4fv(TH_CHANNEL_SELECT, color);
+      blender::ui::theme::get_color_4fv(TH_CHANNEL_SELECT, color);
     }
     else {
-      blender::ui::GetThemeColor3fv(TH_CHANNEL, color);
+      blender::ui::theme::get_color_3fv(TH_CHANNEL, color);
     }
   }
 }
@@ -60,10 +60,10 @@ static void draw_keyframe_shape(
 {
   float color[4];
   if (sel) {
-    blender::ui::GetThemeColor4fv(TH_KEYTYPE_KEYFRAME_SELECT, color);
+    blender::ui::theme::get_color_4fv(TH_KEYTYPE_KEYFRAME_SELECT, color);
   }
   else {
-    blender::ui::GetThemeColor4fv(TH_KEYTYPE_KEYFRAME, color);
+    blender::ui::theme::get_color_4fv(TH_KEYTYPE_KEYFRAME, color);
   }
   color[3] = alpha;
 
@@ -127,8 +127,8 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
     float y = (CHANNEL_FIRST);
 
     /* setup colors for regular and selected strips */
-    blender::ui::GetThemeColor4fv(TH_LONGKEY, strip);
-    blender::ui::GetThemeColor4fv(TH_LONGKEY_SELECT, selected_strip);
+    blender::ui::theme::get_color_4fv(TH_LONGKEY, strip);
+    blender::ui::theme::get_color_4fv(TH_LONGKEY_SELECT, selected_strip);
 
     GPU_blend(GPU_BLEND_ALPHA);
 
@@ -359,7 +359,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
       MovieTrackingTrack *track = channel->track;
       bool sel = (track->flag & TRACK_DOPE_SEL) != 0;
 
-      blender::ui::FontThemeColor(fontid, sel ? TH_TEXT_HI : TH_TEXT);
+      blender::ui::theme::font_theme_color_set(fontid, sel ? TH_TEXT_HI : TH_TEXT);
 
       float font_height = BLF_height(fontid, channel->name, sizeof(channel->name));
       BLF_position(fontid, v2d->cur.xmin + CHANNEL_PAD, y - font_height / 2.0f, 0.0f);

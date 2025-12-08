@@ -1180,7 +1180,7 @@ static void widgetbase_draw(WidgetBase *wtb, const uiWidgetColors *wcol)
 
   /* Draw emboss only if the outline is not fully transparent, it looks like a gap otherwise. */
   if (wtb->draw_emboss && wcol->outline[3] != 0.0f) {
-    GetThemeColor4ubv(TH_WIDGET_EMBOSS, emboss_col);
+    theme::get_color_4ubv(TH_WIDGET_EMBOSS, emboss_col);
   }
 
   if (wtb->tria1.type != ROUNDBOX_TRIA_NONE) {
@@ -1219,7 +1219,7 @@ static void widgetbase_draw_color(WidgetBase *wtb,
 
     /* Emboss shadow if enabled, and inner and outline colors are not fully transparent. */
     if ((wtb->draw_emboss) && (wcol->inner[3] != 0.0f || wcol->outline[3] != 0.0f)) {
-      GetThemeColor4ubv(TH_WIDGET_EMBOSS, emboss_col);
+      theme::get_color_4ubv(TH_WIDGET_EMBOSS, emboss_col);
     }
   }
 
@@ -1277,7 +1277,7 @@ static void widget_draw_icon_centered(const BIFIconID icon,
     const int x = BLI_rcti_cent_x(rect) - size / 2;
     const int y = BLI_rcti_cent_y(rect) - size / 2;
 
-    const bTheme *btheme = GetTheme();
+    const bTheme *btheme = theme::theme_get();
     const float desaturate = 1.0 - btheme->tui.icon_saturation;
     uchar color[4] = {mono_color[0], mono_color[1], mono_color[2], mono_color[3]};
     const bool has_theme = icon_get_theme_color(int(icon), color);
@@ -1418,7 +1418,7 @@ static void widget_draw_icon(
 
     /* Get theme color. */
     uchar color[4] = {mono_color[0], mono_color[1], mono_color[2], mono_color[3]};
-    const bTheme *btheme = GetTheme();
+    const bTheme *btheme = theme::theme_get();
     /* Only use theme colors if the button doesn't override the color. */
     const bool has_theme = !but->col[3] && icon_get_theme_color(int(icon), color);
     const bool outline = btheme->tui.icon_border_intensity > 0.0f && has_theme;
@@ -2650,7 +2650,7 @@ static void widget_state(WidgetType *wt, const WidgetStateInfo *state, EmbossTyp
 
   if (state->but_flag & BUT_LIST_ITEM) {
     /* Override default widget's colors. */
-    bTheme *btheme = GetTheme();
+    bTheme *btheme = theme::theme_get();
     wt->wcol_theme = &btheme->tui.wcol_list_item;
 
     if (state->but_flag & (BUT_DISABLED | BUT_INACTIVE | UI_SEARCH_FILTER_NO_MATCH)) {
@@ -2694,11 +2694,11 @@ static void widget_state(WidgetType *wt, const WidgetStateInfo *state, EmbossTyp
 
   if (state->but_flag & BUT_REDALERT) {
     if (wt->draw && emboss != EmbossType::None) {
-      GetThemeColor3ubv(TH_REDALERT, wt->wcol.inner);
+      theme::get_color_3ubv(TH_REDALERT, wt->wcol.inner);
     }
     else {
       uchar red[4];
-      GetThemeColor3ubv(TH_REDALERT, red);
+      theme::get_color_3ubv(TH_REDALERT, red);
       color_mul_hsl_v3(red, 1.0f, 1.5f, 1.5f);
       color_blend_v3_v3(wt->wcol.text, red, 0.5f);
     }
@@ -2799,7 +2799,7 @@ static void widget_state_option_menu(WidgetType *wt,
                                      const WidgetStateInfo *state,
                                      EmbossType emboss)
 {
-  const bTheme *btheme = GetTheme();
+  const bTheme *btheme = theme::theme_get();
 
   const uiWidgetColors *old_wcol = wt->wcol_theme;
   uiWidgetColors wcol_menu_option = *wt->wcol_theme;
@@ -2937,8 +2937,8 @@ static void widget_softshadow(const rcti *rect, int roundboxalign, const float r
 
   draw_roundbox_corner_set(roundboxalign);
 
-  const float shadow_alpha = GetTheme()->tui.menu_shadow_fac;
-  const float shadow_width = ThemeMenuShadowWidth();
+  const float shadow_alpha = theme::theme_get()->tui.menu_shadow_fac;
+  const float shadow_width = theme::get_menu_shadow_width();
 
   draw_dropshadow(&shadow_rect, radin, shadow_width, 1.0f, shadow_alpha);
 }
@@ -4006,7 +4006,7 @@ static void widget_nodesocket(Button *but,
   rgba_uchar_to_float(socket_color, but->col);
 
   ColorTheme4f outline_color;
-  GetThemeColorType4fv(TH_WIRE, SPACE_NODE, outline_color);
+  theme::get_color_type_4fv(TH_WIRE, SPACE_NODE, outline_color);
   outline_color.a = 1.0f;
 
   const int cent_x = BLI_rcti_cent_x(rect);
@@ -4323,7 +4323,7 @@ static void widget_pulldownbut(uiWidgetColors *wcol,
                                const float zoom)
 {
   float back[4];
-  GetThemeColor4fv(TH_BACK, back);
+  theme::get_color_4fv(TH_BACK, back);
 
   if ((state->but_flag & UI_HOVER) || (back[3] < 1.0f)) {
     WidgetBase wtb;
@@ -4540,7 +4540,7 @@ static void widget_state_label(WidgetType *wt, const WidgetStateInfo *state, Emb
 {
   if (state->but_flag & BUT_LIST_ITEM) {
     /* Override default label theme's colors. */
-    bTheme *btheme = GetTheme();
+    bTheme *btheme = theme::theme_get();
     wt->wcol_theme = &btheme->tui.wcol_list_item;
     /* call this for option button */
     widget_state(wt, state, emboss);
@@ -4549,16 +4549,16 @@ static void widget_state_label(WidgetType *wt, const WidgetStateInfo *state, Emb
     /* call this for option button */
     widget_state(wt, state, emboss);
     if (state->but_flag & UI_SELECT) {
-      GetThemeColor3ubv(TH_TEXT_HI, wt->wcol.text);
+      theme::get_color_3ubv(TH_TEXT_HI, wt->wcol.text);
     }
     else {
-      GetThemeColor3ubv(TH_TEXT, wt->wcol.text);
+      theme::get_color_3ubv(TH_TEXT, wt->wcol.text);
     }
   }
 
   if (state->but_flag & BUT_REDALERT) {
     uchar red[4];
-    GetThemeColor3ubv(TH_REDALERT, red);
+    theme::get_color_3ubv(TH_REDALERT, red);
     color_mul_hsl_v3(red, 1.0f, 1.5f, 1.5f);
     color_blend_v3_v3(wt->wcol.text, red, 0.5f);
   }
@@ -4722,7 +4722,7 @@ static void widget_tab(Button *but,
 
 static void widget_draw_extra_mask(const bContext *C, Button *but, WidgetType *wt, rcti *rect)
 {
-  bTheme *btheme = GetTheme();
+  bTheme *btheme = theme::theme_get();
   uiWidgetColors *wcol = &btheme->tui.wcol_radio;
   const float rad = wcol->roundness * U.widget_unit;
 
@@ -4742,7 +4742,7 @@ static void widget_draw_extra_mask(const bContext *C, Button *but, WidgetType *w
 
     /* make mask to draw over image */
     uchar col[4];
-    GetThemeColor3ubv(TH_BACK, col);
+    theme::get_color_3ubv(TH_BACK, col);
     immUniformColor3ubv(col);
 
     round_box__edges(&wtb, CNR_ALL, rect, 0.0f, rad);
@@ -4760,7 +4760,7 @@ static void widget_draw_extra_mask(const bContext *C, Button *but, WidgetType *w
 
 static WidgetType *widget_type(WidgetTypeEnum type)
 {
-  bTheme *btheme = GetTheme();
+  bTheme *btheme = theme::theme_get();
 
   /* defaults */
   static WidgetType wt;
@@ -5041,7 +5041,7 @@ static WidgetType *popover_widget_type(Button *but, rcti *rect)
 
 void draw_button(const bContext *C, ARegion *region, uiStyle *style, Button *but, rcti *rect)
 {
-  bTheme *btheme = GetTheme();
+  bTheme *btheme = theme::theme_get();
   const ThemeUI *tui = &btheme->tui;
   const uiFontStyle *fstyle = &style->widget;
   WidgetType *wt = nullptr;
@@ -5427,19 +5427,19 @@ static void ui_draw_dialog_alert(Block *block, const rcti *rect)
   float color[4];
   switch (block->alert_level) {
     case BlockAlertLevel::Error:
-      GetThemeColor4fv(TH_ERROR, color);
+      theme::get_color_4fv(TH_ERROR, color);
       break;
     case BlockAlertLevel::Warning:
-      GetThemeColor4fv(TH_WARNING, color);
+      theme::get_color_4fv(TH_WARNING, color);
       break;
     case BlockAlertLevel::Success:
-      GetThemeColor4fv(TH_SUCCESS, color);
+      theme::get_color_4fv(TH_SUCCESS, color);
       break;
     default:
-      GetThemeColor4fv(TH_INFO, color);
+      theme::get_color_4fv(TH_INFO, color);
   }
 
-  bTheme *btheme = GetTheme();
+  bTheme *btheme = theme::theme_get();
   const float bg_radius = btheme->tui.wcol_menu_back.roundness * U.widget_unit;
   const float line_width = 3.0f * UI_SCALE_FAC;
   const float radius = (bg_radius > (line_width * 2.0f)) ? 0.0f : bg_radius;
@@ -5620,7 +5620,7 @@ static void draw_disk_shaded(float start,
 
 void draw_pie_center(Block *block)
 {
-  bTheme *btheme = GetTheme();
+  bTheme *btheme = theme::theme_get();
   const float cx = block->pie_data.pie_center_spawned[0];
   const float cy = block->pie_data.pie_center_spawned[1];
 

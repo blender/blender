@@ -1669,8 +1669,8 @@ static void drawAutoKeyWarning(TransInfo *t, ARegion *region)
     ED_view3d_text_colors_get(scene, v3d, text_color, shadow_color);
   }
   else {
-    ui::GetThemeColor4fv(TH_TEXT_HI, text_color);
-    ui::GetThemeColor4fv(TH_BACK, text_color);
+    ui::theme::get_color_4fv(TH_TEXT_HI, text_color);
+    ui::theme::get_color_4fv(TH_BACK, text_color);
   }
   BLF_color4fv(BLF_default(), text_color);
   BLF_shadow(BLF_default(), FontShadowType::Outline, shadow_color);

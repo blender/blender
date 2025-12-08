@@ -1056,7 +1056,7 @@ static void panel_title_color_get(const Panel *panel,
 {
   if (!show_background) {
     /* Use menu colors for floating panels. */
-    bTheme *btheme = GetTheme();
+    bTheme *btheme = theme::theme_get();
     const uiWidgetColors *wcol = &btheme->tui.wcol_menu_back;
     copy_v4_v4_uchar(r_color, (const uchar *)wcol->text);
     return;
@@ -1064,7 +1064,7 @@ static void panel_title_color_get(const Panel *panel,
 
   const bool search_match = panel_matches_search_filter(panel);
 
-  GetThemeColor4ubv(TH_TITLE, r_color);
+  theme::get_color_4ubv(TH_TITLE, r_color);
   if (region_search_filter_active && !search_match) {
     r_color[0] *= 0.5;
     r_color[1] *= 0.5;
@@ -1083,12 +1083,12 @@ static void panel_draw_border(const Panel *panel,
   }
 
   float color[4];
-  GetThemeColor4fv(is_active ? TH_PANEL_ACTIVE : TH_PANEL_OUTLINE, color);
+  theme::get_color_4fv(is_active ? TH_PANEL_ACTIVE : TH_PANEL_OUTLINE, color);
   if (color[3] == 0.0f) {
     return; /* No border to draw. */
   }
 
-  const bTheme *btheme = GetTheme();
+  const bTheme *btheme = theme::theme_get();
   const float aspect = panel->runtime->block->aspect;
   const float radius = (btheme->tui.panel_roundness * U.widget_unit * 0.5f) / aspect;
   draw_roundbox_corner_set(CNR_ALL);
@@ -1249,7 +1249,7 @@ static void panel_draw_softshadow(const rctf *box_rect,
   BLI_rctf_pad(&shadow_rect, -outline, -outline);
   draw_roundbox_corner_set(roundboxalign);
 
-  const float shadow_alpha = GetTheme()->tui.menu_shadow_fac;
+  const float shadow_alpha = theme::theme_get()->tui.menu_shadow_fac;
   draw_dropshadow(&shadow_rect, radius, shadow_width, 1.0f, shadow_alpha);
 }
 
@@ -1267,7 +1267,7 @@ static void panel_draw_aligned_backdrop(const ARegion *region,
     return;
   }
 
-  const bTheme *btheme = GetTheme();
+  const bTheme *btheme = theme::theme_get();
   const float aspect = panel->runtime->block->aspect;
   const float radius = btheme->tui.panel_roundness * U.widget_unit * 0.5f / aspect;
 
@@ -1277,9 +1277,9 @@ static void panel_draw_aligned_backdrop(const ARegion *region,
   /* Draw shadow on top-level panels with headers during drag or region overlap. */
   if (!is_subpanel && has_header && (region->overlap || is_dragging)) {
     /* Make shadow wider (at least 16px) while the panel is being dragged. */
-    const float shadow_width = is_dragging ?
-                                   max_ii(int(16.0f * UI_SCALE_FAC), ThemeMenuShadowWidth()) :
-                                   ThemeMenuShadowWidth();
+    const float shadow_width = is_dragging ? max_ii(int(16.0f * UI_SCALE_FAC),
+                                                    theme::get_menu_shadow_width()) :
+                                             theme::get_menu_shadow_width();
     const int roundboxalign = is_open ? CNR_BOTTOM_RIGHT | CNR_BOTTOM_LEFT : CNR_ALL;
 
     rctf box_rect;
@@ -1295,10 +1295,10 @@ static void panel_draw_aligned_backdrop(const ARegion *region,
     float panel_backcolor[4];
     draw_roundbox_corner_set(is_open ? CNR_BOTTOM_RIGHT | CNR_BOTTOM_LEFT : CNR_ALL);
     if (!has_header) {
-      GetThemeColor4fv(TH_BACK, panel_backcolor);
+      theme::get_color_4fv(TH_BACK, panel_backcolor);
     }
     else {
-      GetThemeColor4fv((is_subpanel ? TH_PANEL_SUB_BACK : TH_PANEL_BACK), panel_backcolor);
+      theme::get_color_4fv((is_subpanel ? TH_PANEL_SUB_BACK : TH_PANEL_BACK), panel_backcolor);
     }
 
     rctf box_rect;
@@ -1310,15 +1310,15 @@ static void panel_draw_aligned_backdrop(const ARegion *region,
     draw_roundbox_4fv(&box_rect, true, radius, panel_backcolor);
 
     float subpanel_backcolor[4];
-    GetThemeColor4fv(TH_PANEL_SUB_BACK, subpanel_backcolor);
+    theme::get_color_4fv(TH_PANEL_SUB_BACK, subpanel_backcolor);
     draw_layout_panels_backdrop(region, panel, radius, subpanel_backcolor);
   }
 
   /* Panel header backdrops for non sub-panels. */
   if (!is_subpanel && has_header) {
     float panel_headercolor[4];
-    GetThemeColor4fv(panel_matches_search_filter(panel) ? TH_MATCH : TH_PANEL_HEADER,
-                     panel_headercolor);
+    theme::get_color_4fv(panel_matches_search_filter(panel) ? TH_MATCH : TH_PANEL_HEADER,
+                         panel_headercolor);
     draw_roundbox_corner_set(is_open ? CNR_TOP_RIGHT | CNR_TOP_LEFT : CNR_ALL);
 
     /* Change the width a little bit to line up with the sides. */
@@ -1426,7 +1426,7 @@ void panel_category_draw_all(ARegion *region, const char *category_id_active)
   const int tab_v_pad_text = round_fl_to_int(TABS_PADDING_TEXT_FACTOR * dpi_fac * zoom) + 2 * px;
   /* Padding between tabs. */
   const int tab_v_pad = round_fl_to_int(TABS_PADDING_BETWEEN_FACTOR * dpi_fac * zoom);
-  bTheme *btheme = GetTheme();
+  bTheme *btheme = theme::theme_get();
   const float tab_curve_radius = btheme->tui.wcol_tab.roundness * U.widget_unit * zoom;
   /* Round all corners when region overlap is on. */
   const int roundboxtype = region->overlap ? CNR_ALL :
@@ -1454,14 +1454,14 @@ void panel_category_draw_all(ARegion *region, const char *category_id_active)
   float theme_col_tab_outline[4];
   float theme_col_tab_outline_sel[4];
 
-  GetThemeColor4ubv(TH_BACK, theme_col_back);
-  GetThemeColor3ubv(TH_TAB_TEXT, theme_col_tab_text);
-  GetThemeColor3ubv(TH_TAB_TEXT_HI, theme_col_tab_text_sel);
-  GetThemeColor4ubv(TH_TAB_BACK, theme_col_tab_bg);
-  GetThemeColor4fv(TH_TAB_ACTIVE, theme_col_tab_active);
-  GetThemeColor4fv(TH_TAB_INACTIVE, theme_col_tab_inactive);
-  GetThemeColor4fv(TH_TAB_OUTLINE, theme_col_tab_outline);
-  GetThemeColor4fv(TH_TAB_OUTLINE_ACTIVE, theme_col_tab_outline_sel);
+  theme::get_color_4ubv(TH_BACK, theme_col_back);
+  theme::get_color_3ubv(TH_TAB_TEXT, theme_col_tab_text);
+  theme::get_color_3ubv(TH_TAB_TEXT_HI, theme_col_tab_text_sel);
+  theme::get_color_4ubv(TH_TAB_BACK, theme_col_tab_bg);
+  theme::get_color_4fv(TH_TAB_ACTIVE, theme_col_tab_active);
+  theme::get_color_4fv(TH_TAB_INACTIVE, theme_col_tab_inactive);
+  theme::get_color_4fv(TH_TAB_OUTLINE, theme_col_tab_outline);
+  theme::get_color_4fv(TH_TAB_OUTLINE_ACTIVE, theme_col_tab_outline_sel);
 
   is_alpha = (region->overlap && (theme_col_back[3] != 255));
 

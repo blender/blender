@@ -994,7 +994,7 @@ static void wm_drop_operator_draw(const blender::StringRef name, int x, int y)
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 
   /* Use the theme settings from tooltips. */
-  const bTheme *btheme = blender::ui::GetTheme();
+  const bTheme *btheme = blender::ui::theme::theme_get();
   const uiWidgetColors *wcol = &btheme->tui.wcol_tooltip;
 
   float col_fg[4], col_bg[4];
@@ -1007,11 +1007,11 @@ static void wm_drop_operator_draw(const blender::StringRef name, int x, int y)
 static void wm_drop_redalert_draw(const blender::StringRef redalert_str, int x, int y)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-  const bTheme *btheme = blender::ui::GetTheme();
+  const bTheme *btheme = blender::ui::theme::theme_get();
   const uiWidgetColors *wcol = &btheme->tui.wcol_tooltip;
 
   float col_fg[4], col_bg[4];
-  blender::ui::GetThemeColor4fv(TH_REDALERT, col_fg);
+  blender::ui::theme::get_color_4fv(TH_REDALERT, col_fg);
   rgba_uchar_to_float(col_bg, wcol->inner);
 
   blender::ui::fontstyle_draw_simple_backdrop(fstyle, x, y, redalert_str, col_fg, col_bg);

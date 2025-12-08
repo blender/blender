@@ -117,7 +117,7 @@ static void info_main_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   /* clear and setup matrix */
-  blender::ui::ThemeClearColor(TH_BACK);
+  blender::ui::theme::frame_buffer_clear(TH_BACK);
 
   /* quick way to avoid drawing if not bug enough */
   if (region->winy < 16) {

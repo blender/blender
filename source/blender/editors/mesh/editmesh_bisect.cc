@@ -700,9 +700,9 @@ static void gizmo_mesh_bisect_setup(const bContext *C, wmGizmoGroup *gzgroup)
   ggd->translate_c = WM_gizmo_new_ptr(gzt_move, gzgroup, nullptr);
   ggd->rotate_c = WM_gizmo_new_ptr(gzt_dial, gzgroup, nullptr);
 
-  blender::ui::GetThemeColor3fv(TH_GIZMO_PRIMARY, ggd->translate_z->color);
-  blender::ui::GetThemeColor3fv(TH_GIZMO_PRIMARY, ggd->translate_c->color);
-  blender::ui::GetThemeColor3fv(TH_GIZMO_SECONDARY, ggd->rotate_c->color);
+  blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, ggd->translate_z->color);
+  blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, ggd->translate_c->color);
+  blender::ui::theme::get_color_3fv(TH_GIZMO_SECONDARY, ggd->rotate_c->color);
 
   RNA_enum_set(ggd->translate_z->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_NORMAL);
   RNA_enum_set(ggd->translate_c->ptr, "draw_style", ED_GIZMO_MOVE_STYLE_RING_2D);

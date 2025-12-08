@@ -180,7 +180,7 @@ static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
     }
     else {
       uchar icon_color[3];
-      blender::ui::GetThemeColor3ubv(TH_TEXT, icon_color);
+      blender::ui::theme::get_color_3ubv(TH_TEXT, icon_color);
       int color_tint, color_tint_hi;
       if (icon_color[0] > 128) {
         color_tint = -40;
@@ -194,8 +194,8 @@ static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
         gz->color[3] = 0.5f;
         gz->color_hi[3] = 0.75f;
       }
-      blender::ui::GetThemeColorShade3fv(TH_HEADER, color_tint, gz->color);
-      blender::ui::GetThemeColorShade3fv(TH_HEADER, color_tint_hi, gz->color_hi);
+      blender::ui::theme::get_color_shade_3fv(TH_HEADER, color_tint, gz->color);
+      blender::ui::theme::get_color_shade_3fv(TH_HEADER, color_tint_hi, gz->color_hi);
     }
 
     /* may be overwritten later */

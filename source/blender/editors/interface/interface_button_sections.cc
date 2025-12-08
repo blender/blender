@@ -128,7 +128,7 @@ static void ui_draw_button_sections_background(const ARegion *region,
                                                const float corner_radius)
 {
   float bg_color[4];
-  GetThemeColor4fv(colorid, bg_color);
+  theme::get_color_4fv(colorid, bg_color);
 
   for (const rcti &bounds : section_bounds) {
     int roundbox_corners = [align]() -> int {
@@ -175,7 +175,7 @@ static void ui_draw_button_sections_alignment_separator(const ARegion *region,
   const int separator_line_width = UI_BUTTON_SECTION_SEPERATOR_LINE_WITH;
 
   float bg_color[4];
-  GetThemeColor4fv(colorid, bg_color);
+  theme::get_color_4fv(colorid, bg_color);
 
   GPU_blend(GPU_BLEND_ALPHA);
 

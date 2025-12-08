@@ -510,7 +510,7 @@ void draw_but_HISTOGRAM(ARegion *region,
   GPU_blend(GPU_BLEND_ALPHA);
 
   float color[4];
-  GetThemeColor4fv(TH_PREVIEW_BACK, color);
+  theme::get_color_4fv(TH_PREVIEW_BACK, color);
   draw_roundbox_corner_set(CNR_ALL);
   rctf back_rect{};
   back_rect.xmin = rect.xmin - 1;
@@ -725,7 +725,7 @@ void draw_but_WAVEFORM(ARegion *region,
   GPU_blend(GPU_BLEND_ALPHA);
 
   float color[4];
-  GetThemeColor4fv(TH_PREVIEW_BACK, color);
+  theme::get_color_4fv(TH_PREVIEW_BACK, color);
   draw_roundbox_corner_set(CNR_ALL);
   rctf back_rect{};
   back_rect.xmin = rect.xmin - 1.0f;
@@ -1031,7 +1031,7 @@ void draw_but_VECTORSCOPE(ARegion *region,
   GPU_blend(GPU_BLEND_ALPHA);
 
   float color[4];
-  GetThemeColor4fv(TH_PREVIEW_BACK, color);
+  theme::get_color_4fv(TH_PREVIEW_BACK, color);
   draw_roundbox_corner_set(CNR_ALL);
   rctf back_rect{};
   back_rect.xmin = rect.xmin - 1;
@@ -1685,8 +1685,8 @@ void draw_but_CURVE(ARegion *region, Button *but, const uiWidgetColors *wcol, co
     ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 1.0f);
     /* axes */
     uchar col_axis_x[3], col_axis_y[3];
-    GetThemeColor3ubv(TH_AXIS_X, col_axis_x);
-    GetThemeColor3ubv(TH_AXIS_Y, col_axis_y);
+    theme::get_color_3ubv(TH_AXIS_X, col_axis_x);
+    theme::get_color_3ubv(TH_AXIS_Y, col_axis_y);
 
     immBegin(GPU_PRIM_LINES, 2);
     immUniformColor3ubvAlpha(col_axis_x, 128 / fade_factor_uchar);
@@ -2400,8 +2400,8 @@ void draw_but_TRACKPREVIEW(ARegion *region,
           format, "color", gpu::VertAttrType::SFLOAT_32_32_32_32);
       immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
-      GetThemeColor4fv(TH_SEL_MARKER, col_sel);
-      GetThemeColor4fv(TH_MARKER_OUTLINE, col_outline);
+      theme::get_color_4fv(TH_SEL_MARKER, col_sel);
+      theme::get_color_4fv(TH_MARKER_OUTLINE, col_outline);
 
       /* Do stipple cross with geometry */
       immBegin(GPU_PRIM_LINES, 7 * 2 * 2);

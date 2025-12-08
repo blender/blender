@@ -110,9 +110,9 @@ static void draw_current_frame(const Scene *scene,
   uint pos;
 
   float fg_color[4];
-  blender::ui::GetThemeColor4fv(TH_CFRAME, fg_color);
+  blender::ui::theme::get_color_4fv(TH_CFRAME, fg_color);
   float bg_color[4];
-  blender::ui::GetThemeColorShade4fv(TH_BACK, -20, bg_color);
+  blender::ui::theme::get_color_shade_4fv(TH_BACK, -20, bg_color);
 
   if (display_stalk) {
     /* Shadow for triangle below frame box. */
@@ -160,7 +160,7 @@ static void draw_current_frame(const Scene *scene,
 
   /* Frame number text. */
   uchar text_color[4];
-  blender::ui::GetThemeColor4ubv(TH_HEADER_TEXT_HI, text_color);
+  blender::ui::theme::get_color_4ubv(TH_HEADER_TEXT_HI, text_color);
   const int y = BLI_rcti_cent_y(scrub_region_rect) - int(fstyle->points * UI_SCALE_FAC * 0.38f);
   blender::ui::fontstyle_draw_simple(
       fstyle, subframe_x - (text_width / 2.0f), y, frame_str, text_color);

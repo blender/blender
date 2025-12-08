@@ -134,8 +134,8 @@ static void WIDGETGROUP_empty_image_setup(const bContext * /*C*/, wmGizmoGroup *
 
   WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_HOVER, true);
 
-  blender::ui::GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
-  blender::ui::GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
+  blender::ui::theme::get_color_3fv(TH_GIZMO_PRIMARY, gz->color);
+  blender::ui::theme::get_color_3fv(TH_GIZMO_HI, gz->color_hi);
 
   /* All gizmos must perform undo. */
   LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {

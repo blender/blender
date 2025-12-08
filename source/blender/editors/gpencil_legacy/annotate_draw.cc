@@ -589,7 +589,7 @@ static void annotation_draw_onionskins(
     copy_v3_v3(color, gpl->gcolor_prev);
   }
   else {
-    blender::ui::GetThemeColor3fv(TH_FRAME_BEFORE, color);
+    blender::ui::theme::get_color_3fv(TH_FRAME_BEFORE, color);
   }
 
   if (gpl->gstep > 0) {
@@ -626,7 +626,7 @@ static void annotation_draw_onionskins(
     copy_v3_v3(color, gpl->gcolor_next);
   }
   else {
-    blender::ui::GetThemeColor3fv(TH_FRAME_AFTER, color);
+    blender::ui::theme::get_color_3fv(TH_FRAME_AFTER, color);
   }
 
   if (gpl->gstep_next > 0) {

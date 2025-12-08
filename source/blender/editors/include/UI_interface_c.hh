@@ -2957,13 +2957,18 @@ void widgetbase_draw_cache_flush();
 void widgetbase_draw_cache_end();
 
 /* Use for resetting the theme. */
+namespace theme {
+
 /**
  * Initialize default theme.
  *
  * \note When you add new colors, created & saved themes need initialized
  * use function below, #init_userdef_do_versions.
  */
-void theme_init_default();
+void init_default();
+
+}  // namespace theme
+
 void style_init_default();
 
 void interface_tag_script_reload();

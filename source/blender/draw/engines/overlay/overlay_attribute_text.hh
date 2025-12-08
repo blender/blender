@@ -233,7 +233,7 @@ class AttributeTexts : Overlay {
                                 const float4x4 &object_to_world)
   {
     uchar col[4];
-    ui::GetThemeColor4ubv(TH_TEXT_HI, col);
+    ui::theme::get_color_4ubv(TH_TEXT_HI, col);
 
     bke::attribute_math::convert_to_static_type(values.type(), [&](auto dummy) {
       using T = decltype(dummy);

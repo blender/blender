@@ -237,7 +237,7 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   blender::ui::view2d_view_ortho(v2d);
 
   /* clear and setup matrix */
-  blender::ui::ThemeClearColor(TH_BACK);
+  blender::ui::theme::frame_buffer_clear(TH_BACK);
 
   blender::ui::view2d_view_ortho(v2d);
 
@@ -346,7 +346,7 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
   const bool has_valid_animcontext = ANIM_animdata_get_context(C, &ac);
 
   /* clear and setup matrix */
-  blender::ui::ThemeClearColor(TH_BACK);
+  blender::ui::theme::frame_buffer_clear(TH_BACK);
 
   if (!has_valid_animcontext) {
     return;

@@ -1274,7 +1274,7 @@ static void screenshot_preview_draw(const wmWindow *window, void *operator_data)
   ui::draw_roundbox_aa(&mask_rect_right, true, 0, mask_color);
 
   float4 color;
-  ui::GetThemeColor4fv(TH_EDITOR_BORDER, color);
+  ui::theme::get_color_4fv(TH_EDITOR_BORDER, color);
   ui::draw_roundbox_aa(&screenshot_rect, false, 0, color);
 }
 
