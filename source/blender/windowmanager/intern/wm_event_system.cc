@@ -4688,6 +4688,7 @@ wmEventHandler_Op *WM_event_add_modal_handler_ex(
 #ifdef WITH_XR_OPENXR
   handler->is_xr = (area == WM_xr_session_area_get(&wm->xr));
 #else
+  handler->is_xr = false;
   UNUSED_VARS(wm);
 #endif
 
