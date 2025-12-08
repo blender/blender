@@ -100,8 +100,6 @@ void main()
   }
 
   if (true) {
-    MotionPayload payload = motion_blur_tile_indirection_pack_payload(max_motion.zw,
-                                                                      uint2(src_tile));
     /* Rectangular area (in tiles) where the motion vector spreads. */
     MotionRect motion_rect = compute_motion_rect(src_tile, max_motion.zw);
     MotionLine motion_line = compute_motion_line(src_tile, max_motion.zw);
