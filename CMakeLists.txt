@@ -2021,6 +2021,14 @@ if(CMAKE_COMPILER_IS_GNUCC)
     CXX_WARN_IMPLICIT_FALLTHROUGH -Wimplicit-fallthrough=5
   )
 
+  if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+    # Silence warnings about GCC ABI breaking bug fixes on arm64
+    add_check_cxx_compiler_flags(
+      CXX_WARNINGS
+      CXX_WARN_NO_PSABI -Wno-psabi
+    )
+  endif()
+
   # causes too many warnings
   if(NOT APPLE)
     add_check_cxx_compiler_flags(
