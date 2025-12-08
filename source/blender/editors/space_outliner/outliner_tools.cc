@@ -2107,14 +2107,14 @@ static void pchan_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, voi
   bPoseChannel *pchan = (bPoseChannel *)te->directdata;
 
   if (event == OL_DOP_SELECT) {
-    pchan->flag |= POSE_SELECTED;
+    pchan->flag |= POSE_SELECTED_ALL;
   }
   else if (event == OL_DOP_DESELECT) {
-    pchan->flag &= ~POSE_SELECTED;
+    pchan->flag &= ~POSE_SELECTED_ALL;
   }
   else if (event == OL_DOP_HIDE) {
     pchan->drawflag |= PCHAN_DRAW_HIDDEN;
-    pchan->flag &= ~POSE_SELECTED;
+    pchan->flag &= ~POSE_SELECTED_ALL;
   }
   else if (event == OL_DOP_UNHIDE) {
     pchan->drawflag &= ~PCHAN_DRAW_HIDDEN;

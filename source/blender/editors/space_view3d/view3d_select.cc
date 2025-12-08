@@ -5124,10 +5124,10 @@ static bool pchan_circle_doSelectJoint(void *user_data,
 
   if (len_squared_v2v2(data->mval_fl, screen_co) <= data->radius_squared) {
     if (data->select) {
-      pchan->flag |= POSE_SELECTED;
+      pchan->flag |= POSE_SELECTED_ALL;
     }
     else {
-      pchan->flag &= ~POSE_SELECTED;
+      pchan->flag &= ~POSE_SELECTED_ALL;
     }
     return true;
   }
@@ -5174,10 +5174,10 @@ static void do_circle_select_pose__doSelectBone(void *user_data,
       edge_inside_circle(data->mval_fl, data->radius, screen_co_a, screen_co_b))
   {
     if (data->select) {
-      pchan->flag |= POSE_SELECTED;
+      pchan->flag |= POSE_SELECTED_ALL;
     }
     else {
-      pchan->flag &= ~POSE_SELECTED;
+      pchan->flag &= ~POSE_SELECTED_ALL;
     }
     data->is_changed = true;
   }

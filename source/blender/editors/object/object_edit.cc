@@ -563,24 +563,34 @@ static void flush_bone_selection_to_pose(Object &ob)
 {
   BLI_assert(ob.pose);
   LISTBASE_FOREACH (bPoseChannel *, pose_bone, &ob.pose->chanbase) {
-    if (pose_bone->bone->flag & BONE_SELECTED) {
-      pose_bone->flag |= POSE_SELECTED;
+    pose_bone->flag &= ~(POSE_SELECTED | POSE_SELECTED_ROOT | POSE_SELECTED_TIP);
+    const Bone *bone = pose_bone->bone;
+    if (bone->flag & BONE_ROOTSEL) {
+      pose_bone->flag |= POSE_SELECTED_ROOT;
     }
-    else {
-      pose_bone->flag &= ~POSE_SELECTED;
+    if (bone->flag & BONE_TIPSEL) {
+      pose_bone->flag |= POSE_SELECTED_TIP;
+    }
+    if (bone->flag & BONE_SELECTED) {
+      pose_bone->flag |= POSE_SELECTED;
     }
   }
 }
+
 static void flush_pose_selection_to_bone(Object &ob)
 {
   BLI_assert(ob.pose);
-  constexpr int selection_flags = (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL);
   LISTBASE_FOREACH (bPoseChannel *, pose_bone, &ob.pose->chanbase) {
-    if (pose_bone->flag & POSE_SELECTED) {
-      pose_bone->bone->flag |= selection_flags;
+    pose_bone->bone->flag &= ~(BONE_ROOTSEL | BONE_TIPSEL | BONE_SELECTED);
+    Bone *bone = pose_bone->bone;
+    if (pose_bone->flag & POSE_SELECTED_ROOT) {
+      bone->flag |= BONE_ROOTSEL;
     }
-    else {
-      pose_bone->bone->flag &= ~selection_flags;
+    if (pose_bone->flag & POSE_SELECTED_TIP) {
+      bone->flag |= BONE_TIPSEL;
+    }
+    if (pose_bone->flag & POSE_SELECTED) {
+      bone->flag |= BONE_SELECTED;
     }
   }
 }
