@@ -177,6 +177,11 @@ bool ED_scene_delete(bContext *C, Main *bmain, Scene *scene)
 void ED_scene_change_update(Main *bmain, Scene *scene, ViewLayer *layer)
 {
   Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, layer);
+  /* When switching to a scene for the first time after loading a file, the dependency graph above
+   * will not be active. This can cause issues (e.g. #151159) because there might be code running
+   * immediatly after that expects this dependency graph to be active and then silently fail.
+   * Similar to #CTX_data_depsgraph_pointer. */
+  DEG_make_active(depsgraph);
 
   BKE_scene_set_background(bmain, scene);
   DEG_graph_relations_update(depsgraph);
