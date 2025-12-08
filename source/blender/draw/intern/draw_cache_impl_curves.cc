@@ -984,6 +984,12 @@ gpu::VertBufPtr &DRW_curves_texture_for_evaluated_attribute(Curves *curves,
 {
   CurvesEvalCache &cache = get_batch_cache(*curves).eval_cache;
 
+  if (curves->geometry.wrap().is_empty()) {
+    r_valid_attribute = false;
+    r_is_point_domain = false;
+    return cache.evaluated_attributes_buf[0];
+  }
+
   request_attribute(*curves, name);
 
   /* TODO(fclem): Remove Global access. */
