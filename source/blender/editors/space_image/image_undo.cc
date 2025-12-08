@@ -1026,6 +1026,17 @@ static void image_undosys_step_decode(
     blender::ed::object::mode_set_ex(C, OB_MODE_TEXTURE_PAINT, false, nullptr);
   }
 
+  /* Ideally, we shouldn't have to tag the object as needing to be recalculated if using this paint
+   * mode, however, because the image isn't connected as part of the shader nodes, the draw code
+   * is unaware of the corresponding image tag. See #150957 for more details. */
+  const Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  if (object && object->type == OB_MESH && scene &&
+      scene->toolsettings->imapaint.mode == IMAGEPAINT_MODE_IMAGE)
+  {
+    DEG_id_tag_update(&object->id, ID_RECALC_SHADING);
+  }
+
   /* Refresh texture slots. */
   ED_editors_init_for_undo(bmain);
 }
