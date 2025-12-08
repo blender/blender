@@ -1760,6 +1760,12 @@ static void rna_SequenceTimelineChannel_mute_update(bContext *C, PointerRNA *ptr
   rna_Strip_sound_update(bmain, scene, ptr);
 }
 
+static int rna_SequenceTimelineChannel_number_get(PointerRNA *ptr)
+{
+  SeqTimelineChannel *channel = (SeqTimelineChannel *)ptr->data;
+  return blender::seq::channel_index_get(channel);
+}
+
 static std::optional<std::string> rna_SeqTimelineChannel_path(const PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
@@ -2564,6 +2570,11 @@ static void rna_def_channel(BlenderRNA *brna)
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_SequenceTimelineChannel_name_set");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, nullptr);
+
+  prop = RNA_def_property(srna, "number", PROP_INT, PROP_NONE);
+  RNA_def_property_int_funcs(prop, "rna_SequenceTimelineChannel_number_get", nullptr, nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Number", "Channel number");
 
   prop = RNA_def_property(srna, "lock", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SEQ_CHANNEL_LOCK);
