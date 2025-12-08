@@ -717,7 +717,7 @@ static Array<float2> strip_image_transform_quad_get_ex(const Scene *scene,
 
   if (strip->type == STRIP_TYPE_TEXT) {
     const TextVars *data = static_cast<TextVars *>(strip->effectdata);
-    float2 offset{(0, 0)};
+    float2 offset(0, 0);
 
     switch (data->anchor_x) {
       case SEQ_TEXT_ALIGN_X_LEFT:
