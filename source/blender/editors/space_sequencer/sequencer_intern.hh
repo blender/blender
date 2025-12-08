@@ -206,6 +206,7 @@ extern const EnumPropertyItem prop_side_types[];
 /* Operators. */
 
 void SEQUENCER_OT_split(wmOperatorType *ot);
+void SEQUENCER_OT_box_blade(wmOperatorType *ot);
 void SEQUENCER_OT_slip(wmOperatorType *ot);
 void SEQUENCER_OT_mute(wmOperatorType *ot);
 void SEQUENCER_OT_unmute(wmOperatorType *ot);

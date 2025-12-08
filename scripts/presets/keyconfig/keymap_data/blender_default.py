@@ -8665,19 +8665,33 @@ def km_sequencer_tool_blade(_params):
         "Sequencer Tool: Blade",
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            ("sequencer.split", {"type": 'LEFTMOUSE', "value": 'PRESS'},
+            ("sequencer.split", {"type": 'LEFTMOUSE', "value": 'CLICK'},
              {"properties": [
                  ("type", 'SOFT'),
                  ("side", 'NO_CHANGE'),
                  ("use_cursor_position", True),
                  ("ignore_selection", True),
              ]}),
-            ("sequencer.split", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
+            ("sequencer.split", {"type": 'LEFTMOUSE', "value": 'CLICK', "alt": True},
              {"properties": [
                  ("type", 'SOFT'),
                  ("side", 'NO_CHANGE'),
                  ("use_cursor_position", True),
                  ("ignore_selection", True),
+                 ("ignore_connections", True),
+             ]}),
+            ("sequencer.box_blade", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, {"properties": []}),
+            ("sequencer.box_blade", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "shift": True},
+             {"properties": [
+                 ("remove_gaps", False),
+             ]}),
+            ("sequencer.box_blade", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "alt": True},
+             {"properties": [
+                 ("ignore_connections", True),
+             ]}),
+            ("sequencer.box_blade", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "shift": True, "alt": True},
+             {"properties": [
+                 ("remove_gaps", False),
                  ("ignore_connections", True),
              ]}),
         ]},

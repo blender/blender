@@ -59,9 +59,6 @@ enum eSplitMethod {
 /**
  * Split Strip at timeline_frame in two.
  *
- * \param bmain: Main in which Strip is located
- * \param scene: Scene in which Strip is located
- * \param seqbase: ListBase in which Strip is located
  * \param strip: Strip to be split
  * \param timeline_frame: frame at which strip is split.
  * \param method: affects type of offset to be applied to resize Strip
