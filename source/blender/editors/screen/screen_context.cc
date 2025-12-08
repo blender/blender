@@ -1070,7 +1070,7 @@ static eContextResult screen_ctx_ui_list(const bContext *C, bContextDataResult *
   wmWindow *win = CTX_wm_window(C);
   ARegion *region = CTX_wm_region(C);
   if (region) {
-    uiList *list = blender::ui::list_find_mouse_over(region, win->eventstate);
+    uiList *list = blender::ui::list_find_mouse_over(region, win->runtime->eventstate);
     if (list) {
       CTX_data_pointer_set(result, nullptr, &RNA_UIList, list);
       return CTX_RESULT_OK;

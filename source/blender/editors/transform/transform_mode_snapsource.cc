@@ -242,7 +242,7 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator * /*op*/)
 #ifdef REMOVE_GIZMO
   wmGizmo *gz = WM_gizmomap_get_modal(t->region->runtime->gizmo_map);
   if (gz) {
-    const wmEvent *event = CTX_wm_window(t->context)->eventstate;
+    const wmEvent *event = CTX_wm_window(t->context)->runtime->eventstate;
 #  ifdef RESET_TRANSFORMATION
     wmGizmoFnModal modal_fn = gz->custom_modal ? gz->custom_modal : gz->type->modal;
     if (modal_fn) {

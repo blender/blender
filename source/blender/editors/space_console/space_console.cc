@@ -140,7 +140,7 @@ static void console_main_region_init(wmWindowManager *wm, ARegion *region)
 static void console_cursor(wmWindow *win, ScrArea * /*area*/, ARegion *region)
 {
   int wmcursor = WM_CURSOR_TEXT_EDIT;
-  const wmEvent *event = win->eventstate;
+  const wmEvent *event = win->runtime->eventstate;
   if (blender::ui::view2d_mouse_in_scrollers(region, &region->v2d, event->xy)) {
     wmcursor = WM_CURSOR_DEFAULT;
   }

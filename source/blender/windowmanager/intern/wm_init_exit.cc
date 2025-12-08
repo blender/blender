@@ -442,7 +442,7 @@ void wm_exit_schedule_delayed(const bContext *C)
   /* Use modal UI handler for now.
    * Could add separate WM handlers or so, but probably not worth it. */
   WM_event_add_ui_handler(
-      C, &win->modalhandlers, wm_exit_handler, nullptr, nullptr, eWM_EventHandlerFlag(0));
+      C, &win->runtime->modalhandlers, wm_exit_handler, nullptr, nullptr, eWM_EventHandlerFlag(0));
   WM_event_add_mousemove(win); /* Ensure handler actually gets called. */
 }
 
@@ -483,8 +483,8 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
 
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       CTX_wm_window_set(C, win); /* Needed by operator close callbacks. */
-      WM_event_remove_handlers(C, &win->handlers);
-      WM_event_remove_handlers(C, &win->modalhandlers);
+      WM_event_remove_handlers(C, &win->runtime->handlers);
+      WM_event_remove_handlers(C, &win->runtime->modalhandlers);
       ED_screen_exit(C, win, WM_window_get_active_screen(win));
     }
 

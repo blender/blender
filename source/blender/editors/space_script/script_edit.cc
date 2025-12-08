@@ -72,7 +72,7 @@ static bool script_test_modal_operators(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->modalhandlers) {
+    LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->runtime->modalhandlers) {
       if (handler_base->type == WM_HANDLER_TYPE_OP) {
         wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
         if (handler->op != nullptr) {

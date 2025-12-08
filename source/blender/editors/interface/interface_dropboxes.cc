@@ -62,7 +62,7 @@ static std::string ui_view_drop_tooltip(bContext *C,
     return {};
   }
 
-  return drop_target_tooltip(*region, *drop_target, *drag, *win->eventstate);
+  return drop_target_tooltip(*region, *drop_target, *drag, *win->runtime->eventstate);
 }
 
 /** \} */

@@ -845,7 +845,7 @@ static bool v3d_cursor_snap_poll_fn(bContext *C)
     }
     /* Sometimes the cursor may be on an invisible part of an overlapping region. */
     wmWindow *win = CTX_wm_window(C);
-    const wmEvent *event = win->eventstate;
+    const wmEvent *event = win->runtime->eventstate;
     if (ED_region_overlap_isect_xy(region, event->xy)) {
       return false;
     }
@@ -894,7 +894,7 @@ static void v3d_cursor_snap_draw_fn(bContext *C,
   Scene *scene = DEG_get_input_scene(depsgraph);
 
   const wmWindow *win = CTX_wm_window(C);
-  const wmEvent *event = win->eventstate;
+  const wmEvent *event = win->runtime->eventstate;
   if (event && v3d_cursor_eventstate_has_changed(data_intern, state, mval, event->modifier)) {
     View3D *v3d = CTX_wm_view3d(C);
     v3d_cursor_snap_update(state, C, depsgraph, scene, region, v3d, mval, event->modifier);
@@ -1081,7 +1081,7 @@ void ED_view3d_cursor_snap_data_update(V3DSnapCursorState *state,
                                        const blender::int2 &mval)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
-  const wmEvent *event = CTX_wm_window(C)->eventstate;
+  const wmEvent *event = CTX_wm_window(C)->runtime->eventstate;
   if (event && v3d_cursor_eventstate_has_changed(data_intern, state, mval, event->modifier)) {
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     Scene *scene = DEG_get_input_scene(depsgraph);

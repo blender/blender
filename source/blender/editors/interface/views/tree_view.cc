@@ -540,8 +540,8 @@ void AbstractTreeViewItem::collapse_chevron_click_fn(bContext *C,
 
   const wmWindow *win = CTX_wm_window(C);
   const ARegion *region = CTX_wm_region_popup(C) ? CTX_wm_region_popup(C) : CTX_wm_region(C);
-  AbstractViewItem *hovered_abstract_item = region_views_find_item_at(*region,
-                                                                      win->eventstate->xy);
+  AbstractViewItem *hovered_abstract_item = region_views_find_item_at(
+      *region, win->runtime->eventstate->xy);
 
   auto *hovered_item = reinterpret_cast<AbstractTreeViewItem *>(hovered_abstract_item);
   BLI_assert(hovered_item != nullptr);

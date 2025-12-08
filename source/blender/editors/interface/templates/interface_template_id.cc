@@ -692,7 +692,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr, nullptr);
       RNA_property_update(C, &template_ui->ptr, template_ui->prop);
 
-      if (id && CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
+      if (id && CTX_wm_window(C)->runtime->eventstate->modifier & KM_SHIFT) {
         /* only way to force-remove data (on save) */
         id_us_clear_real(id);
         id_fake_user_clear(id);
@@ -721,7 +721,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
     case UI_ID_LOCAL:
       if (id) {
         Main *bmain = CTX_data_main(C);
-        if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
+        if (CTX_wm_window(C)->runtime->eventstate->modifier & KM_SHIFT) {
           template_id_liboverride_hierarchy_make(C, bmain, template_ui, &idptr, &undo_push_label);
         }
         else {
@@ -742,7 +742,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
     case UI_ID_OVERRIDE:
       if (id && ID_IS_OVERRIDE_LIBRARY(id)) {
         Main *bmain = CTX_data_main(C);
-        if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
+        if (CTX_wm_window(C)->runtime->eventstate->modifier & KM_SHIFT) {
           template_id_liboverride_hierarchy_make(C, bmain, template_ui, &idptr, &undo_push_label);
         }
         else {

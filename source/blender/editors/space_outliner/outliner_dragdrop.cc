@@ -1236,7 +1236,7 @@ static std::string collection_drop_tooltip(bContext *C,
                                            wmDropBox * /*drop*/)
 {
   wmWindow *win = CTX_wm_window(C);
-  const wmEvent *event = win ? win->eventstate : nullptr;
+  const wmEvent *event = win ? win->runtime->eventstate : nullptr;
 
   CollectionDrop data;
   if (event && ((event->modifier & KM_SHIFT) == 0) && collection_drop_init(C, drag, xy, &data)) {

@@ -801,7 +801,7 @@ static void gizmo_mesh_spin_redo_modal_from_setup(const bContext *C, wmGizmoGrou
 
   ggd->is_init = true;
 
-  WM_gizmo_modal_set_from_setup(gzmap, (bContext *)C, gz, 0, win->eventstate);
+  WM_gizmo_modal_set_from_setup(gzmap, (bContext *)C, gz, 0, win->runtime->eventstate);
 }
 
 static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
@@ -929,7 +929,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
     wmWindow *win = CTX_wm_window(C);
     View3D *v3d = CTX_wm_view3d(C);
     ARegion *region = CTX_wm_region(C);
-    const wmEvent *event = win->eventstate;
+    const wmEvent *event = win->runtime->eventstate;
     float plane_co[3], plane_no[3];
     RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_co, plane_co);
     RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_no, plane_no);

@@ -749,7 +749,7 @@ static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
     }
   }
 
-  wmEvent e = *win->eventstate;
+  wmEvent e = *win->runtime->eventstate;
   e.type = wmEventType(type);
   e.val = value;
   e.flag = eWM_EventFlag(0);

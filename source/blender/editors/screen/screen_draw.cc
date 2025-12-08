@@ -134,7 +134,7 @@ void ED_screen_draw_edges(wmWindow *win)
 
   if (!active_area) {
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      AZone *zone = ED_area_actionzone_find_xy(area, win->eventstate->xy);
+      AZone *zone = ED_area_actionzone_find_xy(area, win->runtime->eventstate->xy);
       /* Get area from action zone, if not scroll-bar. */
       if (zone && zone->type != AZONE_REGION_SCROLL) {
         active_area = area;
@@ -144,7 +144,7 @@ void ED_screen_draw_edges(wmWindow *win)
   }
 
   if (G.moving & G_TRANSFORM_WM) {
-    active_area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, win->eventstate->xy);
+    active_area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, win->runtime->eventstate->xy);
     /* We don't want an active area when resizing, otherwise outline for active area flickers, see:
      * #136314. */
     if (active_area && !BLI_listbase_is_empty(&win->drawcalls)) {
@@ -449,8 +449,11 @@ void screen_draw_join_highlight(
   blender::ui::draw_roundbox_4fv_ex(
       &combined, inner, nullptr, 1.0f, outline, U.pixelsize, EDITORRADIUS);
 
-  screen_draw_area_drag_tip(
-      win, win->eventstate->xy[0], win->eventstate->xy[1], sa1, IFACE_("Join Areas"));
+  screen_draw_area_drag_tip(win,
+                            win->runtime->eventstate->xy[0],
+                            win->runtime->eventstate->xy[1],
+                            sa1,
+                            IFACE_("Join Areas"));
 }
 
 static void rounded_corners(rctf rect, float color[4], int corners)

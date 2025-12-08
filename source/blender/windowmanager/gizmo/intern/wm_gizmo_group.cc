@@ -1267,8 +1267,8 @@ void WM_gizmo_group_refresh(const bContext *C, wmGizmoGroup *gzgroup)
       ARegion *region = CTX_wm_region(C);
       BLI_assert(region->runtime->gizmo_map == gzmap);
       /* Check if the tweak event originated from this region. */
-      if ((win->eventstate != nullptr) && (win->event_queue_check_drag) &&
-          BLI_rcti_isect_pt_v(&region->winrct, win->eventstate->prev_press_xy))
+      if ((win->runtime->eventstate != nullptr) && (win->event_queue_check_drag) &&
+          BLI_rcti_isect_pt_v(&region->winrct, win->runtime->eventstate->prev_press_xy))
       {
         /* We need to run refresh again. */
         gzgroup->init_flag &= ~WM_GIZMOGROUP_INIT_REFRESH;

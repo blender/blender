@@ -145,7 +145,7 @@ bool WM_stereo3d_enabled(wmWindow *win, bool skip_stereo3d_check)
   /* Some 3d methods change the window arrangement, thus they shouldn't
    * toggle on/off just because there is no 3d elements being drawn. */
   if (wm_stereo3d_is_fullscreen_required(eStereoDisplayMode(win->stereo3d_format->display_mode))) {
-    return GHOST_GetWindowState(static_cast<GHOST_WindowHandle>(win->ghostwin)) ==
+    return GHOST_GetWindowState(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin)) ==
            GHOST_kWindowStateFullScreen;
   }
 
@@ -156,7 +156,7 @@ bool WM_stereo3d_enabled(wmWindow *win, bool skip_stereo3d_check)
   /* Some 3d methods change the window arrangement, thus they shouldn't
    * toggle on/off just because there is no 3d elements being drawn. */
   if (wm_stereo3d_is_fullscreen_required(eStereoDisplayMode(win->stereo3d_format->display_mode))) {
-    return GHOST_GetWindowState(static_cast<GHOST_WindowHandle>(win->ghostwin)) ==
+    return GHOST_GetWindowState(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin)) ==
            GHOST_kWindowStateFullScreen;
   }
 

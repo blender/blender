@@ -306,7 +306,7 @@ static void menu_types_add_from_keymap_items(bContext *C,
   ListBase *handlers[] = {
       region ? &region->runtime->handlers : nullptr,
       area ? &area->handlers : nullptr,
-      &win->handlers,
+      &win->runtime->handlers,
   };
 
   for (int handler_index = 0; handler_index < ARRAY_SIZE(handlers); handler_index++) {
@@ -322,7 +322,8 @@ static void menu_types_add_from_keymap_items(bContext *C,
         continue;
       }
 
-      if (handler_base->poll == nullptr || handler_base->poll(win, area, region, win->eventstate))
+      if (handler_base->poll == nullptr ||
+          handler_base->poll(win, area, region, win->runtime->eventstate))
       {
         wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
         wmEventHandler_KeymapResult km_result;
@@ -1074,7 +1075,7 @@ static ARegion *ui_search_menu_create_tooltip(
 
   /* Place the fake button at the cursor so the tool-tip is places properly. */
   float tip_init[2];
-  const wmEvent *event = CTX_wm_window(C)->eventstate;
+  const wmEvent *event = CTX_wm_window(C)->runtime->eventstate;
   tip_init[0] = event->xy[0];
   tip_init[1] = event->xy[1] - (UI_UNIT_Y / 2);
   window_to_block_fl(region, block, &tip_init[0], &tip_init[1]);

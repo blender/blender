@@ -208,8 +208,8 @@ static void gizmo_mesh_placement_modal_from_setup(const bContext *C, wmGizmoGrou
       float mat3[3][3];
       float location[3];
       float mval[2] = {
-          float(win->eventstate->xy[0] - region->winrct.xmin),
-          float(win->eventstate->xy[1] - region->winrct.ymin),
+          float(win->runtime->eventstate->xy[0] - region->winrct.xmin),
+          float(win->runtime->eventstate->xy[1] - region->winrct.ymin),
       };
       calc_initial_placement_point_from_view((bContext *)C, mval, location, mat3);
       copy_m4_m3(gz->matrix_basis, mat3);
@@ -222,7 +222,7 @@ static void gizmo_mesh_placement_modal_from_setup(const bContext *C, wmGizmoGrou
                                     (bContext *)C,
                                     ggd->cage,
                                     ED_GIZMO_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z,
-                                    win->eventstate);
+                                    win->runtime->eventstate);
     }
   }
 }

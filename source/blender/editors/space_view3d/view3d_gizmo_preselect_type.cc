@@ -110,7 +110,7 @@ static void gizmo_preselect_elem_draw(const bContext *C, wmGizmo *gz)
 
 static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int mval[2])
 {
-  wmEvent *event = CTX_wm_window(C)->eventstate;
+  wmEvent *event = CTX_wm_window(C)->runtime->eventstate;
   MeshElemGizmo3D *gz_ele = (MeshElemGizmo3D *)gz;
 
   /* Hack: Switch action mode based on key input */
