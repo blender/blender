@@ -60,10 +60,8 @@ static VectorSet<std::string> join_vertex_groups(const Span<const Object *> obje
                                                  Mesh &dst_mesh)
 {
   VectorSet<std::string> vertex_group_names;
-  bool any_vertex_group_data = false;
   for (const int i : objects_to_join.index_range()) {
     const Mesh &mesh = *static_cast<const Mesh *>(objects_to_join[i]->data);
-    any_vertex_group_data |= CustomData_has_layer(&mesh.vert_data, CD_MDEFORMVERT);
     LISTBASE_FOREACH (const bDeformGroup *, dg, &mesh.vertex_group_names) {
       if (vertex_group_names.add_as(dg->name)) {
         BLI_addtail(&dst_mesh.vertex_group_names, BKE_defgroup_duplicate(dg));
@@ -71,7 +69,7 @@ static VectorSet<std::string> join_vertex_groups(const Span<const Object *> obje
     }
   }
 
-  if (!any_vertex_group_data) {
+  if (vertex_group_names.is_empty()) {
     return vertex_group_names;
   }
 
