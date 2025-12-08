@@ -114,8 +114,11 @@ struct wmEventHandler_Op {
   /** Operator can be NULL. */
   wmOperator *op;
 
-  /** Hack, special case for file-select. */
+  /** Workaround: special cases for file-select and XR. */
   bool is_fileselect;
+#ifdef WITH_XR_OPENXR
+  bool is_xr;
+#endif
 
   /** Store context for this handler for derived/modal handlers. */
   struct {

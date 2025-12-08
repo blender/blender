@@ -4021,7 +4021,29 @@ static void wm_event_handle_xrevent(bContext *C,
   CTX_wm_area_set(C, area);
   CTX_wm_region_set(C, region);
 
-  eHandlerActionFlag action = wm_handlers_do(C, event, &win->modalhandlers);
+  ListBase *modalhandlers = &win->modalhandlers;
+
+  /* Only process XR operator handlers to prevent interferences with main window handlers.
+   * NOTE: This is a stripped-down XR specific version of #wm_handlers_do_intern. Changes made
+   *       in that function might also need to be reproduced here. */
+  eHandlerActionFlag action = WM_HANDLER_CONTINUE;
+  LISTBASE_FOREACH (wmEventHandler *, handler_base, modalhandlers) {
+    if (handler_base->type == WM_HANDLER_TYPE_OP) {
+      BLI_assert((handler_base->flag & WM_HANDLER_DO_FREE) == 0);
+
+      if (handler_base->poll != nullptr && !handler_base->poll(win, area, region, event)) {
+        continue;
+      }
+
+      wmEventHandler_Op *op_handler = (wmEventHandler_Op *)handler_base;
+      if (op_handler->is_xr) {
+        action = wm_handler_operator_call(C, modalhandlers, handler_base, event, nullptr, nullptr);
+        break;
+      }
+    }
+  }
+
+  wm_event_handler_return_value_check(C, event, action);
 
   if ((action & WM_HANDLER_BREAK) == 0) {
     wmXrActionData *actiondata = static_cast<wmXrActionData *>(event->customdata);
@@ -4644,10 +4666,8 @@ static void WM_event_set_handler_flag(wmEventHandler *handler, const int flag)
 }
 #endif
 
-wmEventHandler_Op *WM_event_add_modal_handler_ex(wmWindow *win,
-                                                 ScrArea *area,
-                                                 ARegion *region,
-                                                 wmOperator *op)
+wmEventHandler_Op *WM_event_add_modal_handler_ex(
+    wmWindowManager *wm, wmWindow *win, ScrArea *area, ARegion *region, wmOperator *op)
 {
   wmEventHandler_Op *handler = MEM_callocN<wmEventHandler_Op>(__func__);
   handler->head.type = WM_HANDLER_TYPE_OP;
@@ -4667,6 +4687,11 @@ wmEventHandler_Op *WM_event_add_modal_handler_ex(wmWindow *win,
   handler->context.region = region;
   handler->context.region_type = handler->context.region ? handler->context.region->regiontype :
                                                            -1;
+#ifdef WITH_XR_OPENXR
+  handler->is_xr = (area == WM_xr_session_area_get(&wm->xr));
+#else
+  UNUSED_VARS(wm);
+#endif
 
   wm_handler_operator_insert(win, handler);
 
@@ -4679,10 +4704,11 @@ wmEventHandler_Op *WM_event_add_modal_handler_ex(wmWindow *win,
 
 wmEventHandler_Op *WM_event_add_modal_handler(bContext *C, wmOperator *op)
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
-  return WM_event_add_modal_handler_ex(win, area, region, op);
+  return WM_event_add_modal_handler_ex(wm, win, area, region, op);
 }
 
 void WM_event_remove_model_handler(ListBase *handlers, const wmOperator *op, const bool postpone)
