@@ -134,7 +134,7 @@ enum GPUBuiltinShader {
 
   /**
    * Draw a sRGB color space texture in 3D.
-   * Texture color space is assumed to match the framebuffer.
+   * Texture color space is assumed to match the frame-buffer.
    * Take a 3D position and a 2D texture coordinate for each vertex.
    *
    * \param image: uniform sampler2D
