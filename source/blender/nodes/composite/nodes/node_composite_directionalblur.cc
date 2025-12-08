@@ -31,7 +31,7 @@ static void cmp_node_directional_blur_declare(NodeDeclarationBuilder &b)
       .structure_type(StructureType::Dynamic);
   b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic).align_with_previous();
 
-  b.add_input<decl::Int>("Samples").default_value(1).min(1).max(32).description(
+  b.add_input<decl::Int>("Samples").default_value(1).min(1).max(29).description(
       "The number of samples used to compute the blur. The more samples the smoother the "
       "result, but at the expense of more compute time. The actual number of samples is two "
       "to the power of this input, so it increases exponentially");
@@ -249,7 +249,7 @@ class DirectionalBlurOperation : public NodeOperation {
 
   int get_samples()
   {
-    return math::clamp(this->get_input("Samples").get_single_value_default(1), 1, 32);
+    return math::clamp(this->get_input("Samples").get_single_value_default(1), 1, 29);
   }
 
   float2 get_center()
