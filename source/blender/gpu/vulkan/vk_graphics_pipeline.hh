@@ -87,10 +87,10 @@ struct VKGraphicsPipelineCreateInfoBuilder {
                               const VKGraphicsInfo::VertexIn &vertex_input_info,
                               VkPipeline vk_pipeline_base)
   {
-    build_graphics_pipeline_library(VK_GRAPHICS_PIPELINE_LIBRARY_VERTEX_INPUT_INTERFACE_BIT_EXT);
-    build_graphics_pipeline_vertex_input_lib(vk_pipeline_base);
-    build_input_assembly_state(vertex_input_info);
     const VKExtensions &extensions = device.extensions_get();
+    build_graphics_pipeline_library(VK_GRAPHICS_PIPELINE_LIBRARY_VERTEX_INPUT_INTERFACE_BIT_EXT);
+    build_graphics_pipeline_vertex_input_lib(vk_pipeline_base, extensions);
+    build_input_assembly_state(vertex_input_info);
     build_dynamic_state_for_vertex_input(extensions);
 
     if (!extensions.vertex_input_dynamic_state) {
@@ -171,7 +171,8 @@ struct VKGraphicsPipelineCreateInfoBuilder {
     vk_graphics_pipeline_create_info.basePipelineHandle = vk_pipeline_base;
   }
 
-  void build_graphics_pipeline_vertex_input_lib(VkPipeline vk_pipeline_base)
+  void build_graphics_pipeline_vertex_input_lib(VkPipeline vk_pipeline_base,
+                                                const VKExtensions &extensions)
   {
     vk_graphics_pipeline_create_info = {
         VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -180,7 +181,8 @@ struct VKGraphicsPipelineCreateInfoBuilder {
             VK_PIPELINE_CREATE_RETAIN_LINK_TIME_OPTIMIZATION_INFO_BIT_EXT,
         0,
         nullptr,
-        &vk_pipeline_vertex_input_state_create_info,
+        extensions.vertex_input_dynamic_state ? nullptr :
+                                                &vk_pipeline_vertex_input_state_create_info,
         &vk_pipeline_input_assembly_state_create_info,
         nullptr,
         nullptr,
