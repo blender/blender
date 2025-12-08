@@ -1065,7 +1065,8 @@ static bool rna_Window_modal_handler_skip(CollectionPropertyIterator * /*iter*/,
 static void rna_Window_modal_operators_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   wmWindow *window = static_cast<wmWindow *>(ptr->data);
-  rna_iterator_listbase_begin(iter, ptr, &window->modalhandlers, rna_Window_modal_handler_skip);
+  rna_iterator_listbase_begin(
+      iter, ptr, &window->runtime->modalhandlers, rna_Window_modal_handler_skip);
 }
 
 static PointerRNA rna_Window_modal_operators_get(CollectionPropertyIterator *iter)

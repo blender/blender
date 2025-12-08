@@ -2247,7 +2247,7 @@ static wmOperatorStatus wm_call_pie_menu_exec(bContext *C, wmOperator *op)
   char idname[BKE_ST_MAXNAME];
   RNA_string_get(op->ptr, "name", idname);
 
-  return blender::ui::pie_menu_invoke(C, idname, CTX_wm_window(C)->eventstate);
+  return blender::ui::pie_menu_invoke(C, idname, CTX_wm_window(C)->runtime->eventstate);
 }
 
 static void WM_OT_call_menu_pie(wmOperatorType *ot)

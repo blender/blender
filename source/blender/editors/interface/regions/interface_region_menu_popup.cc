@@ -416,8 +416,8 @@ static PopupBlockHandle *ui_popup_menu_create_impl(
 
   if (!but) {
     /* no button to start from, means we are a popup */
-    pup->mx = window->eventstate->xy[0];
-    pup->my = window->eventstate->xy[1];
+    pup->mx = window->runtime->eventstate->xy[0];
+    pup->my = window->runtime->eventstate->xy[1];
     pup->popup = true;
   }
   PopupBlockHandle *handle = popup_block_create(
@@ -426,7 +426,7 @@ static PopupBlockHandle *ui_popup_menu_create_impl(
   if (!but) {
     handle->popup = true;
 
-    popup_handlers_add(C, &window->modalhandlers, handle, 0);
+    popup_handlers_add(C, &window->runtime->modalhandlers, handle, 0);
     WM_event_add_mousemove(window);
   }
 
@@ -503,8 +503,8 @@ void popup_menu_end(bContext *C, PopupMenu *pup)
   wmWindow *window = CTX_wm_window(C);
 
   pup->popup = true;
-  pup->mx = window->eventstate->xy[0];
-  pup->my = window->eventstate->xy[1];
+  pup->mx = window->runtime->eventstate->xy[0];
+  pup->my = window->runtime->eventstate->xy[1];
 
   Button *but = nullptr;
   ARegion *butregion = nullptr;
@@ -517,7 +517,7 @@ void popup_menu_end(bContext *C, PopupMenu *pup)
       C, butregion, but, nullptr, block_func_POPUP, pup, nullptr, false);
   menu->popup = true;
 
-  popup_handlers_add(C, &window->modalhandlers, menu, 0);
+  popup_handlers_add(C, &window->runtime->modalhandlers, menu, 0);
   WM_event_add_mousemove(window);
 
   MEM_delete(pup);
@@ -680,7 +680,7 @@ void popup_block_invoke_ex(
   WorkspaceStatus status(C);
   status.item(" ", ICON_NONE);
 
-  popup_handlers_add(C, &window->modalhandlers, handle, 0);
+  popup_handlers_add(C, &window->runtime->modalhandlers, handle, 0);
   block_active_only_flagged_buttons(
       C, handle->region, static_cast<Block *>(handle->region->runtime->uiblocks.first));
   WM_event_add_mousemove(window);
@@ -715,7 +715,7 @@ void popup_block_ex(bContext *C,
   WorkspaceStatus status(C);
   status.item(" ", ICON_NONE);
 
-  popup_handlers_add(C, &window->modalhandlers, handle, 0);
+  popup_handlers_add(C, &window->runtime->modalhandlers, handle, 0);
   block_active_only_flagged_buttons(
       C, handle->region, static_cast<Block *>(handle->region->runtime->uiblocks.first));
   WM_event_add_mousemove(window);
@@ -861,7 +861,7 @@ void uiPupBlockOperator(bContext *C,
   handle->cancel_func = confirm_cancel_operator;
   handle->opcontext = opcontext;
 
-  popup_handlers_add(C, &window->modalhandlers, handle, 0);
+  popup_handlers_add(C, &window->runtime->modalhandlers, handle, 0);
   WM_event_add_mousemove(C);
 }
 #endif
@@ -873,7 +873,7 @@ void popup_block_close(bContext *C, wmWindow *win, Block *block)
     if (win) {
       const bScreen *screen = WM_window_get_active_screen(win);
 
-      popup_handlers_remove(&win->modalhandlers, block->handle);
+      popup_handlers_remove(&win->runtime->modalhandlers, block->handle);
       popup_block_free(C, block->handle);
 
       /* In the case we have nested popups,

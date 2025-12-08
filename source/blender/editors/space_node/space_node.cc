@@ -905,8 +905,8 @@ static void node_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 
   /* convert mouse coordinates to v2d space */
   ui::view2d_region_to_view(&region->v2d,
-                            win->eventstate->xy[0] - region->winrct.xmin,
-                            win->eventstate->xy[1] - region->winrct.ymin,
+                            win->runtime->eventstate->xy[0] - region->winrct.xmin,
+                            win->runtime->eventstate->xy[1] - region->winrct.ymin,
                             &snode->runtime->cursor[0],
                             &snode->runtime->cursor[1]);
 

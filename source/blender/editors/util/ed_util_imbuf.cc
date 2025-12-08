@@ -405,7 +405,7 @@ void ED_imbuf_sample_draw(const bContext *C, ARegion *region, void *arg_info)
     if (area && area->spacetype == SPACE_IMAGE) {
 
       const wmWindow *win = CTX_wm_window(C);
-      const wmEvent *event = win->eventstate;
+      const wmEvent *event = win->runtime->eventstate;
 
       SpaceImage *sima = CTX_wm_space_image(C);
       GPUVertFormat *format = immVertexFormat();

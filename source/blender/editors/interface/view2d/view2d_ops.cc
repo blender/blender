@@ -552,7 +552,7 @@ static wmOperatorStatus view_scrolldown_exec(bContext *C, wmOperator *op)
 
   const wmWindow *win = CTX_wm_window(C);
   vpd->do_category_scroll = ED_region_panel_category_gutter_isect_xy(vpd->region,
-                                                                     win->eventstate->xy);
+                                                                     win->runtime->eventstate->xy);
 
   /* set RNA-Props */
   RNA_int_set(op->ptr, "deltax", 0);
@@ -607,7 +607,7 @@ static wmOperatorStatus view_scrollup_exec(bContext *C, wmOperator *op)
 
   const wmWindow *win = CTX_wm_window(C);
   vpd->do_category_scroll = ED_region_panel_category_gutter_isect_xy(vpd->region,
-                                                                     win->eventstate->xy);
+                                                                     win->runtime->eventstate->xy);
 
   /* set RNA-Props */
   RNA_int_set(op->ptr, "deltax", 0);
@@ -1870,7 +1870,7 @@ static short scrollbar_zone_get(int mouse, int sh_min, int sh_max)
 static bool scroller_activate_poll(bContext *C)
 {
   const wmWindow *win = CTX_wm_window(C);
-  if (!(win && win->eventstate)) {
+  if (!(win && win->runtime->eventstate)) {
     return false;
   }
   if (!view2d_poll(C)) {
@@ -1879,7 +1879,7 @@ static bool scroller_activate_poll(bContext *C)
   ARegion *region = CTX_wm_region(C);
   View2D *v2d = &region->v2d;
   /* Check if mouse in scroll-bars, if they're enabled. */
-  return (view2d_mouse_in_scrollers(region, v2d, win->eventstate->xy) != 0);
+  return (view2d_mouse_in_scrollers(region, v2d, win->runtime->eventstate->xy) != 0);
 }
 
 /* Initialize #wmOperator.customdata for scroller manipulation operator. */

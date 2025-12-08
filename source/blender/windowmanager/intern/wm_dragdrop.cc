@@ -332,7 +332,8 @@ void wm_drags_exit(wmWindowManager *wm, wmWindow *win)
 
   /* Active area should always redraw, even if canceled. */
   int event_xy_target[2];
-  wmWindow *target_win = WM_window_find_under_cursor(win, win->eventstate->xy, event_xy_target);
+  wmWindow *target_win = WM_window_find_under_cursor(
+      win, win->runtime->eventstate->xy, event_xy_target);
   if (target_win) {
     const bScreen *screen = WM_window_get_active_screen(target_win);
     ED_region_tag_redraw_no_rebuild(screen->active_region);
@@ -531,7 +532,7 @@ static wmDropBox *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *ev
     }
   }
   if (!drop) {
-    drop = dropbox_active(C, &win->handlers, drag, event);
+    drop = dropbox_active(C, &win->runtime->handlers, drag, event);
   }
   return drop;
 }
@@ -1246,7 +1247,7 @@ void WM_drag_draw_default_fn(bContext *C, wmWindow *win, wmDrag *drag, const int
 
 void wm_drags_draw(bContext *C, wmWindow *win)
 {
-  const int *xy = win->eventstate->xy;
+  const int *xy = win->runtime->eventstate->xy;
 
   int xy_buf[2];
   if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide) &&

@@ -197,10 +197,10 @@ static bool uiTemplateInputStatusBorder(wmWindow *win, Layout *row)
   const int pad = int((3.0f * UI_SCALE_FAC) + U.pixelsize);
   WM_window_screen_rect_calc(win, &win_rect);
   BLI_rcti_pad(&win_rect, pad * -2, pad);
-  if (BLI_rcti_isect_pt_v(&win_rect, win->eventstate->xy)) {
+  if (BLI_rcti_isect_pt_v(&win_rect, win->runtime->eventstate->xy)) {
     /* Show options but not along left and right edges. */
     BLI_rcti_pad(&win_rect, 0, pad * -3);
-    if (BLI_rcti_isect_pt_v(&win_rect, win->eventstate->xy)) {
+    if (BLI_rcti_isect_pt_v(&win_rect, win->runtime->eventstate->xy)) {
       /* No resize at top and bottom. */
       row->label(nullptr, ICON_MOUSE_LMB_DRAG);
       row->separator(-0.2f);
@@ -302,7 +302,7 @@ void uiTemplateInputStatus(Layout *layout, bContext *C)
     /* Check if over an action zone. */
     LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
       LISTBASE_FOREACH (AZone *, az, &area_iter->actionzones) {
-        if (BLI_rcti_isect_pt_v(&az->rect, win->eventstate->xy)) {
+        if (BLI_rcti_isect_pt_v(&az->rect, win->runtime->eventstate->xy)) {
           region = az->region;
           if (uiTemplateInputStatusAzone(&row, az, region)) {
             return;
@@ -313,11 +313,11 @@ void uiTemplateInputStatus(Layout *layout, bContext *C)
     }
   }
 
-  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, win->eventstate->xy);
+  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, win->runtime->eventstate->xy);
   if (!area) {
     /* Are we in a global area? */
     LISTBASE_FOREACH (ScrArea *, global_area, &win->global_areas.areabase) {
-      if (BLI_rcti_isect_pt_v(&global_area->totrct, win->eventstate->xy)) {
+      if (BLI_rcti_isect_pt_v(&global_area->totrct, win->runtime->eventstate->xy)) {
         area = global_area;
         break;
       }

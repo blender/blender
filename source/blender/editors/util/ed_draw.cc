@@ -671,8 +671,8 @@ void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *region, void *arg_
   wmWindow *win = CTX_wm_window(C);
   const float *mval_src = (float *)arg_info;
   const float mval_dst[2] = {
-      float(win->eventstate->xy[0] - region->winrct.xmin),
-      float(win->eventstate->xy[1] - region->winrct.ymin),
+      float(win->runtime->eventstate->xy[0] - region->winrct.xmin),
+      float(win->runtime->eventstate->xy[1] - region->winrct.ymin),
   };
 
   const uint shdr_pos = GPU_vertformat_attr_add(

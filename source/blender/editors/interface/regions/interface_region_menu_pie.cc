@@ -171,7 +171,7 @@ void pie_menu_end(bContext *C, PieMenu *pie)
   menu->popup = true;
   menu->towardstime = BLI_time_now_seconds();
 
-  popup_handlers_add(C, &window->modalhandlers, menu, WM_HANDLER_ACCEPT_DBL_CLICK);
+  popup_handlers_add(C, &window->runtime->modalhandlers, menu, WM_HANDLER_ACCEPT_DBL_CLICK);
   WM_event_add_mousemove(window);
 
   MEM_freeN(pie);
@@ -246,7 +246,7 @@ static void ui_pie_menu_level_invoke(bContext *C, void *argN, void *arg2)
   PieMenuLevelData *lvl = (PieMenuLevelData *)arg2;
   wmWindow *win = CTX_wm_window(C);
 
-  PieMenu *pie = pie_menu_begin(C, IFACE_(lvl->title), lvl->icon, win->eventstate);
+  PieMenu *pie = pie_menu_begin(C, IFACE_(lvl->title), lvl->icon, win->runtime->eventstate);
   Layout &layout = pie_menu_layout(pie)->menu_pie();
 
   PointerRNA ptr = WM_operator_properties_create_ptr(lvl->ot);

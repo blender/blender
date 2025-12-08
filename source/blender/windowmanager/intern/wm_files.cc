@@ -235,8 +235,8 @@ static BlendFileReadWMSetupData *wm_file_read_setup_wm_init(bContext *C,
   wmWindow *active_win = CTX_wm_window(C);
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     CTX_wm_window_set(C, win); /* Needed by operator close callbacks. */
-    WM_event_remove_handlers(C, &win->handlers);
-    WM_event_remove_handlers(C, &win->modalhandlers);
+    WM_event_remove_handlers(C, &win->runtime->handlers);
+    WM_event_remove_handlers(C, &win->runtime->modalhandlers);
     ED_screen_exit(C, win, WM_window_get_active_screen(win));
   }
   /* Reset active window. */
@@ -279,8 +279,8 @@ static void wm_file_read_setup_wm_substitute_old_window(wmWindowManager *oldwm,
                                                         wmWindow *oldwin,
                                                         wmWindow *win)
 {
-  win->ghostwin = oldwin->ghostwin;
-  win->gpuctx = oldwin->gpuctx;
+  win->runtime->ghostwin = oldwin->runtime->ghostwin;
+  win->runtime->gpuctx = oldwin->runtime->gpuctx;
   win->active = oldwin->active;
   if (win->active) {
     wm->runtime->winactive = win;
@@ -293,16 +293,16 @@ static void wm_file_read_setup_wm_substitute_old_window(wmWindowManager *oldwm,
   /* File loading in background mode still calls this. */
   if (!G.background) {
     /* Pointer back. */
-    GHOST_SetWindowUserData(static_cast<GHOST_WindowHandle>(win->ghostwin), win);
+    GHOST_SetWindowUserData(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin), win);
   }
 
-  oldwin->ghostwin = nullptr;
-  oldwin->gpuctx = nullptr;
+  oldwin->runtime->ghostwin = nullptr;
+  oldwin->runtime->gpuctx = nullptr;
 
-  win->eventstate = oldwin->eventstate;
-  win->event_last_handled = oldwin->event_last_handled;
-  oldwin->eventstate = nullptr;
-  oldwin->event_last_handled = nullptr;
+  win->runtime->eventstate = oldwin->runtime->eventstate;
+  win->runtime->event_last_handled = oldwin->runtime->event_last_handled;
+  oldwin->runtime->eventstate = nullptr;
+  oldwin->runtime->event_last_handled = nullptr;
 
   /* Ensure proper screen re-scaling. */
   win->sizex = oldwin->sizex;
@@ -2369,7 +2369,7 @@ void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer * /*wt*/)
   /* If a modal operator is running, don't autosave because we might not be in
    * a valid state to save. But try again in 10ms. */
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->modalhandlers) {
+    LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->runtime->modalhandlers) {
       if (handler_base->type == WM_HANDLER_TYPE_OP) {
         wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
         if (handler->op) {

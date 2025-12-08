@@ -2219,7 +2219,7 @@ static int ui_panel_drag_collapse_handler(bContext *C, const wmEvent *event, voi
     case LEFTMOUSE:
       if (event->val == KM_RELEASE) {
         /* Done! */
-        WM_event_remove_ui_handler(&win->modalhandlers,
+        WM_event_remove_ui_handler(&win->runtime->modalhandlers,
                                    ui_panel_drag_collapse_handler,
                                    ui_panel_drag_collapse_handler_remove,
                                    dragcol_data,
@@ -2240,14 +2240,14 @@ static int ui_panel_drag_collapse_handler(bContext *C, const wmEvent *event, voi
 void panel_drag_collapse_handler_add(const bContext *C, const bool was_open)
 {
   wmWindow *win = CTX_wm_window(C);
-  const wmEvent *event = win->eventstate;
+  const wmEvent *event = win->runtime->eventstate;
   PanelDragCollapseHandle *dragcol_data = MEM_callocN<PanelDragCollapseHandle>(__func__);
 
   dragcol_data->was_first_open = was_open;
   copy_v2_v2_int(dragcol_data->xy_init, event->xy);
 
   WM_event_add_ui_handler(C,
-                          &win->modalhandlers,
+                          &win->runtime->modalhandlers,
                           ui_panel_drag_collapse_handler,
                           ui_panel_drag_collapse_handler_remove,
                           dragcol_data,
@@ -2845,7 +2845,7 @@ static void panel_handle_data_ensure(const bContext *C,
   if (panel->activedata == nullptr) {
     panel->activedata = MEM_callocN(sizeof(HandlePanelData), __func__);
     WM_event_add_ui_handler(C,
-                            &win->modalhandlers,
+                            &win->runtime->modalhandlers,
                             ui_handler_panel,
                             ui_handler_remove_panel,
                             panel,
@@ -2861,8 +2861,8 @@ static void panel_handle_data_ensure(const bContext *C,
   }
 
   data->state = state;
-  data->startx = win->eventstate->xy[0];
-  data->starty = win->eventstate->xy[1];
+  data->startx = win->runtime->eventstate->xy[0];
+  data->starty = win->runtime->eventstate->xy[1];
   data->startofsx = panel->ofsx;
   data->startofsy = panel->ofsy;
   data->start_cur_xmin = region->v2d.cur.xmin;
@@ -2916,7 +2916,7 @@ static void panel_activate_state(const bContext *C, Panel *panel, const HandlePa
     panel->activedata = nullptr;
 
     WM_event_remove_ui_handler(
-        &win->modalhandlers, ui_handler_panel, ui_handler_remove_panel, panel, false);
+        &win->runtime->modalhandlers, ui_handler_panel, ui_handler_remove_panel, panel, false);
   }
 
   ED_region_tag_redraw(region);

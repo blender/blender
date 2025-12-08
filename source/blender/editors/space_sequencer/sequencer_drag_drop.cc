@@ -257,8 +257,8 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
       /* We didn't read the mouse position, so we need to do it manually here. */
       int xy[2];
       wmWindow *win = CTX_wm_window(C);
-      xy[0] = win->eventstate->xy[0];
-      xy[1] = win->eventstate->xy[1];
+      xy[0] = win->runtime->eventstate->xy[0];
+      xy[1] = win->runtime->eventstate->xy[1];
 
       ARegion *region = CTX_wm_region(C);
       int mval[2];

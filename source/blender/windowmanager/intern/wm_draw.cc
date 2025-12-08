@@ -86,7 +86,7 @@ static bool wm_window_grab_warp_region_is_set(const wmWindow *win)
     GHOST_TAxisFlag wrap_axis_dummy;
     int bounds[4] = {0};
     bool use_software_cursor_dummy = false;
-    GHOST_GetCursorGrabState(static_cast<GHOST_WindowHandle>(win->ghostwin),
+    GHOST_GetCursorGrabState(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin),
                              &mode_dummy,
                              &wrap_axis_dummy,
                              bounds,
@@ -145,7 +145,7 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
        * cursor coordinates so limit reading the cursor location to when the cursor is grabbed and
        * wrapping in a region since this is the case when it would otherwise attempt to draw the
        * cursor outside the view/window. See: #102792. */
-      const int *xy = win->eventstate->xy;
+      const int *xy = win->runtime->eventstate->xy;
       int xy_buf[2];
       if ((WM_capabilities_flag() & WM_CAPABILITY_CURSOR_WARP) &&
           wm_window_grab_warp_region_is_set(win) &&
@@ -154,7 +154,7 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
         xy = xy_buf;
       }
 
-      pc->draw(C, xy, win->eventstate->tablet.tilt, pc->customdata);
+      pc->draw(C, xy, win->runtime->eventstate->tablet.tilt, pc->customdata);
       GPU_scissor_test(false);
     }
   }
@@ -199,11 +199,11 @@ static bool wm_software_cursor_needed()
 static bool wm_software_cursor_needed_for_window(const wmWindow *win, GrabState *grab_state)
 {
   BLI_assert(wm_software_cursor_needed());
-  if (GHOST_GetCursorVisibility(static_cast<GHOST_WindowHandle>(win->ghostwin))) {
+  if (GHOST_GetCursorVisibility(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin))) {
     /* NOTE: The value in `win->grabcursor` can't be used as it
      * doesn't always match GHOST's value in the case of tablet events. */
     bool use_software_cursor;
-    GHOST_GetCursorGrabState(static_cast<GHOST_WindowHandle>(win->ghostwin),
+    GHOST_GetCursorGrabState(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin),
                              &grab_state->mode,
                              &grab_state->wrap_axis,
                              grab_state->bounds,
@@ -218,16 +218,16 @@ static bool wm_software_cursor_needed_for_window(const wmWindow *win, GrabState 
 static bool wm_software_cursor_motion_test(const wmWindow *win)
 {
   return (g_software_cursor.winid != win->winid) ||
-         (g_software_cursor.xy[0] != win->eventstate->xy[0]) ||
-         (g_software_cursor.xy[1] != win->eventstate->xy[1]);
+         (g_software_cursor.xy[0] != win->runtime->eventstate->xy[0]) ||
+         (g_software_cursor.xy[1] != win->runtime->eventstate->xy[1]);
 }
 
 static void wm_software_cursor_motion_update(const wmWindow *win)
 {
 
   g_software_cursor.winid = win->winid;
-  g_software_cursor.xy[0] = win->eventstate->xy[0];
-  g_software_cursor.xy[1] = win->eventstate->xy[1];
+  g_software_cursor.xy[0] = win->runtime->eventstate->xy[0];
+  g_software_cursor.xy[1] = win->runtime->eventstate->xy[1];
 }
 
 static void wm_software_cursor_motion_clear()
@@ -369,7 +369,7 @@ static void wm_software_cursor_draw_crosshair(const float system_scale, const in
 
 static void wm_software_cursor_draw(wmWindow *win, const GrabState *grab_state)
 {
-  int event_xy[2] = {UNPACK2(win->eventstate->xy)};
+  int event_xy[2] = {UNPACK2(win->runtime->eventstate->xy)};
 
   if (grab_state->wrap_axis & GHOST_kAxisX) {
     const int min = grab_state->bounds[0];
@@ -390,7 +390,7 @@ static void wm_software_cursor_draw(wmWindow *win, const GrabState *grab_state)
   const float system_scale = WM_window_dpi_get_scale(win);
 
   GHOST_CursorBitmapRef bitmap = {nullptr};
-  if (GHOST_GetCursorBitmap(static_cast<GHOST_WindowHandle>(win->ghostwin), &bitmap) ==
+  if (GHOST_GetCursorBitmap(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin), &bitmap) ==
       GHOST_kSuccess)
   {
     wm_software_cursor_draw_bitmap(system_scale, event_xy, &bitmap);
@@ -1187,7 +1187,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   }
 
   /* Always draw, not only when screen tagged. */
-  if (win->gesture.first) {
+  if (win->runtime->gesture.first) {
     wm_gesture_draw(win);
     wmWindowViewport(win);
   }
@@ -1215,7 +1215,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
 
 static void wm_draw_window(bContext *C, wmWindow *win)
 {
-  GPU_context_begin_frame(static_cast<GPUContext *>(win->gpuctx));
+  GPU_context_begin_frame(static_cast<GPUContext *>(win->runtime->gpuctx));
 
   bScreen *screen = WM_window_get_active_screen(win);
   bool stereo = WM_stereo3d_enabled(win, false);
@@ -1293,7 +1293,7 @@ static void wm_draw_window(bContext *C, wmWindow *win)
 
   screen->do_draw = false;
 
-  GPU_context_end_frame(static_cast<GPUContext *>(win->gpuctx));
+  GPU_context_end_frame(static_cast<GPUContext *>(win->runtime->gpuctx));
 }
 
 /**
@@ -1338,8 +1338,8 @@ uint8_t *WM_window_pixels_read_from_frontbuffer(const wmWindowManager *wm,
   bool setup_context = wm->runtime->windrawable != win;
 
   if (setup_context) {
-    GHOST_ActivateWindowDrawingContext(static_cast<GHOST_WindowHandle>(win->ghostwin));
-    GPU_context_active_set(static_cast<GPUContext *>(win->gpuctx));
+    GHOST_ActivateWindowDrawingContext(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin));
+    GPU_context_active_set(static_cast<GPUContext *>(win->runtime->gpuctx));
   }
 
   const blender::int2 win_size = WM_window_native_pixel_size(win);
@@ -1351,8 +1351,8 @@ uint8_t *WM_window_pixels_read_from_frontbuffer(const wmWindowManager *wm,
   if (setup_context) {
     if (wm->runtime->windrawable) {
       GHOST_ActivateWindowDrawingContext(
-          static_cast<GHOST_WindowHandle>(wm->runtime->windrawable->ghostwin));
-      GPU_context_active_set(static_cast<GPUContext *>(wm->runtime->windrawable->gpuctx));
+          static_cast<GHOST_WindowHandle>(wm->runtime->windrawable->runtime->ghostwin));
+      GPU_context_active_set(static_cast<GPUContext *>(wm->runtime->windrawable->runtime->gpuctx));
     }
   }
 
@@ -1377,8 +1377,8 @@ void WM_window_pixels_read_sample_from_frontbuffer(const wmWindowManager *wm,
   bool setup_context = wm->runtime->windrawable != win;
 
   if (setup_context) {
-    GHOST_ActivateWindowDrawingContext(static_cast<GHOST_WindowHandle>(win->ghostwin));
-    GPU_context_active_set(static_cast<GPUContext *>(win->gpuctx));
+    GHOST_ActivateWindowDrawingContext(static_cast<GHOST_WindowHandle>(win->runtime->ghostwin));
+    GPU_context_active_set(static_cast<GPUContext *>(win->runtime->gpuctx));
   }
 
   /* NOTE(@jbakker): Vulkan backend isn't able to read 3 channels from a 4 channel texture with
@@ -1394,8 +1394,8 @@ void WM_window_pixels_read_sample_from_frontbuffer(const wmWindowManager *wm,
   if (setup_context) {
     if (wm->runtime->windrawable) {
       GHOST_ActivateWindowDrawingContext(
-          static_cast<GHOST_WindowHandle>(wm->runtime->windrawable->ghostwin));
-      GPU_context_active_set(static_cast<GPUContext *>(wm->runtime->windrawable->gpuctx));
+          static_cast<GHOST_WindowHandle>(wm->runtime->windrawable->runtime->ghostwin));
+      GPU_context_active_set(static_cast<GPUContext *>(wm->runtime->windrawable->runtime->gpuctx));
     }
   }
 }
@@ -1636,7 +1636,7 @@ void wm_draw_update(bContext *C)
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
 #ifdef WIN32
     GHOST_TWindowState state = GHOST_GetWindowState(
-        static_cast<GHOST_WindowHandle>(win->ghostwin));
+        static_cast<GHOST_WindowHandle>(win->runtime->ghostwin));
 
     if (state == GHOST_kWindowStateMinimized) {
       /* Do not update minimized windows, gives issues on Intel (see #33223)

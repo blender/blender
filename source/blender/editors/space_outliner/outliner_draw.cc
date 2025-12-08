@@ -182,7 +182,7 @@ static void restrictbutton_bone_visibility_fn(bContext *C, void *poin, void *poi
 {
   const Object *ob = (Object *)poin;
   bPoseChannel *pchan = (bPoseChannel *)poin2;
-  if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
+  if (CTX_wm_window(C)->runtime->eventstate->modifier & KM_SHIFT) {
     blender::animrig::pose_bone_descendent_iterator(
         *ob->pose, *pchan, [&](bPoseChannel &descendent) {
           if (pchan->drawflag & PCHAN_DRAW_HIDDEN) {
@@ -204,7 +204,7 @@ static void restrictbutton_bone_select_fn(bContext *C, void *poin, void *poin2)
     bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
   }
 
-  if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
+  if (CTX_wm_window(C)->runtime->eventstate->modifier & KM_SHIFT) {
     restrictbutton_recursive_bone(bone, BONE_UNSELECTABLE, (bone->flag & BONE_UNSELECTABLE) != 0);
   }
 
@@ -221,7 +221,7 @@ static void restrictbutton_ebone_select_fn(bContext *C, void *poin, void *poin2)
     ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
   }
 
-  if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
+  if (CTX_wm_window(C)->runtime->eventstate->modifier & KM_SHIFT) {
     restrictbutton_recursive_ebone(
         arm, ebone, BONE_UNSELECTABLE, (ebone->flag & BONE_UNSELECTABLE) != 0);
   }
@@ -237,7 +237,7 @@ static void restrictbutton_ebone_visibility_fn(bContext *C, void *poin, void *po
     ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
   }
 
-  if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
+  if (CTX_wm_window(C)->runtime->eventstate->modifier & KM_SHIFT) {
     restrictbutton_recursive_ebone(arm, ebone, BONE_HIDDEN_A, (ebone->flag & BONE_HIDDEN_A) != 0);
   }
 
@@ -276,7 +276,7 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  bool extend = (win->eventstate->modifier & KM_SHIFT);
+  bool extend = (win->runtime->eventstate->modifier & KM_SHIFT);
 
   if (!extend) {
     return;
@@ -618,8 +618,8 @@ static void outliner_collection_set_flag_recursive_fn(bContext *C,
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  bool do_isolate = (win->eventstate->modifier & KM_CTRL);
-  bool extend = (win->eventstate->modifier & KM_SHIFT);
+  bool do_isolate = (win->runtime->eventstate->modifier & KM_CTRL);
+  bool extend = (win->runtime->eventstate->modifier & KM_SHIFT);
 
   if (!ELEM(true, do_isolate, extend)) {
     return;
@@ -2214,7 +2214,7 @@ static void outliner_mode_toggle_fn(bContext *C, void *tselem_poin, void * /*arg
   const bool object_data_shared = (ob->data == tvc.obact->data);
 
   wmWindow *win = CTX_wm_window(C);
-  const bool do_extend = (win->eventstate->modifier & KM_CTRL) && !object_data_shared;
+  const bool do_extend = (win->runtime->eventstate->modifier & KM_CTRL) && !object_data_shared;
   outliner_item_mode_toggle(C, tvc, te, do_extend);
 }
 

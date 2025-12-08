@@ -432,9 +432,9 @@ static wmOperatorStatus wm_macro_modal(bContext *C, wmOperator *op, const wmEven
         wmEventHandler_Op *handler;
 
         handler = static_cast<wmEventHandler_Op *>(
-            BLI_findptr(&win->modalhandlers, op, offsetof(wmEventHandler_Op, op)));
+            BLI_findptr(&win->runtime->modalhandlers, op, offsetof(wmEventHandler_Op, op)));
         if (handler) {
-          BLI_remlink(&win->modalhandlers, handler);
+          BLI_remlink(&win->runtime->modalhandlers, handler);
           wm_event_free_handler(&handler->head);
         }
 

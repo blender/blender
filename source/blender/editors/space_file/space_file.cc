@@ -593,7 +593,7 @@ static void file_main_region_draw(const bContext *C, ARegion *region)
 
   /* on first read, find active file */
   if (params->highlight_file == -1) {
-    const wmEvent *event = CTX_wm_window(C)->eventstate;
+    const wmEvent *event = CTX_wm_window(C)->runtime->eventstate;
     file_highlight_set(sfile, region, event->xy[0], event->xy[1]);
   }
 

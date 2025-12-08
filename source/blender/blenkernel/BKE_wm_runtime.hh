@@ -11,10 +11,9 @@
 struct UndoStack;
 struct wmMsgBus;
 struct wmKeyConfig;
+struct wmEvent;
 struct wmWindow;
-#ifdef WITH_INPUT_IME
 struct wmIMEData;
-#endif
 
 #include "BKE_report.hh"
 
@@ -112,14 +111,62 @@ struct WindowRuntime {
   /** All events #wmEvent (ghost level events were handled). */
   ListBase event_queue = {nullptr, nullptr};
 
-#ifdef WITH_INPUT_IME
   /**
    * Input Method Editor data - complex character input (especially for Asian character input)
    * Only used when `WITH_INPUT_IME` is defined.
    */
   wmIMEData *ime_data = nullptr;
   bool ime_data_is_composing = false;
-#endif
+
+  /** Don't want to include ghost.h stuff. */
+  void *ghostwin = nullptr;
+
+  /** Don't want to include gpu stuff. */
+  void *gpuctx = nullptr;
+
+  /** Window+screen handlers, handled last. */
+  ListBase handlers = {nullptr, nullptr};
+
+  /** Priority handlers, handled first. */
+  ListBase modalhandlers = {nullptr, nullptr};
+
+  /** Gesture stuff. */
+  ListBase gesture = {nullptr, nullptr};
+
+  /**
+   * Keep the last handled event in `event_queue` here (owned and must be freed).
+   *
+   * \warning This must only to be used for event queue logic.
+   * User interactions should use `eventstate` instead (if the event isn't passed to the function).
+   */
+  wmEvent *event_last_handled = nullptr;
+
+  /**
+   * Storage for event system.
+   *
+   * For the most part this is storage for `wmEvent.xy` & `wmEvent.modifiers`.
+   * newly added key/button events copy the cursor location and modifier state stored here.
+   *
+   * It's also convenient at times to be able to pass this as if it's a regular event.
+   *
+   * - This is not simply the current event being handled.
+   *   The type and value is always set to the last press/release events
+   *   otherwise cursor motion would always clear these values.
+   *
+   * - The value of `eventstate->modifiers` is set from the last pressed/released modifier key.
+   *   This has the down side that the modifier value will be incorrect if users hold both
+   *   left/right modifiers then release one. See note in #wm_event_add_ghostevent for details.
+   */
+  wmEvent *eventstate = nullptr;
+
+  /**
+   * The time when the key is pressed in milliseconds (see #GHOST_GetEventTime).
+   * Used to detect double-click events.
+   */
+  uint64_t eventstate_prev_press_time_ms = 0;
+
+  /** Private runtime info to show text in the status bar. */
+  void *cursor_keymap_status = nullptr;
 
   WindowRuntime() = default;
   ~WindowRuntime();

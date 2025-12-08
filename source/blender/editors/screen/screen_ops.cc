@@ -823,10 +823,10 @@ struct sActionzoneData {
 static bool actionzone_area_poll(bContext *C)
 {
   wmWindow *win = CTX_wm_window(C);
-  if (win && win->eventstate) {
+  if (win && win->runtime->eventstate) {
     bScreen *screen = WM_window_get_active_screen(win);
     if (screen) {
-      const int *xy = &win->eventstate->xy[0];
+      const int *xy = &win->runtime->eventstate->xy[0];
 
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (AZone *, az, &area->actionzones) {

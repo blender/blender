@@ -2099,7 +2099,7 @@ void ED_area_update_region_sizes(wmWindowManager *wm, wmWindow *win, ScrArea *ar
     /* Some AZones use View2D data which is only updated in region init, so call that first! */
     region_azones_add(screen, area, region);
   }
-  ED_area_azones_update(area, win->eventstate->xy);
+  ED_area_azones_update(area, win->runtime->eventstate->xy);
 
   area->flag &= ~AREA_FLAG_REGION_SIZE_UPDATE;
 }

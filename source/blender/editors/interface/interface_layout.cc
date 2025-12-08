@@ -592,7 +592,7 @@ static void ui_layer_but_cb(bContext *C, void *arg_but, void *arg_index)
   PointerRNA *ptr = &but->rnapoin;
   PropertyRNA *prop = but->rnaprop;
   const int index = POINTER_AS_INT(arg_index);
-  const bool shift = win->eventstate->modifier & KM_SHIFT;
+  const bool shift = win->runtime->eventstate->modifier & KM_SHIFT;
   const int len = RNA_property_array_length(ptr, prop);
 
   if (!shift) {
@@ -841,7 +841,7 @@ static void ui_item_enum_expand_handle(bContext *C, void *arg1, void *arg2)
 {
   wmWindow *win = CTX_wm_window(C);
 
-  if ((win->eventstate->modifier & KM_SHIFT) == 0) {
+  if ((win->runtime->eventstate->modifier & KM_SHIFT) == 0) {
     Button *but = (Button *)arg1;
     const int enum_value = POINTER_AS_INT(arg2);
 

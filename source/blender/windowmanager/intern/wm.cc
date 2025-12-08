@@ -167,17 +167,6 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
 
     BKE_screen_area_map_blend_read_data(reader, &win->global_areas);
 
-    win->ghostwin = nullptr;
-    win->gpuctx = nullptr;
-    win->eventstate = nullptr;
-    win->eventstate_prev_press_time_ms = 0;
-    win->event_last_handled = nullptr;
-    win->cursor_keymap_status = nullptr;
-
-    BLI_listbase_clear(&win->handlers);
-    BLI_listbase_clear(&win->modalhandlers);
-    BLI_listbase_clear(&win->gesture);
-
     win->active = 0;
 
     win->cursor = 0;
@@ -400,7 +389,7 @@ void WM_operator_handlers_clear(wmWindowManager *wm, const Set<wmOperatorType *>
   }
 
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    ListBase *lb[2] = {&win->handlers, &win->modalhandlers};
+    ListBase *lb[2] = {&win->runtime->handlers, &win->runtime->modalhandlers};
     for (int i = 0; i < ARRAY_SIZE(lb); i++) {
       LISTBASE_FOREACH (wmEventHandler *, handler_base, lb[i]) {
         if (handler_base->type == WM_HANDLER_TYPE_OP) {
