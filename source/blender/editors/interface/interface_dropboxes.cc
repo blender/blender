@@ -44,8 +44,9 @@ static bool ui_view_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
   const char *disabled_info = "";
   const bool can_drop = drop_target->can_drop(*drag, &disabled_info);
 
-  drag->drop_state.disabled_info = disabled_info;
-
+  if (disabled_info) {
+    drag->drop_state.disabled_info = disabled_info;
+  }
   return can_drop;
 }
 

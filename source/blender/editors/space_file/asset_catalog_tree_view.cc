@@ -522,7 +522,6 @@ bool AssetCatalogDropTarget::has_droppable_asset(const wmDrag &drag, const char 
 {
   const ListBase *asset_drags = WM_drag_asset_list_get(&drag);
 
-  *r_disabled_hint = nullptr;
   /* There needs to be at least one asset from the current file. */
   LISTBASE_FOREACH (const wmDragAssetListItem *, asset_item, asset_drags) {
     if (!asset_item->is_external) {
