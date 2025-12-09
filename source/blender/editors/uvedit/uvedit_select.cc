@@ -6899,6 +6899,116 @@ void UV_OT_select_mode(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
+static wmOperatorStatus uv_select_tile_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  const ToolSettings *ts = scene->toolsettings;
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      scene, view_layer, nullptr);
+
+  blender::int2 tile;
+  RNA_int_get_array(op->ptr, "tile", tile);
+  const rctf tile_rect = {
+      /*xmin*/ float(tile.x),
+      /*xmax*/ float(tile.x + 1),
+      /*ymin*/ float(tile.y),
+      /*ymax*/ float(tile.y + 1),
+  };
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
+
+  for (Object *ob : objects) {
+    BMEditMesh *em = BKE_editmesh_from_object(ob);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
+
+    bool changed = false;
+    if (!extend) {
+      ED_uvedit_deselect_all(scene, ob, SEL_DESELECT);
+      changed = true;
+    }
+
+    if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
+      uvedit_select_prepare_sync_select(scene, em->bm);
+    }
+    else {
+      uvedit_select_prepare_custom_data(scene, em->bm);
+    }
+
+    BMFace *f;
+    BMIter iter;
+    BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
+      if (!uvedit_face_visible_test(scene, f)) {
+        continue;
+      }
+
+      /* Center median does not work correctly for concave n-gons.
+       * TODO: Tessellate UVs then check the center of each triangle with a non-zero area. */
+      blender::float2 center;
+      BM_face_uv_calc_center_median(f, offsets.uv, center);
+      if (BLI_rctf_isect_pt_v(&tile_rect, center)) {
+        uvedit_face_select_set_with_sticky(scene, em->bm, f, true, offsets);
+        changed = true;
+      }
+    }
+    if (changed) {
+      if (ts->uv_flag & UV_FLAG_SELECT_SYNC) {
+        ED_uvedit_select_sync_flush(ts, em->bm, true);
+      }
+      else {
+        ED_uvedit_selectmode_flush(scene, em->bm);
+      }
+      uv_select_tag_update_for_object(depsgraph, ts, ob);
+    }
+  }
+
+  /* Always return "finished" even if nothing changed because returning canceled
+   * prevents the user changing values that *would* succeed in the "redo" panel. */
+  return OPERATOR_FINISHED;
+}
+
+static wmOperatorStatus uv_select_tile_invoke(bContext *C,
+                                              wmOperator *op,
+                                              const wmEvent * /*event*/)
+{
+  PropertyRNA *prop_tile = RNA_struct_find_property(op->ptr, "tile");
+  if (!RNA_property_is_set(op->ptr, prop_tile)) {
+    if (const SpaceImage *sima = CTX_wm_space_image(C)) {
+      const int2 tile = int2(int(sima->cursor[0]), int(sima->cursor[1]));
+      RNA_property_int_set_array(op->ptr, prop_tile, tile);
+    }
+  }
+  return uv_select_tile_exec(C, op);
+}
+
+void UV_OT_select_tile(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Select Tile";
+  ot->description = "Select UVs in specified tile";
+  ot->idname = "UV_OT_select_tile";
+
+  /* API callbacks. */
+  ot->invoke = uv_select_tile_invoke;
+  ot->exec = uv_select_tile_exec;
+  ot->poll = ED_operator_uvedit;
+
+  RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
+  RNA_def_int_array(ot->srna,
+                    "tile",
+                    2,
+                    nullptr,
+                    std::numeric_limits<int>::min(),
+                    std::numeric_limits<int>::max(),
+                    "Tile",
+                    "Tile location to select UVs",
+                    std::numeric_limits<int>::min(),
+                    std::numeric_limits<int>::max());
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 static wmOperatorStatus uv_custom_region_set_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);

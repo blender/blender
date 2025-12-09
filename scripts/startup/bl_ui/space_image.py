@@ -167,6 +167,7 @@ class IMAGE_MT_select(Menu):
 
         layout.operator_menu_enum("uv.select_similar", "type", text="Select Similar")
         layout.menu("IMAGE_MT_select_linked")
+        layout.operator("uv.select_tile")
 
         layout.separator()
 
