@@ -531,6 +531,9 @@ void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 int rna_Attribute_data_length(PointerRNA *ptr)
 {
   using namespace blender;
+  if (RNA_pointer_is_null(ptr)) {
+    return 0;
+  }
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
   if (owner.type() == AttributeOwnerType::Mesh) {
     CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
