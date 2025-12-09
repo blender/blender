@@ -1,0 +1,22 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "gui-windows",
+      "displayName": "GUI Cycles Render (Windows)",
+      "description": "GUI build with Cycles, GPU support, for troubleshooting",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/../blender_build_gui",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "toolchainFile": "${sourceDir}/DevBlenderCMake.cmake"
+    }
+  ]
+}
