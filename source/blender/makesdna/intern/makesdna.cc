@@ -43,19 +43,28 @@
 #include "BLI_sys_types.h" /* For `intptr_t` support. */
 #include "BLI_system.h"    /* For #BLI_system_backtrace stub. */
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "DNA_sdna_types.h"
 #include "dna_utils.h"
 
 #define SDNA_MAX_FILENAME_LENGTH 255
 
-/* The include file below is automatically generated from the `SRC_DNA_INC`
+/* The include files that are needed to generate full Blender DNA.
+ *
+ * The include file below is automatically generated from the `SRC_DNA_INC`
  * variable in `source/blender/CMakeLists.txt`. */
-static const char *includefiles[] = {
+static const char *blender_includefiles[] = {
 #include "dna_includes_as_strings.h"
+
     /* Empty string to indicate end of include files. */
     "",
 };
+
+/* Include files that will be used to generate makesdna output.
+ * By default, they match the blender_includefiles, but could be overridden via a command line
+ * argument for the purposes of regression testing. */
+static const char **includefiles = blender_includefiles;
 
 /* -------------------------------------------------------------------- */
 /** \name Variables
@@ -1592,85 +1601,126 @@ static void make_bad_file(const char *file, int line)
 #  define BASE_HEADER "../"
 #endif
 
+static void print_usage(const char *argv0)
+{
+  printf(
+      "Usage: %s [--include-file <file>, ...] "
+      "dna.cc dna_type_offsets.h dna_verify.cc dna_struct_ids.cc"
+      "[base directory]\n",
+      argv0);
+}
+
 int main(int argc, char **argv)
 {
+  blender::Vector<const char *> cli_include_files;
+
+  /* There is a number of non-optional arguments that must be provided to the executable. */
+  if (argc < 5) {
+    print_usage(argv[0]);
+    return 1;
+  }
+
+  /* Parse optional arguments. */
+  int arg_index = 1; /* Skip the argv0. */
+  while (arg_index < argc) {
+    if (STREQ(argv[arg_index], "--include-file")) {
+      ++arg_index;
+      if (arg_index == argc) {
+        printf("Missing argument for --include-file\n");
+        print_usage(argv[0]);
+        return 1;
+      }
+      cli_include_files.append(argv[arg_index]);
+      ++arg_index;
+      continue;
+    }
+    break;
+  }
+
+  if (!cli_include_files.is_empty()) {
+    /* Append end sentinel. */
+    cli_include_files.append("");
+
+    includefiles = cli_include_files.data();
+  }
+
+  /* Check the number of non-optional positional arguments. */
+  const int num_arguments = argc - arg_index;
+  if (!ELEM(num_arguments, 4, 5)) {
+    print_usage(argv[0]);
+    return 0;
+  }
+
   int return_status = 0;
 
-  if (!ELEM(argc, 5, 6)) {
-    printf("Usage: %s dna.c dna_struct_offsets.h dna_struct_ids.cc [base directory]\n", argv[0]);
+  FILE *file_dna = fopen(argv[arg_index], "w");
+  FILE *file_dna_offsets = fopen(argv[arg_index + 1], "w");
+  FILE *file_dna_verify = fopen(argv[arg_index + 2], "w");
+  FILE *file_dna_ids = fopen(argv[arg_index + 3], "w");
+  if (!file_dna) {
+    printf("Unable to open file: %s\n", argv[arg_index]);
+    return_status = 1;
+  }
+  else if (!file_dna_offsets) {
+    printf("Unable to open file: %s\n", argv[arg_index + 1]);
+    return_status = 1;
+  }
+  else if (!file_dna_verify) {
+    printf("Unable to open file: %s\n", argv[arg_index + 2]);
+    return_status = 1;
+  }
+  else if (!file_dna_ids) {
+    printf("Unable to open file: %s\n", argv[arg_index + 3]);
     return_status = 1;
   }
   else {
-    FILE *file_dna = fopen(argv[1], "w");
-    FILE *file_dna_offsets = fopen(argv[2], "w");
-    FILE *file_dna_verify = fopen(argv[3], "w");
-    FILE *file_dna_ids = fopen(argv[4], "w");
-    if (!file_dna) {
-      printf("Unable to open file: %s\n", argv[1]);
-      return_status = 1;
-    }
-    else if (!file_dna_offsets) {
-      printf("Unable to open file: %s\n", argv[2]);
-      return_status = 1;
-    }
-    else if (!file_dna_verify) {
-      printf("Unable to open file: %s\n", argv[3]);
-      return_status = 1;
-    }
-    else if (!file_dna_ids) {
-      printf("Unable to open file: %s\n", argv[4]);
-      return_status = 1;
+    const char *base_directory;
+
+    if (num_arguments == 5) {
+      base_directory = argv[arg_index + 4];
     }
     else {
-      const char *base_directory;
+      base_directory = BASE_HEADER;
+    }
 
-      if (argc == 6) {
-        base_directory = argv[5];
-      }
-      else {
-        base_directory = BASE_HEADER;
-      }
-
-      /* NOTE: #init_structDNA() in dna_genfile.cc expects `sdna->data` is 4-bytes aligned.
-       * `DNAstr[]` buffer written by `makesdna` is used for this data, so make `DNAstr` forcefully
-       * 4-bytes aligned. */
+    /* NOTE: #init_structDNA() in dna_genfile.cc expects `sdna->data` is 4-bytes aligned.
+     * `DNAstr[]` buffer written by `makesdna` is used for this data, so make `DNAstr` forcefully
+     * 4-bytes aligned. */
 #ifdef __GNUC__
 #  define FORCE_ALIGN_4 " __attribute__((aligned(4))) "
 #else
 #  define FORCE_ALIGN_4 " "
 #endif
-      fprintf(file_dna, "extern const unsigned char DNAstr[];\n");
-      fprintf(file_dna, "const unsigned char" FORCE_ALIGN_4 "DNAstr[] = {\n");
+    fprintf(file_dna, "extern const unsigned char DNAstr[];\n");
+    fprintf(file_dna, "const unsigned char" FORCE_ALIGN_4 "DNAstr[] = {\n");
 #undef FORCE_ALIGN_4
 
-      if (make_structDNA(
-              base_directory, file_dna, file_dna_offsets, file_dna_verify, file_dna_ids))
-      {
-        /* error */
-        fclose(file_dna);
-        file_dna = nullptr;
-        make_bad_file(argv[1], __LINE__);
-        return_status = 1;
-      }
-      else {
-        fprintf(file_dna, "};\n");
-        fprintf(file_dna, "extern const int DNAlen;\n");
-        fprintf(file_dna, "const int DNAlen = sizeof(DNAstr);\n");
-      }
-    }
-
-    if (file_dna) {
+    if (make_structDNA(base_directory, file_dna, file_dna_offsets, file_dna_verify, file_dna_ids))
+    {
+      /* error */
       fclose(file_dna);
+      file_dna = nullptr;
+      make_bad_file(argv[1], __LINE__);
+      return_status = 1;
     }
-    if (file_dna_offsets) {
-      fclose(file_dna_offsets);
+    else {
+      fprintf(file_dna, "};\n");
+      fprintf(file_dna, "extern const int DNAlen;\n");
+      fprintf(file_dna, "const int DNAlen = sizeof(DNAstr);\n");
     }
-    if (file_dna_verify) {
-      fclose(file_dna_verify);
-    }
-    if (file_dna_ids) {
-      fclose(file_dna_ids);
-    }
+  }
+
+  if (file_dna) {
+    fclose(file_dna);
+  }
+  if (file_dna_offsets) {
+    fclose(file_dna_offsets);
+  }
+  if (file_dna_verify) {
+    fclose(file_dna_verify);
+  }
+  if (file_dna_ids) {
+    fclose(file_dna_ids);
   }
 
   return return_status;
@@ -1710,6 +1760,7 @@ static void UNUSED_FUNCTION(dna_rename_defs_ensure)()
 #define DNA_STRUCT_RENAME(old, new) (void)sizeof(new);
 #define DNA_STRUCT_RENAME_MEMBER(struct_name, old, new) (void)offsetof(struct_name, new);
 #include "dna_rename_defs.h"
+
 #undef DNA_STRUCT_RENAME
 #undef DNA_STRUCT_RENAME_MEMBER
 }
