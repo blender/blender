@@ -2187,10 +2187,7 @@ Array<TransDataVertSlideVert> transform_mesh_vert_slide_data_create(
     const int size_prev = r_loc_dst_buffer.size();
 
     BMVert *v = static_cast<BMVert *>(td->extra);
-    if (!v->e) {
-      r_loc_dst_buffer.append(td->iloc);
-    }
-    else {
+    if (v->e) {
       BMIter eiter;
       BMEdge *e;
       BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
@@ -2200,6 +2197,11 @@ Array<TransDataVertSlideVert> transform_mesh_vert_slide_data_create(
         BMVert *v_other = BM_edge_other_vert(e, v);
         r_loc_dst_buffer.append(v_other->co);
       }
+    }
+    if (r_loc_dst_buffer.size() == size_prev) {
+      /* NOTE(@ideasman42): it may be better not to add these at all
+       * since sliding into itself is a no-op. Needs to be investigated. */
+      r_loc_dst_buffer.append(td->iloc);
     }
 
     TransDataVertSlideVert &sv = sv_array[sv_array_index];
