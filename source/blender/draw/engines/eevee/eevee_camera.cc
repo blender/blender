@@ -183,7 +183,7 @@ void Camera::sync()
     data.winmat = math::projection::perspective(-0.1f, 0.1f, -0.1f, 0.1f, 0.1f, 1.0f);
   }
 
-  /* Compute a part of the frustrum planes. In some cases (#134320, #148258)
+  /* Compute a part of the frustum planes. In some cases (#134320, #148258)
    * the window matrix becomes degenerate during render or draw_view.
    * Simply fall back to something we can render with. */
   float bottom = (-data.winmat[3][1] - 1.0f) / data.winmat[1][1];

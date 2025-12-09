@@ -504,7 +504,7 @@ void LookdevModule::rotate_world_probe_data(
 
   inst_.manager->submit(pass);
   /* Tag world to update the SH stored in the volume probe atlas.
-   * If any volume probe is visible, thi will reupload the baked data.
+   * If any volume probe is visible, this will reupload the baked data.
    * This is the costly part of this feature. */
   inst_.volume_probes.update_world_irradiance();
 }
