@@ -2847,6 +2847,9 @@ static void read_undo_move_libmain_data(FileData *fd, Main *libmain, BHead *bhea
   Main *new_main = fd->bmain;
   Library *curlib = libmain->curlib;
 
+  /* Archived libraries should never be processed here. */
+  BLI_assert((curlib->flag & LIBRARY_FLAG_IS_ARCHIVE) == 0);
+
   /* NOTE: This may change the order of items in `old_main->split_mains`. So calling code cannot
    * directly iterate over it. */
   old_main->split_mains->remove_contained(libmain);
@@ -2868,10 +2871,9 @@ static void read_undo_move_libmain_data(FileData *fd, Main *libmain, BHead *bhea
 
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (libmain, id_iter) {
-    /* Packed IDs are read from the memfile, so don't add them here already. */
-    if (!ID_IS_PACKED(id_iter)) {
-      BKE_main_idmap_insert_id(fd->new_idmap_uid, id_iter);
-    }
+    /* There should never be any packed ID in a regular library. */
+    BLI_assert(!ID_IS_PACKED(id_iter));
+    BKE_main_idmap_insert_id(fd->new_idmap_uid, id_iter);
   }
   FOREACH_MAIN_ID_END;
 }
