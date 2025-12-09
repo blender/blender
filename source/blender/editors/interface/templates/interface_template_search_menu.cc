@@ -141,7 +141,8 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
                                                        MenuType *mt,
                                                        Button *but,
                                                        MenuSearch_Context *wm_context,
-                                                       MenuSearch_Parent *menu_parent)
+                                                       MenuSearch_Parent *menu_parent,
+                                                       const Set<std::string> &ignored_idnames)
 {
   MenuSearch_Item *item = nullptr;
 
@@ -152,6 +153,9 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
   const bool drawstr_is_empty = sep_index == 0 || but->drawstr.empty();
 
   if (but->optype != nullptr) {
+    if (ignored_idnames.contains_as(but->optype->idname)) {
+      return false;
+    }
     if (drawstr_is_empty) {
       drawstr_override = WM_operatortype_name(but->optype, but->opptr);
     }
@@ -437,6 +441,11 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
   Set<MenuType *> menu_tagged;
   Map<MenuType *, wmKeyMapItem *> menu_to_kmi;
 
+  /* Avoid showing the search operator in the menu search itself. */
+  static const Set<std::string> ignored_operator_idnames = {
+      "WM_OT_search_single_menu",
+  };
+
   /* Blacklist menus we don't want to show. */
   {
     const char *idname_array[] = {
@@ -697,8 +706,13 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
             menu_display_name_map.add(mt, scope.allocator().copy_string(but->drawstr).c_str());
           }
         }
-        else if (menu_items_from_ui_create_item_from_button(
-                     data, scope, mt, but.get(), wm_context, current_menu.self_as_parent))
+        else if (menu_items_from_ui_create_item_from_button(data,
+                                                            scope,
+                                                            mt,
+                                                            but.get(),
+                                                            wm_context,
+                                                            current_menu.self_as_parent,
+                                                            ignored_operator_idnames))
         {
           /* pass */
         }
@@ -805,8 +819,13 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
             menu_parent->parent = current_menu.self_as_parent;
 
             for (const std::unique_ptr<Button> &sub_but : sub_block->buttons) {
-              menu_items_from_ui_create_item_from_button(
-                  data, scope, mt, sub_but.get(), wm_context, menu_parent);
+              menu_items_from_ui_create_item_from_button(data,
+                                                         scope,
+                                                         mt,
+                                                         sub_but.get(),
+                                                         wm_context,
+                                                         menu_parent,
+                                                         ignored_operator_idnames);
             }
           }
 

@@ -15,6 +15,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.hh"
@@ -581,13 +582,17 @@ static void workspace_add_menu(bContext * /*C*/, blender::ui::Layout *layout, vo
   }
 }
 
-static wmOperatorStatus workspace_add_invoke(bContext *C,
-                                             wmOperator *op,
-                                             const wmEvent * /*event*/)
+static void workspace_add_menu_draw(blender::ui::Layout &layout)
 {
-  blender::ui::PopupMenu *pup = blender::ui::popup_menu_begin(
-      C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, op->type->name), ICON_ADD);
-  blender::ui::Layout &layout = *blender::ui::popup_menu_layout(pup);
+  {
+    PointerRNA props = layout.op("WM_OT_search_single_menu",
+                                 "Search...",
+                                 ICON_VIEWZOOM,
+                                 blender::wm::OpCallContext::InvokeDefault,
+                                 UI_ITEM_NONE);
+    RNA_string_set(&props, "menu_idname", "WORKSPACE_MT_add");
+  }
+  layout.separator();
 
   layout.menu_fn(IFACE_("General"), ICON_NONE, workspace_add_menu, nullptr);
 
@@ -610,9 +615,27 @@ static wmOperatorStatus workspace_add_invoke(bContext *C,
   layout.op("WORKSPACE_OT_duplicate",
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Duplicate Current"),
             ICON_DUPLICATE);
+}
 
-  popup_menu_end(C, pup);
+static void workspace_add_menu_register()
+{
+  MenuType *mt = MEM_callocN<MenuType>("workspace_add_invoke");
+  STRNCPY_UTF8(mt->idname, "WORKSPACE_MT_add");
+  STRNCPY_UTF8(mt->label, N_("Add Workspace"));
+  mt->flag = MenuTypeFlag::SearchOnKeyPress;
+  mt->draw = [](const bContext * /*C*/, Menu *menu) {
+    blender::ui::Layout &layout = *menu->layout;
+    workspace_add_menu_draw(layout);
+  };
 
+  WM_menutype_add(mt);
+}
+
+static wmOperatorStatus workspace_add_invoke(bContext *C,
+                                             wmOperator * /*op*/,
+                                             const wmEvent * /*event*/)
+{
+  WM_menu_name_call(C, "WORKSPACE_MT_add", blender::wm::OpCallContext::InvokeDefault);
   return OPERATOR_INTERFACE;
 }
 
@@ -706,6 +729,8 @@ static void WORKSPACE_OT_scene_pin_toggle(wmOperatorType *ot)
 
 void ED_operatortypes_workspace()
 {
+  workspace_add_menu_register();
+
   WM_operatortype_append(WORKSPACE_OT_duplicate);
   WM_operatortype_append(WORKSPACE_OT_delete);
   WM_operatortype_append(WORKSPACE_OT_delete_all_others);
