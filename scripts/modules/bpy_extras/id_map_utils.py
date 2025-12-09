@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import bpy
+
 
 __all__ = (
     "get_id_reference_map",
@@ -9,10 +11,12 @@ __all__ = (
 )
 
 
-def get_id_reference_map():  # `-> dict[bpy.types.ID, set[bpy.types.ID]]`
-    """Return a dictionary of direct data-block references for every data-block in the blend file."""
-    import bpy
+def get_id_reference_map():
+    """Return a dictionary of direct data-block references for every data-block in the blend file.
 
+    :return: Each datablock of the .blend file mapped to the set of IDs they directly reference.
+    :rtype: dict[bpy.types.ID, set[bpy.types.ID]]
+    """
     inv_map = {}
     for key, values in bpy.data.user_map().items():
         for value in values:
@@ -23,31 +27,27 @@ def get_id_reference_map():  # `-> dict[bpy.types.ID, set[bpy.types.ID]]`
     return inv_map
 
 
-def recursive_get_referenced_ids(
-        ref_map,  # `dict[bpy.types.ID, set[bpy.types.ID]]`
-        id,  # `bpy.types.ID`
-        referenced_ids,  # `set`
-        visited,  # `set`
-):  # `-> None`
-    """Recursively populate referenced_ids with IDs referenced by id."""
-    if id in visited:
-        # Avoid infinite recursion from circular references.
-        return
-    visited.add(id)
-    for ref in ref_map.get(id, []):
-        referenced_ids.add(ref)
-        recursive_get_referenced_ids(
-            ref_map=ref_map, id=ref, referenced_ids=referenced_ids, visited=visited
-        )
+def get_all_referenced_ids(id, ref_map):
+    """
+    Return a set of IDs directly or indirectly referenced by id.
 
+    :arg id: Datablock whose references we're interested in.
+    :type id: bpy.types.ID
+    :arg ref_map: The global ID reference map, retrieved from get_id_reference_map()
+    :type ref_map: dict[bpy.types.ID, set[bpy.types.ID]]
+    :return: Set of datablocks referenced by `id`.
+    :rtype: set[bpy.types.ID]
+    """
 
-def get_all_referenced_ids(
-        id,  # `bpy.types.ID`
-        ref_map,  # `dict[bpy.types.ID, set[bpy.types.ID]]`
-):  # `-> set[bpy.types.ID]`
-    """Return a set of IDs directly or indirectly referenced by id."""
+    def recursive_helper(ref_map, id, referenced_ids, visited):
+        if id in visited:
+            # Avoid infinite recursion from circular references.
+            return
+        visited.add(id)
+        for ref in ref_map.get(id, []):
+            referenced_ids.add(ref)
+            recursive_helper(ref_map=ref_map, id=ref, referenced_ids=referenced_ids, visited=visited)
+
     referenced_ids = set()
-    recursive_get_referenced_ids(
-        ref_map=ref_map, id=id, referenced_ids=referenced_ids, visited=set()
-    )
+    recursive_helper(ref_map=ref_map, id=id, referenced_ids=referenced_ids, visited=set())
     return referenced_ids
