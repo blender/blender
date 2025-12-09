@@ -153,6 +153,27 @@ const BundleItemValue *Bundle::lookup_path(const StringRef path) const
   return this->lookup_path(path_elems);
 }
 
+void Bundle::ensure_owns_direct_data()
+{
+  for (const auto &item : items_.items()) {
+    if (auto *socket_value = std::get_if<BundleItemSocketValue>(&item.value.value)) {
+      socket_value->value.ensure_owns_direct_data();
+    }
+  }
+}
+
+bool Bundle::owns_direct_data() const
+{
+  for (const auto &item : items_.items()) {
+    if (const auto *socket_value = std::get_if<BundleItemSocketValue>(&item.value.value)) {
+      if (!socket_value->value.owns_direct_data()) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 BundlePtr Bundle::copy() const
 {
   BundlePtr copy_ptr = Bundle::create();

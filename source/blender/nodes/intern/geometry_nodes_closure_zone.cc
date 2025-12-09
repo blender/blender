@@ -201,6 +201,9 @@ class LazyFunctionForClosureZone : public LazyFunction {
           zone_info_.indices.inputs.border_links[i]);
       bke::SocketValueVariant &stored_ptr = closure_scope->construct<bke::SocketValueVariant>(
           std::move(*input_ptr));
+      /* The value is captured here and we need to make sure that it doesn't reference data which
+       * may become dangling. */
+      stored_ptr.ensure_owns_direct_data();
       lf_body_node.input(body_fn_.indices.inputs.border_links[i]).set_default_value(&stored_ptr);
     }
 

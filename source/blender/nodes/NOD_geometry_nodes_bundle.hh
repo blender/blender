@@ -84,6 +84,10 @@ class Bundle : public ImplicitSharingMixin {
   bool is_empty() const;
   int64_t size() const;
 
+  /** Also see #GeometrySet.ensure_owns_direct_data. */
+  void ensure_owns_direct_data();
+  bool owns_direct_data() const;
+
   BundleItemMap::ItemIterator items() const;
 
   BundlePtr copy() const;

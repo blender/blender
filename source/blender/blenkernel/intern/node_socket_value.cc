@@ -474,6 +474,107 @@ void *SocketValueVariant::allocate_single(const eNodeSocketDatatype socket_type)
   }
 }
 
+void SocketValueVariant::ensure_owns_direct_data()
+{
+  if (this->owns_direct_data()) {
+    return;
+  }
+  switch (socket_type_) {
+    case SOCK_FLOAT:
+    case SOCK_INT:
+    case SOCK_VECTOR:
+    case SOCK_BOOLEAN:
+    case SOCK_ROTATION:
+    case SOCK_MATRIX:
+    case SOCK_RGBA:
+    case SOCK_STRING:
+    case SOCK_MENU:
+    case SOCK_OBJECT:
+    case SOCK_COLLECTION:
+    case SOCK_TEXTURE:
+    case SOCK_IMAGE:
+    case SOCK_MATERIAL:
+    case SOCK_CLOSURE: {
+      break;
+    }
+    case SOCK_BUNDLE: {
+      if (this->is_single()) {
+        if (nodes::BundlePtr &bundle_ptr = value_.get<nodes::BundlePtr>()) {
+          if (!bundle_ptr->is_mutable()) {
+            bundle_ptr = bundle_ptr->copy();
+          }
+          nodes::Bundle &bundle = const_cast<nodes::Bundle &>(*bundle_ptr);
+          bundle.ensure_owns_direct_data();
+        }
+      }
+      else if (this->is_list()) {
+        /* TODO: Handle lists before #use_geometry_nodes_lists is removed. */
+      }
+      break;
+    }
+    case SOCK_GEOMETRY: {
+      if (this->is_single()) {
+        GeometrySet &geometry = value_.get<GeometrySet>();
+        geometry.ensure_owns_direct_data();
+      }
+      else if (this->is_list()) {
+        /* TODO: Handle lists before #use_geometry_nodes_lists is removed. */
+      }
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+  BLI_assert(this->owns_direct_data());
+}
+
+bool SocketValueVariant::owns_direct_data() const
+{
+  switch (socket_type_) {
+    case SOCK_FLOAT:
+    case SOCK_INT:
+    case SOCK_VECTOR:
+    case SOCK_BOOLEAN:
+    case SOCK_ROTATION:
+    case SOCK_MATRIX:
+    case SOCK_RGBA:
+    case SOCK_STRING:
+    case SOCK_MENU:
+    case SOCK_OBJECT:
+    case SOCK_COLLECTION:
+    case SOCK_TEXTURE:
+    case SOCK_IMAGE:
+    case SOCK_MATERIAL:
+    case SOCK_CLOSURE: {
+      return true;
+    }
+    case SOCK_BUNDLE: {
+      if (this->is_single()) {
+        if (const nodes::BundlePtr &bundle_ptr = value_.get<nodes::BundlePtr>()) {
+          return bundle_ptr->owns_direct_data();
+        }
+      }
+      else if (this->is_list()) {
+        /* TODO: Handle lists before #use_geometry_nodes_lists is removed. */
+      }
+      return true;
+    }
+    case SOCK_GEOMETRY: {
+      if (this->is_single()) {
+        const GeometrySet &geometry = value_.get<GeometrySet>();
+        return geometry.owns_direct_data();
+      }
+      if (this->is_list()) {
+        /* TODO: Handle lists before #use_geometry_nodes_lists is removed. */
+      }
+      return true;
+    }
+    default:
+      return true;
+  }
+}
+
 std::ostream &operator<<(std::ostream &stream, const SocketValueVariant &value_variant)
 {
   SocketValueVariant variant_copy = value_variant;
