@@ -22,12 +22,13 @@
 #include "gpu_shader_msl_string.msl"
 #include "gpu_shader_msl_types.msl"
 #include "gpu_shader_msl_types_legacy.msl"
-/* Wrapper needs to be last. */
-#include "gpu_shader_msl_wrapper.msl"
 
 /* Suppress unhelpful shader compiler warnings. */
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wcomment"
+
+/* Wrapper needs to be last. */
+#include "gpu_shader_msl_wrapper.msl"
 
 /* Array syntax compatibility. */
 /* clang-format off */
@@ -120,6 +121,7 @@ float4 texelFetchExtend(sampler2D samp, int2 texel, int lvl)
 #define sampler_get(create_info, _res) _res
 #define image_get(create_info, _res) _res
 #define srt_access(create_info, _res) access_##create_info##_##_res()
+#define constant_srt_access(create_info, _res) SRT_CONSTANT_##_res
 
 /* Stage agnostic builtin function.
  * MSL allow mixing shader stages inside the same source file.

@@ -120,7 +120,7 @@ struct ParsedResource {
 
   std::string res_type;
   /** For images, storage, uniforms and samplers. */
-  std::string res_frequency;
+  std::string res_frequency = "PASS";
   /** For images, storage, uniforms and samplers. */
   std::string res_slot;
   /** For images & storage. */
@@ -134,51 +134,57 @@ struct ParsedResource {
 
   std::string serialize() const
   {
+    std::string res_condition_lambda;
+
+    if (!res_condition.empty()) {
+      res_condition_lambda = ", [](blender::Span<CompilationConstant> constants) { ";
+      res_condition_lambda += res_condition;
+      res_condition_lambda += "}";
+    }
+
     std::stringstream ss;
     if (res_type == "legacy_info") {
       ss << "ADDITIONAL_INFO(" << var_name << ")";
     }
     else if (res_type == "resource_table") {
-      ss << "ADDITIONAL_INFO(" << var_type << ")";
-    }
-    else if (res_type == "sampler") {
-      if (res_frequency.empty()) {
-        ss << "SAMPLER(" << res_slot << ", " << var_type << ", " << var_name << ")";
-      }
-      else {
-        ss << "SAMPLER_FREQ(" << res_slot << ", " << var_type << ", " << var_name << ", "
-           << res_frequency << ")";
-      }
-    }
-    else if (res_type == "image") {
-      if (res_frequency.empty()) {
-        ss << "IMAGE(" << res_slot << ", " << res_format << ", " << res_qualifier << ", "
-           << var_type << ", " << var_name << ")";
-      }
-      else {
-        ss << "IMAGE_FREQ(" << res_slot << ", " << res_format << ", " << res_qualifier << ", "
-           << var_type << ", " << var_name << ", " << res_frequency << ")";
-      }
-    }
-    else if (res_type == "uniform") {
-      if (res_frequency.empty()) {
-        ss << "UNIFORM_BUF(" << res_slot << ", " << var_type << ", " << var_name << var_array
+      if (!res_condition.empty()) {
+        ss << ".additional_info_with_condition(\"" << var_type << "\"" << res_condition_lambda
            << ")";
       }
       else {
-        ss << "UNIFORM_BUF_FREQ(" << res_slot << ", " << var_type << ", " << var_name << var_array
-           << ", " << res_frequency << ")";
+        ss << ".additional_info(\"" << var_type << "\")";
       }
     }
+    else if (res_type == "sampler") {
+      ss << ".sampler(" << res_slot;
+      ss << ", ImageType::" << var_type;
+      ss << ", \"" << var_name << "\"";
+      ss << ", Frequency::" << res_frequency;
+      ss << ", GPUSamplerState::internal_sampler()";
+      ss << res_condition_lambda << ")";
+    }
+    else if (res_type == "image") {
+      ss << ".image(" << res_slot;
+      ss << ", blender::gpu::TextureFormat::" << res_format;
+      ss << ", Qualifier::" << res_qualifier;
+      ss << ", ImageReadWriteType::" << var_type;
+      ss << ", \"" << var_name << "\"";
+      ss << ", Frequency::" << res_frequency;
+      ss << res_condition_lambda << ")";
+    }
+    else if (res_type == "uniform") {
+      ss << ".uniform_buf(" << res_slot;
+      ss << ", \"" << var_type << "\"";
+      ss << ", \"" << var_name << var_array << "\"";
+      ss << ", Frequency::" << res_frequency;
+      ss << res_condition_lambda << ")";
+    }
     else if (res_type == "storage") {
-      if (res_frequency.empty()) {
-        ss << "STORAGE_BUF(" << res_slot << ", " << res_qualifier << ", " << var_type << ", "
-           << var_name << var_array << ")";
-      }
-      else {
-        ss << "STORAGE_BUF_FREQ(" << res_slot << ", " << res_qualifier << ", " << var_type << ", "
-           << var_name << var_array << ", " << res_frequency << ")";
-      }
+      ss << ".storage_buf(" << res_slot;
+      ss << ", Qualifier::" << res_qualifier;
+      ss << ", \"" << var_name << var_array << "\"";
+      ss << ", Frequency::" << res_frequency;
+      ss << res_condition_lambda << ")";
     }
     else if (res_type == "push_constant") {
       ss << "PUSH_CONSTANT(" << var_type << ", " << var_name << ")";
@@ -451,7 +457,9 @@ class Preprocessor {
     if (filename.find(".msl") != std::string::npos) {
       return MSL;
     }
-    if (filename.find(".glsl") != std::string::npos) {
+    if (filename.find(".glsl") != std::string::npos ||
+        filename.find(".bsl.hh") != std::string::npos)
+    {
       return GLSL;
     }
     if (filename.find(".hh") != std::string::npos) {
@@ -1482,7 +1490,7 @@ class Preprocessor {
     }
 
     Token before_body = body.start().prev();
-    string test = condition[3].str() + "_" + condition[5].str();
+    string test = "constant_" + condition.str_exclusive();
     string directive = (if_tok.prev() == Else ? "#elif " : "#if ");
 
     parser.insert_directive(before_body, directive + test);
@@ -2020,7 +2028,12 @@ class Preprocessor {
           resource.res_value = attribute[2].str();
         }
         else if (type == "condition") {
-          resource.res_condition = attribute[1].scope().str_with_whitespace();
+          attribute[1].scope().foreach_token(Word, [&](const Token tok) {
+            resource.res_condition += "int " + tok.str() + " = ";
+            resource.res_condition += "ShaderCreateInfo::find_constant(constants, \"" + tok.str() +
+                                      "\"); ";
+          });
+          resource.res_condition += "return " + attribute[1].scope().str() + ";";
         }
         else if (type == "frequency") {
           resource.res_frequency = attribute[2].str();

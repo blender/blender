@@ -172,14 +172,16 @@ struct Scope {
                             end().str_index_last_no_whitespace() - start().str_index_start() + 1);
   }
 
-  /* Return the content without the first and last characters. */
+  /* Return the content without the first and last token. */
   std::string str_exclusive() const
   {
-    if (this->is_invalid()) {
+    if (this->is_invalid() || this->token_count() <= 2) {
       return "";
     }
-    return data->str.substr(start().str_index_start() + 1,
-                            end().str_index_last() - start().str_index_start() - 1);
+    Token start = this->start().next();
+    Token end = this->end().prev();
+    return data->str.substr(start.str_index_start(),
+                            end.str_index_last_no_whitespace() - start.str_index_start() + 1);
   }
 
   Token find_token(const char token_type) const

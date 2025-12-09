@@ -175,6 +175,7 @@ RESHAPE(float3x3, mat3x3, mat3x4)
 #define sampler_get(create_info, _res) _res
 #define image_get(create_info, _res) _res
 #define srt_access(create_info, _res) access_##create_info##_##_res()
+#define constant_srt_access(create_info, _res) SRT_CONSTANT_##_res
 
 /* Incompatible keywords. */
 #define static

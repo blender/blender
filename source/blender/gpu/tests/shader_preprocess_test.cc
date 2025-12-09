@@ -791,7 +791,7 @@ void func([[resource_table]] Resources &srt)
     test;
   }
 
-  if (srt.use_color_band) [[static_branch]] {
+  if (srt.use_color_band == 1) [[static_branch]] {
     test;
   } else {
     test;
@@ -819,16 +819,16 @@ void func([[resource_table]] Resources &srt)
 void func(                   inout Resources _inout_sta srt _inout_end)
 {
 
-#if Resources_use_color_band
+#if constant_srt_access(Resources, use_color_band)
 #line 4
                                                                {
     test;
   }
 #endif
 
-#if Resources_use_color_band
+#if constant_srt_access(Resources, use_color_band)== 1
 #line 8
-                                                               {
+                                                                   {
     test;
   }
 #else
@@ -838,24 +838,24 @@ void func(                   inout Resources _inout_sta srt _inout_end)
   }
 #endif
 
-#if Resources_use_color_band
+#if constant_srt_access(Resources, use_color_band)
 #line 14
                                                                {
     test;
   }
-#elif Resources_use_color_band
+#elif constant_srt_access(Resources, use_color_band)
 #line 16
                                                                       {
     test;
   }
 #endif
 
-#if Resources_use_color_band
+#if constant_srt_access(Resources, use_color_band)
 #line 20
                                                                {
     test;
   }
-#elif Resources_use_color_band
+#elif constant_srt_access(Resources, use_color_band)
 #line 22
                                                                       {
     test;

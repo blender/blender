@@ -779,17 +779,39 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
     start_time = Clock::now();
   }
 
-  const std::string error = orig_info.check_error();
+  CLOG_INFO(&LOG, "Compiling Shader \"%s\"", orig_info.name_.c_str());
+
+  Shader *shader = GPUBackend::get()->shader_alloc(orig_info.name_.c_str());
+
+  ShaderCreateInfo specialized_info = orig_info;
+
+  if (!specialized_info.compilation_constants_.is_empty()) {
+    auto predicate = [&](const ShaderCreateInfo::Resource &res) {
+      return !res.conditions.evaluate(specialized_info.compilation_constants_);
+    };
+    specialized_info.pass_resources_.remove_if(predicate);
+    specialized_info.batch_resources_.remove_if(predicate);
+    specialized_info.geometry_resources_.remove_if(predicate);
+  }
+
+  /* We merged infos keeping duplicates because of possible different condition per definitions.
+   * Deduplicate remaining ones to avoid errors. */
+  auto cleanup_duplicates = [&](Vector<ShaderCreateInfo::Resource, 0> &resources) {
+    Vector<ShaderCreateInfo::Resource, 0> tmp = resources;
+    resources.clear();
+    resources.extend_non_duplicates(tmp);
+  };
+  cleanup_duplicates(specialized_info.pass_resources_);
+  cleanup_duplicates(specialized_info.batch_resources_);
+  cleanup_duplicates(specialized_info.geometry_resources_);
+
+  const std::string error = specialized_info.check_error();
   if (!error.empty()) {
     std::cerr << error << "\n";
     BLI_assert(false);
   }
 
-  CLOG_INFO(&LOG, "Compiling Shader \"%s\"", orig_info.name_.c_str());
-
-  Shader *shader = GPUBackend::get()->shader_alloc(orig_info.name_.c_str());
-
-  const shader::ShaderCreateInfo &info = shader->patch_create_info(orig_info);
+  const shader::ShaderCreateInfo &info = shader->patch_create_info(specialized_info);
 
   /* Needs to be called before init as GL uses the default specialization constants state to insert
    * default shader inside a map. */
@@ -804,7 +826,15 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &orig_info, bool 
   std::string defines = shader->defines_declare(info);
   std::string resources = shader->resources_declare(info);
 
-  defines += info.resource_guard_defines();
+  defines += info.resource_guard_defines(info.compilation_constants_);
+
+  /* Compilation constants declaration for static branches evaluation.
+   * In the future, these can be compiled using function constants on metal to reduce compilation
+   * time. */
+  for (const auto &constant : info.compilation_constants_) {
+    defines += "#define SRT_CONSTANT_" + constant.name + " " + std::to_string(constant.value.i) +
+               "\n";
+  }
 
   defines += "#define USE_GPU_SHADER_CREATE_INFO\n";
 

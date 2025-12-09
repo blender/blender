@@ -783,6 +783,29 @@ struct ShaderCreateInfo {
 
   GeneratedSourceList generated_sources;
 
+  using ConditionFn = std::function<bool(Span<CompilationConstant>)>;
+  struct Conditions : Vector<ConditionFn, 0> {
+
+    Conditions() = default;
+    Conditions(ConditionFn &fn)
+    {
+      this->append(fn);
+    };
+
+    bool evaluate(Span<CompilationConstant> constants) const
+    {
+      if (is_empty()) {
+        return true;
+      }
+      for (const auto &cond : *this) {
+        if (cond(constants)) {
+          return true;
+        }
+      }
+      return false;
+    }
+  };
+
 #  define TEST_EQUAL(a, b, _member) \
     if (!((a)._member == (b)._member)) { \
       return false; \
@@ -885,6 +908,17 @@ struct ShaderCreateInfo {
   Vector<CompilationConstant, 0> compilation_constants_;
   Vector<SpecializationConstant, 0> specialization_constants_;
 
+  static int find_constant(Span<CompilationConstant> constants, StringRefNull name)
+  {
+    for (const CompilationConstant &constant : constants) {
+      if (constant.name == name) {
+        /* Note: We don't support float for now, so cast everything to int. */
+        return constant.value.i;
+      }
+    }
+    return 0;
+  }
+
   struct SharedVariable {
     Type type;
     ResourceString name;
@@ -929,6 +963,7 @@ struct ShaderCreateInfo {
     StringRefNull info_name;
     BindType bind_type;
     int slot;
+    Conditions conditions;
     union {
       Sampler sampler;
       Image image;
@@ -936,8 +971,11 @@ struct ShaderCreateInfo {
       StorageBuf storagebuf;
     };
 
-    Resource(const ShaderCreateInfo &info, BindType type, int _slot)
-        : info_name(info.name_), bind_type(type), slot(_slot) {};
+    Resource(const ShaderCreateInfo &info, BindType type, int _slot, ConditionFn cond)
+        : info_name(info.name_),
+          bind_type(type),
+          slot(_slot),
+          conditions(cond ? Conditions(cond) : Conditions()) {};
 
     bool operator==(const Resource &b) const
     {
@@ -1038,11 +1076,22 @@ struct ShaderCreateInfo {
                 fragment_entry_fn_ = "main", compute_entry_fn_ = "main";
 
   Vector<std::array<StringRefNull, 2>, 0> defines_;
-  /**
-   * Name of other infos to recursively merge with this one.
-   * No data slot must overlap otherwise we throw an error.
-   */
-  Vector<StringRefNull, 0> additional_infos_;
+
+  struct AdditionalInfo {
+    /**
+     * Name of other infos to recursively merge with this one.
+     * No data slot must overlap otherwise we throw an error.
+     */
+    StringRefNull name;
+    Conditions conditions;
+
+    bool operator==(const AdditionalInfo &b) const
+    {
+      TEST_EQUAL(*this, b, name);
+      return true;
+    }
+  };
+  Vector<AdditionalInfo, 0> additional_infos_;
 
   Vector<PipelineState, 0> pipelines_;
 
@@ -1264,9 +1313,10 @@ struct ShaderCreateInfo {
   Self &uniform_buf(int slot,
                     StringRefNull type_name,
                     StringRefNull name,
-                    Frequency freq = Frequency::PASS)
+                    Frequency freq = Frequency::PASS,
+                    ConditionFn cond = nullptr)
   {
-    Resource res(*this, Resource::BindType::UNIFORM_BUFFER, slot);
+    Resource res(*this, Resource::BindType::UNIFORM_BUFFER, slot, cond);
     res.uniformbuf.name = name;
     res.uniformbuf.type_name = type_name;
     resources_get_(freq).append(res);
@@ -1278,9 +1328,10 @@ struct ShaderCreateInfo {
                     Qualifier qualifiers,
                     StringRefNull type_name,
                     StringRefNull name,
-                    Frequency freq = Frequency::PASS)
+                    Frequency freq = Frequency::PASS,
+                    ConditionFn cond = nullptr)
   {
-    Resource res(*this, Resource::BindType::STORAGE_BUFFER, slot);
+    Resource res(*this, Resource::BindType::STORAGE_BUFFER, slot, cond);
     res.storagebuf.qualifiers = qualifiers;
     res.storagebuf.type_name = type_name;
     res.storagebuf.name = name;
@@ -1294,9 +1345,10 @@ struct ShaderCreateInfo {
               Qualifier qualifiers,
               ImageReadWriteType type,
               StringRefNull name,
-              Frequency freq = Frequency::PASS)
+              Frequency freq = Frequency::PASS,
+              ConditionFn cond = nullptr)
   {
-    Resource res(*this, Resource::BindType::IMAGE, slot);
+    Resource res(*this, Resource::BindType::IMAGE, slot, cond);
     res.image.format = format;
     res.image.qualifiers = qualifiers;
     res.image.type = ImageType(type);
@@ -1310,9 +1362,10 @@ struct ShaderCreateInfo {
                 ImageType type,
                 StringRefNull name,
                 Frequency freq = Frequency::PASS,
-                GPUSamplerState sampler = GPUSamplerState::internal_sampler())
+                GPUSamplerState sampler = GPUSamplerState::internal_sampler(),
+                ConditionFn cond = nullptr)
   {
-    Resource res(*this, Resource::BindType::SAMPLER, slot);
+    Resource res(*this, Resource::BindType::SAMPLER, slot, cond);
     res.sampler.type = type;
     res.sampler.name = name;
     /* Produces ASAN errors for the moment. */
@@ -1445,7 +1498,7 @@ struct ShaderCreateInfo {
 
   Self &additional_info(StringRefNull info_name)
   {
-    additional_infos_.append(info_name);
+    additional_infos_.append({info_name});
     return *(Self *)this;
   }
 
@@ -1453,6 +1506,12 @@ struct ShaderCreateInfo {
   {
     additional_info(info_name);
     additional_info(args...);
+    return *(Self *)this;
+  }
+
+  Self &additional_info_with_condition(StringRefNull info_name, ConditionFn cond)
+  {
+    additional_infos_.append({info_name, {cond}});
     return *(Self *)this;
   }
 
@@ -1511,7 +1570,7 @@ struct ShaderCreateInfo {
    * (All statically declared CreateInfos are automatically finalized at startup) */
   void finalize(const bool recursive = false);
 
-  std::string resource_guard_defines() const;
+  std::string resource_guard_defines(Span<CompilationConstant> constants) const;
 
   std::string check_error() const;
   bool is_vulkan_compatible() const;
