@@ -96,6 +96,20 @@ class AssetRepresentation : NonCopyable, NonMovable {
 
   StringRefNull library_relative_identifier() const;
   std::string full_path() const;
+
+  /**
+   * Return the absolute path of the blend file that contains this asset.
+   *
+   * Note that this performs a filesystem check to see whether the blend file actually exists. If
+   * it does not, an empty string is returned. This generally shouldn't be an issue, but can
+   * happen, for example when the blend file is deleted and the asset browser not refreshed.
+   *
+   * This check is a necessity because data-blocks may have .blend and slashes in their name, and
+   * directory names may also end in `.blend`, resulting in an identifier like
+   * `directory.blend/Objects/filename.blend/Actions/hand/wave.blend/Actions/hi.blend`.
+   * Here the file is `directory.blend/Objects/filename.blend` and the asset is an Action named
+   * `hand/wave.blend/Actions/hi.blend`)
+   */
   std::string full_library_path() const;
 
   /**
@@ -118,6 +132,21 @@ class AssetRepresentation : NonCopyable, NonMovable {
   ID *local_id() const;
   /** Returns if this asset is stored inside this current file, and as such fully editable. */
   bool is_local_id() const;
+  /**
+   * Returns whether the asset is stored in a probably-editable .asset.blend file.
+   *
+   * NOTE: This is suitable for poll functions (which should not open other files). The actual
+   * operator should still check that `G_FILE_ASSET_EDIT_FILE` / `Main::is_asset_edit_file` is set
+   * on the `.asset.blend` file (no utility function for this exists yet).
+   *
+   * NOTE: this function does cause _some_ disk I/O, as it checks one (or more) paths for
+   * existence. See #AssetRepresentation::full_library_path() for more info.
+   *
+   * If the asset is already imported, this check can be done via
+   * `bke::asset_edit_id_is_editable(asset_id)` and `bke::asset_edit_id_is_writable(asset_id)`.
+   */
+  bool is_potentially_editable_asset_blend() const;
+
   AssetLibrary &owner_asset_library() const;
 };
 

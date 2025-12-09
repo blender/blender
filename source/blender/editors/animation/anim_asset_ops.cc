@@ -478,8 +478,16 @@ static const EnumPropertyItem prop_asset_overwrite_modes[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-/* Gets the selected asset from the given `bContext`. If the asset is an action, returns a pointer
- * to that action, else returns a nullptr. */
+/**
+ * Get the selected asset from the given `bContext`. If the asset is an Action, returns a pointer
+ * to that action, else returns a nullptr.
+ *
+ * Note that this may open another .blend file and import the Action, which means it should not be
+ * used in poll functions.
+ *
+ * \see #pose_asset_potentially_editable_poll() for use in poll functions.
+ * \see #is_pose_asset_blend_editable() to check if the asset is from an editable .asset.blend.
+ */
 static bAction *get_action_of_selected_asset(bContext *C)
 {
   const blender::asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
@@ -495,6 +503,47 @@ static bAction *get_action_of_selected_asset(bContext *C)
   Main *bmain = CTX_data_main(C);
   return reinterpret_cast<bAction *>(
       bke::asset_edit_id_from_weak_reference(*bmain, ID_AC, asset_reference));
+}
+
+/**
+ * Check that the .asset.blend file that contains the Action is suitable for modification.
+ *
+ * Editable: return true
+ * Not: report and return false.
+ */
+static bool is_pose_asset_blend_editable(const bAction &action, ReportList *reports)
+{
+  if (!bke::asset_edit_id_is_editable(action.id)) {
+    BKE_reportf(reports, RPT_ERROR, "Action is not editable");
+    return false;
+  }
+  if (!bke::asset_edit_id_is_writable(action.id)) {
+    BKE_reportf(reports, RPT_ERROR, "Asset blend file is not editable");
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Return true when the active asset is a local ID or in an .asset.blend file.
+ *
+ * This does not load the actual asset data-block.
+ */
+static bool pose_asset_potentially_editable_poll(bContext *C)
+{
+  const AssetRepresentationHandle *asset_handle = CTX_wm_asset(C);
+  if (!asset_handle || asset_handle->get_id_type() != ID_AC) {
+    CTX_wm_operator_poll_msg_set(C, "No selected pose asset");
+    return false;
+  }
+  if (asset_handle->is_local_id()) {
+    return true;
+  }
+  if (!asset_handle->is_potentially_editable_asset_blend()) {
+    CTX_wm_operator_poll_msg_set(C, "Asset blend file is not editable");
+    return false;
+  }
+  return true;
 }
 
 struct PathValue {
@@ -648,6 +697,11 @@ static wmOperatorStatus pose_asset_modify_exec(bContext *C, wmOperator *op)
 {
   bAction *action = get_action_of_selected_asset(C);
   BLI_assert_msg(action, "Poll should have checked action exists");
+
+  if (ID_IS_LINKED(action) && !is_pose_asset_blend_editable(*action, op->reports)) {
+    return OPERATOR_CANCELLED;
+  }
+
   /* Get asset now. Asset browser might get tagged for refreshing through operations below, and not
    * allow querying items from context until refreshed, see #140781. */
   const asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
@@ -684,28 +738,7 @@ static bool pose_asset_modify_poll(bContext *C)
     CTX_wm_operator_poll_msg_set(C, "Pose assets can only be modified from Pose Mode");
     return false;
   }
-
-  bAction *action = get_action_of_selected_asset(C);
-
-  if (!action) {
-    return false;
-  }
-
-  if (!ID_IS_LINKED(action)) {
-    return true;
-  }
-
-  if (!bke::asset_edit_id_is_editable(action->id)) {
-    CTX_wm_operator_poll_msg_set(C, "Action is not editable");
-    return false;
-  }
-
-  if (!bke::asset_edit_id_is_writable(action->id)) {
-    CTX_wm_operator_poll_msg_set(C, "Asset blend file is not editable");
-    return false;
-  }
-
-  return true;
+  return pose_asset_potentially_editable_poll(C);
 }
 
 static std::string pose_asset_modify_description(bContext * /* C */,
@@ -737,31 +770,6 @@ void POSELIB_OT_asset_modify(wmOperatorType *ot)
                "Specify which parts of the pose asset are overwritten");
 }
 
-static bool pose_asset_delete_poll(bContext *C)
-{
-  bAction *action = get_action_of_selected_asset(C);
-
-  if (!action) {
-    return false;
-  }
-
-  if (!ID_IS_LINKED(action)) {
-    return true;
-  }
-
-  if (!bke::asset_edit_id_is_editable(action->id)) {
-    CTX_wm_operator_poll_msg_set(C, "Action is not editable");
-    return false;
-  }
-
-  if (!bke::asset_edit_id_is_writable(action->id)) {
-    CTX_wm_operator_poll_msg_set(C, "Asset blend file is not editable");
-    return false;
-  }
-
-  return true;
-}
-
 static wmOperatorStatus pose_asset_delete_exec(bContext *C, wmOperator *op)
 {
   bAction *action = get_action_of_selected_asset(C);
@@ -770,6 +778,10 @@ static wmOperatorStatus pose_asset_delete_exec(bContext *C, wmOperator *op)
   }
 
   const blender::asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
+  if (ID_IS_LINKED(action) && !is_pose_asset_blend_editable(*action, op->reports)) {
+    return OPERATOR_CANCELLED;
+  }
+
   std::optional<AssetLibraryReference> library_ref =
       asset->owner_asset_library().library_reference();
 
@@ -793,7 +805,20 @@ static wmOperatorStatus pose_asset_delete_invoke(bContext *C,
                                                  wmOperator *op,
                                                  const wmEvent * /*event*/)
 {
+  /* Perform some checks that the 'exec' function also does, so that when things aren't editable,
+   * the user gets a message about this *before* having to confirm the deletion. */
   bAction *action = get_action_of_selected_asset(C);
+  if (!action) {
+    /* TODO: if this ever happens, figure out how that happened, and see if more
+     * useful information can be included in the report. After all, the poll
+     * function already checks that the active asset exists and is an Action. */
+    BKE_report(op->reports, RPT_ERROR, "Could not load Action for the active asset");
+    return OPERATOR_CANCELLED;
+  }
+
+  if (ID_IS_LINKED(action) && !is_pose_asset_blend_editable(*action, op->reports)) {
+    return OPERATOR_CANCELLED;
+  }
 
   return WM_operator_confirm_ex(
       C,
@@ -813,7 +838,7 @@ void POSELIB_OT_asset_delete(wmOperatorType *ot)
   ot->description = "Delete the selected Pose Asset";
   ot->idname = "POSELIB_OT_asset_delete";
 
-  ot->poll = pose_asset_delete_poll;
+  ot->poll = pose_asset_potentially_editable_poll;
   ot->invoke = pose_asset_delete_invoke;
   ot->exec = pose_asset_delete_exec;
 }
