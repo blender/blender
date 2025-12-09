@@ -280,6 +280,20 @@ static void lattice_undosys_step_decode(
         &elem->data, lt->editlatt, &lt->vertex_group_names, &lt->vertex_group_active_index);
     BKE_lattice_params_copy(lt, lt->editlatt->latt);
 
+    /* NOTE: only resize the base lattice because this is what the
+     * RNA properties do when the resolution is adjusted.
+     * Failing to do so causes the parameters to show incorrectly.
+     * See: #100651. */
+    {
+      Lattice *lt_em = lt->editlatt->latt;
+      if ((lt->pntsu != lt_em->pntsu) || /* U. */
+          (lt->pntsv != lt_em->pntsv) || /* V. */
+          (lt->pntsw != lt_em->pntsw))   /* W. */
+      {
+        BKE_lattice_resize(lt, lt_em->pntsu, lt_em->pntsv, lt_em->pntsw, nullptr);
+      }
+    }
+
     if (obedit->shapenr != elem->data.shapenr) {
       obedit->shapenr = elem->data.shapenr;
       DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
