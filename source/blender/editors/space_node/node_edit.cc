@@ -2477,8 +2477,9 @@ static wmOperatorStatus node_cryptomatte_add_socket_exec(bContext *C, wmOperator
     return OPERATOR_CANCELLED;
   }
 
-  ntreeCompositCryptomatteAddSocket(ntree, node);
+  ntreeCompositCryptomatteAddSocket(node);
 
+  BKE_ntree_update_tag_node_property(ntree, node);
   BKE_main_ensure_invariants(*CTX_data_main(C), ntree->id);
 
   return OPERATOR_FINISHED;
@@ -2525,10 +2526,11 @@ static wmOperatorStatus node_cryptomatte_remove_socket_exec(bContext *C, wmOpera
     return OPERATOR_CANCELLED;
   }
 
-  if (!ntreeCompositCryptomatteRemoveSocket(ntree, node)) {
+  if (!ntreeCompositCryptomatteRemoveSocket(node)) {
     return OPERATOR_CANCELLED;
   }
 
+  BKE_ntree_update_tag_node_property(ntree, node);
   BKE_main_ensure_invariants(*CTX_data_main(C), ntree->id);
 
   return OPERATOR_FINISHED;

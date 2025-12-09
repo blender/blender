@@ -59,8 +59,8 @@ void ntreeCompositClearTags(bNodeTree *ntree);
 
 void ntreeCompositCryptomatteSyncFromAdd(bNode *node);
 void ntreeCompositCryptomatteSyncFromRemove(bNode *node);
-bNodeSocket *ntreeCompositCryptomatteAddSocket(bNodeTree *ntree, bNode *node);
-int ntreeCompositCryptomatteRemoveSocket(bNodeTree *ntree, bNode *node);
+void ntreeCompositCryptomatteAddSocket(bNode *node);
+bool ntreeCompositCryptomatteRemoveSocket(bNode *node);
 void ntreeCompositCryptomatteLayerPrefix(const bNode *node, char *r_prefix, size_t prefix_maxncpy);
 
 /**
