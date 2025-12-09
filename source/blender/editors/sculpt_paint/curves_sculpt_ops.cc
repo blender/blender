@@ -160,59 +160,65 @@ static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(
   return {};
 }
 
-struct SculptCurvesBrushStrokeData {
-  std::unique_ptr<CurvesSculptStrokeOperation> operation;
-  PaintStroke *stroke;
+struct SculptCurvesBrushStroke final : public PaintStroke {
+  SculptCurvesBrushStroke(bContext *C, wmOperator *op, const int event_type)
+      : PaintStroke(C, op, event_type)
+  {
+  }
+
+  bool get_location(float out[3], const float mouse[2], bool force_original) override;
+  bool test_start(wmOperator *op, const float mouse[2]) override;
+  void redraw(bool final) override;
+  bool test_cancel() override;
+  void update_step(wmOperator *op, PointerRNA *itemptr) override;
+  void done(bool is_cancel) override;
+
+ private:
+  std::unique_ptr<CurvesSculptStrokeOperation> operation_;
 };
 
-static bool stroke_get_location(bContext *C,
-                                float out[3],
-                                const float mouse[2],
-                                bool /*force_original*/)
+bool SculptCurvesBrushStroke::get_location(float out[3],
+                                           const float mouse[2],
+                                           bool /*force_original*/)
 {
   out[0] = mouse[0];
   out[1] = mouse[1];
   out[2] = 0;
-  UNUSED_VARS(C);
   return true;
 }
 
-static bool stroke_test_start(bContext *C, wmOperator *op, const float mouse[2])
+bool SculptCurvesBrushStroke::test_start(wmOperator * /*op*/, const float /*mouse*/[2])
 {
-  UNUSED_VARS(C, op, mouse);
   return true;
 }
 
-static void stroke_update_step(bContext *C,
-                               wmOperator *op,
-                               PaintStroke * /*stroke*/,
-                               PointerRNA *stroke_element)
+void SculptCurvesBrushStroke::update_step(wmOperator *op, PointerRNA *stroke_element)
 {
-  SculptCurvesBrushStrokeData *op_data = static_cast<SculptCurvesBrushStrokeData *>(
-      op->customdata);
-
   StrokeExtension stroke_extension;
   RNA_float_get_array(stroke_element, "mouse", stroke_extension.mouse_position);
   stroke_extension.pressure = RNA_float_get(stroke_element, "pressure");
   stroke_extension.reports = op->reports;
 
-  if (!op_data->operation) {
+  if (!operation_) {
     stroke_extension.is_first = true;
-    op_data->operation = start_brush_operation(*C, *op, stroke_extension);
+    operation_ = start_brush_operation(*this->evil_C, *op, stroke_extension);
   }
   else {
     stroke_extension.is_first = false;
   }
 
-  if (op_data->operation) {
-    op_data->operation->on_stroke_extended(*C, stroke_extension);
+  if (operation_) {
+    operation_->on_stroke_extended(*this->evil_C, stroke_extension);
   }
 }
 
-static void stroke_done(const bContext *C, PaintStroke *stroke, const bool is_cancel)
+void SculptCurvesBrushStroke::redraw(bool /*final*/) {}
+bool SculptCurvesBrushStroke::test_cancel()
 {
-  UNUSED_VARS(C, stroke, is_cancel);
+  return false;
 }
+
+void SculptCurvesBrushStroke::done(const bool /*is_cancel*/) {}
 
 static wmOperatorStatus sculpt_curves_stroke_invoke(bContext *C,
                                                     wmOperator *op,
@@ -225,16 +231,8 @@ static wmOperatorStatus sculpt_curves_stroke_invoke(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  SculptCurvesBrushStrokeData *op_data = MEM_new<SculptCurvesBrushStrokeData>(__func__);
-  op_data->stroke = paint_stroke_new(C,
-                                     op,
-                                     stroke_get_location,
-                                     stroke_test_start,
-                                     stroke_update_step,
-                                     nullptr,
-                                     nullptr,
-                                     stroke_done,
-                                     event->type);
+  SculptCurvesBrushStroke *op_data = MEM_new<SculptCurvesBrushStroke>(
+      __func__, C, op, event->type);
   op->customdata = op_data;
 
   const wmOperatorStatus retval = op->type->modal(C, op, event);
@@ -242,7 +240,7 @@ static wmOperatorStatus sculpt_curves_stroke_invoke(bContext *C,
 
   if (retval == OPERATOR_FINISHED) {
     if (op->customdata != nullptr) {
-      paint_stroke_free(C, op, op_data->stroke);
+      op_data->free(C, op);
       MEM_delete(op_data);
     }
     return OPERATOR_FINISHED;
@@ -256,9 +254,8 @@ static wmOperatorStatus sculpt_curves_stroke_modal(bContext *C,
                                                    wmOperator *op,
                                                    const wmEvent *event)
 {
-  SculptCurvesBrushStrokeData *op_data = static_cast<SculptCurvesBrushStrokeData *>(
-      op->customdata);
-  wmOperatorStatus retval = paint_stroke_modal(C, op, event, &op_data->stroke);
+  SculptCurvesBrushStroke *op_data = static_cast<SculptCurvesBrushStroke *>(op->customdata);
+  wmOperatorStatus retval = op_data->modal(C, op, event);
   if (ELEM(retval, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
     MEM_delete(op_data);
     op->customdata = nullptr;
@@ -269,9 +266,8 @@ static wmOperatorStatus sculpt_curves_stroke_modal(bContext *C,
 static void sculpt_curves_stroke_cancel(bContext *C, wmOperator *op)
 {
   if (op->customdata != nullptr) {
-    SculptCurvesBrushStrokeData *op_data = static_cast<SculptCurvesBrushStrokeData *>(
-        op->customdata);
-    paint_stroke_cancel(C, op, op_data->stroke);
+    SculptCurvesBrushStroke *op_data = static_cast<SculptCurvesBrushStroke *>(op->customdata);
+    op_data->cancel(C, op);
     MEM_delete(op_data);
   }
 }

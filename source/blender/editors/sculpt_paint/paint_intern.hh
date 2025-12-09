@@ -10,12 +10,16 @@
 
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_rand.hh"
 #include "BLI_span.hh"
 
 #include "DNA_object_enums.h"
 #include "DNA_scene_enums.h"
+#include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_windowmanager_enums.h"
+
+#include "ED_view3d.hh"
 
 #include <optional>
 
@@ -56,7 +60,9 @@ class Node;
 }
 
 namespace ed::sculpt_paint {
+class PaintModeData;
 struct PaintStroke;
+struct PaintSample;
 struct StrokeCache;
 }  // namespace ed::sculpt_paint
 
@@ -68,61 +74,222 @@ using ColorManagedDisplay = blender::ocio::Display;
 
 /* paint_stroke.cc */
 
+enum BrushStrokeMode {
+  BRUSH_STROKE_NORMAL,
+  BRUSH_STROKE_INVERT,
+  BRUSH_STROKE_SMOOTH,
+  BRUSH_STROKE_ERASE,
+};
+
 namespace blender::ed::sculpt_paint {
 
+using StrokeDone = void (*)(PaintStroke *stroke, bool is_cancel);
+
+/* stroke operator */
+
+struct PaintSample {
+  float2 mouse = float2(0.0f, 0.0f);
+  float pressure = 0.0f;
+};
+
 /**
- * Callback function to retrieve the object space coordinates based on screen space coordinates.
- * \param location: resulting object space coordinates
- * \returns whether or not a value was actually found & the value in location is usable
- */
-using StrokeGetLocation = bool (*)(bContext *C,
-                                   float location[3],
-                                   const float mouse[2],
-                                   bool force_original);
-/**
- * Callback function to determine whether a stroke has started, and performing initialization.
+ * Common structure for various paint operators (e.g. Sculpt, Grease Pencil, Curves Sculpt)
  *
- * In many cases, this is a check to whether the stroke is over the active mesh.
- */
-using StrokeTestStart = bool (*)(bContext *C, wmOperator *op, const float mouse[2]);
-
-/**
- * Callback function for performing a paint stroke for a new step.
- */
-using StrokeUpdateStep = void (*)(bContext *C,
-                                  wmOperator *op,
-                                  PaintStroke *stroke,
-                                  PointerRNA *itemptr);
-
-/**
- * Callback function for performing necessary redraw functions based on the stroke.
- */
-using StrokeRedraw = void (*)(const bContext *C, PaintStroke *stroke, bool final);
-
-/**
- * Callback function for dynamically determining if a stroke can be cancelled. If not present,
- * cancelling is dependent on whether the operator has a `cancel` callback defined.
- */
-using StrokeTestCancel = bool (*)(const bContext *C, PaintStroke *stroke);
-
-/**
- * Callback function for cleaning up and finalizing data after a stroke has finished.
+ * Callback functions defined and stored on this struct (e.g. `StrokeGetLocation`) allow each of
+ * these modes to customize specific behavior while still sharing other common handing.
  *
- * \param is_cancel: Some paint modes support cancelling a stroke and returning to the initial
- * state. This parameter indicates this case so that appropriate cleanup actions can be taken.
+ * See #paint_stroke_modal for the majority of the paint operator logic.
  */
-using StrokeDone = void (*)(const bContext *C, PaintStroke *stroke, bool is_cancel);
+struct PaintStroke : NonCopyable, NonMovable {
+ public:
+  /* TODO: Temporary, used to assist removing usage of bContext in PaintStroke callbacks.
+   * See #149378 */
+  bContext *evil_C = nullptr;
 
-PaintStroke *paint_stroke_new(bContext *C,
-                              wmOperator *op,
-                              StrokeGetLocation get_location,
-                              StrokeTestStart test_start,
-                              StrokeUpdateStep update_step,
-                              StrokeRedraw redraw,
-                              StrokeTestCancel test_cancel,
-                              StrokeDone done,
-                              int event_type);
-void paint_stroke_free(bContext *C, wmOperator *op, PaintStroke *stroke);
+  /* Cached values */
+  ViewContext vc = {};
+  Paint *paint = nullptr;
+  Brush *brush = nullptr;
+  UnifiedPaintSettings *ups = nullptr;
+
+  /* TODO: These are only public so that cursor drawing code can use them. Find a better place.*/
+  float2 last_mouse_position = float2(0.0f, 0.0f);
+  bool constrain_line = false;
+  float2 constrained_pos = float2(0.0f, 0.0f);
+
+ protected:
+  std::unique_ptr<PaintModeData> mode_data_ = nullptr;
+
+ private:
+  void *stroke_cursor_ = nullptr;
+
+  wmTimer *timer_ = nullptr;
+  std::optional<RandomNumberGenerator> rng_ = std::nullopt;
+
+  /* Paint stroke can use up to PAINT_MAX_INPUT_SAMPLES prior inputs
+   * to smooth the stroke */
+  PaintSample samples_[PAINT_MAX_INPUT_SAMPLES];
+  int num_samples_ = 0;
+  int cur_sample_ = 0;
+  int tot_samples_ = 0;
+
+  float3 last_world_space_position_ = float3(0.0f, 0.0f, 0.0f);
+  float3 last_scene_spacing_delta_ = float3(0.0f, 0.0f, 0.0f);
+
+  bool stroke_over_mesh_ = false;
+  /* space distance covered so far */
+  float stroke_distance_ = 0.0f;
+
+  /* Set whether any stroke step has yet occurred
+   * e.g. in sculpt mode, stroke doesn't start until cursor
+   * passes over the mesh */
+  bool stroke_started_ = false;
+  /* Set when enough motion was found for rake rotation */
+  bool rake_started_ = false;
+  /* event that started stroke, for modal() return */
+  int event_type_ = 0;
+  /* check if stroke variables have been initialized */
+  bool stroke_init_ = false;
+  /* check if input variables have been initialized (e.g. cursor position & pressure)*/
+  bool input_init_ = false;
+  float2 initial_mouse_ = float2(0.0f, 0.0f);
+  float cached_size_pressure_ = 0.0f;
+  /* last pressure will store last pressure value for use in interpolation for space strokes */
+  float last_pressure_ = 0.0f;
+  int stroke_mode_ = 0;
+
+  float last_tablet_event_pressure_ = 0.0f;
+
+  float zoom_2d_ = 0.0f;
+  bool pen_flip_ = false;
+
+  /* Tilt, as read from the event. */
+  float2 tilt_ = float2(0.0f, 0.0f);
+
+  bool original_ = false; /* Ray-cast original mesh at start of stroke. */
+
+ public:
+  PaintStroke() = delete;
+
+  /**
+   * The main modal callback shared by any custom operator that implements a form of painting.
+   *
+   * At a high level, this function performs the following steps for interactive stroke types:
+   * 1. Initialization of necessary common `PaintStroke` values.
+   * 2. Custom paint initialization via `StrokeTestStart`>
+   * 3. Create an `OperatorStrokeElement` for a given mouse position by calling `StrokeGetLocation`
+   *    to potentially turn screen space coordinates into object space coordinates.
+   * 4. Call `StrokeUpdateStep` to perform custom paint operation on the most recent
+   *    `OperatorStrokeElement` data.
+   * 5. Tag extra redraws if necessary via `StrokeRedraw`.
+   * 6. Return to step 3 while stroke is ongoing.
+   * 7. Call `StrokeDone` when finished to perform any cleanup or finalization.
+   */
+  wmOperatorStatus modal(bContext *C, wmOperator *op, const wmEvent *event);
+  wmOperatorStatus exec(bContext *C, wmOperator *op);
+  /** Cancel a stroke and return to the initial state. */
+  void cancel(bContext *C, wmOperator *op);
+  /**
+   * Free internal stroke data, not a destructor due to needed parameters.
+   * TODO: This might not need to be exposed, all internal code paths should end up calling this.
+   */
+  void free(bContext *C, wmOperator *op);
+
+  /* TODO: The following accessors should all be parameters passed into various callbacks */
+  bool stroke_flipped() const
+  {
+    return pen_flip_;
+  }
+
+  bool stroke_inverted() const
+  {
+    return stroke_mode_ == BRUSH_STROKE_INVERT;
+  }
+
+  float stroke_distance() const
+  {
+    return stroke_distance_;
+  }
+
+ protected:
+  ~PaintStroke() = default;
+  PaintStroke(bContext *C, wmOperator *op, int event_type);
+
+  /**
+   * Callback function to retrieve the object space coordinates based on screen space coordinates.
+   * \param location: resulting object space coordinates
+   * \returns whether or not a value was actually found & the value in location is usable
+   */
+  virtual bool get_location(float location[3], const float mouse[2], bool force_original) = 0;
+
+  /**
+   * Callback function to determine whether a stroke has started, and performing initialization.
+   *
+   * In many cases, this is a check to whether the stroke is over the active mesh.
+   */
+  virtual bool test_start(wmOperator *op, const float mouse[2]) = 0;
+
+  /**
+   * Callback function for performing a paint stroke for a new step.
+   */
+  virtual void update_step(wmOperator *op, PointerRNA *itemptr) = 0;
+
+  /**
+   * Callback function for performing necessary redraw functions based on the stroke.
+   */
+  virtual void redraw(bool final) = 0;
+
+  /**
+   * Callback function for dynamically determining if a stroke can be cancelled.
+   */
+  virtual bool test_cancel() = 0;
+
+  /**
+   * Callback function for cleaning up and finalizing data after a stroke has finished.
+   *
+   * \param is_cancel: Some paint modes support cancelling a stroke and returning to the initial
+   * state. This parameter indicates this case so that appropriate cleanup actions can be taken.
+   */
+  virtual void done(bool is_cancel) = 0;
+
+  /* TODO: This can probably be private, but `paint_image_ops_paint` depends on this */
+  bool update(bContext *C,
+              const Brush &brush,
+              PaintMode mode,
+              const float mouse_init[2],
+              float mouse[2],
+              float pressure,
+              float r_location[3],
+              bool *r_location_is_set);
+
+ private:
+  void stroke_done(bContext *C, wmOperator *op, bool is_cancel);
+
+  void add_step(bContext *C, wmOperator *op, float2 mval, float pressure);
+
+  void add_sample(int input_samples, float x, float y, float pressure);
+  void calc_average_sample(PaintSample *average);
+
+  void lines_spacing(bContext *C,
+                     wmOperator *op,
+                     float spacing,
+                     float *length_residue,
+                     float2 old_pos,
+                     float2 new_pos);
+  int space_stroke(bContext *C, wmOperator *op, float2 final_mouse, float final_pressure);
+
+  void line_end(bContext *C, wmOperator *op, float2 mouse);
+  bool curve_end(bContext *C, wmOperator *op);
+};
+
+void paint_stroke_jitter_pos(Paint *paint,
+                             PaintMode mode,
+                             const Brush &brush,
+                             float pressure,
+                             int stroke_mode,
+                             float zoom_2d,
+                             const float mval[2],
+                             float r_mouse_out[2]);
 
 /**
  * Returns zero if the stroke dots should not be spaced, non-zero otherwise.
@@ -136,53 +303,18 @@ bool paint_supports_dynamic_size(const Brush &br, PaintMode mode);
  * Return true if the brush size can change during paint (normally used for pressure).
  */
 bool paint_supports_dynamic_tex_coords(const Brush &br, PaintMode mode);
-bool paint_supports_smooth_stroke(PaintStroke *stroke, const Brush &br, PaintMode mode);
+bool paint_supports_smooth_stroke(const Brush &brush, PaintMode mode, int stroke_mode);
 bool paint_supports_texture(PaintMode mode);
 
 /**
  * Called in paint_ops.cc, on each regeneration of key-maps.
  */
 wmKeyMap *paint_stroke_modal_keymap(wmKeyConfig *keyconf);
-/**
- * The main modal callback shared by any custom operator that implements a form of painting.
- *
- * At a high level, this function performs the following steps for interactive stroke types:
- * 1. Initialization of necessary common `PaintStroke` values.
- * 2. Custom paint initialization via `StrokeTestStart`>
- * 3. Create an `OperatorStrokeElement` for a given mouse position by calling `StrokeGetLocation`
- *    to potentially turn screen space coordinates into object space coordinates.
- * 4. Call `StrokeUpdateStep` to perform custom paint operation on the most recent
- *    `OperatorStrokeElement` data.
- * 5. Tag extra redraws if necessary via `StrokeRedraw`.
- * 6. Return to step 3 while stroke is ongoing.
- * 7. Call `StrokeDone` when finished to perform any cleanup or finalization.
- */
-wmOperatorStatus paint_stroke_modal(bContext *C,
-                                    wmOperator *op,
-                                    const wmEvent *event,
-                                    PaintStroke **stroke_p);
-wmOperatorStatus paint_stroke_exec(bContext *C, wmOperator *op, PaintStroke *stroke);
-/** Cancel a stroke and return to the initial state. */
-void paint_stroke_cancel(bContext *C, wmOperator *op, PaintStroke *stroke);
-bool paint_stroke_flipped(PaintStroke *stroke);
-bool paint_stroke_inverted(PaintStroke *stroke);
-ViewContext *paint_stroke_view_context(PaintStroke *stroke);
-void *paint_stroke_mode_data(PaintStroke *stroke);
-float paint_stroke_distance_get(PaintStroke *stroke);
 
 class PaintModeData {
  public:
   virtual ~PaintModeData() = default;
 };
-void paint_stroke_set_mode_data(PaintStroke *stroke, std::unique_ptr<PaintModeData> mode_data);
-
-bool paint_stroke_started(PaintStroke *stroke);
-void paint_stroke_jitter_pos(const PaintStroke &stroke,
-                             PaintMode mode,
-                             const Brush &brush,
-                             float pressure,
-                             const float mval[2],
-                             float r_mouse_out[2]);
 
 /** Returns true if the active tool uses brushes. */
 bool paint_brush_tool_poll(bContext *C);
@@ -192,16 +324,6 @@ bool paint_brush_tool_poll(const ScrArea *area,
                            const Object *ob);
 /** Returns true if the brush cursor should be activated. */
 bool paint_brush_cursor_poll(bContext *C);
-/** Initialize the stroke cache variants from operator properties. */
-bool paint_brush_update(bContext *C,
-                        const Brush &brush,
-                        PaintMode mode,
-                        PaintStroke *stroke,
-                        const float mouse_init[2],
-                        float mouse[2],
-                        float pressure,
-                        float r_location[3],
-                        bool *r_location_is_set);
 
 void BRUSH_OT_asset_activate(wmOperatorType *ot);
 void BRUSH_OT_asset_save_as(wmOperatorType *ot);
@@ -525,14 +647,6 @@ inline float3 symmetry_flip(const float3 &src, const ePaintSymmetryFlags symm)
 }
 
 }  // namespace blender::ed::sculpt_paint
-
-/* stroke operator */
-enum BrushStrokeMode {
-  BRUSH_STROKE_NORMAL,
-  BRUSH_STROKE_INVERT,
-  BRUSH_STROKE_SMOOTH,
-  BRUSH_STROKE_ERASE,
-};
 
 /* `paint_curve.cc` */
 

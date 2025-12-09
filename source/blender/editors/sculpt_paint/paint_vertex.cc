@@ -432,9 +432,10 @@ void smooth_brush_toggle_off(Paint *paint, StrokeCache *cache)
 void update_cache_invariants(
     bContext *C, VPaint &vp, SculptSession &ss, wmOperator *op, const float mval[2])
 {
+  PaintStroke *stroke = static_cast<PaintStroke *>(op->customdata);
   StrokeCache *cache;
   bke::PaintRuntime &paint_runtime = *vp.paint.runtime;
-  ViewContext *vc = paint_stroke_view_context((PaintStroke *)op->customdata);
+  ViewContext *vc = &stroke->vc;
   Object &ob = *CTX_data_active_object(C);
   float mat[3][3];
   float view_dir[3] = {0.0f, 0.0f, 1.0f};
@@ -1048,16 +1049,34 @@ static std::unique_ptr<VPaintData> vpaint_init_vpaint(bContext *C,
   return vpd;
 }
 
-static bool vpaint_stroke_test_start(bContext *C, wmOperator *op, const float mouse[2])
+struct VertexPaintStroke final : public PaintStroke {
+  VertexPaintStroke(bContext *C, wmOperator *op, const int event_type)
+      : PaintStroke(C, op, event_type)
+  {
+  }
+
+  bool get_location(float out[3], const float mouse[2], bool force_original) override;
+  bool test_start(wmOperator *op, const float mouse[2]) override;
+  void redraw(bool final) override;
+  bool test_cancel() override;
+  void update_step(wmOperator *op, PointerRNA *itemptr) override;
+  void done(bool is_cancel) override;
+};
+
+bool VertexPaintStroke::get_location(float out[3], const float mouse[2], bool force_original)
 {
-  Scene &scene = *CTX_data_scene(C);
+  return stroke_get_location_bvh(this->evil_C, out, mouse, force_original);
+}
+
+bool VertexPaintStroke::test_start(wmOperator *op, const float mouse[2])
+{
+  Scene &scene = *CTX_data_scene(this->evil_C);
   ToolSettings &ts = *scene.toolsettings;
-  PaintStroke *stroke = (PaintStroke *)op->customdata;
   VPaint &vp = *ts.vpaint;
   Brush &brush = *BKE_paint_brush(&vp.paint);
-  Object &ob = *CTX_data_active_object(C);
+  Object &ob = *CTX_data_active_object(this->evil_C);
   SculptSession &ss = *ob.sculpt;
-  Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
+  Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(this->evil_C);
 
   /* context checks could be a poll() */
   Mesh *mesh = BKE_mesh_from_object(&ob);
@@ -1074,9 +1093,9 @@ static bool vpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   }
 
   std::unique_ptr<VPaintData> vpd = vpaint_init_vpaint(
-      C, op, scene, depsgraph, vp, ob, *mesh, meta_data->domain, meta_data->data_type, brush);
+      evil_C, op, scene, depsgraph, vp, ob, *mesh, meta_data->domain, meta_data->data_type, brush);
 
-  paint_stroke_set_mode_data(stroke, std::move(vpd));
+  mode_data_ = std::move(vpd);
 
   BKE_curvemapping_init(brush.curve_rand_hue);
   BKE_curvemapping_init(brush.curve_rand_saturation);
@@ -1084,10 +1103,16 @@ static bool vpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 
   /* If not previously created, create vertex/weight paint mode session data */
   vertex_paint_init_stroke(depsgraph, ob);
-  vwpaint::update_cache_invariants(C, vp, ss, op, mouse);
+  vwpaint::update_cache_invariants(this->evil_C, vp, ss, op, mouse);
   vwpaint::init_session_data(ts, ob);
 
   return true;
+}
+
+void VertexPaintStroke::redraw(bool /*final*/) {}
+bool VertexPaintStroke::test_cancel()
+{
+  return false;
 }
 
 static void filter_factors_with_selection(const Span<bool> select_vert,
@@ -2047,21 +2072,18 @@ static void vpaint_do_symmetrical_brush_actions(bContext *C,
   cache.is_last_valid = true;
 }
 
-static void vpaint_stroke_update_step(bContext *C,
-                                      wmOperator * /*op*/,
-                                      PaintStroke *stroke,
-                                      PointerRNA *itemptr)
+void VertexPaintStroke::update_step(wmOperator * /*op*/, PointerRNA *itemptr)
 {
-  ToolSettings *ts = CTX_data_tool_settings(C);
-  VPaintData &vpd = *static_cast<VPaintData *>(paint_stroke_mode_data(stroke));
+  ToolSettings *ts = CTX_data_tool_settings(this->evil_C);
+  VPaintData &vpd = *static_cast<VPaintData *>(mode_data_.get());
   VPaint &vp = *ts->vpaint;
   ViewContext &vc = vpd.vc;
   Object &ob = *vc.obact;
   SculptSession &ss = *ob.sculpt;
 
-  ss.cache->stroke_distance = paint_stroke_distance_get(stroke);
+  ss.cache->stroke_distance = this->stroke_distance();
 
-  vwpaint::update_cache_variants(C, vp, ob, itemptr);
+  vwpaint::update_cache_variants(this->evil_C, vp, ob, itemptr);
 
   float mat[4][4];
 
@@ -2071,7 +2093,7 @@ static void vpaint_stroke_update_step(bContext *C,
 
   swap_m4m4(vc.rv3d->persmat, mat);
 
-  vpaint_do_symmetrical_brush_actions(C, vp, vpd, ob);
+  vpaint_do_symmetrical_brush_actions(this->evil_C, vp, vpd, ob);
 
   swap_m4m4(vc.rv3d->persmat, mat);
 
@@ -2093,20 +2115,20 @@ static void vpaint_stroke_update_step(bContext *C,
   DEG_id_tag_update((ID *)ob.data, ID_RECALC_GEOMETRY);
 }
 
-static void vpaint_stroke_done(const bContext *C, PaintStroke *stroke, bool /*is_cancel*/)
+void VertexPaintStroke::done(bool /*is_cancel*/)
 {
-  VPaintData *vpd = static_cast<VPaintData *>(paint_stroke_mode_data(stroke));
+  VPaintData *vpd = static_cast<VPaintData *>(mode_data_.get());
   Object &ob = *vpd->vc.obact;
 
   SculptSession &ss = *ob.sculpt;
 
   if (ss.cache && ss.cache->alt_smooth) {
-    ToolSettings *ts = CTX_data_tool_settings(C);
+    ToolSettings *ts = CTX_data_tool_settings(this->evil_C);
     VPaint &vp = *ts->vpaint;
     vwpaint::smooth_brush_toggle_off(&vp.paint, ss.cache);
   }
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, &ob);
+  WM_event_add_notifier(this->evil_C, NC_OBJECT | ND_DRAW, &ob);
 
   MEM_delete(ob.sculpt->cache);
   ob.sculpt->cache = nullptr;
@@ -2114,21 +2136,15 @@ static void vpaint_stroke_done(const bContext *C, PaintStroke *stroke, bool /*is
 
 static wmOperatorStatus vpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  op->customdata = paint_stroke_new(C,
-                                    op,
-                                    stroke_get_location_bvh,
-                                    vpaint_stroke_test_start,
-                                    vpaint_stroke_update_step,
-                                    nullptr,
-                                    nullptr,
-                                    vpaint_stroke_done,
-                                    event->type);
+  VertexPaintStroke *stroke = MEM_new<VertexPaintStroke>(__func__, C, op, event->type);
+  op->customdata = stroke;
 
   const wmOperatorStatus retval = op->type->modal(C, op, event);
   OPERATOR_RETVAL_CHECK(retval);
 
   if (retval == OPERATOR_FINISHED) {
-    paint_stroke_free(C, op, (PaintStroke *)op->customdata);
+    stroke->free(C, op);
+    MEM_delete(stroke);
     return OPERATOR_FINISHED;
   }
 
@@ -2141,24 +2157,25 @@ static wmOperatorStatus vpaint_invoke(bContext *C, wmOperator *op, const wmEvent
 
 static wmOperatorStatus vpaint_exec(bContext *C, wmOperator *op)
 {
-  op->customdata = paint_stroke_new(C,
-                                    op,
-                                    stroke_get_location_bvh,
-                                    vpaint_stroke_test_start,
-                                    vpaint_stroke_update_step,
-                                    nullptr,
-                                    nullptr,
-                                    vpaint_stroke_done,
-                                    0);
+  VertexPaintStroke *stroke = MEM_new<VertexPaintStroke>(__func__, C, op, 0);
+  op->customdata = stroke;
 
-  paint_stroke_exec(C, op, (PaintStroke *)op->customdata);
+  stroke->exec(C, op);
 
+  MEM_delete(stroke);
   return OPERATOR_FINISHED;
 }
 
 static wmOperatorStatus vpaint_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  return paint_stroke_modal(C, op, event, (PaintStroke **)&op->customdata);
+  VertexPaintStroke *stroke = static_cast<VertexPaintStroke *>(op->customdata);
+  const wmOperatorStatus retval = stroke->modal(C, op, event);
+
+  if (ELEM(retval, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
+    MEM_delete(stroke);
+  }
+
+  return retval;
 }
 
 void PAINT_OT_vertex_paint(wmOperatorType *ot)
