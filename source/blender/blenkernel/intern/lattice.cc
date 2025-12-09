@@ -16,6 +16,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -391,6 +392,15 @@ Lattice *BKE_lattice_add(Main *bmain, const char *name)
   lt = BKE_id_new<Lattice>(bmain, name);
 
   return lt;
+}
+
+void BKE_lattice_params_copy(Lattice *lt_dst, const Lattice *lt_src)
+{
+  lt_dst->typeu = lt_src->typeu;
+  lt_dst->typev = lt_src->typev;
+  lt_dst->typew = lt_src->typew;
+  lt_dst->flag = lt_src->flag;
+  STRNCPY(lt_dst->vgroup, lt_src->vgroup);
 }
 
 static BPoint *latt_bp(Lattice *lt, int u, int v, int w)

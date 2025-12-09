@@ -30,6 +30,7 @@ struct Scene;
 
 void BKE_lattice_resize(Lattice *lt, int u_new, int v_new, int w_new, Object *lt_ob);
 Lattice *BKE_lattice_add(Main *bmain, const char *name);
+void BKE_lattice_params_copy(Lattice *lt_dst, const Lattice *lt_src);
 void calc_lat_fudu(int flag, int res, float *r_fu, float *r_du);
 
 void outside_lattice(Lattice *lt);

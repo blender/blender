@@ -14,6 +14,8 @@
 #include "CLG_log.h"
 
 #include "BLI_array_utils.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
@@ -23,6 +25,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_deform.hh"
+#include "BKE_lattice.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
@@ -53,10 +56,17 @@ struct UndoLattice {
   float fu, fv, fw;
   float du, dv, dw;
   MDeformVert *dvert;
+  int shapenr;
+  char vgroup[/*MAX_VGROUP_NAME*/ 64];
+  ListBase vertex_group_names;
+  int vertex_group_active_index;
   size_t undo_size;
 };
 
-static void undolatt_to_editlatt(UndoLattice *ult, EditLatt *editlatt)
+static void undolatt_to_editlatt(UndoLattice *ult,
+                                 EditLatt *editlatt,
+                                 ListBase *vertex_group_names,
+                                 int *vertex_group_active_index)
 {
   const int len_src = ult->pntsu * ult->pntsv * ult->pntsw;
   const int len_dst = editlatt->latt->pntsu * editlatt->latt->pntsv * editlatt->latt->pntsw;
@@ -91,9 +101,20 @@ static void undolatt_to_editlatt(UndoLattice *ult, EditLatt *editlatt)
   editlatt->latt->du = ult->du;
   editlatt->latt->dv = ult->dv;
   editlatt->latt->dw = ult->dw;
+
+  STRNCPY(editlatt->latt->vgroup, ult->vgroup);
+
+  BLI_freelistN(vertex_group_names);
+  BKE_defgroup_copy_list(vertex_group_names, &ult->vertex_group_names);
+  *vertex_group_active_index = ult->vertex_group_active_index;
+
+  editlatt->shapenr = ult->shapenr;
 }
 
-static void *undolatt_from_editlatt(UndoLattice *ult, EditLatt *editlatt)
+static void *undolatt_from_editlatt(UndoLattice *ult,
+                                    EditLatt *editlatt,
+                                    const ListBase *vertex_group_names,
+                                    int vertex_group_active_index)
 {
   BLI_assert(BLI_array_is_zeroed(ult, 1));
 
@@ -113,6 +134,13 @@ static void *undolatt_from_editlatt(UndoLattice *ult, EditLatt *editlatt)
   ult->du = editlatt->latt->du;
   ult->dv = editlatt->latt->dv;
   ult->dw = editlatt->latt->dw;
+
+  STRNCPY(ult->vgroup, editlatt->latt->vgroup);
+
+  BKE_defgroup_copy_list(&ult->vertex_group_names, vertex_group_names);
+  ult->vertex_group_active_index = vertex_group_active_index;
+
+  ult->shapenr = editlatt->shapenr;
 
   if (editlatt->latt->dvert) {
     const int tot = ult->pntsu * ult->pntsv * ult->pntsw;
@@ -135,6 +163,7 @@ static void undolatt_free_data(UndoLattice *ult)
     BKE_defvert_array_free(ult->dvert, ult->pntsu * ult->pntsv * ult->pntsw);
     ult->dvert = nullptr;
   }
+  BLI_freelistN(&ult->vertex_group_names);
 }
 
 #if 0
@@ -210,7 +239,8 @@ static bool lattice_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p
 
     elem->obedit_ref.ptr = ob;
     Lattice *lt = static_cast<Lattice *>(ob->data);
-    undolatt_from_editlatt(&elem->data, lt->editlatt);
+    undolatt_from_editlatt(
+        &elem->data, lt->editlatt, &lt->vertex_group_names, lt->vertex_group_active_index);
     lt->editlatt->needs_flush_to_id = 1;
     us->step.data_size += elem->data.undo_size;
   }
@@ -246,7 +276,15 @@ static void lattice_undosys_step_decode(
                  obedit->id.name);
       continue;
     }
-    undolatt_to_editlatt(&elem->data, lt->editlatt);
+    undolatt_to_editlatt(
+        &elem->data, lt->editlatt, &lt->vertex_group_names, &lt->vertex_group_active_index);
+    BKE_lattice_params_copy(lt, lt->editlatt->latt);
+
+    if (obedit->shapenr != elem->data.shapenr) {
+      obedit->shapenr = elem->data.shapenr;
+      DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
+    }
+
     lt->editlatt->needs_flush_to_id = 1;
     DEG_id_tag_update(&lt->id, ID_RECALC_GEOMETRY);
   }

@@ -99,15 +99,10 @@ static void rna_Lattice_update_data(Main * /*bmain*/, Scene * /*scene*/, Pointer
 static void rna_Lattice_update_data_editlatt(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
-  Lattice *lt = (Lattice *)ptr->owner_id;
-
+  const Lattice *lt = (Lattice *)ptr->owner_id;
   if (lt->editlatt) {
     Lattice *lt_em = lt->editlatt->latt;
-    lt_em->typeu = lt->typeu;
-    lt_em->typev = lt->typev;
-    lt_em->typew = lt->typew;
-    lt_em->flag = lt->flag;
-    STRNCPY(lt_em->vgroup, lt->vgroup);
+    BKE_lattice_params_copy(lt_em, lt);
   }
 
   DEG_id_tag_update(id, 0);
