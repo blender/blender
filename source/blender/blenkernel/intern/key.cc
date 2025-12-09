@@ -828,127 +828,84 @@ static void cp_cu_key(Curve *cu,
   }
 }
 
-static void key_evaluate_relative(const int start,
-                                  int end,
-                                  const int tot,
-                                  char *basispoin,
-                                  Key *key,
-                                  KeyBlock *actkb,
-                                  float **per_keyblock_weights,
-                                  const int mode)
+/**
+ * Move the point in `r_targets` along the vector of ab by a factor of `weight`.
+ *
+ * \param start_index points to the x value in the flat float array. Indices of +1 and +2 from this
+ * are accessed.
+ */
+static void add_weighted_vector(
+    const int start_index, const float weight, const float *a, const float *b, float *r_target)
 {
-  int ofs[3];
-  /* Currently always 0, in future key_pointer_size may assign. */
-  ofs[1] = 0;
+  r_target[start_index + 0] += weight * (b[start_index + 0] - a[start_index + 0]);
+  r_target[start_index + 1] += weight * (b[start_index + 1] - a[start_index + 1]);
+  r_target[start_index + 2] += weight * (b[start_index + 2] - a[start_index + 2]);
+}
 
-  int pointer_size;
-  int step;
-  if (!key_pointer_size(key, mode, &pointer_size, &ofs[0], &step)) {
-    return;
-  }
+/**
+ * Shapekey evaluation for data of 3 floats (Vector3).
+ *
+ * The caller has to supply a `range` because the curve ID can store a mix of Nurbs
+ * and Bezier curves, which need to be evaluated separately. The shapekey stores all that data in
+ * a flat array though. All the data in the `range` is assumed to be of the same type.
+ *
+ * \param target_data is the float array into which the result of the evaluation is written.
+ * \param per_keyblock_weights is a 2d array which gives a per KeyBlock per Vertex weight. Can be a
+ * nullptr.
+ */
+static void key_evaluate_relative_float3(Key *key,
+                                         KeyBlock *active_keyblock,
+                                         const int vertex_count,
+                                         const blender::IndexRange range,
+                                         float **per_keyblock_weights,
+                                         const int mode,
+                                         float *target_data)
+{
+  /* Creates the basis values in target_data. */
+  cp_key(range.first(),
+         range.last() + 1,
+         vertex_count,
+         reinterpret_cast<char *>(target_data),
+         key,
+         active_keyblock,
+         key->refkey,
+         nullptr,
+         mode);
 
-  end = std::min(end, tot);
-
-  /* In case of Bezier-triple. */
-  char elemstr[8];
-  elemstr[0] = 1; /* Number of IPO-floats. */
-  elemstr[1] = IPO_BEZTRIPLE;
-  elemstr[2] = 0;
-
-  /* Just here, not above! */
-  const int elemsize = key->elemsize * step;
-
-  /* Step 1: init. */
-  cp_key(start, end, tot, basispoin, key, actkb, key->refkey, nullptr, mode);
-
-  /* Step 2: do it. */
   int keyblock_index = 0;
   LISTBASE_FOREACH_INDEX (KeyBlock *, kb, &key->block, keyblock_index) {
     if (kb == key->refkey) {
       continue;
     }
-    /* Only with value, and no difference allowed. */
-    if (kb->flag & KEYBLOCK_MUTE || kb->totelem != tot) {
+    /* No difference in vertex count allowed. */
+    if (kb->flag & KEYBLOCK_MUTE || kb->totelem != vertex_count) {
       continue;
     }
-    const float icuval = kb->curval;
-    if (icuval == 0.0f) {
+    const float kb_influence = kb->curval;
+    if (kb_influence == 0.0f) {
       continue;
     }
-
-    float weight, *weights = per_keyblock_weights ? per_keyblock_weights[keyblock_index] : nullptr;
-    char *freefrom = nullptr;
-
     /* Reference can be any block. */
-    KeyBlock *refb = static_cast<KeyBlock *>(BLI_findlink(&key->block, kb->relative));
-    if (refb == nullptr) {
+    KeyBlock *reference_kb = static_cast<KeyBlock *>(BLI_findlink(&key->block, kb->relative));
+    if (reference_kb == nullptr) {
       continue;
     }
 
-    char *poin = basispoin;
-    char *from = key_block_get_data(key, actkb, kb, &freefrom);
+    const float *weights = per_keyblock_weights ? per_keyblock_weights[keyblock_index] : nullptr;
+
+    char *freefrom = nullptr;
+    const float *from = reinterpret_cast<float *>(
+        key_block_get_data(key, active_keyblock, kb, &freefrom));
 
     /* For meshes, use the original values instead of the bmesh values to
      * maintain a constant offset. */
-    char *reffrom = static_cast<char *>(refb->data);
+    const float *reffrom = static_cast<float *>(reference_kb->data);
 
-    poin += start * pointer_size;
-    reffrom += key->elemsize * start; /* Key elemsize yes! */
-    from += key->elemsize * start;
-
-    char *cp;
-    int *ofsp;
-
-    for (int b = start; b < end; b += step) {
-
-      weight = weights ? (*weights * icuval) : icuval;
-
-      cp = key->elemstr;
-      if (mode == KEY_MODE_BEZTRIPLE) {
-        cp = elemstr;
-      }
-
-      ofsp = ofs;
-
-      while (cp[0]) { /* (cp[0] == amount) */
-
-        switch (cp[1]) {
-          case IPO_FLOAT:
-            rel_flerp(
-                KEYELEM_FLOAT_LEN_COORD, (float *)poin, (float *)reffrom, (float *)from, weight);
-            break;
-          case IPO_BPOINT:
-            rel_flerp(
-                KEYELEM_FLOAT_LEN_BPOINT, (float *)poin, (float *)reffrom, (float *)from, weight);
-            break;
-          case IPO_BEZTRIPLE:
-            rel_flerp(KEYELEM_FLOAT_LEN_BEZTRIPLE,
-                      (float *)poin,
-                      (float *)reffrom,
-                      (float *)from,
-                      weight);
-            break;
-          default:
-            BLI_assert_unreachable();
-            if (freefrom) {
-              MEM_freeN(freefrom);
-            }
-            BLI_assert_msg(0, "invalid 'cp[1]'");
-            return;
-        }
-
-        poin += *ofsp;
-
-        cp += 2;
-        ofsp++;
-      }
-
-      reffrom += elemsize;
-      from += elemsize;
-
-      if (weights) {
-        weights++;
-      }
+    for (const int i : range) {
+      const float weight = weights ? (weights[i] * kb->curval) : kb->curval;
+      /* Each vertex has 3 floats. */
+      const int vector_index = i * 3;
+      add_weighted_vector(vector_index, weight, reffrom, from, target_data);
     }
 
     if (freefrom) {
@@ -1356,7 +1313,13 @@ static void do_mesh_key(Object *ob, Key *key, char *out, const int tot)
     WeightsArrayCache cache = {0, nullptr};
     float **per_keyblock_weights;
     per_keyblock_weights = keyblock_get_per_block_weights(ob, key, &cache);
-    key_evaluate_relative(0, tot, tot, out, key, actkb, per_keyblock_weights, KEY_MODE_DUMMY);
+    key_evaluate_relative_float3(key,
+                                 actkb,
+                                 tot,
+                                 {0, tot},
+                                 per_keyblock_weights,
+                                 KEY_MODE_DUMMY,
+                                 reinterpret_cast<float *>(out));
     keyblock_free_per_block_weights(key, per_keyblock_weights, &cache);
   }
   else {
@@ -1404,11 +1367,13 @@ static void do_rel_cu_key(Curve *cu, Key *key, KeyBlock *actkb, char *out, const
   for (a = 0, nu = static_cast<Nurb *>(cu->nurb.first); nu; nu = nu->next, a += step) {
     if (nu->bp) {
       step = KEYELEM_ELEM_LEN_BPOINT * nu->pntsu * nu->pntsv;
-      key_evaluate_relative(a, a + step, tot, out, key, actkb, nullptr, KEY_MODE_BPOINT);
+      key_evaluate_relative_float3(
+          key, actkb, tot, {a, step}, nullptr, KEY_MODE_BPOINT, (float *)out);
     }
     else if (nu->bezt) {
       step = KEYELEM_ELEM_LEN_BEZTRIPLE * nu->pntsu;
-      key_evaluate_relative(a, a + step, tot, out, key, actkb, nullptr, KEY_MODE_BEZTRIPLE);
+      key_evaluate_relative_float3(
+          key, actkb, tot, {a, step}, nullptr, KEY_MODE_BEZTRIPLE, (float *)out);
     }
     else {
       step = 0;
@@ -1448,7 +1413,13 @@ static void do_latt_key(Object *ob, Key *key, char *out, const int tot)
   if (key->type == KEY_RELATIVE) {
     float **per_keyblock_weights;
     per_keyblock_weights = keyblock_get_per_block_weights(ob, key, nullptr);
-    key_evaluate_relative(0, tot, tot, out, key, actkb, per_keyblock_weights, KEY_MODE_DUMMY);
+    key_evaluate_relative_float3(key,
+                                 actkb,
+                                 tot,
+                                 {0, tot},
+                                 per_keyblock_weights,
+                                 KEY_MODE_DUMMY,
+                                 reinterpret_cast<float *>(out));
     keyblock_free_per_block_weights(key, per_keyblock_weights, nullptr);
   }
   else {
