@@ -66,6 +66,12 @@ static FTC_CMapCache ftc_charmap_cache = nullptr;
 /* Lock for FreeType library, used around face creation and deletion. */
 static blender::Mutex ft_lib_mutex;
 
+/* Lock around places that query free type caching system, and use the
+ * calculated ft_size result. `FTC_Manager_LookupSize` can remove
+ * ft_size of a completely different font instance, when the cache
+ * is full! */
+static blender::Mutex ft_cache_size_mutex;
+
 /* May be set to #widgetbase_draw_cache_flush. */
 static void (*blf_draw_cache_flush)() = nullptr;
 
@@ -158,7 +164,7 @@ uint blf_get_char_index(FontBLF *font, const uint charcode)
 /* Convert a FreeType 26.6 value representing an unscaled design size to fractional pixels. */
 static ft_pix blf_unscaled_F26Dot6_to_pixels(FontBLF *font, const FT_Pos value)
 {
-  /* Make sure we have a valid font->ft_size. */
+  std::lock_guard lock(ft_cache_size_mutex);
   blf_ensure_size(font);
 
   /* Scale value by font size using integer-optimized multiplication. */
@@ -1542,6 +1548,7 @@ blender::Vector<blender::StringRef> blf_font_string_wrap(FontBLF *font,
 
 static ft_pix blf_font_height_max_ft_pix(FontBLF *font)
 {
+  std::lock_guard lock(ft_cache_size_mutex);
   blf_ensure_size(font);
   /* #Metrics::height is rounded to pixel. Force minimum of one pixel. */
   return std::max((ft_pix)font->ft_size->metrics.height, ft_pix_from_int(1));
@@ -1554,6 +1561,7 @@ int blf_font_height_max(FontBLF *font)
 
 static ft_pix blf_font_width_max_ft_pix(FontBLF *font)
 {
+  std::lock_guard lock(ft_cache_size_mutex);
   blf_ensure_size(font);
   /* #Metrics::max_advance is rounded to pixel. Force minimum of one pixel. */
   return std::max((ft_pix)font->ft_size->metrics.max_advance, ft_pix_from_int(1));
@@ -1566,12 +1574,14 @@ int blf_font_width_max(FontBLF *font)
 
 int blf_font_descender(FontBLF *font)
 {
+  std::lock_guard lock(ft_cache_size_mutex);
   blf_ensure_size(font);
   return ft_pix_to_int((ft_pix)font->ft_size->metrics.descender);
 }
 
 int blf_font_ascender(FontBLF *font)
 {
+  std::lock_guard lock(ft_cache_size_mutex);
   blf_ensure_size(font);
   return ft_pix_to_int((ft_pix)font->ft_size->metrics.ascender);
 }
@@ -2189,6 +2199,7 @@ bool blf_font_size(FontBLF *font, float size)
 
   if (font->size != size) {
     if (font->flags & BLF_CACHED) {
+      std::lock_guard lock(ft_cache_size_mutex);
       FTC_ScalerRec scaler = {nullptr};
       scaler.face_id = font;
       scaler.width = 0;
