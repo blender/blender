@@ -179,6 +179,9 @@ struct USDExportParams {
   char collection[MAX_ID_NAME - 2] = "";
   char custom_properties_namespace[MAX_IDPROP_NAME] = "";
 
+  std::string accessibility_label = "";
+  std::string accessibility_description = "";
+
   eUSDSceneUnits convert_scene_units = eUSDSceneUnits::USD_SCENE_UNITS_METERS;
   float custom_meters_per_unit = 1.0f;
 

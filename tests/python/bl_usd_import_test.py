@@ -8,7 +8,7 @@ import pathlib
 import sys
 import tempfile
 import unittest
-from pxr import Ar, Gf, Sdf, Usd, UsdGeom, UsdShade
+from pxr import Ar, Gf, Sdf, Usd, UsdGeom, UsdShade, UsdUI
 
 import bpy
 
@@ -2115,6 +2115,62 @@ class USDImportTest(AbstractUSDTest):
                         "Imported texture should be temporary")
 
         bpy.utils.unregister_class(ImportMtlxTextureUSDHook)
+
+    def test_import_accessibility(self):
+        """Test importing accessibility metadata as custom properties."""
+
+        # Create a simple USD file with accessibility metadata
+        usd_path = self.tempdir / "accessibility_test.usda"
+        stage = Usd.Stage.CreateNew(str(usd_path))
+
+        # Create a cube with accessibility metadata
+        prim = stage.DefinePrim("/root", "Xform")
+        stage.SetDefaultPrim(prim)
+
+        # Add default namespace
+        default_api = UsdUI.AccessibilityAPI.Apply(prim, "default")
+        label_attr = default_api.CreateLabelAttr()
+        label_attr.Set("Test Prim")
+        description_attr = default_api.CreateDescriptionAttr()
+        description_attr.Set("A test prim for import")
+        priority_attr = default_api.CreatePriorityAttr()
+        priority_attr.Set(UsdUI.Tokens.high)
+
+        # Add custom namespace
+        custom_api = UsdUI.AccessibilityAPI.Apply(prim, "alternate")
+        alt_label_attr = custom_api.CreateLabelAttr()
+        alt_label_attr.Set("Alternate Label")
+        alt_description_attr = custom_api.CreateDescriptionAttr()
+        alt_description_attr.Set("Alternate description")
+
+        stage.Save()
+
+        # Import the USD file
+        res = bpy.ops.wm.usd_import(filepath=str(usd_path))
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {usd_path}")
+
+        # Verify the imported object has the accessibility custom properties
+        xform = bpy.data.objects.get("root")
+        self.assertIsNotNone(xform, "root prim object should be imported")
+
+        label_key = label_attr.GetName()
+        description_key = description_attr.GetName()
+        priority_key = priority_attr.GetName()
+
+        self.assertIn(label_key, xform, "Default label should be imported")
+        self.assertEqual(xform[label_key], label_attr.Get())
+        self.assertIn(description_key, xform, "Default description should be imported")
+        self.assertEqual(xform[description_key], description_attr.Get())
+        self.assertIn(priority_key, xform, "Default priority should be imported")
+        self.assertEqual(xform[priority_key], priority_attr.Get())
+
+        alt_label_key = alt_label_attr.GetName()
+        alt_description_key = alt_description_attr.GetName()
+
+        self.assertIn(alt_label_key, xform, "Alternate label should be imported")
+        self.assertEqual(xform[alt_label_key], alt_label_attr.Get())
+        self.assertIn(alt_description_key, xform, "Alternate description should be imported")
+        self.assertEqual(xform[alt_description_key], alt_description_attr.Get())
 
 
 class USDImportComparisonTest(unittest.TestCase):

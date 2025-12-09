@@ -23,6 +23,7 @@
 #include <pxr/usd/usdGeom/tokens.h>
 #include <pxr/usd/usdGeom/xform.h>
 #include <pxr/usd/usdGeom/xformCommonAPI.h>
+#include <pxr/usd/usdUI/accessibilityAPI.h>
 #include <pxr/usd/usdUtils/usdzPackage.h>
 
 #include "MEM_guardedalloc.h"
@@ -192,6 +193,35 @@ static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &p
     auto xform = pxr::UsdGeomXform::Define(stage, path);
     /* Tag generated primitives to allow filtering on import. */
     xform.GetPrim().SetCustomDataByKey(pxr::TfToken("Blender:generated"), pxr::VtValue(true));
+  }
+}
+
+/**
+ * If the user has provided an accessibility label and description for the export,
+ * write that information to the exported stage's default prim. This information
+ * will be written with the `UsdUIAccessibilityAPI` under the `default`
+ * namespace. Note: The information will only be added if the label is non-empty.
+ */
+static void write_root_accessibility_information(pxr::UsdStageRefPtr stage,
+                                                 const USDExportParams &params)
+{
+  /* Don't apply the API if both the label and description are empty. */
+  if (params.accessibility_label.empty() && params.accessibility_description.empty()) {
+    return;
+  }
+
+  pxr::UsdUIAccessibilityAPI accessibility_api = pxr::UsdUIAccessibilityAPI::ApplyDefaultAPI(
+      stage->GetDefaultPrim());
+  if (!accessibility_api) {
+    return;
+  }
+
+  if (!params.accessibility_label.empty()) {
+    accessibility_api.CreateLabelAttr().Set(params.accessibility_label);
+  }
+
+  if (!params.accessibility_description.empty()) {
+    accessibility_api.CreateDescriptionAttr().Set(params.accessibility_description);
   }
 }
 
@@ -586,6 +616,9 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
       break;
     }
   }
+
+  /* Write accessibility information to the default prim. */
+  write_root_accessibility_information(usd_stage, params);
 
   if (params.use_instancing) {
     process_scene_graph_instances(params, usd_stage);

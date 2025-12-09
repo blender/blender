@@ -9,7 +9,7 @@ import pprint
 import sys
 import tempfile
 import unittest
-from pxr import Gf, Sdf, Usd, UsdGeom, UsdMtlx, UsdShade, UsdSkel, UsdUtils, UsdVol
+from pxr import Gf, Sdf, Usd, UsdGeom, UsdMtlx, UsdShade, UsdSkel, UsdUI, UsdUtils, UsdVol
 
 import bpy
 
@@ -1979,6 +1979,86 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(len(uv_indices), 24, "Should have 24 UV indices (one per face vertex)")
         self.assertLess(len(uv_values), 24,
                         f"Unique UV count ({len(uv_values)}) should be less than face vertex count (24)")
+
+    def test_export_accessibility(self):
+        """Validate that writing UsdUIAccessibilityAPI metadata exports correctly."""
+
+        def verify_accessibility_api(prim, namespace, label, description=None, priority=None):
+            self.assertTrue(prim.HasAPI(UsdUI.AccessibilityAPI))
+            accessibility_api = UsdUI.AccessibilityAPI(prim, namespace)
+            label_attr = accessibility_api.GetLabelAttr()
+            self.assertTrue(label_attr.HasAuthoredValue())
+            self.assertEqual(label_attr.Get(), label)
+            if description is not None:
+                description_attr = accessibility_api.GetDescriptionAttr()
+                self.assertTrue(description_attr.HasAuthoredValue())
+                self.assertEqual(description_attr.Get(), description)
+            if priority is not None:
+                priority_attr = accessibility_api.GetPriorityAttr()
+                self.assertTrue(priority_attr.HasAuthoredValue())
+                self.assertEqual(priority_attr.Get(), priority)
+
+        # Create a few objects to export.
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        bpy.ops.mesh.primitive_uv_sphere_add()
+        sphere = bpy.context.active_object
+        sphere.name = "Sphere"
+        sphere_label = "a sphere"
+        sphere_description = "a primitive uv sphere"
+        sphere["accessibility:default:label"] = sphere_label
+        sphere["accessibility:default:description"] = sphere_description
+        sphere["accessibility:default:priority"] = UsdUI.Tokens.high
+
+        # Apply a second set of accessibility data.
+        sphere_color_label = "blue"
+        sphere_color_description = "a cool slightly greenish blue"
+        sphere["accessibility:color:label"] = sphere_color_label
+        sphere["accessibility:color:description"] = sphere_color_description
+
+        export_path = self.tempdir / "accessibility_basic.usda"
+        root_label = "Accessibility Test"
+        root_description = "This is an accessibility test from Python!"
+        self.export_and_validate(
+            filepath=str(export_path),
+            export_custom_properties=True,
+            accessibility_label=root_label,
+            accessibility_description=root_description,
+            selected_objects_only=True,
+        )
+
+        stage = Usd.Stage.Open(str(export_path))
+        root_prim = stage.GetPrimAtPath("/root")
+        self.assertTrue(root_prim.IsValid())
+        sphere_prim = stage.GetPrimAtPath(f"/root/{sphere.name}")
+        self.assertTrue(sphere_prim.IsValid())
+
+        # Check the accessibility metadata on the root prim (set via the export args).
+        verify_accessibility_api(root_prim, UsdUI.Tokens.default_, root_label, root_description)
+
+        # Check the accessibility metadata exported from custom properties.
+        verify_accessibility_api(
+            sphere_prim, UsdUI.Tokens.default_, sphere_label, sphere_description, UsdUI.Tokens.high)
+        verify_accessibility_api(
+            sphere_prim, "color", sphere_color_label, sphere_color_description)
+
+        # Test another export, but this time do not have the root prim. Verify
+        # that the export settings take precedence over custom properties.
+        export_path = self.tempdir / "accessibility_basic_no_root.usda"
+        self.export_and_validate(
+            filepath=str(export_path),
+            export_custom_properties=True,
+            accessibility_label=root_label,
+            accessibility_description=root_description,
+            root_prim_path="",
+            selected_objects_only=True,
+        )
+
+        stage = Usd.Stage.Open(str(export_path))
+        root_prim = stage.GetPrimAtPath(f"/{sphere.name}")
+        self.assertTrue(root_prim.IsValid())
+
+        # Check that the accessibility information is pulled from the export args.
+        verify_accessibility_api(root_prim, UsdUI.Tokens.default_, root_label, root_description)
 
 
 class USDHookBase:

@@ -10,6 +10,7 @@
 #include <pxr/base/tf/stringUtils.h>
 #include <pxr/usd/usdGeom/bboxCache.h>
 #include <pxr/usd/usdGeom/scope.h>
+#include <pxr/usd/usdUI/accessibilityAPI.h>
 
 #include "BKE_customdata.hh"
 
@@ -26,6 +27,76 @@ static CLG_LogRef LOG = {"io.usd"};
 namespace usdtokens {
 static const pxr::TfToken blender_ns("userProperties:blender", pxr::TfToken::Immortal);
 }  // namespace usdtokens
+
+namespace {
+struct AccessibilityPropertyName {
+  pxr::TfToken property_namespace;
+  pxr::TfToken property_base_name;
+};
+}  // anonymous namespace
+
+static std::optional<AccessibilityPropertyName> parse_accessibility_property_name(
+    IDProperty *prop, bool allow_unicode)
+{
+  std::vector<std::string> property_tokens = pxr::TfStringTokenize(prop->name, ":");
+
+  /* First check if the property name matches the UsdUIAccessibility format exactly. */
+  if (property_tokens.size() == 3) {
+    pxr::TfToken accessibility_token(property_tokens[0]);
+    pxr::TfToken basename(property_tokens[2]);
+    if (accessibility_token == pxr::UsdUITokens->accessibility &&
+        pxr::UsdUIAccessibilityAPI::IsSchemaPropertyBaseName(basename))
+    {
+      AccessibilityPropertyName property_name;
+
+      /* Sanitize the namespace since this is user-generated and might need to be conformed
+       * to the `allow_unicode` export setting. */
+      property_name.property_namespace = pxr::TfToken(
+          blender::io::usd::make_safe_name(property_tokens[1], allow_unicode));
+      property_name.property_base_name = basename;
+      return property_name;
+    }
+  }
+
+  return std::nullopt;
+}
+
+static bool is_valid_accessibility_priority(const pxr::TfToken &token)
+{
+  return token == pxr::UsdUITokens->low || token == pxr::UsdUITokens->standard ||
+         token == pxr::UsdUITokens->high;
+}
+
+/**
+ * Write the accessibility property on the given prim. Note: although the
+ * UsdUIAccessibilityAPI DOES allow time-sampled data for the `label`
+ * and `description` properties, Blender does not currently support
+ * keyframes on string custom properties so time-sample authoring will
+ * not be done here.
+ */
+static void write_accessibility_property(const pxr::UsdPrim &prim,
+                                         const AccessibilityPropertyName &property_name,
+                                         const std::string &value)
+{
+  pxr::UsdUIAccessibilityAPI accessibility_api = pxr::UsdUIAccessibilityAPI::Apply(
+      prim, property_name.property_namespace);
+  if (!accessibility_api) {
+    return;
+  }
+
+  if (property_name.property_base_name == pxr::UsdUITokens->label) {
+    accessibility_api.CreateLabelAttr().Set(value);
+  }
+  else if (property_name.property_base_name == pxr::UsdUITokens->description) {
+    accessibility_api.CreateDescriptionAttr().Set(value);
+  }
+  else if (property_name.property_base_name == pxr::UsdUITokens->priority) {
+    pxr::TfToken priority(value);
+    if (is_valid_accessibility_priority(priority)) {
+      accessibility_api.CreatePriorityAttr().Set(priority);
+    }
+  }
+}
 
 static std::string get_mesh_active_uvlayer_name(const Object *ob)
 {
@@ -378,6 +449,16 @@ void USDAbstractWriter::write_user_properties(const pxr::UsdPrim &prim,
     if (displayName_identifier == prop->name) {
       if (prop->type == IDP_STRING && prop->data.pointer) {
         prim.SetDisplayName(static_cast<char *>(prop->data.pointer));
+      }
+      continue;
+    }
+
+    if (auto accessibility_property_name = parse_accessibility_property_name(
+            prop, usd_export_context_.export_params.allow_unicode))
+    {
+      if (prop->type == IDP_STRING && prop->data.pointer) {
+        write_accessibility_property(
+            prim, *accessibility_property_name, static_cast<char *>(prop->data.pointer));
       }
       continue;
     }
