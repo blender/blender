@@ -220,31 +220,34 @@ class Grid : Overlay {
     /* Set `grid_flag_` dependent on view configuration. */
     if (rv3d->is_persp || rv3d->view == RV3D_VIEW_USER) {
       /* Perspective; set selected axes and floor bits. */
-      axis_flag_ |= (show_axis_x ? (AXIS_X | SHOW_AXES) : 0);
-      axis_flag_ |= (show_axis_y ? (AXIS_Y | SHOW_AXES) : 0);
-      axis_flag_ |= (show_axis_z ? (AXIS_Z | SHOW_AXES) : 0);
-      grid_flag_ |= (show_axis_x ? AXIS_X : 0);
-      grid_flag_ |= (show_axis_y ? AXIS_Y : 0);
-      grid_flag_ |= (show_axis_z ? AXIS_Z : 0);
-      grid_flag_ |= (show_persp ? (PLANE_XY | SHOW_GRID) : 0);
+      axis_flag_ |= (show_axis_x ? (AXIS_X | SHOW_AXES) : OVERLAY_GridBits(0));
+      axis_flag_ |= (show_axis_y ? (AXIS_Y | SHOW_AXES) : OVERLAY_GridBits(0));
+      axis_flag_ |= (show_axis_z ? (AXIS_Z | SHOW_AXES) : OVERLAY_GridBits(0));
+      grid_flag_ |= (show_axis_x ? AXIS_X : OVERLAY_GridBits(0));
+      grid_flag_ |= (show_axis_y ? AXIS_Y : OVERLAY_GridBits(0));
+      grid_flag_ |= (show_axis_z ? AXIS_Z : OVERLAY_GridBits(0));
+      grid_flag_ |= (show_persp ? (PLANE_XY | SHOW_GRID) : OVERLAY_GridBits(0));
     }
     else {
       /* Orthographic; set selected axes and plane bits dependent on the specific view
        * (top, right, left, etc.) that is selected. */
       if (ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT)) {
-        axis_flag_ = (show_axis_y ? AXIS_Y : 0) | (show_axis_z ? AXIS_Z : 0);
+        axis_flag_ = (show_axis_y ? AXIS_Y : OVERLAY_GridBits(0)) |
+                     (show_axis_z ? AXIS_Z : OVERLAY_GridBits(0));
         grid_flag_ = axis_flag_ | PLANE_YZ;
       }
       else if (ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) {
-        axis_flag_ = (show_axis_x ? AXIS_X : 0) | (show_axis_y ? AXIS_Y : 0);
+        axis_flag_ = (show_axis_x ? AXIS_X : OVERLAY_GridBits(0)) |
+                     (show_axis_y ? AXIS_Y : OVERLAY_GridBits(0));
         grid_flag_ = axis_flag_ | PLANE_XY;
       }
       else if (ELEM(rv3d->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK)) {
-        axis_flag_ = (show_axis_x ? AXIS_X : 0) | (show_axis_z ? AXIS_Z : 0);
+        axis_flag_ = (show_axis_x ? AXIS_X : OVERLAY_GridBits(0)) |
+                     (show_axis_z ? AXIS_Z : OVERLAY_GridBits(0));
         grid_flag_ = axis_flag_ | PLANE_XZ;
       }
-      grid_flag_ |= (show_ortho ? SHOW_GRID : 0);
-      axis_flag_ |= (show_ortho ? SHOW_AXES : 0);
+      grid_flag_ |= (show_ortho ? SHOW_GRID : OVERLAY_GridBits(0));
+      axis_flag_ |= (show_ortho ? SHOW_AXES : OVERLAY_GridBits(0));
     }
 
     /* Query grid scales from unit/scaling; this range suffices for user-visible levels. */
