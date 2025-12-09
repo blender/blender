@@ -45,6 +45,7 @@ void GeometryNodesEvalDependencies::add_object(Object *object,
   deps.geometry |= object_deps.geometry;
   deps.transform |= object_deps.transform;
   deps.camera_parameters |= object_deps.camera_parameters;
+  deps.pose |= object_deps.pose;
 }
 
 void GeometryNodesEvalDependencies::merge(const GeometryNodesEvalDependencies &other)
