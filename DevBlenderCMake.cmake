@@ -1,7 +1,6 @@
 # Blender GUI Cycles Render Configuration for Windows
 # For: Interactive Blender with GUI for troubleshooting, Cycles rendering, FBX I/O
 # Same as headless build but with GUI and mouse input enabled
-# Usage: cmake -C build_gui_config.cmake ..
 
 # ============================================================
 # GPU ACCELERATION SETTINGS
@@ -89,7 +88,7 @@ set(WITH_INPUT_IME OFF CACHE BOOL "")  # Asian character input - not needed
 set(WITH_AUDASPACE OFF CACHE BOOL "")  # Blender's audio system
 set(WITH_CODEC_SNDFILE OFF CACHE BOOL "")  # Sound file I/O
 set(WITH_JACK OFF CACHE BOOL "")  # JACK audio server
-set(WITH_SDL ON CACHE BOOL "")  # SDL audio
+set(WITH_SDL ON CACHE BOOL "")  # SDL audio - required to be on for SDL windowing
 set(WITH_OPENAL OFF CACHE BOOL "")  # OpenAL 3D audio
 set(WITH_PULSEAUDIO OFF CACHE BOOL "")  # Linux PulseAudio
 set(WITH_PIPEWIRE OFF CACHE BOOL "")  # Linux Pipewire
