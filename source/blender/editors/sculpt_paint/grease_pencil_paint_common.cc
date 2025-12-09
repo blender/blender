@@ -163,7 +163,7 @@ IndexMask brush_point_influence_mask(const Paint &paint,
                                      Vector<float> &influences,
                                      IndexMaskMemory &memory)
 {
-  if (selection.is_empty()) {
+  if (selection.is_empty() || view_positions.is_empty()) {
     return {};
   }
 

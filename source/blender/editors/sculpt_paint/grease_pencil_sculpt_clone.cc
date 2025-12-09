@@ -96,10 +96,10 @@ void CloneOperation::on_stroke_begin(const bContext &C, const InputSample &start
           }
         });
 
-        MutableSpan<float3> handle_positions_left = curves.handle_positions_left_for_write();
-        MutableSpan<float3> handle_positions_right = curves.handle_positions_right_for_write();
+        if (curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
+          MutableSpan<float3> handle_positions_left = curves.handle_positions_left_for_write();
+          MutableSpan<float3> handle_positions_right = curves.handle_positions_right_for_write();
 
-        if (!handle_positions_left.is_empty()) {
           threading::parallel_for(pasted_points, 4096, [&](const IndexRange range) {
             for (const int point_i : range) {
               const float3 offset = compute_orig_delta(
