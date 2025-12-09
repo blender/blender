@@ -679,7 +679,7 @@ typedef struct SpaceImage {
 
   float uv_opacity;
   float uv_face_opacity;
-  char _pad2[4];
+  float uv_edge_opacity;
 
   float stretch_opacity;
 
