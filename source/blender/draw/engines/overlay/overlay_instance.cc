@@ -363,11 +363,12 @@ void Resources::update_theme_settings(const DRWContext *ctx, const State &state)
   /* Emphasize division lines lighter instead of darker, if background is darker than grid. */
   const bool is_bg_darker = reduce_add(gb.colors.grid.xyz()) + 0.12f >
                             reduce_add(gb.colors.background.xyz());
-  ui::theme::get_color_shade_4fv(TH_GRID, (is_bg_darker) ? 20 : -10, gb.colors.grid_emphasis);
+  ui::theme::get_color_shade_4fv(TH_GRID, (is_bg_darker) ? 30 : -10, gb.colors.grid_emphasis);
+
   /* Grid Axis */
-  ui::theme::get_color_blend_shade_4fv(TH_GRID, TH_AXIS_X, 0.5f, -10, gb.colors.grid_axis_x);
-  ui::theme::get_color_blend_shade_4fv(TH_GRID, TH_AXIS_Y, 0.5f, -10, gb.colors.grid_axis_y);
-  ui::theme::get_color_blend_shade_4fv(TH_GRID, TH_AXIS_Z, 0.5f, -10, gb.colors.grid_axis_z);
+  ui::theme::get_color_blend_shade_4fv(TH_GRID, TH_AXIS_X, 0.85f, -20, gb.colors.grid_axis_x);
+  ui::theme::get_color_blend_shade_4fv(TH_GRID, TH_AXIS_Y, 0.85f, -20, gb.colors.grid_axis_y);
+  ui::theme::get_color_blend_shade_4fv(TH_GRID, TH_AXIS_Z, 0.85f, -20, gb.colors.grid_axis_z);
 
   ui::theme::get_color_shade_alpha_4fv(TH_TRANSFORM, 0, -80, gb.colors.deselect);
   ui::theme::get_color_shade_alpha_4fv(TH_WIRE, 0, -30, gb.colors.outline);
@@ -407,7 +408,18 @@ void Resources::update_theme_settings(const DRWContext *ctx, const State &state)
     } while (++size <= size_end);
   }
 
-  gb.pixel_fac = (state.rv3d) ? state.rv3d->pixsize : 1.0f;
+  /* Pixel fraction. Use orthographic size in 3d, visible region size in 2D. */
+  if (state.rv3d) {
+    gb.pixel_fac = state.rv3d->pixsize;
+  }
+  else if (state.region) {
+    const View2D *v2d = &state.region->v2d;
+    gb.pixel_fac = (v2d->cur.xmax - v2d->cur.xmin) / float(v2d->mask.xmax - v2d->mask.xmin);
+  }
+  else {
+    gb.pixel_fac = 1.0f;
+  }
+
   gb.size_viewport = ctx->viewport_size_get();
   gb.size_viewport_inv = 1.0f / gb.size_viewport;
 
@@ -485,7 +497,6 @@ void Instance::begin_sync()
   begin_sync_layer(infront);
 
   grid.begin_sync(resources, state);
-
   anti_aliasing.begin_sync(resources, state);
   xray_fade.begin_sync(resources, state);
 }
@@ -807,7 +818,7 @@ void Instance::draw_v2d(Manager &manager, View &view)
   GPU_framebuffer_clear_color(resources.overlay_output_color_only_fb, float4(0.0));
 
   background.draw_output(resources.overlay_output_color_only_fb, manager, view);
-  grid.draw_color_only(resources.overlay_output_color_only_fb, manager, view);
+  grid.draw_line(resources.overlay_output_fb, manager, view);
   regular.mesh_uvs.draw(resources.overlay_output_fb, manager, view);
 
   cursor.draw_output(resources.overlay_output_color_only_fb, manager, view);
@@ -911,6 +922,10 @@ void Instance::draw_v3d(Manager &manager, View &view)
     infront.wireframe.copy_depth(resources.depth_target_in_front_tx);
   }
   {
+    /* Grid is drawn before outline; it would clip otherwise due to lack of depth output. */
+    grid.draw_line(resources.overlay_line_fb, manager, view);
+  }
+  {
     /* TODO(fclem): This is really bad for performance as the outline pass will then split the
      * render pass and do a framebuffer switch. This also only fix the issue for non-infront
      * objects.
@@ -935,7 +950,6 @@ void Instance::draw_v3d(Manager &manager, View &view)
     /* Color only pass. */
     motion_paths.draw_color_only(resources.overlay_color_only_fb, manager, view);
     xray_fade.draw_color_only(resources.overlay_color_only_fb, manager, view);
-    grid.draw_color_only(resources.overlay_color_only_fb, manager, view);
 
     regular.meshes.draw_line(resources.overlay_line_fb, manager, view);
     infront.meshes.draw_line(resources.overlay_line_in_front_fb, manager, view);

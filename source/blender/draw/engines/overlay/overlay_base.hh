@@ -78,7 +78,7 @@ struct Overlay {
 
   /**
    * Finalize passes or buffers used for object sync.
-   * Runs once at the start of the sync cycle.
+   * Runs once at the end of the sync cycle.
    */
   virtual void end_sync(Resources & /*res*/, const State & /*state*/) {};
 

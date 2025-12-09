@@ -793,7 +793,6 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_facing_frag.glsl
   engines/overlay/shaders/overlay_facing_vert.glsl
   engines/overlay/shaders/overlay_fullscreen_vert.glsl
-  engines/overlay/shaders/overlay_grid_background_frag.glsl
   engines/overlay/shaders/overlay_grid_frag.glsl
   engines/overlay/shaders/overlay_grid_vert.glsl
   engines/overlay/shaders/overlay_image_frag.glsl
