@@ -1836,14 +1836,12 @@ bool paint_stroke_started(PaintStroke *stroke)
   return stroke->stroke_started;
 }
 
-static const bToolRef *brush_tool_get(const bContext *C)
+static const bToolRef *brush_tool_get(const ScrArea *area,
+                                      const ARegion *region,
+                                      const Paint *paint,
+                                      const Object *ob)
 {
-  Paint *paint = BKE_paint_get_active_from_context(C);
-  const Object *ob = CTX_data_active_object(C);
-  const ScrArea *area = CTX_wm_area(C);
-  const ARegion *region = CTX_wm_region(C);
-
-  if (paint && ob && BKE_paint_brush(paint) &&
+  if (paint && ob && BKE_paint_brush_for_read(paint) &&
       (area && ELEM(area->spacetype, SPACE_VIEW3D, SPACE_IMAGE)) &&
       (region && region->regiontype == RGN_TYPE_WINDOW))
   {
@@ -1858,13 +1856,29 @@ static const bToolRef *brush_tool_get(const bContext *C)
 
 bool paint_brush_tool_poll(bContext *C)
 {
-  /* Check the current tool is a brush. */
-  return brush_tool_get(C) != nullptr;
+  const Paint *paint = BKE_paint_get_active_from_context(C);
+  const Object *ob = CTX_data_active_object(C);
+  const ScrArea *area = CTX_wm_area(C);
+  const ARegion *region = CTX_wm_region(C);
+  return paint_brush_tool_poll(area, region, paint, ob);
+}
+
+bool paint_brush_tool_poll(const ScrArea *area,
+                           const ARegion *region,
+                           const Paint *paint,
+                           const Object *ob)
+{
+  return brush_tool_get(area, region, paint, ob) != nullptr;
 }
 
 bool paint_brush_cursor_poll(bContext *C)
 {
-  const bToolRef *tref = brush_tool_get(C);
+  Paint *paint = BKE_paint_get_active_from_context(C);
+  const Object *ob = CTX_data_active_object(C);
+  const ScrArea *area = CTX_wm_area(C);
+  const ARegion *region = CTX_wm_region(C);
+
+  const bToolRef *tref = brush_tool_get(area, region, paint, ob);
   if (!tref) {
     return false;
   }

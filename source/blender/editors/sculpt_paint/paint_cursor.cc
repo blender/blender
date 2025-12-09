@@ -263,7 +263,7 @@ static void load_tex_task_cb_ex(void *__restrict userdata,
   }
 }
 
-static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool primary)
+static int load_tex(Paint *paint, Brush *br, ViewContext *vc, float zoom, bool col, bool primary)
 {
   bool init;
   TexSnapshot *target;
@@ -286,7 +286,6 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 
   if (refresh) {
     ImagePool *pool = nullptr;
-    Paint *paint = BKE_paint_get_active_from_context(vc->C);
     /* Stencil is rotated later. */
     const float rotation = (mtex->brush_map_mode != MTEX_MAP_MODE_STENCIL) ? -mtex->rot : 0.0f;
     const float radius = BKE_brush_radius_get(paint, br) * zoom;
@@ -419,7 +418,7 @@ static void load_tex_cursor_task_cb(void *__restrict userdata,
   }
 }
 
-static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
+static int load_tex_cursor(Paint *paint, Brush *br, float zoom)
 {
   bool init;
 
@@ -434,7 +433,6 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
   init = (cursor_snap.overlay_texture != nullptr);
 
   if (refresh) {
-    Paint *paint = BKE_paint_get_active_from_context(vc->C);
     int s, r;
 
     cursor_snap.zoom = zoom;
@@ -607,12 +605,8 @@ static bool paint_draw_tex_overlay(Paint *paint,
     return false;
   }
 
-  if (!WM_toolsystem_active_tool_is_brush(vc->C)) {
-    return false;
-  }
-
   bke::PaintRuntime *paint_runtime = paint->runtime;
-  if (load_tex(brush, vc, zoom, col, primary)) {
+  if (load_tex(paint, brush, vc, zoom, col, primary)) {
     GPU_color_mask(true, true, true, true);
     GPU_depth_test(GPU_DEPTH_NONE);
 
@@ -734,8 +728,7 @@ static bool paint_draw_tex_overlay(Paint *paint,
 
 /* Draw an overlay that shows what effect the brush's texture will
  * have on brush strength. */
-static bool paint_draw_cursor_overlay(
-    Paint *paint, Brush *brush, ViewContext *vc, int x, int y, float zoom)
+static bool paint_draw_cursor_overlay(Paint *paint, Brush *brush, int x, int y, float zoom)
 {
   rctf quad;
   /* Check for overlay mode. */
@@ -744,7 +737,7 @@ static bool paint_draw_cursor_overlay(
     return false;
   }
 
-  if (load_tex_cursor(brush, vc, zoom)) {
+  if (load_tex_cursor(paint, brush, zoom)) {
     bool do_pop = false;
     float center[2];
 
@@ -851,7 +844,7 @@ static bool paint_draw_alpha_overlay(
           paint, brush, vc, x, y, zoom, mode, false, false);
     }
     if (!(flags & PAINT_OVERLAY_OVERRIDE_CURSOR)) {
-      alpha_overlay_active = paint_draw_cursor_overlay(paint, brush, vc, x, y, zoom);
+      alpha_overlay_active = paint_draw_cursor_overlay(paint, brush, x, y, zoom);
     }
   }
   else {
@@ -860,7 +853,7 @@ static bool paint_draw_alpha_overlay(
           paint, brush, vc, x, y, zoom, mode, false, true);
     }
     if (!(flags & PAINT_OVERLAY_OVERRIDE_CURSOR)) {
-      alpha_overlay_active = paint_draw_cursor_overlay(paint, brush, vc, x, y, zoom);
+      alpha_overlay_active = paint_draw_cursor_overlay(paint, brush, x, y, zoom);
     }
   }
 
@@ -1276,13 +1269,14 @@ enum class PaintCursorDrawingType {
 };
 
 struct PaintCursorContext {
-  bContext *C;
   ARegion *region;
   wmWindow *win;
   wmWindowManager *wm;
   bScreen *screen;
   Depsgraph *depsgraph;
   Scene *scene;
+  Object *object;
+  Base *base;
   UnifiedPaintSettings *ups;
   Brush *brush;
   Paint *paint;
@@ -1298,6 +1292,8 @@ struct PaintCursorContext {
    */
   int prev_active_vert_index;
 
+  /** Whether the current tool is a brush. We can have a `Brush *` without this being true */
+  bool is_brush_active;
   bool is_stroke_active;
   bool is_cursor_over_mesh;
   float radius;
@@ -1343,13 +1339,13 @@ static bool paint_cursor_context_init(bContext *C,
     return false;
   }
 
-  pcontext.C = C;
   pcontext.region = region;
   pcontext.wm = CTX_wm_manager(C);
   pcontext.win = CTX_wm_window(C);
   pcontext.screen = CTX_wm_screen(C);
   pcontext.depsgraph = CTX_data_depsgraph_pointer(C);
   pcontext.scene = CTX_data_scene(C);
+  pcontext.object = CTX_data_active_object(C);
   pcontext.paint = BKE_paint_get_active_from_context(C);
   if (pcontext.paint == nullptr) {
     return false;
@@ -1360,6 +1356,10 @@ static bool paint_cursor_context_init(bContext *C,
     return false;
   }
   pcontext.mode = BKE_paintmode_get_active_from_context(C);
+  if (pcontext.mode == PaintMode::Sculpt) {
+    pcontext.sd = CTX_data_tool_settings(C)->sculpt;
+    pcontext.base = CTX_data_active_base(C);
+  }
 
   pcontext.vc = ED_view3d_viewcontext_init(C, pcontext.depsgraph);
 
@@ -1403,8 +1403,9 @@ static bool paint_cursor_context_init(bContext *C,
     pcontext.outline_col = float3(0.8f);
   }
 
-  const bool is_brush_tool = paint_brush_tool_poll(C);
-  if (!is_brush_tool) {
+  const ScrArea *area = CTX_wm_area(C);
+  pcontext.is_brush_active = paint_brush_tool_poll(area, region, pcontext.paint, pcontext.object);
+  if (!pcontext.is_brush_active) {
     /* Use a default color for tools that are not brushes. */
     pcontext.outline_alpha = 0.8f;
     pcontext.outline_col = float3(0.8f);
@@ -1418,22 +1419,20 @@ static bool paint_cursor_context_init(bContext *C,
 static void paint_cursor_update_pixel_radius(PaintCursorContext &pcontext)
 {
   if (pcontext.is_cursor_over_mesh) {
-    Brush *brush = BKE_paint_brush(pcontext.paint);
     pcontext.pixel_radius = project_brush_radius(
-        &pcontext.vc, BKE_brush_unprojected_radius_get(pcontext.paint, brush), pcontext.location);
+        &pcontext.vc,
+        BKE_brush_unprojected_radius_get(pcontext.paint, pcontext.brush),
+        pcontext.location);
 
     if (pcontext.pixel_radius == 0) {
-      pcontext.pixel_radius = BKE_brush_radius_get(pcontext.paint, brush);
+      pcontext.pixel_radius = BKE_brush_radius_get(pcontext.paint, pcontext.brush);
     }
 
     pcontext.scene_space_location = math::transform_point(pcontext.vc.obact->object_to_world(),
                                                           pcontext.location);
   }
   else {
-    Sculpt *sd = CTX_data_tool_settings(pcontext.C)->sculpt;
-    Brush *brush = BKE_paint_brush(&sd->paint);
-
-    pcontext.pixel_radius = BKE_brush_radius_get(pcontext.paint, brush);
+    pcontext.pixel_radius = BKE_brush_radius_get(pcontext.paint, pcontext.brush);
   }
 }
 
@@ -1442,7 +1441,6 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext &pcon
   BLI_assert(pcontext.ss != nullptr);
   BLI_assert(pcontext.mode == PaintMode::Sculpt);
 
-  bContext *C = pcontext.C;
   SculptSession &ss = *pcontext.ss;
   Brush &brush = *pcontext.brush;
   bke::PaintRuntime &paint_runtime = *pcontext.paint->runtime;
@@ -1464,7 +1462,13 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext &pcon
   pcontext.prev_active_vert_index = ss.active_vert_index();
   if (!paint_runtime.stroke_active) {
     pcontext.is_cursor_over_mesh = cursor_geometry_info_update(
-        C, &gi, mval_fl, (pcontext.brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE));
+        *pcontext.depsgraph,
+        *pcontext.sd,
+        pcontext.vc,
+        pcontext.base,
+        &gi,
+        mval_fl,
+        (pcontext.brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE));
     pcontext.location = gi.location;
     pcontext.normal = gi.normal;
   }
@@ -1483,8 +1487,6 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext &pcon
     paint_cursor_update_unprojected_size(
         *pcontext.paint, brush, vc, pcontext.scene_space_location);
   }
-
-  pcontext.sd = CTX_data_tool_settings(pcontext.C)->sculpt;
 }
 
 static void paint_update_mouse_cursor(PaintCursorContext &pcontext)
@@ -1568,7 +1570,7 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext &pcontext)
     return;
   }
 
-  Object *object = CTX_data_active_object(pcontext.C);
+  Object *object = pcontext.object;
   if (object->type != OB_GREASE_PENCIL) {
     return;
   }
@@ -1889,11 +1891,9 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext &
                                     pcontext.radius);
   }
 
-  const bool is_brush_tool = paint_brush_tool_poll(pcontext.C);
-
   /* Pose brush updates and rotation origins. */
 
-  if (is_brush_tool && brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_POSE) {
+  if (pcontext.is_brush_active && brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_POSE) {
     /* Just after switching to the Pose Brush, the active vertex can be the same and the
      * cursor won't be tagged to update, so always initialize the preview chain if it is
      * nullptr before drawing it. */
@@ -1943,7 +1943,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext &
         pcontext.pos, pcontext.region, position, active_object.object_to_world().ptr(), 2);
   }
 
-  if (is_brush_tool && brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_BOUNDARY) {
+  if (pcontext.is_brush_active && brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_BOUNDARY) {
     paint_cursor_preview_boundary_data_update(pcontext);
     paint_cursor_preview_boundary_data_pivot_draw(pcontext);
   }
@@ -1955,7 +1955,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext &
                             pcontext.depsgraph,
                             pcontext.scene,
                             pcontext.region,
-                            CTX_wm_view3d(pcontext.C),
+                            pcontext.vc.v3d,
                             nullptr,
                             nullptr,
                             nullptr);
@@ -1964,7 +1964,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext &
   GPU_matrix_mul(active_object.object_to_world().ptr());
 
   /* Drawing Cursor overlays in 3D object space. */
-  if (is_brush_tool && brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_GRAB &&
+  if (pcontext.is_brush_active && brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_GRAB &&
       (brush.flag & BRUSH_GRAB_ACTIVE_VERTEX))
   {
     geometry_preview_lines_update(
@@ -1973,11 +1973,11 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext &
         *pcontext.depsgraph, pcontext.pos, *pcontext.brush, active_object);
   }
 
-  if (is_brush_tool && brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_POSE) {
+  if (pcontext.is_brush_active && brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_POSE) {
     paint_cursor_pose_brush_segments_draw(pcontext);
   }
 
-  if (is_brush_tool && brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_BOUNDARY) {
+  if (pcontext.is_brush_active && brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_BOUNDARY) {
     boundary::edges_preview_draw(
         pcontext.pos, *pcontext.ss, pcontext.outline_col, pcontext.outline_alpha);
     boundary::pivot_line_preview_draw(pcontext.pos, *pcontext.ss);
@@ -1993,7 +1993,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext &
   paint_cursor_draw_main_inactive_cursor(pcontext);
 
   /* Cloth brush local simulation areas. */
-  if (is_brush_tool && brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLOTH &&
+  if (pcontext.is_brush_active && brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLOTH &&
       brush.cloth_simulation_area_type != BRUSH_CLOTH_SIMULATION_AREA_GLOBAL)
   {
     const float3 white = {1.0f, 1.0f, 1.0f};
@@ -2006,7 +2006,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext &
   }
 
   /* Layer brush height. */
-  if (is_brush_tool && brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_LAYER) {
+  if (pcontext.is_brush_active && brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_LAYER) {
     SCULPT_layer_brush_height_preview_draw(
         pcontext.pos, brush, pcontext.radius, 1.0f, pcontext.outline_col, pcontext.outline_alpha);
   }
@@ -2046,7 +2046,7 @@ static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorCont
                             pcontext.depsgraph,
                             pcontext.scene,
                             pcontext.region,
-                            CTX_wm_view3d(pcontext.C),
+                            pcontext.vc.v3d,
                             nullptr,
                             nullptr,
                             nullptr);
@@ -2151,7 +2151,8 @@ static void paint_cursor_update_rake_rotation(PaintCursorContext &pcontext)
 
 static void paint_cursor_check_and_draw_alpha_overlays(PaintCursorContext &pcontext)
 {
-  pcontext.alpha_overlay_drawn = paint_draw_alpha_overlay(pcontext.paint,
+  pcontext.alpha_overlay_drawn = pcontext.is_brush_active &&
+                                 paint_draw_alpha_overlay(pcontext.paint,
                                                           pcontext.brush,
                                                           &pcontext.vc,
                                                           pcontext.mval.x,

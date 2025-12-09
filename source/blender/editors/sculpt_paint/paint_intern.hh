@@ -37,6 +37,7 @@ struct PointerRNA;
 struct RegionView3D;
 struct ReportList;
 struct Scene;
+struct ScrArea;
 struct SculptSession;
 struct SpaceImage;
 struct ToolSettings;
@@ -185,6 +186,10 @@ void paint_stroke_jitter_pos(const PaintStroke &stroke,
 
 /** Returns true if the active tool uses brushes. */
 bool paint_brush_tool_poll(bContext *C);
+bool paint_brush_tool_poll(const ScrArea *area,
+                           const ARegion *region,
+                           const Paint *paint,
+                           const Object *ob);
 /** Returns true if the brush cursor should be activated. */
 bool paint_brush_cursor_poll(bContext *C);
 /** Initialize the stroke cache variants from operator properties. */
