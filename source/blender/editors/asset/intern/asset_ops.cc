@@ -1466,9 +1466,7 @@ static bool screenshot_preview_poll(bContext *C)
   if (asset_handle->is_local_id()) {
     return WM_operator_winactive(C);
   }
-
-  std::string lib_path = asset_handle->full_library_path();
-  if (StringRef(lib_path).endswith(BLENDER_ASSET_FILE_SUFFIX)) {
+  if (asset_handle->is_potentially_editable_asset_blend()) {
     return true;
   }
 
