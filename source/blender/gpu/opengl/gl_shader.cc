@@ -33,6 +33,7 @@
 #include "gl_shader.hh"
 #include "gl_shader_interface.hh"
 
+#include <chrono>
 #include <sstream>
 #include <stdio.h>
 #ifdef WIN32
@@ -1700,11 +1701,19 @@ void GLShaderCompiler::specialize_shader(ShaderSpecialization &specialization)
 
 GLCompilerWorker::GLCompilerWorker()
 {
-  static size_t pipe_id = 0;
-  pipe_id++;
+  using namespace std::chrono;
+  /* This function has to be thread-safe. */
+  static std::atomic<size_t> g_pipe_id = 0;
+  size_t pipe_id = g_pipe_id++;
+
+  /* Use a timestamp on top of the PID.
+   * If a Blender session crashes without unlinking its shared memory, and the PID is reused, we
+   * may run into a name collision otherwise. */
+  static size_t time_id =
+      duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 
   std::string name = "BLENDER_SHADER_COMPILER_" + std::to_string(getpid()) + "_" +
-                     std::to_string(pipe_id);
+                     std::to_string(time_id) + "_" + std::to_string(pipe_id);
 
   shared_mem_ = std::make_unique<SharedMemory>(
       name, compilation_subprocess_shared_memory_size, true);
