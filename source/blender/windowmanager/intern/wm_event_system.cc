@@ -4711,7 +4711,7 @@ wmEventHandler_Op *WM_event_add_modal_handler(bContext *C, wmOperator *op)
   return WM_event_add_modal_handler_ex(wm, win, area, region, op);
 }
 
-void WM_event_remove_model_handler(ListBase *handlers, const wmOperator *op, const bool postpone)
+void WM_event_remove_modal_handler(ListBase *handlers, const wmOperator *op, const bool postpone)
 {
   LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
     if (handler_base->type == WM_HANDLER_TYPE_OP) {
@@ -4736,7 +4736,7 @@ void WM_event_remove_modal_handler_all(const wmOperator *op, const bool postpone
   Main *bmain = G_MAIN;
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    WM_event_remove_model_handler(&win->runtime->modalhandlers, op, postpone);
+    WM_event_remove_modal_handler(&win->runtime->modalhandlers, op, postpone);
   }
 }
 
