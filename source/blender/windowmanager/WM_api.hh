@@ -727,7 +727,7 @@ wmEventHandler_Op *WM_event_add_modal_handler_ex(wmWindowManager *wm,
                                                  wmWindow *win,
                                                  ScrArea *area,
                                                  ARegion *region,
-                                                 wmOperator *op) ATTR_NONNULL(1, 4);
+                                                 wmOperator *op) ATTR_NONNULL(1, 2, 5);
 wmEventHandler_Op *WM_event_add_modal_handler(bContext *C, wmOperator *op) ATTR_NONNULL(1, 2);
 void WM_event_remove_modal_handler(ListBase *handlers, const wmOperator *op, bool postpone)
     ATTR_NONNULL(1, 2);
