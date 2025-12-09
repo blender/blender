@@ -1141,8 +1141,8 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
         current_shader->has_surface_bssrdf = true;
         current_shader->has_bssrdf_bump = true; /* can't detect yet */
       }
-      current_shader->has_bump = true;             /* can't detect yet */
-      current_shader->has_surface_raytrace = true; /* can't detect yet */
+      current_shader->has_bump_from_surface = true; /* can't detect yet */
+      current_shader->has_surface_raytrace = true;  /* can't detect yet */
     }
 
     if (node->has_spatial_varying()) {
@@ -1463,7 +1463,7 @@ void OSLCompiler::generate_nodes(const ShaderNodeSet &nodes)
               }
             }
             if (node->has_bump()) {
-              current_shader->has_bump = true;
+              current_shader->has_bump_from_surface = true;
             }
           }
           else if (current_type == SHADER_TYPE_VOLUME) {
@@ -1532,7 +1532,6 @@ void OSLCompiler::compile(Shader *shader)
   if (shader->is_modified()) {
     ShaderGraph *graph = shader->graph.get();
     ShaderNode *output = (graph) ? graph->output() : nullptr;
-    const bool has_bump = shader->has_bump;
 
     current_shader = shader;
 
@@ -1545,12 +1544,13 @@ void OSLCompiler::compile(Shader *shader)
     shader->has_surface_spatial_varying = false;
     shader->has_volume_spatial_varying = false;
     shader->has_volume_attribute_dependency = false;
+    shader->has_bump_from_surface = false;
 
     /* generate surface shader */
     if (shader->reference_count() && graph && output->input("Surface")->link) {
       shader->osl_surface_ref = compile_type(shader, shader->graph.get(), SHADER_TYPE_SURFACE);
 
-      if (has_bump) {
+      if (shader->has_bump_from_displacement) {
         shader->osl_surface_bump_ref = compile_type(shader, shader->graph.get(), SHADER_TYPE_BUMP);
       }
       else {

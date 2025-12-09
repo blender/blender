@@ -209,7 +209,7 @@ ccl_device_inline void osl_eval_nodes(KernelGlobals kg,
   if constexpr (type == SHADER_TYPE_SURFACE)
 #    endif
   {
-    if (sd->flag & SD_HAS_BUMP) {
+    if (sd->flag & SD_HAS_BUMP_FROM_DISPLACEMENT) {
       /* Save state. */
       const float3 P = sd->P;
       const float dP = sd->dP;
