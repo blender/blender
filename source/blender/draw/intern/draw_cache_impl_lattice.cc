@@ -366,7 +366,7 @@ static gpu::IndexBuf *lattice_batch_cache_get_edges(LatticeRenderData *rdata,
     GPUIndexBufBuilder builder;
     GPU_indexbuf_init(&builder, GPU_PRIM_LINES, edge_len, vert_len);
     MutableSpan<uint2> data = GPU_indexbuf_get_data(&builder).cast<uint2>();
-    /* The buffer is allocated with **all** edges (see #lattice_render_edges_len_get()), but whith
+    /* The buffer is allocated with **all** edges (see #lattice_render_edges_len_get()), but with
      * the LT_OUTSIDE flag not all are drawn. So fill those gaps with zeros to hide redundant
      * edges. */
     data.fill(uint2(0));

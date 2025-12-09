@@ -1458,7 +1458,7 @@ static XrTeleportRayResult wm_xr_navigation_teleport_arc_scene_intersect(bContex
 
   const bool selectable_only = RNA_boolean_get(op->ptr, "selectable_only");
 
-  /* Raycast along the pre-computed arc to find the first collision point with a scene object. */
+  /* Ray-cast along the pre-computed arc to find the first collision point with a scene object. */
   for (int i = 1; i < XR_TELEPORTATION_ARC_CONTROL_POINTS; ++i) {
     const float3 segment_start = data->arc_points[i - 1];
     const float3 segment_end = data->arc_points[i];
@@ -1466,7 +1466,7 @@ static XrTeleportRayResult wm_xr_navigation_teleport_arc_scene_intersect(bContex
     const float3 segment_direction = math::normalize(segment_end - segment_start);
     const float segment_length = math::distance(segment_start, segment_end);
 
-    /* Extend the ray in both directions to avoid raycast precision issues when raycasting
+    /* Extend the ray in both directions to avoid ray-cast precision issues when ray-casting
      * close to surfaces or with short segment lengths. */
     const float ray_precision_margin = segment_length * 0.25f;
     float3 segment_origin = segment_start;

@@ -1310,7 +1310,7 @@ void register_node_group_operators(const bContext &C)
     types_to_register.append(std::move(type));
   }
 
-  /* Also remove old operators for now-unused idnames. */
+  /* Also remove old operators for now-unused identifier names. */
   for (wmOperatorType *ot : WM_operatortypes_registered_get()) {
     if ((ot->flag & OPTYPE_NODE_TOOL) == 0) {
       continue;

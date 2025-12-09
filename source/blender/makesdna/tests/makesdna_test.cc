@@ -33,9 +33,11 @@ class SDNATest : public ::testing::Test {
   SDNA *sdna = nullptr;
 };
 
-/* Get the struct member with an exact name.
- * For example, expects the C array size in the name. For example, pass "name[258]" to access
- * Testtruct's name, not "name[]". */
+/**
+ * Get the struct member with an exact name.
+ * For example, expects the C array size in the name.
+ * For example, pass "name[258]" to access the test struct name, not `name[]`.
+ */
 const SDNA_StructMember *get_struct_member(const SDNA *sdna,
                                            const StringRefNull struct_name,
                                            const StringRefNull member_name)
@@ -56,9 +58,11 @@ const SDNA_StructMember *get_struct_member(const SDNA *sdna,
   return nullptr;
 }
 
-/* Get struct member size with the exact name.
- * For example, expects the C array size in the name. For example, pass "name[258]" to access
- * Testtruct's name, not "name[]". */
+/**
+ * Get struct member size with the exact name.
+ * For example, expects the C array size in the name.
+ * For example, pass `name[258]` to access test struct name, not `name[]`.
+ */
 int get_struct_member_size(const SDNA *sdna,
                            const StringRefNull struct_name,
                            const StringRefNull member_name)

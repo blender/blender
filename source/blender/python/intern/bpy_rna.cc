@@ -7108,7 +7108,7 @@ PyTypeObject pyrna_struct_meta_idprop_Type = {
     /*tp_hash*/ nullptr,
     /*tp_call*/ nullptr,
     /*tp_str*/ nullptr,
-    /*tp_getattro*/ nullptr, /* Sub-classed: #pyrna_struct_meta_idprop_getattro. */
+    /*tp_getattro*/ nullptr, /* Subclassed: #pyrna_struct_meta_idprop_getattro. */
     /*tp_setattro*/ (setattrofunc)pyrna_struct_meta_idprop_setattro,
     /*tp_as_buffer*/ nullptr,
     /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
@@ -7510,7 +7510,7 @@ PyTypeObject pyrna_prop_array_Type = {
     /*tp_iternext*/ nullptr,
     /*tp_methods*/ pyrna_prop_array_methods,
     /*tp_members*/ nullptr,
-    /*tp_getset*/ nullptr /* Sub-classed: #pyrna_prop_getseters. */,
+    /*tp_getset*/ nullptr /* Subclassed: #pyrna_prop_getseters. */,
     /*tp_base*/ &pyrna_prop_Type,
     /*tp_dict*/ nullptr,
     /*tp_descr_get*/ nullptr,
@@ -7542,7 +7542,7 @@ PyTypeObject pyrna_prop_collection_Type = {
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
     /*tp_as_async*/ nullptr,
-    /*tp_repr*/ nullptr, /* Sub-classed, no need to define. */
+    /*tp_repr*/ nullptr, /* Subclassed, no need to define. */
     /*tp_as_number*/ &pyrna_prop_collection_as_number,
     /*tp_as_sequence*/ &pyrna_prop_collection_as_sequence,
     /*tp_as_mapping*/ &pyrna_prop_collection_as_mapping,
@@ -7566,7 +7566,7 @@ PyTypeObject pyrna_prop_collection_Type = {
     /*tp_iternext*/ nullptr,
     /*tp_methods*/ pyrna_prop_collection_methods,
     /*tp_members*/ nullptr,
-    /*tp_getset*/ nullptr /*Sub-classed: see #pyrna_prop_getseters. */,
+    /*tp_getset*/ nullptr /* Subclassed: see #pyrna_prop_getseters. */,
     /*tp_base*/ &pyrna_prop_Type,
     /*tp_dict*/ nullptr,
     /*tp_descr_get*/ nullptr,
@@ -7599,7 +7599,7 @@ static PyTypeObject pyrna_prop_collection_idprop_Type = {
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
     /*tp_compare*/ nullptr, /* DEPRECATED. */
-    /*tp_repr*/ nullptr,    /* Sub-classed, no need to define. */
+    /*tp_repr*/ nullptr,    /* Subclassed, no need to define. */
     /*tp_as_number*/ nullptr,
     /*tp_as_sequence*/ nullptr,
     /*tp_as_mapping*/ nullptr,
@@ -7623,7 +7623,7 @@ static PyTypeObject pyrna_prop_collection_idprop_Type = {
     /*tp_iternext*/ nullptr,
     /*tp_methods*/ pyrna_prop_collection_idprop_methods,
     /*tp_members*/ nullptr,
-    /*tp_getset*/ nullptr /* Sub-classed: #pyrna_prop_getseters. */,
+    /*tp_getset*/ nullptr /* Subclassed: #pyrna_prop_getseters. */,
     /*tp_base*/ &pyrna_prop_collection_Type,
     /*tp_dict*/ nullptr,
     /*tp_descr_get*/ nullptr,

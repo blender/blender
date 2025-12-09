@@ -1487,7 +1487,7 @@ void ShaderModule::material_create_info_pipelines_amend(eMaterialGeometry geomet
     return;
   }
 
-  /* Determine primitive type base on the geomnetry type. */
+  /* Determine primitive type base on the geometry type. */
   /* TODO: For curves we should use the correct one based on the scene settings. Currently it will
    * assume it is set to strip or cylinder. */
   constexpr GPUPrimType prim_type = GPU_PRIM_TRIS;

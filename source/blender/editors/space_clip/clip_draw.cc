@@ -1475,10 +1475,10 @@ static void draw_tracking_tracks(SpaceClip *sc,
 
   /* ** find window pixel coordinates of origin ** */
 
-  /*blender::ui:: view2d_view_to_region_no_clip return integer values, this could
+  /* #blender::ui::view2d_view_to_region_no_clip return integer values, this could
    * lead to 1px flickering when view is locked to selection during playback.
    * to avoid this flickering, calculate base point in the same way as it happens
-   * inblender::ui:: view2d_view_to_region_no_clip, but do it in floats here */
+   * in #blender::ui::view2d_view_to_region_no_clip, but do it in floats here. */
 
   blender::ui::view2d_view_to_region_fl(&region->v2d, 0.0f, 0.0f, &x, &y);
 

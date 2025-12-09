@@ -100,8 +100,8 @@ class AssetRepresentation : NonCopyable, NonMovable {
   /**
    * Return the absolute path of the blend file that contains this asset.
    *
-   * Note that this performs a filesystem check to see whether the blend file actually exists. If
-   * it does not, an empty string is returned. This generally shouldn't be an issue, but can
+   * Note that this performs a file-system check to see whether the blend file actually exists.
+   * If it does not, an empty string is returned. This generally shouldn't be an issue, but can
    * happen, for example when the blend file is deleted and the asset browser not refreshed.
    *
    * This check is a necessity because data-blocks may have .blend and slashes in their name, and

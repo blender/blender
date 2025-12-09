@@ -156,7 +156,7 @@ class Grid : Overlay {
       grid_flag_ |= GRID_OVER_IMAGE;
     }
 
-    /* Query grid step/level scalings; these can differ per axis. */
+    /* Query grid step/level scaling; these can differ per axis. */
     std::array<float, SI_GRID_STEPS_LEN> steps_x, steps_y;
     ED_space_image_grid_steps(sima, steps_x.data(), steps_y.data(), SI_GRID_STEPS_LEN);
     for (int i : IndexRange(SI_GRID_STEPS_LEN)) {

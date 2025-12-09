@@ -2044,7 +2044,7 @@ static void rna_def_xr_session_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "view_scale", PROP_FLOAT, PROP_NONE);
   RNA_def_property_ui_text(prop,
                            "View Scale",
-                           "Scaling factor applied on top of scene scale for adjustements to the "
+                           "Scaling factor applied on top of scene scale for adjustments to the "
                            "VR view. When possible, prefer modifying the scene scale instead");
   RNA_def_property_range(prop, 1e-6f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.001f, 100.0f, 0.1f, 4);

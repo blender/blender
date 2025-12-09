@@ -111,7 +111,7 @@ void main()
   LineData line = flag_test(grid_flag, SHOW_GRID) ? decode_grid_data(gl_VertexID) :
                                                     decode_axis_data(gl_VertexID);
 
-  /* Compute the actual level of a line, offset by -1 to force a sublevel in the 3D viewport. */
+  /* Compute the actual level of a line, offset by -1 to force a sub-level in the 3D viewport. */
   int level = int(grid_buf.level) + int(line.level) - (flag_test(grid_flag, GRID_SIMA) ? 0 : 1);
   if (level < 0 || level >= OVERLAY_GRID_STEPS_LEN) {
     return; /* Discard line. */
@@ -131,7 +131,7 @@ void main()
   /* Output alpha that smoothly transitions the lowest grid level in/out. */
   vertex_out_flat.alpha = saturate(line.level + 1.0f - fract(grid_buf.level));
   if (!drw_view_is_perspective()) {
-    /* Also fade by pixel size for orthographic, as we lack proper line dfdx/dfdy. */
+    /* Also fade by pixel size for orthographic, as we lack proper line DFDX/DFDY. */
     vertex_out_flat.alpha *= smoothstep(
         step_size * 0.25f, step_size * pow3f(0.25f), uniform_buf.pixel_fac);
   }
@@ -213,6 +213,6 @@ void main()
     }
   }
 
-  /* Stage output for viewport antialiasing/alpha dithering. */
+  /* Stage output for viewport anti-aliasing/alpha dithering. */
   edge_start = edge_pos = screen_position(gl_Position);
 }

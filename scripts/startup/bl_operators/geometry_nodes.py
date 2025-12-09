@@ -46,7 +46,7 @@ def geometry_node_group_empty_tool_new(context):
     group.use_fake_user = True
     group.is_tool = True
 
-    # Operator idnames only support lowercase ascii characters or numbers.
+    # Operator identifier names only support lowercase ASCII characters or numbers.
     group.node_tool_idname = "geometry." + re.sub('[^0-9a-z]+', '_', group.name.strip().lower())
 
     ob = context.object

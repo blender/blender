@@ -750,7 +750,7 @@ void BaseMathObject_dealloc(BaseMathObject *self)
     BaseMathObject_clear(self);
   }
   else if (!BaseMathObject_CheckExact(self)) {
-    /* Sub-classed types get an extra track (in Pythons internal `subtype_dealloc` function). */
+    /* Subclassed types get an extra track (in Pythons internal `subtype_dealloc` function). */
     BLI_assert(BaseMathObject_is_tracked(self) == true);
     PyObject_GC_UnTrack(self);
     BLI_assert(BaseMathObject_is_tracked(self) == false);

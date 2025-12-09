@@ -146,7 +146,7 @@ class BitGroupVector {
   void foreach_and(const BoundedBitSpan bits)
   {
     /* This can still be optimized due to the additional knowledge we have how consecutive groups
-     * are layed out in memory. It is possible to updated multiple small groups at once. */
+     * are laid out in memory. It is possible to updated multiple small groups at once. */
     BLI_assert(bits.size() == group_size_);
     for (const int64_t i : this->index_range()) {
       MutableBoundedBitSpan group = (*this)[i];
