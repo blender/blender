@@ -1097,6 +1097,12 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
   if (t->spacetype != SPACE_VIEW3D) {
     return false;
   }
+  /* The cursor has no active object concept. Return false so the "active" center isn't used
+   * in contexts where it doesn't make sense ("Active Snap Base" for e.g.), See: #151283. */
+  if (t->options & CTX_CURSOR) {
+    return false;
+  }
+
   if (tc->obedit) {
     if (object::calc_active_center_for_editmode(tc->obedit, select_only, r_center)) {
       mul_m4_v3(tc->obedit->object_to_world().ptr(), r_center);
