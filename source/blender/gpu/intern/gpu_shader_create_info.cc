@@ -98,11 +98,17 @@ bool ShaderCreateInfo::is_vulkan_compatible() const
 
 ShaderCreateInfo::ShaderCreateInfo(const char *name) : name_(name)
 {
+  bool last_char_is_underscore = false;
   /* Escape the shader name to be able to use it inside an identifier. */
   for (char &c : name_) {
     if (!std::isalnum(c)) {
       c = '_';
     }
+    if (c == '_' && last_char_is_underscore) {
+      /* Avoid GLSL warning about double underscore being reserved. */
+      c = 'w';
+    }
+    last_char_is_underscore = c == '_';
   }
 }
 
