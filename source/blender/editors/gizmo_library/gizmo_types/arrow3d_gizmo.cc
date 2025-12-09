@@ -330,11 +330,17 @@ static wmOperatorStatus gizmo_arrow_modal(bContext *C,
                                           const wmEvent *event,
                                           eWM_GizmoFlagTweak tweak_flag)
 {
+  GizmoInteraction *inter = static_cast<GizmoInteraction *>(gz->interaction_data);
+
+  /* Can happen if another (e.g. Python-based) modal operator finishes, see #151241. */
+  if (inter == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
   if (event->type != MOUSEMOVE) {
     return OPERATOR_RUNNING_MODAL;
   }
   ArrowGizmo3D *arrow = (ArrowGizmo3D *)gz;
-  GizmoInteraction *inter = static_cast<GizmoInteraction *>(gz->interaction_data);
   ARegion *region = CTX_wm_region(C);
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
@@ -470,6 +476,10 @@ static void gizmo_arrow_exit(bContext *C, wmGizmo *gz, const bool cancel)
 
   if (cancel) {
     GizmoInteraction *inter = static_cast<GizmoInteraction *>(gz->interaction_data);
+    /* Can happen if another (e.g. Python-based) modal operator finishes, see #151241. */
+    if (inter == nullptr) {
+      return;
+    }
     if (is_prop_valid) {
       gizmo_property_value_reset(C, gz, inter, gz_prop);
     }
