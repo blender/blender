@@ -1065,6 +1065,7 @@ void VolumeManager::flatten_octree(DeviceScene *dscene, const Scene *scene) cons
             << "Mb.";
 }
 
+/* Dump octree as python script, enabled by `CYCLES_VOLUME_OCTREE_DUMP` environment variable. */
 std::string VolumeManager::visualize_octree(const char *filename) const
 {
   const std::string filename_full = path_join(OIIO::Filesystem::current_path(), filename);
@@ -1167,7 +1168,11 @@ void VolumeManager::device_update(Device *device,
   }
 
   if (update_visualization_) {
-    LOG_DEBUG << "Octree visualization has been written to " << visualize_octree("octree.py");
+    static const bool dump_octree = getenv("CYCLES_VOLUME_OCTREE_DUMP") != nullptr;
+    if (dump_octree) {
+      const std::string octree_path = visualize_octree("octree.py");
+      LOG_INFO << "Octree visualization has been written to " << octree_path;
+    }
     update_visualization_ = false;
   }
 

@@ -77,8 +77,9 @@ class VolumeManager {
   int num_octree_nodes() const;
   int num_octree_roots() const;
 
-  /* When running Blender with `--log-level debug`, an octree visualization is written to
-   * `filename`, which is a Python script that can be run inside Blender. */
+  /* When running Blender with environment variable `CYCLES_VOLUME_OCTREE_DUMP`, an octree
+   * visualization is written to `filename`, which is a Python script that can be run inside
+   * Blender. */
   std::string visualize_octree(const char *filename) const;
 
   /* Step size for ray marching. */
