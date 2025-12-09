@@ -3944,7 +3944,7 @@ def km_grease_pencil_selection(params):
 def km_grease_pencil_paint_mode(params):
     items = []
     keymap = (
-        "Grease Pencil Paint Mode",
+        "Grease Pencil Draw Mode",
         {"space_type": 'EMPTY', "region_type": 'WINDOW'},
         {"items": items},
     )

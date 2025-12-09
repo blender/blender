@@ -330,4 +330,7 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
         else:
             print("Error versioning keymap: Missing \"User Interface\" keymap")
 
+    if keyconfig_version < (5, 1, 11):
+        rename_keymap({"Grease Pencil Paint Mode": "Grease Pencil Draw Mode"})
+
     return keyconfig_data

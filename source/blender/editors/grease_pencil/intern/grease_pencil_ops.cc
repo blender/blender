@@ -217,7 +217,7 @@ static void keymap_grease_pencil_edit_mode(wmKeyConfig *keyconf)
 static void keymap_grease_pencil_paint_mode(wmKeyConfig *keyconf)
 {
   wmKeyMap *keymap = WM_keymap_ensure(
-      keyconf, "Grease Pencil Paint Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
+      keyconf, "Grease Pencil Draw Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = grease_pencil_painting_poll;
 }
 
