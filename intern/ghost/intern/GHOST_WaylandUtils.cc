@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2002-2023 Blender Authors
+/* SPDX-FileCopyrightText: 2025 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -48,7 +48,7 @@ static std::optional<std::string> command_exec(const char *cmd, const size_t out
     result << buffer.data();
     if (result.tellp() > output_limit) {
       error = true;
-      CLOG_DEBUG(LOG, "oversized output (%zu)", output_limit);
+      CLOG_DEBUG(LOG, "over-sized output (%zu)", output_limit);
     }
   }
   const int exit_code = pclose(pipe);

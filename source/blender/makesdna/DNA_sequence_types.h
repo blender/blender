@@ -85,7 +85,7 @@ typedef struct StripTransform {
   float scale_x;
   float scale_y;
   float rotation;
-  /** 0-1 range, `seq::image_transform_origin_offset_pixelspace_get` to convert to pixelspace. */
+  /** 0-1 range, `seq::image_transform_origin_offset_pixelspace_get` to convert to pixel-space. */
   float origin[2];
   int filter; /* eStripTransformFilter */
 } StripTransform;

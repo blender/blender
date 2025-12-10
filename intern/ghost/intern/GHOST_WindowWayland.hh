@@ -80,7 +80,7 @@ struct GHOST_CSD_EventState {
   /**
    * Pointing device button, indexed with #GHOST_TButton.
    *
-   * Only track the the left-button for now since there is no need
+   * Only track the left-button for now since there is no need
    * to track double-click or press-drag for other buttons.
    * Extend as needed.
    */
