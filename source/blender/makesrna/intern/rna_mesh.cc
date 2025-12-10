@@ -932,24 +932,20 @@ static PointerRNA bool_layer_ensure(PointerRNA *ptr,
                                     StringRef (*layername_func)(const StringRef uv_name,
                                                                 char *buffer))
 {
+  using namespace blender;
   char buffer[MAX_CUSTOMDATA_LAYER_NAME];
   Mesh *mesh = rna_mesh(ptr);
   if (mesh->runtime->edit_mesh) {
     return {};
   }
-  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-  const StringRef name = layername_func(layer->name, buffer);
-  int index = CustomData_get_named_layer_index(&mesh->corner_data, CD_PROP_BOOL, name);
-  if (index == -1) {
-    CustomData_add_layer_named(
-        &mesh->corner_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->corners_num, name);
-    index = CustomData_get_named_layer_index(&mesh->corner_data, CD_PROP_BOOL, name);
-  }
-  if (index == -1) {
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  const StringRef name = layername_func(rna_Attribute_name_get(*ptr), buffer);
+  if (attributes.contains(name)) {
     return {};
   }
-  CustomDataLayer *bool_layer = &mesh->corner_data.layers[index];
-  return RNA_pointer_create_discrete(&mesh->id, &RNA_BoolAttribute, bool_layer);
+  attributes.add<bool>(name, bke::AttrDomain::Corner, bke::AttributeInitDefaultValue());
+  return rna_AttributeGroup_lookup_string(
+      RNA_id_pointer_create(&mesh->id), name, ATTR_DOMAIN_MASK_CORNER, CD_MASK_PROP_BOOL);
 }
 
 /* Collection accessors for pin. */
