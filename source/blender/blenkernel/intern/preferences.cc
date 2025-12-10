@@ -215,6 +215,9 @@ bUserExtensionRepo *BKE_preferences_extension_repo_add(UserDef *userdef,
 
 void BKE_preferences_extension_repo_remove(UserDef *userdef, bUserExtensionRepo *repo)
 {
+  if (repo->access_token) {
+    MEM_freeN(repo->access_token);
+  }
   BLI_freelinkN(&userdef->extension_repos, repo);
 }
 
