@@ -78,21 +78,6 @@ bool ED_node_supports_preview(SpaceNode *snode);
  * Assumes nothing being done in ntree yet, sets the default in/out node.
  * Called from shading buttons or header.
  */
-void ED_node_shader_default(const bContext *C, Main *bmain, ID *id);
-
-/**
- * Initializes an empty compositing node tree with default nodes.
- */
-void ED_node_composit_default_init(const bContext *C, bNodeTree *ntree);
-/**
- * Assumes nothing being done in ntree yet, sets the default in/out node.
- * Called from compositing buttons or header.
- */
-void ED_node_composit_default(const bContext *C, Scene *scene);
-/**
- * Assumes nothing being done in ntree yet, sets the default in/out node.
- * Called from shading buttons or header.
- */
 void ED_node_texture_default(const bContext *C, Tex *tex);
 void ED_node_post_apply_transform(bContext *C, bNodeTree *ntree);
 void ED_node_set_active(

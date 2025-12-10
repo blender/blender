@@ -34,6 +34,8 @@
 
 #  include "DEG_depsgraph.hh"
 
+#  include "NOD_defaults.hh"
+
 #  include "WM_api.hh"
 #  include "WM_types.hh"
 
@@ -79,7 +81,7 @@ static void rna_Light_use_nodes_update(bContext *C, PointerRNA *ptr)
   Main *bmain = CTX_data_main(C);
 
   if (la->use_nodes && la->nodetree == nullptr) {
-    ED_node_shader_default(C, bmain, &la->id);
+    blender::nodes::node_tree_shader_default(C, bmain, &la->id);
   }
 
   rna_Light_update(CTX_data_main(C), CTX_data_scene(C), ptr);

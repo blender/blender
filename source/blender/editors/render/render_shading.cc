@@ -65,6 +65,7 @@
 #include "BKE_world.h"
 
 #include "NOD_composite.hh"
+#include "NOD_defaults.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -853,7 +854,7 @@ static wmOperatorStatus new_material_exec(bContext *C, wmOperator * /*op*/)
     else {
       ma = BKE_gpencil_material_add(bmain, name);
     }
-    ED_node_shader_default(C, bmain, &ma->id);
+    blender::nodes::node_tree_shader_default(C, bmain, &ma->id);
   }
 
   if (prop) {
@@ -982,7 +983,7 @@ static wmOperatorStatus new_world_exec(bContext *C, wmOperator * /*op*/)
   }
   else {
     wo = BKE_world_add(bmain, CTX_DATA_(BLT_I18NCONTEXT_ID_WORLD, "World"));
-    ED_node_shader_default(C, bmain, &wo->id);
+    blender::nodes::node_tree_shader_default(C, bmain, &wo->id);
   }
 
   /* hook into UI */

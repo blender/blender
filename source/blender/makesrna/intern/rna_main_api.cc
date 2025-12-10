@@ -89,6 +89,8 @@
 #  include "ED_node.hh"
 #  include "ED_scene.hh"
 
+#  include "NOD_defaults.hh"
+
 #  include "BLT_translation.hh"
 
 #  ifdef WITH_PYTHON
@@ -264,7 +266,7 @@ static Material *rna_Main_materials_new(Main *bmain, const char *name)
   Material *material = BKE_material_add(bmain, safe_name);
   id_us_min(&material->id);
 
-  ED_node_shader_default(nullptr, bmain, &material->id);
+  blender::nodes::node_tree_shader_default(nullptr, bmain, &material->id);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
 
@@ -536,7 +538,7 @@ static World *rna_Main_worlds_new(Main *bmain, const char *name)
   World *world = BKE_world_add(bmain, safe_name);
   id_us_min(&world->id);
 
-  ED_node_shader_default(nullptr, bmain, &world->id);
+  blender::nodes::node_tree_shader_default(nullptr, bmain, &world->id);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
 

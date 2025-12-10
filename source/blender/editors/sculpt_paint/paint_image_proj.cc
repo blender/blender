@@ -99,6 +99,7 @@
 #include "GPU_capabilities.hh"
 #include "GPU_init_exit.hh"
 
+#include "NOD_defaults.hh"
 #include "NOD_shader.h"
 
 #include "UI_interface_layout.hh"
@@ -6778,7 +6779,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
     bNodeTree *ntree = ma->nodetree;
 
     if (!ntree) {
-      ED_node_shader_default(C, bmain, &ma->id);
+      blender::nodes::node_tree_shader_default(C, bmain, &ma->id);
       ntree = ma->nodetree;
     }
 

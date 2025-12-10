@@ -59,6 +59,8 @@
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
 
+#include "NOD_defaults.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -1725,7 +1727,7 @@ static wmOperatorStatus new_compositing_node_group_exec(bContext *C, wmOperator 
   RNA_string_get(op->ptr, "name", tree_name);
 
   bNodeTree *ntree = new_node_tree_impl(C, tree_name, "CompositorNodeTree");
-  ED_node_composit_default_init(C, ntree);
+  blender::nodes::node_tree_composit_default_init(C, ntree);
 
   WM_event_add_notifier(C, NC_NODE | NA_ADDED, nullptr);
   BKE_ntree_update_after_single_tree_change(*bmain, *ntree);

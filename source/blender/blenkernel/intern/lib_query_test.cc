@@ -29,9 +29,9 @@
 #include "BKE_object.hh"
 #include "BKE_scene.hh"
 
-#include "IMB_imbuf.hh"
+#include "NOD_defaults.hh"
 
-#include "ED_node.hh"
+#include "IMB_imbuf.hh"
 
 namespace blender::bke::tests {
 
@@ -127,7 +127,7 @@ class IDSubDataTestData : public WholeIDTestData {
     /* Add a material that contains an embedded nodetree and assign a custom property to one of
      * its nodes. */
     this->material = BKE_material_add(this->bmain, "Material");
-    ED_node_shader_default(this->C, this->bmain, &this->material->id);
+    blender::nodes::node_tree_shader_default(this->C, this->bmain, &this->material->id);
 
     BKE_object_material_assign(
         this->bmain, this->object, this->material, this->object->actcol, BKE_MAT_ASSIGN_OBJECT);

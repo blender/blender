@@ -26,9 +26,9 @@
 #include "BKE_node.hh"
 #include "BKE_object.hh"
 
-#include "IMB_imbuf.hh"
+#include "NOD_defaults.hh"
 
-#include "ED_node.hh"
+#include "IMB_imbuf.hh"
 
 using namespace blender::bke::id;
 
@@ -100,7 +100,7 @@ class MaterialTestData : public TestData {
   MaterialTestData()
   {
     material = BKE_material_add(this->bmain, "Material");
-    ED_node_shader_default(this->C, this->bmain, &this->material->id);
+    blender::nodes::node_tree_shader_default(this->C, this->bmain, &this->material->id);
     this->material_nodetree = this->material->nodetree;
   }
 };
