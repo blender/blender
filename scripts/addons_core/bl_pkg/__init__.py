@@ -745,6 +745,11 @@ def register():
         description="Show extensions by type",
         default='ADDON',
     )
+    WindowManager.extension_use_filter = BoolProperty(
+        name="Filter Extensions",
+        description="Filter Extensions by Tags & Repository",
+        default=False,
+    )
     WindowManager.extension_show_panel_installed = BoolProperty(
         name="Show Installed Extensions",
         description="Only show installed extensions",
@@ -754,6 +759,21 @@ def register():
         name="Show Installed Extensions",
         description="Only show installed extensions",
         default=True,
+    )
+    WindowManager.extension_repo_filter = EnumProperty(
+        name="Filter by Repository",
+        description="Filter extensions by repository",
+        items=lambda _, context: [
+            # Use `_ALL_` as it's guaranteed never to collide with extension
+            # repository module ID's which cannot start with an underscore
+            ('_ALL_', "All Repositories", "Show extensions from all repositories"),
+            None,
+            *[
+                (repo.module, repo.name, "Only show extensions from this repository")
+                for repo in context.preferences.extensions.repos
+                if repo.enabled
+            ],
+        ],
     )
 
     from bl_ui.space_userpref import USERPREF_MT_interface_theme_presets
@@ -790,8 +810,10 @@ def unregister():
     del WindowManager.extension_tags
     del WindowManager.extension_search
     del WindowManager.extension_type
+    del WindowManager.extension_use_filter
     del WindowManager.extension_show_panel_installed
     del WindowManager.extension_show_panel_available
+    del WindowManager.extension_repo_filter
 
     for cls in classes:
         bpy.utils.unregister_class(cls)
