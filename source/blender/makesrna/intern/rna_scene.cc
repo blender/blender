@@ -6626,6 +6626,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
       {FFM_CRF_LOW, "LOW", 0, "Low Quality", ""},
       {FFM_CRF_VERYLOW, "VERYLOW", 0, "Very Low Quality", ""},
       {FFM_CRF_LOWEST, "LOWEST", 0, "Lowest Quality", ""},
+      {FFM_CRF_CUSTOM, "CUSTOM", 0, "Custom Quality", "Set a custom Constant Rate Factor (CRF)."},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -6760,6 +6761,17 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
       prop,
       "Output Quality",
       "Constant Rate Factor (CRF); tradeoff between video quality and file size");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
+  prop = RNA_def_property(srna, "custom_constant_rate_factor", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "custom_constant_rate_factor");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_range(prop, 0, 63);
+  RNA_def_property_ui_text(
+      prop,
+      "CRF",
+      "A smaller Constant Rate Factor (CRF) results in better video quality but larger file size. "
+      "The range of allowed CRF values is dependent on the codec.");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
   prop = RNA_def_property(srna, "ffmpeg_preset", PROP_ENUM, PROP_NONE);

@@ -398,6 +398,10 @@ void blo_do_versions_510(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 9)) {
     init_node_tool_operator_idnames(*bmain);
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      scene->r.ffcodecdata.custom_constant_rate_factor = 23;
+    }
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 501, 10)) {

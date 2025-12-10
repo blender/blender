@@ -25,6 +25,7 @@
 
 #  include "BLI_fileops.h"
 #  include "BLI_math_base.h"
+#  include "BLI_math_base.hh"
 #  include "BLI_math_color.h"
 #  include "BLI_path_utils.hh"
 #  include "BLI_string.h"
@@ -770,7 +771,9 @@ static void set_quality_rate_options(const MovieWriter *context,
     crf = remap_crf_to_h264_10bpp_crf(crf);
   }
   else if (codec_id == AV_CODEC_ID_H265) {
-    crf = remap_crf_to_h265_crf(crf, is_10_bpp || is_12_bpp);
+    if (!context->custom_crf) {
+      crf = remap_crf_to_h265_crf(crf, is_10_bpp || is_12_bpp);
+    }
     /* Make H.265 much less verbose. */
     av_dict_set(opts, "x265-params", "log-level=1", 0);
   }
@@ -1205,6 +1208,10 @@ static bool start_ffmpeg_impl(MovieWriter *context,
   context->ffmpeg_gop_size = rd->ffcodecdata.gop_size;
   context->ffmpeg_autosplit = (rd->ffcodecdata.flags & FFMPEG_AUTOSPLIT_OUTPUT) != 0;
   context->ffmpeg_crf = rd->ffcodecdata.constant_rate_factor;
+  context->custom_crf = rd->ffcodecdata.constant_rate_factor == FFM_CRF_CUSTOM;
+  if (context->custom_crf) {
+    context->ffmpeg_crf = rd->ffcodecdata.custom_constant_rate_factor;
+  }
   context->ffmpeg_preset = rd->ffcodecdata.ffmpeg_preset;
   context->ffmpeg_profile = 0;
 
@@ -1290,7 +1297,21 @@ static bool start_ffmpeg_impl(MovieWriter *context,
       break;
   }
 
-    /* Returns after this must 'goto fail;' */
+  if (context->custom_crf) {
+    if ((video_codec == AV_CODEC_ID_AV1) || (video_codec == AV_CODEC_ID_H264) ||
+        (video_codec == AV_CODEC_ID_H265))
+    {
+      context->ffmpeg_crf = blender::math::clamp(context->ffmpeg_crf, 0, 51);
+    }
+    else if ((video_codec == AV_CODEC_ID_VP9)) {
+      context->ffmpeg_crf = blender::math::clamp(context->ffmpeg_crf, 0, 63);
+    }
+    else if (video_codec == AV_CODEC_ID_MPEG4) {
+      context->ffmpeg_crf = blender::math::clamp(context->ffmpeg_crf, 1, 31);
+    }
+  }
+
+  /* Returns after this must 'goto fail;' */
 
 #  if LIBAVFORMAT_VERSION_MAJOR >= 59
   of->oformat = fmt;

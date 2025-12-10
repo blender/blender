@@ -115,6 +115,7 @@ typedef enum eFFMpegCrf {
   FFM_CRF_LOW = 26,
   FFM_CRF_VERYLOW = 29,
   FFM_CRF_LOWEST = 32,
+  FFM_CRF_CUSTOM = 128,
 } eFFMpegCrf;
 
 typedef enum eFFMpegAudioChannels {
@@ -178,6 +179,8 @@ typedef struct FFMpegCodecData {
   int max_b_frames;
   int flags;
   int constant_rate_factor;
+  /** Only used if constant_rate_factor flag is set to FFM_CRF_CUSTOM. */
+  int custom_constant_rate_factor;
   /** See eFFMpegPreset. */
   int ffmpeg_preset;
   int ffmpeg_prores_profile;
@@ -187,7 +190,6 @@ typedef struct FFMpegCodecData {
   int rc_buffer_size;
   int mux_packet_size;
   int mux_rate;
-  int _pad;
 
 #ifdef __cplusplus
   IMB_Ffmpeg_Codec_ID codec_id_get() const
