@@ -508,12 +508,14 @@ struct SampleWetPaintData {
   float4 color;
 };
 
-static void do_sample_wet_paint_task(const Object &object,
+static void do_sample_wet_paint_task(const Depsgraph &depsgraph,
+                                     const Object &object,
                                      const Span<float3> vert_positions,
+                                     const Span<float3> vert_normals,
                                      const OffsetIndices<int> faces,
                                      const Span<int> corner_verts,
                                      const GroupedSpan<int> vert_to_face_map,
-                                     const Span<bool> hide_vert,
+                                     const MeshAttributeData &attribute_data,
                                      const GSpan color_attribute,
                                      const bke::AttrDomain color_domain,
                                      const Brush &brush,
@@ -522,13 +524,18 @@ static void do_sample_wet_paint_task(const Object &object,
                                      SampleWetPaintData &swptd)
 {
   const SculptSession &ss = *object.sculpt;
-  const float radius = ss.cache->radius * brush.wet_paint_radius_factor;
+  const StrokeCache &cache = *ss.cache;
+  const float radius = cache.radius * brush.wet_paint_radius_factor;
 
   const Span<int> verts = node.verts();
 
   tls.factors.resize(verts.size());
   const MutableSpan<float> factors = tls.factors;
-  fill_factor_from_hide(hide_vert, verts, factors);
+  fill_factor_from_hide_and_mask(attribute_data.hide_vert, attribute_data.mask, verts, factors);
+  if (brush.flag & BRUSH_FRONTFACE) {
+    calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
+  }
+  auto_mask::calc_vert_factors(depsgraph, object, cache.automasking.get(), node, verts, factors);
 
   tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
@@ -538,8 +545,10 @@ static void do_sample_wet_paint_task(const Object &object,
 
   for (const int i : verts.index_range()) {
     if (factors[i] > 0.0f) {
-      swptd.color += color_vert_get(
-          faces, corner_verts, vert_to_face_map, color_attribute, color_domain, verts[i]);
+      swptd.color +=
+          color_vert_get(
+              faces, corner_verts, vert_to_face_map, color_attribute, color_domain, verts[i]) *
+          factors[i];
       swptd.tot_samples++;
     }
   }
@@ -631,12 +640,14 @@ void do_paint_brush(const Depsgraph &depsgraph,
         [&](const IndexRange range, SampleWetPaintData swptd) {
           ColorPaintLocalData &tls = all_tls.local();
           node_mask.slice(range).foreach_index([&](const int i) {
-            do_sample_wet_paint_task(ob,
+            do_sample_wet_paint_task(depsgraph,
+                                     ob,
                                      vert_positions,
+                                     vert_normals,
                                      faces,
                                      corner_verts,
                                      vert_to_face_map,
-                                     attribute_data.hide_vert,
+                                     attribute_data,
                                      color_attribute.span,
                                      color_attribute.domain,
                                      brush,
