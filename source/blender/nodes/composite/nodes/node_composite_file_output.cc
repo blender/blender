@@ -398,6 +398,35 @@ static void node_extra_info(NodeExtraInfoParams &parameters)
   }
 }
 
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  const bNodeSocket &origin_socket = params.other_socket();
+  if (origin_socket.in_out != SOCK_OUT) {
+    return;
+  }
+  const eNodeSocketDatatype origin_socket_type = eNodeSocketDatatype(origin_socket.type);
+  if (!FileOutputItemsAccessor::supports_socket_type(origin_socket_type, NTREE_COMPOSIT)) {
+    return;
+  }
+  params.add_item("File Output", [](LinkSearchOpParams &params) {
+    bNode &node = params.add_node("CompositorNodeOutputFile");
+    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(params.socket.type);
+    if (socket_type == SOCK_VECTOR) {
+      socket_items::add_item_with_socket_type_and_name<FileOutputItemsAccessor>(
+          params.node_tree,
+          node,
+          socket_type,
+          params.socket.name,
+          params.socket.default_value_typed<bNodeSocketValueVector>()->dimensions);
+    }
+    else {
+      socket_items::add_item_with_socket_type_and_name<FileOutputItemsAccessor>(
+          params.node_tree, node, socket_type, params.socket.name);
+    }
+    params.update_and_connect_available_socket(node, params.socket.name);
+  });
+}
+
 using namespace blender::compositor;
 
 class FileOutputOperation : public NodeOperation {
@@ -849,6 +878,7 @@ static void node_register()
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
   ntype.get_extra_info = node_extra_info;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.get_compositor_operation = get_compositor_operation;
 
   blender::bke::node_register_type(ntype);
